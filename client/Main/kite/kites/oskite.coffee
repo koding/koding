@@ -81,3 +81,9 @@ class KodingKite_OsKite extends KodingKite_VmKite
 
   fsExists: (options) ->
     @fsGetInfo(options).then (result) -> return !!result
+
+  handleError: (update) ->
+    {error} = update
+    warn "vm prepare error ", error.Message
+    @recentState?.state = 'FAILED'
+    @emit 'vm.progress.error', error

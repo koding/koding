@@ -243,7 +243,6 @@ class VirtualizationController extends KDController
     @kites[name][correlationName] = kite
 
   createNewKite: (name, vm) ->
-
     kontrol = KD.getSingleton 'kontrol'
 
     { hostnameAlias: correlationName, region } = vm
@@ -350,12 +349,24 @@ class VirtualizationController extends KDController
         .then(-> resolve kite)
         .catch warn
 
+  shouldUseNewKites: ->
+    new Promise (resolve, reject) ->
+      return resolve KD.useNewKites  if KD.useNewKites?
+      KD.remote.api.JKiteStack.fetchInfo (err, info) ->
+        return reject err  if err?
+        useNewKites = info.isEnabled and Math.random() <= info.ratio
+        KD.useNewKites = useNewKites
+        localStorage.useNewKites = if useNewKites then "1" else "0"
+        resolve useNewKites
+
   handleFetchedVms: (vms, callback) ->
-    if KD.useNewKites
-      @registerNewKites vms
-    else
-      @registerKite vm  for vm in vms
-    KD.utils.defer -> callback null
+    @shouldUseNewKites().then (useNewKites) =>
+      if useNewKites
+        @registerNewKites vms
+      else
+        @registerKite vm  for vm in vms
+    .catch(warn)
+    .nodeify callback
 
   fetchGroupVMs:(force, callback = noop)->
     if @groupVms.length > 0 and not force

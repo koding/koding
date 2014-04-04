@@ -31,8 +31,8 @@ class MainController extends KDController
 
     KD.registerSingleton "mainController",            this
 
-    if KD.useNewKites
-      KD.registerSingleton "kontrol",                 new KodingKontrol
+    # if KD.useNewKites
+    KD.registerSingleton "kontrol",                   new KodingKontrol
 
     KD.registerSingleton "appManager",   appManager = new ApplicationManager
     KD.registerSingleton "notificationController",    new NotificationController

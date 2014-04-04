@@ -6,8 +6,7 @@ KD.extend
   singleton    : KD.getSingleton.bind KD
   useNewKites  :
     if localStorage.useNewKites?
-    then Boolean localStorage.useNewKites
-    else no
+    then Boolean Number localStorage.useNewKites
   appClasses   : {}
   appScripts   : {}
   appLabels    : {}
