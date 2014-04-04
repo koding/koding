@@ -91,10 +91,7 @@ class KiteController extends KDController
     delete @channels[name]
 
   run:(options = {}, callback)->
-
     console.warn "KiteController#run is deprecated"
-    console.log options
-    console.trace()
 
     if "string" is typeof options
       command = options

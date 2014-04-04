@@ -14,6 +14,13 @@ KD.extend
   navItems     : []
   navItemIndex : {}
 
+  toggleKiteStack: ->
+    if @useNewKites
+      delete localStorage.useNewKites
+    else
+      localStorage.useNewKites = '1'
+    location.reload()
+
   socketConnected:->
     @backendIsConnected = yes
 
