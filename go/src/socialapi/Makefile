@@ -1,44 +1,59 @@
-MAKEFLAGS += -j
+# MAKEFLAGS += -j
 NO_COLOR=\033[0m
 OK_COLOR=\033[0;32m
+PWD=`pwd`
+GODIR=$(PWD)/../../../go
+GOBINDIR=$(GODIR)/bin
+CONFIG=./config/vagrant.toml
+GO=
 
-develop: api topicfeed realtime followingfeed
+develop: apidev topicfeeddev realtimedev followingfeeddev
 
-api:
+apidev:
 	@echo "$(OK_COLOR)==> Running API Worker $(NO_COLOR)"
-	../../../go/bin/rerun socialapi/workers/api -c ./config/vagrant.toml -d
-topicfeed:
+	$(GOBINDIR)/rerun socialapi/workers/api -c $(CONFIG) -d
+topicfeeddev:
 	@echo "$(OK_COLOR)==> Running Topic Feed Worker $(NO_COLOR)"
-	../../../go/bin/rerun socialapi/workers/topicfeed -c ./config/vagrant.toml -d
-realtime:
+	$(GOBINDIR)/rerun socialapi/workers/topicfeed -c $(CONFIG) -d
+realtimedev:
 	@echo "$(OK_COLOR)==> Running Realtime Worker $(NO_COLOR)"
-	../../../go/bin/rerun socialapi/workers/realtime -c ./config/vagrant.toml  -d
-followingfeed:
+	$(GOBINDIR)/rerun socialapi/workers/realtime -c $(CONFIG)  -d
+followingfeeddev:
 	@echo "$(OK_COLOR)==> Running Following Feed Worker $(NO_COLOR)"
-	../../../go/bin/rerun socialapi/workers/followingfeed -c ./config/vagrant.toml -d
+	$(GOBINDIR)/rerun socialapi/workers/followingfeed -c $(CONFIG) -d
 
-SUBDIRS = \
+PACKAGES = \
 	socialapi/workers/followingfeed \
 	socialapi/workers/realtime \
 	socialapi/workers/topicfeed
 
 default: all
 
-build:
-	@for dir in $(SUBDIRS); do (go build $$dir); done
+configure: installall installrerun
+	@echo "$(OK_COLOR)==> Configuration is done $(NO_COLOR)"
+
+installrerun:
+	@go get github.com/skelterjohn/rerun
+	@go build github.com/skelterjohn/rerun
+	@go install github.com/skelterjohn/rerun
+
+installall:
+	@for package in $(PACKAGES); do (go build $$package); done
+	@for package in $(PACKAGES); do (go install $$package); done
+	@echo "$(OK_COLOR)==> Installed all packages $(NO_COLOR)"
 
 test:
-	@for dir in $(SUBDIRS); \
+	@for package in $(PACKAGES); \
 	do \
-		(echo "$(OK_COLOR)==> Running go test for $$dir $(NO_COLOR)"); \
-		`which go` test -v $$dir; \
+		(echo "$(OK_COLOR)==> Running go test for $$package $(NO_COLOR)"); \
+		go test -v $$package; \
 	done;
 
 doc:
-	@for dir in $(SUBDIRS); \
+	@for package in $(PACKAGES); \
 	do \
-		(echo "$(OK_COLOR)==> Running godoc for $$dir $(NO_COLOR)"); \
-		`which godoc` $$dir | less; \
+		(echo "$(OK_COLOR)==> Running godoc for $$package $(NO_COLOR)"); \
+		godoc $$package | less; \
 	done;
 
 vet:
