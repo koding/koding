@@ -18,9 +18,15 @@ class FinderController extends KDController
     options.delegate         ?= this
     @controller = new NFinderController options
 
+    @controller.getView().addSubView @getAppTitleView()
     @controller.getView().addSubView @getUploader()
     @controller.getView().addSubView @getMountVMButton()
     return @controller
+
+  getAppTitleView: ->
+    return new KDCustomHTMLView
+      cssClass : "app-header"
+      partial  : "Ace Editor"
 
   getMountVMButton: ->
     @uploaderPlaceholder = new KDButtonView
