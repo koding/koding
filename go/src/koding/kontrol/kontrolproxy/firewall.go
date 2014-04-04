@@ -7,14 +7,14 @@ import (
 	"koding/db/mongodb/modelhelper"
 	"net/http"
 	"regexp"
+	"strconv"
 
-	"github.com/coreos/etcd/log"
-	"github.com/coreos/etcd/store"
 	"github.com/juju/ratelimit"
 )
 
 var (
 	restrictions = make(map[string]*models.Restriction)
+	buckets      = make(map[string]*ratelimit.Bucket)
 )
 
 type Checker interface {
@@ -32,7 +32,8 @@ type CheckCountry struct {
 }
 
 type CheckRequest struct {
-	Domain string
+	Host string
+	Rate int
 }
 
 func firewallHandler(h http.Handler) http.Handler {
@@ -71,7 +72,7 @@ func ApplyRule(rule models.Rule, r *http.Request) http.Handler {
 	}
 
 	// country is empty for now
-	checker, err := GetChecker(filter, getIP(r.RemoteAddr), "")
+	checker, err := GetChecker(filter, getIP(r.RemoteAddr), "", r.Host)
 	if err != nil {
 		return nil
 	}
@@ -102,25 +103,30 @@ func ApplyRule(rule models.Rule, r *http.Request) http.Handler {
 	return nil
 }
 
-func GetChecker(f models.Filter, ip, country string) (Checker, error) {
+func GetChecker(f models.Filter, ip, country, host string) (Checker, error) {
 	switch f.Type {
 	case "ip":
 		return &CheckIP{IP: ip, Pattern: f.Match}, nil
 	case "country":
 		return &CheckCountry{Country: country, Pattern: f.Match}, nil
+	case "request":
+		rate, err := strconv.Atoi(f.Match)
+		if err != nil {
+			return nil, err
+		}
+
+		return &CheckRequest{Host: host, Rate: rate}, nil
 	}
 
 	return nil, errors.New("no checker found")
 }
 
-var buckets = make(map[string]*ratelimit.Bucket)
-
 func (c *CheckRequest) Check() bool {
 	var b *ratelimit.Bucket
-	b, ok := buckets[c.Domain]
+	b, ok := buckets[c.Host]
 	if !ok {
-		b = ratelimit.NewBucketWithRate(60, 60)
-		buckets[c.Domain] = b
+		b = ratelimit.NewBucketWithRate(float64(c.Rate), int64(c.Rate))
+		buckets[c.Host] = b
 	}
 
 	// one request
