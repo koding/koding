@@ -298,31 +298,7 @@ class DevToolsMainView extends KDView
       return new KDNotificationView
         title : "Open an application first"
 
-    app = KodingAppsController.getAppInfoFromPath path
-    options = {path}
-
-    if target is 'production'
-
-      modal = new KodingAppSelectorForGitHub
-        title : "Select repository of #{app.name}.kdapp"
-        customFilter : ///#{app.name}\.kdapp$///
-
-      modal.on "RepoSelected", (repo)=>
-
-        GitHub.getLatestCommit repo.name, (err, commit)=>
-
-          if err
-            return new KDNotificationView
-              title : "Failed to fetch latest commit for #{repo.full_name}"
-
-          options.githubPath = \
-            "#{KD.config.appsUri}/#{repo.full_name}/#{commit.sha}/"
-
-          KodingAppsController.createJApp options, @publishCallback
-
-    else
-
-      KodingAppsController.createJApp options, @publishCallback
+    KodingAppsController.createJApp { path, target }, @publishCallback
 
   publishCallback:(err, app)->
     if err or not app
