@@ -202,6 +202,29 @@ resurrection.finder.styl
 
 .file-container
 
+  .kdbutton#finder-mountvm
+    background    #252e30
+    border        none
+    display       block
+    color         #60787d
+    font-size     14px
+    line-height   32px
+    font-weight   400
+    text-shadow   none
+    width         96%
+    margin        2%
+
+    &:hover
+      background  #60787d
+      color       #252e30
+
+    .button-title
+      color       inherit
+      font-size   inherit
+      line-height inherit
+      font-weight inherit
+      text-shadow inherit
+
   .vm
   .file
   .mount
@@ -432,3 +455,24 @@ resurrection.finder.styl
     abs              11px 11px 0 0
     z-index          10
     r-sprite         "app", "red-close"
+
+
+.kdmodal.mount-vm
+  .kdlistview-vmlist
+    .kdlistitemview
+      padding        8px
+      borderBox()
+
+      &~.kdlistitemview
+        margin       4px 0 0
+
+
+      &:nth-of-type(even)
+        background   #f7f7f7
+        rounded      6px
+
+      label
+        fl()
+
+    .koding-on-off
+      fr()
