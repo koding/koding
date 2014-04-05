@@ -22,35 +22,35 @@ func Slugify(message *ChannelMessage) (*ChannelMessage, error) {
 	slug.Replacement = '-'
 	res := NewChannelMessage()
 
-	sugguestedSlug := slug.Clean(message.Body)
-	if len(sugguestedSlug) > 80 {
-		sugguestedSlug = sugguestedSlug[:79]
+	suggestedSlug := slug.Clean(message.Body)
+	if len(suggestedSlug) > 80 {
+		suggestedSlug = suggestedSlug[:79]
 	}
 
 	query := map[string]interface{}{
-		"slug": sugguestedSlug,
+		"slug": suggestedSlug,
 	}
 
 	rand.Seed(time.Now().UnixNano())
 
 	for tryCount := 0; tryCount < 10; tryCount++ {
-		if err := bongo.B.One(message, res, bongo.NewQS(query)); err != nil {
+		if err := res.One(bongo.NewQS(query)); err != nil {
 			// if we got error from db, it means it couldnt find the
 			// data, so we can return here
 			if err != gorm.RecordNotFound {
 				return nil, err
 			}
-			message.Slug = sugguestedSlug
-			// message.Slug = &sugguestedSlug
-			// message.Slug.String = sugguestedSlug
+			message.Slug = suggestedSlug
+			// message.Slug = &suggestedSlug
+			// message.Slug.String = suggestedSlug
 			// message.Slug.Valid = true
 			return message, nil
 		}
 		// iterate with the new slug
 		// this is not the best strategy to generate slug
 		// but also not the worst
-		sugguestedSlug = sugguestedSlug + "-" + strconv.Itoa(rand.Intn(1000000000))
-		query["slug"] = sugguestedSlug
+		suggestedSlug = suggestedSlug + "-" + strconv.Itoa(rand.Intn(1000000000))
+		query["slug"] = suggestedSlug
 	}
 
 	return nil, fmt.Errorf("Couldnt generate unique slug:%s", message.Slug)
