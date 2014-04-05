@@ -70,7 +70,9 @@ func (s *KodingKite) Start() {
 	registerWithURL := &url.URL{
 		Scheme: "ws",
 		Host:   s.registerIP + ":" + strconv.Itoa(s.Config.Port),
-		Path:   "/",
+		// Put the kite's name and version into path because it is useful
+		// on Chrome Console when developing.
+		Path: "/" + s.Kite.Kite().Name + "-" + s.Kite.Kite().Version,
 	}
 
 	connected, err := s.Kontrol.DialForever()
