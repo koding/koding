@@ -46,11 +46,12 @@ type Channel struct {
 // to-do check for allowed channels
 const (
 	// TYPES
-	Channel_TYPE_GROUP         = "group"
-	Channel_TYPE_TOPIC         = "topic"
-	Channel_TYPE_FOLLOWINGFEED = "followingfeed"
-	Channel_TYPE_FOLLOWERS     = "followers"
-	Channel_TYPE_CHAT          = "chat"
+	Channel_TYPE_GROUP           = "group"
+	Channel_TYPE_TOPIC           = "topic"
+	Channel_TYPE_FOLLOWINGFEED   = "followingfeed"
+	Channel_TYPE_FOLLOWERS       = "followers"
+	Channel_TYPE_CHAT            = "chat"
+	Channel_TYPE_PINNED_ACTIVITY = "pinnedActivity"
 	// Privacy
 	Channel_TYPE_PUBLIC  = "public"
 	Channel_TYPE_PRIVATE = "private"
