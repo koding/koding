@@ -144,8 +144,9 @@ func (c *Channel) Delete() error {
 	return bongo.B.Delete(c)
 }
 
-func (c *Channel) One(selector map[string]interface{}) error {
-	return bongo.B.One(c, c, selector)
+func (c *Channel) One(q *bongo.Query) error {
+	return bongo.B.One(c, c, q)
+}
 
 func (c *Channel) Some(data interface{}, q *bongo.Query) error {
 	return bongo.B.Some(c, data, q)
