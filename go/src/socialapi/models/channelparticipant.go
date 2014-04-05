@@ -68,6 +68,10 @@ func (c *ChannelParticipant) Update() error {
 	return bongo.B.Update(c)
 }
 
+func (c *ChannelParticipant) One(q *bongo.Query) error {
+	return bongo.B.One(c, c, q)
+}
+
 func (c *ChannelParticipant) Some(data interface{}, q *bongo.Query) error {
 	return bongo.B.Some(c, data, q)
 }
@@ -87,7 +91,7 @@ func (c *ChannelParticipant) FetchParticipant() error {
 		// "status_constant":     ChannelParticipant_STATUS_ACTIVE,
 	}
 
-	err := bongo.B.One(c, c, selector)
+	err := c.One(bongo.NewQS(selector))
 	if err != nil {
 		return err
 	}
@@ -105,7 +109,8 @@ func (c *ChannelParticipant) Delete() error {
 		"account_id": c.AccountId,
 		"channel_id": c.ChannelId,
 	}
-	if err := bongo.B.One(c, c, selector); err != nil {
+
+	if err := c.One(bongo.NewQS(selector)); err != nil {
 		return err
 	}
 
