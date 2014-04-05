@@ -294,12 +294,20 @@ func (c *Channel) RemoveMessage(messageId int64) (*ChannelMessageList, error) {
 
 func (c *Channel) List(q *Query) ([]Channel, error) {
 
+	if q.GroupName == "" {
+		return nil, fmt.Errorf("Query doesnt have any Group info %+v", q)
+	}
+
 	var channels []Channel
 
 	query := &bongo.Query{
 		Selector: map[string]interface{}{
 			"group_name": q.GroupName,
 		},
+	}
+
+	if q.Type != "" {
+		query.Selector["type_constant"] = q.Type
 	}
 
 	err := bongo.B.Some(c, &channels, query)
