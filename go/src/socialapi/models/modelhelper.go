@@ -34,7 +34,7 @@ func Slugify(message *ChannelMessage) (*ChannelMessage, error) {
 	rand.Seed(time.Now().UnixNano())
 
 	for tryCount := 0; tryCount < 10; tryCount++ {
-		if err := bongo.B.One(message, res, query); err != nil {
+		if err := bongo.B.One(message, res, bongo.NewQS(query)); err != nil {
 			// if we got error from db, it means it couldnt find the
 			// data, so we can return here
 			if err != gorm.RecordNotFound {
