@@ -24,6 +24,7 @@ type KodingKite struct {
 	Registration *registration.Registration
 	KodingConfig *kodingconfig.Config
 	registerIP   string
+	scheme       string
 }
 
 // New returns a new kite instance based on for the given Koding configurations
@@ -47,6 +48,7 @@ func New(kodingConf *kodingconfig.Config, name, version string) (*KodingKite, er
 		Kontrol:      kon,
 		Registration: registration.New(kon),
 		KodingConfig: kodingConf,
+		scheme:       "ws",
 	}
 
 	kk.registerIP, err = getRegisterIP(kodingConf.Environment)
@@ -61,39 +63,44 @@ func New(kodingConf *kodingconfig.Config, name, version string) (*KodingKite, er
 
 	kk.Log.SetHandler(logging.NewMultiHandler(logging.StderrHandler, syslog))
 
+	if kodingConf.NewKontrol.UseTLS {
+		kk.Server.UseTLSFile(kodingConf.NewKontrol.CertFile, kodingConf.NewKontrol.KeyFile)
+		kk.scheme = "wss"
+	}
+
 	return kk, nil
 }
 
-func (s *KodingKite) Start() {
-	s.Log.Info("Kite has started: %s", s.Kite.Kite())
+func (k *KodingKite) Start() {
+	k.Log.Info("Kite has started: %s", k.Kite.Kite())
 
 	registerWithURL := &url.URL{
-		Scheme: "ws",
-		Host:   s.registerIP + ":" + strconv.Itoa(s.Config.Port),
+		Scheme: k.scheme,
+		Host:   k.registerIP + ":" + strconv.Itoa(k.Config.Port),
 		// Put the kite's name and version into path because it is useful
 		// on Chrome Console when developing.
-		Path: "/" + s.Kite.Kite().Name + "-" + s.Kite.Kite().Version,
+		Path: "/" + k.Kite.Kite().Name + "-" + k.Kite.Kite().Version,
 	}
 
-	connected, err := s.Kontrol.DialForever()
+	connected, err := k.Kontrol.DialForever()
 	if err != nil {
-		s.Server.Log.Fatal("Cannot dial kontrol: %s", err.Error())
+		k.Server.Log.Fatal("Cannot dial kontrol: %s", err.Error())
 	}
-	s.Server.Start()
+	k.Server.Start()
 	go func() {
 		<-connected
-		s.Registration.RegisterToKontrol(registerWithURL)
+		k.Registration.RegisterToKontrol(registerWithURL)
 	}()
 }
 
-func (s *KodingKite) Run() {
-	s.Start()
-	<-s.Server.CloseNotify()
+func (k *KodingKite) Run() {
+	k.Start()
+	<-k.Server.CloseNotify()
 }
 
-func (s *KodingKite) Close() {
-	s.Kontrol.Close()
-	s.Server.Close()
+func (k *KodingKite) Close() {
+	k.Kontrol.Close()
+	k.Server.Close()
 }
 
 func getRegisterIP(environment string) (string, error) {
