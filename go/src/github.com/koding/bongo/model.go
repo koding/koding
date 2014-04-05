@@ -143,9 +143,26 @@ func NewQS(selector map[string]interface{}) *Query {
 
 // selector, sort, limit, pluck,
 func (b *Bongo) Some(i Modellable, data interface{}, q *Query) error {
+	err := b.buildQuery(i, data, q)
+	if err == gorm.RecordNotFound {
+		return nil
+	}
+	return err
+}
 
+func (b *Bongo) One(i Modellable, data interface{}, q *Query) error {
+	q.Limit = 1
+	return b.buildQuery(i, data, q)
+}
+
+func (b *Bongo) buildQuery(i Modellable, data interface{}, q *Query) error {
 	// init query
 	query := b.DB
+
+	// if limit is minus or 0 ignore
+	if q.Limit > 0 {
+		query.Limit(q.Limit)
+	}
 
 	// add sort options
 	query = addSort(query, q.Sort)
@@ -170,16 +187,7 @@ func (b *Bongo) Some(i Modellable, data interface{}, q *Query) error {
 	} else {
 		err = query.Find(data).Error
 	}
-
-	if err == gorm.RecordNotFound {
-		return nil
-	}
 	return err
-}
-
-func (b *Bongo) One(i Modellable, data interface{}, q *Query) error {
-	q.Limit = 1
-	return b.Some(i, data, q)
 }
 
 func (b *Bongo) AfterCreate(i Modellable) {
