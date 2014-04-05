@@ -1,6 +1,7 @@
 package participant
 
 import (
+	"errors"
 	"fmt"
 	"net/http"
 	"net/url"
@@ -41,6 +42,10 @@ func Add(u *url.URL, h http.Header, req *models.ChannelParticipant) (int, http.H
 		return helpers.NewBadRequestResponse(err)
 	}
 
+	if err := checkChannelPrerequisites(channelId, accountId); err != nil {
+		return helpers.NewBadRequestResponse(err)
+	}
+
 	req.AccountId = accountId
 	req.ChannelId = channelId
 	req.StatusConstant = models.ChannelParticipant_STATUS_ACTIVE
@@ -50,6 +55,18 @@ func Add(u *url.URL, h http.Header, req *models.ChannelParticipant) (int, http.H
 	}
 
 	return helpers.NewOKResponse(req)
+}
+
+func checkChannelPrerequisites(channelId, accountId int64) error {
+	c := models.NewChannel()
+	c.Id = channelId
+	if err := c.Fetch(); err != nil {
+		return err
+	}
+	if c.TypeConstant == models.Channel_TYPE_PINNED_ACTIVITY {
+		return errors.New("You can not add a new participant into pinned activity channel")
+	}
+	return nil
 }
 
 func Delete(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface{}, error) {
