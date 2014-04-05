@@ -28,8 +28,8 @@ func (a *Account) TableName() string {
 	return "account"
 }
 
-func (a *Account) One(selector map[string]interface{}) error {
-	return bongo.B.One(a, a, selector)
+func (a *Account) One(q *bongo.Query) error {
+	return bongo.B.One(a, a, q)
 }
 
 func (a *Account) FetchOrCreate() error {
@@ -41,7 +41,7 @@ func (a *Account) FetchOrCreate() error {
 		"old_id": a.OldId,
 	}
 
-	err := a.One(selector)
+	err := a.One(bongo.NewQS(selector))
 	if err == gorm.RecordNotFound {
 		if err := a.Create(); err != nil {
 			return err
@@ -139,7 +139,7 @@ func (a *Account) FetchChannel(channelType string) (*Channel, error) {
 		"type_constant": channelType,
 	}
 
-	if err := c.One(selector); err != nil {
+	if err := c.One(bongo.NewQS(selector)); err != nil {
 		return nil, err
 	}
 
