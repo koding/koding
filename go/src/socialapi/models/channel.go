@@ -121,21 +121,23 @@ func (c *Channel) Create() error {
 		return fmt.Errorf("Channel name %q has empty space in it", c.Name)
 	}
 
-	selector := map[string]interface{}{
-		"name":       c.Name,
-		"group_name": c.GroupName,
-	}
+	// disabled for now,
+	// this logic is not correct
+	// selector := map[string]interface{}{
+	// 	"name":       c.Name,
+	// 	"group_name": c.GroupName,
+	// }
 
-	// if err is nil
-	// it means we already have that channel
-	err := c.One(selector)
-	if err == nil {
-		return fmt.Errorf("Channel %s is already created before for %s group", c.Name, c.GroupName)
-	}
+	// // if err is nil
+	// // it means we already have that channel
+	// err := c.One(selector)
+	// if err == nil {
+	// 	return fmt.Errorf("Channel %s is already created before for %s group", c.Name, c.GroupName)
+	// }
 
-	if err != gorm.RecordNotFound {
-		return err
-	}
+	// if err != gorm.RecordNotFound {
+	// 	return err
+	// }
 
 	return bongo.B.Create(c)
 }
