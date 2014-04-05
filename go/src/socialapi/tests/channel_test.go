@@ -41,14 +41,16 @@ func TestPinnedActivityChannel(t *testing.T) {
 			account, err := createAccount(account)
 			So(err, ShouldBeNil)
 			So(account, ShouldNotBeNil)
+			So(account.Id, ShouldNotEqual, 0)
 
 			nonOwnerAccount := models.NewAccount()
 			nonOwnerAccount.OldId = AccountOldId.Hex()
-			nonOwnerAccount, err := createAccount(nonOwnerAccount)
+			nonOwnerAccount, err = createAccount(nonOwnerAccount)
 			So(err, ShouldBeNil)
 			So(nonOwnerAccount, ShouldNotBeNil)
 
 			Convey("requester should have one", func() {
+				account := account
 				channel, err := fetchPinnedActivityChannel(account)
 				So(err, ShouldBeNil)
 				So(channel, ShouldNotBeNil)
@@ -67,11 +69,11 @@ func TestPinnedActivityChannel(t *testing.T) {
 				channel, err := fetchPinnedActivityChannel(account)
 				So(err, ShouldBeNil)
 				So(channel, ShouldNotBeNil)
-				channelParticipant, err = addChannelParticipant(channel.Id, nonOwnerAccount.Id)
+				channelParticipant, err := addChannelParticipant(channel.Id, nonOwnerAccount.Id)
 				// there should be an err
 				So(err, ShouldNotBeNil)
 				// channel should be nil
-				So(channel, ShouldBeNil)
+				So(channelParticipant, ShouldBeNil)
 			})
 
 			Convey("normal user shouldnt be able to add new participants to it", nil)
