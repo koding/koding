@@ -1,0 +1,126 @@
+package activity
+
+import (
+	"errors"
+	"fmt"
+	"net/http"
+	"net/url"
+	"socialapi/models"
+	"socialapi/workers/api/modules/helpers"
+
+	"github.com/koding/bongo"
+)
+
+func GetPinnedActivityChannel(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface{}, error) {
+	query := helpers.GetQuery(u)
+
+	if query.AccountId == 0 {
+		return helpers.NewBadRequestResponse(fmt.Errorf("Account id is not set for fetching pinned activity channel"))
+	}
+
+	c, err := ensurePinnedActivityChannel(query.AccountId, query.GroupName)
+	if err != nil {
+		return helpers.NewBadRequestResponse(err)
+	}
+
+	return helpers.NewOKResponse(c)
+}
+
+func PinMessage(u *url.URL, h http.Header, req *models.PinRequest) (int, http.Header, interface{}, error) {
+	if err := validatePinRequest(req); err != nil {
+		return helpers.NewBadRequestResponse(err)
+	}
+
+	c, err := ensurePinnedActivityChannel(req.AccountId, req.GroupName)
+	if err != nil {
+		return helpers.NewBadRequestResponse(err)
+	}
+
+	cml, err := c.AddMessage(req.MessageId)
+	if err != nil {
+		return helpers.NewBadRequestResponse(err)
+	}
+
+	return helpers.NewOKResponse(cml)
+}
+
+func List(u *url.URL, h http.Header, req *models.PinRequest) (int, http.Header, interface{}, error) {
+	if err := validatePinRequest(req); err != nil {
+		return helpers.NewBadRequestResponse(err)
+	}
+
+	c, err := ensurePinnedActivityChannel(req.AccountId, req.GroupName)
+	if err != nil {
+		return helpers.NewBadRequestResponse(err)
+	}
+
+	cml, err := c.AddMessage(req.MessageId)
+	if err != nil {
+		return helpers.NewBadRequestResponse(err)
+	}
+
+	return helpers.NewOKResponse(cml)
+}
+
+func UnpinMessage(u *url.URL, h http.Header, req *models.PinRequest) (int, http.Header, interface{}, error) {
+	if err := validatePinRequest(req); err != nil {
+		return helpers.NewBadRequestResponse(err)
+	}
+
+	c, err := ensurePinnedActivityChannel(req.AccountId, req.GroupName)
+	if err != nil {
+		return helpers.NewBadRequestResponse(err)
+	}
+
+	cml, err := c.AddMessage(req.MessageId)
+	if err != nil {
+		return helpers.NewBadRequestResponse(err)
+	}
+
+	return helpers.NewOKResponse(cml)
+}
+
+func validatePinRequest(req *models.PinRequest) error {
+	if req.MessageId == 0 {
+		return errors.New("Message id is not set")
+	}
+
+	if req.AccountId == 0 {
+		return errors.New("Account id is not set")
+	}
+
+	if req.GroupName == "" {
+		return errors.New("Group name is not set")
+	}
+
+	return nil
+}
+
+func ensurePinnedActivityChannel(accountId int64, groupName string) (*models.Channel, error) {
+	c := models.NewChannel()
+	query := &bongo.Query{
+		Selector: map[string]interface{}{
+			"creator_id":    accountId,
+			"group_name":    groupName,
+			"type_constant": models.Channel_TYPE_PINNED_ACTIVITY,
+		},
+	}
+
+	if err := c.Some(c, query); err != nil {
+		return nil, err
+	}
+
+	if c.Id == 0 {
+		c.Name = "PinnedActivity"
+		c.CreatorId = accountId
+		c.GroupName = groupName
+		c.Purpose = "Pinned Activity"
+		c.TypeConstant = models.Channel_TYPE_PINNED_ACTIVITY
+		c.PrivacyConstant = models.Channel_TYPE_PRIVATE
+		if err := c.Create(); err != nil {
+			return nil, err
+		}
+	}
+
+	return c, nil
+}
