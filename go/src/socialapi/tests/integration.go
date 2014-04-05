@@ -17,7 +17,6 @@ func main() {
 	testChannelOperations()
 	testInteractionOperations()
 	testReplyOperations()
-	testHistoryOperations()
 	testFollowingFeedOperations()
 	testFrontpageOperations()
 	testTopicFeedOperations()
