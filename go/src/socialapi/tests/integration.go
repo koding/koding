@@ -6,7 +6,7 @@ import (
 )
 
 var (
-	ENDPOINT   = "http://localhost:8000"
+	ENDPOINT   = "http://localhost:7000"
 	ACCOUNT_ID = int64(1)
 	CHANNEL_ID = int64(1)
 )
