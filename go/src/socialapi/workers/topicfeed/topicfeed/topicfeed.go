@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"socialapi/models"
+	"github.com/koding/bongo"
 	"github.com/koding/logging"
 	"github.com/koding/worker"
 	"github.com/streadway/amqp"
@@ -299,7 +300,7 @@ func fetchTopicChannel(groupName, channelName string) (*models.Channel, error) {
 		"type_constant": models.Channel_TYPE_TOPIC,
 	}
 
-	err := c.One(selector)
+	err := c.One(bongo.NewQS(selector))
 	if err != nil {
 		return nil, err
 	}
