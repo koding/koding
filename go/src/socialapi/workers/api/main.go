@@ -19,7 +19,7 @@ var (
 	cert        = flag.String("cert", "", "certificate pathname")
 	key         = flag.String("key", "", "private key pathname")
 	flagConfig  = flag.String("config", "", "pathname of JSON configuration file")
-	listen      = flag.String("listen", "127.0.0.1:8000", "listen address")
+	listen      = flag.String("listen", "127.0.0.1:7000", "listen address")
 	flagProfile = flag.String("c", "", "Configuration profile from file")
 	flagDebug   = flag.Bool("d", false, "Debug mode")
 
