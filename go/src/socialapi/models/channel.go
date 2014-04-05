@@ -268,6 +268,30 @@ func (c *Channel) AddMessage(messageId int64) (*ChannelMessageList, error) {
 	return cml, nil
 }
 
+func (c *Channel) RemoveMessage(messageId int64) (*ChannelMessageList, error) {
+	if c.Id == 0 {
+		return nil, errors.New("Channel Id is not set")
+	}
+
+	cml := NewChannelMessageList()
+	selector := map[string]interface{}{
+		"channel_id": c.Id,
+		"message_id": messageId,
+	}
+	err := cml.One(bongo.NewQS(selector))
+	// one returns error when record not found case
+	// but we dont care if it is not there tho
+	if err != nil {
+		return nil, err
+	}
+
+	if err := cml.Delete(); err != nil {
+		return nil, err
+	}
+
+	return cml, nil
+}
+
 func (c *Channel) List(q *Query) ([]Channel, error) {
 
 	var channels []Channel
