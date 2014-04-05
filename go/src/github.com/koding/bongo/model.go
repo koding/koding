@@ -171,21 +171,9 @@ func (b *Bongo) Some(i Modellable, data interface{}, q *Query) error {
 	return err
 }
 
-func (b *Bongo) One(i Modellable, data interface{}, selector map[string]interface{}) error {
-
-	// init query
-	query := b.DB
-
-	// add table name
-	query = query.Table(i.TableName())
-
-	// add selector
-	query = addWhere(query, selector)
-
-	// add limit
-	query.Limit(1)
-
-	return query.Find(data).Error
+func (b *Bongo) One(i Modellable, data interface{}, q *Query) error {
+	q.Limit = 1
+	return b.Some(i, data, q)
 }
 
 func (b *Bongo) AfterCreate(i Modellable) {
