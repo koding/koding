@@ -2,6 +2,8 @@ package models
 
 import (
 	"errors"
+	"fmt"
+	"socialapi/config"
 	"time"
 
 	"github.com/koding/bongo"
@@ -69,7 +71,21 @@ func (c *ChannelMessage) Fetch() error {
 	return bongo.B.Fetch(c)
 }
 
+func (c *ChannelMessage) One(q *bongo.Query) error {
+	return bongo.B.One(c, c, q)
+}
+
+func bodyLenCheck(body string) error {
+	if len(body) < config.Get().Limits.MessageBodyMinLen {
+		return fmt.Errorf("Message Body Length should be greater than %d, yours is %d ", config.Get().Limits.MessageBodyMinLen, len(body))
+	}
+	return nil
+}
+
 func (c *ChannelMessage) Update() error {
+	if err := bodyLenCheck(c.Body); err != nil {
+		return err
+	}
 	// only update body
 	err := bongo.B.UpdatePartial(c,
 		map[string]interface{}{
@@ -80,6 +96,10 @@ func (c *ChannelMessage) Update() error {
 }
 
 func (c *ChannelMessage) Create() error {
+	if err := bodyLenCheck(c.Body); err != nil {
+		return err
+	}
+
 	var err error
 	c, err = Slugify(c)
 	if err != nil {
