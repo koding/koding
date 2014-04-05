@@ -48,6 +48,10 @@ func NewInteraction() *Interaction {
 	return &Interaction{}
 }
 
+func (i *Interaction) One(q *bongo.Query) error {
+	return bongo.B.One(i, i, q)
+}
+
 func (i *Interaction) Fetch() error {
 	return bongo.B.Fetch(i)
 }
