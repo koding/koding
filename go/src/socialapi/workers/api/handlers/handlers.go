@@ -3,6 +3,7 @@ package handlers
 import (
 	"net/http"
 	"socialapi/workers/api/modules/account"
+	"socialapi/workers/api/modules/activity"
 	"socialapi/workers/api/modules/channel"
 	"socialapi/workers/api/modules/interaction"
 	"socialapi/workers/api/modules/message"
@@ -110,6 +111,18 @@ func Inject(mux *tigertonic.TrieServeMux) *tigertonic.TrieServeMux {
 
 	// un-follow the account
 	mux.Handle("POST", "/account/{id}/unfollow", handlerWrapper(account.Unfollow, "account-unfollow"))
+
+	// get pinning channel of the account
+	mux.Handle("GET", "/activity/pin/channel", handlerWrapper(activity.GetPinnedActivityChannel, "activity-pin-get-channel"))
+
+	// get pinning channel of the account
+	mux.Handle("GET", "/activity/pin/list", handlerWrapper(activity.List, "activity-pin-list-message"))
+
+	// pin a new status update
+	mux.Handle("POST", "/activity/pin/add", handlerWrapper(activity.PinMessage, "activity-add-pinned-message"))
+
+	// unpin a status update
+	mux.Handle("POST", "/activity/pin/remove", handlerWrapper(activity.UnpinMessage, "activity-remove-pinned-message"))
 
 	// mux.Handle("POST", "/follow/{id}", handlerWrapper(post, "follow-id"))
 	// mux.Handle("POST", "/unfollow/{id}", handlerWrapper(post, "follow-id"))
