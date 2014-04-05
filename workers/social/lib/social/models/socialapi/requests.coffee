@@ -1,4 +1,4 @@
-SOCIAL_API_URL = "http://localhost:8000"
+SOCIAL_API_URL = "http://localhost:7000"
 request        = require 'request'
 
 wrapCallback = (callback)->
