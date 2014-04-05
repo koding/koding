@@ -4,9 +4,11 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"net"
 	"net/url"
 	"os"
 	"strconv"
+	"strings"
 	"sync"
 	"time"
 
@@ -153,6 +155,8 @@ func (c *Client) dial() (err error) {
 	// Reset the wait time.
 	defer c.redialBackOff.Reset()
 
+	fixPortNumber(c.WSConfig.Location)
+
 	c.conn, err = websocket.DialConfig(c.WSConfig)
 	if err != nil {
 		return err
@@ -163,6 +167,28 @@ func (c *Client) dial() (err error) {
 	go c.callOnConnectHandlers()
 
 	return nil
+}
+
+// fixPortNumber appends 80 or 443 depending on the scheme
+// if there is no port number in the URL.
+func fixPortNumber(u *url.URL) {
+	_, _, err := net.SplitHostPort(u.Host)
+	if err != nil {
+		if missingPortErr, ok := err.(*net.AddrError); ok && missingPortErr.Err == "missing port in address" {
+			var port string
+			switch u.Scheme {
+			case "ws":
+				port = "80"
+			case "wss":
+				port = "443"
+			default:
+				panic("unknown scheme: " + u.Scheme)
+			}
+			u.Host = net.JoinHostPort(strings.TrimRight(missingPortErr.Addr, ":"), port)
+		} else {
+			panic(err) // Other kind of error
+		}
+	}
 }
 
 func (c *Client) dialForever(connectNotifyChan chan bool) {
@@ -258,13 +284,13 @@ func (c *Client) processMessage(data []byte) error {
 		id := uint64(method)
 		callback := c.scrubber.GetCallback(id)
 		if callback == nil {
-			err = CallbackNotFoundError{id, msg.Arguments}
+			err = dnode.CallbackNotFoundError{id, msg.Arguments}
 			return err
 		}
 		c.runCallback(callback, msg.Arguments)
 	case string:
 		if handler, ok = c.LocalKite.handlers[method]; !ok {
-			err = MethodNotFoundError{method, msg.Arguments}
+			err = dnode.MethodNotFoundError{method, msg.Arguments}
 			return err
 		}
 		c.runMethod(method, handler, msg.Arguments)
@@ -555,7 +581,7 @@ func sendCallbackID(callbacks map[string]dnode.Path, ch chan<- uint64) {
 // The caller of the Tell() is blocked until the server calls this callback function.
 // Sets theResponse and notifies the caller by sending to done channel.
 func (c *Client) makeResponseCallback(doneChan chan *response, removeCallback <-chan uint64, method string, args []interface{}) dnode.Function {
-	return Callback(func(arguments *dnode.Partial) {
+	return dnode.Callback(func(arguments *dnode.Partial) {
 		// Single argument of response callback.
 		var resp struct {
 			Result *dnode.Partial `json:"result"`
@@ -611,7 +637,7 @@ func (c *Client) makeResponseCallback(doneChan chan *response, removeCallback <-
 func onError(err error) {
 	// TODO do not marshal options again here
 	switch e := err.(type) {
-	case MethodNotFoundError: // Tell the requester "method is not found".
+	case dnode.MethodNotFoundError: // Tell the requester "method is not found".
 		args, err2 := e.Args.Slice()
 		if err2 != nil {
 			return
