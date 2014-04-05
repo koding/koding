@@ -15,16 +15,16 @@ develop: apidev topicfeeddev realtimedev followingfeeddev
 
 apidev:
 	@echo "$(OK_COLOR)==> Running API Worker $(NO_COLOR)"
-	$(GOBINDIR)/rerun socialapi/workers/api -c $(CONFIG) -d
+	@$(GOBINDIR)/rerun socialapi/workers/api -c $(CONFIG) -d
 topicfeeddev:
 	@echo "$(OK_COLOR)==> Running Topic Feed Worker $(NO_COLOR)"
-	$(GOBINDIR)/rerun socialapi/workers/topicfeed -c $(CONFIG) -d
+	@$(GOBINDIR)/rerun socialapi/workers/topicfeed -c $(CONFIG) -d
 realtimedev:
 	@echo "$(OK_COLOR)==> Running Realtime Worker $(NO_COLOR)"
-	$(GOBINDIR)/rerun socialapi/workers/realtime -c $(CONFIG)  -d
+	@$(GOBINDIR)/rerun socialapi/workers/realtime -c $(CONFIG)  -d
 followingfeeddev:
 	@echo "$(OK_COLOR)==> Running Following Feed Worker $(NO_COLOR)"
-	$(GOBINDIR)/rerun socialapi/workers/followingfeed -c $(CONFIG) -d
+	@$(GOBINDIR)/rerun socialapi/workers/followingfeed -c $(CONFIG) -d
 
 PACKAGES = \
 	socialapi/workers/followingfeed \
