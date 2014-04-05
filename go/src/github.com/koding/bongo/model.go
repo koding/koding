@@ -135,6 +135,12 @@ type Query struct {
 	Pluck    string
 }
 
+func NewQS(selector map[string]interface{}) *Query {
+	return &Query{
+		Selector: selector,
+	}
+}
+
 // selector, sort, limit, pluck,
 func (b *Bongo) Some(i Modellable, data interface{}, q *Query) error {
 
