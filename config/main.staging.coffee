@@ -295,7 +295,7 @@ module.exports =
     webPort     : 3020
   newkontrol      :
     username        : "koding"
-    port            : 80
+    port            : 443
     useTLS          : yes
     certFile        : "/opt/koding/certs/koding_com_cert.pem"
     keyFile         : "/opt/koding/certs/koding_com_key.pem"

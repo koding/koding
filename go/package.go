@@ -117,7 +117,7 @@ func buildKontrol() error {
 		appName:       *flagApp,
 		importPath:    kontrolPath,
 		files:         files,
-		version:       "0.0.1",
+		version:       "0.0.2",
 		upstartScript: configUpstart,
 	}
 
