@@ -5,3 +5,9 @@ type PinRequest struct {
 	GroupName string `json:"groupName"`
 	AccountId int64  `json:"accountId"`
 }
+
+func NewPinRequest() *PinRequest {
+	return &PinRequest{
+		GroupName: Channel_KODING_NAME,
+	}
+}
