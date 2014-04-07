@@ -1,6 +1,8 @@
 package main
 
 import (
+	"math/rand"
+	"socialapi/models"
 	"testing"
 
 	. "github.com/smartystreets/goconvey/convey"
@@ -9,7 +11,24 @@ import (
 func TestGroupChannel(t *testing.T) {
 	Convey("while testing group channel", t, func() {
 
-		Convey("channel should be there", nil)
+		Convey("channel should be there", func() {
+			account := models.NewAccount()
+			account.OldId = AccountOldId.Hex()
+			account, err := createAccount(account)
+			So(err, ShouldBeNil)
+			So(account, ShouldNotBeNil)
+
+			channel1, err := createChannelByGroupNameAndType(account.Id, "testgroup", models.Channel_TYPE_GROUP)
+			So(err, ShouldBeNil)
+			So(channel1, ShouldNotBeNil)
+
+			channel2, err := createChannelByGroupNameAndType(account.Id, "testgroup", models.Channel_TYPE_GROUP)
+			So(err, ShouldBeNil)
+			So(channel2, ShouldNotBeNil)
+
+			So(channel1.Id, ShouldEqual, channel2.Id)
+		})
+
 		Convey("owner should be able to update it", func() {
 			account := models.NewAccount()
 			account.OldId = AccountOldId.Hex()
