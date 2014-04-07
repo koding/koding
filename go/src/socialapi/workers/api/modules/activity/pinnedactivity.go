@@ -26,6 +26,22 @@ func GetPinnedActivityChannel(u *url.URL, h http.Header, _ interface{}) (int, ht
 	return helpers.NewOKResponse(c)
 }
 
+func checkPinMessagePrerequisites(channel *models.Channel, pinRequest *models.PinRequest) error {
+	if channel.TypeConstant != models.Channel_TYPE_PINNED_ACTIVITY {
+		return errors.New("You can not add pinned message into this channel")
+	}
+
+	if channel.GroupName != pinRequest.GroupName {
+		return errors.New("Grop name and channel group name doesnt match")
+	}
+
+	if channel.CreatorId != pinRequest.AccountId {
+		return errors.New("Only owner can add new pinned message into this channel")
+	}
+
+	return nil
+}
+
 func PinMessage(u *url.URL, h http.Header, req *models.PinRequest) (int, http.Header, interface{}, error) {
 	if err := validatePinRequest(req); err != nil {
 		return helpers.NewBadRequestResponse(err)
@@ -33,6 +49,10 @@ func PinMessage(u *url.URL, h http.Header, req *models.PinRequest) (int, http.He
 
 	c, err := ensurePinnedActivityChannel(req.AccountId, req.GroupName)
 	if err != nil {
+		return helpers.NewBadRequestResponse(err)
+	}
+
+	if err := checkPinMessagePrerequisites(c, req); err != nil {
 		return helpers.NewBadRequestResponse(err)
 	}
 
@@ -54,6 +74,10 @@ func List(u *url.URL, h http.Header, req *models.PinRequest) (int, http.Header, 
 		return helpers.NewBadRequestResponse(err)
 	}
 
+	if err := checkPinMessagePrerequisites(c, req); err != nil {
+		return helpers.NewBadRequestResponse(err)
+	}
+
 	cml, err := c.AddMessage(req.MessageId)
 	if err != nil {
 		return helpers.NewBadRequestResponse(err)
@@ -69,6 +93,10 @@ func UnpinMessage(u *url.URL, h http.Header, req *models.PinRequest) (int, http.
 
 	c, err := ensurePinnedActivityChannel(req.AccountId, req.GroupName)
 	if err != nil {
+		return helpers.NewBadRequestResponse(err)
+	}
+
+	if err := checkPinMessagePrerequisites(c, req); err != nil {
 		return helpers.NewBadRequestResponse(err)
 	}
 
