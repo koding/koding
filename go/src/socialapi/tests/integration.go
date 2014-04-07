@@ -12,7 +12,6 @@ var (
 )
 
 func main() {
-	testAccountOperations()
 	testMessageOperations()
 	testChannelOperations()
 	testInteractionOperations()
