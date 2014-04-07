@@ -10,14 +10,36 @@ func TestGroupChannel(t *testing.T) {
 	Convey("while testing group channel", t, func() {
 
 		Convey("channel should be there", nil)
+		Convey("owner should be able to update it", func() {
+			account := models.NewAccount()
+			account.OldId = AccountOldId.Hex()
+			account, err := createAccount(account)
+			So(err, ShouldBeNil)
+			So(account, ShouldNotBeNil)
 
-		Convey("owner should be able to update it", nil)
+			channel1, err := createChannelByGroupNameAndType(account.Id, "testgroup", models.Channel_TYPE_GROUP)
+			So(err, ShouldBeNil)
+			So(channel1, ShouldNotBeNil)
+			// fetching channel returns creator id
+			_, err = updateChannel(channel1)
+			So(err, ShouldBeNil)
+		})
 
-		Convey("normal user should not be able to update it", nil)
+		Convey("normal user should not be able to update it", func() {
+			account := models.NewAccount()
+			account.OldId = AccountOldId.Hex()
+			account, err := createAccount(account)
+			So(err, ShouldBeNil)
+			So(account, ShouldNotBeNil)
 
-		Convey("owner cant delete it", nil)
+			channel1, err := createChannelByGroupNameAndType(account.Id, "testgroup", models.Channel_TYPE_GROUP)
+			So(err, ShouldBeNil)
+			So(channel1, ShouldNotBeNil)
 
-		Convey("normal user cant delete it", nil)
+			channel1.CreatorId = rand.Int63()
+			_, err = updateChannel(channel1)
+			So(err, ShouldNotBeNil)
+		})
 
 		Convey("owner cant delete it", func() {
 			account := models.NewAccount()
