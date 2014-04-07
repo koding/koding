@@ -15,54 +15,28 @@ func testChannelOperations() {
 		err = nil
 	}
 
-	_, err = updateChannel(channel)
-	if err != nil {
-		fmt.Println("error while creating channel", err)
-		err = nil
-	}
-
-	channel2, err := getChannel(channel.Id)
-	if err != nil {
-		fmt.Println("error while getting the channel", err)
-		err = nil
-	}
-
-	if channel2.CreatedAt.Second() != channel.CreatedAt.Second() {
-		fmt.Println("channel created ats are not same")
-	}
-
-	err = deleteChannel(channel.Id)
-	if err != nil {
-		fmt.Println("error while deleting the channel", err)
-		err = nil
-	}
-
-	_, err = getChannel(channel.Id)
-	if err == nil {
-		fmt.Println("there should be an error while getting the channel")
-	}
-
-	for i := 0; i < 10; i++ {
-		_, err := createChannel()
-		if err != nil {
-			fmt.Println("error while creating channel", err)
-			err = nil
-		}
-	}
-
-	testChannelParticipantOperations(channel2)
+	testChannelParticipantOperations(channel)
 }
 
 func createChannel() (*models.Channel, error) {
 	c := models.NewChannel()
 	rand.Seed(time.Now().UnixNano())
-	c.GroupName = c.GroupName + strconv.Itoa(rand.Intn(100000000))
+	groupName := c.GroupName + strconv.Itoa(rand.Intn(100000000))
+
+	return createChannelByGroupNameAndType(rand.Int63(), groupName, c.TypeConstant)
+}
+
+func createChannelByGroupNameAndType(creatorId int64, groupName, typeConstant string) (*models.Channel, error) {
+	c := models.NewChannel()
+	c.GroupName = groupName
+	c.CreatorId = creatorId
+	c.TypeConstant = typeConstant
 	c.Name = c.Name + strconv.Itoa(rand.Intn(100000000))
-	cmI, err := sendModel("POST", "/channel", c)
+	cm, err := sendModel("POST", "/channel", c)
 	if err != nil {
 		return nil, err
 	}
-	return cmI.(*models.Channel), nil
+	return cm.(*models.Channel), nil
 }
 
 func updateChannel(cm *models.Channel) (*models.Channel, error) {
