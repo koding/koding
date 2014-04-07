@@ -1,6 +1,7 @@
 package channel
 
 import (
+	"errors"
 	"net/http"
 	"net/url"
 	"socialapi/models"
@@ -48,13 +49,20 @@ func List(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface
 }
 
 func Delete(u *url.URL, h http.Header, req *models.Channel) (int, http.Header, interface{}, error) {
+
 	id, err := helpers.GetURIInt64(u, "id")
 	if err != nil {
 		return helpers.NewBadRequestResponse(err)
 	}
 
 	req.Id = id
+	if err := req.Fetch(); err != nil {
+		return helpers.NewBadRequestResponse(err)
+	}
 
+	if req.TypeConstant == models.Channel_TYPE_GROUP {
+		return helpers.NewBadRequestResponse(errors.New("You can not delete group channel"))
+	}
 	if err := req.Delete(); err != nil {
 		return helpers.NewBadRequestResponse(err)
 	}
