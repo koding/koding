@@ -132,7 +132,16 @@ func TestPinnedActivityChannel(t *testing.T) {
 
 			})
 
-			Convey("Non-exist message should not be added as pinned ", nil)
+			Convey("Non-exist message should not be added as pinned ", func() {
+				// use account id as message id
+				_, err := addPinnedMessage(account.Id, account.Id, "koding")
+				// there should be an err
+				So(err, ShouldBeNil)
+				// use account id as message id
+				_, err = addPinnedMessage(account.Id, account.Id, "koding")
+				// there should be an err
+				So(err, ShouldNotBeNil)
+			})
 			Convey("Messages shouldnt be added as pinned twice ", nil)
 		})
 	})

@@ -265,6 +265,21 @@ func (c *Channel) AddMessage(messageId int64) (*ChannelMessageList, error) {
 	}
 
 	cml := NewChannelMessageList()
+
+	selector := map[string]interface{}{
+		"channel_id": c.Id,
+		"message_id": messageId,
+	}
+	err := cml.One(bongo.NewQS(selector))
+	if err == nil {
+		return nil, errors.New("Message is already in the channel")
+	}
+
+	if err != gorm.RecordNotFound {
+		return nil, err
+	}
+	// silence record not found err
+
 	cml.ChannelId = c.Id
 	cml.MessageId = messageId
 
