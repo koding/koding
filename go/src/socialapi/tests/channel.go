@@ -60,8 +60,15 @@ func getChannel(id int64) (*models.Channel, error) {
 	return cmI.(*models.Channel), nil
 }
 
-func deleteChannel(id int64) error {
-	url := fmt.Sprintf("/channel/%d", id)
-	_, err := sendRequest("DELETE", url, nil)
-	return err
+func deleteChannel(creatorId, channelId int64) error {
+	c := models.NewChannel()
+	c.CreatorId = creatorId
+	c.Id = channelId
+
+	url := fmt.Sprintf("/channel/%d/delete", channelId)
+	_, err := sendModel("POST", url, c)
+	if err != nil {
+		return err
+	}
+	return nil
 }
