@@ -75,9 +75,12 @@ func Inject(mux *tigertonic.TrieServeMux) *tigertonic.TrieServeMux {
 
 	mux.Handle("GET", "/channel", handlerWrapper(channel.List, "channel-list"))
 	// tested
+	// deprecated, here for socialworker
 	mux.Handle("POST", "/channel/{id}", handlerWrapper(channel.Update, "channel-update"))
+	//
+	mux.Handle("POST", "/channel/{id}/update", handlerWrapper(channel.Update, "channel-update"))
 	// tested
-	mux.Handle("DELETE", "/channel/{id}", handlerWrapper(channel.Delete, "channel-delete"))
+	mux.Handle("POST", "/channel/{id}/delete", handlerWrapper(channel.Delete, "channel-delete"))
 	// tested
 	mux.Handle("GET", "/channel/{id}", handlerWrapper(channel.Get, "channel-get"))
 
