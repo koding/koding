@@ -74,6 +74,7 @@ func main() {
 
 	if conf.NewKontrol.UseTLS {
 		kon.Server.UseTLSFile(conf.NewKontrol.CertFile, conf.NewKontrol.KeyFile)
+		kon.Server.Config.Port = 443
 	}
 
 	kon.Run()
