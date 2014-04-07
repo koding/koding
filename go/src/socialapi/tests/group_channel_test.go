@@ -44,6 +44,8 @@ func TestGroupChannel(t *testing.T) {
 			So(err, ShouldBeNil)
 		})
 
+		Convey("owner should only be able to update name and purpose of the channel", nil)
+
 		Convey("normal user should not be able to update it", func() {
 			account := models.NewAccount()
 			account.OldId = AccountOldId.Hex()
