@@ -79,9 +79,9 @@ func TestChannelCreation(t *testing.T) {
 
 				channelParticipant, err := addChannelParticipant(channel1.Id, account1.Id, nonOwnerAccount.Id)
 				// there should be an err
-				So(err, ShouldNotBeNil)
+				So(err, ShouldBeNil)
 				// channel should be nil
-				So(channelParticipant, ShouldBeNil)
+				So(channelParticipant, ShouldNotBeNil)
 
 				_, err = deleteChannelParticipant(channel1.Id, account1.Id, nonOwnerAccount.Id)
 				// there should be an err
@@ -95,9 +95,9 @@ func TestChannelCreation(t *testing.T) {
 
 				channelParticipant, err := addChannelParticipant(channel1.Id, account1.Id, nonOwnerAccount.Id)
 				// there should be an err
-				So(err, ShouldNotBeNil)
+				So(err, ShouldBeNil)
 				// channel should be nil
-				So(channelParticipant, ShouldBeNil)
+				So(channelParticipant, ShouldNotBeNil)
 
 				_, err = deleteChannelParticipant(channel1.Id, nonOwnerAccount.Id, nonOwnerAccount.Id)
 				// there should be an err
