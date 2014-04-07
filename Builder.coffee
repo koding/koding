@@ -65,25 +65,17 @@ module.exports = class Builder
       retina   : '@2x'
     , (err, helper)=>
       spriteHelper = helper
-      @buildKiteJs =>
-        @buildClient options
+      @buildClient options
 
   buildFramework:->
 
     @config ?= require('koding-config-manager').load("main.#{options.configFile}")
-    cmd = "cd client/Framework;npm i;gulp compile --buildVersion=#{@config.client.version} --outputDir=../../website/a/"
+    cmd = "cd client/Framework && npm i && gulp compile --buildVersion=#{@config.client.version} --outputDir=../../website/a/"
     exec cmd, (err, stdout, stderr)->
       console.warn "------------------------ FRAMEWORK COMPILED -------------------------- "
       console.warn " To use watcher for Framework use following command in different tab:  "
       console.log  " $ #{cmd.replace 'compile ', ''} "
       console.warn "------------------------ FRAMEWORK COMPILED -------------------------- "
-
-  buildKiteJs: (callback) ->
-    exec "cd kite.js;npm i;gulp", (err, stdout, stderr) ->
-      console.log "------------------------- KITEJS COMPILED -------------------------"
-      console.log "STDOUT: #{ stdout }"
-      console.log "STDERR: #{ stderr }"
-      callback()
 
   buildClient: (options) ->
     @config ?= require('koding-config-manager').load("main.#{options.configFile}")
