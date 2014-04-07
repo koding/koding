@@ -77,7 +77,7 @@ func TestChannelCreation(t *testing.T) {
 				So(err, ShouldBeNil)
 				So(channel1, ShouldNotBeNil)
 
-				channelParticipant, err := addChannelParticipant(channel1.Id, nonOwnerAccount.Id, nonOwnerAccount.Id)
+				channelParticipant, err := addChannelParticipant(channel1.Id, account1.Id, nonOwnerAccount.Id)
 				// there should be an err
 				So(err, ShouldNotBeNil)
 				// channel should be nil
@@ -93,7 +93,7 @@ func TestChannelCreation(t *testing.T) {
 				So(err, ShouldBeNil)
 				So(channel1, ShouldNotBeNil)
 
-				channelParticipant, err := addChannelParticipant(channel1.Id, nonOwnerAccount.Id, nonOwnerAccount.Id)
+				channelParticipant, err := addChannelParticipant(channel1.Id, account1.Id, nonOwnerAccount.Id)
 				// there should be an err
 				So(err, ShouldNotBeNil)
 				// channel should be nil
