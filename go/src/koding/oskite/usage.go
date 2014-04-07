@@ -15,6 +15,18 @@ import (
 	"labix.org/v2/mgo/bson"
 )
 
+const (
+	ErrTokenRequired    = "TOKEN_REQUIRED"
+	ErrUsernameRequired = "USERNAME_REQUIRED"
+	ErrGroupRequired    = "GROUPNAME_REQUIRED"
+	ErrKiteNotFound     = "KITE_NOT_FOUND"
+	ErrUserNotFound     = "USER_NOT_FOUND"
+	ErrGroupNotFound    = "GROUP_NOT_FOUND"
+	ErrInvalid          = "NOT_A_MEMBER_OF_GROUP"
+	ErrKiteNoPlan       = "KITE_HAS_NO_PLAN"
+	ErrNoSubscription   = "NO_SUBSCRIPTION"
+)
+
 type Plan struct {
 	CPU         int `json:"cpu"`
 	RAM         int `json:"ram"`  // Memory usage in MB
@@ -32,7 +44,9 @@ type PlanResponse struct {
 }
 
 type subscriptionResp struct {
-	Plan string `json:"plan"`
+	Plan   string `json:"plan"`
+	PlanId string `json:"planId"`
+	Err    string `json:"err"`
 }
 
 var (
@@ -182,6 +196,13 @@ func getSubscription(username, groupname string) (string, error) {
 	var s = new(subscriptionResp)
 	if err := json.Unmarshal(body, s); err != nil {
 		return "", errors.New("Subscription data is malformed")
+	}
+
+	if resp.StatusCode != 200 {
+		if s.Err != "" {
+			return "", errors.New(s.Err)
+		}
+		return "", errors.New("api not allowed")
 	}
 
 	return s.Plan, nil
