@@ -529,10 +529,13 @@ func (o *Oskite) registerMethod(method string, concurrent bool, callback func(*d
 			}
 		}()
 
-		// protect each callback with their own associated mutex
 		info := getInfo(vm)
-		info.mutex.Lock()
-		defer info.mutex.Unlock()
+
+		// protect each callback with their own associated mutex
+		if !concurrent {
+			info.mutex.Lock()
+			defer info.mutex.Unlock()
+		}
 
 		// stop our famous 30/45/60 shutdown timer. Basically we stop the timer
 		// if any method call is made to us. The timer is started again if the
