@@ -26,6 +26,10 @@ func validateChannelRequest(c *models.Channel) error {
 }
 
 func Create(u *url.URL, h http.Header, req *models.Channel) (int, http.Header, interface{}, error) {
+	if err := validateChannelRequest(req); err != nil {
+		return helpers.NewBadRequestResponse(err)
+	}
+
 	if err := req.Create(); err != nil {
 		return helpers.NewBadRequestResponse(err)
 	}
