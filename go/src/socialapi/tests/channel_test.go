@@ -118,10 +118,33 @@ func TestPinnedActivityChannel(t *testing.T) {
 				So(err, ShouldBeNil)
 			})
 
+			Convey("owner should be able to list messages", func() {
+				channel, err := fetchPinnedActivityChannel(account)
+				So(err, ShouldBeNil)
+				So(channel, ShouldNotBeNil)
+				history, err := getHistory(channel.Id, account.Id)
+				// there should be an err
+				So(err, ShouldBeNil)
+				// channel should be nil
+				So(history, ShouldNotBeNil)
+
+				So(history, ShouldNotBeNil)
+
+			})
+
 			Convey("Non-exist message should not be added as pinned ", nil)
 			Convey("Messages shouldnt be added as pinned twice ", nil)
 		})
 	})
+}
+
+func listPinnedMessages(accountId int64, groupName string) (*models.HistoryResponse, error) {
+	url := fmt.Sprintf("/activity/pin/list?accountId=%d&groupName=%s", accountId, groupName)
+	history, err := sendModel("GET", url, models.NewHistoryResponse())
+	if err != nil {
+		return nil, err
+	}
+	return history.(*models.HistoryResponse), nil
 }
 
 func addPinnedMessage(accountId, messageId int64, groupName string) (*models.PinRequest, error) {

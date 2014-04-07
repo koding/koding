@@ -64,26 +64,29 @@ func PinMessage(u *url.URL, h http.Header, req *models.PinRequest) (int, http.He
 	return helpers.NewOKResponse(cml)
 }
 
-func List(u *url.URL, h http.Header, req *models.PinRequest) (int, http.Header, interface{}, error) {
-	if err := validatePinRequest(req); err != nil {
-		return helpers.NewBadRequestResponse(err)
+func List(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface{}, error) {
+	query := helpers.GetQuery(u)
+
+	if query.AccountId == 0 {
+		return helpers.NewBadRequestResponse(errors.New("Account id is not set for fetching pinned activities"))
 	}
 
-	c, err := ensurePinnedActivityChannel(req.AccountId, req.GroupName)
+	if query.GroupName == "" {
+		return helpers.NewBadRequestResponse(errors.New("GroupName is not set for fetching pinned activities"))
+	}
+
+	c, err := ensurePinnedActivityChannel(query.AccountId, query.GroupName)
 	if err != nil {
 		return helpers.NewBadRequestResponse(err)
 	}
 
-	if err := checkPinMessagePrerequisites(c, req); err != nil {
-		return helpers.NewBadRequestResponse(err)
+	if c.CreatorId != query.AccountId {
+		return helpers.NewBadRequestResponse(errors.New("Only owner can list pinned messages"))
 	}
 
-	cml, err := c.AddMessage(req.MessageId)
-	if err != nil {
-		return helpers.NewBadRequestResponse(err)
-	}
-
-	return helpers.NewOKResponse(cml)
+	cml := models.NewChannelMessageList()
+	cml.ChannelId = c.Id
+	return helpers.HandleResultAndError(cml.List(query))
 }
 
 func UnpinMessage(u *url.URL, h http.Header, req *models.PinRequest) (int, http.Header, interface{}, error) {
