@@ -31,6 +31,8 @@ class WebTermAppView extends JView
     @on 'VMItemClicked',     @bound 'prepareAndRunTerminal'
     @on 'PlusHandleClicked', @bound 'handlePlusClick'
 
+    {vmController} = KD.singletons
+    vmController.on 'vm.progress.error', => notify cssClass : 'error'
 
   initPane: (pane) ->
 
@@ -302,12 +304,8 @@ class WebTermAppView extends JView
 
     if recentState?.state is 'RUNNING'
       @createNewTab {vm, mode}
-    else if recentState?.state is 'STOPPED'
+    else if recentState?.state is 'STOPPED' or 'FAILED'
       osKite?.vmOn()
-    else
-      notify cssClass : 'error'
-      osKite?.vmOff()
-
 
 
   pistachio: ->

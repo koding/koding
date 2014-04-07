@@ -72,7 +72,7 @@ class AppsAppController extends AppController
     options =
       feedId                : 'apps.main'
       itemClass             : AppsListItemView
-      limitPerPage          : 10
+      limitPerPage          : 12
       delegate              : this
       useHeaderNav          : yes
       filter                :
@@ -161,13 +161,27 @@ class AppsAppController extends AppController
             @_verifiedOnly = state
             @feedController.reload()
 
+        @_lastQuery = {}
+        @_reloadButton = new KDButtonView
+          style     : 'refresh-button transparent'
+          title     : ''
+          icon      : yes
+          iconOnly  : yes
+          callback  : =>
+            @feedController.handleQuery @_lastQuery, force: yes
+
+        facets = controller.facetsController.getView()
+        facets.addSubView @_reloadButton
+
         feed = controller.getView()
         feed.addSubView @verifiedSwitchLabel
         feed.addSubView @verifiedSwitch
 
         view.addSubView @_lastSubview = feed
+
         @feedController = controller
         controller.loadFeed()  if loadFeed
+
         @emit 'ready'
 
         {kiteButton} = @getView()
@@ -185,12 +199,31 @@ class AppsAppController extends AppController
     @ready =>
       if query.q? or @_searchValue
         @emit "searchFilterChanged", query.q or ""
-      @feedController.handleQuery query, force: yes
+
+      @feedController.handleQuery query
+      @_lastQuery = query
 
   handleRoute:(route)->
 
     getAppInstance route, (err, app)=>
-      if not err and app then @showContentDisplay app
+      if not err and app
+      then @showContentDisplay app
+
+  # Experimental ~ GG
+  showAppDetailsModal:(app)->
+
+    if @modal
+      # To prevent going back to apps
+      @modal.off "KDObjectWillBeDestroyed"
+      @modal.destroy()
+
+    appView = new AppDetailsView {cssClass : "app-details"}, app
+    @modal  = new KDModalView
+      view  : appView
+
+    @modal.on "KDObjectWillBeDestroyed", =>
+      @modal = null
+      KD.singletons.router.clear "/Apps"
 
   showContentDisplay:(content)->
 
