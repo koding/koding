@@ -2,7 +2,7 @@ fs = require 'fs'
 { join: joinPath } = require 'path'
 
 versionFile = (kiteName) ->
-  fs.readFileSync (joinPath __dirname, "../versions/#{ kiteName }.version"), 'utf-8'
+  (fs.readFileSync (joinPath __dirname, "../versions/#{ kiteName }.version"), 'utf-8').trim()
 
 module.exports =
   os:
