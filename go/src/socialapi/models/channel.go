@@ -132,7 +132,8 @@ func (c *Channel) Create() error {
 		// it means we already have that channel
 		err := c.One(bongo.NewQS(selector))
 		if err == nil {
-			return fmt.Errorf("%s typed channel is already created before for %s group", c.TypeConstant, c.GroupName)
+			return c, nil
+			// return fmt.Errorf("%s typed channel is already created before for %s group", c.TypeConstant, c.GroupName)
 		}
 
 		if err != gorm.RecordNotFound {
