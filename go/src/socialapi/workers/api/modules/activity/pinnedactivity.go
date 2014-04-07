@@ -103,7 +103,7 @@ func UnpinMessage(u *url.URL, h http.Header, req *models.PinRequest) (int, http.
 		return helpers.NewBadRequestResponse(err)
 	}
 
-	cml, err := c.AddMessage(req.MessageId)
+	cml, err := c.RemoveMessage(req.MessageId)
 	if err != nil {
 		return helpers.NewBadRequestResponse(err)
 	}
