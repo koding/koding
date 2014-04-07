@@ -67,6 +67,21 @@ func spawnFuncOld(args *dnode.Partial, c *kite.Channel, vos *virt.VOS) (interfac
 	return spawnFunc(command, vos)
 }
 
+func spawnAsyncFuncOld(args *dnode.Partial, c *kite.Channel, vos *virt.VOS) (interface{}, error) {
+	var command []string
+
+	if args == nil {
+		return nil, &kite.ArgumentError{Expected: "empty argument passed"}
+	}
+
+	if args.Unmarshal(&command) != nil {
+		return nil, &kite.ArgumentError{Expected: "[array of strings]"}
+	}
+
+	go spawnFunc(command, vos)
+	return true, nil
+}
+
 func execFuncOld(args *dnode.Partial, c *kite.Channel, vos *virt.VOS) (interface{}, error) {
 	var line string
 
@@ -81,10 +96,26 @@ func execFuncOld(args *dnode.Partial, c *kite.Channel, vos *virt.VOS) (interface
 	return execFunc(false, line, vos)
 }
 
+func execAsyncFuncOld(args *dnode.Partial, c *kite.Channel, vos *virt.VOS) (interface{}, error) {
+	var line string
+
+	if args == nil {
+		return nil, &kite.ArgumentError{Expected: "empty argument passed"}
+	}
+
+	if args.Unmarshal(&line) != nil {
+		return nil, &kite.ArgumentError{Expected: "[string]"}
+	}
+
+	go execFunc(false, line, vos)
+	return true, nil
+}
+
 func execRoot(args *dnode.Partial, c *kite.Channel, vos *virt.VOS) (interface{}, error) {
 	var params struct {
 		Command  string
 		Password string
+		Async    bool
 	}
 
 	if args == nil {
@@ -102,6 +133,11 @@ func execRoot(args *dnode.Partial, c *kite.Channel, vos *virt.VOS) (interface{},
 	_, err := modelhelper.CheckAndGetUser(c.Username, params.Password)
 	if err != nil {
 		return nil, errors.New("Permissiond denied. Wrong password")
+	}
+
+	if params.Async {
+		go execFunc(true, params.Command, vos)
+		return true, nil
 	}
 
 	return execFunc(true, params.Command, vos)
