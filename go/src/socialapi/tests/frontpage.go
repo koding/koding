@@ -67,7 +67,7 @@ func populateChannelwithAccount(accountId int64) (*models.Channel, error) {
 		return nil, err
 	}
 
-	_, err = addChannelParticipant(channel.Id, accountId)
+	_, err = addChannelParticipant(channel.Id, accountId, accountId)
 	if err != nil {
 		return nil, err
 	}

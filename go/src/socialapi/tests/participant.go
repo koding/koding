@@ -39,7 +39,7 @@ func testChannelParticipantOperations(channel *models.Channel) {
 
 	}
 
-	err = deleteChannelParticipant(channel.Id, channelParticipant)
+	_, err = deleteChannelParticipant(channel.Id, channelParticipant.Id, channelParticipant.Id)
 	if err != nil {
 		fmt.Println("error while deleting the channelParticipant", err)
 		err = nil
@@ -67,14 +67,14 @@ func testChannelParticipantOperations(channel *models.Channel) {
 }
 
 func createChannelParticipant(channelId int64) (*models.ChannelParticipant, error) {
-	return addChannelParticipant(channelId, rand.Int63())
+	return addChannelParticipant(channelId, rand.Int63(), rand.Int63())
 }
 
-func addChannelParticipant(channelId, accountId int64) (*models.ChannelParticipant, error) {
+func addChannelParticipant(channelId, requesterId, accountId int64) (*models.ChannelParticipant, error) {
 	c := models.NewChannelParticipant()
-	c.AccountId = accountId
+	c.AccountId = requesterId
 
-	url := fmt.Sprintf("/channel/%d/participant/%d", channelId, c.AccountId)
+	url := fmt.Sprintf("/channel/%d/participant/%d/add", channelId, accountId)
 	cmI, err := sendModel("POST", url, c)
 	if err != nil {
 		return nil, err
@@ -98,9 +98,14 @@ func getChannelParticipants(channelId int64) ([]*models.ChannelParticipant, erro
 	return participants, nil
 }
 
-func deleteChannelParticipant(channelId int64, data *models.ChannelParticipant) error {
-	data.StatusConstant = models.ChannelParticipant_STATUS_LEFT
-	url := fmt.Sprintf("/channel/%d/participant/%d", channelId, data.AccountId)
-	_, err := sendRequest("DELETE", url, nil)
-	return err
+func deleteChannelParticipant(channelId int64, requesterId, accountId int64) (*models.ChannelParticipant, error) {
+	c := models.NewChannelParticipant()
+	c.AccountId = requesterId
+
+	url := fmt.Sprintf("/channel/%d/participant/%d/delete", channelId, accountId)
+	cmI, err := sendModel("POST", url, c)
+	if err != nil {
+		return nil, err
+	}
+	return cmI.(*models.ChannelParticipant), nil
 }
