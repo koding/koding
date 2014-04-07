@@ -103,6 +103,69 @@ func TestChannelCreation(t *testing.T) {
 				// there should be an err
 				So(err, ShouldNotBeNil)
 			})
+
+			Convey("owner should be able list participants", func() {
+				channel1, err := createChannelByGroupNameAndType(account1.Id, "testgroup", models.Channel_TYPE_CHAT)
+				So(err, ShouldBeNil)
+				So(channel1, ShouldNotBeNil)
+
+				// add first participant
+				channelParticipant1, err := addChannelParticipant(channel1.Id, account1.Id, nonOwnerAccount.Id)
+				// there should be an err
+				So(err, ShouldBeNil)
+				// channel should be nil
+				So(channelParticipant1, ShouldNotBeNil)
+
+				nonOwnerAccount2 := models.NewAccount()
+				nonOwnerAccount2.OldId = AccountOldId3.Hex()
+				nonOwnerAccount2, err = createAccount(nonOwnerAccount2)
+				So(err, ShouldBeNil)
+				So(nonOwnerAccount2, ShouldNotBeNil)
+
+				channelParticipant2, err := addChannelParticipant(channel1.Id, account1.Id, nonOwnerAccount2.Id)
+				// there should be an err
+				So(err, ShouldBeNil)
+				// channel should be nil
+				So(channelParticipant2, ShouldNotBeNil)
+
+				participants, err := listChannelParticipants(channel1.Id, account1.Id)
+				// there should be an err
+				So(err, ShouldBeNil)
+				So(participants, ShouldNotBeNil)
+				So(len(participants), ShouldEqual, 2)
+
+			})
+
+			Convey("normal user should be able to list participants", func() {
+				channel1, err := createChannelByGroupNameAndType(account1.Id, "testgroup", models.Channel_TYPE_CHAT)
+				So(err, ShouldBeNil)
+				So(channel1, ShouldNotBeNil)
+
+				// add first participant
+				channelParticipant1, err := addChannelParticipant(channel1.Id, account1.Id, nonOwnerAccount.Id)
+				// there should be an err
+				So(err, ShouldBeNil)
+				// channel should be nil
+				So(channelParticipant1, ShouldNotBeNil)
+
+				nonOwnerAccount2 := models.NewAccount()
+				nonOwnerAccount2.OldId = AccountOldId3.Hex()
+				nonOwnerAccount2, err = createAccount(nonOwnerAccount2)
+				So(err, ShouldBeNil)
+				So(nonOwnerAccount2, ShouldNotBeNil)
+
+				channelParticipant2, err := addChannelParticipant(channel1.Id, account1.Id, nonOwnerAccount2.Id)
+				// there should be an err
+				So(err, ShouldBeNil)
+				// channel should be nil
+				So(channelParticipant2, ShouldNotBeNil)
+
+				participants, err := listChannelParticipants(channel1.Id, nonOwnerAccount2.Id)
+				// there should be an err
+				So(err, ShouldBeNil)
+				So(participants, ShouldNotBeNil)
+				So(len(participants), ShouldEqual, 2)
+			})
 		})
 	})
 }
