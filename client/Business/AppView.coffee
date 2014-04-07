@@ -3,70 +3,17 @@ class BusinessView extends KDView
   constructor:->
     super
 
+    @videoButton = new KDButtonView
+      title       : "Watch video"
+      style       : "solid thin medium light-gray"
+
     @signUpButton = new KDButtonView
-      title       : "SIGN UP NOW"
-      style       : "solid medium green"
+      title       : "Signup"
+      style       : "solid medium light-gray"
 
-    @learnMoreButton = new KDButtonView
-      title       : "LEARN MORE"
-      style       : "solid medium white thin"
-
-    @signInButton = new KDButtonView
-      title       : "SIGN IN"
-      style       : "solid medium white thin"
-
-    @contentSlider = window.a = new BusinessSliderView
-      contents     :
-        first      :
-          title    : "Control your dev environment like a boss"
-          subTitle : "Keep control your team in a intranet-like space with ready to roll VMs, in the cloud!"
-          imgUrl   : "/a/images/biz-slider/1.jpg"
-        second     :
-          title    : "Lorem ipsum dolor sit amet, consectetur adipiscing elit"
-          subTitle : "Keep control your team in a intranet-like space with ready to roll VMs, in the cloud!"
-          imgUrl   : "/a/images/biz-slider/1.jpg"
-        third      :
-          title    : "Control your dev environment like a boss"
-          subTitle : "Keep control your team in a intranet-like space with ready to roll VMs, in the cloud!"
-          imgUrl   : "/a/images/biz-slider/1.jpg"
-        fourth     :
-          title    : "Lorem ipsum dolor sit amet, consectetur adipiscing elit"
-          subTitle : "Keep control your team in a intranet-like space with ready to roll VMs, in the cloud!"
-          imgUrl   : "/a/images/biz-slider/1.jpg"
-
-    @planSlidersWrapper = new KDView
-
-    appManager = KD.singleton "appManager"
-    appManager.require "Pricing", =>
-
-      @resPackSlider = new PricingPlanSelection
-        title             : "Resource Pack"
-        unitPrice         : 20
-        amountSuffix      : "x"
-        slider            :
-          minValue        : 1
-          maxValue        : 250
-          interval        : 5
-          snapOnDrag      : yes
-          handles         : [@resourceQuantity]
-          width           : 715
-          drawOpposite    : yes
-
-      @userSlider = new PricingPlanSelection
-        title             : "Resource Pack"
-        unitPrice         : 20
-        amountSuffix      : "x"
-        slider            :
-          minValue        : 1
-          maxValue        : 250
-          interval        : 5
-          snapOnDrag      : yes
-          handles         : [@resourceQuantity]
-          width           : 715
-          drawOpposite    : yes
-
-      @planSlidersWrapper.addSubView @resPackSlider
-      @planSlidersWrapper.addSubView @userSlider
+    @LoginButton = new KDButtonView
+      title       : "Login"
+      style       : "solid small light-gray"
 
   viewAppended: JView::viewAppended
 
@@ -75,105 +22,114 @@ class BusinessView extends KDView
       <section class="introduction">
         <div class="inner-container clearfix">
           <nav>
-            <a href="#">ABOUT</a>
-            <a href="#">PRICING</a>
-            <a href="#">BLOG</a>
-            {{> @signInButton}}
+            <a href="#">Business</a>
+            <a href="#">Education</a>
+            <a href="#">Pricing</a>
+            <a href="#">About</a>
+            <a href="#">Contact</a>
+            {{> @LoginButton}}
           </nav>
           <article>
-            <h2>Koding for Business</h2>
+            <h2>Social development environment</h2>
             <p>
-              Ruby. Python. PHP. doesn’t matter. No setup,<br>
-              just working VMs ready to roll. Watch a <em>quick video</em><br>
-              to get the idea.
+              Aliquam eget turpis venenatis, vestibulum mauris ut, viverra nisl. Curabitur in ultrices arcu.<br> Nulla varius mi nec massa aliquam, sit amet gravida libero tempor.
             </p>
             {{> @signUpButton}}
-            {{> @learnMoreButton}}
+            <span class="seperator">&</span>
+            {{> @videoButton}}
           </article>
-          <figure></figure>
         </div>
+      </section>
+
+      <section class="screenshots">
+        <div></div>
       </section>
 
       <section class="features">
         <div class="inner-container clearfix">
-          <div class="appstore feature">
-            <h3>APPSTORE</h3>
-            <p>Koding apps to speed up your noob processes<p>
-          </div>
-          <div class="teamwork feature">
-            <h3>TEAMWORK</h3>
-            <p>Collaborative development environment for your pleasure<p>
-          </div>
-          <div class="social feature">
-            <h3>SOCIAL</h3>
-            <p>Ask the masters of code, help out the poor noob.<p>
-          </div>
-        </div>
-      </section>
-
-      <section class="content-slider">
-        <div class="inner-container">
-          {{> @contentSlider}}
-        </div>
-      </section>
-
-      <section class="pricing">
-        <div class="inner-container clearfix">
-          <h3 class="general-title">Single developer or a team, doesn’t really matter</h3>
-          <h4 class="general-subtitle">Super-scalable pricing for your scalable projects</h4>
-
-          <div class="big box with-arrow">
-            {{> @planSlidersWrapper}}
-          </div>
-          <div class="small box">
-
-          </div>
-
-        </div>
-      </section>
-
-      <section class="quotes">
-        <div class="inner-container clearfix">
-          <h3 class="general-title">Hearing good things about your product is awesome</h3>
-          <h4 class="general-subtitle">Here are some awesome people, sayin awesome things about us</h4>
-
-          <blockquote class="clearfix">
+          <h3 class="general-title">How does this work</h3>
+          <article class="feature">
+            <h5>
+              <i class="cloud"></i>
+              Private groups & secure access to code
+            </h5>
             <p>
-              Awesome product, awesome team,
-              awesome food.
-              What can I say,
-              I love this company
+              Aliquam eget turpis venenatis, vestibulum mauris ut,
+              viverra nisl. Curabitur in ultrices arcu.
+              Nulla varius mi nec massa aliquam, sit amet gravida libero tempor.
             </p>
-            <div class="person">
-              <img src="http://d13yacurqjgara.cloudfront.net/users/45397/avatars/small/mrd.png?1390348178">
-              <span class="name">Emre Durmus</span>
-              <span class="bio">Designer @ Koding</span>
-            <div>
-          </blockquote>
-
-          <blockquote class="clearfix">
+          </article>
+          <article class="feature">
+            <h5>
+              <i class="security"></i>
+              Private groups & secure access to code
+            </h5>
             <p>
-              Awesome product, awesome team,
-              awesome food.
-              What can I say,
-              I love this company
+              Aliquam eget turpis venenatis, vestibulum mauris ut,
+              viverra nisl. Curabitur in ultrices arcu.
+              Nulla varius mi nec massa aliquam, sit amet gravida libero tempor.
             </p>
-            <div class="person">
-              <img src="http://d13yacurqjgara.cloudfront.net/users/45397/avatars/small/mrd.png?1390348178">
-              <span class="name">Emre Durmus</span>
-              <span class="bio">Designer @ Koding</span>
-            <div>
-          </blockquote>
-
+          </article>
+          <article class="feature">
+            <h5>
+              <i class="security"></i>
+              Private groups & secure access to code
+            </h5>
+            <p>
+              Aliquam eget turpis venenatis, vestibulum mauris ut,
+              viverra nisl. Curabitur in ultrices arcu.
+              Nulla varius mi nec massa aliquam, sit amet gravida libero tempor.
+            </p>
+          </article>
+          <article class="feature">
+            <h5>
+              <i class="content"></i>
+              Private groups & secure access to code
+            </h5>
+            <p>
+              Aliquam eget turpis venenatis, vestibulum mauris ut,
+              viverra nisl. Curabitur in ultrices arcu.
+              Nulla varius mi nec massa aliquam, sit amet gravida libero tempor.
+            </p>
+          </article>
+          <article class="feature">
+            <h5>
+              <i class="remote"></i>
+              Private groups & secure access to code
+            </h5>
+            <p>
+              Aliquam eget turpis venenatis, vestibulum mauris ut,
+              viverra nisl. Curabitur in ultrices arcu.
+              Nulla varius mi nec massa aliquam, sit amet gravida libero tempor.
+            </p>
+          </article>
+          <article class="feature">
+            <h5>
+              <i class="cloud"></i>
+              Private groups & secure access to code
+            </h5>
+            <p>
+              Aliquam eget turpis venenatis, vestibulum mauris ut,
+              viverra nisl. Curabitur in ultrices arcu.
+              Nulla varius mi nec massa aliquam, sit amet gravida libero tempor.
+            </p>
+          </article>
         </div>
       </section>
 
-      <section class="customers">
+      <section class="testimonials">
         <div class="inner-container">
-          <img src="/a/images/stanford-logo.png" alt="Stanford University">
-          <img src="/a/images/mit-logo.png" alt="MIT">
-          <img src="/a/images/nasa-logo.png" alt="NASA">
-          <img src="/a/images/tesla-logo.png" alt="Tesla Motors">
+          <h3 class="general-title">What did they say</h3>
+          <article>
+            <i class="avatar"></i>
+            <p>Aliquam eget turpis venenatis, vestibulum mauris ut, viverra nisl. Curabitur in ultrices arcu. Nulla varius mi nec massa aliquam, sit amet gravida libero tempor.</p>
+          </article>
+        </div>
+        <div class="inner-container">
+          <article>
+            <i class="avatar"></i>
+            <p>Aliquam eget turpis venenatis, vestibulum mauris ut, viverra nisl. Curabitur in ultrices arcu. Nulla varius mi nec massa aliquam, sit amet gravida libero tempor.</p>
+          </article>
         </div>
       </section>
 
