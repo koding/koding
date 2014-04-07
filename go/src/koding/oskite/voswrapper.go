@@ -225,8 +225,8 @@ type progressParamsNew struct {
 	OnProgress kitednode.Function
 }
 
-func (p *progressParamsNew) Enabled() bool      { return p.OnProgress != nil }
-func (p *progressParamsNew) Call(v interface{}) { p.OnProgress(v) }
+func (p *progressParamsNew) Enabled() bool      { return p.OnProgress.IsValid() }
+func (p *progressParamsNew) Call(v interface{}) { p.OnProgress.Call(v) }
 
 func vmPrepareAndStartNew(r *kitelib.Request, vos *virt.VOS) (interface{}, error) {
 	params := new(progressParamsNew)
@@ -236,9 +236,7 @@ func vmPrepareAndStartNew(r *kitelib.Request, vos *virt.VOS) (interface{}, error
 
 	return progress(vos, "vm.prepareAndStart"+vos.VM.HostnameAlias, params, func() error {
 		for step := range prepareProgress(vos) {
-			if params.OnProgress != nil {
-				params.OnProgress(step)
-			}
+			params.OnProgress.Call(step)
 
 			if step.Err != nil {
 				return step.Err
@@ -257,9 +255,7 @@ func vmStopAndUnprepareNew(r *kitelib.Request, vos *virt.VOS) (interface{}, erro
 
 	return progress(vos, "vm.stopAndUnprepare"+vos.VM.HostnameAlias, params, func() error {
 		for step := range unprepareProgress(vos, false) {
-			if params.OnProgress != nil {
-				params.OnProgress(step)
-			}
+			params.OnProgress.Call(step)
 
 			if step.Err != nil {
 				return step.Err
@@ -278,9 +274,7 @@ func vmDestroyNew(r *kitelib.Request, vos *virt.VOS) (interface{}, error) {
 
 	return progress(vos, "vm.stopAndUnprepare"+vos.VM.HostnameAlias, params, func() error {
 		for step := range unprepareProgress(vos, true) {
-			if params.OnProgress != nil {
-				params.OnProgress(step)
-			}
+			params.OnProgress.Call(step)
 
 			if step.Err != nil {
 				return step.Err
@@ -307,7 +301,7 @@ func fsReadDirectoryNew(r *kitelib.Request, vos *virt.VOS) (interface{}, error) 
 
 	response := make(map[string]interface{})
 
-	if params.OnChange != nil {
+	if params.OnChange.IsValid() {
 		watch, err := vos.WatchDirectory(params.Path, params.WatchSubdirectories, func(ev *inotify.Event, info os.FileInfo) {
 			defer log.RecoverAndLog()
 
@@ -319,7 +313,7 @@ func fsReadDirectoryNew(r *kitelib.Request, vos *virt.VOS) (interface{}, error) 
 				if ev.Mask&inotify.IN_ATTRIB != 0 {
 					event = "attributesChanged"
 				}
-				params.OnChange(map[string]interface{}{
+				params.OnChange.Call(map[string]interface{}{
 					"event": event,
 					"file":  makeFileEntry(vos, ev.Name, info),
 				})
@@ -327,7 +321,7 @@ func fsReadDirectoryNew(r *kitelib.Request, vos *virt.VOS) (interface{}, error) 
 			}
 
 			if (ev.Mask & (inotify.IN_DELETE | inotify.IN_MOVED_FROM)) != 0 {
-				params.OnChange(map[string]interface{}{
+				params.OnChange.Call(map[string]interface{}{
 					"event": "removed",
 					"file":  FileEntry{Name: path.Base(ev.Name), FullPath: ev.Name},
 				})

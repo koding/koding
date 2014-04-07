@@ -134,7 +134,7 @@ func webtermConnectNew(r *kitelib.Request, vos *virt.VOS) (interface{}, error) {
 		cmd.Wait()
 		server.pty.Slave.Close()
 		server.pty.Master.Close()
-		server.remote.SessionEnded()
+		server.remote.SessionEnded.Call()
 	}()
 
 	go func() {
@@ -166,7 +166,7 @@ func webtermConnectNew(r *kitelib.Request, vos *virt.VOS) (interface{}, error) {
 				time.Sleep(time.Second / 100)
 			}
 
-			server.remote.Output(string(utils.FilterInvalidUTF8(buf[:n])))
+			server.remote.Output.Call(string(utils.FilterInvalidUTF8(buf[:n])))
 			if err != nil {
 				break
 			}
