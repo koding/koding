@@ -10,6 +10,8 @@ import (
 )
 
 var AccountOldId = bson.NewObjectId()
+var AccountOldId2 = bson.NewObjectId()
+var AccountOldId3 = bson.NewObjectId()
 
 func TestPinnedActivityChannel(t *testing.T) {
 	Convey("while  testing pinned activity channel", t, func() {
