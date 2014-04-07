@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
-	"koding/databases/redis"
 	"koding/kontrol/kontrolhelper"
 	"koding/tools/amqputil"
 	"koding/tools/config"
@@ -23,6 +22,7 @@ import (
 	"sync"
 	"syscall"
 	"time"
+	"github.com/koding/redis"
 
 	"github.com/fatih/set"
 	"github.com/streadway/amqp"
