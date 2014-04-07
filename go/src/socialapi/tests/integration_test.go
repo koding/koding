@@ -13,11 +13,8 @@ var (
 
 func main() {
 	testMessageOperations()
-	testChannelOperations()
 	testInteractionOperations()
 	testReplyOperations()
-	testFollowingFeedOperations()
-	testFrontpageOperations()
 	testTopicFeedOperations()
 }
 
