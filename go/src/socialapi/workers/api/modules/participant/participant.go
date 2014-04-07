@@ -31,7 +31,15 @@ func List(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface
 	return helpers.NewOKResponse(participants)
 }
 
+// todo fix duplicate code block with Delete handler
 func Add(u *url.URL, h http.Header, req *models.ChannelParticipant) (int, http.Header, interface{}, error) {
+	// we are getting requester from body for now, but it will be gotten
+	// from the token
+	requesterId := req.AccountId
+	if requesterId == 0 {
+		return helpers.NewBadRequestResponse(errors.New("Requester AccountId is not set"))
+	}
+
 	channelId, err := helpers.GetURIInt64(u, "id")
 	if err != nil {
 		return helpers.NewBadRequestResponse(err)
@@ -42,10 +50,11 @@ func Add(u *url.URL, h http.Header, req *models.ChannelParticipant) (int, http.H
 		return helpers.NewBadRequestResponse(err)
 	}
 
-	if err := checkChannelPrerequisites(channelId, accountId); err != nil {
+	if err := checkChannelPrerequisites(channelId, requesterId, accountId); err != nil {
 		return helpers.NewBadRequestResponse(err)
 	}
 
+	// do not forget to override account id
 	req.AccountId = accountId
 	req.ChannelId = channelId
 	req.StatusConstant = models.ChannelParticipant_STATUS_ACTIVE
@@ -57,7 +66,7 @@ func Add(u *url.URL, h http.Header, req *models.ChannelParticipant) (int, http.H
 	return helpers.NewOKResponse(req)
 }
 
-func checkChannelPrerequisites(channelId, accountId int64) error {
+func checkChannelPrerequisites(channelId, requesterId, accountId int64) error {
 	c := models.NewChannel()
 	c.Id = channelId
 	if err := c.Fetch(); err != nil {
@@ -69,7 +78,14 @@ func checkChannelPrerequisites(channelId, accountId int64) error {
 	return nil
 }
 
-func Delete(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface{}, error) {
+func Delete(u *url.URL, h http.Header, req *models.ChannelParticipant) (int, http.Header, interface{}, error) {
+	// we are getting requester from body for now, but it will be gotten
+	// from the token
+	requesterId := req.AccountId
+	if requesterId == 0 {
+		return helpers.NewBadRequestResponse(errors.New("Requester AccountId is not set"))
+	}
+
 	channelId, err := helpers.GetURIInt64(u, "id")
 	if err != nil {
 		return helpers.NewBadRequestResponse(err)
@@ -80,7 +96,11 @@ func Delete(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interfa
 		return helpers.NewBadRequestResponse(err)
 	}
 
-	req := models.NewChannelParticipant()
+	if err := checkChannelPrerequisites(channelId, requesterId, accountId); err != nil {
+		return helpers.NewBadRequestResponse(err)
+	}
+
+	// do not forget to override account id
 	req.AccountId = accountId
 	req.ChannelId = channelId
 
