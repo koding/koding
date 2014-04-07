@@ -226,7 +226,8 @@ func (t *Terminal) runNewKite() {
 	t.vosMethod(k, "webterm.ping", webtermPingNew)
 
 	k.HandleFunc("kite.who", t.kiteWho)
-	k.DisableConcurrency() // needed for webterm.connect
+
+	k.Config.DisableConcurrency = true // to process incoming messages in order
 
 	k.Start()
 

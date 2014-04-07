@@ -228,7 +228,7 @@ func (o *Oskite) runNewKite() {
 
 	k.HandleFunc("kite.who", o.kiteWho)
 
-	k.DisableConcurrency()
+	k.Config.DisableConcurrency = true
 	k.Start()
 
 	// TODO: remove this later, this is needed in order to reinitiliaze the logger package
