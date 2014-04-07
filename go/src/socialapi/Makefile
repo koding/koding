@@ -25,6 +25,9 @@ realtimedev:
 followingfeeddev:
 	@echo "$(OK_COLOR)==> Running Following Feed Worker $(NO_COLOR)"
 	@$(GOBINDIR)/rerun socialapi/workers/followingfeed -c $(CONFIG) -d
+populartopicdev:
+	@echo "$(OK_COLOR)==> Running Popular Topics Worker $(NO_COLOR)"
+	@$(GOBINDIR)/rerun socialapi/workers/populartopic -c $(CONFIG) -d
 
 PACKAGES = \
 	socialapi/workers/followingfeed \
