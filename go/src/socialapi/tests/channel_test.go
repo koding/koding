@@ -15,9 +15,7 @@ func TestChannelCreation(t *testing.T) {
 	Convey("while  testing channel", t, func() {
 		Convey("First Create User", func() {
 
-			Convey("we should be able to create it", func() {
-
-			})
+			Convey("we should be able to create it", nil)
 
 			Convey("we should be able to update it", nil)
 
@@ -61,29 +59,99 @@ func TestPinnedActivityChannel(t *testing.T) {
 
 			Convey("owner should be able to update it", nil)
 
-			Convey("non-owner should not be able to update it", func() {
-
-			})
+			Convey("non-owner should not be able to update it", nil)
 
 			Convey("owner should not be able to add new participants into it", func() {
 				channel, err := fetchPinnedActivityChannel(account)
 				So(err, ShouldBeNil)
 				So(channel, ShouldNotBeNil)
-				channelParticipant, err := addChannelParticipant(channel.Id, nonOwnerAccount.Id)
+				channelParticipant, err := addChannelParticipant(channel.Id, account.Id, nonOwnerAccount.Id)
 				// there should be an err
 				So(err, ShouldNotBeNil)
 				// channel should be nil
 				So(channelParticipant, ShouldBeNil)
 			})
 
-			Convey("normal user shouldnt be able to add new participants to it", nil)
+			Convey("normal user shouldnt be able to add new participants to it", func() {
+				channel, err := fetchPinnedActivityChannel(account)
+				So(err, ShouldBeNil)
+				So(channel, ShouldNotBeNil)
+				channelParticipant, err := addChannelParticipant(channel.Id, nonOwnerAccount.Id, nonOwnerAccount.Id)
+				// there should be an err
+				So(err, ShouldNotBeNil)
+				// channel should be nil
+				So(channelParticipant, ShouldBeNil)
+			})
 
-			Convey("owner should  not be able to remove participant from it", nil)
+			Convey("owner should  not be able to remove participant from it", func() {
+				channel, err := fetchPinnedActivityChannel(account)
+				So(err, ShouldBeNil)
+				So(channel, ShouldNotBeNil)
+				channelParticipant, err := deleteChannelParticipant(channel.Id, account.Id, nonOwnerAccount.Id)
+				// there should be an err
+				So(err, ShouldNotBeNil)
+				// channel should be nil
+				So(channelParticipant, ShouldBeNil)
+			})
 
-			Convey("normal user shouldnt be able to remove participants from it", nil)
+			Convey("normal user shouldnt be able to remove participants from it", func() {
+				channel, err := fetchPinnedActivityChannel(account)
+				So(err, ShouldBeNil)
+				So(channel, ShouldNotBeNil)
+				channelParticipant, err := deleteChannelParticipant(channel.Id, nonOwnerAccount.Id, nonOwnerAccount.Id)
+				// there should be an err
+				So(err, ShouldNotBeNil)
+				// channel should be nil
+				So(channelParticipant, ShouldBeNil)
+			})
 
+			Convey("owner should be able to add new message into it", func() {
+				// use account id as message id
+				_, err := addPinnedMessage(account.Id, account.Id, "koding")
+				// there should be an err
+				So(err, ShouldBeNil)
+			})
+
+			Convey("owner should  be able to remove message from it", func() {
+				// use account id as message id
+				_, err := removePinnedMessage(account.Id, account.Id, "koding")
+				So(err, ShouldBeNil)
+			})
+
+			Convey("Non-exist message should not be added as pinned ", nil)
+			Convey("Messages shouldnt be added as pinned twice ", nil)
 		})
 	})
+}
+
+func addPinnedMessage(accountId, messageId int64, groupName string) (*models.PinRequest, error) {
+	req := models.NewPinRequest()
+	req.AccountId = accountId
+	req.MessageId = messageId
+	req.GroupName = groupName
+
+	url := "/activity/pin/add"
+	cmI, err := sendModel("POST", url, req)
+	if err != nil {
+		return nil, err
+	}
+	return cmI.(*models.PinRequest), nil
+
+}
+
+func removePinnedMessage(accountId, messageId int64, groupName string) (*models.PinRequest, error) {
+	req := models.NewPinRequest()
+	req.AccountId = accountId
+	req.MessageId = messageId
+	req.GroupName = groupName
+
+	url := "/activity/pin/remove"
+	cmI, err := sendModel("POST", url, req)
+	if err != nil {
+		return nil, err
+	}
+	return cmI.(*models.PinRequest), nil
+
 }
 
 func fetchPinnedActivityChannel(a *models.Account) (*models.Channel, error) {
