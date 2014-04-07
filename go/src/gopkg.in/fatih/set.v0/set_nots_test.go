@@ -1,20 +1,20 @@
 package set
 
-import (
+import(
 	"reflect"
 	"testing"
 )
 
-func Test_New(t *testing.T) {
-	s := New(ThreadSafe)
-	s.Add(1, 2, 3, "testing")
+func TestSetNonTS_NewNonTS_parameters(t *testing.T) {
+	s := NewNonTS("string", "another_string", 1, 3.14)
+
 	if s.Size() != 4 {
-		t.Error("New: The set created was expected have 4 items")
+		t.Error("NewNonTS: calling with parameters should create a set with size of four")
 	}
 }
 
 func TestSetNonTS_Add(t *testing.T) {
-	s := New(NonThreadSafe)
+	s := NewNonTS()
 	s.Add(1)
 	s.Add(2)
 	s.Add(2) // duplicate
@@ -32,7 +32,7 @@ func TestSetNonTS_Add(t *testing.T) {
 }
 
 func TestSetNonTS_Add_multiple(t *testing.T) {
-	s := newNonTS()
+	s := NewNonTS()
 	s.Add("ankara", "san francisco", 3.14)
 
 	if s.Size() != 3 {
@@ -45,7 +45,7 @@ func TestSetNonTS_Add_multiple(t *testing.T) {
 }
 
 func TestSetNonTS_Remove(t *testing.T) {
-	s := newNonTS()
+	s := NewNonTS()
 	s.Add(1)
 	s.Add(2)
 	s.Add("fatih")
@@ -70,7 +70,7 @@ func TestSetNonTS_Remove(t *testing.T) {
 }
 
 func TestSetNonTS_Remove_multiple(t *testing.T) {
-	s := newNonTS()
+	s := NewNonTS()
 	s.Add("ankara", "san francisco", 3.14, "istanbul")
 	s.Remove("ankara", "san francisco", 3.14)
 
@@ -84,7 +84,7 @@ func TestSetNonTS_Remove_multiple(t *testing.T) {
 }
 
 func TestSetNonTS_Pop(t *testing.T) {
-	s := newNonTS()
+	s := NewNonTS()
 	s.Add(1)
 	s.Add(2)
 	s.Add("fatih")
@@ -109,8 +109,7 @@ func TestSetNonTS_Pop(t *testing.T) {
 }
 
 func TestSetNonTS_Has(t *testing.T) {
-	s := newNonTS()
-	s.Add("1", "2", "3", "4")
+	s := NewNonTS("1", "2", "3", "4")
 
 	if !s.Has("1") {
 		t.Error("Has: the item 1 exist, but 'Has' is returning false")
@@ -122,7 +121,7 @@ func TestSetNonTS_Has(t *testing.T) {
 }
 
 func TestSetNonTS_Clear(t *testing.T) {
-	s := newNonTS()
+	s := NewNonTS()
 	s.Add(1)
 	s.Add("istanbul")
 	s.Add("san francisco")
@@ -134,7 +133,7 @@ func TestSetNonTS_Clear(t *testing.T) {
 }
 
 func TestSetNonTS_IsEmpty(t *testing.T) {
-	s := newNonTS()
+	s := NewNonTS()
 
 	empty := s.IsEmpty()
 	if !empty {
@@ -151,10 +150,8 @@ func TestSetNonTS_IsEmpty(t *testing.T) {
 }
 
 func TestSetNonTS_IsEqual(t *testing.T) {
-	s := newNonTS()
-	s.Add("1", "2", "3")
-	u := newNonTS()
-	u.Add("1", "2", "3")
+	s := NewNonTS("1", "2", "3")
+	u := NewNonTS("1", "2", "3")
 
 	ok := s.IsEqual(u)
 	if !ok {
@@ -163,10 +160,8 @@ func TestSetNonTS_IsEqual(t *testing.T) {
 }
 
 func TestSetNonTS_IsSubset(t *testing.T) {
-	s := newNonTS()
-	s.Add("1", "2", "3", "4")
-	u := newNonTS()
-	u.Add("1", "2", "3")
+	s := NewNonTS("1", "2", "3", "4")
+	u := NewNonTS("1", "2", "3")
 
 	ok := s.IsSubset(u)
 	if !ok {
@@ -181,10 +176,8 @@ func TestSetNonTS_IsSubset(t *testing.T) {
 }
 
 func TestSetNonTS_IsSuperset(t *testing.T) {
-	s := newNonTS()
-	s.Add("1", "2", "3", "4")
-	u := newNonTS()
-	u.Add("1", "2", "3")
+	s := NewNonTS("1", "2", "3", "4")
+	u := NewNonTS("1", "2", "3")
 
 	ok := u.IsSuperset(s)
 	if !ok {
@@ -199,7 +192,7 @@ func TestSetNonTS_IsSuperset(t *testing.T) {
 }
 
 func TestSetNonTS_String(t *testing.T) {
-	s := newNonTS()
+	s := NewNonTS()
 	if s.String() != "[]" {
 		t.Error("String: output is not what is excepted", s.String())
 	}
@@ -211,10 +204,7 @@ func TestSetNonTS_String(t *testing.T) {
 }
 
 func TestSetNonTS_List(t *testing.T) {
-	s := newNonTS()
-	s.Add("1", "2", "3", "4")
-	s = newNonTS()
-	s.Add("1", "2", "3", "4")
+	s := NewNonTS("1", "2", "3", "4")
 
 	// this returns a slice of interface{}
 	if len(s.List()) != 4 {
@@ -230,8 +220,7 @@ func TestSetNonTS_List(t *testing.T) {
 }
 
 func TestSetNonTS_Copy(t *testing.T) {
-	s := newNonTS()
-	s.Add("1", "2", "3", "4")
+	s := NewNonTS("1", "2", "3", "4")
 	r := s.Copy()
 
 	if !s.IsEqual(r) {
@@ -240,10 +229,8 @@ func TestSetNonTS_Copy(t *testing.T) {
 }
 
 func TestSetNonTS_Merge(t *testing.T) {
-	s := newNonTS()
-	s.Add("1", "2", "3")
-	r := newNonTS()
-	r.Add("3", "4", "5")
+	s := NewNonTS("1", "2", "3")
+	r := NewNonTS("3", "4", "5")
 	s.Merge(r)
 
 	if s.Size() != 5 {
@@ -256,10 +243,8 @@ func TestSetNonTS_Merge(t *testing.T) {
 }
 
 func TestSetNonTS_Separate(t *testing.T) {
-	s := newNonTS()
-	s.Add("1", "2", "3")
-	r := newNonTS()
-	r.Add("3", "5")
+	s := NewNonTS("1", "2", "3")
+	r := NewNonTS("3", "5")
 	s.Separate(r)
 
 	if s.Size() != 2 {
@@ -270,3 +255,4 @@ func TestSetNonTS_Separate(t *testing.T) {
 		t.Error("Separate: items after separation are not availabile in the set.")
 	}
 }
+

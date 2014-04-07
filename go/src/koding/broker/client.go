@@ -10,8 +10,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/fatih/set"
 	"github.com/streadway/amqp"
+	"gopkg.in/fatih/set.v0"
 )
 
 type Client struct {
