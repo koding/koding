@@ -69,6 +69,25 @@ func Update(u *url.URL, h http.Header, req *models.Channel) (int, http.Header, i
 		return helpers.NewBadRequestResponse(err)
 	}
 
+	existingOne := models.NewChannel()
+	existingOne.Id = id
+	if err := existingOne.Fetch(); err != nil {
+		return helpers.NewBadRequestResponse(err)
+	}
+
+	if existingOne.CreatorId != req.CreatorId {
+		return helpers.NewBadRequestResponse(errors.New("CreatorId doesnt match"))
+	}
+
+	// only allow purpose and name to be updated
+	if req.Purpose != "" {
+		existingOne.Purpose = req.Purpose
+	}
+
+	if req.Name != "" {
+		existingOne.Name = req.Name
+	}
+
 	if err := req.Update(); err != nil {
 		return helpers.NewBadRequestResponse(err)
 	}
