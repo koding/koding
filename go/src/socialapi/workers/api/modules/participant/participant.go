@@ -115,6 +115,5 @@ func Delete(u *url.URL, h http.Header, req *models.ChannelParticipant) (int, htt
 		return helpers.NewBadRequestResponse(err)
 	}
 
-	// yes it is deleted but not removed completely from our system
-	return helpers.NewDeletedResponse()
+	return helpers.NewOKResponse(req)
 }
