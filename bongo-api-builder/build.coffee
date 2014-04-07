@@ -14,7 +14,8 @@ koding = new Bongo
   resourceName: 'bongo-api-builder'
   mq          : broker
 
-koding.describeApi (api)->
-  source = "var REMOTE_API = #{ JSON.stringify api };"
-  require('fs').writeFileSync argv.o, source, 'utf-8'
-  process.exit()
+koding.on 'apiReady', ->
+  koding.describeApi (api)->
+    source = "var REMOTE_API = #{ JSON.stringify api };"
+    require('fs').writeFileSync argv.o, source, 'utf-8'
+    process.exit()
