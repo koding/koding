@@ -66,7 +66,7 @@ func NewChannel() *Channel {
 		GroupName:       Channel_KODING_NAME,
 		Purpose:         "string",
 		SecretKey:       "string",
-		TypeConstant:    Channel_TYPE_GROUP,
+		TypeConstant:    "default",
 		PrivacyConstant: Channel_TYPE_PRIVATE,
 	}
 }
@@ -132,7 +132,7 @@ func (c *Channel) Create() error {
 		// it means we already have that channel
 		err := c.One(bongo.NewQS(selector))
 		if err == nil {
-			return c, nil
+			return nil
 			// return fmt.Errorf("%s typed channel is already created before for %s group", c.TypeConstant, c.GroupName)
 		}
 
