@@ -168,6 +168,11 @@ config =
       useStaticFileServer: 1
       staticFilesBaseUrl: 1
       runtimeOptions  :
+        kites:
+          os:
+            version: 1
+          terminal:
+            version: 1
         osKitePollingMs: 1
         userIdleMs: 1
         sessionCookie :

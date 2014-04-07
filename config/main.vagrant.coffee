@@ -151,6 +151,7 @@ module.exports =
     useStaticFileServer: no
     staticFilesBaseUrl: 'http://lvh.me:3020'
     runtimeOptions:
+      kites: require './kites.coffee'
       osKitePollingMs: 1000 * 60 # 1 min
       userIdleMs: 1000 * 60 * 5  # 5 min
       sessionCookie :

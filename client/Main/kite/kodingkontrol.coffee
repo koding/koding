@@ -22,10 +22,11 @@ class KodingKontrol extends (require 'kontrol')
 
   getVersion: (name) ->
     return '1.0.0'  unless name?
-    # TODO: for now I am just hardcoding these versions:
+    { os, terminal } = KD.config.kites
+    # TODO: this could be more elegant:
     {
-      oskite    : '0.1.9'
-      terminal  : '0.0.2'
+      oskite    : os.version
+      terminal  : terminal.version
     }[name] ? '1.0.0'
 
   injectQueryParams: (args) ->
