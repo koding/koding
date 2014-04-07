@@ -132,7 +132,7 @@ func TestPinnedActivityChannel(t *testing.T) {
 
 			})
 
-			Convey("Non-exist message should not be added as pinned ", func() {
+			Convey("Messages shouldnt be added as pinned twice ", func() {
 				// use account id as message id
 				_, err := addPinnedMessage(account.Id, account.Id, "koding")
 				// there should be an err
@@ -142,7 +142,9 @@ func TestPinnedActivityChannel(t *testing.T) {
 				// there should be an err
 				So(err, ShouldNotBeNil)
 			})
-			Convey("Messages shouldnt be added as pinned twice ", nil)
+
+			Convey("Non-exist message should not be added as pinned ", nil)
+
 		})
 	})
 }
@@ -194,13 +196,4 @@ func fetchPinnedActivityChannel(a *models.Account) (*models.Channel, error) {
 		return nil, err
 	}
 	return cmI.(*models.Channel), nil
-}
-
-func createAccount(a *models.Account) (*models.Account, error) {
-	acc, err := sendModel("POST", "/account", a)
-	if err != nil {
-		return nil, err
-	}
-
-	return acc.(*models.Account), nil
 }
