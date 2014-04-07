@@ -9,6 +9,22 @@ import (
 	"github.com/jinzhu/gorm"
 )
 
+func validateChannelRequest(c *models.Channel) error {
+	if c.GroupName == "" {
+		return errors.New("Group name is not set")
+	}
+
+	if c.Name == "" {
+		return errors.New("Channel name is not set")
+	}
+
+	if c.CreatorId == 0 {
+		return errors.New("Creator id is not set")
+	}
+
+	return nil
+}
+
 func Create(u *url.URL, h http.Header, req *models.Channel) (int, http.Header, interface{}, error) {
 	if err := req.Create(); err != nil {
 		return helpers.NewBadRequestResponse(err)
