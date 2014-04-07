@@ -1,6 +1,16 @@
 package config
 
 type (
+	Config struct {
+		Postgres          Postgres
+		Mq                Mq
+		Limits            Limits
+		EventExchangeName string
+		Redis             string
+		Mongo             string
+		Environment       string
+	}
+
 	Postgres struct {
 		Host     string
 		Port     int
@@ -14,14 +24,6 @@ type (
 		Username string
 		Password string
 		Vhost    string
-	}
-
-	Config struct {
-		Postgres          Postgres
-		Mq                Mq
-		EventExchangeName string
-		Mongo             string
-		Limits            Limits
 	}
 	Limits struct {
 		MessageBodyMinLen int
