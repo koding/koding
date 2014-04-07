@@ -14,7 +14,7 @@ import (
 	"runtime"
 	"sort"
 
-	"github.com/fatih/set"
+	"gopkg.in/fatih/set.v0"
 )
 
 const (
