@@ -4,14 +4,9 @@ import (
 	"fmt"
 	"socialapi/models"
 	"testing"
-	"labix.org/v2/mgo/bson"
 
 	. "github.com/smartystreets/goconvey/convey"
 )
-
-var AccountOldId = bson.NewObjectId()
-var AccountOldId2 = bson.NewObjectId()
-var AccountOldId3 = bson.NewObjectId()
 
 func TestPinnedActivityChannel(t *testing.T) {
 	Convey("while  testing pinned activity channel", t, func() {
