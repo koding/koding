@@ -135,23 +135,45 @@ app.use (req, res, next) ->
     if err then console.log err
     next()
 
-app.get "/-/subscription/check/:kiteToken/:username", (req, res)->
-  {username, kiteToken} = req.params
-  {JAccount, JKite} = koding.models
-  JKite.one kiteCode: kiteToken, (err, kite)->
-    return res.send 401, "Error while fetching kite" if err or not kite
-    JAccount.one {"profile.nickname": username}, (err, account)->
-      return res.send 401, "Error while fetching user account" if err or not account
-      account.fetchSubscriptions (err, subs)->
-        return res.send 401, "Error while fetching account subscription" if err or not subs
-        kite.fetchPlans (err, plans)->
-          return res.send 401, "Error while fetching kite plans" if err or not plans
-          subsIds = subs.map (sub)-> sub.planCode
-          userPlan = []
-          for plan in plans
-            if plan.planCode in subsIds
-              userPlan.push plan.data.tags
-          res.send 200, userPlan
+app.get "/-/subscription/check/:kiteToken?/:user?/:group?", (req, res) ->
+  {kiteToken, user, group} = req.params
+  {JAccount, JKite, JGroup} = koding.models
+
+  return res.send 401, { err: "TOKEN_REQUIRED"     } unless kiteToken
+  return res.send 401, { err: "USERNAME_REQUIRED"  } unless user
+  return res.send 401, { err: "GROUPNAME_REQUIRED" } unless group
+
+  JKite.one kiteCode: kiteToken, (err, kite) ->
+    return res.send 401, { err: "KITE_NOT_FOUND" }  if err or not kite
+
+    JAccount.one { "profile.nickname": user }, (err, account) ->
+      return res.send 401, err: "USER_NOT_FOUND"  if err or not account
+
+      JGroup.one { slug: group }, (err, group) =>
+        return res.send 401, err: "GROUP_NOT_FOUND"  if err or not group
+
+        group.isMember account, (err, isMember) =>
+          return res.send 401, err: "NOT_A_MEMBER_OF_GROUP"  if err or not isMember
+
+          account.fetchSubscriptions (err, subs) ->
+            return res.send 401, err: "NO_SUBSCRIPTION"  if err or not subs
+
+            kite.fetchPlans (err, plans) ->
+              if err or not plans
+                return res.send 401, err: "KITE_HAS_NO_PLAN"
+
+              subsIds = subs.map (sub) -> sub.planCode
+              userPlan = {}
+
+              for plan in plans
+                {planCode, title} = plan.data
+
+                if subsIds.indexOf(planCode) > -1
+                  userPlan   =
+                    planId   : planCode
+                    planName : title
+
+              res.send 200, userPlan
 
 app.get "/-/8a51a0a07e3d456c0b00dc6ec12ad85c", require './__notify-users'
 
