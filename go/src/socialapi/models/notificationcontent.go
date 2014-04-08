@@ -5,13 +5,15 @@ import (
 	"fmt"
 	"github.com/jinzhu/gorm"
 	"github.com/koding/bongo"
+	"time"
 )
 
 type NotificationContent struct {
 	Id int64 `json:"id"`
 	// target of the activity (replied messageId, followed accountId etc.)
-	TargetId int64  `json:"targetId"   sql:"NOT NULL"`
-	Type     string `json:"type"       sql:"NOT NULL"`
+	TargetId  int64  `json:"targetId"   sql:"NOT NULL"`
+	Type      string `json:"type"       sql:"NOT NULL"`
+	CreatedAt time.Time
 }
 
 const (
