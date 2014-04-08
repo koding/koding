@@ -39,8 +39,6 @@ func main() {
 		return
 	}
 
-	// set prefix
-	redis.SetPrefix(populartopic.GetRedisPrefix())
 	// create message handler
 	handler := populartopic.NewPopularTopicsController(log, redis)
 
