@@ -27,7 +27,7 @@ class KodingKontrol extends (require 'kontrol')
     {
       oskite    : os.version
       terminal  : terminal.version
-    }[name] ? '1.0.0'
+    }[name] ? ''
 
   injectQueryParams: (args) ->
     args.query.version = @getVersion args.query.name
