@@ -6,11 +6,25 @@ import (
 	"fmt"
 	"io/ioutil"
 	"koding/db/models"
+	"koding/tools/dnode"
+	"koding/tools/kite"
 	"koding/virt"
 	"net/http"
 
 	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
+)
+
+const (
+	ErrTokenRequired    = "TOKEN_REQUIRED"
+	ErrUsernameRequired = "USERNAME_REQUIRED"
+	ErrGroupRequired    = "GROUPNAME_REQUIRED"
+	ErrKiteNotFound     = "KITE_NOT_FOUND"
+	ErrUserNotFound     = "USER_NOT_FOUND"
+	ErrGroupNotFound    = "GROUP_NOT_FOUND"
+	ErrInvalid          = "NOT_A_MEMBER_OF_GROUP"
+	ErrKiteNoPlan       = "KITE_HAS_NO_PLAN"
+	ErrNoSubscription   = "NO_SUBSCRIPTION"
 )
 
 type Plan struct {
@@ -30,7 +44,9 @@ type PlanResponse struct {
 }
 
 type subscriptionResp struct {
-	Plan string `json:"plan"`
+	Plan   string `json:"plan"`
+	PlanId string `json:"planId"`
+	Err    string `json:"err"`
 }
 
 var (
@@ -85,8 +101,8 @@ func NewUsage(vos *virt.VOS) (*Plan, error) {
 	return usage, nil
 }
 
-func (p *Plan) checkLimits(username string) (*PlanResponse, error) {
-	planID, err := getSubscription(username)
+func (p *Plan) checkLimits(username, groupname string) (*PlanResponse, error) {
+	planID, err := getSubscription(username, groupname)
 	if err != nil {
 		log.Critical("oskite checkLimits err: %v", err)
 		return nil, errors.New("couldn't fetch subscription")
@@ -110,14 +126,26 @@ func (p *Plan) checkLimits(username string) (*PlanResponse, error) {
 	return resp, nil
 }
 
-func vmUsage(vos *virt.VOS, username string) (interface{}, error) {
+func vmUsage(args *dnode.Partial, vos *virt.VOS, username string) (interface{}, error) {
+	var params struct {
+		GroupName string
+	}
+
+	if args == nil {
+		return nil, &kite.ArgumentError{Expected: "empy argument passed"}
+	}
+
+	if args.Unmarshal(&params) != nil || params.GroupName == "" {
+		return nil, &kite.ArgumentError{Expected: "{ groupName: [string] }"}
+	}
+
 	usage, err := NewUsage(vos)
 	if err != nil {
 		log.Info("vm.usage [%s] err: %v", vos.VM.HostnameAlias, err)
 		return nil, errors.New("vm.usage couldn't be retrieved. please consult to support.")
 	}
 
-	return usage.checkLimits(username)
+	return usage.checkLimits(username, params.GroupName)
 }
 
 type KiteStore struct {
@@ -142,7 +170,7 @@ func getKiteCode() (string, error) {
 	return kiteStore.KiteCode, nil
 }
 
-func getSubscription(username string) (string, error) {
+func getSubscription(username, groupname string) (string, error) {
 	endpointURL := "https://lvh.me:3020"
 
 	code, err := getKiteCode()
@@ -154,7 +182,7 @@ func getSubscription(username string) (string, error) {
 		return "", errors.New("kite code is empty")
 	}
 
-	resp, err := http.Get(endpointURL + "/-/subscription/check/" + code + "/" + username)
+	resp, err := http.Get(endpointURL + "/-/subscription/check/" + code + "/" + username + "/" + groupname)
 	if err != nil {
 		return "", err
 	}
@@ -168,6 +196,13 @@ func getSubscription(username string) (string, error) {
 	var s = new(subscriptionResp)
 	if err := json.Unmarshal(body, s); err != nil {
 		return "", errors.New("Subscription data is malformed")
+	}
+
+	if resp.StatusCode != 200 {
+		if s.Err != "" {
+			return "", errors.New(s.Err)
+		}
+		return "", errors.New("api not allowed")
 	}
 
 	return s.Plan, nil
