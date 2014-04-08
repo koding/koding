@@ -21,7 +21,9 @@ class SessionStackView extends KDView
 
     @updateSessions()
 
+
   updateSessions: ->
+
     @loader.show()
     {kite} = @getOptions()
     kite.webtermGetSessions().then (sessions) =>
@@ -45,7 +47,7 @@ class SessionStackView extends KDView
 
   viewAppended: JView::viewAppended
 
+  addSession: (session, index) ->
 
-  addSession: (session, index)->
     {vm, delegate} = @getOptions()
     @sessions.addSubView new SessionItemView {session, delegate, vm, index: index + 1}

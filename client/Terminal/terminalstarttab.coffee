@@ -16,6 +16,7 @@ class TerminalStartTab extends JView
   viewAppended: (force = no) ->
 
     super
+
     @wmWrapper = {}
     @fetchVMs force
     @prepareMessage()
@@ -64,7 +65,9 @@ class TerminalStartTab extends JView
       appView = @getDelegate()
       appView.forwardEvent @vmWrapper[alias], 'VMItemClicked'
 
+
   listVMSessions: (vms) ->
+
     vmList = {}
     vms.forEach (vm) ->
       vmList[vm.hostnameAlias] = vm
@@ -77,6 +80,7 @@ class TerminalStartTab extends JView
 
 
   pistachio:->
+
     """
     <h1>This is where the magic happens!</h1>
     <h2>Terminal allows you to interact directly with your VM.</h2>
@@ -87,6 +91,7 @@ class TerminalStartTab extends JView
     """
 
   prepareMessage: ->
+
     {paymentController} = KD.singletons
     paymentController.fetchActiveSubscription tags: "vm", (err, subscription) =>
       return error err  if err
