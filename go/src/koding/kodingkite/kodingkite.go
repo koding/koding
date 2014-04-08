@@ -6,6 +6,7 @@ import (
 	"log"
 	"net/http"
 	"net/url"
+	"os"
 	"strconv"
 
 	kodingconfig "koding/tools/config"
@@ -20,11 +21,11 @@ import (
 
 type KodingKite struct {
 	*server.Server
-	Kontrol      *kontrolclient.KontrolClient
-	Registration *registration.Registration
-	KodingConfig *kodingconfig.Config
-	registerIP   string
-	scheme       string
+	Kontrol          *kontrolclient.KontrolClient
+	Registration     *registration.Registration
+	KodingConfig     *kodingconfig.Config
+	registerHostname string
+	scheme           string
 }
 
 // New returns a new kite instance based on for the given Koding configurations
@@ -51,11 +52,6 @@ func New(kodingConf *kodingconfig.Config, name, version string) (*KodingKite, er
 		scheme:       "ws",
 	}
 
-	kk.registerIP, err = getRegisterIP(kodingConf.Environment)
-	if err != nil {
-		return nil, err
-	}
-
 	syslog, err := logging.NewSyslogHandler(name)
 	if err != nil {
 		log.Fatalf("Cannot connect to syslog: %s", err.Error())
@@ -66,7 +62,13 @@ func New(kodingConf *kodingconfig.Config, name, version string) (*KodingKite, er
 	if kodingConf.NewKontrol.UseTLS {
 		kk.Server.UseTLSFile(kodingConf.NewKontrol.CertFile, kodingConf.NewKontrol.KeyFile)
 		kk.scheme = "wss"
-		kk.Config.Port = 443
+		kk.registerHostname, err = os.Hostname()
+	} else {
+		kk.registerHostname, err = getRegisterIP(kodingConf.Environment)
+	}
+
+	if err != nil {
+		return nil, err
 	}
 
 	return kk, nil
@@ -77,7 +79,7 @@ func (k *KodingKite) Start() {
 
 	registerWithURL := &url.URL{
 		Scheme: k.scheme,
-		Host:   k.registerIP + ":" + strconv.Itoa(k.Config.Port),
+		Host:   k.registerHostname + ":" + strconv.Itoa(k.Config.Port),
 		// Put the kite's name and version into path because it is useful
 		// on Chrome Console when developing.
 		Path: "/" + k.Kite.Kite().Name + "-" + k.Kite.Kite().Version,
