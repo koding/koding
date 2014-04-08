@@ -6,9 +6,7 @@ class TerminalStartTab extends JView
 
     @vmWrapper = new KDCustomHTMLView tagName : 'ul'
 
-    @vmSessions = new KDCustomHTMLView tagName : 'ul'
-
-    @message = new KDCustomHTMLView
+    @message = new KDCustomHTMLView cssClass : 'terminal-bottom-message'
 
     KD.singletons.notificationController.on 'NotificationHasArrived', ({event}) =>
       if event in ["VMCreated", "VMRemoved"]
@@ -66,7 +64,6 @@ class TerminalStartTab extends JView
       appView = @getDelegate()
       appView.forwardEvent @vmWrapper[alias], 'VMItemClicked'
 
-
   listVMSessions: (vms) ->
     vmList = {}
     vms.forEach (vm) ->
@@ -76,7 +73,7 @@ class TerminalStartTab extends JView
     {delegate} = @getOptions()
     for own alias, kite of kites
       vm = vmList[alias]
-      @vmSessions.addSubView new SessionStackView {kite: kite, alias: alias, vm: vm, delegate}
+      @vmWrapper[alias].addSubView new SessionStackView {kite: kite, alias: alias, vm: vm, delegate}
 
 
   pistachio:->
@@ -86,8 +83,6 @@ class TerminalStartTab extends JView
     <figure><iframe src="//www.youtube.com/embed/DmjWnmSlSu4?origin=https://koding.com&showinfo=0&rel=0&theme=dark&modestbranding=1&autohide=1&loop=1" width="100%" height="100%" frameborder="0" webkitAllowFullScreen mozallowfullscreen allowFullScreen></iframe></figure>
     <h3>Your VMs</h3>
     {{> @vmWrapper}}
-    <h3>Previous VM Sessions</h3>
-    {{> @vmSessions}}
     {{> @message}}
     """
 

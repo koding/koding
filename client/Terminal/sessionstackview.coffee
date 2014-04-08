@@ -2,6 +2,8 @@ class SessionStackView extends KDView
 
   constructor: (options, data) ->
 
+    options.cssClass = "terminal-session-stack"
+
     super options, data
 
     @loader = new KDLoaderView
@@ -36,7 +38,6 @@ class SessionStackView extends KDView
   pistachio: ->
     {alias} = @getOptions()
     """
-    #{alias.replace 'koding.kd.io', 'kd.io'}
     {{> @loader }}
     {{> @sessions }}
     """

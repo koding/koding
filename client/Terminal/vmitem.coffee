@@ -27,7 +27,7 @@ class TerminalStartTabVMItem extends KDCustomHTMLView
     @progress = new KDCustomHTMLView
       tagName  : 'cite'
 
-    alwaysOn = if vm.alwaysOn then "Always On" else "Volatile"
+    alwaysOn = if vm.alwaysOn then "(Always On)" else ""
     @alwaysOn = new KDCustomHTMLView
       tagName  : 'cite'
       partial  : alwaysOn
@@ -111,7 +111,7 @@ class TerminalStartTabVMItem extends KDCustomHTMLView
     vm    = @getData()
     alias = vm.hostnameAlias
     """
-    <figure>{{> @loader}}</figure>#{alias.replace 'koding.kd.io', 'kd.io'}{{> @notice}} {{> @alwaysOn}}
+    <figure>{{> @loader}}</figure>#{alias.replace 'koding.kd.io', 'kd.io'} {{> @alwaysOn}} {{> @notice}}
     {{> @progress}}
     """
 
