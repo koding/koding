@@ -11,9 +11,8 @@ class SidebarItem extends KDListItemView
   selectItem: (item)->
 
     if item.getId() is @getId()
-      @setClass 'selected'
-    else
-      @unsetClass 'selected'
+    then @setClass 'selected'
+    else @unsetClass 'selected'
 
 
   click: ->
