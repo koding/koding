@@ -34,11 +34,19 @@ class SocialApiController extends KDController
         return callback err if err
         return callback null, mapChannels result
 
+  fetchPopularTopics = (options, callback)->
+    getCurrentGroup (group)->
+      options.groupName = group.slug
+      {SocialChannel} = KD.remote.api
+      SocialChannel.fetchPopularTopics options, (err, result)->
+        return callback err if err
+        return callback null, mapChannels result
 
   channel:
     list: fetchChannels
     fetchActivity: fetchChannelActivity
     fetchGroupActivity: fetchGroupActivity
+    fetchPopularTopics: fetchPopularTopics
 
   messageApiFunc = (name, rest..., callback)->
     KD.remote.api.SocialMessage[name] rest..., (err, res)->
