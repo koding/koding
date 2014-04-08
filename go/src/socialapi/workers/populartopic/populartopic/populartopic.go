@@ -59,13 +59,8 @@ func (f *PopularTopicsController) HandleEvent(event string, data []byte) error {
 		return err
 	}
 
-	res, err := f.isEligible(cml)
-	if err != nil {
-		return err
-	}
-
-	// filter messages here
-	if !res {
+	if cml.ChannelId == 0 {
+		f.log.Error("ChannelId is not set for Channel Message List id: %d Deleting from rabbitmq", cml.Id)
 		return nil
 	}
 
@@ -160,23 +155,13 @@ func mapMessage(data []byte) (*models.ChannelMessageList, error) {
 	return cm, nil
 }
 
-func (f *PopularTopicsController) isEligible(cml *models.ChannelMessageList) (bool, error) {
-	// return true, nil
-	if cml.ChannelId == 0 {
-		f.log.Notice("ChannelId is not set for Channel Message List id: %d", cml.Id)
-		return false, nil
-	}
-
-	c, err := fetchChannel(cml.ChannelId)
-	if err != nil {
-		return false, err
-	}
-
+func (f *PopularTopicsController) isEligible(c *models.Channel) bool {
+	return true
 	if c.TypeConstant != models.Channel_TYPE_TOPIC {
-		return false, nil
+		return false
 	}
 
-	return true, nil
+	return true
 }
 
 // todo add caching here
