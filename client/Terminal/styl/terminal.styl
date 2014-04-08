@@ -95,13 +95,21 @@ body.terminal
 
 li.vm-loader-item
   display             block
-  line-height         30px
+  line-height         40px
   font-size           14px
   font-weight         200
   padding-left        30px
   cursor              pointer
   borderBox()
   rel()
+
+  &:before
+    content           ""
+    display           block
+    border-top        2px solid #252e30
+    width             100%
+    abs               34px 0 0 0px
+
   &:hover
     figure
       opacity         1
@@ -157,35 +165,26 @@ li.vm-loader-item
     opacity           .3
 
   .terminal-session-stack
-    border-top        2px solid #252e30
-
-    .kdloader
-      margin          0
-      left            0
-      top             0
-      size            100% !important, 100% !important
-      background      rgba(27,34,36,.8)
-      z-index         20
-
-      .canvas-loader
-        size          16px, 16px
-        abs           50% 0 0 50%
-        vendor        transform, translateX(-50%) translateY(-50%)
-
-
+    margin-left       -1%
+    padding-right      44px
+    width              auto
 
     li
       opacity         .7
+      padding         3px 16px
+      margin          1% 0 0 1%
+      line-height     22px
       vendor          transition, background .1s ease
-
-      &:before
-        content       "-"
-        display       inline-block
-        margin        0 8px
+      width           24%
+      background      #252e30
+      rounded         4px
+      font-size       12px
+      text-align      center
+      borderBox()
+      fl()
 
       &:hover
         opacity       1
-        background    rgba(255,255,255,.02)
 
 .kdmodal.vm-selection
   ul
