@@ -68,12 +68,22 @@ func (f *PopularTopicsController) HandleEvent(event string, data []byte) error {
 }
 
 func (f *PopularTopicsController) MessageSaved(data *models.ChannelMessageList) error {
-	incrementedVal, err := f.redis.SortedSetIncrBy(GetWeeklyKey(data), 1, data.MessageId)
+	c, err := fetchChannel(data.ChannelId)
 	if err != nil {
 		return err
 	}
 
-	incrementedVal, err = f.redis.SortedSetIncrBy(GetMonthlyKey(data), 1, data.MessageId)
+	if !f.isEligible(c) {
+		f.log.Info("Not eligible Channel Id:%d", c.Id)
+		return nil
+	}
+
+	_, err = f.redis.SortedSetIncrBy(GetWeeklyKey(c, data), 1, data.MessageId)
+	if err != nil {
+		return err
+	}
+
+	_, err = f.redis.SortedSetIncrBy(GetMonthlyKey(c, data), 1, data.MessageId)
 	if err != nil {
 		return err
 	}
@@ -82,12 +92,22 @@ func (f *PopularTopicsController) MessageSaved(data *models.ChannelMessageList) 
 }
 
 func (f *PopularTopicsController) MessageDeleted(data *models.ChannelMessageList) error {
-	incrementedVal, err := f.redis.SortedSetIncrBy(GetWeeklyKey(data), -1, data.MessageId)
+	c, err := fetchChannel(data.ChannelId)
 	if err != nil {
 		return err
 	}
 
-	incrementedVal, err = f.redis.SortedSetIncrBy(GetMonthlyKey(data), -1, data.MessageId)
+	if !f.isEligible(c) {
+		f.log.Info("Not eligible Channel Id:%d", c.Id)
+		return nil
+	}
+
+	_, err = f.redis.SortedSetIncrBy(GetWeeklyKey(c, data), -1, data.MessageId)
+	if err != nil {
+		return err
+	}
+
+	_, err = f.redis.SortedSetIncrBy(GetMonthlyKey(c, data), -1, data.MessageId)
 	if err != nil {
 		return err
 	}
@@ -122,19 +142,12 @@ func GetWeeklyKey(c *models.Channel, cml *models.ChannelMessageList) string {
 		// no need to convert it to UTC
 		_, weekNumber = time.Now().ISOWeek()
 		year, _, _ = time.Now().UTC().Date()
-
 	}
 
-	dateKey := fmt.Sprintf(
-		"%s:%d:%d",
-		"weekly",
-		year,
-		weekNumber,
-	)
-	return dateKey
+	return prepareKey(c.GroupName, "weekly", year, weekNumber)
 }
 
-func GetMonthlyKey(cml *models.ChannelMessageList) string {
+func GetMonthlyKey(c *models.Channel, cml *models.ChannelMessageList) string {
 	var month time.Month
 	year := 2014
 
@@ -144,14 +157,7 @@ func GetMonthlyKey(cml *models.ChannelMessageList) string {
 		year, month, _ = time.Now().UTC().Date()
 	}
 
-	dateKey := fmt.Sprintf(
-		"%s:%d:%d",
-		"monthly",
-		year,
-		int(month),
-	)
-
-	return dateKey
+	return prepareKey(c.GroupName, "monthly", year, int(month))
 }
 
 func mapMessage(data []byte) (*models.ChannelMessageList, error) {
