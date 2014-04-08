@@ -186,7 +186,12 @@ func (o *Oskite) runNewKite() {
 
 	o.NewKite = k.Kite
 
-	k.Config.Port = 5000
+	if k.Server.TLSConfig != nil {
+		k.Config.Port = 443
+	} else {
+		k.Config.Port = 5000
+	}
+
 	k.Config.Region = o.Region
 
 	o.vosMethod(k, "vm.start", vmStartNew)

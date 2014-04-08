@@ -217,7 +217,12 @@ func (t *Terminal) runNewKite() {
 
 	t.NewKite = k.Kite
 
-	k.Config.Port = 5001
+	if k.Server.TLSConfig != nil {
+		k.Config.Port = 444
+	} else {
+		k.Config.Port = 5001
+	}
+
 	k.Config.Region = t.Region
 
 	t.vosMethod(k, "webterm.getSessions", webtermGetSessionsNew)
