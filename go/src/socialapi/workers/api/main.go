@@ -1,12 +1,12 @@
 package main
 
 import (
-	_ "expvar"
+	// _ "expvar"
 	"flag"
 	"fmt"
 	"socialapi/config"
 
-	_ "net/http/pprof" // Imported for side-effect of handling /debug/pprof.
+	// _ "net/http/pprof" // Imported for side-effect of handling /debug/pprof.
 	"os"
 	"os/signal"
 	"socialapi/workers/api/handlers"
@@ -58,6 +58,10 @@ func main() {
 	bongo := helper.MustInitBongo(conf, log)
 	// do not forgot to close the bongo connection
 	defer bongo.Close()
+
+	// init redis
+	redisConn := helper.MustInitRedisConn(conf.Redis)
+	defer redisConn.Close()
 
 	ch := make(chan os.Signal)
 	signal.Notify(ch, syscall.SIGINT, syscall.SIGQUIT, syscall.SIGTERM)
