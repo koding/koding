@@ -69,14 +69,14 @@ class TerminalStartTab extends JView
   listVMSessions: (vms) ->
 
     vmList = {}
-    vms.forEach (vm) ->
-      vmList[vm.hostnameAlias] = vm
+    vms.forEach (vm) -> vmList[vm.hostnameAlias] = vm
 
-    {vmController:{terminalKites : kites}} = KD.singletons
-    {delegate} = @getOptions()
+    { vmController : { terminalKites : kites } } = KD.singletons
+    delegate = @getDelegate()
+
     for own alias, kite of kites
       vm = vmList[alias]
-      @vmWrapper[alias].addSubView new SessionStackView {kite: kite, alias: alias, vm: vm, delegate}
+      @vmWrapper[alias].addSubView new SessionStackView {kite, alias, vm, delegate}
 
 
   pistachio:->
