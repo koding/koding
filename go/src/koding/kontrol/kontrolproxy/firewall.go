@@ -17,37 +17,11 @@ import (
 )
 
 type Firewall struct {
-	rest    models.Restriction
-	filters map[string]models.Filter
-	bucket  *tb.Bucket
+	rest      models.Restriction
+	filters   map[string]models.Filter
+	bucket    *tb.Bucket
+	cacheTime time.Time
 }
-
-func NewFirewall(rest models.Restriction) *Firewall {
-	f := &Firewall{
-		filters: make(map[string]models.Filter),
-		rest:    rest,
-	}
-
-	for _, rule := range rest.RuleList {
-		if !rule.Enabled {
-			continue
-		}
-
-		filter, err := modelhelper.GetFilterByField("name", rule.Name)
-		if err != nil {
-			continue
-		}
-
-		f.filters[rule.Name] = filter
-	}
-
-	return f
-}
-
-var (
-	fws   = make(map[string]*Firewall)
-	fwsMu sync.Mutex
-)
 
 type Checker interface {
 	Check() bool
@@ -69,12 +43,42 @@ type CheckRequest struct {
 	Interval   time.Duration
 }
 
+var (
+	cacheTimeout = time.Minute
+	fws          = make(map[string]*Firewall)
+	fwsMu        sync.Mutex
+)
+
+func NewFirewall(rest models.Restriction) *Firewall {
+	f := &Firewall{
+		filters:   make(map[string]models.Filter),
+		rest:      rest,
+		cacheTime: time.Now(),
+	}
+
+	for _, rule := range rest.RuleList {
+		if !rule.Enabled {
+			continue
+		}
+
+		filter, err := modelhelper.GetFilterByField("name", rule.Name)
+		if err != nil {
+			continue
+		}
+
+		f.filters[rule.Name] = filter
+	}
+
+	return f
+}
+
 func firewallHandler(h http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		fwsMu.Lock()
 		fw, ok := fws[r.Host]
 		fwsMu.Unlock()
-		if !ok {
+		if !ok || fw.cacheTime.Add(cacheTimeout).Before(time.Now()) {
+			fmt.Println("getting from DB")
 			rest, err := modelhelper.GetRestrictionByDomain(r.Host)
 			if err != nil {
 				// don't block if we don't get a rule (pre-caution))
@@ -86,6 +90,8 @@ func firewallHandler(h http.Handler) http.Handler {
 			fwsMu.Lock()
 			fws[r.Host] = fw
 			fwsMu.Unlock()
+		} else {
+			fmt.Println("getting from CACHE")
 		}
 
 		for _, rule := range fw.rest.RuleList {
