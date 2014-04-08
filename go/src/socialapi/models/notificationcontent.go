@@ -43,8 +43,8 @@ func (n *NotificationContent) Create() error {
 		"type":      n.Type,
 		"target_id": n.TargetId,
 	}
-
-	if err := n.One(s); err != nil {
+	q := bongo.NewQS(s)
+	if err := n.One(q); err != nil {
 		if err != gorm.RecordNotFound {
 			return err
 		}
@@ -54,9 +54,8 @@ func (n *NotificationContent) Create() error {
 	return nil
 }
 
-func (n *NotificationContent) One(selector map[string]interface{}) error {
-	return bongo.B.One(n, n, selector)
 func (n *NotificationContent) One(q *bongo.Query) error {
+	return bongo.B.One(n, n, q)
 }
 
 func CreateNotification(i Notifiable) error {
