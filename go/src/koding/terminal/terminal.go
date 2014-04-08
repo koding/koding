@@ -23,7 +23,7 @@ import (
 
 const (
 	TERMINAL_NAME    = "terminal"
-	TERMINAL_VERSION = "0.0.2"
+	TERMINAL_VERSION = "0.1.0"
 )
 
 var (

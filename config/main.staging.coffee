@@ -193,7 +193,7 @@ module.exports =
       github    :
         clientId: "f733c52d991ae9642365"
       newkontrol:
-        url         : 'ws://stage-kontrol.koding.com'
+        url         : 'wss://stage-kontrol.koding.com'
       fileFetchTimeout: 15 * 1000 # seconds
       externalProfiles  :
         github          :
@@ -295,10 +295,10 @@ module.exports =
     webPort     : 3020
   newkontrol      :
     username        : "koding"
-    port            : 80
-    useTLS          : no
-    certFile        : ""
-    keyFile         : ""
+    port            : 443
+    useTLS          : yes
+    certFile        : "/opt/koding/certs/koding_com_cert.pem"
+    keyFile         : "/opt/koding/certs/koding_com_key.pem"
     publicKeyFile   : "/opt/koding/certs/test_kontrol_rsa_public.pem"
     privateKeyFile  : "/opt/koding/certs/test_kontrol_rsa_private.pem"
   proxyKite       :

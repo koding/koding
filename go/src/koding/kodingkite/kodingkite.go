@@ -66,6 +66,7 @@ func New(kodingConf *kodingconfig.Config, name, version string) (*KodingKite, er
 	if kodingConf.NewKontrol.UseTLS {
 		kk.Server.UseTLSFile(kodingConf.NewKontrol.CertFile, kodingConf.NewKontrol.KeyFile)
 		kk.scheme = "wss"
+		kk.Config.Port = 443
 	}
 
 	return kk, nil
