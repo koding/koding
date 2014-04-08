@@ -163,7 +163,26 @@ func fetchRelatedContent(nl []Notification) (map[int64]NotificationContent, erro
 	return nc.FetchMapByIds(notificationContentIds)
 }
 
-// fetch 3 actors and total count of actors
-func populateActors(result []NotificationContainer) ([]NotificationContainer, error) {
+// fetch 3 actors and total count of actors. actors are from different tables
+func populateActors(ncList []NotificationContainer) ([]NotificationContainer, error) {
+	result := make([]NotificationContainer, 0)
+
+	for _, n := range ncList {
+		notificationType, err := CreateNotificationType(n.Type)
+		if err != nil {
+			return nil, err
+		}
+
+		notificationType.SetTargetId(n.TargetId)
+
+		actors, err := notificationType.FetchActors()
+		// instead of interrupting process we can just proceed here
+		if err != nil {
+			return nil, err
+		}
+
+		n.Actors = *actors
+		result = append(result, n)
+	}
 	return result, nil
 }
