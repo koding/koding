@@ -8,6 +8,7 @@ import (
 	"socialapi/workers/api/modules/interaction"
 	"socialapi/workers/api/modules/message"
 	"socialapi/workers/api/modules/messagelist"
+	"socialapi/workers/api/modules/notification"
 	"socialapi/workers/api/modules/participant"
 	"socialapi/workers/api/modules/popular"
 	"socialapi/workers/api/modules/privatemessage"
@@ -134,6 +135,9 @@ func Inject(mux *tigertonic.TrieServeMux) *tigertonic.TrieServeMux {
 
 	// get popular topics
 	mux.Handle("GET", "/popular/topics/{statisticName}", handlerWrapper(popular.ListTopics, "list-popular-topics"))
+
+	// list notifications
+	mux.Handle("GET", "/notification/{accountId}", handlerWrapper(notification.List, "notification-list"))
 
 	// mux.Handle("POST", "/follow/{id}", handlerWrapper(post, "follow-id"))
 	// mux.Handle("POST", "/unfollow/{id}", handlerWrapper(post, "follow-id"))

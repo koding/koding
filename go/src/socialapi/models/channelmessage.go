@@ -236,9 +236,9 @@ func fetchDistinctAccounts(messages []ChannelMessage) []int64 {
 		return accountIds
 	}
 
-	accountIdMap := make(map[int64]interface{})
+	accountIdMap := map[int64]struct{}{}
 	for _, message := range messages {
-		accountIdMap[message.AccountId] = true
+		accountIdMap[message.AccountId] = struct{}{}
 	}
 
 	for key, _ := range accountIdMap {

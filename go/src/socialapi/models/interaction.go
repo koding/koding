@@ -93,33 +93,31 @@ func (c *Interaction) List(interactionType string) ([]int64, error) {
 		return interactions, errors.New("ChannelId is not set")
 	}
 
-	if err := bongo.B.DB.Table(c.TableName()).
-		Where("message_id = ?", c.MessageId).
-		Pluck("account_id", &interactions).
-		Error; err != nil {
+	return c.FetchInteractorIds()
+}
+
+func (i *Interaction) Some(data interface{}, q *bongo.Query) error {
+
+	return bongo.B.Some(i, data, q)
+}
+
+func (i *Interaction) FetchInteractorIds() ([]int64, error) {
+	var interactorIds []int64
+	q := &bongo.Query{
+		Selector: map[string]interface{}{
+			"message_id": i.MessageId,
+		},
+		Pluck: "account_id",
+	}
+	if err := i.Some(&interactorIds, q); err != nil {
 		return nil, err
 	}
 
-	if interactions == nil {
+	if interactorIds == nil {
 		return make([]int64, 0), nil
 	}
 
-	// change this part to use c.m.some
-
-	// selector := map[string]interface{}{
-	// 	"message_id": c.MessageId,
-	// }
-
-	// pluck := map[string]interface{}{
-	// 	"account_id": true,
-	// }
-
-	// err := c.m.Some(c, &interactions, selector, nil, pluck)
-	// if err != nil && err != gorm.RecordNotFound {
-	// 	return nil, err
-	// }
-
-	return interactions, nil
+	return interactorIds, nil
 }
 
 func (c *Interaction) FetchAll(interactionType string) ([]Interaction, error) {
