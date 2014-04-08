@@ -48,13 +48,20 @@ module.exports = class JKite extends jraphical.Module
         as              : 'kitePlan'
 
   @create: permit 'create kite',
-    success:(client, formData, callback)->
+    success: (client, formData, callback) ->
+      {delegate} = client.connection
+      {profile}  = delegate
+
+      formData.manifest.authorNick = profile.nickname
+      formData.manifest.author     = "#{profile.firstName} #{profile.lastName}"
+
       kite = new JKite formData
       kite.kiteCode = createId()
+
       kite.save (err)->
         return  callback new KodingError "kite couldn't saved" if err
-        account = client.connection.delegate
-        account.addKite kite, (err, res)->
+
+        delegate.addKite kite, (err, res)->
           return  callback new KodingError "kite couldn't added to account" if err
           callback null, kite
 
