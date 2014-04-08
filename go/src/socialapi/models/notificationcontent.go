@@ -184,3 +184,15 @@ func (n *NotificationContent) FetchMapByIds(ids []int64) (map[int64]Notification
 	fmt.Printf("map: %+v", ncMap)
 	return ncMap, nil
 }
+
+func CreateNotificationType(notificationType string) (Notifiable, error) {
+	switch notificationType {
+	case "like":
+		return NewInteractionNotification(notificationType), nil
+	case "comment":
+		return NewReplyNotification(), nil
+	default:
+		return nil, errors.New("undefined notification type")
+	}
+
+}
