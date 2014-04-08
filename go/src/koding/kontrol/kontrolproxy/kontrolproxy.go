@@ -877,14 +877,3 @@ func getIP(addr string) string {
 	}
 	return ip
 }
-
-func validate(ip, domain string) (bool, error) {
-	restriction, err := modelhelper.GetRestrictionByDomain(domain)
-	if err != nil {
-		return true, nil //don't block if we don't get a rule (pre-caution))
-	}
-
-	// TODO: enable geoIP and gather country from there
-	country := ""
-	return validator(restriction, ip, country, domain).AddRules().Check()
-}
