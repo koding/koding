@@ -1,22 +1,19 @@
 package redis
 
-import (
-	"koding/tools/config"
-	"sync"
-)
+import "sync"
 
 // SingletonSession handles connection pool for Redis
 type SingletonSession struct {
 	Session   *RedisSession
 	Err       error
-	conf      *config.Config
+	server    string
 	initMutex sync.Mutex
 }
 
 // Create a new Singleton
-func Singleton(c *config.Config) *SingletonSession {
+func Singleton(server string) *SingletonSession {
 	return &SingletonSession{
-		conf: c,
+		server: server,
 	}
 }
 
@@ -30,7 +27,7 @@ func (r *SingletonSession) Connect() (*RedisSession, error) {
 		return r.Session, nil
 	}
 
-	r.Session, r.Err = NewRedisSession(r.conf.Redis)
+	r.Session, r.Err = NewRedisSession(r.server)
 	return r.Session, r.Err
 }
 
