@@ -173,6 +173,8 @@ module.exports = class JGroup extends Module
           (signature String, Object, Function)
         inviteByEmails:
           (signature String, Object, Function)
+        isMember:
+          (signature Object, Function)
         kickMember:
           (signature String, Function)
         transferOwnership:
