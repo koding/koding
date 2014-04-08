@@ -6,6 +6,20 @@ class ActivitySidebar extends KDCustomScrollView
 
     super
 
+    {activityController} = KD.singletons
+
+    @wrapper.addSubView publicLink = new CustomLinkView
+      title    : 'Public Feed'
+      cssClass : 'kdlistitemview-sidebar-item'
+      click    : (event) ->
+        KD.utils.stopDOMEvent event
+        activityController.emit 'SidebarItemClicked', this
+
+    publicLink.selectItem = SidebarItem::selectItem.bind publicLink
+    activityController.on 'SidebarItemClicked', publicLink.bound 'selectItem'
+
+    KD.utils.defer -> activityController.emit 'SidebarItemClicked', publicLink
+
     @addHotTopicsAside()
     skip += 3
     @addFollowedTopicsAside()
@@ -22,7 +36,21 @@ class ActivitySidebar extends KDCustomScrollView
 
   itemClicked: (item) ->
 
-    log item
+    # log item
+
+
+  addPublicLinkAside: ->
+
+    @wrapper.addSubView @public = new ActivitySideView
+      title      : 'HOT'
+      cssClass   : 'hot topics'
+      itemClass  : SidebarTopicItem
+      dataSource : (callback) ->
+        KD.remote.api.JTag.some {group : 'koding'},
+          limit  : 3
+          skip   : skip
+          sort   : "counts.followers" : -1
+        , callback
 
 
   addHotTopicsAside: ->
@@ -31,7 +59,7 @@ class ActivitySidebar extends KDCustomScrollView
       title      : 'HOT'
       cssClass   : 'hot topics'
       itemClass  : SidebarTopicItem
-      dataSource : (callback)->
+      dataSource : (callback) ->
         KD.remote.api.JTag.some {group : 'koding'},
           limit  : 3
           skip   : skip
@@ -45,7 +73,7 @@ class ActivitySidebar extends KDCustomScrollView
       title    : 'Followed Topics'
       cssClass : 'followed topics'
       itemClass : SidebarTopicItem
-      dataSource : (callback)->
+      dataSource : (callback) ->
         KD.remote.api.JTag.some {group : 'koding'},
           limit  : 3
           skip   : skip
@@ -59,7 +87,7 @@ class ActivitySidebar extends KDCustomScrollView
       title    : 'Threads'
       cssClass : 'threads users'
       itemClass : SidebarMemberItem
-      dataSource : (callback)->
+      dataSource : (callback) ->
         KD.getGroup().fetchNewestMembers {}, {limit : 3, skip}, callback
 
 
@@ -69,7 +97,7 @@ class ActivitySidebar extends KDCustomScrollView
       title    : 'Messages'
       cssClass : 'inbox users'
       itemClass : SidebarMemberItem
-      dataSource : (callback)->
+      dataSource : (callback) ->
         KD.getGroup().fetchNewestMembers {}, {limit : 3, skip}, callback
 
 
@@ -79,5 +107,5 @@ class ActivitySidebar extends KDCustomScrollView
       title    : 'Chat'
       cssClass : 'chat users'
       itemClass : SidebarMemberItem
-      dataSource : (callback)->
+      dataSource : (callback) ->
         KD.getGroup().fetchNewestMembers {}, {limit : 10, skip : 0}, callback

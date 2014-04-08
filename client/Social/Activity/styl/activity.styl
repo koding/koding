@@ -331,6 +331,11 @@ resurrection.activity.styl
         font-weight     200
         color           #9a9a9a
 
+    a.kdlistitemview-sidebar-item
+      margin-top        33px
+      height            auto
+      noTextDeco()
+
     .kdlistitemview-sidebar-item
       size              auto 60px
       position          relative
@@ -342,11 +347,13 @@ resurrection.activity.styl
       letter-spacing    .2px
       cursor            pointer
       rounded           3px
+      display           block
       borderBox()
 
       &:hover
       &.selected
         bg              color #efefef
+
 
       .action
         overflow        visible
