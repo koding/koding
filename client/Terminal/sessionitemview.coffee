@@ -1,7 +1,8 @@
 class SessionItemView extends KDView
 
   constructor: (options, data) ->
-    options.tagName = "li"
+
+    options.tagName = 'li'
     options.index  ?= 1
     options.partial = "Session #{options.index}"
 
@@ -9,9 +10,8 @@ class SessionItemView extends KDView
 
 
   click: ->
-    {delegate, session, vm} = @getOptions()
-    @delegate.emit "sessionSelected", {vm, session}
 
+    {session, vm} = @getOptions()
+    @getDelegate().emit "sessionSelected", {vm, session}
 
-
-
+    no
