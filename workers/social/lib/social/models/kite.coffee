@@ -30,8 +30,6 @@ module.exports = class JKite extends jraphical.Module
           (signature Object, Function)
         list              :
           (signature Object, Object, Function)
-        one               :
-          (signature Object, Function)
       instance            :
         modify            :
           (signature Object, Function)
