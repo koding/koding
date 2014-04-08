@@ -96,12 +96,14 @@ class CreateKiteModal extends KDModalViewWithForms
 
   save: ->
     {name, description} = @modalTabs.forms.Details.getFormData()
+    {markdownWidget}    = @modalTabs.forms.Documentation.inputs
     plans               = (form.getFormData() for form in @pricingForms)
     kite                =
       name              : name
       manifest          :
         description     : description
         name            : name
+        readme          : markdownWidget.getRawValue()
 
     KD.remote.api.JKite.create kite, (err, kite)=>
       return  KD.showError err if err
