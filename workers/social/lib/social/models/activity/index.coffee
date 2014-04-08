@@ -11,8 +11,6 @@ module.exports = class CActivity extends jraphical.Capsule
 
   @getFlagRole =-> 'activity'
 
-  jraphical.Snapshot.watchConstructor this
-
   @share()
 
   @trait __dirname, '../../traits/followable', override: no
