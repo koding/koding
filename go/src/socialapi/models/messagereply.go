@@ -91,12 +91,13 @@ func (m *MessageReply) List() ([]ChannelMessage, error) {
 	return channelMessageReplies, nil
 }
 
-func (m *MessageReply) FetchReplyIds() ([]int64, error) {
+func (m *MessageReply) FetchReplyIds(p *bongo.Pagination) ([]int64, error) {
 	var replyIds []int64
 	q := &bongo.Query{
 		Selector: map[string]interface{}{
 			"message_id": m.MessageId,
 		},
+		Pagination: *p,
 		Pluck: "reply_id",
 	}
 	if err := m.Some(&replyIds, q); err != nil {
