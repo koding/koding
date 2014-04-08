@@ -14,10 +14,10 @@ KD.extend
   navItemIndex : {}
 
   toggleKiteStack: ->
-    if @useNewKites
-      delete localStorage.useNewKites
-    else
-      localStorage.useNewKites = '1'
+    localStorage.useNewKites =
+      if @useNewKites
+      then ''
+      else '1'
     location.reload()
 
   socketConnected:->
