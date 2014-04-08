@@ -58,6 +58,7 @@ class CreateKiteModal extends KDModalViewWithForms
           fields              :
             markdownWidget    :
               itemClass       : MarkdownWidget
+              preview         : yes
         Pricing               :
           fields              :
             container         :
@@ -135,11 +136,13 @@ class CreateKiteModal extends KDModalViewWithForms
             title     : "This kite name exists"
         else
           @modalTabs.showNextPane()
-          @modalTabs.forms.Documentation.inputs.markdownWidget.setValue """
+          {markdownWidget} = @modalTabs.forms.Documentation.inputs
+          markdownWidget.setValue """
             #{name}
             =======
             #{desc}
           """
+          markdownWidget.preview()
     else
       Details.buttons.Next.hideLoader()
 
