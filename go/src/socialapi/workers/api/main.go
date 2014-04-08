@@ -66,7 +66,7 @@ func main() {
 	ch := make(chan os.Signal)
 	signal.Notify(ch, syscall.SIGINT, syscall.SIGQUIT, syscall.SIGTERM)
 
-	log.Info("Recieved %v", <-ch)
+	log.Info("Received %v", <-ch)
 }
 
 func newServer() *tigertonic.Server {
