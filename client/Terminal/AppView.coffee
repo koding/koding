@@ -86,7 +86,11 @@ class WebTermAppView extends JView
             [alias, sessionId] = session.split ':'
             if sessionId in activeSessions
               sessionRestored = yes
-              @createNewTab {vm: vmList[alias], session: sessionId, mode: 'resume'}
+              @createNewTab
+                vm         : vmList[alias]
+                session    : sessionId
+                mode       : 'resume'
+                shouldShow : no
 
           unless sessionRestored
             @notify
@@ -94,12 +98,6 @@ class WebTermAppView extends JView
                            If you want always on VMs, you can upgrade your plan"
               cssClass  : "fail"
 
-          activeIndex = storage.getValue 'activeIndex'
-          activePane = @tabView.getPaneByIndex activeIndex ? 1
-          if sessionRestored and activeIndex isnt 0
-            @tabView.showPane activePane
-            { terminalView } = activePane.getOptions()
-            terminalView.setKeyView()
 
   initPane: (pane) ->
 
@@ -252,7 +250,8 @@ class WebTermAppView extends JView
 
   createNewTab: (options = {}) ->
 
-    { hostnameAlias: vmName, region } = options.vm
+    {shouldShow} = options
+    {hostnameAlias: vmName, region} = options.vm
 
     defaultOptions =
       testPath    : "webterm-tab"
@@ -262,7 +261,7 @@ class WebTermAppView extends JView
 
     @emit 'TerminalStarted'
 
-    @appendTerminalTab terminalView
+    @appendTerminalTab terminalView, shouldShow
     terminalView.connectToTerminal()
     @forwardEvent terminalView, "WebTermConnected"
     @forwardEvent terminalView, "TerminalClosed"
@@ -281,7 +280,7 @@ class WebTermAppView extends JView
 
     @tabView.addPane pane
 
-  appendTerminalTab: (terminalView) ->
+  appendTerminalTab: (terminalView, shouldShow = yes) ->
 
     @forwardEvents terminalView, ['KeyViewIsSet', 'command']
 
@@ -289,11 +288,11 @@ class WebTermAppView extends JView
       name          : 'Terminal'
       terminalView  : terminalView
 
-    @tabView.addPane pane
+    @tabView.addPane pane, shouldShow
     pane.addSubView terminalView
 
     terminalView.on "WebTermNeedsToBeRecovered", ({vm, session}) =>
-      @createNewTab {vm, session, mode: 'resume'}
+      @createNewTab {vm, session, mode: 'resume', shouldShow : no}
       @notify
         title   : "Reconnected to Terminal"
 
