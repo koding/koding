@@ -32,8 +32,8 @@ func NewNotification() *Notification {
 	return &Notification{}
 }
 
-func (n *Notification) One(selector map[string]interface{}) error {
-	return bongo.B.One(n, n, selector)
+func (n *Notification) One(q *bongo.Query) error {
+	return bongo.B.One(n, n, q)
 }
 
 func (n *Notification) Create() error {
@@ -41,8 +41,8 @@ func (n *Notification) Create() error {
 		"account_id":              n.AccountId,
 		"notification_content_id": n.NotificationContentId,
 	}
-
-	if err := n.One(s); err != nil {
+	q := bongo.NewQS(s)
+	if err := n.One(q); err != nil {
 		if err != gorm.RecordNotFound {
 			return err
 		}
