@@ -9,13 +9,11 @@ broker = new Broker KONFIG.mq
 
 koding = new Bongo
   root        : __dirname
-  mongo       : "mongodb://#{KONFIG.mongo}"
   models      : '../workers/social/lib/social/models'
   resourceName: 'bongo-api-builder'
-  mq          : broker
 
 koding.on 'apiReady', ->
-  koding.describeApi (api)->
+  koding.describeApi (api) ->
     source = "var REMOTE_API = #{ JSON.stringify api };"
     require('fs').writeFileSync argv.o, source, 'utf-8'
     process.exit()
