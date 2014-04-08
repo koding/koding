@@ -92,7 +92,7 @@ func NewBroker(conf *config.Config) *Broker {
 		Hostname:          brokerHostname,
 		ServiceUniqueName: serviceUniqueName,
 		ready:             make(chan struct{}),
-		RedisSingleton:    redis.Singleton(conf),
+		RedisSingleton:    redis.Singleton(conf.Redis),
 	}
 }
 
