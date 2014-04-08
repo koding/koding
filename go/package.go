@@ -8,6 +8,7 @@ import (
 	"io/ioutil"
 	"koding/oskite"
 	"koding/terminal"
+	"koding/tools/build"
 	"koding/tools/config"
 	"log"
 	"os"
@@ -15,8 +16,6 @@ import (
 	"runtime"
 	"strings"
 	"text/template"
-
-	"github.com/koding/kite/cmd/build"
 )
 
 var (
