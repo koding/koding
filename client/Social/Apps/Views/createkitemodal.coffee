@@ -16,10 +16,9 @@ class CreateKiteModal extends KDModalViewWithForms
             Next              :
               title           : "Next"
               style           : "modal-clean-gray"
-              type            : "submit"
               loader          :
                 color         : "#444444"
-              callback        : -> @hideLoader()
+              callback        : => @handleDetailsForm()
             Cancel            :
               title           : "Cancel"
               style           : "modal-cancel"
@@ -98,6 +97,29 @@ class CreateKiteModal extends KDModalViewWithForms
       dash queue, (err) =>
         return KD.showError err if err
         @destroy()
+
+  handleDetailsForm: ->
+    {Details} = @modalTabs.forms
+    {nameField, descriptionField} = Details.inputs
+
+    if nameField.validate() and descriptionField.validate()
+      name  = nameField.getValue()
+      nick  = KD.nick()
+      query = "manifest.name": name, "manifest.authorNick": nick
+
+      KD.remote.api.JKite.list query, {}, (err, kite) =>
+        Details.buttons.Next.hideLoader()
+        if kite.length
+          new KDNotificationView
+            container : this
+            duration  : 4000
+            type      : "mini"
+            cssClass  : "error kite-exist"
+            title     : "This kite name exists"
+        else
+          @modalTabs.showNextPane()
+    else
+      Details.buttons.Next.hideLoader()
 
 
 class KitePricingFormView extends KDFormViewWithFields
