@@ -2,10 +2,9 @@ package models
 
 import (
 	"errors"
-	"time"
-
 	"github.com/jinzhu/gorm"
 	"github.com/koding/bongo"
+	"time"
 )
 
 type Interaction struct {
@@ -93,7 +92,7 @@ func (c *Interaction) List(interactionType string) ([]int64, error) {
 		return interactions, errors.New("ChannelId is not set")
 	}
 
-	return c.FetchInteractorIds()
+	return c.FetchInteractorIds(&bongo.Pagination{})
 }
 
 func (i *Interaction) Some(data interface{}, q *bongo.Query) error {
@@ -101,14 +100,16 @@ func (i *Interaction) Some(data interface{}, q *bongo.Query) error {
 	return bongo.B.Some(i, data, q)
 }
 
-func (i *Interaction) FetchInteractorIds() ([]int64, error) {
+func (i *Interaction) FetchInteractorIds(p *bongo.Pagination) ([]int64, error) {
 	var interactorIds []int64
 	q := &bongo.Query{
 		Selector: map[string]interface{}{
 			"message_id": i.MessageId,
 		},
-		Pluck: "account_id",
+		Pagination: *p,
+		Pluck:      "account_id",
 	}
+
 	if err := i.Some(&interactorIds, q); err != nil {
 		return nil, err
 	}
@@ -163,7 +164,6 @@ func (i *Interaction) IsInteracted(accountId int64) (bool, error) {
 }
 
 func (i *Interaction) FetchInteractorIdsWithCount(p *bongo.Pagination, count *int) ([]int64, error) {
-	fmt.Println("hellooo!!")
 	interactorIds, err := i.FetchInteractorIds(p)
 	if err != nil {
 		return nil, err
