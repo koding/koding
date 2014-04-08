@@ -117,6 +117,7 @@ func (n *NotificationContent) Create() error {
 
 func (n *NotificationContent) One(selector map[string]interface{}) error {
 	return bongo.B.One(n, n, selector)
+func (n *NotificationContent) One(q *bongo.Query) error {
 }
 
 func CreateNotification(i Notifiable) error {

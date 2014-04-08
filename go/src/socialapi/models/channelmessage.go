@@ -204,30 +204,58 @@ func (c *ChannelMessage) BuildMessage(query *Query) (*ChannelMessageContainer, e
 	return cmc, nil
 }
 
-func (c *ChannelMessage) FetchReplierIds() ([]int64, error) {
+func (c *ChannelMessage) FetchReplierIds(p *bongo.Pagination) ([]int64, error) {
 	if c.Id == 0 {
-		return nil, IdNotSet
+		return nil, errors.New("channel message id is not set")
 	}
 
-	replyIds, err := c.fetchReplies()
+	replyIds, err := c.FetchMessageReplies(p)
+	if err != nil {
+		return nil, err
+	}
 
-	// adding message owner
+	// adding message owner - TODO (message owner must not be added here. or it must be parameterized)
 	replyIds = append(replyIds, c.Id)
 
 	messages, err := c.FetchByIds(replyIds)
 	if err != nil {
 		return nil, err
 	}
+
 	accountIds := fetchDistinctAccounts(messages)
 
 	return accountIds, nil
 }
 
-func (c *ChannelMessage) fetchReplies() ([]int64, error) {
+// FetchReplierIdsWithCount fetches all repliers of message with given Id and returns distinct replier count
+// Account given with AccountId is excluded from the results
+func (c *ChannelMessage) FetchReplierIdsWithCount(p *bongo.Pagination, count *int) ([]int64, error) {
+	if c.Id == 0 {
+		return nil, errors.New("channel message id is not set")
+	}
+
+	replyIds, err := c.FetchMessageReplies(p)
+	if err != nil {
+		return nil, err
+	}
+
+	// also test what if the result set is empty
+	*count, err = c.FetchDistinctReplierCount(replyIds)
+	if err != nil {
+		return nil, err
+	}
+
+	return c.FetchDistinctRepliers(replyIds, p)
+}
+
+func (c *ChannelMessage) FetchMessageReplies(p *bongo.Pagination) ([]int64, error) {
+	if c.Id == 0 {
+		return nil, errors.New("channel message id is not set")
+	}
 	// fetch all replies
 	mr := NewMessageReply()
 	mr.MessageId = c.Id
-	return mr.FetchReplyIds()
+	return mr.FetchReplyIds(p)
 }
 
 func fetchDistinctAccounts(messages []ChannelMessage) []int64 {
