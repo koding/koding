@@ -9,7 +9,7 @@ class CreateKiteModal extends KDModalViewWithForms
     options.width             = 760
     options.height            = "auto"
     options.tabs              =
-#      navigable               : no
+      navigable               : no
       forms                   :
         Details               :
           buttons             :
