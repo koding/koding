@@ -9,6 +9,7 @@ import (
 	"socialapi/workers/api/modules/message"
 	"socialapi/workers/api/modules/messagelist"
 	"socialapi/workers/api/modules/participant"
+	"socialapi/workers/api/modules/popular"
 	"socialapi/workers/api/modules/reply"
 
 	"github.com/rcrowley/go-tigertonic"
@@ -126,6 +127,9 @@ func Inject(mux *tigertonic.TrieServeMux) *tigertonic.TrieServeMux {
 
 	// unpin a status update
 	mux.Handle("POST", "/activity/pin/remove", handlerWrapper(activity.UnpinMessage, "activity-remove-pinned-message"))
+
+	// get popular topics
+	mux.Handle("GET", "/popular/topics/{statisticName}", handlerWrapper(popular.ListTopics, "list-popular-topics"))
 
 	// mux.Handle("POST", "/follow/{id}", handlerWrapper(post, "follow-id"))
 	// mux.Handle("POST", "/unfollow/{id}", handlerWrapper(post, "follow-id"))
