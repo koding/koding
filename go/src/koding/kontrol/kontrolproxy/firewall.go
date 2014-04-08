@@ -2,6 +2,7 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"koding/db/models"
 	"koding/db/mongodb/modelhelper"
@@ -34,9 +35,9 @@ type CheckCountry struct {
 }
 
 type CheckRequest struct {
-	Host     string
-	Rate     int
-	RateType string
+	Host       string
+	MaxRequest int
+	Interval   time.Duration
 }
 
 func firewallHandler(h http.Handler) http.Handler {
@@ -120,33 +121,37 @@ func GetChecker(f models.Filter, ip, country, host string) (Checker, error) {
 		return &CheckIP{IP: ip, Pattern: f.Match}, nil
 	case "country":
 		return &CheckCountry{Country: country, Pattern: f.Match}, nil
-	case "request.second", "request.minute", "request.hourequest.hour":
+	case "request.second", "request.minute", "request.hour", "request.day":
 		rate, err := strconv.Atoi(f.Match)
 		if err != nil {
 			return nil, err
 		}
 
-		return &CheckRequest{Host: host, Rate: rate, RateType: strings.TrimPrefix(f.Type, "request.")}, nil
+		var freq time.Duration
+		switch strings.TrimPrefix(f.Type, "request.") {
+		case "second":
+			freq = time.Second
+		case "minute":
+			freq = time.Minute
+		case "hour":
+			freq = time.Hour
+		case "day":
+			freq = time.Hour * 24
+		default:
+			return nil, errors.New("request type malformed")
+		}
+
+		return &CheckRequest{Host: host, MaxRequest: rate, Interval: freq}, nil
 	}
 
 	return nil, fmt.Errorf("no checker found for %s", f.Type)
 }
 
 func (c *CheckRequest) Check() bool {
-	var freq time.Duration
-	switch c.RateType {
-	case "second":
-		freq = time.Second
-	case "minute":
-		freq = time.Minute
-	case "hour":
-		freq = time.Hour
-	}
-
 	var b *tb.Bucket
 	b, ok := buckets[c.Host]
 	if !ok {
-		b = tb.NewBucket(int64(c.Rate), freq)
+		b = tb.NewBucket(int64(c.MaxRequest), c.Interval)
 		buckets[c.Host] = b
 	}
 
