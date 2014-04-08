@@ -2,6 +2,8 @@ class SessionItemView extends KDView
 
   constructor: (options, data) ->
     options.tagName = "li"
+    options.index  ?= 1
+    options.partial = "Session #{options.index}"
 
     super options, data
 
@@ -11,9 +13,5 @@ class SessionItemView extends KDView
     @delegate.emit "sessionSelected", {vm, session}
 
 
-  viewAppended: JView::viewAppended
 
 
-  pistachio: ->
-    {index} = @getOptions()
-    "Session #{index}"
