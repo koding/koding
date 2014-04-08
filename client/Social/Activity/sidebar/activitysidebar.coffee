@@ -2,9 +2,37 @@ class ActivitySidebar extends KDCustomScrollView
 
   skip = 0
 
+  constructor: ->
+
+    super
+
+    {activityController} = KD.singletons
+    activityController.on 'SidebarItemClicked', @bound 'itemClicked'
+
+
   viewAppended:->
 
     super
+
+    @addPublicFeedLink()
+    @addHotTopics()
+    skip += 3
+    @addFollowedTopics()
+    skip = 0
+    @addThreads()
+    skip += 3
+    @addMessages()
+    skip += 3
+    @addChat()
+
+
+
+  itemClicked: (item) ->
+
+    # we'll probably do some stuff here later.
+
+
+  addPublicFeedLink: ->
 
     {activityController} = KD.singletons
 
@@ -18,42 +46,11 @@ class ActivitySidebar extends KDCustomScrollView
     publicLink.selectItem = SidebarItem::selectItem.bind publicLink
     activityController.on 'SidebarItemClicked', publicLink.bound 'selectItem'
 
+    # load initial public feed
     KD.utils.defer -> activityController.emit 'SidebarItemClicked', publicLink
 
-    @addHotTopicsAside()
-    skip += 3
-    @addFollowedTopicsAside()
-    skip = 0
-    @addThreadsAside()
-    skip += 3
-    @addMessagesAside()
-    skip += 3
-    @addChatAside()
 
-    {activityController} = KD.singletons
-    activityController.on 'SidebarItemClicked', @bound 'itemClicked'
-
-
-  itemClicked: (item) ->
-
-    # log item
-
-
-  addPublicLinkAside: ->
-
-    @wrapper.addSubView @public = new ActivitySideView
-      title      : 'HOT'
-      cssClass   : 'hot topics'
-      itemClass  : SidebarTopicItem
-      dataSource : (callback) ->
-        KD.remote.api.JTag.some {group : 'koding'},
-          limit  : 3
-          skip   : skip
-          sort   : "counts.followers" : -1
-        , callback
-
-
-  addHotTopicsAside: ->
+  addHotTopics: ->
 
     @wrapper.addSubView @hotTopics = new ActivitySideView
       title      : 'HOT'
@@ -67,7 +64,7 @@ class ActivitySidebar extends KDCustomScrollView
         , callback
 
 
-  addFollowedTopicsAside: ->
+  addFollowedTopics: ->
 
     @wrapper.addSubView @followedTopics = new ActivitySideView
       title    : 'Followed Topics'
@@ -81,7 +78,7 @@ class ActivitySidebar extends KDCustomScrollView
         , callback
 
 
-  addThreadsAside: ->
+  addThreads: ->
 
     @wrapper.addSubView @threads = new ActivitySideView
       title    : 'Threads'
@@ -91,7 +88,7 @@ class ActivitySidebar extends KDCustomScrollView
         KD.getGroup().fetchNewestMembers {}, {limit : 3, skip}, callback
 
 
-  addMessagesAside: ->
+  addMessages: ->
 
     @wrapper.addSubView @messages = new ActivitySideView
       title    : 'Messages'
@@ -101,7 +98,7 @@ class ActivitySidebar extends KDCustomScrollView
         KD.getGroup().fetchNewestMembers {}, {limit : 3, skip}, callback
 
 
-  addChatAside: ->
+  addChat: ->
 
     @wrapper.addSubView @chat = new ActivitySideView
       title    : 'Chat'
