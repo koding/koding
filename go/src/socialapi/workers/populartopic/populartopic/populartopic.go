@@ -115,20 +115,16 @@ func (f *PopularTopicsController) MessageDeleted(data *models.ChannelMessageList
 	return nil
 }
 
-func GetRedisPrefix() string {
-	return config.Get().Environment
-}
-
-func prepareKey(group, statisticName string, year, dateNumber int) string {
+func PreparePopularTopicKey(group, statisticName string, year, dateNumber int) string {
 	return fmt.Sprintf(
-		"%s:%s:%d:%s:%d",
+		"%s:%s:%s:%d:%s:%d",
+		config.Get().Environment,
 		group,
 		PopularTopicKey,
 		year,
 		statisticName,
 		dateNumber,
 	)
-
 }
 
 func GetWeeklyKey(c *models.Channel, cml *models.ChannelMessageList) string {
@@ -140,11 +136,12 @@ func GetWeeklyKey(c *models.Channel, cml *models.ChannelMessageList) string {
 		year, _, _ = cml.AddedAt.UTC().Date()
 	} else {
 		// no need to convert it to UTC
-		_, weekNumber = time.Now().ISOWeek()
-		year, _, _ = time.Now().UTC().Date()
+		now := time.Now()
+		_, weekNumber = now.ISOWeek()
+		year, _, _ = now.UTC().Date()
 	}
 
-	return prepareKey(c.GroupName, "weekly", year, weekNumber)
+	return PreparePopularTopicKey(c.GroupName, "weekly", year, weekNumber)
 }
 
 func GetMonthlyKey(c *models.Channel, cml *models.ChannelMessageList) string {
@@ -157,7 +154,7 @@ func GetMonthlyKey(c *models.Channel, cml *models.ChannelMessageList) string {
 		year, month, _ = time.Now().UTC().Date()
 	}
 
-	return prepareKey(c.GroupName, "monthly", year, int(month))
+	return PreparePopularTopicKey(c.GroupName, "monthly", year, int(month))
 }
 
 func mapMessage(data []byte) (*models.ChannelMessageList, error) {
