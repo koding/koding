@@ -100,7 +100,7 @@ class TerminalStartTab extends JView
         and all your sessions will be deleted. If you want to keep your sessions, you can
         <a class="pricing" href="/Pricing">upgrade</a> your current plan and use Always On VMs."""
       else
-        message = """If your terminal sessions does not reside in an Always On VM, you can lost your sessions."""
+        message = """If you have active sessions which do not belong to an Always-on VM, you can lose your sessions 15 minutes after you log out or if you leave them idle."""
 
       @message.updatePartial message
 
