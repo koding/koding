@@ -22,10 +22,26 @@ type Firewall struct {
 	bucket  *tb.Bucket
 }
 
-func NewFirewall() *Firewall {
-	return &Firewall{
+func NewFirewall(rest models.Restriction) *Firewall {
+	f := &Firewall{
 		filters: make(map[string]models.Filter),
+		rest:    rest,
 	}
+
+	for _, rule := range rest.RuleList {
+		if !rule.Enabled {
+			continue
+		}
+
+		filter, err := modelhelper.GetFilterByField("name", rule.Name)
+		if err != nil {
+			continue
+		}
+
+		f.filters[rule.Name] = filter
+	}
+
+	return f
 }
 
 var (
@@ -66,16 +82,14 @@ func firewallHandler(h http.Handler) http.Handler {
 				return
 			}
 
-			fw = NewFirewall()
-			fw.rest = rest
-
+			fw = NewFirewall(rest)
 			fwsMu.Lock()
 			fws[r.Host] = fw
 			fwsMu.Unlock()
 		}
 
 		for _, rule := range fw.rest.RuleList {
-			if a := ApplyRule(rule, r); a != nil {
+			if a := fw.ApplyRule(rule, r); a != nil {
 				a.ServeHTTP(w, r)
 				return
 			}
@@ -90,29 +104,14 @@ func firewallHandler(h http.Handler) http.Handler {
 // user is allowed to pass,  a "nil" http.Handler is returned, however if the
 // user is denied a `quotaExceeded` template handler is returned that neneeds
 // to be exectued
-func ApplyRule(rule models.Rule, r *http.Request) http.Handler {
+func (f *Firewall) ApplyRule(rule models.Rule, r *http.Request) http.Handler {
 	if !rule.Enabled {
 		return nil
 	}
 
-	fwsMu.Lock()
-	fw, ok := fws[r.Host]
+	filter, ok := f.filters[rule.Name]
 	if !ok {
-		return nil
-	}
-	fwsMu.Unlock()
-
-	var filter models.Filter
-
-	filter, ok = fw.filters[rule.Name]
-	if !ok {
-		var err error
-		filter, err = modelhelper.GetFilterByField("name", rule.Name)
-		if err != nil {
-			return nil // if not found just continue with next rule
-		}
-
-		fw.filters[rule.Name] = filter
+		return nil // continue with the next one
 	}
 
 	// country is empty for now
@@ -184,7 +183,7 @@ func (c *CheckRequest) Check() bool {
 	fw := fws[c.Host]
 	fwsMu.Unlock()
 
-	// for the first time
+	// create a bucket only once for the first time
 	if fw.bucket == nil {
 		fw.bucket = tb.NewBucket(int64(c.MaxRequest), c.Interval)
 		fwsMu.Lock()
@@ -192,8 +191,8 @@ func (c *CheckRequest) Check() bool {
 		fwsMu.Unlock()
 	}
 
-	available := fw.bucket.Take(1) // one request
-	if available == 0 {
+	// makes one request
+	if fw.bucket.Take(1) == 0 {
 		return false
 	}
 
