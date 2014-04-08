@@ -152,7 +152,7 @@ func main() {
 
 	p := &Proxy{
 		mux:             http.NewServeMux(),
-		enableFirewall:  false,
+		enableFirewall:  true,
 		cacheTransports: make(map[string]http.RoundTripper),
 		oskites:         make(map[string]*kite.Client),
 		resolvers:       make(map[string]Resolver),
@@ -441,15 +441,20 @@ func (p *Proxy) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// our main handler mux function goes and picks the correct handler
-	if h := p.getHandler(r); h != nil {
-		h.ServeHTTP(w, r)
+	var h http.Handler
+	h = p.getHandler(r)
+	if h == nil {
+		// it should never reach here, if yes something badly happens and needs to be fixed
+		log.Critical("couldn't find any handler")
+		http.Error(w, "Not found.", http.StatusNotFound)
 		return
 	}
 
-	// it should never reach here, if yes something badly happens and needs to be fixed
-	log.Critical("couldn't find any handler")
-	http.Error(w, "Not found.", http.StatusNotFound)
-	return
+	if p.enableFirewall {
+		h = firewallHandler(h)
+	}
+
+	h.ServeHTTP(w, r)
 }
 
 // getHandler returns the appropriate Handler for the given Request or nil if
@@ -722,19 +727,7 @@ func (p *Proxy) vm(req *http.Request, target *resolver.Target) http.Handler {
 	log.Debug("getting cookie for: %s", req.Host)
 	cookieValue, ok := session.Values[req.Host]
 	if !ok || cookieValue != MagicCookieValue {
-		return context.ClearHandler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			log.Debug("saving cookie for %s", req.Host)
-			session.Values[req.Host] = MagicCookieValue
-			session.Options = &sessions.Options{MaxAge: 3600} //seconds -> 1h
-			session.Save(r, w)
-
-			err := templates.ExecuteTemplate(w, "securepage.html", tempData{Host: r.Host, Url: r.Host + r.URL.String()})
-			if err != nil {
-				log.Warning("template notOnVM could not be executed %s", err)
-				http.Error(w, "error code - 5", 404)
-				return
-			}
-		}))
+		return securePageHandler(session)
 	}
 
 	log.Debug("mode '%s' [%s] via %s : %s --> %s",
@@ -821,6 +814,23 @@ func websocketHandler(target string) http.Handler {
 	})
 }
 
+// securePageHandler is used to show a secure page to make the user click
+func securePageHandler(session *sessions.Session) http.Handler {
+	return context.ClearHandler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		log.Debug("saving cookie for %s", r.Host)
+		session.Values[r.Host] = MagicCookieValue
+		session.Options = &sessions.Options{MaxAge: 3600} //seconds -> 1h
+		session.Save(r, w)
+
+		err := templates.ExecuteTemplate(w, "securepage.html", tempData{Host: r.Host, Url: r.Host + r.URL.String()})
+		if err != nil {
+			log.Warning("template notOnVM could not be executed %s", err)
+			http.Error(w, "error code - 5", 404)
+			return
+		}
+	}))
+}
+
 // templateHandler is used to show static complied html pages. The path
 // variable is used to pick the correct template, data is used inside the
 // template and code is set as the response code.
@@ -870,15 +880,4 @@ func getIP(addr string) string {
 		return ""
 	}
 	return ip
-}
-
-func validate(ip, domain string) (bool, error) {
-	restriction, err := modelhelper.GetRestrictionByDomain(domain)
-	if err != nil {
-		return true, nil //don't block if we don't get a rule (pre-caution))
-	}
-
-	// TODO: enable geoIP and gather country from there
-	country := ""
-	return validator(restriction, ip, country, domain).AddRules().Check()
 }
