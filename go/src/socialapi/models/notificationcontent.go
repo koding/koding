@@ -24,69 +24,6 @@ const (
 	NotificationContent_TYPE_LEFT     = "left"
 )
 
-type Notifiable interface {
-	GetNotifiedUsers() ([]int64, error)
-	GetType() string
-	GetTargetId() int64
-	FetchActors() ([]int64, int)
-}
-
-// it could be changed to interaction notification
-type InteractionNotification struct {
-	TargetId int64
-	Type     string
-}
-
-func (n *InteractionNotification) GetNotifiedUsers() ([]int64, error) {
-	i := NewInteraction()
-	i.MessageId = n.TargetId
-	return i.FetchInteractorIds()
-}
-
-func (n *InteractionNotification) GetType() string {
-	return n.Type
-}
-
-func (n *InteractionNotification) GetTargetId() int64 {
-	return n.TargetId
-}
-
-func (n *InteractionNotification) FetchActors() ([]int64, int) {
-
-}
-
-func NewInteractionNotification() *InteractionNotification {
-	return &InteractionNotification{}
-}
-
-type ReplyNotification struct {
-	TargetId int64
-}
-
-func (n *ReplyNotification) GetNotifiedUsers() ([]int64, error) {
-	// fetch all repliers
-	cm := NewChannelMessage()
-	cm.Id = n.TargetId
-
-	return cm.FetchReplierIds()
-}
-
-func (n *ReplyNotification) GetType() string {
-	return NotificationContent_TYPE_COMMENT
-}
-
-func (n *ReplyNotification) GetTargetId() int64 {
-	return n.TargetId
-}
-
-func (n *ReplyNotification) FetchActors() ([]int64, int) {
-
-}
-
-func NewReplyNotification() *ReplyNotification {
-	return &ReplyNotification{}
-}
-
 func NewNotificationContent() *NotificationContent {
 	return &NotificationContent{}
 }
