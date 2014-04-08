@@ -16,6 +16,7 @@ import (
 	"github.com/tsenart/tb"
 )
 
+// Firewall is used per domain
 type Firewall struct {
 	rest      models.Restriction
 	filters   map[string]models.Filter
@@ -44,9 +45,11 @@ type CheckRequest struct {
 }
 
 var (
+	// cacheTimeout is used to invalidate a Firewall set for a given domain
 	cacheTimeout = time.Minute
-	fws          = make(map[string]*Firewall)
-	fwsMu        sync.Mutex
+
+	fws   = make(map[string]*Firewall)
+	fwsMu sync.Mutex
 )
 
 func NewFirewall(rest models.Restriction) *Firewall {
@@ -72,13 +75,18 @@ func NewFirewall(rest models.Restriction) *Firewall {
 	return f
 }
 
+// firewallHandler returns a http.Handler to restrict incoming requests based
+// on rules and filters defined for a given domain name. It has a internal
+// cache to avoid rapid lookup to mongodb.
 func firewallHandler(h http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		fwsMu.Lock()
 		fw, ok := fws[r.Host]
 		fwsMu.Unlock()
+
+		// either it's not in the cache or the cache expired. In both cases go
+		// and get the restriction from mongodb
 		if !ok || fw.cacheTime.Add(cacheTimeout).Before(time.Now()) {
-			fmt.Println("getting from DB")
 			rest, err := modelhelper.GetRestrictionByDomain(r.Host)
 			if err != nil {
 				// don't block if we don't get a rule (pre-caution))
@@ -90,8 +98,6 @@ func firewallHandler(h http.Handler) http.Handler {
 			fwsMu.Lock()
 			fws[r.Host] = fw
 			fwsMu.Unlock()
-		} else {
-			fmt.Println("getting from CACHE")
 		}
 
 		for _, rule := range fw.rest.RuleList {
@@ -158,7 +164,7 @@ func GetChecker(f models.Filter, ip, country, host string) (Checker, error) {
 		return &CheckIP{IP: ip, Pattern: f.Match}, nil
 	case "country":
 		return &CheckCountry{Country: country, Pattern: f.Match}, nil
-	case "request.second", "request.minute", "request.hour", "request.day":
+	case "request.second", "request.minute":
 		rate, err := strconv.Atoi(f.Match)
 		if err != nil {
 			return nil, err
@@ -170,10 +176,6 @@ func GetChecker(f models.Filter, ip, country, host string) (Checker, error) {
 			freq = time.Second
 		case "minute":
 			freq = time.Minute
-		case "hour":
-			freq = time.Hour
-		case "day":
-			freq = time.Hour * 24
 		default:
 			return nil, errors.New("request type malformed")
 		}
