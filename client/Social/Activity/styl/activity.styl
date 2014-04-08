@@ -444,9 +444,17 @@ div.kdtooltip.activity-helper
     font-size         12px
     padding           5px
 
+.kdtabpaneview.messaging
+  padding-bottom      80px
+
+  .activity-input-widget
+    width             647px
+    bottom            20px
+    z-index           10
+    fix()
+
 .activity-input-widget
   size                auto auto
-  position            relative
   margin              0
   overflow            visible
 
@@ -863,7 +871,7 @@ span.collapsedtext
       display     block
       left        5px
       top         5px
-      z-index     10
+      z-index     2
       abs()
 
     .item-add-comment-form

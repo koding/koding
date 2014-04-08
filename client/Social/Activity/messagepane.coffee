@@ -2,20 +2,24 @@ class MessagePane extends KDTabPaneView
 
   constructor: (options = {}, data) ->
 
-    options.cssClass  = 'message-pane'
+    options.type    or= ''
+    options.cssClass  = "message-pane #{options.type}"
 
     super options, data
 
-    {itemClass} = @getOptions()
+    {itemClass, type} = @getOptions()
 
     @listController = new ActivityListController
       itemClass     : itemClass
+      lastToFirst   : yes  if type is 'messaging'
 
     @listView = @listController.getView()
+    @input    = new ActivityInputWidget
 
 
   viewAppended: ->
 
+    @addSubView @input
     @addSubView @listView
     @populate()
 
