@@ -44,42 +44,32 @@ class AppsListItemView extends KDListItemView
   viewAppended: JView::viewAppended
 
   pistachio:->
-    unless @getData() instanceof KD.remote.api.JKite
-      {manifest:{authorNick, title}, name} = @getData()
+    data   = @getData()
+    isKite = data instanceof KD.remote.api.JKite
 
-      """
-        <figure>
-          {{> @thumbnail}}
-        </figure>
-        {{> @statusWidget}}
-        <div class="appmeta clearfix">
-          <a href="/Apps/#{authorNick}/#{name}">
-            <h3>#{title or name}</h3>
-            <cite></cite>
-          </a>
-          <h4>{{#(manifest.author)}}</h4>
-          <div class="appdetails">
-            <article>{{@utils.shortenText #(manifest.description)}}</article>
-          </div>
-        </div>
-        <div class='bottom'>
-          {{> @runButton}}
-        </div>
-      """
-    else
-      {name, description} = @getData()
-      """
-        <figure>
-          {{> @thumbnail}}
-        </figure>
-        <div class="appmeta clearfix">
-          <h3>#{name}</h3>
+    {manifest:{authorNick, title}, name} = data
+
+    template = """
+      <figure>
+        {{> @thumbnail}}
+      </figure>
+      {{> @statusWidget}}
+      <div class="appmeta clearfix">
+        <a href="/Apps/#{authorNick}/#{name}">
+          <h3>#{title or name}</h3>
           <cite></cite>
-          <div class="appdetails">
-            <article>#{description}</article>
-          </div>
+        </a>
+        <h4>{{#(manifest.author)}}</h4>
+        <div class="appdetails">
+          <article>{{@utils.shortenText #(manifest.description)}}</article>
         </div>
-        <div class='bottom'>
-          {{> @kiteOpen}}
-        </div>
-      """
+      </div>
+    """
+
+    if isKite
+      @statusWidget = new KDCustomHTMLView
+      template += "<div class='bottom'>{{> @kiteOpen}}</div>"
+    else
+      template += "<div class='bottom'>{{> @runButton}}</div>"
+
+    return template
