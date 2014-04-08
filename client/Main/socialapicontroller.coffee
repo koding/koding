@@ -32,7 +32,8 @@ class SocialApiController extends KDController
       {SocialChannel} = KD.remote.api
       SocialChannel.fetchChannels options, (err, result)->
         return callback err if err
-        return callback null, mapChannel result
+        return callback null, mapChannels result
+
 
   channel:
     list: fetchChannels
@@ -88,7 +89,7 @@ class SocialApiController extends KDController
 
     return m
 
-  mapChannel = (channels)->
+  mapChannels = (channels)->
     revivedChannels = []
     {SocialChannel} = KD.remote.api
     for channel in channels
