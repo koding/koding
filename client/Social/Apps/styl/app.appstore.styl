@@ -75,6 +75,7 @@ body.apps
     padding-right   240px
     height          97px
     overflow        auto
+    width           calc(100% \- 400px)
     abs()
 
     h3
@@ -87,7 +88,7 @@ body.apps
         color           #333
         font-weight     bold
         display         inline-block
-        text-decoration none
+        noTextDeco()
 
     h4
       font-size       11px
@@ -141,6 +142,7 @@ body.apps
       border            none
       padding           0
       padding-right     0 !important
+      color             #777
       span.icon
         hidden()
     .chevron-separator
@@ -167,14 +169,23 @@ body.apps
 
       background      white
 
-      h2
+      &.has-markdown
+        p
+          padding       0 10px
+
+      h1, h2
         font-weight   400
-        font-size     18px
         padding       10px
         border-bottom 1px solid #eee
 
       img
         max-width     100%
+
+      a
+        font-weight   400
+        color         #444
+        border-bottom 1px solid #e3e3e3
+        noTextDeco()
 
   .installerbar
 

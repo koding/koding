@@ -34,7 +34,7 @@ class AppsListItemView extends KDListItemView
 
   pistachio:->
 
-    {manifest:{authorNick}, name} = @getData()
+    {manifest:{authorNick, title}, name} = @getData()
 
     """
       <figure>
@@ -43,7 +43,7 @@ class AppsListItemView extends KDListItemView
       {{> @statusWidget}}
       <div class="appmeta clearfix">
         <a href="/Apps/#{authorNick}/#{name}">
-          <h3>#{name}</h3>
+          <h3>#{title or name}</h3>
           <cite></cite>
         </a>
         <h4>{{#(manifest.author)}}</h4>

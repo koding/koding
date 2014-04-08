@@ -24,8 +24,8 @@ import (
 	"time"
 	"github.com/koding/redis"
 
-	"github.com/fatih/set"
 	"github.com/streadway/amqp"
+	"gopkg.in/fatih/set.v0"
 )
 
 const BROKER_NAME = "broker"

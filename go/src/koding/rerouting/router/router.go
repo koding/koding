@@ -8,8 +8,8 @@ import (
 	"koding/tools/logger"
 	"sync"
 
-	"github.com/fatih/set"
 	"github.com/streadway/amqp"
+	"gopkg.in/fatih/set.v0"
 )
 
 var log = logger.New("router")

@@ -79,7 +79,6 @@ module.exports = class JUser extends jraphical.Module
       static        : []
       instance      : []
     sharedMethods   :
-      instance      : []
       static        :
         login                   : (signature Object, Function)
         logout                  : (signature Function)

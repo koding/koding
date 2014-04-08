@@ -294,5 +294,6 @@ module.exports = [
   # "styl/resurrection.feeder.styl",
 
   "styl/dock.responsive.styl"
+  "styl/app.markdown.styl"
 
 ]

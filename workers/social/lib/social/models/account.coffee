@@ -353,7 +353,6 @@ module.exports = class JAccount extends jraphical.Module
         default             : 'online'
     broadcastableRelationships : [ 'follower' ]
     relationships           : ->
-      JPrivateMessage = require './messages/privatemessage'
 
       follower      :
         as          : 'follower'
@@ -362,10 +361,6 @@ module.exports = class JAccount extends jraphical.Module
       activity      :
         as          : 'activity'
         targetType  : "CActivity"
-
-      privateMessage:
-        as          : ['recipient','sender']
-        targetType  : JPrivateMessage
 
       appStorage    :
         as          : 'appStorage'

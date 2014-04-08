@@ -114,7 +114,7 @@ class AppDetailsView extends KDScrollView
       {repository} = app.manifest
       repoUrl   = repository.replace /^git\:\/\//, 'https://'
       proxyUrl  = repository.replace /^git\:\/\/github.com/, KD.config.appsUri
-      baseUrl   = "#{proxyUrl}/#{app.manifest.commitId}"
+      baseUrl   = "#{proxyUrl}/#{app.manifest.commitId or 'master'}"
       readmeUrl = "#{baseUrl}/README.md"
 
       @githubMenu = new KDButtonViewWithMenu
@@ -124,7 +124,7 @@ class AppDetailsView extends KDScrollView
         menu           :
           Repository   : link : repoUrl
           Issues       : link : "#{repoUrl}/issues"
-          Commits      : link : "#{repoUrl}/commits/#{app.manifest.commitId}"
+          Commits      : link : "#{repoUrl}/commits/#{app.manifest.commitId or 'master'}"
           Wiki         : link : "#{repoUrl}/wiki"
 
       # TODO: Implement clone app ~ GG
@@ -142,8 +142,10 @@ class AppDetailsView extends KDScrollView
         timeout  : 5000
         success  : (content, status)->
           if status is "success"
+            readmeView.setClass 'has-markdown'
             readmeView.updatePartial KD.utils.applyMarkdown content
         error    : ->
+          warn arguments
           readmeView.updatePartial "<p>README.md not found on #{repository}</p>"
 
     else
@@ -178,14 +180,15 @@ class AppDetailsView extends KDScrollView
 
   pistachio:->
 
-    desc = @getData().manifest?.description or ""
-
+    {name, manifest} = @getData()
+    desc = manifest?.description or ""
+    name = manifest?.title or name
     """
 
       {{> @appLogo}}
 
       <div class="app-info">
-        <h3><a href="/#{@getData().slug}">#{@getData().name}</a></h3>
+        <h3><a href="/#{@getData().slug}">#{name}</a></h3>
         <h4>{{#(manifest.author)}}</h4>
 
         <div class="appdetails">
