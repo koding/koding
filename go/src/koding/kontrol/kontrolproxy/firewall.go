@@ -9,13 +9,14 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+	"time"
 
-	"github.com/juju/ratelimit"
+	"github.com/tsenart/tb"
 )
 
 var (
 	restrictions = make(map[string]*models.Restriction)
-	buckets      = make(map[string]*ratelimit.Bucket)
+	buckets      = make(map[string]*tb.Bucket)
 )
 
 type Checker interface {
@@ -132,24 +133,24 @@ func GetChecker(f models.Filter, ip, country, host string) (Checker, error) {
 }
 
 func (c *CheckRequest) Check() bool {
-	var dividor float64
+	var freq time.Duration
 	switch c.RateType {
 	case "second":
-		dividor = 1
+		freq = time.Second
 	case "minute":
-		dividor = 60
+		freq = time.Minute
 	case "hour":
-		dividor = 3600
+		freq = time.Hour
 	}
 
-	var b *ratelimit.Bucket
+	var b *tb.Bucket
 	b, ok := buckets[c.Host]
 	if !ok {
-		b = ratelimit.NewBucketWithRate(float64(c.Rate)/dividor, int64(c.Rate))
+		b = tb.NewBucket(int64(c.Rate), freq)
 		buckets[c.Host] = b
 	}
 
-	available := b.TakeAvailable(1) // one request
+	available := b.Take(1) // one request
 
 	fmt.Printf("available %+v\n", available)
 	if available == 0 {
