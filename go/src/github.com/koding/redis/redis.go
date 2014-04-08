@@ -210,21 +210,27 @@ func (r *RedisSession) SortedSetIncrBy(key string, incrBy, item interface{}) (fl
 	// add item
 	prefixed = append(prefixed, item)
 
-	reply, err := r.Do("ZINCRBY", prefixed...)
-	if err != nil {
-		return float64(0.0), err
+	return redis.Float64(r.Do("ZINCRBY", prefixed...))
+}
+
+// ZREVRANGE key start stop [WITHSCORES]
+// Returns the specified range of elements in the sorted set stored at key.
+// The elements are considered to be ordered from the highest
+// to the lowest score. Descending lexicographical order is used
+// for elements with equal score.
+//
+// Apart from the reversed ordering, ZREVRANGE is similar to ZRANGE.
+func (r *RedisSession) SortedSetReverseRange(key string, rest ...interface{}) ([]interface{}, error) {
+	// create a slice with rest length +1
+	// because we are gonna prepend key to it
+	prefixedReq := make([]interface{}, len(rest)+1)
+
+	// prepend prefixed key
+	prefixedReq[0] = r.addPrefix(key)
+
+	for key, el := range rest {
+		prefixedReq[key+1] = el
 	}
 
-	// An error is returned when key exists but does not hold a sorted set.
-	// Reply is Bulk string: the new score of member
-	// (a double precision floating point number), represented as string.
-	val, err := strconv.ParseFloat(string(reply.([]uint8)), 64)
-	if err != nil {
-		return float64(0.0), fmt.Errorf(
-			"Error while parsing %v, reply from Redis is: %s",
-			err.Error(),
-			reply,
-		)
-	}
-	return val, nil
+	return redis.Values(r.Do("ZREVRANGE", prefixedReq...))
 }
