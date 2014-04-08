@@ -63,7 +63,6 @@ func (n *Notification) List(q *Query) ([]NotificationContainer, error) {
 		return nil, err
 	}
 
-	fmt.Printf("Hit it: %+v \n", result)
 	result, err = populateActors(result)
 	if err != nil {
 		return nil, err
@@ -102,7 +101,7 @@ func (n *Notification) getDecoratedList(q *Query) ([]NotificationContainer, erro
 	resultMap := make(map[string]struct{}, 0)
 
 	var err error
-	result, resultMap, err = n.decorateContents(result, resultMap, q)
+	result, err = n.decorateContents(result, &resultMap, q)
 	if err != nil {
 		return nil, err
 	}
@@ -110,28 +109,28 @@ func (n *Notification) getDecoratedList(q *Query) ([]NotificationContainer, erro
 	return result, nil
 }
 
-func (n *Notification) decorateContents(result []NotificationContainer, resultMap map[string]struct{}, q *Query) ([]NotificationContainer, map[string]struct{}, error) {
+func (n *Notification) decorateContents(result []NotificationContainer, resultMap *map[string]struct{}, q *Query) ([]NotificationContainer, error) {
 
 	nList, err := n.fetchByAccountId(q)
 	if nList == nil {
-		return result, resultMap, nil
+		return result, nil
 	}
 
 	// fetch all notification content relationships
 	ncMap, err := fetchRelatedContent(nList)
 	if err != nil {
-		return nil, nil, err
+		return nil, err
 	}
 
 	for _, n := range nList {
 		nc := ncMap[n.NotificationContentId]
 		key := prepareResultKey(&nc)
-		if _, ok := resultMap[key]; !ok {
+		if _, ok := (*resultMap)[key]; !ok {
 			container := buildNotificationContainer(&nc)
-			resultMap[key] = struct{}{}
+			(*resultMap)[key] = struct{}{}
 			result = append(result, container)
 			if len(result) == q.Limit {
-				return result, resultMap, nil
+				return result, nil
 			}
 		}
 	}
@@ -141,7 +140,7 @@ func (n *Notification) decorateContents(result []NotificationContainer, resultMa
 		return n.decorateContents(result, resultMap, q)
 	}
 
-	return result, resultMap, nil
+	return result, nil
 }
 
 func buildNotificationContainer(nc *NotificationContent) NotificationContainer {
