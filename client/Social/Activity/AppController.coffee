@@ -29,12 +29,15 @@ class ActivityAppController extends AppController
 
   fetchPublicActivities: (options = {}, callback = ->) ->
 
+    console.time('fetchActivity')
+
     # just here to make it work
     # we should change the other parts to make it
     # work with the new structure
     {SocialChannel, SocialMessage}  = KD.remote.api
     options.id = KD.singletons.groupsController.getCurrentGroup().socialApiChannelId
     SocialChannel.fetchActivity options, (err, result)=>
+      console.timeEnd('fetchActivity')
       console.log err  if err
       messages = result.messageList
       revivedMessages = []
