@@ -16,7 +16,7 @@ module.exports = class JKite extends jraphical.Module
       'list kites'        : ['member']
     schema                :
       name                : String
-      description         : String
+      manifest            : Object
       kiteCode            : String
       createdAt           :
         type              : Date
