@@ -7,7 +7,8 @@ class SessionStackView extends KDView
 
     super options, data
 
-    {delegate} = @getOptions()
+    {alias}   = @getOptions()
+    delegate  = @getDelegate()
     {@loader} = delegate.startTab.vmWrapper[alias]
 
     delegate.on "WebTermConnected", @bound "updateSessions"
@@ -24,7 +25,7 @@ class SessionStackView extends KDView
       @destroySubViews()
       @show()
       @loader.hide()
-      sessions.forEach (session, index) => @addSession session, index
+      sessions.forEach @bound 'addSession'
     .catch (err) =>
       @hide()
       @loader.hide()
