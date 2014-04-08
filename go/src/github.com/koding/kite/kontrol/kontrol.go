@@ -268,12 +268,7 @@ func (k *Kontrol) registerSelf() {
 
 //  makeSetter returns a func for setting the kite key with value in etcd.
 func (k *Kontrol) makeSetter(kite *protocol.Kite, value *registerValue) (setter func() error, etcdKey string) {
-	// TODO prefix version string with a letter. Otherwise it does not work when getting the key.
-	// I will look into this in detail later.
-	kite2 := *kite
-	kite2.Version = "v" + kite2.Version
-
-	etcdKey = KitesPrefix + kite2.String()
+	etcdKey = KitesPrefix + kite.String()
 
 	valueBytes, _ := json.Marshal(value)
 	valueString := string(valueBytes)
@@ -370,11 +365,6 @@ func getQueryKey(q *protocol.KontrolQuery) (string, error) {
 			return "", fmt.Errorf("Invalid query. Query option is not set: %s", empytField)
 		}
 
-		// TODO remove the prefix from version string.
-		if k == "version" {
-			v = "v" + v
-		}
-
 		path = path + v + "/"
 	}
 
@@ -398,6 +388,7 @@ func (k *Kontrol) handleGetKites(r *kite.Request) (interface{}, error) {
 
 	if len(args.Who) != 0 {
 		// Find all kites in the query and pick one.
+		// TODO do not allow "who" and "watchCallback" fields to be set at the same time.
 		allKites, err := k.getKites(r, args.Query, args.WatchCallback)
 		if err != nil {
 			return nil, err
@@ -441,14 +432,6 @@ func (k *Kontrol) getKites(r *kite.Request, query protocol.KontrolQuery, watchCa
 	key, err := getQueryKey(&query)
 	if err != nil {
 		return nil, err
-	}
-
-	// TODO fix for version string bug
-	parts := strings.Split(key, "/")
-	aud := key
-	if len(parts) > 4 {
-		parts[4] = strings.TrimPrefix(parts[4], "v")
-		aud = strings.Join(parts, "/")
 	}
 
 	var result = new(protocol.GetKitesResult)
@@ -513,7 +496,7 @@ func (k *Kontrol) getKites(r *kite.Request, query protocol.KontrolQuery, watchCa
 	}
 
 	// Attach tokens to kites
-	kitesAndTokens, err := addTokenToKites(flatten(event.Node.Nodes), r.Username, k.Server.Kite.Kite().Username, aud, k.privateKey)
+	kitesAndTokens, err := addTokenToKites(flatten(event.Node.Nodes), r.Username, k.Server.Kite.Kite().Username, key, k.privateKey)
 	if err != nil {
 		return nil, err
 	}
@@ -751,11 +734,10 @@ func kiteFromEtcdKV(key string) (*protocol.Kite, error) {
 		Username:    fields[1],
 		Environment: fields[2],
 		Name:        fields[3],
-		// TODO fix this
-		Version:  strings.TrimPrefix(fields[4], "v"),
-		Region:   fields[5],
-		Hostname: fields[6],
-		ID:       fields[7],
+		Version:     fields[4],
+		Region:      fields[5],
+		Hostname:    fields[6],
+		ID:          fields[7],
 	}, nil
 }
 
