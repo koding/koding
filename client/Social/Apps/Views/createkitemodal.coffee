@@ -9,7 +9,7 @@ class CreateKiteModal extends KDModalViewWithForms
     options.width             = 760
     options.height            = "auto"
     options.tabs              =
-      # navigable               : no
+      navigable               : no
       forms                   :
         Details               :
           buttons             :
@@ -79,10 +79,15 @@ class CreateKiteModal extends KDModalViewWithForms
     @pricingForms.push pricingForm
 
   save: ->
-    details = @modalTabs.forms.Details.getFormData()
-    plans   = (form.getFormData() for form in @pricingForms)
+    {name, description} = @modalTabs.forms.Details.getFormData()
+    plans               = (form.getFormData() for form in @pricingForms)
+    kite                =
+      name              : name
+      manifest          :
+        description     : description
+        name            : name
 
-    KD.remote.api.JKite.create details, (err, kite)=>
+    KD.remote.api.JKite.create kite, (err, kite)=>
       return  KD.showError err if err
       {dash} = Bongo
       queue = plans.map (plan) -> ->
