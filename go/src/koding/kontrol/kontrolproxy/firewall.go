@@ -10,6 +10,7 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/tsenart/tb"
@@ -18,6 +19,7 @@ import (
 var (
 	restrictions = make(map[string]*models.Restriction)
 	buckets      = make(map[string]*tb.Bucket)
+	bucketsMu    sync.RWMutex
 )
 
 type Checker interface {
@@ -149,10 +151,14 @@ func GetChecker(f models.Filter, ip, country, host string) (Checker, error) {
 
 func (c *CheckRequest) Check() bool {
 	var b *tb.Bucket
+	bucketsMu.RLock()
 	b, ok := buckets[c.Host]
+	bucketsMu.RUnlock()
 	if !ok {
 		b = tb.NewBucket(int64(c.MaxRequest), c.Interval)
+		bucketsMu.Lock()
 		buckets[c.Host] = b
+		bucketsMu.Unlock()
 	}
 
 	available := b.Take(1) // one request
