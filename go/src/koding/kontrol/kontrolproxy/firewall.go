@@ -17,9 +17,10 @@ import (
 )
 
 var (
-	restrictions = make(map[string]*models.Restriction)
-	buckets      = make(map[string]*tb.Bucket)
-	bucketsMu    sync.RWMutex
+	rests     = make(map[string]models.Restriction)
+	restsMu   sync.RWMutex
+	buckets   = make(map[string]*tb.Bucket)
+	bucketsMu sync.RWMutex
 )
 
 type Checker interface {
@@ -44,12 +45,25 @@ type CheckRequest struct {
 
 func firewallHandler(h http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		rest, err := modelhelper.GetRestrictionByDomain(r.Host)
-		if err != nil {
-			// don't block if we don't get a rule (pre-caution))
-			fmt.Println("no restriction available")
-			h.ServeHTTP(w, r)
-			return
+		var rest models.Restriction
+		var ok bool
+
+		restsMu.RLock()
+		rest, ok = rests[r.Host]
+		restsMu.RUnlock()
+		if !ok {
+			var err error
+			rest, err = modelhelper.GetRestrictionByDomain(r.Host)
+			if err != nil {
+				// don't block if we don't get a rule (pre-caution))
+				fmt.Println("no restriction available")
+				h.ServeHTTP(w, r)
+				return
+			}
+
+			restsMu.Lock()
+			rests[r.Host] = rest
+			restsMu.Unlock()
 		}
 
 		fmt.Printf("%d restrictions \n", len(rest.RuleList))
