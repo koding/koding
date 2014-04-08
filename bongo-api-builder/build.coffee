@@ -5,8 +5,6 @@ KONFIG = require('koding-config-manager').load("main.#{argv.c}")
 
 require 'colors'
 
-broker = new Broker KONFIG.mq
-
 koding = new Bongo
   root        : __dirname
   models      : '../workers/social/lib/social/models'
