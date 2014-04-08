@@ -85,8 +85,10 @@ func (n *Notification) fetchByAccountId(q *Query) ([]Notification, error) {
 		Sort: map[string]string{
 			"updated_at": "desc",
 		},
-		Limit: FETCH_LIMIT,
-		Skip:  q.Skip,
+		Pagination: bongo.Pagination{
+			Limit: FETCH_LIMIT,
+			Skip:  q.Skip,
+		},
 	}
 	if err := bongo.B.Some(n, &notifications, query); err != nil {
 		return nil, err
