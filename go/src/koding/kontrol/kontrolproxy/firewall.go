@@ -16,11 +16,21 @@ import (
 	"github.com/tsenart/tb"
 )
 
+type Firewall struct {
+	rest    models.Restriction
+	filters map[string]models.Filter
+	bucket  *tb.Bucket
+}
+
+func NewFirewall() *Firewall {
+	return &Firewall{
+		filters: make(map[string]models.Filter),
+	}
+}
+
 var (
-	rests     = make(map[string]models.Restriction)
-	restsMu   sync.RWMutex
-	buckets   = make(map[string]*tb.Bucket)
-	bucketsMu sync.RWMutex
+	fws   = make(map[string]*Firewall)
+	fwsMu sync.Mutex
 )
 
 type Checker interface {
@@ -45,30 +55,26 @@ type CheckRequest struct {
 
 func firewallHandler(h http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		var rest models.Restriction
-		var ok bool
-
-		restsMu.RLock()
-		rest, ok = rests[r.Host]
-		restsMu.RUnlock()
+		fwsMu.Lock()
+		fw, ok := fws[r.Host]
+		fwsMu.Unlock()
 		if !ok {
-			var err error
-			rest, err = modelhelper.GetRestrictionByDomain(r.Host)
+			rest, err := modelhelper.GetRestrictionByDomain(r.Host)
 			if err != nil {
 				// don't block if we don't get a rule (pre-caution))
-				fmt.Println("no restriction available")
 				h.ServeHTTP(w, r)
 				return
 			}
 
-			restsMu.Lock()
-			rests[r.Host] = rest
-			restsMu.Unlock()
+			fw = NewFirewall()
+			fw.rest = rest
+
+			fwsMu.Lock()
+			fws[r.Host] = fw
+			fwsMu.Unlock()
 		}
 
-		fmt.Printf("%d restrictions \n", len(rest.RuleList))
-		for _, rule := range rest.RuleList {
-			fmt.Printf("rule %+v\n", rule)
+		for _, rule := range fw.rest.RuleList {
 			if a := ApplyRule(rule, r); a != nil {
 				a.ServeHTTP(w, r)
 				return
@@ -89,17 +95,29 @@ func ApplyRule(rule models.Rule, r *http.Request) http.Handler {
 		return nil
 	}
 
-	filter, err := modelhelper.GetFilterByField("name", rule.Name)
-	if err != nil {
-		return nil // if not found just continue with next rule
+	fwsMu.Lock()
+	fw, ok := fws[r.Host]
+	if !ok {
+		return nil
 	}
+	fwsMu.Unlock()
 
-	fmt.Printf("filter %+v\n", filter)
+	var filter models.Filter
+
+	filter, ok = fw.filters[rule.Name]
+	if !ok {
+		var err error
+		filter, err = modelhelper.GetFilterByField("name", rule.Name)
+		if err != nil {
+			return nil // if not found just continue with next rule
+		}
+
+		fw.filters[rule.Name] = filter
+	}
 
 	// country is empty for now
 	checker, err := GetChecker(filter, getIP(r.RemoteAddr), "", r.Host)
 	if err != nil {
-		fmt.Println("GetChecker", err)
 		return nil
 	}
 
@@ -130,8 +148,6 @@ func ApplyRule(rule models.Rule, r *http.Request) http.Handler {
 }
 
 func GetChecker(f models.Filter, ip, country, host string) (Checker, error) {
-	fmt.Printf("ip %+v\n", ip)
-
 	switch f.Type {
 	case "ip":
 		return &CheckIP{IP: ip, Pattern: f.Match}, nil
@@ -164,20 +180,19 @@ func GetChecker(f models.Filter, ip, country, host string) (Checker, error) {
 }
 
 func (c *CheckRequest) Check() bool {
-	var b *tb.Bucket
-	bucketsMu.RLock()
-	b, ok := buckets[c.Host]
-	bucketsMu.RUnlock()
-	if !ok {
-		b = tb.NewBucket(int64(c.MaxRequest), c.Interval)
-		bucketsMu.Lock()
-		buckets[c.Host] = b
-		bucketsMu.Unlock()
+	fwsMu.Lock()
+	fw := fws[c.Host]
+	fwsMu.Unlock()
+
+	// for the first time
+	if fw.bucket == nil {
+		fw.bucket = tb.NewBucket(int64(c.MaxRequest), c.Interval)
+		fwsMu.Lock()
+		fws[c.Host] = fw
+		fwsMu.Unlock()
 	}
 
-	available := b.Take(1) // one request
-
-	fmt.Printf("available %+v\n", available)
+	available := fw.bucket.Take(1) // one request
 	if available == 0 {
 		return false
 	}
