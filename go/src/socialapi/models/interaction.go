@@ -161,3 +161,19 @@ func (i *Interaction) IsInteracted(accountId int64) (bool, error) {
 
 	return false, err
 }
+
+func (i *Interaction) FetchInteractorIdsWithCount(p *bongo.Pagination, count *int) ([]int64, error) {
+	fmt.Println("hellooo!!")
+	interactorIds, err := i.FetchInteractorIds(p)
+	if err != nil {
+		return nil, err
+	}
+
+	c, err := bongo.B.Count(i, "message_id = ?", i.MessageId)
+	if err != nil {
+		return nil, err
+	}
+	*count = c
+
+	return interactorIds, nil
+}
