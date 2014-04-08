@@ -192,3 +192,39 @@ func (r *RedisSession) Scard(key string) (int, error) {
 
 	return reply, nil
 }
+
+// SortedSetIncrBy increments the value of a member
+// in a sorted set
+//
+// This function tries to return last floating value of the item,
+// if it fails to parse reply to float64, returns parsing error along with
+// Reply it self
+func (r *RedisSession) SortedSetIncrBy(key string, incrBy, item interface{}) (float64, error) {
+	prefixed := make([]interface{}, 0)
+	// add key
+	prefixed = append(prefixed, r.addPrefix(key))
+
+	// add incrBy
+	prefixed = append(prefixed, incrBy)
+
+	// add item
+	prefixed = append(prefixed, item)
+
+	reply, err := r.Do("ZINCRBY", prefixed...)
+	if err != nil {
+		return float64(0.0), err
+	}
+
+	// An error is returned when key exists but does not hold a sorted set.
+	// Reply is Bulk string: the new score of member
+	// (a double precision floating point number), represented as string.
+	val, err := strconv.ParseFloat(string(reply.([]uint8)), 64)
+	if err != nil {
+		return float64(0.0), fmt.Errorf(
+			"Error while parsing %v, reply from Redis is: %s",
+			err.Error(),
+			reply,
+		)
+	}
+	return val, nil
+}
