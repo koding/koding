@@ -61,8 +61,10 @@ module.exports = class JKite extends jraphical.Module
           callback null, kite
 
   @list: permit 'list kites',
-    success: (client, selector, options, callback)->
-      JKite.some selector, options, callback
+    success: (client, selector, options, callback) ->
+      JKite.some selector, options, (err, kites) =>
+        delete kite.data.kiteCode  for kite in kites
+        callback err, kites
 
   modify: permit 'edit kite',
     success: (client, formData, callback)->
