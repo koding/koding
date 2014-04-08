@@ -162,7 +162,7 @@ class AppsAppController extends AppController
             @feedController.reload()
 
         @_lastQuery = {}
-        @_reloadButton = new KDButtonView
+        reloadButton = new KDButtonView
           style     : 'refresh-button transparent'
           title     : ''
           icon      : yes
@@ -170,8 +170,14 @@ class AppsAppController extends AppController
           callback  : =>
             @feedController.handleQuery @_lastQuery, force: yes
 
+        kiteButton  = new KDButtonView
+          title     : "Create New Kite"
+          cssClass  : "solid mini green kite-button"
+          callback  : -> new CreateKiteModal
+
         facets = controller.facetsController.getView()
-        facets.addSubView @_reloadButton
+        facets.addSubView reloadButton
+        facets.addSubView kiteButton
 
         feed = controller.getView()
         feed.addSubView @verifiedSwitchLabel
@@ -183,8 +189,6 @@ class AppsAppController extends AppController
         controller.loadFeed()  if loadFeed
 
         @emit 'ready'
-
-        {kiteButton} = @getView()
         kiteButton.hide()
 
         controller.on "FilterChanged", (name) =>
