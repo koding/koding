@@ -7,13 +7,8 @@ class SessionStackView extends KDView
 
     super options, data
 
-    @loader = new KDLoaderView
-      size          : width : 16
-      showLoader    : yes
-      loaderOptions :
-        color       : '#ffffff'
-
     {delegate} = @getOptions()
+    {@loader} = delegate.startTab.vmWrapper[alias]
 
     delegate.on "WebTermConnected", @bound "updateSessions"
     delegate.on "TerminalClosed",   @bound "updateSessions"
