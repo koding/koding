@@ -36,16 +36,6 @@ class SessionStackView extends KDView
       warn err  unless err.code is "ErrNoSession"
 
 
-  pistachio: ->
-    {alias} = @getOptions()
-    """
-    {{> @loader }}
-    {{> @sessions }}
-    """
-
-
-  viewAppended: JView::viewAppended
-
   addSession: (session, index) ->
 
     {vm, delegate} = @getOptions()
