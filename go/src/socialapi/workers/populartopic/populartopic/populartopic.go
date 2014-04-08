@@ -96,14 +96,22 @@ func (f *PopularTopicsController) MessageDeleted(data *models.ChannelMessageList
 }
 
 func GetRedisPrefix() string {
-	return fmt.Sprintf(
-		"%s:%s",
-		config.Get().Environment,
-		PopularTopicKey,
-	)
+	return config.Get().Environment
 }
 
-func GetWeeklyKey(cml *models.ChannelMessageList) string {
+func prepareKey(group, statisticName string, year, dateNumber int) string {
+	return fmt.Sprintf(
+		"%s:%s:%d:%s:%d",
+		group,
+		PopularTopicKey,
+		year,
+		statisticName,
+		dateNumber,
+	)
+
+}
+
+func GetWeeklyKey(c *models.Channel, cml *models.ChannelMessageList) string {
 	weekNumber := 0
 	year := 2014
 
