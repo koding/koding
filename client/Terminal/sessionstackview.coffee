@@ -2,6 +2,7 @@ class SessionStackView extends KDView
 
   constructor: (options, data) ->
 
+    options.tagName  = "ul"
     options.cssClass = "terminal-session-stack"
 
     super options, data
@@ -13,8 +14,6 @@ class SessionStackView extends KDView
         color       : '#ffffff'
 
     {delegate} = @getOptions()
-    @sessions = new KDCustomHTMLView
-      tagName : "ul"
 
     delegate.on "WebTermConnected", @bound "updateSessions"
     delegate.on "TerminalClosed",   @bound "updateSessions"
@@ -27,7 +26,7 @@ class SessionStackView extends KDView
     @loader.show()
     {kite} = @getOptions()
     kite.webtermGetSessions().then (sessions) =>
-      @sessions.destroySubViews()
+      @destroySubViews()
       @show()
       @loader.hide()
       sessions.forEach (session, index) => @addSession session, index
@@ -50,4 +49,5 @@ class SessionStackView extends KDView
   addSession: (session, index) ->
 
     {vm, delegate} = @getOptions()
-    @sessions.addSubView new SessionItemView {session, delegate, vm, index: index + 1}
+    index++
+    @addSubView new SessionItemView {session, delegate, vm, index}
