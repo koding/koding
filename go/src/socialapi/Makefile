@@ -38,6 +38,9 @@ PACKAGES = \
 
 default: all
 
+createdb:
+	@go run ./scripts/createdb.go -c ./config/vagrant.toml  -d
+
 configure: installall installrerun
 	@echo "$(OK_COLOR)==> Configuration is done $(NO_COLOR)"
 
