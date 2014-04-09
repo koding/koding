@@ -92,8 +92,8 @@ module.exports = class JReferralCampaign extends jraphical.Module
   isCampaignValid = (campaignName, callback)->
     [campaignName, callback] = [REGISTER_CAMPAIGN, campaignName] unless callback
     fetchCampaign campaignName, (err, campaign)->
-      return callback err if err
-      return callback null, no unless campaign
+      return callback err  if err
+      return callback null, isValid: no  unless campaign
 
       { campaignGivenAmount,
         campaignInitialAmount
@@ -101,30 +101,29 @@ module.exports = class JReferralCampaign extends jraphical.Module
 
       if Date.now() < startDate.getTime()
         console.info "campaign is not started yet"
-        return callback null, no
+        return callback null, isValid: no
 
       # if date is valid
       if Date.now() > endDate.getTime()
         console.info "date is not valid for campaign"
-        return callback null, no
+        return callback null, isValid: no
 
       # if campaign initial amount is 0
       # then this is an infinite campaign
       if campaignInitialAmount is 0
-        return callback null, yes, campaign
+        return callback null, { isValid: yes, campaign }
 
       # if campaign has more disk space
       if campaignGivenAmount > campaignInitialAmount
-        return callback null, no
+        return callback null, isValid: no
 
-      return callback null, yes, campaign
+      return callback null, { isValid: yes, campaign }
 
   @isCampaignValid = isCampaignValid
 
   @fetchCampaignDiskSize = (callback)->
-    @isCampaignValid (err, valid, campaign)->
+    @isCampaignValid (err, { isValid, campaign })->
       return callback err if err
-      # if campaign is not valid just send 256 as disk size
       return callback null, campaign?.campaignPerEventAmount or 256
 
   @fetchCampaign = fetchCampaign = (campaignName, callback)->
