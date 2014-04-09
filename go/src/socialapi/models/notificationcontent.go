@@ -109,7 +109,6 @@ func (n *NotificationContent) FetchByIds(ids []int64) ([]NotificationContent, er
 
 func (n *NotificationContent) FetchMapByIds(ids []int64) (map[int64]NotificationContent, error) {
 	ncList, err := n.FetchByIds(ids)
-	fmt.Printf("content liste : %v", ncList)
 	if err != nil {
 		return nil, err
 	}
