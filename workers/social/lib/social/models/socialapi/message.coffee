@@ -24,12 +24,6 @@ module.exports = class SocialMessage extends Base
           (signature Object, Function)
         unlike :
           (signature Object, Function)
-        listPinnedMessages:
-          (signature Object, Function)
-        pinMessage   :
-          (signature Object, Function)
-        unpinMessage :
-          (signature Object, Function)
 
     schema          :
       id               : Number
@@ -115,42 +109,6 @@ module.exports = class SocialMessage extends Base
         {unlikeMessage} = require './requests'
         unlikeMessage data, (err, result)->
           callback err, result
-
-  @listPinnedMessages = permit 'pin posts',
-    success:  (client, data, callback)->
-      {connection:{delegate}, context} = client
-      delegate.createSocialApiId (err, socialApiId)=>
-        return callback err if err
-        data.accountId = socialApiId
-        data.groupName = context.group
-        {listPinnedMessages} = require './requests'
-        listPinnedMessages data, callback
-
-  @pinMessage = permit 'pin posts',
-    success:  (client, data, callback)->
-      {connection:{delegate}, context} = client
-      delegate.createSocialApiId (err, socialApiId)=>
-        return callback err if err
-        unless data.messageId
-          return callback { message: "Message id is not set for pinning requests "}
-
-        data.groupName = context.group
-        data.accountId = socialApiId
-        {pinMessage} = require './requests'
-        pinMessage data, callback
-
-  @unpinMessage = permit 'like posts',
-    success:  (client, data, callback)->
-      {connection:{delegate}, context} = client
-      delegate.createSocialApiId (err, socialApiId)=>
-        return callback err if err
-        unless data.messageId
-          return callback { message: "Message id is not set for un-pinning requests "}
-
-        data.groupName = context.group
-        data.accountId = socialApiId
-        {unpinMessage} = require './requests'
-        unpinMessage data, callback
 
   @ensureGroupChannel = (client, callback)->
     fetchGroup client, (err, group)->
