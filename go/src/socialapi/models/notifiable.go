@@ -73,6 +73,17 @@ func (n *ReplyNotification) GetNotifiedUsers() ([]int64, error) {
 	cm.Id = n.TargetId
 	p := &bongo.Pagination{}
 	replierIds, err := cm.FetchReplierIds(p, true)
+	if err != nil {
+		return nil, err
+	}
+
+	replierCount := len(replierIds)
+	// exclude replier - latest replier always be at the end (or beginning we will see :) )
+	if replierCount > 0 {
+		replierIds = replierIds[0:len(replierIds)-1]
+	}
+
+	return replierIds, nil
 }
 
 func (n *ReplyNotification) GetType() string {
