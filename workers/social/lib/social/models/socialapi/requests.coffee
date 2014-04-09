@@ -23,35 +23,22 @@ fetchChannelActivity = (data, callback)->
   if not data.channelId or not data.accountId
     return callback { message: "Request is not valid for creating channel"}
 
-  request
-    url    : "#{SOCIAL_API_URL}/channel/#{data.channelId}/history"
-    qs     : data
-    json   : true
-    body   : data
-    method : 'GET'
-  , wrapCallback callback
+  url = "#{SOCIAL_API_URL}/channel/#{data.channelId}/history"
+  get url, data, callback
 
 fetchGroupChannels = (data, callback)->
   if not data.groupName or not data.accountId
     return callback { message: "Request is not valid for creating channel"}
 
-  request
-    url    : "#{SOCIAL_API_URL}/channel"
-    qs     : data
-    json   : true
-    body   : data
-    method : 'GET'
-  , wrapCallback callback
+  url = "#{SOCIAL_API_URL}/channel"
+  get url, data, callback
 
 fetchMessage = (data, callback)->
   if not data.id
     return callback { message: "Message id is not set"}
 
-  request
-    url    : "#{SOCIAL_API_URL}/message/#{data.id}"
-    json   : true
-    method : 'GET'
-  , wrapCallback callback
+  url = "#{SOCIAL_API_URL}/message/#{data.id}"
+  get url, data, callback
 
 postToChannel = (data, callback)->
   if not data.channelId or not data.accountId or not data.body
