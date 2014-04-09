@@ -51,8 +51,8 @@ func (c *ChannelMessage) GetId() int64 {
 	return c.Id
 }
 
-func (c *ChannelMessage) TableName() string {
-	return "channel_message"
+func (c ChannelMessage) TableName() string {
+	return "api.channel_message"
 }
 
 const (
