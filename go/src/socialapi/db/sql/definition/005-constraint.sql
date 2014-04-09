@@ -1,5 +1,4 @@
-SET ROLE social
-
+SET ROLE social;
 -- ----------------------------
 --  Primary key structure for table channel
 -- ----------------------------
