@@ -14,7 +14,7 @@ class KodingKontrol extends (require 'kontrol')
 
   reauthenticate: ->
     # disconnect the old kontrol kite
-    @kite.disconnect()
+    @kite?.disconnect()
     # reauthenticate with the current session token
     @authenticate @getAuthOptions()
 
