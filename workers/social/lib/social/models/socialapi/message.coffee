@@ -24,6 +24,8 @@ module.exports = class SocialMessage extends Base
           (signature Object, Function)
         unlike :
           (signature Object, Function)
+        listPinnedMessages:
+          (signature Object, Function)
 
     schema          :
       id               : Number
@@ -110,6 +112,15 @@ module.exports = class SocialMessage extends Base
         unlikeMessage data, (err, result)->
           callback err, result
 
+  @listPinnedMessages = permit 'pin posts',
+    success:  (client, data, callback)->
+      {connection:{delegate}, context} = client
+      delegate.createSocialApiId (err, socialApiId)=>
+        return callback err if err
+        data.accountId = socialApiId
+        data.groupName = context.group
+        {listPinnedMessages} = require './requests'
+        listPinnedMessages data, callback
   @ensureGroupChannel = (client, callback)->
     fetchGroup client, (err, group)->
       return callback err  if err
