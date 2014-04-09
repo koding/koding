@@ -169,6 +169,8 @@ config =
       staticFilesBaseUrl: 1
       runtimeOptions  :
         kites:
+          kontrol:
+            username: 1
           os:
             version: 1
           terminal:

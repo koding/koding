@@ -254,7 +254,7 @@ class VirtualizationController extends KDController
     kite = kontrol.getKite query
 
     unless kiteExisted
-      @listenToVmState vm, kite
+      @listenToVmState vm, kite  if name is 'oskite'
 
       @registerNewKite name, correlationName, kite
 
