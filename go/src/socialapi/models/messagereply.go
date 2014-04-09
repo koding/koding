@@ -104,6 +104,9 @@ func (m *MessageReply) FetchReplyIds(p *bongo.Pagination) ([]int64, error) {
 		},
 		Pagination: *p,
 		Pluck: "reply_id",
+		Sort: map[string]string{
+     		"created_at": "desc",
+    	},
 	}
 	if err := m.Some(&replyIds, q); err != nil {
 		return nil, err
