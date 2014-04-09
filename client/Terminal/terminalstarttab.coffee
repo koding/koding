@@ -16,7 +16,7 @@ class TerminalStartTab extends JView
 
   fetchVMs:->
 
-    {vmController} = KD.singletons
+    {vmController, kontrol} = KD.singletons
 
     vmController.fetchVMs (err, vms)=>
 
@@ -27,7 +27,12 @@ class TerminalStartTab extends JView
 
       @listVMs vms
 
-      for own alias, kite of vmController.kites
+      osKites =
+        if KD.useNewKites
+        then kontrol.kites.oskite
+        else vmController.kites
+
+      for own alias, kite of osKites
         if kite.recentState
           @vmWrapper[alias].handleVMInfo kite.recentState
 

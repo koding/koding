@@ -273,6 +273,8 @@ func newScreen(vos *virt.VOS, mode, session string) (*screen, error) {
 		cmdArgs = []string{screenPath, "-S"}
 	}
 
+	log.Info("Mode: %s", mode)
+
 	switch mode {
 	case "shared", "resume":
 		if session == "" {
@@ -301,11 +303,15 @@ func newScreen(vos *virt.VOS, mode, session string) (*screen, error) {
 		return nil, &kite.ArgumentError{Expected: "{ mode: [shared|noscreen|resume|create] }"}
 	}
 
-	return &screen{
+	s := &screen{
 		ScreenPath: screenPath,
 		Session:    session,
 		Command:    cmdArgs,
-	}, nil
+	}
+
+	fmt.Printf("s %#v\n", s)
+
+	return s, nil
 
 }
 
