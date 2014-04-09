@@ -24,8 +24,8 @@ func (a *Account) GetId() int64 {
 	return a.Id
 }
 
-func (a *Account) TableName() string {
-	return "account"
+func (a Account) TableName() string {
+	return "api.account"
 }
 
 func (a *Account) One(q *bongo.Query) error {
