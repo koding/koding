@@ -71,10 +71,6 @@ func List(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface
 		return helpers.NewBadRequestResponse(errors.New("Account id is not set for fetching pinned activities"))
 	}
 
-	if query.GroupName == "" {
-		return helpers.NewBadRequestResponse(errors.New("GroupName is not set for fetching pinned activities"))
-	}
-
 	c, err := ensurePinnedActivityChannel(query.AccountId, query.GroupName)
 	if err != nil {
 		return helpers.NewBadRequestResponse(err)
