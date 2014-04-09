@@ -26,10 +26,11 @@ class TerminalStartTabVMItem extends KDCustomHTMLView
 
     @progress = new KDCustomHTMLView
       tagName  : 'cite'
+      cssClass : 'vm-loader'
 
     @alwaysOn = new KDCustomHTMLView
       tagName  : 'cite'
-      partial  : if vm.alwaysOn then "always-on" else ""
+      partial  : if vm.alwaysOn then "always-on" else "always-on"
 
 
   handleVMStart:(update)->
