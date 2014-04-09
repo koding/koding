@@ -94,6 +94,24 @@ fetchPopularTopics = (data, callback)->
   url = "#{SOCIAL_API_URL}/popular/topics/weekly"
   get url, data, callback
 
+listPinnedMessages = (data, callback)->
+  url = "#{SOCIAL_API_URL}/activity/pin/list"
+  get url, data, callback
+
+pinMessage = (data, callback)->
+  if not data.accountId or not data.messageId or not data.groupName
+    return callback { message: "Request is not valid"}
+
+  url = "#{SOCIAL_API_URL}/activity/pin/add"
+  post url, data, callback
+
+unpinMessage = (data, callback)->
+  if not data.accountId or not data.messageId or not data.groupName
+    return callback { message: "Request is not valid"}
+
+  url = "#{SOCIAL_API_URL}/activity/pin/remove"
+  post url, data, callback
+
 post = (url, data, callback)->
   request
     url    : url
@@ -111,6 +129,9 @@ get = (url, data, callback)->
   , wrapCallback callback
 
 module.exports = {
+  listPinnedMessages
+  pinMessage
+  unpinMessage
   fetchPopularTopics
   addReply
   unlikeMessage
