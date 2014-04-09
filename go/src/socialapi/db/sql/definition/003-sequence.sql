@@ -1,3 +1,4 @@
+SET ROLE social;
 -- ----------------------------
 --  Sequence structure for account_id_seq
 -- ----------------------------
