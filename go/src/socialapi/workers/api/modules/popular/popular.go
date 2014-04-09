@@ -101,9 +101,10 @@ func extendPopularTopicsIfNeeded(query *models.Query, popularTopics []int64) ([]
 func fetchMoreChannels(group string, count int) ([]models.Channel, error) {
 	q := models.NewQuery()
 	q.GroupName = group
-	q.Limit = count
+	query.Pagination.Limit = count
 	q.Type = models.Channel_TYPE_TOPIC
 	q.SetDefaults()
 	c := models.NewChannel()
+
 	return c.List(q)
 }
