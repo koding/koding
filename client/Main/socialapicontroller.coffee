@@ -37,13 +37,13 @@ class SocialApiController extends KDController
         return callback null, mapChannels result
 
   channel:
-    list: fetchChannels
-    fetchActivity: fetchChannelActivity
-    fetchGroupActivity: fetchGroupActivity
-    fetchPopularTopics: fetchPopularTopics
-    listPinnedMessages:(rest...)-> channelApiFuncMultiRes 'listPinnedMessages', rest...
-    pin               :(rest...)-> KD.remote.api.SocialChannel.pinMessage rest...
-    unpin             :(rest...)-> KD.remote.api.SocialChannel.unpinMessage rest...
+    list               : fetchChannels
+    fetchActivity      : fetchChannelActivity
+    fetchGroupActivity : fetchGroupActivity
+    fetchPopularTopics : fetchPopularTopics
+    listPinnedMessages :(rest...)-> channelApiFuncMultiRes 'listPinnedMessages', rest...
+    pin                :(rest...)-> KD.remote.api.SocialChannel.pinMessage rest...
+    unpin              :(rest...)-> KD.remote.api.SocialChannel.unpinMessage rest...
 
   messageApiFunc = (name, rest..., callback)->
     KD.remote.api.SocialMessage[name] rest..., (err, res)->
