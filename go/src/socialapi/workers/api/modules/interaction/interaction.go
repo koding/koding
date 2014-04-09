@@ -26,7 +26,7 @@ func prepareInteraction(u *url.URL, req *models.Interaction) (*models.Interactio
 	}
 
 	req.MessageId = messageId
-	req.Type = interactionType
+	req.TypeConstant = interactionType
 	return req, nil
 }
 
@@ -34,12 +34,15 @@ func Add(u *url.URL, h http.Header, req *models.Interaction) (int, http.Header, 
 	var err error
 	req, err = prepareInteraction(u, req)
 	if err != nil {
-		return helpers.NewBadRequestResponse()
+		fmt.Println(err)
+		return helpers.NewBadRequestResponse(err)
 	}
 
 	// to-do check uniqness before saving
 	if err := req.Create(); err != nil {
-		return helpers.NewBadRequestResponse()
+		fmt.Println(err)
+
+		return helpers.NewBadRequestResponse(err)
 	}
 
 	return helpers.NewOKResponse(req)
@@ -49,11 +52,11 @@ func Delete(u *url.URL, h http.Header, req *models.Interaction) (int, http.Heade
 	var err error
 	req, err = prepareInteraction(u, req)
 	if err != nil {
-		return helpers.NewBadRequestResponse()
+		return helpers.NewBadRequestResponse(err)
 	}
 
 	if err := req.Delete(); err != nil {
-		return helpers.NewBadRequestResponse()
+		return helpers.NewBadRequestResponse(err)
 	}
 
 	// yes it is deleted but not removed completely from our system
@@ -63,7 +66,7 @@ func Delete(u *url.URL, h http.Header, req *models.Interaction) (int, http.Heade
 func List(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface{}, error) {
 	messageId, err := helpers.GetURIInt64(u, "id")
 	if err != nil {
-		return helpers.NewBadRequestResponse()
+		return helpers.NewBadRequestResponse(err)
 	}
 
 	req := models.NewInteraction()
@@ -72,7 +75,7 @@ func List(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface
 
 	interactions, err := req.List("like")
 	if err != nil {
-		return helpers.NewBadRequestResponse()
+		return helpers.NewBadRequestResponse(err)
 	}
 
 	return helpers.NewOKResponse(interactions)

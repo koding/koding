@@ -15,13 +15,13 @@ type Channel struct {
 	Id int64 `json:"id"`
 
 	// Name of the channel
-	Name string `json:"name"`
+	Name string `json:"name"                         sql:"NOT NULL;TYPE:VARCHAR(200);"`
 
 	// Creator of the channel
-	CreatorId int64 `json:"creatorId"`
+	CreatorId int64 `json:"creatorId"                sql:"NOT NULL"`
 
 	// Name of the group which channel is belong to
-	GroupName string `json:"groupName"`
+	GroupName string `json:"groupName"               sql:"NOT NULL;TYPE:VARCHAR(200);"`
 
 	// Purpose of the channel
 	Purpose string `json:"purpose"`
@@ -31,26 +31,27 @@ type Channel struct {
 	SecretKey string `json:"secretKey"`
 
 	// Type of the channel
-	Type string `json:"type"`
+	TypeConstant string `json:"typeConstant"         sql:"NOT NULL;TYPE:VARCHAR(100);"`
 
 	// Privacy constant of the channel
-	Privacy string `json:"privacy"`
+	PrivacyConstant string `json:"privacyConstant"   sql:"NOT NULL;TYPE:VARCHAR(100);"`
 
 	// Creation date of the channel
-	CreatedAt time.Time `json:"createdAt"`
+	CreatedAt time.Time `json:"createdAt"            sql:"NOT NULL"`
 
 	// Modification date of the channel
-	UpdatedAt time.Time `json:"updatedAt"`
+	UpdatedAt time.Time `json:"updatedAt"            sql:"NOT NULL"`
 }
 
 // to-do check for allowed channels
 const (
 	// TYPES
-	Channel_TYPE_GROUP         = "group"
-	Channel_TYPE_TOPIC         = "topic"
-	Channel_TYPE_FOLLOWINGFEED = "followingfeed"
-	Channel_TYPE_FOLLOWERS     = "followers"
-	Channel_TYPE_CHAT          = "chat"
+	Channel_TYPE_GROUP           = "group"
+	Channel_TYPE_TOPIC           = "topic"
+	Channel_TYPE_FOLLOWINGFEED   = "followingfeed"
+	Channel_TYPE_FOLLOWERS       = "followers"
+	Channel_TYPE_CHAT            = "chat"
+	Channel_TYPE_PINNED_ACTIVITY = "pinnedActivity"
 	// Privacy
 	Channel_TYPE_PUBLIC  = "public"
 	Channel_TYPE_PRIVATE = "private"
@@ -60,13 +61,13 @@ const (
 
 func NewChannel() *Channel {
 	return &Channel{
-		Name:      "koding",
-		CreatorId: 123,
-		GroupName: Channel_KODING_NAME,
-		Purpose:   "string",
-		SecretKey: "string",
-		Type:      Channel_TYPE_GROUP,
-		Privacy:   Channel_TYPE_PRIVATE,
+		Name:            "koding",
+		CreatorId:       123,
+		GroupName:       Channel_KODING_NAME,
+		Purpose:         "string",
+		SecretKey:       "string",
+		TypeConstant:    "default",
+		PrivacyConstant: Channel_TYPE_PRIVATE,
 	}
 }
 
@@ -112,7 +113,7 @@ func (c *Channel) Update() error {
 }
 
 func (c *Channel) Create() error {
-	if c.Name == "" || c.GroupName == "" || c.Type == "" {
+	if c.Name == "" || c.GroupName == "" || c.TypeConstant == "" {
 		return fmt.Errorf("Validation failed %s - %s", c.Name, c.GroupName)
 	}
 
@@ -121,20 +122,24 @@ func (c *Channel) Create() error {
 		return fmt.Errorf("Channel name %q has empty space in it", c.Name)
 	}
 
-	selector := map[string]interface{}{
-		"name":       c.Name,
-		"group_name": c.GroupName,
-	}
+	if c.TypeConstant == Channel_TYPE_GROUP /* we can add more types here */ {
+		selector := map[string]interface{}{
+			"group_name":    c.GroupName,
+			"type_constant": c.TypeConstant,
+		}
 
-	// if err is nil
-	// it means we already have that channel
-	err := c.One(selector)
-	if err == nil {
-		return fmt.Errorf("Channel %s is already created before for %s group", c.Name, c.GroupName)
-	}
+		// if err is nil
+		// it means we already have that channel
+		err := c.One(bongo.NewQS(selector))
+		if err == nil {
+			return nil
+			// return fmt.Errorf("%s typed channel is already created before for %s group", c.TypeConstant, c.GroupName)
+		}
 
-	if err != gorm.RecordNotFound {
-		return err
+		if err != gorm.RecordNotFound {
+			return err
+		}
+
 	}
 
 	return bongo.B.Create(c)
@@ -144,8 +149,12 @@ func (c *Channel) Delete() error {
 	return bongo.B.Delete(c)
 }
 
-func (c *Channel) One(selector map[string]interface{}) error {
-	return bongo.B.One(c, c, selector)
+func (c *Channel) One(q *bongo.Query) error {
+	return bongo.B.One(c, c, q)
+}
+
+func (c *Channel) Some(data interface{}, q *bongo.Query) error {
+	return bongo.B.Some(c, data, q)
 }
 
 func (c *Channel) FetchByIds(ids []int64) ([]Channel, error) {
@@ -178,17 +187,17 @@ func (c *Channel) AddParticipant(participantId int64) (*ChannelParticipant, erro
 	// if we have this record in DB
 	if cp.Id != 0 {
 		// if status is not active
-		if cp.Status == ChannelParticipant_STATUS_ACTIVE {
-			return nil, errors.New(fmt.Sprintf("Account %s is already a participant of channel %s", cp.AccountId, cp.ChannelId))
+		if cp.StatusConstant == ChannelParticipant_STATUS_ACTIVE {
+			return nil, errors.New(fmt.Sprintf("Account %d is already a participant of channel %d", cp.AccountId, cp.ChannelId))
 		}
-		cp.Status = ChannelParticipant_STATUS_ACTIVE
+		cp.StatusConstant = ChannelParticipant_STATUS_ACTIVE
 		if err := cp.Update(); err != nil {
 			return nil, err
 		}
 		return cp, nil
 	}
 
-	cp.Status = ChannelParticipant_STATUS_ACTIVE
+	cp.StatusConstant = ChannelParticipant_STATUS_ACTIVE
 
 	if err := cp.Create(); err != nil {
 		return nil, err
@@ -216,11 +225,11 @@ func (c *Channel) RemoveParticipant(participantId int64) error {
 		return err
 	}
 
-	if cp.Status == ChannelParticipant_STATUS_LEFT {
+	if cp.StatusConstant == ChannelParticipant_STATUS_LEFT {
 		return nil
 	}
 
-	cp.Status = ChannelParticipant_STATUS_LEFT
+	cp.StatusConstant = ChannelParticipant_STATUS_LEFT
 	if err := cp.Update(); err != nil {
 		return err
 	}
@@ -237,8 +246,8 @@ func (c *Channel) FetchParticipantIds() ([]int64, error) {
 
 	query := &bongo.Query{
 		Selector: map[string]interface{}{
-			"channel_id": c.Id,
-			"status":     ChannelParticipant_STATUS_ACTIVE,
+			"channel_id":      c.Id,
+			"status_constant": ChannelParticipant_STATUS_ACTIVE,
 		},
 		Pluck: "account_id",
 	}
@@ -258,6 +267,21 @@ func (c *Channel) AddMessage(messageId int64) (*ChannelMessageList, error) {
 	}
 
 	cml := NewChannelMessageList()
+
+	selector := map[string]interface{}{
+		"channel_id": c.Id,
+		"message_id": messageId,
+	}
+	err := cml.One(bongo.NewQS(selector))
+	if err == nil {
+		return nil, errors.New("Message is already in the channel")
+	}
+
+	if err != gorm.RecordNotFound {
+		return nil, err
+	}
+	// silence record not found err
+
 	cml.ChannelId = c.Id
 	cml.MessageId = messageId
 
@@ -268,7 +292,35 @@ func (c *Channel) AddMessage(messageId int64) (*ChannelMessageList, error) {
 	return cml, nil
 }
 
+func (c *Channel) RemoveMessage(messageId int64) (*ChannelMessageList, error) {
+	if c.Id == 0 {
+		return nil, errors.New("Channel Id is not set")
+	}
+
+	cml := NewChannelMessageList()
+	selector := map[string]interface{}{
+		"channel_id": c.Id,
+		"message_id": messageId,
+	}
+	err := cml.One(bongo.NewQS(selector))
+	// one returns error when record not found case
+	// but we dont care if it is not there tho
+	if err != nil {
+		return nil, err
+	}
+
+	if err := cml.Delete(); err != nil {
+		return nil, err
+	}
+
+	return cml, nil
+}
+
 func (c *Channel) List(q *Query) ([]Channel, error) {
+
+	if q.GroupName == "" {
+		return nil, fmt.Errorf("Query doesnt have any Group info %+v", q)
+	}
 
 	var channels []Channel
 
@@ -276,6 +328,10 @@ func (c *Channel) List(q *Query) ([]Channel, error) {
 		Selector: map[string]interface{}{
 			"group_name": q.GroupName,
 		},
+	}
+
+	if q.Type != "" {
+		query.Selector["type_constant"] = q.Type
 	}
 
 	err := bongo.B.Some(c, &channels, query)

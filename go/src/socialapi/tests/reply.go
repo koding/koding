@@ -18,7 +18,7 @@ func testReplyOperations() {
 	for i := 0; i < 2; i++ {
 		_, err = addReply(post.Id, accountId)
 		if err != nil {
-			fmt.Println("error while creating interaction", err)
+			fmt.Println("error while adding reply", err)
 			err = nil
 		}
 	}
@@ -31,6 +31,7 @@ func testReplyOperations() {
 
 	if len(replies) != 2 {
 		fmt.Println("post count is wrong", replies)
+		return
 	}
 
 	err = deleteReply(post.Id, replies[0].Id)

@@ -13,13 +13,13 @@ type ChannelMessageList struct {
 	Id int64 `json:"id"`
 
 	// Id of the channel
-	ChannelId int64 `json:"channelId"`
+	ChannelId int64 `json:"channelId"     sql:"NOT NULL"`
 
 	// Id of the message
-	MessageId int64 `json:"messageId"`
+	MessageId int64 `json:"messageId"     sql:"NOT NULL"`
 
 	// Addition date of the message to the channel
-	AddedAt time.Time `json:"addedAt"`
+	AddedAt time.Time `json:"addedAt"     sql:"NOT NULL"`
 }
 
 func (c *ChannelMessageList) BeforeCreate() {
@@ -56,6 +56,10 @@ func NewChannelMessageList() *ChannelMessageList {
 
 func (c *ChannelMessageList) Fetch() error {
 	return bongo.B.Fetch(c)
+}
+
+func (c *ChannelMessageList) One(q *bongo.Query) error {
+	return bongo.B.One(c, c, q)
 }
 
 func (c *ChannelMessageList) UnreadCount(cp *ChannelParticipant) (int, error) {

@@ -12,7 +12,8 @@ type Account struct {
 	// unique id of the account
 	Id int64 `json:"id"`
 	// old id of the account, which is coming from mongo
-	OldId string `json:"oldId"`
+	// mongo ids has 24 char
+	OldId string `json:"oldId"      sql:"NOT NULL;UNIQUE;TYPE:VARCHAR(24);"`
 }
 
 func NewAccount() *Account {
@@ -27,8 +28,8 @@ func (a *Account) TableName() string {
 	return "account"
 }
 
-func (a *Account) One(selector map[string]interface{}) error {
-	return bongo.B.One(a, a, selector)
+func (a *Account) One(q *bongo.Query) error {
+	return bongo.B.One(a, a, q)
 }
 
 func (a *Account) FetchOrCreate() error {
@@ -40,7 +41,7 @@ func (a *Account) FetchOrCreate() error {
 		"old_id": a.OldId,
 	}
 
-	err := a.One(selector)
+	err := a.One(bongo.NewQS(selector))
 	if err == gorm.RecordNotFound {
 		if err := a.Create(); err != nil {
 			return err
@@ -134,11 +135,11 @@ func (a *Account) FetchChannel(channelType string) (*Channel, error) {
 
 	c := NewChannel()
 	selector := map[string]interface{}{
-		"creator_id": a.Id,
-		"type":       channelType,
+		"creator_id":    a.Id,
+		"type_constant": channelType,
 	}
 
-	if err := c.One(selector); err != nil {
+	if err := c.One(bongo.NewQS(selector)); err != nil {
 		return nil, err
 	}
 
@@ -155,7 +156,7 @@ func (a *Account) CreateFollowingFeedChannel() (*Channel, error) {
 	c.Name = fmt.Sprintf("%d-FollowingFeedChannel", a.Id)
 	c.GroupName = Channel_KODING_NAME
 	c.Purpose = "Following Feed for Me"
-	c.Type = Channel_TYPE_FOLLOWERS
+	c.TypeConstant = Channel_TYPE_FOLLOWERS
 	if err := c.Create(); err != nil {
 		return nil, err
 	}
@@ -175,7 +176,7 @@ func (a *Account) FetchFollowerChannelIds() ([]int64, error) {
 	err = bongo.B.DB.
 		Table(cp.TableName()).
 		Where(
-		"creator_id IN (?) and type = ?",
+		"creator_id IN (?) and type_constant = ?",
 		followerIds,
 		Channel_TYPE_FOLLOWINGFEED,
 	).Find(&channelIds).Error

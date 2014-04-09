@@ -12,13 +12,13 @@ type MessageReply struct {
 	Id int64 `json:"id"`
 
 	// Id of the interacted message
-	MessageId int64 `json:"messageId"`
+	MessageId int64 `json:"messageId"             sql:"NOT NULL"`
 
 	// Id of the reply
-	ReplyId int64 `json:"replyId"`
+	ReplyId int64 `json:"replyId"                 sql:"NOT NULL"`
 
 	// Creation of the MessageReply
-	CreatedAt time.Time `json:"createdAt"`
+	CreatedAt time.Time `json:"createdAt"         sql:"NOT NULL"`
 }
 
 func (m *MessageReply) GetId() int64 {

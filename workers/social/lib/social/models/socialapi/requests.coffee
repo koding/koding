@@ -1,4 +1,4 @@
-SOCIAL_API_URL = "http://localhost:8000"
+SOCIAL_API_URL = "http://localhost:7000"
 request        = require 'request'
 
 wrapCallback = (callback)->
@@ -23,35 +23,22 @@ fetchChannelActivity = (data, callback)->
   if not data.channelId or not data.accountId
     return callback { message: "Request is not valid for creating channel"}
 
-  request
-    url    : "#{SOCIAL_API_URL}/channel/#{data.channelId}/history"
-    qs     : data
-    json   : true
-    body   : data
-    method : 'GET'
-  , wrapCallback callback
+  url = "#{SOCIAL_API_URL}/channel/#{data.channelId}/history"
+  get url, data, callback
 
 fetchGroupChannels = (data, callback)->
   if not data.groupName or not data.accountId
     return callback { message: "Request is not valid for creating channel"}
 
-  request
-    url    : "#{SOCIAL_API_URL}/channel"
-    qs     : data
-    json   : true
-    body   : data
-    method : 'GET'
-  , wrapCallback callback
+  url = "#{SOCIAL_API_URL}/channel"
+  get url, data, callback
 
 fetchMessage = (data, callback)->
   if not data.id
     return callback { message: "Message id is not set"}
 
-  request
-    url    : "#{SOCIAL_API_URL}/message/#{data.id}"
-    json   : true
-    method : 'GET'
-  , wrapCallback callback
+  url = "#{SOCIAL_API_URL}/message/#{data.id}"
+  get url, data, callback
 
 postToChannel = (data, callback)->
   if not data.channelId or not data.accountId or not data.body
@@ -100,6 +87,31 @@ addReply = (data, callback)->
   url = "#{SOCIAL_API_URL}/message/#{data.messageId}/reply"
   post url, data, callback
 
+fetchPopularTopics = (data, callback)->
+  if not data.groupName
+    return callback { message: "Request is not valid for listing popular topics"}
+
+  url = "#{SOCIAL_API_URL}/popular/topics/weekly"
+  get url, data, callback
+
+listPinnedMessages = (data, callback)->
+  url = "#{SOCIAL_API_URL}/activity/pin/list"
+  get url, data, callback
+
+pinMessage = (data, callback)->
+  if not data.accountId or not data.messageId or not data.groupName
+    return callback { message: "Request is not valid"}
+
+  url = "#{SOCIAL_API_URL}/activity/pin/add"
+  post url, data, callback
+
+unpinMessage = (data, callback)->
+  if not data.accountId or not data.messageId or not data.groupName
+    return callback { message: "Request is not valid"}
+
+  url = "#{SOCIAL_API_URL}/activity/pin/remove"
+  post url, data, callback
+
 post = (url, data, callback)->
   request
     url    : url
@@ -108,7 +120,19 @@ post = (url, data, callback)->
     method : 'POST'
   , wrapCallback callback
 
+get = (url, data, callback)->
+  request
+    url    : url
+    qs     : data
+    json   : true
+    method : 'GET'
+  , wrapCallback callback
+
 module.exports = {
+  listPinnedMessages
+  pinMessage
+  unpinMessage
+  fetchPopularTopics
   addReply
   unlikeMessage
   likeMessage

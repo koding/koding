@@ -12,16 +12,16 @@ type Interaction struct {
 	Id int64 `json:"id"`
 
 	// Id of the interacted message
-	MessageId int64 `json:"messageId"`
+	MessageId int64 `json:"messageId"             sql:"NOT NULL"`
 
 	// Id of the actor
-	AccountId int64 `json:"accountId"`
+	AccountId int64 `json:"accountId"             sql:"NOT NULL"`
 
 	// Type of the interaction
-	Type string `json:"type"`
+	TypeConstant string `json:"typeConstant"      sql:"NOT NULL;TYPE:VARCHAR(100);"`
 
 	// Creation of the interaction
-	CreatedAt time.Time `json:"createdAt"`
+	CreatedAt time.Time `json:"createdAt"         sql:"NOT NULL"`
 }
 
 var AllowedInteractions = map[string]struct{}{
@@ -46,6 +46,10 @@ func (i *Interaction) TableName() string {
 
 func NewInteraction() *Interaction {
 	return &Interaction{}
+}
+
+func (i *Interaction) One(q *bongo.Query) error {
+	return bongo.B.One(i, i, q)
 }
 
 func (i *Interaction) Fetch() error {

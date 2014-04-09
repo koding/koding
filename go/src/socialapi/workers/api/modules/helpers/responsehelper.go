@@ -30,8 +30,18 @@ import (
 // 	}
 // }
 
-func NewBadRequestResponse() (int, http.Header, interface{}, error) {
-	return http.StatusBadRequest, nil, nil, errors.New("Request is not valid")
+func NewBadRequestResponse(err error) (int, http.Header, interface{}, error) {
+	if err == nil {
+		err = errors.New("Request is not valid")
+	}
+	return http.StatusBadRequest, nil, nil, err
+}
+
+func HandleResultAndError(res interface{}, err error) (int, http.Header, interface{}, error) {
+	if err != nil {
+		return NewBadRequestResponse(err)
+	}
+	return NewOKResponse(res)
 }
 
 func NewOKResponse(res interface{}) (int, http.Header, interface{}, error) {

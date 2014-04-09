@@ -1,12 +1,12 @@
 package main
 
 import (
-	_ "expvar"
+	// _ "expvar"
 	"flag"
 	"fmt"
 	"socialapi/config"
 
-	_ "net/http/pprof" // Imported for side-effect of handling /debug/pprof.
+	// _ "net/http/pprof" // Imported for side-effect of handling /debug/pprof.
 	"os"
 	"os/signal"
 	"socialapi/workers/api/handlers"
@@ -19,7 +19,7 @@ var (
 	cert        = flag.String("cert", "", "certificate pathname")
 	key         = flag.String("key", "", "private key pathname")
 	flagConfig  = flag.String("config", "", "pathname of JSON configuration file")
-	listen      = flag.String("listen", "127.0.0.1:8000", "listen address")
+	listen      = flag.String("listen", "127.0.0.1:7000", "listen address")
 	flagProfile = flag.String("c", "", "Configuration profile from file")
 	flagDebug   = flag.Bool("d", false, "Debug mode")
 
@@ -58,6 +58,10 @@ func main() {
 	bongo := helper.MustInitBongo(conf, log)
 	// do not forgot to close the bongo connection
 	defer bongo.Close()
+
+	// init redis
+	redisConn := helper.MustInitRedisConn(conf.Redis)
+	defer redisConn.Close()
 
 	ch := make(chan os.Signal)
 	signal.Notify(ch, syscall.SIGINT, syscall.SIGQUIT, syscall.SIGTERM)

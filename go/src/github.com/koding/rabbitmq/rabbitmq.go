@@ -154,9 +154,6 @@ func (r *RabbitMQ) Connect(tag string) (*RabbitMQ, error) {
 	if tag == "" {
 		return nil, errors.New("Tag is not defined in consumer options")
 	}
-
-	fmt.Println("r.conf")
-	fmt.Println(r.config)
 	r.tag = tag
 	conf := amqp.URI{
 		Scheme:   "amqp",

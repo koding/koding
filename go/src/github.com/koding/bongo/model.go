@@ -135,14 +135,34 @@ type Query struct {
 	Pluck    string
 }
 
+func NewQS(selector map[string]interface{}) *Query {
+	return &Query{
+		Selector: selector,
+	}
+}
+
 // selector, sort, limit, pluck,
 func (b *Bongo) Some(i Modellable, data interface{}, q *Query) error {
+	err := b.buildQuery(i, data, q)
+	if err == gorm.RecordNotFound {
+		return nil
+	}
+	return err
+}
 
+func (b *Bongo) One(i Modellable, data interface{}, q *Query) error {
+	q.Limit = 1
+	return b.buildQuery(i, data, q)
+}
+
+func (b *Bongo) buildQuery(i Modellable, data interface{}, q *Query) error {
 	// init query
 	query := b.DB
 
-	// add pluck data
-	query = addPluck(query, q.Pluck)
+	// if limit is minus or 0 ignore
+	if q.Limit > 0 {
+		query.Limit(q.Limit)
+	}
 
 	// add sort options
 	query = addSort(query, q.Sort)
@@ -153,28 +173,21 @@ func (b *Bongo) Some(i Modellable, data interface{}, q *Query) error {
 	// add selector
 	query = addWhere(query, q.Selector)
 
-	err := query.Find(data).Error
-	if err == gorm.RecordNotFound {
-		return nil
+	var err error
+	// TODO refactor this part
+	if q.Pluck != "" {
+		if strings.Contains(q.Pluck, ",") {
+			// add pluck data
+			query = addPluck(query, q.Pluck)
+
+			err = query.Find(data).Error
+		} else {
+			err = query.Pluck(q.Pluck, data).Error
+		}
+	} else {
+		err = query.Find(data).Error
 	}
 	return err
-}
-
-func (b *Bongo) One(i Modellable, data interface{}, selector map[string]interface{}) error {
-
-	// init query
-	query := b.DB
-
-	// add table name
-	query = query.Table(i.TableName())
-
-	// add selector
-	query = addWhere(query, selector)
-
-	// add limit
-	query.Limit(1)
-
-	return query.Find(data).Error
 }
 
 func (b *Bongo) AfterCreate(i Modellable) {

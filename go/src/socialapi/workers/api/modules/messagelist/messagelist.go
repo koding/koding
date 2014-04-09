@@ -12,7 +12,7 @@ func List(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface
 
 	channelId, err := helpers.GetURIInt64(u, "id")
 	if err != nil {
-		return helpers.NewBadRequestResponse()
+		return helpers.NewBadRequestResponse(err)
 	}
 
 	cml := models.NewChannelMessageList()
@@ -20,7 +20,7 @@ func List(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface
 
 	list, err := cml.List(query)
 	if err != nil {
-		return helpers.NewBadRequestResponse()
+		return helpers.NewBadRequestResponse(err)
 	}
 
 	return helpers.NewOKResponse(list)

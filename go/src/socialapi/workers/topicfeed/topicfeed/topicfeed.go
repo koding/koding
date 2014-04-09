@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"socialapi/models"
+	"github.com/koding/bongo"
 	"github.com/koding/logging"
 	"github.com/koding/worker"
 	"github.com/streadway/amqp"
@@ -34,7 +35,7 @@ type TopicFeedController struct {
 }
 
 func (t *TopicFeedController) DefaultErrHandler(delivery amqp.Delivery, err error) {
-	t.log.Error("an error occured %s, \n putting message back to queue", err)
+	t.log.Error("an error occured putting message back to queue", err)
 	// multiple false
 	// reque true
 	delivery.Nack(false, true)
@@ -89,7 +90,7 @@ func (f *TopicFeedController) MessageSaved(data *models.ChannelMessage) error {
 
 	c, err := fetchChannel(data.InitialChannelId)
 	if err != nil {
-		f.log.Error("Error on fetchChannel %d, %s", data.InitialChannelId, err)
+		f.log.Error("Error on fetchChannel", data.InitialChannelId, err)
 		return err
 	}
 
@@ -104,7 +105,7 @@ func ensureChannelMessages(parentChannel *models.Channel, data *models.ChannelMe
 		}
 
 		if err == gorm.RecordNotFound {
-			tc, err = createTopicChannel(data.AccountId, parentChannel.GroupName, topic, parentChannel.Privacy)
+			tc, err = createTopicChannel(data.AccountId, parentChannel.GroupName, topic, parentChannel.PrivacyConstant)
 			if err != nil {
 				return err
 			}
@@ -270,7 +271,7 @@ func isEligible(cm *models.ChannelMessage) (bool, error) {
 		return false, nil
 	}
 
-	if cm.Type != models.ChannelMessage_TYPE_POST {
+	if cm.TypeConstant != models.ChannelMessage_TYPE_POST {
 		return false, nil
 	}
 
@@ -294,12 +295,12 @@ func fetchTopicChannel(groupName, channelName string) (*models.Channel, error) {
 	c := models.NewChannel()
 
 	selector := map[string]interface{}{
-		"group_name": groupName,
-		"name":       channelName,
-		"type":       models.Channel_TYPE_TOPIC,
+		"group_name":    groupName,
+		"name":          channelName,
+		"type_constant": models.Channel_TYPE_TOPIC,
 	}
 
-	err := c.One(selector)
+	err := c.One(bongo.NewQS(selector))
 	if err != nil {
 		return nil, err
 	}
@@ -313,8 +314,8 @@ func createTopicChannel(creatorId int64, groupName, channelName, privacy string)
 	c.CreatorId = creatorId
 	c.GroupName = groupName
 	c.Purpose = fmt.Sprintf("Channel for %s topic", channelName)
-	c.Type = models.Channel_TYPE_TOPIC
-	c.Privacy = privacy
+	c.TypeConstant = models.Channel_TYPE_TOPIC
+	c.PrivacyConstant = privacy
 	if err := c.Create(); err != nil {
 		return nil, err
 	}

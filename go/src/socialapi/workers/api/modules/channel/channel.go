@@ -1,6 +1,7 @@
 package channel
 
 import (
+	"errors"
 	"net/http"
 	"net/url"
 	"socialapi/models"
@@ -9,9 +10,29 @@ import (
 	"github.com/jinzhu/gorm"
 )
 
+func validateChannelRequest(c *models.Channel) error {
+	if c.GroupName == "" {
+		return errors.New("Group name is not set")
+	}
+
+	if c.Name == "" {
+		return errors.New("Channel name is not set")
+	}
+
+	if c.CreatorId == 0 {
+		return errors.New("Creator id is not set")
+	}
+
+	return nil
+}
+
 func Create(u *url.URL, h http.Header, req *models.Channel) (int, http.Header, interface{}, error) {
+	if err := validateChannelRequest(req); err != nil {
+		return helpers.NewBadRequestResponse(err)
+	}
+
 	if err := req.Create(); err != nil {
-		return helpers.NewBadRequestResponse()
+		return helpers.NewBadRequestResponse(err)
 	}
 
 	return helpers.NewOKResponse(req)
@@ -21,22 +42,29 @@ func List(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface
 	c := models.NewChannel()
 	list, err := c.List(helpers.GetQuery(u))
 	if err != nil {
-		return helpers.NewBadRequestResponse()
+		return helpers.NewBadRequestResponse(err)
 	}
 
 	return helpers.NewOKResponse(list)
 }
 
 func Delete(u *url.URL, h http.Header, req *models.Channel) (int, http.Header, interface{}, error) {
+
 	id, err := helpers.GetURIInt64(u, "id")
 	if err != nil {
-		return helpers.NewBadRequestResponse()
+		return helpers.NewBadRequestResponse(err)
 	}
 
 	req.Id = id
+	if err := req.Fetch(); err != nil {
+		return helpers.NewBadRequestResponse(err)
+	}
 
+	if req.TypeConstant == models.Channel_TYPE_GROUP {
+		return helpers.NewBadRequestResponse(errors.New("You can not delete group channel"))
+	}
 	if err := req.Delete(); err != nil {
-		return helpers.NewBadRequestResponse()
+		return helpers.NewBadRequestResponse(err)
 	}
 	// yes it is deleted but not removed completely from our system
 	return helpers.NewDeletedResponse()
@@ -45,16 +73,35 @@ func Delete(u *url.URL, h http.Header, req *models.Channel) (int, http.Header, i
 func Update(u *url.URL, h http.Header, req *models.Channel) (int, http.Header, interface{}, error) {
 	id, err := helpers.GetURIInt64(u, "id")
 	if err != nil {
-		return helpers.NewBadRequestResponse()
+		return helpers.NewBadRequestResponse(err)
 	}
 	req.Id = id
 
 	if req.Id == 0 {
-		return helpers.NewBadRequestResponse()
+		return helpers.NewBadRequestResponse(err)
+	}
+
+	existingOne := models.NewChannel()
+	existingOne.Id = id
+	if err := existingOne.Fetch(); err != nil {
+		return helpers.NewBadRequestResponse(err)
+	}
+
+	if existingOne.CreatorId != req.CreatorId {
+		return helpers.NewBadRequestResponse(errors.New("CreatorId doesnt match"))
+	}
+
+	// only allow purpose and name to be updated
+	if req.Purpose != "" {
+		existingOne.Purpose = req.Purpose
+	}
+
+	if req.Name != "" {
+		existingOne.Name = req.Name
 	}
 
 	if err := req.Update(); err != nil {
-		return helpers.NewBadRequestResponse()
+		return helpers.NewBadRequestResponse(err)
 	}
 
 	return helpers.NewOKResponse(req)
@@ -63,7 +110,7 @@ func Update(u *url.URL, h http.Header, req *models.Channel) (int, http.Header, i
 func Get(u *url.URL, h http.Header, req *models.Channel) (int, http.Header, interface{}, error) {
 	id, err := helpers.GetURIInt64(u, "id")
 	if err != nil {
-		return helpers.NewBadRequestResponse()
+		return helpers.NewBadRequestResponse(err)
 	}
 
 	req.Id = id
@@ -71,7 +118,7 @@ func Get(u *url.URL, h http.Header, req *models.Channel) (int, http.Header, inte
 		if err == gorm.RecordNotFound {
 			return helpers.NewNotFoundResponse()
 		}
-		return helpers.NewBadRequestResponse()
+		return helpers.NewBadRequestResponse(err)
 	}
 
 	return helpers.NewOKResponse(req)
@@ -80,7 +127,7 @@ func Get(u *url.URL, h http.Header, req *models.Channel) (int, http.Header, inte
 func PostMessage(u *url.URL, h http.Header, req *models.Channel) (int, http.Header, interface{}, error) {
 	// id, err := helpers.GetURIInt64(u, "id")
 	// if err != nil {
-	// 	return helpers.NewBadRequestResponse()
+	// 	return helpers.NewBadRequestResponse(err)
 	// }
 
 	// req.Id = id
@@ -90,7 +137,7 @@ func PostMessage(u *url.URL, h http.Header, req *models.Channel) (int, http.Head
 	// 	if err == gorm.RecordNotFound {
 	// 		return helpers.NewNotFoundResponse()
 	// 	}
-	// 	return helpers.NewBadRequestResponse()
+	// 	return helpers.NewBadRequestResponse(err)
 	// }
 
 	return helpers.NewOKResponse(req)

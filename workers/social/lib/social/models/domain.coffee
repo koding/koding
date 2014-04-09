@@ -146,6 +146,9 @@ module.exports = class JDomain extends jraphical.Module
   filterDomains = (domains, account, group)->
     domainList = []
     domainList = domains.filter (domain)->
+      if domain.group? # we filter domains per group
+        return no  unless domain.group is group
+
       {domain} = domain
       return yes  unless /\.kd\.io$/.test domain
 
