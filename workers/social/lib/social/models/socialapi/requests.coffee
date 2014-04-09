@@ -100,6 +100,13 @@ addReply = (data, callback)->
   url = "#{SOCIAL_API_URL}/message/#{data.messageId}/reply"
   post url, data, callback
 
+fetchPopularTopics = (data, callback)->
+  if not data.groupName
+    return callback { message: "Request is not valid for listing popular topics"}
+
+  url = "#{SOCIAL_API_URL}/popular/topics/weekly"
+  get url, data, callback
+
 post = (url, data, callback)->
   request
     url    : url
@@ -108,7 +115,16 @@ post = (url, data, callback)->
     method : 'POST'
   , wrapCallback callback
 
+get = (url, data, callback)->
+  request
+    url    : url
+    qs     : data
+    json   : true
+    method : 'GET'
+  , wrapCallback callback
+
 module.exports = {
+  fetchPopularTopics
   addReply
   unlikeMessage
   likeMessage
