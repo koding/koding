@@ -1412,23 +1412,21 @@ module.exports = class JAccount extends jraphical.Module
     JGroup.one {slug}, (err, group)=>
       return callback err  if err
       return callback {message: "group not found"}  unless group
-      cb = (err, roles)=>
+
+      kallback = (err, roles)=>
         return callback err  if err
         {flatten} = require 'underscore'
         if "admin" in roles
           perms = Protected.permissionsByModule
-          callback null, flatten(perms), roles
+          callback null, { permissions: (flatten perms), roles }
         else
           group.fetchPermissionSetOrDefault (err, permissionSet)->
             return callback err if err
             perms = (perm.permissions.slice() for perm in permissionSet.permissions \
               when perm.role in roles or 'admin' in roles)
-            callback null, flatten(perms), roles
+            callback null, { permissions: (flatten perms), roles }
 
-      if this instanceof JAccount
-        group.fetchMyRoles client, cb
-      else
-        cb null, ['guest']
+      group.fetchMyRoles client, kallback
 
   oldAddTags = @::addTags
   addTags: secure (client, tags, options, callback)->
