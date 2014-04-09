@@ -31,7 +31,7 @@ class FinderController extends KDController
   getMountVMButton: ->
     @uploaderPlaceholder = new KDButtonView
       title    : "Mount other VMs"
-      domId    : "finder-mountvm"
+      cssClass : "finder-mountvm clean-gray"
       callback : @bound 'showMountVMModal'
 
   getUploader: ->
@@ -78,10 +78,6 @@ class FinderController extends KDController
       cssClass      : "modal-with-text mount-vm"
       title         : "Mount VMs"
       overlay       : yes
-      buttons       :
-        cancel      :
-          title     : "Cancel"
-          callback  : -> modal.destroy()
 
     vmListController = new KDListViewController
       view           : new KDListView
