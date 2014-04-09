@@ -250,8 +250,13 @@ class WebTermAppView extends JView
 
   createNewTab: (options = {}) ->
 
-    {shouldShow} = options
+    {shouldShow, session} = options
     {hostnameAlias: vmName, region} = options.vm
+
+    # before creating new tab check for its existence first and then show that pane if it is already opened
+    pane = @findPane session
+
+    return @tabView.showPane pane  if pane
 
     defaultOptions =
       testPath    : "webterm-tab"
@@ -320,6 +325,16 @@ class WebTermAppView extends JView
         sessions.push "#{ hostnameAlias }:#{ sessionId }"
       storage.setValue 'savedSessions', sessions
       storage.setValue 'activeIndex', activeIndex
+
+  findPane: (session) ->
+    foundPane = null
+    @tabView.panes.forEach (pane) =>
+      { terminalView } = pane.getOptions()
+      return unless terminalView
+      sessionId = terminalView.sessionId ? terminalView.getOption 'session'
+      return foundPane = pane  if session is sessionId
+
+    return foundPane
 
   removeSession: ({vmName, sessionId}) ->
     @updateSessions()
