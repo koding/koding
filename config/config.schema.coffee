@@ -308,6 +308,10 @@ config =
       cleanupCron     : 1
     pidFile       : 1
     etcd            : [{ host : 1, port : 1}]
+    newkites      :
+      useTLS          : 1
+      certFile        : 1
+      keyFile         : 1
     newkontrol      :
       username        : 1
       port            : 1

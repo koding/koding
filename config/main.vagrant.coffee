@@ -301,6 +301,10 @@ module.exports =
     interval      : 60000
   haproxy         :
     webPort       : 3020
+  newkites        :
+    useTLS        : no
+    certFile      : ""
+    keyFile       : ""
   newkontrol      :
     username        : "koding"
     port            : 4000

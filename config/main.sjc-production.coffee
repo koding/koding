@@ -296,12 +296,16 @@ module.exports =
   pidFile       : '/tmp/koding.server.pid'
   haproxy:
     webPort     : 3020
+  newkites      :
+    useTLS          : yes
+    certFile        : "/opt/koding/certs/koding_com_cert.pem"
+    keyFile         : "/opt/koding/certs/koding_com_key.pem"
   newkontrol      :
     username        : "koding"
     port            : 443
     useTLS          : yes
-    certFile        : "/etc/ssl/koding/wildcard.sj.koding.com.crt"
-    keyFile         : "/etc/ssl/koding/wildcard.sj.koding.com.key"
+    certFile        : "/opt/koding/certs/koding_com_cert.pem"
+    keyFile         : "/opt/koding/certs/koding_com_key.pem"
     publicKeyFile   : "/opt/koding/certs/prod_kontrol_rsa_public.pem"
     privateKeyFile  : "/opt/koding/certs/prod_kontrol_rsa_private.pem"
   proxyKite       :
