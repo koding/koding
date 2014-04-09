@@ -297,8 +297,8 @@ module.exports =
     username        : "koding"
     port            : 443
     useTLS          : yes
-    certFile        : "/opt/koding/certs/koding_com_cert.pem"
-    keyFile         : "/opt/koding/certs/koding_com_key.pem"
+    certFile        : "/etc/ssl/koding/wildcard.sj.koding.com.crt"
+    keyFile         : "/etc/ssl/koding/wildcard.sj.koding.com.key"
     publicKeyFile   : "/opt/koding/certs/test_kontrol_rsa_public.pem"
     privateKeyFile  : "/opt/koding/certs/test_kontrol_rsa_private.pem"
   proxyKite       :
