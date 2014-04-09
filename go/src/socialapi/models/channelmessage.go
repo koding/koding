@@ -214,6 +214,8 @@ func (c *ChannelMessage) FetchReplierIds(p *bongo.Pagination) ([]int64, error) {
 		return nil, err
 	}
 
+	// TODO when this function is used for notified users do not include last reply.
+	// probably the method name or the implementation must be changed
 	// adding message owner - TODO (message owner must not be added here. or it must be parameterized)
 	replyIds = append(replyIds, c.Id)
 
@@ -222,6 +224,7 @@ func (c *ChannelMessage) FetchReplierIds(p *bongo.Pagination) ([]int64, error) {
 		return nil, err
 	}
 
+	// regress notifier
 	accountIds := fetchDistinctAccounts(messages)
 
 	return accountIds, nil
