@@ -67,6 +67,11 @@ func (m *MessageReply) Some(data interface{}, q *bongo.Query) error {
 	return bongo.B.Some(m, data, q)
 }
 
+func (m *MessageReply) One(q *bongo.Query) error {
+
+	return bongo.B.One(m, m, q)
+}
+
 func (m *MessageReply) List() ([]ChannelMessage, error) {
 	var replies []int64
 
@@ -105,4 +110,13 @@ func (m *MessageReply) FetchReplyIds(p *bongo.Pagination) ([]int64, error) {
 	}
 
 	return replyIds, nil
+}
+
+func (m *MessageReply) FetchByReplyId() error {
+	q := &bongo.Query{
+		Selector: map[string]interface{}{
+			"reply_id": m.ReplyId,
+		},
+	}
+	return m.One(q)
 }
