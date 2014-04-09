@@ -47,7 +47,7 @@ resurrection.finder.styl
       text-shadow     none
     &+.selected
       selectedNeighbor()
-    &+.jtreeview
+    &+.jtreevie
       .kdlistitemview-finderitem
         &:first-child
           &.selected
@@ -201,6 +201,42 @@ resurrection.finder.styl
         width       187px
 
 .file-container
+
+  .app-header
+    size            100% 37px
+    bg              color transparent
+    line-height     37px
+    color           #555
+    font-size       12px
+    text-indent     10px
+    text-transform  uppercase
+    font-weight     400
+
+
+  .kdbutton.finder-mountvm
+    background    #1b2224
+    border        none
+    display       block
+    color         #60787d
+    font-size     12px
+    line-height   24px
+    font-weight   400
+    text-shadow   none
+    width         96%
+    margin        2%
+    abs           0 0 0px 0
+    z-index       20
+
+    &:hover
+      background  #60787d
+      color       #252e30
+
+    .button-title
+      color       inherit
+      font-size   inherit
+      line-height inherit
+      font-weight inherit
+      text-shadow inherit
 
   .vm
   .file
@@ -432,3 +468,24 @@ resurrection.finder.styl
     abs              11px 11px 0 0
     z-index          10
     r-sprite         "app", "red-close"
+
+
+.kdmodal.mount-vm
+  .kdlistview-vmlist
+    .kdlistitemview
+      padding        8px
+      borderBox()
+
+      &~.kdlistitemview
+        margin       4px 0 0
+
+
+      &:nth-of-type(even)
+        background   #f7f7f7
+        rounded      6px
+
+      label
+        fl()
+
+    .koding-on-off
+      fr()
