@@ -18,6 +18,8 @@ module.exports = class SocialChannel extends Base
           (signature Object, Function)
         fetchParticipants :
           (signature Object, Function)
+        fetchPopularTopics:
+          (signature Object, Function)
 
     schema             :
       id               : Number
@@ -49,6 +51,14 @@ module.exports = class SocialChannel extends Base
 
         {fetchChannelActivity} = require './requests'
         fetchChannelActivity data, callback
+
+  @fetchPopularTopics = secure (client, options = {}, callback)->
+    fetchGroup client, (err, group)->
+      return callback err if err
+      options.groupName = group.slug
+
+      {fetchPopularTopics} = require './requests'
+      fetchPopularTopics options, callback
 
   @fetchChannels = secure (client, options = {}, callback)->
     fetchGroup client, (err, group)->
