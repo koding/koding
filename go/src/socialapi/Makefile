@@ -30,9 +30,11 @@ populartopicdev:
 	@$(GOBINDIR)/rerun socialapi/workers/populartopic -c $(CONFIG) -d
 
 PACKAGES = \
-	socialapi/workers/followingfeed \
+	socialapi/workers/api \
+	socialapi/workers/topicfeed \
 	socialapi/workers/realtime \
-	socialapi/workers/topicfeed
+	socialapi/workers/followingfeed \
+	socialapi/workers/populartopic
 
 default: all
 
