@@ -11,7 +11,7 @@ MINOR=1
 # export MAJOR
 # export MINOR
 
-develop: apidev topicfeeddev realtimedev followingfeeddev
+develop: apidev topicfeeddev realtimedev followingfeeddev populartopicdev
 
 apidev:
 	@echo "$(OK_COLOR)==> Running API Worker $(NO_COLOR)"
