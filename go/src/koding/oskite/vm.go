@@ -307,58 +307,6 @@ func vmReinitialize(vos *virt.VOS) (interface{}, error) {
 	return true, nil
 }
 
-func startAndPrepareVM(vm *virt.VM) error {
-	prepared, err := isVmPrepared(vm)
-	if err != nil {
-		return err
-	}
-
-	var lastError error
-	done := make(chan struct{}, 1)
-	prepareQueue <- &QueueJob{
-		msg: "vm prepare and start " + vm.HostnameAlias,
-		f: func() (string, error) {
-			defer func() { done <- struct{}{} }()
-
-			startTime := time.Now()
-
-			if !prepared {
-				// prepare first
-				for step := range vm.Prepare(false) {
-					lastError = step.Err
-					if lastError != nil {
-						return "", fmt.Errorf("preparing VM %s", lastError)
-					}
-				}
-			}
-
-			// start it
-			if err := vm.Start(); err != nil {
-				log.LogError(err, 0)
-			}
-
-			// wait until network is up
-			if err := vm.WaitForNetwork(time.Second * 5); err != nil {
-				log.Error("%v", err)
-			}
-
-			res := fmt.Sprintf("VM PREPARE and START: %s [%s] - ElapsedTime: %.10f seconds.",
-				vm, vm.HostnameAlias, time.Since(startTime).Seconds())
-
-			return res, nil
-		},
-	}
-
-	log.Info("putting %s into queue. total vms in queue: %d of %d",
-		vm.HostnameAlias, currentQueueCount.Get(), len(prepareQueue))
-
-	// wait until the prepareWorker has picked us and we finished
-	// to return something to the client
-	<-done
-
-	return lastError
-}
-
 type progresser interface {
 	Enabled() bool
 	Call(v interface{})
@@ -429,7 +377,7 @@ func vmPrepareAndStart(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS
 		return nil, &kite.ArgumentError{Expected: "{OnProgress: [function]}"}
 	}
 
-	return progress(vos, "vm.prepareAndStart"+vos.VM.HostnameAlias, params, func() error {
+	return progress(vos, "vm.prepareAndStart "+vos.VM.HostnameAlias, params, func() error {
 		for step := range prepareProgress(vos) {
 			if params.OnProgress != nil {
 				params.OnProgress(step)
@@ -454,7 +402,7 @@ func vmDestroyOld(args *dnode.Partial, c *kite.Channel, vos *virt.VOS) (interfac
 		return nil, &kite.ArgumentError{Expected: "{OnProgress: [function]}"}
 	}
 
-	return progress(vos, "vm.destroy"+vos.VM.HostnameAlias, params, func() error {
+	return progress(vos, "vm.destroy "+vos.VM.HostnameAlias, params, func() error {
 		var lastError error
 		for step := range unprepareProgress(vos, true) {
 			if params.OnProgress != nil {
@@ -482,7 +430,7 @@ func vmStopAndUnprepare(args *dnode.Partial, channel *kite.Channel, vos *virt.VO
 		return nil, &kite.ArgumentError{Expected: "{OnProgress: [function]}"}
 	}
 
-	return progress(vos, "vm.stopAndUnprepare"+vos.VM.HostnameAlias, params, func() error {
+	return progress(vos, "vm.stopAndUnprepare "+vos.VM.HostnameAlias, params, func() error {
 		var lastError error
 		for step := range unprepareProgress(vos, false) {
 			if params.OnProgress != nil {

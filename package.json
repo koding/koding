@@ -12,7 +12,7 @@
   "main": "server/index.js",
   "scripts": {
     "preinstall": "rm -rf node_modules; mkdir node_modules; cd node_modules; ln -sf ../node_modules_koding/* .; cd ..",
-    "install": "patch -p1 < patches/mongodb.patch"
+    "install": "patch -p1 < patches/mongodb.patch; patch -p1 < patches/newrelic.patch"
   },
   "dependencies": {
     "async": "0.2.5",
@@ -69,7 +69,6 @@
     "cors": "~2.1.1",
     "helmet": "~0.1.2",
     "bluebird": "~1.0.8",
-    "portchecker": "~0.1.1",
     "pistachio-compiler": "~0.0.3"
   },
   "devDependencies": {},

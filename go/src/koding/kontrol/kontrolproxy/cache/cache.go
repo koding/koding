@@ -4,11 +4,12 @@ import (
 	"bufio"
 	"bytes"
 	"fmt"
-	"github.com/fatih/set"
 	"net/http"
 	"net/http/httputil"
 	"path/filepath"
 	"strings"
+
+	"gopkg.in/fatih/set.v0"
 )
 
 // Cache interface is used by CacheTransport to store and retrieve the cache content.

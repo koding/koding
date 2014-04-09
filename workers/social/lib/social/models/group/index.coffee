@@ -225,7 +225,7 @@ module.exports = class JGroup extends Module
           (signature String, Function)
         fetchSubscription:
           (signature Function)
-        getPermissionSet:
+        fetchPermissionSetOrDefault:
           (signature Function)
         fetchUserStatus:
           (signature Object, Function)
@@ -1587,7 +1587,7 @@ module.exports = class JGroup extends Module
         subscription.plan = plan
         callback null, subscription
 
-  getPermissionSet : (callback)->
+  fetchPermissionSetOrDefault : (callback)->
     @fetchPermissionSet (err, permissionSet) =>
       callback err, null if err
       if permissionSet
