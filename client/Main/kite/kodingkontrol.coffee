@@ -6,10 +6,11 @@ class KodingKontrol extends (require 'kontrol')
     @kites = {}
 
   getAuthOptions: ->
-    url     : KD.config.newkontrol.url
-    auth    :
-      type  : 'sessionID'
-      key   : Cookies.get 'clientId'
+    autoConnect : no
+    url         : KD.config.newkontrol.url
+    auth        :
+      type      : 'sessionID'
+      key       : Cookies.get 'clientId'
 
   reauthenticate: ->
     # disconnect the old kontrol kite
