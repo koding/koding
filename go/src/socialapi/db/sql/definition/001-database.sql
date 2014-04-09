@@ -1,12 +1,14 @@
-Create role Social;
+CREATE ROLE social;
 
-Create user SocialApplication password 'socialapplication';
+CREATE USER socialapplication PASSWORD 'socialapplication';
 
-Create tablespace Social location '/data/postgresql/tablespace/social';
+GRANT social TO socialapplication WITH ADMIN OPTION;
 
-Create tablespace SocialBig location '/data/postgresql/tablespace/socialbig';
+CREATE TABLESPACE social LOCATION '/data/postgresql/tablespace/social';
 
-Grant create on tablespace SocialBig to Social;
+CREATE TABLESPACE socialbig LOCATION '/data/postgresql/tablespace/socialbig';
 
-Create database Social  owner Social encoding 'UTF8' tablespace Social;
+GRANT create ON TABLESPACE socialbig to social;
+
+CREATE DATABASE social  OWNER social ENCODING 'UTF8' TABLESPACE social;
 
