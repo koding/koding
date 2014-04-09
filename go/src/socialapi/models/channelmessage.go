@@ -204,7 +204,7 @@ func (c *ChannelMessage) BuildMessage(query *Query) (*ChannelMessageContainer, e
 	return cmc, nil
 }
 
-func (c *ChannelMessage) FetchReplierIds(p *bongo.Pagination) ([]int64, error) {
+func (c *ChannelMessage) FetchReplierIds(p *bongo.Pagination, includeMessageOwner bool) ([]int64, error) {
 	if c.Id == 0 {
 		return nil, errors.New("channel message id is not set")
 	}
@@ -217,7 +217,9 @@ func (c *ChannelMessage) FetchReplierIds(p *bongo.Pagination) ([]int64, error) {
 	// TODO when this function is used for notified users do not include last reply.
 	// probably the method name or the implementation must be changed
 	// adding message owner - TODO (message owner must not be added here. or it must be parameterized)
-	replyIds = append(replyIds, c.Id)
+	if includeMessageOwner {
+		replyIds = append(replyIds, c.Id)
+	}
 
 	messages, err := c.FetchByIds(replyIds)
 	if err != nil {

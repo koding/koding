@@ -72,7 +72,7 @@ func (n *ReplyNotification) GetNotifiedUsers() ([]int64, error) {
 	cm := NewChannelMessage()
 	cm.Id = n.TargetId
 	p := &bongo.Pagination{}
-	return cm.FetchReplierIds(p)
+	replierIds, err := cm.FetchReplierIds(p, true)
 }
 
 func (n *ReplyNotification) GetType() string {
