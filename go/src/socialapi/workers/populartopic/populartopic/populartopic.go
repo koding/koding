@@ -167,7 +167,6 @@ func mapMessage(data []byte) (*models.ChannelMessageList, error) {
 }
 
 func (f *PopularTopicsController) isEligible(c *models.Channel) bool {
-	return true
 	if c.TypeConstant != models.Channel_TYPE_TOPIC {
 		return false
 	}
