@@ -59,8 +59,8 @@ func New(kodingConf *kodingconfig.Config, name, version string) (*KodingKite, er
 
 	kk.Log.SetHandler(logging.NewMultiHandler(logging.StderrHandler, syslog))
 
-	if kodingConf.NewKontrol.UseTLS {
-		kk.Server.UseTLSFile(kodingConf.NewKontrol.CertFile, kodingConf.NewKontrol.KeyFile)
+	if kodingConf.NewKites.UseTLS {
+		kk.Server.UseTLSFile(kodingConf.NewKites.CertFile, kodingConf.NewKites.KeyFile)
 		kk.scheme = "wss"
 		kk.registerHostname, err = os.Hostname()
 	} else {

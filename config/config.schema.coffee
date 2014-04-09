@@ -313,7 +313,6 @@ config =
       certFile        : 1
       keyFile         : 1
     newkontrol      :
-      username        : 1
       port            : 1
       useTLS          : 1
       certFile        : 1

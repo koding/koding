@@ -85,8 +85,12 @@ type Config struct {
 		Port  int
 		Queue string
 	}
+	NewKites struct {
+		UseTLS   bool
+		CertFile string
+		KeyFile  string
+	}
 	NewKontrol struct {
-		Username       string
 		Port           int
 		UseTLS         bool
 		CertFile       string

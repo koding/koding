@@ -306,7 +306,6 @@ module.exports =
     certFile      : ""
     keyFile       : ""
   newkontrol      :
-    username        : "koding"
     port            : 4000
     useTLS          : no
     certFile        : ""

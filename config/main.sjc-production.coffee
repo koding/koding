@@ -298,10 +298,9 @@ module.exports =
     webPort     : 3020
   newkites      :
     useTLS          : yes
-    certFile        : "/opt/koding/certs/koding_com_cert.pem"
-    keyFile         : "/opt/koding/certs/koding_com_key.pem"
+    certFile        : "/etc/ssl/koding/wildcard.sj.koding.com.crt"
+    keyFile         : "/etc/ssl/koding/wildcard.sj.koding.com.key"
   newkontrol      :
-    username        : "koding"
     port            : 443
     useTLS          : yes
     certFile        : "/opt/koding/certs/koding_com_cert.pem"
