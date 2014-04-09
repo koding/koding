@@ -56,22 +56,25 @@ func (n *Notification) Create() error {
 	return bongo.B.Update(n)
 }
 
-func (n *Notification) List(q *Query) ([]NotificationContainer, error) {
-	q.Limit = 8
+func (n *Notification) List(q *Query) (*NotificationResponse, error) {
 	limit := math.Min(float64(q.Limit), 8.0)
 	q.Limit = int(limit)
 
+	response := &NotificationResponse{}
 	result, err := n.getDecoratedList(q)
 	if err != nil {
-		return nil, err
+		return response, err
 	}
 
 	result, err = populateActors(result)
 	if err != nil {
-		return nil, err
+		return response, err
 	}
 
-	return result, nil
+	response.Notifications = result
+	response.UnreadCount = 0
+
+	return response, nil
 }
 
 func (n *Notification) Some(data interface{}, q *bongo.Query) error {
