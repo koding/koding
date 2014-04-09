@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/jinzhu/gorm"
 	"github.com/koding/bongo"
+	"math"
 	"time"
 )
 
@@ -57,6 +58,8 @@ func (n *Notification) Create() error {
 
 func (n *Notification) List(q *Query) ([]NotificationContainer, error) {
 	q.Limit = 8
+	limit := math.Min(float64(q.Limit), 8.0)
+	q.Limit = int(limit)
 
 	result, err := n.getDecoratedList(q)
 	if err != nil {
