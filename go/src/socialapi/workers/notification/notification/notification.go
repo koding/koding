@@ -36,7 +36,7 @@ func NewNotificationWorkerController(rmq *rabbitmq.RabbitMQ, log logging.Logger)
 	}
 
 	routes := map[string]Action{
-		"message_reply_created": (*NotificationWorkerController).CreateReplyNotification,
+		"channel_message_created": (*NotificationWorkerController).CreateReplyNotification,
 		"interaction_created":   (*NotificationWorkerController).CreateInteractionNotification,
 	}
 
@@ -67,6 +67,16 @@ func (n *NotificationWorkerController) CreateReplyNotification(data []byte) erro
 	if err := models.CreateNotification(rn); err != nil {
 		return err
 	}
+
+	rn := models.NewReplyNotification()
+	rn.TargetId = mr.MessageId
+	// hack it is
+	if cm.InitialChannelId == 0 {
+		if err := models.CreateNotification(rn); err != nil {
+			return err
+		}
+	}
+
 
 	// TODO send notification message to user
 	return nil
