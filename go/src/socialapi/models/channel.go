@@ -84,8 +84,8 @@ func (c *Channel) GetId() int64 {
 	return c.Id
 }
 
-func (c *Channel) TableName() string {
-	return "channel"
+func (c Channel) TableName() string {
+	return "api.channel"
 }
 
 func (c *Channel) Fetch() error {
