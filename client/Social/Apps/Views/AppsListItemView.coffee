@@ -29,15 +29,10 @@ class AppsListItemView extends KDListItemView
 
     @kiteButton     = new KDButtonView
       cssClass      : 'run'
-      title         : 'open'
+      title         : 'Details'
       callback      : =>
-        log "unhandled"
-        # payment     = KD.singleton "paymentController"
-        # productForm = new KiteProductForm null, @getData()
-        # workflow    = payment.createUpgradeWorkflow { productForm }
-        # modal       = new KDModalView view: workflow
-        # workflow.on "SubscriptionTransitionCompleted", modal.bound "destroy"
-        # workflow.on "Failed", (err) -> KD.showError err
+        {name, authorNick} = @getData().manifest
+        KD.getSingleton("router").handleRoute "/Kites/#{authorNick}/#{name}"
 
   # Override KDView::render since I'm updating all the manifest at once ~ GG
   render:-> @template.update()
