@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"koding/db/mongodb/modelhelper"
 	"koding/oskite/ldapserver"
 	"koding/tools/dnode"
 	"koding/tools/kite"
@@ -57,30 +58,52 @@ func vmUsageOld(args *dnode.Partial, c *kite.Channel, vos *virt.VOS) (interface{
 }
 
 func spawnFuncOld(args *dnode.Partial, c *kite.Channel, vos *virt.VOS) (interface{}, error) {
-	var command []string
+	var params struct {
+		Command []string
+	}
 
 	if args == nil {
 		return nil, &kite.ArgumentError{Expected: "empty argument passed"}
 	}
 
-	if args.Unmarshal(&command) != nil {
-		return nil, &kite.ArgumentError{Expected: "[array of strings]"}
+	if args.Unmarshal(&params) != nil || len(params.Command) == 0 {
+		return nil, &kite.ArgumentError{Expected: "{command : [array of strings]}"}
 	}
 
-	return spawnFunc(command, vos)
+	return spawnFunc(params.Command, vos)
 }
 
 func execFuncOld(args *dnode.Partial, c *kite.Channel, vos *virt.VOS) (interface{}, error) {
-	var line string
+	var params struct {
+		Command  string
+		Password string
+		Async    bool
+	}
+
 	if args == nil {
 		return nil, &kite.ArgumentError{Expected: "empty argument passed"}
 	}
 
-	if args.Unmarshal(&line) != nil {
-		return nil, &kite.ArgumentError{Expected: "[string]"}
+	if args.Unmarshal(&params) != nil || params.Command == "" {
+		return nil, &kite.ArgumentError{Expected: "{Command : [string]}"}
 	}
 
-	return execFunc(line, vos)
+	asRoot := false
+	if params.Password != "" {
+		_, err := modelhelper.CheckAndGetUser(c.Username, params.Password)
+		if err != nil {
+			return nil, errors.New("Permissiond denied. Wrong password")
+		}
+
+		asRoot = true
+	}
+
+	if params.Async {
+		go execFunc(asRoot, params.Command, vos)
+		return true, nil
+	}
+
+	return execFunc(asRoot, params.Command, vos)
 }
 
 ////////////////////
@@ -112,8 +135,17 @@ func newOutput(cmd *exec.Cmd) (interface{}, error) {
 	}, nil
 }
 
-func execFunc(line string, vos *virt.VOS) (interface{}, error) {
-	return newOutput(vos.VM.AttachCommand(vos.User.Uid, "", "/bin/bash", "-c", line))
+func execFunc(asRoot bool, line string, vos *virt.VOS) (interface{}, error) {
+	if !asRoot {
+		return newOutput(vos.VM.AttachCommand(vos.User.Uid, "", "/bin/bash", "-c", line))
+	}
+
+	args := []string{"--name", vos.VM.String()}
+	args = append(args, "--", "/bin/bash", "-c", line)
+	cmd := exec.Command("/usr/bin/lxc-attach", args...)
+	cmd.Env = []string{"TERM=xterm-256color"}
+
+	return newOutput(cmd)
 }
 
 func spawnFunc(command []string, vos *virt.VOS) (interface{}, error) {
