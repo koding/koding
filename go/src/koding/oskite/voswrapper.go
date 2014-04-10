@@ -211,14 +211,14 @@ func spawnFuncNew(r *kitelib.Request, vos *virt.VOS) (interface{}, error) {
 
 func execFuncNew(r *kitelib.Request, vos *virt.VOS) (interface{}, error) {
 	var params struct {
-		Line string
+		Command string
 	}
 
-	if r.Args.One().Unmarshal(&params) != nil || params.Line == "" {
-		return nil, &kite.ArgumentError{Expected: "{line : [string]}"}
+	if r.Args.One().Unmarshal(&params) != nil || params.Command == "" {
+		return nil, &kite.ArgumentError{Expected: "{Command : [string]}"}
 	}
 
-	return execFunc(params.Line, vos)
+	return execFunc(params.Command, vos)
 }
 
 type progressParamsNew struct {

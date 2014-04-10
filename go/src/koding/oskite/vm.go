@@ -70,18 +70,18 @@ func spawnFuncOld(args *dnode.Partial, c *kite.Channel, vos *virt.VOS) (interfac
 
 func execFuncOld(args *dnode.Partial, c *kite.Channel, vos *virt.VOS) (interface{}, error) {
 	var params struct {
-		Line string
+		Command string
 	}
 
 	if args == nil {
 		return nil, &kite.ArgumentError{Expected: "empty argument passed"}
 	}
 
-	if args.Unmarshal(&params) != nil || params.Line == "" {
-		return nil, &kite.ArgumentError{Expected: "{line : [string]}"}
+	if args.Unmarshal(&params) != nil || params.Command == "" {
+		return nil, &kite.ArgumentError{Expected: "{Command : [string]}"}
 	}
 
-	return execFunc(params.Line, vos)
+	return execFunc(params.Command, vos)
 }
 
 ////////////////////
