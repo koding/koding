@@ -38,3 +38,13 @@ ALTER TABLE "api"."interaction" ADD PRIMARY KEY ("id") NOT DEFERRABLE INITIALLY 
 --  Primary key structure for table message_reply
 -- ----------------------------
 ALTER TABLE "api"."message_reply" ADD PRIMARY KEY ("id") NOT DEFERRABLE INITIALLY IMMEDIATE;
+
+-- ----------------------------
+--  Primary key structure for table notification
+-- ----------------------------
+ALTER TABLE "api"."notification" ADD PRIMARY KEY ("id") NOT DEFERRABLE INITIALLY IMMEDIATE;
+
+-- ----------------------------
+--  Primary key structure for table notification_content
+-- ----------------------------
+ALTER TABLE "api"."notification_content" ADD PRIMARY KEY ("id") NOT DEFERRABLE INITIALLY IMMEDIATE;

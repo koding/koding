@@ -102,4 +102,29 @@ CREATE TABLE "api"."message_reply" (
 WITH (OIDS=FALSE);
 ALTER TABLE "api"."message_reply" OWNER TO "socialapplication";
 
+-- ----------------------------
+--  Table structure for notification
+-- ----------------------------
+DROP TABLE IF EXISTS "api"."notification";
+CREATE TABLE "api"."notification" (
+    "id" int8 NOT NULL DEFAULT nextval('notification_id_seq'::regclass),
+    "account_id" int8 NOT NULL,
+    "notification_content_id" int8 NOT NULL,
+    "glanced" bool NOT NULL,
+    "updated_at" timestamp(6) WITH TIME ZONE NOT NULL
+)
+WITH (OIDS=FALSE);
+ALTER TABLE "api"."notification" OWNER TO "postgres";
 
+-- ----------------------------
+--  Table structure for notification_content
+-- ----------------------------
+DROP TABLE IF EXISTS "api"."notification_content";
+CREATE TABLE "api"."notification_content" (
+    "id" int8 NOT NULL DEFAULT nextval('notification_content_id_seq'::regclass),
+    "target_id" int8 NOT NULL,
+    "type" text NOT NULL COLLATE "default",
+    "created_at" timestamp(6) WITH TIME ZONE
+)
+WITH (OIDS=FALSE);
+ALTER TABLE "api"."notification_content" OWNER TO "postgres";
