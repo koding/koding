@@ -50,7 +50,7 @@ module.exports = class OAuth extends bongo.Base
         @saveTokensAndReturnUrl client, "twitter", callback
 
   @saveTokensAndReturnUrl = (client, provider, callback)->
-    @getTokens provider, (err, requestToken, requestTokenSecret, url)=>
+    @getTokens provider, (err, {requestToken, requestTokenSecret, url})=>
       return callback err  if err
 
       credentials = {requestToken, requestTokenSecret}
@@ -74,7 +74,9 @@ module.exports = class OAuth extends bongo.Base
 
     client.getOAuthRequestToken (err, token, tokenSecret, results)->
       return callback err  if err
-      callback null, token, tokenSecret, secret_url+token
+
+      tokenizedUrl = secret_url+token
+      callback null, {token, tokenSecret, tokenizedUrl}
 
   @saveTokens = (client, provider, credentials, callback)->
     JSession = require './session'
