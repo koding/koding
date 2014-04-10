@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"koding/db/models"
+	"koding/db/mongodb/modelhelper"
 	"koding/tools/dnode"
 	"koding/tools/kite"
 	"koding/virt"
@@ -26,6 +27,13 @@ const (
 	ErrKiteNoPlan       = "KITE_HAS_NO_PLAN"
 	ErrNoSubscription   = "NO_SUBSCRIPTION"
 )
+
+type KiteStore struct {
+	Id          bson.ObjectId `bson:"_id"`
+	Name        string        `bson:"name"`
+	Description string        `bson:"description"`
+	KiteCode    string        `bson:"kiteCode"`
+}
 
 type Plan struct {
 	CPU         int `json:"cpu"`
@@ -74,14 +82,45 @@ func NewPlanResponse() *PlanResponse {
 	}
 }
 
-func NewUsage(vos *virt.VOS) (*Plan, error) {
-	vms := make([]*models.VM, 0)
-
-	query := func(c *mgo.Collection) error {
-		return c.Find(bson.M{"webHome": vos.VM.WebHome}).Iter().All(&vms)
+func vmUsage(args *dnode.Partial, vos *virt.VOS, username string) (interface{}, error) {
+	var params struct {
+		GroupName string
 	}
 
-	err := mongodbConn.Run("jVMs", query)
+	if args == nil {
+		return nil, &kite.ArgumentError{Expected: "empy argument passed"}
+	}
+
+	if args.Unmarshal(&params) != nil || params.GroupName == "" {
+		return nil, &kite.ArgumentError{Expected: "{ groupName: [string] }"}
+	}
+
+	usage, err := NewUsage(vos, params.GroupName)
+	if err != nil {
+		log.Info("vm.usage [%s] err: %v", vos.VM.HostnameAlias, err)
+		return nil, errors.New("vm.usage couldn't be retrieved. please consult to support.")
+	}
+
+	return usage.checkLimits(username, params.GroupName)
+}
+
+func NewUsage(vos *virt.VOS, groupname string) (*Plan, error) {
+	group, err := modelhelper.GetGroup(groupname)
+	if err != nil {
+		return nil, fmt.Errorf("modelhelper.GetGroup: %s", err)
+	}
+
+	vms := make([]*models.VM, 0)
+
+	// db.jVMs.find({"webHome":"foo", "groups": {$in:[{"id":ObjectId("5196fcb2bc9bdb0000000027")}]}})
+	query := func(c *mgo.Collection) error {
+		return c.Find(bson.M{
+			"webHome": vos.VM.WebHome,
+			"groups":  bson.M{"$in": []bson.M{bson.M{"id": group.Id}}},
+		}).Iter().All(&vms)
+	}
+
+	err = mongodbConn.Run("jVMs", query)
 	if err != nil {
 		return nil, fmt.Errorf("vm fetching err for user %s. err: %s", vos.VM.WebHome, err)
 	}
@@ -99,13 +138,14 @@ func NewUsage(vos *virt.VOS) (*Plan, error) {
 		usage.Disk += vm.DiskSizeInMB
 	}
 
+	fmt.Printf("usage %+v\n", usage)
 	return usage, nil
 }
 
 func (p *Plan) checkLimits(username, groupname string) (*PlanResponse, error) {
 	sub, err := getSubscription(username, groupname)
 	if err != nil {
-		log.Critical("oskite checkLimits err: %v", err)
+		log.Warning("oskite checkLimits err: %v", err)
 		return nil, errors.New("couldn't fetch subscription")
 	}
 
@@ -128,35 +168,6 @@ func (p *Plan) checkLimits(username, groupname string) (*PlanResponse, error) {
 	}
 
 	return resp, nil
-}
-
-func vmUsage(args *dnode.Partial, vos *virt.VOS, username string) (interface{}, error) {
-	var params struct {
-		GroupName string
-	}
-
-	if args == nil {
-		return nil, &kite.ArgumentError{Expected: "empy argument passed"}
-	}
-
-	if args.Unmarshal(&params) != nil || params.GroupName == "" {
-		return nil, &kite.ArgumentError{Expected: "{ groupName: [string] }"}
-	}
-
-	usage, err := NewUsage(vos)
-	if err != nil {
-		log.Info("vm.usage [%s] err: %v", vos.VM.HostnameAlias, err)
-		return nil, errors.New("vm.usage couldn't be retrieved. please consult to support.")
-	}
-
-	return usage.checkLimits(username, params.GroupName)
-}
-
-type KiteStore struct {
-	Id          bson.ObjectId `bson:"_id"`
-	Name        string        `bson:"name"`
-	Description string        `bson:"description"`
-	KiteCode    string        `bson:"kiteCode"`
 }
 
 // getKiteCode returns the API token to be used with Koding's subscription
