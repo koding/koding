@@ -13,12 +13,17 @@ class KiteDetailsView extends JView
   showPaymentModal: (plan) ->
     placeholder = new KDView cssClass: "placeholder"
     payment     = KD.singleton "paymentController"
+    workflow    = payment.createUpgradeWorkflow productForm: placeholder
 
-    workflow = payment.createUpgradeWorkflow productForm: placeholder
     workflow.on "SubscriptionTransitionCompleted", -> log ">>>>"
     workflow.on "Failed", (err) -> KD.showError err
 
-    new KDModalView view: workflow
+    new KDModalView
+      view     : workflow
+      width    : 1000
+      overlay  : yes
+      cssClass : "payment-modal"
+
     KD.utils.defer placeholder.lazyBound "emit", "PlanSelected", plan
 
   pistachio: ->
