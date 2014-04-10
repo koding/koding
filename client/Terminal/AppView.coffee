@@ -335,7 +335,12 @@ class WebTermAppView extends JView
 
   removeSession: ({vmName, sessionId}) ->
     @updateSessions()
-    {vmController:{terminalKites}} = KD.singletons
+    {vmController, kontrol} = KD.singletons
+    terminalKites =
+      if KD.useNewKites
+      then kontrol.kites.terminal
+      else vmController.terminalKites
+
     terminalKites[vmName].webtermKillSession
       session: sessionId
     .then (response) ->

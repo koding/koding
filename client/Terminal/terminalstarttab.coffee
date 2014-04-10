@@ -34,12 +34,12 @@ class TerminalStartTab extends JView
 
       @listVMs vms
 
-      {vmController} = KD.singletons
-      {terminalKites} = vmController
-      if Object.keys(terminalKites).length
-        @listVMSessions vms
-      else
-        vmController.on "KitesRegistered", => @listVMSessions vms
+      terminalKites =
+        if KD.useNewKites
+        then kontrol.kites.terminal
+        else vmController.terminalKites
+
+      vmController.kitesReady().then => @listVMSessions vms
 
       osKites =
         if KD.useNewKites
@@ -67,14 +67,18 @@ class TerminalStartTab extends JView
 
 
   listVMSessions: (vms) ->
-
+    {vmController, kontrol} = KD.singletons
     vmList = {}
     vms.forEach (vm) -> vmList[vm.hostnameAlias] = vm
 
-    { vmController : { terminalKites : kites } } = KD.singletons
+    terminalKites =
+      if KD.useNewKites
+      then kontrol.kites.terminal
+      else vmController.terminalKites
+
     delegate = @getDelegate()
 
-    for own alias, kite of kites
+    for own alias, kite of terminalKites
       vm = vmList[alias]
       @vmWrapper[alias].addSubView new SessionStackView {kite, alias, vm, delegate}
 
