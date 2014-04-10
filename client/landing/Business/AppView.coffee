@@ -3,17 +3,21 @@ class BusinessView extends KDView
   constructor:->
     super
 
-    @videoButton = new KDButtonView
-      title       : "Watch video"
-      style       : "solid thin medium light-gray"
+    @pricingButton = new KDButtonView
+      title       : "See Pricing"
+      style       : "solid thin medium thin-white"
 
     @signUpButton = new KDButtonView
-      title       : "Signup"
-      style       : "solid medium light-gray"
+      title       : "Sign Up Now"
+      style       : "solid medium green"
+      callback    : ->
+        KD.singleton("router").handleRoute "/Register"
 
     @LoginButton = new KDButtonView
-      title       : "Login"
-      style       : "solid small light-gray"
+      title       : "Sign in"
+      style       : "solid medium thin-white"
+      callback    : ->
+        KD.singleton("router").handleRoute "/Login"
 
   viewAppended: JView::viewAppended
 
@@ -22,37 +26,37 @@ class BusinessView extends KDView
       <section class="introduction">
         <div class="inner-container clearfix">
           <nav>
-            <a href="#">Business</a>
-            <a href="#">Education</a>
-            <a href="#">Pricing</a>
-            <a href="#">About</a>
-            <a href="#">Contact</a>
+            <a href="#">EDUCATION</a>
+            <a href="#">BUSINESS</a>
+            <a href="#">ABOUT</a>
+            <a href="#">PRICING</a>
+            <a href="#">BLOG</a>
             {{> @LoginButton}}
           </nav>
           <article>
-            <h2>Social development environment</h2>
+            <h2>Koding for Busy People</h2>
             <p>
               Aliquam eget turpis venenatis, vestibulum mauris ut, viverra nisl. Curabitur in ultrices arcu.<br> Nulla varius mi nec massa aliquam, sit amet gravida libero tempor.
             </p>
             {{> @signUpButton}}
-            <span class="seperator">&</span>
-            {{> @videoButton}}
+            {{> @pricingButton}}
           </article>
         </div>
       </section>
 
       <section class="screenshots">
-        <div></div>
+        <div class="inner-container clearfix">
+          <img src="/a/images/biz-screenshots.png">
+        </div>
       </section>
 
       <section class="features">
         <div class="inner-container clearfix">
-          <h3 class="general-title">How does this work</h3>
+          <h3 class="general-title">Features from the future, for biz people</h3>
+          <h4 class="general-subtitle">Educational pricing for your school, you are the future!</h4>
           <article class="feature">
-            <h5>
-              <i class="cloud"></i>
-              Private groups & secure access to code
-            </h5>
+            <i class="cloud icon"></i>
+            <h5>Private groups & secure access to code</h5>
             <p>
               Aliquam eget turpis venenatis, vestibulum mauris ut,
               viverra nisl. Curabitur in ultrices arcu.
@@ -60,10 +64,8 @@ class BusinessView extends KDView
             </p>
           </article>
           <article class="feature">
-            <h5>
-              <i class="security"></i>
-              Private groups & secure access to code
-            </h5>
+            <i class="cloud icon"></i>
+            <h5>Private groups & secure access to code</h5>
             <p>
               Aliquam eget turpis venenatis, vestibulum mauris ut,
               viverra nisl. Curabitur in ultrices arcu.
@@ -71,10 +73,8 @@ class BusinessView extends KDView
             </p>
           </article>
           <article class="feature">
-            <h5>
-              <i class="security"></i>
-              Private groups & secure access to code
-            </h5>
+            <i class="cloud icon"></i>
+            <h5>Private groups & secure access to code</h5>
             <p>
               Aliquam eget turpis venenatis, vestibulum mauris ut,
               viverra nisl. Curabitur in ultrices arcu.
@@ -82,10 +82,8 @@ class BusinessView extends KDView
             </p>
           </article>
           <article class="feature">
-            <h5>
-              <i class="content"></i>
-              Private groups & secure access to code
-            </h5>
+            <i class="cloud icon"></i>
+            <h5>Private groups & secure access to code</h5>
             <p>
               Aliquam eget turpis venenatis, vestibulum mauris ut,
               viverra nisl. Curabitur in ultrices arcu.
@@ -93,10 +91,8 @@ class BusinessView extends KDView
             </p>
           </article>
           <article class="feature">
-            <h5>
-              <i class="remote"></i>
-              Private groups & secure access to code
-            </h5>
+            <i class="cloud icon"></i>
+            <h5>Private groups & secure access to code</h5>
             <p>
               Aliquam eget turpis venenatis, vestibulum mauris ut,
               viverra nisl. Curabitur in ultrices arcu.
@@ -104,10 +100,8 @@ class BusinessView extends KDView
             </p>
           </article>
           <article class="feature">
-            <h5>
-              <i class="cloud"></i>
-              Private groups & secure access to code
-            </h5>
+            <i class="cloud icon"></i>
+            <h5>Private groups & secure access to code</h5>
             <p>
               Aliquam eget turpis venenatis, vestibulum mauris ut,
               viverra nisl. Curabitur in ultrices arcu.
@@ -118,35 +112,80 @@ class BusinessView extends KDView
       </section>
 
       <section class="testimonials">
-        <div class="inner-container">
+        <div class="inner-container clearfix">
           <h3 class="general-title">What did they say</h3>
+          <h4 class="general-subtitle">Pople love Koding for a reason. Guess what that reason is?v</h4>
+
           <article>
-            <i class="avatar"></i>
-            <p>Aliquam eget turpis venenatis, vestibulum mauris ut, viverra nisl. Curabitur in ultrices arcu. Nulla varius mi nec massa aliquam, sit amet gravida libero tempor.</p>
+            <p>It just f***in works! And therefore I love it like I ove my mom.</p>
+            <span class="name">JASON FRIEDMANN</span>
           </article>
-        </div>
-        <div class="inner-container">
+
           <article>
-            <i class="avatar"></i>
-            <p>Aliquam eget turpis venenatis, vestibulum mauris ut, viverra nisl. Curabitur in ultrices arcu. Nulla varius mi nec massa aliquam, sit amet gravida libero tempor.</p>
+            <p>It just f***in works! And therefore I love it like I ove my mom.</p>
+            <span class="name">JASON FRIEDMANN</span>
+          </article>
+
+          <article>
+            <p>It just f***in works! And therefore I love it like I ove my mom.</p>
+            <span class="name">JASON FRIEDMANN</span>
+          </article>
+
+          <article>
+            <p>It just f***in works! And therefore I love it like I ove my mom.</p>
+            <span class="name">JASON FRIEDMANN</span>
           </article>
         </div>
       </section>
 
       <footer>
-        <div class="inner-container">
+        <div class="inner-container clearfix">
+          <article class="footer-block about-koding">
+            <h5>ABOUT KODING</h5>
+            <p>Koding is a developer community and cloud development environment where developers come together and code in the browser – with a real development server to run their code. Developers can work, collaborate, write and run apps without jumping</p>
+            <a href="#">More about Koding</a>
+          </article>
+
+          <nav class="footer-block">
+            <h5>COMPANY</h5>
+            <a href="#">ABOUT KODING</a>
+            <a href="#">KODING UNIVERSITY</a>
+            <a href="#">CONTACT US</a>
+            <a href="#">TERMS AND CONDITIONS</a>
+            <a href="#">PRIVACY POLICY</a>
+            <a href="#">SHOP</a>
+          </nav>
+
+          <nav class="footer-block">
+            <h5>COMMUNITY</h5>
+            <a href="#">KODING BLOG</a>
+            <a href="#">MEETUPS</a>
+            <a href="#">NEWSLETTER</a>
+            <a href="#">TESTIMONALS</a>
+            <a href="#">BRAND GUIDELINES</a>
+          </nav>
+
+          <nav class="footer-block blog">
+            <h5>KODING BLOG</h5>
+            <a href="#">Koding introduces 250TB week</a>
+            <a href="#">Just opensourced KDFramework</a>
+            <a href="#">Hired Jony Ive for office management</a>
+            <a href="#">Cried all day, funny stuff</a>
+            <a href="#">Last of us</a>
+          </nav>
+
+          <cite></cite>
+
           <address>
             2014 © Koding, Inc. 358 Brannan Street, San Francisco, CA, 94107
           </address>
-          <nav>
-            <a href="#">ACTIVITY</a>
-            <a href="#">ABOUT</a>
-            <a href="#">CONTACT</a>
-            <a href="#">UNIVERSITY</a>
-            <a href="#">JOBS</a>
-            <a href="#">BLOG</a>
-            <a href="#">STATUS</a>
-          </nav>
+          <span class="we-love-you">Lovingly made in Istanbul & San Francisco <3</span>
+
+          <div class="social-links">
+            <a href="#">TWITTER</a>
+            <a href="#">FACEBOOK</a>
+            <a href="#">INSTAGRAM</a>
+          </div>
         </div>
       </footer>
     """

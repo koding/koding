@@ -19,11 +19,11 @@ body.business
     hidden()
 
   #main-header
-    max-width             1280px
+    max-width             1290px
     shadow                none
     margin                0
     padding               0 45px
-    abs                   45px 0 0 50%
+    abs                   48px 0 0 50%
     vendor                transform, translateX(-50%)
     z-index               15
     borderBox()
@@ -35,21 +35,23 @@ body.business
       font-size           24px
       color               #444
       font-weight         700
-      line-height         45px
+      line-height         16px
+      color               #fff
       noTextDeco()
       visible()
       fl()
 
     #koding-logo
-      margin              0 12px 0 0
-      size                45px 45px
-      bg                  color, logoBg
+      margin              0 23px 0 0
+      size                auto auto
+      bg                  color, transparent
       position            static
+      letter-spacing      .01em
       fl()
 
       cite
         r-sprite          home 'logo'
-        margin            14px
+        margin            0
         display           block
 
   .content-page.business
@@ -57,182 +59,313 @@ body.business
     max-width             100%
 
   section .inner-container
-    max-width             1280px
+    max-width             1290px
     padding               0px 45px
     margin                0 auto
     display               block
     position              relative
     borderBox()
 
+    h3.general-title
+      font-size           32px
+      text-align          center
+      display             block
+      color               #2fbd72
+      font-weight         700
+      letter-spacing      .02em
+
+    h4.general-subtitle
+      font-size           22px
+      text-align          center
+      display             block
+      color               #747474
+      font-weight         400
+      margin              12px 0 84px
+
+    p
+      font-family         openSansFamily
+
+
   //Introduction section
 
   section.introduction
-    padding               90px 0 120px
+    padding               90px 0 382px
     text-align            center
+    bg                    color, #505050
+    bg                    image, url("/a/images/biz-pictobg.png")
+    position              relative
+
+    &:after
+      content             ""
+      display             block
+      size                100vw, 3px
+      abs                 0 0 0px 0
+      bg                  image, url("/a/images/wave-bg.png")
+      bg                  repeat, repeat-x
 
     nav
-      abs                 -40px 45px 0 0
+      abs                 -54px 45px 0 0
       line-height         44px
       z-index             20
       font-size           16px
       font-weight         400
+      color               #fff
+      text-transform      uppercase
 
       .kdbutton
-        margin            10px 0 0 12px
-        padding           0 12px
+        margin            4px 0 0 22px
+        padding           0 5px
+        border            2px solid #b7b7b7
+        rounded           4px
+        bg                color, transparent
+        font-size         inherit
+        color             inherit
+        font-weight       inherit
+        text-transform    inherit
+        height            35px
+        line-height       31px
+
+        .button-title
+          font-size       inherit
+          color           inherit
+          font-weight     inherit
+          text-transform  inherit
+          line-height     inherit
+          opacity         .9
 
       a
         font-size         inherit
         color             inherit
         font-weight       inherit
-        margin-left       16px
+        margin-left       11px
         display           inline-block
         noTextDeco()
 
     article
       font-size           22px
-      line-height         34px
+      line-height         32px
       font-weight         400
-      padding             50px 15px 0
+      padding             58px 0 0
       width               100%
       borderBox()
       fl()
 
       h2
         font-weight       700
-        font-size         36px
-        margin            0 0 34px
+        font-size         34px
+        margin            0 0 17px
+        color             #00d36b
+        letter-spacing    .02em
 
       p
-        margin            0 0 64px
+        margin            0 0 50px
+        color             #fff
 
-      span.seperator
-        line-height       44px
-        display           inline-block
-        margin            0 24px
+      .kdbutton
+        text-transform    uppercase
+        width             190px
+        rounded           4px
+
+        &.green
+          bg              color, #00d36b
+          margin-right    9px
+
+          .button-title
+            color         #071d11
+
+        &.thin-white
+          bg              color, transparent
+          border          2px solid #b7b7b7
+          .button-title
+            color         #e0dfdf
 
   // screenshots Section
 
   section.screenshots
-    margin                0 0 120px
+    margin                -331px 0 80px
 
-    >div
-      size                60vw, 35vw
+    .inner-container>img
       margin              0 auto
-      background          #ddd
-      rounded             12px
-      border              1px solid #aaa
-      position            relative
-
-      &:after
-      &:before
-        content           ""
-        display           block
-        background        #ddd
-        rounded           6px
-        border            1px solid #aaa
-
-      &:after
-        size              14vw, 25vw
-        abs               5vw 0 0 52vw
-
-      &:before
-        size              19vw, 30vw
-        abs               2.5vw 50vw 0 0
+      display             block
+      width               100%
+      max-width           1199px
 
 
   // Features Section
 
   section.features
-    h3
-      font-size           22px
-      font-weight         700
-      margin              0 0 34px
 
     .feature
-      size                50%, auto
-      margin              0 0 90px 0
+      size               50%
+      padding            0 35px 34px 108px
+      position           relative
       borderBox()
       fl()
 
-      &:nth-of-type(odd)
-        padding           0 44px 0 60px
-
-      &:nth-of-type(even)
-        padding           0 0 0 104px
-
       h5
-        font-size         20px
-        font-weight       700
-        margin-bottom     14px
-        position          relative
-        color             #666
-
-      i
-        display           block
-        abs               -6px 100% 0 0
-        margin            0 24px 0 0
-        background        #ddd
-        size              34px, 34px
-        rounded           50%
-        border            1px solid #aaa
+        font-size        20px
+        font-weight      400
+        color            #2fbd72
+        display          block
+        margin-bottom    10px
 
       p
-        font-size         16px
-        line-height       22px
+        font-size        14px
+        color            #505050
+        line-height      21px
+
+      .icon
+        display          block
+        size             80px, 80px
+        rounded          50%
+        background       #ddd
+        abs              0px 0 0 0px
 
   //Testimonials section
   section.testimonials
-    padding              0 0 110px
-
-    h3
-      font-size           22px
-      font-weight         700
-      margin              0 0 34px
+    margin-top           63px
+    padding              63px 0 40px
+    border-top           1px solid #e6e6e6
 
     article
-      width              48%
+      width              49%
       position           relative
-      margin-left        2%
-      fl()
+      font-family        openSansFamily
+      padding            2px 0 32px 69px
+      border-bottom      2px solid #f1f1f1
+      margin-bottom      26px
       borderBox()
+      fl()
 
-      .avatar
+      &:nth-child(2n)
+        margin-left       2%
+
+      &:after
+        content           ""
         display           block
-        abs               6px 0 0 0px
-        background        #ddd
-        size              54px, 54px
-        rounded           50%
-        border            1px solid #aaa
+        abs               0 1px 0px 0
+        size              2px, 20px
+        background        #f1f1f1
+
+      &:before
+        content           ""
+        display           block
+        r-sprite          "business", "quote"
+        abs               0px 0 0 0px
+
+      &:nth-last-child(1)
+      &:nth-last-child(2)
+        border-bottom     none
+
+        &:after
+          display         none
+
+      h4.general-subtitle
+        margin-bottom     76px
 
       p
-        padding           0 44px 0 74px
         font-size         16px
         line-height       22px
+        color             #6d6d6d
+        font-size         16px
+        font-weight       600
 
+      .name
+        font-size         13px
+        color             #6d6d6d
+        font-weight       400
+        text-decoration   uppercase
+        display           block
+        margin            14px 0 0 28px
+        position          relative
+
+        &:before
+          content         ""
+          display         block
+          size            17px, 1px
+          background      #b5b5b5
+          abs             6px 0 0 -28px
 
   footer
-    padding               88px 0
-    font-size             14px
+    padding               56px 0
+    font-size             13px
     font-weight           400
-    border-top            1px solid #dedede
+    background            #2c3134
+    font-family           openSansFamily
 
-    address
+    .footer-block
+      width               25%
+      borderBox()
       fl()
 
+      a
+        color              #b3b3b3
+        display            block
+        noTextDeco()
+
+      h5
+        margin             0 0 6px 0
+        color              #858585
+
+    .about-koding
+      h5
+        font-weight        600
+        color              #c5c5c5
+
+      p
+        padding-right      72px
+        margin             2px 0 4px 0
+        line-height        18px
+        color              #838485
+        borderBox()
+
+      a
+        color              #525658
+        text-decoration    underline
+
     nav
-      fr()
+      a
+        line-height        22px
 
-    a
-      font-size           inherit
-      color               inherit
-      font-weight         inherit
-      noTextDeco()
+    cite
+      display             block
+      clear               both
 
-      &~a:before
-        content           "•"
-        font-size         inherit
-        color             inherit
-        font-weight       inherit
-        display           inline-block
-        margin            0 8px 0 6px
+    address
+      clear                both
+      display              block
+      text-align           center
+      margin               50px auto 0 auto
+      padding              25px 0 0
+      font-size            14px
+      color                #b3b3b3
+      position             relative
+
+      &:before
+        content           ""
+        display           block
+        size              80%, 1px
+        background-image  -webkit-linear-gradient(left, rgba(59, 64, 67, 0) 0%, rgba(59, 64, 67, 1) 10%, rgba(59, 64, 67, 1) 90%, rgba(59, 64, 67, 0) 100%)
+        abs               0px 0 0 50%
+        vendor            transform, translateX(-50%)
+
+    .we-love-you
+      display             block
+      text-align          center
+      color               #7b7d7e
+      font-size           14px
+      font-weight         200
+      margin              4px 0 0
+
+    .social-links
+      display             block
+      text-align          center
+      margin              30px 0 0
+      word-spacing        5px
+
+      a
+        color             #838485
+        font-size         13px
+        font-weight       400
+        noTextDeco()
+
