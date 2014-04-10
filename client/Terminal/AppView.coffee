@@ -33,9 +33,9 @@ class WebTermAppView extends JView
     @on 'TerminalClosed',    @bound 'removeSession'
 
     {vmController} = KD.singletons
-    vmController.on 'vm.progress.error', => notify cssClass : 'error'
+    vmController.on 'vm.progress.error', => @notify cssClass : 'error'
 
-    @on "sessionSelected", ({vm, session}) => @createNewTab {vm, session, mode: 'resume'}
+    @on "SessionSelected", ({vm, session}) => @createNewTab {vm, session, mode: 'resume'}
 
     {vmController} = KD.singletons
     {terminalKites} = vmController
