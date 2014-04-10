@@ -404,6 +404,7 @@ class KodingAppsController extends KDController
     .then ->
       FSHelper.createFileFromPath("#{appPath}/manifest.json")
               .save manifestStr
+
     .then ->
       FSHelper.createFileFromPath("#{appPath}/ChangeLog")
               .save changeLogStr
@@ -480,12 +481,12 @@ class KodingAppsController extends KDController
       type     : "mini"
 
     {vmController} = KD.singletons
-    vmController.run {
+    vmController.run
       withArgs : "kdc #{app.path}"
       vmName   : app.vm
-    }, (err, response)->
+    , (err, response)->
 
-      if err
+      if err or not response
 
         loader.notificationSetTitle "An unknown error occured"
         loader.notificationSetTimer 2000
