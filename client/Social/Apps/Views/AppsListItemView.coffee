@@ -27,16 +27,17 @@ class AppsListItemView extends KDListItemView
         'verified'       : "Verified"
       }[data.status]
 
-    @kiteOpen = new KDButtonView
-      cssClass : 'run'
-      title    : 'open'
-      callback : =>
-        payment     = KD.singleton "paymentController"
-        productForm = new KiteProductForm null, @getData()
-        workflow    = payment.createUpgradeWorkflow {productForm}
-        modal       = new KDModalView view: workflow
-        workflow.on "SubscriptionTransitionCompleted", modal.bound "destroy"
-        workflow.on "Failed", (err) -> KD.showError err
+    @kiteButton     = new KDButtonView
+      cssClass      : 'run'
+      title         : 'open'
+      callback      : =>
+        log "unhandled"
+        # payment     = KD.singleton "paymentController"
+        # productForm = new KiteProductForm null, @getData()
+        # workflow    = payment.createUpgradeWorkflow { productForm }
+        # modal       = new KDModalView view: workflow
+        # workflow.on "SubscriptionTransitionCompleted", modal.bound "destroy"
+        # workflow.on "Failed", (err) -> KD.showError err
 
   # Override KDView::render since I'm updating all the manifest at once ~ GG
   render:-> @template.update()
@@ -46,6 +47,7 @@ class AppsListItemView extends KDListItemView
   pistachio:->
     data   = @getData()
     isKite = data instanceof KD.remote.api.JKite
+    route  = if isKite then "Kites" else "Apps"
 
     {manifest:{authorNick, title}, name} = data
 
@@ -55,7 +57,7 @@ class AppsListItemView extends KDListItemView
       </figure>
       {{> @statusWidget}}
       <div class="appmeta clearfix">
-        <a href="/Apps/#{authorNick}/#{name}">
+        <a href="/#{route}/#{authorNick}/#{name}">
           <h3>#{title or name}</h3>
           <cite></cite>
         </a>
@@ -64,12 +66,13 @@ class AppsListItemView extends KDListItemView
           <article>{{@utils.shortenText #(manifest.description)}}</article>
         </div>
       </div>
+      <div class='bottom'>
     """
 
     if isKite
       @statusWidget = new KDCustomHTMLView
-      template += "<div class='bottom'>{{> @kiteOpen}}</div>"
+      template += "{{> @kiteButton}}"
     else
-      template += "<div class='bottom'>{{> @runButton}}</div>"
+      template += "{{> @runButton}}"
 
-    return template
+    return template + "</div>"

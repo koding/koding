@@ -8,6 +8,7 @@ class KitePlanListItemView extends KDListItemView
 
     @subscribeButton = new KDButtonView
       title          : "Subscribe"
+      cssClass       : "solid green small subscribe-button"
       callback       : @bound "selectPlan"
 
   selectPlan: ->
@@ -29,10 +30,9 @@ class KitePlanListItemView extends KDListItemView
 
     @addSubView new KDCustomHTMLView
       partial: """
-        #{title}
-        #{description}
-        #{feeAmount}
-        #{feeUnit}
+        <p class="title">#{title}</p>
+        <p class="desc">#{description}</p>
+        <p class="price">#{KD.utils.formatMoney feeAmount}/#{feeUnit}</p>
       """
 
     @addSubView @subscribeButton
