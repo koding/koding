@@ -12,6 +12,6 @@ class SessionItemView extends KDView
   click: ->
 
     {session, vm} = @getOptions()
-    @getDelegate().emit "sessionSelected", {vm, session}
+    @getDelegate().emit "SessionSelected", {vm, session}
 
     no
