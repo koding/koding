@@ -171,8 +171,7 @@ func getKiteCode() (string, error) {
 }
 
 func getSubscription(username, groupname string) (string, error) {
-	endpointURL := "https://lvh.me:3020"
-
+	// TODO: get it once
 	code, err := getKiteCode()
 	if err != nil {
 		return "", err
@@ -182,7 +181,7 @@ func getSubscription(username, groupname string) (string, error) {
 		return "", errors.New("kite code is empty")
 	}
 
-	resp, err := http.Get(endpointURL + "/-/subscription/check/" + code + "/" + username + "/" + groupname)
+	resp, err := http.Get(conf.SubscriptionEndpoint + code + "/" + username + "/" + groupname)
 	if err != nil {
 		return "", err
 	}
