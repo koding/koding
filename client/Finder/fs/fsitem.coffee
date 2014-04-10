@@ -53,7 +53,7 @@ class FSItem extends KDObject
 
         command = "#{ commandPrefix } #{ escapeFilePath sourceItem.path } #{ escapeFilePath actualPath }"
 
-        kite.exec(command)
+        kite.exec({command})
 
         .then(handleStdErr())
 
@@ -103,7 +103,7 @@ class FSItem extends KDObject
         else
           "zip -r #{escapeFilePath actualPath} #{escapeFilePath file.path}"
 
-      kite.exec command
+      kite.exec {command}
 
     .then(handleStdErr())
 
@@ -143,7 +143,7 @@ class FSItem extends KDObject
         else
           "cd #{escapeFilePath file.parentPath};unzip -o #{escapeFilePath file.name} -d #{escapeFilePath actualPath}"
 
-      kite.exec(command)
+      kite.exec({command})
 
     .then(handleStdErr())
 
