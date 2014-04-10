@@ -7,6 +7,7 @@ import (
 	"github.com/koding/worker"
 	"github.com/streadway/amqp"
 	"socialapi/models"
+	// "fmt"
 )
 
 type Action func(*NotificationWorkerController, []byte) error
@@ -57,26 +58,17 @@ func (n *NotificationWorkerController) HandleEvent(event string, data []byte) er
 }
 
 func (n *NotificationWorkerController) CreateReplyNotification(data []byte) error {
-	cm, err := mapMessageToChannelMessage(data)
+	mr, err := mapMessageToMessageReply(data)
 	if err != nil {
-		return err
-	}
-
-	mr := models.NewMessageReply()
-	mr.ReplyId = cm.Id
-	if err := mr.FetchByReplyId(); err != nil {
 		return err
 	}
 
 	rn := models.NewReplyNotification()
 	rn.TargetId = mr.MessageId
-	// hack it is
-	if cm.InitialChannelId == 0 {
-		if err := models.CreateNotification(rn); err != nil {
-			return err
-		}
-	}
 
+	if err := models.CreateNotification(rn); err != nil {
+		return err
+	}
 
 	// TODO send notification message to user
 	return nil
@@ -100,13 +92,13 @@ func (n *NotificationWorkerController) CreateInteractionNotification(data []byte
 }
 
 // copy/pasted from realtime package
-func mapMessageToChannelMessage(data []byte) (*models.ChannelMessage, error) {
-	cm := models.NewChannelMessage()
-	if err := json.Unmarshal(data, cm); err != nil {
+func mapMessageToMessageReply(data []byte) (*models.MessageReply, error) {
+	mr := models.NewMessageReply()
+	if err := json.Unmarshal(data, mr); err != nil {
 		return nil, err
 	}
 
-	return cm, nil
+	return mr, nil
 }
 
 // copy/pasted from realtime package
