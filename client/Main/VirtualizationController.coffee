@@ -276,7 +276,7 @@ class VirtualizationController extends KDController
     Promise.all vms.map @bound 'registerKite'
 
   registerKite: (vm, callback) ->
-    new Promise (resolve) ->
+    new Promise (resolve) =>
       alias = vm.hostnameAlias
       kite = @getKite vm, 'os'
 
