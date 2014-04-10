@@ -4,6 +4,7 @@ type NotificationContainer struct {
 	Type     string         `json:"type"`
 	TargetId int64          `json:"targetId"`
 	Content  string         `json:"content"`
+    Glanced  bool           `json:"glanced"`
 	Actors   ActorContainer `json:"actors"`
 }
 
