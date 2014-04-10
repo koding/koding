@@ -4,6 +4,7 @@ module.exports = [
   "Views/AppsListItemView.coffee"
   "Views/appdetailsview.coffee"
   "Views/createkitemodal.coffee"
+  "Views/markdownwidget.coffee"
 
   "AppView.coffee"
   "AppController.coffee"
