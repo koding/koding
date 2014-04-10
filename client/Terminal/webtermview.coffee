@@ -145,7 +145,12 @@ class WebTermView extends KDView
       healthChecker.run()
 
   healthCheck: (callback) ->
-    kite = KD.getSingleton("vmController").terminalKites[@getVMName()]
+    {vmController} = KD.singletons
+    kite =
+      if KD.useNewKites
+      then vmController.kites.terminal[@getVMName()]
+      else vmController.terminalKites[@getVMName()]
+
     {session} = @getOptions()
     # TODO we need a session check method in terminal kite
     kite?.webtermGetSessions().then (sessions) ->
