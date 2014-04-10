@@ -5,6 +5,7 @@ package oskite
 import (
 	"errors"
 	"fmt"
+	"koding/db/mongodb/modelhelper"
 	"koding/kodingkite"
 	"koding/tools/kite"
 	"koding/virt"
@@ -211,14 +212,31 @@ func spawnFuncNew(r *kitelib.Request, vos *virt.VOS) (interface{}, error) {
 
 func execFuncNew(r *kitelib.Request, vos *virt.VOS) (interface{}, error) {
 	var params struct {
-		Line string
+		Command  string
+		Password string
+		Async    bool
 	}
 
-	if r.Args.One().Unmarshal(&params) != nil || params.Line == "" {
-		return nil, &kite.ArgumentError{Expected: "{line : [string]}"}
+	if r.Args.One().Unmarshal(&params) != nil || params.Command == "" {
+		return nil, &kite.ArgumentError{Expected: "{Command : [string]}"}
 	}
 
-	return execFunc(false, params.Line, vos)
+	asRoot := false
+	if params.Password != "" {
+		_, err := modelhelper.CheckAndGetUser(r.Username, params.Password)
+		if err != nil {
+			return nil, errors.New("Permissiond denied. Wrong password")
+		}
+
+		asRoot = true
+	}
+
+	if params.Async {
+		go execFunc(asRoot, params.Command, vos)
+		return true, nil
+	}
+
+	return execFunc(asRoot, params.Command, vos)
 }
 
 type progressParamsNew struct {

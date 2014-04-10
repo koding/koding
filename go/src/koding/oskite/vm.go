@@ -69,53 +69,7 @@ func spawnFuncOld(args *dnode.Partial, c *kite.Channel, vos *virt.VOS) (interfac
 	return spawnFunc(params.Command, vos)
 }
 
-func spawnAsyncFuncOld(args *dnode.Partial, c *kite.Channel, vos *virt.VOS) (interface{}, error) {
-	var command []string
-
-	if args == nil {
-		return nil, &kite.ArgumentError{Expected: "empty argument passed"}
-	}
-
-	if args.Unmarshal(&command) != nil {
-		return nil, &kite.ArgumentError{Expected: "[array of strings]"}
-	}
-
-	go spawnFunc(command, vos)
-	return true, nil
-}
-
 func execFuncOld(args *dnode.Partial, c *kite.Channel, vos *virt.VOS) (interface{}, error) {
-	var params struct {
-		Line string
-	}
-
-	if args == nil {
-		return nil, &kite.ArgumentError{Expected: "empty argument passed"}
-	}
-
-	if args.Unmarshal(&params) != nil || params.Line == "" {
-		return nil, &kite.ArgumentError{Expected: "{line : [string]}"}
-	}
-
-	return execFunc(false, params.Line, vos)
-}
-
-func execAsyncFuncOld(args *dnode.Partial, c *kite.Channel, vos *virt.VOS) (interface{}, error) {
-	var line string
-
-	if args == nil {
-		return nil, &kite.ArgumentError{Expected: "empty argument passed"}
-	}
-
-	if args.Unmarshal(&line) != nil {
-		return nil, &kite.ArgumentError{Expected: "[string]"}
-	}
-
-	go execFunc(false, line, vos)
-	return true, nil
-}
-
-func execRoot(args *dnode.Partial, c *kite.Channel, vos *virt.VOS) (interface{}, error) {
 	var params struct {
 		Command  string
 		Password string
@@ -126,25 +80,26 @@ func execRoot(args *dnode.Partial, c *kite.Channel, vos *virt.VOS) (interface{},
 		return nil, &kite.ArgumentError{Expected: "empty argument passed"}
 	}
 
-	if args.Unmarshal(&params) != nil {
-		return nil, &kite.ArgumentError{Expected: " command [string]"}
+	if args.Unmarshal(&params) != nil || params.Command == "" {
+		return nil, &kite.ArgumentError{Expected: "{Command : [string]}"}
 	}
 
-	if params.Command == "" || params.Password == "" {
-		return nil, &kite.ArgumentError{Expected: " command: [string], password: [string]"}
-	}
+	asRoot := false
+	if params.Password != "" {
+		_, err := modelhelper.CheckAndGetUser(c.Username, params.Password)
+		if err != nil {
+			return nil, errors.New("Permissiond denied. Wrong password")
+		}
 
-	_, err := modelhelper.CheckAndGetUser(c.Username, params.Password)
-	if err != nil {
-		return nil, errors.New("Permissiond denied. Wrong password")
+		asRoot = true
 	}
 
 	if params.Async {
-		go execFunc(true, params.Command, vos)
+		go execFunc(asRoot, params.Command, vos)
 		return true, nil
 	}
 
-	return execFunc(true, params.Command, vos)
+	return execFunc(asRoot, params.Command, vos)
 }
 
 ////////////////////
