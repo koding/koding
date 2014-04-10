@@ -26,6 +26,7 @@ import (
 	"time"
 
 	etcdErr "github.com/coreos/etcd/error"
+	ustrings "github.com/coreos/etcd/pkg/strings"
 )
 
 // The default version to set when the store is first initialized.
@@ -180,6 +181,18 @@ func (s *store) Set(nodePath string, dir bool, value string, expireTime time.Tim
 	return e, nil
 }
 
+// returns user-readable cause of failed comparison
+func getCompareFailCause(n *node, which int, prevValue string, prevIndex uint64) string {
+	switch which {
+	case CompareIndexNotMatch:
+		return fmt.Sprintf("[%v != %v]", prevIndex, n.ModifiedIndex)
+	case CompareValueNotMatch:
+		return fmt.Sprintf("[%v != %v]", prevValue, n.Value)
+	default:
+		return fmt.Sprintf("[%v != %v] [%v != %v]", prevValue, n.Value, prevIndex, n.ModifiedIndex)
+	}
+}
+
 func (s *store) CompareAndSwap(nodePath string, prevValue string, prevIndex uint64,
 	value string, expireTime time.Time) (*Event, error) {
 
@@ -206,8 +219,8 @@ func (s *store) CompareAndSwap(nodePath string, prevValue string, prevIndex uint
 
 	// If both of the prevValue and prevIndex are given, we will test both of them.
 	// Command will be executed, only if both of the tests are successful.
-	if !n.Compare(prevValue, prevIndex) {
-		cause := fmt.Sprintf("[%v != %v] [%v != %v]", prevValue, n.Value, prevIndex, n.ModifiedIndex)
+	if ok, which := n.Compare(prevValue, prevIndex); !ok {
+		cause := getCompareFailCause(n, which, prevValue, prevIndex)
 		s.Stats.Inc(CompareAndSwapFail)
 		return nil, etcdErr.NewError(etcdErr.EcodeTestFailed, cause, s.CurrentIndex)
 	}
@@ -223,7 +236,9 @@ func (s *store) CompareAndSwap(nodePath string, prevValue string, prevIndex uint
 	n.Write(value, s.CurrentIndex)
 	n.UpdateTTL(expireTime)
 
-	eNode.Value = value
+	// copy the value for safety
+	valueCopy := ustrings.Clone(value)
+	eNode.Value = &valueCopy
 	eNode.Expiration, eNode.TTL = n.ExpirationAndTTL()
 
 	s.WatcherHub.notify(e)
@@ -306,8 +321,8 @@ func (s *store) CompareAndDelete(nodePath string, prevValue string, prevIndex ui
 
 	// If both of the prevValue and prevIndex are given, we will test both of them.
 	// Command will be executed, only if both of the tests are successful.
-	if !n.Compare(prevValue, prevIndex) {
-		cause := fmt.Sprintf("[%v != %v] [%v != %v]", prevValue, n.Value, prevIndex, n.ModifiedIndex)
+	if ok, which := n.Compare(prevValue, prevIndex); !ok {
+		cause := getCompareFailCause(n, which, prevValue, prevIndex)
 		s.Stats.Inc(CompareAndDeleteFail)
 		return nil, etcdErr.NewError(etcdErr.EcodeTestFailed, cause, s.CurrentIndex)
 	}
@@ -413,7 +428,10 @@ func (s *store) Update(nodePath string, newValue string, expireTime time.Time) (
 	}
 
 	n.Write(newValue, nextIndex)
-	eNode.Value = newValue
+
+	// copy the value for safety
+	newValueCopy := ustrings.Clone(newValue)
+	eNode.Value = &newValueCopy
 
 	// update ttl
 	n.UpdateTTL(expireTime)
@@ -482,7 +500,9 @@ func (s *store) internalCreate(nodePath string, dir bool, value string, unique, 
 	}
 
 	if !dir { // create file
-		eNode.Value = value
+		// copy the value for safety
+		valueCopy := ustrings.Clone(value)
+		eNode.Value = &valueCopy
 
 		n = newKV(s, nodePath, value, nextIndex, d, "", expireTime)
 

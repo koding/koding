@@ -7,7 +7,7 @@ class VMChecker extends KDObject
     status = "success"
     {kites} = KD.singletons.vmController
     for own alias, kite of kites
-      switch kite.recentState.state
+      switch kite.recentState?.state
         when 'RUNNING'
           continue
         when 'FAILED'

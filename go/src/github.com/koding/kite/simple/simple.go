@@ -1,3 +1,5 @@
+// Package simple implements a helper for kites to serve on HTTP,
+// and registration to kontrol and proxy kites.
 package simple
 
 import (
@@ -44,6 +46,7 @@ func (s *Simple) HandleFunc(method string, handler kite.HandlerFunc) {
 }
 
 func (s *Simple) Start() {
+	s.Log.Info("Kite has started: %s", s.Kite.Kite())
 	connected, err := s.Kontrol.DialForever()
 	if err != nil {
 		s.Server.Log.Fatal("Cannot dial kontrol: %s", err.Error())

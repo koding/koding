@@ -53,10 +53,13 @@ func (event *Event) Response(currentIndex uint64) interface{} {
 			Action:     event.Action,
 			Key:        event.Node.Key,
 			Value:      event.Node.Value,
-			PrevValue:  event.PrevNode.Value,
 			Index:      event.Node.ModifiedIndex,
 			TTL:        event.Node.TTL,
 			Expiration: event.Node.Expiration,
+		}
+
+		if event.PrevNode != nil {
+			response.PrevValue = event.PrevNode.Value
 		}
 
 		if currentIndex != 0 {
@@ -64,7 +67,7 @@ func (event *Event) Response(currentIndex uint64) interface{} {
 		}
 
 		if response.Action == Set {
-			if response.PrevValue == "" {
+			if response.PrevValue == nil {
 				response.NewKey = true
 			}
 		}

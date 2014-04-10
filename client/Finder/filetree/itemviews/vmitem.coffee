@@ -88,7 +88,7 @@ class NVMItemView extends NFileItemView
 
   viewAppended:->
     super
-    @vm.info @getData().vmName, @bound 'checkVMState'
+    @getData().getKite().vmInfo().nodeify @bound 'checkVMState'
 
   pistachio:->
     path = FSHelper.plainPath @getData().path

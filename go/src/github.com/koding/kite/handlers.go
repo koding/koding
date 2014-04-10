@@ -7,6 +7,7 @@ import (
 	"runtime"
 	"time"
 
+	"code.google.com/p/go.crypto/ssh/terminal"
 	"code.google.com/p/go.net/websocket"
 	"github.com/koding/kite/systeminfo"
 )
@@ -18,6 +19,7 @@ func (k *Kite) addDefaultHandlers() {
 	k.HandleFunc("kite.log", k.handleLog)
 	k.HandleFunc("kite.print", handlePrint)
 	k.HandleFunc("kite.prompt", handlePrompt)
+	k.HandleFunc("kite.getPass", handleGetPass)
 	if runtime.GOOS == "darwin" {
 		k.HandleFunc("kite.notify", handleNotifyDarwin)
 	}
@@ -37,7 +39,7 @@ func (k *Kite) handleHeartbeat(r *Request) (interface{}, error) {
 	go func() {
 		for {
 			time.Sleep(time.Duration(seconds) * time.Second)
-			if ping() != nil {
+			if err := ping.Call(); err != nil {
 				return
 			}
 		}
@@ -66,6 +68,17 @@ func handlePrompt(r *Request) (interface{}, error) {
 	return s, err
 }
 
+// handleGetPass reads a line of input from a terminal without local echo.
+func handleGetPass(r *Request) (interface{}, error) {
+	fmt.Print(r.Args.One().MustString())
+	data, err := terminal.ReadPassword(0) // stdin
+	fmt.Println()
+	if err != nil {
+		return nil, err
+	}
+	return string(data), nil
+}
+
 // handleNotifyDarwin displays a desktop notification on OS X.
 func handleNotifyDarwin(r *Request) (interface{}, error) {
 	args := r.Args.MustSliceOfLength(3)
@@ -88,10 +101,11 @@ func handleTunnel(r *Request) (interface{}, error) {
 	}
 
 	conf := &websocket.Config{
-		Location:  parsed,
-		Version:   websocket.ProtocolVersionHybi13,
-		Origin:    &url.URL{Scheme: "http", Host: "localhost"},
-		TlsConfig: r.Client.TLSConfig,
+		Location: parsed,
+		Version:  websocket.ProtocolVersionHybi13,
+		Origin:   &url.URL{Scheme: "http", Host: "localhost"},
+		// TODO enable TLSConfig field in handleTunnel
+		// TlsConfig: r.Client.TLSConfig,
 	}
 
 	remoteConn, err := websocket.DialConfig(conf)

@@ -153,6 +153,7 @@ module.exports =
     useStaticFileServer: no
     staticFilesBaseUrl: "https://koding.com"
     runtimeOptions:
+      kites: require './kites.coffee'
       osKitePollingMs: 1000 * 60 # 1 min
       userIdleMs: 1000 * 60 * 5 # 5 min
       sessionCookie :
@@ -192,7 +193,7 @@ module.exports =
       github    :
         clientId: "f733c52d991ae9642365"
       newkontrol:
-        url         : 'ws://stage-kontrol.sj.koding.com:4000/kontrol'
+        url         : 'wss://stage-kontrol.koding.com'
       fileFetchTimeout: 15 * 1000 # seconds
       externalProfiles  :
         github          :
@@ -292,12 +293,15 @@ module.exports =
   pidFile       : '/tmp/koding.server.pid'
   haproxy:
     webPort     : 3020
+  newkites      :
+    useTLS          : yes
+    certFile        : "/etc/ssl/koding/wildcard.sj.koding.com.crt"
+    keyFile         : "/etc/ssl/koding/wildcard.sj.koding.com.key"
   newkontrol      :
-    username        : "koding-kites"
-    port            : 4000
-    useTLS          : no
-    certFile        : ""
-    keyFile         : ""
+    port            : 443
+    useTLS          : yes
+    certFile        : "/opt/koding/certs/koding_com_cert.pem"
+    keyFile         : "/opt/koding/certs/koding_com_key.pem"
     publicKeyFile   : "/opt/koding/certs/test_kontrol_rsa_public.pem"
     privateKeyFile  : "/opt/koding/certs/test_kontrol_rsa_private.pem"
   proxyKite       :
