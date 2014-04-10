@@ -6,11 +6,7 @@ class KiteDetailsView extends JView
 
     super options, data
 
-    @timeAgo    = new KDTimeAgoView {}, new Date @getData().createdAt
-    @button     = new KDButtonView
-      title     : "SUBSCRIBE"
-      cssClass  : "run"
-
+    @timeAgo     = new KDTimeAgoView {}, new Date @getData().createdAt
     @productForm = new KiteProductForm null, @getData()
     @productForm.on "PlanSelected", @bound "showPaymentModal"
 
@@ -55,9 +51,6 @@ class KiteDetailsView extends JView
           <div class="versionstats updateddate">
             Version 0.1
             <p>Released {{> @timeAgo}}</p>
-          </div>
-          <div class="action-buttons">
-            {{> @button}}
           </div>
         </div>
       </div>
