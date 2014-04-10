@@ -84,17 +84,24 @@ class WebTermView extends KDView
 
     return vmName
 
-  webtermConnect:(mode)->
+  webtermConnect:(mode = 'create')->
+
     return console.info "reconnection is in progress" if @reconnectionInProgress
     @reconnectionInProgress = yes
     options = @generateOptions()
-    options.mode = mode   if mode
+    options.mode = mode
 
-    kite = KD.getSingleton("vmController").terminalKites[@getVMName()]
+    vmController = KD.getSingleton "vmController"
+
+    kite =
+      if KD.useNewKites
+      then vmController.kites.terminal[@getVMName()]
+      else vmController.terminalKites[@getVMName()]
 
     kite.webtermConnect(options).then (remote) =>
       @setOption "session", remote.session
-      @terminal.eventHandler = (data)=> @emit "WebTermEvent", data
+      @terminal.eventHandler = (data)=>
+        @emit "WebTermEvent", data
       @terminal.server       = remote
       @sessionId = remote.session
 

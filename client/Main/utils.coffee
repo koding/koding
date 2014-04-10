@@ -624,6 +624,9 @@ utils.extend utils,
 
   doesEmailValid: (email) -> /@/.test email
 
+  setPrototypeOf: Object.setPrototypeOf ? (obj, proto) ->
+    obj.__proto__ = proto
+
   nicetime: do ->
 
     niceify = (duration)->
@@ -666,3 +669,4 @@ utils.extend utils,
         from = new Date().getTime() / 1000
         to   = to
         niceify to - from
+

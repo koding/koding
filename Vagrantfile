@@ -88,6 +88,9 @@ Vagrant.configure("2") do |config|
     default.vm.network :forwarded_port, :guest => 7474, :host => 7474 # neo4j
     default.vm.network :forwarded_port, :guest => 6379, :host => 6379 # redis
     default.vm.network :forwarded_port, :guest => 9200, :host => 9200 # elastic search
+    default.vm.network :forwarded_port, :guest => 3998, :host => 3998 # regserv kite
+    default.vm.network :forwarded_port, :guest => 3999, :host => 3999 # proxy kite
+    default.vm.network :forwarded_port, :guest => 4000, :host => 4000 # kontrol kite
     default.vm.network :forwarded_port, :guest => 4005, :host => 4005 # provisioning kite
     default.vm.network :forwarded_port, :guest => 5000, :host => 5000 # oskite
     default.vm.network :forwarded_port, :guest => 5001, :host => 5001 # terminal kite
@@ -99,7 +102,7 @@ Vagrant.configure("2") do |config|
     default.vm.provider "virtualbox" do |v|
       v.name = "koding_#{Time.new.to_i}"
       v.customize ["setextradata", :id, "VBoxInternal2/SharedFoldersEnableSymlinksCreate/koding", "1"]
-      v.customize ["modifyvm", :id, "--memory", "1224", "--cpus", "2"]
+      v.customize ["modifyvm", :id, "--memory", "2048", "--cpus", "2"]
     end
 
     if provision

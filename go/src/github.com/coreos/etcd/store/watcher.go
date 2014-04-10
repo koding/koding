@@ -52,7 +52,8 @@ func (w *Watcher) notify(e *Event, originalPath bool, deleted bool) bool {
 		select {
 		case w.EventChan <- e:
 		default:
-			// We have missed a notification. Close the channel and remove the watcher.
+			// We have missed a notification. Remove the watcher.
+			// Removing the watcher also closes the EventChan.
 			w.remove()
 		}
 		return true

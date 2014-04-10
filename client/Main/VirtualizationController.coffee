@@ -29,10 +29,18 @@ class VirtualizationController extends KDController
       return callback err  if err?
       options.correlationName = vmName
       @fetchRegion vmName, (region)=>
-        if options.kiteName
-          options.kiteName = "#{options.kiteName}-#{region}"
-        else
-          options.kiteName = "os-#{region}"
+        options.kiteName =
+          if KD.useNewKites
+            # TODO: this mapping should be removed, and kites should be named consistently
+            if options.kiteName is 'os'
+              'oskite'
+            else
+              options.kiteName ? 'oskite'
+          else
+            if options.kiteName
+              "#{options.kiteName}-#{region}"
+            else
+              "os-#{region}"
 
         @kc.run options, callback
 
@@ -230,14 +238,49 @@ class VirtualizationController extends KDController
     (KD.getSingleton 'kiteController')
       .getKite "#{ type }-#{ region }", hostnameAlias, type
 
+  registerNewKite: (name, correlationName, kite) ->
+    @kites[name] ?= {}
+    @kites[name][correlationName] = kite
+
+  createNewKite: (name, vm) ->
+    kontrol = KD.getSingleton 'kontrol'
+
+    { hostnameAlias: correlationName, region } = vm
+
+    query = { name, correlationName, region }
+
+    kiteExisted = kontrol.hasKite query
+
+    kite = kontrol.getKite query
+
+    unless kiteExisted
+      @listenToVmState vm, kite  if name is 'oskite'
+
+      @registerNewKite name, correlationName, kite
+
+    return kite
+
+  registerNewKites: (vms) ->
+    vms.forEach (vm) =>
+      (@createNewKite 'oskite', vm).on 'vmOn', =>
+        @createNewKite 'terminal', vm
+
   registerKite: (vm) ->
+    alias = vm.hostnameAlias
+    kite = @getKite vm, 'os'
 
-    alias         = vm.hostnameAlias
-    @kites[alias] = kite = @getKite vm, 'os'
+    @kites[alias] = kite
 
-    kite.on "ready", =>
+    @listenToVmState vm, kite
+
+    # we need to wait until the vm is on before opening a connection to the
+    # terminal kite.
+    kite.on 'ready', =>
       @terminalKites[alias] = @getKite vm, 'terminal'
 
+
+  listenToVmState: (vm, kite) ->
+    alias = vm.hostnameAlias
     kite.on 'vm.progress.start', (update) =>
       @emit 'vm.progress.start', {alias, update}
 
@@ -249,9 +292,6 @@ class VirtualizationController extends KDController
 
     kite.on 'vm.progress.error', (error) =>
       @emit 'vm.progress.error', {alias, error}
-
-    kite.fetchState()
-
 
   getKiteByVmName: (vmName) ->
     @kites[vmName]
@@ -309,25 +349,24 @@ class VirtualizationController extends KDController
         .then(-> resolve kite)
         .catch warn
 
+  shouldUseNewKites: ->
+    new Promise (resolve, reject) ->
+      KD.remote.api.JKiteStack.fetchInfo (err, info) ->
+        return resolve info.isEnabled and KD.useNewKites  if KD.useNewKites?
+        return reject err  if err?
+        useNewKites = info.isEnabled and Math.random() <= info.ratio
+        KD.useNewKites = useNewKites
+        localStorage.useNewKites = if useNewKites then "1" else "0"
+        resolve useNewKites
+
   handleFetchedVms: (vms, callback) ->
-    if KD.useNewKites
-      Promise.cast(vms).map (vm) =>
-
-        hostname = @getKiteHostname vm
-
-        @getOsKite({ hostname, region: vm.region }).then (os) =>
-
-          options   =
-            vmName  : vm.hostnameAlias
-            kite    : os
-
-          os.ready().then =>
-            @kites[vm.hostnameAlias] = new VM options
-
-      .nodeify callback
-    else
-      @registerKite vm  for vm in vms
-      KD.utils.defer -> callback null
+    @shouldUseNewKites().then (useNewKites) =>
+      if useNewKites
+        @registerNewKites vms
+      else
+        @registerKite vm  for vm in vms
+    .catch(warn)
+    .nodeify callback
 
   fetchGroupVMs:(force, callback = noop)->
     if @groupVms.length > 0 and not force

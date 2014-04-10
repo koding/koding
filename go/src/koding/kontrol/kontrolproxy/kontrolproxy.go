@@ -174,7 +174,11 @@ func main() {
 }
 
 func (p *Proxy) runNewKite() {
-	k := kodingkite.New(conf, KONTROLPROXY_NAME, "0.0.1")
+	k, err := kodingkite.New(conf, KONTROLPROXY_NAME, "0.0.1")
+	if err != nil {
+		panic(err)
+	}
+
 	k.Config.Region = *flagRegion
 	k.Start()
 
@@ -233,7 +237,7 @@ func (p *Proxy) runNewKite() {
 		}
 	}
 
-	_, err := k.Kontrol.WatchKites(query, onEvent)
+	_, err = k.Kontrol.WatchKites(query, onEvent)
 	if err != nil {
 		log.Warning(err.Error())
 	}

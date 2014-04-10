@@ -13,6 +13,10 @@ class TroubleshootResultView extends KDCustomHTMLView
     brokerKite :
       slow     : "You will experience slowness with terminal connection"
       fail     : "You will not connect to your terminal"
+    newKite    :
+      fail     : "You are currently testing our new Kite system and experiencing some problems. \
+                 If you want to return to old system, just press Recover button.
+                 Also we would be glad if you share your problem and send feedback to us."
     osKite     :
       slow     : "You will experience slowness with terminal connection"
       fail     : "You will not connect to your terminal"

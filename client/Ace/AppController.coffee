@@ -1,6 +1,6 @@
 # this is necessary for ace dependencies, can be moved to another file
 # but SHALL NOT BE REMOVED~!
-require.config baseUrl: "/a/js", waitSeconds:30
+requirejs.config baseUrl: "/a/js", waitSeconds:30
 
 class AceAppController extends AppController
 
