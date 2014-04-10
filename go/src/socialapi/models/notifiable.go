@@ -5,7 +5,7 @@ import (
 )
 
 var (
-	NOTIFIER_LIMIT = 2
+	NOTIFIER_LIMIT = 3
 )
 
 type Notifiable interface {
