@@ -23,7 +23,7 @@ import (
 
 const (
 	TERMINAL_NAME    = "terminal"
-	TERMINAL_VERSION = "0.1.1"
+	TERMINAL_VERSION = "0.1.2"
 )
 
 var (
@@ -140,17 +140,25 @@ func (t *Terminal) Run() {
 func (t *Terminal) registerMethod(method string, concurrent bool, callback func(*dnode.Partial, *kite.Channel, *virt.VOS) (interface{}, error)) {
 	wrapperMethod := func(args *dnode.Partial, channel *kite.Channel) (methodReturnValue interface{}, methodError error) {
 		log.Info("[method: %s]  [user: %s]  [vm: %s]", method, channel.Username, channel.CorrelationName)
-		user, err := getUser(channel.Username)
+		if method == "webterm.connect" {
+			user, err := getUser(channel.Username)
+			if err != nil {
+				return nil, err
+			}
+
+			vm, err := getVM(channel.CorrelationName)
+			if err != nil {
+				return nil, err
+			}
+			return callback(args, channel, &virt.VOS{VM: vm, User: user})
+		}
+
+		vos, err := t.getVos(channel.Username, channel.CorrelationName)
 		if err != nil {
 			return nil, err
 		}
 
-		vm, err := getVM(channel.CorrelationName)
-		if err != nil {
-			return nil, err
-		}
-
-		return callback(args, channel, &virt.VOS{VM: vm, User: user})
+		return callback(args, channel, vos)
 	}
 
 	t.Kite.Handle(method, concurrent, wrapperMethod)
@@ -312,6 +320,20 @@ func (t *Terminal) vosMethod(k *kodingkite.KodingKite, method string, vosFn vosF
 
 		if r.Args.One().Unmarshal(&params) != nil || params.VmName == "" {
 			return nil, errors.New("{ vmName: [string]}")
+		}
+
+		if method == "webterm.connect" {
+			user, err := getUser(r.Username)
+			if err != nil {
+				return nil, err
+			}
+
+			vm, err := getVM(params.VmName)
+			if err != nil {
+				return nil, err
+			}
+
+			return vosFn(r, &virt.VOS{VM: vm, User: user})
 		}
 
 		vos, err := t.getVos(r.Username, params.VmName)
