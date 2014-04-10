@@ -19,10 +19,15 @@ class VMChecker extends KDObject
     callback {status}
 
   terminalHealthCheck: (callback) ->
-    {terminalKites} = KD.singletons.vmController
+    {vmController, kontrol} = KD.singletons
+    kites =
+      if KD.useNewKites
+      then kontrol.kites.terminal
+      else vmController.kites.terminalKites
+
     failedTerminals = []
 
-    promises = for own _, terminalKite of terminalKites
+    promises = for own _, terminalKite of kites
       terminalKite.webtermPing()
       .catch (err) =>
         {correlationName} = terminalKite
