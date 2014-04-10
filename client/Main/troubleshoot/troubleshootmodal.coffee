@@ -4,7 +4,7 @@ class TroubleshootModal extends KDModalViewWithForms
     troubleshoot = KD.singleton("troubleshoot")
 
     options =
-      title                 : "System health check"
+      title                 : "Checking Koding status"
       overlay               : yes
       cssClass              : "troubleshoot-modal"
       cancelable            : no
