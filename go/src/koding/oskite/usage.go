@@ -61,6 +61,7 @@ var (
 
 	okString      = "ok"
 	quotaExceeded = "quota exceeded."
+	kiteCode      string
 )
 
 func NewPlanResponse() *PlanResponse {
@@ -155,7 +156,13 @@ type KiteStore struct {
 	KiteCode    string        `bson:"kiteCode"`
 }
 
+// getKiteCode returns the API token to be used with Koding's subscription
+// endpoint.
 func getKiteCode() (string, error) {
+	if kiteCode != "" {
+		return kiteCode, nil
+	}
+
 	kiteStore := new(KiteStore)
 
 	query := func(c *mgo.Collection) error {
@@ -166,6 +173,8 @@ func getKiteCode() (string, error) {
 	if err != nil {
 		return "", err
 	}
+
+	kiteCode = kiteStore.KiteCode
 
 	return kiteStore.KiteCode, nil
 }
@@ -181,7 +190,9 @@ func getSubscription(username, groupname string) (string, error) {
 		return "", errors.New("kite code is empty")
 	}
 
-	resp, err := http.Get(conf.SubscriptionEndpoint + code + "/" + username + "/" + groupname)
+	endpointURL := conf.SubscriptionEndpoint + code + "/" + username + "/" + groupname
+
+	resp, err := http.Get(endpointURL)
 	if err != nil {
 		return "", err
 	}
