@@ -130,7 +130,7 @@ class CreateKiteModal extends KDModalViewWithForms
 
       KD.remote.api.JKite.list query, {}, (err, kite) =>
         Details.buttons.Next.hideLoader()
-        if kite.length
+        if kite?.length
           new KDNotificationView
             container : this
             duration  : 4000
