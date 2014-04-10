@@ -2,7 +2,6 @@ package models
 
 import (
 	"errors"
-	"fmt"
 	"github.com/jinzhu/gorm"
 	"github.com/koding/bongo"
 	"time"
@@ -34,8 +33,8 @@ func (n *NotificationContent) GetId() int64 {
 	return n.Id
 }
 
-func (n *NotificationContent) TableName() string {
-	return "notification_content"
+func (n NotificationContent) TableName() string {
+	return "api.notification_content"
 }
 
 func (n *NotificationContent) Create() error {
@@ -115,10 +114,9 @@ func (n *NotificationContent) FetchMapByIds(ids []int64) (map[int64]Notification
 
 	ncMap := make(map[int64]NotificationContent, 0)
 	for _, nc := range ncList {
-
 		ncMap[nc.Id] = nc
 	}
-	fmt.Printf("map: %+v", ncMap)
+
 	return ncMap, nil
 }
 

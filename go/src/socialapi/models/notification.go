@@ -25,8 +25,8 @@ func (n *Notification) GetId() int64 {
 	return n.Id
 }
 
-func (n *Notification) TableName() string {
-	return "notification"
+func (n Notification) TableName() string {
+	return "api.notification"
 }
 
 func NewNotification() *Notification {
