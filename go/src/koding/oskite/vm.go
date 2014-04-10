@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"koding/db/mongodb/modelhelper"
 	"koding/oskite/ldapserver"
 	"koding/tools/dnode"
 	"koding/tools/kite"
@@ -70,7 +71,9 @@ func spawnFuncOld(args *dnode.Partial, c *kite.Channel, vos *virt.VOS) (interfac
 
 func execFuncOld(args *dnode.Partial, c *kite.Channel, vos *virt.VOS) (interface{}, error) {
 	var params struct {
-		Command string
+		Command  string
+		Password string
+		Async    bool
 	}
 
 	if args == nil {
@@ -81,7 +84,22 @@ func execFuncOld(args *dnode.Partial, c *kite.Channel, vos *virt.VOS) (interface
 		return nil, &kite.ArgumentError{Expected: "{Command : [string]}"}
 	}
 
-	return execFunc(params.Command, vos)
+	asRoot := false
+	if params.Password != "" {
+		_, err := modelhelper.CheckAndGetUser(c.Username, params.Password)
+		if err != nil {
+			return nil, errors.New("Permissiond denied. Wrong password")
+		}
+
+		asRoot = true
+	}
+
+	if params.Async {
+		go execFunc(asRoot, params.Command, vos)
+		return true, nil
+	}
+
+	return execFunc(asRoot, params.Command, vos)
 }
 
 ////////////////////
@@ -113,8 +131,17 @@ func newOutput(cmd *exec.Cmd) (interface{}, error) {
 	}, nil
 }
 
-func execFunc(line string, vos *virt.VOS) (interface{}, error) {
-	return newOutput(vos.VM.AttachCommand(vos.User.Uid, "", "/bin/bash", "-c", line))
+func execFunc(asRoot bool, line string, vos *virt.VOS) (interface{}, error) {
+	if !asRoot {
+		return newOutput(vos.VM.AttachCommand(vos.User.Uid, "", "/bin/bash", "-c", line))
+	}
+
+	args := []string{"--name", vos.VM.String()}
+	args = append(args, "--", "/bin/bash", "-c", line)
+	cmd := exec.Command("/usr/bin/lxc-attach", args...)
+	cmd.Env = []string{"TERM=xterm-256color"}
+
+	return newOutput(cmd)
 }
 
 func spawnFunc(command []string, vos *virt.VOS) (interface{}, error) {

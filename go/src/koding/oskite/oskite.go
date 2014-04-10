@@ -83,7 +83,6 @@ func New(c *config.Config) *Oskite {
 	modelhelper.Initialize(c.Mongo)
 
 	return &Oskite{
-		Name:    OSKITE_NAME,
 		Version: OSKITE_VERSION,
 	}
 }
