@@ -29,6 +29,7 @@ var (
 		"oskite":       buildOsKite,
 		"kontrolproxy": buildKontrolProxy,
 		"terminal":     buildTerminal,
+		"kontrol":      buildKontrol,
 	}
 )
 
@@ -75,9 +76,52 @@ func buildPackages(pkgName string) error {
 		return buildKontrolProxy()
 	case "terminal":
 		return buildTerminal()
+	case "kontrol":
+		return buildKontrol()
 	default:
 		return errors.New("package to be build is not available")
 	}
+}
+
+func buildKontrol() error {
+	gopath := os.Getenv("GOPATH")
+	if gopath == "" {
+		return errors.New("GOPATH is not set")
+	}
+
+	kontrolPath := "koding/kites/kontrol"
+	temps := struct {
+		Profile string
+		Region  string
+	}{
+		Profile: *flagProfile,
+		Region:  *flagRegion,
+	}
+
+	var files = make([]string, 0)
+	files = append(files, filepath.Join(gopath, "src", kontrolPath, "files"))
+
+	// change our upstartscript because it's a template
+	var configUpstart string
+	var err error
+	if !*flagDisableUpstart {
+		kontrolUpstart := filepath.Join(gopath, "src", kontrolPath, "files/kontrol.conf")
+		configUpstart, err = prepareUpstart(kontrolUpstart, temps)
+		if err != nil {
+			return err
+		}
+		defer os.Remove(configUpstart)
+	}
+
+	term := pkg{
+		appName:       *flagApp,
+		importPath:    kontrolPath,
+		files:         files,
+		version:       "0.0.5",
+		upstartScript: configUpstart,
+	}
+
+	return term.build()
 }
 
 func buildTerminal() error {
@@ -215,7 +259,7 @@ func buildKontrolProxy() error {
 		appName:       *flagApp,
 		importPath:    kdproxyPath,
 		files:         files,
-		version:       "0.0.5",
+		version:       "0.0.6",
 		upstartScript: configUpstart,
 	}
 

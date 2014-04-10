@@ -53,17 +53,14 @@ compileGoBinaries = (configFile,callback)->
       stderr : process.stderr
       verbose : yes
       onExit :->
-        if configFile == "vagrant"
-          processes.spawn
-            name: 'build go in vagrant'
-            cmd : 'vagrant ssh default --command "/opt/koding/go/build.sh bin-vagrant"'
-            stdout : process.stdout
-            stderr : process.stderr
-            verbose : yes
-            onExit :->
-              callback null
-        else
-          callback null
+        processes.spawn
+          name: 'build go in vagrant'
+          cmd : 'vagrant ssh default --command "/opt/koding/go/build.sh bin-vagrant"'
+          stdout : process.stdout
+          stderr : process.stderr
+          verbose : yes
+          onExit :->
+            callback null
   else
     callback null
 
@@ -432,7 +429,7 @@ task 'persistence', "Run persistence", (options)->
 task 'osKite', "Run the osKite", ({configFile})->
   processes.spawn
     name  : 'osKite'
-    cmd   : if configFile == "vagrant" then "vagrant ssh default -c 'cd /opt/koding; sudo killall -q -KILL os; sudo KITE_HOME=/opt/koding/kite_home KITE_KONTROL_URL='ws://192.168.50.1:4000/kontrol' /opt/koding/go/bin-vagrant/os -c #{configFile} -r vagrant -t go/src/koding/oskite/files/templates/'" else "./go/bin/os -c #{configFile}"
+    cmd   : if configFile == "vagrant" then "vagrant ssh default -c 'cd /opt/koding; sudo killall -q -KILL os; sudo KITE_HOME=/opt/koding/kite_home/koding /opt/koding/go/bin-vagrant/os -c #{configFile} -r vagrant -t go/src/koding/oskite/files/templates/'" else "./go/bin/os -c #{configFile}"
     restart: no
     stdout  : process.stdout
     stderr  : process.stderr
@@ -441,7 +438,7 @@ task 'osKite', "Run the osKite", ({configFile})->
 task 'terminalKite', "Run the terminalKite", ({configFile})->
   processes.spawn
     name  : 'terminalKite'
-    cmd   : if configFile == "vagrant" then "vagrant ssh default -c 'cd /opt/koding; sudo killall -q -KILL terminal; sudo KITE_HOME=/opt/koding/kite_home KITE_KONTROL_URL='ws://192.168.50.1:4000/kontrol' /opt/koding/go/bin-vagrant/terminal -c #{configFile} -r vagrant'" else "./go/bin/terminal -c #{configFile}"
+    cmd   : if configFile == "vagrant" then "vagrant ssh default -c 'cd /opt/koding; sudo killall -q -KILL terminal; sudo DNODE_PRINT_RECV=1 KITE_HOME=/opt/koding/kite_home/koding /opt/koding/go/bin-vagrant/terminal -c #{configFile} -r vagrant'" else "./go/bin/terminal -c #{configFile}"
     restart: no
     stdout  : process.stdout
     stderr  : process.stderr
@@ -533,7 +530,16 @@ task 'kontrolKite', "Run the kontrol kite", (options) ->
   {configFile} = options
   processes.spawn
     name    : 'kontrolKite'
-    cmd     : "KITE_HOME=kite_home ./go/bin/kontrol -c #{configFile} -r vagrant"
+    cmd     : "vagrant ssh default -c 'cd /opt/koding; sudo killall -q -KILL kontrol; sudo KITE_HOME=/opt/koding/kite_home/koding /opt/koding/go/bin-vagrant/kontrol -c #{configFile} -r vagrant'"
+    stdout  : process.stdout
+    stderr  : process.stderr
+    verbose : yes
+
+task 'proxyKite', "Run the proxy kite", (options) ->
+  {configFile} = options
+  processes.spawn
+    name    : 'proxyKite'
+    cmd     : "vagrant ssh default -c 'cd /opt/koding; sudo killall -q -KILL proxy; sudo KITE_HOME=/opt/koding/kite_home/koding /opt/koding/go/bin-vagrant/proxy -c #{configFile} -r vagrant'"
     stdout  : process.stdout
     stderr  : process.stderr
     verbose : yes
@@ -542,7 +548,7 @@ task 'regservKite', "Run the regserv kite", (options) ->
   {configFile} = options
   processes.spawn
     name    : 'regservKite'
-    cmd     : "KITE_HOME=kite_home ./go/bin/regserv -c #{configFile} -region vagrant -port 8090"
+    cmd     : "vagrant ssh default -c 'cd /opt/koding; sudo killall -q -KILL regserv; sudo KITE_HOME=/opt/koding/kite_home/koding /opt/koding/go/bin-vagrant/regserv -c #{configFile} -r vagrant'"
     stdout  : process.stdout
     stderr  : process.stderr
     verbose : yes
@@ -589,6 +595,11 @@ run =({configFile})->
   compileGoBinaries configFile, ->
     invoke 'kontrolDaemon'                    if config.runKontrol
     invoke 'kontrolApi'                       if config.runKontrol
+
+    invoke 'kontrolKite'                      if config.runKontrol
+    invoke 'proxyKite'                        if config.runKontrol
+    invoke 'regservKite'                      if config.runKontrol
+
     invoke 'goBroker'                         if config.runGoBroker
     invoke 'goBrokerKite'                     if config.runGoBrokerKite
     invoke 'premiumBroker'                    if config.runPremiumBroker

@@ -158,6 +158,7 @@ module.exports =
     useStaticFileServer: no
     staticFilesBaseUrl: "https://koding.com"
     runtimeOptions:
+      kites: require './kites.coffee'
       osKitePollingMs: 1000 * 60 # 1 min
       userIdleMs: 1000 * 60 * 5 # 5 min
       sessionCookie :
@@ -195,7 +196,7 @@ module.exports =
       uploadsUriForGroup: 'https://koding-groups.s3.amazonaws.com'
       sourceUri : "http://webserver-#{version}a.sj.koding.com:1337"
       newkontrol:
-        url         : 'wss://newkontrol.sj.koding.com/kontrol'
+        url         : 'wss://kontrol.koding.com'
       fileFetchTimeout: 15 * 1000 # seconds
       externalProfiles  :
         github          :
@@ -295,8 +296,11 @@ module.exports =
   pidFile       : '/tmp/koding.server.pid'
   haproxy:
     webPort     : 3020
+  newkites      :
+    useTLS          : yes
+    certFile        : "/etc/ssl/koding/wildcard.sj.koding.com.crt"
+    keyFile         : "/etc/ssl/koding/wildcard.sj.koding.com.key"
   newkontrol      :
-    username        : "koding"
     port            : 443
     useTLS          : yes
     certFile        : "/opt/koding/certs/koding_com_cert.pem"

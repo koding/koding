@@ -5,32 +5,31 @@ import (
 	"testing"
 	"time"
 
+	"github.com/koding/kite/dnode"
 	_ "github.com/koding/kite/testutil"
 )
 
 // Test 2 way communication between kites.
 func TestKite(t *testing.T) {
+	// Create a mathworker kite
 	mathKite := New("mathworker", "0.0.1")
 	mathKite.HandleFunc("square", Square)
 	mathKite.HandleFunc("squareCB", SquareCB)
 	mathKite.Config.DisableAuthentication = true
 	go http.ListenAndServe("127.0.0.1:3636", mathKite)
 
-	exp2Kite := New("exp2", "0.0.1")
-	go http.ListenAndServe("127.0.0.1:3637", exp2Kite)
-
-	// Wait until they start serving
+	// Wait until it's started
 	time.Sleep(time.Second)
 
+	// Create exp2 kite
+	exp2Kite := New("exp2", "0.0.1")
 	fooChan := make(chan string)
-	handleFoo := func(r *Request) (interface{}, error) {
+	exp2Kite.HandleFunc("foo", func(r *Request) (interface{}, error) {
 		s := r.Args.One().MustString()
 		t.Logf("Message received: %s\n", s)
 		fooChan <- s
 		return nil, nil
-	}
-
-	exp2Kite.HandleFunc("foo", handleFoo)
+	})
 
 	// exp2 connects to mathworker
 	remote := exp2Kite.NewClientString("ws://127.0.0.1:3636")
@@ -62,13 +61,12 @@ func TestKite(t *testing.T) {
 	}
 
 	resultChan := make(chan float64, 1)
-	resultCallback := func(r *Request) {
-		t.Logf("Request: %#v\n", r)
-		n := r.Args.One().MustFloat64()
+	resultCallback := func(args *dnode.Partial) {
+		n := args.One().MustFloat64()
 		resultChan <- n
 	}
 
-	result, err = remote.Tell("squareCB", 3, Callback(resultCallback))
+	result, err = remote.Tell("squareCB", 3, dnode.Callback(resultCallback))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -85,7 +83,7 @@ func TestKite(t *testing.T) {
 
 // Returns the result. Also tests reverse call.
 func Square(r *Request) (interface{}, error) {
-	a := r.Args[0].MustFloat64()
+	a := r.Args.One().MustFloat64()
 	result := a * a
 
 	r.LocalKite.Log.Info("Kite call, sending result '%f' back\n", result)
@@ -107,7 +105,7 @@ func SquareCB(r *Request) (interface{}, error) {
 	r.LocalKite.Log.Info("Kite call, sending result '%f' back\n", result)
 
 	// Send the result.
-	err := cb(result)
+	err := cb.Call(result)
 	if err != nil {
 		return nil, err
 	}

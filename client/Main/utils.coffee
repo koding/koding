@@ -484,9 +484,8 @@ utils.extend utils,
   showSaveDialog: (container, callback = noop, options = {}) ->
     container.addSubView dialog = new KDDialogView
       cssClass      : KD.utils.curry "save-as-dialog", options.cssClass
-      duration      : 200
-      topOffset     : 0
       overlay       : yes
+      container     : container
       height        : "auto"
       buttons       :
         Save        :
@@ -496,9 +495,10 @@ utils.extend utils,
           style     : "solid medium"
           callback  : =>
             finderController.stopAllWatchers()
-            delete finderController
             finderController.destroy()
-            dialog.destroy()
+            dialog.hide()
+
+    dialog.on 'KDObjectWillBeDestroyed', -> container.ace?.focus()
 
     dialog.addSubView wrapper = new KDView
       cssClass : "kddialog-wrapper"
@@ -624,6 +624,9 @@ utils.extend utils,
 
   doesEmailValid: (email) -> /@/.test email
 
+  setPrototypeOf: Object.setPrototypeOf ? (obj, proto) ->
+    obj.__proto__ = proto
+
   nicetime: do ->
 
     niceify = (duration)->
@@ -666,3 +669,4 @@ utils.extend utils,
         from = new Date().getTime() / 1000
         to   = to
         niceify to - from
+

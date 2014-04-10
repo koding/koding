@@ -3,6 +3,7 @@ package terminal
 import (
 	"bytes"
 	"errors"
+	"fmt"
 	"koding/tools/kite"
 	"koding/tools/pty"
 	"koding/tools/utils"
@@ -92,6 +93,8 @@ func webtermConnectNew(r *kitelib.Request, vos *virt.VOS) (interface{}, error) {
 			}
 		}
 
+		fmt.Printf("params %#v\n", params)
+
 		user := new(virt.User)
 		if err := mongodbConn.Run("jUsers", func(c *mgo.Collection) error {
 			return c.Find(bson.M{"username": params.JoinUser}).One(&user)
@@ -131,7 +134,7 @@ func webtermConnectNew(r *kitelib.Request, vos *virt.VOS) (interface{}, error) {
 		cmd.Wait()
 		server.pty.Slave.Close()
 		server.pty.Master.Close()
-		server.remote.SessionEnded()
+		server.remote.SessionEnded.Call()
 	}()
 
 	go func() {
@@ -163,7 +166,7 @@ func webtermConnectNew(r *kitelib.Request, vos *virt.VOS) (interface{}, error) {
 				time.Sleep(time.Second / 100)
 			}
 
-			server.remote.Output(string(utils.FilterInvalidUTF8(buf[:n])))
+			server.remote.Output.Call(string(utils.FilterInvalidUTF8(buf[:n])))
 			if err != nil {
 				break
 			}
@@ -176,8 +179,8 @@ func webtermConnectNew(r *kitelib.Request, vos *virt.VOS) (interface{}, error) {
 }
 
 // Input is called when some text is written to the terminal.
-func (w *WebtermServerNew) Input(req *kitelib.Request) {
-	data := req.Args.One().MustString()
+func (w *WebtermServerNew) Input(p *kitednode.Partial) {
+	data := p.MustSliceOfLength(1)[0].MustString()
 
 	// There is no need to protect the Write() with a mutex because
 	// Kite Library guarantees that only one message is processed at a time.
@@ -185,13 +188,13 @@ func (w *WebtermServerNew) Input(req *kitelib.Request) {
 }
 
 // ControlSequence is called when a non-printable key is pressed on the terminal.
-func (w *WebtermServerNew) ControlSequence(req *kitelib.Request) {
-	data := req.Args.One().MustString()
+func (w *WebtermServerNew) ControlSequence(p *kitednode.Partial) {
+	data := p.MustSliceOfLength(1)[0].MustString()
 	w.pty.MasterEncoded.Write([]byte(data))
 }
 
-func (w *WebtermServerNew) SetSize(req *kitelib.Request) {
-	args := req.Args.MustSliceOfLength(2)
+func (w *WebtermServerNew) SetSize(p *kitednode.Partial) {
+	args := p.MustSliceOfLength(2)
 	x := args[0].MustFloat64()
 	y := args[1].MustFloat64()
 	w.setSize(x, y)
@@ -205,10 +208,10 @@ func (w *WebtermServerNew) close() {
 	w.pty.Signal(syscall.SIGHUP)
 }
 
-func (w *WebtermServerNew) Close(req *kitelib.Request) {
+func (w *WebtermServerNew) Close(p *kitednode.Partial) {
 	w.pty.Signal(syscall.SIGHUP)
 }
 
-func (w *WebtermServerNew) Terminate(req *kitelib.Request) {
+func (w *WebtermServerNew) Terminate(p *kitednode.Partial) {
 	w.Close(nil)
 }

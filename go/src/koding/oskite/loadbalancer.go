@@ -1,13 +1,13 @@
 package oskite
 
 import (
+	redigo "github.com/garyburd/redigo/redis"
 	"koding/databases/redis"
 	"math/rand"
 	"sort"
 	"strings"
 	"sync"
 	"time"
-	redigo "github.com/garyburd/redigo/redis"
 )
 
 var (
@@ -22,8 +22,11 @@ func (o *Oskite) redisBalancer() {
 	}
 	session.SetPrefix("oskite")
 
-	prefix := "oskite:" + conf.Environment + ":"
-	kontainerSet := "kontainers-" + conf.Environment
+	// oskite:production:sj:
+	prefix := "oskite:" + conf.Environment + ":" + o.Region + ":"
+
+	// kontainers-production-sj
+	kontainerSet := "kontainers-" + conf.Environment + "-" + o.Region
 
 	log.Info("Connected to Redis with %s", prefix+o.ServiceUniquename)
 
