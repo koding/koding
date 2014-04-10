@@ -268,9 +268,11 @@ class VirtualizationController extends KDController
 
   instantiateNewKite: (vm) ->
     new Promise (resolve) =>
-      (@createNewKite 'oskite', vm).on 'vmOn', =>
+      oskite = @createNewKite 'oskite', vm
+      oskite.on 'vmOn', =>
         @createNewKite 'terminal', vm
-        resolve()
+      oskite.on 'vm.state.info', (state) =>
+        resolve()  unless state.state is "FAILED"
 
   registerKites: (vms) ->
     Promise.all vms.map @bound 'registerKite'
