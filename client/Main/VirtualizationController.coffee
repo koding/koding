@@ -264,23 +264,32 @@ class VirtualizationController extends KDController
     return kite
 
   registerNewKites: (vms) ->
-    vms.forEach (vm) =>
+    Promise.all vms.map @bound 'instantiateNewKite'
+
+  instantiateNewKite: (vm) ->
+    new Promise (resolve) =>
       (@createNewKite 'oskite', vm).on 'vmOn', =>
         @createNewKite 'terminal', vm
+        resolve()
 
-  registerKite: (vm, callback=->) ->
-    alias = vm.hostnameAlias
-    kite = @getKite vm, 'os'
+  registerKites: (vms) ->
+    Promise.all vms.map @bound 'registerKite'
 
-    @kites[alias] = kite
+  registerKite: (vm, callback) ->
+    new Promise (resolve) ->
+      alias = vm.hostnameAlias
+      kite = @getKite vm, 'os'
 
-    @listenToVmState vm, kite
+      @kites[alias] = kite
 
-    # we need to wait until the vm is on before opening a connection to the
-    # terminal kite.
-    kite.on 'ready', =>
-      @terminalKites[alias] = @getKite vm, 'terminal'
-      callback null
+      @listenToVmState vm, kite
+
+      # we need to wait until the vm is on before opening a connection to the
+      # terminal kite.
+      kite.on 'ready', =>
+        @terminalKites[alias] = @getKite vm, 'terminal'
+        resolve()
+    .nodeify callback
 
 
   listenToVmState: (vm, kite) ->
@@ -367,13 +376,13 @@ class VirtualizationController extends KDController
 
   handleFetchedVms: (vms, callback) ->
     @shouldUseNewKites().then (useNewKites) =>
-      if useNewKites
-        @registerNewKites vms
-      else
-        @registerKite vm for vm in vms
-
-      @emit "KitesRegistered"
-
+      (
+        if useNewKites
+          @registerNewKites vms
+        else
+          @registerKites vms
+      ).then =>
+        @emit "KitesRegistered"
     .catch(warn)
     .nodeify callback
 
