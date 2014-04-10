@@ -53,30 +53,35 @@ func vmCreateSnapshotOld(args *dnode.Partial, c *kite.Channel, vos *virt.VOS) (i
 }
 
 func spawnFuncOld(args *dnode.Partial, c *kite.Channel, vos *virt.VOS) (interface{}, error) {
-	var command []string
+	var params struct {
+		Command []string
+	}
 
 	if args == nil {
 		return nil, &kite.ArgumentError{Expected: "empty argument passed"}
 	}
 
-	if args.Unmarshal(&command) != nil {
-		return nil, &kite.ArgumentError{Expected: "[array of strings]"}
+	if args.Unmarshal(&params) != nil || len(params.Command) == 0 {
+		return nil, &kite.ArgumentError{Expected: "{command : [array of strings]}"}
 	}
 
-	return spawnFunc(command, vos)
+	return spawnFunc(params.Command, vos)
 }
 
 func execFuncOld(args *dnode.Partial, c *kite.Channel, vos *virt.VOS) (interface{}, error) {
-	var line string
+	var params struct {
+		Line string
+	}
+
 	if args == nil {
 		return nil, &kite.ArgumentError{Expected: "empty argument passed"}
 	}
 
-	if args.Unmarshal(&line) != nil {
-		return nil, &kite.ArgumentError{Expected: "[string]"}
+	if args.Unmarshal(&params) != nil || params.Line == "" {
+		return nil, &kite.ArgumentError{Expected: "{line : [string]}"}
 	}
 
-	return execFunc(line, vos)
+	return execFunc(params.Line, vos)
 }
 
 ////////////////////

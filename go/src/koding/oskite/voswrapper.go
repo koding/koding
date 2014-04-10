@@ -203,7 +203,7 @@ func spawnFuncNew(r *kitelib.Request, vos *virt.VOS) (interface{}, error) {
 	}
 
 	if r.Args.One().Unmarshal(&params) != nil || len(params.Command) == 0 {
-		return nil, &kite.ArgumentError{Expected: "[array of strings]"}
+		return nil, &kite.ArgumentError{Expected: "{command : [array of strings]}"}
 	}
 
 	return spawnFunc(params.Command, vos)
@@ -215,7 +215,7 @@ func execFuncNew(r *kitelib.Request, vos *virt.VOS) (interface{}, error) {
 	}
 
 	if r.Args.One().Unmarshal(&params) != nil || params.Line == "" {
-		return nil, &kite.ArgumentError{Expected: "[string]"}
+		return nil, &kite.ArgumentError{Expected: "{line : [string]}"}
 	}
 
 	return execFunc(params.Line, vos)
