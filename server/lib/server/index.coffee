@@ -162,18 +162,22 @@ app.get "/-/subscription/check/:kiteToken?/:user?/:group?", (req, res) ->
               if err or not plans
                 return res.send 401, err: "KITE_HAS_NO_PLAN"
 
-              subsIds = subs.map (sub) -> sub.planCode
-              userPlan = {}
+              subsIds    = subs.map (sub) -> sub.planCode
+              userPlan   = {}
+              subscribed = no
 
               for plan in plans
                 {planCode, title} = plan.data
 
                 if subsIds.indexOf(planCode) > -1
+                  subscribed = yes
                   userPlan   =
                     planId   : planCode
                     planName : title
 
-              res.send 200, userPlan
+              if subscribed then res.send 200, userPlan
+              else
+                res.send 401, err: "NO_SUBSCRIPTION"
 
 app.get "/-/8a51a0a07e3d456c0b00dc6ec12ad85c", require './__notify-users'
 
