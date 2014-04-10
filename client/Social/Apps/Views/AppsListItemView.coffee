@@ -29,7 +29,7 @@ class AppsListItemView extends KDListItemView
 
     @kiteButton     = new KDButtonView
       cssClass      : 'run'
-      title         : 'Details'
+      title         : 'details'
       callback      : =>
         {name, authorNick} = @getData().manifest
         KD.getSingleton("router").handleRoute "/Kites/#{authorNick}/#{name}"
