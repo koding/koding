@@ -1,9 +1,10 @@
 package v1
 
 import (
-	"github.com/coreos/etcd/store"
-	"github.com/coreos/etcd/third_party/github.com/coreos/raft"
 	"net/http"
+
+	"github.com/coreos/etcd/store"
+	"github.com/coreos/etcd/third_party/github.com/goraft/raft"
 )
 
 // The Server interface provides all the methods required for the v1 API.

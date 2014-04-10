@@ -91,6 +91,7 @@ class KiteController extends KDController
     delete @channels[name]
 
   run:(options = {}, callback)->
+    console.warn "KiteController#run is deprecated"
 
     if "string" is typeof options
       command = options
@@ -112,7 +113,9 @@ class KiteController extends KDController
 
     kite =
       if KD.useNewKites
-      then KD.getSingleton('vmController').getKiteByVmName correlationName
+      then KD.getSingleton('kontrol').getKite {
+        name: options.kiteName, correlationName
+      }
       else @getKite options.kiteName, correlationName
 
     if command
@@ -135,7 +138,7 @@ class KiteController extends KDController
       else Promise.cast()
 
     ok.then =>
-      kite.tell2 options.method, options.withArgs
+      kite.tell options.method, options.withArgs
 
     .nodeify (err, response) =>
       @parseKiteResponse {err, response}, options, callback

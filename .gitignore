@@ -64,3 +64,5 @@ kontrolUUID-*
 /newrelic_agent.log
 
 logs/*.log
+
+node_modules_koding/processes/src/.tmp*

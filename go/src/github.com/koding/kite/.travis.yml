@@ -1,0 +1,7 @@
+language: go
+go: 1.2
+install:
+  - go get -d -v ./...
+  - go build -v ./...
+script:
+  - ./test.sh

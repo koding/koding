@@ -130,6 +130,6 @@ class Kite extends Pinger
     channelName = "#{@entropy}.#{nickname}.#{@qualifiedName}"
     return channelName
 
-  tell:(options, callback) ->
+  tellOld:(options, callback) ->
     @handleRequest options.method, [options, callback]
 

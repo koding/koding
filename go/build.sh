@@ -15,6 +15,7 @@ services=(
   koding/persistence
   koding/kites/os
   koding/kites/terminal
+  github.com/koding/kite/cmd/kite
   koding/kites/kontrol
   koding/kites/regserv
   koding/kites/proxy

@@ -19,6 +19,7 @@ class TroubleshootStatusView extends KDCustomHTMLView
     liveUpdate  : "Live Updates"
     broker      : "#{premium} Messaging Server"
     brokerKite  : "#{premium} Kite Messaging Server"
+    newKite     : "New Kites"
     osKite      : "VM Server"
     vm          : "Your VMs"
     webServer   : "Webserver"
