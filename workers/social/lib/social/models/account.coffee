@@ -1371,17 +1371,17 @@ module.exports = class JAccount extends jraphical.Module
       JGroup = require './group'
       JGroup.one { slug }, (err, groupObj)->
         return callback err  if err
-        callback null, invite, groupObj
+        callback null, { invite, group: groupObj }
 
   acceptInvitation: secure (client, slug, callback)->
-    @fetchInvitationByGroupSlug slug, (err, invite, groupObj)=>
+    @fetchInvitationByGroupSlug slug, (err, { invite, group })=>
       return callback err  if err
       groupObj.approveMember this, (err)->
         return callback err  if err
         invite.update $set:status:'accepted', callback
 
   ignoreInvitation: secure (client, slug, callback)->
-    @fetchInvitationByGroupSlug slug, (err, invite)->
+    @fetchInvitationByGroupSlug slug, (err, { invite })->
       return callback err  if err
       invite.update $set:status:'ignored', callback
 
