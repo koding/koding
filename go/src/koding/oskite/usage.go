@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"koding/db/models"
+	"koding/db/mongodb/modelhelper"
 	"koding/tools/dnode"
 	"koding/tools/kite"
 	"koding/virt"
@@ -26,6 +27,13 @@ const (
 	ErrKiteNoPlan       = "KITE_HAS_NO_PLAN"
 	ErrNoSubscription   = "NO_SUBSCRIPTION"
 )
+
+type KiteStore struct {
+	Id          bson.ObjectId `bson:"_id"`
+	Name        string        `bson:"name"`
+	Description string        `bson:"description"`
+	KiteCode    string        `bson:"kiteCode"`
+}
 
 type Plan struct {
 	CPU         int `json:"cpu"`
@@ -61,6 +69,7 @@ var (
 
 	okString      = "ok"
 	quotaExceeded = "quota exceeded."
+	kiteCode      string
 )
 
 func NewPlanResponse() *PlanResponse {
@@ -73,14 +82,45 @@ func NewPlanResponse() *PlanResponse {
 	}
 }
 
-func NewUsage(vos *virt.VOS) (*Plan, error) {
-	vms := make([]*models.VM, 0)
-
-	query := func(c *mgo.Collection) error {
-		return c.Find(bson.M{"webHome": vos.VM.WebHome}).Iter().All(&vms)
+func vmUsage(args *dnode.Partial, vos *virt.VOS, username string) (interface{}, error) {
+	var params struct {
+		GroupName string
 	}
 
-	err := mongodbConn.Run("jVMs", query)
+	if args == nil {
+		return nil, &kite.ArgumentError{Expected: "empy argument passed"}
+	}
+
+	if args.Unmarshal(&params) != nil || params.GroupName == "" {
+		return nil, &kite.ArgumentError{Expected: "{ groupName: [string] }"}
+	}
+
+	usage, err := NewUsage(vos, params.GroupName)
+	if err != nil {
+		log.Info("vm.usage [%s] err: %v", vos.VM.HostnameAlias, err)
+		return nil, errors.New("vm.usage couldn't be retrieved. please consult to support.")
+	}
+
+	return usage.checkLimits(username, params.GroupName)
+}
+
+func NewUsage(vos *virt.VOS, groupname string) (*Plan, error) {
+	group, err := modelhelper.GetGroup(groupname)
+	if err != nil {
+		return nil, fmt.Errorf("modelhelper.GetGroup: %s", err)
+	}
+
+	vms := make([]*models.VM, 0)
+
+	// db.jVMs.find({"webHome":"foo", "groups": {$in:[{"id":ObjectId("5196fcb2bc9bdb0000000027")}]}})
+	query := func(c *mgo.Collection) error {
+		return c.Find(bson.M{
+			"webHome": vos.VM.WebHome,
+			"groups":  bson.M{"$in": []bson.M{bson.M{"id": group.Id}}},
+		}).Iter().All(&vms)
+	}
+
+	err = mongodbConn.Run("jVMs", query)
 	if err != nil {
 		return nil, fmt.Errorf("vm fetching err for user %s. err: %s", vos.VM.WebHome, err)
 	}
@@ -98,23 +138,27 @@ func NewUsage(vos *virt.VOS) (*Plan, error) {
 		usage.Disk += vm.DiskSizeInMB
 	}
 
+	fmt.Printf("usage %+v\n", usage)
 	return usage, nil
 }
 
 func (p *Plan) checkLimits(username, groupname string) (*PlanResponse, error) {
-	planID, err := getSubscription(username, groupname)
+	sub, err := getSubscription(username, groupname)
 	if err != nil {
-		log.Critical("oskite checkLimits err: %v", err)
+		log.Warning("oskite checkLimits err: %v", err)
 		return nil, errors.New("couldn't fetch subscription")
 	}
 
-	plan, ok := plans[planID]
+	if sub.PlanId == "" {
+		return nil, errors.New("planID is empty")
+	}
+
+	plan, ok := plans[sub.PlanId]
 	if !ok {
 		return nil, errors.New("plan doesn't exist")
 	}
 
 	resp := NewPlanResponse()
-
 	if p.AlwaysOnVMs >= plan.AlwaysOnVMs {
 		resp.AlwaysOnVMs = quotaExceeded
 	}
@@ -126,36 +170,13 @@ func (p *Plan) checkLimits(username, groupname string) (*PlanResponse, error) {
 	return resp, nil
 }
 
-func vmUsage(args *dnode.Partial, vos *virt.VOS, username string) (interface{}, error) {
-	var params struct {
-		GroupName string
-	}
-
-	if args == nil {
-		return nil, &kite.ArgumentError{Expected: "empy argument passed"}
-	}
-
-	if args.Unmarshal(&params) != nil || params.GroupName == "" {
-		return nil, &kite.ArgumentError{Expected: "{ groupName: [string] }"}
-	}
-
-	usage, err := NewUsage(vos)
-	if err != nil {
-		log.Info("vm.usage [%s] err: %v", vos.VM.HostnameAlias, err)
-		return nil, errors.New("vm.usage couldn't be retrieved. please consult to support.")
-	}
-
-	return usage.checkLimits(username, params.GroupName)
-}
-
-type KiteStore struct {
-	Id          bson.ObjectId `bson:"_id"`
-	Name        string        `bson:"name"`
-	Description string        `bson:"description"`
-	KiteCode    string        `bson:"kiteCode"`
-}
-
+// getKiteCode returns the API token to be used with Koding's subscription
+// endpoint.
 func getKiteCode() (string, error) {
+	if kiteCode != "" {
+		return kiteCode, nil
+	}
+
 	kiteStore := new(KiteStore)
 
 	query := func(c *mgo.Collection) error {
@@ -167,42 +188,45 @@ func getKiteCode() (string, error) {
 		return "", err
 	}
 
+	kiteCode = kiteStore.KiteCode
+
 	return kiteStore.KiteCode, nil
 }
 
-func getSubscription(username, groupname string) (string, error) {
-	// TODO: get it once
+func getSubscription(username, groupname string) (*subscriptionResp, error) {
 	code, err := getKiteCode()
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
 	if code == "" {
-		return "", errors.New("kite code is empty")
+		return nil, errors.New("kite code is empty")
 	}
 
-	resp, err := http.Get(conf.SubscriptionEndpoint + code + "/" + username + "/" + groupname)
+	endpointURL := conf.SubscriptionEndpoint + code + "/" + username + "/" + groupname
+
+	resp, err := http.Get(endpointURL)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 	defer resp.Body.Close()
 
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
-	var s = new(subscriptionResp)
-	if err := json.Unmarshal(body, s); err != nil {
-		return "", errors.New("Subscription data is malformed")
+	var sub = new(subscriptionResp)
+	if err := json.Unmarshal(body, sub); err != nil {
+		return nil, errors.New("Subscription data is malformed")
 	}
 
 	if resp.StatusCode != 200 {
-		if s.Err != "" {
-			return "", errors.New(s.Err)
+		if sub.Err != "" {
+			return nil, errors.New(sub.Err)
 		}
-		return "", errors.New("api not allowed")
+		return nil, errors.New("api not allowed")
 	}
 
-	return s.Plan, nil
+	return sub, nil
 }
