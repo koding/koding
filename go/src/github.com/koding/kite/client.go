@@ -146,7 +146,7 @@ func (c *Client) DialForever() (connected chan bool, err error) {
 	c.LocalKite.Log.Info("Dialing remote kite: [%s %s]", c.Kite.Name, c.WSConfig.Location.String())
 
 	c.Reconnect = true
-	connected = make(chan bool, 1)
+	connected = make(chan bool, 1) // This will be closed on first connection.
 	go c.dialForever(connected)
 	return
 }
@@ -201,29 +201,23 @@ func (c *Client) dialForever(connectNotifyChan chan bool) {
 
 	backoff.Retry(dial, &c.redialBackOff) // this will retry dial forever
 
-	close(connectNotifyChan) // This is executed only once.
+	if connectNotifyChan != nil {
+		close(connectNotifyChan)
+	}
 
 	go c.run()
 }
 
 // run consumes incoming dnode messages. Reconnects if necessary.
-func (c *Client) run() (err error) {
-	for {
-		err = c.readLoop()
+func (c *Client) run() {
+	c.readLoop()
 
-		// falls here when connection disconnects
-		c.callOnDisconnectHandlers()
+	// falls here when connection disconnects
+	c.callOnDisconnectHandlers()
 
-		if !c.Reconnect {
-			break
-		}
-
-		// Redial
-		connected := make(chan bool, 1)
-		go c.dialForever(connected)
-		<-connected
+	if c.Reconnect {
+		go c.dialForever(nil)
 	}
-	return
 }
 
 // readLoop reads a message from websocket and processes it.
