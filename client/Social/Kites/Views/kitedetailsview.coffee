@@ -11,15 +11,19 @@ class KiteDetailsView extends JView
       title     : "SUBSCRIBE"
       cssClass  : "run"
 
-    @pricing    = new KDView
+    @productForm = new KiteProductForm null, @getData()
+    @productForm.on "PlanSelected", @bound "showPaymentModal"
+
+  showPaymentModal: (plan) ->
+    placeholder = new KDView cssClass: "placeholder"
     payment     = KD.singleton "paymentController"
-    productForm = new KiteProductForm null, @getData()
-    workflow    = payment.createUpgradeWorkflow { productForm }
 
-    @pricing.addSubView workflow
-
+    workflow = payment.createUpgradeWorkflow productForm: placeholder
     workflow.on "SubscriptionTransitionCompleted", -> log ">>>>"
     workflow.on "Failed", (err) -> KD.showError err
+
+    new KDModalView view: workflow
+    KD.utils.defer placeholder.lazyBound "emit", "PlanSelected", plan
 
   pistachio: ->
     {name, createdAt, manifest:{description, author, authorNick, readme}} = @getData()
@@ -39,7 +43,7 @@ class KiteDetailsView extends JView
         <div class="kdview app-extras pricing">
           <div class="kdview readme has-markdown">
             <h2>Pricing</h2>
-            {{> @pricing}}
+            {{> @productForm}}
           </div>
         </div>
         <div class="kdview app-extras">
