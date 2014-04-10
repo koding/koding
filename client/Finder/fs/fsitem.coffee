@@ -8,8 +8,7 @@ class FSItem extends KDObject
 
   @create:({ path, type, vmName, treeController }, callback)->
 
-    kite = KD.getSingleton('vmController').getKiteByVmName vmName
-
+    kite = @getKite()
     kite.vmOn().then ->
 
       plainPath = FSHelper.plainPath path
