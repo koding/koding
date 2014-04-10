@@ -163,8 +163,8 @@ class WebTermView extends KDView
       @appStorage.setValue 'visualBell', false if not @appStorage.getValue('visualBell')?
       @appStorage.setValue 'scrollback', 1000 if not @appStorage.getValue('scrollback')?
       @updateSettings()
-
-      @webtermConnect()
+      {mode} = @getOptions()
+      @webtermConnect mode
 
     KD.getSingleton("kiteController").on "KiteError", (err) =>
       log "kite error:", err
