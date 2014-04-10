@@ -103,19 +103,22 @@ func NewUsage(vos *virt.VOS) (*Plan, error) {
 }
 
 func (p *Plan) checkLimits(username, groupname string) (*PlanResponse, error) {
-	planID, err := getSubscription(username, groupname)
+	sub, err := getSubscription(username, groupname)
 	if err != nil {
 		log.Critical("oskite checkLimits err: %v", err)
 		return nil, errors.New("couldn't fetch subscription")
 	}
 
-	plan, ok := plans[planID]
+	if sub.PlanId == "" {
+		return nil, errors.New("planID is empty")
+	}
+
+	plan, ok := plans[sub.PlanId]
 	if !ok {
 		return nil, errors.New("plan doesn't exist")
 	}
 
 	resp := NewPlanResponse()
-
 	if p.AlwaysOnVMs >= plan.AlwaysOnVMs {
 		resp.AlwaysOnVMs = quotaExceeded
 	}
@@ -179,41 +182,40 @@ func getKiteCode() (string, error) {
 	return kiteStore.KiteCode, nil
 }
 
-func getSubscription(username, groupname string) (string, error) {
-	// TODO: get it once
+func getSubscription(username, groupname string) (*subscriptionResp, error) {
 	code, err := getKiteCode()
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
 	if code == "" {
-		return "", errors.New("kite code is empty")
+		return nil, errors.New("kite code is empty")
 	}
 
 	endpointURL := conf.SubscriptionEndpoint + code + "/" + username + "/" + groupname
 
 	resp, err := http.Get(endpointURL)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 	defer resp.Body.Close()
 
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
-	var s = new(subscriptionResp)
-	if err := json.Unmarshal(body, s); err != nil {
-		return "", errors.New("Subscription data is malformed")
+	var sub = new(subscriptionResp)
+	if err := json.Unmarshal(body, sub); err != nil {
+		return nil, errors.New("Subscription data is malformed")
 	}
 
 	if resp.StatusCode != 200 {
-		if s.Err != "" {
-			return "", errors.New(s.Err)
+		if sub.Err != "" {
+			return nil, errors.New(sub.Err)
 		}
-		return "", errors.New("api not allowed")
+		return nil, errors.New("api not allowed")
 	}
 
-	return s.Plan, nil
+	return sub, nil
 }
