@@ -6,3 +6,4 @@ class KodingKite_TerminalKite extends KodingKite_VmKite
     webtermGetSessions: 'webterm.getSessions'
     webtermConnect    : 'webterm.connect'
     webtermKillSession: 'webterm.killSession'
+    webtermPing       : 'webterm.ping'
