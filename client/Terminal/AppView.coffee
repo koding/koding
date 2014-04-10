@@ -73,7 +73,9 @@ class WebTermAppView extends JView
           then kontrol.kites.terminal
           else vmController.terminalKites
         queue = aliases.map (alias)->->
-          kites[alias].webtermGetSessions().then (sessions) =>
+          # when we have sessions from another xontext in appStorage
+          # prevent restoring sessions of terminals in that context
+          kites[alias]?.webtermGetSessions().then (sessions) =>
             activeSessions = activeSessions.concat sessions
             queue.fin()
           .catch (err) ->
