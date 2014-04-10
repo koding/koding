@@ -36,8 +36,8 @@ func NewNotificationWorkerController(rmq *rabbitmq.RabbitMQ, log logging.Logger)
 	}
 
 	routes := map[string]Action{
-		"channel_message_created": (*NotificationWorkerController).CreateReplyNotification,
-		"interaction_created":   (*NotificationWorkerController).CreateInteractionNotification,
+		"api.message_reply_created": (*NotificationWorkerController).CreateReplyNotification,
+		"api.interaction_created":   (*NotificationWorkerController).CreateInteractionNotification,
 	}
 
 	nwc.routes = routes
