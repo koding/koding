@@ -39,10 +39,7 @@ class WebTermAppView extends JView
 
     {vmController} = KD.singletons
     {terminalKites} = vmController
-    if Object.keys(terminalKites).length
-      @restoreTabs()
-    else
-      vmController.on "KitesRegistered", => @restoreTabs()
+    vmController.kitesReady().then @bound 'restoreTabs'
 
   restoreTabs: ->
     @fetchStorage (storage) =>
