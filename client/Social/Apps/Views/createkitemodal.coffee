@@ -115,6 +115,7 @@ class CreateKiteModal extends KDModalViewWithForms
 
       dash queue, (err) =>
         return KD.showError err if err
+        @emit "KiteCreated"
         @destroy()
 
   handleDetailsForm: ->

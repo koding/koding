@@ -173,7 +173,10 @@ class AppsAppController extends AppController
         kiteButton  = new KDButtonView
           title     : "Create New Kite"
           cssClass  : "solid mini green kite-button"
-          callback  : -> new CreateKiteModal
+          callback  : =>
+            kiteModal = new CreateKiteModal
+            kiteModal.once "KiteCreated", =>
+              @feedController.reload()
 
         facets = controller.facetsController.getView()
         facets.addSubView reloadButton
