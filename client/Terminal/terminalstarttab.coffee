@@ -7,6 +7,7 @@ class TerminalStartTab extends JView
     @vmWrapper = new KDCustomHTMLView tagName : 'ul'
 
     @message = new KDCustomHTMLView cssClass : 'terminal-bottom-message'
+    @message.hide()
 
     KD.singletons.notificationController.on 'NotificationHasArrived', ({event}) =>
       if event is "VMCreated" or "VMRemoved"
@@ -105,8 +106,8 @@ class TerminalStartTab extends JView
         <a class="pricing" href="/Pricing">upgrade</a> your current plan and use Always On VMs."""
       else
         message = """If you have active sessions which do not belong to an Always-on VM, you can lose your sessions 15 minutes after you log out or if you leave them idle."""
-
       @message.updatePartial message
+      @message.show()
 
 
 
