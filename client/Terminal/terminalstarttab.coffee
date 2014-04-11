@@ -9,7 +9,7 @@ class TerminalStartTab extends JView
     @message = new KDCustomHTMLView cssClass : 'terminal-bottom-message'
 
     KD.singletons.notificationController.on 'NotificationHasArrived', ({event}) =>
-      if event in ["VMCreated", "VMRemoved"]
+      if event is "VMCreated" or "VMRemoved"
         @wmWrapper = {}
         @viewAppended yes
 
