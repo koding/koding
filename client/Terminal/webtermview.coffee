@@ -107,7 +107,6 @@ class WebTermView extends KDView
       @sessionId = remote.session
 
       @emit "WebTermConnected", remote
-      console.error "just connected"  if mode is "resume"
       @reconnectionInProgress = false
 
     .catch (err) =>
