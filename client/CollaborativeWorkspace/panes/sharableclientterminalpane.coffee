@@ -11,6 +11,8 @@ class SharableClientTerminalPane extends TerminalPane
 
     super options, data
 
+  vmOn: -> Promise.resolve()
+
   getMode: -> 'shared'
 
   fetchVm: (callback)->

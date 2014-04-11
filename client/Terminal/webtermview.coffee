@@ -89,7 +89,7 @@ class WebTermView extends KDView
     { kontrol, kiteController, vmController } = KD.singletons
     vmName = @getVMName()
     if KD.useNewKites
-      kite = KD.kontrol.kites[vmName]
+      kite = KD.singletons.kontrol.kites.terminal[vmName]
       return kite  if kite?
       kontrol.getKite
         name            : 'terminal'

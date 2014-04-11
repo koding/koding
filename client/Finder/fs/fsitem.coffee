@@ -305,7 +305,10 @@ class FSItem extends KDObject
       @emit "fs.job.started"
 
   getKite: ->
-    FSItem.getKite {@vm, @vmName}
+    if @options.dummy
+      return null
+
+    FSItem.getKite { @vm, @vmName }
 
   @getKite = ({vm, vmName})->
     if KD.useNewKites
