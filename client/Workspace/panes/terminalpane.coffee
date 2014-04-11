@@ -11,7 +11,7 @@ class TerminalPane extends Pane
 
   createWebTermView: ->
 
-    KD.singletons.vmController.fetchDefaultVm (err, vm)=>
+    @fetchVm (err, vm)=>
 
       @webterm           = new WebTermView {
         cssClass         : "webterm"
@@ -31,6 +31,10 @@ class TerminalPane extends Pane
         @onWebTermConnected()
 
       # WebTermView.setTerminalTimeout null, 15000, handler, handler
+
+
+  fetchVm: (callback)->
+    KD.singletons.vmController.fetchDefaultVm callback
 
   getMode: -> "create"
 
