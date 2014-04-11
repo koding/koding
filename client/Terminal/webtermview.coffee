@@ -203,8 +203,12 @@ class WebTermView extends KDView
 
     {vm} = @getOptions()
     {hostnameAlias, region} = vm
+    {vmController, kontrol} = KD.singletons
 
-    kite = KD.getSingleton("vmController").terminalKites[hostnameAlias]
+    kite =
+      if KD.useNewKites
+      then kontrol.kites.terminal[hostnameAlias]
+      else vmController.terminalKites[hostnameAlias]
     kite?.webtermGetSessions().then (sessions) =>
       hasResponse = yes
       return if @reconnected
