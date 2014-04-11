@@ -10,15 +10,13 @@ class TerminalStartTab extends JView
     @message.hide()
 
     KD.singletons.notificationController.on 'NotificationHasArrived', ({event}) =>
-      if event is "VMCreated" or "VMRemoved"
+      if event in ["VMCreated", "VMRemoved"]
 
-        @vmWrapper.destroySubViews()
         @viewAppended yes
 
   viewAppended: (force = no) ->
 
     super
-
     @fetchVMs force
     @prepareMessage()
 
@@ -59,6 +57,7 @@ class TerminalStartTab extends JView
 
   listVMs:(vms)->
 
+    @vmWrapper.destroySubViews()
     vms.forEach (vm)=>
       alias             = vm.hostnameAlias
       @vmWrapper[alias] = new TerminalStartTabVMItem {}, vm
