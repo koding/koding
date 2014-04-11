@@ -2,8 +2,9 @@ do->
   KD.singleton('router').on "RouteInfoHandled", (argsForMixpanel)->
     _gaq.push ['_trackPageview', argsForMixpanel.path]
 
-    if argsForMixpanel and (Object.keys(argsForMixpanel)).length is not 0
+    for own _ of argsForMixpanel.query
       KD.mixpanel "Visit page, success", argsForMixpanel
+      break
 
     argsForMixpanel.username = KD.whoami()?.profile?.nickname
     KD.remote.api.JPageHit.create argsForMixpanel, ->
