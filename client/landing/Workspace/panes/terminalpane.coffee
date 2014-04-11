@@ -11,7 +11,7 @@ class TerminalPane extends Pane
 
   createWebTermView: ->
 
-    @fetchVm (err, vm)=>
+    @fetchVm (err, vm) =>
 
       @webterm           = new WebTermView {
         cssClass         : "webterm"
@@ -24,17 +24,27 @@ class TerminalPane extends Pane
       @addSubView @header
       @addSubView @webterm
 
-      @webterm.connectToTerminal()
+      @vmOn(vm).then =>
 
-      @webterm.on "WebTermConnected", (@remote) =>
-        @emit "WebtermCreated"
-        @onWebTermConnected()
+        @webterm.connectToTerminal()
+
+        @webterm.on "WebTermConnected", (@remote) =>
+          @emit "WebtermCreated"
+          @onWebTermConnected()
 
       # WebTermView.setTerminalTimeout null, 15000, handler, handler
 
 
+  notify: (message) -> console.log "notify:", message
+
   fetchVm: (callback)->
     KD.singletons.vmController.fetchDefaultVm callback
+
+  vmOn: (vm) ->
+    { vmController } = KD.singletons
+
+    osKite = vmController.getKite vm, 'os'
+    osKite.vmOn()
 
   getMode: -> "create"
 
