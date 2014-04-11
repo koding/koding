@@ -60,8 +60,11 @@ class KodingKontrol extends (require 'kontrol')
 
       KD.remote.api.JVM.fetchVmRegion correlationName, (err, region)=>
 
-        if err or not region
+        if err
+          return Promise.reject err
+        else if not region
           warn err  if err
+          # It's fallbacking to 'sj' for now but
           region = 'sj'
 
         @regions[correlationName] = region

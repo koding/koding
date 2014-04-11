@@ -19,5 +19,5 @@ class TroubleshootMessageView extends KDCustomHTMLView
     @count--
     {name} = item
     @hide()  unless @count
-    @views[name].destroy()
+    @views[name]?.destroy()
     delete @views[name]
