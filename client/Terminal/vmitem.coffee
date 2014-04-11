@@ -11,8 +11,8 @@ class TerminalStartTabVMItem extends KDCustomHTMLView
 
     super options, data
 
-    vm               = @getData()
-    { vmController } = KD.singletons
+    vm             = @getData()
+    {vmController} = KD.singletons
 
     @loader = new KDLoaderView
       size          : width : 16
@@ -26,6 +26,11 @@ class TerminalStartTabVMItem extends KDCustomHTMLView
 
     @progress = new KDCustomHTMLView
       tagName  : 'cite'
+      cssClass : 'vm-loader'
+
+    @alwaysOn = new KDCustomHTMLView
+      tagName  : 'cite'
+      partial  : if vm.alwaysOn then "always-on" else ""
 
 
   handleVMStart:(update)->
@@ -106,7 +111,7 @@ class TerminalStartTabVMItem extends KDCustomHTMLView
     vm    = @getData()
     alias = vm.hostnameAlias
     """
-    <figure>{{> @loader}}</figure>#{alias.replace 'koding.kd.io', 'kd.io'}{{> @notice}}
+    <figure>{{> @loader}}</figure>#{alias.replace 'koding.kd.io', 'kd.io'} {{> @alwaysOn}} {{> @notice}}
     {{> @progress}}
     """
 

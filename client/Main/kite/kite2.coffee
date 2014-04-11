@@ -30,7 +30,7 @@ class KDKite extends Kite
         return reject createProperError err   if err?
         return resolve restResponse...
 
-      # .tellOld is deprecated, but still used internally here temporarily 
+      # .tellOld is deprecated, but still used internally here temporarily
       @tellOld options, callback
 
     .timeout classTimeout ? 5000

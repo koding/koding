@@ -10,10 +10,10 @@ class WebTerm.Cursor
     @savedX = 0
     @savedY = 0
     @resetBlink()
-  
+
   move: (x, y) ->
     @moveTo @x + x, @y + y
-  
+
   moveTo: (x, y) ->
     x = Math.max x, 0
     y = Math.max y, 0
@@ -41,8 +41,12 @@ class WebTerm.Cursor
     @terminal.screenBuffer.addLineToUpdate @y
 
   setFocused: (value) ->
-    return if @focused is value
+    return if @focused is value or @stopped
     @focused = value
+    @resetBlink()
+
+  stopBlink: ->
+    @stopped = true
     @resetBlink()
 
   resetBlink: ->
@@ -56,7 +60,7 @@ class WebTerm.Cursor
         @inversed = if localStorage?["WebTerm.slowDrawing"] is "true" then true else not @inversed
         @updateCursorElement()
       , 600
-    
+
   addCursorElement: (content) ->
     return content if not @visible
     newContent = content.substring 0, @x

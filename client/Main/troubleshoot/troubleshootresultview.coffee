@@ -32,14 +32,14 @@ class TroubleshootResultView extends KDCustomHTMLView
     liveUpdate :
       slow     : "You will experience slowness with live updates"
       fail     : "You will not receive live updates, and you wont be able to \
-                  connect to your vms"
+                  connect to your VMs"
     version    :
       fail     : "You are currently running an old version of Koding. Please refresh \
                   your page."
     vm         :
       fail     : "One or more of your VMs are not accessible right now. Please try refreshing your page."
       pending  : "Some of your VMs are currently offline. If you want to activate them please \
-                  use Terminal App"
+                  use Terminal app"
 
 
   constructor: (options, data) ->
