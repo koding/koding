@@ -25,7 +25,7 @@ class SessionStackView extends KDView
       @destroySubViews()
       @show()
       @loader.hide()
-      sessions.forEach @bound 'addSession'
+      sessions?.forEach @bound 'addSession'
     .catch (err) =>
       @hide()
       @loader.hide()
