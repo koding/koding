@@ -174,7 +174,7 @@ module.exports =
       socialApiUri: 'https://stage-social.koding.com/xhr'
       suppressLogs: no
       version   : version
-      mainUri   : "http://koding.com"
+      mainUri   : "https://koding.com"
       broker    :
         servicesEndpoint: "/-/services/broker"
       premiumBroker    :
@@ -351,7 +351,7 @@ module.exports =
     secret_url   : "https://www.odesk.com/services/api/auth?oauth_token="
     version      : "1.0"
     signature    : "HMAC-SHA1"
-    redirect_uri : "http://koding.com/-/oauth/odesk/callback"
+    redirect_uri : "https://koding.com/-/oauth/odesk/callback"
   facebook       :
     clientId     : "475071279247628"
     clientSecret : "65cc36108bb1ac71920dbd4d561aca27"
@@ -359,7 +359,7 @@ module.exports =
   google         :
     client_id    : "1058622748167.apps.googleusercontent.com"
     client_secret: "vlF2m9wue6JEvsrcAaQ-y9wq"
-    redirect_uri : "http://localhost:3020/-/oauth/google/callback"
+    redirect_uri : "https://koding.com/-/oauth/google/callback"
   statsd         :
     use          : true
     ip           : "172.168.2.7"
@@ -367,11 +367,11 @@ module.exports =
   linkedin       :
     client_id    : "aza9cks1zb3d"
     client_secret: "zIMa5kPYbZjHfOsq"
-    redirect_uri : "http://koding.com/-/oauth/linkedin/callback"
+    redirect_uri : "https://koding.com/-/oauth/linkedin/callback"
   twitter        :
     key          : "tvkuPsOd7qzTlFoJORwo6w"
     secret       : "48HXyTkCYy4hvUuRa7t4vvhipv4h04y6Aq0n5wDYmA"
-    redirect_uri : "http://koding.com/-/oauth/twitter/callback"
+    redirect_uri : "https://koding.com/-/oauth/twitter/callback"
     request_url  : "https://twitter.com/oauth/request_token"
     access_url   : "https://twitter.com/oauth/access_token"
     secret_url   : "https://twitter.com/oauth/authenticate?oauth_token="
