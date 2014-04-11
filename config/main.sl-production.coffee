@@ -176,7 +176,7 @@ module.exports =
       socialApiUri: 'https://social.koding.com/xhr'
       suppressLogs: yes
       version   : version
-      mainUri   : "http://koding.com"
+      mainUri   : "https://koding.com"
       broker    :
         servicesEndpoint: "/-/services/broker"
         sockJS   : "https://broker.koding.com/subscribe"
