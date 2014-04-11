@@ -378,10 +378,13 @@ class WebTermAppView extends JView
     vmc = KD.getSingleton 'vmController'
     if vmc.vms.length > 1 then @showVMSelection()
     else
-      vm            = vmc.vms.first
-      osKite        = vmc.kites[vm.hostnameAlias]
-      {recentState} = osKite
-      if recentState?.state is 'RUNNING'
+      vm     = vmc.vms.first
+      osKite =
+        if KD.useNewKites
+        then vmc.kites.oskite[vm.hostnameAlias]
+        else vmc.kites[vm.hostnameAlias]
+
+      if osKite.recentState?.state is 'RUNNING'
       then @prepareAndRunTerminal vm
       else @notify cssClass : 'error'
 
