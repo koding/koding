@@ -22,6 +22,7 @@ class TroubleshootStatusView extends KDCustomHTMLView
     newKite     : "New Kites"
     osKite      : "VM server"
     vm          : "Your VMs"
+    terminal    : "Terminals"
     webServer   : "Webserver"
     version     : "Latest version"
 

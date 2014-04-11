@@ -4,7 +4,7 @@ class TroubleshootModal extends KDModalViewWithForms
     troubleshoot = KD.singleton("troubleshoot")
 
     options =
-      title                 : "System health check"
+      title                 : "Checking Koding status"
       overlay               : yes
       cssClass              : "troubleshoot-modal"
       cancelable            : no
@@ -71,7 +71,7 @@ class TroubleshootModal extends KDModalViewWithForms
         return @modalTabs.forms.Troubleshoot.fields.result.show()
       {connection} = troubleshoot.items
       @showFeedback()  if connection?.status isnt "fail"
-
+      KD.utils.defer => @setPositions()
 
     KD.troubleshoot()
 

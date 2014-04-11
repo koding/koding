@@ -4,5 +4,6 @@ class TerminalKite extends KDKite
     webtermGetSessions: 'webterm.getSessions'
     webtermConnect    : 'webterm.connect'
     webtermKillSession: 'webterm.killSession'
+    webtermPing       : 'webterm.ping'
 
   @constructors['terminal'] = this
