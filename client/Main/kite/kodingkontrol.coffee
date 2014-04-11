@@ -49,28 +49,23 @@ class KodingKontrol extends (require 'kontrol')
     return (kite = @getCachedKite name, correlationName)?
 
   fetchRegion: (correlationName, region) ->
+    if region ?= @regions[correlationName]
+      return Promise.resolve region
 
-    if region
-      Promise.resolve region
-
-    else
-
-      if region = @regions[correlationName]
-        return Promise.resolve region
-
-      KD.remote.api.JVM.fetchVmRegion correlationName, (err, region)=>
+    new Promise (resolve, reject) =>
+      KD.remote.api.JVM.fetchVmRegion correlationName, (err, region) =>
 
         if err
-          return Promise.reject err
-        else if not region
-          warn err  if err
+          warn err
+          return reject err
+
+        if not region
           # It's fallbacking to 'sj' for now but
           region = 'sj'
 
         @regions[correlationName] = region
 
-        Promise.resolve region
-
+        resolve region
 
   getWhoParams: (kiteName, correlationName) ->
     if kiteName in ['oskite', 'terminal']
@@ -91,10 +86,11 @@ class KodingKontrol extends (require 'kontrol')
 
     @fetchRegion(correlationName, region).then (region) =>
 
-      @fetchKite
+      it = @fetchKite
         query : { name, region }
         who   : @getWhoParams name, correlationName
 
-    .then kite.bound 'setTransport'
+    .then(kite.bound 'setTransport')
+    .catch(warn)
 
     return kite

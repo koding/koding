@@ -235,8 +235,12 @@ class VirtualizationController extends KDController
     group.createVM {type, planCode}, vmCreateCallback
 
   getKite: ({ region, hostnameAlias }, type = 'os') ->
-    (KD.getSingleton 'kiteController')
-      .getKite "#{ type }-#{ region }", hostnameAlias, type
+    if KD.useNewKites
+      KD.singletons.kontrol.kites[if type is 'os' then 'oskite' else type][hostnameAlias]
+    else
+      (KD.getSingleton 'kiteController')
+        .getKite "#{ type }-#{ region }", hostnameAlias, type
+
 
   registerNewKite: (name, correlationName, kite) ->
     @kites[name] ?= {}
@@ -405,7 +409,7 @@ class VirtualizationController extends KDController
     JVM.fetchVmsByName vmName, (err, vms) =>
       return callback err  if err
 
-      @handleFetchedVms vms, (err) -> callback null, vms
+      callback null, vms
 
   resetVMData:->
     @vms      = []

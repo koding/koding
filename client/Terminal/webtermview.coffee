@@ -85,6 +85,20 @@ class WebTermView extends KDView
 
     return vmName
 
+  getKite: ->
+    { kontrol, kiteController, vmController } = KD.singletons
+    vmName = @getVMName()
+    if KD.useNewKites
+      kite = KD.singletons.kontrol.kites.terminal[vmName]
+      return kite  if kite?
+      kontrol.getKite
+        name            : 'terminal'
+        correlationName : vmName
+    else
+      kite = vmController.terminalKites[vmName]
+      return kite  if kite?
+      kiteController.getKite 'terminal', vmName, 'terminal'
+
   webtermConnect:(mode = 'create')->
 
     return console.info "reconnection is in progress" if @reconnectionInProgress
@@ -92,12 +106,9 @@ class WebTermView extends KDView
     options = @generateOptions()
     options.mode = mode
 
-    vmController = KD.getSingleton "vmController"
+    {vmController, kontrol} = KD.singletons
 
-    kite =
-      if KD.useNewKites
-      then vmController.kites.terminal[@getVMName()]
-      else vmController.terminalKites[@getVMName()]
+    kite = @getKite()
 
     kite.webtermConnect(options).then (remote) =>
       @setOption "session", remote.session
