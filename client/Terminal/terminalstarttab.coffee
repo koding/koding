@@ -39,7 +39,7 @@ class TerminalStartTab extends JView
         then kontrol.kites.terminal
         else vmController.terminalKites
 
-      vmController.kitesReady().then => @listVMSessions vms
+      vmController.ready => @listVMSessions vms
 
       osKites =
         if KD.useNewKites

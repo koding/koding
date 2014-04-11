@@ -39,7 +39,7 @@ class WebTermAppView extends JView
 
     {vmController} = KD.singletons
     {terminalKites} = vmController
-    vmController.kitesReady().then @bound 'restoreTabs'
+    vmController.ready @bound 'restoreTabs'
 
   restoreTabs: ->
     @fetchStorage (storage) =>

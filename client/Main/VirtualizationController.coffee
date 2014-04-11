@@ -12,9 +12,6 @@ class VirtualizationController extends KDController
 
     @osKites = {}
 
-    @_kitesReady = new Promise (resolve) =>
-      @once "KitesRegistered", -> resolve()
-
     mc = KD.getSingleton('mainController')
     mc.once 'AppIsReady', => @fetchVMs => @emit 'ready'
     mc.on   'AccountChanged', => @emit 'VMListChanged'
@@ -269,10 +266,9 @@ class VirtualizationController extends KDController
   instantiateNewKite: (vm) ->
     new Promise (resolve) =>
       oskite = @createNewKite 'oskite', vm
-      oskite.on 'vmOn', =>
+      oskite.on 'ready', =>
         @createNewKite 'terminal', vm
-      oskite.on 'vm.state.info', (state) =>
-        resolve()  unless state.state is "FAILED"
+        resolve()
 
   registerKites: (vms) ->
     Promise.all vms.map @bound 'registerKite'
@@ -374,17 +370,12 @@ class VirtualizationController extends KDController
         localStorage.useNewKites = if useNewKites then "1" else "0"
         resolve useNewKites
 
-  kitesReady: -> @_kitesReady
-
   handleFetchedVms: (vms, callback) ->
     @shouldUseNewKites().then (useNewKites) =>
-      (
-        if useNewKites
-          @registerNewKites vms
-        else
-          @registerKites vms
-      ).then =>
-        @emit "KitesRegistered"
+      if useNewKites
+        @registerNewKites vms
+      else
+        @registerKites vms
     .catch(warn)
     .nodeify callback
 
