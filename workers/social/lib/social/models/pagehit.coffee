@@ -39,8 +39,10 @@ module.exports = class JPageHit extends Base
             properties     :
               username     :
                 type       : "string"
+                index      : "not_analyzed"
               path         :
                 type       : "string"
+                index      : "not_analyzed"
               ip           :
                 type       : "string"
               loggedIn     :
@@ -89,6 +91,9 @@ module.exports = class JPageHit extends Base
 
       {clientIP}              = session
       {path, query, username} = params
+
+      if path is "/"
+        path = "/Home"
 
       {pathname, query} = (require "url").parse path
       query             = (require "querystring").parse query
