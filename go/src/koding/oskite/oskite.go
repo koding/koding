@@ -132,6 +132,7 @@ func (o *Oskite) Run() {
 	o.setupSignalHandler() // handle SIGUSR1 and other signals.
 
 	// register current client-side methods
+	o.registerMethod("vm.create", false, vmCreateOld)
 	o.registerMethod("vm.start", false, vmStartOld)
 	o.registerMethod("vm.prepareAndStart", false, vmPrepareAndStart)
 	o.registerMethod("vm.stopAndUnprepare", false, vmStopAndUnprepare)
