@@ -71,7 +71,7 @@ class TroubleshootModal extends KDModalViewWithForms
         return @modalTabs.forms.Troubleshoot.fields.result.show()
       {connection} = troubleshoot.items
       @showFeedback()  if connection?.status isnt "fail"
-
+      KD.utils.defer => @setPositions()
 
     KD.troubleshoot()
 
