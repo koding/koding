@@ -70,7 +70,9 @@
     "helmet": "~0.1.2",
     "bluebird": "~1.0.8",
     "pistachio-compiler": "~0.0.3",
-    "kite.js": "^0.0.35"
+    "kite.js": "^0.0.35",
+    "mime":"1.2.x",
+    "es":"0.4.x"
   },
   "devDependencies": {},
   "optionalDependencies": {},

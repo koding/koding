@@ -415,3 +415,7 @@ module.exports =
     port         : 2003
   troubleshoot    :
     recipientEmail: "can@koding.com"
+  pageHit         :
+    run           : no
+    host          : "log0.sjc.koding.com"
+    port          : 9200

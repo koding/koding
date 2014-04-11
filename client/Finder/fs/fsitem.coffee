@@ -8,7 +8,7 @@ class FSItem extends KDObject
 
   @create:({ path, type, vmName, treeController }, callback)->
 
-    kite = KD.getSingleton('vmController').getKiteByVmName vmName
+    kite = FSItem.getKite {vmName}
 
     kite.vmOn().then ->
 
@@ -305,18 +305,21 @@ class FSItem extends KDObject
       @emit "fs.job.started"
 
   getKite: ->
+    FSItem.getKite {@vm, @vmName}
+
+  @getKite = ({vm, vmName})->
     if KD.useNewKites
       kontrol = KD.getSingleton 'kontrol'
       kontrol.getKite \
-        if @vm?
+        if vm?
         then {
           name              : 'oskite'
-          correlationName   : @vm.hostnameAlias
-          region            : @vm.region
+          correlationName   : vm.hostnameAlias
+          region            : vm.region
         }
         else {
           name              : 'oskite'
-          correlationName   : @vmName
+          correlationName   : vmName
         }
     else
-      KD.getSingleton('vmController').getKiteByVmName @vmName
+      KD.getSingleton('vmController').getKiteByVmName vmName
