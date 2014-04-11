@@ -32,6 +32,9 @@ class WebTermAppView extends JView
     @on 'WebTermConnected',  @bound 'updateSessions'
     @on 'TerminalClosed',    @bound 'removeSession'
 
+    @on 'TerminalStarted', ->
+      KD.mixpanel "Open new Webterm tab, success"
+
     {vmController} = KD.singletons
     vmController.on 'vm.progress.error', => @notify cssClass : 'error'
 
