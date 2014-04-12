@@ -1,11 +1,11 @@
 package main
 
 import (
+	"encoding/json"
+	"fmt"
 	. "github.com/smartystreets/goconvey/convey"
 	"socialapi/models"
 	"testing"
-	"fmt"
-	"encoding/json"
 	"time"
 )
 
@@ -73,12 +73,12 @@ func TestNotificationCreation(t *testing.T) {
 
 				Convey("And Notification list should contain one notification", func() {
 					So(len(nl.Notifications), ShouldEqual, 1)
+					Convey("Notifier count should be 1", func() {
+						So(nl.Notifications[0].Actors.Count, ShouldEqual, 1)
+					})
 					Convey("Notification should contain first user as Latest Actors", func() {
 						So(len(nl.Notifications[0].Actors.LatestActors), ShouldEqual, 1)
 						So(nl.Notifications[0].Actors.LatestActors[0], ShouldEqual, firstUser.Id)
-					})
-					Convey("Notifier count should be 1", func() {
-						So(nl.Notifications[0].Actors.Count, ShouldEqual, 1)
 					})
 				})
 
@@ -86,10 +86,9 @@ func TestNotificationCreation(t *testing.T) {
 					So(nl.UnreadCount, ShouldEqual, 1)
 				})
 
-
 			})
 
-			Convey("Second user should be able to reply it", func(){
+			Convey("Second user should be able to reply it", func() {
 				replyMessage, err := addReply(cm.Id, secondUser.Id)
 				ResultedWithNoErrorCheck(replyMessage, err)
 			})
@@ -97,7 +96,6 @@ func TestNotificationCreation(t *testing.T) {
 			Convey("I should be able to receive notification", func() {
 				nl, err := getNotificationList(ownerAccount.Id)
 				ResultedWithNoErrorCheck(nl, err)
-				fmt.Println("secondlist ", nl.Notifications[0].Actors.LatestActors)
 				Convey("And Notification list should contain one notification", func() {
 					So(len(nl.Notifications), ShouldEqual, 1)
 				})
@@ -107,8 +105,26 @@ func TestNotificationCreation(t *testing.T) {
 
 				Convey("Notification should contain second and first user consecutively", func() {
 					So(len(nl.Notifications[0].Actors.LatestActors), ShouldEqual, 2)
-					So(nl.Notifications[0].Actors.LatestActors[0], ShouldEqual, firstUser.Id)
-					So(nl.Notifications[0].Actors.LatestActors[1], ShouldEqual, secondUser.Id)
+					So(nl.Notifications[0].Actors.LatestActors[0], ShouldEqual, secondUser.Id)
+					So(nl.Notifications[0].Actors.LatestActors[1], ShouldEqual, firstUser.Id)
+				})
+
+			})
+
+			Convey("First user should be able to receive notification", func() {
+				nl, err := getNotificationList(firstUser.Id)
+				ResultedWithNoErrorCheck(nl, err)
+
+				Convey("And Notification list should contain one notification", func() {
+					So(len(nl.Notifications), ShouldEqual, 1)
+				})
+				Convey("Notifier count should be 1", func() {
+					So(nl.Notifications[0].Actors.Count, ShouldEqual, 1)
+				})
+
+				Convey("Notification should contain second user", func() {
+					So(len(nl.Notifications[0].Actors.LatestActors), ShouldEqual, 1)
+					So(nl.Notifications[0].Actors.LatestActors[0], ShouldEqual, secondUser.Id)
 				})
 
 			})
@@ -126,10 +142,48 @@ func TestNotificationCreation(t *testing.T) {
 				})
 
 				Convey("Notification should contain third, second and first user consecutively", func() {
-					So(nl.Notifications[0].Actors.LatestActors[0], ShouldEqual, firstUser.Id)
+					So(nl.Notifications[0].Actors.LatestActors[0], ShouldEqual, thirdUser.Id)
 					So(nl.Notifications[0].Actors.LatestActors[1], ShouldEqual, secondUser.Id)
-					So(nl.Notifications[0].Actors.LatestActors[2], ShouldEqual, thirdUser.Id)
+					So(nl.Notifications[0].Actors.LatestActors[2], ShouldEqual, firstUser.Id)
 				})
+			})
+
+			Convey("First user should be able to receive notification", func() {
+				nl, err := getNotificationList(firstUser.Id)
+				ResultedWithNoErrorCheck(nl, err)
+
+				Convey("And Notification list should contain one notification", func() {
+					So(len(nl.Notifications), ShouldEqual, 1)
+				})
+				Convey("Notifier count should be 2", func() {
+					So(nl.Notifications[0].Actors.Count, ShouldEqual, 2)
+				})
+
+				Convey("Notification should contain third and second user consecutively", func() {
+					So(len(nl.Notifications[0].Actors.LatestActors), ShouldEqual, 2)
+					So(nl.Notifications[0].Actors.LatestActors[0], ShouldEqual, thirdUser.Id)
+					So(nl.Notifications[0].Actors.LatestActors[1], ShouldEqual, secondUser.Id)
+				})
+
+			})
+
+			Convey("Second user should be able to receive notification", func() {
+				nl, err := getNotificationList(secondUser.Id)
+				ResultedWithNoErrorCheck(nl, err)
+
+				Convey("And Notification list should contain one notification", func() {
+					So(len(nl.Notifications), ShouldEqual, 1)
+				})
+				// because it must only see the notifiers after him
+				Convey("Notifier count should be 1", func() {
+					So(nl.Notifications[0].Actors.Count, ShouldEqual, 1)
+				})
+
+				Convey("Notification should contain third user only", func() {
+					So(len(nl.Notifications[0].Actors.LatestActors), ShouldEqual, 1)
+					So(nl.Notifications[0].Actors.LatestActors[0], ShouldEqual, thirdUser.Id)
+				})
+
 			})
 
 			Convey("Forth user should be able to reply it", func() {
@@ -141,9 +195,9 @@ func TestNotificationCreation(t *testing.T) {
 				nl, err := getNotificationList(ownerAccount.Id)
 				ResultedWithNoErrorCheck(nl, err)
 				Convey("Notification should contain forth, third and second user consecutively", func() {
-					So(nl.Notifications[0].Actors.LatestActors[0], ShouldEqual, secondUser.Id)
+					So(nl.Notifications[0].Actors.LatestActors[0], ShouldEqual, forthUser.Id)
 					So(nl.Notifications[0].Actors.LatestActors[1], ShouldEqual, thirdUser.Id)
-					So(nl.Notifications[0].Actors.LatestActors[2], ShouldEqual, forthUser.Id)
+					So(nl.Notifications[0].Actors.LatestActors[2], ShouldEqual, secondUser.Id)
 				})
 
 				Convey("Notifier count should be 4", func() {
@@ -160,15 +214,47 @@ func TestNotificationCreation(t *testing.T) {
 			Convey("I should be able to receive notification", func() {
 				nl, err := getNotificationList(ownerAccount.Id)
 				ResultedWithNoErrorCheck(nl, err)
-				fmt.Println("")
 				Convey("Notification should contain first, forth, and third user consecutively", func() {
 					So(nl.Notifications[0].Actors.LatestActors[0], ShouldEqual, firstUser.Id)
-					So(nl.Notifications[0].Actors.LatestActors[1], ShouldEqual, thirdUser.Id)
-					So(nl.Notifications[0].Actors.LatestActors[2], ShouldEqual, forthUser.Id)
+					So(nl.Notifications[0].Actors.LatestActors[1], ShouldEqual, forthUser.Id)
+					So(nl.Notifications[0].Actors.LatestActors[2], ShouldEqual, thirdUser.Id)
 				})
 
 				Convey("Notifier count should be 4", func() {
 					So(nl.Notifications[0].Actors.Count, ShouldEqual, 4)
+				})
+
+			})
+
+			Convey("First user should be able to reply it again", func() {
+				replyMessage, err := addReply(cm.Id, firstUser.Id)
+				ResultedWithNoErrorCheck(replyMessage, err)
+			})
+
+			Convey("I should be able to receive notification", func() {
+				nl, err := getNotificationList(ownerAccount.Id)
+				ResultedWithNoErrorCheck(nl, err)
+				Convey("Notification should not see first user twice", func() {
+					So(nl.Notifications[0].Actors.LatestActors[0], ShouldEqual, firstUser.Id)
+					So(nl.Notifications[0].Actors.LatestActors[1], ShouldEqual, forthUser.Id)
+					So(nl.Notifications[0].Actors.LatestActors[2], ShouldEqual, thirdUser.Id)
+				})
+
+				Convey("Notifier count should be still 4", func() {
+					So(nl.Notifications[0].Actors.Count, ShouldEqual, 4)
+				})
+
+			})
+
+			Convey("Forth user should be able to receive notification", func() {
+				nl, err := getNotificationList(forthUser.Id)
+				ResultedWithNoErrorCheck(nl, err)
+				Convey("Notifier count should be 1", func() {
+					So(nl.Notifications[0].Actors.Count, ShouldEqual, 1)
+				})
+
+				Convey("Notification should contain first user", func() {
+					So(nl.Notifications[0].Actors.LatestActors[0], ShouldEqual, firstUser.Id)
 				})
 
 			})
