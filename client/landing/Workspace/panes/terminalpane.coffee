@@ -32,9 +32,6 @@ class TerminalPane extends Pane
           @emit "WebtermCreated"
           @onWebTermConnected()
 
-      # WebTermView.setTerminalTimeout null, 15000, handler, handler
-
-
   notify: (message) -> console.log "notify:", message
 
   fetchVm: (callback)->
