@@ -66,7 +66,7 @@ func (n *Notification) List(q *Query) (*NotificationResponse, error) {
 		return response, err
 	}
 
-	result, err = populateActors(result)
+	result, err = populateActors(q.AccountId, result)
 	if err != nil {
 		return response, err
 	}
@@ -171,8 +171,9 @@ func fetchRelatedContent(nl []Notification) (map[int64]NotificationContent, erro
 	return nc.FetchMapByIds(notificationContentIds)
 }
 
-// fetch 3 actors and total count of actors. actors are from different tables
-func populateActors(ncList []NotificationContainer) ([]NotificationContainer, error) {
+// populateActors fetches latest actor ids and total count of actors. listerId is needed for excluding
+// listers own activities
+func populateActors(listerId int64, ncList []NotificationContainer) ([]NotificationContainer, error) {
 	result := make([]NotificationContainer, 0)
 
 	for _, n := range ncList {
@@ -182,6 +183,7 @@ func populateActors(ncList []NotificationContainer) ([]NotificationContainer, er
 		}
 
 		notificationType.SetTargetId(n.TargetId)
+		notificationType.SetListerId(listerId)
 
 		actors, err := notificationType.FetchActors()
 		// instead of interrupting process we can just proceed here
