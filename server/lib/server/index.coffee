@@ -302,7 +302,7 @@ app.all '/:name/:section?*', (req, res, next)->
 
           path = if section then "#{name}/#{section}" else name
 
-          JName.fetchModels path, (err, models)->
+          JName.fetchModels path, (err, { models })->
             if err
               options = { account, name, section, client,
                           bongoModels, isCustomPreview }
@@ -318,7 +318,7 @@ app.all '/:name/:section?*', (req, res, next)->
   else
 
     isLoggedIn req, res, (err, loggedIn, account)->
-      JName.fetchModels name, (err, models)->
+      JName.fetchModels name, (err, { models })->
         if err then next err
         else unless models? then res.send 404, error_404()
         else if models.last?

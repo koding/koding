@@ -17,7 +17,7 @@ fetchGroupName = (req, callback)->
   if not name or name[0].toUpperCase() is name[0]
     return callback null, "koding"
   else
-    JName.fetchModels "#{name}", (err, models)->
+    JName.fetchModels "#{name}", (err, { models })->
       return callback if err
       return callback new Error "JName is not found #{name}/#{section}" if not models and model.length < 1
 
