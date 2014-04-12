@@ -48,7 +48,7 @@ findUsernameFromSession = (req, res, callback) ->
   unless clientId?
     process.nextTick -> callback null, no, ""
   else
-    koding.models.JSession.fetchSession clientId, (err, session)->
+    koding.models.JSession.fetchSession clientId, (err, { session })->
       if err
         console.error err
         callback err, undefined, ""

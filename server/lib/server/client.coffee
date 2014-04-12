@@ -52,7 +52,7 @@ generateFakeClient = (req, res, callback)->
 
   return callback null, fakeClient unless clientId?
 
-  bongo.models.JSession.fetchSession clientId, (err, session)->
+  bongo.models.JSession.fetchSession clientId, (err, { session })->
     return handleError err, callback if err
     return handleError new Error "Session is not set", callback unless session?
 

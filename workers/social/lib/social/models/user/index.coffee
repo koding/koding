@@ -253,7 +253,7 @@ module.exports = class JUser extends jraphical.Module
       if err
         callback createKodingError err
       else unless session?
-        JSession.createSession (err, session, account)->
+        JSession.createSession (err, { session, account })->
           return callback err  if err?
           callback null, account
       else
@@ -318,7 +318,7 @@ module.exports = class JUser extends jraphical.Module
       return callback err  if err
 
       constructor = this
-      JSession.fetchSession clientId, (err, session)->
+      JSession.fetchSession clientId, (err, { session })->
         return callback err  if err
         # temp fix:
         # this broke login, reverted. - SY

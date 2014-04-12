@@ -112,7 +112,7 @@ app.use (req, res, next) ->
   # fetchClient will validate the clientId.
   # if it is in our db it will return the session it
   # it it is not in db, creates a new one and returns it
-  JSession.fetchSession clientId, (err, session)->
+  JSession.fetchSession clientId, (err, { session })->
     return next() if err or not session
     { maxAge, secure } = KONFIG.sessionCookie
 
