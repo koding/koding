@@ -80,28 +80,46 @@ class FinderController extends KDController
       overlay       : yes
 
     vmListController = new KDListViewController
-      view           : new KDListView
-        itemClass    : VMListItem
-        type         : "vmlist"
+      view          : list = new KDListView
+        itemClass   : VMListItem
+        type        : "vmlist"
 
-    KD.singletons.vmController.fetchVMs (err, vms)->
-      return KD.showError err if err
-      vmListController.instantiateListItems vms
-      modal.addSubView vmListController.getListView()
+    {vmController} = KD.singletons
 
-    vmListController.getListView().on "VmStateChanged", (options)=>
-      KD.singletons.vmController.fetchVmInfo options.hostnameAlias, (err, info)=>
-        return KD.showError err if err
-        if options.state then @controller.mountVm info else \
-        @controller.unmountVm info.hostnameAlias
+
+    list.on "VmStateChanged", (options)=>
+
+      vmController.fetchVmInfo options.hostnameAlias, (err, info)=>
+        return KD.showError err  if err
+        if options.state
+        then @controller.mountVm info
+        else @controller.unmountVm info.hostnameAlias
+
+    list.once 'viewAppended', =>
+
+      vmListController.showLazyLoader()
+      vmController.fetchVMs (err, vms)->
+        vmListController.hideLazyLoader()
+        return KD.showError err  if err
+        vmListController.instantiateListItems vms
+
+    modal.addSubView vmListController.getView()
 
 
 class VMListItem extends KDListItemView
 
-  constructor:(options={}, data)->
+  constructor:(options = {}, data)->
+
     super options, data
+
+
+  viewAppended:->
+
+    @addSubView loader = new KDLoaderView showLoader : yes
+
     {hostnameAlias} = @getData()
     KD.singletons.vmController.info hostnameAlias, (err, name, info)=>
+      loader.hide()
       return KD.showError err if err
       @addSubView vmLabel  = new KDLabelView title: hostnameAlias
       @addSubView vmSwitch = new KodingSwitch
@@ -109,5 +127,3 @@ class VMListItem extends KDListItemView
         defaultValue : if info.state is "RUNNING" then true else false
         callback     : (state)=>
           @getDelegate().emit "VmStateChanged", {state, hostnameAlias}
-
-  viewAppended:JView::viewAppended

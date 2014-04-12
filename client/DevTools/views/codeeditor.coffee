@@ -20,7 +20,7 @@ class DevToolsEditorPane extends CollaborativeEditorPane
 
     file = FSHelper.createFileFromPath path
 
-    kite = KD.getSingleton('vmController').getKiteByVmName file.vmName
+    kite = file.getKite()
     return  callback {message: "VM not found"}  unless kite
 
     file.fetchContents (err, content)=>

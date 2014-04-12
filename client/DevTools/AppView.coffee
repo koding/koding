@@ -252,7 +252,7 @@ class DevToolsMainView extends KDView
   compiler:(callback)->
 
     return callback @coffee  if @coffee
-    require [COFFEE], (@coffee)=> callback @coffee
+    requirejs [COFFEE], (@coffee)=> callback @coffee
 
   compileApp:->
 

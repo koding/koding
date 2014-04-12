@@ -4,6 +4,7 @@ class WebTermView extends KDView
     super options, data
 
     @initBackoff()
+    @registerHealthChecker()
 
   viewAppended: ->
 
@@ -84,6 +85,20 @@ class WebTermView extends KDView
 
     return vmName
 
+  getKite: ->
+    { kontrol, kiteController, vmController } = KD.singletons
+    vmName = @getVMName()
+    if KD.useNewKites
+      kite = KD.singletons.kontrol.kites.terminal[vmName]
+      return kite  if kite?
+      kontrol.getKite
+        name            : 'terminal'
+        correlationName : vmName
+    else
+      kite = vmController.terminalKites[vmName]
+      return kite  if kite?
+      kiteController.getKite 'terminal', vmName, 'terminal'
+
   webtermConnect:(mode = 'create')->
 
     return console.info "reconnection is in progress" if @reconnectionInProgress
@@ -91,12 +106,9 @@ class WebTermView extends KDView
     options = @generateOptions()
     options.mode = mode
 
-    vmController = KD.getSingleton "vmController"
+    {vmController, kontrol} = KD.singletons
 
-    kite =
-      if KD.useNewKites
-      then vmController.kites.terminal[@getVMName()]
-      else vmController.terminalKites[@getVMName()]
+    kite = @getKite()
 
     kite.webtermConnect(options).then (remote) =>
       @setOption "session", remote.session
@@ -106,7 +118,6 @@ class WebTermView extends KDView
       @sessionId = remote.session
 
       @emit "WebTermConnected", remote
-      console.error "just connected"  if mode is "resume"
       @reconnectionInProgress = false
 
     .catch (err) =>
@@ -122,6 +133,42 @@ class WebTermView extends KDView
         @reconnectionInProgress = false
         throw err
 
+  registerHealthChecker:->
+    healthChecker = new HealthChecker
+      troubleshoot: @bound 'healthCheck'
+
+    @forwardEvent healthChecker, "healthCheckCompleted"
+    @status = null
+    @on "healthCheckCompleted", =>
+      @status = healthChecker.status
+      switch @status
+        when "fail"
+          @setBackoffTimeout(
+            @bound "attemptToReconnect"
+            @bound "handleConnectionFailure"
+          )
+        when "session not found"
+          @terminal.cursor.setFocused false
+          @terminal.cursor.stopBlink()
+
+    @checker = KD.utils.repeat 15000, ->
+      healthChecker.run()
+
+  healthCheck: (callback) ->
+    {vmController} = KD.singletons
+    kite =
+      if KD.useNewKites
+      then vmController.kites.terminal[@getVMName()]
+      else vmController.terminalKites[@getVMName()]
+
+    {session} = @getOptions()
+    # TODO we need a session check method in terminal kite
+    kite?.webtermGetSessions().then (sessions) ->
+      return callback null  if session in sessions
+      @status = "session not found"
+    .catch (err) =>
+      KD.utils.killRepeat @checker
+
   connectToTerminal: ->
     @appStorage = KD.getSingleton('appStorageController').storage 'Terminal', '1.0.1'
     @appStorage.fetchStorage =>
@@ -131,8 +178,8 @@ class WebTermView extends KDView
       @appStorage.setValue 'visualBell', false if not @appStorage.getValue('visualBell')?
       @appStorage.setValue 'scrollback', 1000 if not @appStorage.getValue('scrollback')?
       @updateSettings()
-
-      @webtermConnect()
+      {mode} = @getOptions()
+      @webtermConnect mode
 
     KD.getSingleton("kiteController").on "KiteError", (err) =>
       log "kite error:", err
@@ -158,22 +205,31 @@ class WebTermView extends KDView
 
   attemptToReconnect: ->
     return  if @reconnected
-    @reconnectingNotification ?= new KDNotificationView
-      type      : "mini"
+    @getDelegate().notify
+      cssClass  : "error"
       title     : "Trying to reconnect your Terminal"
       duration  : 2 * 60 * 1000 # 2 mins
-      container : @container
 
-    vmController = KD.getSingleton "vmController"
     hasResponse  = no
 
-    vmController.info (@getOption 'vmName') or @getDelegate().getOption("vmName"), (err, res) =>
+    {vm} = @getOptions()
+    {hostnameAlias, region} = vm
+    {vmController, kontrol} = KD.singletons
+
+    kite =
+      if KD.useNewKites
+      then kontrol.kites.terminal[hostnameAlias]
+      else vmController.terminalKites[hostnameAlias]
+    kite?.webtermGetSessions().then (sessions) =>
       hasResponse = yes
       return if @reconnected
       @handleReconnect()
-      @clearConnectionAttempts()
 
-    @utils.wait 500, => @reconnectAttemptFailed() unless hasResponse
+    @utils.wait 500, =>
+      unless hasResponse
+        # TODO resolve this workaround
+        serviceGenericName = "terminal-kite-terminal-#{region}"
+        @reconnectAttemptFailed serviceGenericName, hostnameAlias
 
   clearConnectionAttempts: ->
     @clearBackoffTimeout()
@@ -183,32 +239,30 @@ class WebTermView extends KDView
 
     @clearConnectionAttempts()
     options =
-      session  : @sessionId
-      joinUser : KD.nick()
+      session : @sessionId
+      vm      : @getOption('vm')
 
-    @reinitializeWebTerm options
-    @reconnectingNotification?.destroy()
-    @reconnected = yes
-
-  reinitializeWebTerm: (options = {}) ->
-    return  if @reconnected
     @emit "WebTermNeedsToBeRecovered", options
+    @reconnected = yes
 
   handleConnectionFailure: ->
     return if @failedToReconnect
-    @reconnectingNotification?.destroy()
     @reconnected       = no
     @failedToReconnect = yes
     @clearConnectionAttempts()
-    new KDNotificationView
-      type      : "mini"
+    @getDelegate().notify
       title     : "Sorry, something is wrong with our backend."
-      container : @container
       cssClass  : "error"
       duration  : 15 * 1000 # 15 secs
 
   destroy: ->
     super
+    KD.utils.killRepeat @checker
+    unless @status is "fail"
+      @emit "TerminalClosed",
+        vmName   : @getVMName()
+        sessionId: @getOptions().session
+
     @terminal.server?.terminate()
 
   updateSettings: ->

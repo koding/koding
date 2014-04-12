@@ -24,6 +24,7 @@ var (
 	flagApp            = flag.String("a", "", "App to be build")
 	flagProxy          = flag.String("p", "", "Select user proxy or koding proxy") // Proxy only
 	flagDisableUpstart = flag.Bool("u", false, "Disable including upstart script")
+	flagDebug          = flag.Bool("d", false, "Enable debug mode")
 
 	packages = map[string]func() error{
 		"oskite":       buildOsKite,
@@ -310,6 +311,7 @@ func (p *pkg) build() error {
 	}
 
 	deb := &build.Deb{
+		Debug:         *flagDebug,
 		AppName:       p.appName,
 		Version:       p.version,
 		ImportPath:    p.importPath,

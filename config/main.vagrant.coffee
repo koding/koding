@@ -434,3 +434,7 @@ module.exports =
     secure        : cookieSecure
   troubleshoot    :
     recipientEmail: "can@koding.com"
+  pageHit         :
+    run           : no
+    host          : "localhost"
+    port          : 9200

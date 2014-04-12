@@ -29,6 +29,7 @@ class Troubleshoot extends KDObject
         brokerKite     :
           osKite       :
             vm         : 0
+            terminal   : 0
         bongo          :
           broker       :
             liveUpdate : 0
@@ -91,6 +92,9 @@ class Troubleshoot extends KDObject
     @registerItem "vm",
       speedCheck   : no
       troubleshoot : vmChecker.bound 'healthCheck'
+
+    @registerItem "terminal",
+      troubleshoot : vmChecker.bound 'terminalHealthCheck'
 
   registerConnections: ->
     #register connection

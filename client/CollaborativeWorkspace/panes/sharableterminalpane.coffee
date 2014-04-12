@@ -13,16 +13,21 @@ class SharableTerminalPane extends TerminalPane
 
     keysRef = @workspace.workspaceRef.child "keys"
 
-    keysRef.once "value", (snapshot) =>
-      keyChain = @workspace.reviveSnapshot snapshot
-      keys     = keyChain[@workspace.lastCreatedPanelIndex]
+    KD.getSingleton("vmController").fetchDefaultVm (err, vm)=>
 
-      for key, index in keys when key is @sessionKey
-        @sessionKey =
-          key       : @remote.session
-          host      : KD.nick()
-          vmName    : KD.getSingleton("vmController").defaultVmName
+      return warn err  if err
 
-        keys[index] = @sessionKey
+      keysRef.once "value", (snapshot) =>
+        keyChain = @workspace.reviveSnapshot snapshot
+        keys     = keyChain[@workspace.lastCreatedPanelIndex]
 
-      keysRef.set keyChain
+        for key, index in keys when key is @sessionKey
+          @sessionKey =
+            key       : @remote.session
+            host      : KD.nick()
+            vmName    : vm.hostnameAlias
+            vmRegion  : vm.region
+
+          keys[index] = @sessionKey
+
+        keysRef.set keyChain

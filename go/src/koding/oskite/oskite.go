@@ -31,7 +31,7 @@ import (
 
 const (
 	OSKITE_NAME    = "oskite"
-	OSKITE_VERSION = "0.2.1"
+	OSKITE_VERSION = "0.2.2"
 )
 
 var (
@@ -83,7 +83,6 @@ func New(c *config.Config) *Oskite {
 	modelhelper.Initialize(c.Mongo)
 
 	return &Oskite{
-		Name:    OSKITE_NAME,
 		Version: OSKITE_VERSION,
 	}
 }
