@@ -7,6 +7,7 @@ class TerminalPane extends Pane
 
     super options, data
 
+  viewAppended: ->
     @createWebTermView()
 
   createWebTermView: ->

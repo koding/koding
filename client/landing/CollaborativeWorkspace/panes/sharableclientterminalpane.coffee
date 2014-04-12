@@ -1,7 +1,6 @@
 class SharableClientTerminalPane extends TerminalPane
 
   constructor: (options = {}, data) ->
-
     sessionOptions   = options.sessionKey
     options.vmName   = sessionOptions.vmName
     options.vmRegion = sessionOptions.vmRegion
@@ -15,7 +14,7 @@ class SharableClientTerminalPane extends TerminalPane
 
   vmOn: -> Promise.resolve()
 
-  getMode: -> 'resume'
+  getMode: -> 'shared'
 
   fetchVm: (callback)->
     {vmName, vmRegion} = @getOptions()
