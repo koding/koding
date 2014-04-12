@@ -96,19 +96,15 @@ func (m *MessageReply) List() ([]ChannelMessage, error) {
 	return channelMessageReplies, nil
 }
 
-func (m *MessageReply) FetchReplyIds(p *bongo.Pagination) ([]int64, error) {
+// we do not need pagination??
+func (m *MessageReply) FetchReplyIds(p *bongo.Pagination, t time.Time) ([]int64, error) {
 	var replyIds []int64
-	q := &bongo.Query{
-		Selector: map[string]interface{}{
-			"message_id": m.MessageId,
-		},
-		Pagination: *p,
-		Pluck: "reply_id",
-		Sort: map[string]string{
-     		"created_at": "desc",
-    	},
-	}
-	if err := m.Some(&replyIds, q); err != nil {
+
+	if err := bongo.B.DB.Table(m.TableName()).
+		Where("message_id = ? AND created_at >= ?", m.MessageId, t).
+		Order("created_at desc").
+		Pluck("reply_id", &replyIds).
+		Error; err != nil {
 		return nil, err
 	}
 
