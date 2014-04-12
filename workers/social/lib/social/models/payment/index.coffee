@@ -91,11 +91,15 @@ module.exports = class JPayment extends Base
     countries = require './countries.json'
     {sortBy}  = require 'underscore'
 
-    data = {}
-    data[c.cca2] = {value: c.cca2, title: c.name}  for c in countries
+    countries = {}
+    countries[c.cca2] = {value: c.cca2, title: c.name}  for c in countries
 
-    return callback null, data, null  unless ip
+    return callback null, { countries, countryOfIp: null }  unless ip
 
     geoIp = require 'node-freegeoip'
     geoIp.getLocation ip, (err, location)->
-      callback err, data, unless err then location.country_code else null
+      callback err, {
+        countries
+        countryOfIp: unless err then location.country_code else null
+      }
+
