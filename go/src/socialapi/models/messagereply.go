@@ -123,3 +123,24 @@ func (m *MessageReply) FetchByReplyId() error {
 	}
 	return m.One(q)
 }
+
+func (m *MessageReply) FetchFirstAccountReply(accountId int64) error {
+	cm := NewChannelMessage()
+	rows, err := bongo.B.DB.Raw("SELECT mr.reply_id, mr.created_at "+
+		"FROM "+m.TableName()+" mr "+
+		"LEFT JOIN "+cm.TableName()+" cm ON cm.id = mr.reply_id "+
+		"WHERE cm.account_id = ? AND mr.message_id = ? "+
+		"ORDER BY cm.created_at ASC "+
+		"LIMIT 1", accountId, m.MessageId).Rows()
+
+	// probably gorm.ErrNotFound error must be caught
+	if err != nil {
+		return err
+	}
+	if rows.Next() {
+		// i could not handle it by selecting all columns
+		rows.Scan(&m.ReplyId, &m.CreatedAt)
+	}
+
+	return nil
+}
