@@ -333,10 +333,12 @@ class VirtualizationController extends KDController
       if force
       then callback err, vms
       else
-        @handleFetchedVms vms, (err) ->
+        @fetchDefaultVmName (err, defaultVmName)=>
           return callback err  if err
-          cb err, vms  for cb in waiting
-          waiting = []
+          @handleFetchedVms vms, (err) ->
+            return callback err  if err
+            cb err, vms  for cb in waiting
+            waiting = []
 
   getKiteHostname: (vm) ->
     return null  unless vm.hostKite?
