@@ -178,6 +178,7 @@ func (c *ChannelMessage) FetchRelatives(query *Query) (*ChannelMessageContainer,
 	return container, nil
 }
 
+<<<<<<< HEAD
 func (c *ChannelMessage) BuildMessage(query *Query) (*ChannelMessageContainer, error) {
 	cmc, err := c.FetchRelatives(query)
 	if err != nil {
@@ -204,29 +205,31 @@ func (c *ChannelMessage) BuildMessage(query *Query) (*ChannelMessageContainer, e
 	return cmc, nil
 }
 
-func (c *ChannelMessage) FetchReplierIds(p *bongo.Pagination, includeMessageOwner bool) ([]int64, error) {
+// todo include message owner misleads people,
+func (c *ChannelMessage) FetchReplierIds(p *bongo.Pagination, includeMessageOwner bool, t time.Time) ([]int64, error) {
 	if c.Id == 0 {
 		return nil, errors.New("channel message id is not set")
 	}
 
-	replyIds, err := c.FetchMessageReplies(p)
+	// first fetch parent post reply messages
+	replyIds, err := c.FetchMessageReplies(p, t)
 	if err != nil {
 		return nil, err
 	}
 
-	// TODO when this function is used for notified users do not include last reply.
-	// probably the method name or the implementation must be changed
-	// adding message owner - TODO (message owner must not be added here. or it must be parameterized)
+	// TODO when this function is used for fetching notified users do not include last reply.
+	// add message owner
 	if includeMessageOwner {
 		replyIds = append(replyIds, c.Id)
 	}
 
+	// fetch related channel messages
 	messages, err := c.FetchByIds(replyIds)
 	if err != nil {
 		return nil, err
 	}
 
-	// regress notifier
+	// some users can be post more than one time, therefore filter them
 	accountIds := fetchDistinctAccounts(messages)
 
 	return accountIds, nil
@@ -234,33 +237,28 @@ func (c *ChannelMessage) FetchReplierIds(p *bongo.Pagination, includeMessageOwne
 
 // FetchReplierIdsWithCount fetches all repliers of message with given Id and returns distinct replier count
 // Account given with AccountId is excluded from the results
-func (c *ChannelMessage) FetchReplierIdsWithCount(p *bongo.Pagination, count *int) ([]int64, error) {
+func (c *ChannelMessage) FetchReplierIdsWithCount(p *bongo.Pagination, count *int, t time.Time) ([]int64, error) {
 	if c.Id == 0 {
 		return nil, errors.New("channel message id is not set")
 	}
 
-	replyIds, err := c.FetchMessageReplies(p)
+	// first fetch all replyIds without doing any limitations
+	replyIds, err := c.FetchMessageReplies(&bongo.Pagination{}, t)
 	if err != nil {
 		return nil, err
 	}
 
-	// also test what if the result set is empty
-	*count, err = c.FetchDistinctReplierCount(replyIds)
-	if err != nil {
-		return nil, err
-	}
-
-	return c.FetchDistinctRepliers(replyIds, p)
+	return c.FetchDistinctRepliers(replyIds, p, count)
 }
 
-func (c *ChannelMessage) FetchMessageReplies(p *bongo.Pagination) ([]int64, error) {
+func (c *ChannelMessage) FetchMessageReplies(p *bongo.Pagination, t time.Time) ([]int64, error) {
 	if c.Id == 0 {
 		return nil, errors.New("channel message id is not set")
 	}
 	// fetch all replies
 	mr := NewMessageReply()
 	mr.MessageId = c.Id
-	return mr.FetchReplyIds(p)
+	return mr.FetchReplyIds(p, t)
 }
 
 func fetchDistinctAccounts(messages []ChannelMessage) []int64 {
