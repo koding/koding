@@ -29,7 +29,8 @@ class CollaborativePanel extends Panel
       if paneOptions.type is "terminal"
         PaneClass = SharableClientTerminalPane
       else if paneOptions.type is "finder"
-        PaneClass = CollaborativeClientFinderPane
+        unless @getDelegate().amIHost()
+          PaneClass = CollaborativeClientFinderPane
 
     return warn "Unknown pane class: #{paneOptions.type}"  unless PaneClass
     pane = new PaneClass paneOptions
