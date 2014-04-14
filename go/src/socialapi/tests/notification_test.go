@@ -9,22 +9,14 @@ import (
 	"time"
 )
 
-var (
-	ownerAccount     *models.Account
-	firstUser        *models.Account
-	secondUser       *models.Account
-	thirdUser        *models.Account
-	forthUser        *models.Account
-	testGroupChannel *models.Channel
-)
-
-func TestReplyNotificationCreation(t *testing.T) {
-	ownerAccount = models.NewAccount()
-	firstUser = models.NewAccount()
-	secondUser = models.NewAccount()
-	thirdUser = models.NewAccount()
-	forthUser = models.NewAccount()
-	testGroupChannel = models.NewChannel()
+func TestNotificationCreation(t *testing.T) {
+	ownerAccount := models.NewAccount()
+	firstUser := models.NewAccount()
+	secondUser := models.NewAccount()
+	thirdUser := models.NewAccount()
+	forthUser := models.NewAccount()
+	testGroupChannel := models.NewChannel()
+	var firstMessage *models.ChannelMessage
 
 	Convey("while testing reply notifications", t, func() {
 		Convey("First create users and required channel", func() {
@@ -60,18 +52,17 @@ func TestReplyNotificationCreation(t *testing.T) {
 		})
 		Convey("As a message owner I want to receive reply notifications", func() {
 
-			var cm *models.ChannelMessage
 			var replyMessage *models.ChannelMessage
 			Convey("I should be able to create channel message", func() {
 				messageBody := "notification first message"
 				var err error
-				cm, err = createPostWithBody(testGroupChannel.Id, ownerAccount.Id, messageBody)
-				ResultedWithNoErrorCheck(cm, err)
+				firstMessage, err = createPostWithBody(testGroupChannel.Id, ownerAccount.Id, messageBody)
+				ResultedWithNoErrorCheck(firstMessage, err)
 			})
 
 			Convey("First user should be able to reply it", func() {
 				var err error
-				replyMessage, err = addReply(cm.Id, firstUser.Id)
+				replyMessage, err = addReply(firstMessage.Id, firstUser.Id)
 				ResultedWithNoErrorCheck(replyMessage, err)
 				time.Sleep(5 * time.Second) // waiting for async message
 			})
@@ -98,7 +89,7 @@ func TestReplyNotificationCreation(t *testing.T) {
 			})
 
 			Convey("Second user should be able to reply it", func() {
-				replyMessage, err := addReply(cm.Id, secondUser.Id)
+				replyMessage, err := addReply(firstMessage.Id, secondUser.Id)
 				ResultedWithNoErrorCheck(replyMessage, err)
 			})
 
@@ -139,7 +130,7 @@ func TestReplyNotificationCreation(t *testing.T) {
 			})
 
 			Convey("Third user should be able to reply it", func() {
-				replyMessage, err := addReply(cm.Id, thirdUser.Id)
+				replyMessage, err := addReply(firstMessage.Id, thirdUser.Id)
 				ResultedWithNoErrorCheck(replyMessage, err)
 			})
 
@@ -196,7 +187,7 @@ func TestReplyNotificationCreation(t *testing.T) {
 			})
 
 			Convey("Forth user should be able to reply it", func() {
-				replyMessage, err := addReply(cm.Id, forthUser.Id)
+				replyMessage, err := addReply(firstMessage.Id, forthUser.Id)
 				ResultedWithNoErrorCheck(replyMessage, err)
 			})
 
@@ -216,7 +207,7 @@ func TestReplyNotificationCreation(t *testing.T) {
 			})
 
 			Convey("First user should be able to reply it", func() {
-				replyMessage, err := addReply(cm.Id, firstUser.Id)
+				replyMessage, err := addReply(firstMessage.Id, firstUser.Id)
 				ResultedWithNoErrorCheck(replyMessage, err)
 			})
 
@@ -236,7 +227,7 @@ func TestReplyNotificationCreation(t *testing.T) {
 			})
 
 			Convey("First user should be able to reply it again", func() {
-				replyMessage, err := addReply(cm.Id, firstUser.Id)
+				replyMessage, err := addReply(firstMessage.Id, firstUser.Id)
 				ResultedWithNoErrorCheck(replyMessage, err)
 			})
 
@@ -305,7 +296,7 @@ func TestReplyNotificationCreation(t *testing.T) {
 				nl, err := getNotificationList(ownerAccount.Id)
 				ResultedWithNoErrorCheck(nl, err)
 
-				Convey("And Notification list should contain one notification", func() {
+				Convey("And Notification list should contain two notifications", func() {
 					So(len(nl.Notifications), ShouldEqual, 2)
 					Convey("Notifier count should be 1", func() {
 						So(nl.Notifications[0].Actors.Count, ShouldEqual, 1)
@@ -318,6 +309,28 @@ func TestReplyNotificationCreation(t *testing.T) {
 
 			})
 
+		})
+
+		Convey("As a message owner I want to receive like notifications", func() {
+			Convey("First user should be able to like it", func() {
+				err := addInteraction(models.Interaction_TYPE_LIKE, firstMessage.Id, firstUser.Id)
+				So(err, ShouldBeNil)
+				time.Sleep(5 * time.Second)
+			})
+			Convey("I should be able to receive notification", func() {
+				nl, err := getNotificationList(ownerAccount.Id)
+				ResultedWithNoErrorCheck(nl, err)
+				Convey("And Notification list should contain three notifications", func() {
+					So(len(nl.Notifications), ShouldEqual, 3)
+					Convey("Notifier count should be 1", func() {
+						So(nl.Notifications[0].Actors.Count, ShouldEqual, 1)
+					})
+					Convey("Notification should contain first user as Latest Actors", func() {
+						So(len(nl.Notifications[0].Actors.LatestActors), ShouldEqual, 1)
+						So(nl.Notifications[0].Actors.LatestActors[0], ShouldEqual, firstUser.Id)
+					})
+				})
+			})
 		})
 
 	})
