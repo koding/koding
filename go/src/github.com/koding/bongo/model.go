@@ -132,6 +132,7 @@ type Query struct {
 	Selector map[string]interface{}
 	Sort     map[string]string
 	Limit    int
+	Skip     int
 	Pluck    string
 }
 
