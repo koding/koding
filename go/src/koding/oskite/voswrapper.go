@@ -252,20 +252,7 @@ func vmPrepareAndStartNew(r *kitelib.Request, vos *virt.VOS) (interface{}, error
 		return nil, &kite.ArgumentError{Expected: "{OnProgress: [function]}"}
 	}
 
-	return progress(vos, "vm.prepareAndStart "+vos.VM.HostnameAlias, params, func() error {
-		results := make(chan *virt.Step)
-		go prepareProgress(results, vos)
-
-		for step := range results {
-			params.OnProgress.Call(step)
-
-			if step.Err != nil {
-				return step.Err
-			}
-		}
-
-		return nil
-	})
+	return vmPrepareAndStart(params, vos)
 }
 
 func vmStopAndUnprepareNew(r *kitelib.Request, vos *virt.VOS) (interface{}, error) {

@@ -399,7 +399,7 @@ func progress(vos *virt.VOS, desc string, p progresser, f func() error) (interfa
 	return true, nil
 }
 
-func vmPrepareAndStart(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (interface{}, error) {
+func vmPrepareAndStartOld(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (interface{}, error) {
 	if !vos.Permissions.Sudo {
 		return nil, &kite.PermissionError{}
 	}
@@ -409,13 +409,17 @@ func vmPrepareAndStart(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS
 		return nil, &kite.ArgumentError{Expected: "{OnProgress: [function]}"}
 	}
 
+	return vmPrepareAndStart(params, vos)
+}
+
+func vmPrepareAndStart(params progresser, vos *virt.VOS) (interface{}, error) {
 	return progress(vos, "vm.prepareAndStart "+vos.VM.HostnameAlias, params, func() error {
 		results := make(chan *virt.Step)
 		go prepareProgress(results, vos)
 
 		for step := range results {
-			if params.OnProgress != nil {
-				params.OnProgress(step)
+			if params.Enabled() {
+				params.Call(step)
 			}
 
 			if step.Err != nil {
