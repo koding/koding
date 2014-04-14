@@ -60,7 +60,7 @@ func (f *PopularTopicsController) HandleEvent(event string, data []byte) error {
 	}
 
 	if cml.ChannelId == 0 {
-		f.log.Error("ChannelId is not set for Channel Message List id: %d Deleting from rabbitmq", cml.Id)
+		f.log.Error(fmt.Sprintf("ChannelId is not set for Channel Message List id: %d Deleting from rabbitmq", cml.Id))
 		return nil
 	}
 
