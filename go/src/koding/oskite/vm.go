@@ -20,10 +20,28 @@ import (
 	"labix.org/v2/mgo/bson"
 )
 
+type output struct {
+	Stdout     string `json:"stdout"`
+	Stderr     string `json:"stderr"`
+	ExitStatus int    `json:"exitStatus"`
+}
+
+type progresser interface {
+	Enabled() bool
+	Call(v interface{})
+}
+
+type progressParamsOld struct {
+	OnProgress dnode.Callback
+}
+
 var (
 	ErrVmAlreadyPrepared = errors.New("vm is already prepared")
 	ErrVmNotPrepared     = errors.New("vm is not prepared")
 )
+
+func (p *progressParamsOld) Enabled() bool      { return p.OnProgress != nil }
+func (p *progressParamsOld) Call(v interface{}) { p.OnProgress(v) }
 
 func vmStartOld(args *dnode.Partial, c *kite.Channel, vos *virt.VOS) (interface{}, error) {
 	return vmStart(vos)
@@ -103,12 +121,6 @@ func execFuncOld(args *dnode.Partial, c *kite.Channel, vos *virt.VOS) (interface
 }
 
 ////////////////////
-
-type output struct {
-	Stdout     string `json:"stdout"`
-	Stderr     string `json:"stderr"`
-	ExitStatus int    `json:"exitStatus"`
-}
 
 func newOutput(cmd *exec.Cmd) (interface{}, error) {
 	stdoutBuffer, stderrBuffer := new(bytes.Buffer), new(bytes.Buffer)
@@ -338,18 +350,6 @@ func vmReinitialize(vos *virt.VOS) (interface{}, error) {
 
 	return true, nil
 }
-
-type progresser interface {
-	Enabled() bool
-	Call(v interface{})
-}
-
-type progressParamsOld struct {
-	OnProgress dnode.Callback
-}
-
-func (p *progressParamsOld) Enabled() bool      { return p.OnProgress != nil }
-func (p *progressParamsOld) Call(v interface{}) { p.OnProgress(v) }
 
 // progress is function that enables sync and async call of the given function
 // "f". We pass an interface called progresser just for compatibility of
