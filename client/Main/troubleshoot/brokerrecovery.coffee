@@ -35,8 +35,6 @@ class BrokerRecovery extends KDObject
     @broker.disconnect no
     brokerURL = @broker.sockURL.replace("/subscribe", "")
     @broker.selectAndConnect [brokerURL]
-    # log while changing and send alert
-    KD.logToExternal "broker connection error", broker : brokerURL
 
 
   recover: (callback) ->

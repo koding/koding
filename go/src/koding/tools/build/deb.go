@@ -30,6 +30,7 @@ type Deb struct {
 	Files           string
 	UpstartScript   string
 	DebianTemplates map[string]string
+	Debug           bool
 }
 
 // Deb is building a new .deb package with the provided tarFile It returns the
@@ -56,8 +57,9 @@ func (d *Deb) Build() (string, error) {
 	cmd := exec.Command("debuild", "-us", "-uc")
 	cmd.Dir = d.BuildFolder
 
-	// Debug
-	// cmd.Stdout, cmd.Stderr = os.Stdout, os.Stderr
+	if d.Debug {
+		cmd.Stdout, cmd.Stderr = os.Stdout, os.Stderr
+	}
 
 	fmt.Println("starting build process ")
 	err := cmd.Start()

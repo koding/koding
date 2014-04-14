@@ -24,13 +24,13 @@ class CollaborativePanel extends Panel
   createPane: (paneOptions) ->
     PaneClass = @getPaneClass paneOptions
     paneOptions.sessionKey = @getOptions().sessionKeys[@panes.length]  if @getOptions().sessionKeys
-    isJoinedASession       = !!paneOptions.sessionKey and not @getDelegate().amIHost()
 
-    if isJoinedASession
+    if @getDelegate().isOldSession
       if paneOptions.type is "terminal"
         PaneClass = SharableClientTerminalPane
       else if paneOptions.type is "finder"
-        PaneClass = CollaborativeClientFinderPane
+        unless @getDelegate().amIHost()
+          PaneClass = CollaborativeClientFinderPane
 
     return warn "Unknown pane class: #{paneOptions.type}"  unless PaneClass
     pane = new PaneClass paneOptions

@@ -4,6 +4,9 @@ package oskite
 
 import (
 	"errors"
+	"fmt"
+	"koding/db/mongodb/modelhelper"
+	"koding/kodingkite"
 	"koding/tools/kite"
 	"koding/virt"
 	"os"
@@ -12,7 +15,7 @@ import (
 
 	kitelib "github.com/koding/kite"
 	kitednode "github.com/koding/kite/dnode"
-	"github.com/koding/kite/simple"
+	"github.com/koding/kite/protocol"
 
 	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
@@ -25,13 +28,17 @@ type vosFunc func(*kitelib.Request, *virt.VOS) (interface{}, error)
 
 // vosMethod is compat wrapper around the new kite library. It's basically
 // creates a vos instance that is the plugged into the the base functions.
-func (o *Oskite) vosMethod(k *simple.Simple, method string, vosFn vosFunc) {
+func (o *Oskite) vosMethod(k *kodingkite.KodingKite, method string, vosFn vosFunc) {
 	handler := func(r *kitelib.Request) (interface{}, error) {
 		var params struct {
 			VmName string
 		}
 
-		if r.Args.One().Unmarshal(&params) != nil || params.VmName == "" {
+		if err := r.Args.One().Unmarshal(&params); err != nil {
+			return nil, err
+		}
+
+		if params.VmName == "" {
 			return nil, errors.New("{ vmName: [string]}")
 		}
 
@@ -97,6 +104,70 @@ func checkAndGetVM(username, vmName string) (*virt.VM, error) {
 	return vm, nil
 }
 
+func (o *Oskite) kiteWho(r *kitelib.Request) (interface{}, error) {
+	var params struct {
+		VmName string
+	}
+
+	if r.Args.One().Unmarshal(&params) != nil || params.VmName == "" {
+		return nil, &kite.ArgumentError{Expected: "[string]"}
+	}
+
+	var vm *virt.VM
+	if err := mongodbConn.Run("jVMs", func(c *mgo.Collection) error {
+		return c.Find(bson.M{"hostnameAlias": params.VmName}).One(&vm)
+	}); err != nil {
+		log.Error("kite.who err: %v", err)
+		return nil, errors.New("not found")
+	}
+
+	resultOskite := lowestOskiteLoad()
+	if resultOskite == "" {
+		resultOskite = o.ServiceUniquename
+	}
+
+	hostKite := vm.HostKite
+	if vm.HostKite == "" {
+		hostKite = resultOskite
+	}
+
+	if vm.HostKite == "(maintenance)" {
+		return nil, errors.New("hostkite is under maintenance")
+	}
+
+	if vm.HostKite == "(banned)" {
+		return nil, errors.New("hostkite is marked as (banned)")
+	}
+
+	if vm.PinnedToHost != "" {
+		hostKite = vm.PinnedToHost
+
+	}
+
+	// hostKite is in form: "kite-os-sj|kontainer1_sj_koding_com"
+	s := strings.Split(hostKite, "|")
+	if len(s) < 2 {
+		return nil, fmt.Errorf("hostkite '%s' is malformed", hostKite)
+	}
+
+	// s[1] -> kontainer1_sj_koding_com
+	hostname := strings.Replace(s[1], "_", ".", -1)
+
+	proc := o.NewKite.Kite()
+	query := protocol.KontrolQuery{
+		Username:    proc.Username,
+		Environment: proc.Environment,
+		Name:        proc.Name,
+		Version:     proc.Version,
+		Region:      proc.Region,
+		Hostname:    hostname,
+	}
+
+	return &protocol.WhoResult{
+		Query: query,
+	}, nil
+}
+
 // VM METHODS
 
 func vmStartNew(r *kitelib.Request, vos *virt.VOS) (interface{}, error) {
@@ -133,7 +204,7 @@ func spawnFuncNew(r *kitelib.Request, vos *virt.VOS) (interface{}, error) {
 	}
 
 	if r.Args.One().Unmarshal(&params) != nil || len(params.Command) == 0 {
-		return nil, &kite.ArgumentError{Expected: "[array of strings]"}
+		return nil, &kite.ArgumentError{Expected: "{command : [array of strings]}"}
 	}
 
 	return spawnFunc(params.Command, vos)
@@ -141,22 +212,39 @@ func spawnFuncNew(r *kitelib.Request, vos *virt.VOS) (interface{}, error) {
 
 func execFuncNew(r *kitelib.Request, vos *virt.VOS) (interface{}, error) {
 	var params struct {
-		Line string
+		Command  string
+		Password string
+		Async    bool
 	}
 
-	if r.Args.One().Unmarshal(&params) != nil || params.Line == "" {
-		return nil, &kite.ArgumentError{Expected: "[string]"}
+	if r.Args.One().Unmarshal(&params) != nil || params.Command == "" {
+		return nil, &kite.ArgumentError{Expected: "{Command : [string]}"}
 	}
 
-	return execFunc(params.Line, vos)
+	asRoot := false
+	if params.Password != "" {
+		_, err := modelhelper.CheckAndGetUser(r.Username, params.Password)
+		if err != nil {
+			return nil, errors.New("Permissiond denied. Wrong password")
+		}
+
+		asRoot = true
+	}
+
+	if params.Async {
+		go execFunc(asRoot, params.Command, vos)
+		return true, nil
+	}
+
+	return execFunc(asRoot, params.Command, vos)
 }
 
 type progressParamsNew struct {
 	OnProgress kitednode.Function
 }
 
-func (p *progressParamsNew) Enabled() bool      { return p.OnProgress != nil }
-func (p *progressParamsNew) Call(v interface{}) { p.OnProgress(v) }
+func (p *progressParamsNew) Enabled() bool      { return p.OnProgress.IsValid() }
+func (p *progressParamsNew) Call(v interface{}) { p.OnProgress.Call(v) }
 
 func vmPrepareAndStartNew(r *kitelib.Request, vos *virt.VOS) (interface{}, error) {
 	params := new(progressParamsNew)
@@ -166,9 +254,7 @@ func vmPrepareAndStartNew(r *kitelib.Request, vos *virt.VOS) (interface{}, error
 
 	return progress(vos, "vm.prepareAndStart"+vos.VM.HostnameAlias, params, func() error {
 		for step := range prepareProgress(vos) {
-			if params.OnProgress != nil {
-				params.OnProgress(step)
-			}
+			params.OnProgress.Call(step)
 
 			if step.Err != nil {
 				return step.Err
@@ -187,9 +273,7 @@ func vmStopAndUnprepareNew(r *kitelib.Request, vos *virt.VOS) (interface{}, erro
 
 	return progress(vos, "vm.stopAndUnprepare"+vos.VM.HostnameAlias, params, func() error {
 		for step := range unprepareProgress(vos, false) {
-			if params.OnProgress != nil {
-				params.OnProgress(step)
-			}
+			params.OnProgress.Call(step)
 
 			if step.Err != nil {
 				return step.Err
@@ -208,9 +292,7 @@ func vmDestroyNew(r *kitelib.Request, vos *virt.VOS) (interface{}, error) {
 
 	return progress(vos, "vm.stopAndUnprepare"+vos.VM.HostnameAlias, params, func() error {
 		for step := range unprepareProgress(vos, true) {
-			if params.OnProgress != nil {
-				params.OnProgress(step)
-			}
+			params.OnProgress.Call(step)
 
 			if step.Err != nil {
 				return step.Err
@@ -237,7 +319,7 @@ func fsReadDirectoryNew(r *kitelib.Request, vos *virt.VOS) (interface{}, error) 
 
 	response := make(map[string]interface{})
 
-	if params.OnChange != nil {
+	if params.OnChange.IsValid() {
 		watch, err := vos.WatchDirectory(params.Path, params.WatchSubdirectories, func(ev *inotify.Event, info os.FileInfo) {
 			defer log.RecoverAndLog()
 
@@ -249,7 +331,7 @@ func fsReadDirectoryNew(r *kitelib.Request, vos *virt.VOS) (interface{}, error) 
 				if ev.Mask&inotify.IN_ATTRIB != 0 {
 					event = "attributesChanged"
 				}
-				params.OnChange(map[string]interface{}{
+				params.OnChange.Call(map[string]interface{}{
 					"event": event,
 					"file":  makeFileEntry(vos, ev.Name, info),
 				})
@@ -257,7 +339,7 @@ func fsReadDirectoryNew(r *kitelib.Request, vos *virt.VOS) (interface{}, error) 
 			}
 
 			if (ev.Mask & (inotify.IN_DELETE | inotify.IN_MOVED_FROM)) != 0 {
-				params.OnChange(map[string]interface{}{
+				params.OnChange.Call(map[string]interface{}{
 					"event": "removed",
 					"file":  FileEntry{Name: path.Base(ev.Name), FullPath: ev.Name},
 				})
@@ -270,7 +352,7 @@ func fsReadDirectoryNew(r *kitelib.Request, vos *virt.VOS) (interface{}, error) 
 
 		r.Client.OnDisconnect(func() { watch.Close() })
 
-		response["stopWatching"] = kitednode.Callback(func(args kitednode.Arguments) {
+		response["stopWatching"] = kitednode.Callback(func(args *kitednode.Partial) {
 			watch.Close()
 		})
 

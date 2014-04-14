@@ -151,6 +151,7 @@ module.exports =
     useStaticFileServer: no
     staticFilesBaseUrl: 'http://lvh.me:3020'
     runtimeOptions:
+      kites: require './kites.coffee'
       osKitePollingMs: 1000 * 60 # 1 min
       userIdleMs: 1000 * 60 * 5  # 5 min
       sessionCookie :
@@ -300,8 +301,11 @@ module.exports =
     interval      : 60000
   haproxy         :
     webPort       : 3020
+  newkites        :
+    useTLS        : no
+    certFile      : ""
+    keyFile       : ""
   newkontrol      :
-    username        : "devrim"
     port            : 4000
     useTLS          : no
     certFile        : ""
@@ -430,3 +434,7 @@ module.exports =
     secure        : cookieSecure
   troubleshoot    :
     recipientEmail: "can@koding.com"
+  pageHit         :
+    run           : no
+    host          : "localhost"
+    port          : 9200

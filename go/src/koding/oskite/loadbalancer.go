@@ -24,8 +24,11 @@ func (o *Oskite) redisBalancer() {
 	}
 	session.SetPrefix("oskite")
 
-	prefix := "oskite:" + conf.Environment + ":"
-	kontainerSet := "kontainers-" + conf.Environment
+	// oskite:production:sj:
+	prefix := "oskite:" + conf.Environment + ":" + o.Region + ":"
+
+	// kontainers-production-sj
+	kontainerSet := "kontainers-" + conf.Environment + "-" + o.Region
 
 	log.Info("Connected to Redis with %s", prefix+o.ServiceUniquename)
 

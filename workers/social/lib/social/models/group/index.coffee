@@ -225,7 +225,7 @@ module.exports = class JGroup extends Module
           (signature String, Function)
         fetchSubscription:
           (signature Function)
-        getPermissionSet:
+        fetchPermissionSetOrDefault:
           (signature Function)
         fetchUserStatus:
           (signature Object, Function)
@@ -395,7 +395,6 @@ module.exports = class JGroup extends Module
       groupHome  : require '../../render/loggedout/grouphome'
       kodingHome : require '../../render/loggedout/kodinghome'
       subPage    : require '../../render/loggedout/subpage'
-    landing      : require '../../render/landing'
 
   @__resetAllGroups = secure (client, callback)->
     {delegate} = client.connection
@@ -1590,7 +1589,7 @@ module.exports = class JGroup extends Module
         subscription.plan = plan
         callback null, subscription
 
-  getPermissionSet : (callback)->
+  fetchPermissionSetOrDefault : (callback)->
     @fetchPermissionSet (err, permissionSet) =>
       callback err, null if err
       if permissionSet
