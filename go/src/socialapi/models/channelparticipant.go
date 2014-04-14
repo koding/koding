@@ -2,8 +2,10 @@ package models
 
 import (
 	"errors"
+	"fmt"
 	"time"
 
+	"github.com/jinzhu/gorm"
 	"github.com/koding/bongo"
 )
 
@@ -61,6 +63,34 @@ func (c *ChannelParticipant) BeforeUpdate() {
 }
 
 func (c *ChannelParticipant) Create() error {
+	if c.ChannelId == 0 {
+		return fmt.Errorf("Channel Id is not set %d", c.ChannelId)
+	}
+
+	if c.AccountId == 0 {
+		return fmt.Errorf("AccountId is not set %d", c.AccountId)
+	}
+
+	selector := map[string]interface{}{
+		"channel_id": c.ChannelId,
+		"account_id": c.AccountId,
+	}
+
+	// if err is nil
+	// it means we already have that channel
+	err := c.One(bongo.NewQS(selector))
+	if err == nil {
+		c.StatusConstant = ChannelParticipant_STATUS_ACTIVE
+		if err := c.Update(); err != nil {
+			return err
+		}
+		return nil
+	}
+
+	if err != gorm.RecordNotFound {
+		return err
+	}
+
 	return bongo.B.Create(c)
 }
 
@@ -142,20 +172,30 @@ func (c *ChannelParticipant) List() ([]ChannelParticipant, error) {
 	return participants, nil
 }
 
-func (c *ChannelParticipant) FetchParticipatedChannelIds(a *Account) ([]int64, error) {
-
+func (c *ChannelParticipant) FetchParticipatedChannelIds(a *Account, q *Query) ([]int64, error) {
 	if a.Id == 0 {
 		return nil, errors.New("Account.Id is not set")
 	}
 
-	var channelIds []int64
+	channelIds := make([]int64, 0)
 
-	if err := bongo.B.DB.Table(c.TableName()).
-		Order("created_at desc").
-		Where("account_id = ?", a.Id).
-		Pluck("channel_id", &channelIds).
-		Error; err != nil {
-		return nil, err
+	// var results []ChannelParticipant
+	rows, err := bongo.B.DB.Table(c.TableName()).
+		Select("api.channel_participant.channel_id").
+		Joins("left join api.channel on api.channel_participant.channel_id = api.channel.id").
+		Where("api.channel_participant.account_id = ? and api.channel.type_constant = ? and  api.channel_participant.status_constant = ?", a.Id, q.Type, ChannelParticipant_STATUS_ACTIVE).
+		Limit(q.Limit).
+		Offset(q.Skip).
+		Rows()
+	defer rows.Close()
+	if err != nil {
+		return channelIds, err
+	}
+
+	var channelId int64
+	for rows.Next() {
+		rows.Scan(&channelId)
+		channelIds = append(channelIds, channelId)
 	}
 
 	return channelIds, nil
