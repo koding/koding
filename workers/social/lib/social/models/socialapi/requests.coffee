@@ -89,7 +89,7 @@ addReply = (data, callback)->
 
 fetchPopularTopics = (data, callback)->
   if not data.groupName
-    return callback { message: "Request is not valid for listing popular topics"}
+    return callback {message: "Request is not valid for listing popular topics"}
 
   url = "#{SOCIAL_API_URL}/popular/topics/weekly"
   get url, data, callback
