@@ -91,6 +91,7 @@ func (n *NotificationWorkerController) CreateInteractionNotification(data []byte
 	// a bit error prune since we take interaction type as notification type
 	in := models.NewInteractionNotification(i.TypeConstant)
 	in.TargetId = i.MessageId
+	in.NotifierId = i.AccountId
 	if err := models.CreateNotification(in); err != nil {
 		return err
 	}

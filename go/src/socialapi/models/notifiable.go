@@ -29,7 +29,21 @@ type InteractionNotification struct {
 func (n *InteractionNotification) GetNotifiedUsers() ([]int64, error) {
 	i := NewInteraction()
 	i.MessageId = n.TargetId
-	return i.FetchInteractorIds(&bongo.Pagination{})
+
+	// fetch message owner
+	targetMessage := NewChannelMessage()
+	targetMessage.Id = n.TargetId
+	if err := targetMessage.Fetch(); err != nil {
+		return nil, err
+	}
+
+	notifiedUsers := make([]int64, 0)
+	// notify just the owner
+	if targetMessage.AccountId != n.NotifierId {
+		notifiedUsers = append(notifiedUsers, targetMessage.AccountId)
+	}
+
+	return notifiedUsers, nil
 }
 
 func (n *InteractionNotification) GetType() string {
