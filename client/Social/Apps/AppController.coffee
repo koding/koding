@@ -146,6 +146,8 @@ class AppsAppController extends AppController
         title             : "New Apps"
         dataSource        : (selector, options, callback)=>
           KD.remote.api.JNewApp.some_ selector, options, callback
+    else
+      delete options.filter.kites
 
     KD.getSingleton("appManager").tell 'Feeder', \
       'createContentFeedController', options, (controller)=>
