@@ -13,6 +13,10 @@ class TroubleshootResultView extends KDCustomHTMLView
     brokerKite :
       slow     : "You will experience slowness with terminal connection"
       fail     : "You will not connect to your terminal"
+    newKite    :
+      fail     : "You are currently testing our new Kite system and experiencing some problems. \
+                 If you want to return to old system, just press Recover button.
+                 Also we would be glad if you share your problem and send feedback to us."
     osKite     :
       slow     : "You will experience slowness with terminal connection"
       fail     : "You will not connect to your terminal"
@@ -28,14 +32,18 @@ class TroubleshootResultView extends KDCustomHTMLView
     liveUpdate :
       slow     : "You will experience slowness with live updates"
       fail     : "You will not receive live updates, and you wont be able to \
-                  connect to your vms"
+                  connect to your VMs"
     version    :
       fail     : "You are currently running an old version of Koding. Please refresh \
                   your page."
     vm         :
-      fail     : "One or more of your VMs are not accessible right now. Please try refreshing your page."
+      fail     : "One or more of your VMs are not accessible right now. Please \
+                  try refreshing your page."
       pending  : "Some of your VMs are currently offline. If you want to activate them please \
-                  use Terminal App"
+                  use Terminal app"
+    terminal   :
+      fail     : "One or more of your Terminals are not accessible right now. Please  \
+                  try refreshing your page."
 
 
   constructor: (options, data) ->

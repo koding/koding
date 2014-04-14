@@ -39,8 +39,8 @@ func NewPopularTopicsController(log logging.Logger, redis *redis.RedisSession) *
 	}
 
 	routes := map[string]Action{
-		"channel_message_list_created": (*PopularTopicsController).MessageSaved,
-		"channel_message_list_deleted": (*PopularTopicsController).MessageDeleted,
+		"api.channel_message_list_created": (*PopularTopicsController).MessageSaved,
+		"api.channel_message_list_deleted": (*PopularTopicsController).MessageDeleted,
 	}
 
 	ffc.routes = routes
@@ -167,7 +167,6 @@ func mapMessage(data []byte) (*models.ChannelMessageList, error) {
 }
 
 func (f *PopularTopicsController) isEligible(c *models.Channel) bool {
-	return true
 	if c.TypeConstant != models.Channel_TYPE_TOPIC {
 		return false
 	}

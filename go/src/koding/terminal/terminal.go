@@ -15,7 +15,7 @@ import (
 	"time"
 
 	kitelib "github.com/koding/kite"
-	"github.com/koding/kite/simple"
+	"github.com/koding/kite/protocol"
 
 	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
@@ -23,7 +23,7 @@ import (
 
 const (
 	TERMINAL_NAME    = "terminal"
-	TERMINAL_VERSION = "0.0.2"
+	TERMINAL_VERSION = "0.1.2"
 )
 
 var (
@@ -34,6 +34,7 @@ var (
 
 type Terminal struct {
 	Kite              *kite.Kite
+	NewKite           *kitelib.Kite
 	Name              string
 	Version           string
 	Region            string
@@ -139,17 +140,25 @@ func (t *Terminal) Run() {
 func (t *Terminal) registerMethod(method string, concurrent bool, callback func(*dnode.Partial, *kite.Channel, *virt.VOS) (interface{}, error)) {
 	wrapperMethod := func(args *dnode.Partial, channel *kite.Channel) (methodReturnValue interface{}, methodError error) {
 		log.Info("[method: %s]  [user: %s]  [vm: %s]", method, channel.Username, channel.CorrelationName)
-		user, err := getUser(channel.Username)
+		if method == "webterm.connect" {
+			user, err := getUser(channel.Username)
+			if err != nil {
+				return nil, err
+			}
+
+			vm, err := getVM(channel.CorrelationName)
+			if err != nil {
+				return nil, err
+			}
+			return callback(args, channel, &virt.VOS{VM: vm, User: user})
+		}
+
+		vos, err := t.getVos(channel.Username, channel.CorrelationName)
 		if err != nil {
 			return nil, err
 		}
 
-		vm, err := getVM(channel.CorrelationName)
-		if err != nil {
-			return nil, err
-		}
-
-		return callback(args, channel, &virt.VOS{VM: vm, User: user})
+		return callback(args, channel, vos)
 	}
 
 	t.Kite.Handle(method, concurrent, wrapperMethod)
@@ -209,15 +218,29 @@ func (err *VMNotFoundError) Error() string {
 
 func (t *Terminal) runNewKite() {
 	log.Info("Run newkite.")
-	k := kodingkite.New(conf, TERMINAL_NAME, TERMINAL_VERSION)
-	k.Config.Port = 5001
+	k, err := kodingkite.New(conf, TERMINAL_NAME, TERMINAL_VERSION)
+	if err != nil {
+		panic(err)
+	}
+
+	t.NewKite = k.Kite
+
+	if k.Server.TLSConfig != nil {
+		k.Config.Port = 444
+	} else {
+		k.Config.Port = 5001
+	}
+
 	k.Config.Region = t.Region
 
 	t.vosMethod(k, "webterm.getSessions", webtermGetSessionsNew)
-	t.vosMethod(k, "webterm.connect", webtermGetSessionsNew)
-	t.vosMethod(k, "webterm.killSession", webtermGetSessionsNew)
+	t.vosMethod(k, "webterm.connect", webtermConnectNew)
+	t.vosMethod(k, "webterm.killSession", webtermKillSessionNew)
 	t.vosMethod(k, "webterm.ping", webtermPingNew)
-	k.DisableConcurrency() // needed for webterm.connect
+
+	k.HandleFunc("kite.who", t.kiteWho)
+
+	k.Config.DisableConcurrency = true // to process incoming messages in order
 
 	k.Start()
 
@@ -225,12 +248,71 @@ func (t *Terminal) runNewKite() {
 	log.SetLevel(t.LogLevel)
 }
 
+func (t *Terminal) kiteWho(r *kitelib.Request) (interface{}, error) {
+	var params struct {
+		VmName string
+	}
+
+	if r.Args.One().Unmarshal(&params) != nil || params.VmName == "" {
+		return nil, &kite.ArgumentError{Expected: "[string]"}
+	}
+
+	var vm *virt.VM
+	if err := mongodbConn.Run("jVMs", func(c *mgo.Collection) error {
+		return c.Find(bson.M{"hostnameAlias": params.VmName}).One(&vm)
+	}); err != nil {
+		log.Error("kite.who err: %v", err)
+		return nil, errors.New("not found")
+	}
+
+	hostKite := vm.HostKite
+	if vm.HostKite == "" {
+		return nil, errors.New("hostkite is empty returning (error)")
+	}
+
+	if vm.HostKite == "(maintenance)" {
+		return nil, errors.New("hostkite is under maintenance")
+	}
+
+	if vm.HostKite == "(banned)" {
+		return nil, errors.New("hostkite is marked as (banned)")
+	}
+
+	if vm.PinnedToHost != "" {
+		hostKite = vm.PinnedToHost
+
+	}
+
+	// hostKite is in form: "kite-os-sj|kontainer1_sj_koding_com"
+	s := strings.Split(hostKite, "|")
+	if len(s) < 2 {
+		return nil, fmt.Errorf("hostkite '%s' is malformed", hostKite)
+	}
+
+	// s[1] -> kontainer1_sj_koding_com
+	hostname := strings.Replace(s[1], "_", ".", -1)
+
+	proc := t.NewKite.Kite()
+	query := protocol.KontrolQuery{
+		Username:    proc.Username,
+		Environment: proc.Environment,
+		Name:        proc.Name,
+		Version:     proc.Version,
+		Region:      proc.Region,
+		Hostname:    hostname,
+	}
+
+	return &protocol.WhoResult{
+		Query: query,
+	}, nil
+}
+
 // vosFunc is used to associate each request with a VOS instance.
 type vosFunc func(*kitelib.Request, *virt.VOS) (interface{}, error)
 
 // vosMethod is compat wrapper around the new kite library. It's basically
 // creates a vos instance that is the plugged into the the base functions.
-func (t *Terminal) vosMethod(k *simple.Simple, method string, vosFn vosFunc) {
+func (t *Terminal) vosMethod(k *kodingkite.KodingKite, method string, vosFn vosFunc) {
 	handler := func(r *kitelib.Request) (interface{}, error) {
 		var params struct {
 			VmName string
@@ -238,6 +320,20 @@ func (t *Terminal) vosMethod(k *simple.Simple, method string, vosFn vosFunc) {
 
 		if r.Args.One().Unmarshal(&params) != nil || params.VmName == "" {
 			return nil, errors.New("{ vmName: [string]}")
+		}
+
+		if method == "webterm.connect" {
+			user, err := getUser(r.Username)
+			if err != nil {
+				return nil, err
+			}
+
+			vm, err := getVM(params.VmName)
+			if err != nil {
+				return nil, err
+			}
+
+			return vosFn(r, &virt.VOS{VM: vm, User: user})
 		}
 
 		vos, err := t.getVos(r.Username, params.VmName)

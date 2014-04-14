@@ -1437,7 +1437,7 @@ module.exports = class JAccount extends jraphical.Module
           perms = Protected.permissionsByModule
           callback null, flatten(perms), roles
         else
-          group.getPermissionSet (err, permissionSet)->
+          group.fetchPermissionSetOrDefault (err, permissionSet)->
             return callback err if err
             perms = (perm.permissions.slice() for perm in permissionSet.permissions \
               when perm.role in roles or 'admin' in roles)

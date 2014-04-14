@@ -46,8 +46,8 @@ func (c *ChannelMessageList) GetId() int64 {
 	return c.Id
 }
 
-func (c *ChannelMessageList) TableName() string {
-	return "channel_message_list"
+func (c ChannelMessageList) TableName() string {
+	return "api.channel_message_list"
 }
 
 func NewChannelMessageList() *ChannelMessageList {

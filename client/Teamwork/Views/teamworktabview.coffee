@@ -115,7 +115,7 @@ class TeamworkTabView extends CollaborativePane
       @updateTabAvatars()
 
   recoverPaneState: (pane) ->
-    if pane.terminalView
+    if pane.terminalView?.webterm
       {terminal} = pane.terminalView.webterm
       terminal.scrollToBottom()
       terminal.setFocused yes  if document.activeElement is document.body
@@ -166,7 +166,7 @@ class TeamworkTabView extends CollaborativePane
       "Editor"    :
         callback  : => @handlePaneCreate "editor",   => @createEditor()
       "Terminal"  :
-        callback  : => @handlePaneCreate "terminal", => @createTerminal()
+        callback  : => @handlePaneCreate "terminal", => @createTerminal null, null, yes
       "Browser"   :
         callback  : => @handlePaneCreate "browser",  => @createPreview()
       "Drawing Board":
@@ -303,10 +303,10 @@ class TeamworkTabView extends CollaborativePane
     else
       @createEditor file, content
 
-  createTerminal: (sessionKey, indexKey) ->
+  createTerminal: (sessionKey, indexKey, forceNew) ->
     indexKey = indexKey or @createSessionKey()
     pane     = new KDTabPaneView { title: "Terminal", indexKey }
-    klass    = if @isJoinedASession then SharableClientTerminalPane else SharableTerminalPane
+    klass    = if @isJoinedASession and not forceNew then SharableClientTerminalPane else SharableTerminalPane
     delegate = @getDelegate()
     terminal = new klass { delegate, sessionKey }
 
@@ -316,13 +316,17 @@ class TeamworkTabView extends CollaborativePane
 
     if @amIHost
       terminal.on "WebtermCreated", =>
-        @keysRef.push
-          type       : "terminal"
-          indexKey   : indexKey
-          sessionKey :
-            key      : terminal.remote.session
-            host     : KD.nick()
-            vmName   : KD.getSingleton("vmController").defaultVmName
+        KD.singletons.vmController.fetchDefaultVm (err, vm)=>
+          if err then warn err
+          else
+            @keysRef.push
+              type       : "terminal"
+              indexKey   : indexKey
+              sessionKey :
+                key      : terminal.remote.session
+                host     : KD.nick()
+                vmName   : vm.hostnameAlias
+                vmRegion : vm.region
 
     @registerPaneRemoveListener_ pane
 

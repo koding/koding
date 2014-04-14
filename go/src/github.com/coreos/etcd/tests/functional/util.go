@@ -17,14 +17,16 @@ limitations under the License.
 package test
 
 import (
+	"errors"
 	"fmt"
-	"github.com/coreos/etcd/third_party/github.com/coreos/go-etcd/etcd"
 	"io/ioutil"
 	"net"
 	"net/http"
 	"os"
 	"strconv"
 	"time"
+
+	"github.com/coreos/etcd/third_party/github.com/coreos/go-etcd/etcd"
 )
 
 var client = http.Client{
@@ -69,6 +71,23 @@ func Set(stop chan bool) {
 	stop <- true
 }
 
+func WaitForServer(host string, client http.Client, scheme string) error {
+	path := fmt.Sprintf("%s://%s/v2/keys/", scheme, host)
+
+	var resp *http.Response
+	var err error
+	for i := 0; i < 10; i++ {
+		time.Sleep(1 * time.Second)
+
+		resp, err = client.Get(path)
+		if err == nil && resp.StatusCode == 200 {
+			return nil
+		}
+	}
+
+	return errors.New(fmt.Sprintf("etcd server was not reachable in a long time, last-time response and error: %v; %v", resp, err))
+}
+
 // Create a cluster of etcd nodes
 func CreateCluster(size int, procAttr *os.ProcAttr, ssl bool) ([][]string, []*os.Process, error) {
 	argGroup := make([][]string, size)
@@ -91,7 +110,7 @@ func CreateCluster(size int, procAttr *os.ProcAttr, ssl bool) ([][]string, []*os
 			}
 		} else {
 			strI := strconv.Itoa(i + 1)
-			argGroup[i] = []string{"etcd", "-name=node" + strI, "-addr=127.0.0.1:400" + strI, "-peer-addr=127.0.0.1:700" + strI, "-data-dir=/tmp/node" + strI, "-peers=127.0.0.1:7001"}
+			argGroup[i] = []string{"etcd", "-name=node" + strI, fmt.Sprintf("-addr=127.0.0.1:%d", 4001+i), fmt.Sprintf("-peer-addr=127.0.0.1:%d", 7001+i), "-data-dir=/tmp/node" + strI, "-peers=127.0.0.1:7001"}
 			if ssl {
 				argGroup[i] = append(argGroup[i], sslServer2...)
 			}
@@ -107,12 +126,25 @@ func CreateCluster(size int, procAttr *os.ProcAttr, ssl bool) ([][]string, []*os
 			return nil, nil, err
 		}
 
-		// TODOBP: Change this sleep to wait until the master is up.
 		// The problem is that if the master isn't up then the children
 		// have to retry. This retry can take upwards of 15 seconds
 		// which slows tests way down and some of them fail.
-		if i == 0 {
-			time.Sleep(time.Second * 2)
+		//
+		// Waiting for each server to start when ssl is a workaround.
+		// Autotest machines are dramatically slow, and it could spend
+		// several seconds to build TSL connections between servers. That
+		// is extremely terribe when the second machine joins the cluster
+		// because the cluster is out of work at this time. The guy
+		// tries to join during this time will fail, and current implementation
+		// makes it fail after just one-time try(bug in #661). This
+		// makes the cluster start with N-1 machines.
+		// TODO(yichengq): It should be fixed.
+		if i == 0 || ssl {
+			client := buildClient()
+			err = WaitForServer("127.0.0.1:400"+strconv.Itoa(i+1), client, "http")
+			if err != nil {
+				return nil, nil, err
+			}
 		}
 	}
 

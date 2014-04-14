@@ -25,8 +25,8 @@ func (m *MessageReply) GetId() int64 {
 	return m.Id
 }
 
-func (m *MessageReply) TableName() string {
-	return "message_reply"
+func (m MessageReply) TableName() string {
+	return "api.message_reply"
 }
 
 func NewMessageReply() *MessageReply {

@@ -4,12 +4,21 @@ KD.extend
   apiUri       : KD.config.apiUri
   appsUri      : KD.config.appsUri
   singleton    : KD.getSingleton.bind KD
-  useNewKites  : no
+  useNewKites  :
+    if localStorage.useNewKites?
+    then Boolean Number localStorage.useNewKites
   appClasses   : {}
   appScripts   : {}
   appLabels    : {}
   navItems     : []
   navItemIndex : {}
+
+  toggleKiteStack: ->
+    localStorage.useNewKites =
+      if @useNewKites
+      then ''
+      else '1'
+    location.reload()
 
   socketConnected:->
     @backendIsConnected = yes

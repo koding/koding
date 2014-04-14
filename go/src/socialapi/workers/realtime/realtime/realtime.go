@@ -41,19 +41,19 @@ func NewRealtimeWorkerController(rmq *rabbitmq.RabbitMQ, log logging.Logger) (*R
 	}
 
 	routes := map[string]Action{
-		"channel_message_created": (*RealtimeWorkerController).MessageSaved,
-		"channel_message_updated": (*RealtimeWorkerController).MessageUpdated,
-		"channel_message_deleted": (*RealtimeWorkerController).MessageDeleted,
+		"api.channel_message_created": (*RealtimeWorkerController).MessageSaved,
+		"api.channel_message_updated": (*RealtimeWorkerController).MessageUpdated,
+		"api.channel_message_deleted": (*RealtimeWorkerController).MessageDeleted,
 
-		"interaction_created": (*RealtimeWorkerController).InteractionSaved,
-		"interaction_deleted": (*RealtimeWorkerController).InteractionDeleted,
+		"api.interaction_created": (*RealtimeWorkerController).InteractionSaved,
+		"api.interaction_deleted": (*RealtimeWorkerController).InteractionDeleted,
 
-		"message_reply_created": (*RealtimeWorkerController).MessageReplySaved,
-		"message_reply_deleted": (*RealtimeWorkerController).MessageReplyDeleted,
+		"api.message_reply_created": (*RealtimeWorkerController).MessageReplySaved,
+		"api.message_reply_deleted": (*RealtimeWorkerController).MessageReplyDeleted,
 
-		"channel_message_list_created": (*RealtimeWorkerController).MessageListSaved,
-		"channel_message_list_updated": (*RealtimeWorkerController).MessageListUpdated,
-		"channel_message_list_deleted": (*RealtimeWorkerController).MessageListDeleted,
+		"api.channel_message_list_created": (*RealtimeWorkerController).MessageListSaved,
+		"api.channel_message_list_updated": (*RealtimeWorkerController).MessageListUpdated,
+		"api.channel_message_list_deleted": (*RealtimeWorkerController).MessageListDeleted,
 	}
 
 	ffc.routes = routes

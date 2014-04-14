@@ -70,10 +70,11 @@ class NFinderController extends KDViewController
     @reset()  if @getOptions().loadFilesOnInit
 
   reset:->
-    if @getOptions().useStorage
-      @appStorage.ready => @loadVms()
-    else
-      @utils.defer => @loadVms()
+    KD.singletons.vmController.ready =>
+      if @getOptions().useStorage
+        @appStorage.ready => @loadVms()
+      else
+        @utils.defer => @loadVms()
 
   mountVms: (vms) ->
     return  unless Array.isArray vms
@@ -100,7 +101,6 @@ class NFinderController extends KDViewController
 
   loadVms:(vmNames, callback = (->))->
     { JVM } = KD.remote.api
-
     if vmNames
       @fetchSavedVms vmNames, (err, vms) =>
         return callback err  if err

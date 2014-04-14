@@ -11,7 +11,7 @@ class CollaborativePane extends Pane
     @sessionKey       = @getOptions().sessionKey or @createSessionKey()
     @workspaceRef     = @workspace.firebaseRef.child @sessionKey
     @amIHost          = @workspace.amIHost()
-    @isJoinedASession = @getOptions().sessionKey and not @amIHost
+    @isJoinedASession = @workspace.isOldSession
     @container        = new KDView cssClass: "ws-container"
 
   createSessionKey: ->

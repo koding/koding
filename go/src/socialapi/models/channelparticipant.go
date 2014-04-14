@@ -48,8 +48,8 @@ func (c *ChannelParticipant) GetId() int64 {
 	return c.Id
 }
 
-func (c *ChannelParticipant) TableName() string {
-	return "channel_participant"
+func (c ChannelParticipant) TableName() string {
+	return "api.channel_participant"
 }
 
 func (c *ChannelParticipant) BeforeSave() {

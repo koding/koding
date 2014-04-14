@@ -27,6 +27,9 @@ func validateChannelRequest(c *models.Channel) error {
 }
 
 func Create(u *url.URL, h http.Header, req *models.Channel) (int, http.Header, interface{}, error) {
+	if req.GroupName == "" {
+		req.GroupName = models.Channel_KODING_NAME
+	}
 	if err := validateChannelRequest(req); err != nil {
 		return helpers.NewBadRequestResponse(err)
 	}
