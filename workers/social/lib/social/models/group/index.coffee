@@ -446,7 +446,7 @@ module.exports = class JGroup extends Module
             queue.next()
         -> save_ 'group', group, queue, (err)->
            if err
-             JName.release group.slug, => callback err
+             JName.release group.slug, -> callback err
            else
              queue.next()
         -> group.addMember owner, (err)->
@@ -1629,18 +1629,20 @@ module.exports = class JGroup extends Module
         subscription.checkUsage pack, callback
 
   createSocialApiChannelId: (callback) ->
-    return callback null, @socialApiChannelId  if @socialApiChannelId
+    # disable for now
+    # return callback null, @socialApiChannelId  if @socialApiChannelId
     @fetchOwner (err, owner)=>
       return callback err if err
-      return callback { message: "Owner not found for #{@slug} group" } unless owner
+      unless owner
+        return callback { message: "Owner not found for #{@slug} group" }
       owner.createSocialApiId (err, socialApiId)=>
         return callback err if err
         # required data for creating a channel
         data =
-          name     : @slug
-          creatorId: socialApiId
-          group    : @slug
-          type     : "group"
+          name         : @slug
+          creatorId    : socialApiId
+          group        : @slug
+          typeConstant : "group"
 
         {createChannel} = require '../socialapi/requests'
         createChannel data, (err, socialApiChannel)=>
