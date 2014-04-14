@@ -13,7 +13,18 @@ module.exports = class JKiteStack extends Model
       ratio       : Number
       isEnabled   : Boolean
 
-  @fetchInfo = (callback) -> @one {}, callback
+  @fetchInfo = (callback) ->
+    @one {}, (err, info) ->
+      return callback err         if err?
+      return callback null, info  if info?
+
+      info = new JKiteStack
+        ratio     : 0
+        isEnabled : yes
+      info.save (err) ->
+        return callback err  if err
+
+        callback null, info
 
   @setInfo = secure (client, { ratio, isEnabled }, callback) ->
     { connection:{ delegate }} = client
