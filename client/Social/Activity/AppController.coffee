@@ -35,7 +35,7 @@ class ActivityAppController extends AppController
     # we should change the other parts to make it
     # work with the new structure
     {SocialChannel, SocialMessage}  = KD.remote.api
-    options.id = KD.singletons.groupsController.getCurrentGroup().socialApiChannelId
+    options.id = KD.getGroup().socialApiChannelId
     SocialChannel.fetchActivity options, (err, result)=>
       console.timeEnd('fetchActivity')
       console.log err  if err

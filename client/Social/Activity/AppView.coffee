@@ -49,9 +49,7 @@ class ActivityAppView extends KDView
     if pane and pane is @tabs.getActivePane()
     then pane.refresh()
     else if pane
-      console.time('showTab')
-      @tabs.showPane pane
-      console.timeEnd('showTab')
+    then @tabs.showPane pane
     else @createTab data
 
 
