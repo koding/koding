@@ -23,6 +23,14 @@ import (
 	"code.google.com/p/go.exp/inotify"
 )
 
+type progressParamsNew struct {
+	Destroy    bool
+	OnProgress kitednode.Function
+}
+
+func (p *progressParamsNew) Enabled() bool      { return p.OnProgress.IsValid() }
+func (p *progressParamsNew) Call(v interface{}) { p.OnProgress.Call(v) }
+
 // vosFunc is used to associate each request with a VOS instance.
 type vosFunc func(*kitelib.Request, *virt.VOS) (interface{}, error)
 
@@ -239,13 +247,6 @@ func execFuncNew(r *kitelib.Request, vos *virt.VOS) (interface{}, error) {
 	return execFunc(asRoot, params.Command, vos)
 }
 
-type progressParamsNew struct {
-	OnProgress kitednode.Function
-}
-
-func (p *progressParamsNew) Enabled() bool      { return p.OnProgress.IsValid() }
-func (p *progressParamsNew) Call(v interface{}) { p.OnProgress.Call(v) }
-
 func vmPrepareAndStartNew(r *kitelib.Request, vos *virt.VOS) (interface{}, error) {
 	params := new(progressParamsNew)
 	if r.Args.One().Unmarshal(&params) != nil {
@@ -261,7 +262,7 @@ func vmStopAndUnprepareNew(r *kitelib.Request, vos *virt.VOS) (interface{}, erro
 		return nil, &kite.ArgumentError{Expected: "{OnProgress: [function]}"}
 	}
 
-	return vmStopAndUnprepare(params, vos)
+	return vmStopAndUnprepare(params, params.Destroy, vos)
 }
 
 // FS METHODS

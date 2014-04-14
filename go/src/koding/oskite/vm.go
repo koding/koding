@@ -32,6 +32,7 @@ type progresser interface {
 }
 
 type progressParamsOld struct {
+	Destroy    bool
 	OnProgress dnode.Callback
 }
 
@@ -66,7 +67,7 @@ func vmStopAndUnprepareOld(args *dnode.Partial, channel *kite.Channel, vos *virt
 		return nil, &kite.ArgumentError{Expected: "{OnProgress: [function]}"}
 	}
 
-	return vmStopAndUnprepare(params, vos)
+	return vmStopAndUnprepare(params, params.Destroy, vos)
 }
 
 func vmStopOld(args *dnode.Partial, c *kite.Channel, vos *virt.VOS) (interface{}, error) {
@@ -440,7 +441,7 @@ func vmPrepareAndStart(params progresser, vos *virt.VOS) (interface{}, error) {
 	})
 }
 
-func vmStopAndUnprepare(params progresser, vos *virt.VOS) (interface{}, error) {
+func vmStopAndUnprepare(params progresser, destroy bool, vos *virt.VOS) (interface{}, error) {
 	if !vos.Permissions.Sudo {
 		return nil, &kite.PermissionError{}
 	}
@@ -448,7 +449,7 @@ func vmStopAndUnprepare(params progresser, vos *virt.VOS) (interface{}, error) {
 	return progress(vos, "vm.stopAndUnprepare "+vos.VM.HostnameAlias, params, func() error {
 		var lastError error
 		results := make(chan *virt.Step)
-		go unprepareProgress(results, vos, false)
+		go unprepareProgress(results, vos, destroy)
 
 		for step := range results {
 			if params.Enabled() {
