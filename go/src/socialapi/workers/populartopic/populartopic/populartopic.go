@@ -39,8 +39,8 @@ func NewPopularTopicsController(log logging.Logger, redis *redis.RedisSession) *
 	}
 
 	routes := map[string]Action{
-		"channel_message_list_created": (*PopularTopicsController).MessageSaved,
-		"channel_message_list_deleted": (*PopularTopicsController).MessageDeleted,
+		"api.channel_message_list_created": (*PopularTopicsController).MessageSaved,
+		"api.channel_message_list_deleted": (*PopularTopicsController).MessageDeleted,
 	}
 
 	ffc.routes = routes
