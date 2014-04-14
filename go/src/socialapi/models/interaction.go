@@ -108,6 +108,9 @@ func (i *Interaction) FetchInteractorIds(p *bongo.Pagination) ([]int64, error) {
 		},
 		Pagination: *p,
 		Pluck:      "account_id",
+		Sort: map[string]string{
+			"created_at": "desc",
+		},
 	}
 
 	if err := i.Some(&interactorIds, q); err != nil {
