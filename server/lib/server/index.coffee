@@ -177,6 +177,11 @@ app.get "/-/subscription/check/:kiteToken?/:user?/:group?", (req, res) ->
 
               if subscribed then res.send 200, userPlan
               else
+                if kite.name is "OsKite" # Find a better way to return free plan for os-kite
+                  freePlan = plan for plan in plans when plan.tags.indexOf("nosync") > -1
+                  {title, planCode} = freePlan
+                  return res.send 200, planName: title, planId: planCode
+
                 res.send 401, err: "NO_SUBSCRIPTION"
 
 app.get "/-/8a51a0a07e3d456c0b00dc6ec12ad85c", require './__notify-users'
