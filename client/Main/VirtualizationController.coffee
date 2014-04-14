@@ -70,15 +70,19 @@ class VirtualizationController extends KDController
     @_runWrapper 'vm.resizeDisk', vm, callback
 
   start:(vm, callback)->
+    console.warn "VirtualizationController#start is deprecated"
     @_runWrapper 'vm.prepareAndStart', vm, callback
 
   stop:(vm, callback)->
+    console.warn "VirtualizationController#shutdown is deprecated"
     @_runWrapper 'vm.shutdown', vm, callback
 
   halt:(vm, callback)->
+    console.warn "VirtualizationController#halt is deprecated"
     @_runWrapper 'vm.stopAndUnprepare', vm, callback
 
   reinitialize:(vm, callback)->
+    console.warn "VirtualizationController#reinitialize is deprecated"
     @_runWrapper 'vm.reinitialize', vm, callback
 
   fetchVmInfo: (vm, callback) ->
