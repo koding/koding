@@ -112,6 +112,20 @@ unpinMessage = (data, callback)->
   url = "#{SOCIAL_API_URL}/activity/pin/remove"
   post url, data, callback
 
+followTopic = (data, callback)->
+  if not data.accountId or not data.channelId
+    return callback { message: "Request is not valid"}
+
+  url = "#{SOCIAL_API_URL}/channel/#{data.channelId}/participant/#{data.accountId}/add"
+  post url, data, callback
+
+unfollowTopic = (data, callback)->
+  if not data.accountId or not data.channelId
+    return callback { message: "Request is not valid"}
+
+  url = "#{SOCIAL_API_URL}/channel/#{data.channelId}/participant/#{data.accountId}/delete"
+  post url, data, callback
+
 post = (url, data, callback)->
   request
     url    : url
@@ -129,6 +143,8 @@ get = (url, data, callback)->
   , wrapCallback callback
 
 module.exports = {
+  followTopic
+  unfollowTopic
   listPinnedMessages
   pinMessage
   unpinMessage
