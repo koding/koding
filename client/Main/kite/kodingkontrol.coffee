@@ -4,6 +4,7 @@ class KodingKontrol extends (require 'kontrol')
     super @getAuthOptions()
 
     @kites = {}
+    @regions = {}
 
   getAuthOptions: ->
     autoConnect : no
@@ -48,9 +49,23 @@ class KodingKontrol extends (require 'kontrol')
     return (kite = @getCachedKite name, correlationName)?
 
   fetchRegion: (correlationName, region) ->
-    if region
-    then Promise.resolve region
-    else Promise.reject new Error "TODO: implement vm region fetching"
+    if region ?= @regions[correlationName]
+      return Promise.resolve region
+
+    new Promise (resolve, reject) =>
+      KD.remote.api.JVM.fetchVmRegion correlationName, (err, region) =>
+
+        if err
+          warn err
+          return reject err
+
+        if not region
+          # It's fallbacking to 'sj' for now but
+          region = 'sj'
+
+        @regions[correlationName] = region
+
+        resolve region
 
   getWhoParams: (kiteName, correlationName) ->
     if kiteName in ['oskite', 'terminal']
@@ -71,10 +86,11 @@ class KodingKontrol extends (require 'kontrol')
 
     @fetchRegion(correlationName, region).then (region) =>
 
-      @fetchKite
+      it = @fetchKite
         query : { name, region }
         who   : @getWhoParams name, correlationName
 
-    .then kite.bound 'setTransport'
+    .then(kite.bound 'setTransport')
+    .catch(warn)
 
     return kite

@@ -566,7 +566,7 @@ class KodingAppsController extends KDController
     manifest = FSHelper.createFileFromPath path
     manifest.fetchContents (err, response)=>
 
-      return err  if err
+      return warn err  if err
 
       try
         manifest = JSON.parse response

@@ -360,11 +360,6 @@ class LoginView extends KDView
         KD.mixpanel "Signup, success"
         _gaq.push ['_trackEvent', 'Sign-up']
 
-        try
-          mixpanel.track "Alternate Signup, success"
-        catch
-          KD.logToExternal "mixpanel doesn't exist"
-
         Cookies.set 'newRegister', yes
         KD.getSingleton("mainController").swapAccount {
           account, replacementToken:newToken
