@@ -361,7 +361,7 @@ $(window).keydown(function (e) {
 
 GRID_SIZE = 60;
 
-var frefR = 'https://a-a.firebaseio-staging.com/';
+var frefR = 'https://koding-astreoids.firebaseio.com/';
 var frefA = frefR + 'game';
 var frefL = frefR + 'leaderboard';
 
@@ -372,7 +372,7 @@ var frefL = frefR + 'leaderboard';
 // Firebase.enableLogging(true);
 var asteroids = new Firebase(frefA);
 var myship = asteroids.child('players').push();
-myship.removeOnDisconnect();
+myship.onDisconnect().remove();
 
 // Leaderboard start
 var LEADERBOARD_SIZE = 25;
