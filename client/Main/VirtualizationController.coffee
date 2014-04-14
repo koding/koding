@@ -249,9 +249,9 @@ class VirtualizationController extends KDController
   createNewKite: (name, vm) ->
     kontrol = KD.getSingleton 'kontrol'
 
-    { hostnameAlias: correlationName, region } = vm
+    { hostnameAlias: correlationName, region, groupId } = vm
 
-    query = { name, correlationName, region }
+    query = { name, correlationName, region, groupId }
 
     kiteExisted = kontrol.hasKite query
 
