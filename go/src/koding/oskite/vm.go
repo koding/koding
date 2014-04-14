@@ -439,7 +439,11 @@ func vmDestroyOld(args *dnode.Partial, c *kite.Channel, vos *virt.VOS) (interfac
 
 	return progress(vos, "vm.destroy "+vos.VM.HostnameAlias, params, func() error {
 		var lastError error
-		for step := range unprepareProgress(vos, true) {
+
+		results := make(chan *virt.Step)
+		go unprepareProgress(results, vos, true)
+
+		for step := range results {
 			if params.OnProgress != nil {
 				params.OnProgress(step)
 			}
@@ -465,7 +469,10 @@ func vmStopAndUnprepare(args *dnode.Partial, channel *kite.Channel, vos *virt.VO
 
 	return progress(vos, "vm.stopAndUnprepare "+vos.VM.HostnameAlias, params, func() error {
 		var lastError error
-		for step := range unprepareProgress(vos, false) {
+		results := make(chan *virt.Step)
+		go unprepareProgress(results, vos, false)
+
+		for step := range results {
 			if params.OnProgress != nil {
 				params.OnProgress(step)
 			}
@@ -479,93 +486,76 @@ func vmStopAndUnprepare(args *dnode.Partial, channel *kite.Channel, vos *virt.VO
 	})
 }
 
-func unprepareProgress(vos *virt.VOS, destroy bool) <-chan *virt.Step {
-	results := make(chan *virt.Step)
-
-	go func() {
-		var lastError error
-		var prepared bool
-
-		defer func() {
-			if lastError != nil {
-				lastError = kite.NewKiteErr(lastError)
-			}
-
-			results <- &virt.Step{Err: lastError, Message: "FINISHED"}
-			close(results)
-		}()
-
-		prepared, lastError = isVmPrepared(vos.VM)
+func unprepareProgress(results chan *virt.Step, vos *virt.VOS, destroy bool) {
+	var lastError error
+	var prepared bool
+	defer func() {
 		if lastError != nil {
-			return
+			lastError = kite.NewKiteErr(lastError)
 		}
 
-		if !prepared {
-			results <- &virt.Step{Message: "Vm is already unprepared"}
-			return
-		}
+		results <- &virt.Step{Err: lastError, Message: "FINISHED"}
+		close(results)
+	}()
 
+	prepared, lastError = isVmPrepared(vos.VM)
+	if lastError != nil {
+		return
+	}
+
+	if !prepared {
+		results <- &virt.Step{Message: "Vm is already unprepared"}
+		return
+	}
+
+	start := time.Now()
+	if lastError = vos.VM.Shutdown(); lastError != nil {
+		return
+	}
+
+	// now start our unprepare progress. Also this enables to get the total
+	// steps before we send the result of shutdown back
+	unprepareChan := vos.VM.Unprepare(false)
+
+	totalStep := cap(unprepareChan) + 1 // include vm.Shutdown()
+	if destroy {
+		totalStep += 1 // include vm.Destroy()
+	}
+
+	results <- &virt.Step{
+		Message:     "VM is stopped.",
+		ElapsedTime: time.Since(start).Seconds(),
+		CurrentStep: 1,
+		TotalStep:   totalStep,
+	}
+
+	var lastCurrentStep int
+	for step := range unprepareChan {
+		lastError = step.Err
+
+		// add +1 because of previous vm.Shutdown()
+		step.CurrentStep += 1
+		step.TotalStep = totalStep
+
+		lastCurrentStep = step.CurrentStep
+
+		// send every process back to the client
+		results <- step
+	}
+
+	if destroy {
 		start := time.Now()
-		if lastError = vos.VM.Shutdown(); lastError != nil {
+		if lastError = vos.VM.Destroy(); lastError != nil {
 			return
-		}
-
-		// now start our unprepare progress. Also this enables to get the total
-		// steps before we send the result of shutdown back
-		unprepareChan := vos.VM.Unprepare(false)
-
-		totalStep := cap(unprepareChan) + 1 // include vm.Shutdown()
-		if destroy {
-			totalStep += 1 // include vm.Destroy()
 		}
 
 		results <- &virt.Step{
-			Message:     "VM is stopped.",
+			Message:     "VM is destroyed.",
 			ElapsedTime: time.Since(start).Seconds(),
-			CurrentStep: 1,
+			CurrentStep: lastCurrentStep + 1,
 			TotalStep:   totalStep,
 		}
-
-		var lastCurrentStep int
-		for step := range unprepareChan {
-			lastError = step.Err
-
-			// add +1 because of previous vm.Shutdown()
-			step.CurrentStep += 1
-			step.TotalStep = totalStep
-
-			lastCurrentStep = step.CurrentStep
-
-			// send every process back to the client
-			results <- step
-		}
-
-		if destroy {
-			start := time.Now()
-			if lastError = vos.VM.Destroy(); lastError != nil {
-				return
-			}
-
-			results <- &virt.Step{
-				Message:     "VM is destroyed.",
-				ElapsedTime: time.Since(start).Seconds(),
-				CurrentStep: lastCurrentStep + 1,
-				TotalStep:   totalStep,
-			}
-
-			// TODO: enable this after getting the relationships to be removed.
-			// query := func(c *mgo.Collection) error {
-			// 	return c.Remove(bson.M{"hostnameAlias": vos.VM.HostnameAlias})
-			// }
-
-			// if err := mongodbConn.Run("jVMs", query); err != nil {
-			// 	return nil, err
-			// }
-
-		}
-	}()
-
-	return results
+	}
 }
 
 func prepareProgress(results chan *virt.Step, vos *virt.VOS) {

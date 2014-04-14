@@ -275,7 +275,10 @@ func vmStopAndUnprepareNew(r *kitelib.Request, vos *virt.VOS) (interface{}, erro
 	}
 
 	return progress(vos, "vm.stopAndUnprepare "+vos.VM.HostnameAlias, params, func() error {
-		for step := range unprepareProgress(vos, false) {
+		results := make(chan *virt.Step)
+		go unprepareProgress(results, vos, false)
+
+		for step := range results {
 			params.OnProgress.Call(step)
 
 			if step.Err != nil {
@@ -294,7 +297,10 @@ func vmDestroyNew(r *kitelib.Request, vos *virt.VOS) (interface{}, error) {
 	}
 
 	return progress(vos, "vm.destroy "+vos.VM.HostnameAlias, params, func() error {
-		for step := range unprepareProgress(vos, true) {
+		results := make(chan *virt.Step)
+		go unprepareProgress(results, vos, true)
+
+		for step := range results {
 			params.OnProgress.Call(step)
 
 			if step.Err != nil {
