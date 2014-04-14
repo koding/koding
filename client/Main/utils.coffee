@@ -25,10 +25,18 @@ utils.extend utils,
       return "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
 
     if options.width or options.height
-      endpoint = "/resize"
+      endpoint = "resize"
     if options.crop
-      endpoint = "/crop"
-    return "https://i.embed.ly/1/display#{endpoint or ''}?grow=#{options.grow}&width=#{options.width}&height=#{options.height}&key=#{KD.config.embedly.apiKey}&url=#{encodeURIComponent url}"
+      endpoint = "crop"
+
+    fullurl = "#{KD.config.mainUri}/-/image/cache?" +
+              "endpoint=#{endpoint or ''}&" +
+              "grow=#{options.grow}&" +
+              "width=#{options.width}&" +
+              "height=#{options.height}&" +
+              "url=#{encodeURIComponent url}"
+
+    return fullurl
 
   # This function checks current user's preferred domain and
   # set's it to preferredDomainCookie

@@ -64,5 +64,6 @@ kontrolUUID-*
 /newrelic_agent.log
 
 logs/*.log
+/embedly_cache
 
 node_modules_koding/processes/src/.tmp*

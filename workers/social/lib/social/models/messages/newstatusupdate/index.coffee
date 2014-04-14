@@ -122,7 +122,12 @@ module.exports = class JNewStatusUpdate extends JPost
 
   @getActivityType =-> require './statusactivity'
 
+  cachedEmbedlyResult = {}
+
   @fetchDataFromEmbedly = (urls, options, callback)->
+
+    if result = cachedEmbedlyResult[urls]
+      return callback null, result
 
     urls = [urls]  unless Array.isArray urls
 
@@ -136,7 +141,11 @@ module.exports = class JNewStatusUpdate extends JPost
       , options
 
       options.urls = urls
-      api.extract options, callback
+      api.extract options, (err, result)->
+        return callback err, result  if err
+
+        cachedEmbedlyResult[urls] = result
+        callback err, result
 
   @create$ = secure (client, data, callback)->
     @create client, data, callback

@@ -180,7 +180,7 @@ module.exports =
       socialApiUri: 'https://social.koding.com/xhr'
       suppressLogs: yes
       version   : version
-      mainUri   : "http://koding.com"
+      mainUri   : "https://koding.com"
       broker    :
         servicesEndpoint: "/-/services/broker"
       premiumBroker    :
@@ -419,3 +419,7 @@ module.exports =
     secure      : cookieSecure
   troubleshoot    :
     recipientEmail: "support@koding.com"
+  pageHit         :
+    run           : yes
+    host          : "log0.sjc.koding.com"
+    port          : 9200

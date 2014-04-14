@@ -235,8 +235,12 @@ class VirtualizationController extends KDController
     group.createVM {type, planCode}, vmCreateCallback
 
   getKite: ({ region, hostnameAlias }, type = 'os') ->
-    (KD.getSingleton 'kiteController')
-      .getKite "#{ type }-#{ region }", hostnameAlias, type
+    if KD.useNewKites
+      KD.singletons.kontrol.kites[if type is 'os' then 'oskite' else type][hostnameAlias]
+    else
+      (KD.getSingleton 'kiteController')
+        .getKite "#{ type }-#{ region }", hostnameAlias, type
+
 
   registerNewKite: (name, correlationName, kite) ->
     @kites[name] ?= {}
@@ -261,22 +265,33 @@ class VirtualizationController extends KDController
     return kite
 
   registerNewKites: (vms) ->
-    vms.forEach (vm) =>
-      (@createNewKite 'oskite', vm).on 'vmOn', =>
+    Promise.all vms.map @bound 'instantiateNewKite'
+
+  instantiateNewKite: (vm) ->
+    new Promise (resolve) =>
+      oskite = @createNewKite 'oskite', vm
+      oskite.on 'ready', =>
         @createNewKite 'terminal', vm
+        resolve()
 
-  registerKite: (vm) ->
-    alias = vm.hostnameAlias
-    kite = @getKite vm, 'os'
+  registerKites: (vms) ->
+    Promise.all vms.map @bound 'registerKite'
 
-    @kites[alias] = kite
+  registerKite: (vm, callback) ->
+    new Promise (resolve) =>
+      alias = vm.hostnameAlias
+      kite = @getKite vm, 'os'
 
-    @listenToVmState vm, kite
+      @kites[alias] = kite
 
-    # we need to wait until the vm is on before opening a connection to the
-    # terminal kite.
-    kite.on 'ready', =>
-      @terminalKites[alias] = @getKite vm, 'terminal'
+      @listenToVmState vm, kite
+
+      # we need to wait until the vm is on before opening a connection to the
+      # terminal kite.
+      kite.on 'ready', =>
+        @terminalKites[alias] = @getKite vm, 'terminal'
+        resolve()
+    .nodeify callback
 
 
   listenToVmState: (vm, kite) ->
@@ -307,7 +322,7 @@ class VirtualizationController extends KDController
 
     return  unless callback?
 
-    if @vms.length
+    if not force and @vms.length
       @utils.defer => callback null, @vms
       return
 
@@ -318,10 +333,11 @@ class VirtualizationController extends KDController
       if force
       then callback err, vms
       else
-        @handleFetchedVms vms, (err) ->
-          return callback err  if err
-          cb err, vms  for cb in waiting
-          waiting = []
+        @fetchDefaultVmName =>
+          @handleFetchedVms vms, (err) ->
+            return callback err  if err
+            cb err, vms  for cb in waiting
+            waiting = []
 
   getKiteHostname: (vm) ->
     return null  unless vm.hostKite?
@@ -364,7 +380,7 @@ class VirtualizationController extends KDController
       if useNewKites
         @registerNewKites vms
       else
-        @registerKite vm  for vm in vms
+        @registerKites vms
     .catch(warn)
     .nodeify callback
 
@@ -394,7 +410,7 @@ class VirtualizationController extends KDController
     JVM.fetchVmsByName vmName, (err, vms) =>
       return callback err  if err
 
-      @handleFetchedVms vms, (err) -> callback null, vms
+      callback null, vms
 
   resetVMData:->
     @vms      = []

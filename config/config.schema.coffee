@@ -432,4 +432,8 @@ config =
       secure        : 1
     troubleshoot    :
       recipientEmail: 1
+    pageHit         :
+      run           : 1
+      host          : 1
+      port          : 1
 module.exports = config
