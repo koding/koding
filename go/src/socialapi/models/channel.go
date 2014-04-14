@@ -114,7 +114,7 @@ func (c *Channel) Update() error {
 
 func (c *Channel) Create() error {
 	if c.Name == "" || c.GroupName == "" || c.TypeConstant == "" {
-		return fmt.Errorf("Validation failed %s - %s", c.Name, c.GroupName)
+		return fmt.Errorf("Validation failed %s - %s -%s", c.Name, c.GroupName, c.TypeConstant)
 	}
 
 	// golang returns -1 if item not in the string
