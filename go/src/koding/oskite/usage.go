@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"io/ioutil"
 	"koding/db/models"
-	"koding/db/mongodb/modelhelper"
 	"koding/tools/dnode"
 	"koding/tools/kite"
 	"koding/virt"
@@ -74,7 +73,7 @@ var (
 	}
 
 	okString      = "ok"
-	quotaExceeded = "quota exceeded."
+	quotaExceeded = "quota exceeded"
 	kiteCode      string
 )
 
@@ -90,30 +89,29 @@ func NewPlanResponse() *PlanResponse {
 
 func vmUsage(args *dnode.Partial, vos *virt.VOS, username string) (interface{}, error) {
 	var params struct {
-		GroupName string
+		GroupId string
 	}
 
 	if args == nil {
 		return nil, &kite.ArgumentError{Expected: "empy argument passed"}
 	}
 
-	if args.Unmarshal(&params) != nil || params.GroupName == "" {
-		return nil, &kite.ArgumentError{Expected: "{ groupName: [string] }"}
+	if args.Unmarshal(&params) != nil || params.GroupId == "" {
+		return nil, &kite.ArgumentError{Expected: "{ groupId: [string] }"}
 	}
 
-	usage, err := NewUsage(vos, params.GroupName)
+	usage, err := NewUsage(vos, params.GroupId)
 	if err != nil {
 		log.Info("vm.usage [%s] err: %v", vos.VM.HostnameAlias, err)
 		return nil, errors.New("vm.usage couldn't be retrieved. please consult to support.")
 	}
 
-	return usage.checkLimits(username, params.GroupName)
+	return usage.checkLimits(username, params.GroupId)
 }
 
-func NewUsage(vos *virt.VOS, groupname string) (*Plan, error) {
-	group, err := modelhelper.GetGroup(groupname)
-	if err != nil {
-		return nil, fmt.Errorf("modelhelper.GetGroup: %s", err)
+func NewUsage(vos *virt.VOS, groupId string) (*Plan, error) {
+	if !bson.IsObjectIdHex(groupId) {
+		return nil, fmt.Errorf("groupID %s is not valid hex representation", groupId)
 	}
 
 	vms := make([]*models.VM, 0)
@@ -122,12 +120,11 @@ func NewUsage(vos *virt.VOS, groupname string) (*Plan, error) {
 	query := func(c *mgo.Collection) error {
 		return c.Find(bson.M{
 			"webHome": vos.VM.WebHome,
-			"groups":  bson.M{"$in": []bson.M{bson.M{"id": group.Id}}},
+			"groups":  bson.M{"$in": []bson.M{bson.M{"id": bson.ObjectIdHex(groupId)}}},
 		}).Iter().All(&vms)
 	}
 
-	err = mongodbConn.Run("jVMs", query)
-	if err != nil {
+	if err := mongodbConn.Run("jVMs", query); err != nil {
 		return nil, fmt.Errorf("vm fetching err for user %s. err: %s", vos.VM.WebHome, err)
 	}
 

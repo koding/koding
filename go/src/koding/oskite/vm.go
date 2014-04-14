@@ -349,6 +349,7 @@ type progresser interface {
 }
 
 type progressParamsOld struct {
+	GroupId    string
 	OnProgress dnode.Callback
 }
 
@@ -411,6 +412,26 @@ func vmPrepareAndStart(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS
 	params := new(progressParamsOld)
 	if args != nil && args.Unmarshal(&params) != nil {
 		return nil, &kite.ArgumentError{Expected: "{OnProgress: [function]}"}
+	}
+
+	if params.GroupId == "" {
+		return nil, &kite.ArgumentError{Expected: "{ groupId: [string] }"}
+	}
+
+	usage, err := NewUsage(vos, params.GroupId)
+	if err != nil {
+		log.Info("usage -1 [%s] err: %v", vos.VM.HostnameAlias, err)
+		return nil, errors.New("usage couldn't be retrieved. please consult to support.")
+	}
+
+	limits, err := usage.checkLimits(channel.Username, params.GroupId)
+	if err != nil {
+		log.Info("usage -2 [%s] err: %v", vos.VM.HostnameAlias, err)
+		return nil, errors.New("usage couldn't be retrieved. please consult to support.")
+	}
+
+	if limits.TotalVMs != okString {
+		return nil, fmt.Errorf("%s", limits.TotalVMs) // returns quota exceeded
 	}
 
 	return progress(vos, "vm.prepareAndStart "+vos.VM.HostnameAlias, params, func() error {
