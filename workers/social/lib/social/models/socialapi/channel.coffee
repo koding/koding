@@ -50,7 +50,7 @@ module.exports = class SocialChannel extends Base
     fetchGroup client, (err, group)->
       return callback err if err
       {connection:{delegate}} = client
-      delegate.createSocialApiId (err, socialApiId)=>
+      delegate.createSocialApiId (err, socialApiId)->
         return callback err if err
 
         data =
@@ -73,7 +73,7 @@ module.exports = class SocialChannel extends Base
     fetchGroup client, (err, group)->
       return callback err if err
       {connection:{delegate}} = client
-      delegate.createSocialApiId (err, socialApiId)=>
+      delegate.createSocialApiId (err, socialApiId)->
         return callback err if err
 
         data =
@@ -86,7 +86,7 @@ module.exports = class SocialChannel extends Base
   @listPinnedMessages = permit 'pin posts',
     success:  (client, data, callback)->
       {connection:{delegate}, context} = client
-      delegate.createSocialApiId (err, socialApiId)=>
+      delegate.createSocialApiId (err, socialApiId)->
         return callback err if err
         data.accountId = socialApiId
         data.groupName = context.group
@@ -96,10 +96,10 @@ module.exports = class SocialChannel extends Base
   @pinMessage = permit 'pin posts',
     success:  (client, data, callback)->
       {connection:{delegate}, context} = client
-      delegate.createSocialApiId (err, socialApiId)=>
+      delegate.createSocialApiId (err, socialApiId)->
         return callback err if err
         unless data.messageId
-          return callback { message: "Message id is not set for pinning requests "}
+          return callback {message: "Message id is not set for pinning "}
 
         data.groupName = context.group
         data.accountId = socialApiId
@@ -109,10 +109,10 @@ module.exports = class SocialChannel extends Base
   @unpinMessage = permit 'like posts',
     success:  (client, data, callback)->
       {connection:{delegate}, context} = client
-      delegate.createSocialApiId (err, socialApiId)=>
+      delegate.createSocialApiId (err, socialApiId)->
         return callback err if err
         unless data.messageId
-          return callback { message: "Message id is not set for un-pinning requests "}
+          return callback {message: "Message id is not set for un-pinning "}
 
         data.groupName = context.group
         data.accountId = socialApiId
