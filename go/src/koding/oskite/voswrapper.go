@@ -261,42 +261,7 @@ func vmStopAndUnprepareNew(r *kitelib.Request, vos *virt.VOS) (interface{}, erro
 		return nil, &kite.ArgumentError{Expected: "{OnProgress: [function]}"}
 	}
 
-	return progress(vos, "vm.stopAndUnprepare "+vos.VM.HostnameAlias, params, func() error {
-		results := make(chan *virt.Step)
-		go unprepareProgress(results, vos, false)
-
-		for step := range results {
-			params.OnProgress.Call(step)
-
-			if step.Err != nil {
-				return step.Err
-			}
-		}
-
-		return nil
-	})
-}
-
-func vmDestroyNew(r *kitelib.Request, vos *virt.VOS) (interface{}, error) {
-	params := new(progressParamsNew)
-	if r.Args.One().Unmarshal(&params) != nil {
-		return nil, &kite.ArgumentError{Expected: "{OnProgress: [function]}"}
-	}
-
-	return progress(vos, "vm.destroy "+vos.VM.HostnameAlias, params, func() error {
-		results := make(chan *virt.Step)
-		go unprepareProgress(results, vos, true)
-
-		for step := range results {
-			params.OnProgress.Call(step)
-
-			if step.Err != nil {
-				return step.Err
-			}
-		}
-
-		return nil
-	})
+	return vmStopAndUnprepare(params, vos)
 }
 
 // FS METHODS

@@ -47,8 +47,26 @@ func vmStartOld(args *dnode.Partial, c *kite.Channel, vos *virt.VOS) (interface{
 	return vmStart(vos)
 }
 
+func vmPrepareAndStartOld(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (interface{}, error) {
+	params := new(progressParamsOld)
+	if args != nil && args.Unmarshal(&params) != nil {
+		return nil, &kite.ArgumentError{Expected: "{OnProgress: [function]}"}
+	}
+
+	return vmPrepareAndStart(params, vos)
+}
+
 func vmShutdownOld(args *dnode.Partial, c *kite.Channel, vos *virt.VOS) (interface{}, error) {
 	return vmShutdown(vos)
+}
+
+func vmStopAndUnprepareOld(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (interface{}, error) {
+	params := new(progressParamsOld)
+	if args != nil && args.Unmarshal(&params) != nil {
+		return nil, &kite.ArgumentError{Expected: "{OnProgress: [function]}"}
+	}
+
+	return vmStopAndUnprepare(params, vos)
 }
 
 func vmStopOld(args *dnode.Partial, c *kite.Channel, vos *virt.VOS) (interface{}, error) {
@@ -399,20 +417,11 @@ func progress(vos *virt.VOS, desc string, p progresser, f func() error) (interfa
 	return true, nil
 }
 
-func vmPrepareAndStartOld(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (interface{}, error) {
+func vmPrepareAndStart(params progresser, vos *virt.VOS) (interface{}, error) {
 	if !vos.Permissions.Sudo {
 		return nil, &kite.PermissionError{}
 	}
 
-	params := new(progressParamsOld)
-	if args != nil && args.Unmarshal(&params) != nil {
-		return nil, &kite.ArgumentError{Expected: "{OnProgress: [function]}"}
-	}
-
-	return vmPrepareAndStart(params, vos)
-}
-
-func vmPrepareAndStart(params progresser, vos *virt.VOS) (interface{}, error) {
 	return progress(vos, "vm.prepareAndStart "+vos.VM.HostnameAlias, params, func() error {
 		results := make(chan *virt.Step)
 		go prepareProgress(results, vos)
@@ -431,44 +440,9 @@ func vmPrepareAndStart(params progresser, vos *virt.VOS) (interface{}, error) {
 	})
 }
 
-func vmDestroyOld(args *dnode.Partial, c *kite.Channel, vos *virt.VOS) (interface{}, error) {
+func vmStopAndUnprepare(params progresser, vos *virt.VOS) (interface{}, error) {
 	if !vos.Permissions.Sudo {
 		return nil, &kite.PermissionError{}
-	}
-
-	params := new(progressParamsOld)
-	if args != nil && args.Unmarshal(&params) != nil {
-		return nil, &kite.ArgumentError{Expected: "{OnProgress: [function]}"}
-	}
-
-	return progress(vos, "vm.destroy "+vos.VM.HostnameAlias, params, func() error {
-		var lastError error
-
-		results := make(chan *virt.Step)
-		go unprepareProgress(results, vos, true)
-
-		for step := range results {
-			if params.OnProgress != nil {
-				params.OnProgress(step)
-			}
-
-			if step.Err != nil {
-				lastError = step.Err
-			}
-		}
-
-		return lastError
-	})
-}
-
-func vmStopAndUnprepare(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (interface{}, error) {
-	if !vos.Permissions.Sudo {
-		return nil, &kite.PermissionError{}
-	}
-
-	params := new(progressParamsOld)
-	if args != nil && args.Unmarshal(&params) != nil {
-		return nil, &kite.ArgumentError{Expected: "{OnProgress: [function]}"}
 	}
 
 	return progress(vos, "vm.stopAndUnprepare "+vos.VM.HostnameAlias, params, func() error {
@@ -477,8 +451,8 @@ func vmStopAndUnprepare(args *dnode.Partial, channel *kite.Channel, vos *virt.VO
 		go unprepareProgress(results, vos, false)
 
 		for step := range results {
-			if params.OnProgress != nil {
-				params.OnProgress(step)
+			if params.Enabled() {
+				params.Call(step)
 			}
 
 			if step.Err != nil {
