@@ -252,7 +252,7 @@ func vmPrepareAndStartNew(r *kitelib.Request, vos *virt.VOS) (interface{}, error
 		return nil, &kite.ArgumentError{Expected: "{OnProgress: [function]}"}
 	}
 
-	return progress(vos, "vm.prepareAndStart"+vos.VM.HostnameAlias, params, func() error {
+	return progress(vos, "vm.prepareAndStart "+vos.VM.HostnameAlias, params, func() error {
 		for step := range prepareProgress(vos) {
 			params.OnProgress.Call(step)
 
@@ -271,7 +271,7 @@ func vmStopAndUnprepareNew(r *kitelib.Request, vos *virt.VOS) (interface{}, erro
 		return nil, &kite.ArgumentError{Expected: "{OnProgress: [function]}"}
 	}
 
-	return progress(vos, "vm.stopAndUnprepare"+vos.VM.HostnameAlias, params, func() error {
+	return progress(vos, "vm.stopAndUnprepare "+vos.VM.HostnameAlias, params, func() error {
 		for step := range unprepareProgress(vos, false) {
 			params.OnProgress.Call(step)
 
@@ -290,7 +290,7 @@ func vmDestroyNew(r *kitelib.Request, vos *virt.VOS) (interface{}, error) {
 		return nil, &kite.ArgumentError{Expected: "{OnProgress: [function]}"}
 	}
 
-	return progress(vos, "vm.stopAndUnprepare"+vos.VM.HostnameAlias, params, func() error {
+	return progress(vos, "vm.destroy "+vos.VM.HostnameAlias, params, func() error {
 		for step := range unprepareProgress(vos, true) {
 			params.OnProgress.Call(step)
 
