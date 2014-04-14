@@ -331,6 +331,32 @@ func TestNotificationCreation(t *testing.T) {
 					})
 				})
 			})
+			Convey("Second, Third and Forth user should be able to like it", func() {
+				err := addInteraction(models.Interaction_TYPE_LIKE, firstMessage.Id, secondUser.Id)
+				So(err, ShouldBeNil)
+				err = addInteraction(models.Interaction_TYPE_LIKE, firstMessage.Id, thirdUser.Id)
+				So(err, ShouldBeNil)
+				err = addInteraction(models.Interaction_TYPE_LIKE, firstMessage.Id, forthUser.Id)
+				So(err, ShouldBeNil)
+
+				time.Sleep(5 * time.Second)
+			})
+			Convey("i Should be able to receive notification", func() {
+				nl, err := getNotificationList(ownerAccount.Id)
+				ResultedWithNoErrorCheck(nl, err)
+				Convey("And Notification list should contain three notifications", func() {
+					So(len(nl.Notifications), ShouldEqual, 3)
+					Convey("Notifier count should be 4", func() {
+						So(nl.Notifications[0].Actors.Count, ShouldEqual, 4)
+					})
+					Convey("Notification should contain forth, third and second users consecutively as Latest Actors", func() {
+						So(len(nl.Notifications[0].Actors.LatestActors), ShouldEqual, 3)
+						So(nl.Notifications[0].Actors.LatestActors[0], ShouldEqual, forthUser.Id)
+						So(nl.Notifications[0].Actors.LatestActors[1], ShouldEqual, thirdUser.Id)
+						So(nl.Notifications[0].Actors.LatestActors[2], ShouldEqual, secondUser.Id)
+					})
+				})
+			})
 		})
 
 	})
