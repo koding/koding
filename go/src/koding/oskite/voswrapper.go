@@ -240,6 +240,7 @@ func execFuncNew(r *kitelib.Request, vos *virt.VOS) (interface{}, error) {
 }
 
 type progressParamsNew struct {
+	GroupName  string
 	OnProgress kitednode.Function
 }
 
@@ -250,6 +251,26 @@ func vmPrepareAndStartNew(r *kitelib.Request, vos *virt.VOS) (interface{}, error
 	params := new(progressParamsNew)
 	if r.Args.One().Unmarshal(&params) != nil {
 		return nil, &kite.ArgumentError{Expected: "{OnProgress: [function]}"}
+	}
+
+	if params.GroupName == "" {
+		return nil, &kite.ArgumentError{Expected: "{ groupName: [string] }"}
+	}
+
+	usage, err := NewUsage(vos, params.GroupName)
+	if err != nil {
+		log.Info("usage -1 [%s] err: %v", vos.VM.HostnameAlias, err)
+		return nil, errors.New("usage couldn't be retrieved. please consult to support.")
+	}
+
+	limits, err := usage.checkLimits(r.Username, params.GroupName)
+	if err != nil {
+		log.Info("usage -2 [%s] err: %v", vos.VM.HostnameAlias, err)
+		return nil, errors.New("usage couldn't be retrieved. please consult to support.")
+	}
+
+	if limits.TotalVMs != okString {
+		return nil, fmt.Errorf("%s", limits.TotalVMs) // returns quota exceeded
 	}
 
 	return progress(vos, "vm.prepareAndStart"+vos.VM.HostnameAlias, params, func() error {

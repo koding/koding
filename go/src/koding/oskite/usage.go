@@ -74,7 +74,7 @@ var (
 	}
 
 	okString      = "ok"
-	quotaExceeded = "quota exceeded."
+	quotaExceeded = "quota exceeded"
 	kiteCode      string
 )
 
