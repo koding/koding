@@ -196,3 +196,15 @@ func populateActors(listerId int64, ncList []NotificationContainer) ([]Notificat
 	}
 	return result, nil
 }
+
+func (n *Notification) AfterCreate() {
+	bongo.B.AfterCreate(n)
+}
+
+func (n *Notification) AfterUpdate() {
+	bongo.B.AfterUpdate(n)
+}
+
+func (n *Notification) AfterDelete() {
+	bongo.B.AfterDelete(n)
+}

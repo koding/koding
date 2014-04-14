@@ -131,3 +131,15 @@ func CreateNotificationType(notificationType string) (Notifiable, error) {
 	}
 
 }
+
+func (nc *NotificationContent) AfterCreate() {
+	bongo.B.AfterCreate(nc)
+}
+
+func (nc *NotificationContent) AfterUpdate() {
+	bongo.B.AfterUpdate(nc)
+}
+
+func (nc *NotificationContent) AfterDelete() {
+	bongo.B.AfterDelete(nc)
+}
