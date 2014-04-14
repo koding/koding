@@ -343,28 +343,6 @@ class VirtualizationController extends KDController
     return null  unless vm.hostKite?
     return vm.hostKite.split('|')[1]
 
-  getOsKite: ({ hostname, region }) ->
-    new Promise (resolve) =>
-      kite = @osKites[hostname]
-
-      return resolve kite  if kite?
-
-      kontrol = KD.getSingleton 'kontrol'
-
-      kontrol.getKite
-        name      : 'oskite'
-        username  : 'devrim'
-        version   : '0.0.1'
-        hostname  : hostname
-        region    : region
-
-      .then (kite) =>
-        @osKites[hostname] = kite
-
-        kite.connect()
-        .then(-> resolve kite)
-        .catch warn
-
   shouldUseNewKites: ->
     new Promise (resolve, reject) ->
       KD.remote.api.JKiteStack.fetchInfo (err, info) ->
