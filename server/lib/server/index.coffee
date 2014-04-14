@@ -135,13 +135,13 @@ app.use (req, res, next) ->
     if err then console.log err
     next()
 
-app.get "/-/subscription/check/:kiteToken?/:user?/:group?", (req, res) ->
-  {kiteToken, user, group} = req.params
-  {JAccount, JKite, JGroup} = koding.models
+app.get "/-/subscription/check/:kiteToken?/:user?/:groupId?", (req, res) ->
+  {kiteToken, user, groupId} = req.params
+  {JAccount, JKite, JGroup}  = koding.models
 
   return res.send 401, { err: "TOKEN_REQUIRED"     } unless kiteToken
   return res.send 401, { err: "USERNAME_REQUIRED"  } unless user
-  return res.send 401, { err: "GROUPNAME_REQUIRED" } unless group
+  return res.send 401, { err: "GROUPNAME_REQUIRED" } unless groupId
 
   JKite.one kiteCode: kiteToken, (err, kite) ->
     return res.send 401, { err: "KITE_NOT_FOUND" }  if err or not kite
@@ -149,7 +149,7 @@ app.get "/-/subscription/check/:kiteToken?/:user?/:group?", (req, res) ->
     JAccount.one { "profile.nickname": user }, (err, account) ->
       return res.send 401, err: "USER_NOT_FOUND"  if err or not account
 
-      JGroup.one { slug: group }, (err, group) =>
+      JGroup.one { "_id": groupId }, (err, group) =>
         return res.send 401, err: "GROUP_NOT_FOUND"  if err or not group
 
         group.isMember account, (err, isMember) =>
