@@ -29,26 +29,32 @@ const (
 )
 
 type KiteStore struct {
-	Id          bson.ObjectId `bson:"_id"`
-	Name        string        `bson:"name"`
-	Description string        `bson:"description"`
-	KiteCode    string        `bson:"kiteCode"`
+	Id       bson.ObjectId `bson:"_id"`
+	Name     string        `bson:"name"`
+	KiteCode string        `bson:"kiteCode"`
+	Manifest struct {
+		Description string `bson:"description"`
+		Name        string `bson:"name"`
+		Readme      string `bson:"readme"`
+		AuthorNick  string `bson:"authorNick"`
+		Author      string `bson:"author"`
+	}
 }
 
 type Plan struct {
-	CPU         int `json:"cpu"`
-	RAM         int `json:"ram"`  // Memory usage in MB
-	Disk        int `json:"disk"` // Disk in MB
-	TotalVMs    int `json:"totalVMs"`
-	AlwaysOnVMs int `json:"alwaysOnVMs"`
+	CPU         int `bson:"cpu"`
+	RAM         int `bson:"ram"`  // Memory usage in MB
+	Disk        int `bson:"disk"` // Disk in MB
+	TotalVMs    int `bson:"totalVMs"`
+	AlwaysOnVMs int `bson:"alwaysOnVMs"`
 }
 
 type PlanResponse struct {
-	CPU         string `json:"cpu"`
-	RAM         string `json:"ram"`  // Memory usage in MB
-	Disk        string `json:"disk"` // Disk in MB
-	TotalVMs    string `json:"totalVMs"`
-	AlwaysOnVMs string `json:"alwaysOnVMs"`
+	CPU         string `bson:"cpu"`
+	RAM         string `bson:"ram"`  // Memory usage in MB
+	Disk        string `bson:"disk"` // Disk in MB
+	TotalVMs    string `bson:"totalVMs"`
+	AlwaysOnVMs string `bson:"alwaysOnVMs"`
 }
 
 type subscriptionResp struct {
@@ -180,7 +186,7 @@ func getKiteCode() (string, error) {
 	kiteStore := new(KiteStore)
 
 	query := func(c *mgo.Collection) error {
-		return c.Find(bson.M{"name": OSKITE_NAME}).One(kiteStore)
+		return c.Find(bson.M{"name": "OsKite"}).One(kiteStore)
 	}
 
 	err := mongodbConn.Run("jKites", query)
