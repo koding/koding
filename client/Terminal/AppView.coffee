@@ -57,7 +57,7 @@ class WebTermAppView extends JView
         aliases.push alias  unless alias in aliases
 
       # fetch vms and store in an object with the key of alias
-      KD.singletons.vmController.fetchGroupVMs (err, vms) =>
+      KD.singletons.vmController.fetchGroupVMs no, (err, vms) =>
         return warn err  if err
         vmList = {}
         vms.map (vm) ->
