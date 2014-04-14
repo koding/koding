@@ -47,9 +47,9 @@ func NewTopicFeedController(log logging.Logger) *TopicFeedController {
 	}
 
 	routes := map[string]Action{
-		"channel_message_created": (*TopicFeedController).MessageSaved,
-		"channel_message_update":  (*TopicFeedController).MessageUpdated,
-		"channel_message_deleted": (*TopicFeedController).MessageDeleted,
+		"api.channel_message_created": (*TopicFeedController).MessageSaved,
+		"api.channel_message_update":  (*TopicFeedController).MessageUpdated,
+		"api.channel_message_deleted": (*TopicFeedController).MessageDeleted,
 	}
 
 	ffc.routes = routes
