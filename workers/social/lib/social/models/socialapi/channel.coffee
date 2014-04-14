@@ -22,9 +22,13 @@ module.exports = class SocialChannel extends Base
           (signature Object, Function)
         listPinnedMessages:
           (signature Object, Function)
-        pinMessage   :
+        pinMessage    :
           (signature Object, Function)
-        unpinMessage :
+        unpinMessage  :
+          (signature Object, Function)
+        follow:
+          (signature Object, Function)
+        unfollow:
           (signature Object, Function)
 
     schema             :
@@ -118,3 +122,27 @@ module.exports = class SocialChannel extends Base
         data.accountId = socialApiId
         {unpinMessage} = require './requests'
         unpinMessage data, callback
+
+  @follow = secure (client, data, callback)->
+    {connection:{delegate}, context} = client
+    delegate.createSocialApiId (err, socialApiId)->
+      return callback err if err
+      unless data.channelId
+        return callback {message: "Channel id is not set for following a topic"}
+
+      data.groupName = context.group
+      data.accountId = socialApiId
+      {followTopic} = require './requests'
+      followTopic data, callback
+
+  @unfollow = secure (client, data, callback)->
+    {connection:{delegate}, context} = client
+    delegate.createSocialApiId (err, socialApiId)->
+      return callback err if err
+      unless data.channelId
+        return callback {message: "Channel id is not set for topic unfollowing"}
+
+      data.groupName = context.group
+      data.accountId = socialApiId
+      {unfollowTopic} = require './requests'
+      unfollowTopic data, callback
