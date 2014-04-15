@@ -5,6 +5,8 @@ Redis="localhost:6379"
 [postgres]
 Host=     "localhost"
 Port=     5432
+# Username= "postgres"
+# Password= "123123123"
 Username= "socialapplication"
 Password= "socialapplication"
 DBName=   "social"
