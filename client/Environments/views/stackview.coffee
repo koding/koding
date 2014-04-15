@@ -281,7 +281,7 @@ class StackView extends KDView
     new EditorModal
       editor              :
         title             : "Stack Config Editor <span>(experimental)</span>"
-        content           : @getOptions().stack.meta.config or ""
+        content           : @getOptions().stack?.meta?.config or ""
         saveMessage       : "Stack config saved."
         saveFailedMessage : "Couldn't save your config"
         saveCallback      : @bound "saveConfig"
