@@ -32,7 +32,7 @@ module.exports = class JPaymentPayment extends jraphical.Module
       active          : Boolean
 
   @makePayment = secure (client, data, callback)->
-    @initialize client, data, (err, group, account, plan)=>
+    @initialize client, data, (err, { group, account, plan })=>
       if err then return callback { message: 'Unable to access payment backend, please try again later.' }
 
       data.quantity ?= 1  # Default quantity is 1
@@ -79,7 +79,7 @@ module.exports = class JPaymentPayment extends jraphical.Module
           return callback err  if err
           @fetchPlan data.plan, (err, plan) ->
             return callback err  if err
-            callback null, group, account, plan
+            callback null, { group, account, plan }
 
   # Get plan
   @fetchPlan = (planCode, callback) ->

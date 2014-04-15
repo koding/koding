@@ -40,7 +40,7 @@ module.exports = class JReferrableEmail extends jraphical.Module
 
   @create: (clientId, {email, title}, callback)->
     JSession = require "./session"
-    JSession.fetchSession clientId, (err, session)->
+    JSession.fetchSession clientId, (err, { session })->
       return callback err  if err
 
       {username} = session.data
