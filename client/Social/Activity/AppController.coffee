@@ -1,21 +1,33 @@
 class ActivityAppController extends AppController
 
   KD.registerAppClass this,
-    name         : "Activity"
+    name         : 'Activity'
     routes       :
-      "/:name?/Activity/:slug?" : ({params:{name, slug}, query})->
+      '/:name?/Activity/:slug?' : ({params:{name, slug, id}, query})->
         {router, appManager} = KD.singletons
 
+        # log 'Default', name, slug, id, query
         unless slug
         then router.openSection 'Activity', name, query
         else router.createContentDisplayHandler('Activity') arguments...
 
-    searchRoute  : "/Activity?q=:text:"
+      # '/:name?/Activity/Chat/:id?' : ({params:{name, slug, id}, query})->
+      #   {router, appManager} = KD.singletons
+
+      #   log 'Chat', name, slug, id, query
+
+      # '/:name?/Activity/Pinned/:id?' : ({params:{name, slug, id}, query})->
+      #   {router, appManager} = KD.singletons
+
+      #   log 'Pinned', name, slug, id, query
+
+
+    searchRoute  : '/Activity?q=:text:'
     hiddenHandle : yes
 
   constructor: (options = {}) ->
 
-    options.view    = new ActivityAppView testPath : "activity-feed"
+    options.view    = new ActivityAppView testPath : 'activity-feed'
     options.appInfo = name : 'Activity'
 
     super options
@@ -52,7 +64,7 @@ class ActivityAppController extends AppController
     contentDisplay = new ContentDisplayStatusUpdate
       title : "Status Update"
       type  : "status"
-    ,activity
+    , activity
 
     KD.singleton('display').emit "ContentDisplayWantsToBeShown", contentDisplay
     @utils.defer -> callback contentDisplay
