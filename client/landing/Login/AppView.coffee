@@ -195,8 +195,6 @@ class LoginView extends KDView
     @failureNotice = new KDCustomHTMLView
       cssClass     : "failure-notice hidden"
 
-    KD.getSingleton("mainController").on "landingSidebarClicked", => @unsetClass 'landed'
-
     setValue = (field, value)=>
       @registerForm[field]?.input?.setValue value
       @registerForm[field]?.placeholder?.setClass 'out'
@@ -361,11 +359,6 @@ class LoginView extends KDView
         KD.mixpanel.alias account.profile.nickname
         KD.mixpanel "Signup, success"
         _gaq.push ['_trackEvent', 'Sign-up']
-
-        try
-          mixpanel.track "Alternate Signup, success"
-        catch
-          KD.logToExternal "mixpanel doesn't exist"
 
         Cookies.set 'newRegister', yes
         KD.getSingleton("mainController").swapAccount {

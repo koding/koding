@@ -23,7 +23,7 @@ class CollaborativeClientFinderPane extends Pane
       fileInstances = []
 
       for file in files
-        fileInstance = FSHelper.createFileFromPath file.path, file.type
+        fileInstance = FSHelper.createFileFromPath file.path, file.type, yes
         fileInstance.vmName = file.vmName
         fileInstances.push fileInstance
 
