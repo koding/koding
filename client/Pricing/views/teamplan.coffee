@@ -1,97 +1,37 @@
-class TeamPlan extends JView
-  unitPrices     =
-    resourcePack : 20
-    user         : 5
+class TeamPlan extends DeveloperPlan
 
-  constructor: (options = {}, data) ->
-    options.cssClass = KD.utils.curry "team-plan", options.cssClass
-    super options, data
+  handleBuy: ->
+    @buyNow.showLoader()
+    {paymentController, router} = KD.singletons
 
-    @resourceQuantity = 10
-    @userQuantity     = 10
-    @total            = (@resourceQuantity * unitPrices.resourcePack) + (@userQuantity * unitPrices.user)
+    paymentController.fetchActiveSubscription ["team-plan"], (err, subscription) =>
+      return KD.showError err  if err
+      size  = @plans[@planIndex].size
+      @emit "CurrentSubscriptionSet", subscription  if subscription
+      @emit "PlanSelected", "tp#{size}",
+        planApi: KD.remote.api.JResourcePlan
+        resourceQuantity: size
 
-    @resourcePackSlider = new PricingPlanSelection
-      title             : "Resource Pack"
-      unitPrice         : unitPrices.resourcePack
-      amountSuffix      : "x"
-      slider            :
-        minValue        : 1
-        maxValue        : 250
-        interval        : 5
-        snapOnDrag      : yes
-        handles         : [@resourceQuantity]
-        width           : 319
+  setPlans: ->
+    # [N]x = [Nx2] CPU + [Nx2]GB Ram + [Nx10]GB Disk + [Nx10] Total VM + [N] Always On (devrim's forumla)
+    @planIndex = 0
+    @plans     = [
+      { size: 10,  cpu: 20,   ram: 20,   disk: 100,  alwaysOn: 10,  totalVMs: 100,  price: 299  }
+      { size: 25,  cpu: 50,   ram: 50,   disk: 250,  alwaysOn: 25,  totalVMs: 250,  price: 749  }
+      { size: 50,  cpu: 100,  ram: 100,  disk: 500,  alwaysOn: 50,  totalVMs: 500,  price: 1499 }
+      { size: 75,  cpu: 150,  ram: 150,  disk: 750,  alwaysOn: 75,  totalVMs: 750,  price: 2249 }
+      { size: 100, cpu: 200,  ram: 200,  disk: 1000, alwaysOn: 100, totalVMs: 1000, price: 2999 }
+    ]
 
-    @resourcePackSlider.on "ValueChanged", (@resourceQuantity) => @updateContent()
+  getCountLabel: (value) ->
+    {amountSuffix} = @slider.getOptions()
+    {size}         = @plans[value]
+    return "#{size}#{amountSuffix} <span class='plan-size-label'>for #{size} people</span>"
 
-    @userSlider         = new PricingPlanSelection
-      title             : "Team Size"
-      unitPrice         : unitPrices.user
-      slider            :
-        minValue        : 5
-        maxValue        : 500
-        interval        : 10
-        snapOnDrag      : yes
-        handles         : [@userQuantity]
-        width           : 319
-
-    @userSlider.on "ValueChanged", (@userQuantity) => @updateContent()
-
-    @summary = new KDCustomHTMLView cssClass: "plan-selection-box selected"
-    @summary.addSubView @title  = new KDCustomHTMLView tagName: "h4"
-    @summary.addSubView @price  = new KDCustomHTMLView tagName: "h5"
-    @summary.addSubView @buyNow = new KDButtonView
-      cssClass : "buy-now"
-      style    : "solid green"
-      title    : "BUY NOW"
-      loader   : yes
-      callback : =>
-        @buyNow.showLoader()
-        @emit "PlanSelected", "custom-plan", {
-          @userQuantity
-          @resourceQuantity
-          planApi: KD.remote.api.JGroupPlan
-          total  : @total * 100
-        }
-
-    @updateContent()
-
-  resourcePackUnits =
-    cpu             : 2
-    ram             : 2
-    disk            : 10
-    alwaysOn        : 1
-    totalVMs        : 2
-
-  updateContent: ->
-    @total = (@resourceQuantity * unitPrices.resourcePack) + (@userQuantity * unitPrices.user)
-    @title.updatePartial "Resource Pack x #{@resourceQuantity}<br>for #{@userQuantity} People"
-    @price.updatePartial "$#{@total}/Month"
-
-    {cpu, ram, disk, totalVMs, alwaysOn} = resourcePackUnits
-    @resourcePackSlider.description.updatePartial """
-    <span>Resource pack contains</span>
-    <cite>#{cpu * @resourceQuantity}x</cite>CPU
-    <cite>#{ram * @resourceQuantity}x</cite>GB RAM
-    <cite>#{disk * @resourceQuantity}</cite>GB Disk
-    <cite>#{totalVMs * @resourceQuantity}x</cite>Total VMs
-    <cite>#{alwaysOn * @resourceQuantity}x</cite>Always on VMs
-    """
-
-  viewAppended: ->
-    super
-
-    @resourcePackSlider.addSubView new KDCustomHTMLView
-      tagName : "a"
-      cssClass: "pricing-show-details"
-      partial : "What is This?"
-      click   : =>
-        @emit "ShowHowItWorks"
-
-  pistachio: ->
-    """
-    {{> @resourcePackSlider}}
-    {{> @userSlider}}
-    {{> @summary}}
-    """
+  getLabels: (index) ->
+    plan = @plans[index]
+    return {
+      title  : "#{plan.size}x Resource Pack"
+      desc   : "$#{plan.price}/Month"
+      button : "BUY NOW"
+    }
