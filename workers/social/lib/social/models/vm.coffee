@@ -487,6 +487,7 @@ module.exports = class JVM extends Module
           region           : vm.region or 'sj'
           diskSizeInMB     : vm.diskSizeInMB
           alwaysOn         : vm.alwaysOn
+          groupId          : vm.groups[0].id
 
   @fetchVmRegion = secure (client, hostnameAlias, callback)->
     {delegate} = client.connection

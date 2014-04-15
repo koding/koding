@@ -10,6 +10,8 @@ class VirtualizationController extends KDController
     @kites = {}
     @terminalKites = {}
 
+    @vmsInfo = {}
+
     @osKites = {}
 
     mc = KD.getSingleton('mainController')
@@ -28,7 +30,10 @@ class VirtualizationController extends KDController
     @fetchVmName options, (err, vmName) =>
       return callback err  if err?
       options.correlationName = vmName
-      @fetchRegion vmName, (region)=>
+      @fetchVmInfo vmName, (err, vm) =>
+        return callback err if err
+        { region } = vm
+        options.groupId = vm.groupId
         options.kiteName =
           if KD.useNewKites
             # TODO: this mapping should be removed, and kites should be named consistently
@@ -234,13 +239,13 @@ class VirtualizationController extends KDController
     group = KD.getSingleton("groupsController").getCurrentGroup()
     group.createVM {type, planCode}, vmCreateCallback
 
-  getKite: ({ region, hostnameAlias }, type = 'os') ->
+  getKite: ({ region, hostnameAlias, groupId }, type = 'os') ->
     if KD.useNewKites
+      console.warn "VirtualizationController#getKite called for new kites"
       KD.singletons.kontrol.kites[if type is 'os' then 'oskite' else type][hostnameAlias]
     else
       (KD.getSingleton 'kiteController')
         .getKite "#{ type }-#{ region }", hostnameAlias, type
-
 
   registerNewKite: (name, correlationName, kite) ->
     @kites[name] ?= {}
@@ -354,6 +359,8 @@ class VirtualizationController extends KDController
         resolve useNewKites
 
   handleFetchedVms: (vms, callback) ->
+    @vmsInfo[vm.hostnameAlias] = vm  for vm in vms
+
     @shouldUseNewKites().then (useNewKites) =>
       if useNewKites
         @registerNewKites vms
@@ -381,6 +388,12 @@ class VirtualizationController extends KDController
       else
         @vmDomains[vmName] = domains.sort (x, y)-> x.length>y.length
         callback null, @vmDomains[vmName]
+
+  fetchVmInfo: (name, callback) ->
+    if name of @vmsInfo
+      KD.utils.defer => callback null, @vmsInfo[name]
+    else
+      KD.remote.api.JVM.fetchVmInfo name, callback
 
   fetchVmsByName: (vmName, callback) ->
     { JVM } = KD.remote.api

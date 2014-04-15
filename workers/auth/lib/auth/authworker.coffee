@@ -425,7 +425,7 @@ module.exports = class AuthWorker extends EventEmitter
     # apparently auth worker can spam the terminal
     # kite with requests for kite.who for guest accounts.
     # this short-cicuiting is meant to prevent against that,
-    # but since I couldn't reproduce this problem locally, 
+    # but since I couldn't reproduce this problem locally,
     # it is possible that this is not a sufficient fix. C.T.
     return  if /^guest-\d+/.test username
 
