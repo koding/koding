@@ -141,6 +141,7 @@ module.exports = [
   "CommonViews/ModalViewWithTerminal.coffee",
   "CommonViews/clonerepomodal.coffee",
   "CommonViews/memberautocomplete.coffee",
+  "CommonViews/editormodal.coffee",
 
   "navigation/navigationlist.coffee",
   "navigation/navigationlink.coffee",

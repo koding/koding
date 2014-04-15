@@ -1,124 +1,112 @@
 class EnvironmentsMainScene extends JView
 
-  constructor:(options={}, data)->
+  constructor: (options = {}, data) ->
+
     options.cssClass = KD.utils.curry 'environment-content', options.cssClass
+
     super options, data
+
+    @on "CloneStackRequested", @bound "cloneStack"
 
   viewAppended:->
 
-    @addSubView new KDView
-      cssClass : 'environment-help'
+    container  = new KDCustomHTMLView
+      tagName  : "section"
+      cssClass : "environments-header"
+
+    container.addSubView header = new KDView
+      tagName  : 'header'
       partial  : """
+        <h1>Environments</h1>
         <div class="content">
-          <h1>Environments</h1>
-          Welcome to Environments. Here you can setup your servers and development environment.
+          Welcome to Environments.
+          Here you can setup your servers and development environment.
         </div>
       """
 
-    @addSubView @freePlanView = new KDView
+    header.addSubView new KDButtonView
+      cssClass : "solid green medium create-stack"
+      title    : "Create a new stack"
+      callback : @bound "showCreateStackModal"
+
+    @addSubView container
+
+    freePlanView = new KDView
       cssClass : "top-warning"
       click    : (event) ->
         if "usage" in event.target.classList
           KD.utils.stopDOMEvent event
           new KDNotificationView title: "Coming soon..."
 
-    @paymentController = KD.getSingleton("paymentController")
-    @paymentController.fetchActiveSubscription tags: "vm", (err, subscription) =>
-      return console.error err  if err
+    header.addSubView freePlanView
+
+    paymentControl = KD.getSingleton("paymentController")
+    paymentControl.fetchActiveSubscription tags: "vm", (err, subscription) ->
+      return warn err  if err
       if not subscription or "nosync" in subscription.tags
-        @freePlanView.updatePartial """
-          <div class="content">
-            You are on a free developer plan, see your <a class="usage" href="#">usage</a> or <a class="pricing" href="/Pricing">upgrade</a>.
-          </div>
+        freePlanView.updatePartial """
+          You are on a free developer plan,
+          see your <a class="usage" href="#">usage</a> or
+          <a class="pricing" href="/Pricing">upgrade</a>.
         """
 
-    @paymentController.on "SubscriptionCompleted", =>
-      @freePlanView.updatePartial ""
+    paymentControl.on "SubscriptionCompleted", ->
+      freePlanView.updatePartial ""
 
     @fetchStacks()
 
-  fetchStacks:->
+  fetchStacks: ->
+    EnvironmentDataProvider.get (@environmentData) =>
+      @emit "EnvironmentDataFetched", @environmentData
 
-    {JStack} = KD.remote.api
+      {JStack} = KD.remote.api
+      JStack.getStacks (err, stacks = [])=>
+        warn err  if err
+        @createStacks stacks
 
-    JStack.getStacks (err, stacks)=>
-      warn err  if err
+  createStacks: (stacks) ->
+    @_stacks = []
+    stacks.forEach (stack, index) =>
+      stack = new StackView  { stack, isDefault: index is 0 }, @environmentData
+      @_stacks.push @addSubView stack
+      @forwardEvent stack, "CloneStackRequested"
 
-      group = KD.getGroup().title
-      if not stacks or stacks.length is 0
-        stacks = [{sid:0, group}]
+      callback?()  if index is stacks.length - 1
 
-      stacks.forEach (stack)=>
+    @emit "StacksCreated"
 
-        title   = stack.meta?.title
-        number  = if stack.sid > 0 then "#{stack.sid}." else "default"
-        title or= "Your #{number} stack on #{group}"
+  showCreateStackModal: ->
+    modal = new CreateStackModal
+      callback : @bound "createNewStack"
 
-        @addSubView new StackView {}, {title, stack}
+  createNewStack: (meta, modal) ->
+    KD.remote.api.JStack.createStack meta, (err, stack) =>
+      title = "Failed to create a new stack. Try again later!"
+      return new KDNotificationView { title }  if err
+      modal.destroy()
 
-class StackView extends KDView
+      stackView = new StackView { stack} , @environmentData
+      @forwardEvent stackView, "CloneStackRequested"
+      @_stacks.push @addSubView stackView
+      @highlightStack stackView
 
-  constructor:(options={}, data)->
-    options.cssClass = 'environment-stack'
-    super options, data
+  highlightStack: (stackView) ->
+    stackView.once "transitionend", =>
+      stackView.getElement().scrollIntoView()
+      KD.utils.wait 300, => # wait for a smooth feedback
+        stackView.setClass "hilite"
+        stackView.once "transitionend", =>
+          stackView.setClass "hilited"
 
-  viewAppended:->
-
-    @addSubView title = new KDView
-      cssClass : 'stack-title'
-      partial  : @getData().title
-
-    @addSubView new KDButtonView
-      title    : 'Details'
-      cssClass : 'stack-toggle solid mini green hidden'
-      callback : =>
-        @setHeight if @getHeight() <= 50 then @getProperHeight() else 48
-        KD.utils.wait 300, @bound 'updateView'
-
-    # Main scene for DIA
-    @addSubView @scene = new EnvironmentScene @getData().stack
-
-    # Rules Container
-    rulesContainer = new EnvironmentRuleContainer
-    @scene.addContainer rulesContainer
-
-    # Domains Container
-    domainsContainer = new EnvironmentDomainContainer
-    @scene.addContainer domainsContainer
-    domainsContainer.on 'itemAdded',   @lazyBound('updateView', yes)
-
-    # VMs / Machines Container
-    machinesContainer = new EnvironmentMachineContainer
-    @scene.addContainer machinesContainer
-    machinesContainer.on 'VMListChanged', @bound 'loadContainers'
-
-    # Rules Container
-    extrasContainer = new EnvironmentExtraContainer
-    @scene.addContainer extrasContainer
-
-    @loadContainers()
-
-  loadContainers:->
-
-    return  if @_inProgress
-    @_inProgress = yes
-
-    promises = (container.loadItems()  for container in @scene.containers)
-    Promise.all(promises).then =>
-      @setHeight @getProperHeight()
-      KD.utils.wait 300, =>
-        @_inProgress = no
-        @updateView yes
-
-  updateView:(updateData = no)->
-
-    @scene.updateConnections()  if updateData
-
-    if @getHeight() > 50
-      @setHeight @getProperHeight()
-
-    @scene.highlightLines()
-    @scene.updateScene()
-
-  getProperHeight:->
-    (Math.max.apply null, (box.diaCount() for box in @scene.containers)) * 45 + 170
+  cloneStack: (stackData) ->
+    new CreateStackModal
+      title   : "Give a title to your new stack"
+      callback: (meta, modal) =>
+        modal.destroy()
+        stackModal = new CloneStackModal { meta }, stackData
+        stackModal.once "StackCloned", =>
+          @once "EnvironmentDataFetched", =>
+            stackView.destroy() for stackView in @_stacks
+          @once "StacksCreated", =>
+            @highlightStack @_stacks.last
+          @fetchStacks()

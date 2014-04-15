@@ -76,17 +76,19 @@ class PaymentController extends KDController
 
   updatePaymentInfo: (paymentMethodId = null, paymentMethod, callback) ->
     {JPayment} = KD.remote.api
+    paymentMethod[key] = value.trim()  for own key, value of paymentMethod
     JPayment.setPaymentInfo paymentMethodId, paymentMethod, callback
 
   createPaymentInfoModal: -> new PaymentFormModal
 
-  createUpgradeForm: (tag, options = {}) ->
+  createUpgradeForm: (parent) ->
     buyPacksButton = new KDButtonView
       cssClass     : "buy-packs"
       style        : "solid green medium"
       title        : "Buy Resource Packs"
       callback     : ->
-        @parent.emit "Cancel"
+        parent   or= @parent
+        parent.emit "Cancel"
         KD.singleton("router").handleRoute "/Pricing"
 
     return new JView
@@ -103,7 +105,7 @@ class PaymentController extends KDController
   createUpgradeWorkflow: (options = {}) ->
     {tag, productForm, confirmForm} = options
 
-    productForm or= @createUpgradeForm tag, options
+    productForm or= @createUpgradeForm()
     confirmForm or= new PlanUpgradeConfirmForm
       name : 'overview'
     workflow      = new PaymentWorkflow {productForm, confirmForm}
@@ -274,3 +276,13 @@ class PaymentController extends KDController
       subscription.plan = plansByCode[subscription.planCode]
 
     { plans, subscriptions }
+
+  canDebitPack: (options = {}, callback = noop) ->
+    {subscriptionTag, packTag, multiplyFactor} = options
+    multiplyFactor ?= 1
+
+    return warn "missing parameters"  unless subscriptionTag or packTag
+
+    @fetchActiveSubscription tags: subscriptionTag, (err, subscription) ->
+      KD.remote.api.JPaymentPack.one tags: packTag, (err, pack) ->
+        subscription.checkUsage pack, multiplyFactor, callback
