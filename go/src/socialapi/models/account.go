@@ -65,7 +65,7 @@ func (a *Account) Create() error {
 func (a *Account) FetchChannels(q *Query) ([]Channel, error) {
 	cp := NewChannelParticipant()
 	// fetch channel ids
-	cids, err := cp.FetchParticipatedChannelIds(a)
+	cids, err := cp.FetchParticipatedChannelIds(a, q)
 	if err != nil {
 		return nil, err
 	}

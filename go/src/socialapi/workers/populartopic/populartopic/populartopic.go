@@ -60,7 +60,7 @@ func (f *PopularTopicsController) HandleEvent(event string, data []byte) error {
 	}
 
 	if cml.ChannelId == 0 {
-		f.log.Error("ChannelId is not set for Channel Message List id: %d Deleting from rabbitmq", cml.Id)
+		f.log.Error(fmt.Sprintf("ChannelId is not set for Channel Message List id: %d Deleting from rabbitmq", cml.Id))
 		return nil
 	}
 
@@ -78,12 +78,12 @@ func (f *PopularTopicsController) MessageSaved(data *models.ChannelMessageList) 
 		return nil
 	}
 
-	_, err = f.redis.SortedSetIncrBy(GetWeeklyKey(c, data), 1, data.MessageId)
+	_, err = f.redis.SortedSetIncrBy(GetWeeklyKey(c, data), 1, data.ChannelId)
 	if err != nil {
 		return err
 	}
 
-	_, err = f.redis.SortedSetIncrBy(GetMonthlyKey(c, data), 1, data.MessageId)
+	_, err = f.redis.SortedSetIncrBy(GetMonthlyKey(c, data), 1, data.ChannelId)
 	if err != nil {
 		return err
 	}

@@ -334,7 +334,7 @@ func (c *Channel) List(q *Query) ([]Channel, error) {
 		query.Selector["type_constant"] = q.Type
 	}
 
-	err := bongo.B.Some(c, &channels, query)
+	err := c.Some(&channels, query)
 	if err != nil {
 		return nil, err
 	}

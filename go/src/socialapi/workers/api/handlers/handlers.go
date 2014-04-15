@@ -116,6 +116,9 @@ func Inject(mux *tigertonic.TrieServeMux) *tigertonic.TrieServeMux {
 	// un-follow the account
 	mux.Handle("POST", "/account/{id}/unfollow", handlerWrapper(account.Unfollow, "account-unfollow"))
 
+	// fetch profile feed
+	// mux.Handle("GET", "/account/{id}/profile/feed", handlerWrapper(account.ListProfileFeed, "list-profile-feed"))
+
 	// get pinning channel of the account
 	mux.Handle("GET", "/activity/pin/channel", handlerWrapper(activity.GetPinnedActivityChannel, "activity-pin-get-channel"))
 

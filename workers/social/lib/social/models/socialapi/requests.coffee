@@ -3,7 +3,12 @@ request        = require 'request'
 
 wrapCallback = (callback)->
   (err, response, body) ->
-    if err or response.statusCode >= 400
+    if err
+      if err.code is "ECONNREFUSED"
+        return callback {message: "Social API is currently under maintenance"}
+      return callback err
+
+    if response.statusCode >= 400
       return callback body
     else
       return callback null, body
@@ -19,7 +24,7 @@ createChannel = (data, callback)->
   url = "#{SOCIAL_API_URL}/channel"
   post url, data, callback
 
-fetchChannelActivity = (data, callback)->
+fetchChannelActivities = (data, callback)->
   if not data.channelId or not data.accountId
     return callback { message: "Request is not valid for creating channel"}
 
@@ -112,6 +117,31 @@ unpinMessage = (data, callback)->
   url = "#{SOCIAL_API_URL}/activity/pin/remove"
   post url, data, callback
 
+followTopic = (data, callback)->
+  if not data.accountId or not data.channelId
+    return callback { message: "Request is not valid"}
+
+  url = "#{SOCIAL_API_URL}/channel/#{data.channelId}/
+participant/#{data.accountId}/add"
+  post url, data, callback
+
+unfollowTopic = (data, callback)->
+  if not data.accountId or not data.channelId
+    return callback { message: "Request is not valid"}
+
+  url = "#{SOCIAL_API_URL}/channel/#{data.channelId}/
+participant/#{data.accountId}/delete"
+  post url, data, callback
+
+
+fetchFollowedChannels = (data, callback)->
+  if not data.accountId or not data.groupName
+    return callback { message: "Request is not valid"}
+
+  url = "#{SOCIAL_API_URL}/account/#{data.accountId}/channels"
+  get url, data, callback
+
+
 post = (url, data, callback)->
   request
     url    : url
@@ -129,6 +159,9 @@ get = (url, data, callback)->
   , wrapCallback callback
 
 module.exports = {
+  fetchFollowedChannels
+  followTopic
+  unfollowTopic
   listPinnedMessages
   pinMessage
   unpinMessage
@@ -142,6 +175,6 @@ module.exports = {
   createAccount
   createChannel
   fetchMessage
-  fetchChannelActivity
+  fetchChannelActivities
   fetchGroupChannels
 }

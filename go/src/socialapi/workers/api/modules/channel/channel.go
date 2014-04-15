@@ -30,6 +30,7 @@ func Create(u *url.URL, h http.Header, req *models.Channel) (int, http.Header, i
 	if req.GroupName == "" {
 		req.GroupName = models.Channel_KODING_NAME
 	}
+
 	if err := validateChannelRequest(req); err != nil {
 		return helpers.NewBadRequestResponse(err)
 	}
@@ -43,12 +44,16 @@ func Create(u *url.URL, h http.Header, req *models.Channel) (int, http.Header, i
 
 func List(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface{}, error) {
 	c := models.NewChannel()
-	list, err := c.List(helpers.GetQuery(u))
+	q := helpers.GetQuery(u)
+	q.Type = models.Channel_TYPE_TOPIC
+	channelList, err := c.List(q)
+
 	if err != nil {
 		return helpers.NewBadRequestResponse(err)
 	}
 
-	return helpers.NewOKResponse(list)
+	res := models.PopulateChannelContainers(channelList, q.AccountId)
+	return helpers.NewOKResponse(res)
 }
 
 func Delete(u *url.URL, h http.Header, req *models.Channel) (int, http.Header, interface{}, error) {
@@ -110,21 +115,23 @@ func Update(u *url.URL, h http.Header, req *models.Channel) (int, http.Header, i
 	return helpers.NewOKResponse(req)
 }
 
-func Get(u *url.URL, h http.Header, req *models.Channel) (int, http.Header, interface{}, error) {
+func Get(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface{}, error) {
 	id, err := helpers.GetURIInt64(u, "id")
 	if err != nil {
 		return helpers.NewBadRequestResponse(err)
 	}
+	q := helpers.GetQuery(u)
 
-	req.Id = id
-	if err := req.Fetch(); err != nil {
+	c := models.NewChannel()
+	c.Id = id
+	if err := c.Fetch(); err != nil {
 		if err == gorm.RecordNotFound {
 			return helpers.NewNotFoundResponse()
 		}
 		return helpers.NewBadRequestResponse(err)
 	}
 
-	return helpers.NewOKResponse(req)
+	return helpers.NewOKResponse(models.PopulateChannelContainer(*c, q.AccountId))
 }
 
 func PostMessage(u *url.URL, h http.Header, req *models.Channel) (int, http.Header, interface{}, error) {

@@ -58,7 +58,7 @@ module.exports = class SocialMessage extends Base
   @reply = permit 'create posts',
     success: (client, data, callback)->
       {connection:{delegate}} = client
-      delegate.createSocialApiId (err, socialApiId)=>
+      delegate.createSocialApiId (err, socialApiId)->
         return callback err if err
         if not data.messageId or not data.body
           return callback { message: "Request is not valid for add a reply to the message" }
