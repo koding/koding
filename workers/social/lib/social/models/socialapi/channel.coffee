@@ -12,7 +12,7 @@ module.exports = class SocialChannel extends Base
   @set
     sharedMethods :
       static      :
-        fetchActivity     :
+        fetchActivities     :
           (signature Object, Function)
         fetchChannels     :
           (signature Object, Function)
@@ -52,7 +52,7 @@ module.exports = class SocialChannel extends Base
 
   {fetchGroup} = require "./helper"
 
-  @fetchActivity = secure (client, options = {}, callback)->
+  @fetchActivities = secure (client, options = {}, callback)->
     fetchGroup client, (err, group)->
       return callback err if err
       {connection:{delegate}} = client
@@ -63,8 +63,8 @@ module.exports = class SocialChannel extends Base
         options.accountId = socialApiId
         options.groupName = group.slug
 
-        {fetchChannelActivity} = require './requests'
-        fetchChannelActivity options, callback
+        {fetchChannelActivities} = require './requests'
+        fetchChannelActivities options, callback
 
   @fetchPopularTopics = secure (client, options = {}, callback)->
     fetchGroup client, (err, group)->
