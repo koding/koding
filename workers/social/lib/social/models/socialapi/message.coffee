@@ -132,9 +132,6 @@ module.exports = class SocialMessage extends Base
         return callback err  if err
         return callback { message: "Post is not found" }  unless message
 
-        console.log message.accountId
-        console.log socialApiId
-
         if message.accountId == socialApiId
           return callback null, yes
         console.log "fooo"
