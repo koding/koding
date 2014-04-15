@@ -59,6 +59,9 @@ func TestChannelMessage(t *testing.T) {
 				So(post, ShouldNotBeNil)
 				err = deletePost(post.Id, account.Id, groupChannel.GroupName)
 				So(err, ShouldBeNil)
+				post2, err := getPost(post.Id, account.Id, groupChannel.GroupName)
+				So(err, ShouldNotBeNil)
+				So(post2, ShouldBeNil)
 			})
 
 			// handled by social worker
