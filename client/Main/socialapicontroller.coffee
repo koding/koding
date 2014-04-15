@@ -7,20 +7,20 @@ class SocialApiController extends KDController
     groupsController.ready ->
       callback  KD.getSingleton("groupsController").getCurrentGroup()
 
-  fetchChannelActivity = (options, callback)->
+  fetchChannelActivities = (options, callback)->
     unless options.id
       return callback {message: "Channel id is not set for request"}
     getCurrentGroup (group)->
       options.groupName = group.slug
-      channelApiActivitiesResFunc "fetchActivity", options, callback
+      channelApiActivitiesResFunc "fetchActivities", options, callback
 
-  fetchGroupActivity = (options, callback)->
+  fetchGroupActivities = (options, callback)->
     getCurrentGroup (group)->
       unless group.socialApiChannelId
         return callback {message: "Group doesnt have socialApiChannelId"}
       options.id        = group.socialApiChannelId
       options.groupName = group.slug
-      channelApiActivitiesResFunc "fetchActivity", options, callback
+      channelApiActivitiesResFunc "fetchActivities", options, callback
 
   fetchChannels = (options, callback)->
     getCurrentGroup (group)->
@@ -107,19 +107,19 @@ class SocialApiController extends KDController
     unlike :(rest...)-> KD.remote.api.SocialMessage.unlike rest...
 
   channel:
-    list               : fetchChannels
-    fetchActivity      : fetchChannelActivity
-    fetchGroupActivity : fetchGroupActivity
-    fetchPopularTopics : fetchPopularTopics
-    listPinnedMessages : (rest...)->
+    list                 : fetchChannels
+    fetchActivities      : fetchChannelActivities
+    fetchGroupActivities : fetchGroupActivities
+    fetchPopularTopics   : fetchPopularTopics
+    listPinnedMessages   : (rest...)->
       channelApiActivitiesResFunc 'listPinnedMessages', rest...
-    pin                : (rest...)->
+    pin                  : (rest...)->
       KD.remote.api.SocialChannel.pinMessage rest...
-    unpin              : (rest...)->
+    unpin                : (rest...)->
       KD.remote.api.SocialChannel.unpinMessage rest...
-    follow             : (rest...)->
+    follow               : (rest...)->
       KD.remote.api.SocialChannel.follow rest...
-    unfollow           : (rest...)->
+    unfollow             : (rest...)->
       KD.remote.api.SocialChannel.unfollow rest...
     fetchFollowedChannels: (rest...)->
       channelApiChannelsResFunc 'fetchFollowedChannels', rest...
