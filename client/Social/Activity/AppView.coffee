@@ -9,7 +9,7 @@ class ActivityAppView extends KDView
   isMember       = -> 'member' in roles
   canListMembers = -> 'list members' in permissions
   isPrivateGroup = -> not isKoding() and isGroup()
-  extractName    = (data) -> data.title or data.profile.nickname
+  extractName    = (data) -> data.name or data.profile.nickname
 
 
   constructor:(options = {}, data)->
