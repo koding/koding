@@ -460,7 +460,6 @@ func (vos *VOS) OpenFile(name string, flag int, perm os.FileMode) (file *os.File
 
 func (vos *VOS) TempFile(prefix string) (file *os.File, err error) {
 	err = vos.inVosContext("", true, false, func(resolved string) error {
-		fmt.Println("resolved", resolved)
 		tempPrefix := "vos-"
 		if prefix != "" {
 			tempPrefix = prefix + "-vos-"
