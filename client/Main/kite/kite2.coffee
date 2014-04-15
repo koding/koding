@@ -33,7 +33,7 @@ class KDKite extends Kite
         return resolve restResponse...
 
       # I don't care how bad this is.  This class should be removed soon.
-      KD.remote.api.JVM.fetchVmInfo correlationName, (err, vm) =>
+      KD.singletons.vmController.fetchVmInfo correlationName, (err, vm) =>
         return reject err  if err?
 
         # we need the groupId, but because of bad application design, there
