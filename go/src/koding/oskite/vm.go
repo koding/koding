@@ -139,8 +139,6 @@ func execFuncOld(args *dnode.Partial, c *kite.Channel, vos *virt.VOS) (interface
 	return execFunc(asRoot, params.Command, vos)
 }
 
-////////////////////
-
 func newOutput(cmd *exec.Cmd) (interface{}, error) {
 	stdoutBuffer, stderrBuffer := new(bytes.Buffer), new(bytes.Buffer)
 	cmd.Stdout, cmd.Stderr = stdoutBuffer, stderrBuffer

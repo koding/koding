@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"os"
 	"path"
 	"path/filepath"
@@ -454,6 +455,30 @@ func (vos *VOS) OpenFile(name string, flag int, perm os.FileMode) (file *os.File
 		}
 		return nil
 	})
+	return
+}
+
+func (vos *VOS) TempFile(prefix string) (file *os.File, err error) {
+	err = vos.inVosContext("", true, false, func(resolved string) error {
+		fmt.Println("resolved", resolved)
+		tempPrefix := "vos-"
+		if prefix != "" {
+			tempPrefix = prefix + "-vos-"
+		}
+
+		file, err = ioutil.TempFile(vos.VM.OverlayFile("/tmp"), tempPrefix)
+		if err != nil {
+			return err
+		}
+
+		if err := file.Chown(vos.User.Uid, vos.User.Uid); err != nil {
+			file.Close()
+			return err
+		}
+
+		return nil
+	})
+
 	return
 }
 
