@@ -136,13 +136,18 @@ func (c *ChannelMessage) FetchRelatives() (*ChannelMessageContainer, error) {
 	i := NewInteraction()
 	i.MessageId = c.Id
 
-	interactions, err := i.List("like")
+	interactorIds, err := i.List("like")
+	if err != nil {
+		return nil, err
+	}
+
+	oldIds, err := FetchMongoIdsByAccountIds(interactorIds)
 	if err != nil {
 		return nil, err
 	}
 
 	interactionContainer := NewInteractionContainer()
-	interactionContainer.Actors = interactions
+	interactionContainer.Actors = oldIds
 	// check this from database
 	interactionContainer.IsInteracted = true
 
