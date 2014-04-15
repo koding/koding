@@ -40,6 +40,9 @@ class ActivitySidebar extends KDCustomScrollView
       click    : (event) ->
         KD.utils.stopDOMEvent event
         activityController.emit 'SidebarItemClicked', this
+    ,
+      name     : 'koding_public_feed'
+      id       : KD.getGroup().socialApiChannelId ? 1
 
     publicLink.selectItem = SidebarItem::selectItem.bind publicLink
     activityController.on 'SidebarItemClicked', publicLink.bound 'selectItem'
