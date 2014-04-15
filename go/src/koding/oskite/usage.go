@@ -57,9 +57,9 @@ type PlanResponse struct {
 }
 
 type subscriptionResp struct {
-	Plan   string `json:"plan"`
-	PlanId string `json:"planId"`
-	Err    string `json:"err"`
+	PlanName string `json:"planName"`
+	PlanId   string `json:"planId"`
+	Err      string `json:"err"`
 }
 
 var (
@@ -145,18 +145,19 @@ func NewUsage(vos *virt.VOS, groupId string) (*Plan, error) {
 	return usage, nil
 }
 
-func (p *Plan) checkLimits(username, groupname string) (*PlanResponse, error) {
-	sub, err := getSubscription(username, groupname)
+func (p *Plan) checkLimits(username, groupId string) (*PlanResponse, error) {
+	sub, err := getSubscription(username, groupId)
 	if err != nil {
 		log.Warning("oskite checkLimits err: %v", err)
 		return nil, errors.New("couldn't fetch subscription")
 	}
 
-	if sub.PlanId == "" {
-		return nil, errors.New("planID is empty")
+	if sub.PlanName == "" {
+		return nil, errors.New("planName is empty")
 	}
+	fmt.Printf("sub %+v\n", sub)
 
-	plan, ok := plans[sub.PlanId]
+	plan, ok := plans[sub.PlanName]
 	if !ok {
 		return nil, errors.New("plan doesn't exist")
 	}
@@ -166,7 +167,7 @@ func (p *Plan) checkLimits(username, groupname string) (*PlanResponse, error) {
 		resp.AlwaysOnVMs = quotaExceeded
 	}
 
-	if p.TotalVMs >= plan.TotalVMs {
+	if p.TotalVMs > plan.TotalVMs {
 		resp.TotalVMs = quotaExceeded
 	}
 
@@ -196,7 +197,7 @@ func getKiteCode() (string, error) {
 	return kiteStore.KiteCode, nil
 }
 
-func getSubscription(username, groupname string) (*subscriptionResp, error) {
+func getSubscription(username, groupId string) (*subscriptionResp, error) {
 	code, err := getKiteCode()
 	if err != nil {
 		return nil, err
@@ -206,7 +207,9 @@ func getSubscription(username, groupname string) (*subscriptionResp, error) {
 		return nil, errors.New("kite code is empty")
 	}
 
-	endpointURL := conf.SubscriptionEndpoint + code + "/" + username + "/" + groupname
+	endpointURL := conf.SubscriptionEndpoint + code + "/" + username + "/" + groupId
+
+	fmt.Printf("endpointURL %+v\n", endpointURL)
 
 	resp, err := http.Get(endpointURL)
 	if err != nil {
