@@ -24,7 +24,7 @@ createChannel = (data, callback)->
   url = "#{SOCIAL_API_URL}/channel"
   post url, data, callback
 
-fetchChannelActivity = (data, callback)->
+fetchChannelActivities = (data, callback)->
   if not data.channelId or not data.accountId
     return callback { message: "Request is not valid for creating channel"}
 
@@ -173,6 +173,6 @@ module.exports = {
   createAccount
   createChannel
   fetchMessage
-  fetchChannelActivity
+  fetchChannelActivities
   fetchGroupChannels
 }
