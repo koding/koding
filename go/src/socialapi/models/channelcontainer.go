@@ -4,7 +4,7 @@ import "fmt"
 
 type ChannelContainer struct {
 	Channel          Channel `json:"channel"`
-	IsParticipated   bool    `json:"isParticipated"`
+	IsParticipant    bool    `json:"isParticipant"`
 	ParticipantCount int     `json:"participantCount"`
 }
 
@@ -34,14 +34,14 @@ func PopulateChannelContainer(channel Channel, accountId int64) *ChannelContaine
 	}
 
 	// add participation status
-	isParticipated, err := cp.IsParticipated(accountId)
+	isParticipant, err := cp.IsParticipant(accountId)
 	if err != nil {
 		fmt.Println(err)
 	}
 
 	cc := NewChannelContainer()
 	cc.Channel = channel
-	cc.IsParticipated = isParticipated
+	cc.IsParticipant = isParticipant
 	cc.ParticipantCount = participantCount
 
 	return cc
