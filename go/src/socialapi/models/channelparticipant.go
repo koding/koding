@@ -102,6 +102,10 @@ func (c *ChannelParticipant) One(q *bongo.Query) error {
 	return bongo.B.One(c, c, q)
 }
 
+func (c *ChannelParticipant) Count(where ...interface{}) (int, error) {
+	return bongo.B.Count(c, where...)
+}
+
 func (c *ChannelParticipant) Some(data interface{}, q *bongo.Query) error {
 	return bongo.B.Some(c, data, q)
 }
@@ -199,4 +203,12 @@ func (c *ChannelParticipant) FetchParticipatedChannelIds(a *Account, q *Query) (
 	}
 
 	return channelIds, nil
+}
+
+func (c *ChannelParticipant) FetchParticipantCount() (int, error) {
+	if c.ChannelId == 0 {
+		return 0, errors.New("Channel.Id is not set")
+	}
+
+	return c.Count("channel_id = ?", c.ChannelId)
 }
