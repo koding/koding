@@ -87,12 +87,16 @@ class SocialApiController extends KDController
     revivedChannels = []
     {SocialChannel} = KD.remote.api
     for channel in channels
-      c = new SocialChannel channel
+      data = channel.channel
+      data.isParticipated = channel.isParticipated
+      data.participantCount = channel.participantCount
+
+      c = new SocialChannel data
       # until we create message id's
       # programmatically
       # inorder to make realtime updates work
       # we need `channel-` here
-      c._id = "channel-#{channel.id}"
+      c._id = "channel-#{c.id}"
 
       revivedChannels.push c
 
