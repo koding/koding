@@ -44,13 +44,13 @@ module.exports = class SocialMessage extends Base
     success: (client, data, callback)->
       SocialMessage.ensureGroupChannel client, (err, socialApiChannelId)->
         data.channelId = socialApiChannelId
-        @doRequest 'postToChannel', client, data, callback
+        SocialMessage.doRequest 'postToChannel', client, data, callback
 
   @reply = permit 'create posts',
     success: (client, data, callback)->
       if not data.messageId or not data.body
-        return callback { message: "Request is not valid for add a reply to the message" }
-      @doRequest 'addReply', client, data, callback
+        return callback message: "Request is not valid for adding a reply"
+      SocialMessage.doRequest 'addReply', client, data, callback
 
   # todo add permission here
   @edit = secure (client, data, callback)->
@@ -61,26 +61,25 @@ module.exports = class SocialMessage extends Base
       return callback err if err
       return callback {message: "You can not edit this post"} unless res
       {editMessage} = require './requests'
-      editMessage data, (err, activities)->
-        callback err, activities
+      editMessage data, callback
 
   @delete = permit 'delete posts',
     success: (client, data, callback)->
       if not data.id
-        return callback { message: "Request is not valid for deleting a message"}
-      @doRequest 'deleteMessage', client, data, callback
+        return callback message: "Request is not valid for deleting a message"
+      SocialMessage.doRequest 'deleteMessage', client, data, callback
 
   @like = permit 'like posts',
     success: (client, data, callback)->
       if not data.id
-        return callback { message: "Request is not valid for liking a message"}
-      @doRequest 'likeMessage', client, data, callback
+        return callback message: "Request is not valid for liking a message"
+      SocialMessage.doRequest 'likeMessage', client, data, callback
 
   @unlike = permit 'like posts',
     success:  (client, data, callback)->
       if not data.id
-        return callback { message: "Request is not valid for unliking a message"}
-      @doRequest 'unlikeMessage', client, data, callback
+        return callback message: "Request is not valid for unliking a message"
+      SocialMessage.doRequest 'unlikeMessage', client, data, callback
 
   @doRequest = (funcName, client, options, callback)->
     fetchGroup client, (err, group)->
