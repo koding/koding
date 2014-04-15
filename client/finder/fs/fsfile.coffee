@@ -25,25 +25,23 @@ class FSFile extends FSItem
   fetchContentsBinary: (callback)->
     @fetchContents no, callback
 
+  fetchRawContents: (callback)->
+
+    kite = @getKite()
+    kite.vmOn().then =>
+      kite.fsReadFile path: FSHelper.plainPath @path
+    .nodeify callback
+
   fetchContents: (useEncoding, callback)->
     [callback, useEncoding] = [useEncoding, callback]  unless callback
 
-    useEncoding = yes
+    useEncoding ?= yes
 
     @emit "fs.job.started"
 
-    kite = @getKite()
+    @fetchRawContents().then (response)=>
 
-    ok = kite.vmOn()
-    .then =>
-
-      kite.fsReadFile {
-        path: FSHelper.plainPath @path
-      }
-
-    .then (response) =>
       content = atob response.content
-
       content = KD.utils.utf8Decode content  if useEncoding # Convert to String
 
       KD.mixpanel "Fetch contents, success"

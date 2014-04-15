@@ -71,7 +71,7 @@ class FSHelper
     KD.getSingleton('vmController').run
       method   : "fs.getInfo"
       vmName   : vmName
-      withArgs : {path}
+      withArgs : {path, vmName}
     , callback
 
   @glob = (pattern, vmName, callback)->
@@ -79,14 +79,14 @@ class FSHelper
     KD.getSingleton('vmController').run
       method   : "fs.glob"
       vmName   : vmName
-      withArgs : {pattern}
+      withArgs : {pattern, vmName}
     , callback
 
   @uniquePath = (path, vmName, callback=noop)->
     KD.getSingleton('vmController').run
       method   : "fs.uniquePath"
       vmName   : vmName
-      withArgs : {path}
+      withArgs : {path, vmName}
     , callback
 
   @registry = {}
@@ -124,13 +124,13 @@ class FSHelper
     parentPath.pop()
     return parentPath.join('/')
 
-  @createFileFromPath = (path, type = "file")->
+  @createFileFromPath = (path, type = "file", dummy = no) ->
     return warn "pass a path to create a file instance" unless path
     vmName     = @getVMNameFromPath(path) or null
     path       = @plainPath path  if vmName
     parentPath = @getParentPath path
     name       = @getFileNameFromPath path
-    return @createFile { path, parentPath, name, type, vmName }
+    return @createFile { path, parentPath, name, type, vmName, dummy }
 
   @createFile = (options)->
     unless options and options.type and options.path
