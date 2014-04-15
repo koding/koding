@@ -26,25 +26,6 @@ func testMessageOperations() {
 	if post2.CreatedAt.Second() != post.CreatedAt.Second() {
 		fmt.Println("post created ats are not same")
 	}
-
-	err = deletePost(post.Id)
-	if err != nil {
-		fmt.Println("error while deleting the post", err)
-		err = nil
-	}
-
-	_, err = getPost(post.Id)
-	if err == nil {
-		fmt.Println("there should be an error while getting the post")
-	}
-
-	for i := 0; i < 10; i++ {
-		_, err := createPost(CHANNEL_ID, ACCOUNT_ID)
-		if err != nil {
-			fmt.Println("error while creating post", err)
-			err = nil
-		}
-	}
 }
 
 func createPost(channelId, accountId int64) (*models.ChannelMessage, error) {
@@ -87,8 +68,8 @@ func getPost(id int64) (*models.ChannelMessage, error) {
 	return cmI.(*models.ChannelMessage), nil
 }
 
-func deletePost(id int64) error {
-	url := fmt.Sprintf("/message/%d", id)
+func deletePost(id int64, accountId int64, groupName string) error {
+	url := fmt.Sprintf("/message/%d?accountId=%d&groupName=%s", id, accountId, groupName)
 	_, err := sendRequest("DELETE", url, nil)
 	return err
 }
