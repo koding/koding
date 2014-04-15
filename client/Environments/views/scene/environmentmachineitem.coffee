@@ -57,7 +57,7 @@ class EnvironmentMachineItem extends EnvironmentItem
   showInitScriptEditor: ->
     modal =  new EditorModal
       editor              :
-        title             : "VM Init Script Editor"
+        title             : "VM Init Script Editor <span>(experimental)</span>"
         content           : @data.meta?.initScript or ""
         saveMessage       : "VM init script saved"
         saveFailedMessage : "Couldn't save VM init script"
