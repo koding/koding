@@ -1,7 +1,6 @@
 package popular
 
 import (
-	"fmt"
 	"net/http"
 	"net/url"
 	"socialapi/models"
@@ -10,8 +9,6 @@ import (
 	"socialapi/workers/populartopic/populartopic"
 	"strconv"
 	"time"
-
-	"github.com/koding/bongo"
 )
 
 func ListTopics(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface{}, error) {
@@ -54,7 +51,6 @@ func ListTopics(u *url.URL, h http.Header, _ interface{}) (int, http.Header, int
 		}
 	}
 
-	fmt.Println("<<<<<<<<<<<<<<<<<<<<<@@22>>>>>>>>>>>>>", query.Limit)
 	popularTopics, err = extendPopularTopicsIfNeeded(query, popularTopics)
 	if err != nil {
 		return helpers.NewBadRequestResponse(err)
@@ -96,19 +92,11 @@ func extendPopularTopicsIfNeeded(query *models.Query, popularTopics []int64) ([]
 }
 
 func fetchMoreChannels(group string, count int) ([]models.Channel, error) {
-	selector := map[string]interface{}{
-		"group_name":    group,
-		"type_constant": models.Channel_TYPE_TOPIC,
-	}
-	query := bongo.NewQS(selector)
-	query.Limit = count
+	q := models.NewQuery()
+	q.GroupName = group
+	q.Limit = count
+	q.Type = models.Channel_TYPE_TOPIC
+	q.SetDefaults()
 	c := models.NewChannel()
-	var channels []models.Channel
-	err := c.Some(&channels, query)
-	if err != nil {
-		return nil, err
-	}
-
-	return channels, nil
-
+	return c.List(q)
 }
