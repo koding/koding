@@ -29,6 +29,8 @@ class MessagePane extends KDTabPaneView
 
     @fetch (err, items) =>
 
+      return KD.showError err  if err
+
       console.time('populate')
       @listController.hideLazyLoader()
       @listController.listActivities items
