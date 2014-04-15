@@ -139,7 +139,7 @@ class FSFile extends FSItem
       queue.push
         content : unless isSkip then btoa chunk
         skip    : isSkip
-        append  : yes if queue.length > 0 # first chunk is not an append
+        append  : queue.length > 0 # first chunk is not an append
 
     return queue
 
