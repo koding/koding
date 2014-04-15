@@ -58,10 +58,8 @@ class ActivitySidebar extends KDCustomScrollView
       cssClass   : 'hot topics'
       itemClass  : SidebarTopicItem
       dataSource : (callback) ->
-        KD.remote.api.JTag.some {group : 'koding'},
+        KD.singletons.socialapi.channel.fetchPopularTopics
           limit  : 3
-          skip   : skip
-          sort   : "counts.followers" : -1
         , callback
 
 
