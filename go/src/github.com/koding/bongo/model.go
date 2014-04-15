@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"strconv"
 	"strings"
 
 	"github.com/jinzhu/gorm"
@@ -57,8 +58,15 @@ func (b *Bongo) FetchByIds(i Modellable, data interface{}, ids []int64) error {
 		return nil
 	}
 
+	orderByQuery := ""
+	comma := ""
+	for _, id := range ids {
+		orderByQuery = orderByQuery + comma + " id = " + strconv.FormatInt(id, 10) + " desc"
+		comma = ","
+	}
 	return b.DB.
 		Table(i.TableName()).
+		Order(orderByQuery).
 		Where(ids).
 		Find(data).
 		Error
