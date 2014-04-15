@@ -101,7 +101,8 @@ if basicAuth
   app.use express.basicAuth basicAuth.username, basicAuth.password
 
 process.on 'uncaughtException', (err) ->
-  console.error "there was an uncaught exception #{err}"
+  console.error " there was an uncaught exception #{err}"
+  throw err
   process.exit(1)
 
 
@@ -302,13 +303,15 @@ app.all '/:name/:section?*', (req, res, next)->
 
           path = if section then "#{name}/#{section}" else name
 
-          JName.fetchModels path, (err, { models })->
+          JName.fetchModels path, (err, result) ->
+
             if err
               options = { account, name, section, client,
                           bongoModels, isCustomPreview }
               JGroup.render[prefix].subPage options, serveSub
-            else if not models? then next()
+            else if not result? then next()
             else
+              { models } = result
               options = { account, name, section, models,
                           client, bongoModels, isCustomPreview }
               JGroup.render[prefix].subPage options, serveSub
