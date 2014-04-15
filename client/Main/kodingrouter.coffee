@@ -85,9 +85,12 @@ class KodingRouter extends KDRouter
       {appManager, groupsController} = KD.singletons
       groupsController.ready =>
         @setPageTitle nicenames[app] ? app
-        handleQuery = appManager.tell.bind appManager, app, "handleQuery", query
 
-        appManager.once "AppCreated", handleQuery  unless appWasOpen = appManager.get app
+        handleQuery = appManager.tell.bind appManager, app, "handleQuery", query
+        appWasOpen  = appManager.get app
+
+        appManager.once "AppCreated", handleQuery  unless appWasOpen
+
         appManager.open app
 
         handleQuery()  if appWasOpen
