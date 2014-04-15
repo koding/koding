@@ -39,7 +39,7 @@ func ListTopics(u *url.URL, h http.Header, _ interface{}) (int, http.Header, int
 
 	redisConn := helper.MustGetRedisConn()
 	// limit-1 is important, because redis is using 0 based index
-	topics, err := redisConn.SortedSetReverseRange(key, query.Skip, query.Limit-1)
+	topics, err := redisConn.SortedSetReverseRange(key, query.Skip, query.Skip+query.Limit-1)
 	if err != nil {
 		return helpers.NewBadRequestResponse(err)
 	}
