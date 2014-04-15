@@ -4,6 +4,7 @@ type ChannelMessageContainer struct {
 	Message      *ChannelMessage                  `json:"message"`
 	Interactions map[string]*InteractionContainer `json:"interactions"`
 	Replies      []*ChannelMessageContainer       `json:"replies"`
+	AccountOldId string                           `json:"accountOldId"`
 }
 
 func NewChannelMessageContainer() *ChannelMessageContainer {
@@ -11,8 +12,8 @@ func NewChannelMessageContainer() *ChannelMessageContainer {
 }
 
 type InteractionContainer struct {
-	Actors       []int64 `json:"actors"`
-	IsInteracted bool    `json:"isInteracted"`
+	Actors       []string `json:"actors"`
+	IsInteracted bool     `json:"isInteracted"`
 }
 
 func NewInteractionContainer() *InteractionContainer {

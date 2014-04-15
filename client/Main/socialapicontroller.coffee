@@ -58,8 +58,11 @@ class SocialApiController extends KDController
     for message in messages
       m = new SocialMessage message.message
       m._id = message.message.id
+      m.account = {}
+      m.account.constructorName = "JAccount"
+      m.account._id = message.accountOldId
       m.meta = {}
-      m.meta.likes = message.interactions.length or 0
+      m.meta.likes = message.interactions?.like?.length or 0
       m.meta.createdAt = message.message.createdAt
       m.replies = message.replies
       m.repliesCount = message.replies.length or 0
