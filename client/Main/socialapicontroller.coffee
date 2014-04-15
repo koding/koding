@@ -88,7 +88,7 @@ class SocialApiController extends KDController
     {SocialChannel} = KD.remote.api
     for channel in channels
       data = channel.channel
-      data.isParticipated = channel.isParticipated
+      data.isParticipant = channel.isParticipant
       data.participantCount = channel.participantCount
 
       c = new SocialChannel data
