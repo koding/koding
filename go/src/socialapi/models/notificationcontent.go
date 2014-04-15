@@ -57,6 +57,10 @@ func (n *NotificationContent) One(q *bongo.Query) error {
 	return bongo.B.One(n, n, q)
 }
 
+func (n *NotificationContent) Fetch() error {
+	return bongo.B.Fetch(n)
+}
+
 func CreateNotification(i Notifiable) error {
 	// check for previous NotificationContent create if it does not exist (type:comment targetId:messageId)
 	n := NewNotificationContent()
