@@ -7,6 +7,7 @@ class TerminalPane extends Pane
 
     super options, data
 
+  viewAppended: ->
     @createWebTermView()
 
   createWebTermView: ->
@@ -31,9 +32,6 @@ class TerminalPane extends Pane
         @webterm.on "WebTermConnected", (@remote) =>
           @emit "WebtermCreated"
           @onWebTermConnected()
-
-      # WebTermView.setTerminalTimeout null, 15000, handler, handler
-
 
   notify: (message) -> console.log "notify:", message
 

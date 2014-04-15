@@ -166,7 +166,7 @@ class TeamworkTabView extends CollaborativePane
       "Editor"    :
         callback  : => @handlePaneCreate "editor",   => @createEditor()
       "Terminal"  :
-        callback  : => @handlePaneCreate "terminal", => @createTerminal()
+        callback  : => @handlePaneCreate "terminal", => @createTerminal null, null, yes
       "Browser"   :
         callback  : => @handlePaneCreate "browser",  => @createPreview()
       "Drawing Board":
@@ -303,10 +303,10 @@ class TeamworkTabView extends CollaborativePane
     else
       @createEditor file, content
 
-  createTerminal: (sessionKey, indexKey) ->
+  createTerminal: (sessionKey, indexKey, forceNew) ->
     indexKey = indexKey or @createSessionKey()
     pane     = new KDTabPaneView { title: "Terminal", indexKey }
-    klass    = if @isJoinedASession then SharableClientTerminalPane else SharableTerminalPane
+    klass    = if @isJoinedASession and not forceNew then SharableClientTerminalPane else SharableTerminalPane
     delegate = @getDelegate()
     terminal = new klass { delegate, sessionKey }
 

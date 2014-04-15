@@ -42,6 +42,9 @@ class CollaborativeWorkspace extends Workspace
     @sessionKeysRef = @firebaseRef.child  "session_keys"
 
   syncWorkspace: ->
+    return if @workspaceSynced
+    @workspaceSynced = yes
+
     @workspaceRef.once "value", (snapshot) =>
       if @getOptions().sessionKey
         unless @reviveSnapshot(snapshot)?.keys

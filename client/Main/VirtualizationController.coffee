@@ -70,15 +70,19 @@ class VirtualizationController extends KDController
     @_runWrapper 'vm.resizeDisk', vm, callback
 
   start:(vm, callback)->
+    console.warn "VirtualizationController#start is deprecated"
     @_runWrapper 'vm.prepareAndStart', vm, callback
 
   stop:(vm, callback)->
+    console.warn "VirtualizationController#shutdown is deprecated"
     @_runWrapper 'vm.shutdown', vm, callback
 
   halt:(vm, callback)->
+    console.warn "VirtualizationController#halt is deprecated"
     @_runWrapper 'vm.stopAndUnprepare', vm, callback
 
   reinitialize:(vm, callback)->
+    console.warn "VirtualizationController#reinitialize is deprecated"
     @_runWrapper 'vm.reinitialize', vm, callback
 
   fetchVmInfo: (vm, callback) ->
@@ -104,15 +108,16 @@ class VirtualizationController extends KDController
         modal.destroy()
     , vmPrefix
 
-  deleteVmByHostname: (hostnameAlias, callback) ->
+  deleteVmByHostname: (hostnameAlias, callback, fireEvents = yes) ->
     { JVM } = KD.remote.api
 
     JVM.removeByHostname hostnameAlias, (err)->
       return callback err  if err
 
-      vmc = KD.getSingleton("vmController")
-      vmc.emit 'VMListChanged'
-      vmc.emit 'VMDestroyed', hostnameAlias
+      if fireEvents
+        vmc = KD.getSingleton("vmController")
+        vmc.emit 'VMListChanged'
+        vmc.emit 'VMDestroyed', hostnameAlias
 
       callback null
 
@@ -452,10 +457,11 @@ class VirtualizationController extends KDController
   hasDefaultVM:(callback)->
     KD.remote.api.JVM.fetchDefaultVm callback
 
-  createNewVM: (callback)->
-    @createPaidVM (err) =>
-      @emit 'VMListChanged'
+  createNewVM: (stackId, callback, fireEvent = yes)->
+    @createPaidVM stackId, (err) =>
+      @emit 'VMListChanged'  if fireEvent
       callback err
+    , fireEvent
 
   showVMDetails: (vm)->
     vmName = vm.hostnameAlias
@@ -486,7 +492,7 @@ class VirtualizationController extends KDController
           callback  : =>
             modal.destroy()
 
-  createPaidVM: (callback) ->
+  createPaidVM: (stackId, callback, fireEvent) ->
     @payment.fetchActiveSubscription tags: "vm", (err, subscription) =>
       if err
         @showUpgradeModal()  if err.code is "no subscription"
@@ -498,16 +504,16 @@ class VirtualizationController extends KDController
       KD.remote.api.JPaymentPack.one tags: "vm", (err, pack) =>
         return callback err  if err
 
-        @provisionVm {subscription, productData: {pack}}, (err, nonce) =>
-          return  unless err
-
-          if err.message is "quota exceeded"
-            if KD.getGroup().slug is "koding"
-              @showUpgradeModal()
-              callback()
-            else
-              callback message: "Your group is out of VM quota"
+        @provisionVm {stackId, subscription, productData: {pack}}, (err, nonce) =>
+          if err
+            if err.message is "quota exceeded"
+              if KD.getGroup().slug is "koding"
+                @showUpgradeModal()
+                callback()
+              else
+                callback message: "Your group is out of VM quota"
           else callback err
+        , fireEvent
 
   showUpgradeModal: ->
     modal      = new KDModalView
@@ -522,7 +528,7 @@ class VirtualizationController extends KDController
     upgradeForm.on "Cancel", modal.bound "destroy"
     return modal
 
-  provisionVm: ({ subscription, paymentMethod, productData }, callback) ->
+  provisionVm: ({ subscription, stackId, paymentMethod, productData }, callback, fireEvent = yes) ->
     { JVM } = KD.remote.api
 
     { plan, pack } = productData
@@ -534,28 +540,30 @@ class VirtualizationController extends KDController
       plan.subscribe paymentMethod.paymentMethodId, (err, subscription) =>
         return  if KD.showError err
 
-        @provisionVm { subscription, productData }, callback
+        @provisionVm { subscription, productData, stackId }, callback
 
       return
 
     payment.debitSubscription subscription, pack, (err, nonce) =>
       return callback err  if err
 
-      notify = new KDNotificationView
-        title            : "Creating your VM..."
-        overlay          :
-          transparent    : no
-          destroyOnClick : no
-        loader           :
-          color          : "white"
-        duration         : 120000
+      if fireEvent
+        notify = new KDNotificationView
+          title            : "Creating your VM..."
+          overlay          :
+            transparent    : no
+            destroyOnClick : no
+          loader           :
+            color          : "white"
+          duration         : 120000
 
-      JVM.createVmByNonce nonce, (err, vm) =>
-        notify.destroy()
+      JVM.createVmByNonce nonce, stackId, (err, vm) =>
+        notify?.destroy()
         return  if KD.showError err
 
-        @emit 'VMListChanged'
-        @showVMDetails vm
+        if fireEvent
+          @emit 'VMListChanged'
+          @showVMDetails vm
 
         callback null, nonce
 
