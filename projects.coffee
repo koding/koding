@@ -141,6 +141,12 @@ projects      =
     script        : "website/a/js/__app.education.#{KODING_VERSION}.js"
     sourceMapRoot : "Education/"
 
+  HomeLanding     :
+    files         : "client/HomeLanding/includes.coffee"
+    style         : "website/a/css/__app.homelanding.#{KODING_VERSION}.css"
+    script        : "website/a/js/__app.homelanding.#{KODING_VERSION}.js"
+    sourceMapRoot : "Homelanding/"
+
   Environments    :
     files         : "client/Environments/includes.coffee"
     style         : "website/a/css/__app.environments.#{KODING_VERSION}.css"
