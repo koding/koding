@@ -35,8 +35,12 @@ class ActivityAppController extends AppController
     socialapi.message.post {body}, callback
 
 
+  fetch: (options = {}, callback = noop) ->
 
+    {channelId} = options
+    {socialapi} = KD.singletons
 
+    socialapi.channel.fetchActivities { id: channelId }, callback
 
 
   #
