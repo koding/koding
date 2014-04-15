@@ -16,16 +16,6 @@ func testMessageOperations() {
 		fmt.Println("error while creating post", err)
 		err = nil
 	}
-
-	post2, err := getPost(post.Id)
-	if err != nil {
-		fmt.Println("error while getting the post", err)
-		err = nil
-	}
-
-	if post2.CreatedAt.Second() != post.CreatedAt.Second() {
-		fmt.Println("post created ats are not same")
-	}
 }
 
 func createPost(channelId, accountId int64) (*models.ChannelMessage, error) {
@@ -57,9 +47,8 @@ func updatePost(cm *models.ChannelMessage) (*models.ChannelMessage, error) {
 	return cmI.(*models.ChannelMessage), nil
 }
 
-func getPost(id int64) (*models.ChannelMessage, error) {
-
-	url := fmt.Sprintf("/message/%d", id)
+func getPost(id int64, accountId int64, groupName string) (*models.ChannelMessage, error) {
+	url := fmt.Sprintf("/message/%d?accountId=%d&groupName=%s", id)
 	cm := models.NewChannelMessage()
 	cmI, err := sendModel("GET", url, cm)
 	if err != nil {
