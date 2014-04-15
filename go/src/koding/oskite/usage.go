@@ -63,13 +63,20 @@ type subscriptionResp struct {
 }
 
 var (
+	// [N]x = [Nx2] CPU + [Nx2]GB Ram + [Nx10]GB Disk + [Nx10] Total VM + [N] Always On (devrim's forumla)
 	plans = map[string]Plan{
-		"free": {CPU: 1, RAM: 1000, Disk: 3000, TotalVMs: 1, AlwaysOnVMs: 0},
-		"1x":   {CPU: 2, RAM: 2000, Disk: 10000, TotalVMs: 2, AlwaysOnVMs: 1},
-		"2x":   {CPU: 4, RAM: 4000, Disk: 20000, TotalVMs: 4, AlwaysOnVMs: 2},
-		"3x":   {CPU: 6, RAM: 6000, Disk: 40000, TotalVMs: 6, AlwaysOnVMs: 3},
-		"4x":   {CPU: 8, RAM: 8000, Disk: 80000, TotalVMs: 8, AlwaysOnVMs: 4},
-		"5x":   {CPU: 10, RAM: 10000, Disk: 100000, TotalVMs: 10, AlwaysOnVMs: 5},
+		"free": {CPU: 1, RAM: 1000, Disk: 3000, TotalVMs: 5, AlwaysOnVMs: 0},
+		"1x":   {CPU: 2, RAM: 2000, Disk: 10000, TotalVMs: 10, AlwaysOnVMs: 1},
+		"2x":   {CPU: 4, RAM: 4000, Disk: 20000, TotalVMs: 20, AlwaysOnVMs: 2},
+		"3x":   {CPU: 6, RAM: 6000, Disk: 30000, TotalVMs: 30, AlwaysOnVMs: 3},
+		"4x":   {CPU: 8, RAM: 8000, Disk: 40000, TotalVMs: 40, AlwaysOnVMs: 4},
+		"5x":   {CPU: 10, RAM: 10000, Disk: 50000, TotalVMs: 50, AlwaysOnVMs: 5},
+
+		"10x":  {CPU: 20, RAM: 20000, Disk: 100000, TotalVMs: 100, AlwaysOnVMs: 10},
+		"25x":  {CPU: 50, RAM: 50000, Disk: 250000, TotalVMs: 250, AlwaysOnVMs: 25},
+		"50x":  {CPU: 100, RAM: 100000, Disk: 500000, TotalVMs: 500, AlwaysOnVMs: 50},
+		"75":   {CPU: 150, RAM: 150000, Disk: 700000, TotalVMs: 750, AlwaysOnVMs: 75},
+		"100x": {CPU: 200, RAM: 200000, Disk: 1000000, TotalVMs: 1000, AlwaysOnVMs: 100},
 	}
 
 	okString      = "ok"
