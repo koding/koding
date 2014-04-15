@@ -2,7 +2,7 @@ bongo = require './bongo'
 
 handleError = (err, callback) ->
   console.error err
-  return callback err
+  return callback? err
 
 
 fetchGroupName = (req, callback)->
@@ -17,7 +17,7 @@ fetchGroupName = (req, callback)->
   if not name or name[0].toUpperCase() is name[0]
     return callback null, "koding"
   else
-    JName.fetchModels "#{name}", (err, models)->
+    JName.fetchModels "#{name}", (err, { models })->
       return callback if err
       return callback new Error "JName is not found #{name}/#{section}" if not models and model.length < 1
 
@@ -52,7 +52,7 @@ generateFakeClient = (req, res, callback)->
 
   return callback null, fakeClient unless clientId?
 
-  bongo.models.JSession.fetchSession clientId, (err, session)->
+  bongo.models.JSession.fetchSession clientId, (err, { session })->
     return handleError err, callback if err
     return handleError new Error "Session is not set", callback unless session?
 
