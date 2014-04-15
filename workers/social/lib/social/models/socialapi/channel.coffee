@@ -75,10 +75,10 @@ module.exports = class SocialChannel extends Base
       fetchPopularTopics options, callback
 
   @fetchChannels = secure (client, options = {}, callback)->
-    fetchChannelReqeust 'fetchGroupChannels', client, options, callback
+    @fetchChannelReqeust 'fetchGroupChannels', client, options, callback
 
   @fetchFollowedChannels = secure (client, options = {}, callback)->
-    fetchChannelReqeust 'fetchGroupChannels', client, options, callback
+    @fetchChannelReqeust 'fetchFollowedChannels', client, options, callback
 
   @fetchChannelReqeust = (funcName, client, options, callback)->
     fetchGroup client, (err, group)->
