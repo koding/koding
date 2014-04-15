@@ -20,10 +20,10 @@ type Notifiable interface {
 }
 
 type InteractionNotification struct {
-	TargetId   int64
-	Type       string
-	ListerId   int64
-	NotifierId int64
+	TargetId     int64
+	TypeConstant string
+	ListerId     int64
+	NotifierId   int64
 }
 
 func (n *InteractionNotification) GetNotifiedUsers() ([]int64, error) {
@@ -47,7 +47,7 @@ func (n *InteractionNotification) GetNotifiedUsers() ([]int64, error) {
 }
 
 func (n *InteractionNotification) GetType() string {
-	return n.Type
+	return n.TypeConstant
 }
 
 func (n *InteractionNotification) GetTargetId() int64 {
@@ -83,7 +83,7 @@ func (n *InteractionNotification) SetListerId(listerId int64) {
 }
 
 func NewInteractionNotification(notificationType string) *InteractionNotification {
-	return &InteractionNotification{Type: notificationType}
+	return &InteractionNotification{TypeConstant: notificationType}
 }
 
 type ReplyNotification struct {

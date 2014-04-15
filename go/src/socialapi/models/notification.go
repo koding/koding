@@ -153,16 +153,16 @@ func (n *Notification) decorateContents(result []NotificationContainer, resultMa
 
 func buildNotificationContainer(nc *NotificationContent) NotificationContainer {
 	return NotificationContainer{
-		TargetId: nc.TargetId,
-		Type:     nc.Type,
+		TargetId:     nc.TargetId,
+		TypeConstant: nc.TypeConstant,
 	}
 }
 
 func prepareResultKey(nc *NotificationContent) string {
-	return fmt.Sprintf("%s_%d", nc.Type, nc.TargetId)
+	return fmt.Sprintf("%s_%d", nc.TypeConstant, nc.TargetId)
 }
 
-func fetchRelatedContent(nl []Notification) (map[int64]NotificationContent, error) {
+func fetchRelatedContents(nl []Notification) (map[int64]NotificationContent, error) {
 	notificationContentIds := make([]int64, 0)
 	for _, n := range nl {
 		notificationContentIds = append(notificationContentIds, n.NotificationContentId)
@@ -177,7 +177,7 @@ func populateActors(listerId int64, ncList []NotificationContainer) ([]Notificat
 	result := make([]NotificationContainer, 0)
 
 	for _, n := range ncList {
-		notificationType, err := CreateNotificationType(n.Type)
+		notificationType, err := CreateNotificationType(n.TypeConstant)
 		if err != nil {
 			return nil, err
 		}

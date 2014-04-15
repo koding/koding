@@ -10,9 +10,9 @@ import (
 type NotificationContent struct {
 	Id int64 `json:"id"`
 	// target of the activity (replied messageId, followed accountId etc.)
-	TargetId  int64  `json:"targetId"   sql:"NOT NULL"`
-	Type      string `json:"type"       sql:"NOT NULL"`
-	CreatedAt time.Time
+	TargetId     int64     `json:"targetId"   sql:"NOT NULL"`
+	TypeConstant string    `json:"typeConstant"       sql:"NOT NULL"`
+	CreatedAt    time.Time `json:"createdAt"`
 }
 
 const (
@@ -39,8 +39,8 @@ func (n NotificationContent) TableName() string {
 
 func (n *NotificationContent) Create() error {
 	s := map[string]interface{}{
-		"type":      n.Type,
-		"target_id": n.TargetId,
+		"type_constant": n.TypeConstant,
+		"target_id":     n.TargetId,
 	}
 	q := bongo.NewQS(s)
 	if err := n.One(q); err != nil {
@@ -60,8 +60,8 @@ func (n *NotificationContent) One(q *bongo.Query) error {
 func CreateNotification(i Notifiable) error {
 	// check for previous NotificationContent create if it does not exist (type:comment targetId:messageId)
 	n := NewNotificationContent()
-	n.Type = i.GetType()
-	if n.Type == "" {
+	n.TypeConstant = i.GetType()
+	if n.TypeConstant == "" {
 		return errors.New("Type must be set")
 	}
 
