@@ -155,8 +155,13 @@ func (c *ChannelMessage) FetchRelatives() (*ChannelMessageContainer, error) {
 
 	interactionContainer := NewInteractionContainer()
 	interactionContainer.Actors = oldIds
-	// check this from database
-	interactionContainer.IsInteracted = true
+
+	isInteracted, err := i.IsInteracted(c.AccountId)
+	if err != nil {
+		return nil, err
+	}
+
+	interactionContainer.IsInteracted = isInteracted
 
 	if container.Interactions == nil {
 		container.Interactions = make(map[string]*InteractionContainer)
