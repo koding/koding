@@ -99,7 +99,7 @@ fetchPopularTopics = (data, callback)->
   url = "#{SOCIAL_API_URL}/popular/topics/weekly"
   get url, data, callback
 
-listPinnedMessages = (data, callback)->
+fetchPinnedMessages = (data, callback)->
   url = "#{SOCIAL_API_URL}/activity/pin/list"
   get url, data, callback
 
@@ -162,7 +162,7 @@ module.exports = {
   fetchFollowedChannels
   followTopic
   unfollowTopic
-  listPinnedMessages
+  fetchPinnedMessages
   pinMessage
   unpinMessage
   fetchPopularTopics

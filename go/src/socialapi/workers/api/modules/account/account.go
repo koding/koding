@@ -15,13 +15,18 @@ func ListChannels(u *url.URL, h http.Header, _ interface{}) (int, http.Header, i
 		return helpers.NewBadRequestResponse(err)
 	}
 
+	if query.Type == "" {
+		query.Type = models.Channel_TYPE_TOPIC
+	}
+
 	a := &models.Account{Id: accountId}
 	channels, err := a.FetchChannels(query)
 	if err != nil {
 		return helpers.NewBadRequestResponse(err)
 	}
 
-	return helpers.NewOKResponse(channels)
+	return helpers.NewOKResponse(models.PopulateChannelContainers(channels, accountId))
+}
 }
 
 func Follow(u *url.URL, h http.Header, req *models.Account) (int, http.Header, interface{}, error) {

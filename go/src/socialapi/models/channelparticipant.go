@@ -213,7 +213,7 @@ func (c *ChannelParticipant) FetchParticipantCount() (int, error) {
 	return c.Count("channel_id = ?", c.ChannelId)
 }
 
-func (c *ChannelParticipant) IsParticipated(accountId int64) (bool, error) {
+func (c *ChannelParticipant) IsParticipant(accountId int64) (bool, error) {
 	if c.ChannelId == 0 {
 		return false, errors.New("Channel.Id is not set")
 	}

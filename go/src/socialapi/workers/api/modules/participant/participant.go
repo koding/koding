@@ -74,7 +74,11 @@ func checkChannelPrerequisites(channelId, requesterId, accountId int64) error {
 	}
 
 	if c.TypeConstant == models.Channel_TYPE_PINNED_ACTIVITY {
-		return errors.New("You can not add a new participant into pinned activity channel")
+		return errors.New("You can not add/remove a new participant for pinned activity channel")
+	}
+
+	if c.TypeConstant == models.Channel_TYPE_GROUP {
+		return errors.New("You can not add/remove a new participant for group activity channel")
 	}
 
 	if c.TypeConstant == models.Channel_TYPE_CHAT {

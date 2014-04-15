@@ -34,6 +34,7 @@ class SocialApiController extends KDController
 
   messageApiMessageResFunc = (name, rest..., callback)->
     KD.remote.api.SocialMessage[name] rest..., (err, res)->
+      return callback err if err
       return callback null, mapActivity res
 
   channelApiActivitiesResFunc = (name, rest..., callback)->
@@ -88,7 +89,7 @@ class SocialApiController extends KDController
     {SocialChannel} = KD.remote.api
     for channel in channels
       data = channel.channel
-      data.isParticipated = channel.isParticipated
+      data.isParticipant = channel.isParticipant
       data.participantCount = channel.participantCount
 
       c = new SocialChannel data
@@ -115,8 +116,8 @@ class SocialApiController extends KDController
     fetchActivities      : fetchChannelActivities
     fetchGroupActivities : fetchGroupActivities
     fetchPopularTopics   : fetchPopularTopics
-    listPinnedMessages   : (rest...)->
-      channelApiActivitiesResFunc 'listPinnedMessages', rest...
+    fetchPinnedMessages  : (rest...)->
+      channelApiActivitiesResFunc 'fetchPinnedMessages', rest...
     pin                  : (rest...)->
       KD.remote.api.SocialChannel.pinMessage rest...
     unpin                : (rest...)->
