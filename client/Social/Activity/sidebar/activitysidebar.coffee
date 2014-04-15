@@ -16,9 +16,7 @@ class ActivitySidebar extends KDCustomScrollView
 
     @addPublicFeedLink()
     @addHotTopics()
-    skip += 3
     @addFollowedTopics()
-    skip = 0
     @addThreads()
     skip += 3
     @addMessages()
