@@ -44,21 +44,27 @@ func ListTopics(u *url.URL, h http.Header, _ interface{}) (int, http.Header, int
 		return helpers.NewBadRequestResponse(err)
 	}
 
-	popularTopics := make([]int64, 0)
+	popularTopicIds := make([]int64, 0)
 	for _, topic := range topics {
 		val, err := strconv.ParseInt(string(topic.([]uint8)), 10, 64)
 		if err == nil {
-			popularTopics = append(popularTopics, val)
+			popularTopicIds = append(popularTopicIds, val)
 		}
 	}
 
-	popularTopics, err = extendPopularTopicsIfNeeded(query, popularTopics)
+	popularTopicIds, err = extendPopularTopicsIfNeeded(query, popularTopicIds)
 	if err != nil {
 		return helpers.NewBadRequestResponse(err)
 	}
 
 	c := models.NewChannel()
-	return helpers.HandleResultAndError(c.FetchByIds(popularTopics))
+	popularTopics, err := c.FetchByIds(popularTopicIds)
+	if err != nil {
+		return helpers.NewBadRequestResponse(err)
+	}
+
+	res := models.PopulateChannelContainer(popularTopics, query.AccountId)
+	return helpers.NewOKResponse(res)
 }
 
 func extendPopularTopicsIfNeeded(query *models.Query, popularTopics []int64) ([]int64, error) {
