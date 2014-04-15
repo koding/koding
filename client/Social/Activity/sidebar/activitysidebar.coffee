@@ -78,11 +78,13 @@ class ActivitySidebar extends KDCustomScrollView
   addThreads: ->
 
     @wrapper.addSubView @threads = new ActivitySideView
-      title    : 'Threads'
+      title    : 'Pinned Activities'
       cssClass : 'threads users'
-      itemClass : SidebarMemberItem
+      itemClass : SidebarPinnedItem
       dataSource : (callback) ->
-        KD.getGroup().fetchNewestMembers {}, {limit : 3, skip}, callback
+        KD.singletons.socialapi.channel.fetchPinnedMessages
+          limit : 5
+        , callback
 
 
   addMessages: ->
