@@ -75,7 +75,7 @@ var (
 		"10x":  {CPU: 20, RAM: 20000, Disk: 100000, TotalVMs: 100, AlwaysOnVMs: 10},
 		"25x":  {CPU: 50, RAM: 50000, Disk: 250000, TotalVMs: 250, AlwaysOnVMs: 25},
 		"50x":  {CPU: 100, RAM: 100000, Disk: 500000, TotalVMs: 500, AlwaysOnVMs: 50},
-		"75":   {CPU: 150, RAM: 150000, Disk: 700000, TotalVMs: 750, AlwaysOnVMs: 75},
+		"75x":  {CPU: 150, RAM: 150000, Disk: 700000, TotalVMs: 750, AlwaysOnVMs: 75},
 		"100x": {CPU: 200, RAM: 200000, Disk: 1000000, TotalVMs: 1000, AlwaysOnVMs: 100},
 	}
 
