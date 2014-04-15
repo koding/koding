@@ -3,7 +3,12 @@ request        = require 'request'
 
 wrapCallback = (callback)->
   (err, response, body) ->
-    if err or response.statusCode >= 400
+    if err
+      if err.code is "ECONNREFUSED"
+        return callback {message: "Social API is currently under maintenance"}
+      return callback err
+
+    if response.statusCode >= 400
       return callback body
     else
       return callback null, body
