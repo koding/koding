@@ -13,8 +13,13 @@ class SidebarTopicItem extends SidebarItem
         unfollow     :
           title      : 'unfollow'
           cssClass   : 'following-topic'
+
       dataType       : 'JTag'
     , data
+
+    # fix this, setState instead of hide! - sy
+    # and fix toggle button
+    @followButton.hide()  if @getData().isParticipant
 
 
   viewAppended: JView::viewAppended
@@ -22,8 +27,12 @@ class SidebarTopicItem extends SidebarItem
 
   pistachio:->
 
+    {participantCount} = @getData()
+
+    # str = if participantCount > 1 then 'Followers' else 'Follower'
+
     """
-    {span.ttag{ #(title)}}
-    {span.tag-info{ #(counts.followers) + ' Followers'}}
+    {span.ttag{ #(name)}}
+    {span.tag-info{ #(participantCount) + ' Followers'}}
     {{> @followButton}}
     """
