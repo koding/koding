@@ -196,6 +196,29 @@ func (a *Account) FetchFollowerChannelIds() ([]int64, error) {
 	return channelIds, nil
 }
 
+func FetchMongoIdByAccountId(accountId int64) (string, error) {
+
+	a := NewAccount()
+	var data []string
+	q := &bongo.Query{
+		Selector: map[string]interface{}{
+			"id": accountId,
+		},
+		Pluck: "old_id",
+		Limit: 1,
+	}
+	err := a.Some(&data, q)
+	if err != nil {
+		return "", err
+	}
+
+	if len(data) == 0 {
+		return "", nil
+	}
+
+	return data[0], nil
+}
+
 func FetchMongoIdsByAccountIds(accountIds []int64) ([]string, error) {
 	var oldIds []string
 	if len(accountIds) == 0 {
