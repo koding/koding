@@ -52,7 +52,7 @@ func List(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface
 		return helpers.NewBadRequestResponse(err)
 	}
 
-	res := models.PopulateChannelContainer(channelList, q.AccountId)
+	res := models.PopulateChannelContainers(channelList, q.AccountId)
 	return helpers.NewOKResponse(res)
 }
 
@@ -115,21 +115,23 @@ func Update(u *url.URL, h http.Header, req *models.Channel) (int, http.Header, i
 	return helpers.NewOKResponse(req)
 }
 
-func Get(u *url.URL, h http.Header, req *models.Channel) (int, http.Header, interface{}, error) {
+func Get(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface{}, error) {
 	id, err := helpers.GetURIInt64(u, "id")
 	if err != nil {
 		return helpers.NewBadRequestResponse(err)
 	}
+	q := helpers.GetQuery(u)
 
-	req.Id = id
-	if err := req.Fetch(); err != nil {
+	c := models.NewChannel()
+	c.Id = id
+	if err := c.Fetch(); err != nil {
 		if err == gorm.RecordNotFound {
 			return helpers.NewNotFoundResponse()
 		}
 		return helpers.NewBadRequestResponse(err)
 	}
 
-	return helpers.NewOKResponse(req)
+	return helpers.NewOKResponse(models.PopulateChannelContainer(*c, q.AccountId))
 }
 
 func PostMessage(u *url.URL, h http.Header, req *models.Channel) (int, http.Header, interface{}, error) {
