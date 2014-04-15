@@ -62,6 +62,14 @@ func (a *Account) Create() error {
 	return bongo.B.Create(a)
 }
 
+func (a *Account) Delete() error {
+	return bongo.B.Delete(a)
+}
+
+func (a *Account) Some(data interface{}, q *bongo.Query) error {
+	return bongo.B.Some(a, data, q)
+}
+
 func (a *Account) FetchChannels(q *Query) ([]Channel, error) {
 	cp := NewChannelParticipant()
 	// fetch channel ids
@@ -186,4 +194,18 @@ func (a *Account) FetchFollowerChannelIds() ([]int64, error) {
 	}
 
 	return channelIds, nil
+}
+
+func FetchMongoIdsByAccountIds(accountIds []int64) ([]string, error) {
+	var oldIds []string
+	if len(accountIds) == 0 {
+		return oldIds, nil
+	}
+	a := NewAccount()
+	err := bongo.B.DB.
+		Table(a.TableName()).
+		Where("id IN (?)", accountIds).
+		Pluck("old_id", &oldIds).Error
+
+	return oldIds, err
 }
