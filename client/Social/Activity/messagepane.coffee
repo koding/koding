@@ -39,8 +39,16 @@ class MessagePane extends KDTabPaneView
 
   fetch: (callback)->
 
-    {appManager} = KD.singletons
-    appManager.tell 'Activity', 'fetchPublicActivities', {}, callback
+    {appManager}            = KD.singletons
+    {name, type, channelId} = @getOptions()
+    data                    = @getData()
+    options                 = {name, type, channelId}
+
+    # if it is a pinned activity we should already have it
+    # as the data object here and we pass it as we've fetched it
+    if type is 'pinnedActivity'
+    then KD.utils.defer -> callback null, [data]
+    else appManager.tell 'Activity', 'fetch', options, callback
 
 
   refresh: ->
