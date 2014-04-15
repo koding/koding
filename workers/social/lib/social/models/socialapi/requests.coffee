@@ -126,6 +126,15 @@ unfollowTopic = (data, callback)->
   url = "#{SOCIAL_API_URL}/channel/#{data.channelId}/participant/#{data.accountId}/delete"
   post url, data, callback
 
+
+fetchFollowedChannels = (data, callback)->
+  if not data.accountId or not data.groupName
+    return callback { message: "Request is not valid"}
+
+  url = "#{SOCIAL_API_URL}/account/#{data.accountId}/channels"
+  get url, data, callback
+
+
 post = (url, data, callback)->
   request
     url    : url
@@ -143,6 +152,7 @@ get = (url, data, callback)->
   , wrapCallback callback
 
 module.exports = {
+  fetchFollowedChannels
   followTopic
   unfollowTopic
   listPinnedMessages
