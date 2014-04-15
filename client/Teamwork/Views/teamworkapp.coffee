@@ -1,6 +1,6 @@
 class TeamworkApp extends KDObject
 
-  instanceName = if location.hostname.indexOf("local") > -1 then "koding-tw-local" else "koding-teamwork"
+  instanceName = if KD.config.environment is "vagrant" then "koding-tw-local" else "koding-teamwork"
 
   constructor: (options = {}, data) ->
 

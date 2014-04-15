@@ -20,24 +20,25 @@ configuration files.
 
 * `-addr` - The advertised public hostname:port for client communication. Defaults to `127.0.0.1:4001`.
 * `-discovery` - A URL to use for discovering the peer list. (i.e `"https://discovery.etcd.io/your-unique-key"`).
-* `-bind-addr` - The listening hostname for client communication. Defaults to advertised ip.
+* `-bind-addr` - The listening hostname for client communication. Defaults to advertised IP.
 * `-peers` - A comma separated list of peers in the cluster (i.e `"203.0.113.101:7001,203.0.113.102:7001"`).
 * `-peers-file` - The file path containing a comma separated list of peers in the cluster.
 * `-ca-file` - The path of the client CAFile. Enables client cert authentication when present.
 * `-cert-file` - The cert file of the client.
 * `-key-file` - The key file of the client.
-* `-config` - The path of the etcd config file. Defaults to `/etc/etcd/etcd.conf`.
+* `-config` - The path of the etcd configuration file. Defaults to `/etc/etcd/etcd.conf`.
 * `-cors` - A comma separated white list of origins for cross-origin resource sharing.
-* `-cpuprofile` - The path to a file to output cpu profile data. Enables cpu profiling when present.
+* `-cpuprofile` - The path to a file to output CPU profile data. Enables CPU profiling when present.
 * `-data-dir` - The directory to store log and snapshot. Defaults to the current working directory.
 * `-max-result-buffer` - The max size of result buffer. Defaults to `1024`.
 * `-max-cluster-size` - The max size of the cluster. Defaults to `9`.
 * `-max-retry-attempts` - The max retry attempts when trying to join a cluster. Defaults to `3`.
 * `-peer-addr` - The advertised public hostname:port for server communication. Defaults to `127.0.0.1:7001`.
-* `-peer-bind-addr` - The listening hostname for server communication. Defaults to advertised ip.
+* `-peer-bind-addr` - The listening hostname for server communication. Defaults to advertised IP.
 * `-peer-ca-file` - The path of the CAFile. Enables client/peer cert authentication when present.
 * `-peer-cert-file` - The cert file of the server.
 * `-peer-key-file` - The key file of the server.
+* `-peer-election-timeout` - The number of milliseconds to wait before the leader is declared unhealthy.
 * `-snapshot=false` - Disable log snapshots. Defaults to `true`.
 * `-v` - Enable verbose logging. Defaults to `false`.
 * `-vv` - Enable very verbose logging. Defaults to `false`.
@@ -56,6 +57,7 @@ cert_file = ""
 cors = []
 cpu_profile_file = ""
 data_dir = "."
+discovery = "http://etcd.local:4001/v2/keys/_etcd/registry/examplecluster"
 key_file = ""
 peers = []
 peers_file = ""
@@ -85,6 +87,7 @@ key_file = ""
  * `ETCD_CONFIG`
  * `ETCD_CPU_PROFILE_FILE`
  * `ETCD_DATA_DIR`
+ * `ETCD_DISCOVERY`
  * `ETCD_KEY_FILE`
  * `ETCD_PEERS`
  * `ETCD_PEERS_FILE`
@@ -100,3 +103,4 @@ key_file = ""
  * `ETCD_PEER_CA_FILE`
  * `ETCD_PEER_CERT_FILE`
  * `ETCD_PEER_KEY_FILE`
+ * `ETCD_PEER_ELECTION_TIMEOUT`

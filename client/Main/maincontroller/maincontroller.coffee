@@ -1,5 +1,4 @@
 class MainController extends KDController
-
   ###
 
   * EMITTED EVENTS
@@ -11,6 +10,8 @@ class MainController extends KDController
     - accountChanged.to.loggedOut   [account, connectedState, firstLoad]
 
   ###
+
+  Promise.longStackTraces()
 
   connectedState = connected : no
 
@@ -31,6 +32,10 @@ class MainController extends KDController
   createSingletons:->
 
     KD.registerSingleton "mainController",            this
+
+    # if KD.useNewKites
+    KD.registerSingleton "kontrol",                   new KodingKontrol
+
     KD.registerSingleton "appManager",   appManager = new ApplicationManager
     KD.registerSingleton "notificationController",    new NotificationController
     KD.registerSingleton "linkController",            new LinkController
@@ -41,8 +46,6 @@ class MainController extends KDController
     KD.registerSingleton "oauthController",           new OAuthController
     KD.registerSingleton "groupsController",          new GroupsController
     KD.registerSingleton "paymentController",         new PaymentController
-    if KD.useNewKites
-      KD.registerSingleton "kontrol",                 new Kontrol
     KD.registerSingleton "vmController",              new VirtualizationController
     KD.registerSingleton "locationController",        new LocationController
     KD.registerSingleton "badgeController",           new BadgeController
@@ -76,6 +79,8 @@ class MainController extends KDController
 
     @on "pageLoaded.as.loggedIn", (account)-> # ignore othter parameters
       KD.utils.setPreferredDomain account if account
+
+    (KD.getSingleton 'kontrol').reauthenticate()  if KD.useNewKites
 
     account.fetchMyPermissionsAndRoles (err, permissions, roles)=>
       return warn err  if err

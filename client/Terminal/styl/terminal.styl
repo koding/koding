@@ -95,24 +95,32 @@ body.terminal
 
 li.vm-loader-item
   display             block
-  height              30px
-  line-height         30px
+  line-height         40px
   font-size           14px
   font-weight         200
-  border-bottom       2px solid #252e30
   padding-left        30px
   cursor              pointer
   borderBox()
   rel()
+
+  &:before
+    content           ""
+    display           block
+    border-top        2px solid #252e30
+    width             100%
+    abs               34px 0 0 0px
+
+  cite
+    font-size         11px
+    margin            0 0 0 8px
+    color             #7e8080
+
   &:hover
     figure
       opacity         1
   &.ready
     i
       color           logoBg
-    cite
-      width           100% !important
-      opacity         .1
     &:hover
       i
         &:before
@@ -124,9 +132,6 @@ li.vm-loader-item
   &.off
     i
       color           #FF7379
-    cite
-      width           0% !important
-      bg              color #FF7379
     &:hover
       i:before
         margin-right    10px
@@ -135,7 +140,7 @@ li.vm-loader-item
         content         'click to turn on your VM'
 
   figure
-    top               9px
+    top               13px
     left              6px
     opacity           .4
     display           block
@@ -158,17 +163,39 @@ li.vm-loader-item
     text-align        right
     abs()
 
-  cite
+  cite.vm-loader
     abs()
     height            2px
     bg                color transparent
     left              0
-    top               28px
+    top               34px
     vendor            transition, width .1s linear \,\
                                   opacity .1s linear\,\
                                   background-color .1s linear
     width             0%
     opacity           .3
+
+  .terminal-session-stack
+    margin             0 0 12px -1% !important
+    padding-right      44px
+    width              auto !important
+
+    li
+      opacity         .7
+      padding         3px 16px
+      margin          1% 0 0 1%
+      line-height     22px
+      vendor          transition, background .1s ease
+      width           24%
+      background      #252e30
+      rounded         4px
+      font-size       12px
+      text-align      center
+      borderBox()
+      fl()
+
+      &:hover
+        opacity       1
 
 .kdmodal.vm-selection
   ul
@@ -179,6 +206,10 @@ li.vm-loader-item
       line-height         40px
       border-bottom       1px solid #eee
       padding-left        0
+
+      &:before
+        display           none
+
       &.ready
         color             logoBg
       &.off
@@ -230,3 +261,19 @@ li.vm-loader-item
     padding             14px
     color               white
     bg                  color, #28292A
+
+
+.terminal-bottom-message
+  color                 #999
+  max-width             524px
+  margin                0 auto
+  font-size             12px
+  line-height           18px
+  letter-spacing        .06em
+  border                2px solid #252e30
+  padding               14px
+  rounded               4px
+  borderBox()
+
+  a
+    color               #1aaf5d

@@ -4,6 +4,12 @@
 
 Starting an etcd cluster can be painful since each node needs to know of another node in the cluster to get started. If you are trying to bring up a cluster all at once, say using a cloud formation, you also need to coordinate who will be the initial cluster leader. The discovery protocol helps you by providing an automated way to discover other existing peers in a cluster.
 
+Peer discovery for etcd is processed by `-discovery`, `-peers` and lastly log data in `-data-dir`. For more information see the [discovery design][discovery-design].
+
+Please note - at least 3 nodes are required for [cluster availability][optimal-cluster-size].
+
+[optimal-cluster-size]: https://github.com/coreos/etcd/blob/master/Documentation/optimal-cluster-size.md
+
 ## Using discovery.etcd.io
 
 ### Create a Token
@@ -20,8 +26,9 @@ Here's a full example:
 
 ```
 TOKEN=$(curl https://discovery.etcd.io/new)
-./etcd -name instance1 -peer-addr 10.1.2.3:7001 -addr 10.1.2.3:4001 -discovery https://discovery.etcd.io/$TOKEN
-./etcd -name instance2 -peer-addr 10.1.2.4:7002 -addr 10.1.2.4:4002 -discovery https://discovery.etcd.io/$TOKEN
+./etcd -name instance1 -peer-addr 10.1.2.3:7001 -addr 10.1.2.3:4001 -discovery $TOKEN
+./etcd -name instance2 -peer-addr 10.1.2.4:7002 -addr 10.1.2.4:4002 -discovery $TOKEN
+./etcd -name instance3 -peer-addr 10.1.2.5:7002 -addr 10.1.2.5:4002 -discovery $TOKEN
 ```
 
 ## Running Your Own Discovery Endpoint
@@ -32,6 +39,7 @@ The discovery API communicates with a separate etcd cluster to store and retriev
 TOKEN="testcluster"
 ./etcd -name instance1 -peer-addr 10.1.2.3:7001 -addr 10.1.2.3:4001 -discovery http://10.10.10.10:4001/v2/keys/$TOKEN
 ./etcd -name instance2 -peer-addr 10.1.2.4:7002 -addr 10.1.2.4:4002 -discovery http://10.10.10.10:4001/v2/keys/$TOKEN
+./etcd -name instance3 -peer-addr 10.1.2.5:7002 -addr 10.1.2.5:4002 -discovery http://10.10.10.10:4001/v2/keys/$TOKEN
 ```
 
 If you're interested in how to discovery API works behind the scenes, read about the [Discovery Protocol](https://github.com/coreos/etcd/blob/master/Documentation/discovery-protocol.md).
@@ -43,3 +51,5 @@ The Discovery API submits the `-peer-addr` of each etcd instance to the configur
 ## Stale Peers
 
 The discovery API will automatically clean up the address of a stale peer that is no longer part of the cluster. The TTL for this process is a week, which should be long enough to handle any extremely long outage you may encounter. There is no harm in having stale peers in the list until they are cleaned up, since an etcd instance only needs to connect to one valid peer in the cluster to join.
+
+[discovery-design]: https://github.com/coreos/etcd/blob/master/Documentation/design/discovery.md

@@ -168,6 +168,13 @@ config =
       useStaticFileServer: 1
       staticFilesBaseUrl: 1
       runtimeOptions  :
+        kites:
+          kontrol:
+            username: 1
+          os:
+            version: 1
+          terminal:
+            version: 1
         osKitePollingMs: 1
         userIdleMs: 1
         sessionCookie :
@@ -303,8 +310,11 @@ config =
       cleanupCron     : 1
     pidFile       : 1
     etcd            : [{ host : 1, port : 1}]
+    newkites      :
+      useTLS          : 1
+      certFile        : 1
+      keyFile         : 1
     newkontrol      :
-      username        : 1
       port            : 1
       useTLS          : 1
       certFile        : 1
@@ -421,4 +431,8 @@ config =
       secure        : 1
     troubleshoot    :
       recipientEmail: 1
+    pageHit         :
+      run           : 1
+      host          : 1
+      port          : 1
 module.exports = config

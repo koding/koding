@@ -472,8 +472,17 @@ module.exports = class JVM extends Module
                 JDomain.ensureDomainSettingsForVM {
                   account, vm, type, nickname, group: groupSlug, stack
                 }
-                if type is 'group'
-                  @addVmUsers user, vm, group, ->
+
+                group.addVm vm, (err)=>
+                  return callback err  if err
+                  JDomain.ensureDomainSettingsForVM {
+                    account, vm, type, nickname, group: groupSlug, stack
+                  }
+                  account.sendNotification "VMCreated"
+                  if type is 'group'
+                    @addVmUsers user, vm, group, ->
+                      callback null, vm
+                  else
                     callback null, vm
                 else
                   callback null, vm
@@ -563,15 +572,14 @@ module.exports = class JVM extends Module
 
       selector.users = $elemMatch: id: user.getId()
 
-      fieldsToFetch = { hostnameAlias: 1, region: 1, hostKite: 1, stack: 1, meta: 1 }
+      fieldsToFetch = { hostnameAlias: 1, region: 1, hostKite: 1, stack: 1, meta: 1, alwaysOn: 1 }
       JVM.someData selector, fieldsToFetch, options, (err, cursor)->
         return callback err  if err
-
         cursor.toArray (err, arr) ->
           return callback err  if err
-          callback null, arr.map ({ hostnameAlias, region, hostKite, stack, meta }) ->
+          callback null, arr.map ({ hostnameAlias, region, hostKite, stack, meta, alwaysOn }) ->
             hostKite = null  if hostKite in ['(banned)', '(maintenance)']
-            { hostnameAlias, region, hostKite, stack, meta }
+            { hostnameAlias, region, hostKite, stack, meta, alwaysOn }
 
   @fetchVmsByContext = secure (client, options, callback) ->
     {connection:{delegate}, context:{group}} = client
@@ -652,6 +660,8 @@ module.exports = class JVM extends Module
     kallback = (subscription) =>
       @remove (err) =>
         return callback err  if err
+
+        account.sendNotification "VMRemoved"
 
         errs = []
 

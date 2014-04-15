@@ -68,10 +68,10 @@ func TestRegisterToKontrol(t *testing.T) {
 		if first.Kite != *k.Kite() {
 			t.Errorf("unexpected kite key: %s", first.Kite)
 		}
-		if first.URL.String() != "ws://zubuzaretta:16500" {
-			t.Errorf("unexpected url: %s", first.URL.String())
+		if first.WSConfig.Location.String() != "ws://zubuzaretta:16500" {
+			t.Errorf("unexpected url: %s", first.WSConfig.Location.String())
 		}
-	case <-time.After(time.Second):
+	case <-time.After(2 * time.Second):
 		t.Fatal("timeout")
 	}
 }
@@ -84,7 +84,7 @@ func TestRegisterToProxy(t *testing.T) {
 
 	select {
 	case <-reg.ReadyNotify():
-	case <-time.After(time.Second):
+	case <-time.After(2 * time.Second):
 		t.Fatal("timeout")
 	}
 }
@@ -112,10 +112,10 @@ func TestRegisterToProxyAndKontrol(t *testing.T) {
 		if first.Kite != *k.Kite() {
 			t.Errorf("unexpected kite key: %s", first.Kite)
 		}
-		if !strings.Contains(first.URL.String(), "/proxy") {
-			t.Errorf("unexpected url: %s", first.URL.String())
+		if !strings.Contains(first.WSConfig.Location.String(), "/proxy") {
+			t.Errorf("unexpected url: %s", first.WSConfig.Location.String())
 		}
-	case <-time.After(time.Second):
+	case <-time.After(2 * time.Second):
 		t.Fatal("timeout")
 	}
 }

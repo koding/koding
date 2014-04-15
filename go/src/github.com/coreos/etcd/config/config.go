@@ -14,7 +14,6 @@ import (
 
 	"github.com/coreos/etcd/third_party/github.com/BurntSushi/toml"
 
-	"github.com/coreos/etcd/discovery"
 	"github.com/coreos/etcd/log"
 	ustrings "github.com/coreos/etcd/pkg/strings"
 	"github.com/coreos/etcd/server"
@@ -25,24 +24,25 @@ const DefaultSystemConfigPath = "/etc/etcd/etcd.conf"
 
 // A lookup of deprecated flags to their new flag name.
 var newFlagNameLookup = map[string]string{
-	"C":             "peers",
-	"CF":            "peers-file",
-	"n":             "name",
-	"c":             "addr",
-	"cl":            "bind-addr",
-	"s":             "peer-addr",
-	"sl":            "peer-bind-addr",
-	"d":             "data-dir",
-	"m":             "max-result-buffer",
-	"r":             "max-retry-attempts",
-	"maxsize":       "max-cluster-size",
-	"clientCAFile":  "ca-file",
-	"clientCert":    "cert-file",
-	"clientKey":     "key-file",
-	"serverCAFile":  "peer-ca-file",
-	"serverCert":    "peer-cert-file",
-	"serverKey":     "peer-key-file",
-	"snapshotCount": "snapshot-count",
+	"C":                      "peers",
+	"CF":                     "peers-file",
+	"n":                      "name",
+	"c":                      "addr",
+	"cl":                     "bind-addr",
+	"s":                      "peer-addr",
+	"sl":                     "peer-bind-addr",
+	"d":                      "data-dir",
+	"m":                      "max-result-buffer",
+	"r":                      "max-retry-attempts",
+	"maxsize":                "max-cluster-size",
+	"clientCAFile":           "ca-file",
+	"clientCert":             "cert-file",
+	"clientKey":              "key-file",
+	"serverCAFile":           "peer-ca-file",
+	"serverCert":             "peer-cert-file",
+	"serverKey":              "peer-key-file",
+	"snapshotCount":          "snapshot-count",
+	"peer-heartbeat-timeout": "peer-heartbeat-interval",
 }
 
 // Config represents the server configuration.
@@ -61,7 +61,6 @@ type Config struct {
 	KeyFile          string   `toml:"key_file" env:"ETCD_KEY_FILE"`
 	Peers            []string `toml:"peers" env:"ETCD_PEERS"`
 	PeersFile        string   `toml:"peers_file" env:"ETCD_PEERS_FILE"`
-	MaxClusterSize   int      `toml:"max_cluster_size" env:"ETCD_MAX_CLUSTER_SIZE"`
 	MaxResultBuffer  int      `toml:"max_result_buffer" env:"ETCD_MAX_RESULT_BUFFER"`
 	MaxRetryAttempts int      `toml:"max_retry_attempts" env:"ETCD_MAX_RETRY_ATTEMPTS"`
 	RetryInterval    float64  `toml:"retry_interval" env:"ETCD_RETRY_INTERVAL"`
@@ -74,13 +73,13 @@ type Config struct {
 	VeryVerbose      bool `toml:"very_verbose" env:"ETCD_VERY_VERBOSE"`
 	VeryVeryVerbose  bool `toml:"very_very_verbose" env:"ETCD_VERY_VERY_VERBOSE"`
 	Peer             struct {
-		Addr             string `toml:"addr" env:"ETCD_PEER_ADDR"`
-		BindAddr         string `toml:"bind_addr" env:"ETCD_PEER_BIND_ADDR"`
-		CAFile           string `toml:"ca_file" env:"ETCD_PEER_CA_FILE"`
-		CertFile         string `toml:"cert_file" env:"ETCD_PEER_CERT_FILE"`
-		KeyFile          string `toml:"key_file" env:"ETCD_PEER_KEY_FILE"`
-		HeartbeatTimeout int    `toml:"heartbeat_timeout" env:"ETCD_PEER_HEARTBEAT_TIMEOUT"`
-		ElectionTimeout  int    `toml:"election_timeout" env:"ETCD_PEER_ELECTION_TIMEOUT"`
+		Addr              string `toml:"addr" env:"ETCD_PEER_ADDR"`
+		BindAddr          string `toml:"bind_addr" env:"ETCD_PEER_BIND_ADDR"`
+		CAFile            string `toml:"ca_file" env:"ETCD_PEER_CA_FILE"`
+		CertFile          string `toml:"cert_file" env:"ETCD_PEER_CERT_FILE"`
+		KeyFile           string `toml:"key_file" env:"ETCD_PEER_KEY_FILE"`
+		HeartbeatInterval int    `toml:"heartbeat_interval" env:"ETCD_PEER_HEARTBEAT_INTERVAL"`
+		ElectionTimeout   int    `toml:"election_timeout" env:"ETCD_PEER_ELECTION_TIMEOUT"`
 	}
 	strTrace     string `toml:"trace" env:"ETCD_TRACE"`
 	GraphiteHost string `toml:"graphite_host" env:"ETCD_GRAPHITE_HOST"`
@@ -91,14 +90,13 @@ func New() *Config {
 	c := new(Config)
 	c.SystemPath = DefaultSystemConfigPath
 	c.Addr = "127.0.0.1:4001"
-	c.MaxClusterSize = 9
 	c.MaxResultBuffer = 1024
 	c.MaxRetryAttempts = 3
 	c.RetryInterval = 10.0
 	c.Snapshot = true
 	c.SnapshotCount = 10000
 	c.Peer.Addr = "127.0.0.1:7001"
-	c.Peer.HeartbeatTimeout = defaultHeartbeatTimeout
+	c.Peer.HeartbeatInterval = defaultHeartbeatInterval
 	c.Peer.ElectionTimeout = defaultElectionTimeout
 	return c
 }
@@ -142,13 +140,6 @@ func (c *Config) Load(arguments []string) error {
 	// Sanitize all the input fields.
 	if err := c.Sanitize(); err != nil {
 		return fmt.Errorf("sanitize: %v", err)
-	}
-
-	// Attempt cluster discovery
-	if c.Discovery != "" {
-		if err := c.handleDiscovery(); err != nil {
-			return err
-		}
 	}
 
 	// Force remove server configuration if specified.
@@ -215,36 +206,6 @@ func (c *Config) loadEnv(target interface{}) error {
 	return nil
 }
 
-func (c *Config) handleDiscovery() error {
-	p, err := discovery.Do(c.Discovery, c.Name, c.Peer.Addr)
-
-	// This is fatal, discovery encountered an unexpected error
-	// and we have no peer list.
-	if err != nil && len(c.Peers) == 0 {
-		log.Fatalf("Discovery failed and a backup peer list wasn't provided: %v", err)
-		return err
-	}
-
-	// Warn about errors coming from discovery, this isn't fatal
-	// since the user might have provided a peer list elsewhere.
-	if err != nil {
-		log.Warnf("Discovery encountered an error but a backup peer list (%v) was provided: %v", c.Peers, err)
-	}
-
-	for i := range p {
-		// Strip the scheme off of the peer if it has one
-		// TODO(bp): clean this up!
-		purl, err := url.Parse(p[i])
-		if err == nil {
-			p[i] = purl.Host
-		}
-	}
-
-	c.Peers = p
-
-	return nil
-}
-
 // Loads configuration from command line flags.
 func (c *Config) LoadFlags(arguments []string) error {
 	var peers, cors, path string
@@ -285,8 +246,7 @@ func (c *Config) LoadFlags(arguments []string) error {
 	f.IntVar(&c.MaxResultBuffer, "max-result-buffer", c.MaxResultBuffer, "")
 	f.IntVar(&c.MaxRetryAttempts, "max-retry-attempts", c.MaxRetryAttempts, "")
 	f.Float64Var(&c.RetryInterval, "retry-interval", c.RetryInterval, "")
-	f.IntVar(&c.MaxClusterSize, "max-cluster-size", c.MaxClusterSize, "")
-	f.IntVar(&c.Peer.HeartbeatTimeout, "peer-heartbeat-timeout", c.Peer.HeartbeatTimeout, "")
+	f.IntVar(&c.Peer.HeartbeatInterval, "peer-heartbeat-interval", c.Peer.HeartbeatInterval, "")
 	f.IntVar(&c.Peer.ElectionTimeout, "peer-election-timeout", c.Peer.ElectionTimeout, "")
 
 	f.StringVar(&cors, "cors", "", "")
@@ -319,8 +279,8 @@ func (c *Config) LoadFlags(arguments []string) error {
 	f.StringVar(&c.DataDir, "d", c.DataDir, "(deprecated)")
 	f.IntVar(&c.MaxResultBuffer, "m", c.MaxResultBuffer, "(deprecated)")
 	f.IntVar(&c.MaxRetryAttempts, "r", c.MaxRetryAttempts, "(deprecated)")
-	f.IntVar(&c.MaxClusterSize, "maxsize", c.MaxClusterSize, "(deprecated)")
 	f.IntVar(&c.SnapshotCount, "snapshotCount", c.SnapshotCount, "(deprecated)")
+	f.IntVar(&c.Peer.HeartbeatInterval, "peer-heartbeat-timeout", c.Peer.HeartbeatInterval, "(deprecated)")
 	// END DEPRECATED FLAGS
 
 	if err := f.Parse(arguments); err != nil {
@@ -426,20 +386,20 @@ func (c *Config) Sanitize() error {
 }
 
 // EtcdTLSInfo retrieves a TLSInfo object for the etcd server
-func (c *Config) EtcdTLSInfo() server.TLSInfo {
-	return server.TLSInfo{
-		CAFile:		c.CAFile,
-		CertFile:	c.CertFile,
-		KeyFile:	c.KeyFile,
+func (c *Config) EtcdTLSInfo() *server.TLSInfo {
+	return &server.TLSInfo{
+		CAFile:   c.CAFile,
+		CertFile: c.CertFile,
+		KeyFile:  c.KeyFile,
 	}
 }
 
 // PeerRaftInfo retrieves a TLSInfo object for the peer server.
-func (c *Config) PeerTLSInfo() server.TLSInfo {
-	return server.TLSInfo{
-		CAFile:		c.Peer.CAFile,
-		CertFile:	c.Peer.CertFile,
-		KeyFile:	c.Peer.KeyFile,
+func (c *Config) PeerTLSInfo() *server.TLSInfo {
+	return &server.TLSInfo{
+		CAFile:   c.Peer.CAFile,
+		CertFile: c.Peer.CertFile,
+		KeyFile:  c.Peer.KeyFile,
 	}
 }
 
