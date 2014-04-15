@@ -600,7 +600,8 @@ module.exports = class JAccount extends jraphical.Module
       callback new KodingError 'Access denied'
     else
       JSession = require './session'
-      JSession.update {clientId: sessionToken}, $set:{username: nickname}, callback
+      JSession.update {clientId: sessionToken}, $set:{username: nickname}, (err) ->
+        callback err
 
   @verifyEmailByUsername = secure (client, username, callback)->
     {connection:{delegate}, sessionToken} = client
