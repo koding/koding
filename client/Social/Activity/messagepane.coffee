@@ -7,6 +7,7 @@ class MessagePane extends KDTabPaneView
 
     super options, data
 
+    channel           = @getData()
     {itemClass, type} = @getOptions()
 
     @listController = new ActivityListController
@@ -14,7 +15,7 @@ class MessagePane extends KDTabPaneView
       lastToFirst   : yes  if type is 'messaging'
 
     @listView = @listController.getView()
-    @input    = new ActivityInputWidget
+    @input    = new ActivityInputWidget {channel}
 
 
   viewAppended: ->

@@ -27,40 +27,14 @@ class ActivityAppController extends AppController
     dock.getView().show()
 
 
-  fetchPublicActivities: (options = {}, callback = ->) ->
+  post: (options = {}, callback = noop) ->
 
-    console.time('fetchActivity')
+    {body}      = options
+    {socialapi} = KD.singletons
 
-    # just here to make it work
-    # we should change the other parts to make it
-    # work with the new structure
-    {SocialChannel, SocialMessage}  = KD.remote.api
-    options.id = KD.getGroup().socialApiChannelId
-    SocialChannel.fetchActivity options, (err, result)=>
-      console.timeEnd('fetchActivity')
-      console.log err  if err
-      messages = result.messageList
-      revivedMessages = []
+    socialapi.message.post {body}, callback
 
-      for message in messages
-        m = new SocialMessage message.message
-        m._id = message.message.id
-        m.meta = {}
-        m.meta.likes = message.interactions.length or 0
-        m.meta.createdAt = message.message.createdAt
-        m.replies = message.replies
-        m.repliesCount = message.replies.length or 0
-        m.interactions = message.interactions
 
-        m.on "MessageReplySaved", log
-        m.on "data", log
-        m.on "update", log
-        # m.on "MessageReplySaved", log
-
-        revivedMessages.push m
-
-      return @emit "activitiesCouldntBeFetched", err  if err
-      callback err, revivedMessages
 
 
 

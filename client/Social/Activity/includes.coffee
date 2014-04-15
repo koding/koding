@@ -58,6 +58,7 @@ module.exports = [
 
   "views/inputview.coffee",
   "views/inputwidget.coffee",
+  "views/inputeditwidget.coffee",
   "views/settingsview.coffee"
 
   "widgets/widgetcontroller.coffee",
