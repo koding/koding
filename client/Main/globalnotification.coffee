@@ -23,7 +23,7 @@ class GlobalNotificationView extends JView
 
     @timer = new KDCustomHTMLView
       tagName  : 'strong'
-      cssClass : 'hidden'  if @getOption 'showTimer'
+      cssClass : if @getOption 'showTimer' then 'hidden'
       partial  : @timerPartial scheduledAt
 
     @repeater = KD.utils.repeat 2000, =>
