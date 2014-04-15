@@ -55,13 +55,10 @@ class ActivityAppView extends KDView
 
   createTab: (data) ->
 
-    console.time('createTab')
-    name = extractName data
-    type = if data.bongo_?.constructorName is 'JAccount'
-    then 'messaging'
-    else ''
+    name      = extractName data
+    type      = data.typeConstant
+    channelId = data.id
 
-    @tabs.addPane pane = new MessagePane {name, type}
-    console.timeEnd('createTab')
+    @tabs.addPane pane = new MessagePane {name, type, channelId}, data
 
     return pane
