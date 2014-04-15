@@ -116,8 +116,8 @@ class SocialApiController extends KDController
     fetchActivities      : fetchChannelActivities
     fetchGroupActivities : fetchGroupActivities
     fetchPopularTopics   : fetchPopularTopics
-    listPinnedMessages   : (rest...)->
-      channelApiActivitiesResFunc 'listPinnedMessages', rest...
+    fetchPinnedMessages   : (rest...)->
+      channelApiActivitiesResFunc 'fetchPinnedMessages', rest...
     pin                  : (rest...)->
       KD.remote.api.SocialChannel.pinMessage rest...
     unpin                : (rest...)->
