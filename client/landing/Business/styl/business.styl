@@ -92,7 +92,7 @@ body.business
     padding               90px 0 382px
     text-align            center
     bg                    color, #505050
-    bg                    image, url("/a/images/biz-pictobg.png")
+    bg                    image, url("/a/images/biz-pat.png")
     position              relative
 
     &:after
@@ -182,13 +182,46 @@ body.business
   // screenshots Section
 
   section.screenshots
-    margin                -331px 0 80px
+    margin                20% 0 26%
 
-    .inner-container>img
-      margin              0 auto
+    .inner-container
+      &:after
+        content           ""
+        display           block
+        size              100%, 80px
+        abs               0 0 1px 0px
+        bg                image, url("/a/images/screenshots-shadow.png")
+        bg                position, center bottom
+        bg                repeat, no-repeat
+        bg                size, contain
+        z-index           2
+
+
+    figure
       display             block
-      width               100%
-      max-width           1199px
+      bottom              0px
+      rounded             6px 6px 0 0
+      overflow            hidden
+      abs()
+
+      img
+        width             100%
+
+      &.first
+        z-index           4
+        left              50%
+        width             65%
+        vendor            transform, translateX(-50%)
+
+      &.second
+        z-index           3
+        width             58%
+        left              7%
+
+      &.third
+        z-index           3
+        width             58%
+        right             7%
 
 
   // Features Section

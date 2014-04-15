@@ -1,4 +1,4 @@
-class BusinessView extends KDView
+class HomeLandingView extends KDView
 
   constructor:->
     super
