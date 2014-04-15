@@ -42,29 +42,15 @@ module.exports = class SocialMessage extends Base
 
   @post = permit 'create posts',
     success: (client, data, callback)->
-      {connection:{delegate}} = client
-      delegate.createSocialApiId (err, socialApiId)->
-        return callback err if err
-        SocialMessage.ensureGroupChannel client, (err, socialApiChannelId)->
-          return callback err  if err
-          {postToChannel} = require './requests'
-
-          data.channelId = socialApiChannelId
-          data.accountId = socialApiId
-
-          postToChannel data, (err, activities)->
-            callback err, activities
+      SocialMessage.ensureGroupChannel client, (err, socialApiChannelId)->
+        data.channelId = socialApiChannelId
+        @doRequest 'postToChannel', client, data, callback
 
   @reply = permit 'create posts',
     success: (client, data, callback)->
-      {connection:{delegate}} = client
-      delegate.createSocialApiId (err, socialApiId)->
-        return callback err if err
-        if not data.messageId or not data.body
-          return callback { message: "Request is not valid for add a reply to the message" }
-        data.accountId = socialApiId
-        (require './requests').addReply data, (err, result)->
-          callback err, result
+      if not data.messageId or not data.body
+        return callback { message: "Request is not valid for add a reply to the message" }
+      @doRequest 'addReply', client, data, callback
 
   # todo add permission here
   @edit = secure (client, data, callback)->
@@ -82,33 +68,33 @@ module.exports = class SocialMessage extends Base
     success: (client, data, callback)->
       if not data.id
         return callback { message: "Request is not valid for deleting a message"}
-      {deleteMessage} = require './requests'
-      deleteMessage data, (err, activities)->
-        callback err, activities
+      @doRequest 'deleteMessage', client, data, callback
 
   @like = permit 'like posts',
     success: (client, data, callback)->
-      {connection:{delegate}} = client
-      delegate.createSocialApiId (err, socialApiId)=>
-        return callback err if err
-        if not data.id
-          return callback { message: "Request is not valid for liking a message"}
-        data.accountId = socialApiId
-        {likeMessage} = require './requests'
-        likeMessage data, (err, result)->
-          callback err, result
+      if not data.id
+        return callback { message: "Request is not valid for liking a message"}
+      @doRequest 'likeMessage', client, data, callback
 
   @unlike = permit 'like posts',
     success:  (client, data, callback)->
+      if not data.id
+        return callback { message: "Request is not valid for unliking a message"}
+      @doRequest 'unlikeMessage', client, data, callback
+
+  @doRequest = (funcName, client, options, callback)->
+    fetchGroup client, (err, group)->
+      return callback err if err
       {connection:{delegate}} = client
-      delegate.createSocialApiId (err, socialApiId)=>
+      delegate.createSocialApiId (err, socialApiId)->
         return callback err if err
-        if not data.id
-          return callback { message: "Request is not valid for unliking a message"}
-        data.accountId = socialApiId
-        {unlikeMessage} = require './requests'
-        unlikeMessage data, (err, result)->
-          callback err, result
+
+        options.groupName = group.slug
+        options.accountId = socialApiId
+
+        requests = require './requests'
+        requests[funcName] options, callback
+
 
   @ensureGroupChannel = (client, callback)->
     fetchGroup client, (err, group)->
