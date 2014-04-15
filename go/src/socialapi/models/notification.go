@@ -125,7 +125,7 @@ func (n *Notification) decorateContents(result []NotificationContainer, resultMa
 	}
 
 	// fetch all notification content relationships
-	ncMap, err := fetchRelatedContent(nList)
+	ncMap, err := fetchRelatedContents(nList)
 	if err != nil {
 		return nil, err
 	}
@@ -169,6 +169,16 @@ func fetchRelatedContents(nl []Notification) (map[int64]NotificationContent, err
 	}
 	nc := NewNotificationContent()
 	return nc.FetchMapByIds(notificationContentIds)
+}
+
+func (n *Notification) FetchContent() (*NotificationContent, error) {
+	nc := NewNotificationContent()
+	nc.Id = n.NotificationContentId
+	if err := nc.Fetch(); err != nil {
+		return nil, err
+	}
+
+	return nc, nil
 }
 
 // populateActors fetches latest actor ids and total count of actors. listerId is needed for excluding
