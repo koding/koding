@@ -78,12 +78,12 @@ func (f *PopularTopicsController) MessageSaved(data *models.ChannelMessageList) 
 		return nil
 	}
 
-	_, err = f.redis.SortedSetIncrBy(GetWeeklyKey(c, data), 1, data.MessageId)
+	_, err = f.redis.SortedSetIncrBy(GetWeeklyKey(c, data), 1, data.ChannelId)
 	if err != nil {
 		return err
 	}
 
-	_, err = f.redis.SortedSetIncrBy(GetMonthlyKey(c, data), 1, data.MessageId)
+	_, err = f.redis.SortedSetIncrBy(GetMonthlyKey(c, data), 1, data.ChannelId)
 	if err != nil {
 		return err
 	}
