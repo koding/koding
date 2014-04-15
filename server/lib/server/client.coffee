@@ -2,7 +2,7 @@ bongo = require './bongo'
 
 handleError = (err, callback) ->
   console.error err
-  return callback err
+  return callback? err
 
 
 fetchGroupName = (req, callback)->

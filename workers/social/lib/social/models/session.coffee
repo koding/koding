@@ -78,7 +78,7 @@ module.exports = class JSession extends Model
       if err
         callback err
       else if session?
-        callback null, session
+        callback null, { session }
       else
         @createSession callback
 
