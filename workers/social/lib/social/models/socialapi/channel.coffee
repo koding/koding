@@ -30,6 +30,8 @@ module.exports = class SocialChannel extends Base
           (signature Object, Function)
         unfollow:
           (signature Object, Function)
+        fetchFollowedChannels:
+          (signature Object, Function)
 
     schema             :
       id               : Number
@@ -57,13 +59,12 @@ module.exports = class SocialChannel extends Base
       delegate.createSocialApiId (err, socialApiId)->
         return callback err if err
 
-        data =
-          channelId: options.id
-          accountId: socialApiId
-          groupName: group.slug
+        options.channelId = options.id
+        options.accountId = socialApiId
+        options.groupName = group.slug
 
         {fetchChannelActivity} = require './requests'
-        fetchChannelActivity data, callback
+        fetchChannelActivity options, callback
 
   @fetchPopularTopics = secure (client, options = {}, callback)->
     fetchGroup client, (err, group)->
@@ -74,28 +75,33 @@ module.exports = class SocialChannel extends Base
       fetchPopularTopics options, callback
 
   @fetchChannels = secure (client, options = {}, callback)->
+    fetchChannelReqeust 'fetchGroupChannels', client, options, callback
+
+  @fetchFollowedChannels = secure (client, options = {}, callback)->
+    fetchChannelReqeust 'fetchGroupChannels', client, options, callback
+
+  @fetchChannelReqeust = (funcName, client, options, callback)->
     fetchGroup client, (err, group)->
       return callback err if err
       {connection:{delegate}} = client
       delegate.createSocialApiId (err, socialApiId)->
         return callback err if err
 
-        data =
-          groupName: group.slug
-          accountId: socialApiId
+        options.groupName = group.slug
+        options.accountId = socialApiId
 
-        {fetchGroupChannels} = require './requests'
-        fetchGroupChannels data, callback
+        requests = require './requests'
+        requests[funcName] options, callback
 
   @listPinnedMessages = permit 'pin posts',
-    success:  (client, data, callback)->
+    success:  (client, options, callback)->
       {connection:{delegate}, context} = client
       delegate.createSocialApiId (err, socialApiId)->
         return callback err if err
-        data.accountId = socialApiId
-        data.groupName = context.group
+        options.accountId = socialApiId
+        options.groupName = context.group
         {listPinnedMessages} = require './requests'
-        listPinnedMessages data, callback
+        listPinnedMessages options, callback
 
   @pinMessage = permit 'pin posts',
     success:  (client, data, callback)->
