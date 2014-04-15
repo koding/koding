@@ -1,12 +1,13 @@
 class SharableClientTerminalPane extends TerminalPane
 
   constructor: (options = {}, data) ->
-
     sessionOptions   = options.sessionKey
     options.vmName   = sessionOptions.vmName
     options.vmRegion = sessionOptions.vmRegion
     options.joinUser = sessionOptions.host
     options.session  = sessionOptions.key
+    options.sizeX    = 100
+    options.sizeY    = 100
     options.delay    = 0
 
     super options, data
