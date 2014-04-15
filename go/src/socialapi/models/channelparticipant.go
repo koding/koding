@@ -212,3 +212,25 @@ func (c *ChannelParticipant) FetchParticipantCount() (int, error) {
 
 	return c.Count("channel_id = ?", c.ChannelId)
 }
+
+func (c *ChannelParticipant) IsParticipated(accountId int64) (bool, error) {
+	if c.ChannelId == 0 {
+		return false, errors.New("Channel.Id is not set")
+	}
+
+	selector := map[string]interface{}{
+		"channel_id": c.ChannelId,
+		"account_id": accountId,
+	}
+
+	err := c.One(bongo.NewQS(selector))
+	if err == nil {
+		return true, nil
+	}
+
+	if err == gorm.RecordNotFound {
+		return false, nil
+	}
+
+	return false, err
+}
