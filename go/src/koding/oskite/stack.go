@@ -4,7 +4,15 @@ import (
 	"koding/tools/dnode"
 	"koding/tools/kite"
 	"koding/virt"
+	"os"
+	"os/exec"
+	"path/filepath"
 )
+
+const customTemplate = `touch hello.txt
+echo "fatih" >> hello.txt
+echo $DENEME
+`
 
 type Templater interface {
 	Create() error
@@ -31,6 +39,8 @@ func vmCreate(params progresser, vos *virt.VOS) (interface{}, error) {
 		return nil, &kite.PermissionError{}
 	}
 
+	return executeScript(customTemplate, vos)
+
 	return progress(vos, "vm.create "+vos.VM.HostnameAlias, params, func() error {
 		results := make(chan *virt.Step)
 		go prepareProgress(results, vos)
@@ -45,6 +55,29 @@ func vmCreate(params progresser, vos *virt.VOS) (interface{}, error) {
 			}
 		}
 
+		executeScript(customTemplate, vos)
+
 		return nil
 	})
+}
+
+// executeScript invokes the given script as root in the corresponding vos vm
+// and returns the output
+func executeScript(initScript string, vos *virt.VOS) (interface{}, error) {
+	file, err := vos.TempFile("oskite-stack")
+	if err != nil {
+		return nil, err
+	}
+	defer file.Close()
+	defer os.Remove(file.Name())
+
+	file.WriteString(initScript)
+
+	fileName := filepath.Join("/tmp", filepath.Base(file.Name()))
+	args := []string{"--name", vos.VM.String(), "--", "/bin/bash", fileName}
+	cmd := exec.Command("/usr/bin/lxc-attach", args...)
+	cmd.Env = []string{"TERM=xterm-256color"}
+	cmd.Env = append(cmd.Env, "DENEME=fatih")
+
+	return newOutput(cmd)
 }
