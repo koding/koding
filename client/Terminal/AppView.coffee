@@ -22,7 +22,6 @@ class WebTermAppView extends JView
       closeAppWhenAllTabsClosed : no
 
     @tabView
-      .on('PaneRemoved',   @bound 'updateSessions')
       .on('TabsSorted',    @bound 'updateSessions')
       .on('PaneDidShow',   @bound 'handlePaneShown')
 
@@ -30,6 +29,80 @@ class WebTermAppView extends JView
 
     @on 'VMItemClicked',     @bound 'prepareAndRunTerminal'
     @on 'PlusHandleClicked', @bound 'handlePlusClick'
+    @on 'WebTermConnected',  @bound 'updateSessions'
+    @on 'TerminalClosed',    @bound 'removeSession'
+
+    @on 'TerminalStarted', ->
+      KD.mixpanel "Open new Webterm tab, success"
+
+    {vmController} = KD.singletons
+    vmController.on 'vm.progress.error', => @notify cssClass : 'error'
+
+    @on "SessionSelected", ({vm, session}) => @createNewTab {vm, session, mode: 'resume'}
+
+    {vmController} = KD.singletons
+    {terminalKites} = vmController
+    vmController.ready @bound 'restoreTabs'
+
+  restoreTabs: ->
+    @fetchStorage (storage) =>
+      sessions = storage.getValue 'savedSessions'
+      return  unless sessions?.length
+
+      @notify
+        title     : "Checking for previous sessions"
+        cssClass  : "success"
+
+      # group sessions by alias
+      aliases = []
+      sessions.forEach (session) ->
+        [alias, sessionId] = session.split ':'
+        aliases.push alias  unless alias in aliases
+
+      # fetch vms and store in an object with the key of alias
+      KD.singletons.vmController.fetchGroupVMs no, (err, vms) =>
+        return warn err  if err
+        vmList = {}
+        vms.map (vm) ->
+          vmList[vm.hostnameAlias] = vm
+
+        {dash} = Bongo
+
+        # fetch all active vm sessions via terminal kites
+        activeSessions = []
+        {vmController, kontrol} = KD.singletons
+        kites =
+          if KD.useNewKites
+          then kontrol.kites.terminal
+          else vmController.terminalKites
+        queue = aliases.map (alias)->->
+          # when we have sessions from another xontext in appStorage
+          # prevent restoring sessions of terminals in that context
+          kites[alias]?.webtermGetSessions().then (sessions) =>
+            activeSessions = activeSessions.concat sessions
+            queue.fin()
+          .catch (err) ->
+            warn err
+            queue.fin()
+
+        # after all active sessions are fetched, compare them with last open sessions
+        sessionRestored = no
+        dash queue, =>
+          sessions.forEach (session) =>
+            [alias, sessionId] = session.split ':'
+            if sessionId in activeSessions
+              sessionRestored = yes
+              @createNewTab
+                vm         : vmList[alias]
+                session    : sessionId
+                mode       : 'resume'
+                shouldShow : no
+
+          unless sessionRestored
+            @notify
+              title     : "Your previous sessions are no longer online since your VM is turned off due to inactivity. \
+                           If you want always on VMs, you can upgrade your plan"
+              cssClass  : "fail"
 
 
   initPane: (pane) ->
@@ -47,7 +120,6 @@ class WebTermAppView extends JView
 
 
   handlePaneShown:(pane, index)->
-
     @_windowDidResize()
     {terminalView} = pane.getOptions()
 
@@ -62,26 +134,6 @@ class WebTermAppView extends JView
   fetchStorage: (callback) ->
     storage = KD.getSingleton('appStorageController').storage 'Terminal', '1.0.1'
     storage.fetchStorage -> callback storage
-
-  restoreTabs: (vm) ->
-
-    notify
-      title     : "Checking for previous sessions"
-      cssClass  : "success"
-
-    @fetchStorage (storage) =>
-      sessions = storage.getValue 'savedSessions'
-      activeIndex = storage.getValue 'activeIndex'
-      if sessions?.length
-        for session in sessions
-          [vmName, sessionId] = session.split ':'
-          @createNewTab { vm, session: sessionId, mode: 'resume' }
-        activePane = @tabView.getPaneByIndex activeIndex ? 0
-        @tabView.showPane activePane
-        { terminalView } = activePane.getOptions()
-        terminalView.setKeyView()
-      else
-        @addNewTab vm
 
 
   showApprovalModal: (remote, command)->
@@ -145,7 +197,9 @@ class WebTermAppView extends JView
 
     if terminalView.terminal?.server?
     then runner()
-    else terminalView.once 'WebTermConnected', runner
+    else
+      terminalView.once "TerminalClosed", @bound "removeSession"
+      terminalView.once 'WebTermConnected', runner
 
   handleQuery:(query)->
 
@@ -154,8 +208,9 @@ class WebTermAppView extends JView
     pane = @tabView.getActivePane()
     {terminalView} = pane.getOptions()
     terminalView.terminal?.scrollToBottom()
+    terminalView.once "TerminalClosed", @bound "removeSession"
     terminalView.once 'WebTermConnected', (remote)=>
-
+      @emit "WebTermConnected"
       if query.command
         command = decodeURIComponent query.command
         @showApprovalModal remote, command
@@ -201,7 +256,13 @@ class WebTermAppView extends JView
 
   createNewTab: (options = {}) ->
 
-    { hostnameAlias: vmName, region } = options.vm
+    {shouldShow, session} = options
+    {hostnameAlias: vmName, region} = options.vm
+
+    # before creating new tab check for its existence first and then show that pane if it is already opened
+    pane = @findPane session
+
+    return @tabView.showPane pane  if pane
 
     defaultOptions =
       testPath    : "webterm-tab"
@@ -211,8 +272,10 @@ class WebTermAppView extends JView
 
     @emit 'TerminalStarted'
 
-    @appendTerminalTab terminalView
+    @appendTerminalTab terminalView, shouldShow
     terminalView.connectToTerminal()
+    @forwardEvent terminalView, "WebTermConnected"
+    @forwardEvent terminalView, "TerminalClosed"
 
   addStartTab:->
 
@@ -221,14 +284,14 @@ class WebTermAppView extends JView
       tabHandleView : new KDCustomHTMLView
         tagName     : 'span'
         cssClass    : 'home'
-      view          : new TerminalStartTab
+      view          : @startTab = new TerminalStartTab
         tagName     : 'main'
         delegate    : this
       closable      : no
 
     @tabView.addPane pane
 
-  appendTerminalTab: (terminalView) ->
+  appendTerminalTab: (terminalView, shouldShow = yes) ->
 
     @forwardEvents terminalView, ['KeyViewIsSet', 'command']
 
@@ -236,13 +299,16 @@ class WebTermAppView extends JView
       name          : 'Terminal'
       terminalView  : terminalView
 
-    @tabView.addPane pane
+    @tabView.addPane pane, shouldShow
     pane.addSubView terminalView
 
-    terminalView.on "WebTermNeedsToBeRecovered", (options) =>
-      options.delegate = this
+    terminalView.on "WebTermNeedsToBeRecovered", ({vm, session}) =>
+      @createNewTab {vm, session, mode: 'resume', shouldShow : no}
+      @notify
+        title   : "Reconnected to Terminal"
+
       pane.destroySubViews()
-      pane.addSubView new WebTermView options
+      @tabView.removePane pane
 
     terminalView.once 'TerminalCanceled', ({ vmName }) =>
       @tabView.removePane pane
@@ -261,10 +327,35 @@ class WebTermAppView extends JView
         { terminalView } = pane.getOptions()
         return unless terminalView
         sessionId = terminalView.sessionId ? terminalView.getOption 'session'
-        vmName = terminalView.getOption 'vmName'
-        sessions.push "#{ vmName }:#{ sessionId }"
+        {hostnameAlias} = terminalView.getOption 'vm'
+        sessions.push "#{ hostnameAlias }:#{ sessionId }"
       storage.setValue 'savedSessions', sessions
       storage.setValue 'activeIndex', activeIndex
+
+  findPane: (session) ->
+    foundPane = null
+    @tabView.panes.forEach (pane) =>
+      { terminalView } = pane.getOptions()
+      return unless terminalView
+      sessionId = terminalView.sessionId ? terminalView.getOption 'session'
+      return foundPane = pane  if session is sessionId
+
+    return foundPane
+
+  removeSession: ({vmName, sessionId}) ->
+    @updateSessions()
+    {vmController, kontrol} = KD.singletons
+    terminalKites =
+      if KD.useNewKites
+      then kontrol.kites.terminal
+      else vmController.terminalKites
+
+    terminalKites[vmName].webtermKillSession
+      session: sessionId
+    .then (response) ->
+      log 'session removed from terminal kite'
+    .catch (err) ->
+      warn err
 
   addNewTab: (vm) ->
 
@@ -287,27 +378,32 @@ class WebTermAppView extends JView
     vmc = KD.getSingleton 'vmController'
     if vmc.vms.length > 1 then @showVMSelection()
     else
-      vm            = vmc.vms.first
-      osKite        = vmc.kites[vm.hostnameAlias]
-      {recentState} = osKite
-      if recentState?.state is 'RUNNING'
+      vm     = vmc.vms.first
+      osKite =
+        if KD.useNewKites
+        then vmc.kites.oskite[vm.hostnameAlias]
+        else vmc.kites[vm.hostnameAlias]
+
+      if osKite.recentState?.state is 'RUNNING'
       then @prepareAndRunTerminal vm
-      else notify cssClass : 'error'
+      else @notify cssClass : 'error'
 
   prepareAndRunTerminal: (vm, mode = 'create') ->
-
     {vmController} = KD.singletons
-    osKite         = vmController.kites[vm.hostnameAlias]
+    osKite =
+      if KD.useNewKites
+      then vmController.kites.oskite[vm.hostnameAlias]
+      else vmController.kites[vm.hostnameAlias]
+
     {recentState}  = osKite
 
     if recentState?.state is 'RUNNING'
       @createNewTab {vm, mode}
-    else if recentState?.state is 'STOPPED'
+    else if recentState?.state is 'STOPPED' or 'FAILED'
       osKite?.vmOn()
     else
-      notify cssClass : 'error'
+      @notify cssClass : 'error'
       osKite?.vmOff()
-
 
 
   pistachio: ->
@@ -317,7 +413,7 @@ class WebTermAppView extends JView
     """
 
 
-  notify = do ->
+  notify: do ->
 
     notification = null
 

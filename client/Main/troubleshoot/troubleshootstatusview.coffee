@@ -14,13 +14,15 @@ class TroubleshootStatusView extends KDCustomHTMLView
   getStatus: ->
     premium = if KD.config.usePremiumBroker then "Premium " else ""
 
-    connection  : "Internet Connection"
-    bongo       : "Social Server"
-    liveUpdate  : "Live Updates"
-    broker      : "#{premium} Messaging Server"
-    brokerKite  : "#{premium} Kite Messaging Server"
-    osKite      : "VM Server"
-    vm          : "VMs"
+    connection  : "Internet connection"
+    bongo       : "Social server"
+    liveUpdate  : "Live updates"
+    broker      : "#{premium}Messaging server"
+    brokerKite  : "#{premium}Kite messaging server"
+    newKite     : "New Kites"
+    osKite      : "VM server"
+    vm          : "Your VMs"
+    terminal    : "Terminals"
     webServer   : "Webserver"
     version     : "Latest version"
 

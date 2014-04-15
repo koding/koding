@@ -270,7 +270,6 @@ class KodingRouter extends KDRouter
       '/'                      : handleRoot
       ''                       : handleRoot
 
-      '/Landing/:page'         : noop
       '/R/:username'           : ({params:{username}})->
         KD.mixpanel "Visit referrer url, success", {username}
 
@@ -350,12 +349,14 @@ class KodingRouter extends KDRouter
               @handleNotFound routeInfo.params.name
 
         (routeInfo, state, route)->
+
           if state?
             open.call this, routeInfo, state
 
           else
             KD.remote.cacheable routeInfo.params.name, (err, models, name)=>
-              model = models.first  if models
-              open.call this, routeInfo, model
+              if models?
+              then open.call this, routeInfo, models.first
+              else @handleNotFound routeInfo.params.name
 
     routes

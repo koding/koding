@@ -37,6 +37,7 @@ module.exports = class JVM extends Module
       'sudoer'          : []
       'create vms'      : ['member','moderator']
       'delete vms'      : ['member','moderator']
+      'update vms'      : ['member','moderator']
     sharedEvents        :
       static            : [
         { name : "RemovedFromCollection" }
@@ -76,13 +77,15 @@ module.exports = class JVM extends Module
         fetchVmRegion:
           (signature String, Function)
         createVmByNonce:
-          (signature String, Function)
+          (signature String, String, Function)
         createFreeVm:
-          (signature Function)
+          (signature String, Function)
         createSharedVm:
           (signature Function)
         setAlwaysOn:
           (signature Object, Function)
+        updateInitScript:
+          (signature String, String, Function)
 
     schema              :
       ip                :
@@ -135,6 +138,28 @@ module.exports = class JVM extends Module
         type            : Number
         default         : KONFIG.defaultVMConfigs.freeVM.cpu ? 1
       stack             : ObjectId
+      meta              : Object
+
+  @updateInitScript = secure (client, hostnameAlias, script, callback) ->
+    {delegate} = client.connection
+    {group}    = client.context
+    user       = delegate.profile.nickname
+
+    delegate.fetchUser (err, user) ->
+      return callback err  if err
+      return callback new Error "user not found" unless user
+
+      JVM.one
+        hostnameAlias : hostnameAlias
+        users         : { $elemMatch: id: user.getId() }
+      , (err, vm) ->
+        return callback err  if err
+        return callback null, null  unless vm
+        vm.update $set: "meta.initScript": script, (err) =>
+          err = new KodingError {message: "Failed to update", err}  if err
+
+          callback err, vm
+
 
   suspend: (callback)->
     @update { $set: { hostKite: '(banned)' } }, (err)=>
@@ -250,7 +275,7 @@ module.exports = class JVM extends Module
         return {groupSlug, prefix, nickname, uid, type:'user', alias}
     return null
 
-  @createFreeVm = secure (client, callback)->
+  @createFreeVm = secure (client, stackId, callback)->
 
     @fetchDefaultVm client, (err, vm)=>
 
@@ -276,32 +301,26 @@ module.exports = class JVM extends Module
               return console.error err  if err
               # Counter created
 
-              JStack = require './stack'
-              JStack.getStackId {
-                user : user.username
-                group: group.slug
-              }, (err, stack)=>
-
-                @addVm {
-                  uid
-                  user
-                  stack
-                  account
-                  sudo      : yes
-                  type      : 'user'
-                  target    : account
-                  planCode  : 'free'
-                  groupSlug : group.slug
-                  planOwner : "user_#{account._id}"
-                  webHome   : account.profile.nickname
-                  groups    : wrapGroup group
-                }, callback
+              @addVm {
+                uid
+                user
+                account
+                stack     : stackId
+                sudo      : yes
+                type      : 'user'
+                target    : account
+                planCode  : 'free'
+                groupSlug : group.slug
+                planOwner : "user_#{account._id}"
+                webHome   : account.profile.nickname
+                groups    : wrapGroup group
+              }, callback
 
       else
 
         callback new KodingError('Default VM already exists'), vm
 
-  @createVmByNonce = secure (client, nonce, callback) ->
+  @createVmByNonce = secure (client, nonce, stackId, callback) ->
     JPaymentFulfillmentNonce  = require './payment/nonce'
     JPaymentPack              = require './payment/pack'
 
@@ -322,6 +341,7 @@ module.exports = class JVM extends Module
           groupSlug
           planCode
           subscriptionCode
+          stackId
           type
         }, callback
 
@@ -351,7 +371,7 @@ module.exports = class JVM extends Module
 
   # TODO: this needs to be rethought in terms of bundles, as per the
   # discussion between Devrim, Chris T. and Badahir  C.T.
-  @createVm = ({account, type, groupSlug, planCode, subscriptionCode}, callback)->
+  @createVm = ({account, type, groupSlug, planCode, stackId, subscriptionCode}, callback)->
     JGroup = require './group'
     JStack = require './stack'
     JGroup.one {slug: groupSlug}, (err, group)=>
@@ -383,35 +403,74 @@ module.exports = class JVM extends Module
           groups        = [{ id: group.getId() }]
           hostnameAlias = hostnameAliases[0]
 
-          JStack.getStackId {user: nickname, group: groupSlug}, (err, stack)=>
+          vm = new JVM {
+            hostnameAlias
+            planCode
+            subscriptionCode
+            webHome
+            groups
+            users
+            vmType : type
+            stack  : stackId
+          }
 
-            JPaymentSubscription.isFreeSubscripton subscriptionCode, (err, isFreeSubscripton)=>
-              return callback err if err
+          vm.save (err) =>
 
-              vm = new JVM {
-                hostnameAlias
-                planCode
-                subscriptionCode
-                webHome
-                groups
-                users
-                vmType : type
-                stack
+            if err
+              return console.warn "Failed to create VM for ", \
+                                   {users, groups, hostnameAlias}
+
+            JDomain.createDomains {
+              account, stackId,
+              domains: hostnameAliases
+              hostnameAlias: hostnameAliases[0]
+              group: groupSlug
+            }
+
+            group.addVm vm, (err)=>
+              return callback err  if err
+              JDomain.ensureDomainSettingsForVM {
+                account, vm, type, nickname, group: groupSlug, stackId
+              }
+              if type is 'group'
+                @addVmUsers user, vm, group, ->
+                  callback null, vm
+              else
+                callback null, vm
+
+          JPaymentSubscription.isFreeSubscripton subscriptionCode, (err, isFreeSubscripton)=>
+            return callback err if err
+
+            vm = new JVM {
+              hostnameAlias
+              planCode
+              subscriptionCode
+              webHome
+              groups
+              users
+              vmType : type
+              stack  : stackId
+            }
+
+            vm.region = KONFIG.regions.premium unless isFreeSubscripton
+
+            vm.save (err) =>
+
+              if err
+                return console.warn "Failed to create VM for ", \
+                                     {users, groups, hostnameAlias}
+
+              JDomain.createDomains {
+                account, stack,
+                domains: hostnameAliases
+                hostnameAlias: hostnameAliases[0]
+                group: groupSlug
               }
 
-              vm.region = KONFIG.regions.premium unless isFreeSubscripton
-
-              vm.save (err) =>
-
-                if err
-                  return console.warn "Failed to create VM for ", \
-                                       {users, groups, hostnameAlias}
-
-                JDomain.createDomains {
-                  account, stack,
-                  domains: hostnameAliases
-                  hostnameAlias: hostnameAliases[0]
-                  group: groupSlug
+              group.addVm vm, (err)=>
+                return callback err  if err
+                JDomain.ensureDomainSettingsForVM {
+                  account, vm, type, nickname, group: groupSlug, stack
                 }
 
                 group.addVm vm, (err)=>
@@ -419,6 +478,7 @@ module.exports = class JVM extends Module
                   JDomain.ensureDomainSettingsForVM {
                     account, vm, type, nickname, group: groupSlug, stack
                   }
+                  account.sendNotification "VMCreated"
                   if type is 'group'
                     @addVmUsers user, vm, group, ->
                       callback null, vm
@@ -510,15 +570,14 @@ module.exports = class JVM extends Module
 
       selector.users = $elemMatch: id: user.getId()
 
-      fieldsToFetch = { hostnameAlias: 1, region: 1, hostKite: 1, stack: 1 }
+      fieldsToFetch = { hostnameAlias: 1, region: 1, hostKite: 1, stack: 1, meta: 1, alwaysOn: 1 }
       JVM.someData selector, fieldsToFetch, options, (err, cursor)->
         return callback err  if err
-
         cursor.toArray (err, arr) ->
           return callback err  if err
-          callback null, arr.map ({ hostnameAlias, region, hostKite, stack }) ->
+          callback null, arr.map ({ hostnameAlias, region, hostKite, stack, meta, alwaysOn }) ->
             hostKite = null  if hostKite in ['(banned)', '(maintenance)']
-            { hostnameAlias, region, hostKite, stack }
+            { hostnameAlias, region, hostKite, stack, meta, alwaysOn }
 
   @fetchVmsByContext = secure (client, options, callback) ->
     {connection:{delegate}, context:{group}} = client
@@ -599,6 +658,8 @@ module.exports = class JVM extends Module
     kallback = (subscription) =>
       @remove (err) =>
         return callback err  if err
+
+        account.sendNotification "VMRemoved"
 
         errs = []
 

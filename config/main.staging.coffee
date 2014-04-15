@@ -153,6 +153,7 @@ module.exports =
     useStaticFileServer: no
     staticFilesBaseUrl: "https://koding.com"
     runtimeOptions:
+      kites: require './kites.coffee'
       osKitePollingMs: 1000 * 60 # 1 min
       userIdleMs: 1000 * 60 * 5 # 5 min
       sessionCookie :
@@ -173,7 +174,7 @@ module.exports =
       socialApiUri: 'https://stage-social.koding.com/xhr'
       suppressLogs: no
       version   : version
-      mainUri   : "http://koding.com"
+      mainUri   : "https://latest.koding.com"
       broker    :
         servicesEndpoint: "/-/services/broker"
       premiumBroker    :
@@ -192,7 +193,7 @@ module.exports =
       github    :
         clientId: "f733c52d991ae9642365"
       newkontrol:
-        url         : 'ws://stage-kontrol.sj.koding.com:4000/kontrol'
+        url         : 'wss://stage-kontrol.koding.com'
       fileFetchTimeout: 15 * 1000 # seconds
       externalProfiles  :
         github          :
@@ -292,12 +293,15 @@ module.exports =
   pidFile       : '/tmp/koding.server.pid'
   haproxy:
     webPort     : 3020
+  newkites      :
+    useTLS          : yes
+    certFile        : "/etc/ssl/koding/wildcard.sj.koding.com.crt"
+    keyFile         : "/etc/ssl/koding/wildcard.sj.koding.com.key"
   newkontrol      :
-    username        : "koding-kites"
-    port            : 4000
-    useTLS          : no
-    certFile        : ""
-    keyFile         : ""
+    port            : 443
+    useTLS          : yes
+    certFile        : "/opt/koding/certs/koding_com_cert.pem"
+    keyFile         : "/opt/koding/certs/koding_com_key.pem"
     publicKeyFile   : "/opt/koding/certs/test_kontrol_rsa_public.pem"
     privateKeyFile  : "/opt/koding/certs/test_kontrol_rsa_private.pem"
   proxyKite       :
@@ -347,15 +351,15 @@ module.exports =
     secret_url   : "https://www.odesk.com/services/api/auth?oauth_token="
     version      : "1.0"
     signature    : "HMAC-SHA1"
-    redirect_uri : "http://koding.com/-/oauth/odesk/callback"
+    redirect_uri : "https://latest.koding.com/-/oauth/odesk/callback"
   facebook       :
     clientId     : "475071279247628"
     clientSecret : "65cc36108bb1ac71920dbd4d561aca27"
-    redirectUri  : "https://koding.com/-/oauth/facebook/callback"
+    redirectUri  : "https://latest.koding.com/-/oauth/facebook/callback"
   google         :
     client_id    : "1058622748167.apps.googleusercontent.com"
     client_secret: "vlF2m9wue6JEvsrcAaQ-y9wq"
-    redirect_uri : "http://localhost:3020/-/oauth/google/callback"
+    redirect_uri : "https://latest.koding.com/-/oauth/google/callback"
   statsd         :
     use          : true
     ip           : "172.168.2.7"
@@ -363,11 +367,11 @@ module.exports =
   linkedin       :
     client_id    : "aza9cks1zb3d"
     client_secret: "zIMa5kPYbZjHfOsq"
-    redirect_uri : "http://koding.com/-/oauth/linkedin/callback"
+    redirect_uri : "https://latest.koding.com/-/oauth/linkedin/callback"
   twitter        :
     key          : "tvkuPsOd7qzTlFoJORwo6w"
     secret       : "48HXyTkCYy4hvUuRa7t4vvhipv4h04y6Aq0n5wDYmA"
-    redirect_uri : "http://koding.com/-/oauth/twitter/callback"
+    redirect_uri : "https://latest.koding.com/-/oauth/twitter/callback"
     request_url  : "https://twitter.com/oauth/request_token"
     access_url   : "https://twitter.com/oauth/access_token"
     secret_url   : "https://twitter.com/oauth/authenticate?oauth_token="
@@ -411,3 +415,7 @@ module.exports =
     port         : 2003
   troubleshoot    :
     recipientEmail: "can@koding.com"
+  pageHit         :
+    run           : no
+    host          : "log0.sjc.koding.com"
+    port          : 9200

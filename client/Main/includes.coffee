@@ -2,8 +2,11 @@ module.exports = [
 
   # Libs
   "libs/md5-min.js",
+  "libs/uuid.js",
   "libs/accounting.js",
   "libs/bluebird.js",
+  "libs/kite.js",
+  "libs/kontrol.js",
 
 
   # --- Application ---
@@ -31,6 +34,7 @@ module.exports = [
   "CommonViews/sharepopup.coffee",
   "CommonViews/sharelink.coffee",
   "CommonViews/linkviews/linkview.coffee",
+  "CommonViews/linkviews/linkmenuitemview.coffee",
   "CommonViews/linkviews/customlinkview.coffee",
   "CommonViews/linkviews/linkgroup.coffee",
   "CommonViews/linkviews/profilelinkview.coffee",
@@ -137,6 +141,7 @@ module.exports = [
   "CommonViews/ModalViewWithTerminal.coffee",
   "CommonViews/clonerepomodal.coffee",
   "CommonViews/memberautocomplete.coffee",
+  "CommonViews/editormodal.coffee",
 
   "navigation/navigationlist.coffee",
   "navigation/navigationlink.coffee",
@@ -260,11 +265,16 @@ module.exports = [
   "kite/oskite.coffee",
   "kite/terminalkite.coffee",
   "kite/kitecontroller.coffee",
-  "kite/newkite.coffee",
   "kite/vm.coffee", # TODO: this doesn't really belong here.
-  "kite/kontrol.coffee"
-  "kite/kitewrapper.coffee"
-  "kite/kitehelper.coffee"
+  "kite/kitehelper.coffee",
+
+  # NEW KITES (extending kite.js)
+  "kite/kodingkite.coffee",
+  "kite/kodingkontrol.coffee",
+  "kite/kites/vmkite.coffee",
+  "kite/kites/oskite.coffee",
+  "kite/kites/terminalkite.coffee",
+
   # Virtualization CONTROLLER
   "VirtualizationController.coffee",
   "CommonViews/modalappslistitemview.coffee",
@@ -290,5 +300,8 @@ module.exports = [
   "styl/troubleshoot.styl",
   # "styl/formworkflow.styl"
   # "styl/resurrection.feeder.styl",
+
+  "styl/dock.responsive.styl"
+  "styl/app.markdown.styl"
 
 ]

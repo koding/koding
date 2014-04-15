@@ -11,8 +11,8 @@ class TerminalStartTabVMItem extends KDCustomHTMLView
 
     super options, data
 
-    vm               = @getData()
-    { vmController } = KD.singletons
+    vm             = @getData()
+    {vmController} = KD.singletons
 
     @loader = new KDLoaderView
       size          : width : 16
@@ -26,11 +26,16 @@ class TerminalStartTabVMItem extends KDCustomHTMLView
 
     @progress = new KDCustomHTMLView
       tagName  : 'cite'
+      cssClass : 'vm-loader'
+
+    @alwaysOn = new KDCustomHTMLView
+      tagName  : 'cite'
+      partial  : if vm.alwaysOn then "always-on" else ""
 
 
   handleVMStart:(update)->
-
     { message, currentStep, totalStep } = update
+
     if message is 'FINISHED'
       @setClass 'ready'
       @emit 'vm.is.prepared'
@@ -51,13 +56,8 @@ class TerminalStartTabVMItem extends KDCustomHTMLView
 
 
   handleVMStop:(update)->
-
     { message, currentStep, totalStep } = update
-    if message is 'FINISHED'
-      @setClass 'off'
-      @notice.updatePartial 'OFF'
-      @loader.hide()
-      return
+    return @renderVMStop()  if message is 'FINISHED'
 
     @unsetClass 'off ready'
     # niceMessage = MESSAGE_MAP[message.toLowerCase()]
@@ -75,7 +75,6 @@ class TerminalStartTabVMItem extends KDCustomHTMLView
 
 
   handleVMInfo:(info)->
-
     unless info
       @unsetClass 'ready off'
       @loader.show()
@@ -91,12 +90,16 @@ class TerminalStartTabVMItem extends KDCustomHTMLView
         @notice.updatePartial 'READY'
         @setClass 'ready'
       when "stopped"
-        @loader.hide()
         @unsetClass 'ready'
-        @setClass 'off'
-        @notice.updatePartial 'OFF'
+        @renderVMStop()
 
+  handleVMError:(error)->
+    @renderVMStop()
 
+  renderVMStop: ->
+    @loader.hide()
+    @setClass 'off'
+    @notice.updatePartial 'OFF'
 
   click : -> @emit 'VMItemClicked', @getData()
 
@@ -108,7 +111,7 @@ class TerminalStartTabVMItem extends KDCustomHTMLView
     vm    = @getData()
     alias = vm.hostnameAlias
     """
-    <figure>{{> @loader}}</figure>#{alias.replace 'koding.kd.io', 'kd.io'}{{> @notice}}
+    <figure>{{> @loader}}</figure>#{alias.replace 'koding.kd.io', 'kd.io'} {{> @alwaysOn}} {{> @notice}}
     {{> @progress}}
     """
 

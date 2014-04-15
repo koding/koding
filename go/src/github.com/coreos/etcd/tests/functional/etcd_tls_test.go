@@ -117,8 +117,8 @@ func TestTLSUnauthenticatedClient(t *testing.T) {
 	defer stopServer(proc)
 
 	cacertfile := "../../fixtures/ca/ca.crt"
-	certfile := "../../fixtures/ca/broken/server.crt"
-	keyfile := "../../fixtures/ca/broken/server.key.insecure"
+	certfile := "../../fixtures/ca/broken_server.crt"
+	keyfile := "../../fixtures/ca/broken_server.key.insecure"
 
 	cert, err := tls.LoadX509KeyPair(certfile, keyfile)
 	if err != nil {
@@ -145,7 +145,6 @@ func TestTLSUnauthenticatedClient(t *testing.T) {
 	}
 }
 
-
 func buildClient() http.Client {
 	return http.Client{}
 }
@@ -159,7 +158,19 @@ func startServer(extra []string) (*os.Process, error) {
 	procAttr := new(os.ProcAttr)
 	procAttr.Files = []*os.File{nil, os.Stdout, os.Stderr}
 
-	cmd := []string{"etcd",	"-f", "-data-dir=/tmp/node1", "-name=node1"}
+	cmd := []string{"etcd", "-f", "-data-dir=/tmp/node1", "-name=node1"}
+	cmd = append(cmd, extra...)
+
+	println(strings.Join(cmd, " "))
+
+	return os.StartProcess(EtcdBinPath, cmd, procAttr)
+}
+
+func startServerWithDataDir(extra []string) (*os.Process, error) {
+	procAttr := new(os.ProcAttr)
+	procAttr.Files = []*os.File{nil, os.Stdout, os.Stderr}
+
+	cmd := []string{"etcd", "-data-dir=/tmp/node1", "-name=node1"}
 	cmd = append(cmd, extra...)
 
 	println(strings.Join(cmd, " "))
@@ -177,14 +188,25 @@ func stopServer(proc *os.Process) {
 
 func assertServerFunctional(client http.Client, scheme string) error {
 	path := fmt.Sprintf("%s://127.0.0.1:4001/v2/keys/foo", scheme)
-	fields := url.Values(map[string][]string{"value": []string{"bar"}})
+	fields := url.Values(map[string][]string{"value": {"bar"}})
 
 	for i := 0; i < 10; i++ {
 		time.Sleep(1 * time.Second)
 
 		resp, err := client.PostForm(path, fields)
+		// If the status is Temporary Redirect, we should follow the
+		// new location, because the request did not go to the leader yet.
+		// TODO(yichengq): the difference between Temporary Redirect(307)
+		// and Created(201) could distinguish between leader and followers
+		for err == nil && resp.StatusCode == http.StatusTemporaryRedirect {
+			loc, _ := resp.Location()
+			newPath := loc.String()
+			resp, err = client.PostForm(newPath, fields)
+		}
+
 		if err == nil {
-			if resp.StatusCode != 201 {
+			// Internal error may mean that servers are in leader election
+			if resp.StatusCode != http.StatusCreated && resp.StatusCode != http.StatusInternalServerError {
 				return errors.New(fmt.Sprintf("resp.StatusCode == %s", resp.Status))
 			} else {
 				return nil
@@ -192,12 +214,12 @@ func assertServerFunctional(client http.Client, scheme string) error {
 		}
 	}
 
-	return errors.New("etcd server was not reachable in time")
+	return errors.New("etcd server was not reachable in time / had internal error")
 }
 
 func assertServerNotFunctional(client http.Client, scheme string) error {
 	path := fmt.Sprintf("%s://127.0.0.1:4001/v2/keys/foo", scheme)
-	fields := url.Values(map[string][]string{"value": []string{"bar"}})
+	fields := url.Values(map[string][]string{"value": {"bar"}})
 
 	for i := 0; i < 10; i++ {
 		time.Sleep(1 * time.Second)

@@ -12,7 +12,7 @@
   "main": "server/index.js",
   "scripts": {
     "preinstall": "rm -rf node_modules; mkdir node_modules; cd node_modules; ln -sf ../node_modules_koding/* .; cd ..",
-    "install": "patch -p1 < patches/mongodb.patch"
+    "install": "patch -p1 < patches/mongodb.patch; patch -p1 < patches/newrelic.patch"
   },
   "dependencies": {
     "async": "0.2.5",
@@ -44,14 +44,14 @@
     "node-freegeoip": "0.0.1",
     "noxmox": "0.1.8",
     "optimist": "0.3.1",
-    "portchecker": "0.1.1",
+    "portchecker": "~0.1.1",
     "progress": "0.0.4",
     "prompt": "0.1.12",
     "request": "2.9.202",
     "source-map": "0.1.9",
     "sqwish": "0.2.0",
     "stylus": "0.37.0",
-    "uglify-js": "2.3.6",
+    "uglify-js": "^2.4.13",
     "underscore": "1.5.2",
     "url": "0.4.9",
     "validator": "0.2.0",
@@ -69,8 +69,10 @@
     "cors": "~2.1.1",
     "helmet": "~0.1.2",
     "bluebird": "~1.0.8",
-    "portchecker": "~0.1.1",
-    "pistachio-compiler": "~0.0.3"
+    "pistachio-compiler": "~0.0.3",
+    "mime":"1.2.x",
+    "es":"0.4.x",
+    "kite.js": "^0.0.39"
   },
   "devDependencies": {},
   "optionalDependencies": {},

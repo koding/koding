@@ -24,13 +24,14 @@ import (
 	"syscall"
 	"time"
 
+	kitelib "github.com/koding/kite"
 	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
 )
 
 const (
 	OSKITE_NAME    = "oskite"
-	OSKITE_VERSION = "0.1.9"
+	OSKITE_VERSION = "0.2.2"
 )
 
 var (
@@ -51,6 +52,7 @@ var (
 
 type Oskite struct {
 	Kite     *kite.Kite
+	NewKite  *kitelib.Kite
 	Name     string
 	Version  string
 	Region   string
@@ -81,7 +83,6 @@ func New(c *config.Config) *Oskite {
 	modelhelper.Initialize(c.Mongo)
 
 	return &Oskite{
-		Name:    OSKITE_NAME,
 		Version: OSKITE_VERSION,
 	}
 }
@@ -125,7 +126,7 @@ func (o *Oskite) Run() {
 	}
 
 	o.prepareOsKite()
-	// o.runNewKite()
+	o.runNewKite()
 	o.handleCurrentVMS()   // handle leftover VMs
 	o.startPinnedVMS()     // start pinned always-on VMs
 	o.setupSignalHandler() // handle SIGUSR1 and other signals.
@@ -177,8 +178,19 @@ func (o *Oskite) Run() {
 
 func (o *Oskite) runNewKite() {
 	log.Info("Run newkite.")
-	k := kodingkite.New(conf, OSKITE_NAME, OSKITE_VERSION)
-	k.Config.Port = 5000
+	k, err := kodingkite.New(conf, OSKITE_NAME, OSKITE_VERSION)
+	if err != nil {
+		panic(err)
+	}
+
+	o.NewKite = k.Kite
+
+	if k.Server.TLSConfig != nil {
+		k.Config.Port = 443
+	} else {
+		k.Config.Port = 5000
+	}
+
 	k.Config.Region = o.Region
 
 	o.vosMethod(k, "vm.start", vmStartNew)
@@ -218,7 +230,9 @@ func (o *Oskite) runNewKite() {
 	o.vosMethod(k, "s3.store", s3StoreNew)
 	o.vosMethod(k, "s3.delete", s3DeleteNew)
 
-	k.DisableConcurrency()
+	k.HandleFunc("kite.who", o.kiteWho)
+
+	k.Config.DisableConcurrency = true
 	k.Start()
 
 	// TODO: remove this later, this is needed in order to reinitiliaze the logger package
@@ -527,10 +541,13 @@ func (o *Oskite) registerMethod(method string, concurrent bool, callback func(*d
 			}
 		}()
 
-		// protect each callback with their own associated mutex
 		info := getInfo(vm)
-		info.mutex.Lock()
-		defer info.mutex.Unlock()
+
+		// protect each callback with their own associated mutex
+		if !concurrent {
+			info.mutex.Lock()
+			defer info.mutex.Unlock()
+		}
 
 		// stop our famous 30/45/60 shutdown timer. Basically we stop the timer
 		// if any method call is made to us. The timer is started again if the

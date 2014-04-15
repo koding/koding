@@ -10,9 +10,10 @@ import (
 	"os/exec"
 	"strings"
 	"time"
+
 	"labix.org/v2/mgo"
 
-	"github.com/fatih/set"
+	"gopkg.in/fatih/set.v0"
 )
 
 var (

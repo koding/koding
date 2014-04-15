@@ -5,84 +5,14 @@
   <meta charset="utf-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
   <title>Koding | A New Way For Developers To Work</title>
-  <meta name="description" content="">
-  <meta name="author" content="">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="shortcut icon" href="/a/images/favicon.ico">
   <link rel="fluid-icon" href="/a/images/logos/fluid512.png" title="Koding" />
-  <script src="https://static.firebase.com/v0/firebase.js"></script>
-  <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
+  <script type='text/javascript' src='https://cdn.firebase.com/js/client/1.0.11/firebase.js'></script>
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
 
   <base target="_blank">
   <style type="text/css">
-
-/*  HTML5 ✰ Boilerplate  */
-
-html, body, div, span, object, iframe, h1, h2, h3, h4, h5, h6, p, blockquote, pre,
-abbr, address, cite, code, del, dfn, em, img, ins, kbd, q, samp,
-small, strong, sub, sup, var, b, i, dl, dt, dd, ol, ul, li,
-fieldset, form, label, legend, table, caption, tbody, tfoot, thead, tr, th, td,
-article, aside, canvas, details, figcaption, figure,  footer, header, hgroup,
-menu, nav, section, summary, time, mark, audio, video {
-  margin:0;
-  padding:0;
-  border:0;
-  outline:0;
-  /*font-size:100%;  // was causing too many overrides */
-  vertical-align:baseline;
-  background:transparent;
-}
-article, aside, details, figcaption, figure, footer, header, hgroup, menu, nav, section {
-    display:block;
-}
-nav ul, ul { list-style:none; }
-blockquote, q { quotes:none; }
-blockquote:before, blockquote:after,
-q:before, q:after { content:''; content:none; }
-a { margin:0; padding:0; font-size:100%; vertical-align:baseline; background:transparent; }
-ins { background-color:#ff9; color:#000; text-decoration:none; }
-mark { background-color:#ff9; color:#000; font-style:italic; font-weight:bold; }
-del { text-decoration: line-through; }
-abbr[title], dfn[title] { border-bottom:1px dotted; cursor:help; }
-table { border-collapse:collapse; border-spacing:0; }
-hr { display:block; height:1px; border:0; border-top:1px solid #ccc; margin:1em 0; padding:0; }
-input, select { vertical-align:middle; }
-
-
-body { font:13px/1.231 sans-serif; *font-size:small; }
-select, input, textarea, button { font:99% "Open Sans"; }
-pre, code, kbd, samp { font-family: monospace, sans-serif; background-color: #f2f2f2; }
-
-body, select, input, textarea {   color: #444; }
-h1,h2,h3,h4,h5,h6 { font-weight: bold; }
-/*html { overflow-y: scroll; }*/
-
-a:hover, a:active { outline: none; }
-a, a:active, a:visited { color: #07C; }
-a:hover { color: #036; }
-
-ul, ol { margin-left: 1.8em; }
-ol { list-style-type: decimal; }
-
-nav ul, nav li { margin: 0; }
-small { font-size: 85%; }
-strong, th { font-weight: bold; }
-td, td img { vertical-align: top; }
-sub { vertical-align: sub; font-size: smaller; }
-sup { vertical-align: super; font-size: smaller; }
-pre {  padding: 15px; margin: 5px;  white-space: pre;  white-space: pre-wrap;  /*white-space: pre-line;*/  word-wrap: break-word; }
-textarea { overflow: auto; }
-.ie6 legend, .ie7 legend { margin-left: -7px; }
-input[type="radio"] { vertical-align: text-bottom; }
-input[type="checkbox"] { vertical-align: bottom; }
-.ie7 input[type="checkbox"] { vertical-align: baseline; }
-.ie6 input { vertical-align: text-bottom; }
-label, input[type=button], input[type=submit], button { cursor: pointer; }
-button, input, select, textarea { margin: 0; }
-input:valid, textarea:valid   {  }
-input:invalid, textarea:invalid { border-radius: 1px;  -moz-box-shadow: 0px 0px 5px red; -webkit-box-shadow: 0px 0px 5px red;  box-shadow: 0px 0px 5px red; }
-.no-boxshadow input:invalid,
-.no-boxshadow textarea:invalid { background-color: #f0dddd; }
 
 ::-moz-selection {background: rgba(255, 185, 41,.5)}
 ::selection {background: rgba(255, 185, 41,.5)}
@@ -90,7 +20,6 @@ input:invalid, textarea:invalid { border-radius: 1px;  -moz-box-shadow: 0px 0px 
 a:link {-webkit-tap-highlight-color: #F6A220;}
 
 button {  width: auto; overflow: visible; }
-.ie7 img { -ms-interpolation-mode: bicubic; }
 
 .ir { display: block; text-indent: -999em; overflow: hidden; background-repeat: no-repeat; text-align: left; direction: ltr; }
 .hidden { display: none !important; visibility: hidden; }
@@ -130,10 +59,10 @@ span {
   color: #c0c0c0;
 }
 
-A:link {text-decoration: none; color: yellow}
-A:visited {text-decoration: none; color: yellow}
-A:active {text-decoration: none; color: yellow}
-A:hover {text-decoration: underline; color: white;}
+a:link {text-decoration: none; color: yellow}
+a:visited {text-decoration: none; color: yellow}
+a:active {text-decoration: none; color: yellow}
+a:hover {text-decoration: underline; color: white;}
 
 #asteroids {
   width: 100%;
@@ -207,46 +136,6 @@ A:hover {text-decoration: underline; color: white;}
   border:1px solid black;
 }
 
-#left-controls {
-  position:absolute;
-  left:1px;
-  bottom:0px;
-  display:none;
-}
-
-#right-controls {
-  position:absolute;
-  right:1px;
-  bottom:0px;
-  display:none;
-}
-
-#up {
-  width:200px;
-  height:100px;
-  bottom:100px;
-}
-
-#left {
-  width:100px;
-  height:100px;
-  bottom:0px;
-}
-
-#right {
-  width:100px;
-  height:100px;
-  bottom:0px;
-  left:100px;
-}
-
-#space {
-  width:200px;
-  height:200px;
-  bottom:0px;
-  right:0px;
-}
-
 
 </style>
 </head>
@@ -260,14 +149,6 @@ A:hover {text-decoration: underline; color: white;}
   <div id="asteroids">
     <div id="game-pane">
       <div id="game-container">
-        <div id="left-controls">
-          <div id="up" class='button'>⬆</div>
-          <div id="left" class='button'>⬅</div>
-          <div id="right" class='button'>➡</div>
-        </div>
-        <div id="right-controls">
-          <div id="space" class='button'>Fire</div>
-        </div>
         <canvas id="canvas" width="1000" height="600"></canvas>
       </div>
     </div>
@@ -361,7 +242,7 @@ $(window).keydown(function (e) {
 
 GRID_SIZE = 60;
 
-var frefR = 'https://a-a.firebaseio-staging.com/';
+var frefR = 'https://koding-astreoids.firebaseio.com/';
 var frefA = frefR + 'game';
 var frefL = frefR + 'leaderboard';
 
@@ -372,7 +253,7 @@ var frefL = frefR + 'leaderboard';
 // Firebase.enableLogging(true);
 var asteroids = new Firebase(frefA);
 var myship = asteroids.child('players').push();
-myship.removeOnDisconnect();
+myship.onDisconnect().remove();
 
 // Leaderboard start
 var LEADERBOARD_SIZE = 25;

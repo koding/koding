@@ -25,10 +25,18 @@ utils.extend utils,
       return "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
 
     if options.width or options.height
-      endpoint = "/resize"
+      endpoint = "resize"
     if options.crop
-      endpoint = "/crop"
-    return "https://i.embed.ly/1/display#{endpoint or ''}?grow=#{options.grow}&width=#{options.width}&height=#{options.height}&key=#{KD.config.embedly.apiKey}&url=#{encodeURIComponent url}"
+      endpoint = "crop"
+
+    fullurl = "#{KD.config.mainUri}/-/image/cache?" +
+              "endpoint=#{endpoint or ''}&" +
+              "grow=#{options.grow}&" +
+              "width=#{options.width}&" +
+              "height=#{options.height}&" +
+              "url=#{encodeURIComponent url}"
+
+    return fullurl
 
   # This function checks current user's preferred domain and
   # set's it to preferredDomainCookie
@@ -484,9 +492,8 @@ utils.extend utils,
   showSaveDialog: (container, callback = noop, options = {}) ->
     container.addSubView dialog = new KDDialogView
       cssClass      : KD.utils.curry "save-as-dialog", options.cssClass
-      duration      : 200
-      topOffset     : 0
       overlay       : yes
+      container     : container
       height        : "auto"
       buttons       :
         Save        :
@@ -496,9 +503,10 @@ utils.extend utils,
           style     : "solid medium"
           callback  : =>
             finderController.stopAllWatchers()
-            delete finderController
             finderController.destroy()
-            dialog.destroy()
+            dialog.hide()
+
+    dialog.on 'KDObjectWillBeDestroyed', -> container.ace?.focus()
 
     dialog.addSubView wrapper = new KDView
       cssClass : "kddialog-wrapper"
@@ -624,6 +632,9 @@ utils.extend utils,
 
   doesEmailValid: (email) -> /@/.test email
 
+  setPrototypeOf: Object.setPrototypeOf ? (obj, proto) ->
+    obj.__proto__ = proto
+
   nicetime: do ->
 
     niceify = (duration)->
@@ -666,3 +677,4 @@ utils.extend utils,
         from = new Date().getTime() / 1000
         to   = to
         niceify to - from
+

@@ -29,9 +29,11 @@ class Troubleshoot extends KDObject
         brokerKite     :
           osKite       :
             vm         : 0
+            terminal   : 0
         bongo          :
           broker       :
             liveUpdate : 0
+        newKite        : 0
 
   isSystemOK: ->
     for own name, item of @items
@@ -52,6 +54,16 @@ class Troubleshoot extends KDObject
 
     @registerConnections()
     @registerBrokers()
+
+    if localStorage.useNewKites is '1'
+      @registerItem "newKite",
+        troubleshoot: (callback) ->
+          KD.singletons.kontrol.fetchKite({ query: { name: 'kontrol' }})
+          .then(callback)
+          .catch (err) ->
+            warn err
+        recover: ->
+          KD.toggleKiteStack()
 
     # register osKite
     vc = KD.singleton "vmController"
@@ -80,7 +92,9 @@ class Troubleshoot extends KDObject
     @registerItem "vm",
       speedCheck   : no
       troubleshoot : vmChecker.bound 'healthCheck'
-      recover      : vmChecker.bound 'healthCheck'
+
+    @registerItem "terminal",
+      troubleshoot : vmChecker.bound 'terminalHealthCheck'
 
   registerConnections: ->
     #register connection
