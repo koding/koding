@@ -74,10 +74,8 @@ class PaymentController extends KDController
       when 'user'
         JPaymentPlan.fetchAccountDetails callback
 
-  updatePaymentInfo: (paymentMethodId, paymentMethod, callback) ->
-
-    { JPayment } = KD.remote.api
-
+  updatePaymentInfo: (paymentMethodId = null, paymentMethod, callback) ->
+    {JPayment} = KD.remote.api
     paymentMethod[key] = value.trim()  for own key, value of paymentMethod
     JPayment.setPaymentInfo paymentMethodId, paymentMethod, callback
 
