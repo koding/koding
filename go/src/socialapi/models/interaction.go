@@ -4,6 +4,7 @@ import (
 	"errors"
 	"time"
 
+	"github.com/jinzhu/gorm"
 	"github.com/koding/bongo"
 )
 
@@ -115,4 +116,26 @@ func (c *Interaction) List(interactionType string) ([]int64, error) {
 	// }
 
 	return interactions, nil
+}
+
+func (i *Interaction) IsInteracted(accountId int64) (bool, error) {
+	if i.MessageId == 0 {
+		return false, errors.New("Message Id is not set")
+	}
+
+	selector := map[string]interface{}{
+		"message_id": i.MessageId,
+		"account_id": accountId,
+	}
+
+	err := i.One(bongo.NewQS(selector))
+	if err == nil {
+		return true, nil
+	}
+
+	if err == gorm.RecordNotFound {
+		return false, nil
+	}
+
+	return false, err
 }
