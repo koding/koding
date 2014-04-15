@@ -484,8 +484,6 @@ module.exports = class JVM extends Module
                       callback null, vm
                   else
                     callback null, vm
-                else
-                  callback null, vm
 
   @addVmUsers = (user, vm, group, callback)->
     # todo - do this operation in batches
