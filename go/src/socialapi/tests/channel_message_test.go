@@ -46,17 +46,23 @@ func TestChannelMessage(t *testing.T) {
 					// body should not be same
 					So(initialPostBody, ShouldNotEqual, editedPost.Body)
 				})
+
+				// for now social worker handles this issue
+				Convey("message can be edited by an admin", nil)
+				Convey("message can not be edited by non-owner", nil)
+
 			})
 
-			// for now social worker handles this issue
-			Convey("message can be edited by an admin", nil)
+			Convey("message can be deleted by owner", func() {
+				post, err := createPost(groupChannel.Id, account.Id)
+				So(err, ShouldBeNil)
+				So(post, ShouldNotBeNil)
+				err = deletePost(post.Id, account.Id, groupChannel.GroupName)
+				So(err, ShouldBeNil)
+			})
 
-			Convey("message can not be edited by non-owner", nil)
-
-			Convey("message  can be deleted by owner", nil)
-
+			// handled by social worker
 			Convey("message can be deleted by an admin", nil)
-
 			Convey("message can not be edited by non-owner", nil)
 
 			Convey("owner can like message", nil)
