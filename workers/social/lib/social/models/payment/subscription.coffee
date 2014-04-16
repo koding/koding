@@ -233,8 +233,7 @@ module.exports = class JPaymentSubscription extends jraphical.Module
 
         { quantities } = pack
 
-        $set = (Object.keys quantities)
-          .reduce( (memo, key) =>
+        op = $set: (Object.keys quantities).reduce( (memo, key) =>
             memo["usage.#{ key }"] =
               (@usage[key] ? 0) + quantities[key] * multiplyFactor
             memo
