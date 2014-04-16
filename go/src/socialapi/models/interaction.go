@@ -180,3 +180,7 @@ func (i *Interaction) FetchInteractorIdsWithCount(p *bongo.Pagination, count *in
 
 	return interactorIds, nil
 }
+
+func (i *Interaction) FetchInteractorCount() (int, error) {
+	return bongo.B.Count(i, "message_id = ?", i.MessageId)
+}

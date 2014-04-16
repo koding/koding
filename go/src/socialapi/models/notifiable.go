@@ -59,21 +59,23 @@ func (n *InteractionNotification) SetTargetId(targetId int64) {
 }
 
 func (n *InteractionNotification) FetchActors() (*ActorContainer, error) {
-	var count int
 	i := NewInteraction()
 	p := &bongo.Pagination{
 		Limit: NOTIFIER_LIMIT,
 	}
 	i.MessageId = n.TargetId
 
-	actors, err := i.FetchInteractorIdsWithCount(p, &count)
+	actors, err := i.FetchInteractorIds(p)
 	if err != nil {
 		return nil, err
 	}
 
 	ac := NewActorContainer()
 	ac.LatestActors = actors
-	ac.Count = count
+	ac.Count, err = i.FetchInteractorCount()
+	if err != nil {
+		return nil, err
+	}
 
 	return ac, nil
 }
