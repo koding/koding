@@ -353,3 +353,39 @@ func (c *Channel) List(q *Query) ([]Channel, error) {
 
 	return channels, nil
 }
+
+func (c *Channel) FetchLastMessage() (*ChannelMessage, error) {
+	if c.Id == 0 {
+		return nil, errors.New("Channel Id is not set")
+	}
+
+	cml := NewChannelMessageList()
+	query := &bongo.Query{
+		Selector: map[string]interface{}{
+			"channel_id": c.Id,
+		},
+		Sort: map[string]string{
+			"added_at": "DESC",
+		},
+		Limit: 1,
+		Pluck: "message_id",
+	}
+
+	var messageIds []int64
+	err := cml.Some(&messageIds, query)
+	if err != nil {
+		return nil, err
+	}
+
+	if messageIds == nil || len(messageIds) == 0 {
+		return nil, nil
+	}
+
+	cm := NewChannelMessage()
+	cm.Id = messageIds[0]
+	if err := cm.Fetch(); err != nil {
+		return nil, err
+	}
+
+	return cm, nil
+}
