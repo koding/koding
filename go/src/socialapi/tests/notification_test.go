@@ -23,23 +23,23 @@ func TestNotificationCreation(t *testing.T) {
 			Convey("We should be able to create accounts", func() {
 				var err error
 
-				ownerAccount.OldId = AccountOldId.Hex()
+				ownerAccount.OldId = "5307f2ce1d10ce614e000003" //can
 				ownerAccount, err = createAccount(ownerAccount)
 				ResultedWithNoErrorCheck(ownerAccount, err)
 
-				firstUser.OldId = AccountOldId2.Hex()
+				firstUser.OldId = "5196fcb0bc9bdb0000000011" //devrim
 				firstUser, err = createAccount(firstUser)
 				ResultedWithNoErrorCheck(firstUser, err)
 
-				secondUser.OldId = AccountOldId3.Hex()
+				secondUser.OldId = "5196fcb0bc9bdb0000000012" //sinan
 				secondUser, err = createAccount(secondUser)
 				ResultedWithNoErrorCheck(secondUser, err)
 
-				thirdUser.OldId = AccountOldId4.Hex()
+				thirdUser.OldId = "5196fcb0bc9bdb0000000013" //chris
 				thirdUser, err = createAccount(thirdUser)
 				ResultedWithNoErrorCheck(thirdUser, err)
 
-				forthUser.OldId = AccountOldId5.Hex()
+				forthUser.OldId = "5196fcb0bc9bdb0000000014" //richard
 				forthUser, err = createAccount(forthUser)
 				ResultedWithNoErrorCheck(forthUser, err)
 			})
