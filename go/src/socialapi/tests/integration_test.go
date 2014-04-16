@@ -12,7 +12,6 @@ var (
 )
 
 func main() {
-	testInteractionOperations()
 	testReplyOperations()
 	testTopicFeedOperations()
 }
