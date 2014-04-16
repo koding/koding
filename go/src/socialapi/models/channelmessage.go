@@ -126,7 +126,7 @@ func (c *ChannelMessage) FetchByIds(ids []int64) ([]ChannelMessage, error) {
 	return messages, nil
 }
 
-func (c *ChannelMessage) FetchRelatives() (*ChannelMessageContainer, error) {
+func (c *ChannelMessage) FetchRelatives(query *Query) (*ChannelMessageContainer, error) {
 	if c.Id == 0 {
 		return nil, errors.New("Channel message id is not set")
 	}
@@ -156,7 +156,7 @@ func (c *ChannelMessage) FetchRelatives() (*ChannelMessageContainer, error) {
 	interactionContainer := NewInteractionContainer()
 	interactionContainer.Actors = oldIds
 
-	isInteracted, err := i.IsInteracted(c.AccountId)
+	isInteracted, err := i.IsInteracted(query.AccountId)
 	if err != nil {
 		return nil, err
 	}
@@ -173,8 +173,8 @@ func (c *ChannelMessage) FetchRelatives() (*ChannelMessageContainer, error) {
 	return container, nil
 }
 
-func (c *ChannelMessage) BuildMessage() (*ChannelMessageContainer, error) {
-	cmc, err := c.FetchRelatives()
+func (c *ChannelMessage) BuildMessage(query *Query) (*ChannelMessageContainer, error) {
+	cmc, err := c.FetchRelatives(query)
 	if err != nil {
 		return nil, err
 	}
@@ -188,7 +188,7 @@ func (c *ChannelMessage) BuildMessage() (*ChannelMessageContainer, error) {
 
 	populatedChannelMessagesReplies := make([]*ChannelMessageContainer, len(replies))
 	for rl := 0; rl < len(replies); rl++ {
-		cmrc, err := replies[rl].FetchRelatives()
+		cmrc, err := replies[rl].FetchRelatives(query)
 		if err != nil {
 			return nil, err
 		}
