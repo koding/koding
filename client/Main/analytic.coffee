@@ -6,5 +6,6 @@ do->
       KD.mixpanel "Visit page, success", argsForMixpanel
       break
 
-    argsForMixpanel.username = KD.whoami()?.profile?.nickname
-    KD.remote.api.JPageHit.create argsForMixpanel, ->
+    KD.singletons.mainController.ready ->
+      argsForMixpanel.username = KD.whoami()?.profile?.nickname
+      KD.remote.api.JPageHit.create argsForMixpanel, ->
