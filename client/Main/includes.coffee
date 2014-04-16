@@ -93,6 +93,7 @@ module.exports = [
   "CommonViews/SkillTagAutoCompleteController.coffee",
   "CommonViews/SkillTagAutoCompletedItem.coffee",
   "CommonViews/messagesList.coffee",
+  "CommonViews/notificationlistitemview.coffee",
   "CommonViews/SplitViewWithOlderSiblings.coffee",
   "CommonViews/ContentPageSplitBelowHeader.coffee",
   "CommonViews/CommonListHeader.coffee",
