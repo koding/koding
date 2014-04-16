@@ -12,7 +12,7 @@ education.styl
 body.education
   -webkit-font-smoothing  antialiased
   background              #fff
-  font-family             "Asap", "Helvetica Neue", Helvetica, sans-serif
+  font-family             asapFamily
 
   #dock
   .account-area
@@ -66,6 +66,12 @@ body.education
     position              relative
     borderBox()
 
+    .kdbutton .button-title
+      font-family         asapFamily
+
+    a:hover
+      text-decoration     underline !important
+
     h3.general-title
       font-size           32px
       text-align          center
@@ -115,7 +121,7 @@ body.education
 
       .kdbutton
         margin            4px 0 0 22px
-        padding           0 5px
+        padding           0 8px
         border            2px solid #b7b7b7
         rounded           4px
         bg                color, transparent
@@ -133,6 +139,10 @@ body.education
           text-transform  inherit
           line-height     inherit
           opacity         .9
+
+        &:hover
+          bg                color, #b7b7b7
+          color             #071d11
 
       a
         font-size         inherit
@@ -167,18 +177,27 @@ body.education
         width             190px
         rounded           4px
 
+        .button-title
+          color           inherit !important
+
         &.green
           bg              color, #fff
           margin-right    9px
+          color           #071d11
 
-          .button-title
+          &:hover
+            bg            color, #d7d7d7
             color         #071d11
 
         &.thin-white
           bg              color, transparent
           border          2px solid #b7b7b7
-          .button-title
-            color         #e0dfdf
+          color           #e0dfdf
+
+          &:hover
+            bg            color, #b7b7b7
+            color         #071d11
+
 
   // screenshots Section
 

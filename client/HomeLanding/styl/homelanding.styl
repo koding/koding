@@ -12,7 +12,7 @@ homelanding.styl
 body.homelanding
   -webkit-font-smoothing  antialiased
   background              #fff
-  font-family             "Asap", "Helvetica Neue", Helvetica, sans-serif
+  font-family             asapFamily
 
   #dock
   .account-area
@@ -66,6 +66,12 @@ body.homelanding
     position              relative
     borderBox()
 
+    .kdbutton .button-title
+      font-family         asapFamily
+
+    a:hover
+      text-decoration     underline !important
+
     h3.general-title
       font-size           32px
       text-align          center
@@ -115,7 +121,7 @@ body.homelanding
 
       .kdbutton
         margin            4px 0 0 22px
-        padding           0 5px
+        padding           0 8px
         border            2px solid #a2f1ca
         rounded           4px
         bg                color, transparent
@@ -133,6 +139,10 @@ body.homelanding
           text-transform  inherit
           line-height     inherit
           opacity         .9
+
+        &:hover
+          bg                color, #a2f1ca
+          color             #071d11
 
       a
         font-size         inherit
@@ -167,18 +177,27 @@ body.homelanding
         width             190px
         rounded           4px
 
+        .button-title
+          color           inherit !important
+
         &.green
           bg              color, #fff
           margin-right    9px
+          color           #071d11
 
-          .button-title
+          &:hover
+            bg            color, #d7d7d7
             color         #071d11
 
         &.thin-white
           bg              color, transparent
           border          2px solid #a2f1ca
-          .button-title
-            color         #a2f1ca
+          color           #a2f1ca
+
+          &:hover
+            bg            color, #a2f1ca
+            color         #071d11
+
 
   // screenshots Section
 
