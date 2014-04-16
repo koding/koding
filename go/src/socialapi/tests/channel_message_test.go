@@ -22,7 +22,7 @@ func TestChannelMessage(t *testing.T) {
 			So(account, ShouldNotBeNil)
 
 			nonOwnerAccount := models.NewAccount()
-			nonOwnerAccount.OldId = AccountOldId.Hex()
+			nonOwnerAccount.OldId = AccountOldId2.Hex()
 			nonOwnerAccount, err = createAccount(nonOwnerAccount)
 			So(err, ShouldBeNil)
 			So(nonOwnerAccount, ShouldNotBeNil)
@@ -155,19 +155,83 @@ func TestChannelMessage(t *testing.T) {
 
 				// actor length should be 1
 				So(len(cmc.Interactions["like"].Actors), ShouldEqual, 0)
+			})
+
+			Convey("owner can post reply to message", func() {
+				post, err := createPost(groupChannel.Id, account.Id)
+				So(err, ShouldBeNil)
+				So(post, ShouldNotBeNil)
+
+				reply, err := addReply(post.Id, post.AccountId)
+				So(err, ShouldBeNil)
+				So(reply, ShouldNotBeNil)
+
+				So(reply.AccountId, ShouldEqual, post.AccountId)
+
+				cmc, err := getPostWithRelatedData(post.Id, post.AccountId, groupName)
+				So(err, ShouldBeNil)
+				So(cmc, ShouldNotBeNil)
+
+				So(len(cmc.Replies), ShouldEqual, 1)
+
+				So(cmc.Replies[0].Message.AccountId, ShouldEqual, post.AccountId)
 
 			})
 
-			Convey("owner can post reply to message", nil)
+			Convey("non-owner can post reply to message", func() {
+				post, err := createPost(groupChannel.Id, account.Id)
+				So(err, ShouldBeNil)
+				So(post, ShouldNotBeNil)
 
-			Convey("reply can be liked by reply-owner", nil)
+				reply, err := addReply(post.Id, nonOwnerAccount.Id)
+				So(err, ShouldBeNil)
+				So(reply, ShouldNotBeNil)
 
-			Convey("reply can be liked", nil)
+				So(reply.AccountId, ShouldEqual, nonOwnerAccount.Id)
 
-			Convey("non-owner can post reply to message", nil)
+				cmc, err := getPostWithRelatedData(post.Id, post.AccountId, groupName)
+				So(err, ShouldBeNil)
+				So(cmc, ShouldNotBeNil)
 
+				So(len(cmc.Replies), ShouldEqual, 1)
+
+				So(cmc.Replies[0].Message.AccountId, ShouldEqual, nonOwnerAccount.Id)
+			})
+
+			Convey("reply can be liked", func() {
+				post, err := createPost(groupChannel.Id, account.Id)
+				So(err, ShouldBeNil)
+				So(post, ShouldNotBeNil)
+
+				fmt.Println(post.Id, account.Id, nonOwnerAccount.Id)
+				reply, err := addReply(post.Id, nonOwnerAccount.Id)
+				So(err, ShouldBeNil)
+				So(reply, ShouldNotBeNil)
+
+				So(reply.AccountId, ShouldEqual, nonOwnerAccount.Id)
+
+				err = addInteraction("like", reply.Id, nonOwnerAccount.Id)
+				So(err, ShouldBeNil)
+
+				cmc, err := getPostWithRelatedData(post.Id, account.Id, groupName)
+				So(err, ShouldBeNil)
+				So(cmc, ShouldNotBeNil)
+
+				// it is liked by reply author, not post owner
+				So(cmc.Interactions["like"].IsInteracted, ShouldBeFalse)
+
+				// we didnt like the post, we liked the reply
+				So(len(cmc.Interactions["like"].Actors), ShouldEqual, 0)
+
+				So(len(cmc.Replies), ShouldEqual, 1)
+
+				// we liked the reply
+				So(len(cmc.Replies[0].Interactions["like"].Actors), ShouldEqual, 1)
+
+				So(cmc.Replies[0].Interactions["like"].IsInteracted, ShouldBeFalse)
+
+			})
 		})
-
 	})
 }
 
