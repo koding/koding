@@ -117,6 +117,7 @@ func (n *Notification) getDecoratedList(q *Query) ([]NotificationContainer, erro
 	return result, nil
 }
 
+// decorateContents recursively fetches notification data till it reaches the FETCH_LIMIT
 func (n *Notification) decorateContents(result []NotificationContainer, resultMap *map[string]struct{}, q *Query) ([]NotificationContainer, error) {
 
 	nList, err := n.fetchByAccountId(q)
@@ -135,6 +136,7 @@ func (n *Notification) decorateContents(result []NotificationContainer, resultMa
 		key := prepareResultKey(&nc)
 		if _, ok := (*resultMap)[key]; !ok {
 			container := buildNotificationContainer(&nc)
+			container.UpdatedAt = n.UpdatedAt // fetch latest notification timestamp
 			container.Glanced = n.Glanced
 			(*resultMap)[key] = struct{}{}
 			result = append(result, container)
@@ -202,7 +204,8 @@ func populateActors(listerId int64, ncList []NotificationContainer) ([]Notificat
 			return nil, err
 		}
 
-		n.Actors = *actors
+		n.LatestActors = actors.LatestActors
+		n.Count = actors.Count
 		result = append(result, n)
 	}
 	return result, nil
