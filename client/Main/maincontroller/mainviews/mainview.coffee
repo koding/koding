@@ -11,13 +11,14 @@ class MainView extends KDView
     @bindPulsingRemove()
     @bindTransitionEnd()
     @createHeader()
-    @createDock()
-    @createAccountArea()
     @createMainPanels()
     @createMainTabView()
-    @setStickyNotification()
 
-    @utils.defer => @emit 'ready'
+    KD.singletons.mainController.ready =>
+      @createDock()
+      @createAccountArea()
+      @setStickyNotification()
+      @emit 'ready'
 
   bindPulsingRemove:->
 
@@ -148,7 +149,7 @@ class MainView extends KDView
     @accountArea.destroySubViews()
 
     @accountArea.addSubView @accountMenu = new AvatarAreaIconMenu
-    @accountMenu.accountChanged KD.whoami()
+    KD.utils.defer => @accountMenu.accountChanged KD.whoami()
 
     @accountArea.addSubView @avatarArea  = new AvatarArea {}, KD.whoami()
     @accountArea.addSubView @searchIcon  = new KDCustomHTMLView
@@ -231,7 +232,8 @@ class MainView extends KDView
       slidingPanes        : no
       hideHandleContainer : yes
 
-    @mainTabView.on "PaneDidShow", =>
+
+    @mainTabView.on "PaneDidShow", (pane)=>
       appManager   = KD.getSingleton "appManager"
 
       return  unless appManager.getFrontApp()
@@ -248,6 +250,9 @@ class MainView extends KDView
         @appSettingsMenuButton.setData menu
         unless menu.hiddenOnStart
           @appSettingsMenuButton.show()
+
+      @emit "MainTabPaneShown", pane
+
 
     @mainTabView.on "AllPanesClosed", ->
       KD.getSingleton('router').handleRoute "/Activity"

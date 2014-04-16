@@ -5,12 +5,10 @@ class MainViewController extends KDViewController
     super
 
     {repeat, killRepeat} = KD.utils
-    {body}           = document
-    mainView         = @getView()
-    mainController   = KD.singleton 'mainController'
-    appManager       = KD.singleton 'appManager'
-    windowController = KD.singleton 'windowController'
-    display          = KD.singleton 'display'
+    mainView             = @getView()
+    appManager           = KD.singleton 'appManager'
+    windowController     = KD.singleton 'windowController'
+    display              = KD.singleton 'display'
     @registerSingleton 'mainViewController', this, yes
     @registerSingleton 'mainView', mainView, yes
 
@@ -25,19 +23,6 @@ class MainViewController extends KDViewController
       (view)=>
         if type = view.getOption 'type'
           @setBodyClass type
-
-    # mainController.on "ShowInstructionsBook", (index)->
-      # TODO ~ this is broken FIX
-      # book = mainView.addBook()
-      # book.fillPage index
-      # book.checkBoundaries()
-
-    mainController.on "ToggleChatPanel", -> mainView.chatPanel.toggle()
-
-    if KD.checkFlag 'super-admin'
-    then KDView.setElementClass body, 'add', 'super'
-    else KDView.setElementClass body, 'remove', 'super'
-
 
     windowController.on 'ScrollHappened', do ->
       threshold     = 50
@@ -74,6 +59,12 @@ class MainViewController extends KDViewController
 
   loadView:(mainView)->
 
+    mainView.ready =>
+
+      {body} = document
+      if KD.checkFlag 'super-admin'
+      then KDView.setElementClass body, 'add', 'super'
+      else KDView.setElementClass body, 'remove', 'super'
 
   mainTabPaneChanged:(mainView, pane)->
 
