@@ -32,6 +32,8 @@ module.exports = class SocialMessage extends Base
           (signature Object, Function)
         fetchPrivateMessages:
           (signature Object, Function)
+        fetch  :
+          (signature Object, Function)
 
     schema          :
       id               : Number
@@ -114,6 +116,14 @@ module.exports = class SocialMessage extends Base
         requests = require './requests'
         requests[funcName] options, callback
 
+
+  @fetch = permit 'read posts',
+    success: (client, data, callback)->
+      {connection:{delegate}} = client
+      unless data.id
+        return callback {message: "Request is not valid for reading a message"}
+      {fetchMessage} = require './requests'
+      fetchMessage data, callback
 
   @ensureGroupChannel = (client, callback)->
     fetchGroup client, (err, group)->
