@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"math/rand"
 	"socialapi/models"
 	"strconv"
@@ -68,7 +69,14 @@ func TestChannelMessage(t *testing.T) {
 			Convey("message can be deleted by an admin", nil)
 			Convey("message can not be edited by non-owner", nil)
 
-			Convey("owner can like message", nil)
+			Convey("owner can like message", func() {
+				post, err := createPost(groupChannel.Id, account.Id)
+				So(err, ShouldBeNil)
+				So(post, ShouldNotBeNil)
+
+				err = addInteraction("like", post.Id, post.AccountId)
+				So(err, ShouldBeNil)
+			})
 
 			Convey("non-owner can like message", nil)
 
@@ -83,4 +91,49 @@ func TestChannelMessage(t *testing.T) {
 		})
 
 	})
+}
+
+func createPost(channelId, accountId int64) (*models.ChannelMessage, error) {
+	return createPostWithBody(channelId, accountId, "create a message")
+}
+
+func createPostWithBody(channelId, accountId int64, body string) (*models.ChannelMessage, error) {
+	cm := models.NewChannelMessage()
+	cm.Body = body
+	cm.AccountId = accountId
+
+	url := fmt.Sprintf("/channel/%d/message", channelId)
+	cmI, err := sendModel("POST", url, cm)
+	if err != nil {
+		return nil, err
+	}
+	return cmI.(*models.ChannelMessage), nil
+}
+
+func updatePost(cm *models.ChannelMessage) (*models.ChannelMessage, error) {
+	cm.Body = "after update"
+
+	url := fmt.Sprintf("/message/%d", cm.Id)
+	cmI, err := sendModel("POST", url, cm)
+	if err != nil {
+		return nil, err
+	}
+
+	return cmI.(*models.ChannelMessage), nil
+}
+
+func getPost(id int64, accountId int64, groupName string) (*models.ChannelMessage, error) {
+	url := fmt.Sprintf("/message/%d?accountId=%d&groupName=%s", id)
+	cm := models.NewChannelMessage()
+	cmI, err := sendModel("GET", url, cm)
+	if err != nil {
+		return nil, err
+	}
+	return cmI.(*models.ChannelMessage), nil
+}
+
+func deletePost(id int64, accountId int64, groupName string) error {
+	url := fmt.Sprintf("/message/%d?accountId=%d&groupName=%s", id, accountId, groupName)
+	_, err := sendRequest("DELETE", url, nil)
+	return err
 }
