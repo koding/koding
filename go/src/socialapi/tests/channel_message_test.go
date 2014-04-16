@@ -124,6 +124,40 @@ func TestChannelMessage(t *testing.T) {
 				So(len(likes), ShouldEqual, 1)
 
 			})
+
+			Convey("users should be able to  un-like message", func() {
+				post, err := createPost(groupChannel.Id, account.Id)
+				So(err, ShouldBeNil)
+				So(post, ShouldNotBeNil)
+
+				err = addInteraction("like", post.Id, post.AccountId)
+				So(err, ShouldBeNil)
+
+				cmc, err := getPostWithRelatedData(post.Id, post.AccountId, groupName)
+				So(err, ShouldBeNil)
+				So(cmc, ShouldNotBeNil)
+
+				// it is liked by author
+				So(cmc.Interactions["like"].IsInteracted, ShouldBeTrue)
+
+				// actor length should be 1
+				So(len(cmc.Interactions["like"].Actors), ShouldEqual, 1)
+
+				err = deleteInteraction("like", post.Id, account.Id)
+				So(err, ShouldBeNil)
+
+				cmc, err = getPostWithRelatedData(post.Id, post.AccountId, groupName)
+				So(err, ShouldBeNil)
+				So(cmc, ShouldNotBeNil)
+
+				// it is liked by author
+				So(cmc.Interactions["like"].IsInteracted, ShouldBeFalse)
+
+				// actor length should be 1
+				So(len(cmc.Interactions["like"].Actors), ShouldEqual, 0)
+
+			})
+
 			Convey("owner can post reply to message", nil)
 
 			Convey("reply can be liked by reply-owner", nil)
@@ -219,4 +253,17 @@ func getInteractions(interactionType string, postId int64) ([]int64, error) {
 	}
 
 	return interactions, nil
+}
+
+func deleteInteraction(interactionType string, postId, accountId int64) error {
+	cm := models.NewInteraction()
+	cm.AccountId = accountId
+	cm.MessageId = postId
+
+	url := fmt.Sprintf("/message/%d/interaction/%s/delete", postId, interactionType)
+	_, err := marshallAndSendRequest("POST", url, cm)
+	if err != nil {
+		return err
+	}
+	return nil
 }
