@@ -228,7 +228,7 @@ KD.extend
           @notify_ "You have joined to #{groupName} group!", "success"
           return callback null
 
-  nick:-> KD.whoami().profile.nickname
+  nick:-> KD.whoami()?.profile?.nickname or KD.profile.nickname
 
   whoami:-> KD.userAccount
 
