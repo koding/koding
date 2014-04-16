@@ -421,13 +421,18 @@ func vmPrepareAndStart(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS
 	usage, err := NewUsage(vos, params.GroupId)
 	if err != nil {
 		log.Info("usage -1 [%s] err: %v", vos.VM.HostnameAlias, err)
-		return nil, errors.New("usage couldn't be retrieved. please consult to support.")
+		return nil, errors.New("usage couldn't be retrieved. please consult to support [1].")
 	}
 
 	limits, err := usage.checkLimits(channel.Username, params.GroupId)
 	if err != nil {
+		// pass back endpoint err to client
+		if endpointErrs.Has(err) {
+			return nil, err
+		}
+
 		log.Info("usage -2 [%s] err: %v", vos.VM.HostnameAlias, err)
-		return nil, errors.New("usage couldn't be retrieved. please consult to support.")
+		return nil, errors.New("usage couldn't be retrieved. please consult to support [2].")
 	}
 
 	if limits.TotalVMs != okString {

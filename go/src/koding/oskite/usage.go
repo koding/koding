@@ -11,20 +11,9 @@ import (
 	"koding/virt"
 	"net/http"
 
+	"gopkg.in/fatih/set.v0"
 	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
-)
-
-const (
-	ErrTokenRequired    = "TOKEN_REQUIRED"
-	ErrUsernameRequired = "USERNAME_REQUIRED"
-	ErrGroupRequired    = "GROUPNAME_REQUIRED"
-	ErrKiteNotFound     = "KITE_NOT_FOUND"
-	ErrUserNotFound     = "USER_NOT_FOUND"
-	ErrGroupNotFound    = "GROUP_NOT_FOUND"
-	ErrInvalid          = "NOT_A_MEMBER_OF_GROUP"
-	ErrKiteNoPlan       = "KITE_HAS_NO_PLAN"
-	ErrNoSubscription   = "NO_SUBSCRIPTION"
 )
 
 type KiteStore struct {
@@ -82,6 +71,17 @@ var (
 	okString      = "ok"
 	quotaExceeded = "quota exceeded"
 	kiteCode      string
+	endpointErrs  = set.New(
+		errors.New("TOKEN_REQUIRED"),
+		errors.New("USERNAME_REQUIRED"),
+		errors.New("GROUPNAME_REQUIRED"),
+		errors.New("KITE_NOT_FOUND"),
+		errors.New("USER_NOT_FOUND"),
+		errors.New("GROUP_NOT_FOUND"),
+		errors.New("NOT_A_MEMBER_OF_GROUP"),
+		errors.New("KITE_HAS_NO_PLAN"),
+		errors.New("NO_SUBSCRIPTION"),
+	)
 )
 
 func NewPlanResponse() *PlanResponse {
