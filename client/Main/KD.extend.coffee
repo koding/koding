@@ -321,7 +321,7 @@ KD.extend
 
   runningInFrame: -> window.top isnt window.self
 
-  getGroup: -> (KD.getSingleton 'groupsController').getCurrentGroup()
+  getGroup: -> KD.currentGroup
 
   getReferralUrl: (username) ->
     "#{location.origin}/R/#{username}"
