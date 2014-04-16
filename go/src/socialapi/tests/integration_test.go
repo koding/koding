@@ -6,15 +6,8 @@ import (
 )
 
 var (
-	ENDPOINT   = "http://localhost:7000"
-	ACCOUNT_ID = int64(1)
-	CHANNEL_ID = int64(1)
+	ENDPOINT = "http://localhost:7000"
 )
-
-func main() {
-	testReplyOperations()
-	testTopicFeedOperations()
-}
 
 func sendModel(reqType, url string, model interface{}) (interface{}, error) {
 
