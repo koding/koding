@@ -26,7 +26,6 @@ module.exports = (options, callback)->
     </html>
     """
 
-  options.intro = no
   fetchScripts options, (err, scripts)->
     callback null, prepareHTML scripts
 

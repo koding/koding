@@ -110,5 +110,5 @@ class MainViewController extends KDViewController
 
       KDView.setElementClass body, 'remove', 'intro'
       mainView.unsetClass 'home'
-      KD.introView?.hide()
+      # KD.introView?.hide()
 

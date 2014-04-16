@@ -73,8 +73,8 @@ class KodingRouter extends KDRouter
         @handleRoute @userRoute or @getDefaultRoute(), {replaceState: yes, entryPoint}
       else
         @handleRoute @getDefaultRoute(), {entryPoint}
-        if not entryPoint or entryPoint?.slug is 'koding'
-          KD.introView?.show()
+        # if not entryPoint or entryPoint?.slug is 'koding'
+        #   KD.introView?.show()
 
   cleanupRoute:(contentDisplay)->
     delete @openRoutes[@openRoutesById[contentDisplay.id]]
@@ -291,12 +291,7 @@ class KodingRouter extends KDRouter
       '/:name?/InviteFriends': ->
         if KD.isLoggedIn()
           @handleRoute '/Activity', entryPoint: KD.config.entryPoint
-          if KD.introView
-            KD.introView.once "transitionend", ->
-              KD.utils.wait 1200, ->
-                new ReferrerModal
-          else
-            new ReferrerModal
+          new ReferrerModal
         else
           @handleRoute '/Login'
 

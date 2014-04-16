@@ -1,7 +1,6 @@
 module.exports = (options = {}, callback)->
   encoder = require 'htmlencode'
 
-  options.intro                 ?= no
   options.client               or= {}
   options.client.context       or= {}
   options.client.context.group or= "koding"
@@ -15,7 +14,7 @@ module.exports = (options = {}, callback)->
   currentGroup     = {}
   usePremiumBroker = no
 
-  {bongoModels, client, intro, slug} = options
+  {bongoModels, client, slug} = options
 
   createHTML = ->
     replacer             = (k, v)-> if 'string' is typeof v then encoder.XSSEncode v else v
@@ -23,17 +22,20 @@ module.exports = (options = {}, callback)->
     encodedCampaignData  = JSON.stringify campaignData, replacer
     encodedCustomPartial = JSON.stringify customPartial, replacer
     currentGroup         = JSON.stringify currentGroup, replacer
+    {delegate}           = client.connection
+    profile              = JSON.stringify delegate.profile
 
     usePremiumBroker = usePremiumBroker or options.client.context.group isnt "koding"
 
-    if client.connection?.delegate?.profile?.nickname
-      {connection: {delegate}} = client
+    if delegate?.profile?.nickname
       {profile   : {nickname}} = delegate
 
     """
     <script>
       console.time("Framework loaded");
       console.time("Koding.com loaded");
+      console.time("singletons registered I");
+      console.time("singletons registered II");
     </script>
 
     <!-- SEGMENT.IO -->
@@ -49,9 +51,9 @@ module.exports = (options = {}, callback)->
     <script>KD.config.usePremiumBroker=#{usePremiumBroker}</script>
     <script>KD.customPartial=#{encodedCustomPartial}</script>
     <script>KD.campaignData=#{encodedCampaignData}</script>
+    <script>KD.profile=#{profile}</script>
     <script src='/a/js/kd.libs.#{KONFIG.version}.js'></script>
     <script src='/a/js/kd.#{KONFIG.version}.js'></script>
-    #{if intro then "<script src='/a/js/introapp.#{ KONFIG.version }.js'></script>" else ''}
     <script>KD.currentGroup=#{currentGroup};</script>
     <script src='/a/js/koding.#{KONFIG.version}.js'></script>
     <script>KD.prefetchedFeeds=#{encodedFeed};</script>

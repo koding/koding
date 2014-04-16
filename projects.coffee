@@ -21,12 +21,6 @@ projects      =
     script    : "website/a/js/__kdapp.#{KODING_VERSION}.js"
     sourceMapRoot : "Main/"
 
-  HomeIntro   :
-    files     : "client/Intro/includes.coffee"
-    style     : "website/a/css/introapp.#{KODING_VERSION}.css"
-    script    : "website/a/js/introapp.#{KODING_VERSION}.js"
-    sourceMapRoot : "Intro/"
-
   Activity        :
     files         : "client/Social/Activity/includes.coffee"
     style         : "website/a/css/__app.activity.#{KODING_VERSION}.css"
@@ -123,6 +117,12 @@ projects      =
     script        : "website/a/js/__app.about.#{KODING_VERSION}.js"
     sourceMapRoot : "About/"
 
+  Home            :
+    files         : "client/Home/includes.coffee"
+    style         : "website/a/css/__app.home.#{KODING_VERSION}.css"
+    script        : "website/a/js/__app.home.#{KODING_VERSION}.js"
+    sourceMapRoot : "Home/"
+
   Business        :
     files         : "client/Business/includes.coffee"
     style         : "website/a/css/__app.business.#{KODING_VERSION}.css"
@@ -134,12 +134,6 @@ projects      =
     style         : "website/a/css/__app.education.#{KODING_VERSION}.css"
     script        : "website/a/js/__app.education.#{KODING_VERSION}.js"
     sourceMapRoot : "Education/"
-
-  HomeLanding     :
-    files         : "client/HomeLanding/includes.coffee"
-    style         : "website/a/css/__app.homelanding.#{KODING_VERSION}.css"
-    script        : "website/a/js/__app.homelanding.#{KODING_VERSION}.js"
-    sourceMapRoot : "Homelanding/"
 
   Environments    :
     files         : "client/Environments/includes.coffee"
