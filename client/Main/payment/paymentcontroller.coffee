@@ -2,12 +2,13 @@ class PaymentController extends KDController
 
   fetchPaymentMethods: (callback) ->
 
-    { dash } = Bongo
-
-    methods = null
+    {dash}                 = Bongo
+    methods                = null
     preferredPaymentMethod = null
-    appStorage = new AppStorage 'Account', '1.0'
-    queue = [
+    {appStorageController} = KD.singletons
+    appStorage             = appStorageController.storage 'Account', '1.0'
+
+    queue      = [
 
       -> appStorage.fetchStorage ->
         preferredPaymentMethod = appStorage.getValue 'preferredPaymentMethod'
