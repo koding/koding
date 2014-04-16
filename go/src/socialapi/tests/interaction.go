@@ -70,19 +70,6 @@ func getInteractions(interactionType string, postId int64) ([]int64, error) {
 	return interactions, nil
 }
 
-func addInteraction(interactionType string, postId, accountId int64) error {
-	cm := models.NewInteraction()
-	cm.AccountId = accountId
-	cm.MessageId = postId
-
-	url := fmt.Sprintf("/message/%d/interaction/%s/add", postId, interactionType)
-	_, err := sendModel("POST", url, cm)
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
 func deleteInteraction(interactionType string, postId, accountId int64) error {
 	cm := models.NewInteraction()
 	cm.AccountId = accountId
