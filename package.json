@@ -18,7 +18,7 @@
     "async": "0.2.5",
     "aws-sdk": "0.9.5-pre.6",
     "bitly": "1.2.4",
-    "coffee-script": "1.6.3",
+    "coffee-script": "1.7.1",
     "colors": "0.6.0-1",
     "commander": "1.0.4",
     "cron": "1.0.1",
