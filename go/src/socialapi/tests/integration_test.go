@@ -12,7 +12,6 @@ var (
 )
 
 func main() {
-	testMessageOperations()
 	testInteractionOperations()
 	testReplyOperations()
 	testTopicFeedOperations()
