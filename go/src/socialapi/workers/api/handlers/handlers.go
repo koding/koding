@@ -10,6 +10,7 @@ import (
 	"socialapi/workers/api/modules/messagelist"
 	"socialapi/workers/api/modules/participant"
 	"socialapi/workers/api/modules/popular"
+	"socialapi/workers/api/modules/privatemessage"
 	"socialapi/workers/api/modules/reply"
 
 	"github.com/rcrowley/go-tigertonic"
@@ -136,6 +137,10 @@ func Inject(mux *tigertonic.TrieServeMux) *tigertonic.TrieServeMux {
 
 	// mux.Handle("POST", "/follow/{id}", handlerWrapper(post, "follow-id"))
 	// mux.Handle("POST", "/unfollow/{id}", handlerWrapper(post, "follow-id"))
+
+	mux.Handle("POST", "/privatemessage/send", handlerWrapper(privatemessage.Send, "privatemessage-send"))
+
+	mux.Handle("GET", "/privatemessage/list", handlerWrapper(privatemessage.List, "privatemessage-list"))
 
 	return mux
 }
