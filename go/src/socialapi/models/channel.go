@@ -52,9 +52,10 @@ const (
 	Channel_TYPE_FOLLOWERS       = "followers"
 	Channel_TYPE_CHAT            = "chat"
 	Channel_TYPE_PINNED_ACTIVITY = "pinnedActivity"
+	Channel_TYPE_PRIVATE_MESSAGE = "privateMessage"
 	// Privacy
-	Channel_TYPE_PUBLIC  = "public"
-	Channel_TYPE_PRIVATE = "private"
+	Channel_PRIVACY_PUBLIC  = "public"
+	Channel_PRIVACY_PRIVATE = "private"
 	// Koding Group Name
 	Channel_KODING_NAME = "koding"
 )
