@@ -145,7 +145,7 @@ func (c *ChannelMessageList) getMessages(q *Query) ([]*ChannelMessageContainer, 
 		return nil, err
 	}
 
-	populatedChannelMessages, err := c.populateChannelMessages(channelMessages)
+	populatedChannelMessages, err := c.populateChannelMessages(channelMessages, q)
 	if err != nil {
 		return nil, err
 	}
@@ -153,7 +153,7 @@ func (c *ChannelMessageList) getMessages(q *Query) ([]*ChannelMessageContainer, 
 	return populatedChannelMessages, nil
 }
 
-func (c *ChannelMessageList) populateChannelMessages(channelMessages []ChannelMessage) ([]*ChannelMessageContainer, error) {
+func (c *ChannelMessageList) populateChannelMessages(channelMessages []ChannelMessage, query *Query) ([]*ChannelMessageContainer, error) {
 	channelMessageCount := len(channelMessages)
 
 	populatedChannelMessages := make([]*ChannelMessageContainer, channelMessageCount)
@@ -164,7 +164,7 @@ func (c *ChannelMessageList) populateChannelMessages(channelMessages []ChannelMe
 
 	for i := 0; i < channelMessageCount; i++ {
 		cm := channelMessages[i]
-		cmc, err := cm.BuildMessage()
+		cmc, err := cm.BuildMessage(query)
 		if err != nil {
 			return nil, err
 		}
