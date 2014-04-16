@@ -93,7 +93,7 @@ module.exports = class JKite extends jraphical.Module
   createPlan: permit 'create kite',
     success: (client, formData, callback)->
       {userTag} = formData
-      formData.tags = ["kite","c:#{userTag}"]
+      formData.tags = ["kite", userTag]
       JPaymentPlan  = require './payment/plan'
       JPaymentPlan.create client.context.group, formData, (err, plan)=>
         return  callback err if err
@@ -103,4 +103,3 @@ module.exports = class JKite extends jraphical.Module
     success: (client, planCode, callback)->
       @fetchPlans (err, plan) ->
         plan.remove
-
