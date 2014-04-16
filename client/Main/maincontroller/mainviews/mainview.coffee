@@ -91,7 +91,7 @@ class MainView extends KDView
     @headerContainer.addSubView @logo
 
     groupLogo = ""
-    if KD.currentGroup?.logo
+    if KD.currentGroup?.customize?.logo
       groupLogo = KD.utils.proxifyUrl KD.currentGroup.logo,
         crop         : yes
         width        : 55
