@@ -72,7 +72,7 @@ func (n *Notification) List(q *Query) (*NotificationResponse, error) {
 	}
 
 	response.Notifications = result
-	response.UnreadCount = 0
+	response.UnreadCount = getUnreadNotificationCount(result)
 
 	return response, nil
 }
@@ -135,6 +135,7 @@ func (n *Notification) decorateContents(result []NotificationContainer, resultMa
 		key := prepareResultKey(&nc)
 		if _, ok := (*resultMap)[key]; !ok {
 			container := buildNotificationContainer(&nc)
+			container.Glanced = n.Glanced
 			(*resultMap)[key] = struct{}{}
 			result = append(result, container)
 			if len(result) == q.Limit {
@@ -217,4 +218,15 @@ func (n *Notification) AfterUpdate() {
 
 func (n *Notification) AfterDelete() {
 	bongo.B.AfterDelete(n)
+}
+
+func getUnreadNotificationCount(notificationList []NotificationContainer) int {
+	unreadCount := 0
+	for _, nc := range notificationList {
+		if !nc.Glanced {
+			unreadCount++
+		}
+	}
+
+	return unreadCount
 }
