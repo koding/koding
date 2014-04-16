@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"math/rand"
 	"socialapi/models"
@@ -109,6 +110,20 @@ func TestChannelMessage(t *testing.T) {
 
 			})
 
+			Convey("we should be able to get only interactions", func() {
+				post, err := createPost(groupChannel.Id, account.Id)
+				So(err, ShouldBeNil)
+				So(post, ShouldNotBeNil)
+
+				err = addInteraction("like", post.Id, nonOwnerAccount.Id)
+				So(err, ShouldBeNil)
+
+				likes, err := getInteractions("like", post.Id)
+				So(err, ShouldBeNil)
+
+				So(len(likes), ShouldEqual, 1)
+
+			})
 			Convey("owner can post reply to message", nil)
 
 			Convey("reply can be liked by reply-owner", nil)
@@ -188,4 +203,20 @@ func addInteraction(interactionType string, postId, accountId int64) error {
 		return err
 	}
 	return nil
+}
+
+func getInteractions(interactionType string, postId int64) ([]int64, error) {
+	url := fmt.Sprintf("/message/%d/interaction/%s", postId, interactionType)
+	res, err := sendRequest("GET", url, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	var interactions []int64
+	err = json.Unmarshal(res, &interactions)
+	if err != nil {
+		return nil, err
+	}
+
+	return interactions, nil
 }
