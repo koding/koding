@@ -178,6 +178,25 @@ func TestChannelMessage(t *testing.T) {
 
 			})
 
+			Convey("we should be able to get only replies", func() {
+				post, err := createPost(groupChannel.Id, account.Id)
+				So(err, ShouldBeNil)
+				So(post, ShouldNotBeNil)
+
+				reply, err := addReply(post.Id, post.AccountId)
+				So(err, ShouldBeNil)
+				So(reply, ShouldNotBeNil)
+
+				reply, err = addReply(post.Id, post.AccountId)
+				So(err, ShouldBeNil)
+				So(reply, ShouldNotBeNil)
+
+				replies, err := getReplies(post.Id, post.AccountId, groupName)
+				So(err, ShouldBeNil)
+				So(len(replies), ShouldEqual, 2)
+
+			})
+
 			Convey("non-owner can post reply to message", func() {
 				post, err := createPost(groupChannel.Id, account.Id)
 				So(err, ShouldBeNil)
