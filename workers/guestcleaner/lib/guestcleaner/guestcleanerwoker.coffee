@@ -69,7 +69,7 @@ module.exports = class GuestCleanerWorker
         accounts.forEach (account) =>
           queue = [
             ->
-              console.debug "Removing " + account.profile.nickname
+              console.log "Removing " + account.profile.nickname
               queue.next()
             ->
               # delete user cookie
@@ -120,7 +120,7 @@ module.exports = class GuestCleanerWorker
                 if err then console.error err
                 queue.next()
             ->
-              console.debug "Removed " + account.profile.nickname
+              console.log "Removed " + account.profile.nickname
               queue.next()
           ]
           daisy queue

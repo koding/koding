@@ -67,13 +67,32 @@ class KodingKontrol extends (require 'kontrol')
 
         resolve region
 
+  fetchVmInfo: (correlationName) ->
+    new Promise (resolve, reject) ->
+      KD.remote.api.JVM.fetchVmInfo correlationName, (err, info) =>
+        return reject err                              if err
+        return reject new Error "VM info not found!"   unless info?
+        resolve info
+
   getWhoParams: (kiteName, correlationName) ->
     if kiteName in ['oskite', 'terminal']
       return vmName: correlationName
     { correlationName }
 
-  getKite: (options = {}) ->
-    { name, correlationName, region } = options
+  getKiteByCorrelationName: (name, correlationName) ->
+    kite = @getKiteProxy { name, correlationName }
+
+    @fetchVmInfo(correlationName).then ({ region }) =>
+      @fetchKite
+        query : { name, region }
+        who   : @getWhoParams name, correlationName
+    .then(kite.bound 'setTransport')
+    .catch(warn)
+
+    kite
+
+  getKiteProxy: (options) ->
+    { name, correlationName } = options
 
     if (kite = @getCachedKite name, correlationName)?
       return kite
@@ -84,13 +103,20 @@ class KodingKontrol extends (require 'kontrol')
 
     @setCachedKite name, correlationName, kite
 
+    kite
+
+  getKite: (options = {}) ->
+    { name, correlationName, region } = options
+
+    kite = @getKiteProxy options
+
     @fetchRegion(correlationName, region).then (region) =>
 
-      it = @fetchKite
+      @fetchKite
         query : { name, region }
         who   : @getWhoParams name, correlationName
 
     .then(kite.bound 'setTransport')
     .catch(warn)
 
-    return kite
+    kite
