@@ -133,7 +133,7 @@ func (o *Oskite) Run() {
 
 	// register current client-side methods
 	o.registerMethod("vm.start", false, vmStartOld)
-	o.registerMethod("vm.prepareAndStart", false, vmPrepareAndStart)
+	o.registerMethod("vm.prepareAndStart", false, o.vmPrepareAndStart)
 	o.registerMethod("vm.stopAndUnprepare", false, vmStopAndUnprepare)
 	o.registerMethod("vm.shutdown", false, vmShutdownOld)
 	o.registerMethod("vm.destroy", false, vmDestroyOld)
@@ -195,7 +195,7 @@ func (o *Oskite) runNewKite() {
 	k.Config.Region = o.Region
 
 	o.vosMethod(k, "vm.start", vmStartNew)
-	o.vosMethod(k, "vm.prepareAndStart", vmPrepareAndStartNew)
+	o.vosMethod(k, "vm.prepareAndStart", o.vmPrepareAndStartNew)
 	o.vosMethod(k, "vm.stopAndUnprepare", vmStopAndUnprepareNew)
 	o.vosMethod(k, "vm.shutdown", vmShutdownNew)
 	o.vosMethod(k, "vm.destroy", vmDestroyNew)
@@ -556,7 +556,7 @@ func (o *Oskite) registerMethod(method string, concurrent bool, callback func(*d
 		// vminfo.go).
 		info.stopTimeout(channel)
 
-		err = o.validateVM(vm)
+		err = o.checkVM(vm)
 		if err != nil {
 			return nil, err
 		}
@@ -623,7 +623,7 @@ func (o *Oskite) getVM(correlationName string) (*virt.VM, error) {
 	return vm, nil
 }
 
-func (o *Oskite) validateVM(vm *virt.VM) error {
+func (o *Oskite) checkVM(vm *virt.VM) error {
 	if vm.Region != o.Region {
 		time.Sleep(time.Second) // to avoid rapid cycle channel loop
 		return &kite.WrongChannelError{}
@@ -638,6 +638,10 @@ func (o *Oskite) validateVM(vm *virt.VM) error {
 		return &AccessDeniedError{}
 	}
 
+	return nil
+}
+
+func (o *Oskite) validateVM(vm *virt.VM) error {
 	if vm.IP == nil {
 		ipInt := NextCounterValue("vm_ip", int(binary.BigEndian.Uint32(firstContainerIP.To4())))
 		ip := net.IPv4(byte(ipInt>>24), byte(ipInt>>16), byte(ipInt>>8), byte(ipInt))
@@ -698,7 +702,12 @@ func (o *Oskite) startVM(vm *virt.VM, channel *kite.Channel) error {
 	defer info.mutex.Unlock()
 	info.stopTimeout(channel)
 
-	err := o.validateVM(vm)
+	err := o.checkVM(vm)
+	if err != nil {
+		return err
+	}
+
+	err = o.validateVM(vm)
 	if err != nil {
 		return err
 	}

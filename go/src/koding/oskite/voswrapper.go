@@ -247,7 +247,7 @@ type progressParamsNew struct {
 func (p *progressParamsNew) Enabled() bool      { return p.OnProgress.IsValid() }
 func (p *progressParamsNew) Call(v interface{}) { p.OnProgress.Call(v) }
 
-func vmPrepareAndStartNew(r *kitelib.Request, vos *virt.VOS) (interface{}, error) {
+func (o *Oskite) vmPrepareAndStartNew(r *kitelib.Request, vos *virt.VOS) (interface{}, error) {
 	params := new(progressParamsNew)
 	if r.Args.One().Unmarshal(&params) != nil {
 		return nil, &kite.ArgumentError{Expected: "{OnProgress: [function]}"}
@@ -271,6 +271,11 @@ func vmPrepareAndStartNew(r *kitelib.Request, vos *virt.VOS) (interface{}, error
 
 	if limits.TotalVMs != okString {
 		return nil, fmt.Errorf("%s", limits.TotalVMs) // returns quota exceeded
+	}
+
+	err = o.validateVM(vos.VM)
+	if err != nil {
+		return nil, err
 	}
 
 	return progress(vos, "vm.prepareAndStart"+vos.VM.HostnameAlias, params, func() error {

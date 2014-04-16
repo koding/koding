@@ -404,7 +404,7 @@ func progress(vos *virt.VOS, desc string, p progresser, f func() error) (interfa
 	return true, nil
 }
 
-func vmPrepareAndStart(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (interface{}, error) {
+func (o *Oskite) vmPrepareAndStart(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (interface{}, error) {
 	if !vos.Permissions.Sudo {
 		return nil, &kite.PermissionError{}
 	}
@@ -437,6 +437,11 @@ func vmPrepareAndStart(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS
 
 	if limits.TotalVMs != okString {
 		return nil, fmt.Errorf("%s", limits.TotalVMs) // returns quota exceeded
+	}
+
+	err = o.validateVM(vos.VM)
+	if err != nil {
+		return nil, err
 	}
 
 	return progress(vos, "vm.prepareAndStart "+vos.VM.HostnameAlias, params, func() error {
