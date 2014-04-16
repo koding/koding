@@ -16,9 +16,6 @@ class KodingRouter extends KDRouter
     @openRoutesById = {}
     KD.singleton('display').on 'DisplayIsDestroyed', @bound 'cleanupRoute'
 
-    KD.getSingleton('mainController').once 'AccountChanged', =>
-      @utils.defer => @emit 'ready'
-
     super()
 
     KodingRouter.emit 'RouterReady', this
@@ -81,16 +78,14 @@ class KodingRouter extends KDRouter
 
   openSection:(app, group, query)->
 
-    @ready =>
-      {appManager, groupsController} = KD.singletons
-      groupsController.ready =>
-        @setPageTitle nicenames[app] ? app
-        handleQuery = appManager.tell.bind appManager, app, "handleQuery", query
+    {appManager} = KD.singletons
+    @setPageTitle nicenames[app] ? app
+    handleQuery = appManager.tell.bind appManager, app, "handleQuery", query
 
-        appManager.once "AppCreated", handleQuery  unless appWasOpen = appManager.get app
-        appManager.open app
+    appManager.once "AppCreated", handleQuery  unless appWasOpen = appManager.get app
+    appManager.open app
 
-        handleQuery()  if appWasOpen
+    handleQuery()  if appWasOpen
 
   handleNotFound:(route)->
 
