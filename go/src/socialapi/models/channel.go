@@ -67,8 +67,19 @@ func NewChannel() *Channel {
 		Purpose:         "string",
 		SecretKey:       "string",
 		TypeConstant:    "default",
-		PrivacyConstant: Channel_TYPE_PRIVATE,
+		PrivacyConstant: Channel_PRIVACY_PRIVATE,
 	}
+}
+
+func NewPrivateMessageChannel(creatorId int64, groupName string) *Channel {
+	c := NewChannel()
+	c.GroupName = groupName
+	c.CreatorId = creatorId
+	c.Name = "PrivateMessage"
+	c.TypeConstant = Channel_TYPE_PRIVATE_MESSAGE
+	c.PrivacyConstant = Channel_PRIVACY_PRIVATE
+	c.Purpose = "Communication over a thread"
+	return c
 }
 
 func (c *Channel) BeforeCreate() {
