@@ -324,7 +324,7 @@ class KodingRouter extends KDRouter
             @clear()
 
       # top level names
-      '/:name':do->
+      '/:name': do ->
 
         open = (routeInfo, model)->
 
