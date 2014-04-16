@@ -93,7 +93,7 @@ createCommentNode = (comment)->
     <li itemtype="http://schema.org/Comment" itemscope itemprop="comment">
         <span itemprop="commentText">#{comment.body}</span> - at
         <span itemprop="commentTime">#{comment.createdAt}</span> by
-        <a href="#{uri.address}/#!/#{comment.authorNickname}"><span itemprop="name">#{comment.authorName}</span></a>
+        <a href="#{uri.address}/#{comment.authorNickname}"><span itemprop="name">#{comment.authorName}</span></a>
     </li>
     """
   return commentContent
@@ -180,7 +180,7 @@ getSingleActivityContent = (activityContent, model)->
     for tag in activityContent.tags
       content =
         """
-          <a href="#{uri.address}/#!/Topics/#{tag.slug}">#{tag.title}</a>
+          <a href="#{uri.address}/Topics/#{tag.slug}">#{tag.title}</a>
         """
       tags += content
 
