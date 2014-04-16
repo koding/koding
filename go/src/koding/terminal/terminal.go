@@ -76,12 +76,18 @@ func (t *Terminal) Run() {
 		kite.EnableDebug()
 	}
 
-	t.Kite.LoadBalancer = func(correlationName string, username string, deadService string) string {
+	t.Kite.LoadBalancer = func(correlationName string, username string, deadService string) (resultHostKite string) {
 		blog := func(v interface{}) {
 			log.Info("terminal loadbalancer for [correlationName: '%s' user: '%s' deadService: '%s'] results in --> %v.", correlationName, username, deadService, v)
 		}
 
 		errKite := "(error)"
+
+		defer func() {
+			if resultHostKite == errKite {
+				time.Sleep(time.Second) // penalty to avoid spamming
+			}
+		}()
 
 		var vm *virt.VM
 		if bson.IsObjectIdHex(correlationName) {
