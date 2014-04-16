@@ -46,27 +46,9 @@ class MessagesListController extends KDListViewController
       callback? err,messages
 
   fetchNotificationTeasers:(callback)->
-    KD.whoami().fetchActivityTeasers? {
-      targetName: $in: [
-        # 'CActivity'
-        'CReplieeBucketActivity'
-        'CFolloweeBucketActivity'
-        'CLikeeBucketActivity'
-        'CGroupJoineeBucketActivity'
-        'CNewMemberBucketActivity'
-        'CGroupLeaveeBucketActivity'
-      ]
-    }, {
-      limit: 8
-      sort:
-        timestamp: -1
-    }, (err, items)=>
-      if err
-        warn "There was a problem fetching notifications!",err
-      else
-        unglanced = items.filter (item)-> item.getFlagValue('glanced') isnt yes
-        @emit 'NotificationCountDidChange', unglanced.length
-        callback? items
+    KD.remote.api.SocialNotification.fetch (err, notifications) =>
+      return callback err  if err
+
+      @emit 'NotificationCountDidChange', notifications.unreadCount
+      callback? null, notifications.notifications
       @hideLazyLoader()
-
-
