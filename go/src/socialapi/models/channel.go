@@ -28,7 +28,7 @@ type Channel struct {
 
 	// Secret key of the channel for event propagation purposes
 	// we can put this key into another table?
-	SecretKey string `json:"secretKey"`
+	SecretKey string `json:"-"`
 
 	// Type of the channel
 	TypeConstant string `json:"typeConstant"         sql:"NOT NULL;TYPE:VARCHAR(100);"`
