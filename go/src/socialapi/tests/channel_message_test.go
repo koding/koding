@@ -250,6 +250,71 @@ func TestChannelMessage(t *testing.T) {
 				So(cmc.Replies[0].Interactions["like"].IsInteracted, ShouldBeFalse)
 
 			})
+
+			// for now those will be handled by social worker
+			Convey("reply can be deleted by admin", nil)
+			Convey("reply can not be deleted by non owner", nil)
+
+			Convey("reply can be deleted by owner", func() {
+				post, err := createPost(groupChannel.Id, account.Id)
+				So(err, ShouldBeNil)
+				So(post, ShouldNotBeNil)
+
+				reply, err := addReply(post.Id, nonOwnerAccount.Id)
+				So(err, ShouldBeNil)
+				So(reply, ShouldNotBeNil)
+
+				err = deletePost(reply.Id, nonOwnerAccount.Id, groupName)
+				So(err, ShouldBeNil)
+
+				cmc, err := getPostWithRelatedData(post.Id, account.Id, groupName)
+				So(err, ShouldBeNil)
+				So(cmc, ShouldNotBeNil)
+
+				So(len(cmc.Replies), ShouldEqual, 0)
+
+			})
+
+			Convey("while deleting message replies should be deleted", func() {
+				// 	post, err := createPost(groupChannel.Id, account.Id)
+				// 	So(err, ShouldBeNil)
+				// 	So(post, ShouldNotBeNil)
+
+				// 	fmt.Println(post.Id, account.Id, nonOwnerAccount.Id)
+				// 	reply, err := addReply(post.Id, nonOwnerAccount.Id)
+				// 	So(err, ShouldBeNil)
+				// 	So(reply, ShouldNotBeNil)
+
+				// 	So(reply.AccountId, ShouldEqual, nonOwnerAccount.Id)
+
+				// 	err = addInteraction("like", reply.Id, nonOwnerAccount.Id)
+				// 	So(err, ShouldBeNil)
+
+				// 	cmc, err := getPostWithRelatedData(post.Id, account.Id, groupName)
+				// 	So(err, ShouldBeNil)
+				// 	So(cmc, ShouldNotBeNil)
+
+				// 	// it is liked by reply author, not post owner
+				// 	So(cmc.Interactions["like"].IsInteracted, ShouldBeFalse)
+
+				// 	// we didnt like the post, we liked the reply
+				// 	So(len(cmc.Interactions["like"].Actors), ShouldEqual, 0)
+
+				// 	So(len(cmc.Replies), ShouldEqual, 1)
+
+				// 	// we liked the reply
+				// 	So(len(cmc.Replies[0].Interactions["like"].Actors), ShouldEqual, 1)
+
+				// 	So(cmc.Replies[0].Interactions["like"].IsInteracted, ShouldBeFalse)
+			})
+			Convey("while deleting message replies' likes should be deleted", func() {
+
+			})
+
+			Convey("while deleting message message likes should be deleted", func() {
+
+			})
+
 		})
 	})
 }
@@ -345,6 +410,44 @@ func deleteInteraction(interactionType string, postId, accountId int64) error {
 
 	url := fmt.Sprintf("/message/%d/interaction/%s/delete", postId, interactionType)
 	_, err := marshallAndSendRequest("POST", url, cm)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func getReplies(postId int64, accountId int64, groupName string) ([]*models.ChannelMessage, error) {
+	url := fmt.Sprintf("/message/%d/reply?accountId=%d&groupName=%s", postId, accountId, groupName)
+	res, err := sendRequest("GET", url, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	var replies []*models.ChannelMessage
+	err = json.Unmarshal(res, &replies)
+	if err != nil {
+		return nil, err
+	}
+
+	return replies, nil
+}
+
+func addReply(postId, accountId int64) (*models.ChannelMessage, error) {
+	cm := models.NewChannelMessage()
+	cm.Body = "reply body"
+	cm.AccountId = accountId
+
+	url := fmt.Sprintf("/message/%d/reply", postId)
+	_, err := sendModel("POST", url, cm)
+	if err != nil {
+		return nil, err
+	}
+	return cm, nil
+}
+
+func deleteReply(postId, replyId int64) error {
+	url := fmt.Sprintf("/message/%d/reply/%d/delete", postId, replyId)
+	_, err := sendRequest("DELETE", url, nil)
 	if err != nil {
 		return err
 	}
