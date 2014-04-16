@@ -95,7 +95,6 @@ func (n *NotificationWorkerController) CreateReplyNotification(data []byte) erro
 		return err
 	}
 
-	// TODO send notification message to user
 	return nil
 }
 
@@ -113,7 +112,6 @@ func (n *NotificationWorkerController) CreateInteractionNotification(data []byte
 		return err
 	}
 
-	// TODO send notification message to user
 	return nil
 }
 
@@ -124,6 +122,42 @@ func (n *NotificationWorkerController) NotifyUser(data []byte) error {
 		return fmt.Errorf("channel connection error")
 	}
 	defer channel.Close()
+
+	notification, err := mapMessageToNotification(data)
+	if err != nil {
+		return err
+	}
+
+	accountId := notification.AccountId
+	oldAccount, err := fetchNotifierOldAccount(accountId)
+	if err != nil {
+		return err
+	}
+
+	// fetch user profile name from bongo as routing key
+	ne := &NotificationEvent{}
+	routingKey := oldAccount.Profile.Nickname
+
+	// fetch notification content and get event type
+	nc, err := notification.FetchContent()
+	if err != nil {
+		return err
+	}
+
+	ne.Event = nc.GetEventType()
+	// add content later
+	notificationMessage, err := json.Marshal(ne)
+	if err != nil {
+		return err
+	}
+
+	return channel.Publish(
+		"notification",
+		routingKey,
+		false,
+		false,
+		amqp.Publishing{Body: notificationMessage},
+	)
 }
 
 // fetchNotifierOldAccount fetches mongo account of a given new account id.
@@ -157,4 +191,13 @@ func mapMessageToInteraction(data []byte) (*models.Interaction, error) {
 	}
 
 	return i, nil
+}
+
+func mapMessageToNotification(data []byte) (*models.Notification, error) {
+	n := models.NewNotification()
+	if err := json.Unmarshal(data, n); err != nil {
+		return nil, err
+	}
+
+	return n, nil
 }
