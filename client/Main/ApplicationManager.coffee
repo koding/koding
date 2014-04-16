@@ -7,9 +7,7 @@ class ApplicationManager extends KDObject
     - AppIsBeingShown             [appController, appView, appOptions]
   ###
 
-  manifestsFetched = no
-
-  constructor:->
+  constructor: ->
 
     super
 

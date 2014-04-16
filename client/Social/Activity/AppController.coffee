@@ -86,8 +86,8 @@ class ActivityAppController extends AppController
     KD.mixpanel "Scroll down feed, success"
 
   attachEvents:(controller)->
-    activityController = KD.getSingleton('activityController')
     appView            = @getView()
+    activityController = KD.getSingleton('activityController')
     activityController.on 'Refresh', @bound "refresh"
 
     @listController = controller

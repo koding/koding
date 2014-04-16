@@ -19,7 +19,6 @@ class ActivityAppView extends KDScrollView
 
     super options, data
 
-    # FIXME: disable live updates - SY
     {entryPoint}      = KD.config
     {
       windowController
@@ -62,8 +61,6 @@ class ActivityAppView extends KDScrollView
       {@filterWarning} = @feedWrapper
       {feedFilterNav}  = @activityHeader
       feedFilterNav.unsetClass 'multiple-choice on-off'
-
-    @once 'viewAppended', =>
 
 
   viewAppended: ->
