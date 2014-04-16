@@ -45,27 +45,26 @@ class MainController extends KDController
     KD.registerSingleton "localStorageController",    new LocalStorageController
     KD.registerSingleton "oauthController",           new OAuthController
     KD.registerSingleton "groupsController",          new GroupsController
+    KD.registerSingleton "activityController",        new ActivityController
     KD.registerSingleton "paymentController",         new PaymentController
     KD.registerSingleton "vmController",              new VirtualizationController
     KD.registerSingleton "locationController",        new LocationController
     KD.registerSingleton "badgeController",           new BadgeController
     KD.registerSingleton "helpController",            new HelpController
     KD.registerSingleton "troubleshoot",              new Troubleshoot
+    KD.registerSingleton "appStorageController",      new AppStorageController
+    KD.registerSingleton "localSync",                 new LocalSyncController
 
-    # appManager.create 'Chat', (chatController)->
-    #   KD.registerSingleton "chatController", chatController
+
+    @createMainViewController()
+    router.listen()
 
     @ready =>
       KD.registerSingleton "widgetController",        new WidgetController
-      KD.registerSingleton "activityController",      new ActivityController
-      KD.registerSingleton "appStorageController",    new AppStorageController
       KD.registerSingleton "kodingAppsController",    new KodingAppsController
-      KD.registerSingleton "localSync",               new LocalSyncController
       KD.registerSingleton "onboardingController",    new OnboardingController
       # KD.registerSingleton "kontrol",                 new Kontrol
 
-      # @showInstructionsBook()
-      router.listen()
       @emit 'AppIsReady'
 
       console.timeEnd "Koding.com loaded"
@@ -88,8 +87,6 @@ class MainController extends KDController
       KD.config.permissions = permissions
 
       @ready @emit.bind this, "AccountChanged", account, firstLoad
-
-      @createMainViewController()  unless @mainViewController
 
       @emit 'ready'
 
