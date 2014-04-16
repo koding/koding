@@ -222,13 +222,21 @@ func FetchMongoIdByAccountId(accountId int64) (string, error) {
 func FetchMongoIdsByAccountIds(accountIds []int64) ([]string, error) {
 	var oldIds []string
 	if len(accountIds) == 0 {
-		return oldIds, nil
+		return make([]string, 0), nil
 	}
 	a := NewAccount()
 	err := bongo.B.DB.
 		Table(a.TableName()).
 		Where("id IN (?)", accountIds).
 		Pluck("old_id", &oldIds).Error
+
+	if err != nil {
+		return make([]string, 0), err
+	}
+
+	if len(oldIds) == 0 {
+		return make([]string, 0), nil
+	}
 
 	return oldIds, err
 }
