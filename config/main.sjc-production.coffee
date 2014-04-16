@@ -166,7 +166,6 @@ module.exports =
         secure      : cookieSecure
       environment        : environment
       activityFetchCount : 20
-      precompiledApi     : yes
       authExchange       : authExchange
       github        :
         clientId    : "5891e574253e65ddb7ea"
