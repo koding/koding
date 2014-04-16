@@ -1,0 +1,123 @@
+package privatemessage
+
+import (
+	"errors"
+	"net/http"
+	"net/url"
+	"socialapi/models"
+	"socialapi/workers/api/modules/helpers"
+
+	"github.com/koding/bongo"
+)
+
+func Send(u *url.URL, h http.Header, req *models.PrivateMessageRequest) (int, http.Header, interface{}, error) {
+	if req.AccountId == 0 {
+		return helpers.NewBadRequestResponse(errors.New("AcccountId is not defined"))
+	}
+
+	if len(req.Recepients) == 0 {
+		return helpers.NewBadRequestResponse(errors.New("You should define your Recepients"))
+	}
+
+	if req.GroupName == "" {
+		req.GroupName = models.Channel_KODING_NAME
+	}
+
+	//// first create the channel
+	c := models.NewPrivateMessageChannel(req.AccountId, req.GroupName)
+	if err := c.Create(); err != nil {
+		return helpers.NewBadRequestResponse(err)
+	}
+
+	cm := models.NewChannelMessage()
+	cm.Body = req.Body
+	cm.TypeConstant = models.ChannelMessage_TYPE_PRIVATE_MESSAGE
+	cm.AccountId = req.AccountId
+	cm.InitialChannelId = c.Id
+	if err := cm.Create(); err != nil {
+		return helpers.NewBadRequestResponse(err)
+	}
+
+	_, err := c.AddMessage(cm.Id)
+	if err != nil {
+		// todo this should be internal server error
+		return helpers.NewBadRequestResponse(err)
+	}
+
+	for _, participantId := range req.Recepients {
+		_, err := c.AddParticipant(participantId)
+		if err != nil {
+			return helpers.NewBadRequestResponse(err)
+		}
+	}
+
+	cmc := models.NewChannelContainer()
+	cmc.Channel = *c
+	cmc.IsParticipant = true
+	cmc.LastMessage = cm
+	cmc.ParticipantCount = len(req.Recepients)
+	cmc.ParticipantsPreview = req.Recepients
+
+	return helpers.NewOKResponse(cmc)
+}
+
+func List(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface{}, error) {
+	q := helpers.GetQuery(u)
+
+	channels, err := getPrivateMessageChannels(q)
+	if err != nil {
+		return helpers.NewBadRequestResponse(err)
+	}
+
+	populatedChannels := models.PopulateChannelContainers(channels, q.AccountId)
+
+	for i, populatedChannel := range populatedChannels {
+		cp := models.NewChannelParticipant()
+		cp.ChannelId = populatedChannel.Channel.Id
+		cpList, err := cp.ListAccountIds(5)
+		if err != nil {
+			return helpers.NewBadRequestResponse(err)
+		}
+
+		populatedChannels[i].ParticipantsPreview = cpList
+
+		cm, err := populatedChannel.Channel.FetchLastMessage()
+		if err != nil {
+			return helpers.NewBadRequestResponse(err)
+		}
+		populatedChannels[i].LastMessage = cm
+	}
+
+	return helpers.NewOKResponse(populatedChannels)
+
+}
+
+func getPrivateMessageChannels(q *models.Query) ([]models.Channel, error) {
+	// build query for
+	c := models.NewChannel()
+	channelIds := make([]int64, 0)
+	rows, err := bongo.B.DB.Table(c.TableName()).
+		Select("api.channel_participant.channel_id").
+		Joins("left join api.channel_participant on api.channel_participant.channel_id = api.channel.id").
+		Where("api.channel_participant.account_id = ? and api.channel.type_constant = ? and  api.channel_participant.status_constant = ?", q.AccountId, models.Channel_TYPE_PRIVATE_MESSAGE, models.ChannelParticipant_STATUS_ACTIVE).
+		Limit(q.Limit).
+		Offset(q.Skip).
+		Rows()
+	defer rows.Close()
+	if err != nil {
+		return nil, err
+	}
+
+	var channelId int64
+	for rows.Next() {
+		rows.Scan(&channelId)
+		channelIds = append(channelIds, channelId)
+	}
+
+	channels, err := c.FetchByIds(channelIds)
+	if err != nil {
+		return nil, err
+	}
+
+	return channels, nil
+}
