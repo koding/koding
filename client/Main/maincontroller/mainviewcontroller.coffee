@@ -14,6 +14,9 @@ class MainViewController extends KDViewController
     @registerSingleton 'mainViewController', this, yes
     @registerSingleton 'mainView', mainView, yes
 
+    mainView.on 'MainTabPaneShown', (pane) =>
+      @mainTabPaneChanged mainView, pane
+
     appManager.on 'AppIsBeingShown', (controller)=>
       @setBodyClass KD.utils.slugify controller.getOption 'name'
 
@@ -71,8 +74,6 @@ class MainViewController extends KDViewController
 
   loadView:(mainView)->
 
-    mainView.mainTabView.on "MainTabPaneShown", (pane)=>
-      @mainTabPaneChanged mainView, pane
 
   mainTabPaneChanged:(mainView, pane)->
 
