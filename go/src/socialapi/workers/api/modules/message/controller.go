@@ -90,19 +90,43 @@ func Update(u *url.URL, h http.Header, req *models.ChannelMessage) (int, http.He
 	return helpers.NewOKResponse(req)
 }
 
-func Get(u *url.URL, h http.Header, req *models.ChannelMessage) (int, http.Header, interface{}, error) {
+func Get(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface{}, error) {
 	id, err := helpers.GetURIInt64(u, "id")
 	if err != nil {
 		return helpers.NewBadRequestResponse(err)
 	}
 
-	req.Id = id
-	if err := req.Fetch(); err != nil {
+	cm := models.NewChannelMessage()
+	cm.Id = id
+	if err := cm.Fetch(); err != nil {
 		if err == gorm.RecordNotFound {
 			return helpers.NewNotFoundResponse()
 		}
 		return helpers.NewBadRequestResponse(err)
 	}
 
-	return helpers.NewOKResponse(req)
+	return helpers.NewOKResponse(cm)
+}
+
+func GetWithRelated(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface{}, error) {
+	id, err := helpers.GetURIInt64(u, "id")
+	if err != nil {
+		return helpers.NewBadRequestResponse(err)
+	}
+
+	cm := models.NewChannelMessage()
+	cm.Id = id
+	if err := cm.Fetch(); err != nil {
+		if err == gorm.RecordNotFound {
+			return helpers.NewNotFoundResponse()
+		}
+		return helpers.NewBadRequestResponse(err)
+	}
+
+	cmc, err := cm.BuildMessage()
+	if err != nil {
+		return helpers.NewBadRequestResponse(err)
+	}
+
+	return helpers.NewOKResponse(cmc)
 }
