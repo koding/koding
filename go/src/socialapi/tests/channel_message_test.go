@@ -275,24 +275,29 @@ func TestChannelMessage(t *testing.T) {
 
 			})
 
-			Convey("while deleting message replies should be deleted", func() {
-				// 	post, err := createPost(groupChannel.Id, account.Id)
-				// 	So(err, ShouldBeNil)
-				// 	So(post, ShouldNotBeNil)
+			Convey("while deleting message, also replies should be deleted", func() {
+				post, err := createPost(groupChannel.Id, account.Id)
+				So(err, ShouldBeNil)
+				So(post, ShouldNotBeNil)
 
-				// 	fmt.Println(post.Id, account.Id, nonOwnerAccount.Id)
-				// 	reply, err := addReply(post.Id, nonOwnerAccount.Id)
-				// 	So(err, ShouldBeNil)
-				// 	So(reply, ShouldNotBeNil)
+				reply1, err := addReply(post.Id, nonOwnerAccount.Id)
+				So(err, ShouldBeNil)
+				So(reply1, ShouldNotBeNil)
 
-				// 	So(reply.AccountId, ShouldEqual, nonOwnerAccount.Id)
+				reply2, err := addReply(post.Id, nonOwnerAccount.Id)
+				So(err, ShouldBeNil)
+				So(reply2, ShouldNotBeNil)
 
-				// 	err = addInteraction("like", reply.Id, nonOwnerAccount.Id)
-				// 	So(err, ShouldBeNil)
+				err = deletePost(post.Id, account.Id, groupName)
+				So(err, ShouldBeNil)
 
-				// 	cmc, err := getPostWithRelatedData(post.Id, account.Id, groupName)
-				// 	So(err, ShouldBeNil)
-				// 	So(cmc, ShouldNotBeNil)
+				cmc, err := getPostWithRelatedData(reply1.Id, account.Id, groupName)
+				So(err, ShouldNotBeNil)
+				So(cmc, ShouldBeNil)
+
+				cmc, err = getPostWithRelatedData(reply2.Id, account.Id, groupName)
+				So(err, ShouldNotBeNil)
+				So(cmc, ShouldBeNil)
 
 				// 	// it is liked by reply author, not post owner
 				// 	So(cmc.Interactions["like"].IsInteracted, ShouldBeFalse)
