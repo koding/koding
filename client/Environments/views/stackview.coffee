@@ -88,6 +88,8 @@ class StackView extends KDView
     {containers, connections} = @scene
     dump = {}
 
+    dump.config = "[...]"  if @getOptions().stack.meta?.config
+
     for i, container of containers
       name = EnvironmentScene.containerMap[container.constructor.name]
       dump[name] = []
