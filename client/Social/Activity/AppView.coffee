@@ -22,7 +22,6 @@ class ActivityAppView extends KDScrollView
     {entryPoint}      = KD.config
     {
       windowController
-      widgetController
       mainController
       appStorageController
     } = KD.singletons
@@ -46,12 +45,12 @@ class ActivityAppView extends KDScrollView
     @groupDescription = new GroupDescription
     @groupMembers     = new GroupMembers
 
-
-
-    widgetController.showWidgets [
-      { view: @topWidgetWrapper,  key: 'ActivityTop'  }
-      { view: @leftWidgetWrapper, key: 'ActivityLeft' }
-    ]
+    mainController.ready =>
+      {widgetController} = KD.singletons
+      widgetController.showWidgets [
+        { view: @topWidgetWrapper,  key: 'ActivityTop'  }
+        { view: @leftWidgetWrapper, key: 'ActivityLeft' }
+      ]
 
     @inputWidget.on 'ActivitySubmitted', @bound 'activitySubmitted'
     mainController.on 'AccountChanged', @bound "decorate"
