@@ -57,9 +57,9 @@ class MainController extends KDController
 
 
     @createMainViewController()
-    router.listen()
 
     @ready =>
+      router.listen()
       KD.registerSingleton "widgetController",        new WidgetController
       KD.registerSingleton "kodingAppsController",    new KodingAppsController
       KD.registerSingleton "onboardingController",    new OnboardingController
@@ -73,7 +73,7 @@ class MainController extends KDController
 
   accountChanged:(account, firstLoad = no)->
     account = KD.remote.revive account  unless account instanceof KD.remote.api.JAccount
-    @userAccount             = account
+    KD.userAccount = account
     connectedState.connected = yes
 
     @on "pageLoaded.as.loggedIn", (account)-> # ignore othter parameters

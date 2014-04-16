@@ -235,10 +235,11 @@ KD.extend
   logout:->
     mainController = KD.getSingleton('mainController')
     mainController.isLoggingIn on
-    delete mainController?.userAccount
+    delete KD.userAccount
 
   isGuest:-> not KD.isLoggedIn()
-  isLoggedIn:-> KD.whoami()?.type isnt 'unregistered'
+
+  isLoggedIn:-> KD.whoami()?.type is 'registered'
 
   isMine:(account)-> KD.whoami().profile.nickname is account.profile.nickname
 
