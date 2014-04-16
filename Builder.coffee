@@ -296,9 +296,12 @@ module.exports = class Builder
               while match = r.exec source
                 js += "\nKD.classes." + match[1] + " = " + match[1] + ";"
 
-            # EXCEPTION FOR POSTOPERATIONS
-            if /^client\/PostOperations/.test file.sourcePath
-              js += "KD.config.apps=#{@getProjects()}\n"
+            # EXCEPTION
+            # registering app names to KD.config
+            # so that we know all the available apps
+            # before even loading their sources
+            if /^client\/Main\/main\.coffee/.test file.sourcePath
+              js = "\nKD.config.apps=#{@getProjects()};\n" + js
             # END OF EXCEPTION
 
           catch error
