@@ -171,7 +171,7 @@ class KodingAppsController extends KDController
 
     identifier = identifier.replace /\./g, '_'
     domId      = "internal-#{type}-#{identifier}"
-    vmName     = FSHelper.getVMNameFromPath url
+    vmName     = getVMNameFromPath url
     tagName    = type
 
     # Which means this is an invm-app
@@ -417,11 +417,13 @@ class KodingAppsController extends KDController
 
     .nodeify callback
 
+  getVMNameFromPath = (path)-> (/^\[([^\]]+)\]/g.exec path)?[1]
+
   @getAppInfoFromPath = (path, showWarning = no)->
 
     return  unless path
 
-    vm    = FSHelper.getVMNameFromPath path
+    vm    = getVMNameFromPath path
     path  = FSHelper.plainPath path
     reg   = /// ^\/home\/#{KD.nick()}\/Applications\/(.*)\.kdapp ///
     parts = reg.exec path
