@@ -76,9 +76,38 @@ func TestChannelMessage(t *testing.T) {
 
 				err = addInteraction("like", post.Id, post.AccountId)
 				So(err, ShouldBeNil)
+
+				cmc, err := getPostWithRelatedData(post.Id, post.AccountId, groupName)
+				So(err, ShouldBeNil)
+				So(cmc, ShouldNotBeNil)
+
+				// it is liked by author
+				So(cmc.Interactions["like"].IsInteracted, ShouldBeTrue)
+
+				// actor length should be 1
+				So(len(cmc.Interactions["like"].Actors), ShouldEqual, 1)
+
 			})
 
-			Convey("non-owner can like message", nil)
+			Convey("non-owner can like message", func() {
+				post, err := createPost(groupChannel.Id, account.Id)
+				So(err, ShouldBeNil)
+				So(post, ShouldNotBeNil)
+
+				err = addInteraction("like", post.Id, nonOwnerAccount.Id)
+				So(err, ShouldBeNil)
+
+				cmc, err := getPostWithRelatedData(post.Id, nonOwnerAccount.Id, groupName)
+				So(err, ShouldBeNil)
+				So(cmc, ShouldNotBeNil)
+
+				// it is liked by author
+				So(cmc.Interactions["like"].IsInteracted, ShouldBeTrue)
+
+				// actor length should be 1
+				So(len(cmc.Interactions["like"].Actors), ShouldEqual, 1)
+
+			})
 
 			Convey("owner can post reply to message", nil)
 
@@ -123,7 +152,7 @@ func updatePost(cm *models.ChannelMessage) (*models.ChannelMessage, error) {
 }
 
 func getPost(id int64, accountId int64, groupName string) (*models.ChannelMessage, error) {
-	url := fmt.Sprintf("/message/%d?accountId=%d&groupName=%s", id)
+	url := fmt.Sprintf("/message/%d?accountId=%d&groupName=%s", id, accountId, groupName)
 	cm := models.NewChannelMessage()
 	cmI, err := sendModel("GET", url, cm)
 	if err != nil {
@@ -132,8 +161,31 @@ func getPost(id int64, accountId int64, groupName string) (*models.ChannelMessag
 	return cmI.(*models.ChannelMessage), nil
 }
 
+func getPostWithRelatedData(id int64, accountId int64, groupName string) (*models.ChannelMessageContainer, error) {
+	url := fmt.Sprintf("/message/%d/related?accountId=%d&groupName=%s", id, accountId, groupName)
+	cm := models.NewChannelMessageContainer()
+	cmI, err := sendModel("GET", url, cm)
+	if err != nil {
+		return nil, err
+	}
+	return cmI.(*models.ChannelMessageContainer), nil
+}
+
 func deletePost(id int64, accountId int64, groupName string) error {
 	url := fmt.Sprintf("/message/%d?accountId=%d&groupName=%s", id, accountId, groupName)
 	_, err := sendRequest("DELETE", url, nil)
 	return err
+}
+
+func addInteraction(interactionType string, postId, accountId int64) error {
+	cm := models.NewInteraction()
+	cm.AccountId = accountId
+	cm.MessageId = postId
+
+	url := fmt.Sprintf("/message/%d/interaction/%s/add", postId, interactionType)
+	_, err := sendModel("POST", url, cm)
+	if err != nil {
+		return err
+	}
+	return nil
 }
