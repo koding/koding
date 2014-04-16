@@ -49,8 +49,7 @@ func Inject(mux *tigertonic.TrieServeMux) *tigertonic.TrieServeMux {
 	////////////////////////////////////////////////////////////////////////////////////
 	// tested
 	mux.Handle("POST", "/message/{id}/reply", handlerWrapper(reply.Create, "reply-create"))
-	// tested
-	mux.Handle("DELETE", "/message/{id}/reply/{replyId}", handlerWrapper(reply.Delete, "reply-delete"))
+
 	// tested
 	mux.Handle("GET", "/message/{id}/reply", handlerWrapper(reply.List, "reply-list"))
 
