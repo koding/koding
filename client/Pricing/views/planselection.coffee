@@ -20,7 +20,7 @@ class PricingPlanSelection extends JView
 
     @price     = new KDCustomHTMLView
       tagName  : "h5"
-      cssClass : "hidden"  if options.hidePrice
+      cssClass : if options.hidePrice then "hidden"
       partial  : "$#{options.slider.initialValue * options.unitPrice}/#{options.period}"
 
     options.slider         or= {}

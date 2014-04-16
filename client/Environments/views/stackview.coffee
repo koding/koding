@@ -232,7 +232,7 @@ class StackView extends KDView
   createHeaderElements: ->
     {stack} = @getOptions()
     group   = KD.getGroup().title
-    title   = "#{stack.meta.title} stack on #{group}"
+    title   = "#{stack.meta?.title or 'a'} stack on #{group}"
 
     @addSubView title = new KDView
       cssClass : 'stack-title'
@@ -281,7 +281,7 @@ class StackView extends KDView
     new EditorModal
       editor              :
         title             : "Stack Config Editor <span>(experimental)</span>"
-        content           : @getOptions().stack.meta.config or ""
+        content           : @getOptions().stack?.meta?.config or ""
         saveMessage       : "Stack config saved."
         saveFailedMessage : "Couldn't save your config"
         saveCallback      : @bound "saveConfig"

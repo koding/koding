@@ -33,20 +33,17 @@ module.exports = class JLocation extends Model
     JLocationState.all { countryCode }, (err, states)->
       if err
       then callback err
-      else callback null, states
-        .filter( (state) ->
-          !!state?.state
-        )
-        .map( (state) ->
-          state     : state.state
-          stateCode : state.stateCode
-        )
-        .reduce( (memo, value) ->
-          memo[value.stateCode] =
-            title: value.state
-            value: value.stateCode
-          return memo
-        , {} )
+      else callback null,
+        states.filter (state) -> !!state?.state
+          .map (state) ->
+            state     : state.state
+            stateCode : state.stateCode
+          .reduce (memo, value) ->
+            memo[value.stateCode] =
+              title: value.state
+              value: value.stateCode
+            return memo
+          , {}
 
   @importStates = secure (client, callback) ->
 

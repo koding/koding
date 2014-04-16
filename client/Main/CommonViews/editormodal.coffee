@@ -8,6 +8,7 @@ class EditorModal extends KDModalView
     options.height        = 400 # currently 400 for styling
     options.overlay      ?= yes
     options.overlayClick ?= no
+    options.editor       ?= {}
 
     super options, data
 

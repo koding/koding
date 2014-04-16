@@ -82,7 +82,7 @@ class MainController extends KDController
 
     (KD.getSingleton 'kontrol').reauthenticate()  if KD.useNewKites
 
-    account.fetchMyPermissionsAndRoles (err, permissions, roles)=>
+    account.fetchMyPermissionsAndRoles (err, { permissions, roles }) =>
       return warn err  if err
       KD.config.roles       = roles
       KD.config.permissions = permissions
