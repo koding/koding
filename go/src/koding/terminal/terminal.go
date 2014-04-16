@@ -83,12 +83,6 @@ func (t *Terminal) Run() {
 
 		errKite := "(error)"
 
-		defer func() {
-			if resultHostKite == errKite {
-				time.Sleep(time.Second) // penalty to avoid spamming
-			}
-		}()
-
 		var vm *virt.VM
 		if bson.IsObjectIdHex(correlationName) {
 			mongodbConn.Run("jVMs", func(c *mgo.Collection) error {
