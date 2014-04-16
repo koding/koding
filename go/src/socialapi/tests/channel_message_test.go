@@ -222,7 +222,6 @@ func TestChannelMessage(t *testing.T) {
 				So(err, ShouldBeNil)
 				So(post, ShouldNotBeNil)
 
-				fmt.Println(post.Id, account.Id, nonOwnerAccount.Id)
 				reply, err := addReply(post.Id, nonOwnerAccount.Id)
 				So(err, ShouldBeNil)
 				So(reply, ShouldNotBeNil)
@@ -299,27 +298,55 @@ func TestChannelMessage(t *testing.T) {
 				So(err, ShouldNotBeNil)
 				So(cmc, ShouldBeNil)
 
-				// 	// it is liked by reply author, not post owner
-				// 	So(cmc.Interactions["like"].IsInteracted, ShouldBeFalse)
-
-				// 	// we didnt like the post, we liked the reply
-				// 	So(len(cmc.Interactions["like"].Actors), ShouldEqual, 0)
-
-				// 	So(len(cmc.Replies), ShouldEqual, 1)
-
-				// 	// we liked the reply
-				// 	So(len(cmc.Replies[0].Interactions["like"].Actors), ShouldEqual, 1)
-
-				// 	So(cmc.Replies[0].Interactions["like"].IsInteracted, ShouldBeFalse)
 			})
+
 			Convey("while deleting message replies' likes should be deleted", func() {
+				post, err := createPost(groupChannel.Id, account.Id)
+				So(err, ShouldBeNil)
+				So(post, ShouldNotBeNil)
+
+				reply1, err := addReply(post.Id, nonOwnerAccount.Id)
+				So(err, ShouldBeNil)
+				So(reply1, ShouldNotBeNil)
+
+				reply2, err := addReply(post.Id, nonOwnerAccount.Id)
+				So(err, ShouldBeNil)
+				So(reply2, ShouldNotBeNil)
+
+				err = addInteraction("like", reply1.Id, account.Id)
+				So(err, ShouldBeNil)
+
+				err = addInteraction("like", reply2.Id, account.Id)
+				So(err, ShouldBeNil)
+
+				err = deletePost(post.Id, account.Id, groupName)
+				So(err, ShouldBeNil)
+
+				interactions, err := getInteractions("like", reply1.Id)
+				So(err, ShouldBeNil)
+				So(interactions, ShouldNotBeNil)
+
+				interactions, err = getInteractions("like", reply2.Id)
+				So(err, ShouldBeNil)
+				So(interactions, ShouldNotBeNil)
 
 			})
 
-			Convey("while deleting message message likes should be deleted", func() {
+			Convey("while deleting message, message likes should be deleted", func() {
+				post, err := createPost(groupChannel.Id, account.Id)
+				So(err, ShouldBeNil)
+				So(post, ShouldNotBeNil)
 
+				err = addInteraction("like", post.Id, account.Id)
+				So(err, ShouldBeNil)
+
+				err = deletePost(post.Id, account.Id, groupName)
+				So(err, ShouldBeNil)
+
+				interactions, err := getInteractions("like", post.Id)
+				So(err, ShouldBeNil)
+				So(interactions, ShouldNotBeNil)
 			})
-
 		})
 	})
 }
