@@ -84,12 +84,9 @@ module.exports = class Builder
 
     @buildFramework()
 
-    if @config.client.runtimeOptions.precompiledApi
-      exec 'coffee ./bongo-api-builder/build.coffee -o .build/api.js', =>
-        @buildAndWatchClient options
-    else
-      fs.writeFileSync '.build/api.js', '', 'utf-8'
+    exec 'coffee ./bongo-api-builder/build.coffee -o .build/api.js', =>
       @buildAndWatchClient options
+
 
 
   buildAndWatchClient: (options) ->

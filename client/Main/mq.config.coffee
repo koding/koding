@@ -6,8 +6,6 @@ KD.remote = new Bongo
 
   apiEndpoint: apiEndpoint
 
-  precompileApi: KD.config.precompiledApi ? no
-
   resourceName: KD.config.resourceName ? 'koding-social'
 
   getUserArea:-> KD.getSingleton('groupsController').getUserArea()
