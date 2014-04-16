@@ -300,7 +300,7 @@ class GroupsAppController extends AppController
       formData.requestType = formData.privacy
       formData.privacy     = 'private'
 
-    KD.remote.api.JGroup.create formData, (err, group)=>
+    KD.remote.api.JGroup.create formData, (err, { group })=>
       if err
         callback? err
         new KDNotificationView
