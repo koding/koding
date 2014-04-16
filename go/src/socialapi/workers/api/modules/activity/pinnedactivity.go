@@ -143,7 +143,7 @@ func ensurePinnedActivityChannel(accountId int64, groupName string) (*models.Cha
 		c.GroupName = groupName
 		c.Purpose = "Pinned Activity"
 		c.TypeConstant = models.Channel_TYPE_PINNED_ACTIVITY
-		c.PrivacyConstant = models.Channel_TYPE_PRIVATE
+		c.PrivacyConstant = models.Channel_PRIVACY_PRIVATE
 		if err := c.Create(); err != nil {
 			return nil, err
 		}
