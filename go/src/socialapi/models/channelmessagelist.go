@@ -62,6 +62,10 @@ func (c *ChannelMessageList) One(q *bongo.Query) error {
 	return bongo.B.One(c, c, q)
 }
 
+func (c *ChannelMessageList) Some(data interface{}, q *bongo.Query) error {
+	return bongo.B.Some(c, data, q)
+}
+
 func (c *ChannelMessageList) UnreadCount(cp *ChannelParticipant) (int, error) {
 	if cp.ChannelId == 0 {
 		return 0, errors.New("ChannelId is not set")
