@@ -32,7 +32,7 @@ class KitePlanListItemView extends KDListItemView
       partial: """
         <p class="title">#{title}</p>
         <p class="desc">#{description}</p>
-        <p class="price">#{KD.utils.formatMoney feeAmount}/#{feeUnit}</p>
+        <p class="price">#{KD.utils.formatMoney feeAmount / 100}/#{feeUnit}</p>
       """
 
     @addSubView @subscribeButton
