@@ -347,6 +347,7 @@ func TestChannelMessage(t *testing.T) {
 				So(err, ShouldBeNil)
 				So(interactions, ShouldNotBeNil)
 			})
+			Convey("while deleting messages, they should be removed from all channels", nil)
 		})
 	})
 }
