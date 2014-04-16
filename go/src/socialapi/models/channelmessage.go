@@ -172,3 +172,29 @@ func (c *ChannelMessage) FetchRelatives() (*ChannelMessageContainer, error) {
 	container.Interactions["like"] = interactionContainer
 	return container, nil
 }
+
+func (c *ChannelMessage) BuildMessage() (*ChannelMessageContainer, error) {
+	cmc, err := c.FetchRelatives()
+	if err != nil {
+		return nil, err
+	}
+
+	mr := NewMessageReply()
+	mr.MessageId = c.Id
+	replies, err := mr.List()
+	if err != nil {
+		return nil, err
+	}
+
+	populatedChannelMessagesReplies := make([]*ChannelMessageContainer, len(replies))
+	for rl := 0; rl < len(replies); rl++ {
+		cmrc, err := replies[rl].FetchRelatives()
+		if err != nil {
+			return nil, err
+		}
+		populatedChannelMessagesReplies[rl] = cmrc
+	}
+
+	cmc.Replies = populatedChannelMessagesReplies
+	return cmc, nil
+}
