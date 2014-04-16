@@ -18,6 +18,12 @@ type NotificationWorkerController struct {
 	rmqConn *amqp.Connection
 }
 
+type NotificationEvent struct {
+	RoutingKey string                 `json:"routingKey"`
+	Event      string                 `json:"event"`
+	Content    map[string]interface{} `json:"content"`
+}
+
 func (n *NotificationWorkerController) DefaultErrHandler(delivery amqp.Delivery, err error) {
 	n.log.Error("an error occured putting message back to queue", err)
 	// multiple false
