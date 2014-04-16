@@ -124,6 +124,27 @@ func (n *NotificationContent) FetchMapByIds(ids []int64) (map[int64]Notification
 	return ncMap, nil
 }
 
+func (n *NotificationContent) GetEventType() string {
+	switch n.TypeConstant {
+	case NotificationContent_TYPE_LIKE:
+		return "LikeIsAdded"
+	case NotificationContent_TYPE_COMMENT:
+		return "ReplyIsAdded"
+	case NotificationContent_TYPE_FOLLOW:
+		return "FollowHappened"
+	case NotificationContent_TYPE_JOIN:
+		return "GroupJoined"
+	case NotificationContent_TYPE_LEFT:
+		return "GroupLeft"
+	case NotificationContent_TYPE_UPVOTE:
+		return "undefined"
+	case NotificationContent_TYPE_DOWNVOTE:
+		return "undefined"
+	default:
+		return "undefined"
+	}
+}
+
 func CreateNotificationType(notificationType string) (Notifiable, error) {
 	switch notificationType {
 	case "like":
