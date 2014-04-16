@@ -164,31 +164,12 @@ func (c *ChannelMessageList) populateChannelMessages(channelMessages []ChannelMe
 
 	for i := 0; i < channelMessageCount; i++ {
 		cm := channelMessages[i]
-		cmc, err := cm.FetchRelatives()
+		cmc, err := cm.BuildMessage()
 		if err != nil {
 			return nil, err
 		}
 
 		populatedChannelMessages[i] = cmc
-
-		mr := NewMessageReply()
-		mr.MessageId = cm.Id
-		replies, err := mr.List()
-		if err != nil {
-			return nil, err
-		}
-
-		populatedChannelMessagesReplies := make([]*ChannelMessageContainer, len(replies))
-
-		for rl := 0; rl < len(replies); rl++ {
-			cmrc, err := replies[rl].FetchRelatives()
-			if err != nil {
-				return nil, err
-			}
-			populatedChannelMessagesReplies[rl] = cmrc
-		}
-		populatedChannelMessages[i].Replies = populatedChannelMessagesReplies
-
 	}
 	return populatedChannelMessages, nil
 
