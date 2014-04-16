@@ -95,7 +95,6 @@ func Get(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface{
 	if err != nil {
 		return helpers.NewBadRequestResponse(err)
 	}
-
 	cm := models.NewChannelMessage()
 	cm.Id = id
 	if err := cm.Fetch(); err != nil {
@@ -123,7 +122,7 @@ func GetWithRelated(u *url.URL, h http.Header, _ interface{}) (int, http.Header,
 		return helpers.NewBadRequestResponse(err)
 	}
 
-	cmc, err := cm.BuildMessage()
+	cmc, err := cm.BuildMessage(helpers.GetQuery(u))
 	if err != nil {
 		return helpers.NewBadRequestResponse(err)
 	}
