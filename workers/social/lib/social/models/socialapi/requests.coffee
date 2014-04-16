@@ -149,6 +149,13 @@ fetchPrivateMessages = (data, callback)->
   url = "#{SOCIAL_API_URL}/privatemessage/list"
   get url, data, callback
 
+listNotifications = (data, callback)->
+  if not data.accountId # or not data.groupName
+    return callback {message: "Request is not valid"}
+
+  url = "#{SOCIAL_API_URL}/notification/#{data.accountId}"
+  get url, data, callback
+
 post = (url, data, callback)->
   request
     url    : url
@@ -186,4 +193,5 @@ module.exports = {
   fetchMessage
   fetchChannelActivities
   fetchGroupChannels
+  listNotifications
 }
