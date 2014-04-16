@@ -29,7 +29,7 @@ class FinderController extends KDController
       partial  : "Ace Editor"
 
   getMountVMButton: ->
-    @uploaderPlaceholder = new KDButtonView
+    return new KDButtonView
       title    : "Mount other VMs"
       cssClass : "finder-mountvm clean-gray"
       callback : @bound 'showMountVMModal'
