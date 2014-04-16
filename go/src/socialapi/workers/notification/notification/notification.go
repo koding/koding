@@ -2,12 +2,14 @@ package notification
 
 import (
 	"encoding/json"
+	"fmt"
 	"github.com/koding/logging"
 	"github.com/koding/rabbitmq"
 	"github.com/koding/worker"
 	"github.com/streadway/amqp"
+	mongomodels "koding/db/models"
+	"koding/db/mongodb/modelhelper"
 	"socialapi/models"
-	// "fmt"
 )
 
 type Action func(*NotificationWorkerController, []byte) error
@@ -52,6 +54,8 @@ func NewNotificationWorkerController(rmq *rabbitmq.RabbitMQ, log logging.Logger)
 	routes := map[string]Action{
 		"api.message_reply_created": (*NotificationWorkerController).CreateReplyNotification,
 		"api.interaction_created":   (*NotificationWorkerController).CreateInteractionNotification,
+		"api.notification_created":  (*NotificationWorkerController).NotifyUser,
+		"api.notification_updated":  (*NotificationWorkerController).NotifyUser,
 	}
 
 	nwc.routes = routes
@@ -121,6 +125,20 @@ func (n *NotificationWorkerController) NotifyUser(data []byte) error {
 	}
 	defer channel.Close()
 }
+
+// fetchNotifierOldAccount fetches mongo account of a given new account id.
+// this function must be used under another file for further use
+func fetchNotifierOldAccount(accountId int64) (*mongomodels.Account, error) {
+	newAccount := models.NewAccount()
+	newAccount.Id = accountId
+	if err := newAccount.Fetch(); err != nil {
+		return nil, err
+	}
+
+	return modelhelper.GetAccountById(newAccount.OldId)
+
+}
+
 // copy/pasted from realtime package
 func mapMessageToMessageReply(data []byte) (*models.MessageReply, error) {
 	mr := models.NewMessageReply()
