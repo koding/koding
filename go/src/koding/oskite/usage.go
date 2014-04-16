@@ -126,8 +126,9 @@ func NewUsage(vos *virt.VOS, groupId string) (*Plan, error) {
 	// db.jVMs.find({"webHome":"foo", "groups": {$in:[{"id":ObjectId("5196fcb2bc9bdb0000000027")}]}})
 	query := func(c *mgo.Collection) error {
 		return c.Find(bson.M{
-			"webHome": vos.VM.WebHome,
-			"groups":  bson.M{"$in": []bson.M{bson.M{"id": bson.ObjectIdHex(groupId)}}},
+			"webHome":  vos.VM.WebHome,
+			"hostKite": bson.M{"$exists": true},
+			"groups":   bson.M{"$in": []bson.M{bson.M{"id": bson.ObjectIdHex(groupId)}}},
 		}).Iter().All(&vms)
 	}
 
@@ -174,7 +175,7 @@ func (p *Plan) checkLimits(username, groupId string) (*PlanResponse, error) {
 		resp.AlwaysOnVMs = quotaExceeded
 	}
 
-	if p.TotalVMs > plan.TotalVMs {
+	if p.TotalVMs >= plan.TotalVMs {
 		resp.TotalVMs = quotaExceeded
 	}
 
