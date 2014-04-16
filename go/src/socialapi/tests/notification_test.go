@@ -229,6 +229,7 @@ func TestNotificationCreation(t *testing.T) {
 			Convey("First user should be able to reply it again", func() {
 				replyMessage, err := addReply(firstMessage.Id, firstUser.Id)
 				ResultedWithNoErrorCheck(replyMessage, err)
+				time.Sleep(5 * time.Second) // waiting for async message
 			})
 
 			Convey("I should be able to receive notification", func() {
@@ -360,10 +361,6 @@ func TestNotificationCreation(t *testing.T) {
 		})
 
 	})
-
-}
-
-func TestLikeNotificationCreation(t *testing.T) {
 
 }
 
