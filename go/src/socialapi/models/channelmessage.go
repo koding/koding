@@ -75,6 +75,10 @@ func (c *ChannelMessage) One(q *bongo.Query) error {
 	return bongo.B.One(c, c, q)
 }
 
+func (c *ChannelMessage) Some(data interface{}, q *bongo.Query) error {
+	return bongo.B.Some(c, data, q)
+}
+
 func bodyLenCheck(body string) error {
 	if len(body) < config.Get().Limits.MessageBodyMinLen {
 		return fmt.Errorf("Message Body Length should be greater than %d, yours is %d ", config.Get().Limits.MessageBodyMinLen, len(body))
