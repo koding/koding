@@ -73,6 +73,10 @@ func (i *Interaction) AfterDelete() {
 	bongo.B.AfterDelete(i)
 }
 
+func (i *Interaction) Some(data interface{}, q *bongo.Query) error {
+	return bongo.B.Some(i, data, q)
+}
+
 func (i *Interaction) Delete() error {
 	if err := bongo.B.DB.
 		Where("message_id = ? and account_id = ?", i.MessageId, i.AccountId).
@@ -114,6 +118,26 @@ func (c *Interaction) List(interactionType string) ([]int64, error) {
 	// if err != nil && err != gorm.RecordNotFound {
 	// 	return nil, err
 	// }
+
+	return interactions, nil
+}
+
+func (c *Interaction) FetchAll(interactionType string) ([]Interaction, error) {
+	var interactions []Interaction
+
+	if c.MessageId == 0 {
+		return interactions, errors.New("ChannelId is not set")
+	}
+
+	selector := map[string]interface{}{
+		"message_id":    c.MessageId,
+		"type_constant": interactionType,
+	}
+
+	err := c.Some(&interactions, bongo.NewQS(selector))
+	if err != nil {
+		return interactions, err
+	}
 
 	return interactions, nil
 }
