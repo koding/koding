@@ -200,7 +200,7 @@ class IntroView extends JView
     @slider.setCss
       fontSize : Math.max Math.min( (sizes.w + sizes.h) / 80, parseFloat 20 ), parseFloat 12
 
-KD.introView = new IntroView
-KD.introView.appendToDomBody()
+# KD.introView = new IntroView
+# KD.introView.appendToDomBody()
 
-KD.utils.defer -> KD.introView.setClass 'in'
+# KD.utils.defer -> KD.introView.setClass 'in'

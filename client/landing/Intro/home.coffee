@@ -249,7 +249,7 @@ class HomePage extends JView
       </footer>
     """
 
-KD.introView = new HomePage
+# KD.introView = new HomePage
 
-if location.hash in ['#!/Home', '/', '']
-  KD.introView.show()
+# if location.hash in ['#!/Home', '/', '']
+#   KD.introView.show()
