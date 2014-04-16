@@ -44,6 +44,8 @@ func Send(u *url.URL, h http.Header, req *models.PrivateMessageRequest) (int, ht
 		return helpers.NewBadRequestResponse(err)
 	}
 
+	// append creator to the recepients
+	req.Recepients = append(req.Recepients, req.AccountId)
 	for _, participantId := range req.Recepients {
 		_, err := c.AddParticipant(participantId)
 		if err != nil {
