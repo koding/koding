@@ -13,9 +13,10 @@ import (
 type Action func(*NotificationWorkerController, []byte) error
 
 type NotificationWorkerController struct {
-	routes  map[string]Action
-	log     logging.Logger
-	rmqConn *amqp.Connection
+	routes          map[string]Action
+	log             logging.Logger
+	rmqConn         *amqp.Connection
+	notifierRmqConn *amqp.Connection
 }
 
 type NotificationEvent struct {
@@ -37,9 +38,15 @@ func NewNotificationWorkerController(rmq *rabbitmq.RabbitMQ, log logging.Logger)
 		return nil, err
 	}
 
+	notifierRmqConn, err := rmq.Connect("NotifierWorkerController")
+	if err != nil {
+		return nil, err
+	}
+
 	nwc := &NotificationWorkerController{
-		log:     log,
-		rmqConn: rmqConn.Conn(),
+		log:             log,
+		rmqConn:         rmqConn.Conn(),
+		notifierRmqConn: notifierRmqConn.Conn(),
 	}
 
 	routes := map[string]Action{
@@ -106,6 +113,14 @@ func (n *NotificationWorkerController) CreateInteractionNotification(data []byte
 	return nil
 }
 
+func (n *NotificationWorkerController) NotifyUser(data []byte) error {
+	channel, err := n.notifierRmqConn.Channel()
+	if err != nil {
+		// change this with log
+		return fmt.Errorf("channel connection error")
+	}
+	defer channel.Close()
+}
 // copy/pasted from realtime package
 func mapMessageToMessageReply(data []byte) (*models.MessageReply, error) {
 	mr := models.NewMessageReply()
