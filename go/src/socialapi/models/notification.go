@@ -205,7 +205,7 @@ func populateActors(listerId int64, ncList []NotificationContainer) ([]Notificat
 		}
 
 		n.LatestActors = actors.LatestActors
-		n.Count = actors.Count
+		n.ActorCount = actors.Count
 		result = append(result, n)
 	}
 	return result, nil

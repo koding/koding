@@ -11,7 +11,7 @@ type NotificationContainer struct {
 	Glanced      bool      `json:"glanced"`
 	LatestActors []int64   `json:"latestActors"`
 	UpdatedAt    time.Time `json:"updatedAt"`
-	Count        int       `json:"actorCount"`
+	ActorCount   int       `json:"actorCount"`
 }
 
 type ActorContainer struct {
