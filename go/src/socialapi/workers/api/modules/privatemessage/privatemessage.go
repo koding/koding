@@ -2,6 +2,7 @@ package privatemessage
 
 import (
 	"errors"
+	"fmt"
 	"net/http"
 	"net/url"
 	"socialapi/models"
@@ -76,13 +77,15 @@ func List(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface
 	for i, populatedChannel := range populatedChannels {
 		cp := models.NewChannelParticipant()
 		cp.ChannelId = populatedChannel.Channel.Id
+
+		// add participant preview
 		cpList, err := cp.ListAccountIds(5)
 		if err != nil {
 			return helpers.NewBadRequestResponse(err)
 		}
-
 		populatedChannels[i].ParticipantsPreview = cpList
 
+		// add last message of the channel
 		cm, err := populatedChannel.Channel.FetchLastMessage()
 		if err != nil {
 			return helpers.NewBadRequestResponse(err)
@@ -101,7 +104,14 @@ func getPrivateMessageChannels(q *models.Query) ([]models.Channel, error) {
 	rows, err := bongo.B.DB.Table(c.TableName()).
 		Select("api.channel_participant.channel_id").
 		Joins("left join api.channel_participant on api.channel_participant.channel_id = api.channel.id").
-		Where("api.channel_participant.account_id = ? and api.channel.type_constant = ? and  api.channel_participant.status_constant = ?", q.AccountId, models.Channel_TYPE_PRIVATE_MESSAGE, models.ChannelParticipant_STATUS_ACTIVE).
+		Where("api.channel_participant.account_id = ? and "+
+		"api.channel.group_name = ? and "+
+		"api.channel.type_constant = ? and "+
+		"api.channel_participant.status_constant = ?",
+		q.AccountId,
+		q.GroupName,
+		models.Channel_TYPE_PRIVATE_MESSAGE,
+		models.ChannelParticipant_STATUS_ACTIVE).
 		Limit(q.Limit).
 		Offset(q.Skip).
 		Rows()
