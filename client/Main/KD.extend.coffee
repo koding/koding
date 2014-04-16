@@ -230,7 +230,7 @@ KD.extend
 
   nick:-> KD.whoami().profile.nickname
 
-  whoami:-> KD.getSingleton('mainController').userAccount
+  whoami:-> KD.userAccount
 
   logout:->
     mainController = KD.getSingleton('mainController')
@@ -321,7 +321,7 @@ KD.extend
 
   runningInFrame: -> window.top isnt window.self
 
-  getGroup: -> (KD.getSingleton 'groupsController').getCurrentGroup()
+  getGroup: -> KD.currentGroup
 
   getReferralUrl: (username) ->
     "#{location.origin}/R/#{username}"
