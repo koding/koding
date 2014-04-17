@@ -55,11 +55,11 @@ class MainController extends KDController
     KD.registerSingleton "appStorageController",      new AppStorageController
     KD.registerSingleton "localSync",                 new LocalSyncController
 
+    router.listen()
 
     @createMainViewController()
 
     @ready =>
-      router.listen()
       KD.registerSingleton "widgetController",        new WidgetController
       KD.registerSingleton "kodingAppsController",    new KodingAppsController
       KD.registerSingleton "onboardingController",    new OnboardingController
