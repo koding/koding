@@ -105,7 +105,7 @@ class ActivityListHeader extends JView
     else clearInterval i
 
   pistachio:(newCount)->
-    unless KD.isLoggedIn "" else \
+    unless KD.isLoggedIn() then "" else \
     "{{> @lowQualitySwitch}} {{> @showNewItemsLink}} {{> @liveUpdateToggle}} {{> @feedFilterNav}}"
 
   newActivityArrived:->
