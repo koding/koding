@@ -7,4 +7,5 @@ do->
       break
 
     argsForMixpanel.username = KD.whoami()?.profile?.nickname
-    KD.remote.api.JPageHit.create argsForMixpanel, ->
+
+    KD.remote?.api.JPageHit.create argsForMixpanel, ->
