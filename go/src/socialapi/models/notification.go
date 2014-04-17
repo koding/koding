@@ -223,6 +223,18 @@ func (n *Notification) AfterDelete() {
 	bongo.B.AfterDelete(n)
 }
 
+func (n *Notification) Glance() error {
+	selector := map[string]interface{}{
+		"glanced": false,
+	}
+
+	set := map[string]interface{}{
+		"glanced": true,
+	}
+
+	return bongo.B.UpdateMulti(n, selector, set)
+}
+
 func getUnreadNotificationCount(notificationList []NotificationContainer) int {
 	unreadCount := 0
 	for _, nc := range notificationList {
