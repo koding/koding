@@ -55,7 +55,7 @@ module.exports = (options = {}, callback)->
 
     <script type="text/javascript">
       var _gaq = _gaq || [];
-      _gaq.push(['_setAccount', 'UA-6520910-21']);
+      _gaq.push(['_setAccount', 'UA-6520910-8']);
       _gaq.push(['_setDomainName', 'none']);
 
       _gaq.push(['_trackPageview']);
