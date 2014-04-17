@@ -243,8 +243,9 @@ func (c *ChannelParticipant) IsParticipant(accountId int64) (bool, error) {
 	}
 
 	selector := map[string]interface{}{
-		"channel_id": c.ChannelId,
-		"account_id": accountId,
+		"channel_id":      c.ChannelId,
+		"account_id":      accountId,
+		"status_constant": ChannelParticipant_STATUS_ACTIVE,
 	}
 
 	err := c.One(bongo.NewQS(selector))
