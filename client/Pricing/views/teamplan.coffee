@@ -5,7 +5,7 @@ class TeamPlan extends DeveloperPlan
     {paymentController, router} = KD.singletons
 
     paymentController.fetchActiveSubscription ["team-plan"], (err, subscription) =>
-      return KD.showError err  if err
+      return KD.showError err  if err and err.code isnt "no subscription"
       size  = @plans[@planIndex].size
       @emit "CurrentSubscriptionSet", subscription  if subscription
       @emit "PlanSelected", "tp#{size}",
