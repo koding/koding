@@ -10,12 +10,6 @@ class AceAppController extends AppController
     hiddenHandle  : no
     enforceLogin  : yes
     openWith      : "lastActive"
-    route         :
-      slug        : "/:name?/Ace"
-      handler     : ({params:{name}, query})->
-        router = KD.getSingleton 'router'
-        # warn "ace handling itself", name, query, arguments
-        router.openSection "Ace", name, query
     behavior      : "application"
     menu          : [
       { title     : "Save",                eventName : "save" }
