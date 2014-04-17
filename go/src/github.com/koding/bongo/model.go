@@ -296,7 +296,7 @@ func addSkip(query *gorm.DB, skip int) *gorm.DB {
 
 func addLimit(query *gorm.DB, limit int) *gorm.DB {
 	if limit > 0 {
-		query.Limit(limit)
+		return query.Limit(limit)
 	}
 
 	return query
