@@ -152,7 +152,7 @@ class HomeRegisterForm extends KDFormView
 
         new KDNotificationView
           cssClass  : "login"
-          title     : '<span></span>Good to go, Enjoy!'
+          title     : '<span></span>You're good to go, Enjoy!'
           # content   : 'Successfully registered!'
           duration  : 2000
 
