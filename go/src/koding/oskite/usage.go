@@ -75,18 +75,18 @@ type subscriptionResp struct {
 var (
 	// [N]x = [Nx2] CPU + [Nx2]GB Ram + [Nx10]GB Disk + [Nx10] Total VM + [N] Always On (devrim's forumla)
 	plans = map[string]Plan{
-		"free": {CPU: 1, RAM: 1000, Disk: 3000, TotalVMs: 5, AlwaysOnVMs: 0},
-		"1x":   {CPU: 2, RAM: 2000, Disk: 10000, TotalVMs: 10, AlwaysOnVMs: 1},
-		"2x":   {CPU: 4, RAM: 4000, Disk: 20000, TotalVMs: 20, AlwaysOnVMs: 2},
-		"3x":   {CPU: 6, RAM: 6000, Disk: 30000, TotalVMs: 30, AlwaysOnVMs: 3},
-		"4x":   {CPU: 8, RAM: 8000, Disk: 40000, TotalVMs: 40, AlwaysOnVMs: 4},
-		"5x":   {CPU: 10, RAM: 10000, Disk: 50000, TotalVMs: 50, AlwaysOnVMs: 5},
+		"free": {CPU: 1, RAM: 1024, Disk: 3072, TotalVMs: 5, AlwaysOnVMs: 0},
+		"1x":   {CPU: 2, RAM: 2048, Disk: 10240, TotalVMs: 10, AlwaysOnVMs: 1},
+		"2x":   {CPU: 4, RAM: 4096, Disk: 20480, TotalVMs: 20, AlwaysOnVMs: 2},
+		"3x":   {CPU: 6, RAM: 6144, Disk: 30720, TotalVMs: 30, AlwaysOnVMs: 3},
+		"4x":   {CPU: 8, RAM: 8192, Disk: 40960, TotalVMs: 40, AlwaysOnVMs: 4},
+		"5x":   {CPU: 10, RAM: 10240, Disk: 51200, TotalVMs: 50, AlwaysOnVMs: 5},
 
-		"10x":  {CPU: 20, RAM: 20000, Disk: 100000, TotalVMs: 100, AlwaysOnVMs: 10},
-		"25x":  {CPU: 50, RAM: 50000, Disk: 250000, TotalVMs: 250, AlwaysOnVMs: 25},
-		"50x":  {CPU: 100, RAM: 100000, Disk: 500000, TotalVMs: 500, AlwaysOnVMs: 50},
-		"75x":  {CPU: 150, RAM: 150000, Disk: 700000, TotalVMs: 750, AlwaysOnVMs: 75},
-		"100x": {CPU: 200, RAM: 200000, Disk: 1000000, TotalVMs: 1000, AlwaysOnVMs: 100},
+		"10x":  {CPU: 20, RAM: 20480, Disk: 102400, TotalVMs: 100, AlwaysOnVMs: 10},
+		"25x":  {CPU: 50, RAM: 51200, Disk: 256000, TotalVMs: 250, AlwaysOnVMs: 25},
+		"50x":  {CPU: 100, RAM: 102400, Disk: 512000, TotalVMs: 500, AlwaysOnVMs: 50},
+		"75x":  {CPU: 150, RAM: 153600, Disk: 768000, TotalVMs: 750, AlwaysOnVMs: 75},
+		"100x": {CPU: 200, RAM: 204800, Disk: 1024000, TotalVMs: 1000, AlwaysOnVMs: 100},
 	}
 
 	ErrQuotaExceeded = errors.New("ErrQuotaExceeded")
@@ -194,12 +194,14 @@ func (p *Plan) prepareLimits(username, groupId string) (*Limit, error) {
 	if sub.PlanName == "" {
 		return nil, errors.New("planName is empty")
 	}
-	fmt.Printf("sub %+v\n", sub)
 
 	plan, ok := plans[sub.PlanName]
 	if !ok {
 		return nil, errors.New("plan doesn't exist")
 	}
+
+	fmt.Printf("total	%+v\n", plan)
+	fmt.Printf("current	%+v\n", p)
 
 	lim := newLimit()
 	if p.AlwaysOnVMs > plan.AlwaysOnVMs {
@@ -226,8 +228,6 @@ func (p *Plan) prepareLimits(username, groupId string) (*Limit, error) {
 }
 
 func (l *Limit) check() error {
-	fmt.Printf("limits %+v\n", l)
-
 	if l.AlwaysOnVMs == LimitQuotaExceeded {
 		return &LimitError{Message: "AlwaysOnVMs limit reached.", Code: ErrQuotaExceeded.Error()}
 	}
