@@ -178,7 +178,6 @@ func (c *ChannelMessage) FetchRelatives(query *Query) (*ChannelMessageContainer,
 	return container, nil
 }
 
-<<<<<<< HEAD
 func (c *ChannelMessage) BuildMessage(query *Query) (*ChannelMessageContainer, error) {
 	cmc, err := c.FetchRelatives(query)
 	if err != nil {
@@ -259,6 +258,46 @@ func (c *ChannelMessage) FetchMessageReplies(p *bongo.Pagination, t time.Time) (
 	mr := NewMessageReply()
 	mr.MessageId = c.Id
 	return mr.FetchReplyIds(p, t)
+}
+
+func (c *ChannelMessage) FetchDistinctRepliers(messageReplyIds []int64, p *bongo.Pagination, count *int) ([]int64, error) {
+	rows, err := bongo.B.DB.Raw("SELECT account_id "+
+		"FROM "+c.TableName()+
+		" WHERE id IN (?) "+
+		"ORDER BY created_at DESC",
+		messageReplyIds).Rows()
+	if err != nil {
+		return nil, err
+	}
+
+	defer rows.Close()
+
+	limitReached := false
+
+	replierIds := make([]int64, 0)
+	*count = 0
+
+	// replier accounts are retrieved by streaming
+	accountMap := map[int64]struct{}{}
+	for rows.Next() {
+		var accountId int64
+		rows.Scan(&accountId)
+
+		// prevent replier duplication
+		if _, ok := accountMap[accountId]; !ok && accountId != c.AccountId {
+			accountMap[accountId] = struct{}{}
+			if !limitReached {
+				replierIds = append(replierIds, accountId)
+				if len(replierIds) == p.Limit {
+					limitReached = true
+				}
+			}
+
+			*count++
+		}
+	}
+
+	return replierIds, nil
 }
 
 func fetchDistinctAccounts(messages []ChannelMessage) []int64 {
