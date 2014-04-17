@@ -7,8 +7,16 @@ import (
 	"socialapi/models"
 	"socialapi/workers/api/modules/helpers"
 
+	"github.com/VerbalExpressions/GoVerbalExpressions"
 	"github.com/koding/bongo"
 )
+
+var mentionRegex = verbalexpressions.New().
+	Find("@").
+	BeginCapture().
+	Word().
+	EndCapture().
+	Regex()
 
 func Send(u *url.URL, h http.Header, req *models.PrivateMessageRequest) (int, http.Header, interface{}, error) {
 	if req.AccountId == 0 {
