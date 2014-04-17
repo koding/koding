@@ -65,6 +65,8 @@ module.exports = class JPost extends jraphical.Message
       'reply to posts'    : ['member', 'moderator']
       'like posts'        : ['member', 'moderator']
       'pin posts'         : ['member', 'moderator']
+      'send private message' : ['member', 'moderator']
+      'list private messages' : ['member', 'moderator']
     emitFollowingActivities: yes
     taggedContentRole : 'post'
     tagRole           : 'tag'
