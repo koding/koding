@@ -6,13 +6,9 @@ KD.logToExternal = (msg, args) ->
 
   {nickname} = KD.whoami().profile
 
-  if args?
-    args.msg  = msg
-    args.user = nickname
+  if args? then args.user = nickname
 
-    Rollbar.info args
-  else
-    Rollbar.info msg, user:nickname
+  Rollbar.info msg, args
 
 # log ping times so we know if failure was due to user's slow
 # internet or our internals timing out
