@@ -27,7 +27,6 @@ module.exports = (options = {}, callback)->
     encodedCustomPartial = JSON.stringify customPartial, replacer
     currentGroup         = JSON.stringify currentGroup
     userAccount          = JSON.stringify delegate
-    profile              = JSON.stringify delegate.profile
 
     usePremiumBroker = usePremiumBroker or options.client.context.group isnt "koding"
 
@@ -35,8 +34,6 @@ module.exports = (options = {}, callback)->
     <script>
       console.time("Framework loaded");
       console.time("Koding.com loaded");
-      console.time("singletons registered I");
-      console.time("singletons registered II");
     </script>
 
     <!-- SEGMENT.IO -->
@@ -52,7 +49,6 @@ module.exports = (options = {}, callback)->
     <script>KD.config.usePremiumBroker=#{usePremiumBroker}</script>
     <script>KD.customPartial=#{encodedCustomPartial}</script>
     <script>KD.campaignData=#{encodedCampaignData}</script>
-    <script>KD.profile=#{profile}</script>
     <script src='/a/js/kd.libs.#{KONFIG.version}.js'></script>
     <script src='/a/js/kd.#{KONFIG.version}.js'></script>
     <script src='/a/js/koding.#{KONFIG.version}.js'></script>
