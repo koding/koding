@@ -47,6 +47,24 @@ class SocialApiController extends KDController
       return callback err if err
       return callback null, mapChannels result
 
+  sendPrivateMessageRequest = (name, rest..., callback)->
+    KD.remote.api.SocialMessage[name] rest..., (err, result)->
+      return callback err if err
+      return callback null, mapPrivateMessages result
+
+  mapPrivateMessages = (messages)->
+    messages = [].concat(messages)
+    return [] unless messages?.length > 0
+
+    mappedMessages = []
+
+    for messageContainer in messages
+      message = mapActivity messageContainer.lastMessage
+      message.channel = mapChannels(messageContainer)[0]
+      mappedMessages.push message
+
+    return mappedMessages
+
   mapActivities = (messages)->
     # if no result, no need to do something
     return messages unless messages
@@ -68,6 +86,7 @@ class SocialApiController extends KDController
       m.repliesCount = message.replies.length or 0
       m.interactions = message.interactions
 
+      # todo- remove those event bindings
       m.on "MessageReplySaved", log
       m.on "update", log
 
@@ -88,12 +107,15 @@ class SocialApiController extends KDController
     return m
 
   mapChannels = (channels)->
+    return channels unless channels
     revivedChannels = []
+    channels = [].concat(channels)
     {SocialChannel} = KD.remote.api
     for channel in channels
       data = channel.channel
       data.isParticipant = channel.isParticipant
       data.participantCount = channel.participantCount
+      data.participantsPreview = channel.participantsPreview
 
       c = new SocialChannel data
       # until we create message id's
@@ -113,6 +135,10 @@ class SocialApiController extends KDController
     delete :(rest...)-> KD.remote.api.SocialMessage.delete rest...
     like   :(rest...)-> KD.remote.api.SocialMessage.like rest...
     unlike :(rest...)-> KD.remote.api.SocialMessage.unlike rest...
+    sendPrivateMessage :(rest...)->
+      sendPrivateMessageRequest 'sendPrivateMessage', rest...
+    fetchPrivateMessages :(rest...)->
+      sendPrivateMessageRequest 'fetchPrivateMessages', rest...
 
   channel:
     list                 : fetchChannels
