@@ -444,7 +444,7 @@ module.exports = class AuthWorker extends EventEmitter
                                    is serviceUniqueName)
     if matchingService?
       @sendAuthJoin params
-    else
+    else unless serviceUniqueName is "(error)"
       params.deadService = serviceUniqueName
       serviceInfo = @getNextServiceInfo serviceGenericName
       params.serviceUniqueName = serviceInfo.serviceUniqueName
