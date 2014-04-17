@@ -418,13 +418,13 @@ func (o *Oskite) vmPrepareAndStart(args *dnode.Partial, channel *kite.Channel, v
 		return nil, &kite.ArgumentError{Expected: "{ groupId: [string] }"}
 	}
 
-	usage, err := NewUsage(vos, params.GroupId)
+	usage, err := totalUsage(vos, params.GroupId)
 	if err != nil {
 		log.Info("usage -1 [%s] err: %v", vos.VM.HostnameAlias, err)
 		return nil, errors.New("usage couldn't be retrieved. please consult to support [1].")
 	}
 
-	limits, err := usage.checkLimits(channel.Username, params.GroupId)
+	limits, err := usage.prepareLimits(channel.Username, params.GroupId)
 	if err != nil {
 		// pass back endpoint err to client
 		if endpointErrs.Has(err) {
@@ -435,8 +435,8 @@ func (o *Oskite) vmPrepareAndStart(args *dnode.Partial, channel *kite.Channel, v
 		return nil, errors.New("usage couldn't be retrieved. please consult to support [2].")
 	}
 
-	if limits.TotalVMs != okString {
-		return nil, fmt.Errorf("%s", limits.TotalVMs) // returns quota exceeded
+	if err := limits.check(); err != nil {
+		return nil, err
 	}
 
 	err = o.validateVM(vos.VM)

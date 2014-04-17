@@ -16,6 +16,35 @@ import (
 	"labix.org/v2/mgo/bson"
 )
 
+type LimitState int
+
+const (
+	LimitOk LimitState = iota
+	LimitQuotaExceeded
+)
+
+type Limit struct {
+	CPU         LimitState `bson:"cpu"`
+	RAM         LimitState `bson:"ram"`  // Memory usage in MB
+	Disk        LimitState `bson:"disk"` // Disk in MB
+	TotalVMs    LimitState `bson:"totalVMs"`
+	AlwaysOnVMs LimitState `bson:"alwaysOnVMs"`
+}
+
+type LimitError struct {
+	Message string `json:"message"`
+	Code    string `json:"code"`
+}
+
+func (l *LimitError) Error() string {
+	out, err := json.Marshal(l)
+	if err != nil {
+		panic(err) // should never happen
+	}
+
+	return string(out)
+}
+
 type KiteStore struct {
 	Id       bson.ObjectId `bson:"_id"`
 	Name     string        `bson:"name"`
@@ -35,14 +64,6 @@ type Plan struct {
 	Disk        int `bson:"disk"` // Disk in MB
 	TotalVMs    int `bson:"totalVMs"`
 	AlwaysOnVMs int `bson:"alwaysOnVMs"`
-}
-
-type PlanResponse struct {
-	CPU         string `bson:"cpu"`
-	RAM         string `bson:"ram"`  // Memory usage in MB
-	Disk        string `bson:"disk"` // Disk in MB
-	TotalVMs    string `bson:"totalVMs"`
-	AlwaysOnVMs string `bson:"alwaysOnVMs"`
 }
 
 type subscriptionResp struct {
@@ -68,10 +89,11 @@ var (
 		"100x": {CPU: 200, RAM: 200000, Disk: 1000000, TotalVMs: 1000, AlwaysOnVMs: 100},
 	}
 
-	okString      = "ok"
-	quotaExceeded = "quota exceeded"
-	kiteCode      string
-	endpointErrs  = set.New(
+	ErrQuotaExceeded = errors.New("quota exceeded")
+
+	kiteCode string
+
+	endpointErrs = set.New(
 		errors.New("TOKEN_REQUIRED"),
 		errors.New("USERNAME_REQUIRED"),
 		errors.New("GROUPNAME_REQUIRED"),
@@ -84,13 +106,13 @@ var (
 	)
 )
 
-func NewPlanResponse() *PlanResponse {
-	return &PlanResponse{
-		CPU:         okString,
-		RAM:         okString,
-		Disk:        okString,
-		TotalVMs:    okString,
-		AlwaysOnVMs: okString,
+func newLimit() *Limit {
+	return &Limit{
+		CPU:         LimitOk,
+		RAM:         LimitOk,
+		Disk:        LimitOk,
+		TotalVMs:    LimitOk,
+		AlwaysOnVMs: LimitOk,
 	}
 }
 
@@ -107,16 +129,25 @@ func vmUsage(args *dnode.Partial, vos *virt.VOS, username string) (interface{}, 
 		return nil, &kite.ArgumentError{Expected: "{ groupId: [string] }"}
 	}
 
-	usage, err := NewUsage(vos, params.GroupId)
+	usage, err := totalUsage(vos, params.GroupId)
 	if err != nil {
 		log.Info("vm.usage [%s] err: %v", vos.VM.HostnameAlias, err)
 		return nil, errors.New("vm.usage couldn't be retrieved. please consult to support.")
 	}
 
-	return usage.checkLimits(username, params.GroupId)
+	limits, err := usage.prepareLimits(username, params.GroupId)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := limits.check(); err != nil {
+		return nil, err
+	}
+
+	return true, nil
 }
 
-func NewUsage(vos *virt.VOS, groupId string) (*Plan, error) {
+func totalUsage(vos *virt.VOS, groupId string) (*Plan, error) {
 	if !bson.IsObjectIdHex(groupId) {
 		return nil, fmt.Errorf("groupID %s is not valid hex representation", groupId)
 	}
@@ -153,7 +184,7 @@ func NewUsage(vos *virt.VOS, groupId string) (*Plan, error) {
 	return usage, nil
 }
 
-func (p *Plan) checkLimits(username, groupId string) (*PlanResponse, error) {
+func (p *Plan) prepareLimits(username, groupId string) (*Limit, error) {
 	sub, err := getSubscription(username, groupId)
 	if err != nil {
 		log.Warning("oskite checkLimits err: %v", err)
@@ -170,16 +201,50 @@ func (p *Plan) checkLimits(username, groupId string) (*PlanResponse, error) {
 		return nil, errors.New("plan doesn't exist")
 	}
 
-	resp := NewPlanResponse()
-	if p.AlwaysOnVMs >= plan.AlwaysOnVMs {
-		resp.AlwaysOnVMs = quotaExceeded
+	lim := newLimit()
+	if p.AlwaysOnVMs > plan.AlwaysOnVMs {
+		lim.AlwaysOnVMs = LimitQuotaExceeded
 	}
 
 	if p.TotalVMs >= plan.TotalVMs {
-		resp.TotalVMs = quotaExceeded
+		lim.TotalVMs = LimitQuotaExceeded
 	}
 
-	return resp, nil
+	if p.CPU >= plan.CPU {
+		lim.CPU = LimitQuotaExceeded
+	}
+
+	if p.RAM >= plan.RAM {
+		lim.RAM = LimitQuotaExceeded
+	}
+
+	if p.Disk >= plan.Disk {
+		lim.Disk = LimitQuotaExceeded
+	}
+
+	return lim, nil
+}
+
+func (l *Limit) check() error {
+	fmt.Printf("limits %+v\n", l)
+
+	if l.AlwaysOnVMs == LimitQuotaExceeded {
+		return &LimitError{Message: "AlwaysOnVMs limit reached.", Code: ErrQuotaExceeded.Error()}
+	}
+
+	if l.CPU == LimitQuotaExceeded {
+		return &LimitError{Message: "CPU limit reached", Code: ErrQuotaExceeded.Error()}
+	}
+
+	if l.Disk == LimitQuotaExceeded {
+		return &LimitError{Message: "Disk limit reached", Code: ErrQuotaExceeded.Error()}
+	}
+
+	if l.RAM == LimitQuotaExceeded {
+		return &LimitError{Message: "Ram limit reached", Code: ErrQuotaExceeded.Error()}
+	}
+
+	return nil
 }
 
 // getKiteCode returns the API token to be used with Koding's subscription

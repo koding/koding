@@ -257,20 +257,25 @@ func (o *Oskite) vmPrepareAndStartNew(r *kitelib.Request, vos *virt.VOS) (interf
 		return nil, &kite.ArgumentError{Expected: "{ groupId: [string] }"}
 	}
 
-	usage, err := NewUsage(vos, params.GroupId)
+	usage, err := totalUsage(vos, params.GroupId)
 	if err != nil {
 		log.Info("usage -1 [%s] err: %v", vos.VM.HostnameAlias, err)
 		return nil, errors.New("usage couldn't be retrieved. please consult to support.")
 	}
 
-	limits, err := usage.checkLimits(r.Username, params.GroupId)
+	limits, err := usage.prepareLimits(r.Username, params.GroupId)
 	if err != nil {
+		// pass back endpoint err to client
+		if endpointErrs.Has(err) {
+			return nil, err
+		}
+
 		log.Info("usage -2 [%s] err: %v", vos.VM.HostnameAlias, err)
-		return nil, errors.New("usage couldn't be retrieved. please consult to support.")
+		return nil, errors.New("usage couldn't be retrieved. please consult to support [2].")
 	}
 
-	if limits.TotalVMs != okString {
-		return nil, fmt.Errorf("%s", limits.TotalVMs) // returns quota exceeded
+	if err := limits.check(); err != nil {
+		return nil, err
 	}
 
 	err = o.validateVM(vos.VM)
