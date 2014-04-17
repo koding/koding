@@ -99,7 +99,7 @@ module.exports = class Builder
 
       @projectsToBuild[title] =
         title       : title
-        includes    : project.files
+        includes    : "#{project.path}/includes.coffee"
         subprojects : project.projects
         changed     : no
         fileTimes   : {}
