@@ -244,14 +244,11 @@ class KodingRouter extends KDRouter
     #     warn "FIXME Add tell to Login app ~ GG @ kodingrouter", formName
     #     # mainController.loginScreen.animateToForm formName
 
-    requireLogin =(fn)->
-      mainController.ready ->
-        if KD.isLoggedIn() then utils.defer fn
-        else clear()
+    requireLogin = (fn)->
+      if KD.isLoggedIn() then utils.defer fn else clear()
 
-    requireLogout =(fn)->
-      mainController.ready ->
-        unless KD.isLoggedIn() then utils.defer fn else clear()
+    requireLogout = (fn)->
+      unless KD.isLoggedIn() then utils.defer fn else clear()
 
     createSectionHandler = (sec)=>
       ({params:{name, slug}, query})=>
