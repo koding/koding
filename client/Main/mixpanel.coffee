@@ -31,6 +31,8 @@ KD.mixpanel = (args...)->
   me = KD.whoami()
   return  unless me
 
+  ga('send', 'event', args[0])
+
   me.fetchEmail (err, email)->
     console.log err  if err
 
