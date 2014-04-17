@@ -156,33 +156,29 @@ app.get "/-/subscription/check/:kiteToken?/:user?/:groupId?", (req, res) ->
         group.isMember account, (err, isMember) =>
           return res.send 401, err: "NOT_A_MEMBER_OF_GROUP"  if err or not isMember
 
-          account.fetchSubscriptions (err, subs) ->
-            return res.send 401, err: "NO_SUBSCRIPTION"  if err or not subs
+          kite.fetchPlans (err, plans) ->
+            return res.send 401, err: "KITE_HAS_NO_PLAN"  if err or not plans
 
-            kite.fetchPlans (err, plans) ->
-              if err or not plans
-                return res.send 401, err: "KITE_HAS_NO_PLAN"
+            planMap = {}
+            planMap[plan.planCode] = plan  for plan in plans
 
-              subsIds    = subs.map (sub) -> sub.planCode
-              userPlan   = {}
-              subscribed = no
+            targetOptions = selector: planCode: $in: (plan.planCode for plan in plans)
+            account.fetchSubscriptions null, {targetOptions}, (err, subscriptions) ->
+              return res.send 401, err: "NO_SUBSCRIPTION"  if err or not subscriptions
 
-              for plan in plans
-                {planCode, title} = plan.data
+              freeSubscription = null
+              paidSubscription = null
+              for item in subscriptions
+                if "nosync" in item.tags
+                  freeSubscription = item
+                else
+                  paidSubscription = item
 
-                if subsIds.indexOf(planCode) > -1
-                  subscribed = yes
-                  userPlan   =
-                    planId   : planCode
-                    planName : title
-
-              if subscribed then res.send 200, userPlan
+              subscription = paidSubscription or freeSubscription
+              if subscription
+                plan = planMap[subscription.planCode]
+                res.send 200, planId: plan.planCode, planName: plan.title
               else
-                if kite.name is "OsKite" # Find a better way to return free plan for os-kite
-                  freePlan = plan for plan in plans when plan.tags.indexOf("nosync") > -1
-                  {title, planCode} = freePlan
-                  return res.send 200, planName: title, planId: planCode
-
                 res.send 401, err: "NO_SUBSCRIPTION"
 
 app.get "/-/8a51a0a07e3d456c0b00dc6ec12ad85c", require './__notify-users'
