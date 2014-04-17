@@ -127,7 +127,7 @@ func NewUsage(vos *virt.VOS, groupId string) (*Plan, error) {
 	query := func(c *mgo.Collection) error {
 		return c.Find(bson.M{
 			"webHome":  vos.VM.WebHome,
-			"hostKite": bson.M{"$exists": true},
+			"hostKite": bson.M{"$ne": nil},
 			"groups":   bson.M{"$in": []bson.M{bson.M{"id": bson.ObjectIdHex(groupId)}}},
 		}).Iter().All(&vms)
 	}
