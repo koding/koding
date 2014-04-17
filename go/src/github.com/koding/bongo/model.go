@@ -148,6 +148,13 @@ type Pagination struct {
 	Skip  int
 }
 
+func NewPagination(limit int, skip int) Pagination {
+	return Pagination{
+		Limit: limit,
+		Skip:  skip,
+	}
+}
+
 func NewQS(selector map[string]interface{}) *Query {
 	return &Query{
 		Selector: selector,
@@ -275,19 +282,22 @@ func addWhere(query *gorm.DB, selector map[string]interface{}) *gorm.DB {
 	if selector == nil {
 		return query
 	}
+
 	return query.Where(selector)
 }
 
 func addSkip(query *gorm.DB, skip int) *gorm.DB {
 	if skip > 0 {
-		return query
+		return query.Offset(skip)
 	}
-	return query.Offset(skip)
+
+	return query
 }
 
 func addLimit(query *gorm.DB, limit int) *gorm.DB {
 	if limit > 0 {
-		return query
+		query.Limit(limit)
 	}
-	return query.Limit(limit)
+
+	return query
 }

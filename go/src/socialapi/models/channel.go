@@ -367,8 +367,8 @@ func (c *Channel) FetchLastMessage() (*ChannelMessage, error) {
 		Sort: map[string]string{
 			"added_at": "DESC",
 		},
-		Limit: 1,
-		Pluck: "message_id",
+		Pagination: bongo.NewPagination(1, 0),
+		Pluck:      "message_id",
 	}
 
 	var messageIds []int64

@@ -188,8 +188,8 @@ func (c *ChannelParticipant) ListAccountIds(limit int) ([]int64, error) {
 			"channel_id":      c.ChannelId,
 			"status_constant": ChannelParticipant_STATUS_ACTIVE,
 		},
-		Pluck: "account_id",
-		Limit: limit,
+		Pluck:      "account_id",
+		Pagination: bongo.NewPagination(1, 0),
 	}
 
 	err := bongo.B.Some(c, &participants, query)
