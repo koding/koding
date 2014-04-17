@@ -89,7 +89,7 @@ var (
 		"100x": {CPU: 200, RAM: 200000, Disk: 1000000, TotalVMs: 1000, AlwaysOnVMs: 100},
 	}
 
-	ErrQuotaExceeded = errors.New("quota exceeded")
+	ErrQuotaExceeded = errors.New("ErrQuotaExceeded")
 
 	kiteCode string
 
