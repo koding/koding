@@ -100,6 +100,7 @@ module.exports = class Builder
       @projectsToBuild[title] =
         title       : title
         includes    : "#{project.path}/includes.coffee"
+        routes      : "#{project.path}/routes.coffee"
         subprojects : project.projects
         changed     : no
         fileTimes   : {}
@@ -279,6 +280,15 @@ module.exports = class Builder
       when ".coffee", ".js"
         if file.extension is ".coffee"
           try
+
+            # registering routes just before application runs
+            # this is not the best place to put this
+            # assuming to refactor this soon
+            # by switching to a task manager - SY
+            isMainCoffee = /^client\/Main\/main\.coffee/.test file.sourcePath
+            if isMainCoffee
+              source = "\n#{@registerRoutes()}\n" + source
+
             result = CoffeeScript.compile source,
               filename: file.includePath
               sourceFiles: [file.includePath]
@@ -296,13 +306,11 @@ module.exports = class Builder
               while match = r.exec source
                 js += "\nKD.classes." + match[1] + " = " + match[1] + ";"
 
-            # EXCEPTION
             # registering app names to KD.config
             # so that we know all the available apps
             # before even loading their sources
-            if /^client\/Main\/main\.coffee/.test file.sourcePath
-              js = "\nKD.config.apps=#{@getProjects()};\n" + js
-            # END OF EXCEPTION
+            if isMainCoffee
+              js  = "\nKD.config.apps=#{@getProjects()};\n" + js
 
           catch error
             log.error "CoffeeScript Error in #{file.includePath}: #{(error.stack.split "\n")[0]}"
@@ -486,3 +494,17 @@ module.exports = class Builder
       delete apps[internal]
 
     return JSON.stringify apps
+
+  registerRoutes:->
+
+    routesSrc = ''
+
+    for own name, project of @projectsToBuild
+
+      if fs.existsSync project.routes
+        console.log "Routes added for \"#{name} App\""
+        routesSrc += fs.readFileSync project.routes, 'utf-8'
+      else
+        console.warn "No routes found for \"#{name} App\""
+
+    return routesSrc
