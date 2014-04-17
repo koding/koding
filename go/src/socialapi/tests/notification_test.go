@@ -23,23 +23,28 @@ func TestNotificationCreation(t *testing.T) {
 			Convey("We should be able to create accounts", func() {
 				var err error
 
-				ownerAccount.OldId = "5307f2ce1d10ce614e000003" //can
+				// ownerAccount.OldId = "5307f2ce1d10ce614e000003" //can
+				ownerAccount.OldId = AccountOldId.Hex()
 				ownerAccount, err = createAccount(ownerAccount)
 				ResultedWithNoErrorCheck(ownerAccount, err)
 
 				firstUser.OldId = "5196fcb0bc9bdb0000000011" //devrim
+				firstUser.OldId = AccountOldId2.Hex()
 				firstUser, err = createAccount(firstUser)
 				ResultedWithNoErrorCheck(firstUser, err)
 
-				secondUser.OldId = "5196fcb0bc9bdb0000000012" //sinan
+				// secondUser.OldId = "5196fcb0bc9bdb0000000012" //sinan
+				secondUser.OldId = AccountOldId3.Hex()
 				secondUser, err = createAccount(secondUser)
 				ResultedWithNoErrorCheck(secondUser, err)
 
-				thirdUser.OldId = "5196fcb0bc9bdb0000000013" //chris
+				// thirdUser.OldId = "5196fcb0bc9bdb0000000013" //chris
+				thirdUser.OldId = AccountOldId4.Hex()
 				thirdUser, err = createAccount(thirdUser)
 				ResultedWithNoErrorCheck(thirdUser, err)
 
-				forthUser.OldId = "5196fcb0bc9bdb0000000014" //richard
+				// forthUser.OldId = "5196fcb0bc9bdb0000000014" //richard
+				forthUser.OldId = AccountOldId5.Hex()
 				forthUser, err = createAccount(forthUser)
 				ResultedWithNoErrorCheck(forthUser, err)
 			})
