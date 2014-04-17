@@ -18,17 +18,17 @@ func TestPrivateMesssage(t *testing.T) {
 		So(err, ShouldBeNil)
 		So(account, ShouldNotBeNil)
 
-		recepient := models.NewAccount()
-		recepient.OldId = AccountOldId2.Hex()
-		recepient, err = createAccount(recepient)
+		recipient := models.NewAccount()
+		recipient.OldId = AccountOldId2.Hex()
+		recipient, err = createAccount(recipient)
 		So(err, ShouldBeNil)
-		So(recepient, ShouldNotBeNil)
+		So(recipient, ShouldNotBeNil)
 
-		recepient2 := models.NewAccount()
-		recepient2.OldId = AccountOldId3.Hex()
-		recepient2, err = createAccount(recepient2)
+		recipient2 := models.NewAccount()
+		recipient2.OldId = AccountOldId3.Hex()
+		recipient2, err = createAccount(recipient2)
 		So(err, ShouldBeNil)
-		So(recepient2, ShouldNotBeNil)
+		So(recipient2, ShouldNotBeNil)
 
 		groupName := "testgroup" + strconv.FormatInt(rand.Int63(), 10)
 
@@ -36,7 +36,7 @@ func TestPrivateMesssage(t *testing.T) {
 			cmc, err := sendPrivateMessage(
 				account.Id,
 				"this is a body for private message",
-				[]int64{recepient.Id},
+				[]int64{recipient.Id},
 				groupName,
 			)
 			So(err, ShouldBeNil)
@@ -59,7 +59,7 @@ func TestPrivateMesssage(t *testing.T) {
 			cmc, err := sendPrivateMessage(
 				account.Id,
 				"",
-				[]int64{recepient.Id},
+				[]int64{recipient.Id},
 				groupName,
 			)
 			So(err, ShouldNotBeNil)
@@ -69,7 +69,7 @@ func TestPrivateMesssage(t *testing.T) {
 			cmc, err := sendPrivateMessage(
 				account.Id,
 				"this is a body for private message",
-				[]int64{recepient.Id},
+				[]int64{recipient.Id},
 				"",
 			)
 			So(err, ShouldBeNil)
@@ -80,7 +80,7 @@ func TestPrivateMesssage(t *testing.T) {
 			cmc, err := sendPrivateMessage(
 				0,
 				"this is a body for private message",
-				[]int64{recepient.Id},
+				[]int64{recipient.Id},
 				"",
 			)
 			So(err, ShouldNotBeNil)
@@ -91,7 +91,7 @@ func TestPrivateMesssage(t *testing.T) {
 			cmc, err := sendPrivateMessage(
 				account.Id,
 				"this is a body for private message",
-				[]int64{recepient.Id, recepient2.Id},
+				[]int64{recipient.Id, recipient2.Id},
 				groupName,
 			)
 			So(err, ShouldBeNil)
@@ -102,7 +102,7 @@ func TestPrivateMesssage(t *testing.T) {
 			cmc, err := sendPrivateMessage(
 				account.Id,
 				"this is a body for private message",
-				[]int64{recepient.Id, recepient2.Id},
+				[]int64{recipient.Id, recipient2.Id},
 				groupName,
 			)
 			So(err, ShouldBeNil)
@@ -118,7 +118,7 @@ func TestPrivateMesssage(t *testing.T) {
 			cmc, err := sendPrivateMessage(
 				account.Id,
 				"this is a body for private message",
-				[]int64{recepient.Id, recepient2.Id},
+				[]int64{recipient.Id, recipient2.Id},
 				groupName,
 			)
 			So(err, ShouldBeNil)
@@ -130,7 +130,7 @@ func TestPrivateMesssage(t *testing.T) {
 			cmc, err := sendPrivateMessage(
 				account.Id,
 				"this is a body for private message",
-				[]int64{recepient.Id, recepient2.Id},
+				[]int64{recipient.Id, recipient2.Id},
 				groupName,
 			)
 			So(err, ShouldBeNil)
@@ -142,7 +142,7 @@ func TestPrivateMesssage(t *testing.T) {
 			cmc, err := sendPrivateMessage(
 				account.Id,
 				"this is a body for private message",
-				[]int64{recepient.Id, recepient2.Id},
+				[]int64{recipient.Id, recipient2.Id},
 				groupName,
 			)
 			So(err, ShouldBeNil)
@@ -155,7 +155,7 @@ func TestPrivateMesssage(t *testing.T) {
 			cmc, err := sendPrivateMessage(
 				account.Id,
 				body,
-				[]int64{recepient.Id, recepient2.Id},
+				[]int64{recipient.Id, recipient2.Id},
 				groupName,
 			)
 			So(err, ShouldBeNil)
@@ -172,7 +172,7 @@ func TestPrivateMesssage(t *testing.T) {
 			cmc, err := sendPrivateMessage(
 				account.Id,
 				body,
-				[]int64{recepient.Id, recepient2.Id},
+				[]int64{recipient.Id, recipient2.Id},
 				groupName,
 			)
 			So(err, ShouldBeNil)
@@ -197,12 +197,12 @@ func TestPrivateMesssage(t *testing.T) {
 	})
 }
 
-func sendPrivateMessage(senderId int64, body string, recepients []int64, groupName string) (*models.ChannelContainer, error) {
+func sendPrivateMessage(senderId int64, body string, recipients []int64, groupName string) (*models.ChannelContainer, error) {
 
 	pmr := models.PrivateMessageRequest{}
 	pmr.AccountId = senderId
 	pmr.Body = body
-	pmr.Recepients = recepients
+	pmr.Recipients = recipients
 	pmr.GroupName = groupName
 
 	url := "/privatemessage/send"
