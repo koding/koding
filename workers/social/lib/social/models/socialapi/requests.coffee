@@ -141,6 +141,13 @@ fetchFollowedChannels = (data, callback)->
   url = "#{SOCIAL_API_URL}/account/#{data.accountId}/channels"
   get url, data, callback
 
+sendPrivateMessage = (data, callback)->
+  url = "#{SOCIAL_API_URL}/privatemessage/send"
+  post url, data, callback
+
+fetchPrivateMessages = (data, callback)->
+  url = "#{SOCIAL_API_URL}/privatemessage/list"
+  get url, data, callback
 
 post = (url, data, callback)->
   request
@@ -159,6 +166,8 @@ get = (url, data, callback)->
   , wrapCallback callback
 
 module.exports = {
+  fetchPrivateMessages
+  sendPrivateMessage
   fetchFollowedChannels
   followTopic
   unfollowTopic
