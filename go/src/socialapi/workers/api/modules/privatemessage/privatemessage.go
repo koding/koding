@@ -2,7 +2,6 @@ package privatemessage
 
 import (
 	"errors"
-	"fmt"
 	"net/http"
 	"net/url"
 	"socialapi/models"
@@ -16,8 +15,8 @@ func Send(u *url.URL, h http.Header, req *models.PrivateMessageRequest) (int, ht
 		return helpers.NewBadRequestResponse(errors.New("AcccountId is not defined"))
 	}
 
-	if len(req.Recepients) == 0 {
-		return helpers.NewBadRequestResponse(errors.New("You should define your Recepients"))
+	if len(req.Recipients) == 0 {
+		return helpers.NewBadRequestResponse(errors.New("You should define your recipients"))
 	}
 
 	if req.GroupName == "" {
@@ -45,9 +44,9 @@ func Send(u *url.URL, h http.Header, req *models.PrivateMessageRequest) (int, ht
 		return helpers.NewBadRequestResponse(err)
 	}
 
-	// append creator to the recepients
-	req.Recepients = append(req.Recepients, req.AccountId)
-	for _, participantId := range req.Recepients {
+	// append creator to the recipients
+	req.Recipients = append(req.Recipients, req.AccountId)
+	for _, participantId := range req.Recipients {
 		_, err := c.AddParticipant(participantId)
 		if err != nil {
 			return helpers.NewBadRequestResponse(err)
@@ -58,8 +57,8 @@ func Send(u *url.URL, h http.Header, req *models.PrivateMessageRequest) (int, ht
 	cmc.Channel = *c
 	cmc.IsParticipant = true
 	cmc.LastMessage = cm
-	cmc.ParticipantCount = len(req.Recepients)
-	cmc.ParticipantsPreview = req.Recepients
+	cmc.ParticipantCount = len(req.Recipients)
+	cmc.ParticipantsPreview = req.Recipients
 
 	return helpers.NewOKResponse(cmc)
 }
