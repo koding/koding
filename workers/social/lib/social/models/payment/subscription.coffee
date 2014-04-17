@@ -239,7 +239,6 @@ module.exports = class JPaymentSubscription extends jraphical.Module
             memo
           , {})
 
-        op = {$set}
         op.$set.transactionLock = no
 
         @update op, (err) =>
