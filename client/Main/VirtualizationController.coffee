@@ -378,6 +378,7 @@ class VirtualizationController extends KDController
         useNewKites = info.isEnabled and Math.random() <= info.ratio
         KD.useNewKites = useNewKites
         localStorage.useNewKites = if useNewKites then "1" else "0"
+        KD.singletons.kontrol.reauthenticate()  if useNewKites
         resolve useNewKites
 
   handleFetchedVms: (vms, callback) ->
