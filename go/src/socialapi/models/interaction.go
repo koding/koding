@@ -95,11 +95,6 @@ func (c *Interaction) List(interactionType string) ([]int64, error) {
 	return c.FetchInteractorIds(&bongo.Pagination{})
 }
 
-func (i *Interaction) Some(data interface{}, q *bongo.Query) error {
-
-	return bongo.B.Some(i, data, q)
-}
-
 func (i *Interaction) FetchInteractorIds(p *bongo.Pagination) ([]int64, error) {
 	var interactorIds []int64
 	q := &bongo.Query{
