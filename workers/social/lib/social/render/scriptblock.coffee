@@ -61,7 +61,6 @@ module.exports = (options = {}, callback)->
     <script>
       var _gaq = _gaq || [];
       _gaq.push(['_setAccount', 'UA-6520910-8']);
-      _gaq.push(['_setDomainName', 'koding.com']);
       _gaq.push(['_trackPageview']);
       (function() {
         var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
