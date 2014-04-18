@@ -35,7 +35,7 @@ class AddFirewallRuleModal extends KDModalViewWithForms
     options.tabs              =
       callback                : @bound "handleFormSubmit"
       forms                   :
-        Restriction           :
+        Rules                 :
           buttons             :
             Save              :
               title           : "Save"
@@ -52,17 +52,17 @@ class AddFirewallRuleModal extends KDModalViewWithForms
             label             :
               itemClass       : KDCustomHTMLView
               cssClass        : "section-label first"
-              partial         : "Define your firewall restriction"
+              partial         : "Define your firewall rule"
             name              :
               label           : "Name"
               name            : "name"
               cssClass        : "half"
-              placeholder     : "Name of your restriction"
+              placeholder     : "Name of your rule"
               validate        :
                 rules         :
                   required    : yes
                 messages      :
-                  required    : "Please enter a restriction name"
+                  required    : "Please enter a rule name"
             action            :
               label           : "Action"
               name            : "action"
@@ -77,11 +77,11 @@ class AddFirewallRuleModal extends KDModalViewWithForms
                 rules         :
                   required    : yes
                 messages      :
-                  required    : "Please select a restriction type"
+                  required    : "Please select a action type"
             description       :
               itemClass       : KDCustomHTMLView
               cssClass        : "section-label second"
-              partial         : "<p>Add rules to your restriction</p>"
+              partial         : "<p>Add rules to your action</p>"
             container         :
               itemClass       : KDCustomHTMLView
 
@@ -97,36 +97,36 @@ class AddFirewallRuleModal extends KDModalViewWithForms
       cssClass  : "solid green small add-rule"
       callback  : @bound "createRuleWidget"
 
-    @modalTabs.forms.Restriction.buttonField.addSubView button, null, yes
+    @modalTabs.forms.Rules.buttonField.addSubView button, null, yes
 
   createRuleWidget: (removable = yes) ->
-    widget = new FirewallRuleWidget { removable }
-    widget.on "FirewallRuleRemoved", =>
+    widget = new FirewallFilterWidget { removable }
+    widget.on "FirewallFilterRemoved", =>
       @ruleWidgets.splice @ruleWidgets.indexOf(widget), 1
 
-    @modalTabs.forms.Restriction.fields.container.addSubView widget
+    @modalTabs.forms.Rules.fields.container.addSubView widget
     @ruleWidgets.push widget
 
   handleFormSubmit: ->
-    isValid        = yes
-    hasRequestRule = no
-    ruleTypes      = [ "request.second", "request.minute" ]
+    isValid          = yes
+    ruleTypes        = [ "request.second", "request.minute" ]
+    hasRequestFilter = no
 
     for widget in @ruleWidgets
       {type} = widget.inputs
       if ruleTypes.indexOf(type.getValue()) > -1
-        isValid = no  if hasRequestRule
-        hasRequestRule = yes
+        isValid = no  if hasRequestFilter
+        hasRequestFilter = yes
 
     unless isValid
       return new KDNotificationView
-        title     : "You can select only one request type rule"
+        title     : "You can select only one request type filter"
         cssClass  : "error"
         type      : "mini"
         container : this
         duration  : 4000
 
-class FirewallRuleWidget extends KDFormViewWithFields
+class FirewallFilterWidget extends KDFormViewWithFields
 
   constructor: (options = {}, data) ->
 
@@ -146,7 +146,7 @@ class FirewallRuleWidget extends KDFormViewWithFields
           rules        :
             required   : yes
           messages     :
-            required   : "Please select a rule type"
+            required   : "Please select a filter type"
       value            :
         label          : "Value"
         name           : "value"
@@ -155,12 +155,12 @@ class FirewallRuleWidget extends KDFormViewWithFields
           rules        :
             required   : yes
           messages     :
-            required   : "Please select a rule type"
+            required   : "Please select a filter type"
       remove           :
         itemClass      : KDCustomHTMLView
         cssClass       : "delete-button half"
         click          : =>
-          @emit "FirewallRuleRemoved"
+          @emit "FirewallFilterRemoved"
           @destroy()
 
     unless options.removable
