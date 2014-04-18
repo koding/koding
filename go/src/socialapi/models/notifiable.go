@@ -167,3 +167,45 @@ func (n *ReplyNotification) SetListerId(listerId int64) {
 func NewReplyNotification() *ReplyNotification {
 	return &ReplyNotification{}
 }
+
+type FollowNotification struct {
+	// followed account
+	FolloweeId int64
+	ListerId   int64
+	// follower account
+	FollowerId int64
+}
+
+func (n *FollowNotification) GetNotifiedUsers() ([]int64, error) {
+	users := make([]int64, 0)
+	return append(users, n.FolloweeId), nil
+}
+
+func (n *FollowNotification) GetType() string {
+	return NotificationContent_TYPE_FOLLOW
+}
+
+func (n *FollowNotification) GetTargetId() int64 {
+	return n.FollowerId
+}
+
+func (n *FollowNotification) FetchActors() (*ActorContainer, error) {
+	ac := NewActorContainer()
+
+	ac.LatestActors = append(ac.LatestActors, n.FollowerId)
+	ac.Count = len(ac.LatestActors)
+
+	return ac, nil
+}
+
+func (n *FollowNotification) SetTargetId(targetId int64) {
+	n.FollowerId = targetId
+}
+
+func (n *FollowNotification) SetListerId(listerId int64) {
+	n.ListerId = listerId
+}
+
+func NewFollowNotification() *FollowNotification {
+	return &FollowNotification{}
+}
