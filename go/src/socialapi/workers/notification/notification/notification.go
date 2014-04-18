@@ -30,10 +30,9 @@ type NotificationEvent struct {
 }
 
 func (n *NotificationWorkerController) DefaultErrHandler(delivery amqp.Delivery, err error) {
-	n.log.Error("an error occured putting message back to queue", err)
-	// multiple false
-	// reque true
-	delivery.Nack(false, true)
+	n.log.Error("an error occured: %s", err)
+
+	delivery.Ack(false)
 }
 
 func NewNotificationWorkerController(rmq *rabbitmq.RabbitMQ, log logging.Logger) (*NotificationWorkerController, error) {
