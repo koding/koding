@@ -278,6 +278,12 @@ module.exports = [
   "VirtualizationController.coffee",
   "CommonViews/modalappslistitemview.coffee",
 
+  # these are generated dependencies
+  # do not delete they're ignored in git
+  # created in compile time.
+  "__generatedapps__.coffee",
+  "__generatedroutes__.coffee",
+
   "status.coffee",
   "main.coffee",
   "rollbar.coffee",
