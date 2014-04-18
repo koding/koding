@@ -50,11 +50,13 @@ module.exports = class SocialNotification extends Base
   @glance = permit 'list notifications',
     success: (client, callback) ->
       {connection:{delegate}} = client
-      {listNotifications} = require './requests'
       {glanceNotifications} = require './requests'
       delegate.createSocialApiId (err, socialApiId) ->
         return callback err  if err
-        glanceNotifications socialApiId, callback
+        glanceNotifications socialApiId, (err, response) ->
+          return callback err  if err
+          return callback {message: "socialapi response error"}  unless response.status
+          callback()
 
   decorateNotifications = (notifications) ->
     notifications = [].concat(notifications)
