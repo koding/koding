@@ -7,7 +7,6 @@ import (
 type NotificationContainer struct {
 	TypeConstant string    `json:"typeConstant"`
 	TargetId     int64     `json:"targetId"`
-	Content      string    `json:"content"`
 	Glanced      bool      `json:"glanced"`
 	LatestActors []int64   `json:"latestActors"`
 	UpdatedAt    time.Time `json:"updatedAt"`
