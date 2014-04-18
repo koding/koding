@@ -1,6 +1,7 @@
 package notification
 
 import (
+	"github.com/jinzhu/gorm"
 	"net/http"
 	"net/url"
 	"socialapi/models"
@@ -11,6 +12,10 @@ func List(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface
 	n := models.NewNotification()
 	list, err := n.List(helpers.GetQuery(u))
 	if err != nil {
+		if err == gorm.RecordNotFound {
+			return helpers.NewNotFoundResponse()
+		}
+
 		return helpers.NewBadRequestResponse(err)
 	}
 
@@ -19,6 +24,10 @@ func List(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface
 
 func Glance(u *url.URL, h http.Header, req *models.Notification) (int, http.Header, interface{}, error) {
 	if err := req.Glance(); err != nil {
+		if err == gorm.RecordNotFound {
+			return helpers.NewNotFoundResponse()
+		}
+
 		return helpers.NewBadRequestResponse(err)
 	}
 
