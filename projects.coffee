@@ -6,19 +6,19 @@ versionFile = nodePath.join(__dirname, 'VERSION')
 if fs.existsSync versionFile
   version = (fs.readFileSync versionFile, 'utf-8').trim()
 
-KODING_VERSION    = version ? "0.0.1"
+KODING_VERSION = version ? "0.0.1"
 
-projects      =
+projects =
 
-  KDBackend   :
-    path      : "client/Bongo"
-    script    : "website/a/js/bongo.#{KODING_VERSION}.js"
+  KDBackend       :
+    path          : "client/Bongo"
+    script        : "website/a/js/bongo.#{KODING_VERSION}.js"
     sourceMapRoot : "Bongo/"
 
-  KDMainApp   :
-    path      : "client/Main"
-    style     : "website/a/css/__kdapp.#{KODING_VERSION}.css"
-    script    : "website/a/js/__kdapp.#{KODING_VERSION}.js"
+  KDMainApp       :
+    path          : "client/Main"
+    style         : "website/a/css/__kdapp.#{KODING_VERSION}.css"
+    script        : "website/a/js/__kdapp.#{KODING_VERSION}.js"
     sourceMapRoot : "Main/"
 
   Activity        :
