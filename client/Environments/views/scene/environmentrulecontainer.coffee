@@ -33,6 +33,7 @@ class AddFirewallRuleModal extends KDModalViewWithForms
     options.width             = 630
     options.height            = "auto"
     options.tabs              =
+      callback                : @bound "handleFormSubmit"
       forms                   :
         Restriction           :
           buttons             :
@@ -41,6 +42,7 @@ class AddFirewallRuleModal extends KDModalViewWithForms
               style           : "solid green compact"
               loader          :
                 color         : "#444444"
+              type            : "submit"
               callback        : -> @hideLoader()
             Cancel            :
               title           : "Cancel"
@@ -105,6 +107,24 @@ class AddFirewallRuleModal extends KDModalViewWithForms
     @modalTabs.forms.Restriction.fields.container.addSubView widget
     @ruleWidgets.push widget
 
+  handleFormSubmit: ->
+    isValid        = yes
+    hasRequestRule = no
+    ruleTypes      = [ "request.second", "request.minute" ]
+
+    for widget in @ruleWidgets
+      {type} = widget.inputs
+      if ruleTypes.indexOf(type.getValue()) > -1
+        isValid = no  if hasRequestRule
+        hasRequestRule = yes
+
+    unless isValid
+      return new KDNotificationView
+        title     : "You can select only one request type rule"
+        cssClass  : "error"
+        type      : "mini"
+        container : this
+        duration  : 4000
 
 class FirewallRuleWidget extends KDFormViewWithFields
 
