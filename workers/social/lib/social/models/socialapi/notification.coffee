@@ -1,6 +1,7 @@
 Bongo          = require "bongo"
 {Relationship} = require "jraphical"
 request        = require 'request'
+KodingError    = require '../../error'
 
 {secure, race, signature, Base} = Bongo
 {uniq} = require 'underscore'
@@ -17,6 +18,8 @@ module.exports = class SocialNotification extends Base
           (signature Function)
         glance        :
           (signature Function)
+        follow        :
+          (signature Object, Function)
     permissions :
       'list notifications': ['member', 'moderator']
     schema             :
@@ -54,6 +57,20 @@ module.exports = class SocialNotification extends Base
       delegate.createSocialApiId (err, socialApiId) ->
         return callback err  if err
         glanceNotifications socialApiId, (err, response) ->
+          return callback err  if err
+          return callback {message: "socialapi response error"}  unless response.status
+          callback()
+
+  @follow = secure (client, followee, callback)->
+    {connection:{delegate}} = client
+    return callback new KodingError "Access denied"  if delegate.type isnt 'registered'
+
+    delegate.createSocialApiId (err, followerId) ->
+      return callback err  if err
+      followee.createSocialApiId (err, followeeId) ->
+        return callback err  if err
+        {followNotification} = require './requests'
+        followNotification {followerId, followeeId}, (err, response) ->
           return callback err  if err
           return callback {message: "socialapi response error"}  unless response.status
           callback()
