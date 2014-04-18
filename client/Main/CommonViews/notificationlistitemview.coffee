@@ -101,15 +101,16 @@ class NotificationListItem extends KDListItemView
     switch @getData().type
       when "comment", "like"
         return "SocialMessage"
-
+      when "follow"
+        return "JAccount"
 
   getActivityPlot:->
     new Promise (resolve, reject)=>
       data = @getData()
       adjective = ""
+      constructorName = @getTargetName()
       switch data.type
         when "comment", "like"
-          constructorName = @getTargetName()
           KD.remote.api.SocialMessage.fetch {id: data.targetId}, (err, message)=>
             return reject err  if err or not message
             KD.remote.api.JAccount.one socialApiId: message.accountId, (err, origin)=>
@@ -123,7 +124,10 @@ class NotificationListItem extends KDListItemView
 
               @activityPlot.updatePartial "#{adjective} #{activityNameMap[constructorName]}"
               resolve()
-        # when "follow", etc
+        else
+          @activityPlot.updatePartial "#{activityNameMap[constructorName]}"
+          resolve()
+
 
 
   click:->
@@ -141,9 +145,7 @@ class NotificationListItem extends KDListItemView
       when "SocialMessage"
         KD.remote.api.SocialMessage.fetch id: @getData().targetId, showPost
       when "JAccount"
-        return
-        # KD.remote.api.JAccount.one _id : @snapshot.group[0].id, (err, account)->
-        #   KD.getSingleton('router').handleRoute "/#{account.profile.nickname}"
+        KD.getSingleton('router').handleRoute "/#{@actors[0].profile.nickname}"
       when "JGroup"
         return
         # do nothing
