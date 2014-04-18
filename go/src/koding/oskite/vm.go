@@ -183,6 +183,10 @@ func vmStart(vos *virt.VOS) (interface{}, error) {
 				return "", lastError
 			}
 
+			if lastError = updateState(vos.VM); err != nil {
+				return "", lastError
+			}
+
 			return fmt.Sprintf("vm.Start %s", vos.VM.HostnameAlias), nil
 		},
 	}
@@ -231,6 +235,10 @@ func vmStop(vos *virt.VOS) (interface{}, error) {
 	}
 
 	if err := vos.VM.Stop(); err != nil {
+		return nil, err
+	}
+
+	if err := updateState(vos.VM); err != nil {
 		return nil, err
 	}
 
@@ -574,6 +582,11 @@ func unprepareProgress(vos *virt.VOS, destroy bool) <-chan *virt.Step {
 			results <- step
 		}
 
+		// mark it as stopped
+		if lastError = updateState(vos.VM); lastError != nil {
+			return
+		}
+
 		if destroy {
 			start := time.Now()
 			if lastError = vos.VM.Destroy(); lastError != nil {
@@ -586,16 +599,6 @@ func unprepareProgress(vos *virt.VOS, destroy bool) <-chan *virt.Step {
 				CurrentStep: lastCurrentStep + 1,
 				TotalStep:   totalStep,
 			}
-
-			// TODO: enable this after getting the relationships to be removed.
-			// query := func(c *mgo.Collection) error {
-			// 	return c.Remove(bson.M{"hostnameAlias": vos.VM.HostnameAlias})
-			// }
-
-			// if err := mongodbConn.Run("jVMs", query); err != nil {
-			// 	return nil, err
-			// }
-
 		}
 	}()
 
@@ -667,6 +670,12 @@ func prepareProgress(vos *virt.VOS) <-chan *virt.Step {
 
 		var rootVos *virt.VOS
 		rootVos, lastError = vos.VM.OS(&virt.RootUser)
+		if lastError != nil {
+			return
+		}
+
+		// it's now running
+		lastError = updateState(vos.VM)
 		if lastError != nil {
 			return
 		}

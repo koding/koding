@@ -25,6 +25,7 @@ type VM struct {
 	Region            string        `bson:"region"`
 	HostKite          string        `bson:"hostKite"`
 	VMRoot            string        `bson:"vmRoot"`
+	State             string        `bson:"state"`
 }
 
 type Permissions struct {

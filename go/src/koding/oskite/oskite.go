@@ -374,6 +374,10 @@ func (o *Oskite) handleCurrentVMS() {
 						log.Error("leftover unprepare: %v", err)
 					}
 
+					if err := updateState(&vm); err != nil {
+						log.Error("%v", err)
+					}
+
 					return fmt.Sprintf("unprepare finished for leftover vm %s", vmId), nil
 				},
 			}
@@ -715,6 +719,19 @@ func (o *Oskite) startVM(vm *virt.VM, channel *kite.Channel) error {
 	return startAndPrepareVM(vm)
 }
 
+func updateState(vm *virt.VM) error {
+	state := vm.GetState()
+	if state == "" {
+		state = "UNKNOWN"
+	}
+
+	query := func(c *mgo.Collection) error {
+		return c.Update(bson.M{"_id": vm.Id}, bson.M{"$set": bson.M{"state": state}})
+	}
+
+	return mongodbConn.Run("jVMs", query)
+}
+
 func startAndPrepareVM(vm *virt.VM) error {
 	prepared, err := isVmPrepared(vm)
 	if err != nil {
@@ -747,6 +764,10 @@ func startAndPrepareVM(vm *virt.VM) error {
 
 			// wait until network is up
 			if err := vm.WaitForNetwork(time.Second * 5); err != nil {
+				log.Error("%v", err)
+			}
+
+			if err := updateState(vm); err != nil {
 				log.Error("%v", err)
 			}
 
