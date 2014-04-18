@@ -14,11 +14,15 @@ var (
 )
 
 type Notification struct {
-	Id                    int64     `json:"id"`
-	AccountId             int64     `json:"accountId"             sql:"NOT NULL"`
-	NotificationContentId int64     `json:"notificationContentId" sql:"NOT NULL"`
-	Glanced               bool      `json:"glanced"               sql:"NOT NULL"`
-	UpdatedAt             time.Time `json:"updatedAt"             sql:"NOT NULL"`
+	Id int64 `json:"id"`
+	// notification recipient
+	AccountId int64 `json:"accountId" sql:"NOT NULL"`
+	// notification content foreign key
+	NotificationContentId int64 `json:"notificationContentId" sql:"NOT NULL"`
+	// glanced information
+	Glanced bool `json:"glanced" sql:"NOT NULL"`
+	// last notifier addition time
+	UpdatedAt time.Time `json:"updatedAt" sql:"NOT NULL"`
 }
 
 func (n *Notification) GetId() int64 {
@@ -188,9 +192,17 @@ func (n *Notification) FetchContent() (*NotificationContent, error) {
 	return nc, nil
 }
 
-// populateActors fetches latest actor ids and total count of actors. listerId is needed for excluding
-// listers own activities
-func populateActors(listerId int64, ncList []NotificationContainer) ([]NotificationContainer, error) {
+func (n *Notification) Follow(followerId int64) error {
+	fn := NewFollowNotification()
+	fn.FollowerId = followerId
+	fn.FolloweeId = n.AccountId
+
+	return CreateNotification(fn)
+}
+
+// populateActors fetches latest actor ids and total count of actors. recipientId is needed for excluding
+// recipients own activities
+func populateActors(recipientId int64, ncList []NotificationContainer) ([]NotificationContainer, error) {
 	result := make([]NotificationContainer, 0)
 
 	for _, n := range ncList {
@@ -200,7 +212,7 @@ func populateActors(listerId int64, ncList []NotificationContainer) ([]Notificat
 		}
 
 		notificationType.SetTargetId(n.TargetId)
-		notificationType.SetListerId(listerId)
+		notificationType.SetListerId(recipientId)
 
 		actors, err := notificationType.FetchActors()
 		// instead of interrupting process we can just proceed here
@@ -212,6 +224,7 @@ func populateActors(listerId int64, ncList []NotificationContainer) ([]Notificat
 		n.ActorCount = actors.Count
 		result = append(result, n)
 	}
+
 	return result, nil
 }
 
