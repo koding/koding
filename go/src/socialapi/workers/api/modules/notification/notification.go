@@ -17,15 +17,15 @@ func List(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface
 	return helpers.NewOKResponse(list)
 }
 
-func Glance(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface{}, error) {
-	n := models.NewNotification()
-	accountId, err := helpers.GetURIInt64(u, "accountId")
-	if err != nil {
+func Glance(u *url.URL, h http.Header, req *models.Notification) (int, http.Header, interface{}, error) {
+	if err := req.Glance(); err != nil {
 		return helpers.NewBadRequestResponse(err)
 	}
 
-	n.AccountId = accountId
-	if err := n.Glance(); err != nil {
+	req.Glanced = true
+
+	return helpers.NewOKResponse(req)
+}
 		return helpers.NewBadRequestResponse(err)
 	}
 
