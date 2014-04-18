@@ -44,6 +44,10 @@ module.exports = [
   "views/vms/vmplanview.coffee"
   "views/vms/vmalwaysontogglebuttonview.coffee"
 
+  # firewall
+  "views/firewall/addfirewallrulemodal.coffee"
+  "views/firewall/firewallfilterformview.coffee"
+
   "styl/app.environments.styl"
   "styl/app.envsettings.styl"
 
