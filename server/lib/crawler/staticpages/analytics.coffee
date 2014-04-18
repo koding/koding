@@ -19,6 +19,7 @@ module.exports = ->
     <!-- End Google Analytics -->
 
     <!-- ROLLBAR -->
+    <script>
     var _rollbarConfig = {
       accessToken: "#{rollbar}",
       captureUncaught: true,
