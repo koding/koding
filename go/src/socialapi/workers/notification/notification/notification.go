@@ -2,6 +2,7 @@ package notification
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"github.com/koding/logging"
 	"github.com/koding/rabbitmq"
@@ -9,6 +10,7 @@ import (
 	"github.com/streadway/amqp"
 	mongomodels "koding/db/models"
 	"koding/db/mongodb/modelhelper"
+	"labix.org/v2/mgo"
 	"socialapi/models"
 )
 
@@ -169,8 +171,16 @@ func fetchNotifierOldAccount(accountId int64) (*mongomodels.Account, error) {
 		return nil, err
 	}
 
-	return modelhelper.GetAccountById(newAccount.OldId)
+	account, err := modelhelper.GetAccountById(newAccount.OldId)
+	if err != nil {
+		if err == mgo.ErrNotFound {
+			return nil, errors.New("old account not found")
+		}
 
+		return nil, err
+	}
+
+	return account, nil
 }
 
 // copy/pasted from realtime package
