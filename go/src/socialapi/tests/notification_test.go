@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	. "github.com/smartystreets/goconvey/convey"
+	"labix.org/v2/mgo/bson"
 	"socialapi/models"
 	"testing"
 	"time"
@@ -24,27 +25,27 @@ func TestNotificationCreation(t *testing.T) {
 				var err error
 
 				// ownerAccount.OldId = "5307f2ce1d10ce614e000003" //can
-				ownerAccount.OldId = AccountOldId.Hex()
+				ownerAccount.OldId = bson.NewObjectId().Hex()
 				ownerAccount, err = createAccount(ownerAccount)
 				ResultedWithNoErrorCheck(ownerAccount, err)
 
-				firstUser.OldId = "5196fcb0bc9bdb0000000011" //devrim
-				firstUser.OldId = AccountOldId2.Hex()
+				// firstUser.OldId = "5196fcb0bc9bdb0000000011" //devrim
+				firstUser.OldId = bson.NewObjectId().Hex()
 				firstUser, err = createAccount(firstUser)
 				ResultedWithNoErrorCheck(firstUser, err)
 
 				// secondUser.OldId = "5196fcb0bc9bdb0000000012" //sinan
-				secondUser.OldId = AccountOldId3.Hex()
+				secondUser.OldId = bson.NewObjectId().Hex()
 				secondUser, err = createAccount(secondUser)
 				ResultedWithNoErrorCheck(secondUser, err)
 
 				// thirdUser.OldId = "5196fcb0bc9bdb0000000013" //chris
-				thirdUser.OldId = AccountOldId4.Hex()
+				thirdUser.OldId = bson.NewObjectId().Hex()
 				thirdUser, err = createAccount(thirdUser)
 				ResultedWithNoErrorCheck(thirdUser, err)
 
 				// forthUser.OldId = "5196fcb0bc9bdb0000000014" //richard
-				forthUser.OldId = AccountOldId5.Hex()
+				forthUser.OldId = bson.NewObjectId().Hex()
 				forthUser, err = createAccount(forthUser)
 				ResultedWithNoErrorCheck(forthUser, err)
 			})
