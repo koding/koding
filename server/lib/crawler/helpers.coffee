@@ -75,7 +75,7 @@ normalizeActivityBody = (activity, bodyString="") ->
     tagContent =
       """
         <span class="kdview token">
-          <a class="ttag expandable" href="#{uri.address}/#!/Activity?tagged=#{title}">
+          <a class="ttag expandable" href="#{uri.address}/Activity?tagged=#{title}">
             <span>#{tagTitle}</span>
           </a>
         </span>

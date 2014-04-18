@@ -75,7 +75,7 @@ createStatusUpdateNode = (statusUpdate, profile)=>
 createLinkToUserProfile = (fullName, nickname) ->
   content =
     """
-      <a href=\"#{uri.address}/#!/#{nickname}\">#{fullName}</a>
+      <a href=\"#{uri.address}/#{nickname}\">#{fullName}</a>
     """
   return content
 

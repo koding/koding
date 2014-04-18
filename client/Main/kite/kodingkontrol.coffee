@@ -32,7 +32,7 @@ class KodingKontrol extends (require 'kontrol')
     }[name] ? ''
 
   injectQueryParams: (args) ->
-    args.query.version = @getVersion args.query.name
+    args.query.version ?= @getVersion args.query.name
     args.query.username = KD.config.kites.kontrol.username
     args.query.environment = KD.config.environment
     args
