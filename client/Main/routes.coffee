@@ -39,18 +39,19 @@ do ->
 
   createContentDisplayHandler = (section, passOptions = no) ->
 
-    ({params:{name, slug}, query}, models, route)=>
+    ({params:{name, slug}, query}, models, route)->
 
       {router} = KD.singletons
       route = name unless route
-      contentDisplay = @openRoutes[route.split('?')[0]]
+      contentDisplay = router.openRoutes[route.split('?')[0]]
+
       if contentDisplay?
         KD.singleton('display').hideAllDisplays contentDisplay
         contentDisplay.emit 'handleQuery', query
       else if models?
-        @openContent name, section, models, route, query, passOptions
+        router.openContent name, section, models, route, query, passOptions
       else
-        @loadContent name, section, slug, route, query, passOptions
+        router.loadContent name, section, slug, route, query, passOptions
 
   KD.registerRoutes 'KDMainApp',
     '/'                      : handleRoot
