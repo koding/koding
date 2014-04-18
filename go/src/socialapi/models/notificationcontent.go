@@ -151,6 +151,8 @@ func CreateNotificationType(notificationType string) (Notifiable, error) {
 		return NewInteractionNotification(notificationType), nil
 	case "comment":
 		return NewReplyNotification(), nil
+	case "follow":
+		return NewFollowNotification(), nil
 	default:
 		return nil, errors.New("undefined notification type")
 	}
