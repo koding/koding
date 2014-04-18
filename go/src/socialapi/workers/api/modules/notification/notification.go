@@ -33,8 +33,8 @@ func Glance(u *url.URL, h http.Header, req *models.Notification) (int, http.Head
 
 	req.Glanced = true
 
-	res := map[string]interface{}{
-		"Glanced": true,
+	return helpers.NewDefaultOKResponse()
+}
 	}
 
 	return helpers.NewOKResponse(res)

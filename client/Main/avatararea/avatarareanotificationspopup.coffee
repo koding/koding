@@ -38,7 +38,7 @@ class AvatarPopupNotifications extends AvatarPopup
       {SocialNotification} = KD.remote.api
       SocialNotification.glance (err, response) =>
         return warn err  if err
-        return unless response?.glanced
+        return unless response?.status
 
         for item in @listController.itemsOrdered
           item.unsetClass 'unread'
