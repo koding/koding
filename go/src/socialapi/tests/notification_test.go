@@ -365,6 +365,45 @@ func TestNotificationCreation(t *testing.T) {
 			})
 		})
 
+		Convey("As a message owner I should be able to glance notifications", func() {
+			res, err := glanceNotifications(ownerAccount.Id)
+			ResultedWithNoErrorCheck(res, err)
+		})
+
+		Convey("Unread notification count should be 0", func() {
+			nl, err := getNotificationList(ownerAccount.Id)
+			ResultedWithNoErrorCheck(nl, err)
+			So(nl.UnreadCount, ShouldEqual, 0)
+
+			Convey("All notifications must be set as glanced", func() {
+				for _, notification := range nl.Notifications {
+					So(notification.Glanced, ShouldEqual, true)
+				}
+			})
+		})
+
+		Convey("As a message owner I should be able to receive new notifications as unread after glance", func() {
+			Convey("Third user should be able to reply my first message", func() {
+				replyMessage, err := addReply(firstMessage.Id, thirdUser.Id)
+				ResultedWithNoErrorCheck(replyMessage, err)
+				time.Sleep(5 * time.Second)
+			})
+
+			Convey("Unread count should be 1", func() {
+				nl, err := getNotificationList(ownerAccount.Id)
+				ResultedWithNoErrorCheck(nl, err)
+				So(nl.UnreadCount, ShouldEqual, 1)
+				Convey("First notification should be unglanced", func() {
+					So(nl.Notifications[0].Glanced, ShouldEqual, false)
+				})
+
+				Convey("Second notification should be glanced", func() {
+					So(nl.Notifications[1].Glanced, ShouldEqual, true)
+				})
+			})
+
+		})
+
 	})
 
 }
@@ -389,4 +428,16 @@ func getNotificationList(accountId int64) (*models.NotificationResponse, error) 
 	}
 
 	return &notificationList, nil
+}
+
+func glanceNotifications(accountId int64) (interface{}, error) {
+	n := models.NewNotification()
+	n.AccountId = accountId
+
+	res, err := sendModel("POST", "/notification/glance", n)
+	if err != nil {
+		return nil, err
+	}
+
+	return res, nil
 }
