@@ -90,7 +90,8 @@ func (l *Listener) Start(handler Handler) func(delivery amqp.Delivery) {
 			// add proper error handling
 			// instead of puttting message back to same queue, it is better
 			// to put it to another maintenance queue/exchange
-			l.Log.Error("an error occured %s, \n putting message back to queue", err)
+			handler.DefaultErrHandler(delivery, err)
+			// l.Log.Error("an error occured %s, \n putting message back to queue", err)
 			// // multiple false
 			// // reque true
 			// delivery.Nack(false, true)
