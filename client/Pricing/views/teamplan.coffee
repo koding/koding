@@ -8,9 +8,7 @@ class TeamPlan extends DeveloperPlan
       return KD.showError err  if err and err.code isnt "no subscription"
       size  = @plans[@planIndex].size
       @emit "CurrentSubscriptionSet", subscription  if subscription
-      @emit "PlanSelected", "tp#{size}",
-        planApi: KD.remote.api.JResourcePlan
-        resourceQuantity: size
+      @emit "PlanSelected", "tp#{size}", planApi: KD.remote.api.JResourcePlan
 
   setPlans: ->
     # [N]x = [Nx2] CPU + [Nx2]GB Ram + [Nx10]GB Disk + [Nx10] Total VM + [N] Always On (devrim's forumla)

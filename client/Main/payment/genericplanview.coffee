@@ -12,7 +12,7 @@ class GenericPlanView extends JView
     @productList = new PlanProductListView {planOptions}, data
 
     """
-    {h4{#(title) or #(plan.title)}}
+    {h4{#(description) or #(plan.description)}}
     {{> @productList}}
     <span class="price#{if hiddenPrice then ' hidden' else ''}">#{total}</span>
     """

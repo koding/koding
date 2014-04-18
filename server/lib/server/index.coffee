@@ -162,8 +162,7 @@ app.get "/-/subscription/check/:kiteToken?/:user?/:groupId?", (req, res) ->
             planMap = {}
             planMap[plan.planCode] = plan  for plan in plans
 
-            targetOptions = selector: planCode: $in: (plan.planCode for plan in plans)
-            account.fetchSubscriptions null, {targetOptions}, (err, subscriptions) ->
+            kallback = (err, subscriptions) ->
               return res.send 401, err: "NO_SUBSCRIPTION"  if err or not subscriptions
 
               freeSubscription = null
@@ -180,6 +179,13 @@ app.get "/-/subscription/check/:kiteToken?/:user?/:groupId?", (req, res) ->
                 res.send 200, planId: plan.planCode, planName: plan.title
               else
                 res.send 401, err: "NO_SUBSCRIPTION"
+
+            if group.slug is "koding"
+              targetOptions = selector: planCode: $in: (plan.planCode for plan in plans)
+              account.fetchSubscriptions null, {targetOptions}, kallback
+            else
+              group.fetchSubscriptions kallback
+
 
 app.get "/-/8a51a0a07e3d456c0b00dc6ec12ad85c", require './__notify-users'
 
