@@ -35,7 +35,20 @@ func Glance(u *url.URL, h http.Header, req *models.Notification) (int, http.Head
 
 	return helpers.NewDefaultOKResponse()
 }
+
+type FollowRequest struct {
+	FollowerId int64 `json:"followerId"`
+	FolloweeId int64 `json:"followeeId"`
+}
+
+func Follow(u *url.URL, h http.Header, req *FollowRequest) (int, http.Header, interface{}, error) {
+
+	n := models.NewNotification()
+	n.AccountId = req.FolloweeId
+
+	if err := n.Follow(req.FollowerId); err != nil {
+		return helpers.NewBadRequestResponse(err)
 	}
 
-	return helpers.NewOKResponse(res)
+	return helpers.NewDefaultOKResponse()
 }

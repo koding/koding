@@ -141,6 +141,9 @@ func Inject(mux *tigertonic.TrieServeMux) *tigertonic.TrieServeMux {
 
 	// glance notifications
 	mux.Handle("POST", "/notification/glance", handlerWrapper(notification.Glance, "notification-glance"))
+	// add account followed notification
+	mux.Handle("POST", "/notification/follow", handlerWrapper(notification.Follow, "notification-follow"))
+
 	// mux.Handle("POST", "/follow/{id}", handlerWrapper(post, "follow-id"))
 	// mux.Handle("POST", "/unfollow/{id}", handlerWrapper(post, "follow-id"))
 
