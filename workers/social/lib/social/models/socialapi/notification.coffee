@@ -16,7 +16,7 @@ module.exports = class SocialNotification extends Base
         fetch         :
           (signature Function)
         glance        :
-          (signature Object, Function)
+          (signature Function)
     permissions :
       'list notifications': ['member', 'moderator']
     schema             :
@@ -47,6 +47,14 @@ module.exports = class SocialNotification extends Base
           notifications = decorateNotifications notifications
           callback null, {notifications, unreadCount}
 
+  @glance = permit 'list notifications',
+    success: (client, callback) ->
+      {connection:{delegate}} = client
+      {listNotifications} = require './requests'
+      {glanceNotifications} = require './requests'
+      delegate.createSocialApiId (err, socialApiId) ->
+        return callback err  if err
+        glanceNotifications socialApiId, callback
 
   decorateNotifications = (notifications) ->
     notifications = [].concat(notifications)
@@ -63,7 +71,3 @@ module.exports = class SocialNotification extends Base
 
 
     return revivedNotifications
-
-
-
-
