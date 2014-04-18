@@ -1,6 +1,6 @@
 class DemosAppController extends AppController
 
-  if location.hostname is 'localhost'
+  if location.hostname is 'localhost' or 'lvh.me'
     KD.registerAppClass this,
       name         : "Demos"
       route        : "/Demos"
