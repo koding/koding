@@ -75,9 +75,6 @@ KD.extend
 
   registerRoute: (appName, route, handler) ->
 
-    appManager = KD.getSingleton 'appManager'
-    router     = KD.getSingleton 'router'
-
     # enforceLogin = ->
     #   return  if KD.isLoggedIn()
     #   if Cookies.get('doNotForceRegistration') or location.search.indexOf('sr=1') > -1
@@ -92,26 +89,24 @@ KD.extend
       # fn.apply this, arguments
       # enforceLogin()  if options.enforceLogin
 
-    router = KD.getSingleton 'router'
     slug   = if "string" is typeof route then route else route.slug
     route  =
-      slug    : slug or '/'
+      slug    : slug ? '/'
       handler : handler or route.handler or null
 
-    if route.slug isnt '/'
+    if route.slug isnt '/' or appName is 'KDMainApp'
 
       {slug, handler} = route
 
-      cb = (router)->
-        handler ?= ({params:{name}, query})->
+      cb = ->
+        router = KD.getSingleton 'router'
+        handler ?= ({params:{name}, query}) ->
           router.openSection appName, name, query
           # enforceLogin()  if options.enforceLogin
-
         router.addRoute slug, handler
 
-      if KD.singletons.router
-      then @utils.defer -> cb KD.getSingleton('router')
-      else KodingRouter.on 'RouterReady', cb
+      if router = KD.singletons.router then cb()
+      else KDRouter.on 'RouterIsReady', cb
 
 
   resetNavItems      : (items)->
