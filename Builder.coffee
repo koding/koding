@@ -128,7 +128,7 @@ module.exports = class Builder
     return a if a.length < l - 5
     return a[0..l/2 - 5] + '...' + a[a.length - l/2..a.length]
 
-  compileChanged: (options, initial)->
+  compileChanged: (options, initial) ->
 
     includesChanged = @readIncludesFile()
 
