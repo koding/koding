@@ -405,6 +405,20 @@ func TestNotificationCreation(t *testing.T) {
 
 		})
 
+		Convey("I should be able to receive follower notifications when first user follows me", func() {
+			Convey("First user should be able to follow me", func() {
+				res, err := followNotification(firstUser.Id, ownerAccount.Id)
+				ResultedWithNoErrorCheck(res, err)
+				time.Sleep(5 * time.Second)
+			})
+
+			Convey("I should be able to receive follow notification", func() {
+				nl, err := getNotificationList(ownerAccount.Id)
+				ResultedWithNoErrorCheck(nl, err)
+				So(nl.Notifications[0].LatestActors[0], ShouldEqual, firstUser.Id)
+			})
+		})
+
 	})
 
 }
@@ -436,6 +450,25 @@ func glanceNotifications(accountId int64) (interface{}, error) {
 	n.AccountId = accountId
 
 	res, err := sendModel("POST", "/notification/glance", n)
+	if err != nil {
+		return nil, err
+	}
+
+	return res, nil
+}
+
+type FollowRequest struct {
+	FollowerId int64 `json:"followerId"`
+	FolloweeId int64 `json:"followeeId"`
+}
+
+func followNotification(followerId int64, followeeId int64) (interface{}, error) {
+	req := &FollowRequest{
+		FollowerId: followerId,
+		FolloweeId: followeeId,
+	}
+
+	res, err := sendModel("POST", "/notification/follow", req)
 	if err != nil {
 		return nil, err
 	}
