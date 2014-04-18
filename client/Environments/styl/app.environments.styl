@@ -1408,3 +1408,108 @@ div.environments-joint
     r-sprite                  "environments", "warning"
     right                     0
     top                       8px
+
+
+.firewall-modal
+  .close-icon
+    display                   none
+  .kdmodal-inner
+    margin                    0
+  .kdmodal-content
+    margin                    0 !important
+    position                  relative
+  .section-label
+    font-size                 16px
+    color                     #209656
+    font-weight               400
+  .input-wrapper
+    margin                    0 !important
+  .kdselectbox
+    width                     137px
+    height                    35px !important
+    overflow                  visible
+    .title
+      line-height             37px
+    .arrows
+      top                     11px
+  input[type=text]
+    width                     280px
+    height                    37px
+    font-size                 14px
+  .formline.half
+    fl()
+    &.name
+      margin                  0 30px 30px 30px
+  .kdformview .formline > label
+    width                     55px
+    min-width                 55px
+    margin-top                7px
+  .section-label.formline
+    clear                     both
+    &.first
+      margin                  30px
+    &.second
+      border-top              1px solid #E2E2E2
+      p
+        margin                30px
+  .container
+    .kdformview.with-fields
+      overflow                hidden
+      margin                  0 0 10px 30px
+    .type.half
+      margin-right            30px
+    .kdselectbox
+      width                   150px
+    input[type=text]
+      width                   218px
+    .full
+      input[type=text]
+        width                 267px
+  .add-rule
+    width                     570px !important
+    margin                    0 30px !important
+    height                    35px !important
+    border                    1px dashed #D3D3D3
+    bg                        color, transparent !important
+    span
+      color                   #888 !important
+      font-size               16px
+      text-transform          uppercase
+      font-size               14px
+      &.button-title
+        position              relative
+        top                   4px
+      &.plus
+        r-sprite              "environments", "add"
+        display               block
+        padding               0
+        position              relative
+        left                  195px
+  .kdbutton
+    margin-bottom             30px !important
+    height                    37px !important
+    &.compact
+      rounded                 8px
+      span.button-title
+        font-size             14px
+        text-transform        uppercase
+      &.green
+        margin-right          30px
+        padding               0 30px !important
+      &.gray
+        padding               0 19px !important
+        background            transparent
+        border                2px solid #A8A8A8
+        span.button-title
+          color               #818181
+  .input-wrapper
+    .delete-button
+      size                    35px !important, 35px !important
+      border                  1px solid #D3D3D3
+      rounded                 6px
+      margin-left             12px
+      r-sprite                "environments", "delete"
+      pointer()
+  .kdnotification.error
+    abs()
+    top                       145px !important
