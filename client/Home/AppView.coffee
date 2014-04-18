@@ -26,11 +26,11 @@ class HomeView extends KDView
       <section class="introduction">
         <div class="inner-container clearfix">
           <nav>
-            <a href="#">EDUCATION</a>
-            <a href="#">BUSINESS</a>
-            <a href="#">ABOUT</a>
-            <a href="#">PRICING</a>
-            <a href="#">BLOG</a>
+            <a href="/Education">EDUCATION</a>
+            <a href="/Business">BUSINESS</a>
+            <a href="/About">ABOUT</a>
+            <a href="/Pricing">PRICING</a>
+            <a href="http://blog.koding.com" target="_blank">BLOG</a>
             {{> @LoginButton}}
           </nav>
           <article>
