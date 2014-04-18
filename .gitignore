@@ -67,3 +67,6 @@ logs/*.log
 /embedly_cache
 
 node_modules_koding/processes/src/.tmp*
+
+/client/Main/__generatedroutes__.coffee
+/client/Main/__generatedapps__.coffee

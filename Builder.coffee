@@ -121,6 +121,19 @@ module.exports = class Builder
     for own title, bundle of bundles
       addProject title, bundle, 'bundle'
 
+
+
+    # registering app names to KD.config
+    # so that we know all the available apps
+    # before even loading their sources
+    fs.writeFileSync "#{__dirname}/client/Main/__generatedapps__.coffee" , "KD.config.apps=#{@getProjects()}", "utf8"
+
+    # this registers routes just before application runs
+    # this is not the best place to put this
+    # assuming to refactor this at some point
+    # by switching to a task manager - SY
+    fs.writeFileSync "#{__dirname}/client/Main/__generatedroutes__.coffee" , @getRoutes(), "utf8"
+
     @compileChanged options, true
 
   shortenText:(a, l)->
@@ -281,14 +294,6 @@ module.exports = class Builder
         if file.extension is ".coffee"
           try
 
-            # registering routes just before application runs
-            # this is not the best place to put this
-            # assuming to refactor this soon
-            # by switching to a task manager - SY
-            isMainCoffee = /^client\/Main\/main\.coffee/.test file.sourcePath
-            if isMainCoffee
-              source = "\n#{@registerRoutes()}\n" + source
-
             result = CoffeeScript.compile source,
               filename: file.includePath
               sourceFiles: [file.includePath]
@@ -306,11 +311,6 @@ module.exports = class Builder
               while match = r.exec source
                 js += "\nKD.classes." + match[1] + " = " + match[1] + ";"
 
-            # registering app names to KD.config
-            # so that we know all the available apps
-            # before even loading their sources
-            if isMainCoffee
-              js  = "\nKD.config.apps=#{@getProjects()};\n" + js
 
           catch error
             log.error "CoffeeScript Error in #{file.includePath}: #{(error.stack.split "\n")[0]}"
@@ -495,7 +495,7 @@ module.exports = class Builder
 
     return JSON.stringify apps
 
-  registerRoutes:->
+  getRoutes:->
 
     routesSrc = ''
 
