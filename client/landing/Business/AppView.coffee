@@ -1,7 +1,10 @@
 class BusinessView extends KDView
 
-  constructor:->
+  constructor: ->
+
     super
+
+    {router} = KD.singletons
 
     @pricingButton = new KDButtonView
       title       : "See Pricing"
@@ -10,14 +13,12 @@ class BusinessView extends KDView
     @signUpButton = new KDButtonView
       title       : "Sign Up Now"
       style       : "solid medium green"
-      callback    : ->
-        KD.singleton("router").handleRoute "/Register"
+      callback    : -> router.handleRoute "/Register"
 
     @LoginButton = new KDButtonView
       title       : "Sign in"
       style       : "solid medium thin-white"
-      callback    : ->
-        KD.singleton("router").handleRoute "/Login"
+      callback    : -> router.handleRoute "/Login"
 
   viewAppended: JView::viewAppended
 
@@ -26,11 +27,11 @@ class BusinessView extends KDView
       <section class="introduction">
         <div class="inner-container clearfix">
           <nav>
-            <a href="#">EDUCATION</a>
-            <a href="#">BUSINESS</a>
-            <a href="#">ABOUT</a>
-            <a href="#">PRICING</a>
-            <a href="#">BLOG</a>
+            <a href="/Education">EDUCATION</a>
+            <a href="/Business">BUSINESS</a>
+            <a href="/About">ABOUT</a>
+            <a href="/Pricing">PRICING</a>
+            <a href="http://blog.koding.com" target="_blank">BLOG</a>
             {{> @LoginButton}}
           </nav>
           <article>
