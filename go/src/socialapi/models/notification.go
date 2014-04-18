@@ -225,7 +225,8 @@ func (n *Notification) AfterDelete() {
 
 func (n *Notification) Glance() error {
 	selector := map[string]interface{}{
-		"glanced": false,
+		"glanced":    false,
+		"account_id": n.AccountId,
 	}
 
 	set := map[string]interface{}{
