@@ -6,10 +6,12 @@ import (
 	"fmt"
 	"io/ioutil"
 	"koding/db/models"
+	"koding/db/mongodb/modelhelper"
 	"koding/tools/dnode"
 	"koding/tools/kite"
 	"koding/virt"
 	"net/http"
+	"strings"
 
 	"gopkg.in/fatih/set.v0"
 	"labix.org/v2/mgo"
@@ -152,15 +154,33 @@ func totalUsage(vos *virt.VOS, groupId string) (*Plan, error) {
 		return nil, fmt.Errorf("groupID %s is not valid hex representation", groupId)
 	}
 
-	vms := make([]*models.VM, 0)
+	group, err := modelhelper.GetGroupId(groupId)
+	if err != nil {
+		return nil, err
+	}
 
-	// db.jVMs.find({"webHome":"foo", "groups": {$in:[{"id":ObjectId("5196fcb2bc9bdb0000000027")}]}})
-	query := func(c *mgo.Collection) error {
-		return c.Find(bson.M{
-			"webHome":  vos.VM.WebHome,
-			"hostKite": bson.M{"$ne": nil},
-			"groups":   bson.M{"$in": []bson.M{bson.M{"id": bson.ObjectIdHex(groupId)}}},
-		}).Iter().All(&vms)
+	fmt.Printf("group %+v\n", group)
+
+	vms := make([]*models.VM, 0)
+	var query func(c *mgo.Collection) error
+
+	if strings.ToLower(group.Slug) == "koding" {
+		// db.jVMs.find({"webHome":"foo", "groups": {$in:[{"id":ObjectId("5196fcb2bc9bdb0000000027")}]}})
+		query = func(c *mgo.Collection) error {
+			return c.Find(bson.M{
+				"webHome":  vos.VM.WebHome,
+				"hostKite": bson.M{"$ne": nil},
+				"groups":   bson.M{"$in": []bson.M{bson.M{"id": bson.ObjectIdHex(groupId)}}},
+			}).Iter().All(&vms)
+		}
+	} else {
+		// for group other than "koding" we should count every users usage
+		query = func(c *mgo.Collection) error {
+			return c.Find(bson.M{
+				"hostKite": bson.M{"$ne": nil},
+				"groups":   bson.M{"$in": []bson.M{bson.M{"id": bson.ObjectIdHex(groupId)}}},
+			}).Iter().All(&vms)
+		}
 	}
 
 	if err := mongodbConn.Run("jVMs", query); err != nil {
@@ -180,7 +200,6 @@ func totalUsage(vos *virt.VOS, groupId string) (*Plan, error) {
 		usage.Disk += vm.DiskSizeInMB
 	}
 
-	fmt.Printf("usage %+v\n", usage)
 	return usage, nil
 }
 
@@ -200,8 +219,8 @@ func (p *Plan) prepareLimits(username, groupId string) (*Limit, error) {
 		return nil, errors.New("plan doesn't exist")
 	}
 
-	fmt.Printf("total	%+v\n", plan)
-	fmt.Printf("current	%+v\n", p)
+	fmt.Printf("total usage:   %+v\n", plan)
+	fmt.Printf("current usage: %+v\n", *p)
 
 	lim := newLimit()
 	if p.AlwaysOnVMs > plan.AlwaysOnVMs {

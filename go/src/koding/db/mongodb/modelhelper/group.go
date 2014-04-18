@@ -2,8 +2,20 @@ package modelhelper
 
 import (
 	"koding/db/models"
+
 	"labix.org/v2/mgo"
+	"labix.org/v2/mgo/bson"
 )
+
+func GetGroupId(id string) (*models.Group, error) {
+	group := new(models.Group)
+
+	query := func(c *mgo.Collection) error {
+		return c.Find(bson.M{"_id": bson.ObjectIdHex(id)}).One(&group)
+	}
+
+	return group, Mongo.Run("jGroups", query)
+}
 
 func GetGroup(slugName string) (*models.Group, error) {
 	group := new(models.Group)
