@@ -393,6 +393,10 @@ func (o *Oskite) handleCurrentVMS() {
 		infos[vm.Id] = info
 		infosMutex.Unlock()
 
+		if err := updateState(&vm); err != nil {
+			log.Error("%v", err)
+		}
+
 		// start the shutdown timer for the given vm, for alwaysOn VM's it
 		// doesn't start it
 		info.startTimeout()
