@@ -35,7 +35,11 @@ class AvatarPopupNotifications extends AvatarPopup
 
   hide:->
     if KD.isLoggedIn()
-      KD.whoami().glanceActivities =>
+      {SocialNotification} = KD.remote.api
+      SocialNotification.glance (err, response) =>
+        return warn err  if err
+        return unless response?.glanced
+
         for item in @listController.itemsOrdered
           item.unsetClass 'unread'
         @noNotification.show()
