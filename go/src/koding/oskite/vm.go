@@ -17,6 +17,7 @@ import (
 	"syscall"
 	"time"
 
+	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
 )
 
@@ -582,9 +583,15 @@ func unprepareProgress(vos *virt.VOS, destroy bool) <-chan *virt.Step {
 			results <- step
 		}
 
+		if lastError = mongodbConn.Run("jVMs", func(c *mgo.Collection) error {
+			return c.Update(bson.M{"_id": vos.VM.Id}, bson.M{"$set": bson.M{"hostKite": nil}})
+		}); lastError != nil {
+			log.Error("unprepareProgress hostKite nil setting: %v", lastError)
+		}
+
 		// mark it as stopped
 		if lastError = updateState(vos.VM); lastError != nil {
-			return
+			log.Error("unprepareProgress updateState: %v", lastError)
 		}
 
 		if destroy {
