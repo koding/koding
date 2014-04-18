@@ -24,11 +24,6 @@ func Glance(u *url.URL, h http.Header, req *models.Notification) (int, http.Head
 
 	req.Glanced = true
 
-	return helpers.NewOKResponse(req)
-}
-		return helpers.NewBadRequestResponse(err)
-	}
-
 	res := map[string]interface{}{
 		"Glanced": true,
 	}
