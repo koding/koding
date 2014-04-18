@@ -156,6 +156,13 @@ listNotifications = (data, callback)->
   url = "#{SOCIAL_API_URL}/notification/#{data.accountId}"
   get url, data, callback
 
+glanceNotifications = (accountId, callback)->
+  if not accountId
+    return callback {message: "Request is not valid"}
+
+  url = "#{SOCIAL_API_URL}/notification/glance"
+  post url, {accountId}, callback
+
 post = (url, data, callback)->
   request
     url    : url
@@ -194,4 +201,5 @@ module.exports = {
   fetchChannelActivities
   fetchGroupChannels
   listNotifications
+  glanceNotifications
 }
