@@ -24,9 +24,15 @@ type NotificationWorkerController struct {
 }
 
 type NotificationEvent struct {
-	RoutingKey string                 `json:"routingKey"`
-	Event      string                 `json:"event"`
-	Content    map[string]interface{} `json:"content"`
+	RoutingKey string              `json:"routingKey"`
+	Event      string              `json:"event"`
+	Content    NotificationContent `json:"contents"`
+}
+
+type NotificationContent struct {
+	TypeConstant string `json:"type"`
+	TargetId     int64  `json:"targetId"`
+	ActorId      int64  `json:"actorId"`
 }
 
 func (n *NotificationWorkerController) DefaultErrHandler(delivery amqp.Delivery, err error) {
@@ -146,7 +152,29 @@ func (n *NotificationWorkerController) NotifyUser(data []byte) error {
 	}
 
 	ne.Event = nc.GetEventType()
-	// add content later
+
+	nt, err := models.CreateNotificationType(nc.TypeConstant)
+	if err != nil {
+		return err
+	}
+
+	nt.SetTargetId(nc.TargetId)
+	ac, err := nt.FetchActors()
+	if err != nil {
+		return err
+	}
+
+	var actorId int64
+	if len(ac.LatestActors) > 0 {
+		actorId = ac.LatestActors[0]
+	}
+
+	ne.Content = NotificationContent{
+		ActorId:      actorId,
+		TargetId:     nc.TargetId,
+		TypeConstant: nc.TypeConstant,
+	}
+
 	notificationMessage, err := json.Marshal(ne)
 	if err != nil {
 		return err
