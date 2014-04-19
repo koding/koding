@@ -1,6 +1,7 @@
 package models
 
 import (
+	"errors"
 	"github.com/koding/bongo"
 	"time"
 )
@@ -59,6 +60,10 @@ func (n *InteractionNotification) SetTargetId(targetId int64) {
 }
 
 func (n *InteractionNotification) FetchActors() (*ActorContainer, error) {
+	if n.TargetId == 0 {
+		return nil, errors.New("TargetId is not set")
+	}
+
 	i := NewInteraction()
 	p := &bongo.Pagination{
 		Limit: NOTIFIER_LIMIT,
@@ -130,6 +135,10 @@ func (n *ReplyNotification) SetTargetId(targetId int64) {
 }
 
 func (n *ReplyNotification) FetchActors() (*ActorContainer, error) {
+	if n.TargetId == 0 {
+		return nil, errors.New("TargetId is not set")
+	}
+
 	mr := NewMessageReply()
 	mr.MessageId = n.TargetId
 
@@ -190,6 +199,10 @@ func (n *FollowNotification) GetTargetId() int64 {
 }
 
 func (n *FollowNotification) FetchActors() (*ActorContainer, error) {
+	if n.FollowerId == 0 {
+		return nil, errors.New("TargetId is not set")
+	}
+
 	ac := NewActorContainer()
 
 	ac.LatestActors = append(ac.LatestActors, n.FollowerId)
