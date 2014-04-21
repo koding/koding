@@ -36,6 +36,7 @@ class AboutView extends KDView
 
     @once 'viewAppended', => document.body.scrollTop = 0
 
+    @footer = new FooterView
 
 
   viewAppended: JView::viewAppended
@@ -93,4 +94,5 @@ class AboutView extends KDView
         <h4>Shoot us an <a href='mailto:hr@koding.com?subject=Koding%20needs%20me!' target='_self'>email</a> if you think you should be a part of Koding!</h4>
       </div>
     </section>
+    {{> @footer}}
     """
