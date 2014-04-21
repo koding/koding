@@ -77,6 +77,48 @@ pre
     .logotype
       hidden()
 
+  &.no-dock
+    max-width             1290px
+    shadow                none
+    margin                0
+    padding               0 45px
+    abs                   48px 0 0 50%
+    vendor                transform, translateX(-50%)
+    z-index               15
+    borderBox()
+
+
+    #dock
+    .account-area
+      hidden()
+
+    .inner-container
+      bg                  color, transparent
+
+    .logotype
+      font-size           24px
+      color               #444
+      font-weight         700
+      line-height         16px
+      color               #fff
+      noTextDeco()
+      visible()
+      fl()
+
+    #koding-logo
+      margin              0 14px 0 0
+      size                auto auto
+      bg                  color, transparent
+      position            static
+      letter-spacing      .01em
+      fl()
+
+      cite
+        r-sprite          home 'logo'
+        margin            0
+        display           block
+
+
 .header-notification
   size                100% 26px
   bg                  color rgba(24, 148, 83, .9)
