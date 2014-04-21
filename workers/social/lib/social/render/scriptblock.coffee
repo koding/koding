@@ -19,7 +19,7 @@ module.exports = (options = {}, callback)->
   createHTML = ->
     if client.connection?.delegate?.profile?.nickname
       {connection: {delegate}} = client
-      {profile   : {nickname}} = delegate
+      {profile   : {nickname}, _id} = delegate
 
     replacer             = (k, v)-> if 'string' is typeof v then encoder.XSSEncode v else v
     encodedFeed          = JSON.stringify prefetchedFeeds, replacer
