@@ -54,8 +54,12 @@ class MainController extends KDController
     KD.registerSingleton "troubleshoot",              new Troubleshoot
     KD.registerSingleton "appStorageController",      new AppStorageController
     KD.registerSingleton "localSync",                 new LocalSyncController
+    KD.registerSingleton "dock",                      new DockController
+    KD.registerSingleton "mainView",             mv = new MainView domId : "kdmaincontainer"
+    KD.registerSingleton "mainViewController",  mvc = new MainViewController view : mv
 
-    @createMainViewController()
+    @mainViewController = mvc
+    mainView.appendToDomBody()
 
     @ready =>
       KD.registerSingleton "widgetController",        new WidgetController
@@ -96,13 +100,6 @@ class MainController extends KDController
       eventPrefix = if firstLoad then "pageLoaded.as" else "accountChanged.to"
       eventSuffix = if KD.isLoggedIn() then "loggedIn" else "loggedOut"
       @emit "#{eventPrefix}.#{eventSuffix}", account, connectedState, firstLoad
-
-  createMainViewController:->
-    KD.registerSingleton "dock", new DockController
-    @mainViewController  = new MainViewController
-      view    : mainView = new MainView
-        domId : "kdmaincontainer"
-    mainView.appendToDomBody()
 
   doLogout:->
     mainView = KD.getSingleton("mainView")
