@@ -13,7 +13,7 @@ class EnvironmentItem extends KDDiaObject
 
     @chevron   = new KDCustomHTMLView
       tagName  : "span"
-      cssClass : "chevron ali"
+      cssClass : "chevron"
       click    : @bound "contextMenu"
 
   contextMenuItems:->
