@@ -166,11 +166,11 @@ func totalUsage(vos *virt.VOS, groupId string) (*Plan, error) {
 
 	if strings.ToLower(group.Slug) == "koding" {
 		// example query:
-		// db.jVMs.find({"webHome":"deneme", $or: [{hostKite: {$ne: null}}, {state: "RUNNING"}], "groups": {$in:[{"id":ObjectId("5196fcb2bc9bdb0000000027")}]}})
+		// db.jVMs.find({"webHome":"asdasd", state: "RUNNING", "groups": {$in:[{"id":ObjectId("5196fcb2bc9bdb0000000027")}]}})
 		query = func(c *mgo.Collection) error {
 			return c.Find(bson.M{
 				"webHome": vos.VM.WebHome,
-				"$or":     []bson.M{bson.M{"hostKite": bson.M{"$ne": nil}}, bson.M{"state": "RUNNING"}},
+				"state":   "RUNNING",
 				"groups":  bson.M{"$in": []bson.M{bson.M{"id": bson.ObjectIdHex(groupId)}}},
 			}).Iter().All(&vms)
 		}
@@ -178,7 +178,7 @@ func totalUsage(vos *virt.VOS, groupId string) (*Plan, error) {
 		// for group other than "koding" we should count every users usage
 		query = func(c *mgo.Collection) error {
 			return c.Find(bson.M{
-				"$or":    []bson.M{bson.M{"hostKite": bson.M{"$ne": nil}}, bson.M{"state": "RUNNING"}},
+				"state":  "RUNNING",
 				"groups": bson.M{"$in": []bson.M{bson.M{"id": bson.ObjectIdHex(groupId)}}},
 			}).Iter().All(&vms)
 		}
