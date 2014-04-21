@@ -9,16 +9,12 @@ class BusinessView extends KDView
     @pricingButton = new KDButtonView
       title       : "See Pricing"
       style       : "solid thin medium thin-white"
+      callback    : -> router.handleRoute "/Pricing"
 
     @signUpButton = new KDButtonView
       title       : "Sign Up Now"
       style       : "solid medium green"
       callback    : -> router.handleRoute "/Register"
-
-    @LoginButton = new KDButtonView
-      title       : "Sign in"
-      style       : "solid medium thin-white"
-      callback    : -> router.handleRoute "/Login"
 
   viewAppended: JView::viewAppended
 
@@ -26,14 +22,6 @@ class BusinessView extends KDView
     """
       <section class="introduction">
         <div class="inner-container clearfix">
-          <nav>
-            <a href="/Education">EDUCATION</a>
-            <a href="/Business">BUSINESS</a>
-            <a href="/About">ABOUT</a>
-            <a href="/Pricing">PRICING</a>
-            <a href="http://blog.koding.com" target="_blank">BLOG</a>
-            {{> @LoginButton}}
-          </nav>
           <article>
             <h2>Koding for Busy People</h2>
             <p>
@@ -167,11 +155,11 @@ class BusinessView extends KDView
 
           <nav class="footer-block">
             <h5>COMMUNITY</h5>
-            <a href="#">KODING BLOG</a>
-            <a href="#">MEETUPS</a>
-            <a href="#">NEWSLETTER</a>
-            <a href="#">TESTIMONALS</a>
-            <a href="#">BRAND GUIDELINES</a>
+            <a href='#'>KODING BLOG</a>
+            <a href='#'>MEETUPS</a>
+            <a href='#'>NEWSLETTER</a>
+            <a href='http://stories.koding.com'>TESTIMONALS</a>
+            <a href='https://koding-cdn.s3.amazonaws.com/brand/koding-logo.pdf'>BRAND GUIDELINES</a>
           </nav>
 
           <nav class="footer-block blog">

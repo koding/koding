@@ -3,21 +3,17 @@ class EducationView extends KDView
   constructor:->
     super
 
+    {router} = KD.singletons
+
     @pricingButton = new KDButtonView
       title       : "See Pricing"
       style       : "solid thin medium thin-white"
+      callback    : -> router.handleRoute "/Pricing"
 
     @signUpButton = new KDButtonView
       title       : "Sign Up Now"
       style       : "solid medium green"
-      callback    : ->
-        KD.singleton("router").handleRoute "/Register"
-
-    @LoginButton = new KDButtonView
-      title       : "Sign in"
-      style       : "solid medium thin-white"
-      callback    : ->
-        KD.singleton("router").handleRoute "/Login"
+      callback    : -> router.handleRoute "/Register"
 
   viewAppended: JView::viewAppended
 
@@ -25,14 +21,6 @@ class EducationView extends KDView
     """
       <section class="introduction">
         <div class="inner-container clearfix">
-          <nav>
-            <a href="/Education">EDUCATION</a>
-            <a href="/Business">BUSINESS</a>
-            <a href="/About">ABOUT</a>
-            <a href="/Pricing">PRICING</a>
-            <a href="http://blog.koding.com" target="_blank">BLOG</a>
-            {{> @LoginButton}}
-          </nav>
           <article>
             <h2>Koding for Busy People</h2>
             <p>
