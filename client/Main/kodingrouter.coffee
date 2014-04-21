@@ -29,10 +29,12 @@ class KodingRouter extends KDRouter
 
     return if @userRoute
 
-    @handleRoute @defaultRoute,
-      shouldPushState : yes
-      replaceState    : yes
-      entryPoint      : KD.config.entryPoint
+
+    KD.utils.defer =>
+      @handleRoute @defaultRoute,
+        shouldPushState : yes
+        replaceState    : yes
+        entryPoint      : KD.config.entryPoint
 
 
   handleRoute: (route, options = {}) ->
