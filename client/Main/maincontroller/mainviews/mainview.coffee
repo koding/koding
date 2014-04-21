@@ -15,7 +15,6 @@ class MainView extends KDView
     @createMainTabView()
 
     KD.singletons.mainController.ready =>
-      @createDock()
       @createAccountArea()
       @setStickyNotification()
       @emit 'ready'
@@ -70,8 +69,9 @@ class MainView extends KDView
     {entryPoint} = KD.config
 
     @addSubView @header = new KDView
-      tagName : "header"
-      domId   : "main-header"
+      tagName  : 'header'
+      domId    : 'main-header'
+      cssClass : 'no-dock'  unless KD.isLoggedIn()
 
     @header.clear()
 
@@ -112,10 +112,29 @@ class MainView extends KDView
         KD.utils.stopDOMEvent event
         KD.getSingleton('router').handleRoute "/", {entryPoint}
 
-  createDock:->
+    @addDock()
+    @addLoggedOutNav()
 
-    @headerContainer.addSubView KD.singleton('dock').getView()
 
+  addDock:-> @headerContainer.addSubView KD.singleton('dock').getView()
+
+  showDock:-> @header.unsetClass 'no-dock'
+
+  hideDock:-> @header.setClass 'no-dock'
+
+
+  addLoggedOutNav:->
+
+    @headerContainer.addSubView new KDCustomHTMLView
+      tagName : 'nav'
+      partial : """
+        <a href='/Education'>EDUCATION</a>
+        <a href='/Business' class='active'>BUSINESS</a>
+        <a href='/About'>ABOUT</a>
+        <a href='/Pricing'>PRICING</a>
+        <a href='http://blog.koding.com' target='_blank'>BLOG</a>
+        <a href='/Login'>LOGIN</a>
+        """
 
   createAccountArea:->
 

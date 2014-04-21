@@ -95,10 +95,9 @@ class MainViewController extends KDViewController
       mainView   = @getView()
 
       if behavior is 'application'
-      then KDView.setElementClass html, 'add', 'app'
-      else KDView.setElementClass html, 'remove', 'app'
-
-      KDView.setElementClass body, 'remove', 'intro'
-      mainView.unsetClass 'home'
-      # KD.introView?.hide()
+        @getView().showDock()
+        KDView.setElementClass html, 'add', 'app'
+      else
+        @getView().hideDock()
+        KDView.setElementClass html, 'remove', 'app'
 
