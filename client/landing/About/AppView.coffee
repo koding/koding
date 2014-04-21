@@ -17,7 +17,7 @@ class AboutView extends KDView
     @logoPackButton = new KDCustomHTMLView
       tagName       : 'a'
       attributes    :
-        href        : '/a/images/koding-logo.pdf'
+        href        : 'https://koding-cdn.s3.amazonaws.com/brand/koding-logo.pdf'
         target      : '_blank'
       partial       : "<span class='icon'></span>Download Logo Pack"
       cssClass      : "solid green kdbutton"
