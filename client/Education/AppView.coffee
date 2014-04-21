@@ -22,9 +22,9 @@ class EducationView extends KDView
       <section class="introduction">
         <div class="inner-container clearfix">
           <article>
-            <h2>Koding for Busy People</h2>
+            <h2>Koding for the classroom</h2>
             <p>
-              Aliquam eget turpis venenatis, vestibulum mauris ut, viverra nisl. Curabitur in ultrices arcu.<br> Nulla varius mi nec massa aliquam, sit amet gravida libero tempor.
+              Connects students and teachers together with everything already set up
             </p>
             {{> @signUpButton}}
             {{> @pricingButton}}
@@ -48,60 +48,38 @@ class EducationView extends KDView
 
       <section class="features">
         <div class="inner-container clearfix">
-          <h3 class="general-title">Features from the future, for biz people</h3>
-          <h4 class="general-subtitle">Educational pricing for your school, you are the future!</h4>
           <article class="feature">
-            <i class="cloud icon"></i>
-            <h5>Private groups & secure access to code</h5>
+            <i class="bubble icon"></i>
+            <h5>Instant feedback on anything</h5>
             <p>
-              Aliquam eget turpis venenatis, vestibulum mauris ut,
-              viverra nisl. Curabitur in ultrices arcu.
-              Nulla varius mi nec massa aliquam, sit amet gravida libero tempor.
+              Never miss a thing. Who is working on what, who needs help,
+              what needs to get done,
             </p>
           </article>
           <article class="feature">
-            <i class="cloud icon"></i>
-            <h5>Private groups & secure access to code</h5>
+            <i class="team-small icon"></i>
+            <h5>Collaborative</h5>
             <p>
-              Aliquam eget turpis venenatis, vestibulum mauris ut,
-              viverra nisl. Curabitur in ultrices arcu.
-              Nulla varius mi nec massa aliquam, sit amet gravida libero tempor.
+              Invite anyone to your private session to collaborate on your
+              current project. Help anyone, get help from your peer with a
+              click, in realtime.
             </p>
           </article>
           <article class="feature">
-            <i class="cloud icon"></i>
-            <h5>Private groups & secure access to code</h5>
+            <i class="box-open icon"></i>
+            <h5>Dedicated VM’s</h5>
             <p>
-              Aliquam eget turpis venenatis, vestibulum mauris ut,
-              viverra nisl. Curabitur in ultrices arcu.
-              Nulla varius mi nec massa aliquam, sit amet gravida libero tempor.
+              Already set up environments for every single lecture.
+              Less time setting up things from ground up, more time
+              writing actual code!
             </p>
           </article>
           <article class="feature">
-            <i class="cloud icon"></i>
-            <h5>Private groups & secure access to code</h5>
+            <i class="browser icon"></i>
+            <h5>Accesible</h5>
             <p>
-              Aliquam eget turpis venenatis, vestibulum mauris ut,
-              viverra nisl. Curabitur in ultrices arcu.
-              Nulla varius mi nec massa aliquam, sit amet gravida libero tempor.
-            </p>
-          </article>
-          <article class="feature">
-            <i class="cloud icon"></i>
-            <h5>Private groups & secure access to code</h5>
-            <p>
-              Aliquam eget turpis venenatis, vestibulum mauris ut,
-              viverra nisl. Curabitur in ultrices arcu.
-              Nulla varius mi nec massa aliquam, sit amet gravida libero tempor.
-            </p>
-          </article>
-          <article class="feature">
-            <i class="cloud icon"></i>
-            <h5>Private groups & secure access to code</h5>
-            <p>
-              Aliquam eget turpis venenatis, vestibulum mauris ut,
-              viverra nisl. Curabitur in ultrices arcu.
-              Nulla varius mi nec massa aliquam, sit amet gravida libero tempor.
+              Remote is the new local. Connect different groups of students
+              together. Solve real problems, realtime.
             </p>
           </article>
         </div>
@@ -132,6 +110,10 @@ class EducationView extends KDView
             <span class="name">JASON FRIEDMANN</span>
           </article>
         </div>
+      </section>
+
+      <section class='check-out'>
+        <h3><a href='/Pricing'>Check out our price plans</a> and get started with Koding right away!</h3>
       </section>
 
       <footer>
