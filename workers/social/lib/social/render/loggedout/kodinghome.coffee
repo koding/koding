@@ -14,8 +14,7 @@ module.exports = (options, callback)->
       #{getStyles()}
       #{getGraphMeta()}
     </head>
-    <body class='koding intro'>
-
+    <body>
       <!--[if IE]>
       <script>(function(){window.location.href='/unsupported.html'})();</script>
       <![endif]-->
