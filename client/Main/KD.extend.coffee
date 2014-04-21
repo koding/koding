@@ -327,7 +327,7 @@ KD.extend
   getReferralUrl: (username) ->
     "#{location.origin}/R/#{username}"
 
-  tell: (rest...)-> KD.getSingleton('appManager').tell rest...
+  tell: -> KD.getSingleton('appManager').tell arguments...
 
   hasAccess:(permission)->
     if "admin" in KD.config.roles then yes else permission in KD.config.permissions
