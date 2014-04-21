@@ -95,8 +95,15 @@ class AddFirewallRuleModal extends KDModalViewWithForms
 
     unless isValid
       return new KDNotificationView
-        title     : "You can select only one request type filter"
-        cssClass  : "error"
-        type      : "mini"
-        container : this
-        duration  : 4000
+        title      : "You can select only one request type filter"
+        cssClass   : "error"
+        type       : "mini"
+        container  : this
+        duration   : 4000
+
+    {name, action} = @modalTabs.forms.Rules.getFormData()
+    filters        = []
+
+    filters.push form.getFormData() for form in @filterWidgets
+
+    log { name, action, filters }
