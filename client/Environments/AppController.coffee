@@ -1,9 +1,9 @@
 class EnvironmentsAppController extends AppController
 
   KD.registerAppClass this,
-    name         : "Environments"
-    route        : "/:name?/Environments"
-    behavior     : "application"
+    name         : 'Environments'
+    route        : '/:name?/Environments'
+    behavior     : 'application'
     preCondition :
       condition  : (options, cb)-> cb KD.isLoggedIn()
       failure    : (options, cb)->
@@ -13,8 +13,8 @@ class EnvironmentsAppController extends AppController
   constructor:(options = {}, data)->
 
     options.view    = new EnvironmentsMainScene
-      cssClass      : "environments split-layout"
+      cssClass      : 'environments split-layout'
     options.appInfo =
-      name          : "Environments"
+      name          : 'Environments'
 
     super options, data
