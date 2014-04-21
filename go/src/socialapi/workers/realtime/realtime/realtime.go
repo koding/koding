@@ -6,7 +6,6 @@ import (
 	"koding/db/mongodb/modelhelper"
 	"socialapi/models"
 	"strconv"
-	"github.com/koding/bongo"
 	"github.com/koding/logging"
 	"github.com/koding/rabbitmq"
 	"github.com/koding/worker"
@@ -98,8 +97,8 @@ func mapMessageToInteraction(data []byte) (*models.Interaction, error) {
 	return i, nil
 }
 
-func mapMessageToMessageReply(data []byte) (*models.Interaction, error) {
-	i := models.NewInteraction()
+func mapMessageToMessageReply(data []byte) (*models.MessageReply, error) {
+	i := models.NewMessageReply()
 	if err := json.Unmarshal(data, i); err != nil {
 		return nil, err
 	}
@@ -134,27 +133,32 @@ func (f *RealtimeWorkerController) MessageUpdated(data []byte) error {
 }
 
 func (f *RealtimeWorkerController) InteractionSaved(data []byte) error {
-	i, err := mapMessageToInteraction(data)
-	if err != nil {
-		return err
-	}
-
-	err = f.sendInstanceEvent(i.GetId(), i, "InteractionSaved")
-	if err != nil {
-		fmt.Println(err)
-		return err
-	}
-
-	return nil
+	return handleInteractionEvent("InteractionAdded", data)
 }
 
 func (f *RealtimeWorkerController) InteractionDeleted(data []byte) error {
+	return handleInteractionEvent("InteractionRemoved", data)
+}
+
+func handleInteractionEvent(eventName string, data []byte) error {
 	i, err := mapMessageToInteraction(data)
 	if err != nil {
 		return err
 	}
 
-	err = f.sendInstanceEvent(i.GetId(), i, "InteractionDeleted")
+	count, err := i.Count(i.TypeConstant)
+	if err != nil {
+		return err
+	}
+
+	res := map[string]interface{}{
+		"messageId":    i.MessageId,
+		"accountId":    i.AccountId,
+		"typeConstant": i.TypeConstant,
+		"count":        count,
+	}
+
+	err = f.sendInstanceEvent(i.MessageId, res, eventName)
 	if err != nil {
 		fmt.Println(err)
 		return err
@@ -169,7 +173,13 @@ func (f *RealtimeWorkerController) MessageReplySaved(data []byte) error {
 		return err
 	}
 
-	err = f.sendInstanceEvent(i.MessageId, i, "MessageReplySaved")
+	reply := models.NewChannelMessage()
+	reply.Id = i.ReplyId
+	if err := reply.Fetch(); err != nil {
+		return err
+	}
+
+	err = f.sendInstanceEvent(i.MessageId, reply, "ReplyAdded")
 	if err != nil {
 		fmt.Println(err)
 		return err
@@ -184,7 +194,7 @@ func (f *RealtimeWorkerController) MessageReplyDeleted(data []byte) error {
 		return err
 	}
 
-	err = f.sendInstanceEvent(i.GetId(), i, "MessageReplyDeleted")
+	err = f.sendInstanceEvent(i.MessageId, i, "ReplyRemoved")
 	if err != nil {
 		fmt.Println(err)
 		return err
@@ -226,7 +236,7 @@ func (f *RealtimeWorkerController) MessageListDeleted(data []byte) error {
 	return nil
 }
 
-func (f *RealtimeWorkerController) sendInstanceEvent(instanceId int64, message bongo.Modellable, eventName string) error {
+func (f *RealtimeWorkerController) sendInstanceEvent(instanceId int64, message interface{}, eventName string) error {
 	channel, err := f.rmqConn.Channel()
 	if err != nil {
 		return err
@@ -241,7 +251,11 @@ func (f *RealtimeWorkerController) sendInstanceEvent(instanceId int64, message b
 	}
 
 	updateArr := make([]string, 1)
-	updateArr[0] = fmt.Sprintf("{\"$set\":%s}", string(updateMessage))
+	if eventName == "updateInstances" {
+		updateArr[0] = fmt.Sprintf("{\"$set\":%s}", string(updateMessage))
+	} else {
+		updateArr[0] = string(updateMessage)
+	}
 
 	msg, err := json.Marshal(updateArr)
 	if err != nil {
@@ -290,7 +304,6 @@ func (f *RealtimeWorkerController) sendChannelEvent(cml *models.ChannelMessageLi
 	for _, secretName := range secretNames {
 		routingKey := "socialapi.channelsecret." + secretName + "." + eventName
 
-		fmt.Println(">><><><><", routingKey)
 		if err := channel.Publish(
 			"broker",   // exchange name
 			routingKey, // routing key
