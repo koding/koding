@@ -52,6 +52,23 @@ module.exports = class SocialChannel extends Base
 
   {fetchGroup} = require "./helper"
 
+  @generateChannelName = ({groupSlug, apiChannelType, apiChannelName})->
+    return "socialapi-
+group-#{groupSlug}-
+type-#{apiChannelType}-
+name-#{apiChannelName}"
+
+  @fetchSecretChannelName =(options, callback)->
+    {groupSlug, apiChannelType, apiChannelName} = options
+    name = @generateChannelName options
+    JName = require '../name'
+    JName.fetchSecretName name, (err, secretName, oldSecretName)->
+      # just to know, how many parameters does this function return
+      # callback err, secretName, oldSecretName
+      if err then callback err
+      else callback null, "socialapi.channelsecret.#{secretName}",
+        if oldSecretName then "socialapi.channelsecret.#{oldSecretName}"
+
   @fetchActivities = secure (client, options = {}, callback)->
     options.channelId = options.id
     @doRequest 'fetchChannelActivities', client, options, callback
