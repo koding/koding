@@ -90,11 +90,15 @@ func (c *Interaction) List(interactionType string) ([]int64, error) {
 	var interactions []int64
 
 	if c.MessageId == 0 {
-		return interactions, errors.New("ChannelId is not set")
+		return interactions, errors.New("Message is not set")
 	}
 
 	if err := bongo.B.DB.Table(c.TableName()).
-		Where("message_id = ?", c.MessageId).
+		Where(
+		"message_id = ? and type_constant = ?",
+		c.MessageId,
+		interactionType,
+	).
 		Pluck("account_id", &interactions).
 		Error; err != nil {
 		return nil, err
@@ -120,6 +124,18 @@ func (c *Interaction) List(interactionType string) ([]int64, error) {
 	// }
 
 	return interactions, nil
+}
+
+func (c *Interaction) Count(interactionType string) (int, error) {
+	if c.MessageId == 0 {
+		return 0, errors.New("MessageId is not set")
+	}
+
+	return bongo.B.Count(c,
+		"message_id = ? and type_constant = ?",
+		c.MessageId,
+		interactionType,
+	)
 }
 
 func (c *Interaction) FetchAll(interactionType string) ([]Interaction, error) {
