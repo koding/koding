@@ -230,14 +230,14 @@ class AccountAppController extends AppController
     @modal = new KDBlockingModalView
       title           : "Please Login or Register"
       content : """
-Every Koding user gets a private virtual machine with root access. Let's give you one in 10 seconds so that you can
-code, collaborate and have fun! :)
-<br><br>
-
-<iframe width="560" height="315" src="//www.youtube.com/embed/5E85g_ddV3A" frameborder="0" allowfullscreen></iframe><br>
-Click play to see what Koding is all about in 2 minutes!
+      Every Koding user gets a private virtual machine with root access. Let's give you one in 10 seconds so that you can
+      code, collaborate and have fun! :)
+      <br><br>
+      <iframe width="560" height="315" src="//www.youtube.com/embed/5E85g_ddV3A" frameborder="0" allowfullscreen></iframe>
+      <br><br>
+      Click play to see what Koding is all about in 2 minutes!
       """
-      height          : "auto"
+      width           : 650
       overlay         : yes
       buttons         :
         "Login"       :
