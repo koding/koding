@@ -2,7 +2,6 @@
 package main
 
 import (
-	"errors"
 	"fmt"
 	"koding/db/models"
 	"koding/db/mongodb/modelhelper"
@@ -19,7 +18,7 @@ import (
 // Firewall is used per domain
 type Firewall struct {
 	rest      models.Restriction
-	filters   map[string]models.Filter
+	rules     []models.Rule
 	bucket    *tb.Bucket
 	cacheTime time.Time
 }
@@ -52,29 +51,6 @@ var (
 	fwsMu sync.Mutex
 )
 
-func NewFirewall(rest models.Restriction) *Firewall {
-	f := &Firewall{
-		filters:   make(map[string]models.Filter),
-		rest:      rest,
-		cacheTime: time.Now(),
-	}
-
-	for _, rule := range rest.RuleList {
-		if !rule.Enabled {
-			continue
-		}
-
-		filter, err := modelhelper.GetFilterByField("name", rule.Name)
-		if err != nil {
-			continue
-		}
-
-		f.filters[rule.Name] = filter
-	}
-
-	return f
-}
-
 // firewallHandler returns a http.Handler to restrict incoming requests based
 // on rules and filters defined for a given domain name. It has a internal
 // cache to avoid rapid lookup to mongodb.
@@ -94,96 +70,117 @@ func firewallHandler(h http.Handler) http.Handler {
 				return
 			}
 
-			fw = NewFirewall(rest)
+			fw = newFirewall(rest)
 			fwsMu.Lock()
 			fws[r.Host] = fw
 			fwsMu.Unlock()
 		}
 
-		for _, rule := range fw.rest.RuleList {
-			if a := fw.ApplyRule(rule, r); a != nil {
-				a.ServeHTTP(w, r)
-				return
-			}
+		if a := fw.applyRule(r); a != nil {
+			a.ServeHTTP(w, r)
+			return
 		}
 
 		h.ServeHTTP(w, r)
 	})
 }
 
-// ApplyRule checks the rule and returns an http.Handler to be executed. A nil
-// handler means there is no http.Handler to be executed. For example if the
-// user is allowed to pass,  a "nil" http.Handler is returned, however if the
-// user is denied a `quotaExceeded` template handler is returned that neneeds
-// to be exectued
-func (f *Firewall) ApplyRule(rule models.Rule, r *http.Request) http.Handler {
-	if !rule.Enabled {
-		return nil
+func newFirewall(rest models.Restriction) *Firewall {
+	f := &Firewall{
+		rules: make([]models.Rule, 0),
 	}
 
-	filter, ok := f.filters[rule.Name]
-	if !ok {
-		return nil // continue with the next one
-	}
-
-	// country is empty for now
-	checker, err := GetChecker(filter, getIP(r.RemoteAddr), "", r.Host)
-	if err != nil {
-		return nil
-	}
-
-	matched := checker.Check()
-	switch rule.Action {
-	case "deny":
-		if matched {
-			return templateHandler("quotaExceeded.html", r.Host, 509)
-		}
-	case "allow":
-		if !matched {
-			return templateHandler("quotaExceeded.html", r.Host, 509)
-		}
-	case "securepage":
-		if !matched {
-			return nil
+	for _, rule := range rest.Filters {
+		filter, err := modelhelper.GetFilterByID(rule)
+		if err != nil {
+			continue
 		}
 
-		session, _ := store.Get(r, CookieVM)
-		log.Debug("getting cookie for: %s", r.Host)
-		cookieValue, ok := session.Values[r.Host]
-		if !ok || cookieValue != MagicCookieValue {
-			return securePageHandler(session)
+		for _, rule := range filter.Rules {
+			f.rules = append(f.rules, rule)
 		}
 	}
 
-	return nil
+	return f
 }
 
-func GetChecker(f models.Filter, ip, country, host string) (Checker, error) {
-	switch f.Type {
+func getChecker(rule models.Rule, r *http.Request) (Checker, error) {
+	ip := getIP(r.RemoteAddr)
+	host := r.Host
+	country := ""
+
+	switch rule.Type {
 	case "ip":
-		return &CheckIP{IP: ip, Pattern: f.Match}, nil
+		return &CheckIP{IP: ip, Pattern: rule.Match}, nil
 	case "country":
-		return &CheckCountry{Country: country, Pattern: f.Match}, nil
+		return &CheckCountry{Country: country, Pattern: rule.Match}, nil
 	case "request.second", "request.minute":
-		rate, err := strconv.Atoi(f.Match)
+		rate, err := strconv.Atoi(rule.Match)
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("request match malformed %v err %v", rule.Match, err)
 		}
 
 		var freq time.Duration
-		switch strings.TrimPrefix(f.Type, "request.") {
+		switch strings.TrimPrefix(rule.Type, "request.") {
 		case "second":
 			freq = time.Second
 		case "minute":
 			freq = time.Minute
 		default:
-			return nil, errors.New("request type malformed")
+			return nil, fmt.Errorf("request type malformed: %v", rule.Type)
 		}
 
 		return &CheckRequest{Host: host, MaxRequest: rate, Interval: freq}, nil
 	}
 
-	return nil, fmt.Errorf("no checker found for %s", f.Type)
+	return nil, fmt.Errorf("no checker found for %s", rule.Type)
+}
+
+// applyRule checks the rule and returns an http.Handler to be executed. A nil
+// handler means there is no http.Handler to be executed. For example if the
+// user is allowed to pass,  a "nil" http.Handler is returned, however if the
+// user is denied a `quotaExceeded` template handler is returned that neneeds
+// to be exectued
+func (f *Firewall) applyRule(r *http.Request) http.Handler {
+	for _, rule := range f.rules {
+		if !rule.Enabled {
+			continue
+		}
+
+		checker, err := getChecker(rule, r)
+		if err != nil {
+			log.Error("getChecker err: %v", err)
+			continue
+		}
+
+		matched := checker.Check()
+		switch rule.Action {
+		case "deny":
+			if matched {
+				return templateHandler("quotaExceeded.html", r.Host, 509)
+			}
+		case "allow":
+			if !matched {
+				return templateHandler("quotaExceeded.html", r.Host, 509)
+			}
+		case "securepage":
+			if !matched {
+				continue
+			}
+
+			session, _ := store.Get(r, CookieVM)
+			log.Debug("getting cookie for: %s", r.Host)
+			cookieValue, ok := session.Values[r.Host]
+			if !ok || cookieValue != MagicCookieValue {
+				return securePageHandler(session)
+			}
+		default:
+			log.Error("rule.Action malformed: %+v", rule)
+			continue
+		}
+	}
+
+	return nil
 }
 
 func (c *CheckRequest) Check() bool {
