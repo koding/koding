@@ -51,26 +51,4 @@ module.exports = [
   "styl/app.environments.styl"
   "styl/app.envsettings.styl"
 
-  # We will remove followings soon ~ GG
-
-  # "views/vmsmainview.coffee"
-  # "views/domainsmainview.coffee"
-  # "views/DomainListItemView.coffee"
-  # "views/domains/domainsroutingview.coffee"
-  # "views/domains/domainsvmlistitemview.coffee"
-  # "views/DomainMapperView.coffee"
-  # "views/FirewallMapperView.coffee"
-  # "views/FirewallFilterListItemView.coffee"
-  # "views/FirewallRuleListItemView.coffee"
-  # "views/FirewallFilterFormView.coffee"
-  # "views/DNSManagerView.coffee"
-  # "views/NewDNSRecordFormView.coffee"
-  # "views/DNSRecordListItemView.coffee"
-
-  # "Controllers/VMListViewController.coffee"
-  # "Controllers/DomainsListViewController.coffee"
-  # "Controllers/FirewallFilterListController.coffee
-  # "Controllers/FirewallRuleListController.coffee
-  # "Controllers/DNSRecordListController.coffee
-
 ]
