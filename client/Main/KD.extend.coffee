@@ -37,7 +37,6 @@ KD.extend
         warn "Removing the old one. It was ", KD.appClasses[options.name]
         @unregisterAppClass options.name
 
-    options.enforceLogin  ?= no           # a Boolean
     options.multiple      ?= no           # a Boolean
     options.background    ?= no           # a Boolean
     options.hiddenHandle  ?= no           # a Boolean
@@ -73,21 +72,18 @@ KD.extend
     @registerRoute appName, route, handler for own route, handler of routes
 
 
+  showEnforceLoginModal: ->
+
+    return  if KD.isLoggedIn()
+    if Cookies.get('doNotForceRegistration') or location.search.indexOf('sr=1') > -1
+      Cookies.set 'doNotForceRegistration', 'true'
+      return
+
+    {appManager} = KD.singletons
+    appManager.tell 'Account', 'showRegistrationNeededModal'
+
+
   registerRoute: (appName, route, handler) ->
-
-    # enforceLogin = ->
-    #   return  if KD.isLoggedIn()
-    #   if Cookies.get('doNotForceRegistration') or location.search.indexOf('sr=1') > -1
-    #     Cookies.set 'doNotForceRegistration', 'true'
-    #     return
-
-    #   appManager.tell "Account", "showRegistrationNeededModal"
-
-
-    # wrapHandler = (fn, options) -> ->
-      # router.setPageTitle? options.navItem.title  if options.navItem.title
-      # fn.apply this, arguments
-      # enforceLogin()  if options.enforceLogin
 
     slug   = if "string" is typeof route then route else route.slug
     route  =
@@ -102,7 +98,6 @@ KD.extend
         router = KD.getSingleton 'router'
         handler ?= ({params:{name}, query}) ->
           router.openSection appName, name, query
-          # enforceLogin()  if options.enforceLogin
         router.addRoute slug, handler
 
       if router = KD.singletons.router then cb()
