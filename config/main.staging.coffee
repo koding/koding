@@ -280,9 +280,9 @@ module.exports =
     cronInstant : '*/10 * * * * *'
     cronDaily   : '0 10 0 * * *'
     run         : no
-    forcedRecipient : undefined
+    forcedRecipient : "kodingtestuser@gmail.com"
   emailSender   :
-    run         : no
+    run         : yes
   guests        :
     # define this to limit the number of guset accounts
     # to be cleaned up per collection cycle.
