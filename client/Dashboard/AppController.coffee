@@ -55,46 +55,46 @@ class DashboardAppController extends AppController
       #     viewClass  : GroupPaymentSettingsView
       #     lazy       : yes
       #     callback   : @bound 'paymentViewAdded'
-      ]
+    ]
 
-      if data.slug is "koding"
-        @tabData.push
-            name         : 'Products'
-            kodingOnly   : yes
-            viewOptions  :
-              viewClass  : GroupProductSettingsView
-              lazy       : yes
-              callback   : @bound 'productViewAdded'
-          ,
-            name         : 'Blocked users'
-            kodingOnly   : yes # this is only intended for koding group, we assume koding group is super-group
-            viewOptions  :
-              viewClass  : GroupsBlockedUserView
-              lazy       : yes
-          ,
-            name         : 'Badges'
-            kodingOnly   : yes # this is only intended for koding group, we assume koding group is super-group
-            viewOptions  :
-              viewClass  : BadgeDashboardView
-              lazy       : yes
-          ,
-            name         : 'Widgets'
-            kodingOnly   : yes # this is only intended for koding group, we assume koding group is super-group
-            viewOptions  :
-              viewClass  : CustomViewsManager
-              lazy       : yes
-          ,
-            name         : 'Onboarding'
-            kodingOnly   : yes # this is only intended for koding group, we assume koding group is super-group
-            viewOptions  :
-              viewClass  : OnboardingDashboardView
-              lazy       : yes
-          ,
-            name         : 'Administration'
-            kodingOnly   : yes # this is only intended for koding group, we assume koding group is super-group
-            viewOptions  :
-              viewClass  : AdministrationView
-              lazy       : yes
+    if data.slug is "koding"
+      @tabData.push
+          name         : 'Products'
+          kodingOnly   : yes
+          viewOptions  :
+            viewClass  : GroupProductSettingsView
+            lazy       : yes
+            callback   : @bound 'productViewAdded'
+        ,
+          name         : 'Blocked users'
+          kodingOnly   : yes # this is only intended for koding group, we assume koding group is super-group
+          viewOptions  :
+            viewClass  : GroupsBlockedUserView
+            lazy       : yes
+        ,
+          name         : 'Badges'
+          kodingOnly   : yes # this is only intended for koding group, we assume koding group is super-group
+          viewOptions  :
+            viewClass  : BadgeDashboardView
+            lazy       : yes
+        ,
+          name         : 'Widgets'
+          kodingOnly   : yes # this is only intended for koding group, we assume koding group is super-group
+          viewOptions  :
+            viewClass  : CustomViewsManager
+            lazy       : yes
+        ,
+          name         : 'Onboarding'
+          kodingOnly   : yes # this is only intended for koding group, we assume koding group is super-group
+          viewOptions  :
+            viewClass  : OnboardingDashboardView
+            lazy       : yes
+        ,
+          name         : 'Administration'
+          kodingOnly   : yes # this is only intended for koding group, we assume koding group is super-group
+          viewOptions  :
+            viewClass  : AdministrationView
+            lazy       : yes
 
       # CURRENTLY DISABLED
 

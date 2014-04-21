@@ -150,7 +150,7 @@ createTagNode = (tag)->
   <div class="kdview kdlistitemview kdlistitemview-topics topic-item">
     <header>
       <h3 class="subview">
-        <a href="#{uri.address}/#!/Activity?tagged=#{tag.slug}">
+        <a href="#{uri.address}/Activity?tagged=#{tag.slug}">
           <span itemprop="itemListElement">#{tag.title}</span>
         </a>
       </h3>

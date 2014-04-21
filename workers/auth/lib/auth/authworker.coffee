@@ -51,7 +51,7 @@ module.exports = class AuthWorker extends EventEmitter
 
   requireSession: (clientId, routingKey, socketId, callback) ->
     {JSession} = @bongo.models
-    JSession.fetchSession clientId, (err, session) =>
+    JSession.fetchSession clientId, (err, { session }) =>
       if err? then console.error err
       if err? or not session? then @rejectClient routingKey
       else
@@ -506,7 +506,7 @@ module.exports = class AuthWorker extends EventEmitter
                                    is serviceUniqueName)
     if matchingService?
       @sendAuthJoin params
-    else
+    else unless serviceUniqueName is "(error)"
       params.deadService = serviceUniqueName
       serviceInfo = @getNextServiceInfo serviceGenericName
       params.serviceUniqueName = serviceInfo.serviceUniqueName

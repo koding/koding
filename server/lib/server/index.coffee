@@ -101,7 +101,8 @@ if basicAuth
   app.use express.basicAuth basicAuth.username, basicAuth.password
 
 process.on 'uncaughtException', (err) ->
-  console.error "there was an uncaught exception #{err}"
+  console.error " there was an uncaught exception #{err}"
+  throw err
   process.exit(1)
 
 
@@ -112,7 +113,7 @@ app.use (req, res, next) ->
   # fetchClient will validate the clientId.
   # if it is in our db it will return the session it
   # it it is not in db, creates a new one and returns it
-  JSession.fetchSession clientId, (err, session)->
+  JSession.fetchSession clientId, (err, { session })->
     return next() if err or not session
     { maxAge, secure } = KONFIG.sessionCookie
 
@@ -302,13 +303,15 @@ app.all '/:name/:section?*', (req, res, next)->
 
           path = if section then "#{name}/#{section}" else name
 
-          JName.fetchModels path, (err, models)->
+          JName.fetchModels path, (err, result) ->
+
             if err
               options = { account, name, section, client,
                           bongoModels, isCustomPreview }
               JGroup.render[prefix].subPage options, serveSub
-            else if not models? then next()
+            else if not result? then next()
             else
+              { models } = result
               options = { account, name, section, models,
                           client, bongoModels, isCustomPreview }
               JGroup.render[prefix].subPage options, serveSub
@@ -318,10 +321,11 @@ app.all '/:name/:section?*', (req, res, next)->
   else
 
     isLoggedIn req, res, (err, loggedIn, account)->
-      JName.fetchModels name, (err, models)->
-        if err then next err
-        else unless models? then res.send 404, error_404()
-        else if models.last?
+      JName.fetchModels name, (err, result)->
+        return next err  if err
+        return res.send 404, error_404()  unless result?
+        { models } = result
+        if models.last?
           if models.last.bongo_?.constructorName isnt "JGroup" and not loggedIn
             return Crawler.crawl koding, req, res, name
 

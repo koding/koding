@@ -18,7 +18,7 @@ class Pane extends JView
     title      = options.title or ""
 
     @header    = new KDCustomHTMLView
-      tagName  : "span"  if title is ''
+      tagName  : if title is '' then "span"
       cssClass : "ws-header inner-header"
 
     @header.title = new KDCustomHTMLView

@@ -91,7 +91,7 @@ module.exports = class JName extends Model
       dash queue, ->
         # remove falsy values
         models = models.filter(Boolean)
-        callback null, models, nameObj
+        callback null, { models, name: nameObj }
 
     fetchModels = (name, callback)->
       if 'string' is typeof name
