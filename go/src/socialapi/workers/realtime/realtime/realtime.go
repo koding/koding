@@ -133,14 +133,14 @@ func (f *RealtimeWorkerController) MessageUpdated(data []byte) error {
 }
 
 func (f *RealtimeWorkerController) InteractionSaved(data []byte) error {
-	return handleInteractionEvent("InteractionAdded", data)
+	return f.handleInteractionEvent("InteractionAdded", data)
 }
 
 func (f *RealtimeWorkerController) InteractionDeleted(data []byte) error {
-	return handleInteractionEvent("InteractionRemoved", data)
+	return f.handleInteractionEvent("InteractionRemoved", data)
 }
 
-func handleInteractionEvent(eventName string, data []byte) error {
+func (f *RealtimeWorkerController) handleInteractionEvent(eventName string, data []byte) error {
 	i, err := mapMessageToInteraction(data)
 	if err != nil {
 		return err
@@ -342,4 +342,30 @@ func fetchChannel(channelId int64) (*models.Channel, error) {
 		return nil, err
 	}
 	return c, nil
+}
+
+func (f *RealtimeWorkerController) sendNotification(accountId int64, data interface{}) error {
+	channel, err := f.rmqConn.Channel()
+	if err != nil {
+		return err
+	}
+	defer channel.Close()
+
+	oldAccount, err := modelhelper.GetAccountBySocialApiId(accountId)
+	if err != nil {
+		return err
+	}
+
+	byteData, err := json.Marshal(data)
+	if err != nil {
+		return err
+	}
+
+	return channel.Publish(
+		"notification",
+		oldAccount.Profile.Nickname, // this is routing key
+		false,
+		false,
+		amqp.Publishing{Body: byteData},
+	)
 }
