@@ -7,11 +7,15 @@ class AppsAppController extends AppController
 
   KD.registerAppClass this,
     name         : "Apps"
-    enforceLogin : yes
     hiddenHandle : yes
     searchRoute  : "/Apps?q=:text:"
     behaviour    : 'application'
     version      : "1.0"
+    preCondition :
+      condition  : (options, cb)-> cb KD.isLoggedIn()
+      failure    : (options, cb)->
+        KD.singletons.appManager.open 'Apps', conditionPassed : yes
+        KD.showEnforceLoginModal()
 
   constructor:(options = {}, data)->
 

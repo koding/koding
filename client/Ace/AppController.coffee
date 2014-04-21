@@ -8,9 +8,13 @@ class AceAppController extends AppController
     name          : "Ace"
     multiple      : yes
     hiddenHandle  : no
-    enforceLogin  : yes
     openWith      : "lastActive"
     behavior      : "application"
+    preCondition  :
+      condition   : (options, cb)-> cb KD.isLoggedIn()
+      failure     : (options, cb)->
+        KD.singletons.appManager.open 'Ace', conditionPassed : yes
+        KD.showEnforceLoginModal()
     menu          : [
       { title     : "Save",                eventName : "save" }
       { title     : "Save as...",          eventName : "saveAs" }

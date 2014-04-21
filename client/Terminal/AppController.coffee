@@ -4,9 +4,13 @@ class WebTermController extends AppController
     name         : "Terminal"
     title        : "Terminal"
     version      : "1.0.1"
-    enforceLogin : yes
     multiple     : yes
     hiddenHandle : no
+    preCondition :
+      condition  : (options, cb)-> cb KD.isLoggedIn()
+      failure    : (options, cb)->
+        KD.singletons.appManager.open 'Terminal', conditionPassed : yes
+        KD.showEnforceLoginModal()
     menu         :
       width      : 250
       items      : [
