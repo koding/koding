@@ -17,7 +17,6 @@ import (
 
 // Firewall is used per domain
 type Firewall struct {
-	rest      models.Restriction
 	rules     []models.Rule
 	bucket    *tb.Bucket
 	cacheTime time.Time
@@ -63,6 +62,7 @@ func firewallHandler(h http.Handler) http.Handler {
 		// either it's not in the cache or the cache expired. In both cases go
 		// and get the restriction from mongodb
 		if !ok || fw.cacheTime.Add(cacheTimeout).Before(time.Now()) {
+
 			rest, err := modelhelper.GetRestrictionByDomain(r.Host)
 			if err != nil {
 				// don't block if we don't get a rule (pre-caution))
@@ -87,12 +87,17 @@ func firewallHandler(h http.Handler) http.Handler {
 
 func newFirewall(rest models.Restriction) *Firewall {
 	f := &Firewall{
-		rules: make([]models.Rule, 0),
+		rules:     make([]models.Rule, 0),
+		cacheTime: time.Now(),
 	}
 
-	for _, rule := range rest.Filters {
-		filter, err := modelhelper.GetFilterByID(rule)
+	for _, filterID := range rest.Filters {
+		filter, err := modelhelper.GetFilterByID(filterID)
 		if err != nil {
+			continue
+		}
+
+		if !filter.Enabled {
 			continue
 		}
 
