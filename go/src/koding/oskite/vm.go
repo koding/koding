@@ -551,16 +551,6 @@ func unprepareProgress(vos *virt.VOS, destroy bool) <-chan *virt.Step {
 				CurrentStep: lastCurrentStep + 1,
 				TotalStep:   totalStep,
 			}
-
-			// TODO: enable this after getting the relationships to be removed.
-			// query := func(c *mgo.Collection) error {
-			// 	return c.Remove(bson.M{"hostnameAlias": vos.VM.HostnameAlias})
-			// }
-
-			// if err := mongodbConn.Run("jVMs", query); err != nil {
-			// 	return nil, err
-			// }
-
 		}
 	}()
 
