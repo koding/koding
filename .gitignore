@@ -67,3 +67,5 @@ logs/*.log
 /embedly_cache
 
 node_modules_koding/processes/src/.tmp*
+
+website/a/sprites/*.sprite.png
