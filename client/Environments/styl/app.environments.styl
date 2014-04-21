@@ -1430,10 +1430,13 @@ div.environments-joint
     overflow                  visible
     .title
       line-height             37px
+      color                   #515151 !important
+      font-weight             400 !important
+      text-transform          uppercase
     .arrows
       top                     11px
   input[type=text]
-    width                     280px
+    width                     615px
     height                    37px
     font-size                 14px
   .formline.half
@@ -1451,22 +1454,45 @@ div.environments-joint
     &.second
       border-top              1px solid #E2E2E2
       p
-        margin                30px
+        margin                30px 0 20px 30px
+  .headers
+    .header-row
+      margin                  0 30px
+      h4
+        color                 #919191
+        border-bottom         1px solid #EEEEEE
+        margin                0 1px 20px 1px
+        line-height           20px
+        text-transform        uppercase
+        font-size             13px
+        fl()
+      .type
+        width                 116px
+      .value
+        width                 262px
+      .filter
+        width                 171px
+      .button
+        width                 65px
   .container
+    .kdlabel
+      display                 none
     .kdformview.with-fields
       overflow                hidden
       margin                  0 0 10px 30px
     .type.half
-      margin-right            30px
+      margin-right            15px
     .kdselectbox
-      width                   150px
+      width                   100px
+      &.action
+        width                 160px
     input[type=text]
-      width                   218px
-    .full
-      input[type=text]
-        width                 267px
+      width                   250px
+      margin-right            15px
+    .enabled.half
+      margin                  4px 0 0 15px
   .add-rule
-    width                     570px !important
+    width                     675px !important
     margin                    0 30px !important
     height                    35px !important
     border                    1px dashed #D3D3D3
@@ -1484,7 +1510,7 @@ div.environments-joint
         display               block
         padding               0
         position              relative
-        left                  195px
+        left                  238px
   .kdbutton
     margin-bottom             30px !important
     height                    37px !important
@@ -1504,12 +1530,20 @@ div.environments-joint
           color               #818181
   .input-wrapper
     .delete-button
-      size                    35px !important, 35px !important
-      border                  1px solid #D3D3D3
-      rounded                 6px
-      margin-left             12px
+      rounded                 20px
+      margin                  4px 0 0 12px
+      bg                      color, #E1E1E1 !important
       r-sprite                "environments", "delete"
       pointer()
+      &:hover
+        bg                    color, #F06668 !important
+  .undeletable
+    .input-wrapper
+      .delete-button
+        opacity               .5
+        cursor                not-allowed
+        &:hover
+          bg                  color, #E1E1E1 !important
   .kdnotification.error
     abs()
     top                       145px !important

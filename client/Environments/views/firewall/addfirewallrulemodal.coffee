@@ -5,7 +5,7 @@ class AddFirewallRuleModal extends KDModalViewWithForms
     options.overlay           = yes
     options.content           = ""
     options.cssClass          = "firewall-modal"
-    options.width             = 715
+    options.width             = 735
     options.height            = "auto"
     options.tabs              =
       callback                : @bound "handleFormSubmit"
@@ -49,8 +49,8 @@ class AddFirewallRuleModal extends KDModalViewWithForms
                 <h4 class="type">Type</h4>
                 <h4 class="value">Value</h4>
                 <h4 class="filter">Filter</h4>
-                <h4 class="state">Active?</h4>
                 <h4 class="button">Delete</h4>
+                <h4 class="state">Active?</h4>
               """
             container         :
               itemClass       : KDCustomHTMLView
