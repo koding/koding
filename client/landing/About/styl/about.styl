@@ -31,22 +31,30 @@ body.about
 
     div.wrapper
       padding         112px 15px 0
-      max-width       1043px
+      max-width       1200px
       margin          0 auto
       rel()
       borderBox()
 
       article
-        padding         0 378px 112px 0
-        opacity         .9
+        padding            0 260px 60px 0
+        font-size          18px
+        line-height        24px
 
         p
-          line-height   28px
-          word-spacing  -1px
-          color         rgba(255, 255, 255, 0.64)
-          vendor        font-smoothing, antialiased
-          vendor        text-rendering, geometricPrecision
-          font-weight   200
+          color            white
+          letter-spacing   .2px
+          vendor           font-smoothing, antialiased
+          vendor           text-rendering, geometricPrecision
+
+        > a
+
+          font-size        14px
+          borderize        rgba(255,255,255,.4)
+          color            rgba(255,255,255,.5)
+          margin-top       18px
+          line-height      1
+          letter-spacing   0
 
 
       aside
@@ -58,28 +66,23 @@ body.about
 
     h2
       display         block
-      font-size       36px
-      color           #1aaf5d
-      font-weight     400
-      letter-spacing  .9px
-      word-spacing    -2px
+      font-size       26px
+      color           white
+      font-weight     600
+      letter-spacing  .1px
+      margin-bottom   30px
 
     h4
       display         block
-      font-size       36px
+      font-size       18px
+      font-size       18px
       color           #bbd5c7
-      font-weight     200
       margin          8px 0 53px
-      letter-spacing  1.1px
-      word-spacing    -2px
       a
         borderize     #8a8a8a
 
     &.careers
       background        #e3e3e3
-
-    &.careers
-    &.founders
       h4
         color           #8a8a8a
         a
@@ -91,22 +94,10 @@ body.about
       position          relative
       font-size         24px
       color             #fff
-      font-weight       200
       letter-spacing    .9px
-      a
-        borderize       #fff
 
       > div.wrapper
         padding-top       139px
-
-        > cite
-          right           20px
-          bottom          20px
-          font-size       12px
-          line-height     32px
-          color           #aaa
-          a
-            color         #ccc
 
         aside
           top             180px
@@ -132,17 +123,21 @@ body.about
         color           #fff
         opacity         .5
         font-size       18px
-        font-weight     200
         margin          0 0 6px
 
 
 
     &.member-list
       size              100%, auto
-      background        #e3e3e3
+      background        #f1f3f2
       border-bottom     1px solid transparent
+      h2
+        color           #515151
+        margin-bottom   10px
+        span
+          font-weight   400
       h4
-        color            #8a8a8a
+        color           rgba(113,113,113,.5)
         rel()
         cite
           abs()
@@ -159,8 +154,6 @@ body.about
         size              180px 290px
         text-align        center
         margin            0 0 0 40px
-        letter-spacing    .9px
-        word-spacing      -4px
 
         figure
           margin          0 auto
@@ -180,22 +173,21 @@ body.about
           overflow        visible
 
         a.profile
-          color           #8a8a8a
-          font-size       24px
-          line-height     32px
-          font-weight     200
           display         block
           margin          28px 0 7px
+          color           #515151
+          font-size       18px
+          line-height     24px
+          font-weight     400
           white-space     nowrap
           noTextDeco()
 
         cite
-          font-weight     200
-          color           #8a8a8a
+          color           #515151
+          opacity         .5
           line-height     22px
-          letter-spacing  .9px
-          word-spacing    1px
-          font-size       16px
+          font-size       14px
+          font-weight     400
 
     &.press-kit
       min-height          542px
@@ -228,60 +220,6 @@ body.about
           line-height    inherit
           font-size      inherit
           font-weight    inherit
-
-    &.founders
-      min-height        528px
-      letter-spacing    .9px
-      word-spacing      -3px
-
-      > div.wrapper
-        padding-top       96px
-
-      aside
-        > img
-          size          200px 200px
-          rounded       100px
-          right         0
-          abs()
-          &.devrim
-            top         60px
-          &.sinan
-            top         270px
-
-      h2
-        font-size     48px
-        line-height   70px
-
-
-      .avatarview
-        abs             114px 0 0 16px
-        fl()
-
-      .profile
-        display       block
-        font-size     36px
-        font-weight   400
-        color         #1aaf5d
-        text-transform capitalize
-        margin        0 0 10px
-        noTextDeco()
-
-      cite
-        font-size      24px
-        font-weight    200
-        color          #323b3d
-        letter-spacing 1.2px
-
-      article
-        padding-right 0!important
-        font-size     24px
-        font-weight   200
-        color         #323b3d
-        line-height   28px
-        margin        42px 0 0 0
-        word-spacing  -3.7px
-        a
-          borderize   #323b3d
 
     &.careers
       min-height      306px
