@@ -358,7 +358,6 @@ class LoginView extends KDView
 
         KD.mixpanel.alias account.profile.nickname
         KD.mixpanel "Signup, success"
-        _gaq.push ['_trackEvent', 'Sign-up']
 
         Cookies.set 'newRegister', yes
         KD.getSingleton("mainController").swapAccount {
