@@ -1,4 +1,5 @@
 class SocialApiController extends KDController
+
   constructor: (options = {}, data) ->
     super options, data
 
@@ -124,9 +125,34 @@ class SocialApiController extends KDController
       # we need `channel-` here
       c._id = "channel-#{c.id}"
 
+      # bind all events
+      registerAndOpenChannel c
+
+      # push channel into stack
       revivedChannels.push c
 
     return revivedChannels
+
+  forwardEvents = (source, target,  events)->
+    events.forEach (event) ->
+      source.on event, (rest...) ->
+        target.emit event, rest...
+
+  registerAndOpenChannel = (socialApiChannel)->
+    getCurrentGroup (group)->
+      subscriptionData =
+        serviceType: 'socialapi'
+        group      : group.slug
+        channelType: socialApiChannel.typeConstant
+        channelName: socialApiChannel.name
+        isExclusive: yes
+
+      name = "socialapi.#{socialApiChannel.groupName}-#{socialApiChannel.typeConstant}-#{socialApiChannel.name}"
+      brokerChannel = KD.remote.subscribe name, subscriptionData
+      forwardEvents brokerChannel, socialApiChannel, [
+        "MessageAdded",
+        "MessageRemoved"
+      ]
 
   message:
     edit   :(rest...)-> messageApiMessageResFunc 'edit', rest...
