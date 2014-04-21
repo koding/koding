@@ -34,25 +34,25 @@ class FooterView extends JView
 
         <nav class="footer-block">
           <h5>COMMUNITY</h5>
+          <a href='/Activity'>ACTIVITY</a>
           <a href='http://blog.koding.com'>KODING BLOG</a>
           <a href='https://www.facebook.com/kodingcom/events'>MEETUPS</a>
-          <a href='#'>NEWSLETTER</a>
           <a href='http://stories.koding.com'>TESTIMONALS</a>
           <a href='https://koding-cdn.s3.amazonaws.com/brand/koding-logo.pdf'>BRAND GUIDELINES</a>
         </nav>
 
         <nav class="footer-block blog">
           <h5>KODING BLOG</h5>
-          <a href="#">Koding introduces 250TB week</a>
-          <a href="#">Just opensourced KDFramework</a>
-          <a href="#">Hired Jony Ive for office management</a>
-          <a href="#">Cried all day, funny stuff</a>
-          <a href="#">Last of us</a>
+          <a href="http://blog.koding.com/2014/03/announcing-devtools-now-everyone-can-make-koding-apps/">Now Everyone Can Make Koding Apps!</a>
+          <a href="http://blog.koding.com/2014/03/you-ask-we-do-were-extending-crazy250tbweek-with-another-week-and-250tb-enjoy/">You ask, we do! We’re extending #Crazy250TBWeek with another week and +250TB – Enjoy :)</a>
+          <a href="http://blog.koding.com/2014/02/use-your-own-domain-with-koding-for-free/">Use your own domain with Koding! For free!</a>
+          <a href="http://blog.koding.com/2014/02/groups-and-pricing-deployed/">Groups and Pricing – deployed!</a>
+          <a href="http://blog.koding.com">Other posts...</a>
         </nav>
 
         <cite></cite>
 
-        <address>2014 © Koding, Inc. 358 Brannan Street, San Francisco, CA, 94107</address>
+        <address>#{(new Date).getFullYear()} © Koding, Inc. 358 Brannan Street, San Francisco, CA, 94107</address>
         <span class="we-love-you">Lovingly made in Istanbul & San Francisco <3</span>
 
         <div class="social-links">
