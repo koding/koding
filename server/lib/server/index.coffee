@@ -181,7 +181,10 @@ app.get "/-/subscription/check/:kiteToken?/:user?/:groupId?", (req, res) ->
                 res.send 401, err: "NO_SUBSCRIPTION"
 
             if group.slug is "koding"
-              targetOptions = selector: planCode: $in: (plan.planCode for plan in plans)
+              targetOptions =
+                selector    :
+                  tags      : "vm"
+                  planCode  : $in: (plan.planCode for plan in plans)
               account.fetchSubscriptions null, {targetOptions}, kallback
             else
               group.fetchSubscriptions kallback
