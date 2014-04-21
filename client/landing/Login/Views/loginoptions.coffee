@@ -20,7 +20,7 @@ class LoginOptions extends KDView
 
     optionsHolder.addSubView new KDCustomHTMLView
       tagName   : "li"
-      cssClass  : "github #{'hidden' if inFrame}"
+      cssClass  : "github #{if inFrame then 'hidden' else ''}"
       partial   : "github"
       click     : ->
         return new KDNotificationView title: "Login restricted"

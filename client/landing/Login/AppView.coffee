@@ -358,15 +358,14 @@ class LoginView extends KDView
 
         KD.mixpanel.alias account.profile.nickname
         KD.mixpanel "Signup, success"
-        _gaq.push ['_trackEvent', 'Sign-up']
 
         Cookies.set 'newRegister', yes
         KD.getSingleton("mainController").swapAccount {
           account, replacementToken:newToken
         }
 
-        titleText = unless err then 'Good to go, Enjoy!' \
-                    else 'Quota exceeded and could not join to the group. Please contact with group admin'
+        titleText = unless err then 'You\'re good to go, Enjoy!' \
+                    else 'Quota exceeded and could not join to the group. Please contact the group admin'
         title = "<span>#{titleText}</span>"
 
         new KDNotificationView
