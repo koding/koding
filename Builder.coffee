@@ -8,7 +8,7 @@ ProgressBar       = require 'progress'
 SourceMap         = require 'source-map'
 base64VLQ         = require 'source-map/lib/source-map/base64-vlq'
 Stylus            = require 'stylus'
-sprite            = require 'node-sprite'
+sprite            = require 'koding-sprites'
 UglifyJS          = require 'uglify-js'
 WebSocket         = require 'ws'
 WebSocketServer   = WebSocket.Server
@@ -55,15 +55,10 @@ module.exports = class Builder
 
     @config ?= require('koding-config-manager').load("main.#{options.configFile}")
 
-    sprite.sprites
-      path     : spritePath
-      watch    : @config.client.watch
-
-    sprite.stylus
-      path     : spritePath
-      httpPath : '/a/sprites'
-      retina   : '@2x'
-    , (err, helper)=>
+    sprite
+      path      : spritePath
+      httpPath  : '/a/sprites'
+    .then (helper) =>
       spriteHelper = helper
       @buildClient options
 
@@ -344,17 +339,11 @@ module.exports = class Builder
 
         rootPath = path.dirname(file.sourcePath)
 
-        if spriteHelper?
-          spriteFn            = spriteHelper.fn
-          spriteDimensionsFn  = spriteHelper.dimensionsFn
-        else
-          spriteFn = spriteDimensionsFn = (->)
-
         stylus = Stylus(source)
           .set('compress',true)
           .set('paths', [rootPath])
-          .define('sprite', spriteFn)
-          .define('sprite-dimensions', spriteDimensionsFn)
+          .define('sprite', spriteHelper?.image)
+          .define('sprite-dimensions', spriteHelper?.dimensions)
           .use(nib())
           .render (err, css)=> # callback is synchronous
             log.error "error with styl file at #{file.includePath}:\n #{err}"  if err
@@ -426,7 +415,7 @@ module.exports = class Builder
       fileLineOffset += file.content.split("\n").length
 
     mapUrl = project.outputs.script.replace /^website\//, ''
-    js += "//@ sourceMappingURL=/#{mapUrl}.map"
+    js += "//# sourceMappingURL=/#{mapUrl}.map"
 
     filepath = project.outputs.script
     fs.writeFileSync filepath, js

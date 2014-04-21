@@ -89,17 +89,18 @@ func (c *Interaction) List(interactionType string) ([]int64, error) {
 	var interactions []int64
 
 	if c.MessageId == 0 {
-		return interactions, errors.New("ChannelId is not set")
+		return interactions, errors.New("Message is not set")
 	}
 
-	return c.FetchInteractorIds(&bongo.Pagination{})
+	return c.FetchInteractorIds(interactionType, &bongo.Pagination{})
 }
 
-func (i *Interaction) FetchInteractorIds(p *bongo.Pagination) ([]int64, error) {
+func (i *Interaction) FetchInteractorIds(interactionType string, p *bongo.Pagination) ([]int64, error) {
 	var interactorIds []int64
 	q := &bongo.Query{
 		Selector: map[string]interface{}{
-			"message_id": i.MessageId,
+			"message_id":    i.MessageId,
+			"type_constant": interactionType,
 		},
 		Pagination: *p,
 		Pluck:      "account_id",
@@ -117,6 +118,18 @@ func (i *Interaction) FetchInteractorIds(p *bongo.Pagination) ([]int64, error) {
 	}
 
 	return interactorIds, nil
+}
+
+func (c *Interaction) Count(interactionType string) (int, error) {
+	if c.MessageId == 0 {
+		return 0, errors.New("MessageId is not set")
+	}
+
+	return bongo.B.Count(c,
+		"message_id = ? and type_constant = ?",
+		c.MessageId,
+		interactionType,
+	)
 }
 
 func (c *Interaction) FetchAll(interactionType string) ([]Interaction, error) {

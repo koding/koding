@@ -62,6 +62,18 @@ func (c *ChannelParticipant) BeforeUpdate() {
 	c.LastSeenAt = time.Now().UTC()
 }
 
+func (c *ChannelParticipant) AfterCreate() {
+	bongo.B.AfterCreate(c)
+}
+
+func (c *ChannelParticipant) AfterUpdate() {
+	bongo.B.AfterUpdate(c)
+}
+
+func (c *ChannelParticipant) AfterDelete() {
+	bongo.B.AfterDelete(c)
+}
+
 func (c *ChannelParticipant) Create() error {
 	if c.ChannelId == 0 {
 		return fmt.Errorf("Channel Id is not set %d", c.ChannelId)

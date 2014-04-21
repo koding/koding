@@ -9,6 +9,7 @@ class VmDangerModalView extends KDModalViewWithForms
     options.overlay    ?= yes
     options.width      ?= 500
     options.height     ?= 'auto'
+    options.cssClass   ?= 'danger-modal'
     options.tabs       ?=
       forms                  :
         dangerForm           :

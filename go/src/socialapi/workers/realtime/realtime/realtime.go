@@ -6,7 +6,6 @@ import (
 	"koding/db/mongodb/modelhelper"
 	"socialapi/models"
 	"strconv"
-	"github.com/koding/bongo"
 	"github.com/koding/logging"
 	"github.com/koding/rabbitmq"
 	"github.com/koding/worker"
@@ -54,6 +53,9 @@ func NewRealtimeWorkerController(rmq *rabbitmq.RabbitMQ, log logging.Logger) (*R
 		"api.channel_message_list_created": (*RealtimeWorkerController).MessageListSaved,
 		"api.channel_message_list_updated": (*RealtimeWorkerController).MessageListUpdated,
 		"api.channel_message_list_deleted": (*RealtimeWorkerController).MessageListDeleted,
+
+		"api.channel_participant_created": (*RealtimeWorkerController).ChannelParticipantAdded,
+		"api.channel_participant_deleted": (*RealtimeWorkerController).ChannelParticipantRemoved,
 	}
 
 	ffc.routes = routes
@@ -98,8 +100,8 @@ func mapMessageToInteraction(data []byte) (*models.Interaction, error) {
 	return i, nil
 }
 
-func mapMessageToMessageReply(data []byte) (*models.Interaction, error) {
-	i := models.NewInteraction()
+func mapMessageToMessageReply(data []byte) (*models.MessageReply, error) {
+	i := models.NewMessageReply()
 	if err := json.Unmarshal(data, i); err != nil {
 		return nil, err
 	}
@@ -133,28 +135,55 @@ func (f *RealtimeWorkerController) MessageUpdated(data []byte) error {
 	return nil
 }
 
+func (f *RealtimeWorkerController) ChannelParticipantAdded(data []byte) error {
+	return f.handleChannelParticipantEvent("AddedToChannel", data)
+}
+
+func (f *RealtimeWorkerController) ChannelParticipantRemoved(data []byte) error {
+	return f.handleChannelParticipantEvent("RemovedFromChannel", data)
+}
+
+func (f *RealtimeWorkerController) handleChannelParticipantEvent(eventName string, data []byte) error {
+	cp := models.NewChannelParticipant()
+	if err := json.Unmarshal(data, cp); err != nil {
+		return err
+	}
+
+	c := models.NewChannel()
+	c.Id = cp.ChannelId
+	if err := c.Fetch(); err != nil {
+		return err
+	}
+	return f.sendNotification(cp.AccountId, eventName, c)
+}
+
 func (f *RealtimeWorkerController) InteractionSaved(data []byte) error {
-	i, err := mapMessageToInteraction(data)
-	if err != nil {
-		return err
-	}
-
-	err = f.sendInstanceEvent(i.GetId(), i, "InteractionSaved")
-	if err != nil {
-		fmt.Println(err)
-		return err
-	}
-
-	return nil
+	return f.handleInteractionEvent("InteractionAdded", data)
 }
 
 func (f *RealtimeWorkerController) InteractionDeleted(data []byte) error {
+	return f.handleInteractionEvent("InteractionRemoved", data)
+}
+
+func (f *RealtimeWorkerController) handleInteractionEvent(eventName string, data []byte) error {
 	i, err := mapMessageToInteraction(data)
 	if err != nil {
 		return err
 	}
 
-	err = f.sendInstanceEvent(i.GetId(), i, "InteractionDeleted")
+	count, err := i.Count(i.TypeConstant)
+	if err != nil {
+		return err
+	}
+
+	res := map[string]interface{}{
+		"messageId":    i.MessageId,
+		"accountId":    i.AccountId,
+		"typeConstant": i.TypeConstant,
+		"count":        count,
+	}
+
+	err = f.sendInstanceEvent(i.MessageId, res, eventName)
 	if err != nil {
 		fmt.Println(err)
 		return err
@@ -169,7 +198,13 @@ func (f *RealtimeWorkerController) MessageReplySaved(data []byte) error {
 		return err
 	}
 
-	err = f.sendInstanceEvent(i.MessageId, i, "MessageReplySaved")
+	reply := models.NewChannelMessage()
+	reply.Id = i.ReplyId
+	if err := reply.Fetch(); err != nil {
+		return err
+	}
+
+	err = f.sendInstanceEvent(i.MessageId, reply, "ReplyAdded")
 	if err != nil {
 		fmt.Println(err)
 		return err
@@ -184,7 +219,7 @@ func (f *RealtimeWorkerController) MessageReplyDeleted(data []byte) error {
 		return err
 	}
 
-	err = f.sendInstanceEvent(i.GetId(), i, "MessageReplyDeleted")
+	err = f.sendInstanceEvent(i.MessageId, i, "ReplyRemoved")
 	if err != nil {
 		fmt.Println(err)
 		return err
@@ -200,7 +235,7 @@ func (f *RealtimeWorkerController) MessageListSaved(data []byte) error {
 		return err
 	}
 
-	err = f.sendChannelEvent(cml, "MessageAddedToChannel")
+	err = f.sendChannelEvent(cml, "MessageAdded")
 	if err != nil {
 		return err
 	}
@@ -219,14 +254,14 @@ func (f *RealtimeWorkerController) MessageListDeleted(data []byte) error {
 		return err
 	}
 
-	err = f.sendChannelEvent(cml, "MessageRemovedFromChannel")
+	err = f.sendChannelEvent(cml, "MessageRemoved")
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
-func (f *RealtimeWorkerController) sendInstanceEvent(instanceId int64, message bongo.Modellable, eventName string) error {
+func (f *RealtimeWorkerController) sendInstanceEvent(instanceId int64, message interface{}, eventName string) error {
 	channel, err := f.rmqConn.Channel()
 	if err != nil {
 		return err
@@ -241,7 +276,11 @@ func (f *RealtimeWorkerController) sendInstanceEvent(instanceId int64, message b
 	}
 
 	updateArr := make([]string, 1)
-	updateArr[0] = fmt.Sprintf("{\"$set\":%s}", string(updateMessage))
+	if eventName == "updateInstances" {
+		updateArr[0] = fmt.Sprintf("{\"$set\":%s}", string(updateMessage))
+	} else {
+		updateArr[0] = string(updateMessage)
+	}
 
 	msg, err := json.Marshal(updateArr)
 	if err != nil {
@@ -275,13 +314,20 @@ func (f *RealtimeWorkerController) sendChannelEvent(cml *models.ChannelMessageLi
 		return nil
 	}
 
-	byteMessage, err := json.Marshal(cml)
+	cm := models.NewChannelMessage()
+	cm.Id = cml.MessageId
+
+	if err := cm.Fetch(); err != nil {
+		return err
+	}
+
+	byteMessage, err := json.Marshal(cm)
 	if err != nil {
 		return err
 	}
 
 	for _, secretName := range secretNames {
-		routingKey := secretName + "." + strconv.FormatInt(cml.ChannelId, 10) + "." + eventName
+		routingKey := "socialapi.channelsecret." + secretName + "." + eventName
 
 		if err := channel.Publish(
 			"broker",   // exchange name
@@ -303,7 +349,14 @@ func fetchSecretNames(channelId int64) ([]string, error) {
 		return names, err
 	}
 
-	names, err = modelhelper.FetchFlattenedSecretName(c.GroupName)
+	name := fmt.Sprintf(
+		"socialapi-group-%s-type-%s-name-%s",
+		c.GroupName,
+		c.TypeConstant,
+		c.Name,
+	)
+
+	names, err = modelhelper.FetchFlattenedSecretName(name)
 	return names, nil
 }
 
@@ -314,4 +367,35 @@ func fetchChannel(channelId int64) (*models.Channel, error) {
 		return nil, err
 	}
 	return c, nil
+}
+
+func (f *RealtimeWorkerController) sendNotification(accountId int64, eventName string, data interface{}) error {
+	channel, err := f.rmqConn.Channel()
+	if err != nil {
+		return err
+	}
+	defer channel.Close()
+
+	oldAccount, err := modelhelper.GetAccountBySocialApiId(accountId)
+	if err != nil {
+		return err
+	}
+
+	notification := map[string]interface{}{
+		"event":    eventName,
+		"contents": data,
+	}
+
+	byteNotification, err := json.Marshal(notification)
+	if err != nil {
+		return err
+	}
+
+	return channel.Publish(
+		"notification",
+		oldAccount.Profile.Nickname, // this is routing key
+		false,
+		false,
+		amqp.Publishing{Body: byteNotification},
+	)
 }

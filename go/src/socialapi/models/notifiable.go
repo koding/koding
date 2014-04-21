@@ -70,7 +70,7 @@ func (n *InteractionNotification) FetchActors() (*ActorContainer, error) {
 	}
 	i.MessageId = n.TargetId
 
-	actors, err := i.FetchInteractorIds(p)
+	actors, err := i.FetchInteractorIds(n.GetType(), p)
 	if err != nil {
 		return nil, err
 	}

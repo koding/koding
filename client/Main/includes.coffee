@@ -143,6 +143,7 @@ module.exports = [
   "CommonViews/ModalViewWithTerminal.coffee",
   "CommonViews/clonerepomodal.coffee",
   "CommonViews/memberautocomplete.coffee",
+  "CommonViews/editormodal.coffee",
 
   "navigation/navigationlist.coffee",
   "navigation/navigationlink.coffee",
@@ -266,7 +267,6 @@ module.exports = [
   "kite/oskite.coffee",
   "kite/terminalkite.coffee",
   "kite/kitecontroller.coffee",
-  "kite/vm.coffee", # TODO: this doesn't really belong here.
   "kite/kitehelper.coffee",
 
   # NEW KITES (extending kite.js)

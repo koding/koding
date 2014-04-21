@@ -335,6 +335,7 @@ button.app-settings-menu
   border               none
   rounded              4px
   padding              0 20px
+  margin               0
   height               55px
   borderBox()
   span.button-title
@@ -354,6 +355,9 @@ button.app-settings-menu
       color            white
   &:focus
     shadow             0 0 10px -2px logoBg
+  &.icon-only
+    span.icon
+      margin           0
 
 .kdbutton.solid.green
   bg                   color logoBg
@@ -394,6 +398,19 @@ button.app-settings-menu
       color            #ff9f00
   &:focus
     shadow             0 0 10px -2px #ff9f00
+
+.kdbutton.solid.clear
+  bg                   color transparent
+  rounded              0
+  span.button-title
+    color              #444
+  &:hover
+  &:active
+  &:focus
+    background         none
+    shadow             none
+    span.button-title
+      color            #222
 
 .kdbutton.solid.light-gray
   bg                   color #C0C0C0
@@ -801,8 +818,8 @@ button.app-settings-menu
 
 // File upload
 .file-droparea
-  kalc            height, 100% \- 20px
-  kalc            width,  100% \- 20px
+  kalc            height, 100% \- 90px
+  width           100%
   borderBox()
   border          3px dashed #afafaf
   border-radius   5px
