@@ -53,6 +53,9 @@ func NewRealtimeWorkerController(rmq *rabbitmq.RabbitMQ, log logging.Logger) (*R
 		"api.channel_message_list_created": (*RealtimeWorkerController).MessageListSaved,
 		"api.channel_message_list_updated": (*RealtimeWorkerController).MessageListUpdated,
 		"api.channel_message_list_deleted": (*RealtimeWorkerController).MessageListDeleted,
+
+		"api.channel_participant_created": (*RealtimeWorkerController).ChannelParticipantAdded,
+		"api.channel_participant_deleted": (*RealtimeWorkerController).ChannelParticipantRemoved,
 	}
 
 	ffc.routes = routes
@@ -130,6 +133,28 @@ func (f *RealtimeWorkerController) MessageUpdated(data []byte) error {
 	}
 
 	return nil
+}
+
+func (f *RealtimeWorkerController) ChannelParticipantAdded(data []byte) error {
+	return f.handleChannelParticipantEvent("AddedToChannel", data)
+}
+
+func (f *RealtimeWorkerController) ChannelParticipantRemoved(data []byte) error {
+	return f.handleChannelParticipantEvent("RemovedFromChannel", data)
+}
+
+func (f *RealtimeWorkerController) handleChannelParticipantEvent(eventName string, data []byte) error {
+	cp := models.NewChannelParticipant()
+	if err := json.Unmarshal(data, cp); err != nil {
+		return err
+	}
+
+	c := models.NewChannel()
+	c.Id = cp.ChannelId
+	if err := c.Fetch(); err != nil {
+		return err
+	}
+	return f.sendNotification(cp.AccountId, eventName, c)
 }
 
 func (f *RealtimeWorkerController) InteractionSaved(data []byte) error {
