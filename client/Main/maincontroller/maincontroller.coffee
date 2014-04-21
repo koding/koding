@@ -36,40 +36,40 @@ class MainController extends KDController
     # if KD.useNewKites
     KD.registerSingleton "kontrol",                   new KodingKontrol
 
-    KD.registerSingleton "appManager",   appManager = new ApplicationManager
-    KD.registerSingleton "notificationController",    new NotificationController
-    KD.registerSingleton "linkController",            new LinkController
-    KD.registerSingleton "display",                   new ContentDisplayController
-    KD.registerSingleton "kiteController",            new KiteController
+    KD.registerSingleton 'appManager',   appManager = new ApplicationManager
+    KD.registerSingleton 'notificationController',    new NotificationController
+    KD.registerSingleton 'linkController',            new LinkController
+    KD.registerSingleton 'display',                   new ContentDisplayController
+    KD.registerSingleton 'kiteController',            new KiteController
     KD.registerSingleton 'router',                    new KodingRouter
-    KD.registerSingleton "localStorageController",    new LocalStorageController
-    KD.registerSingleton "oauthController",           new OAuthController
-    KD.registerSingleton "groupsController",          new GroupsController
-    KD.registerSingleton "activityController",        new ActivityController
-    KD.registerSingleton "paymentController",         new PaymentController
-    KD.registerSingleton "vmController",              new VirtualizationController
-    KD.registerSingleton "locationController",        new LocationController
-    KD.registerSingleton "badgeController",           new BadgeController
-    KD.registerSingleton "helpController",            new HelpController
-    KD.registerSingleton "troubleshoot",              new Troubleshoot
-    KD.registerSingleton "appStorageController",      new AppStorageController
-    KD.registerSingleton "localSync",                 new LocalSyncController
-    KD.registerSingleton "dock",                      new DockController
-    KD.registerSingleton "mainView",             mv = new MainView domId : "kdmaincontainer"
-    KD.registerSingleton "mainViewController",  mvc = new MainViewController view : mv
+    KD.registerSingleton 'localStorageController',    new LocalStorageController
+    KD.registerSingleton 'oauthController',           new OAuthController
+    KD.registerSingleton 'groupsController',          new GroupsController
+    KD.registerSingleton 'activityController',        new ActivityController
+    KD.registerSingleton 'paymentController',         new PaymentController
+    KD.registerSingleton 'vmController',              new VirtualizationController
+    KD.registerSingleton 'locationController',        new LocationController
+    KD.registerSingleton 'badgeController',           new BadgeController
+    KD.registerSingleton 'helpController',            new HelpController
+    KD.registerSingleton 'troubleshoot',              new Troubleshoot
+    KD.registerSingleton 'appStorageController',      new AppStorageController
+    KD.registerSingleton 'localSync',                 new LocalSyncController
+    KD.registerSingleton 'dock',                      new DockController
+    KD.registerSingleton 'mainView',             mv = new MainView domId : 'kdmaincontainer'
+    KD.registerSingleton 'mainViewController',  mvc = new MainViewController view : mv
 
     @mainViewController = mvc
-    mainView.appendToDomBody()
+    mv.appendToDomBody()
 
     @ready =>
-      KD.registerSingleton "widgetController",        new WidgetController
-      KD.registerSingleton "kodingAppsController",    new KodingAppsController
-      KD.registerSingleton "onboardingController",    new OnboardingController
+      KD.registerSingleton 'widgetController',        new WidgetController
+      KD.registerSingleton 'kodingAppsController',    new KodingAppsController
+      KD.registerSingleton 'onboardingController',    new OnboardingController
       # KD.registerSingleton "kontrol",                 new Kontrol
 
       @emit 'AppIsReady'
 
-      console.timeEnd "Koding.com loaded"
+      console.timeEnd 'Koding.com loaded'
 
     @forwardEvents KD.remote, ['disconnected', 'reconnected']
 
@@ -78,7 +78,7 @@ class MainController extends KDController
     KD.userAccount = account
     connectedState.connected = yes
 
-    @on "pageLoaded.as.loggedIn", (account)-> # ignore othter parameters
+    @on 'pageLoaded.as.loggedIn', (account)-> # ignore othter parameters
       KD.utils.setPreferredDomain account if account
 
     (KD.getSingleton 'kontrol').reauthenticate()  if KD.useNewKites

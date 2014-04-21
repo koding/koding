@@ -9,8 +9,6 @@ class MainViewController extends KDViewController
     appManager           = KD.singleton 'appManager'
     windowController     = KD.singleton 'windowController'
     display              = KD.singleton 'display'
-    @registerSingleton 'mainViewController', this, yes
-    @registerSingleton 'mainView', mainView, yes
 
     mainView.on 'MainTabPaneShown', (pane) =>
       @mainTabPaneChanged mainView, pane
