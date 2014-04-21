@@ -88,8 +88,9 @@ body.business
         letter-spacing    .02em
 
       p
-        margin            0 0 50px
+        margin            0 auto 50px auto
         color             #fff
+        max-width         850px
 
       .kdbutton
         text-transform    uppercase
@@ -120,7 +121,7 @@ body.business
   // screenshots Section
 
   section.screenshots
-    margin                20% 0 26%
+    margin                20% 0 30%
 
     .inner-container
       &:after
@@ -165,16 +166,21 @@ body.business
   // Features Section
 
   section.features
+    letter-spacing       0
+    word-spacing         0
 
     .feature
-      size               50%
-      padding            0 35px 34px 108px
+      letter-spacing     normal
+      word-spacing       normal
+      size               49%
+      padding            0 35px 74px 108px
       position           relative
+      display            inline-block
+      vertical-align     top
       borderBox()
-      fl()
 
       h5
-        font-size        20px
+        font-size        24px
         font-weight      400
         color            #2fbd72
         display          block
@@ -184,13 +190,32 @@ body.business
         font-size        14px
         color            #505050
         line-height      21px
+        font-weight      400
 
       .icon
         display          block
         size             80px, 80px
         rounded          50%
-        background       #ddd
         abs              0px 0 0 0px
+        border           2px solid #bbb
+
+        &:after
+          content        ""
+          display        block
+          abs            50% 0 0 50%
+          vendor         transform, translateX(-50%) translateY(-50%)
+
+        &.gameplan:after
+          r-sprite       "landings", "gameplan"
+
+        &.ruler:after
+          r-sprite       "landings", "ruler"
+
+        &.box-open:after
+          r-sprite       "landings", "box-open"
+
+        &.starflag:after
+          r-sprite       "landings", "starflag"
 
   //Testimonials section
   section.testimonials
@@ -256,6 +281,27 @@ body.business
           size            17px, 1px
           background      #b5b5b5
           abs             6px 0 0 -28px
+
+  // Check out section
+  section.check-out
+    padding               71px 0
+    text-align            center
+    font-family           openSansFamily
+    background            #eeeeee
+    border-top            1px solid #e2e2e2
+
+    h3
+      font-size           22px
+      color               #515151
+      font-weight         400
+
+      a
+        color             inherit
+        display           inline-block
+        padding-bottom    2px
+        border-bottom     1px solid #515151
+        font-weight       600
+        noTextDeco()
 
   footer
     padding               56px 0
