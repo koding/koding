@@ -213,41 +213,41 @@ func (r *Router) addBinding(exchange string) error {
 	}
 
 	for msg := range deliveries {
-
-		r.RLock()
-
-		if r.routes[msg.Exchange] == nil {
-			r.RUnlock()
-			continue // drop it on the floor
-		}
-		bindingExchange := r.routes[msg.Exchange].(M)
-
-		if bindingExchange[msg.RoutingKey] == nil {
-			r.RUnlock()
-			continue // drop it on the floor
-		}
-		bindingKey := bindingExchange[msg.RoutingKey].(M)
-
-		for name := range bindingKey {
-			publishingExchange := bindingKey[name].(M)
-
-			for routingKey := range publishingExchange {
-				routes := publishingExchange[routingKey].(*set.Set)
-				list := routes.List()
-
-				for i := range list {
-					joinMsg := list[i].(AuthMsg)
-					if err := r.publishTo(&joinMsg, &msg); err != nil {
-						log.Warning("WARNING: %v", err)
-					}
-				}
-			}
-		}
-
-		r.RUnlock()
+		r.deliverMsg(msg)
 	}
 
 	return nil
+}
+
+func (r *Router) deliverMsg(msg amqp.Delivery) {
+	r.RLock()
+	defer r.RUnlock()
+
+	if r.routes[msg.Exchange] == nil {
+		return // drop it on the floor
+	}
+	bindingExchange := r.routes[msg.Exchange].(M)
+
+	if bindingExchange[msg.RoutingKey] == nil {
+		return // drop it on the floor
+	}
+	bindingKey := bindingExchange[msg.RoutingKey].(M)
+
+	for name := range bindingKey {
+		publishingExchange := bindingKey[name].(M)
+
+		for routingKey := range publishingExchange {
+			routes := publishingExchange[routingKey].(*set.Set)
+			list := routes.List()
+
+			for i := range list {
+				joinMsg := list[i].(AuthMsg)
+				if err := r.publishTo(&joinMsg, &msg); err != nil {
+					log.Warning("WARNING: %v", err)
+				}
+			}
+		}
+	}
 }
 
 func createAuthMsg(msg *amqp.Delivery) (*AuthMsg, error) {
