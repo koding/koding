@@ -67,7 +67,6 @@ class KodingRouter extends KDRouter
   openSection: (app, group, query) ->
 
     {appManager} = KD.singletons
-    @setPageTitle nicenames[app] ? app
     handleQuery = appManager.tell.bind appManager, app, "handleQuery", query
 
     appManager.once "AppCreated", handleQuery  unless appWasOpen = appManager.get app
@@ -91,22 +90,9 @@ class KodingRouter extends KDRouter
 
   setPageTitle: (title = 'Koding') -> document.title = Encoder.htmlDecode title
 
-  getContentTitle: (model) ->
-
-    {JAccount, JNewStatusUpdate, JGroup} = KD.remote.api
-    title = switch model.constructor
-      when JAccount          then  KD.utils.getFullnameFromAccount model
-      when JNewStatusUpdate  then  @utils.getPlainActivityBody model
-      when JGroup            then  model.title
-      else "#{model.title}#{getSectionName model}"
-
-    @utils.shortenText title, maxLength : 100 # max char length of the title
-
   openContent : (name, section, models, route, query, passOptions=no) ->
     method   = 'createContentDisplay'
     [models] = models  if Array.isArray models
-
-    @setPageTitle @getContentTitle models
 
     # HK: with passOptions false an application only gets the information
     # 'hey open content' with this model. But some applications require
