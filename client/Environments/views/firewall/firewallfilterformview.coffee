@@ -44,6 +44,11 @@ class FirewallFilterFormView extends KDFormViewWithFields
             required   : yes
           messages     :
             required   : "Please select a action type"
+      enabled          :
+        label          : "Enabled"
+        cssClass       : "half"
+        itemClass      : KodingSwitch
+        defaultValue   : yes
       remove           :
         itemClass      : KDCustomHTMLView
         cssClass       : "delete-button half"
@@ -51,8 +56,6 @@ class FirewallFilterFormView extends KDFormViewWithFields
           @emit "FirewallFilterRemoved"
           @destroy()
 
-    unless options.removable
-      delete options.fields.remove
-      options.cssClass = KD.utils.curry "full", options.cssClass
+    delete options.fields.remove  unless options.removable
 
     super options, data
