@@ -94,7 +94,7 @@ class MainController extends KDController
       # -> "accountChanged.to.loggedIn"
       # -> "accountChanged.to.loggedOut"
       eventPrefix = if firstLoad then "pageLoaded.as" else "accountChanged.to"
-      eventSuffix = if @isUserLoggedIn() then "loggedIn" else "loggedOut"
+      eventSuffix = if KD.isLoggedIn() then "loggedIn" else "loggedOut"
       @emit "#{eventPrefix}.#{eventSuffix}", account, connectedState, firstLoad
 
   createMainViewController:->
@@ -123,7 +123,7 @@ class MainController extends KDController
 
   attachListeners:->
     # @on 'pageLoaded.as.(loggedIn|loggedOut)', (account)=>
-    #   log "pageLoaded", @isUserLoggedIn()
+    #   log "pageLoaded", KD.isLoggedIn()
 
     # TODO: this is a kludge we needed.  sorry for this.  Move it someplace better C.T.
     wc = KD.singleton 'windowController'
@@ -161,10 +161,6 @@ class MainController extends KDController
     # Note: I am using wait instead of repeat, for the subtle difference.  See this StackOverflow answer for more info:
     #       http://stackoverflow.com/questions/729921/settimeout-or-setinterval/731625#731625
     @utils.wait 3000, cookieChangeHandler
-
-  setVisitor:(visitor)-> @visitor = visitor
-  getVisitor: -> @visitor
-  getAccount: -> KD.whoami()
 
   swapAccount: (options, callback) ->
     return { message: 'Login failed!' } unless options
@@ -214,8 +210,6 @@ class MainController extends KDController
       return callback err, result  if formData.isUserLoggedIn
 
       @swapAccount result, callback
-
-  isUserLoggedIn: -> KD.isLoggedIn()
 
   isLoggingIn: (isLoggingIn) ->
 
