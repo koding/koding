@@ -9,10 +9,10 @@ class FirewallFilterFormView extends KDFormViewWithFields
         cssClass       : "half"
         itemClass      : KDSelectBox
         selectOptions  : [
-          { title      : "IP"                 ,  value : "ip"             }
-          { title      : "Country"            ,  value : "country"        }
-          { title      : "Request per second" ,  value : "request.second" }
-          { title      : "Request per minute" ,  value : "request.minute" }
+          { title      : "IP"       ,  value : "ip"             }
+          { title      : "Country"  ,  value : "country"        }
+          { title      : "Req./sec" ,  value : "request.second" }
+          { title      : "Req./min" ,  value : "request.minute" }
         ]
         validate       :
           rules        :
