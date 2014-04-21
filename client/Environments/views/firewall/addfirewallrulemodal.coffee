@@ -56,13 +56,13 @@ class AddFirewallRuleModal extends KDModalViewWithForms
             description       :
               itemClass       : KDCustomHTMLView
               cssClass        : "section-label second"
-              partial         : "<p>Add rules to your action</p>"
+              partial         : "<p>Add filters to your rule</p>"
             container         :
               itemClass       : KDCustomHTMLView
 
     super options, data
 
-    @ruleWidgets = []
+    @filterWidgets = []
     @createRuleWidget no
 
     button      = new KDButtonView
@@ -77,17 +77,17 @@ class AddFirewallRuleModal extends KDModalViewWithForms
   createRuleWidget: (removable = yes) ->
     widget = new FirewallFilterFormView { removable }
     widget.on "FirewallFilterRemoved", =>
-      @ruleWidgets.splice @ruleWidgets.indexOf(widget), 1
+      @filterWidgets.splice @filterWidgets.indexOf(widget), 1
 
     @modalTabs.forms.Rules.fields.container.addSubView widget
-    @ruleWidgets.push widget
+    @filterWidgets.push widget
 
   handleFormSubmit: ->
     isValid          = yes
     ruleTypes        = [ "request.second", "request.minute" ]
     hasRequestFilter = no
 
-    for widget in @ruleWidgets
+    for widget in @filterWidgets
       {type} = widget.inputs
       if ruleTypes.indexOf(type.getValue()) > -1
         isValid = no  if hasRequestFilter
