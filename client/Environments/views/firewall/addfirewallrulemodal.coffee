@@ -38,21 +38,6 @@ class AddFirewallRuleModal extends KDModalViewWithForms
                   required    : yes
                 messages      :
                   required    : "Please enter a rule name"
-            action            :
-              label           : "Action"
-              name            : "action"
-              cssClass        : "half"
-              itemClass       : KDSelectBox
-              selectOptions   : [
-                { title       : "Allow"            , value : "allow"      }
-                { title       : "Block"            , value : "block"      }
-                { title       : "Show secure page" , value : "securepage" }
-              ]
-              validate        :
-                rules         :
-                  required    : yes
-                messages      :
-                  required    : "Please select a action type"
             description       :
               itemClass       : KDCustomHTMLView
               cssClass        : "section-label second"
@@ -101,9 +86,9 @@ class AddFirewallRuleModal extends KDModalViewWithForms
         container  : this
         duration   : 4000
 
-    {name, action} = @modalTabs.forms.Rules.getFormData()
-    filters        = []
+    {name}  = @modalTabs.forms.Rules.getFormData()
+    filters = []
 
     filters.push form.getFormData() for form in @filterWidgets
 
-    log { name, action, filters }
+    log { name, filters }

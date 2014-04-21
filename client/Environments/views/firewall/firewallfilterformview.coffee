@@ -23,11 +23,27 @@ class FirewallFilterFormView extends KDFormViewWithFields
         label          : "Value"
         name           : "value"
         cssClass       : "half"
+        placeholder    : "Type a value for your filter..."
         validate       :
           rules        :
             required   : yes
           messages     :
             required   : "Please select a filter type"
+      action           :
+        label          : "Action"
+        name           : "action"
+        cssClass       : "half action"
+        itemClass      : KDSelectBox
+        selectOptions  : [
+          { title      : "Allow"            , value : "allow"      }
+          { title      : "Block"            , value : "block"      }
+          { title      : "Show secure page" , value : "securepage" }
+        ]
+        validate       :
+          rules        :
+            required   : yes
+          messages     :
+            required   : "Please select a action type"
       remove           :
         itemClass      : KDCustomHTMLView
         cssClass       : "delete-button half"
