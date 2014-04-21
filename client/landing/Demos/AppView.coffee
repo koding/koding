@@ -3,6 +3,24 @@ class DemosMainView extends KDScrollView
   constructor:->
     super
 
+    new KDModalView
+      title        : 'Add Virtual Machine'
+      cssClass     : 'vendor-modal'
+      view         : new VendorView
+      width        : 800
+      overlay      : yes
+      buttons      :
+        create     :
+          title    : "Create"
+          style    : "modal-clean-green"
+          callback : =>
+
+class VendorView extends KDView
+
+  constructor:->
+
+    super cssClass: 'vendor'
+
     @vendorController = new KDListViewController
       selection    : yes
       viewOptions  :

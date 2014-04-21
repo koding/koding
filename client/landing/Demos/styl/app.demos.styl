@@ -9,17 +9,22 @@ resurrection.commons.styl
 */
 }
 
-.demos
+.vendor-modal
+
+  .kdmodal-inner
+    margin           15px
+    .kdmodal-buttons
+      display        none
+
+.vendor
+
+  height             400px
 
   .vendor-mainview
     background       white
 
   .vendor-split
-    background       #eee
-
-    .panel-0
-      border-right   1px solid #ccc
-      box-sizing     border-box
+    background       white
 
   .welcome-pane
     text-align      center
@@ -94,10 +99,10 @@ resurrection.commons.styl
         background-position 10px 5px
 
       &:hover
-        background-color  white
+        background-color  #eee
 
       &.selected
-        background-color  white
+        background-color  #eee
 
   .new-vm-selection
     padding            20px
