@@ -198,6 +198,7 @@ class NotificationListItem extends KDListItemView
 
   click:->
     showPost = (err, post)->
+      warn err  if err
       if post
         internalApp = if post.constructor.name is "JNewApp" then "Apps" else "Activity"
         groupSlug = if post.group is "koding" then "" else "/#{post.group}"
