@@ -32,6 +32,11 @@ r-sprite(folder, name)
     sprite(folder+"@2x", name, false)
     background-size sprite-dimensions(folder+"@2x", name)
 
+borderize(color)
+  noTextDeco()
+  color           color
+  border-bottom   1px solid color
+
 vCenter()
   top             50%
   vendor          transform, translateY(-50%)
