@@ -41,10 +41,10 @@ type AuthMsg struct {
 type M map[string]interface{}
 
 type Router struct {
-	routes       M
-	consumer     *Consumer
-	producer     *Producer
-	sync.RWMutex // protects routes
+	routes     M
+	consumer   *Consumer
+	producer   *Producer
+	sync.Mutex // protects routes
 }
 
 func NewRouter(c *Consumer, p *Producer, profile string) *Router {
@@ -155,9 +155,9 @@ func (r *Router) publishTo(join *AuthMsg, msg *amqp.Delivery) error {
 
 func (r *Router) addBinding(exchange string) error {
 
-	r.RLock()
+	r.Lock()
 	c := amqputil.CreateChannel(r.consumer.Conn)
-	r.RUnlock()
+	r.Unlock()
 
 	var err error
 
@@ -220,8 +220,8 @@ func (r *Router) addBinding(exchange string) error {
 }
 
 func (r *Router) deliverMsg(msg amqp.Delivery) {
-	r.RLock()
-	defer r.RUnlock()
+	r.Lock()
+	defer r.Unlock()
 
 	if r.routes[msg.Exchange] == nil {
 		return // drop it on the floor
