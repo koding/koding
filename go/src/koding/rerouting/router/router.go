@@ -67,6 +67,9 @@ func (r *Router) AddRoute(msg *amqp.Delivery) error {
 
 	isNewBindingExchange := false
 
+	r.Lock()
+	defer r.Unlock()
+
 	if r.routes[join.BindingExchange] == nil {
 		r.routes[join.BindingExchange] = M{}
 		isNewBindingExchange = true
@@ -105,6 +108,9 @@ func (r *Router) RemoveRoute(msg *amqp.Delivery) error {
 	if err != nil {
 		return err
 	}
+
+	r.Lock()
+	defer r.Unlock()
 
 	if r.routes[leave.BindingExchange] == nil {
 		return fmt.Errorf("Unknown binding exchange: %s", leave.BindingExchange)
@@ -154,7 +160,6 @@ func (r *Router) publishTo(join *AuthMsg, msg *amqp.Delivery) error {
 }
 
 func (r *Router) addBinding(exchange string) error {
-
 	r.Lock()
 	c := amqputil.CreateChannel(r.consumer.Conn)
 	r.Unlock()
