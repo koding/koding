@@ -40,9 +40,6 @@ class MainView extends KDView
           appView.ready removePulsing
         else removePulsing()
 
-  addBook:->
-    # @addSubView new BookView delegate : this
-
   _logoutAnimation:->
     {body}        = document
 
