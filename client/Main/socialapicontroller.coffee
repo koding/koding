@@ -136,7 +136,7 @@ class SocialApiController extends KDController
   forwardMessageEvents = (source, target,  events)->
     events.forEach (event) ->
       source.on event, (message, rest...) ->
-        message = mapActivity rest[0]
+        message = mapActivity message
         target.emit event, message, rest...
 
   registerAndOpenChannel = (socialApiChannel)->
