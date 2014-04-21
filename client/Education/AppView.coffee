@@ -15,6 +15,9 @@ class EducationView extends KDView
       style       : "solid medium green"
       callback    : -> router.handleRoute "/Register"
 
+    @footer = new FooterView
+
+
   viewAppended: JView::viewAppended
 
   pistachio : ->
@@ -115,57 +118,7 @@ class EducationView extends KDView
       <section class='check-out'>
         <h3><a href='/Pricing'>Check out our price plans</a> and get started with Koding right away!</h3>
       </section>
-
-      <footer>
-        <div class="inner-container clearfix">
-          <article class="footer-block about-koding">
-            <h5>ABOUT KODING</h5>
-            <p>Koding is a developer community and cloud development environment where developers come together and code in the browser – with a real development server to run their code. Developers can work, collaborate, write and run apps without jumping</p>
-            <a href="#">More about Koding</a>
-          </article>
-
-          <nav class="footer-block">
-            <h5>COMPANY</h5>
-            <a href="#">ABOUT KODING</a>
-            <a href="#">KODING UNIVERSITY</a>
-            <a href="#">CONTACT US</a>
-            <a href="#">TERMS AND CONDITIONS</a>
-            <a href="#">PRIVACY POLICY</a>
-            <a href="#">SHOP</a>
-          </nav>
-
-          <nav class="footer-block">
-            <h5>COMMUNITY</h5>
-            <a href="#">KODING BLOG</a>
-            <a href="#">MEETUPS</a>
-            <a href="#">NEWSLETTER</a>
-            <a href="#">TESTIMONALS</a>
-            <a href="#">BRAND GUIDELINES</a>
-          </nav>
-
-          <nav class="footer-block blog">
-            <h5>KODING BLOG</h5>
-            <a href="#">Koding introduces 250TB week</a>
-            <a href="#">Just opensourced KDFramework</a>
-            <a href="#">Hired Jony Ive for office management</a>
-            <a href="#">Cried all day, funny stuff</a>
-            <a href="#">Last of us</a>
-          </nav>
-
-          <cite></cite>
-
-          <address>
-            2014 © Koding, Inc. 358 Brannan Street, San Francisco, CA, 94107
-          </address>
-          <span class="we-love-you">Lovingly made in Istanbul & San Francisco <3</span>
-
-          <div class="social-links">
-            <a href="#">TWITTER</a>
-            <a href="#">FACEBOOK</a>
-            <a href="#">INSTAGRAM</a>
-          </div>
-        </div>
-      </footer>
+      {{> @footer}}
     """
 
 
