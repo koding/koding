@@ -14,7 +14,6 @@ do ->
 
   handleRoot = ->
     # don't load the root content when we're just consuming a hash fragment
-    log 'handleRoot'
     unless location.hash.length
 
       {display, router} = KD.singletons
@@ -65,10 +64,9 @@ do ->
         {mainController} = KD.singletons
         mainController.doLogout()
     '/:name?/Topics/:slug'   : createContentDisplayHandler 'Topics'
-    '/:name/Groups'          : createSectionHandler 'Groups'
     '/:slug/:name' : ({params, query}, model, route) ->
       (createContentDisplayHandler 'Members') arguments...
-    '/:name?/Invitation/:inviteCode': ({params:{inviteCode, name}})=>
+    '/:name?/Invitation/:inviteCode': ({params:{inviteCode, name}})->
       @handleRoute "/Redeem/#{inviteCode}"
     '/:name?/InviteFriends': ->
       if KD.isLoggedIn()
@@ -88,7 +86,7 @@ do ->
           if opt is 'email'
           then KD.remote.api.JMail
           else KD.remote.api.JMailNotification
-        ).unsubscribeWithId token, email, opt, (err, content)=>
+        ).unsubscribeWithId token, email, opt, (err, content)->
           if err or not content
             title   = 'An error occured'
             content = 'Invalid unsubscribe token provided.'
