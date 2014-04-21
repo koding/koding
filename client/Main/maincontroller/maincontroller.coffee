@@ -41,7 +41,7 @@ class MainController extends KDController
     KD.registerSingleton "linkController",            new LinkController
     KD.registerSingleton "display",                   new ContentDisplayController
     KD.registerSingleton "kiteController",            new KiteController
-    KD.registerSingleton 'router',           router = new KodingRouter
+    KD.registerSingleton 'router',                    new KodingRouter
     KD.registerSingleton "localStorageController",    new LocalStorageController
     KD.registerSingleton "oauthController",           new OAuthController
     KD.registerSingleton "groupsController",          new GroupsController
@@ -227,16 +227,6 @@ class MainController extends KDController
       @_isLoggingIn = isLoggingIn
     else
       @_isLoggingIn ? no
-
-  showInstructionsBook:->
-    if Cookies.get 'newRegister'
-      @emit "ShowInstructionsBook", 9
-      Cookies.expire 'newRegister'
-    else if @isUserLoggedIn()
-      BookView::getNewPages (pages)=>
-        return unless pages.length
-        BookView.navigateNewPages = yes
-        @emit "ShowInstructionsBook", pages.first.index
 
   setFailTimer: do->
     notification = null
