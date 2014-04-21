@@ -133,10 +133,11 @@ class SocialApiController extends KDController
 
     return revivedChannels
 
-  forwardEvents = (source, target,  events)->
+  forwardMessageEvents = (source, target,  events)->
     events.forEach (event) ->
-      source.on event, (rest...) ->
-        target.emit event, rest...
+      source.on event, (message, rest...) ->
+        message = mapActivity rest[0]
+        target.emit event, message, rest...
 
   registerAndOpenChannel = (socialApiChannel)->
     getCurrentGroup (group)->
@@ -149,7 +150,7 @@ class SocialApiController extends KDController
 
       name = "socialapi.#{socialApiChannel.groupName}-#{socialApiChannel.typeConstant}-#{socialApiChannel.name}"
       brokerChannel = KD.remote.subscribe name, subscriptionData
-      forwardEvents brokerChannel, socialApiChannel, [
+      forwardMessageEvents brokerChannel, socialApiChannel, [
         "MessageAdded",
         "MessageRemoved"
       ]
