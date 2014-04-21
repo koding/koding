@@ -200,7 +200,7 @@ func (f *RealtimeWorkerController) MessageListSaved(data []byte) error {
 		return err
 	}
 
-	err = f.sendChannelEvent(cml, "MessageAddedToChannel")
+	err = f.sendChannelEvent(cml, "MessageAdded")
 	if err != nil {
 		return err
 	}
@@ -219,7 +219,7 @@ func (f *RealtimeWorkerController) MessageListDeleted(data []byte) error {
 		return err
 	}
 
-	err = f.sendChannelEvent(cml, "MessageRemovedFromChannel")
+	err = f.sendChannelEvent(cml, "MessageRemoved")
 	if err != nil {
 		return err
 	}
@@ -275,14 +275,22 @@ func (f *RealtimeWorkerController) sendChannelEvent(cml *models.ChannelMessageLi
 		return nil
 	}
 
-	byteMessage, err := json.Marshal(cml)
+	cm := models.NewChannelMessage()
+	cm.Id = cml.MessageId
+
+	if err := cm.Fetch(); err != nil {
+		return err
+	}
+
+	byteMessage, err := json.Marshal(cm)
 	if err != nil {
 		return err
 	}
 
 	for _, secretName := range secretNames {
-		routingKey := secretName + "." + strconv.FormatInt(cml.ChannelId, 10) + "." + eventName
+		routingKey := "socialapi.channelsecret." + secretName + "." + eventName
 
+		fmt.Println(">><><><><", routingKey)
 		if err := channel.Publish(
 			"broker",   // exchange name
 			routingKey, // routing key
@@ -303,7 +311,14 @@ func fetchSecretNames(channelId int64) ([]string, error) {
 		return names, err
 	}
 
-	names, err = modelhelper.FetchFlattenedSecretName(c.GroupName)
+	name := fmt.Sprintf(
+		"socialapi-group-%s-type-%s-name-%s",
+		c.GroupName,
+		c.TypeConstant,
+		c.Name,
+	)
+
+	names, err = modelhelper.FetchFlattenedSecretName(name)
 	return names, nil
 }
 
