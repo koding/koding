@@ -278,34 +278,7 @@ class ActivityAppController extends AppController
         @emit "publicFeedFetched_#{eventSuffix}", messages
         return
 
-    # just here to make it work
-    # we should change the other parts to make it
-    # work with the new structure
-    {SocialChannel, SocialMessage}  = KD.remote.api
-    options.id = KD.singletons.groupsController.getCurrentGroup().socialApiChannelId
-    SocialChannel.fetchActivity options, (err, result)=>
-      console.log err  if err
-      messages = result.messageList
-      revivedMessages = []
-      for message in messages
-        m = new SocialMessage message.message
-        m._id = message.message.id
-        m.meta = {}
-        m.meta.likes = message.interactions.length or 0
-        m.meta.createdAt = message.message.createdAt
-        m.replies = message.replies
-        m.repliesCount = message.replies.length or 0
-        m.interactions = message.interactions
-
-        m.on "MessageReplySaved", log
-        m.on "data", log
-        m.on "update", log
-        # m.on "MessageReplySaved", log
-
-        revivedMessages.push m
-
-      return @emit "activitiesCouldntBeFetched", err  if err
-      @emit "publicFeedFetched_#{eventSuffix}", revivedMessages
+    return @emit "activitiesCouldntBeFetched"
 
   # this is only reviving the cache for now
   prepareCacheForListing: (cache)-> return KD.remote.revive cache
