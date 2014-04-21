@@ -122,16 +122,28 @@ class MainView extends KDView
 
   addLoggedOutNav:->
 
-    @headerContainer.addSubView new KDCustomHTMLView
+    @headerContainer.addSubView loggedOutNav = new KDCustomHTMLView
       tagName : 'nav'
       partial : """
-        <a href='/Education'>EDUCATION</a>
-        <a href='/Business' class='active'>BUSINESS</a>
-        <a href='/About'>ABOUT</a>
-        <a href='/Pricing'>PRICING</a>
+        <a href='/Education' class='education'>EDUCATION</a>
+        <a href='/Business'  class='business'>BUSINESS</a>
+        <a href='/About'     class='about'>ABOUT</a>
+        <a href='/Pricing'   class='pricing'>PRICING</a>
         <a href='http://blog.koding.com' target='_blank'>BLOG</a>
-        <a href='/Login'>LOGIN</a>
+        <a href='/Login' class='login'>LOGIN</a>
         """
+
+    appManager    = KD.singleton "appManager"
+    navDomElement = loggedOutNav.domElement.context
+
+    appManager.on 'AppIsBeingShown', (instance, view, options) ->
+      appName = options.name.toLowerCase()
+
+      for child in navDomElement.children
+        child.classList.remove 'active'
+
+      target = navDomElement.getElementsByClassName(appName)[0]
+      target?.classList.add 'active'
 
   createAccountArea:->
 

@@ -22,9 +22,9 @@ class HomeView extends KDView
       <section class="introduction">
         <div class="inner-container clearfix">
           <article>
-            <h2>Koding for Busy People</h2>
+            <h2>Develop. Together!</h2>
             <p>
-              Aliquam eget turpis venenatis, vestibulum mauris ut, viverra nisl. Curabitur in ultrices arcu.<br> Nulla varius mi nec massa aliquam, sit amet gravida libero tempor.
+              Koding gives you the necessary environment to start developing your apps, run them, collaborate and share with the world.
             </p>
             {{> @signUpButton}}
             {{> @pricingButton}}
@@ -48,60 +48,40 @@ class HomeView extends KDView
 
       <section class="features">
         <div class="inner-container clearfix">
-          <h3 class="general-title">Features from the future, for biz people</h3>
-          <h4 class="general-subtitle">Educational pricing for your school, you are the future!</h4>
           <article class="feature">
-            <i class="cloud icon"></i>
-            <h5>Private groups & secure access to code</h5>
+            <i class="bubbles icon"></i>
+            <h5>Integrated social tools</h5>
             <p>
-              Aliquam eget turpis venenatis, vestibulum mauris ut,
-              viverra nisl. Curabitur in ultrices arcu.
-              Nulla varius mi nec massa aliquam, sit amet gravida libero tempor.
+              Share with the community, learn from the experts or help those
+              who have yet to start coding. Socialize with like minded people
+              and have fun.
             </p>
           </article>
           <article class="feature">
-            <i class="cloud icon"></i>
-            <h5>Private groups & secure access to code</h5>
+            <i class="team icon"></i>
+            <h5>There is no “I” in Team</h5>
             <p>
-              Aliquam eget turpis venenatis, vestibulum mauris ut,
-              viverra nisl. Curabitur in ultrices arcu.
-              Nulla varius mi nec massa aliquam, sit amet gravida libero tempor.
+              Collaborative development environment for lecture groups,
+              pair programming, or simply for sharing what you're doing with
+              a total stranger
             </p>
           </article>
           <article class="feature">
-            <i class="cloud icon"></i>
-            <h5>Private groups & secure access to code</h5>
+            <i class="box icon"></i>
+            <h5>Yeah, there’s an app for that</h5>
             <p>
-              Aliquam eget turpis venenatis, vestibulum mauris ut,
-              viverra nisl. Curabitur in ultrices arcu.
-              Nulla varius mi nec massa aliquam, sit amet gravida libero tempor.
+              Speed up with user contributed apps, or create your own app,
+              Koding has a great toolset to interact with VMs and to build
+              UIs around.
             </p>
           </article>
           <article class="feature">
-            <i class="cloud icon"></i>
-            <h5>Private groups & secure access to code</h5>
+            <i class="settings icon"></i>
+            <h5>Control freaks?</h5>
             <p>
-              Aliquam eget turpis venenatis, vestibulum mauris ut,
-              viverra nisl. Curabitur in ultrices arcu.
-              Nulla varius mi nec massa aliquam, sit amet gravida libero tempor.
-            </p>
-          </article>
-          <article class="feature">
-            <i class="cloud icon"></i>
-            <h5>Private groups & secure access to code</h5>
-            <p>
-              Aliquam eget turpis venenatis, vestibulum mauris ut,
-              viverra nisl. Curabitur in ultrices arcu.
-              Nulla varius mi nec massa aliquam, sit amet gravida libero tempor.
-            </p>
-          </article>
-          <article class="feature">
-            <i class="cloud icon"></i>
-            <h5>Private groups & secure access to code</h5>
-            <p>
-              Aliquam eget turpis venenatis, vestibulum mauris ut,
-              viverra nisl. Curabitur in ultrices arcu.
-              Nulla varius mi nec massa aliquam, sit amet gravida libero tempor.
+              Micro manage your working environment structure.
+              Go granular, add VM’s, add storage, double up the database,
+              go nuts as you scale.
             </p>
           </article>
         </div>
@@ -132,6 +112,10 @@ class HomeView extends KDView
             <span class="name">JASON FRIEDMANN</span>
           </article>
         </div>
+      </section>
+
+      <section class='check-out'>
+        <h3><a href='/Pricing'>Check out our price plans</a> and get started with Koding right away!</h3>
       </section>
 
       <footer>
