@@ -344,7 +344,7 @@ func fetchChannel(channelId int64) (*models.Channel, error) {
 	return c, nil
 }
 
-func (f *RealtimeWorkerController) sendNotification(accountId int64, data interface{}) error {
+func (f *RealtimeWorkerController) sendNotification(accountId int64, eventName string, data interface{}) error {
 	channel, err := f.rmqConn.Channel()
 	if err != nil {
 		return err
@@ -356,7 +356,12 @@ func (f *RealtimeWorkerController) sendNotification(accountId int64, data interf
 		return err
 	}
 
-	byteData, err := json.Marshal(data)
+	notification := map[string]interface{}{
+		"event":    eventName,
+		"contents": data,
+	}
+
+	byteNotification, err := json.Marshal(notification)
 	if err != nil {
 		return err
 	}
@@ -366,6 +371,6 @@ func (f *RealtimeWorkerController) sendNotification(accountId int64, data interf
 		oldAccount.Profile.Nickname, // this is routing key
 		false,
 		false,
-		amqp.Publishing{Body: byteData},
+		amqp.Publishing{Body: byteNotification},
 	)
 }
