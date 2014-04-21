@@ -47,7 +47,7 @@ fetchMessage = (data, callback)->
 
 postToChannel = (data, callback)->
   if not data.channelId or not data.accountId or not data.body
-    return callback { message: "Request is not valid for creating channel"}
+    return callback { message: "Request is not valid for posting message"}
 
   url = "#{SOCIAL_API_URL}/channel/#{data.channelId}/message"
   post url, data, callback
