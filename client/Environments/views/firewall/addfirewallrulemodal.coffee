@@ -96,9 +96,11 @@ class AddFirewallRuleModal extends KDModalViewWithForms
         container  : this
         duration   : 4000
 
-    {name}  = @modalTabs.forms.Rules.getFormData()
-    filters = []
+    {name} = @modalTabs.forms.Rules.getFormData()
+    rules  = []
 
-    filters.push form.getFormData() for form in @filterWidgets
+    rules.push form.getFormData() for form in @filterWidgets
 
-    log { name, filters }
+    KD.remote.api.JProxyFilter.create { name, rules }, (err, filter) =>
+      return KD.showError err  if err
+      @emit "NewRuleAdded", filter
