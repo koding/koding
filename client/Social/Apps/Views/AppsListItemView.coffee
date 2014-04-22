@@ -27,22 +27,32 @@ class AppsListItemView extends KDListItemView
         'verified'       : "Verified"
       }[data.status]
 
+    @kiteButton     = new KDButtonView
+      cssClass      : 'run'
+      title         : 'details'
+      callback      : =>
+        {name, authorNick} = @getData().manifest
+        KD.getSingleton("router").handleRoute "/Kites/#{authorNick}/#{name}"
+
   # Override KDView::render since I'm updating all the manifest at once ~ GG
   render:-> @template.update()
 
   viewAppended: JView::viewAppended
 
   pistachio:->
+    data   = @getData()
+    isKite = data instanceof KD.remote.api.JKite
+    route  = if isKite then "Kites" else "Apps"
 
-    {manifest:{authorNick, title}, name} = @getData()
+    {manifest:{authorNick, title}, name} = data
 
-    """
+    template = """
       <figure>
         {{> @thumbnail}}
       </figure>
       {{> @statusWidget}}
       <div class="appmeta clearfix">
-        <a href="/Apps/#{authorNick}/#{name}">
+        <a href="/#{route}/#{authorNick}/#{name}">
           <h3>#{title or name}</h3>
           <cite></cite>
         </a>
@@ -52,6 +62,12 @@ class AppsListItemView extends KDListItemView
         </div>
       </div>
       <div class='bottom'>
-        {{> @runButton}}
-      </div>
     """
+
+    if isKite
+      @statusWidget = new KDCustomHTMLView
+      template += "{{> @kiteButton}}"
+    else
+      template += "{{> @runButton}}"
+
+    return template + "</div>"

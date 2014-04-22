@@ -75,6 +75,12 @@ projects      =
     script        : "website/a/js/__app.apps.#{KODING_VERSION}.js"
     sourceMapRoot : "Social/Apps/"
 
+  Kites           :
+    files         : "client/Social/Kites/includes.coffee"
+    style         : "website/a/css/__app.kites.#{KODING_VERSION}.css"
+    script        : "website/a/js/__app.kites.#{KODING_VERSION}.js"
+    sourceMapRoot : "Social/Kites/"
+
   Terminal        :
     files         : "client/Terminal/includes.coffee"
     style         : "website/a/css/__app.terminal.#{KODING_VERSION}.css"

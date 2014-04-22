@@ -130,9 +130,8 @@ class PaymentController extends KDController
     workflow
       .on 'DataCollected', (data) =>
         @transitionSubscription data, (err, subscription, rest...) ->
-
-          return workflow.emit 'GroupCreationFailed'  if err
-          workflow.emit 'SubscriptionTransitionCompleted', subscription
+          return workflow.emit 'Failed', err  if err
+          workflow.emit 'SubscriptionTransitionCompleted', subscription  unless err
           workflow.emit 'Finished', data, err, subscription, rest...
 
       .on 'Finished', (data, err, subscription, rest...) =>
@@ -183,9 +182,8 @@ class PaymentController extends KDController
   createSubscription: (options, callback) ->
     { plan, planOptions, promotionType, paymentMethod } = options
     { paymentMethodId } = paymentMethod
+    planOptions ?= {}
     { planApi } = planOptions
-
-    throw new Error "Must provide a plan API!"  unless planApi?
 
     options = {
       planOptions
@@ -194,7 +192,10 @@ class PaymentController extends KDController
       planCode: plan.planCode
     }
 
-    planApi.subscribe options, callback
+    if planApi
+      planApi.subscribe options, callback
+    else
+      plan.subscribe paymentMethodId, planOptions, callback
 
   transitionSubscription: (formData, callback) ->
     { productData, oldSubscription, promotionType, paymentMethod, createAccount, email } = formData

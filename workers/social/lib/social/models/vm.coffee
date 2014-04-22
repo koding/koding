@@ -546,6 +546,7 @@ module.exports = class JVM extends Module
           region           : vm.region or 'sj'
           diskSizeInMB     : vm.diskSizeInMB
           alwaysOn         : vm.alwaysOn
+          groupId          : vm.groups[0].id
 
   @fetchVmRegion = secure (client, hostnameAlias, callback)->
     {delegate} = client.connection
@@ -570,14 +571,23 @@ module.exports = class JVM extends Module
 
       selector.users = $elemMatch: id: user.getId()
 
-      fieldsToFetch = { hostnameAlias: 1, region: 1, hostKite: 1, stack: 1, meta: 1, alwaysOn: 1 }
+      fieldsToFetch = { hostnameAlias: 1, region: 1, hostKite: 1, stack: 1, alwaysOn: 1, groups: 1, meta: 1 }
       JVM.someData selector, fieldsToFetch, options, (err, cursor)->
         return callback err  if err
         cursor.toArray (err, arr) ->
           return callback err  if err
-          callback null, arr.map ({ hostnameAlias, region, hostKite, stack, meta, alwaysOn }) ->
+          callback null, arr.map (vm) ->
+            { hostnameAlias, region, hostKite, stack, alwaysOn, groups, meta } = vm
             hostKite = null  if hostKite in ['(banned)', '(maintenance)']
-            { hostnameAlias, region, hostKite, stack, meta, alwaysOn }
+            {
+              hostnameAlias
+              region
+              hostKite
+              stack
+              alwaysOn
+              meta
+              groupId: groups[0].id
+            }
 
   @fetchVmsByContext = secure (client, options, callback) ->
     {connection:{delegate}, context:{group}} = client
