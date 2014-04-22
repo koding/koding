@@ -14,7 +14,13 @@ func TestChannelHistory(t *testing.T) {
 		var channel *models.Channel
 		var err error
 		Convey("We should be able to create it(channel) first", func() {
-			channel, err = createChannel()
+			account := models.NewAccount()
+			account.OldId = AccountOldId.Hex()
+			account, err = createAccount(account)
+			So(err, ShouldBeNil)
+			So(account, ShouldNotBeNil)
+
+			channel, err = createChannel(account.Id)
 			So(err, ShouldBeNil)
 			So(channel, ShouldNotBeNil)
 			Convey("While posting a new message to it", func() {
@@ -28,7 +34,7 @@ func TestChannelHistory(t *testing.T) {
 					Convey("Create posts with created participant", func() {
 						channel := channel
 						for i := 0; i < 10; i++ {
-							post, err := createPost(channel.Id, channelParticipant.Id)
+							post, err := createPost(channel.Id, channelParticipant.AccountId)
 							So(err, ShouldBeNil)
 							So(post, ShouldNotBeNil)
 							So(post.Id, ShouldNotEqual, 0)
