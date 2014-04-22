@@ -162,7 +162,7 @@ func TestChannelMessage(t *testing.T) {
 				So(err, ShouldBeNil)
 				So(post, ShouldNotBeNil)
 
-				reply, err := addReply(post.Id, post.AccountId)
+				reply, err := addReply(post.Id, post.AccountId, groupChannel.Id)
 				So(err, ShouldBeNil)
 				So(reply, ShouldNotBeNil)
 
@@ -183,11 +183,11 @@ func TestChannelMessage(t *testing.T) {
 				So(err, ShouldBeNil)
 				So(post, ShouldNotBeNil)
 
-				reply, err := addReply(post.Id, post.AccountId)
+				reply, err := addReply(post.Id, post.AccountId, groupChannel.Id)
 				So(err, ShouldBeNil)
 				So(reply, ShouldNotBeNil)
 
-				reply, err = addReply(post.Id, post.AccountId)
+				reply, err = addReply(post.Id, post.AccountId, groupChannel.Id)
 				So(err, ShouldBeNil)
 				So(reply, ShouldNotBeNil)
 
@@ -202,7 +202,7 @@ func TestChannelMessage(t *testing.T) {
 				So(err, ShouldBeNil)
 				So(post, ShouldNotBeNil)
 
-				reply, err := addReply(post.Id, nonOwnerAccount.Id)
+				reply, err := addReply(post.Id, nonOwnerAccount.Id, groupChannel.Id)
 				So(err, ShouldBeNil)
 				So(reply, ShouldNotBeNil)
 
@@ -222,7 +222,7 @@ func TestChannelMessage(t *testing.T) {
 				So(err, ShouldBeNil)
 				So(post, ShouldNotBeNil)
 
-				reply, err := addReply(post.Id, nonOwnerAccount.Id)
+				reply, err := addReply(post.Id, nonOwnerAccount.Id, groupChannel.Id)
 				So(err, ShouldBeNil)
 				So(reply, ShouldNotBeNil)
 
@@ -259,7 +259,7 @@ func TestChannelMessage(t *testing.T) {
 				So(err, ShouldBeNil)
 				So(post, ShouldNotBeNil)
 
-				reply, err := addReply(post.Id, nonOwnerAccount.Id)
+				reply, err := addReply(post.Id, nonOwnerAccount.Id, groupChannel.Id)
 				So(err, ShouldBeNil)
 				So(reply, ShouldNotBeNil)
 
@@ -279,11 +279,11 @@ func TestChannelMessage(t *testing.T) {
 				So(err, ShouldBeNil)
 				So(post, ShouldNotBeNil)
 
-				reply1, err := addReply(post.Id, nonOwnerAccount.Id)
+				reply1, err := addReply(post.Id, nonOwnerAccount.Id, groupChannel.Id)
 				So(err, ShouldBeNil)
 				So(reply1, ShouldNotBeNil)
 
-				reply2, err := addReply(post.Id, nonOwnerAccount.Id)
+				reply2, err := addReply(post.Id, nonOwnerAccount.Id, groupChannel.Id)
 				So(err, ShouldBeNil)
 				So(reply2, ShouldNotBeNil)
 
@@ -305,11 +305,11 @@ func TestChannelMessage(t *testing.T) {
 				So(err, ShouldBeNil)
 				So(post, ShouldNotBeNil)
 
-				reply1, err := addReply(post.Id, nonOwnerAccount.Id)
+				reply1, err := addReply(post.Id, nonOwnerAccount.Id, groupChannel.Id)
 				So(err, ShouldBeNil)
 				So(reply1, ShouldNotBeNil)
 
-				reply2, err := addReply(post.Id, nonOwnerAccount.Id)
+				reply2, err := addReply(post.Id, nonOwnerAccount.Id, groupChannel.Id)
 				So(err, ShouldBeNil)
 				So(reply2, ShouldNotBeNil)
 
@@ -465,10 +465,11 @@ func getReplies(postId int64, accountId int64, groupName string) ([]*models.Chan
 	return replies, nil
 }
 
-func addReply(postId, accountId int64) (*models.ChannelMessage, error) {
+func addReply(postId, accountId, channelId int64) (*models.ChannelMessage, error) {
 	cm := models.NewChannelMessage()
 	cm.Body = "reply body"
 	cm.AccountId = accountId
+	cm.InitialChannelId = channelId
 
 	url := fmt.Sprintf("/message/%d/reply", postId)
 	_, err := sendModel("POST", url, cm)
