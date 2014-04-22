@@ -39,10 +39,10 @@ CREATE TABLE "api"."channel_message" (
     "body" text COLLATE "default",
     "slug" varchar(100) NOT NULL COLLATE "default",
     "type_constant" varchar(100) NOT NULL COLLATE "default",
-    "created_at" timestamp(6) WITH TIME ZONE,
-    "updated_at" timestamp(6) WITH TIME ZONE
     "account_id" bigint NOT NULL,
     "initial_channel_id" bigint NOT NULL,
+    "created_at" timestamp(6) WITH TIME ZONE NOT NULL DEFAULT now(),
+    "updated_at" timestamp(6) WITH TIME ZONE NOT NULL DEFAULT now()
 )
 WITH (OIDS=FALSE);
 ALTER TABLE "api"."channel_message" OWNER TO "socialapplication";
@@ -52,10 +52,10 @@ ALTER TABLE "api"."channel_message" OWNER TO "socialapplication";
 -- ----------------------------
 DROP TABLE IF EXISTS "api"."channel_message_list";
 CREATE TABLE "api"."channel_message_list" (
-    "added_at" timestamp(6) WITH TIME ZONE NOT NULL
     "id" bigint NOT NULL DEFAULT nextval('channel_message_list_id_seq'::regclass),
     "channel_id" bigint NOT NULL DEFAULT 0,
     "message_id" bigint NOT NULL DEFAULT 0,
+    "added_at" timestamp(6) WITH TIME ZONE NOT NULL DEFAULT now()
 )
 WITH (OIDS=FALSE);
 ALTER TABLE "api"."channel_message_list" OWNER TO "socialapplication";
@@ -65,13 +65,13 @@ ALTER TABLE "api"."channel_message_list" OWNER TO "socialapplication";
 -- ----------------------------
 DROP TABLE IF EXISTS "api"."channel_participant";
 CREATE TABLE "api"."channel_participant" (
-    "id" int8 NOT NULL DEFAULT nextval('channel_participant_id_seq'::regclass),
+    "id" bigint NOT NULL DEFAULT nextval('channel_participant_id_seq'::regclass),
     "channel_id" bigint NOT NULL DEFAULT 0,
     "account_id" bigint NOT NULL DEFAULT 0,
     "status_constant" varchar(100) NOT NULL COLLATE "default",
-    "last_seen_at" timestamp(6) WITH TIME ZONE NOT NULL,
-    "created_at" timestamp(6) WITH TIME ZONE NOT NULL,
-    "updated_at" timestamp(6) WITH TIME ZONE NOT NULL
+    "last_seen_at" timestamp(6) WITH TIME ZONE NOT NULL DEFAULT now(),
+    "created_at" timestamp(6) WITH TIME ZONE NOT NULL DEFAULT now(),
+    "updated_at" timestamp(6) WITH TIME ZONE NOT NULL DEFAULT now()
 )
 WITH (OIDS=FALSE);
 ALTER TABLE "api"."channel_participant" OWNER TO "socialapplication";
@@ -85,7 +85,7 @@ CREATE TABLE "api"."interaction" (
     "message_id" bigint NOT NULL DEFAULT 0,
     "account_id" bigint NOT NULL DEFAULT 0,
     "type_constant" varchar(100) NOT NULL COLLATE "default",
-    "created_at" timestamp(6) WITH TIME ZONE NOT NULL
+    "created_at" timestamp(6) WITH TIME ZONE NOT NULL DEFAULT now()
 )
 WITH (OIDS=FALSE);
 ALTER TABLE "api"."interaction" OWNER TO "socialapplication";
@@ -95,12 +95,11 @@ ALTER TABLE "api"."interaction" OWNER TO "socialapplication";
 -- ----------------------------
 DROP TABLE IF EXISTS "api"."message_reply";
 CREATE TABLE "api"."message_reply" (
-    "created_at" timestamp(6) WITH TIME ZONE NOT NULL
     "id" bigint NOT NULL DEFAULT nextval('message_reply_id_seq'::regclass),
     "message_id" bigint NOT NULL DEFAULT 0,
     "reply_id" bigint NOT NULL DEFAULT 0,
+    "created_at" timestamp(6) WITH TIME ZONE NOT NULL DEFAULT now()
 )
 WITH (OIDS=FALSE);
 ALTER TABLE "api"."message_reply" OWNER TO "socialapplication";
-
 
