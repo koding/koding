@@ -85,19 +85,21 @@ class MainViewController extends KDViewController
     else navController.deselectAllItems()
 
 
-  setViewState: do ->
+  setViewState: (options = {}) ->
 
-    (options = {})->
+    {behavior, name} = options
 
-      {behavior} = options
-      {body}     = document
-      html       = document.documentElement
-      mainView   = @getView()
+    html     = document.documentElement
+    mainView = @getView()
 
-      if behavior is 'application'
-        @getView().showDock()
-        KDView.setElementClass html, 'add', 'app'
-      else
-        @getView().hideDock()
-        KDView.setElementClass html, 'remove', 'app'
+    fullSizeApps = ['Login']
+    appsWithDock = ['Activity', 'Pricing', 'Topics', 'Members', 'content-display']
+
+    if (isApp = behavior is 'application') or (name in fullSizeApps)
+    then KDView.setElementClass html, 'add', 'app'
+    else KDView.setElementClass html, 'remove', 'app'
+
+    if isApp or name in appsWithDock
+    then @getView().showDock()
+    else @getView().hideDock()
 

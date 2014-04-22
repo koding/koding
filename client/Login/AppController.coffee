@@ -1,11 +1,9 @@
 class LoginAppsController extends AppController
 
   KD.registerAppClass this,
-    name                         : "Login"
-    hiddenHandle                 : yes
-    behavior                     : 'application'
-    # removed preCondition because Reset can be called while
-    # current user logged-in status
+    name         : 'Login'
+    hiddenHandle : yes
+
 
   constructor:(options = {}, data)->
 
