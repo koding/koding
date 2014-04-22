@@ -1,21 +1,22 @@
 class NotificationListItem extends KDListItemView
 
   activityNameMap =
-    SocialMessage : "status."
-    JAccount      : "started following you."
-    JComment      : "your comment."
-    JGroup        : "your group"
+    comment : "status."
+    like    : "status."
+    follow  : "started following you."
+    join    : "your group"
+    leave   : "your group"
 
   actionPhraseMap =
-    comment     : "commented on"
-    reply       : "replied to"
-    like        : "liked"
-    follow      : ""
-    share       : "shared"
-    commit      : "committed"
-    member      : "joined"
-    groupJoined : "joined"
-    groupLeft   : "left"
+    comment  : "commented on"
+    reply    : "replied to"
+    like     : "liked"
+    follow   : ""
+    share    : "shared"
+    commit   : "committed"
+    member   : "joined"
+    join     : "joined"
+    leave    : "left"
 
   constructor:(options = {}, data)->
 
@@ -97,18 +98,13 @@ class NotificationListItem extends KDListItemView
     actionPhraseMap[type]
 
 
-  getTargetName:->
-    switch @getData().type
-      when "comment", "like"
-        return "SocialMessage"
-      when "follow"
-        return "JAccount"
+  getActivityName:->
+    return activityNameMap[@getData().type]
 
   getActivityPlot:->
     new Promise (resolve, reject)=>
       data = @getData()
       adjective = ""
-      constructorName = @getTargetName()
       switch data.type
         when "comment", "like"
           KD.remote.api.SocialMessage.fetch {id: data.targetId}, (err, message)=>
@@ -122,10 +118,10 @@ class NotificationListItem extends KDListItemView
                 originatorName = KD.utils.getFullnameFromAccount origin
                 "#{originatorName}'s"
 
-              @activityPlot.updatePartial "#{adjective} #{activityNameMap[constructorName]}"
+              @activityPlot.updatePartial "#{adjective} #{@getActivityName()}"
               resolve()
         else
-          @activityPlot.updatePartial "#{activityNameMap[constructorName]}"
+          @activityPlot.updatePartial "#{@getActivityName()}"
           resolve()
 
 
