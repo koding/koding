@@ -486,13 +486,13 @@ module.exports = class Builder
 
   getRoutes:->
 
-    routesSrc = ''
+    routesSrc = '\n'
 
     for own name, project of @projectsToBuild
 
       if fs.existsSync project.routes
         console.log "Routes added for \"#{name} App\""
-        routesSrc += fs.readFileSync project.routes, 'utf-8'
+        routesSrc += "#{fs.readFileSync project.routes, 'utf-8'}\n"
       else
         console.warn "No routes found for \"#{name} App\""
 
