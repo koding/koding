@@ -1,12 +1,12 @@
 class EnvironmentRuleItem extends EnvironmentItem
 
-  constructor:(options={}, data)->
+  constructor: (options = {}, data) ->
 
-    options.cssClass           = 'rule'
-    options.joints             = ['right']
-    options.staticJoints       = ['right']
+    options.cssClass           = "rule"
+    options.joints             = ["right"]
+    options.staticJoints       = ["right"]
     options.allowedConnections =
-      EnvironmentDomainItem : ['left']
+      EnvironmentDomainItem    : ["left"]
 
     super options, data
 

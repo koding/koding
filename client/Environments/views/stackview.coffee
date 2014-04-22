@@ -109,7 +109,6 @@ class StackView extends KDView
     return if asYaml then jsyaml.dump dump else dump
 
   updateView:(dataUpdated = no)->
-
     @scene.updateConnections()  if dataUpdated
 
     if @getHeight() > 50

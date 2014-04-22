@@ -12,11 +12,11 @@ class EnvironmentRuleContainer extends EnvironmentContainer
     new Promise (resolve, reject)->
       resolve dummyRules
 
-  constructor:(options={}, data)->
+  constructor: (options = {}, data) ->
 
-    options.cssClass  = 'firewall'
+    options.cssClass  = "firewall"
     options.itemClass = EnvironmentRuleItem
-    options.title     = 'firewall rules'
+    options.title     = "firewall rules"
 
     super options, data
 
