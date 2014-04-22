@@ -119,7 +119,7 @@ func TestFollowedTopics(t *testing.T) {
 }
 
 func fetchFollowedChannels(accountId int64, groupName string) ([]*models.ChannelContainer, error) {
-	url := fmt.Sprintf("/account/%d/channels?accountId=%d&groupName=%s", accountId, groupName)
+	url := fmt.Sprintf("/account/%d/channels?accountId=%d&groupName=%s", accountId, accountId, groupName)
 	res, err := sendRequest("GET", url, nil)
 	if err != nil {
 		return nil, err
