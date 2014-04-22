@@ -34,7 +34,7 @@ class AboutView extends KDView
 
     super
 
-    @once 'viewAppended', => document.body.scrollTop = 0
+    @once 'viewAppended', -> document.body.scrollTop = 0
 
     @footer = new FooterView
 
