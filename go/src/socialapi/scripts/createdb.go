@@ -36,6 +36,7 @@ func main() {
 	db.DB.Exec("drop table account;")
 	db.DB.Exec("drop table notification_content;")
 	db.DB.Exec("drop table notification;")
+	db.DB.Exec("drop table activity;")
 
 	if err := db.DB.CreateTable(&models.ChannelMessage{}).Error; err != nil {
 		panic(fmt.Sprintf("No error should happen when create table, but got %+v", err))
@@ -64,5 +65,7 @@ func main() {
 	if err := db.DB.CreateTable(&models.Notification{}).Error; err != nil {
 		panic(fmt.Sprintf("No error should happen when create table, but got %+v", err))
 	}
-
+	if err := db.DB.CreateTable(&models.Activity{}).Error; err != nil {
+		panic(fmt.Sprintf("No error should happen when create table, but got %+v", err))
+	}
 }
