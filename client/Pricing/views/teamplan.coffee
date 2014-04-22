@@ -5,48 +5,34 @@ class TeamPlan extends JView
 
   constructor: (options = {}, data) ->
     options.cssClass = KD.utils.curry "team-plan", options.cssClass
+    options.tagName  = 'section'
     super options, data
 
     @resourceQuantity = 10
     @userQuantity     = 10
     @total            = (@resourceQuantity * unitPrices.resourcePack) + (@userQuantity * unitPrices.user)
 
-    @resourcePackSlider = new PricingPlanSelection
-      title             : "Resource Pack"
-      unitPrice         : unitPrices.resourcePack
-      amountSuffix      : "x"
-      slider            :
-        minValue        : 1
-        maxValue        : 250
-        interval        : 5
-        snapOnDrag      : yes
-        handles         : [@resourceQuantity]
-        width           : 319
+    @sectionTitle    = new KDHeaderView
+      type      : 'medium'
+      cssClass  : 'general-title'
+      title     : 'For large teams, here you can scale your resource pack
+      alongside your team size'
 
-    @resourcePackSlider.on "ValueChanged", (@resourceQuantity) => @updateContent()
+    @slidersContainer   = new KDView
+      cssClass          : 'sliders-container'
 
-    @userSlider         = new PricingPlanSelection
-      title             : "Team Size"
-      unitPrice         : unitPrices.user
-      slider            :
-        minValue        : 5
-        maxValue        : 500
-        interval        : 10
-        snapOnDrag      : yes
-        handles         : [@userQuantity]
-        width           : 319
+    @summary = new KDCustomHTMLView cssClass: "resource-pack red"
+    @summary.addSubView @title  = new KDHeaderView
+      type      : 'medium'
+      cssClass  : 'pack-title'
+      title     : "<cite>#{@resourceQuantity}x</cite>Resource Pack"
 
-    @userSlider.on "ValueChanged", (@userQuantity) => @updateContent()
-
-    @summary = new KDCustomHTMLView cssClass: "plan-selection-box selected"
-    @summary.addSubView @title  = new KDCustomHTMLView tagName: "h4"
-    @summary.addSubView @price  = new KDCustomHTMLView tagName: "h5"
     @summary.addSubView @buyNow = new KDButtonView
-      cssClass : "buy-now"
-      style    : "solid green"
-      title    : "BUY NOW"
-      loader   : yes
-      callback : =>
+      style     : 'pack-buy-button'
+      icon      : yes
+      title     : "BUY NOW"
+      loader    : yes
+      callback  : =>
         @buyNow.showLoader()
         @emit "PlanSelected", "custom-plan", {
           @userQuantity
@@ -64,38 +50,53 @@ class TeamPlan extends JView
     alwaysOn        : 1
     totalVMs        : 2
 
+  createSliders : ->
+    sliderWidth = @slidersContainer.getWidth() - 120
+
+    @slidersContainer.addSubView @resourcePackSlider = new PricingPlanSelection
+      title             : "Resource Pack"
+      unitPrice         : unitPrices.resourcePack
+      amountSuffix      : "x"
+      slider            :
+        minValue        : 1
+        maxValue        : 250
+        interval        : 5
+        snapOnDrag      : yes
+        handles         : [@resourceQuantity]
+        width           : sliderWidth
+        drawOpposite    : yes
+
+    @resourcePackSlider.on "ValueChanged", (@resourceQuantity) => @updateContent()
+
+    @slidersContainer.addSubView @userSlider = new PricingPlanSelection
+      title             : "Team Size"
+      unitPrice         : unitPrices.user
+      slider            :
+        minValue        : 5
+        maxValue        : 500
+        interval        : 10
+        snapOnDrag      : yes
+        handles         : [@userQuantity]
+        width           : sliderWidth
+        drawOpposite    : yes
+
+    @userSlider.on "ValueChanged", (@userQuantity) => @updateContent()
+
   updateContent: ->
     @total = (@resourceQuantity * unitPrices.resourcePack) + (@userQuantity * unitPrices.user)
-    @title.updatePartial "Resource Pack x #{@resourceQuantity}<br>for #{@userQuantity} People"
-    @price.updatePartial "$#{@total}/Month"
-
-    {cpu, ram, disk, totalVMs, alwaysOn} = resourcePackUnits
-    @resourcePackSlider.description.updatePartial """
-    <span>Resource pack contains</span>
-    <cite>#{cpu * @resourceQuantity}x</cite>CPU
-    <cite>#{ram * @resourceQuantity}x</cite>GB RAM
-    <cite>#{disk * @resourceQuantity}</cite>GB Disk
-    <cite>#{totalVMs * @resourceQuantity}x</cite>Total VMs
-    <cite>#{alwaysOn * @resourceQuantity}x</cite>Always on VMs
-    """
+    @title.updateTitle "<cite>#{@resourceQuantity}x</cite>Resource Pack"
+    @buyNow.setTitle "<cite>$#{@total}</cite>BUY NOW"
 
   viewAppended: ->
-    super
+    @parent.once "PaneDidShow", @bound 'createSliders'
 
-    @resourcePackSlider.addSubView new KDCustomHTMLView
-      tagName : "a"
-      cssClass: "pricing-show-details"
-      partial : "What is This?"
-      click   : =>
-        @emit "ShowHowItWorks"
+    super
 
   pistachio: ->
     """
-    <div class="big box with-arrow">
-      {{> @resourcePackSlider}}
-      {{> @userSlider}}
-    </div>
-    <div class="small box">
+    {{> @sectionTitle}}
+    <div class='custom-plan-container clearfix'>
+      {{> @slidersContainer}}
       {{> @summary}}
     </div>
     """

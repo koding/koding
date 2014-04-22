@@ -7,6 +7,174 @@ class PricingAppView extends KDView
     # members conversion
     @appStorage = KD.getSingleton('appStorageController').storage 'Login', '1.0'
 
+  getIntroductionView : ->
+
+    introductionView = new KDView
+      tagName   : 'section'
+      cssClass  : 'introduction'
+
+    introductionView.addSubView new KDHeaderView
+      type      : 'medium'
+      title     : 'Simple pricing for any team or developer'
+
+    introductionView.addSubView new KDCustomHTMLView
+      tagName   : 'p'
+      partial   : 'Which one describes your current situation?'
+
+    router         = KD.singleton 'router'
+    currentSection = router.currentPath.split('/')[2]
+
+    introductionView.addSubView new KDMultipleChoice
+      labels        : ['Developer', 'Team']
+      defaultValue  : [currentSection]
+      multiple      : no
+      callback      : (state) =>
+        router.handleRoute "/Pricing/#{state}"
+
+    return introductionView
+
+  getPacksView  : ->
+
+    @pricingTypeTabView = new KDTabView
+      cssClass            : 'pricing-type-tab'
+      hideHandleContainer : yes
+
+    @pricingTypeTabView.addPane packsView = new KDTabPaneView
+      name : 'DEVELOPER'
+      view : new PricingPacksView
+        packs               : [
+            title           : '1x'
+            cssClass        : 'blue'
+            packFeatures:
+              "CPU"         : '2x'
+              "RAM"         : '2GB'
+              "DISK"        : '10GB'
+              "VM's"        : '2x'
+            price           : '$19'
+          ,
+            title           : '2x'
+            cssClass        : 'green'
+            packFeatures:
+              "CPU"         : '4x'
+              "RAM"         : '2GB'
+              "DISK"        : '10GB'
+              "VM's"        : '2x'
+            price           : '$39'
+          ,
+            title           : '3x'
+            cssClass        : 'yellow'
+            packFeatures:
+              "CPU"         : '6x'
+              "RAM"         : '2GB'
+              "DISK"        : '10GB'
+              "VM's"        : '2x'
+            price           : '$59'
+          ,
+            title           : '4x'
+            cssClass        : 'orange'
+            packFeatures:
+              "CPU"         : '8x'
+              "RAM"         : '2GB'
+              "DISK"        : '10GB'
+              "VM's"        : '2x'
+            price           : '$79'
+          ,
+            title           : '5x'
+            cssClass        : 'red'
+            packFeatures:
+              "CPU"         : '10x'
+              "RAM"         : '2GB'
+              "DISK"        : '10GB'
+              "VM's"        : '2x'
+            price           : '$99'
+        ]
+
+      @pricingTypeTabView.addPane slidersView = new KDTabPaneView
+        name : 'TEAM'
+        view : new TeamPlan
+
+    return @pricingTypeTabView
+
+  getCustomQuoteView : ->
+
+    freeRegisterView = new KDView
+      tagName   : 'section'
+      cssClass  : 'custom-quote'
+
+    freeRegisterView.addSubView new KDHeaderView
+      title     : 'Want more giant-sized Resource Pack or want to deploy a custom version to your intranet?'
+      type      : 'medium'
+      cssClass  : 'general-title'
+
+    freeRegisterView.addSubView new KDButtonView
+      title     : 'GET A CUSTOM QUOTE'
+      style     : "solid border-only green medium"
+
+    return freeRegisterView
+
+  getFeaturesView : ->
+    return new KDView
+      tagName   : 'section'
+      cssClass  : 'features'
+      pistachio :
+        """
+        <div class='inner-container'>
+          <h2 class="kdview kdheaderview general-title">
+            <span>For those who don’t know what a CPU is, every single part explained</span>
+          </h2>
+          <article class="feature">
+            <i class="cpu icon"></i>
+            <h5>CPU</h5>
+            <p>
+              Your CPUs are shared among all your running VMs. If you run only
+              one VM, all CPUs will be utilized; if you have 10 VMs running,
+              they will share your available CPUs.
+            </p>
+          </article>
+          <article class="feature">
+            <i class="ram icon"></i>
+            <h5>RAM</h5>
+            <p>
+              Memory is shared between your running VMs. Each VM starts with
+              allocated memory. If you have 10GB limit, you can run 10VMs at
+              1GB, or 3 x 3GB and 1 x 1GB.
+            </p>
+          </article>
+          <article class="feature">
+            <i class="disk icon"></i>
+            <h5>DISK</h5>
+            <p>
+              This is local storage allocated to your VMs. You can distribute
+              this quota across all of your VMs as you need.You can allocate
+              40GB of disk space to one of your VMs, for instance, and to the
+              next one you could allocate 10GB.
+            </p>
+          </article>
+          <article class="feature">
+            <i class="always-on icon"></i>
+            <h5>ALWAYS ON</h5>
+            <p>
+              The maximum number of VMs that you can create. For example,
+              if your total VM quota is 10, and you have 3GB RAM available,
+              you can only run 3 x 1GB RAM, and you will have 7 VMs that are turned off.
+            </p>
+            <p class="description">
+              All Koding VMs are optimized for software development,
+              and they're automatically turned off one hour after you leave the site.
+            </p>
+          </article>
+        </div>
+        """
+
+
+  viewAppended  : ->
+    @addSubView @getIntroductionView()
+    @addSubView @getPacksView()
+    @addSubView @getCustomQuoteView()
+    @addSubView @getFeaturesView()
+
+    @addSubView new FooterView
+
   createBreadcrumb: ->
     @addSubView @breadcrumb = new BreadcrumbView
 
