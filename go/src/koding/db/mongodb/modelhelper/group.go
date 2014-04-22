@@ -7,7 +7,7 @@ import (
 	"labix.org/v2/mgo/bson"
 )
 
-func GetGroupId(id string) (*models.Group, error) {
+func GetGroupById(id string) (*models.Group, error) {
 	group := new(models.Group)
 
 	query := func(c *mgo.Collection) error {

@@ -108,7 +108,7 @@ var (
 	)
 )
 
-func newLimit() *Limit {
+func NewLimit() *Limit {
 	return &Limit{
 		CPU:         LimitOk,
 		RAM:         LimitOk,
@@ -154,7 +154,7 @@ func totalUsage(vos *virt.VOS, groupId string) (*Plan, error) {
 		return nil, fmt.Errorf("groupID %s is not valid hex representation", groupId)
 	}
 
-	group, err := modelhelper.GetGroupId(groupId)
+	group, err := modelhelper.GetGroupById(groupId)
 	if err != nil {
 		return nil, err
 	}
@@ -172,7 +172,7 @@ func totalUsage(vos *virt.VOS, groupId string) (*Plan, error) {
 				"webHome": vos.VM.WebHome,
 				"state":   "RUNNING",
 				"groups":  bson.M{"$in": []bson.M{bson.M{"id": bson.ObjectIdHex(groupId)}}},
-			}).Iter().All(&vms)
+			}).All(&vms)
 		}
 	} else {
 		// for group other than "koding" we should count every users usage
@@ -180,7 +180,7 @@ func totalUsage(vos *virt.VOS, groupId string) (*Plan, error) {
 			return c.Find(bson.M{
 				"state":  "RUNNING",
 				"groups": bson.M{"$in": []bson.M{bson.M{"id": bson.ObjectIdHex(groupId)}}},
-			}).Iter().All(&vms)
+			}).All(&vms)
 		}
 	}
 
@@ -223,7 +223,7 @@ func (p *Plan) prepareLimits(username, groupId string) (*Limit, error) {
 	fmt.Printf("total usage:   %+v\n", plan)
 	fmt.Printf("current usage: %+v\n", *p)
 
-	lim := newLimit()
+	lim := NewLimit()
 	if p.AlwaysOnVMs > plan.AlwaysOnVMs {
 		lim.AlwaysOnVMs = LimitQuotaExceeded
 	}
