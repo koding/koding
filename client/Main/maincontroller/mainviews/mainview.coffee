@@ -120,24 +120,15 @@ class MainView extends KDView
     then @createLoggedInAccountArea()
     else
 
-      @loginLink = new CustomLinkView
-        cssClass    : 'header-sign-in'
-        title       : 'Login'
-        attributes  :
-          href      : '/Login'
-        click       : (event)->
-          KD.utils.stopDOMEvent event
-          KD.getSingleton('router').handleRoute "/Login"
-      @accountArea.addSubView @loginLink
-
       mc = KD.getSingleton "mainController"
-      mc.once "accountChanged.to.loggedIn", =>
-        @loginLink.destroy()
-        @createLoggedInAccountArea()
+      mc.once "accountChanged.to.loggedIn", @bound 'createLoggedInAccountArea'
+
 
   createLoggedInAccountArea:->
-    @accountArea.destroySubViews()
 
+    KDView.setElementClass document.body, 'add', 'logged-in'
+
+    @accountArea.destroySubViews()
     @accountArea.addSubView @accountMenu = new AvatarAreaIconMenu
     KD.utils.defer => @accountMenu.accountChanged KD.whoami()
 
@@ -335,7 +326,12 @@ class MainView extends KDView
   isFullscreen: -> @hasClass "fullscreen"
 
   toggleFullscreen: ->
-    if @isFullscreen() then @disableFullscreen() else @enableFullscreen()
+
+    if @isFullscreen()
+    then @disableFullscreen()
+    else @enableFullscreen()
+
+
   bindPulsingRemove:->
 
     router     = KD.getSingleton 'router'
