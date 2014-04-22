@@ -91,7 +91,7 @@ class BusinessView extends KDView
       <section class="testimonials">
         <div class="inner-container clearfix">
           <h3 class="general-title">What did they say</h3>
-          <h4 class="general-subtitle">Pople love Koding for a reason. Guess what that reason is?v</h4>
+          <h4 class="general-subtitle">People love Koding for a reason. Guess what that reason is?</h4>
 
           <article>
             <p>It just f***in works! And therefore I love it like I ove my mom.</p>
@@ -116,7 +116,7 @@ class BusinessView extends KDView
       </section>
 
       <section class='check-out'>
-        <h3><a href='/Pricing'>Check out our price plans</a> and get started with Koding right away!</h3>
+        <h3><a href='/Pricing'>Check out our pricing</a> and get started with Koding right away!</h3>
       </section>
       {{> @footer}}
     """
