@@ -184,6 +184,8 @@ func (o *Oskite) runNewKite() {
 		panic(err)
 	}
 
+	k.SetupSignalHandler()
+
 	o.NewKite = k.Kite
 
 	if k.Server.TLSConfig != nil {

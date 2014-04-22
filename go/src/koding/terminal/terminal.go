@@ -233,6 +233,8 @@ func (t *Terminal) runNewKite() {
 
 	k.Config.Region = t.Region
 
+	k.SetupSignalHandler()
+
 	t.vosMethod(k, "webterm.getSessions", webtermGetSessionsNew)
 	t.vosMethod(k, "webterm.connect", webtermConnectNew)
 	t.vosMethod(k, "webterm.killSession", webtermKillSessionNew)
