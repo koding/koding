@@ -1,102 +1,68 @@
-jraphical = require 'jraphical'
-KodingError = require '../../error'
+jraphical   = require "jraphical"
+KodingError = require "../../error"
 
 module.exports = class JProxyFilter extends jraphical.Module
 
-  {secure, ObjectId, signature} = require 'bongo'
-  {Relationship}     = jraphical
-  {permit}           = require '../group/permissionset'
-  JProxyRestriction  = require './restriction'
+  {secure, ObjectId, signature} = require "bongo"
 
-  @trait __dirname, '../../traits/protected'
+  @trait __dirname, "../../traits/protected"
 
   @share()
 
   @set
-    sharedEvents    :
-      static        : []
-      instance      : []
-    softDelete      : no
-    permissions     :
-      'create filters'     : ['member']
-      'edit filters'       : ['member']
-      'edit own filters'   : ['member']
-      'delete filters'     : ['member']
-      'delete own filters' : ['member']
-      'list filters'       : ['member']
-      'list own filters'   : ['member']
+    sharedEvents      :
+      static          : []
+      instance        : []
+    schema            :
+      name            :
+        type          : String
+        required      : yes
+      enabled         : Boolean
+        defaultValue  : yes
+      rules           : Array
+      owner           : ObjectId
+      createdAt       :
+        type          : Date
+        default       : -> new Date
+      modifiedAt      :
+        type          : Date
+        default       : -> new Date
+    sharedMethods     :
+      static          :
+        create        : (signature Object, Function)
+        fetch         : (signature Function)
 
-    sharedMethods   :
-      static        :
-        createFilter:
-          (signature Object, Function)
-        fetchFiltersByContext:
-          (signature Function)
-        remove:
-          (signature Object, Function)
-    indexes         :
-      name          : 'unique'
+  @create: secure (client, data, callback = noop) ->
+    {delegate}    = client.connection
+    {name, rules} = data
+    ruleTypes     = [ "ip", "country", "request.minute", "request.second" ]
+    actionTypes   = [ "allow", "block", "securepage" ]
 
-    schema          :
-      name          :
-        type        : String
-        required    : yes
-      match         :
-        type        : String
-        required    : yes
-      type          :
-        type        : String
-        required    : yes
-      owner         : ObjectId
+    unless name and rules?.length
+      return callback new KodingError "Missing arguments", null
 
-      createdAt     :
-        type        : Date
-        default     : -> new Date
-      modifiedAt    :
-        type        : Date
-        default     : -> new Date
+    for rule in rules
+      {enabled, type, match, action} = rule
+      hasAllFields       = enabled and type and match and action
+      hasValidRuleType   = ruleTypes.indexOf(type)     isnt -1
+      hasValidActionType = actionTypes.indexOf(action) isnt -1
 
-  @createFilter : permit 'create filters',
-    success : (client, params, callback)->
-      {delegate}   = client.connection
-      params.owner = delegate.getId()
-      newFilter    = new JProxyFilter params
-      newFilter.save (err)->
-        return callback err if err
+      unless hasAllFields and hasValidRuleType and hasValidActionType
+        hasInvalidRule = yes
 
-        delegate.addProxyFilter newFilter, (err)->
-          return callback err if err
-          callback null, newFilter
+    if hasInvalidRule
+      return callback new KodingError "One or more rules are invalid", null
 
-  @fetchFiltersByContext: permit 'list filters',
-    success: (client, callback)->
-      {delegate} = client.connection
-      @some {owner:delegate.getId()}, {name:1, match:1},  (err, filters)->
-        return callback err if err
-        callback err, filters
+    data.owner = delegate.getId()
+    filter     = new JProxyFilter data
 
-  @remove$: permit 'delete filters',
-    success: (client, selector, callback)->
-      {delegate} = client.connection
-      selector.owner = delegate.getId()
+    filter.save (err) ->
+      return callback err, null  if err
+      callback null, filter
 
-      @one selector, {}, (err, filter)=>
-        return callback err if err
+  @fetch: secure (client, callback = noop) ->
+    query = owner: client.connection.delegate.getId()
 
-        @remove selector, (err)->
-          return callback err if err
-
-        match = filter.match
-
-        JProxyRestriction.update
-          "ruleList.match": match
-        , {$pull: {"ruleList": {match}}}
-        , (err)->
-          return callback err if err
-
-        callback null
-
-
-
-
-
+    JProxyFilter.some query, {}, (err, filters) ->
+      return callback err, null  if err
+      callback null, filters
