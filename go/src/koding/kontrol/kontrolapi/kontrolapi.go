@@ -86,6 +86,9 @@ func main() {
 	filters := rout.PathPrefix("/filters").Subrouter()
 	filters.HandleFunc("/{id}", changeHandler(GetFilterByID)).Methods("GET")
 
+	rest := rout.PathPrefix("/restrictions").Subrouter()
+	rest.HandleFunc("/{domain}", changeHandler(GetRestrictionByDomain)).Methods("GET")
+
 	conf = config.MustConfig(*flagProfile)
 
 	var logLevel logger.Level
