@@ -82,6 +82,10 @@ func main() {
 	domains.HandleFunc("/{domain}", changeHandler(CreateOrUpdateDomain)).Methods("POST", "PUT")
 	domains.HandleFunc("/{domain}", changeHandler(DeleteDomain)).Methods("DELETE")
 
+	// Filter handlers
+	filters := rout.PathPrefix("/filters").Subrouter()
+	filters.HandleFunc("/{id}", changeHandler(GetFilterByID)).Methods("GET")
+
 	conf = config.MustConfig(*flagProfile)
 
 	var logLevel logger.Level
