@@ -19,4 +19,14 @@ class EnvironmentRuleContainer extends EnvironmentContainer
 
     super options, data
 
-    @on 'PlusButtonClicked', -> new AddFirewallRuleModal
+    @on "PlusButtonClicked", =>
+      modal = new AddFirewallRuleModal
+      modal.once "NewRuleAdded", (filter) =>
+        @addItem
+          title       : filter.name
+          description : $.timeago filter.createdAt
+          activated   : yes
+          filter      : filter
+
+        @emit "itemAdded"
+        modal.destroy()
