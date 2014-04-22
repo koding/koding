@@ -27,6 +27,7 @@ class DevToolsController extends AppController
   }
 
   constructor:(options = {}, data)->
+
     options.view    = new DevToolsMainView
     options.appInfo =
       name     : "DevTools"

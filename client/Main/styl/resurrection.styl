@@ -21,7 +21,6 @@ html.app
 body
   font-family       openSansFamily
   font-weight       300
-  // bg                color, #e4e4e4
 
   &.noscroll
     overflow        hidden
@@ -54,6 +53,7 @@ pre
       right           0
     #main-header
       hidden()
+
 
 #main-header
   margin              0
@@ -179,13 +179,6 @@ pre
     span.close.icon
       display         block
       r-sprite        app '16-close-white'
-
-
-.intro #main-header
-.login #main-header
-  visibility            hidden
-  .inner-container
-    vendor              transform, translateY(-55px)
 
 
 #dock

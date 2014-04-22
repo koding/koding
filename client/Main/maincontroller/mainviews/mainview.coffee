@@ -19,42 +19,6 @@ class MainView extends KDView
       @setStickyNotification()
       @emit 'ready'
 
-  bindPulsingRemove:->
-
-    router     = KD.getSingleton 'router'
-    appManager = KD.getSingleton 'appManager'
-
-    appManager.once 'AppCouldntBeCreated', removePulsing
-
-    appManager.on 'AppCreated', (appInstance)->
-      options = appInstance.getOptions()
-      {title, name, appEmitsReady} = options
-      routeArr = location.pathname.split('/')
-      routeArr.shift()
-      checkedRoute = if routeArr.first is "Develop" \
-                     then routeArr.last else routeArr.first
-
-      if checkedRoute is name or checkedRoute is title
-        if appEmitsReady
-          appView = appInstance.getView()
-          appView.ready removePulsing
-        else removePulsing()
-
-  _logoutAnimation:->
-    {body}        = document
-
-    turnOffLine   = new KDCustomHTMLView
-      cssClass    : "turn-off-line"
-    turnOffDot    = new KDCustomHTMLView
-      cssClass    : "turn-off-dot"
-
-    turnOffLine.appendToDomBody()
-    turnOffDot.appendToDomBody()
-
-    body.style.background = "#000"
-    @setClass               "logout-tv"
-
-
   createMainPanels:->
 
     @addSubView @panelWrapper = new KDView
@@ -153,9 +117,7 @@ class MainView extends KDView
     @headerContainer.addSubView @accountArea
 
     if KD.isLoggedIn()
-
-      @createLoggedInAccountArea()
-
+    then @createLoggedInAccountArea()
     else
 
       @loginLink = new CustomLinkView
@@ -363,15 +325,50 @@ class MainView extends KDView
     @emit "fullscreen", yes
     KD.getSingleton("windowController").notifyWindowResizeListeners()
 
+
   disableFullscreen: ->
     @unsetClass "fullscreen no-anim"
     @emit "fullscreen", no
     KD.getSingleton("windowController").notifyWindowResizeListeners()
 
+
   isFullscreen: -> @hasClass "fullscreen"
 
   toggleFullscreen: ->
     if @isFullscreen() then @disableFullscreen() else @enableFullscreen()
+  bindPulsingRemove:->
+
+    router     = KD.getSingleton 'router'
+    appManager = KD.getSingleton 'appManager'
+
+    appManager.once 'AppCouldntBeCreated', removePulsing
+
+    appManager.on 'AppCreated', (appInstance)->
+      options = appInstance.getOptions()
+      {title, name, appEmitsReady} = options
+      routeArr = location.pathname.split('/')
+      routeArr.shift()
+      checkedRoute = if routeArr.first is "Develop" \
+                     then routeArr.last else routeArr.first
+
+      if checkedRoute is name or checkedRoute is title
+        if appEmitsReady
+          appView = appInstance.getView()
+          appView.ready removePulsing
+        else removePulsing()
+
+  _logoutAnimation:->
+
+    {body}      = document
+    turnOffLine = new KDCustomHTMLView cssClass : "turn-off-line"
+    turnOffDot  = new KDCustomHTMLView cssClass : "turn-off-dot"
+
+    turnOffLine.appendToDomBody()
+    turnOffDot.appendToDomBody()
+
+    body.style.background = "#000"
+    @setClass "logout-tv"
+
 
   removePulsing = ->
 
@@ -402,3 +399,4 @@ class MainView extends KDView
           duration = 400
           KDScrollView::scrollTo.call mainView, {top, duration}
           break
+
