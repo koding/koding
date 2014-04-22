@@ -192,10 +192,16 @@ func (n *Notification) FetchContent() (*NotificationContent, error) {
 	return nc, nil
 }
 
-func (n *Notification) Follow(followerId int64) error {
+func (n *Notification) Follow(a *Activity) error {
+	a.TypeConstant = NotificationContent_TYPE_FOLLOW
+	// create activity
+	if err := a.Create(); err != nil {
+		return err
+	}
+
 	fn := NewFollowNotification()
-	fn.FollowerId = followerId
-	fn.FolloweeId = n.AccountId
+	fn.NotifierId = a.ActorId
+	fn.TargetId = a.TargetId
 
 	return CreateNotification(fn)
 }
