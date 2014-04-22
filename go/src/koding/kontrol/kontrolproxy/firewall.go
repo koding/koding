@@ -76,6 +76,8 @@ func firewallHandler(h http.Handler) http.Handler {
 			fwsMu.Unlock()
 		}
 
+		// fmt.Printf("fw %+v\n", fw) // debug
+
 		if a := fw.applyRule(r); a != nil {
 			a.ServeHTTP(w, r)
 			return
@@ -85,6 +87,8 @@ func firewallHandler(h http.Handler) http.Handler {
 	})
 }
 
+// newFirewall creates a new firewall struct per domain. This is cached and
+// invalidated every one minute.
 func newFirewall(rest models.Restriction) *Firewall {
 	f := &Firewall{
 		rules:     make([]models.Rule, 0),
@@ -119,6 +123,8 @@ func (f *Firewall) applyRule(r *http.Request) http.Handler {
 		if !rule.Enabled {
 			continue
 		}
+
+		// fmt.Printf("rule %+v\n", rule) // debug
 
 		checker, err := getChecker(rule, r)
 		if err != nil {
@@ -205,6 +211,8 @@ func (c *CheckRequest) Check() bool {
 		fws[c.Host] = fw
 		fwsMu.Unlock()
 	}
+
+	// fmt.Printf("fw.bucket %+v\n", fw.bucket) // debug
 
 	// makes one request, returns zero if bucket is empty
 	if fw.bucket.TakeAvailable(1) == 0 {
