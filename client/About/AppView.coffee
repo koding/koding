@@ -91,7 +91,7 @@ class AboutView extends KDView
     <section class="careers">
       <div class='wrapper'>
         <h2>Careers</h2>
-        <h4>Shoot us an <a href='mailto:hr@koding.com?subject=Koding%20needs%20me!' target='_self'>email</a> if you think you should be a part of Koding!</h4>
+        <h4>If you think your picture is missing above, <a href='https://jobs.lever.co/koding' target='_blank'>click here</a> to check our current openings!</h4>
       </div>
     </section>
     {{> @footer}}
