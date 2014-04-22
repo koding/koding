@@ -3,8 +3,9 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"math/rand"
 	"socialapi/models"
+
+	"labix.org/v2/mgo/bson"
 )
 
 var (
@@ -15,7 +16,10 @@ func testFrontpageOperations() {
 
 	var accounts []int64
 	for i := 0; i < 2; i++ {
-		accounts = append(accounts, rand.Int63())
+		account := models.NewAccount()
+		account.OldId = bson.NewObjectId().Hex()
+		account, _ = createAccount(account)
+		accounts = append(accounts, account.Id)
 	}
 
 	for i := 0; i < len(accounts); i++ {
@@ -62,7 +66,7 @@ func fetchHistoryAndCheckMessages(channelId, accountId int64) {
 }
 
 func populateChannelwithAccount(accountId int64) (*models.Channel, error) {
-	channel, err := createChannel()
+	channel, err := createChannel(accountId)
 	if err != nil {
 		return nil, err
 	}
@@ -117,7 +121,7 @@ func populatePost(channelId, accountId int64) (*models.ChannelMessage, error) {
 	}
 
 	for i := 0; i < len(participants); i++ {
-		reply, err := addReply(post.Id, participants[i].AccountId)
+		reply, err := addReply(post.Id, participants[i].AccountId, post.InitialChannelId)
 		if err != nil {
 			return nil, err
 		}
