@@ -159,8 +159,6 @@ func totalUsage(vos *virt.VOS, groupId string) (*Plan, error) {
 		return nil, err
 	}
 
-	fmt.Printf("group %+v\n", group)
-
 	vms := make([]*models.VM, 0)
 	var query func(c *mgo.Collection) error
 
@@ -220,8 +218,8 @@ func (p *Plan) prepareLimits(username, groupId string) (*Limit, error) {
 		return nil, errors.New("plan doesn't exist")
 	}
 
-	fmt.Printf("total usage:   %+v\n", plan)
-	fmt.Printf("current usage: %+v\n", *p)
+	log.Debug("total usage:   %+v username: %s groups %s", plan, username, groupId)
+	log.Debug("current usage: %+v username: %s group: %s", *p, username, groupId)
 
 	lim := NewLimit()
 	if p.AlwaysOnVMs > plan.AlwaysOnVMs {
@@ -301,8 +299,6 @@ func getSubscription(username, groupId string) (*subscriptionResp, error) {
 	}
 
 	endpointURL := conf.SubscriptionEndpoint + code + "/" + username + "/" + groupId
-
-	fmt.Printf("endpointURL %+v\n", endpointURL)
 
 	resp, err := http.Get(endpointURL)
 	if err != nil {
