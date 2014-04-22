@@ -109,38 +109,6 @@ func newFirewall(rest models.Restriction) *Firewall {
 	return f
 }
 
-func getChecker(rule models.Rule, r *http.Request) (Checker, error) {
-	ip := getIP(r.RemoteAddr)
-	host := r.Host
-	country := ""
-
-	switch rule.Type {
-	case "ip":
-		return &CheckIP{IP: ip, Pattern: rule.Match}, nil
-	case "country":
-		return &CheckCountry{Country: country, Pattern: rule.Match}, nil
-	case "request.second", "request.minute":
-		rate, err := strconv.Atoi(rule.Match)
-		if err != nil {
-			return nil, fmt.Errorf("request match malformed %v err %v", rule.Match, err)
-		}
-
-		var freq time.Duration
-		switch strings.TrimPrefix(rule.Type, "request.") {
-		case "second":
-			freq = time.Second
-		case "minute":
-			freq = time.Minute
-		default:
-			return nil, fmt.Errorf("request type malformed: %v", rule.Type)
-		}
-
-		return &CheckRequest{Host: host, MaxRequest: rate, Interval: freq}, nil
-	}
-
-	return nil, fmt.Errorf("no checker found for %s", rule.Type)
-}
-
 // applyRule checks the rule and returns an http.Handler to be executed. A nil
 // handler means there is no http.Handler to be executed. For example if the
 // user is allowed to pass,  a "nil" http.Handler is returned, however if the
@@ -186,6 +154,38 @@ func (f *Firewall) applyRule(r *http.Request) http.Handler {
 	}
 
 	return nil
+}
+
+func getChecker(rule models.Rule, r *http.Request) (Checker, error) {
+	ip := getIP(r.RemoteAddr)
+	host := r.Host
+	country := ""
+
+	switch rule.Type {
+	case "ip":
+		return &CheckIP{IP: ip, Pattern: rule.Match}, nil
+	case "country":
+		return &CheckCountry{Country: country, Pattern: rule.Match}, nil
+	case "request.second", "request.minute":
+		rate, err := strconv.Atoi(rule.Match)
+		if err != nil {
+			return nil, fmt.Errorf("request match malformed %v err %v", rule.Match, err)
+		}
+
+		var freq time.Duration
+		switch strings.TrimPrefix(rule.Type, "request.") {
+		case "second":
+			freq = time.Second
+		case "minute":
+			freq = time.Minute
+		default:
+			return nil, fmt.Errorf("request type malformed: %v", rule.Type)
+		}
+
+		return &CheckRequest{Host: host, MaxRequest: rate, Interval: freq}, nil
+	}
+
+	return nil, fmt.Errorf("no checker found for %s", rule.Type)
 }
 
 func (c *CheckRequest) Check() bool {
