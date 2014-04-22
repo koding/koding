@@ -9,7 +9,7 @@ class BusinessView extends KDView
     @pricingButton = new KDButtonView
       title       : "See Pricing"
       style       : "solid thin medium thin-white"
-      callback    : -> router.handleRoute "/Pricing"
+      callback    : -> router.handleRoute "/Pricing/Team"
 
     @signUpButton = new KDButtonView
       title       : "Sign Up Now"
