@@ -11,7 +11,9 @@ import (
 type Account struct {
 	// unique id of the account
 	Id int64 `json:"id"`
-	// old id of the account, which is coming from mongo
+
+	// old id of the account, which is originally
+	// perisisted in mongo
 	// mongo ids has 24 char
 	OldId string `json:"oldId"      sql:"NOT NULL;UNIQUE;TYPE:VARCHAR(24);"`
 }
@@ -42,23 +44,28 @@ func (a *Account) FetchOrCreate() error {
 	}
 
 	err := a.One(bongo.NewQS(selector))
+	// if we dont get any error
+	// it means we found the record in our db
+	if err == nil {
+		return nil
+	}
+
+	// first check if the err is not found err
 	if err == gorm.RecordNotFound {
 		if err := a.Create(); err != nil {
 			return err
 		}
 		return nil
 	}
-	if err != nil {
-		return err
-	}
 
-	return nil
+	return err
 }
 
 func (a *Account) Create() error {
 	if a.OldId == "" {
 		return errors.New("old id is not set")
 	}
+
 	return bongo.B.Create(a)
 }
 
