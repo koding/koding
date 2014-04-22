@@ -21,7 +21,7 @@ class FirewallFilterFormView extends KDFormViewWithFields
             required   : "Please select a filter type"
       value            :
         label          : "Value"
-        name           : "value"
+        name           : "match"
         cssClass       : "half"
         placeholder    : "Type a value for your filter..."
         validate       :
