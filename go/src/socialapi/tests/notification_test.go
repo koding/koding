@@ -52,7 +52,7 @@ func TestNotificationCreation(t *testing.T) {
 
 			Convey("We should be able to create notification_test group channel", func() {
 				var err error
-				testGroupChannel, err = createChannelByGroupNameAndType(ownerAccount.Id, "notification_test", models.Channel_TYPE_GROUP)
+				testGroupChannel, err = createGroupActivityChannel(ownerAccount.Id, "notification_test")
 				ResultedWithNoErrorCheck(testGroupChannel, err)
 			})
 		})
@@ -68,7 +68,7 @@ func TestNotificationCreation(t *testing.T) {
 
 			Convey("First user should be able to reply it", func() {
 				var err error
-				replyMessage, err = addReply(firstMessage.Id, firstUser.Id)
+				replyMessage, err = addReply(firstMessage.Id, firstUser.Id, testGroupChannel.Id)
 				ResultedWithNoErrorCheck(replyMessage, err)
 				time.Sleep(5 * time.Second) // waiting for async message
 			})
@@ -95,7 +95,7 @@ func TestNotificationCreation(t *testing.T) {
 			})
 
 			Convey("Second user should be able to reply it", func() {
-				replyMessage, err := addReply(firstMessage.Id, secondUser.Id)
+				replyMessage, err := addReply(firstMessage.Id, secondUser.Id, testGroupChannel.Id)
 				ResultedWithNoErrorCheck(replyMessage, err)
 			})
 
@@ -136,7 +136,7 @@ func TestNotificationCreation(t *testing.T) {
 			})
 
 			Convey("Third user should be able to reply it", func() {
-				replyMessage, err := addReply(firstMessage.Id, thirdUser.Id)
+				replyMessage, err := addReply(firstMessage.Id, thirdUser.Id, testGroupChannel.Id)
 				ResultedWithNoErrorCheck(replyMessage, err)
 			})
 
@@ -193,7 +193,7 @@ func TestNotificationCreation(t *testing.T) {
 			})
 
 			Convey("Forth user should be able to reply it", func() {
-				replyMessage, err := addReply(firstMessage.Id, forthUser.Id)
+				replyMessage, err := addReply(firstMessage.Id, forthUser.Id, testGroupChannel.Id)
 				ResultedWithNoErrorCheck(replyMessage, err)
 			})
 
@@ -213,7 +213,7 @@ func TestNotificationCreation(t *testing.T) {
 			})
 
 			Convey("First user should be able to reply it", func() {
-				replyMessage, err := addReply(firstMessage.Id, firstUser.Id)
+				replyMessage, err := addReply(firstMessage.Id, firstUser.Id, testGroupChannel.Id)
 				ResultedWithNoErrorCheck(replyMessage, err)
 			})
 
@@ -233,7 +233,7 @@ func TestNotificationCreation(t *testing.T) {
 			})
 
 			Convey("First user should be able to reply it again", func() {
-				replyMessage, err := addReply(firstMessage.Id, firstUser.Id)
+				replyMessage, err := addReply(firstMessage.Id, firstUser.Id, testGroupChannel.Id)
 				ResultedWithNoErrorCheck(replyMessage, err)
 				time.Sleep(5 * time.Second) // waiting for async message
 			})
@@ -281,7 +281,7 @@ func TestNotificationCreation(t *testing.T) {
 
 			Convey("I should be able to reply my message", func() {
 				var err error
-				replyMessage, err = addReply(cm.Id, ownerAccount.Id)
+				replyMessage, err = addReply(cm.Id, ownerAccount.Id, testGroupChannel.Id)
 				ResultedWithNoErrorCheck(replyMessage, err)
 				time.Sleep(5 * time.Second)
 			})
@@ -294,7 +294,7 @@ func TestNotificationCreation(t *testing.T) {
 
 			Convey("Another user should be able to reply it", func() {
 				var err error
-				replyMessage, err = addReply(cm.Id, firstUser.Id)
+				replyMessage, err = addReply(cm.Id, firstUser.Id, testGroupChannel.Id)
 				ResultedWithNoErrorCheck(replyMessage, err)
 				time.Sleep(5 * time.Second)
 			})
@@ -385,7 +385,7 @@ func TestNotificationCreation(t *testing.T) {
 
 		Convey("As a message owner I should be able to receive new notifications as unread after glance", func() {
 			Convey("Third user should be able to reply my first message", func() {
-				replyMessage, err := addReply(firstMessage.Id, thirdUser.Id)
+				replyMessage, err := addReply(firstMessage.Id, thirdUser.Id, testGroupChannel.Id)
 				ResultedWithNoErrorCheck(replyMessage, err)
 				time.Sleep(5 * time.Second)
 			})
@@ -416,6 +416,83 @@ func TestNotificationCreation(t *testing.T) {
 				nl, err := getNotificationList(ownerAccount.Id)
 				ResultedWithNoErrorCheck(nl, err)
 				So(nl.Notifications[0].LatestActors[0], ShouldEqual, firstUser.Id)
+			})
+
+		})
+
+		Convey("I should be able to receive a second follower notification after glance", func() {
+			Convey("I should be able to glance notifications", func() {
+				res, err := glanceNotifications(ownerAccount.Id)
+				ResultedWithNoErrorCheck(res, err)
+			})
+			Convey("Second user should be able to follow me", func() {
+				res, err := followNotification(secondUser.Id, ownerAccount.Id)
+				ResultedWithNoErrorCheck(res, err)
+				time.Sleep(5 * time.Second)
+			})
+			Convey("I should be able to receive second follow notification", func() {
+				nl, err := getNotificationList(ownerAccount.Id)
+				ResultedWithNoErrorCheck(nl, err)
+				So(nl.Notifications[0].LatestActors[0], ShouldEqual, secondUser.Id)
+				Convey("Unread count should be 1", func() {
+					So(nl.UnreadCount, ShouldEqual, 1)
+				})
+			})
+			Convey("When first user refollows me i should be able to receive notification", func() {
+				res, err := followNotification(firstUser.Id, ownerAccount.Id)
+				ResultedWithNoErrorCheck(res, err)
+				time.Sleep(5 * time.Second)
+				nl, err := getNotificationList(ownerAccount.Id)
+				ResultedWithNoErrorCheck(nl, err)
+				So(nl.Notifications[0].LatestActors[0], ShouldEqual, firstUser.Id)
+			})
+		})
+
+		Convey("I should be able to receive notification when a user joins my group", func() {
+			Convey("First user should be able to join my group", func() {
+				admins := make([]int64, 0)
+				admins = append(admins, ownerAccount.Id)
+
+				gr := &GroupRequest{
+					Name:         testGroupChannel.Name,
+					TypeConstant: models.NotificationContent_TYPE_JOIN,
+					ActorId:      firstUser.Id,
+					Admins:       admins,
+				}
+
+				res, err := groupInteractionNotification(gr)
+				ResultedWithNoErrorCheck(res, err)
+				time.Sleep(5 * time.Second)
+			})
+
+			Convey("I should be able to receive join notification", func() {
+				nl, err := getNotificationList(ownerAccount.Id)
+				ResultedWithNoErrorCheck(nl, err)
+				So(nl.Notifications[0].LatestActors[0], ShouldEqual, firstUser.Id)
+				So(nl.Notifications[0].TypeConstant, ShouldEqual, models.NotificationContent_TYPE_JOIN)
+			})
+
+			Convey("First user should be able to leave my group", func() {
+				admins := make([]int64, 0)
+				admins = append(admins, ownerAccount.Id)
+
+				gr := &GroupRequest{
+					Name:         testGroupChannel.Name,
+					TypeConstant: models.NotificationContent_TYPE_LEAVE,
+					ActorId:      firstUser.Id,
+					Admins:       admins,
+				}
+
+				res, err := groupInteractionNotification(gr)
+				ResultedWithNoErrorCheck(res, err)
+				time.Sleep(5 * time.Second)
+			})
+
+			Convey("I should be able to receive leave notification", func() {
+				nl, err := getNotificationList(ownerAccount.Id)
+				ResultedWithNoErrorCheck(nl, err)
+				So(nl.Notifications[0].LatestActors[0], ShouldEqual, firstUser.Id)
+				So(nl.Notifications[0].TypeConstant, ShouldEqual, models.NotificationContent_TYPE_LEAVE)
 			})
 		})
 
@@ -457,18 +534,43 @@ func glanceNotifications(accountId int64) (interface{}, error) {
 	return res, nil
 }
 
-type FollowRequest struct {
-	FollowerId int64 `json:"followerId"`
-	FolloweeId int64 `json:"followeeId"`
+func createGroupActivityChannel(creatorId int64, groupName string) (*models.Channel, error) {
+	c := models.NewChannel()
+	c.GroupName = groupName
+	c.CreatorId = creatorId
+	c.TypeConstant = models.Channel_TYPE_GROUP
+	c.Name = groupName
+
+	cm, err := sendModel("POST", "/channel", c)
+	if err != nil {
+		return nil, err
+	}
+
+	return cm.(*models.Channel), nil
 }
 
 func followNotification(followerId int64, followeeId int64) (interface{}, error) {
-	req := &FollowRequest{
-		FollowerId: followerId,
-		FolloweeId: followeeId,
+	a := models.NewActivity()
+	a.TargetId = followeeId
+	a.ActorId = followerId
+
+	res, err := sendModel("POST", "/notification/follow", a)
+	if err != nil {
+		return nil, err
 	}
 
-	res, err := sendModel("POST", "/notification/follow", req)
+	return res, nil
+}
+
+type GroupRequest struct {
+	Name         string  `json:"name"`
+	TypeConstant string  `json:"typeConstant"`
+	ActorId      int64   `json:"actorId"`
+	Admins       []int64 `json:"admins"`
+}
+
+func groupInteractionNotification(gr *GroupRequest) (interface{}, error) {
+	res, err := sendModel("POST", "/notification/group", gr)
 	if err != nil {
 		return nil, err
 	}
