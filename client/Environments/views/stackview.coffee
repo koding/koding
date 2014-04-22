@@ -18,6 +18,7 @@ class StackView extends KDView
     # Rules Container
     @rules = new EnvironmentRuleContainer
     @scene.addContainer @rules
+    @rules.on "itemAdded", @lazyBound "updateView", yes
 
     # Domains Container
 
