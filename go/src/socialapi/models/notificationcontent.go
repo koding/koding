@@ -22,7 +22,7 @@ const (
 	NotificationContent_TYPE_COMMENT  = "comment"
 	NotificationContent_TYPE_FOLLOW   = "follow"
 	NotificationContent_TYPE_JOIN     = "join"
-	NotificationContent_TYPE_LEFT     = "left"
+	NotificationContent_TYPE_LEAVE    = "leave"
 )
 
 func NewNotificationContent() *NotificationContent {
@@ -134,7 +134,7 @@ func (n *NotificationContent) GetEventType() string {
 		return "FollowHappened"
 	case NotificationContent_TYPE_JOIN:
 		return "GroupJoined"
-	case NotificationContent_TYPE_LEFT:
+	case NotificationContent_TYPE_LEAVE:
 		return "GroupLeft"
 	case NotificationContent_TYPE_UPVOTE:
 		return "undefined"
@@ -153,6 +153,10 @@ func CreateNotificationType(notificationType string) (Notifiable, error) {
 		return NewReplyNotification(), nil
 	case "follow":
 		return NewFollowNotification(), nil
+	case "join":
+		return NewGroupNotification(notificationType), nil
+	case "leave":
+		return NewGroupNotification(notificationType), nil
 	default:
 		return nil, errors.New("undefined notification type")
 	}
