@@ -12,13 +12,13 @@ import (
 	"sync"
 	"time"
 
-	"github.com/tsenart/tb"
+	"github.com/juju/ratelimit"
 )
 
 // Firewall is used per domain
 type Firewall struct {
 	rules     []models.Rule
-	bucket    *tb.Bucket
+	bucket    *ratelimit.Bucket
 	cacheTime time.Time
 }
 
@@ -193,16 +193,21 @@ func (c *CheckRequest) Check() bool {
 	fw := fws[c.Host]
 	fwsMu.Unlock()
 
-	// create a bucket only once for the first time
+	// create a bucket once for the first time
 	if fw.bucket == nil {
-		fw.bucket = tb.NewBucket(int64(c.MaxRequest), c.Interval)
+		fw.bucket = ratelimit.NewBucketWithQuantum(
+			c.Interval,          // interval
+			int64(c.MaxRequest), // capacity
+			int64(c.MaxRequest), // token per interval
+		)
+
 		fwsMu.Lock()
 		fws[c.Host] = fw
 		fwsMu.Unlock()
 	}
 
-	// makes one request
-	if fw.bucket.Take(1) == 0 {
+	// makes one request, returns zero if bucket is empty
+	if fw.bucket.TakeAvailable(1) == 0 {
 		return false
 	}
 
