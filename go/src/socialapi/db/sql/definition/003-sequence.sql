@@ -61,3 +61,10 @@ ALTER TABLE "api"."notification_id_seq" OWNER TO "socialapplication";
 DROP SEQUENCE IF EXISTS "api"."notification_content_id_seq";
 CREATE SEQUENCE "api"."notification_content_id_seq" INCREMENT 1 START 1 MAXVALUE 9223372036854775807 MINVALUE 1 CACHE 1;
 ALTER TABLE "api"."notification_content_id_seq" OWNER TO "socialapplication";
+
+-- ----------------------------
+--  Sequence structure for activity_id_seq
+-- ----------------------------
+DROP SEQUENCE IF EXISTS "api"."activity_id_seq";
+CREATE SEQUENCE "api"."activity_id_seq" INCREMENT 1 START 1 MAXVALUE 9223372036854775807 MINVALUE 1 CACHE 1;
+ALTER TABLE "api"."activity_id_seq" OWNER TO "socialapplication";

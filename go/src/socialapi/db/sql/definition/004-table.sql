@@ -115,7 +115,7 @@ CREATE TABLE "api"."notification" (
     "updated_at" timestamp(6) WITH TIME ZONE NOT NULL
 )
 WITH (OIDS=FALSE);
-ALTER TABLE "api"."notification" OWNER TO "postgres";
+ALTER TABLE "api"."notification" OWNER TO "socialapplication";
 
 -- ----------------------------
 --  Table structure for notification_content
@@ -128,4 +128,18 @@ CREATE TABLE "api"."notification_content" (
     "created_at" timestamp(6) WITH TIME ZONE
 )
 WITH (OIDS=FALSE);
-ALTER TABLE "api"."notification_content" OWNER TO "postgres";
+ALTER TABLE "api"."notification_content" OWNER TO "socialapplication";
+
+-- ----------------------------
+--  Table structure for activity
+-- ----------------------------
+DROP TABLE IF EXISTS "api"."activity";
+CREATE TABLE "api"."activity" (
+    "id" int8 NOT NULL DEFAULT nextval('activity_id_seq'::regclass),
+    "target_id" int8 NOT NULL,
+    "actor_id" int8 NOT NULL,
+    "type_constant" varchar(100) NOT NULL COLLATE "default",
+    "updated_at" timestamp(6) WITH TIME ZONE
+)
+WITH (OIDS=FALSE);
+ALTER TABLE "api"."activity" OWNER TO "socialapplication";
