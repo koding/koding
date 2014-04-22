@@ -179,15 +179,15 @@ func NewReplyNotification() *ReplyNotification {
 
 type FollowNotification struct {
 	// followed account
-	FolloweeId int64
-	ListerId   int64
+	TargetId int64
+	ListerId int64
 	// follower account
-	FollowerId int64
+	NotifierId int64
 }
 
 func (n *FollowNotification) GetNotifiedUsers() ([]int64, error) {
 	users := make([]int64, 0)
-	return append(users, n.FolloweeId), nil
+	return append(users, n.TargetId), nil
 }
 
 func (n *FollowNotification) GetType() string {
@@ -195,24 +195,32 @@ func (n *FollowNotification) GetType() string {
 }
 
 func (n *FollowNotification) GetTargetId() int64 {
-	return n.FollowerId
+	return n.TargetId
 }
 
 func (n *FollowNotification) FetchActors() (*ActorContainer, error) {
-	if n.FollowerId == 0 {
+	if n.TargetId == 0 {
 		return nil, errors.New("TargetId is not set")
 	}
 
 	ac := NewActorContainer()
 
-	ac.LatestActors = append(ac.LatestActors, n.FollowerId)
+	a := NewActivity()
+	a.TargetId = n.TargetId
+	a.TypeConstant = NotificationContent_TYPE_FOLLOW
+	actorIds, err := a.FetchActorIds()
+	if err != nil {
+		return nil, err
+	}
+
+	ac.LatestActors = actorIds
 	ac.Count = len(ac.LatestActors)
 
 	return ac, nil
 }
 
 func (n *FollowNotification) SetTargetId(targetId int64) {
-	n.FollowerId = targetId
+	n.TargetId = targetId
 }
 
 func (n *FollowNotification) SetListerId(listerId int64) {
@@ -221,4 +229,59 @@ func (n *FollowNotification) SetListerId(listerId int64) {
 
 func NewFollowNotification() *FollowNotification {
 	return &FollowNotification{}
+}
+
+type GroupNotification struct {
+	TargetId     int64
+	ListerId     int64
+	OwnerId      int64
+	NotifierId   int64
+	TypeConstant string
+	Admins       []int64
+}
+
+// fetch group admins
+func (n *GroupNotification) GetNotifiedUsers() ([]int64, error) {
+	if len(n.Admins) == 0 {
+		return nil, errors.New("admins cannot be empty")
+	}
+
+	return n.Admins, nil
+}
+
+func (n *GroupNotification) GetType() string {
+	return n.TypeConstant
+}
+
+func (n *GroupNotification) GetTargetId() int64 {
+	return n.TargetId
+}
+
+// fetch notifiers
+func (n *GroupNotification) FetchActors() (*ActorContainer, error) {
+	a := NewActivity()
+	a.TargetId = n.TargetId
+	a.TypeConstant = n.TypeConstant
+	actors, err := a.FetchActorIds()
+	if err != nil {
+		return nil, err
+	}
+
+	ac := NewActorContainer()
+	ac.LatestActors = actors
+	ac.Count = len(actors)
+
+	return ac, nil
+}
+
+func (n *GroupNotification) SetTargetId(targetId int64) {
+	n.TargetId = targetId
+}
+
+func (n *GroupNotification) SetListerId(listerId int64) {
+	n.ListerId = listerId
+}
+
+func NewGroupNotification(typeConstant string) *GroupNotification {
+	return &GroupNotification{TypeConstant: typeConstant}
 }
