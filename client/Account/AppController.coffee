@@ -237,7 +237,7 @@ class AccountAppController extends AppController
       <br><br>
       Click play to see what Koding is all about in 2 minutes!
       """
-      width           : 650
+      width           : 660
       overlay         : yes
       buttons         :
         "Login"       :
