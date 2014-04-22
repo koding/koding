@@ -200,6 +200,31 @@ func (n *Notification) Follow(followerId int64) error {
 	return CreateNotification(fn)
 }
 
+func (n *Notification) JoinGroup(a *Activity, admins []int64) error {
+	a.TypeConstant = NotificationContent_TYPE_JOIN
+
+	return n.interactGroup(a, admins)
+}
+
+func (n *Notification) LeaveGroup(a *Activity, admins []int64) error {
+	a.TypeConstant = NotificationContent_TYPE_LEAVE
+
+	return n.interactGroup(a, admins)
+}
+
+func (n *Notification) interactGroup(a *Activity, admins []int64) error {
+	gn := NewGroupNotification(a.TypeConstant)
+	gn.NotifierId = a.ActorId
+	gn.TargetId = a.TargetId
+	gn.Admins = admins
+
+	if err := a.Create(); err != nil {
+		return err
+	}
+
+	return CreateNotification(gn)
+}
+
 // populateActors fetches latest actor ids and total count of actors. recipientId is needed for excluding
 // recipients own activities
 func populateActors(recipientId int64, ncList []NotificationContainer) ([]NotificationContainer, error) {
