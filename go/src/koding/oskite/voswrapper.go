@@ -240,16 +240,47 @@ func execFuncNew(r *kitelib.Request, vos *virt.VOS) (interface{}, error) {
 }
 
 type progressParamsNew struct {
+	GroupId    string
 	OnProgress kitednode.Function
 }
 
 func (p *progressParamsNew) Enabled() bool      { return p.OnProgress.IsValid() }
 func (p *progressParamsNew) Call(v interface{}) { p.OnProgress.Call(v) }
 
-func vmPrepareAndStartNew(r *kitelib.Request, vos *virt.VOS) (interface{}, error) {
+func (o *Oskite) vmPrepareAndStartNew(r *kitelib.Request, vos *virt.VOS) (interface{}, error) {
 	params := new(progressParamsNew)
 	if r.Args.One().Unmarshal(&params) != nil {
 		return nil, &kite.ArgumentError{Expected: "{OnProgress: [function]}"}
+	}
+
+	if params.GroupId == "" {
+		return nil, &kite.ArgumentError{Expected: "{ groupId: [string] }"}
+	}
+
+	usage, err := totalUsage(vos, params.GroupId)
+	if err != nil {
+		log.Info("usage -1 [%s] err: %v", vos.VM.HostnameAlias, err)
+		return nil, errors.New("usage couldn't be retrieved. please consult to support.")
+	}
+
+	limits, err := usage.prepareLimits(r.Username, params.GroupId)
+	if err != nil {
+		// pass back endpoint err to client
+		if endpointErrs.Has(err) {
+			return nil, err
+		}
+
+		log.Info("usage -2 [%s] err: %v", vos.VM.HostnameAlias, err)
+		return nil, errors.New("usage couldn't be retrieved. please consult to support [2].")
+	}
+
+	if err := limits.check(); err != nil {
+		return nil, err
+	}
+
+	err = o.validateVM(vos.VM)
+	if err != nil {
+		return nil, err
 	}
 
 	return progress(vos, "vm.prepareAndStart"+vos.VM.HostnameAlias, params, func() error {

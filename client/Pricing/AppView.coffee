@@ -25,7 +25,7 @@ class PricingAppView extends KDView
 
     workflow.off 'FormIsShown'
 
-    workflow.on 'GroupCreationFailed', =>
+    workflow.on 'Failed', =>
       @hideWorkflow()
       @showGroupCreationFailed()
 

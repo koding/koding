@@ -17,6 +17,7 @@ import (
 	"syscall"
 	"time"
 
+	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
 )
 
@@ -51,6 +52,10 @@ func vmResizeDiskOld(args *dnode.Partial, c *kite.Channel, vos *virt.VOS) (inter
 
 func vmCreateSnapshotOld(args *dnode.Partial, c *kite.Channel, vos *virt.VOS) (interface{}, error) {
 	return vmCreateSnapshot(vos)
+}
+
+func vmUsageOld(args *dnode.Partial, c *kite.Channel, vos *virt.VOS) (interface{}, error) {
+	return vmUsage(args, vos, c.Username)
 }
 
 func spawnFuncOld(args *dnode.Partial, c *kite.Channel, vos *virt.VOS) (interface{}, error) {
@@ -179,6 +184,10 @@ func vmStart(vos *virt.VOS) (interface{}, error) {
 				return "", lastError
 			}
 
+			if lastError = updateState(vos.VM); err != nil {
+				return "", lastError
+			}
+
 			return fmt.Sprintf("vm.Start %s", vos.VM.HostnameAlias), nil
 		},
 	}
@@ -227,6 +236,10 @@ func vmStop(vos *virt.VOS) (interface{}, error) {
 	}
 
 	if err := vos.VM.Stop(); err != nil {
+		return nil, err
+	}
+
+	if err := updateState(vos.VM); err != nil {
 		return nil, err
 	}
 
@@ -345,6 +358,7 @@ type progresser interface {
 }
 
 type progressParamsOld struct {
+	GroupId    string
 	OnProgress dnode.Callback
 }
 
@@ -399,7 +413,7 @@ func progress(vos *virt.VOS, desc string, p progresser, f func() error) (interfa
 	return true, nil
 }
 
-func vmPrepareAndStart(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (interface{}, error) {
+func (o *Oskite) vmPrepareAndStart(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (interface{}, error) {
 	if !vos.Permissions.Sudo {
 		return nil, &kite.PermissionError{}
 	}
@@ -407,6 +421,36 @@ func vmPrepareAndStart(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS
 	params := new(progressParamsOld)
 	if args != nil && args.Unmarshal(&params) != nil {
 		return nil, &kite.ArgumentError{Expected: "{OnProgress: [function]}"}
+	}
+
+	if params.GroupId == "" {
+		return nil, &kite.ArgumentError{Expected: "{ groupId: [string] }"}
+	}
+
+	usage, err := totalUsage(vos, params.GroupId)
+	if err != nil {
+		log.Info("usage -1 [%s] err: %v", vos.VM.HostnameAlias, err)
+		return nil, errors.New("usage couldn't be retrieved. please consult to support [1].")
+	}
+
+	limits, err := usage.prepareLimits(channel.Username, params.GroupId)
+	if err != nil {
+		// pass back endpoint err to client
+		if endpointErrs.Has(err) {
+			return nil, err
+		}
+
+		log.Info("usage -2 [%s] err: %v", vos.VM.HostnameAlias, err)
+		return nil, errors.New("usage couldn't be retrieved. please consult to support [2].")
+	}
+
+	if err := limits.check(); err != nil {
+		return nil, err
+	}
+
+	err = o.validateVM(vos.VM)
+	if err != nil {
+		return nil, err
 	}
 
 	return progress(vos, "vm.prepareAndStart "+vos.VM.HostnameAlias, params, func() error {
@@ -539,6 +583,17 @@ func unprepareProgress(vos *virt.VOS, destroy bool) <-chan *virt.Step {
 			results <- step
 		}
 
+		if lastError = mongodbConn.Run("jVMs", func(c *mgo.Collection) error {
+			return c.Update(bson.M{"_id": vos.VM.Id}, bson.M{"$set": bson.M{"hostKite": nil}})
+		}); lastError != nil {
+			log.Error("unprepareProgress hostKite nil setting: %v", lastError)
+		}
+
+		// mark it as stopped
+		if lastError = updateState(vos.VM); lastError != nil {
+			log.Error("unprepareProgress updateState: %v", lastError)
+		}
+
 		if destroy {
 			start := time.Now()
 			if lastError = vos.VM.Destroy(); lastError != nil {
@@ -622,6 +677,12 @@ func prepareProgress(vos *virt.VOS) <-chan *virt.Step {
 
 		var rootVos *virt.VOS
 		rootVos, lastError = vos.VM.OS(&virt.RootUser)
+		if lastError != nil {
+			return
+		}
+
+		// it's now running
+		lastError = updateState(vos.VM)
 		if lastError != nil {
 			return
 		}
