@@ -65,9 +65,9 @@ module.exports = class SocialNotification extends Base
     {connection:{delegate}} = client
     return callback new KodingError "Access denied"  if delegate.type isnt 'registered'
 
-    delegate.createSocialApiId (err, followerId) ->
+    delegate.createSocialApiId (err, actorId) ->
       return callback err  if err
-      followee.createSocialApiId (err, followeeId) ->
+      followee.createSocialApiId (err, targetId) ->
         return callback err  if err
         {createFollowNotification} = require './requests'
         createFollowNotification {actorId, targetId}, (err, response) ->
