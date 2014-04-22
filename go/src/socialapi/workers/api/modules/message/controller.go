@@ -55,47 +55,72 @@ func Delete(u *url.URL, h http.Header, req *models.ChannelMessage) (int, http.He
 		return helpers.NewBadRequestResponse(err)
 	}
 
-	//////////////// Delete All Related Data ///////////////////////
-	// fetch message replies
-	mr := models.NewMessageReply()
-	mr.MessageId = id
-	messageReplies, err := mr.List()
+	err = deleteSingleMessage(req, true)
 	if err != nil {
-		return helpers.NewBadRequestResponse(err)
-	}
-
-	// delete message replies
-	for _, messageReply := range messageReplies {
-		// fetch interactions
-		i := models.NewInteraction()
-		i.MessageId = messageReply.Id
-		interactions, err := i.FetchAll("like")
-		if err != nil {
-			return helpers.NewBadRequestResponse(err)
-		}
-
-		// delete interactions
-		for _, interaction := range interactions {
-			err := interaction.Delete()
-			if err != nil {
-				return helpers.NewBadRequestResponse(err)
-			}
-		}
-
-		// delete messageReply itself
-		err = messageReply.Delete()
-		if err != nil {
-			return helpers.NewBadRequestResponse(err)
-		}
-	}
-
-	// now delete message itself
-	if err := req.Delete(); err != nil {
 		return helpers.NewBadRequestResponse(err)
 	}
 
 	// yes it is deleted but not removed completely from our system
 	return helpers.NewDeletedResponse()
+}
+
+func deleteSingleMessage(cm *models.ChannelMessage, deleteReplies bool) error {
+	// first delete from all channels
+	selector := map[string]interface{}{
+		"message_id": cm.Id,
+	}
+
+	cml := models.NewChannelMessageList()
+	if err := cml.DeleteMessagesBySelector(selector); err != nil {
+		return err
+	}
+
+	// fetch interactions
+	i := models.NewInteraction()
+	i.MessageId = cm.Id
+	interactions, err := i.FetchAll("like")
+	if err != nil {
+		return err
+	}
+
+	// delete interactions
+	for _, interaction := range interactions {
+		err := interaction.Delete()
+		if err != nil {
+			return err
+		}
+	}
+
+	if deleteReplies {
+		mr := models.NewMessageReply()
+		mr.MessageId = cm.Id
+
+		// list returns ChannelMessage
+		messageReplies, err := mr.List()
+		if err != nil {
+			return err
+		}
+
+		// delete message replies
+		for _, replyMessage := range messageReplies {
+			err := deleteSingleMessage(&replyMessage, false)
+			if err != nil {
+				return err
+			}
+		}
+	}
+
+	err = models.NewMessageReply().DeleteByOrQuery(cm.Id)
+	if err != nil {
+		return err
+	}
+
+	// delete replyMessage itself
+	err = cm.Delete()
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 func Update(u *url.URL, h http.Header, req *models.ChannelMessage) (int, http.Header, interface{}, error) {

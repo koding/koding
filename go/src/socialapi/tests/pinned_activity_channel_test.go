@@ -31,6 +31,14 @@ func TestPinnedActivityChannel(t *testing.T) {
 			So(err, ShouldBeNil)
 			So(nonOwnerAccount, ShouldNotBeNil)
 
+			groupChannel, err := createChannelByGroupNameAndType(account.Id, groupName, models.Channel_TYPE_GROUP)
+			So(err, ShouldBeNil)
+			So(groupChannel, ShouldNotBeNil)
+
+			post, err := createPost(groupChannel.Id, account.Id)
+			So(err, ShouldBeNil)
+			So(post, ShouldNotBeNil)
+
 			Convey("requester should have one", func() {
 				account := account
 				channel, err := fetchPinnedActivityChannel(account.Id, groupName)
@@ -90,15 +98,13 @@ func TestPinnedActivityChannel(t *testing.T) {
 			})
 
 			Convey("owner should be able to add new message into it", func() {
-				// use account id as message id
-				_, err := addPinnedMessage(account.Id, account.Id, "koding")
+				_, err := addPinnedMessage(account.Id, post.Id, "koding")
 				// there should be an err
 				So(err, ShouldBeNil)
 			})
 
 			Convey("owner should  be able to remove message from it", func() {
-				// use account id as message id
-				_, err := removePinnedMessage(account.Id, account.Id, "koding")
+				_, err := removePinnedMessage(account.Id, post.Id, "koding")
 				So(err, ShouldBeNil)
 			})
 
@@ -158,11 +164,11 @@ func TestPinnedActivityChannel(t *testing.T) {
 
 			Convey("Messages shouldnt be added as pinned twice ", func() {
 				// use account id as message id
-				_, err := addPinnedMessage(account.Id, account.Id, "koding")
+				_, err := addPinnedMessage(account.Id, post.Id, "koding")
 				// there should be an err
 				So(err, ShouldBeNil)
 				// use account id as message id
-				_, err = addPinnedMessage(account.Id, account.Id, "koding")
+				_, err = addPinnedMessage(account.Id, post.Id, "koding")
 				// there should be an err
 				So(err, ShouldNotBeNil)
 			})

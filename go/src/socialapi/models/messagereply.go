@@ -72,6 +72,16 @@ func (m *MessageReply) One(q *bongo.Query) error {
 	return bongo.B.One(m, m, q)
 }
 
+func (m *MessageReply) DeleteByOrQuery(messageId int64) error {
+	if err := bongo.B.DB.
+		Where("message_id = ? or reply_id = ?", messageId, messageId).
+		Delete(m).Error; err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func (m *MessageReply) List() ([]ChannelMessage, error) {
 	var replies []int64
 
