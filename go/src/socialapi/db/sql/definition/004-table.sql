@@ -124,7 +124,7 @@ DROP TABLE IF EXISTS "api"."notification_content";
 CREATE TABLE "api"."notification_content" (
     "id" int8 NOT NULL DEFAULT nextval('notification_content_id_seq'::regclass),
     "target_id" int8 NOT NULL,
-    "type" text NOT NULL COLLATE "default",
+    "type_constant" text NOT NULL COLLATE "default",
     "created_at" timestamp(6) WITH TIME ZONE
 )
 WITH (OIDS=FALSE);
