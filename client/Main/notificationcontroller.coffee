@@ -112,13 +112,19 @@ class NotificationController extends KDObject
 
   fetchTarget: (data)->
     new Promise (resolve, reject) =>
+      helper = (err, target) ->
+        return reject err  if err
+        data.target = target
+        resolve data
+
       {targetId, type} = data.contents
       switch type
         when "comment", "like"
-          KD.remote.api.SocialMessage.fetch id: targetId, (err, target) =>
-            return reject err  if err
-            data.target = target
-            resolve data
+          KD.remote.api.SocialMessage.fetch id: targetId, helper
+        when "follow"
+          KD.remote.api.JAccount.one socialApiId: targetId, helper
+        when "join", "leave"
+          KD.remote.api.JGroup.one socialApiChannelId: targetId, helper
         else
           resolve data
 
@@ -158,15 +164,17 @@ class NotificationController extends KDObject
           setTitle "#{actorName} liked your status."
         when "follow"
           setTitle "#{actorName} started following you."
+        when "join"
+          setTitle "#{actorName} has joined <a href='/#{target.slug}'>#{target.title}</a>."
+        when "leave"
+          setTitle "#{actorName} has left <a href='/#{target.slug}'>#{target.title}</a>."
+
       # when "newMessage"
       #   @emit "NewMessageArrived"
       #   "#{actorName} sent you a #{subjectMap()[subject.constructorName]}."
       # when "groupInvited"
       #   "#{actorName} has invited you to <a href='#'>#{subjectObj.title}</a>."
-      # when "groupJoined"
-      #   "#{actorName} has joined <a href='/#{subjectObj.slug}'>#{subjectObj.title}</a>."
-      # when "groupLeft"
-      #   "#{actorName} has left <a href='/#{subjectObj.slug}'>#{subjectObj.title}</a>."
+
 
   prepareClick: (data, options) ->
     {target, contents} = data
@@ -176,6 +184,9 @@ class NotificationController extends KDObject
         if contents.type in ["comment", "like"]
           groupSlug = if target.group is "koding" then "" else "/#{target.group}"
           KD.getSingleton('router').handleRoute "#{groupSlug}/Activity/#{target.slug}", state:target
+          view.destroy()
+        else if contents.type in ["join", "leave"]
+          KD.getSingleton('router').handleRoute "/#{target.slug}"
           view.destroy()
 
 
@@ -200,15 +211,6 @@ class NotificationController extends KDObject
           @notify options
         .catch (err) ->
           warn err  if err
-
-    # @fetchActor contents, (err, data) =>
-    #   return warn err  if err
-    #   @fetchTarget data, (err, data) =>
-    #     return warn err  if err
-    #     @prepareMessage data, (err, options) =>
-    #       return warn err  if err
-    #       @prepareClick data, options
-    #       @notify options
 
 
   notify:(options  = {})->
