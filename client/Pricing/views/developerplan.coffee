@@ -45,12 +45,12 @@ class DeveloperPlan extends JView
   setPlans: ->
     @planIndex = 0
     @plans     = [
-      { cpu:  1,  ram:  1,  disk:   3, alwaysOn: 0, totalVMs:  1, price:  0 }
-      { cpu:  2,  ram:  2,  disk:  10, alwaysOn: 1, totalVMs:  2, price: 19 }
-      { cpu:  4,  ram:  4,  disk:  20, alwaysOn: 2, totalVMs:  4, price: 39 }
-      { cpu:  6,  ram:  6,  disk:  40, alwaysOn: 3, totalVMs:  6, price: 59 }
-      { cpu:  8,  ram:  8,  disk:  80, alwaysOn: 4, totalVMs:  8, price: 79 }
-      { cpu: 10,  ram: 10,  disk: 100, alwaysOn: 5, totalVMs: 10, price: 99 }
+      { cpu:  1,  ram:  1,  disk:  3, alwaysOn: 0, totalVMs:  5, price:  0 }
+      { cpu:  2,  ram:  2,  disk: 10, alwaysOn: 1, totalVMs: 10, price: 19 }
+      { cpu:  4,  ram:  4,  disk: 20, alwaysOn: 2, totalVMs: 20, price: 39 }
+      { cpu:  6,  ram:  6,  disk: 30, alwaysOn: 3, totalVMs: 30, price: 59 }
+      { cpu:  8,  ram:  8,  disk: 40, alwaysOn: 4, totalVMs: 40, price: 79 }
+      { cpu: 10,  ram: 10,  disk: 50, alwaysOn: 5, totalVMs: 50, price: 99 }
     ]
 
   handleBuy: ->
