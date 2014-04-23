@@ -91,3 +91,15 @@ open /etc/postgresql/9.3/main/pg_hba.conf
 host     all             all             172.16.3.21/24         password
 ```
 add those lines to the end of the file
+
+
+# 3 Change data directory
+
+open /etc/postgresql/9.3/main/postgresql.conf
+
+```
+data_directory = '/postgre/tablespace'
+```
+replace with this line
+
+
