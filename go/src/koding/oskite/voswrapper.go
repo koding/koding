@@ -284,7 +284,10 @@ func (o *Oskite) vmPrepareAndStartNew(r *kitelib.Request, vos *virt.VOS) (interf
 	}
 
 	return progress(vos, "vm.prepareAndStart"+vos.VM.HostnameAlias, params, func() error {
-		for step := range prepareProgress(vos) {
+		results := make(chan *virt.Step)
+		go prepareProgress(results, vos)
+
+		for step := range results {
 			params.OnProgress.Call(step)
 
 			if step.Err != nil {
