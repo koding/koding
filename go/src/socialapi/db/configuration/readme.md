@@ -58,8 +58,9 @@ sudo apt-get update
 ```
 
 
-now install ` apt-get install postgresql-9.3 `
+now install  `apt-get install postgresql-9.3 `
 
+then install `apt-get install postgresql-contrib`
 
 # Set env variable for postgres binaries
 ```
