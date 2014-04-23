@@ -2,7 +2,6 @@ class LoginAppsController extends AppController
 
   KD.registerAppClass this,
     name         : 'Login'
-    hiddenHandle : yes
 
 
   constructor:(options = {}, data)->
@@ -36,3 +35,4 @@ class LoginAppsController extends AppController
     @appStorage.fetchStorage (storage) =>
       @appStorage.setValue key, value, (err) ->
         warn "Failed to set #{key} information"  if err
+
