@@ -113,3 +113,10 @@ listen_addresses = '*'                  # what IP address(es) to listen on;
 replace with this line (listen all)
 
 
+# 5 Update Resource usage settings
+
+open /etc/postgresql/9.3/main/postgresql.conf
+
+```
+maintenance_work_mem = 1408MB
+```
