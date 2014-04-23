@@ -70,3 +70,24 @@ export PATH
 $ . ~/.profile
 
 ```
+
+
+## Configure
+# 1 Allow replication requests
+
+open /etc/postgresql/9.3/main/pg_hba.conf
+
+```
+host     replication     all             172.16.3.20/24         trust
+```
+add those lines to the end of the file
+
+
+# 2 Allow Connections from outside
+
+open /etc/postgresql/9.3/main/pg_hba.conf
+
+```
+host     all             all             172.16.3.21/24         password
+```
+add those lines to the end of the file
