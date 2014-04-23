@@ -154,3 +154,10 @@ hot_standby = on
 ```
 timezone = 'UTC'
 ```
+
+# 10 Query Tuning
+
+```
+default_statistics_target
+effective_cache_size = 16GB
+```
