@@ -38,13 +38,13 @@ class HomeView extends KDView
       <section class="screenshots">
         <div class="inner-container">
           <figure class="first">
-            <img src="/a/images/ss-terminal.jpg" alt="Terminal">
-          </figure>
-          <figure class="second">
             <img src="/a/images/ss-activity.jpg" alt="Activity">
           </figure>
+          <figure class="second">
+            <img src="/a/images/ss-terminal.jpg" alt="Terminal">
+          </figure>
           <figure class="third">
-            <img src="/a/images/ss-environments.jpg" alt="Environments">
+            <img src="/a/images/ss-teamwork.jpg" alt="Environments">
           </figure>
         </div>
       </section>
