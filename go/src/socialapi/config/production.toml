@@ -1,7 +1,7 @@
 EventExchangeName="BrokerMessageBus"
-Mongo="localhost:27017/koding"
-Environment="vagrant"
-Redis="localhost:6379"
+Mongo="dev:k9lc4G1k32nyD72@172.16.3.9:27017/koding"
+Environment="production"
+Redis="172.16.3.13:6379"
 [postgres]
 Host=     "localhost"
 Port=     5432
@@ -10,11 +10,11 @@ Password= "socialapplication"
 DBName=   "social"
 
 [mq]
-Host=     "localhost"
+Host=     "172.16.3.4"
 Port=     5672
-Username= "PROD-k5it50s4676pO9O"
-Password= "djfjfhgh4455__5"
-Vhost=    "/"
+Username= "guest"
+Password= "Xah8ibeekelah"
+Vhost=    "new"
 
 [limits]
-MessageBodyMinLen=10
+MessageBodyMinLen=5
