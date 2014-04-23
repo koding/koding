@@ -81,11 +81,11 @@ class TestimonialsView extends KDView
     @createQuotes()
 
     if @getOption 'showMoreButton'
-      @innerContainer.addSubView @storiesButton = new KDButtonView
+      @innerContainer.addSubView @storiesButton = new CustomLinkView
         title       : 'Read more user stories'
-        style       : 'solid green medium border-only'
-        callback    : ->
-          window.location.href = 'http://stories.koding.com'
+        cssClass    : 'show-more'
+        href        : 'http://stories.koding.com'
+        target      : '_blank'
 
 
 
