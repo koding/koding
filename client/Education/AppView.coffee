@@ -1,6 +1,7 @@
 class EducationView extends KDView
 
   constructor:->
+
     super
 
     {router} = KD.singletons
@@ -16,6 +17,14 @@ class EducationView extends KDView
       callback    : -> router.handleRoute "/Register"
 
     @footer = new FooterView
+
+    {appManager} = KD.singletons
+    appManager.on 'AppIsBeingShown', (app) =>
+
+      return unless app.getView().getId() is @getId()
+
+      video = @$('video')[0]
+      video.play()
 
 
   viewAppended: JView::viewAppended
@@ -38,13 +47,17 @@ class EducationView extends KDView
       <section class="screenshots">
         <div class="inner-container">
           <figure class="first">
-            <img src="/a/images/ss-activity.jpg" alt="Activity">
+            <header><i></i><i></i><i></i>https://koding.com/Terminal</header>
+            <video autoplay loop
+              src='/a/movies/terminal.final.webmsd.webm'
+              preload='auto'>
+            </video>
           </figure>
           <figure class="second">
-            <img src="/a/images/ss-teamwork.jpg" alt="Teamwork">
+            <img src="/a/images/ss-terminal.jpg" alt="Activity">
           </figure>
           <figure class="third">
-            <img src="/a/images/ss-terminal.jpg" alt="Terminal">
+            <img src="/a/images/ss-teamwork.jpg" alt="Terminal">
           </figure>
         </div>
       </section>
