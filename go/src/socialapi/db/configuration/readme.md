@@ -1,9 +1,9 @@
 ## Set SHMAX var
 The SHMMAX variable controls the maximum amount of memory to be allocated for shared memory use. If you try to assign high values for e.g. the shared_buffers GUC in PostgreSQL without adjusting SHMMAX, you might see an error message in Postgres' log like " ... Failed system call was shmget ... usually means that PostgreSQL's request for a shared memory segment exceeded your kernel's SHMMAX parameter", and you'll have to adjust SHMMAX upward accordingly.
 
-#Set shared memory max limit to 16GB
+# Set shared memory max limit to 16GB
 sysctl -w kernel.shmmax=17179869184
-#Set shared memory min limit to 4MB
+# Set shared memory min limit to 4MB
 sysctl -w kernel.shmall=4194304
 
 
@@ -98,7 +98,7 @@ add those lines to the end of the file
 open /etc/postgresql/9.3/main/postgresql.conf
 
 ```
-data_directory = '/postgre/tablespace'
+data_directory = '/data/postgresql/tablespace'
 ```
 replace with this line
 
@@ -172,6 +172,6 @@ timezone = 'UTC'
 # 10 Query Tuning
 
 ```
-default_statistics_target
+default_statistics_target = 100
 effective_cache_size = 16GB
 ```
