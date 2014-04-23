@@ -15,7 +15,9 @@ func (b *Bongo) Fetch(i Modellable) error {
 		return errors.New(fmt.Sprintf("Id is not set for %s", i.TableName()))
 	}
 
-	if err := b.DB.First(i, i.GetId()).Error; err != nil {
+	if err := b.DB.Table(i.TableName()).
+		Find(i).
+		Error; err != nil {
 		return err
 	}
 
