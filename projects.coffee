@@ -70,7 +70,7 @@ projects =
     sourceMapRoot : "Social/Apps/"
 
   Kites           :
-    files         : "client/Social/Kites/includes.coffee"
+    path          : "client/Social/Kites"
     style         : "website/a/css/__app.kites.#{KODING_VERSION}.css"
     script        : "website/a/js/__app.kites.#{KODING_VERSION}.js"
     sourceMapRoot : "Social/Kites/"
