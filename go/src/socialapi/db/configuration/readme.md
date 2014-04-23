@@ -149,3 +149,8 @@ hot_standby = on
 
 
 
+# 9 Set client connection defaults
+
+```
+timezone = 'UTC'
+```
