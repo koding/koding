@@ -60,6 +60,9 @@ KD.extend
       ,
         username  : 'selin'
         title     : 'Data Scientist'
+      ,
+        username  : 'didemacet'
+        title     : 'QA'
       # ,
       #   username  : 'gniting'
       #   title     : 'BizDev'
