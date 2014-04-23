@@ -120,3 +120,13 @@ open /etc/postgresql/9.3/main/postgresql.conf
 ```
 maintenance_work_mem = 1408MB
 ```
+
+# 6 Update WAL settings
+
+open /etc/postgresql/9.3/main/postgresql.conf
+
+```
+wal_level = hot_standby
+```
+
+
