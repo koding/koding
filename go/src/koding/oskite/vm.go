@@ -21,6 +21,22 @@ import (
 	"labix.org/v2/mgo/bson"
 )
 
+type progresser interface {
+	Enabled() bool
+	Call(v interface{})
+}
+
+type unprepareParams struct {
+	GroupId    string
+	Destroy    bool
+	OnProgress dnode.Callback
+}
+
+type prepareParams struct {
+	GroupId    string
+	OnProgress dnode.Callback
+}
+
 var (
 	ErrVmAlreadyPrepared = errors.New("vm is already prepared")
 	ErrVmNotPrepared     = errors.New("vm is not prepared")
@@ -352,19 +368,6 @@ func vmReinitialize(vos *virt.VOS) (interface{}, error) {
 	return true, nil
 }
 
-type progresser interface {
-	Enabled() bool
-	Call(v interface{})
-}
-
-type progressParamsOld struct {
-	GroupId    string
-	OnProgress dnode.Callback
-}
-
-func (p *progressParamsOld) Enabled() bool      { return p.OnProgress != nil }
-func (p *progressParamsOld) Call(v interface{}) { p.OnProgress(v) }
-
 // progress is function that enables sync and async call of the given function
 // "f". We pass an interface called progresser just for compatibility of
 // newkite and oldkite (they each have different callback signatures)
@@ -413,12 +416,15 @@ func progress(vos *virt.VOS, desc string, p progresser, f func() error) (interfa
 	return true, nil
 }
 
+func (p *prepareParams) Enabled() bool      { return p.OnProgress != nil }
+func (p *prepareParams) Call(v interface{}) { p.OnProgress(v) }
+
 func (o *Oskite) vmPrepareAndStart(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (interface{}, error) {
 	if !vos.Permissions.Sudo {
 		return nil, &kite.PermissionError{}
 	}
 
-	params := new(progressParamsOld)
+	params := new(prepareParams)
 	if args != nil && args.Unmarshal(&params) != nil {
 		return nil, &kite.ArgumentError{Expected: "{OnProgress: [function]}"}
 	}
@@ -471,43 +477,15 @@ func (o *Oskite) vmPrepareAndStart(args *dnode.Partial, channel *kite.Channel, v
 	})
 }
 
-func vmDestroyOld(args *dnode.Partial, c *kite.Channel, vos *virt.VOS) (interface{}, error) {
-	if !vos.Permissions.Sudo {
-		return nil, &kite.PermissionError{}
-	}
-
-	params := new(progressParamsOld)
-	if args != nil && args.Unmarshal(&params) != nil {
-		return nil, &kite.ArgumentError{Expected: "{OnProgress: [function]}"}
-	}
-
-	return progress(vos, "vm.destroy "+vos.VM.HostnameAlias, params, func() error {
-		var lastError error
-		results := make(chan *virt.Step)
-		go unprepareProgress(results, vos, true)
-
-		for step := range results {
-			if params.OnProgress != nil {
-				params.OnProgress(step)
-			}
-
-			if step.Err != nil {
-				lastError = step.Err
-			}
-		}
-
-		return lastError
-	})
-
-	return true, nil
-}
+func (u *unprepareParams) Enabled() bool      { return u.OnProgress != nil }
+func (u *unprepareParams) Call(v interface{}) { u.OnProgress(v) }
 
 func vmStopAndUnprepare(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (interface{}, error) {
 	if !vos.Permissions.Sudo {
 		return nil, &kite.PermissionError{}
 	}
 
-	params := new(progressParamsOld)
+	params := new(unprepareParams)
 	if args != nil && args.Unmarshal(&params) != nil {
 		return nil, &kite.ArgumentError{Expected: "{OnProgress: [function]}"}
 	}
@@ -515,7 +493,7 @@ func vmStopAndUnprepare(args *dnode.Partial, channel *kite.Channel, vos *virt.VO
 	return progress(vos, "vm.stopAndUnprepare "+vos.VM.HostnameAlias, params, func() error {
 		var lastError error
 		results := make(chan *virt.Step)
-		go unprepareProgress(results, vos, false)
+		go unprepareProgress(results, vos, params.Destroy)
 
 		for step := range results {
 			if params.OnProgress != nil {
