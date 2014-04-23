@@ -238,9 +238,9 @@ func (p *Plan) prepareLimits(username, groupId string) (*Limit, error) {
 		lim.RAM = LimitQuotaExceeded
 	}
 
-	if p.Disk >= plan.Disk {
-		lim.Disk = LimitQuotaExceeded
-	}
+	// if p.Disk >= plan.Disk {
+	// 	lim.Disk = LimitQuotaExceeded
+	// }
 
 	return lim, nil
 }

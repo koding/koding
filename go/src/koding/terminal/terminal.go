@@ -23,7 +23,7 @@ import (
 
 const (
 	TERMINAL_NAME    = "terminal"
-	TERMINAL_VERSION = "0.1.2"
+	TERMINAL_VERSION = "0.1.3"
 )
 
 var (
@@ -232,6 +232,8 @@ func (t *Terminal) runNewKite() {
 	}
 
 	k.Config.Region = t.Region
+
+	k.SetupSignalHandler()
 
 	t.vosMethod(k, "webterm.getSessions", webtermGetSessionsNew)
 	t.vosMethod(k, "webterm.connect", webtermConnectNew)
