@@ -2,8 +2,8 @@ class FooterView extends JView
 
   constructor: (options = {}, data) ->
 
-    options.tagName = 'footer'
-    options.domId   = 'main-footer'
+    options.tagName  = 'footer'
+    options.cssClass = 'main-footer'
 
     super options, data
 
