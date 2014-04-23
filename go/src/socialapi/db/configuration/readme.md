@@ -103,3 +103,13 @@ data_directory = '/postgre/tablespace'
 replace with this line
 
 
+# 4 Update connection settings
+
+open /etc/postgresql/9.3/main/postgresql.conf
+
+```
+listen_addresses = '*'                  # what IP address(es) to listen on;
+```
+replace with this line (listen all)
+
+
