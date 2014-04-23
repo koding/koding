@@ -22,8 +22,14 @@ module.exports = (req, res) ->
              "key=#{apiKey}&" +
              "url=#{url}"
 
-  md5      = crypto.createHash("md5").update(url).digest("hex")
-  filename = "#{imagePath}/#{md5}"
+  # split the ext, md5 just the url and write md5+ext to disk
+  # md5 since some urls are too big and cause 'ENAMETOOLONG' error
+  splitUrl = url.split(".")
+  ext      = splitUrl.pop()
+  noExt    = splitUrl.join(".")
+
+  md5      = crypto.createHash("md5").update(noExt).digest("hex")
+  filename = "#{imagePath}/#{md5}.#{ext}"
 
   serveFile = (filename, res)->
     fileStream = fs.createReadStream filename
