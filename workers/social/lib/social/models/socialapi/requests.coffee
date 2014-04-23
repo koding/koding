@@ -1,4 +1,7 @@
-SOCIAL_API_URL = "http://localhost:7000"
+{argv}   = require 'optimist'
+KONFIG = require('koding-config-manager').load("main.#{argv.c}")
+
+SOCIAL_API_URL = KONFIG.socialApiUrl
 request        = require 'request'
 
 wrapCallback = (callback)->
