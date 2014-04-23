@@ -42,3 +42,31 @@ tps = 56747.809904 (excluding connections establishing)
 -c should not be greater than the -s
 -c should be multiple of -j
 pgbench -c 16 -j 8 -r -s 32 -l -T 120  koding_social
+
+
+## Installing Postgresql
+Create the file `/etc/apt/sources.list.d/pgdg.list`, and add a line for the repository
+
+`deb http://apt.postgresql.org/pub/repos/apt/ precise-pgdg main`
+
+Import the repository signing key, and update the package lists
+
+```
+wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | \
+  sudo apt-key add -
+sudo apt-get update
+```
+
+
+now install ` apt-get install postgresql-9.3 `
+
+
+# Set env variable for postgres binaries
+```
+$ cd ~
+$ vim .profile
+PATH=$PATH:/usr/lib/postgresql/9.3/bin
+export PATH
+$ . ~/.profile
+
+```
