@@ -278,7 +278,9 @@ class ActivityAppController extends AppController
         @emit "publicFeedFetched_#{eventSuffix}", messages
         return
 
-    return @emit "activitiesCouldntBeFetched"
+    JNewStatusUpdate.fetchGroupActivity options, (err, messages)=>
+      return @emit "activitiesCouldntBeFetched", err  if err
+      @emit "publicFeedFetched_#{eventSuffix}", messages
 
   # this is only reviving the cache for now
   prepareCacheForListing: (cache)-> return KD.remote.revive cache
