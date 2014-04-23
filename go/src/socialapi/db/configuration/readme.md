@@ -118,7 +118,9 @@ replace with this line (listen all)
 open /etc/postgresql/9.3/main/postgresql.conf
 
 ```
+work_mem = 120MB
 maintenance_work_mem = 1408MB
+shared_buffers = 5632MB
 ```
 
 # 6 Update WAL settings
