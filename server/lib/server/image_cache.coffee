@@ -1,6 +1,7 @@
-fs   = require "fs"
-http = require "https"
-mime = require "mime"
+fs     = require "fs"
+http   = require "https"
+mime   = require "mime"
+crypto = require "crypto"
 
 {
   embedly : {
@@ -21,7 +22,14 @@ module.exports = (req, res) ->
              "key=#{apiKey}&" +
              "url=#{url}"
 
-  filename = "#{imagePath}/#{url.split('/').join('_')}"
+  # split the ext, md5 just the url and write md5+ext to disk
+  # md5 since some urls are too big and cause 'ENAMETOOLONG' error
+  splitUrl = url.split(".")
+  ext      = splitUrl.pop()
+  noExt    = splitUrl.join(".")
+
+  md5      = crypto.createHash("md5").update(noExt).digest("hex")
+  filename = "#{imagePath}/#{md5}.#{ext}"
 
   serveFile = (filename, res)->
     fileStream = fs.createReadStream filename
@@ -29,7 +37,7 @@ module.exports = (req, res) ->
 
     mimeType = mime.lookup filename
 
-    res.writeHead(200, {'Content-Type': mimeType });
+    res.writeHead(200, { 'Content-Type': mimeType });
 
   if fs.existsSync filename
     return serveFile filename, res
