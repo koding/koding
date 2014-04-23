@@ -172,8 +172,7 @@ prepareEmail = (notification, daily = no, cb, callback=->)->
         return
 
       return  unless result
-
-      { state, key, email } = result
+      { state, key } = result
       if not daily and state isnt true
         log 'User disabled e-mails, ignored for now.'
         notification.update $set: status: 'postponed', (err)->
@@ -184,7 +183,10 @@ prepareEmail = (notification, daily = no, cb, callback=->)->
           return callback err  if err
           # string usually email if sender is not a user
           sender ?= notification.senderEmail
-          details = {sender, receiver, event, email, key, notification}
+          # Since we have retrieved email config in the beginning, email becomes
+          # a global variable. Therefore we have changed the email assignment here
+          details = {sender, receiver, event, key, email: result.email, notification}
+
           if event is 'FollowHappened'
             cb details
           else
