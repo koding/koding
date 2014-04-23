@@ -13,15 +13,13 @@ class PricingPlanSelection extends JView
       tagName : "h4"
       partial : "#{options.title}"
 
-    @title.addSubView @count = new KDCustomHTMLView tagName : "cite"
-
     @price     = new KDCustomHTMLView
       tagName  : "h5"
       cssClass : if options.hidePrice then "hidden"
       partial  : "$#{options.slider.initialValue * options.unitPrice}/#{options.period}"
 
-    options.slider         or= {}
-    options.slider.drawBar  ?= no
+    options.slider            or= {}
+    options.slider.drawBar    ?= no
 
     {unitPrice} = options
 
@@ -29,14 +27,8 @@ class PricingPlanSelection extends JView
     @slider.on "ValueChanged", (handle) =>
       value = Math.floor handle.value
       price = value * unitPrice
-      @count.updatePartial if value then "#{value}#{options.amountSuffix}" else 'Free'
       @price.updatePartial "$#{price}/Month"
       @emit "ValueChanged", value
-
-    @description = new KDCustomHTMLView
-      tagName    : "p"
-      cssClass   : "description"
-      partial    : options.description
 
   viewAppended: ->
     super
@@ -45,7 +37,5 @@ class PricingPlanSelection extends JView
   pistachio: ->
     """
     {{> @title}}
-    {{> @price}}
     {{> @slider}}
-    {{> @description}}
     """

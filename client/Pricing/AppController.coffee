@@ -10,7 +10,6 @@ class PricingAppController extends KDViewController
 
     super options, data
     @getView().createBreadcrumb()
-    @createProductForm()
 
   createProductForm: ->
     view = @getView()
