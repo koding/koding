@@ -10,6 +10,7 @@ class PricingAppController extends KDViewController
 
     super options, data
     @getView().createBreadcrumb()
+    @createProductForm()
 
   createProductForm: ->
     view = @getView()
@@ -25,6 +26,17 @@ class PricingAppController extends KDViewController
     @productForm.on "PlanSelected", (plan, options) =>
       view.breadcrumb.showPlan plan, options
       view.addGroupForm()  if "custom-plan" in plan.tags
+
+    view.on 'PlanSelectedFromIntroPage', ({title, price, index}) =>
+
+      log title, price, index
+
+      @productForm.developerPlan.planIndex = index
+      view.showWorkflow()
+      view.hideIntro()
+      @productForm.developerPlan.handleBuy()
+
+
 
   selectPlan: (tag, options) ->
     @productForm.selectPlan tag, options

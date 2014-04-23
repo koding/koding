@@ -168,12 +168,17 @@ class PricingAppView extends KDView
 
 
   viewAppended  : ->
-    @addSubView @getIntroductionView()
-    @addSubView @getPacksView()
-    @addSubView @getCustomQuoteView()
-    @addSubView @getFeaturesView()
 
-    @addSubView new FooterView
+    @intro = new KDView
+
+    @intro.addSubView @getIntroductionView()
+    @intro.addSubView @getPacksView()
+    @intro.addSubView @getCustomQuoteView()
+    @intro.addSubView @getFeaturesView()
+
+    @intro.addSubView new FooterView
+
+    @addSubView @intro
 
   createBreadcrumb: ->
     @addSubView @breadcrumb = new BreadcrumbView
@@ -187,6 +192,7 @@ class PricingAppView extends KDView
     @hideBreadcrumb()
 
     @workflow = workflow
+    @hideWorkflow()
     @addSubView @workflow
     workflow.on 'Finished', @bound "workflowFinished"
     workflow.on 'Cancel', @bound "cancel"
@@ -207,8 +213,11 @@ class PricingAppView extends KDView
     @breadcrumb.hide()
     document.body.classList.remove 'flow'
 
-  hideWorkflow: ->
-    @workflow.hide()
+  hideIntro: -> @intro.hide()
+  showIntro: -> @intro.show()
+
+  hideWorkflow: -> @workflow.hide()
+  showWorkflow: -> @workflow.show()
 
   workflowFinished: (@formData) ->
     @hideWorkflow()

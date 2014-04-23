@@ -1,12 +1,13 @@
 class ResourcePackView extends KDView
 
   constructor : (options = {}, data) ->
+
     options.cssClass = KD.utils.curry 'resource-pack', options.cssClass
 
     super options, data
 
   viewAppended : ->
-    {title, cssClass, packFeatures, price} = @getOptions()
+    {title, cssClass, packFeatures, price, index} = @getOptions()
 
     @addSubView new KDHeaderView
       type     : 'medium'
@@ -26,3 +27,7 @@ class ResourcePackView extends KDView
       style     : 'pack-buy-button'
       icon      : yes
       title     : "<cite>#{price}</cite>BUY NOW"
+      callback  : =>
+        appView = @getDelegate()
+        appView.emit 'PlanSelectedFromIntroPage', {title, price, index}
+

@@ -1,6 +1,9 @@
 class PricingProductForm extends JView
+
   constructor: (options = {}, data) ->
+
     options.cssClass = KD.utils.curry "product-form", options.cssClass
+
     super options, data
 
     @developerPlan = new DeveloperPlan
@@ -26,6 +29,8 @@ class PricingProductForm extends JView
         KD.singleton("router").handleRoute switch @toggle.getValue()
           when "DEVELOPER" then "/Pricing/Developer"
           when "TEAM" then "/Pricing/Team"
+
+    log 'ever here'
 
   showDeveloperPlan: ->
     @toggle.setValue "DEVELOPER"

@@ -18,11 +18,14 @@ class PricingPacksView extends KDView
 
   createPacks : ->
 
-    @packs    = @getOption 'packs'
+    @packs = @getOption 'packs'
 
     for pack, index in @packs
 
-      @addSubView @packs[index].view = new ResourcePackView pack
+      pack.index         = index
+      pack.delegate      = @getDelegate()
+      @packs[index].view = new ResourcePackView pack
+      @addSubView @packs[index].view
 
 
 
