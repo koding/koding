@@ -70,6 +70,7 @@ module.exports =
   runOsKite     : no
   runProxy      : no
   redis         : "68.68.97.51:6379"
+  subscriptionEndpoint   : "https://koding.com/-/subscription/check/"
   misc          :
     claimGlobalNamesForUsers: no
     updateAllSlugs : no

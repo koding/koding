@@ -459,19 +459,10 @@ module.exports = class JUser extends jraphical.Module
   @addToGroup = (account, slug, email, invite, callback)->
     JGroup.one {slug}, (err, group)->
       return callback err if err or not group
-      if invite and invite.status isnt "redeemed"
-        group.debitPack tag: "user", (err) ->
-          if err
-            if err.message is "quota exceeded"
-              callback
-                code    : "user_quota_exceeded"
-                message : "Failed join to group #{slug}."
-            else
-              callback err
-            return
-          invite.redeem account, (err) ->
-            return callback err if err
-            group.approveMember account, callback
+      if invite
+        invite.redeem account, (err) ->
+          return callback err if err
+          group.approveMember account, callback
       else
         group.approveMember account, callback
 

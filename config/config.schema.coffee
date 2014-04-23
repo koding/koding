@@ -88,6 +88,7 @@ config =
     runTerminalKite: 0
     runProxy      : 0
     redis         : 1
+    subscriptionEndpoint   : 1
     misc          :
       claimGlobalNamesForUsers: 1
       updateAllSlugs : 1

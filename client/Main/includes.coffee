@@ -174,6 +174,7 @@ module.exports = [
   "payment/vmproductview.coffee",
   "payment/paymentworkflow.coffee",
   "payment/paymentconfirmform.coffee",
+  "payment/genericplanview.coffee",
   "payment/planupgradeform.coffee",
   "payment/planupgradeconfirmform.coffee",
   "payment/packchoiceform.coffee",

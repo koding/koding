@@ -150,8 +150,9 @@ type Config struct {
 		Host string
 		Port int
 	}
-	LogLevel map[string]string
-	Redis    string
+	LogLevel             map[string]string
+	Redis                string
+	SubscriptionEndpoint string
 }
 
 func MustConfig(profile string) *Config {

@@ -400,11 +400,20 @@ class WebTermAppView extends JView
     if recentState?.state is 'RUNNING'
       @createNewTab {vm, mode}
     else if recentState?.state is 'STOPPED' or 'FAILED'
-      osKite?.vmOn()
+      osKite?.vmOn().catch @bound "handlePrepareError"
     else
       @notify cssClass : 'error'
       osKite?.vmOff()
 
+  handlePrepareError: (err) ->
+    console.error err
+
+    try
+      err   = JSON.parse err.message
+      title = err.message  if err.message
+
+    title ?= "VM start failed. Please try again, later"
+    new KDNotificationView {title}
 
   pistachio: ->
     """

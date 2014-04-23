@@ -153,6 +153,11 @@ func (v *VMInfo) unprepareVM() {
 		log.LogError(err, 0, v.vm.Id.Hex())
 	}
 
+	// mark it as stopped
+	if err := updateState(v.vm); err != nil {
+		log.Error("%v", err)
+	}
+
 	infosMutex.Lock()
 	if v.useCounter == 0 {
 		delete(infos, v.vm.Id)
