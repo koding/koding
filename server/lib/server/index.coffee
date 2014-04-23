@@ -375,6 +375,8 @@ app.all '/:name/:section?*', (req, res, next)->
   else
 
     isLoggedIn req, res, (err, loggedIn, account)->
+      return res.send 404, error_404()  if err
+
       JName.fetchModels name, (err, result)->
         return next err  if err
         return res.send 404, error_404()  unless result?
