@@ -3,53 +3,39 @@ class TestimonialsView extends KDView
   quotes = [
       name         : 'Lisha Sterling'
       title        : 'Teacher'
-      content      : 'She’s uses Koding in her programming classes to ensure
-                      that her beginner students can work simply on
-                      understanding/writing code.'
+      content      : 'in my classes I have used Koding plenty of times. I love that you have virtual servers available on a web interface. So that in addition to writing code, we can all go into the same command line interface to experiment with things. Super useful.'
     ,
       name         : 'James Doyle'
       title        : 'Developer'
-      content      : 'I wanted a place with free hosting and worked like a VPS.
-                      If you have something like GoDaddy, good luck installing a
-                      Rails or Node app.'
+      content      : 'I wanted a place with free hosting and worked like a VPS. If you have something like GoDaddy, good luck installing a Rails or Node app.'
     ,
       name         : 'Jordan Cauley'
       title        : 'Front-end Engineer'
-      content      : 'In the last year and a half, he’s used Koding to go
-                      from being a basic WordPress theme editor to a full
-                      on front-end engineer.'
+      content      : 'I started working as a freelancer, using Koding on and off. What I have in Koding right now is the start of my first web app, front-end and back-end running on Node.js.'
     ,
       name         : 'Heidi Dong'
       title        : 'Student'
-      content      : 'I used to play around with WordPress there. I really
-                      love how the Koding terminal has everything on it. So
-                      I learned a lot of commands on there.'
+      content      : 'I installed it on Koding and it worked from there. And since Koding had Git and stuff, it was great.  It was very helpful with that contest. I really love the community on Koding.'
     ,
       name         : 'Gemma Lynn'
       title        : 'Developer'
-      content      : 'She uses Koding for learning new languages, frameworks,
-                      and completing Coursera classes.'
+      content      : 'Yeah, and I also did a bunch of Coursera courses. There was an algorithms course, an R course, and a crypto course. And I was using Koding for all of that. It’s incredibly convenient.'
     ,
       name         : 'Eugene Esca'
       title        : 'Programmer'
-      content      : 'He loves interact with the Koding community and uses
-                      Koding both for client work and tinkering with friends.'
+      content      : 'Well, let’s say we have a client, who want to see your work live, in action. Just get them on Koding and ‘tada’, they’re watching you work.'
     ,
       name         : 'Cliff Rowley'
       title        : 'Developer'
-      content      : "He's addicted to learning new programming languages and
-                      is excited to build apps on Koding platform."
+      content      : "But what really sold Koding for me was the social element and the banter and most importantly, the KD framework. It’s genius. By offering the VM platform as a platform and allowing us to build apps around the KD framework is just a stroke of genius."
     ,
       name         : 'Aydincan Ataberk'
       title        : 'Entrepreneur'
-      content      : "Koding has helped him learn Python which he’ll ultimately
-                      use to build apps and games."
+      content      : "Koding’s community is actually the most important thing about Koding. You can get help, you feel like you’re in a family. It feels alive, to see the posts and feed."
     ,
       name         : 'Adem Aydin'
       title        : 'Student'
-      content      : "He uses Koding for getting feedback on small things he’s
-                      built and recently set up a group on Koding to learn C
-                      together."
+      content      : "recently I found a group of people on Koding who are interested in learning C. I thought C would be good to know for my field. So I found some pretty good people and in the next days we’ll start using Koding to collaborate on our learning."
     ,
     ]
 
