@@ -149,6 +149,20 @@ hot_standby = on
 
 
 
+# 8 Update logging parameters
+
+open /etc/postgresql/9.3/main/postgresql.conf
+
+```
+log_min_duration_statement = 10
+log_checkpoints = on
+log_checkpoints = on
+log_connections = on
+log_disconnections = on
+log_hostname = on
+log_line_prefix = '%m %u@%d %p %r '
+log_lock_waits = on
+```
 # 9 Set client connection defaults
 
 ```
