@@ -6,14 +6,16 @@ class HomeView extends KDView
     {router} = KD.singletons
 
     @pricingButton = new KDButtonView
-      title       : "See Pricing"
-      style       : "solid thin medium thin-white"
-      callback    : -> router.handleRoute "/Pricing"
+      title       : 'See Pricing'
+      style       : 'solid thin medium thin-white'
+      callback    : -> router.handleRoute '/Pricing'
 
     @signUpButton = new KDButtonView
-      title       : "Sign Up Now"
-      style       : "solid medium green"
-      callback    : -> router.handleRoute "/Register"
+      title       : 'Sign Up Now'
+      style       : 'solid medium green'
+      callback    : -> router.handleRoute '/Register'
+
+    @testimonials = new TestimonialsView
 
     @footer = new FooterView
 
@@ -90,32 +92,7 @@ class HomeView extends KDView
         </div>
       </section>
 
-      <section class="testimonials">
-        <div class="inner-container clearfix">
-          <h3 class="general-title">What did they say</h3>
-          <h4 class="general-subtitle">People love Koding for a reason. Guess what that reason is?</h4>
-
-          <article>
-            <p>It just f***in works! And therefore I love it like I ove my mom.</p>
-            <span class="name">JASON FRIEDMANN</span>
-          </article>
-
-          <article>
-            <p>It just f***in works! And therefore I love it like I ove my mom.</p>
-            <span class="name">JASON FRIEDMANN</span>
-          </article>
-
-          <article>
-            <p>It just f***in works! And therefore I love it like I ove my mom.</p>
-            <span class="name">JASON FRIEDMANN</span>
-          </article>
-
-          <article>
-            <p>It just f***in works! And therefore I love it like I ove my mom.</p>
-            <span class="name">JASON FRIEDMANN</span>
-          </article>
-        </div>
-      </section>
+      {{> @testimonials}}
 
       <section class='check-out'>
         <h3><a href='/Pricing'>Check out our pricing</a> and get started with Koding right away!</h3>

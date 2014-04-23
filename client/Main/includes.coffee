@@ -29,6 +29,8 @@ module.exports = [
   "onboarding/onboardingitemview.coffee",
 
   # COMMON VIEWS
+  "CommonViews/testimonialsquoteview.coffee",
+  "CommonViews/testimonialsview.coffee",
   "CommonViews/applicationview/applicationtabview.coffee",
   "CommonViews/applicationview/applicationtabhandleholder.coffee",
   "CommonViews/sharepopup.coffee",
