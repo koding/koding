@@ -238,6 +238,9 @@ module.exports = class JGroup extends Module
         type        : String
         required    : yes
       body          : String
+      # channelId for mapping social API
+      # to internal usage
+      socialApiChannelId: Number
       avatar        : String
       slug          :
         type        : String
@@ -443,7 +446,7 @@ module.exports = class JGroup extends Module
             queue.next()
         -> save_ 'group', group, queue, (err)->
            if err
-             JName.release group.slug, => callback err
+             JName.release group.slug, -> callback err
            else
              queue.next()
         -> group.addMember owner, (err)->
@@ -1600,3 +1603,26 @@ module.exports = class JGroup extends Module
       JVM.createVm {account, groupSlug: @slug, @planCode}, (err) =>
         console.warn "Group #{@slug} member #{account.profile.nickname} VM is not created: #{err}"  if err
         callback()
+
+  createSocialApiChannelId: (callback) ->
+    # disable for now
+    # return callback null, @socialApiChannelId  if @socialApiChannelId
+    @fetchOwner (err, owner)=>
+      return callback err if err
+      unless owner
+        return callback { message: "Owner not found for #{@slug} group" }
+      owner.createSocialApiId (err, socialApiId)=>
+        return callback err if err
+        # required data for creating a channel
+        data =
+          name         : @slug
+          creatorId    : socialApiId
+          group        : @slug
+          typeConstant : "group"
+
+        {createChannel} = require '../socialapi/requests'
+        createChannel data, (err, socialApiChannel)=>
+          return callback err if err
+          @update $set: socialApiChannelId: socialApiChannel.id, (err)->
+            return callback err if err
+            return callback null, socialApiChannel.id

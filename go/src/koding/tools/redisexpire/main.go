@@ -3,10 +3,10 @@ package main
 import (
 	"flag"
 	"fmt"
-	"koding/databases/redis"
 	"koding/tools/config"
 	"koding/tools/logger"
 	"time"
+	"github.com/koding/redis"
 
 	redigo "github.com/garyburd/redigo/redis"
 )

@@ -2,13 +2,16 @@ package main
 
 import (
 	"encoding/json"
+	"github.com/koding/logging"
+
+	"github.com/koding/rabbitmq"
 	"github.com/streadway/amqp"
-	"koding/messaging/rabbitmq"
 )
 
 var (
 	Producer *rabbitmq.Producer
 	Consumer *rabbitmq.Consumer
+	log      logging.Logger
 )
 
 func initPublisher() {
@@ -33,7 +36,16 @@ func initPublisher() {
 
 	//used for creating exchange/queue. it would be much better if there is another solution
 	var err error
-	r := rabbitmq.New(conf)
+
+	rmqConf := &rabbitmq.Config{
+		Host:     conf.Mq.Host,
+		Port:     conf.Mq.Port,
+		Username: conf.Mq.ComponentUser,
+		Password: conf.Mq.Password,
+		Vhost:    conf.Mq.Vhost,
+	}
+
+	r := rabbitmq.New(rmqConf, log)
 	Consumer, err = r.NewConsumer(exchange, queue, binding, consumerOptions)
 	if err != nil {
 		panic(err)
