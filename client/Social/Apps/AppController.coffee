@@ -46,19 +46,20 @@ class AppsAppController extends AppController
   doQuery:(selector, options, callback)->
 
     if selector['manifest.authorNick'] is KD.nick()
-
-      @_verifiedSwitch?.hide()
-      @_verifiedSwitchLabel?.hide()
-
+      @changeVerifiedSwitchVisibilty "hide"
     else
-
-      @_verifiedSwitch?.show()
-      @_verifiedSwitchLabel?.show()
-
+      @changeVerifiedSwitchVisibilty "show"
       if @_verifiedOnly
         selector['status'] = 'verified'
 
     KD.remote.api.JNewApp.some selector, options, callback
+
+  changeVerifiedSwitchVisibilty: (methodName) ->
+    @verifiedSwitch?[methodName]()
+    @verifiedSwitchLabel?[methodName]()
+
+  doKiteQuery:(selector, options, callback)->
+    KD.remote.api.JKite.list selector, options, callback
 
   createFeed:(view, loadFeed = no)->
 
@@ -115,6 +116,12 @@ class AppsAppController extends AppController
             selector['manifest.category'] = 'framework'
             @doQuery selector, options, callback
 
+        kites               :
+          title             : "Kites"
+          noItemFoundText   : "There are no kites yet"
+          dataSource        : (selector, options, callback)=>
+            @doKiteQuery selector, options, callback
+
         miscellaneous       :
           title             : "Miscellaneous"
           noItemFoundText   : "There is no miscellaneous app yet"
@@ -133,15 +140,17 @@ class AppsAppController extends AppController
         title             : "New Apps"
         dataSource        : (selector, options, callback)=>
           KD.remote.api.JNewApp.some_ selector, options, callback
+    else
+      delete options.filter.kites
 
     KD.getSingleton("appManager").tell 'Feeder', \
       'createContentFeedController', options, (controller)=>
 
-        @_verifiedSwitchLabel = new KDLabelView
+        @verifiedSwitchLabel = new KDLabelView
           cssClass : 'verified-switch-label'
           title : "Verified applications only"
 
-        @_verifiedSwitch = new KodingSwitch
+        @verifiedSwitch = new KodingSwitch
           cssClass      : 'verified-switch tiny'
           defaultValue  : @_verifiedOnly
           callback      : (state) =>
@@ -149,7 +158,7 @@ class AppsAppController extends AppController
             @feedController.reload()
 
         @_lastQuery = {}
-        @_reloadButton = new KDButtonView
+        reloadButton = new KDButtonView
           style     : 'refresh-button transparent'
           title     : ''
           icon      : yes
@@ -157,12 +166,21 @@ class AppsAppController extends AppController
           callback  : =>
             @feedController.handleQuery @_lastQuery, force: yes
 
+        kiteButton  = new KDButtonView
+          title     : "Create New Kite"
+          cssClass  : "solid mini green kite-button"
+          callback  : =>
+            kiteModal = new CreateKiteModal
+            kiteModal.once "KiteCreated", =>
+              @feedController.reload()
+
         facets = controller.facetsController.getView()
-        facets.addSubView @_reloadButton
+        facets.addSubView reloadButton
+        facets.addSubView kiteButton
 
         feed = controller.getView()
-        feed.addSubView @_verifiedSwitchLabel
-        feed.addSubView @_verifiedSwitch
+        feed.addSubView @verifiedSwitchLabel
+        feed.addSubView @verifiedSwitch
 
         view.addSubView @_lastSubview = feed
 
@@ -170,6 +188,15 @@ class AppsAppController extends AppController
         controller.loadFeed()  if loadFeed
 
         @emit 'ready'
+        kiteButton.hide()
+
+        controller.on "FilterChanged", (name) =>
+          if name is "kites"
+            @changeVerifiedSwitchVisibilty "hide"
+            kiteButton.show()
+          else
+            @changeVerifiedSwitchVisibilty "show"
+            kiteButton.hide()
 
   handleQuery:(query)->
     @ready =>
@@ -209,4 +236,3 @@ class AppsAppController extends AppController
     return contentDisplay
 
   search:(text)-> @emit "searchFilterChanged", text
-

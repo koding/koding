@@ -72,6 +72,7 @@ module.exports =
   runTerminalKite: no
   runProxy      : no
   redis         : "172.16.3.13:6379"
+  subscriptionEndpoint   : "https://koding.com/-/subscription/check/"
   misc          :
     claimGlobalNamesForUsers: no
     updateAllSlugs : no

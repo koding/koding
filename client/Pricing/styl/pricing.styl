@@ -140,9 +140,11 @@ body.pricing
 
     .plan-selection
       .developer-plan
-      .team-plan
         height          300px
         overflow        visible
+
+        &.initial
+          opacity       0
 
     .plan-selection-box
       width           715px
@@ -279,20 +281,6 @@ body.pricing
             color           inherit
             font-size       inherit
             font-weight     inherit
-
-    .team-plan
-      .plan-selection-box
-        width                 323px
-
-        .description
-          max-width           340px
-          text-align          right
-          abs                 200px 0px 0 0
-          line-height         2
-          margin              0
-
-        .pricing-show-details
-          abs                 274px 0px 0 0
 
     .developer-plan
 
@@ -590,7 +578,7 @@ section.pricing-sign-in
 
 /* Confirm payment */
 .plan-upgrade-confirm-form
-  .vm-plan-view
+  .generic-plan-view
   .coupon-options
     size              auto, auto
     max-width         805px
@@ -601,7 +589,7 @@ section.pricing-sign-in
     color             #666
     borderBox()
 
-  .vm-plan-view
+  .generic-plan-view
     h4
       font-size       16px
       font-weight     400
@@ -802,7 +790,7 @@ section.pricing-sign-in
       font-size       14px
       color           #666
 
-    .vm-plan-view
+    .generic-plan-view
       margin          18px 0 0
       padding         18px
       background      #efefef

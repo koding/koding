@@ -21,6 +21,19 @@ import (
 type VM models.VM
 type Permissions models.Permissions
 
+type Step struct {
+	Message     string  `json:"message"`
+	CurrentStep int     `json:"currentStep"`
+	TotalStep   int     `json:"totalStep"`
+	Err         error   `json:"error"`
+	ElapsedTime float64 `json:"elapsedTime"` // time.Duration.Seconds()
+}
+
+type StepFunc struct {
+	Fn  func() error
+	Msg string
+}
+
 var VMPool string = "vms"
 var templateDir string
 var Templates = template.New("lxc")
@@ -132,19 +145,6 @@ func (vm *VM) ApplyDefaults() {
 	if vm.VMRoot == "" {
 		vm.VMRoot = "/var/lib/lxc/vmroot/"
 	}
-}
-
-type Step struct {
-	Message     string  `json:"message"`
-	CurrentStep int     `json:"currentStep"`
-	TotalStep   int     `json:"totalStep"`
-	Err         error   `json:"error"`
-	ElapsedTime float64 `json:"elapsedTime"` // time.Duration.Seconds()
-}
-
-type StepFunc struct {
-	Fn  func() error
-	Msg string
 }
 
 // Prepare creates and initialized the container to be started later directly

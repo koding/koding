@@ -9,7 +9,7 @@ class PricingProductForm extends JView
       @$(".how-it-works").removeClass "team"
       @showHowItWorks()
 
-    @teamPlan = new TeamPlan cssClass: "hidden"
+    @teamPlan = new TeamPlan cssClass: "initial"
     @teamPlan.on "PlanSelected", @bound "selectPlan"
     @teamPlan.on "ShowHowItWorks", =>
       @$(".how-it-works").addClass "team"
@@ -49,6 +49,9 @@ class PricingProductForm extends JView
         @developerPlan.buyNow.hideLoader()
         @teamPlan.buyNow.hideLoader()
 
+  viewAppended: ->
+    super
+    KD.utils.defer @teamPlan.lazyBound "unsetClass", "initial"
 
   pistachio: ->
     """
