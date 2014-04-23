@@ -138,6 +138,14 @@ checkpoint_segments = 32
 ```
 
 
+# 7 Update replication settings
+
+open /etc/postgresql/9.3/main/postgresql.conf
+
 ```
+max_wal_senders = 3
+hot_standby = on
+```
+
 
 
