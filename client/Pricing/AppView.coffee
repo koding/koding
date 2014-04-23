@@ -28,8 +28,7 @@ class PricingAppView extends KDView
       labels        : ['Developer', 'Team']
       defaultValue  : [currentSection]
       multiple      : no
-      callback      : (state) =>
-        router.handleRoute "/Pricing/#{state}"
+      callback      : (state) -> router.handleRoute "/Pricing/#{state}"
 
     return introductionView
 
@@ -40,56 +39,57 @@ class PricingAppView extends KDView
       hideHandleContainer : yes
 
     @pricingTypeTabView.addPane packsView = new KDTabPaneView
-      name : 'DEVELOPER'
-      view : new PricingPacksView
-        packs               : [
-            title           : '1x'
-            cssClass        : 'blue'
-            packFeatures:
-              "CPU"         : '2x'
-              "RAM"         : '2GB'
-              "DISK"        : '10GB'
-              "VM's"        : '2x'
-            price           : '$19'
+      name               : 'DEVELOPER'
+      view               : new PricingPacksView
+        delegate         : this
+        packs            : [
+            title        : '1x'
+            cssClass     : 'blue'
+            packFeatures :
+              "CPU"      : '2x'
+              "RAM"      : '2GB'
+              "DISK"     : '10GB'
+              "VM's"     : '2x'
+            price        : '$19'
           ,
-            title           : '2x'
-            cssClass        : 'green'
-            packFeatures:
-              "CPU"         : '4x'
-              "RAM"         : '2GB'
-              "DISK"        : '10GB'
-              "VM's"        : '2x'
-            price           : '$39'
+            title        : '2x'
+            cssClass     : 'green'
+            packFeatures :
+              "CPU"      : '4x'
+              "RAM"      : '2GB'
+              "DISK"     : '10GB'
+              "VM's"     : '2x'
+            price        : '$39'
           ,
-            title           : '3x'
-            cssClass        : 'yellow'
-            packFeatures:
-              "CPU"         : '6x'
-              "RAM"         : '2GB'
-              "DISK"        : '10GB'
-              "VM's"        : '2x'
-            price           : '$59'
+            title        : '3x'
+            cssClass     : 'yellow'
+            packFeatures :
+              "CPU"      : '6x'
+              "RAM"      : '2GB'
+              "DISK"     : '10GB'
+              "VM's"     : '2x'
+            price        : '$59'
           ,
-            title           : '4x'
-            cssClass        : 'orange'
-            packFeatures:
-              "CPU"         : '8x'
-              "RAM"         : '2GB'
-              "DISK"        : '10GB'
-              "VM's"        : '2x'
-            price           : '$79'
+            title        : '4x'
+            cssClass     : 'orange'
+            packFeatures :
+              "CPU"      : '8x'
+              "RAM"      : '2GB'
+              "DISK"     : '10GB'
+              "VM's"     : '2x'
+            price        : '$79'
           ,
-            title           : '5x'
-            cssClass        : 'red'
-            packFeatures:
-              "CPU"         : '10x'
-              "RAM"         : '2GB'
-              "DISK"        : '10GB'
-              "VM's"        : '2x'
-            price           : '$99'
+            title        : '5x'
+            cssClass     : 'red'
+            packFeatures :
+              "CPU"      : '10x'
+              "RAM"      : '2GB'
+              "DISK"     : '10GB'
+              "VM's"     : '2x'
+            price        : '$99'
         ]
 
-      @pricingTypeTabView.addPane slidersView = new KDTabPaneView
+      @pricingTypeTabView.addPane new KDTabPaneView
         name : 'TEAM'
         view : new TeamPlan
 
