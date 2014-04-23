@@ -1,6 +1,7 @@
-fs   = require "fs"
-http = require "https"
-mime = require "mime"
+fs     = require "fs"
+http   = require "https"
+mime   = require "mime"
+crypto = require "crypto"
 
 {
   embedly : {
@@ -21,7 +22,8 @@ module.exports = (req, res) ->
              "key=#{apiKey}&" +
              "url=#{url}"
 
-  filename = "#{imagePath}/#{url.split('/').join('_')}"
+  md5      = crypto.createHash("md5").update(url).digest("hex")
+  filename = "#{imagePath}/#{md5}"
 
   serveFile = (filename, res)->
     fileStream = fs.createReadStream filename
@@ -29,7 +31,7 @@ module.exports = (req, res) ->
 
     mimeType = mime.lookup filename
 
-    res.writeHead(200, {'Content-Type': mimeType });
+    res.writeHead(200, { 'Content-Type': mimeType });
 
   if fs.existsSync filename
     return serveFile filename, res
