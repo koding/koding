@@ -6,6 +6,7 @@ import (
 	"io"
 	"io/ioutil"
 	"koding/db/models"
+	"koding/tools/tracer"
 	"koding/tools/utils"
 	"koding/virt"
 	"log"
@@ -157,7 +158,7 @@ var actions = map[string]func(args []string){
 				}
 				vm.ApplyDefaults()
 				fmt.Println(i, "preparing...")
-				if err := vm.Prepare(false); err != nil {
+				if err := vm.Prepare(tracer.DefaultTracer(), false); err != nil {
 					log.Println(i, "prepare", err)
 				}
 

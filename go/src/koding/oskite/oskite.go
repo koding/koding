@@ -13,6 +13,7 @@ import (
 	"koding/tools/dnode"
 	"koding/tools/kite"
 	"koding/tools/logger"
+	"koding/tools/tracer"
 	"koding/tools/utils"
 	"koding/virt"
 	"math/rand"
@@ -753,7 +754,7 @@ func startAndPrepareVM(vm *virt.VM) error {
 
 			if !prepared {
 				// prepare first
-				if lastError = vm.Prepare(false); lastError != nil {
+				if lastError = vm.Prepare(tracer.DiscardTracer(), false); lastError != nil {
 					return "", fmt.Errorf("preparing VM %s", lastError)
 				}
 			}

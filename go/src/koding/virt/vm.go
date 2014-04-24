@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"koding/db/models"
+	"koding/tools/tracer"
 	"net"
 	"os"
 	"os/exec"
@@ -152,7 +153,7 @@ func (vm *VM) ApplyDefaults() {
 // templating), instead of we use this method which basically let us do things
 // more efficient. It creates the home directory, generates files like lxc.conf
 // and mounts the necessary filesystems.
-func (v *VM) Prepare(reinitialize bool) (err error) {
+func (v *VM) Prepare(tracer tracer.Tracer, reinitialize bool) (err error) {
 	defer func() {
 		if err != nil {
 			// don't put the prepare in an unknown state
@@ -161,41 +162,50 @@ func (v *VM) Prepare(reinitialize bool) (err error) {
 		}
 	}()
 
+	tracer.Trace("Create container")
 	if err := v.createContainerDir(); err != nil {
 		return err
 	}
 
+	tracer.Trace("Mount RBD")
 	if err := v.mountRBD(v.OverlayFile("")); err != nil {
 		return err
 	}
 
 	// remove all except /home on reinitialize
 	if reinitialize {
+		tracer.Trace("Reinitialize")
 		if err := v.reinitialize(); err != nil {
 			return err
 		}
 	}
 
+	tracer.Trace("Create overlay")
 	if err := v.createOverlay(); err != nil {
 		return err
 	}
 
+	tracer.Trace("Merge files")
 	if err := v.mergeFiles(); err != nil {
 		return err
 	}
 
+	tracer.Trace("Mount aufs")
 	if err := v.mountAufs(); err != nil {
 		return err
 	}
 
+	tracer.Trace("Mount pts")
 	if err := v.prepareAndMountPts(); err != nil {
 		return err
 	}
 
+	tracer.Trace("Add Ebtables rule")
 	if err := v.addEbtablesRule(); err != nil {
 		return err
 	}
 
+	tracer.Trace("Add Static route")
 	if err := v.addStaticRoute(); err != nil {
 		return err
 	}
