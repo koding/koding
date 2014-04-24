@@ -63,8 +63,12 @@ func ListTopics(u *url.URL, h http.Header, _ interface{}) (int, http.Header, int
 		return helpers.NewBadRequestResponse(err)
 	}
 
-	res := models.PopulateChannelContainers(popularTopics, query.AccountId)
-	return helpers.NewOKResponse(res)
+	return helpers.NewOKResponse(
+		models.PopulateChannelContainers(
+			popularTopics,
+			query.AccountId,
+		),
+	)
 }
 
 func extendPopularTopicsIfNeeded(query *models.Query, popularTopics []int64) ([]int64, error) {

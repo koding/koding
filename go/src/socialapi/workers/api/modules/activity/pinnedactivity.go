@@ -18,12 +18,12 @@ func GetPinnedActivityChannel(u *url.URL, h http.Header, _ interface{}) (int, ht
 		return helpers.NewBadRequestResponse(fmt.Errorf("Account id is not set for fetching pinned activity channel"))
 	}
 
-	c, err := ensurePinnedActivityChannel(query.AccountId, query.GroupName)
-	if err != nil {
-		return helpers.NewBadRequestResponse(err)
-	}
-
-	return helpers.NewOKResponse(c)
+	return helpers.HandleResultAndError(
+		ensurePinnedActivityChannel(
+			query.AccountId,
+			query.GroupName,
+		),
+	)
 }
 
 func checkPinMessagePrerequisites(channel *models.Channel, pinRequest *models.PinRequest) error {
@@ -56,12 +56,7 @@ func PinMessage(u *url.URL, h http.Header, req *models.PinRequest) (int, http.He
 		return helpers.NewBadRequestResponse(err)
 	}
 
-	cml, err := c.AddMessage(req.MessageId)
-	if err != nil {
-		return helpers.NewBadRequestResponse(err)
-	}
-
-	return helpers.NewOKResponse(cml)
+	return helpers.HandleResultAndError(c.AddMessage(req.MessageId))
 }
 
 func List(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface{}, error) {
@@ -99,12 +94,9 @@ func UnpinMessage(u *url.URL, h http.Header, req *models.PinRequest) (int, http.
 		return helpers.NewBadRequestResponse(err)
 	}
 
-	cml, err := c.RemoveMessage(req.MessageId)
-	if err != nil {
-		return helpers.NewBadRequestResponse(err)
-	}
-
-	return helpers.NewOKResponse(cml)
+	return helpers.HandleResultAndError(
+		c.RemoveMessage(req.MessageId),
+	)
 }
 
 func validatePinRequest(req *models.PinRequest) error {

@@ -69,3 +69,5 @@ logs/*.log
 node_modules_koding/processes/src/.tmp*
 
 website/a/sprites/*.sprite.png
+
+client/Main/__generated*
