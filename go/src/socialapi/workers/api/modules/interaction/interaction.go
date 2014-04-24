@@ -40,8 +40,6 @@ func Add(u *url.URL, h http.Header, req *models.Interaction) (int, http.Header, 
 
 	// to-do check uniqness before saving
 	if err := req.Create(); err != nil {
-		fmt.Println(err)
-
 		return helpers.NewBadRequestResponse(err)
 	}
 
@@ -73,10 +71,7 @@ func List(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface
 	// set message id
 	req.MessageId = messageId
 
-	interactions, err := req.List("like")
-	if err != nil {
-		return helpers.NewBadRequestResponse(err)
-	}
-
-	return helpers.NewOKResponse(interactions)
+	return helpers.HandleResultAndError(
+		req.List("like"),
+	)
 }

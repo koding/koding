@@ -111,15 +111,13 @@ func (a *Account) Follow(targetId int64) (*ChannelParticipant, error) {
 	return nil, err
 }
 
-func (a *Account) Unfollow(targetId int64) error {
+func (a *Account) Unfollow(targetId int64) (*Account, error) {
 	c, err := a.FetchChannel(Channel_TYPE_FOLLOWERS)
 	if err != nil {
-		fmt.Println(1, err)
-		return err
+		return nil, err
 	}
-	fmt.Println(2)
 
-	return c.RemoveParticipant(targetId)
+	return a, c.RemoveParticipant(targetId)
 }
 
 func (a *Account) FetchFollowerIds() ([]int64, error) {

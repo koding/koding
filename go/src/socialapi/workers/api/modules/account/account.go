@@ -25,7 +25,9 @@ func ListChannels(u *url.URL, h http.Header, _ interface{}) (int, http.Header, i
 		return helpers.NewBadRequestResponse(err)
 	}
 
-	return helpers.NewOKResponse(models.PopulateChannelContainers(channels, accountId))
+	return helpers.NewOKResponse(
+		models.PopulateChannelContainers(channels, accountId),
+	)
 }
 
 func ListProfileFeed(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface{}, error) {
@@ -88,12 +90,9 @@ func Follow(u *url.URL, h http.Header, req *models.Account) (int, http.Header, i
 		return helpers.NewBadRequestResponse(err)
 	}
 
-	cp, err := req.Follow(targetId)
-	if err != nil {
-		return helpers.NewBadRequestResponse(err)
-	}
-
-	return helpers.NewOKResponse(cp)
+	return helpers.HandleResultAndError(
+		req.Follow(targetId),
+	)
 }
 
 func Register(u *url.URL, h http.Header, req *models.Account) (int, http.Header, interface{}, error) {
@@ -111,10 +110,16 @@ func Unfollow(u *url.URL, h http.Header, req *models.Account) (int, http.Header,
 		return helpers.NewBadRequestResponse(err)
 	}
 
-	if err := req.Unfollow(targetId); err != nil {
+	return helpers.HandleResultAndError(req.Unfollow(targetId))
+}
+
+func MarkAsTroll(u *url.URL, h http.Header, req *models.Account) (int, http.Header, interface{}, error) {
+	targetId, err := helpers.GetURIInt64(u, "id")
+	if err != nil {
 		return helpers.NewBadRequestResponse(err)
 	}
 
-	// req shouldnt be returned?
-	return helpers.NewOKResponse(req)
+	return helpers.HandleResultAndError(
+		req.Unfollow(targetId),
+	)
 }
