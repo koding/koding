@@ -33,7 +33,7 @@ resurrection.activity.styl
 
   > main
     size                689px, auto
-    kalc                margin-left, \(\(100% \- 935px\)\/2\)\+280px
+    kalc                margin-left, \(\(100% \- 935px\)\/2\)\+299px
     padding-left        40px
     borderBox()
     fl()
@@ -183,259 +183,199 @@ resurrection.activity.styl
   > aside
     left                0
     top                 55px
-    size                270px 100%
+    width               299px
     kalc                height, (100% \- 55px)
     kalc                margin-left, \(100% \- 935px\)\/2
+    z-index             10
     borderBox()
     fix()
 
     .kdview.kdscrolltrack
-      bg                color, transparent
-      overflow          visible
+      bg                  color, transparent
+      overflow            visible
       .kdscrollthumb
-        bg              color, rgba(0,0,0,.1)
-        margin          0 4px
-        width           7px
-        rounded         6px
+        bg                color, rgba(0,0,0,.1)
+        margin            0 4px
+        width             7px
+        rounded           6px
 
     > main
-      width             250px
-
-      > section
-        size              auto, auto
-        margin            33px 0 0
-        padding-left      11px
-
-        .kdview.kdlistview
-          margin-left     -11px
-
-        &.hot      h3 > figure
-          r-sprite        'activity' 'sidebar-hot'
-
-        &.chat     h3 > figure
-          r-sprite        'activity' 'sidebar-chat'
-
-        &.threads  h3 > figure
-          r-sprite        'activity' 'sidebar-threads'
-
-        &.inbox    h3 > figure
-          r-sprite        'activity' 'sidebar-inbox'
-
-        &.followed h3 > figure
-          r-sprite        'activity' 'sidebar-followed'
-
-        hr
-          size            100% 2px
-          display         block
-          top             10px
-          bg              color #cecece
-          border          none
-          margin          0
-          z-index         0
-          abs()
-
-        h3
-          z-index         1
-          display         inline-block
-          font-size       13px
-          font-weight     500
-          color           logoBg
-          bg              color #e4e4e4
-          letter-spacing  .2px
-          padding         0 8px 0 25px
-          text-transform  uppercase
-          line-height     22px
-          rel()
-
-          figure
-            top           3px
-            left          0
-            abs()
-
-          .show-all-link
-            color         #a1a1a1
-            font-weight   200
-            font-size     12px
-            noTextDeco()
-            fr()
-
-        .profile
-        .user-numbers
-          display         block
-          float           none
-
-        .profile
-          color           logoBg
-
-        .user-numbers
-          margin          0
-          color           #585858
-          font-size       12px
-          span
-            font-weight   200
-
-    section.users
-      .kdlistitemview-sidebar-item
-        margin            0
-        padding-left      51px
-
-      &.chat
-        .kdlistview
-          padding         20px 0
-
-        .kdlistitemview-sidebar-item
-          padding         5px 0 5px 51px
-          height          40px
-          min-height      40px
-          margin-bottom   0
-
-          .avatarview
-            left          11px
-            top           5px
-            abs()
-
-          &.online
-            .profile:after
-              bg          color logoBg
-
-          .profile:after
-            size          10px 10px
-            bg            color #c8c8c8
-            top           15px
-            right         11px
-            content       " "
-            rounded       5px
-            abs()
-
-        .user-numbers
-          hidden()
-
-        .profile
-          padding-top     3px
-          line-height     27px
-
-    section.topics
-      &.followed
-        .follow-btn
-          hidden()
+      width               294px
+      font-family         openSansFamily
 
       .kdlistitemview-sidebar-item
-        margin          0
+        size              263px, 30px
+        padding           5px 5px 5px 9px
+        rounded           4px
+        font-size         14px
+        vendor            box-sizing, content-box
+        overflow          visible
+        position          relative
+        display           block
+        color             #4c4c4c
 
-      .follow-btn
-        top             16px
-
-      .tag-info
-        line-height     19px
-        font-size       12px
-        font-weight     200
-        color           #9a9a9a
-
-    a.kdlistitemview-sidebar-item
-      margin-top        33px
-      height            auto
-      noTextDeco()
-
-    .kdlistitemview-sidebar-item
-      size              auto 60px
-      position          relative
-      padding           14px 11px
-      overflow          visible
-      color             #3c4752
-      font-weight       400
-      font-size         13px
-      letter-spacing    .2px
-      cursor            pointer
-      rounded           3px
-      display           block
-      borderBox()
-
-      &:hover
-      &.selected
-        bg              color #efefef
-
-
-      .action
-        overflow        visible
-        line-height     18px
-        vCenter()
-
-        .kdview
-          font-weight   300
-
-      .text-overflow
-        overflow        hidden
-        text-overflow   ellipsis
-
-      a
-        color           inherit
-        white-space     nowrap
-        display         block
+      a.kdlistitemview-sidebar-item
         noTextDeco()
 
-        &.profile
-          font-weight   500
-          line-height   15px
+        &.public-feed-link
+          margin-top      31px
+          color           #6a6a6a
+          border          1px solid #1aaf5d
+          font-weight     600
+          line-height     30px
 
+      > section
+        size              294px, auto
+        overflow          visible
+        margin            0 0 3px 0
 
-      .ttag
-        display       block
-        overflow      hidden
-        text-overflow ellipsis
-        width         240px
-        line-height   14px
+        > h3
+          font-weight     600
+          size            263px, 30px
+          padding         5px 5px 5px 9px
+          line-height     30px
+          font-size       12px
+          color           #1aaf5d
+          text-transform  uppercase
 
-      .avatarview
-        size            30px 30px
-        display         block
-        left            11px
-        top             15px
-        abs()
+          &:after
+            content         ""
+            display         inline-block
+            size            15px, 2px
+            background      #cecece
+            margin          -2px 0 0 8px
+            vertical-align  middle
 
-      .follow-btn
-        size            25px, 25px
-        padding         0
-        rounded         13px
-        bg              color, transparent
-        border          2px solid #b5b5b5
-        right           10px
-        overflow        hidden
-        vendor          transition, width .1s ease \,\
-                                    border-color .3s ease
-        abs()
-        .icon
-          padding       0
-          r-sprite      activity, "follow-check"
-          top           6px
-          left          8px
-          abs()
+          a
+            font-size       10px
+            font-weight     600
+            color           #bebebe
+            margin          0 7px 0 0
+            fr()
 
-        .button-title
-          opacity       0
-          right         0
-          top           4px
-          font-size     12px
-          color         #b5b5b5
-          vendor        transition, opacity .4s ease
-          abs()
-    .kdbuttonwithmenu-wrapper.ticker-settings-menu
-        abs()
-        top                 26px
-        right               2px
-        size                21px 21px
-        padding             0
-        button.kdbutton
-          size              21px 21px
-          bg                color transparent
-          border            none
-          padding           0
-          padding-right     0 !important
-          span.icon
-            hidden()
-        .chevron-separator
-          hidden()
-        .chevron
-          r-sprite    activity chevron-icon
+        .kdlistview
+          overflow        visible
+
+        &.topics
+          .ttag
+            display       block
+            font-weight   500
+            color         #4c4c4c
+            margin        1px 0 4px 0
+
+          .tag-info
+            display       block
+            font-weight   300
+            color         #949494
+            font-size     12px
+
+          .topic-follow-btn
+            size          24px, 18px
+            border        1px solid #b1b1b1
+            abs           11px 12px 0 0
+            background    transparent
+            shadow        none
+            outline       none
+            rounded       3px
+            margin        0
+            padding       0
+            borderBox()
+
+            .icon
+              display     block
+              r-sprite    "activity", "check-9"
+              margin      0 auto
+              padding     0
+              float       none
+
+            .button-title
+              hidden()
+
+            &.following
+              border      none
+
+              .icon
+                r-sprite  "activity", "check-green-9"
+
+        &.users
+          .kdlistitemview-sidebar-item
+            min-height    0
+            margin        0
+
+            > .profile
+              display     block
+              float       none
+              padding     0 0 0 41px
+              width       100%
+              borderBox()
+
+            > .user-numbers
+              padding     0 0 0 41px
+              width       100%
+              font-weight 300
+              color       #949494
+              margin-top  1px
+              borderBox()
+
+              span
+                font-weight inherit
+                color       inherit
+
+          .avatarview
+            top             6px
+            left            10px
+
+          &.chat
+            .kdlistitemview-member
+              .profile
+                line-height  30px
+
+              .online-status
+                abs          18px 13px 0 0
+                size         7px, 7px
+                background   #c3c3c3
+                rounded      50%
+
+                &.online
+                  background #28b366
+
+      a.public-feed-link.selected
+        color               #fff
+
+      .kdlistitemview-sidebar-item.selected
+        background          #1aaf5d
+
+        &:after
+          content           ""
+          display           block
+          border            6px solid transparent
+          border-left-color #1aaf5d
+          abs               50% 0 0 100%
+          vendor            transform, translateY(-50%)
+
+        .profile
+          color             #fff
+
+        .user-numbers
+          color             #d1efdf !important
+
+        .online-status.online
+          background        #fff !important
+
+        .ttag
+          color             #fff
+
+        .tag-info
+          color             #d1efdf
+
+        .topic-follow-btn
+          border-color      #e9e9e9
+
+          .icon
+            r-sprite        "activity", "check-white-9"
+
+          &.following .icon
+            r-sprite        "activity", "check-white-9"
 
 div.kdtooltip.activity-helper
   code
@@ -455,7 +395,7 @@ div.kdtooltip.activity-helper
 
 .activity-input-widget
   size                auto auto
-  margin              0
+  margin              0 0 30px 0
   overflow            visible
 
   .help-container
@@ -473,49 +413,64 @@ div.kdtooltip.activity-helper
       noTextDeco()
 
   .avatarview
-    top               6px
-    left              6px
+    top               10px
+    left              14px
     z-index           2
     abs()
 
   .input-view
-    rounded           5px
     borderBox()
 
     > div
+      rounded         4px
       size            100% auto
       min-height      45px
       line-height     16px
-      font-size       14px
+      font-size       12px
       color           #3c4752
-      padding         15px 100px 14px 56px
+      padding         22px 22px 22px 68px
       background      #fff
+      border          1px solid #d6d6d6
       borderBox()
 
     &.placeholder
       > div
-        color         #acacac
+        color         #9d9d9d
 
-    .preview-icon
-      display         block
-      abs             0 48px 16px 0
-      r-sprite        "activity", "preview-eye"
-      cursor          pointer
+      & + .widget-button-bar
+        hidden()
+
+    &:not(.placeholder)
+      >div
+        border-bottom 1px solid #e4e4e4
+        rounded       4px 4px 0 0
+
+      & + .widget-button-bar
+        show()
+
+  .widget-button-bar
+    size              100%, 43px
+    border            1px solid #d6d6d6
+    border-top        none
+    background        #f4f4f4
+    rounded           0 0 4px 4px
+    padding           8px 9px 0
+    margin            -2px 0 0
+    borderBox()
 
     button[type=submit]
-      size            30px, 30px
-      abs             0 9px 8px 0
-      padding         0
-      z-index         1
-      text-align      center
-
-      &.solid.green .icon
-        margin        0 !important
-        abs           7px 0 0 7px
-        r-sprite      activity, "update-bubble"
+      rounded         40px
+      fr()
 
       &[disabled=disabled]
         bg            color, #DDD !important
+
+    .preview-icon
+      display         block
+      r-sprite        "activity", "markdown"
+      margin          4px 9px 0 0
+      cursor          pointer
+      fr()
 
   &.preview-active
     .input-view > div
@@ -566,456 +521,579 @@ span.collapsedtext
       padding         0
 
 /* Activity items */
+
 .kdlistitemview-activity.hidden-item
   hidden()
 
 .activity-item
-  background      #fff
-  rounded         6px
-  overflow        visible
-  position        relative
-  margin          31px 0 11px 0
-  border          1px solid #d8d8d8
-  shadow          1px 1px 0 rgba(196, 196, 196, .75)
-  borderBox()
+  margin-bottom             32px
 
-  &:first-child
-    margin-top    15px
+  .activity-content-wrapper
+    background              #fff
+    rounded                 6px 6px 0 0
+    border-top              1px solid transparent
+    position                relative
 
-  &.content-display-main-section /* Content display */
-    kalc          width, 100% \- 100px
-    margin-left   100px
+    .settings-menu-wrapper
+      abs                   22px 24px 0 0
+      size                  15px 10px
 
-  a.ttag
-    color         #3aaaab
-    noTextDeco()
-    span:before
-      content     '#'
+      .kdbuttonwithmenu-wrapper.activity-settings-menu
+        size                15px 10px
+        padding             0
+        button.kdbutton
+          size              15px 10px
+          bg                color transparent
+          border            none
+          padding           0
+          padding-right     0 !important
+          cursor            pointer
+        .chevron-separator
+          hidden()
+        .chevron
+          r-sprite          activity chevron-icon
 
-  .kdbuttonwithmenu-wrapper.activity-settings-menu
-    abs()
-    top                 8px
-    right               11px
-    size                21px 21px
-    padding             0
-    button.kdbutton
-      size              21px 21px
-      bg                color transparent
-      border            none
-      padding           0
-      padding-right     0 !important
-      span.icon
-        hidden()
-    .chevron-separator
-      hidden()
-    .chevron
-      r-sprite    activity chevron-icon
+    .author-avatar
+      abs                 12px 0 0 12px
+      border              2px solid #e9e9e9
+      display             block
 
-  > .meta
-    overflow        hidden
-    height          55px
-    top             20px
-    left            90px
-    color           rgba(0,0,0,.3)
-    font-size       12px
-    font-weight     400
-    abs()
-
-
-    .profile
-    time
-      display       inline
-
-    .profile
-      color         #1aaf5d
-      font-size     14px
-      line-height   20px
-      font-weight   400
-      margin        10px 0 2px
-      display       block
-      noTextDeco()
-
-
-  .author-avatar
-    margin        20px 20px 12px
-    size          55px 55px
-
-  .profile
-  > article
-    display       block
-    color         #3c4752
-    font-weight   200
-    word-break    break-word
-
-  > article
-    // to avoid too long posts
-    // until we find a better solution - SY
-    overflow          auto
-    max-height        400px
-    line-height       22px
-
-
-  .edit-widget-wrapper
-    margin        14px
-    border        1px solid #ececec
-    background    #f6f6f6
-
-    div[contenteditable = "true"]
-      bg             color, #fdfdfd
-      padding        14px
-      border-bottom  1px solid #ececec
-      color          #3c4752
-      borderBox()
-
-      &:focus
-        outline      none
-
-    button
-      size        auto, 25px
-      padding     0 10px
-      margin      8px 8px 8px 0
-      fr()
-
-      .button-title
-        line-height     25px
-        font-size       12px
-        font-weight     300
-
-    &:not(.hidden) ~ .status-body
-      display      none
-
-  .activity-actions
-    margin            0px 20px 13px
-    borderBox()
-
-    .action-link
-      display         inline-block
-      font-size       12px
-      line-height     20px
-      color           rgba(166,171,177,.88)
-      noTextDeco()
-
-    .action-container
-      margin-right    13px
-
-      &.liked .action-link
-        color         #2db66a
-        opacity       .8
-
-    .count
-      font-size       12px
-      display         inline-block
-      color           #9da0a4
-      margin          0 0 0 6px
-      noTextDeco()
-
-  .comment-container
-    bg                color, #f6f6f6
-    rounded           0 0 5px 5px
-
-    .activity-settings-menu
-      top           22px
-      right         21px
-      opacity       0
-      transition    opacity .2s ease
-      abs()
-
-
-  .comment-container.commented
-    border-top        1px solid #d8d8d8
-
-    .show-more-comments
-      size            auto, 40px
-      line-height     40px
-      bg              color, #ececec
-      border-top      1px solid #d8d8d8
-      border-bottom   1px solid #d8d8d8
-      text-align      center
-      margin          -1px 0 0 0
-
-      a
-        display         block
-        width           auto 55px
-        color           rgba(78, 78, 78, .78)
-        font-size       13px
-        letter-spacing  .2px
-        noTextDeco()
-
-      &.new
-        bg              color, #2eb398
-
-        a
-          color         #fff
-
-  .kdlistitemview-comment
-    padding           22px 22px 17px 20px
-    borderBox()
-
-    &:hover
-      .activity-settings-menu
-        opacity         .5
-        &:hover
-          opacity       1
-
-    &:last-of-type
-      padding-bottom  26px
-
-    .avatarview
-      // border          1px solid #bdc3c7
-      top             22px
-      left            20px
-      borderBox()
-      abs()
-
-    .comment-contents
-      size            auto, auto
-      margin          0 0 0 56px
-      font-size       13px  !important
-      font-weight     400   !important
-      color           #515b65
+    .meta
+      margin              20px 0 6px 67px
 
       .profile
-        display       inline-block
-        color         #1aaf5d
-        font-weight   500
-        margin        3px 0 6px 0
-        font-weight   400
+        color             #1aaf5d
+        font-weight       600
+        font-size         14px
         noTextDeco()
-
-      .comment-body-container
-        > p
-          word-break  break-word
-          line-height 17px
-          font-weight 200
-
-          a
-            color     inherit
-
-      .edited
-        display       block
-        font-size     12px
-        color         #cacaca
-        margin        6px 0 0
-
-      .like-view
-      .reply-link
-      time
-        font-size         11px
-        display           inline-block
-        margin            12px 0 0
-        width             auto
-        font-weight       200
-
-      .reply-link
-        margin-left       15px
-        position          relative
-
-        &:before
-          content         "\2022"
-          display         block
-          font-size       14px
-          left            -14px
-          top             -1px
-          color           #d8d8d8
-          abs()
-
-      .like-view a
-      .reply-link
-        color           #a6abb1
-        noTextDeco()
-
-        &.count
-          display       inline-block
-          margin        0 0 0 9px
-          font-weight   500
-
-      .like-view.liked a
-        color           #1aaf5d
-
-      time
-        fr()
-        opacity         0
-        vendor          transition, opacity .2s ease
-        color           #a5acad
-
-    &:hover
-      time
-        opacity         1
-
-    &~.kdlistitemview-comment
-      padding-top       0
-      border-top        1px solid #d8d8d8
-
-      .comment-contents
-        padding-top     22px
-
-    &.deleted
-      width           auto
-      padding         16px 0
-      margin          0 23px 0 81px
-      font-size       12px
-      color           #717e80
-      .profile
-        display       inline
-
-    &~.deleted
-      border-top      1px solid #eeeeef
-
-
-  .item-add-comment-box
-  .edit-comment-box
-    borderBox()
-
-    .avatarview
-      size        35px, 35px
-      display     block
-      left        5px
-      top         5px
-      z-index     2
-      abs()
-
-    .item-add-comment-form
-      margin      -1px
-      size        auto, auto
-
-      textarea
-        size          100% 47px
-        min-height    47px
-        border        1px solid #d1d3d3
-        box-shadow    none
-        background    #fff
-        line-height   24px
-        padding       9px 9px 8px 54px
-        color         #50595a
-        font-size     13px
-        rounded       0 0 5px 5px
-        vendor        transition, line-height .2s ease
-        margin-bottom -2px
-
-        &::-webkit-input-placeholder
-          color     #acacac
-        &::-moz-placeholder
-          color     #acacac
-
-        &:focus
-          line-height     24px
-
-    &.edit-comment-box
-      textarea
-        padding           9px
-        rounded           5px
-        margin            4px 0
-
-      .cancel-description
-        font-size         12px
-        color             #cacaca
-
-/* Embed Styles */
-.embed-image-view
-  margin                0 0 18px
-  border-top            2px solid #e4e4e4
-
-  a
-  img
-    display             block
-    margin              0
-    padding             0
-
-.embed-link-view
-  padding               1px 19px 19px
-  border-top            1px solid transparent
-
-  .preview-image
-    overflow            hidden
-    size                144px, 100px
-    fl()
-
-    img
-      max-width         100%
-
-    &+.preview-text
-      kalc              width, 100% \- 144px
-
-  .preview-text
-    font-size           12px
-    font-weight         300
-    color               #50595a
-    bg                  color, #f3f3f3
-    height              100px
-    padding             15px
-    borderBox()
-    fl()
-
-    .preview-text-link
-      size              auto, auto
-      color             inherit
-      display           block
-      word-break        break-word
-      overflow          visible
-      noTextDeco()
-
-      .preview-title
-        font-weight     500
-
-      &.description
-        padding         13px 0
-        line-height     15px
-        height          45px
-        overflow        hidden !important
-        borderBox()
-
-        .description-input
-          width         100%
-          margin        15px 0 0 0
-
-    .provider-info
-      size              auto, auto
-      margin-top        8px
-      font-size         12px
-      color             #a9aeaf
-
-  .preview-link-pager
-    .preview-link-switch
-      size                  24px 24px
-      margin                9px 0 0
-      rounded               5px 0 0 5px
-      background            #f7f7f7
-      position              relative
-      cursor                pointer
-      fl()
-
-      &:hover
-        opacity             .9
-
-      &:after
-        content             ""
-        size                0 0
-        border              6px solid transparent
-        border-right-color  #aab5bc
-        left                3px
-        top                 6px
-        abs()
-
-      &:nth-child(2)
-        margin-left         2px
-        rounded             0 5px 5px 0
 
         &:after
-          left              9px
-          border-right      none
-          border-left-color #aab5bc
+          content         ""
+          display         block
 
-    .thumb-count
-      margin                9px 0 0 7px
-      line-height           24px
-      font-size             14px
-      color                 #7a8287
-      fl()
+      time
+        color             #999999
+        font-size         12px
+        font-weight       400
 
-    .thumb-text
-      font-size             12px
-      vertical-align        middle
-      color                 #aab5bc
+        &:after
+          content         ""
+          display         inline-block
+          size            3px, 3px
+          rounded         50%
+          background      #d3d3d3
+          font-size       8px
+          margin          0 3px 0 5px
+          vertical-align  middle
+
+      .location
+        color             #999999
+        font-size         12px
+        font-weight       400
+
+    > article
+      line-height         19px
+      font-size           14px
+      color               #4c4c4c
+      font-weight         400
+      word-break          break-word
+      // to avoid too long posts
+      // until we find a better solution - SY
+      overflow            auto
+      max-height          400px
+      opacity             .99
+
+    .activity-actions
+      padding             0 0 14px 14px
+
+      a
+        noTextDeco()
+
+      a.action-link
+        font-size         12px
+        color             #9c9c9c
+        font-weight       400
+
+      .action-container~.action-container:before
+        content           ""
+        display           inline-block
+        size              3px, 3px
+        rounded           50%
+        background        #d3d3d3
+        font-size         8px
+        margin            0 3px 0 5px
+        vertical-align    middle
+
+  .comment-container
+    .item-add-comment-box
+      position            relative
+
+      .avatarview
+        abs               12px 0 0 12px
+        border            2px solid #e9e9e9
+        display           block
+        z-index           2
+
+      textarea
+        background        #fff
+        min-height        64px
+        rounded           0 0 6px 6px
+        border            none
+        border-top        1px solid #e9e9e9
+        margin            0
+        padding           23px 23px 11px 67px
+        font-size         12px
+        color             #b2b2b2
+
+
+
+/* Activity items */
+// .kdlistitemview-activity.hidden-item
+//   hidden()
+
+// .activity-item
+//   background      #fff
+//   rounded         6px
+//   overflow        visible
+//   position        relative
+//   margin          0 0 30px
+//   border          1px solid #d3d3d3
+//   borderBox()
+
+//   &.content-display-main-section /* Content display */
+//     kalc          width, 100% \- 100px
+//     margin-left   100px
+
+//   a.ttag
+//     color         #3aaaab
+//     noTextDeco()
+//     span:before
+//       content     '#'
+
+//   .kdbuttonwithmenu-wrapper.activity-settings-menu
+//     abs()
+//     top                 8px
+//     right               11px
+//     size                21px 21px
+//     padding             0
+//     button.kdbutton
+//       size              21px 21px
+//       bg                color transparent
+//       border            none
+//       padding           0
+//       padding-right     0 !important
+//       span.icon
+//         hidden()
+//     .chevron-separator
+//       hidden()
+//     .chevron
+//       r-sprite    activity chevron-icon
+
+//   > .meta
+//     overflow        hidden
+//     height          55px
+//     top             7px
+//     left            66px
+//     color           rgba(0,0,0,.3)
+//     font-size       12px
+//     font-weight     400
+//     abs()
+
+
+//     .profile
+//     time
+//       display       inline
+
+//     .profile
+//       color         #1aaf5d
+//       font-size     14px
+//       line-height   20px
+//       font-weight   400
+//       margin        10px 0 2px
+//       display       block
+//       noTextDeco()
+
+
+//   .author-avatar
+//     margin        14px 0 0 14px
+//     size          42px 42px
+
+//   .profile
+//   > article
+//     display       block
+//     color         #3c4752
+//     font-weight   200
+//     word-break    break-word
+
+//   > article
+//     // to avoid too long posts
+//     // until we find a better solution - SY
+//     overflow          auto
+//     max-height        400px
+//     line-height       22px
+
+
+//   .edit-widget-wrapper
+//     margin        14px
+//     border        1px solid #ececec
+//     background    #f6f6f6
+
+//     div[contenteditable = "true"]
+//       bg             color, #fdfdfd
+//       padding        14px
+//       border-bottom  1px solid #ececec
+//       color          #3c4752
+//       borderBox()
+
+//       &:focus
+//         outline      none
+
+//     button
+//       size        auto, 25px
+//       padding     0 10px
+//       margin      8px 8px 8px 0
+//       fr()
+
+//       .button-title
+//         line-height     25px
+//         font-size       12px
+//         font-weight     300
+
+//     &:not(.hidden) ~ .status-body
+//       display      none
+
+//   .activity-actions
+//     margin            0px 14px 13px
+//     borderBox()
+
+//     .action-link
+//       display         inline-block
+//       font-size       12px
+//       line-height     20px
+//       color           rgba(166,171,177,.88)
+//       noTextDeco()
+
+//     .action-container
+//       margin-right    13px
+
+//       &.liked .action-link
+//         color         #2db66a
+//         opacity       .8
+
+//     .count
+//       font-size       12px
+//       display         inline-block
+//       color           #9da0a4
+//       margin          0 0 0 6px
+//       noTextDeco()
+
+//   .comment-container
+//     bg                color, #f6f6f6
+//     rounded           0 0 5px 5px
+
+//     .activity-settings-menu
+//       top           22px
+//       right         21px
+//       opacity       0
+//       transition    opacity .2s ease
+//       abs()
+
+
+//   .comment-container.commented
+//     border-top        1px solid #d8d8d8
+
+//     .show-more-comments
+//       size            auto, 40px
+//       line-height     40px
+//       bg              color, #ececec
+//       border-top      1px solid #d8d8d8
+//       border-bottom   1px solid #d8d8d8
+//       text-align      center
+//       margin          -1px 0 0 0
+
+//       a
+//         display         block
+//         width           auto 55px
+//         color           rgba(78, 78, 78, .78)
+//         font-size       13px
+//         letter-spacing  .2px
+//         noTextDeco()
+
+//       &.new
+//         bg              color, #2eb398
+
+//         a
+//           color         #fff
+
+//   .kdlistitemview-comment
+//     padding           22px 22px 17px 20px
+//     borderBox()
+
+//     &:hover
+//       .activity-settings-menu
+//         opacity         .5
+//         &:hover
+//           opacity       1
+
+//     &:last-of-type
+//       padding-bottom  26px
+
+//     .avatarview
+//       // border          1px solid #bdc3c7
+//       top             22px
+//       left            20px
+//       borderBox()
+//       abs()
+
+//     .comment-contents
+//       size            auto, auto
+//       margin          0 0 0 56px
+//       font-size       13px  !important
+//       font-weight     400   !important
+//       color           #515b65
+
+//       .profile
+//         display       inline-block
+//         color         #1aaf5d
+//         font-weight   500
+//         margin        3px 0 6px 0
+//         font-weight   400
+//         noTextDeco()
+
+//       .comment-body-container
+//         > p
+//           word-break  break-word
+//           line-height 17px
+//           font-weight 200
+
+//           a
+//             color     inherit
+
+//       .edited
+//         display       block
+//         font-size     12px
+//         color         #cacaca
+//         margin        6px 0 0
+
+//       .like-view
+//       .reply-link
+//       time
+//         font-size         11px
+//         display           inline-block
+//         margin            12px 0 0
+//         width             auto
+//         font-weight       200
+
+//       .reply-link
+//         margin-left       15px
+//         position          relative
+
+//         &:before
+//           content         "\2022"
+//           display         block
+//           font-size       14px
+//           left            -14px
+//           top             -1px
+//           color           #d8d8d8
+//           abs()
+
+//       .like-view a
+//       .reply-link
+//         color           #a6abb1
+//         noTextDeco()
+
+//         &.count
+//           display       inline-block
+//           margin        0 0 0 9px
+//           font-weight   500
+
+//       .like-view.liked a
+//         color           #1aaf5d
+
+//       time
+//         fr()
+//         opacity         0
+//         vendor          transition, opacity .2s ease
+//         color           #a5acad
+
+//     &:hover
+//       time
+//         opacity         1
+
+//     &~.kdlistitemview-comment
+//       padding-top       0
+//       border-top        1px solid #d8d8d8
+
+//       .comment-contents
+//         padding-top     22px
+
+//     &.deleted
+//       width           auto
+//       padding         16px 0
+//       margin          0 23px 0 81px
+//       font-size       12px
+//       color           #717e80
+//       .profile
+//         display       inline
+
+//     &~.deleted
+//       border-top      1px solid #eeeeef
+
+
+//   .item-add-comment-box
+//   .edit-comment-box
+//     borderBox()
+
+//     .avatarview
+//       size        35px, 35px
+//       display     block
+//       left        5px
+//       top         5px
+//       z-index     2
+//       abs()
+
+//     .item-add-comment-form
+//       margin      0 -1px -1px -1px
+//       size        auto, auto
+
+//       textarea
+//         size          100% 65px
+//         min-height    47px
+//         border        1px solid #d1d3d3
+//         box-shadow    none
+//         background    #fff
+//         line-height   24px
+//         padding       9px 9px 8px 54px
+//         color         #50595a
+//         font-size     13px
+//         rounded       0 0 5px 5px
+//         vendor        transition, line-height .2s ease
+//         margin-bottom -2px
+
+//         &::-webkit-input-placeholder
+//           color     #acacac
+//         &::-moz-placeholder
+//           color     #acacac
+
+//         &:focus
+//           line-height     24px
+
+//     &.edit-comment-box
+//       textarea
+//         padding           9px
+//         rounded           5px
+//         margin            4px 0
+
+//       .cancel-description
+//         font-size         12px
+//         color             #cacaca
+
+// /* Embed Styles */
+// .embed-image-view
+//   margin                0 0 18px
+//   border-top            2px solid #e4e4e4
+
+//   a
+//   img
+//     display             block
+//     margin              0
+//     padding             0
+
+// .embed-link-view
+//   padding               1px 19px 19px
+//   border-top            1px solid transparent
+
+//   .preview-image
+//     overflow            hidden
+//     size                144px, 100px
+//     fl()
+
+//     img
+//       max-width         100%
+
+//     &+.preview-text
+//       kalc              width, 100% \- 144px
+
+//   .preview-text
+//     font-size           12px
+//     font-weight         300
+//     color               #50595a
+//     bg                  color, #f3f3f3
+//     height              100px
+//     padding             15px
+//     borderBox()
+//     fl()
+
+//     .preview-text-link
+//       size              auto, auto
+//       color             inherit
+//       display           block
+//       word-break        break-word
+//       overflow          visible
+//       noTextDeco()
+
+//       .preview-title
+//         font-weight     500
+
+//       &.description
+//         padding         13px 0
+//         line-height     15px
+//         height          45px
+//         overflow        hidden !important
+//         borderBox()
+
+//         .description-input
+//           width         100%
+//           margin        15px 0 0 0
+
+//     .provider-info
+//       size              auto, auto
+//       margin-top        8px
+//       font-size         12px
+//       color             #a9aeaf
+
+//   .preview-link-pager
+//     .preview-link-switch
+//       size                  24px 24px
+//       margin                9px 0 0
+//       rounded               5px 0 0 5px
+//       background            #f7f7f7
+//       position              relative
+//       cursor                pointer
+//       fl()
+
+//       &:hover
+//         opacity             .9
+
+//       &:after
+//         content             ""
+//         size                0 0
+//         border              6px solid transparent
+//         border-right-color  #aab5bc
+//         left                3px
+//         top                 6px
+//         abs()
+
+//       &:nth-child(2)
+//         margin-left         2px
+//         rounded             0 5px 5px 0
+
+//         &:after
+//           left              9px
+//           border-right      none
+//           border-left-color #aab5bc
+
+//     .thumb-count
+//       margin                9px 0 0 7px
+//       line-height           24px
+//       font-size             14px
+//       color                 #7a8287
+//       fl()
+
+//     .thumb-text
+//       font-size             12px
+//       vertical-align        middle
+//       color                 #aab5bc
 
 .activity-input-widget
   .link-embed-box
@@ -1069,7 +1147,7 @@ span.collapsedtext
         display             none
 
 /** Markdown Styling **/
-.activity-item > article
+.activity-content-wrapper > article
 .activity-input-widget .update-preview
 
   > *
@@ -1120,7 +1198,7 @@ span.collapsedtext
     margin                4px 21px
     padding               0 10px
   p
-    padding               0 21px 6px
+    padding               12px 14px
     word-wrap             break-word
     code
       padding             2px 5px

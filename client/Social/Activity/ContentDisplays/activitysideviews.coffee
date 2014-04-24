@@ -22,6 +22,8 @@ class ActivitySideView extends JView
 
     @listView    = @listController.getView()
     @showAllLink = new KDCustomHTMLView
+      tagName    : "a"
+      partial    : "SHOW ALL"
 
     @listView.once 'viewAppended', =>
       {dataSource} = @getOptions()
@@ -36,8 +38,7 @@ class ActivitySideView extends JView
 
   pistachio: ->
     """
-    <hr>
-    <h3><figure></figure> #{@getOption 'title'}{{> @showAllLink}}</h3>
+    <h3>#{@getOption 'title'}{{> @showAllLink}}</h3>
     {{> @listView}}
     """
 
