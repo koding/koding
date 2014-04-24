@@ -95,12 +95,6 @@ class EnvironmentScene extends KDDiaScene
           @connect {dia : domain , joint : 'right'}, \
                    {dia : vm, joint : 'left' }, yes
 
-    {dias} = @boxes.rules
-    rule = dias[Object.keys(dias).first]
-    for _dkey, domain of domainDias
-      @connect {dia : rule,   joint : 'right'}, \
-               {dia : domain, joint : 'left' }, yes
-
   createApproveModal:(items, action)->
     return unless KD.isLoggedIn()
       new KDNotificationView
