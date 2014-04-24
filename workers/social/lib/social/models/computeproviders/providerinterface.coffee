@@ -5,7 +5,7 @@ NOT_IMPLEMENTED = ->
   message       = "Not implemented yet."
 
   if arguments.length > 0 and fn = arguments[arguments.length - 1]
-    if typeof fn is 'function' then fn new KodingError message
+    if typeof fn is 'function' then fn new KodingError message, "NotImplemented"
 
   return message
 
