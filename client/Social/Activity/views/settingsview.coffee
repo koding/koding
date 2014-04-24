@@ -10,7 +10,6 @@ class ActivitySettingsView extends KDCustomHTMLView
         cssClass       : 'activity-settings-menu'
         itemChildClass : ActivityItemMenuItem
         title          : ''
-        icon           : yes
         delegate       : this
         iconClass      : "arrow"
         menu           : @settingsMenu data

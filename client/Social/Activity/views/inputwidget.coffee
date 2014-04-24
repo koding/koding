@@ -62,16 +62,19 @@ class ActivityInputWidget extends KDView
 
     @submitButton = new KDButtonView
       type        : "submit"
-      cssClass    : "solid green"
-      iconOnly    : yes
+      title       : "SEND"
+      cssClass    : "solid green small"
       loader      : yes
       callback    : @bound "submit"
 
     @avatar = new AvatarView
       size      :
-        width   : 35
-        height  : 35
+        width   : 42
+        height  : 42
     , KD.whoami()
+
+    @buttonBar = new KDCustomHTMLView
+      cssClass : "widget-button-bar"
 
     @bugNotification = new KDCustomHTMLView
       cssClass : 'bug-notification'
@@ -314,9 +317,10 @@ class ActivityInputWidget extends KDView
 
     @addSubView @avatar
     @addSubView @input
+    @addSubView @buttonBar
     @addSubView @embedBox
     @addSubView @bugNotification
     @addSubView @helpContainer
-    @input.addSubView @submitButton
-    @input.addSubView @previewIcon
+    @buttonBar.addSubView @submitButton
+    @buttonBar.addSubView @previewIcon
     @hide()  unless KD.isLoggedIn()
