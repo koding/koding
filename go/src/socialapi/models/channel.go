@@ -66,7 +66,7 @@ func NewChannel() *Channel {
 		Name:            "Channel" + RandomName(),
 		CreatorId:       0,
 		GroupName:       Channel_KODING_NAME,
-		Purpose:         "Purpose comes here",
+		Purpose:         "",
 		SecretKey:       "",
 		TypeConstant:    Channel_TYPE_DEFAULT,
 		PrivacyConstant: Channel_PRIVACY_PRIVATE,
@@ -80,7 +80,7 @@ func NewPrivateMessageChannel(creatorId int64, groupName string) *Channel {
 	c.Name = RandomName()
 	c.TypeConstant = Channel_TYPE_PRIVATE_MESSAGE
 	c.PrivacyConstant = Channel_PRIVACY_PRIVATE
-	c.Purpose = "Communication over a thread"
+	c.Purpose = ""
 	return c
 }
 
@@ -290,10 +290,10 @@ func (c *Channel) AddMessage(messageId int64) (*ChannelMessageList, error) {
 		return nil, errors.New("Message is already in the channel")
 	}
 
+	// silence record not found err
 	if err != gorm.RecordNotFound {
 		return nil, err
 	}
-	// silence record not found err
 
 	cml.ChannelId = c.Id
 	cml.MessageId = messageId
