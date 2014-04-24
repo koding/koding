@@ -29,7 +29,7 @@ module.exports = class ComputeProvider extends Base
           (signature Object, Function)
         fetchExisting   :
           (signature Object, Function)
-        fetchAvailables :
+        fetchAvailable  :
           (signature Object, Function)
 
   revive = do ->
@@ -65,9 +65,14 @@ module.exports = class ComputeProvider extends Base
 
     provider.ping client, callback
 
+
   @fetchExisting = secure revive (client, options, callback)->
 
     {provider} = options
-    provider.fetchExisting client, options, (err, instances)->
-      return callback err  if err
-      callback null, instances
+    provider.fetchExisting client, options, callback
+
+
+  @fetchAvailable = secure revive (client, options, callback)->
+
+    {provider} = options
+    provider.fetchAvailable client, options, callback
