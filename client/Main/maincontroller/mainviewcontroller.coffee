@@ -93,7 +93,10 @@ class MainViewController extends KDViewController
     mainView = @getView()
 
     fullSizeApps = ['Login']
-    appsWithDock = ['Activity', 'Pricing', 'Topics', 'Members', 'content-display']
+    appsWithDock = [
+      'Activity', 'Pricing', 'Topics', 'Members', 'content-display'
+      'Apps', 'Dashboard', 'Account', 'Environments', 'Bugs'
+    ]
 
     if (isApp = behavior is 'application') or (name in fullSizeApps)
     then KDView.setElementClass html, 'add', 'app'
