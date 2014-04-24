@@ -9,12 +9,8 @@ do ->
 
     '/:name?/Pricing/:section': ({params:{section}}) ->
       handler (app) ->
-        app.createProductForm()
-        {productForm} = app
-        switch section
-          when "Developer" then productForm.showDeveloperPlan()
-          when "Team"      then productForm.showTeamPlan()
-          else (KD.getSingleton "router").handleRoute "/Pricing/Developer", replaceState: yes
+        paneName = section.toUpperCase()
+        app.getView().pricingTypeTabView.showPaneByName paneName
 
     '/:name?/Pricing/CreateGroup': ->
       KD.remote.api.JGroupPlan.hasGroupCredit (err, hasCredit) ->

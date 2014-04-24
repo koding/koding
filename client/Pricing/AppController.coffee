@@ -27,5 +27,16 @@ class PricingAppController extends KDViewController
       view.breadcrumb.showPlan plan, options
       view.addGroupForm()  if "custom-plan" in plan.tags
 
+    view.on 'PlanSelectedFromIntroPage', ({title, price, index}) =>
+
+      log title, price, index
+
+      @productForm.developerPlan.planIndex = index
+      view.showWorkflow()
+      view.hideIntro()
+      @productForm.developerPlan.handleBuy()
+
+
+
   selectPlan: (tag, options) ->
     @productForm.selectPlan tag, options

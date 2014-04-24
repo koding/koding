@@ -34,8 +34,8 @@ class DeveloperPlan extends JView
     @summary.addSubView @price     = new KDCustomHTMLView tagName: "h5"
     # @summary.addSubView @promotion = new KDCustomHTMLView tagName: "p", cssClass: "description"
     @summary.addSubView @buyNow    = new KDButtonView
-      cssClass : "buy-now"
-      style    : "solid green"
+      cssClass : 'buy-now'
+      style    : 'solid green'
       loader   : yes
       title    : "BUY NOW"
       callback : @bound "handleBuy"
@@ -90,14 +90,14 @@ class DeveloperPlan extends JView
     @price.updatePartial desc
 
     {cpu, ram, disk, totalVMs, alwaysOn} = @plans[index]
-    @slider.description.updatePartial """
-      <span>Resource pack contains</span>
-      <cite>#{cpu}x</cite>CPU
-      <cite>#{ram}x</cite>GB RAM
-      <cite>#{disk}</cite>GB Disk
-      <cite>#{totalVMs}x</cite>Total VMs
-      <cite>#{alwaysOn}x</cite>Always on VMs
-    """
+    # @slider.description.updatePartial """
+    # <span>Resource pack contains</span>
+    # <cite>#{cpu}x</cite>CPU
+    # <cite>#{ram}x</cite>GB RAM
+    # <cite>#{disk}</cite>GB Disk
+    # <cite>#{totalVMs}x</cite>Total VMs
+    # <cite>#{alwaysOn}x</cite>Always on VMs
+    # """
 
     # plan = @plans[index]
     # {discount, vm} = plan

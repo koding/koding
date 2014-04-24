@@ -1,4 +1,6 @@
 module.exports = [
+  "views/resourcepack.coffee"
+  "views/packs.coffee"
   "views/developerplan.coffee"
   "views/teamplan.coffee"
   "views/productform.coffee"
