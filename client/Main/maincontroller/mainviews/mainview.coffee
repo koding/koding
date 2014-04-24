@@ -46,7 +46,7 @@ class MainView extends KDView
       partial   : '<cite></cite>'
       click     : (event)=>
         KD.utils.stopDOMEvent event
-        {router} = KD.getSingletons
+        {router} = KD.singletons
         if KD.isLoggedIn()
         then router.handleRoute '/Activity', {entryPoint}
         else router.handleRoute '/'
@@ -94,7 +94,6 @@ class MainView extends KDView
         <a href='/Business'  class='business'>BUSINESS</a>
         <a href='/About'     class='about'>ABOUT</a>
         <a href='/Pricing'   class='pricing'>PRICING</a>
-        <a href='http://blog.koding.com' target='_blank'>BLOG</a>
         <a href='/Login' class='login'>LOGIN</a>
         """
 
