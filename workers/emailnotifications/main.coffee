@@ -159,64 +159,65 @@ prepareEmail = (notification, daily = no, cb, callback=->)->
 
   # Fetch Receiver
   JAccount.one {_id:notification.receiver.id}, (err, receiver)->
-    if err then callback err
-    else
-      # Fetch Receiver E-Mail choices
-      JMailNotification.checkEmailChoice
-        event       : event
-        contentType : contentType
-        username    : receiver.profile.nickname
-      , (err, state, key, email)->
-        if err
-          console.error "Could not load user record"
-          callback err
-        else
-          if not daily and state isnt true
-            log 'User disabled e-mails, ignored for now.'
-            notification.update $set: status: 'postponed', (err)->
-              console.error err if err
-          else
-            # Fetch Sender
-            JAccount.one {_id:notification.sender}, (err, sender)->
-              if err then callback err
-              else
-                # string usually email if sender is not a user
-                sender ?= notification.senderEmail
-                details = {sender, receiver, event, email, key, notification}
-                if event is 'FollowHappened'
-                  cb details
-                else
-                  # Fetch Subject Content
-                  fetchSubjectContent notification.activity, \
-                  (err, subjectContent)->
-                    if err then callback err
-                    else
-                      realContent = subjectContent
-                      # Create object which we pass to template later
-                      details.subjectContent = subjectContent
-                      details.realContent    = realContent
-                      # Fetch Subject Content-Link
-                      # If Subject is a secondary level content like JComment
-                      # we need to get its parent's slug to show link correctly
-                      fetchSubjectContentLink subjectContent, contentType, \
-                      (err, link)->
-                        if err then callback err
-                        else
-                          details.contentLink = link
-                          JGroup.one slug: subjectContent.group, (err, group) ->
-                            return callback err  if err
-                            details.group = group  if group
+    return callback err  if err
+    # Fetch Receiver E-Mail choices
+    JMailNotification.checkEmailChoice
+      event       : event
+      contentType : contentType
+      username    : receiver.profile.nickname
+    , (err, result)->
+      if err
+        console.error "Could not load user record"
+        callback err
+        return
 
-                            if event is 'ReplyIsAdded'
-                              # Fetch RealContent
-                              fetchContent notification.activity.content, \
-                              (err, content)->
-                                if err then callback err
-                                else
-                                  details.realContent = content
-                                  cb details
-                            else
-                              cb details
+      return  unless result
+      { state, key } = result
+      if not daily and state isnt true
+        log 'User disabled e-mails, ignored for now.'
+        notification.update $set: status: 'postponed', (err)->
+          console.error err if err
+      else
+        # Fetch Sender
+        JAccount.one {_id:notification.sender}, (err, sender)->
+          return callback err  if err
+          # string usually email if sender is not a user
+          sender ?= notification.senderEmail
+          # Since we have retrieved email config in the beginning, email becomes
+          # a global variable. Therefore we have changed the email assignment here
+          details = {sender, receiver, event, key, email: result.email, notification}
+
+          if event is 'FollowHappened'
+            cb details
+          else
+            # Fetch Subject Content
+            fetchSubjectContent notification.activity, \
+            (err, subjectContent)->
+              return callback err  if err
+              realContent = subjectContent
+              # Create object which we pass to template later
+              details.subjectContent = subjectContent
+              details.realContent    = realContent
+              # Fetch Subject Content-Link
+              # If Subject is a secondary level content like JComment
+              # we need to get its parent's slug to show link correctly
+              fetchSubjectContentLink subjectContent, contentType, \
+              (err, link)->
+                return callback err  if err
+                details.contentLink = link
+                JGroup.one slug: subjectContent.group, (err, group) ->
+                  return callback err  if err
+                  details.group = group  if group
+
+                  if event is 'ReplyIsAdded'
+                    # Fetch RealContent
+                    fetchContent notification.activity.content, \
+                    (err, content)->
+                      return callback err  if err
+                      details.realContent = content
+                      cb details
+                  else
+                    cb details
 
 instantEmails = ->
   {JMailNotification} = worker.models

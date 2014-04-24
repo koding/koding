@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"koding/db/models"
+	"koding/tools/tracer"
 	"net"
 	"os"
 	"os/exec"
@@ -20,6 +21,18 @@ import (
 
 type VM models.VM
 type Permissions models.Permissions
+type Step struct {
+	Message     string  `json:"message"`
+	CurrentStep int     `json:"currentStep"`
+	TotalStep   int     `json:"totalStep"`
+	Err         error   `json:"error"`
+	ElapsedTime float64 `json:"elapsedTime"` // time.Duration.Seconds()
+}
+
+type StepFunc struct {
+	Fn  func() error
+	Msg string
+}
 
 var VMPool string = "vms"
 var templateDir string
@@ -134,17 +147,17 @@ func (vm *VM) ApplyDefaults() {
 	}
 }
 
-type Step struct {
-	Message     string  `json:"message"`
-	CurrentStep int     `json:"currentStep"`
-	TotalStep   int     `json:"totalStep"`
-	Err         error   `json:"error"`
-	ElapsedTime float64 `json:"elapsedTime"` // time.Duration.Seconds()
-}
+func (v *VM) isPrepared() (bool, error) {
+	isPrepared := true
+	if _, err := os.Stat(v.File("rootfs/dev")); err != nil {
+		if !os.IsNotExist(err) {
+			return false, err
+		}
 
-type StepFunc struct {
-	Fn  func() error
-	Msg string
+		isPrepared = false
+	}
+
+	return isPrepared, nil
 }
 
 // Prepare creates and initialized the container to be started later directly
@@ -152,12 +165,36 @@ type StepFunc struct {
 // templating), instead of we use this method which basically let us do things
 // more efficient. It creates the home directory, generates files like lxc.conf
 // and mounts the necessary filesystems.
-func (v *VM) Prepare(reinitialize bool) <-chan *Step {
+func (v *VM) Prepare(t tracer.Tracer, reinitialize bool) (err error) {
+	if t == nil {
+		t = tracer.DiscardTracer()
+	}
+
+	defer func() {
+		if err != nil {
+			// don't put the prepare in an unknown state
+			v.Unprepare(t, false)
+		}
+
+		t.Trace(tracer.Message{Err: err, Message: "FINISHED"})
+	}()
+
+	t.Trace(tracer.Message{Message: "STARTED"})
+
+	// do not prepare if
+	prepared, err := v.isPrepared()
+	if err != nil {
+		return err
+	}
+
+	if prepared {
+		return errors.New("already prepared")
+	}
+
 	funcs := make([]*StepFunc, 0)
 	funcs = append(funcs, &StepFunc{Msg: "Create container", Fn: v.createContainerDir})
 	funcs = append(funcs, &StepFunc{Msg: "Mount RBD", Fn: v.mountRBD})
 
-	// remove all except /home on reinitialize
 	if reinitialize {
 		funcs = append(funcs, &StepFunc{Msg: "Reinitialize", Fn: v.reinitialize})
 	}
@@ -168,40 +205,27 @@ func (v *VM) Prepare(reinitialize bool) <-chan *Step {
 	funcs = append(funcs, &StepFunc{Msg: "Mount PTS", Fn: v.prepareAndMountPts})
 	funcs = append(funcs, &StepFunc{Msg: "Add Ebtables rules", Fn: v.addEbtablesRule})
 	funcs = append(funcs, &StepFunc{Msg: "Add Static route", Fn: v.addStaticRoute})
+	funcs = append(funcs, &StepFunc{Msg: "Starting VM", Fn: v.Start})
+	funcs = append(funcs, &StepFunc{Msg: "Waiting for network", Fn: v.WaitForNetwork})
 
-	results := make(chan *Step, len(funcs))
+	for step, current := range funcs {
+		start := time.Now()
+		err = current.Fn() // invoke our function
 
-	// create the functions one by one and pass back the results via a channel.
-	// The channel will be closed if an error results of if it's finished.
-	go func() {
-		defer func() {
-			close(results)
-			results = nil
-		}()
+		t.Trace(tracer.Message{
+			Message:     current.Msg,
+			CurrentStep: step + 1, // start index from 1
+			TotalStep:   len(funcs),
+			ElapsedTime: time.Since(start).Seconds(),
+			Err:         err,
+		})
 
-		for step, current := range funcs {
-			start := time.Now()
-			err := current.Fn() // invoke our function
-
-			results <- &Step{
-				Message:     current.Msg,
-				CurrentStep: step + 1,
-				TotalStep:   len(funcs),
-				ElapsedTime: time.Since(start).Seconds(),
-				Err:         err,
-			}
-
-			if err != nil {
-				// don't put the prepare in an unknown state
-				for _ = range v.Unprepare(false) {
-				}
-				break
-			}
+		if err != nil {
+			return err
 		}
+	}
 
-	}()
-
-	return results
+	return nil
 }
 
 func (v *VM) createContainerDir() error {
@@ -222,13 +246,6 @@ func (v *VM) createContainerDir() error {
 		return err
 	}
 
-	return nil
-}
-
-func (v *VM) mountRBD() error {
-	if err := v.MountRBD(v.OverlayFile("")); err != nil {
-		return err
-	}
 	return nil
 }
 
@@ -353,20 +370,6 @@ func (v *VM) addStaticRoute() error {
 	return nil
 }
 
-func UnprepareVM(id bson.ObjectId) error {
-	vm := VM{Id: id}
-
-	if err := vm.Shutdown(); err != nil {
-		return err
-	}
-
-	var err error
-	for step := range vm.Unprepare(false) {
-		err = step.Err
-	}
-	return err
-}
-
 // Unprepare is basically the inverse of Prepare. We don't use lxc.destroy
 // (which purges the container immediately). Instead we use this method which
 // basically let us umount previously mounted disks, remove generated files,
@@ -374,18 +377,29 @@ func UnprepareVM(id bson.ObjectId) error {
 // Those files will be stored in the vmroot.
 // Unprepare also doesn't return on errors, instead it silently fails and
 // tries to execute the next step until all steps are done.
-func (vm *VM) Unprepare(onlyOverlay bool) <-chan *Step {
+func (vm *VM) Unprepare(t tracer.Tracer, destroy bool) (err error) {
+	if t == nil {
+		t = tracer.DiscardTracer()
+	}
+
+	defer t.Trace(tracer.Message{Err: err, Message: "FINISHED"})
+	t.Trace(tracer.Message{Message: "STARTED"})
+
+	prepared, err := vm.isPrepared()
+	if err != nil {
+		return err
+	}
+
+	if !prepared {
+		return nil // nothing to unprepare
+	}
+
 	funcs := make([]*StepFunc, 0)
+	funcs = append(funcs, &StepFunc{Msg: "Stopping VM", Fn: vm.Shutdown})
 	funcs = append(funcs, &StepFunc{Msg: "Removing network rules", Fn: vm.removeNetworkRules})
 	funcs = append(funcs, &StepFunc{Msg: "Umount PTS", Fn: vm.umountPts})
 	funcs = append(funcs, &StepFunc{Msg: "Umount AUFS", Fn: vm.umountAufs})
-
-	if onlyOverlay {
-		funcs = append(funcs, &StepFunc{Msg: "Umount Overlay", Fn: vm.unmountOverlay})
-	} else {
-		funcs = append(funcs, &StepFunc{Msg: "Umount RBD", Fn: vm.umountRBD})
-	}
-
+	funcs = append(funcs, &StepFunc{Msg: "Umount RBD", Fn: vm.umountRBD})
 	funcs = append(funcs, &StepFunc{Msg: "Removing lxc/config", Fn: func() error { return os.Remove(vm.File("config")) }})
 	funcs = append(funcs, &StepFunc{Msg: "Removing lxc/fstab", Fn: func() error { return os.Remove(vm.File("fstab")) }})
 	funcs = append(funcs, &StepFunc{Msg: "Removing lxc/ip-config", Fn: func() error { return os.Remove(vm.File("ip-address")) }})
@@ -394,37 +408,25 @@ func (vm *VM) Unprepare(onlyOverlay bool) <-chan *Step {
 	funcs = append(funcs, &StepFunc{Msg: "Removing lxc folder", Fn: func() error { return os.Remove(vm.File("")) }})
 	funcs = append(funcs, &StepFunc{Msg: "Unlocking RBD", Fn: vm.UnlockRBD})
 
-	var lastError error
-	results := make(chan *Step, len(funcs))
+	if destroy {
+		funcs = append(funcs, &StepFunc{Msg: "Destroying RBD", Fn: vm.Destroy})
+	}
 
-	// create the functions one by one and pass back the results via a
-	// channel. The channel will be closed if an error results.
-	go func() {
-		defer func() {
-			close(results)
-			results = nil
-		}()
+	for step, current := range funcs {
+		start := time.Now()
+		err = current.Fn() // invoke our function
 
-		for step, current := range funcs {
-			start := time.Now()
-			err := current.Fn() // invoke our function
+		t.Trace(tracer.Message{
+			Message:     current.Msg,
+			CurrentStep: step + 1,
+			TotalStep:   len(funcs),
+			ElapsedTime: time.Since(start).Seconds(),
+			Err:         err,
+		})
+	}
 
-			if err != nil {
-				lastError = err
-			}
-
-			results <- &Step{
-				Message:     current.Msg,
-				CurrentStep: step + 1,
-				TotalStep:   len(funcs),
-				ElapsedTime: time.Since(start).Seconds(),
-				Err:         lastError,
-			}
-
-		}
-	}()
-
-	return results
+	// returns latest error, might nil if all functions are executed without any problem.
+	return err
 }
 
 func (vm *VM) removeNetworkRules() error {
@@ -489,7 +491,8 @@ func (vm *VM) ExistsRBD() (bool, error) {
 	return true, nil
 }
 
-func (vm *VM) MountRBD(mountDir string) error {
+func (vm *VM) mountRBD() error {
+	mountDir := vm.OverlayFile("")
 	exists, err := vm.ExistsRBD()
 	if err != nil {
 		return err
@@ -571,14 +574,8 @@ func (vm *VM) MountRBD(mountDir string) error {
 }
 
 func (vm *VM) umountRBD() error {
-	if err := vm.UnmountRBD(vm.OverlayFile("")); err != nil {
-		return err
-	}
+	mountDir := vm.OverlayFile("")
 
-	return nil
-}
-
-func (vm *VM) UnmountRBD(mountDir string) error {
 	var firstError error
 	if out, err := exec.Command("/bin/umount", vm.OverlayFile("")).CombinedOutput(); err != nil && firstError == nil {
 		firstError = commandError("umount rbd failed.", err, out)

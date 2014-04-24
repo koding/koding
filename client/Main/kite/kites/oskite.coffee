@@ -73,8 +73,12 @@ class KodingKite_OsKite extends KodingKite_VmKite
     else
       Promise.resolve()
 
-  vmOn: ->
+  vmOn: (t = 0) ->
     @changeState 'RUNNING', 'vm.progress.start', 'vmOn', @vmPrepareAndStart
+      .catch (err) =>
+        if t < 10
+          return Promise.delay(Math.pow 0.7, ++t).then => @vmOn t
+        throw err
 
   vmOff: ->
     @changeState 'STOPPED', 'vm.progress.stop', 'vmOff', @vmStopAndUnprepare

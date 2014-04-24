@@ -1,5 +1,18 @@
 class EnvironmentMachineContainer extends EnvironmentContainer
 
+  EnvironmentDataProvider.addProvider "vms", ->
+
+    new Promise (resolve, reject)->
+
+      {JVM} = KD.remote.api
+      JVM.fetchVmsByContext withStacks:true, (err, vms)->
+
+        if err or vms.length is 0
+          warn "Failed to fetch VMs", err  if err
+          return resolve []
+
+        resolve vms
+
   constructor:(options={}, data)->
 
     options.cssClass   = 'machines'
@@ -19,13 +32,16 @@ class EnvironmentMachineContainer extends EnvironmentContainer
         cssClass     : 'add-vm-modal'
         view         : @getVmSelectionView()
         width        : 786
+        overlay      : yes
         buttons      :
           create     :
             title    : "Create"
             style    : "modal-clean-green"
             callback : =>
+              {stackId} = @getOptions()
               @addVmModal.destroy()
-              KD.singleton("vmController").createNewVM (err) ->
+
+              KD.singleton("vmController").createNewVM stackId, (err) ->
                 KD.showError err
 
     KD.getSingleton("vmController").on 'VMListChanged', =>
@@ -49,13 +65,15 @@ class EnvironmentMachineContainer extends EnvironmentContainer
           return resolve()
 
         vms.forEach (vm, index)=>
-
-          @addItem
-            title     : vm.hostnameAlias
-            vm        : vm
+          {hostnameAlias} = vm
+          @addItem {
+            title     : hostnameAlias
             cpuUsage  : KD.utils.getRandomNumber 100
             memUsage  : KD.utils.getRandomNumber 100
             activated : yes
+            hostnameAlias
+            vm
+          }
 
           if index is vms.length - 1 then resolve()
 

@@ -595,6 +595,8 @@ func RoundTrip(req *http.Request, round *resolver.RoundRing, index int) (*http.R
 
 	res, err := http.DefaultTransport.RoundTrip(outreq)
 	if err != nil {
+		log.Error("roundtrip error for server %s. picking up the next one. err: %s", backendServer, err)
+
 		index++
 		return RoundTrip(req, round, index) // pick up the next one
 	}
@@ -839,7 +841,7 @@ func templateHandler(path string, data interface{}, code int) http.Handler {
 		w.WriteHeader(code)
 		err := templates.ExecuteTemplate(w, path, data)
 		if err != nil {
-			log.Error("template %s could not be executed", path)
+			log.Error("template %s could not be executed: %s", path, err.Error())
 			http.Error(w, "error code - 1", 404)
 			return
 		}

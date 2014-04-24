@@ -78,12 +78,8 @@ func (vm *VM) SendMessageToVMUsers(message string) error {
 	return nil
 }
 
-func (vm *VM) WaitForNetwork(timeout time.Duration) error {
-	// precaution for bad input
-	if timeout == 0 {
-		timeout = time.Second * 5
-	}
-
+func (vm *VM) WaitForNetwork() error {
+	timeout := time.Second * 5
 	isNetworkUp := func() bool {
 		// neglect error because it's not important and we also going to timeout
 		out, _ := exec.Command("/usr/bin/lxc-attach", "--name", vm.String(),

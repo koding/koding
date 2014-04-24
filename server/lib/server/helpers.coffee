@@ -48,11 +48,17 @@ findUsernameFromSession = (req, res, callback) ->
   unless clientId?
     process.nextTick -> callback null, no, ""
   else
-    koding.models.JSession.fetchSession clientId, (err, session)->
+    koding.models.JSession.fetchSession clientId, (err, result)->
       if err
         console.error err
         callback err, undefined, ""
-      else unless session?
+      else unless result?
+        res.send 403, 'Access denied!'
+        callback null, false, ""
+
+      { session } = result
+
+      unless session?
         res.send 403, 'Access denied!'
         callback null, false, ""
       else
@@ -118,7 +124,11 @@ isLoggedIn = (req, res, callback)->
   {JName} = koding.models
   findUsernameFromSession req, res, (err, isLoggedIn, username)->
     return callback null, no, {}  unless username
-    JName.fetchModels username, (err, models)->
+    JName.fetchModels username, (err, result)->
+      return callback null, no, {}  unless result?
+
+      { models } = result
+
       return callback null, no, {}  if err or not models?.first
       user = models.last
       user.fetchAccount "koding", (err, account)->

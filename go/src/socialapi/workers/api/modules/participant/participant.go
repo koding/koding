@@ -7,8 +7,6 @@ import (
 	"net/url"
 	"socialapi/models"
 	"socialapi/workers/api/modules/helpers"
-
-	"github.com/jinzhu/gorm"
 )
 
 func List(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface{}, error) {
@@ -20,15 +18,9 @@ func List(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface
 
 	req := models.NewChannelParticipant()
 	req.ChannelId = channelId
-	participants, err := req.List()
-	if err != nil {
-		if err == gorm.RecordNotFound {
-			return helpers.NewNotFoundResponse()
-		}
-		return helpers.NewBadRequestResponse(err)
-	}
-
-	return helpers.NewOKResponse(participants)
+	return helpers.HandleResultAndError(
+		req.List(),
+	)
 }
 
 // todo fix duplicate code block with Delete handler

@@ -3,9 +3,9 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"math/rand"
 	"socialapi/models"
 	"testing"
+	"labix.org/v2/mgo/bson"
 
 	. "github.com/smartystreets/goconvey/convey"
 )
@@ -33,7 +33,10 @@ func TestChannelParticipantOperations(t *testing.T) {
 }
 
 func createChannelParticipant(channelId int64) (*models.ChannelParticipant, error) {
-	return addChannelParticipant(channelId, rand.Int63(), rand.Int63())
+	account := models.NewAccount()
+	account.OldId = bson.NewObjectId().Hex()
+	account, _ = createAccount(account)
+	return addChannelParticipant(channelId, account.Id, account.Id)
 }
 
 func addChannelParticipant(channelId, requesterId, accountId int64) (*models.ChannelParticipant, error) {

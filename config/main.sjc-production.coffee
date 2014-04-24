@@ -47,6 +47,7 @@ module.exports =
     clusterSize : 1
     queueName   : socialQueueName+'web'
     watch       : no
+  socialApiUrl  : "http://localhost:7000"
   sourceServer  :
     enabled     : no
     port        : 1337
@@ -72,6 +73,7 @@ module.exports =
   runTerminalKite: no
   runProxy      : no
   redis         : "172.16.3.13:6379"
+  subscriptionEndpoint   : "https://koding.com/-/subscription/check/"
   misc          :
     claimGlobalNamesForUsers: no
     updateAllSlugs : no

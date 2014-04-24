@@ -188,13 +188,13 @@ class BadgeRuleItem extends KDListItemView
         { title: "less then"  , value:"<" }
       ]
       defaultValue    : data.action or ">"
-      disabled        : if data.propVal then yes else no
+      disabled        : !!data.propVal
 
     @propertyVal      = new KDInputView
       name            : 'rule-value'
       placeholder     : "enter value"
       defaultValue    : data.propVal or ""
-      disabled        : if data.propVal then yes else no
+      disabled        : !!data.propVal
 
     @removeRule       = new KDButtonView
       name            : 'removeRule'

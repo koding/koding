@@ -42,6 +42,7 @@ module.exports =
     clusterSize : 1
     queueName   : socialQueueName+'web'
     watch       : yes
+  socialApiUrl  : "http://localhost:7000"
   sourceServer  :
     enabled     : yes
     port        : 1337
@@ -67,6 +68,7 @@ module.exports =
   runTerminalKite: no
   runProxy      : no
   redis         : "172.16.6.13:6379"
+  subscriptionEndpoint   : "https://latest.koding.com/-/subscription/check/"
   misc          :
     claimGlobalNamesForUsers: no
     updateAllSlugs : no
@@ -281,9 +283,9 @@ module.exports =
     cronInstant : '*/10 * * * * *'
     cronDaily   : '0 10 0 * * *'
     run         : no
-    forcedRecipient : undefined
+    forcedRecipient : "kodingtestuser@gmail.com"
   emailSender   :
-    run         : no
+    run         : yes
   guests        :
     # define this to limit the number of guset accounts
     # to be cleaned up per collection cycle.

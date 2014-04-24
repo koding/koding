@@ -253,7 +253,7 @@ module.exports = class JUser extends jraphical.Module
       if err
         callback createKodingError err
       else unless session?
-        JSession.createSession (err, session, account)->
+        JSession.createSession (err, { session, account })->
           return callback err  if err?
           callback null, account
       else
@@ -277,7 +277,7 @@ module.exports = class JUser extends jraphical.Module
   getHash =(value)->
     require('crypto').createHash('md5').update(value.toLowerCase()).digest('hex')
 
-  @whoami = secure ({connection:{delegate}}, callback)-> callback delegate
+  @whoami = secure ({connection:{delegate}}, callback)-> callback null, delegate
 
   checkBlockedStatus = (user, callback)->
     if user.status is 'blocked'
@@ -318,7 +318,7 @@ module.exports = class JUser extends jraphical.Module
       return callback err  if err
 
       constructor = this
-      JSession.fetchSession clientId, (err, session)->
+      JSession.fetchSession clientId, (err, { session })->
         return callback err  if err
         # temp fix:
         # this broke login, reverted. - SY
@@ -452,26 +452,17 @@ module.exports = class JUser extends jraphical.Module
           if err or !invite?
             callback createKodingError 'Invalid invitation ID!'
           else
-            callback null, yes, invite
+            callback null, { isEligible: yes, invite }
       else
-        callback null, yes
+        callback null, isEligible: yes
 
   @addToGroup = (account, slug, email, invite, callback)->
     JGroup.one {slug}, (err, group)->
       return callback err if err or not group
-      if invite and invite.status isnt "redeemed"
-        group.debitPack tag: "user", (err) ->
-          if err
-            if err.message is "quota exceeded"
-              callback
-                code    : "user_quota_exceeded"
-                message : "Failed join to group #{slug}."
-            else
-              callback err
-            return
-          invite.redeem account, (err) ->
-            return callback err if err
-            group.approveMember account, callback
+      if invite
+        invite.redeem account, (err) ->
+          return callback err if err
+          group.approveMember account, callback
       else
         group.approveMember account, callback
 
@@ -747,7 +738,7 @@ module.exports = class JUser extends jraphical.Module
             queue.next()
         else process.nextTick -> queue.next()
       =>
-        @verifyEnrollmentEligibility {email: user.email, inviteCode}, (err, isEligible, invite_) =>
+        @verifyEnrollmentEligibility {email: user.email, inviteCode}, (err, { isEligible, invite: invite_ }) =>
           return callback err  if err
           invite = invite_
           queue.next()
@@ -1052,27 +1043,27 @@ module.exports = class JUser extends jraphical.Module
         account.unstoreAll callback
 
   @persistOauthInfo: (username, clientId, callback)->
-    @extractOauthFromSession clientId, (err, foreignAuthInfo, session)=>
-      return callback err  if err
-      return callback()    unless foreignAuthInfo
-      return callback()    unless session
+    @extractOauthFromSession clientId, (err, foreignAuthInfo)=>
+      return callback err   if err
+      return callback null  unless foreignAuthInfo
+      return callback null  unless foreignAuthInfo.session
 
       @saveOauthToUser foreignAuthInfo, username, (err)=>
         return callback err  if err
-        @clearOauthFromSession session, (err)=>
+        @clearOauthFromSession foreignAuthInfo.session, (err)=>
           return callback err  if err
           @copyPublicOauthToAccount username, foreignAuthInfo, callback
 
   @extractOauthFromSession: (clientId, callback)->
     JSession.one {clientId: clientId}, (err, session)->
-      return callback err  if err
-      return callback()    unless session
+      return callback err   if err
+      return callback null  unless session
 
       {foreignAuth, foreignAuthType} = session
       if foreignAuth and foreignAuthType
-        callback null, {foreignAuth, foreignAuthType}, session
+        callback null, {foreignAuth, foreignAuthType, session}
       else
-        callback() # WARNING: don't assume it's an error if there's no foreignAuth
+        callback null # WARNING: don't assume it's an error if there's no foreignAuth
 
   @saveOauthToUser: ({foreignAuth, foreignAuthType}, username, callback)->
     query = {}

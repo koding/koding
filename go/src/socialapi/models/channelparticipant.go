@@ -62,6 +62,18 @@ func (c *ChannelParticipant) BeforeUpdate() {
 	c.LastSeenAt = time.Now().UTC()
 }
 
+func (c *ChannelParticipant) AfterCreate() {
+	bongo.B.AfterCreate(c)
+}
+
+func (c *ChannelParticipant) AfterUpdate() {
+	bongo.B.AfterUpdate(c)
+}
+
+func (c *ChannelParticipant) AfterDelete() {
+	bongo.B.AfterDelete(c)
+}
+
 func (c *ChannelParticipant) Create() error {
 	if c.ChannelId == 0 {
 		return fmt.Errorf("Channel Id is not set %d", c.ChannelId)
@@ -176,6 +188,30 @@ func (c *ChannelParticipant) List() ([]ChannelParticipant, error) {
 	return participants, nil
 }
 
+func (c *ChannelParticipant) ListAccountIds(limit int) ([]int64, error) {
+	var participants []int64
+
+	if c.ChannelId == 0 {
+		return participants, errors.New("ChannelId is not set")
+	}
+
+	query := &bongo.Query{
+		Selector: map[string]interface{}{
+			"channel_id":      c.ChannelId,
+			"status_constant": ChannelParticipant_STATUS_ACTIVE,
+		},
+		Pluck: "account_id",
+		Limit: limit,
+	}
+
+	err := bongo.B.Some(c, &participants, query)
+	if err != nil {
+		return nil, err
+	}
+
+	return participants, nil
+}
+
 func (c *ChannelParticipant) FetchParticipatedChannelIds(a *Account, q *Query) ([]int64, error) {
 	if a.Id == 0 {
 		return nil, errors.New("Account.Id is not set")
@@ -219,8 +255,9 @@ func (c *ChannelParticipant) IsParticipant(accountId int64) (bool, error) {
 	}
 
 	selector := map[string]interface{}{
-		"channel_id": c.ChannelId,
-		"account_id": accountId,
+		"channel_id":      c.ChannelId,
+		"account_id":      accountId,
+		"status_constant": ChannelParticipant_STATUS_ACTIVE,
 	}
 
 	err := c.One(bongo.NewQS(selector))

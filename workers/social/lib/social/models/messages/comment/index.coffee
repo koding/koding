@@ -24,7 +24,7 @@ module.exports = class JComment extends jraphical.Reply
     sharedMethods  :
       static       :
         fetchRelated:
-          (signature ObjectId, Function)
+          (signature String, Function)
         one:
           (signature Object, Function)
       instance     :

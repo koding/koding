@@ -174,12 +174,12 @@ func TestChannelCreation(t *testing.T) {
 	})
 }
 
-func createChannel() (*models.Channel, error) {
+func createChannel(creatorId int64) (*models.Channel, error) {
 	c := models.NewChannel()
 	rand.Seed(time.Now().UnixNano())
 	groupName := c.GroupName + strconv.Itoa(rand.Intn(100000000))
 
-	return createChannelByGroupNameAndType(rand.Int63(), groupName, c.TypeConstant)
+	return createChannelByGroupNameAndType(creatorId, groupName, c.TypeConstant)
 }
 
 func createChannelByGroupNameAndType(creatorId int64, groupName, typeConstant string) (*models.Channel, error) {

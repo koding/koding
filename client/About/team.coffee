@@ -28,17 +28,14 @@ KD.extend
         username  : 'cihangirsavas'
         title     : 'Software Engineer'
       ,
-        username  : 'geraint'
+        username  : 'kiwigeraint'
         title     : 'Director of Infrastructure'
       ,
-        username  : 'erdinc'
-        title     : 'Software Engineer'
-      ,
         username  : 'szkl'
-        title     : 'Software Engineer'
+        title     : 'DevOps'
       ,
         username  : 'leventyalcin'
-        title     : 'System Administrator'
+        title     : 'DevOps'
       ,
         username  : 'burakcan'
         title     : 'CSS Wizard'

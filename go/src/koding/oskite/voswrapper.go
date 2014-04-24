@@ -239,68 +239,35 @@ func execFuncNew(r *kitelib.Request, vos *virt.VOS) (interface{}, error) {
 	return execFunc(asRoot, params.Command, vos)
 }
 
-type progressParamsNew struct {
-	OnProgress kitednode.Function
-}
-
-func (p *progressParamsNew) Enabled() bool      { return p.OnProgress.IsValid() }
-func (p *progressParamsNew) Call(v interface{}) { p.OnProgress.Call(v) }
-
-func vmPrepareAndStartNew(r *kitelib.Request, vos *virt.VOS) (interface{}, error) {
-	params := new(progressParamsNew)
+func (o *Oskite) vmPrepareAndStartNew(r *kitelib.Request, vos *virt.VOS) (interface{}, error) {
+	params := new(vmParamsNew)
 	if r.Args.One().Unmarshal(&params) != nil {
 		return nil, &kite.ArgumentError{Expected: "{OnProgress: [function]}"}
 	}
 
-	return progress(vos, "vm.prepareAndStart"+vos.VM.HostnameAlias, params, func() error {
-		for step := range prepareProgress(vos) {
-			params.OnProgress.Call(step)
+	if params.GroupId == "" {
+		return nil, &kite.ArgumentError{Expected: "{ groupId: [string] }"}
+	}
 
-			if step.Err != nil {
-				return step.Err
-			}
-		}
-
-		return nil
-	})
+	return o.prepareAndStart(vos, r.Username, params.GroupId, params)
 }
 
 func vmStopAndUnprepareNew(r *kitelib.Request, vos *virt.VOS) (interface{}, error) {
-	params := new(progressParamsNew)
+	params := new(vmParamsNew)
 	if r.Args.One().Unmarshal(&params) != nil {
 		return nil, &kite.ArgumentError{Expected: "{OnProgress: [function]}"}
 	}
 
-	return progress(vos, "vm.stopAndUnprepare"+vos.VM.HostnameAlias, params, func() error {
-		for step := range unprepareProgress(vos, false) {
-			params.OnProgress.Call(step)
-
-			if step.Err != nil {
-				return step.Err
-			}
-		}
-
-		return nil
-	})
-}
-
-func vmDestroyNew(r *kitelib.Request, vos *virt.VOS) (interface{}, error) {
-	params := new(progressParamsNew)
-	if r.Args.One().Unmarshal(&params) != nil {
-		return nil, &kite.ArgumentError{Expected: "{OnProgress: [function]}"}
+	if params.Enabled() {
+		go unprepareProgress(params, vos.VM, params.Destroy)
+		return true, nil
 	}
 
-	return progress(vos, "vm.stopAndUnprepare"+vos.VM.HostnameAlias, params, func() error {
-		for step := range unprepareProgress(vos, true) {
-			params.OnProgress.Call(step)
+	if err := unprepareProgress(nil, vos.VM, params.Destroy); err != nil {
+		return nil, err
+	}
 
-			if step.Err != nil {
-				return step.Err
-			}
-		}
-
-		return nil
-	})
+	return true, nil
 }
 
 // FS METHODS

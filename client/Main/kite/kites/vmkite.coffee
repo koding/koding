@@ -6,4 +6,5 @@ class KodingKite_VmKite extends KodingKite
 
   tell: (method, payload = {}) ->
     payload.vmName = @options.correlationName
+    payload.groupId = @options.groupId
     super method, payload

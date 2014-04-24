@@ -87,10 +87,14 @@ module.exports =
             content = kodinghome()
             return res.send 200, content
 
-          JName.fetchModels "#{name}/#{section}", (err, models)=>
+          JName.fetchModels "#{name}/#{section}", (err, result)=>
             if err
               console.error err
               return res.send 500, error_500()
+
+            return res.send 404, error_404() unless result
+
+            { models } = result
 
             model = models.first  if models and Array.isArray models
             return res.send 404, error_404()  unless model
@@ -132,8 +136,12 @@ module.exports =
           return res.send 404, error_404("No section is given.")
     else
       isLoggedIn req, res, (err, loggedIn, account)->
-        JName.fetchModels name, (err, models, jname)->
+        JName.fetchModels name, (err, result)->
           return res.send 500, error_500()  if err
+          return res.send 404, error_404()   unless result
+
+          { models, name: jname } = result
+
           return res.send 404, error_404()  if not models?.last?
           # this is a group, we are not serving groups to bots anymore.
           if jname.slugs.first.usedAsPath is "slug"

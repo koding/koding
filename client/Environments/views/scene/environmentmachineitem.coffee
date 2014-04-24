@@ -12,63 +12,68 @@ class EnvironmentMachineItem extends EnvironmentItem
 
     super options, data
 
-    # @ramUsage  = new VMRamUsageBar  null, data.title
-    # @diskUsage = new VMDiskUsageBar null, data.title
+    @terminalIcon = new KDCustomHTMLView
+      tagName     : "span"
+      cssClass    : "terminal"
+      click       : @bound "openTerminal"
 
   contextMenuItems : ->
     colorSelection = new ColorSelection selectedColor : @getOption 'colorTag'
     colorSelection.on "ColorChanged", @bound 'setColorTag'
 
-    vmName = @getData().vm.hostnameAlias
-    # vmStateSwitch    = new NVMToggleButtonView        null, {vmName}
+    vmName = @getData().hostnameAlias
     vmAlwaysOnSwitch = new VMAlwaysOnToggleButtonView null, {vmName}
-    # vmMountSwitch = new NMountToggleButtonView {}, {vmName}
     items =
-      # customView1        : vmStateSwitch
-      customView4        : vmAlwaysOnSwitch
-      # customView2        : vmMountSwitch
-      'Re-initialize VM' :
-        disabled         : KD.isGuest()
-        callback         : ->
+      customView4         : vmAlwaysOnSwitch
+      'Re-initialize VM'  :
+        disabled          : KD.isGuest()
+        callback          : ->
           KD.getSingleton("vmController").reinitialize vmName
           @destroy()
-      'Open VM Terminal' :
-        callback         : =>
+      'Open VM Terminal'  :
+        callback          : =>
           @openTerminal()
           @destroy()
-        separator        : yes
-      'Delete'           :
-        disabled         : KD.isGuest()
-        separator        : yes
-        action           : 'delete'
-      'Unfocus'          :
-        separator        : yes
-        action           : 'unfocus'
-      customView3        : colorSelection
+        separator         : yes
+      'Update init script':
+        separator         : yes
+        callback          : @bound "showInitScriptEditor"
+      'Delete'            :
+        disabled          : KD.isGuest()
+        separator         : yes
+        action            : 'delete'
+      customView3         : colorSelection
 
     return items
 
   openTerminal:->
-    vmName = @getData().vm.hostnameAlias
+    vmName = @getData().hostnameAlias
     KD.getSingleton("router").handleRoute "/Terminal", replaceState: yes
     KD.getSingleton("appManager").open "Terminal", params: {vmName}, forceNew: yes
 
   confirmDestroy:->
-    (KD.getSingleton 'vmController').remove @getData().vm.hostnameAlias, @bound "destroy"
+    KD.getSingleton('vmController').remove @getData().hostnameAlias, @bound "destroy"
 
-  click:(event)->
-
-    target = $(event.target)
-    if target.is ".terminal"
-      @openTerminal()
-      return no
-
-    super
-
+  showInitScriptEditor: ->
+    modal =  new EditorModal
+      editor              :
+        title             : "VM Init Script Editor <span>(experimental)</span>"
+        content           : @data.meta?.initScript or ""
+        saveMessage       : "VM init script saved"
+        saveFailedMessage : "Couldn't save VM init script"
+        saveCallback      : (script, modal) =>
+          KD.remote.api.JVM.updateInitScript @data.hostnameAlias, script, (err, res) =>
+            if err
+              modal.emit "SaveFailed"
+            else
+              modal.emit "Saved"
+              @data.meta or= {}
+              @data.meta.initScript = Encoder.htmlEncode modal.editor.getValue()
 
   pistachio:->
-    {vm: { hostnameAlias: title }} = @getData()
-    vm = (title.split '.').first
+    title = @getData().hostnameAlias
+    [vm]  = title.split "."
+
     """
       <div class='details'>
         <span class='toggle'></span>
@@ -76,7 +81,7 @@ class EnvironmentMachineItem extends EnvironmentItem
         <a href="http://#{title}" target="_blank" title="#{title}">
           <span class='url'></span>
         </a>
-        <span class='terminal'></span>
-        <span class='chevron'></span>
+        {{> @terminalIcon}}
+        {{> @chevron}}
       </div>
     """
