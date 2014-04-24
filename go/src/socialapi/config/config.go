@@ -11,7 +11,7 @@ var conf *Config
 
 func Get() *Config {
 	if conf == nil {
-		panic("config is not set, please call Config.Read(path)")
+		panic("config is not set, please call Config.MustRead(pathToConfFile)")
 	}
 
 	return conf
