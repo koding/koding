@@ -70,9 +70,37 @@ module.exports = class ComputeProvider extends Base
 
         fn.apply @, _arguments
 
+
+  @providers = PROVIDERS
+
+
+  @fetchAvailableProviders = secure (client, callback)->
+
+    callback null, Object.keys PROVIDERS
+
+
   @ping = secure revive (client, options, callback)->
 
+    {provider} = options
     provider.ping client, callback
+
+
+  @create = secure revive (client, options, callback)->
+
+    {provider} = options
+    provider.create client, options, callback
+
+
+  @update = secure revive (client, options, callback)->
+
+    {provider} = options
+    provider.update client, options, callback
+
+
+  @remove = secure revive (client, options, callback)->
+
+    {provider} = options
+    provider.remove client, options, callback
 
 
   @fetchExisting = secure revive (client, options, callback)->
