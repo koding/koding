@@ -6,21 +6,7 @@ class SidebarTopicItem extends SidebarItem
 
     super options, data
 
-    @followButton = new FollowButton
-      title          : 'follow'
-      icon           : yes
-      stateOptions   :
-        unfollow     :
-          title      : 'unfollow'
-          cssClass   : 'following-topic'
-
-      dataType       : 'JTag'
-    , data
-
-    # fix this, setState instead of hide! - sy
-    # and fix toggle button
-    @followButton.hide()  if @getData().isParticipant
-
+    @followButton = new TopicFollowButton {}, data
 
   viewAppended: JView::viewAppended
 
@@ -33,6 +19,6 @@ class SidebarTopicItem extends SidebarItem
 
     """
     {span.ttag{ #(name)}}
-    {span.tag-info{ #(participantCount) + ' Followers'}}
+    {span.tag-info{ #(participantCount) + ' followers'}}
     {{> @followButton}}
     """
