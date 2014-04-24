@@ -31,6 +31,16 @@ class EducationView extends KDView
 
   viewAppended: JView::viewAppended
 
+  click:(event)->
+
+    if $(event.target).is 'video'
+      video = @$('video')[0]
+      if KD.utils.isFullscreen()
+        KD.utils.exitFullscreen()
+      else
+        KD.utils.enterFullscreen video
+
+
   pistachio : ->
     """
       <section class="introduction">
