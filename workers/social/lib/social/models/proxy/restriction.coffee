@@ -1,106 +1,58 @@
-jraphical = require 'jraphical'
-KodingError = require '../../error'
-
-
+jraphical      = require 'jraphical'
+KodingError    = require '../../error'
 module.exports = class JProxyRestriction extends jraphical.Module
 
-  {secure, ObjectId}  = require 'bongo'
+  {secure, signature, ObjectId} = require 'bongo'
+  JDomain      = require "../domain"
+  JProxyFilter = require "./index"
 
   @share()
 
   @set
-    sharedEvents    :
-      static        : []
-      instance      : []
-    softDelete      : no
-    indexes         :
-      domainName    : 'unique'
-    schema          :
-      domainName    : String
-      ruleList      : [Object]
-      createdAt     :
-        type        : Date
-        default     : -> new Date
-      modifiedAt    :
-        type        : Date
-        default     : -> new Date
+    indexes       :
+      domainName  : 'unique'
+    schema        :
+      domainName  : String
+      filters     : [ObjectId]
+      createdAt   :
+        type      : Date
+        default   : -> new Date
+      modifiedAt  :
+        type      : Date
+        default   : -> new Date
+    sharedEvents  :
+      static      : []
+      instance    : []
+    sharedMethods :
+      static      :
+        create    :
+          (signature Object, Function)
+      instance    : {}
 
+  @create: secure (client, data, callback) ->
+    {domainName, filterId} = data
+    {delegate} = client.connection
+    {nickname} = delegate.profile
 
-  @fetchRestrictionByDomain: (domainName, callback)->
-    @one {domainName}, (err, restriction)->
-      return callback err if err
-      callback err, restriction
+    if not domainName and not filterId
+      return callback new KodingError { message: "Missing arguments" }
 
-  addRule: (params, callback)->
-    JProxyRule.one {match:params.match}, (err, rule)=>
-      return callback err if err
+    JDomain.fetchDomains client, (err, domains) ->
+      userDomains = (domain.domain for domain in domains)
+      if userDomains.indexOf(domainName) is -1
+        return callback new KodingError { message: "Access Denied" }
 
-      unless rule
-        rule = new JProxyRule params
-        rule.save (err)->
-          return callback err if err
+      JProxyFilter.fetch client, { _id: filterId }, (err, filter) ->
+        unless filter.length
+          return callback new KodingError { message: "Access Denied" }
 
-      ruleObj =
-        match   : rule.match
-        action  : rule.action
-        enabled : rule.enabled
-
-      if params.action isnt rule.action
-        JProxyRule.update {_id:rule.getId()}, {$set: action: params.action}, (err)->
-          return callback err if err
-
-        JProxyRestriction.update
-          _id:@getId()
-          "ruleList.match": params.match
-        , {$set: "ruleList.$.action": params.action}
-        , (err)->
-          return callback err if err
-      else
-        @update {$addToSet: ruleList:ruleObj}, (err)->
-          callback err if err
-
-      callback null, rule
-
-  @updateRule: (params, callback)->
-    JProxyRestriction.update
-      domainName: params.domainName
-      "ruleList.match": params.match
-    , {$set: "ruleList.$.action": params.action}
-    , (err)->
-      callback err if err
-
-    JProxyRule.update {match:params.match}, {$set: action: params.action}, (err)->
-      callback err if err
-
-    callback null
-
-
-  @updateRuleOrders: (params, callback)->
-    domainName = params.domainName
-    newRuleList = params.ruleList
-    for rule in newRuleList
-      if rule.domainName?
-        delete rule.domainName
-    JProxyRestriction.update {domainName}, {$set: ruleList: newRuleList}, (err)->
-      callback err
-
-  @deleteRule: (params, callback)->
-    domainName = params.domainName
-
-    JProxyRule.one {match:params.match}, (err, rule)->
-      return callback err if err
-
-      ruleObj =
-        match   : params.match
-        action  : params.action
-        enabled : params.enabled
-
-      if rule
-        rule.remove (err)->
-        return callback err if err
-
-      JProxyRestriction.update {domainName}, {$pull: ruleList: ruleObj}, (err)->
-        return callback err if err
-
-        callback null
-
+        JProxyRestriction.one { domainName }, {}, (err, restriction) ->
+          filterId = ObjectId filterId
+          if not restriction
+            restriction = new JProxyRestriction { domainName, filters: [filterId] }
+            restriction.save (err) ->
+              return callback err, null  if err
+              callback null, restriction
+          else
+            restriction.update { $addToSet: { filters: filterId } }, (err) ->
+              callback err, restriction
