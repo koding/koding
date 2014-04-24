@@ -4,7 +4,6 @@ class EnvironmentRuleItem extends EnvironmentItem
 
     options.cssClass           = "rule"
     options.joints             = ["right"]
-    options.staticJoints       = ["right"]
     options.allowedConnections =
       EnvironmentDomainItem    : ["left"]
 
