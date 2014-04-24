@@ -22,7 +22,7 @@ func main() {
 		return
 	}
 
-	conf := config.Read(*flagProfile)
+	conf := config.MustRead(*flagProfile)
 
 	// create logger for our package
 	log := helper.CreateLogger("FollowingFeedWorker", *flagDebug)

@@ -17,7 +17,7 @@ func Get() *Config {
 	return conf
 }
 
-func Read(path string) *Config {
+func MustRead(path string) *Config {
 	pwd, err := os.Getwd()
 	if err != nil {
 		panic(err)

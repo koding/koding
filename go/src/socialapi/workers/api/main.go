@@ -47,7 +47,7 @@ func main() {
 		fmt.Println("Please define config file with -c", "Exiting...")
 		return
 	}
-	conf := config.Read(*flagProfile)
+	conf := config.MustRead(*flagProfile)
 	log := helper.CreateLogger("SocialAPI", *flagDebug)
 
 	server := newServer()
