@@ -16,7 +16,6 @@ import (
 	"os"
 	"os/exec"
 	"syscall"
-	"time"
 
 	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
@@ -185,7 +184,7 @@ func vmStart(vos *virt.VOS) (interface{}, error) {
 				return "", lastError
 			}
 
-			if lastError = updateState(vos.VM); err != nil {
+			if lastError = updateState(vos.VM); lastError != nil {
 				return "", lastError
 			}
 
@@ -215,6 +214,10 @@ func vmShutdown(vos *virt.VOS) (interface{}, error) {
 			defer func() { done <- struct{}{} }()
 
 			if lastError = vos.VM.Shutdown(); lastError != nil {
+				return "", lastError
+			}
+
+			if lastError = updateState(vos.VM); lastError != nil {
 				return "", lastError
 			}
 
@@ -276,7 +279,7 @@ func vmResizeDisk(vos *virt.VOS) (interface{}, error) {
 
 	if prepared {
 		// errors are neglected by design
-		vos.VM.Unprepare(nil, true)
+		vos.VM.Unprepare(nil, false)
 	}
 
 	if err := vos.VM.Prepare(nil, false); err != nil {
@@ -482,30 +485,8 @@ func unprepareProgress(t tracer.Tracer, vos *virt.VOS, destroy bool) (err error)
 
 	t.Trace(tracer.Message{Message: "STARTED"})
 
-	prepared, err := isVmPrepared(vos.VM)
-	if err != nil {
-		return err
-	}
-
-	if !prepared {
-		t.Trace(tracer.Message{Message: "Vm is already unprepared"})
-		return nil
-	}
-
-	start := time.Now()
-	if err := vos.VM.Shutdown(); err != nil {
-		return err
-	}
-
-	// now start our unprepare progress. Also this enables to get the total
-	// steps before we send the result of shutdown back
-	t.Trace(tracer.Message{
-		Message:     "VM is stopped.",
-		ElapsedTime: time.Since(start).Seconds(),
-	})
-
 	// unprepare
-	err = vos.VM.Unprepare(t, false)
+	err = vos.VM.Unprepare(t, destroy)
 
 	if err = mongodbConn.Run("jVMs", func(c *mgo.Collection) error {
 		return c.Update(bson.M{"_id": vos.VM.Id}, bson.M{"$set": bson.M{"hostKite": nil}})
@@ -513,21 +494,9 @@ func unprepareProgress(t tracer.Tracer, vos *virt.VOS, destroy bool) (err error)
 		return fmt.Errorf("unprepareProgress hostKite nil setting: %v", err)
 	}
 
-	// mark it as stopped
+	// mark it as stopped in mongodb
 	if err := updateState(vos.VM); err != nil {
 		return err
-	}
-
-	if destroy {
-		start := time.Now()
-		if err := vos.VM.Destroy(); err != nil {
-			return err
-		}
-
-		t.Trace(tracer.Message{
-			Message:     "VM is destroyed.",
-			ElapsedTime: time.Since(start).Seconds(),
-		})
 	}
 
 	return nil
@@ -538,24 +507,29 @@ func prepareProgress(t tracer.Tracer, vos *virt.VOS) (err error) {
 		if err != nil {
 			err = kite.NewKiteErr(err)
 		}
-
-		t.Trace(tracer.Message{Err: err, Message: "FINISHED"})
 	}()
-
-	t.Trace(tracer.Message{Message: "STARTED"})
 
 	err = vos.VM.Prepare(t, false)
 	if err != nil {
 		return err
 	}
 
-	rootVos, err := vos.VM.OS(&virt.RootUser)
+	// it's now running
+	if err := updateState(vos.VM); err != nil {
+		return err
+	}
+
+	err = prepareHome(vos)
 	if err != nil {
 		return err
 	}
 
-	// it's now running
-	if err := updateState(vos.VM); err != nil {
+	return nil
+}
+
+func prepareHome(vos *virt.VOS) error {
+	rootVos, err := vos.VM.OS(&virt.RootUser)
+	if err != nil {
 		return err
 	}
 
@@ -587,7 +561,6 @@ func prepareProgress(t tracer.Tracer, vos *virt.VOS) (err error) {
 	}
 
 	return nil
-
 }
 
 func createUserHome(user *virt.User, rootVos, userVos *virt.VOS) error {

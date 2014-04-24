@@ -175,7 +175,11 @@ func (v *VM) Prepare(t tracer.Tracer, reinitialize bool) (err error) {
 			// don't put the prepare in an unknown state
 			v.Unprepare(t, false)
 		}
+
+		t.Trace(tracer.Message{Err: err, Message: "FINISHED"})
 	}()
+
+	t.Trace(tracer.Message{Message: "STARTED"})
 
 	// do not prepare if
 	prepared, err := v.isPrepared()
@@ -383,22 +387,29 @@ func UnprepareVM(id bson.ObjectId) error {
 // Those files will be stored in the vmroot.
 // Unprepare also doesn't return on errors, instead it silently fails and
 // tries to execute the next step until all steps are done.
-func (vm *VM) Unprepare(t tracer.Tracer, onlyOverlay bool) error {
+func (vm *VM) Unprepare(t tracer.Tracer, destroy bool) (err error) {
 	if t == nil {
 		t = tracer.DiscardTracer()
 	}
 
+	defer t.Trace(tracer.Message{Err: err, Message: "FINISHED"})
+	t.Trace(tracer.Message{Message: "STARTED"})
+
+	prepared, err := vm.isPrepared()
+	if err != nil {
+		return err
+	}
+
+	if !prepared {
+		return nil // nothing to unprepare
+	}
+
 	funcs := make([]*StepFunc, 0)
+	funcs = append(funcs, &StepFunc{Msg: "Stopping VM", Fn: vm.Shutdown})
 	funcs = append(funcs, &StepFunc{Msg: "Removing network rules", Fn: vm.removeNetworkRules})
 	funcs = append(funcs, &StepFunc{Msg: "Umount PTS", Fn: vm.umountPts})
 	funcs = append(funcs, &StepFunc{Msg: "Umount AUFS", Fn: vm.umountAufs})
-
-	if onlyOverlay {
-		funcs = append(funcs, &StepFunc{Msg: "Umount Overlay", Fn: vm.unmountOverlay})
-	} else {
-		funcs = append(funcs, &StepFunc{Msg: "Umount RBD", Fn: vm.umountRBD})
-	}
-
+	funcs = append(funcs, &StepFunc{Msg: "Umount RBD", Fn: vm.umountRBD})
 	funcs = append(funcs, &StepFunc{Msg: "Removing lxc/config", Fn: func() error { return os.Remove(vm.File("config")) }})
 	funcs = append(funcs, &StepFunc{Msg: "Removing lxc/fstab", Fn: func() error { return os.Remove(vm.File("fstab")) }})
 	funcs = append(funcs, &StepFunc{Msg: "Removing lxc/ip-config", Fn: func() error { return os.Remove(vm.File("ip-address")) }})
@@ -407,7 +418,10 @@ func (vm *VM) Unprepare(t tracer.Tracer, onlyOverlay bool) error {
 	funcs = append(funcs, &StepFunc{Msg: "Removing lxc folder", Fn: func() error { return os.Remove(vm.File("")) }})
 	funcs = append(funcs, &StepFunc{Msg: "Unlocking RBD", Fn: vm.UnlockRBD})
 
-	var err error
+	if destroy {
+		funcs = append(funcs, &StepFunc{Msg: "Destroying RBD", Fn: vm.Destroy})
+	}
+
 	for step, current := range funcs {
 		start := time.Now()
 		err = current.Fn() // invoke our function
@@ -570,14 +584,8 @@ func (vm *VM) mountRBD() error {
 }
 
 func (vm *VM) umountRBD() error {
-	if err := vm.UnmountRBD(vm.OverlayFile("")); err != nil {
-		return err
-	}
+	mountDir := vm.OverlayFile("")
 
-	return nil
-}
-
-func (vm *VM) UnmountRBD(mountDir string) error {
 	var firstError error
 	if out, err := exec.Command("/bin/umount", vm.OverlayFile("")).CombinedOutput(); err != nil && firstError == nil {
 		firstError = commandError("umount rbd failed.", err, out)
