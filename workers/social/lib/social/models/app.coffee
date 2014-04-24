@@ -317,7 +317,7 @@ module.exports = class JNewApp extends jraphical.Module
 
       selector  = getDefaultSelector client, selector
       options or= {}
-      options.limit = Math.min(options.limit or 0, 10)
+      options.limit = Math.min(options.limit or 0, 99)
 
       @some selector, options, callback
 

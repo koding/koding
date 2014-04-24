@@ -173,6 +173,8 @@ module.exports = class JGroup extends Module
           (signature String, Object, Function)
         inviteByEmails:
           (signature String, Object, Function)
+        isMember:
+          (signature Object, Function)
         kickMember:
           (signature String, Function)
         transferOwnership:
@@ -231,8 +233,6 @@ module.exports = class JGroup extends Module
           (signature Object, Function)
         fetchInvitationsByStatus:
           (signature Object, Function)
-        checkUserUsage:
-          (signature Function)
     schema          :
       title         :
         type        : String
@@ -494,13 +494,6 @@ module.exports = class JGroup extends Module
           group.addSubscription subscription, (err) ->
             return callback err  if err
             callback null, { group, subscription }
-
-  creditUserPack: (delegate, callback) ->
-    subOptions = targetOptions: selector: tags: "custom-plan"
-    delegate.fetchSubscription null, subOptions, (err, subscription) =>
-      return callback err  if err
-      return callback new KodingError "Subscription is not found"  unless subscription
-      subscription.creditPack tag: "user", callback
 
   @findSuggestions = (client, seed, options, callback)->
     {limit, blacklist, skip}  = options
@@ -1010,14 +1003,9 @@ module.exports = class JGroup extends Module
           unless invite.type is 'multiuse' or user.email is invite.email
             return callback new KodingError 'Are you sure invitation e-mail is for you?'
 
-          if invite.status isnt "redeemed"
-            @debitPack tag: "user", (err) =>
-              return callback err  if err
-              invite.redeem delegate, (err) =>
-                return callback err if err
-                @approveMember delegate, callback
-          else
-            callback new KodingError "Invitation is already redeemed"
+          invite.redeem delegate, (err) =>
+            return callback err if err
+            @approveMember delegate, callback
 
   bulkApprove: permit 'send invitations',
     success: (client, count, options, callback)->
@@ -1207,11 +1195,6 @@ module.exports = class JGroup extends Module
               return callback err  if err
               @updateCounts()
               @cycleChannel()
-              queue.fin()
-
-          queue.push =>
-            @creditUserPack delegate, (err) =>
-              console.warn "Failed to credit group with user pack", err  if err
               queue.fin()
 
           queue.push =>
@@ -1622,13 +1605,6 @@ module.exports = class JGroup extends Module
       JVM.createVm {account, groupSlug: @slug, @planCode}, (err) =>
         console.warn "Group #{@slug} member #{account.profile.nickname} VM is not created: #{err}"  if err
         callback()
-
-  checkUserUsage: (callback) ->
-    @fetchSubscription (err, subscription) ->
-      return callback err  if err
-      JPaymentPack.one tags: "user", (err, pack) ->
-        return callback err  if err
-        subscription.checkUsage pack, callback
 
   createSocialApiChannelId: (callback) ->
     # disable for now

@@ -7,9 +7,6 @@ class AppsMainView extends KDView
     super options,data
 
   createCommons:->
-
-    @header = new HeaderViewSection
-      type  : "big"
-      title : "App Catalog"
-
-    @addSubView @header
+    @addSubView new HeaderViewSection
+      type      : "big"
+      title     : "App Catalog"

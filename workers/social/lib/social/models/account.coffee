@@ -22,6 +22,7 @@ module.exports = class JAccount extends jraphical.Module
   Graph            = require "./graph/graph"
   JName            = require './name'
   JBadge           = require './badge'
+  JKite            = require './kite'
   JReferrableEmail = require './referrableemail'
 
   @getFlagRole            = 'content'
@@ -252,6 +253,8 @@ module.exports = class JAccount extends jraphical.Module
           (signature Object, Function)
         likeMember:
           (signature String, Function)
+        fetchKites :
+          (signature Object, Function)
 
     schema                  :
       socialApiId           : Number
@@ -410,6 +413,10 @@ module.exports = class JAccount extends jraphical.Module
       badge         :
         as          : 'badge'
         targetType  : 'JBadge'
+
+      kite          :
+        as          : 'owner'
+        targetType  : JKite
 
   constructor:->
     super

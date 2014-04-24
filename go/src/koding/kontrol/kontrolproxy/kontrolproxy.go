@@ -839,7 +839,7 @@ func templateHandler(path string, data interface{}, code int) http.Handler {
 		w.WriteHeader(code)
 		err := templates.ExecuteTemplate(w, path, data)
 		if err != nil {
-			log.Error("template %s could not be executed", path)
+			log.Error("template %s could not be executed: %s", path, err.Error())
 			http.Error(w, "error code - 1", 404)
 			return
 		}

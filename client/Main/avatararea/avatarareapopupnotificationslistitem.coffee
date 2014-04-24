@@ -1,4 +1,4 @@
-class PopupNotificationListItem extends NotificationListItem
+class PopupNotificationListItem extends NewNotificationListItem
   constructor:(options = {}, data)->
     options.tagName        or= "li"
     options.linkGroupClass or= LinkGroup

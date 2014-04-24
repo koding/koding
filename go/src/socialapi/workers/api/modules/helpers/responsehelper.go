@@ -6,6 +6,8 @@ import (
 	"net/url"
 	"socialapi/models"
 	"strconv"
+
+	"github.com/jinzhu/gorm"
 )
 
 // type ApiResponse struct {
@@ -39,6 +41,9 @@ func NewBadRequestResponse(err error) (int, http.Header, interface{}, error) {
 
 func HandleResultAndError(res interface{}, err error) (int, http.Header, interface{}, error) {
 	if err != nil {
+		if err == gorm.RecordNotFound {
+			return NewNotFoundResponse()
+		}
 		return NewBadRequestResponse(err)
 	}
 	return NewOKResponse(res)

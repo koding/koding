@@ -141,7 +141,7 @@ func (c *ChannelMessage) FetchRelatives(query *Query) (*ChannelMessageContainer,
 	i := NewInteraction()
 	i.MessageId = c.Id
 
-	oldId, err := FetchMongoIdByAccountId(c.AccountId)
+	oldId, err := FetchOdlIdByAccountId(c.AccountId)
 	if err != nil {
 		return nil, err
 	}
@@ -153,7 +153,7 @@ func (c *ChannelMessage) FetchRelatives(query *Query) (*ChannelMessageContainer,
 		return nil, err
 	}
 
-	oldIds, err := FetchMongoIdsByAccountIds(interactorIds)
+	oldIds, err := FetchOldIdsByAccountIds(interactorIds)
 	if err != nil {
 		return nil, err
 	}

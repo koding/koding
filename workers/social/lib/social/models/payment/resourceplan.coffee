@@ -51,10 +51,7 @@ module.exports = class JResourcePlan extends Base
       options.quantities = quantities
       options.couponCode = plan.couponCodes?[promotionType]
 
-      plan.subscribe$ client, paymentMethodId, options, (err, subscription) ->
-        return callback err  if err
-
-        callback null, subscription
+      plan.subscribe$ client, paymentMethodId, options, callback
 
   @subscribe = secure (client, options, callback) ->
     JPaymentPlan = require './plan'

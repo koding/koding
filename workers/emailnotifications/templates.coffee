@@ -112,7 +112,7 @@ Templates =
     group        = ''
 
     getGroupLink = ->
-      unless m.group?.slug is "koding"
+      if m.group and m.group.slug isnt "koding"
         "in <a href='#{uri.address}/#{m.group.slug}' #{Templates.linkStyle}>#{m.group.title}</a> group"
       else
         ""

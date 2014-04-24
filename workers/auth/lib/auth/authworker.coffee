@@ -480,6 +480,7 @@ module.exports = class AuthWorker extends EventEmitter
       catch e then console.error e
     @presence.listen()
 
+  backOffTimes = {}
   handleKiteWho: (messageData, socketId) ->
     { serviceGenericName, serviceUniqueName, routingKey
       correlationName, username } = messageData
@@ -487,30 +488,47 @@ module.exports = class AuthWorker extends EventEmitter
     # apparently auth worker can spam the terminal
     # kite with requests for kite.who for guest accounts.
     # this short-cicuiting is meant to prevent against that,
-    # but since I couldn't reproduce this problem locally, 
+    # but since I couldn't reproduce this problem locally,
     # it is possible that this is not a sufficient fix. C.T.
     return  if /^guest-\d+/.test username
-
-    params = {
-      serviceGenericName
-      serviceUniqueName
-      routingKey
-      correlationName
-      username
-    }
 
     servicesOfType = @services[serviceGenericName]
 
     [matchingService] = (service for service in servicesOfType \
                                  when service.serviceUniqueName \
                                    is serviceUniqueName)
-    if matchingService?
-      @sendAuthJoin params
-    else unless serviceUniqueName is "(error)"
+
+    backOffTimes[socketId] or= {}
+
+    kallback = (messageData, socketId) =>
+      { serviceGenericName, serviceUniqueName, routingKey
+      correlationName, username } = messageData
+
+      params = {
+        serviceGenericName
+        serviceUniqueName
+        routingKey
+        correlationName
+        username
+      }
+
       params.deadService = serviceUniqueName
       serviceInfo = @getNextServiceInfo serviceGenericName
       params.serviceUniqueName = serviceInfo.serviceUniqueName
       @sendAuthWho params
+      delete backOffTimes[socketId]
+
+    if backOffTimes[socketId].inProgress
+      return
+    else if matchingService?
+      @sendAuthJoin messageData
+    else if serviceUniqueName is "(error)"
+      backOffTimes[socketId].inProgress = yes
+      backOffTimes[socketId].timer = setTimeout ->
+        backOffTimes[socketId].inProgress = no
+        kallback messageData, socketId
+      , 1000
+    else kallback messageData, socketId
 
   connect: ->
     {bongo} = this
