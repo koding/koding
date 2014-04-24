@@ -39,7 +39,7 @@ module.exports = class JProxyFilter extends jraphical.Module
     actionTypes   = [ "allow", "block", "securepage" ]
 
     unless name and rules?.length
-      return callback new KodingError "Missing arguments", null
+      return callback new KodingError { message: "Missing arguments" }
 
     for rule in rules
       {enabled, type, match, action} = rule
@@ -51,7 +51,7 @@ module.exports = class JProxyFilter extends jraphical.Module
         hasInvalidRule = yes
 
     if hasInvalidRule
-      return callback new KodingError "One or more rules are invalid", null
+      return callback new KodingError { message: "One or more rules are invalid" }
 
     data.owner = delegate.getId()
     filter     = new JProxyFilter data

@@ -7,8 +7,8 @@ class EnvironmentDomainItem extends EnvironmentItem
     options.staticJoints       = ['left']
 
     options.allowedConnections =
-      EnvironmentRuleItem    : ['right']
-      EnvironmentMachineItem : ['left']
+      EnvironmentRuleItem      : ['right']
+      EnvironmentMachineItem   : ['left']
 
     super options, data
 

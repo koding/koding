@@ -34,7 +34,7 @@ class StackView extends KDView
     KD.getSingleton("vmController").on 'VMListChanged', =>
       EnvironmentDataProvider.get (data) => @loadContainers data
 
-    # Rules Container
+    # Extras Container
     @extras = new EnvironmentExtraContainer
     @scene.addContainer @extras
 
