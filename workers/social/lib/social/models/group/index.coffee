@@ -173,6 +173,8 @@ module.exports = class JGroup extends Module
           (signature String, Object, Function)
         inviteByEmails:
           (signature String, Object, Function)
+        isMember:
+          (signature Object, Function)
         kickMember:
           (signature String, Function)
         transferOwnership:
@@ -231,13 +233,14 @@ module.exports = class JGroup extends Module
           (signature Object, Function)
         fetchInvitationsByStatus:
           (signature Object, Function)
-        checkUserUsage:
-          (signature Function)
     schema          :
       title         :
         type        : String
         required    : yes
       body          : String
+      # channelId for mapping social API
+      # to internal usage
+      socialApiChannelId: Number
       avatar        : String
       slug          :
         type        : String
@@ -443,7 +446,7 @@ module.exports = class JGroup extends Module
             queue.next()
         -> save_ 'group', group, queue, (err)->
            if err
-             JName.release group.slug, => callback err
+             JName.release group.slug, -> callback err
            else
              queue.next()
         -> group.addMember owner, (err)->
@@ -498,13 +501,6 @@ module.exports = class JGroup extends Module
           group.addSubscription subscription, (err) ->
             return callback err  if err
             callback null, { group, subscription }
-
-  creditUserPack: (delegate, callback) ->
-    subOptions = targetOptions: selector: tags: "custom-plan"
-    delegate.fetchSubscription null, subOptions, (err, subscription) =>
-      return callback err  if err
-      return callback new KodingError "Subscription is not found"  unless subscription
-      subscription.creditPack tag: "user", callback
 
   @findSuggestions = (client, seed, options, callback)->
     {limit, blacklist, skip}  = options
@@ -1014,14 +1010,9 @@ module.exports = class JGroup extends Module
           unless invite.type is 'multiuse' or user.email is invite.email
             return callback new KodingError 'Are you sure invitation e-mail is for you?'
 
-          if invite.status isnt "redeemed"
-            @debitPack tag: "user", (err) =>
-              return callback err  if err
-              invite.redeem delegate, (err) =>
-                return callback err if err
-                @approveMember delegate, callback
-          else
-            callback new KodingError "Invitation is already redeemed"
+          invite.redeem delegate, (err) =>
+            return callback err if err
+            @approveMember delegate, callback
 
   bulkApprove: permit 'send invitations',
     success: (client, count, options, callback)->
@@ -1211,11 +1202,6 @@ module.exports = class JGroup extends Module
               return callback err  if err
               @updateCounts()
               @cycleChannel()
-              queue.fin()
-
-          queue.push =>
-            @creditUserPack delegate, (err) =>
-              console.warn "Failed to credit group with user pack", err  if err
               queue.fin()
 
           queue.push =>
@@ -1618,9 +1604,25 @@ module.exports = class JGroup extends Module
         console.warn "Group #{@slug} member #{account.profile.nickname} VM is not created: #{err}"  if err
         callback()
 
-  checkUserUsage: (callback) ->
-    @fetchSubscription (err, subscription) ->
-      return callback err  if err
-      JPaymentPack.one tags: "user", (err, pack) ->
-        return callback err  if err
-        subscription.checkUsage pack, callback
+  createSocialApiChannelId: (callback) ->
+    # disable for now
+    # return callback null, @socialApiChannelId  if @socialApiChannelId
+    @fetchOwner (err, owner)=>
+      return callback err if err
+      unless owner
+        return callback { message: "Owner not found for #{@slug} group" }
+      owner.createSocialApiId (err, socialApiId)=>
+        return callback err if err
+        # required data for creating a channel
+        data =
+          name         : @slug
+          creatorId    : socialApiId
+          group        : @slug
+          typeConstant : "group"
+
+        {createChannel} = require '../socialapi/requests'
+        createChannel data, (err, socialApiChannel)=>
+          return callback err if err
+          @update $set: socialApiChannelId: socialApiChannel.id, (err)->
+            return callback err if err
+            return callback null, socialApiChannel.id

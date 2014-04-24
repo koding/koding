@@ -39,41 +39,48 @@ type FileEvent struct {
 	create bool   // set by fsnotify package if found new file
 }
 
-// IsCreate reports whether the FileEvent was triggerd by a creation
+// IsCreate reports whether the FileEvent was triggered by a creation
 func (e *FileEvent) IsCreate() bool { return e.create }
 
-// IsDelete reports whether the FileEvent was triggerd by a delete
+// IsDelete reports whether the FileEvent was triggered by a delete
 func (e *FileEvent) IsDelete() bool { return (e.mask & sys_NOTE_DELETE) == sys_NOTE_DELETE }
 
-// IsModify reports whether the FileEvent was triggerd by a file modification
+// IsModify reports whether the FileEvent was triggered by a file modification
 func (e *FileEvent) IsModify() bool {
 	return ((e.mask&sys_NOTE_WRITE) == sys_NOTE_WRITE || (e.mask&sys_NOTE_ATTRIB) == sys_NOTE_ATTRIB)
 }
 
-// IsRename reports whether the FileEvent was triggerd by a change name
+// IsRename reports whether the FileEvent was triggered by a change name
 func (e *FileEvent) IsRename() bool { return (e.mask & sys_NOTE_RENAME) == sys_NOTE_RENAME }
 
+// IsAttrib reports whether the FileEvent was triggered by a change in the file metadata.
+func (e *FileEvent) IsAttrib() bool {
+	return (e.mask & sys_NOTE_ATTRIB) == sys_NOTE_ATTRIB
+}
+
 type Watcher struct {
-	mu            sync.Mutex          // Mutex for the Watcher itself.
-	kq            int                 // File descriptor (as returned by the kqueue() syscall)
-	watches       map[string]int      // Map of watched file diescriptors (key: path)
-	wmut          sync.Mutex          // Protects access to watches.
-	fsnFlags      map[string]uint32   // Map of watched files to flags used for filter
-	fsnmut        sync.Mutex          // Protects access to fsnFlags.
-	enFlags       map[string]uint32   // Map of watched files to evfilt note flags used in kqueue
-	enmut         sync.Mutex          // Protects access to enFlags.
-	paths         map[int]string      // Map of watched paths (key: watch descriptor)
-	finfo         map[int]os.FileInfo // Map of file information (isDir, isReg; key: watch descriptor)
-	pmut          sync.Mutex          // Protects access to paths and finfo.
-	fileExists    map[string]bool     // Keep track of if we know this file exists (to stop duplicate create events)
-	femut         sync.Mutex          // Proctects access to fileExists.
-	Error         chan error          // Errors are sent on this channel
-	internalEvent chan *FileEvent     // Events are queued on this channel
-	Event         chan *FileEvent     // Events are returned on this channel
-	done          chan bool           // Channel for sending a "quit message" to the reader goroutine
-	isClosed      bool                // Set to true when Close() is first called
-	kbuf          [1]syscall.Kevent_t // An event buffer for Add/Remove watch
-	bufmut        sync.Mutex          // Protects access to kbuf.
+	mu              sync.Mutex          // Mutex for the Watcher itself.
+	kq              int                 // File descriptor (as returned by the kqueue() syscall)
+	watches         map[string]int      // Map of watched file descriptors (key: path)
+	wmut            sync.Mutex          // Protects access to watches.
+	fsnFlags        map[string]uint32   // Map of watched files to flags used for filter
+	fsnmut          sync.Mutex          // Protects access to fsnFlags.
+	enFlags         map[string]uint32   // Map of watched files to evfilt note flags used in kqueue
+	enmut           sync.Mutex          // Protects access to enFlags.
+	paths           map[int]string      // Map of watched paths (key: watch descriptor)
+	finfo           map[int]os.FileInfo // Map of file information (isDir, isReg; key: watch descriptor)
+	pmut            sync.Mutex          // Protects access to paths and finfo.
+	fileExists      map[string]bool     // Keep track of if we know this file exists (to stop duplicate create events)
+	femut           sync.Mutex          // Protects access to fileExists.
+	externalWatches map[string]bool     // Map of watches added by user of the library.
+	ewmut           sync.Mutex          // Protects access to externalWatches.
+	Error           chan error          // Errors are sent on this channel
+	internalEvent   chan *FileEvent     // Events are queued on this channel
+	Event           chan *FileEvent     // Events are returned on this channel
+	done            chan bool           // Channel for sending a "quit message" to the reader goroutine
+	isClosed        bool                // Set to true when Close() is first called
+	kbuf            [1]syscall.Kevent_t // An event buffer for Add/Remove watch
+	bufmut          sync.Mutex          // Protects access to kbuf.
 }
 
 // NewWatcher creates and returns a new kevent instance using kqueue(2)
@@ -83,17 +90,18 @@ func NewWatcher() (*Watcher, error) {
 		return nil, os.NewSyscallError("kqueue", errno)
 	}
 	w := &Watcher{
-		kq:            fd,
-		watches:       make(map[string]int),
-		fsnFlags:      make(map[string]uint32),
-		enFlags:       make(map[string]uint32),
-		paths:         make(map[int]string),
-		finfo:         make(map[int]os.FileInfo),
-		fileExists:    make(map[string]bool),
-		internalEvent: make(chan *FileEvent),
-		Event:         make(chan *FileEvent),
-		Error:         make(chan error),
-		done:          make(chan bool, 1),
+		kq:              fd,
+		watches:         make(map[string]int),
+		fsnFlags:        make(map[string]uint32),
+		enFlags:         make(map[string]uint32),
+		paths:           make(map[int]string),
+		finfo:           make(map[int]os.FileInfo),
+		fileExists:      make(map[string]bool),
+		externalWatches: make(map[string]bool),
+		internalEvent:   make(chan *FileEvent),
+		Event:           make(chan *FileEvent),
+		Error:           make(chan error),
+		done:            make(chan bool, 1),
 	}
 
 	go w.readEvents()
@@ -224,6 +232,9 @@ func (w *Watcher) addWatch(path string, flags uint32) error {
 
 // Watch adds path to the watched file set, watching all events.
 func (w *Watcher) watch(path string) error {
+	w.ewmut.Lock()
+	w.externalWatches[path] = true
+	w.ewmut.Unlock()
 	return w.addWatch(path, sys_NOTE_ALLEVENTS)
 }
 
@@ -236,10 +247,10 @@ func (w *Watcher) removeWatch(path string) error {
 		return errors.New(fmt.Sprintf("can't remove non-existent kevent watch for: %s", path))
 	}
 	w.bufmut.Lock()
-	defer w.bufmut.Unlock()
 	watchEntry := &w.kbuf[0]
 	syscall.SetKevent(watchEntry, watchfd, syscall.EVFILT_VNODE, syscall.EV_DELETE)
 	success, errno := syscall.Kevent(w.kq, w.kbuf[:], nil, nil)
+	w.bufmut.Unlock()
 	if success == -1 {
 		return os.NewSyscallError("kevent_rm_watch", errno)
 	} else if (watchEntry.Flags & syscall.EV_ERROR) == syscall.EV_ERROR {
@@ -254,8 +265,33 @@ func (w *Watcher) removeWatch(path string) error {
 	w.enmut.Unlock()
 	w.pmut.Lock()
 	delete(w.paths, watchfd)
+	fInfo := w.finfo[watchfd]
 	delete(w.finfo, watchfd)
 	w.pmut.Unlock()
+
+	// Find all watched paths that are in this directory that are not external.
+	if fInfo.IsDir() {
+		var pathsToRemove []string
+		w.pmut.Lock()
+		for _, wpath := range w.paths {
+			wdir, _ := filepath.Split(wpath)
+			if filepath.Clean(wdir) == filepath.Clean(path) {
+				w.ewmut.Lock()
+				if !w.externalWatches[wpath] {
+					pathsToRemove = append(pathsToRemove, wpath)
+				}
+				w.ewmut.Unlock()
+			}
+		}
+		w.pmut.Unlock()
+		for _, p := range pathsToRemove {
+			// Since these are internal, not much sense in propagating error
+			// to the user, as that will just confuse them with an error about
+			// a path they did not explicitly watch themselves.
+			w.removeWatch(p)
+		}
+	}
+
 	return nil
 }
 
@@ -309,7 +345,7 @@ func (w *Watcher) readEvents() {
 			}
 		}
 
-		// Flush the events we recieved to the events channel
+		// Flush the events we received to the events channel
 		for len(events) > 0 {
 			fileEvent := new(FileEvent)
 			watchEvent := &events[0]
@@ -318,7 +354,7 @@ func (w *Watcher) readEvents() {
 			fileEvent.Name = w.paths[int(watchEvent.Ident)]
 			fileInfo := w.finfo[int(watchEvent.Ident)]
 			w.pmut.Unlock()
-			if fileInfo.IsDir() && !fileEvent.IsDelete() {
+			if fileInfo != nil && fileInfo.IsDir() && !fileEvent.IsDelete() {
 				// Double check to make sure the directory exist. This can happen when
 				// we do a rm -fr on a recursively watched folders and we receive a
 				// modification event first but the folder has been deleted and later
@@ -329,7 +365,7 @@ func (w *Watcher) readEvents() {
 				}
 			}
 
-			if fileInfo.IsDir() && fileEvent.IsModify() && !fileEvent.IsDelete() {
+			if fileInfo != nil && fileInfo.IsDir() && fileEvent.IsModify() && !fileEvent.IsDelete() {
 				w.sendDirectoryChangeEvents(fileEvent.Name)
 			} else {
 				// Send the event on the events channel
@@ -399,7 +435,7 @@ func (w *Watcher) watchDirectoryFiles(dirPath string) error {
 				return e
 			}
 		} else {
-			// If the user is currently waching directory
+			// If the user is currently watching directory
 			// we want to preserve the flags used
 			w.enmut.Lock()
 			currFlags, found := w.enFlags[filePath]
@@ -425,7 +461,7 @@ func (w *Watcher) watchDirectoryFiles(dirPath string) error {
 
 // sendDirectoryEvents searches the directory for newly created files
 // and sends them over the event channel. This functionality is to have
-// the BSD version of fsnotify mach linux fsnotify which provides a
+// the BSD version of fsnotify match linux fsnotify which provides a
 // create event for files created in a watched directory.
 func (w *Watcher) sendDirectoryChangeEvents(dirPath string) {
 	// Get all files

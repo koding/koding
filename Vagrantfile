@@ -93,6 +93,7 @@ Vagrant.configure("2") do |config|
     default.vm.network :forwarded_port, :guest => 4000, :host => 4000 # kontrol kite
     default.vm.network :forwarded_port, :guest => 4005, :host => 4005 # provisioning kite
     default.vm.network :forwarded_port, :guest => 5000, :host => 5000 # oskite
+    default.vm.network :forwarded_port, :guest => 5432, :host => 5432 # postgresql
     default.vm.network :forwarded_port, :guest => 5001, :host => 5001 # terminal kite
     default.vm.hostname = "vagrant"
 

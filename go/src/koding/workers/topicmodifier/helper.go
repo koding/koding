@@ -3,6 +3,7 @@ package topicmodifier
 import (
 	. "koding/db/models"
 	helper "koding/db/mongodb/modelhelper"
+
 	"labix.org/v2/mgo/bson"
 )
 
@@ -10,23 +11,19 @@ import (
 func DeleteStatusUpdate(id string) error {
 	err := RemoveComments(id)
 	if err != nil {
-		log.Error("Empty Status Update Cannot be deleted: %v", err)
 		return err
 	}
 
 	err = RemovePostRelationships(id)
 	if err != nil {
-		log.Error("Empty Status Update Cannot be deleted: %v", err)
 		return err
 	}
 
 	err = helper.DeleteStatusUpdateById(id)
 	if err != nil {
-		log.Error("Empty Status Update Cannot be deleted: %v", err)
 		return err
 	}
 
-	log.Info("Deleted Empty Status Update")
 	return nil
 }
 
@@ -36,7 +33,6 @@ func CreateRelationship(relationship *Relationship) error {
 	if err != nil {
 		return err
 	}
-	log.Debug("Add Mongo Relationship")
 	return helper.AddRelationship(relationship)
 }
 
@@ -52,7 +48,6 @@ func RemoveRelationship(relationship *Relationship) error {
 		"targetId": relationship.TargetId,
 		"as":       relationship.As,
 	}
-	log.Debug("Delete Mongo Relationship")
 	return helper.DeleteRelationships(selector)
 }
 
