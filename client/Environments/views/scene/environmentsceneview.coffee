@@ -79,8 +79,14 @@ class EnvironmentScene extends KDDiaScene
         createConnection()
     else if domain and rule
       createConnection()
+      @bindRuleToDomain domain, rule
     else if vm and extra
       createConnection()
+
+  bindRuleToDomain: (domain, rule) ->
+    {domain} = domain.dia.getData()
+    rule     = rule.dia.getData()
+    log domain, rule
 
   updateConnections:->
     @reset no
