@@ -5,8 +5,6 @@ import (
 	"net/url"
 	"socialapi/models"
 	"socialapi/workers/api/modules/helpers"
-
-	"github.com/jinzhu/gorm"
 )
 
 func Create(u *url.URL, h http.Header, reply *models.ChannelMessage) (int, http.Header, interface{}, error) {
@@ -85,13 +83,7 @@ func List(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface
 	reply := models.NewMessageReply()
 	reply.MessageId = messageId
 
-	replies, err := reply.List()
-	if err != nil {
-		if err == gorm.RecordNotFound {
-			return helpers.NewNotFoundResponse()
-		}
-		return helpers.NewBadRequestResponse(err)
-	}
-
-	return helpers.NewOKResponse(replies)
+	return helpers.HandleResultAndError(
+		reply.List(),
+	)
 }
