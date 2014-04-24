@@ -737,11 +737,6 @@ func updateState(vm *virt.VM) error {
 }
 
 func startAndPrepareVM(vm *virt.VM) error {
-	prepared, err := isVmPrepared(vm)
-	if err != nil {
-		return err
-	}
-
 	var lastError error
 	done := make(chan struct{}, 1)
 	prepareQueue <- &QueueJob{
@@ -751,25 +746,13 @@ func startAndPrepareVM(vm *virt.VM) error {
 
 			startTime := time.Now()
 
-			if !prepared {
-				// prepare first
-				if lastError = vm.Prepare(nil, false); lastError != nil {
-					return "", fmt.Errorf("preparing VM %s", lastError)
-				}
+			// prepare first
+			if lastError = vm.Prepare(nil, false); lastError != nil {
+				return "", fmt.Errorf("preparing VM %s", lastError)
 			}
 
-			// start it
-			if err := vm.Start(); err != nil {
-				log.LogError(err, 0)
-			}
-
-			// wait until network is up
-			if err := vm.WaitForNetwork(time.Second * 5); err != nil {
-				log.Error("%v", err)
-			}
-
-			if err := updateState(vm); err != nil {
-				log.Error("%v", err)
+			if lastError = updateState(vm); lastError != nil {
+				log.Error("%v", lastError)
 			}
 
 			res := fmt.Sprintf("VM PREPARE and START: %s [%s] - ElapsedTime: %.10f seconds.",

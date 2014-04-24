@@ -147,6 +147,19 @@ func (vm *VM) ApplyDefaults() {
 	}
 }
 
+func (v *VM) isPrepared() (bool, error) {
+	isPrepared := true
+	if _, err := os.Stat(v.File("rootfs/dev")); err != nil {
+		if !os.IsNotExist(err) {
+			return false, err
+		}
+
+		isPrepared = false
+	}
+
+	return isPrepared, nil
+}
+
 // Prepare creates and initialized the container to be started later directly
 // with lxc.start. We don't use lxc.create (which uses shell scipts for
 // templating), instead of we use this method which basically let us do things
@@ -164,6 +177,16 @@ func (v *VM) Prepare(t tracer.Tracer, reinitialize bool) (err error) {
 		}
 	}()
 
+	// do not prepare if
+	prepared, err := v.isPrepared()
+	if err != nil {
+		return err
+	}
+
+	if prepared {
+		return errors.New("already prepared")
+	}
+
 	funcs := make([]*StepFunc, 0)
 	funcs = append(funcs, &StepFunc{Msg: "Create container", Fn: v.createContainerDir})
 	funcs = append(funcs, &StepFunc{Msg: "Mount RBD", Fn: v.mountRBD})
@@ -178,6 +201,8 @@ func (v *VM) Prepare(t tracer.Tracer, reinitialize bool) (err error) {
 	funcs = append(funcs, &StepFunc{Msg: "Mount PTS", Fn: v.prepareAndMountPts})
 	funcs = append(funcs, &StepFunc{Msg: "Add Ebtables rules", Fn: v.addEbtablesRule})
 	funcs = append(funcs, &StepFunc{Msg: "Add Static route", Fn: v.addStaticRoute})
+	funcs = append(funcs, &StepFunc{Msg: "Starting VM", Fn: v.Start})
+	funcs = append(funcs, &StepFunc{Msg: "Waiting for network", Fn: v.WaitForNetwork})
 
 	for step, current := range funcs {
 		start := time.Now()

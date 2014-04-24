@@ -181,7 +181,7 @@ func vmStart(vos *virt.VOS) (interface{}, error) {
 			}
 
 			// wait until network is up
-			if lastError = vos.VM.WaitForNetwork(time.Second * 5); lastError != nil {
+			if lastError = vos.VM.WaitForNetwork(); lastError != nil {
 				return "", lastError
 			}
 
@@ -283,6 +283,11 @@ func vmResizeDisk(vos *virt.VOS) (interface{}, error) {
 		return nil, err
 	}
 
+	// stop it before we resize
+	if err := vos.VM.Shutdown(); err != nil {
+		return nil, err
+	}
+
 	if err := vos.VM.ResizeRBD(); err != nil {
 		return nil, err
 	}
@@ -337,10 +342,6 @@ func vmReinitialize(vos *virt.VOS) (interface{}, error) {
 	vos.VM.Unprepare(nil, false)
 
 	if err := vos.VM.Prepare(nil, false); err != nil {
-		return nil, err
-	}
-
-	if err := vos.VM.Start(); err != nil {
 		return nil, err
 	}
 
@@ -435,6 +436,7 @@ func (o *Oskite) vmPrepareAndStart(args *dnode.Partial, channel *kite.Channel, v
 		return nil, err
 	}
 
+	// start preparing
 	if params.Enabled() {
 		go prepareProgress(params, vos)
 		return true, nil
@@ -477,6 +479,8 @@ func unprepareProgress(t tracer.Tracer, vos *virt.VOS, destroy bool) (err error)
 
 		t.Trace(tracer.Message{Err: err, Message: "FINISHED"})
 	}()
+
+	t.Trace(tracer.Message{Message: "STARTED"})
 
 	prepared, err := isVmPrepared(vos.VM)
 	if err != nil {
@@ -538,44 +542,12 @@ func prepareProgress(t tracer.Tracer, vos *virt.VOS) (err error) {
 		t.Trace(tracer.Message{Err: err, Message: "FINISHED"})
 	}()
 
-	prepared, err := isVmPrepared(vos.VM)
+	t.Trace(tracer.Message{Message: "STARTED"})
+
+	err = vos.VM.Prepare(t, false)
 	if err != nil {
 		return err
 	}
-
-	var totalStep int = 2 // vm.Start and vm.WaitForNetwork
-
-	if !prepared {
-		err := vos.VM.Prepare(t, false)
-		if err != nil {
-			return err
-		}
-	}
-
-	start := time.Now()
-	if err := vos.VM.Start(); err != nil {
-		return err
-	}
-
-	t.Trace(tracer.Message{
-		Message:     "VM is started.",
-		ElapsedTime: time.Since(start).Seconds(),
-		CurrentStep: totalStep - 1,
-		TotalStep:   totalStep,
-	})
-
-	// wait until network is up
-	start = time.Now()
-	if err := vos.VM.WaitForNetwork(time.Second * 5); err != nil {
-		return err
-	}
-
-	t.Trace(tracer.Message{
-		Message:     "VM network is ready and up",
-		ElapsedTime: time.Since(start).Seconds(),
-		CurrentStep: totalStep,
-		TotalStep:   totalStep,
-	})
 
 	rootVos, err := vos.VM.OS(&virt.RootUser)
 	if err != nil {
