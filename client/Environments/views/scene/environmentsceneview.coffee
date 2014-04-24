@@ -86,7 +86,17 @@ class EnvironmentScene extends KDDiaScene
   bindRuleToDomain: (domain, rule) ->
     {domain} = domain.dia.getData()
     rule     = rule.dia.getData()
-    log domain, rule
+
+    KD.remote.api.JProxyRestriction.create {
+      domainName : domain.domain
+      filterId   : rule.getId()
+    }, (err, restriction) ->
+      if err
+        return new KDNotificationView
+          type     : "mini"
+          cssClass : "error"
+          title    : "Sorry, we couldn't bind your rule to your VM, please try again."
+          duration : 4000
 
   updateConnections:->
     @reset no
