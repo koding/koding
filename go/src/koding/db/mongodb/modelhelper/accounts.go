@@ -22,6 +22,14 @@ func GetAccount(username string) (*models.Account, error) {
 	return account, Mongo.Run(AccountsCollection, query)
 }
 
+func GetAccountBySocialApiId(socialApiId int64) (*models.Account, error) {
+	account := new(models.Account)
+	query := func(c *mgo.Collection) error {
+		return c.Find(bson.M{"socialApiId": socialApiId}).One(&account)
+	}
+	return account, Mongo.Run(AccountsCollection, query)
+}
+
 func CheckAccountExistence(id string) (bool, error) {
 	var exists bool
 	query := checkExistence(id, &exists)

@@ -174,9 +174,8 @@ app.get "/-/subscription/check/:kiteToken?/:user?/:groupId?", (req, res) ->
                   paidSubscription = item
 
               subscription = paidSubscription or freeSubscription
-              if subscription
-                plan = planMap[subscription.planCode]
-                res.send 200, planId: plan.planCode, planName: plan.title
+              if subscription and plan = planMap[subscription.planCode]
+                  res.send 200, planId: plan.planCode, planName: plan.title
               else
                 res.send 401, err: "NO_SUBSCRIPTION"
 
@@ -375,6 +374,8 @@ app.all '/:name/:section?*', (req, res, next)->
   else
 
     isLoggedIn req, res, (err, loggedIn, account)->
+      return res.send 404, error_404()  if err
+
       JName.fetchModels name, (err, result)->
         return next err  if err
         return res.send 404, error_404()  unless result?

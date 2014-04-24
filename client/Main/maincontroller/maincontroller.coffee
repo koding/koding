@@ -65,6 +65,7 @@ class MainController extends KDController
       KD.registerSingleton 'widgetController',        new WidgetController
       KD.registerSingleton 'kodingAppsController',    new KodingAppsController
       KD.registerSingleton 'onboardingController',    new OnboardingController
+      KD.registerSingleton "socialapi",               new SocialApiController
       # KD.registerSingleton "kontrol",                 new Kontrol
 
       @emit 'AppIsReady'

@@ -275,16 +275,30 @@ module.exports = class AuthWorker extends EventEmitter
         then @sendAuthJoin params
         else @respondServiceUnavailable routingKey, serviceGenericName
 
-    ensureGroupPermission = (group, account, callback) ->
-      {JPermissionSet, JGroup} = @bongo.models
-      client = {context: group.slug, connection: delegate: account}
+
+    ensureGroupPermission = ({group, account}, callback) ->
+      {JGroup} = @bongo.models
+      checkGroupPermission.call this, group, account, (err, hasPermission) ->
+        if err then callback err
+        else if hasPermission
+          JGroup.fetchSecretChannelName group.slug, callback
+        else
+          callback {message: 'Access denied!', code: 403}
+
+    ensureSocialapiChannelPermission = ({group, account, options}, callback) ->
+      {SocialChannel} = @bongo.models
+      checkGroupPermission.call this, group, account, (err, hasPermission) ->
+        if err then callback err
+        else if hasPermission
+          SocialChannel.fetchSecretChannelName options, callback
+        else
+          callback {message: 'Access denied!', code: 403}
+
+    checkGroupPermission = (group, account, callback) ->
+      {JPermissionSet, JGroup, SocialChannel} = @bongo.models
+      client = {context: {group: group.slug}, connection: delegate: account}
       JPermissionSet.checkPermission client, "read group activity", group,
-        (err, hasPermission) ->
-          if err then callback err
-          else if hasPermission
-            JGroup.fetchSecretChannelName group.slug, callback
-          else
-            callback {message: 'Access denied!', code: 403}
+        callback
 
     joinGroupHelper =(messageData, routingKey, socketId)->
       {JAccount, JGroup} = @bongo.models
@@ -293,19 +307,62 @@ module.exports = class AuthWorker extends EventEmitter
         @rejectClient routingKey
       @authenticate messageData, routingKey, socketId, (session) =>
         unless session then fail()
-        else JAccount.one {'profile.nickname': session.username},
-          (err, account) =>
-            if err then fail err
-            else JGroup.one {slug: messageData.group}, (err, group) =>
-              if err or not group then fail err
-              else
-                ensureGroupPermission.call this, group, account,
-                  (err, secretChannelName) =>
-                    if err or not secretChannelName
-                      @rejectClient routingKey
-                    else
-                      @addBinding 'broadcast', secretChannelName, 'broker', routingKey
-                      @setSecretNames routingKey, secretChannelName
+        fetchAccountAndGroup.call this, session.username, messageData.group,
+          (err, data)=>
+            return fail err  if err
+            {account, group} = data
+            ensureGroupPermission.call this, {group, account},
+              (err, secretChannelName) =>
+                if err or not secretChannelName
+                  @rejectClient routingKey
+                else
+                  handleSecretnameAndRoutingKey.call this,
+                    routingKey,
+                    secretChannelName
+
+    handleSecretnameAndRoutingKey = (routingKey, secretChannelName)->
+      @addBinding 'broadcast', secretChannelName, 'broker', routingKey
+      @setSecretNames routingKey, secretChannelName
+
+    fetchAccountAndGroup= (username, groupSlug, callback)->
+      {JAccount, JGroup} = @bongo.models
+      JAccount.one {'profile.nickname': username},
+        (err, account) ->
+          return callback err  if err
+          return callback {message: "Account not found"}  if not account
+          JGroup.one {slug: groupSlug}, (err, group) ->
+            return callback err  if err
+            return callback {message: "Group not found"}  if not group
+            return callback null, {account, group}
+
+    joinSocialApiHelper =(messageData, routingKey, socketId)->
+      {JAccount, JGroup, SocialChannel} = @bongo.models
+      fail = (err) =>
+        console.error err  if err
+        @rejectClient routingKey
+      @authenticate messageData, routingKey, socketId, (session) =>
+        return fail()  unless session
+        fetchAccountAndGroup.call this, session.username, messageData.group,
+          (err, data)=>
+            return fail err  if err
+            {account, group} = data
+
+            options =
+              groupSlug      : group.slug
+              apiChannelType : messageData.channelType
+              apiChannelName : messageData.channelName
+
+            ensureSocialapiChannelPermission.call this, {
+              group,
+              account,
+              options
+            } , (err, secretChannelName)=>
+              return fail err if err
+              unless secretChannelName
+                return fail {message: "secretChannelName not set"}
+              handleSecretnameAndRoutingKey.call this,
+                routingKey,
+                secretChannelName
 
     joinNotificationHelper =(messageData, routingKey, socketId)->
       fail = (err)=>
@@ -357,6 +414,11 @@ module.exports = class AuthWorker extends EventEmitter
           unless ///^group\.#{messageData.group}\.///.test routingKey
             return @rejectClient routingKey
           joinGroupHelper.call this, messageData, routingKey, socketId
+
+        when 'socialapi'
+          unless ///^socialapi\.///.test routingKey
+            return @rejectClient routingKey
+          joinSocialApiHelper.call this, messageData, routingKey, socketId
 
         when 'chat'
           joinChatHelper.call this, messageData, routingKey, socketId
@@ -418,6 +480,7 @@ module.exports = class AuthWorker extends EventEmitter
       catch e then console.error e
     @presence.listen()
 
+  backOffTimes = {}
   handleKiteWho: (messageData, socketId) ->
     { serviceGenericName, serviceUniqueName, routingKey
       correlationName, username } = messageData
@@ -429,26 +492,43 @@ module.exports = class AuthWorker extends EventEmitter
     # it is possible that this is not a sufficient fix. C.T.
     return  if /^guest-\d+/.test username
 
-    params = {
-      serviceGenericName
-      serviceUniqueName
-      routingKey
-      correlationName
-      username
-    }
-
     servicesOfType = @services[serviceGenericName]
 
     [matchingService] = (service for service in servicesOfType \
                                  when service.serviceUniqueName \
                                    is serviceUniqueName)
-    if matchingService?
-      @sendAuthJoin params
-    else unless serviceUniqueName is "(error)"
+
+    backOffTimes[socketId] or= {}
+
+    kallback = (messageData, socketId) =>
+      { serviceGenericName, serviceUniqueName, routingKey
+      correlationName, username } = messageData
+
+      params = {
+        serviceGenericName
+        serviceUniqueName
+        routingKey
+        correlationName
+        username
+      }
+
       params.deadService = serviceUniqueName
       serviceInfo = @getNextServiceInfo serviceGenericName
       params.serviceUniqueName = serviceInfo.serviceUniqueName
       @sendAuthWho params
+      delete backOffTimes[socketId]
+
+    if backOffTimes[socketId].inProgress
+      return
+    else if matchingService?
+      @sendAuthJoin messageData
+    else if serviceUniqueName is "(error)"
+      backOffTimes[socketId].inProgress = yes
+      backOffTimes[socketId].timer = setTimeout ->
+        backOffTimes[socketId].inProgress = no
+        kallback messageData, socketId
+      , 1000
+    else kallback messageData, socketId
 
   connect: ->
     {bongo} = this

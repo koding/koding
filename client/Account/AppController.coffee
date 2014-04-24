@@ -50,7 +50,7 @@ class AccountAppController extends AppController
 
     for item in @navController.itemsOrdered when section is item.getData().slug
       @tabView.addPane @createTab item.getData()
-      @navController.selectSingleItem item
+      @navController.selectItem item
       break
 
 

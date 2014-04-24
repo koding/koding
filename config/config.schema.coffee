@@ -62,6 +62,7 @@ config =
       clusterSize : 1
       queueName   : 1
       watch       : 1
+    socialApiUrl  : 1
     sourceServer  :
       enabled     : 1
       port        : 1

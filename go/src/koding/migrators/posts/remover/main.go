@@ -5,9 +5,10 @@ import (
 	"flag"
 	"fmt"
 	helper "koding/db/mongodb/modelhelper"
-	"koding/messaging/rabbitmq"
 	"koding/tools/config"
-	"koding/tools/logger"
+	"os"
+	"github.com/koding/logging"
+	"github.com/koding/rabbitmq"
 
 	"github.com/streadway/amqp"
 	"labix.org/v2/mgo/bson"
@@ -16,8 +17,9 @@ import (
 var (
 	Consumer    *rabbitmq.Consumer
 	conf        *config.Config
-	log         = logger.New("postMigrator")
+	flagDebug   = flag.Bool("d", false, "Debug mode")
 	flagProfile = flag.String("c", "", "Configuration profile from file")
+	log         logging.Logger
 )
 
 type Migrator struct {
@@ -34,11 +36,22 @@ type Migrator struct {
 func main() {
 	flag.Parse()
 	if *flagProfile == "" {
-		log.Fatal("Please specify profile via -c. Aborting.")
+		fmt.Println("Please specify profile via -c. Aborting.")
+		return
 	}
 
 	conf = config.MustConfig(*flagProfile)
 	helper.Initialize(conf.Mongo)
+
+	log = logging.NewLogger("ElasticsearchFeeder")
+	logHandler := logging.NewWriterHandler(os.Stderr)
+	logHandler.Colorize = true
+	log.SetHandler(logHandler)
+
+	if *flagDebug {
+		log.SetLevel(logging.DEBUG)
+		logHandler.SetLevel(logging.DEBUG)
+	}
 
 	log.Notice("Started Obsolete Post Remover")
 	defer shutdown()
@@ -66,7 +79,14 @@ func initConsumer() {
 	}
 
 	var err error
-	r := rabbitmq.New(conf)
+	rmqConf := &rabbitmq.Config{
+		Host:     conf.Mq.Host,
+		Port:     conf.Mq.Port,
+		Username: conf.Mq.ComponentUser,
+		Password: conf.Mq.Password,
+		Vhost:    conf.Mq.Vhost,
+	}
+	r := rabbitmq.New(rmqConf, log)
 	Consumer, err = r.NewConsumer(exchange, queue, binding, consumerOptions)
 	if err != nil {
 		panic(err)

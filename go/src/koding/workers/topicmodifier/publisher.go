@@ -2,8 +2,8 @@ package topicmodifier
 
 import (
 	"encoding/json"
+	"github.com/koding/rabbitmq"
 	"github.com/streadway/amqp"
-	"koding/messaging/rabbitmq"
 )
 
 type PublisherConfig struct {
@@ -22,7 +22,14 @@ func createPublisher(options *PublisherConfig) *rabbitmq.Producer {
 		RoutingKey: options.RoutingKey,
 	}
 
-	r := rabbitmq.New(Conf)
+	rmqConf := &rabbitmq.Config{
+		Host:     Conf.Mq.Host,
+		Port:     Conf.Mq.Port,
+		Username: Conf.Mq.ComponentUser,
+		Password: Conf.Mq.Password,
+		Vhost:    Conf.Mq.Vhost,
+	}
+	r := rabbitmq.New(rmqConf, log)
 	producer, err := r.NewProducer(exchange, queue, publishingOptions)
 	if err != nil {
 		panic(err)

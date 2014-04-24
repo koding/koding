@@ -23,17 +23,6 @@ import (
 	"code.google.com/p/go.exp/inotify"
 )
 
-type prepareParamsNew struct {
-	GroupId    string
-	OnProgress kitednode.Function
-}
-
-type unprepareParamsNew struct {
-	Destroy    bool
-	GroupId    string
-	OnProgress kitednode.Function
-}
-
 // vosFunc is used to associate each request with a VOS instance.
 type vosFunc func(*kitelib.Request, *virt.VOS) (interface{}, error)
 
@@ -250,11 +239,8 @@ func execFuncNew(r *kitelib.Request, vos *virt.VOS) (interface{}, error) {
 	return execFunc(asRoot, params.Command, vos)
 }
 
-func (p *prepareParamsNew) Enabled() bool      { return p.OnProgress.IsValid() }
-func (p *prepareParamsNew) Call(v interface{}) { p.OnProgress.Call(v) }
-
 func (o *Oskite) vmPrepareAndStartNew(r *kitelib.Request, vos *virt.VOS) (interface{}, error) {
-	params := new(prepareParamsNew)
+	params := new(vmParamsNew)
 	if r.Args.One().Unmarshal(&params) != nil {
 		return nil, &kite.ArgumentError{Expected: "{OnProgress: [function]}"}
 	}
@@ -263,71 +249,25 @@ func (o *Oskite) vmPrepareAndStartNew(r *kitelib.Request, vos *virt.VOS) (interf
 		return nil, &kite.ArgumentError{Expected: "{ groupId: [string] }"}
 	}
 
-	usage, err := totalUsage(vos, params.GroupId)
-	if err != nil {
-		log.Info("usage -1 [%s] err: %v", vos.VM.HostnameAlias, err)
-		return nil, errors.New("usage couldn't be retrieved. please consult to support.")
-	}
-
-	limits, err := usage.prepareLimits(r.Username, params.GroupId)
-	if err != nil {
-		// pass back endpoint err to client
-		if endpointErrs.Has(err) {
-			return nil, err
-		}
-
-		log.Info("usage -2 [%s] err: %v", vos.VM.HostnameAlias, err)
-		return nil, errors.New("usage couldn't be retrieved. please consult to support [2].")
-	}
-
-	if err := limits.check(); err != nil {
-		return nil, err
-	}
-
-	err = o.validateVM(vos.VM)
-	if err != nil {
-		return nil, err
-	}
-
-	return progress(vos, "vm.prepareAndStart"+vos.VM.HostnameAlias, params, func() error {
-		results := make(chan *virt.Step)
-		go prepareProgress(results, vos)
-
-		for step := range results {
-			params.OnProgress.Call(step)
-
-			if step.Err != nil {
-				return step.Err
-			}
-		}
-
-		return nil
-	})
+	return o.prepareAndStart(vos, r.Username, params.GroupId, params)
 }
 
-func (u *unprepareParamsNew) Enabled() bool      { return u.OnProgress.IsValid() }
-func (u *unprepareParamsNew) Call(v interface{}) { u.OnProgress.Call(v) }
-
 func vmStopAndUnprepareNew(r *kitelib.Request, vos *virt.VOS) (interface{}, error) {
-	params := new(unprepareParamsNew)
+	params := new(vmParamsNew)
 	if r.Args.One().Unmarshal(&params) != nil {
 		return nil, &kite.ArgumentError{Expected: "{OnProgress: [function]}"}
 	}
 
-	return progress(vos, "vm.stopAndUnprepare"+vos.VM.HostnameAlias, params, func() error {
-		results := make(chan *virt.Step)
-		go unprepareProgress(results, vos, params.Destroy)
+	if params.Enabled() {
+		go unprepareProgress(params, vos.VM, params.Destroy)
+		return true, nil
+	}
 
-		for step := range results {
-			params.OnProgress.Call(step)
+	if err := unprepareProgress(nil, vos.VM, params.Destroy); err != nil {
+		return nil, err
+	}
 
-			if step.Err != nil {
-				return step.Err
-			}
-		}
-
-		return nil
-	})
+	return true, nil
 }
 
 // FS METHODS

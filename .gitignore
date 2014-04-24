@@ -72,3 +72,5 @@ node_modules_koding/processes/src/.tmp*
 /client/Main/__generatedapps__.coffee
 
 website/a/sprites/*.sprite.png
+
+client/Main/__generated*

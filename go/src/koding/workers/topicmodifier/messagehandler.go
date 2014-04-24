@@ -2,9 +2,11 @@ package topicmodifier
 
 import (
 	"encoding/json"
-	"github.com/streadway/amqp"
-	"koding/messaging/rabbitmq"
 	"koding/tools/config"
+	"github.com/koding/logging"
+
+	"github.com/koding/rabbitmq"
+	"github.com/streadway/amqp"
 )
 
 var (
@@ -12,6 +14,7 @@ var (
 	Consumer  *rabbitmq.Consumer
 	Publisher *rabbitmq.Producer
 	Conf      *config.Config
+	log       = logging.NewLogger("TopicModifier")
 )
 
 type Status string
@@ -163,7 +166,16 @@ func initConsumer() {
 	}
 
 	var err error
-	r := rabbitmq.New(Conf)
+	rmqConf := &rabbitmq.Config{
+		Host:     Conf.Mq.Host,
+		Port:     Conf.Mq.Port,
+		Username: Conf.Mq.ComponentUser,
+		Password: Conf.Mq.Password,
+		Vhost:    Conf.Mq.Vhost,
+	}
+
+	r := rabbitmq.New(rmqConf, log)
+
 	Consumer, err = r.NewConsumer(exchange, queue, binding, consumerOptions)
 	if err != nil {
 		log.Error("%v", err)

@@ -5,7 +5,8 @@ package topicmodifier
 
 import (
 	. "koding/db/models"
-	"koding/messaging/rabbitmq"
+
+	"github.com/koding/rabbitmq"
 )
 
 var (
