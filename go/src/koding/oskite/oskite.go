@@ -371,7 +371,8 @@ func (o *Oskite) handleCurrentVMS() {
 				msg: fmt.Sprintf("unprepare leftover vm %s [%s]", vm.HostnameAlias, vm.Id.Hex()),
 				f: func() (string, error) {
 					mockVM := &virt.VM{Id: vmId}
-					if err := unprepareProgress(nil, mockVM, false); err != nil {
+					if err := mockVM.Unprepare(nil, false); err != nil {
+						log.Error("leftover unprepare: %v", err)
 					}
 
 					return fmt.Sprintf("unprepare finished for leftover vm %s", vmId), nil

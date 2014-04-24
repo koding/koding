@@ -439,24 +439,42 @@ func (o *Oskite) vmPrepareAndStart(args *dnode.Partial, channel *kite.Channel, v
 		return nil, err
 	}
 
-	// start preparing
+	done := make(chan struct{}, 1)
+	var t tracer.Tracer
+
 	if params.Enabled() {
-		go func() {
-			// TODO: handle this in queue
-
-			prepareProgress(params, vos.VM)
-			prepareHome(vos)
-		}()
-
-		return true, nil
+		t = params
+		done = nil // not used anymore
 	}
 
-	if err := prepareProgress(nil, vos.VM); err != nil {
-		return nil, err
+	prepareQueue <- &QueueJob{
+		msg: "vm.prepareAndStart " + vos.VM.HostnameAlias,
+		f: func() (string, error) {
+			if !params.Enabled() {
+				defer func() { done <- struct{}{} }()
+			} else {
+				// mutex is needed because it's handled in the queue
+				info := getInfo(vos.VM)
+				info.mutex.Lock()
+				defer info.mutex.Unlock()
+			}
+
+			if err := prepareProgress(t, vos.VM); err != nil {
+				return "", err
+			}
+
+			if err := prepareHome(vos); err != nil {
+				return "", err
+			}
+
+			return "vm.prepareAndStart " + vos.VM.HostnameAlias, nil
+		},
 	}
 
-	if err := prepareHome(vos); err != nil {
-		return nil, err
+	// start preparing
+	if !params.Enabled() {
+		<-done
+		return true, err
 	}
 
 	return true, nil
@@ -472,16 +490,44 @@ func vmStopAndUnprepare(args *dnode.Partial, channel *kite.Channel, vos *virt.VO
 		return nil, &kite.ArgumentError{Expected: "{OnProgress: [function]}"}
 	}
 
+	done := make(chan struct{}, 1)
+	var t tracer.Tracer
+	var err error
+
 	if params.Enabled() {
-		go unprepareProgress(params, vos.VM, params.Destroy)
-		return true, nil
+		t = params
+		done = nil // not used anymore
 	}
 
-	if err := unprepareProgress(nil, vos.VM, params.Destroy); err != nil {
-		return nil, err
+	prepareQueue <- &QueueJob{
+		msg: "vm.prepareAndStart " + vos.VM.HostnameAlias,
+		f: func() (string, error) {
+			if !params.Enabled() {
+				defer func() { done <- struct{}{} }()
+			} else {
+				// mutex is needed because it's handled in the queue
+				info := getInfo(vos.VM)
+				info.mutex.Lock()
+				defer info.mutex.Unlock()
+			}
+
+			err = unprepareProgress(t, vos.VM, params.Destroy)
+			if err != nil {
+				return "", err
+			}
+
+			return "vm.prepareAndStart " + vos.VM.HostnameAlias, nil
+		},
+	}
+
+	// start preparing
+	if !params.Enabled() {
+		<-done
+		return true, err
 	}
 
 	return true, nil
+
 }
 
 func unprepareProgress(t tracer.Tracer, vm *virt.VM, destroy bool) (err error) {
