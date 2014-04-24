@@ -55,7 +55,6 @@ class FooterView extends JView
       <cite></cite>
 
       <address>#{(new Date).getFullYear()} © Koding, Inc. 358 Brannan Street, San Francisco, CA, 94107</address>
-      <span class="we-love-you">Lovingly made in Istanbul & San Francisco <3</span>
 
       <div class="social-links">
         <a href="http://twitter.com/koding">TWITTER</a> · <a href="http://facebook.com/kodingcom">FACEBOOK</a>
