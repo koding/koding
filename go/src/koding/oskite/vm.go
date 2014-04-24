@@ -167,35 +167,17 @@ func vmStart(vos *virt.VOS) (interface{}, error) {
 		return nil, ErrVmNotPrepared
 	}
 
-	var lastError error
-
-	done := make(chan struct{}, 1)
-	prepareQueue <- &QueueJob{
-		msg: "vm.Start" + vos.VM.HostnameAlias,
-		f: func() (string, error) {
-			defer func() { done <- struct{}{} }()
-
-			if lastError = vos.VM.Start(); lastError != nil {
-				return "", lastError
-			}
-
-			// wait until network is up
-			if lastError = vos.VM.WaitForNetwork(); lastError != nil {
-				return "", lastError
-			}
-
-			if lastError = updateState(vos.VM); lastError != nil {
-				return "", lastError
-			}
-
-			return fmt.Sprintf("vm.Start %s", vos.VM.HostnameAlias), nil
-		},
+	if err := vos.VM.Start(); err != nil {
+		return nil, err
 	}
 
-	<-done
+	// wait until network is up
+	if err := vos.VM.WaitForNetwork(); err != nil {
+		return nil, err
+	}
 
-	if lastError != nil {
-		return nil, lastError
+	if err := updateState(vos.VM); err != nil {
+		return nil, err
 	}
 
 	return true, nil
@@ -206,29 +188,12 @@ func vmShutdown(vos *virt.VOS) (interface{}, error) {
 		return nil, &kite.PermissionError{}
 	}
 
-	var lastError error
-	done := make(chan struct{}, 1)
-	prepareQueue <- &QueueJob{
-		msg: "vm.Shutdown" + vos.VM.HostnameAlias,
-		f: func() (string, error) {
-			defer func() { done <- struct{}{} }()
-
-			if lastError = vos.VM.Shutdown(); lastError != nil {
-				return "", lastError
-			}
-
-			if lastError = updateState(vos.VM); lastError != nil {
-				return "", lastError
-			}
-
-			return fmt.Sprintf("vm.Shutdown %s", vos.VM.HostnameAlias), nil
-		},
+	if err := vos.VM.Shutdown(); err != nil {
+		return nil, err
 	}
 
-	<-done
-
-	if lastError != nil {
-		return nil, lastError
+	if err := updateState(vos.VM); err != nil {
+		return nil, err
 	}
 
 	return true, nil
@@ -351,54 +316,6 @@ func vmReinitialize(vos *virt.VOS) (interface{}, error) {
 	return true, nil
 }
 
-// progress is function that enables sync and async call of the given function
-// "f". We pass an interface called progresser just for compatibility of
-// newkite and oldkite (they each have different callback signatures)
-// TODO: fix this function signature, a function shouldn't have this much arguments.
-func progress(vos *virt.VOS, desc string, p progresser, f func() error) (interface{}, error) {
-	var lastError error
-	done := make(chan struct{}, 1)
-
-	if p.Enabled() {
-		p.Call(&virt.Step{Message: "STARTED"})
-		done = nil // not used anymore
-	}
-
-	go func() {
-		prepareQueue <- &QueueJob{
-			msg: desc,
-			f: func() (string, error) {
-				if !p.Enabled() {
-					defer func() { done <- struct{}{} }()
-				} else {
-					// mutex is needed because it's handled in the queue
-					info := getInfo(vos.VM)
-					info.mutex.Lock()
-					defer info.mutex.Unlock()
-				}
-
-				if err := f(); err != nil {
-					lastError = err
-					return "", err
-				}
-
-				return desc, nil
-			},
-		}
-	}()
-
-	if !p.Enabled() {
-		// wait until the prepareWorker has picked us and we finished
-		// to return something to the client
-		<-done
-		if lastError != nil {
-			return true, lastError
-		}
-	}
-
-	return true, nil
-}
-
 func (o *Oskite) vmPrepareAndStart(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (interface{}, error) {
 	if !vos.Permissions.Sudo {
 		return nil, &kite.PermissionError{}
@@ -413,13 +330,17 @@ func (o *Oskite) vmPrepareAndStart(args *dnode.Partial, channel *kite.Channel, v
 		return nil, &kite.ArgumentError{Expected: "{ groupId: [string] }"}
 	}
 
-	usage, err := totalUsage(vos, params.GroupId)
+	return o.prepareAndStart(vos, channel.Username, params.GroupId, params)
+}
+
+func (o *Oskite) prepareAndStart(vos *virt.VOS, username, groupId string, pre Preparer) (interface{}, error) {
+	usage, err := totalUsage(vos, groupId)
 	if err != nil {
 		log.Info("usage -1 [%s] err: %v", vos.VM.HostnameAlias, err)
 		return nil, errors.New("usage couldn't be retrieved. please consult to support [1].")
 	}
 
-	limits, err := usage.prepareLimits(channel.Username, params.GroupId)
+	limits, err := usage.prepareLimits(username, groupId)
 	if err != nil {
 		// pass back endpoint err to client
 		if endpointErrs.Has(err) {
@@ -442,15 +363,15 @@ func (o *Oskite) vmPrepareAndStart(args *dnode.Partial, channel *kite.Channel, v
 	done := make(chan struct{}, 1)
 	var t tracer.Tracer
 
-	if params.Enabled() {
-		t = params
+	if pre.Enabled() {
+		t = pre
 		done = nil // not used anymore
 	}
 
 	prepareQueue <- &QueueJob{
 		msg: "vm.prepareAndStart " + vos.VM.HostnameAlias,
 		f: func() (string, error) {
-			if !params.Enabled() {
+			if !pre.Enabled() {
 				defer func() { done <- struct{}{} }()
 			} else {
 				// mutex is needed because it's handled in the queue
@@ -472,12 +393,13 @@ func (o *Oskite) vmPrepareAndStart(args *dnode.Partial, channel *kite.Channel, v
 	}
 
 	// start preparing
-	if !params.Enabled() {
+	if !pre.Enabled() {
 		<-done
 		return true, err
 	}
 
 	return true, nil
+
 }
 
 func vmStopAndUnprepare(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (interface{}, error) {
@@ -530,15 +452,8 @@ func vmStopAndUnprepare(args *dnode.Partial, channel *kite.Channel, vos *virt.VO
 
 }
 
-func unprepareProgress(t tracer.Tracer, vm *virt.VM, destroy bool) (err error) {
-	defer func() {
-		if err != nil {
-			err = kite.NewKiteErr(err)
-		}
-
-	}()
-
-	err = vm.Unprepare(t, destroy)
+func unprepareProgress(t tracer.Tracer, vm *virt.VM, destroy bool) error {
+	err := vm.Unprepare(t, destroy)
 
 	if err = mongodbConn.Run("jVMs", func(c *mgo.Collection) error {
 		return c.Update(bson.M{"_id": vm.Id}, bson.M{"$set": bson.M{"hostKite": nil}})
@@ -554,19 +469,11 @@ func unprepareProgress(t tracer.Tracer, vm *virt.VM, destroy bool) (err error) {
 	return nil
 }
 
-func prepareProgress(t tracer.Tracer, vm *virt.VM) (err error) {
-	defer func() {
-		if err != nil {
-			err = kite.NewKiteErr(err)
-		}
-	}()
-
-	err = vm.Prepare(t, false)
-	if err != nil {
+func prepareProgress(t tracer.Tracer, vm *virt.VM) error {
+	if err := vm.Prepare(t, false); err != nil {
 		return err
 	}
 
-	// it's now running
 	if err := updateState(vm); err != nil {
 		return err
 	}

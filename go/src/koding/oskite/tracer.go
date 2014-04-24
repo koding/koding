@@ -5,12 +5,13 @@ package oskite
 import (
 	kitednode "github.com/koding/kite/dnode"
 	"koding/tools/dnode"
+	"koding/tools/kite"
 	"koding/tools/tracer"
 )
 
-type progresser interface {
+type Preparer interface {
 	Enabled() bool
-	Call(v interface{})
+	tracer.Tracer
 }
 
 type vmParams struct {
@@ -25,8 +26,20 @@ type vmParamsNew struct {
 	OnProgress kitednode.Function
 }
 
-func (v *vmParams) Enabled() bool            { return v.OnProgress != nil }
-func (v *vmParams) Trace(msg tracer.Message) { v.OnProgress(msg) }
+func (v *vmParams) Enabled() bool { return v.OnProgress != nil }
+func (v *vmParams) Trace(msg tracer.Message) {
+	if msg.Err != nil {
+		msg.Err = kite.NewKiteErr(msg.Err)
+	}
 
-func (v *vmParamsNew) Enabled() bool            { return v.OnProgress.IsValid() }
-func (v *vmParamsNew) Trace(msg tracer.Message) { v.OnProgress.Call(msg) }
+	v.OnProgress(msg)
+}
+
+func (v *vmParamsNew) Enabled() bool { return v.OnProgress.IsValid() }
+func (v *vmParamsNew) Trace(msg tracer.Message) {
+	if msg.Err != nil {
+		msg.Err = kite.NewKiteErr(msg.Err)
+	}
+
+	v.OnProgress.Call(msg)
+}
