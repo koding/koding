@@ -61,9 +61,9 @@ class EnvironmentScene extends KDDiaScene
     return  if Object.keys(items).length < 2
     {domain, vm, rule, extra} = items
 
-    return  if rule or extra
+    return  if extra
       new KDNotificationView
-        title : "Assigning #{if rule then 'rules' else 'resources'} will be available soon."
+        title : "Assigning resources will be available soon."
 
     if domain and vm and not KD.checkFlag 'nostradamus'
       if domain.dia.getData().domain.hostnameAlias.length > 0
