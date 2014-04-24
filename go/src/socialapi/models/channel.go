@@ -53,6 +53,7 @@ const (
 	Channel_TYPE_CHAT            = "chat"
 	Channel_TYPE_PINNED_ACTIVITY = "pinnedActivity"
 	Channel_TYPE_PRIVATE_MESSAGE = "privateMessage"
+	Channel_TYPE_DEFAULT         = "default"
 	// Privacy
 	Channel_PRIVACY_PUBLIC  = "public"
 	Channel_PRIVACY_PRIVATE = "private"
@@ -62,12 +63,12 @@ const (
 
 func NewChannel() *Channel {
 	return &Channel{
-		Name:            "koding",
-		CreatorId:       123,
+		Name:            "Channel" + RandomName(),
+		CreatorId:       0,
 		GroupName:       Channel_KODING_NAME,
-		Purpose:         "string",
-		SecretKey:       "string",
-		TypeConstant:    "default",
+		Purpose:         "Purpose comes here",
+		SecretKey:       "",
+		TypeConstant:    Channel_TYPE_DEFAULT,
 		PrivacyConstant: Channel_PRIVACY_PRIVATE,
 	}
 }
@@ -76,7 +77,7 @@ func NewPrivateMessageChannel(creatorId int64, groupName string) *Channel {
 	c := NewChannel()
 	c.GroupName = groupName
 	c.CreatorId = creatorId
-	c.Name = "PrivateMessage"
+	c.Name = RandomName()
 	c.TypeConstant = Channel_TYPE_PRIVATE_MESSAGE
 	c.PrivacyConstant = Channel_PRIVACY_PRIVATE
 	c.Purpose = "Communication over a thread"
