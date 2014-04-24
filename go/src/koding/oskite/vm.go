@@ -441,11 +441,21 @@ func (o *Oskite) vmPrepareAndStart(args *dnode.Partial, channel *kite.Channel, v
 
 	// start preparing
 	if params.Enabled() {
-		go prepareProgress(params, vos)
+		go func() {
+			// TODO: handle this in queue
+
+			prepareProgress(params, vos.VM)
+			prepareHome(vos)
+		}()
+
 		return true, nil
 	}
 
-	if err := prepareProgress(nil, vos); err != nil {
+	if err := prepareProgress(nil, vos.VM); err != nil {
+		return nil, err
+	}
+
+	if err := prepareHome(vos); err != nil {
 		return nil, err
 	}
 
@@ -463,64 +473,55 @@ func vmStopAndUnprepare(args *dnode.Partial, channel *kite.Channel, vos *virt.VO
 	}
 
 	if params.Enabled() {
-		go unprepareProgress(params, vos, params.Destroy)
+		go unprepareProgress(params, vos.VM, params.Destroy)
 		return true, nil
 	}
 
-	if err := unprepareProgress(nil, vos, params.Destroy); err != nil {
+	if err := unprepareProgress(nil, vos.VM, params.Destroy); err != nil {
 		return nil, err
 	}
 
 	return true, nil
 }
 
-func unprepareProgress(t tracer.Tracer, vos *virt.VOS, destroy bool) (err error) {
+func unprepareProgress(t tracer.Tracer, vm *virt.VM, destroy bool) (err error) {
 	defer func() {
 		if err != nil {
 			err = kite.NewKiteErr(err)
 		}
 
-		t.Trace(tracer.Message{Err: err, Message: "FINISHED"})
 	}()
 
-	t.Trace(tracer.Message{Message: "STARTED"})
-
-	// unprepare
-	err = vos.VM.Unprepare(t, destroy)
+	err = vm.Unprepare(t, destroy)
 
 	if err = mongodbConn.Run("jVMs", func(c *mgo.Collection) error {
-		return c.Update(bson.M{"_id": vos.VM.Id}, bson.M{"$set": bson.M{"hostKite": nil}})
+		return c.Update(bson.M{"_id": vm.Id}, bson.M{"$set": bson.M{"hostKite": nil}})
 	}); err != nil {
 		return fmt.Errorf("unprepareProgress hostKite nil setting: %v", err)
 	}
 
 	// mark it as stopped in mongodb
-	if err := updateState(vos.VM); err != nil {
+	if err := updateState(vm); err != nil {
 		return err
 	}
 
 	return nil
 }
 
-func prepareProgress(t tracer.Tracer, vos *virt.VOS) (err error) {
+func prepareProgress(t tracer.Tracer, vm *virt.VM) (err error) {
 	defer func() {
 		if err != nil {
 			err = kite.NewKiteErr(err)
 		}
 	}()
 
-	err = vos.VM.Prepare(t, false)
+	err = vm.Prepare(t, false)
 	if err != nil {
 		return err
 	}
 
 	// it's now running
-	if err := updateState(vos.VM); err != nil {
-		return err
-	}
-
-	err = prepareHome(vos)
-	if err != nil {
+	if err := updateState(vm); err != nil {
 		return err
 	}
 

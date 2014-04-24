@@ -370,16 +370,6 @@ func (v *VM) addStaticRoute() error {
 	return nil
 }
 
-func UnprepareVM(id bson.ObjectId) error {
-	vm := VM{Id: id}
-
-	if err := vm.Shutdown(); err != nil {
-		return err
-	}
-
-	return vm.Unprepare(nil, false)
-}
-
 // Unprepare is basically the inverse of Prepare. We don't use lxc.destroy
 // (which purges the container immediately). Instead we use this method which
 // basically let us umount previously mounted disks, remove generated files,

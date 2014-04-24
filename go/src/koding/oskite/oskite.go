@@ -370,12 +370,8 @@ func (o *Oskite) handleCurrentVMS() {
 			prepareQueue <- &QueueJob{
 				msg: fmt.Sprintf("unprepare leftover vm %s [%s]", vm.HostnameAlias, vm.Id.Hex()),
 				f: func() (string, error) {
-					if err := virt.UnprepareVM(vmId); err != nil {
-						log.Error("leftover unprepare: %v", err)
-					}
-
-					if err := updateState(&vm); err != nil {
-						log.Error("%v", err)
+					mockVM := &virt.VM{Id: vmId}
+					if err := unprepareProgress(nil, mockVM, false); err != nil {
 					}
 
 					return fmt.Sprintf("unprepare finished for leftover vm %s", vmId), nil
@@ -743,16 +739,11 @@ func startAndPrepareVM(vm *virt.VM) error {
 		msg: "vm prepare and start " + vm.HostnameAlias,
 		f: func() (string, error) {
 			defer func() { done <- struct{}{} }()
-
 			startTime := time.Now()
 
 			// prepare first
-			if lastError = vm.Prepare(nil, false); lastError != nil {
+			if lastError = prepareProgress(nil, vm); lastError != nil {
 				return "", fmt.Errorf("preparing VM %s", lastError)
-			}
-
-			if lastError = updateState(vm); lastError != nil {
-				log.Error("%v", lastError)
 			}
 
 			res := fmt.Sprintf("VM PREPARE and START: %s [%s] - ElapsedTime: %.10f seconds.",

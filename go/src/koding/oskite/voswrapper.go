@@ -276,11 +276,11 @@ func (o *Oskite) vmPrepareAndStartNew(r *kitelib.Request, vos *virt.VOS) (interf
 	}
 
 	if params.Enabled() {
-		go prepareProgress(params, vos)
+		go prepareProgress(params, vos.VM)
 		return true, nil
 	}
 
-	if err := prepareProgress(nil, vos); err != nil {
+	if err := prepareProgress(nil, vos.VM); err != nil {
 		return nil, err
 	}
 
@@ -294,11 +294,11 @@ func vmStopAndUnprepareNew(r *kitelib.Request, vos *virt.VOS) (interface{}, erro
 	}
 
 	if params.Enabled() {
-		go unprepareProgress(params, vos, params.Destroy)
+		go unprepareProgress(params, vos.VM, params.Destroy)
 		return true, nil
 	}
 
-	if err := unprepareProgress(nil, vos, params.Destroy); err != nil {
+	if err := unprepareProgress(nil, vos.VM, params.Destroy); err != nil {
 		return nil, err
 	}
 
