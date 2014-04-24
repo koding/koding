@@ -3,7 +3,7 @@ class EnvironmentRuleContainer extends EnvironmentContainer
   EnvironmentDataProvider.addProvider "rules", ->
 
     new Promise (resolve, reject) ->
-      KD.remote.api.JProxyFilter.fetch (err, filters) ->
+      KD.remote.api.JProxyFilter.fetch {}, (err, filters) ->
         if err or not filters or filters.length is 0
           warn "Failed to fetch domains", err  if err
           return resolve []

@@ -30,7 +30,7 @@ module.exports = class JProxyFilter extends jraphical.Module
     sharedMethods     :
       static          :
         create        : (signature Object, Function)
-        fetch         : (signature Function)
+        fetch         : (signature Object, Function)
 
   @create: secure (client, data, callback = noop) ->
     {delegate}    = client.connection
@@ -60,8 +60,8 @@ module.exports = class JProxyFilter extends jraphical.Module
       return callback err, null  if err
       callback null, filter
 
-  @fetch: secure (client, callback = noop) ->
-    query = owner: client.connection.delegate.getId()
+  @fetch: secure (client, query, callback = noop) ->
+    query.owner = client.connection.delegate.getId()
 
     JProxyFilter.some query, {}, (err, filters) ->
       return callback err, null  if err
