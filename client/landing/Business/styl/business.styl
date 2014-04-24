@@ -121,9 +121,13 @@ body.business
   // screenshots Section
 
   section.screenshots
-    margin                20% 0 30%
+    abs                   460px 0 0
+    width                 100%
 
     .inner-container
+      height              44.6vw
+      max-height          575px
+
       &:after
         content           ""
         display           block
@@ -138,7 +142,7 @@ body.business
 
     figure
       display             block
-      bottom              0px
+      top                 0px
       rounded             6px 6px 0 0
       overflow            hidden
       abs()
@@ -155,11 +159,13 @@ body.business
         z-index           3
         width             58%
         left              7%
+        margin-top        4.8%
 
       &.third
         z-index           3
         width             58%
         right             7%
+        margin-top        4.8%
 
 
   // Features Section
@@ -167,6 +173,11 @@ body.business
   section.features
     letter-spacing       0
     word-spacing         0
+    margin               0 auto
+    max-width            1290px
+
+    .inner-container
+      margin-top        32%
 
     .feature
       letter-spacing     normal
