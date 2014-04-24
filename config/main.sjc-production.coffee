@@ -47,6 +47,7 @@ module.exports =
     clusterSize : 1
     queueName   : socialQueueName+'web'
     watch       : no
+  socialApiUrl  : "http://localhost:7000"
   sourceServer  :
     enabled     : no
     port        : 1337

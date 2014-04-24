@@ -265,6 +265,7 @@ module.exports = class JAccount extends jraphical.Module
           (signature Object, Function)
 
     schema                  :
+      socialApiId           : Number
       skillTags             : [String]
       locationTags          : [String]
       systemInfo            :
@@ -429,6 +430,21 @@ module.exports = class JAccount extends jraphical.Module
     super
     @notifyOriginWhen 'PrivateMessageSent', 'FollowHappened'
     @notifyGroupWhen 'FollowHappened'
+
+  createSocialApiId:(callback)->
+    return callback null, @socialApiId  if @socialApiId
+    {createAccount} = require './socialapi/requests'
+    createAccount @getId(), (err, account)=>
+      return callback err if err
+      return callback {message: "Account is not set, malformed response from social api"} unless account?.id
+      @update $set: socialApiId: account.id, (err)->
+        # check for error
+        if err
+          console.error "Error while creating account on social api", err
+          return callback { message: "Couldnt create/register Account"}
+        # check account
+        # return account id from social api
+        return callback null, account.id
 
   checkGroupMembership: secure (client, groupName, callback)->
     {delegate} = client.connection
@@ -994,6 +1010,8 @@ module.exports = class JAccount extends jraphical.Module
       @update {$set: globalFlags: flags}, callback
     else
       callback new KodingError 'Access denied'
+
+  canEditPost  : permit 'edit posts'
 
   fetchUserByAccountIdOrNickname:(accountIdOrNickname, callback)->
 

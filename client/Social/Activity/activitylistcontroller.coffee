@@ -108,7 +108,7 @@ class ActivityListController extends KDListViewController
           likeView._currentState = yes
 
   addItem:(activity, index, animation) ->
-    dataId = activity.getId?() or activity._id
+    dataId = activity.getId?() or activity._id or activity.id
     if dataId?
       if @itemsIndexed[dataId]
         log "duplicate entry", activity.bongo_?.constructorName, dataId

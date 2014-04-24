@@ -2,9 +2,10 @@ package storage
 
 import (
 	"errors"
-	"koding/databases/redis"
 	"koding/tools/config"
 	"time"
+
+	"github.com/koding/redis"
 )
 
 var conf *config.Config

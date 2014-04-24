@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
-	"koding/databases/redis"
 	"koding/kontrol/kontrolhelper"
 	"koding/tools/amqputil"
 	"koding/tools/config"
@@ -23,6 +22,7 @@ import (
 	"sync"
 	"syscall"
 	"time"
+	"github.com/koding/redis"
 
 	"github.com/streadway/amqp"
 	"gopkg.in/fatih/set.v0"
@@ -92,7 +92,7 @@ func NewBroker(conf *config.Config) *Broker {
 		Hostname:          brokerHostname,
 		ServiceUniqueName: serviceUniqueName,
 		ready:             make(chan struct{}),
-		RedisSingleton:    redis.Singleton(conf),
+		RedisSingleton:    redis.Singleton(conf.Redis),
 	}
 }
 
