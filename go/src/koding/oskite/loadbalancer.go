@@ -1,13 +1,13 @@
 package oskite
 
 import (
-	redigo "github.com/garyburd/redigo/redis"
-	"koding/databases/redis"
 	"math/rand"
 	"sort"
 	"strings"
 	"sync"
 	"time"
+	redigo "github.com/garyburd/redigo/redis"
+	"github.com/koding/redis"
 )
 
 var (
