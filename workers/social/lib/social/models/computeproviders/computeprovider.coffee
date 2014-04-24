@@ -14,7 +14,7 @@ PROVIDERS =
 checkCredential = (cred, callback)->
   if cred is 1
   then callback null, {cred:"whoooho"}
-  else callback new KodingError "Credential failed."
+  else callback new KodingError "Credential failed.", "AccessDenied"
 
 module.exports = class ComputeProvider extends Base
 
@@ -44,12 +44,12 @@ module.exports = class ComputeProvider extends Base
       {provider, credential} = options
 
       if not provider or not provider = PROVIDERS[provider]
-        return callback new KodingError "No such provider."
+        return callback new KodingError "No such provider.", "ProviderNotFound"
       else
         arguments[1].provider = provider
 
       if not credential
-        return callback new KodingError "Credential is required."
+        return callback new KodingError "Credential is required.", "MissingCredential"
 
       _arguments = arguments
 
