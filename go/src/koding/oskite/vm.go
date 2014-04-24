@@ -295,10 +295,8 @@ func vmResizeDisk(vos *virt.VOS) (interface{}, error) {
 		}
 	}
 
-	for step := range vos.VM.Prepare(false) {
-		if step.Err != nil {
-			return nil, step.Err
-		}
+	if err := vos.VM.Prepare(false); err != nil {
+		return nil, err
 	}
 
 	if err := vos.VM.ResizeRBD(); err != nil {
@@ -355,10 +353,8 @@ func vmReinitialize(vos *virt.VOS) (interface{}, error) {
 	for _ = range vos.VM.Unprepare(false) {
 	}
 
-	for step := range vos.VM.Prepare(true) {
-		if step.Err != nil {
-			return nil, step.Err
-		}
+	if err := vos.VM.Prepare(false); err != nil {
+		return nil, err
 	}
 
 	if err := vos.VM.Start(); err != nil {
@@ -613,20 +609,20 @@ func prepareProgress(results chan *virt.Step, vos *virt.VOS) {
 	var totalStep int = 2 // vm.Start and vm.WaitForNetwork
 
 	if !prepared {
-		for step := range vos.VM.Prepare(false) {
-			lastError = step.Err
-			if lastError != nil {
-				lastError = fmt.Errorf("preparing VM %s", lastError)
-				return
-			}
+		// for step := range vos.VM.Prepare(false) {
+		// 	lastError = step.Err
+		// 	if lastError != nil {
+		// 		lastError = fmt.Errorf("preparing VM %s", lastError)
+		// 		return
+		// 	}
 
-			// add VM.Start() and Vm.WaitForNetwork() steps too
-			totalStep = step.TotalStep + 2
-			step.TotalStep = totalStep
+		// 	// add VM.Start() and Vm.WaitForNetwork() steps too
+		// 	totalStep = step.TotalStep + 2
+		// 	step.TotalStep = totalStep
 
-			// send every process back to the client
-			results <- step
-		}
+		// 	// send every process back to the client
+		// 	results <- step
+		// }
 	}
 
 	// start vm and return any error

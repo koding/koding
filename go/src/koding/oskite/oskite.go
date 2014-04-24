@@ -753,11 +753,8 @@ func startAndPrepareVM(vm *virt.VM) error {
 
 			if !prepared {
 				// prepare first
-				for step := range vm.Prepare(false) {
-					lastError = step.Err
-					if lastError != nil {
-						return "", fmt.Errorf("preparing VM %s", lastError)
-					}
+				if lastError = vm.Prepare(false); lastError != nil {
+					return "", fmt.Errorf("preparing VM %s", lastError)
 				}
 			}
 

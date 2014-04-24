@@ -157,7 +157,8 @@ var actions = map[string]func(args []string){
 				}
 				vm.ApplyDefaults()
 				fmt.Println(i, "preparing...")
-				for _ = range vm.Prepare(false) {
+				if err := vm.Prepare(false); err != nil {
+					log.Println(i, "prepare", err)
 				}
 
 				fmt.Println(i, "starting...")

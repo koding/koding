@@ -152,56 +152,87 @@ func (vm *VM) ApplyDefaults() {
 // templating), instead of we use this method which basically let us do things
 // more efficient. It creates the home directory, generates files like lxc.conf
 // and mounts the necessary filesystems.
-func (v *VM) Prepare(reinitialize bool) <-chan *Step {
-	funcs := make([]*StepFunc, 0)
-	funcs = append(funcs, &StepFunc{Msg: "Create container", Fn: v.createContainerDir})
-	funcs = append(funcs, &StepFunc{Msg: "Mount RBD", Fn: v.mountRBD})
+func (v *VM) Prepare(reinitialize bool) (err error) {
+	defer func() {
+		if err != nil {
+			// don't put the prepare in an unknown state
+			for _ = range v.Unprepare(false) {
+			}
+		}
+	}()
+
+	if err := v.createContainerDir(); err != nil {
+		return err
+	}
+
+	if err := v.mountRBD(v.OverlayFile("")); err != nil {
+		return err
+	}
 
 	// remove all except /home on reinitialize
 	if reinitialize {
-		funcs = append(funcs, &StepFunc{Msg: "Reinitialize", Fn: v.reinitialize})
+		if err := v.reinitialize(); err != nil {
+			return err
+		}
 	}
 
-	funcs = append(funcs, &StepFunc{Msg: "Create overlay", Fn: v.createOverlay})
-	funcs = append(funcs, &StepFunc{Msg: "Merging old files", Fn: v.mergeFiles})
-	funcs = append(funcs, &StepFunc{Msg: "Mount AUF", Fn: v.mountAufs})
-	funcs = append(funcs, &StepFunc{Msg: "Mount PTS", Fn: v.prepareAndMountPts})
-	funcs = append(funcs, &StepFunc{Msg: "Add Ebtables rules", Fn: v.addEbtablesRule})
-	funcs = append(funcs, &StepFunc{Msg: "Add Static route", Fn: v.addStaticRoute})
+	if err := v.createOverlay(); err != nil {
+		return err
+	}
 
-	results := make(chan *Step, len(funcs))
+	if err := v.mergeFiles(); err != nil {
+		return err
+	}
 
-	// create the functions one by one and pass back the results via a channel.
-	// The channel will be closed if an error results of if it's finished.
-	go func() {
-		defer func() {
-			close(results)
-			results = nil
-		}()
+	if err := v.mountAufs(); err != nil {
+		return err
+	}
 
-		for step, current := range funcs {
-			start := time.Now()
-			err := current.Fn() // invoke our function
+	if err := v.prepareAndMountPts(); err != nil {
+		return err
+	}
 
-			results <- &Step{
-				Message:     current.Msg,
-				CurrentStep: step + 1,
-				TotalStep:   len(funcs),
-				ElapsedTime: time.Since(start).Seconds(),
-				Err:         err,
-			}
+	if err := v.addEbtablesRule(); err != nil {
+		return err
+	}
 
-			if err != nil {
-				// don't put the prepare in an unknown state
-				for _ = range v.Unprepare(false) {
-				}
-				break
-			}
-		}
+	if err := v.addStaticRoute(); err != nil {
+		return err
+	}
 
-	}()
+	return nil
 
-	return results
+	// // create the functions one by one and pass back the results via a channel.
+	// // The channel will be closed if an error results of if it's finished.
+	// go func() {
+	// 	defer func() {
+	// 		close(results)
+	// 		results = nil
+	// 	}()
+
+	// 	for step, current := range funcs {
+	// 		start := time.Now()
+	// 		err := current.Fn() // invoke our function
+
+	// 		results <- &Step{
+	// 			Message:     current.Msg,
+	// 			CurrentStep: step + 1,
+	// 			TotalStep:   len(funcs),
+	// 			ElapsedTime: time.Since(start).Seconds(),
+	// 			Err:         err,
+	// 		}
+
+	// 		if err != nil {
+	// 			// don't put the prepare in an unknown state
+	// 			for _ = range v.Unprepare(false) {
+	// 			}
+	// 			break
+	// 		}
+	// 	}
+
+	// }()
+
+	// return results
 }
 
 func (v *VM) createContainerDir() error {
@@ -222,13 +253,6 @@ func (v *VM) createContainerDir() error {
 		return err
 	}
 
-	return nil
-}
-
-func (v *VM) mountRBD() error {
-	if err := v.MountRBD(v.OverlayFile("")); err != nil {
-		return err
-	}
 	return nil
 }
 
@@ -489,7 +513,7 @@ func (vm *VM) ExistsRBD() (bool, error) {
 	return true, nil
 }
 
-func (vm *VM) MountRBD(mountDir string) error {
+func (vm *VM) mountRBD(mountDir string) error {
 	exists, err := vm.ExistsRBD()
 	if err != nil {
 		return err
