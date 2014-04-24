@@ -2,8 +2,9 @@ class SidebarMemberItem extends SidebarItem
 
   constructor: (options = {}, data) ->
 
-    options.type     = "member"
-    options.cssClass = "kdlistitemview-sidebar-item"
+    options.type              = "member"
+    options.cssClass          = "kdlistitemview-sidebar-item"
+    options.hideLastMessage  ?= no
 
     super options, data
 
@@ -17,15 +18,16 @@ class SidebarMemberItem extends SidebarItem
 
     @actor = new ProfileTextView {}, account
 
-    account.meta.lastMessage = 'Yo yo babazillo...'
+    unless @getOption "hideLastMessage"
 
-    @followersAndFollowing = new KDCustomHTMLView
-      cssClass  : 'user-numbers'
-      pistachio : "{{ #(meta.lastMessage)}}"
-    , account
+      account.meta.lastMessage = 'Yo yo babazillo...'
 
+      @followersAndFollowing = new KDCustomHTMLView
+        cssClass  : 'user-numbers'
+        pistachio : "{{ #(meta.lastMessage)}}"
+      , account
 
   viewAppended:->
     @addSubView @avatar
     @addSubView @actor
-    @addSubView @followersAndFollowing
+    @addSubView @followersAndFollowing unless @getOption "hideLastMessage"

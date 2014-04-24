@@ -16,11 +16,10 @@ class ActivityListItemView extends KDListItemView
 
     @avatar = new AvatarView
       size       :
-        width    : 55
-        height   : 55
+        width    : 42
+        height   : 42
       cssClass   : "author-avatar"
       origin     : origin
-      showStatus : yes
 
     @author     = new ProfileLinkView { origin }
     @commentBox = new CommentView options.commentSettings, data
@@ -31,6 +30,7 @@ class ActivityListItemView extends KDListItemView
     , data
 
     @settingsButton = new ActivitySettingsView
+      cssClass : "settings-menu-wrapper"
       itemView : this
     , data
 
@@ -143,15 +143,17 @@ class ActivityListItemView extends KDListItemView
   pistachio: ->
 
     """
-    {{> @settingsButton}}
-    {{> @avatar}}
-    <div class='meta'>
-      {{> @author}}
-      {{> @timeAgoView}} · San Francisco
+    <div class="activity-content-wrapper">
+      {{> @settingsButton}}
+      {{> @avatar}}
+      <div class='meta'>
+        {{> @author}}
+        {{> @timeAgoView}} <span class="location">San Francisco</span>
+      </div>
+      {{> @editWidgetWrapper}}
+      {article{@formatContent #(body)}}
+      {{> @embedBox}}
+      {{> @actionLinks}}
     </div>
-    {{> @editWidgetWrapper}}
-    {article{@formatContent #(body)}}
-    {{> @embedBox}}
-    {{> @actionLinks}}
     {{> @commentBox}}
     """

@@ -35,8 +35,8 @@ class ActivitySidebar extends KDCustomScrollView
     {activityController} = KD.singletons
 
     @wrapper.addSubView publicLink = new CustomLinkView
-      title    : 'Public Feed'
-      cssClass : 'kdlistitemview-sidebar-item'
+      title    : 'PUBLIC FEED'
+      cssClass : 'kdlistitemview-sidebar-item public-feed-link'
       click    : (event) ->
         KD.utils.stopDOMEvent event
         activityController.emit 'SidebarItemClicked', this
@@ -102,6 +102,6 @@ class ActivitySidebar extends KDCustomScrollView
     @wrapper.addSubView @chat = new ActivitySideView
       title    : 'Chat'
       cssClass : 'chat users'
-      itemClass : SidebarMemberItem
+      itemClass : SidebarChatMemberItem
       dataSource : (callback) ->
         KD.getGroup().fetchNewestMembers {}, {limit : 10, skip : 0}, callback
