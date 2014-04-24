@@ -39,7 +39,7 @@ class FooterView extends JView
         <a href='/Activity'>ACTIVITY</a>
         <a href='http://blog.koding.com'>KODING BLOG</a>
         <a href='https://www.facebook.com/kodingcom/events'>MEETUPS</a>
-        <a href='http://stories.koding.com'>TESTIMONALS</a>
+        <a href='http://stories.koding.com'>TESTIMONIALS</a>
         <a href='https://koding-cdn.s3.amazonaws.com/brand/koding-logo.pdf'>BRAND GUIDELINES</a>
       </nav>
 
