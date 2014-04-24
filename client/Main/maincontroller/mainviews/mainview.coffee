@@ -46,9 +46,10 @@ class MainView extends KDView
       partial   : '<cite></cite>'
       click     : (event)=>
         KD.utils.stopDOMEvent event
+        {router} = KD.getSingletons
         if KD.isLoggedIn()
-        then KD.getSingleton('router').handleRoute "/Activity", {entryPoint}
-        else location.replace '/'
+        then router.handleRoute '/Activity', {entryPoint}
+        else router.handleRoute '/'
 
     @headerContainer.addSubView @logo
 
