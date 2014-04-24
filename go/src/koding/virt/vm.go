@@ -21,7 +21,6 @@ import (
 
 type VM models.VM
 type Permissions models.Permissions
-
 type Step struct {
 	Message     string  `json:"message"`
 	CurrentStep int     `json:"currentStep"`
@@ -153,96 +152,51 @@ func (vm *VM) ApplyDefaults() {
 // templating), instead of we use this method which basically let us do things
 // more efficient. It creates the home directory, generates files like lxc.conf
 // and mounts the necessary filesystems.
-func (v *VM) Prepare(tracer tracer.Tracer, reinitialize bool) (err error) {
+func (v *VM) Prepare(t tracer.Tracer, reinitialize bool) (err error) {
+	if t == nil {
+		t = tracer.DiscardTracer()
+	}
+
 	defer func() {
 		if err != nil {
 			// don't put the prepare in an unknown state
-			for _ = range v.Unprepare(false) {
-			}
+			v.Unprepare(t, false)
 		}
 	}()
 
-	tracer.Trace("Create container")
-	if err := v.createContainerDir(); err != nil {
-		return err
-	}
+	funcs := make([]*StepFunc, 0)
+	funcs = append(funcs, &StepFunc{Msg: "Create container", Fn: v.createContainerDir})
+	funcs = append(funcs, &StepFunc{Msg: "Mount RBD", Fn: v.mountRBD})
 
-	tracer.Trace("Mount RBD")
-	if err := v.mountRBD(v.OverlayFile("")); err != nil {
-		return err
-	}
-
-	// remove all except /home on reinitialize
 	if reinitialize {
-		tracer.Trace("Reinitialize")
-		if err := v.reinitialize(); err != nil {
+		funcs = append(funcs, &StepFunc{Msg: "Reinitialize", Fn: v.reinitialize})
+	}
+
+	funcs = append(funcs, &StepFunc{Msg: "Create overlay", Fn: v.createOverlay})
+	funcs = append(funcs, &StepFunc{Msg: "Merging old files", Fn: v.mergeFiles})
+	funcs = append(funcs, &StepFunc{Msg: "Mount AUF", Fn: v.mountAufs})
+	funcs = append(funcs, &StepFunc{Msg: "Mount PTS", Fn: v.prepareAndMountPts})
+	funcs = append(funcs, &StepFunc{Msg: "Add Ebtables rules", Fn: v.addEbtablesRule})
+	funcs = append(funcs, &StepFunc{Msg: "Add Static route", Fn: v.addStaticRoute})
+
+	for step, current := range funcs {
+		start := time.Now()
+		err = current.Fn() // invoke our function
+
+		t.Trace(tracer.Message{
+			Message:     current.Msg,
+			CurrentStep: step + 1, // start index from 1
+			TotalStep:   len(funcs),
+			ElapsedTime: time.Since(start).Seconds(),
+			Err:         err,
+		})
+
+		if err != nil {
 			return err
 		}
 	}
 
-	tracer.Trace("Create overlay")
-	if err := v.createOverlay(); err != nil {
-		return err
-	}
-
-	tracer.Trace("Merge files")
-	if err := v.mergeFiles(); err != nil {
-		return err
-	}
-
-	tracer.Trace("Mount aufs")
-	if err := v.mountAufs(); err != nil {
-		return err
-	}
-
-	tracer.Trace("Mount pts")
-	if err := v.prepareAndMountPts(); err != nil {
-		return err
-	}
-
-	tracer.Trace("Add Ebtables rule")
-	if err := v.addEbtablesRule(); err != nil {
-		return err
-	}
-
-	tracer.Trace("Add Static route")
-	if err := v.addStaticRoute(); err != nil {
-		return err
-	}
-
 	return nil
-
-	// // create the functions one by one and pass back the results via a channel.
-	// // The channel will be closed if an error results of if it's finished.
-	// go func() {
-	// 	defer func() {
-	// 		close(results)
-	// 		results = nil
-	// 	}()
-
-	// 	for step, current := range funcs {
-	// 		start := time.Now()
-	// 		err := current.Fn() // invoke our function
-
-	// 		results <- &Step{
-	// 			Message:     current.Msg,
-	// 			CurrentStep: step + 1,
-	// 			TotalStep:   len(funcs),
-	// 			ElapsedTime: time.Since(start).Seconds(),
-	// 			Err:         err,
-	// 		}
-
-	// 		if err != nil {
-	// 			// don't put the prepare in an unknown state
-	// 			for _ = range v.Unprepare(false) {
-	// 			}
-	// 			break
-	// 		}
-	// 	}
-
-	// }()
-
-	// return results
 }
 
 func (v *VM) createContainerDir() error {
@@ -394,11 +348,7 @@ func UnprepareVM(id bson.ObjectId) error {
 		return err
 	}
 
-	var err error
-	for step := range vm.Unprepare(false) {
-		err = step.Err
-	}
-	return err
+	return vm.Unprepare(nil, false)
 }
 
 // Unprepare is basically the inverse of Prepare. We don't use lxc.destroy
@@ -408,7 +358,11 @@ func UnprepareVM(id bson.ObjectId) error {
 // Those files will be stored in the vmroot.
 // Unprepare also doesn't return on errors, instead it silently fails and
 // tries to execute the next step until all steps are done.
-func (vm *VM) Unprepare(onlyOverlay bool) <-chan *Step {
+func (vm *VM) Unprepare(t tracer.Tracer, onlyOverlay bool) error {
+	if t == nil {
+		t = tracer.DiscardTracer()
+	}
+
 	funcs := make([]*StepFunc, 0)
 	funcs = append(funcs, &StepFunc{Msg: "Removing network rules", Fn: vm.removeNetworkRules})
 	funcs = append(funcs, &StepFunc{Msg: "Umount PTS", Fn: vm.umountPts})
@@ -428,37 +382,22 @@ func (vm *VM) Unprepare(onlyOverlay bool) <-chan *Step {
 	funcs = append(funcs, &StepFunc{Msg: "Removing lxc folder", Fn: func() error { return os.Remove(vm.File("")) }})
 	funcs = append(funcs, &StepFunc{Msg: "Unlocking RBD", Fn: vm.UnlockRBD})
 
-	var lastError error
-	results := make(chan *Step, len(funcs))
+	var err error
+	for step, current := range funcs {
+		start := time.Now()
+		err = current.Fn() // invoke our function
 
-	// create the functions one by one and pass back the results via a
-	// channel. The channel will be closed if an error results.
-	go func() {
-		defer func() {
-			close(results)
-			results = nil
-		}()
+		t.Trace(tracer.Message{
+			Message:     current.Msg,
+			CurrentStep: step + 1,
+			TotalStep:   len(funcs),
+			ElapsedTime: time.Since(start).Seconds(),
+			Err:         err,
+		})
+	}
 
-		for step, current := range funcs {
-			start := time.Now()
-			err := current.Fn() // invoke our function
-
-			if err != nil {
-				lastError = err
-			}
-
-			results <- &Step{
-				Message:     current.Msg,
-				CurrentStep: step + 1,
-				TotalStep:   len(funcs),
-				ElapsedTime: time.Since(start).Seconds(),
-				Err:         lastError,
-			}
-
-		}
-	}()
-
-	return results
+	// returns latest error, might nil if all functions are executed without any problem.
+	return err
 }
 
 func (vm *VM) removeNetworkRules() error {
@@ -523,7 +462,8 @@ func (vm *VM) ExistsRBD() (bool, error) {
 	return true, nil
 }
 
-func (vm *VM) mountRBD(mountDir string) error {
+func (vm *VM) mountRBD() error {
+	mountDir := vm.OverlayFile("")
 	exists, err := vm.ExistsRBD()
 	if err != nil {
 		return err

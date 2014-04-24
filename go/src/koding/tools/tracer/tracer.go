@@ -2,17 +2,18 @@ package tracer
 
 import (
 	"fmt"
-	"io/ioutil"
-
-	"github.com/koding/logging"
 )
 
-type Tracer interface {
-	Trace(format string, args ...interface{})
+type Message struct {
+	Message     string  `json:"message"`
+	CurrentStep int     `json:"currentStep"`
+	TotalStep   int     `json:"totalStep"`
+	Err         error   `json:"error"`
+	ElapsedTime float64 `json:"elapsedTime"` // time.Duration.Seconds()
 }
 
-type LogTracer struct {
-	log logging.Logger
+type Tracer interface {
+	Trace(Message)
 }
 
 type FmtTracer struct {
@@ -27,14 +28,19 @@ func DiscardTracer() Tracer {
 	return &FmtTracer{discard: true}
 }
 
-func (l *LogTracer) Trace(format string, args ...interface{}) {
-	l.log.Info(format, args...)
+func (f *FmtTracer) Trace(msg Message) {
+	if f.discard {
+		return // don't do anything for discard, it's a no-op
+	}
+
+	fmt.Println(msg.String())
 }
 
-func (f *FmtTracer) Trace(format string, args ...interface{}) {
-	if f.discard {
-		fmt.Fprintf(ioutil.Discard, format, args...)
-	} else {
-		fmt.Printf(format, args...)
+func (m *Message) String() string {
+	if m.Err != nil {
+		return fmt.Sprintf("msg: %s. elapsedTime: %s. err: %s.",
+			m.Message, m.ElapsedTime, m.Err)
 	}
+
+	return fmt.Sprintf("msg: %s. elapsedTime: %s", m.Message, m.ElapsedTime)
 }
