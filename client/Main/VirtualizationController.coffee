@@ -120,9 +120,18 @@ class VirtualizationController extends KDController
     , vmPrefix
 
   deleteVmByHostname: (hostnameAlias, callback, fireEvents = yes) ->
-    { JVM } = KD.remote.api
 
-    JVM.removeByHostname hostnameAlias, (err)->
+    # { JVM } = KD.remote.api
+    # JVM.removeByHostname hostnameAlias, (err)->
+
+    {ComputeProvider} = KD.remote.api
+
+    ComputeProvider.remove {
+      provider   : "koding"
+      credential : 1
+      hostnameAlias
+    }, (err) ->
+
       return callback err  if err
 
       if fireEvents
@@ -555,7 +564,16 @@ class VirtualizationController extends KDController
             color          : "white"
           duration         : 120000
 
-      JVM.createVmByNonce nonce, stackId, (err, vm) =>
+      # JVM.createVmByNonce nonce, stackId, (err, vm) =>
+
+      {ComputeProvider} = KD.remote.api
+
+      ComputeProvider.create {
+        provider   : "koding"
+        credential : 1
+        nonce, stackId
+      }, (err, vm) =>
+
         notify?.destroy()
         return  if KD.showError err
 
