@@ -23,14 +23,22 @@ module.exports = class ComputeProvider extends Base
   # TODO Add Permissons ~ GG
 
   @set
-    sharedMethods       :
-      static            :
-        ping            :
+    sharedMethods :
+      static :
+        ping :
           (signature Object, Function)
-        fetchExisting   :
+        create :
           (signature Object, Function)
-        fetchAvailable  :
+        remove :
           (signature Object, Function)
+        update :
+          (signature Object, Function)
+        fetchExisting :
+          (signature Object, Function)
+        fetchAvailable :
+          (signature Object, Function)
+        fetchAvailableProviders :
+          (signature Function)
 
   revive = do ->
 
@@ -49,7 +57,8 @@ module.exports = class ComputeProvider extends Base
         arguments[1].provider = provider
 
       if not credential
-        return callback new KodingError "Credential is required.", "MissingCredential"
+        return callback new KodingError \
+          "Credential is required.", "MissingCredential"
 
       _arguments = arguments
 

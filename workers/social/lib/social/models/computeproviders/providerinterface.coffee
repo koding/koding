@@ -13,7 +13,7 @@ module.exports = class ProviderInterface
 
   @ping   = NOT_IMPLEMENTED
   @create = NOT_IMPLEMENTED
-  @delete = NOT_IMPLEMENTED
+  @remove = NOT_IMPLEMENTED
   @update = NOT_IMPLEMENTED
 
   @fetchExisting  = NOT_IMPLEMENTED
