@@ -1,4 +1,7 @@
+
 ProviderInterface = require './providerinterface'
+KodingError       = require '../../error'
+JVM               = require '../vm'
 
 module.exports = class Koding extends ProviderInterface
 
@@ -9,8 +12,25 @@ module.exports = class Koding extends ProviderInterface
 
   @fetchExisting = (client, options, callback)->
 
-    JVM = require '../vm'
     JVM.fetchVmsByContext client, options, callback
+
+
+  @create = (client, options, callback)->
+
+    {nonce, stackId} = options
+    JVM.createVmByNonce client, nonce, stackId, callback
+
+
+  @remove = (client, options, callback)->
+
+    {hostnameAlias} = options
+    JVM.removeByHostname client, hostnameAlias, callback
+
+
+  @update = (client, options, callback)->
+
+    callback new KodingError \
+      "Update not supported for Koding VMs", "NotSupported"
 
 
   @fetchAvailable = (client, options, callback)->
