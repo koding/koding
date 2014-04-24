@@ -5,7 +5,7 @@ class EnvironmentRuleContainer extends EnvironmentContainer
     new Promise (resolve, reject) ->
       KD.remote.api.JProxyFilter.fetch {}, (err, filters) ->
         if err or not filters or filters.length is 0
-          warn "Failed to fetch domains", err  if err
+          warn "Failed to fetch filters", err  if err
           return resolve []
 
         filter.title = filter.name  for filter in filters
