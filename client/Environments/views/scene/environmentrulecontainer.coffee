@@ -3,13 +3,16 @@ class EnvironmentRuleContainer extends EnvironmentContainer
   EnvironmentDataProvider.addProvider "rules", ->
 
     new Promise (resolve, reject) ->
-      KD.remote.api.JProxyFilter.fetch {}, (err, filters) ->
-        if err or not filters or filters.length is 0
-          warn "Failed to fetch filters", err  if err
-          return resolve []
+      KD.remote.api.JProxyRestriction.fetch {}, (err, restrictions) ->
+        log restrictions
 
-        filter.title = filter.name  for filter in filters
-        resolve filters
+        KD.remote.api.JProxyFilter.fetch {}, (err, filters) ->
+          if err or not filters or filters.length is 0
+            warn "Failed to fetch filters", err  if err
+            return resolve []
+
+          filter.title = filter.name  for filter in filters
+          resolve filters
 
   constructor: (options = {}, data) ->
 
