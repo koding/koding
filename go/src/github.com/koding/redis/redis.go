@@ -234,3 +234,35 @@ func (r *RedisSession) SortedSetReverseRange(key string, rest ...interface{}) ([
 
 	return redis.Values(r.Do("ZREVRANGE", prefixedReq...))
 }
+
+// HashMultipleSet sets multiple hashset elements stored at key with given field values.
+// Returns error state of this operation
+func (r *RedisSession) HashMultipleSet(key string, item map[string]interface{}) error {
+
+	// not an optimal solution
+	fieldValuePairs := make([]interface{}, 0)
+	fieldValuePairs = append(fieldValuePairs, r.addPrefix(key))
+	for field, value := range item {
+		fieldValuePairs = append(fieldValuePairs, field, value)
+	}
+
+	reply, err := r.Do("HMSET", fieldValuePairs...)
+	if err != nil {
+		return err
+	}
+
+	if reply != "OK" {
+		return fmt.Errorf("reply string is wrong!: %s", reply)
+
+	}
+
+	return nil
+}
+
+// GetHashMultipleSet returns values of the hashset at stored key with
+// requested field order
+// Usage: GetHashMultipleSet("canthefason", "name", "age", "birthDate")
+func (r *RedisSession) GetHashMultipleSet(key string, rest ...interface{}) ([]interface{}, error) {
+	prefixedReq := r.prepareArgsWithKey(key, rest...)
+	return redis.Values(r.Do("HMGET", prefixedReq.s..))
+}
