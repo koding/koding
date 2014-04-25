@@ -29,7 +29,7 @@ module.exports = class JProxyRestriction extends jraphical.Module
           (signature Object, Function)
       instance    : {}
 
-  @create: secure (client, data, callback) ->
+  validate = (client, data, callback) ->
     {domainName, filterId} = data
     {delegate} = client.connection
     {nickname} = delegate.profile
@@ -47,12 +47,27 @@ module.exports = class JProxyRestriction extends jraphical.Module
           return callback new KodingError { message: "Access Denied" }
 
         JProxyRestriction.one { domainName }, {}, (err, restriction) ->
-          filterId = ObjectId filterId
-          if not restriction
-            restriction = new JProxyRestriction { domainName, filters: [filterId] }
-            restriction.save (err) ->
-              return callback err, null  if err
-              callback null, restriction
-          else
-            restriction.update { $addToSet: { filters: filterId } }, (err) ->
-              callback err, restriction
+          if err
+            return callback new KodingError { message: "Couldn't create restriction." }
+
+          callback null, restriction
+
+
+  @create: secure (client, data, callback) ->
+    {domainName, filterId} = data
+    {delegate} = client.connection
+    {nickname} = delegate.profile
+
+    validate client, data, (err, restriction) ->
+      return callback err  if err
+
+      filterId = ObjectId filterId
+      if not restriction
+        restriction = new JProxyRestriction { domainName, filters: [filterId] }
+        restriction.save (err) ->
+          return callback err, null  if err
+          callback null, restriction
+      else
+        restriction.update { $addToSet: { filters: filterId } }, (err) ->
+          callback err, restriction
+
