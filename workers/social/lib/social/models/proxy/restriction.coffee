@@ -30,6 +30,8 @@ module.exports = class JProxyRestriction extends jraphical.Module
           (signature Object, Function)
         remove    :
           (signature Object, Function)
+        fetch     :
+          (signature Object, Function)
       instance    : {}
 
   validate = (client, data, callback) ->
@@ -84,3 +86,10 @@ module.exports = class JProxyRestriction extends jraphical.Module
     validate client, data, (err, restriction) ->
       restriction.update { $pullAll: { filters: [filterId] } }, (err) ->
         callback err, restriction
+
+  @fetch: secure (client, query, callback) ->
+    query.owner = client.connection.delegate.getId()
+
+    JProxyRestriction.some query, {}, (err, restrictions) ->
+      return callback err, null  if err
+      callback null, restrictions
