@@ -14,6 +14,7 @@ module.exports = class JProxyRestriction extends jraphical.Module
     schema        :
       domainName  : String
       filters     : [ObjectId]
+      owner       : ObjectId
       createdAt   :
         type      : Date
         default   : -> new Date
@@ -65,7 +66,8 @@ module.exports = class JProxyRestriction extends jraphical.Module
 
       filterId = ObjectId filterId
       if not restriction
-        restriction = new JProxyRestriction { domainName, filters: [filterId] }
+        data = { domainName, filters: [filterId], owner: delegate.getId() }
+        restriction = new JProxyRestriction data
         restriction.save (err) ->
           return callback err, null  if err
           callback null, restriction
