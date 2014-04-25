@@ -60,8 +60,7 @@ func Add(u *url.URL, h http.Header, req *models.ChannelParticipant) (int, http.H
 
 func checkChannelPrerequisites(channelId, requesterId, accountId int64) error {
 	c := models.NewChannel()
-	c.Id = channelId
-	if err := c.Fetch(); err != nil {
+	if err := c.ById(channelId); err != nil {
 		return err
 	}
 
