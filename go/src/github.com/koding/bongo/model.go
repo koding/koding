@@ -170,11 +170,11 @@ func (b *Bongo) buildQuery(i Modellable, data interface{}, q *Query) error {
 	// init query
 	query := b.DB
 
-	// add sort options
-	query = addSort(query, q.Sort)
-
 	// add table name
 	query = query.Table(i.TableName())
+
+	// add sort options
+	query = addSort(query, q.Sort)
 
 	// add selector
 	query = addWhere(query, q.Selector)
