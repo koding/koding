@@ -171,6 +171,9 @@ config =
       staticFilesBaseUrl: 1
       runtimeOptions  :
         kites:
+          stack:
+            force: 1
+            newKites: 1
           kontrol:
             username: 1
           os:

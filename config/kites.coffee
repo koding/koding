@@ -5,6 +5,9 @@ versionFile = (kiteName) ->
   (fs.readFileSync (joinPath __dirname, "../versions/#{ kiteName }.version"), 'utf-8').trim()
 
 module.exports =
+  stack:
+    force: yes
+    newKites: yes
   kontrol:
     username: 'koding'
   os:
