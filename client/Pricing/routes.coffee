@@ -9,8 +9,7 @@ do ->
 
     '/:name?/Pricing/:section': ({params:{section}}) ->
       handler (app) ->
-        paneName = section.toUpperCase()
-        app.getView().pricingTypeTabView.showPaneByName paneName
+        app.getView().productForm.showSection section
 
     '/:name?/Pricing/CreateGroup': ->
       KD.remote.api.JGroupPlan.hasGroupCredit (err, hasCredit) ->
