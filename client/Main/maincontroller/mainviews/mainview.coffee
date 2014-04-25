@@ -49,7 +49,7 @@ class MainView extends KDView
         {router} = KD.singletons
         if KD.isLoggedIn()
         then router.handleRoute '/Activity', {entryPoint}
-        else router.handleRoute '/'
+        else router.handleRoute '/', {entryPoint}
 
     @headerContainer.addSubView @logo
 
@@ -65,14 +65,10 @@ class MainView extends KDView
 
     @logo.setClass KD.config.environment
 
-
-    @headerContainer.addSubView @logotype = new KDCustomHTMLView
-      tagName   : "a"
-      cssClass  : "logotype"
-      partial   : "Koding"
-      click     : (event)=>
-        KD.utils.stopDOMEvent event
-        KD.getSingleton('router').handleRoute "/", {entryPoint}
+    @headerContainer.addSubView @logotype = new CustomLinkView
+      cssClass : 'logotype'
+      title    : 'Koding'
+      href     : '/Home'
 
     @addDock()
     @addLoggedOutNav()
