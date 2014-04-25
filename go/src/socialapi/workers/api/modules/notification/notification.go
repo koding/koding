@@ -8,8 +8,10 @@ import (
 	"math"
 	"net/http"
 	"net/url"
+	"socialapi/config"
 	"socialapi/models"
 	"socialapi/workers/api/modules/helpers"
+	"socialapi/workers/cache"
 )
 
 var (
@@ -110,12 +112,22 @@ func InteractGroup(u *url.URL, h http.Header, req *GroupRequest) (int, http.Head
 }
 
 func fetchNotifications(q *models.Query) (*models.NotificationResponse, error) {
+	var list *models.NotificationResponse
+	var err error
+
 	// first check redis
-	list, err := fetchCachedNotifications(q.AccountId)
-	if err != nil {
-		resetCache(q.AccountId)
-	} else if len(list.Notifications) > 0 {
-		return list, nil
+	conf := config.Get()
+	cacheEnabled := conf.Cache.Notification
+
+	if cacheEnabled {
+		nc := cache.NewNotificationCache()
+		nc.ActorLimit = ACTOR_LIMIT
+		list, err = nc.FetchNotifications(q.AccountId)
+		if err != nil {
+			resetCache(q.AccountId)
+		} else if len(list.Notifications) > 0 {
+			return list, nil
+		}
 	}
 
 	n := models.NewNotification()
@@ -124,9 +136,11 @@ func fetchNotifications(q *models.Query) (*models.NotificationResponse, error) {
 		return nil, err
 	}
 
-	// store list in cache
-	if err := updateCachedNotifications(q.AccountId, list); err != nil {
-		fmt.Println("cache cannot be updated", err) // todolog
+	if cacheEnabled {
+		// store list in cache TODO i can update it inside a goroutine
+		if err := updateCachedNotifications(q.AccountId, list); err != nil {
+			fmt.Println("cache cannot be updated", err) // TODO log
+		}
 	}
 
 	return list, nil
