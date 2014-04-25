@@ -2,6 +2,7 @@ package privatemessage
 
 import (
 	"errors"
+	"koding/db/mongodb/modelhelper"
 	"net/http"
 	"net/url"
 	"socialapi/models"
@@ -76,7 +77,19 @@ func Send(u *url.URL, h http.Header, req *models.PrivateMessageRequest) (int, ht
 		return helpers.NewBadRequestResponse(errors.New("AcccountId is not defined"))
 	}
 
-	if len(req.Recipients) == 0 {
+	// // req.Recipients = append(req.Recipients, req.AccountId)
+	participantNames := extractParticipants(req.Body)
+	participantIds, err := fetchParticipantIds(participantNames)
+	if err != nil {
+		return helpers.NewBadRequestResponse(err)
+	}
+
+	// append creator to the recipients
+	participantIds = appendCreatorIdIntoParticipantList(participantIds, req.AccountId)
+
+	// author and atleast one recipient should be in the
+	// recipient list
+	if len(participantIds) < 2 {
 		return helpers.NewBadRequestResponse(errors.New("You should define your recipients"))
 	}
 
@@ -99,15 +112,12 @@ func Send(u *url.URL, h http.Header, req *models.PrivateMessageRequest) (int, ht
 		return helpers.NewBadRequestResponse(err)
 	}
 
-	_, err := c.AddMessage(cm.Id)
+	_, err = c.AddMessage(cm.Id)
 	if err != nil {
-		// todo this should be internal server error
 		return helpers.NewBadRequestResponse(err)
 	}
 
-	// append creator to the recipients
-	req.Recipients = append(req.Recipients, req.AccountId)
-	for _, participantId := range req.Recipients {
+	for _, participantId := range participantIds {
 		_, err := c.AddParticipant(participantId)
 		if err != nil {
 			return helpers.NewBadRequestResponse(err)
