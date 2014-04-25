@@ -11,13 +11,12 @@ import (
 )
 
 func List(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface{}, error) {
-	n := models.NewNotification()
-	list, err := n.List(helpers.GetQuery(u))
 	q := helpers.GetQuery(u)
 	if err := validateNotificationRequest(q); err != nil {
 		return helpers.NewBadRequestResponse(err)
 	}
 
+	list, err := fetchNotifications(q)
 	if err != nil {
 		if err == gorm.RecordNotFound {
 			return helpers.NewNotFoundResponse()
@@ -102,6 +101,30 @@ func InteractGroup(u *url.URL, h http.Header, req *GroupRequest) (int, http.Head
 
 	return helpers.NewDefaultOKResponse()
 }
+
+func fetchNotifications(q *models.Query) (*models.NotificationResponse, error) {
+	// first check redis
+	list, err := fetchCachedNotifications(q.AccountId)
+	if err != nil {
+		resetCache(q.AccountId)
+	} else if len(list.Notifications) > 0 {
+		return list, nil
+	}
+
+	n := models.NewNotification()
+	list, err = n.List(q)
+	if err != nil {
+		return nil, err
+	}
+
+	// store list in cache
+	if err := updateCachedNotifications(q.AccountId, list); err != nil {
+		fmt.Println("cache cannot be updated", err) // todolog
+	}
+
+	return list, nil
+}
+
 func validateNotificationRequest(q *models.Query) error {
 	a := models.NewAccount()
 	a.Id = q.AccountId
