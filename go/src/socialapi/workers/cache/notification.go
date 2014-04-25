@@ -2,8 +2,8 @@
 // When a user lists its notifications json result set is this
 // notificationList: [
 // {
-// 	 typeConstant: "leave",
-// 	 targetId: 24,
+//   typeConstant: "leave",
+//   targetId: 24,
 //   glanced: false,
 //   latestActors: [ 150, 99, 48 ],
 //   updatedAt: "2014-04-25T01:23:36.330053-07:00",
@@ -21,7 +21,7 @@
 // latestActors, glanced and actorCount values are stored in hashset with key [accountKey]:notificationKey
 // unreadCount is stored with key [accountKey]:unreadCount
 
-package notification
+package cache
 
 import (
 	"fmt"
@@ -41,16 +41,26 @@ var (
 	NotificationActorKey     = "actor"
 	NotificationUnreadKey    = "unreadCount"
 	NotificationUpdatedAtKey = "updatedAt"
-	redisConn                *redis.RedisSession
 )
 
+type NotificationCache struct {
+	ActorLimit int
+	redisConn  *redis.RedisSession
+}
+
+func NewNotificationCache() *NotificationCache {
+	redisConn := helper.MustGetRedisConn()
+	return &NotificationCache{
+		redisConn: redisConn,
+	}
+}
+
 // fetchCachedNotification fetches the notification list of the user if it already exists
-func fetchCachedNotifications(accountId int64) (*models.NotificationResponse, error) {
-	redisConn = helper.MustGetRedisConn()
-	listContainerKey := getAccountCacheKeyWithSuffix(accountId, NotificationListKey)
-	suffix := ":*:" + NotificationUpdatedAtKey
-	sortKey := appendCachePrefix(suffix)
-	members, err := redisConn.SortBy(listContainerKey, sortKey, "desc")
+func (cache *NotificationCache) FetchNotifications(accountId int64) (*models.NotificationResponse, error) {
+	listContainerKey := cache.getAccountCacheKeyWithSuffix(accountId, NotificationListKey)
+	suffix := "*:" + NotificationUpdatedAtKey
+	sortKey := cache.appendCachePrefix(suffix)
+	members, err := cache.redisConn.SortBy(listContainerKey, sortKey, "DESC")
 	if err != nil {
 		return nil, err
 	}
@@ -64,13 +74,13 @@ func fetchCachedNotifications(accountId int64) (*models.NotificationResponse, er
 	ncList := make([]models.NotificationContainer, len(members))
 	for i, member := range members {
 		nc := &ncList[i]
-		if err := populateNotificationFromCache(member, nc); err != nil {
+		if err := cache.populateNotificationFromCache(member, nc); err != nil {
 			return nil, err
 		}
 	}
 	nr.Notifications = ncList
-	unreadKey := getAccountCacheKeyWithSuffix(accountId, NotificationUnreadKey)
-	unreadCount, err := redisConn.GetInt(unreadKey)
+	unreadKey := cache.getAccountCacheKeyWithSuffix(accountId, NotificationUnreadKey)
+	unreadCount, err := cache.redisConn.GetInt(unreadKey)
 	if err != nil {
 		return nil, err
 	}
@@ -79,39 +89,38 @@ func fetchCachedNotifications(accountId int64) (*models.NotificationResponse, er
 	return nr, nil
 }
 
-func populateNotificationFromCache(member interface{}, nc *models.NotificationContainer) error {
-	redisConn = helper.MustGetRedisConn()
-	memberValue, err := redisConn.String(member)
-	itemKey := appendCachePrefix(memberValue)
+func (cache *NotificationCache) populateNotificationFromCache(member interface{}, nc *models.NotificationContainer) error {
+	memberValue, err := cache.redisConn.String(member)
+	itemKey := cache.appendCachePrefix(memberValue)
 
 	typeIdPair := strings.Split(itemKey, ":")[3]
 	keys := strings.Split(typeIdPair, "-")
 
-	nc.UpdatedAt, err = getUpdatedAt(itemKey)
+	nc.UpdatedAt, err = cache.getUpdatedAt(itemKey)
 	if err != nil {
 		return err
 	}
 
 	nc.TypeConstant = keys[0]
 	nc.TargetId, err = strconv.ParseInt(keys[1], 10, 64)
-	fields := getCacheFields()
-	values, err := redisConn.GetHashMultipleSet(itemKey, fields...)
+	fields := cache.getCacheFields()
+	values, err := cache.redisConn.GetHashMultipleSet(itemKey, fields...)
 	if err != nil {
 		return err
 	}
 
-	nc.Glanced, err = redisConn.Bool(values[0])
+	nc.Glanced, err = cache.redisConn.Bool(values[0])
 	if err != nil {
 		return err
 	}
 
-	nc.ActorCount, err = redisConn.Int(values[1])
+	nc.ActorCount, err = cache.redisConn.Int(values[1])
 	if err != nil {
 		return err
 	}
 
 	for i := 2; i < len(values); i++ {
-		actor, err := redisConn.Int64(values[i])
+		actor, err := cache.redisConn.Int64(values[i])
 		if err == nil {
 			nc.LatestActors = append(nc.LatestActors, actor)
 		}
@@ -120,10 +129,10 @@ func populateNotificationFromCache(member interface{}, nc *models.NotificationCo
 	return nil
 }
 
-func getUpdatedAt(key string) (time.Time, error) {
+func (cache *NotificationCache) getUpdatedAt(key string) (time.Time, error) {
 	updatedAtKey := fmt.Sprintf("%s:%s", key, NotificationUpdatedAtKey)
 
-	updatedAtValue, err := redisConn.GetInt(updatedAtKey)
+	updatedAtValue, err := cache.redisConn.GetInt(updatedAtKey)
 	if err != nil {
 		return time.Now(), err
 	}
@@ -132,7 +141,7 @@ func getUpdatedAt(key string) (time.Time, error) {
 }
 
 // appendCachePrefix appends {environment}:notification prefix to the given suffix
-func appendCachePrefix(suffix string) string {
+func (cache *NotificationCache) appendCachePrefix(suffix string) string {
 	return fmt.Sprintf("%s:%s:%s",
 		config.Get().Environment,
 		NotificationKey,
@@ -142,15 +151,15 @@ func appendCachePrefix(suffix string) string {
 
 // getAccountCacheKey returns account key with prefix
 // result: {environment}:notification:account-{id}
-func getAccountCacheKey(accountId int64) string {
+func (cache *NotificationCache) getAccountCacheKey(accountId int64) string {
 	suffix := fmt.Sprintf("%s-%d", NotificationAccountKey, accountId)
-	return appendCachePrefix(suffix)
+	return cache.appendCachePrefix(suffix)
 }
 
 // getNotificationCacheKey returns notification key with prefix
 // result: {environment}:notification:account-{id}:{typeConstant}-{targetId}
-func getNotificationCacheKey(accountId, targetId int64, typeConstant string) string {
-	prefix := getAccountCacheKey(accountId)
+func (cache *NotificationCache) getNotificationCacheKey(accountId, targetId int64, typeConstant string) string {
+	prefix := cache.getAccountCacheKey(accountId)
 	return fmt.Sprintf(
 		"%s:%s-%d",
 		prefix,
@@ -161,8 +170,8 @@ func getNotificationCacheKey(accountId, targetId int64, typeConstant string) str
 
 // getAccountKeyWithSuffix returns notification key with appended suffix
 // result: {environment}:notification:account-{id}:{typeConstant}-{targetId}:{suffix}
-func getAccountCacheKeyWithSuffix(accountId int64, suffix string) string {
-	prefix := getAccountCacheKey(accountId)
+func (cache *NotificationCache) getAccountCacheKeyWithSuffix(accountId int64, suffix string) string {
+	prefix := cache.getAccountCacheKey(accountId)
 	return fmt.Sprintf(
 		"%s:%s",
 		prefix,
@@ -170,9 +179,9 @@ func getAccountCacheKeyWithSuffix(accountId int64, suffix string) string {
 	)
 }
 
-// getNotificationListMemberKey returns notification keys without prefixes
+// getListMemberKey returns notification keys without prefixes
 // result: account-{id}:{typeConstant}-{targetId}
-func getNotificationListMemberKey(accountId int64, targetId int64, typeConstant string) string {
+func (cache *NotificationCache) getListMemberKey(accountId int64, targetId int64, typeConstant string) string {
 	return fmt.Sprintf(
 		"%s-%d:%s-%d",
 		NotificationAccountKey,
@@ -182,50 +191,49 @@ func getNotificationListMemberKey(accountId int64, targetId int64, typeConstant 
 	)
 }
 
-func updateCachedNotifications(accountId int64, nr *models.NotificationResponse) error {
-	redisConn = helper.MustGetRedisConn()
-	listKey := getAccountCacheKeyWithSuffix(accountId, NotificationListKey)
-	_, err := redisConn.Del(listKey)
+func (cache *NotificationCache) updateCachedNotifications(accountId int64, nr *models.NotificationResponse) error {
+	listKey := cache.getAccountCacheKeyWithSuffix(accountId, NotificationListKey)
+	_, err := cache.redisConn.Del(listKey)
 	if err != nil {
 		return err
 	}
 
 	listItemIds := make([]interface{}, 0)
 	for _, nc := range nr.Notifications {
-		itemKey := getNotificationCacheKey(accountId, nc.TargetId, nc.TypeConstant)
-		if err := updateCacheItemModifiedDate(&nc, itemKey); err != nil {
+		itemKey := cache.getNotificationCacheKey(accountId, nc.TargetId, nc.TypeConstant)
+		if err := cache.updateCacheItemModifiedDate(&nc, itemKey); err != nil {
 			return err
 		}
 
-		if err := updateCachedItem(&nc, itemKey); err != nil {
+		if err := cache.updateCachedItem(&nc, itemKey); err != nil {
 			return err
 		}
 
-		listItemKey := getNotificationListMemberKey(accountId, nc.TargetId, nc.TypeConstant)
+		listItemKey := cache.getListMemberKey(accountId, nc.TargetId, nc.TypeConstant)
 		listItemIds = append(listItemIds, listItemKey)
 	}
 
 	// update object lister
-	if _, err := redisConn.AddSetMembers(listKey, listItemIds...); err != nil {
+	if _, err := cache.redisConn.AddSetMembers(listKey, listItemIds...); err != nil {
 		return err
 	}
 
 	// update unread count
-	unreadKey := getAccountCacheKeyWithSuffix(accountId, NotificationUnreadKey)
-	if err := redisConn.Set(unreadKey, strconv.Itoa(nr.UnreadCount)); err != nil {
+	unreadKey := cache.getAccountCacheKeyWithSuffix(accountId, NotificationUnreadKey)
+	if err := cache.redisConn.Set(unreadKey, strconv.Itoa(nr.UnreadCount)); err != nil {
 		return err
 	}
 
 	return nil
 }
 
-func updateCacheItemModifiedDate(nc *models.NotificationContainer, prefix string) error {
+func (cache *NotificationCache) updateCacheItemModifiedDate(nc *models.NotificationContainer, prefix string) error {
 	prefix = fmt.Sprintf("%s:%s", prefix, NotificationUpdatedAtKey)
 
-	return redisConn.Set(prefix, strconv.FormatInt(nc.UpdatedAt.UnixNano(), 10))
+	return cache.redisConn.Set(prefix, strconv.FormatInt(nc.UpdatedAt.UnixNano(), 10))
 }
 
-func updateCachedItem(nc *models.NotificationContainer, prefix string) error {
+func (cache *NotificationCache) updateCachedItem(nc *models.NotificationContainer, prefix string) error {
 	instance := map[string]interface{}{
 		"glanced":    nc.Glanced,
 		"actorCount": nc.ActorCount,
@@ -236,12 +244,12 @@ func updateCachedItem(nc *models.NotificationContainer, prefix string) error {
 		instance[key] = val
 	}
 
-	return redisConn.HashMultipleSet(prefix, instance)
+	return cache.redisConn.HashMultipleSet(prefix, instance)
 }
 
-func getCacheFields() []interface{} {
+func (cache *NotificationCache) getCacheFields() []interface{} {
 	fields := []interface{}{"glanced", "actorCount"}
-	for i := 0; i < ACTOR_LIMIT; i++ {
+	for i := 0; i < cache.ActorLimit; i++ {
 		actorField := fmt.Sprintf("%s-%d", NotificationActorKey, i)
 		fields = append(fields, actorField)
 	}
@@ -249,12 +257,11 @@ func getCacheFields() []interface{} {
 	return fields
 }
 
-func resetCache(accountId int64) error {
-	redisConn := helper.MustGetRedisConn()
-	prefix := getAccountCacheKeyWithSuffix(accountId, "*")
+func (cache *NotificationCache) resetCache(accountId int64) error {
+	prefix := cache.getAccountCacheKeyWithSuffix(accountId, "*")
 	// TODO instead of using Keys use stored values in set :list
-	// members, err := redisConn.GetSetMembers(key)
-	keys, err := redisConn.Keys(prefix)
+	// members, err := RedisConn.GetSetMembers(key)
+	keys, err := cache.redisConn.Keys(prefix)
 
 	if err != nil {
 		return err
@@ -262,13 +269,13 @@ func resetCache(accountId int64) error {
 
 	deletedKeys := make([]interface{}, 0)
 	for _, key := range keys {
-		deleteKey, err := redisConn.String(key)
+		deleteKey, err := cache.redisConn.String(key)
 		if err == nil {
 			deletedKeys = append(deletedKeys, deleteKey)
 		}
 	}
 
-	_, err = redisConn.Del(deletedKeys...)
+	_, err = cache.redisConn.Del(deletedKeys...)
 	if err != nil {
 		fmt.Println("cache cannot be reset") // todolog
 	}
