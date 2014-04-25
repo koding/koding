@@ -27,6 +27,8 @@ module.exports = class JProxyRestriction extends jraphical.Module
       static      :
         create    :
           (signature Object, Function)
+        remove    :
+          (signature Object, Function)
       instance    : {}
 
   validate = (client, data, callback) ->
@@ -71,3 +73,12 @@ module.exports = class JProxyRestriction extends jraphical.Module
         restriction.update { $addToSet: { filters: filterId } }, (err) ->
           callback err, restriction
 
+  @remove: secure (client, data, callback) ->
+    {domainName, filterId} = data
+    {delegate} = client.connection
+    {nickname} = delegate.profile
+    filterId   = ObjectId filterId
+
+    validate client, data, (err, restriction) ->
+      restriction.update { $pullAll: { filters: [filterId] } }, (err) ->
+        callback err, restriction
