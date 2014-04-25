@@ -101,10 +101,6 @@ func (c Channel) TableName() string {
 	return "api.channel"
 }
 
-func (c *Channel) Fetch() error {
-	return bongo.B.Fetch(c)
-}
-
 func (c *Channel) AfterCreate() {
 	bongo.B.AfterCreate(c)
 }

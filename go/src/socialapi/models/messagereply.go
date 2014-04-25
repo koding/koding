@@ -45,8 +45,6 @@ func (m *MessageReply) AfterDelete() {
 	bongo.B.AfterDelete(m)
 }
 
-func (m *MessageReply) Fetch() error {
-	return bongo.B.Fetch(m)
 }
 
 func (m *MessageReply) Create() error {
