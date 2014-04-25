@@ -1,123 +1,60 @@
-class DeveloperPlan extends JView
+class DeveloperPlan extends PricingPacksView
 
-  constructor: (options = {}, data) ->
+  subscriptionTag: "vm"
 
-    options.cssClass = KD.utils.curry "developer-plan", options.cssClass
-    options.planTag  =
-
-    super options, data
-
-    @setPlans()
-
-    @slider          = new PricingPlanSelection
-      title          : "Resource Pack"
-      unitPrice      : 20
-      hidePrice      : yes
-      amountSuffix   : "x"
-      delegate       : this
-      slider         :
-        minValue     : 0
-        maxValue     : @plans.length - 1
-        interval     : 1
-        initial      : 1
-        snapOnDrag   : no
-        handles      : [1]
-        width        : 715
-        drawOpposite : yes
-
-    @slider.on "ValueChanged", (index) =>
-      @planIndex  = Math.max index, 0
-      @updateContent()
-
-    @summary = new KDCustomHTMLView cssClass: "plan-selection-box selected"
-    @summary.addSubView @title     = new KDCustomHTMLView tagName: "h4"
-    @summary.addSubView @price     = new KDCustomHTMLView tagName: "h5"
-    # @summary.addSubView @promotion = new KDCustomHTMLView tagName: "p", cssClass: "description"
-    @summary.addSubView @buyNow    = new KDButtonView
-      cssClass : "buy-now"
-      style    : "solid green"
-      loader   : yes
-      title    : "BUY NOW"
-      callback : @bound "handleBuy"
-
-    @updateContent()
-
-  setPlans: ->
-    @planIndex = 0
-    @plans     = [
-      { cpu:  1,  ram:  1,  disk:  3, alwaysOn: 0, totalVMs:  5, price:  0 }
-      { cpu:  2,  ram:  2,  disk: 10, alwaysOn: 1, totalVMs: 10, price: 19 }
-      { cpu:  4,  ram:  4,  disk: 20, alwaysOn: 2, totalVMs: 20, price: 39 }
-      { cpu:  6,  ram:  6,  disk: 30, alwaysOn: 3, totalVMs: 30, price: 59 }
-      { cpu:  8,  ram:  8,  disk: 40, alwaysOn: 4, totalVMs: 40, price: 79 }
-      { cpu: 10,  ram: 10,  disk: 50, alwaysOn: 5, totalVMs: 50, price: 99 }
-    ]
-
-  handleBuy: ->
-    @buyNow.showLoader()
-    { paymentController, router } = KD.singletons
-    if @planIndex is 0
-      return router.handleRoute '/Register'
-
-    paymentController.fetchActiveSubscription ["vm"], (err, subscription) =>
-      return KD.showError err  if err
-      @emit "CurrentSubscriptionSet", subscription  if subscription
-      @emit "PlanSelected", "rp#{@planIndex}", planApi: KD.remote.api.JResourcePlan
-
-  getCountLabel: (value) ->
-    {amountSuffix} = @slider.getOptions()
-    return if value then "#{value}#{amountSuffix}" else "Free"
-
-  getLabels: (index) ->
-    labels     =
-      title    : 'Free Account'
-      desc     : '<cite>"free" as in "free beer"</cite>'
-      button   : 'SIGN UP'
-
-    if index > 0
-      labels   =
-        title  : "#{index}x Resource Pack"
-        desc   : "$#{@plans[index].price}/Month"
-        button : "BUY NOW"
-
-    return labels
-
-  updateContent: (index = @planIndex) ->
-    {title, desc, button} = @getLabels index
-
-    @buyNow.setTitle button
-    @title.updatePartial title
-    @price.updatePartial desc
-
-    {cpu, ram, disk, totalVMs, alwaysOn} = @plans[index]
-    @slider.description.updatePartial """
-      <span>Resource pack contains</span>
-      <cite>#{cpu}x</cite>CPU
-      <cite>#{ram}x</cite>GB RAM
-      <cite>#{disk}</cite>GB Disk
-      <cite>#{totalVMs}x</cite>Total VMs
-      <cite>#{alwaysOn}x</cite>Always on VMs
-    """
-
-    # plan = @plans[index]
-    # {discount, vm} = plan
-
-    # @promotion.updatePartial if discount and vm
-    # then "TREAT: $#{discount} OFF OR #{vm} FREE VM#{if vm > 1 then 's' else ''}"
-    # else ""
-
-  viewAppended: ->
-    super
-
-    @slider.addSubView new KDCustomHTMLView
-      tagName : "a"
-      cssClass: "pricing-show-details"
-      partial : "What is This?"
-      click   : =>
-        @emit "ShowHowItWorks"
-
-  pistachio: ->
-    """
-    {{> @slider}}
-    {{> @summary}}
-    """
+  packs: [
+    title        : "1x"
+    tag          : "rp1"
+    cssClass     : "blue"
+    packFeatures :
+      "CPU"      : "2x"
+      "RAM"      : "2GB"
+      "DISK"     : "10GB"
+      "VMs"      : "10x"
+      "Always On": "1x"
+    price        : "$19"
+  ,
+    title        : "2x"
+    tag          : "rp2"
+    cssClass     : "green"
+    packFeatures :
+      "CPU"      : "4x"
+      "RAM"      : "2GB"
+      "DISK"     : "10GB"
+      "VMs"      : "20x"
+      "Always On": "2x"
+    price        : "$39"
+  ,
+    title        : "3x"
+    tag          : "rp3"
+    cssClass     : "yellow"
+    packFeatures :
+      "CPU"      : "6x"
+      "RAM"      : "2GB"
+      "DISK"     : "10GB"
+      "VMs"      : "30x"
+      "Always On": "3x"
+    price        : "$59"
+  ,
+    title        : "4x"
+    tag          : "rp4"
+    cssClass     : "orange"
+    packFeatures :
+      "CPU"      : "8x"
+      "RAM"      : "2GB"
+      "DISK"     : "10GB"
+      "VM"       : "40x"
+      "Always On": "4x"
+    price        : "$79"
+  ,
+    title        : "5x"
+    tag          : "rp5"
+    cssClass     : "red"
+    packFeatures :
+      "CPU"      : "10x"
+      "RAM"      : "2GB"
+      "DISK"     : "10GB"
+      "VMs"      : "50x"
+      "Always On": "5x"
+    price        : "$99"
+  ]

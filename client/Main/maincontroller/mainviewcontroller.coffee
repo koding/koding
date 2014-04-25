@@ -105,4 +105,3 @@ class MainViewController extends KDViewController
     if isApp or name in appsWithDock
     then @getView().showDock()
     else @getView().hideDock()
-

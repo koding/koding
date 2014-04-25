@@ -86,7 +86,3 @@ class TestimonialsView extends KDView
         cssClass    : 'show-more'
         href        : 'http://stories.koding.com'
         target      : '_blank'
-
-
-
-

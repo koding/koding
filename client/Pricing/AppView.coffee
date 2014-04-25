@@ -1,28 +1,35 @@
 class PricingAppView extends KDView
 
   constructor:(options = {}, data) ->
+    options.cssClass = KD.utils.curry "content-page pricing", options.cssClass
     super options, data
+
     # CtF I know this does not belongs here, but the problem was for the partial registration
     # there is an async situation of app storage operations caused by guest users/registered
     # members conversion
     @appStorage = KD.getSingleton('appStorageController').storage 'Login', '1.0'
 
-  createBreadcrumb: ->
     @addSubView @breadcrumb = new BreadcrumbView
 
+  viewAppended  : ->
+    @productForm.destroy()  if @productForm and not @productForm.isDestroyed
+    @productForm = new PricingProductForm name: "plan"
+    @productForm.on "PlanSelected", (plan, options) =>
+      @showBreadcrumb plan, options
+      @addGroupForm()  if "custom-plan" in plan.tags
+
+    workflow = KD.singleton("paymentController").createUpgradeWorkflow {@productForm}
+    @setWorkflow workflow
 
   setWorkflow: (workflow) ->
     @workflow.destroy()  if @workflow
     @groupForm?.destroy()
     @thankYou?.destroy()
     @sorry?.destroy()
-    @hideBreadcrumb()
 
-    @workflow = workflow
-    @addSubView @workflow
     workflow.on 'Finished', @bound "workflowFinished"
     workflow.on 'Cancel', @bound "cancel"
-
+    workflow.on "SubscriptionTransitionCompleted", @bound "createGroup"
     workflow.off 'FormIsShown'
 
     workflow.on 'Failed', =>
@@ -31,13 +38,14 @@ class PricingAppView extends KDView
 
     workflow.on 'FormIsShown', (form)=>
       return  unless workflow.active
-      @breadcrumb.selectItem workflow.active.getOption 'name'
+      # @breadcrumb.selectItem workflow.active.getOption 'name'
 
     workflow.once "PasswordRecoveryToken", (@recoveryToken) =>
 
-  hideBreadcrumb:->
-    @breadcrumb.hide()
-    document.body.classList.remove 'flow'
+    @addSubView @workflow = workflow
+
+  showWorkflow: ->
+    @workflow.show()
 
   hideWorkflow: ->
     @workflow.hide()
@@ -48,6 +56,14 @@ class PricingAppView extends KDView
 
   cancel: ->
     KD.singleton("router").handleRoute "/Activity"
+
+  showBreadcrumb: (plan, options) ->
+    @breadcrumb.show()
+    @breadcrumb.showPlan plan, options  if plan and options
+
+  hideBreadcrumb: ->
+    @breadcrumb?.hide()
+    document.body.classList.remove 'flow'
 
   showGroupForm: ->
 
