@@ -182,8 +182,6 @@ func (c *ChannelMessage) FetchRelatives(query *Query) (*ChannelMessageContainer,
 		return nil, err
 	}
 
-	fmt.Println("interactorIds", interactorIds)
-
 	oldIds, err := FetchOldIdsByAccountIds(interactorIds)
 	if err != nil {
 		return nil, err
