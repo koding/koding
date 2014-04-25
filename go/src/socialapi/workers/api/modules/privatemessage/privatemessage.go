@@ -18,6 +18,26 @@ var mentionRegex = verbalexpressions.New().
 	EndCapture().
 	Regex()
 
+func extractParticipants(body string) []string {
+	flattened := make([]string, 0)
+
+	res := mentionRegex.FindAllStringSubmatch(body, -1)
+	if len(res) == 0 {
+		return flattened
+	}
+
+	participants := map[string]struct{}{}
+	// remove duplicate mentions
+	for _, ele := range res {
+		participants[ele[1]] = struct{}{}
+	}
+
+	for participant := range participants {
+		flattened = append(flattened, participant)
+	}
+
+	return flattened
+}
 func Send(u *url.URL, h http.Header, req *models.PrivateMessageRequest) (int, http.Header, interface{}, error) {
 	if req.AccountId == 0 {
 		return helpers.NewBadRequestResponse(errors.New("AcccountId is not defined"))
