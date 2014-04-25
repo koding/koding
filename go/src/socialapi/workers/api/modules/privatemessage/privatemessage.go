@@ -61,6 +61,16 @@ func fetchParticipantIds(participantNames []string) ([]int64, error) {
 	return participantIds, nil
 }
 
+func appendCreatorIdIntoParticipantList(participants []int64, authorId int64) []int64 {
+	for _, participant := range participants {
+		if participant == authorId {
+			return participants
+		}
+	}
+
+	return append(participants, authorId)
+}
+
 func Send(u *url.URL, h http.Header, req *models.PrivateMessageRequest) (int, http.Header, interface{}, error) {
 	if req.AccountId == 0 {
 		return helpers.NewBadRequestResponse(errors.New("AcccountId is not defined"))
