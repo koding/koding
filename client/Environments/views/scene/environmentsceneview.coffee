@@ -117,14 +117,25 @@ class EnvironmentScene extends KDDiaScene
   updateConnections:->
     @reset no
 
-    vmDias     = @boxes.vms.dias
-    domainDias = @boxes.domains.dias
+    vmDias       = @boxes.vms.dias
+    domainDias   = @boxes.domains.dias
+    domainsByDia = {}
+    rulesById    = {}
+
+    domainsByDia[domain.data.title] = domain for key, domain of domainDias
+    rulesById[rule.data._id] = rule for key, rule of @boxes.rules.dias
 
     for _mkey, vm of vmDias
       for _dkey, domain of domainDias
         domainAliases = domain.getData().aliases
         if domainAliases and vm.getData().title in domainAliases
           @connect {dia : domain , joint : 'right'}, {dia : vm, joint : 'left' }, yes
+
+    for restriction in EnvironmentRuleContainer.restrictions
+      domainDia = domainsByDia[restriction.domainName]
+      for filterId in restriction.filters
+        ruleDia = rulesById[filterId]
+        @connect {dia : domainDia, joint : 'left'}, {dia : ruleDia, joint : 'right' }, yes
 
   createApproveModal:(items, action)->
     return unless KD.isLoggedIn()
