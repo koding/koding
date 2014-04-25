@@ -94,7 +94,7 @@ class MainViewController extends KDViewController
 
     fullSizeApps = ['Login']
     appsWithDock = [
-      'Activity', 'Pricing', 'Topics', 'Members', 'content-display'
+      'Activity', 'Topics', 'Members', 'content-display'
       'Apps', 'Dashboard', 'Account', 'Environments', 'Bugs'
     ]
 
