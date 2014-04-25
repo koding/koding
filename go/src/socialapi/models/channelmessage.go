@@ -139,7 +139,9 @@ func (c *ChannelMessage) BuildMessage(query *Query) (*ChannelMessageContainer, e
 
 	mr := NewMessageReply()
 	mr.MessageId = c.Id
-	replies, err := mr.List()
+	q := query
+	q.Limit = 3
+	replies, err := mr.List(query)
 	if err != nil {
 		return nil, err
 	}
