@@ -98,7 +98,7 @@ class PricingAppView extends KDView
 
     subtitle =
       if loggedIn then "Now it’s time, time to start Koding!"
-      else ""
+      else "Go to your inbox to complete your registration"
 
     @addSubView @thankYou = new KDCustomHTMLView
       cssClass : "pricing-final"
@@ -115,8 +115,6 @@ class PricingAppView extends KDView
         title    : "Go to your environment"
         callback : ->
           KD.singleton("router").handleRoute "/Environments"
-    else if createAccount
-      @thankYou.addSubView @getCompleteYourRegistrationButton()
 
   showGroupCreated: (group, subscription) ->
     {createAccount, loggedIn} = @formData
@@ -141,7 +139,8 @@ class PricingAppView extends KDView
         callback : ->
           window.open "#{window.location.origin}/#{group.slug}", "_blank"
     else if createAccount
-      @thankYou.addSubView @getCompleteYourRegistrationButton()
+      @thankYou.addSubView new KDCustomHTMLView
+        partial: "Go to your inbox to complete your registration"
 
   getCompleteYourRegistrationButton: ->
     return new KDButtonView
