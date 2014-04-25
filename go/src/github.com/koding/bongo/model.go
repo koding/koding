@@ -170,11 +170,6 @@ func (b *Bongo) buildQuery(i Modellable, data interface{}, q *Query) error {
 	// init query
 	query := b.DB
 
-	// if limit is minus or 0 ignore
-	if q.Limit > 0 {
-		query.Limit(q.Limit)
-	}
-
 	// add sort options
 	query = addSort(query, q.Sort)
 
@@ -183,6 +178,11 @@ func (b *Bongo) buildQuery(i Modellable, data interface{}, q *Query) error {
 
 	// add selector
 	query = addWhere(query, q.Selector)
+
+	// if limit is minus or 0 ignore
+	if q.Limit > 0 {
+		query.Limit(q.Limit)
+	}
 
 	var err error
 	// TODO refactor this part
@@ -252,6 +252,10 @@ func (b *Bongo) AfterDelete(i Modellable) {
 func addSort(query *gorm.DB, options map[string]string) *gorm.DB {
 
 	if options == nil {
+		return query
+	}
+
+	if len(options) == 0 {
 		return query
 	}
 
