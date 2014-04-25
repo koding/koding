@@ -44,6 +44,7 @@ class EnvironmentScene extends KDDiaScene
         removeConnection()
     else if domain and rule
       removeConnection()
+      @unboundRuleFromDomain domain, rule
     else if vm and extra
       removeConnection()
 
@@ -98,6 +99,21 @@ class EnvironmentScene extends KDDiaScene
           title    : "Sorry, we couldn't bind your rule to your VM, please try again."
           duration : 4000
 
+  unboundRuleFromDomain: (domain, rule) ->
+    {domain} = domain.dia.getData()
+    rule     = rule.dia.getData()
+
+    KD.remote.api.JProxyRestriction.remove {
+      domainName : domain.domain
+      filterId   : rule.getId()
+    }, (err, restriction) ->
+      if err
+        return new KDNotificationView
+          type     : "mini"
+          cssClass : "error"
+          title    : "Sorry, we couldn't bind your rule to your VM, please try again."
+          duration : 4000
+
   updateConnections:->
     @reset no
 
@@ -108,8 +124,7 @@ class EnvironmentScene extends KDDiaScene
       for _dkey, domain of domainDias
         domainAliases = domain.getData().aliases
         if domainAliases and vm.getData().title in domainAliases
-          @connect {dia : domain , joint : 'right'}, \
-                   {dia : vm, joint : 'left' }, yes
+          @connect {dia : domain , joint : 'right'}, {dia : vm, joint : 'left' }, yes
 
   createApproveModal:(items, action)->
     return unless KD.isLoggedIn()
