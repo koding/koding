@@ -24,6 +24,10 @@ class PricingProductForm extends KDView
       name: 'Team'
       view: @teamPlan
 
+    @teamPlan.once 'viewAppended', =>
+      KD.utils.defer =>
+        @teamPlan.addSubView new PricingCustomQuoteView
+
   showSection: (name) ->
     @tabView.showPaneByName name
 
@@ -37,6 +41,5 @@ class PricingProductForm extends KDView
   viewAppended: ->
     @addSubView new PricingIntroductionView
     @addSubView @tabView
-    @addSubView new PricingCustomQuoteView
     @addSubView new PricingFeaturesView
     @addSubView new FooterView
