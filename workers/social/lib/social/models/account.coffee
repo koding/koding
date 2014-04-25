@@ -426,6 +426,11 @@ module.exports = class JAccount extends jraphical.Module
         as          : 'owner'
         targetType  : JKite
 
+      credential    :
+        as          : ['owner', 'user']
+        targetType  : 'JCredential'
+
+
   constructor:->
     super
     @notifyOriginWhen 'PrivateMessageSent', 'FollowHappened'
