@@ -482,7 +482,7 @@ module.exports = class JTag extends jraphical.Module
         dash synonyms, ->
           result = []
           result.push val for key, val of resultMap
-          callback null, result, deletedTags
+          callback null, { tags: result, deletedTags }
 
       @byRelevance client, seed, options, filterSynonyms
 

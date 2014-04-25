@@ -11,6 +11,8 @@ option '-l', '--location [location]', 'run tests with this base url'
 option '-t', '--tests', 'require test suite'
 option '-s', '--dontBuildSprites', 'dont build sprites'
 
+require('coffee-script').register()
+
 {spawn, exec} = require 'child_process'
 
 log =

@@ -6,6 +6,7 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/dchest/uniuri"
 	"github.com/jinzhu/gorm"
 	"github.com/koding/bongo"
 	"github.com/stvp/slug"
@@ -54,4 +55,8 @@ func Slugify(message *ChannelMessage) (*ChannelMessage, error) {
 	}
 
 	return nil, fmt.Errorf("Couldnt generate unique slug:%s", message.Slug)
+}
+
+func RandomName() string {
+	return uniuri.New()
 }

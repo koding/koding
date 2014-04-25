@@ -4,6 +4,7 @@ import (
 	"errors"
 	"time"
 
+	"github.com/jinzhu/gorm"
 	"github.com/koding/bongo"
 )
 
@@ -72,6 +73,10 @@ func (i *Interaction) AfterDelete() {
 	bongo.B.AfterDelete(i)
 }
 
+func (i *Interaction) Some(data interface{}, q *bongo.Query) error {
+	return bongo.B.Some(i, data, q)
+}
+
 func (i *Interaction) Delete() error {
 	if err := bongo.B.DB.
 		Where("message_id = ? and account_id = ?", i.MessageId, i.AccountId).
@@ -85,11 +90,15 @@ func (c *Interaction) List(interactionType string) ([]int64, error) {
 	var interactions []int64
 
 	if c.MessageId == 0 {
-		return interactions, errors.New("ChannelId is not set")
+		return interactions, errors.New("Message is not set")
 	}
 
 	if err := bongo.B.DB.Table(c.TableName()).
-		Where("message_id = ?", c.MessageId).
+		Where(
+		"message_id = ? and type_constant = ?",
+		c.MessageId,
+		interactionType,
+	).
 		Pluck("account_id", &interactions).
 		Error; err != nil {
 		return nil, err
@@ -115,4 +124,58 @@ func (c *Interaction) List(interactionType string) ([]int64, error) {
 	// }
 
 	return interactions, nil
+}
+
+func (c *Interaction) Count(interactionType string) (int, error) {
+	if c.MessageId == 0 {
+		return 0, errors.New("MessageId is not set")
+	}
+
+	return bongo.B.Count(c,
+		"message_id = ? and type_constant = ?",
+		c.MessageId,
+		interactionType,
+	)
+}
+
+func (c *Interaction) FetchAll(interactionType string) ([]Interaction, error) {
+	var interactions []Interaction
+
+	if c.MessageId == 0 {
+		return interactions, errors.New("ChannelId is not set")
+	}
+
+	selector := map[string]interface{}{
+		"message_id":    c.MessageId,
+		"type_constant": interactionType,
+	}
+
+	err := c.Some(&interactions, bongo.NewQS(selector))
+	if err != nil {
+		return interactions, err
+	}
+
+	return interactions, nil
+}
+
+func (i *Interaction) IsInteracted(accountId int64) (bool, error) {
+	if i.MessageId == 0 {
+		return false, errors.New("Message Id is not set")
+	}
+
+	selector := map[string]interface{}{
+		"message_id": i.MessageId,
+		"account_id": accountId,
+	}
+
+	err := i.One(bongo.NewQS(selector))
+	if err == nil {
+		return true, nil
+	}
+
+	if err == gorm.RecordNotFound {
+		return false, nil
+	}
+
+	return false, err
 }

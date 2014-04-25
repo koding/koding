@@ -32,7 +32,8 @@ module.exports = class JPost extends jraphical.Message
   schema = extend {}, jraphical.Message.schema, {
     isLowQuality  : Boolean
     slug          : String
-    slug_         : String # this is necessary, because $exists operator won't work with a sparse index.
+    slug_         : String # this is necessary, because $exists
+                           #operator won't work with a sparse index.
     group         : String 
     counts        :
       followers   :
@@ -64,6 +65,8 @@ module.exports = class JPost extends jraphical.Message
       'reply to posts'    : ['member', 'moderator']
       'like posts'        : ['member', 'moderator']
       'pin posts'         : ['member', 'moderator']
+      'send private message' : ['member', 'moderator']
+      'list private messages' : ['member', 'moderator']
     emitFollowingActivities: yes
     taggedContentRole : 'post'
     tagRole           : 'tag'
@@ -171,19 +174,19 @@ module.exports = class JPost extends jraphical.Message
               else
                 queue.next()
           ->
-            status.fetchTeaser (err, teaser_)=>
+            status.fetchTeaser (err, teaser_)->
               if err
                 callback createKodingError err
               else
                 teaser = teaser_
                 queue.next()
-          =>
+          ->
             activity.update
               $set:
                 snapshot: JSON.stringify(teaser)
               $addToSet:
                 snapshotIds: status.getId()
-            , =>
+            , ->
               callback null, teaser
               return queue.next()  if status.isLowQuality
               status.fetchTags (err, tags)->
@@ -221,7 +224,7 @@ module.exports = class JPost extends jraphical.Message
       daisy queue = [
         =>
           tags or= []
-          @addTags client, tags, (err)=>
+          @addTags client, tags, (err)->
             return callback err  if err
           queue.next()
         =>
@@ -296,7 +299,7 @@ module.exports = class JPost extends jraphical.Message
           activityId = activityId_
           queue.next()
       =>
-        @fetchTeaser (err, teaser_)=>
+        @fetchTeaser (err, teaser_)->
           if err
             callback createKodingError err
           else
@@ -373,13 +376,13 @@ module.exports = class JPost extends jraphical.Message
             queue.docs = docs
             queue.next()
         =>
-          Relationship.count {sourceId: @getId(),as:'reply'}, (err, count)=>
+          Relationship.count {sourceId: @getId(),as:'reply'}, (err, count)->
             queue.relationshipCount = count
             return callback err if err
             queue.next()
         =>
           return queue.next() if exempt
-          @update $set: repliesCount: queue.relationshipCount, (err)=>
+          @update $set: repliesCount: queue.relationshipCount, (err)->
             return callback err if err
             queue.next()
         =>

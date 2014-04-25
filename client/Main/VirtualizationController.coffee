@@ -10,10 +10,18 @@ class VirtualizationController extends KDController
     @kites = {}
     @terminalKites = {}
 
+    @vmsInfo = {}
+
     @osKites = {}
 
     mc = KD.getSingleton('mainController')
-    mc.once 'AppIsReady', => @fetchVMs => @emit 'ready'
+
+    mc.once 'AppIsReady', =>
+      if KD.isLoggedIn()
+        @fetchVMs => @emit 'ready'
+      else
+        @emit 'ready'
+
     mc.on   'AccountChanged', => @emit 'VMListChanged'
 
     @on 'VMListChanged', @bound 'resetVMData'
@@ -28,7 +36,10 @@ class VirtualizationController extends KDController
     @fetchVmName options, (err, vmName) =>
       return callback err  if err?
       options.correlationName = vmName
-      @fetchRegion vmName, (region)=>
+      @fetchVmInfo vmName, (err, vm) =>
+        return callback err if err
+        { region } = vm
+        options.groupId = vm.groupId
         options.kiteName =
           if KD.useNewKites
             # TODO: this mapping should be removed, and kites should be named consistently
@@ -70,15 +81,19 @@ class VirtualizationController extends KDController
     @_runWrapper 'vm.resizeDisk', vm, callback
 
   start:(vm, callback)->
+    console.warn "VirtualizationController#start is deprecated"
     @_runWrapper 'vm.prepareAndStart', vm, callback
 
   stop:(vm, callback)->
+    console.warn "VirtualizationController#shutdown is deprecated"
     @_runWrapper 'vm.shutdown', vm, callback
 
   halt:(vm, callback)->
+    console.warn "VirtualizationController#halt is deprecated"
     @_runWrapper 'vm.stopAndUnprepare', vm, callback
 
   reinitialize:(vm, callback)->
+    console.warn "VirtualizationController#reinitialize is deprecated"
     @_runWrapper 'vm.reinitialize', vm, callback
 
   fetchVmInfo: (vm, callback) ->
@@ -104,15 +119,16 @@ class VirtualizationController extends KDController
         modal.destroy()
     , vmPrefix
 
-  deleteVmByHostname: (hostnameAlias, callback) ->
+  deleteVmByHostname: (hostnameAlias, callback, fireEvents = yes) ->
     { JVM } = KD.remote.api
 
     JVM.removeByHostname hostnameAlias, (err)->
       return callback err  if err
 
-      vmc = KD.getSingleton("vmController")
-      vmc.emit 'VMListChanged'
-      vmc.emit 'VMDestroyed', hostnameAlias
+      if fireEvents
+        vmc = KD.getSingleton("vmController")
+        vmc.emit 'VMListChanged'
+        vmc.emit 'VMDestroyed', hostnameAlias
 
       callback null
 
@@ -234,13 +250,13 @@ class VirtualizationController extends KDController
     group = KD.getSingleton("groupsController").getCurrentGroup()
     group.createVM {type, planCode}, vmCreateCallback
 
-  getKite: ({ region, hostnameAlias }, type = 'os') ->
+  getKite: ({ region, hostnameAlias, groupId }, type = 'os') ->
     if KD.useNewKites
+      console.warn "VirtualizationController#getKite called for new kites"
       KD.singletons.kontrol.kites[if type is 'os' then 'oskite' else type][hostnameAlias]
     else
       (KD.getSingleton 'kiteController')
         .getKite "#{ type }-#{ region }", hostnameAlias, type
-
 
   registerNewKite: (name, correlationName, kite) ->
     @kites[name] ?= {}
@@ -249,9 +265,9 @@ class VirtualizationController extends KDController
   createNewKite: (name, vm) ->
     kontrol = KD.getSingleton 'kontrol'
 
-    { hostnameAlias: correlationName, region } = vm
+    { hostnameAlias: correlationName, region, groupId } = vm
 
-    query = { name, correlationName, region }
+    query = { name, correlationName, region, groupId }
 
     kiteExisted = kontrol.hasKite query
 
@@ -343,28 +359,6 @@ class VirtualizationController extends KDController
     return null  unless vm.hostKite?
     return vm.hostKite.split('|')[1]
 
-  getOsKite: ({ hostname, region }) ->
-    new Promise (resolve) =>
-      kite = @osKites[hostname]
-
-      return resolve kite  if kite?
-
-      kontrol = KD.getSingleton 'kontrol'
-
-      kontrol.getKite
-        name      : 'oskite'
-        username  : 'devrim'
-        version   : '0.0.1'
-        hostname  : hostname
-        region    : region
-
-      .then (kite) =>
-        @osKites[hostname] = kite
-
-        kite.connect()
-        .then(-> resolve kite)
-        .catch warn
-
   shouldUseNewKites: ->
     new Promise (resolve, reject) ->
       KD.remote.api.JKiteStack.fetchInfo (err, info) ->
@@ -373,9 +367,12 @@ class VirtualizationController extends KDController
         useNewKites = info.isEnabled and Math.random() <= info.ratio
         KD.useNewKites = useNewKites
         localStorage.useNewKites = if useNewKites then "1" else "0"
+        KD.singletons.kontrol.reauthenticate()  if useNewKites
         resolve useNewKites
 
   handleFetchedVms: (vms, callback) ->
+    @vmsInfo[vm.hostnameAlias] = vm  for vm in vms
+
     @shouldUseNewKites().then (useNewKites) =>
       if useNewKites
         @registerNewKites vms
@@ -403,6 +400,12 @@ class VirtualizationController extends KDController
       else
         @vmDomains[vmName] = domains.sort (x, y)-> x.length>y.length
         callback null, @vmDomains[vmName]
+
+  fetchVmInfo: (name, callback) ->
+    if name of @vmsInfo
+      KD.utils.defer => callback null, @vmsInfo[name]
+    else
+      KD.remote.api.JVM.fetchVmInfo name, callback
 
   fetchVmsByName: (vmName, callback) ->
     { JVM } = KD.remote.api
@@ -452,10 +455,11 @@ class VirtualizationController extends KDController
   hasDefaultVM:(callback)->
     KD.remote.api.JVM.fetchDefaultVm callback
 
-  createNewVM: (callback)->
-    @createPaidVM (err) =>
-      @emit 'VMListChanged'
+  createNewVM: (stackId, callback, fireEvent = yes)->
+    @createPaidVM stackId, (err) =>
+      @emit 'VMListChanged'  if fireEvent
       callback err
+    , fireEvent
 
   showVMDetails: (vm)->
     vmName = vm.hostnameAlias
@@ -486,7 +490,7 @@ class VirtualizationController extends KDController
           callback  : =>
             modal.destroy()
 
-  createPaidVM: (callback) ->
+  createPaidVM: (stackId, callback, fireEvent) ->
     @payment.fetchActiveSubscription tags: "vm", (err, subscription) =>
       if err
         @showUpgradeModal()  if err.code is "no subscription"
@@ -498,16 +502,16 @@ class VirtualizationController extends KDController
       KD.remote.api.JPaymentPack.one tags: "vm", (err, pack) =>
         return callback err  if err
 
-        @provisionVm {subscription, productData: {pack}}, (err, nonce) =>
-          return  unless err
-
-          if err.message is "quota exceeded"
-            if KD.getGroup().slug is "koding"
-              @showUpgradeModal()
-              callback()
-            else
-              callback message: "Your group is out of VM quota"
+        @provisionVm {stackId, subscription, productData: {pack}}, (err, nonce) =>
+          if err
+            if err.message is "quota exceeded"
+              if KD.getGroup().slug is "koding"
+                @showUpgradeModal()
+                callback()
+              else
+                callback message: "Your group is out of VM quota"
           else callback err
+        , fireEvent
 
   showUpgradeModal: ->
     modal      = new KDModalView
@@ -522,7 +526,7 @@ class VirtualizationController extends KDController
     upgradeForm.on "Cancel", modal.bound "destroy"
     return modal
 
-  provisionVm: ({ subscription, paymentMethod, productData }, callback) ->
+  provisionVm: ({ subscription, stackId, paymentMethod, productData }, callback, fireEvent = yes) ->
     { JVM } = KD.remote.api
 
     { plan, pack } = productData
@@ -534,28 +538,30 @@ class VirtualizationController extends KDController
       plan.subscribe paymentMethod.paymentMethodId, (err, subscription) =>
         return  if KD.showError err
 
-        @provisionVm { subscription, productData }, callback
+        @provisionVm { subscription, productData, stackId }, callback
 
       return
 
     payment.debitSubscription subscription, pack, (err, nonce) =>
       return callback err  if err
 
-      notify = new KDNotificationView
-        title            : "Creating your VM..."
-        overlay          :
-          transparent    : no
-          destroyOnClick : no
-        loader           :
-          color          : "white"
-        duration         : 120000
+      if fireEvent
+        notify = new KDNotificationView
+          title            : "Creating your VM..."
+          overlay          :
+            transparent    : no
+            destroyOnClick : no
+          loader           :
+            color          : "white"
+          duration         : 120000
 
-      JVM.createVmByNonce nonce, (err, vm) =>
-        notify.destroy()
+      JVM.createVmByNonce nonce, stackId, (err, vm) =>
+        notify?.destroy()
         return  if KD.showError err
 
-        @emit 'VMListChanged'
-        @showVMDetails vm
+        if fireEvent
+          @emit 'VMListChanged'
+          @showVMDetails vm
 
         callback null, nonce
 

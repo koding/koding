@@ -23,7 +23,7 @@ import (
 
 const (
 	TERMINAL_NAME    = "terminal"
-	TERMINAL_VERSION = "0.1.2"
+	TERMINAL_VERSION = "0.1.3"
 )
 
 var (
@@ -76,7 +76,7 @@ func (t *Terminal) Run() {
 		kite.EnableDebug()
 	}
 
-	t.Kite.LoadBalancer = func(correlationName string, username string, deadService string) string {
+	t.Kite.LoadBalancer = func(correlationName string, username string, deadService string) (resultHostKite string) {
 		blog := func(v interface{}) {
 			log.Info("terminal loadbalancer for [correlationName: '%s' user: '%s' deadService: '%s'] results in --> %v.", correlationName, username, deadService, v)
 		}
@@ -232,6 +232,8 @@ func (t *Terminal) runNewKite() {
 	}
 
 	k.Config.Region = t.Region
+
+	k.SetupSignalHandler()
 
 	t.vosMethod(k, "webterm.getSessions", webtermGetSessionsNew)
 	t.vosMethod(k, "webterm.connect", webtermConnectNew)

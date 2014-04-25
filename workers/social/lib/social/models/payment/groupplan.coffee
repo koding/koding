@@ -54,14 +54,6 @@ module.exports = class JGroupPlan extends JResourcePlan
 
       queue = [
         =>
-          @fetchProductCode plan, "user", (err, productCode) ->
-            return callback err  if err
-
-            quantities[productCode] =
-              plan.quantities[productCode] * (userQuantity or 1)
-
-            queue.fin()
-        =>
           @fetchProductCode plan, "group", (err, productCode) ->
             return callback err  if err
 

@@ -27,7 +27,13 @@ class SidebarMemberItem extends SidebarItem
         pistachio : "{{ #(meta.lastMessage)}}"
       , account
 
+    @count = new KDCustomHTMLView
+      cssClass : 'count'
+      tagName  : 'cite'
+      partial  : '1'
+
   viewAppended:->
     @addSubView @avatar
     @addSubView @actor
-    @addSubView @followersAndFollowing unless @getOption "hideLastMessage"
+    @addSubView @count unless @getOption 'hideNewMessageCount'
+    @addSubView @followersAndFollowing unless @getOption 'hideLastMessage'

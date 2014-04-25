@@ -48,7 +48,6 @@ func Delete(u *url.URL, h http.Header, req *models.ChannelMessage) (int, http.He
 	}
 
 	req.Id = id
-
 	if err := req.Fetch(); err != nil {
 		if err == gorm.RecordNotFound {
 			return helpers.NewNotFoundResponse()
@@ -56,11 +55,72 @@ func Delete(u *url.URL, h http.Header, req *models.ChannelMessage) (int, http.He
 		return helpers.NewBadRequestResponse(err)
 	}
 
-	if err := req.Delete(); err != nil {
+	err = deleteSingleMessage(req, true)
+	if err != nil {
 		return helpers.NewBadRequestResponse(err)
 	}
+
 	// yes it is deleted but not removed completely from our system
 	return helpers.NewDeletedResponse()
+}
+
+func deleteSingleMessage(cm *models.ChannelMessage, deleteReplies bool) error {
+	// first delete from all channels
+	selector := map[string]interface{}{
+		"message_id": cm.Id,
+	}
+
+	cml := models.NewChannelMessageList()
+	if err := cml.DeleteMessagesBySelector(selector); err != nil {
+		return err
+	}
+
+	// fetch interactions
+	i := models.NewInteraction()
+	i.MessageId = cm.Id
+	interactions, err := i.FetchAll("like")
+	if err != nil {
+		return err
+	}
+
+	// delete interactions
+	for _, interaction := range interactions {
+		err := interaction.Delete()
+		if err != nil {
+			return err
+		}
+	}
+
+	if deleteReplies {
+		mr := models.NewMessageReply()
+		mr.MessageId = cm.Id
+
+		// list returns ChannelMessage
+		messageReplies, err := mr.List()
+		if err != nil {
+			return err
+		}
+
+		// delete message replies
+		for _, replyMessage := range messageReplies {
+			err := deleteSingleMessage(&replyMessage, false)
+			if err != nil {
+				return err
+			}
+		}
+	}
+
+	err = models.NewMessageReply().DeleteByOrQuery(cm.Id)
+	if err != nil {
+		return err
+	}
+
+	// delete replyMessage itself
+	err = cm.Delete()
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 func Update(u *url.URL, h http.Header, req *models.ChannelMessage) (int, http.Header, interface{}, error) {
@@ -90,19 +150,42 @@ func Update(u *url.URL, h http.Header, req *models.ChannelMessage) (int, http.He
 	return helpers.NewOKResponse(req)
 }
 
-func Get(u *url.URL, h http.Header, req *models.ChannelMessage) (int, http.Header, interface{}, error) {
+func Get(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface{}, error) {
 	id, err := helpers.GetURIInt64(u, "id")
 	if err != nil {
 		return helpers.NewBadRequestResponse(err)
 	}
-
-	req.Id = id
-	if err := req.Fetch(); err != nil {
+	cm := models.NewChannelMessage()
+	cm.Id = id
+	if err := cm.Fetch(); err != nil {
 		if err == gorm.RecordNotFound {
 			return helpers.NewNotFoundResponse()
 		}
 		return helpers.NewBadRequestResponse(err)
 	}
 
-	return helpers.NewOKResponse(req)
+	return helpers.NewOKResponse(cm)
+}
+
+func GetWithRelated(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface{}, error) {
+	id, err := helpers.GetURIInt64(u, "id")
+	if err != nil {
+		return helpers.NewBadRequestResponse(err)
+	}
+
+	cm := models.NewChannelMessage()
+	cm.Id = id
+	if err := cm.Fetch(); err != nil {
+		if err == gorm.RecordNotFound {
+			return helpers.NewNotFoundResponse()
+		}
+		return helpers.NewBadRequestResponse(err)
+	}
+
+	cmc, err := cm.BuildMessage(helpers.GetQuery(u))
+	if err != nil {
+		return helpers.NewBadRequestResponse(err)
+	}
+
+	return helpers.NewOKResponse(cmc)
 }

@@ -1,16 +1,6 @@
 class EnvironmentExtraContainer extends EnvironmentContainer
 
-  constructor:(options={}, data)->
-    options.cssClass  = 'extras'
-    options.itemClass = EnvironmentExtraItem
-    options.title     = 'shared storage'
-    super options, data
-
-    @on 'PlusButtonClicked', ->
-      new KDNotificationView title: "Adding more resource will be available soon."
-
-  loadItems:->
-    super
+  EnvironmentDataProvider.addProvider "extras", ->
 
     dummyAdditionals = [
       {
@@ -19,6 +9,14 @@ class EnvironmentExtraContainer extends EnvironmentContainer
       }
     ]
 
-    new Promise (resolve, reject)=>
-      @addItem addition for addition in dummyAdditionals
-      resolve()
+    new Promise (resolve, reject)->
+      resolve dummyAdditionals
+
+  constructor:(options={}, data)->
+    options.cssClass  = 'extras'
+    options.itemClass = EnvironmentExtraItem
+    options.title     = 'shared storage'
+    super options, data
+
+    @on 'PlusButtonClicked', ->
+      new KDNotificationView title: "Adding more resource will be available soon."

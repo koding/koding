@@ -62,6 +62,10 @@ func (c *ChannelMessageList) One(q *bongo.Query) error {
 	return bongo.B.One(c, c, q)
 }
 
+func (c *ChannelMessageList) Some(data interface{}, q *bongo.Query) error {
+	return bongo.B.Some(c, data, q)
+}
+
 func (c *ChannelMessageList) UnreadCount(cp *ChannelParticipant) (int, error) {
 	if cp.ChannelId == 0 {
 		return 0, errors.New("ChannelId is not set")
@@ -145,7 +149,7 @@ func (c *ChannelMessageList) getMessages(q *Query) ([]*ChannelMessageContainer, 
 		return nil, err
 	}
 
-	populatedChannelMessages, err := c.populateChannelMessages(channelMessages)
+	populatedChannelMessages, err := c.populateChannelMessages(channelMessages, q)
 	if err != nil {
 		return nil, err
 	}
@@ -153,7 +157,7 @@ func (c *ChannelMessageList) getMessages(q *Query) ([]*ChannelMessageContainer, 
 	return populatedChannelMessages, nil
 }
 
-func (c *ChannelMessageList) populateChannelMessages(channelMessages []ChannelMessage) ([]*ChannelMessageContainer, error) {
+func (c *ChannelMessageList) populateChannelMessages(channelMessages []ChannelMessage, query *Query) ([]*ChannelMessageContainer, error) {
 	channelMessageCount := len(channelMessages)
 
 	populatedChannelMessages := make([]*ChannelMessageContainer, channelMessageCount)
@@ -164,31 +168,12 @@ func (c *ChannelMessageList) populateChannelMessages(channelMessages []ChannelMe
 
 	for i := 0; i < channelMessageCount; i++ {
 		cm := channelMessages[i]
-		cmc, err := cm.FetchRelatives()
+		cmc, err := cm.BuildMessage(query)
 		if err != nil {
 			return nil, err
 		}
 
 		populatedChannelMessages[i] = cmc
-
-		mr := NewMessageReply()
-		mr.MessageId = cm.Id
-		replies, err := mr.List()
-		if err != nil {
-			return nil, err
-		}
-
-		populatedChannelMessagesReplies := make([]*ChannelMessageContainer, len(replies))
-
-		for rl := 0; rl < len(replies); rl++ {
-			cmrc, err := replies[rl].FetchRelatives()
-			if err != nil {
-				return nil, err
-			}
-			populatedChannelMessagesReplies[rl] = cmrc
-		}
-		populatedChannelMessages[i].Replies = populatedChannelMessagesReplies
-
 	}
 	return populatedChannelMessages, nil
 

@@ -22,6 +22,7 @@ module.exports = class JAccount extends jraphical.Module
   Graph            = require "./graph/graph"
   JName            = require './name'
   JBadge           = require './badge'
+  JKite            = require './kite'
   JReferrableEmail = require './referrableemail'
 
   @getFlagRole            = 'content'
@@ -260,6 +261,8 @@ module.exports = class JAccount extends jraphical.Module
           (signature Object, Function)
         likeMember:
           (signature String, Function)
+        fetchKites :
+          (signature Object, Function)
 
     schema                  :
       socialApiId           : Number
@@ -418,6 +421,10 @@ module.exports = class JAccount extends jraphical.Module
       badge         :
         as          : 'badge'
         targetType  : 'JBadge'
+
+      kite          :
+        as          : 'owner'
+        targetType  : JKite
 
   constructor:->
     super
@@ -616,7 +623,8 @@ module.exports = class JAccount extends jraphical.Module
       callback new KodingError 'Access denied'
     else
       JSession = require './session'
-      JSession.update {clientId: sessionToken}, $set:{username: nickname}, callback
+      JSession.update {clientId: sessionToken}, $set:{username: nickname}, (err) ->
+        callback err
 
   @verifyEmailByUsername = secure (client, username, callback)->
     {connection:{delegate}, sessionToken} = client
@@ -1389,17 +1397,17 @@ module.exports = class JAccount extends jraphical.Module
       JGroup = require './group'
       JGroup.one { slug }, (err, groupObj)->
         return callback err  if err
-        callback null, invite, groupObj
+        callback null, { invite, group: groupObj }
 
   acceptInvitation: secure (client, slug, callback)->
-    @fetchInvitationByGroupSlug slug, (err, invite, groupObj)=>
+    @fetchInvitationByGroupSlug slug, (err, { invite, group })=>
       return callback err  if err
       groupObj.approveMember this, (err)->
         return callback err  if err
         invite.update $set:status:'accepted', callback
 
   ignoreInvitation: secure (client, slug, callback)->
-    @fetchInvitationByGroupSlug slug, (err, invite)->
+    @fetchInvitationByGroupSlug slug, (err, { invite })->
       return callback err  if err
       invite.update $set:status:'ignored', callback
 
@@ -1430,23 +1438,21 @@ module.exports = class JAccount extends jraphical.Module
     JGroup.one {slug}, (err, group)=>
       return callback err  if err
       return callback {message: "group not found"}  unless group
-      cb = (err, roles)=>
+
+      kallback = (err, roles)=>
         return callback err  if err
         {flatten} = require 'underscore'
         if "admin" in roles
           perms = Protected.permissionsByModule
-          callback null, flatten(perms), roles
+          callback null, { permissions: (flatten perms), roles }
         else
           group.fetchPermissionSetOrDefault (err, permissionSet)->
             return callback err if err
             perms = (perm.permissions.slice() for perm in permissionSet.permissions \
               when perm.role in roles or 'admin' in roles)
-            callback null, flatten(perms), roles
+            callback null, { permissions: (flatten perms), roles }
 
-      if this instanceof JAccount
-        group.fetchMyRoles client, cb
-      else
-        cb null, ['guest']
+      group.fetchMyRoles client, kallback
 
   oldAddTags = @::addTags
   addTags: secure (client, tags, options, callback)->

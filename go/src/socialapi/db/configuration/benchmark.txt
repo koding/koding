@@ -1,0 +1,119 @@
+postgres@postgre0.sj.koding.com: ~$ pgbench -c 16 -j 8 -r -s 32 -l -T 120  koding_social
+Scale option ignored, using pgbench_branches table count = 32
+starting vacuum...end.
+transaction type: TPC-B (sort of)
+scaling factor: 32
+query mode: simple
+number of clients: 16
+number of threads: 8
+duration: 120 s
+number of transactions actually processed: 70762
+tps = 589.443877 (including connections establishing)
+tps = 589.544342 (excluding connections establishing)
+statement latencies in milliseconds:
+    0.005847    \set nbranches 1 * :scale
+    0.001842    \set ntellers 10 * :scale
+    0.002189    \set naccounts 100000 * :scale
+    0.002242    \setrandom aid 1 :naccounts
+    0.001548    \setrandom bid 1 :nbranches
+    0.001695    \setrandom tid 1 :ntellers
+    0.001618    \setrandom delta -5000 5000
+    0.219666    BEGIN;
+    0.568454    UPDATE pgbench_accounts SET abalance = abalance + :delta WHERE aid = :aid;
+    0.362855    SELECT abalance FROM pgbench_accounts WHERE aid = :aid;
+    1.018234    UPDATE pgbench_tellers SET tbalance = tbalance + :delta WHERE tid = :tid;
+    5.518428    UPDATE pgbench_branches SET bbalance = bbalance + :delta WHERE bid = :bid;
+    0.295255    INSERT INTO pgbench_history (tid, bid, aid, delta, mtime) VALUES (:tid, :bid, :aid, :delta, CURRENT_TIMESTAMP);
+    19.098528   END;
+
+postgres@postgre0.sj.koding.com: ~$ pgbench -c 16 -j 8 -r -s 32 -l -T 120  koding_social
+Scale option ignored, using pgbench_branches table count = 32
+starting vacuum...end.
+transaction type: TPC-B (sort of)
+scaling factor: 32
+query mode: simple
+number of clients: 16
+number of threads: 8
+duration: 120 s
+number of transactions actually processed: 52337
+tps = 436.049627 (including connections establishing)
+tps = 436.106318 (excluding connections establishing)
+statement latencies in milliseconds:
+    0.005978    \set nbranches 1 * :scale
+    0.002175    \set ntellers 10 * :scale
+    0.002296    \set naccounts 100000 * :scale
+    0.002276    \setrandom aid 1 :naccounts
+    0.001669    \setrandom bid 1 :nbranches
+    0.001819    \setrandom tid 1 :ntellers
+    0.001818    \setrandom delta -5000 5000
+    0.219554    BEGIN;
+    0.572864    UPDATE pgbench_accounts SET abalance = abalance + :delta WHERE aid = :aid;
+    0.361678    SELECT abalance FROM pgbench_accounts WHERE aid = :aid;
+    1.209179    UPDATE pgbench_tellers SET tbalance = tbalance + :delta WHERE tid = :tid;
+    7.522531    UPDATE pgbench_branches SET bbalance = bbalance + :delta WHERE bid = :bid;
+    0.298884    INSERT INTO pgbench_history (tid, bid, aid, delta, mtime) VALUES (:tid, :bid, :aid, :delta, CURRENT_TIMESTAMP);
+    26.446254   END;
+postgres@postgre0.sj.koding.com: ~$ pgbench -c 64 -j 8 -r -s 32 -l -T 120  koding_social
+Scale option ignored, using pgbench_branches table count = 32
+starting vacuum...end.
+transaction type: TPC-B (sort of)
+scaling factor: 32
+query mode: simple
+number of clients: 64
+number of threads: 8
+duration: 120 s
+number of transactions actually processed: 44040
+tps = 363.384734 (including connections establishing)
+tps = 363.535735 (excluding connections establishing)
+statement latencies in milliseconds:
+    0.005570    \set nbranches 1 * :scale
+    0.002022    \set ntellers 10 * :scale
+    0.002426    \set naccounts 100000 * :scale
+    0.002332    \setrandom aid 1 :naccounts
+    0.001724    \setrandom bid 1 :nbranches
+    0.001816    \setrandom tid 1 :ntellers
+    0.001881    \setrandom delta -5000 5000
+    0.322578    BEGIN;
+    0.835923    UPDATE pgbench_accounts SET abalance = abalance + :delta WHERE aid = :aid;
+    0.455664    SELECT abalance FROM pgbench_accounts WHERE aid = :aid;
+    25.468536   UPDATE pgbench_tellers SET tbalance = tbalance + :delta WHERE tid = :tid;
+    83.532952   UPDATE pgbench_branches SET bbalance = bbalance + :delta WHERE bid = :bid;
+    0.495323    INSERT INTO pgbench_history (tid, bid, aid, delta, mtime) VALUES (:tid, :bid, :aid, :delta, CURRENT_TIMESTAMP);
+    64.454523   END;
+
+
+
+postgres@postgre0.sj.koding.com: ~$ pgbench -c 64 -j 8 -r -s 32 -l -T 120   koding_social
+Scale option ignored, using pgbench_branches table count = 32
+starting vacuum...end.
+transaction type: SELECT only
+scaling factor: 32
+query mode: simple
+number of clients: 64
+number of threads: 8
+duration: 120 s
+number of transactions actually processed: 3957121
+tps = 32958.910624 (including connections establishing)
+tps = 32972.813886 (excluding connections establishing)
+statement latencies in milliseconds:
+    0.002170    \set naccounts 100000 * :scale
+    0.000916    \setrandom aid 1 :naccounts
+    1.929271    SELECT abalance FROM pgbench_accounts WHERE aid = :aid;
+
+
+postgres@postgre0.sj.koding.com: ~$ pgbench -c 16 -j 8 -r -s 32 -l -T 120  -S koding_social
+Scale option ignored, using pgbench_branches table count = 32
+starting vacuum...end.
+transaction type: SELECT only
+scaling factor: 32
+query mode: simple
+number of clients: 16
+number of threads: 8
+duration: 120 s
+number of transactions actually processed: 8151446
+tps = 67918.405521 (including connections establishing)
+tps = 67927.429654 (excluding connections establishing)
+statement latencies in milliseconds:
+    0.001937    \set naccounts 100000 * :scale
+    0.000839    \setrandom aid 1 :naccounts
+    0.225809    SELECT abalance FROM pgbench_accounts WHERE aid = :aid;

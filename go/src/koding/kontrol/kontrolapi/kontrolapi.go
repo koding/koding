@@ -82,29 +82,12 @@ func main() {
 	domains.HandleFunc("/{domain}", changeHandler(CreateOrUpdateDomain)).Methods("POST", "PUT")
 	domains.HandleFunc("/{domain}", changeHandler(DeleteDomain)).Methods("DELETE")
 
-	// Restriction/Rule handlers
-	restrictions := rout.PathPrefix("/restrictions").Subrouter()
-	restrictions.HandleFunc("/", changeHandler(GetRestrictions)).Methods("GET")
-	restrictions.HandleFunc("/{domain}", changeHandler(GetRestrictionByDomain)).Methods("GET")
-	restrictions.HandleFunc("/{domain}", changeHandler(DeleteRestriction)).Methods("DELETE")
-	restrictions.HandleFunc("/{domain}/{name}", changeHandler(CreateRuleByName)).Methods("POST", "PUT")
-	restrictions.HandleFunc("/{domain}/{name}", changeHandler(DeleteRuleByName)).Methods("DELETE")
-
 	// Filter handlers
 	filters := rout.PathPrefix("/filters").Subrouter()
-	filters.HandleFunc("/", changeHandler(GetFilters)).Methods("GET")
-	filters.HandleFunc("/", changeHandler(CreateFilterByName)).Methods("POST")
-	filters.HandleFunc("/{name}", changeHandler(GetFilterByName)).Methods("GET")
-	filters.HandleFunc("/{name}", changeHandler(DeleteFilterByName)).Methods("DELETE")
+	filters.HandleFunc("/{id}", changeHandler(GetFilterByID)).Methods("GET")
 
-	// Statistics handlers
-	stats := rout.PathPrefix("/stats").Subrouter()
-	stats.HandleFunc("/domains", changeHandler(GetDomainStats)).Methods("GET")
-	stats.HandleFunc("/domains/{domain}", changeHandler(GetDomainStat)).Methods("GET")
-	stats.HandleFunc("/domains/{domain}", changeHandler(DeleteDomainStat)).Methods("DELETE")
-	stats.HandleFunc("/proxies", changeHandler(GetProxyStats)).Methods("GET")
-	stats.HandleFunc("/proxies/{proxy}", changeHandler(GetProxyStat)).Methods("GET")
-	stats.HandleFunc("/proxies/{proxy}", changeHandler(DeleteProxyStat)).Methods("DELETE")
+	rest := rout.PathPrefix("/restrictions").Subrouter()
+	rest.HandleFunc("/{domain}", changeHandler(GetRestrictionByDomain)).Methods("GET")
 
 	conf = config.MustConfig(*flagProfile)
 

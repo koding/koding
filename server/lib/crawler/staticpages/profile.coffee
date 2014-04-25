@@ -75,7 +75,7 @@ createStatusUpdateNode = (statusUpdate, profile)=>
 createLinkToUserProfile = (fullName, nickname) ->
   content =
     """
-      <a href=\"#{uri.address}/#!/#{nickname}\">#{fullName}</a>
+      <a href=\"#{uri.address}/#{nickname}\">#{fullName}</a>
     """
   return content
 
@@ -158,9 +158,9 @@ putContent = (account, sUpdates)=>
   getGraphMeta = require './graphmeta'
   profile      = getProfile account
 
-  numberOfLikes     = if account.counts.likes     then account.counts.likes     else "0"
-  numberOfFollowers = if account.counts.followers then account.counts.followers else "0"
-  numberOfFollowing = if account.counts.following then account.counts.following else "0"
+  numberOfLikes     = if account?.counts?.likes     then account.counts.likes     else "0"
+  numberOfFollowers = if account?.counts?.followers then account.counts.followers else "0"
+  numberOfFollowing = if account?.counts?.following then account.counts.following else "0"
 
   imgURL = getAvatarImageUrl profile.hash, profile.avatar
   content  =

@@ -335,6 +335,7 @@ button.app-settings-menu
   border               none
   rounded              4px
   padding              0 20px
+  margin               0
   height               55px
   borderBox()
   span.button-title
@@ -354,6 +355,9 @@ button.app-settings-menu
       color            white
   &:focus
     shadow             0 0 10px -2px logoBg
+  &.icon-only
+    span.icon
+      margin           0
 
 .kdbutton.solid.green
   bg                   color logoBg
@@ -394,6 +398,19 @@ button.app-settings-menu
       color            #ff9f00
   &:focus
     shadow             0 0 10px -2px #ff9f00
+
+.kdbutton.solid.clear
+  bg                   color transparent
+  rounded              0
+  span.button-title
+    color              #444
+  &:hover
+  &:active
+  &:focus
+    background         none
+    shadow             none
+    span.button-title
+      color            #222
 
 .kdbutton.solid.light-gray
   bg                   color #C0C0C0
@@ -801,8 +818,8 @@ button.app-settings-menu
 
 // File upload
 .file-droparea
-  kalc            height, 100% \- 20px
-  kalc            width,  100% \- 20px
+  kalc            height, 100% \- 90px
+  width           100%
   borderBox()
   border          3px dashed #afafaf
   border-radius   5px
@@ -1351,3 +1368,91 @@ a.action-link.verify-email
       noTextDeco()
       &:active
         color     #049C53
+
+.md-widget
+  .md-input
+    max-height          200px !important
+    min-height          100px !important
+    overflow            auto  !important
+  .tools
+    text-align          right
+    margin-top          5px
+    .preview-toggle
+      display           inline-block
+    .toggle-label
+      font-size         13px
+      color             #989F9C
+      position          relative
+      top               -5px
+    .help-link
+      font-size         13px
+      color             #989F9C
+      text-decoration   none
+      left              0
+      position          absolute
+  .preview-area
+    border              1px solid #d7d7d7
+    rounded             4px
+    padding             10px
+    margin-top          10px
+    max-height          250px
+    overflow            auto
+    .preview-label
+      font-size         20px
+      font-weight       100
+      text-align        center
+
+  .md-preview
+    h1, h2, h3, h4, h5, h6
+      font-size         20px
+      line-height       40px
+      margin-bottom     10px
+      border-bottom     1px solid #eee
+    p
+      margin-bottom     15px
+    a
+      color             #4183c4
+      text-decoration   none
+    img
+      width             650px
+
+.kites
+  .kdlistitemview-kite-product
+    overflow              hidden
+    margin                1px 0 0
+    size                  auto, 70px
+    padding               10px
+    bg                    color, #fff
+    box-sizing            border-box
+    p
+      padding             0 !important
+      margin-bottom       0 !important
+    .price
+      right               10px
+      top                 10px
+      font-size           16px
+      font-weight         400
+      abs()
+    .title
+      font-size           14px
+      font-weight         400
+    .subscribe-button
+      top                 35px
+      right               10px
+      rounded             20px
+
+  .payment-workflow
+    .kdloader
+      display             none
+
+  .app-extras.pricing
+    .readme
+      bg                  color, transparent !important
+    h2
+      bg                  color, #FFF
+
+  .kite-details
+    .run
+      text-align          center !important
+
+//selamin aleykum!

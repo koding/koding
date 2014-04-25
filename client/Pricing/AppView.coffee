@@ -25,7 +25,7 @@ class PricingAppView extends KDView
 
     workflow.off 'FormIsShown'
 
-    workflow.on 'GroupCreationFailed', =>
+    workflow.on 'Failed', =>
       @hideWorkflow()
       @showGroupCreationFailed()
 
@@ -219,7 +219,7 @@ class PricingAppView extends KDView
       visibility : visibility
 
     {JGroup} = KD.remote.api
-    JGroup.create options, (err, group, subscription) =>
+    JGroup.create options, (err, { group, subscription }) =>
       return KD.showError err  if err
       @showGroupCreated group, subscription
 

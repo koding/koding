@@ -29,7 +29,7 @@ class FinderController extends KDController
       partial  : "Ace Editor"
 
   getMountVMButton: ->
-    @uploaderPlaceholder = new KDButtonView
+    return new KDButtonView
       title    : "Mount other VMs"
       cssClass : "finder-mountvm clean-gray"
       callback : @bound 'showMountVMModal'
@@ -124,6 +124,6 @@ class VMListItem extends KDListItemView
       @addSubView vmLabel  = new KDLabelView title: hostnameAlias
       @addSubView vmSwitch = new KodingSwitch
         cssClass     : 'dark'
-        defaultValue : if info.state is "RUNNING" then true else false
+        defaultValue : info.state is "RUNNING"
         callback     : (state)=>
           @getDelegate().emit "VmStateChanged", {state, hostnameAlias}

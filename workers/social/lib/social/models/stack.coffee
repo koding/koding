@@ -26,6 +26,8 @@ module.exports = class JStack extends jraphical.Module
           (signature Object, Function)
         getStack      :
           (signature Function)
+        createStack   :
+          (signature Object, Function)
         getStacks     :
           (signature Function)
       instance        :
@@ -33,6 +35,8 @@ module.exports = class JStack extends jraphical.Module
           (signature Function)
         push          :
           (signature Object, Function)
+        updateConfig  :
+          (signature String, Function)
 
     sharedEvents      :
       static          : [ ]
@@ -43,37 +47,45 @@ module.exports = class JStack extends jraphical.Module
     schema            :
       user            : String
       group           : String
-      sid             : Number
       meta            : Object
 
   @getStacks = ({user, group}, callback)->
 
     JStack.some {user, group}, {}, (err, stacks)->
       return callback err  if err
-      callback null, stacks or []
+
+      if stacks.length is 0
+        meta = title: "Default", slug: "default"
+        JStack.getStack { user, group, meta }, (err, stack) =>
+          callback err, [stack]
+      else
+        callback null, stacks
 
   @getStackId = (selector, callback)->
 
     @getStack selector, (err, stack)->
       callback err, stack?.getId()
 
-  @getStack = ({user, group, sid}, callback)->
-
-    sid ?= 0
-
-    JStack.one {user, group, sid}, (err, stack)->
+  @getStack = ({user, group, meta}, callback)->
+    meta  or= title: "Default", slug: "default"
+    JStack.one {user, group, meta}, (err, stack)->
       return callback err  if err
 
-      if stack
-        console.log "Found stack, returning."
-        return callback null, stack
+      return callback null, stack  if stack
 
-      console.log "Stack not found, creating new one."
-
-      stack = new JStack {user, group, sid}
+      stack = new JStack {user, group, meta}
       stack.save (err)->
         if err then callback err
         else callback null, stack
+
+  @createStack = permit 'create stacks',
+
+    success: (client, meta, callback)->
+
+      {group} = client.context
+      user    = client.connection.delegate.profile.nickname
+
+      @getStack {user, group, meta}, callback
 
   @getStack$ = permit 'get stacks',
 
@@ -92,3 +104,16 @@ module.exports = class JStack extends jraphical.Module
       user    = client.connection.delegate.profile.nickname
 
       @getStacks {user, group}, callback
+
+  updateConfig: permit "update stacks",
+    success: (client, config, callback) ->
+      {group} = client.context
+      user    = client.connection.delegate.profile.nickname
+
+      if @user isnt user
+        return callback new KodingError "Access denied"
+
+      @update $set: "meta.config": config, (err) =>
+        err = new KodingError {message: "Failed to update", err}  if err
+
+        callback err, this

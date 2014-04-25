@@ -154,7 +154,7 @@ class FormGeneratorView extends JView
           if 'string' is typeof defaultValue
             Encoder.XSSEncode defaultValue
           else defaultValue
-        options       : options if options
+        options       : options
 
 
     @getDelegate().emit 'MembershipPolicyChanged', {fields : newFields}

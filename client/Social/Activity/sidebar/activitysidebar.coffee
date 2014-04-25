@@ -44,6 +44,11 @@ class ActivitySidebar extends KDCustomScrollView
       name     : 'koding_public_feed'
       id       : KD.getGroup().socialApiChannelId ? 1
 
+    publicLink.addSubView @publicFeedCount = new KDCustomHTMLView
+      cssClass : 'count'
+      tagName  : 'cite'
+      partial  : '1'
+
     publicLink.selectItem = SidebarItem::selectItem.bind publicLink
     activityController.on 'SidebarItemClicked', publicLink.bound 'selectItem'
 

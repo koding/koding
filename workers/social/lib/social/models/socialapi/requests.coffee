@@ -1,4 +1,7 @@
-SOCIAL_API_URL = "http://localhost:7000"
+{argv}   = require 'optimist'
+KONFIG = require('koding-config-manager').load("main.#{argv.c}")
+
+SOCIAL_API_URL = KONFIG.socialApiUrl
 request        = require 'request'
 
 wrapCallback = (callback)->
@@ -47,7 +50,7 @@ fetchMessage = (data, callback)->
 
 postToChannel = (data, callback)->
   if not data.channelId or not data.accountId or not data.body
-    return callback { message: "Request is not valid for creating channel"}
+    return callback { message: "Request is not valid for posting message"}
 
   url = "#{SOCIAL_API_URL}/channel/#{data.channelId}/message"
   post url, data, callback
@@ -141,6 +144,13 @@ fetchFollowedChannels = (data, callback)->
   url = "#{SOCIAL_API_URL}/account/#{data.accountId}/channels"
   get url, data, callback
 
+sendPrivateMessage = (data, callback)->
+  url = "#{SOCIAL_API_URL}/privatemessage/send"
+  post url, data, callback
+
+fetchPrivateMessages = (data, callback)->
+  url = "#{SOCIAL_API_URL}/privatemessage/list"
+  get url, data, callback
 
 post = (url, data, callback)->
   request
@@ -159,6 +169,8 @@ get = (url, data, callback)->
   , wrapCallback callback
 
 module.exports = {
+  fetchPrivateMessages
+  sendPrivateMessage
   fetchFollowedChannels
   followTopic
   unfollowTopic

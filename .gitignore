@@ -74,3 +74,8 @@ node_modules_koding/processes/src/.tmp*
 /go/src/socialapi/populartopic
 /go/src/socialapi/followingfeed
 /go/src/socialapi/api
+
+website/a/sprites/*.sprite.png
+
+client/Main/__generated*
+

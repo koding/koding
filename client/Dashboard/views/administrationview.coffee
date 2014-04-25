@@ -123,12 +123,12 @@ class AdministrationView extends KDTabViewWithForms
                     type    : 'restart'
                   'restart' :
                     title   : 'Shutdown in'
-                    content : 'We are upgrading the platform. Please save your work.'
+                    content : 'We are upgrading our platform. Please save your work.'
                     duration: 300
                     type    : 'restart'
                   'reload'  :
                     title   : 'Koding is updated!'
-                    content : 'Please refresh your browser to be able to use the newest features of Koding.'
+                    content : 'Please refresh your browser and enjoy the latest features.'
                     duration: 10
                     type    : 'reload'
 
@@ -155,7 +155,7 @@ class AdministrationView extends KDTabViewWithForms
             Description     :
               label         : "Message Details"
               type          : "text"
-              placeholder   : "We are upgrading the platform. Please save your work."
+              placeholder   : "We are upgrading our platform. Please save your work."
             Duration        :
               label         : "Timer duration"
               type          : "text"

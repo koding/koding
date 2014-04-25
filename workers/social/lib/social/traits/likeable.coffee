@@ -43,7 +43,7 @@ module.exports = class Likeable
               # we need group slug, (see activityticker.coffee)
               options =
                 respondWithCount : yes
-                data             : {group} if group
+                data             : if group then {group}
 
               @addLikedBy delegate, options, (err, docs, count)=>
                 if err

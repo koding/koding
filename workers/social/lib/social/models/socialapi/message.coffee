@@ -10,6 +10,10 @@ module.exports = class SocialMessage extends Base
   @share()
 
   @set
+    # move permission from jpost to here
+    # permissions :
+    #   'send private message' : ['member', 'moderator']
+    #   'list private messages' : ['member', 'moderator']
     sharedMethods :
       static   :
         post   :
@@ -23,6 +27,10 @@ module.exports = class SocialMessage extends Base
         like   :
           (signature Object, Function)
         unlike :
+          (signature Object, Function)
+        sendPrivateMessage:
+          (signature Object, Function)
+        fetchPrivateMessages:
           (signature Object, Function)
 
     schema          :
@@ -80,6 +88,18 @@ module.exports = class SocialMessage extends Base
       if not data.id
         return callback message: "Request is not valid for unliking a message"
       SocialMessage.doRequest 'unlikeMessage', client, data, callback
+
+  @sendPrivateMessage = permit 'send private message',
+    success:  (client, data, callback)->
+      unless data.recipients?.length > 1
+        return callback message: "You should have at least one recipient"
+      unless data.body
+        return callback message: "Message body should be set"
+      SocialMessage.doRequest 'sendPrivateMessage', client, data, callback
+
+  @fetchPrivateMessages = permit 'list private messages',
+    success:  (client, data, callback)->
+      SocialMessage.doRequest 'fetchPrivateMessages', client, data, callback
 
   @doRequest = (funcName, client, options, callback)->
     fetchGroup client, (err, group)->

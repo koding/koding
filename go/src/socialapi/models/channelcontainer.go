@@ -3,9 +3,11 @@ package models
 import "fmt"
 
 type ChannelContainer struct {
-	Channel          Channel `json:"channel"`
-	IsParticipant    bool    `json:"isParticipant"`
-	ParticipantCount int     `json:"participantCount"`
+	Channel             Channel         `json:"channel"`
+	IsParticipant       bool            `json:"isParticipant"`
+	ParticipantCount    int             `json:"participantCount"`
+	ParticipantsPreview []int64         `json:"participantsPreview,omitempty"`
+	LastMessage         *ChannelMessage `json:"lastMessage,omitempty"`
 }
 
 func NewChannelContainer() *ChannelContainer {

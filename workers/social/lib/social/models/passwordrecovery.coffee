@@ -130,6 +130,8 @@ module.exports = class JPasswordRecovery extends jraphical.Module
     JUser.one {email}, (err, user)=>
       if err
         callback err
+      else unless user
+        callback { message: 'User not found'}
       else
         certificate = new JPasswordRecovery {
           email

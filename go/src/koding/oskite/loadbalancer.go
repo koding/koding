@@ -6,8 +6,6 @@ import (
 	"strings"
 	"sync"
 	"time"
-
-	"github.com/coreos/go-log/log"
 	redigo "github.com/garyburd/redigo/redis"
 	"github.com/koding/redis"
 )

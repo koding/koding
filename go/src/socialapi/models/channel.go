@@ -28,7 +28,7 @@ type Channel struct {
 
 	// Secret key of the channel for event propagation purposes
 	// we can put this key into another table?
-	SecretKey string `json:"secretKey"`
+	SecretKey string `json:"-"`
 
 	// Type of the channel
 	TypeConstant string `json:"typeConstant"         sql:"NOT NULL;TYPE:VARCHAR(100);"`
@@ -52,23 +52,36 @@ const (
 	Channel_TYPE_FOLLOWERS       = "followers"
 	Channel_TYPE_CHAT            = "chat"
 	Channel_TYPE_PINNED_ACTIVITY = "pinnedActivity"
+	Channel_TYPE_PRIVATE_MESSAGE = "privateMessage"
+	Channel_TYPE_DEFAULT         = "default"
 	// Privacy
-	Channel_TYPE_PUBLIC  = "public"
-	Channel_TYPE_PRIVATE = "private"
+	Channel_PRIVACY_PUBLIC  = "public"
+	Channel_PRIVACY_PRIVATE = "private"
 	// Koding Group Name
 	Channel_KODING_NAME = "koding"
 )
 
 func NewChannel() *Channel {
 	return &Channel{
-		Name:            "koding",
-		CreatorId:       123,
+		Name:            "Channel" + RandomName(),
+		CreatorId:       0,
 		GroupName:       Channel_KODING_NAME,
-		Purpose:         "string",
-		SecretKey:       "string",
-		TypeConstant:    "default",
-		PrivacyConstant: Channel_TYPE_PRIVATE,
+		Purpose:         "",
+		SecretKey:       "",
+		TypeConstant:    Channel_TYPE_DEFAULT,
+		PrivacyConstant: Channel_PRIVACY_PRIVATE,
 	}
+}
+
+func NewPrivateMessageChannel(creatorId int64, groupName string) *Channel {
+	c := NewChannel()
+	c.GroupName = groupName
+	c.CreatorId = creatorId
+	c.Name = RandomName()
+	c.TypeConstant = Channel_TYPE_PRIVATE_MESSAGE
+	c.PrivacyConstant = Channel_PRIVACY_PRIVATE
+	c.Purpose = ""
+	return c
 }
 
 func (c *Channel) BeforeCreate() {
@@ -277,10 +290,10 @@ func (c *Channel) AddMessage(messageId int64) (*ChannelMessageList, error) {
 		return nil, errors.New("Message is already in the channel")
 	}
 
+	// silence record not found err
 	if err != gorm.RecordNotFound {
 		return nil, err
 	}
-	// silence record not found err
 
 	cml.ChannelId = c.Id
 	cml.MessageId = messageId
@@ -340,4 +353,40 @@ func (c *Channel) List(q *Query) ([]Channel, error) {
 	}
 
 	return channels, nil
+}
+
+func (c *Channel) FetchLastMessage() (*ChannelMessage, error) {
+	if c.Id == 0 {
+		return nil, errors.New("Channel Id is not set")
+	}
+
+	cml := NewChannelMessageList()
+	query := &bongo.Query{
+		Selector: map[string]interface{}{
+			"channel_id": c.Id,
+		},
+		Sort: map[string]string{
+			"added_at": "DESC",
+		},
+		Limit: 1,
+		Pluck: "message_id",
+	}
+
+	var messageIds []int64
+	err := cml.Some(&messageIds, query)
+	if err != nil {
+		return nil, err
+	}
+
+	if messageIds == nil || len(messageIds) == 0 {
+		return nil, nil
+	}
+
+	cm := NewChannelMessage()
+	cm.Id = messageIds[0]
+	if err := cm.Fetch(); err != nil {
+		return nil, err
+	}
+
+	return cm, nil
 }

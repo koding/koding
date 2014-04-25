@@ -233,8 +233,7 @@ module.exports = class JPaymentSubscription extends jraphical.Module
 
         { quantities } = pack
 
-        op = $set: (Object.keys quantities)
-          .reduce( (memo, key) =>
+        op = $set: (Object.keys quantities).reduce( (memo, key) =>
             memo["usage.#{ key }"] =
               (@usage[key] ? 0) + quantities[key] * multiplyFactor
             memo
@@ -296,6 +295,7 @@ module.exports = class JPaymentSubscription extends jraphical.Module
         else queue.next()
       ->
         newPlan.subscribe paymentMethodId, subOptions, (err, newSub) ->
+          return callback err  if err
           newSubscription = newSub
           queue.next err
       =>

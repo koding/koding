@@ -101,7 +101,8 @@ if basicAuth
   app.use express.basicAuth basicAuth.username, basicAuth.password
 
 process.on 'uncaughtException', (err) ->
-  console.error "there was an uncaught exception #{err}"
+  console.error " there was an uncaught exception #{err}"
+  throw err
   process.exit(1)
 
 
@@ -112,7 +113,7 @@ app.use (req, res, next) ->
   # fetchClient will validate the clientId.
   # if it is in our db it will return the session it
   # it it is not in db, creates a new one and returns it
-  JSession.fetchSession clientId, (err, session)->
+  JSession.fetchSession clientId, (err, { session })->
     return next() if err or not session
     { maxAge, secure } = KONFIG.sessionCookie
 
@@ -134,6 +135,59 @@ app.use (req, res, next) ->
   JSession.updateClientIP clientId, clientIPAddress, (err)->
     if err then console.log err
     next()
+
+app.get "/-/subscription/check/:kiteToken?/:user?/:groupId?", (req, res) ->
+  {kiteToken, user, groupId} = req.params
+  {JAccount, JKite, JGroup}  = koding.models
+
+  return res.send 401, { err: "TOKEN_REQUIRED"     } unless kiteToken
+  return res.send 401, { err: "USERNAME_REQUIRED"  } unless user
+  return res.send 401, { err: "GROUPNAME_REQUIRED" } unless groupId
+
+  JKite.one kiteCode: kiteToken, (err, kite) ->
+    return res.send 401, { err: "KITE_NOT_FOUND" }  if err or not kite
+
+    JAccount.one { "profile.nickname": user }, (err, account) ->
+      return res.send 401, err: "USER_NOT_FOUND"  if err or not account
+
+      JGroup.one { "_id": groupId }, (err, group) =>
+        return res.send 401, err: "GROUP_NOT_FOUND"  if err or not group
+
+        group.isMember account, (err, isMember) =>
+          return res.send 401, err: "NOT_A_MEMBER_OF_GROUP"  if err or not isMember
+
+          kite.fetchPlans (err, plans) ->
+            return res.send 401, err: "KITE_HAS_NO_PLAN"  if err or not plans
+
+            planMap = {}
+            planMap[plan.planCode] = plan  for plan in plans
+
+            kallback = (err, subscriptions) ->
+              return res.send 401, err: "NO_SUBSCRIPTION"  if err or not subscriptions
+
+              freeSubscription = null
+              paidSubscription = null
+              for item in subscriptions
+                if "nosync" in item.tags
+                  freeSubscription = item
+                else
+                  paidSubscription = item
+
+              subscription = paidSubscription or freeSubscription
+              if subscription and plan = planMap[subscription.planCode]
+                  res.send 200, planId: plan.planCode, planName: plan.title
+              else
+                res.send 401, err: "NO_SUBSCRIPTION"
+
+            if group.slug is "koding"
+              targetOptions =
+                selector    :
+                  tags      : "vm"
+                  planCode  : $in: (plan.planCode for plan in plans)
+              account.fetchSubscriptions null, {targetOptions}, kallback
+            else
+              group.fetchSubscriptions kallback
+
 
 app.get "/-/8a51a0a07e3d456c0b00dc6ec12ad85c", require './__notify-users'
 
@@ -302,13 +356,15 @@ app.all '/:name/:section?*', (req, res, next)->
 
           path = if section then "#{name}/#{section}" else name
 
-          JName.fetchModels path, (err, models)->
+          JName.fetchModels path, (err, result) ->
+
             if err
               options = { account, name, section, client,
                           bongoModels, isCustomPreview }
               JGroup.render[prefix].subPage options, serveSub
-            else if not models? then next()
+            else if not result? then next()
             else
+              { models } = result
               options = { account, name, section, models,
                           client, bongoModels, isCustomPreview }
               JGroup.render[prefix].subPage options, serveSub
@@ -318,10 +374,13 @@ app.all '/:name/:section?*', (req, res, next)->
   else
 
     isLoggedIn req, res, (err, loggedIn, account)->
-      JName.fetchModels name, (err, models)->
-        if err then next err
-        else unless models? then res.send 404, error_404()
-        else if models.last?
+      return res.send 404, error_404()  if err
+
+      JName.fetchModels name, (err, result)->
+        return next err  if err
+        return res.send 404, error_404()  unless result?
+        { models } = result
+        if models.last?
           if models.last.bongo_?.constructorName isnt "JGroup" and not loggedIn
             return Crawler.crawl koding, req, res, name
 

@@ -103,7 +103,7 @@ module.exports = class JMailNotification extends Model
               if contentType in type.contentTypes and event in type.eventType
                 if emailFrequency[key]
                   state = emailFrequency[key]
-                  callback null, state, key, email
+                  callback null, { state, key, email }
                   return
           callback null
 
