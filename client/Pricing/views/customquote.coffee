@@ -10,6 +10,8 @@ class PricingCustomQuoteView extends KDView
       type     : "medium"
       cssClass : "general-title"
 
-    @addSubView new KDButtonView
+    @addSubView new CustomLinkView
       title    : "GET A CUSTOM QUOTE"
-      style    : "solid border-only green medium"
+      cssClass : "border-only-green"
+      href     : "mailto:sales@koding.com?subject=I need more Koding!"
+      target   : "_self"
