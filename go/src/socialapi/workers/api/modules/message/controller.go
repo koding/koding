@@ -96,7 +96,7 @@ func deleteSingleMessage(cm *models.ChannelMessage, deleteReplies bool) error {
 		mr.MessageId = cm.Id
 
 		// list returns ChannelMessage
-		messageReplies, err := mr.List()
+		messageReplies, err := mr.ListAll()
 		if err != nil {
 			return err
 		}
