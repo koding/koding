@@ -40,8 +40,6 @@ class PricingAppView extends KDView
       return  unless workflow.active
       # @breadcrumb.selectItem workflow.active.getOption 'name'
 
-    workflow.once "PasswordRecoveryToken", (@recoveryToken) =>
-
     @addSubView @workflow = workflow
 
   showWorkflow: ->
