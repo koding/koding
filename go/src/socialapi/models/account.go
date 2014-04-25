@@ -86,8 +86,7 @@ func (a *Account) FetchChannels(q *Query) ([]Channel, error) {
 	}
 
 	// fetch channels by their ids
-	c := NewChannel()
-	channels, err := c.FetchByIds(cids)
+	channels, err := NewChannel().FetchByIds(cids)
 	if err != nil {
 		return nil, err
 	}
@@ -108,18 +107,17 @@ func (a *Account) Follow(targetId int64) (*ChannelParticipant, error) {
 		}
 		return c.AddParticipant(targetId)
 	}
+
 	return nil, err
 }
 
-func (a *Account) Unfollow(targetId int64) error {
+func (a *Account) Unfollow(targetId int64) (*Account, error) {
 	c, err := a.FetchChannel(Channel_TYPE_FOLLOWERS)
 	if err != nil {
-		fmt.Println(1, err)
-		return err
+		return nil, err
 	}
-	fmt.Println(2)
 
-	return c.RemoveParticipant(targetId)
+	return a, c.RemoveParticipant(targetId)
 }
 
 func (a *Account) FetchFollowerIds() ([]int64, error) {
@@ -203,7 +201,7 @@ func (a *Account) FetchFollowerChannelIds() ([]int64, error) {
 	return channelIds, nil
 }
 
-func FetchMongoIdByAccountId(accountId int64) (string, error) {
+func FetchOdlIdByAccountId(accountId int64) (string, error) {
 
 	a := NewAccount()
 	var data []string
@@ -226,7 +224,7 @@ func FetchMongoIdByAccountId(accountId int64) (string, error) {
 	return data[0], nil
 }
 
-func FetchMongoIdsByAccountIds(accountIds []int64) ([]string, error) {
+func FetchOldIdsByAccountIds(accountIds []int64) ([]string, error) {
 	var oldIds []string
 	if len(accountIds) == 0 {
 		return make([]string, 0), nil

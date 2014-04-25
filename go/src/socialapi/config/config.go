@@ -11,13 +11,13 @@ var conf *Config
 
 func Get() *Config {
 	if conf == nil {
-		panic("config is not set, please call Config.Read(path)")
+		panic("config is not set, please call Config.MustRead(pathToConfFile)")
 	}
 
 	return conf
 }
 
-func Read(path string) *Config {
+func MustRead(path string) *Config {
 	pwd, err := os.Getwd()
 	if err != nil {
 		panic(err)

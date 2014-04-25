@@ -47,13 +47,16 @@ func List(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface
 	q := helpers.GetQuery(u)
 	q.Type = models.Channel_TYPE_TOPIC
 	channelList, err := c.List(q)
-
 	if err != nil {
 		return helpers.NewBadRequestResponse(err)
 	}
 
-	res := models.PopulateChannelContainers(channelList, q.AccountId)
-	return helpers.NewOKResponse(res)
+	return helpers.NewOKResponse(
+		models.PopulateChannelContainers(
+			channelList,
+			q.AccountId,
+		),
+	)
 }
 
 func Delete(u *url.URL, h http.Header, req *models.Channel) (int, http.Header, interface{}, error) {
