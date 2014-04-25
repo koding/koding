@@ -45,6 +45,8 @@ func (m *MessageReply) AfterDelete() {
 	bongo.B.AfterDelete(m)
 }
 
+func (m *MessageReply) ById(id int64) error {
+	return bongo.B.ById(m, id)
 }
 
 func (m *MessageReply) Create() error {

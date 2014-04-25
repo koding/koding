@@ -158,6 +158,10 @@ func (c *Channel) Delete() error {
 	return bongo.B.Delete(c)
 }
 
+func (c *Channel) ById(id int64) error {
+	return bongo.B.ById(c, id)
+}
+
 func (c *Channel) One(q *bongo.Query) error {
 	return bongo.B.One(c, c, q)
 }
@@ -379,8 +383,7 @@ func (c *Channel) FetchLastMessage() (*ChannelMessage, error) {
 	}
 
 	cm := NewChannelMessage()
-	cm.Id = messageIds[0]
-	if err := cm.Fetch(); err != nil {
+	if err := cm.ById(messageIds[0]); err != nil {
 		return nil, err
 	}
 

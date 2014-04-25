@@ -54,6 +54,8 @@ func NewChannelMessageList() *ChannelMessageList {
 	return &ChannelMessageList{}
 }
 
+func (c *ChannelMessageList) ById(id int64) error {
+	return bongo.B.ById(c, id)
 }
 
 func (c *ChannelMessageList) One(q *bongo.Query) error {
