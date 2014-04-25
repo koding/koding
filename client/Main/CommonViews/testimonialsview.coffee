@@ -83,6 +83,6 @@ class TestimonialsView extends KDView
     if @getOption 'showMoreButton'
       @innerContainer.addSubView @storiesButton = new CustomLinkView
         title       : 'Read more user stories'
-        cssClass    : 'show-more'
+        cssClass    : 'border-only-green'
         href        : 'http://stories.koding.com'
         target      : '_blank'
