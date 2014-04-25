@@ -22,7 +22,7 @@ module.exports = class JCredential extends jraphical.Module
     permissions       :
       'create credential' : ['member']
       'update credential' : ['member']
-      'get credential'    : ['member']
+      'list credentials'  : ['member']
       'delete credential' : ['member']
 
     sharedMethods     :
@@ -31,8 +31,10 @@ module.exports = class JCredential extends jraphical.Module
           (signature String, Function)
         create        :
           (signature Object, Function)
-        # all           :
-        #   (signature Function)
+        some          : [
+          (signature Object, Function)
+          (signature Object, Object, Function)
+        ]
       instance        :
         delete        :
           (signature Function)
@@ -81,6 +83,7 @@ module.exports = class JCredential extends jraphical.Module
     callback err
     return true
 
+
   @create = permit 'create credential',
 
     success: (client, data, callback)->
@@ -106,6 +109,36 @@ module.exports = class JCredential extends jraphical.Module
               return  if failed err, callback, credential, credData
               callback null, credential
 
+
+  @one$: permit 'list credentials',
+
+    success: (client, publicKey, callback)->
+
+      options  = { limit : 1 }
+      selector = { publicKey }
+
+      {delegate} = client.connection
+      delegate.fetchCredentials {},
+        targetOptions : {
+          selector, options
+        }, (err, res = [])->
+          callback err, res[0]
+
+
+  @some$: permit 'list credentials',
+
+    success: (client, selector, options, callback)->
+
+      [options, callback] = [callback, options]  unless callback
+      options ?= { limit : 10 }
+
+      {delegate} = client.connection
+      delegate.fetchCredentials {},
+        targetOptions : {
+          selector, options
+        }, callback
+
+
   delete: permit
 
     advanced: [
@@ -114,4 +147,8 @@ module.exports = class JCredential extends jraphical.Module
 
     success: (client, callback)->
 
-      @remove callback
+      @fetchData (err, credentialData) =>
+        return callback err  if err
+        credentialData.remove (err) =>
+          return callback err  if err
+          @remove callback
