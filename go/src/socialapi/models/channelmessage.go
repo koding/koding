@@ -131,53 +131,6 @@ func (c *ChannelMessage) FetchByIds(ids []int64) ([]ChannelMessage, error) {
 	return messages, nil
 }
 
-func (c *ChannelMessage) FetchRelatives(query *Query) (*ChannelMessageContainer, error) {
-	if c.Id == 0 {
-		return nil, errors.New("Channel message id is not set")
-	}
-	container := NewChannelMessageContainer()
-	container.Message = c
-
-	i := NewInteraction()
-	i.MessageId = c.Id
-
-	oldId, err := FetchOdlIdByAccountId(c.AccountId)
-	if err != nil {
-		return nil, err
-	}
-
-	container.AccountOldId = oldId
-
-	interactorIds, err := i.List("like")
-	if err != nil {
-		return nil, err
-	}
-
-	oldIds, err := FetchOldIdsByAccountIds(interactorIds)
-	if err != nil {
-		return nil, err
-	}
-
-	interactionContainer := NewInteractionContainer()
-	interactionContainer.Actors = oldIds
-
-	isInteracted, err := i.IsInteracted(query.AccountId)
-	if err != nil {
-		return nil, err
-	}
-
-	interactionContainer.IsInteracted = isInteracted
-
-	if container.Interactions == nil {
-		container.Interactions = make(map[string]*InteractionContainer)
-	}
-	if _, ok := container.Interactions["like"]; !ok {
-		container.Interactions["like"] = NewInteractionContainer()
-	}
-	container.Interactions["like"] = interactionContainer
-	return container, nil
-}
-
 func (c *ChannelMessage) BuildMessage(query *Query) (*ChannelMessageContainer, error) {
 	cmc, err := c.FetchRelatives(query)
 	if err != nil {
@@ -202,4 +155,65 @@ func (c *ChannelMessage) BuildMessage(query *Query) (*ChannelMessageContainer, e
 
 	cmc.Replies = populatedChannelMessagesReplies
 	return cmc, nil
+}
+
+func (c *ChannelMessage) FetchRelatives(query *Query) (*ChannelMessageContainer, error) {
+	if c.Id == 0 {
+		return nil, errors.New("Channel message id is not set")
+	}
+	container := NewChannelMessageContainer()
+	container.Message = c
+
+	i := NewInteraction()
+	i.MessageId = c.Id
+
+	oldId, err := FetchOdlIdByAccountId(c.AccountId)
+	if err != nil {
+		return nil, err
+	}
+
+	container.AccountOldId = oldId
+
+	// get preview
+	query.Type = "like"
+	query.Limit = 3
+	interactorIds, err := i.List(query)
+	if err != nil {
+		return nil, err
+	}
+
+	fmt.Println("interactorIds", interactorIds)
+
+	oldIds, err := FetchOldIdsByAccountIds(interactorIds)
+	if err != nil {
+		return nil, err
+	}
+
+	interactionContainer := NewInteractionContainer()
+	interactionContainer.ActorsPreview = oldIds
+
+	// check if the current user is interacted in this thread
+	isInteracted, err := i.IsInteracted(query.AccountId)
+	if err != nil {
+		return nil, err
+	}
+
+	interactionContainer.IsInteracted = isInteracted
+
+	// fetch interaction count
+	count, err := i.Count(query.Type)
+	if err != nil {
+		return nil, err
+	}
+
+	interactionContainer.ActorsCount = count
+
+	if container.Interactions == nil {
+		container.Interactions = make(map[string]*InteractionContainer)
+	}
+	if _, ok := container.Interactions["like"]; !ok {
+		container.Interactions["like"] = NewInteractionContainer()
+	}
+	container.Interactions["like"] = interactionContainer
+	return container, nil
 }
