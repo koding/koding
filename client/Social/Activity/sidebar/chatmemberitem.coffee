@@ -2,7 +2,8 @@ class SidebarChatMemberItem extends SidebarMemberItem
 
   constructor: (options = {}, data) ->
 
-    options.hideLastMessage  ?= yes
+    options.hideLastMessage      ?= yes
+    options.hideNewMessageCount  ?= yes
 
     super options, data
 
