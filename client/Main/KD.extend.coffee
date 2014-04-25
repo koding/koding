@@ -4,9 +4,11 @@ KD.extend
   apiUri       : KD.config.apiUri
   appsUri      : KD.config.appsUri
   singleton    : KD.getSingleton.bind KD
-  useNewKites  :
-    if localStorage.useNewKites?
-    then Boolean Number localStorage.useNewKites
+  useNewKites  : localStorage.useNewKites = switch
+    when KD.config.kites.stack.force
+      KD.config.kites.stack.newKites
+    when localStorage.useNewKites?
+      Boolean Number localStorage.useNewKites
   appClasses   : {}
   appScripts   : {}
   appLabels    : {}

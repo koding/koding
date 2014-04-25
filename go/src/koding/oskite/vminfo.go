@@ -9,7 +9,6 @@ import (
 	"sync"
 	"time"
 
-	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
 )
 
@@ -143,19 +142,8 @@ func (v *VMInfo) startTimeout() {
 }
 
 func (v *VMInfo) unprepareVM() {
-	if err := virt.UnprepareVM(v.vm.Id); err != nil {
+	if err := unprepareProgress(nil, v.vm, false); err != nil {
 		log.Warning("%v", err)
-	}
-
-	if err := mongodbConn.Run("jVMs", func(c *mgo.Collection) error {
-		return c.Update(bson.M{"_id": v.vm.Id}, bson.M{"$set": bson.M{"hostKite": nil}})
-	}); err != nil {
-		log.LogError(err, 0, v.vm.Id.Hex())
-	}
-
-	// mark it as stopped
-	if err := updateState(v.vm); err != nil {
-		log.Error("%v", err)
 	}
 
 	infosMutex.Lock()
