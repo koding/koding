@@ -38,6 +38,29 @@ func extractParticipants(body string) []string {
 
 	return flattened
 }
+
+func fetchParticipantIds(participantNames []string) ([]int64, error) {
+	participantIds := make([]int64, len(participantNames))
+	for i, participantName := range participantNames {
+		account, err := modelhelper.GetAccount(participantName)
+		if err != nil {
+			return nil, err
+		}
+		a := models.NewAccount()
+		a.Id = account.SocialApiId
+		a.OldId = account.Id.Hex()
+		// fetch or create social api id
+		if a.Id == 0 {
+			if err := a.FetchOrCreate(); err != nil {
+				return nil, err
+			}
+		}
+		participantIds[i] = a.Id
+	}
+
+	return participantIds, nil
+}
+
 func Send(u *url.URL, h http.Header, req *models.PrivateMessageRequest) (int, http.Header, interface{}, error) {
 	if req.AccountId == 0 {
 		return helpers.NewBadRequestResponse(errors.New("AcccountId is not defined"))
