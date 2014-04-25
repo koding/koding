@@ -85,18 +85,20 @@ func (i *Interaction) Delete() error {
 	return nil
 }
 
-func (c *Interaction) List(interactionType string) ([]int64, error) {
+func (c *Interaction) List(query *Query) ([]int64, error) {
 	var interactions []int64
 
 	if c.MessageId == 0 {
 		return interactions, errors.New("Message is not set")
 	}
 
-	return c.FetchInteractorIds(interactionType, &bongo.Pagination{})
+	p := bongo.NewPagination(query.Limit, query.Skip)
+
+	return c.FetchInteractorIds(query.Type, p)
 }
 
 func (i *Interaction) FetchInteractorIds(interactionType string, p *bongo.Pagination) ([]int64, error) {
-	var interactorIds []int64
+	interactorIds := make([]int64, 0)
 	q := &bongo.Query{
 		Selector: map[string]interface{}{
 			"message_id":    i.MessageId,
@@ -110,10 +112,7 @@ func (i *Interaction) FetchInteractorIds(interactionType string, p *bongo.Pagina
 	}
 
 	if err := i.Some(&interactorIds, q); err != nil {
-		return nil, err
-	}
-
-	if interactorIds == nil {
+		// TODO log this error
 		return make([]int64, 0), nil
 	}
 

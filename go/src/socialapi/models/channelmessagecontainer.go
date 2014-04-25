@@ -12,8 +12,9 @@ func NewChannelMessageContainer() *ChannelMessageContainer {
 }
 
 type InteractionContainer struct {
-	Actors       []string `json:"actors"`
-	IsInteracted bool     `json:"isInteracted"`
+	IsInteracted  bool     `json:"isInteracted"`
+	ActorsPreview []string `json:"actorsPreview"`
+	ActorsCount   int      `json:"actorsCount"`
 }
 
 func NewInteractionContainer() *InteractionContainer {

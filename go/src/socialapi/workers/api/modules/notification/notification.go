@@ -2,6 +2,7 @@ package notification
 
 import (
 	"errors"
+	"fmt"
 	"github.com/jinzhu/gorm"
 	"github.com/koding/bongo"
 	"math"
@@ -15,6 +16,7 @@ var (
 	NOTIFICATION_LIMIT = 8
 	ACTOR_LIMIT        = 3
 )
+
 func List(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface{}, error) {
 	q := helpers.GetQuery(u)
 	if err := validateNotificationRequest(q); err != nil {

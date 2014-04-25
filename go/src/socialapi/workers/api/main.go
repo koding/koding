@@ -4,6 +4,7 @@ import (
 	// _ "expvar"
 	"flag"
 	"fmt"
+	"koding/db/mongodb/modelhelper"
 	"socialapi/config"
 
 	// _ "net/http/pprof" // Imported for side-effect of handling /debug/pprof.
@@ -62,6 +63,9 @@ func main() {
 	// init redis
 	redisConn := helper.MustInitRedisConn(conf.Redis)
 	defer redisConn.Close()
+
+	// init mongo connection
+	modelhelper.Initialize(conf.Mongo)
 
 	ch := make(chan os.Signal)
 	signal.Notify(ch, syscall.SIGINT, syscall.SIGQUIT, syscall.SIGTERM)

@@ -93,10 +93,11 @@ module.exports = class SocialMessage extends Base
 
   @sendPrivateMessage = permit 'send private message',
     success:  (client, data, callback)->
-      unless data.recipients?.length > 1
-        return callback message: "You should have at least one recipient"
       unless data.body
         return callback message: "Message body should be set"
+
+      unless data.body.match(/@([\w]+)/g)?.length > 0
+        return callback message: "You should have at least one recipient"
       SocialMessage.doRequest 'sendPrivateMessage', client, data, callback
 
   @fetchPrivateMessages = permit 'list private messages',

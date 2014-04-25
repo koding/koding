@@ -210,7 +210,7 @@ func FetchOdlIdByAccountId(accountId int64) (string, error) {
 			"id": accountId,
 		},
 		Pluck:      "old_id",
-		Pagination: bongo.NewPagination(1, 0),
+		Pagination: *bongo.NewPagination(1, 0),
 	}
 	err := a.Some(&data, q)
 	if err != nil {

@@ -150,8 +150,8 @@ type Pagination struct {
 	Skip  int
 }
 
-func NewPagination(limit int, skip int) Pagination {
-	return Pagination{
+func NewPagination(limit int, skip int) *Pagination {
+	return &Pagination{
 		Limit: limit,
 		Skip:  skip,
 	}
@@ -181,15 +181,15 @@ func (b *Bongo) buildQuery(i Modellable, data interface{}, q *Query) error {
 	// init query
 	query := b.DB
 
+	// add table name
+	query = query.Table(i.TableName())
+
 	// add sort options
 	query = addSort(query, q.Sort)
 
 	query = addSkip(query, q.Pagination.Skip)
 
 	query = addLimit(query, q.Pagination.Limit)
-
-	// add table name
-	query = query.Table(i.TableName())
 
 	// add selector
 	query = addWhere(query, q.Selector)
@@ -262,6 +262,10 @@ func (b *Bongo) AfterDelete(i Modellable) {
 func addSort(query *gorm.DB, options map[string]string) *gorm.DB {
 
 	if options == nil {
+		return query
+	}
+
+	if len(options) == 0 {
 		return query
 	}
 

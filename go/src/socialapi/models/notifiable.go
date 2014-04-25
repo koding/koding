@@ -65,9 +65,7 @@ func (n *InteractionNotification) FetchActors() (*ActorContainer, error) {
 	}
 
 	i := NewInteraction()
-	p := &bongo.Pagination{
-		Limit: NOTIFIER_LIMIT,
-	}
+	p := bongo.NewPagination(NOTIFIER_LIMIT, 0)
 	i.MessageId = n.TargetId
 
 	actors, err := i.FetchInteractorIds(n.GetType(), p)
