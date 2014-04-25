@@ -3,13 +3,6 @@ class ResourcePackView extends KDView
     options.cssClass = KD.utils.curry "resource-pack", options.cssClass
     super options, data
 
-  selectPlan: ->
-    return  unless subscriptionTag = @getDelegate().subscriptionTag
-    KD.singletons.paymentController.fetchActiveSubscription [subscriptionTag], (err, subscription) =>
-      return KD.showError err  if err and err.code isnt "no subscription"
-      @emit "CurrentSubscriptionSet", subscription  if subscription
-      @emit "PlanSelected", @getOption("tag"), planApi: KD.remote.api.JResourcePlan
-
   viewAppended : ->
     {title, cssClass, packFeatures, price, index} = @getOptions()
 
@@ -31,4 +24,8 @@ class ResourcePackView extends KDView
       style     : "pack-buy-button"
       icon      : yes
       title     : "<cite>#{price}</cite>BUY NOW"
-      callback  : @bound "selectPlan"
+      callback  : =>
+        tag      = @getOption "tag"
+        groupTag = @getDelegate().subscriptionTag
+        planApi  = KD.remote.api.JResourcePlan
+        @emit "PlanSelected", tag, groupTag, {planApi}
