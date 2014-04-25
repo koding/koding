@@ -323,3 +323,17 @@ func (r *RedisSession) String(reply interface{}) (string, error) {
 func (r *RedisSession) Int64(reply interface{}) (int64, error) {
 	return redis.Int64(reply, nil)
 }
+
+// prepareArgsWithKey helper method prepends key to given variadic parameter
+func (r *RedisSession) prepareArgsWithKey(key string, rest ...interface{}) []interface{} {
+	prefixedReq := make([]interface{}, len(rest)+1)
+
+	// prepend prefixed key
+	prefixedReq[0] = r.addPrefix(key)
+
+	for key, el := range rest {
+		prefixedReq[key+1] = el
+	}
+
+	return prefixedReq
+}
