@@ -65,8 +65,8 @@ func Send(u *url.URL, h http.Header, req *models.PrivateMessageRequest) (int, ht
 	cmc.Channel = *c
 	cmc.IsParticipant = true
 	cmc.LastMessage = cm
-	cmc.ParticipantCount = len(req.Recipients)
-	cmc.ParticipantsPreview = req.Recipients
+	cmc.ParticipantCount = len(participantIds)
+	cmc.ParticipantsPreview = participantIds
 
 	return helpers.NewOKResponse(cmc)
 }
