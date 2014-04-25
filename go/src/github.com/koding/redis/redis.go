@@ -286,6 +286,24 @@ func (r *RedisSession) AddSetMembers(key string, rest ...interface{}) (int, erro
 func (r *RedisSession) GetSetMembers(key string) ([]interface{}, error) {
 	return redis.Values(r.Do("SMEMBERS", r.addPrefix(key)))
 }
+
+// SortBy sorts elements stored at key with given weight and order(ASC|DESC)
+//
+// i.e. Suppose we have elements stored at key as object_1, object_2 and object_3
+// and their weight is relatively stored at object_1:weight, object_2:weight, object_3:weight
+// When we give sortBy parameter as *:weight, it gets all weight values and sorts the objects
+// at given key with specified order.
+func (r *RedisSession) SortBy(key, sortBy, order string) ([]interface{}, error) {
+	return redis.Values(r.Do("SORT", r.addPrefix(key), "by", r.addPrefix(sortBy), order))
+}
+
+// Keys returns all keys with given pattern
+// WARNING: Redis Doc says: "Don't use KEYS in your regular application code."
+func (r *RedisSession) Keys(key string) ([]interface{}, error) {
+	return redis.Values(r.Do("KEYS", r.addPrefix(key)))
+}
+
+
 // Bool converts the given value to boolean
 func (r *RedisSession) Bool(reply interface{}) (bool, error) {
 	return redis.Bool(reply, nil)
