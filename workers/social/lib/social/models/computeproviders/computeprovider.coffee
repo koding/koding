@@ -60,15 +60,13 @@ module.exports = class ComputeProvider extends Base
         return callback new KodingError \
           "Credential is required.", "MissingCredential"
 
-      _arguments = arguments
+      args = [ arguments... ]
 
       checkCredential credential, (err, cred)=>
 
         if err then return callback err
-
-        _arguments[1].credential = cred
-
-        fn.apply @, _arguments
+        args[1].credential = cred
+        fn.apply @, args
 
 
   @providers = PROVIDERS
