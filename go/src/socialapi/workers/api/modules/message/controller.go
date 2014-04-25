@@ -47,8 +47,7 @@ func Delete(u *url.URL, h http.Header, req *models.ChannelMessage) (int, http.He
 		return helpers.NewBadRequestResponse(err)
 	}
 
-	req.Id = id
-	if err := req.Fetch(); err != nil {
+	if err := req.ById(id); err != nil {
 		if err == gorm.RecordNotFound {
 			return helpers.NewNotFoundResponse()
 		}
@@ -96,7 +95,7 @@ func deleteSingleMessage(cm *models.ChannelMessage, deleteReplies bool) error {
 		mr.MessageId = cm.Id
 
 		// list returns ChannelMessage
-		messageReplies, err := mr.List()
+		messageReplies, err := mr.ListAll()
 		if err != nil {
 			return err
 		}
@@ -128,10 +127,9 @@ func Update(u *url.URL, h http.Header, req *models.ChannelMessage) (int, http.He
 	if err != nil {
 		return helpers.NewBadRequestResponse(err)
 	}
-	req.Id = id
 
 	body := req.Body
-	if err := req.Fetch(); err != nil {
+	if err := req.ById(id); err != nil {
 		if err == gorm.RecordNotFound {
 			return helpers.NewNotFoundResponse()
 		}
@@ -156,8 +154,7 @@ func Get(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface{
 		return helpers.NewBadRequestResponse(err)
 	}
 	cm := models.NewChannelMessage()
-	cm.Id = id
-	if err := cm.Fetch(); err != nil {
+	if err := cm.ById(id); err != nil {
 		if err == gorm.RecordNotFound {
 			return helpers.NewNotFoundResponse()
 		}
@@ -174,8 +171,7 @@ func GetWithRelated(u *url.URL, h http.Header, _ interface{}) (int, http.Header,
 	}
 
 	cm := models.NewChannelMessage()
-	cm.Id = id
-	if err := cm.Fetch(); err != nil {
+	if err := cm.ById(id); err != nil {
 		if err == gorm.RecordNotFound {
 			return helpers.NewNotFoundResponse()
 		}

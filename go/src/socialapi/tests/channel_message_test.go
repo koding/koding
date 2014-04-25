@@ -86,7 +86,7 @@ func TestChannelMessage(t *testing.T) {
 				So(cmc.Interactions["like"].IsInteracted, ShouldBeTrue)
 
 				// actor length should be 1
-				So(len(cmc.Interactions["like"].Actors), ShouldEqual, 1)
+				So(cmc.Interactions["like"].ActorsCount, ShouldEqual, 1)
 
 			})
 
@@ -106,7 +106,7 @@ func TestChannelMessage(t *testing.T) {
 				So(cmc.Interactions["like"].IsInteracted, ShouldBeTrue)
 
 				// actor length should be 1
-				So(len(cmc.Interactions["like"].Actors), ShouldEqual, 1)
+				So(cmc.Interactions["like"].ActorsCount, ShouldEqual, 1)
 
 			})
 
@@ -141,7 +141,7 @@ func TestChannelMessage(t *testing.T) {
 				So(cmc.Interactions["like"].IsInteracted, ShouldBeTrue)
 
 				// actor length should be 1
-				So(len(cmc.Interactions["like"].Actors), ShouldEqual, 1)
+				So(cmc.Interactions["like"].ActorsCount, ShouldEqual, 1)
 
 				err = deleteInteraction("like", post.Id, account.Id)
 				So(err, ShouldBeNil)
@@ -154,7 +154,7 @@ func TestChannelMessage(t *testing.T) {
 				So(cmc.Interactions["like"].IsInteracted, ShouldBeFalse)
 
 				// actor length should be 1
-				So(len(cmc.Interactions["like"].Actors), ShouldEqual, 0)
+				So(cmc.Interactions["like"].ActorsCount, ShouldEqual, 0)
 			})
 
 			Convey("owner can post reply to message", func() {
@@ -239,12 +239,12 @@ func TestChannelMessage(t *testing.T) {
 				So(cmc.Interactions["like"].IsInteracted, ShouldBeFalse)
 
 				// we didnt like the post, we liked the reply
-				So(len(cmc.Interactions["like"].Actors), ShouldEqual, 0)
+				So(cmc.Interactions["like"].ActorsCount, ShouldEqual, 0)
 
 				So(len(cmc.Replies), ShouldEqual, 1)
 
 				// we liked the reply
-				So(len(cmc.Replies[0].Interactions["like"].Actors), ShouldEqual, 1)
+				So(cmc.Replies[0].Interactions["like"].ActorsCount, ShouldEqual, 1)
 
 				So(cmc.Replies[0].Interactions["like"].IsInteracted, ShouldBeFalse)
 
