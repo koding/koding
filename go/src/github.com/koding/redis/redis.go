@@ -264,7 +264,7 @@ func (r *RedisSession) HashMultipleSet(key string, item map[string]interface{}) 
 // Usage: GetHashMultipleSet("canthefason", "name", "age", "birthDate")
 func (r *RedisSession) GetHashMultipleSet(key string, rest ...interface{}) ([]interface{}, error) {
 	prefixedReq := r.prepareArgsWithKey(key, rest...)
-	return redis.Values(r.Do("HMGET", prefixedReq.s..))
+	return redis.Values(r.Do("HMGET", prefixedReq...))
 }
 
 // AddSetMembers adds given elements to the set stored at key. Given elements
@@ -302,7 +302,6 @@ func (r *RedisSession) SortBy(key, sortBy, order string) ([]interface{}, error) 
 func (r *RedisSession) Keys(key string) ([]interface{}, error) {
 	return redis.Values(r.Do("KEYS", r.addPrefix(key)))
 }
-
 
 // Bool converts the given value to boolean
 func (r *RedisSession) Bool(reply interface{}) (bool, error) {
