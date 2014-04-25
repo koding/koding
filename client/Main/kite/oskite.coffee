@@ -73,8 +73,8 @@ class OsKite extends KDKite
   vmOn: (t = 0) ->
     @changeState 'RUNNING', 'vm.progress.start', 'vmOn', @vmPrepareAndStart
       .catch (err) =>
-        if t < 10
-          return Promise.delay(Math.pow 0.7, ++t).then => @vmOn t
+        if t < 5
+          return Promise.delay(1000 * Math.pow 1.3, ++t).then => @vmOn t
         throw err
 
   vmOff: ->
