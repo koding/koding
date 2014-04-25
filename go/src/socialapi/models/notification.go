@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"github.com/jinzhu/gorm"
 	"github.com/koding/bongo"
-	"math"
 	"time"
 )
 
@@ -61,13 +60,6 @@ func (n *Notification) Create() error {
 }
 
 func (n *Notification) List(q *Query) (*NotificationResponse, error) {
-	if err := n.isAccountValid(q.AccountId); err != nil {
-		return nil, err
-	}
-
-	limit := math.Min(float64(q.Limit), 8.0)
-	q.Limit = int(limit)
-
 	response := &NotificationResponse{}
 	result, err := n.getDecoratedList(q)
 	if err != nil {
@@ -272,10 +264,6 @@ func (n *Notification) AfterDelete() {
 }
 
 func (n *Notification) Glance() error {
-	if err := n.isAccountValid(n.AccountId); err != nil {
-		return err
-	}
-
 	selector := map[string]interface{}{
 		"glanced":    false,
 		"account_id": n.AccountId,
@@ -286,13 +274,6 @@ func (n *Notification) Glance() error {
 	}
 
 	return bongo.B.UpdateMulti(n, selector, set)
-}
-
-func (n *Notification) isAccountValid(accountId int64) error {
-	a := NewAccount()
-	a.Id = accountId
-
-	return a.Fetch()
 }
 
 func getUnreadNotificationCount(notificationList []NotificationContainer) int {

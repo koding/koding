@@ -13,6 +13,11 @@ import (
 func List(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface{}, error) {
 	n := models.NewNotification()
 	list, err := n.List(helpers.GetQuery(u))
+	q := helpers.GetQuery(u)
+	if err := validateNotificationRequest(q); err != nil {
+		return helpers.NewBadRequestResponse(err)
+	}
+
 	if err != nil {
 		if err == gorm.RecordNotFound {
 			return helpers.NewNotFoundResponse()
@@ -25,6 +30,12 @@ func List(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface
 }
 
 func Glance(u *url.URL, h http.Header, req *models.Notification) (int, http.Header, interface{}, error) {
+	q := models.NewQuery()
+	q.AccountId = req.AccountId
+	if err := validateNotificationRequest(q); err != nil {
+		return helpers.NewBadRequestResponse(err)
+	}
+
 	if err := req.Glance(); err != nil {
 		if err == gorm.RecordNotFound {
 			return helpers.NewNotFoundResponse()
@@ -90,4 +101,23 @@ func InteractGroup(u *url.URL, h http.Header, req *GroupRequest) (int, http.Head
 	}
 
 	return helpers.NewDefaultOKResponse()
+}
+func validateNotificationRequest(q *models.Query) error {
+	a := models.NewAccount()
+	a.Id = q.AccountId
+	if q.AccountId == 0 {
+		return errors.New("Account id cannot be empty")
+	}
+
+	if err := a.Fetch(); err != nil {
+		if err == gorm.RecordNotFound {
+			return errors.New("Account is not valid")
+		}
+		return err
+	}
+
+	// reset the limit if it is needed
+	q.Limit = int(math.Min(float64(q.Limit), float64(NOTIFICATION_LIMIT)))
+
+	return nil
 }
