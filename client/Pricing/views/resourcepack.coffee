@@ -6,7 +6,7 @@ class ResourcePackView extends KDView
   selectPlan: ->
     return  unless subscriptionTag = @getDelegate().subscriptionTag
     KD.singletons.paymentController.fetchActiveSubscription [subscriptionTag], (err, subscription) =>
-      return KD.showError err  if err
+      return KD.showError err  if err and err.code isnt "no subscription"
       @emit "CurrentSubscriptionSet", subscription  if subscription
       @emit "PlanSelected", @getOption("tag"), planApi: KD.remote.api.JResourcePlan
 
