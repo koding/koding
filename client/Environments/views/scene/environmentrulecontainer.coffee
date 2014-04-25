@@ -4,7 +4,7 @@ class EnvironmentRuleContainer extends EnvironmentContainer
 
     new Promise (resolve, reject) ->
       KD.remote.api.JProxyRestriction.fetch {}, (err, restrictions) ->
-        log restrictions
+        EnvironmentRuleContainer.restrictions = restrictions # TODO: Find a better way
 
         KD.remote.api.JProxyFilter.fetch {}, (err, filters) ->
           if err or not filters or filters.length is 0
