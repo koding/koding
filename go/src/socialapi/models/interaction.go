@@ -86,42 +86,29 @@ func (i *Interaction) Delete() error {
 	return nil
 }
 
-func (c *Interaction) List(interactionType string) ([]int64, error) {
+func (c *Interaction) List(query *Query) ([]int64, error) {
 	var interactions []int64
 
 	if c.MessageId == 0 {
 		return interactions, errors.New("Message is not set")
 	}
 
-	if err := bongo.B.DB.Table(c.TableName()).
-		Where(
-		"message_id = ? and type_constant = ?",
-		c.MessageId,
-		interactionType,
-	).
-		Pluck("account_id", &interactions).
-		Error; err != nil {
-		return nil, err
+	q := &bongo.Query{
+		Selector: map[string]interface{}{
+			"message_id":    c.MessageId,
+			"type_constant": query.Type,
+		},
+		Pluck: "account_id",
+		Skip:  query.Skip,
+		Limit: query.Limit,
+	}
+	if c.Some(&interactions, q) != nil {
+		return make([]int64, 0), nil
 	}
 
 	if interactions == nil {
 		return make([]int64, 0), nil
 	}
-
-	// change this part to use c.m.some
-
-	// selector := map[string]interface{}{
-	// 	"message_id": c.MessageId,
-	// }
-
-	// pluck := map[string]interface{}{
-	// 	"account_id": true,
-	// }
-
-	// err := c.m.Some(c, &interactions, selector, nil, pluck)
-	// if err != nil && err != gorm.RecordNotFound {
-	// 	return nil, err
-	// }
 
 	return interactions, nil
 }
