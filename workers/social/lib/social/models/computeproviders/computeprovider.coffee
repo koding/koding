@@ -37,7 +37,7 @@ module.exports = class ComputeProvider extends Base
           (signature Object, Function)
         fetchAvailable :
           (signature Object, Function)
-        fetchAvailableProviders :
+        fetchProviders :
           (signature Function)
 
   revive = do ->
@@ -72,7 +72,7 @@ module.exports = class ComputeProvider extends Base
   @providers = PROVIDERS
 
 
-  @fetchAvailableProviders = secure (client, callback)->
+  @fetchProviders = secure (client, callback)->
 
     callback null, Object.keys PROVIDERS
 
