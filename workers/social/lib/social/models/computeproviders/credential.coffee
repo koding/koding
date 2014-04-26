@@ -1,12 +1,15 @@
 
 jraphical       = require 'jraphical'
 JCredentialData = require './credentialdata'
+JName           = require '../name'
+JUser           = require '../user'
+JGroup          = require '../group'
 
 module.exports = class JCredential extends jraphical.Module
 
   KodingError        = require '../../error'
 
-  {secure, ObjectId, signature} = require 'bongo'
+  {secure, ObjectId, signature, daisy} = require 'bongo'
   {Relationship}     = jraphical
   {permit}           = require '../group/permissionset'
   Validators         = require '../group/validators'
@@ -38,9 +41,9 @@ module.exports = class JCredential extends jraphical.Module
       instance        :
         delete        :
           (signature Function)
-        # assign        :
-        #   (signature Object, Function)
-        # unassign      :
+        share         :
+          (signature Object, Function)
+        # withold       :
         #   (signature Object, Function)
         # update        :
         #   (signature Object, Function)
@@ -133,11 +136,65 @@ module.exports = class JCredential extends jraphical.Module
       options ?= { limit : 10 }
 
       {delegate} = client.connection
-      delegate.fetchCredentials {},
+      delegate.fetchCredentials as: "user",
         targetOptions : {
           selector, options
         }, callback
 
+
+  # .share can be used like this:
+  #
+  # JCredentialInstance.share { user: yes, owner: no, target: "gokmen"}, cb
+
+  share: permit
+
+    advanced: [
+      { permission: 'update credential', validateWith: Validators.own }
+    ]
+
+    success: (client, options, callback)->
+
+      {target, owner, user} = options
+
+      setPermissionFor = (target, callback)=>
+
+        method = (x)-> if x then 'addCredential' else 'removeCredential'
+
+        daisy queue = [
+          =>
+            if user?
+              target[method(user)]  this, as: 'user', queue.next
+            else
+              queue.next()
+        ,
+          =>
+            if owner?
+              target[method(owner)] this, as: 'owner', queue.next
+            else
+              queue.next()
+        ,
+          -> callback null
+        ]
+
+      JName.fetchModels target, (err, result)=>
+
+        if err or not result
+          return callback new KodingError "Target not found."
+
+        { models } = result
+        target = models[0]
+
+        if target instanceof JUser
+          target.fetchOwnAccount (err, account)=>
+            if err or not account
+              return callback new KodingError "Failed to fetch account."
+            setPermissionFor account, callback
+
+        else if target instanceof JGroup
+          setPermissionFor target, callback
+
+        else
+          callback new KodingError "Target does not support credentials."
 
   delete: permit
 
