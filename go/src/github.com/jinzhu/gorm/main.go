@@ -2,8 +2,6 @@ package gorm
 
 import (
 	"database/sql"
-
-	"github.com/jinzhu/gorm/dialect"
 )
 
 type DB struct {
@@ -15,21 +13,33 @@ type DB struct {
 	search        *search
 	logMode       int
 	logger        logger
-	dialect       dialect.Dialect
+	dialect       Dialect
 	tagIdentifier string
 	singularTable bool
+	source        string
 }
 
 func Open(driver, source string) (DB, error) {
 	var err error
-	db := DB{dialect: dialect.New(driver), tagIdentifier: "sql", logger: defaultLogger, callback: DefaultCallback}
+	db := DB{dialect: NewDialect(driver), tagIdentifier: "sql", logger: defaultLogger, callback: DefaultCallback, source: source}
 	db.db, err = sql.Open(driver, source)
 	db.parent = &db
 	return db, err
 }
 
+func (s *DB) Close() error {
+	return s.parent.db.(*sql.DB).Close()
+}
+
 func (s *DB) DB() *sql.DB {
 	return s.db.(*sql.DB)
+}
+
+// Return the underlying sql.DB or sql.Tx instance.
+// Use of this method is discouraged. It's mainly intended to allow
+// coexistence with legacy non-GORM code.
+func (s *DB) CommonDB() sqlCommon {
+	return s.db
 }
 
 func (s *DB) Callback() *callback {
@@ -124,13 +134,13 @@ func (s *DB) Assign(attrs ...interface{}) *DB {
 
 func (s *DB) First(out interface{}, where ...interface{}) *DB {
 	scope := s.clone().NewScope(out)
-	scope.Search = scope.Search.clone().order(scope.PrimaryKey()).limit(1)
+	scope.Search = scope.Search.clone().order(scope.TableName() + "." + scope.PrimaryKey()).limit(1)
 	return scope.inlineCondition(where...).callCallbacks(s.parent.callback.queries).db
 }
 
 func (s *DB) Last(out interface{}, where ...interface{}) *DB {
 	scope := s.clone().NewScope(out)
-	scope.Search = scope.Search.clone().order(scope.PrimaryKey() + " DESC").limit(1)
+	scope.Search = scope.Search.clone().order(scope.TableName() + "." + scope.PrimaryKey() + " DESC").limit(1)
 	return scope.inlineCondition(where...).callCallbacks(s.parent.callback.queries).db
 }
 

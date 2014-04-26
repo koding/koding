@@ -34,7 +34,6 @@ func Add(u *url.URL, h http.Header, req *models.Interaction) (int, http.Header, 
 	var err error
 	req, err = prepareInteraction(u, req)
 	if err != nil {
-		fmt.Println(err)
 		return helpers.NewBadRequestResponse(err)
 	}
 
@@ -67,11 +66,16 @@ func List(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface
 		return helpers.NewBadRequestResponse(err)
 	}
 
-	req := models.NewInteraction()
+	query := helpers.GetQuery(u)
+	if query.Type == "" {
+		query.Type = "like"
+	}
+
+	i := models.NewInteraction()
 	// set message id
-	req.MessageId = messageId
+	i.MessageId = messageId
 
 	return helpers.HandleResultAndError(
-		req.List("like"),
+		i.List(query),
 	)
 }
