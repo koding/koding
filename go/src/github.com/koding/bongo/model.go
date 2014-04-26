@@ -24,6 +24,18 @@ func (b *Bongo) Fetch(i Modellable) error {
 	return nil
 }
 
+func (b *Bongo) ById(i Modellable, id int64) error {
+	if err := b.DB.
+		Table(i.TableName()).
+		Where("id = ?", id).
+		Find(i).
+		Error; err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func (b *Bongo) Create(i Modellable) error {
 	if err := b.DB.Save(i).Error; err != nil {
 		return err
@@ -170,19 +182,19 @@ func (b *Bongo) buildQuery(i Modellable, data interface{}, q *Query) error {
 	// init query
 	query := b.DB
 
-	// if limit is minus or 0 ignore
-	if q.Limit > 0 {
-		query.Limit(q.Limit)
-	}
+	// add table name
+	query = query.Table(i.TableName())
 
 	// add sort options
 	query = addSort(query, q.Sort)
 
-	// add table name
-	query = query.Table(i.TableName())
-
 	// add selector
 	query = addWhere(query, q.Selector)
+
+	// if limit is minus or 0 ignore
+	if q.Limit > 0 {
+		query.Limit(q.Limit)
+	}
 
 	var err error
 	// TODO refactor this part
@@ -252,6 +264,10 @@ func (b *Bongo) AfterDelete(i Modellable) {
 func addSort(query *gorm.DB, options map[string]string) *gorm.DB {
 
 	if options == nil {
+		return query
+	}
+
+	if len(options) == 0 {
 		return query
 	}
 

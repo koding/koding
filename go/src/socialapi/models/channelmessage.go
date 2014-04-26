@@ -68,8 +68,8 @@ func NewChannelMessage() *ChannelMessage {
 	return &ChannelMessage{}
 }
 
-func (c *ChannelMessage) Fetch() error {
-	return bongo.B.Fetch(c)
+func (c *ChannelMessage) ById(id int64) error {
+	return bongo.B.ById(c, id)
 }
 
 func (c *ChannelMessage) One(q *bongo.Query) error {
@@ -131,6 +131,34 @@ func (c *ChannelMessage) FetchByIds(ids []int64) ([]ChannelMessage, error) {
 	return messages, nil
 }
 
+func (c *ChannelMessage) BuildMessage(query *Query) (*ChannelMessageContainer, error) {
+	cmc, err := c.FetchRelatives(query)
+	if err != nil {
+		return nil, err
+	}
+
+	mr := NewMessageReply()
+	mr.MessageId = c.Id
+	q := query
+	q.Limit = 3
+	replies, err := mr.List(query)
+	if err != nil {
+		return nil, err
+	}
+
+	populatedChannelMessagesReplies := make([]*ChannelMessageContainer, len(replies))
+	for rl := 0; rl < len(replies); rl++ {
+		cmrc, err := replies[rl].FetchRelatives(query)
+		if err != nil {
+			return nil, err
+		}
+		populatedChannelMessagesReplies[rl] = cmrc
+	}
+
+	cmc.Replies = populatedChannelMessagesReplies
+	return cmc, nil
+}
+
 func (c *ChannelMessage) FetchRelatives(query *Query) (*ChannelMessageContainer, error) {
 	if c.Id == 0 {
 		return nil, errors.New("Channel message id is not set")
@@ -148,7 +176,10 @@ func (c *ChannelMessage) FetchRelatives(query *Query) (*ChannelMessageContainer,
 
 	container.AccountOldId = oldId
 
-	interactorIds, err := i.List("like")
+	// get preview
+	query.Type = "like"
+	query.Limit = 3
+	interactorIds, err := i.List(query)
 	if err != nil {
 		return nil, err
 	}
@@ -159,14 +190,23 @@ func (c *ChannelMessage) FetchRelatives(query *Query) (*ChannelMessageContainer,
 	}
 
 	interactionContainer := NewInteractionContainer()
-	interactionContainer.Actors = oldIds
+	interactionContainer.ActorsPreview = oldIds
 
+	// check if the current user is interacted in this thread
 	isInteracted, err := i.IsInteracted(query.AccountId)
 	if err != nil {
 		return nil, err
 	}
 
 	interactionContainer.IsInteracted = isInteracted
+
+	// fetch interaction count
+	count, err := i.Count(query.Type)
+	if err != nil {
+		return nil, err
+	}
+
+	interactionContainer.ActorsCount = count
 
 	if container.Interactions == nil {
 		container.Interactions = make(map[string]*InteractionContainer)
@@ -176,30 +216,4 @@ func (c *ChannelMessage) FetchRelatives(query *Query) (*ChannelMessageContainer,
 	}
 	container.Interactions["like"] = interactionContainer
 	return container, nil
-}
-
-func (c *ChannelMessage) BuildMessage(query *Query) (*ChannelMessageContainer, error) {
-	cmc, err := c.FetchRelatives(query)
-	if err != nil {
-		return nil, err
-	}
-
-	mr := NewMessageReply()
-	mr.MessageId = c.Id
-	replies, err := mr.List()
-	if err != nil {
-		return nil, err
-	}
-
-	populatedChannelMessagesReplies := make([]*ChannelMessageContainer, len(replies))
-	for rl := 0; rl < len(replies); rl++ {
-		cmrc, err := replies[rl].FetchRelatives(query)
-		if err != nil {
-			return nil, err
-		}
-		populatedChannelMessagesReplies[rl] = cmrc
-	}
-
-	cmc.Replies = populatedChannelMessagesReplies
-	return cmc, nil
 }
