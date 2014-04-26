@@ -9,7 +9,9 @@ module.exports = [
   "views/features.coffee"
   "views/productform.coffee"
   "views/breadcrumbview.coffee"
-  "AppController.coffee"
+
   "AppView.coffee"
+  "AppController.coffee"
+
   "styl/pricing.styl"
 ]
