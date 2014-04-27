@@ -112,5 +112,6 @@ class AvatarAreaIconMenu extends JView
       "JGroup"
     ]
     notifications.filter (notification) ->
+      return  unless notification.snapshot
       snapshot = JSON.parse Encoder.htmlDecode notification.snapshot
       snapshot.anchor.constructorName in activityNameMap
