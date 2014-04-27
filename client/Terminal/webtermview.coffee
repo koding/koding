@@ -223,13 +223,8 @@ class WebTermView extends KDView
     kite?.webtermGetSessions().then (sessions) =>
       hasResponse = yes
       return if @reconnected
-      @handleReconnect()
 
-    @utils.wait 500, =>
-      unless hasResponse
-        # TODO resolve this workaround
-        serviceGenericName = "terminal-kite-terminal-#{region}"
-        @reconnectAttemptFailed serviceGenericName, hostnameAlias
+    @handleReconnect()
 
   clearConnectionAttempts: ->
     @clearBackoffTimeout()
