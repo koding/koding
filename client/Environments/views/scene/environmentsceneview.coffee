@@ -111,7 +111,7 @@ class EnvironmentScene extends KDDiaScene
         return new KDNotificationView
           type     : "mini"
           cssClass : "error"
-          title    : "Sorry, we couldn't bind your rule to your VM, please try again."
+          title    : "Sorry, we couldn't unbind your rule from your VM, please try again."
           duration : 4000
 
   updateConnections:->
