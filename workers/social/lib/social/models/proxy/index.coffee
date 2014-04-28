@@ -31,6 +31,8 @@ module.exports = class JProxyFilter extends jraphical.Module
       static          :
         create        : (signature Object, Function)
         fetch         : (signature Object, Function)
+      instance        :
+        remove        : (signature Function)
 
   @create: secure (client, data, callback = noop) ->
     {delegate}    = client.connection
@@ -66,3 +68,8 @@ module.exports = class JProxyFilter extends jraphical.Module
     JProxyFilter.some query, {}, (err, filters) ->
       return callback err, null  if err
       callback null, filters
+
+  remove$: secure (client, callback = noop) ->
+    {delegate} = client.connection
+    if @owner.toString() is delegate.getId().toString()
+      @remove (err) -> callback err
