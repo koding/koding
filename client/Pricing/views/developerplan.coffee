@@ -19,8 +19,8 @@ class DeveloperPlan extends PricingPacksView
     cssClass     : "green"
     packFeatures :
       "CPU"      : "4x"
-      "RAM"      : "2GB"
-      "DISK"     : "10GB"
+      "RAM"      : "4GB"
+      "DISK"     : "20GB"
       "VMs"      : "20x"
       "Always On": "2x"
     price        : "$39"
@@ -30,8 +30,8 @@ class DeveloperPlan extends PricingPacksView
     cssClass     : "yellow"
     packFeatures :
       "CPU"      : "6x"
-      "RAM"      : "2GB"
-      "DISK"     : "10GB"
+      "RAM"      : "6GB"
+      "DISK"     : "30GB"
       "VMs"      : "30x"
       "Always On": "3x"
     price        : "$59"
@@ -41,8 +41,8 @@ class DeveloperPlan extends PricingPacksView
     cssClass     : "orange"
     packFeatures :
       "CPU"      : "8x"
-      "RAM"      : "2GB"
-      "DISK"     : "10GB"
+      "RAM"      : "8GB"
+      "DISK"     : "40GB"
       "VM"       : "40x"
       "Always On": "4x"
     price        : "$79"
@@ -52,8 +52,8 @@ class DeveloperPlan extends PricingPacksView
     cssClass     : "red"
     packFeatures :
       "CPU"      : "10x"
-      "RAM"      : "2GB"
-      "DISK"     : "10GB"
+      "RAM"      : "10GB"
+      "DISK"     : "50GB"
       "VMs"      : "50x"
       "Always On": "5x"
     price        : "$99"
