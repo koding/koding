@@ -71,5 +71,12 @@ module.exports = class JProxyFilter extends jraphical.Module
 
   remove$: secure (client, callback = noop) ->
     {delegate} = client.connection
+    filterId   = @getId()
+
     if @owner.toString() is delegate.getId().toString()
-      @remove (err) -> callback err
+      @remove (err) =>
+        return callback err  if err
+
+        JProxyRestriction = require "./restriction"
+        JProxyRestriction.clear client, @getId(), (err) ->
+          callback err

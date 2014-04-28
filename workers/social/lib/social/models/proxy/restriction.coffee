@@ -103,7 +103,6 @@ module.exports = class JProxyRestriction extends jraphical.Module
   # This method will remove JProxyFilter id references inside JProxyRestictions.
   # Also see the comment in EnvrionmentRuleItem::confirmDestroy.
   @clear: secure (client, filterId, callback) ->
-    filterId    = ObjectId(filterId)
     selector    =
       filters   :
         $in     : [filterId]

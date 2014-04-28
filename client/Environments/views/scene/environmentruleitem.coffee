@@ -34,10 +34,4 @@ class EnvironmentRuleItem extends EnvironmentItem
       content      : "<div class='modalformline'>This will remove the rule <b>#{data.name}</b> permanently, there is no way back!</div>"
 
     deletionModal = new DomainDeletionModal options, @getData()
-    deletionModal.on "domainRemoved", =>
-      # we should call this method in JProxyFilter.remove but there is a
-      # circular dependency for JProxyRestriction, so calling it from client.
-      KD.remote.api.JProxyRestriction.clear @getData().getId(), (err) =>
-        return KD.showError err  if err
-
-      @destroy()
+    deletionModal.on "domainRemoved", @bound "destroy"
