@@ -90,7 +90,7 @@ class EnvironmentScene extends KDDiaScene
 
     KD.remote.api.JProxyRestriction.create {
       domainName : domain.domain
-      filterId   : rule.getId?() or rule.filter?._id
+      filterId   : rule.getId()
     }, (err, restriction) ->
       if err
         return new KDNotificationView
