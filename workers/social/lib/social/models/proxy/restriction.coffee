@@ -30,8 +30,8 @@ module.exports = class JProxyRestriction extends jraphical.Module
           (signature Object, Function)
         remove    :
           (signature Object, Function)
-        fetch     :
-          (signature Object, Function)
+        some      :
+          (signature Object, Object, Function)
         clear     :
           (signature String, Function)
       instance    : {}
@@ -49,7 +49,7 @@ module.exports = class JProxyRestriction extends jraphical.Module
       if userDomains.indexOf(domainName) is -1
         return callback new KodingError { message: "Access Denied" }
 
-      JProxyFilter.fetch client, { _id: filterId }, (err, filter) ->
+      JProxyFilter.some { _id: filterId }, {}, (err, filter) ->
         unless filter.length
           return callback new KodingError { message: "Access Denied" }
 
@@ -89,7 +89,7 @@ module.exports = class JProxyRestriction extends jraphical.Module
       restriction.update { $pullAll: { filters: [filterId] } }, (err) ->
         callback err, restriction
 
-  @fetch: secure (client, query, callback) ->
+  @some$: secure (client, query, options, callback) ->
     query.owner = client.connection.delegate.getId()
 
     JProxyRestriction.some query, {}, (err, restrictions) ->
@@ -114,6 +114,6 @@ module.exports = class JProxyRestriction extends jraphical.Module
     # is there a way to use selector and updater in a single update query
     # instead of fetching all and looping over them
     # like db.update selector, updater, callback
-    JProxyRestriction.fetch client, selector, (err, restrictions) ->
+    JProxyRestriction.some selector, {}, (err, restrictions) ->
       for restriction in restrictions
         restriction.update updater, (err) -> callback err
