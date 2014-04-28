@@ -11,8 +11,10 @@ class Ace extends KDView
   constructor:(options, file)->
 
     super options, file
-    @lastSavedContents = ""
-    @appStorage = KD.getSingleton('appStorageController').storage 'Ace', '1.0.1'
+
+    @lastSavedContents     = ""
+    {appStorageController} = KD.singletons
+    @appStorage            = appStorageController.storage 'Ace', '1.0.1'
 
   setDomElement:(cssClass)->
 

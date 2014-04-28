@@ -187,7 +187,6 @@ config =
           secure      : 1
         environment   : 1
         activityFetchCount : 1
-        precompiledApi: 1
         authExchange  : 1
         github        :
           clientId    : 1

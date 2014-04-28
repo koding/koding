@@ -19,11 +19,9 @@ class ActivityAppView extends KDScrollView
 
     super options, data
 
-    # FIXME: disable live updates - SY
     {entryPoint}      = KD.config
     {
       windowController
-      widgetController
       mainController
       appStorageController
     } = KD.singletons
@@ -47,12 +45,12 @@ class ActivityAppView extends KDScrollView
     @groupDescription = new GroupDescription
     @groupMembers     = new GroupMembers
 
-
-
-    widgetController.showWidgets [
-      { view: @topWidgetWrapper,  key: 'ActivityTop'  }
-      { view: @leftWidgetWrapper, key: 'ActivityLeft' }
-    ]
+    mainController.ready =>
+      {widgetController} = KD.singletons
+      widgetController.showWidgets [
+        { view: @topWidgetWrapper,  key: 'ActivityTop'  }
+        { view: @leftWidgetWrapper, key: 'ActivityLeft' }
+      ]
 
     @inputWidget.on 'ActivitySubmitted', @bound 'activitySubmitted'
     mainController.on 'AccountChanged', @bound "decorate"
@@ -62,8 +60,6 @@ class ActivityAppView extends KDScrollView
       {@filterWarning} = @feedWrapper
       {feedFilterNav}  = @activityHeader
       feedFilterNav.unsetClass 'multiple-choice on-off'
-
-    @once 'viewAppended', =>
 
 
   viewAppended: ->

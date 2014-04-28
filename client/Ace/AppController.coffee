@@ -8,15 +8,13 @@ class AceAppController extends AppController
     name          : "Ace"
     multiple      : yes
     hiddenHandle  : no
-    enforceLogin  : yes
     openWith      : "lastActive"
-    route         :
-      slug        : "/:name?/Ace"
-      handler     : ({params:{name}, query})->
-        router = KD.getSingleton 'router'
-        # warn "ace handling itself", name, query, arguments
-        router.openSection "Ace", name, query
     behavior      : "application"
+    preCondition  :
+      condition   : (options, cb)-> cb KD.isLoggedIn()
+      failure     : (options, cb)->
+        KD.singletons.appManager.open 'Ace', conditionPassed : yes
+        KD.showEnforceLoginModal()
     menu          : [
       { title     : "Save",                eventName : "save" }
       { title     : "Save as...",          eventName : "saveAs" }
