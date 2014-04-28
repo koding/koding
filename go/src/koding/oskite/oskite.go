@@ -130,7 +130,7 @@ func (o *Oskite) Run() {
 	o.handleCurrentVMs()   // handle leftover VMs
 	o.startPinnedVMs()     // start pinned always-on VMs
 	o.setupSignalHandler() // handle SIGUSR1 and other signals.
-	o.vmUpdater()          // get states of VMS and update them on MongoDB
+	go o.vmUpdater()       // get states of VMS and update them on MongoDB
 
 	// register current client-side methods
 	o.registerMethod("vm.start", false, vmStartOld)
@@ -368,6 +368,24 @@ func currentVMs() ([]bson.ObjectId, error) {
 	return vms, nil
 }
 
+// vmUpdater updates the states of current available VMs on the host machine.
+func (o *Oskite) vmUpdater() {
+	for _ = range time.Tick(time.Second * 10) {
+		vmIds, err := currentVMs()
+		if err != nil {
+			log.Error("vm updater getting current vms err %v", err)
+			continue
+		}
+
+		for _, vmId := range vmIds {
+			if err := updateState(vmId); err != nil {
+				log.Error("vm updater vmId %s err %v", vmId, err)
+			}
+		}
+	}
+
+}
+
 // handleCurrentVMs removes and unprepare any vm in the lxc dir that doesn't
 // have any associated document which in mongodbConn.
 func (o *Oskite) handleCurrentVMs() {
@@ -408,7 +426,7 @@ func (o *Oskite) handleCurrentVMs() {
 		infos[vm.Id] = info
 		infosMutex.Unlock()
 
-		if err := updateState(&vm); err != nil {
+		if err := updateState(vm.Id); err != nil {
 			log.Error("%v", err)
 		}
 
@@ -738,18 +756,14 @@ func (o *Oskite) startVM(vm *virt.VM, channel *kite.Channel) error {
 	return startAndPrepareVM(vm)
 }
 
-func (o *Oskite) vmUpdater() error {
-	return nil
-}
-
-func updateState(vm *virt.VM) error {
-	state := vm.GetState()
+func updateState(vmId bson.ObjectId) error {
+	state := virt.GetVMState(vmId)
 	if state == "" {
 		state = "UNKNOWN"
 	}
 
 	query := func(c *mgo.Collection) error {
-		return c.Update(bson.M{"_id": vm.Id}, bson.M{"$set": bson.M{"state": state}})
+		return c.Update(bson.M{"_id": vmId}, bson.M{"$set": bson.M{"state": state}})
 	}
 
 	return mongodbConn.Run("jVMs", query)
