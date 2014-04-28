@@ -45,12 +45,16 @@ func (m *MessageReply) AfterDelete() {
 	bongo.B.AfterDelete(m)
 }
 
-func (m *MessageReply) Fetch() error {
-	return bongo.B.Fetch(m)
+func (m *MessageReply) ById(id int64) error {
+	return bongo.B.ById(m, id)
 }
 
 func (m *MessageReply) Create() error {
 	return bongo.B.Create(m)
+}
+
+func (m *MessageReply) Some(data interface{}, q *bongo.Query) error {
+	return bongo.B.Some(m, data, q)
 }
 
 func (m *MessageReply) Delete() error {
@@ -71,17 +75,35 @@ func (m *MessageReply) DeleteByOrQuery(messageId int64) error {
 	return nil
 }
 
-func (m *MessageReply) List() ([]ChannelMessage, error) {
+func (m *MessageReply) List(query *Query) ([]ChannelMessage, error) {
+	return m.fetchMessages(query)
+}
+
+func (m *MessageReply) ListAll() ([]ChannelMessage, error) {
+	query := NewQuery()
+	query.Limit = 0
+	query.Skip = 0
+	return m.fetchMessages(query)
+}
+
+func (m *MessageReply) fetchMessages(query *Query) ([]ChannelMessage, error) {
 	var replies []int64
 
 	if m.MessageId == 0 {
 		return nil, errors.New("MessageId is not set")
 	}
 
-	if err := bongo.B.DB.Table(m.TableName()).
-		Where("message_id = ?", m.MessageId).
-		Pluck("reply_id", &replies).
-		Error; err != nil {
+	q := &bongo.Query{
+		Selector: map[string]interface{}{
+			"message_id": m.MessageId,
+		},
+		Pluck: "reply_id",
+		Skip:  query.Skip,
+		Limit: query.Limit,
+		Sort:  map[string]string{"created_at": "DESC"},
+	}
+
+	if err := m.Some(&replies, q); err != nil {
 		return nil, err
 	}
 

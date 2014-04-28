@@ -150,8 +150,7 @@ func (f *RealtimeWorkerController) handleChannelParticipantEvent(eventName strin
 	}
 
 	c := models.NewChannel()
-	c.Id = cp.ChannelId
-	if err := c.Fetch(); err != nil {
+	if err := c.ById(cp.ChannelId); err != nil {
 		return err
 	}
 	return f.sendNotification(cp.AccountId, eventName, c)
@@ -199,8 +198,7 @@ func (f *RealtimeWorkerController) MessageReplySaved(data []byte) error {
 	}
 
 	reply := models.NewChannelMessage()
-	reply.Id = i.ReplyId
-	if err := reply.Fetch(); err != nil {
+	if err := reply.ById(i.ReplyId); err != nil {
 		return err
 	}
 
@@ -315,9 +313,7 @@ func (f *RealtimeWorkerController) sendChannelEvent(cml *models.ChannelMessageLi
 	}
 
 	cm := models.NewChannelMessage()
-	cm.Id = cml.MessageId
-
-	if err := cm.Fetch(); err != nil {
+	if err := cm.ById(cml.MessageId); err != nil {
 		return err
 	}
 
@@ -362,8 +358,7 @@ func fetchSecretNames(channelId int64) ([]string, error) {
 
 func fetchChannel(channelId int64) (*models.Channel, error) {
 	c := models.NewChannel()
-	c.Id = channelId
-	if err := c.Fetch(); err != nil {
+	if err := c.ById(channelId); err != nil {
 		return nil, err
 	}
 	return c, nil
