@@ -32,6 +32,8 @@ module.exports = class JProxyRestriction extends jraphical.Module
           (signature Object, Function)
         fetch     :
           (signature Object, Function)
+        clear     :
+          (signature String, Function)
       instance    : {}
 
   validate = (client, data, callback) ->
@@ -93,3 +95,26 @@ module.exports = class JProxyRestriction extends jraphical.Module
     JProxyRestriction.some query, {}, (err, restrictions) ->
       return callback err, null  if err
       callback null, restrictions
+
+  # When user create a firewall rule in environments, we create a JProxyFilter
+  # document. When user wants to bind that rule to a domain we create a new
+  # JProxyRestriction document. This document is unique for domain.
+  # Inside JProxyRestriction there is a filters array that holds JProxtFilter ids.
+  # This method will remove JProxyFilter id references inside JProxyRestictions.
+  # Also see the comment in EnvrionmentRuleItem::confirmDestroy.
+  @clear: secure (client, filterId, callback) ->
+    filterId    = ObjectId(filterId)
+    selector    =
+      filters   :
+        $in     : [filterId]
+
+    updater     =
+      $pullAll  :
+        filters : [filterId]
+
+    # is there a way to use selector and updater in a single update query
+    # instead of fetching all and looping over them
+    # like db.update selector, updater, callback
+    JProxyRestriction.fetch client, selector, (err, restrictions) ->
+      for restriction in restrictions
+        restriction.update updater, (err) -> callback err
