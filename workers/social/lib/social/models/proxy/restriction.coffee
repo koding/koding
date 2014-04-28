@@ -107,13 +107,9 @@ module.exports = class JProxyRestriction extends jraphical.Module
       filters   :
         $in     : [filterId]
 
-    updater     =
+    operation   =
       $pullAll  :
         filters : [filterId]
 
-    # is there a way to use selector and updater in a single update query
-    # instead of fetching all and looping over them
-    # like db.update selector, updater, callback
-    JProxyRestriction.some selector, {}, (err, restrictions) ->
-      for restriction in restrictions
-        restriction.update updater, (err) -> callback err
+    JProxyRestriction.update selector, operation, { multi: true }, (err) ->
+      callback err
