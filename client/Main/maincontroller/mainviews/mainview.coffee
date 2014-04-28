@@ -80,7 +80,6 @@ class MainView extends KDView
 
   hideDock:-> @header.setClass 'no-dock'
 
-
   addLoggedOutNav:->
 
     @headerContainer.addSubView loggedOutNav = new KDCustomHTMLView
@@ -90,7 +89,7 @@ class MainView extends KDView
         <a href='/Business'  class='business'>BUSINESS</a>
         <a href='/About'     class='about'>ABOUT</a>
         <a href='/Pricing'   class='pricing'>PRICING</a>
-        <a href='/Login' class='login'>LOGIN</a>
+        <a href='/Login' class='login'>SIGN IN</a>
         """
 
     appManager    = KD.singleton "appManager"
