@@ -99,9 +99,9 @@ class LoginView extends KDView
       tagName   : "a"
       cssClass  : "koding-logo"
       partial   : '<cite></cite>'
-      click     : (event)=>
+      click     : (event)->
         KD.utils.stopDOMEvent event
-        location.replace '/'
+        homeHandler()
 
     @backToLoginLink = new KDCustomHTMLView
       tagName     : "a"
