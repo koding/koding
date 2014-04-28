@@ -31,13 +31,6 @@ class MainTabView extends KDTabView
     else
       @appManager.showInstance appInstance
 
-  showPane:(pane)->
-
-    super pane
-
-    @emit "MainTabPaneShown", pane
-
-    return pane
 
   removePane: (pane) ->
     # we don't want to use ::showPane

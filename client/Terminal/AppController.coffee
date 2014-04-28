@@ -4,14 +4,13 @@ class WebTermController extends AppController
     name         : "Terminal"
     title        : "Terminal"
     version      : "1.0.1"
-    enforceLogin : yes
-    route        :
-      slug       : "/:name?/Terminal"
-      handler    : ({params:{name}, query})->
-        router = KD.getSingleton 'router'
-        router.openSection "Terminal", name, query
     multiple     : yes
     hiddenHandle : no
+    preCondition :
+      condition  : (options, cb)-> cb KD.isLoggedIn()
+      failure    : (options, cb)->
+        KD.singletons.appManager.open 'Terminal', conditionPassed : yes
+        KD.showEnforceLoginModal()
     menu         :
       width      : 250
       items      : [

@@ -7,9 +7,7 @@ class ApplicationManager extends KDObject
     - AppIsBeingShown             [appController, appView, appOptions]
   ###
 
-  manifestsFetched = no
-
-  constructor:->
+  constructor: ->
 
     super
 
@@ -242,8 +240,11 @@ class ApplicationManager extends KDObject
 
   getFrontApp:-> @frontApp
 
-  setFrontApp:(appInstance)->
+  setFrontApp: (appInstance) ->
 
+    {router}  = KD.singletons
+    {name} = appInstance.getOptions()
+    router.setPageTitle name  if name
     @setLastActiveIndex appInstance
     @frontApp = appInstance
 

@@ -15,7 +15,7 @@ module.exports = (options, callback)->
       <title>Koding | A New Way For Developers To Work</title>
       #{getStyles()}
     </head>
-    <body>
+    <body class='logged-in'>
 
       <!--[if IE]><script>(function(){window.location.href='/unsupported.html'})();</script><![endif]-->
 
@@ -26,7 +26,6 @@ module.exports = (options, callback)->
     </html>
     """
 
-  options.intro = no
   fetchScripts options, (err, scripts)->
     callback null, prepareHTML scripts
 

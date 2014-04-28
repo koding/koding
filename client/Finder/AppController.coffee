@@ -10,7 +10,7 @@ class FinderController extends KDController
 
     super options, data
 
-  createFileFromPath:(rest...)-> FSHelper.createFileFromPath rest...
+  createFileFromPath: -> FSHelper.createFileFromPath arguments...
 
   create: (options = {}) ->
     options.useStorage       ?= yes

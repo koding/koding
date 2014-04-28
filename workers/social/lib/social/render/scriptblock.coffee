@@ -1,7 +1,6 @@
 module.exports = (options = {}, callback)->
   encoder = require 'htmlencode'
 
-  options.intro                 ?= no
   options.client               or= {}
   options.client.context       or= {}
   options.client.context.group or= "koding"
@@ -9,26 +8,27 @@ module.exports = (options = {}, callback)->
 
   {argv} = require 'optimist'
 
-  prefetchedFeeds  = {}
-  customPartial    = {}
-  campaignData     = {}
-  currentGroup     = {}
+  prefetchedFeeds  = null
+  customPartial    = null
+  campaignData     = null
+  currentGroup     = null
   usePremiumBroker = no
 
-  {bongoModels, client, intro, slug} = options
+  {bongoModels, client, slug} = options
 
   createHTML = ->
+    if client.connection?.delegate?.profile?.nickname
+      {connection: {delegate}} = client
+      {profile   : {nickname}, _id} = delegate
+
     replacer             = (k, v)-> if 'string' is typeof v then encoder.XSSEncode v else v
     encodedFeed          = JSON.stringify prefetchedFeeds, replacer
     encodedCampaignData  = JSON.stringify campaignData, replacer
     encodedCustomPartial = JSON.stringify customPartial, replacer
-    currentGroup         = JSON.stringify currentGroup, replacer
+    currentGroup         = JSON.stringify currentGroup
+    userAccount          = JSON.stringify delegate
 
     usePremiumBroker = usePremiumBroker or options.client.context.group isnt "koding"
-
-    if client.connection?.delegate?.profile?.nickname
-      {connection: {delegate}}      = client
-      {profile   : {nickname}, _id} = delegate
 
     {rollbar, version, environment} = KONFIG
 
@@ -50,9 +50,13 @@ module.exports = (options = {}, callback)->
     <script>KD.campaignData=#{encodedCampaignData}</script>
     <script src='/a/js/kd.libs.#{KONFIG.version}.js'></script>
     <script src='/a/js/kd.#{KONFIG.version}.js'></script>
-    #{if intro then "<script src='/a/js/introapp.#{ KONFIG.version }.js'></script>" else ''}
-    <script>KD.currentGroup=#{currentGroup};</script>
     <script src='/a/js/koding.#{KONFIG.version}.js'></script>
+    <script>
+    KD.utils.defer(function () {
+      KD.currentGroup = KD.remote.revive(#{currentGroup});
+      KD.userAccount = KD.remote.revive(#{userAccount});
+    });
+    </script>
     <script>KD.prefetchedFeeds=#{encodedFeed};</script>
 
     <!-- Google Analytics -->
@@ -146,10 +150,7 @@ module.exports = (options = {}, callback)->
           if not err and campaignData_ and campaignData_.data
             campaignData = campaignData_.data
           if group
-            currentGroup =
-              logo       : group.customize?.logo or ""
-              coverPhoto : group.customize?.coverPhoto or ""
-              id         : group.getId()
+            currentGroup = group
           kallback()
 
 

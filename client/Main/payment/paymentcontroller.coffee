@@ -2,12 +2,13 @@ class PaymentController extends KDController
 
   fetchPaymentMethods: (callback) ->
 
-    { dash } = Bongo
-
-    methods = null
+    {dash}                 = Bongo
+    methods                = null
     preferredPaymentMethod = null
-    appStorage = new AppStorage 'Account', '1.0'
-    queue = [
+    {appStorageController} = KD.singletons
+    appStorage             = appStorageController.storage 'Account', '1.0'
+
+    queue      = [
 
       -> appStorage.fetchStorage ->
         preferredPaymentMethod = appStorage.getValue 'preferredPaymentMethod'
@@ -149,9 +150,8 @@ class PaymentController extends KDController
         else if createAccount
           { cardFirstName: firstName, cardLastName: lastName } = billing
           { JUser } = KD.remote.api
-          JUser.convert { firstName, lastName, email }, (err, {recoveryToken}) =>
+          JUser.convert { firstName, lastName, email }, (err) =>
             return KD.showError err  if err
-            workflow.emit "PasswordRecoveryToken", recoveryToken
             JUser.logout ->
         else
           @emit "SubscriptionCompleted"

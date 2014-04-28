@@ -34,16 +34,9 @@ class DockController extends KDViewController
       items        : []
 
     mainController = KD.getSingleton 'mainController'
+
     mainController.ready @bound 'accountChanged'
 
-    @storage.fetchValue 'navItems', (usersNavItems)=>
-
-      unless usersNavItems
-        @setNavItems defaultItems
-        return @emit 'ready'
-
-      @setNavItems @buildNavItems usersNavItems
-      @emit 'ready'
 
   buildNavItems:(sourceItems)->
 
@@ -117,10 +110,22 @@ class DockController extends KDViewController
     @saveItemOrders()
 
   accountChanged:->
+
     @navController.reset()
+    @storage.fetchValue 'navItems', (usersNavItems)=>
+
+      unless usersNavItems
+        @setNavItems defaultItems
+        return @emit 'ready'
+
+      @setNavItems @buildNavItems usersNavItems
+      @emit 'ready'
+
 
   getItems:->
+
     @navController.getView().items
+
 
   setNavItemState:({name, route, options}, state)->
 

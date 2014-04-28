@@ -19,17 +19,21 @@ html.app
     height          100%
 
 body
-  font-family       neueFamily
+  font-family       openSansFamily
   font-weight       300
-  bg                color, #e4e4e4
 
   &.noscroll
     overflow        hidden
 
+  &.logged-in
+    #main-header
+      nav
+        hidden()
+
 input
 textarea
 button
-  font-family       neueFamily
+  font-family       openSansFamily
 
 pre
   font-family       monoFamily
@@ -55,6 +59,7 @@ pre
     #main-header
       hidden()
 
+
 #main-header
   margin              0
   size                100%,55px
@@ -67,15 +72,90 @@ pre
   .inner-container
     bg                  color, #1f2628
     size                100%, 55px
-    vendor              transform, translateY(0)
-    -webkit-transition  -webkit-transform .2s ease
-    -moz-transition     -moz-transform .2s ease
-    transition          transform .2s ease
+    // vendor              transform, translateY(0)
+    // -webkit-transition  -webkit-transform .2s ease
+    // -moz-transition     -moz-transform .2s ease
+    // transition          transform .2s ease
     z-index             1
     rel()
 
     .logotype
       hidden()
+
+    nav
+      line-height         18px
+      fr()
+
+      a
+        -webkit-font-smoothing  antialiased
+        font-smoothing          antialiased
+
+        font-size         16px
+        margin-left       12px
+        font-weight       600
+        font-family       openSansFamily
+        color             #e9e9e9
+        padding-bottom    1px
+        noTextDeco()
+        visibility        hidden
+
+        &.active
+          border-bottom   1px solid #e9e9e9
+
+        &:last-child
+          visibility      visible
+
+        &.login
+          padding         6px 12px
+          rounded         4px
+          margin-left     21px
+          border          1px solid rgba(255, 255, 255, .3)
+
+  &.no-dock
+    max-width             1290px
+    shadow                none
+    margin                0
+    padding               0 45px
+    abs                   48px 0 0 50%
+    vendor                transform, translateX(-50%)
+    z-index               15
+    borderBox()
+
+
+    #dock
+    .account-area
+      hidden()
+
+    .inner-container
+      bg                  color, transparent
+
+    .logotype
+      font-size               24px
+      color                   #444
+      font-weight             700
+      line-height             16px
+      color                   #fff
+      font-family             asapFamily
+      -webkit-font-smoothing  antialiased
+      noTextDeco()
+      visible()
+      fl()
+
+    #koding-logo
+      margin              0 14px 0 0
+      size                auto auto
+      bg                  color, transparent
+      position            static
+      letter-spacing      .01em
+      fl()
+
+      cite
+        r-sprite          home 'logo'
+        margin            0
+        display           block
+
+    nav a
+      visibility          visible
 
 .header-notification
   size                100% 26px
@@ -121,13 +201,6 @@ pre
     span.close.icon
       display         block
       r-sprite        app '16-close-white'
-
-
-.intro #main-header
-.login #main-header
-  visibility            hidden
-  .inner-container
-    vendor              transform, translateY(-55px)
 
 
 #dock
@@ -291,17 +364,6 @@ pre
     width           auto
     vertical-align  top
 
-  .header-sign-in
-    color           #e5e5e5
-    font-size       18px
-    margin          18px 18px 0 0
-    display         inline-block
-    font-weight     300
-    noTextDeco()
-    &:first-child
-      border-right  1px solid #444
-      padding-right 20px
-
 
   .acc-dropdown-icon
     size            45px 55px
@@ -449,6 +511,16 @@ pre
     .search-form-container
       vendor          transform, rotateY(0deg)
       opacity         1
+
+  .header-sign-in
+    font-size         16px
+    color             #e9e9e9
+    line-height       55px
+    margin-right       8px
+    noTextDeco()
+
+    &:last-of-type
+      margin-right    18px
 
 
 #kdmaincontainer.logout-tv
@@ -1187,5 +1259,3 @@ div.nominateicon
     top                       8px !important
     vendor                    shadow, none
     vendor                    rounded, 4px
-
-
