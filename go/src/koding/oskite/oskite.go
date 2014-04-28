@@ -370,12 +370,9 @@ func (o *Oskite) handleCurrentVMS() {
 			prepareQueue <- &QueueJob{
 				msg: fmt.Sprintf("unprepare leftover vm %s [%s]", vm.HostnameAlias, vm.Id.Hex()),
 				f: func() (string, error) {
-					if err := virt.UnprepareVM(vmId); err != nil {
+					mockVM := &virt.VM{Id: vmId}
+					if err := mockVM.Unprepare(nil, false); err != nil {
 						log.Error("leftover unprepare: %v", err)
-					}
-
-					if err := updateState(&vm); err != nil {
-						log.Error("%v", err)
 					}
 
 					return fmt.Sprintf("unprepare finished for leftover vm %s", vmId), nil
@@ -737,42 +734,17 @@ func updateState(vm *virt.VM) error {
 }
 
 func startAndPrepareVM(vm *virt.VM) error {
-	prepared, err := isVmPrepared(vm)
-	if err != nil {
-		return err
-	}
-
 	var lastError error
 	done := make(chan struct{}, 1)
 	prepareQueue <- &QueueJob{
 		msg: "vm prepare and start " + vm.HostnameAlias,
 		f: func() (string, error) {
 			defer func() { done <- struct{}{} }()
-
 			startTime := time.Now()
 
-			if !prepared {
-				// prepare first
-				for step := range vm.Prepare(false) {
-					lastError = step.Err
-					if lastError != nil {
-						return "", fmt.Errorf("preparing VM %s", lastError)
-					}
-				}
-			}
-
-			// start it
-			if err := vm.Start(); err != nil {
-				log.LogError(err, 0)
-			}
-
-			// wait until network is up
-			if err := vm.WaitForNetwork(time.Second * 5); err != nil {
-				log.Error("%v", err)
-			}
-
-			if err := updateState(vm); err != nil {
-				log.Error("%v", err)
+			// prepare first
+			if lastError = prepareProgress(nil, vm); lastError != nil {
+				return "", fmt.Errorf("preparing VM %s", lastError)
 			}
 
 			res := fmt.Sprintf("VM PREPARE and START: %s [%s] - ElapsedTime: %.10f seconds.",

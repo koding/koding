@@ -68,8 +68,8 @@ func NewChannelMessage() *ChannelMessage {
 	return &ChannelMessage{}
 }
 
-func (c *ChannelMessage) Fetch() error {
-	return bongo.B.Fetch(c)
+func (c *ChannelMessage) ById(id int64) error {
+	return bongo.B.ById(c, id)
 }
 
 func (c *ChannelMessage) One(q *bongo.Query) error {

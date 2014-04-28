@@ -595,6 +595,8 @@ func RoundTrip(req *http.Request, round *resolver.RoundRing, index int) (*http.R
 
 	res, err := http.DefaultTransport.RoundTrip(outreq)
 	if err != nil {
+		log.Error("roundtrip error for server %s. picking up the next one. err: %s", backendServer, err)
+
 		index++
 		return RoundTrip(req, round, index) // pick up the next one
 	}

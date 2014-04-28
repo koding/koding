@@ -125,9 +125,8 @@ func isChannelEligible(cm *models.ChannelMessage) (bool, error) {
 // todo add caching here
 func fetchChannel(channelId int64) (*models.Channel, error) {
 	c := models.NewChannel()
-	c.Id = channelId
 	// todo - fetch only name here
-	if err := c.Fetch(); err != nil {
+	if err := c.ById(channelId); err != nil {
 		return nil, err
 	}
 

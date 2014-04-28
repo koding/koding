@@ -6,6 +6,7 @@ import (
 	"io"
 	"io/ioutil"
 	"koding/db/models"
+	"koding/tools/tracer"
 	"koding/tools/utils"
 	"koding/virt"
 	"log"
@@ -14,7 +15,6 @@ import (
 	"os/exec"
 	"strconv"
 	"strings"
-	"time"
 
 	"github.com/jessevdk/go-flags"
 	"labix.org/v2/mgo"
@@ -107,10 +107,7 @@ var actions = map[string]func(args []string){
 
 		for _, vm := range vms {
 			err := vm.Shutdown()
-
-			for step := range vm.Unprepare(false) {
-				err = step.Err
-			}
+			err = vm.Unprepare(tracer.DefaultTracer(), false)
 			fmt.Printf("%v: %v\n", vm, err)
 		}
 	},
@@ -157,19 +154,10 @@ var actions = map[string]func(args []string){
 				}
 				vm.ApplyDefaults()
 				fmt.Println(i, "preparing...")
-				for _ = range vm.Prepare(false) {
+				if err := vm.Prepare(tracer.DefaultTracer(), false); err != nil {
+					log.Println(i, "prepare", err)
 				}
 
-				fmt.Println(i, "starting...")
-				if err := vm.Start(); err != nil {
-					log.Println(i, "start", err)
-				}
-
-				// wait until network is up
-				fmt.Println(i, "waiting...")
-				if err := vm.WaitForNetwork(time.Second * 5); err != nil {
-					log.Print(i, "WaitForNetwork", err)
-				}
 				done <- fmt.Sprint(i, " vm-"+vm.Id.Hex())
 			}(i)
 		}

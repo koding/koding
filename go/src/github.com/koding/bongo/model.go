@@ -24,6 +24,18 @@ func (b *Bongo) Fetch(i Modellable) error {
 	return nil
 }
 
+func (b *Bongo) ById(i Modellable, id int64) error {
+	if err := b.DB.
+		Table(i.TableName()).
+		Where("id = ?", id).
+		Find(i).
+		Error; err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func (b *Bongo) Create(i Modellable) error {
 	if err := b.DB.Save(i).Error; err != nil {
 		return err

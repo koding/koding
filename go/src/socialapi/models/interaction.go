@@ -52,8 +52,8 @@ func (i *Interaction) One(q *bongo.Query) error {
 	return bongo.B.One(i, i, q)
 }
 
-func (i *Interaction) Fetch() error {
-	return bongo.B.Fetch(i)
+func (i *Interaction) ById(id int64) error {
+	return bongo.B.ById(i, id)
 }
 
 func (i *Interaction) Create() error {

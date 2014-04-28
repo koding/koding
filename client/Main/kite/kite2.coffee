@@ -44,4 +44,4 @@ class KDKite extends Kite
         # .tellOld is deprecated, but still used internally here temporarily
         @tellOld options, callback
 
-    .timeout classTimeout ? 5000
+    .timeout classTimeout ? 15000

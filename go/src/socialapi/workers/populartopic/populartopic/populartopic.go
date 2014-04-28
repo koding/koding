@@ -177,8 +177,7 @@ func (f *PopularTopicsController) isEligible(c *models.Channel) bool {
 // todo add caching here
 func fetchChannel(channelId int64) (*models.Channel, error) {
 	c := models.NewChannel()
-	c.Id = channelId
-	if err := c.Fetch(); err != nil {
+	if err := c.ById(channelId); err != nil {
 		return nil, err
 	}
 
