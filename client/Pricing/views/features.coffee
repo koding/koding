@@ -42,9 +42,10 @@ class PricingFeaturesView extends JView
         <i class="always-on icon"></i>
         <h5>ALWAYS ON</h5>
         <p>
-          The maximum number of VMs that you can create. For example,
-          if your total VM quota is 10, and you have 3GB RAM available,
-          you can only run 3 x 1GB RAM, and you will have 7 VMs that are turned off.
+          The maximum number of VMs that you can keep turned on 24/7. For example,
+          you bought a package comes with 10 VMs and one always-on VM.
+          The VM you mark as always-on will work 24/7 but the others will be taken
+          into sleep automatically in 15 minutes after you logout.
         </p>
         <p class="description">
           All Koding VMs are optimized for software development,
