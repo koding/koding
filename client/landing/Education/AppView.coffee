@@ -60,7 +60,7 @@ class EducationView extends KDView
         <div class="inner-container">
           <figure class="first">
             <header><i></i><i></i><i></i>https://koding.com/Terminal</header>
-            <video autoplay loop preload>
+            <video autoplay loop>
               <source src='https://koding-cdn.s3.amazonaws.com/movies/terminal.webm'>
               <source src='https://koding-cdn.s3.amazonaws.com/movies/terminal.mp4'>
             </video>
