@@ -99,18 +99,6 @@ projects =
     script        : "website/a/js/__app.viewer.#{KODING_VERSION}.js"
     sourceMapRoot : "Viewer/"
 
-  Workspace       :
-    path          : "client/Workspace"
-    style         : "website/a/css/__app.workspace.#{KODING_VERSION}.css"
-    script        : "website/a/js/__app.workspace.#{KODING_VERSION}.js"
-    sourceMapRoot : "Workspace/"
-
-  CollaborativeWorkspace:
-    path          : "client/CollaborativeWorkspace"
-    style         : "website/a/css/__app.collaborativeworkspace.#{KODING_VERSION}.css"
-    script        : "website/a/js/__app.collaborativeworkspace.#{KODING_VERSION}.js"
-    sourceMapRoot : "CollaborativeWorkspace/"
-
   Teamwork        :
     path          : "client/Teamwork"
     style         : "website/a/css/__app.teamwork.#{KODING_VERSION}.css"
@@ -194,8 +182,7 @@ bundles           =
     script        : "website/a/js/koding.#{KODING_VERSION}.js"
 
   TeamworkBundle  :
-    projects      : ['Ace', 'Terminal', 'Viewer', 'Workspace',
-                     'CollaborativeWorkspace', 'Teamwork', 'DevTools']
+    projects      : ['Ace', 'Terminal', 'Viewer', 'Teamwork', 'DevTools']
     style         : "website/a/css/__teamwork.#{KODING_VERSION}.css"
     script        : "website/a/js/__teamwork.#{KODING_VERSION}.js"
 
