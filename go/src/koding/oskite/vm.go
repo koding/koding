@@ -335,6 +335,7 @@ func (o *Oskite) vmPrepareAndStart(args *dnode.Partial, channel *kite.Channel, v
 }
 
 func (o *Oskite) prepareAndStart(vos *virt.VOS, username, groupId string, pre Preparer) (interface{}, error) {
+
 	dlocksMu.Lock()
 	dlock, ok := dlocks[username]
 	if !ok {
@@ -384,7 +385,8 @@ func (o *Oskite) prepareAndStart(vos *virt.VOS, username, groupId string, pre Pr
 		msg: "vm.prepareAndStart " + vos.VM.HostnameAlias,
 		f: func() (string, error) {
 			if pre.Enabled() {
-				// mutex is needed because it's handled in the queue
+				// mutexes and locks are needed because it's handled in the
+				// queue.
 				info := getInfo(vos.VM)
 				info.mutex.Lock()
 				defer info.mutex.Unlock()
