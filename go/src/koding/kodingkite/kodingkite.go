@@ -13,7 +13,6 @@ import (
 
 	"github.com/koding/kite"
 	kiteconfig "github.com/koding/kite/config"
-	"github.com/koding/kite/kontrolclient"
 	"github.com/koding/kite/registration"
 	"github.com/koding/kite/server"
 	"github.com/koding/logging"
@@ -21,7 +20,7 @@ import (
 
 type KodingKite struct {
 	*server.Server
-	Kontrol          *kontrolclient.KontrolClient
+	Kite             *kite.Kite
 	Registration     *registration.Registration
 	KodingConfig     *kodingconfig.Config
 	registerHostname string
@@ -42,12 +41,10 @@ func New(kodingConf *kodingconfig.Config, name, version string) (*KodingKite, er
 
 	server := server.New(k)
 
-	kon := kontrolclient.New(k)
-
 	kk := &KodingKite{
 		Server:       server,
-		Kontrol:      kon,
-		Registration: registration.New(kon),
+		Kite:         k,
+		Registration: registration.New(k),
 		KodingConfig: kodingConf,
 		scheme:       "ws",
 	}
@@ -85,15 +82,8 @@ func (k *KodingKite) Start() {
 		Path: "/" + k.Kite.Kite().Name + "-" + k.Kite.Kite().Version,
 	}
 
-	connected, err := k.Kontrol.DialForever()
-	if err != nil {
-		k.Server.Log.Fatal("Cannot dial kontrol: %s", err.Error())
-	}
 	k.Server.Start()
-	go func() {
-		<-connected
-		k.Registration.RegisterToKontrol(registerWithURL)
-	}()
+	go k.Registration.RegisterToKontrol(registerWithURL)
 }
 
 func (k *KodingKite) Run() {
@@ -102,7 +92,7 @@ func (k *KodingKite) Run() {
 }
 
 func (k *KodingKite) Close() {
-	k.Kontrol.Close()
+	k.Kite.Kontrol.Close()
 	k.Server.Close()
 }
 
