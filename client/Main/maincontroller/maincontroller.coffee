@@ -34,7 +34,6 @@ class MainController extends KDController
 
     KD.registerSingleton "mainController",            this
 
-    # if KD.useNewKites
     KD.registerSingleton "kontrol",                   new KodingKontrol
 
     KD.registerSingleton 'appManager',   appManager = new ApplicationManager
@@ -68,7 +67,6 @@ class MainController extends KDController
       KD.registerSingleton 'widgetController',        new WidgetController
       KD.registerSingleton 'onboardingController',    new OnboardingController
       KD.registerSingleton "socialapi",               new SocialApiController
-      # KD.registerSingleton "kontrol",                 new Kontrol
 
       @emit 'AppIsReady'
 
@@ -248,8 +246,8 @@ class MainController extends KDController
     idleDetector = new IdleUserDetector { threshold }
     @forwardEvents idleDetector, ['userIdle', 'userBack']
 
-  startCachingAssets:->
 
+  startCachingAssets:->
 
     KD.utils.defer ->
 
