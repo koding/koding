@@ -109,6 +109,7 @@ pre
         &.login
           padding         7px 13px
           rounded         4px
+          white-space     nowrap
           margin-left     21px
           font-size       14px
           font-weight     600
@@ -1262,3 +1263,32 @@ div.nominateicon
     top                       8px !important
     vendor                    shadow, none
     vendor                    rounded, 4px
+
+
+@media only screen and (min-width : 320px) and (max-width : 568px)
+  #main-header.no-dock
+    #koding-logo
+      kalc                margin-left, 50% \- 60px
+
+    nav
+      float               none
+      clear               both
+      padding-top         48px
+      text-align          center
+
+      a
+        font-size         14px
+
+        &:first-of-type
+          margin-left     0
+
+        &.about
+        &.pricing
+          display         none
+
+        &.login
+          padding         0
+          rounded         0
+          margin-left     12px
+          font-weight     500
+          border          none
