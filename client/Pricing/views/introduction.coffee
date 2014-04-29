@@ -5,18 +5,21 @@ class PricingIntroductionView extends KDView
     super options, data
 
   viewAppended: ->
-    @addSubView new KDHeaderView
+    @addSubView innerContainer = new KDCustomHTMLView
+      cssClass  : 'inner-container'
+
+    innerContainer.addSubView new KDHeaderView
       type      : 'medium'
       title     : 'Simple pricing for any team or developer'
 
-    @addSubView new KDCustomHTMLView
+    innerContainer.addSubView new KDCustomHTMLView
       tagName   : 'p'
       partial   : 'Which one describes your current situation?'
 
     router         = KD.singleton 'router'
     currentSection = router.currentPath.split('/')[2]
 
-    @addSubView new KDMultipleChoice
+    innerContainer.addSubView new KDMultipleChoice
       labels        : ['Developer', 'Team']
       defaultValue  : [currentSection]
       multiple      : no

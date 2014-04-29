@@ -14,6 +14,7 @@ body.dashboard
 body.account
 body.apps
 body.environments
+body.profile
   bg                    color, #e4e4e4
 
 html.app
@@ -1515,25 +1516,21 @@ section.testimonials
   padding              63px 0 40px
   border-top           1px solid #e6e6e6
 
+  h4.general-subtitle
+    margin-bottom      76px
+
   article
-    width              49%
+    width              46%
     position           relative
     font-family        openSansFamily
     padding            2px 0 32px 69px
-    border-bottom      2px solid #f1f1f1
     margin-bottom      26px
+    rounded            0 0 12px 12px
     borderBox()
     fl()
 
     &:nth-of-type(2n)
-      margin-left       2%
-
-    &:after
-      content           ""
-      display           block
-      abs               0 1px 0px 0
-      size              2px, 20px
-      background        #f1f1f1
+      fr()
 
     &:before
       content           ""
@@ -1542,23 +1539,34 @@ section.testimonials
       opacity           .4
       abs               0px 0 0 0px
 
-    &:nth-last-of-type(1)
-    &:nth-last-of-type(2)
-      border-bottom     none
-      margin-bottom     56px
-
-      &:after
-        display         none
-
-    h4.general-subtitle
-      margin-bottom     76px
-
     p
       font-size         16px
       line-height       22px
       color             #6d6d6d
       font-size         16px
       font-weight       600
+      padding           0 0 24px 19px
+      margin            0 0 0 -19px
+      border            1px solid #e2e2e2
+      border-top        none
+      rounded           0 0 12px 12px
+      position          relative
+
+      &:after
+        content           ""
+        display           block
+        width             1px
+        kalc              height, 100% \- 10px
+        background        #fff
+        abs               0px 0 0 -1px
+
+      &:before
+        content           ""
+        display           block
+        width             1px
+        kalc              height, 100% \- 10px
+        background        #fff
+        abs               0px -1px 0 0
 
     .person
       font-size         13px
@@ -1569,13 +1577,29 @@ section.testimonials
       margin            23px 0 0 0
       position          relative
 
+      &:before
+        content           ""
+        display           block
+        size              0 0
+        border            8px solid transparent
+        border-top-color  #e2e2e2
+        abs               -24px 0 0 26px
+
+      &:after
+        content           ""
+        display           block
+        size              0 0
+        border            8px solid transparent
+        border-top-color  #fff
+        abs               -26px 0 0 26px
+
       img
         rounded         15px
-        abs             -3px 0 0 0px
+        abs             -3px 0 0 19px
 
       span
         display         block
-        margin-left     41px
+        margin-left     60px
 
       .title
         color           #a8a8a8
