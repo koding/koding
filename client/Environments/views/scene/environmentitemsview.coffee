@@ -2,8 +2,7 @@ class EnvironmentItem extends KDDiaObject
 
   constructor:(options={}, data)->
 
-    options.cssClass       = KD.utils.curry "environments-item", \
-                             options.cssClass
+    options.cssClass       = KD.utils.curry "environments-item", options.cssClass
     options.bind           = KD.utils.curry "contextmenu", options.bind
     options.jointItemClass = EnvironmentItemJoint
     options.draggable      = no
@@ -13,7 +12,7 @@ class EnvironmentItem extends KDDiaObject
 
     @chevron   = new KDCustomHTMLView
       tagName  : "span"
-      cssClass : "chevron ali"
+      cssClass : "chevron"
       click    : @bound "contextMenu"
 
   contextMenuItems:->
