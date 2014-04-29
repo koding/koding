@@ -36,49 +36,51 @@ class MainController extends KDController
     # if KD.useNewKites
     KD.registerSingleton "kontrol",                   new KodingKontrol
 
-    KD.registerSingleton "appManager",   appManager = new ApplicationManager
-    KD.registerSingleton "notificationController",    new NotificationController
-    KD.registerSingleton "linkController",            new LinkController
-    KD.registerSingleton "display",                   new ContentDisplayController
-    KD.registerSingleton "kiteController",            new KiteController
+    KD.registerSingleton 'appManager',   appManager = new ApplicationManager
+    KD.registerSingleton 'notificationController',    new NotificationController
+    KD.registerSingleton 'linkController',            new LinkController
+    KD.registerSingleton 'display',                   new ContentDisplayController
+    KD.registerSingleton 'kiteController',            new KiteController
     KD.registerSingleton 'router',           router = new KodingRouter
-    KD.registerSingleton "localStorageController",    new LocalStorageController
-    KD.registerSingleton "oauthController",           new OAuthController
-    KD.registerSingleton "groupsController",          new GroupsController
-    KD.registerSingleton "paymentController",         new PaymentController
-    KD.registerSingleton "vmController",              new VirtualizationController
-    KD.registerSingleton "locationController",        new LocationController
-    KD.registerSingleton "badgeController",           new BadgeController
-    KD.registerSingleton "helpController",            new HelpController
-    KD.registerSingleton "troubleshoot",              new Troubleshoot
+    KD.registerSingleton 'localStorageController',    new LocalStorageController
+    KD.registerSingleton 'oauthController',           new OAuthController
+    KD.registerSingleton 'groupsController',          new GroupsController
+    KD.registerSingleton 'activityController',        new ActivityController
+    KD.registerSingleton 'paymentController',         new PaymentController
+    KD.registerSingleton 'vmController',              new VirtualizationController
+    KD.registerSingleton 'locationController',        new LocationController
+    KD.registerSingleton 'badgeController',           new BadgeController
+    KD.registerSingleton 'helpController',            new HelpController
+    KD.registerSingleton 'troubleshoot',              new Troubleshoot
+    KD.registerSingleton 'appStorageController',      new AppStorageController
+    KD.registerSingleton 'localSync',                 new LocalSyncController
+    KD.registerSingleton 'dock',                      new DockController
+    KD.registerSingleton 'mainView',             mv = new MainView domId : 'kdmaincontainer'
+    KD.registerSingleton 'mainViewController',  mvc = new MainViewController view : mv
+    KD.registerSingleton 'kodingAppsController',      new KodingAppsController
 
-    # appManager.create 'Chat', (chatController)->
-    #   KD.registerSingleton "chatController", chatController
+    router.listen()
+    @mainViewController = mvc
+    mv.appendToDomBody()
 
     @ready =>
-      KD.registerSingleton "widgetController",        new WidgetController
-      KD.registerSingleton "activityController",      new ActivityController
+      KD.registerSingleton 'widgetController',        new WidgetController
+      KD.registerSingleton 'onboardingController',    new OnboardingController
       KD.registerSingleton "socialapi",               new SocialApiController
-      KD.registerSingleton "appStorageController",    new AppStorageController
-      KD.registerSingleton "kodingAppsController",    new KodingAppsController
-      KD.registerSingleton "localSync",               new LocalSyncController
-      KD.registerSingleton "onboardingController",    new OnboardingController
       # KD.registerSingleton "kontrol",                 new Kontrol
 
-      # @showInstructionsBook()
-      router.listen()
       @emit 'AppIsReady'
 
-      console.timeEnd "Koding.com loaded"
+      console.timeEnd 'Koding.com loaded'
 
     @forwardEvents KD.remote, ['disconnected', 'reconnected']
 
   accountChanged:(account, firstLoad = no)->
     account = KD.remote.revive account  unless account instanceof KD.remote.api.JAccount
-    @userAccount             = account
+    KD.userAccount = account
     connectedState.connected = yes
 
-    @on "pageLoaded.as.loggedIn", (account)-> # ignore othter parameters
+    @on 'pageLoaded.as.loggedIn', (account)-> # ignore othter parameters
       KD.utils.setPreferredDomain account if account
 
     (KD.getSingleton 'kontrol').reauthenticate()  if KD.useNewKites
@@ -90,8 +92,6 @@ class MainController extends KDController
 
       @ready @emit.bind this, "AccountChanged", account, firstLoad
 
-      @createMainViewController()  unless @mainViewController
-
       @emit 'ready'
 
       # this emits following events
@@ -100,15 +100,8 @@ class MainController extends KDController
       # -> "accountChanged.to.loggedIn"
       # -> "accountChanged.to.loggedOut"
       eventPrefix = if firstLoad then "pageLoaded.as" else "accountChanged.to"
-      eventSuffix = if @isUserLoggedIn() then "loggedIn" else "loggedOut"
+      eventSuffix = if KD.isLoggedIn() then "loggedIn" else "loggedOut"
       @emit "#{eventPrefix}.#{eventSuffix}", account, connectedState, firstLoad
-
-  createMainViewController:->
-    KD.registerSingleton "dock", new DockController
-    @mainViewController  = new MainViewController
-      view    : mainView = new MainView
-        domId : "kdmaincontainer"
-    mainView.appendToDomBody()
 
   doLogout:->
     mainView = KD.getSingleton("mainView")
@@ -129,7 +122,7 @@ class MainController extends KDController
 
   attachListeners:->
     # @on 'pageLoaded.as.(loggedIn|loggedOut)', (account)=>
-    #   log "pageLoaded", @isUserLoggedIn()
+    #   log "pageLoaded", KD.isLoggedIn()
 
     # TODO: this is a kludge we needed.  sorry for this.  Move it someplace better C.T.
     wc = KD.singleton 'windowController'
@@ -167,10 +160,6 @@ class MainController extends KDController
     # Note: I am using wait instead of repeat, for the subtle difference.  See this StackOverflow answer for more info:
     #       http://stackoverflow.com/questions/729921/settimeout-or-setinterval/731625#731625
     @utils.wait 3000, cookieChangeHandler
-
-  setVisitor:(visitor)-> @visitor = visitor
-  getVisitor: -> @visitor
-  getAccount: -> KD.whoami()
 
   swapAccount: (options, callback) ->
     return { message: 'Login failed!' } unless options
@@ -221,8 +210,6 @@ class MainController extends KDController
 
       @swapAccount result, callback
 
-  isUserLoggedIn: -> KD.isLoggedIn()
-
   isLoggingIn: (isLoggingIn) ->
 
     storage = new LocalStorage 'Koding'
@@ -233,16 +220,6 @@ class MainController extends KDController
       @_isLoggingIn = isLoggingIn
     else
       @_isLoggingIn ? no
-
-  showInstructionsBook:->
-    if Cookies.get 'newRegister'
-      @emit "ShowInstructionsBook", 9
-      Cookies.expire 'newRegister'
-    else if @isUserLoggedIn()
-      BookView::getNewPages (pages)=>
-        return unless pages.length
-        BookView.navigateNewPages = yes
-        @emit "ShowInstructionsBook", pages.first.index
 
   setFailTimer: do->
     notification = null

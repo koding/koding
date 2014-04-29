@@ -1,4 +1,5 @@
 # this class will register itself just before application starts loading, right after framework is ready
+
 KD.extend
 
   apiUri       : KD.config.apiUri
@@ -38,7 +39,6 @@ KD.extend
         warn "Removing the old one. It was ", KD.appClasses[options.name]
         @unregisterAppClass options.name
 
-    options.enforceLogin  ?= no           # a Boolean
     options.multiple      ?= no           # a Boolean
     options.background    ?= no           # a Boolean
     options.hiddenHandle  ?= no           # a Boolean
@@ -53,58 +53,58 @@ KD.extend
     options.routes       or= null         # <string> or <Object{slug: string, handler: function}>
     options.styles       or= []           # <Array<string>> list of stylesheets
 
-    enforceLogin=->
-      return  if KD.isLoggedIn()
-      if (Cookies.get "doNotForceRegistration") or location.search.indexOf("sr=1") > -1
-        Cookies.set "doNotForceRegistration", "true"
-        return
+    {routes, route, name}  = options
 
-      appManager = KD.getSingleton "appManager"
-      appManager.tell "Account", "showRegistrationNeededModal"
-
-    wrapHandler = (fn, options) -> ->
-      router = KD.getSingleton 'router'
-      router.setPageTitle? options.navItem.title  if options.navItem.title
-      fn.apply this, arguments
-      enforceLogin()  if options.enforceLogin
-
-    registerRoute = (route, handler)=>
-      slug        = if "string" is typeof route then route else route.slug
-      route       =
-        slug      : slug or '/'
-        handler   : handler or route.handler or null
-
-      if route.slug isnt '/'
-
-        {slug, handler} = route
-        cb = (router)->
-          handler =
-            if handler
-            then wrapHandler handler, options
-            else
-              ({params:{name}, query})->
-                router.openSection options.name, name, query
-                enforceLogin()  if options.enforceLogin
-
-          router.addRoute slug, handler
-
-        if KD.singletons.router
-        then @utils.defer -> cb KD.getSingleton('router')
-        else KodingRouter.on 'RouterReady', cb
-
-    if   options.route
-    then registerRoute options.route
-    else if options.routes
-    then registerRoute route, handler for own route, handler of options.routes
+    if route
+    then @registerRoute name, route
+    else if routes
+    then @registerRoutes name, routes
 
     if options.navItem?.order
       @registerNavItem options.navItem
 
-    Object.defineProperty KD.appClasses, options.name,
+    Object.defineProperty KD.appClasses, name,
       configurable  : yes
       enumerable    : yes
       writable      : no
       value         : { fn, options }
+
+  registerRoutes: (appName, routes) ->
+
+    @registerRoute appName, route, handler for own route, handler of routes
+
+
+  showEnforceLoginModal: ->
+
+    return  if KD.isLoggedIn()
+    if Cookies.get('doNotForceRegistration') or location.search.indexOf('sr=1') > -1
+      Cookies.set 'doNotForceRegistration', 'true'
+      return
+
+    {appManager} = KD.singletons
+    appManager.tell 'Account', 'showRegistrationNeededModal'
+
+
+  registerRoute: (appName, route, handler) ->
+
+    slug   = if "string" is typeof route then route else route.slug
+    route  =
+      slug    : slug ? '/'
+      handler : handler or route.handler or null
+
+    if route.slug isnt '/' or appName is 'KDMainApp'
+
+      {slug, handler} = route
+
+      cb = ->
+        router = KD.getSingleton 'router'
+        handler ?= ({params:{name}, query}) ->
+          router.openSection appName, name, query
+        router.addRoute slug, handler
+
+      if router = KD.singletons.router then cb()
+      else KDRouter.on 'RouterIsReady', cb
+
 
   resetNavItems      : (items)->
     @navItems        = items
@@ -230,18 +230,18 @@ KD.extend
           @notify_ "You have joined to #{groupName} group!", "success"
           return callback null
 
-  nick:-> KD.whoami().profile.nickname
+  nick:-> KD.whoami()?.profile?.nickname
 
-  whoami:-> KD.getSingleton('mainController').userAccount
+  whoami:-> KD.userAccount
 
   logout:->
     mainController = KD.getSingleton('mainController')
     mainController.isLoggingIn on
-    delete mainController?.userAccount
+    delete KD.userAccount
 
   isGuest:-> not KD.isLoggedIn()
 
-  isLoggedIn:-> KD.whoami()?.type isnt 'unregistered'
+  isLoggedIn:-> KD.whoami()?.type is 'registered'
 
   isMine:(account)-> KD.whoami().profile.nickname is account.profile.nickname
 
@@ -324,12 +324,12 @@ KD.extend
 
   runningInFrame: -> window.top isnt window.self
 
-  getGroup: -> (KD.getSingleton 'groupsController').getCurrentGroup()
+  getGroup: -> KD.currentGroup
 
   getReferralUrl: (username) ->
     "#{location.origin}/R/#{username}"
 
-  tell: (rest...)-> KD.getSingleton('appManager').tell rest...
+  tell: -> KD.getSingleton('appManager').tell arguments...
 
   hasAccess:(permission)->
     if "admin" in KD.config.roles then yes else permission in KD.config.permissions
@@ -337,4 +337,5 @@ KD.extend
 Object.defineProperty KD, "defaultSlug",
   get:->
     if KD.isGuest() then 'guests' else 'koding'
+
 KD.enableLogs (Cookies.get 'enableLogs') or !KD.config?.suppressLogs

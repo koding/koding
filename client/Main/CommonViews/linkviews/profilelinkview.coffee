@@ -29,7 +29,7 @@ class ProfileLinkView extends LinkView
 
   render: (fields) ->
     nickname = @getData().profile?.nickname
-    {slug} = KD.getSingleton("groupsController").getCurrentGroup()
+    slug = KD.getGroup()?.slug or 'koding'
     href = if slug is "koding" then "/#{nickname}" else "/#{slug}/#{nickname}"
     @setAttribute "href", href  if nickname
     super fields

@@ -12,6 +12,5 @@ module.exports = (options={})->
   <link rel="shortcut icon" href="#{options.logo}" />
   <link rel="fluid-icon" href="/a/images/logos/fluid512.png" title="Koding" />
   <link rel="stylesheet" href="/a/css/kd.#{KONFIG.version}.css" />
-  <link rel="stylesheet" href="/a/css/introapp.#{KONFIG.version}.css" />
   <link rel="stylesheet" href="/a/css/koding.#{KONFIG.version}.css" />
   """
