@@ -200,9 +200,11 @@ class ActivityInputWidget extends KDView
 
   submissionCallback: (err, activity) ->
 
+    return @showError err  if err
+
     @reset yes
     @embedBox.resetEmbedAndHide()
-    @emit "Submit", err, activity
+    @emit "Submit", activity
 
     KD.mixpanel "Status update create, success", { length: activity?.body?.length }
 
@@ -268,6 +270,12 @@ class ActivityInputWidget extends KDView
     if lock
     then @unlockSubmit()
     else KD.utils.wait 8000, @bound "unlockSubmit"
+
+
+  showError: (err) ->
+
+    KD.showError err
+    @unlockSubmit()
 
 
   lockSubmit: ->
