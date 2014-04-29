@@ -13,7 +13,7 @@ class AddFirewallRuleModal extends KDModalViewWithForms
         Rules                 :
           buttons             :
             Save              :
-              title           : "Save"
+              title           : if data then "Update" else "Save"
               style           : "solid green compact"
               loader          :
                 color         : "#444444"
