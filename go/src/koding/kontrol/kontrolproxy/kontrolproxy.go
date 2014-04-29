@@ -31,7 +31,6 @@ import (
 	"github.com/gorilla/sessions"
 	"github.com/hoisie/redis"
 	"github.com/koding/kite"
-	"github.com/koding/kite/kontrolclient"
 	"github.com/koding/kite/protocol"
 )
 
@@ -193,7 +192,7 @@ func (p *Proxy) runNewKite() {
 		Region:      *flagRegion,
 	}
 
-	onEvent := func(e *kontrolclient.Event, err *kite.Error) {
+	onEvent := func(e *kite.Event, err *kite.Error) {
 		if err != nil {
 			log.Error(err.Error())
 			return
@@ -237,7 +236,7 @@ func (p *Proxy) runNewKite() {
 		}
 	}
 
-	_, err = k.Kontrol.WatchKites(query, onEvent)
+	_, err = k.Kite.WatchKites(query, onEvent)
 	if err != nil {
 		log.Warning(err.Error())
 	}
