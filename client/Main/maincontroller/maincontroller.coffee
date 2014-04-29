@@ -28,12 +28,12 @@ class MainController extends KDController
     @attachListeners()
 
     @detectIdleUser()
+    @startCachingAssets()  unless KD.isLoggedIn()
 
   createSingletons:->
 
     KD.registerSingleton "mainController",            this
 
-    # if KD.useNewKites
     KD.registerSingleton "kontrol",                   new KodingKontrol
 
     KD.registerSingleton 'appManager',   appManager = new ApplicationManager
@@ -67,7 +67,6 @@ class MainController extends KDController
       KD.registerSingleton 'widgetController',        new WidgetController
       KD.registerSingleton 'onboardingController',    new OnboardingController
       KD.registerSingleton "socialapi",               new SocialApiController
-      # KD.registerSingleton "kontrol",                 new Kontrol
 
       @emit 'AppIsReady'
 
@@ -246,3 +245,28 @@ class MainController extends KDController
   detectIdleUser: (threshold = KD.config.userIdleMs) ->
     idleDetector = new IdleUserDetector { threshold }
     @forwardEvents idleDetector, ['userIdle', 'userBack']
+
+
+  startCachingAssets:->
+
+    KD.utils.defer ->
+
+      images = [
+        '/a/images/city.jpg'
+        '/a/images/home-pat.png'
+        '/a/images/edu-pat.png'
+        '/a/images/biz-pat.png'
+        '/a/images/pricing-pat.png'
+        '/a/images/ss-activity.jpg'
+        '/a/images/ss-terminal.jpg'
+        '/a/images/ss-teamwork.jpg'
+        '/a/images/ss-environments.jpg'
+        "/a/images/unsplash/#{LoginView.backgroundImageNr}.jpg"
+      ]
+
+      for src in images
+        image     = new Image
+        image.src = src
+
+
+
