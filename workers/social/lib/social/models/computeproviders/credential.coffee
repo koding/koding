@@ -158,7 +158,7 @@ module.exports = class JCredential extends jraphical.Module
 
       setPermissionFor = (target, callback)=>
 
-        method = (x)-> if x then 'addCredential' else 'removeCredential'
+        method = (x)-> if x then 'assureCredential' else 'removeCredential'
 
         daisy queue = [
           =>
