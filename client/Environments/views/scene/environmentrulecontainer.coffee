@@ -24,11 +24,12 @@ class EnvironmentRuleContainer extends EnvironmentContainer
 
     @on "PlusButtonClicked", =>
       modal = new AddFirewallRuleModal
-      modal.once "NewRuleAdded", (filter) =>
-        filter.title       = filter.name
-        filter.description = $.timeago filter.createdAt
-        filter.activated   = yes
 
-        @addItem filter
+      modal.once "NewRuleAdded", (rule) =>
+        rule.title       = rule.name
+        rule.description = $.timeago rule.createdAt
+        rule.activated   = yes
+
+        @addItem rule
         @emit "itemAdded"
         modal.destroy()
