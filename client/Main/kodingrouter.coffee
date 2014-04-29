@@ -18,8 +18,6 @@ class KodingRouter extends KDRouter
 
     super()
 
-    @listen()
-
     @on 'AlreadyHere', -> log "You're already here!"
 
 
