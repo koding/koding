@@ -48,7 +48,6 @@ checkFileCase = (fileName) ->
 
 module.exports = class Builder
 
-  spritePath   = './website/a/sprites'
   spriteHelper = null
 
   buildSprites: (options) ->
@@ -56,7 +55,8 @@ module.exports = class Builder
     @config ?= require('koding-config-manager').load("main.#{options.configFile}")
 
     sprite
-      path      : spritePath
+      srcPath   : './sprites'
+      destPath  : './website/a/sprites'
       httpPath  : '/a/sprites'
     .then (helper) =>
       spriteHelper = helper
