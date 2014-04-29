@@ -261,13 +261,13 @@ class ActivityInputWidget extends KDView
       KD.mixpanel "Status update edit, success"
 
 
-  reset: (lock = yes) ->
+  reset: (unlock = yes) ->
 
     @input.setContent ""
     @input.blur()
     @embedBox.resetEmbedAndHide()
 
-    if lock
+    if unlock
     then @unlockSubmit()
     else KD.utils.wait 8000, @bound "unlockSubmit"
 
