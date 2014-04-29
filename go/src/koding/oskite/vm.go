@@ -16,6 +16,7 @@ import (
 	"os"
 	"os/exec"
 	"syscall"
+	"time"
 
 	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
@@ -334,6 +335,17 @@ func (o *Oskite) vmPrepareAndStart(args *dnode.Partial, channel *kite.Channel, v
 }
 
 func (o *Oskite) prepareAndStart(vos *virt.VOS, username, groupId string, pre Preparer) (interface{}, error) {
+	dlocksMu.Lock()
+	dlock, ok := dlocks[username]
+	if !ok {
+		dlock = o.newDlock(username, time.Millisecond*100, time.Second*20) // create new distributed lock
+		dlocks[username] = dlock
+	}
+	dlocksMu.Unlock()
+
+	dlock.Lock()
+	defer dlock.Unlock()
+
 	usage, err := totalUsage(vos, groupId)
 	if err != nil {
 		log.Info("usage -1 [%s] err: %v", vos.VM.HostnameAlias, err)
@@ -371,13 +383,16 @@ func (o *Oskite) prepareAndStart(vos *virt.VOS, username, groupId string, pre Pr
 	prepareQueue <- &QueueJob{
 		msg: "vm.prepareAndStart " + vos.VM.HostnameAlias,
 		f: func() (string, error) {
-			if !pre.Enabled() {
-				defer func() { done <- struct{}{} }()
-			} else {
+			if pre.Enabled() {
 				// mutex is needed because it's handled in the queue
 				info := getInfo(vos.VM)
 				info.mutex.Lock()
 				defer info.mutex.Unlock()
+
+				dlock.Lock()
+				defer dlock.Unlock()
+			} else {
+				defer func() { done <- struct{}{} }()
 			}
 
 			if err := prepareProgress(t, vos.VM); err != nil {

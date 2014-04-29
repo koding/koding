@@ -40,8 +40,8 @@ var (
 	mongodbConn *mongodb.MongoDB
 	conf        *config.Config
 
-	// dlock is a distributed lock
-	dlock sync.Locker
+	// is distributed lock supported?
+	dlockSupported bool
 
 	templateDir      = "files/templates" // should be in the same dir as the binary
 	firstContainerIP net.IP
@@ -125,7 +125,14 @@ func (o *Oskite) Run() {
 
 	o.initializeSettings()
 	o.setupRedis()
-	dlock = o.newRedisLock() // create our distributed lock
+
+	// we only support redis greater than 2.6.12
+	currentRedis := o.redisVersion()
+	if checkRedisVersion(currentRedis) {
+		dlockSupported = true
+	} else {
+		log.Warning("Distributed lock is disabled. Needed at least 2.6.12, have %s", currentRedis)
+	}
 
 	// startPrepareWorkers starts multiple workers (based on prepareQueueLimit)
 	// that accepts vmPrepare/vmStart functions.
