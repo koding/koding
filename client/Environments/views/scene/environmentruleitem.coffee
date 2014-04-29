@@ -27,6 +27,9 @@ class EnvironmentRuleItem extends EnvironmentItem
 
     return items
 
+  cmedit: ->
+    new AddFirewallRuleModal {}, @getData()
+
   confirmDestroy: ->
     data           = @getData()
     options        =
