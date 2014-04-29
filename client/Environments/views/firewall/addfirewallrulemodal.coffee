@@ -69,8 +69,8 @@ class AddFirewallRuleModal extends KDModalViewWithForms
 
     @modalTabs.forms.Rules.buttonField.addSubView button, null, yes
 
-  createRuleWidget: (removable = yes) ->
-    widget = new FirewallFilterFormView { removable }
+  createRuleWidget: (removable = yes, data = null) ->
+    widget = new FirewallFilterFormView { removable }, data
     widget.on "FirewallFilterRemoved", =>
       @filterWidgets.splice @filterWidgets.indexOf(widget), 1
 
