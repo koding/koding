@@ -2,7 +2,7 @@ class LoginView extends KDView
 
   stop = KD.utils.stopDOMEvent
 
-  backgroundImageNr = KD.utils.getRandomNumber 15
+  @backgroundImageNr = backgroundImageNr = KD.utils.getRandomNumber 15
 
   backgroundImages  = [
 
