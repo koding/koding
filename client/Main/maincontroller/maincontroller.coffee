@@ -28,7 +28,7 @@ class MainController extends KDController
     @attachListeners()
 
     @detectIdleUser()
-    @startCachingAssets()
+    @startCachingAssets()  unless KD.isLoggedIn()
 
   createSingletons:->
 
