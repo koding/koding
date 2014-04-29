@@ -14,6 +14,7 @@ class FirewallFilterFormView extends KDFormViewWithFields
           { title      : "Req./sec" ,  value : "request.second" }
           { title      : "Req./min" ,  value : "request.minute" }
         ]
+        defaultValue   : data?.type
         validate       :
           rules        :
             required   : yes
@@ -24,6 +25,7 @@ class FirewallFilterFormView extends KDFormViewWithFields
         name           : "match"
         cssClass       : "half"
         placeholder    : "Type a value for your filter..."
+        defaultValue   : data?.match
         validate       :
           rules        :
             required   : yes
@@ -39,6 +41,7 @@ class FirewallFilterFormView extends KDFormViewWithFields
           { title      : "Block"            , value : "block"      }
           { title      : "Show secure page" , value : "securepage" }
         ]
+        defaultValue   : data?.action
         validate       :
           rules        :
             required   : yes
@@ -52,7 +55,7 @@ class FirewallFilterFormView extends KDFormViewWithFields
         label          : "Enabled"
         cssClass       : "half"
         itemClass      : KodingSwitch
-        defaultValue   : yes
+        defaultValue   : data?.enabled ? yes
 
     unless options.removable
       options.cssClass = KD.utils.curry "undeletable", options.cssClass
