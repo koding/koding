@@ -129,27 +129,30 @@ class DockController extends KDViewController
 
   setNavItemState:({name, route, options}, state)->
 
-    if state is 'active'
-      state  = 'running'
-      select = yes
+    @ready =>
 
-    options  or= {}
-    {dockPath} = options
+      if state is 'active'
+        state  = 'running'
+        select = yes
 
-    route   or= options.navItem?.path or '-'
+      options  or= {}
+      {dockPath} = options
 
-    for nav in @getItems()
-      if (///^#{route}///.test nav.data.path) or (dockPath is nav.data.path) \
-      or (nav.data.path is "/#{name}") or ("/#{name}" is nav.data.path)
-        nav.setState state
-        @navController.selectItem nav  if select
-        hasNav = yes
+      route   or= options.navItem?.path or '-'
 
-    if not hasNav and state isnt 'initial'
-      unless name in Object.keys(KD.config.apps)
-        path = if dockPath then dockPath else "/#{name}"
-        @addItem { title : name, path, \
-                   order : 60 + KD.utils.uniqueId(), type :"" }
+      for nav in @getItems()
+        if (///^#{route}///.test nav.data.path) or (dockPath is nav.data.path) \
+        or (nav.data.path is "/#{name}") or ("/#{name}" is nav.data.path) \
+        or (nav.name is name)
+          nav.setState state
+          @navController.selectItem nav  if select
+          hasNav = yes
+
+      if not hasNav and state isnt 'initial'
+        unless name in Object.keys(KD.config.apps)
+          path = if dockPath then dockPath else "/#{name}"
+          @addItem { title : name, path, \
+                     order : 60 + KD.utils.uniqueId(), type :"" }
 
   loadView:(dock)->
 

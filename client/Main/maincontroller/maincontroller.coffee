@@ -41,7 +41,7 @@ class MainController extends KDController
     KD.registerSingleton 'linkController',            new LinkController
     KD.registerSingleton 'display',                   new ContentDisplayController
     KD.registerSingleton 'kiteController',            new KiteController
-    KD.registerSingleton 'router',                    new KodingRouter
+    KD.registerSingleton 'router',           router = new KodingRouter
     KD.registerSingleton 'localStorageController',    new LocalStorageController
     KD.registerSingleton 'oauthController',           new OAuthController
     KD.registerSingleton 'groupsController',          new GroupsController
@@ -57,13 +57,14 @@ class MainController extends KDController
     KD.registerSingleton 'dock',                      new DockController
     KD.registerSingleton 'mainView',             mv = new MainView domId : 'kdmaincontainer'
     KD.registerSingleton 'mainViewController',  mvc = new MainViewController view : mv
+    KD.registerSingleton 'kodingAppsController',      new KodingAppsController
 
+    router.listen()
     @mainViewController = mvc
     mv.appendToDomBody()
 
     @ready =>
       KD.registerSingleton 'widgetController',        new WidgetController
-      KD.registerSingleton 'kodingAppsController',    new KodingAppsController
       KD.registerSingleton 'onboardingController',    new OnboardingController
       KD.registerSingleton "socialapi",               new SocialApiController
       # KD.registerSingleton "kontrol",                 new Kontrol

@@ -104,6 +104,16 @@ do ->
                 style    : 'modal-clean-gray'
                 callback : -> modal.destroy()
           router.clear()
+
+    "/:name?/Apps/:username/:app?": ({params:{username, name}})->
+
+      if username[0] is username[0].toUpperCase()
+        app      = username
+        username = name
+        KD.remote.api.JNewApp.one slug:"#{username}/Apps/#{app}", (err, app)->
+          if not err and app
+            KodingAppsController.runExternalApp app, dontUseRouter:yes
+
     # top level names
     '/:name': do ->
 

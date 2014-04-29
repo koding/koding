@@ -25,19 +25,23 @@ import (
 	"time"
 
 	kitelib "github.com/koding/kite"
+	"github.com/koding/redis"
 	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
 )
 
 const (
 	OSKITE_NAME    = "oskite"
-	OSKITE_VERSION = "0.2.4"
+	OSKITE_VERSION = "0.2.5"
 )
 
 var (
 	log         = logger.New(OSKITE_NAME)
 	mongodbConn *mongodb.MongoDB
 	conf        *config.Config
+
+	// is distributed lock supported?
+	dlockSupported bool
 
 	templateDir      = "files/templates" // should be in the same dir as the binary
 	firstContainerIP net.IP
@@ -65,6 +69,8 @@ type Oskite struct {
 	VmTimeout         time.Duration
 	TemplateDir       string
 	DisableGuest      bool
+
+	RedisSession *redis.RedisSession
 
 	// PrepareQueueLimit defines the number of concurrent VM preparations,
 	// should be CPU + 1
@@ -118,6 +124,15 @@ func (o *Oskite) Run() {
 	rand.Seed(time.Now().UnixNano())
 
 	o.initializeSettings()
+	o.setupRedis()
+
+	// we only support redis greater than 2.6.12
+	currentRedis := o.redisVersion()
+	if checkRedisVersion(currentRedis) {
+		dlockSupported = true
+	} else {
+		log.Warning("Distributed lock is disabled. Needed at least 2.6.12, have %s", currentRedis)
+	}
 
 	// startPrepareWorkers starts multiple workers (based on prepareQueueLimit)
 	// that accepts vmPrepare/vmStart functions.
@@ -126,7 +141,6 @@ func (o *Oskite) Run() {
 	}
 
 	o.prepareOsKite()
-	o.runNewKite()
 	o.handleCurrentVMs()   // handle leftover VMs
 	o.startPinnedVMs()     // start pinned always-on VMs
 	o.setupSignalHandler() // handle SIGUSR1 and other signals.
@@ -174,6 +188,8 @@ func (o *Oskite) Run() {
 	go o.redisBalancer()
 
 	log.Info("Oskite started. Go!")
+
+	o.runNewKite()
 	o.Kite.Run()
 }
 
@@ -378,12 +394,40 @@ func (o *Oskite) vmUpdater() {
 		}
 
 		for _, vmId := range vmIds {
-			if err := updateState(vmId); err != nil {
-				log.Error("vm updater vmId %s err %v", vmId, err)
+			err := updateState(vmId)
+			if err == nil {
+				continue
 			}
+
+			log.Error("vm updater vmId %s err %v", vmId, err)
+			if err != mgo.ErrNotFound {
+				continue
+			}
+
+			// this is a leftover VM that needs to be unprepared
+			log.Error("vm updater vmId %s err %v", vmId, err)
+			unprepareLeftover(vmId)
 		}
 	}
 
+}
+
+func unprepareLeftover(vmId bson.ObjectId) {
+	prepareQueue <- &QueueJob{
+		msg: fmt.Sprintf("unprepare leftover vm %s", vmId.Hex()),
+		f: func() (string, error) {
+			mockVM := &virt.VM{Id: vmId}
+			if err := mockVM.Unprepare(nil, false); err != nil {
+				log.Error("leftover unprepare: %v", err)
+			}
+
+			if err := updateState(vmId); err != nil {
+				log.Error("%v", err)
+			}
+
+			return fmt.Sprintf("unprepare finished for leftover vm %s", vmId), nil
+		},
+	}
 }
 
 // handleCurrentVMs removes and unprepare any vm in the lxc dir that doesn't
@@ -403,18 +447,7 @@ func (o *Oskite) handleCurrentVMs() {
 
 		// unprepareVM that are on other machines, they might be prepared already.
 		if err := mongodbConn.Run("jVMs", query); err != nil || vm.HostKite != o.ServiceUniquename {
-			prepareQueue <- &QueueJob{
-				msg: fmt.Sprintf("unprepare leftover vm %s [%s]", vm.HostnameAlias, vm.Id.Hex()),
-				f: func() (string, error) {
-					mockVM := &virt.VM{Id: vmId}
-					if err := mockVM.Unprepare(nil, false); err != nil {
-						log.Error("leftover unprepare: %v", err)
-					}
-
-					return fmt.Sprintf("unprepare finished for leftover vm %s", vmId), nil
-				},
-			}
-
+			unprepareLeftover(vmId)
 			continue
 		}
 
