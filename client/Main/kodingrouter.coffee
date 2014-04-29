@@ -42,7 +42,7 @@ class KodingRouter extends KDRouter
     entryPoint = options.entryPoint or KD.config.entryPoint
     frags      = route.split("?")[0].split "/"
 
-    [rest..., _slug, _content, _extra] = frags
+    [_root, _slug, _content, _extra] = frags
 
     if _slug is entryPoint?.slug
       name = if _content is 'Apps' and _extra? then _extra else _content
