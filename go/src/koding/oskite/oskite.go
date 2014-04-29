@@ -394,12 +394,40 @@ func (o *Oskite) vmUpdater() {
 		}
 
 		for _, vmId := range vmIds {
-			if err := updateState(vmId); err != nil {
-				log.Error("vm updater vmId %s err %v", vmId, err)
+			err := updateState(vmId)
+			if err == nil {
+				continue
 			}
+
+			log.Error("vm updater vmId %s err %v", vmId, err)
+			if err != mgo.ErrNotFound {
+				continue
+			}
+
+			// this is a leftover VM that needs to be unprepared
+			log.Error("vm updater vmId %s err %v", vmId, err)
+			unprepareLeftover(vmId)
 		}
 	}
 
+}
+
+func unprepareLeftover(vmId bson.ObjectId) {
+	prepareQueue <- &QueueJob{
+		msg: fmt.Sprintf("unprepare leftover vm %s", vmId.Hex()),
+		f: func() (string, error) {
+			mockVM := &virt.VM{Id: vmId}
+			if err := mockVM.Unprepare(nil, false); err != nil {
+				log.Error("leftover unprepare: %v", err)
+			}
+
+			if err := updateState(vmId); err != nil {
+				log.Error("%v", err)
+			}
+
+			return fmt.Sprintf("unprepare finished for leftover vm %s", vmId), nil
+		},
+	}
 }
 
 // handleCurrentVMs removes and unprepare any vm in the lxc dir that doesn't
@@ -419,22 +447,7 @@ func (o *Oskite) handleCurrentVMs() {
 
 		// unprepareVM that are on other machines, they might be prepared already.
 		if err := mongodbConn.Run("jVMs", query); err != nil || vm.HostKite != o.ServiceUniquename {
-			prepareQueue <- &QueueJob{
-				msg: fmt.Sprintf("unprepare leftover vm %s [%s]", vm.HostnameAlias, vm.Id.Hex()),
-				f: func() (string, error) {
-					mockVM := &virt.VM{Id: vmId}
-					if err := mockVM.Unprepare(nil, false); err != nil {
-						log.Error("leftover unprepare: %v", err)
-					}
-
-					if err := updateState(vmId); err != nil {
-						log.Error("%v", err)
-					}
-
-					return fmt.Sprintf("unprepare finished for leftover vm %s", vmId), nil
-				},
-			}
-
+			unprepareLeftover(vmId)
 			continue
 		}
 

@@ -389,15 +389,6 @@ func (vm *VM) Unprepare(t tracer.Tracer, destroy bool) (err error) {
 	defer t.Trace(tracer.Message{Err: err, Message: "FINISHED"})
 	t.Trace(tracer.Message{Message: "STARTED"})
 
-	prepared, err := vm.isPrepared()
-	if err != nil {
-		return err
-	}
-
-	if !prepared {
-		return nil // nothing to unprepare or stop
-	}
-
 	funcs := make([]*StepFunc, 0)
 	funcs = append(funcs, &StepFunc{Msg: "Stopping VM", Fn: vm.Shutdown})
 	funcs = append(funcs, &StepFunc{Msg: "Removing network rules", Fn: vm.removeNetworkRules})
