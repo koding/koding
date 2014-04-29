@@ -135,26 +135,32 @@ class ActivityActionLink extends KDCustomHTMLView
     super options,data
 
 class ActivityCountLink extends KDCustomHTMLView
+
   constructor:(options,data)->
+
     options = $.extend
       tagName   : "a"
       cssClass  : "count"
       attributes:
         href    : "#"
     , options
-    super options,data
 
-  render:->
+    super options, data
+
+
+  render: ->
+
     super
-    @setCount @getData()
 
-  viewAppended:->
-    @setTemplate @pistachio()
-    @template.update()
-    activity = @getData()
-    @setCount activity
+    @setCount()
 
-  pistachio:-> ""
+
+  viewAppended: ->
+
+    super
+
+    @setCount()
+
 
 class ActivityLikeCount extends ActivityCountLink
 
