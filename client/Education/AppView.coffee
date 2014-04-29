@@ -116,7 +116,9 @@ class EducationView extends KDView
       {{> @testimonials}}
 
       <section class='check-out'>
-        <h3><a href='/Pricing'>Check out our pricing</a> and get started with Koding right away!</h3>
+        <div class='inner-container'>
+          <h3><a href='/Pricing'>Check out our pricing</a> and get started with Koding right away!</h3>
+        </div>
       </section>
       {{> @footer}}
     """
