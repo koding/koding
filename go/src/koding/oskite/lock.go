@@ -17,7 +17,7 @@ var (
 )
 
 // emptyLock is used for mocking up an sync.Locker. It doesn't do anything and
-// only used for placeholder.
+// is used only for placeholder.
 type emptyLock struct{}
 
 type redisLock struct {
@@ -39,7 +39,7 @@ func (o *Oskite) newDlock(key string, sleep, timeout time.Duration) sync.Locker 
 func (e *emptyLock) Lock()   {}
 func (e *emptyLock) Unlock() {}
 
-// newRedisLock returns a new redisLock which enables distributed lock. It //
+// newRedisLock returns a new redisLock which enables distributed lock. It
 // implies the sync.Locker interface.  timeout indicates a maximum life for the
 // lock. sleep indicates the amount of time to sleep per loop iteration when
 // the lock is in blocking mode and another client is currently holding the
