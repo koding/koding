@@ -11,6 +11,8 @@ option '-l', '--location [location]', 'run tests with this base url'
 option '-t', '--tests', 'require test suite'
 option '-s', '--dontBuildSprites', 'dont build sprites'
 
+option '-y', '--yes', 'pass yes to corresponding command'
+
 require('coffee-script').register()
 
 {spawn, exec} = require 'child_process'
@@ -683,8 +685,22 @@ task 'buildClient', "Build the static web pages for webserver", (options)->
   (new (require('./Builder')))[buildMethod] options
 
 task 'deleteCache', "Delete the local webserver cache", (options)->
-  exec "rm -rf #{__dirname}/.build; rm -rf #{__dirname}/website; git checkout #{__dirname}/website",->
+  exec "rm -rf #{__dirname}/.build",->
     console.log "Cache is pruned. './website' folder recreated!"
+
+task 'cleanup', "Removes every cache, and file which is not committed yet",
+(options)->
+  sure = if options.yes then "" else "-n"
+  exec "git clean -d -f #{sure} -x -e .vagrant -e node_modules -e node_modules_koding", (err, res)->
+    if res isnt ''
+      console.log "\n\n#{res}"
+      unless options.yes
+        console.log "If you are sure to remove these files run:\n\n  $ cake --yes cleanup \n"
+        console.warn "Doing `vagrant halt` is recommended before cleanup!"
+      else
+        console.log "All remaining files removed, it's a new era for you!\n"
+    else
+      console.log "Everything seems fine, nothing to remove."
 
 task 'buildAll',"build chris's modules", ->
 
