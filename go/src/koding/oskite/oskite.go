@@ -141,7 +141,6 @@ func (o *Oskite) Run() {
 	}
 
 	o.prepareOsKite()
-	o.runNewKite()
 	o.handleCurrentVMs()   // handle leftover VMs
 	o.startPinnedVMs()     // start pinned always-on VMs
 	o.setupSignalHandler() // handle SIGUSR1 and other signals.
@@ -189,6 +188,8 @@ func (o *Oskite) Run() {
 	go o.redisBalancer()
 
 	log.Info("Oskite started. Go!")
+
+	o.runNewKite()
 	o.Kite.Run()
 }
 
