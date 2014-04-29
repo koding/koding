@@ -6,6 +6,7 @@ import (
 	"strings"
 	"sync"
 	"time"
+
 	redigo "github.com/garyburd/redigo/redis"
 	"github.com/koding/redis"
 )
@@ -15,12 +16,22 @@ var (
 	oskitesMu sync.Mutex
 )
 
-func (o *Oskite) redisBalancer() {
+func (o *Oskite) setupRedis() {
+	if o.RedisSession != nil {
+		return
+	}
+
 	session, err := redis.NewRedisSession(conf.Redis)
 	if err != nil {
 		log.Error("redis SADD kontainers. err: %v", err.Error())
 	}
-	session.SetPrefix("oskite")
+
+	o.RedisSession = session
+	o.RedisSession.SetPrefix("oskite")
+}
+
+func (o *Oskite) redisBalancer() {
+	o.setupRedis()
 
 	// oskite:production:sj:
 	prefix := "oskite:" + conf.Environment + ":" + o.Region + ":"
@@ -30,7 +41,7 @@ func (o *Oskite) redisBalancer() {
 
 	log.Info("Connected to Redis with %s", prefix+o.ServiceUniquename)
 
-	_, err = redigo.Int(session.Do("SADD", kontainerSet, prefix+o.ServiceUniquename))
+	_, err := redigo.Int(o.RedisSession.Do("SADD", kontainerSet, prefix+o.ServiceUniquename))
 	if err != nil {
 		log.Error("redis SADD kontainers. err: %v", err.Error())
 	}
@@ -42,11 +53,11 @@ func (o *Oskite) redisBalancer() {
 			key := prefix + o.ServiceUniquename
 			oskiteInfo := o.GetOskiteInfo()
 
-			if _, err := session.Do("HMSET", redigo.Args{key}.AddFlat(oskiteInfo)...); err != nil {
+			if _, err := o.RedisSession.Do("HMSET", redigo.Args{key}.AddFlat(oskiteInfo)...); err != nil {
 				log.Error("redis HMSET err: %v", err.Error())
 			}
 
-			reply, err := redigo.Int(session.Do("EXPIRE", key, expireDuration.Seconds()))
+			reply, err := redigo.Int(o.RedisSession.Do("EXPIRE", key, expireDuration.Seconds()))
 			if err != nil {
 				log.Error("redis SET Expire %v. reply: %v err: %v", key, reply, err.Error())
 			}
@@ -55,7 +66,7 @@ func (o *Oskite) redisBalancer() {
 
 	// get oskite statuses from others every 2 seconds
 	for _ = range time.Tick(2 * time.Second) {
-		kontainers, err := redigo.Strings(session.Do("SMEMBERS", kontainerSet))
+		kontainers, err := redigo.Strings(o.RedisSession.Do("SMEMBERS", kontainerSet))
 		if err != nil {
 			log.Error("redis SMEMBER kontainers. err: %v", err.Error())
 		}
@@ -64,7 +75,7 @@ func (o *Oskite) redisBalancer() {
 			// convert to o.ServiceUniquename formst
 			remoteOskite := strings.TrimPrefix(kontainerHostname, prefix)
 
-			values, err := redigo.Values(session.Do("HGETALL", kontainerHostname))
+			values, err := redigo.Values(o.RedisSession.Do("HGETALL", kontainerHostname))
 			if err != nil {
 				log.Error("redis HTGETALL %s. err: %v", kontainerHostname, err.Error())
 

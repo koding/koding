@@ -25,6 +25,7 @@ import (
 	"time"
 
 	kitelib "github.com/koding/kite"
+	"github.com/koding/redis"
 	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
 )
@@ -38,6 +39,9 @@ var (
 	log         = logger.New(OSKITE_NAME)
 	mongodbConn *mongodb.MongoDB
 	conf        *config.Config
+
+	// dlock is a distributed lock
+	dlock sync.Locker
 
 	templateDir      = "files/templates" // should be in the same dir as the binary
 	firstContainerIP net.IP
@@ -65,6 +69,8 @@ type Oskite struct {
 	VmTimeout         time.Duration
 	TemplateDir       string
 	DisableGuest      bool
+
+	RedisSession *redis.RedisSession
 
 	// PrepareQueueLimit defines the number of concurrent VM preparations,
 	// should be CPU + 1
@@ -118,6 +124,8 @@ func (o *Oskite) Run() {
 	rand.Seed(time.Now().UnixNano())
 
 	o.initializeSettings()
+	o.setupRedis()
+	dlock = o.newRedisLock() // create our distributed lock
 
 	// startPrepareWorkers starts multiple workers (based on prepareQueueLimit)
 	// that accepts vmPrepare/vmStart functions.
