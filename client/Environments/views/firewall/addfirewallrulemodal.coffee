@@ -58,7 +58,7 @@ class AddFirewallRuleModal extends KDModalViewWithForms
     super options, data
 
     @filterWidgets = []
-    @createRuleWidget no
+    if data then @createExistingRules() else @createRuleWidget no
 
     button      = new KDButtonView
       title     : "Add more rules"
@@ -76,6 +76,10 @@ class AddFirewallRuleModal extends KDModalViewWithForms
 
     @modalTabs.forms.Rules.fields.container.addSubView widget
     @filterWidgets.push widget
+
+  createExistingRules: ->
+    @getData().rules.forEach (rule, index) =>
+      @createRuleWidget index isnt 0, rule
 
   handleFormSubmit: ->
     isValid          = yes
