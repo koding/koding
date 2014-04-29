@@ -46,6 +46,14 @@ body.pricing
       span
         margin          0
 
+    .inner-container
+      max-width             1290px
+      padding               0px 45px
+      margin                0 auto
+      display               block
+      position              relative
+      borderBox()
+
     .resource-pack
       border-right      1px solid #e9e9e9
       border-bottom     2px solid #f8f8f8
@@ -1540,3 +1548,60 @@ section.pricing-sign-in
     r-sprite      pricing paypal
   .american-express figure
     r-sprite      pricing amex
+
+
+
+@media only screen and (min-width : 320px) and (max-width : 568px)
+  .content-page.pricing
+
+    section.introduction
+      padding-top           174px
+
+      h2
+        font-size         26px
+
+      p
+        font-size         18px
+        line-height       24px
+
+      .multiple-choice a
+        width             43%
+
+    section.packs
+      h2
+        font-size         18px
+
+      .resource-pack
+        width             100%
+        margin-bottom     24px
+
+        &:first-of-type:before
+          display         none
+
+
+    section.features
+      h2
+        font-size         18px
+
+      .feature
+        display             block
+        width               auto
+        padding             0 35px 44px 61px
+
+        h5
+          font-size         18px
+
+        i
+          vendor            transform, scale(.6)
+          vendor            transform-origin, 0px 0px
+
+    footer
+      padding-top           0
+
+      .inner-contaoner
+        padding-top         0
+
+      .footer-block
+        display             none
+
+
