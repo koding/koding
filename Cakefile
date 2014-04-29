@@ -686,7 +686,7 @@ task 'buildClient', "Build the static web pages for webserver", (options)->
 
 task 'deleteCache', "Delete the local webserver cache", (options)->
   exec "rm -rf #{__dirname}/.build",->
-    console.log "Cache is pruned. './website' folder recreated!"
+    console.log "Cache is pruned."
 
 task 'cleanup', "Removes every cache, and file which is not committed yet",
 (options)->
