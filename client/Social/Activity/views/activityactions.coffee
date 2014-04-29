@@ -135,51 +135,75 @@ class ActivityActionLink extends KDCustomHTMLView
     super options,data
 
 class ActivityCountLink extends KDCustomHTMLView
+
   constructor:(options,data)->
+
     options = $.extend
       tagName   : "a"
       cssClass  : "count"
       attributes:
         href    : "#"
     , options
-    super options,data
 
-  render:->
+    super options, data
+
+
+  render: ->
+
     super
-    @setCount @getData()
 
-  viewAppended:->
-    @setTemplate @pistachio()
-    @template.update()
-    activity = @getData()
-    @setCount activity
+    @setCount()
 
-  pistachio:-> ""
+
+  viewAppended: ->
+
+    super
+
+    @setCount()
+
 
 class ActivityLikeCount extends ActivityCountLink
 
-  @oldCount = 0
+  constructor: (options, data) ->
 
-  setCount:(activity)->
-    if activity.meta.likes isnt @oldCount
-      @emit "countChanged", activity.meta.likes
-    @oldCount = activity.meta.likes
-    if activity.meta.likes is 0 then @hide() else @show()
+    super options, data
 
-  pistachio:-> "{{ #(meta.likes)}}"
+    @oldCount = (data.meta.likes or 0) or 0
+
+
+  setCount: ->
+
+    {meta} = @getData()
+    likes = (meta?.likes) or 0
+
+    if likes isnt @oldCount
+      @emit "countChanged", likes
+
+    @oldCount = likes
+
+    if likes
+    then @show()
+    else @hide()
+
+
+  pistachio: ->
+
+    "{{ #(meta.likes)}}"
+
 
 class ActivityCommentCount extends ActivityCountLink
 
-  setCount:(activity)->
-    if activity.repliesCount is 0 then @hide() else @show()
-    @emit "countChanged", activity.repliesCount
+  setCount: ->
 
-  pistachio:-> "{{ #(repliesCount)}}"
+    {repliesCount} = @getData()
 
-class ActivityOpinionCount extends ActivityCountLink
+    if repliesCount
+    then @show()
+    else @hide()
 
-  setCount:(activity)->
-    if activity.opinionCount is 0 then @hide() else @show()
-    @emit "countChanged", activity.opinionCount
+    @emit "countChanged", repliesCount
 
-  pistachio:-> "{{ #(opinionCount)}}"
+
+  pistachio: ->
+
+    "{{ #(repliesCount)}}"

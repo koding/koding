@@ -17,6 +17,10 @@ class MessagePane extends KDTabPaneView
     @listView = @listController.getView()
     @input    = new ActivityInputWidget {channel}
 
+    @input.on "Submit", (activity) =>
+
+      @listController.addItem activity, 0
+
 
   viewAppended: ->
 

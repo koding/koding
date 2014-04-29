@@ -18,7 +18,7 @@ class LikeView extends JView
         gravity   : options.tooltipPosition
         title     : ""
       bind        : "mouseenter"
-      mouseenter  : => @fetchLikeInfo()
+      mouseenter  : noop
       attributes  :
         href      : "#"
       click       : (event) =>
