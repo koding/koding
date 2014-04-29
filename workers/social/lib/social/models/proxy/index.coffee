@@ -33,6 +33,7 @@ module.exports = class JProxyFilter extends jraphical.Module
         some          : (signature Object, Object, Function)
       instance        :
         remove        : (signature Function)
+        update        : (signature Object, Function)
 
   @create: secure (client, data, callback = noop) ->
     {delegate}    = client.connection
@@ -80,3 +81,6 @@ module.exports = class JProxyFilter extends jraphical.Module
         JProxyRestriction = require "./restriction"
         JProxyRestriction.clear client, @getId(), (err) ->
           callback err
+
+  update$: secure (client, data, callback = noop) ->
+    @update { $set: data }, callback
