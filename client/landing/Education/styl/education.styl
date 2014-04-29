@@ -289,39 +289,73 @@ body.education
 
 //TEMP
 @media only screen and (min-width : 320px) and (max-width : 568px)
-  #main-header.no-dock
-    #koding-logo
-      kalc                margin-left, 50% \- 67px
-
-    nav
-      float               none
-      clear               both
-      padding-top         48px
-      text-align          center
-
   body.education
     section.introduction
       padding-bottom        102px
 
       article
-        padding-top         98px
+        padding-top         128px
+
+        h2
+          font-size         26px
+
+        p
+          font-size         18px
+          line-height       24px
+
+        .kdbutton
+          width             100%
+          display           block
+          float             none
+          clear             both
+          margin            12px 0 16px
 
     section.screenshots
       display               none
 
     section.features
-
       .inner-container
         margin-top          82px
 
       .feature
         display             block
         width               auto
+        padding             0 35px 44px 61px
+
+        h5
+          font-size         18px
+
+        i
+          vendor            transform, scale(.6)
+          vendor            transform-origin, 0px 0px
 
     section.testimonials
+
+      .inner-container
+        .general-title
+          font-size           26px
+
+        .general-subtitle
+          font-size           18px
+          line-height         24px
+
       article
-        display             block
-        width               auto
+        display               block
+        width                 auto
+        padding               2px 0 2px 50px
+
+        p
+          font-size           14px
+          line-height         20px
+
+        &:before
+          vendor              transform, scale(.6)
+          vendor              transform-origin, 0px 0px
+
+    section.check-out
+      h3
+        font-size             18px
+        line-height           24px
 
     footer
       padding-top           0
@@ -331,3 +365,4 @@ body.education
 
       .footer-block
         display             none
+
