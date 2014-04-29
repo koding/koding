@@ -151,12 +151,6 @@ projects =
     script        : "website/a/js/__app.pricing.#{KODING_VERSION}.js"
     sourceMapRoot : "Pricing/"
 
-  Demos           :
-    path          : "client/Demos"
-    style         : "website/a/css/__app.demos.#{KODING_VERSION}.css"
-    script        : "website/a/js/__app.demos.#{KODING_VERSION}.js"
-    sourceMapRoot : "Demos/"
-
   Bugs            :
     path          : "client/Social/Bugs"
     style         : "website/a/css/__app.bugreport.#{KODING_VERSION}.css"
