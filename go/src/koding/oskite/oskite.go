@@ -427,6 +427,10 @@ func (o *Oskite) handleCurrentVMs() {
 						log.Error("leftover unprepare: %v", err)
 					}
 
+					if err := updateState(vmId); err != nil {
+						log.Error("%v", err)
+					}
+
 					return fmt.Sprintf("unprepare finished for leftover vm %s", vmId), nil
 				},
 			}
