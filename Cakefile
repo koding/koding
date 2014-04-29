@@ -683,8 +683,8 @@ task 'buildClient', "Build the static web pages for webserver", (options)->
   (new (require('./Builder')))[buildMethod] options
 
 task 'deleteCache', "Delete the local webserver cache", (options)->
-  exec "rm -rf #{__dirname}/.build",->
-    console.log "Cache is pruned."
+  exec "rm -rf #{__dirname}/.build; rm -rf #{__dirname}/website; git checkout #{__dirname}/website",->
+    console.log "Cache is pruned. './website' folder recreated!"
 
 task 'buildAll',"build chris's modules", ->
 
