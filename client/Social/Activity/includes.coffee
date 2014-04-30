@@ -52,6 +52,7 @@ module.exports = [
   "views/comments/commentviewheader.coffee",
   "views/comments/commentlistitemview.coffee",
   "views/comments/newcommentform.coffee",
+  "views/comments/editcommentform.coffee",
 
   # "views/reviews/reviewview.coffee",
   # "views/reviews/reviewlistviewcontroller.coffee",
