@@ -2,8 +2,6 @@ class EditCommentForm extends NewCommentForm
 
   constructor: (options = {}, data) ->
 
-    options.editable = yes
-
     super options, data
 
     @addSubView new KDCustomHTMLView

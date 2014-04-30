@@ -2,9 +2,9 @@ class NewCommentForm extends KDView
 
   constructor:(options = {}, data)->
 
-    options.type     or= "new-comment"
-    options.cssClass or= "item-add-comment-box"
-    options.editable or= no
+    options.type       or= "new-comment"
+    options.cssClass   or= "item-add-comment-box"
+    options.showAvatar or= yes
 
     super options, data
 
@@ -27,9 +27,9 @@ class NewCommentForm extends KDView
     @getDelegate().emit 'CommentSubmitted', @input.getValue()
 
 
-  viewAppended:->
-    {editable} = @getOptions()
-    unless editable
+  viewAppended: ->
+
+    if @getOption "showAvatar"
       @addSubView new AvatarStaticView
         size    :
           width : 42
@@ -39,6 +39,7 @@ class NewCommentForm extends KDView
     @addSubView @input
 
     @attachListeners()
+
 
   attachListeners:->
     @input.on "blur", @bound "commentInputReceivedBlur"
