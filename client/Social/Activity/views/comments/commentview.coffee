@@ -22,18 +22,18 @@ class CommentView extends KDView
     @setClass "fixed-height"
     @commentList.$().css {maxHeight}
 
-  createSubViews:(data)->
+  createSubViews: (data) ->
 
     @commentList = new KDListView
       type          : "comments"
       itemClass     : CommentListItemView
-      delegate      : @
+      delegate      : this
     , data
 
-    # @commentController        = new CommentListViewController view: @commentList
-    # @addSubView showMore      = new CommentViewHeader delegate: @commentList, data
-    # @addSubView @commentController.getView()
-    @addSubView @commentForm  = new NewCommentForm delegate : @commentList
+    @commentController        = new CommentListViewController view: @commentList
+    @addSubView showMore      = new CommentViewHeader delegate: @commentList, data
+    @addSubView @commentController.getView()
+    @addSubView @commentForm  = new NewCommentForm delegate: @commentController
 
     @commentList.on 'ReplyLinkClicked', (username) =>
       input = @commentForm.commentInput
