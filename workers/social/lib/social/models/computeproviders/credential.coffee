@@ -45,10 +45,10 @@ module.exports = class JCredential extends jraphical.Module
           (signature Object, Function)
         fetchUsers    :
           (signature Function)
-        # update        :
-        #   (signature Object, Function)
         fetchData     :
           (signature Function)
+        update        :
+          (signature Object, Function)
 
     sharedEvents      :
       static          : [ ]
@@ -249,3 +249,29 @@ module.exports = class JCredential extends jraphical.Module
 
       @fetchData callback
 
+  update$: permit
+
+    advanced: [
+      { permission: 'update credential', validateWith: Validators.own }
+    ]
+
+    success: (client, options, callback)->
+
+      { title, meta } = options
+
+      unless title or meta
+        return callback new KodingError "Nothing to update"
+
+      title ?= @title
+
+      @update $set : { title }, (err)=>
+        return callback err  if err?
+
+        if meta?
+
+          @fetchData (err, credData)=>
+            return callback err  if err?
+            credData.update $set : { meta }, callback
+
+        else
+          callback null
