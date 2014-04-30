@@ -410,7 +410,11 @@ class WebTermAppView extends JView
       err   = JSON.parse err.message
       title = err.message  if err.message
 
-    title ?= "VM start failed. Please try again, later"
+    if /CPU limit reached/.test title
+      title = "You've exceeded the allowed number of concurrent vms. Please upgrade."
+    else
+      title = "Your vm failed to start. Please try again later."
+
     new KDNotificationView {title}
 
   pistachio: ->
