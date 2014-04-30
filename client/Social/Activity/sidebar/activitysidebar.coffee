@@ -1,7 +1,5 @@
 class ActivitySidebar extends KDCustomScrollView
 
-  skip = 0
-
   constructor: ->
 
     super
@@ -18,11 +16,8 @@ class ActivitySidebar extends KDCustomScrollView
     @addHotTopics()
     @addFollowedTopics()
     @addThreads()
-    skip += 3
     @addMessages()
-    skip += 3
     @addChat()
-
 
 
   itemClicked: (item) ->
