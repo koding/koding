@@ -24,7 +24,7 @@ class NewCommentForm extends KDView
   viewAppended:->
     {editable} = @getOptions()
     unless editable
-      @addSubView commenterAvatar = new AvatarStaticView
+      @addSubView new AvatarStaticView
         size    :
           width : 42
           height: 42
