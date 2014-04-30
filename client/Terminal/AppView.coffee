@@ -33,7 +33,7 @@ class WebTermAppView extends JView
     @on 'TerminalClosed',    @bound 'removeSession'
 
     @on 'TerminalStarted', ->
-      KD.mixpanel "Open new Webterm tab, success"
+      KD.mixpanel "Open new Webterm, success"
 
     {vmController} = KD.singletons
     vmController.on 'vm.progress.error', => @notify cssClass : 'error'
@@ -358,8 +358,6 @@ class WebTermAppView extends JView
       warn err
 
   addNewTab: (vm) ->
-
-    KD.mixpanel "Open new Webterm tab, success"  if @_secondTab
 
     @_secondTab = yes
     mode        = 'create'
