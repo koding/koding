@@ -250,6 +250,17 @@ app.get "/-/healthCheck", (req, res) ->
 app.get "/-/version", (req, res) ->
   res.jsonp(version:KONFIG.version)
 
+app.get "/-/jobs", (req, res) ->
+
+  request = require 'request'
+  options =
+    url   : 'https://api.lever.co/v0/postings/koding'
+    json  : yes
+
+  request options, (err, r, postings) ->
+    res.send 404 if err
+    res.jsonp postings
+
 app.get "/sitemap:sitemapName", (req, res)->
   {JSitemap}       = koding.models
 
