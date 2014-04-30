@@ -894,3 +894,15 @@ func getIP(addr string) string {
 	}
 	return ip
 }
+
+func getCountry(ip string) string {
+	if geo == nil {
+		return ""
+	}
+
+	if l := geo.GetLocationByIP(ip); l != nil {
+		return l.CountryName
+	}
+
+	return ""
+}
