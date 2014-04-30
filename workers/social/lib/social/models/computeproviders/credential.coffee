@@ -124,15 +124,13 @@ module.exports = class JCredential extends jraphical.Module
 
     success: (client, publicKey, callback)->
 
-      options  = { limit : 1 }
-      selector = { publicKey }
+      options =
+        limit         : 1
+        targetOptions : selector : { publicKey }
 
       {delegate} = client.connection
-      delegate.fetchCredentials {},
-        targetOptions : {
-          selector, options
-        }, (err, res = [])->
-          callback err, res[0]
+      delegate.fetchCredential { }, options, (err, res)->
+        callback err, res
 
 
   @some$: permit 'list credentials',
