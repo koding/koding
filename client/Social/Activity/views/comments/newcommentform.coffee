@@ -2,27 +2,23 @@ class NewCommentForm extends KDView
 
   constructor:(options = {}, data)->
 
-    options.type           or= "new-comment"
-    options.cssClass       or= "item-add-comment-box"
-    options.itemTypeString or= 'comment'
-    options.editable       or= no
+    options.type     or= "new-comment"
+    options.cssClass or= "item-add-comment-box"
+    options.editable or= no
 
     super options, data
-
-    {itemTypeString} = @getOptions()
-    data = @getData()
 
     @input = new KDHitEnterInputView
       type          : "textarea"
       delegate      : this
-      placeholder   : "Type your #{itemTypeString} and hit enter..."
+      placeholder   : "Type your comment and hit enter..."
       autogrow      : yes
       validate      :
         rules       :
           required  : yes
           maxLength : 2000
         messages    :
-          required  : "Please type a #{itemTypeString}..."
+          required  : "Please type a comment..."
       callback      : @bound "commentInputReceivedEnter"
 
   viewAppended:->
