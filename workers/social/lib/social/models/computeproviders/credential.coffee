@@ -79,6 +79,7 @@ module.exports = class JCredential extends jraphical.Module
         targetType    : "JCredentialData"
         as            : "data"
 
+
   failed = (err, callback, rest...)->
     return false  unless err
 
@@ -142,6 +143,7 @@ module.exports = class JCredential extends jraphical.Module
           selector, options
         }, callback
 
+
   fetchUsers: permit
 
     advanced: [
@@ -181,8 +183,14 @@ module.exports = class JCredential extends jraphical.Module
 
     success: (client, options, callback)->
 
-      {target, user, owner} = options
+      { delegate } = client.connection
+      { target, user, owner } = options
       user ?= yes
+
+      # Owners cannot unassign them from a credential
+      # Only another owner can unassign any other owner
+      if delegate.profile.nickname is target
+        return callback null
 
       setPermissionFor = (target, callback)=>
 
