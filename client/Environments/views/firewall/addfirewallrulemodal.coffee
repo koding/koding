@@ -131,7 +131,7 @@ class AddFirewallRuleModal extends KDModalViewWithForms
   fetchCountries: ->
     $.ajax
       type          : "GET"
-      url           : "https://koding-cdn.s3.amazonaws.com/public/countries.jsonp"
+      url           : "https://koding-cdn.s3.amazonaws.com/public/countries.js"
       dataType      : "jsonp"
       jsonp         : false
       jsonpCallback : "callback"
