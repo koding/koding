@@ -70,6 +70,9 @@ class AddFirewallRuleModal extends KDModalViewWithForms
 
     @modalTabs.forms.Rules.buttonField.addSubView button, null, yes
 
+    {countries} = KD.utils
+    if countries then @setCountries() else @fetchCountries()
+
   createRuleWidget: (removable = yes, data = null) ->
     widget = new FirewallFilterFormView { removable }, data
     widget.on "FirewallFilterRemoved", =>
@@ -77,6 +80,7 @@ class AddFirewallRuleModal extends KDModalViewWithForms
 
     @modalTabs.forms.Rules.fields.container.addSubView widget
     @filterWidgets.push widget
+    widget.setCountries()  if KD.utils.countries
 
   createExistingRules: ->
     @getData().rules.forEach (rule, index) =>
@@ -104,7 +108,11 @@ class AddFirewallRuleModal extends KDModalViewWithForms
     {name} = @modalTabs.forms.Rules.getFormData()
     rules  = []
 
-    rules.push form.getFormData() for form in @filterWidgets
+    for widget in @filterWidgets
+      data = widget.getFormData()
+      data.match = data.countries  if data.type is "country"
+      delete data.countries
+      rules.push data
 
     data = @getData()
     if data
@@ -119,3 +127,22 @@ class AddFirewallRuleModal extends KDModalViewWithForms
       KD.remote.api.JProxyFilter.create { name, rules }, (err, rule) =>
         return KD.showError err  if err
         @emit "NewRuleAdded", rule
+
+  fetchCountries: ->
+    $.ajax
+      type          : "GET"
+      url           : "https://koding-cdn.s3.amazonaws.com/public/countries.jsonp"
+      dataType      : "jsonp"
+      jsonp         : false
+      jsonpCallback : "callback"
+      success       : (countries) =>
+        KD.utils.countries = countries
+        @setCountries()
+      error         : ->
+        new KDNotificationView
+          type      : "mini"
+          cssClass  : "error"
+          title     : "Error while fetching countries"
+
+  setCountries: ->
+    widget.setCountries() for widget in @filterWidgets

@@ -14,6 +14,7 @@ class FirewallFilterFormView extends KDFormViewWithFields
           { title      : "Req./sec" ,  value : "request.second" }
           { title      : "Req./min" ,  value : "request.minute" }
         ]
+        change         : @bound "showCountrySelect"
         defaultValue   : data?.type
         validate       :
           rules        :
@@ -26,11 +27,13 @@ class FirewallFilterFormView extends KDFormViewWithFields
         cssClass       : "half"
         placeholder    : "Type a value for your filter..."
         defaultValue   : data?.match
-        validate       :
-          rules        :
-            required   : yes
-          messages     :
-            required   : "Please select a filter type"
+        nextElement    :
+          countries    :
+            itemClass  : KDSelectBox
+            cssClass   : "half hidden countries"
+            selectOptions : [
+              { title  : "Loading Countries", value : "-"          }
+            ]
       action           :
         label          : "Action"
         name           : "action"
@@ -62,7 +65,37 @@ class FirewallFilterFormView extends KDFormViewWithFields
 
     super options, data
 
+    {@type, @match} = data or {}
+
+  setCountries: ->
+    selectbox   = @inputs.countries
+    selectbox.removeSelectOptions()
+    countryList = []
+    for country in KD.utils.countries
+      countryList.push { title: country.name, value: country.cca3 }
+    selectbox.setSelectOptions countryList
+
+    selectbox.setValue @match  if @type is 'country'
+
+  showCountrySelect: (event, value) ->
+    return  unless value
+    if value is 'country'
+      @inputs.value.hide()
+      @inputs.countries.show()
+    else
+      @inputs.value.show()
+      @inputs.countries.hide()
+
   destroy: ->
     return no  unless @getOptions().removable
     @emit "FirewallFilterRemoved"
     super
+
+  viewAppended: ->
+    super
+    data = @getData()
+    if data.type is 'country'
+      {value, countries} = @inputs
+      value.hide()
+      value.setValue ""
+      countries.show()
