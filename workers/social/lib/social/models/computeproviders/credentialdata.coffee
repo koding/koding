@@ -2,6 +2,8 @@ jraphical = require 'jraphical'
 
 module.exports = class JCredentialData extends jraphical.Module
 
+  { ObjectId } = require 'bongo'
+
   @set
 
     indexes           :
@@ -20,4 +22,8 @@ module.exports = class JCredentialData extends jraphical.Module
 
       meta            :
         type          : Object
+        required      : yes
+
+      originId        :
+        type          : ObjectId
         required      : yes
