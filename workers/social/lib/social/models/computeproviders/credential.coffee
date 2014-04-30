@@ -73,6 +73,10 @@ module.exports = class JCredential extends jraphical.Module
         type          : String
         required      : yes
 
+      originId        :
+        type          : ObjectId
+        required      : yes
+
     relationships     :
 
       data            :
@@ -96,13 +100,14 @@ module.exports = class JCredential extends jraphical.Module
 
       {delegate} = client.connection
       {vendor, title, meta} = data
+      originId = delegate.getId()
 
-      credData = new JCredentialData { meta }
+      credData = new JCredentialData { meta, originId }
       credData.save (err)->
         return  if failed err, callback
 
         {publicKey} = credData
-        credential = new JCredential { vendor, title, publicKey }
+        credential = new JCredential { vendor, title, publicKey, originId }
 
         credential.save (err)->
           return  if failed err, callback, credData
