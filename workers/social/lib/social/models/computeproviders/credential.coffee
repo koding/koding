@@ -236,19 +236,33 @@ module.exports = class JCredential extends jraphical.Module
         else
           callback new KodingError "Target does not support credentials."
 
-  delete: permit
 
-    advanced: [
-      { permission: 'delete credential', validateWith: Validators.own }
-    ]
+  delete: permit 'delete credential',
 
     success: (client, callback)->
 
-      @fetchData (err, credentialData) =>
-        return callback err  if err
-        credentialData.remove (err) =>
-          return callback err  if err
-          @remove callback
+      { delegate } = client.connection
+
+      Relationship.one {
+        targetId : @getId()
+        sourceId : delegate.getId()
+      }, (err, rel)=>
+
+        return callback err   if err?
+        return callback null  unless rel?
+
+        if rel.data.as is 'owner'
+
+          @fetchData (err, credentialData) =>
+            return callback err  if err
+            credentialData.remove (err) =>
+              return callback err  if err
+              @remove callback
+
+        else
+
+          rel.remove callback
+
 
   fetchData$: permit
 
@@ -259,6 +273,7 @@ module.exports = class JCredential extends jraphical.Module
     success: (client, callback)->
 
       @fetchData callback
+
 
   update$: permit
 
