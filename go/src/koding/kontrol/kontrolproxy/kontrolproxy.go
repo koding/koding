@@ -32,6 +32,7 @@ import (
 	"github.com/hoisie/redis"
 	"github.com/koding/kite"
 	"github.com/koding/kite/protocol"
+	"github.com/nranchev/go-libGeoIP"
 )
 
 const (
@@ -40,9 +41,11 @@ const (
 
 	// Used as a value for CookieVM
 	MagicCookieValue = "KEbPptvE7dGLM5YFtcfz"
-)
 
-const KONTROLPROXY_NAME = "kontrolproxy"
+	KONTROLPROXY_NAME = "kontrolproxy"
+
+	geoIPDatFile = "files/GeoIP.dat"
+)
 
 var (
 	proxyName, _ = os.Hostname()
@@ -70,6 +73,9 @@ var (
 	// used for various kinds of use cases like validator, 404 pages,
 	// maintenance,...
 	templates *template.Template
+
+	// geoip instances
+	geo *libgeo.GeoIP
 
 	// readed config
 	conf *config.Config
@@ -144,6 +150,12 @@ func main() {
 		*flagTemplates+"/quotaExceeded.html",
 		*flagTemplates+"/maintenance.html",
 	))
+
+	var err error
+	geo, err = libgeo.Load(geoIPDatFile)
+	if err != nil {
+		log.Warning("geoip db loading err: %s", err.Error())
+	}
 
 	log.Info("Kontrolproxy started.")
 	log.Info("I'm using %d cpus for GOMACPROCS", runtime.NumCPU())

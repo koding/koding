@@ -56,7 +56,7 @@ var (
 		"TH", "TJ", "TK", "TM", "TN", "TO", "TL", "TR", "TT", "TV", "TW", "TZ", "UA", "UG",
 		"UM", "US", "UY", "UZ", "VA", "VC", "VE", "VG", "VI", "VN", "VU", "WF", "WS", "YE",
 		"YT", "RS", "ZA", "ZM", "ME", "ZW", "A1", "A2", "O1", "AX", "GG", "IM", "JE", "BL",
-		"MF"}
+		"MF", "BQ", "SS", "O1"}
 	countryName = []string{
 		"N/A", "Asia/Pacific Region", "Europe", "Andorra", "United Arab Emirates",
 		"Afghanistan", "Antigua and Barbuda", "Anguilla", "Albania", "Armenia",
@@ -108,7 +108,8 @@ var (
 		"Vanuatu", "Wallis and Futuna", "Samoa", "Yemen", "Mayotte", "Serbia",
 		"South Africa", "Zambia", "Montenegro", "Zimbabwe", "Anonymous Proxy",
 		"Satellite Provider", "Other", "Aland Islands", "Guernsey", "Isle of Man", "Jersey",
-		"Saint Barthelemy", "Saint Martin"}
+		"Saint Barthelemy", "Saint Martin", "Bonaire, Saint Eustatius and Saba",
+		"South Sudan", "Other"}
 )
 
 // Constants
