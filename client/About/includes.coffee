@@ -1,5 +1,7 @@
 module.exports = [
 
+  "jobsitemview.coffee",
+  "jobsview.coffee",
   "team.coffee",
 
   "AppController.coffee",

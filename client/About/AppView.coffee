@@ -14,6 +14,8 @@ class AboutView extends KDView
 
     @memberList = @activeController.getView()
 
+    @jobsView   = new JobsView
+
     @logoPackButton = new KDCustomHTMLView
       tagName       : 'a'
       attributes    :
@@ -43,7 +45,7 @@ class AboutView extends KDView
 
   pistachio : ->
     """
-    <section class="about-company">
+    <section class='about-company'>
       <div class='wrapper'>
         <article>
           <h2>Social development in your browser</h2>
@@ -54,18 +56,18 @@ class AboutView extends KDView
           <p>...made the first site back in 2009, it was our first attempt to make something totally on our own. Sinan and I, had no money and had no intentions of making money using this thing. We made it for ourselves and for everybody else who was suffering trying to learn stuff, getting lost configuring servers. We launched a version that would work for a few people. When we opened it however, we saw hundreds of people rushing in overnight...</p>
           <a href='http://blog.koding.com/2012/06/we-want-to-date-not-hire/' target='_blank'>Read more...</a>
         </article>
-        <aside class="clearfix">
-          <div class="based">
+        <aside class='clearfix'>
+          <div class='based'>
             <i></i>
             <h6>Based</h6>
             San Francisco
           </div>
-          <div class="talents">
+          <div class='talents'>
             <i></i>
             <h6>Talent</h6>
             #{KD.team.active.length} Koders
           </div>
-          <div class="lines">
+          <div class='lines'>
             <i></i>
             <h6>VMs spinned up</h6>
             15,000,000+
@@ -73,14 +75,14 @@ class AboutView extends KDView
         </aside>
       </div>
     </section>
-    <section class="member-list">
+    <section class='member-list'>
       <div class='wrapper'>
         <h2>Koding. <span>The Crew</span></h2>
         <h4>In order of appearance</h4>
         {{> @memberList}}
       </div>
     </section>
-    <section class="press-kit">
+    <section class='press-kit'>
       <div class='wrapper'>
         <h2>Press Kit</h2>
         <h4>Resources for brand enthusiasts</h4>
@@ -88,10 +90,10 @@ class AboutView extends KDView
         {{> @fontPackButton}}
       </div>
     </section>
-    <section class="careers">
+    <section class='careers'>
       <div class='wrapper'>
-        <h2>Careers</h2>
-        <h4>If you think your picture is missing above, <a href='https://jobs.lever.co/koding' target='_blank'>click here</a> to check our current openings!</h4>
+        <h2>Koding. <span>Jobs</span></h2>
+        {{> @jobsView }}
       </div>
     </section>
     {{> @footer}}

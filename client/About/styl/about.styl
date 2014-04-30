@@ -28,6 +28,7 @@ body.about
     size              100%, auto
     min-height        626px
     padding           0 45px
+    border-bottom     1px solid transparent
     borderBox()
 
     div.wrapper
@@ -36,26 +37,6 @@ body.about
       margin          0 auto
       rel()
       borderBox()
-
-      article
-        padding            0 310px 60px 0
-        font-size          18px
-        line-height        24px
-
-        p
-          color            white
-          letter-spacing   .2px
-          vendor           font-smoothing, antialiased
-          vendor           text-rendering, geometricPrecision
-
-        > a
-
-          font-size        14px
-          borderize        rgba(255,255,255,.4)
-          color            rgba(255,255,255,.5)
-          margin-top       18px
-          line-height      1
-          letter-spacing   0
 
 
       aside
@@ -98,6 +79,26 @@ body.about
 
       > div.wrapper
         padding-top       139px
+
+        article
+          padding            0 310px 60px 0
+          font-size          18px
+          line-height        24px
+
+          p
+            color            white
+            letter-spacing   .2px
+            vendor           font-smoothing, antialiased
+            vendor           text-rendering, geometricPrecision
+
+          > a
+
+            font-size        14px
+            borderize        rgba(255,255,255,.4)
+            color            rgba(255,255,255,.5)
+            margin-top       18px
+            line-height      1
+            letter-spacing   0
 
         aside
           top             180px
@@ -228,4 +229,172 @@ body.about
           font-weight    inherit
 
     &.careers
-      min-height      306px
+      min-height          254px
+      background          #fff
+
+      h2
+        margin-bottom     10px
+        span
+          font-weight     400
+
+
+.jobs-view
+  margin                  82px 0 0
+  overflow                visible
+
+  >.kdloader
+    abs                   -108px 0 0 165px
+
+  .jobs-item-view
+    bg                    color, #f1f3f2
+    rounded               6px
+    padding               30px
+    margin                0 0 3px
+    vendor                transform, translateY(-30px)
+    opacity               0
+    -webkit-transition    -webkit-transform .3s ease \,
+                          opacity .3s ease
+    -moz-transition       -moz-transform .3s ease \,
+                          opacity .3s ease
+
+    borderBox()
+
+    &:last-of-type
+      margin-bottom       82px
+
+    .apply-button
+      display             inline-block
+      height              51px
+      line-height         51px
+      background          #1aad5b
+      color               #fff
+      font-size           14px
+      padding             0 24px
+      font-weight         700
+      rounded             9px
+      borderBox()
+      noTextDeco()
+
+      &.border-only
+        background        transparent
+        border            3px solid #1aad5b
+        color             #1aad5b
+        line-height       45px
+
+    > .apply-button
+        opacity           0
+        vendor            transition, opacity .2s ease
+        fr()
+
+    &:hover > .apply-button
+      opacity             1
+
+    h3
+      font-size           22px
+      display             inline-block
+      font-weight         600
+      color               #717171
+      margin-bottom       16px
+      cursor              pointer
+
+      span
+        vertical-align    middle
+        display           inline-block
+        height            21px
+        line-height       21px
+        font-size         12px
+        color             #fff
+        margin-left       8px
+        background        #9a9a9a
+        rounded           3px
+        padding           0 6px
+        text-transform    uppercase
+
+        &.location
+          background      #5c5c5c
+
+        &.commitment
+          &.full-timepart-time
+            background    #f5c531
+
+          &.part-time
+            background    #f5c531
+
+          &.full-time
+            background    #f59331
+
+        &.team
+          background      #9a9a9a
+
+    p
+      font-size           14px
+      color               #474747
+      font-weight         400
+      line-height         20px
+      letter-spacing      .02em
+      margin-right        250px
+
+      a
+        color             #717171
+
+      a.read-more-link
+        color             #717171
+        font-size         12px
+
+    article.details
+      display             none
+      padding-top         30px
+      margin-top          30px
+      border-top          1px solid #e2e3e3
+
+      p
+        margin-bottom     22px
+
+        &:last-of-type
+          margin-bottom   42px
+
+      h5
+        font-size         14px
+        color             #474747
+        font-weight       600
+        margin            42px 0 16px 40px
+        margin-bottom     16px
+
+      ul
+        font-size         14px
+        color             #474747
+        font-weight       400
+        line-height       20px
+        letter-spacing    .02em
+        margin-left       18px
+        margin-right      250px
+
+        &:last-of-type
+          margin-bottom   42px
+
+        li
+          line-height     24px
+
+          &:before
+            content         ""
+            display         inline-block
+            size            5px, 5px
+            rounded         100%
+            background      #babbbc
+            vertical-align  middle
+            margin-right    17px
+
+    &.show-details
+      bg                    color, #f7f7f7
+
+      > .apply-button
+        opacity             1
+
+      article.details
+        display             block
+
+  &.animate
+    .jobs-item-view
+      vendor                transform, translateY(0px)
+      opacity               1
+
