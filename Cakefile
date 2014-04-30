@@ -12,6 +12,7 @@ option '-t', '--tests', 'require test suite'
 option '-s', '--dontBuildSprites', 'dont build sprites'
 
 option '-y', '--yes', 'pass yes to corresponding command'
+option '-g', '--evengo', 'pass evengo to corresponding command'
 
 require('coffee-script').register()
 
@@ -691,7 +692,8 @@ task 'deleteCache', "Delete the local webserver cache", (options)->
 task 'cleanup', "Removes every cache, and file which is not committed yet",
 (options)->
   sure = if options.yes then "" else "-n"
-  exec "git clean -d -f #{sure} -x -e .vagrant -e node_modules -e node_modules_koding", (err, res)->
+  evengo = if options.evengo then "" else "-e go"
+  exec "git clean -d -f #{sure} -x -e .vagrant -e node_modules -e node_modules_koding #{evengo}", (err, res)->
     if res isnt ''
       console.log "\n\n#{res}"
       unless options.yes
