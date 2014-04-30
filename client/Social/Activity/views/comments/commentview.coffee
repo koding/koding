@@ -35,6 +35,8 @@ class CommentView extends KDView
     @addSubView @commentController.getView()
     @addSubView @commentForm  = new NewCommentForm delegate: @commentController
 
+    @commentForm.on "Submit", @commentController.bound "reply"
+
     @commentList.on 'ReplyLinkClicked', (username) =>
       input = @commentForm.commentInput
       value = input.getValue()

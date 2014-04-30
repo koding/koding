@@ -24,7 +24,7 @@ class NewCommentForm extends KDView
 
   submit: ->
 
-    @getDelegate().emit 'CommentSubmitted', @input.getValue()
+    @emit "Submit", @input.getValue()
 
 
   viewAppended: ->
