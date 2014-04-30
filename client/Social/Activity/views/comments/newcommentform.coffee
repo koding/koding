@@ -25,11 +25,6 @@ class NewCommentForm extends KDView
           required  : "Please type a #{itemTypeString}..."
       callback      : @bound "commentInputReceivedEnter"
 
-    @commentFormWrapper = new KDView
-      cssClass    : "item-add-comment-form"
-
-    @commentFormWrapper.addSubView @input
-
   viewAppended:->
     {editable} = @getOptions()
     unless editable
@@ -39,7 +34,7 @@ class NewCommentForm extends KDView
           height: 42
       , KD.whoami()
 
-    @addSubView @commentFormWrapper
+    @addSubView @input
 
     @attachListeners()
 
@@ -87,7 +82,7 @@ class EditCommentForm extends NewCommentForm
     options.editable = yes
     super options, data
 
-    @commentFormWrapper.addSubView new KDCustomHTMLView
+    @addSubView new KDCustomHTMLView
       cssClass  : "cancel-description"
       pistachio : "Press Esc to cancel"
 
