@@ -47,6 +47,8 @@ module.exports = class JCredential extends jraphical.Module
           (signature Function)
         # update        :
         #   (signature Object, Function)
+        fetchData     :
+          (signature Function)
 
     sharedEvents      :
       static          : [ ]
@@ -228,3 +230,14 @@ module.exports = class JCredential extends jraphical.Module
         credentialData.remove (err) =>
           return callback err  if err
           @remove callback
+
+  fetchData$: permit
+
+    advanced: [
+      { permission: 'update credential', validateWith: Validators.own }
+    ]
+
+    success: (client, callback)->
+
+      @fetchData callback
+
