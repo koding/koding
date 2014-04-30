@@ -19,7 +19,7 @@ class NewCommentForm extends KDView
           maxLength : 2000
         messages    :
           required  : "Please type a comment..."
-      callback      : @bound "commentInputReceivedEnter"
+      callback      : @bound "handleInputEnter"
 
 
   submit: ->
@@ -39,6 +39,25 @@ class NewCommentForm extends KDView
     @addSubView @input
 
     @attachListeners()
+
+
+  handleInputEnter: ->
+
+    kallback = =>
+
+      @submit()
+
+      KD.mixpanel "Comment activity, click", @input.getValue().length
+
+      @input.setValue ""
+      @input.resize()
+      @input.setBlur()
+
+    KD.requireMembership
+      callback  : kallback
+      onFailMsg : "Login required to post a comment!"
+      tryAgain  : yes
+      groupName : KD.getGroup().slug
 
 
   attachListeners:->
@@ -61,18 +80,3 @@ class NewCommentForm extends KDView
 
   commentInputReceivedBlur:->
     @resetCommentField()  if @input.getValue() is ""
-
-  commentInputReceivedEnter:(instance,event)->
-    KD.requireMembership
-      callback  : =>
-        @input.setValue ''
-        @input.resize()
-        @input.blur()
-        @input.$().blur()
-
-        @submit()
-
-        KD.mixpanel "Comment activity, click", @input.getValue().length
-      onFailMsg : "Login required to post a comment!"
-      tryAgain  : yes
-      groupName : @getDelegate().getData().group
