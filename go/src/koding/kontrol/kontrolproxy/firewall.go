@@ -164,8 +164,8 @@ func (f *Firewall) applyRule(r *http.Request) http.Handler {
 
 func getChecker(rule models.Rule, r *http.Request) (Checker, error) {
 	ip := getIP(r.RemoteAddr)
+	country := getCountry(ip)
 	host := r.Host
-	country := ""
 
 	switch rule.Type {
 	case "ip":
