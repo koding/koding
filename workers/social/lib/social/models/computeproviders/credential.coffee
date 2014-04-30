@@ -41,10 +41,10 @@ module.exports = class JCredential extends jraphical.Module
       instance        :
         delete        :
           (signature Function)
-        share         :
+        shareWith     :
           (signature Object, Function)
-        # withold       :
-        #   (signature Object, Function)
+        fetchUsers    :
+          (signature Function)
         # update        :
         #   (signature Object, Function)
 
@@ -104,7 +104,6 @@ module.exports = class JCredential extends jraphical.Module
         credential.save (err)->
           return  if failed err, callback, credData
 
-          delegate.addCredential credential, as: "user"
           delegate.addCredential credential, as: "owner", (err)->
             return  if failed err, callback, credential, credData
 
@@ -136,17 +135,43 @@ module.exports = class JCredential extends jraphical.Module
       options ?= { limit : 10 }
 
       {delegate} = client.connection
-      delegate.fetchCredentials as: "user",
+      delegate.fetchCredentials {},
         targetOptions : {
           selector, options
         }, callback
 
+  fetchUsers: permit
+
+    advanced: [
+      { permission: 'update credential', validateWith: Validators.own }
+    ]
+
+    success: (client, callback)->
+
+      Relationship.someData targetId : @getId(), {
+        as:1, sourceId:1, sourceName:1
+      }, (err, cursor)->
+
+        return callback err  if err?
+
+        cursor.toArray (err, arr)->
+          return callback err  if err?
+
+          if arr.length > 0
+            callback null, ({
+              constructorName : u.sourceName
+              _id : u.sourceId
+              as  : u.as
+            } for u in arr)
+          else
+            callback null, []
 
   # .share can be used like this:
   #
   # JCredentialInstance.share { user: yes, owner: no, target: "gokmen"}, cb
+  #                                      group or user slug -> ^^^^^^
 
-  share: permit
+  shareWith: permit
 
     advanced: [
       { permission: 'update credential', validateWith: Validators.own }
@@ -154,27 +179,21 @@ module.exports = class JCredential extends jraphical.Module
 
     success: (client, options, callback)->
 
-      {target, owner, user} = options
+      {target, user, owner} = options
+      user ?= yes
 
       setPermissionFor = (target, callback)=>
 
-        method = (x)-> if x then 'assureCredential' else 'removeCredential'
+        Relationship.remove {
+          targetId : @getId()
+          sourceId : target.getId()
+        }, (err)=>
 
-        daisy queue = [
-          =>
-            if user?
-              target[method(user)]  this, as: 'user', queue.next
-            else
-              queue.next()
-        ,
-          =>
-            if owner?
-              target[method(owner)] this, as: 'owner', queue.next
-            else
-              queue.next()
-        ,
-          -> callback null
-        ]
+          if user
+            as = if owner then 'owner' else 'user'
+            target.addCredential this, { as }, (err)-> callback err
+          else
+            callback err
 
       JName.fetchModels target, (err, result)=>
 
@@ -182,7 +201,7 @@ module.exports = class JCredential extends jraphical.Module
           return callback new KodingError "Target not found."
 
         { models } = result
-        target = models[0]
+        [ target ] = models
 
         if target instanceof JUser
           target.fetchOwnAccount (err, account)=>
