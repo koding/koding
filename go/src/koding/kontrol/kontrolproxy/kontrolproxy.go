@@ -43,8 +43,6 @@ const (
 	MagicCookieValue = "KEbPptvE7dGLM5YFtcfz"
 
 	KONTROLPROXY_NAME = "kontrolproxy"
-
-	geoIPDatFile = "files/GeoIP.dat"
 )
 
 var (
@@ -81,12 +79,13 @@ var (
 	conf *config.Config
 
 	// flag variables
-	flagConfig    = flag.String("c", "", "Configuration profile from file")
-	flagRegion    = flag.String("r", "", "Region")
-	flagVMProxies = flag.Bool("v", false, "Enable ports for VM users (1024-10000)")
-	flagDebug     = flag.Bool("d", false, "Debug mode")
-	flagTemplates = flag.String("template", "files/templates", "Change template directory")
-	flagCerts     = flag.String("certs", ".", "Change Certificate directory")
+	flagConfig       = flag.String("c", "", "Configuration profile from file")
+	flagRegion       = flag.String("r", "", "Region")
+	flagVMProxies    = flag.Bool("v", false, "Enable ports for VM users (1024-10000)")
+	flagDebug        = flag.Bool("d", false, "Debug mode")
+	flagTemplates    = flag.String("template", "files/templates", "Change template directory")
+	flagCerts        = flag.String("certs", ".", "Change Certificate directory")
+	flagGeoIpDatFile = flag.String("g", "/opt/kite/kontrolproxy/files/GeoIP.dat", "Change geoIP dat file path")
 )
 
 // Proxy is implementing the http.Handler interface (via ServeHTTP). This is
@@ -152,7 +151,7 @@ func main() {
 	))
 
 	var err error
-	geo, err = libgeo.Load(geoIPDatFile)
+	geo, err = libgeo.Load(*flagGeoIpDatFile)
 	if err != nil {
 		log.Warning("geoip db loading err: %s", err.Error())
 	}
