@@ -73,8 +73,8 @@ func main() {
 	kon.AddAuthenticator("sessionID", authenticateFromSessionID)
 
 	if conf.NewKontrol.UseTLS {
-		kon.Server.UseTLSFile(conf.NewKontrol.CertFile, conf.NewKontrol.KeyFile)
-		kon.Server.Config.Port = conf.NewKontrol.Port
+		kon.Kite.UseTLSFile(conf.NewKontrol.CertFile, conf.NewKontrol.KeyFile)
+		kon.Kite.Config.Port = conf.NewKontrol.Port
 	}
 
 	kon.Run()

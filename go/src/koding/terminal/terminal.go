@@ -225,7 +225,7 @@ func (t *Terminal) runNewKite() {
 
 	t.NewKite = k.Kite
 
-	if k.Server.TLSConfig != nil {
+	if k.TLSConfig != nil {
 		k.Config.Port = 444
 	} else {
 		k.Config.Port = 5001

@@ -204,7 +204,7 @@ func (o *Oskite) runNewKite() {
 
 	o.NewKite = k.Kite
 
-	if k.Server.TLSConfig != nil {
+	if k.TLSConfig != nil {
 		k.Config.Port = 443
 	} else {
 		k.Config.Port = 5000

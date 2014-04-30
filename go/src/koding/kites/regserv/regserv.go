@@ -53,7 +53,7 @@ func main() {
 	// Request must not be authenticated because clients do not have a
 	// kite.key before they register. We will authenticate them in
 	// "register" method handler.
-	s.Server.Config.DisableAuthentication = true
+	s.Kite.Config.DisableAuthentication = true
 
 	s.Authenticate = func(r *kite.Request) error {
 		password, err := r.Client.TellWithTimeout("kite.getPass", 10*time.Minute, "Enter password: ")
