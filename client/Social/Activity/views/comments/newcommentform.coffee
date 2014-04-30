@@ -21,6 +21,12 @@ class NewCommentForm extends KDView
           required  : "Please type a comment..."
       callback      : @bound "commentInputReceivedEnter"
 
+
+  submit: ->
+
+    @getDelegate().emit 'CommentSubmitted', @input.getValue()
+
+
   viewAppended:->
     {editable} = @getOptions()
     unless editable
@@ -58,16 +64,14 @@ class NewCommentForm extends KDView
   commentInputReceivedEnter:(instance,event)->
     KD.requireMembership
       callback  : =>
-        {editable} = @getOptions()
-        reply = @input.getValue()
         @input.setValue ''
         @input.resize()
         @input.blur()
         @input.$().blur()
-        unless editable then @getDelegate().emit 'CommentSubmitted', reply
-        else @getDelegate().emit 'CommentUpdated', reply
 
-        KD.mixpanel "Comment activity, click", reply.length
+        @submit()
+
+        KD.mixpanel "Comment activity, click", @input.getValue().length
       onFailMsg : "Login required to post a comment!"
       tryAgain  : yes
       groupName : @getDelegate().getData().group

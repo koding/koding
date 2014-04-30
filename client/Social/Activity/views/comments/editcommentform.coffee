@@ -14,6 +14,11 @@ class EditCommentForm extends NewCommentForm
     @input.on "EscapePerformed", @bound "cancel"
 
 
+  submit: ->
+
+    @getDelegate().emit 'CommentUpdated', @input.getValue()
+
+
   cancel: ->
 
     @getDelegate().emit "CommentUpdateCancelled"
