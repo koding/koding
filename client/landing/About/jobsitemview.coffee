@@ -1,34 +1,27 @@
 class JobsItemView extends KDView
   constructor : (options = {}, data) ->
+
     options.cssClass = KD.utils.curry 'jobs-item-view', options.cssClass
 
     super options, data
 
     @detailsShown = no
 
-    @readMore    = new KDCustomHTMLView
-      tagName    : 'a'
+    @readMore    = new CustomLinkView
       cssClass   : 'read-more-link'
-      partial    : 'Read More'
+      title      : 'Read More'
       click      : @bound 'toggleDetails'
 
-    @applyButton = new KDCustomHTMLView
-      tagName    : 'a'
-      partial    : 'APPLY FOR THIS JOB'
+    @applyButton = new CustomLinkView
+      title      : 'APPLY FOR THIS JOB'
       cssClass   : 'apply-button'
-      attributes :
-        href     : @getData().applyUrl
-
-    @detailsApplyButton = new KDCustomHTMLView
-      tagName    : 'a'
-      partial    : 'APPLY FOR THIS JOB'
-      cssClass   : 'apply-button border-only'
-      attributes :
-        href     : @getData().applyUrl
+      href       : @getData().applyUrl
 
   viewAppended : JView::viewAppended
 
-  toggleDetails : ->
+  toggleDetails : (e) ->
+
+    e.preventDefault()
 
     @detailsShown = !@detailsShown
 
@@ -41,6 +34,7 @@ class JobsItemView extends KDView
       @readMore.updatePartial 'Read More'
 
   getHeadingView : ->
+
     {text, categories} = @getData()
 
     heading = new KDCustomHTMLView
@@ -67,6 +61,7 @@ class JobsItemView extends KDView
     return heading
 
   getDetailsView : ->
+
     {lists, applyUrl, description, additional} = @getData()
 
     paragraphs = (description.split '\n').splice 1
@@ -97,16 +92,15 @@ class JobsItemView extends KDView
           tagName : 'p'
           partial : content
 
-    details.addSubView new KDCustomHTMLView
-      tagName     : 'a'
-      partial     : 'APPLY FOR THIS JOB'
-      cssClass    : 'apply-button border-only'
-      attributes  :
-        href      : applyUrl
+    details.addSubView new CustomLinkView
+      title      : 'APPLY FOR THIS JOB'
+      cssClass   : 'apply-button border-only'
+      href       : @getData().applyUrl
 
     return details
 
   pistachio : ->
+
     {description} = @getData()
     summary       = description.split('\n', 1)[0]
 
@@ -117,5 +111,4 @@ class JobsItemView extends KDView
       #{summary} {{> @readMore }}
     </p>
     {{> @getDetailsView() }}
-
     """
