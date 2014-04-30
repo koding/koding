@@ -94,7 +94,7 @@ class ActivitySidebar extends KDCustomScrollView
       cssClass : 'inbox users'
       itemClass : SidebarMemberItem
       dataSource : (callback) ->
-        KD.getGroup().fetchNewestMembers {}, {limit : 3, skip}, callback
+        KD.getGroup().fetchNewestMembers {}, {limit : 3, skip : 0}, callback
 
 
   addChat: ->
