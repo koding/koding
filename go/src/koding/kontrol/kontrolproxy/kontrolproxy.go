@@ -32,6 +32,7 @@ import (
 	"github.com/hoisie/redis"
 	"github.com/koding/kite"
 	"github.com/koding/kite/protocol"
+	"github.com/nranchev/go-libGeoIP"
 )
 
 const (
@@ -40,9 +41,9 @@ const (
 
 	// Used as a value for CookieVM
 	MagicCookieValue = "KEbPptvE7dGLM5YFtcfz"
-)
 
-const KONTROLPROXY_NAME = "kontrolproxy"
+	KONTROLPROXY_NAME = "kontrolproxy"
+)
 
 var (
 	proxyName, _ = os.Hostname()
@@ -71,16 +72,20 @@ var (
 	// maintenance,...
 	templates *template.Template
 
+	// geoip instances
+	geo *libgeo.GeoIP
+
 	// readed config
 	conf *config.Config
 
 	// flag variables
-	flagConfig    = flag.String("c", "", "Configuration profile from file")
-	flagRegion    = flag.String("r", "", "Region")
-	flagVMProxies = flag.Bool("v", false, "Enable ports for VM users (1024-10000)")
-	flagDebug     = flag.Bool("d", false, "Debug mode")
-	flagTemplates = flag.String("template", "files/templates", "Change template directory")
-	flagCerts     = flag.String("certs", ".", "Change Certificate directory")
+	flagConfig       = flag.String("c", "", "Configuration profile from file")
+	flagRegion       = flag.String("r", "", "Region")
+	flagVMProxies    = flag.Bool("v", false, "Enable ports for VM users (1024-10000)")
+	flagDebug        = flag.Bool("d", false, "Debug mode")
+	flagTemplates    = flag.String("template", "files/templates", "Change template directory")
+	flagCerts        = flag.String("certs", ".", "Change Certificate directory")
+	flagGeoIpDatFile = flag.String("g", "/opt/kite/kontrolproxy/files/GeoIP.dat", "Change geoIP dat file path")
 )
 
 // Proxy is implementing the http.Handler interface (via ServeHTTP). This is
@@ -144,6 +149,12 @@ func main() {
 		*flagTemplates+"/quotaExceeded.html",
 		*flagTemplates+"/maintenance.html",
 	))
+
+	var err error
+	geo, err = libgeo.Load(*flagGeoIpDatFile)
+	if err != nil {
+		log.Warning("geoip db loading err: %s", err.Error())
+	}
 
 	log.Info("Kontrolproxy started.")
 	log.Info("I'm using %d cpus for GOMACPROCS", runtime.NumCPU())
@@ -881,4 +892,16 @@ func getIP(addr string) string {
 		return ""
 	}
 	return ip
+}
+
+func getCountry(ip string) string {
+	if geo == nil {
+		return ""
+	}
+
+	if l := geo.GetLocationByIP(ip); l != nil {
+		return l.CountryName
+	}
+
+	return ""
 }
