@@ -67,10 +67,17 @@ module.exports = class Builder
     @config ?= require('koding-config-manager').load("main.#{options.configFile}")
     cmd = "cd client/Framework && npm i && gulp compile --buildVersion=#{@config.client.version} --outputDir=../../website/a/"
     exec cmd, (err, stdout, stderr)->
-      console.warn "------------------------ FRAMEWORK COMPILED -------------------------- "
-      console.warn " To use watcher for Framework use following command in different tab:  "
-      console.log  " $ #{cmd.replace 'compile ', ''} "
-      console.warn "------------------------ FRAMEWORK COMPILED -------------------------- "
+      console.log """\n\n
+      ################################### FRAMEWORK COMPILED #################################
+
+
+       To use watcher for Framework use following command in different tab:
+       $ #{cmd.replace 'compile ', ''}
+
+
+      ################################### FRAMEWORK COMPILED #################################
+      \n
+      """
 
   buildClient: (options) ->
     @config ?= require('koding-config-manager').load("main.#{options.configFile}")

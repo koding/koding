@@ -14,13 +14,11 @@ import (
 	"github.com/koding/kite"
 	kiteconfig "github.com/koding/kite/config"
 	"github.com/koding/kite/registration"
-	"github.com/koding/kite/server"
 	"github.com/koding/logging"
 )
 
 type KodingKite struct {
-	*server.Server
-	Kite             *kite.Kite
+	*kite.Kite
 	Registration     *registration.Registration
 	KodingConfig     *kodingconfig.Config
 	registerHostname string
@@ -39,10 +37,7 @@ func New(kodingConf *kodingconfig.Config, name, version string) (*KodingKite, er
 	k := kite.New(name, version)
 	k.Config = kiteConf
 
-	server := server.New(k)
-
 	kk := &KodingKite{
-		Server:       server,
 		Kite:         k,
 		Registration: registration.New(k),
 		KodingConfig: kodingConf,
@@ -57,7 +52,7 @@ func New(kodingConf *kodingconfig.Config, name, version string) (*KodingKite, er
 	kk.Log.SetHandler(logging.NewMultiHandler(logging.StderrHandler, syslog))
 
 	if kodingConf.NewKites.UseTLS {
-		kk.Server.UseTLSFile(kodingConf.NewKites.CertFile, kodingConf.NewKites.KeyFile)
+		kk.UseTLSFile(kodingConf.NewKites.CertFile, kodingConf.NewKites.KeyFile)
 		kk.scheme = "wss"
 		kk.registerHostname, err = os.Hostname()
 	} else {
@@ -76,24 +71,23 @@ func (k *KodingKite) Start() {
 
 	registerWithURL := &url.URL{
 		Scheme: k.scheme,
-		Host:   k.registerHostname + ":" + strconv.Itoa(k.Config.Port),
+		Host:   k.registerHostname + ":" + strconv.Itoa(k.Kite.Config.Port),
 		// Put the kite's name and version into path because it is useful
 		// on Chrome Console when developing.
 		Path: "/" + k.Kite.Kite().Name + "-" + k.Kite.Kite().Version,
 	}
 
-	k.Server.Start()
+	k.Kite.Start()
 	go k.Registration.RegisterToKontrol(registerWithURL)
 }
 
 func (k *KodingKite) Run() {
 	k.Start()
-	<-k.Server.CloseNotify()
+	<-k.Kite.CloseNotify()
 }
 
 func (k *KodingKite) Close() {
-	k.Kite.Kontrol.Close()
-	k.Server.Close()
+	k.Kite.Close()
 }
 
 func getRegisterIP(environment string) (string, error) {
