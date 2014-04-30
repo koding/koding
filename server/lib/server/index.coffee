@@ -259,7 +259,7 @@ app.get "/-/jobs", (req, res) ->
 
   request options, (err, r, postings) ->
     res.send 404 if err
-    res.jsonp postings
+    res.json postings
 
 app.get "/sitemap:sitemapName", (req, res)->
   {JSitemap}       = koding.models
