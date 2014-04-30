@@ -138,13 +138,20 @@ module.exports = class JCredential extends jraphical.Module
     success: (client, selector, options, callback)->
 
       [options, callback] = [callback, options]  unless callback
-      options ?= { limit : 10 }
+
+      options        ?= {}
+      selector       ?= {}
+      fetcherSelector = {}
+
+      if selector.as? and selector.as in ['owner', 'user']
+        fetcherSelector.as = selector.as
+        delete selector.as
+
+      options.limit        ?= 10
+      options.targetOptions = { selector }
 
       {delegate} = client.connection
-      delegate.fetchCredentials {},
-        targetOptions : {
-          selector, options
-        }, callback
+      delegate.fetchCredentials fetcherSelector, options, callback
 
 
   fetchUsers: permit
@@ -172,6 +179,7 @@ module.exports = class JCredential extends jraphical.Module
             } for u in arr)
           else
             callback null, []
+
 
   # .share can be used like this:
   #
