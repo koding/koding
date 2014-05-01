@@ -62,7 +62,7 @@ class AddFirewallRuleModal extends KDModalViewWithForms
     if data then @createExistingRules() else @createRuleWidget no
 
     button      = new KDButtonView
-      title     : "Add more rules"
+      title     : "Add more filters"
       icon      : yes
       iconClass : "plus"
       cssClass  : "solid green small add-rule"
