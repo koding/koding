@@ -110,9 +110,13 @@ class AddFirewallRuleModal extends KDModalViewWithForms
 
     for widget in @filterWidgets
       data = widget.getFormData()
-      data.match = data.countries  if data.type is "country"
+      if data.type is "country" then data.match = data.countries
+      else if data.match is ""  then isValid = no
+
       delete data.countries
       rules.push data
+
+    return @notify "Filter value is empty" unless isValid
 
     data    = @getData()
     dataSet = { name, rules, enabled: isEnabled }
