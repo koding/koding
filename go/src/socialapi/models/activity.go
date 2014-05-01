@@ -56,7 +56,7 @@ func (a *Activity) BeforeUpdate() {
 	a.UpdatedAt = time.Now()
 }
 
-func (a *Activity) FetchActorIds() ([]int64, error) {
+func (a *Activity) FetchActorIds(limit int) ([]int64, error) {
 	q := &bongo.Query{
 		Selector: map[string]interface{}{
 			"target_id":     a.TargetId,
@@ -65,7 +65,8 @@ func (a *Activity) FetchActorIds() ([]int64, error) {
 		Sort: map[string]string{
 			"updated_at": "desc",
 		},
-		Pluck: "actor_id",
+		Pluck:      "actor_id",
+		Pagination: *bongo.NewPagination(limit, 0),
 	}
 	var actorIds []int64
 

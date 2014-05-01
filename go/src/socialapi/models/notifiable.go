@@ -206,7 +206,7 @@ func (n *FollowNotification) FetchActors() (*ActorContainer, error) {
 	a := NewActivity()
 	a.TargetId = n.TargetId
 	a.TypeConstant = NotificationContent_TYPE_FOLLOW
-	actorIds, err := a.FetchActorIds()
+	actorIds, err := a.FetchActorIds(NOTIFIER_LIMIT)
 	if err != nil {
 		return nil, err
 	}
@@ -260,7 +260,7 @@ func (n *GroupNotification) FetchActors() (*ActorContainer, error) {
 	a := NewActivity()
 	a.TargetId = n.TargetId
 	a.TypeConstant = n.TypeConstant
-	actors, err := a.FetchActorIds()
+	actors, err := a.FetchActorIds(NOTIFIER_LIMIT)
 	if err != nil {
 		return nil, err
 	}
