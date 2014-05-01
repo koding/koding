@@ -1,8 +1,8 @@
 class AboutAppController extends AppController
 
   KD.registerAppClass this,
-    name         : "About"
-    route        : "/About"
+    name  : 'About'
+    route : '/About'
 
   constructor:(options = {}, data)->
 
