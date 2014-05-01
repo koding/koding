@@ -21,6 +21,7 @@ type NotificationWorkerController struct {
 	log             logging.Logger
 	rmqConn         *amqp.Connection
 	notifierRmqConn *amqp.Connection
+	cacheEnabled    bool
 }
 
 type NotificationEvent struct {
@@ -41,7 +42,7 @@ func (n *NotificationWorkerController) DefaultErrHandler(delivery amqp.Delivery,
 	delivery.Ack(false)
 }
 
-func NewNotificationWorkerController(rmq *rabbitmq.RabbitMQ, log logging.Logger) (*NotificationWorkerController, error) {
+func NewNotificationWorkerController(rmq *rabbitmq.RabbitMQ, log logging.Logger, cacheEnabled bool) (*NotificationWorkerController, error) {
 	rmqConn, err := rmq.Connect("NewNotificationWorkerController")
 	if err != nil {
 		return nil, err
@@ -56,6 +57,7 @@ func NewNotificationWorkerController(rmq *rabbitmq.RabbitMQ, log logging.Logger)
 		log:             log,
 		rmqConn:         rmqConn.Conn(),
 		notifierRmqConn: notifierRmqConn.Conn(),
+		cacheEnabled:    cacheEnabled,
 	}
 
 	routes := map[string]Action{

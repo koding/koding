@@ -38,7 +38,14 @@ func main() {
 	//create connection to RMQ for publishing realtime events
 	rmq := helper.NewRabbitMQ(conf, log)
 
-	handler, err := notification.NewNotificationWorkerController(rmq, log)
+	cacheEnabled := conf.Cache.Notification
+	if cacheEnabled {
+		// init redis
+		redisConn := helper.MustInitRedisConn(conf.Redis)
+		defer redisConn.Close()
+	}
+
+	handler, err := notification.NewNotificationWorkerController(rmq, log, cacheEnabled)
 	if err != nil {
 		panic(err)
 	}
