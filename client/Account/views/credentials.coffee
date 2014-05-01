@@ -33,6 +33,7 @@ class AccountCredentialListController extends AccountListViewController
     view.addSubView addButton = new KDButtonView
       style     : "solid green small account-header-button"
       iconClass : "plus"
+      iconOnly  : yes
       callback  : => new KDNotificationView title : "Coming soon."
 
 class AccountCredentialList extends KDListView
@@ -44,9 +45,37 @@ class AccountCredentialList extends KDListView
 
     super options, data
 
+  deleteItem: (item)->
+
+    credential = item.getData()
+
+    modal = KDModalView.confirm
+      title       : "Remove credential"
+      description : "Do you want to remove ?"
+      ok          :
+        title     : "Yes"
+        callback  : -> credential.delete (err)->
+
+          modal.destroy()
+
+          unless KD.showError err
+            item.destroy()
+
+
 class AccountCredentialListItem extends KDListItemView
+
+  constructor: (options = {}, data)->
+    options.cssClass = KD.utils.curry "credential-item", options.cssClass
+    super options, data
+
+    delegate = @getDelegate()
+
+    @deleteButton = new KDButtonView
+      title    : "Delete"
+      cssClass : "solid small red"
+      callback : => delegate.deleteItem this
 
   viewAppended: JView::viewAppended
 
   pistachio:->
-    "{{#(vendor)}} - {{#(title)}}"
+    "{{#(vendor)}} - {{#(title)}} -- {{> @deleteButton}}"
