@@ -81,7 +81,7 @@ class EducationView extends KDView
             <h5>Instant feedback on anything</h5>
             <p>
               Never miss a thing. Who is working on what, who needs help,
-              what needs to get done,
+              what needs to get done.
             </p>
           </article>
           <article class="feature">
@@ -89,7 +89,7 @@ class EducationView extends KDView
             <h5>Collaborative</h5>
             <p>
               Invite anyone to your private session to collaborate on your
-              current project. Help anyone, get help from your peer with a
+              current project. Help anyone, get help from your peers with a
               click, in realtime.
             </p>
           </article>
@@ -97,9 +97,9 @@ class EducationView extends KDView
             <i class="box-open icon"></i>
             <h5>Dedicated VM’s</h5>
             <p>
-              Already set up environments for every single lecture.
-              Less time setting up things from ground up, more time
-              writing actual code!
+              Preset environments for every single lecture allows your students
+              to avoid tedious setup and configuration; so they can spend more
+              time learning things!
             </p>
           </article>
           <article class="feature">

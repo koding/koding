@@ -58,8 +58,8 @@ class BusinessView extends KDView
             <h5>Total control over the big picture</h5>
             <p>
               Never miss a thing. Who is working on what, who needs help,
-              what needs to be done. Look back into the progress of your
-              team’s progress.
+              what needs to be done. At any moment look back into the progress
+              of your team.
             </p>
           </article>
           <article class="feature">
