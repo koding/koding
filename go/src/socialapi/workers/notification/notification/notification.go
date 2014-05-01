@@ -3,7 +3,6 @@ package notification
 import (
 	"encoding/json"
 	"errors"
-	"fmt"
 	"github.com/koding/logging"
 	"github.com/koding/rabbitmq"
 	"github.com/koding/worker"
@@ -127,8 +126,7 @@ func (n *NotificationWorkerController) CreateInteractionNotification(data []byte
 func (n *NotificationWorkerController) NotifyUser(data []byte) error {
 	channel, err := n.notifierRmqConn.Channel()
 	if err != nil {
-		// change this with log
-		return fmt.Errorf("channel connection error")
+		return errors.New("channel connection error")
 	}
 	defer channel.Close()
 
@@ -163,7 +161,7 @@ func (n *NotificationWorkerController) NotifyUser(data []byte) error {
 		if n.cacheEnabled {
 			notificationCache := cache.NewNotificationCache()
 			if err := notificationCache.UpdateCache(notification, nc); err != nil {
-				fmt.Println("error occurred", err)
+				n.log.Error("an error occurred %s", err)
 			}
 		}
 	}()
