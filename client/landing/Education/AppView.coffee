@@ -81,7 +81,7 @@ class EducationView extends KDView
             <h5>Instant feedback on anything</h5>
             <p>
               Never miss a thing. Who is working on what, who needs help,
-              what needs to get done,
+              what needs to get done.
             </p>
           </article>
           <article class="feature">
