@@ -281,6 +281,19 @@ func (r *RedisSession) AddSetMembers(key string, rest ...interface{}) (int, erro
 	return reply, nil
 }
 
+// RemoveSetMembers removes given elements from the set stored at key
+// Returns successfully removed key count and error state
+func (r *RedisSession) RemoveSetMembers(key string, rest ...interface{}) (int, error) {
+	prefixedReq := r.prepareArgsWithKey(key, rest...)
+
+	reply, err := redis.Int(r.Do("SREM", prefixedReq...))
+	if err != nil {
+		return 0, err
+	}
+
+	return reply, nil
+}
+
 // GetSetMembers returns all members included in the set at key
 // Returns members array and error state
 func (r *RedisSession) GetSetMembers(key string) ([]interface{}, error) {
