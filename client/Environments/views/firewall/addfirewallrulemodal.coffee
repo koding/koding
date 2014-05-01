@@ -90,7 +90,7 @@ class AddFirewallRuleModal extends KDModalViewWithForms
 
   createExistingRules: ->
     @getData().rules.forEach (rule, index) =>
-      @createRuleWidget index isnt 0, rule
+      @createRuleWidget yes, rule
 
   handleFormSubmit: ->
     isValid          = yes
@@ -116,6 +116,8 @@ class AddFirewallRuleModal extends KDModalViewWithForms
 
     data    = @getData()
     dataSet = { name, rules, enabled: isEnabled }
+
+    return @notify "You should have at least one filter"  if rules.length is 0
 
     if data
       data.update dataSet, (err, rule) =>
