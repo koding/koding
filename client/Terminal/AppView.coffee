@@ -412,7 +412,7 @@ class WebTermAppView extends JView
       numberOfVms = Object.keys(KD.singletons.vmController.vmsInfo).length
 
     if title and /CPU limit reached/.test title
-      title = "You've exceeded the allowed number of concurrent vms. Please upgrade."
+      title = "Please upgrade to run more VMs"
       KD.remote.api.JErrorLog.create { error : "cpu_limit_reached", numberOfVms }, ->
     else
       title = "Your vm failed to start. Please try again later."
