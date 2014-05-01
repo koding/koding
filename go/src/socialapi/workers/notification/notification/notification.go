@@ -12,6 +12,7 @@ import (
 	"koding/db/mongodb/modelhelper"
 	"labix.org/v2/mgo"
 	"socialapi/models"
+	"socialapi/workers/cache"
 )
 
 type Action func(*NotificationWorkerController, []byte) error
@@ -136,23 +137,11 @@ func (n *NotificationWorkerController) NotifyUser(data []byte) error {
 		return err
 	}
 
-	accountId := notification.AccountId
-	oldAccount, err := fetchNotifierOldAccount(accountId)
-	if err != nil {
-		return err
-	}
-
-	// fetch user profile name from bongo as routing key
-	ne := &NotificationEvent{}
-	routingKey := oldAccount.Profile.Nickname
-
 	// fetch notification content and get event type
 	nc, err := notification.FetchContent()
 	if err != nil {
 		return err
 	}
-
-	ne.Event = nc.GetEventType()
 
 	nt, err := models.CreateNotificationType(nc.TypeConstant)
 	if err != nil {
@@ -170,6 +159,24 @@ func (n *NotificationWorkerController) NotifyUser(data []byte) error {
 		actorId = ac.LatestActors[0]
 	}
 
+	go func() {
+		if n.cacheEnabled {
+			notificationCache := cache.NewNotificationCache()
+			if err := notificationCache.UpdateCache(notification, nc); err != nil {
+				fmt.Println("error occurred", err)
+			}
+		}
+	}()
+
+	accountId := notification.AccountId
+	oldAccount, err := fetchNotifierOldAccount(accountId)
+	if err != nil {
+		return err
+	}
+
+	// fetch user profile name from bongo as routing key
+	ne := &NotificationEvent{}
+	ne.Event = nc.GetEventType()
 	ne.Content = NotificationContent{
 		ActorId:      actorId,
 		TargetId:     nc.TargetId,
@@ -180,6 +187,8 @@ func (n *NotificationWorkerController) NotifyUser(data []byte) error {
 	if err != nil {
 		return err
 	}
+
+	routingKey := oldAccount.Profile.Nickname
 
 	return channel.Publish(
 		"notification",
