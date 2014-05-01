@@ -10,7 +10,6 @@ do->
       argsForMixpanel.username = KD.whoami()?.profile?.nickname
       KD.remote?.api.JPageHit.create argsForMixpanel, ->
 
-
 do->
   lastGAMessage = null
   userIdle      = false
