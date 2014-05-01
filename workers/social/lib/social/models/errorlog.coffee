@@ -31,9 +31,3 @@ module.exports = class JErrorLog extends ElasticSearch
       documents = [ record ]
 
       ElasticSearch.create @errorsIndex(error), documents, callback
-
-# JErrorLog.create({
-  # error       : "cpu_limit_reached"
-  # numberOfVms : 1
-  # kontainer   : 23
-# }, ->)

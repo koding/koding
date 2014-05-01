@@ -45,15 +45,12 @@ module.exports = class ElasticSearch extends Base
       _type  : type
     }
 
-    console.log ">>> getIndexOptions", indexOptions
-
     return indexOptions
 
   @getUserInfo: (client, callback)->
     {sessionToken} = client
     JSession       = require './session'
     JSession.one {clientId: sessionToken}, (err, session) =>
-      console.log ">>> getUserInfo", err, session
       return callback err  if err
 
       unless session
@@ -76,9 +73,7 @@ module.exports = class ElasticSearch extends Base
       callback null, record
 
   @create: (indexOptions, documents, callback)->
-    # return  callback null  unless run
-
-    console.log ">>> ElasticSearch create", indexOptions, documents
+    return  callback null  unless run
 
     for doc in documents
       doc["@timestamp"] ?= new Date
