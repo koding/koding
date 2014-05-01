@@ -103,13 +103,7 @@ class AddFirewallRuleModal extends KDModalViewWithForms
         isValid = no  if hasRequestFilter
         hasRequestFilter = yes
 
-    unless isValid
-      return new KDNotificationView
-        title      : "You can select only one request type filter"
-        cssClass   : "error"
-        type       : "mini"
-        container  : this
-        duration   : 4000
+    return @notify "You can select only one request type filter" unless isValid
 
     {name, isEnabled} = @modalTabs.forms.Rules.getFormData()
     rules = []
@@ -134,7 +128,7 @@ class AddFirewallRuleModal extends KDModalViewWithForms
         @destroy()
     else
       KD.remote.api.JProxyFilter.create dataSet, (err, rule) =>
-        return KD.showError err.message  if err
+        return @notify err.message  if err
         @emit "NewRuleAdded", rule
 
   fetchCountries: ->
@@ -147,11 +141,15 @@ class AddFirewallRuleModal extends KDModalViewWithForms
       success       : (countries) =>
         KD.config.countries = countries
         @setCountries()
-      error         : ->
-        new KDNotificationView
-          type      : "mini"
-          cssClass  : "error"
-          title     : "Error while fetching countries"
+      error         : => @notify "Error while fetching countries"
 
   setCountries: ->
     widget.setCountries() for widget in @filterWidgets
+
+  notify: (message, cssClass = "error") ->
+    return new KDNotificationView
+      title      : message
+      cssClass   : cssClass
+      type       : "mini"
+      container  : this
+      duration   : 4000
