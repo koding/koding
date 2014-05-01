@@ -40,8 +40,6 @@ func TestNotificationCreation(t *testing.T) {
 				ownerAccount, err = createAccount(ownerAccount)
 				ResultedWithNoErrorCheck(ownerAccount, err)
 
-				fmt.Println("owner account var", ownerAccount.Id)
-
 				// firstUser.OldId = "5196fcb0bc9bdb0000000011" //devrim
 				firstUser.Id = 0
 				firstUser.OldId = bson.NewObjectId().Hex()

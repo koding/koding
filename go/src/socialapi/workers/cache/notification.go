@@ -184,7 +184,8 @@ func (cache *NotificationCache) updateUnreadCount(accountId int64) error {
 		if err != nil {
 			return err
 		}
-		glanced, err := cache.redisConn.Bool(reply)
+
+		glanced, err := cache.redisConn.Bool(reply[0])
 		if err != nil {
 			return err
 		}
