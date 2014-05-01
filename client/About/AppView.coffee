@@ -82,18 +82,19 @@ class AboutView extends KDView
         {{> @memberList}}
       </div>
     </section>
+    <section class='careers' id='jobs'>
+      <div class='wrapper'>
+        <h2>Koding. <span>Jobs</span></h2>
+        <h4>If you think your picture is missing above...</h4>
+        {{> @jobsView }}
+      </div>
+    </section>
     <section class='press-kit'>
       <div class='wrapper'>
         <h2>Press Kit</h2>
         <h4>Resources for brand enthusiasts</h4>
         {{> @logoPackButton}}
         {{> @fontPackButton}}
-      </div>
-    </section>
-    <section class='careers'>
-      <div class='wrapper'>
-        <h2>Koding. <span>Jobs</span></h2>
-        {{> @jobsView }}
       </div>
     </section>
     {{> @footer}}
