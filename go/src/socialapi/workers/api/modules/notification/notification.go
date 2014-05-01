@@ -13,6 +13,7 @@ import (
 	"socialapi/workers/api/modules/helpers"
 	"socialapi/workers/cache"
 	"socialapi/workers/helper"
+	"strconv"
 )
 
 var (
@@ -35,6 +36,13 @@ func List(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface
 
 	conf := config.Get()
 	cacheEnabled = conf.Cache.Notification
+
+	urlQuery := u.Query()
+	cache, err := strconv.ParseBool(urlQuery.Get("cache"))
+	if err == nil {
+		cacheEnabled = cache
+	}
+
 	list, err := fetchNotifications(q)
 	if err != nil {
 		if err == gorm.RecordNotFound {
