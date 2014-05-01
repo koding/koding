@@ -46,7 +46,7 @@ module.exports = class JProxyFilter extends jraphical.Module
 
     for rule in rules
       {enabled, type, match, action} = rule
-      hasAllFields       = enabled and type and match and action
+      hasAllFields       = enabled? and type and match and action
       hasValidRuleType   = ruleTypes.indexOf(type)     isnt -1
       hasValidActionType = actionTypes.indexOf(action) isnt -1
 
