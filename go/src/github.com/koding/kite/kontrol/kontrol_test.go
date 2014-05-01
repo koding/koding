@@ -5,6 +5,8 @@ import (
 	"io/ioutil"
 	"net/url"
 	"os"
+	"strconv"
+	"sync"
 	"testing"
 	"time"
 
@@ -30,20 +32,168 @@ func init() {
 	conf.KontrolUser = "testuser"
 	conf.KiteKey = testutil.NewKiteKey().Raw
 
+	kon = New(conf.Copy(), "0.0.1", testkeys.Public, testkeys.Private)
+	kon.DataDir, _ = ioutil.TempDir("", "")
+	defer os.RemoveAll(kon.DataDir)
+	kon.Start()
+}
+
+func BenchmarkGetKites(b *testing.B) {
+	prepareKite := func(name, version string) func() {
+		m := kite.New(name, version)
+		m.Config = conf.Copy()
+
+		kiteURL := &url.URL{Scheme: "ws", Host: "localhost:4444"}
+		_, err := m.Register(kiteURL)
+		if err != nil {
+			b.Error(err)
+		}
+
+		return func() { m.Close() }
+	}
+
+	for i := 0; i < 100; i++ {
+		cls := prepareKite("example", "0.1."+strconv.Itoa(i))
+		defer cls() // close them later
+	}
+
+	query := protocol.KontrolQuery{
+		Username:    conf.Username,
+		Environment: conf.Environment,
+		Name:        "example",
+	}
+
+	b.ResetTimer()
+
+	for i := 0; i < b.N; i++ {
+		exp := kite.New("exp"+strconv.Itoa(i), "0.0.1")
+		exp.Config = conf.Copy()
+		_, err := exp.GetKites(query)
+		if err != nil {
+			b.Fatal(err)
+		}
+	}
+}
+
+func TestMultiple(t *testing.T) {
+	prepareKite := func(name, version string) func() {
+		m := kite.New(name, version)
+		m.Config = conf.Copy()
+
+		kiteURL := &url.URL{Scheme: "ws", Host: "localhost:4444"}
+		_, err := m.Register(kiteURL)
+		if err != nil {
+			t.Error(err)
+		}
+
+		return func() { m.Close() }
+	}
+
+	fmt.Println("Creating 100 example kites")
+	for i := 0; i < 100; i++ {
+		// cls := prepareKite("example"+strconv.Itoa(i), "0.1."+strconv.Itoa(i))
+		cls := prepareKite("example", "0.1."+strconv.Itoa(i))
+		defer cls() // close them later
+	}
+
+	n := 100 // increasing the number makes the test fail
+	fmt.Printf("Querying for example kites with %d conccurent clients\n", n)
+
+	// setup up clients earlier
+	clients := make([]*kite.Kite, n)
+	for i := 0; i < n; i++ {
+		exp := kite.New("exp"+strconv.Itoa(i), "0.0.1")
+		exp.Config = conf.Copy()
+		// exp.Config.Username = conf.Username + strconv.Itoa(i)
+		clients[i] = exp
+	}
+
+	query := protocol.KontrolQuery{
+		Username:    conf.Username,
+		Environment: conf.Environment,
+		Name:        "example",
+	}
+
+	var wg sync.WaitGroup
+
+	for i := 0; i < n; i++ {
+		wg.Add(1)
+		go func(i int) {
+			defer wg.Done()
+			start := time.Now()
+
+			_, err := clients[i].GetKites(query)
+
+			elapsedTime := time.Since(start)
+			end := time.Now()
+
+			if err != nil {
+				t.Errorf("[%d] aborted at %s (elapsed %f sec) err: %s\n",
+					i, end.Format(time.StampMilli), elapsedTime.Seconds(), err)
+			} else {
+				fmt.Printf("[%d] finished at %s (elapsed %f sec)\n",
+					i, end.Format(time.StampMilli), elapsedTime.Seconds())
+
+			}
+		}(i)
+	}
+
+	wg.Wait()
+}
+
+func TestGetKites(t *testing.T) {
+	t.Log("Setting up mathworker4")
+
+	testName := "mathwork4"
+	testVersion := "1.1.1"
+	m := kite.New(testName, testVersion)
+	m.Config = conf.Copy()
+
+	t.Log("Registering ", testName)
+	kiteURL := &url.URL{Scheme: "ws", Host: "localhost:4444"}
+	_, err := m.Register(kiteURL)
+	if err != nil {
+		t.Error(err)
+	}
+	defer m.Close()
+
+	query := protocol.KontrolQuery{
+		Username:    conf.Username,
+		Environment: conf.Environment,
+		Name:        testName,
+		Version:     "~> 1.1",
+	}
+
+	// exp2 queries for mathkite
+	t.Log("Querying for mathworker4")
+	exp3 := kite.New("exp3", "0.0.1")
+	exp3.Config = conf.Copy()
+	kites, err := exp3.GetKites(query)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if len(kites) == 0 {
+		t.Fatal("No mathworker available")
+	}
+
+	if len(kites) != 1 {
+		t.Fatal("Only one kite is registerd, we have %d", len(kites))
+	}
+
+	if kites[0].Name != testName {
+		t.Error("getkites got %s exptected %", kites[0].Name, testName)
+	}
+
+	if kites[0].Version != testVersion {
+		t.Error("getkites got %s exptected %", kites[0].Version, testVersion)
+	}
 }
 
 func TestRegister(t *testing.T) {
-	t.Log("Setting up kontrol")
-	kon := New(conf.Copy(), "0.0.1", testkeys.Public, testkeys.Private)
-	kon.DataDir, _ = ioutil.TempDir("", "")
-	defer os.RemoveAll(kon.DataDir)
-	defer kon.Close()
-	kon.Start()
-
+	t.Log("Setting up mathworker3")
 	kiteURL := &url.URL{Scheme: "ws", Host: "localhost:4444"}
-
-	t.Log("Setting up mathworker")
-	m := kite.New("mathworker", "1.1.1")
+	m := kite.New("mathworker3", "1.1.1")
 	m.Config = conf.Copy()
 
 	t.Log("Registering mathworker")
@@ -51,6 +201,7 @@ func TestRegister(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
+	defer m.Close()
 
 	if kiteURL.String() != res.URL.String() {
 		t.Error("register: got %s expected %s", res.URL.String(), kiteURL.String())
@@ -58,14 +209,6 @@ func TestRegister(t *testing.T) {
 }
 
 func TestKontrol(t *testing.T) {
-	// Start kontrol
-	t.Log("Setting up kontrol")
-	kon := New(conf.Copy(), "0.0.1", testkeys.Public, testkeys.Private)
-	kon.DataDir, _ = ioutil.TempDir("", "")
-	defer os.RemoveAll(kon.DataDir)
-	kon.Start()
-
-	// Start proxy
 	t.Log("Setting up proxy")
 	prx := proxy.New(conf.Copy(), "0.0.1", testkeys.Public, testkeys.Private)
 	prx.Start()
@@ -110,7 +253,7 @@ func TestKontrol(t *testing.T) {
 	remoteMathWorker := kites[0]
 	err = remoteMathWorker.Dial()
 	if err != nil {
-		t.Fatal("Cannot connect to remote mathworker")
+		t.Fatal("Cannot connect to remote mathworker", err)
 	}
 
 	// Test Kontrol.GetToken
