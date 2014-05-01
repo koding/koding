@@ -68,7 +68,7 @@ class HomeView extends KDView
             <p>
               Collaborative development environment for lecture groups,
               pair programming, or simply for sharing what you're doing with
-              a total stranger
+              a total stranger.
             </p>
           </article>
           <article class="feature">

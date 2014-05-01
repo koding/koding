@@ -26,12 +26,11 @@ class FooterView extends JView
 
       <nav class="footer-block">
         <h5>COMPANY</h5>
-        <a href="/About">ABOUT KODING</a>
-        <a href="https://jobs.lever.co/koding" target="_blank">JOBS</a>
         <a href="http://learn.koding.com" target="_blank">KODING UNIVERSITY</a>
-        <a href="mailto:hello@koding.com" target='_self'>CONTACT US</a>
-        <a href="/toc.html" target="_blank">TERMS AND CONDITIONS</a>
+        <a href="/About">JOBS</a>
+        <a href="/tos.html" target="_blank">TERMS AND CONDITIONS</a>
         <a href="/privacy.html" target="_blank">PRIVACY POLICY</a>
+        <a href="mailto:hello@koding.com" target='_self'>CONTACT US</a>
         <a href="http://status.koding.com" target="_blank">STATUS</a>
       </nav>
 
