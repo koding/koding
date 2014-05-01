@@ -33,8 +33,7 @@ func (n *InteractionNotification) GetNotifiedUsers() ([]int64, error) {
 
 	// fetch message owner
 	targetMessage := NewChannelMessage()
-	targetMessage.Id = n.TargetId
-	if err := targetMessage.Fetch(); err != nil {
+	if err := targetMessage.ById(n.TargetId); err != nil {
 		return nil, err
 	}
 
@@ -212,7 +211,7 @@ func (n *FollowNotification) FetchActors() (*ActorContainer, error) {
 	}
 
 	ac.LatestActors = actorIds
-	ac.Count = len(ac.LatestActors)
+	ac.Count = len(ac.LatestActors) // TODO count also must be retrieved
 
 	return ac, nil
 }

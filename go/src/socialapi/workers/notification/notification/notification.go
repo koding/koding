@@ -89,8 +89,7 @@ func (n *NotificationWorkerController) CreateReplyNotification(data []byte) erro
 
 	// fetch replier
 	cm := models.NewChannelMessage()
-	cm.Id = mr.ReplyId
-	if err := cm.Fetch(); err != nil {
+	if err := cm.ById(mr.ReplyId); err != nil {
 		return err
 	}
 
