@@ -7,7 +7,7 @@ class DomainDeletionModal extends KDModalView
     options.overlayClick  ?= no
     options.cssClass       = KD.utils.curry 'env-deletion-modal', options.cssClass
     options.content      or= "<div class='modalformline'>This will remove the domain <b>#{data.domain}</b> permanently, there is no way back!</div>"
-    options.deleteMesage or= "<b>#{domain.domain}</b> has been removed."
+    options.deleteMesage or= "<b>#{data.domain}</b> has been removed."
     options.buttons      or=
       "Remove"   :
         cssClass : "modal-clean-red"
