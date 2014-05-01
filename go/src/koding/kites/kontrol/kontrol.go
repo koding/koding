@@ -15,6 +15,8 @@ import (
 	"github.com/koding/kite/kontrol"
 )
 
+const version = "0.0.5"
+
 var (
 	profile     = flag.String("c", "", "Configuration profile")
 	region      = flag.String("r", "", "Region")
@@ -65,8 +67,7 @@ func main() {
 	kiteConf.Environment = conf.Environment
 	kiteConf.Region = *region
 
-	// kon := kontrol.New(kiteOptions, hostname, datadir, peers, string(publicKey), string(privateKey))
-	kon := kontrol.New(kiteConf, string(publicKey), string(privateKey))
+	kon := kontrol.New(kiteConf, version, string(publicKey), string(privateKey))
 	kon.Peers = peers
 	kon.DataDir = datadir
 

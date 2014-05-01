@@ -407,10 +407,16 @@ class WebTermAppView extends JView
     console.error err
 
     try
-      err   = JSON.parse err.message
-      title = err.message  if err.message
+      err         = JSON.parse err.message
+      title       = err.message  if err.message
+      numberOfVms = Object.keys(KD.singletons.vmController.vmsInfo).length
 
-    title ?= "VM start failed. Please try again, later"
+    if title and /CPU limit reached/.test title
+      title = "Please upgrade to run more VMs"
+      KD.remote.api.JErrorLog.create { error : "cpu_limit_reached", numberOfVms }, ->
+    else
+      title = "Your vm failed to start. Please try again later."
+
     new KDNotificationView {title}
 
   pistachio: ->

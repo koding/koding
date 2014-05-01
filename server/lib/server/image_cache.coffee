@@ -28,6 +28,10 @@ module.exports = (req, res) ->
   ext      = splitUrl.pop()
   noExt    = splitUrl.join(".")
 
+  # arbitary limit to prevent ENAMETOOLONG errors
+  if ext.length > 10
+    ext = ext.substring(0, 10)
+
   # deal with extensions like:
   #   'com/LbobbpWTGJSa45Mhrb6g_y3YjLn5OthdnugrHZJQqom1eduFCnFmqdmOOZmUttP8hLg=h310'
   if ext.indexOf("com") > -1
