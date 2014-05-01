@@ -135,7 +135,8 @@ class EnvironmentScene extends KDDiaScene
       domainDia = domainsByDia[restriction.domainName]
       for filterId in restriction.filters
         ruleDia = rulesById[filterId]
-        @connect {dia : domainDia, joint : 'left'}, {dia : ruleDia, joint : 'right' }, yes
+        if domainDia and ruleDia
+          @connect {dia : domainDia, joint : 'left'}, {dia : ruleDia, joint : 'right' }, yes
 
   createApproveModal:(items, action)->
     return unless KD.isLoggedIn()
