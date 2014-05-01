@@ -53,7 +53,7 @@ class AboutView extends KDView
         </article>
         <article>
           <h2>Story & Culture</h2>
-          <p>...made the first site back in 2009, it was our first attempt to make something totally on our own. Sinan and I, had no money and had no intentions of making money using this thing. We made it for ourselves and for everybody else who was suffering trying to learn stuff, getting lost configuring servers. We launched a version that would work for a few people. When we opened it however, we saw hundreds of people rushing in overnight...</p>
+          <p>We made the first site back in 2009, it was our first attempt to make something totally on our own. Sinan and I, had no money and had no intentions of making money using this thing. We made it for ourselves and for everybody else who was suffering trying to learn stuff and getting lost configuring servers. We planned a version that would work for a few people. However when we launched it, we saw hundreds of people rushing in overnight…</p>
           <a href='http://blog.koding.com/2012/06/we-want-to-date-not-hire/' target='_blank'>Read more...</a>
         </article>
         <aside class='clearfix'>
@@ -82,18 +82,19 @@ class AboutView extends KDView
         {{> @memberList}}
       </div>
     </section>
+    <section class='careers' id='jobs'>
+      <div class='wrapper'>
+        <h2>Koding. <span>Jobs</span></h2>
+        <h4>If you think your picture is missing above...</h4>
+        {{> @jobsView }}
+      </div>
+    </section>
     <section class='press-kit'>
       <div class='wrapper'>
         <h2>Press Kit</h2>
         <h4>Resources for brand enthusiasts</h4>
         {{> @logoPackButton}}
         {{> @fontPackButton}}
-      </div>
-    </section>
-    <section class='careers'>
-      <div class='wrapper'>
-        <h2>Koding. <span>Jobs</span></h2>
-        {{> @jobsView }}
       </div>
     </section>
     {{> @footer}}
