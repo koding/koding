@@ -71,7 +71,7 @@ class FirewallFilterFormView extends KDFormViewWithFields
     selectbox   = @inputs.countries
     selectbox.removeSelectOptions()
     countryList = []
-    for country in KD.utils.countries
+    for country in KD.config.countries
       countryList.push { title: country.name, value: country.code }
     selectbox.setSelectOptions countryList
 

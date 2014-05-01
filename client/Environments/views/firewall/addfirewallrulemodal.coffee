@@ -70,7 +70,7 @@ class AddFirewallRuleModal extends KDModalViewWithForms
 
     @modalTabs.forms.Rules.buttonField.addSubView button, null, yes
 
-    {countries} = KD.utils
+    {countries} = KD.config
     if countries then @setCountries() else @fetchCountries()
 
   createRuleWidget: (removable = yes, data = null) ->
@@ -80,7 +80,7 @@ class AddFirewallRuleModal extends KDModalViewWithForms
 
     @modalTabs.forms.Rules.fields.container.addSubView widget
     @filterWidgets.push widget
-    widget.setCountries()  if KD.utils.countries
+    widget.setCountries()  if KD.config.countries
 
   createExistingRules: ->
     @getData().rules.forEach (rule, index) =>
@@ -136,7 +136,7 @@ class AddFirewallRuleModal extends KDModalViewWithForms
       jsonp         : false
       jsonpCallback : "callback"
       success       : (countries) =>
-        KD.utils.countries = countries
+        KD.config.countries = countries
         @setCountries()
       error         : ->
         new KDNotificationView
