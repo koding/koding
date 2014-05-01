@@ -78,6 +78,7 @@ func CreateNotification(i Notifiable) error {
 		return err
 	}
 
+	// fetch users and updates their cache if it is available
 	replierIds, err := i.GetNotifiedUsers()
 	if err != nil {
 		return err
@@ -136,10 +137,6 @@ func (n *NotificationContent) GetEventType() string {
 		return "GroupJoined"
 	case NotificationContent_TYPE_LEAVE:
 		return "GroupLeft"
-	case NotificationContent_TYPE_UPVOTE:
-		return "undefined"
-	case NotificationContent_TYPE_DOWNVOTE:
-		return "undefined"
 	default:
 		return "undefined"
 	}
