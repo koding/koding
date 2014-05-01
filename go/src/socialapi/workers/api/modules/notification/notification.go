@@ -2,9 +2,9 @@ package notification
 
 import (
 	"errors"
-	"fmt"
 	"github.com/jinzhu/gorm"
 	"github.com/koding/bongo"
+	"github.com/koding/logging"
 	"math"
 	"net/http"
 	"net/url"
@@ -12,13 +12,20 @@ import (
 	"socialapi/models"
 	"socialapi/workers/api/modules/helpers"
 	"socialapi/workers/cache"
+	"socialapi/workers/helper"
 )
 
 var (
 	NOTIFICATION_LIMIT = 8
 	ACTOR_LIMIT        = 3
 	cacheEnabled       = false
+	log                logging.Logger
 )
+
+func init() {
+	log = helper.CreateLogger("NotificationAPI", false)
+	helpers.Log = log
+}
 
 func List(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface{}, error) {
 	q := helpers.GetQuery(u)
@@ -132,7 +139,7 @@ func fetchNotifications(q *models.Query) (*models.NotificationResponse, error) {
 		cacheInstance.ActorLimit = ACTOR_LIMIT
 		list, err = cacheInstance.FetchNotifications(q.AccountId)
 		if err != nil {
-			fmt.Println("error geldi", err)
+			log.Error("Cache error: %s", err)
 		}
 		if err == nil && len(list.Notifications) > 0 {
 			return list, nil
@@ -148,7 +155,7 @@ func fetchNotifications(q *models.Query) (*models.NotificationResponse, error) {
 	go func() {
 		if cacheEnabled {
 			if err := cacheInstance.UpdateCachedNotifications(q.AccountId, list); err != nil {
-				fmt.Println("cache cannot be updated", err) // TODO log
+				log.Error("Cache cannot be updated: %s", err)
 			}
 		}
 	}()
