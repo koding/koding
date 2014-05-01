@@ -29,32 +29,39 @@ func TestNotificationCreation(t *testing.T) {
 	forthUser := models.NewAccount()
 	testGroupChannel := models.NewChannel()
 
-	Convey("while testing reply notifications without cache", t, func() {
+	testCases := func() {
 		Convey("First create users and required channel", func() {
 			Convey("We should be able to create accounts", func() {
 				var err error
 
 				// ownerAccount.OldId = "5307f2ce1d10ce614e000003" //can
+				ownerAccount.Id = 0
 				ownerAccount.OldId = bson.NewObjectId().Hex()
 				ownerAccount, err = createAccount(ownerAccount)
 				ResultedWithNoErrorCheck(ownerAccount, err)
 
+				fmt.Println("owner account var", ownerAccount.Id)
+
 				// firstUser.OldId = "5196fcb0bc9bdb0000000011" //devrim
+				firstUser.Id = 0
 				firstUser.OldId = bson.NewObjectId().Hex()
 				firstUser, err = createAccount(firstUser)
 				ResultedWithNoErrorCheck(firstUser, err)
 
 				// secondUser.OldId = "5196fcb0bc9bdb0000000012" //sinan
+				secondUser.Id = 0
 				secondUser.OldId = bson.NewObjectId().Hex()
 				secondUser, err = createAccount(secondUser)
 				ResultedWithNoErrorCheck(secondUser, err)
 
 				// thirdUser.OldId = "5196fcb0bc9bdb0000000013" //chris
+				thirdUser.Id = 0
 				thirdUser.OldId = bson.NewObjectId().Hex()
 				thirdUser, err = createAccount(thirdUser)
 				ResultedWithNoErrorCheck(thirdUser, err)
 
 				// forthUser.OldId = "5196fcb0bc9bdb0000000014" //richard
+				forthUser.Id = 0
 				forthUser.OldId = bson.NewObjectId().Hex()
 				forthUser, err = createAccount(forthUser)
 				ResultedWithNoErrorCheck(forthUser, err)
@@ -509,6 +516,15 @@ func TestNotificationCreation(t *testing.T) {
 				So(nl.Notifications[0].TypeConstant, ShouldEqual, models.NotificationContent_TYPE_LEAVE)
 			})
 		})
+	}
+
+	Convey("while testing notifications without cache", t, func() {
+		cacheEnabled = false
+		testCases()
+	})
+	Convey("while testing notifications with cache", t, func() {
+		cacheEnabled = true
+		testCases()
 	})
 
 }
@@ -519,7 +535,7 @@ func ResultedWithNoErrorCheck(result interface{}, err error) {
 }
 
 func getNotificationList(accountId int64) (*models.NotificationResponse, error) {
-	url := fmt.Sprintf("/notification/%d", accountId)
+	url := fmt.Sprintf("/notification/%d?cache=%t", accountId, cacheEnabled)
 
 	res, err := sendRequest("GET", url, nil)
 	if err != nil {
