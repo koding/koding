@@ -8,7 +8,7 @@ class PricingFeaturesView extends JView
     """
     <div class='inner-container'>
       <h2 class="kdview kdheaderview general-title">
-        <span>For those who don’t know what a CPU is, every single part explained</span>
+        <span>How our quotas work, every single part explained</span>
       </h2>
       <article class="feature">
         <i class="cpu icon"></i>
@@ -43,13 +43,9 @@ class PricingFeaturesView extends JView
         <h5>ALWAYS ON</h5>
         <p>
           The maximum number of VMs that you can keep turned on 24/7. For example,
-          you bought a package comes with 10 VMs and one always-on VM.
-          The VM you mark as always-on will work 24/7 but the others will be taken
-          into sleep automatically in 15 minutes after you logout.
-        </p>
-        <p class="description">
-          All Koding VMs are optimized for software development,
-          and they're automatically turned off one hour after you leave the site.
+          you bought a package comes with 10 VMs and one always-on VM. The VM you
+          mark as always-on will work 24/7, however the others will be powered off
+          automatically 15 minutes after you log out.
         </p>
       </article>
     </div>
