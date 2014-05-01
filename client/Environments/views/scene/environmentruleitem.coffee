@@ -9,6 +9,8 @@ class EnvironmentRuleItem extends EnvironmentItem
 
     super options, data
 
+    @setClass "disabled"  unless data.enabled
+
   contextMenuItems: ->
     colorSelection = new ColorSelection
       selectedColor : @getOption 'colorTag'
@@ -29,7 +31,10 @@ class EnvironmentRuleItem extends EnvironmentItem
 
   cmedit: ->
     modal = new AddFirewallRuleModal {}, @getData()
-    modal.once "RuleUpdated", => @template.update()
+    modal.once "RuleUpdated", =>
+      @template.update()
+      {enabled} = @getData()
+      if enabled then @unsetClass "disabled" else @setClass "disabled"
 
   confirmDestroy: ->
     data           = @getData()
