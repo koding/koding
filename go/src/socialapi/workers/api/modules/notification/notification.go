@@ -17,6 +17,7 @@ import (
 var (
 	NOTIFICATION_LIMIT = 8
 	ACTOR_LIMIT        = 3
+	cacheEnabled       = false
 )
 
 func List(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface{}, error) {
@@ -25,6 +26,8 @@ func List(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface
 		return helpers.NewBadRequestResponse(err)
 	}
 
+	conf := config.Get()
+	cacheEnabled = conf.Cache.Notification
 	list, err := fetchNotifications(q)
 	if err != nil {
 		if err == gorm.RecordNotFound {
@@ -51,6 +54,13 @@ func Glance(u *url.URL, h http.Header, req *models.Notification) (int, http.Head
 
 		return helpers.NewBadRequestResponse(err)
 	}
+
+	go func() {
+		if cacheEnabled {
+			cacheInstance := cache.NewNotificationCache()
+			cacheInstance.Glance(req)
+		}
+	}()
 
 	req.Glanced = true
 
@@ -116,16 +126,15 @@ func fetchNotifications(q *models.Query) (*models.NotificationResponse, error) {
 	var err error
 
 	// first check redis
-	conf := config.Get()
-	cacheEnabled := conf.Cache.Notification
-
+	var cacheInstance *cache.NotificationCache
 	if cacheEnabled {
-		nc := cache.NewNotificationCache()
-		nc.ActorLimit = ACTOR_LIMIT
-		list, err = nc.FetchNotifications(q.AccountId)
+		cacheInstance = cache.NewNotificationCache()
+		cacheInstance.ActorLimit = ACTOR_LIMIT
+		list, err = cacheInstance.FetchNotifications(q.AccountId)
 		if err != nil {
-			resetCache(q.AccountId)
-		} else if len(list.Notifications) > 0 {
+			fmt.Println("error geldi", err)
+		}
+		if err == nil && len(list.Notifications) > 0 {
 			return list, nil
 		}
 	}
@@ -136,12 +145,13 @@ func fetchNotifications(q *models.Query) (*models.NotificationResponse, error) {
 		return nil, err
 	}
 
-	if cacheEnabled {
-		// store list in cache TODO i can update it inside a goroutine
-		if err := updateCachedNotifications(q.AccountId, list); err != nil {
-			fmt.Println("cache cannot be updated", err) // TODO log
+	go func() {
+		if cacheEnabled {
+			if err := cacheInstance.UpdateCachedNotifications(q.AccountId, list); err != nil {
+				fmt.Println("cache cannot be updated", err) // TODO log
+			}
 		}
-	}
+	}()
 
 	return list, nil
 }
