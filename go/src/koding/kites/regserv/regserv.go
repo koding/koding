@@ -48,7 +48,7 @@ func main() {
 	kiteConf.IP = *ip
 	kiteConf.Port = *port
 
-	s := regserv.New(kiteConf, string(pubKey), string(privKey))
+	s := regserv.New(kiteConf, "0.0.1", string(pubKey), string(privKey))
 
 	// Request must not be authenticated because clients do not have a
 	// kite.key before they register. We will authenticate them in

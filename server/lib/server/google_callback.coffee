@@ -8,10 +8,10 @@ http               = require "https"
 querystring        = require 'querystring'
 {flatten}          = require "underscore"
 koding             = require './bongo'
-{JReferrableEmail} = koding.models
 provider           = "google"
 
 module.exports = (req, res) ->
+  {JReferrableEmail} = koding.models
 
   access_token  = null
   refresh_token = null
