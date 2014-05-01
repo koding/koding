@@ -26,7 +26,7 @@ class FirewallFilterFormView extends KDFormViewWithFields
         name           : "match"
         cssClass       : "half"
         placeholder    : "Type a value for your filter..."
-        defaultValue   : data?.match
+        defaultValue   : Encoder.htmlDecode data?.match
         nextElement    :
           countries    :
             itemClass  : KDSelectBox

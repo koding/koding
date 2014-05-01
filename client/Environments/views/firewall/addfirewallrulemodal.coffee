@@ -33,7 +33,7 @@ class AddFirewallRuleModal extends KDModalViewWithForms
               name            : "name"
               cssClass        : "half"
               placeholder     : "Name of your rule"
-              defaultValue    : data?.name
+              defaultValue    : Encoder.htmlDecode data?.name
               validate        :
                 rules         :
                   required    : yes
