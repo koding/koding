@@ -39,6 +39,12 @@ class AddFirewallRuleModal extends KDModalViewWithForms
                   required    : yes
                 messages      :
                   required    : "Please enter a rule name"
+            enabled           :
+              label           : "Enabled"
+              cssClass        : "half"
+              name            : "isEnabled"
+              itemClass       : KodingSwitch
+              defaultValue    : data?.enabled ? yes
             description       :
               itemClass       : KDCustomHTMLView
               cssClass        : "section-label second"
@@ -105,8 +111,8 @@ class AddFirewallRuleModal extends KDModalViewWithForms
         container  : this
         duration   : 4000
 
-    {name} = @modalTabs.forms.Rules.getFormData()
-    rules  = []
+    {name, isEnabled} = @modalTabs.forms.Rules.getFormData()
+    rules = []
 
     for widget in @filterWidgets
       data = widget.getFormData()
@@ -114,18 +120,21 @@ class AddFirewallRuleModal extends KDModalViewWithForms
       delete data.countries
       rules.push data
 
-    data = @getData()
+    data    = @getData()
+    dataSet = { name, rules, enabled: isEnabled }
+
     if data
-      data.update { name, rules }, (err, rule) =>
+      data.update dataSet, (err, rule) =>
         return KD.showError err  if err
-        data.name  = name
-        data.title = name
-        data.rules = rules
+        data.name    = name
+        data.title   = name
+        data.rules   = rules
+        data.enabled = isEnabled
         @emit "RuleUpdated"
         @destroy()
     else
-      KD.remote.api.JProxyFilter.create { name, rules }, (err, rule) =>
-        return KD.showError err  if err
+      KD.remote.api.JProxyFilter.create dataSet, (err, rule) =>
+        return KD.showError err.message  if err
         @emit "NewRuleAdded", rule
 
   fetchCountries: ->

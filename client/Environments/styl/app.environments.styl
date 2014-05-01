@@ -1436,9 +1436,14 @@ div.environments-joint
     .arrows
       top                     11px
   input[type=text]
-    width                     615px
+    width                     484px
     height                    37px
     font-size                 14px
+  .isenabled
+    .kdlabel
+      margin                  7px 11px 0 -17px
+    .koding-on-off
+      margin-top              4px
   .formline.half
     fl()
     &.name
@@ -1500,6 +1505,8 @@ div.environments-joint
     height                    35px !important
     border                    1px dashed #D3D3D3
     bg                        color, transparent !important
+    &:focus
+      vendor                  box-shadow, none !important
     span
       color                   #888 !important
       font-size               16px
@@ -1507,13 +1514,14 @@ div.environments-joint
       font-size               14px
       &.button-title
         position              relative
-        top                   4px
+        top                   2px
       &.plus
         r-sprite              "environments", "add"
         display               block
         padding               0
         position              relative
-        left                  238px
+        left                  248px
+        top                   -1px
   .kdbutton
     margin-bottom             30px !important
     height                    37px !important
