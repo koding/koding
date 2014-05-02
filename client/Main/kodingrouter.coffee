@@ -160,11 +160,11 @@ class KodingRouter extends KDRouter
               selector[usedAsPath] = aSlug.slug
               selector.group = aSlug.group if aSlug.group
               konstructor?.one selector, (err, model)=>
-                return onError err if err?
-                if model
-                  models[i] = model
-                  if models.length is jName.slugs.length
-                    onSuccess models
+                return onError err if err? or not model
+                models[i] = model
+                if models.length is jName.slugs.length
+                  onSuccess models
+                else onError()
           else onError()
 
   clear: (route, replaceState = yes) ->
