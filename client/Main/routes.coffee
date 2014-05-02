@@ -63,7 +63,10 @@ do ->
       requireLogin ->
         {mainController} = KD.singletons
         mainController.doLogout()
-    '/:name?/Topics/:slug'   : createContentDisplayHandler 'Topics'
+    '/:name?/Topics/:slug'   : ({params:{name, slug}}) ->
+      route = "/Activity?q=#{slug}"
+      route = "#{name}/#{route}"  if name
+      @handleRoute route
     '/:slug/:name' : ({params, query}, model, route) ->
       (createContentDisplayHandler 'Members') arguments...
     '/:name?/Invitation/:inviteCode': ({params:{inviteCode, name}})->
