@@ -144,13 +144,12 @@ class Troubleshoot extends KDObject
 
   checkBlockedPort = (callback) ->
     $.ajax
-      # url                : "http://162.243.135.95:444"
-      url                : "http://kontrol0.sj.koding.com"
+      url                : "http://162.243.135.95:444"
       crossDomain        : true
       timeout            : 1000
       success            : (response)-> callback null
       error              : (x, t, m)=>
-        err = if t is "timeout" then "443_port_timeout" else "443_port_unrechable"
+        err = if t is "timeout" then "443 port timeout" else "443 port unrechable"
         ErrorLog.create err
 
         @items.four.status = "fail"

@@ -38,7 +38,7 @@ module.exports = (req, res) ->
     ext = "com"
 
   # replace nonalphanumeric characters
-  com = com.replace(/\W+/g, "")
+  ext = ext.replace(/\W+/g, "")
 
   md5      = crypto.createHash("md5").update(noExt).digest("hex")
   filename = "#{imagePath}/#{md5}.#{ext}"
