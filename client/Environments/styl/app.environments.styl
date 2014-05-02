@@ -860,11 +860,11 @@ section.resources-container
   .kdselectbox.main-domain-select
     abs             5px 5px 0 0
     width           130px
+    overflow        visible
     span.title
       line-height   32px !important
       max-width     100px
       text-overflow ellipsis
-      overflow      hidden
 
 
 /*--- Scene -----*/
@@ -883,57 +883,57 @@ div.environments-scene
     left                -8px
     top                 -2px
 
-  .zoom-slider
-    right               50px
-    bottom              0
-    height              2px
-    abs()
+    // .zoom-slider
+    //   right               50px
+    //   bottom              0
+    //   height              2px
+    //   abs()
 
-    .handle
-      height            10px
-      top               -4px
+    //   .handle
+    //     height            10px
+    //     top               -4px
 
-  .zoom-controls
-    size                177px, 13px
-    right               24px
-    bottom              15px
-    abs()
+    // .zoom-controls
+    //   size                177px, 13px
+    //   right               24px
+    //   bottom              15px
+    //   abs()
 
-    a.zoom-control
-      display           block
-      size              15px, 15px
-      line-height       9px
-      font-weight       bold
-      color             #ddd
-      font-size         14px
-      text-align        center
-      border            2px solid #ddd
-      text-decoration   none
-      rounded           100%
-      borderBox()
-      fl()
+    //   a.zoom-control
+    //     display           block
+    //     size              15px, 15px
+    //     line-height       9px
+    //     font-weight       bold
+    //     color             #ddd
+    //     font-size         14px
+    //     text-align        center
+    //     border            2px solid #ddd
+    //     text-decoration   none
+    //     rounded           100%
+    //     borderBox()
+    //     fl()
 
-      &.zoomin
-        line-height     11px
-        fr()
+    //     &.zoomin
+    //       line-height     11px
+    //       fr()
 
-      &:hover
-        border-color    #bbb
-        color           #bbb
+    //     &:hover
+    //       border-color    #bbb
+    //       color           #bbb
 
-  .reset-view
-    opacity             .6
-    border              none
-    background          white
-    left                10px
-    bottom              10px
-    font-size           11px
-    color               #666
-    z-index             6
-    abs()
+    // .reset-view
+    //   opacity             .6
+    //   border              none
+    //   background          white
+    //   left                10px
+    //   bottom              10px
+    //   font-size           11px
+    //   color               #666
+    //   z-index             6
+    //   abs()
 
-    &:hover
-      opacity           1
+    //   &:hover
+    //     opacity           1
 
     span.icon
       kdfsprite()
@@ -1134,8 +1134,6 @@ div.environments-item
       abs()
 
   &.rule
-    span.chevron
-      display         none
     span.toggle
       background      #4E89D3
 
@@ -1158,7 +1156,7 @@ div.environments-item
       bottom          10px
 
     span.chevron
-      r-sprite        environments 'menu'
+      r-sprite        environments 'gear'
 
     span.toggle
       background      #EBA612
@@ -1341,6 +1339,8 @@ div.environments-joint
       padding-bottom          4px
     .environments-add-domain-form
       position                relative
+      kdselectbox
+        overflow              hidden
     .kdinput.text
       margin-left             270px
       size                    218px, 34px
@@ -1408,3 +1408,175 @@ div.environments-joint
     r-sprite                  "environments", "warning"
     right                     0
     top                       8px
+
+
+.firewall-modal
+  .close-icon
+    display                   none
+  .kdmodal-inner
+    margin                    0
+  .kdmodal-content
+    margin                    0 !important
+    position                  relative
+  .section-label
+    font-size                 16px
+    color                     #209656
+    font-weight               400
+  .input-wrapper
+    margin                    0 !important
+  .kdselectbox
+    width                     137px
+    height                    35px !important
+    overflow                  visible
+    .title
+      line-height             36px !important
+      color                   #515151 !important
+      font-weight             500 !important
+      text-transform          uppercase
+    .arrows
+      top                     11px
+  input[type=text]
+    width                     484px
+    height                    37px
+    font-size                 14px
+  .isenabled
+    .kdlabel
+      margin                  7px 11px 0 -17px
+    .koding-on-off
+      margin-top              4px
+  .formline.half
+    fl()
+    &.name
+      margin                  0 30px 30px 30px
+  .kdformview .formline > label
+    width                     55px
+    min-width                 55px
+    margin-top                7px
+  .section-label.formline
+    clear                     both
+    &.first
+      margin                  30px
+    &.second
+      border-top              1px solid #E2E2E2
+      p
+        margin                30px 0 20px 30px
+  .headers
+    .header-row
+      margin                  0 30px
+      h4
+        color                 #919191
+        border-bottom         1px solid #EEEEEE
+        margin                0 1px 20px 1px
+        line-height           20px
+        text-transform        uppercase
+        font-size             13px
+        fl()
+      .type
+        width                 116px
+      .value
+        width                 262px
+      .filter
+        width                 171px
+      .button
+        width                 65px
+  .container
+    .kdlabel
+      display                 none
+    .kdformview.with-fields
+      overflow                hidden
+      margin                  0 0 10px 30px
+    .type.half
+      margin-right            15px
+    .kdselectbox
+      width                   100px
+      &.action
+        width                 160px
+      &.countries
+        width                 248px
+        margin-right          15px
+    input[type=text]
+      width                   250px
+      margin-right            15px
+    .enabled.half
+      margin                  4px 0 0 15px
+  .add-rule
+    width                     675px !important
+    margin                    0 30px !important
+    height                    35px !important
+    border                    1px dashed #D3D3D3
+    bg                        color, transparent !important
+    &:focus
+      vendor                  box-shadow, none !important
+    span
+      color                   #888 !important
+      font-size               16px
+      text-transform          uppercase
+      font-size               14px
+      &.button-title
+        position              relative
+        top                   2px
+      &.plus
+        r-sprite              "environments", "add"
+        display               block
+        padding               0
+        position              relative
+        left                  248px
+        top                   -1px
+  .kdbutton
+    margin-bottom             30px !important
+    height                    37px !important
+    &.compact
+      rounded                 8px
+      span.button-title
+        font-size             14px
+        text-transform        uppercase
+      &.green
+        margin-right          30px
+        padding               0 30px !important
+      &.gray
+        padding               0 19px !important
+        background            transparent
+        border                2px solid #A8A8A8
+        span.button-title
+          color               #818181
+  .input-wrapper
+    .delete-button
+      rounded                 20px
+      margin                  4px 0 0 12px
+      bg                      color, #E1E1E1 !important
+      r-sprite                "environments", "delete"
+      pointer()
+      &:hover
+        bg                    color, #F06668 !important
+  .undeletable
+    .input-wrapper
+      .delete-button
+        opacity               .5
+        cursor                not-allowed
+        &:hover
+          bg                  color, #E1E1E1 !important
+  .kdnotification.error
+    abs()
+    top                       149px !important
+
+  .beta
+    height                    26px
+    font-size                 12px
+    top                       72px
+    margin-left               30px
+    color                     #919191
+    abs()
+    .icon
+      r-sprite                'environments', 'disclaimer'
+      display                 inline-block
+      position                relative
+      top                     5px
+      margin-right            3px
+      opacity                 .5
+
+.env-deletion-modal
+  b
+    font-weight               400
+
+.environments-item.rule.disabled
+  bg                          color, rgba(255, 255, 255, .6) !important
