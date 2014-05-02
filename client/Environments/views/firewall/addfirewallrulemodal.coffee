@@ -74,7 +74,12 @@ class AddFirewallRuleModal extends KDModalViewWithForms
       cssClass  : "solid green small add-rule"
       callback  : @bound "createRuleWidget"
 
+    disclaimer  = new KDCustomHTMLView
+      cssClass  : "beta"
+      partial   : "<span class='icon'></span> This is a beta feature."
+
     @modalTabs.forms.Rules.buttonField.addSubView button, null, yes
+    @modalTabs.forms.Rules.buttonField.addSubView disclaimer
 
     {countries} = KD.config
     if countries then @setCountries() else @fetchCountries()
