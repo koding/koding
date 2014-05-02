@@ -58,8 +58,8 @@ class MessagesListController extends KDListViewController
       # @hideLazyLoader()
 
       @emit 'NotificationCountDidChange', notifications.unreadCount
-        callback? null, notifications.notifications
-        @hideLazyLoader()
+      callback null, notifications.notifications
+      @hideLazyLoader()
 
 class NotificationListItem extends KDListItemView
 
