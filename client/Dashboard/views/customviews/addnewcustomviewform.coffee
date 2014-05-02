@@ -9,7 +9,7 @@ class AddNewCustomViewForm extends JView
 
     @input        = new KDInputView
       cssClass    : "big-input"
-      type        : "input"
+      type        : "text"
       defaultValue: @getData()?.name or ""
 
     @cancelButton = new KDButtonView
