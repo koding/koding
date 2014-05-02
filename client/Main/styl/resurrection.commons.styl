@@ -1699,3 +1699,17 @@ footer.main-footer
       font-size         13px
       font-weight       400
       noTextDeco()
+
+@media only screen and (min-width : 320px) and (max-width : 568px)
+  footer.main-footer
+    .footer-block
+      width             100%
+      float             none
+
+      &~.footer-block
+        margin-top      18px
+        padding-top     18px
+        border-top      1px solid rgba(255,255,255,.05)
+
+      &.about-koding p
+        padding         0

@@ -413,7 +413,7 @@ class WebTermAppView extends JView
 
     if title and /CPU limit reached/.test title
       title = "Please upgrade to run more VMs"
-      KD.remote.api.JErrorLog.create { error : "cpu_limit_reached", numberOfVms }, ->
+      ErrorLog.create "cpu_limit_reached", {numberOfVms}
     else
       title = "Your vm failed to start. Please try again later."
 

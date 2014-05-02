@@ -947,7 +947,8 @@ module.exports = class JAccount extends jraphical.Module
 
   dummyAdmins = [ "sinan", "devrim", "gokmen", "chris", "fatihacet", "arslan",
                   "sent-hil", "kiwigeraint", "cihangirsavas", "leventyalcin",
-                  "leeolayvar", "stefanbc", "szkl", "alfredo", "canthefason" ]
+                  "leeolayvar", "stefanbc", "szkl", "alfredo", "canthefason",
+                  "nitin" ]
 
   userIsExempt: (callback)->
     # console.log @isExempt, this

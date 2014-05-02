@@ -87,7 +87,7 @@ class KodingKontrol extends (require 'kontrol')
         query : { name, region }
         who   : @getWhoParams name, correlationName
     .then(kite.bound 'setTransport')
-    .catch(warn)
+    .catch(@error.bind this)
 
     kite
 
@@ -117,6 +117,14 @@ class KodingKontrol extends (require 'kontrol')
         who   : @getWhoParams name, correlationName
 
     .then(kite.bound 'setTransport')
-    .catch(warn)
+    .catch(@error.bind this)
 
     kite
+
+  error: (err)->
+    warn err
+
+    {message} = err
+    message   = if message then message else err
+
+    ErrorLog.create message
