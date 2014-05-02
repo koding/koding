@@ -900,7 +900,7 @@ func getCountry(ip string) string {
 	}
 
 	if l := geo.GetLocationByIP(ip); l != nil {
-		return l.CountryName
+		return l.CountryCode
 	}
 
 	return ""
