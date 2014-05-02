@@ -136,6 +136,57 @@ class AccountCredentialListController extends AccountListViewController
             placement : "top"
         , vendorList
 
+  showAddCredentialFormFor: (vendor)->
+
+    view = @getView().parent
+    view.form?.destroy()
+
+    fields          =
+      title         :
+        label       : "Title"
+        placeholder : "title for this credential"
+
+    Object.keys(Vendors[vendor].credentialFields).forEach (field)->
+      fields[field] = _.clone Vendors[vendor].credentialFields[field]
+      fields[field].required = yes
+
+    view.form      = new KDFormViewWithFields
+      cssClass     : "form-view"
+      fields       : fields
+      buttons      :
+        Save       :
+          title    : "Add credential"
+          type     : "submit"
+          style    : "solid green medium"
+          loader   :
+            color  : "#444444"
+          callback : -> @hideLoader()
+        Cancel     :
+          type     : "cancel"
+          style    : "solid medium"
+          callback : -> view.form.destroy()
+      callback     : (data)=>
+
+        log "Here we go", data
+
+        { Save } = view.form.buttons
+        Save.showLoader()
+
+        { title } = data
+        delete data.title
+
+        KD.remote.api.JCredential.create {
+          vendor, title, meta: data
+        }, (err, credential)=>
+
+          Save.hideLoader()
+
+          unless KD.showError err
+            @loadItems()  unless err?
+            view.form.destroy()
+
+    view.addSubView view.form
+
 class AccountCredentialList extends KDListView
 
   constructor:(options = {}, data)->
