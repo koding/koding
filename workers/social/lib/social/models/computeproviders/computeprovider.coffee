@@ -10,6 +10,7 @@ PROVIDERS =
   koding       : require './koding'
   google       : require './google'
   digitalocean : require './digitalocean'
+  engineyard   : require './engineyard'
 
 checkCredential = (cred, callback)->
   if cred is 1
