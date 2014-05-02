@@ -113,12 +113,28 @@ class AccountCredentialListController extends AccountListViewController
     super
 
     view = @getView().parent
+    vendorList = { }
+
+    Object.keys(Vendors).forEach (vendor)=>
+      vendorList[Vendors[vendor].title] =
+        callback : =>
+          @_addButtonMenu.destroy()
+          @showAddCredentialFormFor vendor
 
     view.addSubView addButton = new KDButtonView
       style     : "solid green small account-header-button"
       iconClass : "plus"
       iconOnly  : yes
-      callback  : => new KDNotificationView title : "Coming soon."
+      callback  : =>
+        @_addButtonMenu = new KDContextMenu
+          delegate    : addButton
+          y           : addButton.getY() + 35
+          x           : addButton.getX() - 142
+          width       : 200
+          arrow       :
+            margin    : -4
+            placement : "top"
+        , vendorList
 
 class AccountCredentialList extends KDListView
 
@@ -162,4 +178,4 @@ class AccountCredentialListItem extends KDListItemView
   viewAppended: JView::viewAppended
 
   pistachio:->
-    "{{#(vendor)}} - {{#(title)}} -- {{> @deleteButton}}"
+    "{{#(vendor)}} - {{#(title)}} -- {{> @deleteButton}} -- {{#(owner)}}"
