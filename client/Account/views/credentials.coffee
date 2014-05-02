@@ -6,7 +6,7 @@ Vendors =
                                credentials for any service"""
     credentialFields       :
       credential           :
-        label              : "Credential (JSON)"
+        label              : "Credential"
         placeholder        : "credential in JSON format"
         type               : "textarea"
 
@@ -112,7 +112,9 @@ class AccountCredentialListController extends AccountListViewController
 
     super
 
-    view = @getView().parent
+    view = @getView()
+    view.on "ShowShareCredentialFormFor", @bound "showShareCredentialFormFor"
+
     vendorList = { }
 
     Object.keys(Vendors).forEach (vendor)=>
@@ -121,7 +123,7 @@ class AccountCredentialListController extends AccountListViewController
           @_addButtonMenu.destroy()
           @showAddCredentialFormFor vendor
 
-    view.addSubView addButton = new KDButtonView
+    view.parent.addSubView addButton = new KDButtonView
       style     : "solid green small account-header-button"
       iconClass : "plus"
       iconOnly  : yes
@@ -135,6 +137,92 @@ class AccountCredentialListController extends AccountListViewController
             margin    : -4
             placement : "top"
         , vendorList
+
+  showShareCredentialFormFor: (credential)->
+
+    view = @getView().parent
+    view.form?.destroy()
+
+    view.form           = new KDFormViewWithFields
+      cssClass          : "form-view"
+      fields            :
+        username        :
+          label         : "User"
+          type          : "hidden"
+          nextElement   :
+            userWrapper :
+              itemClass : KDView
+              cssClass  : "completed-items"
+        owner           :
+          label         : "Give ownership"
+          itemClass     : KodingSwitch
+          defaultValue  : no
+      buttons           :
+        Save            :
+          title         : "Share credential"
+          type          : "submit"
+          style         : "solid green medium"
+          loader        :
+            color       : "#444444"
+          callback      : -> @hideLoader()
+        Cancel          :
+          type          : "cancel"
+          style         : "solid medium"
+          callback      : -> view.form.destroy()
+
+      callback          : (data)=>
+
+        log "Here we go", data
+
+        { usernames, owner } = data
+        target = usernames.first
+
+        unless target
+          return new KDNotificationView
+            title : "A user required to share credential with"
+
+        { Save } = view.form.buttons
+        Save.showLoader()
+
+        credential.shareWith { target, owner }, (err)=>
+
+          Save.hideLoader()
+
+          unless KD.showError err
+            view.form.destroy()
+            @loadItems()
+
+
+    {fields, inputs, buttons} = view.form
+
+    @userController       = new KDAutoCompleteController
+      form                : view.form
+      name                : "username"
+      itemClass           : MemberAutoCompleteItemView
+      itemDataPath        : "profile.nickname"
+      outputWrapper       : fields.userWrapper
+      selectedItemClass   : MemberAutoCompletedItemView
+      listWrapperCssClass : "users"
+      submitValuesAsText  : yes
+      dataSource          : (args, callback)=>
+        {inputValue} = args
+        if /^@/.test inputValue
+          query = 'profile.nickname': inputValue.replace /^@/, ''
+          KD.remote.api.JAccount.one query, (err, account)=>
+            if not account
+              @userController.showNoDataFound()
+            else
+              callback [account]
+        else
+          KD.remote.api.JAccount.byRelevance inputValue, {}, (err, accounts)->
+            callback accounts
+
+    fields.username.addSubView userRequestLineEdit = @userController.getView()
+    @userController.on "ItemListChanged", (count)->
+      userRequestLineEdit[if count is 0 then 'show' else 'hide']()
+
+    view.addSubView view.form
+
 
   showAddCredentialFormFor: (vendor)->
 
@@ -182,10 +270,11 @@ class AccountCredentialListController extends AccountListViewController
           Save.hideLoader()
 
           unless KD.showError err
-            @loadItems()  unless err?
             view.form.destroy()
+            @loadItems()
 
     view.addSubView view.form
+
 
 class AccountCredentialList extends KDListView
 
@@ -212,6 +301,11 @@ class AccountCredentialList extends KDListView
           unless KD.showError err
             item.destroy()
 
+  shareItem: (item)->
+
+    credential = item.getData()
+    @emit "ShowShareCredentialFormFor", credential
+
 
 class AccountCredentialListItem extends KDListItemView
 
@@ -226,7 +320,17 @@ class AccountCredentialListItem extends KDListItemView
       cssClass : "solid small red"
       callback : => delegate.deleteItem this
 
+    @shareButton = new KDButtonView
+      title    : "Share"
+      cssClass : "solid small green"
+      disabled : !@getData().owner
+      callback : => delegate.shareItem this
+
   viewAppended: JView::viewAppended
 
   pistachio:->
-    "{{#(vendor)}} - {{#(title)}} -- {{> @deleteButton}} -- {{#(owner)}}"
+    """
+     {{#(vendor)}} - {{#(title)}} --
+     {{> @deleteButton}} -- {{> @shareButton}} --
+     {{#(owner)}}
+    """
