@@ -1,4 +1,5 @@
 ElasticSearch = require "./elasticsearch"
+_             = require "underscore"
 
 {
   secure
@@ -13,21 +14,14 @@ module.exports = class JErrorLog extends ElasticSearch
       static:
         create: (signature Object, Function)
 
-  @errorsIndex: (type)->
-    @getIndexOptions("errorlogs", type)
+  @errorsIndex:->
+    @getIndexOptions("errorlogs", "errors")
 
   @create: secure (client, params, callback)->
     @getUserInfo client, (err, record)=>
       return callback err  if err
 
-      {error, numberOfVms, kontainer} = params
-
-      error = error.split(" ").join("_")
-
-      record.error       = error
-      record.numberOfVms = numberOfVms
-      record.kontainer   = kontainer
-
+      record    = _.extend record, params
       documents = [ record ]
 
-      ElasticSearch.create @errorsIndex(error), documents, callback
+      ElasticSearch.create @errorsIndex(), documents, callback
