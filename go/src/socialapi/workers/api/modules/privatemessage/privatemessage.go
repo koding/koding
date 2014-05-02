@@ -2,6 +2,7 @@ package privatemessage
 
 import (
 	"errors"
+	"koding/db/mongodb/modelhelper"
 	"net/http"
 	"net/url"
 	"socialapi/models"
@@ -18,12 +19,77 @@ var mentionRegex = verbalexpressions.New().
 	EndCapture().
 	Regex()
 
+func extractParticipants(body string) []string {
+	flattened := make([]string, 0)
+
+	res := mentionRegex.FindAllStringSubmatch(body, -1)
+	if len(res) == 0 {
+		return flattened
+	}
+
+	participants := map[string]struct{}{}
+	// remove duplicate mentions
+	for _, ele := range res {
+		participants[ele[1]] = struct{}{}
+	}
+
+	for participant := range participants {
+		flattened = append(flattened, participant)
+	}
+
+	return flattened
+}
+
+func fetchParticipantIds(participantNames []string) ([]int64, error) {
+	participantIds := make([]int64, len(participantNames))
+	for i, participantName := range participantNames {
+		account, err := modelhelper.GetAccount(participantName)
+		if err != nil {
+			return nil, err
+		}
+		a := models.NewAccount()
+		a.Id = account.SocialApiId
+		a.OldId = account.Id.Hex()
+		// fetch or create social api id
+		if a.Id == 0 {
+			if err := a.FetchOrCreate(); err != nil {
+				return nil, err
+			}
+		}
+		participantIds[i] = a.Id
+	}
+
+	return participantIds, nil
+}
+
+func appendCreatorIdIntoParticipantList(participants []int64, authorId int64) []int64 {
+	for _, participant := range participants {
+		if participant == authorId {
+			return participants
+		}
+	}
+
+	return append(participants, authorId)
+}
+
 func Send(u *url.URL, h http.Header, req *models.PrivateMessageRequest) (int, http.Header, interface{}, error) {
 	if req.AccountId == 0 {
 		return helpers.NewBadRequestResponse(errors.New("AcccountId is not defined"))
 	}
 
-	if len(req.Recipients) == 0 {
+	// // req.Recipients = append(req.Recipients, req.AccountId)
+	participantNames := extractParticipants(req.Body)
+	participantIds, err := fetchParticipantIds(participantNames)
+	if err != nil {
+		return helpers.NewBadRequestResponse(err)
+	}
+
+	// append creator to the recipients
+	participantIds = appendCreatorIdIntoParticipantList(participantIds, req.AccountId)
+
+	// author and atleast one recipient should be in the
+	// recipient list
+	if len(participantIds) < 2 {
 		return helpers.NewBadRequestResponse(errors.New("You should define your recipients"))
 	}
 
@@ -46,15 +112,12 @@ func Send(u *url.URL, h http.Header, req *models.PrivateMessageRequest) (int, ht
 		return helpers.NewBadRequestResponse(err)
 	}
 
-	_, err := c.AddMessage(cm.Id)
+	_, err = c.AddMessage(cm.Id)
 	if err != nil {
-		// todo this should be internal server error
 		return helpers.NewBadRequestResponse(err)
 	}
 
-	// append creator to the recipients
-	req.Recipients = append(req.Recipients, req.AccountId)
-	for _, participantId := range req.Recipients {
+	for _, participantId := range participantIds {
 		_, err := c.AddParticipant(participantId)
 		if err != nil {
 			return helpers.NewBadRequestResponse(err)
@@ -65,8 +128,8 @@ func Send(u *url.URL, h http.Header, req *models.PrivateMessageRequest) (int, ht
 	cmc.Channel = *c
 	cmc.IsParticipant = true
 	cmc.LastMessage = cm
-	cmc.ParticipantCount = len(req.Recipients)
-	cmc.ParticipantsPreview = req.Recipients
+	cmc.ParticipantCount = len(participantIds)
+	cmc.ParticipantsPreview = participantIds
 
 	return helpers.NewOKResponse(cmc)
 }

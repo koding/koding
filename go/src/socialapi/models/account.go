@@ -34,6 +34,10 @@ func (a *Account) One(q *bongo.Query) error {
 	return bongo.B.One(a, a, q)
 }
 
+func (a *Account) ById(id int64) error {
+	return bongo.B.ById(a, id)
+}
+
 func (a *Account) FetchOrCreate() error {
 	if a.OldId == "" {
 		return errors.New("old id is not set")
@@ -209,8 +213,8 @@ func FetchOdlIdByAccountId(accountId int64) (string, error) {
 		Selector: map[string]interface{}{
 			"id": accountId,
 		},
-		Pluck: "old_id",
-		Limit: 1,
+		Pluck:      "old_id",
+		Pagination: *bongo.NewPagination(1, 0),
 	}
 	err := a.Some(&data, q)
 	if err != nil {
@@ -244,4 +248,8 @@ func FetchOldIdsByAccountIds(accountIds []int64) ([]string, error) {
 	}
 
 	return oldIds, err
+}
+
+func (a *Account) Fetch() error {
+	return bongo.B.Fetch(a)
 }

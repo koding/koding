@@ -35,8 +35,7 @@ func TestPrivateMesssage(t *testing.T) {
 		Convey("one can send private message to one person", func() {
 			cmc, err := sendPrivateMessage(
 				account.Id,
-				"this is a body for private message",
-				[]int64{recipient.Id},
+				"this is a body message for private message @chris @devrim @sinan",
 				groupName,
 			)
 			So(err, ShouldBeNil)
@@ -48,7 +47,6 @@ func TestPrivateMesssage(t *testing.T) {
 			cmc, err := sendPrivateMessage(
 				account.Id,
 				"this is a body for private message",
-				[]int64{},
 				groupName,
 			)
 			So(err, ShouldNotBeNil)
@@ -59,7 +57,6 @@ func TestPrivateMesssage(t *testing.T) {
 			cmc, err := sendPrivateMessage(
 				account.Id,
 				"",
-				[]int64{recipient.Id},
 				groupName,
 			)
 			So(err, ShouldNotBeNil)
@@ -68,8 +65,7 @@ func TestPrivateMesssage(t *testing.T) {
 		Convey("if group name is nil, should not fail to create PM", func() {
 			cmc, err := sendPrivateMessage(
 				account.Id,
-				"this is a body for private message",
-				[]int64{recipient.Id},
+				"this is a body for private message @chris @devrim @sinan",
 				"",
 			)
 			So(err, ShouldBeNil)
@@ -80,7 +76,6 @@ func TestPrivateMesssage(t *testing.T) {
 			cmc, err := sendPrivateMessage(
 				0,
 				"this is a body for private message",
-				[]int64{recipient.Id},
 				"",
 			)
 			So(err, ShouldNotBeNil)
@@ -90,8 +85,7 @@ func TestPrivateMesssage(t *testing.T) {
 		Convey("one can send private message to multiple person", func() {
 			cmc, err := sendPrivateMessage(
 				account.Id,
-				"this is a body for private message",
-				[]int64{recipient.Id, recipient2.Id},
+				"this is a body for private message @sinan",
 				groupName,
 			)
 			So(err, ShouldBeNil)
@@ -101,8 +95,7 @@ func TestPrivateMesssage(t *testing.T) {
 		Convey("private message response should have created channel", func() {
 			cmc, err := sendPrivateMessage(
 				account.Id,
-				"this is a body for private message",
-				[]int64{recipient.Id, recipient2.Id},
+				"this is a body for private message @devrim @sinan",
 				groupName,
 			)
 			So(err, ShouldBeNil)
@@ -117,8 +110,7 @@ func TestPrivateMesssage(t *testing.T) {
 		Convey("private message response should have participant status data", func() {
 			cmc, err := sendPrivateMessage(
 				account.Id,
-				"this is a body for private message",
-				[]int64{recipient.Id, recipient2.Id},
+				"this is a body for private message @chris @devrim @sinan",
 				groupName,
 			)
 			So(err, ShouldBeNil)
@@ -129,8 +121,7 @@ func TestPrivateMesssage(t *testing.T) {
 		Convey("private message response should have participant count", func() {
 			cmc, err := sendPrivateMessage(
 				account.Id,
-				"this is a body for private message",
-				[]int64{recipient.Id, recipient2.Id},
+				"this is a body for @sinan private message @devrim",
 				groupName,
 			)
 			So(err, ShouldBeNil)
@@ -141,8 +132,7 @@ func TestPrivateMesssage(t *testing.T) {
 		Convey("private message response should have participant preview", func() {
 			cmc, err := sendPrivateMessage(
 				account.Id,
-				"this is a body for private message",
-				[]int64{recipient.Id, recipient2.Id},
+				"this is @chris a body for @devrim private message",
 				groupName,
 			)
 			So(err, ShouldBeNil)
@@ -151,11 +141,10 @@ func TestPrivateMesssage(t *testing.T) {
 		})
 
 		Convey("private message response should have last Message", func() {
-			body := "this is a body for private message"
+			body := "hi @devrim this is a body for private message also for @chris"
 			cmc, err := sendPrivateMessage(
 				account.Id,
 				body,
-				[]int64{recipient.Id, recipient2.Id},
 				groupName,
 			)
 			So(err, ShouldBeNil)
@@ -168,11 +157,10 @@ func TestPrivateMesssage(t *testing.T) {
 			// in order not to interfere with another request
 			groupName := "testgroup" + strconv.FormatInt(rand.Int63(), 10)
 
-			body := "this is a body for private message"
+			body := "hi @devrim this is a body for private message also for @chris"
 			cmc, err := sendPrivateMessage(
 				account.Id,
 				body,
-				[]int64{recipient.Id, recipient2.Id},
 				groupName,
 			)
 			So(err, ShouldBeNil)
@@ -197,12 +185,11 @@ func TestPrivateMesssage(t *testing.T) {
 	})
 }
 
-func sendPrivateMessage(senderId int64, body string, recipients []int64, groupName string) (*models.ChannelContainer, error) {
+func sendPrivateMessage(senderId int64, body string, groupName string) (*models.ChannelContainer, error) {
 
 	pmr := models.PrivateMessageRequest{}
 	pmr.AccountId = senderId
 	pmr.Body = body
-	pmr.Recipients = recipients
 	pmr.GroupName = groupName
 
 	url := "/privatemessage/send"

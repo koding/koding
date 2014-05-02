@@ -45,12 +45,16 @@ func (m *MessageReply) AfterDelete() {
 	bongo.B.AfterDelete(m)
 }
 
-func (m *MessageReply) Fetch() error {
-	return bongo.B.Fetch(m)
+func (m *MessageReply) ById(id int64) error {
+	return bongo.B.ById(m, id)
 }
 
 func (m *MessageReply) Create() error {
 	return bongo.B.Create(m)
+}
+
+func (m *MessageReply) Some(data interface{}, q *bongo.Query) error {
+	return bongo.B.Some(m, data, q)
 }
 
 func (m *MessageReply) Delete() error {
@@ -62,26 +66,49 @@ func (m *MessageReply) Delete() error {
 	return nil
 }
 
+func (m *MessageReply) One(q *bongo.Query) error {
+
+	return bongo.B.One(m, m, q)
+}
+
 func (m *MessageReply) DeleteByOrQuery(messageId int64) error {
 	if err := bongo.B.DB.
 		Where("message_id = ? or reply_id = ?", messageId, messageId).
 		Delete(m).Error; err != nil {
 		return err
 	}
+
 	return nil
 }
 
-func (m *MessageReply) List() ([]ChannelMessage, error) {
+func (m *MessageReply) List(query *Query) ([]ChannelMessage, error) {
+	return m.fetchMessages(query)
+}
+
+func (m *MessageReply) ListAll() ([]ChannelMessage, error) {
+	query := NewQuery()
+	query.Limit = 0
+	query.Skip = 0
+	return m.fetchMessages(query)
+}
+
+func (m *MessageReply) fetchMessages(query *Query) ([]ChannelMessage, error) {
 	var replies []int64
 
 	if m.MessageId == 0 {
 		return nil, errors.New("MessageId is not set")
 	}
 
-	if err := bongo.B.DB.Table(m.TableName()).
-		Where("message_id = ?", m.MessageId).
-		Pluck("reply_id", &replies).
-		Error; err != nil {
+	q := &bongo.Query{
+		Selector: map[string]interface{}{
+			"message_id": m.MessageId,
+		},
+		Pluck:      "reply_id",
+		Pagination: *bongo.NewPagination(query.Limit, query.Skip),
+		Sort:       map[string]string{"created_at": "DESC"},
+	}
+
+	if err := m.Some(&replies, q); err != nil {
 		return nil, err
 	}
 
@@ -92,4 +119,49 @@ func (m *MessageReply) List() ([]ChannelMessage, error) {
 	}
 
 	return channelMessageReplies, nil
+}
+
+// we do not need pagination??
+func (m *MessageReply) FetchReplyIds(p *bongo.Pagination, t time.Time) ([]int64, error) {
+	var replyIds []int64
+
+	if err := bongo.B.DB.Table(m.TableName()).
+		Where("message_id = ? AND created_at >= ?", m.MessageId, t).
+		Order("created_at desc").
+		Pluck("reply_id", &replyIds).
+		Error; err != nil {
+		return nil, err
+	}
+
+	return replyIds, nil
+}
+
+func (m *MessageReply) FetchByReplyId() error {
+	q := &bongo.Query{
+		Selector: map[string]interface{}{
+			"reply_id": m.ReplyId,
+		},
+	}
+	return m.One(q)
+}
+
+func (m *MessageReply) FetchFirstAccountReply(accountId int64) error {
+	cm := NewChannelMessage()
+	rows, err := bongo.B.DB.Raw("SELECT mr.reply_id, mr.created_at "+
+		"FROM "+m.TableName()+" mr "+
+		"LEFT JOIN "+cm.TableName()+" cm ON cm.id = mr.reply_id "+
+		"WHERE cm.account_id = ? AND mr.message_id = ? "+
+		"ORDER BY cm.created_at ASC "+
+		"LIMIT 1", accountId, m.MessageId).Rows()
+
+	// probably gorm.ErrNotFound error must be caught
+	if err != nil {
+		return err
+	}
+	if rows.Next() {
+		// i could not handle it by selecting all columns
+		rows.Scan(&m.ReplyId, &m.CreatedAt)
+	}
+
+	return nil
 }

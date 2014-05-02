@@ -42,9 +42,6 @@ func Slugify(message *ChannelMessage) (*ChannelMessage, error) {
 				return nil, err
 			}
 			message.Slug = suggestedSlug
-			// message.Slug = &suggestedSlug
-			// message.Slug.String = suggestedSlug
-			// message.Slug.Valid = true
 			return message, nil
 		}
 		// iterate with the new slug

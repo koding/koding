@@ -101,10 +101,6 @@ func (c Channel) TableName() string {
 	return "api.channel"
 }
 
-func (c *Channel) Fetch() error {
-	return bongo.B.Fetch(c)
-}
-
 func (c *Channel) AfterCreate() {
 	bongo.B.AfterCreate(c)
 }
@@ -160,6 +156,10 @@ func (c *Channel) Create() error {
 
 func (c *Channel) Delete() error {
 	return bongo.B.Delete(c)
+}
+
+func (c *Channel) ById(id int64) error {
+	return bongo.B.ById(c, id)
 }
 
 func (c *Channel) One(q *bongo.Query) error {
@@ -368,8 +368,8 @@ func (c *Channel) FetchLastMessage() (*ChannelMessage, error) {
 		Sort: map[string]string{
 			"added_at": "DESC",
 		},
-		Limit: 1,
-		Pluck: "message_id",
+		Pagination: *bongo.NewPagination(1, 0),
+		Pluck:      "message_id",
 	}
 
 	var messageIds []int64
@@ -383,8 +383,7 @@ func (c *Channel) FetchLastMessage() (*ChannelMessage, error) {
 	}
 
 	cm := NewChannelMessage()
-	cm.Id = messageIds[0]
-	if err := cm.Fetch(); err != nil {
+	if err := cm.ById(messageIds[0]); err != nil {
 		return nil, err
 	}
 

@@ -160,11 +160,8 @@ module.exports = class Followable
               followee  : this
               follower  : follower
 
-            @emit 'FollowHappened',
-              origin    : this
-              actorType : 'follower'
-              follower  : ObjectRef(follower).data
-              group     : group
+            SocialNotification = require '../models/socialapi/notification'
+            SocialNotification.follow client, this, (err) -> warn err  if err
 
             follower.updateFollowingCount @, action
 

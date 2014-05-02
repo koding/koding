@@ -84,6 +84,6 @@ func List(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface
 	reply.MessageId = messageId
 
 	return helpers.HandleResultAndError(
-		reply.List(),
+		reply.List(helpers.GetQuery(u)),
 	)
 }

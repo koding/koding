@@ -152,6 +152,34 @@ fetchPrivateMessages = (data, callback)->
   url = "#{SOCIAL_API_URL}/privatemessage/list"
   get url, data, callback
 
+listNotifications = (data, callback)->
+  if not data.accountId # or not data.groupName
+    return callback {message: "Request is not valid"}
+
+  url = "#{SOCIAL_API_URL}/notification/#{data.accountId}"
+  get url, data, callback
+
+glanceNotifications = (accountId, callback)->
+  if not accountId
+    return callback {message: "Request is not valid"}
+
+  url = "#{SOCIAL_API_URL}/notification/glance"
+  post url, {accountId}, callback
+
+createFollowNotification = (data, callback)->
+  unless data.followerId and data.followeeId
+    return callback {message: "Request is not valid"}
+
+  url = "#{SOCIAL_API_URL}/notification/follow"
+  post url, data, callback
+
+createGroupNotification = (data, callback)->
+  unless data.admins?.length and data.actorId and data.name
+    return callback {message: "Request is not valid"}
+
+  url = "#{SOCIAL_API_URL}/notification/group"
+  post url, data, callback
+
 post = (url, data, callback)->
   request
     url    : url
@@ -189,4 +217,8 @@ module.exports = {
   fetchMessage
   fetchChannelActivities
   fetchGroupChannels
+  listNotifications
+  glanceNotifications
+  createFollowNotification
+  createGroupNotification
 }

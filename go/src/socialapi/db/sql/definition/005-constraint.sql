@@ -123,8 +123,24 @@ ALTER TABLE "api"."interaction" ADD CONSTRAINT "interaction_account_id_fkey" FOR
 --  Primary key structure for table message_reply
 -- ----------------------------
 ALTER TABLE "api"."message_reply" ADD PRIMARY KEY ("id") NOT DEFERRABLE INITIALLY IMMEDIATE;
+
 -- ----------------------------
 --  Foreign keys structure for table message_reply
 -- ----------------------------
 ALTER TABLE "api"."message_reply" ADD CONSTRAINT "message_reply_reply_id_fkey" FOREIGN KEY ("reply_id") REFERENCES "api"."channel_message" ("id") ON UPDATE NO ACTION ON DELETE NO ACTION NOT DEFERRABLE INITIALLY IMMEDIATE;
 ALTER TABLE "api"."message_reply" ADD CONSTRAINT "message_reply_message_id_fkey" FOREIGN KEY ("message_id") REFERENCES "api"."channel_message" ("id") ON UPDATE NO ACTION ON DELETE NO ACTION NOT DEFERRABLE INITIALLY IMMEDIATE;
+
+-- ----------------------------
+--  Primary key structure for table notification
+-- ----------------------------
+ALTER TABLE "api"."notification" ADD PRIMARY KEY ("id") NOT DEFERRABLE INITIALLY IMMEDIATE;
+
+-- ----------------------------
+--  Primary key structure for table notification_content
+-- ----------------------------
+ALTER TABLE "api"."notification_content" ADD PRIMARY KEY ("id") NOT DEFERRABLE INITIALLY IMMEDIATE;
+
+-- ----------------------------
+--  Primary key structure for table activity
+-- ----------------------------
+ALTER TABLE "api"."activity" ADD PRIMARY KEY ("id") NOT DEFERRABLE INITIALLY IMMEDIATE;
