@@ -311,7 +311,7 @@ func TestNotificationCreation(t *testing.T) {
 				So(nl.UnreadCount, ShouldEqual, 1)
 			})
 
-			Convey("Another user should be able to reply it", func() {
+			Convey("First user should be able to reply it", func() {
 				var err error
 				replyMessage, err = addReply(cm.Id, firstUser.Id, testGroupChannel.Id)
 				ResultedWithNoErrorCheck(replyMessage, err)
@@ -334,6 +334,13 @@ func TestNotificationCreation(t *testing.T) {
 					})
 				})
 
+			})
+
+			Convey("First user should not receive notification", func() {
+				nl, err := getNotificationList(firstUser.Id)
+				ResultedWithNoErrorCheck(nl, err)
+				So(len(nl.Notifications), ShouldEqual, 1)
+				So(nl.UnreadCount, ShouldEqual, 1)
 			})
 		})
 		Convey("As a message owner I want to receive like notifications", func() {
