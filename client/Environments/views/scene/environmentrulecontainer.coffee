@@ -2,23 +2,34 @@ class EnvironmentRuleContainer extends EnvironmentContainer
 
   EnvironmentDataProvider.addProvider "rules", ->
 
-    dummyRules = [
-      {
-        title: "Allow All",
-        description: "allow from *"
-      }
-    ]
+    new Promise (resolve, reject) ->
+      KD.remote.api.JProxyRestriction.some {}, {}, (err, restrictions) ->
+        EnvironmentRuleContainer.restrictions = restrictions # TODO: Find a better way
 
-    new Promise (resolve, reject)->
-      resolve dummyRules
+        KD.remote.api.JProxyFilter.some {}, {}, (err, filters) ->
+          if err or not filters or filters.length is 0
+            warn "Failed to fetch filters", err  if err
+            return resolve []
 
-  constructor:(options={}, data)->
+          filter.title = filter.name  for filter in filters
+          resolve filters
 
-    options.cssClass  = 'firewall'
+  constructor: (options = {}, data) ->
+
+    options.cssClass  = "firewall"
     options.itemClass = EnvironmentRuleItem
-    options.title     = 'firewall rules'
+    options.title     = "firewall rules"
 
     super options, data
 
-    @on 'PlusButtonClicked', ->
-      new KDNotificationView title: "Adding more rules will be available soon."
+    @on "PlusButtonClicked", =>
+      modal = new AddFirewallRuleModal
+
+      modal.once "NewRuleAdded", (rule) =>
+        rule.title       = rule.name
+        rule.description = $.timeago rule.createdAt
+        rule.activated   = yes
+
+        @addItem rule
+        @emit "itemAdded"
+        modal.destroy()

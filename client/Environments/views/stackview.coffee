@@ -18,6 +18,7 @@ class StackView extends KDView
     # Rules Container
     @rules = new EnvironmentRuleContainer
     @scene.addContainer @rules
+    @rules.on "itemAdded", @lazyBound "updateView", yes
 
     # Domains Container
 
@@ -33,7 +34,7 @@ class StackView extends KDView
     KD.getSingleton("vmController").on 'VMListChanged', =>
       EnvironmentDataProvider.get (data) => @loadContainers data
 
-    # Rules Container
+    # Extras Container
     @extras = new EnvironmentExtraContainer
     @scene.addContainer @extras
 
@@ -88,6 +89,8 @@ class StackView extends KDView
     {containers, connections} = @scene
     dump = {}
 
+    dump.config = "[...]"  if @getOptions().stack.meta?.config
+
     for i, container of containers
       name = EnvironmentScene.containerMap[container.constructor.name]
       dump[name] = []
@@ -107,7 +110,6 @@ class StackView extends KDView
     return if asYaml then jsyaml.dump dump else dump
 
   updateView:(dataUpdated = no)->
-
     @scene.updateConnections()  if dataUpdated
 
     if @getHeight() > 50
