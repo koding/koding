@@ -306,6 +306,24 @@ class AccountCredentialList extends KDListView
     credential = item.getData()
     @emit "ShowShareCredentialFormFor", credential
 
+  showItemContent: (item)->
+
+    credential = item.getData()
+    credential.fetchData (err, data)->
+      unless KD.showError err
+
+        try
+
+          cred = JSON.stringify data.meta, null, 2
+
+        catch e
+
+          warn e; log data
+          return new KDNotificationView
+            title: "An error occured"
+
+        new KDModalView
+          content : "<code>#{cred}</code>"
 
 class AccountCredentialListItem extends KDListItemView
 
@@ -326,11 +344,17 @@ class AccountCredentialListItem extends KDListItemView
       disabled : !@getData().owner
       callback : => delegate.shareItem this
 
+    @showCredentialButton = new KDButtonView
+      title    : "Show Content"
+      cssClass : "solid small green"
+      disabled : !@getData().owner
+      callback : => delegate.showItemContent this
+
   viewAppended: JView::viewAppended
 
   pistachio:->
     """
-     {{#(vendor)}} - {{#(title)}} --
+     {{#(vendor)}} - {{#(title)}} -- {{> @showCredentialButton}} --
      {{> @deleteButton}} -- {{> @shareButton}} --
      {{#(owner)}}
     """
