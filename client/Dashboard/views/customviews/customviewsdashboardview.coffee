@@ -41,6 +41,7 @@ class CustomViewsDashboardView extends JView
 
   bindEventHandlers: ->
     @on "NewViewAdded", =>
+      @unsetClass "edit-mode"
       @addNewView.destroy()
       @addNewButton.show()
       @reloadViews()
@@ -54,6 +55,7 @@ class CustomViewsDashboardView extends JView
       @addNew viewData
 
     @on "AddingNewViewCancelled", =>
+      @unsetClass "edit-mode"
       @reloadViews()
       @addNewButton.show()
 
@@ -64,6 +66,7 @@ class CustomViewsDashboardView extends JView
 
   addNew: (data) ->
     @hideViews()
+    @setClass "edit-mode"
     appManager = KD.singleton "appManager"
     appManager.require "Teamwork", (app) =>
       config     =
