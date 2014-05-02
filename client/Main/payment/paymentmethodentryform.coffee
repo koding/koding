@@ -61,7 +61,6 @@ class PaymentMethodEntryForm extends KDFormViewWithFields
             regExp        : do ->
               remainingMonths = KD.utils
                 .getMonthOptions()
-                  .slice((new Date).getMonth() - 1)
                 .map((item)-> item.title)
                 .join '|'
               return ///#{remainingMonths}///
