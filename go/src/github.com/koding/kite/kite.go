@@ -16,7 +16,6 @@ import (
 	"github.com/dgrijalva/jwt-go"
 	"github.com/koding/kite/config"
 	"github.com/koding/kite/protocol"
-	"github.com/koding/logging"
 	"github.com/nu7hatch/gouuid"
 )
 
@@ -41,8 +40,11 @@ func init() {
 type Kite struct {
 	Config *config.Config
 
-	// Prints logging messages to stderr.
-	Log logging.Logger
+	// Log logs with the given Logger interface
+	Log Logger
+
+	// SetLogLevel changes the level of the logger. Default is INFO.
+	SetLogLevel func(Level)
 
 	// Contains different functions for authenticating user from request.
 	// Keys are the authentication types (options.authentication.type).
@@ -100,9 +102,12 @@ func New(name, version string) *Kite {
 		panic(fmt.Sprintf("kite: cannot generate unique ID: %s", err.Error()))
 	}
 
+	l, setlevel := newLogger(name)
+
 	k := &Kite{
 		Config:             config.New(),
-		Log:                newLogger(name),
+		Log:                l,
+		SetLogLevel:        setlevel,
 		Authenticators:     make(map[string]func(*Request) error),
 		trustedKontrolKeys: make(map[string]string),
 		handlers:           make(map[string]HandlerFunc),
@@ -171,34 +176,6 @@ func (k *Kite) handleWS(ws *websocket.Conn) {
 
 	c.callOnDisconnectHandlers()
 	k.callOnDisconnectHandlers(c)
-}
-
-// getLogLevel returns the logging level defined via the KITE_LOG_LEVEL
-// environment. It returns logging.Info by default if no environment variable
-// is set.
-func getLogLevel() logging.Level {
-	switch strings.ToUpper(os.Getenv("KITE_LOG_LEVEL")) {
-	case "DEBUG":
-		return logging.DEBUG
-	case "NOTICE":
-		return logging.NOTICE
-	case "WARNING":
-		return logging.WARNING
-	case "ERROR":
-		return logging.ERROR
-	case "CRITICAL":
-		return logging.CRITICAL
-	default:
-		return logging.INFO
-	}
-}
-
-// newLogger returns a new logger object for desired name and level.
-func newLogger(name string) logging.Logger {
-	logger := logging.NewLogger(name)
-	logger.SetLevel(getLogLevel())
-
-	return logger
 }
 
 func (k *Kite) OnConnect(handler func(*Client)) {

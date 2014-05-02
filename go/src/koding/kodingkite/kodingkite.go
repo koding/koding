@@ -44,12 +44,19 @@ func New(kodingConf *kodingconfig.Config, name, version string) (*KodingKite, er
 		scheme:       "ws",
 	}
 
+	// prepare our multilog handler
 	syslog, err := logging.NewSyslogHandler(name)
 	if err != nil {
 		log.Fatalf("Cannot connect to syslog: %s", err.Error())
 	}
 
-	kk.Log.SetHandler(logging.NewMultiHandler(logging.StderrHandler, syslog))
+	logger := logging.NewLogger(name)
+	logger.SetHandler(logging.NewMultiHandler(logging.StderrHandler, syslog))
+
+	k.Log = logger
+	k.SetLogLevel = func(l kite.Level) {
+		logger.SetLevel(convertLevel(l))
+	}
 
 	if kodingConf.NewKites.UseTLS {
 		kk.UseTLSFile(kodingConf.NewKites.CertFile, kodingConf.NewKites.KeyFile)
@@ -127,4 +134,20 @@ func getRegisterIP(environment string) (string, error) {
 	}
 
 	return ip, nil
+}
+
+// convertLevel converst a kite level into logging level
+func convertLevel(l kite.Level) logging.Level {
+	switch l {
+	case kite.DEBUG:
+		return logging.DEBUG
+	case kite.WARNING:
+		return logging.WARNING
+	case kite.ERROR:
+		return logging.ERROR
+	case kite.FATAL:
+		return logging.CRITICAL
+	default:
+		return logging.INFO
+	}
 }

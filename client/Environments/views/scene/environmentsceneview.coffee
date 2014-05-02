@@ -44,6 +44,7 @@ class EnvironmentScene extends KDDiaScene
         removeConnection()
     else if domain and rule
       removeConnection()
+      @unboundRuleFromDomain domain, rule
     else if vm and extra
       removeConnection()
 
@@ -61,9 +62,9 @@ class EnvironmentScene extends KDDiaScene
     return  if Object.keys(items).length < 2
     {domain, vm, rule, extra} = items
 
-    return  if rule or extra
-      new KDNotificationView
-        title : "Assigning #{if rule then 'rules' else 'resources'} will be available soon."
+    if extra
+      return new KDNotificationView
+        title : "Assigning resources will be available soon."
 
     if domain and vm and not KD.checkFlag 'nostradamus'
       if domain.dia.getData().domain.hostnameAlias.length > 0
@@ -79,27 +80,63 @@ class EnvironmentScene extends KDDiaScene
         createConnection()
     else if domain and rule
       createConnection()
+      @bindRuleToDomain domain, rule
     else if vm and extra
       createConnection()
+
+  bindRuleToDomain: (domain, rule) ->
+    {domain} = domain.dia.getData()
+    rule     = rule.dia.getData()
+
+    KD.remote.api.JProxyRestriction.create {
+      domainName : domain.domain
+      filterId   : rule.getId()
+    }, (err, restriction) ->
+      if err
+        return new KDNotificationView
+          type     : "mini"
+          cssClass : "error"
+          title    : "Sorry, we couldn't bind your rule to your VM, please try again."
+          duration : 4000
+
+  unboundRuleFromDomain: (domain, rule) ->
+    {domain} = domain.dia.getData()
+    rule     = rule.dia.getData()
+
+    KD.remote.api.JProxyRestriction.remove {
+      domainName : domain.domain
+      filterId   : rule.getId()
+    }, (err, restriction) ->
+      if err
+        return new KDNotificationView
+          type     : "mini"
+          cssClass : "error"
+          title    : "Sorry, we couldn't unbind your rule from your VM, please try again."
+          duration : 4000
 
   updateConnections:->
     @reset no
 
-    vmDias     = @boxes.vms.dias
-    domainDias = @boxes.domains.dias
+    vmDias       = @boxes.vms.dias
+    domainDias   = @boxes.domains.dias
+    domainsByDia = {}
+    rulesById    = {}
+
+    domainsByDia[domain.data.title] = domain for key, domain of domainDias
+    rulesById[rule.data._id] = rule for key, rule of @boxes.rules.dias
 
     for _mkey, vm of vmDias
       for _dkey, domain of domainDias
         domainAliases = domain.getData().aliases
         if domainAliases and vm.getData().title in domainAliases
-          @connect {dia : domain , joint : 'right'}, \
-                   {dia : vm, joint : 'left' }, yes
+          @connect {dia : domain , joint : 'right'}, {dia : vm, joint : 'left' }, yes
 
-    {dias} = @boxes.rules
-    rule = dias[Object.keys(dias).first]
-    for _dkey, domain of domainDias
-      @connect {dia : rule,   joint : 'right'}, \
-               {dia : domain, joint : 'left' }, yes
+    for restriction in EnvironmentRuleContainer.restrictions
+      domainDia = domainsByDia[restriction.domainName]
+      for filterId in restriction.filters
+        ruleDia = rulesById[filterId]
+        if domainDia and ruleDia
+          @connect {dia : domainDia, joint : 'left'}, {dia : ruleDia, joint : 'right' }, yes
 
   createApproveModal:(items, action)->
     return unless KD.isLoggedIn()

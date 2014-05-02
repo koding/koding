@@ -260,7 +260,7 @@ func buildKontrolProxy() error {
 		appName:       *flagApp,
 		importPath:    kdproxyPath,
 		files:         files,
-		version:       "0.0.6",
+		version:       "0.0.7",
 		upstartScript: configUpstart,
 	}
 
