@@ -243,7 +243,18 @@ body.about
   overflow                visible
 
   >.kdloader
-    abs                   -108px 0 0 165px
+    abs                   -138px 0 0 165px
+
+  .jobs-error
+    font-size             18px
+    margin                -30px 0 60px
+    color                 #717171
+    font-weight           400px
+    rounded               4px
+
+    a
+      color               #919191
+
 
   .jobs-item-view
     bg                    color, #f1f3f2
@@ -283,6 +294,7 @@ body.about
 
     > .apply-button
         opacity           0
+        visibility        hidden
         vendor            transition, opacity .2s ease
         fr()
 
@@ -385,6 +397,8 @@ body.about
       bg                    color, #f7f7f7
 
       > .apply-button
+        visibility          visible
+        display             block
         opacity             1
 
       article.details
@@ -394,4 +408,68 @@ body.about
     .jobs-item-view
       vendor                transform, translateY(0px)
       opacity               1
+
+@media only screen and (min-width : 320px) and (max-width : 568px)
+
+  .content-page.about > section.about-company div.wrapper
+    article
+      padding               40px 0
+
+      h2
+        font-size           22px
+
+    aside
+      position              relative
+      top                   initial
+      left                  74px
+      margin-bottom         40px
+      margin-top            40px
+
+  .content-page.about > section.member-list div.wrapper
+    .kdlistview-team
+      margin-bottom         0
+
+    .kdlistitemview-team
+      width                 33%
+
+      figure
+        size                100% !important, auto !important
+
+      .avatarview
+        size                100% !important, auto !important
+
+        img
+          size              100% !important, auto !important
+
+  .jobs-view
+    .jobs-item-view
+
+      padding               15px
+
+      h3
+        display             block
+        font-size           16px
+
+        span
+          display           block
+          margin            4px 0 0
+
+      .apply-button
+        float               none
+        clear               both
+        width               100%
+        margin              0 0 12px 0
+        text-align          center
+
+      > .apply-button
+        display             none
+
+      p
+        margin-right        0
+        font-size           12px
+
+      article.details
+        ul
+          margin-right      0
+          font-size         12px
 

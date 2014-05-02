@@ -12,12 +12,14 @@ class JobsView extends KDView
         height  : 30
       showLoader: yes
 
-    @addSubView @loader
-
     @getJobs()
 
 
   getJobs : ->
+
+    if @errorView then @errorView.destroy()
+
+    @addSubView @loader
 
     $.ajax
       url     : @getOption 'apiUrl'
@@ -25,8 +27,19 @@ class JobsView extends KDView
       success : @bound 'createView'
       error   : @bound 'showError'
 
+
   showError : (data) ->
-    error data
+
+    @loader.destroy()
+
+    @addSubView @errorView = new KDCustomHTMLView
+      partial   : "Couldn't fetch job openings, please "
+      cssClass  : "jobs-error"
+
+    @errorView.addSubView new CustomLinkView
+      cssClass   : 'retry-link'
+      title      : 'try again'
+      click      : @bound 'getJobs'
 
 
   createView : (data) ->
