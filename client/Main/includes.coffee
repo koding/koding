@@ -206,6 +206,7 @@ module.exports = [
   "providers/vendoritemview.coffee",
   "providers/vendorbaseview.coffee",
 
+  "providers/vendordigitalocean.coffee",
   "providers/vendorwelcomeview.coffee",
 
   "providers/vendorview.coffee",
