@@ -210,6 +210,7 @@ module.exports = [
   "providers/vendorwelcomeview.coffee",
   "providers/vendorengineyard.coffee",
   "providers/vendorkoding.coffee",
+  "providers/vendoramazon.coffee",
 
   "providers/vendorview.coffee",
   "providers/computeprovider.coffee",
