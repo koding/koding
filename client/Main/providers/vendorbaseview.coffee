@@ -37,9 +37,19 @@ class VendorBaseView extends KDTabPaneView
 
   viewAppended:->
     super
-    @on 'PaneDidShow', =>
-      @loader.show()  if @getOption('vendorId')?
-      @form?.unsetClass 'in'
-      KD.utils.wait 1000, =>
-        @form?.setClass 'in'
-        @loader.hide()
+    @on 'PaneDidShow', @bound 'paneSelected'
+
+  paneSelected:->
+
+    ComputeProvider.credentialsFor @_vendor, (err, credentials = [])=>
+
+      @loader.hide()
+
+      unless KD.showError err
+
+        if credentials.length > 0
+          credential = credentials.first
+          @content.addSubView new KDView
+            partial: "#{credential.title}"
+        else
+          @form.setClass 'in'
