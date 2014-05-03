@@ -72,7 +72,14 @@ func (o *Oskite) loadBalancer(correlationName, username, deadService string) str
 	}
 
 	if vm.HostKite == "" {
-		blog(fmt.Sprintf("hostkite is empty returning '%s'", resultOskite))
+		// also set hoskite to prevent race condition between terminal and
+		// oskite. Because if we set it now, the "kite.who" method of terminal
+		// will not reply with an empty response.
+		err := mongodbConn.Run("jVMs", func(c *mgo.Collection) error {
+			return c.Update(bson.M{"_id": vm.Id, "hostKite": nil}, bson.M{"$set": bson.M{"hostKite": resultOskite}})
+		})
+
+		blog(fmt.Sprintf("hostkite is empty returning '%s. (update err: %s)", resultOskite, err.Error()))
 		return resultOskite
 	}
 
