@@ -4,28 +4,51 @@ package kite
 import (
 	"container/list"
 	"errors"
+	"math/rand"
 	"net/url"
+	"os"
 	"sync"
+	"time"
 
 	"github.com/dgrijalva/jwt-go"
 	"github.com/koding/kite/dnode"
 	"github.com/koding/kite/protocol"
 )
 
+type kontrolEvent int
+
+const (
+	kontrolRetryDuration = 10 * time.Second
+	proxyRetryDuration   = 10 * time.Second
+)
+
 // Returned from GetKites when query matches no kites.
 var ErrNoKitesAvailable = errors.New("no kites availabile")
 
-// KontrolClient is a kite for registering and querying Kites from Kontrol.
-type KontrolClient struct {
+// kontrolClient is a kite for registering and querying Kites from Kontrol.
+type kontrolClient struct {
 	*Client
 
 	// used for synchronizing methods that needs to be called after
-	// successful connection.
-	Ready chan struct{}
+	// successful connection or/and registiration to kontrol.
+	onceConnected   sync.Once
+	onceRegistered  sync.Once
+	readyConnected  chan struct{}
+	readyRegistered chan struct{}
 
-	// Watchers are saved here to re-watch on reconnect.
+	// watchers are saved here to re-watch on reconnect.
 	watchers      *list.List
 	watchersMutex sync.RWMutex
+
+	// events is used for reconnection logic
+	events chan kontrolEvent
+
+	// lastRegisteredURL stores the Kite url what was send/registered
+	// succesfully to kontrol
+	lastRegisteredURL *url.URL
+
+	// registerChan registers the url's it receives from the channel to Kontrol
+	registerChan chan *url.URL
 }
 
 // Event is the struct that is emitted from Kontrol.WatchKites method.
@@ -39,26 +62,17 @@ type registerResult struct {
 	URL *url.URL
 }
 
-// SetupKontrolClient setups and prepares a new kontrol client instance.
-// Usually needed for preparations.
+// SetupKontrolClient setups and prepares a the kontrol instance. It connects
+// to kontrol and reconnects again if there is any disconnections. This method
+// is called internally whenever a kontrol client specific action is taking.
+// However if you wish to connect earlier you may call this method.
 func (k *Kite) SetupKontrolClient() error {
-	if k.Kontrol != nil {
+	if k.kontrol.Client != nil {
 		return nil // already prepared
 	}
 
-	kontrolClient, err := k.newKontrolClient()
-	if err != nil {
-		return err
-	}
-
-	k.Kontrol = kontrolClient
-	return nil
-}
-
-// newKontrolClient returns a ready and connected KontrolClient instance.
-func (k *Kite) newKontrolClient() (*KontrolClient, error) {
 	if k.Config.KontrolURL == nil {
-		return nil, errors.New("no kontrol URL given in config")
+		return errors.New("no kontrol URL given in config")
 	}
 
 	client := k.NewClient(k.Config.KontrolURL)
@@ -68,95 +82,55 @@ func (k *Kite) newKontrolClient() (*KontrolClient, error) {
 		Key:  k.Config.KiteKey,
 	}
 
-	kontrolClient := &KontrolClient{
-		Client:   client,
-		Ready:    make(chan struct{}),
-		watchers: list.New(),
-	}
+	k.kontrol.Client = client
+	k.kontrol.watchers = list.New()
 
-	var once sync.Once
-
-	kontrolClient.OnConnect(func() {
+	k.kontrol.OnConnect(func() {
 		k.Log.Info("Connected to Kontrol ")
 
+		// try to re-register on connect
+		if k.kontrol.lastRegisteredURL != nil {
+			select {
+			case k.kontrol.registerChan <- k.kontrol.lastRegisteredURL:
+			default:
+			}
+		}
+
 		// signal all other methods that are listening on this channel, that we
-		// are ready.
-		once.Do(func() { close(kontrolClient.Ready) })
+		// are connected to kontrol.
+		k.kontrol.onceConnected.Do(func() { close(k.kontrol.readyConnected) })
 
 		// Re-register existing watchers.
-		kontrolClient.watchersMutex.RLock()
-		for e := kontrolClient.watchers.Front(); e != nil; e = e.Next() {
+		k.kontrol.watchersMutex.RLock()
+		for e := k.kontrol.watchers.Front(); e != nil; e = e.Next() {
 			watcher := e.Value.(*Watcher)
 			if err := watcher.rewatch(); err != nil {
 				k.Log.Error("Cannot rewatch query: %+v", watcher)
 			}
 		}
-		kontrolClient.watchersMutex.RUnlock()
+		k.kontrol.watchersMutex.RUnlock()
+	})
+
+	k.kontrol.OnDisconnect(func() {
+		k.Log.Warning("Disconnected from Kontrol.")
 	})
 
 	// non blocking, is going to reconnect if the connection goes down.
-	if _, err := kontrolClient.DialForever(); err != nil {
-		return nil, err
+	if _, err := k.kontrol.DialForever(); err != nil {
+		return err
 	}
 
-	return kontrolClient, nil
-}
-
-// Register registers current Kite to Kontrol. After registration other Kites
-// can find it via GetKites() method.
-//
-// This method does not handle the reconnection case. If you want to keep
-// registered to kontrol, use kite/registration package.
-func (k *Kite) Register(kiteURL *url.URL) (*registerResult, error) {
-	if k.Kontrol == nil {
-		kontrolClient, err := k.newKontrolClient()
-		if err != nil {
-			return nil, err
-		}
-
-		k.Kontrol = kontrolClient
-	}
-
-	<-k.Kontrol.Ready
-
-	args := protocol.RegisterArgs{
-		URL: kiteURL.String(),
-	}
-
-	response, err := k.Kontrol.Tell("register", args)
-	if err != nil {
-		return nil, err
-	}
-
-	var rr protocol.RegisterResult
-	err = response.Unmarshal(&rr)
-	if err != nil {
-		return nil, err
-	}
-
-	k.Log.Info("Registered to kontrol with URL: %s", rr.URL)
-
-	parsed, err := url.Parse(rr.URL)
-	if err != nil {
-		k.Log.Error("Cannot parse registered URL: %s", err.Error())
-	}
-
-	return &registerResult{parsed}, nil
+	return nil
 }
 
 // WatchKites watches for Kites that matches the query. The onEvent functions
-// is called for current kites and every new kite event.
+// is called for current kites and every nekite event.
 func (k *Kite) WatchKites(query protocol.KontrolQuery, onEvent EventHandler) (*Watcher, error) {
-	if k.Kontrol == nil {
-		kontrolClient, err := k.newKontrolClient()
-		if err != nil {
-			return nil, err
-		}
-
-		k.Kontrol = kontrolClient
+	if err := k.SetupKontrolClient(); err != nil {
+		return nil, err
 	}
 
-	<-k.Kontrol.Ready
+	<-k.kontrol.readyConnected
 
 	watcherID, err := k.watchKites(query, onEvent)
 	if err != nil {
@@ -216,13 +190,8 @@ func (k *Kite) watchKites(query protocol.KontrolQuery, onEvent EventHandler) (wa
 // with Client.Dial() before using each Kite. An error is returned when no
 // kites are available.
 func (k *Kite) GetKites(query protocol.KontrolQuery) ([]*Client, error) {
-	if k.Kontrol == nil {
-		kontrolClient, err := k.newKontrolClient()
-		if err != nil {
-			return nil, err
-		}
-
-		k.Kontrol = kontrolClient
+	if err := k.SetupKontrolClient(); err != nil {
+		return nil, err
 	}
 
 	clients, _, err := k.getKites(protocol.GetKitesArgs{Query: query})
@@ -239,9 +208,9 @@ func (k *Kite) GetKites(query protocol.KontrolQuery) ([]*Client, error) {
 
 // used internally for GetKites() and WatchKites()
 func (k *Kite) getKites(args protocol.GetKitesArgs) (kites []*Client, watcherID string, err error) {
-	<-k.Kontrol.Ready
+	<-k.kontrol.readyConnected
 
-	response, err := k.Kontrol.Tell("getKites", args)
+	response, err := k.kontrol.Tell("getKites", args)
 	if err != nil {
 		return nil, "", err
 	}
@@ -291,18 +260,13 @@ func (k *Kite) getKites(args protocol.GetKitesArgs) (kites []*Client, watcherID 
 
 // GetToken is used to get a new token for a single Kite.
 func (k *Kite) GetToken(kite *protocol.Kite) (string, error) {
-	if k.Kontrol == nil {
-		kontrolClient, err := k.newKontrolClient()
-		if err != nil {
-			return "", err
-		}
-
-		k.Kontrol = kontrolClient
+	if err := k.SetupKontrolClient(); err != nil {
+		return "", err
 	}
 
-	<-k.Kontrol.Ready
+	<-k.kontrol.readyConnected
 
-	result, err := k.Kontrol.Tell("getToken", kite)
+	result, err := k.kontrol.Tell("getToken", kite)
 	if err != nil {
 		return "", err
 	}
@@ -330,4 +294,185 @@ func (e *Event) Client() *Client {
 		Key:  e.Token,
 	}
 	return r
+}
+
+func (k *Kite) ReadyNotify() chan struct{} {
+	return k.kontrol.readyRegistered
+}
+
+func (k *Kite) signalReady() {
+	k.kontrol.onceRegistered.Do(func() { close(k.kontrol.readyRegistered) })
+}
+
+// RegisterForever is equilavent to Register(), however it's blocking and
+// doesn't return any error. Instead it tries to re-register if there is a
+// disconnection.
+func (k *Kite) RegisterForever(kiteURL *url.URL) {
+	// initiate a registiration if a url is given, if not just skip it.
+	if kiteURL != nil {
+		k.kontrol.registerChan <- kiteURL
+	}
+
+	for u := range k.kontrol.registerChan {
+		_, err := k.Register(u)
+		if err == nil {
+			k.kontrol.lastRegisteredURL = u
+			k.signalReady()
+			continue
+		}
+
+		k.Log.Error("Cannot register to Kontrol: %s Will retry after %d seconds",
+			err, kontrolRetryDuration/time.Second)
+
+		time.AfterFunc(kontrolRetryDuration, func() {
+			select {
+			case k.kontrol.registerChan <- u:
+			default:
+			}
+		})
+
+	}
+}
+
+// Register registers current Kite to Kontrol. After registration other Kites
+// can find it via GetKites() or WatchKites() method.  This method does not
+// handle the reconnection case. If you want to keep registered to kontrol, use
+// RegisterForever().
+func (k *Kite) Register(kiteURL *url.URL) (*registerResult, error) {
+	if err := k.SetupKontrolClient(); err != nil {
+		return nil, err
+	}
+
+	<-k.kontrol.readyConnected
+
+	args := protocol.RegisterArgs{
+		URL: kiteURL.String(),
+	}
+
+	response, err := k.kontrol.Tell("register", args)
+	if err != nil {
+		return nil, err
+	}
+
+	var rr protocol.RegisterResult
+	err = response.Unmarshal(&rr)
+	if err != nil {
+		return nil, err
+	}
+
+	k.Log.Info("Registered to kontrol with URL: %s", rr.URL)
+
+	parsed, err := url.Parse(rr.URL)
+	if err != nil {
+		k.Log.Error("Cannot parse registered URL: %s", err.Error())
+	}
+
+	return &registerResult{parsed}, nil
+}
+
+// RegisterToProxy finds a proxy kite by asking kontrol then registers itselfs
+// on proxy. On error, retries forever. On every successfull registration, it
+// sends the proxied URL to the registerChan channel (onlt if registerKontrol
+// is enabled).  If registerKontrol is false it returns the proxy url and
+// doesn't register himself to kontrol.
+func (k *Kite) RegisterToProxy(registerToKontrol bool) *url.URL {
+	if registerToKontrol {
+		go k.RegisterForever(nil)
+	}
+
+	query := protocol.KontrolQuery{
+		Username:    k.Config.KontrolUser,
+		Environment: k.Config.Environment,
+		Name:        "proxy",
+	}
+
+	for {
+		var proxyKite *Client
+
+		// The proxy kite to connect can be overriden with the
+		// environmental variable "KITE_PROXY_URL". If it is not set
+		// we will ask Kontrol for available Proxy kites.
+		// As an authentication informain kiteKey method will be used,
+		// so be careful when using this feature.
+		kiteProxyURL := os.Getenv("KITE_PROXY_URL")
+		if kiteProxyURL != "" {
+			proxyKite = k.NewClientString(kiteProxyURL)
+			proxyKite.Authentication = &Authentication{
+				Type: "kiteKey",
+				Key:  k.Config.KiteKey,
+			}
+		} else {
+			kites, err := k.GetKites(query)
+			if err != nil {
+				k.Log.Error("Cannot get Proxy kites from Kontrol: %s", err.Error())
+				time.Sleep(proxyRetryDuration)
+				continue
+			}
+
+			// If more than one one Proxy Kite is available pick one randomly.
+			// It does not matter which one we connect.
+			proxyKite = kites[rand.Int()%len(kites)]
+		}
+
+		// Notify us on disconnect
+		disconnect := make(chan bool, 1)
+		proxyKite.OnDisconnect(func() {
+			select {
+			case disconnect <- true:
+			default:
+			}
+		})
+
+		proxyURL, err := k.registerToProxyKite(proxyKite)
+		if err != nil {
+			time.Sleep(proxyRetryDuration)
+			continue
+		}
+
+		if registerToKontrol {
+			k.kontrol.registerChan <- proxyURL
+		} else {
+			k.signalReady()
+		}
+
+		// Block until disconnect from Proxy Kite.
+		<-disconnect
+	}
+}
+
+// registerToProxyKite dials the proxy kite and calls register method then
+// returns the reverse-proxy URL.
+func (k *Kite) registerToProxyKite(c *Client) (*url.URL, error) {
+	err := c.Dial()
+	if err != nil {
+		k.Log.Error("Cannot connect to Proxy kite: %s", err.Error())
+		return nil, err
+	}
+
+	// Disconnect from Proxy Kite if error happens while registering.
+	defer func() {
+		if err != nil {
+			c.Close()
+		}
+	}()
+
+	result, err := c.Tell("register")
+	if err != nil {
+		k.Log.Error("Proxy register error: %s", err.Error())
+		return nil, err
+	}
+
+	proxyURL, err := result.String()
+	if err != nil {
+		k.Log.Error("Proxy register result error: %s", err.Error())
+		return nil, err
+	}
+
+	parsed, err := url.Parse(proxyURL)
+	if err != nil {
+		k.Log.Error("Cannot parse Proxy URL: %s", err.Error())
+		return nil, err
+	}
+
+	return parsed, nil
 }

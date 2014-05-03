@@ -11,7 +11,6 @@ import (
 	"github.com/koding/kite"
 	"github.com/koding/kite/config"
 	"github.com/koding/kite/kitekey"
-	"github.com/koding/kite/registration"
 	"github.com/nu7hatch/gouuid"
 )
 
@@ -41,12 +40,10 @@ func New(conf *config.Config, version, pubKey, privKey string) *RegServ {
 }
 
 func (s *RegServ) Run() {
-	reg := registration.New(s.Kite)
-
 	s.Kite.Start()
-	go reg.RegisterToProxyAndKontrol()
+	go s.Kite.RegisterToProxy(true)
 
-	<-s.Kite.CloseNotify()
+	<-s.Kite.ServerCloseNotify()
 }
 
 // RegisterSelf registers this host and writes a key to ~/.kite/kite.key
