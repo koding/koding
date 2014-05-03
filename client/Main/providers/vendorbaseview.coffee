@@ -23,6 +23,18 @@ class VendorBaseView extends KDTabPaneView
       size       :
         width    : 40
 
+  createFormView:->
+
+    @form = ComputeProvider.generateAddCredentialFormFor @_vendor
+
+    @form.on "Cancel", -> @unsetClass 'in'
+    @form.on "CredentialAdded", (credential)=>
+      credential.owner = yes
+      @form.unsetClass 'in'
+      @addItem credential
+
+    @content.addSubView @form
+
   viewAppended:->
     super
     @on 'PaneDidShow', =>
