@@ -23,7 +23,7 @@ import (
 
 const (
 	TERMINAL_NAME    = "terminal"
-	TERMINAL_VERSION = "0.1.3"
+	TERMINAL_VERSION = "0.1.4"
 )
 
 var (
@@ -38,6 +38,7 @@ type Terminal struct {
 	Name              string
 	Version           string
 	Region            string
+	Port              int
 	LogLevel          logger.Level
 	ServiceUniquename string
 }
@@ -225,7 +226,9 @@ func (t *Terminal) runNewKite() {
 
 	t.NewKite = k.Kite
 
-	if k.TLSConfig != nil {
+	if t.Port != 0 {
+		k.Config.Port = t.Port
+	} else if k.TLSConfig != nil {
 		k.Config.Port = 444
 	} else {
 		k.Config.Port = 5001
