@@ -1,13 +1,18 @@
 class VendorKoding extends VendorBaseView
+
+  VENDOR = "koding"
+
   constructor:->
     super
-      cssClass : "koding"
+      cssClass : VENDOR
     ,
       name     : "Koding"
       description : """
         Koding provides you a full featured vms which bundles all popular Web
         technologies, ready to use.
       """
+
+    @_vendor = VENDOR
 
   viewAppended:->
     super

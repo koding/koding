@@ -1,8 +1,11 @@
 class VendorAmazon extends VendorBaseView
+
+  VENDOR = 'amazon'
+
   constructor:->
     super
-      cssClass    : "amazon"
-      vendorId    : "amazon"
+      cssClass    : VENDOR
+      vendorId    : VENDOR
     ,
       name        : "Amazon"
       description : """
@@ -10,27 +13,6 @@ class VendorAmazon extends VendorBaseView
         cloud computing services. Free to join, pay only for what you use.
       """
 
-    @form = new KDFormViewWithFields
-      cssClass             : "form-view"
-      fields               :
-        accessKey          :
-          placeholder      : "access key"
-          name             : "accessKey"
-          cssClass         : "thin"
-        secret             :
-          placeholder      : "secret"
-          name             : "secret"
-          type             : "password"
-          cssClass         : "thin"
-      buttons              :
-        Save               :
-          title            : "Add account"
-          type             : "submit"
-          cssClass         : "profile-save-changes"
-          style            : "solid green medium"
-          loader           : yes
-      callback             : (cb)=>
-        alert "update"; @form.buttons.Save.hideLoader()
+    @_vendor = VENDOR
 
-    @content.addSubView @form
-
+    @createFormView()

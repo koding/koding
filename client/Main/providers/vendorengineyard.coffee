@@ -1,11 +1,18 @@
 class VendorEngineyard extends VendorBaseView
+
+  VENDOR = "engineyard"
+
   constructor:->
     super
-      cssClass    : "engineyard"
-      vendorId    : "engineyard"
+      cssClass    : VENDOR
+      vendorId    : VENDOR
     ,
       name        : "EngineYard"
       description : """
         Spend less time worrying about operational tasks and
         more time focusing on your app.
       """
+
+    @_vendor = VENDOR
+
+    @createFormView()
