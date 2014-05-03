@@ -209,6 +209,7 @@ module.exports = [
   "providers/vendordigitalocean.coffee",
   "providers/vendorwelcomeview.coffee",
   "providers/vendorengineyard.coffee",
+  "providers/vendorkoding.coffee",
 
   "providers/vendorview.coffee",
   "providers/computeprovider.coffee",
