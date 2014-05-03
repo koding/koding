@@ -53,7 +53,7 @@ class EnvironmentsMainScene extends JView
     paymentControl.on "SubscriptionCompleted", ->
       freePlanView.updatePartial ""
 
-    @fetchStacks()
+    KD.singletons.mainController.ready => @fetchStacks()
 
   fetchStacks: ->
     EnvironmentDataProvider.get (@environmentData) =>
