@@ -39,12 +39,6 @@ projects =
     script        : "website/a/js/__app.topics.#{KODING_VERSION}.js"
     sourceMapRoot : "Social/Topics/"
 
-  Demos           :
-    path          : "client/Demos"
-    style         : "website/a/css/__app.demos.#{KODING_VERSION}.css"
-    script        : "website/a/js/__app.demos.#{KODING_VERSION}.js"
-    sourceMapRoot : "Demos/"
-
   Feeder          :
     path          : "client/Social/Feeder"
     style         : "website/a/css/__app.feeder.#{KODING_VERSION}.css"
