@@ -12,6 +12,7 @@ class VendorView extends KDView
         itemClass  : VendorItemView
     , items        : [
       { name : "Koding",       view : new VendorKoding }
+      { name : "Google",       view : new VendorGoogle }
       { name : "Amazon",       view : new VendorAmazon }
       { name : "DigitalOcean", view : new VendorDigitalOcean }
       { name : "EngineYard",   view : new VendorEngineyard }
