@@ -141,3 +141,6 @@ class ComputeProvider extends KDObject
 
           unless KD.showError err
             @emit "CredentialAdded", credential
+
+  @credentialsFor = (vendor, callback)->
+    KD.remote.api.JCredential.some { vendor }, callback
