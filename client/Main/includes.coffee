@@ -211,6 +211,7 @@ module.exports = [
   "providers/vendorengineyard.coffee",
   "providers/vendorkoding.coffee",
   "providers/vendoramazon.coffee",
+  "providers/vendorgoogle.coffee",
 
   "providers/vendorview.coffee",
   "providers/computeprovider.coffee",
