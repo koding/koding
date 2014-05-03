@@ -203,6 +203,8 @@ module.exports = [
   "maintabs/maintabpaneview.coffee",
   "maintabs/maintabhandleholder.coffee",
 
+  "providers/computeprovider.coffee",
+
   # global notifications
   "globalnotification.coffee",
 
@@ -309,6 +311,8 @@ module.exports = [
   # "styl/resurrection.apps.styl",
   "styl/resurrection.commons.styl",
   "styl/troubleshoot.styl",
+  "styl/computeproviders.styl",
+
   # "styl/formworkflow.styl"
   # "styl/resurrection.feeder.styl",
 
