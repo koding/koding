@@ -95,3 +95,49 @@ class ComputeProvider extends KDObject
           title    : "Create"
           style    : "modal-clean-green"
           callback : =>
+
+  @generateAddCredentialFormFor = (vendor)->
+
+    fields          =
+      title         :
+        label       : "Title"
+        placeholder : "title for this credential"
+
+    Vendors = ComputeProvider.vendors
+
+    Object.keys(Vendors[vendor].credentialFields).forEach (field)->
+      fields[field] = _.clone Vendors[vendor].credentialFields[field]
+      fields[field].required = yes
+
+    return form = new KDFormViewWithFields
+      cssClass     : "form-view"
+      fields       : fields
+      buttons      :
+        Save       :
+          title    : "Add credential"
+          type     : "submit"
+          style    : "solid green medium"
+          loader   :
+            color  : "#444444"
+          callback : -> @hideLoader()
+        Cancel     :
+          style    : "solid medium"
+          callback : -> form.emit "Cancel"
+      callback     : (data)->
+
+        log "Here we go", data
+
+        { Save } = @buttons
+        Save.showLoader()
+
+        { title } = data
+        delete data.title
+
+        KD.remote.api.JCredential.create {
+          vendor, title, meta: data
+        }, (err, credential)=>
+
+          Save.hideLoader()
+
+          unless KD.showError err
+            @emit "CredentialAdded", credential

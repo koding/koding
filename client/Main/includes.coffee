@@ -203,6 +203,8 @@ module.exports = [
   "maintabs/maintabpaneview.coffee",
   "maintabs/maintabhandleholder.coffee",
 
+  "providers/computeprovider.coffee",
+
   "providers/vendoritemview.coffee",
   "providers/vendorbaseview.coffee",
 
@@ -214,7 +216,6 @@ module.exports = [
   "providers/vendorgoogle.coffee",
 
   "providers/vendorview.coffee",
-  "providers/computeprovider.coffee",
 
   # global notifications
   "globalnotification.coffee",
