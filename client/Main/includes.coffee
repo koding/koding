@@ -203,6 +203,10 @@ module.exports = [
   "maintabs/maintabpaneview.coffee",
   "maintabs/maintabhandleholder.coffee",
 
+  "providers/vendoritemview.coffee",
+  "providers/vendorbaseview.coffee",
+
+  "providers/vendorwelcomeview.coffee",
 
   "providers/vendorview.coffee",
   "providers/computeprovider.coffee",
