@@ -70,7 +70,7 @@ func New(kodingConf *kodingconfig.Config, name, version string) (*KodingKite, er
 	return kk, nil
 }
 
-func (k *KodingKite) Start() {
+func (k *KodingKite) Run() {
 	k.Log.Info("Kite has started: %s", k.Kite.Kite())
 
 	registerWithURL := &url.URL{
@@ -81,13 +81,10 @@ func (k *KodingKite) Start() {
 		Path: "/" + k.Kite.Kite().Name + "-" + k.Kite.Kite().Version,
 	}
 
-	k.Kite.Start()
 	go k.Kite.RegisterForever(registerWithURL)
-}
+	<-k.Kite.ReadyNotify()
 
-func (k *KodingKite) Run() {
-	k.Start()
-	<-k.Kite.ServerCloseNotify()
+	k.Kite.Run()
 }
 
 func (k *KodingKite) Close() {

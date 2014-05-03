@@ -12,7 +12,6 @@ import (
 	"github.com/koding/kite/kontrol"
 	"github.com/koding/kite/protocol"
 	"github.com/koding/kite/proxy"
-	"github.com/koding/kite/simple"
 	"github.com/koding/kite/testkeys"
 	"github.com/koding/kite/testutil"
 )
@@ -28,7 +27,8 @@ func TestPool(t *testing.T) {
 	kon := kontrol.New(conf.Copy(), "0.1.0", testkeys.Public, testkeys.Private)
 	kon.DataDir, _ = ioutil.TempDir("", "")
 	defer os.RemoveAll(kon.DataDir)
-	kon.Start()
+	go kon.Run()
+	<-kon.Kite.ServerReadyNotify()
 	// defer kon.Close()
 
 	prx := proxy.New(conf.Copy(), "0.1.0", testkeys.Public, testkeys.Private)
@@ -49,9 +49,12 @@ func TestPool(t *testing.T) {
 	// defer p.Close()
 
 	for i := 0; i < 2; i++ {
-		bar := simple.New("bar", "1.0.0")
+		bar := kite.New("bar", "1.0.0")
 		bar.Config = conf.Copy()
-		bar.Start()
+		go bar.Run()
+		<-bar.ServerReadyNotify()
+
+		go bar.RegisterToProxy(true)
 		defer bar.Close()
 		<-bar.ReadyNotify()
 	}

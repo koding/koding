@@ -190,7 +190,8 @@ func (p *Proxy) runNewKite() {
 	}
 
 	k.Config.Region = *flagRegion
-	k.Start()
+	go k.Run()
+	<-k.Kite.ServerReadyNotify()
 
 	// TODO: remove this later, this is needed in order to reinitiliaze the logger package
 	log.SetLevel(logLevel)

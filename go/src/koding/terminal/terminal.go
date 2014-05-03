@@ -244,7 +244,8 @@ func (t *Terminal) runNewKite() {
 
 	k.Config.DisableConcurrency = true // to process incoming messages in order
 
-	k.Start()
+	go k.Run()
+	<-k.Kite.ServerReadyNotify()
 
 	// TODO: remove this later, this is needed in order to reinitiliaze the logger package
 	log.SetLevel(t.LogLevel)

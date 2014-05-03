@@ -251,7 +251,8 @@ func (o *Oskite) runNewKite() {
 	k.HandleFunc("kite.who", o.kiteWho)
 
 	k.Config.DisableConcurrency = true
-	k.Start()
+	go k.Run()
+	<-k.Kite.ServerReadyNotify()
 
 	// TODO: remove this later, this is needed in order to reinitiliaze the logger package
 	log.SetLevel(o.LogLevel)
