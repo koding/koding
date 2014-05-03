@@ -14,6 +14,8 @@ class VendorKoding extends VendorBaseView
 
     @_vendor = VENDOR
 
+  paneSelected:-> no
+
   viewAppended:->
     super
 
