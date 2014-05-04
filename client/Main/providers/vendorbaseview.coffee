@@ -25,13 +25,35 @@ class VendorBaseView extends KDTabPaneView
 
   createFormView:->
 
-    @form = ComputeProvider.generateAddCredentialFormFor @_vendor
+    vendor = @getOption 'vendorId'
 
-    @form.on "Cancel", -> @unsetClass 'in'
-    @form.on "CredentialAdded", (credential)=>
-      credential.owner = yes
+    @credentialBox  = new KDSelectBox
+      name          : 'type'
+      cssClass      : 'type-select hidden'
+      selectOptions : [
+        { title: "Loading #{vendor} credentials...", disabled: yes }
+      ]
+      callback      : (value) =>
+
+        if value is "_add_"
+          @credentialBox.hide()
+          @form.setClass 'in'
+
+    @content.addSubView @credentialBox
+
+    @form = ComputeProvider.generateAddCredentialFormFor vendor
+
+    @form.on "Cancel", =>
+
       @form.unsetClass 'in'
-      @addItem credential
+
+      @credentialBox.setValue @_credOptions.first.title
+      @credentialBox.show()
+
+    @form.on "CredentialAdded", (credential)=>
+      @form.unsetClass 'in'
+      @paneSelected yes
+      log "Added", { credential }
 
     @content.addSubView @form
 
@@ -45,11 +67,32 @@ class VendorBaseView extends KDTabPaneView
 
       @loader.hide()
 
-      unless KD.showError err
+      return if KD.showError err
 
-        if credentials.length > 0
-          credential = credentials.first
-          @content.addSubView new KDView
-            partial: "#{credential.title}"
-        else
-          @form.setClass 'in'
+      if credentials.length is 0
+        @credentialBox.hide()
+        @form.buttons.Cancel.hide()
+        @form.setClass 'in'
+        @_laoded = no
+        return
+
+      @_laoded = yes
+
+      log { credentials }
+
+      @_credentials = {}
+      @_credOptions = []
+
+      for cred in credentials
+        @_credentials[cred.publicKey] = cred
+        @_credOptions.push
+          title: cred.title, value: cred.publicKey
+
+      @_credOptions.push
+        title: "Add new credential...", value: "_add_"
+
+      @credentialBox.removeSelectOptions()
+      @credentialBox.setSelectOptions
+        "Select credential..." : @_credOptions
+
+      @credentialBox.show()

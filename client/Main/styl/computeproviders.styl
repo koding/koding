@@ -18,7 +18,7 @@ computeproviders.styl
 
 .vendor
 
-  height             400px
+  height             530px
 
   .vendor-mainview
     background       white
@@ -41,6 +41,8 @@ computeproviders.styl
 
   .vendor-view
 
+    border-left     1px solid #eee
+
     p
       line-height   20px
       border-bottom 1px solid #eee
@@ -52,10 +54,21 @@ computeproviders.styl
       margin        -20px 0 0 -20px
       abs()
 
+    .kdselectbox
+      width           97%
+      margin          10px
+
+      span.title
+        font-weight   600
+        font-size     16px
+
+
     .form-view
+      z-index         2
+      background      white
       left            50%
-      width           340px
-      margin-left     -170px
+      width           460px
+      margin-left     -230px
       top             -120%
       padding         10px
 
@@ -66,6 +79,9 @@ computeproviders.styl
 
       &.in
         top         0
+
+      .button-field
+        height      43px !important
 
   .vendor-list
 
