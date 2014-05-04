@@ -40,7 +40,7 @@ class VendorView extends KDView
 
     # Add vendor views to mainview
     for vendor in @vendorController.itemsOrdered
-      @mainView.addPane vendor.getData().view
+      @mainView.addPane vendor.getData().view, no
 
     # Add Welcome pane
     @mainView.addPane new VendorWelcomeView
