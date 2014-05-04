@@ -4,15 +4,13 @@ class VendorKoding extends VendorBaseView
 
   constructor:->
     super
-      cssClass : VENDOR
+      cssClass    : VENDOR
     ,
-      name     : "Koding"
+      name        : "Koding"
       description : """
         Koding provides you a full featured vms which bundles all popular Web
         technologies, ready to use.
       """
-
-    @_vendor = VENDOR
 
   paneSelected:-> no
 
@@ -20,7 +18,7 @@ class VendorKoding extends VendorBaseView
     super
 
     addVmSelection = new KDCustomHTMLView
-      cssClass   : "new-vm-selection"
+      cssClass    : "new-vm-selection"
 
     addVmSelection.addSubView addVmSmall = new KDCustomHTMLView
       cssClass    : "add-vm-box selected"

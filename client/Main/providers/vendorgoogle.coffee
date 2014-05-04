@@ -14,6 +14,4 @@ class VendorGoogle extends VendorBaseView
         hosting configurations.
       """
 
-    @_vendor = VENDOR
-
     @createFormView()

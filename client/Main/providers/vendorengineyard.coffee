@@ -13,6 +13,4 @@ class VendorEngineyard extends VendorBaseView
         more time focusing on your app.
       """
 
-    @_vendor = VENDOR
-
     @createFormView()

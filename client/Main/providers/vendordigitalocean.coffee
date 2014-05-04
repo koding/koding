@@ -13,6 +13,4 @@ class VendorDigitalOcean extends VendorBaseView
         seconds for $5/month. Simple, fast, scalable SSD cloud virtual servers.
       """
 
-    @_vendor = VENDOR
-
     @createFormView()

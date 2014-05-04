@@ -13,6 +13,4 @@ class VendorAmazon extends VendorBaseView
         cloud computing services. Free to join, pay only for what you use.
       """
 
-    @_vendor = VENDOR
-
     @createFormView()
