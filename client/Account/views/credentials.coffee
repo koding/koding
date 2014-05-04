@@ -237,7 +237,8 @@ class AccountCredentialListItem extends KDListItemView
 
   pistachio:->
     """
-     {{#(vendor)}} - {{#(title)}} -- {{> @showCredentialButton}} --
-     {{> @deleteButton}} -- {{> @shareButton}} --
-     {{#(owner)}}
+     {h1{#(title)}} {span{#(vendor)}}
+     <div class='buttons'>
+      {{> @showCredentialButton}}{{> @deleteButton}}{{> @shareButton}}
+     </div>
     """
