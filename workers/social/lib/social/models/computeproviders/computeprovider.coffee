@@ -12,10 +12,19 @@ PROVIDERS =
   digitalocean : require './digitalocean'
   engineyard   : require './engineyard'
 
-checkCredential = (cred, callback)->
-  if cred is 1
-  then callback null, {cred:"whoooho"}
-  else callback new KodingError "Credential failed.", "AccessDenied"
+checkCredential = (client, pubKey, callback)->
+
+  console.log pubKey
+
+  JCredential = require './credential'
+  JCredential.fetchByPublicKey client, pubKey, (err, credential)->
+
+    if err or not credential?
+      console.warn err  if err
+      callback new KodingError "Credential failed.", "AccessDenied"
+    else
+      callback null, credential
+
 
 module.exports = class ComputeProvider extends Base
 
@@ -57,13 +66,13 @@ module.exports = class ComputeProvider extends Base
       else
         arguments[1].provider = provider
 
-      if not credential
+      if not credential?
         return callback new KodingError \
           "Credential is required.", "MissingCredential"
 
       args = [ arguments... ]
 
-      checkCredential credential, (err, cred)=>
+      checkCredential client, credential, (err, cred)=>
 
         if err then return callback err
         args[1].credential = cred
