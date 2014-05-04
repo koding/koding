@@ -86,6 +86,9 @@ module.exports = class JCredential extends jraphical.Module
         as            : "data"
 
 
+
+
+
   failed = (err, callback, rest...)->
     return false  unless err
 
@@ -122,17 +125,22 @@ module.exports = class JCredential extends jraphical.Module
               callback null, credential
 
 
+  @fetchByPublicKey = (client, publicKey, callback)->
+
+    options =
+      limit         : 1
+      targetOptions : selector : { publicKey }
+
+    {delegate} = client.connection
+    delegate.fetchCredential { }, options, (err, res)->
+      callback err, res
+
+
   @one$: permit 'list credentials',
 
     success: (client, publicKey, callback)->
 
-      options =
-        limit         : 1
-        targetOptions : selector : { publicKey }
-
-      {delegate} = client.connection
-      delegate.fetchCredential { }, options, (err, res)->
-        callback err, res
+      @fetchByPublicKey client, publicKey, callback
 
 
   @some$: permit 'list credentials',
