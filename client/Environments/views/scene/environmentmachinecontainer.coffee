@@ -27,22 +27,24 @@ class EnvironmentMachineContainer extends EnvironmentContainer
         new KDNotificationView
           title: "You need to login to create a new machine."
 
-      @addVmModal = new KDModalView
-        title        : 'Add Virtual Machine'
-        cssClass     : 'add-vm-modal'
-        view         : @getVmSelectionView()
-        width        : 786
-        overlay      : yes
-        buttons      :
-          create     :
-            title    : "Create"
-            style    : "modal-clean-green"
-            callback : =>
-              {stackId} = @getOptions()
-              @addVmModal.destroy()
+      ComputeProvider.showProvidersModal()
 
-              KD.singleton("vmController").createNewVM stackId, (err) ->
-                KD.showError err
+      # @addVmModal = new KDModalView
+      #   title        : 'Add Virtual Machine'
+      #   cssClass     : 'add-vm-modal'
+      #   view         : @getVmSelectionView()
+      #   width        : 786
+      #   overlay      : yes
+      #   buttons      :
+      #     create     :
+      #       title    : "Create"
+      #       style    : "modal-clean-green"
+      #       callback : =>
+      #         {stackId} = @getOptions()
+      #         @addVmModal.destroy()
+
+      #         KD.singleton("vmController").createNewVM stackId, (err) ->
+      #           KD.showError err
 
     KD.getSingleton("vmController").on 'VMListChanged', =>
       @loadItems().then => @emit 'VMListChanged'
