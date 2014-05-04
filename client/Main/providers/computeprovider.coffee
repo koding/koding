@@ -48,17 +48,17 @@ class ComputeProvider extends KDObject
           label              : "Project Id"
           placeholder        : "project id in gce"
         clientSecretsContent :
-          label              : "Client secrets"
+          label              : "Secrets"
           placeholder        : "content of the client_secrets.xxxxx.json"
           type               : "textarea"
         privateKeyContent    :
           label              : "Private Key"
           placeholder        : "content of the xxxxx-privatekey.pem"
           type               : "textarea"
-        zone                 :
-          label              : "Zone"
-          placeholder        : "google zone"
-          defaultValue       : "us-central1-a"
+        # zone                 :
+        #   label              : "Zone"
+        #   placeholder        : "google zone"
+        #   defaultValue       : "us-central1-a"
 
     engineyard               :
       title                  : "EngineYard Credential"
@@ -89,6 +89,7 @@ class ComputeProvider extends KDObject
       cssClass     : 'vendor-modal'
       view         : new VendorView
       width        : 800
+      height       : 600
       overlay      : yes
       buttons      :
         create     :
@@ -144,3 +145,10 @@ class ComputeProvider extends KDObject
 
   @credentialsFor = (vendor, callback)->
     KD.remote.api.JCredential.some { vendor }, callback
+
+  @fetchAvailable = (options, callback)->
+    KD.remote.api.ComputeProvider.fetchAvailable options, callback
+
+  @create = (options, callback)->
+    KD.remote.api.ComputeProvider.create options, callback
+
