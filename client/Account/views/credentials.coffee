@@ -187,6 +187,7 @@ class AccountCredentialList extends KDListView
     credential = item.getData()
     @emit "ShowShareCredentialFormFor", credential
 
+
   showItemContent: (item)->
 
     credential = item.getData()
@@ -204,7 +205,8 @@ class AccountCredentialList extends KDListView
             title: "An error occured"
 
         new KDModalView
-          content : "<code>#{cred}</code>"
+          content : "<pre>#{cred}</pre>"
+
 
 class AccountCredentialListItem extends KDListItemView
 
