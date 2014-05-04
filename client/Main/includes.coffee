@@ -208,6 +208,8 @@ module.exports = [
   "providers/vendoritemview.coffee",
   "providers/vendorbaseview.coffee",
 
+  "providers/cloudinstanceitemview.coffee",
+
   "providers/vendordigitalocean.coffee",
   "providers/vendorwelcomeview.coffee",
   "providers/vendorengineyard.coffee",

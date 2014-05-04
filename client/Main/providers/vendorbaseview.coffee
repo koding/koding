@@ -38,6 +38,9 @@ class VendorBaseView extends KDTabPaneView
         if value is "_add_"
           @credentialBox.hide()
           @form.setClass 'in'
+          @instanceListView.hide()
+        else
+          @showInstanceList value
 
     @content.addSubView @credentialBox
 
@@ -57,13 +60,81 @@ class VendorBaseView extends KDTabPaneView
 
     @content.addSubView @form
 
+    @instanceController = new KDListViewController
+      viewOptions       :
+        cssClass        : 'instance-list'
+        wrapper         : yes
+        itemClass       : CloudInstanceItemView
+        itemOptions     : { vendor }
+      noItemFoundWidget : new KDView
+        partial         : "Instance list is not available at this time."
+
+    @content.addSubView @instanceListView = @instanceController.getView()
+    @instanceListView.hide()
+
+    @instanceList = @instanceController.getListView()
+    @instanceList.on "InstanceSelected", (instance)=>
+
+      { name } = instance.getData()
+      @_currentCredential
+
+      ComputeProvider.create
+        provider   : vendor
+        credential : @_currentCredential
+        name       : name
+      , (err, res)->
+
+        unless KD.showError err
+
+          try
+
+            packerTemplate = JSON.stringify res, null, 2
+
+          catch e
+
+            warn e; log res
+            return new KDNotificationView
+              title: "An error occured"
+
+          new KDModalView
+            content : "<pre>#{packerTemplate}</pre>"
+
   viewAppended:->
     super
     @on 'PaneDidShow', @bound 'paneSelected'
 
-  paneSelected:->
+  showInstanceList:(credentialKey)->
+    vendor = @getOption 'vendorId'
 
-    ComputeProvider.credentialsFor @_vendor, (err, credentials = [])=>
+    @_currentCredential = credentialKey
+
+    ComputeProvider.fetchAvailable
+      provider   : vendor
+      credential : credentialKey
+    , (err, instances)=>
+
+      if err
+
+        @instanceController.noItemView.updatePartial \
+          if err.name is "NotImplemented"
+            "Listing instances for #{vendor} is not implemented yet."
+          else
+            "An error occured while listing instances for #{vendor}."
+
+        warn err
+
+      else if instances
+
+        @instanceController.replaceAllItems instances
+
+  paneSelected:(force = no)->
+
+    return if @_laoded and not force
+
+    @loader.show()
+
+    vendor = @getOption 'vendorId'
+    ComputeProvider.credentialsFor vendor, (err, credentials = [])=>
 
       @loader.hide()
 
@@ -71,6 +142,7 @@ class VendorBaseView extends KDTabPaneView
 
       if credentials.length is 0
         @credentialBox.hide()
+        @instanceListView.hide()
         @form.buttons.Cancel.hide()
         @form.setClass 'in'
         @_laoded = no
@@ -96,3 +168,5 @@ class VendorBaseView extends KDTabPaneView
         "Select credential..." : @_credOptions
 
       @credentialBox.show()
+      @showInstanceList @_credOptions.first.value
+      @instanceListView.show()
