@@ -105,6 +105,9 @@ class StackView extends KDView
             if dia.data.meta?.initScript
               obj.initScript = "[...]"
             obj
+          else if name is 'rules'
+            title   : dia.data.name
+            rules   : dia.data.rules
           else dia.data
 
     return if asYaml then jsyaml.dump dump else dump
