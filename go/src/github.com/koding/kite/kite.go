@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"net"
 	"net/http"
+	"net/url"
 	"os"
 	"strings"
 
@@ -63,7 +64,7 @@ type Kite struct {
 
 	// kontrolclient is used to register to kontrol and query third party kites
 	// from kontrol
-	Kontrol *KontrolClient
+	kontrol *kontrolClient
 
 	// Handlers to call when a new connection is received.
 	onConnectHandlers []func(*Client)
@@ -75,6 +76,7 @@ type Kite struct {
 	onDisconnectHandlers []func(*Client)
 
 	// server fields, are initialized and used when
+	// TODO: move them to their own struct, just like KontrolClient
 	listener  net.Listener
 	TLSConfig *tls.Config
 	readyC    chan bool // To signal when kite is ready to accept connections
@@ -104,6 +106,12 @@ func New(name, version string) *Kite {
 
 	l, setlevel := newLogger(name)
 
+	kClient := &kontrolClient{
+		readyConnected:  make(chan struct{}),
+		readyRegistered: make(chan struct{}),
+		registerChan:    make(chan *url.URL, 1),
+	}
+
 	k := &Kite{
 		Config:             config.New(),
 		Log:                l,
@@ -112,6 +120,7 @@ func New(name, version string) *Kite {
 		trustedKontrolKeys: make(map[string]string),
 		handlers:           make(map[string]HandlerFunc),
 		server:             &websocket.Server{},
+		kontrol:            kClient,
 		name:               name,
 		version:            version,
 		id:                 kiteID.String(),

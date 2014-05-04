@@ -37,11 +37,10 @@ test:
 	@`which go` test $(VERBOSE) ./cmd/cli
 	@`which go` test $(VERBOSE) ./systeminfo
 	@`which go` test $(VERBOSE) ./
-	@`which go` test $(VERBOSE) ./registration/test
+	@`which go` test $(VERBOSE) ./test
 	@`which go` test $(VERBOSE) ./regserv
 	@`which go` test $(VERBOSE) ./kontrol
 	@`which go` test $(VERBOSE) ./proxy
-	@`which go` test $(VERBOSE) ./simple
 	@`which go` test $(VERBOSE) ./pool
 
 doc:

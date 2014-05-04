@@ -12,20 +12,6 @@ import (
 	"strings"
 )
 
-func (k *Kite) CloseNotify() chan bool {
-	return k.closeC
-}
-
-func (k *Kite) ReadyNotify() chan bool {
-	return k.readyC
-}
-
-// Start is like Run(), but does not wait for it to complete. It's nonblocking.
-func (k *Kite) Start() {
-	go k.Run()
-	<-k.readyC // wait until we are ready
-}
-
 // Run is a blocking method. It runs the kite server and then accepts requests
 // asynchronously.
 func (k *Kite) Run() {
@@ -54,8 +40,8 @@ func (k *Kite) Run() {
 func (k *Kite) Close() {
 	k.Log.Info("Closing kite...")
 
-	if k.Kontrol != nil {
-		k.Kontrol.Close()
+	if k.kontrol != nil {
+		k.kontrol.Close()
 	}
 
 	if k.listener != nil {
@@ -118,4 +104,12 @@ func (k *Kite) UseTLSFile(certFile, keyFile string) {
 	}
 
 	k.UseTLS(string(certData), string(keyData))
+}
+
+func (k *Kite) ServerCloseNotify() chan bool {
+	return k.closeC
+}
+
+func (k *Kite) ServerReadyNotify() chan bool {
+	return k.readyC
 }

@@ -13,13 +13,11 @@ import (
 
 	"github.com/koding/kite"
 	kiteconfig "github.com/koding/kite/config"
-	"github.com/koding/kite/registration"
 	"github.com/koding/logging"
 )
 
 type KodingKite struct {
 	*kite.Kite
-	Registration     *registration.Registration
 	KodingConfig     *kodingconfig.Config
 	registerHostname string
 	scheme           string
@@ -39,7 +37,6 @@ func New(kodingConf *kodingconfig.Config, name, version string) (*KodingKite, er
 
 	kk := &KodingKite{
 		Kite:         k,
-		Registration: registration.New(k),
 		KodingConfig: kodingConf,
 		scheme:       "ws",
 	}
@@ -73,7 +70,7 @@ func New(kodingConf *kodingconfig.Config, name, version string) (*KodingKite, er
 	return kk, nil
 }
 
-func (k *KodingKite) Start() {
+func (k *KodingKite) Run() {
 	k.Log.Info("Kite has started: %s", k.Kite.Kite())
 
 	registerWithURL := &url.URL{
@@ -84,13 +81,10 @@ func (k *KodingKite) Start() {
 		Path: "/" + k.Kite.Kite().Name + "-" + k.Kite.Kite().Version,
 	}
 
-	k.Kite.Start()
-	go k.Registration.RegisterToKontrol(registerWithURL)
-}
+	go k.Kite.RegisterForever(registerWithURL)
+	<-k.Kite.ReadyNotify()
 
-func (k *KodingKite) Run() {
-	k.Start()
-	<-k.Kite.CloseNotify()
+	k.Kite.Run()
 }
 
 func (k *KodingKite) Close() {

@@ -17,6 +17,7 @@ var (
 	flagRegion  = flag.String("r", "", "Configuration region from file")
 	flagDebug   = flag.Bool("d", false, "Debug mode")
 	flagVersion = flag.Bool("version", false, "Show version and exit")
+	flagPort    = flag.Int("p", 0, "Kite port")
 )
 
 func main() {
@@ -40,6 +41,7 @@ func main() {
 	term := terminal.New(config.MustConfig(*flagProfile))
 	term.LogLevel = logLevel
 	term.Region = *flagRegion
+	term.Port = *flagPort
 
 	// go go!
 	term.Run()

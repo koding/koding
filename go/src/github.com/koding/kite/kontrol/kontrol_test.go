@@ -15,7 +15,6 @@ import (
 	"github.com/koding/kite/config"
 	"github.com/koding/kite/protocol"
 	"github.com/koding/kite/proxy"
-	"github.com/koding/kite/registration"
 	"github.com/koding/kite/testkeys"
 	"github.com/koding/kite/testutil"
 )
@@ -35,13 +34,14 @@ func init() {
 
 	kon = New(conf.Copy(), "0.0.1", testkeys.Public, testkeys.Private)
 	kon.DataDir, _ = ioutil.TempDir("", "")
-	defer os.RemoveAll(kon.DataDir)
-	kon.Start()
+	go kon.Run()
+	<-kon.Kite.ServerReadyNotify()
 
 	rand.Seed(time.Now().UTC().UnixNano())
 }
 
 func TestMultiple(t *testing.T) {
+	t.Skip("Run it manually")
 	testDuration := time.Second * 10
 
 	// number of available example kites to be queried
@@ -202,11 +202,11 @@ func TestKontrol(t *testing.T) {
 	mathKite := kite.New("mathworker", "1.2.3")
 	mathKite.Config = conf.Copy()
 	mathKite.HandleFunc("square", Square)
-	mathKite.Start()
+	go mathKite.Run()
+	<-mathKite.ServerReadyNotify()
 
-	reg := registration.New(mathKite)
-	go reg.RegisterToProxyAndKontrol()
-	<-reg.ReadyNotify()
+	go mathKite.RegisterToProxy(true)
+	<-mathKite.ReadyNotify()
 
 	// exp2 kite is the mathworker client
 	t.Log("Setting up exp2 kite")
@@ -306,11 +306,11 @@ func TestKontrol(t *testing.T) {
 	t.Log("Setting up mathworker2")
 	mathKite2 := kite.New("mathworker", "1.2.3")
 	mathKite2.Config = conf.Copy()
-	mathKite2.Start()
+	go mathKite2.Run()
+	<-mathKite2.ServerReadyNotify()
 
-	reg2 := registration.New(mathKite2)
-	go reg2.RegisterToProxyAndKontrol()
-	<-reg2.ReadyNotify()
+	go mathKite2.RegisterToProxy(true)
+	<-mathKite2.ReadyNotify()
 
 	// We must get Register event
 	select {
@@ -388,4 +388,10 @@ func TestGetQueryKey(t *testing.T) {
 	if key != "" {
 		t.Errorf("Key is not expected: %s", key)
 	}
+}
+
+// Cleanup function, is executed as last function
+func TestZCleanup(t *testing.T) {
+	fmt.Println("cleannning")
+	os.RemoveAll(kon.DataDir)
 }
