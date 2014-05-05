@@ -9,7 +9,7 @@ class EditorModal extends KDModalView
     options.overlay              ?= yes
     options.editor               ?=
       readOnly                    : yes
-    options.removeOnOverlayClick  = no
+    options.removeOnOverlayClick ?= no
 
     super options, data
 
