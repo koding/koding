@@ -352,7 +352,7 @@ func (o *Oskite) handleCurrentVMs() {
 
 			log.Info("starting alwaysOn VM %s [%s]", vm.HostnameAlias, vm.Id.Hex())
 			go func(vm virt.VM) {
-				if err := o.startVM(&vm, nil); err != nil {
+				if err := o.startSingleVM(&vm, nil); err != nil {
 					log.LogError(err, 0)
 				}
 			}(vm)
@@ -391,7 +391,7 @@ func (o *Oskite) startPinnedVMs() {
 			if !iter.Next(&vm) {
 				break
 			}
-			if err := o.startVM(&vm, nil); err != nil {
+			if err := o.startSingleVM(&vm, nil); err != nil {
 				log.LogError(err, 0)
 			}
 		}
@@ -660,7 +660,20 @@ func (o *Oskite) validateVM(vm *virt.VM) error {
 	return nil
 }
 
-func (o *Oskite) startVM(vm *virt.VM, channel *kite.Channel) error {
+func updateState(vmId bson.ObjectId) error {
+	state := virt.GetVMState(vmId)
+	if state == "" {
+		state = "UNKNOWN"
+	}
+
+	query := func(c *mgo.Collection) error {
+		return c.Update(bson.M{"_id": vmId}, bson.M{"$set": bson.M{"state": state}})
+	}
+
+	return mongodbConn.Run("jVMs", query)
+}
+
+func (o *Oskite) startSingleVM(vm *virt.VM, channel *kite.Channel) error {
 	info := getInfo(vm)
 	info.mutex.Lock()
 	defer info.mutex.Unlock()
@@ -676,23 +689,6 @@ func (o *Oskite) startVM(vm *virt.VM, channel *kite.Channel) error {
 		return err
 	}
 
-	return startAndPrepareVM(vm)
-}
-
-func updateState(vmId bson.ObjectId) error {
-	state := virt.GetVMState(vmId)
-	if state == "" {
-		state = "UNKNOWN"
-	}
-
-	query := func(c *mgo.Collection) error {
-		return c.Update(bson.M{"_id": vmId}, bson.M{"$set": bson.M{"state": state}})
-	}
-
-	return mongodbConn.Run("jVMs", query)
-}
-
-func startAndPrepareVM(vm *virt.VM) error {
 	var lastError error
 	done := make(chan struct{}, 1)
 	prepareQueue <- &QueueJob{
