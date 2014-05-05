@@ -68,6 +68,7 @@ class EnvironmentsMainScene extends JView
     @stacks = []
     stacks.forEach (stack, index) =>
       stack = new StackView  { stack, isDefault: index is 0 }, @environmentData
+      stack.once "ready", @bound "watchRuleItems"
 
       @stacks.push @addSubView stack
       @forwardEvent stack, "CloneStackRequested"
@@ -110,3 +111,10 @@ class EnvironmentsMainScene extends JView
           @once "StacksCreated", =>
             @highlightStack @stacks.last
           @fetchStacks()
+
+  watchRuleItems: (stack) ->
+    for key, ruleItem of stack.rules.dias
+      ruleItem.on "RuleDataUpdated", =>
+        for stackView in @stacks
+          for key, ruleDia of stackView.rules.dias
+            ruleDia.handleDataUpdate yes

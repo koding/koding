@@ -56,10 +56,11 @@ class EnvironmentRuleItem extends EnvironmentItem
     modal = new AddFirewallRuleModal {}, @getData()
     modal.once "RuleUpdated", @bound "handleDataUpdate"
 
-  handleDataUpdate: ->
+  handleDataUpdate: (silently = no) ->
     @template.update()
     {enabled} = @getData()
     if enabled then @unsetClass "disabled" else @setClass "disabled"
+    @emit "RuleDataUpdated"  unless silently
 
   confirmDestroy: ->
     data           = @getData()
