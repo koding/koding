@@ -711,7 +711,7 @@ func (o *Oskite) prepareWorker(id int) {
 		select {
 		case <-done:
 		case <-time.After(time.Second * 60):
-			log.Info("Timeout job: '%s' after 60 seconds %s", job.msg, queueInfo())
+			log.Error("Timeout job: '%s' after 60 seconds %s", job.msg, queueInfo())
 		}
 
 		currentQueueCount.Add(-1)
