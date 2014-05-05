@@ -1,4 +1,4 @@
-class LikeView extends JView
+class ActivityLikeView extends JView
 
   constructor:(options={}, data)->
 
@@ -145,7 +145,7 @@ class LikeView extends JView
   pistachio:->
     """{{> @likeLink}}{{> @likeCount}}"""
 
-class LikeViewClean extends LikeView
+class LikeViewClean extends ActivityLikeView
 
   constructor:->
     super

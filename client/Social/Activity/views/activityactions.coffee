@@ -71,7 +71,7 @@ class ActivityActionsView extends KDView
 
         KD.mixpanel "Activity share, click"
 
-    @likeView = new LikeView
+    @likeView = new ActivityLikeView
       cssClass           : "logged-in action-container"
       useTitle           : yes
       checkIfLikedBefore : yes
