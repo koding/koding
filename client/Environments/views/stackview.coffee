@@ -77,13 +77,27 @@ class StackView extends KDView
       @updateView yes
 
   dumpStack:->
-    dump = @getStackDump yes
-    new KDModalView
-      width    : 600
-      overlay  : yes
-      cssClass : 'recipe'
-      title    : 'Stack recipe'
-      content  : "<pre>#{dump}</pre>"
+    stackRecipe  = @getStackDump yes
+    editorModal  = new EditorModal
+      removeOnOverlayClick : yes
+      cssClass   : "recipe-editor"
+      editor     :
+        title    : "Stack recipe"
+        content  : stackRecipe
+        readOnly : yes
+        buttons  : [
+          {
+            title    : "Publish"
+            cssClass : "solid compact green disabled"
+            tooltip  :
+              title  : "Publishing to App-Store is currently under development. This will allow you to share your stacks."
+          }
+          {
+            title    : "Close"
+            cssClass : "solid compact gray"
+            callback : -> editorModal.destroy()
+          }
+        ]
 
   getStackDump: (asYaml = no) ->
     {containers, connections} = @scene
@@ -105,6 +119,9 @@ class StackView extends KDView
             if dia.data.meta?.initScript
               obj.initScript = "[...]"
             obj
+          else if name is 'rules'
+            title   : dia.data.name
+            rules   : dia.data.rules
           else dia.data
 
     return if asYaml then jsyaml.dump dump else dump

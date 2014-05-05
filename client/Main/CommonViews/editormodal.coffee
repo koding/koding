@@ -2,13 +2,14 @@ class EditorModal extends KDModalView
 
   constructor: (options = {}, data) ->
 
-    options.cssClass      = KD.utils.curry "editor-modal", options.cssClass
-    options.domId         = "editor-modal"
-    options.width         = 800 # currently 800 for styling
-    options.height        = 400 # currently 400 for styling
-    options.overlay      ?= yes
-    options.overlayClick ?= no
-    options.editor       ?= {}
+    options.cssClass              = KD.utils.curry "editor-modal", options.cssClass
+    options.domId                 = "editor-modal"
+    options.width                 = 800 # currently 800 for styling
+    options.height                = 400 # currently 400 for styling
+    options.overlay              ?= yes
+    options.editor               ?=
+      readOnly                    : yes
+    options.removeOnOverlayClick ?= no
 
     super options, data
 
@@ -23,14 +24,16 @@ class EditorModal extends KDModalView
     editorOptions = options.editor or {}
 
     appManager.require "Teamwork", =>
+      {title, content, readOnly, buttons} = editorOptions
       @editor        = new EditorPane
         cssClass     : "hidden"
-        title        : editorOptions.title   or ""
-        content      : Encoder.htmlDecode editorOptions.content or ""
+        title        : title    or ""
+        readOnly     : readOnly  ? no
+        content      : Encoder.htmlDecode content or ""
         size         :
           width      : 800
           height     : 400
-        buttons      : [
+        buttons      : buttons or [
           {
             title    : "Save"
             cssClass : "solid compact green"
@@ -50,6 +53,9 @@ class EditorModal extends KDModalView
         @unsetClass "loading"
         @loader.destroy()
         @editor.ace.addKeyCombo "save", "Ctrl-S", @bound "save"
+
+        @overlay.click = =>
+          return no  unless options.removeOnOverlayClick
 
     {saveMessage, saveFailedMessage, closeOnSave} = @getOptions().editor
 

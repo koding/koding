@@ -1,7 +1,6 @@
 package oskite
 
 import (
-	"fmt"
 	"koding/tools/kite"
 	"koding/tools/utils"
 	"koding/virt"
@@ -127,13 +126,13 @@ func (v *VMInfo) startTimeout() {
 
 			prepareQueue <- &QueueJob{
 				msg: "vm unprepare " + v.vm.HostnameAlias,
-				f: func() (string, error) {
+				f: func() error {
 					// mutex is needed because it's handled in the queue
 					v.mutex.Lock()
 					defer v.mutex.Unlock()
 
 					v.unprepareVM()
-					return fmt.Sprintf("shutting down %s after %s", v.vm.Id.Hex(), totalTimeout), nil
+					return nil
 				},
 			}
 

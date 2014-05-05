@@ -383,7 +383,7 @@ func (o *Oskite) prepareAndStart(vos *virt.VOS, username, groupId string, pre Pr
 
 	prepareQueue <- &QueueJob{
 		msg: "vm.prepareAndStart " + vos.VM.HostnameAlias,
-		f: func() (string, error) {
+		f: func() error {
 			if pre.Enabled() {
 				// mutexes and locks are needed because it's handled in the
 				// queue.
@@ -398,14 +398,10 @@ func (o *Oskite) prepareAndStart(vos *virt.VOS, username, groupId string, pre Pr
 			}
 
 			if err := prepareProgress(t, vos.VM); err != nil {
-				return "", err
+				return err
 			}
 
-			if err := prepareHome(vos); err != nil {
-				return "", err
-			}
-
-			return "vm.prepareAndStart " + vos.VM.HostnameAlias, nil
+			return prepareHome(vos)
 		},
 	}
 
@@ -439,8 +435,8 @@ func vmStopAndUnprepare(args *dnode.Partial, channel *kite.Channel, vos *virt.VO
 	}
 
 	prepareQueue <- &QueueJob{
-		msg: "vm.prepareAndStart " + vos.VM.HostnameAlias,
-		f: func() (string, error) {
+		msg: "vm.stopAndUnprepare " + vos.VM.HostnameAlias,
+		f: func() error {
 			if !params.Enabled() {
 				defer func() { done <- struct{}{} }()
 			} else {
@@ -450,12 +446,7 @@ func vmStopAndUnprepare(args *dnode.Partial, channel *kite.Channel, vos *virt.VO
 				defer info.mutex.Unlock()
 			}
 
-			err = unprepareProgress(t, vos.VM, params.Destroy)
-			if err != nil {
-				return "", err
-			}
-
-			return "vm.prepareAndStart " + vos.VM.HostnameAlias, nil
+			return unprepareProgress(t, vos.VM, params.Destroy)
 		},
 	}
 
