@@ -16,6 +16,7 @@ import (
 	"os"
 	"os/exec"
 	"syscall"
+	"time"
 
 	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
@@ -176,7 +177,7 @@ func vmStart(vos *virt.VOS) (interface{}, error) {
 		return nil, err
 	}
 
-	if err := updateState(vos.VM); err != nil {
+	if err := updateState(vos.VM.Id); err != nil {
 		return nil, err
 	}
 
@@ -192,7 +193,7 @@ func vmShutdown(vos *virt.VOS) (interface{}, error) {
 		return nil, err
 	}
 
-	if err := updateState(vos.VM); err != nil {
+	if err := updateState(vos.VM.Id); err != nil {
 		return nil, err
 	}
 
@@ -208,7 +209,7 @@ func vmStop(vos *virt.VOS) (interface{}, error) {
 		return nil, err
 	}
 
-	if err := updateState(vos.VM); err != nil {
+	if err := updateState(vos.VM.Id); err != nil {
 		return nil, err
 	}
 
@@ -334,6 +335,18 @@ func (o *Oskite) vmPrepareAndStart(args *dnode.Partial, channel *kite.Channel, v
 }
 
 func (o *Oskite) prepareAndStart(vos *virt.VOS, username, groupId string, pre Preparer) (interface{}, error) {
+
+	dlocksMu.Lock()
+	dlock, ok := dlocks[username]
+	if !ok {
+		dlock = o.newDlock(username, time.Millisecond*100, time.Second*20) // create new distributed lock
+		dlocks[username] = dlock
+	}
+	dlocksMu.Unlock()
+
+	dlock.Lock()
+	defer dlock.Unlock()
+
 	usage, err := totalUsage(vos, groupId)
 	if err != nil {
 		log.Info("usage -1 [%s] err: %v", vos.VM.HostnameAlias, err)
@@ -370,25 +383,25 @@ func (o *Oskite) prepareAndStart(vos *virt.VOS, username, groupId string, pre Pr
 
 	prepareQueue <- &QueueJob{
 		msg: "vm.prepareAndStart " + vos.VM.HostnameAlias,
-		f: func() (string, error) {
-			if !pre.Enabled() {
-				defer func() { done <- struct{}{} }()
-			} else {
-				// mutex is needed because it's handled in the queue
+		f: func() error {
+			if pre.Enabled() {
+				// mutexes and locks are needed because it's handled in the
+				// queue.
 				info := getInfo(vos.VM)
 				info.mutex.Lock()
 				defer info.mutex.Unlock()
+
+				dlock.Lock()
+				defer dlock.Unlock()
+			} else {
+				defer func() { done <- struct{}{} }()
 			}
 
 			if err := prepareProgress(t, vos.VM); err != nil {
-				return "", err
+				return err
 			}
 
-			if err := prepareHome(vos); err != nil {
-				return "", err
-			}
-
-			return "vm.prepareAndStart " + vos.VM.HostnameAlias, nil
+			return prepareHome(vos)
 		},
 	}
 
@@ -422,8 +435,8 @@ func vmStopAndUnprepare(args *dnode.Partial, channel *kite.Channel, vos *virt.VO
 	}
 
 	prepareQueue <- &QueueJob{
-		msg: "vm.prepareAndStart " + vos.VM.HostnameAlias,
-		f: func() (string, error) {
+		msg: "vm.stopAndUnprepare " + vos.VM.HostnameAlias,
+		f: func() error {
 			if !params.Enabled() {
 				defer func() { done <- struct{}{} }()
 			} else {
@@ -433,12 +446,7 @@ func vmStopAndUnprepare(args *dnode.Partial, channel *kite.Channel, vos *virt.VO
 				defer info.mutex.Unlock()
 			}
 
-			err = unprepareProgress(t, vos.VM, params.Destroy)
-			if err != nil {
-				return "", err
-			}
-
-			return "vm.prepareAndStart " + vos.VM.HostnameAlias, nil
+			return unprepareProgress(t, vos.VM, params.Destroy)
 		},
 	}
 
@@ -462,7 +470,7 @@ func unprepareProgress(t tracer.Tracer, vm *virt.VM, destroy bool) error {
 	}
 
 	// mark it as stopped in mongodb
-	if err := updateState(vm); err != nil {
+	if err := updateState(vm.Id); err != nil {
 		return err
 	}
 
@@ -474,7 +482,7 @@ func prepareProgress(t tracer.Tracer, vm *virt.VM) error {
 		return err
 	}
 
-	if err := updateState(vm); err != nil {
+	if err := updateState(vm.Id); err != nil {
 		return err
 	}
 

@@ -5,14 +5,13 @@ class MainViewController extends KDViewController
     super
 
     {repeat, killRepeat} = KD.utils
-    {body}           = document
-    mainView         = @getView()
-    mainController   = KD.singleton 'mainController'
-    appManager       = KD.singleton 'appManager'
-    windowController = KD.singleton 'windowController'
-    display          = KD.singleton 'display'
-    @registerSingleton 'mainViewController', this, yes
-    @registerSingleton 'mainView', mainView, yes
+    mainView             = @getView()
+    appManager           = KD.singleton 'appManager'
+    windowController     = KD.singleton 'windowController'
+    display              = KD.singleton 'display'
+
+    mainView.on 'MainTabPaneShown', (pane) =>
+      @mainTabPaneChanged mainView, pane
 
     appManager.on 'AppIsBeingShown', (controller)=>
       @setBodyClass KD.utils.slugify controller.getOption 'name'
@@ -22,19 +21,6 @@ class MainViewController extends KDViewController
       (view)=>
         if type = view.getOption 'type'
           @setBodyClass type
-
-    # mainController.on "ShowInstructionsBook", (index)->
-      # TODO ~ this is broken FIX
-      # book = mainView.addBook()
-      # book.fillPage index
-      # book.checkBoundaries()
-
-    mainController.on "ToggleChatPanel", -> mainView.chatPanel.toggle()
-
-    if KD.checkFlag 'super-admin'
-    then KDView.setElementClass body, 'add', 'super'
-    else KDView.setElementClass body, 'remove', 'super'
-
 
     windowController.on 'ScrollHappened', do ->
       threshold     = 50
@@ -71,8 +57,12 @@ class MainViewController extends KDViewController
 
   loadView:(mainView)->
 
-    mainView.mainTabView.on "MainTabPaneShown", (pane)=>
-      @mainTabPaneChanged mainView, pane
+    mainView.ready =>
+
+      {body} = document
+      if KD.checkFlag 'super-admin'
+      then KDView.setElementClass body, 'add', 'super'
+      else KDView.setElementClass body, 'remove', 'super'
 
   mainTabPaneChanged:(mainView, pane)->
 
@@ -95,20 +85,23 @@ class MainViewController extends KDViewController
     else navController.deselectAllItems()
 
 
-  setViewState: do ->
+  setViewState: (options = {}) ->
 
-    (options = {})->
+    {behavior, name} = options
 
-      {behavior} = options
-      {body}     = document
-      html       = document.documentElement
-      mainView   = @getView()
+    html     = document.documentElement
+    mainView = @getView()
 
-      if behavior is 'application'
-      then KDView.setElementClass html, 'add', 'app'
-      else KDView.setElementClass html, 'remove', 'app'
+    fullSizeApps = ['Login']
+    appsWithDock = [
+      'Activity', 'Topics', 'Members', 'content-display'
+      'Apps', 'Dashboard', 'Account', 'Environments', 'Bugs'
+    ]
 
-      KDView.setElementClass body, 'remove', 'intro'
-      mainView.unsetClass 'home'
-      KD.introView?.hide()
+    if (isApp = behavior is 'application') or (name in fullSizeApps)
+    then KDView.setElementClass html, 'add', 'app'
+    else KDView.setElementClass html, 'remove', 'app'
 
+    if isApp or name in appsWithDock
+    then @getView().showDock()
+    else @getView().hideDock()

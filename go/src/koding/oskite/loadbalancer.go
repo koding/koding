@@ -1,11 +1,17 @@
 package oskite
 
 import (
+	"fmt"
+	"koding/virt"
 	"math/rand"
 	"sort"
 	"strings"
 	"sync"
 	"time"
+
+	"labix.org/v2/mgo"
+	"labix.org/v2/mgo/bson"
+
 	redigo "github.com/garyburd/redigo/redis"
 	"github.com/koding/redis"
 )
@@ -15,12 +21,97 @@ var (
 	oskitesMu sync.Mutex
 )
 
-func (o *Oskite) redisBalancer() {
+func (o *Oskite) setupRedis() {
+	if o.RedisSession != nil {
+		return
+	}
+
 	session, err := redis.NewRedisSession(conf.Redis)
 	if err != nil {
 		log.Error("redis SADD kontainers. err: %v", err.Error())
 	}
-	session.SetPrefix("oskite")
+
+	o.RedisSession = session
+	o.RedisSession.SetPrefix("oskite")
+}
+
+func (o *Oskite) loadBalancer(correlationName, username, deadService string) string {
+	blog := func(v interface{}) {
+		log.Info("oskite loadbalancer for [correlationName: '%s' user: '%s' deadService: '%s'] results in --> %v.", correlationName, username, deadService, v)
+	}
+
+	resultOskite := o.ServiceUniquename
+	lowestOskite := lowestOskiteLoad()
+	if lowestOskite != "" {
+		if deadService == lowestOskite {
+			resultOskite = o.ServiceUniquename
+		} else {
+			resultOskite = lowestOskite
+		}
+	}
+
+	var vm *virt.VM
+	if bson.IsObjectIdHex(correlationName) {
+		mongodbConn.Run("jVMs", func(c *mgo.Collection) error {
+			return c.FindId(bson.ObjectIdHex(correlationName)).One(&vm)
+		})
+	}
+
+	if vm == nil {
+		if err := mongodbConn.Run("jVMs", func(c *mgo.Collection) error {
+			return c.Find(bson.M{"hostnameAlias": correlationName}).One(&vm)
+		}); err != nil {
+			blog(fmt.Sprintf("no hostnameAlias found, returning %s", resultOskite))
+			return resultOskite // no vm was found, return this oskite
+		}
+	}
+
+	if vm.PinnedToHost != "" {
+		blog(fmt.Sprintf("returning pinnedHost '%s'", vm.PinnedToHost))
+		return vm.PinnedToHost
+	}
+
+	if vm.HostKite == "" {
+		// also set hoskite to prevent race condition between terminal and
+		// oskite. Because if we set it now, the "kite.who" method of terminal
+		// will not reply with an empty response.
+		err := mongodbConn.Run("jVMs", func(c *mgo.Collection) error {
+			return c.Update(bson.M{"_id": vm.Id, "hostKite": nil}, bson.M{"$set": bson.M{"hostKite": resultOskite}})
+		})
+
+		blog(fmt.Sprintf("hostkite is empty returning '%s. (update err: %s)", resultOskite, err.Error()))
+		return resultOskite
+	}
+
+	// maintenance and banned will be handled again in valideVM() function,
+	// which will return a permission error.
+	if vm.HostKite == "(maintenance)" || vm.HostKite == "(banned)" {
+		blog(fmt.Sprintf("hostkite is %s returning '%s'", vm.HostKite, resultOskite))
+		return resultOskite
+	}
+
+	// Set hostkite to nil if we detect a dead service. On the next call,
+	// Oskite will point to an health service in validateVM function()
+	// because it will detect that the hostkite is nil and change it to the
+	// healthy service given by the client, which is the returned
+	// k.ServiceUniqueName.
+	if vm.HostKite == deadService {
+		blog(fmt.Sprintf("dead service detected %s returning '%s'", vm.HostKite, o.ServiceUniquename))
+		if err := mongodbConn.Run("jVMs", func(c *mgo.Collection) error {
+			return c.Update(bson.M{"_id": vm.Id}, bson.M{"$set": bson.M{"hostKite": nil}})
+		}); err != nil {
+			log.LogError(err, 0, vm.Id.Hex())
+		}
+
+		return resultOskite
+	}
+
+	blog(fmt.Sprintf("returning existing hostkite '%s'", vm.HostKite))
+	return vm.HostKite
+}
+
+func (o *Oskite) redisBalancer() {
+	o.setupRedis()
 
 	// oskite:production:sj:
 	prefix := "oskite:" + conf.Environment + ":" + o.Region + ":"
@@ -30,7 +121,7 @@ func (o *Oskite) redisBalancer() {
 
 	log.Info("Connected to Redis with %s", prefix+o.ServiceUniquename)
 
-	_, err = redigo.Int(session.Do("SADD", kontainerSet, prefix+o.ServiceUniquename))
+	_, err := redigo.Int(o.RedisSession.Do("SADD", kontainerSet, prefix+o.ServiceUniquename))
 	if err != nil {
 		log.Error("redis SADD kontainers. err: %v", err.Error())
 	}
@@ -42,11 +133,11 @@ func (o *Oskite) redisBalancer() {
 			key := prefix + o.ServiceUniquename
 			oskiteInfo := o.GetOskiteInfo()
 
-			if _, err := session.Do("HMSET", redigo.Args{key}.AddFlat(oskiteInfo)...); err != nil {
+			if _, err := o.RedisSession.Do("HMSET", redigo.Args{key}.AddFlat(oskiteInfo)...); err != nil {
 				log.Error("redis HMSET err: %v", err.Error())
 			}
 
-			reply, err := redigo.Int(session.Do("EXPIRE", key, expireDuration.Seconds()))
+			reply, err := redigo.Int(o.RedisSession.Do("EXPIRE", key, expireDuration.Seconds()))
 			if err != nil {
 				log.Error("redis SET Expire %v. reply: %v err: %v", key, reply, err.Error())
 			}
@@ -55,7 +146,7 @@ func (o *Oskite) redisBalancer() {
 
 	// get oskite statuses from others every 2 seconds
 	for _ = range time.Tick(2 * time.Second) {
-		kontainers, err := redigo.Strings(session.Do("SMEMBERS", kontainerSet))
+		kontainers, err := redigo.Strings(o.RedisSession.Do("SMEMBERS", kontainerSet))
 		if err != nil {
 			log.Error("redis SMEMBER kontainers. err: %v", err.Error())
 		}
@@ -64,7 +155,7 @@ func (o *Oskite) redisBalancer() {
 			// convert to o.ServiceUniquename formst
 			remoteOskite := strings.TrimPrefix(kontainerHostname, prefix)
 
-			values, err := redigo.Values(session.Do("HGETALL", kontainerHostname))
+			values, err := redigo.Values(o.RedisSession.Do("HGETALL", kontainerHostname))
 			if err != nil {
 				log.Error("redis HTGETALL %s. err: %v", kontainerHostname, err.Error())
 

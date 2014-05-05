@@ -1,13 +1,15 @@
-// Package kite is a library for creating small micro-services.
-// Two main types implemented by this package are
-// Kite for creating a micro-service server called "Kite" and
-// Client for communicating with another kites.
+// Package kite is a library for creating micro-services.  Two main types
+// implemented by this package are Kite for creating a micro-service server
+// called "Kite" and Client for communicating with another kites.
 package kite
 
 import (
+	"crypto/tls"
 	"errors"
 	"fmt"
+	"net"
 	"net/http"
+	"net/url"
 	"os"
 	"strings"
 
@@ -15,7 +17,6 @@ import (
 	"github.com/dgrijalva/jwt-go"
 	"github.com/koding/kite/config"
 	"github.com/koding/kite/protocol"
-	"github.com/koding/logging"
 	"github.com/nu7hatch/gouuid"
 )
 
@@ -35,12 +36,16 @@ func init() {
 // make request to other kites.
 //
 // Do not use this struct directly. Use kite.New function, add your handlers
-// with HandleFunc mehtod, then call Start or Run method.
+// with HandleFunc mehtod, then call Run method to start the inbuilt server (or
+// pass it to any http.Handler compatible server)
 type Kite struct {
 	Config *config.Config
 
-	// Prints logging messages to stderr.
-	Log logging.Logger
+	// Log logs with the given Logger interface
+	Log Logger
+
+	// SetLogLevel changes the level of the logger. Default is INFO.
+	SetLogLevel func(Level)
 
 	// Contains different functions for authenticating user from request.
 	// Keys are the authentication types (options.authentication.type).
@@ -57,6 +62,10 @@ type Kite struct {
 	// Websocket server for handling incoming connections.
 	server *websocket.Server
 
+	// kontrolclient is used to register to kontrol and query third party kites
+	// from kontrol
+	kontrol *kontrolClient
+
 	// Handlers to call when a new connection is received.
 	onConnectHandlers []func(*Client)
 
@@ -65,6 +74,13 @@ type Kite struct {
 
 	// Handlers to call when a client has disconnected.
 	onDisconnectHandlers []func(*Client)
+
+	// server fields, are initialized and used when
+	// TODO: move them to their own struct, just like KontrolClient
+	listener  net.Listener
+	TLSConfig *tls.Config
+	readyC    chan bool // To signal when kite is ready to accept connections
+	closeC    chan bool // To signal when kite is closed with Close()
 
 	name    string
 	version string
@@ -88,16 +104,28 @@ func New(name, version string) *Kite {
 		panic(fmt.Sprintf("kite: cannot generate unique ID: %s", err.Error()))
 	}
 
+	l, setlevel := newLogger(name)
+
+	kClient := &kontrolClient{
+		readyConnected:  make(chan struct{}),
+		readyRegistered: make(chan struct{}),
+		registerChan:    make(chan *url.URL, 1),
+	}
+
 	k := &Kite{
 		Config:             config.New(),
-		Log:                newLogger(name),
+		Log:                l,
+		SetLogLevel:        setlevel,
 		Authenticators:     make(map[string]func(*Request) error),
 		trustedKontrolKeys: make(map[string]string),
 		handlers:           make(map[string]HandlerFunc),
 		server:             &websocket.Server{},
+		kontrol:            kClient,
 		name:               name,
 		version:            version,
 		id:                 kiteID.String(),
+		readyC:             make(chan bool),
+		closeC:             make(chan bool),
 	}
 
 	k.server.Handler = k.handleWS
@@ -157,34 +185,6 @@ func (k *Kite) handleWS(ws *websocket.Conn) {
 
 	c.callOnDisconnectHandlers()
 	k.callOnDisconnectHandlers(c)
-}
-
-// getLogLevel returns the logging level defined via the KITE_LOG_LEVEL
-// environment. It returns logging.Info by default if no environment variable
-// is set.
-func getLogLevel() logging.Level {
-	switch strings.ToUpper(os.Getenv("KITE_LOG_LEVEL")) {
-	case "DEBUG":
-		return logging.DEBUG
-	case "NOTICE":
-		return logging.NOTICE
-	case "WARNING":
-		return logging.WARNING
-	case "ERROR":
-		return logging.ERROR
-	case "CRITICAL":
-		return logging.CRITICAL
-	default:
-		return logging.INFO
-	}
-}
-
-// newLogger returns a new logger object for desired name and level.
-func newLogger(name string) logging.Logger {
-	logger := logging.NewLogger(name)
-	logger.SetLevel(getLogLevel())
-
-	return logger
 }
 
 func (k *Kite) OnConnect(handler func(*Client)) {

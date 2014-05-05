@@ -33,8 +33,27 @@ class ContentDisplayController extends KDController
     activePane = @mainTabView.getActivePane()
     @mainTabView.addPane tabPane
 
+    model = view.getData()
+    @changePageTitle model
+
     KD.singleton('dock').navController.selectItemByName 'Activity'
     return tabPane
+
+
+  changePageTitle:(model)->
+
+    return  unless model
+
+    {JAccount, JNewStatusUpdate, JGroup} = KD.remote.api
+    title = switch model.constructor
+      when JAccount          then  KD.utils.getFullnameFromAccount model
+      when JNewStatusUpdate  then  @utils.getPlainActivityBody model
+      when JGroup            then  model.title
+      else "#{model.title}#{getSectionName model}"
+
+    @utils.shortenText title, maxLength : 100 # max char length of the title
+
+    KD.singletons.router.setPageTitle title
 
 
   hideDisplay:(view)->

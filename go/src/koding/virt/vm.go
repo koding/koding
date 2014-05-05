@@ -34,9 +34,11 @@ type StepFunc struct {
 	Msg string
 }
 
-var VMPool string = "vms"
-var templateDir string
-var Templates = template.New("lxc")
+var (
+	VMPool      string = "vms"
+	templateDir string
+	Templates   = template.New("lxc")
+)
 
 func LoadTemplates(dir string) error {
 	interf, err := net.InterfaceByName("lxcbr0")
@@ -180,33 +182,35 @@ func (v *VM) Prepare(t tracer.Tracer, reinitialize bool) (err error) {
 	}()
 
 	t.Trace(tracer.Message{Message: "STARTED"})
-
-	// do not prepare if
 	prepared, err := v.isPrepared()
 	if err != nil {
 		return err
 	}
 
-	if prepared {
-		return errors.New("already prepared")
-	}
-
 	funcs := make([]*StepFunc, 0)
-	funcs = append(funcs, &StepFunc{Msg: "Create container", Fn: v.createContainerDir})
-	funcs = append(funcs, &StepFunc{Msg: "Mount RBD", Fn: v.mountRBD})
 
-	if reinitialize {
-		funcs = append(funcs, &StepFunc{Msg: "Reinitialize", Fn: v.reinitialize})
+	if prepared {
+		// try to start if it's already prepared
+		funcs = append(funcs, &StepFunc{Msg: "Starting VM", Fn: v.Start})
+		funcs = append(funcs, &StepFunc{Msg: "Waiting for network", Fn: v.WaitForNetwork})
+	} else {
+		// otherwise prepare it from scratch and start it
+		funcs = append(funcs, &StepFunc{Msg: "Create container", Fn: v.createContainerDir})
+		funcs = append(funcs, &StepFunc{Msg: "Mount RBD", Fn: v.mountRBD})
+
+		if reinitialize {
+			funcs = append(funcs, &StepFunc{Msg: "Reinitialize", Fn: v.reinitialize})
+		}
+
+		funcs = append(funcs, &StepFunc{Msg: "Create overlay", Fn: v.createOverlay})
+		funcs = append(funcs, &StepFunc{Msg: "Merging old files", Fn: v.mergeFiles})
+		funcs = append(funcs, &StepFunc{Msg: "Mount AUF", Fn: v.mountAufs})
+		funcs = append(funcs, &StepFunc{Msg: "Mount PTS", Fn: v.prepareAndMountPts})
+		funcs = append(funcs, &StepFunc{Msg: "Add Ebtables rules", Fn: v.addEbtablesRule})
+		funcs = append(funcs, &StepFunc{Msg: "Add Static route", Fn: v.addStaticRoute})
+		funcs = append(funcs, &StepFunc{Msg: "Starting VM", Fn: v.Start})
+		funcs = append(funcs, &StepFunc{Msg: "Waiting for network", Fn: v.WaitForNetwork})
 	}
-
-	funcs = append(funcs, &StepFunc{Msg: "Create overlay", Fn: v.createOverlay})
-	funcs = append(funcs, &StepFunc{Msg: "Merging old files", Fn: v.mergeFiles})
-	funcs = append(funcs, &StepFunc{Msg: "Mount AUF", Fn: v.mountAufs})
-	funcs = append(funcs, &StepFunc{Msg: "Mount PTS", Fn: v.prepareAndMountPts})
-	funcs = append(funcs, &StepFunc{Msg: "Add Ebtables rules", Fn: v.addEbtablesRule})
-	funcs = append(funcs, &StepFunc{Msg: "Add Static route", Fn: v.addStaticRoute})
-	funcs = append(funcs, &StepFunc{Msg: "Starting VM", Fn: v.Start})
-	funcs = append(funcs, &StepFunc{Msg: "Waiting for network", Fn: v.WaitForNetwork})
 
 	for step, current := range funcs {
 		start := time.Now()
@@ -384,15 +388,6 @@ func (vm *VM) Unprepare(t tracer.Tracer, destroy bool) (err error) {
 
 	defer t.Trace(tracer.Message{Err: err, Message: "FINISHED"})
 	t.Trace(tracer.Message{Message: "STARTED"})
-
-	prepared, err := vm.isPrepared()
-	if err != nil {
-		return err
-	}
-
-	if !prepared {
-		return nil // nothing to unprepare
-	}
 
 	funcs := make([]*StepFunc, 0)
 	funcs = append(funcs, &StepFunc{Msg: "Stopping VM", Fn: vm.Shutdown})

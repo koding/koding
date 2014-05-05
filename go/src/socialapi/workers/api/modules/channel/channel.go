@@ -66,8 +66,7 @@ func Delete(u *url.URL, h http.Header, req *models.Channel) (int, http.Header, i
 		return helpers.NewBadRequestResponse(err)
 	}
 
-	req.Id = id
-	if err := req.Fetch(); err != nil {
+	if err := req.ById(id); err != nil {
 		return helpers.NewBadRequestResponse(err)
 	}
 
@@ -93,8 +92,7 @@ func Update(u *url.URL, h http.Header, req *models.Channel) (int, http.Header, i
 	}
 
 	existingOne := models.NewChannel()
-	existingOne.Id = id
-	if err := existingOne.Fetch(); err != nil {
+	if err := existingOne.ById(id); err != nil {
 		return helpers.NewBadRequestResponse(err)
 	}
 
@@ -126,8 +124,7 @@ func Get(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface{
 	q := helpers.GetQuery(u)
 
 	c := models.NewChannel()
-	c.Id = id
-	if err := c.Fetch(); err != nil {
+	if err := c.ById(id); err != nil {
 		if err == gorm.RecordNotFound {
 			return helpers.NewNotFoundResponse()
 		}

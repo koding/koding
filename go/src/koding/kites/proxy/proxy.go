@@ -17,6 +17,7 @@ func main() {
 		port       = flag.Int("port", 3999, "")
 		publicHost = flag.String("public-host", "127.0.0.1:3999", "")
 		region     = flag.String("r", "", "Region")
+		version    = flag.String("v", "0.0.1", "Version")
 	)
 
 	flag.Parse()
@@ -39,7 +40,7 @@ func main() {
 	kiteConf.IP = *ip
 	kiteConf.Port = *port
 
-	p := proxy.New(kiteConf, string(publicKey), string(privateKey))
+	p := proxy.New(kiteConf, *version, string(publicKey), string(privateKey))
 	p.PublicHost = *publicHost
 
 	p.Run()

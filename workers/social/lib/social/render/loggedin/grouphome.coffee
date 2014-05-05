@@ -20,7 +20,7 @@ module.exports = (options, callback)->
       <title>#{encoder.XSSEncode title}</title>
       #{getStyles customize}
     </head>
-    <body class="group">
+    <body class="group logged-in">
 
     <!--[if IE]><script>(function(){window.location.href='/unsupported.html'})();</script><![endif]-->
 

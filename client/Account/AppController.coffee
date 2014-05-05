@@ -1,21 +1,6 @@
 class AccountAppController extends AppController
 
-  handler = (callback)->
-    if KD.isLoggedIn()
-      appManager = KD.singleton('appManager')
-      if appManager.getFrontApp()?.getOption('name') is 'Account'
-        callback appManager.getFrontApp()
-      else appManager.open 'Account', callback
-    else
-      KD.singletons.router.handleRoute '/'
-
-  KD.registerAppClass this,
-    name                         : "Account"
-    routes                       :
-      "/:name?/Account"          : -> KD.singletons.router.handleRoute '/Account/Profile'
-      "/:name?/Account/:section" : ({params:{section}})-> handler (app)-> app.openSection section
-      "/:name?/Account/Referrer" : -> KD.singletons.router.handleRoute '/'
-    hiddenHandle                 : yes
+  KD.registerAppClass this, name : 'Account'
 
   items =
     personal :
@@ -245,14 +230,14 @@ class AccountAppController extends AppController
     @modal = new KDBlockingModalView
       title           : "Please Login or Register"
       content : """
-Every Koding user gets a private virtual machine with root access. Let's give you one in 10 seconds so that you can
-code, collaborate and have fun! :)
-<br><br>
-
-<iframe width="560" height="315" src="//www.youtube.com/embed/5E85g_ddV3A" frameborder="0" allowfullscreen></iframe><br>
-Click play to see what Koding is all about in 2 minutes!
+      Every Koding user gets a private virtual machine with root access. Let's give you one in 10 seconds so that you can
+      code, collaborate and have fun! :)
+      <br><br>
+      <iframe width="560" height="315" src="//www.youtube.com/embed/5E85g_ddV3A" frameborder="0" allowfullscreen></iframe>
+      <br><br>
+      Click play to see what Koding is all about in 2 minutes!
       """
-      height          : "auto"
+      width           : 660
       overlay         : yes
       buttons         :
         "Login"       :

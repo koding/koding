@@ -97,7 +97,7 @@ class MembersAppController extends AppController
         followers           :
           loggedInOnly      : yes
           itemClass         : GroupMembersPageListItemView
-          listControllerClass: MembersListViewController
+          listControllerClass: KDListViewController
           listCssClass      : "member-related"
           noItemFoundText   : "No one is following #{owner} yet."
           dataSource        : (selector, options, callback)=>
@@ -106,7 +106,7 @@ class MembersAppController extends AppController
         following           :
           loggedInOnly      : yes
           itemClass         : GroupMembersPageListItemView
-          listControllerClass: MembersListViewController
+          listControllerClass: KDListViewController
           listCssClass      : "member-related"
           noItemFoundText   : "#{owner} #{auxVerb.be} not following anyone."
           dataSource        : (selector, options, callback)=>
@@ -121,7 +121,7 @@ class MembersAppController extends AppController
         members              :
           noItemFoundText    : "There is no member."
           itemClass          : GroupMembersPageListItemView
-          listControllerClass: MembersListViewController
+          listControllerClass: KDListViewController
           listCssClass       : "member-related"
           title              : ""
           dataSource         : (selector, options, callback)=>

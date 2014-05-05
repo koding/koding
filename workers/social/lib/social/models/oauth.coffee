@@ -76,7 +76,11 @@ module.exports = class OAuth extends bongo.Base
       return callback err  if err
 
       tokenizedUrl = secret_url+token
-      callback null, {token, tokenSecret, tokenizedUrl}
+      callback null, {
+        requestToken       : token
+        requestTokenSecret : tokenSecret
+        url                : tokenizedUrl
+      }
 
   @saveTokens = (client, provider, credentials, callback)->
     JSession = require './session'

@@ -14,12 +14,10 @@ import (
 	"github.com/dgrijalva/jwt-go"
 	"github.com/koding/kite"
 	"github.com/koding/kite/config"
-	"github.com/koding/kite/kontrolclient"
-	"github.com/koding/kite/registration"
 )
 
 const (
-	Version           = "0.0.2"
+	ProxyVersion      = "0.0.2"
 	DefaultPort       = 3999
 	DefaultPublicHost = "localhost:3999"
 )
@@ -50,8 +48,8 @@ type Proxy struct {
 	url *url.URL
 }
 
-func New(conf *config.Config, pubKey, privKey string) *Proxy {
-	k := kite.New("proxy", Version)
+func New(conf *config.Config, version, pubKey, privKey string) *Proxy {
+	k := kite.New("proxy", version)
 	k.Config = conf
 
 	// Listen on 3999 by default
@@ -119,7 +117,7 @@ func (p *Proxy) listenAndServe() error {
 		return err
 	}
 
-	p.Kite.Log.Notice("Listening on: %s", p.listener.Addr().String())
+	p.Kite.Log.Info("Listening on: %s", p.listener.Addr().String())
 
 	close(p.readyC)
 
@@ -130,16 +128,7 @@ func (p *Proxy) listenAndServe() error {
 	}
 
 	if p.RegisterToKontrol {
-		kon := kontrolclient.New(p.Kite)
-		reg := registration.New(kon)
-		connected, err := kon.DialForever()
-		if err != nil {
-			p.Kite.Log.Fatal("Cannot connect to kontrol: %s", err.Error())
-		}
-		go func() {
-			<-connected
-			reg.RegisterToKontrol(p.url)
-		}()
+		go p.Kite.RegisterForever(p.url)
 	}
 
 	defer close(p.closeC)
@@ -189,7 +178,7 @@ func (p *Proxy) handleProxy(ws *websocket.Conn) {
 
 	signed, err := token.SignedString([]byte(p.privKey))
 	if err != nil {
-		p.Kite.Log.Critical("Cannot sign token: %s", err.Error())
+		p.Kite.Log.Error("Cannot sign token: %s", err.Error())
 		return
 	}
 

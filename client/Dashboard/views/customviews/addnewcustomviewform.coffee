@@ -9,19 +9,19 @@ class AddNewCustomViewForm extends JView
 
     @input        = new KDInputView
       cssClass    : "big-input"
-      type        : "input"
+      type        : "text"
       defaultValue: @getData()?.name or ""
 
     @cancelButton = new KDButtonView
       title       : "CANCEL"
-      cssClass    : "solid red"
+      cssClass    : "solid red medium"
       callback    : =>
         @destroy()
         @getDelegate().emit "AddingNewViewCancelled"
 
     @saveButton   = new KDButtonView
       title       : "SAVE"
-      cssClass    : "solid green"
+      cssClass    : "solid green medium"
       callback    : @bound "addNew"
 
     if @getOption "hasEditor" then @createEditor() else @editor = new KDCustomHTMLView

@@ -74,6 +74,38 @@ type Client struct {
 	firstRequestHandlersNotified sync.Once
 }
 
+// callOptions is the type of first argument in the dnode message.
+// It is used when unmarshalling a dnode message.
+type callOptions struct {
+	// Arguments to the method
+	Kite             protocol.Kite   `json:"kite" dnode:"-"`
+	Authentication   *Authentication `json:"authentication"`
+	WithArgs         *dnode.Partial  `json:"withArgs" dnode:"-"`
+	ResponseCallback dnode.Function  `json:"responseCallback"`
+}
+
+// callOptionsOut is the same structure with callOptions.
+// It is used when marshalling a dnode message.
+type callOptionsOut struct {
+	callOptions
+
+	// Override this when sending because args will not be a *dnode.Partial.
+	WithArgs []interface{} `json:"withArgs"`
+}
+
+// Authentication is used when connecting a Client.
+type Authentication struct {
+	// Type can be "kiteKey", "token" or "sessionID" for now.
+	Type string `json:"type"`
+	Key  string `json:"key"`
+}
+
+// response is the type of the return value of Tell() and Go() methods.
+type response struct {
+	Result *dnode.Partial
+	Err    error
+}
+
 // NewClient returns a pointer to a new Client. The returned instance
 // is not connected. You have to call Dial() or DialForever() before calling
 // Tell() and Go() methods.
@@ -140,7 +172,8 @@ func (c *Client) Dial() (err error) {
 	return nil
 }
 
-// Dial connects to the remote Kite. If it can't connect, it retries indefinitely.
+// Dial connects to the remote Kite. If it can't connect, it retries
+// indefinitely. It returns a channel to check if it's connected or not.
 func (c *Client) DialForever() (connected chan bool, err error) {
 	c.LocalKite.Log.Info("Dialing remote kite: [%s %s]", c.Kite.Name, c.WSConfig.Location.String())
 
@@ -148,6 +181,23 @@ func (c *Client) DialForever() (connected chan bool, err error) {
 	connected = make(chan bool, 1) // This will be closed on first connection.
 	go c.dialForever(connected)
 	return
+}
+
+func (c *Client) dialForever(connectNotifyChan chan bool) {
+	dial := func() error {
+		if !c.Reconnect {
+			return nil
+		}
+		return c.dial()
+	}
+
+	backoff.Retry(dial, &c.redialBackOff) // this will retry dial forever
+
+	if connectNotifyChan != nil {
+		close(connectNotifyChan)
+	}
+
+	go c.run()
 }
 
 func (c *Client) dial() (err error) {
@@ -188,23 +238,6 @@ func fixPortNumber(u *url.URL) {
 			panic(err) // Other kind of error
 		}
 	}
-}
-
-func (c *Client) dialForever(connectNotifyChan chan bool) {
-	dial := func() error {
-		if !c.Reconnect {
-			return nil
-		}
-		return c.dial()
-	}
-
-	backoff.Retry(dial, &c.redialBackOff) // this will retry dial forever
-
-	if connectNotifyChan != nil {
-		close(connectNotifyChan)
-	}
-
-	go c.run()
 }
 
 // run consumes incoming dnode messages. Reconnects if necessary.
@@ -262,7 +295,7 @@ func (c *Client) processMessage(data []byte) error {
 	}
 
 	sender := func(id uint64, args []interface{}) error {
-		_, err := c.marshalAndSend(id, args)
+		_, err = c.marshalAndSend(id, args)
 		return err
 	}
 
@@ -363,25 +396,6 @@ func (c *Client) callOnDisconnectHandlers() {
 	c.m.RUnlock()
 }
 
-// callOptions is the type of first argument in the dnode message.
-// It is used when unmarshalling a dnode message.
-type callOptions struct {
-	// Arguments to the method
-	Kite             protocol.Kite   `json:"kite" dnode:"-"`
-	Authentication   *Authentication `json:"authentication"`
-	WithArgs         *dnode.Partial  `json:"withArgs" dnode:"-"`
-	ResponseCallback dnode.Function  `json:"responseCallback"`
-}
-
-// callOptionsOut is the same structure with callOptions.
-// It is used when marshalling a dnode message.
-type callOptionsOut struct {
-	callOptions
-
-	// Override this when sending because args will not be a *dnode.Partial.
-	WithArgs []interface{} `json:"withArgs"`
-}
-
 func (c *Client) wrapMethodArgs(args []interface{}, responseCallback dnode.Function) []interface{} {
 	options := callOptionsOut{
 		WithArgs: args,
@@ -392,19 +406,6 @@ func (c *Client) wrapMethodArgs(args []interface{}, responseCallback dnode.Funct
 		},
 	}
 	return []interface{}{options}
-}
-
-// Authentication is used when connecting a Client.
-type Authentication struct {
-	// Type can be "kiteKey", "token" or "sessionID" for now.
-	Type string `json:"type"`
-	Key  string `json:"key"`
-}
-
-// response is the type of the return value of Tell() and Go() methods.
-type response struct {
-	Result *dnode.Partial
-	Err    error
 }
 
 // Tell makes a blocking method call to the server.
@@ -532,7 +533,7 @@ func (c *Client) marshalAndSend(method interface{}, arguments []interface{}) (ca
 
 // Used to remove callbacks after error occurs in send().
 func (c *Client) removeCallbacks(callbacks map[string]dnode.Path) {
-	for sid, _ := range callbacks {
+	for sid := range callbacks {
 		// We don't check for error because we have created
 		// the callbacks map in the send function above.
 		// It does not come from remote, so cannot contain errors.

@@ -1,10 +1,14 @@
 class TeamworkAppController extends AppController
 
   KD.registerAppClass this,
-    name            : "Teamwork"
-    route           : "/:name?/Teamwork"
-    behavior        : "application"
-    enforceLogin    : yes
+    name         : "Teamwork"
+    route        : "/:name?/Teamwork"
+    behavior     : "application"
+    preCondition :
+      condition  : (options, cb)-> cb KD.isLoggedIn()
+      failure    : (options, cb)->
+        KD.singletons.appManager.open 'Teamwork', conditionPassed : yes
+        KD.showEnforceLoginModal()
 
   constructor: (options = {}, data) ->
 

@@ -171,6 +171,9 @@ config =
       staticFilesBaseUrl: 1
       runtimeOptions  :
         kites:
+          stack:
+            force: 1
+            newKites: 1
           kontrol:
             username: 1
           os:
@@ -184,7 +187,6 @@ config =
           secure      : 1
         environment   : 1
         activityFetchCount : 1
-        precompiledApi: 1
         authExchange  : 1
         github        :
           clientId    : 1

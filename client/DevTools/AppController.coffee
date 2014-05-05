@@ -1,13 +1,18 @@
 class DevToolsController extends AppController
 
-  name    = "DevTools"
-  version = "0.1"
-  route   = "/:name?/#{name}"
-
-  KD.registerAppClass this, {
-    name, version, behavior: "application", route,
-    menu          :
-      items       : [
+  KD.registerAppClass this,
+    name            : 'DevTools'
+    version         : '0.1'
+    route           : '/:name?/DevTools'
+    behavior        : 'application'
+    preCondition    :
+      condition     : (options, cb)-> cb KD.isLoggedIn()
+      failure       : (options, cb)->
+        KD.singletons.appManager.open 'DevTools', conditionPassed : yes
+        KD.showEnforceLoginModal()
+    menu            :
+      hiddenOnStart : yes
+      items         : [
         { title     : "Create a new App",    eventName : "create" }
         { type      : "separator" }
         { title     : "Save",                eventName : "save" }
@@ -23,10 +28,10 @@ class DevToolsController extends AppController
         { type      : "separator" }
         { title     : "Exit",                eventName : "exit" }
       ]
-      hiddenOnStart : yes
-  }
+
 
   constructor:(options = {}, data)->
+
     options.view    = new DevToolsMainView
     options.appInfo =
       name     : "DevTools"

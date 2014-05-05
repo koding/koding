@@ -6,8 +6,12 @@ class ActivityController extends KDObject
 
     @newItemsCount   = 0
     @flags           = {}
-    groupsController = KD.getSingleton "groupsController"
     groupChannel     = null
+
+    {
+      groupsController
+      appManager
+    } = KD.singletons
 
     groupsController.ready =>
       groupChannel.close().off()  if groupChannel?
@@ -23,7 +27,7 @@ class ActivityController extends KDObject
 
     @setPageTitleForActivities()
 
-    KD.getSingleton("appManager").on "AppIsBeingShown", (appController, appView, appOptions) =>
+    appManager.on "AppIsBeingShown", (appController, appView, appOptions) =>
       @clearNewItemsCount()  if appOptions.name is "Activity"
 
   blockUser:(accountId, duration, callback)->

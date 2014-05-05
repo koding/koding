@@ -33,7 +33,7 @@ class WebTermAppView extends JView
     @on 'TerminalClosed',    @bound 'removeSession'
 
     @on 'TerminalStarted', ->
-      KD.mixpanel "Open new Webterm tab, success"
+      KD.mixpanel "Open new Webterm, success"
 
     {vmController} = KD.singletons
     vmController.on 'vm.progress.error', => @notify cssClass : 'error'
@@ -359,8 +359,6 @@ class WebTermAppView extends JView
 
   addNewTab: (vm) ->
 
-    KD.mixpanel "Open new Webterm tab, success"  if @_secondTab
-
     @_secondTab = yes
     mode        = 'create'
 
@@ -409,10 +407,16 @@ class WebTermAppView extends JView
     console.error err
 
     try
-      err   = JSON.parse err.message
-      title = err.message  if err.message
+      err         = JSON.parse err.message
+      title       = err.message  if err.message
+      numberOfVms = Object.keys(KD.singletons.vmController.vmsInfo).length
 
-    title ?= "VM start failed. Please try again, later"
+    if title and /CPU limit reached/.test title
+      title = "Please upgrade to run more VMs"
+      ErrorLog.create "cpu_limit_reached", {numberOfVms}
+    else
+      title = "Your vm failed to start. Please try again later."
+
     new KDNotificationView {title}
 
   pistachio: ->

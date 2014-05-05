@@ -7,12 +7,12 @@ class OnboardingAddNewForm extends AddNewCustomViewForm
     super options, data
 
     @path          = new KDInputView
-      type         : "input"
+      type         : "text"
       cssClass     : "big-input"
       defaultValue : Encoder.htmlDecode data.path or ""
 
     @title         = new KDInputView
-      type         : "input"
+      type         : "text"
       cssClass     : "big-input"
       defaultValue : Encoder.htmlDecode data.title or ""
 

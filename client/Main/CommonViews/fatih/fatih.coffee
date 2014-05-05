@@ -80,7 +80,7 @@ class Fatih extends KDModalView
 
       @addDefaultPlugins()
 
-      @plugins[plugin].registerIndex() for own plugin of @plugins when @isUserLoggedIn()
+      @plugins[plugin].registerIndex() for own plugin of @plugins when KD.isLoggedIn()
 
     # @on "ReceivedClickElsewhere", => @destroy()
 
@@ -92,7 +92,7 @@ class Fatih extends KDModalView
 
       @utils.wait 300, => @lastPressedKey = null if isOptionPressed
 
-      if ((isOptionPressed and isLastPressedKeyOption) or isCtrlAndSpacePressed) and @isUserLoggedIn()
+      if ((isOptionPressed and isLastPressedKeyOption) or isCtrlAndSpacePressed) and KD.isLoggedIn()
         @show()
         @showStaticViews()
         @input.setFocus()
@@ -205,9 +205,6 @@ class Fatih extends KDModalView
     return if len is staticsLen
     for i in [len - 1..staticsLen]
       subViews[i].destroy()
-
-  isUserLoggedIn: ->
-    return KD.whoami() instanceof KD.remote?.api?.JAccount
 
   destroy: ->
     @hide()

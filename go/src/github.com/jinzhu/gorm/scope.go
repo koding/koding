@@ -3,7 +3,6 @@ package gorm
 import (
 	"errors"
 	"fmt"
-	"github.com/jinzhu/gorm/dialect"
 	"go/ast"
 	"strings"
 	"time"
@@ -13,13 +12,14 @@ import (
 )
 
 type Scope struct {
-	Value    interface{}
-	Search   *search
-	Sql      string
-	SqlVars  []interface{}
-	db       *DB
-	_values  map[string]interface{}
-	skipLeft bool
+	Value      interface{}
+	Search     *search
+	Sql        string
+	SqlVars    []interface{}
+	db         *DB
+	_values    map[string]interface{}
+	skipLeft   bool
+	primaryKey string
 }
 
 // NewScope create scope for callbacks, including DB's search information
@@ -54,7 +54,7 @@ func (scope *Scope) Quote(str string) string {
 }
 
 // Dialect get dialect
-func (scope *Scope) Dialect() dialect.Dialect {
+func (scope *Scope) Dialect() Dialect {
 	return scope.db.parent.dialect
 }
 
@@ -78,7 +78,12 @@ func (scope *Scope) HasError() bool {
 
 // PrimaryKey get the primary key's column name
 func (scope *Scope) PrimaryKey() string {
-	return "id"
+	if scope.primaryKey != "" {
+		return scope.primaryKey
+	}
+
+	scope.primaryKey = scope.getPrimaryKey()
+	return scope.primaryKey
 }
 
 // PrimaryKeyZero check the primary key is blank or not
@@ -227,7 +232,7 @@ func (scope *Scope) Fields() []*Field {
 	scopeTyp := indirectValue.Type()
 	for i := 0; i < scopeTyp.NumField(); i++ {
 		fieldStruct := scopeTyp.Field(i)
-		if fieldStruct.Anonymous || !ast.IsExported(fieldStruct.Name) {
+		if !ast.IsExported(fieldStruct.Name) {
 			continue
 		}
 
@@ -238,7 +243,13 @@ func (scope *Scope) Fields() []*Field {
 		value := indirectValue.FieldByName(fieldStruct.Name)
 		field.Value = value.Interface()
 		field.IsBlank = isBlank(value)
-		field.isPrimaryKey = scope.PrimaryKey() == field.DBName
+
+		// Search for primary key tag identifier
+		field.isPrimaryKey = scope.PrimaryKey() == field.DBName || fieldStruct.Tag.Get("primaryKey") != ""
+
+		if field.isPrimaryKey {
+			scope.primaryKey = field.DBName
+		}
 
 		if scope.db != nil {
 			field.Tag = fieldStruct.Tag

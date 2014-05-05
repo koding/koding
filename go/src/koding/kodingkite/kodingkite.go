@@ -13,16 +13,11 @@ import (
 
 	"github.com/koding/kite"
 	kiteconfig "github.com/koding/kite/config"
-	"github.com/koding/kite/kontrolclient"
-	"github.com/koding/kite/registration"
-	"github.com/koding/kite/server"
 	"github.com/koding/logging"
 )
 
 type KodingKite struct {
-	*server.Server
-	Kontrol          *kontrolclient.KontrolClient
-	Registration     *registration.Registration
+	*kite.Kite
 	KodingConfig     *kodingconfig.Config
 	registerHostname string
 	scheme           string
@@ -40,27 +35,28 @@ func New(kodingConf *kodingconfig.Config, name, version string) (*KodingKite, er
 	k := kite.New(name, version)
 	k.Config = kiteConf
 
-	server := server.New(k)
-
-	kon := kontrolclient.New(k)
-
 	kk := &KodingKite{
-		Server:       server,
-		Kontrol:      kon,
-		Registration: registration.New(kon),
+		Kite:         k,
 		KodingConfig: kodingConf,
 		scheme:       "ws",
 	}
 
+	// prepare our multilog handler
 	syslog, err := logging.NewSyslogHandler(name)
 	if err != nil {
 		log.Fatalf("Cannot connect to syslog: %s", err.Error())
 	}
 
-	kk.Log.SetHandler(logging.NewMultiHandler(logging.StderrHandler, syslog))
+	logger := logging.NewLogger(name)
+	logger.SetHandler(logging.NewMultiHandler(logging.StderrHandler, syslog))
+
+	k.Log = logger
+	k.SetLogLevel = func(l kite.Level) {
+		logger.SetLevel(convertLevel(l))
+	}
 
 	if kodingConf.NewKites.UseTLS {
-		kk.Server.UseTLSFile(kodingConf.NewKites.CertFile, kodingConf.NewKites.KeyFile)
+		kk.UseTLSFile(kodingConf.NewKites.CertFile, kodingConf.NewKites.KeyFile)
 		kk.scheme = "wss"
 		kk.registerHostname, err = os.Hostname()
 	} else {
@@ -74,36 +70,25 @@ func New(kodingConf *kodingconfig.Config, name, version string) (*KodingKite, er
 	return kk, nil
 }
 
-func (k *KodingKite) Start() {
+func (k *KodingKite) Run() {
 	k.Log.Info("Kite has started: %s", k.Kite.Kite())
 
 	registerWithURL := &url.URL{
 		Scheme: k.scheme,
-		Host:   k.registerHostname + ":" + strconv.Itoa(k.Config.Port),
+		Host:   k.registerHostname + ":" + strconv.Itoa(k.Kite.Config.Port),
 		// Put the kite's name and version into path because it is useful
 		// on Chrome Console when developing.
 		Path: "/" + k.Kite.Kite().Name + "-" + k.Kite.Kite().Version,
 	}
 
-	connected, err := k.Kontrol.DialForever()
-	if err != nil {
-		k.Server.Log.Fatal("Cannot dial kontrol: %s", err.Error())
-	}
-	k.Server.Start()
-	go func() {
-		<-connected
-		k.Registration.RegisterToKontrol(registerWithURL)
-	}()
-}
+	go k.Kite.RegisterForever(registerWithURL)
+	<-k.Kite.ReadyNotify()
 
-func (k *KodingKite) Run() {
-	k.Start()
-	<-k.Server.CloseNotify()
+	k.Kite.Run()
 }
 
 func (k *KodingKite) Close() {
-	k.Kontrol.Close()
-	k.Server.Close()
+	k.Kite.Close()
 }
 
 func getRegisterIP(environment string) (string, error) {
@@ -143,4 +128,20 @@ func getRegisterIP(environment string) (string, error) {
 	}
 
 	return ip, nil
+}
+
+// convertLevel converst a kite level into logging level
+func convertLevel(l kite.Level) logging.Level {
+	switch l {
+	case kite.DEBUG:
+		return logging.DEBUG
+	case kite.WARNING:
+		return logging.WARNING
+	case kite.ERROR:
+		return logging.ERROR
+	case kite.FATAL:
+		return logging.CRITICAL
+	default:
+		return logging.INFO
+	}
 }
