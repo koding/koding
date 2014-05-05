@@ -2,6 +2,8 @@ package models
 
 import (
 	"errors"
+	// "fmt"
+	"github.com/jinzhu/gorm"
 	"github.com/koding/bongo"
 	"time"
 )
@@ -155,6 +157,10 @@ func (n *ReplyNotification) SetTargetId(targetId int64) {
 	n.TargetId = targetId
 }
 
+// Fetch Actors retrieves latest actors. For message repliers, if first checks
+// users first reply message. And also fetches user's subscription status.
+// if user both replied and subscribed to a message then gets the event's time
+// that has first occurred.
 func (n *ReplyNotification) FetchActors() (*ActorContainer, error) {
 	if n.TargetId == 0 {
 		return nil, errors.New("TargetId is not set")
@@ -167,6 +173,33 @@ func (n *ReplyNotification) FetchActors() (*ActorContainer, error) {
 	if err := mr.FetchFirstAccountReply(n.ListerId); err != nil {
 		return nil, err
 	}
+	startingTime := time.Now()
+	if !mr.CreatedAt.IsZero() {
+		startingTime = mr.CreatedAt
+	}
+
+	// TODO make it async
+	// check if user is already subscribed to target
+	nc := NewNotificationContent()
+	nc.TargetId = n.TargetId
+	nc.TypeConstant = NotificationContent_TYPE_COMMENT
+	ns := NewNotificationSubscription()
+	ns.AccountId = n.ListerId
+	if err := ns.FetchByNotificationContent(nc); err != nil {
+		if err != gorm.RecordNotFound {
+			return nil, err
+		}
+	}
+
+	if !ns.AddedAt.IsZero() && ns.AddedAt.Before(startingTime) {
+		startingTime = ns.AddedAt
+	}
+
+	// when user does not have any replies and there is not any subscription option
+	// fetch all items
+	if ns.AddedAt.IsZero() && mr.CreatedAt.IsZero() {
+		startingTime = time.Time{}
+	}
 
 	cm := NewChannelMessage()
 	cm.Id = n.TargetId
@@ -178,7 +211,7 @@ func (n *ReplyNotification) FetchActors() (*ActorContainer, error) {
 
 	// for preparing Actor Container we need latest actors and total replier count
 	var count int
-	actors, err := cm.FetchReplierIdsWithCount(p, &count, mr.CreatedAt)
+	actors, err := cm.FetchReplierIdsWithCount(p, &count, startingTime)
 	if err != nil {
 		return nil, err
 	}
