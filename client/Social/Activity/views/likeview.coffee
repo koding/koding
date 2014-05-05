@@ -123,27 +123,51 @@ class ActivityLikeView extends JView
 
     event.preventDefault()
 
-    if $(event.target).is("a.action-link")
-      @getData().like (err)=>
-        KD.showError err,
-          AccessDenied : 'You are not allowed to like activities'
-          KodingError  : 'Something went wrong while like'
+    return  unless $(event.target).is "a.action-link"
 
-        unless err
-          @_currentState = not @_currentState
-          {useTitle} = @getOptions()
-          if @_currentState
-            @setClass "liked"
-            @likeLink.updatePartial "Unlike" if useTitle
-            KD.mixpanel "Activity like, success"
-            KD.getSingleton("badgeController").checkBadge
-              source : "JNewStatusUpdate" , property : "likes", relType : "like", targetSelf : 1
-          else
-            @unsetClass "liked"
-            @likeLink.updatePartial "Like" if useTitle
-            KD.mixpanel "Activity unlike, success"
+    {socialapi: {message: {like, unlike}}} = KD.singletons
 
-          @_lastUpdatedCount = -1
+    fn = if @_currentState then unlike else like
+    fn id: @getData().id, @bound "toggleState"
+
+
+  toggleState: (err) ->
+
+    return @showError err  if err
+
+    @_currentState = not @_currentState
+
+    if @_currentState
+    then @decorateLike()
+    else @decorateUnlike()
+
+    @_lastUpdatedCount = -1
+
+
+  decorateLike: ->
+
+    @setClass "liked"
+    @likeLink.updatePartial "Unlike"  if @getOption "useTitle"
+
+    KD.mixpanel "Activity like, success"
+
+    KD.getSingleton("badgeController").checkBadge
+      source : "JNewStatusUpdate" , property : "likes", relType : "like", targetSelf : 1
+
+
+  decorateUnlike: ->
+
+    @unsetClass "liked"
+    @likeLink.updatePartial "Like" if @getOption "useTitle"
+
+    KD.mixpanel "Activity unlike, success"
+
+
+  showError: (err) ->
+
+    KD.showError err,
+      AccessDenied : "You are not allowed to like activities"
+      KodingError  : "Something went wrong"
 
 
   pistachio: ->
