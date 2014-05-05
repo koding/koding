@@ -299,21 +299,20 @@ func (o *Oskite) prepareOsKite() {
 
 // currentVMS returns a list of current VMS on the host machine with their associated
 // mongodb objectid's taken from the directory name
-func currentVMs() ([]bson.ObjectId, error) {
+func currentVMs() (map[bson.ObjectId]struct{}, error) {
 	dirs, err := ioutil.ReadDir("/var/lib/lxc")
 	if err != nil {
 		return nil, fmt.Errorf("vmsList err %s", err)
 	}
 
-	vms := make([]bson.ObjectId, 0)
+	vms := make(map[bson.ObjectId]struct{}, 0)
 	for _, dir := range dirs {
 		if !strings.HasPrefix(dir.Name(), "vm-") {
 			continue
 		}
 
 		vmId := bson.ObjectIdHex(dir.Name()[3:])
-
-		vms = append(vms, vmId)
+		vms[vmId] = struct{}{}
 	}
 
 	return vms, nil
@@ -328,7 +327,10 @@ func (o *Oskite) vmUpdater() {
 			continue
 		}
 
-		for _, vmId := range vmIds {
+		fmt.Printf("vmIds %+v\n", vmIds)
+
+		for vmId := range vmIds {
+			fmt.Printf("vmId %+v\n", vmId)
 			err := updateState(vmId)
 			if err == nil {
 				continue
@@ -374,7 +376,7 @@ func (o *Oskite) handleCurrentVMs() {
 		return
 	}
 
-	for _, vmId := range vmIds {
+	for vmId := range vmIds {
 		var vm virt.VM
 		query := func(c *mgo.Collection) error {
 			return c.FindId(vmId).One(&vm)
