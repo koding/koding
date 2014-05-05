@@ -2,8 +2,8 @@ class ActivityListItemView extends KDListItemView
 
   constructor:(options = {},data)->
 
-    options.type              = "activity"
-    options.cssClass          = "activity-item status"
+    options.type              = 'activity'
+    options.cssClass          = 'activity-item status'
     options.commentSettings or= {}
 
     super options, data
@@ -18,19 +18,19 @@ class ActivityListItemView extends KDListItemView
       size       :
         width    : 42
         height   : 42
-      cssClass   : "author-avatar"
+      cssClass   : 'author-avatar'
       origin     : origin
 
     @author     = new ProfileLinkView { origin }
     @commentBox = new CommentView options.commentSettings, data
 
     @actionLinks = new ActivityActionsView
-      cssClass : "comment-header"
+      cssClass : 'comment-header'
       delegate : @commentBox.commentList
     , data
 
     @settingsButton = new ActivitySettingsView
-      cssClass : "settings-menu-wrapper"
+      cssClass : 'settings-menu-wrapper'
       itemView : this
     , data
 
@@ -49,7 +49,7 @@ class ActivityListItemView extends KDListItemView
       delegate    : this
 
     @embedBox = if data.link?
-      @setClass "two-columns"  if @twoColumns
+      @setClass 'two-columns'  if @twoColumns
       new EmbedBox embedOptions, data.link
     else
       new KDCustomHTMLView
@@ -57,7 +57,7 @@ class ActivityListItemView extends KDListItemView
     @timeAgoView = new KDTimeAgoView {}, @getData().meta.createdAt
 
     @editWidgetWrapper = new KDCustomHTMLView
-      cssClass         : "edit-widget-wrapper hidden"
+      cssClass         : 'edit-widget-wrapper hidden'
 
 
   showEditWidget : ->
