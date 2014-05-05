@@ -230,7 +230,6 @@ func (c *ChannelMessage) FetchReplierIds(p *bongo.Pagination, includeMessageOwne
 		return nil, err
 	}
 
-	// TODO when this function is used for fetching notified users do not include last reply.
 	// add message owner
 	if includeMessageOwner {
 		replyIds = append(replyIds, c.Id)
@@ -275,6 +274,10 @@ func (c *ChannelMessage) FetchMessageReplies(p *bongo.Pagination, t time.Time) (
 }
 
 func (c *ChannelMessage) FetchDistinctRepliers(messageReplyIds []int64, p *bongo.Pagination, count *int) ([]int64, error) {
+	if len(messageReplyIds) == 0 {
+		return nil, errors.New("messageReplyIds length cannot be 0")
+	}
+
 	rows, err := bongo.B.DB.Raw("SELECT account_id "+
 		"FROM "+c.TableName()+
 		" WHERE id IN (?) "+
