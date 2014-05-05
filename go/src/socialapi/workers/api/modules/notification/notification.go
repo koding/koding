@@ -136,6 +136,30 @@ func InteractGroup(u *url.URL, h http.Header, req *GroupRequest) (int, http.Head
 	return helpers.NewDefaultOKResponse()
 }
 
+func SubscribeMessage(u *url.URL, h http.Header, req *models.Activity) (int, http.Header, interface{}, error) {
+	if err := validateSubscriptionRequest(req); err != nil {
+		return helpers.NewBadRequestResponse(err)
+	}
+
+	if err := models.SubscribeMessage(req.ActorId, req.TargetId, models.NotificationSubscription_TYPE_SUBSCRIBE); err != nil {
+		return helpers.NewBadRequestResponse(err)
+	}
+
+	return helpers.NewDefaultOKResponse()
+}
+
+func UnsubscribeMessage(u *url.URL, h http.Header, req *models.Activity) (int, http.Header, interface{}, error) {
+	if err := validateSubscriptionRequest(req); err != nil {
+		return helpers.NewBadRequestResponse(err)
+	}
+
+	if err := models.SubscribeMessage(req.ActorId, req.TargetId, models.NotificationSubscription_TYPE_UNSUBSCRIBE); err != nil {
+		return helpers.NewBadRequestResponse(err)
+	}
+
+	return helpers.NewDefaultOKResponse()
+}
+
 func fetchNotifications(q *models.Query) (*models.NotificationResponse, error) {
 	var list *models.NotificationResponse
 	var err error
