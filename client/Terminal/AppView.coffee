@@ -404,7 +404,9 @@ class WebTermAppView extends JView
       osKite?.vmOff()
 
   handlePrepareError: (err) ->
-    title = err.message  if err.message
+    title =
+      try JSON.parse err.message
+      catch then err.message
 
     if title and /limit reached/.test title
       title += " Please upgrade to run more VMs."
