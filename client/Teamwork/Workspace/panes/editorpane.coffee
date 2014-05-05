@@ -16,9 +16,9 @@ class EditorPane extends Pane
       enableShortcuts : no
     , file
 
-    if content
-      ace.once "ace.ready", ->
-        ace.editor.setValue content
+    ace.once "ace.ready", =>
+      ace.editor.setValue content  if content
+      ace.setReadOnly yes  if @getOptions().readOnly
 
     return ace
 
