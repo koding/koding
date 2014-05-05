@@ -26,6 +26,7 @@ import (
 
 	kitelib "github.com/koding/kite"
 	"github.com/koding/redis"
+	"gopkg.in/fatih/set.v0"
 	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
 )
@@ -297,22 +298,22 @@ func (o *Oskite) prepareOsKite() {
 	o.Kite = k
 }
 
-// currentVMS returns a list of current VMS on the host machine with their associated
-// mongodb objectid's taken from the directory name
-func currentVMs() (map[bson.ObjectId]struct{}, error) {
+// currentVMS returns a set of current VMS on the host machine with their
+// associated mongodb objectid's taken from the directory name
+func currentVMs() (set.Interface, error) {
 	dirs, err := ioutil.ReadDir("/var/lib/lxc")
 	if err != nil {
 		return nil, fmt.Errorf("vmsList err %s", err)
 	}
 
-	vms := make(map[bson.ObjectId]struct{}, 0)
+	vms := set.NewNonTS()
 	for _, dir := range dirs {
 		if !strings.HasPrefix(dir.Name(), "vm-") {
 			continue
 		}
 
 		vmId := bson.ObjectIdHex(dir.Name()[3:])
-		vms[vmId] = struct{}{}
+		vms.Add(vmId)
 	}
 
 	return vms, nil
@@ -327,24 +328,30 @@ func (o *Oskite) vmUpdater() {
 			continue
 		}
 
-		fmt.Printf("vmIds %+v\n", vmIds)
+		vmIds.Each(func(id interface{}) bool {
+			vmId, ok := id.(bson.ObjectId)
+			if !ok {
+				return true
+			}
 
-		for vmId := range vmIds {
 			fmt.Printf("vmId %+v\n", vmId)
+
 			err := updateState(vmId)
 			if err == nil {
-				continue
+				return true
 			}
 
 			log.Error("vm updater vmId %s err %v", vmId, err)
 			if err != mgo.ErrNotFound {
-				continue
+				return true
 			}
 
 			// this is a leftover VM that needs to be unprepared
 			log.Error("vm updater vmId %s err %v", vmId, err)
 			unprepareLeftover(vmId)
-		}
+
+			return true
+		})
 	}
 
 }
@@ -376,7 +383,12 @@ func (o *Oskite) handleCurrentVMs() {
 		return
 	}
 
-	for vmId := range vmIds {
+	vmIds.Each(func(id interface{}) bool {
+		vmId, ok := id.(bson.ObjectId)
+		if !ok {
+			return true
+		}
+
 		var vm virt.VM
 		query := func(c *mgo.Collection) error {
 			return c.FindId(vmId).One(&vm)
@@ -385,7 +397,7 @@ func (o *Oskite) handleCurrentVMs() {
 		// unprepareVM that are on other machines, they might be prepared already.
 		if err := mongodbConn.Run("jVMs", query); err != nil || vm.HostKite != o.ServiceUniquename {
 			unprepareLeftover(vmId)
-			continue
+			return true
 		}
 
 		// continue with VMs on this machine,
@@ -424,7 +436,8 @@ func (o *Oskite) handleCurrentVMs() {
 			}(vm)
 		}()
 
-	}
+		return true
+	})
 
 	log.Info("VMs in /var/lib/lxc are finished.")
 }
