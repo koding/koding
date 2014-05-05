@@ -169,7 +169,7 @@ func (c *ChannelMessage) FetchRelatives(query *Query) (*ChannelMessageContainer,
 	i := NewInteraction()
 	i.MessageId = c.Id
 
-	oldId, err := FetchOdlIdByAccountId(c.AccountId)
+	oldId, err := FetchOldIdByAccountId(c.AccountId)
 	if err != nil {
 		return nil, err
 	}
@@ -219,6 +219,7 @@ func (c *ChannelMessage) FetchRelatives(query *Query) (*ChannelMessageContainer,
 }
 
 // todo include message owner misleads people,
+// FetchReplierIds fetches all repliers of a message after a given time.
 func (c *ChannelMessage) FetchReplierIds(p *bongo.Pagination, includeMessageOwner bool, t time.Time) ([]int64, error) {
 	if c.Id == 0 {
 		return nil, errors.New("channel message id is not set")
