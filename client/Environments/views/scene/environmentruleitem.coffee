@@ -17,17 +17,40 @@ class EnvironmentRuleItem extends EnvironmentItem
 
     colorSelection.on "ColorChanged", @bound 'setColorTag'
 
-    items         =
-      Edit        :
-        disabled  : KD.isGuest()
-        action    : 'edit'
-      Delete      :
-        disabled  : KD.isGuest()
-        action    : 'delete'
-        separator : yes
-      customView  : colorSelection
+    items          =
+      customView4  : @createToggleMenu()
+      Edit         :
+        disabled   : KD.isGuest()
+        action     : 'edit'
+      Delete       :
+        disabled   : KD.isGuest()
+        action     : 'delete'
+        separator  : yes
+      customView   : colorSelection
 
     return items
+
+  createToggleMenu: ->
+    stateSwitch    = new KDCustomHTMLView
+      cssClass     : "toggle-menu"
+
+    stateSwitch.addSubView new KDCustomHTMLView
+      tagName      : "span"
+      partial      : "Enabled"
+
+    stateSwitch.addSubView new KodingSwitch
+      cssClass     : "tiny toggle-item"
+      defaultValue : @getData()?.enabled ? yes
+      callback     : @bound "setState"
+
+    return stateSwitch
+
+  setState: (state) ->
+    data = @getData()
+    data.update enabled: state, (err) =>
+      return KD.showError err  if err
+      data.enabled = state
+      @handleDataUpdate()
 
   cmedit: ->
     modal = new AddFirewallRuleModal {}, @getData()
