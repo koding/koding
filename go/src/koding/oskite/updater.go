@@ -3,7 +3,7 @@ package oskite
 import (
 	"fmt"
 	"io/ioutil"
-	"koding/db/models"
+	"koding/virt"
 	"strings"
 	"time"
 
@@ -12,12 +12,12 @@ import (
 	"labix.org/v2/mgo/bson"
 )
 
-type VmCollection map[bson.ObjectId]*models.VM
+type VmCollection map[bson.ObjectId]*virt.VM
 
 // mongodbVMs returns a map of VMs that are bind to the given
 // serviceUniquename/hostkite in mongodb
 func mongodbVMs(serviceUniquename string) (VmCollection, error) {
-	vms := make([]*models.VM, 0)
+	vms := make([]*virt.VM, 0)
 
 	query := func(c *mgo.Collection) error {
 		return c.Find(bson.M{"hostKite": serviceUniquename}).All(&vms)
@@ -27,7 +27,7 @@ func mongodbVMs(serviceUniquename string) (VmCollection, error) {
 		return nil, fmt.Errorf("allVMs fetching err: %s", err.Error())
 	}
 
-	vmsMap := make(map[bson.ObjectId]*models.VM, len(vms))
+	vmsMap := make(map[bson.ObjectId]*virt.VM, len(vms))
 
 	for _, vm := range vms {
 		vmsMap[vm.Id] = vm
@@ -90,22 +90,60 @@ func (o *Oskite) vmUpdater() {
 				return true
 			}
 
+			if vm, ok := vms[vmId]; ok {
+				o.startAlwaysOn(vm)
+			}
+
 			err := updateState(vmId)
 			if err == nil {
 				return true
 			}
 
-			log.Error("vm updater vmId %s err %v", vmId, err)
+			log.Error("vm updater %s err %v", vmId, err)
 			if err != mgo.ErrNotFound {
 				return true
 			}
 
-			// this is a leftover VM that needs to be unprepared
-			log.Error("vm updater vmId %s err %v", vmId, err)
+			// the VM couldn't be find in mongoDB, this is a leftover VM that
+			// needs to be unprepared
+			log.Error("vm updater vm not found %s err %v", vmId, err)
 			unprepareLeftover(vmId)
 
 			return true
 		})
 	}
+}
 
+// startAlwaysOn  starts a vm if it's alwaysOn and not pinned to the current
+// hostname
+func (o *Oskite) startAlwaysOn(vm *virt.VM) {
+	if !vm.AlwaysOn {
+		return
+	}
+
+	// means this vm is intended to be start on another kontainer machine
+	if vm.PinnedToHost != "" && vm.PinnedToHost != o.ServiceUniquename {
+		return
+	}
+
+	log.Info("starting alwaysOn VM %s [%s]", vm.HostnameAlias, vm.Id.Hex())
+	go o.startSingleVM(vm, nil)
+}
+
+func unprepareLeftover(vmId bson.ObjectId) {
+	prepareQueue <- &QueueJob{
+		msg: fmt.Sprintf("unprepare leftover vm %s", vmId.Hex()),
+		f: func() error {
+			mockVM := &virt.VM{Id: vmId}
+			if err := mockVM.Unprepare(nil, false); err != nil {
+				log.Error("leftover unprepare: %v", err)
+			}
+
+			if err := updateState(vmId); err != nil {
+				log.Error("%v", err)
+			}
+
+			return nil
+		},
+	}
 }

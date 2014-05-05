@@ -136,7 +136,7 @@ func (o *Oskite) Run() {
 	// startPrepareWorkers starts multiple workers (based on prepareQueueLimit)
 	// that accepts vmPrepare/vmStart functions.
 	for i := 0; i < o.PrepareQueueLimit; i++ {
-		go prepareWorker(i)
+		go o.prepareWorker(i)
 	}
 
 	o.prepareOsKite()
@@ -334,52 +334,15 @@ func (o *Oskite) handleCurrentVMs() {
 			log.Error("%v", err)
 		}
 
-		// start the shutdown timer for the given vm, for alwaysOn VM's it
-		// doesn't start it
+		// start the shutdown timer for the given vm (but not alwaysOn)
 		info.startTimeout()
 
-		// start alwaysON VMs. using an anonymous function let us create clean
-		// and flattened code like below
-		func() {
-			if !vm.AlwaysOn {
-				return
-			}
-
-			// means this vm is intended to be start on another kontainer machine
-			if vm.PinnedToHost != "" && vm.PinnedToHost != o.ServiceUniquename {
-				return
-			}
-
-			log.Info("starting alwaysOn VM %s [%s]", vm.HostnameAlias, vm.Id.Hex())
-			go func(vm virt.VM) {
-				if err := o.startSingleVM(&vm, nil); err != nil {
-					log.LogError(err, 0)
-				}
-			}(vm)
-		}()
-
+		// start alwaysON VMs
+		o.startAlwaysOn(&vm)
 		return true
 	})
 
 	log.Info("VMs in /var/lib/lxc are finished.")
-}
-
-func unprepareLeftover(vmId bson.ObjectId) {
-	prepareQueue <- &QueueJob{
-		msg: fmt.Sprintf("unprepare leftover vm %s", vmId.Hex()),
-		f: func() error {
-			mockVM := &virt.VM{Id: vmId}
-			if err := mockVM.Unprepare(nil, false); err != nil {
-				log.Error("leftover unprepare: %v", err)
-			}
-
-			if err := updateState(vmId); err != nil {
-				log.Error("%v", err)
-			}
-
-			return nil
-		},
-	}
 }
 
 func (o *Oskite) startPinnedVMs() {
@@ -692,7 +655,7 @@ func (o *Oskite) startSingleVM(vm *virt.VM, channel *kite.Channel) error {
 	var lastError error
 	done := make(chan struct{}, 1)
 	prepareQueue <- &QueueJob{
-		msg: "vm prepare and start " + vm.HostnameAlias,
+		msg: "startSingleVM " + vm.HostnameAlias,
 		f: func() error {
 			// prepare first
 			if lastError = prepareProgress(nil, vm); lastError != nil {
@@ -712,13 +675,18 @@ func (o *Oskite) startSingleVM(vm *virt.VM, channel *kite.Channel) error {
 	// to return something to the client
 	<-done
 
+	if lastError != nil {
+		log.Error("startSingleVM error: %s", lastError)
+	}
+
 	return lastError
 }
 
 // prepareWorker listens from prepareQueue channel and runs the functions it receives
-func prepareWorker(id int) {
+func (o *Oskite) prepareWorker(id int) {
 	queueInfo := func() string {
-		return fmt.Sprintf("[queue id: %d len: %d]", id, currentQueueCount.Get())
+		return fmt.Sprintf("[queue id: %d capacity: %d / %d]",
+			id, currentQueueCount.Get(), o.PrepareQueueLimit)
 	}
 
 	for job := range prepareQueue {
@@ -743,7 +711,7 @@ func prepareWorker(id int) {
 		select {
 		case <-done:
 		case <-time.After(time.Second * 60):
-			log.Info("Timeout job: '%s' after 60 seconds", job.msg, queueInfo())
+			log.Info("Timeout job: '%s' after 60 seconds %s", job.msg, queueInfo())
 		}
 
 		currentQueueCount.Add(-1)
