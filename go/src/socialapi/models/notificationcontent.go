@@ -89,18 +89,17 @@ func CreateNotification(i Notifiable) error {
 	return n.NotifyUsers(replierIds)
 }
 
-func (n *NotificationContent) NotifyUsers(recipients []int64) error {
+func (n *NotificationContent) NotifyUsers(recipients []int64) {
 	for i := 0; i < len(recipients); i++ {
 		notification := NewNotification()
 		notification.AccountId = recipients[i]
 		notification.NotificationContentId = n.Id
-		// TODO instead of interrupting the call send error messages to a queue
 		if err := notification.Create(); err != nil {
-			return err
+			if Log != nil {
+				Log.Error("An error occurred while notifying user %d: %s", notification.AccountId, err.Error())
+			}
 		}
 	}
-
-	return nil
 }
 
 func (n *NotificationContent) FetchByIds(ids []int64) ([]NotificationContent, error) {
