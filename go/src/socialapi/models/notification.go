@@ -176,8 +176,7 @@ func fetchRelatedContents(nl []Notification) (map[int64]NotificationContent, err
 
 func (n *Notification) FetchContent() (*NotificationContent, error) {
 	nc := NewNotificationContent()
-	nc.Id = n.NotificationContentId
-	if err := nc.Fetch(); err != nil {
+	if err := nc.ById(n.NotificationContentId); err != nil {
 		return nil, err
 	}
 

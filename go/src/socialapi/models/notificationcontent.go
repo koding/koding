@@ -57,8 +57,8 @@ func (n *NotificationContent) One(q *bongo.Query) error {
 	return bongo.B.One(n, n, q)
 }
 
-func (n *NotificationContent) Fetch() error {
-	return bongo.B.Fetch(n)
+func (n *NotificationContent) ById(id int64) error {
+	return bongo.B.ById(n, id)
 }
 
 func CreateNotification(i Notifiable) error {
