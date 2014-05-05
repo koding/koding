@@ -24,7 +24,7 @@ class EditorModal extends KDModalView
     editorOptions = options.editor or {}
 
     appManager.require "Teamwork", =>
-      {title, content, readOnly} = editorOptions
+      {title, content, readOnly, buttons} = editorOptions
       @editor        = new EditorPane
         cssClass     : "hidden"
         title        : title    or ""
@@ -33,7 +33,7 @@ class EditorModal extends KDModalView
         size         :
           width      : 800
           height     : 400
-        buttons      : [
+        buttons      : buttons or [
           {
             title    : "Save"
             cssClass : "solid compact green"
