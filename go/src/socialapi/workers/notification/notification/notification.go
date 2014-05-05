@@ -69,6 +69,8 @@ func NewNotificationWorkerController(rmq *rabbitmq.RabbitMQ, log logging.Logger,
 
 	nwc.routes = routes
 
+	models.Log = log
+
 	return nwc, nil
 }
 
