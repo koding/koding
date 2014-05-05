@@ -79,7 +79,7 @@ type Oskite struct {
 
 // QueueJob is used to append jobs to the prepareQueue.
 type QueueJob struct {
-	f   func() (string, error)
+	f   func() error
 	msg string
 }
 
@@ -350,7 +350,7 @@ func (o *Oskite) vmUpdater() {
 func unprepareLeftover(vmId bson.ObjectId) {
 	prepareQueue <- &QueueJob{
 		msg: fmt.Sprintf("unprepare leftover vm %s", vmId.Hex()),
-		f: func() (string, error) {
+		f: func() error {
 			mockVM := &virt.VM{Id: vmId}
 			if err := mockVM.Unprepare(nil, false); err != nil {
 				log.Error("leftover unprepare: %v", err)
@@ -360,7 +360,7 @@ func unprepareLeftover(vmId bson.ObjectId) {
 				log.Error("%v", err)
 			}
 
-			return fmt.Sprintf("unprepare finished for leftover vm %s", vmId), nil
+			return nil
 		},
 	}
 }
@@ -485,14 +485,14 @@ func (o *Oskite) setupSignalHandler() {
 			log.Info("Unpreparing " + info.vm.String())
 			prepareQueue <- &QueueJob{
 				msg: "vm unprepare because of shutdown oskite " + info.vm.HostnameAlias,
-				f: func() (string, error) {
+				f: func() error {
 					defer wg.Done()
 					// mutex is needed because it's handled in the queue
 					info.mutex.Lock()
 					defer info.mutex.Unlock()
 
 					info.unprepareVM()
-					return fmt.Sprintf("shutting down %s", info.vm.Id.Hex()), nil
+					return nil
 				},
 			}
 		}
@@ -742,19 +742,15 @@ func startAndPrepareVM(vm *virt.VM) error {
 	done := make(chan struct{}, 1)
 	prepareQueue <- &QueueJob{
 		msg: "vm prepare and start " + vm.HostnameAlias,
-		f: func() (string, error) {
-			defer func() { done <- struct{}{} }()
-			startTime := time.Now()
-
+		f: func() error {
 			// prepare first
 			if lastError = prepareProgress(nil, vm); lastError != nil {
-				return "", fmt.Errorf("preparing VM %s", lastError)
+				return fmt.Errorf("preparing VM %s", lastError)
 			}
 
-			res := fmt.Sprintf("VM PREPARE and START: %s [%s] - ElapsedTime: %.10f seconds.",
-				vm, vm.HostnameAlias, time.Since(startTime).Seconds())
+			done <- struct{}{}
 
-			return res, nil
+			return nil
 		},
 	}
 
@@ -773,16 +769,17 @@ func prepareWorker(id int) {
 	for job := range prepareQueue {
 		currentQueueCount.Add(1)
 
-		log.Info(fmt.Sprintf("Queue %d: processing job: %s [%s]", id, job.msg, time.Now().Format(time.StampMilli)))
+		log.Info("Queue %d: processing job: %s [%s]", id, job.msg, time.Now())
 
 		done := make(chan struct{}, 1)
 		go func() {
-			startTime := time.Now()
-			res, err := job.f() // execute our function
+			start := time.Now()
+
+			err := job.f() // execute our function
 			if err != nil {
-				log.Error(fmt.Sprintf("Queue %d: error %s", id, err))
+				log.Error("Queue %d: error %s", id, err)
 			} else {
-				log.Info(fmt.Sprintf("Queue %d: elapsed time %s res: %s", id, time.Since(startTime), res))
+				log.Info("Queue %d: elapsed time %s", id, time.Since(start))
 			}
 
 			done <- struct{}{}
