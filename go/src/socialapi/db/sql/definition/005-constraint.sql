@@ -144,3 +144,8 @@ ALTER TABLE "api"."notification_content" ADD PRIMARY KEY ("id") NOT DEFERRABLE I
 --  Primary key structure for table activity
 -- ----------------------------
 ALTER TABLE "api"."activity" ADD PRIMARY KEY ("id") NOT DEFERRABLE INITIALLY IMMEDIATE;
+
+-- ----------------------------
+--  Primary key structure for table notification_subscription
+-- ----------------------------
+ALTER TABLE "api"."notification_subscription" ADD PRIMARY KEY ("id") NOT DEFERRABLE INITIALLY IMMEDIATE;

@@ -143,3 +143,17 @@ CREATE TABLE "api"."activity" (
 )
 WITH (OIDS=FALSE);
 ALTER TABLE "api"."activity" OWNER TO "socialapplication";
+
+-- ----------------------------
+--  Table structure for notification_subscription
+-- ----------------------------
+DROP TABLE IF EXISTS "api"."notification_subscription";
+CREATE TABLE "api"."notification_subscription" (
+    "id" int8 NOT NULL DEFAULT nextval('notification_subscription_id_seq'::regclass),
+    "account_id" int8 NOT NULL,
+    "notification_content_id" int8 NOT NULL,
+    "type_constant" varchar(100) NOT NULL COLLATE "default",
+    "added_at" timestamp(6) WITH TIME ZONE
+)
+WITH (OIDS=FALSE);
+ALTER TABLE "api"."notification_subscription" OWNER TO "socialapplication";
