@@ -160,32 +160,3 @@ class ActivityCountLink extends KDCustomHTMLView
     super
 
     @setCount()
-
-
-class ActivityLikeCount extends ActivityCountLink
-
-  constructor: (options, data) ->
-
-    super options, data
-
-    @oldCount = (data.meta.likes or 0) or 0
-
-
-  setCount: ->
-
-    {meta} = @getData()
-    likes = (meta?.likes) or 0
-
-    if likes isnt @oldCount
-      @emit "countChanged", likes
-
-    @oldCount = likes
-
-    if likes
-    then @show()
-    else @hide()
-
-
-  pistachio: ->
-
-    "{{ #(meta.likes)}}"
