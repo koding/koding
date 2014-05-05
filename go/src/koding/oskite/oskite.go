@@ -299,7 +299,7 @@ func (o *Oskite) prepareOsKite() {
 	o.Kite = k
 }
 
-// currentVMS returns a set of current VMS on the host machine with their
+// currentVMS returns a set of VM ids on the current host machine with their
 // associated mongodb objectid's taken from the directory name
 func currentVMs() (set.Interface, error) {
 	dirs, err := ioutil.ReadDir("/var/lib/lxc")
@@ -320,9 +320,11 @@ func currentVMs() (set.Interface, error) {
 	return vms, nil
 }
 
-// mongodbVMs returns a set of VMs that are bind to the given
+type VmCollection map[bson.ObjectId]*models.VM
+
+// mongodbVMs returns a map of VMs that are bind to the given
 // serviceUniquename/hostkite in mongodb
-func mongodbVMs(serviceUniquename string) (set.Interface, error) {
+func mongodbVMs(serviceUniquename string) (VmCollection, error) {
 	vms := make([]*models.VM, 0)
 
 	query := func(c *mgo.Collection) error {
@@ -333,12 +335,24 @@ func mongodbVMs(serviceUniquename string) (set.Interface, error) {
 		return nil, fmt.Errorf("allVMs fetching err: %s", err.Error())
 	}
 
-	vmsSet := set.NewNonTS()
+	vmsMap := make(map[bson.ObjectId]*models.VM, len(vms))
+
 	for _, vm := range vms {
-		vmsSet.Add(vm.Id)
+		vmsMap[vm.Id] = vm
 	}
 
-	return vmsSet, nil
+	return vmsMap, nil
+}
+
+// Ids returns a set of VM ids
+func (v VmCollection) Ids() set.Interface {
+	ids := set.NewNonTS()
+
+	for id := range v {
+		ids.Add(id)
+	}
+
+	return ids
 }
 
 // vmUpdater updates the states of current available VMs on the host machine.
@@ -350,12 +364,12 @@ func (o *Oskite) vmUpdater() {
 			continue
 		}
 
-		dbIds, err := mongodbVMs(o.ServiceUniquename)
+		vms, err := mongodbVMs(o.ServiceUniquename)
 		if err != nil {
-			log.Error("vm updater getting all db failed err %v", err)
+			log.Error("vm updater mongoDBVms failed err %v", err)
 		}
 
-		combined := set.Intersection(currentIds, dbIds)
+		combined := set.Intersection(currentIds, vms.Ids())
 
 		combined.Each(func(item interface{}) bool {
 			vmId, ok := item.(bson.ObjectId)
@@ -402,7 +416,7 @@ func unprepareLeftover(vmId bson.ObjectId) {
 }
 
 // handleCurrentVMs removes and unprepare any vm in the lxc dir that doesn't
-// have any associated document which in mongodbConn.
+// have any associated document in mongoDB. It also
 func (o *Oskite) handleCurrentVMs() {
 	currentIds, err := currentVMs()
 	if err != nil {
@@ -413,7 +427,7 @@ func (o *Oskite) handleCurrentVMs() {
 	currentIds.Each(func(item interface{}) bool {
 		vmId, ok := item.(bson.ObjectId)
 		if !ok {
-			return true
+			return true // pick up the next one
 		}
 
 		var vm virt.VM
