@@ -7,7 +7,8 @@ class EditorModal extends KDModalView
     options.width                 = 800 # currently 800 for styling
     options.height                = 400 # currently 400 for styling
     options.overlay              ?= yes
-    options.editor               ?= {}
+    options.editor               ?=
+      readOnly                    : yes
     options.removeOnOverlayClick  = no
 
     super options, data
@@ -23,10 +24,12 @@ class EditorModal extends KDModalView
     editorOptions = options.editor or {}
 
     appManager.require "Teamwork", =>
+      {title, content, readOnly} = editorOptions
       @editor        = new EditorPane
         cssClass     : "hidden"
-        title        : editorOptions.title or ""
-        content      : Encoder.htmlDecode editorOptions.content or ""
+        title        : title    or ""
+        readOnly     : readOnly  ? no
+        content      : Encoder.htmlDecode content or ""
         size         :
           width      : 800
           height     : 400
