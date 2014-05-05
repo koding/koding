@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"io/ioutil"
+	"koding/db/models"
 	"koding/db/mongodb"
 	"koding/db/mongodb/modelhelper"
 	"koding/kodingkite"
@@ -319,22 +320,48 @@ func currentVMs() (set.Interface, error) {
 	return vms, nil
 }
 
+// mongodbVMs returns a set of VMs that are bind to the given
+// serviceUniquename/hostkite in mongodb
+func mongodbVMs(serviceUniquename string) (set.Interface, error) {
+	vms := make([]*models.VM, 0)
+
+	query := func(c *mgo.Collection) error {
+		return c.Find(bson.M{"hostKite": serviceUniquename}).All(&vms)
+	}
+
+	if err := mongodbConn.Run("jVMs", query); err != nil {
+		return nil, fmt.Errorf("allVMs fetching err: %s", err.Error())
+	}
+
+	vmsSet := set.NewNonTS()
+	for _, vm := range vms {
+		vmsSet.Add(vm.Id)
+	}
+
+	return vmsSet, nil
+}
+
 // vmUpdater updates the states of current available VMs on the host machine.
 func (o *Oskite) vmUpdater() {
 	for _ = range time.Tick(time.Second * 10) {
-		vmIds, err := currentVMs()
+		currentIds, err := currentVMs()
 		if err != nil {
 			log.Error("vm updater getting current vms err %v", err)
 			continue
 		}
 
-		vmIds.Each(func(id interface{}) bool {
-			vmId, ok := id.(bson.ObjectId)
+		dbIds, err := mongodbVMs(o.ServiceUniquename)
+		if err != nil {
+			log.Error("vm updater getting all db failed err %v", err)
+		}
+
+		combined := set.Intersection(currentIds, dbIds)
+
+		combined.Each(func(item interface{}) bool {
+			vmId, ok := item.(bson.ObjectId)
 			if !ok {
 				return true
 			}
-
-			fmt.Printf("vmId %+v\n", vmId)
 
 			err := updateState(vmId)
 			if err == nil {
@@ -377,14 +404,14 @@ func unprepareLeftover(vmId bson.ObjectId) {
 // handleCurrentVMs removes and unprepare any vm in the lxc dir that doesn't
 // have any associated document which in mongodbConn.
 func (o *Oskite) handleCurrentVMs() {
-	vmIds, err := currentVMs()
+	currentIds, err := currentVMs()
 	if err != nil {
 		log.LogError(err, 0)
 		return
 	}
 
-	vmIds.Each(func(id interface{}) bool {
-		vmId, ok := id.(bson.ObjectId)
+	currentIds.Each(func(item interface{}) bool {
+		vmId, ok := item.(bson.ObjectId)
 		if !ok {
 			return true
 		}
