@@ -65,12 +65,12 @@ class EnvironmentsMainScene extends JView
         @createStacks stacks
 
   createStacks: (stacks) ->
-    @_stacks = []
+    @stacks = []
     stacks.forEach (stack, index) =>
       stack = new StackView  { stack, isDefault: index is 0 }, @environmentData
-      @_stacks.push @addSubView stack
-      @forwardEvent stack, "CloneStackRequested"
 
+      @stacks.push @addSubView stack
+      @forwardEvent stack, "CloneStackRequested"
       callback?()  if index is stacks.length - 1
 
     @emit "StacksCreated"
@@ -87,7 +87,7 @@ class EnvironmentsMainScene extends JView
 
       stackView = new StackView { stack} , @environmentData
       @forwardEvent stackView, "CloneStackRequested"
-      @_stacks.push @addSubView stackView
+      @stacks.push @addSubView stackView
       @highlightStack stackView
 
   highlightStack: (stackView) ->
@@ -106,7 +106,7 @@ class EnvironmentsMainScene extends JView
         stackModal = new CloneStackModal { meta }, stackData
         stackModal.once "StackCloned", =>
           @once "EnvironmentDataFetched", =>
-            stackView.destroy() for stackView in @_stacks
+            stackView.destroy() for stackView in @stacks
           @once "StacksCreated", =>
-            @highlightStack @_stacks.last
+            @highlightStack @stacks.last
           @fetchStacks()
