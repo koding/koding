@@ -124,16 +124,16 @@ followTopic = (data, callback)->
   if not data.accountId or not data.channelId
     return callback { message: "Request is not valid"}
 
-  url = "#{SOCIAL_API_URL}/channel/#{data.channelId}/
-participant/#{data.accountId}/add"
+  url = "#{SOCIAL_API_URL}/channel/#{data.channelId}/\
+        participant/#{data.accountId}/add"
   post url, data, callback
 
 unfollowTopic = (data, callback)->
   if not data.accountId or not data.channelId
     return callback { message: "Request is not valid"}
 
-  url = "#{SOCIAL_API_URL}/channel/#{data.channelId}/
-participant/#{data.accountId}/delete"
+  url = "#{SOCIAL_API_URL}/channel/#{data.channelId}/\
+        participant/#{data.accountId}/delete"
   post url, data, callback
 
 
