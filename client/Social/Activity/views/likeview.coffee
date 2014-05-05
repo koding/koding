@@ -1,6 +1,6 @@
 class ActivityLikeView extends JView
 
-  constructor:(options={}, data)->
+  constructor: (options = {}, data) ->
 
     options.tagName            or= 'span'
     options.cssClass           or= 'like-view'
@@ -45,7 +45,8 @@ class ActivityLikeView extends JView
 
         @_currentState = likedBefore
 
-  fetchLikeInfo:->
+
+  fetchLikeInfo: ->
 
     data = @getData()
 
@@ -117,7 +118,9 @@ class ActivityLikeView extends JView
         @likeCount.getTooltip().update { title: tooltip }
         @_lastUpdatedCount = data.meta.likes
 
-  click:(event)->
+
+  click: (event) ->
+
     event.preventDefault()
 
     if $(event.target).is("a.action-link")
@@ -142,14 +145,24 @@ class ActivityLikeView extends JView
 
           @_lastUpdatedCount = -1
 
-  pistachio:->
+
+  pistachio: ->
+
     """{{> @likeLink}}{{> @likeCount}}"""
 
 class LikeViewClean extends ActivityLikeView
 
-  constructor:->
+  constructor: ->
+
     super
+
     @likeLink.updatePartial "Like"
 
-  pistachio:->
-    """<span class='comment-actions'>{{> @likeLink}}{{> @likeCount}}</span>"""
+
+  pistachio: ->
+
+    """
+    <span class='comment-actions'>
+      {{> @likeLink}}{{> @likeCount}}
+    </span>
+    """
