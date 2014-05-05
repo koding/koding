@@ -31,10 +31,12 @@ class EnvironmentRuleItem extends EnvironmentItem
 
   cmedit: ->
     modal = new AddFirewallRuleModal {}, @getData()
-    modal.once "RuleUpdated", =>
-      @template.update()
-      {enabled} = @getData()
-      if enabled then @unsetClass "disabled" else @setClass "disabled"
+    modal.once "RuleUpdated", @bound "handleDataUpdate"
+
+  handleDataUpdate: ->
+    @template.update()
+    {enabled} = @getData()
+    if enabled then @unsetClass "disabled" else @setClass "disabled"
 
   confirmDestroy: ->
     data           = @getData()
