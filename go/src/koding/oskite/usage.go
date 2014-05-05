@@ -33,20 +33,6 @@ type Limit struct {
 	AlwaysOnVMs LimitState `bson:"alwaysOnVMs"`
 }
 
-type LimitError struct {
-	Message string `json:"message"`
-	Code    string `json:"code"`
-}
-
-func (l *LimitError) Error() string {
-	out, err := json.Marshal(l)
-	if err != nil {
-		panic(err) // should never happen
-	}
-
-	return string(out)
-}
-
 type KiteStore struct {
 	Id       bson.ObjectId `bson:"_id"`
 	Name     string        `bson:"name"`
@@ -240,15 +226,15 @@ func (p *Plan) prepareLimits(username, groupId string) (*Limit, error) {
 
 func (l *Limit) check() error {
 	if l.CPU == LimitQuotaExceeded {
-		return &LimitError{Message: "CPU limit reached", Code: ErrQuotaExceeded.Error()}
+		return &kite.BaseError{Message: "CPU limit reached", CodeErr: ErrQuotaExceeded.Error()}
 	}
 
 	if l.Disk == LimitQuotaExceeded {
-		return &LimitError{Message: "Disk limit reached", Code: ErrQuotaExceeded.Error()}
+		return &kite.BaseError{Message: "Disk limit reached", CodeErr: ErrQuotaExceeded.Error()}
 	}
 
 	if l.RAM == LimitQuotaExceeded {
-		return &LimitError{Message: "Ram limit reached", Code: ErrQuotaExceeded.Error()}
+		return &kite.BaseError{Message: "Ram limit reached", CodeErr: ErrQuotaExceeded.Error()}
 	}
 
 	return nil
