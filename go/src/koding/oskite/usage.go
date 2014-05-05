@@ -13,6 +13,7 @@ import (
 	"net/http"
 	"strings"
 
+	kitelib "github.com/koding/kite"
 	"gopkg.in/fatih/set.v0"
 	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
@@ -226,15 +227,15 @@ func (p *Plan) prepareLimits(username, groupId string) (*Limit, error) {
 
 func (l *Limit) check() error {
 	if l.CPU == LimitQuotaExceeded {
-		return &kite.BaseError{Message: "CPU limit reached", CodeErr: ErrQuotaExceeded.Error()}
+		return &kitelib.Error{Message: "CPU limit reached", Code: ErrQuotaExceeded.Error()}
 	}
 
 	if l.Disk == LimitQuotaExceeded {
-		return &kite.BaseError{Message: "Disk limit reached", CodeErr: ErrQuotaExceeded.Error()}
+		return &kitelib.Error{Message: "Disk limit reached", Code: ErrQuotaExceeded.Error()}
 	}
 
 	if l.RAM == LimitQuotaExceeded {
-		return &kite.BaseError{Message: "Ram limit reached", CodeErr: ErrQuotaExceeded.Error()}
+		return &kitelib.Error{Message: "Ram limit reached", Code: ErrQuotaExceeded.Error()}
 	}
 
 	return nil
