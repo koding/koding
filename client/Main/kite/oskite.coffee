@@ -79,11 +79,12 @@ class OsKite extends KDKite
           '{"message":"CPU limit reached","code":"ErrQuotaExceeded"}'
           '{"message":"Disk limit reached","code":"ErrQuotaExceeded"}'
           '{"message":"Ram limit reached","code":"ErrQuotaExceeded"}'
-        ]
+        ] or err.code is 'ErrQuotaExceeded'
           throw err
         if t < 5
           return Promise.delay(1000 * Math.pow 1.3, ++t).then => @vmOn t
         throw err
+      .then => @emit 'vmOn'
 
   vmOff: ->
     @changeState 'STOPPED', 'vm.progress.stop', 'vmOff', @vmStopAndUnprepare
