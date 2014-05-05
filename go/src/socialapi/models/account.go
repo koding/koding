@@ -249,7 +249,3 @@ func FetchOldIdsByAccountIds(accountIds []int64) ([]string, error) {
 
 	return oldIds, err
 }
-
-func (a *Account) Fetch() error {
-	return bongo.B.Fetch(a)
-}
