@@ -103,17 +103,41 @@ func (n *ReplyNotification) GetNotifiedUsers(notificationContentId int64) ([]int
 
 	p := &bongo.Pagination{}
 	replierIds, err := cm.FetchReplierIds(p, true, time.Time{})
-
 	if err != nil {
 		return nil, err
 	}
+	repliersMap := map[int64]struct{}{}
+	for _, replierId := range replierIds {
+		repliersMap[replierId] = struct{}{}
+	}
+
+	var subscribers []NotificationSubscription
+	q := &bongo.Query{
+		Selector: map[string]interface{}{
+			"notification_content_id": notificationContentId,
+		},
+	}
+	ns := NewNotificationSubscription()
+	if err := ns.Some(&subscribers, q); err != nil {
+		return nil, err
+	}
+
+	// regress unsubscribed users and append subscribed ones
+	for _, subscriber := range subscribers {
+		switch subscriber.TypeConstant {
+		case NotificationSubscription_TYPE_SUBSCRIBE:
+			repliersMap[subscriber.AccountId] = struct{}{}
+		case NotificationSubscription_TYPE_UNSUBSCRIBE:
+			delete(repliersMap, subscriber.AccountId)
+		}
+	}
 
 	// regress notifier from notified users
+	delete(repliersMap, n.NotifierId)
+
 	filteredRepliers := make([]int64, 0)
-	for _, replierId := range replierIds {
-		if replierId != n.NotifierId {
-			filteredRepliers = append(filteredRepliers, replierId)
-		}
+	for replierId, _ := range repliersMap {
+		filteredRepliers = append(filteredRepliers, replierId)
 	}
 
 	return filteredRepliers, nil
