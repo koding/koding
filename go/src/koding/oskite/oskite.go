@@ -766,10 +766,14 @@ func startAndPrepareVM(vm *virt.VM) error {
 
 // prepareWorker listens from prepareQueue channel and runs the functions it receives
 func prepareWorker(id int) {
+	queueInfo := func() string {
+		return fmt.Sprintf("[queue id: %d len: %d]", id, currentQueueCount.Get())
+	}
+
 	for job := range prepareQueue {
 		currentQueueCount.Add(1)
 
-		log.Info("Queue %d: processing job: %s [%s]", id, job.msg, time.Now())
+		log.Info("Starting job: '%s' %s", job.msg, queueInfo())
 
 		done := make(chan struct{}, 1)
 		go func() {
@@ -777,9 +781,9 @@ func prepareWorker(id int) {
 
 			err := job.f() // execute our function
 			if err != nil {
-				log.Error("Queue %d: error %s", id, err)
+				log.Error("Aborted job: '%s' err: %s %s", job.msg, err.Error(), queueInfo())
 			} else {
-				log.Info("Queue %d: elapsed time %s", id, time.Since(start))
+				log.Info("Finished job: '%s' elapsed time: %s %s", job.msg, time.Since(start), queueInfo())
 			}
 
 			done <- struct{}{}
@@ -787,9 +791,8 @@ func prepareWorker(id int) {
 
 		select {
 		case <-done:
-			log.Info(fmt.Sprintf("Queue %d: done for job: %s", id, job.msg))
 		case <-time.After(time.Second * 60):
-			log.Info(fmt.Sprintf("Queue %d: timed out after 60 seconds for job: %s", id, job.msg))
+			log.Info("Timeout job: '%s' after 60 seconds", job.msg, queueInfo())
 		}
 
 		currentQueueCount.Add(-1)
