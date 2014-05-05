@@ -78,15 +78,15 @@ func CreateNotification(i Notifiable) error {
 		return err
 	}
 
-	// fetch users and updates their cache if it is available
-	replierIds, err := i.GetNotifiedUsers()
+	// fetch users that will be notified by the activity
+	replierIds, err := i.GetNotifiedUsers(n.Id)
 	if err != nil {
 		return err
 	}
 
-	// TODO check subscribers/unsubscribers
+	n.NotifyUsers(replierIds)
 
-	return n.NotifyUsers(replierIds)
+	return nil
 }
 
 func (n *NotificationContent) NotifyUsers(recipients []int64) {

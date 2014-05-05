@@ -12,7 +12,7 @@ var (
 
 type Notifiable interface {
 	// users that will be notified are fetched while creating notification
-	GetNotifiedUsers() ([]int64, error)
+	GetNotifiedUsers(notificationContentId int64) ([]int64, error)
 	GetType() string
 	GetTargetId() int64
 	FetchActors() (*ActorContainer, error)
@@ -27,7 +27,7 @@ type InteractionNotification struct {
 	NotifierId   int64
 }
 
-func (n *InteractionNotification) GetNotifiedUsers() ([]int64, error) {
+func (n *InteractionNotification) GetNotifiedUsers(notificationContentId int64) ([]int64, error) {
 	i := NewInteraction()
 	i.MessageId = n.TargetId
 
@@ -96,7 +96,7 @@ type ReplyNotification struct {
 	NotifierId int64
 }
 
-func (n *ReplyNotification) GetNotifiedUsers() ([]int64, error) {
+func (n *ReplyNotification) GetNotifiedUsers(notificationContentId int64) ([]int64, error) {
 	// fetch all repliers
 	cm := NewChannelMessage()
 	cm.Id = n.TargetId
@@ -182,7 +182,7 @@ type FollowNotification struct {
 	NotifierId int64
 }
 
-func (n *FollowNotification) GetNotifiedUsers() ([]int64, error) {
+func (n *FollowNotification) GetNotifiedUsers(notificationContentId int64) ([]int64, error) {
 	users := make([]int64, 0)
 	return append(users, n.TargetId), nil
 }
@@ -238,7 +238,7 @@ type GroupNotification struct {
 }
 
 // fetch group admins
-func (n *GroupNotification) GetNotifiedUsers() ([]int64, error) {
+func (n *GroupNotification) GetNotifiedUsers(notificationContentId int64) ([]int64, error) {
 	if len(n.Admins) == 0 {
 		return nil, errors.New("admins cannot be empty")
 	}
