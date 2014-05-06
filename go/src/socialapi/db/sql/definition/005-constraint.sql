@@ -95,7 +95,7 @@ ALTER TABLE "api"."channel_participant" ADD CONSTRAINT "channel_participant_acco
 -- ----------------------------
 CREATE INDEX  "channel_participant_account_id_idx" ON "api"."channel_participant" USING btree(account_id ASC NULLS LAST);
 CREATE INDEX  "channel_participant_channel_id_idx" ON "api"."channel_participant" USING btree(channel_id ASC NULLS LAST);
-CREATE INDEX  "channel_participant_lower_idx" ON "api"."channel_participant" USING btree("lower(status_constant::text)" COLLATE "default" ASC NULLS LAST);
+CREATE INDEX  "channel_participant_lower_idx" ON "api"."channel_participant" USING btree(lower(status_constant::text) COLLATE "default" ASC NULLS LAST);
 
 
 -- ----------------------------------------------------------------------------------------
