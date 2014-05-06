@@ -4,6 +4,8 @@ import (
 	"net/url"
 	"strconv"
 	"time"
+
+	"github.com/kennygrant/sanitize"
 )
 
 type Query struct {
@@ -28,8 +30,20 @@ func (q *Query) MapURL(u *url.URL) *Query {
 	q.Limit, _ = strconv.Atoi(urlQuery.Get("limit"))
 
 	q.GroupName = u.Query().Get("groupName")
+	if q.GroupName != "" {
+		q.GroupName = sanitize.Name(q.GroupName)
+	}
+
 	q.Type = u.Query().Get("type")
+	if q.Type != "" {
+		q.Type = sanitize.Name(q.Type)
+	}
+
 	q.Privacy = u.Query().Get("privacy")
+	if q.Privacy != "" {
+		q.Privacy = sanitize.Name(q.Privacy)
+	}
+
 	q.AccountId, _ = strconv.ParseInt(u.Query().Get("accountId"), 10, 64)
 
 	q.To, _ = time.Parse(time.RFC3339, urlQuery.Get("to"))
