@@ -18,7 +18,9 @@ CREATE TABLE "api"."channel" (
     "deleted_at" timestamp(6) WITH TIME ZONE
 )
 WITH (OIDS=FALSE);
-ALTER TABLE "api"."channel" OWNER TO "socialapplication";
+-- ALTER TABLE "api"."channel" OWNER TO "socialapplication";
+GRANT SELECT, INSERT, UPDATE ON "api"."channel" TO "socialapplication";
+
 
 -- ----------------------------
 --  Table structure for account
