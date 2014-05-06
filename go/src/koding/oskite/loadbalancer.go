@@ -26,7 +26,7 @@ func (o *Oskite) setupRedis() {
 		return
 	}
 
-	session, err := redis.NewRedisSession(conf.Redis)
+	session, err := redis.NewRedisSession(&redis.RedisConf{Server: conf.Redis})
 	if err != nil {
 		log.Error("redis SADD kontainers. err: %v", err.Error())
 	}
