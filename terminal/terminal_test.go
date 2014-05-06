@@ -16,8 +16,8 @@ func TestTerminal(t *testing.T) {
 	terminal.Config.DisableAuthentication = true
 	terminal.Config.Port = 3636
 	terminal.HandleFunc("connect", Connect)
+
 	go terminal.Run()
-	defer terminal.Close()
 	<-terminal.ServerReadyNotify()
 
 	client := kite.New("client", "0.0.1")
@@ -54,7 +54,6 @@ func TestTerminal(t *testing.T) {
 
 	// Two commands are run to make sure that the order of the keys are preserved.
 	// If not, sometimes inputs are mixed in a way that is non-deterministic.
-
 	term.Input.Call(`say hi`)
 	// time.Sleep(100 * time.Millisecond)
 	term.ControlSequence.Call("\r")
@@ -92,12 +91,12 @@ func newTermHandler() *termHandler {
 	}
 }
 
-func (r *termHandler) Output(req *kite.Request) {
-	data := req.Args.MustSliceOfLength(1)[0].MustString()
+func (r *termHandler) Output(d *dnode.Partial) {
+	data := d.MustSliceOfLength(1)[0].MustString()
 	r.output <- data
 }
 
-func (r *termHandler) SessionEnded(req *kite.Request) {
+func (r *termHandler) SessionEnded(d *dnode.Partial) {
 	fmt.Println("Session ended")
 }
 
