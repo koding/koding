@@ -731,14 +731,15 @@ span.collapsedtext
         &:first-of-type:before
           display         none
 
-
-
       time
         display           none //TEMP
 
 .activity-item.preview
   margin-top              29px
   overflow                visible
+  border                  2px dashed #cfcfcf
+  rounded                 6px 6px 0 0
+  borderBox()
 
   .activity-actions
   .comment-container
@@ -762,7 +763,6 @@ span.collapsedtext
     margin-bottom         -3px
 
   .activity-content-wrapper
-    border                2px dashed #cfcfcf
     padding-bottom        15px
 
   .preview-indicator
@@ -1267,7 +1267,7 @@ span.collapsedtext
     outline                 none
     shadow                  none
     z-index                 10
-    r-sprite                  app "20-close-tab"
+    r-sprite                app "20-close-tab"
     abs()
 
 .activity-item.status
