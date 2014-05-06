@@ -53,7 +53,7 @@ module.exports = class Builder
   spriteHelper = null
 
   canBuildSprites: ->
-    hasCanvas = !!try require 'node-canvas'
+    hasCanvas = !!try require 'canvas'
     (if hasCanvas then Promise.resolve() else which 'gm').catch (err) ->
       if /^not found:/.test err.message
         console.error "Unmet dependency!  You must install either graphicsmagick or cairo + node-canvas"
