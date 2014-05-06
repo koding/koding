@@ -7,7 +7,6 @@ import (
 	"socialapi/config"
 	"socialapi/workers/helper"
 	"socialapi/workers/populartopic/populartopic"
-	"github.com/koding/redis"
 	"github.com/koding/worker"
 )
 
@@ -33,11 +32,7 @@ func main() {
 	// do not forgot to close the bongo connection
 	defer bongo.Close()
 
-	redis, err := redis.NewRedisSession(conf.Redis)
-	if err != nil {
-		log.Error(err.Error())
-		return
-	}
+	redis := helper.MustInitRedisConn(conf.Redis)
 
 	// create message handler
 	handler := populartopic.NewPopularTopicsController(log, redis)
