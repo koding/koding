@@ -58,6 +58,7 @@ class MainController extends KDController
     KD.registerSingleton 'mainView',             mv = new MainView domId : 'kdmaincontainer'
     KD.registerSingleton 'mainViewController',  mvc = new MainViewController view : mv
     KD.registerSingleton 'kodingAppsController',      new KodingAppsController
+    KD.registerSingleton 'socialapi',                 new SocialApiController
 
     router.listen()
     @mainViewController = mvc
@@ -66,7 +67,6 @@ class MainController extends KDController
     @ready =>
       KD.registerSingleton 'widgetController',        new WidgetController
       KD.registerSingleton 'onboardingController',    new OnboardingController
-      KD.registerSingleton "socialapi",               new SocialApiController
 
       @emit 'AppIsReady'
 
