@@ -60,6 +60,7 @@ module.exports = class Builder
         console.error "You can install graphicsmagick using homebrew:"
         console.error "$ brew install graphicsmagick"
         process.exit(1)
+      throw err
 
   buildSprites: (options) ->
 
