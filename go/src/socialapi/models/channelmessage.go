@@ -33,6 +33,13 @@ type ChannelMessage struct {
 
 	// Modification date of the message
 	UpdatedAt time.Time `json:"updatedAt"           sql:"DEFAULT:CURRENT_TIMESTAMP"`
+
+	// Deletion date of the channel message
+	DeletedAt time.Time `json:"deletedAt"`
+}
+
+func (c *ChannelMessage) BeforeCreate() {
+	c.DeletedAt = ZeroDate()
 }
 
 func (c *ChannelMessage) AfterCreate() {
@@ -84,9 +91,12 @@ func bodyLenCheck(body string) error {
 	if len(body) < config.Get().Limits.MessageBodyMinLen {
 		return fmt.Errorf("Message Body Length should be greater than %d, yours is %d ", config.Get().Limits.MessageBodyMinLen, len(body))
 	}
+
 	return nil
 }
 
+// todo create a new message while updating the channel_message and delete other
+// cases, since deletion is a soft delete, old instances will still be there
 func (c *ChannelMessage) Update() error {
 	if err := bodyLenCheck(c.Body); err != nil {
 		return err

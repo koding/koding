@@ -22,12 +22,16 @@ class ActivitySideView extends JView
 
     @listView    = @listController.getView()
     @showAllLink = new KDCustomHTMLView
-      tagName    : "a"
-      partial    : "SHOW ALL"
+      tagName    : 'a'
+      partial    : 'SHOW ALL'
 
-    @listView.once 'viewAppended', =>
-      {dataSource} = @getOptions()
-      dataSource @bound 'renderItems'
+    @listView.once 'viewAppended', @bound 'reload'
+
+
+  reload: ->
+
+    {dataSource} = @getOptions()
+    dataSource @bound 'renderItems'
 
 
   renderItems: (err, items = []) ->

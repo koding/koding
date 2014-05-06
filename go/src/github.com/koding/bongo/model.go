@@ -214,50 +214,38 @@ func (b *Bongo) buildQuery(i Modellable, data interface{}, q *Query) error {
 }
 
 func (b *Bongo) AfterCreate(i Modellable) {
-	eventName := fmt.Sprintf("%s_created", i.TableName())
 	data, err := json.Marshal(i)
 	if err != nil {
-		// here try to resend this message to RMQ again, than
-		// persist it to somewhere!#!##@$%#?
-		// those messages are really important now
-		fmt.Println("Error occured", err)
 		return
 	}
-	err = b.Broker.Publish(eventName, data)
+
+	err = b.Broker.Publish(i.TableName()+"_created", data)
 	if err != nil {
-		fmt.Println("jhasdjhadsjdasj", err)
+		return
 	}
 }
 
 func (b *Bongo) AfterUpdate(i Modellable) {
-	eventName := fmt.Sprintf("%s_updated", i.TableName())
 	data, err := json.Marshal(i)
 	if err != nil {
-		// here try to resend this message to RMQ again, than
-		// persist it to somewhere!#!##@$%#?
-		// those messages are really important now
-		fmt.Println("Error occured", err)
 		return
 	}
-	err = b.Broker.Publish(eventName, data)
+
+	err = b.Broker.Publish(i.TableName()+"_updated", data)
 	if err != nil {
-		fmt.Println("jhasdjhadsjdasj", err)
+		return
 	}
 }
 
 func (b *Bongo) AfterDelete(i Modellable) {
-	eventName := fmt.Sprintf("%s_deleted", i.TableName())
 	data, err := json.Marshal(i)
 	if err != nil {
-		// here try to resend this message to RMQ again, than
-		// persist it to somewhere!#!##@$%#?
-		// those messages are really important now
-		fmt.Println("Error occured", err)
 		return
 	}
-	err = b.Broker.Publish(eventName, data)
+
+	err = b.Broker.Publish(i.TableName()+"_deleted", data)
 	if err != nil {
-		fmt.Println("jhasdjhadsjdasj", err)
+		return
 	}
 }
 
