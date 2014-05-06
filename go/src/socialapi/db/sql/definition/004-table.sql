@@ -31,7 +31,10 @@ CREATE TABLE "api"."account" (
     "old_id" varchar(24) NOT NULL COLLATE "default"
 )
 WITH (OIDS=FALSE);
-ALTER TABLE "api"."account" OWNER TO "socialapplication";
+-- ALTER TABLE "api"."account" OWNER TO "socialapplication";
+GRANT SELECT, INSERT ON "api"."account" TO "socialapplication";
+
+
 
 -- ----------------------------
 --  Table structure for channel_message
