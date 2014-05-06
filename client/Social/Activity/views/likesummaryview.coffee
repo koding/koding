@@ -23,7 +23,6 @@ class ActivityLikeSummaryView extends JView
     KD.singleton("socialapi").message.listLikers {id}, (err, accounts) ->
 
       return KD.showError err  if err
-
       return  if accounts.length is 0
 
       new ShowMoreDataModalView null, accounts
@@ -41,17 +40,16 @@ class ActivityLikeSummaryView extends JView
 
     super
 
-    names = []
-
+    names  = []
     strong = (x) -> "<strong>#{x}</strong>"
 
     @fetchPreviewAccounts (err, accounts) =>
 
       return KD.showError err  if err
-
       return  if accounts.length is 0
 
-      for account, i in accounts
+      for i in [0..2]
+        account = accounts[i]
         return  unless view = this["placeholder#{i}"]
         view.addSubView new ProfileLinkView null, account
 
