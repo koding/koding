@@ -114,5 +114,6 @@ CREATE TABLE "api"."message_reply" (
     "created_at" timestamp(6) WITH TIME ZONE NOT NULL DEFAULT now()
 )
 WITH (OIDS=FALSE);
-ALTER TABLE "api"."message_reply" OWNER TO "socialapplication";
+-- ALTER TABLE "api"."message_reply" OWNER TO "socialapplication";
+GRANT SELECT, INSERT, DELETE ON "api"."message_reply" TO "socialapplication";
 
