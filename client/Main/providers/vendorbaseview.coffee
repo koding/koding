@@ -127,6 +127,8 @@ class VendorBaseView extends KDTabPaneView
 
         @instanceController.replaceAllItems instances
 
+      @instanceListView.show()
+
   paneSelected:(force = no)->
 
     return if @_laoded and not force
