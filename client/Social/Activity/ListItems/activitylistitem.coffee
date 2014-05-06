@@ -3,7 +3,7 @@ class ActivityListItemView extends KDListItemView
   constructor:(options = {},data)->
 
     options.type              = 'activity'
-    options.cssClass          = 'activity-item status'
+    options.cssClass          = KD.utils.curry 'activity-item status', options.cssClass
     options.commentSettings or= {}
 
     super options, data
@@ -11,8 +11,8 @@ class ActivityListItemView extends KDListItemView
     data   = @getData()
     list   = @getDelegate()
     origin =
-      constructorName : data.originType
-      id              : data.originId
+      constructorName : data.account.constructorName
+      id              : data.account._id
 
     @avatar = new AvatarView
       size       :
@@ -141,7 +141,6 @@ class ActivityListItemView extends KDListItemView
 
 
   pistachio: ->
-
     """
     <div class="activity-content-wrapper">
       {{> @settingsButton}}

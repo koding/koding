@@ -47,6 +47,8 @@ class ActivityInputWidget extends KDView
 
     # FIXME we need to hide bug warning in a proper way ~ GG
     @input.on "keyup", =>
+      @showPreview() if @preview #Updates preview if it exists
+
       val = @input.getValue()
       @checkForCommonQuestions val
       if val.indexOf("5051003840118f872e001b91") is -1
@@ -294,21 +296,32 @@ class ActivityInputWidget extends KDView
 
     return unless value = @input.getValue().trim()
 
-    markedValue = KD.utils.applyMarkdown value
-
-    return  if markedValue.trim() is "<p>#{value}</p>"
-
-    tags = @input.getTokens().map (token) -> token.data if token.type is "tag"
-    tagsExpanded = @utils.expandTokens markedValue, {tags}
+    previewData =
+      on            : ->
+      watch         : ->
+      account       : KD.whoami()
+      body          : value
+      typeConstant  : 'post'
+      createdAt     : '2014-05-02T12:40:36.540356-07:00'
+      meta          :
+        likes       : 0
+        createdAt   : '2014-05-02T12:40:36.540356-07:00'
 
     if not @preview
-      @preview = new KDCustomHTMLView
-        cssClass : "update-preview"
-        partial  : tagsExpanded
-        click    : => @hidePreview()
-      @input.addSubView @preview
+
+      @addSubView @preview = new ActivityListItemView
+        cssClass      : 'preview'
+      , previewData
+
+      @preview.addSubView new KDCustomHTMLView
+        cssClass      : 'preview-indicator'
+        partial       : 'Previewing'
+        click         : => @hidePreview()
+
     else
-      @preview.updatePartial tagsExpanded
+
+      @preview.setData previewData
+      @preview.render()
 
     @setClass "preview-active"
 

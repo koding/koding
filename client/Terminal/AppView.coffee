@@ -100,9 +100,10 @@ class WebTermAppView extends JView
 
           unless sessionRestored
             @notify
-              title     : "Your previous sessions are no longer online since your VM is turned off due to inactivity. \
-                           If you want always on VMs, you can upgrade your plan"
-              cssClass  : "fail"
+              title     : 'Your previous sessions are no longer online since \
+                           your VM is turned off due to inactivity. If you \
+                           want always on VMs, you can upgrade your plan'
+              cssClass  : 'fail'
 
 
   initPane: (pane) ->
@@ -120,7 +121,7 @@ class WebTermAppView extends JView
 
 
   handlePaneShown:(pane, index)->
-    @_windowDidResize()
+
     {terminalView} = pane.getOptions()
 
     return  unless terminalView

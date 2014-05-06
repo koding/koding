@@ -1,11 +1,25 @@
 class ActivitySidebar extends KDCustomScrollView
 
+  addEventLogger = (source, eventName) -> source.on eventName, -> log eventName, arguments
+
   constructor: ->
 
     super
 
-    {activityController} = KD.singletons
+    {
+      activityController
+      notificationController
+      socialapi
+    } = KD.singletons
+
     activityController.on 'SidebarItemClicked', @bound 'itemClicked'
+
+    addEventLogger notificationController, 'AddedToChannel'
+    addEventLogger notificationController, 'RemovedFromChannel'
+
+
+    # addEventLogger socialapi, 'MessageAdded'
+    # addEventLogger socialapi, 'MessageRemoved'
 
 
   viewAppended:->
