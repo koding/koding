@@ -1,16 +1,26 @@
-package main
+package terminal
 
 import (
 	"fmt"
-	"koding/kite"
-	"koding/kite/dnode"
 	"strings"
 	"testing"
 	"time"
+
+	"github.com/koding/kite"
+	"github.com/koding/kite/dnode"
 )
 
 func TestTerminal(t *testing.T) {
-	termKite := NewTerminal()
+	options := &kite.Options{
+		Kitename:    "terminal",
+		Version:     "0.0.1",
+		Region:      "localhost",
+		Environment: "development",
+	}
+
+	terminal := kite.New(options)
+	terminal.DisableConcurrency()
+	terminal.HandleFunc("connect", Connect)
 	termKite.PublicIP = "127.0.0.1"
 	termKite.Port = "3636"
 	termKite.KontrolEnabled = false
