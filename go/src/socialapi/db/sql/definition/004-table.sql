@@ -52,7 +52,9 @@ CREATE TABLE "api"."channel_message" (
     "deleted_at" timestamp(6) WITH TIME ZONE
 )
 WITH (OIDS=FALSE);
-ALTER TABLE "api"."channel_message" OWNER TO "socialapplication";
+-- ALTER TABLE "api"."channel_message" OWNER TO "socialapplication";
+GRANT SELECT, INSERT, UPDATE ON "api"."channel_message" TO "socialapplication";
+
 
 -- ----------------------------
 --  Table structure for channel_message_list
