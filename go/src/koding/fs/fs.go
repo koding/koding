@@ -2,8 +2,8 @@ package fs
 
 import (
 	"errors"
-	"koding/tools/fsutils"
 	"log"
+	"os"
 	"path"
 	"sync"
 
@@ -45,15 +45,15 @@ func ReadDirectory(r *kite.Request) (interface{}, error) {
 		newPaths <- params.Path
 
 		var eventType string
-		var fileEntry *fsutils.FileEntry
+		var fileEntry *FileEntry
 
 		changer := func(ev *fsnotify.FileEvent) {
 			if ev.IsCreate() {
 				eventType = "added"
-				fileEntry, _ = fsutils.GetInfo(ev.Name)
+				fileEntry, _ = getInfo(ev.Name)
 			} else if ev.IsDelete() {
 				eventType = "removed"
-				fileEntry = fsutils.NewFileEntry(path.Base(ev.Name), ev.Name)
+				fileEntry = newFileEntry(path.Base(ev.Name), ev.Name)
 			}
 
 			event := map[string]interface{}{
@@ -132,7 +132,7 @@ func Glob(r *kite.Request) (interface{}, error) {
 		return nil, &kite.ArgumentError{Expected: "{ pattern: [string] }"}
 	}
 
-	return fsGlob(params.Pattern, vos)
+	return glob(params.Pattern)
 }
 
 func ReadFile(r *kite.Request) (interface{}, error) {
@@ -144,7 +144,14 @@ func ReadFile(r *kite.Request) (interface{}, error) {
 		return nil, &kite.ArgumentError{Expected: "{ path: [string] }"}
 	}
 
-	return fsReadFile(params.Path, vos)
+	return readFile(params.Path, vos)
+}
+
+type writeFileParams struct {
+	Path           string
+	Content        []byte
+	DoNotOverwrite bool
+	Append         bool
 }
 
 func WriteFile(r *kite.Request) (interface{}, error) {
@@ -153,7 +160,7 @@ func WriteFile(r *kite.Request) (interface{}, error) {
 		return nil, &kite.ArgumentError{Expected: "{ path: [string] }"}
 	}
 
-	return fsWriteFile(params, vos)
+	return writeFile(params.Path, params.Content, params.DoNotOverwrite, params.Append)
 }
 
 func UniquePath(r *kite.Request) (interface{}, error) {
@@ -165,7 +172,7 @@ func UniquePath(r *kite.Request) (interface{}, error) {
 		return nil, &kite.ArgumentError{Expected: "{ path: [string] }"}
 	}
 
-	return fsUniquePath(params.Path, vos)
+	return uniquePath(params.Path)
 }
 
 func GetInfo(r *kite.Request) (interface{}, error) {
@@ -177,7 +184,13 @@ func GetInfo(r *kite.Request) (interface{}, error) {
 		return nil, &kite.ArgumentError{Expected: "{ path: [string] }"}
 	}
 
-	return fsGetInfo(params.Path, vos)
+	return getInfo(params.Path)
+}
+
+type setPermissionsParams struct {
+	Path      string
+	Mode      os.FileMode
+	Recursive bool
 }
 
 func SetPermissions(r *kite.Request) (interface{}, error) {
@@ -187,7 +200,7 @@ func SetPermissions(r *kite.Request) (interface{}, error) {
 		return nil, &kite.ArgumentError{Expected: "{ path: [string], mode: [integer], recursive: [bool] }"}
 	}
 
-	return fsSetPermissions(params, vos)
+	return setPermissions(params.Path, params.Mode, params.Recursive)
 }
 
 func Remove(r *kite.Request) (interface{}, error) {
@@ -200,7 +213,7 @@ func Remove(r *kite.Request) (interface{}, error) {
 		return nil, &kite.ArgumentError{Expected: "{ path: [string], recursive: [bool] }"}
 	}
 
-	return fsRemove(params.Path, params.Recursive, vos)
+	return remove(params.Path, params.Recursive)
 }
 
 func Rename(r *kite.Request) (interface{}, error) {
@@ -213,7 +226,7 @@ func Rename(r *kite.Request) (interface{}, error) {
 		return nil, &kite.ArgumentError{Expected: "{ oldPath: [string], newPath: [string] }"}
 	}
 
-	return fsRename(params.OldPath, params.NewPath, vos)
+	return rename(params.OldPath, params.NewPath)
 }
 
 func CreateDirectory(r *kite.Request) (interface{}, error) {
@@ -226,7 +239,7 @@ func CreateDirectory(r *kite.Request) (interface{}, error) {
 		return nil, &kite.ArgumentError{Expected: "{ path: [string], recursive: [bool] }"}
 	}
 
-	return fsCreateDirectory(params.Path, params.Recursive, vos)
+	return createDirectory(params.Path, params.Recursive)
 }
 
 func Move(r *kite.Request) (interface{}, error) {
@@ -239,7 +252,7 @@ func Move(r *kite.Request) (interface{}, error) {
 		return nil, &kite.ArgumentError{Expected: "{ oldPath: [string], newPath: [string] }"}
 	}
 
-	return fsMove(params.OldPath, params.NewPath, vos)
+	return rename(params.OldPath, params.NewPath)
 }
 
 func Copy(r *kite.Request) (interface{}, error) {
@@ -252,5 +265,5 @@ func Copy(r *kite.Request) (interface{}, error) {
 		return nil, &kite.ArgumentError{Expected: "{ srcPath: [string], dstPath: [string] }"}
 	}
 
-	return fsCopy(params.SrcPath, params.DstPath, vos)
+	return cp(params.SrcPath, params.DstPath)
 }

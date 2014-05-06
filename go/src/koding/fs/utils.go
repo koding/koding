@@ -10,6 +10,7 @@ import (
 	"path/filepath"
 	"regexp"
 	"strconv"
+	"strings"
 	"time"
 )
 
@@ -29,7 +30,7 @@ func NewFileEntry(name string, fullPath string) *FileEntry {
 	return &FileEntry{Name: name, FullPath: fullPath}
 }
 
-func ReadDirectory(p string) ([]FileEntry, error) {
+func readDirectory(p string) ([]FileEntry, error) {
 	files, err := ioutil.ReadDir(p)
 	if err != nil {
 		return nil, err
@@ -43,7 +44,7 @@ func ReadDirectory(p string) ([]FileEntry, error) {
 	return ls, nil
 }
 
-func Glob(glob string) ([]string, error) {
+func glob(glob string) ([]string, error) {
 	files, err := filepath.Glob(glob)
 	if err != nil {
 		return nil, err
@@ -52,7 +53,7 @@ func Glob(glob string) ([]string, error) {
 	return files, nil
 }
 
-func ReadFile(path string) ([]byte, error) {
+func readFile(path string) (map[string]interface{}, error) {
 	file, err := os.Open(path)
 	if err != nil {
 		return nil, err
@@ -73,10 +74,10 @@ func ReadFile(path string) ([]byte, error) {
 		return nil, err
 	}
 
-	return buf, nil
+	return map[string]interface{}{"content": buf}, nil
 }
 
-func WriteFile(filename string, data []byte, DoNotOverwrite, Append bool) error {
+func writeFile(filename string, data []byte, DoNotOverwrite, Append bool) (int, error) {
 	flags := os.O_RDWR | os.O_CREATE
 	if DoNotOverwrite {
 		flags |= os.O_EXCL
@@ -99,12 +100,12 @@ func WriteFile(filename string, data []byte, DoNotOverwrite, Append bool) error 
 		return err
 	}
 
-	return nil
+	return file.Write(params.Content)
 }
 
 var suffixRegexp = regexp.MustCompile(`.((_\d+)?)(\.\w*)?$`)
 
-func EnsureNonexistentPath(name string) (string, error) {
+func uniquePath(name string) (string, error) {
 	index := 1
 	for {
 		_, err := os.Stat(name)
@@ -123,7 +124,7 @@ func EnsureNonexistentPath(name string) (string, error) {
 	return name, nil
 }
 
-func GetInfo(path string) (*FileEntry, error) {
+func getInfo(path string) (FileEntry, error) {
 	fi, err := os.Stat(path)
 	if err != nil {
 		if os.IsNotExist(err) {
@@ -132,9 +133,7 @@ func GetInfo(path string) (*FileEntry, error) {
 		return nil, err
 	}
 
-	fileEntry := makeFileEntry(path, fi)
-
-	return &fileEntry, nil
+	return makeFileEntry(path, fi), nil
 }
 
 func makeFileEntry(fullPath string, fi os.FileInfo) FileEntry {
@@ -168,7 +167,7 @@ func isReadable(mode os.FileMode) bool { return mode&0400 != 0 }
 
 func isWritable(mode os.FileMode) bool { return mode&0200 != 0 }
 
-func SetPermissions(name string, mode os.FileMode, recursive bool) error {
+func setPermissions(name string, mode os.FileMode, recursive bool) error {
 	var doChange func(name string) error
 
 	doChange = func(name string) error {
@@ -212,18 +211,126 @@ func SetPermissions(name string, mode os.FileMode, recursive bool) error {
 	return doChange(name)
 }
 
-func Remove(path string) error {
+func remove(path string, recursive bool) error {
+	if recursive {
+		return os.RemoveAll(path)
+	}
+
 	return os.Remove(path)
 }
 
-func Rename(oldname, newname string) error {
+func rename(oldname, newname string) error {
 	return os.Rename(oldname, newname)
 }
 
-func CreateDirectory(name string, recursive bool) error {
+func createDirectory(name string, recursive bool) error {
 	if recursive {
 		return os.MkdirAll(name, 0755)
 	}
 
 	return os.Mkdir(name, 0755)
+}
+
+type info struct {
+	exists bool
+	isDir  bool
+}
+
+// TODO: merge with FileEntry
+func newInfo(file string) *info {
+	fi, err := os.Stat(file)
+	if err == nil {
+		return &info{
+			isDir:  fi.IsDir(),
+			exists: true,
+		}
+	}
+
+	if os.IsNotExist(err) {
+		return &info{
+			isDir:  false, // don't care
+			exists: false,
+		}
+	}
+
+	return nil
+}
+
+func cp(src, dst string) error {
+	srcInfo, dstInfo := newInfo(src), newInfo(dst)
+
+	// if the given path doesn't exist, there is nothing to be copied.
+	if !srcInfo.exists {
+		return fmt.Errorf("%s: no such file or directory.", src)
+	}
+
+	if !filepath.IsAbs(dst) || !filepath.IsAbs(src) {
+		return errors.New("paths must be absolute.")
+	}
+
+	// cleanup paths before we continue. That means the followings will be equal:
+	// "/home/arslan/" and "/home/arslan"
+	src, dst = filepath.Clean(src), filepath.Clean(dst)
+
+	// deny these cases:
+	// "/home/arslan/Web" to "/home/arslan"
+	// "/home/arslan"    to "/home/arslan"
+	if src == dst || filepath.Dir(src) == dst {
+		return fmt.Errorf("%s and %s are identical (not copied).", src, dst)
+	}
+
+	if srcInfo.isDir && dstInfo.exists {
+		// deny this case:
+		// "/home/arslan/Web" to "/home/arslan/server.go"
+		if !dstInfo.isDir {
+			return errors.New("can't copy a folder to a file")
+		}
+
+		// deny this case:
+		// "/home/arslan" to "/home/arslan/Web"
+		if strings.HasPrefix(dst, src) {
+			return errors.New("cycle detected")
+		}
+	}
+
+	srcBase, _ := filepath.Split(src)
+	walks := 0
+
+	// dstPath returns the rewritten destination path for the given source path
+	dstPath := func(srcPath string) string {
+		srcPath = strings.TrimPrefix(srcPath, srcBase)
+
+		// foo/example/hello.txt -> bar/example/hello.txt
+		if walks != 0 {
+			return filepath.Join(dst, srcPath)
+		}
+
+		// hello.txt -> example/hello.txt
+		if dstInfo.exists && dstInfo.isDir {
+			return filepath.Join(dst, filepath.Base(srcPath))
+		}
+
+		// hello.txt -> test.txt
+		return dst
+	}
+
+	return filepath.Walk(src, func(srcPath string, file os.FileInfo, err error) error {
+		defer func() { walks++ }()
+
+		if file.isDir() {
+			err := os.MkdirAll(dstPath(srcPath), 0755)
+			if err != nil {
+				fmt.Println("error 3", err)
+				return errors.New("copy error [3]")
+			}
+		} else {
+			err = copyFile(srcPath, dstPath(srcPath))
+			if err != nil {
+				fmt.Println("error 4", err)
+				return errors.New("copy error [4]")
+			}
+		}
+
+		return nil
+	})
 }
