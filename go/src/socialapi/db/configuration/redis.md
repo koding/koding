@@ -23,8 +23,26 @@ logfile /var/log/redis/redis-server.log
 ```
 appendonly no
 ```
+
+# Slave
+
+Set as slave of `social-redis-a.sj.koding.com 6379`
+```
+slaveof 172.16.10.16 6379
 ```
 
-Copy the template configuration file you'll find in the root directory of the Redis distribution into /etc/redis/ using the port number as name, for instance:
+```
+slave-serve-stale-data yes
 
-`sudo cp redis.conf /etc/redis/6379.conf`
+slave-read-only yes
+
+appendonly yes
+```
+
+
+# Server
+
+Not set for now, if we are gonna use more memory than needed, use this
+```
+vm.overcommit_memory = 1
+```
