@@ -46,19 +46,27 @@ class MessagesListController extends KDListViewController
       callback? err,messages
 
   fetchNotificationTeasers:(callback)->
-    KD.remote.api.SocialNotification.fetch (err, notifications) =>
-      # if err
-      #   @hideLazyLoader()
-      #   return callback err
-      #   warn "There was a problem fetching notifications!",err
-      # else
-      #   unglanced = items.filter (item)-> item.getFlagValue('glanced') isnt yes
-      #   @emit 'NotificationCountDidChange', unglanced.length
-      #   callback? items
-      # @hideLazyLoader()
-
-      @emit 'NotificationCountDidChange', notifications.unreadCount
-      callback null, notifications.notifications
+    KD.whoami().fetchActivityTeasers? {
+      targetName: $in: [
+        # 'CActivity'
+        'CReplieeBucketActivity'
+        'CFolloweeBucketActivity'
+        'CLikeeBucketActivity'
+        'CGroupJoineeBucketActivity'
+        'CNewMemberBucketActivity'
+        'CGroupLeaveeBucketActivity'
+      ]
+    }, {
+      limit: 8
+      sort:
+        timestamp: -1
+    }, (err, items)=>
+      if err
+        warn "There was a problem fetching notifications!",err
+      else
+        unglanced = items.filter (item)-> item.getFlagValue('glanced') isnt yes
+        @emit 'NotificationCountDidChange', unglanced.length
+        callback? items
       @hideLazyLoader()
 
 class NotificationListItem extends KDListItemView
@@ -200,3 +208,19 @@ class NotificationListItem extends KDListItemView
         new KDNotificationView
           title : "This post has been deleted!"
           duration : 1000
+
+    switch @snapshot.anchor.constructorName
+      when  "JPrivateMessage"
+        appManager = KD.getSingleton "appManager"
+        appManager.open "Inbox"
+        appManager.tell 'Inbox', "goToMessages"
+      when "JComment", "JReview", "JOpinion"
+        KD.remote.api[@snapshot.anchor.constructorName]?.fetchRelated @snapshot.anchor.id, showPost
+      when "JAccount"
+        KD.remote.api.JAccount.one _id : @snapshot.group[0].id, (err, account)->
+          KD.getSingleton('router').handleRoute "/#{account.profile.nickname}"
+      when "JGroup"
+        # do nothing
+      else
+        unless @snapshot.anchor.constructorName is "JAccount"
+          KD.remote.api[@snapshot.anchor.constructorName]?.one _id : @snapshot.anchor.id, showPost
