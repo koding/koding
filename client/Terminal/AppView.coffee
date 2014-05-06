@@ -202,9 +202,6 @@ class WebTermAppView extends JView
       terminalView.once 'WebTermConnected', runner
 
   handleQuery:(query)->
-
-    console.trace()
-
     pane = @tabView.getActivePane()
     {terminalView} = pane.getOptions()
     terminalView.terminal?.scrollToBottom()
@@ -404,12 +401,7 @@ class WebTermAppView extends JView
       osKite?.vmOff()
 
   handlePrepareError: (err) ->
-    jsonMessage = try JSON.parse err.message
-
-    title =
-      if jsonMessage
-      then jsonMessage.message # this is to a temporarily work around a bug in os kite
-      else err.message
+    title = err.message
 
     if title and /limit reached/.test title
       title += " Please upgrade to run more VMs."
