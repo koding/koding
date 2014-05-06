@@ -283,49 +283,37 @@ resurrection.activity.styl
 
           .topic-follow-btn
             size          24px, 18px
-            border        1px solid #b1b1b1
             abs           11px 12px 0 0
+            border        1px solid #b1b1b1
             background    transparent
             shadow        none
             outline       none
             rounded       3px
             margin        0
             padding       0
-            vendor        transition, width .2s ease
             overflow      hidden
             borderBox()
+            &:hover
+              border-color    transparent
+              bg              color logoBg
+              .icon
+                r-sprite      activity 'check-white-9'
 
             .icon
-              r-sprite    "activity", "check-9"
-              margin      0 7px 0 0
-              padding     0
+              r-sprite        activity 'check-9'
+              margin          0 7px 0 0
+              padding         0
               fr()
 
             .button-title
               hidden()
 
-            &.follow
-              &:before
-                content   'follow'
-                opacity   1
-                font-size 10px
-                color     #9b9b9b
-                abs       1px 0 0 7px
-                opacity   0
-                vendor    transition, opacity .3s ease
-                fl()
-
-              &:hover:not(.loading)
-                width     62px
-
-                &:before
-                  opacity 1
-
             &.following
-              border      none
+              bg              color transparent
+              border-color    transparent
 
               .icon
-                r-sprite  "activity", "check-green-9"
+                r-sprite      activity 'check-green-9'
 
         &.users
           .kdlistitemview-sidebar-item
