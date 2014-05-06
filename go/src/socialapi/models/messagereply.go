@@ -122,11 +122,15 @@ func (m *MessageReply) fetchMessages(query *Query) ([]ChannelMessage, error) {
 }
 
 // we do not need pagination??
-func (m *MessageReply) FetchReplyIds(p *bongo.Pagination, t time.Time) ([]int64, error) {
+func (m *MessageReply) FetchReplyIds(p *bongo.Pagination, t time.Time, lowerTimeLimit bool) ([]int64, error) {
 	var replyIds []int64
+	comparison := "<="
+	if lowerTimeLimit {
+		comparison = ">="
+	}
 
 	if err := bongo.B.DB.Table(m.TableName()).
-		Where("message_id = ? AND created_at >= ?", m.MessageId, t).
+		Where("message_id = ? AND created_at "+comparison+" ?", m.MessageId, t).
 		Order("created_at desc").
 		Pluck("reply_id", &replyIds).
 		Error; err != nil {
@@ -145,6 +149,9 @@ func (m *MessageReply) FetchByReplyId() error {
 	return m.One(q)
 }
 
+// FetchFirstAccountReply retrieves first reply message of the given account
+// and creation date.
+// Returns empty values when result is not found
 func (m *MessageReply) FetchFirstAccountReply(accountId int64) error {
 	cm := NewChannelMessage()
 	rows, err := bongo.B.DB.Raw("SELECT mr.reply_id, mr.created_at "+
@@ -154,7 +161,7 @@ func (m *MessageReply) FetchFirstAccountReply(accountId int64) error {
 		"ORDER BY cm.created_at ASC "+
 		"LIMIT 1", accountId, m.MessageId).Rows()
 
-	// probably gorm.ErrNotFound error must be caught
+	// does not return give gorm.ErrNotFound error when result is not found
 	if err != nil {
 		return err
 	}

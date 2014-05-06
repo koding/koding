@@ -226,7 +226,7 @@ func (c *ChannelMessage) FetchReplierIds(p *bongo.Pagination, includeMessageOwne
 	}
 
 	// first fetch parent post reply messages
-	replyIds, err := c.FetchMessageReplies(p, t)
+	replyIds, err := c.FetchMessageReplies(p, t, true)
 	if err != nil {
 		return nil, err
 	}
@@ -250,13 +250,13 @@ func (c *ChannelMessage) FetchReplierIds(p *bongo.Pagination, includeMessageOwne
 
 // FetchReplierIdsWithCount fetches all repliers of message with given Id and returns distinct replier count
 // Account given with AccountId is excluded from the results
-func (c *ChannelMessage) FetchReplierIdsWithCount(p *bongo.Pagination, count *int, t time.Time) ([]int64, error) {
+func (c *ChannelMessage) FetchReplierIdsWithCount(p *bongo.Pagination, count *int, t time.Time, lowerTimeLimit bool) ([]int64, error) {
 	if c.Id == 0 {
 		return nil, errors.New("channel message id is not set")
 	}
 
 	// first fetch all replyIds without doing any limitations
-	replyIds, err := c.FetchMessageReplies(&bongo.Pagination{}, t)
+	replyIds, err := c.FetchMessageReplies(&bongo.Pagination{}, t, lowerTimeLimit)
 	if err != nil {
 		return nil, err
 	}
@@ -264,14 +264,15 @@ func (c *ChannelMessage) FetchReplierIdsWithCount(p *bongo.Pagination, count *in
 	return c.FetchDistinctRepliers(replyIds, p, count)
 }
 
-func (c *ChannelMessage) FetchMessageReplies(p *bongo.Pagination, t time.Time) ([]int64, error) {
+func (c *ChannelMessage) FetchMessageReplies(p *bongo.Pagination, t time.Time, lowerTimeLimit bool) ([]int64, error) {
 	if c.Id == 0 {
 		return nil, errors.New("channel message id is not set")
 	}
 	// fetch all replies
 	mr := NewMessageReply()
 	mr.MessageId = c.Id
-	return mr.FetchReplyIds(p, t)
+
+	return mr.FetchReplyIds(p, t, lowerTimeLimit)
 }
 
 func (c *ChannelMessage) FetchDistinctRepliers(messageReplyIds []int64, p *bongo.Pagination, count *int) ([]int64, error) {
