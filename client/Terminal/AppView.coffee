@@ -120,7 +120,7 @@ class WebTermAppView extends JView
 
 
   handlePaneShown:(pane, index)->
-    @_windowDidResize()
+
     {terminalView} = pane.getOptions()
 
     return  unless terminalView
