@@ -1,5 +1,7 @@
 class KodingKite extends KDObject
 
+  { @Error } = require 'kite'
+
   constructor: (options) ->
     super options
 
