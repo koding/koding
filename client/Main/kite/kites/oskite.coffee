@@ -1,5 +1,7 @@
 class KodingKite_OsKite extends KodingKite_VmKite
 
+  { Error: KiteError } = this
+
   @constructors['oskite'] = this
 
   @createApiMapping
@@ -75,8 +77,7 @@ class KodingKite_OsKite extends KodingKite_VmKite
 
   vmOn: (t = 0) ->
     @changeState 'RUNNING', 'vm.progress.start', 'vmOn', @vmPrepareAndStart
-      .catch (err) =>
-        throw err  if err.code is 'ErrQuotaExceeded'
+      .catch KiteError.codeIsnt('ErrQuotaExceeded'), (err) =>
         if t < 5
           return Promise.delay(1000 * Math.pow 1.3, ++t).then => @vmOn t
         throw err
