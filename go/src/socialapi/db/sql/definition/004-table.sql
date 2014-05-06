@@ -84,7 +84,8 @@ CREATE TABLE "api"."channel_participant" (
     "updated_at" timestamp(6) WITH TIME ZONE NOT NULL DEFAULT now()
 )
 WITH (OIDS=FALSE);
-ALTER TABLE "api"."channel_participant" OWNER TO "socialapplication";
+-- ALTER TABLE "api"."channel_participant" OWNER TO "socialapplication";
+GRANT SELECT, INSERT, UPDATE ON "api"."channel_participant" TO "socialapplication";
 
 -- ----------------------------
 --  Table structure for interaction
