@@ -182,7 +182,9 @@ func (v *VM) Prepare(t tracer.Tracer, reinitialize bool) (err error) {
 	}()
 
 	t.Trace(tracer.Message{Message: "STARTED"})
-	prepared, err := v.isPrepared()
+
+	var prepared bool
+	prepared, err = v.isPrepared()
 	if err != nil {
 		return err
 	}

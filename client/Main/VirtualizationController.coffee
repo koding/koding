@@ -295,9 +295,9 @@ class VirtualizationController extends KDController
   instantiateNewKite: (vm) ->
     new Promise (resolve) =>
       oskite = @createNewKite 'oskite', vm
-      oskite.on 'ready', =>
+      oskite.on 'vmOn', =>
         @createNewKite 'terminal', vm
-        resolve()
+      resolve()
 
   registerKites: (vms) ->
     Promise.all vms.map @bound 'registerKite'
@@ -313,7 +313,7 @@ class VirtualizationController extends KDController
 
       # we need to wait until the vm is on before opening a connection to the
       # terminal kite.
-      kite.on 'ready', =>
+      kite.on 'vmOn', =>
         @terminalKites[alias] = @getKite vm, 'terminal'
         resolve()
     .nodeify callback

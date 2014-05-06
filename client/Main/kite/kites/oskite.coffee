@@ -76,17 +76,11 @@ class KodingKite_OsKite extends KodingKite_VmKite
   vmOn: (t = 0) ->
     @changeState 'RUNNING', 'vm.progress.start', 'vmOn', @vmPrepareAndStart
       .catch (err) =>
-        # TODO: this is a horrible hack for the moment:
-        if err.message in [
-          '{"message":"AlwaysOnVMs limit reached.","code":"ErrQuotaExceeded"}'
-          '{"message":"CPU limit reached","code":"ErrQuotaExceeded"}'
-          '{"message":"Disk limit reached","code":"ErrQuotaExceeded"}'
-          '{"message":"Ram limit reached","code":"ErrQuotaExceeded"}'
-        ]
-          throw err
+        throw err  if err.code is 'ErrQuotaExceeded'
         if t < 5
           return Promise.delay(1000 * Math.pow 1.3, ++t).then => @vmOn t
         throw err
+      .then => @emit 'vmOn'
 
   vmOff: ->
     @changeState 'STOPPED', 'vm.progress.stop', 'vmOff', @vmStopAndUnprepare

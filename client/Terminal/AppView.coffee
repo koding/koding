@@ -202,9 +202,6 @@ class WebTermAppView extends JView
       terminalView.once 'WebTermConnected', runner
 
   handleQuery:(query)->
-
-    console.trace()
-
     pane = @tabView.getActivePane()
     {terminalView} = pane.getOptions()
     terminalView.terminal?.scrollToBottom()
@@ -404,18 +401,10 @@ class WebTermAppView extends JView
       osKite?.vmOff()
 
   handlePrepareError: (err) ->
-    console.error err
+    title = err.message
 
-    try
-      err         = JSON.parse err.message
-      title       = err.message  if err.message
-      numberOfVms = Object.keys(KD.singletons.vmController.vmsInfo).length
-
-    if title and /CPU limit reached/.test title
-      title = "Please upgrade to run more VMs"
-      ErrorLog.create "cpu_limit_reached", {numberOfVms}
-    else
-      title = "Your vm failed to start. Please try again later."
+    if title and /limit reached/.test title
+      title += " Please upgrade to run more VMs."
 
     new KDNotificationView {title}
 
