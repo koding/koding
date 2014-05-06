@@ -11,45 +11,21 @@ import (
 )
 
 func TestTerminal(t *testing.T) {
-	options := &kite.Options{
-		Kitename:    "terminal",
-		Version:     "0.0.1",
-		Region:      "localhost",
-		Environment: "development",
-	}
-
-	terminal := kite.New(options)
-	terminal.DisableConcurrency()
+	terminal := kite.New("terminal", "0.0.1")
+	terminal.Config.DisableConcurrency = true
+	terminal.Config.DisableAuthentication = true
+	terminal.Config.Port = 3636
 	terminal.HandleFunc("connect", Connect)
-	termKite.PublicIP = "127.0.0.1"
-	termKite.Port = "3636"
-	termKite.KontrolEnabled = false
-	termKite.Start()
-	defer termKite.Close()
+	go terminal.Run()
+	defer terminal.Close()
+	<-terminal.ServerReadyNotify()
 
-	options := &kite.Options{
-		Kitename:    "client",
-		Version:     "0.0.1",
-		Region:      "localhost",
-		Environment: "development",
-		PublicIP:    "127.0.0.1",
-		Port:        "3637",
-	}
-	client := kite.New(options)
-	client.KontrolEnabled = false
-	client.Start()
-	defer client.Close()
-
-	// Use the kodingKey auth type since they are on same host.
-	auth := kite.Authentication{
-		Type: "kodingKey",
-		Key:  termKite.KodingKey,
-	}
-	remote := client.NewRemoteKite(termKite.Kite, auth)
+	client := kite.New("client", "0.0.1")
+	client.Config.DisableAuthentication = true
+	remote := client.NewClientString("ws://127.0.0.1:3636")
 	err := remote.Dial()
 	if err != nil {
-		t.Error(err.Error())
-		return
+		t.Fatal(err)
 	}
 
 	termClient := newTermHandler()
@@ -79,15 +55,15 @@ func TestTerminal(t *testing.T) {
 	// Two commands are run to make sure that the order of the keys are preserved.
 	// If not, sometimes inputs are mixed in a way that is non-deterministic.
 
-	term.Input(`say hi`)
+	term.Input.Call(`say hi`)
 	// time.Sleep(100 * time.Millisecond)
-	term.ControlSequence("\r")
+	term.ControlSequence.Call("\r")
 
 	// time.Sleep(100 * time.Millisecond)
 
-	term.Input(`python -c "print 123455+1"`)
+	term.Input.Call(`python -c "print 123455+1"`)
 	// time.Sleep(100 * time.Millisecond)
-	term.ControlSequence("\r")
+	term.ControlSequence.Call("\r")
 
 	fullOutput := ""
 	for {
