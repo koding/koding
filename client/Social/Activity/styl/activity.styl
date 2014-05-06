@@ -508,12 +508,8 @@ div.kdtooltip.activity-helper
       fr()
 
   &.preview-active
-    .input-view > div
-      &:not(.update-preview)
-        display       none
-
     .preview-icon
-      r-sprite        "activity", "preview-eye-active"
+      opacity         .5
 
 
   &.edit-widget
@@ -752,7 +748,48 @@ span.collapsedtext
       time
         display           none //TEMP
 
+.activity-item.preview
+  margin-top              29px
+  overflow                visible
 
+  .activity-actions
+  .comment-container
+  .settings-menu-wrapper
+    display               none
+
+  &:after
+    content               ''
+    size                  0 0
+    border                10px solid transparent
+    border-bottom-color   #fff
+    abs                   0 110px 100% 0
+    margin-bottom         -2px
+
+  &:before
+    content               ''
+    size                  0 0
+    border                10px solid transparent
+    border-bottom-color   #cfcfcf
+    abs                   0 114px 100% 0
+    margin-bottom         -3px
+
+  .activity-content-wrapper
+    border                2px dashed #cfcfcf
+    padding-bottom        15px
+
+  .preview-indicator
+    cursor                pointer
+    abs                   14px 14px 0 0
+    color                 #1aaf5d
+    font-size             12px
+    line-height           16px
+
+    &:after
+      content             ''
+      display             inline-block
+      r-sprite            activity, 'green-cancel-16'
+      vertical-align      middle
+      margin-left         7px
 
 /* Activity items */
 // .kdlistitemview-activity.hidden-item
@@ -1253,9 +1290,9 @@ span.collapsedtext
       textarea.description-input
         display             none
 
+
 /** Markdown Styling **/
 .activity-content-wrapper > article
-.activity-input-widget .update-preview
 
   > *
     padding               0 21px

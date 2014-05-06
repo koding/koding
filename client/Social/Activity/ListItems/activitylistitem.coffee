@@ -3,7 +3,7 @@ class ActivityListItemView extends KDListItemView
   constructor:(options = {},data)->
 
     options.type              = 'activity'
-    options.cssClass          = 'activity-item status'
+    options.cssClass          = KD.utils.curry 'activity-item status', options.cssClass
     options.commentSettings or= {}
 
     super options, data
@@ -141,7 +141,6 @@ class ActivityListItemView extends KDListItemView
 
 
   pistachio: ->
-
     """
     <div class="activity-content-wrapper">
       {{> @settingsButton}}
