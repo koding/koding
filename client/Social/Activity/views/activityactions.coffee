@@ -1,13 +1,14 @@
 class ActivityActionsView extends KDView
 
   contextMenu = null
-  constructor:->
-    super
+
+  constructor: (options = {}, data) ->
+
+    super options, data
 
     activity = @getData()
 
-    @commentLink  = new ActivityActionLink
-      partial : "Comment"
+    @commentLink  = new CustomLinkView title: "Comment"
 
     @commentCount = new ActivityCommentCount
       tooltip     :
@@ -17,15 +18,18 @@ class ActivityActionsView extends KDView
         @getDelegate().emit "CommentCountClicked", this
     , activity
 
-    @shareLink = new ActivityActionLink
-      partial  : "Share"
-      click    : (event) =>
+    @shareLink = new CustomLinkView
+      title : "Share"
+      click : (event) =>
+
         KD.utils.stopDOMEvent event
+
         data = @getData()
         if data?.group? and data.group isnt "koding"
           shareUrl = "#{KD.config.mainUri}/#{data.group}/Activity/#{data.slug}"
         else
           shareUrl      = "#{KD.config.mainUri}/Activity/#{data.slug}"
+
         contextMenu   = new KDContextMenu
           cssClass    : "activity-share-popup"
           type        : "activity-share"
@@ -48,14 +52,21 @@ class ActivityActionsView extends KDView
       loaderOptions :
         color       : '#6B727B'
 
-    # unless KD.isLoggedIn()
-    #   @commentLink.setTooltip title: "Login required"
-    #   @likeView.likeLink.setTooltip title: "Login required"
-    #   KD.getSingleton("mainController").on "accountChanged.to.loggedIn", =>
-    #     delete @likeView.likeLink.tooltip
-    #     delete @commentLink.tooltip
 
-  viewAppended:->
+  attachListeners: ->
+
+    activity    = @getData()
+    commentList = @getDelegate()
+
+    commentList.on 'BackgroundActivityStarted',  @loader.bound 'show'
+    commentList.on 'BackgroundActivityFinished', @loader.bound 'hide'
+
+    @commentLink.on "click", (event)=>
+      @utils.stopDOMEvent event
+      commentList.emit "CommentLinkReceivedClick", event, this
+
+
+  viewAppended: ->
 
     @setClass "activity-actions"
     @setTemplate @pistachio()
@@ -63,7 +74,8 @@ class ActivityActionsView extends KDView
     @attachListeners()
     @loader.hide()
 
-  pistachio:->
+
+  pistachio: ->
 
     """
     <span class='logged-in action-container'>
@@ -77,18 +89,6 @@ class ActivityActionsView extends KDView
     </span>
     {{> @loader}}
     """
-
-  attachListeners:->
-
-    activity    = @getData()
-    commentList = @getDelegate()
-
-    commentList.on 'BackgroundActivityStarted',  @loader.bound 'show'
-    commentList.on 'BackgroundActivityFinished', @loader.bound 'hide'
-
-    @commentLink.on "click", (event)=>
-      @utils.stopDOMEvent event
-      commentList.emit "CommentLinkReceivedClick", event, this
 
 class ActivityActionLink extends KDCustomHTMLView
   constructor:(options,data)->
