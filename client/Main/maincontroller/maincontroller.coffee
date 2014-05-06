@@ -267,6 +267,3 @@ class MainController extends KDController
       for src in images
         image     = new Image
         image.src = src
-
-
-
