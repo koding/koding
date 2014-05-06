@@ -46,3 +46,8 @@ Not set for now, if we are gonna use more memory than needed, use this
 ```
 vm.overcommit_memory = 1
 ```
+
+
+# Set Max open file descriptor
+cat /proc/sys/fs/file-max
+be sure it has more than 90K
