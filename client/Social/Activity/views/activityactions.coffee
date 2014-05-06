@@ -39,11 +39,7 @@ class ActivityActionsView extends KDView
 
         KD.mixpanel "Activity share, click"
 
-    @likeView = new ActivityLikeView
-      cssClass           : "logged-in action-container"
-      useTitle           : yes
-      checkIfLikedBefore : yes
-    , activity
+    @likeLink = new ActivityLikeLink null, activity
 
     @loader = new KDLoaderView
       cssClass      : 'action-container'
@@ -70,7 +66,9 @@ class ActivityActionsView extends KDView
   pistachio:->
 
     """
-    {{> @likeView}}
+    <span class='logged-in action-container'>
+      {{> @likeLink}}
+    </span>
     <span class='logged-in action-container'>
       {{> @commentLink}}{{> @commentCount}}
     </span>

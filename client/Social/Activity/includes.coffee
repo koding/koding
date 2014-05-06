@@ -19,6 +19,7 @@ module.exports = [
   "views/likecount.coffee",
   "views/likeview.coffee",
   "views/commentlikeview.coffee",
+  "views/likelink.coffee",
   "views/activityactions.coffee",
   "views/activitylistheader.coffee",
   "views/sharepopup.coffee",
