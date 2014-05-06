@@ -99,7 +99,9 @@ CREATE TABLE "api"."interaction" (
     "created_at" timestamp(6) WITH TIME ZONE NOT NULL DEFAULT now()
 )
 WITH (OIDS=FALSE);
-ALTER TABLE "api"."interaction" OWNER TO "socialapplication";
+-- ALTER TABLE "api"."interaction" OWNER TO "socialapplication";
+GRANT SELECT, INSERT, DELETE ON "api"."interaction" TO "socialapplication";
+
 
 -- ----------------------------
 --  Table structure for message_reply
