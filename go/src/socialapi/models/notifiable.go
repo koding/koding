@@ -2,7 +2,6 @@ package models
 
 import (
 	"errors"
-	// "fmt"
 	"github.com/jinzhu/gorm"
 	"github.com/koding/bongo"
 	"time"
@@ -166,39 +165,55 @@ func (n *ReplyNotification) FetchActors() (*ActorContainer, error) {
 		return nil, errors.New("TargetId is not set")
 	}
 
-	mr := NewMessageReply()
-	mr.MessageId = n.TargetId
-
-	// we are gonna fetch actors after notified users first reply
-	if err := mr.FetchFirstAccountReply(n.ListerId); err != nil {
+	// first determine message owner
+	channelMessage := NewChannelMessage()
+	if err := channelMessage.ById(n.TargetId); err != nil {
 		return nil, err
 	}
-	startingTime := time.Now()
-	if !mr.CreatedAt.IsZero() {
-		startingTime = mr.CreatedAt
+
+	// if lister is message owner than lower time limit for fetching repliers
+	// will be messages creation date
+	timeLimit := channelMessage.CreatedAt
+	// if lister is not message owner than check listers first replied message.
+	if channelMessage.AccountId != n.ListerId {
+		mr := NewMessageReply()
+		mr.MessageId = n.TargetId
+
+		// we are gonna fetch actors starting from user's first reply
+		if err := mr.FetchFirstAccountReply(n.ListerId); err != nil {
+			return nil, err
+		}
+
+		// lower limit is lister's first reply message
+		if !mr.CreatedAt.IsZero() {
+			timeLimit = mr.CreatedAt
+		}
 	}
 
 	// TODO make it async
-	// check if user is already subscribed to target
+	// check if user is already subscribed to / unsubscribed from target
 	nc := NewNotificationContent()
 	nc.TargetId = n.TargetId
 	nc.TypeConstant = NotificationContent_TYPE_COMMENT
 	ns := NewNotificationSubscription()
 	ns.AccountId = n.ListerId
-	if err := ns.FetchByNotificationContent(nc); err != nil {
+	var err error
+	if err = ns.FetchByNotificationContent(nc); err != nil {
 		if err != gorm.RecordNotFound {
 			return nil, err
 		}
 	}
 
-	if !ns.AddedAt.IsZero() && ns.AddedAt.Before(startingTime) {
-		startingTime = ns.AddedAt
-	}
+	lowerTimeLimit := true
+	if err != gorm.RecordNotFound {
+		// if unsubscription happens then fetch all notifications till
+		// the unsubscription date
+		if ns.TypeConstant == NotificationSubscription_TYPE_UNSUBSCRIBE {
+			lowerTimeLimit = false
+		}
 
-	// when user does not have any replies and there is not any subscription option
-	// fetch all items
-	if ns.AddedAt.IsZero() && mr.CreatedAt.IsZero() {
-		startingTime = time.Time{}
+		//
+		timeLimit = ns.AddedAt
 	}
 
 	cm := NewChannelMessage()
@@ -211,7 +226,7 @@ func (n *ReplyNotification) FetchActors() (*ActorContainer, error) {
 
 	// for preparing Actor Container we need latest actors and total replier count
 	var count int
-	actors, err := cm.FetchReplierIdsWithCount(p, &count, startingTime)
+	actors, err := cm.FetchReplierIdsWithCount(p, &count, timeLimit, lowerTimeLimit)
 	if err != nil {
 		return nil, err
 	}
