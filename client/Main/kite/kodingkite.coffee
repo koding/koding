@@ -5,6 +5,20 @@ class KodingKite extends KDObject
 
     { name } = options
 
+  extractInfoFromWsEvent = (event)->
+    {reason, code, wasClean, timestamp, type} = event
+
+    return {reason, code, wasClean, timestamp, type}
+
+  logTransportFailures:->
+    @transport.ws.addEventListener 'close', (event)->
+      params = extractInfoFromWsEvent event
+      ErrorLog.create 'ws closed', params
+
+    @transport.ws.addEventListener 'error', (event)->
+      params = extractInfoFromWsEvent event
+      ErrorLog.create 'ws error', params
+
   getTransport: -> @transport
 
   setTransport: (@transport) ->
