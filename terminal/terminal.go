@@ -1,4 +1,4 @@
-package main
+package terminal
 
 import (
 	"bytes"
@@ -6,37 +6,38 @@ import (
 	"encoding/base64"
 	"errors"
 	"fmt"
-	"koding/kite"
-	"koding/kite/dnode"
 	"koding/tools/pty"
 	"os/exec"
 	"os/user"
 	"syscall"
 	"time"
 	"unicode/utf8"
+
+	"github.com/koding/kite"
+	"github.com/koding/kite/dnode"
 )
 
-func main() {
-	NewTerminal().Run()
+// Server is the type of object that is sent to the connected client.
+// Represents a running shell process on the server.
+type Server struct {
+	Session          string `json:"session"`
+	remote           Remote
+	isForeignSession bool
+	pty              *pty.PTY
+	currentSecond    int64
+	messageCounter   int
+	byteCounter      int
+	lineFeeedCounter int
 }
 
-func NewTerminal() *kite.Kite {
-	options := &kite.Options{
-		Kitename:    "terminal",
-		Version:     "0.0.1",
-		Region:      "localhost",
-		Environment: "development",
-	}
-
-	k := kite.New(options)
-	k.DisableConcurrency()
-	k.HandleFunc("connect", Connect)
-	return k
+type Remote struct {
+	Output       dnode.Function
+	SessionEnded dnode.Function
 }
 
 func Connect(r *kite.Request) (interface{}, error) {
 	var params struct {
-		Remote       WebtermRemote
+		Remote       Remote
 		Session      string
 		SizeX, SizeY int
 		NoScreen     bool
@@ -59,7 +60,7 @@ func Connect(r *kite.Request) (interface{}, error) {
 	}
 
 	// We will return this object to the client.
-	server := &WebtermServer{
+	server := &Server{
 		Session: params.Session,
 		remote:  params.Remote,
 		pty:     pty.New("/dev/pts"),
@@ -117,7 +118,7 @@ func Connect(r *kite.Request) (interface{}, error) {
 
 		server.pty.Slave.Close()
 		server.pty.Master.Close()
-		server.remote.SessionEnded()
+		server.remote.SessionEnded.Call()
 	}()
 
 	// Read the STDOUT from shell process and send to the connected client.
@@ -149,7 +150,7 @@ func Connect(r *kite.Request) (interface{}, error) {
 				time.Sleep(time.Second)
 			}
 
-			server.remote.Output(string(FilterInvalidUTF8(buf[:n])))
+			server.remote.Output.Call(string(FilterInvalidUTF8(buf[:n])))
 			if err != nil {
 				break
 			}
@@ -159,56 +160,38 @@ func Connect(r *kite.Request) (interface{}, error) {
 	return server, nil
 }
 
-// WebtermServer is the type of object that is sent to the connected client.
-// Represents a running shell process on the server.
-type WebtermServer struct {
-	Session          string `json:"session"`
-	remote           WebtermRemote
-	isForeignSession bool
-	pty              *pty.PTY
-	currentSecond    int64
-	messageCounter   int
-	byteCounter      int
-	lineFeeedCounter int
-}
-
-type WebtermRemote struct {
-	Output       dnode.Function
-	SessionEnded dnode.Function
-}
-
 // Input is called when some text is written to the terminal.
-func (w *WebtermServer) Input(req *kite.Request) {
-	data := req.Args.One().MustString()
+func (s *Server) Input(d *dnode.Partial) {
+	data := d.MustSliceOfLength(1)[0].MustString()
 
 	// There is no need to protect the Write() with a mutex because
 	// Kite Library guarantees that only one message is processed at a time.
-	w.pty.Master.Write([]byte(data))
+	s.pty.Master.Write([]byte(data))
 }
 
 // ControlSequence is called when a non-printable key is pressed on the terminal.
-func (w *WebtermServer) ControlSequence(req *kite.Request) {
-	data := req.Args.One().MustString()
-	w.pty.MasterEncoded.Write([]byte(data))
+func (s *Server) ControlSequence(d *dnode.Partial) {
+	data := d.MustSliceOfLength(1)[0].MustString()
+	s.pty.MasterEncoded.Write([]byte(data))
 }
 
-func (w *WebtermServer) SetSize(req *kite.Request) {
-	args := req.Args.MustSliceOfLength(2)
+func (s *Server) SetSize(d *dnode.Partial) {
+	args := d.MustSliceOfLength(2)
 	x := args[0].MustFloat64()
 	y := args[1].MustFloat64()
-	w.setSize(x, y)
+	s.setSize(x, y)
 }
 
-func (w *WebtermServer) setSize(x, y float64) {
-	w.pty.SetSize(uint16(x), uint16(y))
+func (s *Server) setSize(x, y float64) {
+	s.pty.SetSize(uint16(x), uint16(y))
 }
 
-func (w *WebtermServer) Close(req *kite.Request) {
-	w.pty.Signal(syscall.SIGHUP)
+func (s *Server) Close(d *dnode.Partial) {
+	s.pty.Signal(syscall.SIGHUP)
 }
 
-func (w *WebtermServer) Terminate(req *kite.Request) {
-	w.Close(nil)
+func (s *Server) Terminate(d *dnode.Partial) {
+	s.Close(nil)
 }
 
 func FilterInvalidUTF8(buf []byte) []byte {
