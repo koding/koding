@@ -17,6 +17,7 @@ module.exports = [
   "views/feedcoverphotoview.coffee",
   "views/commentcount.coffee",
   "views/likecount.coffee",
+  "views/likesummaryview.coffee",
   "views/likeview.coffee",
   "views/commentlikeview.coffee",
   "views/likelink.coffee",
