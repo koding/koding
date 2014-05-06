@@ -30,13 +30,13 @@ func NewFileEntry(name string, fullPath string) *FileEntry {
 	return &FileEntry{Name: name, FullPath: fullPath}
 }
 
-func readDirectory(p string) ([]FileEntry, error) {
+func readDirectory(p string) ([]*FileEntry, error) {
 	files, err := ioutil.ReadDir(p)
 	if err != nil {
 		return nil, err
 	}
 
-	ls := make([]FileEntry, len(files))
+	ls := make([]*FileEntry, len(files))
 	for i, info := range files {
 		ls[i] = makeFileEntry(path.Join(p, info.Name()), info)
 	}
@@ -77,9 +77,9 @@ func readFile(path string) (map[string]interface{}, error) {
 	return map[string]interface{}{"content": buf}, nil
 }
 
-func writeFile(filename string, data []byte, DoNotOverwrite, Append bool) (int, error) {
+func writeFile(filename string, data []byte, doNotOverwrite, Append bool) (int, error) {
 	flags := os.O_RDWR | os.O_CREATE
-	if DoNotOverwrite {
+	if doNotOverwrite {
 		flags |= os.O_EXCL
 	}
 
@@ -91,16 +91,12 @@ func writeFile(filename string, data []byte, DoNotOverwrite, Append bool) (int, 
 
 	file, err := os.OpenFile(filename, flags, 0666)
 	if err != nil {
-		return err
+		return 0, err
 	}
+
 	defer file.Close()
 
-	_, err = file.Write(data)
-	if err != nil {
-		return err
-	}
-
-	return file.Write(params.Content)
+	return file.Write(data)
 }
 
 var suffixRegexp = regexp.MustCompile(`.((_\d+)?)(\.\w*)?$`)
@@ -124,7 +120,7 @@ func uniquePath(name string) (string, error) {
 	return name, nil
 }
 
-func getInfo(path string) (FileEntry, error) {
+func getInfo(path string) (*FileEntry, error) {
 	fi, err := os.Stat(path)
 	if err != nil {
 		if os.IsNotExist(err) {
@@ -136,8 +132,8 @@ func getInfo(path string) (FileEntry, error) {
 	return makeFileEntry(path, fi), nil
 }
 
-func makeFileEntry(fullPath string, fi os.FileInfo) FileEntry {
-	entry := FileEntry{
+func makeFileEntry(fullPath string, fi os.FileInfo) *FileEntry {
+	entry := &FileEntry{
 		Name:     fi.Name(),
 		FullPath: fullPath,
 		IsDir:    fi.IsDir(),
@@ -317,7 +313,7 @@ func cp(src, dst string) error {
 	return filepath.Walk(src, func(srcPath string, file os.FileInfo, err error) error {
 		defer func() { walks++ }()
 
-		if file.isDir() {
+		if file.IsDir() {
 			err := os.MkdirAll(dstPath(srcPath), 0755)
 			if err != nil {
 				fmt.Println("error 3", err)
@@ -333,4 +329,33 @@ func cp(src, dst string) error {
 
 		return nil
 	})
+}
+
+func copyFile(src, dst string) error {
+	sf, err := os.Open(src)
+	if err != nil {
+		return err
+	}
+	defer sf.Close()
+
+	fi, err := sf.Stat()
+	if err != nil {
+		return err
+	}
+
+	if fi.IsDir() {
+		return errors.New("src is a directory, please provide a file")
+	}
+
+	df, err := os.OpenFile(dst, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, fi.Mode())
+	if err != nil {
+		return err
+	}
+	defer df.Close()
+
+	if _, err := io.Copy(df, sf); err != nil {
+		return err
+	}
+
+	return nil
 }

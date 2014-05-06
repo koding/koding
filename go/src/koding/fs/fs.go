@@ -1,3 +1,5 @@
+// Package fs provides file system handleFuncs that can be used with kite
+// library
 package fs
 
 import (
@@ -10,11 +12,6 @@ import (
 	"github.com/howeyc/fsnotify"
 	"github.com/koding/kite"
 	"github.com/koding/kite/dnode"
-)
-
-const (
-	FS_NAME    = "fs"
-	FS_VERSION = "0.0.1"
 )
 
 var (
@@ -53,7 +50,7 @@ func ReadDirectory(r *kite.Request) (interface{}, error) {
 				fileEntry, _ = getInfo(ev.Name)
 			} else if ev.IsDelete() {
 				eventType = "removed"
-				fileEntry = newFileEntry(path.Base(ev.Name), ev.Name)
+				fileEntry = NewFileEntry(path.Base(ev.Name), ev.Name)
 			}
 
 			event := map[string]interface{}{
@@ -129,7 +126,7 @@ func Glob(r *kite.Request) (interface{}, error) {
 	}
 
 	if r.Args.One().Unmarshal(&params) != nil || params.Pattern == "" {
-		return nil, &kite.ArgumentError{Expected: "{ pattern: [string] }"}
+		return nil, errors.New("{ pattern: [string] }")
 	}
 
 	return glob(params.Pattern)
@@ -141,10 +138,10 @@ func ReadFile(r *kite.Request) (interface{}, error) {
 	}
 
 	if r.Args.One().Unmarshal(&params) != nil || params.Path == "" {
-		return nil, &kite.ArgumentError{Expected: "{ path: [string] }"}
+		return nil, errors.New("{ path: [string] }")
 	}
 
-	return readFile(params.Path, vos)
+	return readFile(params.Path)
 }
 
 type writeFileParams struct {
@@ -157,7 +154,7 @@ type writeFileParams struct {
 func WriteFile(r *kite.Request) (interface{}, error) {
 	var params writeFileParams
 	if r.Args.One().Unmarshal(&params) != nil || params.Path == "" {
-		return nil, &kite.ArgumentError{Expected: "{ path: [string] }"}
+		return nil, errors.New("{ path: [string] }")
 	}
 
 	return writeFile(params.Path, params.Content, params.DoNotOverwrite, params.Append)
@@ -169,7 +166,7 @@ func UniquePath(r *kite.Request) (interface{}, error) {
 	}
 
 	if r.Args.One().Unmarshal(&params) != nil || params.Path == "" {
-		return nil, &kite.ArgumentError{Expected: "{ path: [string] }"}
+		return nil, errors.New("{ path: [string] }")
 	}
 
 	return uniquePath(params.Path)
@@ -181,7 +178,7 @@ func GetInfo(r *kite.Request) (interface{}, error) {
 	}
 
 	if r.Args.One().Unmarshal(&params) != nil || params.Path == "" {
-		return nil, &kite.ArgumentError{Expected: "{ path: [string] }"}
+		return nil, errors.New("{ path: [string] }")
 	}
 
 	return getInfo(params.Path)
@@ -197,10 +194,15 @@ func SetPermissions(r *kite.Request) (interface{}, error) {
 	var params setPermissionsParams
 
 	if r.Args.One().Unmarshal(&params) != nil || params.Path == "" {
-		return nil, &kite.ArgumentError{Expected: "{ path: [string], mode: [integer], recursive: [bool] }"}
+		return nil, errors.New("{ path: [string], mode: [integer], recursive: [bool] }")
 	}
 
-	return setPermissions(params.Path, params.Mode, params.Recursive)
+	err := setPermissions(params.Path, params.Mode, params.Recursive)
+	if err != nil {
+		return nil, err
+	}
+
+	return true, nil
 }
 
 func Remove(r *kite.Request) (interface{}, error) {
@@ -210,10 +212,14 @@ func Remove(r *kite.Request) (interface{}, error) {
 	}
 
 	if r.Args.One().Unmarshal(&params) != nil || params.Path == "" {
-		return nil, &kite.ArgumentError{Expected: "{ path: [string], recursive: [bool] }"}
+		return nil, errors.New("{ path: [string], recursive: [bool] }")
 	}
 
-	return remove(params.Path, params.Recursive)
+	if err := remove(params.Path, params.Recursive); err != nil {
+		return nil, err
+	}
+
+	return true, nil
 }
 
 func Rename(r *kite.Request) (interface{}, error) {
@@ -223,10 +229,15 @@ func Rename(r *kite.Request) (interface{}, error) {
 	}
 
 	if r.Args.One().Unmarshal(&params) != nil || params.OldPath == "" || params.NewPath == "" {
-		return nil, &kite.ArgumentError{Expected: "{ oldPath: [string], newPath: [string] }"}
+		return nil, errors.New("{ oldPath: [string], newPath: [string] }")
 	}
 
-	return rename(params.OldPath, params.NewPath)
+	err := rename(params.OldPath, params.NewPath)
+	if err != nil {
+		return nil, err
+	}
+
+	return true, nil
 }
 
 func CreateDirectory(r *kite.Request) (interface{}, error) {
@@ -236,10 +247,15 @@ func CreateDirectory(r *kite.Request) (interface{}, error) {
 	}
 
 	if r.Args.One().Unmarshal(&params) != nil || params.Path == "" {
-		return nil, &kite.ArgumentError{Expected: "{ path: [string], recursive: [bool] }"}
+		return nil, errors.New("{ path: [string], recursive: [bool] }")
 	}
 
-	return createDirectory(params.Path, params.Recursive)
+	err := createDirectory(params.Path, params.Recursive)
+	if err != nil {
+		return nil, err
+	}
+
+	return true, nil
 }
 
 func Move(r *kite.Request) (interface{}, error) {
@@ -249,10 +265,15 @@ func Move(r *kite.Request) (interface{}, error) {
 	}
 
 	if r.Args.One().Unmarshal(&params) != nil || params.OldPath == "" || params.NewPath == "" {
-		return nil, &kite.ArgumentError{Expected: "{ oldPath: [string], newPath: [string] }"}
+		return nil, errors.New("{ oldPath: [string], newPath: [string] }")
 	}
 
-	return rename(params.OldPath, params.NewPath)
+	err := rename(params.OldPath, params.NewPath)
+	if err != nil {
+		return nil, err
+	}
+
+	return true, nil
 }
 
 func Copy(r *kite.Request) (interface{}, error) {
@@ -262,8 +283,13 @@ func Copy(r *kite.Request) (interface{}, error) {
 	}
 
 	if r.Args.One().Unmarshal(&params) != nil || params.SrcPath == "" || params.DstPath == "" {
-		return nil, &kite.ArgumentError{Expected: "{ srcPath: [string], dstPath: [string] }"}
+		return nil, errors.New("{ srcPath: [string], dstPath: [string] }")
 	}
 
-	return cp(params.SrcPath, params.DstPath)
+	err := cp(params.SrcPath, params.DstPath)
+	if err != nil {
+		return nil, err
+	}
+
+	return true, nil
 }
