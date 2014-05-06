@@ -11,8 +11,8 @@ class ActivityListItemView extends KDListItemView
     data   = @getData()
     list   = @getDelegate()
     origin =
-      constructorName : data.originType
-      id              : data.originId
+      constructorName : data.account.constructorName
+      id              : data.account._id
 
     @avatar = new AvatarView
       size       :
