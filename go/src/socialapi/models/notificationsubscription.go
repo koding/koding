@@ -92,7 +92,6 @@ func (ns *NotificationSubscription) FetchByNotificationContent(nc *NotificationC
 	s = map[string]interface{}{
 		"account_id":              ns.AccountId,
 		"notification_content_id": nc.Id,
-		"type_constant":           NotificationSubscription_TYPE_SUBSCRIBE,
 	}
 	q = bongo.NewQS(s)
 
