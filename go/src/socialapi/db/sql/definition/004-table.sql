@@ -67,7 +67,8 @@ CREATE TABLE "api"."channel_message_list" (
     "added_at" timestamp(6) WITH TIME ZONE NOT NULL DEFAULT now()
 )
 WITH (OIDS=FALSE);
-ALTER TABLE "api"."channel_message_list" OWNER TO "socialapplication";
+-- ALTER TABLE "api"."channel_message_list" OWNER TO "socialapplication";
+GRANT SELECT, INSERT, UPDATE, DELETE ON "api"."channel_message_list" TO "socialapplication";
 
 -- ----------------------------
 --  Table structure for channel_participant
