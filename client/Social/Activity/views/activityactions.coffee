@@ -189,21 +189,3 @@ class ActivityLikeCount extends ActivityCountLink
   pistachio: ->
 
     "{{ #(meta.likes)}}"
-
-
-class ActivityCommentCount extends ActivityCountLink
-
-  setCount: ->
-
-    {repliesCount} = @getData()
-
-    if repliesCount
-    then @show()
-    else @hide()
-
-    @emit "countChanged", repliesCount
-
-
-  pistachio: ->
-
-    "{{ #(repliesCount)}}"

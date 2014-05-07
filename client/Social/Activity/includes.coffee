@@ -15,6 +15,7 @@ module.exports = [
 
   # Activity commons
   "views/feedcoverphotoview.coffee",
+  "views/commentcount.coffee",
   "views/likeview.coffee",
   "views/commentlikeview.coffee",
   "views/activityactions.coffee",
