@@ -185,8 +185,6 @@ class KodingAppsController extends KDController
         KD.utils.defer -> obj.appendToSelector 'head'
 
     else
-
-      url  = "#{url}"
       bind = ''
       load = noop
 
