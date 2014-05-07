@@ -38,9 +38,9 @@ func (f *FmtTracer) Trace(msg Message) {
 
 func (m *Message) String() string {
 	if m.Err != nil {
-		return fmt.Sprintf("msg: %s. elapsedTime: %s. err: %s.",
+		return fmt.Sprintf("msg: %s. elapsedTime: %f. err: %s.",
 			m.Message, m.ElapsedTime, m.Err)
 	}
 
-	return fmt.Sprintf("msg: %s. elapsedTime: %s", m.Message, m.ElapsedTime)
+	return fmt.Sprintf("msg: %s. elapsedTime: %f", m.Message, m.ElapsedTime)
 }

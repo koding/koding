@@ -13,6 +13,7 @@ import (
 	"net/http"
 	"strings"
 
+	kitelib "github.com/koding/kite"
 	"gopkg.in/fatih/set.v0"
 	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
@@ -31,20 +32,6 @@ type Limit struct {
 	Disk        LimitState `bson:"disk"` // Disk in MB
 	TotalVMs    LimitState `bson:"totalVMs"`
 	AlwaysOnVMs LimitState `bson:"alwaysOnVMs"`
-}
-
-type LimitError struct {
-	Message string `json:"message"`
-	Code    string `json:"code"`
-}
-
-func (l *LimitError) Error() string {
-	out, err := json.Marshal(l)
-	if err != nil {
-		panic(err) // should never happen
-	}
-
-	return string(out)
 }
 
 type KiteStore struct {
@@ -240,15 +227,15 @@ func (p *Plan) prepareLimits(username, groupId string) (*Limit, error) {
 
 func (l *Limit) check() error {
 	if l.CPU == LimitQuotaExceeded {
-		return &LimitError{Message: "CPU limit reached", Code: ErrQuotaExceeded.Error()}
+		return &kitelib.Error{Message: "CPU limit reached", Code: ErrQuotaExceeded.Error()}
 	}
 
 	if l.Disk == LimitQuotaExceeded {
-		return &LimitError{Message: "Disk limit reached", Code: ErrQuotaExceeded.Error()}
+		return &kitelib.Error{Message: "Disk limit reached", Code: ErrQuotaExceeded.Error()}
 	}
 
 	if l.RAM == LimitQuotaExceeded {
-		return &LimitError{Message: "Ram limit reached", Code: ErrQuotaExceeded.Error()}
+		return &kitelib.Error{Message: "Ram limit reached", Code: ErrQuotaExceeded.Error()}
 	}
 
 	return nil
