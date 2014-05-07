@@ -38,6 +38,22 @@ type Remote struct {
 }
 
 func KillSession(r *kite.Request) (interface{}, error) {
+	var params struct {
+		Session string
+	}
+
+	if r.Args.One().Unmarshal(&params) != nil {
+		return nil, errors.New("{ session: [string] }")
+	}
+
+	if params.Session == "" {
+		return nil, errors.New("session is empty")
+	}
+
+	if err := killSession(params.Session); err != nil {
+		return nil, err
+	}
+
 	return true, nil
 }
 
