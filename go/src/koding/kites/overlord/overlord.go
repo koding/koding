@@ -1,15 +1,32 @@
 package main
 
 import (
+	"flag"
+	"fmt"
 	"koding/kite-handler/fs"
 	"koding/kite-handler/terminal"
+	"os"
 
 	"github.com/koding/kite"
 )
 
-func main() {
-	k := kite.New("overlord", "0.0.1")
+const (
+	VERSION = "0.0.1"
+)
 
+var (
+	flagPort    = flag.Int("port", 3000, "Change running port")
+	flagVersion = flag.Bool("version", false, "Show version and exit")
+)
+
+func main() {
+	flag.Parse()
+	if *flagVersion {
+		fmt.Println(VERSION)
+		os.Exit(0)
+	}
+
+	k := kite.New("overlord", VERSION)
 	k.HandleFunc("fs.readDirectory", fs.ReadDirectory)
 	k.HandleFunc("fs.glob", fs.Glob)
 	k.HandleFunc("fs.readFile", fs.ReadFile)
