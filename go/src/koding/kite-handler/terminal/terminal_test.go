@@ -54,7 +54,7 @@ func TestTerminal(t *testing.T) {
 
 	// Two commands are run to make sure that the order of the keys are preserved.
 	// If not, sometimes inputs are mixed in a way that is non-deterministic.
-	term.Input.Call(`say hi`)
+	term.Input.Call(`say kite`)
 	// time.Sleep(100 * time.Millisecond)
 	term.ControlSequence.Call("\r")
 
