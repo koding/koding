@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/koding/logging"
+	"labix.org/v2/mgo"
 
 	"github.com/jinzhu/gorm"
 	"github.com/koding/rabbitmq"
@@ -86,10 +87,10 @@ func (l *Listener) Start(handler Handler) func(delivery amqp.Delivery) {
 		case gorm.RecordNotFound:
 			l.Log.Warning("Record not found in our db (%s) recieved, \n deleting message from RMQ", string(delivery.Body))
 			delivery.Ack(false)
+		case mgo.ErrNotFound:
+			l.Log.Warning("Record not found in our mongo db (%s) recieved, deleting message from RMQ", string(delivery.Body))
+			delivery.Ack(false)
 		default:
-			// add proper error handling
-			// instead of puttting message back to same queue, it is better
-			// to put it to another maintenance queue/exchange
 			handler.DefaultErrHandler(delivery, err)
 			// l.Log.Error("an error occured %s, \n putting message back to queue", err)
 			// // multiple false

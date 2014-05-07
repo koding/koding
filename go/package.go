@@ -118,7 +118,7 @@ func buildKontrol() error {
 		appName:       *flagApp,
 		importPath:    kontrolPath,
 		files:         files,
-		version:       "0.0.5",
+		version:       "0.0.6",
 		upstartScript: configUpstart,
 	}
 
@@ -260,7 +260,7 @@ func buildKontrolProxy() error {
 		appName:       *flagApp,
 		importPath:    kdproxyPath,
 		files:         files,
-		version:       "0.0.6",
+		version:       "0.0.7",
 		upstartScript: configUpstart,
 	}
 

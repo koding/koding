@@ -1,5 +1,4 @@
-class ActivityAppView extends KDScrollView
-
+class ActivityAppView extends KDView
 
   headerHeight = 0
 
@@ -10,6 +9,7 @@ class ActivityAppView extends KDScrollView
   isMember       = -> 'member' in roles
   canListMembers = -> 'list members' in permissions
   isPrivateGroup = -> not isKoding() and isGroup()
+  extractName    = (data) -> data.name or data.profile.nickname
 
 
   constructor:(options = {}, data)->
@@ -19,136 +19,46 @@ class ActivityAppView extends KDScrollView
 
     super options, data
 
-    # FIXME: disable live updates - SY
-    {entryPoint}      = KD.config
-    {
-      windowController
-      widgetController
-      mainController
-      appStorageController
-    } = KD.singletons
+    {entryPoint}           = KD.config
+    {appStorageController} = KD.singletons
 
-    @appStorage = appStorageController.storage 'Activity', '1.0.1'
+    @appStorage = appStorageController.storage 'Activity', '2.0'
+    @sidebar    = new ActivitySidebar tagName : 'aside'
+    @tabs       = new KDTabView
+      tagName             : 'main'
+      hideHandleContainer : yes
+
     @appStorage.setValue 'liveUpdates', off
 
-    # main components
-    @feedWrapper       = new ActivityListContainer
-    @inputWidget       = new ActivityInputWidget
-    @referalBox        = new ReferalBox
-    @topWidgetWrapper  = new KDCustomHTMLView
-    @leftWidgetWrapper = new KDCustomHTMLView
-    @groupListBox      = new UserGroupList
-    @topicsBox         = new ActiveTopics
-    @usersBox          = new ActiveUsers
-
-    # TODO : if not on private group DO NOT create those ~EA
-    # group components
-    @groupCoverView   = new FeedCoverPhotoView
-    @groupDescription = new GroupDescription
-    @groupMembers     = new GroupMembers
-
-
-
-    widgetController.showWidgets [
-      { view: @topWidgetWrapper,  key: 'ActivityTop'  }
-      { view: @leftWidgetWrapper, key: 'ActivityLeft' }
-    ]
-
-    @inputWidget.on 'ActivitySubmitted', @bound 'activitySubmitted'
-    mainController.on 'AccountChanged', @bound "decorate"
-    mainController.on 'JoinedGroup', => @inputWidget.show()
-    @feedWrapper.ready =>
-      @activityHeader  = @feedWrapper.controller.activityHeader
-      {@filterWarning} = @feedWrapper
-      {feedFilterNav}  = @activityHeader
-      feedFilterNav.unsetClass 'multiple-choice on-off'
-
-    @once 'viewAppended', =>
+    {activityController} = KD.singletons
+    activityController.on 'SidebarItemClicked', @bound 'sidebarItemClicked'
 
 
   viewAppended: ->
 
-    appendAside = (view)=> @addSubView view, 'aside'
-
-    JView::viewAppended.call this
-
-    @decorate()
-    @setLazyLoader 200
-
-    appendAside @referalBox       if KD.isLoggedIn() and not isPrivateGroup()
-    appendAside @groupDescription if isPrivateGroup()
-    appendAside @groupMembers     if isPrivateGroup() and canListMembers()
-    appendAside @groupListBox     if isKoding()
-    appendAside @topicsBox
-    appendAside @usersBox         if canListMembers()
+    @addSubView @sidebar
+    @addSubView @tabs
 
 
-  pistachio:->
-    """
-    {{> @groupCoverView}}
-    <main>
-      {{> @inputWidget}}
-      {{> @feedWrapper}}
-      {{> @topWidgetWrapper}}
-    </main>
-    <aside>
-      {{> @leftWidgetWrapper}}
-    </aside>
-    """
+  sidebarItemClicked: (item) ->
+
+    data = item.getData()
+    pane = @tabs.getPaneByName extractName data
 
 
-  activitySubmitted:->
-
-    appTop   = @getElement().offsetTop
-    listTop  = @feedWrapper.listWrapper.getElement().offsetTop
-    duration = @feedWrapper.pinnedListWrapper.getHeight() * .3
-    $('html, body').animate {scrollTop: appTop + listTop + 10}, {duration}
-
-
-  decorate:->
-
-    {entryPoint, roles} = KD.config
-
-    @unsetClass 'guest'
-    @setClass 'guest'     unless isMember()
-    @setClass 'loggedin'  if KD.isLoggedIn()
-
-    unless isMember()
-    then @inputWidget.hide()
-    else @inputWidget.show()
-
-    @_windowDidResize()
+    if pane and pane is @tabs.getActivePane()
+    then pane.refresh()
+    else if pane
+    then @tabs.showPane pane
+    else @createTab data
 
 
-  setTopicTag: (slug) ->
+  createTab: (data) ->
 
-    return  unless slug
+    name      = extractName data
+    type      = data.typeConstant
+    channelId = data.id
 
-    KD.remote.api.JTag.one {slug}, null, (err, tag) =>
-      @inputWidget.input.setDefaultTokens tags: [tag]
+    @tabs.addPane pane = new MessagePane {name, type, channelId}, data
 
-
-  unsetTopicTag: -> @inputWidget.input.setDefaultTokens tags: []
-
-
-  # ticker: if we ever need to put it back it's here. at least for a while.- SY
-    # @tickerBox        = new ActivityTicker
-
-    # calculateTopOffset = =>
-    #   KD.utils.wait 3000, =>
-    #     @topOffset = @tickerBox.$().position().top
-
-
-    # @tickerBox.once 'viewAppended', =>
-    #   calculateTopOffset()
-    #   windowController.on 'ScrollHappened', =>
-    #     # sanity check
-    #     calculateTopOffset()  if @topOffset < 200
-    #     if document.documentElement.scrollTop > @topOffset
-    #     then @tickerBox.setClass 'fixed'
-    #     else @tickerBox.unsetClass 'fixed'
-
-    # @groupListBox.on 'TopOffsetShouldBeFixed', calculateTopOffset
-
-
-    # @sideBlock.addSubView @tickerBox
+    return pane

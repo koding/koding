@@ -68,6 +68,16 @@ logs/*.log
 
 node_modules_koding/processes/src/.tmp*
 
+/go/src/socialapi/topicfeed
+/go/src/socialapi/rerun
+/go/src/socialapi/realtime
+/go/src/socialapi/populartopic
+/go/src/socialapi/followingfeed
+/go/src/socialapi/api
+
 website/a/sprites/*.sprite.png
 
 client/Main/__generated*
+
+
+*.sprite.png

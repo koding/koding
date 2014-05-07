@@ -73,10 +73,6 @@ func (a *Account) Create() error {
 	return bongo.B.Create(a)
 }
 
-func (a *Account) Delete() error {
-	return bongo.B.Delete(a)
-}
-
 func (a *Account) Some(data interface{}, q *bongo.Query) error {
 	return bongo.B.Some(a, data, q)
 }

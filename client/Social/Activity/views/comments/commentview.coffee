@@ -22,18 +22,20 @@ class CommentView extends KDView
     @setClass "fixed-height"
     @commentList.$().css {maxHeight}
 
-  createSubViews:(data)->
+  createSubViews: (data) ->
 
     @commentList = new KDListView
       type          : "comments"
       itemClass     : CommentListItemView
-      delegate      : @
+      delegate      : this
     , data
 
     @commentController        = new CommentListViewController view: @commentList
     @addSubView showMore      = new CommentViewHeader delegate: @commentList, data
     @addSubView @commentController.getView()
-    @addSubView @commentForm  = new NewCommentForm delegate : @commentList
+    @addSubView @commentForm  = new NewCommentForm delegate: @commentController
+
+    @commentForm.on "Submit", @commentController.bound "reply"
 
     @commentList.on 'ReplyLinkClicked', (username) =>
       input = @commentForm.commentInput
@@ -58,8 +60,8 @@ class CommentView extends KDView
     if data.replies
       for reply in data.replies  when reply? and reply.originId? and reply.originType?
         @commentList.addItem reply
-    else
-      @commentController.fetchRelativeComments null, data.meta.createdAt, no, -1
+    # else
+    #   @commentController.fetchRelativeComments null, data.meta.createdAt, no, -1
 
     @commentList.emit "BackgroundActivityFinished"
 

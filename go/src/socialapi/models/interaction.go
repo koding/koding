@@ -77,11 +77,19 @@ func (i *Interaction) Some(data interface{}, q *bongo.Query) error {
 }
 
 func (i *Interaction) Delete() error {
-	if err := bongo.B.DB.
-		Where("message_id = ? and account_id = ?", i.MessageId, i.AccountId).
-		Delete(NewInteraction()).Error; err != nil {
+	selector := map[string]interface{}{
+		"message_id": i.MessageId,
+		"account_id": i.AccountId,
+	}
+
+	if err := i.One(bongo.NewQS(selector)); err != nil {
 		return err
 	}
+
+	if err := bongo.B.Delete(i); err != nil {
+		return err
+	}
+
 	return nil
 }
 

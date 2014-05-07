@@ -11,52 +11,13 @@ class MainView extends KDView
     @bindPulsingRemove()
     @bindTransitionEnd()
     @createHeader()
-    @createDock()
-    @createAccountArea()
     @createMainPanels()
     @createMainTabView()
-    @setStickyNotification()
 
-    @utils.defer => @emit 'ready'
-
-  bindPulsingRemove:->
-
-    router     = KD.getSingleton 'router'
-    appManager = KD.getSingleton 'appManager'
-
-    appManager.once 'AppCouldntBeCreated', removePulsing
-
-    appManager.on 'AppCreated', (appInstance)->
-      options = appInstance.getOptions()
-      {title, name, appEmitsReady} = options
-      routeArr = location.pathname.split('/')
-      routeArr.shift()
-      checkedRoute = if routeArr.first is "Develop" \
-                     then routeArr.last else routeArr.first
-
-      if checkedRoute is name or checkedRoute is title
-        if appEmitsReady
-          appView = appInstance.getView()
-          appView.ready removePulsing
-        else removePulsing()
-
-  addBook:->
-    # @addSubView new BookView delegate : this
-
-  _logoutAnimation:->
-    {body}        = document
-
-    turnOffLine   = new KDCustomHTMLView
-      cssClass    : "turn-off-line"
-    turnOffDot    = new KDCustomHTMLView
-      cssClass    : "turn-off-dot"
-
-    turnOffLine.appendToDomBody()
-    turnOffDot.appendToDomBody()
-
-    body.style.background = "#000"
-    @setClass               "logout-tv"
-
+    KD.singletons.mainController.ready =>
+      @createAccountArea()
+      @setStickyNotification()
+      @emit 'ready'
 
   createMainPanels:->
 
@@ -69,8 +30,9 @@ class MainView extends KDView
     {entryPoint} = KD.config
 
     @addSubView @header = new KDView
-      tagName : "header"
-      domId   : "main-header"
+      tagName  : 'header'
+      domId    : 'main-header'
+      cssClass : 'no-dock'  unless KD.isLoggedIn()
 
     @header.clear()
 
@@ -84,14 +46,15 @@ class MainView extends KDView
       partial   : '<cite></cite>'
       click     : (event)=>
         KD.utils.stopDOMEvent event
+        {router} = KD.singletons
         if KD.isLoggedIn()
-        then KD.getSingleton('router').handleRoute "/Activity", {entryPoint}
-        else location.replace '/'
+        then router.handleRoute '/Activity', {entryPoint}
+        else router.handleRoute '/', {entryPoint}
 
     @headerContainer.addSubView @logo
 
     groupLogo = ""
-    if KD.currentGroup?.logo
+    if KD.currentGroup?.customize?.logo
       groupLogo = KD.utils.proxifyUrl KD.currentGroup.logo,
         crop         : yes
         width        : 55
@@ -102,19 +65,44 @@ class MainView extends KDView
 
     @logo.setClass KD.config.environment
 
+    @headerContainer.addSubView @logotype = new CustomLinkView
+      cssClass : 'logotype'
+      title    : 'Koding'
+      href     : '/Home'
 
-    @headerContainer.addSubView @logotype = new KDCustomHTMLView
-      tagName   : "a"
-      cssClass  : "logotype"
-      partial   : "Koding"
-      click     : (event)=>
-        KD.utils.stopDOMEvent event
-        KD.getSingleton('router').handleRoute "/", {entryPoint}
+    @addDock()
+    @addLoggedOutNav()
 
-  createDock:->
 
-    @headerContainer.addSubView KD.singleton('dock').getView()
+  addDock:-> @headerContainer.addSubView KD.singleton('dock').getView()
 
+  showDock:-> @header.unsetClass 'no-dock'
+
+  hideDock:-> @header.setClass 'no-dock'
+
+  addLoggedOutNav:->
+
+    @headerContainer.addSubView loggedOutNav = new KDCustomHTMLView
+      tagName : 'nav'
+      partial : """
+        <a href='/Education' class='education'>EDUCATION</a>
+        <a href='/Business'  class='business'>BUSINESS</a>
+        <a href='/About'     class='about'>ABOUT</a>
+        <a href='/Pricing'   class='pricing'>PRICING</a>
+        <a href='/Login' class='login'>SIGN IN</a>
+        """
+
+    appManager    = KD.singleton "appManager"
+    navDomElement = loggedOutNav.domElement.context
+
+    appManager.on 'AppIsBeingShown', (instance, view, options) ->
+      appName = options.name.toLowerCase()
+
+      for child in navDomElement.children
+        child.classList.remove 'active'
+
+      target = navDomElement.getElementsByClassName(appName)[0]
+      target?.classList.add 'active'
 
   createAccountArea:->
 
@@ -124,31 +112,20 @@ class MainView extends KDView
     @headerContainer.addSubView @accountArea
 
     if KD.isLoggedIn()
-
-      @createLoggedInAccountArea()
-
+    then @createLoggedInAccountArea()
     else
 
-      @loginLink = new CustomLinkView
-        cssClass    : 'header-sign-in'
-        title       : 'Login'
-        attributes  :
-          href      : '/Login'
-        click       : (event)->
-          KD.utils.stopDOMEvent event
-          KD.getSingleton('router').handleRoute "/Login"
-      @accountArea.addSubView @loginLink
-
       mc = KD.getSingleton "mainController"
-      mc.once "accountChanged.to.loggedIn", =>
-        @loginLink.destroy()
-        @createLoggedInAccountArea()
+      mc.once "accountChanged.to.loggedIn", @bound 'createLoggedInAccountArea'
+
 
   createLoggedInAccountArea:->
-    @accountArea.destroySubViews()
 
+    KDView.setElementClass document.body, 'add', 'logged-in'
+
+    @accountArea.destroySubViews()
     @accountArea.addSubView @accountMenu = new AvatarAreaIconMenu
-    @accountMenu.accountChanged KD.whoami()
+    KD.utils.defer => @accountMenu.accountChanged KD.whoami()
 
     @accountArea.addSubView @avatarArea  = new AvatarArea {}, KD.whoami()
     @accountArea.addSubView @searchIcon  = new KDCustomHTMLView
@@ -231,7 +208,8 @@ class MainView extends KDView
       slidingPanes        : no
       hideHandleContainer : yes
 
-    @mainTabView.on "PaneDidShow", =>
+
+    @mainTabView.on "PaneDidShow", (pane)=>
       appManager   = KD.getSingleton "appManager"
 
       return  unless appManager.getFrontApp()
@@ -248,6 +226,9 @@ class MainView extends KDView
         @appSettingsMenuButton.setData menu
         unless menu.hiddenOnStart
           @appSettingsMenuButton.show()
+
+      @emit "MainTabPaneShown", pane
+
 
     @mainTabView.on "AllPanesClosed", ->
       KD.getSingleton('router').handleRoute "/Activity"
@@ -330,15 +311,55 @@ class MainView extends KDView
     @emit "fullscreen", yes
     KD.getSingleton("windowController").notifyWindowResizeListeners()
 
+
   disableFullscreen: ->
     @unsetClass "fullscreen no-anim"
     @emit "fullscreen", no
     KD.getSingleton("windowController").notifyWindowResizeListeners()
 
+
   isFullscreen: -> @hasClass "fullscreen"
 
   toggleFullscreen: ->
-    if @isFullscreen() then @disableFullscreen() else @enableFullscreen()
+
+    if @isFullscreen()
+    then @disableFullscreen()
+    else @enableFullscreen()
+
+
+  bindPulsingRemove:->
+
+    router     = KD.getSingleton 'router'
+    appManager = KD.getSingleton 'appManager'
+
+    appManager.once 'AppCouldntBeCreated', removePulsing
+
+    appManager.on 'AppCreated', (appInstance)->
+      options = appInstance.getOptions()
+      {title, name, appEmitsReady} = options
+      routeArr = location.pathname.split('/')
+      routeArr.shift()
+      checkedRoute = if routeArr.first is "Develop" \
+                     then routeArr.last else routeArr.first
+
+      if checkedRoute is name or checkedRoute is title
+        if appEmitsReady
+          appView = appInstance.getView()
+          appView.ready removePulsing
+        else removePulsing()
+
+  _logoutAnimation:->
+
+    {body}      = document
+    turnOffLine = new KDCustomHTMLView cssClass : "turn-off-line"
+    turnOffDot  = new KDCustomHTMLView cssClass : "turn-off-dot"
+
+    turnOffLine.appendToDomBody()
+    turnOffDot.appendToDomBody()
+
+    body.style.background = "#000"
+    @setClass "logout-tv"
+
 
   removePulsing = ->
 
@@ -369,3 +390,4 @@ class MainView extends KDView
           duration = 400
           KDScrollView::scrollTo.call mainView, {top, duration}
           break
+

@@ -54,22 +54,6 @@ class CommentListViewController extends KDListViewController
       @_removedBefore = no
       @fetchRelativeComments 10, meta.createdAt
 
-    listView.on "CommentSubmitted", (reply)->
-      model = listView.getData()
-      listView.emit "BackgroundActivityStarted"
-      model.reply reply, (err, reply)=>
-        # listView.emit "AllCommentsLinkWasClicked"
-        if not KD.getSingleton('activityController').flags?.liveUpdates
-          listView.addItem reply
-          listView.emit "OwnCommentHasArrived"
-        else
-          listView.emit "OwnCommentWasSubmitted"
-        listView.emit "BackgroundActivityFinished"
-
-      KD.mixpanel "Comment activity, success"
-      KD.getSingleton("badgeController").checkBadge
-        property : "comments", relType : "commenter", source : "JNewStatusUpdate", targetSelf : 1
-
   fetchCommentsByRange:(from,to,callback)->
     [to,callback] = [callback,to] unless callback
     query = {from,to}
@@ -112,3 +96,26 @@ class CommentListViewController extends KDListViewController
   replaceAllComments:(comments)->
     @removeAllItems()
     @instantiateListItems comments
+
+
+  reply: (body, callback = noop) ->
+
+    listView = @getListView()
+    activity = listView.getData()
+
+    listView.emit "BackgroundActivityStarted"
+
+    KD.singleton("appManager").tell "Activity", "reply", {activity, body}, (err, reply) =>
+
+      return KD.showError err  if err
+
+      if not KD.getSingleton('activityController').flags?.liveUpdates
+        listView.addItem reply
+        listView.emit "OwnCommentHasArrived"
+      else
+        listView.emit "OwnCommentWasSubmitted"
+      listView.emit "BackgroundActivityFinished"
+
+    KD.mixpanel "Comment activity, success"
+    KD.getSingleton("badgeController").checkBadge
+      property: "comments", relType: "commenter", source: "JNewStatusUpdate", targetSelf: 1

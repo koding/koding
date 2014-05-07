@@ -4,19 +4,28 @@ module.exports = [
   "activitylistcontroller.coffee",
   "pinnedactivitylistcontroller.coffee",
 
+  "sidebar/activitysidebar.coffee",
+  "sidebar/sidebaritem.coffee",
+  "sidebar/memberitem.coffee",
+  "sidebar/chatmemberitem.coffee",
+  "sidebar/topicitem.coffee",
+  "sidebar/pinneditem.coffee",
+
+  "messagepane.coffee",
+
   # Activity commons
   "views/feedcoverphotoview.coffee",
   "views/activityactions.coffee",
   "views/activitylistheader.coffee",
-  "views/activitysplitview.coffee",
-  "views/activityitemchild.coffee",
-  "views/discussionactivityactions.coffee",
-  "views/tutorialactivityactions.coffee",
-  "views/newmemberbucket.coffee",
+  # "views/activitysplitview.coffee",
+  # "views/discussionactivityactions.coffee",
+  # "views/tutorialactivityactions.coffee",
+  # "views/newmemberbucket.coffee",
   "views/activitytickeritem.coffee",
   "views/referalbox.coffee",
-  "views/activitylistcontainer.coffee",
+  # "views/activitylistcontainer.coffee",
   "views/filterwarning.coffee",
+  "views/activitymenuitem.coffee",
 
   "views/embedbox.coffee",
   "views/embedboxwidget.coffee",
@@ -43,6 +52,7 @@ module.exports = [
   "views/comments/commentviewheader.coffee",
   "views/comments/commentlistitemview.coffee",
   "views/comments/newcommentform.coffee",
+  "views/comments/editcommentform.coffee",
 
   # "views/reviews/reviewview.coffee",
   # "views/reviews/reviewlistviewcontroller.coffee",
@@ -51,6 +61,7 @@ module.exports = [
 
   "views/inputview.coffee",
   "views/inputwidget.coffee",
+  "views/inputeditwidget.coffee",
   "views/settingsview.coffee"
 
   "widgets/widgetcontroller.coffee",
@@ -65,7 +76,7 @@ module.exports = [
 
   "ContentDisplays/activitycontentdisplay.coffee",
   "ContentDisplays/StatusUpdate.coffee",
-  "ContentDisplays/ActivityRightBlock.coffee",
+  "ContentDisplays/activitysideviews.coffee",
   "ContentDisplays/ActivityTicker.coffee",
 
   # Activity content displays commons
@@ -76,8 +87,7 @@ module.exports = [
   "ContentDisplays/ContentDisplayScoreBoard.coffee",
 
   # Activity List Items
-  "ListItems/ActivityListItem.coffee",
-  "ListItems/ActivityListItemStatusUpdate.coffee",
+  "ListItems/activitylistitem.coffee",
 
   "styl/activity.styl"
   "styl/activity.responsive.styl"

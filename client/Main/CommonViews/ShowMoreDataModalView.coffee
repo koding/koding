@@ -6,7 +6,7 @@ class ShowMoreDataModalView extends KDModalView
     app     : "Applications"
 
   listControllerMap = ->
-    account : MembersListViewController
+    account : KDListViewController
     tag     : KDListViewController
     app     : KDListViewController
 

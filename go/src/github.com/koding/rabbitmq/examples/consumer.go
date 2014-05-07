@@ -3,11 +3,23 @@ package main
 import (
 	"fmt"
 
+	"github.com/koding/logging"
 	"github.com/koding/rabbitmq"
 	"github.com/streadway/amqp"
 )
 
 func main() {
+	rmq := rabbitmq.New(
+		&rabbitmq.Config{
+			Host:     "localhost",
+			Port:     5672,
+			Username: "guest",
+			Password: "guest",
+			Vhost:    "/",
+		},
+		logging.NewLogger("producer"),
+	)
+
 	exchange := rabbitmq.Exchange{
 		Name:    "EXCHANGE_NAME",
 		Type:    "fanout",
@@ -26,7 +38,7 @@ func main() {
 		Tag: "ElasticSearchFeeder",
 	}
 
-	consumer, err := rabbitmq.NewConsumer(exchange, queue, binding, consumerOptions)
+	consumer, err := rmq.NewConsumer(exchange, queue, binding, consumerOptions)
 	if err != nil {
 		fmt.Print(err)
 		return

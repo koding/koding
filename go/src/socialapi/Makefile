@@ -43,7 +43,7 @@ PACKAGES = \
 default: all
 
 createdb:
-	@go run ./scripts/createdb.go -c ./config/vagrant.toml  -d
+	(vagrant ssh default --command "/opt/koding/go/src/socialapi/db/sql/definition/create.sh")
 
 configure: installall installrerun
 	@echo "$(OK_COLOR)==> Configuration is done $(NO_COLOR)"

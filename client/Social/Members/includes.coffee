@@ -7,7 +7,6 @@ module.exports = [
   "memberslistitemview.coffee"
   "groupmemberspagelistitemview.coffee"
   "newmemberactivitylistitem.coffee"
-  "memberslistcontroller.coffee"
 
   "AppController.coffee"
 
