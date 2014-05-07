@@ -40,22 +40,13 @@ KD.extend
         username  : 'burakcan'
         title     : 'CSS Wizard'
       ,
-        username  : 'cenk'
-        title     : 'Software Engineer'
-      ,
         username  : 'emred'
         title     : 'Designer'
       ,
         username  : 'canthefason'
         title     : 'Software Engineer'
       ,
-        username  : 'nesli'
-        title     : 'Chef de Cuisine'
-      ,
         username  : 'dicle'
-        title     : 'Business Analyst'
-      ,
-        username  : 'niltuncer'
         title     : 'Business Analyst'
       ,
         username  : 'leeolayvar'
@@ -67,11 +58,29 @@ KD.extend
         username  : 'zeynep'
         title     : 'Finance Assistant'
       ,
-        username  : 'juliap'
-        title     : 'Recruiting & HR'
-      ,
         username  : 'selin'
         title     : 'Data Scientist'
+      ,
+        username  : 'didemacet'
+        title     : 'QA'
+      # ,
+      #   username  : 'gniting'
+      #   title     : 'BizDev'
+      # ,
+      #   username  : 'cenk'
+      #   title     : 'Software Engineer'
+      # ,
+      #   username  : 'erdinc'
+      #   title     : 'Software Engineer'
+      # ,
+      #   username  : 'nesli'
+      #   title     : 'Chef de Cuisine'
+      # ,
+      #   username  : 'niltuncer'
+      #   title     : 'Business Analyst'
+      # ,
+      #   username  : 'juliap'
+      #   title     : 'Recruiting & HR'
       # ,
       #   username  : 'pablostanley'
       #   title     : 'Illustrator'
