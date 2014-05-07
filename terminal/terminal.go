@@ -1,3 +1,5 @@
+// Package terminal provides a tty emulation and session handlings that is
+// supported via Screen
 package terminal
 
 import (
@@ -17,6 +19,8 @@ import (
 	"github.com/koding/kite/dnode"
 )
 
+const randomStringLength = 24 // 144 bit base64 encoded
+
 // Server is the type of object that is sent to the connected client.
 // Represents a running shell process on the server.
 type Server struct {
@@ -33,6 +37,14 @@ type Server struct {
 type Remote struct {
 	Output       dnode.Function
 	SessionEnded dnode.Function
+}
+
+func KillSession(r *kite.Request) (interface{}, error) {
+	return true, nil
+}
+
+func GetSessions(r *kite.Request) (interface{}, error) {
+	return true, nil
 }
 
 func Connect(r *kite.Request) (interface{}, error) {
@@ -55,7 +67,7 @@ func Connect(r *kite.Request) (interface{}, error) {
 	if params.Session == "" {
 		// TODO: Check that if it is possible to change the session key with
 		// an incrementing integer because random string looks ugly in "ps" command output.
-		params.Session = RandomString()
+		params.Session = randomString()
 		newSession = true
 	}
 
@@ -150,7 +162,7 @@ func Connect(r *kite.Request) (interface{}, error) {
 				time.Sleep(time.Second)
 			}
 
-			server.remote.Output.Call(string(FilterInvalidUTF8(buf[:n])))
+			server.remote.Output.Call(string(filterInvalidUTF8(buf[:n])))
 			if err != nil {
 				break
 			}
@@ -194,7 +206,7 @@ func (s *Server) Terminate(d *dnode.Partial) {
 	s.Close(nil)
 }
 
-func FilterInvalidUTF8(buf []byte) []byte {
+func filterInvalidUTF8(buf []byte) []byte {
 	i := 0
 	j := 0
 	for {
@@ -213,10 +225,8 @@ func FilterInvalidUTF8(buf []byte) []byte {
 	return buf[:j]
 }
 
-const RandomStringLength = 24 // 144 bit base64 encoded
-
-func RandomString() string {
-	r := make([]byte, RandomStringLength*6/8)
+func randomString() string {
+	r := make([]byte, randomStringLength*6/8)
 	rand.Read(r)
 	return base64.URLEncoding.EncodeToString(r)
 }
