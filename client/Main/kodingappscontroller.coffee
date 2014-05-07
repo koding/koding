@@ -186,7 +186,7 @@ class KodingAppsController extends KDController
 
     else
 
-      url  = "#{url}?#{KD.utils.uniqueId()}"
+      url  = "#{url}"
       bind = ''
       load = noop
 

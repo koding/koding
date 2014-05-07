@@ -478,7 +478,7 @@ module.exports = class Builder
   getProjects:->
 
     rp = (address)=>
-      address?.replace /^website\//, '/' #@config.uri.address
+      "#{ address?.replace /^website\//, '/' }?#{ @config.client.version }"
 
     apps = {}
     {projects, bundles} = require './projects'
