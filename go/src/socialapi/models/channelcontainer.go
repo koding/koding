@@ -1,11 +1,11 @@
 package models
 
 type ChannelContainer struct {
-	Channel             Channel         `json:"channel"`
-	IsParticipant       bool            `json:"isParticipant"`
-	ParticipantCount    int             `json:"participantCount"`
-	ParticipantsPreview []int64         `json:"participantsPreview,omitempty"`
-	LastMessage         *ChannelMessage `json:"lastMessage,omitempty"`
+	Channel             Channel                  `json:"channel"`
+	IsParticipant       bool                     `json:"isParticipant"`
+	ParticipantCount    int                      `json:"participantCount"`
+	ParticipantsPreview []int64                  `json:"participantsPreview,omitempty"`
+	LastMessage         *ChannelMessageContainer `json:"lastMessage,omitempty"`
 }
 
 func NewChannelContainer() *ChannelContainer {
@@ -60,7 +60,13 @@ func PopulateChannelContainer(channel Channel, accountId int64) (*ChannelContain
 		return nil, err
 	}
 
-	cc.LastMessage = cm
+	if cm != nil {
+		cmc, err := cm.BuildEmptyMessageContainer()
+		if err != nil {
+			return nil, err
+		}
+		cc.LastMessage = cmc
+	}
 
 	return cc, nil
 }
