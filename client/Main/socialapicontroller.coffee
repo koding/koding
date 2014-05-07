@@ -3,6 +3,26 @@ class SocialApiController extends KDController
   constructor: (options = {}, data) ->
     super options, data
 
+  mapActivity = (data)->
+    message = data?.message or data
+    # if no result, no need to do something
+    return message unless message
+
+    {SocialMessage} = KD.remote.api
+    m = new SocialMessage message
+    m._id = message.id
+    m.account = {}
+    m.account.constructorName = "JAccount"
+    m.account._id = data.accountOldId
+    m.meta = {}
+    m.meta.likes = data.interactions?.like?.length or 0
+    m.meta.createdAt = message.createdAt
+    m.replies = data.replies
+    m.repliesCount = data.replies?.length or 0
+    m.interactions = data.interactions
+
+    return m
+
   mapActivities = (messages)->
     # if no result, no need to do something
     return messages unless messages
@@ -11,34 +31,8 @@ class SocialApiController extends KDController
     messages = [].concat(messages)
     revivedMessages = []
     {SocialMessage} = KD.remote.api
-    for message in messages
-      m = new SocialMessage message.message
-      m._id = message.message.id
-      m.account = {}
-      m.account.constructorName = "JAccount"
-      m.account._id = message.accountOldId
-      m.meta = {}
-      m.meta.likes = message.interactions?.like?.length or 0
-      m.meta.createdAt = message.message.createdAt
-      m.replies = message.replies
-      m.repliesCount = message.replies.length or 0
-      m.interactions = message.interactions
-
-      revivedMessages.push m
-
+    revivedMessages = (mapActivity message for message in messages)
     return revivedMessages
-
-  mapActivity = (message)->
-    # if no result, no need to do something
-    return message unless message
-
-    {SocialMessage} = KD.remote.api
-    m = new SocialMessage message
-    m._id = message.id
-    m.meta = {}
-    m.meta.createdAt = message.createdAt
-
-    return m
 
   getCurrentGroup = (callback)->
     groupsController = KD.getSingleton "groupsController"

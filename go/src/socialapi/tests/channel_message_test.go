@@ -362,11 +362,18 @@ func createPostWithBody(channelId, accountId int64, body string) (*models.Channe
 	cm.AccountId = accountId
 
 	url := fmt.Sprintf("/channel/%d/message", channelId)
-	cmI, err := sendModel("POST", url, cm)
+	res, err := marshallAndSendRequest("POST", url, cm)
 	if err != nil {
 		return nil, err
 	}
-	return cmI.(*models.ChannelMessage), nil
+
+	model := models.NewChannelMessageContainer()
+	err = json.Unmarshal(res, model)
+	if err != nil {
+		return nil, err
+	}
+
+	return model.Message, nil
 }
 
 func updatePost(cm *models.ChannelMessage) (*models.ChannelMessage, error) {

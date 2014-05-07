@@ -3,21 +3,34 @@ package main
 import (
 	"fmt"
 
+	"github.com/koding/logging"
 	"github.com/koding/rabbitmq"
 	"github.com/streadway/amqp"
 )
 
 func main() {
+	rmq := rabbitmq.New(
+		&rabbitmq.Config{
+			Host:     "localhost",
+			Port:     5672,
+			Username: "guest",
+			Password: "guest",
+			Vhost:    "/",
+		},
+		logging.NewLogger("producer"),
+	)
+
 	exchange := rabbitmq.Exchange{
 		Name: "EXCHANGE_NAME",
 	}
+
 	queue := rabbitmq.Queue{}
 	publishingOptions := rabbitmq.PublishingOptions{
 		Tag:        "ProducerTagHede",
 		RoutingKey: "naber",
 	}
 
-	publisher, err := rabbitmq.NewProducer(exchange, queue, publishingOptions)
+	publisher, err := rmq.NewProducer(exchange, queue, publishingOptions)
 	if err != nil {
 		panic(err)
 	}
