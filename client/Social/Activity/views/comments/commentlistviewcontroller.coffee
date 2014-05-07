@@ -4,8 +4,29 @@ class CommentListViewController extends KDListViewController
     @_hasBackgrounActivity = no
     @startListeners()
 
-  instantiateListItems:(items, keepDeletedComments = no)->
+  loadView: (mainView) ->
 
+    { scrollView
+      startWithLazyLoader
+      noItemFoundWidget
+    } = @getOptions()
+
+    {windowController} = KD.singletons
+
+    if scrollView
+      mainView.addSubView @customScrollView or @scrollView
+      @scrollView.addSubView @getListView()
+      @showLazyLoader no  if startWithLazyLoader
+
+      @scrollView.on 'LazyLoadThresholdReached', @bound "showLazyLoader"
+
+    @putNoItemView()  if noItemFoundWidget
+
+    @instantiateListItems @getListView().getData()?.replies or []
+
+    windowController.on "ReceivedMouseUpElsewhere", @bound 'mouseUpHappened'
+
+  instantiateListItems:(items, keepDeletedComments = no)->
     newItems = []
 
     items.sort (a,b) =>
