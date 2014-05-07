@@ -129,7 +129,8 @@ CREATE TABLE "api"."notification" (
     "updated_at" timestamp(6) WITH TIME ZONE NOT NULL
 )
 WITH (OIDS=FALSE);
-ALTER TABLE "api"."notification" OWNER TO "socialapplication";
+-- ALTER TABLE "api"."notification" OWNER TO "socialapplication";
+GRANT SELECT, INSERT, DELETE ON "api"."notification" TO "socialapplication";
 
 -- ----------------------------
 --  Table structure for notification_content
@@ -142,7 +143,8 @@ CREATE TABLE "api"."notification_content" (
     "created_at" timestamp(6) WITH TIME ZONE
 )
 WITH (OIDS=FALSE);
-ALTER TABLE "api"."notification_content" OWNER TO "socialapplication";
+-- ALTER TABLE "api"."notification_content" OWNER TO "socialapplication";
+GRANT SELECT, INSERT, DELETE ON "api"."notification_content" TO "socialapplication";
 
 -- ----------------------------
 --  Table structure for activity
@@ -156,7 +158,8 @@ CREATE TABLE "api"."activity" (
     "updated_at" timestamp(6) WITH TIME ZONE
 )
 WITH (OIDS=FALSE);
-ALTER TABLE "api"."activity" OWNER TO "socialapplication";
+-- ALTER TABLE "api"."activity" OWNER TO "socialapplication";
+GRANT SELECT, INSERT, DELETE ON "api"."activity" OWNER TO "socialapplication";
 
 -- ----------------------------
 --  Table structure for notification_subscription
@@ -170,4 +173,5 @@ CREATE TABLE "api"."notification_subscription" (
     "added_at" timestamp(6) WITH TIME ZONE
 )
 WITH (OIDS=FALSE);
-ALTER TABLE "api"."notification_subscription" OWNER TO "socialapplication";
+-- ALTER TABLE "api"."notification_subscription" OWNER TO "socialapplication";
+GRANT SELECT, INSERT, DELETE ON "api"."notification_subscription" TO "socialapplication";
