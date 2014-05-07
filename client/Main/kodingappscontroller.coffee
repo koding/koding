@@ -185,6 +185,8 @@ class KodingAppsController extends KDController
         KD.utils.defer -> obj.appendToSelector 'head'
 
     else
+      delim = if /\?/.test url then "&" else "?"
+      url = "#{ url }#{ delim }#{ KD.utils.uniqueId() }"
       bind = ''
       load = noop
 
