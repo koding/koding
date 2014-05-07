@@ -47,8 +47,8 @@ module.exports = ->
 
   <link rel="shortcut icon" href="#{uri.address}/a/images/favicon.ico">
   <link rel="fluid-icon" href="#{uri.address}/a/images/logos/fluid512.png" title="Koding">
-  <link rel="stylesheet" href="/a/css/kd.#{version}.css">
-  <link rel="stylesheet" href="/a/css/koding.#{version}.css">
-  <link class="internal-style-app-social" rel="stylesheet" href="/a/css/__social.#{version}.css">
+  <link rel="stylesheet" href="/a/css/kd.css?#{version}">
+  <link rel="stylesheet" href="/a/css/koding.css?#{version}">
+  <link class="internal-style-app-social" rel="stylesheet" href="/a/css/__social.css?#{version}">
 
   """

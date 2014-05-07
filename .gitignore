@@ -74,3 +74,9 @@ node_modules_koding/processes/src/.tmp*
 website/a/sprites/*.sprite.png
 
 client/Main/__generated*
+website/a/css/kd.css
+website/a/css/koding.css
+website/a/js/bongo.js
+website/a/js/kd.js
+website/a/js/kd.libs.js
+website/a/js/koding.js

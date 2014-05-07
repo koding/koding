@@ -273,6 +273,7 @@ module.exports = class JVM extends Module
         return {groupSlug, prefix, nickname, uid, type:'user', alias}
     return null
 
+
   @createVmByNonce = secure (client, nonce, stackId, callback) ->
     JPaymentFulfillmentNonce  = require './payment/nonce'
     JPaymentPack              = require './payment/pack'
@@ -367,43 +368,8 @@ module.exports = class JVM extends Module
             stack  : stackId
           }
 
-          vm.save (err) =>
-
-            if err
-              return console.warn "Failed to create VM for ", \
-                                   {users, groups, hostnameAlias}
-
-            JDomain.createDomains {
-              account, stackId,
-              domains: hostnameAliases
-              hostnameAlias: hostnameAliases[0]
-              group: groupSlug
-            }
-
-            group.addVm vm, (err)=>
-              return callback err  if err
-              JDomain.ensureDomainSettingsForVM {
-                account, vm, type, nickname, group: groupSlug, stackId
-              }
-              if type is 'group'
-                @addVmUsers user, vm, group, ->
-                  callback null, vm
-              else
-                callback null, vm
-
           JPaymentSubscription.isFreeSubscripton subscriptionCode, (err, isFreeSubscripton)=>
             return callback err if err
-
-            vm = new JVM {
-              hostnameAlias
-              planCode
-              subscriptionCode
-              webHome
-              groups
-              users
-              vmType : type
-              stack  : stackId
-            }
 
             vm.region = KONFIG.regions.premium unless isFreeSubscripton
 
@@ -414,7 +380,7 @@ module.exports = class JVM extends Module
                                      {users, groups, hostnameAlias}
 
               JDomain.createDomains {
-                account, stack,
+                account, stackId,
                 domains: hostnameAliases
                 hostnameAlias: hostnameAliases[0]
                 group: groupSlug
@@ -423,20 +389,14 @@ module.exports = class JVM extends Module
               group.addVm vm, (err)=>
                 return callback err  if err
                 JDomain.ensureDomainSettingsForVM {
-                  account, vm, type, nickname, group: groupSlug, stack
+                  account, vm, type, nickname, group: groupSlug, stackId
                 }
-
-                group.addVm vm, (err)=>
-                  return callback err  if err
-                  JDomain.ensureDomainSettingsForVM {
-                    account, vm, type, nickname, group: groupSlug, stack
-                  }
-                  account.sendNotification "VMCreated"
-                  if type is 'group'
-                    @addVmUsers user, vm, group, ->
-                      callback null, vm
-                  else
+                account.sendNotification "VMCreated"
+                if type is 'group'
+                  @addVmUsers user, vm, group, ->
                     callback null, vm
+                else
+                  callback null, vm
 
   @addVmUsers = (user, vm, group, callback)->
     # todo - do this operation in batches

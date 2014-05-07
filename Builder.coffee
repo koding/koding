@@ -78,7 +78,7 @@ module.exports = class Builder
   buildFramework:->
 
     @config ?= require('koding-config-manager').load("main.#{options.configFile}")
-    cmd = "cd client/Framework && npm i && gulp compile --buildVersion=#{@config.client.version} --outputDir=../../website/a/"
+    cmd = "cd client/Framework && npm i && gulp compile --outputDir=../../website/a/"
     exec cmd, (err, stdout, stderr)->
       console.log """\n\n
       ################################### FRAMEWORK COMPILED #################################
@@ -478,7 +478,7 @@ module.exports = class Builder
   getProjects:->
 
     rp = (address)=>
-      address?.replace /^website\//, '/' #@config.uri.address
+      "#{ address?.replace /^website\//, '/' }?#{ @config.client.version }"
 
     apps = {}
     {projects, bundles} = require './projects'
