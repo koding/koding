@@ -39,6 +39,7 @@ class StackView extends KDView
     @scene.addContainer @extras
 
     @loadContainers()
+    @emit "ready", this
 
   loadContainers: (data)->
 
