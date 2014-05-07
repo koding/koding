@@ -9,12 +9,15 @@ class ErrorLog
       version    : codeVersion
     } = KD.config
 
+    {userAgent} = window.navigator
+
     error = $.extend {
       error
-      osVersion
+      osKiteVersion
       terminalVersion
       useNewKites
       codeVersion
+      userAgent
     }, params
 
     KD.remote.api.JErrorLog.create error, ->
