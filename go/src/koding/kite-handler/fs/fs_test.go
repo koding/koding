@@ -1,10 +1,13 @@
 package fs
 
 import (
+	"io/ioutil"
 	"log"
+	"reflect"
 	"testing"
 
 	"github.com/koding/kite"
+	"github.com/koding/kite/dnode"
 )
 
 var (
@@ -41,7 +44,57 @@ func init() {
 	}
 }
 
-func TestReadDirectory(t *testing.T)   {}
+func TestReadDirectory(t *testing.T) {
+	testDir := "."
+
+	files, err := ioutil.ReadDir(testDir)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	currentFiles := make([]string, len(files))
+	for i, f := range files {
+		currentFiles[i] = f.Name()
+	}
+
+	resp, err := remote.Tell("readDirectory", struct {
+		Path     string
+		OnChange dnode.Function
+	}{
+		Path:     testDir,
+		OnChange: dnode.Function{},
+	})
+
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	f, err := resp.Map()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	entries, err := f["files"].SliceOfLength(len(files))
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	respFiles := make([]string, len(files))
+	for i, e := range entries {
+		f := &FileEntry{}
+		err := e.Unmarshal(f)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		respFiles[i] = f.Name
+	}
+
+	if !reflect.DeepEqual(respFiles, currentFiles) {
+		t.Error("got %+v, expected %+v", respFiles, currentFiles)
+	}
+}
+
 func TestGlob(t *testing.T)            {}
 func TestReadFile(t *testing.T)        {}
 func TestWriteFile(t *testing.T)       {}

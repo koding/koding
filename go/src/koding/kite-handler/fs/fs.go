@@ -27,6 +27,10 @@ func ReadDirectory(r *kite.Request) (interface{}, error) {
 		OnChange dnode.Function
 	}
 
+	if r.Args == nil {
+		return nil, errors.New("arguments are not passed")
+	}
+
 	if r.Args.One().Unmarshal(&params) != nil || params.Path == "" {
 		log.Println("params", params)
 		return nil, errors.New("{ path: [string], onChange: [function]}")
