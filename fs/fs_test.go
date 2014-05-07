@@ -1,12 +1,16 @@
 package fs
 
 import (
+	"log"
 	"testing"
 
 	"github.com/koding/kite"
 )
 
-var fs *kite.Kite
+var (
+	fs     *kite.Kite
+	remote *kite.Client
+)
 
 func init() {
 	fs = kite.New("fs", "0.0.1")
@@ -27,6 +31,14 @@ func init() {
 
 	go fs.Run()
 	<-fs.ServerReadyNotify()
+
+	client := kite.New("client", "0.0.1")
+	client.Config.DisableAuthentication = true
+	remote = client.NewClientString("ws://127.0.0.1:3636")
+	err := remote.Dial()
+	if err != nil {
+		log.Fatal("err")
+	}
 }
 
 func TestReadDirectory(t *testing.T)   {}
