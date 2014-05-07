@@ -134,6 +134,11 @@ ALTER TABLE "api"."message_reply" ADD CONSTRAINT "message_reply_message_id_fkey"
 --  Primary key structure for table notification
 -- ----------------------------
 ALTER TABLE "api"."notification" ADD PRIMARY KEY ("id") NOT DEFERRABLE INITIALLY IMMEDIATE;
+-- ----------------------------
+--  Foreign keys structure for table notification
+-- ----------------------------
+ALTER TABLE "api"."notification" ADD CONSTRAINT "notification_account_id_fkey" FOREIGN KEY ("account_id") REFERENCES "api"."account" ("id") ON UPDATE NO ACTION ON DELETE NO ACTION NOT DEFERRABLE INITIALLY IMMEDIATE;
+ALTER TABLE "api"."notification" ADD CONSTRAINT "notification_notification_content_id_fkey" FOREIGN KEY ("notification_content_id") REFERENCES "api"."notification_content" ("id") ON UPDATE NO ACTION ON DELETE NO ACTION NOT DEFERRABLE INITIALLY IMMEDIATE;
 
 -- ----------------------------
 --  Primary key structure for table notification_content
@@ -144,8 +149,17 @@ ALTER TABLE "api"."notification_content" ADD PRIMARY KEY ("id") NOT DEFERRABLE I
 --  Primary key structure for table activity
 -- ----------------------------
 ALTER TABLE "api"."activity" ADD PRIMARY KEY ("id") NOT DEFERRABLE INITIALLY IMMEDIATE;
+-- ----------------------------
+--  Foreign keys structure for table activity
+-- ----------------------------
+ALTER TABLE "api"."activity" ADD CONSTRAINT "activity_actor_id_fkey" FOREIGN KEY ("actor_id") REFERENCES "api"."account" ("id") ON UPDATE NO ACTION ON DELETE NO ACTION NOT DEFERRABLE INITIALLY IMMEDIATE;
 
 -- ----------------------------
 --  Primary key structure for table notification_subscription
 -- ----------------------------
 ALTER TABLE "api"."notification_subscription" ADD PRIMARY KEY ("id") NOT DEFERRABLE INITIALLY IMMEDIATE;
+-- ----------------------------
+--  Foreign keys structure for table notification_subscription
+-- ----------------------------
+ALTER TABLE "api"."notification_subscription" ADD CONSTRAINT "notification_subscription_account_id_fkey" FOREIGN KEY ("account_id") REFERENCES "api"."account" ("id") ON UPDATE NO ACTION ON DELETE NO ACTION NOT DEFERRABLE INITIALLY IMMEDIATE;
+ALTER TABLE "api"."notification_subscription" ADD CONSTRAINT "notification_subscription_notification_content_id_fkey" FOREIGN KEY ("notification_content_id") REFERENCES "api"."notification_content" ("id") ON UPDATE NO ACTION ON DELETE NO ACTION NOT DEFERRABLE INITIALLY IMMEDIATE;
