@@ -1,14 +1,14 @@
 class VMAlwaysOnToggleButtonView extends JView
   constructor: (options = {}, data) ->
-    options.cssClass = KD.utils.curry "vm-toggle-menu"
+    options.cssClass = KD.utils.curry "toggle-menu"
     super options, data
-    @statusSwitch = new KDOnOffSwitch
-      cssClass    : "tiny vm-toggle-item"
+    @statusSwitch = new KodingSwitch
+      cssClass    : "tiny toggle-item"
       callback    : @bound "toggle"
 
   toggle: (status) ->
     {vmName} = @getData()
-    
+
     KD.remote.api.JVM.setAlwaysOn {vmName, status}, (err) =>
       if err
         switch err.name
@@ -16,7 +16,7 @@ class VMAlwaysOnToggleButtonView extends JView
             KD.showError "You are not allowed for this operation"
           when "NOTSUBSCRIBED"
             KD.showError "You have to upgrade your account for getting Always On VM"
-          else 
+          else
             KD.showError "You have exceeded your \"Always On\" VM quota"
         @decorate off
 
