@@ -25,11 +25,16 @@ type PopularTopicsController struct {
 	redis  *redis.RedisSession
 }
 
-func (t *PopularTopicsController) DefaultErrHandler(delivery amqp.Delivery, err error) {
+func (t *PopularTopicsController) DefaultErrHandler(delivery amqp.Delivery, err error) bool {
+	if delivery.Redelivered {
+		t.log.Error("Redelivered message gave error again, putting to maintenance queue", err)
+		delivery.Ack(false)
+		return true
+	}
+
 	t.log.Error("an error occured putting message back to queue", err)
-	// multiple false
-	// reque true
 	delivery.Nack(false, true)
+	return false
 }
 
 func NewPopularTopicsController(log logging.Logger, redis *redis.RedisSession) *PopularTopicsController {
