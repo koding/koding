@@ -27,6 +27,8 @@ func main() {
 	}
 
 	k := kite.New("overlord", VERSION)
+	k.Config.Port = *flagPort
+
 	k.HandleFunc("fs.readDirectory", fs.ReadDirectory)
 	k.HandleFunc("fs.glob", fs.Glob)
 	k.HandleFunc("fs.readFile", fs.ReadFile)
