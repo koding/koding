@@ -34,11 +34,12 @@ func TestTerminal(t *testing.T) {
 		Remote       *termHandler
 		Session      string
 		SizeX, SizeY int
-		NoScreen     bool
+		Mode         string
 	}{
 		Remote: termClient,
 		SizeX:  80,
 		SizeY:  24,
+		Mode:   "create",
 	})
 	if err != nil {
 		t.Error(err)
