@@ -25,7 +25,7 @@ func ListChannels(u *url.URL, h http.Header, _ interface{}) (int, http.Header, i
 		return helpers.NewBadRequestResponse(err)
 	}
 
-	return helpers.NewOKResponse(
+	return helpers.HandleResultAndError(
 		models.PopulateChannelContainers(channels, accountId),
 	)
 }

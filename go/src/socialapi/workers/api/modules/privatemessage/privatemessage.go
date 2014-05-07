@@ -142,29 +142,9 @@ func List(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface
 		return helpers.NewBadRequestResponse(err)
 	}
 
-	populatedChannels := models.PopulateChannelContainers(channels, q.AccountId)
-
-	for i, populatedChannel := range populatedChannels {
-		cp := models.NewChannelParticipant()
-		cp.ChannelId = populatedChannel.Channel.Id
-
-		// add participant preview
-		cpList, err := cp.ListAccountIds(5)
-		if err != nil {
-			return helpers.NewBadRequestResponse(err)
-		}
-		populatedChannels[i].ParticipantsPreview = cpList
-
-		// add last message of the channel
-		cm, err := populatedChannel.Channel.FetchLastMessage()
-		if err != nil {
-			return helpers.NewBadRequestResponse(err)
-		}
-		populatedChannels[i].LastMessage = cm
-	}
-
-	return helpers.NewOKResponse(populatedChannels)
-
+	return helpers.HandleResultAndError(
+		models.PopulateChannelContainers(channels, q.AccountId),
+	)
 }
 
 func getPrivateMessageChannels(q *models.Query) ([]models.Channel, error) {
