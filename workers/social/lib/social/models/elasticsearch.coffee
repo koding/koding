@@ -89,7 +89,7 @@ module.exports = class ElasticSearch extends Base
       }
     } = result
 
-    return {browser_version, browser_name, os_version, os_name, ua_raw:userAgent}
+    return {browser_version, browser_name, os_version, os_name}
 
   @create: (indexOptions, documents, callback)->
     return  callback null  unless run
