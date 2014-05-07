@@ -15,7 +15,6 @@ class SocialApiController extends KDController
     m.account.constructorName = "JAccount"
     m.account._id = data.accountOldId
     m.meta = {}
-    m.meta.likes = data.interactions?.like?.length or 0
     m.meta.createdAt = message.createdAt
     m.replies = data.replies
     m.repliesCount = data.replies?.length or 0
