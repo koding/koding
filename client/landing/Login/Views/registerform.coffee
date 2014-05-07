@@ -180,6 +180,9 @@ class RegisterInlineForm extends LoginViewInlineForm
       </div>
       <div class='hint'>Your username must be at least 4 characters and it’s also going to be your {{> @domain}} domain.</div>
       <div>{{> @button}}</div>
+      <div class="accept-tos">
+      By creating an account, I accept Koding's <a href="/tos.html" target="_blank"> Terms of Service</a> and <a href="/privacy.html" target="_blank">Privacy Policy.</a>
+      </div>
     </section>
     {{> @invitationCode}}
     """
