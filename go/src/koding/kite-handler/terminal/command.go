@@ -72,6 +72,7 @@ func newCommand(mode, session, username string) (*Command, error) {
 // screenSessions returns a list of sessions that belongs to the given
 // username.  The sessions are in the form of ["k7sdjv12344", "askIj12sas12",
 // ...]
+// TODO: socket directory is different under darwin, it will not work probably
 func screenSessions(username string) []string {
 	// Do not include dead sessions in our result
 	exec.Command(defaultScreenPath, "-wipe").Run()
