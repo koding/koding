@@ -1,4 +1,6 @@
 elasticsearch = require 'es'
+UAParser      = require 'ua-parser-js'
+_             = require "underscore"
 
 {
   secure
@@ -72,10 +74,31 @@ module.exports = class ElasticSearch extends Base
 
       callback null, record
 
+  @parseUserAgent: (userAgent)->
+    parser = new UAParser()
+    result = parser.setUA(userAgent).getResult()
+
+    {
+      browser: {
+        version : browser_version
+        name    : browser_name
+      }
+      os: {
+        version : os_version
+        name    : os_name
+      }
+    } = result
+
+    return {browser_version, browser_name, os_version, os_name}
+
   @create: (indexOptions, documents, callback)->
     return  callback null  unless run
 
     for doc in documents
+      if userAgent = doc.userAgent
+        userAgentParams = @parseUserAgent userAgent
+        doc = _.extend doc, userAgentParams
+
       doc["@timestamp"] ?= new Date
 
     es.bulkIndex indexOptions, documents, callback
