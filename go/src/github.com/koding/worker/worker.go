@@ -1,6 +1,7 @@
 package worker
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"github.com/koding/logging"
@@ -12,10 +13,11 @@ import (
 )
 
 type Listener struct {
-	Consumer           *rabbitmq.Consumer
-	SourceExchangeName string
-	WorkerName         string
-	Log                logging.Logger
+	Consumer             *rabbitmq.Consumer
+	MaintenancePublisher *rabbitmq.Producer
+	SourceExchangeName   string
+	WorkerName           string
+	Log                  logging.Logger
 }
 
 func NewListener(workerName string, sourceExchangeName string, log logging.Logger) *Listener {
@@ -26,7 +28,7 @@ func NewListener(workerName string, sourceExchangeName string, log logging.Logge
 	}
 }
 
-func (l *Listener) Listen(rmq *rabbitmq.RabbitMQ, handler Handler) {
+func (l *Listener) createConsumer(rmq *rabbitmq.RabbitMQ) *rabbitmq.Consumer {
 	exchange := rabbitmq.Exchange{
 		Name:    l.SourceExchangeName,
 		Type:    "fanout",
@@ -51,11 +53,41 @@ func (l *Listener) Listen(rmq *rabbitmq.RabbitMQ, handler Handler) {
 		panic(err)
 	}
 
-	// set consumer
-	l.Consumer = Consumer
+	return Consumer
+}
 
-	err = l.Consumer.QOS(10)
+func (l *Listener) createMaintenancePublisher(rmq *rabbitmq.RabbitMQ) *rabbitmq.Producer {
+	exchange := rabbitmq.Exchange{
+		Name: "",
+	}
+
+	publishingOptions := rabbitmq.PublishingOptions{
+		Tag:       fmt.Sprintf("%sWorkerConsumer", l.WorkerName),
+		Immediate: false,
+		// RoutingKey: "ApiMaintenanceQueue", // publish to ApiMaintenanceQueue
+	}
+
+	producer, err := rmq.NewProducer(
+		exchange,
+		rabbitmq.Queue{
+			Name:    "ApiMaintenanceQueue",
+			Durable: true,
+		},
+		publishingOptions,
+	)
 	if err != nil {
+		panic(err)
+	}
+
+	return producer
+}
+
+func (l *Listener) Listen(rmq *rabbitmq.RabbitMQ, handler Handler) {
+	// set consumer
+	l.Consumer = l.createConsumer(rmq)
+	l.MaintenancePublisher = l.createMaintenancePublisher(rmq)
+
+	if err := l.Consumer.QOS(10); err != nil {
 		panic(err)
 	}
 
@@ -65,13 +97,15 @@ func (l *Listener) Listen(rmq *rabbitmq.RabbitMQ, handler Handler) {
 
 func (l *Listener) Close() {
 	l.Consumer.Shutdown()
+	l.MaintenancePublisher.Shutdown()
 }
 
 var HandlerNotFoundErr = errors.New("Handler Not Found")
 
 type Handler interface {
 	HandleEvent(string, []byte) error
-	DefaultErrHandler(amqp.Delivery, error)
+	// bool is whether publishing the message to maintenance qeueue or not
+	DefaultErrHandler(amqp.Delivery, error) bool
 }
 
 func (l *Listener) Start(handler Handler) func(delivery amqp.Delivery) {
@@ -91,10 +125,16 @@ func (l *Listener) Start(handler Handler) func(delivery amqp.Delivery) {
 			l.Log.Warning("Record not found in our mongo db (%s) recieved, deleting message from RMQ", string(delivery.Body))
 			delivery.Ack(false)
 		default:
-			handler.DefaultErrHandler(delivery, err)
-			// add proper error handling
-			// instead of puttting message back to same queue, it is better
-			// to put it to another maintenance queue/exchange
+			if handler.DefaultErrHandler(delivery, err) {
+				data, err := json.Marshal(delivery)
+				if err == nil {
+					msg := amqp.Publishing{
+						Body:  []byte(data),
+						AppId: l.WorkerName,
+					}
+					l.MaintenancePublisher.Publish(msg)
+				}
+			}
 		}
 	}
 }
