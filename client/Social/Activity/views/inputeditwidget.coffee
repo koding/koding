@@ -19,6 +19,7 @@ class ActivityEditWidget extends ActivityInputWidget
       cssClass : "solid gray"
       callback : => @emit "Cancel"
 
+
   viewAppended: ->
 
     data         = @getData()
