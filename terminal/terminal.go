@@ -24,9 +24,7 @@ const randomStringLength = 24 // 144 bit base64 encoded
 // Server is the type of object that is sent to the connected client.
 // Represents a running shell process on the server.
 type Server struct {
-	Session          string `json:"session"`
 	remote           Remote
-	isForeignSession bool
 	pty              *pty.PTY
 	currentSecond    int64
 	messageCounter   int
@@ -44,7 +42,17 @@ func KillSession(r *kite.Request) (interface{}, error) {
 }
 
 func GetSessions(r *kite.Request) (interface{}, error) {
-	return true, nil
+	user, err := user.Current()
+	if err != nil {
+		return nil, fmt.Errorf("Could not get home dir: %s", err)
+	}
+
+	sessions := screenSessions(user.Username)
+	if len(sessions) == 0 {
+		return nil, errors.New("no sessions available")
+	}
+
+	return sessions, nil
 }
 
 func Connect(r *kite.Request) (interface{}, error) {
@@ -52,70 +60,36 @@ func Connect(r *kite.Request) (interface{}, error) {
 		Remote       Remote
 		Session      string
 		SizeX, SizeY int
-		NoScreen     bool
+		Mode         string
 	}
 
 	if r.Args.One().Unmarshal(&params) != nil || params.SizeX <= 0 || params.SizeY <= 0 {
 		return nil, errors.New("{ remote: [object], session: [string], sizeX: [integer], sizeY: [integer], noScreen: [boolean] }")
 	}
 
-	if params.NoScreen && params.Session != "" {
-		return nil, errors.New("The 'noScreen' and 'session' parameters can not be used together.")
-	}
-
-	newSession := false
-	if params.Session == "" {
-		// TODO: Check that if it is possible to change the session key with
-		// an incrementing integer because random string looks ugly in "ps" command output.
-		params.Session = randomString()
-		newSession = true
-	}
-
-	// We will return this object to the client.
-	server := &Server{
-		Session: params.Session,
-		remote:  params.Remote,
-		pty:     pty.New("/dev/pts"),
-	}
-
-	server.setSize(float64(params.SizeX), float64(params.SizeY))
-
-	var command struct {
-		name string
-		args []string
-	}
-
-	command.name = "/usr/bin/screen"
-	command.args = []string{"-e^Bb", "-s", "/bin/bash", "-S", "koding." + params.Session}
-	// tmux version, attach to an existing one, if not available it creates one
-	// command.name = "/usr/local/bin/tmux"
-	// command.args = []string{"tmux", "attach", "-t", "koding." + params.Session, "||", "tmux", "new-session", "-s", "koding." + params.Session}
-
-	if !newSession {
-		command.args = append(command.args, "-x")
-	}
-
-	if params.NoScreen {
-		command.name = "/bin/bash"
-		command.args = []string{}
-	}
-
-	cmd := exec.Command(command.name, command.args...)
-
 	user, err := user.Current()
 	if err != nil {
 		return nil, fmt.Errorf("Could not get home dir: %s", err)
 	}
 
+	command, err := newCommand(params.Mode, params.Session, user.Username)
+	if err != nil {
+		return nil, err
+	}
+
+	// We will return this object to the client.
+	server := &Server{remote: params.Remote, pty: pty.New("/dev/pts")}
+	server.setSize(float64(params.SizeX), float64(params.SizeY))
+
+	cmd := exec.Command(command.Name, command.Args...)
 	cmd.Env = []string{"TERM=xterm-256color", "HOME=" + user.HomeDir}
 	cmd.Stdin = server.pty.Slave
-	// cmd.Stdout = server.pty.Slave
+	cmd.Stdout = server.pty.Slave
 	// cmd.Stderr = server.pty.Slave
 
 	// Open in background, this is needed otherwise the process will be killed
 	// if you hit close on the client side.
 	cmd.SysProcAttr = &syscall.SysProcAttr{Setctty: true, Setsid: true}
-
 	err = cmd.Start()
 	if err != nil {
 		fmt.Println("could not start", err)
