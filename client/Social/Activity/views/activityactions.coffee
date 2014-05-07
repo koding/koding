@@ -89,30 +89,3 @@ class ActivityActionsView extends KDView
     </span>
     {{> @loader}}
     """
-
-class ActivityCountLink extends KDCustomHTMLView
-
-  constructor:(options,data)->
-
-    options = $.extend
-      tagName   : "a"
-      cssClass  : "count"
-      attributes:
-        href    : "#"
-    , options
-
-    super options, data
-
-
-  render: ->
-
-    super
-
-    @setCount()
-
-
-  viewAppended: ->
-
-    super
-
-    @setCount()
