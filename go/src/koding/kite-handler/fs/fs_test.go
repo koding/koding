@@ -95,7 +95,34 @@ func TestReadDirectory(t *testing.T) {
 	}
 }
 
-func TestGlob(t *testing.T)            {}
+func TestGlob(t *testing.T) {
+	testGlob := "*"
+
+	files, err := glob(testGlob)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	resp, err := remote.Tell("glob", struct {
+		Pattern string
+	}{
+		Pattern: testGlob,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	var r []string
+	err = resp.Unmarshal(&r)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if !reflect.DeepEqual(r, files) {
+		t.Error("got %+v, expected %+v", r, files)
+	}
+}
+
 func TestReadFile(t *testing.T)        {}
 func TestWriteFile(t *testing.T)       {}
 func TestUniquePath(t *testing.T)      {}
