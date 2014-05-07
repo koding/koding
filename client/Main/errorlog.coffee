@@ -4,7 +4,6 @@ class ErrorLog
       kites : {
         os       : {version  : osVersion}
         terminal : {version  : terminalVersion}
-        stack    : {newKites : useNewKites}
       }
       version    : codeVersion
     } = KD.config
@@ -13,11 +12,11 @@ class ErrorLog
 
     error = $.extend {
       error
-      osKiteVersion
       terminalVersion
-      useNewKites
       codeVersion
       userAgent
+      useNewKites_new : KD.useNewKites
+      osKiteVersion   : osVersion
     }, params
 
     KD.remote.api.JErrorLog.create error, ->
