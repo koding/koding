@@ -78,8 +78,6 @@ module.exports = class JVM extends Module
           (signature String, Function)
         createVmByNonce:
           (signature String, String, Function)
-        createFreeVm:
-          (signature String, Function)
         createSharedVm:
           (signature Function)
         setAlwaysOn:
@@ -275,50 +273,6 @@ module.exports = class JVM extends Module
         return {groupSlug, prefix, nickname, uid, type:'user', alias}
     return null
 
-  @createFreeVm = secure (client, stackId, callback)->
-
-    @fetchDefaultVm client, (err, vm)=>
-
-      return callback err  if err
-
-      { delegate: account } = client.connection
-
-      unless vm
-
-        JGroup = require './group'
-        JGroup.one slug:'koding', (err, group)=>
-
-          account.fetchUser (err, user) =>
-            return callback err  if err
-            return callback new Error "user not found" unless user
-
-            nameFactory = (require 'koding-counter')
-              db          : JVM.getClient()
-              offset      : 0
-              counterName : "koding~#{user.username}~"
-
-            nameFactory.next (err, uid)=>
-              return console.error err  if err
-              # Counter created
-
-              @addVm {
-                uid
-                user
-                account
-                stack     : stackId
-                sudo      : yes
-                type      : 'user'
-                target    : account
-                planCode  : 'free'
-                groupSlug : group.slug
-                planOwner : "user_#{account._id}"
-                webHome   : account.profile.nickname
-                groups    : wrapGroup group
-              }, callback
-
-      else
-
-        callback new KodingError('Default VM already exists'), vm
 
   @createVmByNonce = secure (client, nonce, stackId, callback) ->
     JPaymentFulfillmentNonce  = require './payment/nonce'
