@@ -15,8 +15,8 @@ class ErrorLog
       terminalVersion
       codeVersion
       userAgent
-      useNewKites_new : KD.useNewKites
-      osKiteVersion   : osVersion
+      useNewKites   : KD.useNewKites
+      osKiteVersion : osVersion
     }, params
 
     KD.remote.api.JErrorLog.create error, ->
