@@ -48,9 +48,9 @@ module.exports = (options = {}, callback)->
     <script>KD.config.usePremiumBroker=#{usePremiumBroker}</script>
     <script>KD.customPartial=#{encodedCustomPartial}</script>
     <script>KD.campaignData=#{encodedCampaignData}</script>
-    <script src='/a/js/kd.libs.#{KONFIG.version}.js'></script>
-    <script src='/a/js/kd.#{KONFIG.version}.js'></script>
-    <script src='/a/js/koding.#{KONFIG.version}.js'></script>
+    <script src='/a/js/kd.libs.js?#{KONFIG.version}'></script>
+    <script src='/a/js/kd.js?#{KONFIG.version}'></script>
+    <script src='/a/js/koding.js?#{KONFIG.version}'></script>
     <script>
     KD.utils.defer(function () {
       KD.currentGroup = KD.remote.revive(#{currentGroup});

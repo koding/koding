@@ -4,8 +4,6 @@ import (
 	"encoding/binary"
 	"errors"
 	"fmt"
-	"io/ioutil"
-	"koding/db/models"
 	"koding/db/mongodb"
 	"koding/db/mongodb/modelhelper"
 	"koding/kodingkite"
@@ -27,14 +25,13 @@ import (
 
 	kitelib "github.com/koding/kite"
 	"github.com/koding/redis"
-	"gopkg.in/fatih/set.v0"
 	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
 )
 
 const (
 	OSKITE_NAME    = "oskite"
-	OSKITE_VERSION = "0.2.6"
+	OSKITE_VERSION = "0.2.7"
 )
 
 var (
@@ -139,7 +136,7 @@ func (o *Oskite) Run() {
 	// startPrepareWorkers starts multiple workers (based on prepareQueueLimit)
 	// that accepts vmPrepare/vmStart functions.
 	for i := 0; i < o.PrepareQueueLimit; i++ {
-		go prepareWorker(i)
+		go o.prepareWorker(i)
 	}
 
 	o.prepareOsKite()
@@ -299,110 +296,8 @@ func (o *Oskite) prepareOsKite() {
 	o.Kite = k
 }
 
-// currentVMS returns a set of current VMS on the host machine with their
-// associated mongodb objectid's taken from the directory name
-func currentVMs() (set.Interface, error) {
-	dirs, err := ioutil.ReadDir("/var/lib/lxc")
-	if err != nil {
-		return nil, fmt.Errorf("vmsList err %s", err)
-	}
-
-	vms := set.NewNonTS()
-	for _, dir := range dirs {
-		if !strings.HasPrefix(dir.Name(), "vm-") {
-			continue
-		}
-
-		vmId := bson.ObjectIdHex(dir.Name()[3:])
-		vms.Add(vmId)
-	}
-
-	return vms, nil
-}
-
-// mongodbVMs returns a set of VMs that are bind to the given
-// serviceUniquename/hostkite in mongodb
-func mongodbVMs(serviceUniquename string) (set.Interface, error) {
-	vms := make([]*models.VM, 0)
-
-	query := func(c *mgo.Collection) error {
-		return c.Find(bson.M{"hostKite": serviceUniquename}).All(&vms)
-	}
-
-	if err := mongodbConn.Run("jVMs", query); err != nil {
-		return nil, fmt.Errorf("allVMs fetching err: %s", err.Error())
-	}
-
-	vmsSet := set.NewNonTS()
-	for _, vm := range vms {
-		vmsSet.Add(vm.Id)
-	}
-
-	return vmsSet, nil
-}
-
-// vmUpdater updates the states of current available VMs on the host machine.
-func (o *Oskite) vmUpdater() {
-	for _ = range time.Tick(time.Second * 10) {
-		currentIds, err := currentVMs()
-		if err != nil {
-			log.Error("vm updater getting current vms err %v", err)
-			continue
-		}
-
-		dbIds, err := mongodbVMs(o.ServiceUniquename)
-		if err != nil {
-			log.Error("vm updater getting all db failed err %v", err)
-		}
-
-		combined := set.Intersection(currentIds, dbIds)
-
-		combined.Each(func(item interface{}) bool {
-			vmId, ok := item.(bson.ObjectId)
-			if !ok {
-				return true
-			}
-
-			err := updateState(vmId)
-			if err == nil {
-				return true
-			}
-
-			log.Error("vm updater vmId %s err %v", vmId, err)
-			if err != mgo.ErrNotFound {
-				return true
-			}
-
-			// this is a leftover VM that needs to be unprepared
-			log.Error("vm updater vmId %s err %v", vmId, err)
-			unprepareLeftover(vmId)
-
-			return true
-		})
-	}
-
-}
-
-func unprepareLeftover(vmId bson.ObjectId) {
-	prepareQueue <- &QueueJob{
-		msg: fmt.Sprintf("unprepare leftover vm %s", vmId.Hex()),
-		f: func() error {
-			mockVM := &virt.VM{Id: vmId}
-			if err := mockVM.Unprepare(nil, false); err != nil {
-				log.Error("leftover unprepare: %v", err)
-			}
-
-			if err := updateState(vmId); err != nil {
-				log.Error("%v", err)
-			}
-
-			return nil
-		},
-	}
-}
-
 // handleCurrentVMs removes and unprepare any vm in the lxc dir that doesn't
-// have any associated document which in mongodbConn.
+// have any associated document in mongoDB. It also
 func (o *Oskite) handleCurrentVMs() {
 	currentIds, err := currentVMs()
 	if err != nil {
@@ -413,7 +308,7 @@ func (o *Oskite) handleCurrentVMs() {
 	currentIds.Each(func(item interface{}) bool {
 		vmId, ok := item.(bson.ObjectId)
 		if !ok {
-			return true
+			return true // pick up the next one
 		}
 
 		var vm virt.VM
@@ -439,30 +334,11 @@ func (o *Oskite) handleCurrentVMs() {
 			log.Error("%v", err)
 		}
 
-		// start the shutdown timer for the given vm, for alwaysOn VM's it
-		// doesn't start it
+		// start the shutdown timer for the given vm (but not alwaysOn)
 		info.startTimeout()
 
-		// start alwaysON VMs. using an anonymous function let us create clean
-		// and flattened code like below
-		func() {
-			if !vm.AlwaysOn {
-				return
-			}
-
-			// means this vm is intended to be start on another kontainer machine
-			if vm.PinnedToHost != "" && vm.PinnedToHost != o.ServiceUniquename {
-				return
-			}
-
-			log.Info("starting alwaysOn VM %s [%s]", vm.HostnameAlias, vm.Id.Hex())
-			go func(vm virt.VM) {
-				if err := o.startVM(&vm, nil); err != nil {
-					log.LogError(err, 0)
-				}
-			}(vm)
-		}()
-
+		// start alwaysON VMs
+		o.startAlwaysOn(&vm)
 		return true
 	})
 
@@ -478,7 +354,7 @@ func (o *Oskite) startPinnedVMs() {
 			if !iter.Next(&vm) {
 				break
 			}
-			if err := o.startVM(&vm, nil); err != nil {
+			if err := o.startSingleVM(&vm, nil); err != nil {
 				log.LogError(err, 0)
 			}
 		}
@@ -747,7 +623,20 @@ func (o *Oskite) validateVM(vm *virt.VM) error {
 	return nil
 }
 
-func (o *Oskite) startVM(vm *virt.VM, channel *kite.Channel) error {
+func updateState(vmId bson.ObjectId) error {
+	state := virt.GetVMState(vmId)
+	if state == "" {
+		state = "UNKNOWN"
+	}
+
+	query := func(c *mgo.Collection) error {
+		return c.Update(bson.M{"_id": vmId}, bson.M{"$set": bson.M{"state": state}})
+	}
+
+	return mongodbConn.Run("jVMs", query)
+}
+
+func (o *Oskite) startSingleVM(vm *virt.VM, channel *kite.Channel) error {
 	info := getInfo(vm)
 	info.mutex.Lock()
 	defer info.mutex.Unlock()
@@ -763,27 +652,10 @@ func (o *Oskite) startVM(vm *virt.VM, channel *kite.Channel) error {
 		return err
 	}
 
-	return startAndPrepareVM(vm)
-}
-
-func updateState(vmId bson.ObjectId) error {
-	state := virt.GetVMState(vmId)
-	if state == "" {
-		state = "UNKNOWN"
-	}
-
-	query := func(c *mgo.Collection) error {
-		return c.Update(bson.M{"_id": vmId}, bson.M{"$set": bson.M{"state": state}})
-	}
-
-	return mongodbConn.Run("jVMs", query)
-}
-
-func startAndPrepareVM(vm *virt.VM) error {
 	var lastError error
 	done := make(chan struct{}, 1)
 	prepareQueue <- &QueueJob{
-		msg: "vm prepare and start " + vm.HostnameAlias,
+		msg: "startSingleVM " + vm.HostnameAlias,
 		f: func() error {
 			// prepare first
 			if lastError = prepareProgress(nil, vm); lastError != nil {
@@ -803,13 +675,18 @@ func startAndPrepareVM(vm *virt.VM) error {
 	// to return something to the client
 	<-done
 
+	if lastError != nil {
+		log.Error("startSingleVM error: %s", lastError)
+	}
+
 	return lastError
 }
 
 // prepareWorker listens from prepareQueue channel and runs the functions it receives
-func prepareWorker(id int) {
+func (o *Oskite) prepareWorker(id int) {
 	queueInfo := func() string {
-		return fmt.Sprintf("[queue id: %d len: %d]", id, currentQueueCount.Get())
+		return fmt.Sprintf("[queue id: %d capacity: %d / %d]",
+			id, currentQueueCount.Get(), o.PrepareQueueLimit)
 	}
 
 	for job := range prepareQueue {
@@ -834,7 +711,7 @@ func prepareWorker(id int) {
 		select {
 		case <-done:
 		case <-time.After(time.Second * 60):
-			log.Info("Timeout job: '%s' after 60 seconds", job.msg, queueInfo())
+			log.Error("Timeout job: '%s' after 60 seconds %s", job.msg, queueInfo())
 		}
 
 		currentQueueCount.Add(-1)

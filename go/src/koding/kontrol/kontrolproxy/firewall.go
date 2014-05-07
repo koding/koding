@@ -48,6 +48,8 @@ var (
 
 	fws   = make(map[string]*Firewall)
 	fwsMu sync.Mutex
+
+	debug = false
 )
 
 // firewallHandler returns a http.Handler to restrict incoming requests based
@@ -76,7 +78,10 @@ func firewallHandler(h http.Handler) http.Handler {
 			fwsMu.Unlock()
 		}
 
-		// fmt.Printf("fw %+v\n", fw) // debug
+		if debug {
+			fmt.Printf("fw %+v\n", fw)
+		}
+
 		if a := fw.applyRule(r); a != nil {
 			a.ServeHTTP(w, r)
 			return
@@ -123,7 +128,9 @@ func (f *Firewall) applyRule(r *http.Request) http.Handler {
 			continue
 		}
 
-		// fmt.Printf("rule %+v\n", rule) // debug
+		if debug {
+			fmt.Printf("rule %+v\n", rule)
+		}
 
 		checker, err := getChecker(rule, r)
 		if err != nil {
@@ -133,7 +140,7 @@ func (f *Firewall) applyRule(r *http.Request) http.Handler {
 
 		matched := checker.Check()
 		switch rule.Action {
-		case "deny":
+		case "block":
 			if matched {
 				return templateHandler("quotaExceeded.html", r.Host, 509)
 			}
@@ -165,6 +172,10 @@ func getChecker(rule models.Rule, r *http.Request) (Checker, error) {
 	ip := getIP(r.RemoteAddr)
 	country := getCountry(ip)
 	host := r.Host
+
+	if debug {
+		fmt.Printf("ip %+v country %v host %v\n", ip, country, host)
+	}
 
 	switch rule.Type {
 	case "ip":
@@ -211,7 +222,9 @@ func (c *CheckRequest) Check() bool {
 		fwsMu.Unlock()
 	}
 
-	// fmt.Printf("fw.bucket %+v\n", fw.bucket) // debug
+	if debug {
+		fmt.Printf("fw.bucket %+v\n", fw.bucket)
+	}
 
 	// makes one request, returns zero if bucket is empty
 	if fw.bucket.TakeAvailable(1) == 0 {
@@ -239,6 +252,10 @@ func (c *CheckIP) Check() bool {
 		return true
 	}
 
+	if debug {
+		fmt.Printf("c.IP %v c.Pattern %+v\n", c.IP, c.Pattern)
+	}
+
 	matched, err := regexp.MatchString(c.Pattern, c.IP)
 	if err != nil {
 		// do not block if the regex fails
@@ -246,8 +263,8 @@ func (c *CheckIP) Check() bool {
 	}
 
 	if matched {
-		return false
+		return true
 	}
 
-	return true // not matched, give access
+	return false // not matched, give access
 }
