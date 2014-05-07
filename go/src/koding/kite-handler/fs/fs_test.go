@@ -1,6 +1,7 @@
 package fs
 
 import (
+	"encoding/base64"
 	"io/ioutil"
 	"log"
 	"reflect"
@@ -119,11 +120,40 @@ func TestGlob(t *testing.T) {
 	}
 
 	if !reflect.DeepEqual(r, files) {
-		t.Error("got %+v, expected %+v", r, files)
+		t.Errorf("got %+v, expected %+v", r, files)
 	}
 }
 
-func TestReadFile(t *testing.T)        {}
+func TestReadFile(t *testing.T) {
+	testFile := "testdata/testfile1.txt"
+
+	content, err := ioutil.ReadFile(testFile)
+	if err != nil {
+		t.Error(err)
+	}
+
+	resp, err := remote.Tell("readFile", struct {
+		Path string
+	}{
+		Path: testFile,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	buf := resp.MustMap()["content"].MustString()
+
+	s, err := base64.StdEncoding.DecodeString(buf)
+	if err != nil {
+		t.Error(err)
+	}
+
+	if string(s) != string(content) {
+		t.Errorf("got %s, expecting %s", string(s), string(content))
+	}
+
+}
+
 func TestWriteFile(t *testing.T)       {}
 func TestUniquePath(t *testing.T)      {}
 func TestGetInfo(t *testing.T)         {}
