@@ -33,6 +33,13 @@ type ChannelMessage struct {
 
 	// Modification date of the message
 	UpdatedAt time.Time `json:"updatedAt"           sql:"DEFAULT:CURRENT_TIMESTAMP"`
+
+	// Deletion date of the channel message
+	DeletedAt time.Time `json:"deletedAt"`
+}
+
+func (c *ChannelMessage) BeforeCreate() {
+	c.DeletedAt = ZeroDate()
 }
 
 func (c *ChannelMessage) AfterCreate() {
@@ -84,9 +91,12 @@ func bodyLenCheck(body string) error {
 	if len(body) < config.Get().Limits.MessageBodyMinLen {
 		return fmt.Errorf("Message Body Length should be greater than %d, yours is %d ", config.Get().Limits.MessageBodyMinLen, len(body))
 	}
+
 	return nil
 }
 
+// todo create a new message while updating the channel_message and delete other
+// cases, since deletion is a soft delete, old instances will still be there
 func (c *ChannelMessage) Update() error {
 	if err := bodyLenCheck(c.Body); err != nil {
 		return err
@@ -169,7 +179,7 @@ func (c *ChannelMessage) FetchRelatives(query *Query) (*ChannelMessageContainer,
 	i := NewInteraction()
 	i.MessageId = c.Id
 
-	oldId, err := FetchOdlIdByAccountId(c.AccountId)
+	oldId, err := FetchOldIdByAccountId(c.AccountId)
 	if err != nil {
 		return nil, err
 	}
@@ -219,18 +229,18 @@ func (c *ChannelMessage) FetchRelatives(query *Query) (*ChannelMessageContainer,
 }
 
 // todo include message owner misleads people,
+// FetchReplierIds fetches all repliers of a message after a given time.
 func (c *ChannelMessage) FetchReplierIds(p *bongo.Pagination, includeMessageOwner bool, t time.Time) ([]int64, error) {
 	if c.Id == 0 {
 		return nil, errors.New("channel message id is not set")
 	}
 
 	// first fetch parent post reply messages
-	replyIds, err := c.FetchMessageReplies(p, t)
+	replyIds, err := c.FetchMessageReplies(p, t, true)
 	if err != nil {
 		return nil, err
 	}
 
-	// TODO when this function is used for fetching notified users do not include last reply.
 	// add message owner
 	if includeMessageOwner {
 		replyIds = append(replyIds, c.Id)
@@ -250,13 +260,13 @@ func (c *ChannelMessage) FetchReplierIds(p *bongo.Pagination, includeMessageOwne
 
 // FetchReplierIdsWithCount fetches all repliers of message with given Id and returns distinct replier count
 // Account given with AccountId is excluded from the results
-func (c *ChannelMessage) FetchReplierIdsWithCount(p *bongo.Pagination, count *int, t time.Time) ([]int64, error) {
+func (c *ChannelMessage) FetchReplierIdsWithCount(p *bongo.Pagination, count *int, t time.Time, lowerTimeLimit bool) ([]int64, error) {
 	if c.Id == 0 {
 		return nil, errors.New("channel message id is not set")
 	}
 
 	// first fetch all replyIds without doing any limitations
-	replyIds, err := c.FetchMessageReplies(&bongo.Pagination{}, t)
+	replyIds, err := c.FetchMessageReplies(&bongo.Pagination{}, t, lowerTimeLimit)
 	if err != nil {
 		return nil, err
 	}
@@ -264,17 +274,22 @@ func (c *ChannelMessage) FetchReplierIdsWithCount(p *bongo.Pagination, count *in
 	return c.FetchDistinctRepliers(replyIds, p, count)
 }
 
-func (c *ChannelMessage) FetchMessageReplies(p *bongo.Pagination, t time.Time) ([]int64, error) {
+func (c *ChannelMessage) FetchMessageReplies(p *bongo.Pagination, t time.Time, lowerTimeLimit bool) ([]int64, error) {
 	if c.Id == 0 {
 		return nil, errors.New("channel message id is not set")
 	}
 	// fetch all replies
 	mr := NewMessageReply()
 	mr.MessageId = c.Id
-	return mr.FetchReplyIds(p, t)
+
+	return mr.FetchReplyIds(p, t, lowerTimeLimit)
 }
 
 func (c *ChannelMessage) FetchDistinctRepliers(messageReplyIds []int64, p *bongo.Pagination, count *int) ([]int64, error) {
+	if len(messageReplyIds) == 0 {
+		return nil, errors.New("messageReplyIds length cannot be 0")
+	}
+
 	rows, err := bongo.B.DB.Raw("SELECT account_id "+
 		"FROM "+c.TableName()+
 		" WHERE id IN (?) "+

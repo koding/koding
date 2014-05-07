@@ -71,31 +71,48 @@ class AvatarAreaIconMenu extends JView
 
 
   attachListeners:->
-    KD.getSingleton('notificationController').on 'NotificationHasArrived', ({event})=>
-      # No need the following
-      # @notificationsIcon.updateCount @notificationsIcon.count + 1 if event is 'ActivityIsAdded'
-      if event is 'ActivityIsAdded' or 'BucketIsUpdated'
-        @notificationsPopup.listController.fetchNotificationTeasers (err, notifications)=>
-          return warn "Notifications cannot be received", err  if err
-          @notificationsPopup.noNotification.hide()
-          @notificationsPopup.listController.removeAllItems()
-          @notificationsPopup.listController.instantiateListItems notifications
 
-    @notificationsPopup.listController.on 'NotificationCountDidChange', (count)=>
+    {listController, noNotification} = @notificationsPopup
+
+    KD.getSingleton('notificationController').on 'NotificationHasArrived', ({event})=>
+
+      if event is 'ActivityIsAdded' or 'BucketIsUpdated'
+        listController.fetchNotificationTeasers (notifications)=>
+          noNotification.hide()
+          listController.removeAllItems()
+          listController.instantiateListItems filterNotifications notifications
+
+    listController.on 'NotificationCountDidChange', (count)=>
       @utils.killWait @notificationsPopup.loaderTimeout
       if count > 0
-      then @notificationsPopup.noNotification.hide()
-      else @notificationsPopup.noNotification.show()
+      then noNotification.hide()
+      else noNotification.show()
       @notificationsIcon.updateCount count
 
   accountChanged:(account)->
 
-    {notificationsPopup} = this
+    {listController} = @notificationsPopup
+    listController.removeAllItems()
 
-    notificationsPopup.listController.removeAllItems()
+    return  unless KD.isLoggedIn()
 
-    if KD.isLoggedIn()
-      # Fetch Notifications
-      notificationsPopup.listController.fetchNotificationTeasers (err, notifications)=>
-        return warn "Notifications cannot be received", err  if err
-        notificationsPopup.listController.instantiateListItems notifications
+    # Fetch Notifications
+    KD.utils.defer ->
+      listController.fetchNotificationTeasers (teasers)->
+        listController.instantiateListItems filterNotifications teasers
+
+
+  filterNotifications=(notifications)->
+    activityNameMap = [
+      "JNewStatusUpdate"
+      "JAccount"
+      "JPrivateMessage"
+      "JComment"
+      "JReview"
+      "JGroup"
+    ]
+    notifications.filter (notification) ->
+      return  unless notification.snapshot
+      try
+        snapshot = JSON.parse Encoder.htmlDecode notification.snapshot
+        snapshot.anchor.constructorName in activityNameMap

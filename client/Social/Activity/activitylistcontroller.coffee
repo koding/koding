@@ -4,7 +4,6 @@ class ActivityListController extends KDListViewController
 
   constructor:(options={}, data)->
 
-
     options.startWithLazyLoader  ?= yes
     options.lazyLoaderOptions     = partial : ''
     options.showHeader           ?= yes
@@ -12,6 +11,7 @@ class ActivityListController extends KDListViewController
     options.wrapper              ?= no
     options.boxed                ?= yes
     options.itemClass           or= ActivityListItemView
+    options.lastToFirst          ?= yes
 
     options.viewOptions         or= {}
     {viewOptions}                 = options

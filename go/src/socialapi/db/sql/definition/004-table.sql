@@ -13,11 +13,14 @@ CREATE TABLE "api"."channel" (
     "secret_key" text COLLATE "default",
     "type_constant" varchar(100) NOT NULL COLLATE "default",
     "privacy_constant" varchar(100) NOT NULL COLLATE "default",
-    "created_at" timestamp(6) WITH TIME ZONE NOT NULL,
-    "updated_at" timestamp(6) WITH TIME ZONE NOT NULL
+    "created_at" timestamp(6) WITH TIME ZONE NOT NULL DEFAULT now(),
+    "updated_at" timestamp(6) WITH TIME ZONE NOT NULL DEFAULT now(),
+    "deleted_at" timestamp(6) WITH TIME ZONE
 )
 WITH (OIDS=FALSE);
-ALTER TABLE "api"."channel" OWNER TO "socialapplication";
+-- ALTER TABLE "api"."channel" OWNER TO "socialapplication";
+GRANT SELECT, INSERT, UPDATE ON "api"."channel" TO "socialapplication";
+
 
 -- ----------------------------
 --  Table structure for account
@@ -28,7 +31,10 @@ CREATE TABLE "api"."account" (
     "old_id" varchar(24) NOT NULL COLLATE "default"
 )
 WITH (OIDS=FALSE);
-ALTER TABLE "api"."account" OWNER TO "socialapplication";
+-- ALTER TABLE "api"."account" OWNER TO "socialapplication";
+GRANT SELECT, INSERT ON "api"."account" TO "socialapplication";
+
+
 
 -- ----------------------------
 --  Table structure for channel_message
@@ -42,10 +48,13 @@ CREATE TABLE "api"."channel_message" (
     "account_id" bigint NOT NULL,
     "initial_channel_id" bigint NOT NULL,
     "created_at" timestamp(6) WITH TIME ZONE NOT NULL DEFAULT now(),
-    "updated_at" timestamp(6) WITH TIME ZONE NOT NULL DEFAULT now()
+    "updated_at" timestamp(6) WITH TIME ZONE NOT NULL DEFAULT now(),
+    "deleted_at" timestamp(6) WITH TIME ZONE
 )
 WITH (OIDS=FALSE);
-ALTER TABLE "api"."channel_message" OWNER TO "socialapplication";
+-- ALTER TABLE "api"."channel_message" OWNER TO "socialapplication";
+GRANT SELECT, INSERT, UPDATE ON "api"."channel_message" TO "socialapplication";
+
 
 -- ----------------------------
 --  Table structure for channel_message_list
@@ -58,7 +67,8 @@ CREATE TABLE "api"."channel_message_list" (
     "added_at" timestamp(6) WITH TIME ZONE NOT NULL DEFAULT now()
 )
 WITH (OIDS=FALSE);
-ALTER TABLE "api"."channel_message_list" OWNER TO "socialapplication";
+-- ALTER TABLE "api"."channel_message_list" OWNER TO "socialapplication";
+GRANT SELECT, INSERT, UPDATE, DELETE ON "api"."channel_message_list" TO "socialapplication";
 
 -- ----------------------------
 --  Table structure for channel_participant
@@ -74,7 +84,8 @@ CREATE TABLE "api"."channel_participant" (
     "updated_at" timestamp(6) WITH TIME ZONE NOT NULL DEFAULT now()
 )
 WITH (OIDS=FALSE);
-ALTER TABLE "api"."channel_participant" OWNER TO "socialapplication";
+-- ALTER TABLE "api"."channel_participant" OWNER TO "socialapplication";
+GRANT SELECT, INSERT, UPDATE ON "api"."channel_participant" TO "socialapplication";
 
 -- ----------------------------
 --  Table structure for interaction
@@ -88,7 +99,9 @@ CREATE TABLE "api"."interaction" (
     "created_at" timestamp(6) WITH TIME ZONE NOT NULL DEFAULT now()
 )
 WITH (OIDS=FALSE);
-ALTER TABLE "api"."interaction" OWNER TO "socialapplication";
+-- ALTER TABLE "api"."interaction" OWNER TO "socialapplication";
+GRANT SELECT, INSERT, DELETE ON "api"."interaction" TO "socialapplication";
+
 
 -- ----------------------------
 --  Table structure for message_reply
@@ -101,7 +114,8 @@ CREATE TABLE "api"."message_reply" (
     "created_at" timestamp(6) WITH TIME ZONE NOT NULL DEFAULT now()
 )
 WITH (OIDS=FALSE);
-ALTER TABLE "api"."message_reply" OWNER TO "socialapplication";
+-- ALTER TABLE "api"."message_reply" OWNER TO "socialapplication";
+GRANT SELECT, INSERT, DELETE ON "api"."message_reply" TO "socialapplication";
 
 -- ----------------------------
 --  Table structure for notification
@@ -112,10 +126,11 @@ CREATE TABLE "api"."notification" (
     "account_id" int8 NOT NULL,
     "notification_content_id" int8 NOT NULL,
     "glanced" bool NOT NULL,
-    "updated_at" timestamp(6) WITH TIME ZONE NOT NULL
+    "updated_at" timestamp(6) WITH TIME ZONE NOT NULL DEFAULT now()
 )
 WITH (OIDS=FALSE);
-ALTER TABLE "api"."notification" OWNER TO "socialapplication";
+-- ALTER TABLE "api"."notification" OWNER TO "socialapplication";
+GRANT SELECT, INSERT, DELETE ON "api"."notification" TO "socialapplication";
 
 -- ----------------------------
 --  Table structure for notification_content
@@ -124,11 +139,12 @@ DROP TABLE IF EXISTS "api"."notification_content";
 CREATE TABLE "api"."notification_content" (
     "id" int8 NOT NULL DEFAULT nextval('notification_content_id_seq'::regclass),
     "target_id" int8 NOT NULL,
-    "type_constant" text NOT NULL COLLATE "default",
-    "created_at" timestamp(6) WITH TIME ZONE
+    "type_constant" varchar(100) NOT NULL COLLATE "default",
+    "created_at" timestamp(6) WITH TIME ZONE NOT NULL DEFAULT now()
 )
 WITH (OIDS=FALSE);
-ALTER TABLE "api"."notification_content" OWNER TO "socialapplication";
+-- ALTER TABLE "api"."notification_content" OWNER TO "socialapplication";
+GRANT SELECT, INSERT, DELETE ON "api"."notification_content" TO "socialapplication";
 
 -- ----------------------------
 --  Table structure for activity
@@ -139,7 +155,23 @@ CREATE TABLE "api"."activity" (
     "target_id" int8 NOT NULL,
     "actor_id" int8 NOT NULL,
     "type_constant" varchar(100) NOT NULL COLLATE "default",
-    "updated_at" timestamp(6) WITH TIME ZONE
+    "updated_at" timestamp(6) WITH TIME ZONE NOT NULL DEFAULT now()
 )
 WITH (OIDS=FALSE);
-ALTER TABLE "api"."activity" OWNER TO "socialapplication";
+-- ALTER TABLE "api"."activity" OWNER TO "socialapplication";
+GRANT SELECT, INSERT, DELETE ON "api"."activity" TO "socialapplication";
+
+-- ----------------------------
+--  Table structure for notification_subscription
+-- ----------------------------
+DROP TABLE IF EXISTS "api"."notification_subscription";
+CREATE TABLE "api"."notification_subscription" (
+    "id" int8 NOT NULL DEFAULT nextval('notification_subscription_id_seq'::regclass),
+    "account_id" int8 NOT NULL,
+    "notification_content_id" int8 NOT NULL,
+    "type_constant" varchar(100) NOT NULL COLLATE "default",
+    "added_at" timestamp(6) WITH TIME ZONE NOT NULL DEFAULT now()
+)
+WITH (OIDS=FALSE);
+-- ALTER TABLE "api"."notification_subscription" OWNER TO "socialapplication";
+GRANT SELECT, INSERT, DELETE ON "api"."notification_subscription" TO "socialapplication";

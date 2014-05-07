@@ -41,6 +41,9 @@ type Channel struct {
 
 	// Modification date of the channel
 	UpdatedAt time.Time `json:"updatedAt"            sql:"NOT NULL"`
+
+	// Deletion date of the channel
+	DeletedAt time.Time `json:"deletedAt"`
 }
 
 // to-do check for allowed channels
@@ -85,8 +88,9 @@ func NewPrivateMessageChannel(creatorId int64, groupName string) *Channel {
 }
 
 func (c *Channel) BeforeCreate() {
-	c.CreatedAt = time.Now()
-	c.UpdatedAt = time.Now()
+	c.CreatedAt = time.Now().UTC()
+	c.UpdatedAt = time.Now().UTC()
+	c.DeletedAt = ZeroDate()
 }
 
 func (c *Channel) BeforeUpdate() {

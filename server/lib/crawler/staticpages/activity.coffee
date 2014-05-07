@@ -54,7 +54,7 @@ getSingleActivityPage = ({activityContent, account, models})->
     <title>#{title} - Koding</title>
     #{getGraphMeta()}
   </head>
-    <body itemscope itemtype="http://schema.org/WebPage">
+    <body class="activity" itemscope itemtype="http://schema.org/WebPage">
       #{getDock()}
       <section id="main-panel-wrapper" class="kdview">
           <div id="main-tab-view" class="kdview kdscrollview kdtabview">

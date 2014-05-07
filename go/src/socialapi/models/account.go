@@ -73,10 +73,6 @@ func (a *Account) Create() error {
 	return bongo.B.Create(a)
 }
 
-func (a *Account) Delete() error {
-	return bongo.B.Delete(a)
-}
-
 func (a *Account) Some(data interface{}, q *bongo.Query) error {
 	return bongo.B.Some(a, data, q)
 }
@@ -205,7 +201,7 @@ func (a *Account) FetchFollowerChannelIds() ([]int64, error) {
 	return channelIds, nil
 }
 
-func FetchOdlIdByAccountId(accountId int64) (string, error) {
+func FetchOldIdByAccountId(accountId int64) (string, error) {
 
 	a := NewAccount()
 	var data []string
@@ -248,8 +244,4 @@ func FetchOldIdsByAccountIds(accountIds []int64) ([]string, error) {
 	}
 
 	return oldIds, err
-}
-
-func (a *Account) Fetch() error {
-	return bongo.B.Fetch(a)
 }

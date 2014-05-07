@@ -14,7 +14,12 @@ type RedisSession struct {
 	prefix string
 }
 
-func NewRedisSession(server string) (*RedisSession, error) {
+type RedisConf struct {
+	Server string
+	DB     int
+}
+
+func NewRedisSession(conf *RedisConf) (*RedisSession, error) {
 	s := &RedisSession{}
 
 	pool := &redis.Pool{
@@ -22,10 +27,19 @@ func NewRedisSession(server string) (*RedisSession, error) {
 		MaxActive:   1000,
 		IdleTimeout: 240 * time.Second,
 		Dial: func() (redis.Conn, error) {
-			c, err := redis.Dial("tcp", server)
+			c, err := redis.Dial("tcp", conf.Server)
 			if err != nil {
 				return nil, err
 			}
+
+			// default is 0 for redis
+			if conf.DB != 0 {
+				if _, err := c.Do("SELECT", conf.DB); err != nil {
+					c.Close()
+					return nil, err
+				}
+			}
+
 			return c, err
 		},
 	}
@@ -56,7 +70,7 @@ func (r *RedisSession) addPrefix(name string) string {
 // "counter").
 func (r *RedisSession) Do(cmd string, args ...interface{}) (interface{}, error) {
 	conn := r.pool.Get()
-	// conn.Close() returns an error but we are allready returning regarding error
+	// conn.Close() returns an error but we are already returning regarding error
 	// while returning the Do(..) response
 	defer conn.Close()
 	return conn.Do(cmd, args...)
@@ -66,7 +80,7 @@ func (r *RedisSession) Do(cmd string, args ...interface{}) (interface{}, error) 
 // command to the client's output buffer.
 func (r *RedisSession) Send(cmd string, args ...interface{}) error {
 	conn := r.pool.Get()
-	// conn.Close() returns an error but we are allready returning regarding error
+	// conn.Close() returns an error but we are already returning regarding error
 	// while returning the Do(..) response
 	defer conn.Close()
 	return conn.Send(cmd, args...)

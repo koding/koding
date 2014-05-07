@@ -1,4 +1,4 @@
-class PopupNotificationListItem extends NewNotificationListItem
+class PopupNotificationListItem extends NotificationListItem
   constructor:(options = {}, data)->
     options.tagName        or= "li"
     options.linkGroupClass or= LinkGroup
@@ -7,7 +7,7 @@ class PopupNotificationListItem extends NewNotificationListItem
     @initializeReadState()
 
   initializeReadState:->
-    if @getData().glanced
+    if @getData().getFlagValue('glanced')
     then @unsetClass 'unread'
     else @setClass 'unread'
 

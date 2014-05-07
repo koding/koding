@@ -21,13 +21,11 @@ import (
 	"github.com/koding/kite/config"
 	"github.com/koding/kite/dnode"
 	"github.com/koding/kite/protocol"
-	"github.com/koding/kite/server"
-	"github.com/koding/logging"
 	"github.com/nu7hatch/gouuid"
 )
 
 const (
-	Version           = "0.0.4"
+	KontrolVersion    = "0.0.4"
 	DefaultPort       = 4000
 	HeartbeatInterval = 5 * time.Second
 	HeartbeatDelay    = 10 * time.Second
@@ -36,10 +34,15 @@ const (
 	TokenLeeway       = 1 * time.Minute
 )
 
-var log logging.Logger
+var (
+	log kite.Logger
+
+	tokenCache   = make(map[string]string)
+	tokenCacheMu sync.Mutex
+)
 
 type Kontrol struct {
-	Server *server.Server
+	Kite *kite.Kite
 
 	// etcd options
 	Name         string   // Name of the etcd instance
@@ -64,7 +67,9 @@ type Kontrol struct {
 	etcd *etcd.Etcd
 }
 
-// New creates a new kontrol.
+// New creates a new kontrol instance with the given verson and config
+// instance. Publickey is used for validating tokens and privateKey is used for
+// signing tokens.
 //
 // peers can be given nil if not running on cluster.
 //
@@ -73,8 +78,8 @@ type Kontrol struct {
 //     openssl genrsa -out testkey.pem 2048
 //     openssl rsa -in testkey.pem -pubout > testkey_pub.pem
 //
-func New(conf *config.Config, publicKey, privateKey string) *Kontrol {
-	k := kite.New("kontrol", Version)
+func New(conf *config.Config, version, publicKey, privateKey string) *Kontrol {
+	k := kite.New("kontrol", version)
 	k.Config = conf
 
 	// Listen on 4000 by default
@@ -85,7 +90,7 @@ func New(conf *config.Config, publicKey, privateKey string) *Kontrol {
 	hostname := k.Kite().Hostname
 
 	kontrol := &Kontrol{
-		Server:       server.New(k),
+		Kite:         k,
 		Name:         hostname,
 		DataDir:      "kontrol-data." + hostname,
 		EtcdAddr:     "http://localhost:4001",
@@ -114,17 +119,18 @@ func New(conf *config.Config, publicKey, privateKey string) *Kontrol {
 }
 
 func (k *Kontrol) AddAuthenticator(keyType string, fn func(*kite.Request) error) {
-	k.Server.Kite.Authenticators[keyType] = fn
+	k.Kite.Authenticators[keyType] = fn
 }
 
 func (k *Kontrol) Run() {
 	k.init()
-	k.Server.Run()
+	k.Kite.Run()
 }
 
-func (k *Kontrol) Start() {
-	k.init()
-	k.Server.Start()
+// Close stops kontrol and closes all connections
+func (k *Kontrol) Close() {
+	k.etcd.Stop()
+	k.Kite.Close()
 }
 
 // init does common operations of Run() and Start().
@@ -217,7 +223,7 @@ func (k *Kontrol) register(r *kite.Client, kiteURL *protocol.KiteURL) error {
 	// Register to etcd.
 	err = setKey()
 	if err != nil {
-		log.Critical("etcd setKey error: %s", err)
+		log.Error("etcd setKey error: %s", err)
 		return errors.New("internal error - register")
 	}
 
@@ -253,9 +259,9 @@ func requestHeartbeat(r *kite.Client, setterFunc func() error) error {
 // registerSelf adds Kontrol itself to etcd as a kite.
 func (k *Kontrol) registerSelf() {
 	value := &registerValue{
-		URL: &protocol.KiteURL{*k.Server.Config.KontrolURL},
+		URL: &protocol.KiteURL{*k.Kite.Config.KontrolURL},
 	}
-	setter, _ := k.makeSetter(k.Server.Kite.Kite(), value)
+	setter, _ := k.makeSetter(k.Kite.Kite(), value)
 	for {
 		if err := setter(); err != nil {
 			log.Error(err.Error())
@@ -286,7 +292,7 @@ func (k *Kontrol) makeSetter(kite *protocol.Kite, value *registerValue) (setter 
 			expireAt,    // expire time
 		)
 		if err != nil {
-			log.Critical("etcd error: %s", err)
+			log.Error("etcd error: %s", err)
 			return err
 		}
 
@@ -419,7 +425,7 @@ func (k *Kontrol) handleGetKites(r *kite.Request) (interface{}, error) {
 		if whoClient == nil {
 			// TODO Enable code below after fix.
 			return nil, errors.New("target kite is not connected")
-			// whoClient = k.Server.Kite.NewClientString(whoKite.URL)
+			// whoClient = k.Kite.NewClientString(whoKite.URL)
 			// whoClient.Authentication = &kite.Authentication{Type: "token", Key: whoKite.Token}
 			// whoClient.Kite = whoKite.Kite
 
@@ -477,7 +483,7 @@ func (k *Kontrol) getKites(r *kite.Request, query protocol.KontrolQuery, watchCa
 
 	// Generate token once here because we are using the same token for every
 	// kite we return and generating many tokens is really slow.
-	token, err := generateToken(audience, r.Username, k.Server.Kite.Kite().Username, k.privateKey)
+	token, err := generateToken(audience, r.Username, k.Kite.Kite().Username, k.privateKey)
 	if err != nil {
 		return nil, err
 	}
@@ -533,13 +539,14 @@ func (k *Kontrol) getKites(r *kite.Request, query protocol.KontrolQuery, watchCa
 		true,  // recursive, return all child directories too
 		false, // sorting flag, we don't care about sorting for now
 	)
+
 	if err != nil {
 		if err2, ok := err.(*etcdErr.Error); ok && err2.ErrorCode == etcdErr.EcodeKeyNotFound {
 			result.Kites = make([]*protocol.KiteWithToken, 0) // do not send null
 			return result, nil
 		}
 
-		log.Critical("etcd error: %s", err)
+		log.Error("etcd error: %s", err)
 		return nil, fmt.Errorf("internal error - getKites")
 	}
 
@@ -547,6 +554,7 @@ func (k *Kontrol) getKites(r *kite.Request, query protocol.KontrolQuery, watchCa
 	nodes := flatten(event.Node.Nodes)
 
 	// Convert etcd nodes to kites.
+
 	kites := make([]*protocol.KiteWithToken, len(nodes))
 	for i, n := range nodes {
 		kites[i], err = kiteWithTokenFromEtcdNode(n, token)
@@ -764,7 +772,16 @@ func kiteWithTokenFromEtcdNode(node *store.NodeExtern, token string) (*protocol.
 
 // generateToken returns a JWT token string. Please see the URL for details:
 // http://tools.ietf.org/html/draft-ietf-oauth-json-web-token-13#section-4.1
-func generateToken(queryKey string, username, issuer, privateKey string) (string, error) {
+func generateToken(queryKey, username, issuer, privateKey string) (string, error) {
+	tokenCacheMu.Lock()
+	defer tokenCacheMu.Unlock()
+
+	uniqKey := queryKey + username + issuer // neglect privateKey, its always the same
+	signed, ok := tokenCache[uniqKey]
+	if ok {
+		return signed, nil
+	}
+
 	tknID, err := uuid.NewV4()
 	if err != nil {
 		return "", errors.New("Server error: Cannot generate a token")
@@ -787,11 +804,12 @@ func generateToken(queryKey string, username, issuer, privateKey string) (string
 	tkn.Claims["iat"] = time.Now().UTC().Unix()                      // Issued At
 	tkn.Claims["jti"] = tknID.String()                               // JWT ID
 
-	signed, err := tkn.SignedString([]byte(privateKey))
+	signed, err = tkn.SignedString([]byte(privateKey))
 	if err != nil {
 		return "", errors.New("Server error: Cannot generate a token")
 	}
 
+	tokenCache[uniqKey] = signed
 	return signed, nil
 }
 
@@ -845,5 +863,5 @@ func (k *Kontrol) handleGetToken(r *kite.Request) (interface{}, error) {
 		return nil, err
 	}
 
-	return generateToken(kiteKey, r.Username, k.Server.Kite.Kite().Username, k.privateKey)
+	return generateToken(kiteKey, r.Username, k.Kite.Kite().Username, k.privateKey)
 }

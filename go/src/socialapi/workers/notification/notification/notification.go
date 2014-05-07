@@ -69,6 +69,8 @@ func NewNotificationWorkerController(rmq *rabbitmq.RabbitMQ, log logging.Logger,
 
 	nwc.routes = routes
 
+	models.Log = log
+
 	return nwc, nil
 }
 
@@ -201,8 +203,7 @@ func (n *NotificationWorkerController) NotifyUser(data []byte) error {
 // this function must be used under another file for further use
 func fetchNotifierOldAccount(accountId int64) (*mongomodels.Account, error) {
 	newAccount := models.NewAccount()
-	newAccount.Id = accountId
-	if err := newAccount.Fetch(); err != nil {
+	if err := newAccount.ById(accountId); err != nil {
 		return nil, err
 	}
 

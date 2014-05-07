@@ -1,7 +1,5 @@
 class AppsAppController extends AppController
 
-  handler = (callback)-> KD.singleton('appManager').open 'Apps', callback
-
   getAppInstance = (route, callback)->
     {app, username} = route.params
     return callback null  unless app
@@ -9,19 +7,15 @@ class AppsAppController extends AppController
 
   KD.registerAppClass this,
     name         : "Apps"
-    enforceLogin : yes
-    routes       :
-      "/:name?/Apps" : ({params, query})->
-        handler (app)-> app.handleQuery query
-      "/:name?/Apps/:username/:app?" : (route)->
-        {username} = route.params
-        return  if username[0] is username[0].toUpperCase()
-        handler (app)-> app.handleRoute route
-
     hiddenHandle : yes
     searchRoute  : "/Apps?q=:text:"
     behaviour    : 'application'
     version      : "1.0"
+    preCondition :
+      condition  : (options, cb)-> cb KD.isLoggedIn()
+      failure    : (options, cb)->
+        KD.singletons.appManager.open 'Apps', conditionPassed : yes
+        KD.showEnforceLoginModal()
 
   constructor:(options = {}, data)->
 

@@ -19,7 +19,7 @@ class MessagePane extends KDTabPaneView
 
     @input.on "Submit", (activity) =>
 
-      @listController.addItem activity, 0
+      @listController.addItem activity
 
 
   viewAppended: ->

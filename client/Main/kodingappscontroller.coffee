@@ -17,15 +17,6 @@ class KodingAppsController extends KDController
 
       @emit 'ready'
 
-    KD.singletons.router.addRoute "/:name?/Apps/:username/:app?", (route)->
-      {username} = route.params
-      if username[0] is username[0].toUpperCase()
-        app = route.params.username
-        username = route.params.name
-        KD.remote.api.JNewApp.one slug:"#{username}/Apps/#{app}", (err, app)->
-          if not err and app
-            KodingAppsController.runExternalApp app, dontUseRouter:yes
-
   @loadInternalApp = (name, callback)->
 
     unless KD.config.apps[name]
@@ -171,7 +162,7 @@ class KodingAppsController extends KDController
 
     identifier = identifier.replace /\./g, '_'
     domId      = "internal-#{type}-#{identifier}"
-    vmName     = FSHelper.getVMNameFromPath url
+    vmName     = getVMNameFromPath url
     tagName    = type
 
     # Which means this is an invm-app
@@ -417,11 +408,13 @@ class KodingAppsController extends KDController
 
     .nodeify callback
 
+  getVMNameFromPath = (path)-> (/^\[([^\]]+)\]/g.exec path)?[1]
+
   @getAppInfoFromPath = (path, showWarning = no)->
 
     return  unless path
 
-    vm    = FSHelper.getVMNameFromPath path
+    vm    = getVMNameFromPath path
     path  = FSHelper.plainPath path
     reg   = /// ^\/home\/#{KD.nick()}\/Applications\/(.*)\.kdapp ///
     parts = reg.exec path

@@ -11,14 +11,16 @@ class AppStorage extends KDObject
     [appId, version] = [@_applicationID, @_applicationVersion]
 
     if not @_storage or force
-      KD.whoami().fetchAppStorage {appId, version}, (error, storage) =>
-        if not error and storage
-          @_storage = storage
-          callback? @_storage
-          @emit "storageFetched"
-          @emit "ready"
-        else
-          callback? null
+      {mainController} = KD.singletons
+      mainController.ready =>
+        KD.whoami().fetchAppStorage {appId, version}, (error, storage) =>
+          if not error and storage
+            @_storage = storage
+            callback? @_storage
+            @emit "storageFetched"
+            @emit "ready"
+          else
+            callback? null
     else
       KD.utils.defer =>
         callback? @_storage

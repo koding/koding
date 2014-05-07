@@ -60,7 +60,9 @@ module.exports = class SocialMessage extends Base
     success: (client, data, callback)->
       if not data.messageId or not data.body
         return callback message: "Request is not valid for adding a reply"
-      SocialMessage.doRequest 'addReply', client, data, callback
+      SocialMessage.ensureGroupChannel client, (err, socialApiChannelId)->
+        data.initialChannelId = socialApiChannelId
+        SocialMessage.doRequest 'addReply', client, data, callback
 
   # todo add permission here
   @edit = secure (client, data, callback)->

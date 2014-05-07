@@ -77,7 +77,6 @@ func firewallHandler(h http.Handler) http.Handler {
 		}
 
 		// fmt.Printf("fw %+v\n", fw) // debug
-
 		if a := fw.applyRule(r); a != nil {
 			a.ServeHTTP(w, r)
 			return
@@ -164,8 +163,8 @@ func (f *Firewall) applyRule(r *http.Request) http.Handler {
 
 func getChecker(rule models.Rule, r *http.Request) (Checker, error) {
 	ip := getIP(r.RemoteAddr)
+	country := getCountry(ip)
 	host := r.Host
-	country := ""
 
 	switch rule.Type {
 	case "ip":
@@ -216,10 +215,10 @@ func (c *CheckRequest) Check() bool {
 
 	// makes one request, returns zero if bucket is empty
 	if fw.bucket.TakeAvailable(1) == 0 {
-		return false
+		return true
 	}
 
-	return true
+	return false // bucket is full, allowed to do anything
 }
 
 func (c *CheckCountry) Check() bool {

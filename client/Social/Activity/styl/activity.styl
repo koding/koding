@@ -283,49 +283,37 @@ resurrection.activity.styl
 
           .topic-follow-btn
             size          24px, 18px
-            border        1px solid #b1b1b1
             abs           11px 12px 0 0
+            border        1px solid #b1b1b1
             background    transparent
             shadow        none
             outline       none
             rounded       3px
             margin        0
             padding       0
-            vendor        transition, width .2s ease
             overflow      hidden
             borderBox()
+            &:hover
+              border-color    transparent
+              bg              color logoBg
+              .icon
+                r-sprite      activity 'check-white-9'
 
             .icon
-              r-sprite    "activity", "check-9"
-              margin      0 7px 0 0
-              padding     0
+              r-sprite        activity 'check-9'
+              margin          0 7px 0 0
+              padding         0
               fr()
 
             .button-title
               hidden()
 
-            &.follow
-              &:before
-                content   'follow'
-                opacity   1
-                font-size 10px
-                color     #9b9b9b
-                abs       1px 0 0 7px
-                opacity   0
-                vendor    transition, opacity .3s ease
-                fl()
-
-              &:hover:not(.loading)
-                width     62px
-
-                &:before
-                  opacity 1
-
             &.following
-              border      none
+              bg              color transparent
+              border-color    transparent
 
               .icon
-                r-sprite  "activity", "check-green-9"
+                r-sprite      activity 'check-green-9'
 
         &.users
           .kdlistitemview-sidebar-item
@@ -508,12 +496,8 @@ div.kdtooltip.activity-helper
       fr()
 
   &.preview-active
-    .input-view > div
-      &:not(.update-preview)
-        display       none
-
     .preview-icon
-      r-sprite        "activity", "preview-eye-active"
+      opacity         .5
 
 
   &.edit-widget
@@ -665,9 +649,11 @@ span.collapsedtext
 
       .avatarview
         abs               12px 0 0 12px
-        border            2px solid #e9e9e9
+        border            1px solid #e4e4e4
         display           block
         z-index           2
+        size              42px 42px
+        borderBox()
 
       textarea
         background        #fff
@@ -680,7 +666,118 @@ span.collapsedtext
         font-size         12px
         color             #b2b2b2
 
+    .show-more-comments
+      size                100% 45px
+      line-height         45px
+      bg                  image, -webkit-linear-gradient(-45deg, #f0f0f0 10%, #f5f5f5 10%, #f5f5f5 20%, #f5f5f5 40%, #f0f0f0 40%, #f0f0f0 60%, #f5f5f5 60%, #f5f5f5 90%, #f0f0f0 90%)
+      bg                  image, -moz-linear-gradient(-45deg, #f0f0f0 10%, #f5f5f5 10%, #f5f5f5 20%, #f5f5f5 40%, #f0f0f0 40%, #f0f0f0 60%, #f5f5f5 60%, #f5f5f5 90%, #f0f0f0 90%)
+      bg                  size, 10px 10px
+      border-top          1px solid #e9e9e9
 
+      a.all-count
+        font-size         12px
+        color             #6b6b6b
+        noTextDeco()
+
+        &:before
+          content         ''
+          r-sprite        activity, 'bubble-17'
+          display         inline-block
+          margin          0 10px 0 16px
+          vertical-align  middle
+
+    .kdlistitemview-comment
+      background          #f7f7f7
+      border-top          1px solid #e9e9e9
+      padding             18px 15px 16px 68px
+      borderBox()
+
+      .comment-menu
+        display           none //TEMP
+
+      .avatarview
+        display           block
+        size              42px 42px
+        abs               12px 0 0 15px
+        rounded           50%
+        border            1px solid #e4e4e4
+        borderBox()
+
+      a.profile
+        font-size         14px
+        color             #1aaf5d
+        noTextDeco()
+
+      .comment-body-container
+        font-size         12px
+        color             #4c4c4c
+        padding           10px 0 15px
+        line-height       18px
+
+      .action-link
+        font-size         11px
+        color             #838383
+        noTextDeco()
+
+        &:before
+          content         ''
+          display         inline-block
+          size            3px 3px
+          rounded         50%
+          background      #d3d3d3
+          margin          -2px 7px 0 5px
+          vertical-align  middle
+
+        &:first-of-type:before
+          display         none
+
+      time
+        display           none //TEMP
+
+.activity-item.preview
+  margin-top              29px
+  overflow                visible
+  border                  2px dashed #cfcfcf
+  rounded                 6px 6px 0 0
+  borderBox()
+
+  .activity-actions
+  .comment-container
+  .settings-menu-wrapper
+    display               none
+
+  &:after
+    content               ''
+    size                  0 0
+    border                10px solid transparent
+    border-bottom-color   #fff
+    abs                   0 110px 100% 0
+    margin-bottom         -2px
+
+  &:before
+    content               ''
+    size                  0 0
+    border                10px solid transparent
+    border-bottom-color   #cfcfcf
+    abs                   0 114px 100% 0
+    margin-bottom         -3px
+
+  .activity-content-wrapper
+    padding-bottom        15px
+
+  .preview-indicator
+    cursor                pointer
+    abs                   14px 14px 0 0
+    color                 #1aaf5d
+    font-size             12px
+    line-height           16px
+
+    &:after
+      content             ''
+      display             inline-block
+      r-sprite            activity, 'green-cancel-16'
+      vertical-align      middle
+      margin-left         7px
 
 /* Activity items */
 // .kdlistitemview-activity.hidden-item
@@ -1170,7 +1267,7 @@ span.collapsedtext
     outline                 none
     shadow                  none
     z-index                 10
-    r-sprite                  app "20-close-tab"
+    r-sprite                app "20-close-tab"
     abs()
 
 .activity-item.status
@@ -1181,9 +1278,9 @@ span.collapsedtext
       textarea.description-input
         display             none
 
+
 /** Markdown Styling **/
 .activity-content-wrapper > article
-.activity-input-widget .update-preview
 
   > *
     padding               0 21px

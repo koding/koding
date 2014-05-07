@@ -20,6 +20,7 @@ Vhost=    "/"
 
 [limits]
 MessageBodyMinLen=10
+MessageBodyMinLen=1
 
 [cache]
 Notification = true

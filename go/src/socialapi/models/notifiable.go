@@ -2,6 +2,7 @@ package models
 
 import (
 	"errors"
+	"github.com/jinzhu/gorm"
 	"github.com/koding/bongo"
 	"time"
 )
@@ -12,7 +13,7 @@ var (
 
 type Notifiable interface {
 	// users that will be notified are fetched while creating notification
-	GetNotifiedUsers() ([]int64, error)
+	GetNotifiedUsers(notificationContentId int64) ([]int64, error)
 	GetType() string
 	GetTargetId() int64
 	FetchActors() (*ActorContainer, error)
@@ -27,7 +28,7 @@ type InteractionNotification struct {
 	NotifierId   int64
 }
 
-func (n *InteractionNotification) GetNotifiedUsers() ([]int64, error) {
+func (n *InteractionNotification) GetNotifiedUsers(notificationContentId int64) ([]int64, error) {
 	i := NewInteraction()
 	i.MessageId = n.TargetId
 
@@ -96,24 +97,48 @@ type ReplyNotification struct {
 	NotifierId int64
 }
 
-func (n *ReplyNotification) GetNotifiedUsers() ([]int64, error) {
+func (n *ReplyNotification) GetNotifiedUsers(notificationContentId int64) ([]int64, error) {
 	// fetch all repliers
 	cm := NewChannelMessage()
 	cm.Id = n.TargetId
 
 	p := &bongo.Pagination{}
 	replierIds, err := cm.FetchReplierIds(p, true, time.Time{})
-
 	if err != nil {
 		return nil, err
 	}
+	repliersMap := map[int64]struct{}{}
+	for _, replierId := range replierIds {
+		repliersMap[replierId] = struct{}{}
+	}
+
+	var subscribers []NotificationSubscription
+	q := &bongo.Query{
+		Selector: map[string]interface{}{
+			"notification_content_id": notificationContentId,
+		},
+	}
+	ns := NewNotificationSubscription()
+	if err := ns.Some(&subscribers, q); err != nil {
+		return nil, err
+	}
+
+	// regress unsubscribed users and append subscribed ones
+	for _, subscriber := range subscribers {
+		switch subscriber.TypeConstant {
+		case NotificationSubscription_TYPE_SUBSCRIBE:
+			repliersMap[subscriber.AccountId] = struct{}{}
+		case NotificationSubscription_TYPE_UNSUBSCRIBE:
+			delete(repliersMap, subscriber.AccountId)
+		}
+	}
 
 	// regress notifier from notified users
+	delete(repliersMap, n.NotifierId)
+
 	filteredRepliers := make([]int64, 0)
-	for _, replierId := range replierIds {
-		if replierId != n.NotifierId {
-			filteredRepliers = append(filteredRepliers, replierId)
-		}
+	for replierId, _ := range repliersMap {
+		filteredRepliers = append(filteredRepliers, replierId)
 	}
 
 	return filteredRepliers, nil
@@ -131,17 +156,64 @@ func (n *ReplyNotification) SetTargetId(targetId int64) {
 	n.TargetId = targetId
 }
 
+// Fetch Actors retrieves latest actors. For message repliers, if first checks
+// users first reply message. And also fetches user's subscription status.
+// if user both replied and subscribed to a message then gets the event's time
+// that has first occurred.
 func (n *ReplyNotification) FetchActors() (*ActorContainer, error) {
 	if n.TargetId == 0 {
 		return nil, errors.New("TargetId is not set")
 	}
 
-	mr := NewMessageReply()
-	mr.MessageId = n.TargetId
-
-	// we are gonna fetch actors after notified users first reply
-	if err := mr.FetchFirstAccountReply(n.ListerId); err != nil {
+	// first determine message owner
+	channelMessage := NewChannelMessage()
+	if err := channelMessage.ById(n.TargetId); err != nil {
 		return nil, err
+	}
+
+	// if lister is message owner than lower time limit for fetching repliers
+	// will be messages creation date
+	timeLimit := channelMessage.CreatedAt
+	// if lister is not message owner than check listers first replied message.
+	if channelMessage.AccountId != n.ListerId {
+		mr := NewMessageReply()
+		mr.MessageId = n.TargetId
+
+		// we are gonna fetch actors starting from user's first reply
+		if err := mr.FetchFirstAccountReply(n.ListerId); err != nil {
+			return nil, err
+		}
+
+		// lower limit is lister's first reply message
+		if !mr.CreatedAt.IsZero() {
+			timeLimit = mr.CreatedAt
+		}
+	}
+
+	// TODO make it async
+	// check if user is already subscribed to / unsubscribed from target
+	nc := NewNotificationContent()
+	nc.TargetId = n.TargetId
+	nc.TypeConstant = NotificationContent_TYPE_COMMENT
+	ns := NewNotificationSubscription()
+	ns.AccountId = n.ListerId
+	var err error
+	if err = ns.FetchByNotificationContent(nc); err != nil {
+		if err != gorm.RecordNotFound {
+			return nil, err
+		}
+	}
+
+	lowerTimeLimit := true
+	if err != gorm.RecordNotFound {
+		// if unsubscription happens then fetch all notifications till
+		// the unsubscription date
+		if ns.TypeConstant == NotificationSubscription_TYPE_UNSUBSCRIBE {
+			lowerTimeLimit = false
+		}
+
+		//
+		timeLimit = ns.AddedAt
 	}
 
 	cm := NewChannelMessage()
@@ -154,7 +226,7 @@ func (n *ReplyNotification) FetchActors() (*ActorContainer, error) {
 
 	// for preparing Actor Container we need latest actors and total replier count
 	var count int
-	actors, err := cm.FetchReplierIdsWithCount(p, &count, mr.CreatedAt)
+	actors, err := cm.FetchReplierIdsWithCount(p, &count, timeLimit, lowerTimeLimit)
 	if err != nil {
 		return nil, err
 	}
@@ -182,7 +254,7 @@ type FollowNotification struct {
 	NotifierId int64
 }
 
-func (n *FollowNotification) GetNotifiedUsers() ([]int64, error) {
+func (n *FollowNotification) GetNotifiedUsers(notificationContentId int64) ([]int64, error) {
 	users := make([]int64, 0)
 	return append(users, n.TargetId), nil
 }
@@ -238,7 +310,7 @@ type GroupNotification struct {
 }
 
 // fetch group admins
-func (n *GroupNotification) GetNotifiedUsers() ([]int64, error) {
+func (n *GroupNotification) GetNotifiedUsers(notificationContentId int64) ([]int64, error) {
 	if len(n.Admins) == 0 {
 		return nil, errors.New("admins cannot be empty")
 	}

@@ -131,11 +131,12 @@ open /etc/postgresql/9.3/main/postgresql.conf
 ```
 wal_level = hot_standby
 
-checkpoint_completion_target = 0.9
 
 wal_buffers = 16MB
 
+// optimize for write
 checkpoint_segments = 32
+checkpoint_completion_target = 0.9
 ```
 
 

@@ -10,10 +10,8 @@ import (
 	"github.com/koding/kite"
 	"github.com/koding/kite/config"
 	"github.com/koding/kite/kontrol"
-	"github.com/koding/kite/kontrolclient"
 	"github.com/koding/kite/protocol"
 	"github.com/koding/kite/proxy"
-	"github.com/koding/kite/simple"
 	"github.com/koding/kite/testkeys"
 	"github.com/koding/kite/testutil"
 )
@@ -26,24 +24,19 @@ func TestPool(t *testing.T) {
 	conf.KontrolUser = "testuser"
 	conf.KiteKey = testutil.NewKiteKey().Raw
 
-	kon := kontrol.New(conf.Copy(), testkeys.Public, testkeys.Private)
+	kon := kontrol.New(conf.Copy(), "0.1.0", testkeys.Public, testkeys.Private)
 	kon.DataDir, _ = ioutil.TempDir("", "")
 	defer os.RemoveAll(kon.DataDir)
-	kon.Start()
+	go kon.Run()
+	<-kon.Kite.ServerReadyNotify()
 	// defer kon.Close()
 
-	prx := proxy.New(conf.Copy(), testkeys.Public, testkeys.Private)
+	prx := proxy.New(conf.Copy(), "0.1.0", testkeys.Public, testkeys.Private)
 	prx.Start()
 	// defer prx.Close()
 
 	foo := kite.New("foo", "1.0.0")
 	foo.Config = conf.Copy()
-	konClient := kontrolclient.New(foo)
-	connected, err := konClient.DialForever()
-	if err != nil {
-		t.Fatal(err)
-	}
-	<-connected
 
 	query := protocol.KontrolQuery{
 		Username:    conf.Username,
@@ -51,16 +44,19 @@ func TestPool(t *testing.T) {
 		Name:        "bar",
 	}
 
-	p := New(konClient, query)
+	p := New(foo, query)
 	p.Start()
 	// defer p.Close()
 
 	for i := 0; i < 2; i++ {
-		bar := simple.New("bar", "1.0.0")
+		bar := kite.New("bar", "1.0.0")
 		bar.Config = conf.Copy()
-		bar.Start()
+		go bar.Run()
+		<-bar.ServerReadyNotify()
+
+		go bar.RegisterToProxy(true)
 		defer bar.Close()
-		<-bar.Registration.ReadyNotify()
+		<-bar.ReadyNotify()
 	}
 
 	// We must wait for a until the pool receives events from kontrol.

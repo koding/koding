@@ -48,7 +48,6 @@ checkFileCase = (fileName) ->
 
 module.exports = class Builder
 
-  spritePath   = './website/a/sprites'
   spriteHelper = null
 
   buildSprites: (options) ->
@@ -56,7 +55,8 @@ module.exports = class Builder
     @config ?= require('koding-config-manager').load("main.#{options.configFile}")
 
     sprite
-      path      : spritePath
+      srcPath   : './sprites'
+      destPath  : './website/a/sprites'
       httpPath  : '/a/sprites'
     .then (helper) =>
       spriteHelper = helper
@@ -67,10 +67,17 @@ module.exports = class Builder
     @config ?= require('koding-config-manager').load("main.#{options.configFile}")
     cmd = "cd client/Framework && npm i && gulp compile --buildVersion=#{@config.client.version} --outputDir=../../website/a/"
     exec cmd, (err, stdout, stderr)->
-      console.warn "------------------------ FRAMEWORK COMPILED -------------------------- "
-      console.warn " To use watcher for Framework use following command in different tab:  "
-      console.log  " $ #{cmd.replace 'compile ', ''} "
-      console.warn "------------------------ FRAMEWORK COMPILED -------------------------- "
+      console.log """\n\n
+      ################################### FRAMEWORK COMPILED #################################
+
+
+       To use watcher for Framework use following command in different tab:
+       $ #{cmd.replace 'compile ', ''}
+
+
+      ################################### FRAMEWORK COMPILED #################################
+      \n
+      """
 
   buildClient: (options) ->
     @config ?= require('koding-config-manager').load("main.#{options.configFile}")
@@ -79,12 +86,9 @@ module.exports = class Builder
 
     @buildFramework()
 
-    if @config.client.runtimeOptions.precompiledApi
-      exec 'coffee ./bongo-api-builder/build.coffee -o .build/api.js', =>
-        @buildAndWatchClient options
-    else
-      fs.writeFileSync '.build/api.js', '', 'utf-8'
+    exec 'coffee ./bongo-api-builder/build.coffee -o .build/api.js', =>
       @buildAndWatchClient options
+
 
 
   buildAndWatchClient: (options) ->
@@ -97,7 +101,8 @@ module.exports = class Builder
 
       @projectsToBuild[title] =
         title       : title
-        includes    : project.files
+        includes    : "#{project.path}/includes.coffee"
+        routes      : "#{project.path}/routes.coffee"
         subprojects : project.projects
         changed     : no
         fileTimes   : {}
@@ -118,6 +123,19 @@ module.exports = class Builder
     for own title, bundle of bundles
       addProject title, bundle, 'bundle'
 
+
+
+    # registering app names to KD.config
+    # so that we know all the available apps
+    # before even loading their sources
+    fs.writeFileSync "#{__dirname}/client/Main/__generatedapps__.coffee" , "KD.config.apps=#{@getProjects()}", "utf8"
+
+    # this registers routes just before application runs
+    # this is not the best place to put this
+    # assuming to refactor this at some point
+    # by switching to a task manager - SY
+    fs.writeFileSync "#{__dirname}/client/Main/__generatedroutes__.coffee" , @getRoutes(), "utf8"
+
     @compileChanged options, true
 
   shortenText:(a, l)->
@@ -125,7 +143,7 @@ module.exports = class Builder
     return a if a.length < l - 5
     return a[0..l/2 - 5] + '...' + a[a.length - l/2..a.length]
 
-  compileChanged: (options, initial)->
+  compileChanged: (options, initial) ->
 
     includesChanged = @readIncludesFile()
 
@@ -277,6 +295,7 @@ module.exports = class Builder
       when ".coffee", ".js"
         if file.extension is ".coffee"
           try
+
             result = CoffeeScript.compile source,
               filename: file.includePath
               sourceFiles: [file.includePath]
@@ -294,10 +313,6 @@ module.exports = class Builder
               while match = r.exec source
                 js += "\nKD.classes." + match[1] + " = " + match[1] + ";"
 
-            # EXCEPTION FOR POSTOPERATIONS
-            if /^client\/PostOperations/.test file.sourcePath
-              js += "KD.config.apps=#{@getProjects()}\n"
-            # END OF EXCEPTION
 
           catch error
             log.error "CoffeeScript Error in #{file.includePath}: #{(error.stack.split "\n")[0]}"
@@ -475,3 +490,17 @@ module.exports = class Builder
       delete apps[internal]
 
     return JSON.stringify apps
+
+  getRoutes:->
+
+    routesSrc = '\n'
+
+    for own name, project of @projectsToBuild
+
+      if fs.existsSync project.routes
+        console.log "Routes added for \"#{name} App\""
+        routesSrc += "#{fs.readFileSync project.routes, 'utf-8'}\n"
+      else
+        console.warn "No routes found for \"#{name} App\""
+
+    return routesSrc

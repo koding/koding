@@ -190,10 +190,6 @@ func totalUsage(vos *virt.VOS, groupId string) (*Plan, error) {
 	usage.TotalVMs = len(vms)
 
 	for _, vm := range vms {
-		if vm.AlwaysOn {
-			usage.AlwaysOnVMs++
-		}
-
 		usage.CPU += vm.NumCPUs
 		usage.RAM += vm.MaxMemoryInMB
 		usage.Disk += vm.DiskSizeInMB
@@ -222,9 +218,6 @@ func (p *Plan) prepareLimits(username, groupId string) (*Limit, error) {
 	log.Debug("current usage: %+v username: %s group: %s", *p, username, groupId)
 
 	lim := NewLimit()
-	if p.AlwaysOnVMs > plan.AlwaysOnVMs {
-		lim.AlwaysOnVMs = LimitQuotaExceeded
-	}
 
 	if p.TotalVMs >= plan.TotalVMs {
 		lim.TotalVMs = LimitQuotaExceeded
@@ -246,10 +239,6 @@ func (p *Plan) prepareLimits(username, groupId string) (*Limit, error) {
 }
 
 func (l *Limit) check() error {
-	if l.AlwaysOnVMs == LimitQuotaExceeded {
-		return &LimitError{Message: "AlwaysOnVMs limit reached.", Code: ErrQuotaExceeded.Error()}
-	}
-
 	if l.CPU == LimitQuotaExceeded {
 		return &LimitError{Message: "CPU limit reached", Code: ErrQuotaExceeded.Error()}
 	}

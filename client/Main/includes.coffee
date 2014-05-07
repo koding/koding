@@ -30,6 +30,8 @@ module.exports = [
   "onboarding/onboardingitemview.coffee",
 
   # COMMON VIEWS
+  "CommonViews/testimonialsquoteview.coffee",
+  "CommonViews/testimonialsview.coffee",
   "CommonViews/applicationview/applicationtabview.coffee",
   "CommonViews/applicationview/applicationtabhandleholder.coffee",
   "CommonViews/sharepopup.coffee",
@@ -53,6 +55,7 @@ module.exports = [
   "CommonViews/bidirectionalnavigation.coffee"
   "CommonViews/kodingswitch.coffee",
   "CommonViews/animatedmodalview.coffee",
+  "CommonViews/footerview.coffee",
 
   "CommonViews/tokenview.coffee",
   "CommonViews/suggestedtokenview.coffee",
@@ -185,16 +188,16 @@ module.exports = [
 
 
   # BOOK
-  "book/embedded/tableofcontents.coffee",
-  "book/embedded/updatewidget.coffee",
-  "book/embedded/topics.coffee",
-  "book/embedded/startbutton.coffee",
-  "book/embedded/developbutton.coffee",
-  "book/embedded/socialshare.coffee",
-  "book/bookdata.coffee",
-  "book/pointerview.coffee",
-  "book/bookview.coffee",
-  "book/bookpage.coffee",
+  # "book/embedded/tableofcontents.coffee",
+  # "book/embedded/updatewidget.coffee",
+  # "book/embedded/topics.coffee",
+  # "book/embedded/startbutton.coffee",
+  # "book/embedded/developbutton.coffee",
+  # "book/embedded/socialshare.coffee",
+  # "book/bookdata.coffee",
+  # "book/pointerview.coffee",
+  # "book/bookview.coffee",
+  # "book/bookpage.coffee",
 
   #maintabs
 
@@ -282,11 +285,18 @@ module.exports = [
   "VirtualizationController.coffee",
   "CommonViews/modalappslistitemview.coffee",
 
+  # these are generated dependencies
+  # do not delete they're ignored in git
+  # created in compile time.
+  "__generatedapps__.coffee",
+  "__generatedroutes__.coffee",
+
   "status.coffee",
   "main.coffee",
   "rollbar.coffee",
   "mixpanel.coffee",
   "analytic.coffee",
+  "errorlog.coffee",
 
   # ---------- Main APP ENDS ---------- #
 

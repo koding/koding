@@ -22,10 +22,8 @@ type RealtimeWorkerController struct {
 }
 
 func (r *RealtimeWorkerController) DefaultErrHandler(delivery amqp.Delivery, err error) {
-	r.log.Error("an error occured putting message back to queue", err)
-	// multiple false
-	// reque true
-	delivery.Nack(false, true)
+	r.log.Error("an error occured deleting realtime event", err)
+	delivery.Ack(false)
 }
 
 func NewRealtimeWorkerController(rmq *rabbitmq.RabbitMQ, log logging.Logger) (*RealtimeWorkerController, error) {
@@ -153,6 +151,7 @@ func (f *RealtimeWorkerController) handleChannelParticipantEvent(eventName strin
 	if err := c.ById(cp.ChannelId); err != nil {
 		return err
 	}
+
 	return f.sendNotification(cp.AccountId, eventName, c)
 }
 

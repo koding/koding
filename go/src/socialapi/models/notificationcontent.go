@@ -57,8 +57,8 @@ func (n *NotificationContent) One(q *bongo.Query) error {
 	return bongo.B.One(n, n, q)
 }
 
-func (n *NotificationContent) Fetch() error {
-	return bongo.B.Fetch(n)
+func (n *NotificationContent) ById(id int64) error {
+	return bongo.B.ById(n, id)
 }
 
 func CreateNotification(i Notifiable) error {
@@ -78,29 +78,28 @@ func CreateNotification(i Notifiable) error {
 		return err
 	}
 
-	// fetch users and updates their cache if it is available
-	replierIds, err := i.GetNotifiedUsers()
+	// fetch users that will be notified by the activity
+	replierIds, err := i.GetNotifiedUsers(n.Id)
 	if err != nil {
 		return err
 	}
 
-	// TODO check subscribers/unsubscribers
+	n.NotifyUsers(replierIds)
 
-	return n.NotifyUsers(replierIds)
+	return nil
 }
 
-func (n *NotificationContent) NotifyUsers(recipients []int64) error {
+func (n *NotificationContent) NotifyUsers(recipients []int64) {
 	for i := 0; i < len(recipients); i++ {
 		notification := NewNotification()
 		notification.AccountId = recipients[i]
 		notification.NotificationContentId = n.Id
-		// TODO instead of interrupting the call send error messages to a queue
 		if err := notification.Create(); err != nil {
-			return err
+			if Log != nil {
+				Log.Error("An error occurred while notifying user %d: %s", notification.AccountId, err.Error())
+			}
 		}
 	}
-
-	return nil
 }
 
 func (n *NotificationContent) FetchByIds(ids []int64) ([]NotificationContent, error) {

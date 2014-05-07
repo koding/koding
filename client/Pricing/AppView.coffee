@@ -1,43 +1,49 @@
 class PricingAppView extends KDView
 
   constructor:(options = {}, data) ->
+    options.cssClass = KD.utils.curry "content-page pricing", options.cssClass
     super options, data
+
     # CtF I know this does not belongs here, but the problem was for the partial registration
     # there is an async situation of app storage operations caused by guest users/registered
     # members conversion
     @appStorage = KD.getSingleton('appStorageController').storage 'Login', '1.0'
 
-  createBreadcrumb: ->
+    @productForm = new PricingProductForm name: "plan"
+    @productForm.on "PlanSelected", (plan, options) =>
+      @showBreadcrumb plan, options
+      if "custom-plan" in plan.tags
+        @addGroupForm()
+
+  viewAppended: ->
     @addSubView @breadcrumb = new BreadcrumbView
 
+    paymentController = KD.singleton "paymentController"
+    @setWorkflow paymentController.createUpgradeWorkflow {@productForm}
 
   setWorkflow: (workflow) ->
     @workflow.destroy()  if @workflow
     @groupForm?.destroy()
     @thankYou?.destroy()
     @sorry?.destroy()
-    @hideBreadcrumb()
 
-    @workflow = workflow
-    @addSubView @workflow
     workflow.on 'Finished', @bound "workflowFinished"
     workflow.on 'Cancel', @bound "cancel"
-
+    workflow.on "SubscriptionTransitionCompleted", @bound "createGroup"
     workflow.off 'FormIsShown'
 
     workflow.on 'Failed', =>
       @hideWorkflow()
       @showGroupCreationFailed()
 
-    workflow.on 'FormIsShown', (form)=>
+    workflow.on 'FormIsShown', (form) =>
       return  unless workflow.active
       @breadcrumb.selectItem workflow.active.getOption 'name'
 
-    workflow.once "PasswordRecoveryToken", (@recoveryToken) =>
+    @addSubView @workflow = workflow
 
-  hideBreadcrumb:->
-    @breadcrumb.hide()
-    document.body.classList.remove 'flow'
+  showWorkflow: ->
+    @workflow.show()
 
   hideWorkflow: ->
     @workflow.hide()
@@ -49,11 +55,19 @@ class PricingAppView extends KDView
   cancel: ->
     KD.singleton("router").handleRoute "/Activity"
 
+  showBreadcrumb: (plan, options) ->
+    @breadcrumb.show()
+    @breadcrumb.showPlan plan, options  if plan and options
+
+  hideBreadcrumb: ->
+    @breadcrumb?.hide()
+    document.body.classList.remove 'flow'
+
   showGroupForm: ->
 
     return  if @groupForm and not @groupForm.isDestroyed
     @hideWorkflow()
-    @addSubView @groupForm = @createGroupForm()
+    @addSubView @groupForm = new PricingGroupForm
 
     @breadcrumb.selectItem 'details'
 
@@ -84,7 +98,7 @@ class PricingAppView extends KDView
 
     subtitle =
       if loggedIn then "Now it’s time, time to start Koding!"
-      else ""
+      else "Go to your inbox to complete your registration"
 
     @addSubView @thankYou = new KDCustomHTMLView
       cssClass : "pricing-final"
@@ -101,8 +115,6 @@ class PricingAppView extends KDView
         title    : "Go to your environment"
         callback : ->
           KD.singleton("router").handleRoute "/Environments"
-    else if createAccount
-      @thankYou.addSubView @getCompleteYourRegistrationButton()
 
   showGroupCreated: (group, subscription) ->
     {createAccount, loggedIn} = @formData
@@ -127,85 +139,24 @@ class PricingAppView extends KDView
         callback : ->
           window.open "#{window.location.origin}/#{group.slug}", "_blank"
     else if createAccount
-      @thankYou.addSubView @getCompleteYourRegistrationButton()
+      @thankYou.addSubView new KDCustomHTMLView
+        partial: "Go to your inbox to complete your registration"
 
   getCompleteYourRegistrationButton: ->
     return new KDButtonView
       style    : "solid green"
       title    : "Complete your registration"
       callback : =>
-        window.location.href = "/Register/#{encodeURIComponent @recoveryToken}"  if @recoveryToken
+        log "Complete my registration"
 
   addGroupForm: ->
-    @groupForm = @createGroupForm()
+    @groupForm = new PricingGroupForm
     @groupForm.on "Submit", => @workflow.collectData "group": yes
     @workflow.requireData ["group"]
     @workflow.addForm "group", @groupForm, ["group"]
-
-  createGroupForm: ->
-    return groupForm = new KDFormViewWithFields
-      title                 : "Enter new group name"
-      cssClass              : "pricing-create-group"
-      callback              : ->
-        groupForm.buttons.Create.showLoader()
-        @emit "Submit"
-      buttons               :
-        Create              :
-          title             : "CREATE YOUR GROUP"
-          type              : "submit"
-          style             : "solid green medium"
-          loader            : yes
-          callback          : ->
-      fields                :
-        GroupName           :
-          label             : "Group Name"
-          name              : "groupName"
-          placeholder       : "My Awesome Group"
-          validate          :
-            rules           :
-              required      : yes
-          keyup             : =>
-            @checkSlug @groupForm.inputs.GroupName.getValue()
-          validate          :
-            rules           :
-              required      : yes
-            messages        :
-              required      : "Group name required"
-        GroupURL            :
-          label             : "Group address"
-          defaultValue      : "#{window.location.origin}/"
-          # disabled          : yes
-          keyup             : =>
-            splittedUrl = @groupForm.inputs.GroupURL.getValue().split "/"
-            @checkSlug splittedUrl.last
-
-          # don't push it in if you can't do it right! - SY
-
-          # nextElement       :
-          #   changeURL       :
-          #     itemClass     : KDCustomHTMLView
-          #     tagName       : "a"
-          #     partial       : 'change'
-          #     click         : =>
-          #       @groupForm.inputs.GroupURL.makeEnabled()
-          #       @groupForm.inputs.GroupURL.focus()
-        GroupSlug           :
-          type              : "hidden"
-          name              : "groupSlug"
-          validate          :
-            rules           :
-              minLength     : 3
-
-        Visibility          :
-          itemClass         : KDSelectBox
-          label             : "Visibility"
-          type              : "select"
-          name              : "visibility"
-          defaultValue      : "hidden"
-          selectOptions     : [
-            { title : "Hidden" ,   value : "hidden"  }
-            { title : "Visible",   value : "visible" }
-          ]
+    @workflow.on "FormIsShown", (form) =>
+      if form is @groupForm
+        @breadcrumb.selectItem "details"
 
   createGroup: ->
     return  unless @groupForm
@@ -222,12 +173,3 @@ class PricingAppView extends KDView
     JGroup.create options, (err, { group, subscription }) =>
       return KD.showError err  if err
       @showGroupCreated group, subscription
-
-  checkSlug: (testSlug)->
-    {GroupURL, GroupSlug} = @groupForm.inputs
-
-    if testSlug.length > 2
-      slugy = KD.utils.slugify testSlug
-      KD.remote.api.JGroup.suggestUniqueSlug slugy, (err, newSlug)->
-        GroupURL.setValue "#{location.origin}/#{newSlug}"
-        GroupSlug.setValue newSlug

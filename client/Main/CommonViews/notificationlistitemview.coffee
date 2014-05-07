@@ -137,11 +137,11 @@ class NewNotificationListItem extends KDListItemView
           title : "This post has been deleted!"
           duration : 1000
 
-    switch @getTargetName()
-      when "SocialMessage"
+    switch @getData().type
+      when "comment"
         KD.remote.api.SocialMessage.fetch id: @getData().targetId, showPost
-      when "JAccount"
+      when "follow"
         KD.getSingleton('router').handleRoute "/#{@actors[0].profile.nickname}"
-      when "JGroup"
+      when "join", "leave"
         return
         # do nothing

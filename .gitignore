@@ -79,3 +79,5 @@ website/a/sprites/*.sprite.png
 
 client/Main/__generated*
 
+
+*.sprite.png

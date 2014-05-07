@@ -136,6 +136,30 @@ func InteractGroup(u *url.URL, h http.Header, req *GroupRequest) (int, http.Head
 	return helpers.NewDefaultOKResponse()
 }
 
+func SubscribeMessage(u *url.URL, h http.Header, req *models.Activity) (int, http.Header, interface{}, error) {
+	if err := validateSubscriptionRequest(req); err != nil {
+		return helpers.NewBadRequestResponse(err)
+	}
+
+	if err := models.SubscribeMessage(req.ActorId, req.TargetId, models.NotificationSubscription_TYPE_SUBSCRIBE); err != nil {
+		return helpers.NewBadRequestResponse(err)
+	}
+
+	return helpers.NewDefaultOKResponse()
+}
+
+func UnsubscribeMessage(u *url.URL, h http.Header, req *models.Activity) (int, http.Header, interface{}, error) {
+	if err := validateSubscriptionRequest(req); err != nil {
+		return helpers.NewBadRequestResponse(err)
+	}
+
+	if err := models.SubscribeMessage(req.ActorId, req.TargetId, models.NotificationSubscription_TYPE_UNSUBSCRIBE); err != nil {
+		return helpers.NewBadRequestResponse(err)
+	}
+
+	return helpers.NewDefaultOKResponse()
+}
+
 func fetchNotifications(q *models.Query) (*models.NotificationResponse, error) {
 	var list *models.NotificationResponse
 	var err error
@@ -172,21 +196,47 @@ func fetchNotifications(q *models.Query) (*models.NotificationResponse, error) {
 }
 
 func validateNotificationRequest(q *models.Query) error {
+	if err := validateAccount(q.AccountId); err != nil {
+		return err
+	}
+	// update the limit if it is needed
+	q.Limit = int(math.Min(float64(q.Limit), float64(NOTIFICATION_LIMIT)))
+
+	return nil
+}
+
+func validateSubscriptionRequest(a *models.Activity) error {
+	if err := validateAccount(a.ActorId); err != nil {
+		return err
+	}
+
+	return validateMessage(a.TargetId)
+}
+
+func validateAccount(accountId int64) error {
 	a := models.NewAccount()
-	a.Id = q.AccountId
-	if q.AccountId == 0 {
+	if accountId == 0 {
 		return errors.New("Account id cannot be empty")
 	}
 
-	if err := a.Fetch(); err != nil {
+	if err := a.ById(accountId); err != nil {
 		if err == gorm.RecordNotFound {
 			return errors.New("Account is not valid")
 		}
 		return err
 	}
 
-	// reset the limit if it is needed
-	q.Limit = int(math.Min(float64(q.Limit), float64(NOTIFICATION_LIMIT)))
+	return nil
+}
+
+func validateMessage(messageId int64) error {
+	cm := models.NewChannelMessage()
+	if err := cm.ById(messageId); err != nil {
+		if err == gorm.RecordNotFound {
+			return errors.New("Channel message does not exist")
+		}
+		return err
+	}
 
 	return nil
 }

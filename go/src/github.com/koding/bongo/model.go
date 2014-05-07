@@ -108,33 +108,6 @@ func (b *Bongo) UpdatePartial(i Modellable, set map[string]interface{}) error {
 	return nil
 }
 
-// selector, set
-func (b *Bongo) UpdateMulti(i Modellable, rest ...map[string]interface{}) error {
-	var set, selector map[string]interface{}
-
-	switch len(rest) {
-	case 1:
-		set = rest[0]
-		selector = nil
-	case 2:
-		selector = rest[0]
-		set = rest[1]
-	default:
-		return errors.New("Update partial parameter list is wrong")
-	}
-
-	query := b.DB.Table(i.TableName())
-
-	//add selector
-	query = addWhere(query, selector)
-
-	if err := query.Update(set).Error; err != nil {
-		return err
-	}
-
-	return nil
-}
-
 func (b *Bongo) Count(i Modellable, where ...interface{}) (int, error) {
 	var count int
 
@@ -224,50 +197,38 @@ func (b *Bongo) buildQuery(i Modellable, data interface{}, q *Query) error {
 }
 
 func (b *Bongo) AfterCreate(i Modellable) {
-	eventName := fmt.Sprintf("%s_created", i.TableName())
 	data, err := json.Marshal(i)
 	if err != nil {
-		// here try to resend this message to RMQ again, than
-		// persist it to somewhere!#!##@$%#?
-		// those messages are really important now
-		fmt.Println("Error occured", err)
 		return
 	}
-	err = b.Broker.Publish(eventName, data)
+
+	err = b.Broker.Publish(i.TableName()+"_created", data)
 	if err != nil {
-		fmt.Println("jhasdjhadsjdasj", err)
+		return
 	}
 }
 
 func (b *Bongo) AfterUpdate(i Modellable) {
-	eventName := fmt.Sprintf("%s_updated", i.TableName())
 	data, err := json.Marshal(i)
 	if err != nil {
-		// here try to resend this message to RMQ again, than
-		// persist it to somewhere!#!##@$%#?
-		// those messages are really important now
-		fmt.Println("Error occured", err)
 		return
 	}
-	err = b.Broker.Publish(eventName, data)
+
+	err = b.Broker.Publish(i.TableName()+"_updated", data)
 	if err != nil {
-		fmt.Println("jhasdjhadsjdasj", err)
+		return
 	}
 }
 
 func (b *Bongo) AfterDelete(i Modellable) {
-	eventName := fmt.Sprintf("%s_deleted", i.TableName())
 	data, err := json.Marshal(i)
 	if err != nil {
-		// here try to resend this message to RMQ again, than
-		// persist it to somewhere!#!##@$%#?
-		// those messages are really important now
-		fmt.Println("Error occured", err)
 		return
 	}
-	err = b.Broker.Publish(eventName, data)
+
+	err = b.Broker.Publish(i.TableName()+"_deleted", data)
 	if err != nil {
-		fmt.Println("jhasdjhadsjdasj", err)
+		return
 	}
 }
 
