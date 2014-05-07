@@ -112,6 +112,11 @@ func Send(u *url.URL, h http.Header, req *models.PrivateMessageRequest) (int, ht
 		return helpers.NewBadRequestResponse(err)
 	}
 
+	messageContainer, err := cm.BuildEmptyMessageContainer()
+	if err != nil {
+		return helpers.NewBadRequestResponse(err)
+	}
+
 	_, err = c.AddMessage(cm.Id)
 	if err != nil {
 		return helpers.NewBadRequestResponse(err)
@@ -127,7 +132,7 @@ func Send(u *url.URL, h http.Header, req *models.PrivateMessageRequest) (int, ht
 	cmc := models.NewChannelContainer()
 	cmc.Channel = *c
 	cmc.IsParticipant = true
-	cmc.LastMessage = cm
+	cmc.LastMessage = messageContainer
 	cmc.ParticipantCount = len(participantIds)
 	cmc.ParticipantsPreview = participantIds
 
