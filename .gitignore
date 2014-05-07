@@ -75,9 +75,12 @@ node_modules_koding/processes/src/.tmp*
 /go/src/socialapi/followingfeed
 /go/src/socialapi/api
 
+website/a/css/kd.css
+website/a/css/koding.css
+website/a/js/bongo.js
+website/a/js/kd.js
+website/a/js/kd.libs.js
+website/a/js/koding.js
 website/a/sprites/*.sprite.png
 
 client/Main/__generated*
-
-
-*.sprite.png

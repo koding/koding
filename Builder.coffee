@@ -12,6 +12,8 @@ sprite            = require 'koding-sprites'
 UglifyJS          = require 'uglify-js'
 WebSocket         = require 'ws'
 WebSocketServer   = WebSocket.Server
+Promise           = require 'bluebird'
+which             = Promise.promisify require 'which'
 
 log =
   info  : console.log
@@ -50,14 +52,25 @@ module.exports = class Builder
 
   spriteHelper = null
 
+  canBuildSprites: ->
+    hasCanvas = !!try require 'canvas'
+    (if hasCanvas then Promise.resolve() else which 'gm').catch (err) ->
+      if /^not found:/.test err.message
+        console.error "Unmet dependency!  You must install either graphicsmagick or cairo + node-canvas"
+        console.error "You can install graphicsmagick using homebrew:"
+        console.error "$ brew install graphicsmagick"
+        process.exit(1)
+      throw err
+
   buildSprites: (options) ->
 
     @config ?= require('koding-config-manager').load("main.#{options.configFile}")
 
-    sprite
-      srcPath   : './sprites'
-      destPath  : './website/a/sprites'
-      httpPath  : '/a/sprites'
+    @canBuildSprites().then ->
+      sprite
+        srcPath   : './sprites'
+        destPath  : './website/a/sprites'
+        httpPath  : '/a/sprites'
     .then (helper) =>
       spriteHelper = helper
       @buildClient options
@@ -65,7 +78,7 @@ module.exports = class Builder
   buildFramework:->
 
     @config ?= require('koding-config-manager').load("main.#{options.configFile}")
-    cmd = "cd client/Framework && npm i && gulp compile --buildVersion=#{@config.client.version} --outputDir=../../website/a/"
+    cmd = "cd client/Framework && npm i && gulp compile --outputDir=../../website/a/"
     exec cmd, (err, stdout, stderr)->
       console.log """\n\n
       ################################### FRAMEWORK COMPILED #################################
@@ -465,7 +478,7 @@ module.exports = class Builder
   getProjects:->
 
     rp = (address)=>
-      address?.replace /^website\//, '/' #@config.uri.address
+      "#{ address?.replace /^website\//, '/' }?#{ @config.client.version }"
 
     apps = {}
     {projects, bundles} = require './projects'

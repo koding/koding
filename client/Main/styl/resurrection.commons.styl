@@ -849,15 +849,16 @@ button.app-settings-menu
 
 
 .kdlistitemview-contextitem
-  .vm-toggle-menu
+  .toggle-menu
     font-size .8em
     padding   8px 10px
     border    none
     color     #444
+    width     auto
 
-    .vm-toggle-item
-      right   28px
-      top      8px
+    .toggle-item
+      right   10px
+      top      5px
       abs()
 
 // File upload
@@ -1281,7 +1282,7 @@ a.action-link.verify-email
   padding               28px 30px
   rounded               5px
   bg                    color, #FFF
-  max-width             400px
+  max-width             440px
   height                auto
   z-index               10001 // this is required because overlay is 10000
   h3
@@ -1323,6 +1324,9 @@ a.action-link.verify-email
       border-left       10px solid transparent
       border-right      10px solid transparent
       border-bottom     10px solid #fff
+      left              25px !important
+      top               -15px !important
+      abs()
   .close-icon
     r-sprite            "app", "20-close-tab"
     top                 10px
