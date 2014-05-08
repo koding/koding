@@ -21,6 +21,8 @@ var (
 	firstMessage     *models.ChannelMessage
 )
 
+const SLEEP_TIME = 4
+
 func TestNotificationCreation(t *testing.T) {
 	ownerAccount := models.NewAccount()
 	firstUser := models.NewAccount()
@@ -86,7 +88,7 @@ func TestNotificationCreation(t *testing.T) {
 				var err error
 				replyMessage, err = addReply(firstMessage.Id, firstUser.Id, testGroupChannel.Id)
 				ResultedWithNoErrorCheck(replyMessage, err)
-				time.Sleep(4 * time.Second) // waiting for async message
+				time.Sleep(SLEEP_TIME * time.Second) // waiting for async message
 			})
 
 			Convey("I should be able to receive notification", func() {
@@ -114,7 +116,7 @@ func TestNotificationCreation(t *testing.T) {
 		Convey("Second user should be able to reply it", func() {
 			replyMessage, err := addReply(firstMessage.Id, secondUser.Id, testGroupChannel.Id)
 			ResultedWithNoErrorCheck(replyMessage, err)
-			time.Sleep(4 * time.Second) // waiting for async message
+			time.Sleep(SLEEP_TIME * time.Second) // waiting for async message
 		})
 
 		Convey("I should be able to receive notification", func() {
@@ -213,7 +215,7 @@ func TestNotificationCreation(t *testing.T) {
 		Convey("Forth user should be able to reply it", func() {
 			replyMessage, err := addReply(firstMessage.Id, forthUser.Id, testGroupChannel.Id)
 			ResultedWithNoErrorCheck(replyMessage, err)
-			time.Sleep(4 * time.Second)
+			time.Sleep(SLEEP_TIME * time.Second)
 		})
 
 		Convey("I should be able to receive notification", func() {
@@ -234,7 +236,7 @@ func TestNotificationCreation(t *testing.T) {
 		Convey("First user should be able to reply it", func() {
 			replyMessage, err := addReply(firstMessage.Id, firstUser.Id, testGroupChannel.Id)
 			ResultedWithNoErrorCheck(replyMessage, err)
-			time.Sleep(4 * time.Second)
+			time.Sleep(SLEEP_TIME * time.Second)
 		})
 
 		Convey("I should be able to receive notification", func() {
@@ -255,7 +257,7 @@ func TestNotificationCreation(t *testing.T) {
 		Convey("First user should be able to reply it again", func() {
 			replyMessage, err := addReply(firstMessage.Id, firstUser.Id, testGroupChannel.Id)
 			ResultedWithNoErrorCheck(replyMessage, err)
-			time.Sleep(4 * time.Second) // waiting for async message
+			time.Sleep(SLEEP_TIME * time.Second) // waiting for async message
 		})
 
 		Convey("I should be able to receive notification", func() {
@@ -301,7 +303,7 @@ func TestNotificationCreation(t *testing.T) {
 				var err error
 				replyMessage, err = addReply(cm.Id, ownerAccount.Id, testGroupChannel.Id)
 				ResultedWithNoErrorCheck(replyMessage, err)
-				time.Sleep(4 * time.Second)
+				time.Sleep(SLEEP_TIME * time.Second)
 			})
 
 			Convey("I should not receive notification", func() {
@@ -315,7 +317,7 @@ func TestNotificationCreation(t *testing.T) {
 				var err error
 				replyMessage, err = addReply(cm.Id, firstUser.Id, testGroupChannel.Id)
 				ResultedWithNoErrorCheck(replyMessage, err)
-				time.Sleep(4 * time.Second)
+				time.Sleep(SLEEP_TIME * time.Second)
 			})
 
 			Convey("I should be able to receive notification", func() {
@@ -343,93 +345,105 @@ func TestNotificationCreation(t *testing.T) {
 				So(nl.UnreadCount, ShouldEqual, 1)
 			})
 		})
-		// Convey("As a message owner I want to receive like notifications", func() {
-		// 	Convey("First user should be able to like it", func() {
-		// 		err := addInteraction(models.Interaction_TYPE_LIKE, firstMessage.Id, firstUser.Id)
-		// 		So(err, ShouldBeNil)
-		// 		time.Sleep(4 * time.Second)
-		// 	})
-		// 	Convey("I should be able to receive notification", func() {
-		// 		nl, err := getNotificationList(ownerAccount.Id)
-		// 		ResultedWithNoErrorCheck(nl, err)
-		// 		Convey("And Notification list should contain three notifications", func() {
-		// 			So(len(nl.Notifications), ShouldEqual, 3)
-		// 			So(nl.UnreadCount, ShouldEqual, 3)
-		// 			Convey("Notifier count should be 1", func() {
-		// 				So(nl.Notifications[0].ActorCount, ShouldEqual, 1)
-		// 			})
-		// 			Convey("Notification should contain first user as Latest Actors", func() {
-		// 				So(len(nl.Notifications[0].LatestActors), ShouldEqual, 1)
-		// 				So(nl.Notifications[0].LatestActors[0], ShouldEqual, firstUser.Id)
-		// 			})
-		// 		})
-		// 	})
-		// 	Convey("Second, Third and Forth user should be able to like it", func() {
-		// 		err := addInteraction(models.Interaction_TYPE_LIKE, firstMessage.Id, secondUser.Id)
-		// 		So(err, ShouldBeNil)
-		// 		err = addInteraction(models.Interaction_TYPE_LIKE, firstMessage.Id, thirdUser.Id)
-		// 		So(err, ShouldBeNil)
-		// 		err = addInteraction(models.Interaction_TYPE_LIKE, firstMessage.Id, forthUser.Id)
-		// 		So(err, ShouldBeNil)
+		Convey("As a message owner I want to receive like notifications", func() {
+			Convey("First user should be able to like it", func() {
+				err := addInteraction(models.Interaction_TYPE_LIKE, firstMessage.Id, firstUser.Id)
+				So(err, ShouldBeNil)
+				time.Sleep(SLEEP_TIME * time.Second)
+			})
+			Convey("I should be able to receive notification", func() {
+				nl, err := getNotificationList(ownerAccount.Id)
+				ResultedWithNoErrorCheck(nl, err)
+				Convey("And Notification list should contain three notifications", func() {
+					So(len(nl.Notifications), ShouldEqual, 3)
+					So(nl.UnreadCount, ShouldEqual, 3)
+					Convey("Notifier count should be 1", func() {
+						So(nl.Notifications[0].ActorCount, ShouldEqual, 1)
+					})
+					Convey("Notification should contain first user as Latest Actors", func() {
+						So(len(nl.Notifications[0].LatestActors), ShouldEqual, 1)
+						So(nl.Notifications[0].LatestActors[0], ShouldEqual, firstUser.Id)
+					})
+				})
+			})
+			Convey("Second, Third and Forth user should be able to like it", func() {
+				err := addInteraction(models.Interaction_TYPE_LIKE, firstMessage.Id, secondUser.Id)
+				So(err, ShouldBeNil)
+				err = addInteraction(models.Interaction_TYPE_LIKE, firstMessage.Id, thirdUser.Id)
+				So(err, ShouldBeNil)
+				err = addInteraction(models.Interaction_TYPE_LIKE, firstMessage.Id, forthUser.Id)
+				So(err, ShouldBeNil)
 
-		// 		time.Sleep(4 * time.Second)
-		// 	})
-		// 	Convey("i Should be able to receive notification", func() {
-		// 		nl, err := getNotificationList(ownerAccount.Id)
-		// 		ResultedWithNoErrorCheck(nl, err)
-		// 		Convey("And Notification list should contain three notifications", func() {
-		// 			So(len(nl.Notifications), ShouldEqual, 3)
-		// 			Convey("Notifier count should be 4", func() {
-		// 				So(nl.Notifications[0].ActorCount, ShouldEqual, 4)
-		// 			})
-		// 			Convey("Notification should contain forth, third and second users consecutively as Latest Actors", func() {
-		// 				So(len(nl.Notifications[0].LatestActors), ShouldEqual, 3)
-		// 				So(nl.Notifications[0].LatestActors[0], ShouldEqual, forthUser.Id)
-		// 				So(nl.Notifications[0].LatestActors[1], ShouldEqual, thirdUser.Id)
-		// 				So(nl.Notifications[0].LatestActors[2], ShouldEqual, secondUser.Id)
-		// 			})
-		// 		})
-		// 	})
-		// })
+				time.Sleep(SLEEP_TIME * time.Second)
+			})
+			Convey("i Should be able to receive notification", func() {
+				nl, err := getNotificationList(ownerAccount.Id)
+				ResultedWithNoErrorCheck(nl, err)
+				Convey("And Notification list should contain three notifications", func() {
+					So(len(nl.Notifications), ShouldEqual, 3)
+					Convey("Notifier count should be 4", func() {
+						So(nl.Notifications[0].ActorCount, ShouldEqual, 4)
+					})
+					Convey("Notification should contain forth, third and second users consecutively as Latest Actors", func() {
+						So(len(nl.Notifications[0].LatestActors), ShouldEqual, 3)
+						So(nl.Notifications[0].LatestActors[0], ShouldEqual, forthUser.Id)
+						So(nl.Notifications[0].LatestActors[1], ShouldEqual, thirdUser.Id)
+						So(nl.Notifications[0].LatestActors[2], ShouldEqual, secondUser.Id)
+					})
+				})
+			})
+			Convey("I should not be able to notified by my own like activities", func() {
+				err := addInteraction(models.Interaction_TYPE_LIKE, firstMessage.Id, ownerAccount.Id)
+				So(err, ShouldBeNil)
+				time.Sleep(SLEEP_TIME * time.Second)
 
-		// Convey("As a message owner I should be able to glance notifications", func() {
-		// 	res, err := glanceNotifications(ownerAccount.Id)
-		// 	ResultedWithNoErrorCheck(res, err)
-		// })
+				nl, err := getNotificationList(ownerAccount.Id)
+				ResultedWithNoErrorCheck(nl, err)
+				So(len(nl.Notifications), ShouldEqual, 3)
+				So(nl.Notifications[0].ActorCount, ShouldEqual, 4)
+				So(len(nl.Notifications[0].LatestActors), ShouldEqual, 3)
+				So(nl.Notifications[0].LatestActors[0], ShouldEqual, forthUser.Id)
+			})
+		})
 
-		// Convey("Unread notification count should be 0", func() {
-		// 	nl, err := getNotificationList(ownerAccount.Id)
-		// 	ResultedWithNoErrorCheck(nl, err)
-		// 	So(nl.UnreadCount, ShouldEqual, 0)
+		Convey("As a message owner I should be able to glance notifications", func() {
+			res, err := glanceNotifications(ownerAccount.Id)
+			ResultedWithNoErrorCheck(res, err)
+		})
 
-		// 	Convey("All notifications must be set as glanced", func() {
-		// 		for _, notification := range nl.Notifications {
-		// 			So(notification.Glanced, ShouldEqual, true)
-		// 		}
-		// 	})
-		// })
+		Convey("Unread notification count should be 0", func() {
+			nl, err := getNotificationList(ownerAccount.Id)
+			ResultedWithNoErrorCheck(nl, err)
+			So(nl.UnreadCount, ShouldEqual, 0)
 
-		// Convey("As a message owner I should be able to receive new notifications as unread after glance", func() {
-		// 	Convey("Third user should be able to reply my first message", func() {
-		// 		replyMessage, err := addReply(firstMessage.Id, thirdUser.Id, testGroupChannel.Id)
-		// 		ResultedWithNoErrorCheck(replyMessage, err)
-		// 		time.Sleep(4 * time.Second)
-		// 	})
+			Convey("All notifications must be set as glanced", func() {
+				for _, notification := range nl.Notifications {
+					So(notification.Glanced, ShouldEqual, true)
+				}
+			})
+		})
 
-		// 	Convey("Unread count should be 1", func() {
-		// 		nl, err := getNotificationList(ownerAccount.Id)
-		// 		ResultedWithNoErrorCheck(nl, err)
-		// 		So(nl.UnreadCount, ShouldEqual, 1)
-		// 		Convey("First notification should be unglanced", func() {
-		// 			So(nl.Notifications[0].Glanced, ShouldEqual, false)
-		// 		})
+		Convey("As a message owner I should be able to receive new notifications as unread after glance", func() {
+			Convey("Third user should be able to reply my first message", func() {
+				replyMessage, err := addReply(firstMessage.Id, thirdUser.Id, testGroupChannel.Id)
+				ResultedWithNoErrorCheck(replyMessage, err)
+				time.Sleep(SLEEP_TIME * time.Second)
+			})
 
-		// 		Convey("Second notification should be glanced", func() {
-		// 			So(nl.Notifications[1].Glanced, ShouldEqual, true)
-		// 		})
-		// 	})
+			Convey("Unread count should be 1", func() {
+				nl, err := getNotificationList(ownerAccount.Id)
+				ResultedWithNoErrorCheck(nl, err)
+				So(nl.UnreadCount, ShouldEqual, 1)
+				Convey("First notification should be unglanced", func() {
+					So(nl.Notifications[0].Glanced, ShouldEqual, false)
+				})
 
-		// })
+				Convey("Second notification should be glanced", func() {
+					So(nl.Notifications[1].Glanced, ShouldEqual, true)
+				})
+			})
+
+		})
 
 		// Convey("As a followee I should be able to receive follower notifications when first user follows me", func() {
 		// 	Convey("First user should be able to follow me", func() {
