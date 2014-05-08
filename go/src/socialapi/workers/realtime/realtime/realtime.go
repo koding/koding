@@ -125,7 +125,14 @@ func (f *RealtimeWorkerController) MessageUpdated(data []byte) error {
 		return err
 	}
 
-	err = f.sendInstanceEvent(cm.GetId(), cm, "updateInstance")
+	// this is here for sending
+	// old account id in message updated event
+	container, err := cm.BuildEmptyMessageContainer()
+	if err != nil {
+		return err
+	}
+
+	err = f.sendInstanceEvent(cm.GetId(), container, "updateInstance")
 	if err != nil {
 		fmt.Println(err)
 		return err
@@ -175,9 +182,15 @@ func (f *RealtimeWorkerController) handleInteractionEvent(eventName string, data
 		return err
 	}
 
+	oldId, err := models.AccountOldIdById(i.AccountId)
+	if err != nil {
+		return err
+	}
+
 	res := map[string]interface{}{
 		"messageId":    i.MessageId,
 		"accountId":    i.AccountId,
+		"accountOldId": oldId,
 		"typeConstant": i.TypeConstant,
 		"count":        count,
 	}
@@ -202,7 +215,12 @@ func (f *RealtimeWorkerController) MessageReplySaved(data []byte) error {
 		return err
 	}
 
-	err = f.sendInstanceEvent(i.MessageId, reply, "ReplyAdded")
+	cmc, err := reply.BuildEmptyMessageContainer()
+	if err != nil {
+		return err
+	}
+
+	err = f.sendInstanceEvent(i.MessageId, cmc, "ReplyAdded")
 	if err != nil {
 		fmt.Println(err)
 		return err
