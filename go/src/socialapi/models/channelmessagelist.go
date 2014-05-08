@@ -2,7 +2,6 @@ package models
 
 import (
 	"errors"
-	"fmt"
 	"time"
 
 	"github.com/jinzhu/gorm"
@@ -139,8 +138,6 @@ func (c *ChannelMessageList) getMessages(q *Query) ([]*ChannelMessageContainer, 
 		Limit(q.Limit).
 		Order("added_at desc")
 
-	query = query.Where("channel_id = ?", c.ChannelId)
-	fmt.Println(q.From.String())
 	if !q.From.IsZero() {
 		query = query.Where("added_at < ?", q.From)
 	}
