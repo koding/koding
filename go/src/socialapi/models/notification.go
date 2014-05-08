@@ -23,6 +23,12 @@ type Notification struct {
 
 	// last notifier addition time
 	UpdatedAt time.Time `json:"updatedAt" sql:"NOT NULL"`
+
+	// user's subscription time to related content
+	SubscribedAt time.Time `json:"subscribedAt" sql:"NOT NULL"`
+
+	// notification type as subscribed/unsubscribed
+	TypeConstant string `json:"typeConstant" sql:"NOT NULL"`
 }
 
 const (
@@ -219,6 +225,12 @@ func (n *Notification) FetchContent() (*NotificationContent, error) {
 
 // 	return CreateNotificationContent(gn)
 // }
+
+func (n *Notification) BeforeCreate() {
+	if n.TypeConstant == "" {
+		n.TypeConstant = Notification_TYPE_SUBSCRIBE
+	}
+}
 
 func (n *Notification) AfterCreate() {
 	bongo.B.AfterCreate(n)
