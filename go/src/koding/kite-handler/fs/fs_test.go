@@ -4,6 +4,7 @@ import (
 	"encoding/base64"
 	"io/ioutil"
 	"log"
+	"os"
 	"reflect"
 	"testing"
 
@@ -154,7 +155,42 @@ func TestReadFile(t *testing.T) {
 
 }
 
-func TestWriteFile(t *testing.T)       {}
+func TestWriteFile(t *testing.T) {
+	testFile, err := ioutil.TempFile("", "")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer os.Remove(testFile.Name())
+
+	content := []byte("hello kite")
+
+	resp, err := remote.Tell("writeFile", struct {
+		Path           string
+		Content        []byte
+		DoNotOverwrite bool
+		Append         bool
+	}{
+		Path:    testFile.Name(),
+		Content: content,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if int(resp.MustFloat64()) != len(content) {
+		t.Errorf("content len is wrong. got %d expected %d", int(resp.MustFloat64()), len(content))
+	}
+
+	buf, err := ioutil.ReadFile(testFile.Name())
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if !reflect.DeepEqual(buf, content) {
+		t.Errorf("content is wrong. got '%s' expected '%s'", string(buf), string(content))
+	}
+}
+
 func TestUniquePath(t *testing.T)      {}
 func TestGetInfo(t *testing.T)         {}
 func TestSetPermissions(t *testing.T)  {}
