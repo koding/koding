@@ -8,6 +8,7 @@ import (
 	"path/filepath"
 	"reflect"
 	"testing"
+	"time"
 
 	"github.com/koding/kite"
 	"github.com/koding/kite/dnode"
@@ -95,6 +96,48 @@ func TestReadDirectory(t *testing.T) {
 
 	if !reflect.DeepEqual(respFiles, currentFiles) {
 		t.Error("got %+v, expected %+v", respFiles, currentFiles)
+	}
+}
+
+func TestWatcher(t *testing.T) {
+	testDir := "testdata"
+	addfile := "testdata/example1.txt"
+
+	defer os.Remove(addfile)
+
+	done := make(chan struct{}, 1)
+
+	onChange := dnode.Callback(func(r *dnode.Partial) {
+		s := r.MustSlice()
+		m := s[0].MustMap()
+
+		e := m["event"].MustString()
+
+		var f = &FileEntry{}
+		m["file"].Unmarshal(f)
+
+		if e == "added" && f.Name == "example1.txt" {
+			done <- struct{}{}
+		}
+	})
+
+	_, err := remote.Tell("readDirectory", struct {
+		Path     string
+		OnChange dnode.Function
+	}{
+		Path:     testDir,
+		OnChange: onChange,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	ioutil.WriteFile(addfile, []byte("example"), 0755)
+
+	select {
+	case <-done:
+	case <-time.After(time.Second * 2):
+		t.Fatal("timeout watcher after two seconds")
 	}
 }
 
