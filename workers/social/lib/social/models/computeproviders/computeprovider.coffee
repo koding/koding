@@ -116,6 +116,31 @@ module.exports = class ComputeProvider extends Base
 
     success: revive (client, options, callback)->
 
+      { provider, stack, label } = options
+
+      provider.create client, options, (err, machineData)=>
+
+        return callback err  if err
+
+        { connection: { delegate:account }, context: { group } } = client
+        { meta, postCreateOptions } = machineData
+
+        @createMachine {
+          vendor : provider.slug
+          label, stack, meta, group, account
+        }, (err, machine)->
+
+          # TODO if any error occurs here which means user paid for
+          # not created vm ~ GG
+          return callback err  if err
+
+          provider.postCreate {
+            postCreateOptions, machine, meta, stack
+          }, (err)=>
+            # ----
+            account.sendNotification "MachineCreated"  unless err
+            callback err
+
 
   @update = secure revive (client, options, callback)->
 
@@ -146,8 +171,6 @@ module.exports = class ComputeProvider extends Base
     { vendor, label, stack, meta, group, account } = options
 
     JGroup = require '../group'
-    JStack = require '../stack'
-
     JGroup.one { slug: group }, (err, groupObj)=>
 
       return callback err  if err
