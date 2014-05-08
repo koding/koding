@@ -59,13 +59,6 @@ class NewCommentForm extends KDView
     (KD.getSingleton "windowController").setKeyView @input
 
 
-  otherCommentInputReceivedFocus:(instance) ->
-
-    if instance isnt @input
-      commentForm = @input.getDelegate()
-      commentForm.resetCommentField() if $.trim(@input.getValue()) is ""
-
-
   commentInputReceivedBlur: ->
 
     @resetCommentField()  if @input.getValue() is ""
