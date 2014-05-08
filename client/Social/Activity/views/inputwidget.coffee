@@ -244,7 +244,7 @@ class ActivityInputWidget extends KDView
       #   targetSelf : 1
 
 
-  update: (data, callback) ->
+  update: (data, callback = noop) ->
 
     {appManager} = KD.singletons
     {channelId}  = @getOptions()
@@ -258,9 +258,10 @@ class ActivityInputWidget extends KDView
       activity
     }, (err, activity) =>
 
-      KD.showError err
-      @reset()  unless err
-      callback? err
+      return KD.showError err  if err
+
+      @reset()
+      callback()
 
       KD.mixpanel "Status update edit, success"
 
