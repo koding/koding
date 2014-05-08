@@ -28,26 +28,35 @@ checkCredential = (client, pubKey, callback)->
 
 module.exports = class ComputeProvider extends Base
 
+  @trait __dirname, '../../traits/protected'
+
+  {permit} = require '../group/permissionset'
+
+
   @share()
 
-  # TODO Add Permissons ~ GG
-
   @set
-    sharedMethods :
-      static :
-        ping :
+    permissions         :
+      'sudoer'          : []
+      'ping machines'   : ['member','moderator']
+      'create machines' : ['member','moderator']
+      'delete machines' : ['member','moderator']
+      'update machines' : ['member','moderator']
+    sharedMethods       :
+      static            :
+        ping            :
           (signature Object, Function)
-        create :
+        create          :
           (signature Object, Function)
-        remove :
+        remove          :
           (signature Object, Function)
-        update :
+        update          :
           (signature Object, Function)
-        fetchExisting :
+        fetchExisting   :
           (signature Object, Function)
-        fetchAvailable :
+        fetchAvailable  :
           (signature Object, Function)
-        fetchProviders :
+        fetchProviders  :
           (signature Function)
 
   revive = do ->
@@ -87,16 +96,17 @@ module.exports = class ComputeProvider extends Base
     callback null, Object.keys PROVIDERS
 
 
-  @ping = secure revive (client, options, callback)->
+  @ping = permit 'ping machines',
 
-    {provider} = options
-    provider.ping client, callback
+    success: revive (client, options, callback)->
+
+      {provider} = options
+      provider.ping client, options, callback
 
 
-  @create = secure revive (client, options, callback)->
+  @create = permit 'create machines',
 
-    {provider} = options
-    provider.create client, options, callback
+    success: revive (client, options, callback)->
 
 
   @update = secure revive (client, options, callback)->
