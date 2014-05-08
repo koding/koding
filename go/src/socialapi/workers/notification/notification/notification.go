@@ -101,25 +101,23 @@ func (n *NotificationWorkerController) CreateReplyNotification(data []byte) erro
 	rn.TargetId = mr.MessageId
 	rn.NotifierId = cm.AccountId
 
-	if err := models.CreateNotification(rn); err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func (n *NotificationWorkerController) CreateInteractionNotification(data []byte) error {
-	i, err := mapMessageToInteraction(data)
+	nc, err := models.CreateNotificationContent(rn)
 	if err != nil {
 		return err
 	}
 
-	// a bit error prune since we take interaction type as notification type
-	in := models.NewInteractionNotification(i.TypeConstant)
-	in.TargetId = i.MessageId
-	in.NotifierId = i.AccountId
-	if err := models.CreateNotification(in); err != nil {
+	notifiedUsers, err := rn.GetNotifiedUsers(nc.Id)
+	if err != nil {
 		return err
+	}
+
+	for _, recipient := range notifiedUsers {
+		notification := models.NewNotification()
+		notification.NotificationContentId = nc.Id
+		notification.AccountId = recipient
+		if err = notification.Create(); err != nil {
+			n.log.Error("An error occurred while notifying user %d: %s", recipient, err.Error())
+		}
 	}
 
 	return nil
