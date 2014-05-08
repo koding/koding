@@ -94,53 +94,33 @@ type ReplyNotification struct {
 	TargetId   int64
 	ListerId   int64
 	NotifierId int64
+	OwnerId    int64
 }
 
 func (n *ReplyNotification) GetNotifiedUsers(notificationContentId int64) ([]int64, error) {
-	// fetch all repliers
-	cm := NewChannelMessage()
-	cm.Id = n.TargetId
+	// fetch all subscribers
 
-	p := &bongo.Pagination{}
-	replierIds, err := cm.FetchReplierIds(p, true, time.Time{})
-	if err != nil {
+	var notifications []Notification
+	q := &bongo.Query{
+		Selector: map[string]interface{}{
+			"notification_content_id": notificationContentId,
+			"type_constant":           Notification_TYPE_SUBSCRIBE,
+		},
+	}
+	notification := NewNotification()
+	if err := notification.Some(&notifications, q); err != nil {
 		return nil, err
 	}
-	repliersMap := map[int64]struct{}{}
-	for _, replierId := range replierIds {
-		repliersMap[replierId] = struct{}{}
+
+	notifiees := make([]int64, 0)
+	// append subscribed users and regress notifier
+	for _, notification := range notifications {
+		if notification.AccountId != n.NotifierId {
+			notifiees = append(notifiees, notification.AccountId)
+		}
 	}
 
-	// var subscribers []NotificationSubscription
-	// q := &bongo.Query{
-	// 	Selector: map[string]interface{}{
-	// 		"notification_content_id": notificationContentId,
-	// 	},
-	// }
-	// ns := NewNotificationSubscription()
-	// if err := ns.Some(&subscribers, q); err != nil {
-	// 	return nil, err
-	// }
-
-	// // regress unsubscribed users and append subscribed ones
-	// for _, subscriber := range subscribers {
-	// 	switch subscriber.TypeConstant {
-	// 	case NotificationSubscription_TYPE_SUBSCRIBE:
-	// 		repliersMap[subscriber.AccountId] = struct{}{}
-	// 	case NotificationSubscription_TYPE_UNSUBSCRIBE:
-	// 		delete(repliersMap, subscriber.AccountId)
-	// 	}
-	// }
-
-	// regress notifier from notified users
-	delete(repliersMap, n.NotifierId)
-
-	filteredRepliers := make([]int64, 0)
-	for replierId, _ := range repliersMap {
-		filteredRepliers = append(filteredRepliers, replierId)
-	}
-
-	return filteredRepliers, nil
+	return notifiees, nil
 }
 
 func (n *ReplyNotification) GetType() string {
