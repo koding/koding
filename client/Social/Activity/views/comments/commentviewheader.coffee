@@ -2,53 +2,37 @@ class CommentViewHeader extends JView
 
   constructor: (options = {}, data) ->
 
-    options.cssClass       = "show-more-comments in"
-    options.itemTypeString = options.itemTypeString or "comments"
+    options.cssClass          = KD.utils.curry "show-more-comments in", options.cssClass
+    options.maxCommentToShow ?= 3
 
     super options, data
 
-    @maxCommentToShow = options.maxCommentToShow or 3
-    @oldCount         = data.repliesCount
-    @newCount         = 0
-    @onListCount      = if data.repliesCount > @maxCommentToShow then @maxCommentToShow else data.repliesCount
+    {@maxCount}  = options
+    @oldCount    = data.repliesCount
+    @newCount    = 0
+    @onListCount = if data.repliesCount > @maxCommentToShow then @maxCommentToShow else data.repliesCount
 
-    unless data.repliesCount? and data.repliesCount > @maxCommentToShow
-      @onListCount = data.repliesCount
-      @hide()
-
-    @hide()  if data.repliesCount is 0
-
-    list = @getDelegate()
-
-    list.on "AllCommentsWereAdded", =>
-
-      @newCount = 0
-      @onListCount = @getData().repliesCount
-      @updateNewCount()
-      @hide()
-
-    @allItemsLink = new KDCustomHTMLView
-      tagName   : "a"
-      cssClass  : "all-count"
-      pistachio : "View all {{#(repliesCount)}} #{@getOptions().itemTypeString}..."
-      click     : (event) ->
-        KD.utils.stopDOMEvent event
-        list.emit "AllCommentsLinkWasClicked", this
+    @allItemsLink = new CustomLinkView
+      cssClass    : "all-count"
+      pistachio   : "View all {{#(repliesCount)}} comments..."
+      click       : @bound "linkClick"
     , data
 
-    @newItemsLink = new KDCustomHTMLView
-      tagName     : "a"
+    @newItemsLink = new CustomLinkView
       cssClass    : "new-items"
-      click       : (event) =>
-        KD.utils.stopDOMEvent event
-        list.emit "AllCommentsLinkWasClicked", this
+      click       : @bound "linkClick"
+
+    {delegate} = options
+    delegate.on "AllListed", @bound "reset"
 
     @liveUpdate = KD.getSingleton('activityController').flags?.liveUpdates or off
+    KD.getSingleton('activityController').on "LiveStatusUpdateStateChanged", (@liveUpdate) =>
 
-    KD.getSingleton('activityController').on "LiveStatusUpdateStateChanged", (newstate)=>
 
-      # log "Live update state changed to", newstate
-      @liveUpdate = newstate
+  linkClick: (event) ->
+
+    KD.utils.stopDOMEvent event
+    @emit "ListAll"
 
 
   ownCommentArrived: ->
@@ -72,7 +56,7 @@ class CommentViewHeader extends JView
     @newCount++  if @newCount > 0
 
 
-  updateNewCount: ->
+  update: ->
 
     # If there is no comments so we can not have new comments
     if @oldCount is 0 then @newCount = 0
@@ -80,7 +64,7 @@ class CommentViewHeader extends JView
     # If we have comments more than 0 we should show the new item link
     if @newCount > 0
       if @liveUpdate
-        @getDelegate().emit "AllCommentsLinkWasClicked"
+        @emit "ListAll"
       else
         @setClass 'new'
         @allItemsLink.hide()
@@ -103,6 +87,14 @@ class CommentViewHeader extends JView
       @show()
 
 
+  reset: ->
+
+    @hide()
+    @newCount = 0
+    @onListCount = @getData().repliesCount
+    @update()
+
+
   show: ->
 
     @setClass "in"
@@ -115,6 +107,17 @@ class CommentViewHeader extends JView
     @unsetClass "in"
 
     super
+
+
+  viewAppended: ->
+
+    super
+
+    {repliesCount} = @getData()
+
+    repliesCount
+    unless repliesCount and repliesCount > @maxCommentToShow
+      @hide()
 
 
   render: ->
