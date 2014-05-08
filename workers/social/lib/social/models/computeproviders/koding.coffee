@@ -8,6 +8,7 @@ KONFIG            = require('koding-config-manager').load("main.#{argv.c}")
 
 module.exports = class Koding extends ProviderInterface
 
+  VMDefaultDiskSize = @VMDefaultDiskSize = 3072
 
   @processNonce = (nonce, callback)->
 
@@ -70,7 +71,23 @@ module.exports = class Koding extends ProviderInterface
 
   @fetchExisting = (client, options, callback)->
 
-    JVM.fetchVmsByContext client, options, callback
+    { machines } = options
+
+    callback null, machines.map (machine) ->
+
+      { stack, meta, groups } = machine
+
+      meta.hostKite = null  if meta.hostKite in ['(banned)', '(maintenance)']
+
+      {
+        hostnameAlias : meta.hostnameAlias
+        region        : meta.region
+        hostKite      : meta.hostKite
+        alwaysOn      : meta.alwaysOn
+        meta          : meta.meta
+        groupId       : groups[0].id
+        stack
+      }
 
 
   @create = (client, options, callback)->
