@@ -86,9 +86,6 @@ module.exports = class JCredential extends jraphical.Module
         as            : "data"
 
 
-
-
-
   failed = (err, callback, rest...)->
     return false  unless err
 

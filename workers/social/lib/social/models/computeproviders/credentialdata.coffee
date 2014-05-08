@@ -1,6 +1,6 @@
-jraphical = require 'jraphical'
+{ Module } = require 'jraphical'
 
-module.exports = class JCredentialData extends jraphical.Module
+module.exports = class JCredentialData extends Module
 
   { ObjectId } = require 'bongo'
 

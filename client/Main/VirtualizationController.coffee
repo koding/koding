@@ -569,9 +569,8 @@ class VirtualizationController extends KDController
       {ComputeProvider} = KD.remote.api
 
       ComputeProvider.create {
-        provider   : "koding"
-        credential : 1
-        nonce, stackId
+        provider     : "koding"
+        nonce, stack : stackId
       }, (err, vm) =>
 
         notify?.destroy()

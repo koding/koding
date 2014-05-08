@@ -11,10 +11,10 @@ NOT_IMPLEMENTED = ->
 
 module.exports = class ProviderInterface
 
-  @ping   = NOT_IMPLEMENTED
-  @create = NOT_IMPLEMENTED
-  @remove = NOT_IMPLEMENTED
-  @update = NOT_IMPLEMENTED
+  @ping           = NOT_IMPLEMENTED
+  @create         = NOT_IMPLEMENTED
+  @remove         = NOT_IMPLEMENTED
+  @update         = NOT_IMPLEMENTED
 
   @fetchExisting  = NOT_IMPLEMENTED
   @fetchAvailable = NOT_IMPLEMENTED
