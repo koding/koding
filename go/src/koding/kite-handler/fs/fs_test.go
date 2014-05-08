@@ -164,6 +164,7 @@ func TestWriteFile(t *testing.T) {
 
 	content := []byte("hello kite")
 
+	t.Log("writeFile write to a  file")
 	resp, err := remote.Tell("writeFile", struct {
 		Path           string
 		Content        []byte
@@ -188,6 +189,46 @@ func TestWriteFile(t *testing.T) {
 
 	if !reflect.DeepEqual(buf, content) {
 		t.Errorf("content is wrong. got '%s' expected '%s'", string(buf), string(content))
+	}
+
+	t.Log("writeFile try to write if DoNotOverwrite is enabled")
+	resp, err = remote.Tell("writeFile", struct {
+		Path           string
+		Content        []byte
+		DoNotOverwrite bool
+		Append         bool
+	}{
+		Path:           testFile.Name(),
+		Content:        content,
+		DoNotOverwrite: true,
+	})
+	if err == nil {
+		t.Fatal("DoNotOverwrite is enabled, it shouldn't open the file", err)
+	}
+
+	t.Log("writeFile append to an existing file")
+	resp, err = remote.Tell("writeFile", struct {
+		Path           string
+		Content        []byte
+		DoNotOverwrite bool
+		Append         bool
+	}{
+		Path:    testFile.Name(),
+		Content: content,
+		Append:  true,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	buf, err = ioutil.ReadFile(testFile.Name())
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	ap := string(content) + string(content)
+	if !reflect.DeepEqual(buf, []byte(ap)) {
+		t.Errorf("content is wrong. got '%s' expected '%s'", string(buf), ap)
 	}
 }
 
