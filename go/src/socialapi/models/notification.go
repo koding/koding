@@ -1,25 +1,26 @@
 package models
 
 import (
-	// "errors"
-	"fmt"
+	"errors"
+	// "fmt"
 	"github.com/jinzhu/gorm"
 	"github.com/koding/bongo"
 	"time"
 )
 
-var (
-	FETCH_LIMIT = 50
-)
-
 type Notification struct {
+	// unique identifier of Notification
 	Id int64 `json:"id"`
-	// notification recipient
+
+	// notification recipient account id
 	AccountId int64 `json:"accountId" sql:"NOT NULL"`
+
 	// notification content foreign key
 	NotificationContentId int64 `json:"notificationContentId" sql:"NOT NULL"`
+
 	// glanced information
 	Glanced bool `json:"glanced" sql:"NOT NULL"`
+
 	// last notifier addition time
 	UpdatedAt time.Time `json:"updatedAt" sql:"NOT NULL"`
 }
@@ -60,13 +61,11 @@ func (n *Notification) Create() error {
 }
 
 func (n *Notification) List(q *Query) (*NotificationResponse, error) {
+	if q.Limit == 0 {
+		return nil, errors.New("limit cannot be zero")
+	}
 	response := &NotificationResponse{}
 	result, err := n.getDecoratedList(q)
-	if err != nil {
-		return response, err
-	}
-
-	result, err = populateActors(q.AccountId, result)
 	if err != nil {
 		return response, err
 	}
@@ -92,8 +91,7 @@ func (n *Notification) fetchByAccountId(q *Query) ([]Notification, error) {
 			"updated_at": "desc",
 		},
 		Pagination: bongo.Pagination{
-			Limit: FETCH_LIMIT,
-			Skip:  q.Skip,
+			Limit: q.Limit,
 		},
 	}
 	if err := bongo.B.Some(n, &notifications, query); err != nil {
@@ -103,75 +101,70 @@ func (n *Notification) fetchByAccountId(q *Query) ([]Notification, error) {
 	return notifications, nil
 }
 
-// prepareNotifications
+// getDecoratedList fetches notifications of the given user and decorates it with
+// notification activity actors
 func (n *Notification) getDecoratedList(q *Query) ([]NotificationContainer, error) {
 	result := make([]NotificationContainer, 0)
-	resultMap := make(map[string]struct{}, 0)
 
-	var err error
-	result, err = n.decorateContents(result, &resultMap, q)
+	nList, err := n.fetchByAccountId(q)
+	if err != nil {
+		return nil, err
+	}
+	// fetch all notification content relationships
+	contentIds := deductContentIds(nList)
+
+	nc := NewNotificationContent()
+	ncMap, err := nc.FetchMapByIds(contentIds)
 	if err != nil {
 		return nil, err
 	}
 
-	return result, nil
-}
-
-// decorateContents recursively fetches notification data till it reaches the FETCH_LIMIT
-func (n *Notification) decorateContents(result []NotificationContainer, resultMap *map[string]struct{}, q *Query) ([]NotificationContainer, error) {
-
-	nList, err := n.fetchByAccountId(q)
-	if nList == nil {
-		return result, nil
-	}
-
-	// fetch all notification content relationships
-	ncMap, err := fetchRelatedContents(nList)
+	na := NewNotificationActivity()
+	naMap, err := na.FetchMapByContentIds(contentIds)
 	if err != nil {
 		return nil, err
 	}
 
 	for _, n := range nList {
 		nc := ncMap[n.NotificationContentId]
-		key := prepareResultKey(&nc)
-		if _, ok := (*resultMap)[key]; !ok {
-			container := buildNotificationContainer(&nc)
-			container.UpdatedAt = n.UpdatedAt // fetch latest notification timestamp
-			container.Glanced = n.Glanced
-			(*resultMap)[key] = struct{}{}
-			result = append(result, container)
-			if len(result) == q.Limit {
-				return result, nil
-			}
-		}
-	}
-
-	if len(nList) == FETCH_LIMIT {
-		q.Skip += FETCH_LIMIT
-		return n.decorateContents(result, resultMap, q)
+		na := naMap[n.NotificationContentId]
+		container := n.buildNotificationContainer(q.AccountId, &nc, na)
+		result = append(result, container)
 	}
 
 	return result, nil
 }
 
-func buildNotificationContainer(nc *NotificationContent) NotificationContainer {
+func (n *Notification) buildNotificationContainer(actorId int64, nc *NotificationContent, na []NotificationActivity) NotificationContainer {
+	ct, err := CreateNotificationContentType(nc.TypeConstant)
+	if err != nil {
+		return NotificationContainer{}
+	}
+
+	ct.SetTargetId(nc.TargetId)
+	ct.SetListerId(actorId)
+	ac, err := ct.FetchActors(na)
+	if err != nil {
+		return NotificationContainer{}
+	}
 	return NotificationContainer{
-		TargetId:     nc.TargetId,
-		TypeConstant: nc.TypeConstant,
+		TargetId:              nc.TargetId,
+		TypeConstant:          nc.TypeConstant,
+		UpdatedAt:             n.UpdatedAt,
+		Glanced:               n.Glanced,
+		NotificationContentId: nc.Id,
+		LatestActors:          ac.LatestActors,
+		ActorCount:            ac.Count,
 	}
 }
 
-func prepareResultKey(nc *NotificationContent) string {
-	return fmt.Sprintf("%s_%d", nc.TypeConstant, nc.TargetId)
-}
-
-func fetchRelatedContents(nl []Notification) (map[int64]NotificationContent, error) {
+func deductContentIds(nList []Notification) []int64 {
 	notificationContentIds := make([]int64, 0)
-	for _, n := range nl {
+	for _, n := range nList {
 		notificationContentIds = append(notificationContentIds, n.NotificationContentId)
 	}
-	nc := NewNotificationContent()
-	return nc.FetchMapByIds(notificationContentIds)
+
+	return notificationContentIds
 }
 
 func (n *Notification) FetchContent() (*NotificationContent, error) {
