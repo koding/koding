@@ -8,14 +8,21 @@ import (
 )
 
 type NotificationContent struct {
+	// unique identifier of NotificationContent
 	Id int64 `json:"id"`
+
 	// target of the activity (replied messageId, followed accountId etc.)
-	TargetId     int64     `json:"targetId"   sql:"NOT NULL"`
-	TypeConstant string    `json:"typeConstant"       sql:"NOT NULL"`
-	CreatedAt    time.Time `json:"createdAt"`
+	TargetId int64 `json:"targetId"          sql:"NOT NULL"`
+
+	// Type of the NotificationContent
+	TypeConstant string `json:"typeConstant" sql:"NOT NULL;TYPE:VARCHAR(100);"`
+
+	// Creation date of the NotificationContent
+	CreatedAt time.Time `json:"createdAt"`
 }
 
 const (
+	// NotificationContent Types
 	NotificationContent_TYPE_LIKE     = "like"
 	NotificationContent_TYPE_UPVOTE   = "upvote"
 	NotificationContent_TYPE_DOWNVOTE = "downvote"
@@ -37,6 +44,8 @@ func (n NotificationContent) TableName() string {
 	return "api.notification_content"
 }
 
+// Create checks for NotificationContent using type_constant and target_id
+// and creates new one if it does not exist.
 func (n *NotificationContent) Create() error {
 	s := map[string]interface{}{
 		"type_constant": n.TypeConstant,
@@ -105,6 +114,7 @@ func (n *NotificationContent) FetchByIds(ids []int64) ([]NotificationContent, er
 	return notificationContents, nil
 }
 
+// FetchMapByIds returns NotificationContent map with given ids
 func (n *NotificationContent) FetchMapByIds(ids []int64) (map[int64]NotificationContent, error) {
 	ncList, err := n.FetchByIds(ids)
 	if err != nil {
@@ -119,7 +129,9 @@ func (n *NotificationContent) FetchMapByIds(ids []int64) (map[int64]Notification
 	return ncMap, nil
 }
 
+// GetEventType retrieves related event name for the NotificationContent instance
 func (n *NotificationContent) GetEventType() string {
+	// TODO it could be stored in a map
 	switch n.TypeConstant {
 	case NotificationContent_TYPE_LIKE:
 		return "LikeIsAdded"
@@ -136,17 +148,18 @@ func (n *NotificationContent) GetEventType() string {
 	}
 }
 
-func CreateNotificationType(notificationType string) (Notifiable, error) {
+// CreateNotificationType creates an instance of notifiable subclasses
+func CreateNotificationContentType(notificationType string) (Notifiable, error) {
 	switch notificationType {
-	case "like":
+	case NotificationContent_TYPE_LIKE:
 		return NewInteractionNotification(notificationType), nil
-	case "comment":
+	case NotificationContent_TYPE_COMMENT:
 		return NewReplyNotification(), nil
-	case "follow":
+	case NotificationContent_TYPE_FOLLOW:
 		return NewFollowNotification(), nil
-	case "join":
+	case NotificationContent_TYPE_JOIN:
 		return NewGroupNotification(notificationType), nil
-	case "leave":
+	case NotificationContent_TYPE_LEAVE:
 		return NewGroupNotification(notificationType), nil
 	default:
 		return nil, errors.New("undefined notification type")
