@@ -106,27 +106,58 @@ func (n *NotificationWorkerController) CreateReplyNotification(data []byte) erro
 		return err
 	}
 
+	cm = models.NewChannelMessage()
+	// notify message owner
+	if err = cm.ById(mr.MessageId); err != nil {
+		return err
+	}
+
+	n.createNotification(nc.Id, cm.AccountId)
+
 	notifiedUsers, err := rn.GetNotifiedUsers(nc.Id)
 	if err != nil {
 		return err
 	}
 
+	notifierSubscribed := false
 	for _, recipient := range notifiedUsers {
-		notification := models.NewNotification()
-		notification.NotificationContentId = nc.Id
-		notification.AccountId = recipient
-		if err = notification.Create(); err != nil {
-			n.log.Error("An error occurred while notifying user %d: %s", recipient, err.Error())
+		if recipient == rn.NotifierId {
+			notifierSubscribed = true
 		}
+		n.createNotification(nc.Id, recipient)
+	}
+
+	// if not subcribed, create a notification for new subscriber
+	if !notifierSubscribed {
+		n.createNotification(nc.Id, rn.NotifierId)
 	}
 
 	return nil
+}
+
+func (n *NotificationWorkerController) createNotification(contentId, notifierId int64) {
+	notification := models.NewNotification()
+	notification.NotificationContentId = contentId
+	notification.AccountId = notifierId
+	if err := notification.Create(); err != nil {
+		n.log.Error("An error occurred while notifying user %d: %s", notifierId, err.Error())
+	}
 }
 
 func (n *NotificationWorkerController) CreateInteractionNotification(data []byte) error {
 	i, err := mapMessageToInteraction(data)
 	if err != nil {
 		return err
+	}
+
+	cm := models.NewChannelMessage()
+	if err := cm.ById(i.MessageId); err != nil {
+		return err
+	}
+
+	// user likes her own message, so we bypass notification
+	if cm.AccountId == i.AccountId {
+		return nil
 	}
 
 	in := models.NewInteractionNotification(i.TypeConstant)
