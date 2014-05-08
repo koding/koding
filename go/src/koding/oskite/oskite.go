@@ -355,7 +355,7 @@ func (o *Oskite) startPinnedVMs() {
 				break
 			}
 			if err := o.startSingleVM(&vm, nil); err != nil {
-				log.LogError(err, 0)
+				log.Error("startSingleVM error: %v", err)
 			}
 		}
 
@@ -652,34 +652,26 @@ func (o *Oskite) startSingleVM(vm *virt.VM, channel *kite.Channel) error {
 		return err
 	}
 
-	var lastError error
 	done := make(chan struct{}, 1)
 	prepareQueue <- &QueueJob{
 		msg: "startSingleVM " + vm.HostnameAlias,
 		f: func() error {
 			// prepare first
-			if lastError = prepareProgress(nil, vm); lastError != nil {
-				return fmt.Errorf("preparing VM %s", lastError)
-			}
+			defer func() { done <- struct{}{} }()
 
-			done <- struct{}{}
+			if err = prepareProgress(nil, vm); err != nil {
+				return fmt.Errorf("preparing VM %s", err)
+			}
 
 			return nil
 		},
 	}
 
-	log.Info("putting %s into queue. total vms in queue: %d of %d",
-		vm.HostnameAlias, currentQueueCount.Get(), len(prepareQueue))
-
 	// wait until the prepareWorker has picked us and we finished
 	// to return something to the client
 	<-done
 
-	if lastError != nil {
-		log.Error("startSingleVM error: %s", lastError)
-	}
-
-	return lastError
+	return err
 }
 
 // prepareWorker listens from prepareQueue channel and runs the functions it receives
