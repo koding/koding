@@ -427,14 +427,14 @@ func addInteraction(interactionType string, postId, accountId int64) error {
 	return nil
 }
 
-func getInteractions(interactionType string, postId int64) ([]int64, error) {
+func getInteractions(interactionType string, postId int64) ([]string, error) {
 	url := fmt.Sprintf("/message/%d/interaction/%s", postId, interactionType)
 	res, err := sendRequest("GET", url, nil)
 	if err != nil {
 		return nil, err
 	}
 
-	var interactions []int64
+	var interactions []string
 	err = json.Unmarshal(res, &interactions)
 	if err != nil {
 		return nil, err

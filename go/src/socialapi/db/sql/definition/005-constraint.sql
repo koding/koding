@@ -71,7 +71,11 @@ ALTER TABLE "api"."channel_message_list" ADD CONSTRAINT "channel_message_list_ch
 -- ----------------------------
 ALTER TABLE "api"."channel_message_list" ADD CONSTRAINT "channel_message_list_message_id_fkey" FOREIGN KEY ("message_id") REFERENCES "api"."channel_message" ("id") ON UPDATE NO ACTION ON DELETE NO ACTION NOT DEFERRABLE INITIALLY IMMEDIATE;
 ALTER TABLE "api"."channel_message_list" ADD CONSTRAINT "channel_message_list_channel_id_fkey" FOREIGN KEY ("channel_id") REFERENCES "api"."channel" ("id") ON UPDATE NO ACTION ON DELETE NO ACTION NOT DEFERRABLE INITIALLY IMMEDIATE;
-
+-- ----------------------------
+--  Indexes structure for table channel_message_list
+-- ----------------------------
+DROP INDEX "api"."channel_message_list_channel_id_idx";
+CREATE INDEX  "channel_message_list_channel_id_idx" ON "api"."channel_message_list" USING btree(channel_id DESC NULLS LAST);
 
 -- ----------------------------------------------------------------------------------------
 --  Structure for table ChannelParticipant
