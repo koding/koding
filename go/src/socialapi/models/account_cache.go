@@ -20,5 +20,4 @@ func AccountOldIdById(id int64) (string, error) {
 
 	accountCache[id] = oldId
 	return oldId, nil
-
 }
