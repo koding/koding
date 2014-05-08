@@ -298,9 +298,94 @@ func TestGetInfo(t *testing.T) {
 	}
 }
 
-func TestSetPermissions(t *testing.T)  {}
-func TestRemove(t *testing.T)          {}
-func TestRename(t *testing.T)          {}
+func TestSetPermissions(t *testing.T) {}
+
+func TestRemove(t *testing.T) {
+	testFile, err := ioutil.TempFile("", "")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	resp, err := remote.Tell("remove", struct {
+		Path string
+	}{
+		Path: testFile.Name(),
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if !resp.MustBool() {
+		t.Fatal("removing should return true")
+	}
+
+	ok, err := exists(testFile.Name())
+	if err != nil {
+		t.Error(err)
+	}
+
+	if ok {
+		t.Fatalf("file still does exists %s", testFile.Name())
+	}
+
+}
+
+func TestRename(t *testing.T) {
+	testFile, err := ioutil.TempFile("", "")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	testNewPath := "kite.txt"
+	defer os.Remove(testNewPath)
+
+	resp, err := remote.Tell("rename", struct {
+		OldPath string
+		NewPath string
+	}{
+		OldPath: testFile.Name(),
+		NewPath: testNewPath,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if !resp.MustBool() {
+		t.Fatal("renaming should return true")
+	}
+
+	ok, err := exists(testFile.Name())
+	if err != nil {
+		t.Error(err)
+	}
+
+	if ok {
+		t.Fatalf("file still does exists %s", testFile.Name())
+	}
+
+	ok, err = exists(testNewPath)
+	if err != nil {
+		t.Error(err)
+	}
+
+	if !ok {
+		t.Fatalf("file does exists %s", testNewPath)
+	}
+
+}
 func TestCreateDirectory(t *testing.T) {}
 func TestMove(t *testing.T)            {}
 func TestCopy(t *testing.T)            {}
+
+func exists(file string) (bool, error) {
+	_, err := os.Stat(file)
+	if err == nil {
+		return true, nil // file exist
+	}
+
+	if os.IsNotExist(err) {
+		return false, nil // file does not exist
+	}
+
+	return false, err
+}
