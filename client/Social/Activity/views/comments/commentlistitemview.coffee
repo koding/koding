@@ -66,19 +66,19 @@ class CommentListItemView extends KDListItemView
     else
       @settings = new KDView
 
-    # @likeView = new CustomLinkView { tooltipPosition : 'sw', checkIfLikedBefore: yes }, @message
+    @likeView = new CommentLikeLink cssClass : 'action-link like-link', @getData()
 
-    # if loggedInId isnt @message.accountId
-    #   @replyView = new CustomLinkView
-    #     cssClass : "action-link reply-link"
-    #     partial  : "Mention"
-    #     click    : (event)=>
-    #       @utils.stopDOMEvent event
-    #       KD.remote.cacheable data.originType, data.originId, (err, res) =>
-    #         @getDelegate().emit 'ReplyLinkClicked', res.profile.nickname
-    # else
-    #   @replyView = new KDView
-    #     tagName  : "span"
+    unless isCommentMine
+      @replyView = new CustomLinkView
+        cssClass : "action-link reply-link"
+        title    : "Mention"
+        click    : (event)=>
+          @utils.stopDOMEvent event
+          KD.remote.cacheable data.originType, data.originId, (err, res) =>
+            @getDelegate().emit 'ReplyLinkClicked', res.profile.nickname
+    else
+      @replyView = new KDView
+        tagName  : "span"
 
     @timeAgoView = new KDTimeAgoView {}, @message.createdAt
 
@@ -220,6 +220,8 @@ class CommentListItemView extends KDListItemView
         {{> @editCommentWrapper}}
         {{> @editInfo}}
         {{> @settings}}
+        {{> @likeView}}
+        {{> @replyView}}
         {{> @timeAgoView}}
       </div>
     """
