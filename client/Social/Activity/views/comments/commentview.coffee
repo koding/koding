@@ -42,20 +42,14 @@ class CommentView extends KDView
       input.setFocus()
       input.setValue value
 
-    @commentList.on "OwnCommentWasSubmitted", -> @getDelegate()?.emit "RefreshTeaser"
-
     @commentList.on "OwnCommentHasArrived", ->
 
       showMore.ownCommentArrived()
-      @getDelegate()?.emit "RefreshTeaser"
 
     @commentList.on "CommentIsDeleted", ->
 
       showMore.ownCommentDeleted()
 
-    @on "RefreshTeaser", ->
-
-      @parent?.emit "RefreshTeaser"
 
     @commentList.emit "BackgroundActivityFinished"
 
