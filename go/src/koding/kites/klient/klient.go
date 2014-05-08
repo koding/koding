@@ -15,7 +15,7 @@ import (
 
 const (
 	VERSION = "0.0.1"
-	NAME    = "kclient"
+	NAME    = "klient"
 )
 
 var (
@@ -31,7 +31,7 @@ func main() {
 		os.Exit(0)
 	}
 
-	k := kite.New("kclient", VERSION)
+	k := kite.New(NAME, VERSION)
 	k.Config.Port = *flagPort
 
 	u, _ := url.Parse("wss://kontrol.koding.com")
