@@ -1,5 +1,7 @@
 class OsKite extends KDKite
 
+  { Error: KiteError } = require 'kite'
+
   @createApiMapping
     exec            : 'exec'
 
@@ -55,6 +57,8 @@ class OsKite extends KDKite
 
   fetchState: ->
     @vmInfo().then (state) =>
+      @emit 'vmOn'  if state.state is 'RUNNING' and
+                    @recentState?.state isnt 'RUNNING'
       @recentState = state
       @emit 'vm.state.info', @recentState
       @cycleChannel()  unless state # backend's cycleChannel regressed - SY

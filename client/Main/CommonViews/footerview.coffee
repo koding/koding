@@ -41,6 +41,8 @@ class FooterView extends JView
         <a href='https://www.facebook.com/kodingcom/events'>MEETUPS</a>
         <a href='http://stories.koding.com'>TESTIMONIALS</a>
         <a href='https://koding-cdn.s3.amazonaws.com/brand/koding-logo.pdf'>BRAND GUIDELINES</a>
+        <a href='/copyright.html' target='_blank'>COPYRIGHT/DMCA GUIDELINES</a>
+        <a href='/acceptable.html' target='_blank'>ACCEPTABLE USER POLICY</a>
       </nav>
 
       <nav class="footer-block blog">

@@ -79,7 +79,7 @@ func (o *Oskite) loadBalancer(correlationName, username, deadService string) str
 			return c.Update(bson.M{"_id": vm.Id, "hostKite": nil}, bson.M{"$set": bson.M{"hostKite": resultOskite}})
 		})
 
-		blog(fmt.Sprintf("hostkite is empty returning '%s. (update err: %s)", resultOskite, err.Error()))
+		blog(fmt.Sprintf("hostkite is empty returning '%s. (update err: %s)", resultOskite, err))
 		return resultOskite
 	}
 
