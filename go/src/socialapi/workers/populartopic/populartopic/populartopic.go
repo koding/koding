@@ -73,7 +73,7 @@ func (f *PopularTopicsController) HandleEvent(event string, data []byte) error {
 }
 
 func (f *PopularTopicsController) MessageSaved(data *models.ChannelMessageList) error {
-	c, err := fetchChannel(data.ChannelId)
+	c, err := models.ChannelById(data.ChannelId)
 	if err != nil {
 		return err
 	}
@@ -97,7 +97,7 @@ func (f *PopularTopicsController) MessageSaved(data *models.ChannelMessageList) 
 }
 
 func (f *PopularTopicsController) MessageDeleted(data *models.ChannelMessageList) error {
-	c, err := fetchChannel(data.ChannelId)
+	c, err := models.ChannelById(data.ChannelId)
 	if err != nil {
 		return err
 	}
@@ -177,14 +177,4 @@ func (f *PopularTopicsController) isEligible(c *models.Channel) bool {
 	}
 
 	return true
-}
-
-// todo add caching here
-func fetchChannel(channelId int64) (*models.Channel, error) {
-	c := models.NewChannel()
-	if err := c.ById(channelId); err != nil {
-		return nil, err
-	}
-
-	return c, nil
 }
