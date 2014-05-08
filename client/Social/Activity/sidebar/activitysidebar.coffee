@@ -92,7 +92,7 @@ class ActivitySidebar extends KDCustomScrollView
   addThreads: ->
 
     @wrapper.addSubView @threads = new ActivitySideView
-      title    : 'Pinned Activities'
+      title    : 'Followed Posts'
       cssClass : 'threads users'
       itemClass : SidebarPinnedItem
       dataSource : (callback) ->
