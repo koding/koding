@@ -11,6 +11,7 @@ class ActivityActionsView extends KDView
     @commentLink  = new CustomLinkView title: "Comment"
 
     @commentCount = new ActivityCommentCount
+      cssClass    : 'count'
       tooltip     :
         title     : "Show all"
       click       : (event) =>

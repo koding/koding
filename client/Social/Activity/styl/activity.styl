@@ -632,13 +632,27 @@ span.collapsedtext
     .activity-actions
       padding             0 0 14px 14px
 
-      a
-        noTextDeco()
-
-      a.action-link
+      span.action-container
         font-size         12px
         color             #9c9c9c
         font-weight       400
+
+        a
+          font-size       inherit
+          color           inherit
+          font-weight     inherit
+          noTextDeco()
+
+        a.count
+          display         inline-block
+          height          16px
+          line-height     16px
+          padding         0 4px
+          background      #dfdfdf
+          color           #747474
+          rounded         2px
+          margin-left     7px
+          font-size       11px
 
       .action-container~.action-container:before
         content           ""
@@ -649,6 +663,19 @@ span.collapsedtext
         font-size         8px
         margin            0 3px 0 5px
         vertical-align    middle
+
+    .like-summary
+      height              33px
+      line-height         33px
+      bg                  color, #f7f7f7
+      font-size           12px
+      color               #5b5b5b
+      padding             0 0 0 14px
+
+      .profile
+        color             inherit
+        font-weight       600
+        noTextDeco()
 
   .comment-container
     .item-add-comment-box

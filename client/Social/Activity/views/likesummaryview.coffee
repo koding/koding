@@ -6,9 +6,9 @@ class ActivityLikeSummaryView extends JView
 
     super options, data
 
-    @placeholder0 = new KDCustomHTMLView
-    @placeholder1 = new KDCustomHTMLView
-    @placeholder2 = new KDCustomHTMLView
+    @placeholder0 = new KDCustomHTMLView tagName : 'span'
+    @placeholder1 = new KDCustomHTMLView tagName : 'span'
+    @placeholder2 = new KDCustomHTMLView tagName : 'span'
 
     @showMoreLink = new KDCustomHTMLView
       tagName     : "strong"
