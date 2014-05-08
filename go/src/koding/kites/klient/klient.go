@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"koding/kite-handler/command"
 	"koding/kite-handler/fs"
 	"koding/kite-handler/terminal"
 	"log"
@@ -53,6 +54,8 @@ func main() {
 	k.HandleFunc("webterm.getSessions", terminal.GetSessions)
 	k.HandleFunc("webterm.connect", terminal.Connect)
 	k.HandleFunc("webterm.killSession", terminal.KillSession)
+
+	k.HandleFunc("exec", command.Exec)
 
 	if err := k.RegisterForever(registerURL()); err != nil {
 		log.Fatal(err)
