@@ -37,6 +37,29 @@ module.exports = class Koding extends ProviderInterface
 
           callback null, { isFreeSubscripton, nonceObject }
 
+
+  @generateAliases = ({nickname, type, group})->
+
+    domain = 'kd.io'
+    type  ?= 'user'
+    uid    = (require 'hat')(16)
+
+    if type is 'user'
+
+      aliases = ["vm-#{uid}.#{nickname}.#{group}.#{domain}"
+                 "vm-#{uid}.#{nickname}.#{domain}"
+                 "#{nickname}.#{group}.#{domain}"
+                 "#{nickname}.#{domain}"]
+
+    else if type is 'shared'
+
+      aliases = ["shared-#{uid}.#{group}.#{domain}"
+                 "shared.#{group}.#{domain}"
+                 "#{group}.#{domain}"]
+
+    return aliases ? []
+
+
   @ping = (client, callback)->
 
     callback null, "Koding is the best #{ client.connection.delegate.profile.nickname }!"
