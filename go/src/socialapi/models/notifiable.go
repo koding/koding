@@ -16,7 +16,7 @@ type Notifiable interface {
 	GetNotifiedUsers(notificationContentId int64) ([]int64, error)
 	GetType() string
 	GetTargetId() int64
-	FetchActors() (*ActorContainer, error)
+	FetchActors([]NotificationActivity) (*ActorContainer, error)
 	SetTargetId(int64)
 	SetListerId(int64)
 }
@@ -59,7 +59,7 @@ func (n *InteractionNotification) SetTargetId(targetId int64) {
 	n.TargetId = targetId
 }
 
-func (n *InteractionNotification) FetchActors() (*ActorContainer, error) {
+func (n *InteractionNotification) FetchActors([]NotificationActivity) (*ActorContainer, error) {
 	if n.TargetId == 0 {
 		return nil, errors.New("TargetId is not set")
 	}
@@ -160,7 +160,7 @@ func (n *ReplyNotification) SetTargetId(targetId int64) {
 // users first reply message. And also fetches user's subscription status.
 // if user both replied and subscribed to a message then gets the event's time
 // that has first occurred.
-func (n *ReplyNotification) FetchActors() (*ActorContainer, error) {
+func (n *ReplyNotification) FetchActors(naList []NotificationActivity) (*ActorContainer, error) {
 	if n.TargetId == 0 {
 		return nil, errors.New("TargetId is not set")
 	}
