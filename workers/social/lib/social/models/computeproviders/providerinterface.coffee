@@ -9,6 +9,8 @@ NOT_IMPLEMENTED = ->
 
   return message
 
+PASS_THROUGH = (..., callback)-> callback null
+
 module.exports = class ProviderInterface
 
   @ping           = NOT_IMPLEMENTED
@@ -18,3 +20,5 @@ module.exports = class ProviderInterface
 
   @fetchExisting  = NOT_IMPLEMENTED
   @fetchAvailable = NOT_IMPLEMENTED
+
+  @postCreate     = PASS_THROUGH
