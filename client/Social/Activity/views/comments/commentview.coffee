@@ -95,15 +95,6 @@ class CommentView extends KDView
     @setClass "active-comment"
 
 
-  decorateItemAsLiked: (likeObj) ->
-
-    if likeObj?.results?.likeCount > 0
-      @setClass "liked"
-    else
-      @unsetClass "liked"
-    @ActivityActionsView.setLikedCount likeObj
-
-
   resetDecoration: ->
 
     if @getData().repliesCount
