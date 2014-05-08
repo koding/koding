@@ -32,6 +32,7 @@ module.exports = class ComputeProvider extends Base
 
   {permit} = require '../group/permissionset'
 
+  JMachine = require './machine'
 
   @share()
 
@@ -138,3 +139,37 @@ module.exports = class ComputeProvider extends Base
 
     {provider} = options
     provider.fetchAvailable client, options, callback
+
+
+  @createMachine = (options, callback)->
+
+    { vendor, label, stack, meta, group, account } = options
+
+    JGroup = require '../group'
+    JStack = require '../stack'
+
+    JGroup.one { slug: group }, (err, groupObj)=>
+
+      return callback err  if err
+      return callback new Error "Group not found"  unless groupObj
+
+      account.fetchUser (err, user)=>
+
+        return callback err  if err
+        return callback new Error "user is not defined"  unless user
+
+        users  = [{ id: user.getId(), sudo: yes, owner: yes }]
+        groups = [{ id: groupObj.getId() }]
+
+        machine = new JMachine {
+          vendor, users, groups, stack, meta, label
+        }
+
+        machine.save (err)=>
+
+          if err
+            callback err
+            return console.warn \
+              "Failed to create Machine for ", {users, groups}
+
+          callback null, machine
