@@ -232,7 +232,48 @@ func TestWriteFile(t *testing.T) {
 	}
 }
 
-func TestUniquePath(t *testing.T)      {}
+func TestUniquePath(t *testing.T) {
+	testFile := "testdata/testfile1.txt"
+	tempFiles := []string{}
+
+	defer func() {
+		for _, f := range tempFiles {
+			os.Remove(f)
+		}
+	}()
+
+	uniqueFile := func() string {
+		resp, err := remote.Tell("uniquePath", struct {
+			Path string
+		}{
+			Path: testFile,
+		})
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		s := resp.MustString()
+
+		tempFiles = append(tempFiles, s) // add to remove them later
+
+		// create the file now, the next call to uniquePath should generate a
+		// different name when this files exits.
+		err = ioutil.WriteFile(s, []byte("test111"), 0755)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		return s
+	}
+
+	file1 := uniqueFile()
+	file2 := uniqueFile()
+
+	if file1 == file2 {
+		t.Error("files should be different, got the same %s", file1)
+	}
+}
+
 func TestGetInfo(t *testing.T)         {}
 func TestSetPermissions(t *testing.T)  {}
 func TestRemove(t *testing.T)          {}
