@@ -61,47 +61,42 @@ func (n *NotificationContent) ById(id int64) error {
 	return bongo.B.ById(n, id)
 }
 
-func CreateNotification(i Notifiable) error {
+// CreateNotification validates notifiable instance and creates a new notification
+// with actor activity.
+func CreateNotificationContent(i Notifiable) (*NotificationContent, error) {
+	// first check for type constant and target id
+	if i.GetType() == "" {
+		return nil, errors.New("Type must be set")
+	}
+
+	if i.GetTargetId() == 0 {
+		return nil, errors.New("TargetId must be set")
+	}
+
+	if i.GetActorId() == 0 {
+		return nil, errors.New("ActorId must be set")
+	}
+
 	// check for previous NotificationContent create if it does not exist (type:comment targetId:messageId)
-	n := NewNotificationContent()
-	n.TypeConstant = i.GetType()
-	if n.TypeConstant == "" {
-		return errors.New("Type must be set")
+	nc := NewNotificationContent()
+	nc.TypeConstant = i.GetType()
+	nc.TargetId = i.GetTargetId()
+
+	if err := nc.Create(); err != nil {
+		return nil, err
 	}
 
-	n.TargetId = i.GetTargetId()
-	if n.TargetId == 0 {
-		return errors.New("TargetId must be set")
+	a := NewNotificationActivity()
+	a.NotificationContentId = nc.Id
+	a.ActorId = i.GetActorId()
+	if err := a.Create(); err != nil {
+		return nil, err
 	}
 
-	if err := n.Create(); err != nil {
-		return err
-	}
-
-	// fetch users that will be notified by the activity
-	replierIds, err := i.GetNotifiedUsers(n.Id)
-	if err != nil {
-		return err
-	}
-
-	n.NotifyUsers(replierIds)
-
-	return nil
+	return nc, nil
 }
 
-func (n *NotificationContent) NotifyUsers(recipients []int64) {
-	for i := 0; i < len(recipients); i++ {
-		notification := NewNotification()
-		notification.AccountId = recipients[i]
-		notification.NotificationContentId = n.Id
-		if err := notification.Create(); err != nil {
-			if Log != nil {
-				Log.Error("An error occurred while notifying user %d: %s", notification.AccountId, err.Error())
-			}
-		}
-	}
-}
-
+// FetchByIds fetches notification contents with given ids
 func (n *NotificationContent) FetchByIds(ids []int64) ([]NotificationContent, error) {
 	notificationContents := make([]NotificationContent, 0)
 	if err := bongo.B.FetchByIds(n, &notificationContents, ids); err != nil {
