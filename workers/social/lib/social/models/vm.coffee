@@ -78,8 +78,6 @@ module.exports = class JVM extends Module
           (signature String, Function)
         createVmByNonce:
           (signature String, String, Function)
-        createFreeVm:
-          (signature String, Function)
         createSharedVm:
           (signature Function)
         setAlwaysOn:
@@ -275,50 +273,6 @@ module.exports = class JVM extends Module
         return {groupSlug, prefix, nickname, uid, type:'user', alias}
     return null
 
-  @createFreeVm = secure (client, stackId, callback)->
-
-    @fetchDefaultVm client, (err, vm)=>
-
-      return callback err  if err
-
-      { delegate: account } = client.connection
-
-      unless vm
-
-        JGroup = require './group'
-        JGroup.one slug:'koding', (err, group)=>
-
-          account.fetchUser (err, user) =>
-            return callback err  if err
-            return callback new Error "user not found" unless user
-
-            nameFactory = (require 'koding-counter')
-              db          : JVM.getClient()
-              offset      : 0
-              counterName : "koding~#{user.username}~"
-
-            nameFactory.next (err, uid)=>
-              return console.error err  if err
-              # Counter created
-
-              @addVm {
-                uid
-                user
-                account
-                stack     : stackId
-                sudo      : yes
-                type      : 'user'
-                target    : account
-                planCode  : 'free'
-                groupSlug : group.slug
-                planOwner : "user_#{account._id}"
-                webHome   : account.profile.nickname
-                groups    : wrapGroup group
-              }, callback
-
-      else
-
-        callback new KodingError('Default VM already exists'), vm
 
   @createVmByNonce = secure (client, nonce, stackId, callback) ->
     JPaymentFulfillmentNonce  = require './payment/nonce'
@@ -414,43 +368,8 @@ module.exports = class JVM extends Module
             stack  : stackId
           }
 
-          vm.save (err) =>
-
-            if err
-              return console.warn "Failed to create VM for ", \
-                                   {users, groups, hostnameAlias}
-
-            JDomain.createDomains {
-              account, stackId,
-              domains: hostnameAliases
-              hostnameAlias: hostnameAliases[0]
-              group: groupSlug
-            }
-
-            group.addVm vm, (err)=>
-              return callback err  if err
-              JDomain.ensureDomainSettingsForVM {
-                account, vm, type, nickname, group: groupSlug, stackId
-              }
-              if type is 'group'
-                @addVmUsers user, vm, group, ->
-                  callback null, vm
-              else
-                callback null, vm
-
           JPaymentSubscription.isFreeSubscripton subscriptionCode, (err, isFreeSubscripton)=>
             return callback err if err
-
-            vm = new JVM {
-              hostnameAlias
-              planCode
-              subscriptionCode
-              webHome
-              groups
-              users
-              vmType : type
-              stack  : stackId
-            }
 
             vm.region = KONFIG.regions.premium unless isFreeSubscripton
 
@@ -461,7 +380,7 @@ module.exports = class JVM extends Module
                                      {users, groups, hostnameAlias}
 
               JDomain.createDomains {
-                account, stack,
+                account, stackId,
                 domains: hostnameAliases
                 hostnameAlias: hostnameAliases[0]
                 group: groupSlug
@@ -470,20 +389,14 @@ module.exports = class JVM extends Module
               group.addVm vm, (err)=>
                 return callback err  if err
                 JDomain.ensureDomainSettingsForVM {
-                  account, vm, type, nickname, group: groupSlug, stack
+                  account, vm, type, nickname, group: groupSlug, stackId
                 }
-
-                group.addVm vm, (err)=>
-                  return callback err  if err
-                  JDomain.ensureDomainSettingsForVM {
-                    account, vm, type, nickname, group: groupSlug, stack
-                  }
-                  account.sendNotification "VMCreated"
-                  if type is 'group'
-                    @addVmUsers user, vm, group, ->
-                      callback null, vm
-                  else
+                account.sendNotification "VMCreated"
+                if type is 'group'
+                  @addVmUsers user, vm, group, ->
                     callback null, vm
+                else
+                  callback null, vm
 
   @addVmUsers = (user, vm, group, callback)->
     # todo - do this operation in batches

@@ -11,7 +11,12 @@ class ActivitySideView extends JView
 
     @listController = new KDListViewController
       startWithLazyLoader : yes
-      lazyLoaderOptions   : partial : ''
+      lazyLoaderOptions   :
+        spinnerOptions    :
+          size            :
+            width         : 16
+            height        : 16
+        partial           : ''
       scrollView          : no
       wrapper             : no
       viewOptions         :
@@ -20,15 +25,20 @@ class ActivitySideView extends JView
         itemClass         : @itemClass or itemClass
         cssClass          : "activities"
 
-    @listView    = @listController.getView()
-    @showAllLink = new KDCustomHTMLView
-      tagName    : 'a'
-      partial    : 'SHOW ALL'
+    @header = new KDCustomHTMLView
+      tagName : 'h3'
+      partial : @getOption 'title'
+      click   : @bound 'reload'
+
+    @listView = @listController.getView()
 
     @listView.once 'viewAppended', @bound 'reload'
 
 
   reload: ->
+
+    @listController.removeAllItems()
+    @listController.showLazyLoader()
 
     {dataSource} = @getOptions()
     dataSource @bound 'renderItems'
@@ -42,6 +52,6 @@ class ActivitySideView extends JView
 
   pistachio: ->
     """
-    <h3>#{@getOption 'title'}{{> @showAllLink}}</h3>
+    {{> @header}}
     {{> @listView}}
     """

@@ -65,7 +65,7 @@ class CommentListItemView extends KDListItemView
     else
       @settings = new KDView
 
-    @likeView = new LikeViewClean { tooltipPosition : 'sw', checkIfLikedBefore: yes }, data
+    @likeView = new CommentLikeView { tooltipPosition : 'sw', checkIfLikedBefore: yes }, data
 
     if loggedInId isnt data.originId
       @replyView = new ActivityActionLink

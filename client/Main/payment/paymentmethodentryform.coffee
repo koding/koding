@@ -58,13 +58,6 @@ class PaymentMethodEntryForm extends KDFormViewWithFields
           event           : 'blur'
           rules           :
             maxLength     : 2
-            regExp        : do ->
-              remainingMonths = KD.utils
-                .getMonthOptions()
-                  .slice((new Date).getMonth() - 1)
-                .map((item)-> item.title)
-                .join '|'
-              return ///#{remainingMonths}///
           messages        :
             regExp        : "Expiration month should be 2 digits and between 01 to 12"
         nextElementFlat   :

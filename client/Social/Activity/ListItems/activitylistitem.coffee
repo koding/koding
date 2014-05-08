@@ -29,6 +29,8 @@ class ActivityListItemView extends KDListItemView
       delegate : @commentBox.commentList
     , data
 
+    @likeSummary = new ActivityLikeSummaryView {}, data
+
     @settingsButton = new ActivitySettingsView
       cssClass : 'settings-menu-wrapper'
       itemView : this
@@ -153,6 +155,7 @@ class ActivityListItemView extends KDListItemView
       {article{@formatContent #(body)}}
       {{> @embedBox}}
       {{> @actionLinks}}
+      {{> @likeSummary}}
     </div>
     {{> @commentBox}}
     """

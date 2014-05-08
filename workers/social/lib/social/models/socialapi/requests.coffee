@@ -88,6 +88,14 @@ unlikeMessage = (data, callback)->
   delete data.id
   post url, data, callback
 
+listLikers = (data, callback)->
+  unless data.id
+    return callback { message: "Request is not valid for listing actors" }
+
+  url = "#{SOCIAL_API_URL}/message/#{data.id}/interaction/like"
+  delete data.id
+  get url, data, callback
+
 addReply = (data, callback)->
   if not data.accountId or not data.body or not data.messageId
     return callback { message: "Request is not valid for adding a reply"}
@@ -181,6 +189,7 @@ module.exports = {
   addReply
   unlikeMessage
   likeMessage
+  listLikers
   deleteMessage
   editMessage
   postToChannel
