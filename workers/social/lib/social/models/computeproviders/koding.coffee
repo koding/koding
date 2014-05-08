@@ -89,13 +89,24 @@ module.exports = class Koding extends ProviderInterface
 
       hostnameAliases = @generateAliases { group, nickname }
       hostnameAlias   = hostnameAliases[0]
+      region          = if argv.c is 'vagrant' then 'vagrant' else 'sj'
+      { freeVM }      = KONFIG.defaultVMConfigs
 
       meta = {
+        region
         planCode
         hostnameAlias
         subscriptionCode
-        webHome : nickname
-        vmType  : "user"
+        maxMemoryInMB : freeVM.ram ? 1024
+        diskSizeInMB  : freeVM.storage ? VMDefaultDiskSize
+        ldapPassword  : null
+        hostKite      : null
+        alwaysOn      : no
+        numCPUs       : freeVM.cpu ? 1
+        webHome       : nickname
+        vmType        : "user"
+        ip            : null
+        meta          : {}
       }
 
       unless isFreeSubscripton
