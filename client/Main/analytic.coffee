@@ -7,7 +7,9 @@ do->
       break
 
     KD.singletons.mainController.ready ->
-      argsForMixpanel.username = KD.whoami()?.profile?.nickname
+      argsForMixpanel.username  = KD.whoami()?.profile?.nickname
+      argsForMixpanel.userAgent = window.navigator.userAgent
+
       KD.remote?.api.JPageHit.create argsForMixpanel, ->
 
 do->
