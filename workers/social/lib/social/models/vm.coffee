@@ -839,6 +839,10 @@ module.exports = class JVM extends Module
         else vms.forEach (vm)-> vm.remove handleError
 
     JGroup.on 'MemberAdded', ({group, member})->
+
+      console.warn "Auto VM Create disabled!"
+      return
+
       member.fetchUser (err, user)->
         return handleError err  if err
         return handleError new Error "user not defined" unless user
