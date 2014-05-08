@@ -13,7 +13,7 @@ import (
 var (
 	flagConfFile = flag.String("c", "", "Configuration profile from file")
 	flagDebug    = flag.Bool("d", false, "Debug mode")
-	Name         = "FollowingFeedWorker"
+	Name         = "FollowingFeed"
 )
 
 func main() {
@@ -36,7 +36,7 @@ func main() {
 	// create message handler
 	handler := followingfeed.NewFollowingFeedController(log)
 
-	listener := worker.NewListener("FollowingFeed", conf.EventExchangeName, log)
+	listener := worker.NewListener(Name, conf.EventExchangeName, log)
 	// blocking
 	// listen for events
 	listener.Listen(helper.NewRabbitMQ(conf, log), handler)
