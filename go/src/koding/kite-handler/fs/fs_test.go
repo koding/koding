@@ -369,13 +369,93 @@ func TestRename(t *testing.T) {
 	}
 
 	if !ok {
-		t.Fatalf("file does exists %s", testNewPath)
+		t.Fatalf("file does not exists %s", testNewPath)
+	}
+}
+
+func TestCreateDirectory(t *testing.T) {
+	testDir := "testdata/anotherDir"
+	defer os.Remove(testDir)
+
+	resp, err := remote.Tell("createDirectory", struct {
+		Path      string
+		Recursive bool
+	}{
+		Path: testDir,
+	})
+	if err != nil {
+		t.Fatal(err)
 	}
 
+	if !resp.MustBool() {
+		t.Fatal("createDirectory should return true")
+	}
+
+	ok, err := exists(testDir)
+	if err != nil {
+		t.Error(err)
+	}
+
+	if !ok {
+		t.Fatalf("file does not exists %s", testDir)
+	}
 }
-func TestCreateDirectory(t *testing.T) {}
-func TestMove(t *testing.T)            {}
-func TestCopy(t *testing.T)            {}
+
+func TestMove(t *testing.T) {
+	TestRename(t)
+}
+
+func TestCopy(t *testing.T) {
+	testFile, err := filepath.Abs("testdata/testfile1.txt")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	newFile, err := filepath.Abs("testdata/testfile2.txt")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// defer os.Remove(newFile)
+
+	resp, err := remote.Tell("copy", struct {
+		SrcPath string
+		DstPath string
+	}{
+		SrcPath: testFile,
+		DstPath: newFile,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if !resp.MustBool() {
+		t.Fatal("copy should return true")
+	}
+
+	ok, err := exists(newFile)
+	if err != nil {
+		t.Error(err)
+	}
+
+	if !ok {
+		t.Fatalf("file does not exists %s", newFile)
+	}
+
+	testContent, err := ioutil.ReadFile(testFile)
+	if err != nil {
+		t.Error(err)
+	}
+
+	newContent, err := ioutil.ReadFile(newFile)
+	if err != nil {
+		t.Error(err)
+	}
+
+	if string(testContent) != string(newContent) {
+		t.Errorf("got %+v, expected %+v", string(testContent), string(newContent))
+	}
+}
 
 func exists(file string) (bool, error) {
 	_, err := os.Stat(file)
