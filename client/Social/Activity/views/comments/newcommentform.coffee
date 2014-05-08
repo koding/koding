@@ -21,12 +21,8 @@ class NewCommentForm extends KDView
           required  : "Please type a comment..."
       callback      : @bound "enter"
 
-    @input.on "blur", @bound "commentInputReceivedBlur"
-
-    @input.on "focus", =>
-
-      KD.mixpanel "Comment activity, focus"
-      @getDelegate().emit "commentInputReceivedFocus"
+    @input.on "focus", @bound "inputFocused"
+    @input.on "blur", @bound "inputBlured"
 
 
   submit: ->
@@ -53,20 +49,22 @@ class NewCommentForm extends KDView
       groupName : KD.getGroup().slug
 
 
-  makeCommentFieldActive: ->
+  setFocus: ->
 
-    @getDelegate().emit "commentInputReceivedFocus"
-    (KD.getSingleton "windowController").setKeyView @input
-
-
-  commentInputReceivedBlur: ->
-
-    @resetCommentField()  if @input.getValue() is ""
+    @input.setFocus()
+    KD.singleton("windowController").setKeyView @input
 
 
-  resetCommentField: ->
+  inputFocused: ->
 
-    @getDelegate().emit "CommentViewShouldReset"
+    @emit "Focused"
+    KD.mixpanel "Comment activity, focus"
+
+
+  inputBlured: ->
+
+    return  unless @input.getValue() is ""
+    @emit "Blured"
 
 
   viewAppended: ->
