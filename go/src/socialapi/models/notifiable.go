@@ -19,6 +19,7 @@ type Notifiable interface {
 	FetchActors([]NotificationActivity) (*ActorContainer, error)
 	SetTargetId(int64)
 	SetListerId(int64)
+	GetActorId() int64
 }
 
 type InteractionNotification struct {
@@ -85,6 +86,10 @@ func (n *InteractionNotification) FetchActors([]NotificationActivity) (*ActorCon
 
 func (n *InteractionNotification) SetListerId(listerId int64) {
 	n.ListerId = listerId
+}
+
+func (n *InteractionNotification) GetActorId() int64 {
+	return n.NotifierId
 }
 
 func NewInteractionNotification(notificationType string) *InteractionNotification {
@@ -242,6 +247,10 @@ func (n *ReplyNotification) SetListerId(listerId int64) {
 	n.ListerId = listerId
 }
 
+func (n *ReplyNotification) GetActorId() int64 {
+	return n.NotifierId
+}
+
 func NewReplyNotification() *ReplyNotification {
 	return &ReplyNotification{}
 }
@@ -294,6 +303,10 @@ func (n *FollowNotification) SetTargetId(targetId int64) {
 
 func (n *FollowNotification) SetListerId(listerId int64) {
 	n.ListerId = listerId
+}
+
+func (n *FollowNotification) GetActorId() int64 {
+	return n.NotifierId
 }
 
 func NewFollowNotification() *FollowNotification {
