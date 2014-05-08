@@ -9,8 +9,8 @@ class SocialApiController extends KDController
     return message unless message
 
     {SocialMessage} = KD.remote.api
+    message._id = message.id
     m = new SocialMessage message
-    m._id = message.id
     m.account = {}
     m.account.constructorName = "JAccount"
     m.account._id = data.accountOldId
