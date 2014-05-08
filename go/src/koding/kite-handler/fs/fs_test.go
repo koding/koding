@@ -416,7 +416,7 @@ func TestCopy(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	// defer os.Remove(newFile)
+	defer os.Remove(newFile)
 
 	resp, err := remote.Tell("copy", struct {
 		SrcPath string
