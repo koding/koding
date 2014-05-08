@@ -1,14 +1,11 @@
 package models
 
-import "fmt"
-
 var (
 	accountCache map[int64]string
 )
 
 func init() {
 	accountCache = make(map[int64]string)
-	fmt.Println("hello")
 }
 
 func AccountOldIdById(id int64) (string, error) {
