@@ -684,7 +684,7 @@ func (o *Oskite) prepareWorker(id int) {
 	for job := range prepareQueue {
 		currentQueueCount.Add(1)
 
-		log.Info("Starting job: '%s' %s", job.msg, queueInfo())
+		log.Info("starting job: '%s' %s", job.msg, queueInfo())
 
 		done := make(chan struct{}, 1)
 		go func() {
@@ -692,9 +692,9 @@ func (o *Oskite) prepareWorker(id int) {
 
 			err := job.f() // execute our function
 			if err != nil {
-				log.Error("Aborted job: '%s' err: %s %s", job.msg, err.Error(), queueInfo())
+				log.Error("aborted job: '%s' err: %s %s", job.msg, err.Error(), queueInfo())
 			} else {
-				log.Info("Finished job: '%s' elapsed time: %s %s", job.msg, time.Since(start), queueInfo())
+				log.Info("finished job: '%s' elapsed time: %s %s", job.msg, time.Since(start), queueInfo())
 			}
 
 			done <- struct{}{}
@@ -703,7 +703,7 @@ func (o *Oskite) prepareWorker(id int) {
 		select {
 		case <-done:
 		case <-time.After(time.Second * 60):
-			log.Error("Timeout job: '%s' after 60 seconds %s", job.msg, queueInfo())
+			log.Error("timeout job: '%s' after 60 seconds %s", job.msg, queueInfo())
 		}
 
 		currentQueueCount.Add(-1)
