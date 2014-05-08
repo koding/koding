@@ -64,6 +64,7 @@ class Troubleshoot extends KDObject
           .catch (err) ->
             warn err
         recover: ->
+          ErrorLog.create "Troubleshoot toggled kite stack"
           KD.toggleKiteStack()
 
     # register osKite

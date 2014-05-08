@@ -304,7 +304,7 @@ class VirtualizationController extends KDController
 
       # we need to wait until the vm is on before opening a connection to the
       # terminal kite.
-      kite.on 'vmOn', =>
+      kite.on 'ready', =>
         @terminalKites[alias] = @getKite vm, 'terminal'
         resolve()
     .nodeify callback

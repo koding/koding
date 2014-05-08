@@ -1,5 +1,7 @@
 class OsKite extends KDKite
 
+  { Error: KiteError } = require 'kite'
+
   @createApiMapping
     exec            : 'exec'
 

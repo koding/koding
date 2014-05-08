@@ -11,8 +11,8 @@ KD.extend
         Boolean KD.config.kites.stack.newKites
       when localStorage.useNewKites?
         Boolean Number localStorage.useNewKites
-
     localStorage.useNewKites = if useNewKites then '1' else ''
+    return useNewKites
   appClasses   : {}
   appScripts   : {}
   appLabels    : {}
