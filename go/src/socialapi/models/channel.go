@@ -333,6 +333,27 @@ func (c *Channel) RemoveMessage(messageId int64) (*ChannelMessageList, error) {
 	return cml, nil
 }
 
+func (c *Channel) Search(q *Query) ([]Channel, error) {
+
+	if q.GroupName == "" {
+		return nil, fmt.Errorf("Query doesnt have any Group info %+v", q)
+	}
+
+	var channels []Channel
+
+	query := bongo.B.DB.Table(c.TableName()).Limit(q.Limit)
+
+	query = query.Where("type_constant = ?", Channel_TYPE_TOPIC)
+	query = query.Where("group_name = ?", q.GroupName)
+	query = query.Where("name like ?", q.Name+"%")
+
+	if err := query.Find(&channels).Error; err != nil {
+		return nil, err
+	}
+
+	return channels, nil
+}
+
 func (c *Channel) List(q *Query) ([]Channel, error) {
 
 	if q.GroupName == "" {
