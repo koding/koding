@@ -2,8 +2,10 @@ package models
 
 import (
 	"errors"
-	"github.com/jinzhu/gorm"
+	// "github.com/jinzhu/gorm"
+	// "fmt"
 	"github.com/koding/bongo"
+	"math"
 	"time"
 )
 
@@ -161,86 +163,51 @@ func (n *ReplyNotification) SetTargetId(targetId int64) {
 	n.TargetId = targetId
 }
 
-// Fetch Actors retrieves latest actors. For message repliers, if first checks
-// users first reply message. And also fetches user's subscription status.
-// if user both replied and subscribed to a message then gets the event's time
-// that has first occurred.
 func (n *ReplyNotification) FetchActors(naList []NotificationActivity) (*ActorContainer, error) {
 	if n.TargetId == 0 {
 		return nil, errors.New("TargetId is not set")
 	}
-
 	// first determine message owner
 	channelMessage := NewChannelMessage()
 	if err := channelMessage.ById(n.TargetId); err != nil {
 		return nil, err
 	}
 
-	// if lister is message owner than lower time limit for fetching repliers
-	// will be messages creation date
-	timeLimit := channelMessage.CreatedAt
-	// if lister is not message owner than check listers first replied message.
-	if channelMessage.AccountId != n.ListerId {
-		mr := NewMessageReply()
-		mr.MessageId = n.TargetId
-
-		// we are gonna fetch actors starting from user's first reply
-		if err := mr.FetchFirstAccountReply(n.ListerId); err != nil {
-			return nil, err
-		}
-
-		// lower limit is lister's first reply message
-		if !mr.CreatedAt.IsZero() {
-			timeLimit = mr.CreatedAt
-		}
+	found := false
+	if channelMessage.AccountId == n.ListerId {
+		found = true
 	}
 
-	// TODO make it async
-	// check if user is already subscribed to / unsubscribed from target
-	nc := NewNotificationContent()
-	nc.TargetId = n.TargetId
-	nc.TypeConstant = NotificationContent_TYPE_COMMENT
-	ns := NewNotificationSubscription()
-	ns.AccountId = n.ListerId
-	var err error
-	if err = ns.FetchByNotificationContent(nc); err != nil {
-		if err != gorm.RecordNotFound {
-			return nil, err
-		}
-	}
-
-	lowerTimeLimit := true
-	if err != gorm.RecordNotFound {
-		// if unsubscription happens then fetch all notifications till
-		// the unsubscription date
-		if ns.TypeConstant == NotificationSubscription_TYPE_UNSUBSCRIBE {
-			lowerTimeLimit = false
+	actors := make([]int64, 0)
+	actorMap := map[int64]struct{}{}
+	for _, na := range naList {
+		_, ok := actorMap[na.ActorId]
+		if found && !ok && na.ActorId != n.ListerId && !na.Obsolete {
+			actors = append(actors, na.ActorId)
+			actorMap[na.ActorId] = struct{}{}
 		}
 
-		//
-		timeLimit = ns.AddedAt
-	}
-
-	cm := NewChannelMessage()
-	cm.Id = n.TargetId
-	cm.AccountId = n.ListerId
-
-	p := &bongo.Pagination{
-		Limit: NOTIFIER_LIMIT,
-	}
-
-	// for preparing Actor Container we need latest actors and total replier count
-	var count int
-	actors, err := cm.FetchReplierIdsWithCount(p, &count, timeLimit, lowerTimeLimit)
-	if err != nil {
-		return nil, err
+		if na.ActorId == n.ListerId {
+			found = true
+		}
 	}
 
 	ac := NewActorContainer()
-	ac.LatestActors = actors
-	ac.Count = count
+	actors = reverse(actors)
+	actorLength := len(actors)
+	actorLimit := int(math.Min(float64(actorLength), float64(NOTIFIER_LIMIT)))
+	ac.LatestActors = actors[0:actorLimit]
+	ac.Count = actorLength
 
 	return ac, nil
+}
+
+func reverse(ids []int64) []int64 {
+	for i, j := 0, len(ids)-1; i < j; i, j = i+1, j-1 {
+		ids[i], ids[j] = ids[j], ids[i]
+	}
+
+	return ids
 }
 
 func (n *ReplyNotification) SetListerId(listerId int64) {
@@ -362,6 +329,10 @@ func (n *GroupNotification) SetTargetId(targetId int64) {
 
 func (n *GroupNotification) SetListerId(listerId int64) {
 	n.ListerId = listerId
+}
+
+func (n *GroupNotification) GetActorId() int64 {
+	return n.NotifierId
 }
 
 func NewGroupNotification(typeConstant string) *GroupNotification {
