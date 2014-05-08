@@ -3,6 +3,9 @@ ProviderInterface = require './providerinterface'
 KodingError       = require '../../error'
 JVM               = require '../vm'
 
+{argv}            = require 'optimist'
+KONFIG            = require('koding-config-manager').load("main.#{argv.c}")
+
 module.exports = class Koding extends ProviderInterface
 
 
@@ -72,8 +75,36 @@ module.exports = class Koding extends ProviderInterface
 
   @create = (client, options, callback)->
 
-    {nonce, stackId} = options
-    JVM.createVmByNonce client, nonce, stackId, callback
+    { connection:{delegate:account}, context:{group} } = client
+    { nickname } = account.profile
+
+    { nonce }    = options
+
+    @processNonce nonce, (err, details)=>
+
+      return callback err  if err?
+
+      { isFreeSubscripton, nonceObject } = details
+      { planCode, subscriptionCode } = nonceObject
+
+      hostnameAliases = @generateAliases { group, nickname }
+      hostnameAlias   = hostnameAliases[0]
+
+      meta = {
+        planCode
+        hostnameAlias
+        subscriptionCode
+        webHome : nickname
+        vmType  : "user"
+      }
+
+      unless isFreeSubscripton
+        meta.region = KONFIG.regions.premium
+
+      callback null, {
+        postCreateOptions: { hostnameAliases, account, group }
+      , meta }
+
 
 
   @remove = (client, options, callback)->
