@@ -14,7 +14,7 @@ import (
 var (
 	flagConfFile = flag.String("c", "", "Configuration profile from file")
 	flagDebug    = flag.Bool("d", false, "Debug mode")
-	Name         = "RealtimeWorker"
+	Name         = "Realtime"
 )
 
 func main() {
@@ -45,7 +45,7 @@ func main() {
 		panic(err)
 	}
 
-	listener := worker.NewListener("RealtimeWorker", conf.EventExchangeName, log)
+	listener := worker.NewListener(Name, conf.EventExchangeName, log)
 	// blocking
 	// listen for events
 	listener.Listen(rmq, handler)
