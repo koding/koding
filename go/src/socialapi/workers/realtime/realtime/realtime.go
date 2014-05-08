@@ -182,9 +182,15 @@ func (f *RealtimeWorkerController) handleInteractionEvent(eventName string, data
 		return err
 	}
 
+	oldId, err := models.AccountOldIdById(i.AccountId)
+	if err != nil {
+		return err
+	}
+
 	res := map[string]interface{}{
 		"messageId":    i.MessageId,
 		"accountId":    i.AccountId,
+		"accountOldId": oldId,
 		"typeConstant": i.TypeConstant,
 		"count":        count,
 	}
