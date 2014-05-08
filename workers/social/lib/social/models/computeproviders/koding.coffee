@@ -5,6 +5,38 @@ JVM               = require '../vm'
 
 module.exports = class Koding extends ProviderInterface
 
+
+  @processNonce = (nonce, callback)->
+
+    unless nonce
+      return callback new KodingError
+        message : "Payment requirements missing."
+
+    JPaymentFulfillmentNonce  = require '../payment/nonce'
+    JPaymentSubscription      = require '../payment/subscription'
+    JPaymentPack              = require '../payment/pack'
+
+    JPaymentFulfillmentNonce.one { nonce }, (err, nonceObject)->
+
+      return callback err  if err
+
+      unless nonceObject
+        return callback message: "Unrecognized nonce!", nonce
+
+      if nonceObject.action isnt "debit"
+        return callback message: "Invalid nonce!", nonce
+
+      { subscriptionCode } = nonceObject
+
+      JPaymentSubscription.isFreeSubscripton subscriptionCode, \
+      (err, isFreeSubscripton)=>
+        return callback err if err
+
+        nonceObject.update $set: action: "used", (err) =>
+          return callback err  if err
+
+          callback null, { isFreeSubscripton, nonceObject }
+
   @ping = (client, callback)->
 
     callback null, "Koding is the best #{ client.connection.delegate.profile.nickname }!"
