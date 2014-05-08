@@ -375,7 +375,9 @@ func TestRename(t *testing.T) {
 
 func TestCreateDirectory(t *testing.T) {
 	testDir := "testdata/anotherDir"
+	testRecursiveDir := "testdata/exampleDir/inception"
 	defer os.Remove(testDir)
+	defer os.RemoveAll(testRecursiveDir)
 
 	resp, err := remote.Tell("createDirectory", struct {
 		Path      string
@@ -397,7 +399,31 @@ func TestCreateDirectory(t *testing.T) {
 	}
 
 	if !ok {
-		t.Fatalf("file does not exists %s", testDir)
+		t.Fatalf("dir does not exists %s", testDir)
+	}
+
+	resp, err = remote.Tell("createDirectory", struct {
+		Path      string
+		Recursive bool
+	}{
+		Path:      testRecursiveDir,
+		Recursive: true,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if !resp.MustBool() {
+		t.Fatal("createDirectory recursive should return true")
+	}
+
+	ok, err = exists(testRecursiveDir)
+	if err != nil {
+		t.Error(err)
+	}
+
+	if !ok {
+		t.Fatalf("dir does not exists %s", testRecursiveDir)
 	}
 }
 
