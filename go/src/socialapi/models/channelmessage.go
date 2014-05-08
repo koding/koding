@@ -169,7 +169,7 @@ func (c *ChannelMessage) BuildMessage(query *Query) (*ChannelMessageContainer, e
 	return cmc, nil
 }
 
-func (c *ChannelMessage) FetchRelatives(query *Query) (*ChannelMessageContainer, error) {
+func (c *ChannelMessage) BuildEmptyMessageContainer() (*ChannelMessageContainer, error) {
 	if c.Id == 0 {
 		return nil, errors.New("Channel message id is not set")
 	}
@@ -185,6 +185,26 @@ func (c *ChannelMessage) FetchRelatives(query *Query) (*ChannelMessageContainer,
 	}
 
 	container.AccountOldId = oldId
+
+	interactionContainer := NewInteractionContainer()
+	interactionContainer.ActorsPreview = make([]string, 0)
+	interactionContainer.IsInteracted = false
+	interactionContainer.ActorsCount = 0
+
+	container.Interactions = make(map[string]*InteractionContainer)
+	container.Interactions["like"] = interactionContainer
+
+	return container, nil
+}
+
+func (c *ChannelMessage) FetchRelatives(query *Query) (*ChannelMessageContainer, error) {
+	container, err := c.BuildEmptyMessageContainer()
+	if err != nil {
+		return nil, err
+	}
+
+	i := NewInteraction()
+	i.MessageId = c.Id
 
 	// get preview
 	query.Type = "like"
@@ -218,12 +238,6 @@ func (c *ChannelMessage) FetchRelatives(query *Query) (*ChannelMessageContainer,
 
 	interactionContainer.ActorsCount = count
 
-	if container.Interactions == nil {
-		container.Interactions = make(map[string]*InteractionContainer)
-	}
-	if _, ok := container.Interactions["like"]; !ok {
-		container.Interactions["like"] = NewInteractionContainer()
-	}
 	container.Interactions["like"] = interactionContainer
 	return container, nil
 }

@@ -63,7 +63,7 @@ func ListTopics(u *url.URL, h http.Header, _ interface{}) (int, http.Header, int
 		return helpers.NewBadRequestResponse(err)
 	}
 
-	return helpers.NewOKResponse(
+	return helpers.HandleResultAndError(
 		models.PopulateChannelContainers(
 			popularTopics,
 			query.AccountId,

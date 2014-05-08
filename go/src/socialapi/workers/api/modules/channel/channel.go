@@ -51,7 +51,7 @@ func List(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface
 		return helpers.NewBadRequestResponse(err)
 	}
 
-	return helpers.NewOKResponse(
+	return helpers.HandleResultAndError(
 		models.PopulateChannelContainers(
 			channelList,
 			q.AccountId,
@@ -131,7 +131,9 @@ func Get(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface{
 		return helpers.NewBadRequestResponse(err)
 	}
 
-	return helpers.NewOKResponse(models.PopulateChannelContainer(*c, q.AccountId))
+	return helpers.HandleResultAndError(
+		models.PopulateChannelContainer(*c, q.AccountId),
+	)
 }
 
 func PostMessage(u *url.URL, h http.Header, req *models.Channel) (int, http.Header, interface{}, error) {

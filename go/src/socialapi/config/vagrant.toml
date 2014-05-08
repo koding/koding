@@ -19,7 +19,6 @@ Password= "djfjfhgh4455__5"
 Vhost=    "/"
 
 [limits]
-MessageBodyMinLen=10
 MessageBodyMinLen=1
 
 [cache]
