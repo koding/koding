@@ -249,14 +249,14 @@ class ActivityInputWidget extends KDView
     {appManager} = KD.singletons
     {channelId}  = @getOptions()
     activity     = @getData()
+    {body}       = data
 
     return  @reset()  unless activity
 
-    appManager.tell 'Activity', 'post', {
-      data
-      channelId
-      activity
-    }, (err, activity) =>
+    appManager.tell 'Activity', 'edit', {
+      body
+      id: activity.id
+    }, (err, message) =>
 
       return KD.showError err  if err
 
