@@ -5,6 +5,7 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
+	"path/filepath"
 	"reflect"
 	"testing"
 
@@ -274,7 +275,29 @@ func TestUniquePath(t *testing.T) {
 	}
 }
 
-func TestGetInfo(t *testing.T)         {}
+func TestGetInfo(t *testing.T) {
+	testFile := "testdata/testfile1.txt"
+
+	resp, err := remote.Tell("getInfo", struct {
+		Path string
+	}{
+		Path: testFile,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	f := &FileEntry{}
+	err = resp.Unmarshal(f)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if f.Name != filepath.Base(testFile) {
+		t.Errorf("got %s expecting %s", f.Name, testFile)
+	}
+}
+
 func TestSetPermissions(t *testing.T)  {}
 func TestRemove(t *testing.T)          {}
 func TestRename(t *testing.T)          {}
