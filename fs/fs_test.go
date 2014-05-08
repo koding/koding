@@ -298,7 +298,40 @@ func TestGetInfo(t *testing.T) {
 	}
 }
 
-func TestSetPermissions(t *testing.T) {}
+func TestSetPermissions(t *testing.T) {
+	testFile := "testdata/testfile1.txt"
+
+	testPerm := 0755
+	resp, err := remote.Tell("setPermissions", struct {
+		Path      string
+		Mode      os.FileMode
+		Recursive bool
+	}{
+		Path: testFile,
+		Mode: os.FileMode(testPerm),
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if !resp.MustBool() {
+		t.Fatal("setPermissions should return true")
+	}
+
+	f, err := os.Open(testFile)
+	if err != nil {
+		t.Fatal(err)
+	}
+	fi, err := f.Stat()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if fi.Mode() != os.FileMode(testPerm) {
+		t.Errorf("got %v expecting %v", fi.Mode(), testPerm)
+	}
+
+}
 
 func TestRemove(t *testing.T) {
 	testFile, err := ioutil.TempFile("", "")
