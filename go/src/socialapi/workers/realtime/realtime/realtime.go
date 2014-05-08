@@ -215,7 +215,12 @@ func (f *RealtimeWorkerController) MessageReplySaved(data []byte) error {
 		return err
 	}
 
-	err = f.sendInstanceEvent(i.MessageId, reply, "ReplyAdded")
+	cmc, err := reply.BuildEmptyMessageContainer()
+	if err != nil {
+		return err
+	}
+
+	err = f.sendInstanceEvent(i.MessageId, cmc, "ReplyAdded")
 	if err != nil {
 		fmt.Println(err)
 		return err
