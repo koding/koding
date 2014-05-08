@@ -274,7 +274,7 @@ func (f *RealtimeWorkerController) sendInstanceEvent(instanceId int64, message i
 	}
 
 	updateArr := make([]string, 1)
-	if eventName == "updateInstances" {
+	if eventName == "updateInstance" {
 		updateArr[0] = fmt.Sprintf("{\"$set\":%s}", string(updateMessage))
 	} else {
 		updateArr[0] = string(updateMessage)
