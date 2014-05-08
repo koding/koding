@@ -51,7 +51,7 @@ class ActivitySidebar extends KDCustomScrollView
         activityController.emit 'SidebarItemClicked', this
     ,
       name     : 'koding_public_feed'
-      id       : KD.getGroup().socialApiChannelId ? 1
+      id       : "#{KD.getGroup().socialApiChannelId ? 1}"
 
     publicLink.addSubView @publicFeedCount = new KDCustomHTMLView
       cssClass : 'count'
