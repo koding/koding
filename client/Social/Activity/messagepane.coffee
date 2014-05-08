@@ -48,9 +48,8 @@ class MessagePane extends KDTabPaneView
     data                    = @getData()
     options                 = {name, type, channelId}
 
-    # if it is a pinned activity we should already have it
-    # as the data object here and we pass it as we've fetched it
-    if type is 'pinnedActivity'
+    # if it is a post it means we already have the data
+    if type is 'post'
     then KD.utils.defer -> callback null, [data]
     else appManager.tell 'Activity', 'fetch', options, callback
 
