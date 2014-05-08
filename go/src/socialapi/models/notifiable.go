@@ -111,26 +111,26 @@ func (n *ReplyNotification) GetNotifiedUsers(notificationContentId int64) ([]int
 		repliersMap[replierId] = struct{}{}
 	}
 
-	var subscribers []NotificationSubscription
-	q := &bongo.Query{
-		Selector: map[string]interface{}{
-			"notification_content_id": notificationContentId,
-		},
-	}
-	ns := NewNotificationSubscription()
-	if err := ns.Some(&subscribers, q); err != nil {
-		return nil, err
-	}
+	// var subscribers []NotificationSubscription
+	// q := &bongo.Query{
+	// 	Selector: map[string]interface{}{
+	// 		"notification_content_id": notificationContentId,
+	// 	},
+	// }
+	// ns := NewNotificationSubscription()
+	// if err := ns.Some(&subscribers, q); err != nil {
+	// 	return nil, err
+	// }
 
-	// regress unsubscribed users and append subscribed ones
-	for _, subscriber := range subscribers {
-		switch subscriber.TypeConstant {
-		case NotificationSubscription_TYPE_SUBSCRIBE:
-			repliersMap[subscriber.AccountId] = struct{}{}
-		case NotificationSubscription_TYPE_UNSUBSCRIBE:
-			delete(repliersMap, subscriber.AccountId)
-		}
-	}
+	// // regress unsubscribed users and append subscribed ones
+	// for _, subscriber := range subscribers {
+	// 	switch subscriber.TypeConstant {
+	// 	case NotificationSubscription_TYPE_SUBSCRIBE:
+	// 		repliersMap[subscriber.AccountId] = struct{}{}
+	// 	case NotificationSubscription_TYPE_UNSUBSCRIBE:
+	// 		delete(repliersMap, subscriber.AccountId)
+	// 	}
+	// }
 
 	// regress notifier from notified users
 	delete(repliersMap, n.NotifierId)

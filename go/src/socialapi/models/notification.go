@@ -25,6 +25,11 @@ type Notification struct {
 	UpdatedAt time.Time `json:"updatedAt" sql:"NOT NULL"`
 }
 
+const (
+	Notification_TYPE_SUBSCRIBE   = "subscribe"
+	Notification_TYPE_UNSUBSCRIBE = "unsubscribe"
+)
+
 func (n *Notification) GetId() int64 {
 	return n.Id
 }

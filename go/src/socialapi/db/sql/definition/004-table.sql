@@ -126,6 +126,8 @@ CREATE TABLE "api"."notification" (
     "account_id" int8 NOT NULL,
     "notification_content_id" int8 NOT NULL,
     "glanced" bool NOT NULL,
+    "type_constant" varchar(100) NOT NULL COLLATE "default",
+    "subscribed_at" timestamp(6) WITH TIME ZONE NOT NULL DEFAULT now(),
     "updated_at" timestamp(6) WITH TIME ZONE NOT NULL DEFAULT now()
 )
 WITH (OIDS=FALSE);
