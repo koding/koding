@@ -21,9 +21,10 @@ type RealtimeWorkerController struct {
 	rmqConn *amqp.Connection
 }
 
-func (r *RealtimeWorkerController) DefaultErrHandler(delivery amqp.Delivery, err error) {
+func (r *RealtimeWorkerController) DefaultErrHandler(delivery amqp.Delivery, err error) bool {
 	r.log.Error("an error occured deleting realtime event", err)
 	delivery.Ack(false)
+	return false
 }
 
 func NewRealtimeWorkerController(rmq *rabbitmq.RabbitMQ, log logging.Logger) (*RealtimeWorkerController, error) {

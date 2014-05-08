@@ -17,11 +17,16 @@ type FollowingFeedController struct {
 	log    logging.Logger
 }
 
-func (f *FollowingFeedController) DefaultErrHandler(delivery amqp.Delivery, err error) {
+func (f *FollowingFeedController) DefaultErrHandler(delivery amqp.Delivery, err error) bool {
+	if delivery.Redelivered {
+		f.log.Error("Redelivered message gave error again, putting to maintenance queue", err)
+		delivery.Ack(false)
+		return true
+	}
+
 	f.log.Error("an error occured putting message back to queue", err)
-	// multiple false
-	// reque true
 	delivery.Nack(false, true)
+	return false
 }
 
 func NewFollowingFeedController(log logging.Logger) *FollowingFeedController {

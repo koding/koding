@@ -46,8 +46,13 @@ func (q *Query) MapURL(u *url.URL) *Query {
 
 	q.AccountId, _ = strconv.ParseInt(u.Query().Get("accountId"), 10, 64)
 
-	q.To, _ = time.Parse(time.RFC3339, urlQuery.Get("to"))
-	q.From, _ = time.Parse(time.RFC3339, urlQuery.Get("from"))
+	if to := urlQuery.Get("to"); to != "" {
+		q.To, _ = time.Parse(time.RFC3339, to)
+	}
+
+	if from := urlQuery.Get("from"); from != "" {
+		q.From, _ = time.Parse(time.RFC3339, from)
+	}
 
 	return q
 }

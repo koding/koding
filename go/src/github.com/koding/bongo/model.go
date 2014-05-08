@@ -166,7 +166,7 @@ func (b *Bongo) buildQuery(i Modellable, data interface{}, q *Query) error {
 
 	// if limit is minus or 0 ignore
 	if q.Limit > 0 {
-		query.Limit(q.Limit)
+		query = query.Limit(q.Limit)
 	}
 
 	var err error

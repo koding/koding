@@ -26,6 +26,8 @@ var (
 
 	hMux       tigertonic.HostServeMux
 	mux, nsMux *tigertonic.TrieServeMux
+
+	Name = "SocialAPI"
 )
 
 type context struct {
@@ -49,14 +51,14 @@ func main() {
 		return
 	}
 	conf := config.MustRead(*flagConfFile)
-	log := helper.CreateLogger("SocialAPI", *flagDebug)
+	log := helper.CreateLogger(Name, *flagDebug)
 
 	server := newServer()
 	// shutdown server
 	defer server.Close()
 
 	// panics if not successful
-	bongo := helper.MustInitBongo(conf, log)
+	bongo := helper.MustInitBongo(Name, conf, log)
 	// do not forgot to close the bongo connection
 	defer bongo.Close()
 

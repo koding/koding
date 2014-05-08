@@ -14,6 +14,7 @@ import (
 var (
 	flagConfFile = flag.String("c", "", "Configuration profile from file")
 	flagDebug    = flag.Bool("d", false, "Debug mode")
+	Name         = "RealtimeWorker"
 )
 
 func main() {
@@ -26,10 +27,10 @@ func main() {
 	conf := config.MustRead(*flagConfFile)
 
 	// create logger for our package
-	log := helper.CreateLogger("RealtimeWorker", *flagDebug)
+	log := helper.CreateLogger(Name, *flagDebug)
 
 	// panics if not successful
-	bongo := helper.MustInitBongo(conf, log)
+	bongo := helper.MustInitBongo(Name, conf, log)
 	// do not forgot to close the bongo connection
 	defer bongo.Close()
 

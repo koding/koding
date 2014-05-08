@@ -2,6 +2,7 @@ package models
 
 import (
 	"errors"
+	"fmt"
 	"time"
 
 	"github.com/jinzhu/gorm"
@@ -133,13 +134,22 @@ func (c *ChannelMessageList) getMessages(q *Query) ([]*ChannelMessageContainer, 
 		return nil, errors.New("ChannelId is not set")
 	}
 
-	if err := bongo.B.DB.Table(c.TableName()).
-		Order("added_at desc").
-		Where("channel_id = ?", c.ChannelId).
+	query := bongo.B.DB.Table(c.TableName()).
 		Offset(q.Skip).
 		Limit(q.Limit).
-		Pluck("message_id", &messages).
-		Error; err != nil {
+		Order("added_at desc")
+
+	query = query.Where("channel_id = ?", c.ChannelId)
+	fmt.Println(q.From.String())
+	if !q.From.IsZero() {
+		query = query.Where("added_at < ?", q.From)
+	}
+
+	query = query.Where("channel_id = ?", c.ChannelId)
+
+	query = query.Pluck("message_id", &messages)
+
+	if err := query.Error; err != nil {
 		return nil, err
 	}
 

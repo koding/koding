@@ -10,7 +10,7 @@ import (
 	"github.com/koding/rabbitmq"
 )
 
-func MustInitBongo(c *config.Config, log logging.Logger) *bongo.Bongo {
+func MustInitBongo(appName string, c *config.Config, log logging.Logger) *bongo.Bongo {
 	rmqConf := &rabbitmq.Config{
 		Host:     c.Mq.Host,
 		Port:     c.Mq.Port,
@@ -25,7 +25,7 @@ func MustInitBongo(c *config.Config, log logging.Logger) *bongo.Bongo {
 
 	db := db.MustInit(c)
 
-	broker := broker.New(bConf, log)
+	broker := broker.New(appName, bConf, log)
 	bongo := bongo.New(broker, db, log)
 	err := bongo.Connect()
 	if err != nil {
