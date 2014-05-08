@@ -3,7 +3,7 @@ package notification
 import (
 	"errors"
 	"github.com/jinzhu/gorm"
-	"github.com/koding/bongo"
+	// "github.com/koding/bongo"
 	"github.com/koding/logging"
 	"math"
 	"net/http"
@@ -82,12 +82,12 @@ func Glance(u *url.URL, h http.Header, req *models.Notification) (int, http.Head
 	return helpers.NewDefaultOKResponse()
 }
 
-func Follow(u *url.URL, h http.Header, req *models.Activity) (int, http.Header, interface{}, error) {
+func Follow(u *url.URL, h http.Header, req *models.NotificationActivity) (int, http.Header, interface{}, error) {
 
-	n := models.NewNotification()
-	if err := n.Follow(req); err != nil {
-		return helpers.NewBadRequestResponse(err)
-	}
+	// 	n := models.NewNotification()
+	// 	if err := n.Follow(req); err != nil {
+	// 		return helpers.NewBadRequestResponse(err)
+	// 	}
 
 	return helpers.NewDefaultOKResponse()
 }
@@ -101,61 +101,61 @@ type GroupRequest struct {
 
 func InteractGroup(u *url.URL, h http.Header, req *GroupRequest) (int, http.Header, interface{}, error) {
 
-	// first fetch channel id as target id
-	c := models.NewChannel()
-	selector := map[string]interface{}{
-		"type_constant": models.Channel_TYPE_GROUP,
-		"group_name":    req.Name,
-		"name":          req.Name,
-	}
+	// 	// first fetch channel id as target id
+	// 	c := models.NewChannel()
+	// 	selector := map[string]interface{}{
+	// 		"type_constant": models.Channel_TYPE_GROUP,
+	// 		"group_name":    req.Name,
+	// 		"name":          req.Name,
+	// 	}
 
-	if err := c.One(bongo.NewQS(selector)); err != nil {
-		return helpers.NewBadRequestResponse(err)
-	}
+	// 	if err := c.One(bongo.NewQS(selector)); err != nil {
+	// 		return helpers.NewBadRequestResponse(err)
+	// 	}
 
-	a := models.NewActivity()
-	a.TargetId = c.Id
-	a.ActorId = req.ActorId
-	a.TypeConstant = req.TypeConstant
+	// 	a := models.NewNotificationActivity()
+	// 	a.TargetId = c.Id
+	// 	a.ActorId = req.ActorId
+	// 	a.TypeConstant = req.TypeConstant
 
-	var err error
+	// 	var err error
 
-	n := models.NewNotification()
-	switch req.TypeConstant {
-	case models.NotificationContent_TYPE_JOIN:
-		err = n.JoinGroup(a, req.Admins)
-	case models.NotificationContent_TYPE_LEAVE:
-		err = n.LeaveGroup(a, req.Admins)
-	default:
-		err = errors.New("group interaction type not found")
-	}
-	if err != nil {
-		return helpers.NewBadRequestResponse(err)
-	}
-
-	return helpers.NewDefaultOKResponse()
-}
-
-func SubscribeMessage(u *url.URL, h http.Header, req *models.Activity) (int, http.Header, interface{}, error) {
-	if err := validateSubscriptionRequest(req); err != nil {
-		return helpers.NewBadRequestResponse(err)
-	}
-
-	if err := models.SubscribeMessage(req.ActorId, req.TargetId, models.NotificationSubscription_TYPE_SUBSCRIBE); err != nil {
-		return helpers.NewBadRequestResponse(err)
-	}
+	// 	n := models.NewNotification()
+	// 	switch req.TypeConstant {
+	// 	case models.NotificationContent_TYPE_JOIN:
+	// 		err = n.JoinGroup(a, req.Admins)
+	// 	case models.NotificationContent_TYPE_LEAVE:
+	// 		err = n.LeaveGroup(a, req.Admins)
+	// 	default:
+	// 		err = errors.New("group interaction type not found")
+	// 	}
+	// 	if err != nil {
+	// 		return helpers.NewBadRequestResponse(err)
+	// 	}
 
 	return helpers.NewDefaultOKResponse()
 }
 
-func UnsubscribeMessage(u *url.URL, h http.Header, req *models.Activity) (int, http.Header, interface{}, error) {
-	if err := validateSubscriptionRequest(req); err != nil {
-		return helpers.NewBadRequestResponse(err)
-	}
+func SubscribeMessage(u *url.URL, h http.Header, req *models.NotificationActivity) (int, http.Header, interface{}, error) {
+	// if err := validateSubscriptionRequest(req); err != nil {
+	// 	return helpers.NewBadRequestResponse(err)
+	// }
 
-	if err := models.SubscribeMessage(req.ActorId, req.TargetId, models.NotificationSubscription_TYPE_UNSUBSCRIBE); err != nil {
-		return helpers.NewBadRequestResponse(err)
-	}
+	// if err := models.SubscribeMessage(req.ActorId, req.TargetId, models.NotificationSubscription_TYPE_SUBSCRIBE); err != nil {
+	// 	return helpers.NewBadRequestResponse(err)
+	// }
+
+	return helpers.NewDefaultOKResponse()
+}
+
+func UnsubscribeMessage(u *url.URL, h http.Header, req *models.NotificationActivity) (int, http.Header, interface{}, error) {
+	// if err := validateSubscriptionRequest(req); err != nil {
+	// 	return helpers.NewBadRequestResponse(err)
+	// }
+
+	// if err := models.SubscribeMessage(req.ActorId, req.TargetId, models.NotificationSubscription_TYPE_UNSUBSCRIBE); err != nil {
+	// 	return helpers.NewBadRequestResponse(err)
+	// }
 
 	return helpers.NewDefaultOKResponse()
 }
@@ -205,13 +205,13 @@ func validateNotificationRequest(q *models.Query) error {
 	return nil
 }
 
-func validateSubscriptionRequest(a *models.Activity) error {
-	if err := validateAccount(a.ActorId); err != nil {
-		return err
-	}
+// func validateSubscriptionRequest(a *models.NotificationActivity) error {
+// 	if err := validateAccount(a.ActorId); err != nil {
+// 		return err
+// 	}
 
-	return validateMessage(a.TargetId)
-}
+// 	return validateMessage(a.TargetId)
+// }
 
 func validateAccount(accountId int64) error {
 	a := models.NewAccount()

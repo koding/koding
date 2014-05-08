@@ -125,6 +125,23 @@ func (n *NotificationWorkerController) CreateInteractionNotification(data []byte
 	return nil
 }
 
+func (n *NotificationWorkerController) CreateInteractionNotification(data []byte) error {
+	// i, err := mapMessageToInteraction(data)
+	// if err != nil {
+	// 	return err
+	// }
+
+	// // a bit error prune since we take interaction type as notification type
+	// in := models.NewInteractionNotification(i.TypeConstant)
+	// in.TargetId = i.MessageId
+	// in.NotifierId = i.AccountId
+	// if err := models.CreateNotificationContent(in); err != nil {
+	// 	return err
+	// }
+
+	return nil
+}
+
 func (n *NotificationWorkerController) NotifyUser(data []byte) error {
 	channel, err := n.notifierRmqConn.Channel()
 	if err != nil {
@@ -143,21 +160,21 @@ func (n *NotificationWorkerController) NotifyUser(data []byte) error {
 		return err
 	}
 
-	nt, err := models.CreateNotificationType(nc.TypeConstant)
+	nt, err := models.CreateNotificationContentType(nc.TypeConstant)
 	if err != nil {
 		return err
 	}
 
 	nt.SetTargetId(nc.TargetId)
-	ac, err := nt.FetchActors()
-	if err != nil {
-		return err
-	}
+	// ac, err := nt.FetchActors()
+	// if err != nil {
+	// 	return err
+	// }
 
-	var actorId int64
-	if len(ac.LatestActors) > 0 {
-		actorId = ac.LatestActors[0]
-	}
+	// var actorId int64
+	// if len(ac.LatestActors) > 0 {
+	// 	actorId = ac.LatestActors[0]
+	// }
 
 	go func() {
 		if n.cacheEnabled {
@@ -178,7 +195,7 @@ func (n *NotificationWorkerController) NotifyUser(data []byte) error {
 	ne := &NotificationEvent{}
 	ne.Event = nc.GetEventType()
 	ne.Content = NotificationContent{
-		ActorId:      actorId,
+		// ActorId:      actorId,
 		TargetId:     nc.TargetId,
 		TypeConstant: nc.TypeConstant,
 	}

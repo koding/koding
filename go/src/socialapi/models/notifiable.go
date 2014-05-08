@@ -267,23 +267,23 @@ func (n *FollowNotification) GetTargetId() int64 {
 	return n.TargetId
 }
 
-func (n *FollowNotification) FetchActors() (*ActorContainer, error) {
+func (n *FollowNotification) FetchActors([]NotificationActivity) (*ActorContainer, error) {
 	if n.TargetId == 0 {
 		return nil, errors.New("TargetId is not set")
 	}
 
 	ac := NewActorContainer()
 
-	a := NewActivity()
-	a.TargetId = n.TargetId
-	a.TypeConstant = NotificationContent_TYPE_FOLLOW
-	actorIds, err := a.FetchActorIds(NOTIFIER_LIMIT)
-	if err != nil {
-		return nil, err
-	}
+	// a := NewNotificationActivity()
+	// // a.TargetId = n.TargetId
+	// // a.TypeConstant = NotificationContent_TYPE_FOLLOW
+	// actorIds, err := a.FetchActorIds(NOTIFIER_LIMIT)
+	// if err != nil {
+	// 	return nil, err
+	// }
 
-	ac.LatestActors = actorIds
-	ac.Count = len(ac.LatestActors) // TODO count also must be retrieved
+	// ac.LatestActors = actorIds
+	// ac.Count = len(ac.LatestActors) // TODO count also must be retrieved
 
 	return ac, nil
 }
@@ -327,18 +327,18 @@ func (n *GroupNotification) GetTargetId() int64 {
 }
 
 // fetch notifiers
-func (n *GroupNotification) FetchActors() (*ActorContainer, error) {
-	a := NewActivity()
-	a.TargetId = n.TargetId
-	a.TypeConstant = n.TypeConstant
-	actors, err := a.FetchActorIds(NOTIFIER_LIMIT)
-	if err != nil {
-		return nil, err
-	}
+func (n *GroupNotification) FetchActors([]NotificationActivity) (*ActorContainer, error) {
+	// a := NewNotificationActivity()
+	// a.TargetId = n.TargetId
+	// a.TypeConstant = n.TypeConstant
+	// actors, err := a.FetchActorIds(NOTIFIER_LIMIT)
+	// if err != nil {
+	// 	return nil, err
+	// }
 
 	ac := NewActorContainer()
-	ac.LatestActors = actors
-	ac.Count = len(actors)
+	// ac.LatestActors = actors
+	// ac.Count = len(actors)
 
 	return ac, nil
 }

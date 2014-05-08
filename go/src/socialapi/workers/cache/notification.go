@@ -246,25 +246,25 @@ func (cache *NotificationCache) updateCompoundKeyList(n *models.Notification, nc
 
 // addNotificationDetails
 func (cache *NotificationCache) addNotificationDetails(n *models.Notification, nc *models.NotificationContent) error {
-	nt, err := models.CreateNotificationType(nc.TypeConstant)
-	if err != nil {
-		return err
-	}
+	// nt, err := models.CreateNotificationContentType(nc.TypeConstant)
+	// if err != nil {
+	// 	return err
+	// }
 
-	nt.SetTargetId(nc.TargetId)
-	nt.SetListerId(n.AccountId)
-	ac, err := nt.FetchActors()
-	if err != nil {
-		return err
-	}
+	// nt.SetTargetId(nc.TargetId)
+	// nt.SetListerId(n.AccountId)
+	// ac, err := nt.FetchActors()
+	// if err != nil {
+	// 	return err
+	// }
 
 	nContainer := models.NewNotificationContainer()
-	nContainer.TypeConstant = nc.TypeConstant
-	nContainer.TargetId = nc.TargetId
-	nContainer.Glanced = false
-	nContainer.LatestActors = ac.LatestActors
-	nContainer.ActorCount = ac.Count
-	nContainer.UpdatedAt = n.UpdatedAt
+	// nContainer.TypeConstant = nc.TypeConstant
+	// nContainer.TargetId = nc.TargetId
+	// nContainer.Glanced = false
+	// nContainer.LatestActors = ac.LatestActors
+	// nContainer.ActorCount = ac.Count
+	// nContainer.UpdatedAt = n.UpdatedAt
 
 	return cache.addNotification(nContainer, n.AccountId)
 }

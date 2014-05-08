@@ -183,72 +183,44 @@ func (n *Notification) FetchContent() (*NotificationContent, error) {
 	return nc, nil
 }
 
-func (n *Notification) Follow(a *Activity) error {
-	a.TypeConstant = NotificationContent_TYPE_FOLLOW
-	// create activity
-	if err := a.Create(); err != nil {
-		return err
-	}
+// func (n *Notification) Follow(a *NotificationActivity) error {
+// 	// a.TypeConstant = NotificationContent_TYPE_FOLLOW
+// 	// create NotificationActivity
+// 	if err := a.Create(); err != nil {
+// 		return err
+// 	}
 
-	fn := NewFollowNotification()
-	fn.NotifierId = a.ActorId
-	fn.TargetId = a.TargetId
+// 	fn := NewFollowNotification()
+// 	fn.NotifierId = a.ActorId
+// 	// fn.TargetId = a.TargetId
 
-	return CreateNotification(fn)
-}
+// 	return CreateNotificationContent(fn)
+// }
 
-func (n *Notification) JoinGroup(a *Activity, admins []int64) error {
-	a.TypeConstant = NotificationContent_TYPE_JOIN
+// func (n *Notification) JoinGroup(a *NotificationActivity, admins []int64) error {
+// 	// a.TypeConstant = NotificationContent_TYPE_JOIN
 
-	return n.interactGroup(a, admins)
-}
+// 	return n.interactGroup(a, admins)
+// }
 
-func (n *Notification) LeaveGroup(a *Activity, admins []int64) error {
-	a.TypeConstant = NotificationContent_TYPE_LEAVE
+// func (n *Notification) LeaveGroup(a *NotificationActivity, admins []int64) error {
+// 	// a.TypeConstant = NotificationContent_TYPE_LEAVE
 
-	return n.interactGroup(a, admins)
-}
+// 	return n.interactGroup(a, admins)
+// }
 
-func (n *Notification) interactGroup(a *Activity, admins []int64) error {
-	gn := NewGroupNotification(a.TypeConstant)
-	gn.NotifierId = a.ActorId
-	gn.TargetId = a.TargetId
-	gn.Admins = admins
+// func (n *Notification) interactGroup(a *NotificationActivity, admins []int64) error {
+// 	gn := NewGroupNotification(a.TypeConstant)
+// 	gn.NotifierId = a.ActorId
+// 	gn.TargetId = a.TargetId
+// 	gn.Admins = admins
 
-	if err := a.Create(); err != nil {
-		return err
-	}
+// 	if err := a.Create(); err != nil {
+// 		return err
+// 	}
 
-	return CreateNotification(gn)
-}
-
-// populateActors fetches latest actor ids and total count of actors. recipientId is needed for excluding
-// recipients own activities
-func populateActors(recipientId int64, ncList []NotificationContainer) ([]NotificationContainer, error) {
-	result := make([]NotificationContainer, 0)
-
-	for _, n := range ncList {
-		notificationType, err := CreateNotificationType(n.TypeConstant)
-		if err != nil {
-			return nil, err
-		}
-
-		notificationType.SetTargetId(n.TargetId)
-		notificationType.SetListerId(recipientId)
-
-		actors, err := notificationType.FetchActors()
-		// instead of interrupting process we can just proceed here
-		if err != nil {
-			return nil, err
-		}
-
-		n.LatestActors = actors.LatestActors
-		n.ActorCount = actors.Count
-		result = append(result, n)
-	}
-
-	return result, nil
-}
+// 	return CreateNotificationContent(gn)
+// }
 
 func (n *Notification) AfterCreate() {
 	bongo.B.AfterCreate(n)
