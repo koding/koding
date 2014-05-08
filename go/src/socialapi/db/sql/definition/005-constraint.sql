@@ -160,20 +160,21 @@ ALTER TABLE "api"."notification" ADD CONSTRAINT "notification_notification_conte
 CREATE UNIQUE INDEX  "notification_id_key" ON "api"."notification" USING btree("id" ASC NULLS LAST);
 
 -- ----------------------------------------------------------------------------------------
---  Structure for table Activity
+--  Structure for table NotificationActivity
 -- ----------------------------------------------------------------------------------------
 -- ----------------------------
---  Primary key structure for table activity
+--  Primary key structure for table notification_activity
 -- ----------------------------
-ALTER TABLE "api"."activity" ADD PRIMARY KEY ("id") NOT DEFERRABLE INITIALLY IMMEDIATE;
+ALTER TABLE "api"."notification_activity" ADD PRIMARY KEY ("id") NOT DEFERRABLE INITIALLY IMMEDIATE;
 -- ----------------------------
 --  Foreign keys structure for table activity
 -- ----------------------------
-ALTER TABLE "api"."activity" ADD CONSTRAINT "activity_actor_id_fkey" FOREIGN KEY ("actor_id") REFERENCES "api"."account" ("id") ON UPDATE NO ACTION ON DELETE NO ACTION NOT DEFERRABLE INITIALLY IMMEDIATE;
+ALTER TABLE "api"."notification_activity" ADD CONSTRAINT "notification_activity_actor_id_fkey" FOREIGN KEY ("actor_id") REFERENCES "api"."account" ("id") ON UPDATE NO ACTION ON DELETE NO ACTION NOT DEFERRABLE INITIALLY IMMEDIATE;
+ALTER TABLE "api"."notification_activity" ADD CONSTRAINT "notification_activity_notification_content_id_fkey" FOREIGN KEY ("notification_content_id") REFERENCES "api"."notification_content" ("id") ON UPDATE NO ACTION ON DELETE NO ACTION NOT DEFERRABLE INITIALLY IMMEDIATE;
 -- ----------------------------
 --  Indexes structure for table activity
 -- ----------------------------
-CREATE UNIQUE INDEX  "activity_id_key" ON "api"."activity" USING btree("id" ASC NULLS LAST);
+CREATE UNIQUE INDEX  "notification_activity_id_key" ON "api"."notification_activity" USING btree("id" ASC NULLS LAST);
 
 -- ----------------------------------------------------------------------------------------
 --  Structure for table NotificationSubscription

@@ -147,19 +147,19 @@ WITH (OIDS=FALSE);
 GRANT SELECT, INSERT, DELETE ON "api"."notification_content" TO "socialapplication";
 
 -- ----------------------------
---  Table structure for activity
+--  Table structure for notification_activity
 -- ----------------------------
-DROP TABLE IF EXISTS "api"."activity";
-CREATE TABLE "api"."activity" (
-    "id" int8 NOT NULL DEFAULT nextval('activity_id_seq'::regclass),
-    "target_id" int8 NOT NULL,
+DROP TABLE IF EXISTS "api"."notification_activity";
+CREATE TABLE "api"."notification_activity" (
+    "id" int8 NOT NULL DEFAULT nextval('notification_activity_id_seq'::regclass),
     "actor_id" int8 NOT NULL,
-    "type_constant" varchar(100) NOT NULL COLLATE "default",
-    "updated_at" timestamp(6) WITH TIME ZONE NOT NULL DEFAULT now()
+    "notification_content_id" int8 NOT NULL,
+    "obsolete" bool NOT NULL,
+    "created_at" timestamp(6) WITH TIME ZONE NOT NULL DEFAULT now()
 )
 WITH (OIDS=FALSE);
--- ALTER TABLE "api"."activity" OWNER TO "socialapplication";
-GRANT SELECT, INSERT, DELETE ON "api"."activity" TO "socialapplication";
+-- ALTER TABLE "api"."notification_activity" OWNER TO "socialapplication";
+GRANT SELECT, INSERT, DELETE ON "api"."notification_activity" TO "socialapplication";
 
 -- ----------------------------
 --  Table structure for notification_subscription
