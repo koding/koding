@@ -15,16 +15,15 @@ class MessagePane extends KDTabPaneView
       lastToFirst   : yes  if type is 'message'
 
     @listView = @listController.getView()
-    @input    = new ActivityInputWidget {channel}
 
-    @input.on "Submit", (activity) =>
-
-      @listController.addItem activity
+    unless type in ['post', 'message']
+      @input = new ActivityInputWidget {channel}
+      @input.on 'Submit', @listController.bound 'addItem'
 
 
   viewAppended: ->
 
-    @addSubView @input
+    @addSubView @input  if @input
     @addSubView @listView
     @populate()
 
