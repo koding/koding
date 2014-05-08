@@ -81,6 +81,7 @@ website/a/js/bongo.js
 website/a/js/kd.js
 website/a/js/kd.libs.js
 website/a/js/koding.js
-website/a/sprites/*.sprite.png
 
 client/Main/__generated*
+
+sprites/*.sprite.png
