@@ -70,16 +70,23 @@ module.exports = class ComputeProvider extends Base
 
       {provider, credential} = options
 
-      if not provider or not provider = PROVIDERS[provider]
+      if not provider or not provider_ = PROVIDERS[provider]
         return callback new KodingError "No such provider.", "ProviderNotFound"
       else
-        arguments[1].provider = provider
+        provider_.slug        = provider
+        arguments[1].provider = provider_
+
+      args = [ arguments... ]
+
+      # This is Koding only which doesn't need a valid credential
+      # since the user session is enough for koding provider for now.
+      if provider is 'koding'
+        fn.apply @, args
+        return
 
       if not credential?
         return callback new KodingError \
           "Credential is required.", "MissingCredential"
-
-      args = [ arguments... ]
 
       checkCredential client, credential, (err, cred)=>
 
