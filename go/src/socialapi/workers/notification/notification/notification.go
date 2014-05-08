@@ -124,18 +124,34 @@ func (n *NotificationWorkerController) CreateReplyNotification(data []byte) erro
 }
 
 func (n *NotificationWorkerController) CreateInteractionNotification(data []byte) error {
-	// i, err := mapMessageToInteraction(data)
-	// if err != nil {
-	// 	return err
-	// }
+	i, err := mapMessageToInteraction(data)
+	if err != nil {
+		return err
+	}
 
-	// // a bit error prune since we take interaction type as notification type
-	// in := models.NewInteractionNotification(i.TypeConstant)
-	// in.TargetId = i.MessageId
-	// in.NotifierId = i.AccountId
-	// if err := models.CreateNotificationContent(in); err != nil {
-	// 	return err
-	// }
+	in := models.NewInteractionNotification(i.TypeConstant)
+	in.TargetId = i.MessageId
+	in.NotifierId = i.AccountId
+	nc, err := models.CreateNotificationContent(in)
+	if err != nil {
+		return err
+	}
+
+	recipients, err := in.GetNotifiedUsers(nc.Id)
+	if err != nil {
+		return err
+	}
+
+	if len(recipients) == 0 {
+		return errors.New("interaction notifiee not found")
+	}
+
+	notification := models.NewNotification()
+	notification.NotificationContentId = nc.Id
+	notification.AccountId = recipients[0]
+	if err = notification.Create(); err != nil {
+		n.log.Error("An error occurred while notifying user %d: %s", recipients[0], err.Error())
+	}
 
 	return nil
 }

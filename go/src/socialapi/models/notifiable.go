@@ -62,28 +62,20 @@ func (n *InteractionNotification) SetTargetId(targetId int64) {
 	n.TargetId = targetId
 }
 
-func (n *InteractionNotification) FetchActors([]NotificationActivity) (*ActorContainer, error) {
+func (n *InteractionNotification) FetchActors(naList []NotificationActivity) (*ActorContainer, error) {
 	if n.TargetId == 0 {
 		return nil, errors.New("TargetId is not set")
 	}
 
-	i := NewInteraction()
-	p := bongo.NewPagination(NOTIFIER_LIMIT, 0)
-	i.MessageId = n.TargetId
-
-	actors, err := i.FetchInteractorIds(n.GetType(), p)
-	if err != nil {
-		return nil, err
+	// TODO user should not be notified if she interacts with her own message
+	actors := make([]int64, 0)
+	for _, na := range naList {
+		if !na.Obsolete {
+			actors = append(actors, na.ActorId)
+		}
 	}
 
-	ac := NewActorContainer()
-	ac.LatestActors = actors
-	ac.Count, err = i.FetchInteractorCount()
-	if err != nil {
-		return nil, err
-	}
-
-	return ac, nil
+	return prepareActorContainer(actors), nil
 }
 
 func (n *InteractionNotification) SetListerId(listerId int64) {
@@ -167,6 +159,7 @@ func (n *ReplyNotification) FetchActors(naList []NotificationActivity) (*ActorCo
 	if n.TargetId == 0 {
 		return nil, errors.New("TargetId is not set")
 	}
+	// TODO inject this information
 	// first determine message owner
 	channelMessage := NewChannelMessage()
 	if err := channelMessage.ById(n.TargetId); err != nil {
@@ -192,14 +185,7 @@ func (n *ReplyNotification) FetchActors(naList []NotificationActivity) (*ActorCo
 		}
 	}
 
-	ac := NewActorContainer()
-	actors = reverse(actors)
-	actorLength := len(actors)
-	actorLimit := int(math.Min(float64(actorLength), float64(NOTIFIER_LIMIT)))
-	ac.LatestActors = actors[0:actorLimit]
-	ac.Count = actorLength
-
-	return ac, nil
+	return prepareActorContainer(actors), nil
 }
 
 func reverse(ids []int64) []int64 {
@@ -208,6 +194,18 @@ func reverse(ids []int64) []int64 {
 	}
 
 	return ids
+}
+
+func prepareActorContainer(actors []int64) *ActorContainer {
+	actors = reverse(actors)
+	actorLength := len(actors)
+	actorLimit := int(math.Min(float64(actorLength), float64(NOTIFIER_LIMIT)))
+
+	ac := NewActorContainer()
+	ac.LatestActors = actors[0:actorLimit]
+	ac.Count = actorLength
+
+	return ac
 }
 
 func (n *ReplyNotification) SetListerId(listerId int64) {
