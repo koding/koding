@@ -6,27 +6,28 @@ class CommentListItemView extends KDListItemView
 
     super options,data
 
-    data = @getData()
+    {message}  = @getData()
+    @message   = message
 
-    originId    = data.getAt('originId')
-    originType  = data.getAt('originType')
-    deleterId   = data.getAt('deletedBy')?.getId?()
+    @parsedDates =
+      deletedAt : Date.parse @message.deletedAt
+      createdAt : Date.parse @message.createdAt
+      updatedAt : Date.parse @message.updatedAt
 
-    origin =
-      constructorName  : originType
-      id               : originId
+    {JAccount} = KD.remote.api
 
     @avatar = new AvatarView {
       size        :
         width       : options.avatarWidth or 40
         height      : options.avatarHeight or 40
-      origin
+      origin      : JAccount.one {socialApiId : @message.accountId}
       showStatus  : yes
     }
 
-    @author = new ProfileLinkView { origin }
+    @author = new ProfileLinkView
+      origin : JAccount.one {socialApiId : @message.accountId}
 
-    @body = @getBody data
+    @body = @getBody message
     @editCommentWrapper = new KDCustomHTMLView
       cssClass : "edit-comment-wrapper hidden"
 
@@ -35,15 +36,15 @@ class CommentListItemView extends KDListItemView
       cssClass: "hidden edited"
       pistachio: "edited"
 
-    if data.getAt 'editedAt' then @editInfo.show()
+    if @parsedDates.updatedAt > @parsedDates.createdAt then @editInfo.show()
 
     if deleterId? and deleterId isnt originId
       @deleter = new ProfileLinkView {}, data.getAt('deletedBy')
 
-    activity = @getDelegate().getData()
-    loggedInId = KD.whoami().getId()
+    activity   = @getDelegate().getData()
+    loggedInId = KD.whoami().socialApiId
 
-    isCommentMine   = loggedInId is data.originId
+    isCommentMine   = loggedInId is @message.accountId
     isActivityMine  = loggedInId is activity.originId
     canEditComments = "edit comments" in KD.config.permissions
 
@@ -61,16 +62,16 @@ class CommentListItemView extends KDListItemView
 
     # if settings menu should be visible
     if showSettingsMenu
-      @settings = @getSettings data, settingsOptions
+      @settings = @getSettings @message, settingsOptions
     else
       @settings = new KDView
 
-    @likeView = new CommentLikeView { tooltipPosition : 'sw', checkIfLikedBefore: yes }, data
+    @likeView = new CommentLikeLink cssClass : 'action-link like-link', @getData()
 
-    if loggedInId isnt data.originId
-      @replyView = new ActivityActionLink
+    unless isCommentMine
+      @replyView = new CustomLinkView
         cssClass : "action-link reply-link"
-        partial  : "Mention"
+        title    : "Mention"
         click    : (event)=>
           @utils.stopDOMEvent event
           KD.remote.cacheable data.originType, data.originId, (err, res) =>
@@ -79,11 +80,11 @@ class CommentListItemView extends KDListItemView
       @replyView = new KDView
         tagName  : "span"
 
-    @timeAgoView = new KDTimeAgoView {}, data.meta.createdAt
+    @timeAgoView = new KDTimeAgoView {}, @message.createdAt
 
     # TODO: ??
-    data.on 'ContentMarkedAsLowQuality', @bound 'hide' unless KD.checkFlag 'exempt'
-    data.on 'ContentUnmarkedAsLowQuality', @bound 'show'
+    # data.on 'ContentMarkedAsLowQuality', @bound 'hide' unless KD.checkFlag 'exempt'
+    # data.on 'ContentUnmarkedAsLowQuality', @bound 'show'
 
     @on 'CommentUpdated', @bound 'updateComment'
     @on 'CommentUpdateCancelled', @bound 'cancelCommentUpdate'
@@ -107,7 +108,7 @@ class CommentListItemView extends KDListItemView
     @settings.show()
     @editComment.destroy()
     @body.show()
-    @editInfo.show() if data.getAt 'editedAt'
+    @editInfo.show() if @parsedDates.updatedAt > @parsedDates.createdAt
     @editCommentWrapper.hide()
 
   showEditCommentForm:(data)->
@@ -141,7 +142,7 @@ class CommentListItemView extends KDListItemView
     ,data
 
   render:->
-    if @getData().getAt 'deletedAt'
+    if @parsedDates.deletedAt > @parsedDates.createdAt
       @emit 'CommentIsDeleted'
     @updateTemplate()
     super
@@ -190,7 +191,8 @@ class CommentListItemView extends KDListItemView
     # TODO: these pistachios are written in JS, pending a solution
     #  to the problem of statically not being able to find pistachios unless
     #  they are contained inside a property called "pistachio".
-    if @getData().getAt 'deletedAt'
+
+    if @parsedDates.deletedAt > @parsedDates.createdAt
       {type} = @getOptions()
       @setClass "deleted"
       if @deleter
