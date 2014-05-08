@@ -59,7 +59,7 @@ class ActivityListItemView extends KDListItemView
     @timeAgoView = new KDTimeAgoView {}, @getData().meta.createdAt
 
     @editWidgetWrapper = new KDCustomHTMLView
-      cssClass         : 'edit-widget-wrapper hidden'
+      cssClass         : 'edit-widget-wrapper'
 
 
   showEditWidget : ->
@@ -69,7 +69,6 @@ class ActivityListItemView extends KDListItemView
     @editWidget.on 'Submit', @bound 'resetEditing'
     @editWidget.on 'Cancel', @bound 'resetEditing'
     @editWidgetWrapper.addSubView @editWidget, null, yes
-    @editWidgetWrapper.unsetClass "hidden"
 
 
   resetEditing : ->
