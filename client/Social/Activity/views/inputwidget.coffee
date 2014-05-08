@@ -30,7 +30,6 @@ class ActivityInputWidget extends KDView
       link     : 'http://learn.koding.com/?s=wordpress'
 
 
-
   constructor: (options = {}, data) ->
     options.cssClass = KD.utils.curry "activity-input-widget", options.cssClass
     super options, data
@@ -99,6 +98,7 @@ class ActivityInputWidget extends KDView
 
     @currentHelperNames = []
 
+
   checkForCommonQuestions: KD.utils.throttle 200, (val)->
 
     @hideAllHelpers()
@@ -147,11 +147,13 @@ class ActivityInputWidget extends KDView
     @helpContainer.addSubView new Klass options
     @currentHelperNames.push val
 
+
   hideAllHelpers:->
 
     @helpContainer.hide()
     @helpContainer.destroySubViews()
     @currentHelperNames = []
+
 
   submit: (callback) ->
 
@@ -199,7 +201,6 @@ class ActivityInputWidget extends KDView
     # if feedType is "bug" and dockItem.length is 0 then KD.singletons.dock.addItem { title : "Bugs", path : "/Bugs", order : 60 }
 
 
-
   submissionCallback: (err, activity) ->
 
     return @showError err  if err
@@ -242,23 +243,25 @@ class ActivityInputWidget extends KDView
       #   source     : "JNewStatusUpdate"
       #   targetSelf : 1
 
-  update: (data, callback) ->
+
+  update: (data, callback = noop) ->
 
     {appManager} = KD.singletons
     {channelId}  = @getOptions()
     activity     = @getData()
+    {body}       = data
 
     return  @reset()  unless activity
 
-    appManager.tell 'Activity', 'post', {
-      data
-      channelId
-      activity
-    }, (err, activity) =>
+    appManager.tell 'Activity', 'edit', {
+      body
+      id: activity.id
+    }, (err, message) =>
 
-      KD.showError err
-      @reset()  unless err
-      callback? err
+      return KD.showError err  if err
+
+      @reset()
+      callback()
 
       KD.mixpanel "Status update edit, success"
 
