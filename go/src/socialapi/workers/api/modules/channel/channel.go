@@ -59,6 +59,16 @@ func List(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface
 	)
 }
 
+func Search(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface{}, error) {
+	c := models.NewChannel()
+	q := helpers.GetQuery(u)
+	q.Type = models.Channel_TYPE_TOPIC
+
+	return helpers.HandleResultAndError(
+		c.Search(q),
+	)
+}
+
 func Delete(u *url.URL, h http.Header, req *models.Channel) (int, http.Header, interface{}, error) {
 
 	id, err := helpers.GetURIInt64(u, "id")
