@@ -156,8 +156,35 @@ module.exports = class ComputeProvider extends Base
 
   @fetchExisting = secure revive (client, options, callback)->
 
-    {provider} = options
-    provider.fetchExisting client, options, callback
+    { provider } = options
+
+    { connection: { delegate:account }, context: { group } } = client
+
+    JGroup = require '../group'
+    JGroup.one { slug: group }, (err, groupObj)=>
+
+      return callback err  if err
+      return callback new Error "Group not found"  unless groupObj
+
+      account.fetchUser (err, user)=>
+
+        return callback err  if err
+        return callback new Error "user is not defined"  unless user
+
+        selector =
+          vendor : provider.slug
+          users  : $elemMatch: id: user.getId()
+          groups : $elemMatch: id: groupObj.getId()
+
+        fieldsToFetch = label:1, stack:1, meta:1, groups:1
+
+        JMachine.someData selector, fieldsToFetch, { }, (err, cursor)->
+          return callback err  if err
+          cursor.toArray (err, arr) ->
+            return callback err  if err
+
+            options.machines = arr
+            provider.fetchExisting client, options, callback
 
 
   @fetchAvailable = secure revive (client, options, callback)->
