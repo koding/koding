@@ -2,15 +2,15 @@ class CommentViewHeader extends JView
 
   constructor: (options = {}, data) ->
 
-    options.cssClass          = KD.utils.curry "show-more-comments in", options.cssClass
-    options.maxCommentToShow ?= 3
+    options.cssClass  = KD.utils.curry "show-more-comments in", options.cssClass
+    options.maxCount ?= 3
 
     super options, data
 
-    {@maxCount}  = options
-    @oldCount    = data.repliesCount
-    @newCount    = 0
-    @onListCount = if data.repliesCount > @maxCommentToShow then @maxCommentToShow else data.repliesCount
+    {@maxCount}    = options
+    @previousCount = data.repliesCount
+    @currentCount  = 0
+    @listedCount = if data.repliesCount > @maxCount then @maxCount else data.repliesCount
 
     @allItemsLink = new CustomLinkView
       cssClass    : "all-count"
@@ -39,49 +39,49 @@ class CommentViewHeader extends JView
 
     # Get correct number of items in list from controller
     # I'm not sure maybe its not a good idea
-    @onListCount = @parent.commentController?.getItemCount?()
+    @listedCount = @parent.commentController?.getItemCount?()
 
     # If there are same number of comments in list with total
     # comment size means we don't need to show new item count
     @newItemsLink.unsetClass('in')
 
     # If its our comments so it's not a new comment
-    if @newCount > 0 then @newCount--
+    if @currentCount > 0 then @currentCount--
 
     @updateNewCount()
 
 
   ownCommentDeleted: ->
 
-    @newCount++  if @newCount > 0
+    @currentCount++  if @currentCount > 0
 
 
   update: ->
 
     # If there is no comments so we can not have new comments
-    if @oldCount is 0 then @newCount = 0
+    if @previousCount is 0 then @currentCount = 0
 
     # If we have comments more than 0 we should show the new item link
-    if @newCount > 0
+    if @currentCount > 0
       if @liveUpdate
         @emit "ListAll"
       else
         @setClass 'new'
         @allItemsLink.hide()
         @show()
-        @newItemsLink.updatePartial "#{ KD.utils.formatPlural @newCount, 'new comment' }..."
+        @newItemsLink.updatePartial "#{ KD.utils.formatPlural @currentCount, 'new comment' }..."
         @newItemsLink.setClass('in')
     else
       @unsetClass 'new'
       @newItemsLink.unsetClass('in')
 
-    if @onListCount > @oldCount
-      @onListCount = @oldCount
+    if @listedCount > @previousCount
+      @listedCount = @previousCount
 
-    if @onListCount is @getData().repliesCount
-      @newCount = 0
+    if @listedCount is @getData().repliesCount
+      @currentCount = 0
 
-    if @onListCount is @oldCount and @newCount is 0
+    if @listedCount is @previousCount and @currentCount is 0
       @hide()
     else
       @show()
@@ -90,8 +90,8 @@ class CommentViewHeader extends JView
   reset: ->
 
     @hide()
-    @newCount = 0
-    @onListCount = @getData().repliesCount
+    @currentCount = 0
+    @listedCount = @getData().repliesCount
     @update()
 
 
@@ -116,7 +116,7 @@ class CommentViewHeader extends JView
     {repliesCount} = @getData()
 
     repliesCount
-    unless repliesCount and repliesCount > @maxCommentToShow
+    unless repliesCount and repliesCount > @maxCount
       @hide()
 
 
@@ -125,26 +125,26 @@ class CommentViewHeader extends JView
     # Get correct number of items in list from controller
     # I'm not sure maybe its not a good idea
     if @parent?.commentController?.getItemCount?()
-      @onListCount = @parent.commentController.getItemCount()
-    _newCount = @getData().repliesCount
+      @listedCount = @parent.commentController.getItemCount()
+    _currentCount = @getData().repliesCount
 
     # Show View all bla bla link if there are more comments
-    # than maxCommentToShow
-    @show() if _newCount > @maxCommentToShow and @onListCount < _newCount
+    # than @maxCount
+    @show() if _currentCount > @maxCount and @listedCount < _currentCount
 
-    # Check the oldCount before update anything
+    # Check the previousCount before update anything
     # if its less means someone deleted a comment
     # otherwise it meanse we have a new comment
     # if nothing changed it means user clicked like button
     # so we don't need to touch anything
-    if _newCount > @oldCount
-      @newCount++
-    else if _newCount < @oldCount
-      if @newCount > 0 then @newCount--
+    if _currentCount > @previousCount
+      @currentCount++
+    else if _currentCount < @previousCount
+      if @currentCount > 0 then @currentCount--
 
     # If the count is changed then we need to update UI
-    if _newCount isnt @oldCount
-      @oldCount = _newCount
+    if _currentCount isnt @previousCount
+      @previousCount = _currentCount
       @utils.defer => @updateNewCount()
 
     super
