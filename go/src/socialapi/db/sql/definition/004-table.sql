@@ -102,12 +102,19 @@ GRANT SELECT, INSERT, UPDATE, DELETE ON "api"."channel_message_list" TO "sociala
 -- ----------------------------
 --  Table structure for channel_participant
 -- ----------------------------
+CREATE TYPE "api"."channel_participant_status_constant_enum" AS ENUM (
+    'active',
+    'left',
+    'requestpending'
+);
+ALTER TYPE "api"."channel_participant_status_constant_enum" OWNER TO "social";
+
 DROP TABLE IF EXISTS "api"."channel_participant";
 CREATE TABLE "api"."channel_participant" (
     "id" bigint NOT NULL DEFAULT nextval('api.channel_participant_id_seq'::regclass),
     "channel_id" bigint NOT NULL DEFAULT 0,
     "account_id" bigint NOT NULL DEFAULT 0,
-    "status_constant" varchar(100) NOT NULL COLLATE "default",
+    "status_constant" "api"."channel_participant_status_constant_enum",
     "last_seen_at" timestamp(6) WITH TIME ZONE NOT NULL DEFAULT now(),
     "created_at" timestamp(6) WITH TIME ZONE NOT NULL DEFAULT now(),
     "updated_at" timestamp(6) WITH TIME ZONE NOT NULL DEFAULT now()
