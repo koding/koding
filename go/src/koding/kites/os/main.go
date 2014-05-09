@@ -18,6 +18,7 @@ var (
 	flagRegion       = flag.String("r", "", "Configuration region from file")
 	flagDebug        = flag.Bool("d", false, "Debug mode")
 	flagTemplates    = flag.String("t", "", "Change template directory")
+	flagVMRoot       = flag.String("vmroot", "/var/lib/lxc/vmroot/", "Change default vmroot directory")
 	flagTimeout      = flag.Duration("s", time.Minute*50, "Shutdown timeout for a single VM")
 	flagDisableGuest = flag.Bool("noguest", false, "Disable Guest VM creation")
 	flagLimit        = flag.Int("limit", 100, "Limit total running VM on a single Container")
@@ -52,6 +53,7 @@ func main() {
 	os.Region = *flagRegion
 	os.ActiveVMsLimit = *flagLimit
 	os.DisableGuest = *flagDisableGuest
+	os.VMRoot = *flagVMRoot
 
 	// go go!
 	os.Run()

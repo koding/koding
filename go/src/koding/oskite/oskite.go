@@ -67,6 +67,7 @@ type Oskite struct {
 	ServiceUniquename string
 	VmTimeout         time.Duration
 	TemplateDir       string
+	VMRoot            string
 	DisableGuest      bool
 
 	RedisSession *redis.RedisSession
@@ -117,6 +118,10 @@ func (o *Oskite) Run() {
 
 	if o.TemplateDir != "" {
 		templateDir = o.TemplateDir
+	}
+
+	if o.VMRoot != "" {
+		virt.VMRoot = o.VMRoot
 	}
 
 	// set seed for even randomness, needed for randomMinutes() function.
