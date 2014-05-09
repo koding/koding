@@ -572,7 +572,7 @@ class LoginView extends KDView
           @redeemForm.inviteCode.input.setFocus()
         when "login"
           @formHeader.show()
-          @formHeader.updatePartial "Dont't have an account yet? "
+          @formHeader.updatePartial "Don't have an account yet? "
           @formHeader.addSubView @goToRegisterLink
           @loginForm.username.input.setFocus()
         when "recover"
