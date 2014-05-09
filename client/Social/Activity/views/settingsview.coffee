@@ -16,7 +16,7 @@ class ActivitySettingsView extends KDCustomHTMLView
       iconClass      : 'arrow'
       menu           : @settingsMenu data
       style          : 'resurrection'
-      callback       : (event)=> button.contextMenu event
+      callback       : (event) => @settings.contextMenu event
 
     activityController = KD.getSingleton('activityController')
 
