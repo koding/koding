@@ -60,8 +60,8 @@ module.exports = class JVerificationToken extends Module
             if count > 0 then console.log "#{count} expired PIN removed."
             else console.log "No such waiting PIN found."
 
-            # Create a random pin 4 char length
-            plainPin = Math.floor Math.random()*10001
+            # Create a random pin
+            plainPin = Math.floor Math.random()*100000000001
             pin      = crypto.createHash('sha1').update(plainPin+'').digest('hex')
 
             # Create and send new pin
