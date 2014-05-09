@@ -54,8 +54,8 @@ const (
 	Channel_TYPE_FOLLOWINGFEED   = "followingfeed"
 	Channel_TYPE_FOLLOWERS       = "followers"
 	Channel_TYPE_CHAT            = "chat"
-	Channel_TYPE_PINNED_ACTIVITY = "pinnedActivity"
-	Channel_TYPE_PRIVATE_MESSAGE = "privateMessage"
+	Channel_TYPE_PINNED_ACTIVITY = "pinnedactivity"
+	Channel_TYPE_PRIVATE_MESSAGE = "privatemessage"
 	Channel_TYPE_DEFAULT         = "default"
 	// Privacy
 	Channel_PRIVACY_PUBLIC  = "public"
