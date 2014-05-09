@@ -3,6 +3,7 @@ package notification
 import (
 	"encoding/json"
 	"errors"
+	// "fmt"
 	"github.com/koding/logging"
 	"github.com/koding/rabbitmq"
 	"github.com/koding/worker"
@@ -12,6 +13,7 @@ import (
 	"labix.org/v2/mgo"
 	"socialapi/models"
 	"socialapi/workers/cache"
+	"time"
 )
 
 type Action func(*NotificationWorkerController, []byte) error
@@ -100,6 +102,7 @@ func (n *NotificationWorkerController) CreateReplyNotification(data []byte) erro
 	rn := models.NewReplyNotification()
 	rn.TargetId = mr.MessageId
 	rn.NotifierId = cm.AccountId
+	subscribedAt := time.Now()
 
 	nc, err := models.CreateNotificationContent(rn)
 	if err != nil {
@@ -112,7 +115,10 @@ func (n *NotificationWorkerController) CreateReplyNotification(data []byte) erro
 		return err
 	}
 
-	n.createNotification(nc.Id, cm.AccountId)
+	// if it is not notifier's own message then add owner to subscribers
+	if cm.AccountId != rn.NotifierId {
+		n.createNotification(nc.Id, cm.AccountId, subscribedAt)
+	}
 
 	notifiedUsers, err := rn.GetNotifiedUsers(nc.Id)
 	if err != nil {
@@ -124,21 +130,22 @@ func (n *NotificationWorkerController) CreateReplyNotification(data []byte) erro
 		if recipient == rn.NotifierId {
 			notifierSubscribed = true
 		}
-		n.createNotification(nc.Id, recipient)
+		n.createNotification(nc.Id, recipient, subscribedAt)
 	}
 
-	// if not subcribed, create a notification for new subscriber
+	// if not subcribed, subscribe the actor to message
 	if !notifierSubscribed {
-		n.createNotification(nc.Id, rn.NotifierId)
+		n.createNotification(nc.Id, rn.NotifierId, subscribedAt)
 	}
 
 	return nil
 }
 
-func (n *NotificationWorkerController) createNotification(contentId, notifierId int64) {
+func (n *NotificationWorkerController) createNotification(contentId, notifierId int64, subscribedAt time.Time) {
 	notification := models.NewNotification()
 	notification.NotificationContentId = contentId
 	notification.AccountId = notifierId
+	notification.SubscribedAt = subscribedAt
 	if err := notification.Create(); err != nil {
 		n.log.Error("An error occurred while notifying user %d: %s", notifierId, err.Error())
 	}
@@ -168,25 +175,18 @@ func (n *NotificationWorkerController) CreateInteractionNotification(data []byte
 		return err
 	}
 
-	recipients, err := in.GetNotifiedUsers(nc.Id)
-	if err != nil {
-		return err
-	}
-
-	if len(recipients) == 0 {
-		return errors.New("interaction notifiee not found")
-	}
-
 	notification := models.NewNotification()
 	notification.NotificationContentId = nc.Id
-	notification.AccountId = recipients[0]
+	notification.AccountId = cm.AccountId // notify message owner
+	notification.ActivatedAt = time.Now() // enables notification immediately
 	if err = notification.Create(); err != nil {
-		n.log.Error("An error occurred while notifying user %d: %s", recipients[0], err.Error())
+		n.log.Error("An error occurred while notifying user %d: %s", cm.AccountId, err.Error())
 	}
 
 	return nil
 }
 
+// TODO how this is handled, it looks like it needs refactoring
 func (n *NotificationWorkerController) NotifyUser(data []byte) error {
 	channel, err := n.notifierRmqConn.Channel()
 	if err != nil {
@@ -205,12 +205,12 @@ func (n *NotificationWorkerController) NotifyUser(data []byte) error {
 		return err
 	}
 
-	nt, err := models.CreateNotificationContentType(nc.TypeConstant)
+	nI, err := models.CreateNotificationContentType(nc.TypeConstant)
 	if err != nil {
 		return err
 	}
 
-	nt.SetTargetId(nc.TargetId)
+	nI.SetTargetId(nc.TargetId)
 	// ac, err := nt.FetchActors()
 	// if err != nil {
 	// 	return err
