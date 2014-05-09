@@ -286,6 +286,7 @@ module.exports =
     cronDaily   : '0 10 0 * * *'
     run         : no
     forcedRecipient : undefined
+    maxAge      : 3
   emailSender   :
     run         : no
   guests        :

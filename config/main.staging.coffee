@@ -283,6 +283,7 @@ module.exports =
     cronDaily   : '0 10 0 * * *'
     run         : no
     forcedRecipient : "kodingtestuser@gmail.com"
+    maxAge      : 3
   emailSender   :
     run         : yes
   guests        :
