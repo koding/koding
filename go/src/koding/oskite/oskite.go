@@ -31,7 +31,7 @@ import (
 
 const (
 	OSKITE_NAME    = "oskite"
-	OSKITE_VERSION = "0.2.7"
+	OSKITE_VERSION = "0.2.8"
 )
 
 var (
@@ -67,6 +67,7 @@ type Oskite struct {
 	ServiceUniquename string
 	VmTimeout         time.Duration
 	TemplateDir       string
+	VMRoot            string
 	DisableGuest      bool
 
 	RedisSession *redis.RedisSession
@@ -117,6 +118,10 @@ func (o *Oskite) Run() {
 
 	if o.TemplateDir != "" {
 		templateDir = o.TemplateDir
+	}
+
+	if o.VMRoot != "" {
+		virt.VMRoot = o.VMRoot
 	}
 
 	// set seed for even randomness, needed for randomMinutes() function.
@@ -355,7 +360,7 @@ func (o *Oskite) startPinnedVMs() {
 				break
 			}
 			if err := o.startSingleVM(&vm, nil); err != nil {
-				log.LogError(err, 0)
+				log.Error("startSingleVM error: %v", err)
 			}
 		}
 
@@ -652,34 +657,26 @@ func (o *Oskite) startSingleVM(vm *virt.VM, channel *kite.Channel) error {
 		return err
 	}
 
-	var lastError error
 	done := make(chan struct{}, 1)
 	prepareQueue <- &QueueJob{
 		msg: "startSingleVM " + vm.HostnameAlias,
 		f: func() error {
 			// prepare first
-			if lastError = prepareProgress(nil, vm); lastError != nil {
-				return fmt.Errorf("preparing VM %s", lastError)
-			}
+			defer func() { done <- struct{}{} }()
 
-			done <- struct{}{}
+			if err = prepareProgress(nil, vm); err != nil {
+				return fmt.Errorf("preparing VM %s", err)
+			}
 
 			return nil
 		},
 	}
 
-	log.Info("putting %s into queue. total vms in queue: %d of %d",
-		vm.HostnameAlias, currentQueueCount.Get(), len(prepareQueue))
-
 	// wait until the prepareWorker has picked us and we finished
 	// to return something to the client
 	<-done
 
-	if lastError != nil {
-		log.Error("startSingleVM error: %s", lastError)
-	}
-
-	return lastError
+	return err
 }
 
 // prepareWorker listens from prepareQueue channel and runs the functions it receives
@@ -692,7 +689,7 @@ func (o *Oskite) prepareWorker(id int) {
 	for job := range prepareQueue {
 		currentQueueCount.Add(1)
 
-		log.Info("Starting job: '%s' %s", job.msg, queueInfo())
+		log.Info("starting job: '%s' %s", job.msg, queueInfo())
 
 		done := make(chan struct{}, 1)
 		go func() {
@@ -700,9 +697,9 @@ func (o *Oskite) prepareWorker(id int) {
 
 			err := job.f() // execute our function
 			if err != nil {
-				log.Error("Aborted job: '%s' err: %s %s", job.msg, err.Error(), queueInfo())
+				log.Error("aborted job: '%s' err: %s %s", job.msg, err.Error(), queueInfo())
 			} else {
-				log.Info("Finished job: '%s' elapsed time: %s %s", job.msg, time.Since(start), queueInfo())
+				log.Info("finished job: '%s' elapsed time: %s %s", job.msg, time.Since(start), queueInfo())
 			}
 
 			done <- struct{}{}
@@ -711,7 +708,7 @@ func (o *Oskite) prepareWorker(id int) {
 		select {
 		case <-done:
 		case <-time.After(time.Second * 60):
-			log.Error("Timeout job: '%s' after 60 seconds %s", job.msg, queueInfo())
+			log.Error("timeout job: '%s' after 60 seconds %s", job.msg, queueInfo())
 		}
 
 		currentQueueCount.Add(-1)

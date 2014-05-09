@@ -20,6 +20,8 @@ Or feel free to just use curl, as in the examples below.
 [raft]: http://raftconsensus.github.io/
 [etcdctl]: http://github.com/coreos/etcdctl/
 
+If you're considering etcd for production use, please see: [production-ready.md](./Documentation/production-ready.md)
+
 ## Getting Started
 
 ### Getting etcd
@@ -79,6 +81,7 @@ You have successfully started an etcd on a single machine and written a key to t
 - Learn about the dashboard, lock and leader election [modules][modules].
 - Use TLS to [secure an etcd cluster][security].
 - [Tune etcd][tuning].
+- [Upgrade from old version][upgrade].
 
 [api]: https://github.com/coreos/etcd/blob/master/Documentation/api.md
 [clustering]: https://github.com/coreos/etcd/blob/master/Documentation/clustering.md
@@ -87,10 +90,11 @@ You have successfully started an etcd on a single machine and written a key to t
 [modules]: https://github.com/coreos/etcd/blob/master/Documentation/modules.md
 [security]: https://github.com/coreos/etcd/blob/master/Documentation/security.md
 [tuning]: https://github.com/coreos/etcd/blob/master/Documentation/tuning.md
+[upgrade]: https://github.com/coreos/etcd/blob/master/Documentation/upgrade.md
 
 ## Contact
 
-- Mailing list: [etcd-dev](http://coreos.com/lists/etcd-dev/)
+- Mailing list: [etcd-dev](https://groups.google.com/forum/?hl=en#!forum/etcd-dev)
 - IRC: #[coreos](irc://irc.freenode.org:6667/#coreos) oon freenode.org
 - Planning/Roadmap: [milestones](https://github.com/coreos/etcd/issues/milestones)
 - Bugs: [issues](https://github.com/coreos/etcd/issues)

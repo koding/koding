@@ -11,6 +11,7 @@ module.exports = class JVerificationToken extends Module
 
   {secure}    = require 'bongo'
   crypto      = require 'crypto'
+  hat         = require 'hat'
 
   @share()
 
@@ -38,7 +39,7 @@ module.exports = class JVerificationToken extends Module
   @requestNewPin = (options, callback)->
 
     {action, email, subject, user, firstName} = options
-    subject   or= "Here is your PIN"
+    subject   or= "Here is your code"
     username    = user.getAt 'username'
     email     or= user.getAt 'email'
     firstName or= username
@@ -60,8 +61,8 @@ module.exports = class JVerificationToken extends Module
             if count > 0 then console.log "#{count} expired PIN removed."
             else console.log "No such waiting PIN found."
 
-            # Create a random pin 4 char length
-            plainPin = Math.floor Math.random()*10001
+            # Create a random pin
+            plainPin = hat 16
             pin      = crypto.createHash('sha1').update(plainPin+'').digest('hex')
 
             # Create and send new pin
@@ -98,7 +99,7 @@ module.exports = class JVerificationToken extends Module
     """
     Hi #{firstName},
 
-    You can use following pin to complete your request:
+    You can use following code to complete your request:
 
       #{plainPin}
 

@@ -14,6 +14,8 @@ import (
 
 type VmCollection map[bson.ObjectId]*virt.VM
 
+var blacklist = set.New()
+
 // mongodbVMs returns a map of VMs that are bind to the given
 // serviceUniquename/hostkite in mongodb
 func mongodbVMs(serviceUniquename string) (VmCollection, error) {
@@ -90,7 +92,7 @@ func (o *Oskite) vmUpdater() {
 				return true
 			}
 
-			if vm, ok := vms[vmId]; ok {
+			if vm, ok := vms[vmId]; ok && !blacklist.Has(vmId) {
 				o.startAlwaysOn(vm)
 			}
 
@@ -126,8 +128,24 @@ func (o *Oskite) startAlwaysOn(vm *virt.VM) {
 		return
 	}
 
-	log.Info("starting alwaysOn VM %s [%s]", vm.HostnameAlias, vm.Id.Hex())
-	go o.startSingleVM(vm, nil)
+	go func() {
+		err := o.startSingleVM(vm, nil)
+		if err == nil {
+			return
+		}
+
+		if blacklist.Has(vm.Id) {
+			return
+		}
+
+		log.Error("alwaysOn vm %s - %s  couldn't be started, adding to blacklist for one hour. err %s",
+			vm.HostnameAlias, vm.Id, err)
+
+		blacklist.Add(vm.Id)
+		time.AfterFunc(time.Hour, func() {
+			blacklist.Remove(vm.Id)
+		})
+	}()
 }
 
 func unprepareLeftover(vmId bson.ObjectId) {
