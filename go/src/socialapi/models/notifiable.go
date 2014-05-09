@@ -3,7 +3,6 @@ package models
 import (
 	"errors"
 	// "github.com/jinzhu/gorm"
-	// "fmt"
 	"github.com/koding/bongo"
 	"math"
 	"time"
@@ -29,25 +28,11 @@ type InteractionNotification struct {
 	TypeConstant string
 	ListerId     int64
 	NotifierId   int64
+	OwnerId      int64
 }
 
 func (n *InteractionNotification) GetNotifiedUsers(notificationContentId int64) ([]int64, error) {
-	i := NewInteraction()
-	i.MessageId = n.TargetId
-
-	// fetch message owner
-	targetMessage := NewChannelMessage()
-	if err := targetMessage.ById(n.TargetId); err != nil {
-		return nil, err
-	}
-
-	notifiedUsers := make([]int64, 0)
-	// notify just the owner
-	if targetMessage.AccountId != n.NotifierId {
-		notifiedUsers = append(notifiedUsers, targetMessage.AccountId)
-	}
-
-	return notifiedUsers, nil
+	return fetchNotifiedUsers(notificationContentId)
 }
 
 func (n *InteractionNotification) GetType() string {
@@ -67,10 +52,10 @@ func (n *InteractionNotification) FetchActors(naList []NotificationActivity) (*A
 		return nil, errors.New("TargetId is not set")
 	}
 
-	// TODO user should not be notified if she interacts with her own message
+	// filter obsolete activities and user's own activities
 	actors := make([]int64, 0)
 	for _, na := range naList {
-		if !na.Obsolete {
+		if !na.Obsolete && na.ActorId != n.ListerId {
 			actors = append(actors, na.ActorId)
 		}
 	}
@@ -94,30 +79,35 @@ type ReplyNotification struct {
 	TargetId   int64
 	ListerId   int64
 	NotifierId int64
-	OwnerId    int64
 }
 
 func (n *ReplyNotification) GetNotifiedUsers(notificationContentId int64) ([]int64, error) {
 	// fetch all subscribers
 
-	var notifications []Notification
-	q := &bongo.Query{
-		Selector: map[string]interface{}{
-			"notification_content_id": notificationContentId,
-			"type_constant":           Notification_TYPE_SUBSCRIBE,
-		},
-	}
-	notification := NewNotification()
-	if err := notification.Some(&notifications, q); err != nil {
+	notifiees, err := fetchNotifiedUsers(notificationContentId)
+	if err != nil {
 		return nil, err
 	}
 
-	notifiees := make([]int64, 0)
+	filteredNotifiees := make([]int64, 0)
 	// append subscribed users and regress notifier
-	for _, notification := range notifications {
-		if notification.AccountId != n.NotifierId {
-			notifiees = append(notifiees, notification.AccountId)
+	for _, accountId := range notifiees {
+		if accountId != n.NotifierId {
+			filteredNotifiees = append(filteredNotifiees, accountId)
 		}
+	}
+
+	return filteredNotifiees, nil
+}
+
+func fetchNotifiedUsers(contentId int64) ([]int64, error) {
+	var notifiees []int64
+	n := NewNotification()
+	err := bongo.B.DB.Table(n.TableName()).
+		Where("notification_content_id = ? AND subscribed_at > '1900-01-01'", contentId).
+		Pluck("account_id", &notifiees).Error
+	if err != nil {
+		return nil, err
 	}
 
 	return notifiees, nil
@@ -136,32 +126,31 @@ func (n *ReplyNotification) SetTargetId(targetId int64) {
 }
 
 func (n *ReplyNotification) FetchActors(naList []NotificationActivity) (*ActorContainer, error) {
-	if n.TargetId == 0 {
-		return nil, errors.New("TargetId is not set")
+
+	if len(naList) == 0 {
+		return NewActorContainer(), nil
 	}
-	// TODO inject this information
-	// first determine message owner
-	channelMessage := NewChannelMessage()
-	if err := channelMessage.ById(n.TargetId); err != nil {
+
+	notification := NewNotification()
+	notification.NotificationContentId = naList[0].NotificationContentId
+	notification.AccountId = n.ListerId
+	if err := notification.FetchByContent(); err != nil {
 		return nil, err
 	}
 
-	found := false
-	if channelMessage.AccountId == n.ListerId {
-		found = true
+	if notification.UnsubscribedAt.Equal(ZeroDate()) {
+		notification.UnsubscribedAt = time.Now()
 	}
 
 	actors := make([]int64, 0)
 	actorMap := map[int64]struct{}{}
 	for _, na := range naList {
 		_, ok := actorMap[na.ActorId]
-		if found && !ok && na.ActorId != n.ListerId && !na.Obsolete {
+		if !ok && na.ActorId != n.ListerId && !na.Obsolete &&
+			na.CreatedAt.After(notification.SubscribedAt) &&
+			na.CreatedAt.Before(notification.UnsubscribedAt) {
 			actors = append(actors, na.ActorId)
 			actorMap[na.ActorId] = struct{}{}
-		}
-
-		if na.ActorId == n.ListerId {
-			found = true
 		}
 	}
 
