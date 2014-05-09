@@ -208,11 +208,18 @@ resurrection.activity.styl
         padding           5px 5px 5px 9px
         rounded           4px
         font-size         14px
-        vendor            box-sizing, content-box
         overflow          visible
         position          relative
         display           block
         color             #4c4c4c
+        contentBox()
+        &:hover
+          bg              color rgba(0,0,0,.01)
+          pointer()
+          .profile
+          .ttag
+            text-decoration underline
+
 
         cite.count
           size            auto, 20px
@@ -276,6 +283,7 @@ resurrection.activity.styl
           overflow        visible
 
         &.topics
+
           .ttag
             display       block
             font-weight   500

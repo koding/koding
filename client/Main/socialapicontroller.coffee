@@ -16,7 +16,7 @@ class SocialApiController extends KDController
     m.account._id = data.accountOldId
     m.meta = {}
     m.meta.createdAt = message.createdAt
-    m.replies = data.replies
+    m.replies = mapActivities data.replies
     m.repliesCount = data.replies?.length or 0
     m.interactions = data.interactions
 

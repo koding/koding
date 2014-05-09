@@ -9,7 +9,6 @@ class ActivityAppView extends KDView
   isMember       = -> 'member' in roles
   canListMembers = -> 'list members' in permissions
   isPrivateGroup = -> not isKoding() and isGroup()
-  extractName    = (data) -> data.name or data.profile.nickname
 
 
   constructor:(options = {}, data)->
@@ -43,8 +42,7 @@ class ActivityAppView extends KDView
   sidebarItemClicked: (item) ->
 
     data = item.getData()
-    pane = @tabs.getPaneByName extractName data
-
+    pane = @tabs.getPaneByName "#{data.id}"
 
     if pane and pane is @tabs.getActivePane()
     then pane.refresh()
@@ -55,9 +53,9 @@ class ActivityAppView extends KDView
 
   createTab: (data) ->
 
-    name      = extractName data
-    type      = data.typeConstant
+    name      = "#{data.id}"
     channelId = data.id
+    type      = data.typeConstant
 
     @tabs.addPane pane = new MessagePane {name, type, channelId}, data
 
