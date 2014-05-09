@@ -306,9 +306,8 @@ class VirtualizationController extends KDController
       # terminal kite.
       kite.ready =>
         @terminalKites[alias] = @getKite vm, 'terminal'
-        resolve()
+      resolve()
     .nodeify callback
-
 
   listenToVmState: (vm, kite) ->
     alias = vm.hostnameAlias
