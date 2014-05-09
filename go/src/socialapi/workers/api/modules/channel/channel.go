@@ -67,8 +67,16 @@ func Search(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interfa
 	q := helpers.GetQuery(u)
 	q.Type = models.Channel_TYPE_TOPIC
 
+	channelList, err := models.NewChannel().Search(q)
+	if err != nil {
+		return helpers.NewBadRequestResponse(err)
+	}
+
 	return helpers.HandleResultAndError(
-		models.NewChannel().Search(q),
+		models.PopulateChannelContainers(
+			channelList,
+			q.AccountId,
+		),
 	)
 }
 
