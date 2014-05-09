@@ -662,15 +662,23 @@ span.collapsedtext
           margin-left     7px
           font-size       11px
 
-      .action-container~.action-container:before
-        content           ""
-        display           inline-block
-        size              3px, 3px
-        rounded           50%
-        background        #d3d3d3
-        font-size         8px
-        margin            0 3px 0 5px
-        vertical-align    middle
+        &~.action-container:before
+          content         ""
+          display         inline-block
+          size            3px, 3px
+          rounded         50%
+          background      #d3d3d3
+          font-size       8px
+          margin          0 3px 0 5px
+          vertical-align  middle
+
+        &.kdloader
+          width           auto
+          vertical-align  middle
+          margin-left     4px
+
+          &:before
+            display       none
 
     .like-summary
       height              33px
