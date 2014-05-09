@@ -76,7 +76,7 @@ class OsKite extends KDKite
 
   vmOn: (t = 0) ->
     @changeState 'RUNNING', 'vm.progress.start', 'vmOn', @vmPrepareAndStart
-      .catch KiteError.codeIsnt('ErrQuotaExceeded'), (err) =>
+      .catch ((it) -> not /ErrQuotaExceeded/.test it.message), (err) =>
         if t < 5
           return Promise.delay(1000 * Math.pow 1.3, ++t).then => @vmOn t
         throw err
