@@ -35,7 +35,8 @@ type StepFunc struct {
 }
 
 var (
-	VMPool      string = "vms"
+	VMPool      = "vms"
+	VMRoot      = "/var/lib/lxc/vmroot/"
 	templateDir string
 	Templates   = template.New("lxc")
 )
@@ -145,7 +146,7 @@ func (vm *VM) ApplyDefaults() {
 	}
 
 	if vm.VMRoot == "" {
-		vm.VMRoot = "/var/lib/lxc/vmroot/"
+		vm.VMRoot = VMRoot
 	}
 }
 
