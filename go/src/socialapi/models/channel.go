@@ -343,7 +343,8 @@ func (c *Channel) Search(q *Query) ([]Channel, error) {
 
 	query := bongo.B.DB.Table(c.TableName()).Limit(q.Limit)
 
-	query = query.Where("type_constant = ?", Channel_TYPE_TOPIC)
+	query = query.Where("type_constant = ?", q.Type)
+	query = query.Where("privacy_constant = ?", Channel_PRIVACY_PUBLIC)
 	query = query.Where("group_name = ?", q.GroupName)
 	query = query.Where("name like ?", q.Name+"%")
 
