@@ -4,6 +4,7 @@ import (
 	"errors"
 	"github.com/jinzhu/gorm"
 	// "github.com/koding/bongo"
+	"fmt"
 	"github.com/koding/logging"
 	"math"
 	"net/http"
@@ -21,6 +22,11 @@ var (
 	ACTOR_LIMIT        = 3
 	cacheEnabled       = false
 	log                logging.Logger
+)
+
+const (
+	NOTIFICATION_TYPE_SUBSCRIBE   = "subscribe"
+	NOTIFICATION_TYPE_UNSUBSCRIBE = "unsubscribe"
 )
 
 func init() {
@@ -136,28 +142,45 @@ func InteractGroup(u *url.URL, h http.Header, req *GroupRequest) (int, http.Head
 	return helpers.NewDefaultOKResponse()
 }
 
-func SubscribeMessage(u *url.URL, h http.Header, req *models.NotificationActivity) (int, http.Header, interface{}, error) {
-	// if err := validateSubscriptionRequest(req); err != nil {
-	// 	return helpers.NewBadRequestResponse(err)
-	// }
-
-	// if err := models.SubscribeMessage(req.ActorId, req.TargetId, models.NotificationSubscription_TYPE_SUBSCRIBE); err != nil {
-	// 	return helpers.NewBadRequestResponse(err)
-	// }
+func SubscribeMessage(u *url.URL, h http.Header, req *models.NotificationRequest) (int, http.Header, interface{}, error) {
+	if err := subscription(req, NOTIFICATION_TYPE_SUBSCRIBE); err != nil {
+		return helpers.NewBadRequestResponse(err)
+	}
 
 	return helpers.NewDefaultOKResponse()
 }
 
-func UnsubscribeMessage(u *url.URL, h http.Header, req *models.NotificationActivity) (int, http.Header, interface{}, error) {
-	// if err := validateSubscriptionRequest(req); err != nil {
-	// 	return helpers.NewBadRequestResponse(err)
-	// }
-
-	// if err := models.SubscribeMessage(req.ActorId, req.TargetId, models.NotificationSubscription_TYPE_UNSUBSCRIBE); err != nil {
-	// 	return helpers.NewBadRequestResponse(err)
-	// }
+func UnsubscribeMessage(u *url.URL, h http.Header, req *models.NotificationRequest) (int, http.Header, interface{}, error) {
+	if err := subscription(req, NOTIFICATION_TYPE_UNSUBSCRIBE); err != nil {
+		return helpers.NewBadRequestResponse(err)
+	}
 
 	return helpers.NewDefaultOKResponse()
+}
+
+func subscription(nr *models.NotificationRequest, typeConstant string) error {
+	if err := validateSubscriptionRequest(nr); err != nil {
+		return err
+	}
+
+	nc := models.NewNotificationContent()
+	nc.TargetId = nr.TargetId
+	nc.TypeConstant = typeConstant
+
+	n := models.NewNotification()
+	n.AccountId = nr.AccountId
+	var err error
+	switch typeConstant {
+	case NOTIFICATION_TYPE_SUBSCRIBE:
+		err = n.Subscribe(nc)
+	case NOTIFICATION_TYPE_UNSUBSCRIBE:
+		err = n.Unsubscribe(nc)
+	}
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func fetchNotifications(q *models.Query) (*models.NotificationResponse, error) {
@@ -205,13 +228,20 @@ func validateNotificationRequest(q *models.Query) error {
 	return nil
 }
 
-// func validateSubscriptionRequest(a *models.NotificationActivity) error {
-// 	if err := validateAccount(a.ActorId); err != nil {
-// 		return err
-// 	}
+func validateSubscriptionRequest(req *models.NotificationRequest) error {
+	if err := validateAccount(req.AccountId); err != nil {
+		return err
+	}
 
-// 	return validateMessage(a.TargetId)
-// }
+	fmt.Println("channel mesaj", req.TargetId)
+	cm := models.NewChannelMessage()
+	if err := cm.ById(req.TargetId); err != nil {
+		return err
+	}
+	fmt.Println("oldu bence")
+
+	return nil
+}
 
 func validateAccount(accountId int64) error {
 	a := models.NewAccount()
