@@ -4,7 +4,6 @@ import (
 	"errors"
 	"github.com/jinzhu/gorm"
 	// "github.com/koding/bongo"
-	"fmt"
 	"github.com/koding/logging"
 	"math"
 	"net/http"
@@ -233,12 +232,10 @@ func validateSubscriptionRequest(req *models.NotificationRequest) error {
 		return err
 	}
 
-	fmt.Println("channel mesaj", req.TargetId)
 	cm := models.NewChannelMessage()
 	if err := cm.ById(req.TargetId); err != nil {
 		return err
 	}
-	fmt.Println("oldu bence")
 
 	return nil
 }

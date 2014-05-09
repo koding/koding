@@ -273,7 +273,7 @@ func (cache *NotificationCache) addNotificationDetails(n *models.Notification, n
 func (cache *NotificationCache) updateDate(n *models.Notification, nc *models.NotificationContent) error {
 	key := cache.getNotificationCacheKey(n.AccountId, nc.TargetId, nc.TypeConstant)
 	updatedAtKey := key + ":" + NotificationUpdatedAtKey
-	updatedAt := strconv.FormatInt(n.UpdatedAt.UnixNano(), 10)
+	updatedAt := strconv.FormatInt(n.ActivatedAt.UnixNano(), 10)
 
 	return cache.redisConn.Set(updatedAtKey, updatedAt)
 }
