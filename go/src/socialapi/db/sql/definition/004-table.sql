@@ -58,12 +58,22 @@ GRANT SELECT, INSERT ON "api"."account" TO "socialapplication";
 -- ----------------------------
 --  Table structure for channel_message
 -- ----------------------------
+CREATE TYPE "api"."channel_message_type_constant_enum" AS ENUM (
+    'post',
+    'reply',
+    'join',
+    'leave',
+    'chat',
+    'privatemessage'
+);
+ALTER TYPE "api"."channel_message_type_constant_enum" OWNER TO "social";
+
 DROP TABLE IF EXISTS "api"."channel_message";
 CREATE TABLE "api"."channel_message" (
     "id" bigint NOT NULL DEFAULT nextval('api.channel_message_id_seq'::regclass),
     "body" text COLLATE "default",
     "slug" varchar(100) NOT NULL COLLATE "default",
-    "type_constant" varchar(100) NOT NULL COLLATE "default",
+    "type_constant" "api"."channel_message_type_constant_enum",
     "account_id" bigint NOT NULL,
     "initial_channel_id" bigint NOT NULL,
     "created_at" timestamp(6) WITH TIME ZONE NOT NULL DEFAULT now(),
