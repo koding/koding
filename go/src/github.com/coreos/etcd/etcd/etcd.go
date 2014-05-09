@@ -28,6 +28,7 @@ import (
 	goetcd "github.com/coreos/etcd/third_party/github.com/coreos/go-etcd/etcd"
 	golog "github.com/coreos/etcd/third_party/github.com/coreos/go-log/log"
 	"github.com/coreos/etcd/third_party/github.com/goraft/raft"
+	httpclient "github.com/coreos/etcd/third_party/github.com/mreiferson/go-httpclient"
 
 	"github.com/coreos/etcd/config"
 	ehttp "github.com/coreos/etcd/http"
@@ -36,6 +37,14 @@ import (
 	"github.com/coreos/etcd/server"
 	"github.com/coreos/etcd/store"
 )
+
+// TODO(yichengq): constant extraTimeout is a hack.
+// Current problem is that there is big lag between join command
+// execution and join success.
+// Fix it later. It should be removed when proper method is found and
+// enough tests are provided. It is expected to be calculated from
+// heartbeatInterval and electionTimeout only.
+const extraTimeout = time.Duration(1000) * time.Millisecond
 
 type Etcd struct {
 	Config       *config.Config     // etcd config
@@ -61,6 +70,16 @@ func New(c *config.Config) *Etcd {
 
 // Run the etcd instance.
 func (e *Etcd) Run() {
+	// Sanitize all the input fields.
+	if err := e.Config.Sanitize(); err != nil {
+		log.Fatalf("failed sanitizing configuration: %v", err)
+	}
+
+	// Force remove server configuration if specified.
+	if e.Config.Force {
+		e.Config.Reset()
+	}
+
 	// Enable options.
 	if e.Config.VeryVeryVerbose {
 		log.Verbose = true
@@ -137,6 +156,25 @@ func (e *Etcd) Run() {
 	dialTimeout := (3 * heartbeatInterval) + electionTimeout
 	responseHeaderTimeout := (3 * heartbeatInterval) + electionTimeout
 
+	clientTransporter := &httpclient.Transport{
+		ResponseHeaderTimeout: responseHeaderTimeout + extraTimeout,
+		// This is a workaround for Transport.CancelRequest doesn't work on
+		// HTTPS connections blocked. The patch for it is in progress,
+		// and would be available in Go1.3
+		// More: https://codereview.appspot.com/69280043/
+		ConnectTimeout: dialTimeout + extraTimeout,
+		RequestTimeout: responseHeaderTimeout + dialTimeout + 2*extraTimeout,
+	}
+	if e.Config.PeerTLSInfo().Scheme() == "https" {
+		clientTLSConfig, err := e.Config.PeerTLSInfo().ClientConfig()
+		if err != nil {
+			log.Fatal("client TLS error: ", err)
+		}
+		clientTransporter.TLSClientConfig = clientTLSConfig
+		clientTransporter.DisableCompression = true
+	}
+	client := server.NewClient(clientTransporter)
+
 	// Create peer server
 	psConfig := server.PeerServerConfig{
 		Name:          e.Config.Name,
@@ -146,7 +184,7 @@ func (e *Etcd) Run() {
 		RetryTimes:    e.Config.MaxRetryAttempts,
 		RetryInterval: e.Config.RetryInterval,
 	}
-	e.PeerServer = server.NewPeerServer(psConfig, e.Registry, e.Store, &mb, followersStats, serverStats)
+	e.PeerServer = server.NewPeerServer(psConfig, client, e.Registry, e.Store, &mb, followersStats, serverStats)
 
 	// Create raft transporter and server
 	raftTransporter := server.NewTransporter(followersStats, serverStats, e.Registry, heartbeatInterval, dialTimeout, responseHeaderTimeout)
@@ -182,8 +220,6 @@ func (e *Etcd) Run() {
 	log.Infof("etcd server [name %s, listen on %s, advertised url %s]", e.Server.Name, e.Config.BindAddr, e.Server.URL())
 	e.listener = server.NewListener(e.Config.EtcdTLSInfo().Scheme(), e.Config.BindAddr, etcdTLSConfig)
 
-	close(e.readyC) // etcd server is ready to accept connections, notify waiters.
-
 	// An error string equivalent to net.errClosing for using with
 	// http.Serve() during server shutdown. Need to re-declare
 	// here because it is not exported by "net" package.
@@ -197,11 +233,22 @@ func (e *Etcd) Run() {
 		// the cluster could be out of work as long as the two nodes cannot transfer messages.
 		e.PeerServer.Start(e.Config.Snapshot, e.Config.Discovery, e.Config.Peers)
 
+		go func() {
+			select {
+			case <-e.PeerServer.StopNotify():
+			case <-e.PeerServer.RemoveNotify():
+				log.Infof("peer server is removed")
+				os.Exit(0)
+			}
+		}()
+
 		log.Infof("peer server [name %s, listen on %s, advertised url %s]", e.PeerServer.Config.Name, e.Config.Peer.BindAddr, e.PeerServer.Config.URL)
 		e.peerListener = server.NewListener(psConfig.Scheme, e.Config.Peer.BindAddr, peerTLSConfig)
 
+		close(e.readyC) // etcd server is ready to accept connections, notify waiters.
+
 		sHTTP := &ehttp.CORSHandler{e.PeerServer.HTTPHandler(), corsInfo}
-		if err = http.Serve(e.peerListener, sHTTP); err != nil {
+		if err := http.Serve(e.peerListener, sHTTP); err != nil {
 			if !strings.Contains(err.Error(), errClosing) {
 				log.Fatal(err)
 			}
@@ -210,7 +257,7 @@ func (e *Etcd) Run() {
 	}()
 
 	sHTTP := &ehttp.CORSHandler{e.Server.HTTPHandler(), corsInfo}
-	if err = http.Serve(e.listener, sHTTP); err != nil {
+	if err := http.Serve(e.listener, sHTTP); err != nil {
 		if !strings.Contains(err.Error(), errClosing) {
 			log.Fatal(err)
 		}

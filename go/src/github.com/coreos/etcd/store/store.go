@@ -135,6 +135,7 @@ func (s *store) Create(nodePath string, dir bool, value string, unique bool, exp
 	e, err := s.internalCreate(nodePath, dir, value, unique, false, expireTime, Create)
 
 	if err == nil {
+		s.WatcherHub.notify(e)
 		s.Stats.Inc(CreateSuccess)
 	} else {
 		s.Stats.Inc(CreateFail)
@@ -177,6 +178,8 @@ func (s *store) Set(nodePath string, dir bool, value string, expireTime time.Tim
 		prev.Node.loadInternalNode(n, false, false)
 		e.PrevNode = prev.Node
 	}
+
+	s.WatcherHub.notify(e)
 
 	return e, nil
 }
@@ -429,9 +432,13 @@ func (s *store) Update(nodePath string, newValue string, expireTime time.Time) (
 
 	n.Write(newValue, nextIndex)
 
-	// copy the value for safety
-	newValueCopy := ustrings.Clone(newValue)
-	eNode.Value = &newValueCopy
+	if n.IsDir() {
+		eNode.Dir = true
+	} else {
+		// copy the value for safety
+		newValueCopy := ustrings.Clone(newValue)
+		eNode.Value = &newValueCopy
+	}
 
 	// update ttl
 	n.UpdateTTL(expireTime)
@@ -523,8 +530,6 @@ func (s *store) internalCreate(nodePath string, dir bool, value string, unique, 
 	}
 
 	s.CurrentIndex = nextIndex
-
-	s.WatcherHub.notify(e)
 
 	return e, nil
 }

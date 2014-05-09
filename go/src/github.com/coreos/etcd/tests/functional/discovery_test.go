@@ -7,6 +7,7 @@ import (
 	"net/http/httptest"
 	"net/url"
 	"strings"
+	"sync"
 	"testing"
 	"time"
 
@@ -20,6 +21,7 @@ import (
 type garbageHandler struct {
 	t       *testing.T
 	success bool
+	sync.Mutex
 }
 
 func (g *garbageHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -27,6 +29,9 @@ func (g *garbageHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if r.URL.String() != "/v2/keys/_etcd/registry/1/node1" {
 		g.t.Fatalf("Unexpected web request")
 	}
+	g.Lock()
+	defer g.Unlock()
+
 	g.success = true
 }
 
@@ -51,6 +56,8 @@ func TestDiscoveryDownNoBackupPeers(t *testing.T) {
 		t.Fatal(err.Error())
 	}
 
+	g.Lock()
+	defer g.Unlock()
 	if !g.success {
 		t.Fatal("Discovery server never called")
 	}
@@ -82,6 +89,8 @@ func TestDiscoveryDownWithBackupPeers(t *testing.T) {
 			t.Fatal(err.Error())
 		}
 
+		g.Lock()
+		defer g.Unlock()
 		if !g.success {
 			t.Fatal("Discovery server never called")
 		}
@@ -289,6 +298,52 @@ func TestDiscoverySecondPeerUp(t *testing.T) {
 		if err != nil {
 			t.Fatal(err.Error())
 		}
+	})
+}
+
+// TestDiscoveryRestart ensures that a discovery cluster could be restarted.
+func TestDiscoveryRestart(t *testing.T) {
+	etcdtest.RunServer(func(s *server.Server) {
+		proc, err := startServer([]string{"-discovery", s.URL() + "/v2/keys/_etcd/registry/4"})
+		if err != nil {
+			t.Fatal(err.Error())
+		}
+
+		client := http.Client{}
+		err = assertServerFunctional(client, "http")
+		if err != nil {
+			t.Fatal(err.Error())
+		}
+
+		proc2, err := startServer2([]string{"-discovery", s.URL() + "/v2/keys/_etcd/registry/4", "-addr", "127.0.0.1:4002", "-peer-addr", "127.0.0.1:7002"})
+		if err != nil {
+			t.Fatal(err.Error())
+		}
+
+		err = assertServerFunctional(client, "http")
+		if err != nil {
+			t.Fatal(err.Error())
+		}
+
+		stopServer(proc)
+		stopServer(proc2)
+
+		proc, err = startServerWithDataDir([]string{"-discovery", s.URL() + "/v2/keys/_etcd/registry/4"})
+		if err != nil {
+			t.Fatal(err.Error())
+		}
+		proc2, err = startServer2WithDataDir([]string{"-discovery", s.URL() + "/v2/keys/_etcd/registry/4", "-addr", "127.0.0.1:4002", "-peer-addr", "127.0.0.1:7002"})
+		if err != nil {
+			t.Fatal(err.Error())
+		}
+
+		err = assertServerFunctional(client, "http")
+		if err != nil {
+			t.Fatal(err.Error())
+		}
+
+		stopServer(proc)
+		stopServer(proc2)
 	})
 }
 
