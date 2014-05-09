@@ -126,9 +126,9 @@ CREATE TABLE "api"."notification" (
     "account_id" int8 NOT NULL,
     "notification_content_id" int8 NOT NULL,
     "glanced" bool NOT NULL,
-    "type_constant" varchar(100) NOT NULL COLLATE "default",
-    "subscribed_at" timestamp(6) WITH TIME ZONE NOT NULL DEFAULT now(),
-    "updated_at" timestamp(6) WITH TIME ZONE NOT NULL DEFAULT now()
+    "subscribed_at" timestamp(6) WITH TIME ZONE,
+    "unsubscribed_at" timestamp(6) WITH TIME ZONE,
+    "activated_at" timestamp(6) WITH TIME ZONE
 )
 WITH (OIDS=FALSE);
 -- ALTER TABLE "api"."notification" OWNER TO "socialapplication";
@@ -162,18 +162,3 @@ CREATE TABLE "api"."notification_activity" (
 WITH (OIDS=FALSE);
 -- ALTER TABLE "api"."notification_activity" OWNER TO "socialapplication";
 GRANT SELECT, INSERT, DELETE ON "api"."notification_activity" TO "socialapplication";
-
--- ----------------------------
---  Table structure for notification_subscription
--- ----------------------------
-DROP TABLE IF EXISTS "api"."notification_subscription";
-CREATE TABLE "api"."notification_subscription" (
-    "id" int8 NOT NULL DEFAULT nextval('notification_subscription_id_seq'::regclass),
-    "account_id" int8 NOT NULL,
-    "notification_content_id" int8 NOT NULL,
-    "type_constant" varchar(100) NOT NULL COLLATE "default",
-    "added_at" timestamp(6) WITH TIME ZONE NOT NULL DEFAULT now()
-)
-WITH (OIDS=FALSE);
--- ALTER TABLE "api"."notification_subscription" OWNER TO "socialapplication";
-GRANT SELECT, INSERT, DELETE ON "api"."notification_subscription" TO "socialapplication";
