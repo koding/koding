@@ -1,8 +1,27 @@
 SET ROLE social;
 
+
 -- ----------------------------
 --  Table structure for channel
 -- ----------------------------
+CREATE TYPE "api"."channel_type_constant" AS ENUM (
+    'group',
+    'topic',
+    'followingfeed',
+    'followers',
+    'chat',
+    'pinnedactivity',
+    'privatemessage',
+    'default'
+);
+ALTER TYPE "api"."channel_type_constant" OWNER TO "social";
+
+CREATE TYPE "api"."channel_privacy_constant" AS ENUM (
+    'public',
+    'private',
+);
+ALTER TYPE "api"."channel_privacy_constant" OWNER TO "social";
+
 DROP TABLE IF EXISTS "api"."channel";
 CREATE TABLE "api"."channel" (
     "id" bigint NOT NULL DEFAULT nextval('api.channel_id_seq'::regclass),
@@ -11,8 +30,8 @@ CREATE TABLE "api"."channel" (
     "group_name" varchar(200) NOT NULL COLLATE "default",
     "purpose" text COLLATE "default",
     "secret_key" text COLLATE "default",
-    "type_constant" varchar(100) NOT NULL COLLATE "default",
-    "privacy_constant" varchar(100) NOT NULL COLLATE "default",
+    "type_constant" "api"."channel_type_constant",
+    "privacy_constant" "api"."channel_privacy_constant",
     "created_at" timestamp(6) WITH TIME ZONE NOT NULL DEFAULT now(),
     "updated_at" timestamp(6) WITH TIME ZONE NOT NULL DEFAULT now(),
     "deleted_at" timestamp(6) WITH TIME ZONE
