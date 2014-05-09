@@ -81,8 +81,9 @@ module.exports = class JPasswordRecovery extends jraphical.Module
     JUser = require './user'
     if JUser.validateAt 'email', usernameOrEmail
       @recoverPasswordByEmail client, {email: usernameOrEmail, resetPassword:yes}, callback
-    else if JUser.validateAt 'username', usernameOrEmail
-      @recoverPasswordByUsername client, {username: usernameOrEmail, resetPassword:yes}, callback
+    # Disable it until we find a solution ~ GG
+    # else if JUser.validateAt 'username', usernameOrEmail
+    #   @recoverPasswordByUsername client, {username: usernameOrEmail, resetPassword:yes}, callback
     else callback new KodingError 'Invalid input.'
 
   @resendVerification = secure (client, usernameOrEmail, callback)->
