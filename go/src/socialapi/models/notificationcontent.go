@@ -47,12 +47,7 @@ func (n NotificationContent) TableName() string {
 // Create checks for NotificationContent using type_constant and target_id
 // and creates new one if it does not exist.
 func (n *NotificationContent) Create() error {
-	s := map[string]interface{}{
-		"type_constant": n.TypeConstant,
-		"target_id":     n.TargetId,
-	}
-	q := bongo.NewQS(s)
-	if err := n.One(q); err != nil {
+	if err := n.FindByTarget(); err != nil {
 		if err != gorm.RecordNotFound {
 			return err
 		}
@@ -68,6 +63,16 @@ func (n *NotificationContent) One(q *bongo.Query) error {
 
 func (n *NotificationContent) ById(id int64) error {
 	return bongo.B.ById(n, id)
+}
+
+func (n *NotificationContent) FindByTarget() error {
+	s := map[string]interface{}{
+		"type_constant": n.TypeConstant,
+		"target_id":     n.TargetId,
+	}
+	q := bongo.NewQS(s)
+
+	return n.One(q)
 }
 
 // CreateNotification validates notifiable instance and creates a new notification
