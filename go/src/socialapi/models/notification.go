@@ -48,12 +48,10 @@ func (n *Notification) One(q *bongo.Query) error {
 }
 
 func (n *Notification) Create() error {
-	s := map[string]interface{}{
-		"account_id":              n.AccountId,
-		"notification_content_id": n.NotificationContentId,
-	}
-	q := bongo.NewQS(s)
-	if err := n.One(q); err != nil {
+	unsubscribedAt := n.UnsubscribedAt
+
+	// TODO check notification content existence
+	if err := n.FetchByContent(); err != nil {
 		if err != gorm.RecordNotFound {
 			return err
 		}
@@ -61,9 +59,32 @@ func (n *Notification) Create() error {
 		return bongo.B.Create(n)
 	}
 
-	n.Glanced = false
+	if !unsubscribedAt.Equal(ZeroDate()) {
+		n.UnsubscribedAt = unsubscribedAt
+	}
 
 	return bongo.B.Update(n)
+}
+
+func (n *Notification) Subscribe(nc *NotificationContent) error {
+	if nc.TargetId == 0 {
+		return errors.New("target id cannot be empty")
+	}
+	nc.TypeConstant = NotificationContent_TYPE_COMMENT
+
+	if err := nc.Create(); err != nil {
+		return err
+	}
+
+	n.NotificationContentId = nc.Id
+
+	return n.Create()
+}
+
+func (n *Notification) Unsubscribe(nc *NotificationContent) error {
+	n.UnsubscribedAt = time.Now()
+
+	return n.Subscribe(nc)
 }
 
 func (n *Notification) List(q *Query) (*NotificationResponse, error) {
@@ -89,22 +110,28 @@ func (n *Notification) Some(data interface{}, q *bongo.Query) error {
 
 func (n *Notification) fetchByAccountId(q *Query) ([]Notification, error) {
 	var notifications []Notification
-	query := &bongo.Query{
-		Selector: map[string]interface{}{
-			"account_id": q.AccountId,
-		},
-		Sort: map[string]string{
-			"updated_at": "desc",
-		},
-		Pagination: bongo.Pagination{
-			Limit: q.Limit,
-		},
-	}
-	if err := bongo.B.Some(n, &notifications, query); err != nil {
+
+	err := bongo.B.DB.Table(n.TableName()).
+		Where("NOT (activated_at IS NULL OR activated_at <= '0001-01-02') AND account_id = ?", q.AccountId).
+		Order("activated_at desc").
+		Limit(q.Limit).
+		Find(&notifications).Error
+
+	if err != nil {
 		return nil, err
 	}
 
 	return notifications, nil
+}
+
+func (n *Notification) FetchByContent() error {
+	selector := map[string]interface{}{
+		"account_id":              n.AccountId,
+		"notification_content_id": n.NotificationContentId,
+	}
+	q := bongo.NewQS(selector)
+
+	return n.One(q)
 }
 
 // getDecoratedList fetches notifications of the given user and decorates it with
@@ -156,7 +183,7 @@ func (n *Notification) buildNotificationContainer(actorId int64, nc *Notificatio
 	return NotificationContainer{
 		TargetId:              nc.TargetId,
 		TypeConstant:          nc.TypeConstant,
-		UpdatedAt:             n.UpdatedAt,
+		UpdatedAt:             n.ActivatedAt,
 		Glanced:               n.Glanced,
 		NotificationContentId: nc.Id,
 		LatestActors:          ac.LatestActors,
@@ -222,8 +249,15 @@ func (n *Notification) FetchContent() (*NotificationContent, error) {
 // }
 
 func (n *Notification) BeforeCreate() {
-	if n.TypeConstant == "" {
-		n.TypeConstant = Notification_TYPE_SUBSCRIBE
+	if n.UnsubscribedAt.Equal(ZeroDate()) && n.SubscribedAt.Equal(ZeroDate()) {
+		n.SubscribedAt = time.Now()
+	}
+}
+
+func (n *Notification) BeforeUpdate() {
+	if n.UnsubscribedAt.Equal(ZeroDate()) {
+		n.Glanced = false
+		n.ActivatedAt = time.Now()
 	}
 }
 
