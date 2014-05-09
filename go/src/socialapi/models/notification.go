@@ -21,20 +21,15 @@ type Notification struct {
 	// glanced information
 	Glanced bool `json:"glanced" sql:"NOT NULL"`
 
-	// last notifier addition time
-	UpdatedAt time.Time `json:"updatedAt" sql:"NOT NULL"`
+	// last notifier addition time. when user first subscribes it is set to ZeroDate
+	ActivatedAt time.Time `json:"activatedAt"`
 
 	// user's subscription time to related content
-	SubscribedAt time.Time `json:"subscribedAt" sql:"NOT NULL"`
+	SubscribedAt time.Time `json:"subscribedAt"`
 
 	// notification type as subscribed/unsubscribed
-	TypeConstant string `json:"typeConstant" sql:"NOT NULL"`
+	UnsubscribedAt time.Time `json:"unsubscribedAt"`
 }
-
-const (
-	Notification_TYPE_SUBSCRIBE   = "subscribe"
-	Notification_TYPE_UNSUBSCRIBE = "unsubscribe"
-)
 
 func (n *Notification) GetId() int64 {
 	return n.Id
