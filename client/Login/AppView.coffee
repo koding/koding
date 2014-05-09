@@ -311,7 +311,7 @@ class LoginView extends KDView
         KD.getSingleton('router').handleRoute '/Login', {entryPoint}
         new KDNotificationView
           title     : "Check your email"
-          content   : "We've sent you a password recovery token."
+          content   : "We've sent you a password recovery code."
           duration  : 4500
 
         KD.mixpanel "Recover password, success"
