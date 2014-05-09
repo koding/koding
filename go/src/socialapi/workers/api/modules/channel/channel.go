@@ -60,12 +60,11 @@ func List(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface
 }
 
 func Search(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface{}, error) {
-	c := models.NewChannel()
 	q := helpers.GetQuery(u)
 	q.Type = models.Channel_TYPE_TOPIC
 
 	return helpers.HandleResultAndError(
-		c.Search(q),
+		models.NewChannel().Search(q),
 	)
 }
 
