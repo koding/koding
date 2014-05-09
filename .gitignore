@@ -84,4 +84,4 @@ website/a/js/koding.js
 
 client/Main/__generated*
 
-sprites/*.sprite.png
+website/a/sprites/*.sprite.png
