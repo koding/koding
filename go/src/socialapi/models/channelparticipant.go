@@ -39,7 +39,7 @@ type ChannelParticipant struct {
 const (
 	ChannelParticipant_STATUS_ACTIVE          = "active"
 	ChannelParticipant_STATUS_LEFT            = "left"
-	ChannelParticipant_STATUS_REQUEST_PENDING = "requestPending"
+	ChannelParticipant_STATUS_REQUEST_PENDING = "requestpending"
 )
 
 func NewChannelParticipant() *ChannelParticipant {

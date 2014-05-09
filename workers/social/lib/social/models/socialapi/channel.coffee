@@ -32,6 +32,8 @@ module.exports = class SocialChannel extends Base
           (signature Object, Function)
         fetchFollowedChannels:
           (signature Object, Function)
+        searchTopics:
+          (signature Object, Function)
 
     schema             :
       id               : Number
@@ -95,6 +97,9 @@ name-#{apiChannelName}"
   @fetchActivities = secure (client, options = {}, callback)->
     options.channelId = options.id
     @doRequest 'fetchChannelActivities', client, options, callback
+
+  @searchTopics = secure (client, options = {}, callback)->
+    @doRequest 'searchTopics', client, options, callback
 
   @fetchPopularTopics = secure (client, options = {}, callback)->
     @doRequest 'fetchPopularTopics', client, options, callback

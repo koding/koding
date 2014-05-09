@@ -160,6 +160,12 @@ fetchPrivateMessages = (data, callback)->
   url = "#{SOCIAL_API_URL}/privatemessage/list"
   get url, data, callback
 
+searchTopics = (data, callback)->
+  if not data.name
+    return callback { message: "Name should be set for topic search"}
+  url = "#{SOCIAL_API_URL}/channel/search"
+  get url, data, callback
+
 post = (url, data, callback)->
   request
     url    : url
@@ -177,6 +183,7 @@ get = (url, data, callback)->
   , wrapCallback callback
 
 module.exports = {
+  searchTopics
   fetchPrivateMessages
   sendPrivateMessage
   fetchFollowedChannels

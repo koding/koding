@@ -59,6 +59,7 @@ func Inject(mux *tigertonic.TrieServeMux) *tigertonic.TrieServeMux {
 	////////////////////////////////////////////////////////////////////////////////////
 	mux.Handle("POST", "/channel", handlerWrapper(channel.Create, "channel-create"))
 	mux.Handle("GET", "/channel", handlerWrapper(channel.List, "channel-list"))
+	mux.Handle("GET", "/channel/search", handlerWrapper(channel.Search, "channel-search"))
 	// deprecated, here for socialworker
 	mux.Handle("POST", "/channel/{id}", handlerWrapper(channel.Update, "channel-update"))
 	mux.Handle("POST", "/channel/{id}/update", handlerWrapper(channel.Update, "channel-update"))
