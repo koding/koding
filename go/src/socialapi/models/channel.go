@@ -352,6 +352,10 @@ func (c *Channel) Search(q *Query) ([]Channel, error) {
 		return nil, err
 	}
 
+	if channels == nil {
+		return make([]Channel, 0), nil
+	}
+
 	return channels, nil
 }
 
@@ -376,6 +380,10 @@ func (c *Channel) List(q *Query) ([]Channel, error) {
 	err := c.Some(&channels, query)
 	if err != nil {
 		return nil, err
+	}
+
+	if channels == nil {
+		return make([]Channel, 0), nil
 	}
 
 	return channels, nil
