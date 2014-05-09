@@ -126,12 +126,19 @@ GRANT SELECT, INSERT, UPDATE ON "api"."channel_participant" TO "socialapplicatio
 -- ----------------------------
 --  Table structure for interaction
 -- ----------------------------
+CREATE TYPE "api"."interaction_type_constant_enum" AS ENUM (
+    'like',
+    'upvote',
+    'downvote'
+);
+ALTER TYPE "api"."interaction_type_constant_enum" OWNER TO "social";
+
 DROP TABLE IF EXISTS "api"."interaction";
 CREATE TABLE "api"."interaction" (
     "id" bigint NOT NULL DEFAULT nextval('api.interaction_id_seq'::regclass),
     "message_id" bigint NOT NULL DEFAULT 0,
     "account_id" bigint NOT NULL DEFAULT 0,
-    "type_constant" varchar(100) NOT NULL COLLATE "default",
+    "type_constant" "api"."interaction_type_constant_enum",
     "created_at" timestamp(6) WITH TIME ZONE NOT NULL DEFAULT now()
 )
 WITH (OIDS=FALSE);
