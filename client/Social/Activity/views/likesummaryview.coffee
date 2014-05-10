@@ -40,6 +40,9 @@ class ActivityLikeSummaryView extends JView
 
     super
 
+    if @getData().interactions.like.actorsCount is 0
+    then @setClass 'hidden'
+
     names  = []
     strong = (x) -> "<strong>#{x}</strong>"
 

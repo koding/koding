@@ -179,13 +179,11 @@ resurrection.activity.styl
           color         logoBg
 
 
-
   > aside
     left                0
     top                 55px
-    width               299px
     kalc                height, (100% \- 55px)
-    kalc                margin-left, \(100% \- 995px\)\/2
+    kalc                width, \(100% \- 365px\)\/2
     z-index             10
     borderBox()
     fix()
@@ -200,8 +198,10 @@ resurrection.activity.styl
         rounded           6px
 
     > main
-      width               294px
+      width               100%
       font-family         openSansFamily
+      kalc                padding-left, \(100% \- 295px\)
+      borderBox()
 
       .kdlistitemview-sidebar-item
         size              263px, 30px
@@ -306,7 +306,6 @@ resurrection.activity.styl
             rounded       3px
             margin        0
             padding       0
-            overflow      hidden
             borderBox()
             &:hover
               border-color    transparent
@@ -662,15 +661,23 @@ span.collapsedtext
           margin-left     7px
           font-size       11px
 
-      .action-container~.action-container:before
-        content           ""
-        display           inline-block
-        size              3px, 3px
-        rounded           50%
-        background        #d3d3d3
-        font-size         8px
-        margin            0 3px 0 5px
-        vertical-align    middle
+        &~.action-container:before
+          content         ""
+          display         inline-block
+          size            3px, 3px
+          rounded         50%
+          background      #d3d3d3
+          font-size       8px
+          margin          0 3px 0 5px
+          vertical-align  middle
+
+        &.kdloader
+          width           auto
+          vertical-align  middle
+          margin-left     4px
+
+          &:before
+            display       none
 
     .like-summary
       height              33px
