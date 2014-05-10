@@ -130,21 +130,9 @@ func (o *Oskite) startAlwaysOn(vm *virt.VM) {
 
 	go func() {
 		err := o.startSingleVM(vm, nil)
-		if err == nil {
-			return
+		if err != nil {
+			log.Error("alwaysOn vm %s couldn't be started. err: %v", vm.HostnameAlias, err)
 		}
-
-		if blacklist.Has(vm.Id) {
-			return
-		}
-
-		log.Error("alwaysOn vm %s - %s  couldn't be started, adding to blacklist for one hour. err %s",
-			vm.HostnameAlias, vm.Id, err)
-
-		blacklist.Add(vm.Id)
-		time.AfterFunc(time.Hour, func() {
-			blacklist.Remove(vm.Id)
-		})
 	}()
 }
 

@@ -645,6 +645,11 @@ func (o *Oskite) startSingleVM(vm *virt.VM, channel *kite.Channel) error {
 	info := getInfo(vm)
 	info.mutex.Lock()
 	defer info.mutex.Unlock()
+
+	if blacklist.Has(vm.Id) {
+		return errors.New("vm is blacklisted")
+	}
+
 	info.stopTimeout(channel)
 
 	err := o.checkVM(vm)
@@ -675,6 +680,14 @@ func (o *Oskite) startSingleVM(vm *virt.VM, channel *kite.Channel) error {
 	// wait until the prepareWorker has picked us and we finished
 	// to return something to the client
 	<-done
+
+	if err != nil {
+		log.Error("vm %s couldn't be started, adding to blacklist for one hour. reason err: %v", vm.HostnameAlias, err)
+		blacklist.Add(vm.Id)
+		time.AfterFunc(time.Hour, func() {
+			blacklist.Remove(vm.Id)
+		})
+	}
 
 	return err
 }
