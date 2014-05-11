@@ -50,12 +50,16 @@ func (o *Oskite) loadBalancer(correlationName, username, deadService string) str
 		}
 	}
 
+	log.Info(">>><<< %s", o.ServiceUniquename)
+
 	var vm *virt.VM
 	if bson.IsObjectIdHex(correlationName) {
 		mongodbConn.Run("jVMs", func(c *mgo.Collection) error {
 			return c.FindId(bson.ObjectIdHex(correlationName)).One(&vm)
 		})
 	}
+
+	log.Info(">>><<< %s, %s", vm.Id, vm.HostnameAlias)
 
 	if vm == nil {
 		if err := mongodbConn.Run("jVMs", func(c *mgo.Collection) error {
@@ -65,6 +69,8 @@ func (o *Oskite) loadBalancer(correlationName, username, deadService string) str
 			return resultOskite // no vm was found, return this oskite
 		}
 	}
+
+	log.Info(">>><<< %s, %s", vm.Id, vm.HostnameAlias)
 
 	if vm.PinnedToHost != "" {
 		blog(fmt.Sprintf("returning pinnedHost '%s'", vm.PinnedToHost))
