@@ -15,13 +15,10 @@ module.exports = [
 
   # Activity commons
   "views/feedcoverphotoview.coffee"
-  "views/commentcount.coffee"
   "views/likecount.coffee"
   "views/likesummaryview.coffee"
   "views/likeview.coffee"
-  "views/commentlikeview.coffee"
   "views/likelink.coffee"
-  "views/commentlikelink.coffee"
   "views/activityactions.coffee"
   "views/activitylistheader.coffee"
   "views/sharepopup.coffee"
@@ -50,6 +47,9 @@ module.exports = [
   "views/tags/TagViews.coffee"
   "views/tags/TagAutoCompleteController.coffee"
 
+  "views/comments/commentcount.coffee"
+  "views/comments/commentlikeview.coffee"
+  "views/comments/commentlikelink.coffee"
   "views/comments/commentview.coffee"
   "views/comments/commentlistviewcontroller.coffee"
   "views/comments/commentviewheader.coffee"
