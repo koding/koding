@@ -208,7 +208,7 @@ func lowestOskiteLoad() (serviceUniquename string) {
 	log.Info("oskite picked up as lowest load %s with %d VMs (highest was: %d / %s)",
 		l.ServiceUniquename, l.ActiveVMs, h.ActiveVMs, h.ServiceUniquename)
 
-	if !strings.HasPrefix(l.ServiceUniquename, "_sj_koding_com") {
+	if !strings.HasSuffix(l.ServiceUniquename, "_sj_koding_com") {
 		return l.ServiceUniquename + "_sj_koding_com"
 	}
 
