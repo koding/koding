@@ -2,6 +2,8 @@ class ActivityLikeLink extends CustomLinkView
 
   constructor: (options = {}, data) ->
 
+    options.cssClass = KD.utils.curry "action-link like-link", options.cssClass
+
     @state = data.interactions.like.isInteracted
 
     super options, data
