@@ -85,7 +85,7 @@ module.exports = [
   "ContentDisplays/ContentDisplayScoreBoard.coffee"
 
   # Activity List Items
-  "ListItems/activitylistitem.coffee"
+  "views/activitylistitem.coffee"
 
   "styl/activity.styl"
   "styl/activity.responsive.styl"
