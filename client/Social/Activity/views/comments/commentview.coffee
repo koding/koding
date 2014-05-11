@@ -38,7 +38,7 @@ class CommentView extends KDView
     @commentForm.on "Submit", @commentController.bound "reply"
 
     @commentList.on 'ReplyLinkClicked', (username) =>
-      input = @commentForm.commentInput
+      {input} = @commentForm
       value = input.getValue()
       value = if value.indexOf("@#{username}") >= 0 then value else if value.length is 0 then "@#{username} " else "#{value} @#{username} "
 
