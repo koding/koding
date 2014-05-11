@@ -9,6 +9,7 @@ class SocialApiController extends KDController
     return  unless plain = data.message or data
 
     {accountOldId, replies, interactions} = data
+    {createdAt, deletedAt, updatedAt}     = plain
 
     plain._id = plain.id
 
@@ -25,6 +26,11 @@ class SocialApiController extends KDController
         actorsCount   : 0
         actorsPreview : []
         isInteracted  : no
+
+    m.meta      =
+      createdAt : new Date createdAt
+      deletedAt : new Date deletedAt
+      updatedAt : new Date updatedAt
 
     return m
 
