@@ -1,224 +1,185 @@
 class CommentListItemView extends KDListItemView
-  constructor:(options,data)->
 
-    options.type     or= "comment"
-    options.cssClass or= "kdlistitemview kdlistitemview-comment"
+  constructor: (options = {}, data) ->
 
-    super options,data
+    options.type = "comment"
 
-    {message}  = @getData()
-    @message   = message
+    super options, data
 
-    {createdAt, deletedAt, updatedAt} = data
+    @on 'CommentUpdated', @bound "update"
+    @on 'CommentUpdateCancelled', @bound "hideEditForm"
 
-    {JAccount} = KD.remote.api
 
-    @avatar = new AvatarView {
-      size        :
-        width       : options.avatarWidth or 40
-        height      : options.avatarHeight or 40
-      origin      : JAccount.one {socialApiId : @message.accountId}
-      showStatus  : yes
-    }
+  click: (event) ->
 
-    @author = new ProfileLinkView
-      origin : JAccount.one {socialApiId : @message.accountId}
+    KD.utils.showMoreClickHandler event
 
-    @body = @getBody message
-    @editCommentWrapper = new KDCustomHTMLView
-      cssClass : "edit-comment-wrapper hidden"
 
-    @editInfo = new KDCustomHTMLView
-      tagName: "span"
-      cssClass: "hidden edited"
-      pistachio: "edited"
+  update: (body = "") ->
 
-    if updatedAt > createdAt then @editInfo.show()
+    return  unless comment.trim().length
 
-    if deleterId? and deleterId isnt originId
-      @deleter = new ProfileLinkView {}, data.getAt('deletedBy')
+    data = @getData()
+    data.modify body, (err) =>
 
-    activity   = @getDelegate().getData()
-    loggedInId = KD.whoami().socialApiId
+      if err
+        @hideEditForm()
+        new KDNotificationView title: err.message
+        return
 
-    isCommentMine   = loggedInId is @message.accountId
-    isActivityMine  = loggedInId is activity.originId
-    canEditComments = "edit comments" in KD.config.permissions
+      data.body = body
+      data.meta.updatedAt = new Date
+      @hideEditForm()
 
-    settingsOptions = {}
-    # if i am the owner of the comment or activity
-    # i can delete it
-    if isCommentMine or isActivityMine or canEditComments
-      settingsOptions.delete = yes
-      showSettingsMenu       = yes
 
-    # if i can edit comments(have permission)
-    if (isCommentMine and "edit own comments" in KD.config.permissions) or canEditComments
-        settingsOptions.edit = yes
-        showSettingsMenu     =  yes
+  createMenu: ->
 
-    # if settings menu should be visible
-    if showSettingsMenu
-      @settings = @getSettings @message, settingsOptions
-    else
-      @settings = new KDView
+    data         = @getData()
+    activity     = @getDelegate().getData()
+    isOwner      = KD.isMyPost activity or KD.isMyPost data
+    canEdit      = "edit comments" in KD.config.permissions
+    canDeleteOwn = (KD.isMyPost(data) and "edit own comments" in KD.config.permissions)
 
-    @likeView = new CommentLikeLink cssClass : 'action-link like-link', @getData()
+    @settings =
+      if canEdit
+      then @getSettingsButton edit: yes, delete: yes
+      else if isOwner or canDeleteOwn
+      then @getSettingsButton delete: yes
+      else KDView
 
-    unless isCommentMine
-      @replyView = new CustomLinkView
-        cssClass : "action-link reply-link"
-        title    : "Mention"
-        click    : (event)=>
-          @utils.stopDOMEvent event
-          KD.remote.cacheable data.originType, data.originId, (err, res) =>
-            @getDelegate().emit 'ReplyLinkClicked', res.profile.nickname
-    else
-      @replyView = new KDView
-        tagName  : "span"
 
-    @timeAgoView = new KDTimeAgoView {}, createdAt
+  getSettingsButton: (options) ->
 
-    # TODO: ??
-    # data.on 'ContentMarkedAsLowQuality', @bound 'hide' unless KD.checkFlag 'exempt'
-    # data.on 'ContentUnmarkedAsLowQuality', @bound 'show'
+    menu = {}
 
-    @on 'CommentUpdated', @bound 'updateComment'
-    @on 'CommentUpdateCancelled', @bound 'cancelCommentUpdate'
+    if options.edit
+      menu['Edit'] = callback: @bound "showEditForm"
 
-  updateComment: (comment="")->
-    unless comment.trim() is ""
-      data = @getData()
-      data.modify comment, (err) =>
-        if err
-          @hideEditCommentForm data
-          new KDNotificationView title: err.message
-          return
-        data.body = comment
-        data.editedAt = new Date
-        @hideEditCommentForm(data)
+    if options.delete
+      menu['Delete'] = callback: @bound "showDeleteModal"
 
-  cancelCommentUpdate: ->
-    @hideEditCommentForm(@getData())
+    delegate = this
 
-  hideEditCommentForm:(data)->
-    @settings.show()
-    @editComment.destroy()
-    @body.show()
-    @editInfo.show() if data.meta.updatedAt > data.meta.createdAt
-    @editCommentWrapper.hide()
+    return new CommentSettingsButton {delegate, menu}
 
-  showEditCommentForm:(data)->
+
+  showEditForm: ->
+
     @settings.hide()
     @body.hide()
     @editInfo.hide()
-    @editComment = new EditCommentForm
-      cssClass : 'edit-comment-box'
-      editable : yes
-      delegate : this,
-      data
-    @editCommentWrapper.addSubView @editComment
-    @editCommentWrapper.show()
 
-  getSettings:(data, options)->
-    button = new KDButtonViewWithMenu
-      cssClass       : 'activity-settings-menu'
-      style          : 'comment-menu'
-      itemChildClass : ActivityItemMenuItem
-      title          : ''
-      icon           : yes
-      delegate       : this
-      iconClass      : "arrow"
-      menu           : @settingsMenu data, options
-      callback       : (event)=> button.contextMenu event
+    @form = new EditCommentForm delegate: this, @getData()
+    @formWrapper.addSubView @form
+    @formWrapper.show()
 
-  getBody:(data)->
-    new KDCustomHTMLView
-      cssClass : "comment-body-container"
-      pistachio: "{p{@utils.applyTextExpansions #(body), yes}}"
-    ,data
 
-  render:->
-    @updateTemplate()
-    super
+  hideEditForm: ->
 
-  viewAppended:->
-    @updateTemplate yes
-    @template.update()
+    {meta: {createdAt, updatedAt}} = @getData()
 
-  click:(event)->
-    KD.utils.showMoreClickHandler event
-    if $(event.target).is "span.avatar a, a.user-fullname"
-      {originType, originId} = @getData()
-      KD.remote.cacheable originType, originId, (err, origin)->
-        unless err
-          KD.getSingleton('router').handleRoute "/#{origin.profile.nickname}", state:origin
-          # KD.getSingleton("appManager").tell "Members", "createContentDisplay", origin
+    @settings.show()
+    @form.destroy()
+    @body.show()
+    @editInfo.show()  if updatedAt > createdAt
+    @form.hide()
 
-  confirmDeleteComment:(data)->
-    {type} = @getOptions()
-    modal = new KDModalView
-      title          : "Delete #{type}"
-      content        : "<div class='modalformline'>Are you sure you want to delete this #{type}?</div>"
-      height         : "auto"
-      overlay        : yes
-      buttons        :
-        Delete       :
-          style      : "modal-clean-red"
-          loader     :
-            color    : "#ffffff"
-            diameter : 16
-          callback   : =>
-            data.delete (err)=>
-              modal.buttons.Delete.hideLoader()
-              modal.destroy()
-              # unless err then @emit 'CommentIsDeleted'
-              # else
-              if err then new KDNotificationView
-                type     : "mini"
-                cssClass : "error editor"
-                title    : "Error, please try again later!"
-        cancel       :
-          style      : "modal-cancel"
-          callback   : -> modal.destroy()
 
-  updateTemplate:(force = no)->
-    # TODO: these pistachios are written in JS, pending a solution
-    #  to the problem of statically not being able to find pistachios unless
-    #  they are contained inside a property called "pistachio".
+  showDeleteModal: ->
 
-    {meta: {createdAt, deletedAt}} = @getData()
+    new CommentDeleteModal {}, @getData()
 
-    if deletedAt > createdAt
-      {type} = @getOptions()
-      @setClass "deleted"
-      if @deleter
-        pistachio = "<div class='item-content-comment clearfix'><span>{{> @author}}'s #{type} has been deleted by {{> @deleter}}.</span></div>"
-      else
-        pistachio = "<div class='item-content-comment clearfix'><span>{{> @author}}'s #{type} has been deleted.</span></div>"
-      @setTemplate pistachio
-    else if force
-      @setTemplate @pistachio()
 
-  settingsMenu:(data, options={})->
-    menu = {}
-    if options.edit
-      menu['Edit']   = callback : => @showEditCommentForm data
-    if options.delete
-      menu['Delete'] = callback : => @confirmDeleteComment data
-    return menu
+  createReplyLink: ->
 
-  pistachio:->
+    return @replyView = new KDView tagName: "span"  if KD.isMyPost @getData()
+
+    @replyView = new CustomLinkView
+      cssClass : "action-link reply-link"
+      title    : "Mention"
+      click    : (event) =>
+
+        KD.utils.stopDOMEvent event
+
+        {account: {constructorName, _id}} = @getData()
+
+        KD.remote.cacheable constructorName, _id, (err, account) =>
+
+          @getDelegate().emit 'ReplyLinkClicked', account.profile.nickname
+
+
+  viewAppended: ->
+
+    data = @getData()
+    {account} = data
+    {createdAt, deletedAt, updatedAt} = data
+
+    origin            =
+      constructorName : account.constructorName
+      id              : account._id
+
+    @avatar       = new AvatarView
+      origin      : origin
+      showStatus  : yes
+      size        :
+        width     : 40
+        height    : 40
+
+    @author = new ProfileLinkView {origin}
+
+    @body       = new KDCustomHTMLView
+      cssClass  : "comment-body-container"
+      pistachio : "{p{KD.utils.applyTextExpansions #(body), yes}}"
+    , data
+
+    @formWrapper = new KDCustomHTMLView cssClass: "edit-comment-wrapper hidden"
+
+    @editInfo   = new KDCustomHTMLView
+      tagName   : "span"
+      cssClass  : "hidden edited"
+      pistachio : "edited"
+
+    @editInfo.show()  if updatedAt > createdAt
+
+    # if deleterId? and deleterId isnt origin.id
+    #   @deleter = new ProfileLinkView {}, data.getAt "deletedBy"
+
+    @createMenu()
+    @createReplyLink()
+
+    @likeView    = new CommentLikeView {}, data
+    @timeAgoView = new KDTimeAgoView {}, createdAt
+
+    JView::viewAppended.call this
+
+
+  # updateTemplate: (force = no) ->
+
+  #   {meta: {createdAt, deletedAt}} = @getData()
+
+  #   if deletedAt > createdAt
+  #     {type} = @getOptions()
+  #     @setClass "deleted"
+  #     if @deleter
+  #       pistachio = "<div class='item-content-comment clearfix'><span>{{> @author}}'s #{type} has been deleted by {{> @deleter}}.</span></div>"
+  #     else
+  #       pistachio = "<div class='item-content-comment clearfix'><span>{{> @author}}'s #{type} has been deleted.</span></div>"
+  #     @setTemplate pistachio
+  #   else if force
+  #     @setTemplate @pistachio()
+
+
+  pistachio: ->
     """
       {{> @avatar}}
       <div class='comment-contents clearfix'>
-        {{> @author}}
-        {{> @body}}
-        {{> @editCommentWrapper}}
-        {{> @editInfo}}
-        {{> @settings}}
-        {{> @likeView}}
-        {{> @replyView}}
-        {{> @timeAgoView}}
+      {{> @author}}
+      {{> @body}}
+      {{> @formWrapper}}
+      {{> @editInfo}}
+      {{> @settings}}
+      {{> @likeView}}
+      {{> @replyView}}
+      {{> @timeAgoView}}
       </div>
     """
