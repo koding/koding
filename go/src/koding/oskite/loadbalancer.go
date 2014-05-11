@@ -169,15 +169,11 @@ func (o *Oskite) redisBalancer() {
 				continue
 			}
 
-			// cleanup members from the set if the key expires. Usually that
+			// cleanup members from the map if the key expires. Usually that
 			// might due a host who added itself to the kontainer set but then
-			// just died or added a wrong set name.
-			if len(values) == 0 && kontainerHostname != o.RedisKontainerKey {
-				_, err := redigo.Int(o.RedisSession.Do("SREM", o.RedisKontainerSet, kontainerHostname))
-				if err != nil {
-					log.Error("redis SREM kontainers. err: %v", err.Error())
-				}
-
+			// just died or added a wrong set name. If the kontainer comes up
+			// again we do add it below again.
+			if len(values) == 0 {
 				oskitesMu.Lock()
 				delete(oskites, remoteOskite)
 				oskitesMu.Unlock()
