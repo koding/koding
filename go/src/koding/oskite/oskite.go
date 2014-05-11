@@ -23,6 +23,7 @@ import (
 	"syscall"
 	"time"
 
+	redigo "github.com/garyburd/redigo/redis"
 	kitelib "github.com/koding/kite"
 	"github.com/koding/redis"
 	"labix.org/v2/mgo"
@@ -70,7 +71,10 @@ type Oskite struct {
 	VMRoot            string
 	DisableGuest      bool
 
-	RedisSession *redis.RedisSession
+	RedisSession      *redis.RedisSession
+	RedisPrefix       string
+	RedisKontainerSet string // name of the set each oskite is added
+	RedisKontainerKey string // key name which is added to the set and also used as an hash
 
 	// PrepareQueueLimit defines the number of concurrent VM preparations,
 	// should be CPU + 1
@@ -128,7 +132,12 @@ func (o *Oskite) Run() {
 	rand.Seed(time.Now().UnixNano())
 
 	o.initializeSettings()
-	o.setupRedis()
+	o.prepareOsKite()
+	o.setupRedis()         // setup redis session and key/set names
+	o.handleCurrentVMs()   // handle leftover VMs
+	o.startPinnedVMs()     // start pinned always-on VMs
+	o.setupSignalHandler() // handle SIGUSR1 and other signals.
+	go o.vmUpdater()       // get states of VMS and update them on MongoDB
 
 	// we only support redis greater than 2.6.12
 	currentRedis := o.redisVersion()
@@ -143,12 +152,6 @@ func (o *Oskite) Run() {
 	for i := 0; i < o.PrepareQueueLimit; i++ {
 		go o.prepareWorker(i)
 	}
-
-	o.prepareOsKite()
-	o.handleCurrentVMs()   // handle leftover VMs
-	o.startPinnedVMs()     // start pinned always-on VMs
-	o.setupSignalHandler() // handle SIGUSR1 and other signals.
-	go o.vmUpdater()       // get states of VMS and update them on MongoDB
 
 	// register current client-side methods
 	o.registerMethod("vm.start", false, vmStartOld)
@@ -295,9 +298,10 @@ func (o *Oskite) prepareOsKite() {
 		kite.EnableDebug()
 	}
 
+	o.ServiceUniquename = k.ServiceUniqueName
+
 	k.LoadBalancer = o.loadBalancer
 
-	o.ServiceUniquename = k.ServiceUniqueName
 	o.Kite = k
 }
 
@@ -389,6 +393,12 @@ func (o *Oskite) setupSignalHandler() {
 		// close the communication. We should not accept any calls anymore...
 		shuttingDown.SetClosed()
 
+		log.Info("Removing hostname '%s' from redis", o.RedisKontainerKey)
+		_, err := redigo.Int(o.RedisSession.Do("SREM", o.RedisKontainerSet, o.RedisKontainerKey))
+		if err != nil {
+			log.Error("redis SREM kontainers. err: %v", err.Error())
+		}
+
 		// ...but wait until the current calls are finished.
 		log.Info("Shutdown initiated. Waiting until current calls are finished...")
 		requestWaitGroup.Wait()
@@ -431,7 +441,7 @@ func (o *Oskite) setupSignalHandler() {
 			return err
 		}
 
-		err := mongodbConn.Run("jVMs", query)
+		err = mongodbConn.Run("jVMs", query)
 		if err != nil {
 			log.LogError(err, 0)
 		}
