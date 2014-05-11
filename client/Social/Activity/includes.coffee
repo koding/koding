@@ -25,13 +25,8 @@ module.exports = [
   "views/activityactions.coffee"
   "views/activitylistheader.coffee"
   "views/sharepopup.coffee"
-  # "views/activitysplitview.coffee"
-  # "views/discussionactivityactions.coffee"
-  # "views/tutorialactivityactions.coffee"
-  # "views/newmemberbucket.coffee"
   "views/activitytickeritem.coffee"
   "views/referalbox.coffee"
-  # "views/activitylistcontainer.coffee"
   "views/filterwarning.coffee"
   "views/activitymenuitem.coffee"
 
@@ -61,11 +56,6 @@ module.exports = [
   "views/comments/commentlistitemview.coffee"
   "views/comments/newcommentform.coffee"
   "views/comments/editcommentform.coffee"
-
-  # "views/reviews/reviewview.coffee"
-  # "views/reviews/reviewlistviewcontroller.coffee"
-  # "views/reviews/reviewlistitemview.coffee"
-  # "views/reviews/newreviewform.coffee"
 
   "views/inputview.coffee"
   "views/inputwidget.coffee"
