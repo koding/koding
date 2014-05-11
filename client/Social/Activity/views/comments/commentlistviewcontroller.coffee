@@ -31,34 +31,9 @@ class CommentListViewController extends KDListViewController
     windowController.on "ReceivedMouseUpElsewhere", @bound 'mouseUpHappened'
 
 
-  instantiateListItems: (items, keepDeletedComments = no) ->
+  instantiateListItems: (items) ->
 
-    newItems = []
-
-    items.sort (a, b) ->
-      a = a.meta.createdAt
-      b = b.meta.createdAt
-      if a<b then -1 else if a>b then 1 else 0
-
-    for comment, i in items
-
-      nextComment = items[i+1]
-
-      skipComment = no
-      if nextComment? and comment.deletedAt
-        if Date.parse(nextComment.meta.createdAt) > Date.parse(comment.deletedAt)
-          skipComment = yes
-
-      if not nextComment and comment.deletedAt
-        skipComment = yes
-
-      skipComment = no if keepDeletedComments
-
-      unless skipComment
-        commentView = @getListView().addItem comment
-        newItems.push commentView
-
-    return newItems
+    super items.sort (a, b) -> a.meta.createdAt - b.meta.createdAt
 
 
   startListeners: ->
