@@ -2,6 +2,9 @@ class EditCommentForm extends NewCommentForm
 
   constructor: (options = {}, data) ->
 
+    options.cssClass  = KD.utils.curry "edit-comment-box", options.cssClass
+    options.editable ?= yes
+
     super options, data
 
     @addSubView new KDCustomHTMLView
