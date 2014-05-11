@@ -215,6 +215,7 @@ func lowestOskiteLoad() (serviceUniquename string) {
 		l.ServiceUniquename, l.ActiveVMs, h.ActiveVMs, h.ServiceUniquename)
 
 	if !strings.HasSuffix(l.ServiceUniquename, "_sj_koding_com") {
+		log.Info("applying horrible suffix kludge")
 		return l.ServiceUniquename + "_sj_koding_com"
 	}
 
