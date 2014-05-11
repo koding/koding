@@ -136,6 +136,7 @@ class FormWorkflow extends KDView
     @addLoader()
     @prepareWorkflow?()
     @emit 'ready'
+    @hideLoader()
 
   skip: (data) ->
     v = new KDView
