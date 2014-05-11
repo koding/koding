@@ -119,7 +119,10 @@ func (o *Oskite) redisBalancer() {
 	// kontainers-production-sj
 	kontainerSet := "kontainers-" + conf.Environment + "-" + o.Region
 
-	log.Info("Connected to Redis with %s", prefix+o.ServiceUniquename)
+	// oskite:production:sj:kite-os-sj|kontainer3_sj_koding_com
+	kontainerSetName := prefix + o.ServiceUniquename
+
+	log.Info("Connected to Redis with %s", kontainerSetName)
 
 	_, err := redigo.Int(o.RedisSession.Do("SADD", kontainerSet, prefix+o.ServiceUniquename))
 	if err != nil {
@@ -152,7 +155,7 @@ func (o *Oskite) redisBalancer() {
 		}
 
 		for _, kontainerHostname := range kontainers {
-			// convert to o.ServiceUniquename formst
+			// convert to o.ServiceUniquename format
 			remoteOskite := strings.TrimPrefix(kontainerHostname, prefix)
 
 			values, err := redigo.Values(o.RedisSession.Do("HGETALL", kontainerHostname))
@@ -167,12 +170,25 @@ func (o *Oskite) redisBalancer() {
 				continue
 			}
 
+			// cleanup members from the set if the key expires. Usually that
+			// might due a host who added itself to the kontainer set but then
+			// just died or added a wrong set name.
+			if len(values) == 0 && kontainerHostname != kontainerSetName {
+				_, err := redigo.Int(o.RedisSession.Do("SREM", kontainerSet, kontainerHostname))
+				if err != nil {
+					log.Error("redis SREM kontainers. err: %v", err.Error())
+				}
+
+				oskitesMu.Lock()
+				delete(oskites, remoteOskite)
+				oskitesMu.Unlock()
+				continue
+			}
+
 			oskiteInfo := new(OskiteInfo)
 			if err := redigo.ScanStruct(values, oskiteInfo); err != nil {
 				log.Error("redis ScanStruct err: %v", err.Error())
 			}
-
-			log.Debug("%s: %+v", kontainerHostname, oskiteInfo)
 
 			oskitesMu.Lock()
 			oskites[remoteOskite] = oskiteInfo
@@ -208,11 +224,5 @@ func lowestOskiteLoad() (serviceUniquename string) {
 	log.Info("oskite picked up as lowest load %s with %d VMs (highest was: %d / %s)",
 		l.ServiceUniquename, l.ActiveVMs, h.ActiveVMs, h.ServiceUniquename)
 
-	if !strings.HasSuffix(l.ServiceUniquename, "_sj_koding_com") {
-		log.Info("applying horrible suffix kludge")
-		return l.ServiceUniquename + "_sj_koding_com"
-	}
-
 	return l.ServiceUniquename
-
 }

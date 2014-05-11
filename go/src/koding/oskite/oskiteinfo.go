@@ -26,16 +26,17 @@ type OskiteInfo struct {
 	ActiveVMs         int    `json:"activeVMs"` // by default 0
 	ActiveVMsLimit    int    `json:"activeVMsLimit"`
 	Version           string `json:"version"`
-	ServiceUniquename string `json:"-"`
+	ServiceUniquename string `json:"serviceUniquename"`
 }
 
 func (o *Oskite) GetOskiteInfo() *OskiteInfo {
 	return &OskiteInfo{
-		QueuedVMs:      int(currentQueueCount.Get()),
-		QueueLimit:     len(prepareQueue),
-		ActiveVMs:      currentVMS(),
-		ActiveVMsLimit: o.ActiveVMsLimit,
-		Version:        o.Version,
+		QueuedVMs:         int(currentQueueCount.Get()),
+		QueueLimit:        len(prepareQueue),
+		ActiveVMs:         currentVMS(),
+		ActiveVMsLimit:    o.ActiveVMsLimit,
+		Version:           o.Version,
+		ServiceUniquename: o.ServiceUniquename,
 	}
 }
 
