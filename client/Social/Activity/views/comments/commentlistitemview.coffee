@@ -142,8 +142,6 @@ class CommentListItemView extends KDListItemView
     ,data
 
   render:->
-    if @parsedDates.deletedAt > @parsedDates.createdAt
-      @emit 'CommentIsDeleted'
     @updateTemplate()
     super
 
