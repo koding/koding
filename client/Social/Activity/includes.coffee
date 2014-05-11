@@ -49,7 +49,6 @@ module.exports = [
 
   "views/comments/commentcount.coffee"
   "views/comments/commentlikeview.coffee"
-  "views/comments/commentlikelink.coffee"
   "views/comments/commentview.coffee"
   "views/comments/commentlistviewcontroller.coffee"
   "views/comments/commentviewheader.coffee"
