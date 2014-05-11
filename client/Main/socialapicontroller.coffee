@@ -4,22 +4,27 @@ class SocialApiController extends KDController
     @openedChannels = {}
     super options, data
 
-  mapActivity = (data)->
-    message = data?.message or data
-    # if no result, no need to do something
-    return message unless message
+  mapActivity = (data) ->
 
-    {SocialMessage} = KD.remote.api
-    message._id = message.id
-    m = new SocialMessage message
+    return  unless plain = data.message or data
+
+    {accountOldId, replies, interactions} = data
+
+    plain._id = plain.id
+
+    m = new KD.remote.api.SocialMessage plain
     m.account = {}
     m.account.constructorName = "JAccount"
-    m.account._id = data.accountOldId
-    m.meta = {}
-    m.meta.createdAt = message.createdAt
-    m.replies = mapActivities data.replies
-    m.repliesCount = data.replies?.length or 0
-    m.interactions = data.interactions
+    m.account._id = accountOldId
+
+    m.replies      = mapActivities data.replies or []
+    m.repliesCount = data.repliesCount
+
+    m.interactions    = interactions or
+      like            :
+        actorsCount   : 0
+        actorsPreview : []
+        isInteracted  : no
 
     return m
 
