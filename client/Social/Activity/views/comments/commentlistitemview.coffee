@@ -9,10 +9,7 @@ class CommentListItemView extends KDListItemView
     {message}  = @getData()
     @message   = message
 
-    @parsedDates =
-      deletedAt : Date.parse @message.deletedAt
-      createdAt : Date.parse @message.createdAt
-      updatedAt : Date.parse @message.updatedAt
+    {createdAt, deletedAt, updatedAt} = data
 
     {JAccount} = KD.remote.api
 
@@ -36,7 +33,7 @@ class CommentListItemView extends KDListItemView
       cssClass: "hidden edited"
       pistachio: "edited"
 
-    if @parsedDates.updatedAt > @parsedDates.createdAt then @editInfo.show()
+    if updatedAt > createdAt then @editInfo.show()
 
     if deleterId? and deleterId isnt originId
       @deleter = new ProfileLinkView {}, data.getAt('deletedBy')
@@ -80,7 +77,7 @@ class CommentListItemView extends KDListItemView
       @replyView = new KDView
         tagName  : "span"
 
-    @timeAgoView = new KDTimeAgoView {}, @message.createdAt
+    @timeAgoView = new KDTimeAgoView {}, createdAt
 
     # TODO: ??
     # data.on 'ContentMarkedAsLowQuality', @bound 'hide' unless KD.checkFlag 'exempt'
@@ -108,7 +105,7 @@ class CommentListItemView extends KDListItemView
     @settings.show()
     @editComment.destroy()
     @body.show()
-    @editInfo.show() if @parsedDates.updatedAt > @parsedDates.createdAt
+    @editInfo.show() if data.meta.updatedAt > data.meta.createdAt
     @editCommentWrapper.hide()
 
   showEditCommentForm:(data)->
@@ -190,7 +187,9 @@ class CommentListItemView extends KDListItemView
     #  to the problem of statically not being able to find pistachios unless
     #  they are contained inside a property called "pistachio".
 
-    if @parsedDates.deletedAt > @parsedDates.createdAt
+    {meta: {createdAt, deletedAt}} = @getData()
+
+    if deletedAt > createdAt
       {type} = @getOptions()
       @setClass "deleted"
       if @deleter
