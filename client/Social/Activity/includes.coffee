@@ -54,6 +54,7 @@ module.exports = [
   "views/comments/commentlistviewcontroller.coffee"
   "views/comments/commentviewheader.coffee"
   "views/comments/commentsettingsbutton.coffee"
+  "views/comments/commentdeletemodal.coffee"
   "views/comments/commentlistitemview.coffee"
   "views/comments/newcommentform.coffee"
   "views/comments/editcommentform.coffee"
