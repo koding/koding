@@ -1,8 +1,12 @@
 class CommentListViewController extends KDListViewController
-  constructor:->
-    super
+
+  constructor: (options = {}, data) ->
+
+    super options, data
+
     @_hasBackgrounActivity = no
     @startListeners()
+
 
   loadView: (mainView) ->
 
@@ -26,10 +30,12 @@ class CommentListViewController extends KDListViewController
 
     windowController.on "ReceivedMouseUpElsewhere", @bound 'mouseUpHappened'
 
-  instantiateListItems:(items, keepDeletedComments = no)->
+
+  instantiateListItems: (items, keepDeletedComments = no) ->
+
     newItems = []
 
-    items.sort (a,b) =>
+    items.sort (a, b) ->
       a = a.meta.createdAt
       b = b.meta.createdAt
       if a<b then -1 else if a>b then 1 else 0
@@ -54,14 +60,17 @@ class CommentListViewController extends KDListViewController
 
     return newItems
 
-  startListeners:->
+
+  startListeners: ->
+
     listView = @getListView()
 
-    listView.on 'ItemWasAdded', (view, index)=>
+    listView.on 'ItemWasAdded', (view, index) ->
+
       view.on 'CommentIsDeleted', ->
         listView.emit "CommentIsDeleted"
 
-    listView.on "AllCommentsLinkWasClicked", (commentHeader)=>
+    listView.on "AllCommentsLinkWasClicked", (commentHeader) =>
 
       return if @_hasBackgrounActivity
 
@@ -75,46 +84,56 @@ class CommentListViewController extends KDListViewController
       @_removedBefore = no
       @fetchRelativeComments 10, meta.createdAt
 
-  fetchCommentsByRange:(from,to,callback)->
-    [to,callback] = [callback,to] unless callback
-    query = {from,to}
+
+  fetchCommentsByRange: (from, to, callback) ->
+
+    [to, callback] = [callback, to] unless callback
+
+    query   = {from, to}
     message = @getListView().getData()
 
-    message.commentsByRange query,(err,comments)=>
-      @getListView().emit "BackgroundActivityFinished"
-      callback err,comments
+    message.commentsByRange query, (err, comments) =>
 
-  fetchAllComments:(skipCount=3, callback = noop)->
+      @getListView().emit "BackgroundActivityFinished"
+      callback err, comments
+
+
+  fetchAllComments: (skipCount = 3, callback = noop) ->
 
     listView = @getListView()
     listView.emit "BackgroundActivityStarted"
+
     message = @getListView().getData()
-    message.restComments skipCount, (err, comments)=>
+    message.restComments skipCount, (err, comments) ->
       listView.emit "BackgroundActivityFinished"
       listView.emit "AllCommentsWereAdded"
       callback err, comments
 
-  fetchRelativeComments:(_limit = 10, _after, continuous = yes, _sort = 1)->
+
+  fetchRelativeComments: (limit = 10, after, continuous = yes, sort = 1) ->
+
     listView = @getListView()
-    message = @getListView().getData()
-    message.fetchRelativeComments limit:_limit, after:_after, sort:_sort, (err, comments)=>
+    message  = listView.getData()
+    message.fetchRelativeComments {limit, after, sort}, (err, comments) =>
 
       if not @_removedBefore
         @removeAllItems()
         @_removedBefore = yes
 
-      @instantiateListItems comments[_limit-10...], yes
+      @instantiateListItems comments[limit - 10...], yes
 
-      if comments.length is _limit
-        startTime = comments[comments.length-1].meta.createdAt
-        @fetchRelativeComments ++_limit, startTime, continuous, _sort  if continuous
+      if comments.length is limit
+        startTime = comments[comments.length - 1].createdAt
+        @fetchRelativeComments ++limit, startTime, continuous, sort  if continuous
       else
         listView = @getListView()
         listView.emit "BackgroundActivityFinished"
         listView.emit "AllCommentsWereAdded"
         @_hasBackgrounActivity = no
 
-  replaceAllComments:(comments)->
+
+  replaceAllComments: (comments) ->
+
     @removeAllItems()
     @instantiateListItems comments
 
