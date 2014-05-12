@@ -180,11 +180,20 @@ GRANT SELECT, INSERT, DELETE ON "api"."notification" TO "socialapplication";
 -- ----------------------------
 --  Table structure for notification_content
 -- ----------------------------
+CREATE TYPE "api"."notification_content_type_constant_enum" AS ENUM (
+    'like',
+    'comment',
+    'follow',
+    'join',
+    'leave'
+);
+ALTER TYPE "api"."notification_content_type_constant_enum" OWNER TO "social";
+
 DROP TABLE IF EXISTS "api"."notification_content";
 CREATE TABLE "api"."notification_content" (
     "id" int8 NOT NULL DEFAULT nextval('notification_content_id_seq'::regclass),
     "target_id" int8 NOT NULL,
-    "type_constant" varchar(100) NOT NULL COLLATE "default",
+    "type_constant" "api"."notification_content_type_constant_enum",
     "created_at" timestamp(6) WITH TIME ZONE NOT NULL DEFAULT now()
 )
 WITH (OIDS=FALSE);
