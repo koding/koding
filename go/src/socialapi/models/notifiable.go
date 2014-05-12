@@ -48,17 +48,8 @@ func (n *InteractionNotification) SetTargetId(targetId int64) {
 }
 
 func (n *InteractionNotification) FetchActors(naList []NotificationActivity) (*ActorContainer, error) {
-	if n.TargetId == 0 {
-		return nil, errors.New("TargetId is not set")
-	}
-
 	// filter obsolete activities and user's own activities
-	actors := make([]int64, 0)
-	for _, na := range naList {
-		if !na.Obsolete && na.ActorId != n.ListerId {
-			actors = append(actors, na.ActorId)
-		}
-	}
+	actors := filterActors(naList, n.ListerId)
 
 	return prepareActorContainer(actors), nil
 }
@@ -165,6 +156,17 @@ func reverse(ids []int64) []int64 {
 	return ids
 }
 
+func filterActors(naList []NotificationActivity, listerId int64) []int64 {
+	actors := make([]int64, 0)
+	for _, na := range naList {
+		if !na.Obsolete && na.ActorId != listerId {
+			actors = append(actors, na.ActorId)
+		}
+	}
+
+	return actors
+}
+
 func prepareActorContainer(actors []int64) *ActorContainer {
 	actors = reverse(actors)
 	actorLength := len(actors)
@@ -210,25 +212,10 @@ func (n *FollowNotification) GetTargetId() int64 {
 	return n.TargetId
 }
 
-func (n *FollowNotification) FetchActors([]NotificationActivity) (*ActorContainer, error) {
-	if n.TargetId == 0 {
-		return nil, errors.New("TargetId is not set")
-	}
+func (n *FollowNotification) FetchActors(naList []NotificationActivity) (*ActorContainer, error) {
+	actors := filterActors(naList, n.ListerId)
 
-	ac := NewActorContainer()
-
-	// a := NewNotificationActivity()
-	// // a.TargetId = n.TargetId
-	// // a.TypeConstant = NotificationContent_TYPE_FOLLOW
-	// actorIds, err := a.FetchActorIds(NOTIFIER_LIMIT)
-	// if err != nil {
-	// 	return nil, err
-	// }
-
-	// ac.LatestActors = actorIds
-	// ac.Count = len(ac.LatestActors) // TODO count also must be retrieved
-
-	return ac, nil
+	return prepareActorContainer(actors), nil
 }
 
 func (n *FollowNotification) SetTargetId(targetId int64) {
@@ -274,20 +261,10 @@ func (n *GroupNotification) GetTargetId() int64 {
 }
 
 // fetch notifiers
-func (n *GroupNotification) FetchActors([]NotificationActivity) (*ActorContainer, error) {
-	// a := NewNotificationActivity()
-	// a.TargetId = n.TargetId
-	// a.TypeConstant = n.TypeConstant
-	// actors, err := a.FetchActorIds(NOTIFIER_LIMIT)
-	// if err != nil {
-	// 	return nil, err
-	// }
+func (n *GroupNotification) FetchActors(naList []NotificationActivity) (*ActorContainer, error) {
+	actors := filterActors(naList, n.ListerId)
 
-	ac := NewActorContainer()
-	// ac.LatestActors = actors
-	// ac.Count = len(actors)
-
-	return ac, nil
+	return prepareActorContainer(actors), nil
 }
 
 func (n *GroupNotification) SetTargetId(targetId int64) {
