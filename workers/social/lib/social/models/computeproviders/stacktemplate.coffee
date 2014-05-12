@@ -5,6 +5,8 @@ JName           = require '../name'
 JUser           = require '../user'
 JGroup          = require '../group'
 
+# TODO Credential relations ~g
+
 module.exports = class JStackTemplate extends jraphical.Module
 
   KodingError        = require '../../error'
@@ -27,10 +29,11 @@ module.exports = class JStackTemplate extends jraphical.Module
       'create stack template'     : ['member']
       'list stack templates'      : ['member']
 
-      'delete stack template'     : []
       'delete own stack template' : ['member']
-      'update stack template'     : []
       'update own stack template' : ['member']
+
+      'delete stack template'     : []
+      'update stack template'     : []
 
     sharedMethods     :
 
@@ -68,7 +71,7 @@ module.exports = class JStackTemplate extends jraphical.Module
         required      : yes
 
       description     : String
-      config          : Object  # A JSON String?
+      config          : Object
 
       accessLevel     :
         type          : String
@@ -126,16 +129,18 @@ module.exports = class JStackTemplate extends jraphical.Module
       unless typeof selector is 'object'
         return callback new KodingError "Invalid query"
 
-      selector.$or = [
-        { accessLevel   : 'public' }
-        { originId      : delegate.getId() }
-        {
-          $and          : [
-            accessLevel : 'group'
-            group       : client.context.group
-          ]
-        }
-      ]
+      selector.$and ?= []
+      selector.$and.push
+        $or : [
+          { originId      : delegate.getId() }
+          { accessLevel   : 'public' }
+          {
+            $and          : [
+              accessLevel : 'group'
+              group       : client.context.group
+            ]
+          }
+        ]
 
       @some selector, options, (err, templates)->
         callback err, templates
