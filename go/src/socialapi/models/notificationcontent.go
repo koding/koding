@@ -23,13 +23,11 @@ type NotificationContent struct {
 
 const (
 	// NotificationContent Types
-	NotificationContent_TYPE_LIKE     = "like"
-	NotificationContent_TYPE_UPVOTE   = "upvote"
-	NotificationContent_TYPE_DOWNVOTE = "downvote"
-	NotificationContent_TYPE_COMMENT  = "comment"
-	NotificationContent_TYPE_FOLLOW   = "follow"
-	NotificationContent_TYPE_JOIN     = "join"
-	NotificationContent_TYPE_LEAVE    = "leave"
+	NotificationContent_TYPE_LIKE    = "like"
+	NotificationContent_TYPE_COMMENT = "comment"
+	NotificationContent_TYPE_FOLLOW  = "follow"
+	NotificationContent_TYPE_JOIN    = "join"
+	NotificationContent_TYPE_LEAVE   = "leave"
 )
 
 func NewNotificationContent() *NotificationContent {
