@@ -35,6 +35,9 @@ module.exports = class SocialChannel extends Base
         searchTopics:
           (signature Object, Function)
 
+        fetchProfileFeed:
+          (signature Object, Function)
+
     schema             :
       id               : Number
       name             : String
@@ -100,6 +103,9 @@ module.exports = class SocialChannel extends Base
 
   @searchTopics = secure (client, options = {}, callback)->
     @doRequest 'searchTopics', client, options, callback
+
+  @fetchProfileFeed = secure (client, options = {}, callback)->
+    @doRequest 'fetchProfileFeed', client, options, callback
 
   @fetchPopularTopics = secure (client, options = {}, callback)->
     @doRequest 'fetchPopularTopics', client, options, callback

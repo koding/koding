@@ -141,6 +141,25 @@ func (c *ChannelMessage) FetchByIds(ids []int64) ([]ChannelMessage, error) {
 	return messages, nil
 }
 
+func (c *ChannelMessage) BuildMessages(query *Query, messages []ChannelMessage) ([]*ChannelMessageContainer, error) {
+	containers := make([]*ChannelMessageContainer, len(messages))
+	if len(containers) == 0 {
+		return containers, nil
+	}
+
+	for i, message := range messages {
+		d := NewChannelMessage()
+		*d = message
+		data, err := d.BuildMessage(query)
+		if err != nil {
+			return containers, err
+		}
+		containers[i] = data
+	}
+
+	return containers, nil
+}
+
 func (c *ChannelMessage) BuildMessage(query *Query) (*ChannelMessageContainer, error) {
 	cmc, err := c.FetchRelatives(query)
 	if err != nil {
@@ -243,4 +262,29 @@ func (c *ChannelMessage) FetchRelatives(query *Query) (*ChannelMessageContainer,
 
 	container.Interactions["like"] = interactionContainer
 	return container, nil
+}
+
+func (c *ChannelMessage) FetchMessagesByChannelId(channelId int64, q *Query) ([]ChannelMessage, error) {
+	query := &bongo.Query{
+		Selector: map[string]interface{}{
+			"account_id":         q.AccountId,
+			"initial_channel_id": channelId,
+			"type_constant":      q.Type,
+		},
+		Limit: q.Limit,
+		Skip:  q.Skip,
+		Sort: map[string]string{
+			"created_at": "DESC",
+		},
+	}
+
+	var messages []ChannelMessage
+	if err := c.Some(&messages, query); err != nil {
+		return nil, err
+	}
+
+	if messages == nil {
+		return make([]ChannelMessage, 0), nil
+	}
+	return messages, nil
 }
