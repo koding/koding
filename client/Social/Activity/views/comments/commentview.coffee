@@ -64,7 +64,7 @@ class CommentView extends KDView
 
     @commentList.on "CommentLinkReceivedClick", (event) =>
       @commentForm.makeCommentFieldActive()
-      @commentForm.commentInput.setFocus()
+      @commentForm.input.setFocus()
 
     @commentList.on "CommentCountClicked", =>
       @commentList.emit "AllCommentsLinkWasClicked"
