@@ -106,8 +106,6 @@ func Inject(mux *tigertonic.TrieServeMux) *tigertonic.TrieServeMux {
 	mux.Handle("POST", "/notification/glance", handlerWrapper(notification.Glance, "notification-glance"))
 	// add account followed notification
 	mux.Handle("POST", "/notification/follow", handlerWrapper(notification.Follow, "notification-follow"))
-	// add group joined/left notification
-	mux.Handle("POST", "/notification/group", handlerWrapper(notification.InteractGroup, "notification-group"))
 	// subscribe to message notification
 	mux.Handle("POST", "/notification/subscribe", handlerWrapper(notification.SubscribeMessage, "notification-subscribe"))
 	// unsubscribe from message notification
