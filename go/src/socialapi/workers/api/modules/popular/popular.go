@@ -1,6 +1,7 @@
 package popular
 
 import (
+	"errors"
 	"net/http"
 	"net/url"
 	"socialapi/models"
@@ -20,14 +21,19 @@ func ListTopics(u *url.URL, h http.Header, _ interface{}) (int, http.Header, int
 	// dateNumber is changing according to the statisticName
 	// if it is monthly statistic, it will be month number March->3
 	// if it is weekly statistic, it will be week number 48th week -> 48
+	// if it is daily statistic, it will the day number of the year e.g last day-> 365+1
 	var dateNumber int
 	year, month, _ := now.Date()
 
-	if statisticName == "monthly" {
-		dateNumber = int(month)
-	} else {
-		statisticName = "weekly"
+	switch statisticName {
+	case "daily":
+		dateNumber = now.YearDay()
+	case "weekly":
 		_, dateNumber = now.ISOWeek()
+	case "monthly":
+		dateNumber = int(month)
+	default:
+		return helpers.NewBadRequestResponse(errors.New("Unknown statistic name"))
 	}
 
 	key := populartopic.PreparePopularTopicKey(
