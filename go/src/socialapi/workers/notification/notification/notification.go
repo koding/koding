@@ -3,7 +3,6 @@ package notification
 import (
 	"encoding/json"
 	"errors"
-	// "fmt"
 	"github.com/koding/logging"
 	"github.com/koding/rabbitmq"
 	"github.com/koding/worker"
@@ -64,10 +63,12 @@ func NewNotificationWorkerController(rmq *rabbitmq.RabbitMQ, log logging.Logger,
 	}
 
 	routes := map[string]Action{
-		"api.message_reply_created": (*NotificationWorkerController).CreateReplyNotification,
-		"api.interaction_created":   (*NotificationWorkerController).CreateInteractionNotification,
-		"api.notification_created":  (*NotificationWorkerController).NotifyUser,
-		"api.notification_updated":  (*NotificationWorkerController).NotifyUser,
+		"api.message_reply_created":       (*NotificationWorkerController).CreateReplyNotification,
+		"api.interaction_created":         (*NotificationWorkerController).CreateInteractionNotification,
+		"api.notification_created":        (*NotificationWorkerController).NotifyUser,
+		"api.notification_updated":        (*NotificationWorkerController).NotifyUser,
+		"api.channel_participant_created": (*NotificationWorkerController).JoinGroup,
+		"api.channel_participant_updated": (*NotificationWorkerController).LeaveGroup,
 	}
 
 	nwc.routes = routes
@@ -282,7 +283,92 @@ func fetchNotifierOldAccount(accountId int64) (*mongomodels.Account, error) {
 	return account, nil
 }
 
-// copy/pasted from realtime package
+func (n *NotificationWorkerController) JoinGroup(data []byte) error {
+	return processChannelParticipant(data, models.NotificationContent_TYPE_JOIN)
+}
+
+func (n *NotificationWorkerController) LeaveGroup(data []byte) error {
+	return processChannelParticipant(data, models.NotificationContent_TYPE_LEAVE)
+}
+
+func processChannelParticipant(data []byte, typeConstant string) error {
+	cp, err := mapMessageToChannelParticipant(data)
+	if err != nil {
+		return err
+	}
+
+	c := models.NewChannel()
+	if err := c.ById(cp.ChannelId); err != nil {
+		return err
+	}
+
+	switch c.TypeConstant {
+	case models.Channel_TYPE_GROUP:
+		return interactGroup(cp, c, typeConstant)
+	case models.Channel_TYPE_FOLLOWERS:
+		return interactFollow(cp, c)
+	}
+
+	return nil
+}
+
+func interactFollow(cp *models.ChannelParticipant, c *models.Channel) error {
+	// TODO refactor this part
+	nI := models.NewFollowNotification()
+	nI.TargetId = cp.ChannelId
+	nI.NotifierId = cp.AccountId
+	nc, err := models.CreateNotificationContent(nI)
+	if err != nil {
+		return err
+	}
+
+	notification := models.NewNotification()
+	notification.NotificationContentId = nc.Id
+	notification.AccountId = c.CreatorId  // notify channel owner
+	notification.ActivatedAt = time.Now() // enables notification immediately
+	if err = notification.Create(); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func interactGroup(cp *models.ChannelParticipant, c *models.Channel, typeConstant string) error {
+
+	// user joins her own group, so we bypass notification
+	if c.CreatorId == cp.AccountId {
+		return nil
+	}
+
+	nI := models.NewGroupNotification(typeConstant)
+	nI.TargetId = cp.ChannelId
+	nI.NotifierId = cp.AccountId
+	nc, err := models.CreateNotificationContent(nI)
+	if err != nil {
+		return err
+	}
+
+	//TODO all group admins (if there exists) should be notified
+	notification := models.NewNotification()
+	notification.NotificationContentId = nc.Id
+	notification.AccountId = c.CreatorId  // notify channel owner
+	notification.ActivatedAt = time.Now() // enables notification immediately
+	if err = notification.Create(); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func mapMessageToChannelParticipant(data []byte) (*models.ChannelParticipant, error) {
+	cp := models.NewChannelParticipant()
+	if err := json.Unmarshal(data, cp); err != nil {
+		return nil, err
+	}
+
+	return cp, nil
+}
+
 func mapMessageToMessageReply(data []byte) (*models.MessageReply, error) {
 	mr := models.NewMessageReply()
 	if err := json.Unmarshal(data, mr); err != nil {
@@ -292,7 +378,6 @@ func mapMessageToMessageReply(data []byte) (*models.MessageReply, error) {
 	return mr, nil
 }
 
-// copy/pasted from realtime package
 func mapMessageToInteraction(data []byte) (*models.Interaction, error) {
 	i := models.NewInteraction()
 	if err := json.Unmarshal(data, i); err != nil {
