@@ -12,7 +12,7 @@ class ActivityLikeSummaryView extends JView
 
     @showMoreLink = new KDCustomHTMLView
       tagName     : "strong"
-      partial     : data.interactions.like.actorsCount
+      partial     : data.interactions.like.actorsCount - 3
       click       : @bound "showLikers"
 
 
