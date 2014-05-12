@@ -1,47 +1,17 @@
-class ActivitySharePopup extends SharePopup
-
-  constructor: (options={}, data)->
-
-    options.cssClass        = "share-popup"
-    options.shortenText     = true
-    options.twitter         = @getTwitterOptions options
-    options.newTab          = @getNewTabOptions options
-
-    super options, data
-
-  getTwitterOptions:(options)->
-    data = options.delegate.getData()
-    {tags} = data
-    if tags
-      hashTags  = ("##{tag.slug}"  for tag in tags when tag?.slug)
-      hashTags  = _.unique(hashTags).join " "
-      hashTags += " "
-    else
-      hashTags = ''
-
-    {title, body} = data
-    itemText  = KD.utils.shortenText title or body, maxLength: 100, minLength: 100
-    shareText = "#{itemText} #{hashTags}- #{options.url}"
-
-    return twitter =
-      enabled : true
-      text    : shareText
-
-  getNewTabOptions:(options)->
-    return { enabled : true, url : options.url }
-
 class ActivityActionsView extends KDView
 
   contextMenu = null
-  constructor:->
-    super
+
+  constructor: (options = {}, data) ->
+
+    super options, data
 
     activity = @getData()
 
-    @commentLink  = new ActivityActionLink
-      partial : "Comment"
+    @commentLink  = new CustomLinkView title: "Comment"
 
     @commentCount = new ActivityCommentCount
+      cssClass    : 'count'
       tooltip     :
         title     : "Show all"
       click       : (event) =>
@@ -49,15 +19,18 @@ class ActivityActionsView extends KDView
         @getDelegate().emit "CommentCountClicked", this
     , activity
 
-    @shareLink = new ActivityActionLink
-      partial  : "Share"
-      click    : (event) =>
+    @shareLink = new CustomLinkView
+      title : "Share"
+      click : (event) =>
+
         KD.utils.stopDOMEvent event
+
         data = @getData()
         if data?.group? and data.group isnt "koding"
           shareUrl = "#{KD.config.mainUri}/#{data.group}/Activity/#{data.slug}"
         else
           shareUrl      = "#{KD.config.mainUri}/Activity/#{data.slug}"
+
         contextMenu   = new KDContextMenu
           cssClass    : "activity-share-popup"
           type        : "activity-share"
@@ -71,11 +44,7 @@ class ActivityActionsView extends KDView
 
         KD.mixpanel "Activity share, click"
 
-    @likeView = new LikeView
-      cssClass           : "logged-in action-container"
-      useTitle           : yes
-      checkIfLikedBefore : yes
-    , activity
+    @likeLink = new ActivityLikeLink null, activity
 
     @loader = new KDLoaderView
       cssClass      : 'action-container'
@@ -84,35 +53,8 @@ class ActivityActionsView extends KDView
       loaderOptions :
         color       : '#6B727B'
 
-    # unless KD.isLoggedIn()
-    #   @commentLink.setTooltip title: "Login required"
-    #   @likeView.likeLink.setTooltip title: "Login required"
-    #   KD.getSingleton("mainController").on "accountChanged.to.loggedIn", =>
-    #     delete @likeView.likeLink.tooltip
-    #     delete @commentLink.tooltip
 
-  viewAppended:->
-
-    @setClass "activity-actions"
-    @setTemplate @pistachio()
-    @template.update()
-    @attachListeners()
-    @loader.hide()
-
-  pistachio:->
-
-    """
-    {{> @likeView}}
-    <span class='logged-in action-container'>
-      {{> @commentLink}}{{> @commentCount}}
-    </span>
-    <span class='optional action-container'>
-      {{> @shareLink}}
-    </span>
-    {{> @loader}}
-    """
-
-  attachListeners:->
+  attachListeners: ->
 
     activity    = @getData()
     commentList = @getDelegate()
@@ -124,86 +66,27 @@ class ActivityActionsView extends KDView
       @utils.stopDOMEvent event
       commentList.emit "CommentLinkReceivedClick", event, this
 
-class ActivityActionLink extends KDCustomHTMLView
-  constructor:(options,data)->
-    options = $.extend
-      tagName   : "a"
-      cssClass  : "action-link"
-      attributes:
-        href    : "#"
-    , options
-    super options,data
-
-class ActivityCountLink extends KDCustomHTMLView
-
-  constructor:(options,data)->
-
-    options = $.extend
-      tagName   : "a"
-      cssClass  : "count"
-      attributes:
-        href    : "#"
-    , options
-
-    super options, data
-
-
-  render: ->
-
-    super
-
-    @setCount()
-
 
   viewAppended: ->
 
-    super
-
-    @setCount()
-
-
-class ActivityLikeCount extends ActivityCountLink
-
-  constructor: (options, data) ->
-
-    super options, data
-
-    @oldCount = (data.meta.likes or 0) or 0
-
-
-  setCount: ->
-
-    {meta} = @getData()
-    likes = (meta?.likes) or 0
-
-    if likes isnt @oldCount
-      @emit "countChanged", likes
-
-    @oldCount = likes
-
-    if likes
-    then @show()
-    else @hide()
+    @setClass "activity-actions"
+    @setTemplate @pistachio()
+    @template.update()
+    @attachListeners()
+    @loader.hide()
 
 
   pistachio: ->
 
-    "{{ #(meta.likes)}}"
-
-
-class ActivityCommentCount extends ActivityCountLink
-
-  setCount: ->
-
-    {repliesCount} = @getData()
-
-    if repliesCount
-    then @show()
-    else @hide()
-
-    @emit "countChanged", repliesCount
-
-
-  pistachio: ->
-
-    "{{ #(repliesCount)}}"
+    """
+    <span class='logged-in action-container'>
+      {{> @likeLink}}
+    </span>
+    <span class='logged-in action-container'>
+      {{> @commentLink}}{{> @commentCount}}
+    </span>
+    <span class='optional action-container'>
+      {{> @shareLink}}
+    </span>
+    {{> @loader}}
+    """

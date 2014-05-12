@@ -90,7 +90,6 @@ module.exports = [
   "navigation/navigationcontroller.coffee",
 
   "CommonViews/VideoPopup.coffee",
-  "CommonViews/LikeView.coffee",
   "CommonViews/ShowMoreDataModalView.coffee",
   "CommonViews/SkillTagFormView.coffee",
   "CommonViews/SkillTagAutoCompleteController.coffee",

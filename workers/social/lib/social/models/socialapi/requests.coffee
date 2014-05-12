@@ -88,6 +88,14 @@ unlikeMessage = (data, callback)->
   delete data.id
   post url, data, callback
 
+listLikers = (data, callback)->
+  unless data.id
+    return callback { message: "Request is not valid for listing actors" }
+
+  url = "#{SOCIAL_API_URL}/message/#{data.id}/interaction/like"
+  delete data.id
+  get url, data, callback
+
 addReply = (data, callback)->
   if not data.accountId or not data.body or not data.messageId
     return callback { message: "Request is not valid for adding a reply"}
@@ -180,6 +188,12 @@ createGroupNotification = (data, callback)->
   url = "#{SOCIAL_API_URL}/notification/group"
   post url, data, callback
 
+searchTopics = (data, callback)->
+  if not data.name
+    return callback { message: "Name should be set for topic search"}
+  url = "#{SOCIAL_API_URL}/channel/search"
+  get url, data, callback
+
 post = (url, data, callback)->
   request
     url    : url
@@ -197,6 +211,7 @@ get = (url, data, callback)->
   , wrapCallback callback
 
 module.exports = {
+  searchTopics
   fetchPrivateMessages
   sendPrivateMessage
   fetchFollowedChannels
@@ -209,6 +224,7 @@ module.exports = {
   addReply
   unlikeMessage
   likeMessage
+  listLikers
   deleteMessage
   editMessage
   postToChannel

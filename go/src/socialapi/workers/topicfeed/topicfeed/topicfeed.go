@@ -34,11 +34,16 @@ type TopicFeedController struct {
 	log    logging.Logger
 }
 
-func (t *TopicFeedController) DefaultErrHandler(delivery amqp.Delivery, err error) {
+func (t *TopicFeedController) DefaultErrHandler(delivery amqp.Delivery, err error) bool {
+	if delivery.Redelivered {
+		t.log.Error("Redelivered message gave error again, putting to maintenance queue", err)
+		delivery.Ack(false)
+		return true
+	}
+
 	t.log.Error("an error occured putting message back to queue", err)
-	// multiple false
-	// reque true
 	delivery.Nack(false, true)
+	return false
 }
 
 func NewTopicFeedController(log logging.Logger) *TopicFeedController {

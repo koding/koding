@@ -9,21 +9,25 @@ class SidebarPinnedItem extends SidebarItem
 
     data = @getData()
 
-    @avatar = new AvatarView
+    origin =
+      id              : data.account._id
+      constructorName : data.account.constructorName
+
+    @avatar = new AvatarView {
       size       : width : 30, height : 30
       cssClass   : "avatarview"
       showStatus : yes
-    , KD.whoami()
+      origin
+    }
 
-    @actor = new ProfileTextView {}, KD.whoami()
-
-    @lastMessage = new KDCustomHTMLView
-      cssClass  : 'user-numbers'
-      pistachio : "{{ #(body)}}"
-    , data
+    @actor = new ProfileTextView {origin}
 
 
-  viewAppended:->
-    @addSubView @avatar
-    @addSubView @actor
-    @addSubView @lastMessage
+  viewAppended: JView::viewAppended
+
+
+  pistachio: ->
+    """
+    {{> @avatar}}{{> @actor}}
+    {span.user-numbers{ #(body)}}
+    """

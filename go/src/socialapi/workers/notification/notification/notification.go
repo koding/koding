@@ -38,10 +38,11 @@ type NotificationContent struct {
 	ActorId      int64  `json:"actorId"`
 }
 
-func (n *NotificationWorkerController) DefaultErrHandler(delivery amqp.Delivery, err error) {
+func (n *NotificationWorkerController) DefaultErrHandler(delivery amqp.Delivery, err error) bool {
 	n.log.Error("an error occured: %s", err)
-
 	delivery.Ack(false)
+
+	return false
 }
 
 func NewNotificationWorkerController(rmq *rabbitmq.RabbitMQ, log logging.Logger, cacheEnabled bool) (*NotificationWorkerController, error) {

@@ -9,6 +9,7 @@ class SocialApiController extends KDController
     return message unless message
 
     {SocialMessage} = KD.remote.api
+    message._id = message.id
     m = new SocialMessage message
     m._id = message.id
     m.account = {}
@@ -17,7 +18,7 @@ class SocialApiController extends KDController
     m.meta = {}
     m.meta.likes = data.interactions?.like?.length or 0
     m.meta.createdAt = message.createdAt
-    m.replies = data.replies
+    m.replies = mapActivities data.replies
     m.repliesCount = data.replies?.length or 0
     m.interactions = data.interactions
 
@@ -154,6 +155,7 @@ class SocialApiController extends KDController
     delete :(rest...)-> KD.remote.api.SocialMessage.delete rest...
     like   :(rest...)-> KD.remote.api.SocialMessage.like rest...
     unlike :(rest...)-> KD.remote.api.SocialMessage.unlike rest...
+    listLikers:(rest...)-> KD.remote.api.SocialMessage.listLikers rest...
     sendPrivateMessage :(rest...)->
       sendPrivateMessageRequest 'sendPrivateMessage', rest...
     fetchPrivateMessages :(rest...)->
@@ -177,3 +179,5 @@ class SocialApiController extends KDController
       KD.remote.api.SocialChannel.unfollow rest...
     fetchFollowedChannels: (rest...)->
       channelApiChannelsResFunc 'fetchFollowedChannels', rest...
+    searchTopics: (rest...)->
+      channelApiChannelsResFunc 'searchTopics', rest...

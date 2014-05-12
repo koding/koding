@@ -25,7 +25,7 @@ func main() {
 	// create logger for our package
 	log := helper.CreateLogger("DB Creation Script", *flagDebug)
 
-	helper.MustInitBongo(conf, log)
+	helper.MustInitBongo("CreateDB", conf, log)
 	db.DB.LogMode(true)
 	db.DB.Exec("drop table channel_message_list;")
 	db.DB.Exec("drop table channel_message;")

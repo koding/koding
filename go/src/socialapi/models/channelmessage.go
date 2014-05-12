@@ -68,7 +68,7 @@ const (
 	ChannelMessage_TYPE_JOIN            = "join"
 	ChannelMessage_TYPE_LEAVE           = "leave"
 	ChannelMessage_TYPE_CHAT            = "chat"
-	ChannelMessage_TYPE_PRIVATE_MESSAGE = "privateMessage"
+	ChannelMessage_TYPE_PRIVATE_MESSAGE = "privatemessage"
 )
 
 func NewChannelMessage() *ChannelMessage {
@@ -176,10 +176,7 @@ func (c *ChannelMessage) BuildEmptyMessageContainer() (*ChannelMessageContainer,
 	container := NewChannelMessageContainer()
 	container.Message = c
 
-	i := NewInteraction()
-	i.MessageId = c.Id
-
-	oldId, err := FetchOldIdByAccountId(c.AccountId)
+	oldId, err := AccountOldIdById(c.AccountId)
 	if err != nil {
 		return nil, err
 	}

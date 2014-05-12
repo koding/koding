@@ -1,24 +1,32 @@
 class SidebarTopicItem extends SidebarItem
 
+  getSuffix = (c)-> str : if c > 1 then ' Followers' else ' Follower'
+
   constructor: (options = {}, data) ->
 
-    options.type = 'sidebar-item'
+    options.type            = 'sidebar-item'
+    options.pistachioParams = getSuffix data.participantCount
 
     super options, data
 
+    data = @getData()
+
     @followButton = new TopicFollowButton {}, data
+
 
   viewAppended: JView::viewAppended
 
+  render: ->
 
-  pistachio:->
+    @setOption 'pistachioParams', getSuffix @getData().participantCount
 
-    {participantCount} = @getData()
+    super
 
-    # str = if participantCount > 1 then 'Followers' else 'Follower'
+
+  pistachio: ->
 
     """
     {span.ttag{ #(name)}}
-    {span.tag-info{ #(participantCount) + ' followers'}}
+    {span.tag-info{ #(participantCount) + str}}
     {{> @followButton}}
     """

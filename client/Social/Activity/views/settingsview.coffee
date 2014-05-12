@@ -3,77 +3,84 @@ class ActivitySettingsView extends KDCustomHTMLView
   constructor:(options = {}, data={})->
 
     super options, data
-    data = @getData()
+
+    @menu   = {}
+    data    = @getData()
     account = KD.whoami()
-    @settings = if (data.originId is account.getId()) or KD.checkFlag('super-admin') or KD.hasAccess("delete posts")
-      button = new KDButtonViewWithMenu
-        cssClass       : 'activity-settings-menu'
-        itemChildClass : ActivityItemMenuItem
-        title          : ''
-        delegate       : this
-        iconClass      : "arrow"
-        menu           : @settingsMenu data
-        style          : "resurrection"
-        callback       : (event)=> button.contextMenu event
-    else
-      new KDCustomHTMLView tagName : 'span', cssClass : 'hidden'
+
+    @settings = new KDButtonViewWithMenu
+      title          : ''
+      cssClass       : 'activity-settings-menu'
+      itemChildClass : ActivityItemMenuItem
+      delegate       : this
+      iconClass      : 'arrow'
+      menu           : @settingsMenu data
+      style          : 'resurrection'
+      callback       : (event) => @settings.contextMenu event
 
     activityController = KD.getSingleton('activityController')
 
 
+  addMenuItem: (title, callback) -> @menu[title] = {callback}
+
+  getGenericMenu: ->
+
+    {socialapi} = KD.singletons
+    post = @getData()
+    @addMenuItem 'Follow Post', =>
+      messageId = post.getId()
+      socialapi.channel.pin {messageId}, (err)->
+        return KD.showError err  if err
+        log 'post pinned'
+
+    return @menu
+
+
   getOwnerMenu: (post) ->
 
-    account            = KD.whoami()
-    activityController = KD.getSingleton("activityController")
-    menu               =
-      'Edit Post'      : callback : => @emit 'ActivityEditIsClicked'
-      'Delete Post'    : callback : => @confirmDeletePost post
+    account              = KD.whoami()
+    {activityController} = KD.singletons
+    @addMenuItem 'Edit Post', => @emit 'ActivityEditIsClicked'
+    @addMenuItem 'Delete Post', => @confirmDeletePost post
 
-    return menu
+    return @menu
 
 
   getAdminMenu: (post) ->
 
-    account      = KD.whoami()
-    menu         = @getOwnerMenu()
-    addCallback  = (title, callback) -> menu[title] = {callback}
-
+    @menu                = @getOwnerMenu()
     {activityController} = KD.singletons
 
-    if KD.checkFlag 'exempt', account
-      addCallback 'Unmark User as Troll', ->
+    if KD.checkFlag 'exempt', KD.whoami()
+      @addMenuItem 'Unmark User as Troll', ->
         activityController.emit "ActivityItemUnMarkUserAsTrollClicked", post
     else
-      addCallback 'Mark User as Troll', ->
+      @addMenuItem 'Mark User as Troll', ->
         activityController.emit "ActivityItemMarkUserAsTrollClicked", post
 
-    addCallback 'Block User', ->
+    @addMenuItem 'Block User', ->
       activityController.emit "ActivityItemBlockUserClicked", post.originId
-    addCallback 'Impersonate', ->
+    @addMenuItem 'Impersonate', ->
       KD.remote.cacheable post.originType, post.originId, (err, owner) ->
         return KD.showError err  if err
         return KD.showError message: "Account not found"  unless owner
         KD.impersonate owner.profile.nickname
 
-    addCallback 'Add System Tag', => @selectSystemTag post
+    @addMenuItem 'Add System Tag', => @selectSystemTag post
 
-    return menu
+    return @menu
 
 
   settingsMenu: (post) ->
 
-    account = KD.whoami()
-    menu    = {}
+    @getGenericMenu()
 
-    activityController = KD.getSingleton("activityController")
-
-    menu = if post.originId is account.getId()
+    if KD.isMyPost post
     then @getOwnerMenu()
     else if KD.checkFlag('super-admin') or KD.hasAccess('delete posts')
     then @getAdminMenu()
 
-
-    return menu
+    return @menu
 
   viewAppended: -> @addSubView @settings
 

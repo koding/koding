@@ -16,7 +16,7 @@ resurrection.activity.styl
 .content-page.activity
 .member.content-display
   .lazy-loader
-    margin              30px auto !important
+    margin              30px auto
     text-align          center
 
 .status.content-display
@@ -179,13 +179,11 @@ resurrection.activity.styl
           color         logoBg
 
 
-
   > aside
     left                0
     top                 55px
-    width               299px
     kalc                height, (100% \- 55px)
-    kalc                margin-left, \(100% \- 995px\)\/2
+    kalc                width, \(100% \- 365px\)\/2
     z-index             10
     borderBox()
     fix()
@@ -200,19 +198,28 @@ resurrection.activity.styl
         rounded           6px
 
     > main
-      width               294px
+      width               100%
       font-family         openSansFamily
+      kalc                padding-left, \(100% \- 295px\)
+      borderBox()
 
       .kdlistitemview-sidebar-item
         size              263px, 30px
         padding           5px 5px 5px 9px
         rounded           4px
         font-size         14px
-        vendor            box-sizing, content-box
         overflow          visible
         position          relative
         display           block
         color             #4c4c4c
+        contentBox()
+        &:hover
+          bg              color rgba(0,0,0,.01)
+          pointer()
+          .profile
+          .ttag
+            text-decoration underline
+
 
         cite.count
           size            auto, 20px
@@ -249,6 +256,7 @@ resurrection.activity.styl
           font-size       12px
           color           #1aaf5d
           text-transform  uppercase
+          pointer()
 
           &:after
             content         ""
@@ -265,10 +273,17 @@ resurrection.activity.styl
             margin          0 7px 0 0
             fr()
 
+        .lazy-loader
+          margin            0
+          top               -28px
+          right             36px
+          abs()
+
         .kdlistview
           overflow        visible
 
         &.topics
+
           .ttag
             display       block
             font-weight   500
@@ -291,7 +306,6 @@ resurrection.activity.styl
             rounded       3px
             margin        0
             padding       0
-            overflow      hidden
             borderBox()
             &:hover
               border-color    transparent
@@ -625,23 +639,58 @@ span.collapsedtext
     .activity-actions
       padding             0 0 14px 14px
 
-      a
-        noTextDeco()
-
-      a.action-link
+      span.action-container
         font-size         12px
         color             #9c9c9c
         font-weight       400
 
-      .action-container~.action-container:before
-        content           ""
-        display           inline-block
-        size              3px, 3px
-        rounded           50%
-        background        #d3d3d3
-        font-size         8px
-        margin            0 3px 0 5px
-        vertical-align    middle
+        a
+          font-size       inherit
+          color           inherit
+          font-weight     inherit
+          noTextDeco()
+
+        a.count
+          display         inline-block
+          height          16px
+          line-height     16px
+          padding         0 4px
+          background      #dfdfdf
+          color           #747474
+          rounded         2px
+          margin-left     7px
+          font-size       11px
+
+        &~.action-container:before
+          content         ""
+          display         inline-block
+          size            3px, 3px
+          rounded         50%
+          background      #d3d3d3
+          font-size       8px
+          margin          0 3px 0 5px
+          vertical-align  middle
+
+        &.kdloader
+          width           auto
+          vertical-align  middle
+          margin-left     4px
+
+          &:before
+            display       none
+
+    .like-summary
+      height              33px
+      line-height         33px
+      bg                  color, #f7f7f7
+      font-size           12px
+      color               #5b5b5b
+      padding             0 0 0 14px
+
+      .profile
+        color             inherit
+        font-weight       600
+        noTextDeco()
 
   .comment-container
     .item-add-comment-box
@@ -728,7 +777,7 @@ span.collapsedtext
           margin          -2px 7px 0 5px
           vertical-align  middle
 
-        &:first-of-type:before
+        &.like-link:before
           display         none
 
       time

@@ -28,6 +28,8 @@ module.exports = class SocialMessage extends Base
           (signature Object, Function)
         unlike :
           (signature Object, Function)
+        listLikers:
+          (signature Object, Function)
         sendPrivateMessage:
           (signature Object, Function)
         fetchPrivateMessages:
@@ -92,6 +94,11 @@ module.exports = class SocialMessage extends Base
       if not data.id
         return callback message: "Request is not valid for unliking a message"
       SocialMessage.doRequest 'unlikeMessage', client, data, callback
+
+  @listLikers = secure (client, data, callback)->
+    if not data.id
+      return callback message: "Request is not valid for fetching likers"
+    SocialMessage.doRequest 'listLikers', client, data, callback
 
   @sendPrivateMessage = permit 'send private message',
     success:  (client, data, callback)->
