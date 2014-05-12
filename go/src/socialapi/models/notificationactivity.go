@@ -9,7 +9,7 @@ import (
 
 // NotificationActivity stores each user NotificationActivity related to notification content.
 // When a user makes duplicate NotificationActivity for the same content
-// old one is deleted and new one is added to NotificationActivity table
+// old one is set as obsolete and new one is added to NotificationActivity table
 type NotificationActivity struct {
 	// unique identifier of NotificationActivity
 	Id int64 `json:"id"`
@@ -88,12 +88,15 @@ func (a *NotificationActivity) FetchByContentIds(ids []int64) ([]NotificationAct
 }
 
 func (a *NotificationActivity) FetchMapByContentIds(ids []int64) (map[int64][]NotificationActivity, error) {
+	aMap := make(map[int64][]NotificationActivity, 0)
+	if len(ids) == 0 {
+		return aMap, nil
+	}
 	aList, err := a.FetchByContentIds(ids)
 	if err != nil {
 		return nil, err
 	}
 
-	aMap := make(map[int64][]NotificationActivity, 0)
 	for _, activity := range aList {
 		aMap[activity.NotificationContentId] = append(aMap[activity.NotificationContentId], activity)
 	}
