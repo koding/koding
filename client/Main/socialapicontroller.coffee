@@ -60,6 +60,10 @@ class SocialApiController extends KDController
       channelApiChannelsResFunc 'fetchChannels', options, callback
 
   fetchPopularTopics = (options, callback)->
+    # here not to break current frontend
+    options.type ?= "weekly"
+    unless options.type in ["daily", "weekly", "monthly"]
+      return callback {message: "type is not valid "}
     getCurrentGroup (group)->
       options.groupName = group.slug
       channelApiChannelsResFunc 'fetchPopularTopics', options, callback
