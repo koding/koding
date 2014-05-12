@@ -1,0 +1,14 @@
+{
+  "variables": {
+    "do_client_id": "",
+    "do_api_key": ""
+  },
+  "builders": [{
+    "type": "digitalocean",
+    "client_id": "{{user `do_client_id`}}",
+    "api_key": "{{user `do_api_key`}}",
+    "image": "ubuntu-13-10-x64",
+    "region":  "ams1",
+    "size": "512mb"
+  }]
+}
