@@ -9,6 +9,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"time"
 
 	"github.com/koding/kite"
 	kiteconfig "github.com/koding/kite/config"
@@ -72,6 +73,7 @@ func main() {
 	kon.DataDir = datadir
 
 	kon.AddAuthenticator("sessionID", authenticateFromSessionID)
+	kon.MachineAuthenticate = authenticateFromKodingPassword
 
 	if conf.NewKontrol.UseTLS {
 		kon.Kite.UseTLSFile(conf.NewKontrol.CertFile, conf.NewKontrol.KeyFile)
@@ -99,4 +101,19 @@ func findUsernameFromSessionID(sessionID string) (string, error) {
 	}
 
 	return session.Username, nil
+}
+
+func authenticateFromKodingPassword(r *kite.Request) error {
+	password, err := r.Client.TellWithTimeout(
+		"kite.getPass",
+		10*time.Minute,
+		"Enter password: ",
+	)
+
+	if err != nil {
+		return err
+	}
+
+	_, err = modelhelper.CheckAndGetUser(r.Client.Kite.Username, password.MustString())
+	return err
 }

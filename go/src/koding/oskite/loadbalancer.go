@@ -21,20 +21,6 @@ var (
 	oskitesMu sync.Mutex
 )
 
-func (o *Oskite) setupRedis() {
-	if o.RedisSession != nil {
-		return
-	}
-
-	session, err := redis.NewRedisSession(conf.Redis)
-	if err != nil {
-		log.Error("redis SADD kontainers. err: %v", err.Error())
-	}
-
-	o.RedisSession = session
-	o.RedisSession.SetPrefix("oskite")
-}
-
 func (o *Oskite) loadBalancer(correlationName, username, deadService string) string {
 	blog := func(v interface{}) {
 		log.Info("oskite loadbalancer for [correlationName: '%s' user: '%s' deadService: '%s'] results in --> %v.", correlationName, username, deadService, v)
@@ -110,18 +96,35 @@ func (o *Oskite) loadBalancer(correlationName, username, deadService string) str
 	return vm.HostKite
 }
 
+func (o *Oskite) setupRedis() {
+	if o.RedisSession != nil {
+		return
+	}
+
+	session, err := redis.NewRedisSession(conf.Redis)
+	if err != nil {
+		log.Error("redis SADD kontainers. err: %v", err.Error())
+	}
+
+	o.RedisSession = session
+
+	// oskite:production:sj:
+	o.RedisPrefix = "oskite:" + conf.Environment + ":" + o.Region + ":"
+
+	// kontainers-production-sj
+	o.RedisKontainerSet = "kontainers-" + conf.Environment + "-" + o.Region
+
+	// oskite:production:sj:kite-os-sj|kontainer3_sj_koding_com
+	o.RedisKontainerKey = o.RedisPrefix + o.ServiceUniquename
+
+	o.RedisSession.SetPrefix("oskite")
+}
+
 func (o *Oskite) redisBalancer() {
 	o.setupRedis()
 
-	// oskite:production:sj:
-	prefix := "oskite:" + conf.Environment + ":" + o.Region + ":"
-
-	// kontainers-production-sj
-	kontainerSet := "kontainers-" + conf.Environment + "-" + o.Region
-
-	log.Info("Connected to Redis with %s", prefix+o.ServiceUniquename)
-
-	_, err := redigo.Int(o.RedisSession.Do("SADD", kontainerSet, prefix+o.ServiceUniquename))
+	log.Info("Connected to Redis with %s", o.RedisKontainerKey)
+	_, err := redigo.Int(o.RedisSession.Do("SADD", o.RedisKontainerSet, o.RedisKontainerKey))
 	if err != nil {
 		log.Error("redis SADD kontainers. err: %v", err.Error())
 	}
@@ -130,30 +133,29 @@ func (o *Oskite) redisBalancer() {
 	go func() {
 		expireDuration := time.Second * 5
 		for _ = range time.Tick(2 * time.Second) {
-			key := prefix + o.ServiceUniquename
 			oskiteInfo := o.GetOskiteInfo()
 
-			if _, err := o.RedisSession.Do("HMSET", redigo.Args{key}.AddFlat(oskiteInfo)...); err != nil {
+			if _, err := o.RedisSession.Do("HMSET", redigo.Args{o.RedisKontainerKey}.AddFlat(oskiteInfo)...); err != nil {
 				log.Error("redis HMSET err: %v", err.Error())
 			}
 
-			reply, err := redigo.Int(o.RedisSession.Do("EXPIRE", key, expireDuration.Seconds()))
+			reply, err := redigo.Int(o.RedisSession.Do("EXPIRE", o.RedisKontainerKey, expireDuration.Seconds()))
 			if err != nil {
-				log.Error("redis SET Expire %v. reply: %v err: %v", key, reply, err.Error())
+				log.Error("redis SET Expire %v. reply: %v err: %v", o.RedisKontainerKey, reply, err.Error())
 			}
 		}
 	}()
 
 	// get oskite statuses from others every 2 seconds
 	for _ = range time.Tick(2 * time.Second) {
-		kontainers, err := redigo.Strings(o.RedisSession.Do("SMEMBERS", kontainerSet))
+		kontainers, err := redigo.Strings(o.RedisSession.Do("SMEMBERS", o.RedisKontainerSet))
 		if err != nil {
 			log.Error("redis SMEMBER kontainers. err: %v", err.Error())
 		}
 
 		for _, kontainerHostname := range kontainers {
-			// convert to o.ServiceUniquename formst
-			remoteOskite := strings.TrimPrefix(kontainerHostname, prefix)
+			// convert to o.ServiceUniquename format
+			remoteOskite := strings.TrimPrefix(kontainerHostname, o.RedisPrefix)
 
 			values, err := redigo.Values(o.RedisSession.Do("HGETALL", kontainerHostname))
 			if err != nil {
@@ -167,12 +169,21 @@ func (o *Oskite) redisBalancer() {
 				continue
 			}
 
+			// cleanup members from the map if the key expires. Usually that
+			// might due a host who added itself to the kontainer set but then
+			// just died or added a wrong set name. If the kontainer comes up
+			// again we do add it below again.
+			if len(values) == 0 {
+				oskitesMu.Lock()
+				delete(oskites, remoteOskite)
+				oskitesMu.Unlock()
+				continue
+			}
+
 			oskiteInfo := new(OskiteInfo)
 			if err := redigo.ScanStruct(values, oskiteInfo); err != nil {
 				log.Error("redis ScanStruct err: %v", err.Error())
 			}
-
-			log.Debug("%s: %+v", kontainerHostname, oskiteInfo)
 
 			oskitesMu.Lock()
 			oskites[remoteOskite] = oskiteInfo
@@ -209,5 +220,4 @@ func lowestOskiteLoad() (serviceUniquename string) {
 		l.ServiceUniquename, l.ActiveVMs, h.ActiveVMs, h.ServiceUniquename)
 
 	return l.ServiceUniquename
-
 }

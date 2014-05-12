@@ -82,7 +82,7 @@ func (k *KodingKite) Run() {
 	}
 
 	go k.Kite.RegisterForever(registerWithURL)
-	<-k.Kite.ReadyNotify()
+	<-k.Kite.KontrolReadyNotify()
 
 	k.Kite.Run()
 }
