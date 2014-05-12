@@ -95,7 +95,7 @@ func createKey(username, kontrolURL, publicKey, privateKey string) (string, erro
 	token := jwt.New(jwt.GetSigningMethod("RS256"))
 
 	token.Claims = map[string]interface{}{
-		"iss":        "koding-stack",               // Issuer
+		"iss":        "koding",                     // Issuer, should be the same username as kontrol
 		"sub":        username,                     // Subject
 		"iat":        time.Now().UTC().Unix(),      // Issued At
 		"jti":        tknID.String(),               // JWT ID
@@ -165,10 +165,13 @@ func buildKlient() error {
 	importPath := "koding/kites/klient"
 	upstartPath := filepath.Join(gopath, "src", importPath, "files/klient.conf")
 
+	files := []string{keyDir}
+	files = append(files, filepath.Join(gopath, "bin-vagrant/kite"))
+
 	kclient := pkg{
 		appName:       *flagApp,
 		importPath:    importPath,
-		files:         []string{keyDir},
+		files:         files,
 		version:       "0.0.1",
 		upstartScript: upstartPath,
 	}
