@@ -6,30 +6,10 @@ class CommentListItemView extends KDListItemView
 
     super options, data
 
-    @on 'CommentUpdated', @bound "update"
-    @on 'CommentUpdateCancelled', @bound "hideEditForm"
-
 
   click: (event) ->
 
     KD.utils.showMoreClickHandler event
-
-
-  update: (body = "") ->
-
-    return  unless comment.trim().length
-
-    data = @getData()
-    data.modify body, (err) =>
-
-      if err
-        @hideEditForm()
-        new KDNotificationView title: err.message
-        return
-
-      data.body = body
-      data.meta.updatedAt = new Date
-      @hideEditForm()
 
 
   createMenu: ->
@@ -72,6 +52,10 @@ class CommentListItemView extends KDListItemView
     @form = new EditCommentForm delegate: this, @getData()
     @formWrapper.addSubView @form
     @formWrapper.show()
+
+    @form
+      .once "Submit", @bound "hideEditForm"
+      .once "Cancel", @bound "hideEditForm"
 
 
   hideEditForm: ->
