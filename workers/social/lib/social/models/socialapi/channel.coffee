@@ -59,10 +59,10 @@ module.exports = class SocialChannel extends Base
   {fetchGroup} = require "./helper"
 
   @generateChannelName = ({groupSlug, apiChannelType, apiChannelName})->
-    return "socialapi-
-group-#{groupSlug}-
-type-#{apiChannelType}-
-name-#{apiChannelName}"
+    return "socialapi-\
+    group-#{groupSlug}-\
+    type-#{apiChannelType}-\
+    name-#{apiChannelName}"
 
   @fetchSecretChannelName =(options, callback)->
     {groupSlug, apiChannelType, apiChannelName} = options
