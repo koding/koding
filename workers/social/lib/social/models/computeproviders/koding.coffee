@@ -75,7 +75,7 @@ module.exports = class Koding extends ProviderInterface
 
     callback null, machines.map (machine) ->
 
-      { stack, meta, groups } = machine
+      { meta, groups } = machine
 
       meta.hostKite = null  if meta.hostKite in ['(banned)', '(maintenance)']
 
@@ -86,7 +86,6 @@ module.exports = class Koding extends ProviderInterface
         alwaysOn      : meta.alwaysOn
         meta          : meta.meta
         groupId       : groups[0].id
-        stack
       }
 
 

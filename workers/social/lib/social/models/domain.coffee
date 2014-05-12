@@ -137,7 +137,6 @@ module.exports = class JDomain extends jraphical.Module
         type        : Date
         default     : -> new Date
 
-      stack         : ObjectId
       group         : String
 
   # filters domains such as shared-x/vm-x.groupSlug.kd.io
@@ -233,6 +232,10 @@ module.exports = class JDomain extends jraphical.Module
       options = {data:{group}}
       account.addDomain domain, options, (err)->
         return callback err  if err
+
+        # TODO add to stack code here before calling the callback ~g
+        # pass stack here first.
+
         callback err, domain
 
   @createDomain$: secure (client, {domain, stack}, callback)->
@@ -274,10 +277,7 @@ module.exports = class JDomain extends jraphical.Module
           if model
             return error "The domain #{domain} already exists", "DUPLICATEDOMAIN"
 
-          domainData = {
-            domain, stack
-            group : group.slug
-          }
+          domainData = { domain, group : group.slug }
 
           if type is 'custom'
             domainData.domainType = 'existing'
@@ -287,7 +287,7 @@ module.exports = class JDomain extends jraphical.Module
 
             createDomain domainData, delegate, group.slug, callback
 
-  @createDomains = ({account, domains, hostnameAlias, stack, group})->
+  @createDomains = ({account, domains, hostnameAlias, group})->
 
     updateRelationship = (domainObj)->
       Relationship.one
@@ -304,7 +304,7 @@ module.exports = class JDomain extends jraphical.Module
 
     domains.forEach (domain) ->
       domainObj = new JDomain {
-        domain, group, stack,
+        domain, group,
         hostnameAlias : [hostnameAlias]
       }
 
@@ -313,7 +313,7 @@ module.exports = class JDomain extends jraphical.Module
         then console.error err  unless err.code is 11000
         else updateRelationship domainObj
 
-  @ensureDomainSettingsForVM = ({account, vm, type, nickname, group, stack})->
+  @ensureDomainSettingsForVM = ({account, vm, type, nickname, group})->
     domain = 'kd.io'
     if type in ['user', 'expensed']
       requiredDomains = ["#{nickname}.#{group}.#{domain}"]
@@ -324,7 +324,7 @@ module.exports = class JDomain extends jraphical.Module
 
     {hostnameAlias} = vm
     @createDomains {
-      account, hostnameAlias, stack,
+      account, hostnameAlias,
       domains:requiredDomains, group
     }
 

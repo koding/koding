@@ -127,7 +127,7 @@ module.exports = class ComputeProvider extends Base
 
         @createMachine {
           vendor : provider.slug
-          label, stack, meta, group, account
+          label, meta, group, account
         }, (err, machine)->
 
           # TODO if any error occurs here which means user paid for
@@ -135,10 +135,13 @@ module.exports = class ComputeProvider extends Base
           return callback err  if err
 
           provider.postCreate {
-            postCreateOptions, machine, meta, stack
+            postCreateOptions, machine, meta
           }, (err)=>
             # ----
             account.sendNotification "MachineCreated"  unless err
+
+            # TODO add to stack code here before calling the callback ~g
+
             callback err
 
 
@@ -176,7 +179,7 @@ module.exports = class ComputeProvider extends Base
           users  : $elemMatch: id: user.getId()
           groups : $elemMatch: id: groupObj.getId()
 
-        fieldsToFetch = label:1, stack:1, meta:1, groups:1
+        fieldsToFetch = label:1, meta:1, groups:1
 
         JMachine.someData selector, fieldsToFetch, { }, (err, cursor)->
           return callback err  if err
@@ -195,7 +198,7 @@ module.exports = class ComputeProvider extends Base
 
   @createMachine = (options, callback)->
 
-    { vendor, label, stack, meta, group, account } = options
+    { vendor, label, meta, group, account } = options
 
     JGroup = require '../group'
     JGroup.one { slug: group }, (err, groupObj)=>
@@ -212,7 +215,7 @@ module.exports = class ComputeProvider extends Base
         groups = [{ id: groupObj.getId() }]
 
         machine = new JMachine {
-          vendor, users, groups, stack, meta, label
+          vendor, users, groups, meta, label
         }
 
         machine.save (err)=>

@@ -36,6 +36,4 @@ module.exports = class JMachine extends Module
         ]
         default         : "not-initialized"
 
-      stack             : ObjectId
-
       meta              : Object

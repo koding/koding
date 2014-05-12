@@ -45,14 +45,22 @@ module.exports = class JStack extends jraphical.Module
       ]
 
     schema            :
+
       user            : String
       group           : String
       meta            : Object
+
+      rules           : [ ObjectId ]
+      domains         : [ ObjectId ]
+      machines        : [ ObjectId ]
+      extras          : [ ObjectId ]
+
 
   @getStacks = ({user, group}, callback)->
 
     JStack.some {user, group}, {}, (err, stacks)->
       return callback err  if err
+
 
       if stacks.length is 0
         meta = title: "Default", slug: "default"
@@ -61,22 +69,25 @@ module.exports = class JStack extends jraphical.Module
       else
         callback null, stacks
 
+
   @getStackId = (selector, callback)->
 
     @getStack selector, (err, stack)->
       callback err, stack?.getId()
 
-  @getStack = ({user, group, meta}, callback)->
-    meta  or= title: "Default", slug: "default"
-    JStack.one {user, group, meta}, (err, stack)->
-      return callback err  if err
 
+  @getStack = ({user, group, meta}, callback)->
+
+    JStack.one {user, group, meta}, (err, stack)->
+
+      return callback err  if err
       return callback null, stack  if stack
 
       stack = new JStack {user, group, meta}
       stack.save (err)->
         if err then callback err
         else callback null, stack
+
 
   @createStack = permit 'create stacks',
 
@@ -87,6 +98,7 @@ module.exports = class JStack extends jraphical.Module
 
       @getStack {user, group, meta}, callback
 
+
   @getStack$ = permit 'get stacks',
 
     success: (client, callback)->
@@ -96,6 +108,7 @@ module.exports = class JStack extends jraphical.Module
 
       @getStack {user, group}, callback
 
+
   @getStacks$ = permit 'get stacks',
 
     success: (client, callback)->
@@ -104,6 +117,7 @@ module.exports = class JStack extends jraphical.Module
       user    = client.connection.delegate.profile.nickname
 
       @getStacks {user, group}, callback
+
 
   updateConfig: permit "update stacks",
     success: (client, config, callback) ->
