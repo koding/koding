@@ -91,23 +91,24 @@ func (f *PopularTopicsController) handleMessageEvents(data *models.ChannelMessag
 		return nil
 	}
 
-	_, err = f.redis.SortedSetIncrBy(GetDailyKey(c, data), increment, data.MessageId)
+	_, err = f.redis.SortedSetIncrBy(GetDailyKey(c, data), increment, data.ChannelId)
 	if err != nil {
 		return err
 	}
 
-	_, err = f.redis.SortedSetIncrBy(GetWeeklyKey(c, data), increment, data.MessageId)
+	_, err = f.redis.SortedSetIncrBy(GetWeeklyKey(c, data), increment, data.ChannelId)
 	if err != nil {
 		return err
 	}
 
-	_, err = f.redis.SortedSetIncrBy(GetMonthlyKey(c, data), increment, data.MessageId)
+	_, err = f.redis.SortedSetIncrBy(GetMonthlyKey(c, data), increment, data.ChannelId)
 	if err != nil {
 		return err
 	}
 
 	return nil
 }
+
 func PreparePopularTopicKey(group, statisticName string, year, dateNumber int) string {
 	return fmt.Sprintf(
 		"%s:%s:%s:%d:%s:%d",
