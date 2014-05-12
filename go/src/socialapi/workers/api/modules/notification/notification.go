@@ -87,56 +87,18 @@ func Glance(u *url.URL, h http.Header, req *models.Notification) (int, http.Head
 	return helpers.NewDefaultOKResponse()
 }
 
-func Follow(u *url.URL, h http.Header, req *models.NotificationActivity) (int, http.Header, interface{}, error) {
+func Follow(u *url.URL, h http.Header, req *models.NotificationRequest) (int, http.Header, interface{}, error) {
+	c := models.NewChannel()
+	c.TypeConstant = models.Channel_TYPE_FOLLOWERS
+	c.CreatorId = req.TargetId
+	if err := c.Create(); err != nil {
+		return helpers.NewBadRequestResponse(err)
+	}
 
-	// 	n := models.NewNotification()
-	// 	if err := n.Follow(req); err != nil {
-	// 		return helpers.NewBadRequestResponse(err)
-	// 	}
-
-	return helpers.NewDefaultOKResponse()
-}
-
-type GroupRequest struct {
-	Name         string  `json:"name"`
-	TypeConstant string  `json:"typeConstant"`
-	ActorId      int64   `json:"actorId"`
-	Admins       []int64 `json:"admins"`
-}
-
-func InteractGroup(u *url.URL, h http.Header, req *GroupRequest) (int, http.Header, interface{}, error) {
-
-	// 	// first fetch channel id as target id
-	// 	c := models.NewChannel()
-	// 	selector := map[string]interface{}{
-	// 		"type_constant": models.Channel_TYPE_GROUP,
-	// 		"group_name":    req.Name,
-	// 		"name":          req.Name,
-	// 	}
-
-	// 	if err := c.One(bongo.NewQS(selector)); err != nil {
-	// 		return helpers.NewBadRequestResponse(err)
-	// 	}
-
-	// 	a := models.NewNotificationActivity()
-	// 	a.TargetId = c.Id
-	// 	a.ActorId = req.ActorId
-	// 	a.TypeConstant = req.TypeConstant
-
-	// 	var err error
-
-	// 	n := models.NewNotification()
-	// 	switch req.TypeConstant {
-	// 	case models.NotificationContent_TYPE_JOIN:
-	// 		err = n.JoinGroup(a, req.Admins)
-	// 	case models.NotificationContent_TYPE_LEAVE:
-	// 		err = n.LeaveGroup(a, req.Admins)
-	// 	default:
-	// 		err = errors.New("group interaction type not found")
-	// 	}
-	// 	if err != nil {
-	// 		return helpers.NewBadRequestResponse(err)
-	// 	}
+	_, err := c.AddParticipant(req.AccountId)
+	if err != nil {
+		return helpers.NewBadRequestResponse(err)
+	}
 
 	return helpers.NewDefaultOKResponse()
 }
