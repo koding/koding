@@ -26,6 +26,9 @@ module.exports = class JMachine extends Module
         type            : String
         default         : ""
 
+      initScript        :
+        type            : String
+
       users             : Array
       groups            : Array
 
