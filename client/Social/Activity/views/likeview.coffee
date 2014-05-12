@@ -48,8 +48,6 @@ class ActivityLikeView extends JView
 
     @_currentState = not @_currentState
 
-    @likeCount.setCount()
-
     if @_currentState
     then @decorateLike()
     else @decorateUnlike()
