@@ -2,6 +2,9 @@ class EditCommentForm extends NewCommentForm
 
   constructor: (options = {}, data) ->
 
+    options.cssClass  = KD.utils.curry "edit-comment-box", options.cssClass
+    options.editable ?= yes
+
     super options, data
 
     @addSubView new KDCustomHTMLView
@@ -14,12 +17,26 @@ class EditCommentForm extends NewCommentForm
 
   submit: ->
 
-    @getDelegate().emit 'CommentUpdated', @input.getValue()
+    body = @input.getValue().trim()
+
+    return  unless body.length
+
+    @emit "Submit"
+
+    {id} = data = @getData()
+
+    KD.singleton("appManager").tell "Activity", "edit", {id, body}, (err) =>
+
+      return KD.showError err  if err
+
+      data.body = body
+      data.meta.updatedAt = new Date
+      data.emit "update"
 
 
   cancel: ->
 
-    @getDelegate().emit "CommentUpdateCancelled"
+    @emit "Cancel"
 
 
   viewAppended: ->

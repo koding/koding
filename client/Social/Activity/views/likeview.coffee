@@ -18,7 +18,7 @@ class ActivityLikeView extends JView
         title     : ""
     , data
 
-    @likeLink = new ActivityActionLink partial: "Like"
+    @likeLink = new ActivityLikeLink {}, data
 
     {useTitle}     = @getOptions()
     {isInteracted} = data.interactions.like
