@@ -14,6 +14,7 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
+	"strconv"
 	"strings"
 	"text/template"
 )
@@ -45,11 +46,6 @@ type pkg struct {
 
 func main() {
 	flag.Parse()
-	if *flagProfile == "" || *flagRegion == "" {
-		fmt.Println("Please define config -c and region -r")
-		os.Exit(1)
-	}
-
 	if *flagApp == "" {
 		fmt.Printf("Please define package with -a to be build. Available apps:\n%s\n", packageList())
 		os.Exit(1)
@@ -65,13 +61,15 @@ func main() {
 	}
 }
 
-func packageList() []string {
-	pkgList := make([]string, 0, len(packages))
+func packageList() string {
+	pkgs := "\n"
+	count := 1
 	for pkg := range packages {
-		pkgList = append(pkgList, pkg)
+		pkgs += strconv.Itoa(count) + ". " + pkg + "\n"
+		count++
 	}
 
-	return pkgList
+	return pkgs
 }
 
 func buildKlient() error {
@@ -94,6 +92,10 @@ func buildKlient() error {
 }
 
 func buildKontrol() error {
+	if *flagProfile == "" || *flagRegion == "" {
+		return errors.New("Please define config -c and region -r")
+	}
+
 	gopath := os.Getenv("GOPATH")
 	if gopath == "" {
 		return errors.New("GOPATH is not set")
@@ -135,6 +137,10 @@ func buildKontrol() error {
 }
 
 func buildTerminal() error {
+	if *flagProfile == "" || *flagRegion == "" {
+		return errors.New("Please define config -c and region -r")
+	}
+
 	gopath := os.Getenv("GOPATH")
 	if gopath == "" {
 		return errors.New("GOPATH is not set")
@@ -177,6 +183,10 @@ func buildTerminal() error {
 }
 
 func buildOsKite() error {
+	if *flagProfile == "" || *flagRegion == "" {
+		return errors.New("Please define config -c and region -r")
+	}
+
 	gopath := os.Getenv("GOPATH")
 	if gopath == "" {
 		return errors.New("GOPATH is not set")
@@ -220,6 +230,10 @@ func buildOsKite() error {
 }
 
 func buildKontrolProxy() error {
+	if *flagProfile == "" || *flagRegion == "" {
+		return errors.New("Please define config -c and region -r")
+	}
+
 	gopath := os.Getenv("GOPATH")
 	if gopath == "" {
 		return errors.New("GOPATH is not set")
