@@ -712,22 +712,6 @@ func followNotification(followerId int64, followeeId int64) (interface{}, error)
 	return res, nil
 }
 
-type GroupRequest struct {
-	Name         string  `json:"name"`
-	TypeConstant string  `json:"typeConstant"`
-	ActorId      int64   `json:"actorId"`
-	Admins       []int64 `json:"admins"`
-}
-
-func groupInteractionNotification(gr *GroupRequest) (interface{}, error) {
-	res, err := sendModel("POST", "/notification/group", gr)
-	if err != nil {
-		return nil, err
-	}
-
-	return res, nil
-}
-
 func subscribeMessage(accountId, messageId int64) (interface{}, error) {
 	n := models.NewNotificationRequest()
 	n.AccountId = accountId
