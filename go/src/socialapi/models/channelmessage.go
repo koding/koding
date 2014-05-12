@@ -156,6 +156,12 @@ func (c *ChannelMessage) BuildMessage(query *Query) (*ChannelMessageContainer, e
 		return nil, err
 	}
 
+	repliesCount, err := mr.Count()
+	if err != nil {
+		return nil, err
+	}
+	cmc.RepliesCount = repliesCount
+
 	populatedChannelMessagesReplies := make([]*ChannelMessageContainer, len(replies))
 	for rl := 0; rl < len(replies); rl++ {
 		cmrc, err := replies[rl].FetchRelatives(query)
