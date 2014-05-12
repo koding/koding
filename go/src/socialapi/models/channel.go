@@ -54,8 +54,8 @@ const (
 	Channel_TYPE_FOLLOWINGFEED   = "followingfeed"
 	Channel_TYPE_FOLLOWERS       = "followers"
 	Channel_TYPE_CHAT            = "chat"
-	Channel_TYPE_PINNED_ACTIVITY = "pinnedActivity"
-	Channel_TYPE_PRIVATE_MESSAGE = "privateMessage"
+	Channel_TYPE_PINNED_ACTIVITY = "pinnedactivity"
+	Channel_TYPE_PRIVATE_MESSAGE = "privatemessage"
 	Channel_TYPE_DEFAULT         = "default"
 	// Privacy
 	Channel_PRIVACY_PUBLIC  = "public"
@@ -333,6 +333,32 @@ func (c *Channel) RemoveMessage(messageId int64) (*ChannelMessageList, error) {
 	return cml, nil
 }
 
+func (c *Channel) Search(q *Query) ([]Channel, error) {
+
+	if q.GroupName == "" {
+		return nil, fmt.Errorf("Query doesnt have any Group info %+v", q)
+	}
+
+	var channels []Channel
+
+	query := bongo.B.DB.Table(c.TableName()).Limit(q.Limit)
+
+	query = query.Where("type_constant = ?", q.Type)
+	query = query.Where("privacy_constant = ?", Channel_PRIVACY_PUBLIC)
+	query = query.Where("group_name = ?", q.GroupName)
+	query = query.Where("name like ?", q.Name+"%")
+
+	if err := query.Find(&channels).Error; err != nil {
+		return nil, err
+	}
+
+	if channels == nil {
+		return make([]Channel, 0), nil
+	}
+
+	return channels, nil
+}
+
 func (c *Channel) List(q *Query) ([]Channel, error) {
 
 	if q.GroupName == "" {
@@ -354,6 +380,10 @@ func (c *Channel) List(q *Query) ([]Channel, error) {
 	err := c.Some(&channels, query)
 	if err != nil {
 		return nil, err
+	}
+
+	if channels == nil {
+		return make([]Channel, 0), nil
 	}
 
 	return channels, nil

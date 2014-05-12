@@ -13,8 +13,9 @@ func BeforeCreate(scope *Scope) {
 
 func UpdateTimeStampWhenCreate(scope *Scope) {
 	if !scope.HasError() {
-		scope.SetColumn("CreatedAt", time.Now())
-		scope.SetColumn("UpdatedAt", time.Now())
+		now := time.Now()
+		scope.SetColumn("CreatedAt", now)
+		scope.SetColumn("UpdatedAt", now)
 	}
 }
 
@@ -32,13 +33,20 @@ func Create(scope *Scope) {
 			}
 		}
 
-		scope.Raw(fmt.Sprintf(
-			"INSERT INTO %v (%v) VALUES (%v) %v",
-			scope.TableName(),
-			strings.Join(columns, ","),
-			strings.Join(sqls, ","),
-			scope.Dialect().ReturningStr(scope.PrimaryKey()),
-		))
+		if len(columns) == 0 {
+			scope.Raw(fmt.Sprintf("INSERT INTO %v DEFAULT VALUES %v",
+				scope.TableName(),
+				scope.Dialect().ReturningStr(scope.PrimaryKey()),
+			))
+		} else {
+			scope.Raw(fmt.Sprintf(
+				"INSERT INTO %v (%v) VALUES (%v) %v",
+				scope.TableName(),
+				strings.Join(columns, ","),
+				strings.Join(sqls, ","),
+				scope.Dialect().ReturningStr(scope.PrimaryKey()),
+			))
+		}
 
 		// execute create sql
 		var id interface{}

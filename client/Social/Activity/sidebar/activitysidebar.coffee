@@ -18,10 +18,6 @@ class ActivitySidebar extends KDCustomScrollView
     addEventLogger notificationController, 'RemovedFromChannel'
 
 
-    # addEventLogger socialapi, 'MessageAdded'
-    # addEventLogger socialapi, 'MessageRemoved'
-
-
   viewAppended:->
 
     super
@@ -51,7 +47,7 @@ class ActivitySidebar extends KDCustomScrollView
         activityController.emit 'SidebarItemClicked', this
     ,
       name     : 'koding_public_feed'
-      id       : KD.getGroup().socialApiChannelId ? 1
+      id       : "#{KD.getGroup().socialApiChannelId ? 1}"
 
     publicLink.addSubView @publicFeedCount = new KDCustomHTMLView
       cssClass : 'count'
@@ -92,7 +88,7 @@ class ActivitySidebar extends KDCustomScrollView
   addThreads: ->
 
     @wrapper.addSubView @threads = new ActivitySideView
-      title    : 'Pinned Activities'
+      title    : 'Followed Posts'
       cssClass : 'threads users'
       itemClass : SidebarPinnedItem
       dataSource : (callback) ->
