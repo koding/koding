@@ -169,6 +169,11 @@ func (b *Bongo) buildQuery(i Modellable, data interface{}, q *Query) error {
 		query = query.Limit(q.Limit)
 	}
 
+	// if skip is minus or 0 ignore
+	if q.Skip > 0 {
+		query = query.Offset(q.Skip)
+	}
+
 	var err error
 	// TODO refactor this part
 	if q.Pluck != "" {
