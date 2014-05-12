@@ -10,6 +10,8 @@ module.exports = class Koding extends ProviderInterface
 
   VMDefaultDiskSize = @VMDefaultDiskSize = 3072
 
+  # This is currently using payment method
+  # we will not use it any longer, for a reference keeping it
   @processNonce = (nonce, callback)->
 
     unless nonce
@@ -94,43 +96,29 @@ module.exports = class Koding extends ProviderInterface
     { connection:{delegate:account}, context:{group} } = client
     { nickname } = account.profile
 
-    { nonce }    = options
+    hostnameAliases = @generateAliases { group, nickname }
+    hostnameAlias   = hostnameAliases[0]
+    region          = if argv.c is 'vagrant' then 'vagrant' else 'sj'
+    { freeVM }      = KONFIG.defaultVMConfigs
 
-    @processNonce nonce, (err, details)=>
+    meta = {
+      region
+      hostnameAlias
+      maxMemoryInMB : freeVM.ram ? 1024
+      diskSizeInMB  : freeVM.storage ? VMDefaultDiskSize
+      ldapPassword  : null
+      hostKite      : null
+      alwaysOn      : no
+      numCPUs       : freeVM.cpu ? 1
+      webHome       : nickname
+      vmType        : "user"
+      ip            : null
+      meta          : {}
+    }
 
-      return callback err  if err?
-
-      { isFreeSubscripton, nonceObject } = details
-      { planCode, subscriptionCode } = nonceObject
-
-      hostnameAliases = @generateAliases { group, nickname }
-      hostnameAlias   = hostnameAliases[0]
-      region          = if argv.c is 'vagrant' then 'vagrant' else 'sj'
-      { freeVM }      = KONFIG.defaultVMConfigs
-
-      meta = {
-        region
-        planCode
-        hostnameAlias
-        subscriptionCode
-        maxMemoryInMB : freeVM.ram ? 1024
-        diskSizeInMB  : freeVM.storage ? VMDefaultDiskSize
-        ldapPassword  : null
-        hostKite      : null
-        alwaysOn      : no
-        numCPUs       : freeVM.cpu ? 1
-        webHome       : nickname
-        vmType        : "user"
-        ip            : null
-        meta          : {}
-      }
-
-      unless isFreeSubscripton
-        meta.region = KONFIG.regions.premium
-
-      callback null, {
-        postCreateOptions: { hostnameAliases, account, group }
-      , meta }
+    callback null, {
+      postCreateOptions: { hostnameAliases, account, group }
+    , meta }
 
 
   @postCreate = (options, callback)->
