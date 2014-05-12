@@ -87,7 +87,9 @@ class OsKite extends KDKite
 
   handleError: (update) ->
     {error} = update
-    warn "vm prepare error ", error.Message
+
+    KD.utils.warnAndLog error?.message
+
     @recentState?.state = 'FAILED'
     @emit 'vm.progress.error', error
 

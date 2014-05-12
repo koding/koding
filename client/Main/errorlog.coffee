@@ -1,5 +1,5 @@
 class ErrorLog
-  @create :(error, params)->
+  @create :(error, params={})->
     {
       kites : {
         os       : {version  : osVersion}

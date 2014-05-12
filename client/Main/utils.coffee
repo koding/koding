@@ -294,6 +294,10 @@ utils.extend utils,
   getNameFromFullname :(fullname)->
     fullname.split(' ')[0]
 
+  warnAndLog: (msg, params)->
+    warn msg, params
+    ErrorLog.create msg, params
+
   ###
   password-generator
   Copyright(c) 2011 Bermi Ferrer <bermi@bermilabs.com>

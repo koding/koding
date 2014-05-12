@@ -25,12 +25,15 @@ class SessionStackView extends KDView
       @destroySubViews()
       @show()
       @loader.hide()
+      Metric.create "Sessions count", {count:sessions.length}
       sessions?.forEach @bound 'addSession'
     .catch (err) =>
       @hide()
       @loader.hide()
-      warn err  unless err.code is "ErrNoSession"
 
+      unless (/No sessions available/.test(err.message))
+        KD.utils.warnAndLog "terminal: webtermGetSessions error",
+          {reason:err.message, hostnameAlias:@getOptions().alias}
 
   addSession: (session, index) ->
 
