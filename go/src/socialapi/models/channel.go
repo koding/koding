@@ -135,7 +135,8 @@ func (c *Channel) Create() error {
 		return fmt.Errorf("Channel name %q has empty space in it", c.Name)
 	}
 
-	if c.TypeConstant == Channel_TYPE_GROUP /* we can add more types here */ {
+	if c.TypeConstant == Channel_TYPE_GROUP ||
+		c.TypeConstant == Channel_TYPE_FOLLOWERS /* we can add more types here */ {
 		selector := map[string]interface{}{
 			"group_name":    c.GroupName,
 			"type_constant": c.TypeConstant,
