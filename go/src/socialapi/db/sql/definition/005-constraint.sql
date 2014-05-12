@@ -43,21 +43,6 @@ CREATE UNIQUE INDEX  "channel_id_key" ON api.channel USING btree(id ASC NULLS LA
 -- ----------------------------
 ALTER TABLE api.channel ADD CONSTRAINT "channel_created_at_lte_updated_at_check" CHECK (created_at <= updated_at);
 
--- ------------------------------------------------------------------------------------------
---  Structure for table Channel
--- ------------------------------------------------------------------------------------------
--------------------------------
---  Primary key structure for table channel
--- ----------------------------
-ALTER TABLE "api"."channel" ADD PRIMARY KEY ("id") NOT DEFERRABLE INITIALLY IMMEDIATE;
--- ----------------------------
---  Foreign keys structure for table channel
--- ----------------------------
-ALTER TABLE "api"."channel" ADD CONSTRAINT "channel_creator_id_fkey" FOREIGN KEY ("creator_id") REFERENCES "api"."account" ("id") ON UPDATE NO ACTION ON DELETE NO ACTION NOT DEFERRABLE INITIALLY IMMEDIATE;
--- ----------------------------
---  Indexes structure for table channel
--- ----------------------------
-CREATE UNIQUE INDEX  "channel_id_key" ON "api"."channel" USING btree("id" ASC NULLS LAST);
 
 -- ------------------------------------------------------------------------------------------
 --  Structure for table ChannelMessage
