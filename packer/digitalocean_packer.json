@@ -19,14 +19,13 @@
     {
       "type": "file",
       "source": "{{user `klient_deb`}}",
-      "destination": "/tmp/"
+      "destination": "/tmp/{{user `klient_deb`}}"
     },
     {
       "type": "shell",
       "inline": [
         "sleep 30",
-        "sudo apt-get update",
-        "sudo apt-get install /tmp/{{user `klient_deb`}}"
+        "sudo dpkg -i /tmp/{{user `klient_deb`}}"
       ]
     }
   ]
