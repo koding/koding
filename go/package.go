@@ -31,6 +31,7 @@ var (
 		"kontrolproxy": buildKontrolProxy,
 		"terminal":     buildTerminal,
 		"kontrol":      buildKontrol,
+		"klient":       buildKlient,
 	}
 )
 
@@ -54,8 +55,12 @@ func main() {
 		os.Exit(1)
 	}
 
-	err := buildPackages(*flagApp)
-	if err != nil {
+	build, ok := packages[*flagApp]
+	if !ok {
+		log.Fatal("package to be build is not available")
+	}
+
+	if err := build(); err != nil {
 		fmt.Println(err)
 	}
 }
@@ -69,19 +74,23 @@ func packageList() []string {
 	return pkgList
 }
 
-func buildPackages(pkgName string) error {
-	switch pkgName {
-	case "oskite":
-		return buildOsKite()
-	case "kontrolproxy":
-		return buildKontrolProxy()
-	case "terminal":
-		return buildTerminal()
-	case "kontrol":
-		return buildKontrol()
-	default:
-		return errors.New("package to be build is not available")
+func buildKlient() error {
+	gopath := os.Getenv("GOPATH")
+	if gopath == "" {
+		return errors.New("GOPATH is not set")
 	}
+
+	importPath := "koding/kites/klient"
+	upstartPath := filepath.Join(gopath, "src", importPath, "files/klient.conf")
+
+	kclient := pkg{
+		appName:       *flagApp,
+		importPath:    importPath,
+		version:       "0.0.1",
+		upstartScript: upstartPath,
+	}
+
+	return kclient.build()
 }
 
 func buildKontrol() error {
