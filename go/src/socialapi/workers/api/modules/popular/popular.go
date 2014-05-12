@@ -12,27 +12,56 @@ import (
 	"time"
 )
 
-func ListTopics(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface{}, error) {
-	query := helpers.GetQuery(u)
-
-	statisticName := u.Query().Get("statisticName")
-
+func getDateNumberAndYear(statisticName string) (int, int, error) {
 	now := time.Now().UTC()
 	// dateNumber is changing according to the statisticName
 	// if it is monthly statistic, it will be month number March->3
 	// if it is weekly statistic, it will be week number 48th week -> 48
 	// if it is daily statistic, it will the day number of the year e.g last day-> 365+1
-	var dateNumber int
-	year, month, _ := now.Date()
-
 	switch statisticName {
 	case "daily":
-		dateNumber = now.YearDay()
+		return now.Year(), now.YearDay(), nil
 	case "weekly":
-		_, dateNumber = now.ISOWeek()
+		year, week := now.ISOWeek()
+		return year, week, nil
 	case "monthly":
-		dateNumber = int(month)
+		return now.Year(), int(now.Month()), nil
 	default:
+		return 0, 0, errors.New("Unknown statistic name")
+	}
+}
+
+func getIds(key string, query *models.Query) ([]int64, error) {
+	// limit-1 is important, because redis is using 0 based index
+	popularIds := make([]int64, 0)
+	listIds, err := helper.MustGetRedisConn().
+		SortedSetReverseRange(
+		key,
+		query.Skip,
+		query.Skip+query.Limit-1,
+	)
+
+	if err != nil {
+		return popularIds, err
+	}
+
+	for _, listId := range listIds {
+		val, err := strconv.ParseInt(string(listId.([]uint8)), 10, 64)
+		if err == nil {
+			popularIds = append(popularIds, val)
+		}
+	}
+
+	return popularIds, nil
+}
+
+func ListTopics(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface{}, error) {
+	query := helpers.GetQuery(u)
+
+	statisticName := u.Query().Get("statisticName")
+
+	year, dateNumber, err := getDateNumberAndYear(statisticName)
+	if err != nil {
 		return helpers.NewBadRequestResponse(errors.New("Unknown statistic name"))
 	}
 
@@ -43,19 +72,9 @@ func ListTopics(u *url.URL, h http.Header, _ interface{}) (int, http.Header, int
 		dateNumber,
 	)
 
-	redisConn := helper.MustGetRedisConn()
-	// limit-1 is important, because redis is using 0 based index
-	topics, err := redisConn.SortedSetReverseRange(key, query.Skip, query.Skip+query.Limit-1)
+	popularTopicIds, err := getIds(key, query)
 	if err != nil {
 		return helpers.NewBadRequestResponse(err)
-	}
-
-	popularTopicIds := make([]int64, 0)
-	for _, topic := range topics {
-		val, err := strconv.ParseInt(string(topic.([]uint8)), 10, 64)
-		if err == nil {
-			popularTopicIds = append(popularTopicIds, val)
-		}
 	}
 
 	popularTopicIds, err = extendPopularTopicsIfNeeded(query, popularTopicIds)
