@@ -115,3 +115,14 @@ func (m *MessageReply) fetchMessages(query *Query) ([]ChannelMessage, error) {
 
 	return channelMessageReplies, nil
 }
+
+func (m *MessageReply) Count() (int, error) {
+	if m.MessageId == 0 {
+		return 0, errors.New("MessageId is not set")
+	}
+
+	return bongo.B.Count(m,
+		"message_id = ?",
+		m.MessageId,
+	)
+}

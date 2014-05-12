@@ -1,6 +1,7 @@
 class SocialApiController extends KDController
 
   constructor: (options = {}, data) ->
+    @openedChannels = {}
     super options, data
 
   mapActivity = (data)->
@@ -106,22 +107,11 @@ class SocialApiController extends KDController
       data.isParticipant = channel.isParticipant
       data.participantCount = channel.participantCount
       data.participantsPreview = channel.participantsPreview
-
       c = new SocialChannel data
-      # until we create message id's
-      # programmatically
-      # inorder to make realtime updates work
-      # we need `channel-` here
-      c._id = "channel-#{c.id}"
-
-      # bind all events
-      registerAndOpenChannel c
-
-      c.on "*", -> console.log arguments
-      c.on "MessageAdded", -> console.log arguments, "messageadded"
       # push channel into stack
       revivedChannels.push c
-
+    # bind all events
+    registerAndOpenChannels revivedChannels
     return revivedChannels
 
   forwardMessageEvents = (source, target,  events)->
@@ -130,21 +120,27 @@ class SocialApiController extends KDController
         message = mapActivity message
         target.emit event, message, rest...
 
-  registerAndOpenChannel = (socialApiChannel)->
+  registerAndOpenChannels = (socialApiChannels)->
     getCurrentGroup (group)->
-      subscriptionData =
-        serviceType: 'socialapi'
-        group      : group.slug
-        channelType: socialApiChannel.typeConstant
-        channelName: socialApiChannel.name
-        isExclusive: yes
+      for socialApiChannel in socialApiChannels
+        # lock
+        name = "socialapi.#{socialApiChannel.groupName}-#{socialApiChannel.typeConstant}-#{socialApiChannel.name}"
+        continue  if KD.singletons.socialapi.openedChannels[name]
+        KD.singletons.socialapi.openedChannels[name] = {}
 
-      name = "socialapi.#{socialApiChannel.groupName}-#{socialApiChannel.typeConstant}-#{socialApiChannel.name}"
-      brokerChannel = KD.remote.subscribe name, subscriptionData
-      forwardMessageEvents brokerChannel, socialApiChannel, [
-        "MessageAdded",
-        "MessageRemoved"
-      ]
+        subscriptionData =
+          serviceType: 'socialapi'
+          group      : group.slug
+          channelType: socialApiChannel.typeConstant
+          channelName: socialApiChannel.name
+          isExclusive: yes
+
+        KD.remote.subscribe name, subscriptionData, (brokerChannel)->
+          KD.singletons.socialapi.openedChannels[brokerChannel.name] = brokerChannel
+          forwardMessageEvents brokerChannel, socialApiChannel, [
+            "MessageAdded",
+            "MessageRemoved"
+          ]
 
   message:
     edit   :(rest...)-> messageApiMessageResFunc 'edit', rest...

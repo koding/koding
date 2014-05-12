@@ -18,10 +18,6 @@ class ActivitySidebar extends KDCustomScrollView
     addEventLogger notificationController, 'RemovedFromChannel'
 
 
-    # addEventLogger socialapi, 'MessageAdded'
-    # addEventLogger socialapi, 'MessageRemoved'
-
-
   viewAppended:->
 
     super
