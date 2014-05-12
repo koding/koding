@@ -430,6 +430,21 @@ module.exports = class JAccount extends jraphical.Module
     @notifyOriginWhen 'PrivateMessageSent', 'FollowHappened'
     @notifyGroupWhen 'FollowHappened'
 
+  createSocialApiId:(callback)->
+    return callback null, @socialApiId  if @socialApiId
+    {createAccount} = require './socialapi/requests'
+    createAccount @getId(), (err, account)=>
+      return callback err if err
+      return callback {message: "Account is not set, malformed response from social api"} unless account?.id
+      @update $set: socialApiId: account.id, (err)->
+        # check for error
+        if err
+          console.error "Error while creating account on social api", err
+          return callback { message: "Couldnt create/register Account"}
+        # check account
+        # return account id from social api
+        return callback null, account.id
+
   checkGroupMembership: secure (client, groupName, callback)->
     {delegate} = client.connection
     JGroup = require "./group"
