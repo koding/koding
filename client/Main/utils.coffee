@@ -294,18 +294,6 @@ utils.extend utils,
   getNameFromFullname :(fullname)->
     fullname.split(' ')[0]
 
-  notifyAndEmailVMTurnOnFailureToSysAdmin: (vmName, reason)->
-    if window.localStorage.notifiedSysAdminOfVMFailureTime
-      if parseInt(window.localStorage.notifiedSysAdminOfVMFailureTime, 10)+(1000*60*60)>Date.now()
-        return
-
-    window.localStorage.notifiedSysAdminOfVMFailureTime = Date.now()
-
-    new KDNotificationView
-      title:"Sorry, your vm failed to turn on. An email has been sent to a sysadmin."
-
-    KD.whoami().sendEmailVMTurnOnFailureToSysAdmin vmName, reason
-
   ###
   password-generator
   Copyright(c) 2011 Bermi Ferrer <bermi@bermilabs.com>
