@@ -10,6 +10,6 @@
     "image": "ubuntu-13-10-x64",
     "region":  "ams1",
     "size": "512mb",
-    "snapshot_name": "koding {{timestamp}}"
+    "snapshot_name": "koding-{{timestamp}}"
   }]
 }
