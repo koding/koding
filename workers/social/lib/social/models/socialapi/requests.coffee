@@ -167,9 +167,9 @@ searchTopics = (data, callback)->
   get url, data, callback
 
 fetchProfileFeed = (data, callback)->
-  if not data.accountId
-    return callback { message: "AccountId should be set"}
-  url = "#{SOCIAL_API_URL}/account/#{data.accountId}/posts"
+  if not data.targetId
+    return callback { message: "targetId should be set"}
+  url = "#{SOCIAL_API_URL}/account/#{data.targetId}/posts"
   get url, data, callback
 
 post = (url, data, callback)->
