@@ -291,42 +291,46 @@ func buildKontrolProxy() error {
 }
 
 func (p *pkg) build() error {
-	fmt.Printf("building '%s' for config '%s' and region '%s'\n", *flagApp, *flagProfile, *flagRegion)
+	if *flagProfile == "" || *flagRegion == "" {
+		fmt.Printf("building '%s'\n", *flagApp)
+	} else {
+		fmt.Printf("building '%s' for config '%s' and region '%s'\n", *flagApp, *flagProfile, *flagRegion)
 
-	// prepare config folder
-	tempDir, err := ioutil.TempDir(".", "gopackage_")
-	if err != nil {
-		return err
+		// prepare config folder
+		tempDir, err := ioutil.TempDir(".", "gopackage_")
+		if err != nil {
+			return err
+		}
+		defer os.RemoveAll(tempDir)
+
+		configDir := filepath.Join(tempDir, "config")
+		os.MkdirAll(configDir, 0755)
+
+		// koding-config-manager needs it
+		err = ioutil.WriteFile("VERSION", []byte(p.version), 0755)
+		if err != nil {
+			return err
+		}
+		defer os.Remove("VERSION")
+
+		c, err := config.ReadConfigManager(*flagProfile)
+		if err != nil {
+			return err
+		}
+
+		configPretty, err := json.MarshalIndent(c, "", "  ")
+		if err != nil {
+			return err
+		}
+
+		configFile := filepath.Join(configDir, fmt.Sprintf("main.%s.json", *flagProfile))
+		err = ioutil.WriteFile(configFile, configPretty, 0644)
+		if err != nil {
+			return err
+		}
+
+		p.files = append(p.files, configDir)
 	}
-	defer os.RemoveAll(tempDir)
-
-	configDir := filepath.Join(tempDir, "config")
-	os.MkdirAll(configDir, 0755)
-
-	// koding-config-manager needs it
-	err = ioutil.WriteFile("VERSION", []byte(p.version), 0755)
-	if err != nil {
-		return err
-	}
-	defer os.Remove("VERSION")
-
-	c, err := config.ReadConfigManager(*flagProfile)
-	if err != nil {
-		return err
-	}
-
-	configPretty, err := json.MarshalIndent(c, "", "  ")
-	if err != nil {
-		return err
-	}
-
-	configFile := filepath.Join(configDir, fmt.Sprintf("main.%s.json", *flagProfile))
-	err = ioutil.WriteFile(configFile, configPretty, 0644)
-	if err != nil {
-		return err
-	}
-
-	p.files = append(p.files, configDir)
 
 	// Now it's time to build
 	if runtime.GOOS != "linux" {
@@ -350,7 +354,13 @@ func (p *pkg) build() error {
 
 	// rename file to see for which region and env it is created
 	oldname := debFile
-	newname := fmt.Sprintf("%s_%s_%s-%s_%s.deb", p.appName, p.version, *flagProfile, *flagRegion, deb.Arch)
+	newname := ""
+
+	if *flagProfile == "" || *flagRegion == "" {
+		newname = fmt.Sprintf("%s_%s_%s.deb", p.appName, p.version, deb.Arch)
+	} else {
+		newname = fmt.Sprintf("%s_%s_%s-%s_%s.deb", p.appName, p.version, *flagProfile, *flagRegion, deb.Arch)
+	}
 
 	if err := os.Rename(oldname, newname); err != nil {
 		return err
