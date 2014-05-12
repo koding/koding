@@ -69,7 +69,8 @@ func TestNotificationCreation(t *testing.T) {
 
 			Convey("We should be able to create notification_test group channel", func() {
 				var err error
-				testGroupChannel, err = createGroupActivityChannel(ownerAccount.Id, "notification_test")
+				name := "notification_test_" + models.RandomName()
+				testGroupChannel, err = createGroupActivityChannel(ownerAccount.Id, name)
 				ResultedWithNoErrorCheck(testGroupChannel, err)
 			})
 		})
