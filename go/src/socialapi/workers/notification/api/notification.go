@@ -1,4 +1,4 @@
-package notification
+package api
 
 import (
 	"errors"
@@ -9,10 +9,10 @@ import (
 	"net/http"
 	"net/url"
 	"socialapi/config"
-	"socialapi/models"
+	socialmodels "socialapi/models" // TODO this dependancy must be removed
 	"socialapi/workers/api/modules/helpers"
-	"socialapi/workers/cache"
 	"socialapi/workers/helper"
+	"socialapi/workers/notification/models"
 	"strconv"
 )
 
@@ -61,7 +61,7 @@ func List(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface
 }
 
 func Glance(u *url.URL, h http.Header, req *models.Notification) (int, http.Header, interface{}, error) {
-	q := models.NewQuery()
+	q := socialmodels.NewQuery()
 	q.AccountId = req.AccountId
 	if err := validateNotificationRequest(q); err != nil {
 		return helpers.NewBadRequestResponse(err)
@@ -75,12 +75,13 @@ func Glance(u *url.URL, h http.Header, req *models.Notification) (int, http.Head
 		return helpers.NewBadRequestResponse(err)
 	}
 
-	go func() {
-		if cacheEnabled {
-			cacheInstance := cache.NewNotificationCache()
-			cacheInstance.Glance(req)
-		}
-	}()
+	// TODO enable cache
+	// go func() {
+	// 	if cacheEnabled {
+	// 		cacheInstance := cache.NewNotificationCache()
+	// 		cacheInstance.Glance(req)
+	// 	}
+	// }()
 
 	req.Glanced = true
 
@@ -88,8 +89,8 @@ func Glance(u *url.URL, h http.Header, req *models.Notification) (int, http.Head
 }
 
 func Follow(u *url.URL, h http.Header, req *models.NotificationRequest) (int, http.Header, interface{}, error) {
-	c := models.NewChannel()
-	c.TypeConstant = models.Channel_TYPE_FOLLOWERS
+	c := socialmodels.NewChannel()
+	c.TypeConstant = socialmodels.Channel_TYPE_FOLLOWERS
 	c.CreatorId = req.TargetId
 	if err := c.Create(); err != nil {
 		return helpers.NewBadRequestResponse(err)
@@ -144,23 +145,24 @@ func subscription(nr *models.NotificationRequest, typeConstant string) error {
 	return nil
 }
 
-func fetchNotifications(q *models.Query) (*models.NotificationResponse, error) {
+func fetchNotifications(q *socialmodels.Query) (*models.NotificationResponse, error) {
 	var list *models.NotificationResponse
 	var err error
 
+	// TODO enable cache
 	// first check redis
-	var cacheInstance *cache.NotificationCache
-	if cacheEnabled {
-		cacheInstance = cache.NewNotificationCache()
-		cacheInstance.ActorLimit = ACTOR_LIMIT
-		list, err = cacheInstance.FetchNotifications(q.AccountId)
-		if err != nil {
-			log.Error("Cache error: %s", err)
-		}
-		if err == nil && len(list.Notifications) > 0 {
-			return list, nil
-		}
-	}
+	// var cacheInstance *cache.NotificationCache
+	// if cacheEnabled {
+	// 	cacheInstance = cache.NewNotificationCache()
+	// 	cacheInstance.ActorLimit = ACTOR_LIMIT
+	// 	list, err = cacheInstance.FetchNotifications(q.AccountId)
+	// 	if err != nil {
+	// 		log.Error("Cache error: %s", err)
+	// 	}
+	// 	if err == nil && len(list.Notifications) > 0 {
+	// 		return list, nil
+	// 	}
+	// }
 
 	n := models.NewNotification()
 	list, err = n.List(q)
@@ -168,18 +170,19 @@ func fetchNotifications(q *models.Query) (*models.NotificationResponse, error) {
 		return nil, err
 	}
 
-	go func() {
-		if cacheEnabled {
-			if err := cacheInstance.UpdateCachedNotifications(q.AccountId, list); err != nil {
-				log.Error("Cache cannot be updated: %s", err)
-			}
-		}
-	}()
+	// TODO enable cache update
+	// go func() {
+	// 	if cacheEnabled {
+	// 		if err := cacheInstance.UpdateCachedNotifications(q.AccountId, list); err != nil {
+	// 			log.Error("Cache cannot be updated: %s", err)
+	// 		}
+	// 	}
+	// }()
 
 	return list, nil
 }
 
-func validateNotificationRequest(q *models.Query) error {
+func validateNotificationRequest(q *socialmodels.Query) error {
 	if err := validateAccount(q.AccountId); err != nil {
 		return err
 	}
@@ -194,7 +197,7 @@ func validateSubscriptionRequest(req *models.NotificationRequest) error {
 		return err
 	}
 
-	cm := models.NewChannelMessage()
+	cm := socialmodels.NewChannelMessage()
 	if err := cm.ById(req.TargetId); err != nil {
 		return err
 	}
@@ -203,7 +206,7 @@ func validateSubscriptionRequest(req *models.NotificationRequest) error {
 }
 
 func validateAccount(accountId int64) error {
-	a := models.NewAccount()
+	a := socialmodels.NewAccount()
 	if accountId == 0 {
 		return errors.New("Account id cannot be empty")
 	}
@@ -219,7 +222,7 @@ func validateAccount(accountId int64) error {
 }
 
 func validateMessage(messageId int64) error {
-	cm := models.NewChannelMessage()
+	cm := socialmodels.NewChannelMessage()
 	if err := cm.ById(messageId); err != nil {
 		if err == gorm.RecordNotFound {
 			return errors.New("Channel message does not exist")

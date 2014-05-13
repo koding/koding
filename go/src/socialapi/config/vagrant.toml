@@ -22,4 +22,4 @@ Vhost=    "/"
 MessageBodyMinLen=1
 
 [cache]
-Notification = true
+Notification = false
