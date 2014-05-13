@@ -59,14 +59,27 @@ class SocialApiController extends KDController
       options.groupName = group.slug
       channelApiChannelsResFunc 'fetchChannels', options, callback
 
-  fetchPopularTopics = (options, callback)->
+  popularItemsReq = (funcName, options, callback)->
     # here not to break current frontend
     options.type ?= "weekly"
     unless options.type in ["daily", "weekly", "monthly"]
       return callback {message: "type is not valid "}
     getCurrentGroup (group)->
       options.groupName = group.slug
-      channelApiChannelsResFunc 'fetchPopularTopics', options, callback
+      channelApiChannelsResFunc funcName, options, callback
+
+  fetchPopularTopics = (options, callback)->
+    popularItemsReq 'fetchPopularTopics', options, callback
+
+  fetchPopularPosts = (options, callback)->
+    unless options.channelName
+      return callback {message:"channelName is not set"}
+    options.type ?= "weekly"
+    unless options.type in ["daily", "weekly", "monthly"]
+      return callback {message: "type is not valid "}
+    getCurrentGroup (group)->
+      options.groupName = group.slug
+      channelApiActivitiesResFunc "fetchPopularPosts", options, callback
 
   messageApiMessageResFunc = (name, rest..., callback)->
     KD.remote.api.SocialMessage[name] rest..., (err, res)->
@@ -164,6 +177,7 @@ class SocialApiController extends KDController
     list                 : fetchChannels
     fetchActivities      : fetchChannelActivities
     fetchGroupActivities : fetchGroupActivities
+    fetchPopularPosts    : fetchPopularPosts
     fetchPopularTopics   : fetchPopularTopics
     fetchPinnedMessages  : (args...)->
       channelApiActivitiesResFunc 'fetchPinnedMessages', args...
