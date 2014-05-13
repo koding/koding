@@ -184,3 +184,78 @@ module.exports = class JStackTemplate extends jraphical.Module
       delete data.group
 
       @update $set: data, (err)-> callback err
+
+# Base StackTemplate example for koding group
+###
+
+{JStackTemplate} = KD.remote.api
+
+JStackTemplate.create
+
+  title       : "Koding"
+  description : "Koding's default stack template for new users"
+
+  config      :
+    subdomain : ".kd.io"
+
+  rules       : [
+    {
+      name    : "Allow Gokmen"
+      rules   : [
+          {
+              type    : "ip",
+              match   : "176.33.13.53",
+              action  : "allow",
+              enabled : yes
+          }
+      ]
+      enabled : yes
+    }
+    {
+      name    : "Allow Turkey"
+      rules   : [
+          {
+              type    : "country",
+              match   : "TR",
+              action  : "allow",
+              enabled : yes
+          }
+      ]
+      enabled : yes
+    }
+  ]
+
+  domains     : [
+    { domain  : "{{profile.nickname}}{{config.subdomain}}" }
+    { domain  : "digitalocean.{{profile.nickname}}{{config.subdomain}}" }
+    { domain  : "aws.{{profile.nickname}}{{config.subdomain}}" }
+  ]
+
+  machines    : [
+    {
+      title: "Development VM", vendor: "koding", instanceType: "micro"
+    }
+    {
+      title: "Test VM on DO", vendor: "digitalocean", instanceType: "micro",
+      credential: "703484dfc34fc9b9830c43eddb2725f5", image: "ubuntu-13-10-x64",
+      region: "ams1", size: "512mb"
+    }
+    {
+      title: "AWS micro", vendor: "amazon", instanceType: "micro"
+    }
+  ]
+
+  connections : [
+    { rules   : 0, domains  : 0 }
+    { rules   : 0, domains  : 1 }
+    { rules   : 1, domains  : 0 }
+    { domains : 0, machines : 0 }
+    { domains : 1, machines : 1 }
+    { domains : 2, machines : 2 }
+  ]
+
+, (err, template)->
+
+  console.log err, template
+
+###
