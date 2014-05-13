@@ -8,7 +8,7 @@ class MessagePane extends KDTabPaneView
     super options, data
 
     {itemClass, type} = @getOptions()
-    lastToFirst = yes  if type is "message"
+    lastToFirst = yes  unless type is "message"
 
     @listController = new ActivityListController {itemClass, lastToFirst}
     @createInputWidget()
@@ -52,7 +52,7 @@ class MessagePane extends KDTabPaneView
 
       console.time('populate')
       @listController.hideLazyLoader()
-      @listController.listActivities items
+      @listController.listActivities items.reverse()
       console.timeEnd('populate')
 
 
