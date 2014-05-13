@@ -333,6 +333,31 @@ func (c *Channel) RemoveMessage(messageId int64) (*ChannelMessageList, error) {
 	return cml, nil
 }
 
+func (c *Channel) FetchChannelIdByNameAndGroupName(name, groupName string) (int64, error) {
+	query := &bongo.Query{
+		Selector: map[string]interface{}{
+			"name":       name,
+			"group_name": groupName,
+		},
+		Limit: 1,
+		Pluck: "id",
+	}
+	var ids []int64
+	if err := c.Some(&ids, query); err != nil {
+		return 0, err
+	}
+
+	if ids == nil {
+		return 0, gorm.RecordNotFound
+	}
+
+	if len(ids) == 0 {
+		return 0, gorm.RecordNotFound
+	}
+
+	return ids[0], nil
+}
+
 func (c *Channel) Search(q *Query) ([]Channel, error) {
 
 	if q.GroupName == "" {
