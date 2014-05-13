@@ -3,33 +3,35 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/koding/api/utils"
 	. "github.com/smartystreets/goconvey/convey"
 	"labix.org/v2/mgo/bson"
-	"socialapi/models"
+	socialapimodels "socialapi/models"
+	"socialapi/workers/notification/models"
 	"testing"
 	"time"
 )
 
 var (
 	cacheEnabled     = false
-	ownerAccount     models.Account
-	firstUser        models.Account
-	secondUser       models.Account
-	thirdUser        models.Account
-	forthUser        models.Account
-	testGroupChannel models.Channel
-	firstMessage     *models.ChannelMessage
+	ownerAccount     socialapimodels.Account
+	firstUser        socialapimodels.Account
+	secondUser       socialapimodels.Account
+	thirdUser        socialapimodels.Account
+	forthUser        socialapimodels.Account
+	testGroupChannel socialapimodels.Channel
+	firstMessage     *socialapimodels.ChannelMessage
 )
 
 const SLEEP_TIME = 4
 
 func TestNotificationCreation(t *testing.T) {
-	ownerAccount := models.NewAccount()
-	firstUser := models.NewAccount()
-	secondUser := models.NewAccount()
-	thirdUser := models.NewAccount()
-	forthUser := models.NewAccount()
-	testGroupChannel := models.NewChannel()
+	ownerAccount := socialapimodels.NewAccount()
+	firstUser := socialapimodels.NewAccount()
+	secondUser := socialapimodels.NewAccount()
+	thirdUser := socialapimodels.NewAccount()
+	forthUser := socialapimodels.NewAccount()
+	testGroupChannel := socialapimodels.NewChannel()
 
 	testCases := func() {
 		Convey("First create users and required channel", func() {
@@ -69,7 +71,7 @@ func TestNotificationCreation(t *testing.T) {
 
 			Convey("We should be able to create notification_test group channel", func() {
 				var err error
-				name := "notification_test_" + models.RandomName()
+				name := "notification_test_" + socialapimodels.RandomName()
 				testGroupChannel, err = createGroupActivityChannel(ownerAccount.Id, name)
 				ResultedWithNoErrorCheck(testGroupChannel, err)
 			})
@@ -77,7 +79,7 @@ func TestNotificationCreation(t *testing.T) {
 
 		Convey("As a message owner I want to receive reply notifications", func() {
 
-			var replyMessage *models.ChannelMessage
+			var replyMessage *socialapimodels.ChannelMessage
 			Convey("I should be able to create channel message", func() {
 				messageBody := "notification first message"
 				var err error
@@ -127,6 +129,7 @@ func TestNotificationCreation(t *testing.T) {
 				So(len(nl.Notifications), ShouldEqual, 1)
 			})
 			Convey("Notifier count should be 2", func() {
+				So(len(nl.Notifications), ShouldEqual, 1)
 				So(nl.Notifications[0].ActorCount, ShouldEqual, 2)
 			})
 
@@ -290,8 +293,8 @@ func TestNotificationCreation(t *testing.T) {
 		})
 
 		Convey("As a message owner I must not be notified by my own replies", func() {
-			var cm *models.ChannelMessage
-			var replyMessage *models.ChannelMessage
+			var cm *socialapimodels.ChannelMessage
+			var replyMessage *socialapimodels.ChannelMessage
 
 			Convey("I should be able to create channel message", func() {
 				messageBody := "notification second message"
@@ -348,7 +351,7 @@ func TestNotificationCreation(t *testing.T) {
 		})
 		Convey("As a message owner I want to receive like notifications", func() {
 			Convey("First user should be able to like it", func() {
-				err := addInteraction(models.Interaction_TYPE_LIKE, firstMessage.Id, firstUser.Id)
+				err := addInteraction(socialapimodels.Interaction_TYPE_LIKE, firstMessage.Id, firstUser.Id)
 				So(err, ShouldBeNil)
 				time.Sleep(SLEEP_TIME * time.Second)
 			})
@@ -368,11 +371,11 @@ func TestNotificationCreation(t *testing.T) {
 				})
 			})
 			Convey("Second, Third and Forth user should be able to like it", func() {
-				err := addInteraction(models.Interaction_TYPE_LIKE, firstMessage.Id, secondUser.Id)
+				err := addInteraction(socialapimodels.Interaction_TYPE_LIKE, firstMessage.Id, secondUser.Id)
 				So(err, ShouldBeNil)
-				err = addInteraction(models.Interaction_TYPE_LIKE, firstMessage.Id, thirdUser.Id)
+				err = addInteraction(socialapimodels.Interaction_TYPE_LIKE, firstMessage.Id, thirdUser.Id)
 				So(err, ShouldBeNil)
-				err = addInteraction(models.Interaction_TYPE_LIKE, firstMessage.Id, forthUser.Id)
+				err = addInteraction(socialapimodels.Interaction_TYPE_LIKE, firstMessage.Id, forthUser.Id)
 				So(err, ShouldBeNil)
 
 				time.Sleep(SLEEP_TIME * time.Second)
@@ -394,7 +397,7 @@ func TestNotificationCreation(t *testing.T) {
 				})
 			})
 			Convey("I should not be able to notified by my own like activities", func() {
-				err := addInteraction(models.Interaction_TYPE_LIKE, firstMessage.Id, ownerAccount.Id)
+				err := addInteraction(socialapimodels.Interaction_TYPE_LIKE, firstMessage.Id, ownerAccount.Id)
 				So(err, ShouldBeNil)
 				time.Sleep(SLEEP_TIME * time.Second)
 
@@ -535,7 +538,7 @@ func TestNotificationCreation(t *testing.T) {
 		})
 
 		Convey("As a subscriber first and third user should be able to subscribe to my message", func() {
-			var cm *models.ChannelMessage
+			var cm *socialapimodels.ChannelMessage
 			var err error
 			Convey("I should be able to create a message", func() {
 				messageBody := "notification subscriber message"
@@ -595,7 +598,7 @@ func TestNotificationCreation(t *testing.T) {
 		})
 
 		Convey("As a message owner I should be able to unsubscribe from notifications of my own message", func() {
-			var cm *models.ChannelMessage
+			var cm *socialapimodels.ChannelMessage
 			var err error
 			Convey("I should be able to create a message", func() {
 				messageBody := "notification subscriber message 2"
@@ -627,15 +630,16 @@ func TestNotificationCreation(t *testing.T) {
 				ResultedWithNoErrorCheck(replyMessage, err)
 				time.Sleep(SLEEP_TIME * time.Second) // waiting for async message
 			})
-			Convey("I should be able to receive notification", func() {
-				nl, err := getNotificationList(ownerAccount.Id)
-				ResultedWithNoErrorCheck(nl, err)
 
-				So(len(nl.Notifications), ShouldBeGreaterThan, 0)
-				So(nl.Notifications[0].TargetId, ShouldEqual, cm.Id)
-				So(len(nl.Notifications[0].LatestActors), ShouldEqual, 1)
-				So(nl.Notifications[0].LatestActors[0], ShouldEqual, secondUser.Id)
-			})
+			// Convey("I should be able to receive notification", func() {
+			// 	nl, err := getNotificationList(ownerAccount.Id)
+			// 	ResultedWithNoErrorCheck(nl, err)
+
+			// 	So(len(nl.Notifications), ShouldBeGreaterThan, 0)
+			// 	So(nl.Notifications[0].TargetId, ShouldEqual, cm.Id)
+			// 	So(len(nl.Notifications[0].LatestActors), ShouldEqual, 1)
+			// 	So(nl.Notifications[0].LatestActors[0], ShouldEqual, secondUser.Id)
+			// })
 		})
 	}
 
@@ -658,7 +662,7 @@ func ResultedWithNoErrorCheck(result interface{}, err error) {
 func getNotificationList(accountId int64) (*models.NotificationResponse, error) {
 	url := fmt.Sprintf("/notification/%d?cache=%t", accountId, cacheEnabled)
 
-	res, err := sendRequest("GET", url, nil)
+	res, err := utils.SendRequest("GET", url, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -676,7 +680,7 @@ func glanceNotifications(accountId int64) (interface{}, error) {
 	n := models.NewNotification()
 	n.AccountId = accountId
 
-	res, err := sendModel("POST", "/notification/glance", n)
+	res, err := utils.SendModel("POST", "/notification/glance", n)
 	if err != nil {
 		return nil, err
 	}
@@ -684,19 +688,19 @@ func glanceNotifications(accountId int64) (interface{}, error) {
 	return res, nil
 }
 
-func createGroupActivityChannel(creatorId int64, groupName string) (*models.Channel, error) {
-	c := models.NewChannel()
+func createGroupActivityChannel(creatorId int64, groupName string) (*socialapimodels.Channel, error) {
+	c := socialapimodels.NewChannel()
 	c.GroupName = groupName
 	c.CreatorId = creatorId
-	c.TypeConstant = models.Channel_TYPE_GROUP
+	c.TypeConstant = socialapimodels.Channel_TYPE_GROUP
 	c.Name = groupName
 
-	cm, err := sendModel("POST", "/channel", c)
+	cm, err := utils.SendModel("POST", "/channel", c)
 	if err != nil {
 		return nil, err
 	}
 
-	return cm.(*models.Channel), nil
+	return cm.(*socialapimodels.Channel), nil
 }
 
 func followNotification(followerId int64, followeeId int64) (interface{}, error) {
@@ -704,7 +708,7 @@ func followNotification(followerId int64, followeeId int64) (interface{}, error)
 	a.TargetId = followeeId
 	a.AccountId = followerId
 
-	res, err := sendModel("POST", "/notification/follow", a)
+	res, err := utils.SendModel("POST", "/notification/follow", a)
 	if err != nil {
 		return nil, err
 	}
@@ -716,7 +720,7 @@ func subscribeMessage(accountId, messageId int64) (interface{}, error) {
 	n := models.NewNotificationRequest()
 	n.AccountId = accountId
 	n.TargetId = messageId
-	res, err := sendModel("POST", "/notification/subscribe", n)
+	res, err := utils.SendModel("POST", "/notification/subscribe", n)
 	if err != nil {
 		return nil, err
 	}
@@ -728,10 +732,96 @@ func unsubscribeMessage(accountId, messageId int64) (interface{}, error) {
 	n := models.NewNotificationRequest()
 	n.AccountId = accountId
 	n.TargetId = messageId
-	res, err := sendModel("POST", "/notification/unsubscribe", n)
+	res, err := utils.SendModel("POST", "/notification/unsubscribe", n)
 	if err != nil {
 		return nil, err
 	}
 
 	return res, nil
+}
+
+// copy/paste
+func createAccount(a *socialapimodels.Account) (*socialapimodels.Account, error) {
+	acc, err := utils.SendModel("POST", "/account", a)
+	if err != nil {
+		return nil, err
+	}
+
+	return acc.(*socialapimodels.Account), nil
+}
+
+// copy/paste
+func createPostWithBody(channelId, accountId int64, body string) (*socialapimodels.ChannelMessage, error) {
+	cm := socialapimodels.NewChannelMessage()
+	cm.Body = body
+	cm.AccountId = accountId
+
+	url := fmt.Sprintf("/channel/%d/message", channelId)
+	res, err := utils.MarshallAndSendRequest("POST", url, cm)
+	if err != nil {
+		return nil, err
+	}
+
+	model := socialapimodels.NewChannelMessageContainer()
+	err = json.Unmarshal(res, model)
+	if err != nil {
+		return nil, err
+	}
+
+	return model.Message, nil
+}
+
+// copy/paste
+func addReply(postId, accountId, channelId int64) (*socialapimodels.ChannelMessage, error) {
+	cm := socialapimodels.NewChannelMessage()
+	cm.Body = "reply body"
+	cm.AccountId = accountId
+	cm.InitialChannelId = channelId
+
+	url := fmt.Sprintf("/message/%d/reply", postId)
+	_, err := utils.SendModel("POST", url, cm)
+	if err != nil {
+		return nil, err
+	}
+	return cm, nil
+}
+
+// copy/paste
+func addInteraction(interactionType string, postId, accountId int64) error {
+	cm := socialapimodels.NewInteraction()
+	cm.AccountId = accountId
+	cm.MessageId = postId
+
+	url := fmt.Sprintf("/message/%d/interaction/%s/add", postId, interactionType)
+	_, err := utils.SendModel("POST", url, cm)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+// copy/paste
+func addChannelParticipant(channelId, requesterId, accountId int64) (*socialapimodels.ChannelParticipant, error) {
+	c := socialapimodels.NewChannelParticipant()
+	c.AccountId = requesterId
+
+	url := fmt.Sprintf("/channel/%d/participant/%d/add", channelId, accountId)
+	cmI, err := utils.SendModel("POST", url, c)
+	if err != nil {
+		return nil, err
+	}
+	return cmI.(*socialapimodels.ChannelParticipant), nil
+}
+
+// copy/paste
+func deleteChannelParticipant(channelId int64, requesterId, accountId int64) (*socialapimodels.ChannelParticipant, error) {
+	c := socialapimodels.NewChannelParticipant()
+	c.AccountId = requesterId
+
+	url := fmt.Sprintf("/channel/%d/participant/%d/delete", channelId, accountId)
+	cmI, err := utils.SendModel("POST", url, c)
+	if err != nil {
+		return nil, err
+	}
+	return cmI.(*socialapimodels.ChannelParticipant), nil
 }
