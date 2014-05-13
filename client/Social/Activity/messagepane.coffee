@@ -9,10 +9,9 @@ class MessagePane extends KDTabPaneView
 
     channel           = @getData()
     {itemClass, type} = @getOptions()
+    lastToFirst = yes  if type is "message"
 
-    @listController = new ActivityListController
-      itemClass     : itemClass
-      lastToFirst   : yes  if type is 'message'
+    @listController = new ActivityListController {itemClass, lastToFirst}
     @createInputWidget()
 
 
