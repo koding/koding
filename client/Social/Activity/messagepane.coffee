@@ -7,12 +7,21 @@ class MessagePane extends KDTabPaneView
 
     super options, data
 
-    channel           = @getData()
     {itemClass, type} = @getOptions()
     lastToFirst = yes  if type is "message"
 
     @listController = new ActivityListController {itemClass, lastToFirst}
     @createInputWidget()
+
+    @bindChannelEvents()
+
+
+  bindChannelEvents: ->
+
+    {channel} = @getData()
+    channel  ?= KD.singleton("socialapi").openedChannels[@getOption "name"]
+
+    return  unless channel
 
 
 
