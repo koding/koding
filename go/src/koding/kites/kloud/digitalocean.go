@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"log"
 
 	"github.com/mitchellh/packer/packer"
 )
@@ -12,14 +13,28 @@ type DigitalOcean struct {
 }
 
 func (d *DigitalOcean) Build(path string) error {
-	fmt.Println("Building DigitalOcean", path)
-
-	tpl, err := packer.ParseTemplateFile(path, nil)
+	log.Printf("Digitalocean: Reading template: %s", path)
+	template, err := packer.ParseTemplateFile(path, nil)
 	if err != nil {
 		return fmt.Errorf("Failed to parse template: %s", err)
 	}
 
-	fmt.Printf("tpl %+v\n", tpl)
+	if len(template.BuildNames()) != 1 {
+		return fmt.Errorf("Failed to find build in the template: %v", template.BuildNames())
+	}
+
+	buildName := template.BuildNames()[0]
+	if buildName != "digitalocean" {
+		return fmt.Errorf("Build name is different than 'digitalocean': %v", buildName)
+	}
+
+	log.Println("Digitalocean: Creating build interface")
+	build, err := template.Build(buildName, nil)
+	if err != nil {
+		return err
+	}
+
+	fmt.Printf("build.Name() %+v\n", build.Name())
 
 	return nil
 }
