@@ -1,5 +1,4 @@
-class ActivityActionsView extends KDView
-
+class ActivityActionsView extends JView
 
   constructor: (options = {}, data) ->
 
@@ -52,6 +51,8 @@ class ActivityActionsView extends KDView
       loaderOptions :
         color       : '#6B727B'
 
+    @attachListeners()
+
 
   attachListeners: ->
 
@@ -67,10 +68,9 @@ class ActivityActionsView extends KDView
 
   viewAppended: ->
 
-    @setTemplate @pistachio()
-    @template.update()
-    @attachListeners()
     @loader.hide()
+
+    super
 
 
   pistachio: ->
