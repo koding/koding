@@ -9,6 +9,7 @@ class DockController extends KDViewController
     { title : "Apps",      path : "/Apps",     order : 50, type :"persistent" }
     # { title : "About",     path : "/About",    order : 70, type :"persistent" }
     { title : "DevTools",  path : "/DevTools", order : 60, type :"persistent" }
+    { title : "IDE",       path : "/IDE",      order : 60, type :"persistent" }
   ]
 
   constructor:(options = {}, data)->
