@@ -28,13 +28,19 @@
       "inline": [
         "sleep 30",
         "sudo dpkg -i /tmp/{{user `klient_deb`}}",
-        "mkdir {{user `klient_keydir`}}"
+        "mkdir -p {{user `klient_keydir`}}"
       ]
     },
     {
       "type": "file",
       "source": "{{user `klient_keyname`}}",
       "destination": "{{user `klient_keydir`}}/{{user `klient_keyname`}}"
+    },
+    {
+      "type": "shell",
+      "inline": [
+        "service klient restart"
+      ]
     }
   ]
 }
