@@ -13,12 +13,10 @@ class MessagePane extends KDTabPaneView
     @listController = new ActivityListController
       itemClass     : itemClass
       lastToFirst   : yes  if type is 'message'
+    @createInputWidget()
 
     @listView = @listController.getView()
 
-    unless type in ['post', 'message']
-      @input = new ActivityInputWidget {channel}
-      @input.on 'Submit', @listController.bound 'addItem'
 
 
   viewAppended: ->
@@ -61,3 +59,13 @@ class MessagePane extends KDTabPaneView
     @listController.removeAllItems()
     @listController.showLazyLoader()
     @populate()
+
+
+  createInputWidget: ->
+
+    return  if @getOption("type") in ["post", "message"]
+
+    channel = @getData()
+
+    @input = new ActivityInputWidget {channel}
+    @input.on 'Submit', @listController.bound 'addItem'
