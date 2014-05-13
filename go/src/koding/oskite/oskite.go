@@ -32,7 +32,7 @@ import (
 
 const (
 	OSKITE_NAME    = "oskite"
-	OSKITE_VERSION = "0.2.10"
+	OSKITE_VERSION = "0.2.11"
 )
 
 var (
@@ -661,6 +661,9 @@ func (o *Oskite) startSingleVM(vm *virt.VM, channel *kite.Channel) error {
 	}
 
 	info.stopTimeout(channel)
+
+	// validate/sanitize zero values
+	vm.ApplyDefaults()
 
 	err := o.checkVM(vm)
 	if err != nil {
