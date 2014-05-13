@@ -2,14 +2,11 @@ class EditCommentForm extends NewCommentForm
 
   constructor: (options = {}, data) ->
 
-    options.cssClass  = KD.utils.curry "edit-comment-box", options.cssClass
-    options.editable ?= yes
+    options.cssClass    = KD.utils.curry "edit-comment-box", options.cssClass
+    options.editable    ?= yes
+    options.showAvatar  ?= no
 
     super options, data
-
-    @addSubView new KDCustomHTMLView
-      cssClass  : "cancel-description"
-      pistachio : "Press Esc to cancel"
 
     @input.setValue Encoder.htmlDecode data.body
     @input.on "EscapePerformed", @bound "cancel"
@@ -42,6 +39,10 @@ class EditCommentForm extends NewCommentForm
   viewAppended: ->
 
     super
+
+    @addSubView new KDCustomHTMLView
+      cssClass  : "cancel-description"
+      pistachio : "Press Esc to cancel"
 
     KD.utils.defer =>
 
