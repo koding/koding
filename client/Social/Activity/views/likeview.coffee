@@ -13,6 +13,7 @@ class ActivityLikeView extends JView
     @_currentState = no
 
     @likeCount    = new ActivityLikeCount
+      cssClass    : 'like-count'
       tooltip     :
         gravity   : options.tooltipPosition
         title     : ""

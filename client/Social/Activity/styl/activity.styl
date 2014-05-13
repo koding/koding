@@ -239,9 +239,12 @@ resurrection.activity.styl
         &.public-feed-link
           margin-top      31px
           color           #6a6a6a
-          border          1px solid #1aaf5d
+          border          1px solid #a7a7a7
           font-weight     600
           line-height     30px
+
+          &.selected
+            border-color  #1aaf5d
 
       > section
         size              294px, auto
@@ -742,7 +745,7 @@ span.collapsedtext
       borderBox()
 
       .comment-menu
-        display           none //TEMP
+        background        transparent
 
       .avatarview
         display           block
@@ -779,6 +782,18 @@ span.collapsedtext
 
         &.like-link:before
           display         none
+
+      .like-count
+        noTextDeco()
+        display           inline-block
+        height            16px
+        line-height       16px
+        padding           0 4px
+        background        #dfdfdf
+        color             #747474
+        rounded           2px
+        margin-left       7px
+        font-size         11px
 
       time
         display           none //TEMP
