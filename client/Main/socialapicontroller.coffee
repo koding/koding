@@ -1,26 +1,36 @@
 class SocialApiController extends KDController
 
   constructor: (options = {}, data) ->
+    @openedChannels = {}
     super options, data
 
-  mapActivity = (data)->
-    message = data?.message or data
-    # if no result, no need to do something
-    return message unless message
+  mapActivity = (data) ->
 
-    {SocialMessage} = KD.remote.api
-    message._id = message.id
-    m = new SocialMessage message
-    m._id = message.id
+    return  unless plain = data.message or data
+
+    {accountOldId, replies, interactions} = data
+    {createdAt, deletedAt, updatedAt}     = plain
+
+    plain._id = plain.id
+
+    m = new KD.remote.api.SocialMessage plain
     m.account = {}
     m.account.constructorName = "JAccount"
-    m.account._id = data.accountOldId
-    m.meta = {}
-    m.meta.likes = data.interactions?.like?.length or 0
-    m.meta.createdAt = message.createdAt
-    m.replies = mapActivities data.replies
-    m.repliesCount = data.replies?.length or 0
-    m.interactions = data.interactions
+    m.account._id = accountOldId
+
+    m.replies      = mapActivities data.replies or []
+    m.repliesCount = data.repliesCount
+
+    m.interactions    = interactions or
+      like            :
+        actorsCount   : 0
+        actorsPreview : []
+        isInteracted  : no
+
+    m.meta      =
+      createdAt : new Date createdAt
+      deletedAt : new Date deletedAt
+      updatedAt : new Date updatedAt
 
     return m
 
@@ -108,22 +118,11 @@ class SocialApiController extends KDController
       data.isParticipant = channel.isParticipant
       data.participantCount = channel.participantCount
       data.participantsPreview = channel.participantsPreview
-
       c = new SocialChannel data
-      # until we create message id's
-      # programmatically
-      # inorder to make realtime updates work
-      # we need `channel-` here
-      c._id = "channel-#{c.id}"
-
-      # bind all events
-      registerAndOpenChannel c
-
-      c.on "*", -> console.log arguments
-      c.on "MessageAdded", -> console.log arguments, "messageadded"
       # push channel into stack
       revivedChannels.push c
-
+    # bind all events
+    registerAndOpenChannels revivedChannels
     return revivedChannels
 
   forwardMessageEvents = (source, target,  events)->
@@ -132,34 +131,40 @@ class SocialApiController extends KDController
         message = mapActivity message
         target.emit event, message, rest...
 
-  registerAndOpenChannel = (socialApiChannel)->
+  registerAndOpenChannels = (socialApiChannels)->
     getCurrentGroup (group)->
-      subscriptionData =
-        serviceType: 'socialapi'
-        group      : group.slug
-        channelType: socialApiChannel.typeConstant
-        channelName: socialApiChannel.name
-        isExclusive: yes
+      for socialApiChannel in socialApiChannels
+        # lock
+        name = "socialapi.#{socialApiChannel.groupName}-#{socialApiChannel.typeConstant}-#{socialApiChannel.name}"
+        continue  if KD.singletons.socialapi.openedChannels[name]
+        KD.singletons.socialapi.openedChannels[name] = {}
 
-      name = "socialapi.#{socialApiChannel.groupName}-#{socialApiChannel.typeConstant}-#{socialApiChannel.name}"
-      brokerChannel = KD.remote.subscribe name, subscriptionData
-      forwardMessageEvents brokerChannel, socialApiChannel, [
-        "MessageAdded",
-        "MessageRemoved"
-      ]
+        subscriptionData =
+          serviceType: 'socialapi'
+          group      : group.slug
+          channelType: socialApiChannel.typeConstant
+          channelName: socialApiChannel.name
+          isExclusive: yes
+
+        KD.remote.subscribe name, subscriptionData, (brokerChannel)->
+          KD.singletons.socialapi.openedChannels[brokerChannel.name] = brokerChannel
+          forwardMessageEvents brokerChannel, socialApiChannel, [
+            "MessageAdded",
+            "MessageRemoved"
+          ]
 
   message:
-    edit   :(rest...)-> messageApiMessageResFunc 'edit', rest...
-    post   :(rest...)-> messageApiMessageResFunc 'post', rest...
-    reply  :(rest...)-> messageApiMessageResFunc 'reply', rest...
-    delete :(rest...)-> KD.remote.api.SocialMessage.delete rest...
-    like   :(rest...)-> KD.remote.api.SocialMessage.like rest...
-    unlike :(rest...)-> KD.remote.api.SocialMessage.unlike rest...
-    listLikers:(rest...)-> KD.remote.api.SocialMessage.listLikers rest...
-    sendPrivateMessage :(rest...)->
-      sendPrivateMessageRequest 'sendPrivateMessage', rest...
-    fetchPrivateMessages :(rest...)->
-      sendPrivateMessageRequest 'fetchPrivateMessages', rest...
+    edit   :(args...)-> messageApiMessageResFunc 'edit', args...
+    post   :(args...)-> messageApiMessageResFunc 'post', args...
+    reply  :(args...)-> messageApiMessageResFunc 'reply', args...
+    delete :(args...)-> KD.remote.api.SocialMessage.delete args...
+    like   :(args...)-> KD.remote.api.SocialMessage.like args...
+    unlike :(args...)-> KD.remote.api.SocialMessage.unlike args...
+    listLikers:(args...)-> KD.remote.api.SocialMessage.listLikers args...
+    sendPrivateMessage :(args...)->
+      sendPrivateMessageRequest 'sendPrivateMessage', args...
+    fetchPrivateMessages :(args...)->
+      sendPrivateMessageRequest 'fetchPrivateMessages', args...
     revive : mapActivity
 
   channel:
@@ -167,17 +172,19 @@ class SocialApiController extends KDController
     fetchActivities      : fetchChannelActivities
     fetchGroupActivities : fetchGroupActivities
     fetchPopularTopics   : fetchPopularTopics
-    fetchPinnedMessages  : (rest...)->
-      channelApiActivitiesResFunc 'fetchPinnedMessages', rest...
-    pin                  : (rest...)->
-      KD.remote.api.SocialChannel.pinMessage rest...
-    unpin                : (rest...)->
-      KD.remote.api.SocialChannel.unpinMessage rest...
-    follow               : (rest...)->
-      KD.remote.api.SocialChannel.follow rest...
-    unfollow             : (rest...)->
-      KD.remote.api.SocialChannel.unfollow rest...
-    fetchFollowedChannels: (rest...)->
-      channelApiChannelsResFunc 'fetchFollowedChannels', rest...
-    searchTopics: (rest...)->
-      channelApiChannelsResFunc 'searchTopics', rest...
+    fetchPinnedMessages  : (args...)->
+      channelApiActivitiesResFunc 'fetchPinnedMessages', args...
+    pin                  : (args...)->
+      KD.remote.api.SocialChannel.pinMessage args...
+    unpin                : (args...)->
+      KD.remote.api.SocialChannel.unpinMessage args...
+    follow               : (args...)->
+      KD.remote.api.SocialChannel.follow args...
+    unfollow             : (args...)->
+      KD.remote.api.SocialChannel.unfollow args...
+    fetchFollowedChannels: (args...)->
+      channelApiChannelsResFunc 'fetchFollowedChannels', args...
+    searchTopics         : (args...)->
+      channelApiChannelsResFunc 'searchTopics', args...
+    fetchProfileFeed     : (args...)->
+      channelApiActivitiesResFunc 'fetchProfileFeed', args...

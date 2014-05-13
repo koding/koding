@@ -80,6 +80,8 @@ func Inject(mux *tigertonic.TrieServeMux) *tigertonic.TrieServeMux {
 	mux.Handle("POST", "/account", handlerWrapper(account.Register, "account-create"))
 	// list channels of the account
 	mux.Handle("GET", "/account/{id}/channels", handlerWrapper(account.ListChannels, "account-channel-list"))
+	// list posts of the account
+	mux.Handle("GET", "/account/{id}/posts", handlerWrapper(account.ListPosts, "account-post-list"))
 	// follow the account
 	mux.Handle("POST", "/account/{id}/follow", handlerWrapper(account.Follow, "account-follow"))
 	// un-follow the account

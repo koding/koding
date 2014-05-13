@@ -121,54 +121,13 @@ func (m *MessageReply) fetchMessages(query *Query) ([]ChannelMessage, error) {
 	return channelMessageReplies, nil
 }
 
-// we do not need pagination??
-func (m *MessageReply) FetchReplyIds(p *bongo.Pagination, t time.Time, lowerTimeLimit bool) ([]int64, error) {
-	var replyIds []int64
-	comparison := "<="
-	if lowerTimeLimit {
-		comparison = ">="
+func (m *MessageReply) Count() (int, error) {
+	if m.MessageId == 0 {
+		return 0, errors.New("MessageId is not set")
 	}
 
-	if err := bongo.B.DB.Table(m.TableName()).
-		Where("message_id = ? AND created_at "+comparison+" ?", m.MessageId, t).
-		Order("created_at desc").
-		Pluck("reply_id", &replyIds).
-		Error; err != nil {
-		return nil, err
-	}
-
-	return replyIds, nil
-}
-
-func (m *MessageReply) FetchByReplyId() error {
-	q := &bongo.Query{
-		Selector: map[string]interface{}{
-			"reply_id": m.ReplyId,
-		},
-	}
-	return m.One(q)
-}
-
-// FetchFirstAccountReply retrieves first reply message of the given account
-// and creation date.
-// Returns empty values when result is not found
-func (m *MessageReply) FetchFirstAccountReply(accountId int64) error {
-	cm := NewChannelMessage()
-	rows, err := bongo.B.DB.Raw("SELECT mr.reply_id, mr.created_at "+
-		"FROM "+m.TableName()+" mr "+
-		"LEFT JOIN "+cm.TableName()+" cm ON cm.id = mr.reply_id "+
-		"WHERE cm.account_id = ? AND mr.message_id = ? "+
-		"ORDER BY cm.created_at ASC "+
-		"LIMIT 1", accountId, m.MessageId).Rows()
-
-	// does not return give gorm.ErrNotFound error when result is not found
-	if err != nil {
-		return err
-	}
-	if rows.Next() {
-		// i could not handle it by selecting all columns
-		rows.Scan(&m.ReplyId, &m.CreatedAt)
-	}
-
-	return nil
+	return bongo.B.Count(m,
+		"message_id = ?",
+		m.MessageId,
+	)
 }

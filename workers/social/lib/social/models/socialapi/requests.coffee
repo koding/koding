@@ -194,6 +194,12 @@ searchTopics = (data, callback)->
   url = "#{SOCIAL_API_URL}/channel/search"
   get url, data, callback
 
+fetchProfileFeed = (data, callback)->
+  if not data.targetId
+    return callback { message: "targetId should be set"}
+  url = "#{SOCIAL_API_URL}/account/#{data.targetId}/posts"
+  get url, data, callback
+
 post = (url, data, callback)->
   request
     url    : url
@@ -211,6 +217,7 @@ get = (url, data, callback)->
   , wrapCallback callback
 
 module.exports = {
+  fetchProfileFeed
   searchTopics
   fetchPrivateMessages
   sendPrivateMessage

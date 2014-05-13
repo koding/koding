@@ -38,7 +38,7 @@ class CommentView extends KDView
     @commentForm.on "Submit", @commentController.bound "reply"
 
     @commentList.on 'ReplyLinkClicked', (username) =>
-      input = @commentForm.commentInput
+      {input} = @commentForm
       value = input.getValue()
       value = if value.indexOf("@#{username}") >= 0 then value else if value.length is 0 then "@#{username} " else "#{value} @#{username} "
 
@@ -57,12 +57,6 @@ class CommentView extends KDView
     @on "RefreshTeaser",->
       @parent?.emit "RefreshTeaser"
 
-    if data.replies
-      for reply in data.replies  when reply? and reply.originId? and reply.originType?
-        @commentList.addItem reply
-    # else
-    #   @commentController.fetchRelativeComments null, data.meta.createdAt, no, -1
-
     @commentList.emit "BackgroundActivityFinished"
 
   attachListeners:->
@@ -70,7 +64,7 @@ class CommentView extends KDView
 
     @commentList.on "CommentLinkReceivedClick", (event) =>
       @commentForm.makeCommentFieldActive()
-      @commentForm.commentInput.setFocus()
+      @commentForm.input.setFocus()
 
     @commentList.on "CommentCountClicked", =>
       @commentList.emit "AllCommentsLinkWasClicked"

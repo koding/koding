@@ -66,6 +66,10 @@ class ActivityLikeCount extends CustomLinkView
 
   fetchAccounts: (callback) ->
 
+    {interactions: {like: {actorsPreview}}} = @getData()
+
+    return callback null, actorsPreview  unless actorsPreview.length
+
     constructorName = "JAccount"
     origins = actorsPreview.map (id) -> {id, constructorName}
 
