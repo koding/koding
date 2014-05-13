@@ -33,10 +33,10 @@ class CommentListItemView extends KDListItemView
     menu = {}
 
     if options.edit
-      menu['Edit'] = callback: @bound "showEditForm"
+      menu['Edit Comment'] = callback: @bound "showEditForm"
 
     if options.delete
-      menu['Delete'] = callback: @bound "showDeleteModal"
+      menu['Delete Comment'] = callback: @bound "showDeleteModal"
 
     delegate = this
 
