@@ -6,7 +6,6 @@ class ActivityActionsView extends KDView
 
     super options, data
 
-    activity = @getData()
 
     @commentLink  = new CustomLinkView title: "Comment"
 
@@ -17,7 +16,7 @@ class ActivityActionsView extends KDView
       click       : (event) =>
         KD.utils.stopDOMEvent event
         @getDelegate().emit "CommentCountClicked", this
-    , activity
+    , data
 
     @shareLink = new CustomLinkView
       title : "Share"
@@ -44,7 +43,7 @@ class ActivityActionsView extends KDView
 
         KD.mixpanel "Activity share, click"
 
-    @likeLink = new ActivityLikeLink null, activity
+    @likeLink = new ActivityLikeLink null, data
 
     @loader = new KDLoaderView
       cssClass      : 'action-container'
@@ -56,7 +55,6 @@ class ActivityActionsView extends KDView
 
   attachListeners: ->
 
-    activity    = @getData()
     commentList = @getDelegate()
 
     commentList.on 'BackgroundActivityStarted',  @loader.bound 'show'
