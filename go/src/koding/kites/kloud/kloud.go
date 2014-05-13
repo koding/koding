@@ -41,7 +41,7 @@ func main() {
 	k.Config.Region = *flagRegion
 	k.Config.Port = *flagPort
 
-	k.HandleFunc("build", nil)
+	k.HandleFunc("build", build)
 	k.HandleFunc("start", nil)
 	k.HandleFunc("stop", nil)
 	k.HandleFunc("destroy", nil)
