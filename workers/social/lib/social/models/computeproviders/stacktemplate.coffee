@@ -66,6 +66,8 @@ module.exports = class JStackTemplate extends jraphical.Module
       machines        : [ Object ]
       extras          : [ Object ]
 
+      connections     : [ Object ]
+
       title           :
         type          : String
         required      : yes
@@ -105,6 +107,7 @@ module.exports = class JStackTemplate extends jraphical.Module
         domains       : data.domains     ? []
         machines      : data.machines    ? []
         extras        : data.extras      ? []
+        connections   : data.connections ? []
         accessLevel   : data.accessLevel ? "private"
         group         : client.context.group
         originId      : delegate.getId()
