@@ -5,6 +5,7 @@ import (
 	// "fmt"
 	"github.com/jinzhu/gorm"
 	"github.com/koding/bongo"
+	"socialapi/models"
 	"time"
 )
 
@@ -36,7 +37,7 @@ func (n *Notification) GetId() int64 {
 }
 
 func (n Notification) TableName() string {
-	return "api.notification"
+	return "notification.notification"
 }
 
 func NewNotification() *Notification {
@@ -87,7 +88,7 @@ func (n *Notification) Unsubscribe(nc *NotificationContent) error {
 	return n.Subscribe(nc)
 }
 
-func (n *Notification) List(q *Query) (*NotificationResponse, error) {
+func (n *Notification) List(q *models.Query) (*NotificationResponse, error) {
 	if q.Limit == 0 {
 		return nil, errors.New("limit cannot be zero")
 	}
@@ -108,7 +109,7 @@ func (n *Notification) Some(data interface{}, q *bongo.Query) error {
 	return bongo.B.Some(n, data, q)
 }
 
-func (n *Notification) fetchByAccountId(q *Query) ([]Notification, error) {
+func (n *Notification) fetchByAccountId(q *models.Query) ([]Notification, error) {
 	var notifications []Notification
 
 	err := bongo.B.DB.Table(n.TableName()).
@@ -136,7 +137,7 @@ func (n *Notification) FetchByContent() error {
 
 // getDecoratedList fetches notifications of the given user and decorates it with
 // notification activity actors
-func (n *Notification) getDecoratedList(q *Query) ([]NotificationContainer, error) {
+func (n *Notification) getDecoratedList(q *models.Query) ([]NotificationContainer, error) {
 	result := make([]NotificationContainer, 0)
 
 	nList, err := n.fetchByAccountId(q)
@@ -208,45 +209,6 @@ func (n *Notification) FetchContent() (*NotificationContent, error) {
 
 	return nc, nil
 }
-
-// func (n *Notification) Follow(a *NotificationActivity) error {
-// 	// a.TypeConstant = NotificationContent_TYPE_FOLLOW
-// 	// create NotificationActivity
-// 	if err := a.Create(); err != nil {
-// 		return err
-// 	}
-
-// 	fn := NewFollowNotification()
-// 	fn.NotifierId = a.ActorId
-// 	// fn.TargetId = a.TargetId
-
-// 	return CreateNotificationContent(fn)
-// }
-
-// func (n *Notification) JoinGroup(a *NotificationActivity, admins []int64) error {
-// 	// a.TypeConstant = NotificationContent_TYPE_JOIN
-
-// 	return n.interactGroup(a, admins)
-// }
-
-// func (n *Notification) LeaveGroup(a *NotificationActivity, admins []int64) error {
-// 	// a.TypeConstant = NotificationContent_TYPE_LEAVE
-
-// 	return n.interactGroup(a, admins)
-// }
-
-// func (n *Notification) interactGroup(a *NotificationActivity, admins []int64) error {
-// 	gn := NewGroupNotification(a.TypeConstant)
-// 	gn.NotifierId = a.ActorId
-// 	gn.TargetId = a.TargetId
-// 	gn.Admins = admins
-
-// 	if err := a.Create(); err != nil {
-// 		return err
-// 	}
-
-// 	return CreateNotificationContent(gn)
-// }
 
 func (n *Notification) BeforeCreate() {
 	if n.UnsubscribedAt.Equal(ZeroDate()) && n.SubscribedAt.Equal(ZeroDate()) {

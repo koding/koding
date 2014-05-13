@@ -2,6 +2,7 @@ package models
 
 import (
 	"errors"
+	"fmt"
 	"github.com/jinzhu/gorm"
 	"github.com/koding/bongo"
 	"time"
@@ -39,7 +40,7 @@ func (n *NotificationContent) GetId() int64 {
 }
 
 func (n NotificationContent) TableName() string {
-	return "api.notification_content"
+	return "notification.notification_content"
 }
 
 // Create checks for NotificationContent using type_constant and target_id
@@ -76,6 +77,7 @@ func (n *NotificationContent) FindByTarget() error {
 // CreateNotification validates notifiable instance and creates a new notification
 // with actor activity.
 func CreateNotificationContent(i Notifiable) (*NotificationContent, error) {
+	fmt.Println("yehaa")
 	// first check for type constant and target id
 	if i.GetType() == "" {
 		return nil, errors.New("Type must be set")
@@ -94,10 +96,11 @@ func CreateNotificationContent(i Notifiable) (*NotificationContent, error) {
 	nc.TypeConstant = i.GetType()
 	nc.TargetId = i.GetTargetId()
 
+	fmt.Println("huhular")
 	if err := nc.Create(); err != nil {
 		return nil, err
 	}
-
+	fmt.Println("hoholar")
 	a := NewNotificationActivity()
 	a.NotificationContentId = nc.Id
 	a.ActorId = i.GetActorId()

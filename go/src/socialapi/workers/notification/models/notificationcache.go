@@ -22,13 +22,12 @@
 // latestActors, glanced and actorCount values are stored in hashset with key [accountKey]:notificationKey
 // unreadCount is stored with key [accountKey]:unreadCount
 
-package cache
+package models
 
 import (
 	"fmt"
 	"github.com/koding/redis"
 	"socialapi/config"
-	"socialapi/models"
 	"socialapi/workers/helper"
 	"strconv"
 	"strings"
@@ -61,21 +60,21 @@ func NewNotificationCache() *NotificationCache {
 // FetchNotifications fetches the notification list of the user if it already exists.
 // when there is an error it resets the cache related with account for preventing further
 // error situations
-func (cache *NotificationCache) FetchNotifications(accountId int64) (*models.NotificationResponse, error) {
+func (cache *NotificationCache) FetchNotifications(accountId int64) (*NotificationResponse, error) {
 	compoundKeys, err := cache.fetchSortedCompoundKeys(accountId)
 	if err != nil {
 		cache.resetCache(accountId)
 		return nil, err
 	}
 
-	nr := &models.NotificationResponse{}
+	nr := &NotificationResponse{}
 
 	if len(compoundKeys) == 0 {
 		return nr, nil
 	}
 
 	// fetch notification list for the user
-	ncList := make([]models.NotificationContainer, len(compoundKeys))
+	ncList := make([]NotificationContainer, len(compoundKeys))
 	for i, compoundKey := range compoundKeys {
 		nc := &ncList[i]
 		if err := cache.populateNotificationContainer(compoundKey, nc); err != nil {
@@ -99,7 +98,7 @@ func (cache *NotificationCache) FetchNotifications(accountId int64) (*models.Not
 // UpdateCache updates user's cache related with the notification item. If user's
 // notifications are not cached, we just skip it. When an error occurrs we reset
 // user's cache for preventing further error situations
-func (cache *NotificationCache) UpdateCache(n *models.Notification, nc *models.NotificationContent) error {
+func (cache *NotificationCache) UpdateCache(n *Notification, nc *NotificationContent) error {
 	// Check if users notification data is cached.
 	// When user did not listed her notifications for a while, then
 	// no need for further caching
@@ -139,7 +138,7 @@ func (cache *NotificationCache) UpdateCache(n *models.Notification, nc *models.N
 // items. Also we update unread notification count as 0 for the user.
 // If user's notifications are not cached, we just skip it. When an error occurrs
 // we reset user's cache for preventing further error situations.
-func (cache *NotificationCache) Glance(n *models.Notification) error {
+func (cache *NotificationCache) Glance(n *Notification) error {
 
 	// user notification data is not cached
 	if !cache.isCached(n.AccountId) {
@@ -232,7 +231,7 @@ func (cache *NotificationCache) isCached(accountId int64) bool {
 
 // updateCompoundKeyList adds received notification's compoundKey to users compoundKeyList
 // returns true if it is a new key.
-func (cache *NotificationCache) updateCompoundKeyList(n *models.Notification, nc *models.NotificationContent) (bool, error) {
+func (cache *NotificationCache) updateCompoundKeyList(n *Notification, nc *NotificationContent) (bool, error) {
 	listContainerKey := cache.getAccountCacheKeyWithSuffix(n.AccountId, NotificationListKey)
 	memberKey := cache.getListMemberKey(n.AccountId, nc.TargetId, nc.TypeConstant)
 
@@ -245,8 +244,8 @@ func (cache *NotificationCache) updateCompoundKeyList(n *models.Notification, nc
 }
 
 // addNotificationDetails
-func (cache *NotificationCache) addNotificationDetails(n *models.Notification, nc *models.NotificationContent) error {
-	// nt, err := models.CreateNotificationContentType(nc.TypeConstant)
+func (cache *NotificationCache) addNotificationDetails(n *Notification, nc *NotificationContent) error {
+	// nt, err := CreateNotificationContentType(nc.TypeConstant)
 	// if err != nil {
 	// 	return err
 	// }
@@ -258,7 +257,7 @@ func (cache *NotificationCache) addNotificationDetails(n *models.Notification, n
 	// 	return err
 	// }
 
-	nContainer := models.NewNotificationContainer()
+	nContainer := NewNotificationContainer()
 	// nContainer.TypeConstant = nc.TypeConstant
 	// nContainer.TargetId = nc.TargetId
 	// nContainer.Glanced = false
@@ -270,7 +269,7 @@ func (cache *NotificationCache) addNotificationDetails(n *models.Notification, n
 }
 
 // updateDate updates notifications's updatedAt field.
-func (cache *NotificationCache) updateDate(n *models.Notification, nc *models.NotificationContent) error {
+func (cache *NotificationCache) updateDate(n *Notification, nc *NotificationContent) error {
 	key := cache.getNotificationCacheKey(n.AccountId, nc.TargetId, nc.TypeConstant)
 	updatedAtKey := key + ":" + NotificationUpdatedAtKey
 	updatedAt := strconv.FormatInt(n.ActivatedAt.UnixNano(), 10)
@@ -280,7 +279,7 @@ func (cache *NotificationCache) updateDate(n *models.Notification, nc *models.No
 
 // removeOldestItem removes the oldest notification item from cache if notification size is exceeded
 // for the user.
-func (cache *NotificationCache) removeOldestItem(n *models.Notification, nc *models.NotificationContent) error {
+func (cache *NotificationCache) removeOldestItem(n *Notification, nc *NotificationContent) error {
 	compoundKeys, err := cache.fetchSortedCompoundKeys(n.AccountId)
 	if err != nil {
 		return err
@@ -352,7 +351,7 @@ func (cache *NotificationCache) removeNotification(accountId, targetId int64, ty
 // populateNotificationContainer gets compoundKey (account-{id}:{typeConstant}-{targetId})
 // fetches all NotificationContainer data with this key and populates the notification
 // container instance
-func (cache *NotificationCache) populateNotificationContainer(compoundKey string, nc *models.NotificationContainer) error {
+func (cache *NotificationCache) populateNotificationContainer(compoundKey string, nc *NotificationContainer) error {
 	accountId, targetId, typeConstant, err := cache.parseCompoundKey(compoundKey)
 	if err != nil {
 		return err
@@ -374,7 +373,7 @@ func (cache *NotificationCache) populateNotificationContainer(compoundKey string
 // populateNotificationDetails fetches glance, ActorCount, LatestActors information
 // from cache and populates it to NotificationContainer instance
 // key: {environment}:notification:account-{accountId}:{typeConstant}-{targetId}
-func (cache *NotificationCache) populateNotificationDetails(accountId int64, nc *models.NotificationContainer) error {
+func (cache *NotificationCache) populateNotificationDetails(accountId int64, nc *NotificationContainer) error {
 	itemKey := cache.getNotificationCacheKey(accountId, nc.TargetId, nc.TypeConstant)
 	fields := cache.getCacheFields()
 	// TODO what if the values are new and not existing
@@ -467,7 +466,7 @@ func (cache *NotificationCache) getListMemberKey(accountId int64, targetId int64
 	)
 }
 
-func (cache *NotificationCache) UpdateCachedNotifications(accountId int64, nr *models.NotificationResponse) error {
+func (cache *NotificationCache) UpdateCachedNotifications(accountId int64, nr *NotificationResponse) error {
 	listKey := cache.getAccountCacheKeyWithSuffix(accountId, NotificationListKey)
 	_, err := cache.redisConn.Del(listKey)
 	if err != nil {
@@ -498,7 +497,7 @@ func (cache *NotificationCache) UpdateCachedNotifications(accountId int64, nr *m
 	return nil
 }
 
-func (cache *NotificationCache) addNotification(nc *models.NotificationContainer, accountId int64) error {
+func (cache *NotificationCache) addNotification(nc *NotificationContainer, accountId int64) error {
 	itemKey := cache.getNotificationCacheKey(accountId, nc.TargetId, nc.TypeConstant)
 	if err := cache.updateCacheItemModifiedDate(nc, itemKey); err != nil {
 		return err
@@ -511,13 +510,13 @@ func (cache *NotificationCache) addNotification(nc *models.NotificationContainer
 	return nil
 }
 
-func (cache *NotificationCache) updateCacheItemModifiedDate(nc *models.NotificationContainer, prefix string) error {
+func (cache *NotificationCache) updateCacheItemModifiedDate(nc *NotificationContainer, prefix string) error {
 	prefix = fmt.Sprintf("%s:%s", prefix, NotificationUpdatedAtKey)
 
 	return cache.redisConn.Set(prefix, strconv.FormatInt(nc.UpdatedAt.UnixNano(), 10))
 }
 
-func (cache *NotificationCache) updateCachedItem(nc *models.NotificationContainer, prefix string) error {
+func (cache *NotificationCache) updateCachedItem(nc *NotificationContainer, prefix string) error {
 	instance := map[string]interface{}{
 		"glanced":    nc.Glanced,
 		"actorCount": nc.ActorCount,

@@ -36,7 +36,7 @@ func NewNotificationActivity() *NotificationActivity {
 }
 
 func (a NotificationActivity) TableName() string {
-	return "api.notification_activity"
+	return "notification.notification_activity"
 }
 
 func (a *NotificationActivity) Create() error {
