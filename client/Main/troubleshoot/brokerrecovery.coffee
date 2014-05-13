@@ -23,7 +23,7 @@ class BrokerRecovery extends KDObject
         @unsuccessfulAttempt++
         @emit "brokerNotResponding"
 
-        KD.utils.warnAndLog 'broker not responding'
+        KD.utils.warnAndLog 'broker not responding', {@unsuccessfulAttempt}
 
       @broker.ping =>
         @unsuccessfulAttempt = 0

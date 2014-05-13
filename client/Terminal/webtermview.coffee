@@ -122,7 +122,7 @@ class WebTermView extends KDView
 
     .catch (err) =>
       KD.utils.warnAndLog "terminal: webtermConnect error",
-        {hostnameAlias:@getVMName(), reason:err.message}
+        {hostnameAlias:@getVMName(), reason:err?.message}
 
       if err.code is "ErrInvalidSession"
         @reconnectionInProgress = false
