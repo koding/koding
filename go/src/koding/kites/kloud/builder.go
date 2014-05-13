@@ -13,6 +13,7 @@ var providers = map[string]Builder{
 // Builder is used to create a single image or machine.
 type Builder interface {
 	Build() error
+	Provision() error
 }
 
 type buildArgs struct {
@@ -34,12 +35,11 @@ func build(r *kite.Request) (interface{}, error) {
 		return nil, err
 	}
 
-	return nil, nil
-}
+	if err := builder.Provision(); err != nil {
+		return nil, err
+	}
 
-// Provisioner is used to provision a given image
-type Provisioner interface {
-	Provision() error
+	return true, nil
 }
 
 // Controller manages a machine
