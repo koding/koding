@@ -142,31 +142,14 @@ func buildKlient() error {
 		return err
 	}
 
-	tempDir, err := ioutil.TempDir(".", "gopackage_")
-	if err != nil {
-		return err
-	}
-	defer os.RemoveAll(tempDir)
-
-	keyDir := filepath.Join(tempDir, "key")
-	os.MkdirAll(keyDir, 0755)
-
-	file, err := ioutil.TempFile(".", "gopackage_")
-	if err != nil {
-		return err
-	}
-	defer file.Close()
-
-	keyFile := filepath.Join(keyDir, "kite.key")
-	if err = ioutil.WriteFile(keyFile, []byte(key), 0400); err != nil {
+	if err = ioutil.WriteFile("kite.key", []byte(key), 0400); err != nil {
 		return err
 	}
 
 	importPath := "koding/kites/klient"
 	upstartPath := filepath.Join(gopath, "src", importPath, "files/klient.conf")
 
-	files := []string{keyDir}
-	files = append(files, filepath.Join(gopath, "bin-vagrant/kite"))
+	files := []string{filepath.Join(gopath, "bin-vagrant/kite")}
 
 	kclient := pkg{
 		appName:       *flagApp,
