@@ -41,9 +41,7 @@ class SocialApiController extends KDController
     plain._id = plain.id
 
     m = new KD.remote.api.SocialMessage plain
-    m.account = {}
-    m.account.constructorName = "JAccount"
-    m.account._id = accountOldId
+    m.account = mapAccounts(accountOldId)[0]
 
     m.replies      = mapActivities data.replies or []
     m.repliesCount = data.repliesCount
@@ -154,6 +152,15 @@ class SocialApiController extends KDController
 
     return mappedChannels
 
+  mapAccounts = (accounts)->
+    return [] unless accounts
+    mappedAccounts = []
+    accounts = [].concat(accounts)
+
+    for account in accounts
+      mappedAccounts.push {_id: account, constructorName : "JAccount"}
+    return mappedAccounts
+
   mapChannels = (channels)->
     return channels unless channels
     revivedChannels = []
@@ -163,7 +170,7 @@ class SocialApiController extends KDController
       data = channel.channel
       data.isParticipant = channel.isParticipant
       data.participantCount = channel.participantCount
-      data.participantsPreview = channel.participantsPreview
+      data.participantsPreview = mapAccounts channel.participantsPreview
       c = new SocialChannel data
       # push channel into stack
       revivedChannels.push c
