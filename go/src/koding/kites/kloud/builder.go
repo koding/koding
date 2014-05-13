@@ -23,7 +23,7 @@ type buildArgs struct {
 
 func build(r *kite.Request) (interface{}, error) {
 	args := &buildArgs{}
-	if err := r.Args.Unmarshal(args); err != nil {
+	if err := r.Args.One().Unmarshal(args); err != nil {
 		return nil, err
 	}
 
