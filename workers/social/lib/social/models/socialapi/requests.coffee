@@ -110,6 +110,13 @@ fetchPopularTopics = (data, callback)->
   url = "#{SOCIAL_API_URL}/popular/topics/#{data.type}"
   get url, data, callback
 
+fetchPopularPosts = (data, callback)->
+  if not data.groupName or not data.type or not data.channelName
+    return callback {message: "Request is not valid for listing popular topics"}
+
+  url = "#{SOCIAL_API_URL}/popular/posts/#{data.channelName}/#{data.type}"
+  get url, data, callback
+
 fetchPinnedMessages = (data, callback)->
   url = "#{SOCIAL_API_URL}/activity/pin/list"
   get url, data, callback
@@ -199,6 +206,7 @@ module.exports = {
   fetchPinnedMessages
   pinMessage
   unpinMessage
+  fetchPopularPosts
   fetchPopularTopics
   addReply
   unlikeMessage
