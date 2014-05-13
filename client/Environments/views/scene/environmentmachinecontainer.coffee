@@ -4,9 +4,14 @@ class EnvironmentMachineContainer extends EnvironmentContainer
 
     new Promise (resolve, reject)->
 
-      {JVM} = KD.remote.api
-      JVM.fetchVmsByContext withStacks:true, (err, vms)->
+      # {JVM} = KD.remote.api
+      # JVM.fetchVmsByContext withStacks:true, (err, vms)->
 
+      KD.remote.api.ComputeProvider.fetchExisting
+        provider : "koding"
+      , (err, vms)->
+
+        log "vms", vms
         if err or vms.length is 0
           warn "Failed to fetch VMs", err  if err
           return resolve []
@@ -28,6 +33,12 @@ class EnvironmentMachineContainer extends EnvironmentContainer
           title: "You need to login to create a new machine."
 
       ComputeProvider.showProvidersModal()
+
+      {stackId} = @getOptions()
+
+      KD.singleton("vmController").createNewVM stackId, ->
+        console.log "RES:", arguments
+        # KD.showError err
 
       # @addVmModal = new KDModalView
       #   title        : 'Add Virtual Machine'
