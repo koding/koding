@@ -528,33 +528,44 @@ div.kdtooltip.activity-helper
 
 span.collapsedtext
   borderBox()
-  vendor              transition, font-size .2s linear
-  a.more-link
-  a.less-link
-    font-size         11px
-    font-weight       400
-    // padding           0 5px
-    margin-left       5px
-    color             linkColor1
-    vendor            transition, font-size .2s linear
-    // bg                color, linkColor1
-    // rounded           8px
-
   &.hide
     font-size         0!important
-    *
+    >*
       visibility      hidden
       display         none
     a.more-link
-      font-size       11px!important
+      size            38px 15px
       visibility      visible
-      display         inline
+      display         inline-block
+      vertical-align  middle
+      overflow        visible
+
+      i
+        background    #d2d2d2
+        rounded       100%
+        size          5px 5px
+        position      relative
+        margin        4px 0 0 16px
+        fl()
+
+        &:before
+        &:after
+          content     ''
+          size        5px 5px
+          background  #d2d2d2
+          rounded     100%
+          abs         0px 0 0 0
+          fl()
+
+        &:before
+          right       8px
+
+        &:after
+          left        8px
 
   &.show
     a.more-link
-      font-size       0
-      margin-left     0
-      padding         0
+      display         none
 
 /* Activity items */
 
@@ -577,6 +588,7 @@ span.collapsedtext
       .kdbuttonwithmenu-wrapper.activity-settings-menu
         size                15px 10px
         padding             0
+        cursor              pointer
         button.kdbutton
           size              15px 10px
           bg                color transparent
@@ -695,6 +707,11 @@ span.collapsedtext
         font-weight       600
         noTextDeco()
 
+      strong
+        color             inherit
+        font-weight       600
+
+
   .comment-container
     .item-add-comment-box
       position            relative
@@ -772,6 +789,14 @@ span.collapsedtext
         color             #4c4c4c
         padding           10px 0 15px
         line-height       18px
+
+        p
+          a
+            color         inherit
+
+            &.profile-link
+              color       #1aaf5d
+              noTextDeco()
 
       .action-link
         font-size         11px
