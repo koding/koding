@@ -716,6 +716,8 @@ module.exports = class JVM extends Module
 
   wrapGroup = (group)-> [ { id: group.getId() } ]
 
+  ###
+
   do ->
 
     JAccount  = require './account'
@@ -927,3 +929,4 @@ module.exports = class JVM extends Module
                       return userRecord  unless isMatch
                       return { id, sudo: hasPermission }
                   }, handleError
+  ###
