@@ -1,14 +1,16 @@
 # Wrapper for pushing events to Rollbar
 KD.logToExternal = (msg, args) ->
-  return  unless KD.config.logToExternal and _rollbar
-  return  if KD.isGuest()
-  return  unless KD.whoami()
+  return "Rollbar is temporarily disabled"
 
-  {nickname} = KD.whoami().profile
+  # return  unless KD.config.logToExternal and _rollbar
+  # return  if KD.isGuest()
+  # return  unless KD.whoami()
 
-  if args? then args.user = nickname
+  # {nickname} = KD.whoami().profile
 
-  Rollbar.info msg, args
+  # if args? then args.user = nickname
+
+  # Rollbar.info msg, args
 
 # log ping times so we know if failure was due to user's slow
 # internet or our internals timing out
