@@ -21,3 +21,5 @@ sudo -u postgres psql social < /opt/koding/go/src/socialapi/db/sql/definition/00
 
 # ctreate constraints
 sudo -u postgres psql social < /opt/koding/go/src/socialapi/db/sql/definition/005-constraint.sql
+
+/opt/koding/go/src/socialapi/workers/notification/sql/create.sh
