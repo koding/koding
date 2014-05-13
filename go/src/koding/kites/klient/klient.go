@@ -39,9 +39,6 @@ func main() {
 	k.Config.Port = *flagPort
 	k.Config.Environment = *flagEnvironment
 
-	u, _ := url.Parse("wss://kontrol.koding.com")
-	k.Config.KontrolURL = u
-
 	k.HandleFunc("fs.readDirectory", fs.ReadDirectory)
 	k.HandleFunc("fs.glob", fs.Glob)
 	k.HandleFunc("fs.readFile", fs.ReadFile)
