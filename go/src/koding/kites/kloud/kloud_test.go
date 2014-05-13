@@ -38,6 +38,6 @@ func TestBuild(t *testing.T) {
 		TemplatePath: "testdata/digitalocean_packer.json",
 	}
 
-	resp, err := remote.Tell("build", args)
-	fmt.Printf("resp %v, err %+v\n", resp.MustBool(), err)
+	_, err := remote.Tell("build", args)
+	fmt.Printf("err %+v\n", err)
 }
