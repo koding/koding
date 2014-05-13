@@ -7,7 +7,7 @@ import (
 	"koding/db/mongodb/modelhelper"
 	"socialapi/config"
 	"socialapi/workers/helper"
-	"socialapi/workers/notification/notification"
+	"socialapi/workers/notification/controller"
 )
 
 var (

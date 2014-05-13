@@ -10,8 +10,8 @@ import (
 	mongomodels "koding/db/models"
 	"koding/db/mongodb/modelhelper"
 	"labix.org/v2/mgo"
-	"socialapi/models"
-	"socialapi/workers/cache"
+	socialapimodels "socialapi/models"
+	"socialapi/workers/notification/models"
 	"time"
 )
 
@@ -63,17 +63,15 @@ func NewNotificationWorkerController(rmq *rabbitmq.RabbitMQ, log logging.Logger,
 	}
 
 	routes := map[string]Action{
-		"api.message_reply_created":       (*NotificationWorkerController).CreateReplyNotification,
-		"api.interaction_created":         (*NotificationWorkerController).CreateInteractionNotification,
-		"api.notification_created":        (*NotificationWorkerController).NotifyUser,
-		"api.notification_updated":        (*NotificationWorkerController).NotifyUser,
-		"api.channel_participant_created": (*NotificationWorkerController).JoinGroup,
-		"api.channel_participant_updated": (*NotificationWorkerController).LeaveGroup,
+		"api.message_reply_created":         (*NotificationWorkerController).CreateReplyNotification,
+		"api.interaction_created":           (*NotificationWorkerController).CreateInteractionNotification,
+		"notification.notification_created": (*NotificationWorkerController).NotifyUser,
+		"notification.notification_updated": (*NotificationWorkerController).NotifyUser,
+		"api.channel_participant_created":   (*NotificationWorkerController).JoinGroup,
+		"api.channel_participant_updated":   (*NotificationWorkerController).LeaveGroup,
 	}
 
 	nwc.routes = routes
-
-	models.Log = log
 
 	return nwc, nil
 }
@@ -96,7 +94,7 @@ func (n *NotificationWorkerController) CreateReplyNotification(data []byte) erro
 	}
 
 	// fetch replier
-	cm := models.NewChannelMessage()
+	cm := socialapimodels.NewChannelMessage()
 	if err := cm.ById(mr.ReplyId); err != nil {
 		return err
 	}
@@ -111,7 +109,7 @@ func (n *NotificationWorkerController) CreateReplyNotification(data []byte) erro
 		return err
 	}
 
-	cm = models.NewChannelMessage()
+	cm = socialapimodels.NewChannelMessage()
 	// notify message owner
 	if err = cm.ById(mr.MessageId); err != nil {
 		return err
@@ -159,7 +157,7 @@ func (n *NotificationWorkerController) CreateInteractionNotification(data []byte
 		return err
 	}
 
-	cm := models.NewChannelMessage()
+	cm := socialapimodels.NewChannelMessage()
 	if err := cm.ById(i.MessageId); err != nil {
 		return err
 	}
@@ -223,14 +221,14 @@ func (n *NotificationWorkerController) NotifyUser(data []byte) error {
 	// 	actorId = ac.LatestActors[0]
 	// }
 
-	go func() {
-		if n.cacheEnabled {
-			notificationCache := cache.NewNotificationCache()
-			if err := notificationCache.UpdateCache(notification, nc); err != nil {
-				n.log.Error("an error occurred %s", err)
-			}
-		}
-	}()
+	// go func() {
+	// 	if n.cacheEnabled {
+	// 		notificationCache := cache.NewNotificationCache()
+	// 		if err := notificationCache.UpdateCache(notification, nc); err != nil {
+	// 			n.log.Error("an error occurred %s", err)
+	// 		}
+	// 	}
+	// }()
 
 	accountId := notification.AccountId
 	oldAccount, err := fetchNotifierOldAccount(accountId)
@@ -266,7 +264,7 @@ func (n *NotificationWorkerController) NotifyUser(data []byte) error {
 // fetchNotifierOldAccount fetches mongo account of a given new account id.
 // this function must be used under another file for further use
 func fetchNotifierOldAccount(accountId int64) (*mongomodels.Account, error) {
-	newAccount := models.NewAccount()
+	newAccount := socialapimodels.NewAccount()
 	if err := newAccount.ById(accountId); err != nil {
 		return nil, err
 	}
@@ -297,22 +295,22 @@ func processChannelParticipant(data []byte, typeConstant string) error {
 		return err
 	}
 
-	c := models.NewChannel()
+	c := socialapimodels.NewChannel()
 	if err := c.ById(cp.ChannelId); err != nil {
 		return err
 	}
 
 	switch c.TypeConstant {
-	case models.Channel_TYPE_GROUP:
+	case socialapimodels.Channel_TYPE_GROUP:
 		return interactGroup(cp, c, typeConstant)
-	case models.Channel_TYPE_FOLLOWERS:
+	case socialapimodels.Channel_TYPE_FOLLOWERS:
 		return interactFollow(cp, c)
 	}
 
 	return nil
 }
 
-func interactFollow(cp *models.ChannelParticipant, c *models.Channel) error {
+func interactFollow(cp *socialapimodels.ChannelParticipant, c *socialapimodels.Channel) error {
 	// TODO refactor this part
 	nI := models.NewFollowNotification()
 	nI.TargetId = cp.ChannelId
@@ -333,7 +331,7 @@ func interactFollow(cp *models.ChannelParticipant, c *models.Channel) error {
 	return nil
 }
 
-func interactGroup(cp *models.ChannelParticipant, c *models.Channel, typeConstant string) error {
+func interactGroup(cp *socialapimodels.ChannelParticipant, c *socialapimodels.Channel, typeConstant string) error {
 
 	// user joins her own group, so we bypass notification
 	if c.CreatorId == cp.AccountId {
@@ -360,8 +358,8 @@ func interactGroup(cp *models.ChannelParticipant, c *models.Channel, typeConstan
 	return nil
 }
 
-func mapMessageToChannelParticipant(data []byte) (*models.ChannelParticipant, error) {
-	cp := models.NewChannelParticipant()
+func mapMessageToChannelParticipant(data []byte) (*socialapimodels.ChannelParticipant, error) {
+	cp := socialapimodels.NewChannelParticipant()
 	if err := json.Unmarshal(data, cp); err != nil {
 		return nil, err
 	}
@@ -369,8 +367,8 @@ func mapMessageToChannelParticipant(data []byte) (*models.ChannelParticipant, er
 	return cp, nil
 }
 
-func mapMessageToMessageReply(data []byte) (*models.MessageReply, error) {
-	mr := models.NewMessageReply()
+func mapMessageToMessageReply(data []byte) (*socialapimodels.MessageReply, error) {
+	mr := socialapimodels.NewMessageReply()
 	if err := json.Unmarshal(data, mr); err != nil {
 		return nil, err
 	}
@@ -378,8 +376,8 @@ func mapMessageToMessageReply(data []byte) (*models.MessageReply, error) {
 	return mr, nil
 }
 
-func mapMessageToInteraction(data []byte) (*models.Interaction, error) {
-	i := models.NewInteraction()
+func mapMessageToInteraction(data []byte) (*socialapimodels.Interaction, error) {
+	i := socialapimodels.NewInteraction()
 	if err := json.Unmarshal(data, i); err != nil {
 		return nil, err
 	}
