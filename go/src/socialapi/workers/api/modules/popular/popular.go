@@ -7,6 +7,7 @@ import (
 	"socialapi/models"
 	"socialapi/workers/api/modules/helpers"
 	"socialapi/workers/helper"
+	"socialapi/workers/popularpost/popularpost"
 	"socialapi/workers/populartopic/populartopic"
 	"strconv"
 	"time"
@@ -135,4 +136,84 @@ func fetchMoreChannels(group string, count int) ([]models.Channel, error) {
 	q.SetDefaults()
 	c := models.NewChannel()
 	return c.List(q)
+}
+
+func ListPosts(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface{}, error) {
+	query := helpers.GetQuery(u)
+	query.Type = models.ChannelMessage_TYPE_POST
+
+	statisticName := u.Query().Get("statisticName")
+	channelName := u.Query().Get("channelName")
+
+	year, dateNumber, err := getDateNumberAndYear(statisticName)
+	if err != nil {
+		return helpers.NewBadRequestResponse(errors.New("Unknown statistic name"))
+	}
+
+	key := popularpost.PreparePopularPostKey(
+		query.GroupName,
+		channelName,
+		statisticName,
+		year,
+		dateNumber,
+	)
+
+	popularPostIds, err := getIds(key, query)
+	if err != nil {
+		return helpers.NewBadRequestResponse(err)
+	}
+
+	popularPostIds, err = extendPopularPostsIfNeeded(query, popularPostIds, channelName)
+	if err != nil {
+		return helpers.NewBadRequestResponse(err)
+	}
+
+	popularPosts, err := models.NewChannelMessage().FetchByIds(popularPostIds)
+	if err != nil {
+		return helpers.NewBadRequestResponse(err)
+	}
+
+	query.Limit = 3
+	return helpers.HandleResultAndError(
+		models.NewChannelMessage().BuildMessages(
+			query,
+			popularPosts,
+		),
+	)
+}
+
+func extendPopularPostsIfNeeded(query *models.Query, popularPostIds []int64, channelName string) ([]int64, error) {
+	toBeAddedItemCount := query.Limit - len(popularPostIds)
+	if toBeAddedItemCount > 0 {
+		c := models.NewChannel()
+		channelId, err := c.FetchChannelIdByNameAndGroupName(channelName, query.GroupName)
+		if err != nil {
+			return popularPostIds, err
+		}
+
+		normalPosts, err := models.NewChannelMessageList().FetchMessageIdsByChannelId(channelId, query)
+		if err != nil {
+			return popularPostIds, err
+		}
+
+		for _, normalPostId := range normalPosts {
+			exists := false
+			for _, popularPostId := range popularPostIds {
+				if normalPostId == popularPostId {
+					exists = true
+					break
+				}
+			}
+
+			if !exists {
+				popularPostIds = append(popularPostIds, normalPostId)
+				toBeAddedItemCount--
+				if toBeAddedItemCount == 0 {
+					break
+				}
+			}
+		}
+	}
+
+	return popularPostIds, nil
 }
