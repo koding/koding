@@ -2,7 +2,9 @@
   "variables": {
     "do_client_id": "",
     "do_api_key": "",
-    "klient_deb": "klient_0.0.1_amd64.deb"
+    "klient_deb": "klient_0.0.1_amd64.deb",
+    "klient_keyname": "kite.key",
+    "klient_keydir": "/opt/kite/klient/key"
   },
   "builders": [
     {
@@ -25,8 +27,14 @@
       "type": "shell",
       "inline": [
         "sleep 30",
-        "sudo dpkg -i /tmp/{{user `klient_deb`}}"
+        "sudo dpkg -i /tmp/{{user `klient_deb`}}",
+        "mkdir {{user `klient_keydir`}}"
       ]
+    },
+    {
+      "type": "file",
+      "source": "{{user `klient_keyname`}}",
+      "destination": "{{user `klient_keydir`}}/{{user `klient_keyname`}}"
     }
   ]
 }
