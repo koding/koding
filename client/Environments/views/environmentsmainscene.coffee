@@ -59,10 +59,10 @@ class EnvironmentsMainScene extends JView
     EnvironmentDataProvider.get (@environmentData) =>
       @emit "EnvironmentDataFetched", @environmentData
 
-      {JStack} = KD.remote.api
-      JStack.getStacks (err, stacks = [])=>
-        warn err  if err
-        @createStacks stacks
+      # {JStack} = KD.remote.api
+      # JStack.getStacks (err, stacks = [])=>
+      #   warn err  if err
+      @createStacks [] # stacks
 
   createStacks: (stacks) ->
     @stacks = []
@@ -81,15 +81,15 @@ class EnvironmentsMainScene extends JView
       callback : @bound "createNewStack"
 
   createNewStack: (meta, modal) ->
-    KD.remote.api.JStack.createStack meta, (err, stack) =>
-      title = "Failed to create a new stack. Try again later!"
-      return new KDNotificationView { title }  if err
-      modal.destroy()
+    # KD.remote.api.JStack.createStack meta, (err, stack) =>
+    title = "Failed to create a new stack. Try again later!"
+    return new KDNotificationView { title }#  if err
+    modal.destroy()
 
-      stackView = new StackView { stack} , @environmentData
-      @forwardEvent stackView, "CloneStackRequested"
-      @stacks.push @addSubView stackView
-      @highlightStack stackView
+      # stackView = new StackView { stack} , @environmentData
+      # @forwardEvent stackView, "CloneStackRequested"
+      # @stacks.push @addSubView stackView
+      # @highlightStack stackView
 
   highlightStack: (stackView) ->
     stackView.once "transitionend", =>
