@@ -1,6 +1,5 @@
 class ActivityActionsView extends KDView
 
-  contextMenu = null
 
   constructor: (options = {}, data) ->
 
@@ -31,7 +30,7 @@ class ActivityActionsView extends KDView
         else
           shareUrl      = "#{KD.config.mainUri}/Activity/#{data.slug}"
 
-        contextMenu   = new KDContextMenu
+        new KDContextMenu
           cssClass    : "activity-share-popup"
           type        : "activity-share"
           delegate    : this
