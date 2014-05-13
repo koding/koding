@@ -3,6 +3,33 @@ class SocialApiController extends KDController
   constructor: (options = {}, data) ->
     @openedChannels = {}
     super options, data
+    @utils.defer @bound 'init'
+
+  init:->
+    mainController    = KD.getSingleton 'mainController'
+    mainController.ready => @openGroupChannel()
+
+  openGroupChannel:->
+    # to - do refactor this part to use same functions with other parts
+    api = this
+    groupsController = KD.getSingleton "groupsController"
+    groupsController.ready =>
+      group = KD.getSingleton("groupsController").getCurrentGroup()
+
+      subscriptionData =
+        serviceType: 'socialapi'
+        group      : group.slug
+        channelType: "group"
+        channelName: group.slug
+        isExclusive: yes
+
+      name = "socialapi.#{group.slug}-group-#{group.slug}"
+      KD.remote.subscribe name, subscriptionData, (brokerChannel)=>
+        @forwardMessageEvents brokerChannel, api, [
+          "MessageAdded",
+          "MessageRemoved"
+        ]
+
 
   mapActivity = (data) ->
 
@@ -130,6 +157,8 @@ class SocialApiController extends KDController
       source.on event, (message, rest...) ->
         message = mapActivity message
         target.emit event, message, rest...
+
+  forwardMessageEvents : forwardMessageEvents
 
   registerAndOpenChannels = (socialApiChannels)->
     getCurrentGroup (group)->
