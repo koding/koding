@@ -126,7 +126,7 @@ class SocialApiController extends KDController
     messages = [].concat(messages)
     return [] unless messages?.length > 0
 
-    mappedMessages = []
+    mappedChannels = []
 
     for messageContainer in messages
       message = mapActivity messageContainer.lastMessage
@@ -136,9 +136,9 @@ class SocialApiController extends KDController
       channel.participantsPreview = messageContainer.participantsPreview
       channel.lastMessage = message
 
-      mappedMessages.push message
+      mappedChannels.push channel
 
-    return mappedMessages
+    return mappedChannels
 
   mapChannels = (channels)->
     return channels unless channels
