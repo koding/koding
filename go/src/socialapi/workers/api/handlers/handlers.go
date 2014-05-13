@@ -8,7 +8,6 @@ import (
 	"socialapi/workers/api/modules/interaction"
 	"socialapi/workers/api/modules/message"
 	"socialapi/workers/api/modules/messagelist"
-	"socialapi/workers/api/modules/notification"
 	"socialapi/workers/api/modules/participant"
 	"socialapi/workers/api/modules/popular"
 	"socialapi/workers/api/modules/privatemessage"
@@ -101,17 +100,6 @@ func Inject(mux *tigertonic.TrieServeMux) *tigertonic.TrieServeMux {
 	mux.Handle("POST", "/activity/pin/remove", handlerWrapper(activity.UnpinMessage, "activity-remove-pinned-message"))
 	// get popular topics
 	mux.Handle("GET", "/popular/topics/{statisticName}", handlerWrapper(popular.ListTopics, "list-popular-topics"))
-
-	// list notifications
-	mux.Handle("GET", "/notification/{accountId}", handlerWrapper(notification.List, "notification-list"))
-	// glance notifications
-	mux.Handle("POST", "/notification/glance", handlerWrapper(notification.Glance, "notification-glance"))
-	// add account followed notification
-	mux.Handle("POST", "/notification/follow", handlerWrapper(notification.Follow, "notification-follow"))
-	// subscribe to message notification
-	mux.Handle("POST", "/notification/subscribe", handlerWrapper(notification.SubscribeMessage, "notification-subscribe"))
-	// unsubscribe from message notification
-	mux.Handle("POST", "/notification/unsubscribe", handlerWrapper(notification.UnsubscribeMessage, "notification-unsubscribe"))
 
 	// mux.Handle("POST", "/follow/{id}", handlerWrapper(post, "follow-id"))
 	// mux.Handle("POST", "/unfollow/{id}", handlerWrapper(post, "follow-id"))
