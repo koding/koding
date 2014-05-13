@@ -78,13 +78,13 @@ class ActivityActionsView extends KDView
 
     """
     <span class='logged-in action-container'>
-      {{> @likeLink}}
+    {{> @likeLink}}
     </span>
     <span class='logged-in action-container'>
-      {{> @commentLink}}{{> @commentCount}}
+    {{> @commentLink}}{{> @commentCount}}
     </span>
     <span class='optional action-container'>
-      {{> @shareLink}}
+    {{> @shareLink}}
     </span>
     {{> @loader}}
     """
