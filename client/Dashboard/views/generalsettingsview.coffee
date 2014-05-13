@@ -75,7 +75,10 @@ class GroupGeneralSettingsView extends JView
     saveButton = @settingsForm.buttons.Save
     group      = @getData()
 
-    formData.stackTemplates = [ formData.stackTemplates ]
+    if formData.stackTemplates is "none"
+      formData.stackTemplates = []
+    else
+      formData.stackTemplates = [ formData.stackTemplates ]
 
     group.modify formData, (err)->
       saveButton.hideLoader()
@@ -102,9 +105,13 @@ class GroupGeneralSettingsView extends JView
         warn err
       else
         templates = ({title:t.title, value:t._id} for t in templates)
+        templates.push title: "Do not create anything.", value: "none"
+
         Stack.setSelectOptions "Select stack template..." : templates
 
-      if stackTemplates?
+      if stackTemplates?.length > 0
         Stack.setDefaultValue stackTemplates.first
+      else
+        Stack.setDefaultValue "none"
 
   pistachio:-> "{{> @settingsForm}}"
