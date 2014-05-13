@@ -130,7 +130,12 @@ class SocialApiController extends KDController
 
     for messageContainer in messages
       message = mapActivity messageContainer.lastMessage
-      message.channel = mapChannels(messageContainer)[0]
+      channel = mapChannels messageContainer.channel
+      channel.isParticipant       = messageContainer.isParticipant
+      channel.participantCount    = messageContainer.participantCount
+      channel.participantsPreview = messageContainer.participantsPreview
+      channel.lastMessage = message
+
       mappedMessages.push message
 
     return mappedMessages
