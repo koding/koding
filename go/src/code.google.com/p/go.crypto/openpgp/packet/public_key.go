@@ -572,6 +572,29 @@ func (pk *PublicKey) VerifyKeySignature(signed *PublicKey, sig *Signature) (err 
 	return pk.VerifySignature(h, sig)
 }
 
+func keyRevocationHash(pk signingKey, hashFunc crypto.Hash) (h hash.Hash, err error) {
+	if !hashFunc.Available() {
+		return nil, errors.UnsupportedError("hash function")
+	}
+	h = hashFunc.New()
+
+	// RFC 4880, section 5.2.4
+	pk.SerializeSignaturePrefix(h)
+	pk.serializeWithoutHeaders(h)
+
+	return
+}
+
+// VerifyRevocationSignature returns nil iff sig is a valid signature, made by this
+// public key.
+func (pk *PublicKey) VerifyRevocationSignature(sig *Signature) (err error) {
+	h, err := keyRevocationHash(pk, sig.Hash)
+	if err != nil {
+		return err
+	}
+	return pk.VerifySignature(h, sig)
+}
+
 // userIdSignatureHash returns a Hash of the message that needs to be signed
 // to assert that pk is a valid key for id.
 func userIdSignatureHash(id string, pk *PublicKey, hashFunc crypto.Hash) (h hash.Hash, err error) {
@@ -597,9 +620,9 @@ func userIdSignatureHash(id string, pk *PublicKey, hashFunc crypto.Hash) (h hash
 }
 
 // VerifyUserIdSignature returns nil iff sig is a valid signature, made by this
-// public key, of id.
-func (pk *PublicKey) VerifyUserIdSignature(id string, sig *Signature) (err error) {
-	h, err := userIdSignatureHash(id, pk, sig.Hash)
+// public key, that id is the identity of pub.
+func (pk *PublicKey) VerifyUserIdSignature(id string, pub *PublicKey, sig *Signature) (err error) {
+	h, err := userIdSignatureHash(id, pub, sig.Hash)
 	if err != nil {
 		return err
 	}
@@ -607,9 +630,9 @@ func (pk *PublicKey) VerifyUserIdSignature(id string, sig *Signature) (err error
 }
 
 // VerifyUserIdSignatureV3 returns nil iff sig is a valid signature, made by this
-// public key, of id.
-func (pk *PublicKey) VerifyUserIdSignatureV3(id string, sig *SignatureV3) (err error) {
-	h, err := userIdSignatureV3Hash(id, pk, sig.Hash)
+// public key, that id is the identity of pub.
+func (pk *PublicKey) VerifyUserIdSignatureV3(id string, pub *PublicKey, sig *SignatureV3) (err error) {
+	h, err := userIdSignatureV3Hash(id, pub, sig.Hash)
 	if err != nil {
 		return err
 	}
