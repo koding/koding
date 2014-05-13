@@ -47,6 +47,8 @@ module.exports = [
   "views/tags/TagViews.coffee"
   "views/tags/TagAutoCompleteController.coffee"
 
+  "views/comments/newcommentform.coffee"
+  "views/comments/editcommentform.coffee"
   "views/comments/commentcount.coffee"
   "views/comments/commentlikeview.coffee"
   "views/comments/commentview.coffee"
@@ -55,8 +57,6 @@ module.exports = [
   "views/comments/commentsettingsbutton.coffee"
   "views/comments/commentdeletemodal.coffee"
   "views/comments/commentlistitemview.coffee"
-  "views/comments/newcommentform.coffee"
-  "views/comments/editcommentform.coffee"
 
   "views/inputview.coffee"
   "views/inputwidget.coffee"
