@@ -1,6 +1,7 @@
 # Wrapper for pushing events to Rollbar
 KD.logToExternal = (msg, args) ->
-  return "Rollbar is temporarily disabled"
+  console.warn "Rollbar is temporarily disabled"
+  return
 
   # return  unless KD.config.logToExternal and _rollbar
   # return  if KD.isGuest()
