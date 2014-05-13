@@ -15,14 +15,13 @@ class MessagePane extends KDTabPaneView
       lastToFirst   : yes  if type is 'message'
     @createInputWidget()
 
-    @listView = @listController.getView()
 
 
 
   viewAppended: ->
 
     @addSubView @input  if @input
-    @addSubView @listView
+    @addSubView @listController.getView()
     @populate()
 
 
