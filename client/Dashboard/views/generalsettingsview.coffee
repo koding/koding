@@ -52,6 +52,30 @@ class GroupGeneralSettingsView extends JView
       selectOptions           : [
         { title: "Loading stack templates...", disabled: yes }
       ]
+      nextElement             :
+        showTemplate          :
+          itemClass           : KDButtonView
+          title               : "Show Template"
+          cssClass            : "solid green mini hidden"
+          callback            : =>
+
+            { Stack } = @settingsForm.inputs
+            data = @_templates["_#{Stack.getValue()}"]
+            return new KDNotificationView title: "No data found!"  unless data
+
+            { title, description, rules, domains, machines, extras } = data
+            data = { title, description, rules, domains, machines, extras }
+
+            try
+              parsed = JSON.stringify data, null, 2
+            catch e
+              warn e; log data
+              return new KDNotificationView
+                title: "An error occured"
+
+            new KDModalView
+              content : "<pre>#{parsed}</pre>"
+
 
     formOptions.fields["Visibility settings"] =
       itemClass               : KDSelectBox
@@ -101,17 +125,34 @@ class GroupGeneralSettingsView extends JView
       Stack.removeSelectOptions()
 
       if err
+
         Stack.setSelectOptions "Failed to fetch templates": []
         warn err
-      else
-        templates = ({title:t.title, value:t._id} for t in templates)
-        templates.push title: "Do not create anything.", value: "none"
 
-        Stack.setSelectOptions "Select stack template..." : templates
+      else if templates.length is 0
 
-      if stackTemplates?.length > 0
-        Stack.setDefaultValue stackTemplates.first
+        Stack.setSelectOptions "No template available": []
+
       else
-        Stack.setDefaultValue "none"
+
+        @_templates   = {}
+        selectOptions = []
+
+        for t in templates
+          selectOptions.push { title:t.title, value:t._id }
+          @_templates["_#{t._id}"] = t
+
+        selectOptions.push title: "Do not create anything.", value: "none"
+
+        Stack.setSelectOptions "Select stack template..." : selectOptions
+
+        showButton = @settingsForm.inputs["Show Template"]
+        showButton.setCss margin: "7px"
+        showButton.show()
+
+        if stackTemplates?.length > 0
+          Stack.setDefaultValue stackTemplates.first
+        else
+          Stack.setDefaultValue "none"
 
   pistachio:-> "{{> @settingsForm}}"
