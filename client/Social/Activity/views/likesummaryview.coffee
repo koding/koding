@@ -12,7 +12,7 @@ class ActivityLikeSummaryView extends JView
 
     @showMoreLink = new KDCustomHTMLView
       tagName     : "strong"
-      partial     : data.interactions.like.actorsCount
+      partial     : data.interactions.like.actorsCount - 3
       click       : @bound "showLikers"
 
 
@@ -20,12 +20,18 @@ class ActivityLikeSummaryView extends JView
 
     {id} = @getData()
 
-    KD.singleton("socialapi").message.listLikers {id}, (err, accounts) ->
+    KD.singleton("socialapi").message.listLikers {id}, (err, ids) ->
 
       return KD.showError err  if err
-      return  if accounts.length is 0
+      return  if ids.length is 0
 
-      new ShowMoreDataModalView null, accounts
+      batch = ids.map do (constructorName = "JAccount") ->
+        (id) -> {constructorName, id}
+
+      KD.remote.cacheable batch, (err, accounts) ->
+
+        return KD.showError err  if err
+        new ShowMoreDataModalView null, accounts
 
 
   fetchPreviewAccounts: (callback) ->
