@@ -16,6 +16,10 @@ class MessagePane extends KDTabPaneView
 
 
 
+  addMessage: (message) ->
+
+    @listController.addItem message
+
 
   viewAppended: ->
 
