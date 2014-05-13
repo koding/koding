@@ -2,6 +2,7 @@ package main
 
 import (
 	"errors"
+	"fmt"
 
 	"github.com/koding/kite"
 )
@@ -13,12 +14,13 @@ var providers = map[string]Provider{
 // Provider is used to create and provisiong a single image or machine for a
 // given Provider.
 type Provider interface {
-	Build() error
+	Build(path string) error
 	Provision() error
 }
 
 type buildArgs struct {
-	Provider string
+	Provider     string
+	TemplatePath string
 }
 
 func build(r *kite.Request) (interface{}, error) {
@@ -27,12 +29,14 @@ func build(r *kite.Request) (interface{}, error) {
 		return nil, err
 	}
 
+	fmt.Printf("args %+v\n", args)
+
 	provider, ok := providers[args.Provider]
 	if !ok {
 		return nil, errors.New("provider not supported")
 	}
 
-	if err := provider.Build(); err != nil {
+	if err := provider.Build(args.TemplatePath); err != nil {
 		return nil, err
 	}
 

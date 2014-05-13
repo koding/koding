@@ -34,9 +34,10 @@ func init() {
 
 func TestBuild(t *testing.T) {
 	args := &buildArgs{
-		Provider: "digitalocean",
+		Provider:     "digitalocean",
+		TemplatePath: "testdata/digitalocean_packer.json",
 	}
 
 	resp, err := remote.Tell("build", args)
-	fmt.Printf("resp, err %+v\n", resp, err)
+	fmt.Printf("resp %v, err %+v\n", resp.MustBool(), err)
 }
