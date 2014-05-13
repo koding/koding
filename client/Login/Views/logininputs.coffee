@@ -22,7 +22,7 @@ class LoginInputView extends JView
     @icon        = new KDCustomHTMLView cssClass : 'validation-icon'
     @placeholder = new KDCustomHTMLView
       cssClass   : 'placeholder-helper'
-      partial    : placeholder or inputOptions.name
+      partial    : placeholder# or inputOptions.name
 
     @errors       = {}
     @errorMessage = ''
