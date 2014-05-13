@@ -267,6 +267,9 @@ module.exports = class JGroup extends Module
       payment       :
         plan        : String
         paymentQuota: Number
+
+      stackTemplates: [ ObjectId ]
+
     broadcastableRelationships : [
       'member', 'moderator', 'admin'
       'owner', 'tag', 'role'

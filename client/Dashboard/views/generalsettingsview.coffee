@@ -44,6 +44,15 @@ class GroupGeneralSettingsView extends JView
       placeholder             : 'Please enter a description here.'
       autogrow                : yes
 
+    formOptions.fields.Stack =
+      itemClass               : KDSelectBox
+      label                   : "Stack"
+      type                    : "select"
+      name                    : "stackTemplates"
+      selectOptions           : [
+        { title: "Loading stack templates...", disabled: yes }
+      ]
+
     formOptions.fields["Visibility settings"] =
       itemClass               : KDSelectBox
       label                   : "Visibility"
@@ -66,6 +75,8 @@ class GroupGeneralSettingsView extends JView
     saveButton = @settingsForm.buttons.Save
     group      = @getData()
 
+    formData.stackTemplates = [ formData.stackTemplates ]
+
     group.modify formData, (err)->
       saveButton.hideLoader()
       return KD.showError err if err
@@ -75,5 +86,25 @@ class GroupGeneralSettingsView extends JView
         type     : "mini"
         cssClass : "success"
         duration : 4000
+
+  viewAppended:->
+    super
+
+    { stackTemplates } = @getData()
+    { Stack } = @settingsForm.inputs
+
+    KD.remote.api.JStackTemplate.some {}, (err, templates)=>
+
+      Stack.removeSelectOptions()
+
+      if err
+        Stack.setSelectOptions "Failed to fetch templates": []
+        warn err
+      else
+        templates = ({title:t.title, value:t._id} for t in templates)
+        Stack.setSelectOptions "Select stack template..." : templates
+
+      if stackTemplates?
+        Stack.setDefaultValue stackTemplates.first
 
   pistachio:-> "{{> @settingsForm}}"
