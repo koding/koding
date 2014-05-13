@@ -104,10 +104,17 @@ addReply = (data, callback)->
   post url, data, callback
 
 fetchPopularTopics = (data, callback)->
-  if not data.groupName
+  if not data.groupName or not data.type
     return callback {message: "Request is not valid for listing popular topics"}
 
-  url = "#{SOCIAL_API_URL}/popular/topics/weekly"
+  url = "#{SOCIAL_API_URL}/popular/topics/#{data.type}"
+  get url, data, callback
+
+fetchPopularPosts = (data, callback)->
+  if not data.groupName or not data.type or not data.channelName
+    return callback {message: "Request is not valid for listing popular topics"}
+
+  url = "#{SOCIAL_API_URL}/popular/posts/#{data.channelName}/#{data.type}"
   get url, data, callback
 
 fetchPinnedMessages = (data, callback)->
@@ -199,6 +206,7 @@ module.exports = {
   fetchPinnedMessages
   pinMessage
   unpinMessage
+  fetchPopularPosts
   fetchPopularTopics
   addReply
   unlikeMessage

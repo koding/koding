@@ -41,9 +41,7 @@ class SocialApiController extends KDController
     plain._id = plain.id
 
     m = new KD.remote.api.SocialMessage plain
-    m.account = {}
-    m.account.constructorName = "JAccount"
-    m.account._id = accountOldId
+    m.account = mapAccounts(accountOldId)[0]
 
     m.replies      = mapActivities data.replies or []
     m.repliesCount = data.repliesCount
@@ -97,10 +95,27 @@ class SocialApiController extends KDController
       options.groupName = group.slug
       channelApiChannelsResFunc 'fetchChannels', options, callback
 
-  fetchPopularTopics = (options, callback)->
+  popularItemsReq = (funcName, options, callback)->
+    # here not to break current frontend
+    options.type ?= "weekly"
+    unless options.type in ["daily", "weekly", "monthly"]
+      return callback {message: "type is not valid "}
     getCurrentGroup (group)->
       options.groupName = group.slug
-      channelApiChannelsResFunc 'fetchPopularTopics', options, callback
+      channelApiChannelsResFunc funcName, options, callback
+
+  fetchPopularTopics = (options, callback)->
+    popularItemsReq 'fetchPopularTopics', options, callback
+
+  fetchPopularPosts = (options, callback)->
+    unless options.channelName
+      return callback {message:"channelName is not set"}
+    options.type ?= "weekly"
+    unless options.type in ["daily", "weekly", "monthly"]
+      return callback {message: "type is not valid "}
+    getCurrentGroup (group)->
+      options.groupName = group.slug
+      channelApiActivitiesResFunc "fetchPopularPosts", options, callback
 
   messageApiMessageResFunc = (name, rest..., callback)->
     KD.remote.api.SocialMessage[name] rest..., (err, res)->
@@ -130,15 +145,21 @@ class SocialApiController extends KDController
 
     for messageContainer in messages
       message = mapActivity messageContainer.lastMessage
-      channel = mapChannels messageContainer.channel
-      channel.isParticipant       = messageContainer.isParticipant
-      channel.participantCount    = messageContainer.participantCount
-      channel.participantsPreview = messageContainer.participantsPreview
+      channel = mapChannels(messageContainer)?[0]
       channel.lastMessage = message
 
       mappedChannels.push channel
 
     return mappedChannels
+
+  mapAccounts = (accounts)->
+    return [] unless accounts
+    mappedAccounts = []
+    accounts = [].concat(accounts)
+
+    for account in accounts
+      mappedAccounts.push {_id: account, constructorName : "JAccount"}
+    return mappedAccounts
 
   mapChannels = (channels)->
     return channels unless channels
@@ -149,7 +170,7 @@ class SocialApiController extends KDController
       data = channel.channel
       data.isParticipant = channel.isParticipant
       data.participantCount = channel.participantCount
-      data.participantsPreview = channel.participantsPreview
+      data.participantsPreview = mapAccounts channel.participantsPreview
       c = new SocialChannel data
       # push channel into stack
       revivedChannels.push c
@@ -205,6 +226,7 @@ class SocialApiController extends KDController
     list                 : fetchChannels
     fetchActivities      : fetchChannelActivities
     fetchGroupActivities : fetchGroupActivities
+    fetchPopularPosts    : fetchPopularPosts
     fetchPopularTopics   : fetchPopularTopics
     fetchPinnedMessages  : (args...)->
       channelApiActivitiesResFunc 'fetchPinnedMessages', args...

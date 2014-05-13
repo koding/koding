@@ -264,12 +264,17 @@ func (c *ChannelMessage) FetchRelatives(query *Query) (*ChannelMessageContainer,
 	return container, nil
 }
 
-func (c *ChannelMessage) FetchMessagesByChannelId(channelId int64, q *Query) ([]ChannelMessage, error) {
-	query := &bongo.Query{
+func generateMessageListQuery(channelId int64, q *Query) *bongo.Query {
+	messageType := q.Type
+	if messageType == "" {
+		messageType = ChannelMessage_TYPE_POST
+	}
+
+	return &bongo.Query{
 		Selector: map[string]interface{}{
 			"account_id":         q.AccountId,
 			"initial_channel_id": channelId,
-			"type_constant":      q.Type,
+			"type_constant":      messageType,
 		},
 		Limit: q.Limit,
 		Skip:  q.Skip,
@@ -277,6 +282,10 @@ func (c *ChannelMessage) FetchMessagesByChannelId(channelId int64, q *Query) ([]
 			"created_at": "DESC",
 		},
 	}
+}
+
+func (c *ChannelMessage) FetchMessagesByChannelId(channelId int64, q *Query) ([]ChannelMessage, error) {
+	query := generateMessageListQuery(channelId, q)
 
 	var messages []ChannelMessage
 	if err := c.Some(&messages, query); err != nil {

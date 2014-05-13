@@ -13,7 +13,7 @@ import (
 var (
 	flagConfFile = flag.String("c", "", "Configuration profile from file")
 	flagDebug    = flag.Bool("d", false, "Debug mode")
-	Name         = "PopularTopicsWorker"
+	Name         = "PopularTopic"
 )
 
 func main() {
@@ -38,7 +38,7 @@ func main() {
 	// create message handler
 	handler := populartopic.NewPopularTopicsController(log, redis)
 
-	listener := worker.NewListener("PopularTopicsFeed", conf.EventExchangeName, log)
+	listener := worker.NewListener(Name, conf.EventExchangeName, log)
 	// blocking
 	// listen for events
 	listener.Listen(helper.NewRabbitMQ(conf, log), handler)
