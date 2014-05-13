@@ -4,8 +4,9 @@ class ActivityActionsView extends KDView
 
   constructor: (options = {}, data) ->
 
-    super options, data
+    options.cssClass = KD.utils.curry "activity-actions comment-header", options.cssClass
 
+    super options, data
 
     @commentLink  = new CustomLinkView title: "Comment"
 
@@ -67,7 +68,6 @@ class ActivityActionsView extends KDView
 
   viewAppended: ->
 
-    @setClass "activity-actions"
     @setTemplate @pistachio()
     @template.update()
     @attachListeners()
