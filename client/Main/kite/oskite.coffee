@@ -79,6 +79,8 @@ class OsKite extends KDKite
       .catch ((it) -> not /ErrQuotaExceeded/.test it.message), (err) =>
         if t < 5
           return Promise.delay(1000 * Math.pow 1.3, ++t).then => @vmOn t
+
+        ErrorLog.create "terminal: vm turn on", attempt:t, reason: err?.message
         throw err
       .then => @emit 'vmOn'
 
