@@ -339,15 +339,22 @@ module.exports = class JGroup extends Module
     @on 'MemberAdded', (member)->
       @constructor.emit 'MemberAdded', { group: this, member }
       unless @slug is 'guests'
-        @sendNotificationToAdmins 'join', member
-
+        @sendNotificationToAdmins 'GroupJoined',
+          actionType : 'groupJoined'
+          actorType  : 'member'
+          subject    : ObjectRef(this).data
+          member     : ObjectRef(member).data
         @broadcast 'MemberJoinedGroup',
           member : ObjectRef(member).data
 
     @on 'MemberRemoved', (member)->
       @constructor.emit 'MemberRemoved', { group: this, member }
       unless @slug is 'guests'
-        @sendNotificationToAdmins 'leave', member
+        @sendNotificationToAdmins 'GroupLeft',
+          actionType : 'groupLeft'
+          actorType  : 'member'
+          subject    : ObjectRef(this).data
+          member     : ObjectRef(member).data
         @broadcast 'MemberLeftGroup',
           member : ObjectRef(member).data
 
@@ -1382,36 +1389,27 @@ module.exports = class JGroup extends Module
         -> callback null
       ]
 
-  sendNotificationToAdmins: (type, member)->
-    @createSocialApiChannelId (err) =>
-      return  if err
+  sendNotificationToAdmins: (event, contents)->
+    @fetchAdmins (err, admins)=>
+      unless err
+        relationship =  {
+          as         : event,
+          sourceName : contents.subject.constructorName,
+          sourceId   : contents.subject.id,
+          targetName : contents.member.constructorName,
+          targetId   : contents.member.id,
+        }
 
-      @fetchAdmins (err, admins)=>
-        return  if err or not admins.length
+        contents.relationship = relationship
+        contents.origin       = contents.subject
+        contents.origin.slug  = @slug
+        contents.actorType    = event
+        contents[event]       = contents.member
 
-        SocialNotification = require '../socialapi/notification'
-        switch type
-          when "join"
-            fn = SocialNotification.joinGroup
-          when "leave"
-            fn = SocialNotification.leaveGroup
-          else
-            return
-
-        data = {}
-        data.name = @slug
-        data.account = member
-
-        data.admins = []
-        index = 0
+        next = -> queue.next()
         queue = admins.map (admin) =>=>
-          admin.createSocialApiId (err, adminId) ->
-            return queue.next()  if err or not adminId
-            data.admins.push adminId
-            queue.next()
-
-        queue.push ->
-          fn data, (err) -> console.error err  if err
+          contents.recipient = admin
+          @notify admin, event, contents, next
 
         daisy queue
 
