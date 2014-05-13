@@ -4,7 +4,7 @@ class NewCommentForm extends KDView
 
     options.type       or= "new-comment"
     options.cssClass   or= "item-add-comment-box"
-    options.showAvatar or= yes
+    options.showAvatar  ?= yes
 
     super options, data
 

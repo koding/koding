@@ -517,14 +517,14 @@ div.kdtooltip.activity-helper
       opacity         .5
 
 
-  &.edit-widget
-    .input-view
-      button[type=submit]
-        size          auto auto
-        right         initial
-        bottom        initial
-        padding       0 10px
-        rel()
+  // &.edit-widget
+  //   .input-view
+  //     button[type=submit]
+  //       size          auto auto
+  //       right         initial
+  //       bottom        initial
+  //       padding       0 10px
+  //       rel()
 
 span.collapsedtext
   borderBox()
@@ -829,6 +829,26 @@ span.collapsedtext
 
       time
         display           none //TEMP
+
+      .edit-comment-wrapper
+        margin            6px 0
+
+        textarea
+          rounded         6px
+          border          1px solid #dfdfdf
+          background      #fff
+          font-size       12px
+          color           #4c4c4c
+          line-height     18px
+          padding         10px
+          shadow          none
+
+        .cancel-description
+          font-size       12px
+          color           #cbcbcb
+          text-align      right
+          margin          4px 10px 0 0
+
 
 .activity-item.preview
   margin-top              29px

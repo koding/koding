@@ -48,6 +48,8 @@ class CommentListItemView extends KDListItemView
     @settings.hide()
     @body.hide()
     @editInfo.hide()
+    @likeView.hide()
+    @replyView?.hide()
 
     @form = new EditCommentForm delegate: this, @getData()
     @formWrapper.addSubView @form
@@ -63,6 +65,8 @@ class CommentListItemView extends KDListItemView
     {meta: {createdAt, updatedAt}} = @getData()
 
     @settings.show()
+    @likeView.show()
+    @replyView?.show()
     @form.destroy()
     @body.show()
     @editInfo.show()  if updatedAt > createdAt
