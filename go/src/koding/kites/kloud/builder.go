@@ -6,12 +6,13 @@ import (
 	"github.com/koding/kite"
 )
 
-var providers = map[string]Builder{
+var providers = map[string]Provider{
 	"digitalocean": &DigitalOcean{},
 }
 
-// Builder is used to create a single image or machine.
-type Builder interface {
+// Provider is used to create and provisiong a single image or machine for a
+// given Provider.
+type Provider interface {
 	Build() error
 	Provision() error
 }
@@ -26,16 +27,16 @@ func build(r *kite.Request) (interface{}, error) {
 		return nil, err
 	}
 
-	builder, ok := providers[args.Provider]
+	provider, ok := providers[args.Provider]
 	if !ok {
 		return nil, errors.New("provider not supported")
 	}
 
-	if err := builder.Build(); err != nil {
+	if err := provider.Build(); err != nil {
 		return nil, err
 	}
 
-	if err := builder.Provision(); err != nil {
+	if err := provider.Provision(); err != nil {
 		return nil, err
 	}
 
