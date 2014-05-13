@@ -24,6 +24,7 @@ class MessagePane extends KDTabPaneView
     return  unless channel
 
     channel.on "MessageAdded", @bound "addMessage"
+    channel.on "MessageRemoved", @bound "removeMessage"
 
 
   addMessage: (message) ->
