@@ -6,7 +6,9 @@ class ActivityActionsView extends JView
 
     super options, data
 
-    @commentLink  = new CustomLinkView title: "Comment"
+    @commentLink  = new CustomLinkView
+      title: "Comment"
+      click: @bound "reply"
 
     @commentCount = new ActivityCommentCount
       cssClass    : 'count'
@@ -61,9 +63,11 @@ class ActivityActionsView extends JView
     commentList.on 'BackgroundActivityStarted',  @loader.bound 'show'
     commentList.on 'BackgroundActivityFinished', @loader.bound 'hide'
 
-    @commentLink.on "click", (event)=>
-      @utils.stopDOMEvent event
-      commentList.emit "CommentLinkReceivedClick", event, this
+
+  reply: (click) ->
+
+    KD.utils.stopDOMEvent event
+    @emit "Reply"
 
 
   viewAppended: ->
