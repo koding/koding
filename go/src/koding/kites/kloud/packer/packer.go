@@ -23,7 +23,7 @@ func (p *Provider) Build() ([]packer.Artifact, error) {
 		return nil, err
 	}
 
-	build, err := template.Build(p.BuildName, NewComponentFinder())
+	build, err := template.Build(p.BuildName, newComponentFinder())
 	if err != nil {
 		return nil, err
 	}
@@ -72,17 +72,17 @@ func (p *Provider) newTemplateFile() (*packer.Template, error) {
 	return template, nil
 }
 
-func NewComponentFinder() *packer.ComponentFinder {
+func newComponentFinder() *packer.ComponentFinder {
 	return &packer.ComponentFinder{
-		Builder:       BuilderFunc,
-		Command:       CommandFunc,
-		Provisioner:   ProvisionerFunc,
-		Hook:          HookFunc,
-		PostProcessor: PostProcessorFunc,
+		Builder:       builderFunc,
+		Command:       commandFunc,
+		Provisioner:   provisionerFunc,
+		Hook:          hookFunc,
+		PostProcessor: postProcessorFunc,
 	}
 }
 
-func BuilderFunc(name string) (packer.Builder, error) {
+func builderFunc(name string) (packer.Builder, error) {
 	switch name {
 	case "digitalocean":
 		return &digitalocean.Builder{}, nil
@@ -91,7 +91,7 @@ func BuilderFunc(name string) (packer.Builder, error) {
 	return nil, errors.New("no suitable build found")
 }
 
-func ProvisionerFunc(name string) (packer.Provisioner, error) {
+func provisionerFunc(name string) (packer.Provisioner, error) {
 	switch name {
 	case "file":
 		return &file.Provisioner{}, nil
@@ -102,14 +102,14 @@ func ProvisionerFunc(name string) (packer.Provisioner, error) {
 	return nil, errors.New("no suitable provisioner found")
 }
 
-func HookFunc(name string) (packer.Hook, error) {
+func hookFunc(name string) (packer.Hook, error) {
 	return nil, errors.New("not supported")
 }
 
-func PostProcessorFunc(name string) (packer.PostProcessor, error) {
+func postProcessorFunc(name string) (packer.PostProcessor, error) {
 	return nil, errors.New("not supported")
 }
 
-func CommandFunc(name string) (packer.Command, error) {
+func commandFunc(name string) (packer.Command, error) {
 	return nil, errors.New("not supported")
 }
