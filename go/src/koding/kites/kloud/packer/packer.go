@@ -11,13 +11,19 @@ import (
 	"github.com/mitchellh/packer/provisioner/shell"
 )
 
-func NewBuild(path, name string, vars map[string]string) ([]packer.Artifact, error) {
-	template, err := newTemplate(path, name, vars)
+type Provider struct {
+	BuildName    string
+	TemplatePath string
+	Vars         map[string]string
+}
+
+func (p *Provider) Build() ([]packer.Artifact, error) {
+	template, err := p.newTemplateFile()
 	if err != nil {
 		return nil, err
 	}
 
-	build, err := template.Build(name, NewComponentFinder())
+	build, err := template.Build(p.BuildName, NewComponentFinder())
 	if err != nil {
 		return nil, err
 	}
@@ -45,8 +51,8 @@ func NewBuild(path, name string, vars map[string]string) ([]packer.Artifact, err
 	)
 }
 
-func newTemplate(path, build string, vars map[string]string) (*packer.Template, error) {
-	template, err := packer.ParseTemplateFile(path, vars)
+func (p *Provider) newTemplateFile() (*packer.Template, error) {
+	template, err := packer.ParseTemplateFile(p.TemplatePath, p.Vars)
 	if err != nil {
 		return nil, fmt.Errorf("Failed to parse template: %s", err)
 	}
@@ -59,8 +65,8 @@ func newTemplate(path, build string, vars map[string]string) (*packer.Template, 
 		return nil, errors.New("Only on builder is supported currently")
 	}
 
-	if _, ok := template.Builders[build]; !ok {
-		return nil, fmt.Errorf("Build '%s' does not exist", build)
+	if _, ok := template.Builders[p.BuildName]; !ok {
+		return nil, fmt.Errorf("Build '%s' does not exist", p.BuildName)
 	}
 
 	return template, nil

@@ -23,7 +23,13 @@ func (d *DigitalOcean) Build(path string) (err error) {
 		"klient_keydir":  "/opt/kite/klient/key",
 	}
 
-	artifacts, err := packer.NewBuild(path, "digitalocean", vars)
+	provider := &packer.Provider{
+		TemplatePath: path,
+		BuildName:    "digitalocean",
+		Vars:         userVars,
+	}
+
+	artifacts, err := provider.Build()
 	if err != nil {
 		return err
 	}
