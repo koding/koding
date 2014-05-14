@@ -23,7 +23,8 @@ class BrokerRecovery extends KDObject
         @unsuccessfulAttempt++
         @emit "brokerNotResponding"
 
-        KD.utils.warnAndLog 'broker not responding', {@unsuccessfulAttempt}
+        brokerURL = @broker.sockURL.replace("/subscribe")
+        KD.utils.warnAndLog 'broker not responding', {@unsuccessfulAttempt, brokerURL}
 
       @broker.ping =>
         @unsuccessfulAttempt = 0
