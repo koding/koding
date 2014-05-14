@@ -48,16 +48,7 @@ func List(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface
 		cacheEnabled = cache
 	}
 
-	list, err := fetchNotifications(q)
-	if err != nil {
-		if err == gorm.RecordNotFound {
-			return helpers.NewNotFoundResponse()
-		}
-
-		return helpers.NewBadRequestResponse(err)
-	}
-
-	return helpers.NewOKResponse(list)
+	return helpers.HandleResultAndError(fetchNotifications(q))
 }
 
 func Glance(u *url.URL, h http.Header, req *models.Notification) (int, http.Header, interface{}, error) {
@@ -67,25 +58,7 @@ func Glance(u *url.URL, h http.Header, req *models.Notification) (int, http.Head
 		return helpers.NewBadRequestResponse(err)
 	}
 
-	if err := req.Glance(); err != nil {
-		if err == gorm.RecordNotFound {
-			return helpers.NewNotFoundResponse()
-		}
-
-		return helpers.NewBadRequestResponse(err)
-	}
-
-	// TODO enable cache
-	// go func() {
-	// 	if cacheEnabled {
-	// 		cacheInstance := cache.NewNotificationCache()
-	// 		cacheInstance.Glance(req)
-	// 	}
-	// }()
-
-	req.Glanced = true
-
-	return helpers.NewDefaultOKResponse()
+	return helpers.HandleResultAndError(req.Glance())
 }
 
 func Follow(u *url.URL, h http.Header, req *models.NotificationRequest) (int, http.Header, interface{}, error) {
