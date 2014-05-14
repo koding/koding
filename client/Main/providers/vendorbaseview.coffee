@@ -15,7 +15,7 @@ class VendorBaseView extends KDTabPaneView
 
     @header = new KDHeaderView
       title : @getData().name
-      type : "medium"
+      type  : "medium"
 
     @content = new KDView
     @loader  = new KDLoaderView

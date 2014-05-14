@@ -66,7 +66,7 @@ module.exports = class Koding extends ProviderInterface
     return aliases ? []
 
 
-  @ping = (client, callback)->
+  @ping = (client, options, callback)->
 
     callback null, "Koding is the best #{ client.connection.delegate.profile.nickname }!"
 
