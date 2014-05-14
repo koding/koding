@@ -5,9 +5,9 @@ module.exports = [
   "workspace/panel.coffee"
   "workspace/workspace.coffee"
 
-  "idefilestabview.coffee"
-  "ideeditortabview.coffee"
-  "idesocialstabview.coffee"
+  "views/tabview/idefilestabview.coffee"
+  "views/tabview/ideeditortabview.coffee"
+  "views/tabview/idesocialstabview.coffee"
 
   "AppController.coffee"
 
