@@ -223,18 +223,6 @@ func (n *Notification) BeforeUpdate() {
 	}
 }
 
-func (n *Notification) AfterCreate() {
-	bongo.B.AfterCreate(n)
-}
-
-func (n *Notification) AfterUpdate() {
-	bongo.B.AfterUpdate(n)
-}
-
-func (n *Notification) AfterDelete() {
-	bongo.B.AfterDelete(n)
-}
-
 func (n *Notification) Glance() error {
 	selector := map[string]interface{}{
 		"glanced":    false,

@@ -27,6 +27,22 @@ type NotificationActivity struct {
 	Obsolete bool `json:"obsolete" sql:"NOT NULL"`
 }
 
+func (a *NotificationActivity) BeforeCreate() {
+	a.CreatedAt = time.Now()
+}
+
+func (a *NotificationActivity) BeforeUpdate() {
+	a.Obsolete = true
+}
+
+func (a *NotificationActivity) AfterCreate() {
+	bongo.B.AfterCreate(a)
+}
+
+func (a *NotificationActivity) AfterUpdate() {
+	bongo.B.AfterUpdate(a)
+}
+
 func (a *NotificationActivity) GetId() int64 {
 	return a.Id
 }
@@ -63,14 +79,6 @@ func (a *NotificationActivity) Create() error {
 	}
 
 	return bongo.B.Create(a)
-}
-
-func (a *NotificationActivity) BeforeCreate() {
-	a.CreatedAt = time.Now()
-}
-
-func (a *NotificationActivity) BeforeUpdate() {
-	a.Obsolete = true
 }
 
 func (a *NotificationActivity) FetchByContentIds(ids []int64) ([]NotificationActivity, error) {
@@ -117,4 +125,13 @@ func (a *NotificationActivity) One(q *bongo.Query) error {
 func (a *NotificationActivity) Some(data interface{}, q *bongo.Query) error {
 
 	return bongo.B.Some(a, data, q)
+}
+
+func (a *NotificationActivity) FetchContent() (*NotificationContent, error) {
+	nc := NewNotificationContent()
+	if err := nc.ById(a.NotificationContentId); err != nil {
+		return nil, err
+	}
+
+	return nc, nil
 }
