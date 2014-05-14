@@ -56,9 +56,11 @@ func Glance(u *url.URL, h http.Header, req *models.Notification) (int, http.Head
 	if err := validateNotificationRequest(q); err != nil {
 		return socialhelpers.NewBadRequestResponse(err)
 	}
-	req.Glanced = true
+	if err := req.Glance(); err != nil {
+		return socialhelpers.NewBadRequestResponse(err)
+	}
 
-	return socialhelpers.HandleResultAndError(req, req.Glance())
+	return socialhelpers.NewDefaultOKResponse()
 }
 
 func Follow(u *url.URL, h http.Header, req *models.NotificationRequest) (int, http.Header, interface{}, error) {
