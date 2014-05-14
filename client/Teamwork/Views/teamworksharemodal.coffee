@@ -14,19 +14,26 @@ class TeamworkShareModal extends KDModalView
       size       :
         width    : 30
 
+    subject = "Would you like to join my Teamwork session on Koding?"
+    body = (sessionKey)->
+      "#{location.origin}/Teamwork?sessionKey=#{sessionKey}"
+
     KD.getSingleton("appManager").require "Activity", =>
-      inputWidget = new ActivityInputWidget
+      inputWidget = new EmailInputWidget
       inputWidget.once "viewAppended", =>
         content = @getOptions().inputContent or """
-          <div class="join">Would you like to join my Teamwork session?</div>
-          <div class="url">#{location.origin}/Teamwork?sessionKey=#{@getDelegate().sessionKey}</div>
+          <div class="join">#{subject}</div>
+          <div class="url">#{body(@getDelegate().sessionKey)}</div>
         """
         inputWidget.input.setContent content
         loader.destroy()
 
       @addSubView inputWidget
 
-      inputWidget.on "ActivitySubmitted", =>
+      inputWidget.on "Submit", =>
+        content = body @getDelegate().sessionKey
+        window.open("mailto:?subject=#{subject}&body=#{content}")
+
         KD.mixpanel "Teamwork share post, click"
         @destroy()
 
