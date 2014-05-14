@@ -1,4 +1,4 @@
-class NewNotificationListItem extends KDListItemView
+class NotificationListItem extends KDListItemView
 
   activityNameMap =
     comment : "status."
