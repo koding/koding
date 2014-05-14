@@ -25,6 +25,29 @@ checkCredential = (client, pubKey, callback)->
     else
       callback null, credential
 
+reviveClient = (client, callback, revive = yes)->
+
+  return callback null  unless revive
+
+  { connection: { delegate:account }, context: { group } } = client
+
+  JGroup = require '../group'
+  JGroup.one { slug: group }, (err, groupObj)=>
+
+    return callback err  if err
+    return callback new Error "Group not found"  unless groupObj
+
+    res = { group: groupObj }
+
+    account.fetchUser (err, user)=>
+
+      return callback err  if err
+      return callback new Error "User not found"  unless user
+
+      res.user = user
+
+      callback null, res
+
 
 module.exports = class ComputeProvider extends Base
 
