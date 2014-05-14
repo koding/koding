@@ -137,9 +137,19 @@ func (c *Channel) Create() error {
 
 	if c.TypeConstant == Channel_TYPE_GROUP ||
 		c.TypeConstant == Channel_TYPE_FOLLOWERS /* we can add more types here */ {
-		selector := map[string]interface{}{
-			"group_name":    c.GroupName,
-			"type_constant": c.TypeConstant,
+
+		var selector map[string]interface{}
+		switch c.TypeConstant {
+		case Channel_TYPE_GROUP:
+			selector = map[string]interface{}{
+				"group_name":    c.GroupName,
+				"type_constant": c.TypeConstant,
+			}
+		case Channel_TYPE_FOLLOWERS:
+			selector = map[string]interface{}{
+				"creator_id":    c.CreatorId,
+				"type_constant": c.TypeConstant,
+			}
 		}
 
 		// if err is nil

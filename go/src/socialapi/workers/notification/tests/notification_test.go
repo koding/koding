@@ -449,41 +449,44 @@ func TestNotificationCreation(t *testing.T) {
 
 		})
 
-		// Convey("As a followee I should be able to receive follower notifications when first user follows me", func() {
-		// 	Convey("First user should be able to follow me", func() {
-		// 		res, err := followNotification(firstUser.Id, ownerAccount.Id)
-		// 		ResultedWithNoErrorCheck(res, err)
-		// 		time.Sleep(SLEEP_TIME * time.Second)
-		// 	})
+		Convey("As a followee I should be able to receive follower notifications when first user follows me", func() {
+			Convey("First user should be able to follow me", func() {
+				fmt.Println("First user", firstUser.Id)
+				fmt.Println("owner account", ownerAccount.Id)
+				res, err := followNotification(firstUser.Id, ownerAccount.Id)
+				ResultedWithNoErrorCheck(res, err)
+				time.Sleep(SLEEP_TIME * time.Second)
+			})
 
-		// 	Convey("I should be able to receive follow notification", func() {
-		// 		nl, err := getNotificationList(ownerAccount.Id)
-		// 		ResultedWithNoErrorCheck(nl, err)
-		// 		So(nl.Notifications[0].TypeConstant, ShouldEqual, models.NotificationContent_TYPE_FOLLOW)
-		// 		So(nl.Notifications[0].LatestActors[0], ShouldEqual, firstUser.Id)
-		// 	})
+			Convey("I should be able to receive follow notification", func() {
+				nl, err := getNotificationList(ownerAccount.Id)
+				ResultedWithNoErrorCheck(nl, err)
+				So(len(nl.Notifications), ShouldBeGreaterThan, 0)
+				So(nl.Notifications[0].TypeConstant, ShouldEqual, models.NotificationContent_TYPE_FOLLOW)
+				So(nl.Notifications[0].LatestActors[0], ShouldEqual, firstUser.Id)
+			})
 
-		// })
+		})
 
-		// Convey("As a followee I should be able to receive a second follower notification after glance", func() {
-		// 	Convey("I should be able to glance notifications", func() {
-		// 		res, err := glanceNotifications(ownerAccount.Id)
-		// 		ResultedWithNoErrorCheck(res, err)
-		// 	})
-		// 	Convey("Second user should be able to follow me", func() {
-		// 		res, err := followNotification(secondUser.Id, ownerAccount.Id)
-		// 		ResultedWithNoErrorCheck(res, err)
-		// 		time.Sleep(SLEEP_TIME * time.Second)
-		// 	})
-		// 	Convey("I should be able to receive second follow notification", func() {
-		// 		nl, err := getNotificationList(ownerAccount.Id)
-		// 		ResultedWithNoErrorCheck(nl, err)
-		// 		So(nl.Notifications[0].LatestActors[0], ShouldEqual, secondUser.Id)
-		// 		Convey("Unread count should be 1", func() {
-		// 			So(nl.UnreadCount, ShouldEqual, 1)
-		// 		})
-		// 	})
-		// })
+		Convey("As a followee I should be able to receive a second follower notification after glance", func() {
+			Convey("I should be able to glance notifications", func() {
+				res, err := glanceNotifications(ownerAccount.Id)
+				ResultedWithNoErrorCheck(res, err)
+			})
+			Convey("Second user should be able to follow me", func() {
+				res, err := followNotification(secondUser.Id, ownerAccount.Id)
+				ResultedWithNoErrorCheck(res, err)
+				time.Sleep(SLEEP_TIME * time.Second)
+			})
+			Convey("I should be able to receive second follow notification", func() {
+				nl, err := getNotificationList(ownerAccount.Id)
+				ResultedWithNoErrorCheck(nl, err)
+				So(nl.Notifications[0].LatestActors[0], ShouldEqual, secondUser.Id)
+				Convey("Unread count should be 1", func() {
+					So(nl.UnreadCount, ShouldEqual, 1)
+				})
+			})
+		})
 
 		Convey("As a group owner I should be able to receive notification when a user joins my group", func() {
 			Convey("First user should be able to join my group", func() {
