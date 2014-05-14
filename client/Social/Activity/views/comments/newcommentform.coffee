@@ -1,14 +1,14 @@
 class NewCommentForm extends KDView
 
-  constructor:(options = {}, data)->
+  constructor: (options = {}, data) ->
 
     options.type       or= "new-comment"
-    options.cssClass   or= "item-add-comment-box"
+    options.cssClass     = KD.utils.curry "item-add-comment-box", options.cssClass
     options.showAvatar  ?= yes
 
     super options, data
 
-    @input = new KDHitEnterInputView
+    @input          = new KDHitEnterInputView
       type          : "textarea"
       delegate      : this
       placeholder   : "Type your comment and hit enter..."
@@ -19,7 +19,10 @@ class NewCommentForm extends KDView
           maxLength : 2000
         messages    :
           required  : "Please type a comment..."
-      callback      : @bound "handleInputEnter"
+      callback      : @bound "enter"
+
+    @input.on "focus", @bound "inputFocused"
+    @input.on "blur", @bound "inputBlured"
 
 
   submit: ->
@@ -27,21 +30,7 @@ class NewCommentForm extends KDView
     @emit "Submit", @input.getValue()
 
 
-  viewAppended: ->
-
-    if @getOption "showAvatar"
-      @addSubView new AvatarStaticView
-        size    :
-          width : 42
-          height: 42
-      , KD.whoami()
-
-    @addSubView @input
-
-    @attachListeners()
-
-
-  handleInputEnter: ->
+  enter: ->
 
     kallback = =>
 
@@ -60,23 +49,31 @@ class NewCommentForm extends KDView
       groupName : KD.getGroup().slug
 
 
-  attachListeners:->
-    @input.on "blur", @bound "commentInputReceivedBlur"
-    @input.on "focus", =>
-      KD.mixpanel "Comment activity, focus"
-      @getDelegate().emit "commentInputReceivedFocus"
+  setFocus: ->
 
-  makeCommentFieldActive:->
-    @getDelegate().emit "commentInputReceivedFocus"
-    (KD.getSingleton "windowController").setKeyView @input
+    @input.setFocus()
+    KD.singleton("windowController").setKeyView @input
 
-  resetCommentField:->
-    @getDelegate().emit "CommentViewShouldReset"
 
-  otherCommentInputReceivedFocus:(instance)->
-    if instance isnt @input
-      commentForm = @input.getDelegate()
-      commentForm.resetCommentField() if $.trim(@input.getValue()) is ""
+  inputFocused: ->
 
-  commentInputReceivedBlur:->
-    @resetCommentField()  if @input.getValue() is ""
+    @emit "Focused"
+    KD.mixpanel "Comment activity, focus"
+
+
+  inputBlured: ->
+
+    return  unless @input.getValue() is ""
+    @emit "Blured"
+
+
+  viewAppended: ->
+
+    if @getOption "showAvatar"
+      @addSubView new AvatarStaticView
+        size    :
+          width : 42
+          height: 42
+      , KD.whoami()
+
+    @addSubView @input

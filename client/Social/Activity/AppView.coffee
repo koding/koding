@@ -53,9 +53,11 @@ class ActivityAppView extends KDView
 
   createTab: (data) ->
 
-    name      = "#{data.id}"
-    channelId = data.id
-    type      = data.typeConstant
+    {id, typeConstant} = data
+
+    name      = id
+    channelId = name
+    type      = typeConstant
 
     @tabs.addPane pane = new MessagePane {name, type, channelId}, data
 

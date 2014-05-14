@@ -7,24 +7,40 @@ class MessagePane extends KDTabPaneView
 
     super options, data
 
-    channel           = @getData()
     {itemClass, type} = @getOptions()
+    lastToFirst = yes  unless type is "message"
 
-    @listController = new ActivityListController
-      itemClass     : itemClass
-      lastToFirst   : yes  if type is 'message'
+    @listController = new ActivityListController {itemClass, lastToFirst}
+    @createInputWidget()
 
-    @listView = @listController.getView()
+    @bindChannelEvents()
 
-    unless type in ['post', 'message']
-      @input = new ActivityInputWidget {channel}
-      @input.on 'Submit', @listController.bound 'addItem'
+
+  bindChannelEvents: ->
+
+    {channel} = @getData()
+    channel  ?= KD.singleton("socialapi").openedChannels[@getOption "name"]
+
+    return  unless channel
+
+    channel.on "MessageAdded", @bound "addMessage"
+    channel.on "MessageRemoved", @bound "removeMessage"
+
+
+  addMessage: (message) ->
+
+    @listController.addItem message
+
+
+  removeMessage: (message) ->
+
+    @listController.removeItem message
 
 
   viewAppended: ->
 
     @addSubView @input  if @input
-    @addSubView @listView
+    @addSubView @listController.getView()
     @populate()
 
 
@@ -36,7 +52,7 @@ class MessagePane extends KDTabPaneView
 
       console.time('populate')
       @listController.hideLazyLoader()
-      @listController.listActivities items
+      @listController.listActivities items.reverse()
       console.timeEnd('populate')
 
 
@@ -61,3 +77,13 @@ class MessagePane extends KDTabPaneView
     @listController.removeAllItems()
     @listController.showLazyLoader()
     @populate()
+
+
+  createInputWidget: ->
+
+    return  if @getOption("type") in ["post", "message"]
+
+    channel = @getData()
+
+    @input = new ActivityInputWidget {channel}
+    @input.on 'Submit', @listController.bound 'addItem'

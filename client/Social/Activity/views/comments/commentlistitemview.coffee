@@ -85,15 +85,19 @@ class CommentListItemView extends KDListItemView
     @replyView = new CustomLinkView
       cssClass : "action-link reply-link"
       title    : "Mention"
-      click    : (event) =>
+      click    : @bound "reply"
 
-        KD.utils.stopDOMEvent event
 
-        {account: {constructorName, _id}} = @getData()
+  reply: (event) ->
 
-        KD.remote.cacheable constructorName, _id, (err, account) =>
+    KD.utils.stopDOMEvent event
 
-          @getDelegate().emit 'ReplyLinkClicked', account.profile.nickname
+    {account: {constructorName, _id}} = @getData()
+    KD.remote.cacheable constructorName, _id, (err, account) =>
+
+      return KD.showError err  if err
+
+      @getDelegate().emit 'ReplyLinkClicked', account.profile.nickname
 
 
   viewAppended: ->

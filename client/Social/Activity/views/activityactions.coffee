@@ -1,14 +1,14 @@
-class ActivityActionsView extends KDView
-
-  contextMenu = null
+class ActivityActionsView extends JView
 
   constructor: (options = {}, data) ->
 
+    options.cssClass = KD.utils.curry "activity-actions comment-header", options.cssClass
+
     super options, data
 
-    activity = @getData()
-
-    @commentLink  = new CustomLinkView title: "Comment"
+    @commentLink  = new CustomLinkView
+      title: "Comment"
+      click: @bound "reply"
 
     @commentCount = new ActivityCommentCount
       cssClass    : 'count'
@@ -17,7 +17,7 @@ class ActivityActionsView extends KDView
       click       : (event) =>
         KD.utils.stopDOMEvent event
         @getDelegate().emit "CommentCountClicked", this
-    , activity
+    , data
 
     @shareLink = new CustomLinkView
       title : "Share"
@@ -31,7 +31,7 @@ class ActivityActionsView extends KDView
         else
           shareUrl      = "#{KD.config.mainUri}/Activity/#{data.slug}"
 
-        contextMenu   = new KDContextMenu
+        new KDContextMenu
           cssClass    : "activity-share-popup"
           type        : "activity-share"
           delegate    : this
@@ -44,7 +44,7 @@ class ActivityActionsView extends KDView
 
         KD.mixpanel "Activity share, click"
 
-    @likeLink = new ActivityLikeLink null, activity
+    @likeLink = new ActivityLikeLink null, data
 
     @loader = new KDLoaderView
       cssClass      : 'action-container'
@@ -53,40 +53,41 @@ class ActivityActionsView extends KDView
       loaderOptions :
         color       : '#6B727B'
 
+    @attachListeners()
+
 
   attachListeners: ->
 
-    activity    = @getData()
     commentList = @getDelegate()
 
     commentList.on 'BackgroundActivityStarted',  @loader.bound 'show'
     commentList.on 'BackgroundActivityFinished', @loader.bound 'hide'
 
-    @commentLink.on "click", (event)=>
-      @utils.stopDOMEvent event
-      commentList.emit "CommentLinkReceivedClick", event, this
+
+  reply: (click) ->
+
+    KD.utils.stopDOMEvent event
+    @emit "Reply"
 
 
   viewAppended: ->
 
-    @setClass "activity-actions"
-    @setTemplate @pistachio()
-    @template.update()
-    @attachListeners()
     @loader.hide()
+
+    super
 
 
   pistachio: ->
 
     """
     <span class='logged-in action-container'>
-      {{> @likeLink}}
+    {{> @likeLink}}
     </span>
     <span class='logged-in action-container'>
-      {{> @commentLink}}{{> @commentCount}}
+    {{> @commentLink}}{{> @commentCount}}
     </span>
     <span class='optional action-container'>
-      {{> @shareLink}}
+    {{> @shareLink}}
     </span>
     {{> @loader}}
     """

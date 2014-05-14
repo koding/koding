@@ -11,7 +11,7 @@ class ActivityListController extends KDListViewController
     options.showHeader           ?= yes
     options.scrollView           ?= no
     options.wrapper              ?= no
-    options.boxed                ?= yes
+    options.boxed                ?= no
     options.itemClass           or= ActivityListItemView
 
     options.viewOptions         or= {}
