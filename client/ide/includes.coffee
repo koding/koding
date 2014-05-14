@@ -1,4 +1,9 @@
 module.exports = [
-  "AppView.coffee"
+
+  "workspace/workspacelayoutbuilder.coffee"
+  "workspace/panel.coffee"
+  "workspace/workspace.coffee"
+
   "AppController.coffee"
+
 ]
