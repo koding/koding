@@ -97,7 +97,7 @@ class CommentListItemView extends KDListItemView
 
       return KD.showError err  if err
 
-      @getDelegate().emit 'ReplyLinkClicked', account.profile.nickname
+      @getDelegate().emit "Mention", account.profile.nickname
 
 
   viewAppended: ->
