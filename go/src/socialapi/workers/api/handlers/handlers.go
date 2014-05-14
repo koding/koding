@@ -100,9 +100,7 @@ func Inject(mux *tigertonic.TrieServeMux) *tigertonic.TrieServeMux {
 	mux.Handle("POST", "/activity/pin/remove", handlerWrapper(activity.UnpinMessage, "activity-remove-pinned-message"))
 	// get popular topics
 	mux.Handle("GET", "/popular/topics/{statisticName}", handlerWrapper(popular.ListTopics, "list-popular-topics"))
-
-	// mux.Handle("POST", "/follow/{id}", handlerWrapper(post, "follow-id"))
-	// mux.Handle("POST", "/unfollow/{id}", handlerWrapper(post, "follow-id"))
+	mux.Handle("GET", "/popular/posts/{channelName}/{statisticName}", handlerWrapper(popular.ListPosts, "list-popular-posts"))
 
 	mux.Handle("POST", "/privatemessage/send", handlerWrapper(privatemessage.Send, "privatemessage-send"))
 	mux.Handle("GET", "/privatemessage/list", handlerWrapper(privatemessage.List, "privatemessage-list"))

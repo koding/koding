@@ -3,6 +3,33 @@ class SocialApiController extends KDController
   constructor: (options = {}, data) ->
     @openedChannels = {}
     super options, data
+    @utils.defer @bound 'init'
+
+  init:->
+    mainController    = KD.getSingleton 'mainController'
+    mainController.ready => @openGroupChannel()
+
+  openGroupChannel:->
+    # to - do refactor this part to use same functions with other parts
+    api = this
+    groupsController = KD.getSingleton "groupsController"
+    groupsController.ready =>
+      group = KD.getSingleton("groupsController").getCurrentGroup()
+
+      subscriptionData =
+        serviceType: 'socialapi'
+        group      : group.slug
+        channelType: "group"
+        channelName: group.slug
+        isExclusive: yes
+
+      name = "socialapi.#{group.slug}-group-#{group.slug}"
+      KD.remote.subscribe name, subscriptionData, (brokerChannel)=>
+        @forwardMessageEvents brokerChannel, api, [
+          "MessageAdded",
+          "MessageRemoved"
+        ]
+
 
   mapActivity = (data) ->
 
@@ -14,9 +41,7 @@ class SocialApiController extends KDController
     plain._id = plain.id
 
     m = new KD.remote.api.SocialMessage plain
-    m.account = {}
-    m.account.constructorName = "JAccount"
-    m.account._id = accountOldId
+    m.account = mapAccounts(accountOldId)[0]
 
     m.replies      = mapActivities data.replies or []
     m.repliesCount = data.repliesCount
@@ -70,10 +95,27 @@ class SocialApiController extends KDController
       options.groupName = group.slug
       channelApiChannelsResFunc 'fetchChannels', options, callback
 
-  fetchPopularTopics = (options, callback)->
+  popularItemsReq = (funcName, options, callback)->
+    # here not to break current frontend
+    options.type ?= "weekly"
+    unless options.type in ["daily", "weekly", "monthly"]
+      return callback {message: "type is not valid "}
     getCurrentGroup (group)->
       options.groupName = group.slug
-      channelApiChannelsResFunc 'fetchPopularTopics', options, callback
+      channelApiChannelsResFunc funcName, options, callback
+
+  fetchPopularTopics = (options, callback)->
+    popularItemsReq 'fetchPopularTopics', options, callback
+
+  fetchPopularPosts = (options, callback)->
+    unless options.channelName
+      return callback {message:"channelName is not set"}
+    options.type ?= "weekly"
+    unless options.type in ["daily", "weekly", "monthly"]
+      return callback {message: "type is not valid "}
+    getCurrentGroup (group)->
+      options.groupName = group.slug
+      channelApiActivitiesResFunc "fetchPopularPosts", options, callback
 
   messageApiMessageResFunc = (name, rest..., callback)->
     KD.remote.api.SocialMessage[name] rest..., (err, res)->
@@ -99,14 +141,25 @@ class SocialApiController extends KDController
     messages = [].concat(messages)
     return [] unless messages?.length > 0
 
-    mappedMessages = []
+    mappedChannels = []
 
     for messageContainer in messages
       message = mapActivity messageContainer.lastMessage
-      message.channel = mapChannels(messageContainer)[0]
-      mappedMessages.push message
+      channel = mapChannels(messageContainer)?[0]
+      channel.lastMessage = message
 
-    return mappedMessages
+      mappedChannels.push channel
+
+    return mappedChannels
+
+  mapAccounts = (accounts)->
+    return [] unless accounts
+    mappedAccounts = []
+    accounts = [].concat(accounts)
+
+    for account in accounts
+      mappedAccounts.push {_id: account, constructorName : "JAccount"}
+    return mappedAccounts
 
   mapChannels = (channels)->
     return channels unless channels
@@ -117,7 +170,7 @@ class SocialApiController extends KDController
       data = channel.channel
       data.isParticipant = channel.isParticipant
       data.participantCount = channel.participantCount
-      data.participantsPreview = channel.participantsPreview
+      data.participantsPreview = mapAccounts channel.participantsPreview
       c = new SocialChannel data
       # push channel into stack
       revivedChannels.push c
@@ -130,6 +183,8 @@ class SocialApiController extends KDController
       source.on event, (message, rest...) ->
         message = mapActivity message
         target.emit event, message, rest...
+
+  forwardMessageEvents : forwardMessageEvents
 
   registerAndOpenChannels = (socialApiChannels)->
     getCurrentGroup (group)->
@@ -171,6 +226,7 @@ class SocialApiController extends KDController
     list                 : fetchChannels
     fetchActivities      : fetchChannelActivities
     fetchGroupActivities : fetchGroupActivities
+    fetchPopularPosts    : fetchPopularPosts
     fetchPopularTopics   : fetchPopularTopics
     fetchPinnedMessages  : (args...)->
       channelApiActivitiesResFunc 'fetchPinnedMessages', args...

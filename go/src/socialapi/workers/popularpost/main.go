@@ -3,18 +3,17 @@ package main
 import (
 	"flag"
 	"fmt"
-	"koding/db/mongodb/modelhelper"
+
 	"socialapi/config"
 	"socialapi/workers/helper"
-	"socialapi/workers/realtime/realtime"
-
+	"socialapi/workers/popularpost/popularpost"
 	"github.com/koding/worker"
 )
 
 var (
 	flagConfFile = flag.String("c", "", "Configuration profile from file")
 	flagDebug    = flag.Bool("d", false, "Debug mode")
-	Name         = "Realtime"
+	Name         = "PopularPost"
 )
 
 func main() {
@@ -34,21 +33,15 @@ func main() {
 	// do not forgot to close the bongo connection
 	defer bongo.Close()
 
-	// init mongo connection
-	modelhelper.Initialize(conf.Mongo)
+	redis := helper.MustInitRedisConn(conf.Redis)
 
-	//create connection to RMQ for publishing realtime events
-	rmq := helper.NewRabbitMQ(conf, log)
-
-	handler, err := realtime.NewRealtimeWorkerController(rmq, log)
-	if err != nil {
-		panic(err)
-	}
+	// create message handler
+	handler := popularpost.NewPopularPostController(log, redis)
 
 	listener := worker.NewListener(Name, conf.EventExchangeName, log)
 	// blocking
 	// listen for events
-	listener.Listen(rmq, handler)
+	listener.Listen(helper.NewRabbitMQ(conf, log), handler)
 	// close consumer
 	defer listener.Close()
 }

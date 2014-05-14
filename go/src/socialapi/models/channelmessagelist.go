@@ -204,6 +204,31 @@ func (c *ChannelMessageList) FetchMessageChannels(messageId int64) ([]Channel, e
 	return NewChannel().FetchByIds(channelIds)
 }
 
+func (c *ChannelMessageList) FetchMessageIdsByChannelId(channelId int64, q *Query) ([]int64, error) {
+	query := &bongo.Query{
+		Selector: map[string]interface{}{
+			"channel_id": channelId,
+		},
+		Pluck: "message_id",
+		Limit: q.Limit,
+		Skip:  q.Skip,
+		Sort: map[string]string{
+			"added_at": "DESC",
+		},
+	}
+
+	var messageIds []int64
+	if err := c.Some(&messageIds, query); err != nil {
+		return nil, err
+	}
+
+	if messageIds == nil {
+		return make([]int64, 0), nil
+	}
+
+	return messageIds, nil
+}
+
 // seperate this fucntion into modelhelper
 // as setting it to a variadic function
 func (c *ChannelMessageList) DeleteMessagesBySelector(selector map[string]interface{}) error {

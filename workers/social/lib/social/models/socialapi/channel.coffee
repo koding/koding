@@ -20,6 +20,8 @@ module.exports = class SocialChannel extends Base
           (signature Object, Function)
         fetchPopularTopics:
           (signature Object, Function)
+        fetchPopularPosts:
+          (signature Object, Function)
         fetchPinnedMessages:
           (signature Object, Function)
         pinMessage    :
@@ -109,6 +111,9 @@ module.exports = class SocialChannel extends Base
 
   @fetchPopularTopics = secure (client, options = {}, callback)->
     @doRequest 'fetchPopularTopics', client, options, callback
+
+  @fetchPopularPosts = secure (client, options = {}, callback)->
+    @doRequest 'fetchPopularPosts', client, options, callback
 
   @fetchChannels = secure (client, options = {}, callback)->
     @doRequest 'fetchGroupChannels', client, options, callback

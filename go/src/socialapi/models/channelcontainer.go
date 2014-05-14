@@ -4,7 +4,7 @@ type ChannelContainer struct {
 	Channel             Channel                  `json:"channel"`
 	IsParticipant       bool                     `json:"isParticipant"`
 	ParticipantCount    int                      `json:"participantCount"`
-	ParticipantsPreview []int64                  `json:"participantsPreview,omitempty"`
+	ParticipantsPreview []string                 `json:"participantsPreview,omitempty"`
 	LastMessage         *ChannelMessageContainer `json:"lastMessage,omitempty"`
 }
 
@@ -52,7 +52,12 @@ func PopulateChannelContainer(channel Channel, accountId int64) (*ChannelContain
 	cc.Channel = channel
 	cc.IsParticipant = isParticipant
 	cc.ParticipantCount = participantCount
-	cc.ParticipantsPreview = cpList
+	participantOldIds, err := AccountOldsIdByIds(cpList)
+	if err != nil {
+		return nil, err
+	}
+
+	cc.ParticipantsPreview = participantOldIds
 
 	// add last message of the channel
 	cm, err := channel.FetchLastMessage()

@@ -4,5 +4,5 @@ class ActivityItemMenuItem extends JView
 
     {title} = @getData()
     """
-    <i class="#{KD.utils.slugify title} icon"></i>#{title}
+    #{title}
     """

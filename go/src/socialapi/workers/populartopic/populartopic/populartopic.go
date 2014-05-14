@@ -73,31 +73,15 @@ func (f *PopularTopicsController) HandleEvent(event string, data []byte) error {
 }
 
 func (f *PopularTopicsController) MessageSaved(data *models.ChannelMessageList) error {
-	c, err := fetchChannel(data.ChannelId)
-	if err != nil {
-		return err
-	}
-
-	if !f.isEligible(c) {
-		f.log.Info("Not eligible Channel Id:%d", c.Id)
-		return nil
-	}
-
-	_, err = f.redis.SortedSetIncrBy(GetWeeklyKey(c, data), 1, data.ChannelId)
-	if err != nil {
-		return err
-	}
-
-	_, err = f.redis.SortedSetIncrBy(GetMonthlyKey(c, data), 1, data.ChannelId)
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return f.handleMessageEvents(data, 1)
 }
 
 func (f *PopularTopicsController) MessageDeleted(data *models.ChannelMessageList) error {
-	c, err := fetchChannel(data.ChannelId)
+	return f.handleMessageEvents(data, -1)
+}
+
+func (f *PopularTopicsController) handleMessageEvents(data *models.ChannelMessageList, increment int) error {
+	c, err := models.ChannelById(data.ChannelId)
 	if err != nil {
 		return err
 	}
@@ -107,12 +91,17 @@ func (f *PopularTopicsController) MessageDeleted(data *models.ChannelMessageList
 		return nil
 	}
 
-	_, err = f.redis.SortedSetIncrBy(GetWeeklyKey(c, data), -1, data.MessageId)
+	_, err = f.redis.SortedSetIncrBy(GetDailyKey(c, data), increment, data.ChannelId)
 	if err != nil {
 		return err
 	}
 
-	_, err = f.redis.SortedSetIncrBy(GetMonthlyKey(c, data), -1, data.MessageId)
+	_, err = f.redis.SortedSetIncrBy(GetWeeklyKey(c, data), increment, data.ChannelId)
+	if err != nil {
+		return err
+	}
+
+	_, err = f.redis.SortedSetIncrBy(GetMonthlyKey(c, data), increment, data.ChannelId)
 	if err != nil {
 		return err
 	}
@@ -130,6 +119,22 @@ func PreparePopularTopicKey(group, statisticName string, year, dateNumber int) s
 		statisticName,
 		dateNumber,
 	)
+}
+
+func GetDailyKey(c *models.Channel, cml *models.ChannelMessageList) string {
+	day := 0
+	year := 2014
+
+	if !cml.AddedAt.IsZero() {
+		day = cml.AddedAt.UTC().YearDay()
+		year, _, _ = cml.AddedAt.UTC().Date()
+	} else {
+		now := time.Now().UTC()
+		day = now.YearDay()
+		year, _, _ = now.Date()
+	}
+
+	return PreparePopularTopicKey(c.GroupName, "daily", year, day)
 }
 
 func GetWeeklyKey(c *models.Channel, cml *models.ChannelMessageList) string {
@@ -177,14 +182,4 @@ func (f *PopularTopicsController) isEligible(c *models.Channel) bool {
 	}
 
 	return true
-}
-
-// todo add caching here
-func fetchChannel(channelId int64) (*models.Channel, error) {
-	c := models.NewChannel()
-	if err := c.ById(channelId); err != nil {
-		return nil, err
-	}
-
-	return c, nil
 }

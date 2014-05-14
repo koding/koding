@@ -11,7 +11,7 @@ MINOR=1
 # export MAJOR
 # export MINOR
 
-develop: apidev topicfeeddev realtimedev followingfeeddev populartopicdev notificationdev
+develop: apidev topicfeeddev realtimedev followingfeeddev populartopicdev popularpostdev notificationdev
 
 apidev:
 	@echo "$(OK_COLOR)==> Running API Worker $(NO_COLOR)"
@@ -28,9 +28,14 @@ followingfeeddev:
 populartopicdev:
 	@echo "$(OK_COLOR)==> Running Popular Topics Worker $(NO_COLOR)"
 	@$(GOBINDIR)/rerun socialapi/workers/populartopic -c $(CONFIG) -d
+
 notificationdev:
 	@echo "$(OK_COLOR)==> Running Notification Worker $(NO_COLOR)"
 	@$(GOBINDIR)/rerun socialapi/workers/notification -c $(CONFIG) -d
+
+popularpostdev:
+	@echo "$(OK_COLOR)==> Running Popular Posts Worker $(NO_COLOR)"
+	@$(GOBINDIR)/rerun socialapi/workers/popularpost -c $(CONFIG) -d
 
 PACKAGES = \
 	socialapi/workers/api \
@@ -38,7 +43,8 @@ PACKAGES = \
 	socialapi/workers/realtime \
 	socialapi/workers/followingfeed \
 	socialapi/workers/populartopic \
-	socialapi/workers/notification
+	socialapi/workers/notification \
+	socialapi/workers/popularpost
 
 default: all
 

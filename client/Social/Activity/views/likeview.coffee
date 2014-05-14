@@ -13,6 +13,7 @@ class ActivityLikeView extends JView
     @_currentState = no
 
     @likeCount    = new ActivityLikeCount
+      cssClass    : 'like-count'
       tooltip     :
         gravity   : options.tooltipPosition
         title     : ""
@@ -30,25 +31,11 @@ class ActivityLikeView extends JView
     else @decorateUnlike no
 
 
-  click: (event) ->
-
-    event.preventDefault()
-
-    return  unless $(event.target).is "a.action-link"
-
-    {socialapi: {message: {like, unlike}}} = KD.singletons
-
-    fn = if @_currentState then unlike else like
-    fn id: @getData().id, @bound "toggleState"
-
-
   toggleState: (err) ->
 
     return @showError err  if err
 
     @_currentState = not @_currentState
-
-    @likeCount.setCount()
 
     if @_currentState
     then @decorateLike()

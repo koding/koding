@@ -33,10 +33,10 @@ class CommentListItemView extends KDListItemView
     menu = {}
 
     if options.edit
-      menu['Edit'] = callback: @bound "showEditForm"
+      menu['Edit Comment'] = callback: @bound "showEditForm"
 
     if options.delete
-      menu['Delete'] = callback: @bound "showDeleteModal"
+      menu['Delete Comment'] = callback: @bound "showDeleteModal"
 
     delegate = this
 
@@ -48,6 +48,8 @@ class CommentListItemView extends KDListItemView
     @settings.hide()
     @body.hide()
     @editInfo.hide()
+    @likeView.hide()
+    @replyView?.hide()
 
     @form = new EditCommentForm delegate: this, @getData()
     @formWrapper.addSubView @form
@@ -63,6 +65,8 @@ class CommentListItemView extends KDListItemView
     {meta: {createdAt, updatedAt}} = @getData()
 
     @settings.show()
+    @likeView.show()
+    @replyView?.show()
     @form.destroy()
     @body.show()
     @editInfo.show()  if updatedAt > createdAt
