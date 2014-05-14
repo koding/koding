@@ -9,7 +9,7 @@ type (
 		Redis             string
 		Mongo             string
 		Environment       string
-		Cache             Cache
+		Notification      Notification
 	}
 
 	Postgres struct {
@@ -29,7 +29,7 @@ type (
 	Limits struct {
 		MessageBodyMinLen int
 	}
-	Cache struct {
-		Notification bool
+	Notification struct {
+		CacheEnabled bool
 	}
 )

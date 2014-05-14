@@ -40,7 +40,7 @@ func List(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface
 	}
 
 	conf := config.Get()
-	cacheEnabled = conf.Cache.Notification
+	cacheEnabled = conf.Notification.CacheEnabled
 
 	urlQuery := u.Query()
 	cache, err := strconv.ParseBool(urlQuery.Get("cache"))
