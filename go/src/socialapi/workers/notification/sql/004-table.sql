@@ -12,8 +12,7 @@ CREATE TABLE "notification"."notification" (
     "activated_at" timestamp(6) WITH TIME ZONE
 )
 WITH (OIDS=FALSE);
--- ALTER TABLE "notification"."notification" OWNER TO "socialapplication";
-GRANT SELECT, INSERT, UPDATE, DELETE ON "notification"."notification" TO "socialapplication";
+GRANT SELECT, INSERT, UPDATE ON "notification"."notification" TO "socialapplication";
 
 -- ----------------------------
 --  Table structure for notification_content
@@ -35,8 +34,7 @@ CREATE TABLE "notification"."notification_content" (
     "created_at" timestamp(6) WITH TIME ZONE NOT NULL DEFAULT now()
 )
 WITH (OIDS=FALSE);
--- ALTER TABLE "notification"."notification_content" OWNER TO "socialapplication";
-GRANT SELECT, INSERT, DELETE ON "notification"."notification_content" TO "socialapplication";
+GRANT SELECT, INSERT ON "notification"."notification_content" TO "socialapplication";
 
 -- ----------------------------
 --  Table structure for notification_activity
@@ -50,5 +48,4 @@ CREATE TABLE "notification"."notification_activity" (
     "created_at" timestamp(6) WITH TIME ZONE NOT NULL DEFAULT now()
 )
 WITH (OIDS=FALSE);
--- ALTER TABLE "notification"."notification_activity" OWNER TO "socialapplication";
-GRANT SELECT, INSERT, UPDATE, DELETE ON "notification"."notification_activity" TO "socialapplication";
+GRANT SELECT, INSERT, UPDATE ON "notification"."notification_activity" TO "socialapplication";
