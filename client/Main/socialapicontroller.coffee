@@ -7,12 +7,13 @@ class SocialApiController extends KDController
     KD.getSingleton("mainController").ready @bound "openGroupChannel"
 
   getPrefetchedData:->
-    return {} unless KD.socialApiData
-    KD.socialApiData["popularTopics"] = mapChannels KD.socialApiData["popularTopics"]
-    KD.socialApiData["followedChannels"] = mapChannels KD.socialApiData["followedChannels"]
-    KD.socialApiData["pinnedMessages"] = mapActivities KD.socialApiData["pinnedMessages"]
-    KD.socialApiData["privateMessages"] = mapPrivateMessages KD.socialApiData["privateMessages"]
-    return KD.socialApiData
+    data = {}
+    return data unless KD.socialApiData
+    data["popularTopics"]    = mapChannels KD.socialApiData["popularTopics"]
+    data["followedChannels"] = mapChannels KD.socialApiData["followedChannels"]
+    data["pinnedMessages"]   = mapActivities KD.socialApiData["pinnedMessages"]
+    data["privateMessages"]  = mapPrivateMessages KD.socialApiData["privateMessages"]
+    return data
 
   openGroupChannel: ->
     # to - do refactor this part to use same functions with other parts
