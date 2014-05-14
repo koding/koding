@@ -188,8 +188,12 @@ class WebTermView extends KDView
       @reconnected = no
       {code, serviceGenericName} = err
 
+      vmName = (@getOption 'vmName') or @getDelegate().getOption "vmName"
+
+      ErrorLog.create "KiteError", {code, serviceGenericName, vmName, reason: err?.message}
+
       if code is 503 and serviceGenericName.indexOf("kite-os") is 0
-        @reconnectAttemptFailed serviceGenericName, (@getOption 'vmName') or @getDelegate().getOption "vmName"
+        @reconnectAttemptFailed serviceGenericName, vmName
 
   reconnectAttemptFailed: (serviceGenericName, vmName) ->
     return  if @reconnected or not serviceGenericName
