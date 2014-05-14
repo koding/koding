@@ -3,6 +3,7 @@ package packer
 import (
 	"errors"
 	"fmt"
+	"io/ioutil"
 	"log"
 	"os"
 	"os/signal"
@@ -31,9 +32,10 @@ func (p *Provider) Build() ([]packer.Artifact, error) {
 		return nil, err
 	}
 
-	// if !p.EnableDebug {
-	build.SetDebug(false)
-	// }
+	if !p.EnableDebug {
+		build.SetDebug(false)
+		log.SetOutput(ioutil.Discard)
+	}
 
 	_, err = build.Prepare()
 	if err != nil {
