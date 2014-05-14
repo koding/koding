@@ -14,8 +14,6 @@ PROVIDERS =
 
 checkCredential = (client, pubKey, callback)->
 
-  console.log pubKey
-
   JCredential = require './credential'
   JCredential.fetchByPublicKey client, pubKey, (err, credential)->
 
@@ -137,7 +135,7 @@ module.exports = class ComputeProvider extends Base
 
   @ping = permit 'ping machines',
 
-    success: revive (client, options, callback)->
+    success: revive yes, (client, options, callback)->
 
       {provider} = options
       provider.ping client, options, callback
@@ -145,7 +143,7 @@ module.exports = class ComputeProvider extends Base
 
   @create = permit 'create machines',
 
-    success: revive (client, options, callback)->
+    success: revive yes, (client, options, callback)->
 
       { provider, stack, label } = options
 
@@ -153,12 +151,12 @@ module.exports = class ComputeProvider extends Base
 
         return callback err  if err
 
-        { connection: { delegate:account }, context: { group } } = client
+        { connection: { delegate:account }, r: { group, user } } = client
         { meta, postCreateOptions } = machineData
 
         @createMachine {
           vendor : provider.slug
-          label, meta, group, account
+          label, meta, group, user
         }, (err, machine)->
 
           # TODO if any error occurs here which means user paid for
@@ -188,37 +186,25 @@ module.exports = class ComputeProvider extends Base
     provider.remove client, options, callback
 
 
-  @fetchExisting = secure revive (client, options, callback)->
+  @fetchExisting = secure revive yes, (client, options, callback)->
 
     { provider } = options
+    { r: { group, user } } = client
 
-    { connection: { delegate:account }, context: { group } } = client
+    selector =
+      vendor : provider.slug
+      users  : $elemMatch: id: user.getId()
+      groups : $elemMatch: id: group.getId()
 
-    JGroup = require '../group'
-    JGroup.one { slug: group }, (err, groupObj)=>
+    fieldsToFetch = label:1, meta:1, groups:1
 
+    JMachine.someData selector, fieldsToFetch, { }, (err, cursor)->
       return callback err  if err
-      return callback new Error "Group not found"  unless groupObj
-
-      account.fetchUser (err, user)=>
-
+      cursor.toArray (err, arr) ->
         return callback err  if err
-        return callback new Error "user is not defined"  unless user
 
-        selector =
-          vendor : provider.slug
-          users  : $elemMatch: id: user.getId()
-          groups : $elemMatch: id: groupObj.getId()
-
-        fieldsToFetch = label:1, meta:1, groups:1
-
-        JMachine.someData selector, fieldsToFetch, { }, (err, cursor)->
-          return callback err  if err
-          cursor.toArray (err, arr) ->
-            return callback err  if err
-
-            options.machines = arr
-            provider.fetchExisting client, options, callback
+        options.machines = arr
+        provider.fetchExisting client, options, callback
 
 
   @fetchAvailable = secure revive (client, options, callback)->
@@ -229,31 +215,20 @@ module.exports = class ComputeProvider extends Base
 
   @createMachine = (options, callback)->
 
-    { vendor, label, meta, group, account } = options
+    { vendor, label, meta, group, user } = options
 
-    JGroup = require '../group'
-    JGroup.one { slug: group }, (err, groupObj)=>
+    users  = [{ id: user.getId(), sudo: yes, owner: yes }]
+    groups = [{ id: group.getId() }]
 
-      return callback err  if err
-      return callback new Error "Group not found"  unless groupObj
+    machine = new JMachine {
+      vendor, users, groups, meta, label
+    }
 
-      account.fetchUser (err, user)=>
+    machine.save (err)=>
 
-        return callback err  if err
-        return callback new Error "user is not defined"  unless user
+      if err
+        callback err
+        return console.warn \
+          "Failed to create Machine for ", {users, groups}
 
-        users  = [{ id: user.getId(), sudo: yes, owner: yes }]
-        groups = [{ id: groupObj.getId() }]
-
-        machine = new JMachine {
-          vendor, users, groups, meta, label
-        }
-
-        machine.save (err)=>
-
-          if err
-            callback err
-            return console.warn \
-              "Failed to create Machine for ", {users, groups}
-
-          callback null, machine
+      callback null, machine
