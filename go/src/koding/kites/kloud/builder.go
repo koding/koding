@@ -11,11 +11,10 @@ var providers = map[string]Provider{
 	"digitalocean": &DigitalOcean{},
 }
 
-// Provider is used to create and provisiong a single image or machine for a
+// Builder is used to create and provisiong a single image or machine for a
 // given Provider.
-type Provider interface {
+type Builder interface {
 	Build(path string) error
-	Provision() error
 }
 
 type buildArgs struct {
@@ -37,10 +36,6 @@ func build(r *kite.Request) (interface{}, error) {
 	}
 
 	if err := provider.Build(args.TemplatePath); err != nil {
-		return nil, err
-	}
-
-	if err := provider.Provision(); err != nil {
 		return nil, err
 	}
 
