@@ -8,16 +8,17 @@ class WorkspaceLayoutBuilder extends KDSplitComboView
     splitOptions   = {
       type         : direction
       viewsConfig  : views
-      size
+      sizes
       cssClass
     }
+
     @addSubView @createSplitView splitOptions, splitName
 
   createSplitView: (splitOptions, splitName) ->
     {type, sizes, viewsConfig, cssClass} = splitOptions
     views = []
 
-    viewsConfig.forEach (config, index) =>
+    viewsConfig.forEach (config) =>
       if config.type is "split"
         {options}     = config
         {splitName}   = options
