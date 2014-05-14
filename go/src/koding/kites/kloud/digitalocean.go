@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 	"koding/kites/kloud/packer"
-	"log"
 	"os"
 )
 
@@ -13,8 +12,6 @@ type DigitalOcean struct {
 }
 
 func (d *DigitalOcean) Build(path string) (err error) {
-	log.Printf("Digitalocean: Reading template: %s", path)
-
 	userVars := map[string]string{
 		"do_api_key":     os.Getenv("DIGITALOCEAN_API_KEY"),
 		"do_client_id":   os.Getenv("DIGITALOCEAN_CLIENT_ID"),
@@ -24,8 +21,8 @@ func (d *DigitalOcean) Build(path string) (err error) {
 	}
 
 	provider := &packer.Provider{
-		TemplatePath: path,
 		BuildName:    "digitalocean",
+		TemplatePath: path,
 		Vars:         userVars,
 	}
 

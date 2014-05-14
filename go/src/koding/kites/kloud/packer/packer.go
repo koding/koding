@@ -39,16 +39,21 @@ func (p *Provider) Build() ([]packer.Artifact, error) {
 		return nil, err
 	}
 
-	return build.Run(
-		&packer.BasicUi{
-			Reader:      os.Stdin,
-			Writer:      os.Stdout,
-			ErrorWriter: os.Stderr,
-		},
-		&packer.FileCache{
-			CacheDir: os.TempDir(),
-		},
-	)
+	return build.Run(p.basicUI(), p.cache())
+}
+
+func (p *Provider) cache() packer.Cache {
+	return &packer.FileCache{
+		CacheDir: os.TempDir(),
+	}
+}
+
+func (p *Provider) basicUI() packer.Ui {
+	return &packer.BasicUi{
+		Reader:      os.Stdin,
+		Writer:      os.Stdout,
+		ErrorWriter: os.Stderr,
+	}
 }
 
 func (p *Provider) newTemplateFile() (*packer.Template, error) {
