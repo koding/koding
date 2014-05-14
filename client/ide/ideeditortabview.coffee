@@ -1,0 +1,1 @@
+class IDEEditorTabView extends WorkspaceTabView
