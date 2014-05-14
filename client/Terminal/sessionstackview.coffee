@@ -32,7 +32,7 @@ class SessionStackView extends KDView
       @hide()
       @loader.hide()
 
-      unless (/No sessions available/.test(err.message))
+      unless (/no sessions available/i.test(err.message))
         KD.utils.warnAndLog "terminal: webtermGetSessions error",
           {reason:err?.message, hostnameAlias:@getOptions().alias}
 
