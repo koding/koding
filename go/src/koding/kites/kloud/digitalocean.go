@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 
+	"github.com/mitchellh/packer/builder/digitalocean"
 	"github.com/mitchellh/packer/packer"
 )
 
@@ -19,6 +20,8 @@ func (d *DigitalOcean) Build(path string) error {
 		return fmt.Errorf("Failed to parse template: %s", err)
 	}
 
+	fmt.Printf("template %#v\n", template)
+
 	if len(template.BuildNames()) != 1 {
 		return fmt.Errorf("Failed to find build in the template: %v", template.BuildNames())
 	}
@@ -28,20 +31,40 @@ func (d *DigitalOcean) Build(path string) error {
 		return fmt.Errorf("Build name is different than 'digitalocean': %v", buildName)
 	}
 
-	log.Println("Digitalocean: Creating build interface")
-	build, err := template.Build(buildName, nil)
+	builder := digitalocean.Builder{}
+	fmt.Printf("builder %+v\n", builder)
+
+	s, err := builder.Prepare(template.Builders["digitalocean"].RawConfig)
 	if err != nil {
 		return err
 	}
 
-	fmt.Printf("build.Name() %+v\n", build.Name())
+	fmt.Printf("s %+v\n", s)
+
+	// log.Println("Digitalocean: Preparing environment")
+	// envConfig := packer.DefaultEnvironmentConfig()
+	// env, err := packer.NewEnvironment(envConfig)
+	// if err != nil {
+	// 	return err
+	// }
+	//
+	// components := &packer.ComponentFinder{
+	// 	Builder:       env.Builder,
+	// 	Hook:          env.Hook,
+	// 	PostProcessor: env.PostProcessor,
+	// 	Provisioner:   env.Provisioner,
+	// }
+
+	// log.Println("Digitalocean: Creating build interface")
+	// build, err := template.Build(buildName, components)
+	// if err != nil {
+	// 	return err
+	// }
 
 	return nil
 }
 
 func (d *DigitalOcean) Provision() error {
-	fmt.Println("Provisioning DigitalOcean")
-
 	return nil
 }
 

@@ -39,5 +39,6 @@ func TestBuild(t *testing.T) {
 	}
 
 	_, err := remote.Tell("build", args)
-	fmt.Printf("err %+v\n", err)
+
+	fmt.Printf("\n==== err: %+v\n\n", err)
 }
