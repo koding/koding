@@ -2,14 +2,10 @@ package notification
 
 import (
 	"encoding/json"
-	"errors"
 	"github.com/koding/logging"
 	"github.com/koding/rabbitmq"
 	"github.com/koding/worker"
 	"github.com/streadway/amqp"
-	mongomodels "koding/db/models"
-	"koding/db/mongodb/modelhelper"
-	"labix.org/v2/mgo"
 	socialapimodels "socialapi/models"
 	"socialapi/workers/notification/models"
 	"time"
@@ -25,18 +21,6 @@ type NotificationWorkerController struct {
 	cacheEnabled    bool
 }
 
-type NotificationEvent struct {
-	RoutingKey string              `json:"routingKey"`
-	Event      string              `json:"event"`
-	Content    NotificationContent `json:"contents"`
-}
-
-type NotificationContent struct {
-	TypeConstant string `json:"type"`
-	TargetId     int64  `json:"targetId"`
-	ActorId      int64  `json:"actorId"`
-}
-
 func (n *NotificationWorkerController) DefaultErrHandler(delivery amqp.Delivery, err error) bool {
 	n.log.Error("an error occured: %s", err)
 	delivery.Ack(false)
@@ -50,25 +34,17 @@ func NewNotificationWorkerController(rmq *rabbitmq.RabbitMQ, log logging.Logger,
 		return nil, err
 	}
 
-	notifierRmqConn, err := rmq.Connect("NotifierWorkerController")
-	if err != nil {
-		return nil, err
-	}
-
 	nwc := &NotificationWorkerController{
-		log:             log,
-		rmqConn:         rmqConn.Conn(),
-		notifierRmqConn: notifierRmqConn.Conn(),
-		cacheEnabled:    cacheEnabled,
+		log:          log,
+		rmqConn:      rmqConn.Conn(),
+		cacheEnabled: cacheEnabled,
 	}
 
 	routes := map[string]Action{
-		"api.message_reply_created":         (*NotificationWorkerController).CreateReplyNotification,
-		"api.interaction_created":           (*NotificationWorkerController).CreateInteractionNotification,
-		"notification.notification_created": (*NotificationWorkerController).NotifyUser,
-		"notification.notification_updated": (*NotificationWorkerController).NotifyUser,
-		"api.channel_participant_created":   (*NotificationWorkerController).JoinGroup,
-		"api.channel_participant_updated":   (*NotificationWorkerController).LeaveGroup,
+		"api.message_reply_created":       (*NotificationWorkerController).CreateReplyNotification,
+		"api.interaction_created":         (*NotificationWorkerController).CreateInteractionNotification,
+		"api.channel_participant_created": (*NotificationWorkerController).JoinGroup,
+		"api.channel_participant_updated": (*NotificationWorkerController).LeaveGroup,
 	}
 
 	nwc.routes = routes
@@ -186,115 +162,29 @@ func (n *NotificationWorkerController) CreateInteractionNotification(data []byte
 	return nil
 }
 
-// TODO how this is handled, it looks like it needs refactoring
-func (n *NotificationWorkerController) NotifyUser(data []byte) error {
-	channel, err := n.notifierRmqConn.Channel()
-	if err != nil {
-		return errors.New("channel connection error")
-	}
-	defer channel.Close()
-
-	notification, err := mapMessageToNotification(data)
-	if err != nil {
-		return err
-	}
-
-	// fetch notification content and get event type
-	nc, err := notification.FetchContent()
-	if err != nil {
-		return err
-	}
-
-	nI, err := models.CreateNotificationContentType(nc.TypeConstant)
-	if err != nil {
-		return err
-	}
-
-	nI.SetTargetId(nc.TargetId)
-	// ac, err := nt.FetchActors()
-	// if err != nil {
-	// 	return err
-	// }
-
-	// var actorId int64
-	// if len(ac.LatestActors) > 0 {
-	// 	actorId = ac.LatestActors[0]
-	// }
-
-	// go func() {
-	// 	if n.cacheEnabled {
-	// 		notificationCache := cache.NewNotificationCache()
-	// 		if err := notificationCache.UpdateCache(notification, nc); err != nil {
-	// 			n.log.Error("an error occurred %s", err)
-	// 		}
-	// 	}
-	// }()
-
-	accountId := notification.AccountId
-	oldAccount, err := fetchNotifierOldAccount(accountId)
-	if err != nil {
-		return err
-	}
-
-	// fetch user profile name from bongo as routing key
-	ne := &NotificationEvent{}
-	ne.Event = nc.GetEventType()
-	ne.Content = NotificationContent{
-		// ActorId:      actorId,
-		TargetId:     nc.TargetId,
-		TypeConstant: nc.TypeConstant,
-	}
-
-	notificationMessage, err := json.Marshal(ne)
-	if err != nil {
-		return err
-	}
-
-	routingKey := oldAccount.Profile.Nickname
-
-	return channel.Publish(
-		"notification",
-		routingKey,
-		false,
-		false,
-		amqp.Publishing{Body: notificationMessage},
-	)
-}
-
-// fetchNotifierOldAccount fetches mongo account of a given new account id.
-// this function must be used under another file for further use
-func fetchNotifierOldAccount(accountId int64) (*mongomodels.Account, error) {
-	newAccount := socialapimodels.NewAccount()
-	if err := newAccount.ById(accountId); err != nil {
-		return nil, err
-	}
-
-	account, err := modelhelper.GetAccountById(newAccount.OldId)
-	if err != nil {
-		if err == mgo.ErrNotFound {
-			return nil, errors.New("old account not found")
-		}
-
-		return nil, err
-	}
-
-	return account, nil
-}
-
 func (n *NotificationWorkerController) JoinGroup(data []byte) error {
-	return processChannelParticipant(data, models.NotificationContent_TYPE_JOIN)
-}
-
-func (n *NotificationWorkerController) LeaveGroup(data []byte) error {
-	return processChannelParticipant(data, models.NotificationContent_TYPE_LEAVE)
-}
-
-func processChannelParticipant(data []byte, typeConstant string) error {
 	cp, err := mapMessageToChannelParticipant(data)
 	if err != nil {
 		return err
 	}
 
+	return processChannelParticipant(cp, models.NotificationContent_TYPE_JOIN)
+}
+
+func (n *NotificationWorkerController) LeaveGroup(data []byte) error {
+	cp, err := mapMessageToChannelParticipant(data)
+	if err != nil {
+		return err
+	}
+
+	if cp.StatusConstant == models.NotificationContent_TYPE_LEAVE {
+		return processChannelParticipant(cp, models.NotificationContent_TYPE_LEAVE)
+	}
+
+	return nil
+}
+
+func processChannelParticipant(cp *socialapimodels.ChannelParticipant, typeConstant string) error {
 	c := socialapimodels.NewChannel()
 	if err := c.ById(cp.ChannelId); err != nil {
 		return err
@@ -383,13 +273,4 @@ func mapMessageToInteraction(data []byte) (*socialapimodels.Interaction, error) 
 	}
 
 	return i, nil
-}
-
-func mapMessageToNotification(data []byte) (*models.Notification, error) {
-	n := models.NewNotification()
-	if err := json.Unmarshal(data, n); err != nil {
-		return nil, err
-	}
-
-	return n, nil
 }
