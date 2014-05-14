@@ -2,7 +2,6 @@ package models
 
 import (
 	"fmt"
-	"github.com/koding/logging"
 	"math/rand"
 	"strconv"
 	"time"
@@ -12,8 +11,6 @@ import (
 	"github.com/koding/bongo"
 	"github.com/stvp/slug"
 )
-
-var Log logging.Logger
 
 // todo fix slug generation with the slugifiable.coffee implementation
 func Slugify(message *ChannelMessage) (*ChannelMessage, error) {
