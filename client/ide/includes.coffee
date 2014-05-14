@@ -7,6 +7,7 @@ module.exports = [
 
   "idefilestabview.coffee"
   "ideeditortabview.coffee"
+  "idesocialstabview.coffee"
 
   "AppController.coffee"
 
