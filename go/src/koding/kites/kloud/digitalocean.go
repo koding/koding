@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"os"
 
 	"github.com/mitchellh/packer/builder/digitalocean"
 	"github.com/mitchellh/packer/packer"
@@ -20,6 +21,8 @@ func (d *DigitalOcean) Build(path string) error {
 	log.Printf("Digitalocean: Reading template: %s", path)
 
 	userVars := map[string]string{
+		"do_api_key":     os.Getenv("DIGITALOCEAN_API_KEY"),
+		"do_client_id":   os.Getenv("DIGITALOCEAN_CLIENT_ID"),
 		"klient_deb":     "klient_0.0.1_amd64.deb",
 		"klient_keyname": "kite.key",
 		"klient_keydir":  "/opt/kite/klient/key",
