@@ -114,9 +114,7 @@ class CommentViewHeader extends JView
 
     {repliesCount} = @getData()
 
-    repliesCount
-    unless repliesCount and repliesCount > @maxCount
-      @hide()
+    @hide()  unless repliesCount and repliesCount > @maxCount
 
 
   render: ->
