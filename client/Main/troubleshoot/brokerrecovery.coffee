@@ -15,6 +15,8 @@ class BrokerRecovery extends KDObject
     @broker.on "ready", =>
       @emit "brokerConnected"
 
+  brokerURL:->
+    @broker.sockURL.replace("/subscribe", "")
 
   checkStatus: ->
     {timeout} = @getOptions()
@@ -23,7 +25,7 @@ class BrokerRecovery extends KDObject
         @unsuccessfulAttempt++
         @emit "brokerNotResponding"
 
-        brokerURL = @broker.sockURL.replace("/subscribe")
+        brokerURL = @brokerURL()
         KD.utils.warnAndLog 'broker not responding', {@unsuccessfulAttempt, brokerURL}
 
       @broker.ping =>
@@ -35,8 +37,7 @@ class BrokerRecovery extends KDObject
     # checking for the previous unsuccessful attempts
     @unsuccessfulAttempt = 0
     @broker.disconnect no
-    brokerURL = @broker.sockURL.replace("/subscribe", "")
-    @broker.selectAndConnect [brokerURL]
+    @broker.selectAndConnect [@brokerURL()]
 
 
   recover: (callback) ->
