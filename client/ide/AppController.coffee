@@ -20,13 +20,13 @@ class IDEAppController extends AppController
     layoutOptions       =
       direction         : "vertical"
       splitName         : "BaseSplit"
-      sizes             : [ "75%", "25%" ]
+      sizes             : [ null, "250px" ]
       views             : [
         {
           type          : "split"
           options       :
             direction   : "vertical"
-            sizes       : [ "33%", null]
+            sizes       : [ "250px", null]
             colored     : yes
           views         : [
             {
