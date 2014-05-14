@@ -95,7 +95,7 @@ func fetchNotifiedUsers(contentId int64) ([]int64, error) {
 	var notifiees []int64
 	n := NewNotification()
 	err := bongo.B.DB.Table(n.TableName()).
-		Where("notification_content_id = ? AND subscribed_at > '1900-01-01'", contentId).
+		Where("notification_content_id = ? AND subscribed_at > ?", contentId, ZeroDate()).
 		Pluck("account_id", &notifiees).Error
 	if err != nil {
 		return nil, err
@@ -243,7 +243,7 @@ type GroupNotification struct {
 	Admins       []int64
 }
 
-// fetch group admins
+// TODO fetch group admins
 func (n *GroupNotification) GetNotifiedUsers(notificationContentId int64) ([]int64, error) {
 	if len(n.Admins) == 0 {
 		return nil, errors.New("admins cannot be empty")
