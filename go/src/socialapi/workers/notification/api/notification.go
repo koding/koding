@@ -2,25 +2,25 @@ package api
 
 import (
 	"errors"
-	"github.com/jinzhu/gorm"
-	// "github.com/koding/bongo"
-	"github.com/koding/logging"
 	"math"
 	"net/http"
 	"net/url"
 	"socialapi/config"
-	socialmodels "socialapi/models" // TODO this dependancy must be removed
-	"socialapi/workers/api/modules/helpers"
-	"socialapi/workers/helper"
+	// TODO delete these socialapi dependencies
+	socialmodels "socialapi/models"
+	socialhelpers "socialapi/workers/api/modules/helpers"
 	"socialapi/workers/notification/models"
 	"strconv"
+
+	"github.com/jinzhu/gorm"
+	"github.com/koding/api/helpers"
+	// "github.com/koding/bongo"
 )
 
 var (
 	NOTIFICATION_LIMIT = 8
 	ACTOR_LIMIT        = 3
 	cacheEnabled       = false
-	log                logging.Logger
 )
 
 const (
@@ -29,14 +29,13 @@ const (
 )
 
 func init() {
-	log = helper.CreateLogger("NotificationAPI", false)
-	helpers.Log = log
+	helpers.MustInitLogger("NotificationAPI", false)
 }
 
 func List(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface{}, error) {
-	q := helpers.GetQuery(u)
+	q := socialhelpers.GetQuery(u)
 	if err := validateNotificationRequest(q); err != nil {
-		return helpers.NewBadRequestResponse(err)
+		return socialhelpers.NewBadRequestResponse(err)
 	}
 
 	conf := config.Get()
@@ -48,18 +47,18 @@ func List(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface
 		cacheEnabled = cache
 	}
 
-	return helpers.HandleResultAndError(fetchNotifications(q))
+	return socialhelpers.HandleResultAndError(fetchNotifications(q))
 }
 
 func Glance(u *url.URL, h http.Header, req *models.Notification) (int, http.Header, interface{}, error) {
 	q := socialmodels.NewQuery()
 	q.AccountId = req.AccountId
 	if err := validateNotificationRequest(q); err != nil {
-		return helpers.NewBadRequestResponse(err)
+		return socialhelpers.NewBadRequestResponse(err)
 	}
 	req.Glanced = true
 
-	return helpers.HandleResultAndError(req, req.Glance())
+	return socialhelpers.HandleResultAndError(req, req.Glance())
 }
 
 func Follow(u *url.URL, h http.Header, req *models.NotificationRequest) (int, http.Header, interface{}, error) {
@@ -67,31 +66,31 @@ func Follow(u *url.URL, h http.Header, req *models.NotificationRequest) (int, ht
 	c.TypeConstant = socialmodels.Channel_TYPE_FOLLOWERS
 	c.CreatorId = req.TargetId
 	if err := c.Create(); err != nil {
-		return helpers.NewBadRequestResponse(err)
+		return socialhelpers.NewBadRequestResponse(err)
 	}
 
 	_, err := c.AddParticipant(req.AccountId)
 	if err != nil {
-		return helpers.NewBadRequestResponse(err)
+		return socialhelpers.NewBadRequestResponse(err)
 	}
 
-	return helpers.NewDefaultOKResponse()
+	return socialhelpers.NewDefaultOKResponse()
 }
 
 func SubscribeMessage(u *url.URL, h http.Header, req *models.NotificationRequest) (int, http.Header, interface{}, error) {
 	if err := subscription(req, NOTIFICATION_TYPE_SUBSCRIBE); err != nil {
-		return helpers.NewBadRequestResponse(err)
+		return socialhelpers.NewBadRequestResponse(err)
 	}
 
-	return helpers.NewDefaultOKResponse()
+	return socialhelpers.NewDefaultOKResponse()
 }
 
 func UnsubscribeMessage(u *url.URL, h http.Header, req *models.NotificationRequest) (int, http.Header, interface{}, error) {
 	if err := subscription(req, NOTIFICATION_TYPE_UNSUBSCRIBE); err != nil {
-		return helpers.NewBadRequestResponse(err)
+		return socialhelpers.NewBadRequestResponse(err)
 	}
 
-	return helpers.NewDefaultOKResponse()
+	return socialhelpers.NewDefaultOKResponse()
 }
 
 func subscription(nr *models.NotificationRequest, typeConstant string) error {
