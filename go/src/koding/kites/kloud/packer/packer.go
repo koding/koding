@@ -3,7 +3,9 @@ package packer
 import (
 	"errors"
 	"fmt"
+	"log"
 	"os"
+	"os/signal"
 
 	"github.com/mitchellh/packer/builder/digitalocean"
 	"github.com/mitchellh/packer/packer"
@@ -15,6 +17,7 @@ type Provider struct {
 	BuildName    string
 	TemplatePath string
 	Vars         map[string]string
+	EnableDebug  bool
 }
 
 func (p *Provider) Build() ([]packer.Artifact, error) {
@@ -28,18 +31,35 @@ func (p *Provider) Build() ([]packer.Artifact, error) {
 		return nil, err
 	}
 
-	defer func() {
-		if err != nil {
-			build.Cancel()
-		}
-	}()
+	// if !p.EnableDebug {
+	build.SetDebug(false)
+	// }
 
 	_, err = build.Prepare()
 	if err != nil {
 		return nil, err
 	}
 
-	return build.Run(p.basicUI(), p.cache())
+	// Handle interrupts for this build
+	sigCh := make(chan os.Signal, 1)
+	signal.Notify(sigCh, os.Interrupt)
+	defer signal.Stop(sigCh)
+	go func(b packer.Build) {
+		<-sigCh
+
+		log.Printf("Stopping build: %s", b.Name())
+		b.Cancel()
+		log.Printf("Build cancelled: %s", b.Name())
+	}(build)
+
+	return build.Run(p.coloredUi(), p.cache())
+}
+
+func (p *Provider) coloredUi() packer.Ui {
+	return &packer.ColoredUi{
+		Color: packer.UiColorGreen,
+		Ui:    p.basicUI(),
+	}
 }
 
 func (p *Provider) cache() packer.Cache {
@@ -52,7 +72,7 @@ func (p *Provider) basicUI() packer.Ui {
 	return &packer.BasicUi{
 		Reader:      os.Stdin,
 		Writer:      os.Stdout,
-		ErrorWriter: os.Stderr,
+		ErrorWriter: os.Stdout,
 	}
 }
 
