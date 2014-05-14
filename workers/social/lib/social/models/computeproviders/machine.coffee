@@ -18,7 +18,7 @@ module.exports = class JMachine extends Module
       kiteId            :
         type            : String
 
-      vendor            :
+      provider          :
         type            : String
         required        : yes
 

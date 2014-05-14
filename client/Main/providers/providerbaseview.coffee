@@ -1,9 +1,9 @@
-class VendorBaseView extends KDTabPaneView
+class ProviderBaseView extends KDTabPaneView
 
   constructor:(options={}, data)->
 
     data?.description or= "We are still working on #{data.name} provider."
-    options.cssClass    = KD.utils.curry "vendor-view", options.cssClass
+    options.cssClass    = KD.utils.curry "provider-view", options.cssClass
     options.pistachio or= """
       {{> this.header}}
       {p{ #(description)}}
@@ -19,19 +19,19 @@ class VendorBaseView extends KDTabPaneView
 
     @content = new KDView
     @loader  = new KDLoaderView
-      showLoader : @getOption('vendorId')?
+      showLoader : @getOption('providerId')?
       size       :
         width    : 40
 
   createFormView:->
 
-    vendor = @getOption 'vendorId'
+    provider = @getOption 'providerId'
 
     @credentialBox  = new KDSelectBox
       name          : 'type'
       cssClass      : 'type-select hidden'
       selectOptions : [
-        { title: "Loading #{vendor} credentials...", disabled: yes }
+        { title: "Loading #{provider} credentials...", disabled: yes }
       ]
       callback      : (value) =>
 
@@ -44,7 +44,7 @@ class VendorBaseView extends KDTabPaneView
 
     @content.addSubView @credentialBox
 
-    @form = ComputeProvider.generateAddCredentialFormFor vendor
+    @form = ComputeProvider.generateAddCredentialFormFor provider
 
     @form.on "Cancel", =>
 
@@ -65,7 +65,7 @@ class VendorBaseView extends KDTabPaneView
         cssClass        : 'instance-list'
         wrapper         : yes
         itemClass       : CloudInstanceItemView
-        itemOptions     : { vendor }
+        itemOptions     : { provider }
       noItemFoundWidget : new KDView
         partial         : "Instance list is not available at this time."
 
@@ -79,7 +79,7 @@ class VendorBaseView extends KDTabPaneView
       @_currentCredential
 
       ComputeProvider.create
-        provider   : vendor
+        provider   : provider
         credential : @_currentCredential
         name       : name
       , (err, res)->
@@ -104,12 +104,12 @@ class VendorBaseView extends KDTabPaneView
     @on 'PaneDidShow', @bound 'paneSelected'
 
   showInstanceList:(credentialKey)->
-    vendor = @getOption 'vendorId'
+    provider = @getOption 'providerId'
 
     @_currentCredential = credentialKey
 
     ComputeProvider.fetchAvailable
-      provider   : vendor
+      provider   : provider
       credential : credentialKey
     , (err, instances)=>
 
@@ -117,9 +117,9 @@ class VendorBaseView extends KDTabPaneView
 
         @instanceController.noItemView.updatePartial \
           if err.name is "NotImplemented"
-            "Listing instances for #{vendor} is not implemented yet."
+            "Listing instances for #{provider} is not implemented yet."
           else
-            "An error occured while listing instances for #{vendor}."
+            "An error occured while listing instances for #{provider}."
 
         warn err
 
@@ -135,8 +135,8 @@ class VendorBaseView extends KDTabPaneView
 
     @loader.show()
 
-    vendor = @getOption 'vendorId'
-    ComputeProvider.credentialsFor vendor, (err, credentials = [])=>
+    provider = @getOption 'providerId'
+    ComputeProvider.credentialsFor provider, (err, credentials = [])=>
 
       @loader.hide()
 

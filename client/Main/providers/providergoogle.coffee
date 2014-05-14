@@ -1,11 +1,11 @@
-class VendorGoogle extends VendorBaseView
+class ProviderGoogle extends ProviderBaseView
 
-  VENDOR = "google"
+  PROVIDER = "google"
 
   constructor:->
     super
-      cssClass    : VENDOR
-      vendorId    : VENDOR
+      cssClass    : PROVIDER
+      providerId    : PROVIDER
     ,
       name        : "Google Compute Engine"
       description : """

@@ -205,19 +205,19 @@ module.exports = [
 
   "providers/computeprovider.coffee",
 
-  "providers/vendoritemview.coffee",
-  "providers/vendorbaseview.coffee",
+  "providers/provideritemview.coffee",
+  "providers/providerbaseview.coffee",
 
   "providers/cloudinstanceitemview.coffee",
 
-  "providers/vendordigitalocean.coffee",
-  "providers/vendorwelcomeview.coffee",
-  "providers/vendorengineyard.coffee",
-  "providers/vendorkoding.coffee",
-  "providers/vendoramazon.coffee",
-  "providers/vendorgoogle.coffee",
+  "providers/providerdigitalocean.coffee",
+  "providers/providerwelcomeview.coffee",
+  "providers/providerengineyard.coffee",
+  "providers/providerkoding.coffee",
+  "providers/provideramazon.coffee",
+  "providers/providergoogle.coffee",
 
-  "providers/vendorview.coffee",
+  "providers/providerview.coffee",
 
   # global notifications
   "globalnotification.coffee",

@@ -1,11 +1,11 @@
-class VendorDigitalOcean extends VendorBaseView
+class ProviderDigitalOcean extends ProviderBaseView
 
-  VENDOR = "digitalocean"
+  PROVIDER = "digitalocean"
 
   constructor:->
     super
-      cssClass    : VENDOR
-      vendorId    : VENDOR
+      cssClass    : PROVIDER
+      providerId    : PROVIDER
     ,
       name        : "DigitalOcean"
       description : """

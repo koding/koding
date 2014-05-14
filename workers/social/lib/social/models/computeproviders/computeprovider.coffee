@@ -157,7 +157,7 @@ module.exports = class ComputeProvider extends Base
         { meta, postCreateOptions } = machineData
 
         @createMachine {
-          vendor : provider.slug
+          provider : provider.slug
           label, meta, group, user
         }, (err, machine)->
 
@@ -194,9 +194,9 @@ module.exports = class ComputeProvider extends Base
     { r: { group, user } } = client
 
     selector =
-      vendor : provider.slug
-      users  : $elemMatch: id: user.getId()
-      groups : $elemMatch: id: group.getId()
+      provider : provider.slug
+      users    : $elemMatch: id: user.getId()
+      groups   : $elemMatch: id: group.getId()
 
     fieldsToFetch = label:1, meta:1, groups:1
 

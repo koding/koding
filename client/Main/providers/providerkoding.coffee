@@ -1,10 +1,10 @@
-class VendorKoding extends VendorBaseView
+class ProviderKoding extends ProviderBaseView
 
-  VENDOR = "koding"
+  PROVIDER = "koding"
 
   constructor:->
     super
-      cssClass    : VENDOR
+      cssClass    : PROVIDER
     ,
       name        : "Koding"
       description : """

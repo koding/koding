@@ -1,11 +1,11 @@
-class VendorAmazon extends VendorBaseView
+class ProviderAmazon extends ProviderBaseView
 
-  VENDOR = 'amazon'
+  PROVIDER = 'amazon'
 
   constructor:->
     super
-      cssClass    : VENDOR
-      vendorId    : VENDOR
+      cssClass    : PROVIDER
+      providerId  : PROVIDER
     ,
       name        : "Amazon"
       description : """

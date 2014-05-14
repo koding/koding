@@ -1,11 +1,11 @@
-class VendorEngineyard extends VendorBaseView
+class ProviderEngineyard extends ProviderBaseView
 
-  VENDOR = "engineyard"
+  PROVIDER = "engineyard"
 
   constructor:->
     super
-      cssClass    : VENDOR
-      vendorId    : VENDOR
+      cssClass    : PROVIDER
+      providerId    : PROVIDER
     ,
       name        : "EngineYard"
       description : """

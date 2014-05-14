@@ -61,7 +61,7 @@ module.exports = class JCredential extends jraphical.Module
 
     schema            :
 
-      vendor          :
+      provider        :
         type          : String
         required      : yes
 
@@ -101,7 +101,7 @@ module.exports = class JCredential extends jraphical.Module
     success: (client, data, callback)->
 
       {delegate} = client.connection
-      {vendor, title, meta} = data
+      {provider, title, meta} = data
       originId = delegate.getId()
 
       credData = new JCredentialData { meta, originId }
@@ -109,7 +109,7 @@ module.exports = class JCredential extends jraphical.Module
         return  if failed err, callback
 
         {publicKey} = credData
-        credential = new JCredential { vendor, title, publicKey, originId }
+        credential = new JCredential { provider, title, publicKey, originId }
 
         credential.save (err)->
           return  if failed err, callback, credData

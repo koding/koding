@@ -1,6 +1,6 @@
 class ComputeProvider extends KDObject
 
-  @vendors                   =
+  @providers                 =
 
     custom                   :
       title                  : "Custom Credential"
@@ -86,8 +86,8 @@ class ComputeProvider extends KDObject
   @showProvidersModal = ->
     new KDModalView
       title        : 'Add Virtual Machine'
-      cssClass     : 'vendor-modal'
-      view         : new VendorView
+      cssClass     : 'provider-modal'
+      view         : new ProviderView
       width        : 800
       height       : 600
       overlay      : yes
@@ -97,17 +97,17 @@ class ComputeProvider extends KDObject
           style    : "modal-clean-green"
           callback : =>
 
-  @generateAddCredentialFormFor = (vendor)->
+  @generateAddCredentialFormFor = (provider)->
 
     fields          =
       title         :
         label       : "Title"
         placeholder : "title for this credential"
 
-    Vendors = ComputeProvider.vendors
+    Providers = ComputeProvider.providers
 
-    Object.keys(Vendors[vendor].credentialFields).forEach (field)->
-      fields[field] = _.clone Vendors[vendor].credentialFields[field]
+    Object.keys(Providers[provider].credentialFields).forEach (field)->
+      fields[field] = _.clone Providers[provider].credentialFields[field]
       fields[field].required = yes
 
     return form = new KDFormViewWithFields
@@ -135,7 +135,7 @@ class ComputeProvider extends KDObject
         delete data.title
 
         KD.remote.api.JCredential.create {
-          vendor, title, meta: data
+          provider, title, meta: data
         }, (err, credential)=>
 
           Save.hideLoader()
@@ -143,8 +143,8 @@ class ComputeProvider extends KDObject
           unless KD.showError err
             @emit "CredentialAdded", credential
 
-  @credentialsFor = (vendor, callback)->
-    KD.remote.api.JCredential.some { vendor }, callback
+  @credentialsFor = (provider, callback)->
+    KD.remote.api.JCredential.some { provider }, callback
 
   @fetchAvailable = (options, callback)->
     KD.remote.api.ComputeProvider.fetchAvailable options, callback

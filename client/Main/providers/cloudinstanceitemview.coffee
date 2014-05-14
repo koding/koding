@@ -2,7 +2,7 @@ class CloudInstanceItemView extends KDListItemView
 
   constructor:(options = {}, data)->
 
-    options.cssClass = "cloud-item #{data.vendor}"
+    options.cssClass = "cloud-item #{data.provider}"
     super options, data
 
     @selectButton = new KDButtonView

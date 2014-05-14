@@ -1,4 +1,4 @@
-class VendorItemView extends KDListItemView
+class ProviderItemView extends KDListItemView
 
   constructor:(options = {}, data)->
 

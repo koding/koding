@@ -31,15 +31,15 @@ class AccountCredentialListController extends AccountListViewController
     view = @getView()
     view.on "ShowShareCredentialFormFor", @bound "showShareCredentialFormFor"
 
-    vendorList = { }
+    providerList = { }
 
-    Vendors = ComputeProvider.vendors
+    Providers = ComputeProvider.providers
 
-    Object.keys(Vendors).forEach (vendor)=>
-      vendorList[Vendors[vendor].title] =
+    Object.keys(Providers).forEach (provider)=>
+      providerList[Providers[provider].title] =
         callback : =>
           @_addButtonMenu.destroy()
-          @showAddCredentialFormFor vendor
+          @showAddCredentialFormFor provider
 
     view.parent.addSubView addButton = new KDButtonView
       style     : "solid green small account-header-button"
@@ -54,7 +54,7 @@ class AccountCredentialListController extends AccountListViewController
           arrow       :
             margin    : -4
             placement : "top"
-        , vendorList
+        , providerList
 
   showShareCredentialFormFor: (credential)->
 
@@ -142,12 +142,12 @@ class AccountCredentialListController extends AccountListViewController
     view.addSubView view.form
 
 
-  showAddCredentialFormFor: (vendor)->
+  showAddCredentialFormFor: (provider)->
 
     view = @getView().parent
     view.form?.destroy()
 
-    view.form = ComputeProvider.generateAddCredentialFormFor vendor
+    view.form = ComputeProvider.generateAddCredentialFormFor provider
     view.form.on "Cancel", -> view.form.destroy()
     view.form.on "CredentialAdded", (credential)=>
       credential.owner = yes
@@ -237,7 +237,7 @@ class AccountCredentialListItem extends KDListItemView
 
   pistachio:->
     """
-     {h1{#(title)}} {span{#(vendor)}}
+     {h1{#(title)}} {span{#(provider)}}
      <div class='buttons'>
       {{> @showCredentialButton}}{{> @deleteButton}}{{> @shareButton}}
      </div>
