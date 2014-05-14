@@ -22,7 +22,8 @@ class BrokerRecovery extends KDObject
       responseTimeout = KD.utils.wait 3000, =>
         @unsuccessfulAttempt++
         @emit "brokerNotResponding"
-        console.warn 'broker not responding'
+
+        KD.utils.warnAndLog 'broker not responding', {@unsuccessfulAttempt}
 
       @broker.ping =>
         @unsuccessfulAttempt = 0
