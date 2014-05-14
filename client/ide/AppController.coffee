@@ -31,20 +31,17 @@ class IDEAppController extends AppController
           views         : [
             {
               type      : "custom"
-              paneClass : KDView
-              partial   : "FILES"
+              paneClass : IDEFilesTabView
             },
             {
               type      : "custom"
-              paneClass : KDView
-              partial   : "EDITOR"
+              paneClass : IDEEditorTabView
             }
           ]
         },
         {
           type          : "custom"
-          paneClass     : KDView
-          partial       : "CHAT"
+          paneClass     : IDESocialsTabView
         }
       ]
 
