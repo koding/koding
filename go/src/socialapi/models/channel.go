@@ -340,8 +340,8 @@ func (c *Channel) FetchChannelIdByNameAndGroupName(name, groupName string) (int6
 			"name":       name,
 			"group_name": groupName,
 		},
-		Limit: 1,
-		Pluck: "id",
+		Pagination: *bongo.NewPagination(1, 0),
+		Pluck:      "id",
 	}
 	var ids []int64
 	if err := c.Some(&ids, query); err != nil {
