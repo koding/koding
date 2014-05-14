@@ -170,8 +170,7 @@ func validateSubscriptionRequest(req *models.NotificationRequest) error {
 		return err
 	}
 
-	cm := socialmodels.NewChannelMessage()
-	if err := cm.ById(req.TargetId); err != nil {
+	if err := socialmodels.NewChannelMessage().ById(req.TargetId); err != nil {
 		return err
 	}
 
@@ -195,8 +194,7 @@ func validateAccount(accountId int64) error {
 }
 
 func validateMessage(messageId int64) error {
-	cm := socialmodels.NewChannelMessage()
-	if err := cm.ById(messageId); err != nil {
+	if err := socialmodels.NewChannelMessage().ById(messageId); err != nil {
 		if err == gorm.RecordNotFound {
 			return errors.New("Channel message does not exist")
 		}
