@@ -85,8 +85,9 @@ module.exports = class ComputeProvider extends Base
 
   revive = do ->
 
-    (fn) -> ->
+    (fn, rc) -> ->
 
+      [fn, rc] = [rc, fn]  if rc?
       [client, options, callback] = arguments
 
       if typeof callback isnt 'function'
@@ -102,21 +103,28 @@ module.exports = class ComputeProvider extends Base
 
       args = [ arguments... ]
 
-      # This is Koding only which doesn't need a valid credential
-      # since the user session is enough for koding provider for now.
-      if provider is 'koding'
-        fn.apply @, args
-        return
+      reviveClient client, (err, revivedClient)=>
 
-      if not credential?
-        return callback new KodingError \
-          "Credential is required.", "MissingCredential"
+        return callback err        if err
+        args[0].r = revivedClient  if revivedClient?
 
-      checkCredential client, credential, (err, cred)=>
+        # This is Koding only which doesn't need a valid credential
+        # since the user session is enough for koding provider for now.
+        if provider is 'koding'
+          fn.apply @, args
+          return
 
-        if err then return callback err
-        args[1].credential = cred
-        fn.apply @, args
+        if not credential?
+          return callback new KodingError \
+            "Credential is required.", "MissingCredential"
+
+        checkCredential client, credential, (err, cred)=>
+
+          if err then return callback err
+          args[1].credential = cred
+          fn.apply @, args
+
+      , !!rc
 
 
   @providers = PROVIDERS
