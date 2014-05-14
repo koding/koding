@@ -177,7 +177,7 @@ func (n *NotificationWorkerController) LeaveGroup(data []byte) error {
 		return err
 	}
 
-	if cp.StatusConstant == models.NotificationContent_TYPE_LEAVE {
+	if cp.StatusConstant == socialapimodels.ChannelParticipant_STATUS_LEFT {
 		return processChannelParticipant(cp, models.NotificationContent_TYPE_LEAVE)
 	}
 
