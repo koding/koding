@@ -6,6 +6,14 @@ class SocialApiController extends KDController
 
     KD.getSingleton("mainController").ready @bound "openGroupChannel"
 
+  getPrefetchedData:->
+    return {} unless KD.socialApiData
+    KD.socialApiData["popularTopics"] = mapChannels KD.socialApiData["popularTopics"]
+    KD.socialApiData["followedChannels"] = mapChannels KD.socialApiData["followedChannels"]
+    KD.socialApiData["pinnedMessages"] = mapActivities KD.socialApiData["pinnedMessages"]
+    KD.socialApiData["privateMessages"] = mapPrivateMessages KD.socialApiData["privateMessages"]
+    return KD.socialApiData
+
   openGroupChannel: ->
     # to - do refactor this part to use same functions with other parts
     groupsController = KD.singleton "groupsController"
@@ -51,6 +59,7 @@ class SocialApiController extends KDController
 
     return m
 
+  mapActivities: mapActivities
   mapActivities = (messages)->
     # if no result, no need to do something
     return messages unless messages
@@ -129,6 +138,7 @@ class SocialApiController extends KDController
       return callback err if err
       return callback null, mapPrivateMessages result
 
+  mapPrivateMessages: mapPrivateMessages
   mapPrivateMessages = (messages)->
     messages = [].concat(messages)
     return [] unless messages?.length > 0
@@ -153,6 +163,7 @@ class SocialApiController extends KDController
       mappedAccounts.push {_id: account, constructorName : "JAccount"}
     return mappedAccounts
 
+  mapChannels: mapChannels
   mapChannels = (channels)->
     return channels unless channels
     revivedChannels = []

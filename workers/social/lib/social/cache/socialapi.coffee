@@ -1,0 +1,44 @@
+{dash}         = require 'bongo'
+SocialChannel  = require '../models/socialapi/channel'
+SocialMessage  = require '../models/socialapi/message'
+
+
+module.exports = (options={}, callback)->
+  {bongoModels, client} = options
+  unless bongoModels
+    console.error "bongo is not defined"
+    return callback null, []
+
+
+  fetchPopularTopics = (bongoModels, client, cb)->
+    options =
+      type        : "weekly"
+      channelName : "koding"
+
+    SocialChannel.fetchPopularTopics client, options, cb
+
+  fetchFollowedChannels = (bongoModels, client, cb)->
+    SocialChannel.fetchFollowedChannels client, {}, cb
+
+  fetchPinnedMessages = (bongoModels, client, cb)->
+    SocialChannel.fetchPinnedMessages client, {}, cb
+
+  fetchPrivateMessages = (bongoModels, client, cb)->
+    SocialMessage.fetchPrivateMessages client, {}, cb
+
+  reqs = [
+    { fn:fetchPopularTopics,     key: 'popularTopics'    }
+    { fn:fetchFollowedChannels,  key: 'followedChannels' }
+    { fn:fetchPinnedMessages,    key: 'pinnedMessages'   }
+    { fn:fetchPrivateMessages,   key: 'privateMessages'  }
+  ]
+
+  queue = []
+  queue.localPrefetchedFeeds = {}
+  queue = reqs.map (req)-> ->
+    req.fn bongoModels, client, (err, data)->
+      queue.localPrefetchedFeeds or= {}
+      queue.localPrefetchedFeeds[req.key] = data
+      queue.fin()
+
+  dash queue, ()-> callback null, queue.localPrefetchedFeeds
