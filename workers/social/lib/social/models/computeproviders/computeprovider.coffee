@@ -80,6 +80,8 @@ module.exports = class ComputeProvider extends Base
           (signature Object, Function)
         fetchProviders  :
           (signature Function)
+        createGroupStack:
+          (signature Function)
 
   revive = do ->
 
@@ -232,3 +234,33 @@ module.exports = class ComputeProvider extends Base
           "Failed to create Machine for ", {users, groups}
 
       callback null, machine
+
+
+  @createGroupStack = secure (client, callback)->
+
+    { context: group } = client
+
+
+    reviveClient client, (err, res)=>
+
+      return callback err  if err
+
+      { user, group } = res
+
+      # TODO Make this works with multiple stacks ~ gg
+      stackTemplateId = group.stackTemplates[0]
+
+      JStackTemplate = require "./stacktemplate"
+      JStackTemplate.one { _id: stackTemplateId }, (err, template)=>
+
+        if err
+          console.warn "Failed to fetch stack template for #{group.slug} group"
+          console.warn "Failed to create stack for #{user.username} !!"
+          return console.error err
+
+        if not template?
+          console.warn "Stack template is not exists for #{group.slug} group"
+          console.warn "Failed to create stack for #{user.username} !!"
+          return
+
+        console.log "Good to go #{user.username}!", template
