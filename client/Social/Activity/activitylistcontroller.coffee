@@ -28,23 +28,9 @@ class ActivityListController extends KDListViewController
     @hiddenItems = []
 
 
-  listActivities: (activities) ->
+  instantiateListItems: (items) ->
 
-    @hideLazyLoader()
-
-    return  unless activities.length > 0
-
-    @addItem activity for activity in activities
-
-
-
-
-
-
-
-
-
-
+    super items.filter (item) => not @itemForId item.getId()
 
 
   # LEGACY
@@ -76,15 +62,6 @@ class ActivityListController extends KDListViewController
     id = KD.whoami().getId()
     id? and id in [activity.originId, activity.anchor?.id]
 
-  addItem:(activity, index, animation) ->
-    dataId = activity.getId?() or activity._id or activity.id
-    if dataId?
-      if @itemsIndexed[dataId]
-        log "duplicate entry", activity.bongo_?.constructorName, dataId
-      else
-        @itemsIndexed[dataId] = activity
-        super activity, index, animation
-
   unhideNewHiddenItems: ->
 
     @hiddenItems.forEach (item)-> item.show()
@@ -93,11 +70,6 @@ class ActivityListController extends KDListViewController
 
     unless KD.getSingleton("router").getCurrentPath() is "/Activity"
       KD.getSingleton("activityController").clearNewItemsCount()
-
-  instantiateListItems:(items)->
-    newItems = super
-    @checkIfLikedBefore (item.getId()  for item in items)
-    return newItems
 
   bindItemEvents: (item) ->
     item.on "TagsUpdated", (tags) ->
