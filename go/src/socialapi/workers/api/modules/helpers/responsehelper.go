@@ -2,7 +2,7 @@ package helpers
 
 import (
 	"errors"
-	"github.com/koding/logging"
+	"github.com/koding/api/helpers"
 	"net/http"
 	"net/url"
 	"socialapi/models"
@@ -32,16 +32,12 @@ import (
 // 		Error:    nil,
 // 	}
 // }
-
-var Log logging.Logger
-
 func NewBadRequestResponse(err error) (int, http.Header, interface{}, error) {
 	if err == nil {
 		err = errors.New("Request is not valid")
 	}
-	if Log != nil {
-		Log.Error("Bad Request: %s", err)
-	}
+
+	helpers.MustGetLogger().Error("Bad Request: %s", err)
 
 	return http.StatusBadRequest, nil, nil, err
 }
