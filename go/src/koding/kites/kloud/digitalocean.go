@@ -30,8 +30,12 @@ func (d *DigitalOcean) Build(path string) error {
 		return fmt.Errorf("Failed to parse template: %s", err)
 	}
 
+	if len(template.Builders) == 0 {
+		return errors.New("No builder is available")
+	}
+
 	if len(template.Builders) != 1 {
-		return fmt.Errorf("Failed to find build in the template: %v", template.BuildNames())
+		return errors.New("Only on builder is supported currently")
 	}
 
 	if _, ok := template.Builders["digitalocean"]; !ok {
