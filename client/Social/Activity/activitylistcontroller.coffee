@@ -72,20 +72,9 @@ class ActivityListController extends KDListViewController
     @bindItemEvents subject
     return subject
 
-
-
   isMine:(activity)->
     id = KD.whoami().getId()
     id? and id in [activity.originId, activity.anchor?.id]
-
-
-  checkIfLikedBefore:(activityIds)->
-    KD.remote.api.CActivity.checkIfLikedBefore activityIds, (err, likedIds)=>
-      for activity in @getListView().items when activity.data.getId().toString() in likedIds
-        likeView = activity.subViews.first.actionLinks?.likeView
-        if likeView
-          likeView.setClass "liked"
-          likeView._currentState = yes
 
   addItem:(activity, index, animation) ->
     dataId = activity.getId?() or activity._id or activity.id

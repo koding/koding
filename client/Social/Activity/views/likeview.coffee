@@ -5,7 +5,6 @@ class ActivityLikeView extends JView
     options.tagName            or= 'span'
     options.cssClass           or= 'like-view'
     options.tooltipPosition    or= 'se'
-    options.checkIfLikedBefore  ?= no
     options.useTitle            ?= yes
 
     super options, data
