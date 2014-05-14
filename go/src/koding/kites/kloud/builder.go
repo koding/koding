@@ -7,7 +7,7 @@ import (
 	"github.com/koding/kite"
 )
 
-var providers = map[string]Provider{
+var providers = map[string]Builder{
 	"digitalocean": &DigitalOcean{},
 }
 
