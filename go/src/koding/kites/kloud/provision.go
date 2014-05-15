@@ -8,7 +8,8 @@ const (
 	klientKeyDir = "/opt/kite/klient/key"
 )
 
-/* KloudProvisioner is a list of packer provisioners that is responsible of deploying and setting up a Klient deb, example JSON data is as below:
+/* KloudProvisioner is a list of packer provisioners that is responsible of
+ deploying and setting up a Klient deb, example JSON data is as below:
 
 "provisioners": [
   {
@@ -32,6 +33,8 @@ const (
 
 */
 
+// klientProvisioner is JSON abstraction mapped to Go struct. This can be
+// Marshaled and injected directly into packer.ParseTemplate()
 var klientProvisioner = []interface{}{
 	map[string]interface{}{
 		"type":        "file",
@@ -46,7 +49,7 @@ var klientProvisioner = []interface{}{
 			"mkdir -p " + klientKeyDir,
 		},
 	},
-	map[string]string{
+	map[string]interface{}{
 		"type":        "file",
 		"source":      klientKey,
 		"destination": klientKeyDir + "/" + klientKey,
@@ -59,7 +62,10 @@ var klientProvisioner = []interface{}{
 	},
 }
 
-var kloudRawProvisioner = packer.Template{
+// klientTemplate is ready to used and unmarshalled packer.Template. This is
+// created only for future references where we might decide to not use
+// packer.ParseTemplate()
+var klientTemplate = packer.Template{
 	Provisioners: []packer.RawProvisionerConfig{
 		{
 			Type: "file",
