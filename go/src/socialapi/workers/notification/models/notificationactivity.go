@@ -34,14 +34,6 @@ func (a *NotificationActivity) BeforeUpdate() {
 	a.Obsolete = true
 }
 
-func (a *NotificationActivity) AfterCreate() {
-	bongo.B.AfterCreate(a)
-}
-
-func (a *NotificationActivity) AfterUpdate() {
-	bongo.B.AfterUpdate(a)
-}
-
 func (a *NotificationActivity) GetId() int64 {
 	return a.Id
 }

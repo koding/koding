@@ -32,6 +32,27 @@ type Notification struct {
 	UnsubscribedAt time.Time `json:"unsubscribedAt"`
 }
 
+func (n *Notification) BeforeCreate() {
+	if n.UnsubscribedAt.Equal(ZeroDate()) && n.SubscribedAt.Equal(ZeroDate()) {
+		n.SubscribedAt = time.Now()
+	}
+}
+
+func (n *Notification) BeforeUpdate() {
+	if n.UnsubscribedAt.Equal(ZeroDate()) && !n.SubscribeOnly {
+		n.Glanced = false
+		n.ActivatedAt = time.Now()
+	}
+}
+
+func (n *Notification) AfterCreate() {
+	bongo.B.AfterCreate(n)
+}
+
+func (n *Notification) AfterUpdate() {
+	bongo.B.AfterUpdate(n)
+}
+
 func (n *Notification) GetId() int64 {
 	return n.Id
 }
@@ -208,19 +229,6 @@ func (n *Notification) FetchContent() (*NotificationContent, error) {
 	}
 
 	return nc, nil
-}
-
-func (n *Notification) BeforeCreate() {
-	if n.UnsubscribedAt.Equal(ZeroDate()) && n.SubscribedAt.Equal(ZeroDate()) {
-		n.SubscribedAt = time.Now()
-	}
-}
-
-func (n *Notification) BeforeUpdate() {
-	if n.UnsubscribedAt.Equal(ZeroDate()) {
-		n.Glanced = false
-		n.ActivatedAt = time.Now()
-	}
 }
 
 func (n *Notification) Glance() error {
