@@ -1,5 +1,7 @@
 class NFileItemView extends KDCustomHTMLView
 
+  JView.mixin @prototype
+
   loaderRequiredEvents = ['job', 'remove', 'save', 'saveAs']
 
   constructor:(options = {},data)->
