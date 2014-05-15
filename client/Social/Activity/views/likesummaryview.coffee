@@ -2,7 +2,7 @@ class ActivityLikeSummaryView extends JView
 
   constructor: (options = {}, data) ->
 
-    options.cssClass = KD.utils.curry "like-summary", options.cssClass
+    options.cssClass = KD.utils.curry "like-summary hidden", options.cssClass
 
     super options, data
 
@@ -46,8 +46,6 @@ class ActivityLikeSummaryView extends JView
 
     super
 
-    if @getData().interactions.like.actorsCount is 0
-    then @setClass 'hidden'
 
     names  = []
     strong = (x) -> "<strong>#{x}</strong>"
