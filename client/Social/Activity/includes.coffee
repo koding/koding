@@ -12,7 +12,7 @@ module.exports = [
   "sidebar/topicitem.coffee"
   "sidebar/pinneditem.coffee"
 
-  "messagepane.coffee"
+  "views/messagepane.coffee"
 
   # Activity commons
   "views/feedcoverphotoview.coffee"
