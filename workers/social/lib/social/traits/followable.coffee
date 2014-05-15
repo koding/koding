@@ -165,8 +165,8 @@ module.exports = class Followable
               actorType : 'follower'
               follower  : ObjectRef(follower).data
               group     : group
-            SocialNotification = require '../models/socialapi/notification'
-            SocialNotification.follow client, this, (err) -> console.warn err  if err
+            SocialChannel = require '../models/socialapi/channel'
+            SocialChannel.followUser client, {followee: this}, (err) -> console.warn err  if err
 
             follower.updateFollowingCount @, action
 
@@ -208,6 +208,10 @@ module.exports = class Followable
           followingCount  : @getAt('counts.following')
           follower        : follower
           action          : action
+
+        SocialChannel = require '../models/socialapi/channel'
+        SocialChannel.followUser client, {followee: this, unfollow: yes}, (err) ->
+          console.warn err  if err
 
         follower.updateFollowingCount @, action
 
