@@ -70,7 +70,7 @@ module.exports = class SocialNotification extends Base
       followee.createSocialApiId (err, targetId) ->
         return callback err  if err
         {createFollowNotification} = require './requests'
-        createFollowNotification {actorId, targetId}, (err, response) ->
+        createFollowNotification {accountId: actorId, targetId}, (err, response) ->
           return callback err  if err
           return callback {message: "socialapi response error"}  unless response.status
           callback()

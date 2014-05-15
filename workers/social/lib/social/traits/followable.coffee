@@ -165,6 +165,8 @@ module.exports = class Followable
               actorType : 'follower'
               follower  : ObjectRef(follower).data
               group     : group
+            SocialNotification = require '../models/socialapi/notification'
+            SocialNotification.follow client, this, (err) -> console.warn err  if err
 
             follower.updateFollowingCount @, action
 

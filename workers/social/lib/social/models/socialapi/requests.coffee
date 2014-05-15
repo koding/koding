@@ -182,7 +182,7 @@ glanceNotifications = (accountId, callback)->
   post url, {accountId}, callback
 
 createFollowNotification = (data, callback)->
-  unless data.followerId and data.followeeId
+  unless data.accountId and data.targetId
     return callback {message: "Request is not valid"}
 
   url = "#{SOCIAL_API_URL}/notification/follow"
