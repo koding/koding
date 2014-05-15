@@ -32,7 +32,7 @@ module.exports = class JErrorLog extends ElasticSearch
       month   = rawCurr.getMonth() + 1
       date    = rawCurr.getDate()
       hour    = rawCurr.getHours()
-      min     = Math.round(rawCurr.getMinutes()/uniqInt)*uniqInt # round to nearest time
+      min     = Math.round(rawCurr.getMinutes() / uniqInt) * uniqInt # round to nearest time
 
       timeStr = "#{year}#{month}#{date}#{hour}#{min}"
 
