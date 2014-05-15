@@ -2,13 +2,7 @@ class TeamworkShareModal extends KDModalView
 
   constructor: (options = {}, data) ->
 
-    options.cssClass = "tw-modal tw-share-modal"
-    options.overlay  = yes
-    options.width    = 655
-
-    super options, data
-
-    url = "#{location.origin}/Teamwork?sessionKey=#{@getDelegate().sessionKey}"
+    url = "#{location.origin}/Teamwork?sessionKey=#{options.delegate.sessionKey}"
     message =
       """
       <div class='modalformline'>
@@ -23,12 +17,15 @@ class TeamworkShareModal extends KDModalView
       </div>
       """
 
-    modal = new KDModalView
-      width            : 600
-      overlay          : yes
-      title            : "Collaborate in real-time"
-      cssClass         : "new-kdmodal"
-      content          : "<div class='modalformline'>#{message}</div>"
-      buttons          :
-        Close          :
-          callback     : -> modal.destroy()
+    options.cssClass = "tw-modal tw-share-modal"
+    options.overlay  = yes
+    options.width    = 655
+    options.overlay  = yes
+    options.title    = "Collaborate in real-time"
+    options.cssClass = "new-kdmodal"
+    options.content  = "<div class='modalformline'>#{message}</div>"
+    options.buttons  =
+      Close          :
+        callback     : => @destroy()
+
+    super options, data
