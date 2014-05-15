@@ -46,8 +46,8 @@ func NewNotificationWorkerController(rmq *rabbitmq.RabbitMQ, log logging.Logger,
 	routes := map[string]Action{
 		"api.message_reply_created":       (*NotificationWorkerController).CreateReplyNotification,
 		"api.interaction_created":         (*NotificationWorkerController).CreateInteractionNotification,
-		"api.channel_participant_created": (*NotificationWorkerController).JoinGroup,
-		"api.channel_participant_updated": (*NotificationWorkerController).LeaveGroup,
+		"api.channel_participant_created": (*NotificationWorkerController).JoinChannel,
+		"api.channel_participant_updated": (*NotificationWorkerController).LeaveChannel,
 	}
 
 	nwc.routes = routes
@@ -224,7 +224,7 @@ func (n *NotificationWorkerController) CreateInteractionNotification(data []byte
 	return nil
 }
 
-func (n *NotificationWorkerController) JoinGroup(data []byte) error {
+func (n *NotificationWorkerController) JoinChannel(data []byte) error {
 	cp, err := mapMessageToChannelParticipant(data)
 	if err != nil {
 		return err
@@ -233,7 +233,7 @@ func (n *NotificationWorkerController) JoinGroup(data []byte) error {
 	return processChannelParticipant(cp, models.NotificationContent_TYPE_JOIN)
 }
 
-func (n *NotificationWorkerController) LeaveGroup(data []byte) error {
+func (n *NotificationWorkerController) LeaveChannel(data []byte) error {
 	cp, err := mapMessageToChannelParticipant(data)
 	if err != nil {
 		return err
@@ -263,7 +263,9 @@ func processChannelParticipant(cp *socialapimodels.ChannelParticipant, typeConst
 }
 
 func interactFollow(cp *socialapimodels.ChannelParticipant, c *socialapimodels.Channel) error {
-	// TODO refactor this part
+	if cp.StatusConstant == socialapimodels.ChannelParticipant_STATUS_LEFT {
+		return nil
+	}
 	nI := models.NewFollowNotification()
 	nI.TargetId = cp.ChannelId
 	nI.NotifierId = cp.AccountId
