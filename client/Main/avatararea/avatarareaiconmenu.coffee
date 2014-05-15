@@ -71,48 +71,31 @@ class AvatarAreaIconMenu extends JView
 
 
   attachListeners:->
-
-    {listController, noNotification} = @notificationsPopup
-
     KD.getSingleton('notificationController').on 'NotificationHasArrived', ({event})=>
-
+      # No need the following
+      # @notificationsIcon.updateCount @notificationsIcon.count + 1 if event is 'ActivityIsAdded'
       if event is 'ActivityIsAdded' or 'BucketIsUpdated'
-        listController.fetchNotificationTeasers (notifications)=>
-          noNotification.hide()
-          listController.removeAllItems()
-          listController.instantiateListItems filterNotifications notifications
+        @notificationsPopup.listController.fetchNotificationTeasers (err, notifications)=>
+          return warn "Notifications cannot be received", err  if err
+          @notificationsPopup.noNotification.hide()
+          @notificationsPopup.listController.removeAllItems()
+          @notificationsPopup.listController.instantiateListItems notifications
 
-    listController.on 'NotificationCountDidChange', (count)=>
+    @notificationsPopup.listController.on 'NotificationCountDidChange', (count)=>
       @utils.killWait @notificationsPopup.loaderTimeout
       if count > 0
-      then noNotification.hide()
-      else noNotification.show()
+      then @notificationsPopup.noNotification.hide()
+      else @notificationsPopup.noNotification.show()
       @notificationsIcon.updateCount count
 
   accountChanged:(account)->
 
-    {listController} = @notificationsPopup
-    listController.removeAllItems()
+    {notificationsPopup} = this
 
-    return  unless KD.isLoggedIn()
+    notificationsPopup.listController.removeAllItems()
 
-    # Fetch Notifications
-    KD.utils.defer ->
-      listController.fetchNotificationTeasers (teasers)->
-        listController.instantiateListItems filterNotifications teasers
-
-
-  filterNotifications=(notifications)->
-    activityNameMap = [
-      "JNewStatusUpdate"
-      "JAccount"
-      "JPrivateMessage"
-      "JComment"
-      "JReview"
-      "JGroup"
-    ]
-    notifications.filter (notification) ->
-      return  unless notification.snapshot
-      try
-        snapshot = JSON.parse Encoder.htmlDecode notification.snapshot
-        snapshot.anchor.constructorName in activityNameMap
+    if KD.isLoggedIn()
+      # Fetch Notifications
+      notificationsPopup.listController.fetchNotificationTeasers (err, notifications)=>
+        return warn "Notifications cannot be received", err  if err
+        notificationsPopup.listController.instantiateListItems notifications
