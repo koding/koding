@@ -80,7 +80,8 @@ func NewRealtimeWorkerController(rmq *rabbitmq.RabbitMQ, log logging.Logger) (*R
 		"api.channel_participant_created": (*RealtimeWorkerController).ChannelParticipantAdded,
 		"api.channel_participant_deleted": (*RealtimeWorkerController).ChannelParticipantRemoved,
 
-		"notification.notification_activity_created": (*RealtimeWorkerController).NotifyUser,
+		"notification.notification_created": (*RealtimeWorkerController).NotifyUser,
+		"notification.notification_updated": (*RealtimeWorkerController).NotifyUser,
 	}
 
 	ffc.routes = routes
@@ -260,7 +261,6 @@ func (f *RealtimeWorkerController) MessageListDeleted(data []byte) error {
 	return nil
 }
 
-// TODO it looks like it needs refactoring, since it is notification structure is changed
 func (f *RealtimeWorkerController) NotifyUser(data []byte) error {
 	channel, err := f.notifierRmqConn.Channel()
 	if err != nil {
@@ -268,61 +268,63 @@ func (f *RealtimeWorkerController) NotifyUser(data []byte) error {
 	}
 	defer channel.Close()
 
-	activity, err := mapMessageToNotificationActivity(data)
+	notification, err := mapMessageToNotification(data)
 	if err != nil {
 		return err
 	}
 
 	// fetch notification content and get event type
-	nc, err := activity.FetchContent()
+	nc, err := notification.FetchContent()
 	if err != nil {
 		return err
 	}
 
-	nI, err := notificationmodels.CreateNotificationContentType(nc.TypeConstant)
+	activity := notificationmodels.NewNotificationActivity()
+	activity.NotificationContentId = nc.Id
+	if err := activity.LastActivity(); err != nil {
+		return err
+	}
+
+	// do not notify actor for her own action
+	if activity.ActorId == notification.AccountId {
+		return nil
+	}
+
+	// do not notify user when notification is not yet activated
+	if notification.ActivatedAt.IsZero() {
+		return nil
+	}
+
+	oldAccount, err := fetchNotifierOldAccount(notification.AccountId)
+	if err != nil {
+		return fmt.Errorf("an error occurred while fetching old account: %s", err)
+	}
+
+	// fetch user profile name from bongo as routing key
+	ne := &NotificationEvent{}
+	ne.Event = nc.GetEventType()
+	ne.Content = NotificationContent{
+		ActorId:      activity.ActorId,
+		TargetId:     nc.TargetId,
+		TypeConstant: nc.TypeConstant,
+	}
+
+	notificationMessage, err := json.Marshal(ne)
 	if err != nil {
 		return err
 	}
 
-	nI.SetTargetId(nc.TargetId)
-	users, err := nI.GetNotifiedUsers(nc.Id)
+	routingKey := oldAccount.Profile.Nickname
+	f.log.Debug("notify it %s", routingKey)
+	err = channel.Publish(
+		"notification",
+		routingKey,
+		false,
+		false,
+		amqp.Publishing{Body: notificationMessage},
+	)
 	if err != nil {
-		return err
-	}
-
-	for _, user := range users {
-		oldAccount, err := fetchNotifierOldAccount(user)
-		if err != nil {
-			f.log.Error("an error occurred while fetching old account: %s", err)
-			break
-		}
-
-		// fetch user profile name from bongo as routing key
-		ne := &NotificationEvent{}
-		ne.Event = nc.GetEventType()
-		ne.Content = NotificationContent{
-			ActorId:      activity.ActorId,
-			TargetId:     nc.TargetId,
-			TypeConstant: nc.TypeConstant,
-		}
-
-		notificationMessage, err := json.Marshal(ne)
-		if err != nil {
-			f.log.Error("an error occurred: %s", err)
-			break
-		}
-
-		routingKey := oldAccount.Profile.Nickname
-		err = channel.Publish(
-			"notification",
-			routingKey,
-			false,
-			false,
-			amqp.Publishing{Body: notificationMessage},
-		)
-		if err != nil {
-			f.log.Error("an error occurred while notifying user: %s", err)
-		}
+		return fmt.Errorf("an error occurred while notifying user: %s", err)
 	}
 
 	return nil
@@ -484,8 +486,8 @@ func (f *RealtimeWorkerController) sendNotification(accountId int64, eventName s
 	)
 }
 
-func mapMessageToNotificationActivity(data []byte) (*notificationmodels.NotificationActivity, error) {
-	n := notificationmodels.NewNotificationActivity()
+func mapMessageToNotification(data []byte) (*notificationmodels.Notification, error) {
+	n := notificationmodels.NewNotification()
 	if err := json.Unmarshal(data, n); err != nil {
 		return nil, err
 	}
