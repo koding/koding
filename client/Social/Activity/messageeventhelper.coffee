@@ -7,6 +7,16 @@ class MessageEventHelper extends KDObject
     @messages = {}
 
 
+  addInteraction: (event) ->
+
+    {messageId, typeConstant} = event
+
+    return  unless message = @messages[messageId]
+
+    fn = @bound "add#{typeConstant.capitalize()}"
+    KD.utils.defer => fn message, event
+
+
   addLike: (message, {accountOldId, count}) ->
 
     {like} = message.interactions
