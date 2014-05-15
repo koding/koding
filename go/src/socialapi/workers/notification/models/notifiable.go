@@ -74,7 +74,6 @@ type ReplyNotification struct {
 
 func (n *ReplyNotification) GetNotifiedUsers(notificationContentId int64) ([]int64, error) {
 	// fetch all subscribers
-
 	notifiees, err := fetchNotifiedUsers(notificationContentId)
 	if err != nil {
 		return nil, err
@@ -94,10 +93,12 @@ func (n *ReplyNotification) GetNotifiedUsers(notificationContentId int64) ([]int
 func fetchNotifiedUsers(contentId int64) ([]int64, error) {
 	var notifiees []int64
 	n := NewNotification()
-	err := bongo.B.DB.Table(n.TableName()).
-		Where("notification_content_id = ? AND subscribed_at > ?", contentId, ZeroDate()).
-		Pluck("account_id", &notifiees).Error
-	if err != nil {
+	query := bongo.B.DB.Table(n.TableName())
+	query = query.Where("notification_content_id = ?", contentId)
+	query = query.Where("subscribed_at > ?", ZeroDate())
+	query = query.Where("unsubscribed_at = ?", ZeroDate())
+
+	if err := query.Pluck("account_id", &notifiees).Error; err != nil {
 		return nil, err
 	}
 
