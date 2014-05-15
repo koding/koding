@@ -119,6 +119,20 @@ func (a *NotificationActivity) Some(data interface{}, q *bongo.Query) error {
 	return bongo.B.Some(a, data, q)
 }
 
+func (a *NotificationActivity) LastActivity() error {
+	s := map[string]interface{}{
+		"notification_content_id": a.NotificationContentId,
+		"obsolete":                false,
+	}
+
+	q := bongo.NewQS(s)
+	q.Sort = map[string]string{
+		"id": "DESC",
+	}
+
+	return a.One(q)
+}
+
 func (a *NotificationActivity) FetchContent() (*NotificationContent, error) {
 	nc := NewNotificationContent()
 	if err := nc.ById(a.NotificationContentId); err != nil {
