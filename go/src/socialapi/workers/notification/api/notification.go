@@ -63,22 +63,6 @@ func Glance(u *url.URL, h http.Header, req *models.Notification) (int, http.Head
 	return socialhelpers.NewDefaultOKResponse()
 }
 
-func Follow(u *url.URL, h http.Header, req *models.NotificationRequest) (int, http.Header, interface{}, error) {
-	c := socialmodels.NewChannel()
-	c.TypeConstant = socialmodels.Channel_TYPE_FOLLOWERS
-	c.CreatorId = req.TargetId
-	if err := c.Create(); err != nil {
-		return socialhelpers.NewBadRequestResponse(err)
-	}
-
-	_, err := c.AddParticipant(req.AccountId)
-	if err != nil {
-		return socialhelpers.NewBadRequestResponse(err)
-	}
-
-	return socialhelpers.NewDefaultOKResponse()
-}
-
 func SubscribeMessage(u *url.URL, h http.Header, req *models.NotificationRequest) (int, http.Header, interface{}, error) {
 	if err := subscription(req, NOTIFICATION_TYPE_SUBSCRIBE); err != nil {
 		return socialhelpers.NewBadRequestResponse(err)
