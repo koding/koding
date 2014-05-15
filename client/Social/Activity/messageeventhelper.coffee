@@ -7,6 +7,15 @@ class MessageEventHelper extends KDObject
     @messages = {}
 
 
+  bindListeners: (message) ->
+
+    @messages[message.getId()] = message
+
+    message
+      .on "InteractionAdded", @bound "addInteraction"
+      .on "InteractionRemoved", @bound "removeInteraction"
+
+
   addInteraction: (event) ->
 
     {messageId, typeConstant} = event
