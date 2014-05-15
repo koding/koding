@@ -6,8 +6,16 @@ import (
 	"socialapi/config"
 	"time"
 
+	"github.com/VerbalExpressions/GoVerbalExpressions"
 	"github.com/koding/bongo"
 )
+
+var mentionRegex = verbalexpressions.New().
+	Find("@").
+	BeginCapture().
+	Word().
+	EndCapture().
+	Regex()
 
 type ChannelMessage struct {
 	// unique identifier of the channel message
@@ -295,4 +303,25 @@ func (c *ChannelMessage) FetchMessagesByChannelId(channelId int64, q *Query) ([]
 		return make([]ChannelMessage, 0), nil
 	}
 	return messages, nil
+}
+
+func (c *ChannelMessage) GetMentionedUsernames() []string {
+	flattened := make([]string, 0)
+
+	res := mentionRegex.FindAllStringSubmatch(c.Body, -1)
+	if len(res) == 0 {
+		return flattened
+	}
+
+	participants := map[string]struct{}{}
+	// remove duplicate mentions
+	for _, ele := range res {
+		participants[ele[1]] = struct{}{}
+	}
+
+	for participant := range participants {
+		flattened = append(flattened, participant)
+	}
+
+	return flattened
 }
