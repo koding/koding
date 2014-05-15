@@ -16,14 +16,15 @@ func (d *DigitalOcean) Build(raws ...interface{}) (err error) {
 		return err
 	}
 
-	fmt.Printf("string(data) %+v\n", string(data))
-
 	provider := &packer.Provider{
 		BuildName: "digitalocean",
 		Data:      data,
 	}
+	fmt.Printf("provider %+v\n", provider)
 
-	return provider.Build()
+	return nil
+
+	// return provider.Build()
 }
 
 func (d *DigitalOcean) Start() error   { return nil }

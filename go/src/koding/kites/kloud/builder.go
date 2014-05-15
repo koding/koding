@@ -53,9 +53,9 @@ func build(r *kite.Request) (interface{}, error) {
 
 // templateData converts the given raws interface to a []byte data that can
 // used to pass into packer.Template()
-func templateData(raws ...interface{}) ([]byte, error) {
+func templateData(raw interface{}) ([]byte, error) {
 	packerTemplate := map[string]interface{}{}
-	packerTemplate["builders"] = raws[0]
+	packerTemplate["builders"] = raw
 	packerTemplate["provisioners"] = klientProvisioner
 
 	return json.Marshal(packerTemplate)
