@@ -58,7 +58,7 @@ class ActivityActionsView extends JView
       .on "AsyncJobFinished", @loader.bound "hide"
 
 
-  reply: (click) ->
+  reply: (event) ->
 
     KD.utils.stopDOMEvent event
     @emit "Reply"
