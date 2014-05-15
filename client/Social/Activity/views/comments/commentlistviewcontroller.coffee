@@ -13,8 +13,6 @@ class CommentListViewController extends KDListViewController
 
     {delegate} = options
 
-    @forwardEvent delegate, "Mention"
-
 
   instantiateListItems: (items) ->
 

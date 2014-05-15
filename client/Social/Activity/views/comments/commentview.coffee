@@ -19,6 +19,8 @@ class CommentView extends KDView
     @forwardEvent @header, "AsyncJobStarted"
     @forwardEvent @header, "AsyncJobDone"
 
+    @on "Reply", @inputForm.bound "setFocus"
+
 
   reply: (body, callback = noop) ->
 
