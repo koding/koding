@@ -2,29 +2,28 @@ ProviderInterface = require './providerinterface'
 
 module.exports = class Amazon extends ProviderInterface
 
-  @ping = (client, callback)->
+  @ping = (client, options, callback)->
     callback null, "AWS RULEZ #{ client.connection.delegate.profile.nickname }!"
 
   @create = (client, options, callback)->
 
     { credential, name } = options
 
-    credential.fetchData (err, credData)->
+    @fetchCredentialData credential, (err, credential)->
 
-      if err?
-        return new KodingError "Failed to fetch credential"
+      return callback err  if err?
 
       callback null,
         {
           "variables": {
-            "aws_access_key": credData.meta.accessKeyId
-            "aws_secret_key": credData.meta.secretAccessKey
+            "aws_access_key": credential.accessKeyId
+            "aws_secret_key": credential.secretAccessKey
           },
           "builders": [{
             "type": "amazon-ebs",
             "access_key": "{{user `aws_access_key`}}",
             "secret_key": "{{user `aws_secret_key`}}",
-            "region": credData.meta.region,
+            "region": credential.region,
             "source_ami": "ami-de0d9eb7",
             "instance_type": name,
             "ssh_username": "ubuntu",
