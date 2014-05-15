@@ -341,14 +341,3 @@ class ActivityEditWidget extends ActivityInputWidget
     @addSubView @embedBox
     @input.addSubView @submitButton
     @input.addSubView @cancelButton
-
-class EmailInputWidget extends ActivityInputWidget
-  constructor: (options = {}, data) ->
-    super options, data
-
-    @submitButton = new KDButtonView
-      type        : "submit"
-      cssClass    : "solid green"
-      loader      : yes
-      title       : "Email"
-      callback    : => @emit 'Submit'
