@@ -1,4 +1,6 @@
-class GroupsMembershipPolicyDetailView extends KDView
+class GroupsMembershipPolicyDetailView extends JView
+
+  JView.mixin @prototype
 
   constructor:(options = {}, data)->
     super options, data

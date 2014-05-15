@@ -1,5 +1,7 @@
 class ProfileLinkView extends LinkView
 
+  JView.mixin @prototype
+
   constructor:(options = {}, data)->
     options.noTooltip ?= yes
 
@@ -36,7 +38,7 @@ class ProfileLinkView extends LinkView
 
   pistachio:->
     {profile} = @getData()
-    if profile.firstName is "" and profile.lastName is ""
-      super "{{#(profile.nickname)}}"
-    else
-      super "{{#(profile.firstName)+' '+#(profile.lastName)}}"
+    JView::pistachio.call this,
+      if profile.firstName is "" and profile.lastName is ""
+      then "{{#(profile.nickname)}}"
+      else "{{#(profile.firstName)+' '+#(profile.lastName)}}"

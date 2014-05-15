@@ -1,5 +1,7 @@
 class NavigationLink extends KDListItemView
 
+  JView.mixin @prototype
+
   NAMES    =
     Editor : 'Ace'
 

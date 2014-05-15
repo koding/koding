@@ -134,6 +134,9 @@ class BadgeRules extends JView
 
 
 class BadgeUsersItem extends KDListItemView
+
+  JView.mixin @prototype
+
   constructor: (options ={}, data)->
     super options, data
     @avatar    = new AvatarImage
@@ -148,8 +151,6 @@ class BadgeUsersItem extends KDListItemView
         @getDelegate().removeItem this
         @getDelegate().emit "RemoveBadgeUser", @getData()
 
-  viewAppended: JView::viewAppended
-
   pistachio:->
     """
      {{> @avatar}}
@@ -159,6 +160,9 @@ class BadgeUsersItem extends KDListItemView
 
 
 class BadgeRuleItem extends KDListItemView
+
+  JView.mixin @prototype
+
   constructor: (options = {}, data) ->
     options.cssClass = 'rule-item'
     super options, data

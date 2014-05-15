@@ -1,5 +1,7 @@
 class LinkGroup extends KDCustomHTMLView
 
+  JView.mixin @prototype
+
   constructor:(options = {}, data)->
 
     options.tagName         = 'div'
