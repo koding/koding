@@ -147,6 +147,23 @@ module.exports = class SocialChannel extends Base
       return callback {message: "Channel id is not set for topic unfollowing"}
     @doRequest 'unfollowTopic', client, options, callback
 
+  @followUser = secure (client, options, callback)->
+    {connection:{delegate}} = client
+    return callback {message: "Access denied"}  if delegate.type isnt 'registered'
+    unless options.followee
+      return callback {message: "Followee is not set"}
+
+    delegate.createSocialApiId (err, actorId) ->
+      return callback err  if err
+      options.followee.createSocialApiId (err, targetId) ->
+        return callback err  if err
+        {followUser, unfollowUser} = require './requests'
+        data =
+          accountId   : actorId
+          creatorId   : targetId
+        method = if options.unfollow then unfollowUser else followUser
+        method data, callback
+
   @doRequest = (funcName, client, options, callback)->
     fetchGroup client, (err, group)->
       return callback err if err
