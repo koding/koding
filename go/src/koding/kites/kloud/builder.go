@@ -11,7 +11,8 @@ import (
 // Builder is used to create and provisiong a single image or machine for a
 // given Provider.
 type Builder interface {
-	Build(...interface{}) error
+	Prepare(...interface{}) error
+	Build() error
 }
 
 // Controller manages a machine
@@ -23,8 +24,9 @@ type Controller interface {
 }
 
 type buildArgs struct {
-	Provider string
-	Builder  map[string]interface{}
+	Provider   string
+	Credential map[string]interface{}
+	Builder    map[string]interface{}
 }
 
 var providers = map[string]Builder{
@@ -44,7 +46,11 @@ func build(r *kite.Request) (interface{}, error) {
 		return nil, errors.New("provider not supported")
 	}
 
-	if err := provider.Build(args.Builder); err != nil {
+	if err := provider.Prepare(args.Credential, args.Builder); err != nil {
+		return nil, err
+	}
+
+	if err := provider.Build(); err != nil {
 		return nil, err
 	}
 

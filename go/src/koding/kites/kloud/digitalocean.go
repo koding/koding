@@ -1,27 +1,69 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"koding/kites/kloud/packer"
+
+	"github.com/mitchellh/packer/builder/digitalocean"
 )
 
 type DigitalOcean struct {
+	Name     string
+	Data     []byte
 	ClientID string
 	ApiKey   string
 }
 
-func (d *DigitalOcean) Build(raws ...interface{}) (err error) {
-	data, err := templateData(raws)
+func (d *DigitalOcean) Prepare(raws ...interface{}) (err error) {
+	if len(raws) != 2 {
+		return errors.New("need at least two arguments")
+	}
+
+	creds, ok := raws[0].(map[string]interface{})
+	if !ok {
+		return fmt.Errorf("malformed credential data %v", raws[0])
+	}
+
+	if len(creds) == 0 {
+		return errors.New("credential is empty")
+	}
+
+	d.ClientID, ok = creds["clientID"].(string)
+	if !ok {
+		return fmt.Errorf("clientID must be string")
+	}
+
+	d.ApiKey, ok = creds["apiKey"].(string)
+	if !ok {
+		return fmt.Errorf("apiKey must be string")
+	}
+
+	d.Name = "digitalocean"
+
+	d.Data, err = templateData(raws[1])
 	if err != nil {
 		return err
 	}
 
+	return nil
+}
+
+func (d *DigitalOcean) Build() (err error) {
 	provider := &packer.Provider{
 		BuildName: "digitalocean",
-		Data:      data,
+		Data:      d.Data,
 	}
 	fmt.Printf("provider %+v\n", provider)
 
+	client := digitalocean.DigitalOceanClient{}
+	do := client.New(d.ClientID, d.ApiKey)
+	images, err := do.Images()
+	if err != nil {
+		return err
+	}
+
+	fmt.Printf("images %+v\n", images)
 	return nil
 
 	// return provider.Build()
