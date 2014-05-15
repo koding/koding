@@ -2,7 +2,6 @@ package main
 
 import (
 	"encoding/json"
-	"fmt"
 	"koding/kites/kloud/packer"
 )
 
@@ -12,29 +11,21 @@ type DigitalOcean struct {
 }
 
 func (d *DigitalOcean) Build(raws ...interface{}) (err error) {
-	fakeTemplate := map[string]interface{}{}
-	fakeTemplate["builders"] = raws
-	fakeTemplate["provisioners"] = klientProvisioner
+	packerTemplate := map[string]interface{}{}
+	packerTemplate["builders"] = raws
+	packerTemplate["provisioners"] = klientProvisioner
 
-	data, err := json.Marshal(fakeTemplate)
+	data, err := json.Marshal(packerTemplate)
 	if err != nil {
 		return err
 	}
 
-	provider := &packer.Provider{
-		BuildName:    "digitalocean",
-		TemplatePath: "testdata/digitalocean_packer.json",
-		Data:         data,
-	}
-
-	fmt.Printf("string(data) %+v\n", string(data))
+	provider := &packer.Provider{Data: data}
 
 	template, err := provider.NewTemplate()
 	if err != nil {
 		return err
 	}
-
-	fmt.Printf("template %+v\n", template)
 
 	// for _, t := range template.Builders {
 	// 	fmt.Printf("t %+v\n", t)

@@ -37,7 +37,7 @@ func (p *Provider) Build() ([]packer.Artifact, error) {
 			return nil, err
 		}
 	} else {
-		return nil, errors.New("Can't find Template source, neither Data or TemplatePath is defined")
+		return nil, errors.New("Can't find Template source, neither p.Data or p.TemplatePath is defined")
 	}
 
 	if len(template.Builders) == 0 {

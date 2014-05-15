@@ -1,7 +1,10 @@
 package main
 
 import (
+	"encoding/json"
+	"flag"
 	"fmt"
+	"io/ioutil"
 	"log"
 	"os"
 	"testing"
@@ -10,8 +13,9 @@ import (
 )
 
 var (
-	kloud  *kite.Kite
-	remote *kite.Client
+	kloud        *kite.Kite
+	remote       *kite.Client
+	flagTestData = flag.String("testdata", "", "Inject test data to build method.")
 )
 
 func init() {
@@ -34,17 +38,32 @@ func init() {
 }
 
 func TestBuild(t *testing.T) {
-	args := &buildArgs{
-		Provider: "digitalocean",
-		Builder: map[string]interface{}{
-			"type":          "digitalocean",
-			"client_id":     os.Getenv("DIGITALOCEAN_API_KEY"),
-			"api_key":       os.Getenv("DIGITALOCEAN_CLIENT_ID"),
-			"image":         "ubuntu-13-10-x64",
-			"region":        "ams1",
-			"size":          "512mb",
-			"snapshot_name": "koding-{{timestamp}}",
-		},
+	args := &buildArgs{}
+
+	if *flagTestData != "" {
+		data, err := ioutil.ReadFile(*flagTestData)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		err = json.Unmarshal(data, args)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+	} else {
+		args = &buildArgs{
+			Provider: "digitalocean",
+			Builder: map[string]interface{}{
+				"type":          "digitalocean",
+				"client_id":     os.Getenv("DIGITALOCEAN_API_KEY"),
+				"api_key":       os.Getenv("DIGITALOCEAN_CLIENT_ID"),
+				"image":         "ubuntu-13-10-x64",
+				"region":        "ams1",
+				"size":          "512mb",
+				"snapshot_name": "koding-{{timestamp}}",
+			},
+		}
 	}
 
 	_, err := remote.Tell("build", args)
