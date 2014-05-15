@@ -181,12 +181,23 @@ glanceNotifications = (accountId, callback)->
   url = "#{SOCIAL_API_URL}/notification/glance"
   post url, {accountId}, callback
 
-createFollowNotification = (data, callback)->
-  unless data.accountId and data.targetId
+followUser = (data, callback)->
+  followHelper data, followTopic, callback
+
+unfollowUser = (data, callback)->
+  followHelper data, unfollowTopic, callback
+
+followHelper = (data, followFn, callback) ->
+  unless data.accountId and data.creatorId
     return callback {message: "Request is not valid"}
 
-  url = "#{SOCIAL_API_URL}/notification/follow"
-  post url, data, callback
+  data.typeConstant = "followers"
+  data.name = "FollowersChannelAccount-#{data.creatorId}"
+
+  createChannel data, (err, socialApiChannel) =>
+    return callback err  if err
+    data.channelId = socialApiChannel.id
+    followFn data, callback
 
 createGroupNotification = (data, callback)->
   unless data.admins?.length and data.actorId and data.name
@@ -250,6 +261,7 @@ module.exports = {
   fetchGroupChannels
   listNotifications
   glanceNotifications
-  createFollowNotification
+  followUser
+  unfollowUser
   createGroupNotification
 }
