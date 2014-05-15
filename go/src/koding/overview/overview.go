@@ -94,6 +94,7 @@ func currentVersionHandler(w http.ResponseWriter, r *http.Request) {
 	var deploy, err = modelhelper.GetLatestVersion()
 	if err != nil {
 		fmt.Fprintf(w, "%s", err.Error())
+		return
 	}
 
 	fmt.Fprintf(w, "%v", deploy.ServerNumber)
