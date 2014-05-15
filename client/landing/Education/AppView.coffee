@@ -1,5 +1,7 @@
 class EducationView extends KDView
 
+  JView.mixin @prototype
+
   constructor:->
 
     super
@@ -27,9 +29,6 @@ class EducationView extends KDView
 
       video = @$('video')[0]
       video.play()
-
-
-  viewAppended: JView::viewAppended
 
   click:(event)->
 
