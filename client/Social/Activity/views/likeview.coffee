@@ -18,7 +18,7 @@ class ActivityLikeView extends JView
 
     @count = new ActivityLikeCount
       tooltip     :
-        gravity   : options.tooltipPosition
+        gravity   : @getOption "tooltipPosition"
         title     : ""
     , data
 
