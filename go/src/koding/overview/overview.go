@@ -81,11 +81,23 @@ func main() {
 	http.HandleFunc("/", viewHandler)
 	http.Handle("/bootstrap/", http.StripPrefix("/bootstrap/", http.FileServer(http.Dir(bootstrapFolder))))
 
+	http.HandleFunc("/current", currentVersionHandler)
+
 	fmt.Printf("koding overview started at :%d\n", port)
 	err = http.ListenAndServe(":"+strconv.Itoa(port), nil)
 	if err != nil {
 		log.Error("Error: %v", err)
 	}
+}
+
+func currentVersionHandler(w http.ResponseWriter, r *http.Request) {
+	var deploy, err = modelhelper.GetLatestVersion()
+	if err != nil {
+		fmt.Fprintf(w, "%s", err.Error())
+		return
+	}
+
+	fmt.Fprintf(w, "%v", deploy.ServerNumber)
 }
 
 func viewHandler(w http.ResponseWriter, r *http.Request) {
@@ -336,6 +348,11 @@ func switchVersion(loginName, newVersion string) error {
 	err = switchHost(socialHost, newVersion)
 	if err != nil {
 		return nil
+	}
+
+	err = modelhelper.IncVersion(newVersion)
+	if err != nil {
+		return err
 	}
 
 	msg := fmt.Sprintf("%s switched <https://koding.com|koding.com> and <https://socialkoding.com|social.koding.com> to build %s",
