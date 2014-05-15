@@ -71,6 +71,7 @@ class ActivityLikeSummaryView extends JView
 
     super
 
+    @updateActors()
 
 
   pistachio: ->
