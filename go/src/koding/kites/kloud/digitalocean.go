@@ -12,6 +12,22 @@ import (
 	"github.com/mitchellh/packer/builder/digitalocean"
 )
 
+type Event struct {
+	Id           int
+	DropletID    int
+	EventTypeID  int
+	ActionStatus string
+	Percentage   string
+}
+
+type DropletInfo struct {
+	Id       int    `json:"id"`
+	Hostname string `json:"hostname"`
+	ImageId  int    `json:"image_id"`
+	SizeId   string `json:"size_id"`
+	EventId  int    `json:"event_id"`
+}
+
 type DigitalOcean struct {
 	Client *digitalocean.DigitalOceanClient
 	Name   string
@@ -78,11 +94,12 @@ func (d *DigitalOcean) Build() (err error) {
 		BuildName: "digitalocean",
 		Data:      data,
 	}
+	fmt.Printf("provider %+v\n", provider)
 
-	// this is basically a "packer build template.json"
-	if err := provider.Build(); err != nil {
-		return err
-	}
+	// // this is basically a "packer build template.json"
+	// if err := provider.Build(); err != nil {
+	// 	return err
+	// }
 
 	// after creating the image go and get it
 	images, err := d.MyImages()
@@ -92,7 +109,6 @@ func (d *DigitalOcean) Build() (err error) {
 
 	var image digitalocean.Image
 	for _, i := range images {
-		fmt.Printf("i %+v\n", i)
 		if i.Name == snapshotName {
 			image = i
 		}
@@ -103,22 +119,47 @@ func (d *DigitalOcean) Build() (err error) {
 	}
 
 	// now create a the machine based on our created image
-	dropletId, err := d.Client.CreateDroplet(
-		"arslan",         // custom droplet name, must be formatted by hostname rules
-		d.Builder.Size,   // size name
-		image.Name,       // image name
-		d.Builder.Region, // region name
-		0,                // ssh key ID, we don't use any
-		d.Builder.PrivateNetworking, // private networking
-	)
+	dropletInfo, err := d.CreateDroplet("arslannew", image.Id)
 	if err != nil {
 		return err
 	}
 
-	fmt.Printf("success! dropletID %+v\n", dropletId)
-	return nil
+	fmt.Printf("dropletInfo %+v\n", dropletInfo)
 
-	// return provider.Build()
+	return nil
+}
+
+// CreateDroplet creates a new droplet with a hostname and the given image_id
+func (d *DigitalOcean) CreateDroplet(hostname string, image_id uint) (*DropletInfo, error) {
+	params := url.Values{}
+	params.Set("name", hostname)
+
+	found_size, err := d.Client.Size(d.Builder.Size)
+	if err != nil {
+		return nil, fmt.Errorf("Invalid size or lookup failure: '%s': %s", d.Builder.Size, err)
+	}
+
+	found_region, err := d.Client.Region(d.Builder.Region)
+	if err != nil {
+		return nil, fmt.Errorf("Invalid region or lookup failure: '%s': %s", d.Builder.Region, err)
+	}
+
+	params.Set("size_slug", found_size.Slug)
+	params.Set("image_id", strconv.Itoa(int(image_id)))
+	params.Set("region_slug", found_region.Slug)
+	params.Set("private_networking", fmt.Sprintf("%v", d.Builder.PrivateNetworking))
+
+	body, err := digitalocean.NewRequest(*d.Client, "droplets/new", params)
+	if err != nil {
+		return nil, err
+	}
+
+	info := &DropletInfo{}
+	if err := mapstructure.Decode(body, info); err != nil {
+		return nil, err
+	}
+
+	return info, nil
 }
 
 func (d *DigitalOcean) MyImages() ([]digitalocean.Image, error) {
