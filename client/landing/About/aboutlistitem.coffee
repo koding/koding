@@ -1,5 +1,7 @@
 class AboutListItem extends KDListItemView
 
+  JView.mixin @prototype
+
   constructor:(options={}, data)->
 
     options.tagName = 'li'
@@ -21,9 +23,6 @@ class AboutListItem extends KDListItemView
       tagName  : 'cite'
       cssClass : 'title'
       partial  : @getData().title
-
-
-  viewAppended: JView::viewAppended
 
   pistachio: ->
     """
