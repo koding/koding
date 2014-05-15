@@ -22,39 +22,39 @@ type Provider struct {
 	EnableDebug  bool
 }
 
-func (p *Provider) Build() ([]packer.Artifact, error) {
+func (p *Provider) Build() error {
 	var template *packer.Template
 	var err error
 
 	if p.Data != nil {
 		template, err = p.NewTemplate()
 		if err != nil {
-			return nil, err
+			return err
 		}
 	} else if p.TemplatePath != "" {
 		template, err = p.NewTemplateFile()
 		if err != nil {
-			return nil, err
+			return err
 		}
 	} else {
-		return nil, errors.New("Can't find Template source, neither p.Data or p.TemplatePath is defined")
+		return errors.New("Can't find Template source, neither p.Data or p.TemplatePath is defined")
 	}
 
 	if len(template.Builders) == 0 {
-		return nil, errors.New("No builder is available")
+		return errors.New("No builder is available")
 	}
 
 	if len(template.Builders) != 1 {
-		return nil, errors.New("Only on builder is supported currently")
+		return errors.New("Only on builder is supported currently")
 	}
 
 	if _, ok := template.Builders[p.BuildName]; !ok {
-		return nil, fmt.Errorf("Build '%s' does not exist", p.BuildName)
+		return fmt.Errorf("Build '%s' does not exist", p.BuildName)
 	}
 
 	build, err := template.Build(p.BuildName, newComponentFinder())
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	if !p.EnableDebug {
@@ -64,7 +64,7 @@ func (p *Provider) Build() ([]packer.Artifact, error) {
 
 	_, err = build.Prepare()
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	// Handle interrupts for this build
@@ -79,7 +79,16 @@ func (p *Provider) Build() ([]packer.Artifact, error) {
 		log.Printf("Build cancelled: %s", b.Name())
 	}(build)
 
-	return build.Run(p.coloredUi(), p.cache())
+	artifacts, err := build.Run(p.coloredUi(), p.cache())
+	if err != nil {
+		return err
+	}
+
+	for _, a := range artifacts {
+		fmt.Println(a.Files(), a.BuilderId(), a.Id(), a.String())
+	}
+
+	return nil
 }
 
 func (p *Provider) coloredUi() packer.Ui {
