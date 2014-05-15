@@ -35,21 +35,6 @@ class CommentViewHeader extends JView
     @emit "ListAll"
 
 
-  ownCommentArrived: ->
-
-    # Get correct number of items in list from controller
-    # I'm not sure maybe its not a good idea
-    @listedCount = @parent.commentController?.getItemCount?()
-
-    # If there are same number of comments in list with total
-    # comment size means we don't need to show new item count
-    @newItemsLink.unsetClass('in')
-
-    # If its our comments so it's not a new comment
-    if @currentCount > 0 then @currentCount--
-
-    @update()
-
   ownCommentDeleted: ->
 
     @currentCount++  if @currentCount > 0
