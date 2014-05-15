@@ -71,9 +71,7 @@ func (n *Notification) One(q *bongo.Query) error {
 	return bongo.B.One(n, n, q)
 }
 
-func (n *Notification) Create(preventUpdate bool) error {
-	unsubscribedAt := n.UnsubscribedAt
-
+func (n *Notification) Create() error {
 	// TODO check notification content existence
 	if err := n.FetchByContent(); err != nil {
 		if err != gorm.RecordNotFound {
@@ -83,8 +81,18 @@ func (n *Notification) Create(preventUpdate bool) error {
 		return bongo.B.Create(n)
 	}
 
-	if preventUpdate {
-		return nil
+	return nil
+}
+
+func (n *Notification) Upsert() error {
+	unsubscribedAt := n.UnsubscribedAt
+
+	if err := n.FetchByContent(); err != nil {
+		if err != gorm.RecordNotFound {
+			return err
+		}
+
+		return bongo.B.Create(n)
 	}
 
 	if !unsubscribedAt.IsZero() {
@@ -107,7 +115,7 @@ func (n *Notification) Subscribe(nc *NotificationContent) error {
 	n.NotificationContentId = nc.Id
 	n.SubscribeOnly = true
 
-	return n.Create(true)
+	return n.Create()
 }
 
 func (n *Notification) Unsubscribe(nc *NotificationContent) error {

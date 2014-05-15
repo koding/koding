@@ -119,7 +119,7 @@ func (n *NotificationWorkerController) CreateReplyNotification(data []byte) erro
 
 func (n *NotificationWorkerController) notify(contentId, notifierId int64, subscribedAt time.Time) {
 	notification := buildNotification(contentId, notifierId, subscribedAt)
-	if err := notification.Create(false); err != nil {
+	if err := notification.Upsert(); err != nil {
 		n.log.Error("An error occurred while notifying user %d: %s", notification.AccountId, err.Error())
 	}
 }
@@ -127,7 +127,7 @@ func (n *NotificationWorkerController) notify(contentId, notifierId int64, subsc
 func (n *NotificationWorkerController) subscribe(contentId, notifierId int64, subscribedAt time.Time) {
 	notification := buildNotification(contentId, notifierId, subscribedAt)
 	notification.SubscribeOnly = true
-	if err := notification.Create(true); err != nil {
+	if err := notification.Create(); err != nil {
 		n.log.Error("An error occurred while subscribing user %d: %s", notification.AccountId, err.Error())
 	}
 }
@@ -169,8 +169,8 @@ func (n *NotificationWorkerController) CreateInteractionNotification(data []byte
 	notification.NotificationContentId = nc.Id
 	notification.AccountId = cm.AccountId // notify message owner
 	notification.ActivatedAt = time.Now() // enables notification immediately
-	if err = notification.Create(false); err != nil {
-		n.log.Error("An error occurred while notifying user %d: %s", cm.AccountId, err.Error())
+	if err = notification.Upsert(); err != nil {
+		return fmt.Errorf("An error occurred while notifying user %d: %s", cm.AccountId, err.Error())
 	}
 
 	return nil
@@ -228,7 +228,7 @@ func interactFollow(cp *socialapimodels.ChannelParticipant, c *socialapimodels.C
 	notification.NotificationContentId = nc.Id
 	notification.AccountId = c.CreatorId  // notify channel owner
 	notification.ActivatedAt = time.Now() // enables notification immediately
-	if err = notification.Create(false); err != nil {
+	if err = notification.Upsert(); err != nil {
 		return err
 	}
 
@@ -255,7 +255,7 @@ func interactGroup(cp *socialapimodels.ChannelParticipant, c *socialapimodels.Ch
 	notification.NotificationContentId = nc.Id
 	notification.AccountId = c.CreatorId  // notify channel owner
 	notification.ActivatedAt = time.Now() // enables notification immediately
-	if err = notification.Create(false); err != nil {
+	if err = notification.Upsert(); err != nil {
 		return err
 	}
 
