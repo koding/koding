@@ -370,6 +370,26 @@ func TestNotificationCreation(t *testing.T) {
 					})
 				})
 			})
+			Convey("First user should be able to relike it", func() {
+				err := addInteraction(socialapimodels.Interaction_TYPE_LIKE, firstMessage.Id, firstUser.Id)
+				So(err, ShouldBeNil)
+				time.Sleep(SLEEP_TIME * time.Second)
+			})
+			Convey("I should be able to receive notification", func() {
+				nl, err := getNotificationList(ownerAccount.Id)
+				ResultedWithNoErrorCheck(nl, err)
+				Convey("And Notification list should contain three notifications", func() {
+					So(len(nl.Notifications), ShouldEqual, 3)
+					So(nl.UnreadCount, ShouldEqual, 3)
+				})
+				Convey("Notifier count should still be 1", func() {
+					So(nl.Notifications[0].ActorCount, ShouldEqual, 1)
+				})
+				Convey("Notification should contain first user as Latest Actors", func() {
+					So(len(nl.Notifications[0].LatestActors), ShouldEqual, 1)
+					So(nl.Notifications[0].LatestActors[0], ShouldEqual, firstUser.Id)
+				})
+			})
 			Convey("Second, Third and Forth user should be able to like it", func() {
 				err := addInteraction(socialapimodels.Interaction_TYPE_LIKE, firstMessage.Id, secondUser.Id)
 				So(err, ShouldBeNil)
