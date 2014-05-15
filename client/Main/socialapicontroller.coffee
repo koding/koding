@@ -3,33 +3,34 @@ class SocialApiController extends KDController
   constructor: (options = {}, data) ->
     @openedChannels = {}
     super options, data
-    @utils.defer @bound 'init'
 
-  init:->
-    mainController    = KD.getSingleton 'mainController'
-    mainController.ready => @openGroupChannel()
+    KD.getSingleton("mainController").ready @bound "openGroupChannel"
 
-  openGroupChannel:->
+  getPrefetchedData:->
+    data = {}
+    return data unless KD.socialApiData
+    data["popularTopics"]    = mapChannels KD.socialApiData["popularTopics"]
+    data["followedChannels"] = mapChannels KD.socialApiData["followedChannels"]
+    data["pinnedMessages"]   = mapActivities KD.socialApiData["pinnedMessages"]
+    data["privateMessages"]  = mapPrivateMessages KD.socialApiData["privateMessages"]
+    return data
+
+  openGroupChannel: ->
     # to - do refactor this part to use same functions with other parts
-    api = this
-    groupsController = KD.getSingleton "groupsController"
+    groupsController = KD.singleton "groupsController"
     groupsController.ready =>
-      group = KD.getSingleton("groupsController").getCurrentGroup()
+      {slug} = groupsController.getCurrentGroup()
 
       subscriptionData =
         serviceType: 'socialapi'
-        group      : group.slug
+        group      : slug
         channelType: "group"
-        channelName: group.slug
+        channelName: slug
         isExclusive: yes
 
-      name = "socialapi.#{group.slug}-group-#{group.slug}"
-      KD.remote.subscribe name, subscriptionData, (brokerChannel)=>
-        @forwardMessageEvents brokerChannel, api, [
-          "MessageAdded",
-          "MessageRemoved"
-        ]
-
+      name = "socialapi.#{slug}-group-#{slug}"
+      KD.remote.subscribe name, subscriptionData, (brokerChannel) =>
+        @forwardMessageEvents brokerChannel, this, ["MessageAdded", "MessageRemoved"]
 
   mapActivity = (data) ->
 
@@ -59,6 +60,7 @@ class SocialApiController extends KDController
 
     return m
 
+  mapActivities: mapActivities
   mapActivities = (messages)->
     # if no result, no need to do something
     return messages unless messages
@@ -137,6 +139,7 @@ class SocialApiController extends KDController
       return callback err if err
       return callback null, mapPrivateMessages result
 
+  mapPrivateMessages: mapPrivateMessages
   mapPrivateMessages = (messages)->
     messages = [].concat(messages)
     return [] unless messages?.length > 0
@@ -161,6 +164,7 @@ class SocialApiController extends KDController
       mappedAccounts.push {_id: account, constructorName : "JAccount"}
     return mappedAccounts
 
+  mapChannels: mapChannels
   mapChannels = (channels)->
     return channels unless channels
     revivedChannels = []

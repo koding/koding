@@ -479,11 +479,18 @@ func addReply(postId, accountId, channelId int64) (*models.ChannelMessage, error
 	cm.InitialChannelId = channelId
 
 	url := fmt.Sprintf("/message/%d/reply", postId)
-	_, err := sendModel("POST", url, cm)
+	res, err := marshallAndSendRequest("POST", url, cm)
 	if err != nil {
 		return nil, err
 	}
-	return cm, nil
+
+	model := models.NewChannelMessageContainer()
+	err = json.Unmarshal(res, model)
+	if err != nil {
+		return nil, err
+	}
+
+	return model.Message, nil
 }
 
 func deleteReply(postId, replyId int64) error {

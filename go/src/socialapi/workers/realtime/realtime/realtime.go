@@ -115,14 +115,7 @@ func (f *RealtimeWorkerController) MessageUpdated(data []byte) error {
 		return err
 	}
 
-	// this is here for sending
-	// old account id in message updated event
-	container, err := cm.BuildEmptyMessageContainer()
-	if err != nil {
-		return err
-	}
-
-	err = f.sendInstanceEvent(cm.GetId(), container, "updateInstance")
+	err = f.sendInstanceEvent(cm.GetId(), cm, "updateInstance")
 	if err != nil {
 		fmt.Println(err)
 		return err

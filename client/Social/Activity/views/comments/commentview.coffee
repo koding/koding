@@ -1,26 +1,23 @@
 class CommentView extends KDView
 
-  constructor:(options, data)->
+  constructor: (options = {}, data) ->
 
-    super
+    options.cssClass = KD.utils.curry "comment-container", options.cssClass
 
-    @setClass "comment-container"
+    super options, data
+
     @createSubViews data
     @resetDecoration()
     @attachListeners()
 
-    {fixedHeight} = @getOptions()
+    @setFixedHeight fixedHeight  if {fixedHeight} = options
 
-    fixedHeight or= no
 
-    @setFixedHeight fixedHeight  if fixedHeight
+  setFixedHeight: (maxHeight) ->
 
-  render:->
-    @resetDecoration()
-
-  setFixedHeight: (maxHeight)->
     @setClass "fixed-height"
     @commentList.$().css {maxHeight}
+
 
   createSubViews: (data) ->
 
@@ -45,56 +42,62 @@ class CommentView extends KDView
       input.setFocus()
       input.setValue value
 
-    @commentList.on "OwnCommentWasSubmitted", ->
-      @getDelegate()?.emit "RefreshTeaser"
-
     @commentList.on "OwnCommentHasArrived", ->
+
       showMore.ownCommentArrived()
-      @getDelegate()?.emit "RefreshTeaser"
 
-    @commentList.on "CommentIsDeleted", -> showMore.ownCommentDeleted()
+    @commentList.on "CommentIsDeleted", ->
 
-    @on "RefreshTeaser",->
-      @parent?.emit "RefreshTeaser"
+      showMore.ownCommentDeleted()
+
 
     @commentList.emit "BackgroundActivityFinished"
 
-  attachListeners:->
+
+  attachListeners: ->
+
     @commentList.on "commentInputReceivedFocus", @bound "decorateActiveCommentState"
+    @commentList.on "CommentViewShouldReset", @bound "resetDecoration"
 
     @commentList.on "CommentLinkReceivedClick", (event) =>
+
       @commentForm.makeCommentFieldActive()
       @commentForm.input.setFocus()
 
     @commentList.on "CommentCountClicked", =>
+
       @commentList.emit "AllCommentsLinkWasClicked"
 
-    @commentList.on "CommentViewShouldReset", @bound "resetDecoration"
 
-  resetDecoration:->
-    post = @getData()
-    if post.repliesCount is 0
-      @decorateNoCommentState()
-    else
-      @decorateCommentedState()
+  decorateNoCommentState: ->
 
-  decorateNoCommentState:->
     @unsetClass "active-comment"
     @unsetClass "commented"
     @setClass "no-comment"
 
-  decorateCommentedState:->
+
+  decorateCommentedState: ->
+
     @unsetClass "active-comment"
     @unsetClass "no-comment"
     @setClass "commented"
 
-  decorateActiveCommentState:->
+
+  decorateActiveCommentState: ->
+
     @unsetClass "no-comment"
     @setClass "active-comment"
 
-  decorateItemAsLiked:(likeObj)->
-    if likeObj?.results?.likeCount > 0
-      @setClass "liked"
-    else
-      @unsetClass "liked"
-    @ActivityActionsView.setLikedCount likeObj
+
+  resetDecoration: ->
+
+    if @getData().repliesCount
+    then @decorateCommentedState()
+    else @decorateNoCommentState()
+
+
+  render: ->
+
+    super
+
+    @resetDecoration()

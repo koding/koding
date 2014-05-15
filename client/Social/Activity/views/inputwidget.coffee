@@ -302,13 +302,15 @@ class ActivityInputWidget extends KDView
     previewData =
       on            : ->
       watch         : ->
-      account       : KD.whoami()
+      account       : KD.whoami().bongo_
       body          : value
       typeConstant  : 'post'
-      createdAt     : '2014-05-02T12:40:36.540356-07:00'
+      interactions  :
+        like        :
+          actorsCount : 0
+          actorsPreview : []
       meta          :
-        likes       : 0
-        createdAt   : '2014-05-02T12:40:36.540356-07:00'
+        createdAt   : new Date
 
     if not @preview
 

@@ -61,24 +61,18 @@ func (f *PopularPostController) HandleEvent(event string, data []byte) error {
 		return worker.HandlerNotFoundErr
 	}
 
-	f.log.Critical("oldumu%s", string(data))
-
-	errr := handler(f, data)
-	if errr != nil {
-		f.log.Critical("oldumu%s", errr.Error())
-	}
-	return errr
+	return handler(f, data)
 }
 
 func (f *PopularPostController) InteractionSaved(data []byte) error {
-	return f.handleInteractionEvent("InteractionAdded", data)
+	return f.handleInteractionEvent(1, data)
 }
 
 func (f *PopularPostController) InteractionDeleted(data []byte) error {
-	return f.handleInteractionEvent("InteractionRemoved", data)
+	return f.handleInteractionEvent(-1, data)
 }
 
-func (f *PopularPostController) handleInteractionEvent(eventName string, data []byte) error {
+func (f *PopularPostController) handleInteractionEvent(incrementCount int, data []byte) error {
 	i, err := helper.MapToInteraction(data)
 	if err != nil {
 		return err
@@ -99,17 +93,17 @@ func (f *PopularPostController) handleInteractionEvent(eventName string, data []
 		return nil
 	}
 
-	_, err = f.redis.SortedSetIncrBy(GetDailyKey(c, cm, i), 1, i.MessageId)
+	_, err = f.redis.SortedSetIncrBy(GetDailyKey(c, cm, i), incrementCount, i.MessageId)
 	if err != nil {
 		return err
 	}
 
-	_, err = f.redis.SortedSetIncrBy(GetWeeklyKey(c, cm, i), 1, i.MessageId)
+	_, err = f.redis.SortedSetIncrBy(GetWeeklyKey(c, cm, i), incrementCount, i.MessageId)
 	if err != nil {
 		return err
 	}
 
-	_, err = f.redis.SortedSetIncrBy(GetMonthlyKey(c, cm, i), 1, i.MessageId)
+	_, err = f.redis.SortedSetIncrBy(GetMonthlyKey(c, cm, i), incrementCount, i.MessageId)
 	if err != nil {
 		return err
 	}
