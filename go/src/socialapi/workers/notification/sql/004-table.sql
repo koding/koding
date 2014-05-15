@@ -22,7 +22,8 @@ CREATE TYPE "notification"."notification_content_type_constant_enum" AS ENUM (
     'comment',
     'follow',
     'join',
-    'leave'
+    'leave',
+    'mention'
 );
 ALTER TYPE "notification"."notification_content_type_constant_enum" OWNER TO "social";
 

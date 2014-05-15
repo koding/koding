@@ -29,6 +29,7 @@ const (
 	NotificationContent_TYPE_FOLLOW  = "follow"
 	NotificationContent_TYPE_JOIN    = "join"
 	NotificationContent_TYPE_LEAVE   = "leave"
+	NotificationContent_TYPE_MENTION = "mention"
 )
 
 func NewNotificationContent() *NotificationContent {
@@ -164,6 +165,8 @@ func CreateNotificationContentType(notificationType string) (Notifiable, error) 
 		return NewGroupNotification(notificationType), nil
 	case NotificationContent_TYPE_LEAVE:
 		return NewGroupNotification(notificationType), nil
+	case NotificationContent_TYPE_MENTION:
+		return NewMentionNotification(), nil
 	default:
 		return nil, errors.New("undefined notification type")
 	}
