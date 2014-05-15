@@ -60,6 +60,8 @@ class LinkGroup extends KDCustomHTMLView
     @setTemplate @pistachio()
     @template.update()
 
+  viewAppended: -> super()
+
   createMoreLink:->
 
     @more.destroy() if @more
@@ -75,8 +77,6 @@ class LinkGroup extends KDCustomHTMLView
         new ShowMoreDataModalView {group}, @getData()
 
   pistachio:->
-
-    participants = @getData()
     {suffix, hasMore, totalCount, group, separator} = @getOptions()
 
     @createMoreLink()
