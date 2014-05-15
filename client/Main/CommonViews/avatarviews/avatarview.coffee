@@ -1,5 +1,7 @@
 class AvatarView extends LinkView
 
+  JView.mixin @prototype
+
   constructor:(options = {},data)->
 
     options.cssClass         = KD.utils.curry 'avatarview', options.cssClass
@@ -124,7 +126,7 @@ class AvatarView extends LinkView
 
   viewAppended:->
 
-    super
+    JView::viewAppended.call this
 
     {width, height} = @getOptions().size
     @setCss "background-size", "#{width}px #{height}px"

@@ -1,5 +1,7 @@
 class GroupAddProductListItem extends KDListItemView
 
+  JView.mixin @prototype
+
   viewAppended: ->
     options = @getOptions()
 

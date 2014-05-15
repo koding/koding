@@ -1,5 +1,7 @@
 class TerminalStartTabVMItem extends KDCustomHTMLView
 
+  JView.mixin @prototype
+
   MESSAGE_MAP =
     'started'                : 'Checking VM state'
     'vm is already prepared' : 'READY'

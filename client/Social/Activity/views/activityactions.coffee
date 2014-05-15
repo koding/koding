@@ -32,6 +32,8 @@ class ActivitySharePopup extends SharePopup
 
 class ActivityActionsView extends KDView
 
+  JView.mixin @prototype
+
   contextMenu = null
   constructor:->
     super
@@ -135,6 +137,9 @@ class ActivityActionLink extends KDCustomHTMLView
     super options,data
 
 class ActivityCountLink extends KDCustomHTMLView
+
+  JView.mixin @prototype
+
   constructor:(options,data)->
     options = $.extend
       tagName   : "a"

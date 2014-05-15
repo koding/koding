@@ -1,5 +1,7 @@
 class GroupsBlockedUserListItemView extends KDListItemView
 
+  JView.mixin @prototype
+
   constructor:(options = {}, data)->
 
     options.cssClass = 'formline clearfix'
@@ -41,8 +43,6 @@ class GroupsBlockedUserListItemView extends KDListItemView
 
   hideEditMemberRolesView:->
     @unsetClass 'editing'
-
-  viewAppended:JView::viewAppended
 
   updateRoles:(roles)->
     roles.push 'member'
