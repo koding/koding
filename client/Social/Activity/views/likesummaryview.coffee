@@ -34,6 +34,31 @@ class ActivityLikeSummaryView extends JView
         new ShowMoreDataModalView null, accounts
 
 
+  updateActors: ->
+
+    @fetchPreviewAccounts (err, accounts) =>
+
+      return KD.showError err  if err
+
+      for i in [0..accounts.length]
+        account = accounts[i]
+        continue  unless view = this["placeholder#{i}"]
+        view.destroySubViews()
+        view.addSubView new ProfileLinkView null, account
+        view = null
+
+      @setTemplate @pistachio()
+      @render()
+
+      {actorsCount} = @getData().interactions.like
+
+      @showMoreLink.updatePartial Math.max actorsCount - 3, 0
+
+      if accounts.length is 0
+      then @hide()
+      else @show()
+
+
   fetchPreviewAccounts: (callback) ->
 
     constructorName = "JAccount"
