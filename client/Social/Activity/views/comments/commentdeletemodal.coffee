@@ -10,8 +10,7 @@ class CommentDeleteModal extends KDModalView
       Delete         :
         style        : "modal-clean-red"
         loader       :
-          color      : "#ffffff"
-          diameter   : 16
+          color      : "#e94b35"
         callback     : @bound "submit"
       Cancel         :
         style        : "modal-cancel"
