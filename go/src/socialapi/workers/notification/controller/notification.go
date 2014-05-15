@@ -2,13 +2,16 @@ package notification
 
 import (
 	"encoding/json"
+	"fmt"
+	"koding/db/mongodb/modelhelper"
+	socialapimodels "socialapi/models"
+	"socialapi/workers/notification/models"
+	"time"
+
 	"github.com/koding/logging"
 	"github.com/koding/rabbitmq"
 	"github.com/koding/worker"
 	"github.com/streadway/amqp"
-	socialapimodels "socialapi/models"
-	"socialapi/workers/notification/models"
-	"time"
 )
 
 type Action func(*NotificationWorkerController, []byte) error
@@ -70,14 +73,14 @@ func (n *NotificationWorkerController) CreateReplyNotification(data []byte) erro
 	}
 
 	// fetch replier
-	cm := socialapimodels.NewChannelMessage()
-	if err := cm.ById(mr.ReplyId); err != nil {
+	reply := socialapimodels.NewChannelMessage()
+	if err := reply.ById(mr.ReplyId); err != nil {
 		return err
 	}
 
 	rn := models.NewReplyNotification()
 	rn.TargetId = mr.MessageId
-	rn.NotifierId = cm.AccountId
+	rn.NotifierId = reply.AccountId
 	subscribedAt := time.Now()
 
 	nc, err := models.CreateNotificationContent(rn)
@@ -85,7 +88,7 @@ func (n *NotificationWorkerController) CreateReplyNotification(data []byte) erro
 		return err
 	}
 
-	cm = socialapimodels.NewChannelMessage()
+	cm := socialapimodels.NewChannelMessage()
 	// notify message owner
 	if err = cm.ById(mr.MessageId); err != nil {
 		return err
@@ -101,6 +104,13 @@ func (n *NotificationWorkerController) CreateReplyNotification(data []byte) erro
 		return err
 	}
 
+	mentionedUsers, err := n.CreateMentionNotification(reply)
+	if err != nil {
+		return err
+	}
+
+	notifiedUsers = filterRepliers(notifiedUsers, mentionedUsers)
+
 	notifierSubscribed := false
 	for _, recipient := range notifiedUsers {
 		if recipient == rn.NotifierId {
@@ -115,6 +125,44 @@ func (n *NotificationWorkerController) CreateReplyNotification(data []byte) erro
 	}
 
 	return nil
+}
+
+func (n *NotificationWorkerController) CreateMentionNotification(reply *socialapimodels.ChannelMessage) ([]int64, error) {
+	mentionedUserIds := make([]int64, 0)
+	usernames := reply.GetMentionedUsernames()
+
+	// message does not contain any mentioned users
+	if len(usernames) == 0 {
+		return mentionedUserIds, nil
+	}
+
+	mentionedUserIds, err := fetchParticipantIds(usernames)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, mentionedUser := range mentionedUserIds {
+		if mentionedUser == reply.AccountId {
+			continue
+		}
+		mn := models.NewMentionNotification()
+		mn.TargetId = reply.Id
+		mn.NotifierId = reply.AccountId
+		nc, err := models.CreateNotificationContent(mn)
+		if err != nil {
+			return nil, err
+		}
+
+		notification := models.NewNotification()
+		notification.NotificationContentId = nc.Id
+		notification.AccountId = mentionedUser
+		notification.ActivatedAt = time.Now() // enables notification immediately
+		if err = notification.Upsert(); err != nil {
+			n.log.Error("An error occurred while notifying user %d: %s", reply.AccountId, err.Error())
+		}
+	}
+
+	return mentionedUserIds, nil
 }
 
 func (n *NotificationWorkerController) notify(contentId, notifierId int64, subscribedAt time.Time) {
@@ -287,4 +335,47 @@ func mapMessageToInteraction(data []byte) (*socialapimodels.Interaction, error) 
 	}
 
 	return i, nil
+}
+
+// copy/paste
+func fetchParticipantIds(participantNames []string) ([]int64, error) {
+	participantIds := make([]int64, len(participantNames))
+	for i, participantName := range participantNames {
+		account, err := modelhelper.GetAccount(participantName)
+		if err != nil {
+			return nil, err
+		}
+		a := socialapimodels.NewAccount()
+		a.Id = account.SocialApiId
+		a.OldId = account.Id.Hex()
+		// fetch or create social api id
+		if a.Id == 0 {
+			if err := a.FetchOrCreate(); err != nil {
+				return nil, err
+			}
+		}
+		participantIds[i] = a.Id
+	}
+
+	return participantIds, nil
+}
+
+func filterRepliers(repliers, mentionedUsers []int64) []int64 {
+	mentionMap := map[int64]struct{}{}
+	flattened := make([]int64, 0)
+	if len(mentionedUsers) == 0 {
+		return repliers
+	}
+
+	for _, user := range mentionedUsers {
+		mentionMap[user] = struct{}{}
+	}
+
+	for _, replier := range repliers {
+		if _, ok := mentionMap[replier]; !ok {
+			flattened = append(flattened, replier)
+		}
+	}
+
+	return flattened
 }
