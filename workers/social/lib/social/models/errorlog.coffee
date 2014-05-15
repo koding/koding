@@ -27,11 +27,13 @@ module.exports = class JErrorLog extends ElasticSearch
       _.extend record, params
 
       rawCurr = new Date
-      date    = rawCurr.getDate()
-      month   = rawCurr.getMonth() + 1
+
       year    = rawCurr.getFullYear()
+      month   = rawCurr.getMonth() + 1
+      date    = rawCurr.getDate()
       hour    = rawCurr.getHours()
       min     = Math.round(rawCurr.getMinutes()/uniqInt)*uniqInt # round to nearest time
+
       timeStr = "#{year}#{month}#{date}#{hour}#{min}"
 
       {error, reason} = params
@@ -39,7 +41,7 @@ module.exports = class JErrorLog extends ElasticSearch
 
       # to reduce noise in logs, we don't log if there was the same error from
       # same user within `uniqInt`; es enforces unique constraint on `_id`
-      idStr = "#{error}#{reason}#{username}#{year}#{month}#{date}#{hour}#{min}"
+      idStr = "#{error}#{reason}#{username}#{timeStr}"
       _id   = checksum idStr
 
       # _.extends modifies source object, so we clone to keep them seperate
