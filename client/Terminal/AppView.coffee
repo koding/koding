@@ -389,7 +389,7 @@ class WebTermAppView extends JView
       then @prepareAndRunTerminal vm
       else
         ErrorLog.create "terminal: handlePlusClick error",
-          {reason: "osKite is not RUNNING", osKiteState: state}
+          {reason: "vm has unknown state", osKiteState: state}
 
         @notify cssClass : 'error'
 
@@ -408,7 +408,7 @@ class WebTermAppView extends JView
       osKite?.vmOn().catch @bound "handlePrepareError"
     else
       ErrorLog.create "terminal: prepareAndRunTerminal error",
-        {vm, reason: "osKite has weird state", osKiteState: state}
+        {vm, reason: "vm has unknown state", osKiteState: state}
 
       @notify cssClass : 'error'
       osKite?.vmOff()
@@ -419,7 +419,8 @@ class WebTermAppView extends JView
     if title and /limit reached/.test title
       title += " Please upgrade to run more VMs."
 
-    ErrorLog.create err?.message
+    numberOfVms = Object.keys(KD.singletons.vmController.vmsInfo).length
+    ErrorLog.create err?.message, {numberOfVms}
 
     new KDNotificationView {title}
 
