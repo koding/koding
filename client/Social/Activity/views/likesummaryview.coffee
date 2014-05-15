@@ -15,6 +15,10 @@ class ActivityLikeSummaryView extends JView
       partial     : data.interactions.like.actorsCount - 3
       click       : @bound "showLikers"
 
+    data
+      .on "LikeAdded", @bound "updateActors"
+      .on "LikeRemoved", @bound "updateActors"
+
 
   showLikers: ->
 
