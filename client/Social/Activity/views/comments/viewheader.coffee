@@ -35,11 +35,6 @@ class CommentViewHeader extends JView
     @emit "ListAll"
 
 
-  ownCommentDeleted: ->
-
-    @currentCount++  if @currentCount > 0
-
-
   update: ->
 
     # If there is no comments so we can not have new comments
