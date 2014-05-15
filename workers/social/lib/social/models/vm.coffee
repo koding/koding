@@ -376,8 +376,8 @@ module.exports = class JVM extends Module
             vm.save (err) =>
 
               if err
-                return console.warn "Failed to create VM for ", \
-                                     {users, groups, hostnameAlias}
+                return console.error "Failed to create VM for ", \
+                                     {users, groups, hostnameAlias, err}
 
               JDomain.createDomains {
                 account, stackId,
