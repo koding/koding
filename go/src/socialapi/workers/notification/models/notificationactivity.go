@@ -1,7 +1,6 @@
 package models
 
 import (
-	// "fmt"
 	"github.com/jinzhu/gorm"
 	"github.com/koding/bongo"
 	"time"
@@ -59,6 +58,7 @@ func (a *NotificationActivity) Create() error {
 	s := map[string]interface{}{
 		"notification_content_id": a.NotificationContentId,
 		"actor_id":                a.ActorId,
+		"obsolete":                false,
 	}
 
 	q := bongo.NewQS(s)
