@@ -13,19 +13,25 @@ import (
 )
 
 type Event struct {
-	Id           int
-	DropletID    int
-	EventTypeID  int
-	ActionStatus string
-	Percentage   string
+	Status string `json:"status" mapstructure:"status"`
+	Event  struct {
+		Id           int    `json:"id" mapstructure:"id"`
+		ActionStatus string `json:"action_status" mapstructure:"action_status"`
+		DropletID    int    `json:"droplet_id" mapstructure:"droplet_id"`
+		EventTypeID  int    `json:"event_type_id" mapstructure:"event_type_id"`
+		Percentage   string `json:"percentage" mapstructure:"percentage"`
+	} `json:"event" mapstructure:"event"`
 }
 
 type DropletInfo struct {
-	Id       int    `json:"id"`
-	Hostname string `json:"hostname"`
-	ImageId  int    `json:"image_id"`
-	SizeId   string `json:"size_id"`
-	EventId  int    `json:"event_id"`
+	Status  string `json:"status" mapstructure:"status"`
+	Droplet struct {
+		Id       int    `json:"id" mapstructure:"id"`
+		Hostname string `json:"hostname" mapstructure:"hostname"`
+		ImageId  int    `json:"image_id" mapstructure:"image_id"`
+		SizeId   int    `json:"size_id" mapstructure:"size_id"`
+		EventId  int    `json:"event_id" mapstructure:"event_id"`
+	} `json:"droplet" mapstructure:"droplet"`
 }
 
 type DigitalOcean struct {
@@ -94,12 +100,11 @@ func (d *DigitalOcean) Build() (err error) {
 		BuildName: "digitalocean",
 		Data:      data,
 	}
-	fmt.Printf("provider %+v\n", provider)
 
-	// // this is basically a "packer build template.json"
-	// if err := provider.Build(); err != nil {
-	// 	return err
-	// }
+	// this is basically a "packer build template.json"
+	if err := provider.Build(); err != nil {
+		return err
+	}
 
 	// after creating the image go and get it
 	images, err := d.MyImages()
@@ -124,9 +129,33 @@ func (d *DigitalOcean) Build() (err error) {
 		return err
 	}
 
-	fmt.Printf("dropletInfo %+v\n", dropletInfo)
+	for {
+		select {
+		case <-time.After(time.Minute * 5):
+			return errors.New("timeout. droplet is not created")
+		case <-time.Tick(time.Second):
+			e, _ := d.CheckEvent(dropletInfo.Droplet.EventId)
+			if e.Event.ActionStatus == "done" {
+				return nil
+			}
+		}
+	}
+}
 
-	return nil
+func (d *DigitalOcean) CheckEvent(eventId int) (*Event, error) {
+	path := fmt.Sprintf("events/%d", eventId)
+
+	body, err := digitalocean.NewRequest(*d.Client, path, url.Values{})
+	if err != nil {
+		return nil, err
+	}
+
+	event := &Event{}
+	if err := mapstructure.Decode(body, event); err != nil {
+		return nil, err
+	}
+
+	return event, nil
 }
 
 // CreateDroplet creates a new droplet with a hostname and the given image_id
