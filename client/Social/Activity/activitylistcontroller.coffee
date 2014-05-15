@@ -75,7 +75,3 @@ class ActivityListController extends KDListViewController
 
     unless KD.getSingleton("router").getCurrentPath() is "/Activity"
       KD.getSingleton("activityController").clearNewItemsCount()
-
-  bindItemEvents: (item) ->
-    item.on "TagsUpdated", (tags) ->
-      item.tags = KD.remote.revive tags
