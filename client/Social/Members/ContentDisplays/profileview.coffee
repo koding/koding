@@ -292,6 +292,8 @@ class AvatarChangeView extends JView
     {{> @avatarHolder}}
     """
 
+class ProfileContentEditableView extends KDContentEditableView
+  JView.mixin @prototype
 
 class ProfileView extends JView
 
@@ -307,7 +309,7 @@ class ProfileView extends JView
       if not KD.checkFlag 'super-admin'
         return KD.getSingleton('router').handleRoute "/Activity"
 
-    @firstName      = new KDContentEditableView
+    @firstName      = new ProfileContentEditableView
       tagName       : "span"
       testPath      : "profile-first-name"
       pistachio     : "{{#(profile.firstName) or ''}}"
@@ -323,7 +325,7 @@ class ProfileView extends JView
           required  : "First name is required"
       , @memberData
 
-    @lastName       = new KDContentEditableView
+    @lastName       = new ProfileContentEditableView
       tagName       : "span"
       testPath      : "profile-last-name"
       pistachio     : "{{#(profile.lastName) or ''}}"
@@ -336,7 +338,7 @@ class ProfileView extends JView
           maxLength : 25
       , @memberData
 
-    @bio            = new KDContentEditableView
+    @bio            = new ProfileContentEditableView
       testPath      : "profile-bio"
       pistachio     : "{{#(profile.about) or ''}}"
       cssClass      : "bio"

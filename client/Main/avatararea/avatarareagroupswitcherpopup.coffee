@@ -263,6 +263,8 @@ class AvatarPopupGroupSwitcher extends AvatarPopup
 
 class PopupGroupListItem extends KDListItemView
 
+  JView.mixin @prototype
+
   constructor:(options = {}, data)->
     options.tagName or= "li"
     options.type    or= "activity-ticker-item"
@@ -298,8 +300,6 @@ class PopupGroupListItem extends KDListItemView
             title   : "Opens admin dashboard in new browser window."
             delayIn : 300
     else new KDCustomHTMLView
-
-  viewAppended: JView::viewAppended
 
   pistachio: ->
     {group} = @getData()
