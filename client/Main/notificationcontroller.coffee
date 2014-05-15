@@ -168,6 +168,8 @@ class NotificationController extends KDObject
           setTitle "#{actorName} has joined <a href='/#{target.slug}'>#{target.title}</a>."
         when "leave"
           setTitle "#{actorName} has left <a href='/#{target.slug}'>#{target.title}</a>."
+        when "mention"
+          setTitle "#{actorName} mentioned you in a comment"
 
       # when "newMessage"
       #   @emit "NewMessageArrived"

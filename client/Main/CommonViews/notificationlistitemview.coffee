@@ -6,6 +6,7 @@ class NotificationListItem extends KDListItemView
     follow  : "started following you."
     join    : "your group"
     leave   : "your group"
+    mention : "in a comment."
 
   actionPhraseMap =
     comment  : "commented on"
@@ -17,6 +18,7 @@ class NotificationListItem extends KDListItemView
     member   : "joined"
     join     : "joined"
     leave    : "left"
+    mention  : "mentioned you"
 
   constructor:(options = {}, data)->
 
