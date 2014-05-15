@@ -2,7 +2,7 @@ class ActivityLikeSummaryView extends JView
 
   constructor: (options = {}, data) ->
 
-    options.cssClass = KD.utils.curry "like-summary", options.cssClass
+    options.cssClass = KD.utils.curry "like-summary hidden", options.cssClass
 
     super options, data
 
@@ -14,6 +14,10 @@ class ActivityLikeSummaryView extends JView
       tagName     : "strong"
       partial     : data.interactions.like.actorsCount - 3
       click       : @bound "showLikers"
+
+    data
+      .on "LikeAdded", @bound "updateActors"
+      .on "LikeRemoved", @bound "updateActors"
 
 
   showLikers: ->
@@ -34,6 +38,31 @@ class ActivityLikeSummaryView extends JView
         new ShowMoreDataModalView null, accounts
 
 
+  updateActors: ->
+
+    @fetchPreviewAccounts (err, accounts) =>
+
+      return KD.showError err  if err
+
+      for i in [0..accounts.length]
+        account = accounts[i]
+        continue  unless view = this["placeholder#{i}"]
+        view.destroySubViews()
+        view.addSubView new ProfileLinkView null, account
+        view = null
+
+      @setTemplate @pistachio()
+      @render()
+
+      {actorsCount} = @getData().interactions.like
+
+      @showMoreLink.updatePartial Math.max actorsCount - 3, 0
+
+      if accounts.length is 0
+      then @hide()
+      else @show()
+
+
   fetchPreviewAccounts: (callback) ->
 
     constructorName = "JAccount"
@@ -46,35 +75,28 @@ class ActivityLikeSummaryView extends JView
 
     super
 
-    if @getData().interactions.like.actorsCount is 0
-    then @setClass 'hidden'
-
-    names  = []
-    strong = (x) -> "<strong>#{x}</strong>"
-
-    @fetchPreviewAccounts (err, accounts) =>
-
-      return KD.showError err  if err
-      return  if accounts.length is 0
-
-      for i in [0..2]
-        account = accounts[i]
-        return  unless view = this["placeholder#{i}"]
-        view.addSubView new ProfileLinkView null, account
+    @updateActors()
 
 
   pistachio: ->
 
-    {actorsCount} = @getData().interactions.like
+    {actorsCount, actorsPreview} = @getData().interactions.like
 
-    body = switch
-      when actorsCount is 0 then ""
-      when actorsCount is 1 then "{{> @placeholder0}}"
-      when actorsCount is 2 then "{{> @placeholder0}} and {{> @placeholder1}}"
-      when actorsCount is 3 then "{{> @placeholder0}}, {{> @placeholder1}} and {{> @placeholder2}}"
-      when actorsCount > 3
-        othersCount = actorsCount - 3
-        "{{> @placeholder0}}, {{> @placeholder1}}, {{> @placeholder2}} and \
-         {{> @showMoreLink}} other#{if othersCount > 1 then 's' else ''}"
+    body = ""
 
-    body += " liked this."  if actorsCount > 0
+    return body  unless actorsPreview.length
+
+    linkCount = Math.min actorsPreview.length, 3
+
+    for i in [0..linkCount - 1]
+      body += "{{> this.placeholder#{i}}}"
+
+      if (linkCount - i) is (if actorsCount - linkCount then 1 else 2)
+        body += " and "
+      else if i < (linkCount - 1)
+        body += ", "
+
+    if (diff = actorsCount - linkCount) > 0
+      body += "{{> this.showMoreLink}} other#{if diff > 1 then 's' else ''}"
+
+    body += " liked this."

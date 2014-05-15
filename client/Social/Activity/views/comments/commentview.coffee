@@ -6,94 +6,82 @@ class CommentView extends KDView
 
     super options, data
 
-    @createSubViews data
-    @resetDecoration()
-    @attachListeners()
+    @header = new CommentViewHeader delegate: this, data
 
-    @setFixedHeight fixedHeight  if {fixedHeight} = options
+    @inputForm = new NewCommentForm delegate: this
+      .on "Focused", @bound "decorateAsFocused"
+      .on "Blured", @bound "resetDecoration"
+      .on "Submit", @bound "reply"
+
+    @controller = new CommentListViewController delegate: this, data
+      .on "Mention", @inputForm.bound "mention"
+
+    @forwardEvent @header, "AsyncJobStarted"
+    @forwardEvent @header, "AsyncJobDone"
+
+
+  reply: (body, callback = noop) ->
+
+    activity = @getData()
+    @emit "AsyncJobStarted"
+
+    KD.singleton("appManager").tell "Activity", "reply", {activity, body}, (err, reply) =>
+
+      @emit "AsyncJobFinished"
+
+      return KD.showError err  if err
+
+      if not KD.getSingleton('activityController').flags?.liveUpdates
+        @addItem reply
+        @emit "OwnCommentHasArrived"
+      else
+        @emit "OwnCommentWasSubmitted"
+
+    KD.mixpanel "Comment activity, success"
+    KD.getSingleton("badgeController").checkBadge
+      property: "comments", relType: "commenter", source: "JNewStatusUpdate", targetSelf: 1
+
+
+  decorateAsPassive: ->
+
+    @unsetClass "active-comment"
+    @setClass "no-comment"
+
+
+  decorateAsActive: ->
+
+    @unsetClass "no-comment"
+    @setClass "commented"
+
+
+  decorateAsFocused: ->
+
+    @unsetClass "no-comment commented"
+    @setClass   "active-comment"
 
 
   setFixedHeight: (maxHeight) ->
 
     @setClass "fixed-height"
-    @commentList.$().css {maxHeight}
-
-
-  createSubViews: (data) ->
-
-    @commentList = new KDListView
-      type          : "comments"
-      itemClass     : CommentListItemView
-      delegate      : this
-    , data
-
-    @commentController        = new CommentListViewController view: @commentList
-    @addSubView showMore      = new CommentViewHeader delegate: @commentList, data
-    @addSubView @commentController.getView()
-    @addSubView @commentForm  = new NewCommentForm delegate: @commentController
-
-    @commentForm.on "Submit", @commentController.bound "reply"
-
-    @commentList.on 'ReplyLinkClicked', (username) =>
-      {input} = @commentForm
-      value = input.getValue()
-      value = if value.indexOf("@#{username}") >= 0 then value else if value.length is 0 then "@#{username} " else "#{value} @#{username} "
-
-      input.setFocus()
-      input.setValue value
-
-    @commentList.on "OwnCommentHasArrived", ->
-
-      showMore.ownCommentArrived()
-
-    @commentList.on "CommentIsDeleted", ->
-
-      showMore.ownCommentDeleted()
-
-
-    @commentList.emit "BackgroundActivityFinished"
-
-
-  attachListeners: ->
-
-    @commentList.on "commentInputReceivedFocus", @bound "decorateActiveCommentState"
-    @commentList.on "CommentViewShouldReset", @bound "resetDecoration"
-
-    @commentList.on "CommentLinkReceivedClick", (event) =>
-
-      @commentForm.makeCommentFieldActive()
-      @commentForm.input.setFocus()
-
-    @commentList.on "CommentCountClicked", =>
-
-      @commentList.emit "AllCommentsLinkWasClicked"
-
-
-  decorateNoCommentState: ->
-
-    @unsetClass "active-comment"
-    @unsetClass "commented"
-    @setClass "no-comment"
-
-
-  decorateCommentedState: ->
-
-    @unsetClass "active-comment"
-    @unsetClass "no-comment"
-    @setClass "commented"
-
-
-  decorateActiveCommentState: ->
-
-    @unsetClass "no-comment"
-    @setClass "active-comment"
+    @controller.getView().$().css {maxHeight}
 
 
   resetDecoration: ->
 
     if @getData().repliesCount
-    then @decorateCommentedState()
-    else @decorateNoCommentState()
+    then @decorateAsActive()
+    else @decorateAsPassive()
+
+
+  viewAppended: ->
+
+    super
+
+    @setFixedHeight fixedHeight  if {fixedHeight} = @getOptions()
+
+    @addSubView @header
+    @addSubView @controller.getView()
+    @addSubView @inputForm
 
 
   render: ->
