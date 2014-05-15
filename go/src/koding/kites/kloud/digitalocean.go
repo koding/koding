@@ -1,9 +1,9 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"koding/kites/kloud/packer"
-	"os"
 )
 
 type DigitalOcean struct {
@@ -11,29 +11,43 @@ type DigitalOcean struct {
 	ApiKey   string
 }
 
-func (d *DigitalOcean) Build(path string) (err error) {
-	userVars := map[string]string{
-		"do_api_key":     os.Getenv("DIGITALOCEAN_API_KEY"),
-		"do_client_id":   os.Getenv("DIGITALOCEAN_CLIENT_ID"),
-		"klient_deb":     "klient_0.0.1_amd64.deb",
-		"klient_keyname": "kite.key",
-		"klient_keydir":  "/opt/kite/klient/key",
-	}
+func (d *DigitalOcean) Build(raws ...interface{}) (err error) {
+	fakeTemplate := map[string]interface{}{}
+	fakeTemplate["builders"] = raws
+	fakeTemplate["provisioners"] = klientProvisioner
 
-	provider := &packer.Provider{
-		BuildName:    "digitalocean",
-		TemplatePath: path,
-		Vars:         userVars,
-	}
-
-	artifacts, err := provider.Build()
+	data, err := json.Marshal(fakeTemplate)
 	if err != nil {
 		return err
 	}
 
-	for _, a := range artifacts {
-		fmt.Println(a.Files(), a.BuilderId(), a.Id(), a.String())
+	provider := &packer.Provider{
+		BuildName:    "digitalocean",
+		TemplatePath: "testdata/digitalocean_packer.json",
+		Data:         data,
 	}
+
+	fmt.Printf("string(data) %+v\n", string(data))
+
+	template, err := provider.NewTemplate()
+	if err != nil {
+		return err
+	}
+
+	fmt.Printf("template %+v\n", template)
+
+	// for _, t := range template.Builders {
+	// 	fmt.Printf("t %+v\n", t)
+	// }
+
+	// artifacts, err := provider.Build()
+	// if err != nil {
+	// 	return err
+	// }
+	//
+	// for _, a := range artifacts {
+	// 	fmt.Println(a.Files(), a.BuilderId(), a.Id(), a.String())
+	// }
 
 	return nil
 }

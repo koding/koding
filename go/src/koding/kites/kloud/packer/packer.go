@@ -17,14 +17,39 @@ import (
 type Provider struct {
 	BuildName    string
 	TemplatePath string
+	Data         []byte
 	Vars         map[string]string
 	EnableDebug  bool
 }
 
 func (p *Provider) Build() ([]packer.Artifact, error) {
-	template, err := p.newTemplateFile()
-	if err != nil {
-		return nil, err
+	var template *packer.Template
+	var err error
+
+	if p.Data != nil {
+		template, err = p.NewTemplate()
+		if err != nil {
+			return nil, err
+		}
+	} else if p.TemplatePath != "" {
+		template, err = p.NewTemplateFile()
+		if err != nil {
+			return nil, err
+		}
+	} else {
+		return nil, errors.New("Can't find Template source, neither Data or TemplatePath is defined")
+	}
+
+	if len(template.Builders) == 0 {
+		return nil, errors.New("No builder is available")
+	}
+
+	if len(template.Builders) != 1 {
+		return nil, errors.New("Only on builder is supported currently")
+	}
+
+	if _, ok := template.Builders[p.BuildName]; !ok {
+		return nil, fmt.Errorf("Build '%s' does not exist", p.BuildName)
 	}
 
 	build, err := template.Build(p.BuildName, newComponentFinder())
@@ -43,11 +68,11 @@ func (p *Provider) Build() ([]packer.Artifact, error) {
 	}
 
 	// Handle interrupts for this build
-	sigCh := make(chan os.Signal, 1)
-	signal.Notify(sigCh, os.Interrupt)
-	defer signal.Stop(sigCh)
+	sig := make(chan os.Signal, 1)
+	signal.Notify(sig, os.Interrupt)
+	defer signal.Stop(sig)
 	go func(b packer.Build) {
-		<-sigCh
+		<-sig
 
 		log.Printf("Stopping build: %s", b.Name())
 		b.Cancel()
@@ -78,22 +103,19 @@ func (p *Provider) basicUI() packer.Ui {
 	}
 }
 
-func (p *Provider) newTemplateFile() (*packer.Template, error) {
-	template, err := packer.ParseTemplateFile(p.TemplatePath, p.Vars)
+func (p *Provider) NewTemplate() (*packer.Template, error) {
+	template, err := packer.ParseTemplate(p.Data, p.Vars)
 	if err != nil {
 		return nil, fmt.Errorf("Failed to parse template: %s", err)
 	}
 
-	if len(template.Builders) == 0 {
-		return nil, errors.New("No builder is available")
-	}
+	return template, nil
+}
 
-	if len(template.Builders) != 1 {
-		return nil, errors.New("Only on builder is supported currently")
-	}
-
-	if _, ok := template.Builders[p.BuildName]; !ok {
-		return nil, fmt.Errorf("Build '%s' does not exist", p.BuildName)
+func (p *Provider) NewTemplateFile() (*packer.Template, error) {
+	template, err := packer.ParseTemplateFile(p.TemplatePath, p.Vars)
+	if err != nil {
+		return nil, fmt.Errorf("Failed to parse template: %s", err)
 	}
 
 	return template, nil

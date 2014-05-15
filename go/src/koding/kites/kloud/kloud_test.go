@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"log"
+	"os"
 	"testing"
 
 	"github.com/koding/kite"
@@ -34,8 +35,16 @@ func init() {
 
 func TestBuild(t *testing.T) {
 	args := &buildArgs{
-		Provider:     "digitalocean",
-		TemplatePath: "testdata/digitalocean_packer.json",
+		Provider: "digitalocean",
+		Builder: map[string]interface{}{
+			"type":          "digitalocean",
+			"client_id":     os.Getenv("DIGITALOCEAN_API_KEY"),
+			"api_key":       os.Getenv("DIGITALOCEAN_CLIENT_ID"),
+			"image":         "ubuntu-13-10-x64",
+			"region":        "ams1",
+			"size":          "512mb",
+			"snapshot_name": "koding-{{timestamp}}",
+		},
 	}
 
 	_, err := remote.Tell("build", args)

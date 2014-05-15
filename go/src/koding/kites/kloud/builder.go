@@ -14,12 +14,12 @@ var providers = map[string]Builder{
 // Builder is used to create and provisiong a single image or machine for a
 // given Provider.
 type Builder interface {
-	Build(path string) error
+	Build(...interface{}) error
 }
 
 type buildArgs struct {
-	Provider     string
-	TemplatePath string
+	Provider string
+	Builder  map[string]interface{}
 }
 
 func build(r *kite.Request) (interface{}, error) {
@@ -35,7 +35,7 @@ func build(r *kite.Request) (interface{}, error) {
 		return nil, errors.New("provider not supported")
 	}
 
-	if err := provider.Build(args.TemplatePath); err != nil {
+	if err := provider.Build(args.Builder); err != nil {
 		return nil, err
 	}
 
