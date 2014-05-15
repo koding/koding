@@ -2,39 +2,30 @@ class TeamworkShareModal extends KDModalView
 
   constructor: (options = {}, data) ->
 
+    url = "#{location.origin}/Teamwork?sessionKey=#{options.delegate.sessionKey}"
+    message =
+      """
+      <div class='modalformline'>
+        <p>Share the url below to invite others to your Koding teamwork/pair coding session.</p><br />
+        <p>
+          Be aware that makes your VM accessible to your collaborators until you close the browser tab.
+        </p><br />
+
+        <p>
+          <a href="#{url}">#{url}</a>
+        </p>
+      </div>
+      """
+
     options.cssClass = "tw-modal tw-share-modal"
     options.overlay  = yes
     options.width    = 655
+    options.overlay  = yes
+    options.title    = "Collaborate in real-time"
+    options.cssClass = "new-kdmodal"
+    options.content  = "<div class='modalformline'>#{message}</div>"
+    options.buttons  =
+      Close          :
+        callback     : => @destroy()
 
     super options, data
-
-    @addSubView loader = new KDLoaderView
-      cssClass   : "tw-share-loading"
-      showLoader : yes
-      size       :
-        width    : 30
-
-    KD.getSingleton("appManager").require "Activity", =>
-      inputWidget = new ActivityInputWidget
-      inputWidget.once "viewAppended", =>
-        content = @getOptions().inputContent or """
-          <div class="join">Would you like to join my Teamwork session?</div>
-          <div class="url">#{location.origin}/Teamwork?sessionKey=#{@getDelegate().sessionKey}</div>
-        """
-        inputWidget.input.setContent content
-        loader.destroy()
-
-      @addSubView inputWidget
-
-      inputWidget.on "ActivitySubmitted", =>
-        KD.mixpanel "Teamwork share post, click"
-        @destroy()
-
-      shareWarning = @getOptions().shareWarning or """
-        <span class="warning"></span>
-        <p>Be warned, this makes your VM accessible to others until you close this browser tab. They can see/delete your files.</p>
-      """
-
-      @addSubView new KDCustomHTMLView
-        cssClass : "tw-share-warning"
-        partial  : shareWarning

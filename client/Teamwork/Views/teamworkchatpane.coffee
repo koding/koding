@@ -178,14 +178,6 @@ class TeamworkChatPane extends ChatPane
       tagName  : "span"
       partial  : "Active users"
 
-    links.addSubView new KDCustomHTMLView
-      tagName  : "span"
-      cssClass : "tw-share-link"
-      partial  : "Share"
-      click    : =>
-        KD.mixpanel "Teamwork share modal, click"
-        new TeamworkShareModal delegate: @getDelegate()
-
     @usersArea  = new KDCustomHTMLView
       cssClass : "tw-users-area"
 
@@ -221,7 +213,9 @@ class TeamworkChatPane extends ChatPane
         cssClass : "tw-add-user"
         tooltip  :
           title  : "Click here to invite your friends"
-        click    : => new TeamworkInviteModal delegate: this
+        click    : =>
+          KD.mixpanel "Teamwork share modal, click"
+          new TeamworkShareModal delegate: @getDelegate()
 
   handleWatchLabel: ->
     workspace      = @getDelegate()
