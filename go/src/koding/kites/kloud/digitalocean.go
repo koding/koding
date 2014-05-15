@@ -29,14 +29,14 @@ func (d *DigitalOcean) Prepare(raws ...interface{}) (err error) {
 		return errors.New("credential is empty")
 	}
 
-	d.ClientID, ok = creds["clientID"].(string)
+	d.ClientID, ok = creds["client_id"].(string)
 	if !ok {
-		return fmt.Errorf("clientID must be string")
+		return fmt.Errorf("client_id must be string")
 	}
 
-	d.ApiKey, ok = creds["apiKey"].(string)
+	d.ApiKey, ok = creds["api_key"].(string)
 	if !ok {
-		return fmt.Errorf("apiKey must be string")
+		return fmt.Errorf("api_key must be string")
 	}
 
 	d.Name = "digitalocean"

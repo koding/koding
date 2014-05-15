@@ -54,6 +54,10 @@ func TestBuild(t *testing.T) {
 	} else {
 		args = &buildArgs{
 			Provider: "digitalocean",
+			Credential: map[string]interface{}{
+				"client_id": os.Getenv("DIGITALOCEAN_CLIENT_ID"),
+				"api_key":   os.Getenv("DIGITALOCEAN_API_KEY"),
+			},
 			Builder: map[string]interface{}{
 				"type":          "digitalocean",
 				"client_id":     os.Getenv("DIGITALOCEAN_CLIENT_ID"),

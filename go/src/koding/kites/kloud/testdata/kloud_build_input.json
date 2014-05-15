@@ -1,5 +1,4 @@
 {
-    "provider": "digitalocean",
     "builder": {
         "api_key": "",
         "client_id": "",
@@ -8,5 +7,10 @@
         "size": "512mb",
         "snapshot_name": "koding-{{timestamp}}",
         "type": "digitalocean"
-    }
+    },
+    "credential": {
+        "api_key": "",
+        "client_id": ""
+    },
+    "provider": "digitalocean"
 }
