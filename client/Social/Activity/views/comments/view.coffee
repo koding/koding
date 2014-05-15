@@ -8,7 +8,7 @@ class CommentView extends KDView
 
     @header = new CommentViewHeader delegate: this, data
 
-    @inputForm = new NewCommentForm delegate: this
+    @inputForm = new CommentInputForm delegate: this
       .on "Focused", @bound "decorateAsFocused"
       .on "Blured", @bound "resetDecoration"
       .on "Submit", @bound "reply"

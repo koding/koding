@@ -1,4 +1,4 @@
-class EditCommentForm extends NewCommentForm
+class CommentEditForm extends CommentInputForm
 
   constructor: (options = {}, data) ->
 

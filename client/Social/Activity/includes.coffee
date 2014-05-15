@@ -48,8 +48,8 @@ module.exports = [
   "views/tags/TagViews.coffee"
   "views/tags/TagAutoCompleteController.coffee"
 
-  "views/comments/newcommentform.coffee"
-  "views/comments/editcommentform.coffee"
+  "views/comments/inputform.coffee"
+  "views/comments/editform.coffee"
   "views/comments/count.coffee"
   "views/comments/likeview.coffee"
   "views/comments/view.coffee"

@@ -1,4 +1,4 @@
-class NewCommentForm extends KDView
+class CommentInputForm extends KDView
 
   constructor: (options = {}, data) ->
 
