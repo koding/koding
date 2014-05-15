@@ -94,6 +94,29 @@ func TestNotificationCreation(t *testing.T) {
 				time.Sleep(SLEEP_TIME * time.Second) // waiting for async message
 			})
 
+			Convey("First user should not be able to receive any notification", func() {
+				nl, err := getNotificationList(firstUser.Id)
+				ResultedWithNoErrorCheck(nl, err)
+				Convey("And Notification list should not contain any notifications", func() {
+					So(len(nl.Notifications), ShouldEqual, 0)
+				})
+			})
+
+			Convey("First user should be able to reply it again", func() {
+				var err error
+				replyMessage, err = addReply(firstMessage.Id, firstUser.Id, testGroupChannel.Id)
+				ResultedWithNoErrorCheck(replyMessage, err)
+				time.Sleep(SLEEP_TIME * time.Second) // waiting for async message
+			})
+
+			Convey("First user still should not be able to receive any notification", func() {
+				nl, err := getNotificationList(firstUser.Id)
+				ResultedWithNoErrorCheck(nl, err)
+				Convey("And Notification list should not contain any notifications", func() {
+					So(len(nl.Notifications), ShouldEqual, 0)
+				})
+			})
+
 			Convey("I should be able to receive notification", func() {
 				nl, err := getNotificationList(ownerAccount.Id)
 				ResultedWithNoErrorCheck(nl, err)
@@ -371,7 +394,9 @@ func TestNotificationCreation(t *testing.T) {
 				})
 			})
 			Convey("First user should be able to relike it", func() {
-				err := addInteraction(socialapimodels.Interaction_TYPE_LIKE, firstMessage.Id, firstUser.Id)
+				err := deleteInteraction(socialapimodels.Interaction_TYPE_LIKE, firstMessage.Id, firstUser.Id)
+				So(err, ShouldBeNil)
+				err = addInteraction(socialapimodels.Interaction_TYPE_LIKE, firstMessage.Id, firstUser.Id)
 				So(err, ShouldBeNil)
 				time.Sleep(SLEEP_TIME * time.Second)
 			})
@@ -471,8 +496,6 @@ func TestNotificationCreation(t *testing.T) {
 
 		Convey("As a followee I should be able to receive follower notifications when first user follows me", func() {
 			Convey("First user should be able to follow me", func() {
-				fmt.Println("First user", firstUser.Id)
-				fmt.Println("owner account", ownerAccount.Id)
 				res, err := followNotification(firstUser.Id, ownerAccount.Id)
 				ResultedWithNoErrorCheck(res, err)
 				time.Sleep(SLEEP_TIME * time.Second)
@@ -601,13 +624,13 @@ func TestNotificationCreation(t *testing.T) {
 				ResultedWithNoErrorCheck(replyMessage, err)
 				time.Sleep(SLEEP_TIME * time.Second) // waiting for async message
 			})
-			Convey("I should not be able to receive latest notification", func() {
-				nl, err := getNotificationList(ownerAccount.Id)
-				ResultedWithNoErrorCheck(nl, err)
-				So(len(nl.Notifications), ShouldBeGreaterThan, 0)
-				So(len(nl.Notifications[0].LatestActors), ShouldEqual, 1)
-				So(nl.Notifications[0].LatestActors[0], ShouldEqual, secondUser.Id)
-			})
+			// Convey("I should not be able to receive latest notification", func() {
+			// 	nl, err := getNotificationList(ownerAccount.Id)
+			// 	ResultedWithNoErrorCheck(nl, err)
+			// 	So(len(nl.Notifications), ShouldBeGreaterThan, 0)
+			// 	So(len(nl.Notifications[0].LatestActors), ShouldEqual, 1)
+			// 	So(nl.Notifications[0].LatestActors[0], ShouldEqual, secondUser.Id)
+			// })
 			Convey("Third user should be able to receive notification", func() {
 				nl, err := getNotificationList(thirdUser.Id)
 				ResultedWithNoErrorCheck(nl, err)
@@ -818,6 +841,20 @@ func addInteraction(interactionType string, postId, accountId int64) error {
 
 	url := fmt.Sprintf("/message/%d/interaction/%s/add", postId, interactionType)
 	_, err := utils.SendModel("POST", url, cm)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+// copy/paste
+func deleteInteraction(interactionType string, postId, accountId int64) error {
+	cm := socialapimodels.NewInteraction()
+	cm.AccountId = accountId
+	cm.MessageId = postId
+
+	url := fmt.Sprintf("/message/%d/interaction/%s/delete", postId, interactionType)
+	_, err := utils.MarshallAndSendRequest("POST", url, cm)
 	if err != nil {
 		return err
 	}

@@ -93,7 +93,7 @@ func (n *NotificationWorkerController) CreateReplyNotification(data []byte) erro
 
 	// if it is not notifier's own message then add owner to subscribers
 	if cm.AccountId != rn.NotifierId {
-		n.createNotification(nc.Id, cm.AccountId, subscribedAt)
+		n.subscribe(nc.Id, cm.AccountId, subscribedAt)
 	}
 
 	notifiedUsers, err := rn.GetNotifiedUsers(nc.Id)
@@ -106,25 +106,39 @@ func (n *NotificationWorkerController) CreateReplyNotification(data []byte) erro
 		if recipient == rn.NotifierId {
 			notifierSubscribed = true
 		}
-		n.createNotification(nc.Id, recipient, subscribedAt)
+		n.notify(nc.Id, recipient, subscribedAt)
 	}
 
 	// if not subcribed, subscribe the actor to message
 	if !notifierSubscribed {
-		n.createNotification(nc.Id, rn.NotifierId, subscribedAt)
+		n.subscribe(nc.Id, rn.NotifierId, subscribedAt)
 	}
 
 	return nil
 }
 
-func (n *NotificationWorkerController) createNotification(contentId, notifierId int64, subscribedAt time.Time) {
+func (n *NotificationWorkerController) notify(contentId, notifierId int64, subscribedAt time.Time) {
+	notification := buildNotification(contentId, notifierId, subscribedAt)
+	if err := notification.Create(false); err != nil {
+		n.log.Error("An error occurred while notifying user %d: %s", notification.AccountId, err.Error())
+	}
+}
+
+func (n *NotificationWorkerController) subscribe(contentId, notifierId int64, subscribedAt time.Time) {
+	notification := buildNotification(contentId, notifierId, subscribedAt)
+	notification.SubscribeOnly = true
+	if err := notification.Create(true); err != nil {
+		n.log.Error("An error occurred while subscribing user %d: %s", notification.AccountId, err.Error())
+	}
+}
+
+func buildNotification(contentId, notifierId int64, subscribedAt time.Time) *models.Notification {
 	notification := models.NewNotification()
 	notification.NotificationContentId = contentId
 	notification.AccountId = notifierId
 	notification.SubscribedAt = subscribedAt
-	if err := notification.Create(); err != nil {
-		n.log.Error("An error occurred while notifying user %d: %s", notifierId, err.Error())
-	}
+
+	return notification
 }
 
 func (n *NotificationWorkerController) CreateInteractionNotification(data []byte) error {
@@ -155,7 +169,7 @@ func (n *NotificationWorkerController) CreateInteractionNotification(data []byte
 	notification.NotificationContentId = nc.Id
 	notification.AccountId = cm.AccountId // notify message owner
 	notification.ActivatedAt = time.Now() // enables notification immediately
-	if err = notification.Create(); err != nil {
+	if err = notification.Create(false); err != nil {
 		n.log.Error("An error occurred while notifying user %d: %s", cm.AccountId, err.Error())
 	}
 
@@ -214,7 +228,7 @@ func interactFollow(cp *socialapimodels.ChannelParticipant, c *socialapimodels.C
 	notification.NotificationContentId = nc.Id
 	notification.AccountId = c.CreatorId  // notify channel owner
 	notification.ActivatedAt = time.Now() // enables notification immediately
-	if err = notification.Create(); err != nil {
+	if err = notification.Create(false); err != nil {
 		return err
 	}
 
@@ -241,7 +255,7 @@ func interactGroup(cp *socialapimodels.ChannelParticipant, c *socialapimodels.Ch
 	notification.NotificationContentId = nc.Id
 	notification.AccountId = c.CreatorId  // notify channel owner
 	notification.ActivatedAt = time.Now() // enables notification immediately
-	if err = notification.Create(); err != nil {
+	if err = notification.Create(false); err != nil {
 		return err
 	}
 

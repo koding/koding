@@ -30,6 +30,8 @@ type Notification struct {
 
 	// notification type as subscribed/unsubscribed
 	UnsubscribedAt time.Time `json:"unsubscribedAt"`
+
+	SubscribeOnly bool `sql:"-"`
 }
 
 func (n *Notification) BeforeCreate() {
@@ -69,7 +71,7 @@ func (n *Notification) One(q *bongo.Query) error {
 	return bongo.B.One(n, n, q)
 }
 
-func (n *Notification) Create() error {
+func (n *Notification) Create(preventUpdate bool) error {
 	unsubscribedAt := n.UnsubscribedAt
 
 	// TODO check notification content existence
@@ -81,7 +83,11 @@ func (n *Notification) Create() error {
 		return bongo.B.Create(n)
 	}
 
-	if !unsubscribedAt.Equal(ZeroDate()) {
+	if preventUpdate {
+		return nil
+	}
+
+	if !unsubscribedAt.IsZero() {
 		n.UnsubscribedAt = unsubscribedAt
 	}
 
@@ -99,8 +105,9 @@ func (n *Notification) Subscribe(nc *NotificationContent) error {
 	}
 
 	n.NotificationContentId = nc.Id
+	n.SubscribeOnly = true
 
-	return n.Create()
+	return n.Create(true)
 }
 
 func (n *Notification) Unsubscribe(nc *NotificationContent) error {
