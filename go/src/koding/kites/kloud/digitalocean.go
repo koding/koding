@@ -3,7 +3,10 @@ package main
 import (
 	"errors"
 	"fmt"
+	"koding/kites/kloud/packer"
 	"net/url"
+	"strconv"
+	"time"
 
 	"github.com/mitchellh/mapstructure"
 	"github.com/mitchellh/packer/builder/digitalocean"
@@ -13,14 +16,13 @@ type DigitalOcean struct {
 	Client *digitalocean.DigitalOceanClient
 	Name   string
 
-	CredsRaw interface{}
-	Creds    struct {
+	Creds struct {
 		ClientID string `mapstructure:"client_id"`
 		APIKey   string `mapstructure:"api_key"`
 	}
 
-	BuilderRaw interface{}
-	Builder    struct {
+	Builder struct {
+		Type     string `mapstructure:"type"`
 		ClientID string `mapstructure:"client_id"`
 		APIKey   string `mapstructure:"api_key"`
 
@@ -50,13 +52,11 @@ func (d *DigitalOcean) Prepare(raws ...interface{}) (err error) {
 	}
 
 	// Credentials
-	d.CredsRaw = raws[0]
 	if err := mapstructure.Decode(raws[0], &d.Creds); err != nil {
 		return err
 	}
 
 	// Builder data
-	d.BuilderRaw = raws[1]
 	if err := mapstructure.Decode(raws[1], &d.Builder); err != nil {
 		return err
 	}
@@ -66,24 +66,56 @@ func (d *DigitalOcean) Prepare(raws ...interface{}) (err error) {
 }
 
 func (d *DigitalOcean) Build() (err error) {
-	// data, err = templateData(d.Data)
-	// if err != nil {
-	// 	return err
-	// }
-	// provider := &packer.Provider{
-	// 	BuildName: "digitalocean",
-	// 	Data:      data,
-	// }
+	snapshotName := "koding-" + strconv.FormatInt(time.Now().UTC().Unix(), 10)
+	d.Builder.SnapshotName = snapshotName
 
+	data, err := templateData(d.Builder)
+	if err != nil {
+		return err
+	}
+
+	provider := &packer.Provider{
+		BuildName: "digitalocean",
+		Data:      data,
+	}
+
+	// this is basically a "packer build template.json"
+	if err := provider.Build(); err != nil {
+		return err
+	}
+
+	// after creating the image go and get it
 	images, err := d.MyImages()
 	if err != nil {
 		return err
 	}
 
+	var image digitalocean.Image
 	for _, i := range images {
 		fmt.Printf("i %+v\n", i)
+		if i.Name == snapshotName {
+			image = i
+		}
 	}
 
+	if image.Id == 0 {
+		return fmt.Errorf("Image %s is not available in Digital Ocean", snapshotName)
+	}
+
+	// now create a the machine based on our created image
+	dropletId, err := d.Client.CreateDroplet(
+		"arslan",         // custom droplet name, must be formatted by hostname rules
+		d.Builder.Size,   // size name
+		image.Name,       // image name
+		d.Builder.Region, // region name
+		0,                // ssh key ID, we don't use any
+		d.Builder.PrivateNetworking, // private networking
+	)
+	if err != nil {
+		return err
+	}
+
+	fmt.Printf("success! dropletID %+v\n", dropletId)
 	return nil
 
 	// return provider.Build()

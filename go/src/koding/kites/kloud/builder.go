@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"reflect"
 
 	"github.com/koding/kite"
 )
@@ -57,12 +58,47 @@ func build(r *kite.Request) (interface{}, error) {
 	return true, nil
 }
 
-// templateData converts the given raws interface to a []byte data that can
-// used to pass into packer.Template()
+// templateData includes our klient converts the given raw interface to a
+// []byte data that can used to pass into packer.Template().
 func templateData(raw interface{}) ([]byte, error) {
+	rawMapData, err := toMap(raw, "mapstructure")
+	if err != nil {
+		return nil, err
+	}
+	fmt.Printf("rawMapData %+v\n", rawMapData)
+
 	packerTemplate := map[string]interface{}{}
-	packerTemplate["builders"] = raw
+	packerTemplate["builders"] = []interface{}{rawMapData}
 	packerTemplate["provisioners"] = klientProvisioner
+	fmt.Printf("packerTemplate %+v\n", packerTemplate)
 
 	return json.Marshal(packerTemplate)
+}
+
+// toMap converts a struct defined by `in` to a map[string]interface{}. It only
+// extract data that is defined by the given tag.
+func toMap(in interface{}, tag string) (map[string]interface{}, error) {
+	out := make(map[string]interface{})
+
+	v := reflect.ValueOf(in)
+	if v.Kind() == reflect.Ptr {
+		v = v.Elem()
+	}
+
+	// we only accept structs
+	if v.Kind() != reflect.Struct {
+		return nil, fmt.Errorf("only struct is allowd got %T", v)
+	}
+
+	typ := v.Type()
+	for i := 0; i < v.NumField(); i++ {
+		// gets us a StructField
+		fi := typ.Field(i)
+		if tagv := fi.Tag.Get(tag); tagv != "" {
+			// set key of map to value in struct field
+			out[tagv] = v.Field(i).Interface()
+		}
+	}
+	return out, nil
+
 }
