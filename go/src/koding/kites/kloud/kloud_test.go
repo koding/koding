@@ -56,8 +56,8 @@ func TestBuild(t *testing.T) {
 			Provider: "digitalocean",
 			Builder: map[string]interface{}{
 				"type":          "digitalocean",
-				"client_id":     os.Getenv("DIGITALOCEAN_API_KEY"),
-				"api_key":       os.Getenv("DIGITALOCEAN_CLIENT_ID"),
+				"client_id":     os.Getenv("DIGITALOCEAN_CLIENT_ID"),
+				"api_key":       os.Getenv("DIGITALOCEAN_API_KEY"),
 				"image":         "ubuntu-13-10-x64",
 				"region":        "ams1",
 				"size":          "512mb",
