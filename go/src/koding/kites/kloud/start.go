@@ -2,7 +2,6 @@ package main
 
 import (
 	"errors"
-	"fmt"
 
 	"github.com/koding/kite"
 )
@@ -32,8 +31,6 @@ func start(r *kite.Request) (interface{}, error) {
 	if err := controller.Setup(args.Credential); err != nil {
 		return nil, err
 	}
-
-	fmt.Printf("args.MachineID %T\n", args.MachineID)
 
 	if err := controller.Start(args.MachineID); err != nil {
 		return nil, err

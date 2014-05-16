@@ -238,22 +238,17 @@ func (d *DigitalOcean) Start(raws ...interface{}) error {
 		return errors.New("zero arguments are passed")
 	}
 
+	// json.Unmarshall() is converting JSON numbers to float64
 	dFloat, ok := raws[0].(float64)
 	if !ok {
 		return fmt.Errorf("malformed data received %v. droplet Id must be an int.", raws[0])
 	}
 
-	dropletId := int(dFloat)
+	dropletId := uint(dFloat)
 
 	path := fmt.Sprintf("droplets/%v/power_on", dropletId)
-	resp, err := digitalocean.NewRequest(*d.Client, path, url.Values{})
-	if err != nil {
-		return err
-	}
-
-	fmt.Printf("start: resp %+v\n", resp)
-
-	return nil
+	_, err := digitalocean.NewRequest(*d.Client, path, url.Values{})
+	return err
 }
 
 func (d *DigitalOcean) Stop(raws ...interface{}) error    { return nil }
