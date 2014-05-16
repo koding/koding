@@ -290,35 +290,25 @@ module.exports = class JDomain extends jraphical.Module
           resolveDomain domainData, (err)->
             return callback err  if err
 
-  @createDomains = ({account, domains, hostnameAlias, group})->
-
-    updateRelationship = (domainObj)->
-      Relationship.one
-        targetName: "JDomain",
-        targetId: domainObj._id,
-        sourceName: "JAccount",
-        sourceId: account._id,
-        as: "owner"
-      , (err, rel)->
-        if err or not rel
-          options = {data:{group}}
-          account.addDomain domainObj, options, (err)->
-            console.log err  if err?
             createDomain {
               domainData, account: delegate, group: group.slug, stack
             }, callback
 
 
-    domains.forEach (domain) ->
-      domainObj = new JDomain {
-        domain, group,
-        hostnameAlias : [hostnameAlias]
-      }
+  @createDomains = (options, callback)->
 
-      domainObj.save (err)->
-        if err
-        then console.error err  unless err.code is 11000
-        else updateRelationship domainObj
+    { account, domains, hostnameAlias, group, stack } = options
+
+    domains.forEach (domain) ->
+
+      createDomain {
+        domainData: {
+          domain, hostnameAlias : [ hostnameAlias ]
+        }, account, group, stack
+      }, (err, domain)->
+
+        if err? then console.error err  unless err.code is 11000
+
 
 
   bindVM: (client, params, callback)->
