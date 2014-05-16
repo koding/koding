@@ -13,6 +13,7 @@ class WorkspaceTabView extends JView
   createTabHolderView: ->
     @holderView     = new ApplicationTabHandleHolder
       addPlusHandle : @getOption "addPlusHandle"
+      delegate      : this
 
   createTabView: ->
     @tabView = new ApplicationTabView
