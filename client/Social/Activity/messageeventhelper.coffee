@@ -68,3 +68,15 @@ class MessageEventHelper extends KDObject
 
     message.emit "AddReply", reply
     message.emit "update"
+
+
+  removeReply: (message, {replyId}) ->
+
+    for item in message.replies
+      reply = item  if replyId is item.getId()
+
+    message.replies = message.replies.filter (reply) -> reply.getId() isnt replyId
+    message.repliesCount--
+
+    message.emit "RemoveReply", reply
+    message.emit "update"
