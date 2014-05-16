@@ -71,6 +71,7 @@ node_modules_koding/processes/src/.tmp*
 /go/src/socialapi/topicfeed
 /go/src/socialapi/rerun
 /go/src/socialapi/realtime
+/go/src/socialapi/popularpost
 /go/src/socialapi/populartopic
 /go/src/socialapi/followingfeed
 /go/src/socialapi/api

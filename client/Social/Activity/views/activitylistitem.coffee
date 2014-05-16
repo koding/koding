@@ -24,7 +24,7 @@ class ActivityListItemView extends KDListItemView
     @author     = new ProfileLinkView { origin }
     @commentBox = new CommentView options.commentSettings, data
 
-    @actionLinks = new ActivityActionsView delegate: @commentBox.commentList, data
+    @actionLinks = new ActivityActionsView delegate: @commentBox, data
     @likeSummary = new ActivityLikeSummaryView {}, data
 
     @settingsButton = new ActivitySettingsView

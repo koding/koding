@@ -1,6 +1,7 @@
 module.exports = [
   "AppController.coffee"
   "AppView.coffee"
+  "messageeventhelper.coffee"
   "activitylistcontroller.coffee"
   "pinnedactivitylistcontroller.coffee"
 

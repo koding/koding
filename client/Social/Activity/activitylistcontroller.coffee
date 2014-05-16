@@ -27,24 +27,15 @@ class ActivityListController extends KDListViewController
 
     @hiddenItems = []
 
-
-  listActivities: (activities) ->
-
-    @hideLazyLoader()
-
-    return  unless activities.length > 0
-
-    @addItem activity for activity in activities
+    @messageEventHelper = new MessageEventHelper
 
 
+  instantiateListItems: (messages) ->
 
+    messages = messages.filter (message) => not @itemForId message.getId()
+    messages.forEach @messageEventHelper.bound "bindListeners"
 
-
-
-
-
-
-
+    super messages
 
 
   # LEGACY
@@ -72,29 +63,9 @@ class ActivityListController extends KDListViewController
     @bindItemEvents subject
     return subject
 
-
-
   isMine:(activity)->
     id = KD.whoami().getId()
     id? and id in [activity.originId, activity.anchor?.id]
-
-
-  checkIfLikedBefore:(activityIds)->
-    KD.remote.api.CActivity.checkIfLikedBefore activityIds, (err, likedIds)=>
-      for activity in @getListView().items when activity.data.getId().toString() in likedIds
-        likeView = activity.subViews.first.actionLinks?.likeView
-        if likeView
-          likeView.setClass "liked"
-          likeView._currentState = yes
-
-  addItem:(activity, index, animation) ->
-    dataId = activity.getId?() or activity._id or activity.id
-    if dataId?
-      if @itemsIndexed[dataId]
-        log "duplicate entry", activity.bongo_?.constructorName, dataId
-      else
-        @itemsIndexed[dataId] = activity
-        super activity, index, animation
 
   unhideNewHiddenItems: ->
 
@@ -104,12 +75,3 @@ class ActivityListController extends KDListViewController
 
     unless KD.getSingleton("router").getCurrentPath() is "/Activity"
       KD.getSingleton("activityController").clearNewItemsCount()
-
-  instantiateListItems:(items)->
-    newItems = super
-    @checkIfLikedBefore (item.getId()  for item in items)
-    return newItems
-
-  bindItemEvents: (item) ->
-    item.on "TagsUpdated", (tags) ->
-      item.tags = KD.remote.revive tags

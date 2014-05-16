@@ -49,6 +49,18 @@ class NewCommentForm extends KDView
       groupName : KD.getGroup().slug
 
 
+  mention: (username) ->
+
+    value = @getValue()
+
+    @setValue \
+      if value.indexOf("@#{username}") >= 0 then value
+      else if value.length is 0 then "@#{username} "
+      else "#{value} @#{username} "
+
+    @setFocus()
+
+
   setFocus: ->
 
     @input.setFocus()
