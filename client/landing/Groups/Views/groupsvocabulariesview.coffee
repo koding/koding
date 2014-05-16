@@ -1,6 +1,6 @@
 class GroupsVocabulariesListItemView extends KDListItemView
 
-  viewAppended: JView::viewAppended
+  JView.mixin @prototype
 
   pistachio:->
     """

@@ -1,5 +1,7 @@
 class StartTabAppThumbView extends KDCustomHTMLView
 
+  JView.mixin @prototype
+
   constructor:(options, data)->
 
     options.tagName    = 'figure'
@@ -203,11 +205,6 @@ class StartTabAppThumbView extends KDCustomHTMLView
       @destroy()  unless err
 
       KD.mixpanel "Delete Application, success", manifest.name
-
-  viewAppended:->
-
-    @setTemplate @pistachio()
-    @template.update()
 
   click:(event)->
 
