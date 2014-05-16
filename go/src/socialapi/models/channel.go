@@ -97,7 +97,7 @@ func (c *Channel) BeforeUpdate() {
 	c.UpdatedAt = time.Now()
 }
 
-func (c *Channel) GetId() int64 {
+func (c Channel) GetId() int64 {
 	return c.Id
 }
 
@@ -113,7 +113,7 @@ func (c *Channel) AfterUpdate() {
 	bongo.B.AfterUpdate(c)
 }
 
-func (c *Channel) AfterDelete() {
+func (c Channel) AfterDelete() {
 	bongo.B.AfterDelete(c)
 }
 
