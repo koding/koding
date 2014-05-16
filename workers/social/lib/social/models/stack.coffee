@@ -77,7 +77,22 @@ module.exports = class JStack extends jraphical.Module
       meta               : require 'bongo/bundles/meta'
 
 
+  @getStack = (account, _id, callback)->
 
+    JStack.one { _id, originId : account.getId() }, (err, stackObj)->
+      if err? or not stackObj?
+        return callback new KodingError "A valid stack id required"
+      callback null, stackObj
+
+
+  appendTo: (itemToAppend, callback)->
+
+    # itemToAppend is like: { machines: machine.getId() }
+
+    # TODO add check for itemToAppend to make sure its just ~ GG
+    # including supported fields: [rules, domains, machines, extras]
+
+    @update $addToSet: itemToAppend, (err)-> callback err
 
 
   ###*
