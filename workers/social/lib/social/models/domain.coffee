@@ -318,20 +318,6 @@ module.exports = class JDomain extends jraphical.Module
         then console.error err  unless err.code is 11000
         else updateRelationship domainObj
 
-  @ensureDomainSettingsForVM = ({account, vm, type, nickname, group})->
-    domain = 'kd.io'
-    if type in ['user', 'expensed']
-      requiredDomains = ["#{nickname}.#{group}.#{domain}"]
-      if group in ['koding', 'guests']
-        requiredDomains.push "#{nickname}.#{domain}"
-    else
-      requiredDomains = ["#{group}.#{domain}", "shared.#{group}.#{domain}"]
-
-    {hostnameAlias} = vm
-    @createDomains {
-      account, hostnameAlias,
-      domains:requiredDomains, group
-    }
 
   bindVM: (client, params, callback)->
     domainName = @domain
