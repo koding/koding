@@ -12,7 +12,7 @@ class GroupsListItemView extends KDListItemView
 
     slugLink = if slug is KD.defaultSlug then '/' else "/#{slug}"
 
-    @titleLink = new KDCustomHTMLView
+    @titleLink = new JListItemView
       tagName     : 'a'
       attributes  :
         href      : slugLink
