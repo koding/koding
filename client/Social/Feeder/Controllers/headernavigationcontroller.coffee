@@ -14,7 +14,7 @@ class HeaderNavigationController extends KDController
         callback : @emit.bind @, "contextMenuItemClicked", item
         action   : item.action
 
-    @activeFacet = new KDCustomHTMLView
+    @activeFacet = new JListItemView
       tagName   : "a"
       cssClass  : "active-facet"
       pistachio : "{span{#(title)}}<cite/>"

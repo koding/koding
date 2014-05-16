@@ -1,6 +1,4 @@
-class TroubleshootItemView extends KDCustomHTMLView
-
-  JView.mixin @prototype
+class TroubleshootItemView extends JCustomHTMLView
 
   constructor: (options, data) ->
     options.cssClass ?= "hidden troubleshootitem"
@@ -21,7 +19,7 @@ class TroubleshootItemView extends KDCustomHTMLView
     @on "recoveryCompleted", @bound "completeCheck"
 
 
-    @status = new KDCustomHTMLView
+    @status = new JCustomHTMLView
       tagName   : "strong"
       pistachio : "{{#(status)}}"
       cssClass  : "status"

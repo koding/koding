@@ -28,7 +28,7 @@ class CommentViewHeader extends JView
       @updateNewCount()
       @hide()
 
-    @allItemsLink = new KDCustomHTMLView
+    @allItemsLink = new JListItemView
       tagName   : "a"
       cssClass  : "all-count"
       pistachio : "View all {{#(repliesCount)}} #{@getOptions().itemTypeString}..."

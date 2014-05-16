@@ -21,7 +21,7 @@ class EmbedBoxLinkViewTitle extends JView
     @editIndicator = new KDCustomHTMLView
       tagName   : 'div'
       cssClass  : 'edit-indicator title-edit-indicator'
-      pistachio : 'edited'
+      partial   : 'edited'
       tooltip   :
         title   : "Original Content was: #{oembed.original_title or oembed.title or ''}"
 

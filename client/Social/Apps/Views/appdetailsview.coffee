@@ -101,7 +101,7 @@ class AppDetailsView extends KDScrollView
 
     @slideShow = new KDCustomHTMLView
       tagName   : "ul"
-      pistachio : do ->
+      partial   : do ->
         slides = app.manifest.screenshots or []
         tmpl = ''
         for slide in slides

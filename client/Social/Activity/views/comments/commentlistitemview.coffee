@@ -36,7 +36,7 @@ class CommentListItemView extends KDListItemView
     @editInfo = new KDCustomHTMLView
       tagName: "span"
       cssClass: "hidden edited"
-      pistachio: "edited"
+      partal: "edited"
 
     if data.getAt 'editedAt' then @editInfo.show()
 
@@ -138,7 +138,7 @@ class CommentListItemView extends KDListItemView
       callback       : (event)=> button.contextMenu event
 
   getBody:(data)->
-    new KDCustomHTMLView
+    new JListItemView
       cssClass : "comment-body-container"
       pistachio: "{p{@utils.applyTextExpansions #(body), yes}}"
     ,data

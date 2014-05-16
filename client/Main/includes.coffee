@@ -17,6 +17,7 @@ module.exports = [
 
   # jview
   "jview.coffee",
+  "jcustomhtmlview.coffee",
 
   # mainapp controllers
   "activitycontroller.coffee",

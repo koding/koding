@@ -436,7 +436,7 @@ class ProfileView extends JView
     @avatar = new AvatarStaticView avatarOptions, @memberData
 
     userDomain = @memberData.profile.nickname + "." + KD.config.userSitesDomain
-    @userHomeLink = new KDCustomHTMLView
+    @userHomeLink = new JCustomHTMLView
       tagName     : "a"
       cssClass    : "user-home-link"
       attributes  :
@@ -455,7 +455,7 @@ class ProfileView extends JView
 
     nickname = @memberData.profile.nickname
 
-    @followers = new KDView
+    @followers = new JView
       tagName     : 'a'
       attributes  :
         href      : ""
@@ -465,7 +465,7 @@ class ProfileView extends JView
         KD.getSingleton('router').handleRoute "/#{nickname}?filter=followers", {state: @memberData}
     , @memberData
 
-    @following = new KDView
+    @following = new JView
       tagName     : 'a'
       attributes  :
         href      : ""
@@ -475,7 +475,7 @@ class ProfileView extends JView
         KD.getSingleton('router').handleRoute "/#{nickname}?filter=following", {state: @memberData}
     , @memberData
 
-    @likes = new KDView
+    @likes = new JView
       tagName     : 'a'
       attributes  :
         href      : ""
