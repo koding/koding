@@ -145,13 +145,13 @@ class GroupDescription extends KDView
           KD.utils.stopDOMEvent event
           KD.singletons.router.handleRoute "/Dashboard"  if isAdmin
 
-      @titleView = new JListItemView
+      @titleView = new JCustomHTMLView
         tagName         : "h3"
         pistachioParams : { edit }
         pistachio       : "{{ #(title)}} {{> edit}}"
       , group
 
-      @bodyView = new JListItemView
+      @bodyView = new JCustomHTMLView
         tagName   : "p"
         pistachio : "{{ #(body) or ''}}"
         cssClass  : "group-description"

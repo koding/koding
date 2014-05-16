@@ -138,7 +138,7 @@ class CommentListItemView extends KDListItemView
       callback       : (event)=> button.contextMenu event
 
   getBody:(data)->
-    new JListItemView
+    new JCustomHTMLView
       cssClass : "comment-body-container"
       pistachio: "{p{@utils.applyTextExpansions #(body), yes}}"
     ,data

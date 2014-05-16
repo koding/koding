@@ -1,11 +1,11 @@
-class TopicsListItemView extends JListItemView
+class TopicsListItemView extends JCustomHTMLView
 
   constructor:(options = {}, data)->
     options.type = "topics"
     super options, data
 
     data = @getData()
-    @titleLink = new JListItemView
+    @titleLink = new JCustomHTMLView
       tagName     : 'a'
       pistachio   : '{{#(title)}}'
       click       : (event) =>
