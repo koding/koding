@@ -58,7 +58,9 @@ class NFileItemView extends KDCustomHTMLView
   mouseDown:-> yes
 
   viewAppended:->
-    super()
+    @setTemplate @pistachio()
+    @template.update()
+
     @hideLoader()
     @decorateItem()
 
