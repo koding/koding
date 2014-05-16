@@ -6,6 +6,7 @@ module.exports = class JStack extends jraphical.Module
   {secure, ObjectId, signature} = require 'bongo'
   {Relationship}     = jraphical
   {permit}           = require './group/permissionset'
+  Validators         = require './group/validators'
 
   @trait __dirname, '../traits/protected'
 
@@ -13,121 +14,163 @@ module.exports = class JStack extends jraphical.Module
 
   @set
 
-    softDelete        : yes
+    softDelete           : yes
 
-    permissions       :
-      'create stacks' : ['member']
-      'update stacks' : ['member']
-      'get stacks'    : ['member']
+    permissions          :
 
-    sharedMethods     :
-      static          :
-        one           :
-          (signature Object, Function)
-        getStack      :
-          (signature Function)
-        createStack   :
-          (signature Object, Function)
-        getStacks     :
-          (signature Function)
-      instance        :
-        remove        :
-          (signature Function)
-        push          :
-          (signature Object, Function)
-        updateConfig  :
-          (signature String, Function)
+      'create stack'     : ['member']
 
-    sharedEvents      :
-      static          : [ ]
-      instance        : [
+      'update stack'     : []
+      'update own stack' : ['member']
+
+      'delete stack'     : []
+      'delete own stack' : ['member']
+
+      'list stacks'      : ['member']
+
+    sharedMethods        :
+      static             :
+        create           :
+          (signature Object, Function)
+        some             : [
+          (signature Object, Function)
+          (signature Object, Object, Function)
+        ]
+      instance           :
+        delete           :
+          (signature Function)
+        modify           :
+          (signature Object, Function)
+
+    sharedEvents         :
+      static             : [ ]
+      instance           : [
         { name : 'updateInstance' }
       ]
 
-    schema            :
+    indexes              :
+      publicKey          : 'unique'
 
-      user            : String
-      group           : String
-      meta            : Object
+    schema               :
 
-      rules           : [ ObjectId ]
-      domains         : [ ObjectId ]
-      machines        : [ ObjectId ]
-      extras          : [ ObjectId ]
+      title              :
+        type             : String
+        required         : yes
+
+      originId           :
+        type             : ObjectId
+        required         : yes
+
+      group              :
+        type             : String
+        required         : yes
+
+      baseStackId        : ObjectId
+
+      rules              : [ ObjectId ]
+      domains            : [ ObjectId ]
+      machines           : [ ObjectId ]
+      extras             : [ ObjectId ]
+
+      config             : String
+
+      meta               : require 'bongo/bundles/meta'
 
 
-  @getStacks = ({user, group}, callback)->
 
-    JStack.some {user, group}, {}, (err, stacks)->
-      return callback err  if err
+  ###*
+   * JStack::create wrapper for client requests
+   * @param  {Mixed}    client
+   * @param  {Object}   data
+   * @param  {Function} callback
+   * @return {void}
+  ###
+  @create$ = permit 'create stack', success: (client, data, callback)->
 
+    { delegate } = client.connection
+    { group    } = client.context
 
-      if stacks.length is 0
-        meta = title: "Default", slug: "default"
-        JStack.getStack { user, group, meta }, (err, stack) =>
-          callback err, [stack]
+    delete data.baseStackId
+
+    JStack.create { account: delegate, group }, data, callback
+
+  ###*
+   * JStack::create
+   * @param  {Mixed}   client
+   * @param  {Object}   data
+   * @param  {Function} callback
+   * @return {void}
+  ###
+  @create = (client, data, callback)->
+
+    { account, group }             = client
+    { config, title, baseStackId } = data
+    originId = account.getId()
+
+    stack = new JStack {
+      title, config, group, originId, baseStackId
+    }
+
+    stack.save (err)->
+      if err
+        msg = "Failed to create stack"
+        callback new KodingError msg
+        console.warn msg, err
       else
-        callback null, stacks
+        callback null, stack
 
 
-  @getStackId = (selector, callback)->
+  @some$ = permit 'list stacks',
 
-    @getStack selector, (err, stack)->
-      callback err, stack?.getId()
+    success: (client, selector, options, callback)->
 
+      [options, callback] = [callback, options]  unless callback
+      options ?= {}
 
-  @getStack = ({user, group, meta}, callback)->
+      { delegate } = client.connection
 
-    JStack.one {user, group, meta}, (err, stack)->
+      selector         ?= {}
+      selector.originId = delegate.getId()
 
-      return callback err  if err
-      return callback null, stack  if stack
-
-      stack = new JStack {user, group, meta}
-      stack.save (err)->
-        if err then callback err
-        else callback null, stack
+      JStack.some selector, options, callback
 
 
-  @createStack = permit 'create stacks',
 
-    success: (client, meta, callback)->
+  delete: permit
 
-      {group} = client.context
-      user    = client.connection.delegate.profile.nickname
+    advanced: [
+      { permission: 'delete own stack', validateWith: Validators.own }
+    ]
 
-      @getStack {user, group, meta}, callback
-
-
-  @getStack$ = permit 'get stacks',
+    # TODO Implement walk on domains, machines, rules and delete them too ~ GG
 
     success: (client, callback)->
 
-      {group} = client.context
-      user    = client.connection.delegate.profile.nickname
+      { delegate } = client.connection
 
-      @getStack {user, group}, callback
-
-
-  @getStacks$ = permit 'get stacks',
-
-    success: (client, callback)->
-
-      {group} = client.context
-      user    = client.connection.delegate.profile.nickname
-
-      @getStacks {user, group}, callback
-
-
-  updateConfig: permit "update stacks",
-    success: (client, config, callback) ->
-      {group} = client.context
-      user    = client.connection.delegate.profile.nickname
-
-      if @user isnt user
+      if delegate.getId() is not @originId
         return callback new KodingError "Access denied"
 
-      @update $set: "meta.config": config, (err) =>
-        err = new KodingError {message: "Failed to update", err}  if err
+      @remove callback
 
-        callback err, this
+
+
+  modify: permit
+
+    advanced: [
+      { permission: 'update own stack', validateWith: Validators.own }
+    ]
+
+    success: (client, options, callback)->
+
+      { title, config } = options
+
+      unless title or config
+        return callback new KodingError "Nothing to update"
+
+      title  ?= @title
+      config ?= @config
+
+      @update $set : { title, config }, (err)->
+        return callback err  if err?
+        callback null
