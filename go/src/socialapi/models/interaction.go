@@ -37,7 +37,7 @@ const (
 	Interaction_TYPE_DONWVOTE = "downvote"
 )
 
-func (i *Interaction) GetId() int64 {
+func (i Interaction) GetId() int64 {
 	return i.Id
 }
 
@@ -69,7 +69,7 @@ func (i *Interaction) AfterUpdate() {
 	bongo.B.AfterUpdate(i)
 }
 
-func (i *Interaction) AfterDelete() {
+func (i Interaction) AfterDelete() {
 	bongo.B.AfterDelete(i)
 }
 
