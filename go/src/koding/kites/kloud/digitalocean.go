@@ -238,19 +238,40 @@ func (d *DigitalOcean) Start(raws ...interface{}) error {
 		return errors.New("zero arguments are passed")
 	}
 
-	// json.Unmarshall() is converting JSON numbers to float64
-	dFloat, ok := raws[0].(float64)
-	if !ok {
+	var dropletId uint
+	if dropletId = toUint(raws[0]); dropletId == 0 {
 		return fmt.Errorf("malformed data received %v. droplet Id must be an int.", raws[0])
 	}
-
-	dropletId := uint(dFloat)
 
 	path := fmt.Sprintf("droplets/%v/power_on", dropletId)
 	_, err := digitalocean.NewRequest(*d.Client, path, url.Values{})
 	return err
 }
 
-func (d *DigitalOcean) Stop(raws ...interface{}) error    { return nil }
+func (d *DigitalOcean) Stop(raws ...interface{}) error {
+	if len(raws) == 0 {
+		return errors.New("zero arguments are passed")
+	}
+
+	var dropletId uint
+	if dropletId = toUint(raws[0]); dropletId == 0 {
+		return fmt.Errorf("malformed data received %v. droplet Id must be an int.", raws[0])
+	}
+
+	err := d.Client.PowerOffDroplet(dropletId)
+	if err != nil {
+		return err
+	}
+
+	ip, status, err := d.Client.DropletStatus(dropletId)
+	if err != nil {
+		return err
+	}
+
+	fmt.Printf("ip %+v\n", ip)
+	fmt.Printf("status %+v\n", status)
+	return nil
+}
+
 func (d *DigitalOcean) Restart(raws ...interface{}) error { return nil }
 func (d *DigitalOcean) Destroy(raws ...interface{}) error { return nil }

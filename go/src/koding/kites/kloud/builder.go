@@ -114,3 +114,19 @@ func toMap(in interface{}, tag string) (map[string]interface{}, error) {
 	return out, nil
 
 }
+
+// toUint tries to convert the given to uint type
+func toUint(x interface{}) uint {
+	switch i := x.(type) {
+	case float64:
+		return uint(i)
+	case uint:
+		return i
+	case int:
+		return uint(i)
+	case int64:
+		return uint(i)
+	default:
+		return 0
+	}
+}
