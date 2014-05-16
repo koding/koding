@@ -428,6 +428,9 @@ module.exports = class JAccount extends jraphical.Module
         as          : ['owner', 'user']
         targetType  : 'JCredential'
 
+      stackTemplate :
+        as          : 'user'
+        targetType  : 'JStackTemplate'
 
   constructor:->
     super
