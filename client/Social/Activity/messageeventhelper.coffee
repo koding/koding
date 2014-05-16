@@ -56,3 +56,14 @@ class MessageEventHelper extends KDObject
 
     message.emit "LikeRemoved"
     message.emit "update"
+
+
+  addReply: (message, plain) ->
+
+    reply = KD.singleton("socialapi").message.revive plain
+
+    message.replies.push reply
+    message.repliesCount++
+
+    message.emit "AddReply", reply
+    message.emit "update"
