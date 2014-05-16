@@ -750,17 +750,18 @@ func createGroupActivityChannel(creatorId int64, groupName string) (*socialapimo
 	return cm.(*socialapimodels.Channel), nil
 }
 
-func followNotification(followerId int64, followeeId int64) (interface{}, error) {
-	a := models.NewNotificationRequest()
-	a.TargetId = followeeId
-	a.AccountId = followerId
+func followNotification(followerId, followeeId int64) (interface{}, error) {
+	c := socialapimodels.NewChannel()
+	c.GroupName = fmt.Sprintf("FollowerTest-%d", followeeId)
+	c.TypeConstant = socialapimodels.Channel_TYPE_FOLLOWERS
+	c.CreatorId = followeeId
 
-	res, err := utils.SendModel("POST", "/notification/follow", a)
+	channel, err := utils.SendModel("POST", "/channel", c)
 	if err != nil {
 		return nil, err
 	}
 
-	return res, nil
+	return addChannelParticipant(channel.(*socialapimodels.Channel).Id, followerId, followerId)
 }
 
 func subscribeMessage(accountId, messageId int64) (interface{}, error) {
