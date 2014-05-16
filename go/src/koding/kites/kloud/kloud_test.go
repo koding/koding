@@ -24,6 +24,7 @@ func init() {
 	kloud.Config.Port = 3636
 
 	kloud.HandleFunc("build", build)
+	kloud.HandleFunc("start", start)
 
 	go kloud.Run()
 	<-kloud.ServerReadyNotify()
@@ -38,6 +39,7 @@ func init() {
 }
 
 func TestBuild(t *testing.T) {
+	t.Skip("To enable this test remove this line")
 	args := &buildArgs{}
 	var clientID string
 	var apiKey string
@@ -81,6 +83,37 @@ func TestBuild(t *testing.T) {
 	}
 
 	_, err := remote.Tell("build", args)
+
+	fmt.Printf("\n==== err: %+v\n\n", err)
+}
+
+func digitalOceanKeys() (string, string) {
+	var clientID string
+	var apiKey string
+
+	if clientID = os.Getenv("DIGITALOCEAN_CLIENT_ID"); clientID == "" {
+		clientID = "2d314ba76e8965c451f62d7e6a4bc56f"
+	}
+
+	if apiKey = os.Getenv("DIGITALOCEAN_API_KEY"); apiKey == "" {
+		apiKey = "4c88127b50c0c731aeb5129bdea06deb"
+	}
+
+	return clientID, apiKey
+}
+
+func TestStart(t *testing.T) {
+	clientID, apiKey := digitalOceanKeys()
+	args := &startArgs{
+		Provider: "digitalocean",
+		Credential: map[string]interface{}{
+			"client_id": clientID,
+			"api_key":   apiKey,
+		},
+		MachineID: 1656917,
+	}
+
+	_, err := remote.Tell("start", args)
 
 	fmt.Printf("\n==== err: %+v\n\n", err)
 }

@@ -2,12 +2,15 @@ package main
 
 import (
 	"errors"
+	"fmt"
 
 	"github.com/koding/kite"
 )
 
-var startArgs struct {
-	MachineID string
+type startArgs struct {
+	Provider   string
+	MachineID  interface{}
+	Credential map[string]interface{}
 }
 
 func start(r *kite.Request) (interface{}, error) {
@@ -21,11 +24,20 @@ func start(r *kite.Request) (interface{}, error) {
 		return nil, errors.New("provider not supported")
 	}
 
-	controller, ok := c.(Controller)
+	controller, ok := p.(Controller)
 	if !ok {
-		return nil, errors.New("provider doesn't satisfy/support this method.")
+		return nil, errors.New("provider doesn't satisfy controller interface.")
 	}
 
-	controller.Start(args.MachineID)
+	if err := controller.Setup(args.Credential); err != nil {
+		return nil, err
+	}
+
+	fmt.Printf("args.MachineID %T\n", args.MachineID)
+
+	if err := controller.Start(args.MachineID); err != nil {
+		return nil, err
+	}
+
 	return true, nil
 }

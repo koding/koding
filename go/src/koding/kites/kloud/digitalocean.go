@@ -12,28 +12,6 @@ import (
 	"github.com/mitchellh/packer/builder/digitalocean"
 )
 
-type Event struct {
-	Status string `json:"status" mapstructure:"status"`
-	Event  struct {
-		Id           int    `json:"id" mapstructure:"id"`
-		ActionStatus string `json:"action_status" mapstructure:"action_status"`
-		DropletID    int    `json:"droplet_id" mapstructure:"droplet_id"`
-		EventTypeID  int    `json:"event_type_id" mapstructure:"event_type_id"`
-		Percentage   string `json:"percentage" mapstructure:"percentage"`
-	} `json:"event" mapstructure:"event"`
-}
-
-type DropletInfo struct {
-	Status  string `json:"status" mapstructure:"status"`
-	Droplet struct {
-		Id       int    `json:"id" mapstructure:"id"`
-		Hostname string `json:"hostname" mapstructure:"hostname"`
-		ImageId  int    `json:"image_id" mapstructure:"image_id"`
-		SizeId   int    `json:"size_id" mapstructure:"size_id"`
-		EventId  int    `json:"event_id" mapstructure:"event_id"`
-	} `json:"droplet" mapstructure:"droplet"`
-}
-
 type DigitalOcean struct {
 	Client *digitalocean.DigitalOceanClient
 	Name   string
@@ -67,6 +45,29 @@ type DigitalOcean struct {
 	}
 }
 
+func (d *DigitalOcean) Setup(raws ...interface{}) (err error) {
+	d.Name = "digitalocean"
+	if len(raws) != 1 {
+		return errors.New("need at least two arguments")
+	}
+
+	// Credentials
+	if err := mapstructure.Decode(raws[0], &d.Creds); err != nil {
+		return err
+	}
+
+	if d.Creds.ClientID == "" {
+		return errors.New("credentials client_id is empty")
+	}
+
+	if d.Creds.APIKey == "" {
+		return errors.New("credentials api_key is empty")
+	}
+
+	d.Client = digitalocean.DigitalOceanClient{}.New(d.Creds.ClientID, d.Creds.APIKey)
+	return nil
+}
+
 func (d *DigitalOcean) Prepare(raws ...interface{}) (err error) {
 	d.Name = "digitalocean"
 	if len(raws) != 2 {
@@ -95,7 +96,7 @@ func (d *DigitalOcean) Prepare(raws ...interface{}) (err error) {
 	return nil
 }
 
-func (d *DigitalOcean) Build() (err error) {
+func (d *DigitalOcean) Build(raws ...interface{}) (err error) {
 	snapshotName := "koding-" + strconv.FormatInt(time.Now().UTC().Unix(), 10)
 	d.Builder.SnapshotName = snapshotName
 
@@ -201,6 +202,20 @@ func (d *DigitalOcean) CreateDroplet(hostname string, image_id uint) (*DropletIn
 	return info, nil
 }
 
+func (d *DigitalOcean) Droplets() ([]Droplet, error) {
+	resp, err := digitalocean.NewRequest(*d.Client, "droplets", url.Values{})
+	if err != nil {
+		return nil, err
+	}
+
+	var result DropletsResp
+	if err := mapstructure.Decode(resp, &result); err != nil {
+		return nil, err
+	}
+
+	return result.Droplets, nil
+}
+
 func (d *DigitalOcean) MyImages() ([]digitalocean.Image, error) {
 	v := url.Values{}
 	v.Set("filter", "my_images")
@@ -218,8 +233,19 @@ func (d *DigitalOcean) MyImages() ([]digitalocean.Image, error) {
 	return result.Images, nil
 }
 
-func (d *DigitalOcean) Start(id string) error {
-	path := fmt.Sprintf("droplets/%v/power_on", id)
+func (d *DigitalOcean) Start(raws ...interface{}) error {
+	if len(raws) == 0 {
+		return errors.New("zero arguments are passed")
+	}
+
+	dFloat, ok := raws[0].(float64)
+	if !ok {
+		return fmt.Errorf("malformed data received %v. droplet Id must be an int.", raws[0])
+	}
+
+	dropletId := int(dFloat)
+
+	path := fmt.Sprintf("droplets/%v/power_on", dropletId)
 	resp, err := digitalocean.NewRequest(*d.Client, path, url.Values{})
 	if err != nil {
 		return err
@@ -230,6 +256,6 @@ func (d *DigitalOcean) Start(id string) error {
 	return nil
 }
 
-func (d *DigitalOcean) Stop() error    { return nil }
-func (d *DigitalOcean) Restart() error { return nil }
-func (d *DigitalOcean) Destroy() error { return nil }
+func (d *DigitalOcean) Stop(raws ...interface{}) error    { return nil }
+func (d *DigitalOcean) Restart(raws ...interface{}) error { return nil }
+func (d *DigitalOcean) Destroy(raws ...interface{}) error { return nil }
