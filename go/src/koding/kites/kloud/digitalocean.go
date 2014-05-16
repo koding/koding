@@ -132,16 +132,18 @@ func (d *DigitalOcean) Build() (err error) {
 	}
 
 	// now create a the machine based on our created image
-	dropletInfo, err := d.CreateDroplet("arslannew", image.Id)
+	dropletInfo, err := d.CreateDroplet("arslan", image.Id)
 	if err != nil {
 		return err
 	}
 
+	// Now we wait until it's ready, it takes ann 50-70 seconds to finish, but
+	// we also add a timeout to not let stuck it here.
 	for {
 		select {
 		case <-time.After(time.Minute * 5):
-			return errors.New("timeout. droplet is not created")
-		case <-time.Tick(time.Second):
+			return errors.New("Timeout from DigitalOcean. droplet couldn't be created")
+		case <-time.Tick(3 * time.Second):
 			e, _ := d.CheckEvent(dropletInfo.Droplet.EventId)
 			if e.Event.ActionStatus == "done" {
 				return nil
