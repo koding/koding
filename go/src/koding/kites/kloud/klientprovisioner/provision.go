@@ -1,11 +1,11 @@
-package main
+package klientprovisioner
 
 import "github.com/mitchellh/packer/packer"
 
 const (
-	klientDeb    = "klient_0.0.1_amd64.deb"
-	klientKey    = "kite.key"
-	klientKeyDir = "/opt/kite/klient/key"
+	KlientDeb    = "klient_0.0.1_amd64.deb"
+	KlientKey    = "kite.key"
+	KlientKeyDir = "/opt/kite/klient/key"
 )
 
 /* KloudProvisioner is a list of packer provisioners that is responsible of
@@ -35,24 +35,24 @@ const (
 
 // klientProvisioner is JSON abstraction mapped to Go struct. This can be
 // Marshaled and injected directly into packer.ParseTemplate()
-var klientProvisioner = []interface{}{
+var RawData = []interface{}{
 	map[string]interface{}{
 		"type":        "file",
-		"source":      klientDeb,
-		"destination": "/tmp/" + klientDeb,
+		"source":      KlientDeb,
+		"destination": "/tmp/" + KlientDeb,
 	},
 	map[string]interface{}{
 		"type": "shell",
 		"inline": []string{
 			"sleep 30",
-			"sudo dpkg -i /tmp/" + klientDeb,
-			"mkdir -p " + klientKeyDir,
+			"sudo dpkg -i /tmp/" + KlientDeb,
+			"mkdir -p " + KlientKeyDir,
 		},
 	},
 	map[string]interface{}{
 		"type":        "file",
-		"source":      klientKey,
-		"destination": klientKeyDir + "/" + klientKey,
+		"source":      KlientKey,
+		"destination": KlientKeyDir + "/" + KlientKey,
 	},
 	map[string]interface{}{
 		"type": "shell",
@@ -65,14 +65,14 @@ var klientProvisioner = []interface{}{
 // klientTemplate is ready to used and unmarshalled packer.Template. This is
 // created only for future references where we might decide to not use
 // packer.ParseTemplate()
-var klientTemplate = packer.Template{
+var PackerTemplate = packer.Template{
 	Provisioners: []packer.RawProvisionerConfig{
 		{
 			Type: "file",
 			RawConfig: map[string]string{
 				"type":        "file",
-				"source":      klientDeb,
-				"destination": "/tmp/" + klientDeb,
+				"source":      KlientDeb,
+				"destination": "/tmp/" + KlientDeb,
 			},
 		},
 		{
@@ -81,8 +81,8 @@ var klientTemplate = packer.Template{
 				"type": "shell",
 				"inline": []string{
 					"sleep 30",
-					"sudo dpkg -i /tmp/" + klientDeb,
-					"mkdir -p " + klientKeyDir,
+					"sudo dpkg -i /tmp/" + KlientDeb,
+					"mkdir -p " + KlientKeyDir,
 				},
 			},
 		},
@@ -90,8 +90,8 @@ var klientTemplate = packer.Template{
 			Type: "file",
 			RawConfig: map[string]string{
 				"type":        "file",
-				"source":      klientKey,
-				"destination": klientKeyDir + "/" + klientKey,
+				"source":      KlientKey,
+				"destination": KlientKeyDir + "/" + KlientKey,
 			},
 		},
 		{

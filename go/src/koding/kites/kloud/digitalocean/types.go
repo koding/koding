@@ -1,4 +1,4 @@
-package main
+package digitalocean
 
 type Event struct {
 	Status string `json:"status" mapstructure:"status"`

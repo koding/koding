@@ -1,4 +1,4 @@
-package main
+package digitalocean
 
 import (
 	"encoding/json"

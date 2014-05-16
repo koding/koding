@@ -1,10 +1,9 @@
 package main
 
 import (
-	"encoding/json"
 	"errors"
-	"fmt"
-	"reflect"
+
+	"koding/kites/kloud/digitalocean"
 
 	"github.com/koding/kite"
 )
@@ -12,8 +11,15 @@ import (
 // Builder is used to create and provisiong a single image or machine for a
 // given Provider.
 type Builder interface {
+	// Prepare is responsible of configuring the builder and validating the
+	// given configuration prior Build.
 	Prepare(...interface{}) error
-	Build(...interface{}) error
+
+	// Build is creating a image and a machine.
+	Build(...interface{}) (interface{}, error)
+
+	// Destroy is destroying a image
+	Destory(...interface{}) error
 }
 
 type buildArgs struct {
@@ -23,7 +29,7 @@ type buildArgs struct {
 }
 
 var providers = map[string]interface{}{
-	"digitalocean": &DigitalOcean{},
+	"digitalocean": &digitalocean.DigitalOcean{},
 }
 
 func build(r *kite.Request) (interface{}, error) {
@@ -46,68 +52,10 @@ func build(r *kite.Request) (interface{}, error) {
 		return nil, err
 	}
 
-	if err := provider.Build(); err != nil {
-		return nil, err
-	}
-
-	return true, nil
-}
-
-// templateData includes our klient converts the given raw interface to a
-// []byte data that can used to pass into packer.Template().
-func templateData(raw interface{}) ([]byte, error) {
-	rawMapData, err := toMap(raw, "mapstructure")
+	artifact, err := provider.Build()
 	if err != nil {
 		return nil, err
 	}
 
-	packerTemplate := map[string]interface{}{}
-	packerTemplate["builders"] = []interface{}{rawMapData}
-	packerTemplate["provisioners"] = klientProvisioner
-
-	return json.Marshal(packerTemplate)
-}
-
-// toMap converts a struct defined by `in` to a map[string]interface{}. It only
-// extract data that is defined by the given tag.
-func toMap(in interface{}, tag string) (map[string]interface{}, error) {
-	out := make(map[string]interface{})
-
-	v := reflect.ValueOf(in)
-	if v.Kind() == reflect.Ptr {
-		v = v.Elem()
-	}
-
-	// we only accept structs
-	if v.Kind() != reflect.Struct {
-		return nil, fmt.Errorf("only struct is allowd got %T", v)
-	}
-
-	typ := v.Type()
-	for i := 0; i < v.NumField(); i++ {
-		// gets us a StructField
-		fi := typ.Field(i)
-		if tagv := fi.Tag.Get(tag); tagv != "" {
-			// set key of map to value in struct field
-			out[tagv] = v.Field(i).Interface()
-		}
-	}
-	return out, nil
-
-}
-
-// toUint tries to convert the given to uint type
-func toUint(x interface{}) uint {
-	switch i := x.(type) {
-	case float64:
-		return uint(i)
-	case uint:
-		return i
-	case int:
-		return uint(i)
-	case int64:
-		return uint(i)
-	default:
-		return 0
-	}
+	return artifact, nil
 }

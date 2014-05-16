@@ -1,9 +1,11 @@
-package main
+package digitalocean
 
 import (
 	"errors"
 	"fmt"
+	"koding/kites/kloud/klientprovisioner"
 	"koding/kites/kloud/packer"
+	"koding/kites/kloud/utils"
 	"net/url"
 	"strconv"
 	"time"
@@ -96,13 +98,13 @@ func (d *DigitalOcean) Prepare(raws ...interface{}) (err error) {
 	return nil
 }
 
-func (d *DigitalOcean) Build(raws ...interface{}) (err error) {
+func (d *DigitalOcean) Build(raws ...interface{}) (interface{}, error) {
 	snapshotName := "koding-" + strconv.FormatInt(time.Now().UTC().Unix(), 10)
 	d.Builder.SnapshotName = snapshotName
 
-	data, err := templateData(d.Builder)
+	data, err := utils.TemplateData(d.Builder, klientprovisioner.RawData)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	provider := &packer.Provider{
@@ -112,13 +114,13 @@ func (d *DigitalOcean) Build(raws ...interface{}) (err error) {
 
 	// this is basically a "packer build template.json"
 	if err := provider.Build(); err != nil {
-		return err
+		return nil, err
 	}
 
 	// after creating the image go and get it
 	images, err := d.MyImages()
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	var image digitalocean.Image
@@ -129,13 +131,13 @@ func (d *DigitalOcean) Build(raws ...interface{}) (err error) {
 	}
 
 	if image.Id == 0 {
-		return fmt.Errorf("Image %s is not available in Digital Ocean", snapshotName)
+		return nil, fmt.Errorf("Image %s is not available in Digital Ocean", snapshotName)
 	}
 
 	// now create a the machine based on our created image
 	dropletInfo, err := d.CreateDroplet("arslan", image.Id)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	// Now we wait until it's ready, it takes ann 50-70 seconds to finish, but
@@ -143,11 +145,11 @@ func (d *DigitalOcean) Build(raws ...interface{}) (err error) {
 	for {
 		select {
 		case <-time.After(time.Minute * 5):
-			return errors.New("Timeout from DigitalOcean. droplet couldn't be created")
+			return nil, errors.New("Timeout from DigitalOcean. droplet couldn't be created")
 		case <-time.Tick(3 * time.Second):
 			e, _ := d.CheckEvent(dropletInfo.Droplet.EventId)
 			if e.Event.ActionStatus == "done" {
-				return nil
+				return dropletInfo, nil
 			}
 		}
 	}
@@ -239,7 +241,7 @@ func (d *DigitalOcean) Start(raws ...interface{}) error {
 	}
 
 	var dropletId uint
-	if dropletId = toUint(raws[0]); dropletId == 0 {
+	if dropletId = utils.ToUint(raws[0]); dropletId == 0 {
 		return fmt.Errorf("malformed data received %v. droplet Id must be an int.", raws[0])
 	}
 
@@ -254,7 +256,7 @@ func (d *DigitalOcean) Stop(raws ...interface{}) error {
 	}
 
 	var dropletId uint
-	if dropletId = toUint(raws[0]); dropletId == 0 {
+	if dropletId = utils.ToUint(raws[0]); dropletId == 0 {
 		return fmt.Errorf("malformed data received %v. droplet Id must be an int.", raws[0])
 	}
 
@@ -267,7 +269,7 @@ func (d *DigitalOcean) Restart(raws ...interface{}) error {
 	}
 
 	var dropletId uint
-	if dropletId = toUint(raws[0]); dropletId == 0 {
+	if dropletId = utils.ToUint(raws[0]); dropletId == 0 {
 		return fmt.Errorf("malformed data received %v. droplet Id must be an int.", raws[0])
 	}
 
@@ -282,7 +284,7 @@ func (d *DigitalOcean) Destroy(raws ...interface{}) error {
 	}
 
 	var dropletId uint
-	if dropletId = toUint(raws[0]); dropletId == 0 {
+	if dropletId = utils.ToUint(raws[0]); dropletId == 0 {
 		return fmt.Errorf("malformed data received %v. droplet Id must be an int.", raws[0])
 	}
 
@@ -295,7 +297,7 @@ func (d *DigitalOcean) Info(raws ...interface{}) (interface{}, error) {
 	}
 
 	var dropletId uint
-	if dropletId = toUint(raws[0]); dropletId == 0 {
+	if dropletId = utils.ToUint(raws[0]); dropletId == 0 {
 		return nil, fmt.Errorf("malformed data received %v. droplet Id must be an int.", raws[0])
 	}
 
