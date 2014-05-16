@@ -46,7 +46,7 @@ func main() {
 	k.HandleFunc("stop", stop)
 	k.HandleFunc("restart", restart)
 	k.HandleFunc("destroy", destroy)
-	k.HandleFunc("info", nil)
+	k.HandleFunc("info", info)
 
 	k.Run()
 }

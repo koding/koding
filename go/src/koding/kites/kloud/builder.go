@@ -16,25 +16,6 @@ type Builder interface {
 	Build(...interface{}) error
 }
 
-// Controller manages a machine
-type Controller interface {
-	// Setup is needed to initialize the Controller. It should be called before
-	// calling the other interface methods
-	Setup(...interface{}) error
-
-	// Start starts the machine
-	Start(...interface{}) error
-
-	// Stop stops the machine
-	Stop(...interface{}) error
-
-	// Restart restarts the machine
-	Restart(...interface{}) error
-
-	// Destroy destroys the machine
-	Destroy(...interface{}) error
-}
-
 type buildArgs struct {
 	Provider   string
 	Credential map[string]interface{}

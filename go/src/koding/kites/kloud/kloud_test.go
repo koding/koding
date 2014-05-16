@@ -12,6 +12,10 @@ import (
 	"github.com/koding/kite"
 )
 
+const (
+	TestDropletId = 1657055
+)
+
 var (
 	kloud        *kite.Kite
 	remote       *kite.Client
@@ -28,6 +32,7 @@ func init() {
 	kloud.HandleFunc("stop", stop)
 	kloud.HandleFunc("restart", restart)
 	kloud.HandleFunc("destroy", destroy)
+	kloud.HandleFunc("info", info)
 
 	go kloud.Run()
 	<-kloud.ServerReadyNotify()
@@ -41,9 +46,7 @@ func init() {
 	}
 }
 
-func TestBuild(t *testing.T) {
-	t.Skip("To enable this test remove this line")
-	args := &buildArgs{}
+func digitalOceanKeys() (string, string) {
 	var clientID string
 	var apiKey string
 
@@ -54,6 +57,14 @@ func TestBuild(t *testing.T) {
 	if apiKey = os.Getenv("DIGITALOCEAN_API_KEY"); apiKey == "" {
 		apiKey = "4c88127b50c0c731aeb5129bdea06deb"
 	}
+
+	return clientID, apiKey
+}
+
+func TestBuild(t *testing.T) {
+	t.Skip("To enable this test remove this line")
+	args := &buildArgs{}
+	clientID, apiKey := digitalOceanKeys()
 
 	if *flagTestData != "" {
 		data, err := ioutil.ReadFile(*flagTestData)
@@ -90,21 +101,6 @@ func TestBuild(t *testing.T) {
 	fmt.Printf("\n==== err: %+v\n\n", err)
 }
 
-func digitalOceanKeys() (string, string) {
-	var clientID string
-	var apiKey string
-
-	if clientID = os.Getenv("DIGITALOCEAN_CLIENT_ID"); clientID == "" {
-		clientID = "2d314ba76e8965c451f62d7e6a4bc56f"
-	}
-
-	if apiKey = os.Getenv("DIGITALOCEAN_API_KEY"); apiKey == "" {
-		apiKey = "4c88127b50c0c731aeb5129bdea06deb"
-	}
-
-	return clientID, apiKey
-}
-
 func TestStart(t *testing.T) {
 	clientID, apiKey := digitalOceanKeys()
 	args := &controllerArgs{
@@ -113,7 +109,7 @@ func TestStart(t *testing.T) {
 			"client_id": clientID,
 			"api_key":   apiKey,
 		},
-		MachineID: 1657055,
+		MachineID: TestDropletId,
 	}
 
 	_, err := remote.Tell("start", args)
@@ -129,7 +125,7 @@ func TestStop(t *testing.T) {
 			"client_id": clientID,
 			"api_key":   apiKey,
 		},
-		MachineID: 1657055,
+		MachineID: TestDropletId,
 	}
 
 	_, err := remote.Tell("stop", args)
@@ -145,10 +141,30 @@ func TestRestart(t *testing.T) {
 			"client_id": clientID,
 			"api_key":   apiKey,
 		},
-		MachineID: 1657055,
+		MachineID: TestDropletId,
 	}
 
 	_, err := remote.Tell("restart", args)
 
 	fmt.Printf("\n==== err: %+v\n\n", err)
+}
+
+func TestInfo(t *testing.T) {
+	clientID, apiKey := digitalOceanKeys()
+	args := &controllerArgs{
+		Provider: "digitalocean",
+		Credential: map[string]interface{}{
+			"client_id": clientID,
+			"api_key":   apiKey,
+		},
+		MachineID: TestDropletId,
+	}
+
+	resp, err := remote.Tell("restart", args)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	fmt.Printf("\n==== err: %+v\n\n", err)
+	fmt.Printf("resp.MustMap %+v\n", resp.MustMap())
 }

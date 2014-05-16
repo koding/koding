@@ -288,3 +288,27 @@ func (d *DigitalOcean) Destroy(raws ...interface{}) error {
 
 	return d.Client.DestroyDroplet(dropletId)
 }
+
+func (d *DigitalOcean) Info(raws ...interface{}) (map[string]interface{}, error) {
+	if len(raws) == 0 {
+		return nil, errors.New("zero arguments are passed")
+	}
+
+	var dropletId uint
+	if dropletId = toUint(raws[0]); dropletId == 0 {
+		return nil, fmt.Errorf("malformed data received %v. droplet Id must be an int.", raws[0])
+	}
+
+	path := fmt.Sprintf("droplets/%v", dropletId)
+	resp, err := digitalocean.NewRequest(*d.Client, path, url.Values{})
+	if err != nil {
+		return nil, err
+	}
+
+	droplet, ok := resp["droplet"].(map[string]interface{})
+	if !ok {
+		return nil, fmt.Errorf("couldn't get full information %v", droplet)
+	}
+
+	return droplet, err
+}
