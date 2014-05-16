@@ -25,7 +25,7 @@ type Controller interface {
 	Destroy(...interface{}) error
 
 	// Info returns full information about a single machine
-	Info(...interface{}) (map[string]interface{}, error)
+	Info(...interface{}) (interface{}, error)
 }
 
 type controllerArgs struct {
@@ -162,9 +162,10 @@ func info(r *kite.Request) (interface{}, error) {
 		return nil, err
 	}
 
-	if err := controller.Restart(args.MachineID); err != nil {
+	info, err := controller.Info(args.MachineID)
+	if err != nil {
 		return nil, err
 	}
 
-	return true, nil
+	return info, nil
 }

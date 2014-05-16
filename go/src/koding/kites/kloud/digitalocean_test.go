@@ -160,11 +160,16 @@ func TestInfo(t *testing.T) {
 		MachineID: TestDropletId,
 	}
 
-	resp, err := remote.Tell("restart", args)
+	resp, err := remote.Tell("info", args)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	fmt.Printf("\n==== err: %+v\n\n", err)
-	fmt.Printf("resp.MustMap %+v\n", resp.MustMap())
+	var result Droplet
+	err = resp.Unmarshal(&result)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	fmt.Printf("result %+v\n", result)
 }

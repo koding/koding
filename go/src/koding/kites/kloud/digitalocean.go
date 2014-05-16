@@ -289,7 +289,7 @@ func (d *DigitalOcean) Destroy(raws ...interface{}) error {
 	return d.Client.DestroyDroplet(dropletId)
 }
 
-func (d *DigitalOcean) Info(raws ...interface{}) (map[string]interface{}, error) {
+func (d *DigitalOcean) Info(raws ...interface{}) (interface{}, error) {
 	if len(raws) == 0 {
 		return nil, errors.New("zero arguments are passed")
 	}
@@ -307,8 +307,13 @@ func (d *DigitalOcean) Info(raws ...interface{}) (map[string]interface{}, error)
 
 	droplet, ok := resp["droplet"].(map[string]interface{})
 	if !ok {
-		return nil, fmt.Errorf("couldn't get full information %v", droplet)
+		return nil, fmt.Errorf("malformed data received %v", resp)
 	}
 
-	return droplet, err
+	var result Droplet
+	if err := mapstructure.Decode(droplet, &result); err != nil {
+		return nil, err
+	}
+
+	return result, err
 }
