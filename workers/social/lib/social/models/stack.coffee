@@ -152,6 +152,9 @@ module.exports = class JStack extends jraphical.Module
 
   delete: permit
 
+    # TODO Add password check for stack delete
+    #
+
     advanced: [
       { permission: 'delete own stack', validateWith: Validators.own }
     ]
@@ -160,12 +163,34 @@ module.exports = class JStack extends jraphical.Module
 
     success: (client, callback)->
 
+      JDomain  = require "./domain"
+      JMachine = require "./computeproviders/machine"
+
       { delegate } = client.connection
 
-      if delegate.getId() is not @originId
-        return callback new KodingError "Access denied"
+      @domains.forEach (_id)->
+        JDomain.one {_id}, (err, domain)->
+          if not err? and domain?
+            domain.remove (err)->
+              if err then console.error \
+                "Failed to remove domain: #{domain.domain}", err
 
-      @remove callback
+      @machines.forEach (_id)->
+        JMachine.one {_id}, (err, machine)->
+          if not err? and machine?
+            machine.remove (err)->
+              if err then console.error \
+                "Failed to remove machine: #{machine.title}", err
+
+      Relationship.remove {
+        targetName : "JStackTemplate"
+        targetId   : @baseStackId
+        sourceId   : delegate.getId()
+        sourceName : "JAccount"
+        as         : "user"
+      }, (err)=>
+
+        @remove callback
 
 
 
