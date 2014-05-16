@@ -34,6 +34,8 @@ class ActivityActionsView extends JView
 
   JView.mixin @prototype
 
+  JView.mixin @prototype
+
   contextMenu = null
   constructor:->
     super
