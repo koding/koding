@@ -223,20 +223,25 @@ module.exports = class JDomain extends jraphical.Module
 
         callback new KodingError "CNAME or A record for #{domain} is not matching with #{baseDomain}", "CNAMEMISMATCH"
 
-  createDomain = (domainData, account, group, callback)->
 
-    domain = new JDomain domainData
-    domain.save (err)->
-      return callback err  if err
+  createDomain = (options, callback)->
 
-      options = {data:{group}}
-      account.addDomain domain, options, (err)->
+    {domainData, account, group, stack} = options
+
+    JStack = require './stack'
+    JStack.getStack account, stack, (err, stack)=>
+      return callback err  if err?
+
+      domain = new JDomain domainData
+      domain.save (err)->
         return callback err  if err
 
-        # TODO add to stack code here before calling the callback ~g
-        # pass stack here first.
+        account.addDomain domain, { data: { group } }, (err)->
+          return callback err  if err
 
-        callback err, domain
+          stack.appendTo domains: domain.getId(), (err)->
+            callback err, domain
+
 
   @createDomain$: secure (client, {domain, stack}, callback)->
 
