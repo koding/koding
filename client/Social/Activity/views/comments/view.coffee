@@ -21,6 +21,8 @@ class CommentView extends KDView
 
     @on "Reply", @inputForm.bound "setFocus"
 
+    data
+      .on "AddReply", @controller.bound "addItem"
 
   reply: (body, callback = noop) ->
 
