@@ -83,6 +83,14 @@ func (d *DigitalOcean) Prepare(raws ...interface{}) (err error) {
 		return err
 	}
 
+	if d.Creds.ClientID == "" {
+		return errors.New("credentials client_id is empty")
+	}
+
+	if d.Creds.APIKey == "" {
+		return errors.New("credentials api_key is empty")
+	}
+
 	d.Client = digitalocean.DigitalOceanClient{}.New(d.Creds.ClientID, d.Creds.APIKey)
 	return nil
 }
