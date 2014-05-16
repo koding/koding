@@ -34,13 +34,8 @@ type controllerArgs struct {
 	Credential map[string]interface{}
 }
 
-func start(r *kite.Request) (interface{}, error) {
-	args := &controllerArgs{}
-	if err := r.Args.One().Unmarshal(args); err != nil {
-		return nil, err
-	}
-
-	p, ok := providers[args.Provider]
+func setupAndGetController(provider string, credentials map[string]interface{}) (Controller, error) {
+	p, ok := providers[provider]
 	if !ok {
 		return nil, errors.New("provider not supported")
 	}
@@ -50,7 +45,21 @@ func start(r *kite.Request) (interface{}, error) {
 		return nil, errors.New("provider doesn't satisfy controller interface.")
 	}
 
-	if err := controller.Setup(args.Credential); err != nil {
+	if err := controller.Setup(credentials); err != nil {
+		return nil, err
+	}
+
+	return controller, nil
+}
+
+func start(r *kite.Request) (interface{}, error) {
+	args := &controllerArgs{}
+	if err := r.Args.One().Unmarshal(args); err != nil {
+		return nil, err
+	}
+
+	controller, err := setupAndGetController(args.Provider, args.Credential)
+	if err != nil {
 		return nil, err
 	}
 
@@ -67,17 +76,8 @@ func stop(r *kite.Request) (interface{}, error) {
 		return nil, err
 	}
 
-	p, ok := providers[args.Provider]
-	if !ok {
-		return nil, errors.New("provider not supported")
-	}
-
-	controller, ok := p.(Controller)
-	if !ok {
-		return nil, errors.New("provider doesn't satisfy controller interface.")
-	}
-
-	if err := controller.Setup(args.Credential); err != nil {
+	controller, err := setupAndGetController(args.Provider, args.Credential)
+	if err != nil {
 		return nil, err
 	}
 
@@ -94,17 +94,8 @@ func destroy(r *kite.Request) (interface{}, error) {
 		return nil, err
 	}
 
-	p, ok := providers[args.Provider]
-	if !ok {
-		return nil, errors.New("provider not supported")
-	}
-
-	controller, ok := p.(Controller)
-	if !ok {
-		return nil, errors.New("provider doesn't satisfy controller interface.")
-	}
-
-	if err := controller.Setup(args.Credential); err != nil {
+	controller, err := setupAndGetController(args.Provider, args.Credential)
+	if err != nil {
 		return nil, err
 	}
 
@@ -121,17 +112,8 @@ func restart(r *kite.Request) (interface{}, error) {
 		return nil, err
 	}
 
-	p, ok := providers[args.Provider]
-	if !ok {
-		return nil, errors.New("provider not supported")
-	}
-
-	controller, ok := p.(Controller)
-	if !ok {
-		return nil, errors.New("provider doesn't satisfy controller interface.")
-	}
-
-	if err := controller.Setup(args.Credential); err != nil {
+	controller, err := setupAndGetController(args.Provider, args.Credential)
+	if err != nil {
 		return nil, err
 	}
 
@@ -148,17 +130,8 @@ func info(r *kite.Request) (interface{}, error) {
 		return nil, err
 	}
 
-	p, ok := providers[args.Provider]
-	if !ok {
-		return nil, errors.New("provider not supported")
-	}
-
-	controller, ok := p.(Controller)
-	if !ok {
-		return nil, errors.New("provider doesn't satisfy controller interface.")
-	}
-
-	if err := controller.Setup(args.Credential); err != nil {
+	controller, err := setupAndGetController(args.Provider, args.Credential)
+	if err != nil {
 		return nil, err
 	}
 
