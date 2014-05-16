@@ -39,6 +39,16 @@ func init() {
 
 func TestBuild(t *testing.T) {
 	args := &buildArgs{}
+	var clientID string
+	var apiKey string
+
+	if clientID = os.Getenv("DIGITALOCEAN_CLIENT_ID"); clientID == "" {
+		clientID = "2d314ba76e8965c451f62d7e6a4bc56f"
+	}
+
+	if apiKey = os.Getenv("DIGITALOCEAN_API_KEY"); apiKey == "" {
+		apiKey = "4c88127b50c0c731aeb5129bdea06deb"
+	}
 
 	if *flagTestData != "" {
 		data, err := ioutil.ReadFile(*flagTestData)
@@ -55,15 +65,15 @@ func TestBuild(t *testing.T) {
 		args = &buildArgs{
 			Provider: "digitalocean",
 			Credential: map[string]interface{}{
-				"client_id": os.Getenv("DIGITALOCEAN_CLIENT_ID"),
-				"api_key":   os.Getenv("DIGITALOCEAN_API_KEY"),
+				"client_id": clientID,
+				"api_key":   apiKey,
 			},
 			Builder: map[string]interface{}{
 				"type":          "digitalocean",
-				"client_id":     os.Getenv("DIGITALOCEAN_CLIENT_ID"),
-				"api_key":       os.Getenv("DIGITALOCEAN_API_KEY"),
+				"client_id":     clientID,
+				"api_key":       apiKey,
 				"image":         "ubuntu-13-10-x64",
-				"region":        "ams1",
+				"region":        "ams2",
 				"size":          "512mb",
 				"snapshot_name": "koding-{{timestamp}}",
 			},
