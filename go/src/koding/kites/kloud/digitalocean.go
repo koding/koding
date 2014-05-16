@@ -218,7 +218,18 @@ func (d *DigitalOcean) MyImages() ([]digitalocean.Image, error) {
 	return result.Images, nil
 }
 
-func (d *DigitalOcean) Start() error   { return nil }
+func (d *DigitalOcean) Start(id string) error {
+	path := fmt.Sprintf("droplets/%v/power_on", id)
+	resp, err := digitalocean.NewRequest(*d.Client, path, url.Values{})
+	if err != nil {
+		return err
+	}
+
+	fmt.Printf("start: resp %+v\n", resp)
+
+	return nil
+}
+
 func (d *DigitalOcean) Stop() error    { return nil }
 func (d *DigitalOcean) Restart() error { return nil }
 func (d *DigitalOcean) Destroy() error { return nil }
