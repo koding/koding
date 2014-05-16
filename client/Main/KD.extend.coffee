@@ -282,9 +282,6 @@ KD.extend
     messages or= defaultMessages
     errMessage or= err.message or messages[err.name] or messages.KodingError
 
-    # log error to backend
-    KD.remote.api.FrontLogger.error errMessage
-
     if errMessage?
       if 'string' is typeof errMessage
         title = errMessage
