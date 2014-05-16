@@ -8,7 +8,7 @@ class TeamworkShareModal extends KDModalView
       <div class='modalformline'>
         <p>Share the url below to invite others to your Koding teamwork/pair coding session.</p><br />
         <p>
-          Be aware that makes your VM accessible to your collaborators until you close the browser tab.
+          Be aware that this makes your VM accessible to your collaborators until you close the browser tab.
         </p><br />
 
         <p>
