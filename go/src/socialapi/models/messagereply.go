@@ -76,7 +76,7 @@ func (m *MessageReply) Delete() error {
 		return err
 	}
 
-	return err
+	return nil
 }
 
 func (m *MessageReply) DeleteByOrQuery(messageId int64) error {
