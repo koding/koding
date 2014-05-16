@@ -290,8 +290,6 @@ module.exports = class JDomain extends jraphical.Module
           resolveDomain domainData, (err)->
             return callback err  if err
 
-            createDomain domainData, delegate, group.slug, callback
-
   @createDomains = ({account, domains, hostnameAlias, group})->
 
     updateRelationship = (domainObj)->
@@ -306,6 +304,10 @@ module.exports = class JDomain extends jraphical.Module
           options = {data:{group}}
           account.addDomain domainObj, options, (err)->
             console.log err  if err?
+            createDomain {
+              domainData, account: delegate, group: group.slug, stack
+            }, callback
+
 
     domains.forEach (domain) ->
       domainObj = new JDomain {
