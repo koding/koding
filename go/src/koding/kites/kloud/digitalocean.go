@@ -258,20 +258,33 @@ func (d *DigitalOcean) Stop(raws ...interface{}) error {
 		return fmt.Errorf("malformed data received %v. droplet Id must be an int.", raws[0])
 	}
 
-	err := d.Client.PowerOffDroplet(dropletId)
-	if err != nil {
-		return err
-	}
-
-	ip, status, err := d.Client.DropletStatus(dropletId)
-	if err != nil {
-		return err
-	}
-
-	fmt.Printf("ip %+v\n", ip)
-	fmt.Printf("status %+v\n", status)
-	return nil
+	return d.Client.ShutdownDroplet(dropletId)
 }
 
-func (d *DigitalOcean) Restart(raws ...interface{}) error { return nil }
-func (d *DigitalOcean) Destroy(raws ...interface{}) error { return nil }
+func (d *DigitalOcean) Restart(raws ...interface{}) error {
+	if len(raws) == 0 {
+		return errors.New("zero arguments are passed")
+	}
+
+	var dropletId uint
+	if dropletId = toUint(raws[0]); dropletId == 0 {
+		return fmt.Errorf("malformed data received %v. droplet Id must be an int.", raws[0])
+	}
+
+	path := fmt.Sprintf("droplets/%v/reboot", dropletId)
+	_, err := digitalocean.NewRequest(*d.Client, path, url.Values{})
+	return err
+}
+
+func (d *DigitalOcean) Destroy(raws ...interface{}) error {
+	if len(raws) == 0 {
+		return errors.New("zero arguments are passed")
+	}
+
+	var dropletId uint
+	if dropletId = toUint(raws[0]); dropletId == 0 {
+		return fmt.Errorf("malformed data received %v. droplet Id must be an int.", raws[0])
+	}
+
+	return d.Client.DestroyDroplet(dropletId)
+}

@@ -25,6 +25,9 @@ func init() {
 
 	kloud.HandleFunc("build", build)
 	kloud.HandleFunc("start", start)
+	kloud.HandleFunc("stop", stop)
+	kloud.HandleFunc("restart", restart)
+	kloud.HandleFunc("destroy", destroy)
 
 	go kloud.Run()
 	<-kloud.ServerReadyNotify()
@@ -104,16 +107,48 @@ func digitalOceanKeys() (string, string) {
 
 func TestStart(t *testing.T) {
 	clientID, apiKey := digitalOceanKeys()
-	args := &startArgs{
+	args := &controllerArgs{
 		Provider: "digitalocean",
 		Credential: map[string]interface{}{
 			"client_id": clientID,
 			"api_key":   apiKey,
 		},
-		MachineID: 1656917,
+		MachineID: 1657055,
 	}
 
 	_, err := remote.Tell("start", args)
+
+	fmt.Printf("\n==== err: %+v\n\n", err)
+}
+
+func TestStop(t *testing.T) {
+	clientID, apiKey := digitalOceanKeys()
+	args := &controllerArgs{
+		Provider: "digitalocean",
+		Credential: map[string]interface{}{
+			"client_id": clientID,
+			"api_key":   apiKey,
+		},
+		MachineID: 1657055,
+	}
+
+	_, err := remote.Tell("stop", args)
+
+	fmt.Printf("\n==== err: %+v\n\n", err)
+}
+
+func TestRestart(t *testing.T) {
+	clientID, apiKey := digitalOceanKeys()
+	args := &controllerArgs{
+		Provider: "digitalocean",
+		Credential: map[string]interface{}{
+			"client_id": clientID,
+			"api_key":   apiKey,
+		},
+		MachineID: 1657055,
+	}
+
+	_, err := remote.Tell("restart", args)
 
 	fmt.Printf("\n==== err: %+v\n\n", err)
 }
