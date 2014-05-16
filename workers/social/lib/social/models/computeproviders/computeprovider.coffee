@@ -101,7 +101,7 @@ module.exports = class ComputeProvider extends Base
             return callback err  if err
 
             provider.postCreate {
-              postCreateOptions, machine, meta
+              postCreateOptions, machine, meta, stack: stack._id
             }, (err)=>
 
               return callback err  if err
