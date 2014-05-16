@@ -14,6 +14,7 @@ class MessageEventHelper extends KDObject
     message
       .on "InteractionAdded", @bound "addInteraction"
       .on "InteractionRemoved", @bound "removeInteraction"
+      .on "ReplyAdded", @lazyBound "addReply", message
 
 
   addInteraction: (event) ->
