@@ -57,21 +57,52 @@ func (m *MessageReply) Some(data interface{}, q *bongo.Query) error {
 	return bongo.B.Some(m, data, q)
 }
 
+func (m *MessageReply) One(q *bongo.Query) error {
+	return bongo.B.One(m, m, q)
+}
+
 func (m *MessageReply) Delete() error {
-	if err := bongo.B.DB.
-		Where("message_id = ? and reply_id = ?", m.MessageId, m.ReplyId).
-		Delete(m).Error; err != nil {
+	selector := map[string]interface{}{
+		"message_id": m.MessageId,
+		"reply_id":   m.ReplyId,
+	}
+
+	if err := m.One(bongo.NewQS(selector)); err != nil {
 		return err
 	}
-	return nil
+
+	err := bongo.B.Delete(m)
+	if err != nil {
+		return err
+	}
+
+	return err
 }
 
 func (m *MessageReply) DeleteByOrQuery(messageId int64) error {
-	if err := bongo.B.DB.
-		Where("message_id = ? or reply_id = ?", messageId, messageId).
-		Delete(m).Error; err != nil {
+	var messageReplies []MessageReply
+	query := bongo.B.DB.Table(m.TableName())
+	query = query.Where("message_id = ? or reply_id = ?", messageId, messageId)
+
+	if err := query.Find(&messageReplies).Error; err != nil {
 		return err
 	}
+
+	if messageReplies == nil {
+		return nil
+	}
+
+	if len(messageReplies) == 0 {
+		return nil
+	}
+
+	for _, messageReply := range messageReplies {
+		err := bongo.B.Delete(messageReply)
+		if err != nil {
+			return err
+		}
+	}
+
 	return nil
 }
 
