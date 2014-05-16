@@ -21,7 +21,7 @@ type MessageReply struct {
 	CreatedAt time.Time `json:"createdAt"         sql:"NOT NULL"`
 }
 
-func (m *MessageReply) GetId() int64 {
+func (m MessageReply) GetId() int64 {
 	return m.Id
 }
 
@@ -41,7 +41,7 @@ func (m *MessageReply) AfterUpdate() {
 	bongo.B.AfterUpdate(m)
 }
 
-func (m *MessageReply) AfterDelete() {
+func (m MessageReply) AfterDelete() {
 	bongo.B.AfterDelete(m)
 }
 
