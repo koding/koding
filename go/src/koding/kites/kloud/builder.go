@@ -18,10 +18,10 @@ type Builder interface {
 
 // Controller manages a machine
 type Controller interface {
-	Start() error
-	Stop() error
-	Restart() error
-	Destroy() error
+	Start(...interface{}) error
+	Stop(...interface{}) error
+	Restart(...interface{}) error
+	Destroy(...interface{}) error
 }
 
 type buildArgs struct {
@@ -30,7 +30,7 @@ type buildArgs struct {
 	Builder    map[string]interface{}
 }
 
-var providers = map[string]Builder{
+var providers = map[string]interface{}{
 	"digitalocean": &DigitalOcean{},
 }
 
@@ -40,11 +40,14 @@ func build(r *kite.Request) (interface{}, error) {
 		return nil, err
 	}
 
-	fmt.Printf("args %#v\n", args)
-
-	provider, ok := providers[args.Provider]
+	p, ok := providers[args.Provider]
 	if !ok {
 		return nil, errors.New("provider not supported")
+	}
+
+	provider, ok := p.(Builder)
+	if !ok {
+		return nil, errors.New("provider doesn't satisfy/support this method.")
 	}
 
 	if err := provider.Prepare(args.Credential, args.Builder); err != nil {
@@ -65,12 +68,10 @@ func templateData(raw interface{}) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	fmt.Printf("rawMapData %+v\n", rawMapData)
 
 	packerTemplate := map[string]interface{}{}
 	packerTemplate["builders"] = []interface{}{rawMapData}
 	packerTemplate["provisioners"] = klientProvisioner
-	fmt.Printf("packerTemplate %+v\n", packerTemplate)
 
 	return json.Marshal(packerTemplate)
 }
