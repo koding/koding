@@ -218,15 +218,35 @@ module.exports = class ComputeProvider extends Base
 
     fetchStackTemplate client, (err, res)=>
       return callback err  if err
-      { user, group, template } = res
+
+      { account, user, group, template } = res
       { machines, domains } = template
 
-      machines.forEach (machine)=>
+      JStack = require '../stack'
+      JStack.create {
+        title       : template.title
+        config      : template.config
+        baseStackId : template._id
+        groupSlug   : group.slug
+        account
+      }, (err, stack)=>
+        return callback err  if err
 
-        console.log "Creating vm from: #{machine.provider}..."
-        @create client, machine, (err, r)->
-          console.log "Result for #{machine.provider.slug}"
-          if err
-            console.error "Patladi:", err
-          else
-            console.log "CREATED!!", r
+        account.addStackTemplate template, (err)=>
+          return callback err  if err
+
+          machines.forEach (machine)=>
+
+            machine.stack = stack._id
+            console.log "Creating vm from: #{machine.provider}..."
+
+            @create client, machine, (err, r)->
+
+              { slug } = machine.provider
+
+              console.log "Result for #{slug}..."
+              if err
+                console.error "Failed to create vm from #{slug}: ", err
+              else
+                console.log "Successfully created vm from #{slug}"
+
