@@ -78,6 +78,8 @@ module.exports = class JStack extends jraphical.Module
 
 
 
+
+
   ###*
    * JStack::create wrapper for client requests
    * @param  {Mixed}    client
@@ -87,38 +89,37 @@ module.exports = class JStack extends jraphical.Module
   ###
   @create$ = permit 'create stack', success: (client, data, callback)->
 
-    { delegate } = client.connection
-    { group    } = client.context
-
+    data.account   = client.connection.delegate
+    data.groupSlug = client.context.group
     delete data.baseStackId
 
-    JStack.create { account: delegate, group }, data, callback
+    JStack.create data, callback
+
 
   ###*
    * JStack::create
-   * @param  {Mixed}   client
    * @param  {Object}   data
    * @param  {Function} callback
    * @return {void}
   ###
-  @create = (client, data, callback)->
+  @create = (data, callback)->
 
-    { account, group }             = client
-    { config, title, baseStackId } = data
+    { account, groupSlug, config, title, baseStackId } = data
     originId = account.getId()
 
     stack = new JStack {
-      title, config, group, originId, baseStackId
+      title, config, originId, baseStackId,
+      group: groupSlug
     }
 
     stack.save (err)->
-      if err
-        msg = "Failed to create stack"
-        callback new KodingError msg
-        console.warn msg, err
-      else
-        callback null, stack
+      return callback err  if err?
+      callback null, stack
 
+  @getSelector = (selector, account)->
+    selector ?= {}
+    selector.originId = account.getId()
+    return selector
 
   @some$ = permit 'list stacks',
 
@@ -129,9 +130,7 @@ module.exports = class JStack extends jraphical.Module
 
       { delegate } = client.connection
 
-      selector         ?= {}
-      selector.originId = delegate.getId()
-
+      selector = @getSelector selector, delegate
       JStack.some selector, options, callback
 
 
