@@ -23,6 +23,8 @@ class CommentView extends KDView
 
     data
       .on "AddReply", @controller.bound "addItem"
+      .on "RemoveReply", @controller.lazyBound "removeItem", null
+
 
   reply: (body, callback = noop) ->
 
