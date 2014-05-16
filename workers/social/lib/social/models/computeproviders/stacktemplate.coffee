@@ -73,7 +73,7 @@ module.exports = class JStackTemplate extends jraphical.Module
         required      : yes
 
       description     : String
-      config          : Object
+      config          : String
 
       accessLevel     :
         type          : String
@@ -192,11 +192,10 @@ module.exports = class JStackTemplate extends jraphical.Module
 
 JStackTemplate.create
 
-  title       : "Koding"
+  title       : "Default Koding stack"
   description : "Koding's default stack template for new users"
 
-  config      :
-    subdomain : ".kd.io"
+  config      : "subdomain=\".kd.io\""
 
   rules       : [
     {

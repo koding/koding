@@ -68,7 +68,7 @@ module.exports = class Koding extends ProviderInterface
 
   @ping = (client, options, callback)->
 
-    callback null, "Koding is the best #{ client.connection.delegate.profile.nickname }!"
+    callback null, "Koding is the best #{ client.r.account.profile.nickname }!"
 
 
   @fetchExisting = (client, options, callback)->
@@ -93,8 +93,10 @@ module.exports = class Koding extends ProviderInterface
 
   @create = (client, options, callback)->
 
-    { connection:{delegate:account}, context:{group} } = client
+    { r: { account, group } } = client
     { nickname } = account.profile
+
+    group = group.slug
 
     hostnameAliases = @generateAliases { group, nickname }
     hostnameAlias   = hostnameAliases[0]

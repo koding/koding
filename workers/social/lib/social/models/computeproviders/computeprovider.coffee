@@ -56,12 +56,7 @@ module.exports = class ComputeProvider extends Base
 
 
 
-  @ping = revive
-
-    shouldReviveClient   : yes
-    shouldPassCredential : no
-
-  , (client, options, callback)->
+  @ping = (client, options, callback)->
 
     {provider} = options
     provider.ping client, options, callback

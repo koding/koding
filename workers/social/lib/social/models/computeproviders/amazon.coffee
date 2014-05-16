@@ -3,7 +3,7 @@ ProviderInterface = require './providerinterface'
 module.exports = class Amazon extends ProviderInterface
 
   @ping = (client, options, callback)->
-    callback null, "AWS RULEZ #{ client.connection.delegate.profile.nickname }!"
+    callback null, "AWS RULEZ #{ client.r.account.profile.nickname }!"
 
   @create = (client, options, callback)->
 
