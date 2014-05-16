@@ -293,7 +293,12 @@ func (f *RealtimeWorkerController) sendChannelEvent(cml *models.ChannelMessageLi
 		return err
 	}
 
-	byteMessage, err := json.Marshal(cm)
+	cmc, err := cm.BuildEmptyMessageContainer()
+	if err != nil {
+		return err
+	}
+
+	byteMessage, err := json.Marshal(cmc)
 	if err != nil {
 		return err
 	}
