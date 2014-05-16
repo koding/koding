@@ -1,11 +1,10 @@
-class EmbedBoxLinkViewProvider extends KDView
+class EmbedBoxLinkViewProvider extends JView
 
   constructor:(options,data)->
     super options,data
 
     @hide()  unless data.link_embed?.provider_name?
 
-  viewAppended: JView::viewAppended
   pistachio:->
     data = @getData()
 

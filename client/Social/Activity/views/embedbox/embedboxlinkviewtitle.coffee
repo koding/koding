@@ -1,4 +1,4 @@
-class EmbedBoxLinkViewTitle extends KDView
+class EmbedBoxLinkViewTitle extends JView
 
   constructor:(options={},data)->
     super options, data

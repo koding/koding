@@ -1,5 +1,7 @@
 class AppDetailsView extends KDScrollView
 
+  JView.mixin @prototype
+
   constructor:->
 
     super
@@ -173,9 +175,6 @@ class AppDetailsView extends KDScrollView
             if err then warn err
             modal.destroy()
             callback? err
-
-
-  viewAppended: JView::viewAppended
 
 
   pistachio:->

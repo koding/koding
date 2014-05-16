@@ -1,4 +1,7 @@
 class CommentListItemView extends KDListItemView
+
+  JView.mixin @prototype
+
   constructor:(options,data)->
 
     options.type     or= "comment"

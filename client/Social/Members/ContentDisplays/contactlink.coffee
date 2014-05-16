@@ -1,4 +1,7 @@
 class MemberMailLink extends KDCustomHTMLView
+
+  JView.mixin @prototype
+
   constructor:(options, data)->
     options = $.extend
       tagName     : 'a'
@@ -6,11 +9,6 @@ class MemberMailLink extends KDCustomHTMLView
         href        : '#'
     , options
     super options, data
-
-  viewAppended:->
-    super
-    @setTemplate @pistachio()
-    @template.update()
 
   pistachio:->
     name = KD.utils.getFullnameFromAccount @getData(), yes

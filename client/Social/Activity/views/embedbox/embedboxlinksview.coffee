@@ -1,5 +1,7 @@
 class EmbedBoxLinksView extends KDView
 
+  JView.mixin @prototype
+
   constructor: (options = {}, data) ->
     options.cssClass = 'embed-links-container'
 
@@ -43,8 +45,6 @@ class EmbedBoxLinksView extends KDView
         @linkListController.removeItem item
         @emit 'LinkRemoved', { url, index }
 
-  viewAppended: JView::viewAppended
-  
   pistachio:->
     """
     {{> @linkList}}

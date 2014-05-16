@@ -1,5 +1,7 @@
 class TroubleshootItemView extends KDCustomHTMLView
 
+  JView.mixin @prototype
+
   constructor: (options, data) ->
     options.cssClass ?= "hidden troubleshootitem"
     super options, data
@@ -31,15 +33,12 @@ class TroubleshootItemView extends KDCustomHTMLView
       partial  : "#{title}"
       cssClass : "checker-name"
 
-  viewAppended: JView::viewAppended
-
   # instead we need a slowness indicator
   getResponseTime: ->
     responseTime = @getData().getResponseTime()
-    unless responseTime is 0
-      return "#{responseTime} ms"
-    else
-      ""
+    if responseTime is 0
+    then ""
+    else "#{responseTime} ms"
 
   pistachio:->
     """

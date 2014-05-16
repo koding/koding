@@ -316,6 +316,8 @@ class PopupGroupListItem extends KDListItemView
 
 class PopupGroupListItemPending extends PopupGroupListItem
 
+  JView.mixin @prototype
+
   constructor:(options = {}, data)->
     super
 
@@ -357,7 +359,6 @@ class PopupGroupListItemPending extends PopupGroupListItem
             @destroy()
             @parent.emit 'PendingCountDecreased'
 
-  viewAppended: JView::viewAppended
 
   pistachio: ->
     """

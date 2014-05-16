@@ -208,7 +208,6 @@ class BadgeRuleItem extends KDListItemView
         @getDelegate().emit "RemoveRuleFromList", this
 
     @removeRule.hide() if data.propVal
-  viewAppended: JView::viewAppended
 
   pistachio:->
     """

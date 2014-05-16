@@ -1,5 +1,7 @@
 class EnvironmentItem extends KDDiaObject
 
+  JView.mixin @prototype
+
   constructor:(options={}, data)->
 
     options.cssClass       = KD.utils.curry "environments-item", options.cssClass

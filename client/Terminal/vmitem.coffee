@@ -105,10 +105,6 @@ class TerminalStartTabVMItem extends KDCustomHTMLView
 
   click : -> @emit 'VMItemClicked', @getData()
 
-
-  viewAppended:JView::viewAppended
-
-
   pistachio:->
     vm    = @getData()
     alias = vm.hostnameAlias
