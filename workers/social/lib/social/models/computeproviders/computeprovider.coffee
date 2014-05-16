@@ -79,32 +79,48 @@ module.exports = class ComputeProvider extends Base
   , (client, options, callback)->
 
       { provider, stack, label } = options
+      { r: { group, user, account } } = client
 
-      provider.create client, options, (err, machineData)=>
+      JStack = require '../stack'
+      JStack.one
 
-        return callback err  if err
+        _id      : stack
+        originId : account.getId()
 
-        { connection: { delegate:account }, r: { group, user } } = client
-        { meta, postCreateOptions } = machineData
+      , (err, stackObj)=>
 
-        @createMachine {
-          provider : provider.slug
-          label, meta, group, user
-        }, (err, machine)->
+        if err? or not stackObj?
+          return callback new KodingError "A valid stack id required"
 
-          # TODO if any error occurs here which means user paid for
-          # not created vm ~ GG
+        stack = stackObj
+
+        provider.create client, options, (err, machineData)=>
+
           return callback err  if err
 
-          provider.postCreate {
-            postCreateOptions, machine, meta
-          }, (err)=>
-            # ----
-            account.sendNotification "MachineCreated"  unless err
+          { meta, postCreateOptions } = machineData
 
-            # TODO add to stack code here before calling the callback ~g
+          @createMachine {
+            provider : provider.slug
+            label, meta, group, user
+          }, (err, machine)->
 
-            callback err
+            # TODO if any error occurs here which means user paid for
+            # not created vm ~ GG
+            return callback err  if err
+
+            provider.postCreate {
+              postCreateOptions, machine, meta
+            }, (err)=>
+
+              return callback err  if err
+
+              stack.update
+                $addToSet: machines: machine.getId()
+              , (err)->
+
+                account.sendNotification "MachineCreated"  unless err
+                callback err
 
   @create$ = permit 'create machines', success: revive
 
