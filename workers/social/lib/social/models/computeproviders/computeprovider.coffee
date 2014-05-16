@@ -82,17 +82,8 @@ module.exports = class ComputeProvider extends Base
       { r: { group, user, account } } = client
 
       JStack = require '../stack'
-      JStack.one
-
-        _id      : stack
-        originId : account.getId()
-
-      , (err, stackObj)=>
-
-        if err? or not stackObj?
-          return callback new KodingError "A valid stack id required"
-
-        stack = stackObj
+      JStack.getStack account, stack, (err, stack)=>
+        return callback err  if err?
 
         provider.create client, options, (err, machineData)=>
 
@@ -115,9 +106,7 @@ module.exports = class ComputeProvider extends Base
 
               return callback err  if err
 
-              stack.update
-                $addToSet: machines: machine.getId()
-              , (err)->
+              stack.appendTo machines: machine.getId(), (err)->
 
                 account.sendNotification "MachineCreated"  unless err
                 callback err
