@@ -131,8 +131,8 @@ module.exports = class Koding extends ProviderInterface
     JDomain = require '../domain'
 
     JDomain.createDomains {
-      account, group
-      stackId       : stack
+      account, stack
+      group         : group.slug
       domains       : hostnameAliases
       hostnameAlias : hostnameAliases[0]
     }
