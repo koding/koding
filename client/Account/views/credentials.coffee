@@ -194,6 +194,8 @@ class AccountCredentialList extends KDListView
     credential.fetchData (err, data)->
       unless KD.showError err
 
+        data.meta.publicKey = credential.publicKey
+
         try
 
           cred = JSON.stringify data.meta, null, 2
@@ -205,7 +207,9 @@ class AccountCredentialList extends KDListView
             title: "An error occured"
 
         new KDModalView
-          content : "<pre>#{cred}</pre>"
+          title    : credential.title
+          subtitle : credential.provider
+          content  : "<pre>#{cred}</pre>"
 
 
 class AccountCredentialListItem extends KDListItemView
