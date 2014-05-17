@@ -13,7 +13,7 @@ module.exports = [
 
   # ide
   "views/tabview/idefilestabview.coffee"
-  "views/tabview/ideeditortabview.coffee"
+  "views/tabview/idetabview.coffee"
   "views/tabview/idesocialstabview.coffee"
 
   "AppController.coffee"
