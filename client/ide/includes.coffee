@@ -1,15 +1,5 @@
 module.exports = [
 
-  # Ace
-  "editor/libs/require.js"
-  "editor/ace.coffee"
-  "editor/acesettingsview.coffee"
-  "editor/acesettings.coffee"
-  "editor/acefindandreplaceview.coffee"
-  "editor/editormacroview.coffee"
-  "editor/styl/aceeditor.styl"
-  "editor/styl/editor.styl"
-
   # workspace
   "workspace/workspacetabview.coffee"
   "workspace/workspacelayoutbuilder.coffee"

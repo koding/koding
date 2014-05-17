@@ -1,5 +1,3 @@
-requirejs.config baseUrl: "/a/js", waitSeconds:30
-
 class IDEAppController extends AppController
 
   KD.registerAppClass this,
