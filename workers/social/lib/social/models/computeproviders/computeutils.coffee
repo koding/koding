@@ -9,16 +9,15 @@ PROVIDERS =
   engineyard   : require './engineyard'
 
 
-checkCredential = (client, pubKey, callback)->
+reviveCredential = (client, pubKey, callback)->
+
+  [pubKey, callback] = [callback, pubKey]  unless callback?
+
+  if not pubKey?
+    return callback null
 
   JCredential = require './credential'
-  JCredential.fetchByPublicKey client, pubKey, (err, credential)->
-
-    if err or not credential?
-      console.warn err  if err
-      callback new KodingError "Credential failed.", "AccessDenied"
-    else
-      callback null, credential
+  JCredential.fetchByPublicKey client, pubKey, callback
 
 
 reviveClient = (client, callback, revive = yes)->
@@ -72,20 +71,19 @@ revive = do -> ({
       # This is Koding only which doesn't need a valid credential
       # since the user session is enough for koding provider for now.
 
-      if shouldPassCredential and provider isnt 'koding'
-
-        if not credential?
+      if shouldPassCredential and not credential?
+        if provider isnt 'koding'
           return callback new KodingError \
             "Credential is required.", "MissingCredential"
 
-        checkCredential client, credential, (err, cred)=>
+      reviveCredential client, credential, (err, cred)=>
 
-          if err then return callback err
+        if err then return callback err
 
-          options.credential = cred
-          fn.call this, client, options, callback
-
-      else
+        if shouldPassCredential and not cred?
+          return callback new KodingError "Credential failed.", "AccessDenied"
+        else
+          options.credential = cred  if cred?
 
         fn.call this, client, options, callback
 
@@ -134,5 +132,5 @@ fetchStackTemplate = (client, callback)->
 
 
 module.exports = {
-  PROVIDERS, fetchStackTemplate, revive, reviveClient, checkCredential
+  PROVIDERS, fetchStackTemplate, revive, reviveClient, reviveCredential
 }
