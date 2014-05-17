@@ -176,11 +176,6 @@ bundles           =
     style         : "website/a/css/__teamwork.css"
     script        : "website/a/js/__teamwork.js"
 
-  IDEBundle       :
-    projects      : ['Ace', 'Terminal', 'Viewer', 'Teamwork', 'DevTools']
-    style         : "website/a/css/__ide.css"
-    script        : "website/a/js/__ide.js"
-
   Payment         :
     projects      : ['Environments', 'Dashboard', 'Pricing', 'Account']
     style         : "website/a/css/__payment.css"
