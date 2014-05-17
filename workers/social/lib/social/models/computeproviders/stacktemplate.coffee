@@ -240,7 +240,8 @@ JStackTemplate.create
       region: "ams1", size: "512mb"
     }
     {
-      title: "AWS micro", provider: "amazon", instanceType: "micro"
+      title: "AWS micro", provider: "amazon", instanceType: "micro",
+      credential: "0dffe6d974948f95b0abf60ec67b2c8b"
     }
   ]
 
