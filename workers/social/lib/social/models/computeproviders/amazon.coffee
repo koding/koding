@@ -13,23 +13,25 @@ module.exports = class Amazon extends ProviderInterface
 
       return callback err  if err?
 
-      callback null,
+      meta =
         {
           "variables": {
-            "aws_access_key": credential.accessKeyId
-            "aws_secret_key": credential.secretAccessKey
+            "aws_access_key": credential.accessKeyId ? ""
+            "aws_secret_key": credential.secretAccessKey ? ""
           },
           "builders": [{
             "type": "amazon-ebs",
             "access_key": "{{user `aws_access_key`}}",
             "secret_key": "{{user `aws_secret_key`}}",
-            "region": credential.region,
+            "region": credential.region ? "us-east-1",
             "source_ami": "ami-de0d9eb7",
             "instance_type": name,
             "ssh_username": "ubuntu",
             "ami_name": "packer-example {{timestamp}}"
           }]
         }
+
+      callback null, { meta }
 
   @fetchAvailable = (client, options, callback)->
 
