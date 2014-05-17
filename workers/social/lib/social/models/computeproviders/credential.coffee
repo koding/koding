@@ -130,7 +130,16 @@ module.exports = class JCredential extends jraphical.Module
 
     {delegate} = client.connection
     delegate.fetchCredential { }, options, (err, res)->
-      callback err, res
+
+      return callback err        if err?
+      return callback null, res  if res?
+
+      { group } = client.context
+      JGroup.one slug: group, (err, group)->
+        return callback err  if err?
+
+        group.fetchCredential { }, options, (err, res)->
+          callback err, res
 
 
   @one$: permit 'list credentials',
