@@ -159,8 +159,6 @@ module.exports = class JStack extends jraphical.Module
       { permission: 'delete own stack', validateWith: Validators.own }
     ]
 
-    # TODO Implement walk on domains, machines, rules and delete them too ~ GG
-
     success: (client, callback)->
 
       JDomain  = require "./domain"
@@ -168,14 +166,14 @@ module.exports = class JStack extends jraphical.Module
 
       { delegate } = client.connection
 
-      @domains.forEach (_id)->
+      @domains?.forEach (_id)->
         JDomain.one {_id}, (err, domain)->
           if not err? and domain?
             domain.remove (err)->
               if err then console.error \
                 "Failed to remove domain: #{domain.domain}", err
 
-      @machines.forEach (_id)->
+      @machines?.forEach (_id)->
         JMachine.one {_id}, (err, machine)->
           if not err? and machine?
             machine.remove (err)->

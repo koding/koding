@@ -6,7 +6,8 @@ KodingError = require '../../error'
 KONFIG = require('koding-config-manager').load("main.#{argv.c}")
 
 {
-  PROVIDERS, fetchStackTemplate, revive, reviveClient, checkCredential
+  PROVIDERS, fetchStackTemplate, revive,
+  reviveClient, reviveCredential
 } = require './computeutils'
 
 
@@ -50,9 +51,9 @@ module.exports = class ComputeProvider extends Base
 
 
   @providers      = PROVIDERS
+
   @fetchProviders = secure (client, callback)->
     callback null, Object.keys PROVIDERS
-
 
 
 

@@ -26,7 +26,7 @@ module.exports = class ProviderInterface
 
   @fetchCredentialData  = (credential, callback)->
 
-    unless credential
+    if not credential?.fetchData?
       return callback null, {}
 
     credential.fetchData (err, credData)->
