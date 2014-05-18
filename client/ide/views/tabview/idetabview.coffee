@@ -62,3 +62,15 @@
 
   removeOpenDocument: ->
     # TODO: This method is legacy, should be reimplemented in ace bundle.
+
+  convertToSplitView: ->
+    {parent} = this
+    @detach()
+    @unsetParent()
+
+    newTabView = new IDETabView
+    splitView  = new KDSplitView
+      type     : "vertical" # TODO: Hardcoded, should be optional
+      views    : [ this, newTabView ]
+
+    parent.addSubView splitView
