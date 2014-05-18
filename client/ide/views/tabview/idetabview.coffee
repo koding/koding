@@ -30,37 +30,35 @@
         callback     : => @createDrawingBoard()
     }
 
+  createPane_: (view, paneOptions) ->
+    unless view or paneOptions
+      return new Error "Missing argument for createPane_ helper"
+
+    unless view instanceof KDView
+      return new Error "View must be an instance of KDView"
+
+    pane = new KDTabPaneView paneOptions
+    pane.addSubView view
+    @tabView.addPane pane
+
   createEditor: ->
     file      = FSHelper.createFileFromPath "localfile://Untitled.txt"
     content   = "This is my localfile"
     editor    = new EditorPane { file, content, delegate: this }
-    pane      = new KDTabPaneView
+    paneOptions =
       name    : file.name
       aceView : editor.ace
 
-    pane.addSubView editor
-    @tabView.addPane pane
+    @createPane_ editor, paneOptions
 
   createTerminal: ->
-    pane   = new KDTabPaneView
-      name : "Terminal"
-
-    pane.addSubView new TerminalPane
-    @tabView.addPane pane
+    @createPane_ new TerminalPane, { name: "Terminal" }
 
   createDrawingBoard: ->
-    pane   = new KDTabPaneView
-      name : "Drawing"
-
-    pane.addSubView new DrawingPane
-    @tabView.addPane pane
+    @createPane_ new DrawingPane,  { name: "Drawing"  }
 
   createPreview: ->
-    pane   = new KDTabPaneView
-      name : "Browser"
-
-    pane.addSubView new PreviewPane
-    @tabView.addPane pane
+    @createPane_ new PreviewPane,  { name: "Browser"  }
 
   removeOpenDocument: ->
     # TODO: This method is legacy, should be reimplemented in ace bundle.
