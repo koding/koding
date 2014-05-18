@@ -24,6 +24,8 @@
         callback     : => @createEditor()
       "Terminal"     :
         callback     : => @createTerminal()
+      "Browser"      :
+        callback     : => @createPreview()
       "Drawing Board":
         callback     : => @createDrawingBoard()
     }
@@ -51,6 +53,13 @@
       name : "Drawing"
 
     pane.addSubView new DrawingPane
+    @tabView.addPane pane
+
+  createPreview: ->
+    pane   = new KDTabPaneView
+      name : "Browser"
+
+    pane.addSubView new PreviewPane
     @tabView.addPane pane
 
   removeOpenDocument: ->
