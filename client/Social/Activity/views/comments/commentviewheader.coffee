@@ -48,8 +48,7 @@ class CommentViewHeader extends JView
     # If its our comments so it's not a new comment
     if @currentCount > 0 then @currentCount--
 
-    @updateNewCount()
-
+    @update()
 
   ownCommentDeleted: ->
 
@@ -115,9 +114,7 @@ class CommentViewHeader extends JView
 
     {repliesCount} = @getData()
 
-    repliesCount
-    unless repliesCount and repliesCount > @maxCount
-      @hide()
+    @hide()  unless repliesCount and repliesCount > @maxCount
 
 
   render: ->

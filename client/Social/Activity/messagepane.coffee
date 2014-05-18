@@ -46,13 +46,13 @@ class MessagePane extends KDTabPaneView
 
   populate: ->
 
-    @fetch (err, items) =>
+    @fetch (err, items = []) =>
 
       return KD.showError err  if err
 
       console.time('populate')
       @listController.hideLazyLoader()
-      @listController.listActivities items.reverse()
+      @listController.instantiateListItems items.reverse()
       console.timeEnd('populate')
 
 
@@ -86,4 +86,4 @@ class MessagePane extends KDTabPaneView
     channel = @getData()
 
     @input = new ActivityInputWidget {channel}
-    @input.on 'Submit', @listController.bound 'addItem'
+      .on 'Submit', @listController.bound 'addItem'

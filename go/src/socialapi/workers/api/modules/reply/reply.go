@@ -31,7 +31,9 @@ func Create(u *url.URL, h http.Header, reply *models.ChannelMessage) (int, http.
 		return helpers.NewBadRequestResponse(err)
 	}
 
-	return helpers.NewOKResponse(reply)
+	return helpers.HandleResultAndError(
+		reply.BuildEmptyMessageContainer(),
+	)
 }
 
 func Delete(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface{}, error) {

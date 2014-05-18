@@ -1,5 +1,12 @@
 class ActivityLikeCount extends CustomLinkView
 
+  constructor: (options = {}, data) ->
+
+    options.cssClass = KD.utils.curry "like-count", options.cssClass
+
+    super options, data
+
+
   click: (event) ->
 
     KD.utils.stopDOMEvent event

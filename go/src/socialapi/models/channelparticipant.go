@@ -46,7 +46,7 @@ func NewChannelParticipant() *ChannelParticipant {
 	return &ChannelParticipant{}
 }
 
-func (c *ChannelParticipant) GetId() int64 {
+func (c ChannelParticipant) GetId() int64 {
 	return c.Id
 }
 
@@ -70,7 +70,7 @@ func (c *ChannelParticipant) AfterUpdate() {
 	bongo.B.AfterUpdate(c)
 }
 
-func (c *ChannelParticipant) AfterDelete() {
+func (c ChannelParticipant) AfterDelete() {
 	bongo.B.AfterDelete(c)
 }
 

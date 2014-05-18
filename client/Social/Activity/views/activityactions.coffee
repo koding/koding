@@ -53,18 +53,12 @@ class ActivityActionsView extends JView
       loaderOptions :
         color       : '#6B727B'
 
-    @attachListeners()
+    options.delegate
+      .on "AsyncJobStarted",  @loader.bound "show"
+      .on "AsyncJobFinished", @loader.bound "hide"
 
 
-  attachListeners: ->
-
-    commentList = @getDelegate()
-
-    commentList.on 'BackgroundActivityStarted',  @loader.bound 'show'
-    commentList.on 'BackgroundActivityFinished', @loader.bound 'hide'
-
-
-  reply: (click) ->
+  reply: (event) ->
 
     KD.utils.stopDOMEvent event
     @emit "Reply"

@@ -21,11 +21,13 @@ class ActivityListItemView extends KDListItemView
       cssClass   : 'author-avatar'
       origin     : origin
 
-    @author     = new ProfileLinkView { origin }
-    @commentBox = new CommentView options.commentSettings, data
-
-    @actionLinks = new ActivityActionsView delegate: @commentBox.commentList, data
+    @author      = new ProfileLinkView { origin }
     @likeSummary = new ActivityLikeSummaryView {}, data
+
+    @commentBox = new CommentView options.commentSettings, data
+    @actionLinks = new ActivityActionsView delegate: @commentBox, data
+
+    @commentBox.forwardEvent @actionLinks, "Reply"
 
     @settingsButton = new ActivitySettingsView
       cssClass : 'settings-menu-wrapper'

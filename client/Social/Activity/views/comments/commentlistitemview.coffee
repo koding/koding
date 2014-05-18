@@ -15,7 +15,7 @@ class CommentListItemView extends KDListItemView
   createMenu: ->
 
     data         = @getData()
-    activity     = @getDelegate().getData()
+    {activity}   = @getOptions()
     isOwner      = KD.isMyPost activity or KD.isMyPost data
     canEdit      = "edit comments" in KD.config.permissions
     canDeleteOwn = (KD.isMyPost(data) and "edit own comments" in KD.config.permissions)
@@ -97,7 +97,7 @@ class CommentListItemView extends KDListItemView
 
       return KD.showError err  if err
 
-      @getDelegate().emit 'ReplyLinkClicked', account.profile.nickname
+      @getDelegate().emit "Mention", account.profile.nickname
 
 
   viewAppended: ->
