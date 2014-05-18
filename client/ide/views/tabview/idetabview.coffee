@@ -20,10 +20,12 @@
 
   getPlusMenuItems: ->
     return {
-      "Editor"    :
-        callback  : => @createEditor()
-      "Terminal"  :
-        callback  : => @createTerminal()
+      "Editor"       :
+        callback     : => @createEditor()
+      "Terminal"     :
+        callback     : => @createTerminal()
+      "Drawing Board":
+        callback     : => @createDrawingBoard()
     }
 
   createEditor: ->
@@ -42,6 +44,13 @@
       name : "Terminal"
 
     pane.addSubView new TerminalPane
+    @tabView.addPane pane
+
+  createDrawingBoard: ->
+    pane   = new KDTabPaneView
+      name : "Drawing"
+
+    pane.addSubView new DrawingPane
     @tabView.addPane pane
 
   removeOpenDocument: ->

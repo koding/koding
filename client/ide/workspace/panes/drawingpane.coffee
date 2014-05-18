@@ -8,6 +8,7 @@ class DrawingPane extends Pane
 
   viewAppended: ->
     super
+
     @createCanvas()
     @setColor()
 
