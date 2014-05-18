@@ -18,14 +18,15 @@ class EditorPane extends Pane
     unless content
       return new Error "You must pass file content to EditorPane"
 
-    @ace = new AceView { delegate: this }, file
-    @addSubView @ace
-    @ace.once "ace.ready", =>
+    @aceView = new AceView delegate: @getDelegate(), file
+    @aceView.ace.once "ace.ready", =>
       @getEditor().setValue content, 1
       @ace.setReadOnly yes  if @getOptions().readOnly
 
+    @addSubView @aceView
+
   getEditor: ->
-    return @ace.editor
+    return @aceView.ace.editor
 
   getValue: ->
     return  @getEditor().getSession().getValue()

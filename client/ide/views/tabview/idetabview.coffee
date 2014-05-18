@@ -27,20 +27,22 @@
     }
 
   createEditor: ->
-    file       = FSHelper.createFileFromPath "localfile://Untitled.txt"
-    content    = "This is my localfile"
-    editor     = new EditorPane { file, content }
-    pane       = new KDTabPaneView
-      closable : yes
-      name     : file.name
+    file      = FSHelper.createFileFromPath "localfile://Untitled.txt"
+    content   = "This is my localfile"
+    editor    = new EditorPane { file, content, delegate: this }
+    pane      = new KDTabPaneView
+      name    : file.name
+      aceView : editor.ace
 
     pane.addSubView editor
     @tabView.addPane pane
 
   createTerminal: ->
-    pane       = new KDTabPaneView
-      closable : yes
-      name     : "Terminal"
+    pane   = new KDTabPaneView
+      name : "Terminal"
 
     pane.addSubView new TerminalPane
     @tabView.addPane pane
+
+  removeOpenDocument: ->
+    # TODO: This method is legacy, should be reimplemented in ace bundle.

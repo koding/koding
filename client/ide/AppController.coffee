@@ -27,7 +27,6 @@ class IDEAppController extends AppController
           options       :
             direction   : "vertical"
             sizes       : [ "250px", null]
-            colored     : yes
           views         : [
             {
               type      : "custom"
@@ -35,7 +34,7 @@ class IDEAppController extends AppController
             },
             {
               type      : "custom"
-              paneClass : IDEEditorTabView
+              paneClass : IDETabView
             }
           ]
         },
