@@ -79,11 +79,6 @@ func (m *MessageReply) Delete() error {
 	return nil
 }
 
-func (m *MessageReply) One(q *bongo.Query) error {
-
-	return bongo.B.One(m, m, q)
-}
-
 func (m *MessageReply) DeleteByOrQuery(messageId int64) error {
 	var messageReplies []MessageReply
 	query := bongo.B.DB.Table(m.TableName())
