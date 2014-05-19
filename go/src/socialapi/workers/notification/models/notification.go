@@ -1,6 +1,7 @@
 package models
 
 import (
+	"encoding/json"
 	"errors"
 	// "fmt"
 	"github.com/jinzhu/gorm"
@@ -31,7 +32,7 @@ type Notification struct {
 	// notification type as subscribed/unsubscribed
 	UnsubscribedAt time.Time `json:"unsubscribedAt"`
 
-	SubscribeOnly bool `sql:"-"`
+	SubscribeOnly bool `json:"-" sql:"-"`
 }
 
 func (n *Notification) BeforeCreate() {
@@ -279,4 +280,21 @@ func (n *Notification) MapMessage(data []byte) error {
 	}
 
 	return nil
+}
+
+func (n *Notification) FetchLastActivity() (*NotificationActivity, *NotificationContent, error) {
+	// fetch notification content and get event type
+	nc, err := n.FetchContent()
+	if err != nil {
+		return nil, nil, err
+	}
+
+	a := NewNotificationActivity()
+	a.NotificationContentId = nc.Id
+
+	if err := a.LastActivity(); err != nil {
+		return nil, nil, err
+	}
+
+	return a, nc, nil
 }

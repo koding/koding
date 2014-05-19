@@ -266,15 +266,8 @@ func (f *RealtimeWorkerController) NotifyUser(data []byte) error {
 		return err
 	}
 
-	// fetch notification content and get event type
-	nc, err := notification.FetchContent()
+	activity, nc, err := notification.FetchLastActivity()
 	if err != nil {
-		return err
-	}
-
-	activity := notificationmodels.NewNotificationActivity()
-	activity.NotificationContentId = nc.Id
-	if err := activity.LastActivity(); err != nil {
 		return err
 	}
 
