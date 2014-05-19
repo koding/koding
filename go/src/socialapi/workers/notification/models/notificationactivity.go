@@ -88,15 +88,15 @@ func (a *NotificationActivity) FetchByContentIds(ids []int64) ([]NotificationAct
 }
 
 func (a *NotificationActivity) FetchMapByContentIds(ids []int64) (map[int64][]NotificationActivity, error) {
-	aMap := make(map[int64][]NotificationActivity, 0)
 	if len(ids) == 0 {
-		return aMap, nil
+		return make(map[int64][]NotificationActivity), nil
 	}
 	aList, err := a.FetchByContentIds(ids)
 	if err != nil {
 		return nil, err
 	}
 
+	aMap := make(map[int64][]NotificationActivity)
 	for _, activity := range aList {
 		aMap[activity.NotificationContentId] = append(aMap[activity.NotificationContentId], activity)
 	}

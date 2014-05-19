@@ -9,8 +9,7 @@ type FollowNotification struct {
 }
 
 func (n *FollowNotification) GetNotifiedUsers(notificationContentId int64) ([]int64, error) {
-	users := make([]int64, 0)
-	return append(users, n.TargetId), nil
+	return []int64{n.TargetId}, nil
 }
 
 func (n *FollowNotification) GetType() string {

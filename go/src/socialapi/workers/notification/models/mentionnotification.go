@@ -7,9 +7,7 @@ type MentionNotification struct {
 }
 
 func (m *MentionNotification) GetNotifiedUsers(notificationContentId int64) ([]int64, error) {
-	var notifiees []int64
-
-	return notifiees, nil
+	return []int64{}, nil
 }
 
 func (m *MentionNotification) GetType() string {
