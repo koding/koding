@@ -17,9 +17,6 @@ type Builder interface {
 
 	// Build is creating a image and a machine.
 	Build(...interface{}) (interface{}, error)
-
-	// Destroy is destroying a image
-	Destory(...interface{}) error
 }
 
 type buildArgs struct {
@@ -45,7 +42,7 @@ func build(r *kite.Request) (interface{}, error) {
 
 	provider, ok := p.(Builder)
 	if !ok {
-		return nil, errors.New("provider doesn't satisfy/support this method.")
+		return nil, errors.New("provider doesn't satisfy the builder interface.")
 	}
 
 	if err := provider.Prepare(args.Credential, args.Builder); err != nil {

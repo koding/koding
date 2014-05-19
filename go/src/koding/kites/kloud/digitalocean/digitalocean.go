@@ -278,6 +278,19 @@ func (d *DigitalOcean) Restart(raws ...interface{}) error {
 	return err
 }
 
+func (d *DigitalOcean) DestroyImage(raws ...interface{}) error {
+	if len(raws) == 0 {
+		return errors.New("zero arguments are passed")
+	}
+
+	var imageId uint
+	if imageId = utils.ToUint(raws[0]); imageId == 0 {
+		return fmt.Errorf("malformed data received %v. droplet Id must be an int.", raws[0])
+	}
+
+	return d.Client.DestroyImage(imageId)
+}
+
 func (d *DigitalOcean) Destroy(raws ...interface{}) error {
 	if len(raws) == 0 {
 		return errors.New("zero arguments are passed")
@@ -289,6 +302,10 @@ func (d *DigitalOcean) Destroy(raws ...interface{}) error {
 	}
 
 	return d.Client.DestroyDroplet(dropletId)
+}
+
+func (d *DigitalOcean) CreateSnapshot(dropletId uint, name string) error {
+	return d.Client.CreateSnapshot(dropletId, name)
 }
 
 func (d *DigitalOcean) Info(raws ...interface{}) (interface{}, error) {
