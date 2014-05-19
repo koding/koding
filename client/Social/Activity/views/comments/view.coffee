@@ -14,6 +14,7 @@ class CommentView extends KDView
     @controller = new CommentListViewController delegate: this, data
       .on "Mention", @inputForm.bound "mention"
 
+    @listPreviousLink = new CommentListPreviousLink delegate: @controller, data
 
     @on "Reply", @inputForm.bound "setFocus"
 
@@ -75,6 +76,7 @@ class CommentView extends KDView
 
     @setFixedHeight fixedHeight  if {fixedHeight} = @getOptions()
 
+    @addSubView @listPreviousLink
     @addSubView @controller.getView()
     @addSubView @inputForm
 
