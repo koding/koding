@@ -99,7 +99,7 @@ add those lines to the end of the file
 open /etc/postgresql/9.3/main/postgresql.conf
 
 ```
-data_directory = '/data/postgresql/tablespace'
+data_directory = '/data/postgresql/data'
 ```
 replace with this line
 
