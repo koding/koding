@@ -34,3 +34,14 @@ Once it's done, you should see a brand new appendonly.aof file. Next, stop the s
 Now you might be asking why we don't just backup the AOF log. The answer is that you could but the AOF logs tend to get really large and we don't usually want to waste disk space.
 
 ## redis_backup.sh is in the same directory
+
+
+
+# Edit crontab
+
+# Do BGSAVE, every 15 mins, 5 mins before backup
+10,25,40,55 * * * *  redis-cli bgsave
+
+# Every 15 mins
+0,15,30,45 * * * * /root/backup.sh >> /var/log/redis-backup.log
+
