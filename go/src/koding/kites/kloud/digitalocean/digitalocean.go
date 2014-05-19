@@ -47,6 +47,9 @@ type DigitalOcean struct {
 	}
 }
 
+// Setup prepares the state for upcoming methods like Start/Stop/etc.. It's
+// needs to be called before every other method call once. Raws contains the
+// credentials as a map[string]interface{} format.
 func (d *DigitalOcean) Setup(raws ...interface{}) (err error) {
 	d.Name = "digitalocean"
 	if len(raws) != 1 {
@@ -70,6 +73,9 @@ func (d *DigitalOcean) Setup(raws ...interface{}) (err error) {
 	return nil
 }
 
+// Setup prepares the state for upcoming methods like Build/etc.. It's needs to
+// be called before every other method call once. Raws contains the credentials
+// as a map[string]interface{} format.
 func (d *DigitalOcean) Prepare(raws ...interface{}) (err error) {
 	d.Name = "digitalocean"
 	if len(raws) != 2 {
@@ -98,6 +104,10 @@ func (d *DigitalOcean) Prepare(raws ...interface{}) (err error) {
 	return nil
 }
 
+// Build is building an image and creates a droplet based on that image. If the
+// given snapshot/image exist it directly skips to creating the droplet. It
+// acceps two string arguments, first one is the snapshotname, second one is
+// the dropletName.
 func (d *DigitalOcean) Build(raws ...interface{}) (interface{}, error) {
 	if len(raws) != 2 {
 		return nil, errors.New("need one argument. No snaphost name is provided")
@@ -149,6 +159,9 @@ func (d *DigitalOcean) Build(raws ...interface{}) (interface{}, error) {
 	}
 }
 
+// CheckEvent checks the given eventID and returns back the result. It's useful
+// for checking the status of an event. Usually it's called in a for/select
+// statement and get polled.
 func (d *DigitalOcean) CheckEvent(eventId int) (*Event, error) {
 	path := fmt.Sprintf("events/%d", eventId)
 
@@ -165,6 +178,8 @@ func (d *DigitalOcean) CheckEvent(eventId int) (*Event, error) {
 	return event, nil
 }
 
+// CreateImage creates an image using Packer. It uses digitalocean.Builder
+// data. It returns the image info.
 func (d *DigitalOcean) CreateImage() (digitalocean.Image, error) {
 	data, err := utils.TemplateData(d.Builder, klientprovisioner.RawData)
 	if err != nil {
@@ -185,7 +200,8 @@ func (d *DigitalOcean) CreateImage() (digitalocean.Image, error) {
 	return d.Image(d.Builder.SnapshotName)
 }
 
-// CreateDroplet creates a new droplet with a hostname and the given image_id
+// CreateDroplet creates a new droplet with a hostname and image_id. It returns
+// back the dropletInfo.
 func (d *DigitalOcean) CreateDroplet(hostname string, image_id uint) (*DropletInfo, error) {
 	params := url.Values{}
 	params.Set("name", hostname)
@@ -218,6 +234,7 @@ func (d *DigitalOcean) CreateDroplet(hostname string, image_id uint) (*DropletIn
 	return info, nil
 }
 
+// Droplets returns a slice of all Droplets.
 func (d *DigitalOcean) Droplets() ([]Droplet, error) {
 	resp, err := digitalocean.NewRequest(*d.Client, "droplets", url.Values{})
 	if err != nil {
@@ -232,10 +249,13 @@ func (d *DigitalOcean) Droplets() ([]Droplet, error) {
 	return result.Droplets, nil
 }
 
-func (d *DigitalOcean) Image(snapshotName string) (digitalocean.Image, error) {
-	return d.Client.Image(snapshotName)
+// Image returns a single image based on the given snaphot name, slug or id. It
+// checks for each occurency and returns for the first match.
+func (d *DigitalOcean) Image(slug_or_name_or_id string) (digitalocean.Image, error) {
+	return d.Client.Image(slug_or_name_or_id)
 }
 
+// MyImages returns a slice of all personal images.
 func (d *DigitalOcean) MyImages() ([]digitalocean.Image, error) {
 	v := url.Values{}
 	v.Set("filter", "my_images")
@@ -253,6 +273,7 @@ func (d *DigitalOcean) MyImages() ([]digitalocean.Image, error) {
 	return result.Images, nil
 }
 
+// Start starts the machine for the given dropletID
 func (d *DigitalOcean) Start(raws ...interface{}) error {
 	if len(raws) == 0 {
 		return errors.New("zero arguments are passed")
@@ -268,6 +289,7 @@ func (d *DigitalOcean) Start(raws ...interface{}) error {
 	return err
 }
 
+// Stop stops the machine for the given dropletID
 func (d *DigitalOcean) Stop(raws ...interface{}) error {
 	if len(raws) == 0 {
 		return errors.New("zero arguments are passed")
@@ -281,6 +303,7 @@ func (d *DigitalOcean) Stop(raws ...interface{}) error {
 	return d.Client.ShutdownDroplet(dropletId)
 }
 
+// Restart restart the machine for the given dropletID
 func (d *DigitalOcean) Restart(raws ...interface{}) error {
 	if len(raws) == 0 {
 		return errors.New("zero arguments are passed")
@@ -296,10 +319,12 @@ func (d *DigitalOcean) Restart(raws ...interface{}) error {
 	return err
 }
 
+// Destroyimage destroys an image for the given imageID.
 func (d *DigitalOcean) DestroyImage(imageId uint) error {
 	return d.Client.DestroyImage(imageId)
 }
 
+// Destroy destroys the machine with the given droplet ID.
 func (d *DigitalOcean) Destroy(raws ...interface{}) error {
 	if len(raws) == 0 {
 		return errors.New("zero arguments are passed")
@@ -313,10 +338,12 @@ func (d *DigitalOcean) Destroy(raws ...interface{}) error {
 	return d.Client.DestroyDroplet(dropletId)
 }
 
+// CreateSnapshot cretes a new snapshot with the name from the given droplet Id.
 func (d *DigitalOcean) CreateSnapshot(dropletId uint, name string) error {
 	return d.Client.CreateSnapshot(dropletId, name)
 }
 
+// Info returns all information about the given droplet info.
 func (d *DigitalOcean) Info(raws ...interface{}) (interface{}, error) {
 	if len(raws) == 0 {
 		return nil, errors.New("zero arguments are passed")

@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"koding/kites/kloud/digitalocean"
 	"log"
+	"strconv"
 	"sync"
 	"testing"
 	"time"
@@ -92,11 +93,14 @@ func TestProviders(t *testing.T) {
 			color.Cyan("==> %s: %s", provider, fmt.Sprintf(msg, args...))
 		}
 
+		snapshotName := "testkoding-" + strconv.FormatInt(time.Now().UTC().Unix(), 10)
+
 		testlog("Starting tests")
 		bArgs := &buildArgs{
-			Provider:   data["provider"].(string),
-			Credential: data["credential"].(map[string]interface{}),
-			Builder:    data["builder"].(map[string]interface{}),
+			Provider:     data["provider"].(string),
+			Credential:   data["credential"].(map[string]interface{}),
+			Builder:      data["builder"].(map[string]interface{}),
+			SnapshotName: snapshotName,
 		}
 
 		start := time.Now()
@@ -104,7 +108,7 @@ func TestProviders(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		testlog("Building the machine. Elapsed time %s", time.Since(start).Seconds())
+		testlog("Building image and creating the machine. Elapsed time %f seconds", time.Since(start).Seconds())
 
 		var result digitalocean.Droplet
 		err = resp.Unmarshal(&result)
