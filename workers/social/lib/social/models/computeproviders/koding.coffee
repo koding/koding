@@ -71,26 +71,6 @@ module.exports = class Koding extends ProviderInterface
     callback null, "Koding is the best #{ client.r.account.profile.nickname }!"
 
 
-  @fetchExisting = (client, options, callback)->
-
-    { machines } = options
-
-    callback null, machines.map (machine) ->
-
-      { meta, groups } = machine
-
-      meta.hostKite = null  if meta.hostKite in ['(banned)', '(maintenance)']
-
-      {
-        hostnameAlias : meta.hostnameAlias
-        region        : meta.region
-        hostKite      : meta.hostKite
-        alwaysOn      : meta.alwaysOn
-        meta          : meta.meta
-        groupId       : groups[0].id
-      }
-
-
   @create = (client, options, callback)->
 
     { r: { account, group } } = client

@@ -40,8 +40,6 @@ module.exports = class ComputeProvider extends Base
           (signature Object, Function)
         update            :
           (signature Object, Function)
-        fetchExisting     :
-          (signature Object, Function)
         fetchAvailable    :
           (signature Object, Function)
         fetchProviders    :
@@ -75,7 +73,6 @@ module.exports = class ComputeProvider extends Base
   @create = revive
 
     shouldReviveClient   : yes
-    shouldPassCredential : no
 
   , (client, options, callback)->
 
@@ -118,37 +115,6 @@ module.exports = class ComputeProvider extends Base
     shouldPassCredential : yes
 
   , @create
-
-
-
-
-
-  @fetchExisting = revive
-
-    shouldReviveClient   : yes
-    shouldPassCredential : no
-
-  , (client, options, callback)->
-
-    { provider } = options
-    { r: { group, user } } = client
-
-    selector =
-      provider : provider.slug
-      users    : $elemMatch: id: user.getId()
-      groups   : $elemMatch: id: group.getId()
-
-    fieldsToFetch = label:1, meta:1, groups:1
-
-    JMachine.someData selector, fieldsToFetch, { }, (err, cursor)->
-      return callback err  if err
-      cursor.toArray (err, arr) ->
-        return callback err  if err
-
-        options.machines = arr
-        provider.fetchExisting client, options, callback
-
-  @fetchExisting$ = permit 'list own machines', success: @fetchExisting
 
 
 
