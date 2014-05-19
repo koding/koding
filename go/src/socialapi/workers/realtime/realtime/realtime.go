@@ -36,7 +36,7 @@ type NotificationEvent struct {
 type NotificationContent struct {
 	TypeConstant string `json:"type"`
 	TargetId     int64  `json:"targetId"`
-	ActorId      int64  `json:"actorId"`
+	ActorId      string `json:"actorId"`
 }
 
 func (r *RealtimeWorkerController) DefaultErrHandler(delivery amqp.Delivery, err error) bool {
@@ -303,11 +303,12 @@ func (f *RealtimeWorkerController) NotifyUser(data []byte) error {
 	// fetch user profile name from bongo as routing key
 	ne := &NotificationEvent{}
 	ne.Event = nc.GetEventType()
+
 	ne.Content = NotificationContent{
-		ActorId:      activity.ActorId,
 		TargetId:     nc.TargetId,
 		TypeConstant: nc.TypeConstant,
 	}
+	ne.Content.ActorId, _ = models.AccountOldIdById(activity.ActorId)
 
 	notificationMessage, err := json.Marshal(ne)
 	if err != nil {

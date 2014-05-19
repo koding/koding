@@ -104,7 +104,7 @@ class NotificationController extends KDObject
   fetchActor: (contents) ->
     new Promise (resolve, reject) =>
       {actorId} = contents
-      KD.remote.api.JAccount.one socialApiId: actorId, (err, actor) =>
+      KD.remote.api.JAccount.one _id: actorId, (err, actor) =>
         return reject err  if err
         return reject {message: "actor not found"}  unless actor
         resolve {actor, contents}

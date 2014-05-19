@@ -1,3 +1,4 @@
+
 class NotificationListItem extends KDListItemView
 
   activityNameMap =
@@ -48,7 +49,7 @@ class NotificationListItem extends KDListItemView
     {latestActors} = @getData()
     promises = latestActors.map (actorId) =>
       new Promise (resolve, reject) =>
-        KD.remote.api.JAccount.one socialApiId: actorId, (err, actor) =>
+        KD.remote.api.JAccount.one _id: actorId, (err, actor) =>
           return reject err  if err
           @actors.push actor
           resolve()
