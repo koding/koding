@@ -136,42 +136,35 @@ func TestProviders(t *testing.T) {
 	}
 }
 
-// func TestBuild(t *testing.T) {
-// 	t.Skip("To enable this test remove this line")
-// 	args := &buildArgs{}
-// 	clientID, apiKey := digitalOceanKeys()
-//
-// 	if *flagTestData != "" {
-// 		data, err := ioutil.ReadFile(*flagTestData)
-// 		if err != nil {
-// 			t.Fatal(err)
-// 		}
-//
-// 		err = json.Unmarshal(data, args)
-// 		if err != nil {
-// 			t.Fatal(err)
-// 		}
-//
-// 	} else {
-// 		args = &buildArgs{
-// 			Provider: "digitalocean",
-// 			Credential: map[string]interface{}{
-// 				"client_id": clientID,
-// 				"api_key":   apiKey,
-// 			},
-// 			Builder: map[string]interface{}{
-// 				"type":          "digitalocean",
-// 				"client_id":     clientID,
-// 				"api_key":       apiKey,
-// 				"image":         "ubuntu-13-10-x64",
-// 				"region":        "ams2",
-// 				"size":          "512mb",
-// 				"snapshot_name": "koding-{{timestamp}}",
-// 			},
-// 		}
-// 	}
-//
-// }
+func TestBuild(t *testing.T) {
+	t.Skip("To enable this test remove this line")
+
+	for provider, data := range TestProviderData {
+		if data == nil {
+			color.Yellow("==> %s skipping test. test data is not available.", provider)
+			continue
+		}
+
+		bArgs := &buildArgs{
+			Provider:   data["provider"].(string),
+			Credential: data["credential"].(map[string]interface{}),
+			Builder:    data["builder"].(map[string]interface{}),
+		}
+
+		resp, err := remote.Tell("build", bArgs)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		var result digitalocean.DropletInfo
+		err = resp.Unmarshal(&result)
+		if err != nil {
+			t.Fatal(err)
+		}
+	}
+
+}
+
 //
 // func TestStart(t *testing.T) {
 // 	clientID, apiKey := digitalOceanKeys()
