@@ -251,7 +251,7 @@ module.exports = class JUser extends jraphical.Module
   @authenticateClient:(clientId, context, callback)->
     JSession.one {clientId}, (err, session)=>
       if err
-        console.error "JUser.authenticateClient error finding session" {err, clientId}
+        console.error "JUser.authenticateClient error finding session", {err, clientId}
         callback createKodingError err
       else unless session?
         JSession.createSession (err, { session, account })->
