@@ -30,16 +30,19 @@ class IDEAppController extends AppController
           views         : [
             {
               type      : "custom"
+              name      : "filesPane"
               paneClass : IDEFilesTabView
             },
             {
               type      : "custom"
+              name      : "editorPane"
               paneClass : IDETabView
             }
           ]
         },
         {
           type          : "custom"
+          name          : "socialsPane"
           paneClass     : IDESocialsTabView
         }
       ]
