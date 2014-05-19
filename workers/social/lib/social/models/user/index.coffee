@@ -434,6 +434,8 @@ module.exports = class JUser extends jraphical.Module
       {sessionToken} = client
       delete client.connection.delegate
       delete client.sessionToken
+
+    console.log "JUser.logout JSession#remove", { sessionToken }
     JSession.remove { clientId: sessionToken }, callback
 
   @verifyEnrollmentEligibility = ({email, inviteCode}, callback)->
@@ -1023,6 +1025,9 @@ module.exports = class JUser extends jraphical.Module
         return callback err if err
         JUser.emit "UserBlocked", @
         # clear all of the cookies of the blocked user
+
+        console.log "JUser#block JSession#remove", {@username, blockedUntil}
+
         JSession.remove {username: @username}, callback
 
   unblock:(callback)->
