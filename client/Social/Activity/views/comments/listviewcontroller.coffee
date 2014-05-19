@@ -11,7 +11,7 @@ class CommentListViewController extends KDListViewController
 
     super options, data
 
-    {delegate} = options
+
 
 
   instantiateListItems: (items) ->
