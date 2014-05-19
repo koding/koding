@@ -99,7 +99,7 @@ func (d *DigitalOcean) Prepare(raws ...interface{}) (err error) {
 }
 
 func (d *DigitalOcean) Build(raws ...interface{}) (interface{}, error) {
-	if len(raws) != 1 {
+	if len(raws) != 2 {
 		return nil, errors.New("need one argument. No snaphost name is provided")
 	}
 
@@ -108,6 +108,12 @@ func (d *DigitalOcean) Build(raws ...interface{}) (interface{}, error) {
 		return nil, fmt.Errorf("malformed data received %v. snapshot name must be a string", raws[0])
 	}
 
+	dropletName, ok := raws[1].(string)
+	if !ok {
+		return nil, fmt.Errorf("malformed data received %v. droplet name must be a string", raws[0])
+	}
+
+	// needed because this is passed as `data` to packer.Provider
 	d.Builder.SnapshotName = snapshotName
 
 	var image digitalocean.Image
@@ -140,7 +146,7 @@ func (d *DigitalOcean) Build(raws ...interface{}) (interface{}, error) {
 	}
 
 	// now create a the machine based on our created image
-	dropletInfo, err := d.CreateDroplet("arslan", image.Id)
+	dropletInfo, err := d.CreateDroplet(dropletName, image.Id)
 	if err != nil {
 		return nil, err
 	}
@@ -154,7 +160,7 @@ func (d *DigitalOcean) Build(raws ...interface{}) (interface{}, error) {
 		case <-time.Tick(3 * time.Second):
 			e, _ := d.CheckEvent(dropletInfo.Droplet.EventId)
 			if e.Event.ActionStatus == "done" {
-				return dropletInfo, nil
+				return d.Info(dropletInfo.Droplet.Id)
 			}
 		}
 	}
@@ -224,25 +230,7 @@ func (d *DigitalOcean) Droplets() ([]Droplet, error) {
 }
 
 func (d *DigitalOcean) Image(snapshotName string) (digitalocean.Image, error) {
-	// after creating the image go and get it
-	images, err := d.MyImages()
-	if err != nil {
-		return digitalocean.Image{}, err
-	}
-
-	var image digitalocean.Image
-	for _, i := range images {
-		fmt.Printf("i %+v\n", i)
-		if i.Name == snapshotName {
-			image = i
-		}
-	}
-
-	if image.Id == 0 {
-		return digitalocean.Image{}, fmt.Errorf("Image %s is not available in Digital Ocean", snapshotName)
-	}
-
-	return image, nil
+	return d.Client.Image(snapshotName)
 }
 
 func (d *DigitalOcean) MyImages() ([]digitalocean.Image, error) {

@@ -2,15 +2,20 @@ package main
 
 import (
 	"flag"
+	"fmt"
+	"io/ioutil"
 	"koding/kites/kloud/digitalocean"
 	"log"
+	"sync"
 	"testing"
 
 	"github.com/fatih/color"
 	"github.com/koding/kite"
 )
 
-const ()
+const (
+	testUser = "testkloud"
+)
 
 var (
 	kloud        *kite.Kite
@@ -63,6 +68,7 @@ func init() {
 
 	client := kite.New("client", "0.0.1")
 	client.Config.DisableAuthentication = true
+	client.Config.Username = "testkloud"
 	remote = client.NewClientString("ws://127.0.0.1:3636")
 	err := remote.Dial()
 	if err != nil {
@@ -95,13 +101,18 @@ func TestProviders(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		var result digitalocean.DropletInfo
+		var result digitalocean.Droplet
 		err = resp.Unmarshal(&result)
 		if err != nil {
 			t.Fatal(err)
 		}
 
-		dropletId := result.Droplet.Id
+		// droplet's names are based on username for now
+		if result.Name != testUser {
+			t.Error(err)
+		}
+
+		dropletId := result.Id
 
 		cArgs := &controllerArgs{
 			Provider:   data["provider"].(string),
@@ -137,7 +148,12 @@ func TestProviders(t *testing.T) {
 }
 
 func TestBuild(t *testing.T) {
-	t.Skip("To enable this test remove this line")
+	// t.Skip("To enable this test remove this line")
+
+	// To disable packer output, comment it out for debugging
+	log.SetOutput(ioutil.Discard)
+
+	numberOfBuilds := 1
 
 	for provider, data := range TestProviderData {
 		if data == nil {
@@ -145,22 +161,45 @@ func TestBuild(t *testing.T) {
 			continue
 		}
 
-		bArgs := &buildArgs{
-			Provider:   data["provider"].(string),
-			Credential: data["credential"].(map[string]interface{}),
-			Builder:    data["builder"].(map[string]interface{}),
+		buildFunc := func() {
+			bArgs := &buildArgs{
+				Provider:   data["provider"].(string),
+				Credential: data["credential"].(map[string]interface{}),
+				Builder:    data["builder"].(map[string]interface{}),
+			}
+
+			resp, err := remote.Tell("build", bArgs)
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			var result digitalocean.Droplet
+			err = resp.Unmarshal(&result)
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			// droplet's names are based on username for now
+			if result.Name != testUser {
+				t.Error(err)
+			}
+
+			fmt.Println("============")
+			fmt.Printf("result %+v\n", result)
+			fmt.Println("============")
 		}
 
-		resp, err := remote.Tell("build", bArgs)
-		if err != nil {
-			t.Fatal(err)
+		var wg sync.WaitGroup
+		for i := 0; i < numberOfBuilds; i++ {
+			wg.Add(1)
+
+			go func() {
+				defer wg.Done()
+				buildFunc()
+			}()
 		}
 
-		var result digitalocean.DropletInfo
-		err = resp.Unmarshal(&result)
-		if err != nil {
-			t.Fatal(err)
-		}
+		wg.Wait()
 	}
 
 }

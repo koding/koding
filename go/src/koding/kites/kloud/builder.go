@@ -58,7 +58,7 @@ func build(r *kite.Request) (interface{}, error) {
 		snapshotName = args.SnapshotName
 	}
 
-	artifact, err := provider.Build(snapshotName)
+	artifact, err := provider.Build(snapshotName, r.Username)
 	if err != nil {
 		return nil, err
 	}
