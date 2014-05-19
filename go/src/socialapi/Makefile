@@ -11,7 +11,7 @@ MINOR=1
 # export MAJOR
 # export MINOR
 
-develop: apidev topicfeeddev realtimedev followingfeeddev populartopicdev popularpostdev notificationdev
+develop: apidev topicfeeddev realtimedev followingfeeddev populartopicdev popularpostdev notificationdev emailnotifierdev
 
 apidev:
 	@echo "$(OK_COLOR)==> Running API Worker $(NO_COLOR)"
@@ -32,6 +32,10 @@ populartopicdev:
 notificationdev:
 	@echo "$(OK_COLOR)==> Running Notification Worker $(NO_COLOR)"
 	@$(GOBINDIR)/rerun socialapi/workers/notification -c $(CONFIG) -d
+
+emailnotifierdev:
+	@echo "$(OK_COLOR)==> Running Email Notifier Worker $(NO_COLOR)"
+	@$(GOBINDIR)/rerun socialapi/workers/emailnotifier -c $(CONFIG) -d
 
 popularpostdev:
 	@echo "$(OK_COLOR)==> Running Popular Posts Worker $(NO_COLOR)"
