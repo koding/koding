@@ -6,8 +6,6 @@ class CommentView extends KDView
 
     super options, data
 
-    @header = new CommentViewHeader delegate: this, data
-
     @inputForm = new CommentInputForm delegate: this
       .on "Focused", @bound "decorateAsFocused"
       .on "Blured", @bound "resetDecoration"
@@ -16,8 +14,6 @@ class CommentView extends KDView
     @controller = new CommentListViewController delegate: this, data
       .on "Mention", @inputForm.bound "mention"
 
-    @forwardEvent @header, "AsyncJobStarted"
-    @forwardEvent @header, "AsyncJobDone"
 
     @on "Reply", @inputForm.bound "setFocus"
 
@@ -79,7 +75,6 @@ class CommentView extends KDView
 
     @setFixedHeight fixedHeight  if {fixedHeight} = @getOptions()
 
-    @addSubView @header
     @addSubView @controller.getView()
     @addSubView @inputForm
 

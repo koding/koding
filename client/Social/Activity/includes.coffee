@@ -54,7 +54,6 @@ module.exports = [
   "views/comments/likeview.coffee"
   "views/comments/view.coffee"
   "views/comments/listviewcontroller.coffee"
-  "views/comments/viewheader.coffee"
   "views/comments/settingsbutton.coffee"
   "views/comments/deletemodal.coffee"
   "views/comments/listitemview.coffee"
