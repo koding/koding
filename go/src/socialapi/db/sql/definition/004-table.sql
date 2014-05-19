@@ -1,6 +1,5 @@
 SET ROLE social;
 
-
 -- ----------------------------
 --  Table structure for channel
 -- ----------------------------
@@ -24,7 +23,7 @@ ALTER TYPE "api"."channel_privacy_constant_enum" OWNER TO "social";
 
 DROP TABLE IF EXISTS "api"."channel";
 CREATE TABLE "api"."channel" (
-    "id" bigint NOT NULL DEFAULT nextval('api.channel_id_seq'::regclass),
+    "id" bigint NOT NULL DEFAULT api.channel_next_id(),
     "name" varchar(200) NOT NULL COLLATE "default",
     "creator_id" bigint NOT NULL,
     "group_name" varchar(200) NOT NULL COLLATE "default",
@@ -70,7 +69,7 @@ ALTER TYPE "api"."channel_message_type_constant_enum" OWNER TO "social";
 
 DROP TABLE IF EXISTS "api"."channel_message";
 CREATE TABLE "api"."channel_message" (
-    "id" bigint NOT NULL DEFAULT nextval('api.channel_message_id_seq'::regclass),
+    "id" bigint NOT NULL DEFAULT api.channel_message_next_id(),
     "body" text COLLATE "default",
     "slug" varchar(100) NOT NULL COLLATE "default",
     "type_constant" "api"."channel_message_type_constant_enum",

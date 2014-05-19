@@ -1,4 +1,4 @@
-### -- Only Master Changes
+# -- Only Master Changes
 
 ## Create Data directory $PGDATA
 ```
@@ -9,7 +9,7 @@
 ## So, /data/postgresql/<data> is there for that reason
 ## create your tablespaces next to ../data dir
 
-# Make sure master is listening to the slave
+## Make sure master is listening to the slave
 ```
 $ $EDITOR postgresql.conf
 
@@ -17,16 +17,16 @@ listen_addresses = '192.168.0.10' # sample ip
 
 ```
 
-# Make sure you gave the permission for Replication
+## Make sure you gave the permission for Replication
 ```
 # The standby server must connect with a user that has replication privileges.
 host  replication  replication  192.168.0.20/22  trust
 
 ```
 
-## Do followings on Primary Database
+# Do followings on Primary Database
 
-# Enable Slave as a Hot-Standby server
+## Enable Slave as a Hot-Standby server
 
 ```
 # To enable read-only queries on a standby server, wal_level must be set to
@@ -36,7 +36,7 @@ wal_level = hot_standby
 
 ```
 
-# Set the maximum number of concurrent connections from the standby servers.
+## Set the maximum number of concurrent connections from the standby servers.
 ```
 max_wal_senders = 5
 
@@ -58,22 +58,24 @@ wal_keep_segments = 32
 ## Restart Primary Server
 
 
-### Slave Changes
+# Slave Changes
 
-#Clear Data directory
+## Clear Data directory
 
-# Get a backup from Master
+## Get a backup from Master
 ```
+
+rsync -ac /data/postgresql/ 172.16.3.20:/data/postgresql --exclude postmaster.pid
+
 pg_basebackup -R -D $PGDATA --host=<host>
-pg_basebackup -R -D /data/postgresql --host 172.16.3.18 --progress --verbose
+pg_basebackup --write-recovery-conf --pgdata=/data/postgresql --host 172.16.3.18 --progress --verbose
 
 ```
-
-##The -R option (version 9.3+) will create a minimal recovery command file for step 9 below.
+###The -R option (version 9.3+) will create a minimal recovery command file.
 
 ## Create a trigger file config for slave to make it master
 
-# Specifies a trigger file whose presence should cause streaming replication to end
+### Specifies a trigger file whose presence should cause streaming replication to end
 ```
 nano $PGDATA/recovery.conf
 trigger_file = '$PGDATA/makememaster'

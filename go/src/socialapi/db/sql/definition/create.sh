@@ -16,6 +16,9 @@ sudo -u postgres psql social < /opt/koding/go/src/socialapi/db/sql/definition/00
 # create sequences
 sudo -u postgres psql social < /opt/koding/go/src/socialapi/db/sql/definition/003-sequence.sql
 
+# create sequence functions
+sudo -u postgres psql social < /opt/koding/go/src/socialapi/db/sql/definition/003-sequencefunction.sql
+
 # create tables
 sudo -u postgres psql social < /opt/koding/go/src/socialapi/db/sql/definition/004-table.sql
 
