@@ -87,3 +87,23 @@
     newTabView.setOption "container", parent
 
     parent.addSubView splitView
+
+  mergeSplitView: ->
+    {splitView, parent} = @getOptions()
+    return unless splitView
+
+    splitView.once "SplitIsBeingMerged", (views) =>
+      @handleSplitMerge views, splitView
+
+    splitView.merge()
+
+  handleSplitMerge: (views, splitView) ->
+    tabView   = new IDETabView
+
+    for view in views
+      oldTabView = view.tabView
+      for pane in oldTabView.panes
+        pane.unsetParent()
+        tabView.tabView.addPane pane
+
+    @getOptions().container.addSubView tabView
