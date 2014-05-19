@@ -1,3 +1,7 @@
+# Important
+## We are only writing/persisting on slave machine
+## so, backup operation should be done on slave machine
+
 # RDB + AOF together
 
 With AOF, the process is a little bit more involved. When Redis starts, it looks at the AOF log as the primary source of information because it has always the newest data available. The problem is that if we only have a RDB snapshot and no AOF log (or we have a log but it has been affected by the accident so we cannot use it), Redis would still use the AOF log as the only data source. And since the log is missing (same as empty), it would not load any data at all and create a new empty snapshot file.
