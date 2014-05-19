@@ -251,6 +251,7 @@ module.exports = class JUser extends jraphical.Module
   @authenticateClient:(clientId, context, callback)->
     JSession.one {clientId}, (err, session)=>
       if err
+        console.error err
         callback createKodingError err
       else unless session?
         JSession.createSession (err, { session, account })->
@@ -261,17 +262,22 @@ module.exports = class JUser extends jraphical.Module
         if username?
           JUser.one {username}, (err, user)=>
             if err
+              console.error err
               callback createKodingError err
             else unless user?
+              console.warn "JUser#authenticateClient no user", {username}
               @logout clientId, callback
             else
               user.fetchAccount context, (err, account)->
                 if err
+                  console.warn "JUser#authenticateClient error fetching account", {context}
                   callback createKodingError err
                 else
                   #JAccount.emit "AccountAuthenticated", account
                   callback null, account
-        else @logout clientId, callback
+        else
+          console.warn "JUser#authenticateClient no username found", {session}
+          @logout clientId, callback
 
 
   getHash =(value)->
