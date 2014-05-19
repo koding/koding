@@ -616,9 +616,6 @@ class ProfileView extends JView
         cssClass : state
         duration : 2500
 
-      @utils.defer =>
-        @memberData.emit "update"
-
   cancel:(event)->
     KD.utils.stopDOMEvent event  if event
     @memberData.emit "update"
