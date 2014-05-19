@@ -58,3 +58,8 @@ class IDEAppController extends AppController
   setActiveTabView: (tabView) ->
     @activeTabView = tabView
 
+  splitTabView: (type = "vertical") ->
+    @activeTabView.convertToSplitView type
+
+  mergeSplitView: ->
+    @activeTabView.mergeSplitView()
