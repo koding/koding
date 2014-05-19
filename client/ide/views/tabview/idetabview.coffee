@@ -81,4 +81,9 @@
       type     : type
       views    : [ this, newTabView ]
 
+    @setOption           "splitView", splitView
+    newTabView.setOption "splitView", splitView
+    @setOption           "container", parent
+    newTabView.setOption "container", parent
+
     parent.addSubView splitView
