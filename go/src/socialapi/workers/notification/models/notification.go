@@ -217,6 +217,8 @@ func (n *Notification) buildNotificationContainer(actorId int64, nc *Notificatio
 	if err != nil {
 		return NotificationContainer{}
 	}
+	latestActorsOldIds, _ := models.AccountOldsIdByIds(ac.LatestActors)
+
 	return NotificationContainer{
 		TargetId:              nc.TargetId,
 		TypeConstant:          nc.TypeConstant,
@@ -224,6 +226,7 @@ func (n *Notification) buildNotificationContainer(actorId int64, nc *Notificatio
 		Glanced:               n.Glanced,
 		NotificationContentId: nc.Id,
 		LatestActors:          ac.LatestActors,
+		LatestActorsOldIds:    latestActorsOldIds,
 		ActorCount:            ac.Count,
 	}
 }

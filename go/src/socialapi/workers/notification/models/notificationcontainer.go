@@ -8,14 +8,15 @@ type NotificationContainer struct {
 	TypeConstant          string    `json:"typeConstant"`
 	TargetId              int64     `json:"targetId"`
 	Glanced               bool      `json:"glanced"`
-	LatestActors          []string  `json:"latestActors"`
+	LatestActors          []int64   `json:"latestActors"`
+	LatestActorsOldIds    []string  `json:"latestActorsOldIds"`
 	UpdatedAt             time.Time `json:"updatedAt"`
 	ActorCount            int       `json:"actorCount"`
 	NotificationContentId int64     `json:"-"`
 }
 
 type ActorContainer struct {
-	LatestActors []string
+	LatestActors []int64
 	Count        int
 }
 

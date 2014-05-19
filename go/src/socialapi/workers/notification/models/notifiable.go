@@ -3,7 +3,6 @@ package models
 import (
 	"github.com/koding/bongo"
 	"math"
-	"socialapi/models"
 )
 
 var (
@@ -61,7 +60,7 @@ func prepareActorContainer(actors []int64) *ActorContainer {
 	actorLimit := int(math.Min(float64(actorLength), float64(NOTIFIER_LIMIT)))
 
 	ac := NewActorContainer()
-	ac.LatestActors, _ = models.AccountOldsIdByIds(actors[0:actorLimit])
+	ac.LatestActors = actors[0:actorLimit]
 	ac.Count = actorLength
 
 	return ac
