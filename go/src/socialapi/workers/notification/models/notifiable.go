@@ -1,6 +1,7 @@
 package models
 
 import (
+	"fmt"
 	"github.com/koding/bongo"
 	"math"
 )
@@ -18,6 +19,11 @@ type Notifiable interface {
 	SetTargetId(int64)
 	SetListerId(int64)
 	GetActorId() int64
+	SetActorId(int64)
+	// used for notification emails
+	GetDefinition() string
+	// used for notification emails
+	GetActivity() string
 }
 
 func fetchNotifiedUsers(contentId int64) ([]int64, error) {
@@ -64,4 +70,8 @@ func prepareActorContainer(actors []int64) *ActorContainer {
 	ac.Count = actorLength
 
 	return ac
+}
+
+func getGenericDefinition(notification string) string {
+	return fmt.Sprintf("You have a new %s", notification)
 }
