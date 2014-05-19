@@ -99,39 +99,44 @@ func (d *DigitalOcean) Prepare(raws ...interface{}) (err error) {
 }
 
 func (d *DigitalOcean) Build(raws ...interface{}) (interface{}, error) {
-	snapshotName := "koding-" + strconv.FormatInt(time.Now().UTC().Unix(), 10)
+	if len(raws) != 1 {
+		return nil, errors.New("need one argument. No snaphost name is provided")
+	}
+
+	snapshotName, ok := raws[0].(string)
+	if !ok {
+		return nil, fmt.Errorf("malformed data received %v. snapshot name must be a string", raws[0])
+	}
+
 	d.Builder.SnapshotName = snapshotName
 
-	data, err := utils.TemplateData(d.Builder, klientprovisioner.RawData)
-	if err != nil {
-		return nil, err
-	}
-
-	provider := &packer.Provider{
-		BuildName: "digitalocean",
-		Data:      data,
-	}
-
-	// this is basically a "packer build template.json"
-	if err := provider.Build(); err != nil {
-		return nil, err
-	}
-
-	// after creating the image go and get it
-	images, err := d.MyImages()
-	if err != nil {
-		return nil, err
-	}
-
 	var image digitalocean.Image
-	for _, i := range images {
-		if i.Name == snapshotName {
-			image = i
-		}
-	}
+	var err error
 
-	if image.Id == 0 {
-		return nil, fmt.Errorf("Image %s is not available in Digital Ocean", snapshotName)
+	// check if snapshot image does exist, if not create a new one.
+	image, err = d.Image(snapshotName)
+	if err != nil {
+		fmt.Println("no image creating a new one")
+		data, err := utils.TemplateData(d.Builder, klientprovisioner.RawData)
+		if err != nil {
+			return nil, err
+		}
+
+		provider := &packer.Provider{
+			BuildName: "digitalocean",
+			Data:      data,
+		}
+
+		// this is basically a "packer build template.json"
+		if err := provider.Build(); err != nil {
+			return nil, err
+		}
+
+		// check again because it contains the image id
+		image, err = d.Image(snapshotName)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	// now create a the machine based on our created image
@@ -216,6 +221,28 @@ func (d *DigitalOcean) Droplets() ([]Droplet, error) {
 	}
 
 	return result.Droplets, nil
+}
+
+func (d *DigitalOcean) Image(snapshotName string) (digitalocean.Image, error) {
+	// after creating the image go and get it
+	images, err := d.MyImages()
+	if err != nil {
+		return digitalocean.Image{}, err
+	}
+
+	var image digitalocean.Image
+	for _, i := range images {
+		fmt.Printf("i %+v\n", i)
+		if i.Name == snapshotName {
+			image = i
+		}
+	}
+
+	if image.Id == 0 {
+		return digitalocean.Image{}, fmt.Errorf("Image %s is not available in Digital Ocean", snapshotName)
+	}
+
+	return image, nil
 }
 
 func (d *DigitalOcean) MyImages() ([]digitalocean.Image, error) {

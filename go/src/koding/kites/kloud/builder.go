@@ -20,14 +20,18 @@ type Builder interface {
 }
 
 type buildArgs struct {
-	Provider   string
-	Credential map[string]interface{}
-	Builder    map[string]interface{}
+	Provider     string
+	SnapshotName string
+	Credential   map[string]interface{}
+	Builder      map[string]interface{}
 }
 
-var providers = map[string]interface{}{
-	"digitalocean": &digitalocean.DigitalOcean{},
-}
+var (
+	defaultSnapshotName = "koding-klient-0.0.1"
+	providers           = map[string]interface{}{
+		"digitalocean": &digitalocean.DigitalOcean{},
+	}
+)
 
 func build(r *kite.Request) (interface{}, error) {
 	args := &buildArgs{}
@@ -49,7 +53,12 @@ func build(r *kite.Request) (interface{}, error) {
 		return nil, err
 	}
 
-	artifact, err := provider.Build()
+	snapshotName := defaultSnapshotName
+	if args.SnapshotName != "" {
+		snapshotName = args.SnapshotName
+	}
+
+	artifact, err := provider.Build(snapshotName)
 	if err != nil {
 		return nil, err
 	}
