@@ -65,11 +65,11 @@ wal_keep_segments = 32
 # Get a backup from Master
 ```
 pg_basebackup -R -D $PGDATA --host=<host>
-pg_basebackup -R -D /data/postgresql --host 172.16.3.18 --progress --verbose
+pg_basebackup --write-recovery-conf --pgdata=/data/postgresql --host 172.16.3.18 --progress --verbose
 
 ```
 
-##The -R option (version 9.3+) will create a minimal recovery command file for step 9 below.
+##The -R option (version 9.3+) will create a minimal recovery command file.
 
 ## Create a trigger file config for slave to make it master
 
