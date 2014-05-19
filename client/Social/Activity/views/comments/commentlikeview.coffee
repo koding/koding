@@ -3,7 +3,7 @@ class CommentLikeView extends ActivityLikeView
   pistachio: ->
 
     """
-    <span class='comment-actions'>
-      {{> @likeLink}}{{> @likeCount}}
+    <span class="comment-actions"">
+    {{> @link}}{{> @count}}
     </span>
     """

@@ -51,14 +51,14 @@ class NewCommentForm extends KDView
 
   mention: (username) ->
 
-    value = @getValue()
+    value = @input.getValue()
 
-    @setValue \
+    @setFocus()
+
+    @input.setValue \
       if value.indexOf("@#{username}") >= 0 then value
       else if value.length is 0 then "@#{username} "
       else "#{value} @#{username} "
-
-    @setFocus()
 
 
   setFocus: ->

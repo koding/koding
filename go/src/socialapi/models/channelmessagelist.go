@@ -38,11 +38,11 @@ func (c *ChannelMessageList) AfterUpdate() {
 	bongo.B.AfterUpdate(c)
 }
 
-func (c *ChannelMessageList) AfterDelete() {
+func (c ChannelMessageList) AfterDelete() {
 	bongo.B.AfterDelete(c)
 }
 
-func (c *ChannelMessageList) GetId() int64 {
+func (c ChannelMessageList) GetId() int64 {
 	return c.Id
 }
 

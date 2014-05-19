@@ -58,11 +58,11 @@ func (c *ChannelMessage) AfterUpdate() {
 	bongo.B.AfterUpdate(c)
 }
 
-func (c *ChannelMessage) AfterDelete() {
+func (c ChannelMessage) AfterDelete() {
 	bongo.B.AfterDelete(c)
 }
 
-func (c *ChannelMessage) GetId() int64 {
+func (c ChannelMessage) GetId() int64 {
 	return c.Id
 }
 

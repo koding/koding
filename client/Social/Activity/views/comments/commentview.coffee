@@ -19,6 +19,8 @@ class CommentView extends KDView
     @forwardEvent @header, "AsyncJobStarted"
     @forwardEvent @header, "AsyncJobDone"
 
+    @on "Reply", @inputForm.bound "setFocus"
+
 
   reply: (body, callback = noop) ->
 
@@ -32,10 +34,7 @@ class CommentView extends KDView
       return KD.showError err  if err
 
       if not KD.getSingleton('activityController').flags?.liveUpdates
-        @addItem reply
-        @emit "OwnCommentHasArrived"
-      else
-        @emit "OwnCommentWasSubmitted"
+        @controller.addItem reply
 
     KD.mixpanel "Comment activity, success"
     KD.getSingleton("badgeController").checkBadge

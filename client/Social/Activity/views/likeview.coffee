@@ -22,6 +22,8 @@ class ActivityLikeView extends JView
         title     : ""
     , data
 
+    super
+
 
   pistachio: ->
 

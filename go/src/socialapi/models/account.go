@@ -22,7 +22,7 @@ func NewAccount() *Account {
 	return &Account{}
 }
 
-func (a *Account) GetId() int64 {
+func (a Account) GetId() int64 {
 	return a.Id
 }
 
