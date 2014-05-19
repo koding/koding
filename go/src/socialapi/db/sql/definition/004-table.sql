@@ -23,7 +23,7 @@ ALTER TYPE "api"."channel_privacy_constant_enum" OWNER TO "social";
 
 DROP TABLE IF EXISTS "api"."channel";
 CREATE TABLE "api"."channel" (
-    "id" bigint NOT NULL DEFAULT nextval('api.channel_id_seq'::regclass),
+    "id" bigint NOT NULL DEFAULT api.channel_next_id(),
     "name" varchar(200) NOT NULL COLLATE "default",
     "creator_id" bigint NOT NULL,
     "group_name" varchar(200) NOT NULL COLLATE "default",
