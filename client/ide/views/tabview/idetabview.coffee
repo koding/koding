@@ -65,6 +65,10 @@
 
   convertToSplitView: ->
     {parent} = this
+
+    subView.unsetParent() for subView in @subViews
+    subView.unsetParent() for subView in @holderView.subViews
+
     @detach()
     @unsetParent()
 
