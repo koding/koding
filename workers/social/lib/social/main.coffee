@@ -70,7 +70,7 @@ koding = new Bongo {
       else if account instanceof JAccount
         callback {sessionToken, context, connection:delegate:account}
       else
-        console.error "this is not a proper account", {sessionToken:sessionToken}
+        console.error "this is not a proper account", {sessionToken}
         console.error "constructor is JAccount", JAccount is account.constructor
 }
 
