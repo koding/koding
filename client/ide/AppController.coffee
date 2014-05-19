@@ -48,7 +48,13 @@ class IDEAppController extends AppController
       ]
 
     workspace = new Workspace { layoutOptions }
-    workspace.once "ready", => @getView().addSubView workspace.getView()
+    workspace.once "ready", =>
+      panel = workspace.getView()
+      @getView().addSubView panel
+
+      panel.once "viewAppended", =>
+        @setActiveTabView panel.getPaneByName "editorPane"
+
   setActiveTabView: (tabView) ->
     @activeTabView = tabView
 
