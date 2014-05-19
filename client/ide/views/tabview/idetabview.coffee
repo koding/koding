@@ -64,6 +64,10 @@
     # TODO: This method is legacy, should be reimplemented in ace bundle.
 
   convertToSplitView: ->
+  click: ->
+    super
+    KD.getSingleton("appManager").tell "IDE", "setActiveTabView", this
+
     {parent} = this
 
     subView.unsetParent() for subView in @subViews

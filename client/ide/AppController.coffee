@@ -49,3 +49,6 @@ class IDEAppController extends AppController
 
     workspace = new Workspace { layoutOptions }
     workspace.once "ready", => @getView().addSubView workspace.getView()
+  setActiveTabView: (tabView) ->
+    @activeTabView = tabView
+
