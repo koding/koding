@@ -272,3 +272,11 @@ func getUnreadNotificationCount(notificationList []NotificationContainer) int {
 
 	return unreadCount
 }
+
+func (n *Notification) MapMessage(data []byte) error {
+	if err := json.Unmarshal(data, n); err != nil {
+		return err
+	}
+
+	return nil
+}

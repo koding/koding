@@ -261,8 +261,8 @@ func (f *RealtimeWorkerController) NotifyUser(data []byte) error {
 	}
 	defer channel.Close()
 
-	notification, err := mapMessageToNotification(data)
-	if err != nil {
+	notification := notificationmodels.NewNotification()
+	if err := notification.MapMessage(data); err != nil {
 		return err
 	}
 
@@ -483,13 +483,4 @@ func (f *RealtimeWorkerController) sendNotification(accountId int64, eventName s
 		false,
 		amqp.Publishing{Body: byteNotification},
 	)
-}
-
-func mapMessageToNotification(data []byte) (*notificationmodels.Notification, error) {
-	n := notificationmodels.NewNotification()
-	if err := json.Unmarshal(data, n); err != nil {
-		return nil, err
-	}
-
-	return n, nil
 }
