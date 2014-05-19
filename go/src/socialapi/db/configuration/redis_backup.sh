@@ -11,7 +11,7 @@ then
 
     cd $backup_dir
     # keep last 15
-    ls -1d * | sort -rn | tail -n +15 | xargs rm -vr
+    ls -1d * | sort -rn | tail -n +96 | xargs rm -vr
     cd $OLDPWD
     echo "backup completed database on $today - $hostname" | mail -s "[$today] backup completed" cihangir@koding.com
 
