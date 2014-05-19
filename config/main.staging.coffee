@@ -41,7 +41,7 @@ module.exports =
     port        : 3000
     clusterSize : 1
     queueName   : socialQueueName+'web'
-    watch       : yes
+    watch       : no
   socialApiUrl  : "http://localhost:7000"
   sourceServer  :
     enabled     : yes
@@ -104,13 +104,13 @@ module.exports =
     login       : 'prod-authworker'
     queueName   : socialQueueName+'auth'
     numberOfWorkers: 2
-    watch       : yes
+    watch       : no
   emailConfirmationCheckerWorker :
     enabled              : yes
     login                : 'prod-social'
     queueName            : socialQueueName+'emailConfirmationCheckerWorker'
     numberOfWorkers      : 1
-    watch                : yes
+    watch                : no
     cronSchedule         : '0 * * * * *'
     usageLimitInMinutes  : 60
   elasticSearch          :
@@ -123,7 +123,7 @@ module.exports =
     login                : 'prod-social'
     queueName            : socialQueueName+'guestcleaner'
     numberOfWorkers      : 2
-    watch                : yes
+    watch                : no
     cronSchedule         : '00 * * * * *'
     usageLimitInMinutes  : 60
   sitemapWorker          :
@@ -131,7 +131,7 @@ module.exports =
     login                : 'prod-social'
     queueName            : socialQueueName+'sitemapworker'
     numberOfWorkers      : 2
-    watch                : yes
+    watch                : no
     cronSchedule         : '00 00 00 * * *'
   topicModifier          :
     cronSchedule         : '0 */5 * * * *'
@@ -140,7 +140,7 @@ module.exports =
   social        :
     login       : 'prod-social'
     numberOfWorkers: 7
-    watch       : yes
+    watch       : no
     queueName   : socialQueueName
     verbose     : no
   presence        :
