@@ -146,17 +146,12 @@ func (d *DigitalOcean) Build(raws ...interface{}) (interface{}, error) {
 
 	// Now we wait until it's ready, it takes ann 50-70 seconds to finish, but
 	// we also add a timeout to not let stuck it here.
-	for {
-		select {
-		case <-time.After(time.Minute * 5):
-			return nil, errors.New("Timeout from DigitalOcean. droplet couldn't be created")
-		case <-time.Tick(3 * time.Second):
-			e, _ := d.CheckEvent(dropletInfo.Droplet.EventId)
-			if e.Event.ActionStatus == "done" {
-				return d.Info(dropletInfo.Droplet.Id)
-			}
-		}
+	err = d.WaitForState(dropletInfo.Droplet.EventId, "done", time.Minute*5)
+	if err != nil {
+		return nil, err
 	}
+
+	return d.Info(dropletInfo.Droplet.Id)
 }
 
 // CheckEvent checks the given eventID and returns back the result. It's useful
@@ -176,6 +171,28 @@ func (d *DigitalOcean) CheckEvent(eventId int) (*Event, error) {
 	}
 
 	return event, nil
+}
+
+// WaitForState checks the given state for the eventID and returns nil if the
+// state has been reached. It returns an error if the given timeout has been
+// reached, if another generic error is produced or if the event status is of
+// type "ERROR".
+func (d *DigitalOcean) WaitForState(eventId int, desiredState string, timeout time.Duration) error {
+	for {
+		select {
+		case <-time.After(timeout):
+			return fmt.Errorf("Timeout while waiting to for droplet to become '%s'", desiredState)
+		case <-time.Tick(3 * time.Second):
+			event, err := d.CheckEvent(eventId)
+			if err != nil {
+				return err
+			}
+
+			if event.Event.ActionStatus == desiredState {
+				return nil
+			}
+		}
+	}
 }
 
 // CreateImage creates an image using Packer. It uses digitalocean.Builder
@@ -300,7 +317,12 @@ func (d *DigitalOcean) Stop(raws ...interface{}) error {
 		return fmt.Errorf("malformed data received %v. droplet Id must be an int.", raws[0])
 	}
 
-	return d.Client.ShutdownDroplet(dropletId)
+	err := d.Client.PowerOffDroplet(dropletId)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 // Restart restart the machine for the given dropletID
