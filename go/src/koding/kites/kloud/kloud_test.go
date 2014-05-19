@@ -8,6 +8,7 @@ import (
 	"log"
 	"sync"
 	"testing"
+	"time"
 
 	"github.com/fatih/color"
 	"github.com/koding/kite"
@@ -74,6 +75,9 @@ func init() {
 	if err != nil {
 		log.Fatal("err")
 	}
+
+	// To disable packer output, comment it out for debugging
+	log.SetOutput(ioutil.Discard)
 }
 
 func TestProviders(t *testing.T) {
@@ -83,23 +87,24 @@ func TestProviders(t *testing.T) {
 			continue
 		}
 
-		testlog := func(msg string) {
+		testlog := func(msg string, args ...interface{}) {
 			// mimick it like packer's own log
-			color.Cyan("==> %s: %s", provider, msg)
+			color.Cyan("==> %s: %s", provider, fmt.Sprintf(msg, args...))
 		}
 
 		testlog("Starting tests")
-		testlog("Building image and creating machine")
 		bArgs := &buildArgs{
 			Provider:   data["provider"].(string),
 			Credential: data["credential"].(map[string]interface{}),
 			Builder:    data["builder"].(map[string]interface{}),
 		}
 
+		start := time.Now()
 		resp, err := remote.Tell("build", bArgs)
 		if err != nil {
 			t.Fatal(err)
 		}
+		testlog("Building the machine. Elapsed time %s", time.Since(start).Seconds())
 
 		var result digitalocean.Droplet
 		err = resp.Unmarshal(&result)
@@ -120,38 +125,40 @@ func TestProviders(t *testing.T) {
 			MachineID:  dropletId,
 		}
 
-		testlog("Stopping the machine")
+		start = time.Now()
 		if _, err := remote.Tell("stop", cArgs); err != nil {
 			t.Errorf("stop: %s", err)
 		}
+		testlog("Stopping the machine. Elapsed time %f seconds", time.Since(start).Seconds())
 
-		testlog("Starting the machine")
+		start = time.Now()
 		if _, err := remote.Tell("start", cArgs); err != nil {
 			t.Errorf("start: %s", err)
 		}
+		testlog("Starting the machine. Elapsed time %f seconds", time.Since(start).Seconds())
 
-		testlog("Restarting the machine")
+		start = time.Now()
 		if _, err := remote.Tell("restart", cArgs); err != nil {
 			t.Errorf("restart: %s", err)
 		}
+		testlog("Restarting the machine. Elapsed time %f seconds", time.Since(start).Seconds())
 
-		testlog("Getting info about the machine")
+		start = time.Now()
 		if _, err := remote.Tell("info", cArgs); err != nil {
 			t.Errorf("info: %s", err)
 		}
+		testlog("Getting info about the machine. Elapsed time %f seconds", time.Since(start).Seconds())
 
-		testlog("Destroying the machine")
+		start = time.Now()
 		if _, err := remote.Tell("destroy", cArgs); err != nil {
 			t.Errorf("destroy: %s", err)
 		}
+		testlog("Destroying the machine. Elapsed time %f seconds", time.Since(start).Seconds())
 	}
 }
 
 func TestBuild(t *testing.T) {
-	// t.Skip("To enable this test remove this line")
-
-	// To disable packer output, comment it out for debugging
-	log.SetOutput(ioutil.Discard)
+	t.Skip("To enable this test remove this line")
 
 	numberOfBuilds := 1
 

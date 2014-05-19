@@ -122,24 +122,7 @@ func (d *DigitalOcean) Build(raws ...interface{}) (interface{}, error) {
 	// check if snapshot image does exist, if not create a new one.
 	image, err = d.Image(snapshotName)
 	if err != nil {
-		fmt.Println("no image creating a new one")
-		data, err := utils.TemplateData(d.Builder, klientprovisioner.RawData)
-		if err != nil {
-			return nil, err
-		}
-
-		provider := &packer.Provider{
-			BuildName: "digitalocean",
-			Data:      data,
-		}
-
-		// this is basically a "packer build template.json"
-		if err := provider.Build(); err != nil {
-			return nil, err
-		}
-
-		// check again because it contains the image id
-		image, err = d.Image(snapshotName)
+		image, err = d.CreateImage()
 		if err != nil {
 			return nil, err
 		}
@@ -180,6 +163,26 @@ func (d *DigitalOcean) CheckEvent(eventId int) (*Event, error) {
 	}
 
 	return event, nil
+}
+
+func (d *DigitalOcean) CreateImage() (digitalocean.Image, error) {
+	data, err := utils.TemplateData(d.Builder, klientprovisioner.RawData)
+	if err != nil {
+		return digitalocean.Image{}, err
+	}
+
+	provider := &packer.Provider{
+		BuildName: "digitalocean",
+		Data:      data,
+	}
+
+	// this is basically a "packer build template.json"
+	if err := provider.Build(); err != nil {
+		return digitalocean.Image{}, err
+	}
+
+	// return the image result
+	return d.Image(d.Builder.SnapshotName)
 }
 
 // CreateDroplet creates a new droplet with a hostname and the given image_id
@@ -293,16 +296,7 @@ func (d *DigitalOcean) Restart(raws ...interface{}) error {
 	return err
 }
 
-func (d *DigitalOcean) DestroyImage(raws ...interface{}) error {
-	if len(raws) == 0 {
-		return errors.New("zero arguments are passed")
-	}
-
-	var imageId uint
-	if imageId = utils.ToUint(raws[0]); imageId == 0 {
-		return fmt.Errorf("malformed data received %v. droplet Id must be an int.", raws[0])
-	}
-
+func (d *DigitalOcean) DestroyImage(imageId uint) error {
 	return d.Client.DestroyImage(imageId)
 }
 
