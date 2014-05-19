@@ -139,7 +139,7 @@ func NewQS(selector map[string]interface{}) *Query {
 
 // selector, sort, limit, pluck,
 func (b *Bongo) Some(i Modellable, data interface{}, q *Query) error {
-	err := b.buildQuery(i, data, q)
+	err := b.executeQuery(i, data, q)
 	if err == gorm.RecordNotFound {
 		return nil
 	}
@@ -148,10 +148,10 @@ func (b *Bongo) Some(i Modellable, data interface{}, q *Query) error {
 
 func (b *Bongo) One(i Modellable, data interface{}, q *Query) error {
 	q.Limit = 1
-	return b.buildQuery(i, data, q)
+	return b.executeQuery(i, data, q)
 }
 
-func (b *Bongo) buildQuery(i Modellable, data interface{}, q *Query) error {
+func (b *Bongo) BuildQuery(i Modellable, q *Query) *gorm.DB {
 	// init query
 	query := b.DB
 
@@ -174,6 +174,13 @@ func (b *Bongo) buildQuery(i Modellable, data interface{}, q *Query) error {
 		query = query.Offset(q.Skip)
 	}
 
+	return query
+}
+
+func (b *Bongo) executeQuery(i Modellable, data interface{}, q *Query) error {
+	// init query
+	query := b.BuildQuery(i, q)
+
 	var err error
 	// TODO refactor this part
 	if q.Pluck != "" {
@@ -188,6 +195,7 @@ func (b *Bongo) buildQuery(i Modellable, data interface{}, q *Query) error {
 	} else {
 		err = query.Find(data).Error
 	}
+
 	return err
 }
 
@@ -256,5 +264,7 @@ func addWhere(query *gorm.DB, selector map[string]interface{}) *gorm.DB {
 	if selector == nil {
 		return query
 	}
+
+	// instead sending one selector, do chaining here
 	return query.Where(selector)
 }
