@@ -63,11 +63,11 @@
   removeOpenDocument: ->
     # TODO: This method is legacy, should be reimplemented in ace bundle.
 
-  convertToSplitView: ->
   click: ->
     super
     KD.getSingleton("appManager").tell "IDE", "setActiveTabView", this
 
+  convertToSplitView: (type = "vertical") ->
     {parent} = this
 
     subView.unsetParent() for subView in @subViews
@@ -78,7 +78,7 @@
 
     newTabView = new IDETabView
     splitView  = new KDSplitView
-      type     : "vertical" # TODO: Hardcoded, should be optional
+      type     : type
       views    : [ this, newTabView ]
 
     parent.addSubView splitView
