@@ -1,5 +1,5 @@
 class ErrorLog
-  @create :(error, params)->
+  @create : KD.utils.throttle 500, (error, params={})->
     {
       kites : {
         os       : {version  : osVersion}

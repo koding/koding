@@ -12,6 +12,7 @@ import (
 	"strconv"
 
 	"github.com/koding/kite"
+	"github.com/koding/kite/config"
 )
 
 const (
@@ -20,9 +21,10 @@ const (
 )
 
 var (
-	flagIP      = flag.String("ip", "", "Change public ip")
-	flagPort    = flag.Int("port", 3000, "Change running port")
-	flagVersion = flag.Bool("version", false, "Show version and exit")
+	flagIP          = flag.String("ip", "", "Change public ip")
+	flagPort        = flag.Int("port", 3000, "Change running port")
+	flagVersion     = flag.Bool("version", false, "Show version and exit")
+	flagEnvironment = flag.String("environment", "public-host", "Change environment")
 )
 
 func main() {
@@ -33,10 +35,9 @@ func main() {
 	}
 
 	k := kite.New(NAME, VERSION)
+	k.Config = config.MustGet()
 	k.Config.Port = *flagPort
-
-	u, _ := url.Parse("wss://kontrol.koding.com")
-	k.Config.KontrolURL = u
+	k.Config.Environment = *flagEnvironment
 
 	k.HandleFunc("fs.readDirectory", fs.ReadDirectory)
 	k.HandleFunc("fs.glob", fs.Glob)

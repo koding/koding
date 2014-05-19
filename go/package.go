@@ -11,18 +11,33 @@ import (
 	"koding/tools/build"
 	"koding/tools/config"
 	"log"
+	"net/url"
 	"os"
 	"path/filepath"
 	"runtime"
+	"strconv"
 	"strings"
 	"text/template"
+	"time"
+
+	"github.com/dgrijalva/jwt-go"
+	"github.com/nu7hatch/gouuid"
 )
 
 var (
-	flagProfile        = flag.String("c", "", "Define config profile to be included")
-	flagRegion         = flag.String("r", "", "Define region profile to be included")
-	flagApp            = flag.String("a", "", "App to be build")
-	flagProxy          = flag.String("p", "", "Select user proxy or koding proxy") // Proxy only
+	flagProfile = flag.String("c", "", "Define config profile to be included")
+	flagRegion  = flag.String("r", "", "Define region profile to be included")
+	flagApp     = flag.String("a", "", "App to be build")
+
+	// klient specific flags
+	flagUsername   = flag.String("username", "", "Username to be created for the klient app")
+	flagKontrolURL = flag.String("kontrol-url", "", "Kontrol URL to be connected")
+	flagPublicKey  = flag.String("public-key", "", "Public RSA key of Kontrol")
+	flagPrivateKey = flag.String("private-key", "", "Private RSA key of Kontrol")
+
+	// kontrolproxy specific flags
+	flagProxy = flag.String("p", "", "Select user proxy or koding proxy") // Proxy only
+
 	flagDisableUpstart = flag.Bool("u", false, "Disable including upstart script")
 	flagDebug          = flag.Bool("d", false, "Enable debug mode")
 
@@ -31,6 +46,7 @@ var (
 		"kontrolproxy": buildKontrolProxy,
 		"terminal":     buildTerminal,
 		"kontrol":      buildKontrol,
+		"klient":       buildKlient,
 	}
 )
 
@@ -44,47 +60,113 @@ type pkg struct {
 
 func main() {
 	flag.Parse()
-	if *flagProfile == "" || *flagRegion == "" {
-		fmt.Println("Please define config -c and region -r")
-		os.Exit(1)
-	}
-
 	if *flagApp == "" {
 		fmt.Printf("Please define package with -a to be build. Available apps:\n%s\n", packageList())
 		os.Exit(1)
 	}
 
-	err := buildPackages(*flagApp)
-	if err != nil {
+	build, ok := packages[*flagApp]
+	if !ok {
+		log.Fatal("package to be build is not available")
+	}
+
+	if err := build(); err != nil {
 		fmt.Println(err)
 	}
 }
 
-func packageList() []string {
-	pkgList := make([]string, 0, len(packages))
+func packageList() string {
+	pkgs := "\n"
+	count := 1
 	for pkg := range packages {
-		pkgList = append(pkgList, pkg)
+		pkgs += strconv.Itoa(count) + ". " + pkg + "\n"
+		count++
 	}
 
-	return pkgList
+	return pkgs
 }
 
-func buildPackages(pkgName string) error {
-	switch pkgName {
-	case "oskite":
-		return buildOsKite()
-	case "kontrolproxy":
-		return buildKontrolProxy()
-	case "terminal":
-		return buildTerminal()
-	case "kontrol":
-		return buildKontrol()
-	default:
-		return errors.New("package to be build is not available")
+func createKey(username, kontrolURL, publicKey, privateKey string) (string, error) {
+	tknID, err := uuid.NewV4()
+	if err != nil {
+		return "", errors.New("cannot generate a token")
 	}
+
+	token := jwt.New(jwt.GetSigningMethod("RS256"))
+
+	token.Claims = map[string]interface{}{
+		"iss":        "koding",                     // Issuer, should be the same username as kontrol
+		"sub":        username,                     // Subject
+		"iat":        time.Now().UTC().Unix(),      // Issued At
+		"jti":        tknID.String(),               // JWT ID
+		"kontrolURL": kontrolURL,                   // Kontrol URL
+		"kontrolKey": strings.TrimSpace(publicKey), // Public key of kontrol
+	}
+
+	log.Printf("Registered machine on user: %s", username)
+
+	return token.SignedString([]byte(privateKey))
+}
+
+func buildKlient() error {
+	if *flagPrivateKey == "" || *flagPublicKey == "" {
+		return errors.New("Please define config -c and region -r")
+	}
+
+	if *flagUsername == "" {
+		return errors.New("empty username")
+	}
+
+	parsed, err := url.Parse(*flagKontrolURL)
+	if err != nil {
+		return fmt.Errorf("cannot parse kontrol URL: %s", err)
+	}
+
+	gopath := os.Getenv("GOPATH")
+	if gopath == "" {
+		return errors.New("GOPATH is not set")
+	}
+
+	publicKey, err := ioutil.ReadFile(*flagPublicKey)
+	if err != nil {
+		return err
+	}
+
+	privateKey, err := ioutil.ReadFile(*flagPrivateKey)
+	if err != nil {
+		return err
+	}
+
+	key, err := createKey(*flagUsername, parsed.String(), string(publicKey), string(privateKey))
+	if err != nil {
+		return err
+	}
+
+	if err = ioutil.WriteFile("kite.key", []byte(key), 0400); err != nil {
+		return err
+	}
+
+	importPath := "koding/kites/klient"
+	upstartPath := filepath.Join(gopath, "src", importPath, "files/klient.conf")
+
+	files := []string{filepath.Join(gopath, "bin-vagrant/kite")}
+
+	kclient := pkg{
+		appName:       *flagApp,
+		importPath:    importPath,
+		files:         files,
+		version:       "0.0.1",
+		upstartScript: upstartPath,
+	}
+
+	return kclient.build()
 }
 
 func buildKontrol() error {
+	if *flagProfile == "" || *flagRegion == "" {
+		return errors.New("Please define config -c and region -r")
+	}
+
 	gopath := os.Getenv("GOPATH")
 	if gopath == "" {
 		return errors.New("GOPATH is not set")
@@ -126,6 +208,10 @@ func buildKontrol() error {
 }
 
 func buildTerminal() error {
+	if *flagProfile == "" || *flagRegion == "" {
+		return errors.New("Please define config -c and region -r")
+	}
+
 	gopath := os.Getenv("GOPATH")
 	if gopath == "" {
 		return errors.New("GOPATH is not set")
@@ -168,6 +254,10 @@ func buildTerminal() error {
 }
 
 func buildOsKite() error {
+	if *flagProfile == "" || *flagRegion == "" {
+		return errors.New("Please define config -c and region -r")
+	}
+
 	gopath := os.Getenv("GOPATH")
 	if gopath == "" {
 		return errors.New("GOPATH is not set")
@@ -211,6 +301,10 @@ func buildOsKite() error {
 }
 
 func buildKontrolProxy() error {
+	if *flagProfile == "" || *flagRegion == "" {
+		return errors.New("Please define config -c and region -r")
+	}
+
 	gopath := os.Getenv("GOPATH")
 	if gopath == "" {
 		return errors.New("GOPATH is not set")
@@ -268,42 +362,46 @@ func buildKontrolProxy() error {
 }
 
 func (p *pkg) build() error {
-	fmt.Printf("building '%s' for config '%s' and region '%s'\n", *flagApp, *flagProfile, *flagRegion)
+	if *flagProfile == "" || *flagRegion == "" {
+		fmt.Printf("building '%s'\n", *flagApp)
+	} else {
+		fmt.Printf("building '%s' for config '%s' and region '%s'\n", *flagApp, *flagProfile, *flagRegion)
 
-	// prepare config folder
-	tempDir, err := ioutil.TempDir(".", "gopackage_")
-	if err != nil {
-		return err
+		// prepare config folder
+		tempDir, err := ioutil.TempDir(".", "gopackage_")
+		if err != nil {
+			return err
+		}
+		defer os.RemoveAll(tempDir)
+
+		configDir := filepath.Join(tempDir, "config")
+		os.MkdirAll(configDir, 0755)
+
+		// koding-config-manager needs it
+		err = ioutil.WriteFile("VERSION", []byte(p.version), 0755)
+		if err != nil {
+			return err
+		}
+		defer os.Remove("VERSION")
+
+		c, err := config.ReadConfigManager(*flagProfile)
+		if err != nil {
+			return err
+		}
+
+		configPretty, err := json.MarshalIndent(c, "", "  ")
+		if err != nil {
+			return err
+		}
+
+		configFile := filepath.Join(configDir, fmt.Sprintf("main.%s.json", *flagProfile))
+		err = ioutil.WriteFile(configFile, configPretty, 0644)
+		if err != nil {
+			return err
+		}
+
+		p.files = append(p.files, configDir)
 	}
-	defer os.RemoveAll(tempDir)
-
-	configDir := filepath.Join(tempDir, "config")
-	os.MkdirAll(configDir, 0755)
-
-	// koding-config-manager needs it
-	err = ioutil.WriteFile("VERSION", []byte(p.version), 0755)
-	if err != nil {
-		return err
-	}
-	defer os.Remove("VERSION")
-
-	c, err := config.ReadConfigManager(*flagProfile)
-	if err != nil {
-		return err
-	}
-
-	configPretty, err := json.MarshalIndent(c, "", "  ")
-	if err != nil {
-		return err
-	}
-
-	configFile := filepath.Join(configDir, fmt.Sprintf("main.%s.json", *flagProfile))
-	err = ioutil.WriteFile(configFile, configPretty, 0644)
-	if err != nil {
-		return err
-	}
-
-	p.files = append(p.files, configDir)
 
 	// Now it's time to build
 	if runtime.GOOS != "linux" {
@@ -327,7 +425,13 @@ func (p *pkg) build() error {
 
 	// rename file to see for which region and env it is created
 	oldname := debFile
-	newname := fmt.Sprintf("%s_%s_%s-%s_%s.deb", p.appName, p.version, *flagProfile, *flagRegion, deb.Arch)
+	newname := ""
+
+	if *flagProfile == "" || *flagRegion == "" {
+		newname = fmt.Sprintf("%s_%s_%s.deb", p.appName, p.version, deb.Arch)
+	} else {
+		newname = fmt.Sprintf("%s_%s_%s-%s_%s.deb", p.appName, p.version, *flagProfile, *flagRegion, deb.Arch)
+	}
 
 	if err := os.Rename(oldname, newname); err != nil {
 		return err

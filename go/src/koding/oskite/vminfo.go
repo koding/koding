@@ -8,6 +8,7 @@ import (
 	"sync"
 	"time"
 
+	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
 )
 
@@ -99,7 +100,6 @@ func (v *VMInfo) startTimeout() {
 	// Shut down the VM (unprepareVM does it.) The timeout is calculated as:
 	// * 5  Minutes from kite.go
 	// * 50 Minutes pre-defined timeout
-	// * 5  Minutes after we give warning
 	// * [0, 30] random duration to avoid hickups during mass unprepares
 	// In Total it's [60, 90] minutes.
 	totalTimeout := vmTimeout + randomMinutes(30)
@@ -107,37 +107,42 @@ func (v *VMInfo) startTimeout() {
 		v.vm.Id.Hex(), totalTimeout)
 
 	v.timeout = time.AfterFunc(totalTimeout, func() {
-		if v.useCounter != 0 || v.vm.AlwaysOn {
+		// always on could be changed, for example the user might toggle a non
+		// alwaysOn vm to alwaysOn, therefore check it again
+		if v.isAlwaysOn() {
 			return
 		}
 
-		if v.vm.GetState() == "RUNNING" {
-			if err := v.vm.SendMessageToVMUsers("========================================\nThis VM will be turned off in 5 minutes.\nLog in to Koding.com to keep it running.\n========================================\n"); err != nil {
-				log.Warning("%v", err)
-			}
+		prepareQueue <- &QueueJob{
+			msg: "vm unprepare " + v.vm.HostnameAlias,
+			f: func() error {
+				// mutex is needed because it's handled in the queue
+				v.mutex.Lock()
+				defer v.mutex.Unlock()
+
+				v.unprepareVM()
+				return nil
+			},
 		}
-
-		v.timeout = time.AfterFunc(5*time.Minute, func() {
-			v.mutex.Lock()
-			defer v.mutex.Unlock()
-			if v.useCounter != 0 || v.vm.AlwaysOn {
-				return
-			}
-
-			prepareQueue <- &QueueJob{
-				msg: "vm unprepare " + v.vm.HostnameAlias,
-				f: func() error {
-					// mutex is needed because it's handled in the queue
-					v.mutex.Lock()
-					defer v.mutex.Unlock()
-
-					v.unprepareVM()
-					return nil
-				},
-			}
-
-		})
 	})
+}
+
+func (v *VMInfo) isAlwaysOn() bool {
+	v.mutex.Lock()
+	defer v.mutex.Unlock()
+
+	// check
+	var vm *virt.VM
+	err := mongodbConn.Run("jVMs", func(c *mgo.Collection) error {
+		return c.Find(bson.M{"hostnameAlias": v.vm.HostnameAlias}).One(&vm)
+	})
+
+	if err != nil {
+		log.Error("checking alwaysON status: %v", err)
+		return false
+	}
+
+	return vm.AlwaysOn
 }
 
 func (v *VMInfo) unprepareVM() {

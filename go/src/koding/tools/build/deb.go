@@ -49,6 +49,7 @@ func (d *Deb) Build() (string, error) {
 		return "", err
 	}
 
+	fmt.Println("preparing install folders")
 	if err := d.createInstallDir(); err != nil {
 		return "", err
 	}

@@ -27,6 +27,7 @@ class TerminalStartTab extends JView
 
     vmController.fetchVMs force, (err, vms)=>
       if err
+        ErrorLog.create "terminal: Couldn't fetch vms", reason:err
         return new KDNotificationView title : "Couldn't fetch your VMs"
 
       vms.sort (a,b)-> a.hostnameAlias > b.hostnameAlias

@@ -32,7 +32,7 @@ import (
 
 const (
 	OSKITE_NAME    = "oskite"
-	OSKITE_VERSION = "0.2.10"
+	OSKITE_VERSION = "0.2.12"
 )
 
 var (
@@ -196,7 +196,7 @@ func (o *Oskite) Run() {
 
 	log.Info("Oskite started. Go!")
 
-	o.runNewKite()
+	go o.runNewKite()
 	o.Kite.Run()
 }
 
@@ -382,13 +382,24 @@ func (o *Oskite) setupSignalHandler() {
 	signal.Notify(sigtermChannel, syscall.SIGINT, syscall.SIGTERM, syscall.SIGUSR1)
 	go func() {
 		sig := <-sigtermChannel
+		log.Info("Shutdown initiated")
 
-		defer func() {
+		closeFunc := func() {
 			log.Info("Closing and shutting down. Bye!")
 			// close amqp connections
 			o.Kite.Close()
 			os.Exit(1)
-		}()
+		}
+
+		defer closeFunc()
+
+		// force quit after ten seconds
+		if sig != syscall.SIGUSR1 {
+			time.AfterFunc(10*time.Second, func() {
+				log.Info("Force quit after 10 seconds!")
+				closeFunc()
+			})
+		}
 
 		// close the communication. We should not accept any calls anymore...
 		shuttingDown.SetClosed()
@@ -400,7 +411,7 @@ func (o *Oskite) setupSignalHandler() {
 		}
 
 		// ...but wait until the current calls are finished.
-		log.Info("Shutdown initiated. Waiting until current calls are finished...")
+		log.Info("Waiting until current calls are finished...")
 		requestWaitGroup.Wait()
 		log.Info("All calls are finished.")
 
@@ -443,7 +454,7 @@ func (o *Oskite) setupSignalHandler() {
 
 		err = mongodbConn.Run("jVMs", query)
 		if err != nil {
-			log.LogError(err, 0)
+			log.Error("Updating hostKite for all current VMs err: %v", err)
 		}
 	}()
 }
@@ -661,6 +672,9 @@ func (o *Oskite) startSingleVM(vm *virt.VM, channel *kite.Channel) error {
 	}
 
 	info.stopTimeout(channel)
+
+	// validate/sanitize zero values
+	vm.ApplyDefaults()
 
 	err := o.checkVM(vm)
 	if err != nil {

@@ -295,6 +295,7 @@ module.exports = [
   "mixpanel.coffee",
   "analytic.coffee",
   "errorlog.coffee",
+  "metric.coffee",
 
   # ---------- Main APP ENDS ---------- #
 
