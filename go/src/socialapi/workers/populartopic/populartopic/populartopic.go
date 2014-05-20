@@ -53,7 +53,7 @@ func NewPopularTopicsController(log logging.Logger, redis *redis.RedisSession) *
 }
 
 func (f *PopularTopicsController) HandleEvent(event string, data []byte) error {
-	f.log.Debug("New Event Recieved %s", event)
+	f.log.Debug("New Event Received %s", event)
 	handler, ok := f.routes[event]
 	if !ok {
 		return worker.HandlerNotFoundErr

@@ -2,10 +2,9 @@ package models
 
 import (
 	"errors"
-	"time"
-
 	"github.com/jinzhu/gorm"
 	"github.com/koding/bongo"
+	"time"
 )
 
 type Interaction struct {
@@ -101,24 +100,31 @@ func (c *Interaction) List(query *Query) ([]int64, error) {
 		return interactions, errors.New("Message is not set")
 	}
 
+	p := bongo.NewPagination(query.Limit, query.Skip)
+
+	return c.FetchInteractorIds(query.Type, p)
+}
+
+func (i *Interaction) FetchInteractorIds(interactionType string, p *bongo.Pagination) ([]int64, error) {
+	interactorIds := make([]int64, 0)
 	q := &bongo.Query{
 		Selector: map[string]interface{}{
-			"message_id":    c.MessageId,
-			"type_constant": query.Type,
+			"message_id":    i.MessageId,
+			"type_constant": interactionType,
 		},
-		Pluck: "account_id",
-		Skip:  query.Skip,
-		Limit: query.Limit,
+		Pagination: *p,
+		Pluck:      "account_id",
+		Sort: map[string]string{
+			"created_at": "desc",
+		},
 	}
-	if c.Some(&interactions, q) != nil {
+
+	if err := i.Some(&interactorIds, q); err != nil {
+		// TODO log this error
 		return make([]int64, 0), nil
 	}
 
-	if interactions == nil {
-		return make([]int64, 0), nil
-	}
-
-	return interactions, nil
+	return interactorIds, nil
 }
 
 func (c *Interaction) Count(interactionType string) (int, error) {
@@ -173,4 +179,8 @@ func (i *Interaction) IsInteracted(accountId int64) (bool, error) {
 	}
 
 	return false, err
+}
+
+func (i *Interaction) FetchInteractorCount() (int, error) {
+	return bongo.B.Count(i, "message_id = ?", i.MessageId)
 }

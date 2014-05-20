@@ -20,3 +20,6 @@ Vhost=    "/"
 
 [limits]
 MessageBodyMinLen=1
+
+[Notification]
+CacheEnabled = false

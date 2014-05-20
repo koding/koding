@@ -201,7 +201,7 @@ func (a *Account) FetchFollowerChannelIds() ([]int64, error) {
 	return channelIds, nil
 }
 
-func FetchOdlIdByAccountId(accountId int64) (string, error) {
+func FetchOldIdByAccountId(accountId int64) (string, error) {
 
 	a := NewAccount()
 	var data []string
@@ -209,8 +209,8 @@ func FetchOdlIdByAccountId(accountId int64) (string, error) {
 		Selector: map[string]interface{}{
 			"id": accountId,
 		},
-		Pluck: "old_id",
-		Limit: 1,
+		Pluck:      "old_id",
+		Pagination: *bongo.NewPagination(1, 0),
 	}
 	err := a.Some(&data, q)
 	if err != nil {

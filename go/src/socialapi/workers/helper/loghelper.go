@@ -1,5 +1,7 @@
 package helper
 
+// TODO use loghelper under koding/worker package instead of this
+
 import (
 	"os"
 

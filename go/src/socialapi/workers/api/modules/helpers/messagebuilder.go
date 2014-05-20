@@ -19,9 +19,8 @@ func FetchMessageIdsByChannelId(channelId int64, q *models.Query) ([]int64, erro
 		Selector: map[string]interface{}{
 			"channel_id": channelId,
 		},
-		Pluck: "message_id",
-		Limit: q.Limit,
-		Skip:  q.Skip,
+		Pluck:      "message_id",
+		Pagination: *bongo.NewPagination(q.Limit, q.Skip),
 		Sort: map[string]string{
 			"added_at": "DESC",
 		},

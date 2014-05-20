@@ -108,6 +108,33 @@ func (b *Bongo) UpdatePartial(i Modellable, set map[string]interface{}) error {
 	return nil
 }
 
+// selector, set
+func (b *Bongo) UpdateMulti(i Modellable, rest ...map[string]interface{}) error {
+	var set, selector map[string]interface{}
+
+	switch len(rest) {
+	case 1:
+		set = rest[0]
+		selector = nil
+	case 2:
+		selector = rest[0]
+		set = rest[1]
+	default:
+		return errors.New("Update partial parameter list is wrong")
+	}
+
+	query := b.DB.Table(i.TableName())
+
+	//add selector
+	query = addWhere(query, selector)
+
+	if err := query.Update(set).Error; err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func (b *Bongo) Count(i Modellable, where ...interface{}) (int, error) {
 	var count int
 
@@ -124,11 +151,22 @@ func (b *Bongo) Count(i Modellable, where ...interface{}) (int, error) {
 }
 
 type Query struct {
-	Selector map[string]interface{}
-	Sort     map[string]string
-	Limit    int
-	Skip     int
-	Pluck    string
+	Selector   map[string]interface{}
+	Sort       map[string]string
+	Pluck      string
+	Pagination Pagination
+}
+
+type Pagination struct {
+	Limit int
+	Skip  int
+}
+
+func NewPagination(limit int, skip int) *Pagination {
+	return &Pagination{
+		Limit: limit,
+		Skip:  skip,
+	}
 }
 
 func NewQS(selector map[string]interface{}) *Query {
@@ -147,7 +185,7 @@ func (b *Bongo) Some(i Modellable, data interface{}, q *Query) error {
 }
 
 func (b *Bongo) One(i Modellable, data interface{}, q *Query) error {
-	q.Limit = 1
+	q.Pagination.Limit = 1
 	return b.executeQuery(i, data, q)
 }
 
@@ -161,18 +199,12 @@ func (b *Bongo) BuildQuery(i Modellable, q *Query) *gorm.DB {
 	// add sort options
 	query = addSort(query, q.Sort)
 
+	query = addSkip(query, q.Pagination.Skip)
+
+	query = addLimit(query, q.Pagination.Limit)
+
 	// add selector
 	query = addWhere(query, q.Selector)
-
-	// if limit is minus or 0 ignore
-	if q.Limit > 0 {
-		query = query.Limit(q.Limit)
-	}
-
-	// if skip is minus or 0 ignore
-	if q.Skip > 0 {
-		query = query.Offset(q.Skip)
-	}
 
 	return query
 }
@@ -267,4 +299,21 @@ func addWhere(query *gorm.DB, selector map[string]interface{}) *gorm.DB {
 
 	// instead sending one selector, do chaining here
 	return query.Where(selector)
+}
+
+func addSkip(query *gorm.DB, skip int) *gorm.DB {
+	if skip > 0 {
+		return query.Offset(skip)
+	}
+
+	return query
+}
+
+func addLimit(query *gorm.DB, limit int) *gorm.DB {
+	// if limit is minus or 0 ignore
+	if limit > 0 {
+		return query.Limit(limit)
+	}
+
+	return query
 }

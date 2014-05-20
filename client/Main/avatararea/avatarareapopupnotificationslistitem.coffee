@@ -7,7 +7,7 @@ class PopupNotificationListItem extends NotificationListItem
     @initializeReadState()
 
   initializeReadState:->
-    if @getData().getFlagValue('glanced')
+    if @getData().glanced
     then @unsetClass 'unread'
     else @setClass 'unread'
 

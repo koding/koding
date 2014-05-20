@@ -248,3 +248,118 @@ func (r *RedisSession) SortedSetReverseRange(key string, rest ...interface{}) ([
 
 	return redis.Values(r.Do("ZREVRANGE", prefixedReq...))
 }
+
+// HashMultipleSet sets multiple hashset elements stored at key with given field values.
+// Returns error state of this operation
+func (r *RedisSession) HashMultipleSet(key string, item map[string]interface{}) error {
+
+	// not an optimal solution
+	fieldValuePairs := make([]interface{}, 0)
+	fieldValuePairs = append(fieldValuePairs, r.addPrefix(key))
+	for field, value := range item {
+		fieldValuePairs = append(fieldValuePairs, field, value)
+	}
+
+	reply, err := r.Do("HMSET", fieldValuePairs...)
+	if err != nil {
+		return err
+	}
+
+	if reply != "OK" {
+		return fmt.Errorf("reply string is wrong!: %s", reply)
+
+	}
+
+	return nil
+}
+
+// GetHashMultipleSet returns values of the hashset at stored key with
+// requested field order
+// Usage: GetHashMultipleSet("canthefason", "name", "age", "birthDate")
+func (r *RedisSession) GetHashMultipleSet(key string, rest ...interface{}) ([]interface{}, error) {
+	prefixedReq := r.prepareArgsWithKey(key, rest...)
+	return redis.Values(r.Do("HMGET", prefixedReq...))
+}
+
+// AddSetMembers adds given elements to the set stored at key. Given elements
+// that are already included in set are ignored.
+// Returns successfully added key count and error state
+func (r *RedisSession) AddSetMembers(key string, rest ...interface{}) (int, error) {
+	prefixedReq := r.prepareArgsWithKey(key, rest...)
+
+	reply, err := redis.Int(r.Do("SADD", prefixedReq...))
+	if err != nil {
+		return 0, err
+	}
+
+	return reply, nil
+}
+
+// RemoveSetMembers removes given elements from the set stored at key
+// Returns successfully removed key count and error state
+func (r *RedisSession) RemoveSetMembers(key string, rest ...interface{}) (int, error) {
+	prefixedReq := r.prepareArgsWithKey(key, rest...)
+
+	reply, err := redis.Int(r.Do("SREM", prefixedReq...))
+	if err != nil {
+		return 0, err
+	}
+
+	return reply, nil
+}
+
+// GetSetMembers returns all members included in the set at key
+// Returns members array and error state
+func (r *RedisSession) GetSetMembers(key string) ([]interface{}, error) {
+	return redis.Values(r.Do("SMEMBERS", r.addPrefix(key)))
+}
+
+// SortBy sorts elements stored at key with given weight and order(ASC|DESC)
+//
+// i.e. Suppose we have elements stored at key as object_1, object_2 and object_3
+// and their weight is relatively stored at object_1:weight, object_2:weight, object_3:weight
+// When we give sortBy parameter as *:weight, it gets all weight values and sorts the objects
+// at given key with specified order.
+func (r *RedisSession) SortBy(key, sortBy, order string) ([]interface{}, error) {
+	return redis.Values(r.Do("SORT", r.addPrefix(key), "by", r.addPrefix(sortBy), order))
+}
+
+// Keys returns all keys with given pattern
+// WARNING: Redis Doc says: "Don't use KEYS in your regular application code."
+func (r *RedisSession) Keys(key string) ([]interface{}, error) {
+	return redis.Values(r.Do("KEYS", r.addPrefix(key)))
+}
+
+// Bool converts the given value to boolean
+func (r *RedisSession) Bool(reply interface{}) (bool, error) {
+	return redis.Bool(reply, nil)
+}
+
+// Int converts the given value to integer
+func (r *RedisSession) Int(reply interface{}) (int, error) {
+	return redis.Int(reply, nil)
+}
+
+// String converts the given value to string
+func (r *RedisSession) String(reply interface{}) (string, error) {
+	return redis.String(reply, nil)
+}
+
+// Int64 converts the given value to 64 bit integer
+func (r *RedisSession) Int64(reply interface{}) (int64, error) {
+	return redis.Int64(reply, nil)
+}
+
+// prepareArgsWithKey helper method prepends key to given variadic parameter
+func (r *RedisSession) prepareArgsWithKey(key string, rest ...interface{}) []interface{} {
+	prefixedReq := make([]interface{}, len(rest)+1)
+
+	// prepend prefixed key
+	prefixedReq[0] = r.addPrefix(key)
+
+	for key, el := range rest {
+		prefixedReq[key+1] = el
+	}
+
+	return prefixedReq
+}

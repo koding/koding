@@ -135,6 +135,7 @@ func fetchMoreChannels(group string, count int) ([]models.Channel, error) {
 	q.Type = models.Channel_TYPE_TOPIC
 	q.SetDefaults()
 	c := models.NewChannel()
+
 	return c.List(q)
 }
 

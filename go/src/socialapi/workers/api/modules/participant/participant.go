@@ -68,10 +68,6 @@ func checkChannelPrerequisites(channelId, requesterId, accountId int64) error {
 		return errors.New("You can not add/remove a new participant for pinned activity channel")
 	}
 
-	if c.TypeConstant == models.Channel_TYPE_GROUP {
-		return errors.New("You can not add/remove a new participant for group activity channel")
-	}
-
 	if c.TypeConstant == models.Channel_TYPE_CHAT {
 		if requesterId != c.CreatorId {
 			return errors.New("Only owners can add/remove participants to chat channel")

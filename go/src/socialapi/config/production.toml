@@ -21,3 +21,6 @@ Vhost=    "new"
 
 [limits]
 MessageBodyMinLen=5
+
+[Notification]
+CacheEnabled = false
