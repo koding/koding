@@ -15,6 +15,7 @@ type NotificationContainer struct {
 	Message         string
 	Slug            string
 	ActivityMessage string
+	ObjectType      string
 }
 
 type MailContent struct {
@@ -32,8 +33,9 @@ type MailContent struct {
 	Action       string
 	ContentLink  string
 	Group        string
-	Preview      string
+	Message      string
 	Slug         string
+	ObjectType   string
 }
 
 func renderTemplate(uc *UserContact, nc *NotificationContainer) (string, error) {
@@ -42,9 +44,10 @@ func renderTemplate(uc *UserContact, nc *NotificationContainer) (string, error) 
 		"../socialapi/workers/emailnotifier/templates/main.tmpl",
 		"../socialapi/workers/emailnotifier/templates/footer.tmpl",
 		"../socialapi/workers/emailnotifier/templates/content.tmpl",
-		"../socialapi/workers/emailnotifier/templates/gravatar.tmpl",
-		"../socialapi/workers/emailnotifier/templates/preview.tmpl"))
+		"../socialapi/workers/emailnotifier/templates/gravatar.tmpl"))
 	mc, err := buildMailContent(uc, nc)
+	t = appendPreviewTemplate(t, nc)
+
 	if err != nil {
 		return "", err
 	}
@@ -59,11 +62,12 @@ func renderTemplate(uc *UserContact, nc *NotificationContainer) (string, error) 
 
 func buildMailContent(uc *UserContact, nc *NotificationContainer) (*MailContent, error) {
 	mc := &MailContent{
-		FirstName: uc.FirstName,
-		Size:      20,
-		Preview:   nc.Message,
-		Slug:      nc.Slug,
-		Action:    nc.ActivityMessage,
+		FirstName:  uc.FirstName,
+		Size:       20,
+		Slug:       nc.Slug,
+		Message:    nc.Message,
+		Action:     nc.ActivityMessage,
+		ObjectType: nc.ObjectType,
 	}
 
 	mc.CurrentDate, mc.ActivityTime = prepareDateTime(nc)
@@ -76,6 +80,28 @@ func buildMailContent(uc *UserContact, nc *NotificationContainer) (*MailContent,
 	mc.ActorContact = *actor
 
 	return mc, nil
+}
+
+func appendPreviewTemplate(t *template.Template, nc *NotificationContainer) *template.Template {
+	var previewTemplate, objectTemplate *template.Template
+	if nc.Message == "" {
+		previewTemplate = getEmptyTemplate()
+		objectTemplate = getEmptyTemplate()
+	} else {
+		previewTemplate = template.Must(
+			template.ParseFiles("../socialapi/workers/emailnotifier/templates/preview.tmpl"))
+		objectTemplate = template.Must(
+			template.ParseFiles("../socialapi/workers/emailnotifier/templates/object.tmpl"))
+	}
+
+	t.AddParseTree("preview", previewTemplate.Tree)
+	t.AddParseTree("object", objectTemplate.Tree)
+
+	return t
+}
+
+func getEmptyTemplate() *template.Template {
+	return template.Must(template.New("").Parse(""))
 }
 
 func prepareDateTime(nc *NotificationContainer) (string, string) {
