@@ -12,13 +12,13 @@ import (
 
 type Channel struct {
 	// unique identifier of the channel
-	Id int64 `json:"id"`
+	Id int64 `json:"id,string"`
 
 	// Name of the channel
 	Name string `json:"name"                         sql:"NOT NULL;TYPE:VARCHAR(200);"`
 
 	// Creator of the channel
-	CreatorId int64 `json:"creatorId"                sql:"NOT NULL"`
+	CreatorId int64 `json:"creatorId,string"         sql:"NOT NULL"`
 
 	// Name of the group which channel is belong to
 	GroupName string `json:"groupName"               sql:"NOT NULL;TYPE:VARCHAR(200);"`

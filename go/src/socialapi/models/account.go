@@ -10,7 +10,7 @@ import (
 
 type Account struct {
 	// unique id of the account
-	Id int64 `json:"id"`
+	Id int64 `json:"id,string"`
 
 	// old id of the account, which is originally
 	// perisisted in mongo

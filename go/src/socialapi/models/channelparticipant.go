@@ -16,10 +16,10 @@ type ChannelParticipant struct {
 	Id int64 `json:"id"`
 
 	// Id of the channel
-	ChannelId int64 `json:"channelId"              sql:"NOT NULL"`
+	ChannelId int64 `json:"channelId,string"              sql:"NOT NULL"`
 
 	// Id of the account
-	AccountId int64 `json:"accountId"              sql:"NOT NULL"`
+	AccountId int64 `json:"accountId,string"              sql:"NOT NULL"`
 
 	// Status of the participant in the channel
 	StatusConstant string `json:"statusConstant"   sql:"NOT NULL;TYPE:VARCHAR(100);"`

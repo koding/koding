@@ -19,28 +19,28 @@ var mentionRegex = verbalexpressions.New().
 
 type ChannelMessage struct {
 	// unique identifier of the channel message
-	Id int64 `json:"id"`
+	Id int64 `json:"id,string"`
 
 	// Body of the mesage
 	Body string `json:"body"`
 
 	// Generated Slug for body
-	Slug string `json:"slug"                        sql:"NOT NULL;TYPE:VARCHAR(100);"`
+	Slug string `json:"slug"                               sql:"NOT NULL;TYPE:VARCHAR(100);"`
 
 	// type of the message
-	TypeConstant string `json:"typeConstant"        sql:"NOT NULL;TYPE:VARCHAR(100);"`
+	TypeConstant string `json:"typeConstant"               sql:"NOT NULL;TYPE:VARCHAR(100);"`
 
 	// Creator of the channel message
-	AccountId int64 `json:"accountId"               sql:"NOT NULL"`
+	AccountId int64 `json:"accountId,string"               sql:"NOT NULL"`
 
 	// in which channel this message is created
-	InitialChannelId int64 `json:"initialChannelId" sql:"NOT NULL"`
+	InitialChannelId int64 `json:"initialChannelId,string" sql:"NOT NULL"`
 
 	// Creation date of the message
-	CreatedAt time.Time `json:"createdAt"           sql:"DEFAULT:CURRENT_TIMESTAMP"`
+	CreatedAt time.Time `json:"createdAt"                  sql:"DEFAULT:CURRENT_TIMESTAMP"`
 
 	// Modification date of the message
-	UpdatedAt time.Time `json:"updatedAt"           sql:"DEFAULT:CURRENT_TIMESTAMP"`
+	UpdatedAt time.Time `json:"updatedAt"                  sql:"DEFAULT:CURRENT_TIMESTAMP"`
 
 	// Deletion date of the channel message
 	DeletedAt time.Time `json:"deletedAt"`

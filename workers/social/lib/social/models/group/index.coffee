@@ -240,7 +240,7 @@ module.exports = class JGroup extends Module
       body          : String
       # channelId for mapping social API
       # to internal usage
-      socialApiChannelId: Number
+      socialApiChannelId: String
       avatar        : String
       slug          :
         type        : String
