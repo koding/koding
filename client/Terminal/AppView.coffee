@@ -302,8 +302,10 @@ class WebTermAppView extends JView
 
     terminalView.on "WebTermNeedsToBeRecovered", ({vm, session}) =>
       @createNewTab {vm, session, mode: 'resume', shouldShow : no}
-      @notify
-        title   : "Reconnected to Terminal"
+
+      title = "Reconnected to Terminal"
+      Metric.create title, vm
+      @notify {title}
 
       pane.destroySubViews()
       @tabView.removePane pane
@@ -374,15 +376,23 @@ class WebTermAppView extends JView
     vmc = KD.getSingleton 'vmController'
     if vmc.vms.length > 1 then @showVMSelection()
     else
-      vm     = vmc.vms.first
+      vm = vmc.vms.first
+
+      unless vm
+        ErrorLog.create "terminal: handlePlusClick error", {reason:"0 vms"}
+
       osKite =
         if KD.useNewKites
         then vmc.kites.oskite[vm.hostnameAlias]
         else vmc.kites[vm.hostnameAlias]
 
-      if osKite.recentState?.state is 'RUNNING'
+      if state = osKite.recentState?.state is 'RUNNING'
       then @prepareAndRunTerminal vm
-      else @notify cssClass : 'error'
+      else
+        ErrorLog.create "terminal: handlePlusClick error",
+          {reason: "vm has unknown state", osKiteState: state}
+
+        @notify cssClass : 'error'
 
   prepareAndRunTerminal: (vm, mode = 'create') ->
     {vmController} = KD.singletons
@@ -393,19 +403,25 @@ class WebTermAppView extends JView
 
     {recentState}  = osKite
 
-    if recentState?.state is 'RUNNING'
+    if state = recentState?.state is 'RUNNING'
       @createNewTab {vm, mode}
     else if recentState?.state is 'STOPPED' or 'FAILED'
       osKite?.vmOn().catch @bound "handlePrepareError"
     else
+      ErrorLog.create "terminal: prepareAndRunTerminal error",
+        {vm, reason: "vm has unknown state", osKiteState: state}
+
       @notify cssClass : 'error'
       osKite?.vmOff()
 
   handlePrepareError: (err) ->
-    title = err.message
+    title = err?.message
 
     if title and /limit reached/.test title
       title += " Please upgrade to run more VMs."
+
+    numberOfVms = Object.keys(KD.singletons.vmController.vmsInfo).length
+    ErrorLog.create err?.message, {numberOfVms}
 
     new KDNotificationView {title}
 

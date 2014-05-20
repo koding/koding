@@ -15,6 +15,10 @@ module.exports = [
   "kodingrouter.coffee",
   "mq.config.coffee",
 
+  # jview
+  "jview.coffee",
+  "jcustomhtmlview.coffee",
+
   # mainapp controllers
   "activitycontroller.coffee",
   "socialapicontroller.coffee",
@@ -95,6 +99,7 @@ module.exports = [
   "CommonViews/SkillTagAutoCompleteController.coffee",
   "CommonViews/SkillTagAutoCompletedItem.coffee",
   "CommonViews/messagesList.coffee",
+  "CommonViews/notificationlistitemview.coffee",
   "CommonViews/SplitViewWithOlderSiblings.coffee",
   "CommonViews/ContentPageSplitBelowHeader.coffee",
   "CommonViews/CommonListHeader.coffee",
@@ -280,6 +285,7 @@ module.exports = [
   "mixpanel.coffee",
   "analytic.coffee",
   "errorlog.coffee",
+  "metric.coffee",
 
   # ---------- Main APP ENDS ---------- #
 

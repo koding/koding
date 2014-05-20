@@ -11,8 +11,10 @@ import (
 	"testing"
 	"time"
 
+	"github.com/dgrijalva/jwt-go"
 	"github.com/koding/kite"
 	"github.com/koding/kite/config"
+	"github.com/koding/kite/kitekey"
 	"github.com/koding/kite/protocol"
 	"github.com/koding/kite/proxy"
 	"github.com/koding/kite/testkeys"
@@ -38,6 +40,80 @@ func init() {
 	<-kon.Kite.ServerReadyNotify()
 
 	rand.Seed(time.Now().UTC().UnixNano())
+}
+
+func TestRegisterMachine(t *testing.T) {
+	key, err := kon.registerUser("foo")
+	if err != nil {
+		t.Errorf(err.Error())
+		return
+	}
+
+	token, err := jwt.Parse(key, kitekey.GetKontrolKey)
+	if err != nil {
+		t.Fatalf(err.Error())
+	}
+
+	if username := token.Claims["sub"].(string); username != "foo" {
+		t.Fatalf("invalid username: %s", username)
+	}
+}
+
+func TestTokenInvalidation(t *testing.T) {
+	oldval := TokenTTL
+	defer func() {
+		TokenTTL = oldval
+	}()
+
+	TokenTTL = time.Millisecond * 500
+
+	t.Log("Setting up mathworker6")
+	testName := "mathworker6"
+	testVersion := "1.1.1"
+	m := kite.New(testName, testVersion)
+	m.Config = conf.Copy()
+	m.Config.Port = 6666
+
+	t.Log("Registering mathworker6")
+	kiteURL := &url.URL{Scheme: "ws", Host: "localhost:6666"}
+	_, err := m.Register(kiteURL)
+	if err != nil {
+		t.Error(err)
+	}
+	defer m.Close()
+
+	token, err := m.GetToken(m.Kite())
+	if err != nil {
+		t.Error(err)
+	}
+
+	time.Sleep(time.Millisecond * 700)
+
+	token2, err := m.GetToken(m.Kite())
+	if err != nil {
+		t.Error(err)
+	}
+
+	if token == token2 {
+		t.Error("token invalidation doesn't work")
+	}
+
+	TokenTTL = time.Second * 4
+
+	token3, err := m.GetToken(m.Kite())
+	if err != nil {
+		t.Error(err)
+	}
+
+	token4, err := m.GetToken(m.Kite())
+	if err != nil {
+		t.Error(err)
+	}
+
+	if token3 != token4 {
+		t.Error("tokens should be the same")
+	}
+
 }
 
 func TestMultiple(t *testing.T) {
@@ -228,7 +304,7 @@ func TestKontrol(t *testing.T) {
 	<-mathKite.ServerReadyNotify()
 
 	go mathKite.RegisterToProxy(true)
-	<-mathKite.ReadyNotify()
+	<-mathKite.KontrolReadyNotify()
 
 	// exp2 kite is the mathworker client
 	t.Log("Setting up exp2 kite")
@@ -332,7 +408,7 @@ func TestKontrol(t *testing.T) {
 	<-mathKite2.ServerReadyNotify()
 
 	go mathKite2.RegisterToProxy(true)
-	<-mathKite2.ReadyNotify()
+	<-mathKite2.KontrolReadyNotify()
 
 	// We must get Register event
 	select {
@@ -414,6 +490,5 @@ func TestGetQueryKey(t *testing.T) {
 
 // Cleanup function, is executed as last function
 func TestZCleanup(t *testing.T) {
-	fmt.Println("cleannning")
 	os.RemoveAll(kon.DataDir)
 }

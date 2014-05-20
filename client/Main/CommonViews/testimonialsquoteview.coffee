@@ -1,10 +1,11 @@
 class TestimonialsQuoteView extends KDCustomHTMLView
+
+  JView.mixin @prototype
+
   constructor: (options = {}) ->
     options.tagName     = 'article'
 
     super options
-
-  viewAppended : JView::viewAppended
 
   pistachio : ->
     {name, title, content} = @getOptions()

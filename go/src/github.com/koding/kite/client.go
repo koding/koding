@@ -277,10 +277,10 @@ func (c *Client) readLoop() error {
 // processMessage processes a single message and calls a handler or callback.
 func (c *Client) processMessage(data []byte) error {
 	var (
-		err     error
-		ok      bool
-		msg     dnode.Message
-		handler HandlerFunc
+		err error
+		ok  bool
+		msg dnode.Message
+		m   *Method
 	)
 
 	// Call error handler.
@@ -315,11 +315,12 @@ func (c *Client) processMessage(data []byte) error {
 		}
 		c.runCallback(callback, msg.Arguments)
 	case string:
-		if handler, ok = c.LocalKite.handlers[method]; !ok {
+		if m, ok = c.LocalKite.handlers[method]; !ok {
 			err = dnode.MethodNotFoundError{method, msg.Arguments}
 			return err
 		}
-		c.runMethod(method, handler, msg.Arguments)
+
+		c.runMethod(m, msg.Arguments)
 	default:
 		return fmt.Errorf("Method is not string or integer: %+v (%T)", msg.Method, msg.Method)
 	}
@@ -596,7 +597,7 @@ func (c *Client) makeResponseCallback(doneChan chan *response, removeCallback <-
 		// Notify that the callback is finished.
 		defer func() {
 			if resp.Err != nil {
-				c.LocalKite.Log.Warning("Error received from kite: %q method: %q args: %#v err: %s", c.Kite.Name, method, args, resp.Err.Error())
+				c.LocalKite.Log.Debug("Error received from kite: %q method: %q args: %#v err: %s", c.Kite.Name, method, args, resp.Err.Error())
 				doneChan <- &response{resp.Result, resp.Err}
 			} else {
 				doneChan <- &response{resp.Result, nil}

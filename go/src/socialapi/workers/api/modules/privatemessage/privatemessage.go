@@ -8,37 +8,8 @@ import (
 	"socialapi/models"
 	"socialapi/workers/api/modules/helpers"
 
-	"github.com/VerbalExpressions/GoVerbalExpressions"
 	"github.com/koding/bongo"
 )
-
-var mentionRegex = verbalexpressions.New().
-	Find("@").
-	BeginCapture().
-	Word().
-	EndCapture().
-	Regex()
-
-func extractParticipants(body string) []string {
-	flattened := make([]string, 0)
-
-	res := mentionRegex.FindAllStringSubmatch(body, -1)
-	if len(res) == 0 {
-		return flattened
-	}
-
-	participants := map[string]struct{}{}
-	// remove duplicate mentions
-	for _, ele := range res {
-		participants[ele[1]] = struct{}{}
-	}
-
-	for participant := range participants {
-		flattened = append(flattened, participant)
-	}
-
-	return flattened
-}
 
 func fetchParticipantIds(participantNames []string) ([]int64, error) {
 	participantIds := make([]int64, len(participantNames))
@@ -78,7 +49,9 @@ func Send(u *url.URL, h http.Header, req *models.PrivateMessageRequest) (int, ht
 	}
 
 	// // req.Recipients = append(req.Recipients, req.AccountId)
-	participantNames := extractParticipants(req.Body)
+	cm := models.NewChannelMessage()
+	cm.Body = req.Body
+	participantNames := cm.GetMentionedUsernames()
 	participantIds, err := fetchParticipantIds(participantNames)
 	if err != nil {
 		return helpers.NewBadRequestResponse(err)
@@ -103,8 +76,6 @@ func Send(u *url.URL, h http.Header, req *models.PrivateMessageRequest) (int, ht
 		return helpers.NewBadRequestResponse(err)
 	}
 
-	cm := models.NewChannelMessage()
-	cm.Body = req.Body
 	cm.TypeConstant = models.ChannelMessage_TYPE_PRIVATE_MESSAGE
 	cm.AccountId = req.AccountId
 	cm.InitialChannelId = c.Id

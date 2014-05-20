@@ -19,6 +19,8 @@ class AccountLinkedAccountsList extends KDListView
 
 class AccountLinkedAccountsListItem extends KDListItemView
 
+  JView.mixin @prototype
+
   notify = (message)-> new KDNotificationView title : message, type : 'mini', duration : 3000
 
 

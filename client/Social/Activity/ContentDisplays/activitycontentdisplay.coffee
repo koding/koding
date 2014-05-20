@@ -1,5 +1,7 @@
 class ActivityContentDisplay extends KDScrollView
 
+  JView.mixin @prototype
+
   constructor: (options = {}, data) ->
 
     options.cssClass or= "content-display activity-related #{options.type}"

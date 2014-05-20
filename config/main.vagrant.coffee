@@ -277,11 +277,12 @@ module.exports =
     host        : 'lvh.me:3020'
     protocol    : 'http:'
     defaultFromAddress: 'hello@koding.com'
-  emailWorker   :
-    cronInstant : '*/10 * * * * *'
-    cronDaily   : '0 10 0 * * *'
-    run         : no
+  emailWorker     :
+    cronInstant   : '*/10 * * * * *'
+    cronDaily     : '0 10 0 * * *'
+    run           : no
     forcedRecipient : undefined
+    maxAge        : 3
   emailSender     :
     run           : no
   guests          :

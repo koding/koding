@@ -13,7 +13,7 @@ func AccountOldIdById(id int64) (string, error) {
 		return oldId, nil
 	}
 
-	oldId, err := FetchOdlIdByAccountId(id)
+	oldId, err := FetchOldIdByAccountId(id)
 	if err != nil {
 		return "", err
 	}

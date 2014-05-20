@@ -1,4 +1,7 @@
 class PopupNotificationListItem extends NotificationListItem
+
+  JView.mixin @prototype
+
   constructor:(options = {}, data)->
     options.tagName        or= "li"
     options.linkGroupClass or= LinkGroup
@@ -7,7 +10,7 @@ class PopupNotificationListItem extends NotificationListItem
     @initializeReadState()
 
   initializeReadState:->
-    if @getData().getFlagValue('glanced')
+    if @getData().glanced
     then @unsetClass 'unread'
     else @setClass 'unread'
 

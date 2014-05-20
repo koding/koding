@@ -121,7 +121,9 @@ class WebTermView extends KDView
       @reconnectionInProgress = false
 
     .catch (err) =>
-      warn err
+      KD.utils.warnAndLog "terminal: webtermConnect error",
+        {hostnameAlias:@getVMName(), reason:err?.message}
+
       if err.code is "ErrInvalidSession"
         @reconnectionInProgress = false
         @emit 'TerminalCanceled',
@@ -186,8 +188,12 @@ class WebTermView extends KDView
       @reconnected = no
       {code, serviceGenericName} = err
 
+      vmName = (@getOption 'vmName') or @getDelegate().getOption "vmName"
+
+      ErrorLog.create "KiteError", {code, serviceGenericName, vmName, reason: err?.message}
+
       if code is 503 and serviceGenericName.indexOf("kite-os") is 0
-        @reconnectAttemptFailed serviceGenericName, (@getOption 'vmName') or @getDelegate().getOption "vmName"
+        @reconnectAttemptFailed serviceGenericName, vmName
 
   reconnectAttemptFailed: (serviceGenericName, vmName) ->
     return  if @reconnected or not serviceGenericName
@@ -241,12 +247,16 @@ class WebTermView extends KDView
     @reconnected = yes
 
   handleConnectionFailure: ->
+    title = "Sorry, something is wrong with our backend."
+
+    ErrorLog.create title
+
     return if @failedToReconnect
     @reconnected       = no
     @failedToReconnect = yes
     @clearConnectionAttempts()
     @getDelegate().notify
-      title     : "Sorry, something is wrong with our backend."
+      title     : title
       cssClass  : "error"
       duration  : 15 * 1000 # 15 secs
 

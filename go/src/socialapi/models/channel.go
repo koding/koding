@@ -135,10 +135,21 @@ func (c *Channel) Create() error {
 		return fmt.Errorf("Channel name %q has empty space in it", c.Name)
 	}
 
-	if c.TypeConstant == Channel_TYPE_GROUP /* we can add more types here */ {
-		selector := map[string]interface{}{
-			"group_name":    c.GroupName,
-			"type_constant": c.TypeConstant,
+	if c.TypeConstant == Channel_TYPE_GROUP ||
+		c.TypeConstant == Channel_TYPE_FOLLOWERS /* we can add more types here */ {
+
+		var selector map[string]interface{}
+		switch c.TypeConstant {
+		case Channel_TYPE_GROUP:
+			selector = map[string]interface{}{
+				"group_name":    c.GroupName,
+				"type_constant": c.TypeConstant,
+			}
+		case Channel_TYPE_FOLLOWERS:
+			selector = map[string]interface{}{
+				"creator_id":    c.CreatorId,
+				"type_constant": c.TypeConstant,
+			}
 		}
 
 		// if err is nil
@@ -339,8 +350,8 @@ func (c *Channel) FetchChannelIdByNameAndGroupName(name, groupName string) (int6
 			"name":       name,
 			"group_name": groupName,
 		},
-		Limit: 1,
-		Pluck: "id",
+		Pagination: *bongo.NewPagination(1, 0),
+		Pluck:      "id",
 	}
 	var ids []int64
 	if err := c.Some(&ids, query); err != nil {
@@ -427,8 +438,8 @@ func (c *Channel) FetchLastMessage() (*ChannelMessage, error) {
 		Sort: map[string]string{
 			"added_at": "DESC",
 		},
-		Limit: 1,
-		Pluck: "message_id",
+		Pagination: *bongo.NewPagination(1, 0),
+		Pluck:      "message_id",
 	}
 
 	var messageIds []int64

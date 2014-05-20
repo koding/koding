@@ -8,12 +8,13 @@ import (
 	"socialapi/config"
 
 	// _ "net/http/pprof" // Imported for side-effect of handling /debug/pprof.
+	"github.com/rcrowley/go-tigertonic"
 	"os"
 	"os/signal"
 	"socialapi/workers/api/handlers"
 	"socialapi/workers/helper"
+	notificationapi "socialapi/workers/notification/api"
 	"syscall"
-	"github.com/rcrowley/go-tigertonic"
 )
 
 var (
@@ -41,7 +42,7 @@ func init() {
 	}
 	mux = tigertonic.NewTrieServeMux()
 	mux = handlers.Inject(mux)
-
+	mux = notificationapi.InitHandlers(mux)
 }
 
 func main() {
@@ -72,7 +73,7 @@ func main() {
 	ch := make(chan os.Signal)
 	signal.Notify(ch, syscall.SIGINT, syscall.SIGQUIT, syscall.SIGTERM)
 
-	log.Info("Recieved %v", <-ch)
+	log.Info("Received %v", <-ch)
 }
 
 func newServer() *tigertonic.Server {

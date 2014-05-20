@@ -1,5 +1,7 @@
 class LinkGroup extends KDCustomHTMLView
 
+  JView.mixin @prototype
+
   constructor:(options = {}, data)->
 
     options.tagName         = 'div'
@@ -43,20 +45,20 @@ class LinkGroup extends KDCustomHTMLView
     #   debugger
     #   return
 
-    index = 0
-    for participant in participants.slice(0).reverse()
+    for participant, index in participants when participant
       if participant?.bongo_?.constructorName is "ObjectRef"
         itemOptions.origin = participant
         @["participant#{index}"] = new itemClass itemOptions
       else
         @["participant#{index}"] = new itemClass itemOptions, participant
-      index++
 
     # tmp fix
     return unless @participant0
 
     @setTemplate @pistachio()
     @template.update()
+
+  viewAppended: -> super()
 
   createMoreLink:->
 
@@ -73,8 +75,6 @@ class LinkGroup extends KDCustomHTMLView
         new ShowMoreDataModalView {group}, @getData()
 
   pistachio:->
-
-    participants = @getData()
     {suffix, hasMore, totalCount, group, separator} = @getOptions()
 
     @createMoreLink()

@@ -1,4 +1,7 @@
 class GmailContactsListItem extends KDListItemView
+
+  JView.mixin @prototype
+
   constructor: (options = {}, data) ->
     options.type = "gmail"
     super options, data

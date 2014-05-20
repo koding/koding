@@ -1,4 +1,6 @@
-class ActivityAppView extends KDView
+class ActivityAppView extends KDScrollView
+
+  JView.mixin @prototype
 
   headerHeight = 0
 

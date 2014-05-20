@@ -75,6 +75,7 @@ node_modules_koding/processes/src/.tmp*
 /go/src/socialapi/populartopic
 /go/src/socialapi/followingfeed
 /go/src/socialapi/api
+/go/src/socialapi/notification
 
 website/a/css/kd.css
 website/a/css/koding.css

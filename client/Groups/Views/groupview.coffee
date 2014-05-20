@@ -1,5 +1,7 @@
 class GroupView extends ActivityContentDisplay
 
+  JView.mixin @prototype
+
   constructor:->
 
     super
@@ -54,8 +56,6 @@ class GroupView extends ActivityContentDisplay
     @on "viewAppended", @bound "_windowDidResize"
 
   privateGroupOpenHandler: GroupsAppController.privateGroupOpenHandler
-
-  viewAppended: JView::viewAppended
 
   _windowDidResize:->
     @tabView.setHeight @getHeight() - @$('h2.sub-header').height()

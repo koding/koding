@@ -1,5 +1,7 @@
 class NavigationDocsJobsLink extends KDCustomHTMLView
 
+  JView.mixin @prototype
+
   constructor:(options = {}, data)->
 
     options.tagName    = "span"
@@ -28,8 +30,6 @@ class NavigationDocsJobsLink extends KDCustomHTMLView
         target   : "_blank"
 
   click:(event)->
-
-  viewAppended: JView::viewAppended
 
   pistachio: ->
     """

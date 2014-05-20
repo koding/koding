@@ -167,6 +167,45 @@ fetchPrivateMessages = (data, callback)->
   url = "#{SOCIAL_API_URL}/privatemessage/list"
   get url, data, callback
 
+listNotifications = (data, callback)->
+  if not data.accountId # or not data.groupName
+    return callback {message: "Request is not valid"}
+
+  url = "#{SOCIAL_API_URL}/notification/#{data.accountId}"
+  get url, data, callback
+
+glanceNotifications = (accountId, callback)->
+  if not accountId
+    return callback {message: "Request is not valid"}
+
+  url = "#{SOCIAL_API_URL}/notification/glance"
+  post url, {accountId}, callback
+
+followUser = (data, callback)->
+  followHelper data, followTopic, callback
+
+unfollowUser = (data, callback)->
+  followHelper data, unfollowTopic, callback
+
+followHelper = (data, followFn, callback) ->
+  unless data.accountId and data.creatorId
+    return callback {message: "Request is not valid"}
+
+  data.typeConstant = "followers"
+  data.name = "FollowersChannelAccount-#{data.creatorId}"
+
+  createChannel data, (err, socialApiChannel) =>
+    return callback err  if err
+    data.channelId = socialApiChannel.id
+    followFn data, callback
+
+createGroupNotification = (data, callback)->
+  unless data.admins?.length and data.actorId and data.name
+    return callback {message: "Request is not valid"}
+
+  url = "#{SOCIAL_API_URL}/notification/group"
+  post url, data, callback
+
 searchTopics = (data, callback)->
   if not data.name
     return callback { message: "Name should be set for topic search"}
@@ -220,4 +259,9 @@ module.exports = {
   fetchMessage
   fetchChannelActivities
   fetchGroupChannels
+  listNotifications
+  glanceNotifications
+  followUser
+  unfollowUser
+  createGroupNotification
 }

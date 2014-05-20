@@ -43,6 +43,7 @@ CREATE UNIQUE INDEX  "channel_id_key" ON api.channel USING btree(id ASC NULLS LA
 -- ----------------------------
 ALTER TABLE api.channel ADD CONSTRAINT "channel_created_at_lte_updated_at_check" CHECK (created_at <= updated_at);
 
+
 -- ------------------------------------------------------------------------------------------
 --  Structure for table ChannelMessage
 -- ------------------------------------------------------------------------------------------

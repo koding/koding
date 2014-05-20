@@ -1,5 +1,7 @@
 class LoginViewInlineForm extends KDFormView
 
+  JView.mixin @prototype
+
   viewAppended:->
 
     @setTemplate @pistachio()

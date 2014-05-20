@@ -137,10 +137,9 @@ func (c *ChannelMessageList) getMessages(q *Query) ([]*ChannelMessageContainer, 
 		Selector: map[string]interface{}{
 			"channel_id": c.ChannelId,
 		},
-		Pluck: "message_id",
-		Skip:  q.Skip,
-		Limit: q.Limit,
-		Sort:  map[string]string{"added_at": "DESC"},
+		Pluck:      "message_id",
+		Pagination: *bongo.NewPagination(q.Limit, q.Skip),
+		Sort:       map[string]string{"added_at": "DESC"},
 	}
 
 	bongoQuery := bongo.B.BuildQuery(c, query)
@@ -212,9 +211,8 @@ func (c *ChannelMessageList) FetchMessageIdsByChannelId(channelId int64, q *Quer
 		Selector: map[string]interface{}{
 			"channel_id": channelId,
 		},
-		Pluck: "message_id",
-		Limit: q.Limit,
-		Skip:  q.Skip,
+		Pluck:      "message_id",
+		Pagination: *bongo.NewPagination(q.Limit, q.Skip),
 		Sort: map[string]string{
 			"added_at": "DESC",
 		},

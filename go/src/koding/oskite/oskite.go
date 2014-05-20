@@ -4,6 +4,7 @@ import (
 	"encoding/binary"
 	"errors"
 	"fmt"
+	"io/ioutil"
 	"koding/db/mongodb"
 	"koding/db/mongodb/modelhelper"
 	"koding/kodingkite"
@@ -23,15 +24,17 @@ import (
 	"syscall"
 	"time"
 
+	redigo "github.com/garyburd/redigo/redis"
 	kitelib "github.com/koding/kite"
 	"github.com/koding/redis"
+	"gopkg.in/fatih/set.v0"
 	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
 )
 
 const (
 	OSKITE_NAME    = "oskite"
-	OSKITE_VERSION = "0.2.7"
+	OSKITE_VERSION = "0.2.13"
 )
 
 var (
@@ -67,9 +70,13 @@ type Oskite struct {
 	ServiceUniquename string
 	VmTimeout         time.Duration
 	TemplateDir       string
+	VMRoot            string
 	DisableGuest      bool
 
-	RedisSession *redis.RedisSession
+	RedisSession      *redis.RedisSession
+	RedisPrefix       string
+	RedisKontainerSet string // name of the set each oskite is added
+	RedisKontainerKey string // key name which is added to the set and also used as an hash
 
 	// PrepareQueueLimit defines the number of concurrent VM preparations,
 	// should be CPU + 1
@@ -119,11 +126,20 @@ func (o *Oskite) Run() {
 		templateDir = o.TemplateDir
 	}
 
+	if o.VMRoot != "" {
+		virt.VMRoot = o.VMRoot
+	}
+
 	// set seed for even randomness, needed for randomMinutes() function.
 	rand.Seed(time.Now().UnixNano())
 
 	o.initializeSettings()
-	o.setupRedis()
+	o.prepareOsKite()
+	o.setupRedis()         // setup redis session and key/set names
+	o.handleCurrentVMs()   // handle leftover VMs
+	o.startPinnedVMs()     // start pinned always-on VMs
+	o.setupSignalHandler() // handle SIGUSR1 and other signals.
+	go o.vmUpdater()       // get states of VMS and update them on MongoDB
 
 	// we only support redis greater than 2.6.12
 	currentRedis := o.redisVersion()
@@ -138,12 +154,6 @@ func (o *Oskite) Run() {
 	for i := 0; i < o.PrepareQueueLimit; i++ {
 		go o.prepareWorker(i)
 	}
-
-	o.prepareOsKite()
-	o.handleCurrentVMs()   // handle leftover VMs
-	o.startPinnedVMs()     // start pinned always-on VMs
-	o.setupSignalHandler() // handle SIGUSR1 and other signals.
-	go o.vmUpdater()       // get states of VMS and update them on MongoDB
 
 	// register current client-side methods
 	o.registerMethod("vm.start", false, vmStartOld)
@@ -188,7 +198,7 @@ func (o *Oskite) Run() {
 
 	log.Info("Oskite started. Go!")
 
-	o.runNewKite()
+	go o.runNewKite()
 	o.Kite.Run()
 }
 
@@ -290,9 +300,10 @@ func (o *Oskite) prepareOsKite() {
 		kite.EnableDebug()
 	}
 
+	o.ServiceUniquename = k.ServiceUniqueName
+
 	k.LoadBalancer = o.loadBalancer
 
-	o.ServiceUniquename = k.ServiceUniqueName
 	o.Kite = k
 }
 
@@ -330,7 +341,7 @@ func (o *Oskite) handleCurrentVMs() {
 		infos[vm.Id] = info
 		infosMutex.Unlock()
 
-		if err := updateState(vm.Id); err != nil {
+		if _, err := updateState(vm.Id, vm.State); err != nil {
 			log.Error("%v", err)
 		}
 
@@ -345,6 +356,45 @@ func (o *Oskite) handleCurrentVMs() {
 	log.Info("VMs in /var/lib/lxc are finished.")
 }
 
+// currentVMS returns a set of VM ids on the current host machine with their
+// associated mongodb objectid's taken from the directory name
+func currentVMs() (set.Interface, error) {
+	dirs, err := ioutil.ReadDir("/var/lib/lxc")
+	if err != nil {
+		return nil, fmt.Errorf("vmsList err %s", err)
+	}
+
+	vms := set.NewNonTS()
+	for _, dir := range dirs {
+		if !strings.HasPrefix(dir.Name(), "vm-") {
+			continue
+		}
+
+		vmId := bson.ObjectIdHex(dir.Name()[3:])
+		vms.Add(vmId)
+	}
+
+	return vms, nil
+}
+
+func unprepareLeftover(vmId bson.ObjectId) {
+	prepareQueue <- &QueueJob{
+		msg: fmt.Sprintf("unprepare leftover vm %s", vmId.Hex()),
+		f: func() error {
+			mockVM := &virt.VM{Id: vmId}
+			if err := mockVM.Unprepare(nil, false); err != nil {
+				log.Error("leftover unprepare: %v", err)
+			}
+
+			if _, err := updateState(vmId, ""); err != nil {
+				log.Error("%v", err)
+			}
+
+			return nil
+		},
+	}
+}
+
 func (o *Oskite) startPinnedVMs() {
 	log.Info("Starting pinned hosts, if any...")
 	mongodbConn.Run("jVMs", func(c *mgo.Collection) error {
@@ -355,7 +405,7 @@ func (o *Oskite) startPinnedVMs() {
 				break
 			}
 			if err := o.startSingleVM(&vm, nil); err != nil {
-				log.LogError(err, 0)
+				log.Error("startSingleVM error: %v", err)
 			}
 		}
 
@@ -373,19 +423,36 @@ func (o *Oskite) setupSignalHandler() {
 	signal.Notify(sigtermChannel, syscall.SIGINT, syscall.SIGTERM, syscall.SIGUSR1)
 	go func() {
 		sig := <-sigtermChannel
+		log.Info("Shutdown initiated")
 
-		defer func() {
+		closeFunc := func() {
 			log.Info("Closing and shutting down. Bye!")
 			// close amqp connections
 			o.Kite.Close()
 			os.Exit(1)
-		}()
+		}
+
+		defer closeFunc()
+
+		// force quit after ten seconds
+		if sig != syscall.SIGUSR1 {
+			time.AfterFunc(10*time.Second, func() {
+				log.Info("Force quit after 10 seconds!")
+				closeFunc()
+			})
+		}
 
 		// close the communication. We should not accept any calls anymore...
 		shuttingDown.SetClosed()
 
+		log.Info("Removing hostname '%s' from redis", o.RedisKontainerKey)
+		_, err := redigo.Int(o.RedisSession.Do("SREM", o.RedisKontainerSet, o.RedisKontainerKey))
+		if err != nil {
+			log.Error("redis SREM kontainers. err: %v", err.Error())
+		}
+
 		// ...but wait until the current calls are finished.
-		log.Info("Shutdown initiated. Waiting until current calls are finished...")
+		log.Info("Waiting until current calls are finished...")
 		requestWaitGroup.Wait()
 		log.Info("All calls are finished.")
 
@@ -426,9 +493,9 @@ func (o *Oskite) setupSignalHandler() {
 			return err
 		}
 
-		err := mongodbConn.Run("jVMs", query)
+		err = mongodbConn.Run("jVMs", query)
 		if err != nil {
-			log.LogError(err, 0)
+			log.Error("Updating hostKite for all current VMs err: %v", err)
 		}
 	}()
 }
@@ -623,24 +690,37 @@ func (o *Oskite) validateVM(vm *virt.VM) error {
 	return nil
 }
 
-func updateState(vmId bson.ObjectId) error {
+func updateState(vmId bson.ObjectId, currentState string) (string, error) {
 	state := virt.GetVMState(vmId)
 	if state == "" {
 		state = "UNKNOWN"
+	}
+
+	// do not update if it's the same state
+	if currentState == state {
+		return state, nil
 	}
 
 	query := func(c *mgo.Collection) error {
 		return c.Update(bson.M{"_id": vmId}, bson.M{"$set": bson.M{"state": state}})
 	}
 
-	return mongodbConn.Run("jVMs", query)
+	return state, mongodbConn.Run("jVMs", query)
 }
 
 func (o *Oskite) startSingleVM(vm *virt.VM, channel *kite.Channel) error {
 	info := getInfo(vm)
 	info.mutex.Lock()
 	defer info.mutex.Unlock()
+
+	if blacklist.Has(vm.Id) {
+		return errors.New("vm is blacklisted")
+	}
+
 	info.stopTimeout(channel)
+
+	// validate/sanitize zero values
+	vm.ApplyDefaults()
 
 	err := o.checkVM(vm)
 	if err != nil {
@@ -652,34 +732,34 @@ func (o *Oskite) startSingleVM(vm *virt.VM, channel *kite.Channel) error {
 		return err
 	}
 
-	var lastError error
 	done := make(chan struct{}, 1)
 	prepareQueue <- &QueueJob{
 		msg: "startSingleVM " + vm.HostnameAlias,
 		f: func() error {
 			// prepare first
-			if lastError = prepareProgress(nil, vm); lastError != nil {
-				return fmt.Errorf("preparing VM %s", lastError)
-			}
+			defer func() { done <- struct{}{} }()
 
-			done <- struct{}{}
+			if err = prepareProgress(nil, vm); err != nil {
+				return fmt.Errorf("preparing VM %s", err)
+			}
 
 			return nil
 		},
 	}
 
-	log.Info("putting %s into queue. total vms in queue: %d of %d",
-		vm.HostnameAlias, currentQueueCount.Get(), len(prepareQueue))
-
 	// wait until the prepareWorker has picked us and we finished
 	// to return something to the client
 	<-done
 
-	if lastError != nil {
-		log.Error("startSingleVM error: %s", lastError)
+	if err != nil {
+		log.Error("vm %s couldn't be started, adding to blacklist for one hour. reason err: %v", vm.HostnameAlias, err)
+		blacklist.Add(vm.Id)
+		time.AfterFunc(time.Hour, func() {
+			blacklist.Remove(vm.Id)
+		})
 	}
 
-	return lastError
+	return err
 }
 
 // prepareWorker listens from prepareQueue channel and runs the functions it receives
@@ -692,7 +772,7 @@ func (o *Oskite) prepareWorker(id int) {
 	for job := range prepareQueue {
 		currentQueueCount.Add(1)
 
-		log.Info("Starting job: '%s' %s", job.msg, queueInfo())
+		log.Info("starting job: '%s' %s", job.msg, queueInfo())
 
 		done := make(chan struct{}, 1)
 		go func() {
@@ -700,9 +780,9 @@ func (o *Oskite) prepareWorker(id int) {
 
 			err := job.f() // execute our function
 			if err != nil {
-				log.Error("Aborted job: '%s' err: %s %s", job.msg, err.Error(), queueInfo())
+				log.Error("aborted job: '%s' err: %s %s", job.msg, err.Error(), queueInfo())
 			} else {
-				log.Info("Finished job: '%s' elapsed time: %s %s", job.msg, time.Since(start), queueInfo())
+				log.Info("finished job: '%s' elapsed time: %s %s", job.msg, time.Since(start), queueInfo())
 			}
 
 			done <- struct{}{}
@@ -711,7 +791,7 @@ func (o *Oskite) prepareWorker(id int) {
 		select {
 		case <-done:
 		case <-time.After(time.Second * 60):
-			log.Error("Timeout job: '%s' after 60 seconds %s", job.msg, queueInfo())
+			log.Error("timeout job: '%s' after 60 seconds %s", job.msg, queueInfo())
 		}
 
 		currentQueueCount.Add(-1)

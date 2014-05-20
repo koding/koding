@@ -1,20 +1,22 @@
 class ErrorLog
-  @create :(error, params)->
+  @create : KD.utils.throttle 500, (error, params={})->
     {
       kites : {
         os       : {version  : osVersion}
         terminal : {version  : terminalVersion}
-        stack    : {newKites : useNewKites}
       }
       version    : codeVersion
     } = KD.config
 
+    {userAgent} = window.navigator
+
     error = $.extend {
       error
-      osVersion
       terminalVersion
-      useNewKites
       codeVersion
+      userAgent
+      useNewKites   : KD.useNewKites
+      osKiteVersion : osVersion
     }, params
 
     KD.remote.api.JErrorLog.create error, ->

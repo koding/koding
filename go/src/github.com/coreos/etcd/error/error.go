@@ -24,15 +24,16 @@ import (
 
 var errors = map[int]string{
 	// command related errors
-	EcodeKeyNotFound:    "Key not found",
-	EcodeTestFailed:     "Compare failed", //test and set
-	EcodeNotFile:        "Not a file",
-	EcodeNoMorePeer:     "Reached the max number of peers in the cluster",
-	EcodeNotDir:         "Not a directory",
-	EcodeNodeExist:      "Key already exists", // create
-	EcodeRootROnly:      "Root is read only",
-	EcodeKeyIsPreserved: "The prefix of given key is a keyword in etcd",
-	EcodeDirNotEmpty:    "Directory not empty",
+	EcodeKeyNotFound:      "Key not found",
+	EcodeTestFailed:       "Compare failed", //test and set
+	EcodeNotFile:          "Not a file",
+	EcodeNoMorePeer:       "Reached the max number of peers in the cluster",
+	EcodeNotDir:           "Not a directory",
+	EcodeNodeExist:        "Key already exists", // create
+	EcodeRootROnly:        "Root is read only",
+	EcodeKeyIsPreserved:   "The prefix of given key is a keyword in etcd",
+	EcodeDirNotEmpty:      "Directory not empty",
+	EcodeExistingPeerAddr: "Peer address has existed",
 
 	// Post form related errors
 	EcodeValueRequired:        "Value is Required in POST form",
@@ -53,22 +54,26 @@ var errors = map[int]string{
 	// etcd related errors
 	EcodeWatcherCleared:      "watcher is cleared due to etcd recovery",
 	EcodeEventIndexCleared:   "The event in requested index is outdated and cleared",
-	EcodeProxyInternal:       "Proxy Internal Error",
+	EcodeStandbyInternal:     "Standby Internal Error",
 	EcodeInvalidActiveSize:   "Invalid active size",
-	EcodeInvalidPromoteDelay: "Proxy promote delay",
-	EcodePromoteError:        "Proxy promotion error",
+	EcodeInvalidPromoteDelay: "Standby promote delay",
+	EcodePromoteError:        "Standby promotion error",
+
+	// client related errors
+	EcodeClientInternal: "Client Internal Error",
 }
 
 const (
-	EcodeKeyNotFound    = 100
-	EcodeTestFailed     = 101
-	EcodeNotFile        = 102
-	EcodeNoMorePeer     = 103
-	EcodeNotDir         = 104
-	EcodeNodeExist      = 105
-	EcodeKeyIsPreserved = 106
-	EcodeRootROnly      = 107
-	EcodeDirNotEmpty    = 108
+	EcodeKeyNotFound      = 100
+	EcodeTestFailed       = 101
+	EcodeNotFile          = 102
+	EcodeNoMorePeer       = 103
+	EcodeNotDir           = 104
+	EcodeNodeExist        = 105
+	EcodeKeyIsPreserved   = 106
+	EcodeRootROnly        = 107
+	EcodeDirNotEmpty      = 108
+	EcodeExistingPeerAddr = 109
 
 	EcodeValueRequired        = 200
 	EcodePrevValueRequired    = 201
@@ -86,10 +91,12 @@ const (
 
 	EcodeWatcherCleared      = 400
 	EcodeEventIndexCleared   = 401
-	EcodeProxyInternal       = 402
+	EcodeStandbyInternal     = 402
 	EcodeInvalidActiveSize   = 403
 	EcodeInvalidPromoteDelay = 404
 	EcodePromoteError        = 405
+
+	EcodeClientInternal = 500
 )
 
 type Error struct {
@@ -114,7 +121,7 @@ func Message(code int) string {
 
 // Only for error interface
 func (e Error) Error() string {
-	return e.Message
+	return e.Message + " (" + e.Cause + ")"
 }
 
 func (e Error) toJsonString() string {

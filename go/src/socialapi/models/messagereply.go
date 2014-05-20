@@ -128,10 +128,9 @@ func (m *MessageReply) fetchMessages(query *Query) ([]ChannelMessage, error) {
 		Selector: map[string]interface{}{
 			"message_id": m.MessageId,
 		},
-		Pluck: "reply_id",
-		Skip:  query.Skip,
-		Limit: query.Limit,
-		Sort:  map[string]string{"created_at": "DESC"},
+		Pluck:      "reply_id",
+		Pagination: *bongo.NewPagination(query.Limit, query.Skip),
+		Sort:       map[string]string{"created_at": "DESC"},
 	}
 
 	bongoQuery := bongo.B.BuildQuery(m, q)

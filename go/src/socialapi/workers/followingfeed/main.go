@@ -3,11 +3,10 @@ package main
 import (
 	"flag"
 	"fmt"
+	"github.com/koding/worker"
 	"socialapi/config"
 	"socialapi/workers/followingfeed/followingfeed"
 	"socialapi/workers/helper"
-
-	"github.com/koding/worker"
 )
 
 var (

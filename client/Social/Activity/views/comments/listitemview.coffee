@@ -1,5 +1,7 @@
 class CommentListItemView extends KDListItemView
 
+  JView.mixin @prototype
+
   constructor: (options = {}, data) ->
 
     options.type = "comment"
@@ -119,14 +121,14 @@ class CommentListItemView extends KDListItemView
 
     @author = new ProfileLinkView {origin}
 
-    @body       = new KDCustomHTMLView
+    @body       = new JCustomHTMLView
       cssClass  : "comment-body-container"
       pistachio : "{p{KD.utils.applyTextExpansions #(body), yes}}"
     , data
 
     @formWrapper = new KDCustomHTMLView cssClass: "edit-comment-wrapper hidden"
 
-    @editInfo   = new KDCustomHTMLView
+    @editInfo   = new JCustomHTMLView
       tagName   : "span"
       cssClass  : "hidden edited"
       pistachio : "edited"

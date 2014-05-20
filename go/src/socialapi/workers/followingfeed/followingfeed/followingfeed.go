@@ -46,7 +46,7 @@ func NewFollowingFeedController(log logging.Logger) *FollowingFeedController {
 }
 
 func (f *FollowingFeedController) HandleEvent(event string, data []byte) error {
-	f.log.Debug("New Event Recieved %s", event)
+	f.log.Debug("New Event Received %s", event)
 	handler, ok := f.routes[event]
 	if !ok {
 		return worker.HandlerNotFoundErr

@@ -1,5 +1,7 @@
 class FeederOnboardingView extends KDCustomHTMLView
 
+  JView.mixin @prototype
+
   constructor:(options = {}, data)->
 
     options.cssClass  = "onboarding-wrapper"

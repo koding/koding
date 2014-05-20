@@ -63,7 +63,20 @@ sendEmail = (emailContent)->
 
 emailSender = ->
   {JMail} = worker.models
-  JMail.fetchWithUnsubscribedInfo {status: "queued"}, {limit:300}, (err, emails)->
+
+  today = new Date()
+  today.setDate    today.getDate() - emailWorker.maxAge
+  today.setHours   0
+  today.setMinutes 0
+  daysAgo = today
+
+  query = {
+    status     : "queued"
+    dateIssued : $gte: daysAgo
+  }
+
+  JMail.fetchWithUnsubscribedInfo query, {limit:300}, (err, emails)->
+
     if err
       log "Could not load email queue!"
     else

@@ -59,5 +59,5 @@ func RandomName() string {
 }
 
 func ZeroDate() time.Time {
-	return time.Date(1, time.January, 1, 1, 1, 1, 1, time.UTC)
+	return time.Date(1, time.January, 1, 0, 0, 0, 0, time.UTC)
 }

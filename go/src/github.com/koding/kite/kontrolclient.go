@@ -291,42 +291,65 @@ func (e *Event) Client() *Client {
 	return r
 }
 
-func (k *Kite) ReadyNotify() chan struct{} {
+// KontrolReadyNotify returns a channel that is closed when a successful
+// registiration to kontrol is done.
+func (k *Kite) KontrolReadyNotify() chan struct{} {
 	return k.kontrol.readyRegistered
 }
 
+// signalReady is an internal method to notify that a sucessful registiration
+// is done.
 func (k *Kite) signalReady() {
 	k.kontrol.onceRegistered.Do(func() { close(k.kontrol.readyRegistered) })
 }
 
-// RegisterForever is equilavent to Register(), however it's blocking and
-// doesn't return any error. Instead it tries to re-register if there is a
-// disconnection.
-func (k *Kite) RegisterForever(kiteURL *url.URL) {
-	// initiate a registiration if a url is given, if not just skip it.
-	if kiteURL != nil {
-		k.kontrol.registerChan <- kiteURL
-	}
+// RegisterForever is equilavent to Register(), but it tries to re-register if
+// there is a disconnection. The returned error is for the first register
+// attempt. It returns nil if ReadNotify() is ready and it's registered
+// succesfull.
+func (k *Kite) RegisterForever(kiteURL *url.URL) error {
+	errs := make(chan error, 1)
+	go func() {
+		for u := range k.kontrol.registerChan {
+			_, err := k.Register(u)
+			if err == nil {
+				k.kontrol.lastRegisteredURL = u
+				k.signalReady()
+				continue
+			}
 
-	for u := range k.kontrol.registerChan {
-		_, err := k.Register(u)
-		if err == nil {
-			k.kontrol.lastRegisteredURL = u
-			k.signalReady()
-			continue
-		}
-
-		k.Log.Error("Cannot register to Kontrol: %s Will retry after %d seconds",
-			err, kontrolRetryDuration/time.Second)
-
-		time.AfterFunc(kontrolRetryDuration, func() {
 			select {
-			case k.kontrol.registerChan <- u:
+			case errs <- err:
 			default:
 			}
-		})
 
+			k.Log.Error("Cannot register to Kontrol: %s Will retry after %d seconds",
+				err, kontrolRetryDuration/time.Second)
+
+			time.AfterFunc(kontrolRetryDuration, func() {
+				select {
+				case k.kontrol.registerChan <- u:
+				default:
+				}
+			})
+		}
+	}()
+
+	// don't block if there the given url is nil
+	if kiteURL == nil {
+		return nil
 	}
+
+	// initiate a registiration if a url is given
+	k.kontrol.registerChan <- kiteURL
+
+	select {
+	case <-k.KontrolReadyNotify():
+		return nil
+	case err := <-errs:
+		return err
+	}
+
 }
 
 // Register registers current Kite to Kontrol. After registration other Kites
