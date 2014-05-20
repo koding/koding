@@ -1,4 +1,4 @@
-class LoginView extends KDView
+class LoginView extends JView
 
   stop = KD.utils.stopDOMEvent
 
@@ -284,7 +284,7 @@ class LoginView extends KDView
       </div>
     </div>
     <footer>
-      <a href="/tos.html" target="_blank">Terms of service</a><a href="/privacy.html" target="_blank">Privacy policy</a><a href="#{backgroundImages[backgroundImageNr].href}" target="_blank"><span>photo by </span>#{backgroundImages[backgroundImageNr].photographer}</a>
+      <a href="/acceptable.html" target="_blank">Acceptable user policy</a><a href="/copyright.html" target="_blank">Copyright/DMCA guidelines</a><a href="/tos.html" target="_blank">Terms of service</a><a href="/privacy.html" target="_blank">Privacy policy</a><a href="#{backgroundImages[backgroundImageNr].href}" target="_blank"><span>photo by </span>#{backgroundImages[backgroundImageNr].photographer}</a>
     </footer>
     """
 
@@ -311,7 +311,7 @@ class LoginView extends KDView
         KD.getSingleton('router').handleRoute '/Login', {entryPoint}
         new KDNotificationView
           title     : "Check your email"
-          content   : "We've sent you a password recovery token."
+          content   : "We've sent you a password recovery code."
           duration  : 4500
 
         KD.mixpanel "Recover password, success"
@@ -572,7 +572,7 @@ class LoginView extends KDView
           @redeemForm.inviteCode.input.setFocus()
         when "login"
           @formHeader.show()
-          @formHeader.updatePartial "Dont't have an account yet? "
+          @formHeader.updatePartial "Don't have an account yet? "
           @formHeader.addSubView @goToRegisterLink
           @loginForm.username.input.setFocus()
         when "recover"

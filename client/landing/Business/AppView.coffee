@@ -1,4 +1,4 @@
-class BusinessView extends KDView
+class BusinessView extends JView
 
   constructor: ->
 
@@ -19,8 +19,6 @@ class BusinessView extends KDView
     @testimonials = new TestimonialsView
 
     @footer = new FooterView
-
-  viewAppended: JView::viewAppended
 
   pistachio : ->
     """
