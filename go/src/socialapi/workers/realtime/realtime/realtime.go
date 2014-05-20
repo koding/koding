@@ -28,7 +28,6 @@ type RealtimeWorkerController struct {
 
 type NotificationEvent struct {
 	RoutingKey string              `json:"routingKey"`
-	Event      string              `json:"event"`
 	Content    NotificationContent `json:"contents"`
 }
 
@@ -288,7 +287,6 @@ func (f *RealtimeWorkerController) NotifyUser(data []byte) error {
 
 	// fetch user profile name from bongo as routing key
 	ne := &NotificationEvent{}
-	ne.Event = nc.GetEventType()
 
 	ne.Content = NotificationContent{
 		TargetId:     nc.TargetId,

@@ -133,25 +133,6 @@ func (n *NotificationContent) FetchMapByIds(ids []int64) (map[int64]Notification
 	return ncMap, nil
 }
 
-// GetEventType retrieves related event name for the NotificationContent instance
-func (n *NotificationContent) GetEventType() string {
-	// TODO it could be stored in a map
-	switch n.TypeConstant {
-	case NotificationContent_TYPE_LIKE:
-		return "LikeIsAdded"
-	case NotificationContent_TYPE_COMMENT:
-		return "ReplyIsAdded"
-	case NotificationContent_TYPE_FOLLOW:
-		return "FollowHappened"
-	case NotificationContent_TYPE_JOIN:
-		return "GroupJoined"
-	case NotificationContent_TYPE_LEAVE:
-		return "GroupLeft"
-	default:
-		return "undefined"
-	}
-}
-
 // CreateNotificationType creates an instance of notifiable subclasses
 func CreateNotificationContentType(notificationType string) (Notifiable, error) {
 	switch notificationType {
