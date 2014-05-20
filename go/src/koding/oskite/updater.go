@@ -34,7 +34,7 @@ func (o *Oskite) vmUpdater() {
 		return iter.Close()
 	}
 
-	for _ = range time.Tick(time.Second * 10) {
+	for _ = range time.Tick(time.Second * 30) {
 		if err := mongodbConn.Run("jVMs", query); err != nil {
 			log.Error("allVMs fetching err: %s", err.Error())
 		}
