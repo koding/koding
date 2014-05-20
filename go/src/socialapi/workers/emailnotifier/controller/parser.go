@@ -16,6 +16,7 @@ type NotificationContainer struct {
 	Slug            string
 	ActivityMessage string
 	ObjectType      string
+	Group           GroupContent
 }
 
 type MailContent struct {
@@ -32,10 +33,15 @@ type MailContent struct {
 	Sender       string
 	Action       string
 	ContentLink  string
-	Group        string
+	Group        GroupContent
 	Message      string
 	Slug         string
 	ObjectType   string
+}
+
+type GroupContent struct {
+	Slug string
+	Name string
 }
 
 func renderTemplate(uc *UserContact, nc *NotificationContainer) (string, error) {
@@ -47,6 +53,7 @@ func renderTemplate(uc *UserContact, nc *NotificationContainer) (string, error) 
 		"../socialapi/workers/emailnotifier/templates/gravatar.tmpl"))
 	mc, err := buildMailContent(uc, nc)
 	t = appendPreviewTemplate(t, nc)
+	t = appendGroupTemplate(t, nc)
 
 	if err != nil {
 		return "", err
@@ -68,6 +75,7 @@ func buildMailContent(uc *UserContact, nc *NotificationContainer) (*MailContent,
 		Message:    nc.Message,
 		Action:     nc.ActivityMessage,
 		ObjectType: nc.ObjectType,
+		Group:      nc.Group,
 	}
 
 	mc.CurrentDate, mc.ActivityTime = prepareDateTime(nc)
@@ -80,6 +88,20 @@ func buildMailContent(uc *UserContact, nc *NotificationContainer) (*MailContent,
 	mc.ActorContact = *actor
 
 	return mc, nil
+}
+
+func appendGroupTemplate(t *template.Template, nc *NotificationContainer) *template.Template {
+	var groupTemplate *template.Template
+	if nc.Group.Name == "" || nc.Group.Slug == "koding" {
+		groupTemplate = getEmptyTemplate()
+	} else {
+		groupTemplate = template.Must(
+			template.ParseFiles("../socialapi/workers/emailnotifier/templates/group.tmpl"))
+	}
+
+	t.AddParseTree("group", groupTemplate.Tree)
+
+	return t
 }
 
 func appendPreviewTemplate(t *template.Template, nc *NotificationContainer) *template.Template {
