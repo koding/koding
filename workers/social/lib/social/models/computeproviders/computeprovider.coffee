@@ -118,7 +118,7 @@ module.exports = class ComputeProvider extends Base
 
 
 
-  @fetchAvailable = revive
+  @fetchAvailable = secure revive
 
     shouldReviveClient   : no
     shouldPassCredential : yes
@@ -127,10 +127,6 @@ module.exports = class ComputeProvider extends Base
 
     {provider} = options
     provider.fetchAvailable client, options, callback
-
-  @fetchAvailable$ = permit 'list machines', success: @fetchAvailable
-
-
 
 
 
