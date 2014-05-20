@@ -51,7 +51,7 @@ class CommentListItemView extends KDListItemView
     @likeView.hide()
     @replyView?.hide()
 
-    @form = new EditCommentForm delegate: this, @getData()
+    @form = new CommentEditForm delegate: this, @getData()
     @formWrapper.addSubView @form
     @formWrapper.show()
 
