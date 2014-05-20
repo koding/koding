@@ -12,17 +12,10 @@
           {{.ActorContact.FirstName}} {{.ActorContact.LastName}}
         </a>
         {{.Action}}
-        <a href="{{.Uri}}/Activity/{{.Slug}}" style="text-decoration:none; color:#1AAF5D;">
-        status update
-        </a>
+        {{template "object" . }}
         {{.Group}}
       </div>
-      <div style="padding:10px; margin-left:28px; color:#777;
-                                  margin-bottom:6px; margin-top: 4px;
-                                  font-size:12px; background-color:#F8F8F8;
-                                  border-radius:4px;">
-        {{.Preview}}
-      </div>
+      {{template "preview" . }}
   </td>
 </tr>
 {{end}}
