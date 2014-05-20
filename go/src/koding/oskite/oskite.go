@@ -4,6 +4,7 @@ import (
 	"encoding/binary"
 	"errors"
 	"fmt"
+	"io/ioutil"
 	"koding/db/mongodb"
 	"koding/db/mongodb/modelhelper"
 	"koding/kodingkite"
@@ -26,6 +27,7 @@ import (
 	redigo "github.com/garyburd/redigo/redis"
 	kitelib "github.com/koding/kite"
 	"github.com/koding/redis"
+	"gopkg.in/fatih/set.v0"
 	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
 )
@@ -339,7 +341,7 @@ func (o *Oskite) handleCurrentVMs() {
 		infos[vm.Id] = info
 		infosMutex.Unlock()
 
-		if err := updateState(vm.Id); err != nil {
+		if err := updateState(vm.Id, vm.State); err != nil {
 			log.Error("%v", err)
 		}
 
@@ -352,6 +354,27 @@ func (o *Oskite) handleCurrentVMs() {
 	})
 
 	log.Info("VMs in /var/lib/lxc are finished.")
+}
+
+// currentVMS returns a set of VM ids on the current host machine with their
+// associated mongodb objectid's taken from the directory name
+func currentVMs() (set.Interface, error) {
+	dirs, err := ioutil.ReadDir("/var/lib/lxc")
+	if err != nil {
+		return nil, fmt.Errorf("vmsList err %s", err)
+	}
+
+	vms := set.NewNonTS()
+	for _, dir := range dirs {
+		if !strings.HasPrefix(dir.Name(), "vm-") {
+			continue
+		}
+
+		vmId := bson.ObjectIdHex(dir.Name()[3:])
+		vms.Add(vmId)
+	}
+
+	return vms, nil
 }
 
 func (o *Oskite) startPinnedVMs() {
@@ -649,10 +672,15 @@ func (o *Oskite) validateVM(vm *virt.VM) error {
 	return nil
 }
 
-func updateState(vmId bson.ObjectId) error {
+func updateState(vmId bson.ObjectId, currentState string) error {
 	state := virt.GetVMState(vmId)
 	if state == "" {
 		state = "UNKNOWN"
+	}
+
+	// do not update if it's the same state
+	if currentState == state {
+		return nil
 	}
 
 	query := func(c *mgo.Collection) error {
