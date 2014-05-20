@@ -162,3 +162,26 @@ func (m *MessageReply) Count() (int, error) {
 		m.MessageId,
 	)
 }
+
+func (m *MessageReply) FetchRepliedMessage() (*ChannelMessage, error) {
+	if m.ReplyId == 0 {
+		return nil, errors.New("ReplyId is not set")
+	}
+
+	q := &bongo.Query{
+		Selector: map[string]interface{}{
+			"reply_id": m.ReplyId,
+		},
+	}
+
+	if err := m.One(q); err != nil {
+		return nil, err
+	}
+
+	parent := NewChannelMessage()
+	if err := parent.ById(m.MessageId); err != nil {
+		return nil, err
+	}
+
+	return parent, nil
+}
