@@ -30,7 +30,11 @@ class ActivitySharePopup extends SharePopup
   getNewTabOptions:(options)->
     return { enabled : true, url : options.url }
 
-class ActivityActionsView extends KDView
+class ActivityActionsView extends JView
+
+  JView.mixin @prototype
+
+  JView.mixin @prototype
 
   contextMenu = null
   constructor:->
@@ -92,10 +96,8 @@ class ActivityActionsView extends KDView
     #     delete @commentLink.tooltip
 
   viewAppended:->
-
+    super()
     @setClass "activity-actions"
-    @setTemplate @pistachio()
-    @template.update()
     @attachListeners()
     @loader.hide()
 
@@ -135,6 +137,9 @@ class ActivityActionLink extends KDCustomHTMLView
     super options,data
 
 class ActivityCountLink extends KDCustomHTMLView
+
+  JView.mixin @prototype
+
   constructor:(options,data)->
     options = $.extend
       tagName   : "a"
@@ -149,8 +154,7 @@ class ActivityCountLink extends KDCustomHTMLView
     @setCount @getData()
 
   viewAppended:->
-    @setTemplate @pistachio()
-    @template.update()
+    super()
     activity = @getData()
     @setCount activity
 

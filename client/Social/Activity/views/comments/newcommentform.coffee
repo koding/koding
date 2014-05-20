@@ -87,7 +87,7 @@ class EditCommentForm extends NewCommentForm
     options.editable = yes
     super options, data
 
-    @commentFormWrapper.addSubView new KDCustomHTMLView
+    @commentFormWrapper.addSubView new JCustomHTMLView
       cssClass  : "cancel-description"
       pistachio : "Press Esc to cancel"
 

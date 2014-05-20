@@ -1,4 +1,7 @@
 class StatusActivityItemView extends ActivityItemChild
+
+  JView.mixin @prototype
+
   constructor:(options = {}, data={})->
     options.cssClass or= "activity-item status"
     options.tooltip  or=
@@ -33,9 +36,7 @@ class StatusActivityItemView extends ActivityItemChild
 
   viewAppended:->
     return if @getData().constructor is KD.remote.api.CStatusActivity
-    super
-    @setTemplate @pistachio()
-    @template.update()
+    JView::viewAppended.call this
 
     @setAnchors()
 

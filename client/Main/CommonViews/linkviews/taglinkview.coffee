@@ -1,5 +1,7 @@
 class TagLinkView extends LinkView
 
+  JView.mixin @prototype
+
   constructor:(options = {}, data)->
     options.expandable ?= yes
     options.clickable  ?= yes
@@ -18,7 +20,7 @@ class TagLinkView extends LinkView
     @on "viewAppended", => @tooltip?.setPosition()
 
   pistachio:->
-    super "{{#(title)}}"
+    JView::pistachio.call this, "{{#(title)}}"
 
 #  click:(event)->
 #    event?.stopPropagation()

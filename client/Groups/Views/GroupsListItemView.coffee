@@ -1,5 +1,7 @@
 class GroupsListItemView extends KDListItemView
 
+  JView.mixin @prototype
+
   constructor:(options = {}, data)->
     options.type = "groups"
 
@@ -10,7 +12,7 @@ class GroupsListItemView extends KDListItemView
 
     slugLink = if slug is KD.defaultSlug then '/' else "/#{slug}"
 
-    @titleLink = new KDCustomHTMLView
+    @titleLink = new JCustomHTMLView
       tagName     : 'a'
       attributes  :
         href      : slugLink
@@ -110,8 +112,6 @@ class GroupsListItemView extends KDListItemView
     event.stopPropagation()
     event.preventDefault()
     #KD.getSingleton("appManager").tell "Groups", "createContentDisplay", group
-
-  viewAppended: JView::viewAppended
 
   setFollowerCount:(count)-> @$('.followers a').html count
 
@@ -283,6 +283,8 @@ class GroupsListItemView extends KDListItemView
 
 class GroupItemMemberView extends KDListItemView
 
+  JView.mixin @prototype
+
   constructor:(options = {}, data)->
 
     options.type    = "member"
@@ -299,7 +301,5 @@ class GroupItemMemberView extends KDListItemView
       tooltip   :
         title   : KD.utils.getFullnameFromAccount account
     , account
-
-  viewAppended:JView::viewAppended
 
   pistachio:-> "{{> @avatar}}"

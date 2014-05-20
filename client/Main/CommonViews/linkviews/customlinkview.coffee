@@ -1,5 +1,7 @@
 class CustomLinkView extends KDCustomHTMLView
 
+  JView.mixin @prototype
+
   constructor:(options = {}, data = {})->
 
     options.tagName or= 'a'
@@ -22,8 +24,6 @@ class CustomLinkView extends KDCustomHTMLView
       options.icon.cssClass = KD.utils.curry "icon", options.icon.cssClass
 
       @icon = new KDCustomHTMLView options.icon
-
-  viewAppended : JView::viewAppended
 
   pistachio:->
 

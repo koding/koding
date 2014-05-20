@@ -1,5 +1,7 @@
 class AppsListItemView extends KDListItemView
 
+  JView.mixin @prototype
+
   constructor:(options = {}, data)->
 
     options.type = "appstore"
@@ -36,8 +38,6 @@ class AppsListItemView extends KDListItemView
 
   # Override KDView::render since I'm updating all the manifest at once ~ GG
   render:-> @template.update()
-
-  viewAppended: JView::viewAppended
 
   pistachio:->
     data   = @getData()
