@@ -106,7 +106,7 @@ module.exports = class GuestCleanerWorker
               #JSession doesnt have any relationship to JAccount
               guestId = account.profile.nickname.split("-")[1]
               # one user can have multiple sessions but, guest account can only has one session!
-              console.log "GuestCleanerWorker.clean JSession#remove", { guestId }
+              console.log "GuestCleanerWorker.clean JSession#remove", {guestId}
               JSession.remove {guestId:guestId},(err)->
                 if err then console.error err
                 queue.next()
