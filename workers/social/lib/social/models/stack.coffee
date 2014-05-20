@@ -149,17 +149,15 @@ module.exports = class JStack extends jraphical.Module
       JStack.some selector, options, (err, _stacks)->
 
         stacks = []
-        queue  = []
 
-        for stack in _stacks
-          queue.push -> stack.revive (err, revivedStack)->
+        daisy queue = _stacks.map (stack) -> ->
+          stack.revive (err, revivedStack)->
             stacks.push revivedStack
             queue.next()
 
         queue.push ->
           callback null, stacks
 
-        daisy queue
 
   revive: (callback)->
 
