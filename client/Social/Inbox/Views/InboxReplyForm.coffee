@@ -1,4 +1,4 @@
-class InboxReplyForm extends NewCommentForm
+class InboxReplyForm extends CommentInputForm
   constructor:(options,data)->
     options = $.extend
       type      : "reply"

@@ -86,4 +86,4 @@ class MessagePane extends KDTabPaneView
     channel = @getData()
 
     @input = new ActivityInputWidget {channel}
-      .on 'Submit', @listController.bound 'addItem'
+      # .on 'Submit', @listController.bound 'addItem'

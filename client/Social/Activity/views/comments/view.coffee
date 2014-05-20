@@ -6,9 +6,7 @@ class CommentView extends KDView
 
     super options, data
 
-    @header = new CommentViewHeader delegate: this, data
-
-    @inputForm = new NewCommentForm delegate: this
+    @inputForm = new CommentInputForm delegate: this
       .on "Focused", @bound "decorateAsFocused"
       .on "Blured", @bound "resetDecoration"
       .on "Submit", @bound "reply"
@@ -16,10 +14,12 @@ class CommentView extends KDView
     @controller = new CommentListViewController delegate: this, data
       .on "Mention", @inputForm.bound "mention"
 
-    @forwardEvent @header, "AsyncJobStarted"
-    @forwardEvent @header, "AsyncJobDone"
 
     @on "Reply", @inputForm.bound "setFocus"
+
+    data
+      .on "AddReply", @controller.bound "addItem"
+      .on "RemoveReply", @controller.lazyBound "removeItem", null
 
 
   reply: (body, callback = noop) ->
@@ -33,12 +33,9 @@ class CommentView extends KDView
 
       return KD.showError err  if err
 
-      if not KD.getSingleton('activityController').flags?.liveUpdates
-        @controller.addItem reply
-
-    KD.mixpanel "Comment activity, success"
-    KD.getSingleton("badgeController").checkBadge
-      property: "comments", relType: "commenter", source: "JNewStatusUpdate", targetSelf: 1
+      KD.mixpanel "Comment activity, success"
+      KD.getSingleton("badgeController").checkBadge
+        property: "comments", relType: "commenter", source: "JNewStatusUpdate", targetSelf: 1
 
 
   decorateAsPassive: ->
@@ -78,7 +75,6 @@ class CommentView extends KDView
 
     @setFixedHeight fixedHeight  if {fixedHeight} = @getOptions()
 
-    @addSubView @header
     @addSubView @controller.getView()
     @addSubView @inputForm
 

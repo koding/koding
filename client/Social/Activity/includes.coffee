@@ -12,7 +12,7 @@ module.exports = [
   "sidebar/topicitem.coffee"
   "sidebar/pinneditem.coffee"
 
-  "messagepane.coffee"
+  "views/messagepane.coffee"
 
   # Activity commons
   "views/feedcoverphotoview.coffee"
@@ -48,16 +48,15 @@ module.exports = [
   "views/tags/TagViews.coffee"
   "views/tags/TagAutoCompleteController.coffee"
 
-  "views/comments/newcommentform.coffee"
-  "views/comments/editcommentform.coffee"
-  "views/comments/commentcount.coffee"
-  "views/comments/commentlikeview.coffee"
-  "views/comments/commentview.coffee"
-  "views/comments/commentlistviewcontroller.coffee"
-  "views/comments/commentviewheader.coffee"
-  "views/comments/commentsettingsbutton.coffee"
-  "views/comments/commentdeletemodal.coffee"
-  "views/comments/commentlistitemview.coffee"
+  "views/comments/inputform.coffee"
+  "views/comments/editform.coffee"
+  "views/comments/count.coffee"
+  "views/comments/likeview.coffee"
+  "views/comments/view.coffee"
+  "views/comments/listviewcontroller.coffee"
+  "views/comments/settingsbutton.coffee"
+  "views/comments/deletemodal.coffee"
+  "views/comments/listitemview.coffee"
 
   "views/inputview.coffee"
   "views/inputwidget.coffee"

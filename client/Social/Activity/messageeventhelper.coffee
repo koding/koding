@@ -14,6 +14,8 @@ class MessageEventHelper extends KDObject
     message
       .on "InteractionAdded", @bound "addInteraction"
       .on "InteractionRemoved", @bound "removeInteraction"
+      .on "ReplyAdded", @lazyBound "addReply", message
+      .on "ReplyRemoved", @lazyBound "removeReply", message
 
 
   addInteraction: (event) ->
@@ -55,4 +57,27 @@ class MessageEventHelper extends KDObject
     like.actorsPreview = like.actorsPreview.filter (id) -> id isnt accountOldId
 
     message.emit "LikeRemoved"
+    message.emit "update"
+
+
+  addReply: (message, plain) ->
+
+    reply = KD.singleton("socialapi").message.revive plain
+
+    message.replies.push reply
+    message.repliesCount++
+
+    message.emit "AddReply", reply
+    message.emit "update"
+
+
+  removeReply: (message, {replyId}) ->
+
+    for item in message.replies
+      reply = item  if replyId is item.getId()
+
+    message.replies = message.replies.filter (reply) -> reply.getId() isnt replyId
+    message.repliesCount--
+
+    message.emit "RemoveReply", reply
     message.emit "update"

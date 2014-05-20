@@ -11,7 +11,7 @@ class CommentListViewController extends KDListViewController
 
     super options, data
 
-    {delegate} = options
+
 
 
   instantiateListItems: (items) ->
@@ -21,10 +21,7 @@ class CommentListViewController extends KDListViewController
 
   loadView: (mainView) ->
 
-    {scrollView, noItemFoundWidget} = @getOptions()
-
-    @setScrollView mainView  if scrollView
-    @putNoItemView()  if noItemFoundWidget
+    super mainView
 
     {replies} = @getData()
     @instantiateListItems replies  if replies.length
