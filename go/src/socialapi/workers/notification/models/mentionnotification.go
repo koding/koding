@@ -49,5 +49,5 @@ func (n *MentionNotification) GetDefinition() string {
 }
 
 func (n *MentionNotification) GetActivity() string {
-	return "mentioned you"
+	return "mentioned you in a"
 }

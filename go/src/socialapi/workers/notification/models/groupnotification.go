@@ -67,5 +67,5 @@ func (n *GroupNotification) GetActivity() string {
 		action = "left"
 	}
 
-	return "has " + action + " your group"
+	return "has " + action + " your group."
 }
