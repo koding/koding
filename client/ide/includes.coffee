@@ -9,6 +9,7 @@ module.exports = [
   "workspace/panes/terminalpane.coffee"
   "workspace/panes/drawingpane.coffee"
   "workspace/panes/previewpane.coffee"
+  "workspace/panes/finderpane.coffee"
 
   "workspace/panel.coffee"
   "workspace/workspace.coffee"
