@@ -29,8 +29,8 @@ class SocialApiController extends KDController
         isExclusive: yes
 
       name = "socialapi.#{slug}-group-#{slug}"
-      KD.remote.subscribe name, subscriptionData, (brokerChannel) =>
-        @forwardMessageEvents brokerChannel, this, ["MessageAdded", "MessageRemoved"]
+      brokerChannel= KD.remote.subscribe name, subscriptionData
+      @forwardMessageEvents brokerChannel, this, ["MessageAdded", "MessageRemoved"]
 
   mapActivity = (data) ->
 
