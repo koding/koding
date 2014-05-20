@@ -146,6 +146,7 @@ func buildContainer(a *models.NotificationActivity, nc *models.NotificationConte
 			return nil, fmt.Errorf("target message not found")
 		}
 
+		prepareGroup(container, target)
 		prepareSlug(container, target)
 		prepareObjectType(container, target)
 		container.Message = fetchContentBody(nc, target)
@@ -156,6 +157,18 @@ func buildContainer(a *models.NotificationActivity, nc *models.NotificationConte
 	container.ActivityMessage = contentType.GetActivity()
 
 	return container, nil
+}
+
+func prepareGroup(container *NotificationContainer, cm *socialmodels.ChannelMessage) {
+	c := socialmodels.NewChannel()
+	if err := c.ById(cm.InitialChannelId); err != nil {
+		return
+	}
+	// TODO fix these Slug and Name
+	container.Group = GroupContent{
+		Slug: c.GroupName,
+		Name: c.GroupName,
+	}
 }
 
 func prepareSlug(container *NotificationContainer, cm *socialmodels.ChannelMessage) {
