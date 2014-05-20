@@ -157,7 +157,7 @@ task 'socialWorker', "Run the socialWorker", ({configFile}) ->
       #   else
       #     delete exitingProcesses[pid]
 
-  if social.watch?
+  if social.watch is yes
     watcher = new Watcher
       groups   :
         social   :
@@ -549,15 +549,6 @@ task 'proxyKite', "Run the proxy kite", (options) ->
     stderr  : process.stderr
     verbose : yes
 
-task 'regservKite', "Run the regserv kite", (options) ->
-  {configFile} = options
-  processes.spawn
-    name    : 'regservKite'
-    cmd     : "vagrant ssh default -c 'cd /opt/koding; sudo killall -q -KILL regserv; sudo KITE_HOME=/opt/koding/kite_home/koding /opt/koding/go/bin-vagrant/regserv -c #{configFile} -r vagrant'"
-    stdout  : process.stdout
-    stderr  : process.stderr
-    verbose : yes
-
 task 'checkConfig', "Check the local config files for errors", ({configFile})->
   console.log "[KONFIG CHECK] If you don't see any errors, you're fine."
   require('koding-config-manager').load("main.#{configFile}")
@@ -603,7 +594,6 @@ run =({configFile})->
 
     invoke 'kontrolKite'                      if config.runKontrol
     invoke 'proxyKite'                        if config.runKontrol
-    invoke 'regservKite'                      if config.runKontrol
 
     invoke 'goBroker'                         if config.runGoBroker
     invoke 'goBrokerKite'                     if config.runGoBrokerKite

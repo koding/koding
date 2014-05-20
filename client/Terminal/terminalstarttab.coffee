@@ -27,6 +27,7 @@ class TerminalStartTab extends JView
 
     vmController.fetchVMs force, (err, vms)=>
       if err
+        ErrorLog.create "terminal: Couldn't fetch vms", reason:err
         return new KDNotificationView title : "Couldn't fetch your VMs"
 
       vms.sort (a,b)-> a.hostnameAlias > b.hostnameAlias
@@ -47,12 +48,12 @@ class TerminalStartTab extends JView
 
       for own alias, kite of osKites
         if kite.recentState
-          @vmWrapper[alias].handleVMInfo kite.recentState
+          @vmWrapper[alias]?.handleVMInfo kite.recentState
 
-    vmController.on 'vm.progress.start', ({alias, update}) => @vmWrapper[alias].handleVMStart update
-    vmController.on 'vm.progress.stop',  ({alias, update}) => @vmWrapper[alias].handleVMStop update
-    vmController.on 'vm.state.info',     ({alias, state})  => @vmWrapper[alias].handleVMInfo state
-    vmController.on 'vm.progress.error', ({alias, error}) => @vmWrapper[alias].handleVMError error
+    vmController.on 'vm.progress.start', ({alias, update}) => @vmWrapper[alias]?.handleVMStart update
+    vmController.on 'vm.progress.stop',  ({alias, update}) => @vmWrapper[alias]?.handleVMStop update
+    vmController.on 'vm.state.info',     ({alias, state})  => @vmWrapper[alias]?.handleVMInfo state
+    vmController.on 'vm.progress.error', ({alias, error}) => @vmWrapper[alias]?.handleVMError error
 
 
   listVMs:(vms)->

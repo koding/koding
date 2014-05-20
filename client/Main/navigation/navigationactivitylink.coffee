@@ -1,5 +1,7 @@
 class NavigationActivityLink extends KDCustomHTMLView
 
+  JView.mixin @prototype
+
   constructor:(options = {}, data)->
     options.tagName  = "a"
     options.cssClass = "title"
@@ -46,9 +48,5 @@ class NavigationActivityLink extends KDCustomHTMLView
   setActivityLinkToDefaultState: ->
     @icon.show()
     @count.hide()
-
-  viewAppended:->
-    @setTemplate @pistachio()
-    @template.update()
 
   pistachio: -> "{{> @count}} {{> @icon}} #{@getData().title}"

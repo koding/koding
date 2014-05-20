@@ -1,4 +1,5 @@
 ElasticSearch = require './elasticsearch'
+_             = require 'underscore'
 
 {
   secure
@@ -27,8 +28,12 @@ module.exports = class JPageHit extends ElasticSearch
       {pathname, query} = (require "url").parse path
       query             = (require "querystring").parse query
 
-      record.path  = pathname
-      record.query = query
+      record.userAgent =
+
+      record = _.extend {
+        pathname
+        query
+      } , params, record
 
       documents = [ record ]
 

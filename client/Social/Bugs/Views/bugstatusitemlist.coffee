@@ -1,5 +1,7 @@
 class BugStatusItemList extends ActivityListItemView
 
+  JView.mixin @prototype
+
   constructor:( options={}, data)->
     super options, data
 
@@ -75,5 +77,3 @@ class BugStatusItemList extends ActivityListItemView
 
       activity.modify options, (err)->
         log err if err
-
-  viewAppended: JView::viewAppended

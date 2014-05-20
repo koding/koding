@@ -1,4 +1,4 @@
-class AvatarTooltipView extends KDView
+class AvatarTooltipView extends JView
   constructor:(options={}, data)->
 
     super options, data
@@ -6,7 +6,7 @@ class AvatarTooltipView extends KDView
     origin = options.origin
     name   = KD.utils.getFullnameFromAccount @getData()
 
-    @profileName = new KDCustomHTMLView
+    @profileName = new JView
       tagName    : 'a'
       cssClass   : 'profile-name'
       attributes :
@@ -33,7 +33,7 @@ class AvatarTooltipView extends KDView
         top       : 11
     , @getData()
 
-    @followers = new KDView
+    @followers = new JView
       tagName     : 'a'
       attributes  :
         href      : '#'
@@ -43,7 +43,7 @@ class AvatarTooltipView extends KDView
         KD.getSingleton("appManager").tell "Members", "createFolloweeContentDisplay", @getData(), 'followers'
     , @getData()
 
-    @following = new KDView
+    @following = new JView
       tagName     : 'a'
       attributes  :
         href      : '#'
@@ -53,7 +53,7 @@ class AvatarTooltipView extends KDView
         KD.getSingleton("appManager").tell "Members", "createFolloweeContentDisplay", @getData(), 'following'
     , @getData()
 
-    @likes = new KDView
+    @likes = new JView
       tagName     : 'a'
       attributes  :
         href      : '#'

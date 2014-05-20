@@ -199,8 +199,6 @@ module.exports = class JAccount extends jraphical.Module
           (signature String, Function)
           (signature ObjectId, Function)
         ]
-        sendEmailVMTurnOnFailureToSysAdmin:
-          (signature String, String)
         fetchRelatedTagsFromGraph:
           (signature Object, Function)
         fetchRelatedUsersFromGraph:
@@ -1462,21 +1460,6 @@ module.exports = class JAccount extends jraphical.Module
 
 
   ## NEWER IMPLEMENATION: Fetch ids from graph db, get items from document db.
-
-  sendEmailVMTurnOnFailureToSysAdmin: secure (client, vmName, reason)->
-    time = (new Date).toJSON()
-    JMail = require './email'
-    JUser = require './user'
-    JUser.one username:client.context.user, (err, user)->
-      emailAddr = if user then user.email else ''
-      email     = new JMail
-        from    : 'hello@koding.com'
-        email   : 'sysops@koding.com'
-        replyto : emailAddr
-        subject : "'#{vmName}' vm turn on failed for user '#{client.context.user}'"
-        content : "Reason: #{reason}"
-        force   : yes
-      email.save ->
 
   unlinkOauth: secure (client, provider, callback)->
     {delegate} = client.connection

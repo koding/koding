@@ -1,12 +1,13 @@
 core features
 ===========
-* powerful collaboration
+* powerful collaboration with single player and multiplayer mode
 * powerful layout support like Codebox.io
 * open file with filename, Cmd+T in Sublime
 * search in directory
 * switch tabs with shortcut
 * switch panels with shortcut
 * autocomplete support
+* clone from git, download zip etc. (functionality is already implemented, easy to do)
 * plus all the features that we have in our current editor eg. save, save as, go to line, preview and others.
 
 
@@ -23,3 +24,4 @@ nice to have features
 * file history with diff patch match (challenging)
 * color picker (not really urgent)
 * customisable keyboard shortcuts (easy to do but not a core feature)
+* run button that work with a kd.config file in the root of project (cool feature)

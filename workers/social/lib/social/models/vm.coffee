@@ -376,8 +376,8 @@ module.exports = class JVM extends Module
             vm.save (err) =>
 
               if err
-                return console.warn "Failed to create VM for ", \
-                                     {users, groups, hostnameAlias}
+                return console.error "Failed to create VM for ", \
+                                     {users, groups, hostnameAlias, err}
 
               JDomain.createDomains {
                 account, stackId,
@@ -697,8 +697,8 @@ module.exports = class JVM extends Module
       handleError err
 
       if err
-        return console.warn "Failed to create VM for ", {
-          users, groups, hostnameAlias
+        return console.error "Failed to create VM for ", {
+          users, groups, hostnameAlias, err
         }
 
       group = groupSlug
@@ -787,7 +787,7 @@ module.exports = class JVM extends Module
         # Removing old vm domains...
         JVM.removeRelatedDomains vm, (err)=>
           if err
-            console.error "Failed to remove old domains for #{hostnameAlias}"
+            console.error "Failed to remove old domains for #{hostnameAlias}", err
 
           JAccount.one {'profile.nickname':username}, (err, account)=>
             return console.error err  if err or not account

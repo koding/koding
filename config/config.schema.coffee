@@ -306,6 +306,7 @@ config =
       cronDaily   : 1
       run         : 1
       forcedRecipient : 1
+      maxAge      : 1
     emailSender   :
       run         : 1
     guests        :

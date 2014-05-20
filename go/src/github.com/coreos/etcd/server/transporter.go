@@ -20,7 +20,6 @@ const (
 
 // Transporter layer for communication between raft nodes
 type transporter struct {
-	requestTimeout time.Duration
 	followersStats *raftFollowersStats
 	serverStats    *raftServerStats
 	registry       *Registry
@@ -43,9 +42,8 @@ func NewTransporter(followersStats *raftFollowersStats, serverStats *raftServerS
 		// HTTPS connections blocked. The patch for it is in progress,
 		// and would be available in Go1.3
 		// More: https://codereview.appspot.com/69280043/
-		ConnectTimeout:   dialTimeout,
-		RequestTimeout:   dialTimeout + responseHeaderTimeout,
-		ReadWriteTimeout: responseHeaderTimeout,
+		ConnectTimeout: dialTimeout,
+		RequestTimeout: requestTimeout,
 	}
 
 	// Sending snapshot might take a long time so we use a different HTTP transporter
@@ -55,9 +53,8 @@ func NewTransporter(followersStats *raftFollowersStats, serverStats *raftServerS
 	// average RTT.
 	// It should be equal to (TCP max window size/RTT).
 	sTr := &httpclient.Transport{
-		ConnectTimeout:   dialTimeout,
-		RequestTimeout:   snapshotTimeout,
-		ReadWriteTimeout: snapshotTimeout,
+		ConnectTimeout: dialTimeout,
+		RequestTimeout: snapshotTimeout,
 	}
 
 	t := transporter{
@@ -65,7 +62,6 @@ func NewTransporter(followersStats *raftFollowersStats, serverStats *raftServerS
 		transport:         tr,
 		snapshotClient:    &http.Client{Transport: sTr},
 		snapshotTransport: sTr,
-		requestTimeout:    requestTimeout,
 		followersStats:    followersStats,
 		serverStats:       serverStats,
 		registry:          registry,
@@ -243,6 +239,13 @@ func (t *transporter) Post(urlStr string, body io.Reader) (*http.Response, *http
 // Send server side GET request
 func (t *transporter) Get(urlStr string) (*http.Response, *http.Request, error) {
 	req, _ := http.NewRequest("GET", urlStr, nil)
+	resp, err := t.client.Do(req)
+	return resp, req, err
+}
+
+// Send server side PUT request
+func (t *transporter) Put(urlStr string, body io.Reader) (*http.Response, *http.Request, error) {
+	req, _ := http.NewRequest("PUT", urlStr, body)
 	resp, err := t.client.Do(req)
 	return resp, req, err
 }

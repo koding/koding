@@ -25,7 +25,6 @@ class TroubleshootStatusView extends KDCustomHTMLView
     terminal    : "Terminals"
     webServer   : "Webserver"
     version     : "Latest version"
-    four        : "444 port open"
 
   createItem: (name, title) ->
     if @getData()[name]

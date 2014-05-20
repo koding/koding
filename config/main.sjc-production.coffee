@@ -109,13 +109,13 @@ module.exports =
     login       : 'prod-authworker'
     queueName   : socialQueueName+'auth'
     numberOfWorkers: 2
-    watch       : yes
+    watch       : no
   emailConfirmationCheckerWorker :
     enabled              : no
     login                : 'prod-social'
     queueName            : socialQueueName+'emailConfirmationCheckerWorker'
     numberOfWorkers      : 1
-    watch                : yes
+    watch                : no
     cronSchedule         : '00 * * * * *'
     usageLimitInMinutes  : 60
   elasticSearch          :
@@ -128,7 +128,7 @@ module.exports =
     login                : 'prod-social'
     queueName            : socialQueueName+'guestcleaner'
     numberOfWorkers      : 1
-    watch                : yes
+    watch                : no
     cronSchedule         : '00 * * * * *'
     usageLimitInMinutes  : 60
   sitemapWorker          :
@@ -136,7 +136,7 @@ module.exports =
     login                : 'prod-social'
     queueName            : socialQueueName+'sitemapworker'
     numberOfWorkers      : 2
-    watch                : yes
+    watch                : no
     cronSchedule         : '00 00 00 * * *'
   topicModifier          :
     cronSchedule         : '0 */5 * * * *'
@@ -286,6 +286,7 @@ module.exports =
     cronDaily   : '0 10 0 * * *'
     run         : no
     forcedRecipient : undefined
+    maxAge      : 3
   emailSender   :
     run         : no
   guests        :

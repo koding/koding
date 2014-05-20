@@ -1,5 +1,7 @@
 class EmbedBoxLinkViewImage extends CustomLinkView
 
+  JView.mixin @prototype
+
   constructor:(options={}, data)->
     options.href   = data.link_url or data.link_embed?.url
     options.target = "_blank"

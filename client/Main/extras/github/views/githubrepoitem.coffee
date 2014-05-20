@@ -1,5 +1,7 @@
 class GitHub.RepoItem extends KDListItemView
 
+  JView.mixin @prototype
+
   constructor:(options = {}, data)->
     options.type = 'repo'
     options.buttonTitle or= 'clone'
@@ -13,8 +15,6 @@ class GitHub.RepoItem extends KDListItemView
       disabled : data._disabled
 
     @setClass 'disabled'  if data._disabled
-
-  viewAppended: JView::viewAppended
 
   pistachio:->
 

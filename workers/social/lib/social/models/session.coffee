@@ -45,6 +45,9 @@ module.exports = class JSession extends Model
 
     JAccount.on 'UsernameChanged', ({ oldUsername, mustReauthenticate }) ->
       if mustReauthenticate
+        console.log "JAccount.on 'UsernameChanged' JSession#remove", {
+          oldUsername, mustReauthenticate }
+
         JSession.remove username: oldUsername, (err) ->
           console.error err  if err?
 

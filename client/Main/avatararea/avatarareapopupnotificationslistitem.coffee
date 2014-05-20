@@ -1,4 +1,7 @@
 class PopupNotificationListItem extends NotificationListItem
+
+  JView.mixin @prototype
+
   constructor:(options = {}, data)->
     options.tagName        or= "li"
     options.linkGroupClass or= LinkGroup

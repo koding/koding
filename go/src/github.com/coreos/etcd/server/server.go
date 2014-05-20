@@ -15,7 +15,6 @@ import (
 	ehttp "github.com/coreos/etcd/http"
 	"github.com/coreos/etcd/log"
 	"github.com/coreos/etcd/metrics"
-	"github.com/coreos/etcd/mod"
 	uhttp "github.com/coreos/etcd/pkg/http"
 	"github.com/coreos/etcd/server/v1"
 	"github.com/coreos/etcd/server/v2"
@@ -100,41 +99,37 @@ func (s *Server) Store() store.Store {
 }
 
 func (s *Server) installV1(r *mux.Router) {
-	s.handleFuncV1(r, "/v1/keys/{key:.*}", v1.GetKeyHandler).Methods("GET")
+	s.handleFuncV1(r, "/v1/keys/{key:.*}", v1.GetKeyHandler).Methods("GET", "HEAD")
 	s.handleFuncV1(r, "/v1/keys/{key:.*}", v1.SetKeyHandler).Methods("POST", "PUT")
 	s.handleFuncV1(r, "/v1/keys/{key:.*}", v1.DeleteKeyHandler).Methods("DELETE")
-	s.handleFuncV1(r, "/v1/watch/{key:.*}", v1.WatchKeyHandler).Methods("GET", "POST")
-	s.handleFunc(r, "/v1/leader", s.GetLeaderHandler).Methods("GET")
-	s.handleFunc(r, "/v1/machines", s.GetPeersHandler).Methods("GET")
-	s.handleFunc(r, "/v1/peers", s.GetPeersHandler).Methods("GET")
-	s.handleFunc(r, "/v1/stats/self", s.GetStatsHandler).Methods("GET")
-	s.handleFunc(r, "/v1/stats/leader", s.GetLeaderStatsHandler).Methods("GET")
-	s.handleFunc(r, "/v1/stats/store", s.GetStoreStatsHandler).Methods("GET")
+	s.handleFuncV1(r, "/v1/watch/{key:.*}", v1.WatchKeyHandler).Methods("GET", "HEAD", "POST")
+	s.handleFunc(r, "/v1/leader", s.GetLeaderHandler).Methods("GET", "HEAD")
+	s.handleFunc(r, "/v1/machines", s.GetPeersHandler).Methods("GET", "HEAD")
+	s.handleFunc(r, "/v1/peers", s.GetPeersHandler).Methods("GET", "HEAD")
+	s.handleFunc(r, "/v1/stats/self", s.GetStatsHandler).Methods("GET", "HEAD")
+	s.handleFunc(r, "/v1/stats/leader", s.GetLeaderStatsHandler).Methods("GET", "HEAD")
+	s.handleFunc(r, "/v1/stats/store", s.GetStoreStatsHandler).Methods("GET", "HEAD")
 }
 
 func (s *Server) installV2(r *mux.Router) {
 	r2 := mux.NewRouter()
 	r.PathPrefix("/v2").Handler(ehttp.NewLowerQueryParamsHandler(r2))
 
-	s.handleFuncV2(r2, "/v2/keys/{key:.*}", v2.GetHandler).Methods("GET")
+	s.handleFuncV2(r2, "/v2/keys/{key:.*}", v2.GetHandler).Methods("GET", "HEAD")
 	s.handleFuncV2(r2, "/v2/keys/{key:.*}", v2.PostHandler).Methods("POST")
 	s.handleFuncV2(r2, "/v2/keys/{key:.*}", v2.PutHandler).Methods("PUT")
 	s.handleFuncV2(r2, "/v2/keys/{key:.*}", v2.DeleteHandler).Methods("DELETE")
-	s.handleFunc(r2, "/v2/leader", s.GetLeaderHandler).Methods("GET")
-	s.handleFunc(r2, "/v2/machines", s.GetPeersHandler).Methods("GET")
-	s.handleFunc(r2, "/v2/peers", s.GetPeersHandler).Methods("GET")
-	s.handleFunc(r2, "/v2/stats/self", s.GetStatsHandler).Methods("GET")
-	s.handleFunc(r2, "/v2/stats/leader", s.GetLeaderStatsHandler).Methods("GET")
-	s.handleFunc(r2, "/v2/stats/store", s.GetStoreStatsHandler).Methods("GET")
-	s.handleFunc(r2, "/v2/speedTest", s.SpeedTestHandler).Methods("GET")
-}
-
-func (s *Server) installMod(r *mux.Router) {
-	r.PathPrefix("/mod").Handler(http.StripPrefix("/mod", mod.HttpHandler(s.URL())))
+	s.handleFunc(r2, "/v2/leader", s.GetLeaderHandler).Methods("GET", "HEAD")
+	s.handleFunc(r2, "/v2/machines", s.GetPeersHandler).Methods("GET", "HEAD")
+	s.handleFunc(r2, "/v2/peers", s.GetPeersHandler).Methods("GET", "HEAD")
+	s.handleFunc(r2, "/v2/stats/self", s.GetStatsHandler).Methods("GET", "HEAD")
+	s.handleFunc(r2, "/v2/stats/leader", s.GetLeaderStatsHandler).Methods("GET", "HEAD")
+	s.handleFunc(r2, "/v2/stats/store", s.GetStoreStatsHandler).Methods("GET", "HEAD")
+	s.handleFunc(r2, "/v2/speedTest", s.SpeedTestHandler).Methods("GET", "HEAD")
 }
 
 func (s *Server) installDebug(r *mux.Router) {
-	s.handleFunc(r, "/debug/metrics", s.GetMetricsHandler).Methods("GET")
+	s.handleFunc(r, "/debug/metrics", s.GetMetricsHandler).Methods("GET", "HEAD")
 	r.HandleFunc("/debug/pprof", pprof.Index)
 	r.HandleFunc("/debug/pprof/cmdline", pprof.Cmdline)
 	r.HandleFunc("/debug/pprof/profile", pprof.Profile)
@@ -156,24 +151,25 @@ func (s *Server) handleFuncV2(r *mux.Router, path string, f func(http.ResponseWr
 	})
 }
 
+type HEADResponseWriter struct {
+	http.ResponseWriter
+}
+
+func (w *HEADResponseWriter) Write([]byte) (int, error) {
+	return 0, nil
+}
+
 // Adds a server handler to the router.
 func (s *Server) handleFunc(r *mux.Router, path string, f func(http.ResponseWriter, *http.Request) error) *mux.Route {
 
 	// Wrap the standard HandleFunc interface to pass in the server reference.
 	return r.HandleFunc(path, func(w http.ResponseWriter, req *http.Request) {
+		if req.Method == "HEAD" {
+			w = &HEADResponseWriter{w}
+		}
+
 		// Log request.
 		log.Debugf("[recv] %s %s %s [%s]", req.Method, s.URL(), req.URL.Path, req.RemoteAddr)
-
-		// Forward request along if the server is a proxy.
-		if s.peerServer.Mode() == ProxyMode {
-			if s.peerServer.proxyClientURL == "" {
-				w.Header().Set("Content-Type", "application/json")
-				etcdErr.NewError(402, "", 0).Write(w)
-				return
-			}
-			uhttp.Redirect(s.peerServer.proxyClientURL, w, req)
-			return
-		}
 
 		// Execute handler function and return error if necessary.
 		if err := f(w, req); err != nil {
@@ -195,7 +191,9 @@ func (s *Server) HTTPHandler() http.Handler {
 	s.handleFunc(router, "/version", s.GetVersionHandler).Methods("GET")
 	s.installV1(router)
 	s.installV2(router)
-	s.installMod(router)
+	// Mod is deprecated temporariy due to its unstable state.
+	// It would be added back later.
+	// s.installMod(router)
 
 	if s.trace {
 		s.installDebug(router)
@@ -216,9 +214,6 @@ func (s *Server) Dispatch(c raft.Command, w http.ResponseWriter, req *http.Reque
 		if result == nil {
 			return etcdErr.NewError(300, "Empty result from raft", s.Store().Index())
 		}
-
-		w.Header().Set("X-Leader-Client-URL", s.url)
-		w.Header().Set("X-Leader-Peer-URL", ps.Config.URL)
 
 		// response for raft related commands[join/remove]
 		if b, ok := result.([]byte); ok {
@@ -262,9 +257,8 @@ func (s *Server) Dispatch(c raft.Command, w http.ResponseWriter, req *http.Reque
 
 	var url string
 	switch c.(type) {
-	case *JoinCommandV1, *RemoveCommandV1:
-		url, _ = ps.registry.PeerURL(leader)
-	case *JoinCommandV2, *RemoveCommandV2:
+	case *JoinCommand, *RemoveCommand,
+		*SetClusterConfigCommand:
 		url, _ = ps.registry.PeerURL(leader)
 	default:
 		url, _ = ps.registry.ClientURL(leader)

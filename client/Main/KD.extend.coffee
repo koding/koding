@@ -5,11 +5,14 @@ KD.extend
   apiUri       : KD.config.apiUri
   appsUri      : KD.config.appsUri
   singleton    : KD.getSingleton.bind KD
-  useNewKites  : localStorage.useNewKites = switch
-    when KD.config.kites.stack.force
-      KD.config.kites.stack.newKites
-    when localStorage.useNewKites?
-      Boolean Number localStorage.useNewKites
+  useNewKites  : do ->
+    useNewKites = switch
+      when KD.config.kites.stack.force
+        Boolean KD.config.kites.stack.newKites
+      when localStorage.useNewKites?
+        Boolean Number localStorage.useNewKites
+    localStorage.useNewKites = if useNewKites then '1' else ''
+    return useNewKites
   appClasses   : {}
   appScripts   : {}
   appLabels    : {}
@@ -280,9 +283,6 @@ KD.extend
                                       or defaultMessages.KodingError
     messages or= defaultMessages
     errMessage or= err.message or messages[err.name] or messages.KodingError
-
-    # log error to backend
-    KD.remote.api.FrontLogger.error errMessage
 
     if errMessage?
       if 'string' is typeof errMessage

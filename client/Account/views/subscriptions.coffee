@@ -83,6 +83,8 @@ class AccountSubscriptionsList extends KDListView
 
 class AccountSubscriptionsListItem extends KDListItemView
 
+  JView.mixin @prototype
+
   constructor:(options={}, data)->
     options.tagName or= 'li'
     options.type    or= 'subscription'
@@ -102,8 +104,6 @@ class AccountSubscriptionsListItem extends KDListItemView
       'UnsubscribeRequested'
       'ReactivateRequested'
     ]
-
-  viewAppended: JView::viewAppended
 
   pistachio:->
     """

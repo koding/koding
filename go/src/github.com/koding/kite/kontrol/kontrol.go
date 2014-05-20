@@ -20,6 +20,7 @@ import (
 	"github.com/koding/kite"
 	"github.com/koding/kite/config"
 	"github.com/koding/kite/dnode"
+	"github.com/koding/kite/kitekey"
 	"github.com/koding/kite/protocol"
 	"github.com/nu7hatch/gouuid"
 )
@@ -30,12 +31,12 @@ const (
 	HeartbeatInterval = 5 * time.Second
 	HeartbeatDelay    = 10 * time.Second
 	KitesPrefix       = "/kites"
-	TokenTTL          = 48 * time.Hour
 	TokenLeeway       = 1 * time.Minute
 )
 
 var (
-	log kite.Logger
+	log      kite.Logger
+	TokenTTL = 48 * time.Hour
 
 	tokenCache   = make(map[string]string)
 	tokenCacheMu sync.Mutex
@@ -52,6 +53,12 @@ type Kontrol struct {
 	PeerAddr     string   // The public host:port used for peer communication.
 	PeerBindAddr string   // The listening host:port used for peer communication.
 	Peers        []string // other peers in cluster (must be peer address of other instances)
+
+	// MachineAuthenticate is used to authenticate the request in the
+	// "handleMachine" method.  The reason for a separate auth function is, the
+	// request must not be authenticated because clients do not have a kite.key
+	// before they register to this machine.
+	MachineAuthenticate func(r *kite.Request) error
 
 	// RSA keys
 	publicKey  string // for validating tokens
@@ -93,10 +100,10 @@ func New(conf *config.Config, version, publicKey, privateKey string) *Kontrol {
 		Kite:         k,
 		Name:         hostname,
 		DataDir:      "kontrol-data." + hostname,
-		EtcdAddr:     "http://localhost:4001",
-		EtcdBindAddr: ":4001",
-		PeerAddr:     "http://localhost:7001",
-		PeerBindAddr: ":7001",
+		EtcdAddr:     "localhost:4001",
+		EtcdBindAddr: "0.0.0.0:4001",
+		PeerAddr:     "localhost:7001",
+		PeerBindAddr: "0.0.0.0:7001",
 		Peers:        nil,
 		publicKey:    publicKey,
 		privateKey:   privateKey,
@@ -108,6 +115,7 @@ func New(conf *config.Config, version, publicKey, privateKey string) *Kontrol {
 	log = k.Log
 
 	k.HandleFunc("register", kontrol.handleRegister)
+	k.HandleFunc("registerMachine", kontrol.handleMachine).DisableAuthentication()
 	k.HandleFunc("getKites", kontrol.handleGetKites)
 	k.HandleFunc("getToken", kontrol.handleGetToken)
 	k.HandleFunc("cancelWatcher", kontrol.handleCancelWatcher)
@@ -163,6 +171,49 @@ func (k *Kontrol) ClearKites() error {
 		return fmt.Errorf("Cannot clear etcd: %s", err)
 	}
 	return nil
+}
+
+// RegisterSelf registers this host and writes a key to ~/.kite/kite.key
+func (k *Kontrol) RegisterSelf() error {
+	key, err := k.registerUser(k.Kite.Config.Username)
+	if err != nil {
+		return err
+	}
+	return kitekey.Write(key)
+}
+
+func (k *Kontrol) handleMachine(r *kite.Request) (interface{}, error) {
+	if k.MachineAuthenticate != nil {
+		if err := k.MachineAuthenticate(r); err != nil {
+			return nil, errors.New("cannot authenticate user")
+		}
+	}
+
+	username := r.Args.One().MustString() // username should be send as an argument
+	return k.registerUser(username)
+}
+
+func (k *Kontrol) registerUser(username string) (kiteKey string, err error) {
+	// Only accept requests of type machine
+	tknID, err := uuid.NewV4()
+	if err != nil {
+		return "", errors.New("cannot generate a token")
+	}
+
+	token := jwt.New(jwt.GetSigningMethod("RS256"))
+
+	token.Claims = map[string]interface{}{
+		"iss":        k.Kite.Kite().Username,            // Issuer
+		"sub":        username,                          // Subject
+		"iat":        time.Now().UTC().Unix(),           // Issued At
+		"jti":        tknID.String(),                    // JWT ID
+		"kontrolURL": k.Kite.Config.KontrolURL.String(), // Kontrol URL
+		"kontrolKey": strings.TrimSpace(k.publicKey),    // Public key of kontrol
+	}
+
+	k.Kite.Log.Info("Registered machine on user: %s", username)
+
+	return token.SignedString([]byte(k.privateKey))
 }
 
 // registerValue is the type of the value that is saved to etcd.
@@ -814,7 +865,19 @@ func generateToken(queryKey, username, issuer, privateKey string) (string, error
 		return "", errors.New("Server error: Cannot generate a token")
 	}
 
+	// cache our token
 	tokenCache[uniqKey] = signed
+
+	// cache invalidation, because we cache the token in tokenCache we need to
+	// invalidate it expiration time. This was handled usually within JWT, but
+	// now we have to do it manually for our own cache.
+	time.AfterFunc(TokenTTL, func() {
+		tokenCacheMu.Lock()
+		defer tokenCacheMu.Unlock()
+
+		delete(tokenCache, uniqKey)
+	})
+
 	return signed, nil
 }
 

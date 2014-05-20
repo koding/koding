@@ -6,14 +6,14 @@ class RecoverInlineForm extends LoginViewInlineForm
     @usernameOrEmail = new LoginInputView
       inputOptions    :
         name          : "username-or-email"
-        placeholder   : "username or email"
+        placeholder   : "email"
         testPath      : "recover-password-input"
         validate      :
           container   : this
           rules       :
             required  : yes
           messages    :
-            required  : "Please enter your username or email."
+            required  : "Please enter your email."
 
     @button = new KDButtonView
       title       : "Recover password"

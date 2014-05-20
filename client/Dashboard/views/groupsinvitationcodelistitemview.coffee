@@ -1,5 +1,7 @@
 class GroupsInvitationCodeListItemView extends KDListItemView
 
+  JView.mixin @prototype
+
   constructor:(options = {}, data)->
     options.cssClass = 'formline clearfix'
     options.type     = 'invitation-request invitation-code'
@@ -135,8 +137,6 @@ class GroupsInvitationCodeListItemView extends KDListItemView
                       return KD.showError err if err
                       modal.destroy()
                       @destroy()
-
-  viewAppended: JView::viewAppended
 
   pistachio:->
     {code, maxUses, uses, memo} = @getData()

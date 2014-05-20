@@ -27,7 +27,6 @@ class Troubleshoot extends KDObject
         webServer      :
           version      : 0
         brokerKite     :
-          four         : 0
           osKite       :
             vm         : 0
             terminal   : 0
@@ -64,6 +63,7 @@ class Troubleshoot extends KDObject
           .catch (err) ->
             warn err
         recover: ->
+          ErrorLog.create "Troubleshoot toggled kite stack"
           KD.toggleKiteStack()
 
     # register osKite
@@ -88,10 +88,6 @@ class Troubleshoot extends KDObject
     @registerItem "version",
       speedCheck   : no
       troubleshoot : checkVersion.bind this
-
-    @registerItem "four",
-      speedCheck   : no
-      troubleshoot : checkBlockedPort.bind this
 
     vmChecker = new VMChecker
     @registerItem "vm",
@@ -140,18 +136,6 @@ class Troubleshoot extends KDObject
       error   : =>
         @items.version.status = "fail"
         @status = "fail"
-        callback null
-
-  checkBlockedPort = (callback) ->
-    $.ajax
-      url                : "http://162.243.135.95:444"
-      crossDomain        : true
-      timeout            : 5000
-      success            : (response)-> callback null
-      error              : (x, t, m)=>
-        ErrorLog.create t
-
-        @items.four.status = "fail"
         callback null
 
   getFailureFeedback: ->

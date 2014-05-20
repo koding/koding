@@ -1,4 +1,6 @@
 class TagGroup extends KDCustomHTMLView
+
+  JView.mixin @prototype
   #intended as a superclass for tag groups - note no pistachio, so this will not work on its own
   constructor:(options, data)->
     options = $.extend
@@ -69,6 +71,9 @@ class SkillTagGroup extends TagGroup
       '{{> @listViewWrapper}}'
 
 class TagCloudListItemView extends KDListItemView
+
+  JView.mixin @prototype
+
   constructor:(options, data)->
     options = $.extend
       tagName     : "a"

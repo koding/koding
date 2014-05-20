@@ -2,9 +2,7 @@ package oskite
 
 import (
 	"fmt"
-	"io/ioutil"
 	"koding/virt"
-	"strings"
 	"time"
 
 	"gopkg.in/fatih/set.v0"
@@ -14,103 +12,51 @@ import (
 
 type VmCollection map[bson.ObjectId]*virt.VM
 
-// mongodbVMs returns a map of VMs that are bind to the given
-// serviceUniquename/hostkite in mongodb
-func mongodbVMs(serviceUniquename string) (VmCollection, error) {
-	vms := make([]*virt.VM, 0)
-
-	query := func(c *mgo.Collection) error {
-		return c.Find(bson.M{"hostKite": serviceUniquename}).All(&vms)
-	}
-
-	if err := mongodbConn.Run("jVMs", query); err != nil {
-		return nil, fmt.Errorf("allVMs fetching err: %s", err.Error())
-	}
-
-	vmsMap := make(map[bson.ObjectId]*virt.VM, len(vms))
-
-	for _, vm := range vms {
-		vmsMap[vm.Id] = vm
-	}
-
-	return vmsMap, nil
-}
-
-// Ids returns a set of VM ids
-func (v VmCollection) Ids() set.Interface {
-	ids := set.NewNonTS()
-
-	for id := range v {
-		ids.Add(id)
-	}
-
-	return ids
-}
-
-// currentVMS returns a set of VM ids on the current host machine with their
-// associated mongodb objectid's taken from the directory name
-func currentVMs() (set.Interface, error) {
-	dirs, err := ioutil.ReadDir("/var/lib/lxc")
-	if err != nil {
-		return nil, fmt.Errorf("vmsList err %s", err)
-	}
-
-	vms := set.NewNonTS()
-	for _, dir := range dirs {
-		if !strings.HasPrefix(dir.Name(), "vm-") {
-			continue
-		}
-
-		vmId := bson.ObjectIdHex(dir.Name()[3:])
-		vms.Add(vmId)
-	}
-
-	return vms, nil
-}
+var blacklist = set.New()
 
 // vmUpdater updates the states of current available VMs on the host machine.
 func (o *Oskite) vmUpdater() {
-	for _ = range time.Tick(time.Second * 10) {
-		currentIds, err := currentVMs()
-		if err != nil {
-			log.Error("vm updater getting current vms err %v", err)
-			continue
+	query := func(c *mgo.Collection) error {
+		vm := &virt.VM{}
+
+		iter := c.Find(bson.M{"hostKite": o.ServiceUniquename}).Batch(50).Iter()
+		for iter.Next(&vm) {
+			vmId := vm.Id
+			if !blacklist.Has(vmId) {
+				o.startAlwaysOn(vm) // it also checks if the vm is alwaysOn or not
+			}
+
+			state, err := updateState(vmId, vm.State)
+			if err != nil {
+				log.Error("vm update state %s err %v", vmId, err)
+			}
+
+			if state == "STOPPED" && !vm.AlwaysOn {
+				go unprepareInQueue(vm)
+			}
 		}
 
-		vms, err := mongodbVMs(o.ServiceUniquename)
-		if err != nil {
-			log.Error("vm updater mongoDBVms failed err %v", err)
+		return iter.Close()
+	}
+
+	for _ = range time.Tick(time.Second * 30) {
+		if err := mongodbConn.Run("jVMs", query); err != nil {
+			log.Error("allVMs fetching err: %s", err.Error())
 		}
+	}
 
-		combined := set.Intersection(currentIds, vms.Ids())
+}
 
-		combined.Each(func(item interface{}) bool {
-			vmId, ok := item.(bson.ObjectId)
-			if !ok {
-				return true
-			}
+func unprepareInQueue(vm *virt.VM) {
+	prepareQueue <- &QueueJob{
+		msg: fmt.Sprintf("Vm is stopped, unpreparing it: %s", vm.HostnameAlias),
+		f: func() error {
+			info := getInfo(vm)
+			info.mutex.Lock()
+			defer info.mutex.Unlock()
 
-			if vm, ok := vms[vmId]; ok {
-				o.startAlwaysOn(vm)
-			}
-
-			err := updateState(vmId)
-			if err == nil {
-				return true
-			}
-
-			log.Error("vm updater %s err %v", vmId, err)
-			if err != mgo.ErrNotFound {
-				return true
-			}
-
-			// the VM couldn't be find in mongoDB, this is a leftover VM that
-			// needs to be unprepared
-			log.Error("vm updater vm not found %s err %v", vmId, err)
-			unprepareLeftover(vmId)
-
-			return true
-		})
+			return unprepareProgress(nil, vm, false)
+		},
 	}
 }
 
@@ -126,24 +72,10 @@ func (o *Oskite) startAlwaysOn(vm *virt.VM) {
 		return
 	}
 
-	log.Info("starting alwaysOn VM %s [%s]", vm.HostnameAlias, vm.Id.Hex())
-	go o.startSingleVM(vm, nil)
-}
-
-func unprepareLeftover(vmId bson.ObjectId) {
-	prepareQueue <- &QueueJob{
-		msg: fmt.Sprintf("unprepare leftover vm %s", vmId.Hex()),
-		f: func() error {
-			mockVM := &virt.VM{Id: vmId}
-			if err := mockVM.Unprepare(nil, false); err != nil {
-				log.Error("leftover unprepare: %v", err)
-			}
-
-			if err := updateState(vmId); err != nil {
-				log.Error("%v", err)
-			}
-
-			return nil
-		},
-	}
+	go func() {
+		err := o.startSingleVM(vm, nil)
+		if err != nil {
+			log.Error("alwaysOn vm %s couldn't be started. err: %v", vm.HostnameAlias, err)
+		}
+	}()
 }

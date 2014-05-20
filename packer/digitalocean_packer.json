@@ -1,0 +1,46 @@
+{
+  "variables": {
+    "do_client_id": "",
+    "do_api_key": "",
+    "klient_deb": "klient_0.0.1_amd64.deb",
+    "klient_keyname": "kite.key",
+    "klient_keydir": "/opt/kite/klient/key"
+  },
+  "builders": [
+    {
+      "type": "digitalocean",
+      "client_id": "{{user `do_client_id`}}",
+      "api_key": "{{user `do_api_key`}}",
+      "image": "ubuntu-13-10-x64",
+      "region": "ams1",
+      "size": "512mb",
+      "snapshot_name": "koding-{{timestamp}}"
+    }
+  ],
+  "provisioners": [
+    {
+      "type": "file",
+      "source": "{{user `klient_deb`}}",
+      "destination": "/tmp/{{user `klient_deb`}}"
+    },
+    {
+      "type": "shell",
+      "inline": [
+        "sleep 30",
+        "sudo dpkg -i /tmp/{{user `klient_deb`}}",
+        "mkdir -p {{user `klient_keydir`}}"
+      ]
+    },
+    {
+      "type": "file",
+      "source": "{{user `klient_keyname`}}",
+      "destination": "{{user `klient_keydir`}}/{{user `klient_keyname`}}"
+    },
+    {
+      "type": "shell",
+      "inline": [
+        "service klient restart"
+      ]
+    }
+  ]
+}
