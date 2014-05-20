@@ -1,7 +1,6 @@
 package oskite
 
 import (
-	"fmt"
 	"koding/virt"
 	"time"
 
@@ -26,8 +25,16 @@ func (o *Oskite) vmUpdater() {
 				o.startAlwaysOn(vm) // it also checks if the vm is alwaysOn or not
 			}
 
-			if err := updateState(vmId, vm.State); err != nil {
+			state, err := updateState(vmId, vm.State)
+			if err != nil {
 				log.Error("vm update state %s err %v", vmId, err)
+			}
+
+			if state == "STOPPED" && !vm.AlwaysOn {
+				log.Info("VM is stopped, unpreparing it: %s", vm.HostnameAlias)
+				if err := unprepareProgress(nil, vm, false); err != nil {
+					log.Warning("%v", err)
+				}
 			}
 		}
 
@@ -60,22 +67,4 @@ func (o *Oskite) startAlwaysOn(vm *virt.VM) {
 			log.Error("alwaysOn vm %s couldn't be started. err: %v", vm.HostnameAlias, err)
 		}
 	}()
-}
-
-func unprepareLeftover(vmId bson.ObjectId) {
-	prepareQueue <- &QueueJob{
-		msg: fmt.Sprintf("unprepare leftover vm %s", vmId.Hex()),
-		f: func() error {
-			mockVM := &virt.VM{Id: vmId}
-			if err := mockVM.Unprepare(nil, false); err != nil {
-				log.Error("leftover unprepare: %v", err)
-			}
-
-			if err := updateState(vmId, ""); err != nil {
-				log.Error("%v", err)
-			}
-
-			return nil
-		},
-	}
 }

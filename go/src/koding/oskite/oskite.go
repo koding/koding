@@ -341,7 +341,7 @@ func (o *Oskite) handleCurrentVMs() {
 		infos[vm.Id] = info
 		infosMutex.Unlock()
 
-		if err := updateState(vm.Id, vm.State); err != nil {
+		if _, err := updateState(vm.Id, vm.State); err != nil {
 			log.Error("%v", err)
 		}
 
@@ -375,6 +375,24 @@ func currentVMs() (set.Interface, error) {
 	}
 
 	return vms, nil
+}
+
+func unprepareLeftover(vmId bson.ObjectId) {
+	prepareQueue <- &QueueJob{
+		msg: fmt.Sprintf("unprepare leftover vm %s", vmId.Hex()),
+		f: func() error {
+			mockVM := &virt.VM{Id: vmId}
+			if err := mockVM.Unprepare(nil, false); err != nil {
+				log.Error("leftover unprepare: %v", err)
+			}
+
+			if _, err := updateState(vmId, ""); err != nil {
+				log.Error("%v", err)
+			}
+
+			return nil
+		},
+	}
 }
 
 func (o *Oskite) startPinnedVMs() {
@@ -672,7 +690,7 @@ func (o *Oskite) validateVM(vm *virt.VM) error {
 	return nil
 }
 
-func updateState(vmId bson.ObjectId, currentState string) error {
+func updateState(vmId bson.ObjectId, currentState string) (string, error) {
 	state := virt.GetVMState(vmId)
 	if state == "" {
 		state = "UNKNOWN"
@@ -680,14 +698,14 @@ func updateState(vmId bson.ObjectId, currentState string) error {
 
 	// do not update if it's the same state
 	if currentState == state {
-		return nil
+		return state, nil
 	}
 
 	query := func(c *mgo.Collection) error {
 		return c.Update(bson.M{"_id": vmId}, bson.M{"$set": bson.M{"state": state}})
 	}
 
-	return mongodbConn.Run("jVMs", query)
+	return state, mongodbConn.Run("jVMs", query)
 }
 
 func (o *Oskite) startSingleVM(vm *virt.VM, channel *kite.Channel) error {

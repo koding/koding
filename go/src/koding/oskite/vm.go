@@ -177,7 +177,7 @@ func vmStart(vos *virt.VOS) (interface{}, error) {
 		return nil, err
 	}
 
-	if err := updateState(vos.VM.Id, vos.VM.State); err != nil {
+	if _, err := updateState(vos.VM.Id, vos.VM.State); err != nil {
 		return nil, err
 	}
 
@@ -193,7 +193,7 @@ func vmShutdown(vos *virt.VOS) (interface{}, error) {
 		return nil, err
 	}
 
-	if err := updateState(vos.VM.Id, vos.VM.State); err != nil {
+	if _, err := updateState(vos.VM.Id, vos.VM.State); err != nil {
 		return nil, err
 	}
 
@@ -209,7 +209,7 @@ func vmStop(vos *virt.VOS) (interface{}, error) {
 		return nil, err
 	}
 
-	if err := updateState(vos.VM.Id, vos.VM.State); err != nil {
+	if _, err := updateState(vos.VM.Id, vos.VM.State); err != nil {
 		return nil, err
 	}
 
@@ -470,7 +470,7 @@ func unprepareProgress(t tracer.Tracer, vm *virt.VM, destroy bool) error {
 	}
 
 	// mark it as stopped in mongodb
-	if err := updateState(vm.Id, vm.State); err != nil {
+	if _, err := updateState(vm.Id, vm.State); err != nil {
 		return err
 	}
 
@@ -482,7 +482,7 @@ func prepareProgress(t tracer.Tracer, vm *virt.VM) error {
 		return err
 	}
 
-	if err := updateState(vm.Id, vm.State); err != nil {
+	if _, err := updateState(vm.Id, vm.State); err != nil {
 		return err
 	}
 
