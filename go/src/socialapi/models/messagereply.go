@@ -133,7 +133,13 @@ func (m *MessageReply) fetchMessages(query *Query) ([]ChannelMessage, error) {
 		Sort:       map[string]string{"created_at": "DESC"},
 	}
 
-	if err := m.Some(&replies, q); err != nil {
+	bongoQuery := bongo.B.BuildQuery(m, q)
+	if !query.From.IsZero() {
+		bongoQuery = bongoQuery.Where("created_at < ?", query.From)
+	}
+
+	bongoQuery = bongoQuery.Pluck(q.Pluck, &replies)
+	if err := bongoQuery.Error; err != nil {
 		return nil, err
 	}
 

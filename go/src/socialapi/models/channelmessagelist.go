@@ -133,20 +133,22 @@ func (c *ChannelMessageList) getMessages(q *Query) ([]*ChannelMessageContainer, 
 		return nil, errors.New("ChannelId is not set")
 	}
 
-	query := bongo.B.DB.Table(c.TableName()).
-		Offset(q.Skip).
-		Limit(q.Limit).
-		Order("added_at desc")
-
-	if !q.From.IsZero() {
-		query = query.Where("added_at < ?", q.From)
+	query := &bongo.Query{
+		Selector: map[string]interface{}{
+			"channel_id": c.ChannelId,
+		},
+		Pluck:      "message_id",
+		Pagination: *bongo.NewPagination(q.Limit, q.Skip),
+		Sort:       map[string]string{"added_at": "DESC"},
 	}
 
-	query = query.Where("channel_id = ?", c.ChannelId)
+	bongoQuery := bongo.B.BuildQuery(c, query)
+	if !q.From.IsZero() {
+		bongoQuery = bongoQuery.Where("added_at < ?", q.From)
+	}
 
-	query = query.Pluck("message_id", &messages)
-
-	if err := query.Error; err != nil {
+	bongoQuery = bongoQuery.Pluck(query.Pluck, &messages)
+	if err := bongoQuery.Error; err != nil {
 		return nil, err
 	}
 
