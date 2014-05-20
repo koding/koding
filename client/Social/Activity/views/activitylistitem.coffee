@@ -1,5 +1,7 @@
 class ActivityListItemView extends KDListItemView
 
+  JView.mixin @prototype
+
   constructor:(options = {},data)->
 
     options.type              = 'activity'
