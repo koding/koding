@@ -310,6 +310,8 @@ class ManageRemotesModal extends KDModalViewWithForms
 
 class RemoteListItem extends KDListItemView
 
+  JView.mixin @prototype
+
   constructor:(options = {},data)->
 
     options.cssClass = 'remote-listitem'
@@ -381,10 +383,6 @@ class RemoteListItem extends KDListItemView
     @getDelegate().on "OperationCompleted", =>
       @mountToggle.enable()
       @deleteRemote.enable()
-
-  viewAppended:->
-    @setTemplate @pistachio()
-    @template.update()
 
   pistachio:->
     """

@@ -1,5 +1,6 @@
 class AvatarArea extends KDCustomHTMLView
 
+  JView.mixin @prototype
 
   constructor: (options = {}, data)->
 
@@ -43,10 +44,6 @@ class AvatarArea extends KDCustomHTMLView
       @groupSwitcherPopup.listController.removeAllItems()
       @groupSwitcherPopup.populateGroups()
       @groupSwitcherPopup.populatePendingGroups()
-
-
-  viewAppended: JView::viewAppended
-
 
   pistachio: ->
     """

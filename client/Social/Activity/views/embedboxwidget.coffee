@@ -2,6 +2,8 @@ class EmbedBoxWidget extends KDView
 
   { addClass, getDescendantsByClassName } = KD.dom
 
+  JView.mixin @prototype
+
   constructor: (options={}, data={}) ->
     options.cssClass = KD.utils.curry 'link-embed-box', options.cssClass
 
@@ -256,8 +258,6 @@ class EmbedBoxWidget extends KDView
     # fetch embed.ly data from the server api
     KD.remote.api.JNewStatusUpdate.fetchDataFromEmbedly url, embedlyOptions, (err, oembed)=>
       callback oembed[0], embedlyOptions
-
-  viewAppended: JView::viewAppended
 
   pistachio:->
     """

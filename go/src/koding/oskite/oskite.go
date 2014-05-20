@@ -4,6 +4,7 @@ import (
 	"encoding/binary"
 	"errors"
 	"fmt"
+	"io/ioutil"
 	"koding/db/mongodb"
 	"koding/db/mongodb/modelhelper"
 	"koding/kodingkite"
@@ -26,13 +27,14 @@ import (
 	redigo "github.com/garyburd/redigo/redis"
 	kitelib "github.com/koding/kite"
 	"github.com/koding/redis"
+	"gopkg.in/fatih/set.v0"
 	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
 )
 
 const (
 	OSKITE_NAME    = "oskite"
-	OSKITE_VERSION = "0.2.12"
+	OSKITE_VERSION = "0.2.13"
 )
 
 var (
@@ -339,7 +341,7 @@ func (o *Oskite) handleCurrentVMs() {
 		infos[vm.Id] = info
 		infosMutex.Unlock()
 
-		if err := updateState(vm.Id); err != nil {
+		if _, err := updateState(vm.Id, vm.State); err != nil {
 			log.Error("%v", err)
 		}
 
@@ -352,6 +354,45 @@ func (o *Oskite) handleCurrentVMs() {
 	})
 
 	log.Info("VMs in /var/lib/lxc are finished.")
+}
+
+// currentVMS returns a set of VM ids on the current host machine with their
+// associated mongodb objectid's taken from the directory name
+func currentVMs() (set.Interface, error) {
+	dirs, err := ioutil.ReadDir("/var/lib/lxc")
+	if err != nil {
+		return nil, fmt.Errorf("vmsList err %s", err)
+	}
+
+	vms := set.NewNonTS()
+	for _, dir := range dirs {
+		if !strings.HasPrefix(dir.Name(), "vm-") {
+			continue
+		}
+
+		vmId := bson.ObjectIdHex(dir.Name()[3:])
+		vms.Add(vmId)
+	}
+
+	return vms, nil
+}
+
+func unprepareLeftover(vmId bson.ObjectId) {
+	prepareQueue <- &QueueJob{
+		msg: fmt.Sprintf("unprepare leftover vm %s", vmId.Hex()),
+		f: func() error {
+			mockVM := &virt.VM{Id: vmId}
+			if err := mockVM.Unprepare(nil, false); err != nil {
+				log.Error("leftover unprepare: %v", err)
+			}
+
+			if _, err := updateState(vmId, ""); err != nil {
+				log.Error("%v", err)
+			}
+
+			return nil
+		},
+	}
 }
 
 func (o *Oskite) startPinnedVMs() {
@@ -649,17 +690,22 @@ func (o *Oskite) validateVM(vm *virt.VM) error {
 	return nil
 }
 
-func updateState(vmId bson.ObjectId) error {
+func updateState(vmId bson.ObjectId, currentState string) (string, error) {
 	state := virt.GetVMState(vmId)
 	if state == "" {
 		state = "UNKNOWN"
+	}
+
+	// do not update if it's the same state
+	if currentState == state {
+		return state, nil
 	}
 
 	query := func(c *mgo.Collection) error {
 		return c.Update(bson.M{"_id": vmId}, bson.M{"$set": bson.M{"state": state}})
 	}
 
-	return mongodbConn.Run("jVMs", query)
+	return state, mongodbConn.Run("jVMs", query)
 }
 
 func (o *Oskite) startSingleVM(vm *virt.VM, channel *kite.Channel) error {

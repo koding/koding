@@ -1,4 +1,4 @@
-class EmbedBoxLinkViewImageSwitch extends KDView
+class EmbedBoxLinkViewImageSwitch extends JView
 
   { hasClass, addClass, removeClass,
     getDescendantsByClassName, setText } = KD.dom
@@ -86,8 +86,6 @@ class EmbedBoxLinkViewImageSwitch extends KDView
 
     else if imageIndex is (oembed.images.length - 1)
       @disableButton 'next'
-
-  viewAppended: JView::viewAppended
 
   pistachio:->
     imageIndex   = @getImageIndex()

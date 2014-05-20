@@ -23,6 +23,8 @@ class GroupsBundleCreateView extends JView
 
 class GroupsBundleEditView extends KDCustomHTMLView
 
+  JView.mixin @prototype
+
   computeUnitMap =
     vms   : 1
     cpu   : 1
@@ -186,8 +188,6 @@ class GroupsBundleEditView extends KDCustomHTMLView
           disk  : number * disk
         bundle.debit debits, (err)->
           console.error err  if err
-
-  viewAppended: JView::viewAppended
 
   toggleAdvancedMode: (state) ->
     method = if state then 'show' else 'hide'
