@@ -2,6 +2,30 @@ class ComputeProvider extends KDObject
 
   @providers = KD.config.providers
 
+  @credentialsFor = (provider, callback)->
+    KD.remote.api.JCredential.some { provider }, callback
+
+  @fetchAvailable = (options, callback)->
+    KD.remote.api.ComputeProvider.fetchAvailable options, callback
+
+  @fetchExisting = (options, callback)->
+    KD.remote.api.ComputeProvider.fetchExisting options, callback
+
+  @fetchStacks = (callback)->
+
+    if @stacks
+      callback null, @stacks
+      info "Stacks returned from cache."
+      return
+
+    KD.remote.api.JStack.some {}, (err, stacks = [])->
+      return callback err  if err?
+      callback null, ComputeProvider.stacks = stacks
+
+
+  @create = (options, callback)->
+    KD.remote.api.ComputeProvider.create options, callback
+
   @showProvidersModal = ->
     new KDModalView
       title        : 'Add Virtual Machine'
@@ -15,18 +39,6 @@ class ComputeProvider extends KDObject
           title    : "Create"
           style    : "modal-clean-green"
           callback : =>
-
-  @credentialsFor = (provider, callback)->
-    KD.remote.api.JCredential.some { provider }, callback
-
-  @fetchAvailable = (options, callback)->
-    KD.remote.api.ComputeProvider.fetchAvailable options, callback
-
-  @fetchExisting = (options, callback)->
-    KD.remote.api.ComputeProvider.fetchExisting options, callback
-
-  @create = (options, callback)->
-    KD.remote.api.ComputeProvider.create options, callback
 
   @generateAddCredentialFormFor = (provider)->
 
