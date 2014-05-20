@@ -136,7 +136,7 @@ class ActivityActionLink extends KDCustomHTMLView
     , options
     super options,data
 
-class ActivityCountLink extends KDCustomHTMLView
+class ActivityCountLink extends JCustomHTMLView
 
   JView.mixin @prototype
 
