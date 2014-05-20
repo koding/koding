@@ -3,7 +3,7 @@ module.exports = class JStack extends jraphical.Module
 
   KodingError        = require '../error'
 
-  {secure, ObjectId, signature} = require 'bongo'
+  {secure, ObjectId, signature, daisy} = require 'bongo'
   {Relationship}     = jraphical
   {permit}           = require './group/permissionset'
   Validators         = require './group/validators'
@@ -146,8 +146,48 @@ module.exports = class JStack extends jraphical.Module
       { delegate } = client.connection
 
       selector = @getSelector selector, delegate
-      JStack.some selector, options, callback
+      JStack.some selector, options, (err, _stacks)->
 
+        stacks = []
+        queue  = []
+
+        for stack in _stacks
+          queue.push -> stack.revive (err, revivedStack)->
+            stacks.push revivedStack
+            queue.next()
+
+        queue.push ->
+          callback null, stacks
+
+        daisy queue
+
+  revive: (callback)->
+
+    JDomain  = require "./domain"
+    JMachine = require "./computeproviders/machine"
+
+    queue    = []
+    domains  = []
+    machines = []
+
+    (@machines ? []).forEach (machineId)->
+      queue.push -> JMachine.one _id: machineId, (err, machine)->
+        if not err? and machine
+          machines.push machine
+        queue.next()
+
+    (@domains ? []).forEach (domainId)->
+      queue.push -> JDomain.one _id: domainId, (err, domain)->
+        if not err? and domain
+          domains.push domain
+        queue.next()
+
+    queue.push =>
+      this.machines = machines
+      this.domains = domains
+      callback null, this
+
+    daisy queue
 
 
   delete: permit
