@@ -28,7 +28,6 @@ class DrawingPane extends Pane
 
     @context     = @canvas.getElement().getContext "2d"
 
-
   bindMouseDownOnCanvas: ->
     @canvas.on "mousedown", (e) =>
       KD.utils.stopDOMEvent e
