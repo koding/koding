@@ -142,7 +142,7 @@ KD.extend
   resetAppScripts    :-> @appScripts = {}
 
   disableLogs:->
-    for method in ['log','warn','error','trace','time','timeEnd']
+    for method in ['log','warn','error','trace','info','time','timeEnd']
       window[method] = noop
       KD[method]     = noop
     delete KD.logsEnabled
@@ -153,6 +153,7 @@ KD.extend
     KD.log     = window.log     = console.log.bind     console
     KD.warn    = window.warn    = console.warn.bind    console
     KD.error   = window.error   = console.error.bind   console
+    KD.info    = window.info    = console.info.bind    console
     KD.time    = window.time    = console.time.bind    console
     KD.timeEnd = window.timeEnd = console.timeEnd.bind console
     KD.logsEnabled = yes
