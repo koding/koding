@@ -197,6 +197,8 @@ func TestChannelMessage(t *testing.T) {
 
 			})
 
+			Convey("we should be able to get replies with \"from\" query param", nil)
+
 			Convey("non-owner can post reply to message", func() {
 				post, err := createPost(groupChannel.Id, account.Id)
 				So(err, ShouldBeNil)
