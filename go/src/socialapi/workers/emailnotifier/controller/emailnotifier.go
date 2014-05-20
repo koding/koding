@@ -97,30 +97,15 @@ func (n *EmailNotifierWorkerController) SendInstantEmail(data []byte) error {
 		return nil
 	}
 
+	container, err := buildContainer(activity, nc, notification)
+	if err != nil {
+		return err
+	}
+
 	uc, err := fetchUserContact(notification.AccountId)
 	if err != nil {
 		return fmt.Errorf("an error occurred while fetching user contact: %s", err)
 	}
-
-	target := socialmodels.NewChannelMessage()
-	if err := target.ById(nc.TargetId); err != nil {
-		return fmt.Errorf("target message not found")
-	}
-
-	container := &NotificationContainer{
-		Activity:     activity,
-		Content:      nc,
-		Notification: notification,
-		Slug:         target.Slug,
-	}
-	container.Message = n.fetchContentBody(nc, target)
-	contentType, err := nc.GetContentType()
-	if err != nil {
-		return err
-	}
-	contentType.SetActorId(target.AccountId)
-	contentType.SetListerId(notification.AccountId)
-	container.ActivityMessage = contentType.GetActivity()
 
 	body, err := renderTemplate(uc, container)
 	if err != nil {
@@ -137,6 +122,40 @@ type UserContact struct {
 	LastName  string
 	Username  string
 	Hash      string
+}
+
+func buildContainer(a *models.NotificationActivity, nc *models.NotificationContent,
+	n *models.Notification) (*NotificationContainer, error) {
+
+	// if content type not valid return
+	contentType, err := nc.GetContentType()
+	if err != nil {
+		return nil, err
+	}
+
+	container := &NotificationContainer{
+		Activity:     a,
+		Content:      nc,
+		Notification: n,
+	}
+
+	// if notification target is related with an object (comment/status update)
+	if containsObject(nc) {
+		target := socialmodels.NewChannelMessage()
+		if err := target.ById(nc.TargetId); err != nil {
+			return nil, fmt.Errorf("target message not found")
+		}
+
+		prepareSlug(container, target)
+		prepareObjectType(container, target)
+		container.Message = fetchContentBody(nc, target)
+		contentType.SetActorId(target.AccountId)
+		contentType.SetListerId(n.AccountId)
+	}
+
+	container.ActivityMessage = contentType.GetActivity()
+
+	return container, nil
 }
 
 func prepareSlug(container *NotificationContainer, cm *socialmodels.ChannelMessage) {
@@ -193,13 +212,19 @@ func fetchUserContact(accountId int64) (*UserContact, error) {
 	return uc, nil
 }
 
-func (n *EmailNotifierWorkerController) fetchContentBody(nc *models.NotificationContent, cm *socialmodels.ChannelMessage) string {
+func containsObject(nc *models.NotificationContent) bool {
+	return nc.TypeConstant == models.NotificationContent_TYPE_LIKE ||
+		nc.TypeConstant == models.NotificationContent_TYPE_MENTION ||
+		nc.TypeConstant == models.NotificationContent_TYPE_COMMENT
+}
+
+func fetchContentBody(nc *models.NotificationContent, cm *socialmodels.ChannelMessage) string {
 
 	switch nc.TypeConstant {
 	case models.NotificationContent_TYPE_LIKE:
 		return cm.Body
 	case models.NotificationContent_TYPE_MENTION:
-		return fetchLastReplyBody(cm.Id)
+		return cm.Body
 	case models.NotificationContent_TYPE_COMMENT:
 		return fetchLastReplyBody(cm.Id)
 	}
