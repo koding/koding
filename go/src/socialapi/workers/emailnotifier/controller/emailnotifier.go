@@ -139,6 +139,25 @@ type UserContact struct {
 	Hash      string
 }
 
+func prepareSlug(container *NotificationContainer, cm *socialmodels.ChannelMessage) {
+	switch cm.TypeConstant {
+	case socialmodels.ChannelMessage_TYPE_POST:
+		container.Slug = cm.Slug
+	case socialmodels.ChannelMessage_TYPE_REPLY:
+		// TODO we need append something like comment id to parent message slug
+		container.Slug = fetchRepliedMessage(cm.Id).Slug
+	}
+}
+
+func prepareObjectType(container *NotificationContainer, cm *socialmodels.ChannelMessage) {
+	switch cm.TypeConstant {
+	case socialmodels.ChannelMessage_TYPE_POST:
+		container.ObjectType = "status update"
+	case socialmodels.ChannelMessage_TYPE_REPLY:
+		container.ObjectType = "comment"
+	}
+}
+
 func fetchUserContact(accountId int64) (*UserContact, error) {
 	a := socialmodels.NewAccount()
 	if err := a.ById(accountId); err != nil {
@@ -203,6 +222,18 @@ func fetchLastReplyBody(targetId int64) string {
 	}
 
 	return messages[0].Body
+}
+
+func fetchRepliedMessage(replyId int64) *socialmodels.ChannelMessage {
+	mr := socialmodels.NewMessageReply()
+	mr.ReplyId = replyId
+
+	parent, err := mr.FetchRepliedMessage()
+	if err != nil {
+		parent = socialmodels.NewChannelMessage()
+	}
+
+	return parent
 }
 
 func (n *EmailNotifierWorkerController) SendMail(uc *UserContact, body, subject string) error {
