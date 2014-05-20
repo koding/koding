@@ -3,7 +3,7 @@
 
 module.exports = class JMachine extends Module
 
-  { ObjectId, signature } = require 'bongo'
+  { ObjectId, signature, daisy } = require 'bongo'
 
   @trait __dirname, '../../traits/protected'
   {permit} = require '../group/permissionset'
@@ -23,9 +23,13 @@ module.exports = class JMachine extends Module
       static            :
         one             :
           (signature String, Function)
+      instance          :
+        reviveUsers     :
+          (signature Function)
 
     permissions         :
       'list machines'   : ['member']
+      'populate users'  : ['member']
 
     schema              :
 
@@ -74,3 +78,27 @@ module.exports = class JMachine extends Module
 
       JMachine.one selector, (err, machine)->
         callback err, machine
+
+  reviveUsers: permit 'populate users',
+
+  success: (client, callback)->
+
+    JUser = require '../user'
+
+    accounts = []
+    queue    = []
+
+    (@users ? []).forEach (_user)->
+      queue.push -> JUser.one _id: _user.id, (err, user)->
+        if not err? and user
+          user.fetchOwnAccount (err, account)->
+            if not err? and account?
+              accounts.push account
+            queue.next()
+        else
+          queue.next()
+
+    queue.push =>
+      callback null, accounts
+
+    daisy queue
