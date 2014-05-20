@@ -1,6 +1,7 @@
 package oskite
 
 import (
+	"fmt"
 	"koding/virt"
 	"time"
 
@@ -31,10 +32,7 @@ func (o *Oskite) vmUpdater() {
 			}
 
 			if state == "STOPPED" && !vm.AlwaysOn {
-				log.Info("VM is stopped, unpreparing it: %s", vm.HostnameAlias)
-				if err := unprepareProgress(nil, vm, false); err != nil {
-					log.Warning("%v", err)
-				}
+				go unprepareInQueue(vm)
 			}
 		}
 
@@ -47,6 +45,19 @@ func (o *Oskite) vmUpdater() {
 		}
 	}
 
+}
+
+func unprepareInQueue(vm *virt.VM) {
+	prepareQueue <- &QueueJob{
+		msg: fmt.Sprintf("Vm is stopped, unpreparing it: %s", vm.HostnameAlias),
+		f: func() error {
+			info := getInfo(vm)
+			info.mutex.Lock()
+			defer info.mutex.Unlock()
+
+			return unprepareProgress(nil, vm, false)
+		},
+	}
 }
 
 // startAlwaysOn  starts a vm if it's alwaysOn and not pinned to the current
