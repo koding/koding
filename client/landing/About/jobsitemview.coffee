@@ -1,4 +1,4 @@
-class JobsItemView extends KDView
+class JobsItemView extends JView
   constructor : (options = {}, data) ->
 
     options.cssClass = KD.utils.curry 'jobs-item-view', options.cssClass
@@ -16,8 +16,6 @@ class JobsItemView extends KDView
       title      : 'APPLY FOR THIS JOB'
       cssClass   : 'apply-button'
       href       : @getData().applyUrl
-
-  viewAppended : JView::viewAppended
 
   toggleDetails : (e) ->
 

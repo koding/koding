@@ -1,4 +1,4 @@
-class AboutView extends KDView
+class AboutView extends JView
 
   constructor:->
 
@@ -39,9 +39,6 @@ class AboutView extends KDView
     @once 'viewAppended', -> document.body.scrollTop = 0
 
     @footer = new FooterView
-
-
-  viewAppended: JView::viewAppended
 
   pistachio : ->
     """
