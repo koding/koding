@@ -5,6 +5,7 @@ import (
 	mongomodels "koding/db/models"
 	"koding/db/mongodb/modelhelper"
 	"socialapi/workers/notification/models"
+	"time"
 
 	"github.com/nu7hatch/gouuid"
 )
@@ -14,6 +15,7 @@ func createToken(uc *UserContact, nc *models.NotificationContent, token string) 
 		Recipient:        uc.UserOldId,
 		NotificationType: emailConfig[nc.TypeConstant],
 		UnsubscribeId:    token,
+		CreatedAt:        time.Now().UTC(),
 	}
 
 	return modelhelper.CreateMailToken(mt)
