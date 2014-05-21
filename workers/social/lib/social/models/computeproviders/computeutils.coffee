@@ -27,7 +27,7 @@ reviveClient = (client, callback, revive = yes)->
   { connection: { delegate:account }, context: { group } } = client
 
   JGroup = require '../group'
-  JGroup.one { slug: group }, (err, groupObj)=>
+  JGroup.one { slug: group }, (err, groupObj)->
 
     return callback err  if err
     return callback new KodingError "Group not found"  unless groupObj
