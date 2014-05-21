@@ -78,9 +78,9 @@ test:
 	done;
 
 testapi:
-	(echo "$(OK_COLOR)==> Running go api tests $(NO_COLOR)"); \
-	@go run ./tests/*.go
-	@go run ./workers/notification/tests/*.go
+	@echo "$(OK_COLOR)==> Running go api tests $(NO_COLOR)"
+	@go test tests/*.go
+	@go test workers/notification/tests/*.go
 
 doc:
 	@for package in $(PACKAGES); \
