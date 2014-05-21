@@ -33,7 +33,7 @@ type NotificationEvent struct {
 
 type NotificationContent struct {
 	TypeConstant string `json:"type"`
-	TargetId     int64  `json:"targetId"`
+	TargetId     int64  `json:"targetId,string"`
 	ActorId      string `json:"actorId"`
 }
 
@@ -282,7 +282,8 @@ func (f *RealtimeWorkerController) NotifyUser(data []byte) error {
 
 	oldAccount, err := fetchNotifierOldAccount(notification.AccountId)
 	if err != nil {
-		return fmt.Errorf("an error occurred while fetching old account: %s", err)
+		f.log.Warning("an error occurred while fetching old account: %s", err)
+		return nil
 	}
 
 	// fetch user profile name from bongo as routing key

@@ -17,7 +17,7 @@ type NotificationActivity struct {
 	NotificationContentId int64 `json:"notificationContentId" sql:"NOT NULL"`
 
 	// notifier account foreign key
-	ActorId int64 `json:"actorId" sql:"NOT NULL"`
+	ActorId int64 `json:"actorId,string" sql:"NOT NULL"`
 
 	// activity creation time
 	CreatedAt time.Time `json:"createdAt" sql:"NOT NULL"`

@@ -4,18 +4,20 @@ import (
 	"bytes"
 	"fmt"
 	"html/template"
+	"net/url"
 	"socialapi/config"
 	"socialapi/workers/notification/models"
 )
 
 var (
-	mainTemplateFile     = "../socialapi/workers/emailnotifier/templates/main.tmpl"
-	footerTemplateFile   = "../socialapi/workers/emailnotifier/templates/footer.tmpl"
-	contentTemplateFile  = "../socialapi/workers/emailnotifier/templates/content.tmpl"
-	gravatarTemplateFile = "../socialapi/workers/emailnotifier/templates/gravatar.tmpl"
-	groupTemplateFile    = "../socialapi/workers/emailnotifier/templates/group.tmpl"
-	previewTemplateFile  = "../socialapi/workers/emailnotifier/templates/preview.tmpl"
-	objectTemplateFile   = "../socialapi/workers/emailnotifier/templates/object.tmpl"
+	mainTemplateFile        = "../socialapi/workers/emailnotifier/templates/main.tmpl"
+	footerTemplateFile      = "../socialapi/workers/emailnotifier/templates/footer.tmpl"
+	contentTemplateFile     = "../socialapi/workers/emailnotifier/templates/content.tmpl"
+	gravatarTemplateFile    = "../socialapi/workers/emailnotifier/templates/gravatar.tmpl"
+	groupTemplateFile       = "../socialapi/workers/emailnotifier/templates/group.tmpl"
+	previewTemplateFile     = "../socialapi/workers/emailnotifier/templates/preview.tmpl"
+	objectTemplateFile      = "../socialapi/workers/emailnotifier/templates/object.tmpl"
+	unsubscribeTemplateFile = "../socialapi/workers/emailnotifier/templates/unsubscribe.tmpl"
 )
 
 type NotificationContainer struct {
@@ -27,10 +29,10 @@ type NotificationContainer struct {
 	ActivityMessage string
 	ObjectType      string
 	Group           GroupContent
+	Token           string
 }
 
 type MailContent struct {
-	TurnOffLink  string
 	CurrentDate  string
 	FirstName    string
 	Description  string
@@ -47,6 +49,9 @@ type MailContent struct {
 	Message      string
 	Slug         string
 	ObjectType   string
+	Token        string
+	ContentType  string
+	Recipient    string
 }
 
 type GroupContent struct {
@@ -56,7 +61,8 @@ type GroupContent struct {
 
 func renderTemplate(uc *UserContact, nc *NotificationContainer) (string, error) {
 	t := template.Must(template.ParseFiles(
-		mainTemplateFile, footerTemplateFile, contentTemplateFile, gravatarTemplateFile))
+		mainTemplateFile, footerTemplateFile, contentTemplateFile,
+		gravatarTemplateFile, unsubscribeTemplateFile))
 	mc, err := buildMailContent(uc, nc)
 	t = appendPreviewTemplate(t, nc)
 	t = appendGroupTemplate(t, nc)
@@ -75,13 +81,16 @@ func renderTemplate(uc *UserContact, nc *NotificationContainer) (string, error) 
 
 func buildMailContent(uc *UserContact, nc *NotificationContainer) (*MailContent, error) {
 	mc := &MailContent{
-		FirstName:  uc.FirstName,
-		Size:       20,
-		Slug:       nc.Slug,
-		Message:    nc.Message,
-		Action:     nc.ActivityMessage,
-		ObjectType: nc.ObjectType,
-		Group:      nc.Group,
+		FirstName:   uc.FirstName,
+		Size:        20,
+		Slug:        nc.Slug,
+		Message:     nc.Message,
+		Action:      nc.ActivityMessage,
+		ObjectType:  nc.ObjectType,
+		Group:       nc.Group,
+		Token:       nc.Token,
+		ContentType: nc.Content.TypeConstant,
+		Recipient:   url.QueryEscape(uc.Email),
 	}
 
 	mc.CurrentDate, mc.ActivityTime = prepareDateTime(nc)

@@ -13,7 +13,17 @@ import (
 	"github.com/sendgrid/sendgrid-go"
 	"github.com/streadway/amqp"
 	"labix.org/v2/mgo"
+	"labix.org/v2/mgo/bson"
 )
+
+var emailConfig = map[string]string{
+	models.NotificationContent_TYPE_COMMENT: "comment",
+	models.NotificationContent_TYPE_LIKE:    "likeActivities",
+	models.NotificationContent_TYPE_FOLLOW:  "followActions",
+	models.NotificationContent_TYPE_JOIN:    "groupJoined",
+	models.NotificationContent_TYPE_LEAVE:   "groupLeft",
+	models.NotificationContent_TYPE_MENTION: "mention",
+}
 
 type Action func(*EmailNotifierWorkerController, []byte) error
 
@@ -82,18 +92,22 @@ func (n *EmailNotifierWorkerController) SendInstantEmail(data []byte) error {
 		return err
 	}
 
+	// fetch latest activity for checking actor
 	activity, nc, err := notification.FetchLastActivity()
 	if err != nil {
 		return err
 	}
 
-	// do not notify actor for her own action
-	if activity.ActorId == notification.AccountId {
+	if !validNotification(activity, notification) {
 		return nil
 	}
 
-	// do not notify user when notification is not yet activated
-	if notification.ActivatedAt.IsZero() {
+	uc, err := fetchUserContact(notification.AccountId)
+	if err != nil {
+		return fmt.Errorf("an error occurred while fetching user contact: %s", err)
+	}
+
+	if !checkMailSettings(uc, nc) {
 		return nil
 	}
 
@@ -102,26 +116,52 @@ func (n *EmailNotifierWorkerController) SendInstantEmail(data []byte) error {
 		return err
 	}
 
-	uc, err := fetchUserContact(notification.AccountId)
-	if err != nil {
-		return fmt.Errorf("an error occurred while fetching user contact: %s", err)
-	}
-
 	body, err := renderTemplate(uc, container)
 	if err != nil {
 		return fmt.Errorf("an error occurred while preparing notification email: %s", err)
 	}
 	subject := prepareSubject(container)
 
+	if err := createToken(uc, nc, container.Token); err != nil {
+		return err
+	}
+
 	return n.SendMail(uc, body, subject)
 }
 
 type UserContact struct {
-	Email     string
-	FirstName string
-	LastName  string
-	Username  string
-	Hash      string
+	UserOldId     bson.ObjectId
+	Email         string
+	FirstName     string
+	LastName      string
+	Username      string
+	Hash          string
+	EmailSettings map[string]bool
+}
+
+func validNotification(a *models.NotificationActivity, n *models.Notification) bool {
+	// do not notify actor for her own action
+	if a.ActorId == n.AccountId {
+		return false
+	}
+
+	// do not notify user when notification is not yet activated
+	return !n.ActivatedAt.IsZero()
+}
+
+func checkMailSettings(uc *UserContact, nc *models.NotificationContent) bool {
+	// notifications are disabled
+	if val := uc.EmailSettings["global"]; !val {
+		return false
+	}
+
+	// daily notifications are enabled
+	if val := uc.EmailSettings["daily"]; val {
+		return false
+	}
+
+	// get config
+	return uc.EmailSettings[emailConfig[nc.TypeConstant]]
 }
 
 func buildContainer(a *models.NotificationActivity, nc *models.NotificationContent,
@@ -137,6 +177,11 @@ func buildContainer(a *models.NotificationActivity, nc *models.NotificationConte
 		Activity:     a,
 		Content:      nc,
 		Notification: n,
+	}
+
+	container.Token, err = generateToken()
+	if err != nil {
+		return nil, err
 	}
 
 	// if notification target is related with an object (comment/status update)
@@ -190,6 +235,7 @@ func prepareObjectType(container *NotificationContainer, cm *socialmodels.Channe
 	}
 }
 
+// fetchUserContact gets user and account details with given account id
 func fetchUserContact(accountId int64) (*UserContact, error) {
 	a := socialmodels.NewAccount()
 	if err := a.ById(accountId); err != nil {
@@ -215,11 +261,13 @@ func fetchUserContact(accountId int64) (*UserContact, error) {
 	}
 
 	uc := &UserContact{
-		Email:     user.Email,
-		FirstName: account.Profile.FirstName,
-		LastName:  account.Profile.LastName,
-		Username:  account.Profile.Nickname,
-		Hash:      account.Profile.Hash,
+		UserOldId:     user.ObjectId,
+		Email:         user.Email,
+		FirstName:     account.Profile.FirstName,
+		LastName:      account.Profile.LastName,
+		Username:      account.Profile.Nickname,
+		Hash:          account.Profile.Hash,
+		EmailSettings: user.EmailFrequency,
 	}
 
 	return uc, nil
