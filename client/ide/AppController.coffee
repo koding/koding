@@ -63,3 +63,6 @@ class IDEAppController extends AppController
 
   mergeSplitView: ->
     @activeTabView.mergeSplitView()
+
+  openFile: (file, contents) ->
+    @activeTabView.openFile file, contents

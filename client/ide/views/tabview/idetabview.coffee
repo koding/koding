@@ -108,5 +108,8 @@
 
     @getOptions().container.addSubView tabView
 
+  openFile: (file, content) ->
+    @createEditor file, content
+
   getDummyFilePath: ->
     return "localfile://Untitled.txt"
