@@ -4,14 +4,12 @@ class CommentListItemView extends KDListItemView
 
   constructor: (options = {}, data) ->
 
-    options.type = "comment"
+    options.type = 'comment'
 
     super options, data
 
 
-  click: (event) ->
-
-    KD.utils.showMoreClickHandler event
+  click: (event) -> KD.utils.showMoreClickHandler event
 
 
   createMenu: ->
@@ -19,8 +17,8 @@ class CommentListItemView extends KDListItemView
     data         = @getData()
     {activity}   = @getOptions()
     isOwner      = KD.isMyPost activity or KD.isMyPost data
-    canEdit      = "edit comments" in KD.config.permissions
-    canDeleteOwn = (KD.isMyPost(data) and "edit own comments" in KD.config.permissions)
+    canEdit      = 'edit comments' in KD.config.permissions
+    canDeleteOwn = (KD.isMyPost(data) and 'edit own comments' in KD.config.permissions)
 
     @settings =
       if canEdit
@@ -35,10 +33,10 @@ class CommentListItemView extends KDListItemView
     menu = {}
 
     if options.edit
-      menu['Edit Comment'] = callback: @bound "showEditForm"
+      menu['Edit Comment'] = callback: @bound 'showEditForm'
 
     if options.delete
-      menu['Delete Comment'] = callback: @bound "showDeleteModal"
+      menu['Delete Comment'] = callback: @bound 'showDeleteModal'
 
     delegate = this
 
@@ -58,8 +56,8 @@ class CommentListItemView extends KDListItemView
     @formWrapper.show()
 
     @form
-      .once "Submit", @bound "hideEditForm"
-      .once "Cancel", @bound "hideEditForm"
+      .once 'Submit', @bound 'hideEditForm'
+      .once 'Cancel', @bound 'hideEditForm'
 
 
   hideEditForm: ->
@@ -77,17 +75,18 @@ class CommentListItemView extends KDListItemView
 
   showDeleteModal: ->
 
-    new CommentDeleteModal {}, @getData()
+    modal = new CommentDeleteModal {}, @getData()
+    modal.once "Deleted", @bound "destroy"
 
 
   createReplyLink: ->
 
-    return @replyView = new KDView tagName: "span"  if KD.isMyPost @getData()
+    return @replyView = new KDView tagName: 'span'  if KD.isMyPost @getData()
 
     @replyView = new CustomLinkView
-      cssClass : "action-link reply-link"
-      title    : "Mention"
-      click    : @bound "reply"
+      cssClass : 'action-link reply-link'
+      title    : 'Mention'
+      click    : @bound 'reply'
 
 
   reply: (event) ->
@@ -99,7 +98,7 @@ class CommentListItemView extends KDListItemView
 
       return KD.showError err  if err
 
-      @getDelegate().emit "Mention", account.profile.nickname
+      @getDelegate().emit 'Mention', account.profile.nickname
 
 
   viewAppended: ->
@@ -122,21 +121,21 @@ class CommentListItemView extends KDListItemView
     @author = new ProfileLinkView {origin}
 
     @body       = new JCustomHTMLView
-      cssClass  : "comment-body-container"
-      pistachio : "{p{KD.utils.applyTextExpansions #(body), yes}}"
+      cssClass  : 'comment-body-container'
+      pistachio : '{p{KD.utils.applyTextExpansions #(body), yes}}'
     , data
 
-    @formWrapper = new KDCustomHTMLView cssClass: "edit-comment-wrapper hidden"
+    @formWrapper = new KDCustomHTMLView cssClass: 'edit-comment-wrapper hidden'
 
     @editInfo   = new JCustomHTMLView
-      tagName   : "span"
-      cssClass  : "hidden edited"
-      pistachio : "edited"
+      tagName   : 'span'
+      cssClass  : 'hidden edited'
+      pistachio : 'edited'
 
     @editInfo.show()  if updatedAt > createdAt
 
     # if deleterId? and deleterId isnt origin.id
-    #   @deleter = new ProfileLinkView {}, data.getAt "deletedBy"
+    #   @deleter = new ProfileLinkView {}, data.getAt 'deletedBy'
 
     @createMenu()
     @createReplyLink()
@@ -153,27 +152,27 @@ class CommentListItemView extends KDListItemView
 
   #   if deletedAt > createdAt
   #     {type} = @getOptions()
-  #     @setClass "deleted"
+  #     @setClass 'deleted'
   #     if @deleter
-  #       pistachio = "<div class='item-content-comment clearfix'><span>{{> @author}}'s #{type} has been deleted by {{> @deleter}}.</span></div>"
+  #       pistachio = '<div class="item-content-comment clearfix"><span>{{> @author}}\'s #{type} has been deleted by {{> @deleter}}.</span></div>'
   #     else
-  #       pistachio = "<div class='item-content-comment clearfix'><span>{{> @author}}'s #{type} has been deleted.</span></div>"
+  #       pistachio = '<div class="item-content-comment clearfix"><span>{{> @author}}\'s #{type} has been deleted.</span></div>'
   #     @setTemplate pistachio
   #   else if force
   #     @setTemplate @pistachio()
 
 
   pistachio: ->
-    """
-      {{> @avatar}}
-      <div class='comment-contents clearfix'>
-      {{> @author}}
-      {{> @body}}
-      {{> @formWrapper}}
-      {{> @editInfo}}
-      {{> @settings}}
-      {{> @likeView}}
-      {{> @replyView}}
-      {{> @timeAgoView}}
-      </div>
-    """
+    '''
+    {{> @avatar}}
+    <div class='comment-contents clearfix'>
+    {{> @author}}
+    {{> @body}}
+    {{> @formWrapper}}
+    {{> @editInfo}}
+    {{> @settings}}
+    {{> @likeView}}
+    {{> @replyView}}
+    {{> @timeAgoView}}
+    </div>
+    '''

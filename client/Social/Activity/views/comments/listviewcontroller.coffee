@@ -3,15 +3,13 @@ class CommentListViewController extends KDListViewController
   constructor: (options = {}, data) ->
 
     options.viewOptions =
-      type              : "comments"
+      type              : 'comments'
       itemClass         : CommentListItemView
       itemOptions       :
         delegate        : this
         activity        : data
 
     super options, data
-
-
 
 
   instantiateListItems: (items) ->
@@ -31,6 +29,6 @@ class CommentListViewController extends KDListViewController
 
     mainView.addSubView @customScrollView or @scrollView
     @scrollView.addSubView @getListView()
-    @showLazyLoader no  if @getOption "startWithLazyLoader"
+    @showLazyLoader no  if @getOption 'startWithLazyLoader'
 
-    @scrollView.on 'LazyLoadThresholdReached', @bound "showLazyLoader"
+    @scrollView.on 'LazyLoadThresholdReached', @bound 'showLazyLoader'

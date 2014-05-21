@@ -24,6 +24,8 @@ module.exports = class SocialMessage extends Base
           (signature Object, Function)
         delete :
           (signature Object, Function)
+        listReplies:
+          (signature Object, Function)
         like   :
           (signature Object, Function)
         unlike :
@@ -65,6 +67,12 @@ module.exports = class SocialMessage extends Base
       SocialMessage.ensureGroupChannel client, (err, socialApiChannelId)->
         data.initialChannelId = socialApiChannelId
         SocialMessage.doRequest 'addReply', client, data, callback
+
+  @listReplies = secure (client, data, callback)->
+    unless data.messageId
+      return callback message: "Request is not valid for listing replies"
+
+    SocialMessage.doRequest "listReplies", client, data, callback
 
   # todo add permission here
   @edit = secure (client, data, callback)->

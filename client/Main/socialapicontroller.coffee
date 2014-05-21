@@ -124,6 +124,11 @@ class SocialApiController extends KDController
       return callback err if err
       return callback null, mapActivity res
 
+  messageApiReplyResFunc = (name, rest..., callback)->
+    KD.remote.api.SocialMessage[name] rest..., (err, res)->
+      return callback err if err
+      return callback null, mapActivities res
+
   channelApiActivitiesResFunc = (name, rest..., callback)->
     KD.remote.api.SocialChannel[name] rest..., (err, result)->
       return callback err if err
@@ -219,6 +224,7 @@ class SocialApiController extends KDController
     delete :(args...)-> KD.remote.api.SocialMessage.delete args...
     like   :(args...)-> KD.remote.api.SocialMessage.like args...
     unlike :(args...)-> KD.remote.api.SocialMessage.unlike args...
+    listReplies:(args...)-> messageApiReplyResFunc 'listReplies', args...
     listLikers:(args...)-> KD.remote.api.SocialMessage.listLikers args...
     sendPrivateMessage :(args...)->
       sendPrivateMessageRequest 'sendPrivateMessage', args...
