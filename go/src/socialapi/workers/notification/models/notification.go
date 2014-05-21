@@ -15,7 +15,7 @@ type Notification struct {
 	Id int64 `json:"id"`
 
 	// notification recipient account id
-	AccountId int64 `json:"accountId" sql:"NOT NULL"`
+	AccountId int64 `json:"accountId,string" sql:"NOT NULL"`
 
 	// notification content foreign key
 	NotificationContentId int64 `json:"notificationContentId" sql:"NOT NULL"`
