@@ -11,7 +11,7 @@ MINOR=1
 # export MAJOR
 # export MINOR
 
-develop: apidev topicfeeddev realtimedev followingfeeddev populartopicdev popularpostdev notificationdev emailnotifierdev
+develop: apidev topicfeeddev realtimedev followingfeeddev populartopicdev popularpostdev notificationdev
 
 apidev:
 	@echo "$(OK_COLOR)==> Running API Worker $(NO_COLOR)"
@@ -80,6 +80,7 @@ test:
 testapi:
 	(echo "$(OK_COLOR)==> Running go api tests $(NO_COLOR)"); \
 	@go run ./tests/*.go
+	@go run ./workers/notification/tests/*.go
 
 doc:
 	@for package in $(PACKAGES); \
