@@ -33,7 +33,7 @@ type EmailSettings struct {
 
 func (n *EmailNotifierWorkerController) DefaultErrHandler(delivery amqp.Delivery, err error) bool {
 	n.log.Error("an error occured: %s", err)
-	delivery.Nack(false, false)
+	delivery.Ack(false)
 
 	return false
 }
