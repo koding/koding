@@ -3,18 +3,80 @@ class EnvironmentsMainScene extends KDView
   constructor: (options = {}, data) ->
 
     options.cssClass = KD.utils.curry 'environment-content', options.cssClass
-
     super options, data
 
     @on "CloneStackRequested", @bound "cloneStack"
 
+
   viewAppended:->
 
-    container  = new KDCustomHTMLView
+    @addSubView @renderHeader()
+    KD.singletons.mainController.ready @bound 'renderStacks'
+
+
+  renderStacks:->
+
+    ComputeProvider.fetchStacks (err, stacks = [])=>
+
+      @stacks = []
+
+      for stack, index in stacks
+        @stacks.push @addSubView \
+          stackView = new StackView {isDefault: index is 0}, stack
+        @forwardEvent stackView, "CloneStackRequested"
+
+      @emit "StacksCreated"
+      callback?()
+
+
+  createNewStack: (meta, modal)->
+
+    KD.remote.api.JStack.create meta, (err, stack)=>
+
+      title = "Failed to create a new stack. Try again later!"
+      return new KDNotificationView { title }  if err?
+
+      modal?.destroy()
+
+      @stacks.push @addSubView stackView = new StackView {}, stack
+      @forwardEvent stackView, "CloneStackRequested"
+
+      @highlightStack stackView
+
+
+  cloneStack: (stackData) ->
+
+    return new KDNotificationView title: "FIXME ~GG"
+
+    new CreateStackModal
+      title   : "Give a title to your new stack"
+      callback: (meta, modal) =>
+        modal.destroy()
+        stackModal = new CloneStackModal { meta }, stackData
+        stackModal.once "StackCloned", =>
+          @once "EnvironmentDataFetched", =>
+            stackView.destroy() for stackView in @stacks
+          @once "StacksCreated", =>
+            @highlightStack @stacks.last
+          @fetchStacks()
+
+
+  highlightStack: (stackView) ->
+    stackView.once "transitionend", ->
+      stackView.getElement().scrollIntoView()
+      KD.utils.wait 300, -> # wait for a smooth feedback
+        stackView.setClass "hilite"
+        stackView.once "transitionend", ->
+          stackView.setClass "hilited"
+
+
+  renderHeader: ->
+
+    container = new KDCustomHTMLView
       tagName  : "section"
       cssClass : "environments-header"
 
-    container.addSubView header = new KDView
+    header = new KDView
       tagName  : 'header'
       partial  : """
         <h1>Environments</h1>
@@ -25,20 +87,17 @@ class EnvironmentsMainScene extends KDView
       """
 
     header.addSubView new KDButtonView
-      cssClass : "solid green medium create-stack"
-      title    : "Create a new stack"
-      callback : @bound "showCreateStackModal"
+      title      : "Create a new stack"
+      cssClass   : "solid green medium create-stack"
+      callback   : => new CreateStackModal
+        callback : @bound "createNewStack"
 
-    @addSubView container
-
-    freePlanView = new KDView
+    header.addSubView freePlanView = new KDView
       cssClass : "top-warning"
       click    : (event) ->
         if "usage" in event.target.classList
           KD.utils.stopDOMEvent event
           new KDNotificationView title: "Coming soon..."
-
-    header.addSubView freePlanView
 
     paymentControl = KD.getSingleton("paymentController")
     paymentControl.fetchActiveSubscription tags: "vm", (err, subscription) ->
@@ -53,68 +112,5 @@ class EnvironmentsMainScene extends KDView
     paymentControl.on "SubscriptionCompleted", ->
       freePlanView.updatePartial ""
 
-    KD.singletons.mainController.ready => @fetchStacks()
-
-  fetchStacks: ->
-    EnvironmentDataProvider.get (@environmentData) =>
-      @emit "EnvironmentDataFetched", @environmentData
-
-      # {JStack} = KD.remote.api
-      # JStack.getStacks (err, stacks = [])=>
-      #   warn err  if err
-      @createStacks [] # stacks
-
-  createStacks: (stacks) ->
-    @stacks = []
-    stacks.forEach (stack, index) =>
-      stack = new StackView  { stack, isDefault: index is 0 }, @environmentData
-      stack.once "ready", @bound "watchRuleItems"
-
-      @stacks.push @addSubView stack
-      @forwardEvent stack, "CloneStackRequested"
-      callback?()  if index is stacks.length - 1
-
-    @emit "StacksCreated"
-
-  showCreateStackModal: ->
-    modal = new CreateStackModal
-      callback : @bound "createNewStack"
-
-  createNewStack: (meta, modal) ->
-    # KD.remote.api.JStack.createStack meta, (err, stack) =>
-    title = "Failed to create a new stack. Try again later!"
-    return new KDNotificationView { title }#  if err
-    modal.destroy()
-
-      # stackView = new StackView { stack} , @environmentData
-      # @forwardEvent stackView, "CloneStackRequested"
-      # @stacks.push @addSubView stackView
-      # @highlightStack stackView
-
-  highlightStack: (stackView) ->
-    stackView.once "transitionend", =>
-      stackView.getElement().scrollIntoView()
-      KD.utils.wait 300, => # wait for a smooth feedback
-        stackView.setClass "hilite"
-        stackView.once "transitionend", =>
-          stackView.setClass "hilited"
-
-  cloneStack: (stackData) ->
-    new CreateStackModal
-      title   : "Give a title to your new stack"
-      callback: (meta, modal) =>
-        modal.destroy()
-        stackModal = new CloneStackModal { meta }, stackData
-        stackModal.once "StackCloned", =>
-          @once "EnvironmentDataFetched", =>
-            stackView.destroy() for stackView in @stacks
-          @once "StacksCreated", =>
-            @highlightStack @stacks.last
-          @fetchStacks()
-
-  watchRuleItems: (stack) ->
-    for key, ruleItem of stack.rules.dias
-      ruleItem.on "RuleDataUpdated", =>
-        for stackView in @stacks
-          for key, ruleDia of stackView.rules.dias
-            ruleDia.handleDataUpdate yes
+    container.addSubView header
+    return container
