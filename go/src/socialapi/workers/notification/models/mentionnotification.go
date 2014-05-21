@@ -36,6 +36,18 @@ func (m *MentionNotification) GetActorId() int64 {
 	return m.NotifierId
 }
 
+func (m *MentionNotification) SetActorId(actorId int64) {
+	m.NotifierId = actorId
+}
+
 func NewMentionNotification() *MentionNotification {
 	return &MentionNotification{}
+}
+
+func (n *MentionNotification) GetDefinition() string {
+	return getGenericDefinition(NotificationContent_TYPE_MENTION)
+}
+
+func (n *MentionNotification) GetActivity() string {
+	return "mentioned you in a"
 }

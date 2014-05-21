@@ -15,7 +15,7 @@ type Interaction struct {
 	MessageId int64 `json:"messageId"             sql:"NOT NULL"`
 
 	// Id of the actor
-	AccountId int64 `json:"accountId"             sql:"NOT NULL"`
+	AccountId int64 `json:"accountId,string"      sql:"NOT NULL"`
 
 	// Type of the interaction
 	TypeConstant string `json:"typeConstant"      sql:"NOT NULL;TYPE:VARCHAR(100);"`

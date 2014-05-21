@@ -47,6 +47,25 @@ func (n *GroupNotification) GetActorId() int64 {
 	return n.NotifierId
 }
 
+func (n *GroupNotification) SetActorId(actorId int64) {
+	n.NotifierId = actorId
+}
+
 func NewGroupNotification(typeConstant string) *GroupNotification {
 	return &GroupNotification{TypeConstant: typeConstant}
+}
+
+func (n *GroupNotification) GetDefinition() string {
+	return getGenericDefinition(n.TypeConstant)
+}
+
+func (n *GroupNotification) GetActivity() string {
+	var action string
+	if n.TypeConstant == NotificationContent_TYPE_JOIN {
+		action = "joined"
+	} else {
+		action = "left"
+	}
+
+	return "has " + action + " your group."
 }

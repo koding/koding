@@ -33,6 +33,10 @@ notificationdev:
 	@echo "$(OK_COLOR)==> Running Notification Worker $(NO_COLOR)"
 	@$(GOBINDIR)/rerun socialapi/workers/notification -c $(CONFIG) -d
 
+emailnotifierdev:
+	@echo "$(OK_COLOR)==> Running Email Notifier Worker $(NO_COLOR)"
+	@$(GOBINDIR)/rerun socialapi/workers/emailnotifier -c $(CONFIG) -d
+
 popularpostdev:
 	@echo "$(OK_COLOR)==> Running Popular Posts Worker $(NO_COLOR)"
 	@$(GOBINDIR)/rerun socialapi/workers/popularpost -c $(CONFIG) -d
@@ -76,6 +80,7 @@ test:
 testapi:
 	(echo "$(OK_COLOR)==> Running go api tests $(NO_COLOR)"); \
 	@go run ./tests/*.go
+	@go run ./workers/notification/tests/*.go
 
 doc:
 	@for package in $(PACKAGES); \

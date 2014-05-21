@@ -38,6 +38,18 @@ func (n *FollowNotification) GetActorId() int64 {
 	return n.NotifierId
 }
 
+func (n *FollowNotification) SetActorId(actorId int64) {
+	n.NotifierId = actorId
+}
+
 func NewFollowNotification() *FollowNotification {
 	return &FollowNotification{}
+}
+
+func (n *FollowNotification) GetDefinition() string {
+	return getGenericDefinition("follower")
+}
+
+func (n *FollowNotification) GetActivity() string {
+	return "started following you."
 }
