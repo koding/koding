@@ -1,10 +1,10 @@
 class ErrorLog
   @create : do ->
-    run = true
+    idle = false
 
     idleUserDetector = new IdleUserDetector
-    idleUserDetector.on 'userIdle', -> run = false
-    idleUserDetector.on 'userBack', -> run = true
+    idleUserDetector.on 'userIdle', -> idle = true
+    idleUserDetector.on 'userBack', -> idle = false
 
     KD.utils.throttle 500, (error, params={})->
       {
@@ -22,9 +22,9 @@ class ErrorLog
         terminalVersion
         codeVersion
         userAgent
+        idle
         useNewKites   : KD.useNewKites
         osKiteVersion : osVersion
       }, params
 
-      if run
-        KD.remote.api.JErrorLog.create error, ->
+      KD.remote.api.JErrorLog.create error, ->
