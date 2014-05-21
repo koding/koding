@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"html/template"
+	"net/url"
 	"socialapi/config"
 	"socialapi/workers/notification/models"
 )
@@ -28,10 +29,10 @@ type NotificationContainer struct {
 	ActivityMessage string
 	ObjectType      string
 	Group           GroupContent
+	Token           string
 }
 
 type MailContent struct {
-	TurnOffLink  string
 	CurrentDate  string
 	FirstName    string
 	Description  string
@@ -48,6 +49,9 @@ type MailContent struct {
 	Message      string
 	Slug         string
 	ObjectType   string
+	Token        string
+	ContentType  string
+	Recipient    string
 }
 
 type GroupContent struct {
@@ -77,13 +81,16 @@ func renderTemplate(uc *UserContact, nc *NotificationContainer) (string, error) 
 
 func buildMailContent(uc *UserContact, nc *NotificationContainer) (*MailContent, error) {
 	mc := &MailContent{
-		FirstName:  uc.FirstName,
-		Size:       20,
-		Slug:       nc.Slug,
-		Message:    nc.Message,
-		Action:     nc.ActivityMessage,
-		ObjectType: nc.ObjectType,
-		Group:      nc.Group,
+		FirstName:   uc.FirstName,
+		Size:        20,
+		Slug:        nc.Slug,
+		Message:     nc.Message,
+		Action:      nc.ActivityMessage,
+		ObjectType:  nc.ObjectType,
+		Group:       nc.Group,
+		Token:       nc.Token,
+		ContentType: nc.Content.TypeConstant,
+		Recipient:   url.QueryEscape(uc.Email),
 	}
 
 	mc.CurrentDate, mc.ActivityTime = prepareDateTime(nc)
