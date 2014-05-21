@@ -37,7 +37,7 @@ class AvatarPopupNotifications extends AvatarPopup
     if KD.isLoggedIn()
       {SocialNotification} = KD.remote.api
       SocialNotification.glance (err) =>
-        return warn err  if err
+        return warn err.error, err.description  if err
 
         for item in @listController.itemsOrdered
           item.unsetClass 'unread'
