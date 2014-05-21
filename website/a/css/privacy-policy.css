@@ -1,3 +1,5 @@
+@import url(http://fonts.googleapis.com/css?family=Asap:700);
+
 @font-face{font-family:"Open Sans";font-weight:300;font-style:normal;src:url("fonts/OpenSans-Light.ttf")}
 @font-face{font-family:"Open Sans";font-weight:300;font-style:italic;src:url("fonts/OpenSans-LightItalic-small.ttf")}
 @font-face{font-family:"Open Sans";font-weight:400;font-style:normal;src:url("fonts/OpenSans-Regular.ttf")}
@@ -6,7 +8,6 @@
 @font-face{font-family:"Open Sans";font-weight:600;font-style:italic;src:url("fonts/OpenSans-SemiboldItalic-small.ttf")}
 @font-face{font-family:"Open Sans";font-weight:700;font-style:normal;src:url("fonts/OpenSans-Bold-small.ttf")}
 @font-face{font-family:"Open Sans";font-weight:700;font-style:italic;src:url("fonts/OpenSans-BoldItalic-small.ttf")}
-@font-face{font-family:"Asap";font-style:normal;font-weight:700;src:local("Asap Bold"),local("Asap-Bold"),url("https://themes.googleusercontent.com/static/fonts/asap/v2/QnZU7dKCBgkkMBlac2djsOvvDin1pK8aKteLpeZ5c0A.woff"), format('woff')}
 
 html, body {
   margin: 0;
@@ -60,12 +61,12 @@ html, body {
   border: 1px solid rgba(255,255,255,0.5);
 }
 #main-header .logotype {
+  -webkit-font-smoothing: antialiased;
+  font-smoothing: antialiased;
   font-size: 24px;
-  font-weight: 700;
   line-height: 119px;
   color: #fff;
-  font-family: 'Asap', 'Helvetica Neue', Helvetica, sans-serif;
-  -webkit-font-smoothing: antialiased;
+  font-family: 'Asap';
   text-decoration: none;
   display: block;
   float: left;
