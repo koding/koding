@@ -41,13 +41,13 @@
     pane.addSubView view
     @tabView.addPane pane
 
-  createEditor: ->
-    file      = FSHelper.createFileFromPath "localfile://Untitled.txt"
-    content   = "This is my localfile"
-    editor    = new EditorPane { file, content, delegate: this }
+  createEditor: (file, content) ->
+    file        = file    or FSHelper.createFileFromPath @getDummyFilePath()
+    content     = content or ""
+    editor      = new EditorPane { file, content, delegate: this }
     paneOptions =
-      name    : file.name
-      aceView : editor.ace
+      name      : file.name
+      aceView   : editor.ace
 
     @createPane_ editor, paneOptions
 
@@ -107,3 +107,6 @@
         tabView.tabView.addPane pane
 
     @getOptions().container.addSubView tabView
+
+  getDummyFilePath: ->
+    return "localfile://Untitled.txt"
