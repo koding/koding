@@ -21,7 +21,8 @@ var (
 	cert         = flag.String("cert", "", "certificate pathname")
 	key          = flag.String("key", "", "private key pathname")
 	flagConfig   = flag.String("config", "", "pathname of JSON configuration file")
-	listen       = flag.String("listen", "0.0.0.0:7000", "listen address")
+	host         = flag.String("host", "0.0.0.0", "listen address")
+	port         = flag.String("port", "7000", "listen port")
 	flagConfFile = flag.String("c", "", "Configuration profile from file")
 	flagDebug    = flag.Bool("d", false, "Debug mode")
 
@@ -37,7 +38,7 @@ type context struct {
 
 func init() {
 	flag.Usage = func() {
-		fmt.Fprintln(os.Stderr, "Usage: example [-cert=<cert>] [-key=<key>] [-config=<config>] [-listen=<listen>]")
+		fmt.Fprintln(os.Stderr, "Usage: example [-cert=<cert>] [-key=<key>] [-config=<config>] [-host=<host>] [-port=<port>]")
 		flag.PrintDefaults()
 	}
 	mux = tigertonic.NewTrieServeMux()
@@ -83,8 +84,9 @@ func newServer() *tigertonic.Server {
 	// 	stdlog.New(os.Stderr, "metrics ", stdlog.Lmicroseconds),
 	// )
 
+	addr := *host + ":" + *port
 	server := tigertonic.NewServer(
-		*listen,
+		addr,
 		tigertonic.Logged(
 			tigertonic.WithContext(mux, context{}),
 			nil,
