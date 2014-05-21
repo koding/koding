@@ -15,6 +15,7 @@ class CommentView extends KDView
       .on "Mention", @inputForm.bound "mention"
 
     @listPreviousLink = new CommentListPreviousLink delegate: @controller, data
+    @listPreviousLink.on "List", @bound "listPreviousReplies"
 
     @on "Reply", @inputForm.bound "setFocus"
 

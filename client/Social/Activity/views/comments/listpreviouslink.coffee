@@ -7,6 +7,9 @@ class CommentListPreviousLink extends CustomLinkView
     super options, data
 
 
+  click: -> @emit "List"
+
+
   update: ->
 
     {replies, repliesCount} = @getData()
