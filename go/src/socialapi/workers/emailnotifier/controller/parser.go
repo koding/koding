@@ -9,13 +9,14 @@ import (
 )
 
 var (
-	mainTemplateFile     = "../socialapi/workers/emailnotifier/templates/main.tmpl"
-	footerTemplateFile   = "../socialapi/workers/emailnotifier/templates/footer.tmpl"
-	contentTemplateFile  = "../socialapi/workers/emailnotifier/templates/content.tmpl"
-	gravatarTemplateFile = "../socialapi/workers/emailnotifier/templates/gravatar.tmpl"
-	groupTemplateFile    = "../socialapi/workers/emailnotifier/templates/group.tmpl"
-	previewTemplateFile  = "../socialapi/workers/emailnotifier/templates/preview.tmpl"
-	objectTemplateFile   = "../socialapi/workers/emailnotifier/templates/object.tmpl"
+	mainTemplateFile        = "../socialapi/workers/emailnotifier/templates/main.tmpl"
+	footerTemplateFile      = "../socialapi/workers/emailnotifier/templates/footer.tmpl"
+	contentTemplateFile     = "../socialapi/workers/emailnotifier/templates/content.tmpl"
+	gravatarTemplateFile    = "../socialapi/workers/emailnotifier/templates/gravatar.tmpl"
+	groupTemplateFile       = "../socialapi/workers/emailnotifier/templates/group.tmpl"
+	previewTemplateFile     = "../socialapi/workers/emailnotifier/templates/preview.tmpl"
+	objectTemplateFile      = "../socialapi/workers/emailnotifier/templates/object.tmpl"
+	unsubscribeTemplateFile = "../socialapi/workers/emailnotifier/templates/unsubscribe.tmpl"
 )
 
 type NotificationContainer struct {
@@ -56,7 +57,8 @@ type GroupContent struct {
 
 func renderTemplate(uc *UserContact, nc *NotificationContainer) (string, error) {
 	t := template.Must(template.ParseFiles(
-		mainTemplateFile, footerTemplateFile, contentTemplateFile, gravatarTemplateFile))
+		mainTemplateFile, footerTemplateFile, contentTemplateFile,
+		gravatarTemplateFile, unsubscribeTemplateFile))
 	mc, err := buildMailContent(uc, nc)
 	t = appendPreviewTemplate(t, nc)
 	t = appendGroupTemplate(t, nc)
