@@ -8,6 +8,16 @@ import (
 	"socialapi/workers/notification/models"
 )
 
+var (
+	mainTemplateFile     = "../socialapi/workers/emailnotifier/templates/main.tmpl"
+	footerTemplateFile   = "../socialapi/workers/emailnotifier/templates/footer.tmpl"
+	contentTemplateFile  = "../socialapi/workers/emailnotifier/templates/content.tmpl"
+	gravatarTemplateFile = "../socialapi/workers/emailnotifier/templates/gravatar.tmpl"
+	groupTemplateFile    = "../socialapi/workers/emailnotifier/templates/group.tmpl"
+	previewTemplateFile  = "../socialapi/workers/emailnotifier/templates/preview.tmpl"
+	objectTemplateFile   = "../socialapi/workers/emailnotifier/templates/object.tmpl"
+)
+
 type NotificationContainer struct {
 	Activity        *models.NotificationActivity
 	Content         *models.NotificationContent
@@ -45,12 +55,8 @@ type GroupContent struct {
 }
 
 func renderTemplate(uc *UserContact, nc *NotificationContainer) (string, error) {
-	// TODO change this directory structure
 	t := template.Must(template.ParseFiles(
-		"../socialapi/workers/emailnotifier/templates/main.tmpl",
-		"../socialapi/workers/emailnotifier/templates/footer.tmpl",
-		"../socialapi/workers/emailnotifier/templates/content.tmpl",
-		"../socialapi/workers/emailnotifier/templates/gravatar.tmpl"))
+		mainTemplateFile, footerTemplateFile, contentTemplateFile, gravatarTemplateFile))
 	mc, err := buildMailContent(uc, nc)
 	t = appendPreviewTemplate(t, nc)
 	t = appendGroupTemplate(t, nc)
@@ -96,7 +102,7 @@ func appendGroupTemplate(t *template.Template, nc *NotificationContainer) *templ
 		groupTemplate = getEmptyTemplate()
 	} else {
 		groupTemplate = template.Must(
-			template.ParseFiles("../socialapi/workers/emailnotifier/templates/group.tmpl"))
+			template.ParseFiles(groupTemplateFile))
 	}
 
 	t.AddParseTree("group", groupTemplate.Tree)
@@ -110,10 +116,8 @@ func appendPreviewTemplate(t *template.Template, nc *NotificationContainer) *tem
 		previewTemplate = getEmptyTemplate()
 		objectTemplate = getEmptyTemplate()
 	} else {
-		previewTemplate = template.Must(
-			template.ParseFiles("../socialapi/workers/emailnotifier/templates/preview.tmpl"))
-		objectTemplate = template.Must(
-			template.ParseFiles("../socialapi/workers/emailnotifier/templates/object.tmpl"))
+		previewTemplate = template.Must(template.ParseFiles(previewTemplateFile))
+		objectTemplate = template.Must(template.ParseFiles(objectTemplateFile))
 	}
 
 	t.AddParseTree("preview", previewTemplate.Tree)
