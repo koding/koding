@@ -9,9 +9,7 @@ class CommentListItemView extends KDListItemView
     super options, data
 
 
-  click: (event) ->
-
-    KD.utils.showMoreClickHandler event
+  click: (event) -> KD.utils.showMoreClickHandler event
 
 
   createMenu: ->
@@ -75,9 +73,7 @@ class CommentListItemView extends KDListItemView
     @form.hide()
 
 
-  showDeleteModal: ->
-
-    new CommentDeleteModal {}, @getData()
+  showDeleteModal: -> new CommentDeleteModal {}, @getData()
 
 
   createReplyLink: ->

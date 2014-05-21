@@ -31,9 +31,7 @@ class CommentEditForm extends CommentInputForm
       data.emit "update"
 
 
-  cancel: ->
-
-    @emit "Cancel"
+  cancel: -> @emit "Cancel"
 
 
   viewAppended: ->

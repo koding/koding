@@ -25,9 +25,7 @@ class CommentInputForm extends KDView
     @input.on "blur", @bound "inputBlured"
 
 
-  submit: ->
-
-    @emit "Submit", @input.getValue()
+  submit: ->  @emit "Submit", @input.getValue()
 
 
   enter: ->
