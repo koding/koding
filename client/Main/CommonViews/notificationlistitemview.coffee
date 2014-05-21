@@ -1,6 +1,8 @@
 
 class NotificationListItem extends KDListItemView
 
+  JView.mixin @prototype
+
   activityNameMap =
     comment : "status."
     like    : "status."
@@ -41,6 +43,7 @@ class NotificationListItem extends KDListItemView
 
     @activityPlot = new KDCustomHTMLView tagName: "span"
     @timeAgoView  = new KDTimeAgoView null, @getLatestTimeStamp @getData().dummy
+    @prepareData()
 
 
   fetchActors: ->
@@ -63,10 +66,10 @@ class NotificationListItem extends KDListItemView
         origin   : @actors[0]
 
     .catch (err) ->
-      warn err
+      warn err.description
 
 
-  viewAppended: ->
+  prepareData: ->
     promises = []
     promises.push @fetchActors()
     promises.push @getActivityPlot()
@@ -75,8 +78,7 @@ class NotificationListItem extends KDListItemView
       @setTemplate @pistachio()
       @template.update()
     .catch (err) ->
-      warn err
-
+      warn err.description
 
   pistachio:->
     """
@@ -90,7 +92,6 @@ class NotificationListItem extends KDListItemView
         </footer>
       </div>
     """
-
 
   getLatestTimeStamp:->
     return @getData().updatedAt
