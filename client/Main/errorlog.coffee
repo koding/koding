@@ -1,22 +1,30 @@
 class ErrorLog
-  @create : KD.utils.throttle 500, (error, params={})->
-    {
-      kites : {
-        os       : {version  : osVersion}
-        terminal : {version  : terminalVersion}
-      }
-      version    : codeVersion
-    } = KD.config
+  @create : do ->
+    run = true
 
-    {userAgent} = window.navigator
+    idleUserDetector = new IdleUserDetector
+    idleUserDetector.on 'userIdle', -> run = false
+    idleUserDetector.on 'userBack', -> run = true
 
-    error = $.extend {
-      error
-      terminalVersion
-      codeVersion
-      userAgent
-      useNewKites   : KD.useNewKites
-      osKiteVersion : osVersion
-    }, params
+    KD.utils.throttle 500, (error, params={})->
+      {
+        kites : {
+          os       : {version  : osVersion}
+          terminal : {version  : terminalVersion}
+        }
+        version    : codeVersion
+      } = KD.config
 
-    KD.remote.api.JErrorLog.create error, ->
+      {userAgent} = window.navigator
+
+      error = $.extend {
+        error
+        terminalVersion
+        codeVersion
+        userAgent
+        useNewKites   : KD.useNewKites
+        osKiteVersion : osVersion
+      }, params
+
+      if run
+        KD.remote.api.JErrorLog.create error, ->
