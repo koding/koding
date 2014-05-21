@@ -103,6 +103,13 @@ addReply = (data, callback)->
   url = "#{SOCIAL_API_URL}/message/#{data.messageId}/reply"
   post url, data, callback
 
+listReplies = (data, callback)->
+  unless data.messageId
+    return callback { message: "Request is not valid for adding a reply"}
+
+  url = "#{SOCIAL_API_URL}/message/#{data.messageId}/reply"
+  get url, data, callback
+
 fetchPopularTopics = (data, callback)->
   if not data.groupName or not data.type
     return callback {message: "Request is not valid for listing popular topics"}
@@ -248,6 +255,7 @@ module.exports = {
   fetchPopularPosts
   fetchPopularTopics
   addReply
+  listReplies
   unlikeMessage
   likeMessage
   listLikers
