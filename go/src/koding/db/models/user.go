@@ -25,4 +25,6 @@ type User struct {
 		Title string `bson:"title"`
 		Key   string `bson:"key"`
 	} `bson:"sshKeys"`
+
+	EmailFrequency map[string]bool `bson:"emailFrequency" json:"emailFrequency"`
 }
