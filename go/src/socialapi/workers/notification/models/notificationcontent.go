@@ -13,7 +13,7 @@ type NotificationContent struct {
 	Id int64 `json:"id"`
 
 	// target of the activity (replied messageId, followed accountId etc.)
-	TargetId int64 `json:"targetId"          sql:"NOT NULL"`
+	TargetId int64 `json:"targetId,string"   sql:"NOT NULL"`
 
 	// Type of the NotificationContent
 	TypeConstant string `json:"typeConstant" sql:"NOT NULL;TYPE:VARCHAR(100);"`

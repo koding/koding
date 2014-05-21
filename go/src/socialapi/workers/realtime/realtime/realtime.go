@@ -33,7 +33,7 @@ type NotificationEvent struct {
 
 type NotificationContent struct {
 	TypeConstant string `json:"type"`
-	TargetId     int64  `json:"targetId"`
+	TargetId     int64  `json:"targetId,string"`
 	ActorId      string `json:"actorId"`
 }
 
