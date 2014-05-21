@@ -92,12 +92,13 @@ func (n *EmailNotifierWorkerController) SendInstantEmail(data []byte) error {
 		return err
 	}
 
+	// fetch latest activity for checking actor
 	activity, nc, err := notification.FetchLastActivity()
 	if err != nil {
 		return err
 	}
 
-	if !notifyUser(activity, notification) {
+	if !validNotification(activity, notification) {
 		return nil
 	}
 
@@ -138,7 +139,7 @@ type UserContact struct {
 	EmailSettings map[string]bool
 }
 
-func notifyUser(a *models.NotificationActivity, n *models.Notification) bool {
+func validNotification(a *models.NotificationActivity, n *models.Notification) bool {
 	// do not notify actor for her own action
 	if a.ActorId == n.AccountId {
 		return false
@@ -234,6 +235,7 @@ func prepareObjectType(container *NotificationContainer, cm *socialmodels.Channe
 	}
 }
 
+// fetchUserContact gets user and account details with given account id
 func fetchUserContact(accountId int64) (*UserContact, error) {
 	a := socialmodels.NewAccount()
 	if err := a.ById(accountId); err != nil {
