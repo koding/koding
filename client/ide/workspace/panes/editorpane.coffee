@@ -14,7 +14,7 @@ class EditorPane extends Pane
     unless file instanceof FSFile
       throw new TypeError "File must be an instance of FSFile"
 
-    unless content
+    unless content?
       throw new TypeError "You must pass file content to EditorPane"
 
     @aceView = new AceView delegate: @getDelegate(), file
