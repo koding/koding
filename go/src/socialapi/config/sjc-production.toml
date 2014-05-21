@@ -6,7 +6,7 @@ Redis="172.16.10.16:6379"
 RedisSlave="172.16.10.17:6379"
 
 [postgres]
-Host=     "localhost"
+Host=     "172.16.3.18"
 Port=     5432
 Username= "socialapplication"
 Password= "socialapplication"
