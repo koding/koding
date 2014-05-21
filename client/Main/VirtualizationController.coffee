@@ -22,9 +22,9 @@ class VirtualizationController extends KDController
       else
         @emit 'ready'
 
-    mc.on   'AccountChanged', => @emit 'VMListChanged'
+    mc.on 'AccountChanged', => @emit 'VMListChanged'
 
-    @on 'VMListChanged', @bound 'resetVMData'
+    @on 'VMListChanged', @bound 'fetchVMs'
 
   run: Promise.promisify (options, callback = noop)->
     options ?= {}
