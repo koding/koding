@@ -43,7 +43,6 @@ class NotificationListItem extends KDListItemView
 
     @activityPlot = new KDCustomHTMLView tagName: "span"
     @timeAgoView  = new KDTimeAgoView null, @getLatestTimeStamp @getData().dummy
-    @prepareData()
 
 
   fetchActors: ->
@@ -69,7 +68,7 @@ class NotificationListItem extends KDListItemView
       warn err.description
 
 
-  prepareData: ->
+  viewAppended: ->
     promises = []
     promises.push @fetchActors()
     promises.push @getActivityPlot()
