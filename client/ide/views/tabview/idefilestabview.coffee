@@ -6,8 +6,9 @@ class IDEFilesTabView extends WorkspaceTabView
 
     super options, data
 
-    tabPane = new KDTabPaneView
-      name  : "Files"
+    tabPane    = new KDTabPaneView
+      name     : "Files"
+      closable : no
 
     tabPane.addSubView new FinderPane
     @tabView.addPane tabPane

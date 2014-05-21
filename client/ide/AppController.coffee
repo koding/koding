@@ -17,37 +17,24 @@ class IDEAppController extends AppController
 
     super options, data
 
-    layoutOptions       =
-      direction         : "vertical"
-      splitName         : "BaseSplit"
-      sizes             : [ null, "250px" ]
-      views             : [
+    layoutOptions   =
+      direction     : "vertical"
+      splitName     : "BaseSplit"
+      sizes         : [ "250px", null ]
+      views         : [
         {
-          type          : "split"
-          options       :
-            direction   : "vertical"
-            sizes       : [ "250px", null]
-          views         : [
-            {
-              type      : "custom"
-              name      : "filesPane"
-              paneClass : IDEFilesTabView
-            },
-            {
-              type      : "custom"
-              name      : "editorPane"
-              paneClass : IDETabView
-            }
-          ]
+          type      : "custom"
+          name      : "filesPane"
+          paneClass : IDEFilesTabView
         },
         {
-          type          : "custom"
-          name          : "socialsPane"
-          paneClass     : IDESocialsTabView
+          type      : "custom"
+          name      : "editorPane"
+          paneClass : IDETabView
         }
       ]
 
-    workspace = new Workspace { layoutOptions }
+    workspace = @workspace = new Workspace { layoutOptions }
     workspace.once "ready", =>
       panel = workspace.getView()
       @getView().addSubView panel
