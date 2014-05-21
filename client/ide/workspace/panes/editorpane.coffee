@@ -10,13 +10,12 @@ class EditorPane extends Pane
 
   createEditor: ->
     {file, content} = @getOptions()
-    isLocalFile     = no
 
     unless file instanceof FSFile
-      return new Error "File must be an instance of FSFile"
+      throw new TypeError "File must be an instance of FSFile"
 
     unless content
-      return new Error "You must pass file content to EditorPane"
+      throw new TypeError "You must pass file content to EditorPane"
 
     @aceView = new AceView delegate: @getDelegate(), file
     @aceView.ace.once "ace.ready", =>
