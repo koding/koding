@@ -2,14 +2,14 @@ class CommentEditForm extends CommentInputForm
 
   constructor: (options = {}, data) ->
 
-    options.cssClass    = KD.utils.curry "edit-comment-box", options.cssClass
+    options.cssClass    = KD.utils.curry 'edit-comment-box', options.cssClass
     options.editable    ?= yes
     options.showAvatar  ?= no
 
     super options, data
 
     @input.setValue Encoder.htmlDecode data.body
-    @input.on "EscapePerformed", @bound "cancel"
+    @input.on 'EscapePerformed', @bound 'cancel'
 
 
   submit: ->
@@ -18,20 +18,20 @@ class CommentEditForm extends CommentInputForm
 
     return  unless body.length
 
-    @emit "Submit"
+    @emit 'Submit'
 
     {id} = data = @getData()
 
-    KD.singleton("appManager").tell "Activity", "edit", {id, body}, (err) =>
+    KD.singleton('appManager').tell 'Activity', 'edit', {id, body}, (err) =>
 
       return KD.showError err  if err
 
       data.body = body
       data.meta.updatedAt = new Date
-      data.emit "update"
+      data.emit 'update'
 
 
-  cancel: -> @emit "Cancel"
+  cancel: -> @emit 'Cancel'
 
 
   viewAppended: ->
@@ -39,8 +39,8 @@ class CommentEditForm extends CommentInputForm
     super
 
     @addSubView new KDCustomHTMLView
-      cssClass  : "cancel-description"
-      pistachio : "Press Esc to cancel"
+      cssClass  : 'cancel-description'
+      pistachio : 'Press Esc to cancel'
 
     KD.utils.defer =>
 

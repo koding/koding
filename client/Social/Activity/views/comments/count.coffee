@@ -8,4 +8,4 @@ class ActivityCommentCount extends CustomLinkView
     if repliesCount then @show() else @hide()
 
 
-  pistachio: -> "{{ #(repliesCount)}}"
+  pistachio: -> '{{ #(repliesCount)}}'

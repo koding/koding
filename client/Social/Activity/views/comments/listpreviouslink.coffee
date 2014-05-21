@@ -2,12 +2,12 @@ class CommentListPreviousLink extends CustomLinkView
 
   constructor: (options = {}, data) ->
 
-    options.cssClass = KD.utils.curry "list-previous-link", options.cssClass
+    options.cssClass = KD.utils.curry 'list-previous-link', options.cssClass
 
     super options, data
 
 
-  click: -> @emit "List"
+  click: -> @emit 'List'
 
 
   update: ->
