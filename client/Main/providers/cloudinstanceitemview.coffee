@@ -1,5 +1,7 @@
 class CloudInstanceItemView extends KDListItemView
 
+  JView.mixin @prototype
+
   constructor:(options = {}, data)->
 
     options.cssClass = "cloud-item #{data.provider}"

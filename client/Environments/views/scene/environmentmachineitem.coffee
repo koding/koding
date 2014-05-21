@@ -1,5 +1,7 @@
 class EnvironmentMachineItem extends EnvironmentItem
 
+  JView.mixin @prototype
+
   constructor:(options={}, data)->
 
     options.cssClass           = 'machine'
@@ -71,14 +73,14 @@ class EnvironmentMachineItem extends EnvironmentItem
               @data.meta.initScript = Encoder.htmlEncode modal.editor.getValue()
 
   pistachio:->
-    title = @getData().hostnameAlias
-    [vm]  = title.split "."
+    {label, provider, publicAddress} = @getData()
+    title = label or provider
 
     """
       <div class='details'>
         <span class='toggle'></span>
-        <h3>#{vm}</h3>
-        <a href="http://#{title}" target="_blank" title="#{title}">
+        <h3>#{title}</h3>
+        <a href="http://#{publicAddress}" target="_blank" title="#{publicAddress}">
           <span class='url'></span>
         </a>
         {{> @terminalIcon}}

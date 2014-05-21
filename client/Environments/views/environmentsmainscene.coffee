@@ -1,4 +1,4 @@
-class EnvironmentsMainScene extends JView
+class EnvironmentsMainScene extends KDView
 
   constructor: (options = {}, data) ->
 

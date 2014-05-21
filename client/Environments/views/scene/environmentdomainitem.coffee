@@ -1,5 +1,7 @@
 class EnvironmentDomainItem extends EnvironmentItem
 
+  JView.mixin @prototype
+
   constructor:(options={}, data)->
 
     options.cssClass           = 'domain'

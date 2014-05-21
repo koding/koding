@@ -4,12 +4,6 @@ class ProviderBaseView extends KDTabPaneView
 
     data?.description or= "We are still working on #{data.name} provider."
     options.cssClass    = KD.utils.curry "provider-view", options.cssClass
-    options.pistachio or= """
-      {{> this.header}}
-      {p{ #(description)}}
-      {{> this.loader}}
-      {{> this.content}}
-    """
 
     super options, data
 
@@ -100,8 +94,15 @@ class ProviderBaseView extends KDTabPaneView
             content : "<pre>#{packerTemplate}</pre>"
 
   viewAppended:->
-    super
+
     @on 'PaneDidShow', @bound 'paneSelected'
+
+    @addSubView @header
+    @addSubView new KDCustomHTMLView
+      partial : "<p>#{@getData().description}</p>"
+    @addSubView @loader
+    @addSubView @content
+
 
   showInstanceList:(credentialKey)->
     provider = @getOption 'providerId'
