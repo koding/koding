@@ -1,5 +1,13 @@
 class ComputeProvider extends KDObject
 
+  requiresLogin = do -> ({ message }, fn) -> ->
+
+    return unless KD.isLoggedIn()
+      new KDNotificationView
+        title: message
+
+    fn()
+
   @providers = KD.config.providers
 
   @credentialsFor = (provider, callback)->
@@ -26,7 +34,9 @@ class ComputeProvider extends KDObject
   @create = (options, callback)->
     KD.remote.api.ComputeProvider.create options, callback
 
-  @showProvidersModal = ->
+  @showProvidersModal = requiresLogin
+    message: "You need to login to create a new machine."
+  , ->
     new KDModalView
       title        : 'Add Virtual Machine'
       cssClass     : 'provider-modal'
@@ -39,6 +49,7 @@ class ComputeProvider extends KDObject
           title    : "Create"
           style    : "modal-clean-green"
           callback : =>
+            info arguments
 
   @generateAddCredentialFormFor = (provider)->
 
