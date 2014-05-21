@@ -161,15 +161,15 @@ class CommentListItemView extends KDListItemView
 
   pistachio: ->
     """
-      {{> @avatar}}
-      <div class='comment-contents clearfix'>
-      {{> @author}}
-      {{> @body}}
-      {{> @formWrapper}}
-      {{> @editInfo}}
-      {{> @settings}}
-      {{> @likeView}}
-      {{> @replyView}}
-      {{> @timeAgoView}}
-      </div>
+    {{> @avatar}}
+    <div class='comment-contents clearfix'>
+    {{> @author}}
+    {{> @body}}
+    {{> @formWrapper}}
+    {{> @editInfo}}
+    {{> @settings}}
+    {{> @likeView}}
+    {{> @replyView}}
+    {{> @timeAgoView}}
+    </div>
     """
