@@ -4,22 +4,25 @@ class EnvironmentScene extends KDDiaScene
     EnvironmentRuleContainer    : 'rules'
     EnvironmentExtraContainer   : 'extras'
     EnvironmentDomainContainer  : 'domains'
-    EnvironmentMachineContainer : 'vms'
+    EnvironmentMachineContainer : 'machines'
 
   itemMap      =
     EnvironmentRuleItem         : 'rule'
     EnvironmentExtraItem        : 'extra'
     EnvironmentDomainItem       : 'domain'
-    EnvironmentMachineItem      : 'vm'
+    EnvironmentMachineItem      : 'machine'
 
-  constructor: (stack)->
-    super
+  constructor: (options = {}, data)->
+
+    options     =
       cssClass  : 'environments-scene'
       lineWidth : 2
       lineColor : "#4ED393"
 
+    super options, data
+
     @boxes = {}
-    @stack = stack
+    @stack = @getData()
 
     sc = KD.getSingleton 'appStorageController'
     @appStorage = sc.storage 'EnvironmentsScene', '1.0.1'
@@ -33,11 +36,13 @@ class EnvironmentScene extends KDDiaScene
 
     items = parseItems source, target
     return  if Object.keys(items).length < 2
-    {domain, vm, rule, extra} = items
+    {domain, machine, rule, extra} = items
 
-    if domain and vm
+    return new KDNotificationView title: "FIXME ~GG"
+
+    if domain and machine
       jDomain = domain.dia.getData().domain # JDomain
-      vmName  = vm.dia.getData().title # JVM.hostnameAlias
+      vmName  = machine.dia.getData().title # JVM.hostnameAlias
       jDomain.unbindVM hostnameAlias: vmName, (err)=>
         return KD.showError err  if err
         jDomain.hostnameAlias.splice jDomain.hostnameAlias.indexOf(vmName), 1
@@ -45,7 +50,7 @@ class EnvironmentScene extends KDDiaScene
     else if domain and rule
       removeConnection()
       @unboundRuleFromDomain domain, rule
-    else if vm and extra
+    else if machine and extra
       removeConnection()
 
   connect:(source, target, internal = no)->
@@ -60,20 +65,22 @@ class EnvironmentScene extends KDDiaScene
 
     items = parseItems source, target
     return  if Object.keys(items).length < 2
-    {domain, vm, rule, extra} = items
+    {domain, machine, rule, extra} = items
+
+    return new KDNotificationView title: "FIXME ~GG"
 
     if extra
       return new KDNotificationView
         title : "Assigning resources will be available soon."
 
-    if domain and vm and not KD.checkFlag 'nostradamus'
+    if domain and machine and not KD.checkFlag 'nostradamus'
       if domain.dia.getData().domain.hostnameAlias.length > 0
         return new KDNotificationView
-          title : "A domain name can only be bound to one VM."
+          title : "A domain name can only be bound to one machine."
 
-    if domain and vm
+    if domain and machine
       jDomain = domain.dia.getData().domain # JDomain
-      vmName  = vm.dia.getData().title # JVM.hostnameAlias
+      vmName  = machine.dia.getData().title # JVM.hostnameAlias
       jDomain.bindVM hostnameAlias: vmName, (err)=>
         return  if KD.showError err
         jDomain.hostnameAlias.push vmName
@@ -81,7 +88,7 @@ class EnvironmentScene extends KDDiaScene
     else if domain and rule
       createConnection()
       @bindRuleToDomain domain, rule
-    else if vm and extra
+    else if machine and extra
       createConnection()
 
   bindRuleToDomain: (domain, rule) ->
@@ -117,7 +124,7 @@ class EnvironmentScene extends KDDiaScene
   updateConnections:->
     @reset no
 
-    vmDias       = @boxes.vms.dias
+    machineDias  = @boxes.machines.dias
     domainDias   = @boxes.domains.dias
     domainsByDia = {}
     rulesById    = {}
@@ -125,13 +132,13 @@ class EnvironmentScene extends KDDiaScene
     domainsByDia[domain.data.title] = domain for key, domain of domainDias
     rulesById[rule.data._id] = rule for key, rule of @boxes.rules.dias
 
-    for _mkey, vm of vmDias
+    for _mkey, machine of machineDias
       for _dkey, domain of domainDias
         domainAliases = domain.getData().aliases
-        if domainAliases and vm.getData().title in domainAliases
-          @connect {dia : domain , joint : 'right'}, {dia : vm, joint : 'left' }, yes
+        if domainAliases and machine.getData().title in domainAliases
+          @connect {dia : domain , joint : 'right'}, {dia : machine, joint : 'left' }, yes
 
-    for restriction in EnvironmentRuleContainer.restrictions
+    for restriction in EnvironmentRuleContainer.restrictions?
       domainDia = domainsByDia[restriction.domainName]
       for filterId in restriction.filters
         ruleDia = rulesById[filterId]
@@ -220,32 +227,32 @@ class EnvironmentApprovalModal extends KDModalView
     content     = 'God knows.'
 
     titles = {}
-    for title in ['domain', 'vm', 'rule', 'extra']
+    for title in ['domain', 'machine', 'rule', 'extra']
       titles[title] = items[title].dia.getData().title  if items[title]
 
     if action is 'create'
 
-      if titles.domain? and titles.vm?
+      if titles.domain? and titles.machine?
         content = """Do you want to assign <b>#{titles.domain}</b>
-                     to <b>#{titles.vm}</b> vm?"""
+                     to <b>#{titles.machine}</b> machine?"""
       else if titles.domain? and titles.rule?
         content = """Do you want to enable <b>#{titles.rule}</b> rule
                      for <b>#{titles.domain}</b> domain?"""
-      else if titles.vm? and titles.extra?
+      else if titles.machine? and titles.extra?
         content = """Do you want to add <b>#{titles.extra}</b>
-                     to <b>#{titles.vm}</b> vm?"""
+                     to <b>#{titles.machine}</b> machine?"""
 
     else if action is 'delete'
 
-      if titles.domain? and titles.vm?
+      if titles.domain? and titles.machine?
         content = """Do you want to remove <b>#{titles.domain}</b>
-                     domain from <b>#{titles.vm}</b> vm?"""
+                     domain from <b>#{titles.machine}</b> machine?"""
       else if titles.domain? and titles.rule?
         content = """Do you want to disable <b>#{titles.rule}</b> rule
                      for <b>#{titles.domain}</b> domain?"""
-      else if titles.vm? and titles.extra?
+      else if titles.machine? and titles.extra?
         content = """Do you want to remove <b>#{titles.extra}</b>
-                     from <b>#{titles.vm}</b> vm?"""
+                     from <b>#{titles.machine}</b> machine?"""
 
     return "<div class='modalformline'><p>#{content}</p></div>"
 
