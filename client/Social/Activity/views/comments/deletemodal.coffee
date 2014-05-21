@@ -28,9 +28,10 @@ class CommentDeleteModal extends KDModalView
       @buttons.Delete.hideLoader()
       @destroy()
 
-      return  unless err
+      if err
+        return new KDNotificationView
+          type     : 'mini'
+          cssClass : 'error editor'
+          title    : 'Error, please try again later!'
 
-      new KDNotificationView
-        type     : 'mini'
-        cssClass : 'error editor'
-        title    : 'Error, please try again later!'
+      @emit "Deleted"
