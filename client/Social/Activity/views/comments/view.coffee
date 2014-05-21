@@ -23,6 +23,28 @@ class CommentView extends KDView
       .on "RemoveReply", @controller.lazyBound "removeItem", null
 
 
+  listPreviousReplies: ->
+
+    @emit "AsyncJobStarted"
+
+    activity = @getData()
+    from     = activity.replies[0].meta.createdAt.toISOString()
+    limit    = 10
+
+    KD.singleton("appManager").tell "Activity", "listReplies", {activity, from, limit}, (err, replies) =>
+
+      @emit "AsyncJobFinished"
+
+      return KD.showError err  if err
+
+      replies.reverse()
+
+      activity.replies = replies.concat activity.replies
+
+      @controller.addItem reply, index for reply, index in replies
+      @listPreviousLink.update()
+
+
   reply: (body, callback = noop) ->
 
     activity = @getData()
