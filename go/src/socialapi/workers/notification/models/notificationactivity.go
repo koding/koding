@@ -141,3 +141,7 @@ func (a *NotificationActivity) FetchContent() (*NotificationContent, error) {
 
 	return nc, nil
 }
+
+func (a *NotificationActivity) ById(id int64) error {
+	return bongo.B.ById(a, id)
+}
