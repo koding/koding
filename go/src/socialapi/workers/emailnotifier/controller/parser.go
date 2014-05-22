@@ -106,30 +106,38 @@ func renderTemplate(uc *UserContact, contentType, content string, date time.Time
 	return doc.String(), nil
 }
 
-func buildMailContent(uc *UserContact, nc *NotificationContainer) (*MailContent, error) {
-	mc := &MailContent{
+func buildMailContent(uc *UserContact, contentType string, currentDate string) *MailContent {
+	return &MailContent{
 		FirstName:   uc.FirstName,
-		Size:        20,
-		Slug:        nc.Slug,
-		Message:     nc.Message,
-		Action:      nc.ActivityMessage,
-		ObjectType:  nc.ObjectType,
-		Group:       nc.Group,
-		Token:       nc.Token,
-		ContentType: nc.Content.TypeConstant,
-		Recipient:   url.QueryEscape(uc.Email),
+		CurrentDate: currentDate,
+		Unsubscribe: &UnsubscribeContent{
+			Token:       uc.Token,
+			ContentType: contentType,
+			Recipient:   url.QueryEscape(uc.Email),
+		},
+		Uri: config.Get().Uri,
 	}
+}
 
-	mc.CurrentDate, mc.ActivityTime = prepareDateTime(nc)
-	mc.Uri = config.Get().Uri
+func buildEventContent(nc *NotificationContainer) (*EventContent, error) {
+	ec := &EventContent{
+		Action:       nc.ActivityMessage,
+		ActivityTime: prepareTime(nc),
+		Uri:          config.Get().Uri,
+		Slug:         nc.Slug,
+		Message:      nc.Message,
+		Group:        nc.Group,
+		ObjectType:   nc.ObjectType,
+		Size:         20,
+	}
 
 	actor, err := fetchUserContact(nc.Activity.ActorId)
 	if err != nil {
 		return nil, fmt.Errorf("an error occurred while retrieving actor details", err)
 	}
-	mc.ActorContact = *actor
+	ec.ActorContact = *actor
 
-	return mc, nil
+	return ec, nil
 }
 
 func appendGroupTemplate(t *template.Template, nc *NotificationContainer) {
