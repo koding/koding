@@ -14,6 +14,8 @@ class MessagePane extends KDTabPaneView
 
     @bindChannelEvents()
 
+    @on 'LazyLoadThresholdReached', @bound 'lazyLoad'
+
 
   bindChannelEvents: ->
 
