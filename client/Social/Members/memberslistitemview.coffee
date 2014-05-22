@@ -20,7 +20,7 @@ class MembersListItemView extends KDListItemView
 
     @actor = new ProfileLinkView {}, data
 
-    @followersAndFollowing = new KDCustomHTMLView
+    @followersAndFollowing = new JCustomHTMLView
       cssClass  : 'user-numbers'
       pistachio : "{{ #(counts.followers)}} followers {{ #(counts.following)}} following"
     , data

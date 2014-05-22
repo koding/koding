@@ -1,5 +1,7 @@
 class GroupTabHandleView extends KDTabHandleView
 
+  JView.mixin @prototype
+
   constructor:(options = {}, data)->
     options.cssClass = @utils.curry 'grouptabhandle', options.cssClass
 

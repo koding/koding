@@ -1,10 +1,11 @@
 class SkillTagAutoCompletedItem extends KDAutoCompletedItem
+
+  JView.mixin @prototype
+
   constructor: (options = {}, data) ->
     options.cssClass = "clearfix"
     super options, data
     @tag = new TagLinkView {}, @getData()
-
-  viewAppended: JView::viewAppended
 
   pistachio: -> "{{> @tag}}"
 

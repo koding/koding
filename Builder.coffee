@@ -356,7 +356,6 @@ module.exports = class Builder
 
           uglifiedSourceMap = UglifyJS.SourceMap(orig: jsSourceMap)
           stream = UglifyJS.OutputStream
-            semicolons: false
             source_map: uglifiedSourceMap
           ast.print stream
           file.content = stream.toString()

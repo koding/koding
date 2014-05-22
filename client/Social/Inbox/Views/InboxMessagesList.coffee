@@ -9,6 +9,8 @@ class InboxMessagesList extends KDListView
 
 class InboxMessagesListItem extends KDListItemView
 
+  JView.mixin @prototype
+
   constructor:(options = {},data)->
 
     options.tagName  = "li"
@@ -46,8 +48,6 @@ class InboxMessagesListItem extends KDListItemView
 
   viewAppended:->
     super()
-    @setTemplate @pistachio()
-    @template.update()
 
     @unsetClass('unread') if @getData().getFlagValue('read')
 

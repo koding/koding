@@ -1,5 +1,7 @@
 class ModalAppsListItemView extends KDListItemView
 
+  JView.mixin @prototype
+
   constructor:(options,data)->
     options.cssClass = 'topic-item'
 
@@ -26,5 +28,3 @@ class ModalAppsListItemView extends KDListItemView
       </p>
     </div>
     """
-
-  viewAppended: JView::viewAppended

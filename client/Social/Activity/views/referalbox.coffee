@@ -51,11 +51,6 @@ class ReferalBox extends JView
         @redeemPointsModal.updatePartial text
 
 
-  viewAppended:->
-
-    super
-    @updateSizeBar()
-
   updateSizeBar:->
     @progressBar.updateBar 0
     vmc = KD.getSingleton "vmController"

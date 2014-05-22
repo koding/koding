@@ -1,5 +1,7 @@
 class AppDetailsView extends KDScrollView
 
+  JView.mixin @prototype
+
   constructor:->
 
     super
@@ -99,7 +101,7 @@ class AppDetailsView extends KDScrollView
 
     @slideShow = new KDCustomHTMLView
       tagName   : "ul"
-      pistachio : do ->
+      partial   : do ->
         slides = app.manifest.screenshots or []
         tmpl = ''
         for slide in slides
@@ -173,9 +175,6 @@ class AppDetailsView extends KDScrollView
             if err then warn err
             modal.destroy()
             callback? err
-
-
-  viewAppended: JView::viewAppended
 
 
   pistachio:->

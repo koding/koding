@@ -1,5 +1,7 @@
 class TerminalStartTabVMItem extends KDCustomHTMLView
 
+  JView.mixin @prototype
+
   MESSAGE_MAP =
     'started'                : 'Checking VM state'
     'vm is already prepared' : 'READY'
@@ -102,10 +104,6 @@ class TerminalStartTabVMItem extends KDCustomHTMLView
     @notice.updatePartial 'OFF'
 
   click : -> @emit 'VMItemClicked', @getData()
-
-
-  viewAppended:JView::viewAppended
-
 
   pistachio:->
     vm    = @getData()

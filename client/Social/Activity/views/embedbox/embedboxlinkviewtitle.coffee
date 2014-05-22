@@ -1,4 +1,4 @@
-class EmbedBoxLinkViewTitle extends KDView
+class EmbedBoxLinkViewTitle extends JView
 
   constructor:(options={},data)->
     super options, data
@@ -21,7 +21,7 @@ class EmbedBoxLinkViewTitle extends KDView
     @editIndicator = new KDCustomHTMLView
       tagName   : 'div'
       cssClass  : 'edit-indicator title-edit-indicator'
-      pistachio : 'edited'
+      partial   : 'edited'
       tooltip   :
         title   : "Original Content was: #{oembed.original_title or oembed.title or ''}"
 

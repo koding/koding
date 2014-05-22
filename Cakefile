@@ -157,7 +157,7 @@ task 'socialWorker', "Run the socialWorker", ({configFile}) ->
       #   else
       #     delete exitingProcesses[pid]
 
-  if social.watch?
+  if social.watch is yes
     watcher = new Watcher
       groups   :
         social   :

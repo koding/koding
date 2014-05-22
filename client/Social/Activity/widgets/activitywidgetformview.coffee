@@ -1,5 +1,7 @@
 class ActivityWidgetFormView extends KDFormView
 
+  JView.mixin @prototype
+
   constructor :(options, data)->
 
     super

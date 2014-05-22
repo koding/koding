@@ -145,13 +145,13 @@ class GroupDescription extends KDView
           KD.utils.stopDOMEvent event
           KD.singletons.router.handleRoute "/Dashboard"  if isAdmin
 
-      @titleView = new KDCustomHTMLView
+      @titleView = new JCustomHTMLView
         tagName         : "h3"
         pistachioParams : { edit }
         pistachio       : "{{ #(title)}} {{> edit}}"
       , group
 
-      @bodyView = new KDCustomHTMLView
+      @bodyView = new JCustomHTMLView
         tagName   : "p"
         pistachio : "{{ #(body) or ''}}"
         cssClass  : "group-description"
@@ -204,6 +204,8 @@ class GroupMembers extends ActivityRightBase
 
 class GroupMembersListItemView extends KDListItemView
 
+  JView.mixin @prototype
+
   constructor: (options = {}, data) ->
     super options, data
     @avatar      = new AvatarView
@@ -211,5 +213,3 @@ class GroupMembersListItemView extends KDListItemView
       showStatus : yes
     , @getData()
     @addSubView @avatar
-
-  viewAppended:JView::viewAppended

@@ -1,11 +1,13 @@
 class TopicsListItemView extends KDListItemView
 
+  JView.mixin @prototype
+
   constructor:(options = {}, data)->
     options.type = "topics"
     super options, data
 
     data = @getData()
-    @titleLink = new KDCustomHTMLView
+    @titleLink = new JCustomHTMLView
       tagName     : 'a'
       pistachio   : '{{#(title)}}'
       click       : (event) =>

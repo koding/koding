@@ -262,13 +262,14 @@ class ActiveTopicItemView extends KDListItemView
         partial   : tagInfoPartial
 
 class GroupListItemView extends KDListItemView
+
+  JView.mixin @prototype
+
   constructor: (options = {}, data) ->
     options.type = "activity-ticker-item"
     super options, data
 
     @groupLink = new GroupLinkView null, data
-
-  viewAppended: JView::viewAppended
 
   pistachio: ->
       """

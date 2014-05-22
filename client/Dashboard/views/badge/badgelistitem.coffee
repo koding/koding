@@ -1,4 +1,7 @@
 class BadgeListItem extends KDListItemView
+
+  JView.mixin @prototype
+
   constructor: (options = {}, data) ->
     options.type =  "badge"
     super options, data
@@ -19,8 +22,6 @@ class BadgeListItem extends KDListItemView
       style       : "solid"
       callback    : =>
         modal     = new BadgeUpdateForm {itemList: this}, badge : @getData()
-
-  viewAppended: JView::viewAppended
 
   pistachio:->
     """

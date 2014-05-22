@@ -289,7 +289,7 @@ class ActivityStatusUpdateWidget extends ActivityWidgetFormView
     #   </div>
     # </div>
 
-class InfoBox extends KDView
+class InfoBox extends JView
   constructor:->
     super
     # will hide the link helper box once it's been closed once
@@ -333,10 +333,6 @@ class InfoBox extends KDView
   setSwitchValue:(value)->
     @stopSanitizingOnOffSwitch.setValue value
 
-  viewAppended:->
-    super
-    @setTemplate @pistachio()
-    @template.update()
   pistachio:->"""
       <p>For links, please provide a protocol such as
         <abbr title="Hypertext Transfer Protocol">http://</abbr>

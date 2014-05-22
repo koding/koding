@@ -1,6 +1,4 @@
-class EmbedBoxObjectView extends KDView
-
-  viewAppended: JView::viewAppended
+class EmbedBoxObjectView extends JView
 
   pistachio:->
     objectHtml = @getData().link_embed?.object?.html

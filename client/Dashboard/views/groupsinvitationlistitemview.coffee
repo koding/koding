@@ -1,5 +1,7 @@
 class GroupsInvitationListItemView extends KDListItemView
 
+  JView.mixin @prototype
+
   constructor:(options = {}, data)->
     options.cssClass = 'formline clearfix'
     options.type     = 'invitation-request'
