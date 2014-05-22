@@ -52,6 +52,7 @@ module.exports = [
   "views/comments/editform.coffee"
   "views/comments/count.coffee"
   "views/comments/likeview.coffee"
+  "views/comments/listpreviouslink.coffee"
   "views/comments/view.coffee"
   "views/comments/listviewcontroller.coffee"
   "views/comments/settingsbutton.coffee"

@@ -47,6 +47,8 @@ class MessagesListController extends KDListViewController
 
   fetchNotificationTeasers:(callback)->
     KD.remote.api.SocialNotification.fetch (err, notifications) =>
+      return KD.showError err  if err
+      return KD.notify_ "Notifications could not fetched"  unless notifications
       @emit 'NotificationCountDidChange', notifications.unreadCount
       callback null, notifications.notifications
       @hideLazyLoader()

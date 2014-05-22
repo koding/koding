@@ -39,6 +39,18 @@ func (n *InteractionNotification) GetActorId() int64 {
 	return n.NotifierId
 }
 
+func (n *InteractionNotification) SetActorId(actorId int64) {
+	n.NotifierId = actorId
+}
+
 func NewInteractionNotification(notificationType string) *InteractionNotification {
 	return &InteractionNotification{TypeConstant: notificationType}
+}
+
+func (n *InteractionNotification) GetDefinition() string {
+	return getGenericDefinition(n.TypeConstant)
+}
+
+func (n *InteractionNotification) GetActivity() string {
+	return n.TypeConstant + "d your"
 }

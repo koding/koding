@@ -48,6 +48,14 @@ class ActivityAppController extends AppController
     socialapi.message.delete {id}, callback
 
 
+  listReplies: ({activity, from, limit}, callback = noop) ->
+
+    messageId = activity.id
+
+    {socialapi} = KD.singletons
+    socialapi.message.listReplies {messageId, from, limit}, callback
+
+
   fetch: (options = {}, callback = noop) ->
 
     {channelId} = options

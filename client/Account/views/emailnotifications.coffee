@@ -18,12 +18,14 @@ class AccountEmailNotifications extends KDView
         title          : 'When my post gets a new comment'
       likeActivities   :
         title          : 'When someone likes my content'
+      mention          :
+        title          : 'When someone mentions me'
       groupInvite      :
         title          : 'When someone invites me to their group'
-      groupRequest     :
-        title          : 'When someone requests access to my group'
-      groupApproved    :
-        title          : 'When my group access is approved'
+      # groupRequest     :
+      #   title          : 'When someone requests access to my group'
+      # groupApproved    :
+      #   title          : 'When my group access is approved'
       groupJoined      :
         title          : 'When someone joins my group'
       groupLeft        :

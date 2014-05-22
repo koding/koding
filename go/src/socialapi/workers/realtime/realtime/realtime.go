@@ -21,21 +21,19 @@ import (
 type Action func(*RealtimeWorkerController, []byte) error
 
 type RealtimeWorkerController struct {
-	routes          map[string]Action
-	log             logging.Logger
-	rmqConn         *amqp.Connection
-	notifierRmqConn *amqp.Connection
+	routes  map[string]Action
+	log     logging.Logger
+	rmqConn *amqp.Connection
 }
 
 type NotificationEvent struct {
 	RoutingKey string              `json:"routingKey"`
-	Event      string              `json:"event"`
 	Content    NotificationContent `json:"contents"`
 }
 
 type NotificationContent struct {
 	TypeConstant string `json:"type"`
-	TargetId     int64  `json:"targetId"`
+	TargetId     int64  `json:"targetId,string"`
 	ActorId      string `json:"actorId"`
 }
 
@@ -51,15 +49,9 @@ func NewRealtimeWorkerController(rmq *rabbitmq.RabbitMQ, log logging.Logger) (*R
 		return nil, err
 	}
 
-	notifierRmqConn, err := rmq.Connect("NotifierWorkerController")
-	if err != nil {
-		return nil, err
-	}
-
 	ffc := &RealtimeWorkerController{
-		log:             log,
-		rmqConn:         rmqConn.Conn(),
-		notifierRmqConn: notifierRmqConn.Conn(),
+		log:     log,
+		rmqConn: rmqConn.Conn(),
 	}
 
 	routes := map[string]Action{
@@ -262,26 +254,19 @@ func (f *RealtimeWorkerController) MessageListDeleted(data []byte) error {
 }
 
 func (f *RealtimeWorkerController) NotifyUser(data []byte) error {
-	channel, err := f.notifierRmqConn.Channel()
+	channel, err := f.rmqConn.Channel()
 	if err != nil {
 		return errors.New("channel connection error")
 	}
 	defer channel.Close()
 
-	notification, err := mapMessageToNotification(data)
-	if err != nil {
+	notification := notificationmodels.NewNotification()
+	if err := notification.MapMessage(data); err != nil {
 		return err
 	}
 
-	// fetch notification content and get event type
-	nc, err := notification.FetchContent()
+	activity, nc, err := notification.FetchLastActivity()
 	if err != nil {
-		return err
-	}
-
-	activity := notificationmodels.NewNotificationActivity()
-	activity.NotificationContentId = nc.Id
-	if err := activity.LastActivity(); err != nil {
 		return err
 	}
 
@@ -297,12 +282,12 @@ func (f *RealtimeWorkerController) NotifyUser(data []byte) error {
 
 	oldAccount, err := fetchNotifierOldAccount(notification.AccountId)
 	if err != nil {
-		return fmt.Errorf("an error occurred while fetching old account: %s", err)
+		f.log.Warning("an error occurred while fetching old account: %s", err)
+		return nil
 	}
 
 	// fetch user profile name from bongo as routing key
 	ne := &NotificationEvent{}
-	ne.Event = nc.GetEventType()
 
 	ne.Content = NotificationContent{
 		TargetId:     nc.TargetId,
@@ -316,7 +301,7 @@ func (f *RealtimeWorkerController) NotifyUser(data []byte) error {
 	}
 
 	routingKey := oldAccount.Profile.Nickname
-	f.log.Debug("notify it %s", routingKey)
+
 	err = channel.Publish(
 		"notification",
 		routingKey,
@@ -490,13 +475,4 @@ func (f *RealtimeWorkerController) sendNotification(accountId int64, eventName s
 		false,
 		amqp.Publishing{Body: byteNotification},
 	)
-}
-
-func mapMessageToNotification(data []byte) (*notificationmodels.Notification, error) {
-	n := notificationmodels.NewNotification()
-	if err := json.Unmarshal(data, n); err != nil {
-		return nil, err
-	}
-
-	return n, nil
 }

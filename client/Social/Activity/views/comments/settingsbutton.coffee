@@ -2,12 +2,12 @@ class CommentSettingsButton extends KDButtonViewWithMenu
 
   constructor: (options = {}, data) ->
 
-    options.cssClass       = "comment-menu"
+    options.cssClass       = 'comment-menu'
     options.itemChildClass = ActivityItemMenuItem
     options.icon           = yes
     options.iconOnly       = yes
     options.style          = 'resurrection'
-    options.callback       = @bound "contextMenu"
+    options.callback       = @bound 'contextMenu'
     style                  = 'resurrection'
 
     super options, data

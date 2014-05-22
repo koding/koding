@@ -1,6 +1,7 @@
 package models
 
 import (
+	"encoding/json"
 	"errors"
 	// "fmt"
 	"github.com/jinzhu/gorm"
@@ -14,7 +15,7 @@ type Notification struct {
 	Id int64 `json:"id"`
 
 	// notification recipient account id
-	AccountId int64 `json:"accountId" sql:"NOT NULL"`
+	AccountId int64 `json:"accountId,string" sql:"NOT NULL"`
 
 	// notification content foreign key
 	NotificationContentId int64 `json:"notificationContentId" sql:"NOT NULL"`
@@ -31,7 +32,7 @@ type Notification struct {
 	// notification type as subscribed/unsubscribed
 	UnsubscribedAt time.Time `json:"unsubscribedAt"`
 
-	SubscribeOnly bool `sql:"-"`
+	SubscribeOnly bool `json:"-" sql:"-"`
 }
 
 func (n *Notification) BeforeCreate() {
@@ -271,4 +272,29 @@ func getUnreadNotificationCount(notificationList []NotificationContainer) int {
 	}
 
 	return unreadCount
+}
+
+func (n *Notification) MapMessage(data []byte) error {
+	if err := json.Unmarshal(data, n); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (n *Notification) FetchLastActivity() (*NotificationActivity, *NotificationContent, error) {
+	// fetch notification content and get event type
+	nc, err := n.FetchContent()
+	if err != nil {
+		return nil, nil, err
+	}
+
+	a := NewNotificationActivity()
+	a.NotificationContentId = nc.Id
+
+	if err := a.LastActivity(); err != nil {
+		return nil, nil, err
+	}
+
+	return a, nc, nil
 }

@@ -80,6 +80,22 @@ func (n *ReplyNotification) GetActorId() int64 {
 	return n.NotifierId
 }
 
+func (n *ReplyNotification) SetActorId(actorId int64) {
+	n.NotifierId = actorId
+}
+
 func NewReplyNotification() *ReplyNotification {
 	return &ReplyNotification{}
+}
+
+func (n *ReplyNotification) GetDefinition() string {
+	return getGenericDefinition(NotificationContent_TYPE_COMMENT)
+}
+
+func (n *ReplyNotification) GetActivity() string {
+	if n.ListerId == n.NotifierId {
+		return "commented on your"
+	}
+
+	return "also commented on"
 }

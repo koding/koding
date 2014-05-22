@@ -13,7 +13,7 @@ type NotificationContent struct {
 	Id int64 `json:"id"`
 
 	// target of the activity (replied messageId, followed accountId etc.)
-	TargetId int64 `json:"targetId"          sql:"NOT NULL"`
+	TargetId int64 `json:"targetId,string"   sql:"NOT NULL"`
 
 	// Type of the NotificationContent
 	TypeConstant string `json:"typeConstant" sql:"NOT NULL;TYPE:VARCHAR(100);"`
@@ -133,25 +133,6 @@ func (n *NotificationContent) FetchMapByIds(ids []int64) (map[int64]Notification
 	return ncMap, nil
 }
 
-// GetEventType retrieves related event name for the NotificationContent instance
-func (n *NotificationContent) GetEventType() string {
-	// TODO it could be stored in a map
-	switch n.TypeConstant {
-	case NotificationContent_TYPE_LIKE:
-		return "LikeIsAdded"
-	case NotificationContent_TYPE_COMMENT:
-		return "ReplyIsAdded"
-	case NotificationContent_TYPE_FOLLOW:
-		return "FollowHappened"
-	case NotificationContent_TYPE_JOIN:
-		return "GroupJoined"
-	case NotificationContent_TYPE_LEAVE:
-		return "GroupLeft"
-	default:
-		return "undefined"
-	}
-}
-
 // CreateNotificationType creates an instance of notifiable subclasses
 func CreateNotificationContentType(notificationType string) (Notifiable, error) {
 	switch notificationType {
@@ -171,6 +152,10 @@ func CreateNotificationContentType(notificationType string) (Notifiable, error) 
 		return nil, errors.New("undefined notification type")
 	}
 
+}
+
+func (n *NotificationContent) GetContentType() (Notifiable, error) {
+	return CreateNotificationContentType(n.TypeConstant)
 }
 
 func (nc *NotificationContent) AfterCreate() {

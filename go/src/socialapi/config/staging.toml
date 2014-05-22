@@ -4,6 +4,7 @@ Environment="staging"
 Redis="172.16.10.16:6379"
 # slave one is not used, just here for future ref
 RedisSlave="172.16.10.17:6379"
+Uri="https://koding.com"
 
 [postgres]
 Host=     "172.16.3.18"
@@ -24,3 +25,9 @@ MessageBodyMinLen=5
 
 [Notification]
 CacheEnabled = false
+
+[sendgrid]
+Username= "koding"
+Password= "DEQl7_Dr"
+FromName= "Koding"
+FromMail= "hello@koding.com"

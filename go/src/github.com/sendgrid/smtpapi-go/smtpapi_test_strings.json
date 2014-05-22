@@ -1,0 +1,16 @@
+{
+  "json_string": "{}",
+  "add_to": "{\"to\":[\"addTo@mailinator.com\"]}",
+  "set_tos": "{\"to\":[\"setTos@mailinator.com\"]}",
+  "add_substitution": "{\"sub\":{\"sub\":[\"val\"]}}",
+  "set_substitutions": "{\"sub\":{\"sub\":[\"val\"]}}",
+  "add_unique_arg": "{\"unique_args\":{\"add_unique_argument_key\":\"add_unique_argument_value\",\"add_unique_argument_key_2\":\"add_unique_argument_value_2\"}}",
+  "set_unique_args": "{\"unique_args\":{\"set_unique_argument_key\":\"set_unique_argument_value\"}}",
+  "add_category": "{\"category\":[\"addCategory\",\"addCategory2\"]}",
+  "add_category_unicode": "{\"category\":[\"\\u30ab\\u30c6\\u30b4\\u30eaUnicode\",\"\\u30ab\\u30c6\\u30b4\\u30ea2Unicode\"]}",
+  "set_categories": "{\"category\":[\"setCategories\"]}",
+  "add_section": "{\"section\":{\"set_section_key\":\"set_section_value\",\"set_section_key_2\":\"set_section_value_2\"}}",
+  "set_sections": "{\"section\":{\"set_section_key\":\"set_section_value\"}}",
+  "add_filter": "{\"filters\":{\"footer\":{\"settings\":{\"text/html\":\"<strong>boo</strong>\"}}}}",
+  "set_filters": "{\"filters\":{\"footer\":{\"settings\":{\"enable\":\"1\",\"text/plain\":\"You can haz footers!\"}}}}"
+}
