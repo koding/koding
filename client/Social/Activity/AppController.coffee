@@ -17,6 +17,8 @@ class ActivityAppController extends AppController
 
     dock.getView().show()
 
+    @on 'LazyLoadThresholdReached', @getView().bound 'lazyLoadThresholdReached'
+
 
   post: (options = {}, callback = noop) ->
 
@@ -56,12 +58,12 @@ class ActivityAppController extends AppController
     socialapi.message.listReplies {messageId, from, limit}, callback
 
 
-  fetch: (options = {}, callback = noop) ->
+  fetch: ({channelId, from}, callback = noop) ->
 
-    {channelId} = options
+    id = channelId
     {socialapi} = KD.singletons
 
-    socialapi.channel.fetchActivities { id: channelId }, callback
+    socialapi.channel.fetchActivities {id, from}, callback
 
 
   #
