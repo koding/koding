@@ -7,6 +7,7 @@ import (
 	"net/url"
 	"socialapi/config"
 	"socialapi/workers/notification/models"
+	"time"
 )
 
 var (
@@ -23,35 +24,42 @@ var (
 type NotificationContainer struct {
 	Activity        *models.NotificationActivity
 	Content         *models.NotificationContent
-	Notification    *models.Notification
+	AccountId       int64
 	Message         string
 	Slug            string
 	ActivityMessage string
 	ObjectType      string
 	Group           GroupContent
-	Token           string
+	CreatedAt       time.Time
+}
+
+type EventContent struct {
+	// event content
+	ActivityTime string
+	ActorContact UserContact
+	Action       string
+	Size         int
+	Slug         string
+	Uri          string
+	ObjectType   string
+	Group        GroupContent
+	Message      string
 }
 
 type MailContent struct {
-	CurrentDate  string
-	FirstName    string
-	Description  string
-	Size         int
-	Uri          string
-	ActorContact UserContact
-	// event content
-	ActivityTime string
-	Avatar       string
-	Sender       string
-	Action       string
-	ContentLink  string
-	Group        GroupContent
-	Message      string
-	Slug         string
-	ObjectType   string
-	Token        string
-	ContentType  string
-	Recipient    string
+	CurrentDate string
+	FirstName   string
+	Description string
+	Uri         string
+	ContentLink string
+	Content     template.HTML
+	Unsubscribe *UnsubscribeContent
+}
+
+type UnsubscribeContent struct {
+	Token       string
+	ContentType string
+	Recipient   string
 }
 
 type GroupContent struct {
