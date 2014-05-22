@@ -56,12 +56,12 @@ class ActivityAppController extends AppController
     socialapi.message.listReplies {messageId, from, limit}, callback
 
 
-  fetch: (options = {}, callback = noop) ->
+  fetch: ({channelId, from}, callback = noop) ->
 
-    {channelId} = options
+    id = channelId
     {socialapi} = KD.singletons
 
-    socialapi.channel.fetchActivities { id: channelId }, callback
+    socialapi.channel.fetchActivities {id, from}, callback
 
 
   #
