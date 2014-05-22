@@ -10,11 +10,16 @@ import (
 	"github.com/koding/logging"
 	"github.com/koding/rabbitmq"
 	"github.com/koding/worker"
+	"github.com/robfig/cron"
 	"github.com/sendgrid/sendgrid-go"
 	"github.com/streadway/amqp"
 	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
 )
+
+const SCHEDULE = "0 0 0 * * *"
+
+var cronJob *cron.Cron
 
 var emailConfig = map[string]string{
 	models.NotificationContent_TYPE_COMMENT: "comment",
@@ -77,7 +82,16 @@ func New(rmq *rabbitmq.RabbitMQ, log logging.Logger, es *EmailSettings) (*Contro
 
 	nwc.routes = routes
 
+	nwc.initDailyEmailCron()
+
 	return nwc, nil
+}
+
+func (n *EmailNotifierWorkerController) initDailyEmailCron() {
+
+	cronJob = cron.New()
+	cronJob.AddFunc(SCHEDULE, n.sendDailyMails)
+	cronJob.Start()
 }
 
 func (n *Controller) SendInstantEmail(data []byte) error {
