@@ -38,18 +38,12 @@ class ComputeProvider extends KDObject
     message: "You need to login to create a new machine."
   , ->
     new KDModalView
-      title        : 'Add Virtual Machine'
-      cssClass     : 'provider-modal'
-      view         : new ProviderView
-      width        : 800
-      height       : 600
-      overlay      : yes
-      buttons      :
-        create     :
-          title    : "Create"
-          style    : "modal-clean-green"
-          callback : =>
-            info arguments
+      title    : 'Add Virtual Machine'
+      cssClass : 'provider-modal'
+      view     : new ProviderView
+      width    : 800
+      height   : 600
+      overlay  : yes
 
   @generateAddCredentialFormFor = (provider)->
 

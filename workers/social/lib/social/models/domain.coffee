@@ -19,6 +19,7 @@ module.exports = class JDomain extends jraphical.Module
   @share()
 
   @set
+
     softDelete      : no
 
     permissions     :
@@ -86,6 +87,7 @@ module.exports = class JDomain extends jraphical.Module
     sharedEvents    :
       static        : []
       instance      : []
+
     indexes         :
       domain        : 'unique'
       hostnameAlias : 'sparse'
