@@ -15,14 +15,14 @@
       "Drawing Board" : callback : @bound "createDrawingBoard"
     }
 
-  createPane_: (view, paneOptions) ->
+  createPane_: (view, paneOptions, paneData) ->
     unless view or paneOptions
       return new Error "Missing argument for createPane_ helper"
 
     unless view instanceof KDView
       return new Error "View must be an instance of KDView"
 
-    pane = new KDTabPaneView paneOptions
+    pane = new KDTabPaneView paneOptions, paneData
     pane.addSubView view
     @tabView.addPane pane
 
@@ -34,7 +34,7 @@
       name      : file.name
       aceView   : editor.ace
 
-    @createPane_ editor, paneOptions
+    @createPane_ editor, paneOptions, file
 
   createTerminal: ->
     @createPane_ new TerminalPane, { name: "Terminal" }
