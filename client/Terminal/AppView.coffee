@@ -405,9 +405,11 @@ class WebTermAppView extends JView
 
     {recentState}  = osKite
 
-    if state = recentState?.state is 'RUNNING'
+    state = osKite.recentState?.state
+
+    if state is 'RUNNING'
       @createNewTab {vm, mode}
-    else if recentState?.state is 'STOPPED' or 'FAILED'
+    else if state in ['STOPPED', 'FAILED']
       osKite?.vmOn().catch @bound "handlePrepareError"
     else
       ErrorLog.create "terminal: prepareAndRunTerminal error",
