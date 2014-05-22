@@ -36,12 +36,12 @@ module.exports = class JErrorLog extends ElasticSearch
 
       timeStr = "#{year}#{month}#{date}#{hour}#{min}"
 
-      {error, reason} = params
+      {err, reason} = params
       {username} = record
 
       # to reduce noise in logs, we don't log if there was the same error from
       # same user within `uniqInt`; es enforces unique constraint on `_id`
-      idStr = "#{error}#{reason}#{username}#{timeStr}"
+      idStr = "#{err}#{reason}#{username}#{timeStr}"
       _id   = checksum idStr
 
       # _.extends modifies source object, so we clone to keep them seperate
