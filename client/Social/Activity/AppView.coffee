@@ -35,6 +35,9 @@ class ActivityAppView extends KDScrollView
     activityController.on 'SidebarItemClicked', @bound 'sidebarItemClicked'
 
 
+  lazyLoadThresholdReached: -> @tabs.getActivePane().emit 'LazyLoadThresholdReached'
+
+
   viewAppended: ->
 
     @addSubView @sidebar
