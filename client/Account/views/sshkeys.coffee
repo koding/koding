@@ -57,29 +57,30 @@ class AccountSshKeyListItem extends KDListItemView
 
     super
     @form = form = new KDFormViewWithFields
-      cssClass          : "add-key-form"
+      cssClass          : 'add-key-form'
       fields            :
         title           :
-          placeholder   : "Your SSH key title"
-          name          : "sshtitle"
+          placeholder   : 'Your SSH key title'
+          name          : 'sshtitle'
+          cssClass      : 'medium'
         key             :
-          placeholder   : "Your SSH key"
-          type          : "textarea"
-          name          : "sshkey"
+          placeholder   : 'Your SSH key'
+          type          : 'textarea'
+          name          : 'sshkey'
       buttons           :
         save            :
-          style         : "solid medium green"
+          style         : 'solid medium green'
           loader        : yes
-          title         : "Save"
-          callback      : => @emit "FormSaved"
+          title         : 'Save'
+          callback      : => @emit 'FormSaved'
         cancel          :
-          style         : "solid medium light-gray"
-          title         : "Cancel"
-          callback      : => @emit "FormCancelled"
+          style         : 'solid medium light-gray'
+          title         : 'Cancel'
+          callback      : => @emit 'FormCancelled'
         remove          :
-          style         : "solid medium red"
-          title         : "Delete"
-          callback      : => @emit "FormDeleted"
+          style         : 'solid medium red'
+          title         : 'Delete'
+          callback      : => @emit 'FormDeleted'
 
     {title, key} = @getData()
 
