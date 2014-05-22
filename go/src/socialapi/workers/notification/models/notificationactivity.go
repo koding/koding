@@ -1,9 +1,11 @@
 package models
 
 import (
+	"fmt"
+	"time"
+
 	"github.com/jinzhu/gorm"
 	"github.com/koding/bongo"
-	"time"
 )
 
 // NotificationActivity stores each user NotificationActivity related to notification content.
@@ -134,6 +136,9 @@ func (a *NotificationActivity) LastActivity() error {
 }
 
 func (a *NotificationActivity) FetchContent() (*NotificationContent, error) {
+	if a.NotificationContentId == 0 {
+		return nil, fmt.Errorf("NotificationContentId is not set")
+	}
 	nc := NewNotificationContent()
 	if err := nc.ById(a.NotificationContentId); err != nil {
 		return nil, err
