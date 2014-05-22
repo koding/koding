@@ -100,8 +100,8 @@ func webtermConnect(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (
 		return nil, &kite.ArgumentError{Expected: "empty argument passed"}
 	}
 
-	if args.Unmarshal(&params) != nil || params.SizeX <= 0 || params.SizeY <= 0 {
-		return nil, &kite.ArgumentError{Expected: "{ remote: [object], session: [string], sizeX: [integer], sizeY: [integer], noScreen: [boolean] }"}
+	if err := args.Unmarshal(&params); err != nil {
+		return nil, kite.NewKiteErr(err)
 	}
 
 	if params.JoinUser != "" {
@@ -139,7 +139,14 @@ func webtermConnect(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (
 		screenPath:       screen.ScreenPath,
 	}
 
-	server.SetSize(float64(params.SizeX), float64(params.SizeY))
+	if params.Mode != "resume" || params.Mode != "shared" {
+		if params.SizeX <= 0 || params.SizeY <= 0 {
+			return nil, &kite.ArgumentError{Expected: "{ sizeX: [integer], sizeY: [integer] }"}
+		}
+
+		server.SetSize(float64(params.SizeX), float64(params.SizeY))
+	}
+
 	server.pty.Slave.Chown(vos.User.Uid, -1)
 
 	cmd := vos.VM.AttachCommand(vos.User.Uid, "/dev/pts/"+strconv.Itoa(server.pty.No), screen.Command...)
