@@ -1,8 +1,8 @@
 # MAKEFLAGS += -j
 NO_COLOR=\033[0m
 OK_COLOR=\033[0;32m
-CWD=`pwd`
-GODIR=$(CWD)/../../../go
+GODIR=$(CURDIR)/../../../go
+GOPATH := $(realpath $(GODIR))
 GOBINDIR=$(GODIR)/bin
 CONFIG=./config/vagrant.toml
 
@@ -75,6 +75,13 @@ test:
 	do \
 		(echo "$(OK_COLOR)==> Running go test for $$package $(NO_COLOR)"); \
 		go test -v $$package; \
+	done;
+
+build:
+	@for package in $(PACKAGES); \
+	do \
+		(echo "$(OK_COLOR)==> Building $$package $(NO_COLOR)"); \
+		go install $$package; \
 	done;
 
 testapi:

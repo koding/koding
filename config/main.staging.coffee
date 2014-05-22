@@ -42,7 +42,10 @@ module.exports =
     clusterSize : 1
     queueName   : socialQueueName+'web'
     watch       : no
-  socialApiUrl  : "http://localhost:7000"
+  socialapi:
+    port        : 7000
+    clusterSize : 5
+    fallbackUrl : "http://localhost:7000"
   sourceServer  :
     enabled     : yes
     port        : 1337
