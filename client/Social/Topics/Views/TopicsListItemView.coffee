@@ -1,4 +1,6 @@
-class TopicsListItemView extends JCustomHTMLView
+class TopicsListItemView extends KDListItemView
+
+  JView.mixin @prototype
 
   constructor:(options = {}, data)->
     options.type = "topics"
