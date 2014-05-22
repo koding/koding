@@ -17,6 +17,8 @@ class ActivityAppController extends AppController
 
     dock.getView().show()
 
+    @on 'LazyLoadThresholdReached', @getView().bound 'lazyLoadThresholdReached'
+
 
   post: (options = {}, callback = noop) ->
 
