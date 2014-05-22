@@ -75,6 +75,19 @@ class MessagePane extends KDTabPaneView
     else appManager.tell 'Activity', 'fetch', options, callback
 
 
+  lazyLoad: ->
+
+    {appManager} = KD.singletons
+    last         = @listController.getItemsOrdered().last
+    from         = last.getData().meta.createdAt.toISOString()
+
+    @fetch {from}, (err, items = []) =>
+
+      return KD.showError err  if err
+
+      items.forEach @lazyBound 'appendMessage'
+
+
   refresh: ->
 
     document.body.scrollTop            = 0
