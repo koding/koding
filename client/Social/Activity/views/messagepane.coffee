@@ -7,13 +7,14 @@ class MessagePane extends KDTabPaneView
 
     super options, data
 
-    {itemClass, type} = @getOptions()
-    lastToFirst = yes  unless type is "message"
+    {itemClass} = @getOptions()
 
-    @listController = new ActivityListController {itemClass, lastToFirst}
+    @listController = new ActivityListController {itemClass}
     @createInputWidget()
 
     @bindChannelEvents()
+
+    @on 'LazyLoadThresholdReached', @bound 'lazyLoad'
 
 
   bindChannelEvents: ->
@@ -37,6 +38,11 @@ class MessagePane extends KDTabPaneView
     @listController.removeItem message
 
 
+  appendMessage: (message) ->
+
+    @listController.addItem message, @listController.getItemCount()
+
+
   viewAppended: ->
 
     @addSubView @input  if @input
@@ -46,27 +52,42 @@ class MessagePane extends KDTabPaneView
 
   populate: ->
 
-    @fetch (err, items = []) =>
+    @fetch null, (err, items = []) =>
 
       return KD.showError err  if err
 
       console.time('populate')
       @listController.hideLazyLoader()
-      @listController.instantiateListItems items.reverse()
+      @listController.instantiateListItems items
       console.timeEnd('populate')
 
 
-  fetch: (callback)->
+  fetch: (options = {}, callback)->
 
     {appManager}            = KD.singletons
-    {name, type, channelId} = @getOptions()
     data                    = @getData()
-    options                 = {name, type, channelId}
+    {name, type, channelId} = @getOptions()
+    options.name = name
+    options.type = type
+    options.channelId = channelId
 
     # if it is a post it means we already have the data
     if type is 'post'
     then KD.utils.defer -> callback null, [data]
     else appManager.tell 'Activity', 'fetch', options, callback
+
+
+  lazyLoad: ->
+
+    {appManager} = KD.singletons
+    last         = @listController.getItemsOrdered().last
+    from         = last.getData().meta.createdAt.toISOString()
+
+    @fetch {from}, (err, items = []) =>
+
+      return KD.showError err  if err
+
+      items.forEach @lazyBound 'appendMessage'
 
 
   refresh: ->
