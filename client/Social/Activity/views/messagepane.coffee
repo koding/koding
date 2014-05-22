@@ -45,7 +45,7 @@ class MessagePane extends KDTabPaneView
 
   populate: ->
 
-    @fetch (err, items = []) =>
+    @fetch null, (err, items = []) =>
 
       return KD.showError err  if err
 
@@ -55,12 +55,14 @@ class MessagePane extends KDTabPaneView
       console.timeEnd('populate')
 
 
-  fetch: (callback)->
+  fetch: (options = {}, callback)->
 
     {appManager}            = KD.singletons
-    {name, type, channelId} = @getOptions()
     data                    = @getData()
-    options                 = {name, type, channelId}
+    {name, type, channelId} = @getOptions()
+    options.name = name
+    options.type = type
+    options.channelId = channelId
 
     # if it is a post it means we already have the data
     if type is 'post'
