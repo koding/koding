@@ -90,7 +90,7 @@ class EnvironmentItem extends KDDiaObject
   pipedVmName = (vmName)-> vmName.replace /\./g, '|'
 
   viewAppended:->
-    super
+    JView::viewAppended.call this
 
     @setColorTag @getOption('colorTag'), no
     @parent.appStorage?.ready @bound 'loadColorTag'
