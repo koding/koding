@@ -26,13 +26,9 @@ func (o *Oskite) vmUpdater() {
 				o.startAlwaysOn(vm) // it also checks if the vm is alwaysOn or not
 			}
 
-			state, err := updateState(vmId, vm.State)
+			_, err := updateState(vmId, vm.State)
 			if err != nil {
 				log.Error("vm update state %s err %v", vmId, err)
-			}
-
-			if state == "STOPPED" && !vm.AlwaysOn {
-				go unprepareInQueue(vm)
 			}
 		}
 
