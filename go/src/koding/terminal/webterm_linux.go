@@ -266,9 +266,26 @@ func getScreenPath(vos *virt.VOS) (string, error) {
 // newScreen returns a new screen instance that is used to start screen. The
 // screen command line is created differently based on the incoming mode.
 func newScreen(vos *virt.VOS, mode, session string) (*screen, error) {
-	screenPath, err := getScreenPath(vos)
-	if err != nil {
-		return nil, err
+	var screenPath string
+	var err error
+	attempts := 0
+
+	// we do try several trimes to get the binary path because the VM might not
+	// up immedieately.
+	for {
+		screenPath, err = getScreenPath(vos)
+		if err == nil {
+			break
+		}
+
+		// try 4 times before we hit our 15 sec timeout limit
+		if attempts != 4 {
+			time.Sleep(time.Second * 3) // wait a little bit ...
+			attempts++
+			continue
+		}
+
+		return nil, fmt.Errorf("tried five times: %s", err)
 	}
 
 	cmdArgs := []string{screenPath, "-c", kodingScreenrc, "-S"}
