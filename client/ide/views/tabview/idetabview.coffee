@@ -27,13 +27,15 @@
     pane.addSubView view
     @tabView.addPane pane
 
+    pane.once "KDObjectWillBeDestroyed", => @handlePaneRemoved pane
+
   createEditor: (file, content) ->
     file        = file    or FSHelper.createFileFromPath @getDummyFilePath()
     content     = content or ""
     editor      = new EditorPane { file, content, delegate: this }
     paneOptions =
       name      : file.name
-      aceView   : editor.ace
+      editor    : editor
 
     @createPane_ editor, paneOptions, file
 
@@ -104,6 +106,10 @@
   switchToEditorTabByFile: (file) ->
     for pane, index in @tabView.panes when file is pane.getData()
       @tabView.showPaneByIndex index
+
+  handlePaneRemoved: (pane) ->
+    file = pane.getData()
+    @openFiles.splice @openFiles.indexOf(file), 1
 
   getDummyFilePath: ->
     return "localfile://Untitled.txt"
