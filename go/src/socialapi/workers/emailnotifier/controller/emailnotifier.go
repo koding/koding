@@ -125,18 +125,19 @@ func (n *Controller) SendInstantEmail(data []byte) error {
 		return nil
 	}
 
-	container, err := buildContainer(activity, nc, notification)
+	container, err := buildContainer(notification.AccountId, activity, nc)
 	if err != nil {
 		return err
 	}
+	container.CreatedAt = notification.ActivatedAt
 
-	body, err := renderTemplate(uc, container)
+	body, err := renderInstantTemplate(uc, container)
 	if err != nil {
 		return fmt.Errorf("an error occurred while preparing notification email: %s", err)
 	}
 	subject := prepareSubject(container)
 
-	if err := createToken(uc, nc, container.Token); err != nil {
+	if err := createToken(uc, nc.TypeConstant, uc.Token); err != nil {
 		return err
 	}
 
