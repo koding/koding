@@ -67,17 +67,36 @@ type GroupContent struct {
 	Name string
 }
 
-func renderTemplate(uc *UserContact, nc *NotificationContainer) (string, error) {
-	t := template.Must(template.ParseFiles(
-		mainTemplateFile, footerTemplateFile, contentTemplateFile,
-		gravatarTemplateFile, unsubscribeTemplateFile))
-	mc, err := buildMailContent(uc, nc)
-	t = appendPreviewTemplate(t, nc)
-	t = appendGroupTemplate(t, nc)
-
+func renderInstantTemplate(uc *UserContact, nc *NotificationContainer) (string, error) {
+	ec, err := buildEventContent(nc)
 	if err != nil {
 		return "", err
 	}
+	content := renderContentTemplate(ec, nc)
+
+	return renderTemplate(uc, nc.Content.TypeConstant, content, nc.CreatedAt)
+}
+
+func renderDailyTemplate(uc *UserContact, containers []*NotificationContainer) (string, error) {
+	var contents string
+	for _, nc := range containers {
+		ec, err := buildEventContent(nc)
+		if err != nil {
+			continue
+		}
+		c := renderContentTemplate(ec, nc)
+		contents = c + contents
+	}
+
+	return renderTemplate(uc, "daily", contents, time.Now())
+}
+
+func renderTemplate(uc *UserContact, contentType, content string, date time.Time) (string, error) {
+	t := template.Must(template.ParseFiles(
+		mainTemplateFile, footerTemplateFile, unsubscribeTemplateFile))
+	mc := buildMailContent(uc, contentType, getMonthAndDay(date))
+
+	mc.Content = template.HTML(content)
 
 	var doc bytes.Buffer
 	if err := t.Execute(&doc, mc); err != nil {
