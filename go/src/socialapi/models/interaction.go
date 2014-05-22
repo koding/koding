@@ -2,9 +2,10 @@ package models
 
 import (
 	"errors"
+	"time"
+
 	"github.com/jinzhu/gorm"
 	"github.com/koding/bongo"
-	"time"
 )
 
 type Interaction struct {
@@ -12,7 +13,7 @@ type Interaction struct {
 	Id int64 `json:"id"`
 
 	// Id of the interacted message
-	MessageId int64 `json:"messageId"             sql:"NOT NULL"`
+	MessageId int64 `json:"messageId,string"      sql:"NOT NULL"`
 
 	// Id of the actor
 	AccountId int64 `json:"accountId,string"      sql:"NOT NULL"`
