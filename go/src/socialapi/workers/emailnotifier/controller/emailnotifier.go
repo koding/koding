@@ -150,6 +150,7 @@ type UserContact struct {
 	LastName      string
 	Username      string
 	Hash          string
+	Token         string
 	EmailSettings map[string]bool
 }
 
@@ -274,6 +275,11 @@ func fetchUserContact(accountId int64) (*UserContact, error) {
 		return nil, err
 	}
 
+	token, err := generateToken()
+	if err != nil {
+		return nil, err
+	}
+
 	uc := &UserContact{
 		UserOldId:     user.ObjectId,
 		Email:         user.Email,
@@ -282,6 +288,7 @@ func fetchUserContact(accountId int64) (*UserContact, error) {
 		Username:      account.Profile.Nickname,
 		Hash:          account.Profile.Hash,
 		EmailSettings: user.EmailFrequency,
+		Token:         token,
 	}
 
 	return uc, nil
