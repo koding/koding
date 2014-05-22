@@ -13,7 +13,7 @@ class Workspace extends KDController
     panelClass = options.panelClass or Panel
     @panel     = new panelClass layoutOptions: options.layoutOptions
 
-    KD.utils.defer => @emit "ready"
+    KD.utils.defer => @emit 'ready'
 
   getView: ->
     return @panel

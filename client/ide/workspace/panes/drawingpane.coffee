@@ -2,7 +2,7 @@ class DrawingPane extends Pane
 
   constructor: (options = {}, data) ->
 
-    options.cssClass = KD.utils.curry "drawing-pane", options.cssClass
+    options.cssClass = KD.utils.curry 'drawing-pane', options.cssClass
 
     super options, data
 
@@ -20,16 +20,16 @@ class DrawingPane extends Pane
 
   createCanvas: ->
     @canvas      = new KDCustomHTMLView
-      tagName    : "canvas"
-      bind       : "mousemove mousedown mouseup"
+      tagName    : 'canvas'
+      bind       : 'mousemove mousedown mouseup'
       attributes :
         width    : @getWidth()
         height   : @getHeight()
 
-    @context     = @canvas.getElement().getContext "2d"
+    @context     = @canvas.getElement().getContext '2d'
 
   bindMouseDownOnCanvas: ->
-    @canvas.on "mousedown", (e) =>
+    @canvas.on 'mousedown', (e) =>
       KD.utils.stopDOMEvent e
       x             = e.offsetX
       y             = e.offsetY
@@ -41,7 +41,7 @@ class DrawingPane extends Pane
       @addPoint x, y
 
   bindMouseMoveCanvas: ->
-    @canvas.on "mousemove", (e) =>
+    @canvas.on 'mousemove', (e) =>
       if @startDrawing
         x = e.offsetX
         y = e.offsetY
@@ -49,7 +49,7 @@ class DrawingPane extends Pane
         @addPoint x, y
 
   bindMouseUpOnCanvas: ->
-    @canvas.on "mouseup", (e) =>
+    @canvas.on 'mouseup', (e) =>
       @context.closePath()
       @startDrawing = no
 

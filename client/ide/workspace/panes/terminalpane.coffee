@@ -2,14 +2,14 @@ class TerminalPane extends Pane
 
   constructor: (options = {}, data) ->
 
-    options.cssClass = "terminal-pane terminal"
+    options.cssClass = 'terminal-pane terminal'
 
     super options, data
 
   createWebTermView: ->
     @fetchVm (err, vm) =>
       @addSubView @webterm = new WebTermView
-        cssClass           : "webterm"
+        cssClass           : 'webterm'
         advancedSettings   : no
         delegate           : this
         mode               : @getMode()
@@ -17,31 +17,31 @@ class TerminalPane extends Pane
 
       @vmOn(vm).then =>
         @webterm.connectToTerminal()
-        @webterm.on "WebTermConnected", (@remote) => @emit "WebtermCreated"
+        @webterm.on 'WebTermConnected', (@remote) => @emit 'WebtermCreated'
 
   fetchVm: (callback)->
     KD.singletons.vmController.fetchDefaultVm callback
 
   vmOn: (vm) ->
-    osKite = KD.getSingleton("vmController").getKite vm, "os"
+    osKite = KD.getSingleton('vmController').getKite vm, 'os'
     osKite.vmOn()
 
   getMode: ->
-    return "create"
+    return 'create'
 
   runCommand: (command, callback) ->
     return unless command
 
     unless @remote
-      return new Error "Could not execute your command, remote is not created"
+      return new Error 'Could not execute your command, remote is not created'
 
     if callback
-      @webterm.once "WebTermEvent", callback
-      command += ";echo $?|kdevent"
+      @webterm.once 'WebTermEvent', callback
+      command += ';echo $?|kdevent'
 
     @remote.input "#{command}\n"
 
-  notify: (message) -> console.log "notify:", message
+  notify: (message) -> console.log 'notify:', message
 
   viewAppended: ->
     @createWebTermView()

@@ -19,7 +19,7 @@ class WorkspaceLayoutBuilder extends KDSplitComboView
     views = []
 
     viewsConfig.forEach (config) =>
-      if config.type is "split"
+      if config.type is 'split'
         {options}     = config
         {splitName}   = options
         splitView     = @createSplitView
@@ -31,8 +31,8 @@ class WorkspaceLayoutBuilder extends KDSplitComboView
         @splitViews[splitName] = splitView  if splitName
         views.push splitView
       else
-        wrapper = new KDView cssClass: "pane-wrapper"
-        wrapper.on "viewAppended", =>
+        wrapper = new KDView cssClass: 'pane-wrapper'
+        wrapper.on 'viewAppended', =>
           wrapper.addSubView @getDelegate().createPane config
 
         views.push wrapper

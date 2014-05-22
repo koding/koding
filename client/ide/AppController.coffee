@@ -1,9 +1,9 @@
 class IDEAppController extends AppController
 
   KD.registerAppClass this,
-    name         : "IDE"
-    route        : "/:name?/IDE"
-    behavior     : "application"
+    name         : 'IDE'
+    route        : '/:name?/IDE'
+    behavior     : 'application'
     preCondition :
       condition  : (options, cb)-> cb KD.isLoggedIn()
       failure    : (options, cb)->
@@ -12,40 +12,40 @@ class IDEAppController extends AppController
 
   constructor: (options = {}, data) ->
     options.appInfo =
-      type          : "application"
-      name          : "IDE"
+      type          : 'application'
+      name          : 'IDE'
 
     super options, data
 
     layoutOptions   =
-      direction     : "vertical"
-      splitName     : "BaseSplit"
-      sizes         : [ "250px", null ]
+      direction     : 'vertical'
+      splitName     : 'BaseSplit'
+      sizes         : [ '250px', null ]
       views         : [
         {
-          type      : "custom"
-          name      : "filesPane"
+          type      : 'custom'
+          name      : 'filesPane'
           paneClass : IDEFilesTabView
         },
         {
-          type      : "custom"
-          name      : "editorPane"
+          type      : 'custom'
+          name      : 'editorPane'
           paneClass : IDETabView
         }
       ]
 
     workspace = @workspace = new Workspace { layoutOptions }
-    workspace.once "ready", =>
+    workspace.once 'ready', =>
       panel = workspace.getView()
       @getView().addSubView panel
 
-      panel.once "viewAppended", =>
-        @setActiveTabView panel.getPaneByName "editorPane"
+      panel.once 'viewAppended', =>
+        @setActiveTabView panel.getPaneByName 'editorPane'
 
   setActiveTabView: (tabView) ->
     @activeTabView = tabView
 
-  splitTabView: (type = "vertical") ->
+  splitTabView: (type = 'vertical') ->
     @activeTabView.convertToSplitView type
 
   mergeSplitView: ->

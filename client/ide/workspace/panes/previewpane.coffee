@@ -2,7 +2,7 @@ class PreviewPane extends Pane
 
   constructor: (options = {}, data) ->
 
-    options.cssClass = KD.utils.curry "preview-pane", options.cssClass
+    options.cssClass = KD.utils.curry 'preview-pane', options.cssClass
 
     super options, data
 

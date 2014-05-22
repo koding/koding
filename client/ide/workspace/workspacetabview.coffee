@@ -2,7 +2,7 @@ class WorkspaceTabView extends JView
 
   constructor: (options = {}, data) ->
 
-    options.cssClass       = KD.utils.curry "ws-tabview", options.cssClass
+    options.cssClass       = KD.utils.curry 'ws-tabview', options.cssClass
     options.addPlusHandle ?= yes
 
     super options, data
@@ -12,7 +12,7 @@ class WorkspaceTabView extends JView
 
   createTabHolderView: ->
     @holderView     = new ApplicationTabHandleHolder
-      addPlusHandle : @getOption "addPlusHandle"
+      addPlusHandle : @getOption 'addPlusHandle'
       delegate      : this
 
   createTabView: ->

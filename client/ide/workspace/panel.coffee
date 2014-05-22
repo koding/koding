@@ -2,7 +2,7 @@ class Panel extends KDView
 
   constructor: (options = {}, data) ->
 
-    options.cssClass = KD.utils.curry "panel", options.cssClass
+    options.cssClass = KD.utils.curry 'panel', options.cssClass
 
     super options, data
 
@@ -15,7 +15,7 @@ class Panel extends KDView
   createLayout: ->
     {layoutOptions}  = @getOptions()
     unless layoutOptions
-      return new Error "You should pass layoutOptions to create a panel"
+      return new Error 'You should pass layoutOptions to create a panel'
 
     @layout = new WorkspaceLayoutBuilder { delegate: this, layoutOptions }
     @addSubView @layout
@@ -27,12 +27,12 @@ class Panel extends KDView
     @panesByName[paneOptions.name] = pane  if paneOptions.name
 
     @panes.push pane
-    @emit "NewPaneCreated", pane
+    @emit 'NewPaneCreated', pane
     return pane
 
   getPaneClass: (paneOptions) ->
     paneType  = paneOptions.type
-    PaneClass = if paneType is "custom" then paneOptions.paneClass else @findPaneClass paneType
+    PaneClass = if paneType is 'custom' then paneOptions.paneClass else @findPaneClass paneType
 
     unless PaneClass
       return new Error "PaneClass is not defined for \"#{paneOptions.type}\" pane type"
@@ -53,10 +53,3 @@ class Panel extends KDView
 
   getPaneByName: (name) ->
     return @panesByName[name] or null
-
-  EditorPaneClass       : KDView # EditorPane
-  TabbedEditorPaneClass : KDView # EditorPane
-  TerminalPaneClass     : KDView # TerminalPane
-  VideoPaneClass        : KDView # VideoPane
-  PreviewPaneClass      : KDView # PreviewPane
-  DrawingPaneClass      : KDView # KDView

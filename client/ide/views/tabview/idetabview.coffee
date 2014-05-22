@@ -6,32 +6,32 @@
 
     @openFiles = []
 
-    @on "PlusHandleClicked", @bound "createPlusContextMenu"
+    @on 'PlusHandleClicked', @bound 'createPlusContextMenu'
 
   getPlusMenuItems: ->
     return {
-      "Editor"        : callback : @bound "createEditor"
-      "Terminal"      : callback : @bound "createTerminal"
-      "Browser"       : callback : @bound "createPreview"
-      "Drawing Board" : callback : @bound "createDrawingBoard"
+      'Editor'        : callback : @bound 'createEditor'
+      'Terminal'      : callback : @bound 'createTerminal'
+      'Browser'       : callback : @bound 'createPreview'
+      'Drawing Board' : callback : @bound 'createDrawingBoard'
     }
 
   createPane_: (view, paneOptions, paneData) ->
     unless view or paneOptions
-      return new Error "Missing argument for createPane_ helper"
+      return new Error 'Missing argument for createPane_ helper'
 
     unless view instanceof KDView
-      return new Error "View must be an instance of KDView"
+      return new Error 'View must be an instance of KDView'
 
     pane = new KDTabPaneView paneOptions, paneData
     pane.addSubView view
     @tabView.addPane pane
 
-    pane.once "KDObjectWillBeDestroyed", => @handlePaneRemoved pane
+    pane.once 'KDObjectWillBeDestroyed', => @handlePaneRemoved pane
 
   createEditor: (file, content) ->
     file        = file    or FSHelper.createFileFromPath @getDummyFilePath()
-    content     = content or ""
+    content     = content or ''
     editor      = new EditorPane { file, content, delegate: this }
     paneOptions =
       name      : file.name
@@ -40,22 +40,22 @@
     @createPane_ editor, paneOptions, file
 
   createTerminal: ->
-    @createPane_ new TerminalPane, { name: "Terminal" }
+    @createPane_ new TerminalPane, { name: 'Terminal' }
 
   createDrawingBoard: ->
-    @createPane_ new DrawingPane,  { name: "Drawing"  }
+    @createPane_ new DrawingPane,  { name: 'Drawing'  }
 
   createPreview: ->
-    @createPane_ new PreviewPane,  { name: "Browser"  }
+    @createPane_ new PreviewPane,  { name: 'Browser'  }
 
   removeOpenDocument: ->
     # TODO: This method is legacy, should be reimplemented in ace bundle.
 
   click: ->
     super
-    KD.getSingleton("appManager").tell "IDE", "setActiveTabView", this
+    KD.getSingleton('appManager').tell 'IDE', 'setActiveTabView', this
 
-  convertToSplitView: (type = "vertical") ->
+  convertToSplitView: (type = 'vertical') ->
     {parent} = this
 
     subView.unsetParent() for subView in @subViews
@@ -69,10 +69,10 @@
       type     : type
       views    : [ this, newTabView ]
 
-    @setOption           "splitView", splitView
-    newTabView.setOption "splitView", splitView
-    @setOption           "container", parent
-    newTabView.setOption "container", parent
+    @setOption           'splitView', splitView
+    newTabView.setOption 'splitView', splitView
+    @setOption           'container', parent
+    newTabView.setOption 'container', parent
 
     parent.addSubView splitView
 
@@ -80,7 +80,7 @@
     {splitView, parent} = @getOptions()
     return unless splitView
 
-    splitView.once "SplitIsBeingMerged", (views) =>
+    splitView.once 'SplitIsBeingMerged', (views) =>
       @handleSplitMerge views, splitView
 
     splitView.merge()
@@ -112,7 +112,7 @@
     @openFiles.splice @openFiles.indexOf(file), 1
 
   getDummyFilePath: ->
-    return "localfile://Untitled.txt"
+    return 'localfile://Untitled.txt'
 
   createPlusContextMenu: ->
     offset        = @holderView.plusHandle.$().offset()
@@ -121,9 +121,9 @@
       x           : offset.left - 125
       y           : offset.top  + 30
       arrow       :
-        placement : "top"
+        placement : 'top'
         margin    : -20
     , @getPlusMenuItems()
 
-    contextMenu.once "ContextMenuItemReceivedClick", ->
+    contextMenu.once 'ContextMenuItemReceivedClick', ->
       contextMenu.destroy()
