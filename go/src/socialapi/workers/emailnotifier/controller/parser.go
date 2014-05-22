@@ -150,7 +150,17 @@ func appendGroupTemplate(t *template.Template, nc *NotificationContainer) {
 	}
 
 	t.AddParseTree("group", groupTemplate.Tree)
+}
 
+func renderContentTemplate(ec *EventContent, nc *NotificationContainer) string {
+	t := template.Must(template.ParseFiles(contentTemplateFile, gravatarTemplateFile))
+	appendPreviewTemplate(t, nc)
+	appendGroupTemplate(t, nc)
+
+	buf := bytes.NewBuffer([]byte{})
+	t.ExecuteTemplate(buf, "content", ec)
+
+	return buf.String()
 }
 
 func appendPreviewTemplate(t *template.Template, nc *NotificationContainer) {
