@@ -71,21 +71,21 @@
 
     @setOption           'splitView', splitView
     newTabView.setOption 'splitView', splitView
-    @setOption           'container', parent
-    newTabView.setOption 'container', parent
+    @setOption           'parent'   , parent
+    newTabView.setOption 'parent'   , parent
 
     parent.addSubView splitView
 
   mergeSplitView: ->
-    {splitView, parent} = @getOptions()
+    {splitView} = @getOptions()
     return unless splitView
 
     splitView.once 'SplitIsBeingMerged', (views) =>
-      @handleSplitMerge views, splitView
+      @handleSplitMerge views
 
     splitView.merge()
 
-  handleSplitMerge: (views, splitView) ->
+  handleSplitMerge: (views) ->
     tabView   = new IDETabView
 
     for view in views
@@ -94,7 +94,7 @@
         pane.unsetParent()
         tabView.tabView.addPane pane
 
-    @getOptions().container.addSubView tabView
+    @getOptions().parent.addSubView tabView
 
   openFile: (file, content) ->
     if @openFiles.indexOf(file) > -1
