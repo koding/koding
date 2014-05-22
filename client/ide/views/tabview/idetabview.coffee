@@ -56,45 +56,49 @@
     KD.getSingleton('appManager').tell 'IDE', 'setActiveTabView', this
 
   convertToSplitView: (type = 'vertical') ->
-    {parent} = this
-
-    subView.unsetParent() for subView in @subViews
-    subView.unsetParent() for subView in @holderView.subViews
-
-    @detach()
-    @unsetParent()
-
+    oldTabView = new IDETabView
     newTabView = new IDETabView
-    splitView  = new KDSplitView
-      type     : type
-      views    : [ this, newTabView ]
 
-    @setOption           'splitView', splitView
-    newTabView.setOption 'splitView', splitView
-    @setOption           'parent'   , parent
-    newTabView.setOption 'parent'   , parent
+    for pane in @tabView.panes
+      pane.unsetParent()
+      pane.detach()
+      oldTabView.tabView.addPane pane
 
-    parent.addSubView splitView
+    @tabView.detach()
+    @holderView.detach()
+
+    @tabView    = oldTabView.tabView
+    @holderView = oldTabView.holderView
+
+    splitView   = new KDSplitView
+      type      : type
+      views     : [ oldTabView, newTabView ]
+
+    for tabView in [ oldTabView, newTabView ]
+      tabView.setOption 'splitView', splitView
+
+    @addSubView splitView
+    KD.getSingleton('appManager').tell 'IDE', 'setActiveTabView', oldTabView
 
   mergeSplitView: ->
     {splitView} = @getOptions()
-    return unless splitView
+    {parent}    = splitView
 
     splitView.once 'SplitIsBeingMerged', (views) =>
-      @handleSplitMerge views
+      @handleSplitMerge views, parent
 
     splitView.merge()
 
-  handleSplitMerge: (views) ->
-    tabView   = new IDETabView
+  handleSplitMerge: (views, parent) ->
+    newTabView = new IDETabView
 
     for view in views
-      oldTabView = view.tabView
-      for pane in oldTabView.panes
+      {tabView} = view
+      for pane in tabView.panes
         pane.unsetParent()
-        tabView.tabView.addPane pane
+        newTabView.tabView.addPane pane
 
-    @getOptions().parent.addSubView tabView
+    parent.addSubView newTabView
 
   openFile: (file, content) ->
     if @openFiles.indexOf(file) > -1
