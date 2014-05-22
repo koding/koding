@@ -343,7 +343,8 @@ func (f *RealtimeWorkerController) sendInstanceEvent(instanceId int64, message i
 	}
 	defer channel.Close()
 
-	routingKey := "oid." + strconv.FormatInt(instanceId, 10) + ".event." + eventName
+	id := strconv.FormatInt(instanceId, 10)
+	routingKey := "oid." + id + ".event." + eventName
 
 	updateMessage, err := json.Marshal(message)
 	if err != nil {
@@ -361,6 +362,8 @@ func (f *RealtimeWorkerController) sendInstanceEvent(instanceId int64, message i
 	if err != nil {
 		return err
 	}
+
+	f.log.Debug("Sending Instance Event Id:%s Message:%s ", id, updateMessage)
 
 	return channel.Publish(
 		"updateInstances", // exchange name
@@ -403,6 +406,8 @@ func (f *RealtimeWorkerController) sendChannelEvent(cml *models.ChannelMessageLi
 	if err != nil {
 		return err
 	}
+
+	f.log.Debug("Sending Channel Event ChannelId:%d Message:%s ", cml.ChannelId, byteMessage)
 
 	for _, secretName := range secretNames {
 		routingKey := "socialapi.channelsecret." + secretName + "." + eventName
