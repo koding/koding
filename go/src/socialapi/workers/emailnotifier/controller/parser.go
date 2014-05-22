@@ -181,12 +181,16 @@ func getEmptyTemplate() *template.Template {
 	return template.Must(template.New("").Parse(""))
 }
 
-func prepareDateTime(nc *NotificationContainer) (string, string) {
-	layoutDate := "Jan 02"
-	layoutTime := "15:04"
+func getMonthAndDay(t time.Time) string {
+	return t.Format("Jan 02")
+}
 
-	return nc.Notification.ActivatedAt.Format(layoutDate),
-		nc.Notification.ActivatedAt.Format(layoutTime)
+func prepareDate(nc *NotificationContainer) string {
+	return nc.Activity.CreatedAt.Format("Jan 02")
+}
+
+func prepareTime(nc *NotificationContainer) string {
+	return nc.Activity.CreatedAt.Format("15:04")
 }
 
 func prepareSubject(nc *NotificationContainer) string {
