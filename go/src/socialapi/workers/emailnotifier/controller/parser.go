@@ -132,7 +132,7 @@ func buildMailContent(uc *UserContact, nc *NotificationContainer) (*MailContent,
 	return mc, nil
 }
 
-func appendGroupTemplate(t *template.Template, nc *NotificationContainer) *template.Template {
+func appendGroupTemplate(t *template.Template, nc *NotificationContainer) {
 	var groupTemplate *template.Template
 	if nc.Group.Name == "" || nc.Group.Slug == "koding" {
 		groupTemplate = getEmptyTemplate()
@@ -143,10 +143,9 @@ func appendGroupTemplate(t *template.Template, nc *NotificationContainer) *templ
 
 	t.AddParseTree("group", groupTemplate.Tree)
 
-	return t
 }
 
-func appendPreviewTemplate(t *template.Template, nc *NotificationContainer) *template.Template {
+func appendPreviewTemplate(t *template.Template, nc *NotificationContainer) {
 	var previewTemplate, objectTemplate *template.Template
 	if nc.Message == "" {
 		previewTemplate = getEmptyTemplate()
@@ -158,8 +157,6 @@ func appendPreviewTemplate(t *template.Template, nc *NotificationContainer) *tem
 
 	t.AddParseTree("preview", previewTemplate.Tree)
 	t.AddParseTree("object", objectTemplate.Tree)
-
-	return t
 }
 
 func getEmptyTemplate() *template.Template {
