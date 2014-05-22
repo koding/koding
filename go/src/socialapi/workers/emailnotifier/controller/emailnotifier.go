@@ -121,7 +121,7 @@ func (n *Controller) SendInstantEmail(data []byte) error {
 		return fmt.Errorf("an error occurred while fetching user contact: %s", err)
 	}
 
-	if !checkMailSettings(uc, nc) {
+	if !n.checkMailSettings(uc, activity, nc) {
 		return nil
 	}
 
@@ -165,19 +165,25 @@ func validNotification(a *models.NotificationActivity, n *models.Notification) b
 	return !n.ActivatedAt.IsZero()
 }
 
-func checkMailSettings(uc *UserContact, nc *models.NotificationContent) bool {
+func (n *EmailNotifierWorkerController) checkMailSettings(uc *UserContact,
+	a *models.NotificationActivity, nc *models.NotificationContent) bool {
 	// notifications are disabled
 	if val := uc.EmailSettings["global"]; !val {
 		return false
 	}
 
+	notificationEnabled := uc.EmailSettings[emailConfig[nc.TypeConstant]]
 	// daily notifications are enabled
 	if val := uc.EmailSettings["daily"]; val {
+		if notificationEnabled {
+			go n.saveDailyMail(uc.AccountId, a.Id)
+		}
+
 		return false
 	}
 
 	// get config
-	return uc.EmailSettings[emailConfig[nc.TypeConstant]]
+	return notificationEnabled
 }
 
 func buildContainer(accountId int64, a *models.NotificationActivity,
