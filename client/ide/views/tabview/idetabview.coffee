@@ -4,19 +4,8 @@
 
     super options, data
 
-    @on "PlusHandleClicked", =>
-      offset        = @holderView.plusHandle.$().offset()
-      contextMenu   = new KDContextMenu
-        delegate    : this
-        x           : offset.left - 125
-        y           : offset.top  + 30
-        arrow       :
-          placement : "top"
-          margin    : -20
-      , @getPlusMenuItems()
 
-      contextMenu.once "ContextMenuItemReceivedClick", ->
-        contextMenu.destroy()
+    @on "PlusHandleClicked", @bound "createPlusContextMenu"
 
   getPlusMenuItems: ->
     return {
@@ -113,3 +102,17 @@
 
   getDummyFilePath: ->
     return "localfile://Untitled.txt"
+
+  createPlusContextMenu: ->
+    offset        = @holderView.plusHandle.$().offset()
+    contextMenu   = new KDContextMenu
+      delegate    : this
+      x           : offset.left - 125
+      y           : offset.top  + 30
+      arrow       :
+        placement : "top"
+        margin    : -20
+    , @getPlusMenuItems()
+
+    contextMenu.once "ContextMenuItemReceivedClick", ->
+      contextMenu.destroy()
