@@ -22,6 +22,10 @@ func main() {
 	// init mongo connection
 	modelhelper.Initialize(r.Conf.Mongo)
 
+	// init redis connection
+	redisConn := helper.MustInitRedisConn(conf.Redis)
+	defer redisConn.Close()
+
 	//create connection to RMQ for publishing realtime events
 	rmq := helper.NewRabbitMQ(r.Conf, r.Log)
 
