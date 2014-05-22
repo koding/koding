@@ -36,6 +36,11 @@ class MessagePane extends KDTabPaneView
     @listController.removeItem message
 
 
+  appendMessage: (message) ->
+
+    @listController.addItem message, @listController.getItemCount()
+
+
   viewAppended: ->
 
     @addSubView @input  if @input
