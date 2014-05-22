@@ -1,3 +1,7 @@
+
+# NOTE: All domain registry related stuff removed
+# you can look at them from 745b4914f14fa424a3e38db68e09a1bc832be7f4
+
 jraphical = require 'jraphical'
 module.exports = class JDomain extends jraphical.Module
 
