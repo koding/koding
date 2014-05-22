@@ -4,6 +4,7 @@
 
     super options, data
 
+    @openFiles = []
 
     @on "PlusHandleClicked", @bound "createPlusContextMenu"
 
@@ -94,7 +95,15 @@
     @getOptions().container.addSubView tabView
 
   openFile: (file, content) ->
-    @createEditor file, content
+    if @openFiles.indexOf(file) > -1
+      @switchToEditorTabByFile file
+    else
+      @createEditor file, content
+      @openFiles.push file
+
+  switchToEditorTabByFile: (file) ->
+    for pane, index in @tabView.panes when file is pane.getData()
+      @tabView.showPaneByIndex index
 
   getDummyFilePath: ->
     return "localfile://Untitled.txt"
