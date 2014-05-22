@@ -10,10 +10,10 @@
 
   getPlusMenuItems: ->
     return {
-      'Editor'        : callback : @bound 'createEditor'
-      'Terminal'      : callback : @bound 'createTerminal'
-      'Browser'       : callback : @bound 'createPreview'
-      'Drawing Board' : callback : @bound 'createDrawingBoard'
+      'Editor'        : callback : => @createEditor()
+      'Terminal'      : callback : => @createTerminal()
+      'Browser'       : callback : => @createPreview()
+      'Drawing Board' : callback : => @createDrawingBoard()
     }
 
   createPane_: (view, paneOptions, paneData) ->
