@@ -144,6 +144,7 @@ func (n *Controller) SendInstantEmail(data []byte) error {
 }
 
 type UserContact struct {
+	AccountId     int64
 	UserOldId     bson.ObjectId
 	Email         string
 	FirstName     string
@@ -179,8 +180,8 @@ func checkMailSettings(uc *UserContact, nc *models.NotificationContent) bool {
 	return uc.EmailSettings[emailConfig[nc.TypeConstant]]
 }
 
-func buildContainer(a *models.NotificationActivity, nc *models.NotificationContent,
-	n *models.Notification) (*NotificationContainer, error) {
+func buildContainer(accountId int64, a *models.NotificationActivity,
+	nc *models.NotificationContent) (*NotificationContainer, error) {
 
 	// if content type not valid return
 	contentType, err := nc.GetContentType()
@@ -189,14 +190,9 @@ func buildContainer(a *models.NotificationActivity, nc *models.NotificationConte
 	}
 
 	container := &NotificationContainer{
-		Activity:     a,
-		Content:      nc,
-		Notification: n,
-	}
-
-	container.Token, err = generateToken()
-	if err != nil {
-		return nil, err
+		Activity:  a,
+		Content:   nc,
+		AccountId: accountId,
 	}
 
 	// if notification target is related with an object (comment/status update)
@@ -211,7 +207,7 @@ func buildContainer(a *models.NotificationActivity, nc *models.NotificationConte
 		prepareObjectType(container, target)
 		container.Message = fetchContentBody(nc, target)
 		contentType.SetActorId(target.AccountId)
-		contentType.SetListerId(n.AccountId)
+		contentType.SetListerId(accountId)
 	}
 
 	container.ActivityMessage = contentType.GetActivity()
@@ -281,6 +277,7 @@ func fetchUserContact(accountId int64) (*UserContact, error) {
 	}
 
 	uc := &UserContact{
+		AccountId:     accountId,
 		UserOldId:     user.ObjectId,
 		Email:         user.Email,
 		FirstName:     account.Profile.FirstName,
