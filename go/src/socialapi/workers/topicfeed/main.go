@@ -1,44 +1,25 @@
 package main
 
 import (
-	"flag"
 	"fmt"
-	"github.com/koding/worker"
-	"socialapi/config"
 	"socialapi/workers/helper"
 	"socialapi/workers/topicfeed/topicfeed"
 )
 
 var (
-	flagConfFile = flag.String("c", "", "Configuration file")
-	flagDebug    = flag.Bool("d", false, "Debug mode")
-	Name         = "TopicFeedWorker"
+	Name = "TopicFeed"
 )
 
 func main() {
-	flag.Parse()
-	if *flagConfFile == "" {
-		fmt.Println("Please define config file with -c", "Exiting...")
+	runner := &helper.Runner{}
+	if err := runner.Init(Name); err != nil {
+		fmt.Println(err)
 		return
 	}
 
-	conf := config.MustRead(*flagConfFile)
-
-	// create logger for our package
-	log := helper.CreateLogger(Name, *flagDebug)
-
-	// panics if not successful
-	bongo := helper.MustInitBongo(Name, conf, log)
-	// do not forgot to close the bongo connections
-	defer bongo.Close()
-
 	// create message handler
-	handler := topicfeed.NewTopicFeedController(log)
+	handler := topicfeed.NewTopicFeedController(runner.Log)
 
-	listener := worker.NewListener("TopicFeed", conf.EventExchangeName, log)
-	// blocking
-	// listen for events
-	listener.Listen(helper.NewRabbitMQ(conf, log), handler)
-	// close consumer
-	defer listener.Close()
+	runner.Listen(handler)
+	runner.Close()
 }

@@ -1,10 +1,8 @@
 package main
 
 import (
-	"flag"
 	"fmt"
 	"koding/db/mongodb/modelhelper"
-	"socialapi/config"
 	"socialapi/workers/emailnotifier/controller"
 	"socialapi/workers/helper"
 
@@ -12,33 +10,21 @@ import (
 )
 
 var (
-	flagProfile = flag.String("c", "", "Configuration profile from file")
-	flagDebug   = flag.Bool("d", false, "Debug mode")
-	Name        = "EmailNotifier"
+	Name = "EmailNotifier"
 )
 
 func main() {
-	flag.Parse()
-	if *flagProfile == "" {
-		fmt.Println("Please define config file with -c", "Exiting...")
+	runner := &helper.Runner{}
+	if err := runner.Init(Name); err != nil {
+		fmt.Println(err)
 		return
 	}
 
-	conf := config.MustRead(*flagProfile)
-
-	// create logger for our package
-	log := helper.CreateLogger(Name, *flagDebug)
-
-	// panics if not successful
-	bongo := helper.MustInitBongo(Name, conf, log)
-	// do not forgot to close the bongo connection
-	defer bongo.Close()
-
 	// init mongo connection
-	modelhelper.Initialize(conf.Mongo)
+	modelhelper.Initialize(runner.Conf.Mongo)
 
 	//create connection to RMQ for publishing realtime events
-	rmq := helper.NewRabbitMQ(conf, log)
+	rmq := helper.NewRabbitMQ(runner.Conf, runner.Log)
 
 	es := &emailnotifier.EmailSettings{
 		Username: conf.SendGrid.Username,
@@ -46,15 +32,22 @@ func main() {
 		FromMail: conf.SendGrid.FromMail,
 		FromName: conf.SendGrid.FromName,
 	}
-	handler, err := emailnotifier.NewEmailNotifierWorkerController(rmq, log, es)
+
+	handler, err := emailnotifier.NewEmailNotifierWorkerController(
+		rmq,
+		runner.Log,
+		es,
+	)
 	if err != nil {
 		panic(err)
 	}
 
-	listener := worker.NewListener(Name, conf.EventExchangeName, log)
-	// blocking
-	// listen for events
-	listener.Listen(rmq, handler)
-	// close consumer
-	defer listener.Close()
+	listener := worker.NewListener(
+		helper.WrapWithVersion(Name, flagVersion),
+		helper.WrapWithVersion(conf.EventExchangeName, flagVersion),
+		log,
+	)
+
+	runner.Listen(handler)
+	runner.Close()
 }
