@@ -1,4 +1,4 @@
-class HomeView extends KDView
+class HomeView extends JView
 
   constructor:->
     super
@@ -18,9 +18,6 @@ class HomeView extends KDView
     @testimonials = new TestimonialsView
 
     @footer = new FooterView
-
-
-  viewAppended: JView::viewAppended
 
   pistachio : ->
     """

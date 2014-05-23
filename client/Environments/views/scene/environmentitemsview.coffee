@@ -1,5 +1,7 @@
 class EnvironmentItem extends KDDiaObject
 
+  JView.mixin @prototype
+
   constructor:(options={}, data)->
 
     options.cssClass       = KD.utils.curry "environments-item", options.cssClass
@@ -88,7 +90,7 @@ class EnvironmentItem extends KDDiaObject
   pipedVmName = (vmName)-> vmName.replace /\./g, '|'
 
   viewAppended:->
-    super
+    JView::viewAppended.call this
 
     @setColorTag @getOption('colorTag'), no
     @parent.appStorage?.ready @bound 'loadColorTag'

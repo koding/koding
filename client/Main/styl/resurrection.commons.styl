@@ -1642,7 +1642,7 @@ footer.main-footer
 
     a
       color              #b3b3b3
-      display            block
+      display            inline
       noTextDeco()
 
     h5
@@ -1668,6 +1668,15 @@ footer.main-footer
   nav
     a
       line-height        22px
+
+      &:after
+        content         '\A'
+        display         block
+        white-space     pre
+        line-height     0
+        padding         0
+        margin          0
+        height          0
 
   cite
     display             block

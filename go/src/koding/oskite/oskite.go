@@ -4,6 +4,7 @@ import (
 	"encoding/binary"
 	"errors"
 	"fmt"
+	"io/ioutil"
 	"koding/db/mongodb"
 	"koding/db/mongodb/modelhelper"
 	"koding/kodingkite"
@@ -26,13 +27,14 @@ import (
 	redigo "github.com/garyburd/redigo/redis"
 	kitelib "github.com/koding/kite"
 	"github.com/koding/redis"
+	"gopkg.in/fatih/set.v0"
 	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
 )
 
 const (
 	OSKITE_NAME    = "oskite"
-	OSKITE_VERSION = "0.2.12"
+	OSKITE_VERSION = "0.2.13"
 )
 
 var (
@@ -339,7 +341,7 @@ func (o *Oskite) handleCurrentVMs() {
 		infos[vm.Id] = info
 		infosMutex.Unlock()
 
-		if err := updateState(vm.Id); err != nil {
+		if _, err := updateState(vm.Id, vm.State); err != nil {
 			log.Error("%v", err)
 		}
 
@@ -347,11 +349,50 @@ func (o *Oskite) handleCurrentVMs() {
 		info.startTimeout()
 
 		// start alwaysON VMs
-		o.startAlwaysOn(&vm)
+		o.startAlwaysOn(vm)
 		return true
 	})
 
 	log.Info("VMs in /var/lib/lxc are finished.")
+}
+
+// currentVMS returns a set of VM ids on the current host machine with their
+// associated mongodb objectid's taken from the directory name
+func currentVMs() (set.Interface, error) {
+	dirs, err := ioutil.ReadDir("/var/lib/lxc")
+	if err != nil {
+		return nil, fmt.Errorf("vmsList err %s", err)
+	}
+
+	vms := set.NewNonTS()
+	for _, dir := range dirs {
+		if !strings.HasPrefix(dir.Name(), "vm-") {
+			continue
+		}
+
+		vmId := bson.ObjectIdHex(dir.Name()[3:])
+		vms.Add(vmId)
+	}
+
+	return vms, nil
+}
+
+func unprepareLeftover(vmId bson.ObjectId) {
+	prepareQueue <- &QueueJob{
+		msg: fmt.Sprintf("unprepare leftover vm %s", vmId.Hex()),
+		f: func() error {
+			mockVM := &virt.VM{Id: vmId}
+			if err := mockVM.Unprepare(nil, false); err != nil {
+				log.Error("leftover unprepare: %v", err)
+			}
+
+			if _, err := updateState(vmId, ""); err != nil {
+				log.Error("%v", err)
+			}
+
+			return nil
+		},
+	}
 }
 
 func (o *Oskite) startPinnedVMs() {
@@ -363,7 +404,7 @@ func (o *Oskite) startPinnedVMs() {
 			if !iter.Next(&vm) {
 				break
 			}
-			if err := o.startSingleVM(&vm, nil); err != nil {
+			if err := o.startSingleVM(vm, nil); err != nil {
 				log.Error("startSingleVM error: %v", err)
 			}
 		}
@@ -431,9 +472,6 @@ func (o *Oskite) setupSignalHandler() {
 				msg: "vm unprepare because of shutdown oskite " + info.vm.HostnameAlias,
 				f: func() error {
 					defer wg.Done()
-					// mutex is needed because it's handled in the queue
-					info.mutex.Lock()
-					defer info.mutex.Unlock()
 
 					info.unprepareVM()
 					return nil
@@ -595,7 +633,7 @@ func (o *Oskite) checkVM(vm *virt.VM) error {
 }
 
 func (o *Oskite) validateVM(vm *virt.VM) error {
-	if vm.IP == nil {
+	if vm.IP == nil || vm.IP.String() == "" {
 		ipInt := NextCounterValue("vm_ip", int(binary.BigEndian.Uint32(firstContainerIP.To4())))
 		ip := net.IPv4(byte(ipInt>>24), byte(ipInt>>16), byte(ipInt>>8), byte(ipInt))
 
@@ -649,25 +687,30 @@ func (o *Oskite) validateVM(vm *virt.VM) error {
 	return nil
 }
 
-func updateState(vmId bson.ObjectId) error {
+func updateState(vmId bson.ObjectId, currentState string) (string, error) {
 	state := virt.GetVMState(vmId)
 	if state == "" {
 		state = "UNKNOWN"
+	}
+
+	// do not update if it's the same state
+	if currentState == state {
+		return state, nil
 	}
 
 	query := func(c *mgo.Collection) error {
 		return c.Update(bson.M{"_id": vmId}, bson.M{"$set": bson.M{"state": state}})
 	}
 
-	return mongodbConn.Run("jVMs", query)
+	return state, mongodbConn.Run("jVMs", query)
 }
 
-func (o *Oskite) startSingleVM(vm *virt.VM, channel *kite.Channel) error {
-	info := getInfo(vm)
+func (o *Oskite) startSingleVM(vm virt.VM, channel *kite.Channel) error {
+	info := getInfo(&vm)
 	info.mutex.Lock()
 	defer info.mutex.Unlock()
 
-	if blacklist.Has(vm.Id) {
+	if blacklist.Has(vm.Id.Hex()) {
 		return errors.New("vm is blacklisted")
 	}
 
@@ -676,12 +719,12 @@ func (o *Oskite) startSingleVM(vm *virt.VM, channel *kite.Channel) error {
 	// validate/sanitize zero values
 	vm.ApplyDefaults()
 
-	err := o.checkVM(vm)
+	err := o.checkVM(&vm)
 	if err != nil {
 		return err
 	}
 
-	err = o.validateVM(vm)
+	err = o.validateVM(&vm)
 	if err != nil {
 		return err
 	}
@@ -693,7 +736,7 @@ func (o *Oskite) startSingleVM(vm *virt.VM, channel *kite.Channel) error {
 			// prepare first
 			defer func() { done <- struct{}{} }()
 
-			if err = prepareProgress(nil, vm); err != nil {
+			if err = prepareProgress(nil, &vm); err != nil {
 				return fmt.Errorf("preparing VM %s", err)
 			}
 
@@ -707,9 +750,9 @@ func (o *Oskite) startSingleVM(vm *virt.VM, channel *kite.Channel) error {
 
 	if err != nil {
 		log.Error("vm %s couldn't be started, adding to blacklist for one hour. reason err: %v", vm.HostnameAlias, err)
-		blacklist.Add(vm.Id)
+		blacklist.Add(vm.Id.Hex())
 		time.AfterFunc(time.Hour, func() {
-			blacklist.Remove(vm.Id)
+			blacklist.Remove(vm.Id.Hex())
 		})
 	}
 

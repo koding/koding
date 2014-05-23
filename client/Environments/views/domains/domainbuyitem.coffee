@@ -1,5 +1,7 @@
 class DomainBuyItem extends KDListItemView
 
+  JView.mixin @prototype
+
   constructor:(options={}, data)->
     options.cssClass = KD.utils.curry "domain-buy-items", options.cssClass
 
@@ -17,9 +19,6 @@ class DomainBuyItem extends KDListItemView
       title    : "Buy"
       style    : "clean-gray"
       callback : => @parent.emit 'BuyButtonClicked', this
-
-  viewAppended: ->
-    JView::viewAppended.call this
 
   pistachio:->
     """

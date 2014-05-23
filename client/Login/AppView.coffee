@@ -1,4 +1,4 @@
-class LoginView extends KDView
+class LoginView extends JView
 
   stop = KD.utils.stopDOMEvent
 

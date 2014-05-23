@@ -1,5 +1,6 @@
 class AccountPaymentMethodsListController extends AccountListViewController
 
+
   constructor:(options,data)->
 
     options.noItemFoundText = "You have no payment method."
@@ -83,6 +84,8 @@ class AccountPaymentMethodsList extends KDListView
 
 class AccountPaymentMethodsListItem extends KDListItemView
 
+  JView.mixin @prototype
+
   constructor:(options = {}, data)->
 
     options.tagName  = "li"
@@ -108,8 +111,6 @@ class AccountPaymentMethodsListItem extends KDListItemView
       click: (e) =>
         e.preventDefault()
         @emit 'PaymentMethodRemoveRequested', data
-
-  viewAppended: JView::viewAppended
 
   pistachio:->
     """

@@ -16,6 +16,8 @@ class HelpController extends KDController
 
 class HelpPage extends KDSlidePageView
 
+  JView.mixin @prototype
+
   constructor:(options = {}, data)->
 
     options.cssClass = KD.utils.curry 'help-page', options.cssClass

@@ -147,7 +147,7 @@ class NewMemberBucketData extends KDObject
 
 # OLD
 
-class NewMemberBucketItemView extends KDView
+class NewMemberBucketItemView extends JView
 
  constructor:(options,data)->
    options = $.extend options,
@@ -159,10 +159,6 @@ class NewMemberBucketItemView extends KDView
  render:->
 
  addCommentBox:->
-
- viewAppended:->
-   @setTemplate @pistachio()
-   @template.update()
 
  pistachio:->
    """

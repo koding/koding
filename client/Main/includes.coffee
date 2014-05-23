@@ -15,6 +15,10 @@ module.exports = [
   "kodingrouter.coffee",
   "mq.config.coffee",
 
+  # jview
+  "jview.coffee",
+  "jcustomhtmlview.coffee",
+
   # mainapp controllers
   "activitycontroller.coffee",
   "socialapicontroller.coffee",

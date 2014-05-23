@@ -1,5 +1,7 @@
 class LinkView extends KDCustomHTMLView
 
+  JView.mixin @prototype
+
   constructor:(options = {}, data)->
 
     options.tagName or= 'a'
@@ -46,8 +48,3 @@ class LinkView extends KDCustomHTMLView
       KD.remote.cacheable origin, kallback
     else
       callback origin
-
-  viewAppended:->
-
-    @setTemplate @pistachio()
-    @template.update()

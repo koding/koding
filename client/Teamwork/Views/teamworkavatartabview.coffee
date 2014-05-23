@@ -74,6 +74,8 @@ class TeamworkTabHandleAvatarView extends KDView
 
 class TeamworkAvatarContextMenuItem extends JContextMenuItem
 
+  JView.mixin @prototype
+
   constructor: (options = {}, data) ->
 
     super options, data

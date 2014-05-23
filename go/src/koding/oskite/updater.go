@@ -2,9 +2,7 @@ package oskite
 
 import (
 	"fmt"
-	"io/ioutil"
 	"koding/virt"
-	"strings"
 	"time"
 
 	"gopkg.in/fatih/set.v0"
@@ -38,87 +36,106 @@ func mongodbVMs(serviceUniquename string) (VmCollection, error) {
 	return vmsMap, nil
 }
 
-// Ids returns a set of VM ids
-func (v VmCollection) Ids() set.Interface {
-	ids := set.NewNonTS()
-
-	for id := range v {
-		ids.Add(id)
+// updateStates updates the state field of the given ids to the given state argument.
+func updateStates(ids []bson.ObjectId, state string) error {
+	if len(ids) == 0 {
+		return nil // no need to update
 	}
 
-	return ids
-}
-
-// currentVMS returns a set of VM ids on the current host machine with their
-// associated mongodb objectid's taken from the directory name
-func currentVMs() (set.Interface, error) {
-	dirs, err := ioutil.ReadDir("/var/lib/lxc")
-	if err != nil {
-		return nil, fmt.Errorf("vmsList err %s", err)
-	}
-
-	vms := set.NewNonTS()
-	for _, dir := range dirs {
-		if !strings.HasPrefix(dir.Name(), "vm-") {
-			continue
-		}
-
-		vmId := bson.ObjectIdHex(dir.Name()[3:])
-		vms.Add(vmId)
-	}
-
-	return vms, nil
+	log.Info("Updating %s vms to the state %s", len(ids), state)
+	return mongodbConn.Run("jVMs", func(c *mgo.Collection) error {
+		_, err := c.UpdateAll(bson.M{"_id": bson.M{"$in": ids}}, bson.M{"$set": bson.M{"state": state}})
+		return err
+	})
 }
 
 // vmUpdater updates the states of current available VMs on the host machine.
 func (o *Oskite) vmUpdater() {
-	for _ = range time.Tick(time.Second * 10) {
-		currentIds, err := currentVMs()
-		if err != nil {
-			log.Error("vm updater getting current vms err %v", err)
-			continue
-		}
+	vms := make([]virt.VM, 0)
 
-		vms, err := mongodbVMs(o.ServiceUniquename)
-		if err != nil {
-			log.Error("vm updater mongoDBVms failed err %v", err)
-		}
+	query := func(c *mgo.Collection) error {
+		vm := virt.VM{}
 
-		combined := set.Intersection(currentIds, vms.Ids())
+		iter := c.Find(bson.M{"hostKite": o.ServiceUniquename}).Batch(50).Iter()
+		for iter.Next(&vm) {
+			vms = append(vms, vm)
 
-		combined.Each(func(item interface{}) bool {
-			vmId, ok := item.(bson.ObjectId)
-			if !ok {
-				return true
-			}
-
-			if vm, ok := vms[vmId]; ok && !blacklist.Has(vmId) {
+			if !blacklist.Has(vm.Id.Hex()) {
 				o.startAlwaysOn(vm)
+				continue
+			}
+		}
+
+		return iter.Close()
+	}
+
+	for _ = range time.Tick(time.Second * 30) {
+		// start alwaysOn Vms
+		if err := mongodbConn.Run("jVMs", query); err != nil {
+			log.Error("allVMs fetching err: %s", err.Error())
+		}
+
+		// batch update the states now
+		currentStates := make(map[bson.ObjectId]string, 0)
+
+		for _, vm := range vms {
+			state := virt.GetVMState(vm.Id)
+			if state == "" {
+				state = "UNKNOWN"
 			}
 
-			err := updateState(vmId)
-			if err == nil {
-				return true
+			// do not update if it's the same state
+			if vm.State == state {
+				continue
 			}
 
-			log.Error("vm updater %s err %v", vmId, err)
-			if err != mgo.ErrNotFound {
-				return true
+			currentStates[vm.Id] = state
+		}
+
+		filter := func(desiredState string) []bson.ObjectId {
+			ids := make([]bson.ObjectId, 0)
+
+			for id, state := range currentStates {
+				if state == desiredState {
+					ids = append(ids, id)
+				}
 			}
 
-			// the VM couldn't be find in mongoDB, this is a leftover VM that
-			// needs to be unprepared
-			log.Error("vm updater vm not found %s err %v", vmId, err)
-			unprepareLeftover(vmId)
+			return ids
+		}
 
-			return true
-		})
+		if err := updateStates(filter("RUNNING"), "RUNNING"); err != nil {
+			log.Error("Updating RUNNING vms %v", err)
+		}
+
+		if err := updateStates(filter("STOPPED"), "STOPPED"); err != nil {
+			log.Error("Updating STOPPED vms %v", err)
+		}
+
+		currentStates = nil // garbage collection
+
+		// re initialize for next iteration
+		vms = make([]virt.VM, 0)
+	}
+
+}
+
+func unprepareInQueue(vm *virt.VM) {
+	prepareQueue <- &QueueJob{
+		msg: fmt.Sprintf("Vm is stopped, unpreparing it: %s", vm.HostnameAlias),
+		f: func() error {
+			info := getInfo(vm)
+			info.mutex.Lock()
+			defer info.mutex.Unlock()
+
+			return unprepareProgress(nil, vm, false)
+		},
 	}
 }
 
 // startAlwaysOn  starts a vm if it's alwaysOn and not pinned to the current
 // hostname
-func (o *Oskite) startAlwaysOn(vm *virt.VM) {
+func (o *Oskite) startAlwaysOn(vm virt.VM) {
 	if !vm.AlwaysOn {
 		return
 	}
@@ -129,27 +146,12 @@ func (o *Oskite) startAlwaysOn(vm *virt.VM) {
 	}
 
 	go func() {
+		log.Info("alwaysOn is starting [%s - %v]", vm.HostnameAlias, vm.Id)
 		err := o.startSingleVM(vm, nil)
 		if err != nil {
 			log.Error("alwaysOn vm %s couldn't be started. err: %v", vm.HostnameAlias, err)
+		} else {
+			log.Info("alwaysOn vm started successfull [%s - %v]", vm.HostnameAlias, vm.Id)
 		}
 	}()
-}
-
-func unprepareLeftover(vmId bson.ObjectId) {
-	prepareQueue <- &QueueJob{
-		msg: fmt.Sprintf("unprepare leftover vm %s", vmId.Hex()),
-		f: func() error {
-			mockVM := &virt.VM{Id: vmId}
-			if err := mockVM.Unprepare(nil, false); err != nil {
-				log.Error("leftover unprepare: %v", err)
-			}
-
-			if err := updateState(vmId); err != nil {
-				log.Error("%v", err)
-			}
-
-			return nil
-		},
-	}
 }
