@@ -12,10 +12,10 @@ type MessageReply struct {
 	Id int64 `json:"id"`
 
 	// Id of the interacted message
-	MessageId int64 `json:"messageId"             sql:"NOT NULL"`
+	MessageId int64 `json:"messageId,string"             sql:"NOT NULL"`
 
 	// Id of the reply
-	ReplyId int64 `json:"replyId"                 sql:"NOT NULL"`
+	ReplyId int64 `json:"replyId,string"                 sql:"NOT NULL"`
 
 	// Creation of the MessageReply
 	CreatedAt time.Time `json:"createdAt"         sql:"NOT NULL"`
