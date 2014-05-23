@@ -56,10 +56,6 @@ module.exports = class JDomain extends jraphical.Module
       static        : []
       instance      : []
 
-    indexes         :
-      domain        : 'unique'
-      hostnameAlias : 'sparse'
-
     schema          :
 
       domain        :
@@ -79,6 +75,9 @@ module.exports = class JDomain extends jraphical.Module
       hostnameAlias :
         type        : Array
         default     : []
+    indexes          :
+      domain         : ['unique', 'sparse']
+      hostnameAlias  : 'sparse'
 
       proxy         :
         mode        :
