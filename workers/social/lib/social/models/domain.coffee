@@ -182,6 +182,9 @@ module.exports = class JDomain extends jraphical.Module
 
     {domainData, account, group, stack} = options
 
+    domainData.proposedDomain = domainData.domain
+    delete domainData.domain
+
     JStack = require './stack'
     JStack.getStack account, stack, (err, stack)=>
       return callback err  if err?
