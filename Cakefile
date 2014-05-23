@@ -128,12 +128,12 @@ task 'webserver', "Run the webserver", ({configFile, tests}) ->
             processes.kill "server"
 
 task 'socialapi-api', "Run the API of socialapi", (options) ->
-  {configFile, tests} = options
+  {configFile, tests, version} = options
   KONFIG = require('koding-config-manager').load("main.#{configFile}")
   {socialapi} = KONFIG
 
   runServer = (config, port, index) ->
-    cmdName =  "./go/bin/api -c ./go/src/socialapi/config/#{configFile}.toml -port #{port} -d"
+    cmdName =  "./go/bin/api -c ./go/src/socialapi/config/#{configFile}.toml -port #{port} -d -v #{version ? 0}"
     console.log "cmdName", cmdName
     processes.spawn
       name              : "socialapiapi"
