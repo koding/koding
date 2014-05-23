@@ -10,22 +10,21 @@ module.exports = class Google extends ProviderInterface
 
     { credential, name } = options
 
-    credential.fetchData (err, credData)->
+    @fetchCredentialData credential, (err, credential)->
 
-      if err?
-        return new KodingError "Failed to fetch credential"
+      return callback err  if err?
 
-      callback null,
-        {
-          "type": "googlecompute",
-          "bucket_name": "my-project-packer-images",
-          "client_secrets_file": credData.meta.clientSecretsContent,
-          "private_key_file": credData.meta.privateKeyContent,
-          "project_id": credData.meta.projectId,
-          "source_image": "debian-7-wheezy-v20131014",
-          "zone": "us-central1-a"
-        }
+      meta = {
+        "type": "googlecompute",
+        "bucket_name": "my-project-packer-images",
+        "client_secrets_file": credential.clientSecretsContent,
+        "private_key_file": credential.privateKeyContent,
+        "project_id": credential.projectId,
+        "source_image": "debian-7-wheezy-v20131014",
+        "zone": "us-central1-a"
+      }
 
+      callback null, { meta }
 
   @fetchAvailable = (client, options, callback)->
 
