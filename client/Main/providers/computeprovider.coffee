@@ -96,3 +96,38 @@ class ComputeProvider.UI
 
           unless KD.showError err
             @emit "CredentialAdded", credential
+
+
+  @generateCreateInstanceForm: ->
+
+    form = new KDFormViewWithFields
+
+      cssClass          : "form-view"
+
+      fields            :
+
+        title           :
+          label         : "Title"
+          placeholder   : "title for this instance"
+          validate      :
+            rules       :
+              required  : yes
+            messages    :
+              required  : "Title is required"
+
+      buttons           :
+
+        Save            :
+          title         : "Create Instance"
+          type          : "submit"
+          style         : "solid green medium"
+          loader        : color : "#444444"
+          callback      : -> @hideLoader()
+
+        Cancel          :
+          style         : "solid medium"
+          type          : "button"
+          callback      : -> form.emit "Cancel"
+
+      callback          : (data)->
+        form.emit "Submit", data

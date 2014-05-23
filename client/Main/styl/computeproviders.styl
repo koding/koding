@@ -25,6 +25,8 @@ computeproviders.styl
 
   .provider-split
     background       white
+    .panel-1
+      border-left    1px solid #eee
 
   .welcome-pane
     text-align      center
@@ -40,8 +42,6 @@ computeproviders.styl
       margin        5px
 
   .provider-view
-
-    border-left     1px solid #eee
 
     p
       line-height   20px
@@ -62,9 +62,8 @@ computeproviders.styl
         font-weight   600
         font-size     16px
 
-
     .form-view
-      z-index         2
+      z-index         102
       background      white
       left            50%
       width           460px
@@ -82,6 +81,28 @@ computeproviders.styl
 
       .button-field
         height      43px !important
+
+  .instance-list
+
+    height            auto
+    padding           10px
+    border-top        1px solid #eee
+
+    .cloud-item
+
+      margin          0 0 10px
+      border-bottom   1px solid #eee
+      width           552px
+      cursor          default
+      borderBox()
+
+      h2
+        font-weight   400
+
+      button
+        right         5px
+        top           5px
+        abs()
 
   .provider-list
 

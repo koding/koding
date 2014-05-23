@@ -12,54 +12,34 @@ class ProviderBaseView extends KDTabPaneView
       type  : "medium"
 
     @content = new KDView
+      cssClass   : "content-view"
+
     @loader  = new KDLoaderView
-      showLoader : @getOption('providerId')?
-      size       :
-        width    : 40
+      showLoader : @getOption('provider')?
+      size       : width : 40
 
-  createFormView:->
-
-    provider = @getOption 'providerId'
+    provider = @getOption 'provider'
 
     @credentialBox  = new KDSelectBox
       name          : 'type'
       cssClass      : 'type-select hidden'
       selectOptions : [
-        { title: "Loading #{provider} credentials...", disabled: yes }
+        title: "Loading #{provider} credentials...", disabled: yes
       ]
-      callback      : (value) =>
-
-        if value is "_add_"
-          @credentialBox.hide()
-          @form.setClass 'in'
-          @instanceListView.hide()
-        else
-          @showInstanceList value
+      callback      : @bound 'showAvailablesFor'
 
     @content.addSubView @credentialBox
 
-    @form = ComputeProvider.generateAddCredentialFormFor provider
-
-    @form.on "Cancel", =>
-
-      @form.unsetClass 'in'
-
-      @credentialBox.setValue @_credOptions.first.title
-      @credentialBox.show()
-
-    @form.on "CredentialAdded", (credential)=>
-      @form.unsetClass 'in'
-      @paneSelected yes
-      log "Added", { credential }
-
-    @content.addSubView @form
+    @createAddCredentialForm()
+    @createNewInstanceForm()
 
     @instanceController = new KDListViewController
       viewOptions       :
         cssClass        : 'instance-list'
-        wrapper         : yes
         itemClass       : CloudInstanceItemView
         itemOptions     : { provider }
+      wrapper           : no
+      scrollView        : no
       noItemFoundWidget : new KDView
         partial         : "Instance list is not available at this time."
 
@@ -67,16 +47,29 @@ class ProviderBaseView extends KDTabPaneView
     @instanceListView.hide()
 
     @instanceList = @instanceController.getListView()
-    @instanceList.on "InstanceSelected", (instance)=>
+    @instanceList.on "InstanceSelected", @bound 'createInstance'
 
-      { name } = instance.getData()
-      @_currentCredential
 
-      ComputeProvider.create
-        provider   : provider
+  createInstance: (instance)=>
+
+    { provider } = @getOptions()
+    { stack } = @getDelegate().getOptions()
+
+    log instance, @_currentCredential, provider, stack
+
+    @createInstanceForm.setClass 'in'
+    @createInstanceForm.once "Submit", (data)=>
+
+      label = data.title
+
+      ComputeProvider.create {
+        provider, label
         credential : @_currentCredential
-        name       : name
-      , (err, res)->
+        stack      : stack._id
+      }, (err, res)=>
+
+        @createInstanceForm.unsetClass 'in'
+        log err, res
 
         unless KD.showError err
 
@@ -93,6 +86,52 @@ class ProviderBaseView extends KDTabPaneView
           new KDModalView
             content : "<pre>#{packerTemplate}</pre>"
 
+
+  showAvailablesFor:(value)->
+
+    info "Credential selected:", value
+
+    if value is "_add_"
+      @instanceListView.hide()
+      @credentialBox.hide()
+      @addCredentialForm.setClass 'in'
+    else
+      @showInstanceList value
+
+
+  createNewInstanceForm:->
+
+    @createInstanceForm = ComputeProvider.UI.generateCreateInstanceForm()
+
+    @createInstanceForm.on "Cancel", =>
+      @createInstanceForm.unsetClass 'in'
+      @createInstanceForm.off 'Submit'
+
+    @content.addSubView @createInstanceForm
+
+
+  createAddCredentialForm:->
+
+    provider = @getOption 'provider'
+
+    @addCredentialForm?.destroy()
+    @addCredentialForm = ComputeProvider.UI.generateAddCredentialFormFor provider
+
+    @addCredentialForm.on "Cancel", =>
+      @addCredentialForm.unsetClass 'in'
+      value = @_currentCredential ? @_credOptions.first.value
+      @credentialBox.setValue value
+      @showAvailablesFor value
+      @credentialBox.show()
+
+    @addCredentialForm.on "CredentialAdded", (credential)=>
+      @addCredentialForm.unsetClass 'in'
+      @paneSelected yes, credential.publicKey
+      @createAddCredentialForm()
+
+    @content.addSubView @addCredentialForm
+
+
   viewAppended:->
 
     @on 'PaneDidShow', @bound 'paneSelected'
@@ -105,7 +144,7 @@ class ProviderBaseView extends KDTabPaneView
 
 
   showInstanceList:(credentialKey)->
-    provider = @getOption 'providerId'
+    provider = @getOption 'provider'
 
     @_currentCredential = credentialKey
 
@@ -130,13 +169,14 @@ class ProviderBaseView extends KDTabPaneView
 
       @instanceListView.show()
 
-  paneSelected:(force = no)->
+
+  paneSelected:(force = no, credentialKey)->
 
     return if @_laoded and not force
 
     @loader.show()
 
-    provider = @getOption 'providerId'
+    provider = @getOption 'provider'
     ComputeProvider.credentialsFor provider, (err, credentials = [])=>
 
       @loader.hide()
@@ -146,14 +186,12 @@ class ProviderBaseView extends KDTabPaneView
       if credentials.length is 0
         @credentialBox.hide()
         @instanceListView.hide()
-        @form.buttons.Cancel.hide()
-        @form.setClass 'in'
+        @addCredentialForm.buttons.Cancel.hide()
+        @addCredentialForm.setClass 'in'
         @_laoded = no
         return
 
       @_laoded = yes
-
-      log { credentials }
 
       @_credentials = {}
       @_credOptions = []
@@ -171,5 +209,8 @@ class ProviderBaseView extends KDTabPaneView
         "Select credential..." : @_credOptions
 
       @credentialBox.show()
-      @showInstanceList @_credOptions.first.value
+      value = credentialKey ? @_credOptions.first.value
+      @credentialBox.setValue value
+      @showAvailablesFor value
+
       @instanceListView.show()
