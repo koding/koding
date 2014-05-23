@@ -8,38 +8,36 @@ class IDEFilesTabView extends WorkspaceTabView
 
     ideAppController = KD.getSingleton('appManager').getFrontApp()
 
-    dummyPane  = new KDTabPaneView
+    filesPane  = new KDTabPaneView
+      name     : 'Files'
+      closable : no
+
+    filesPane.addSubView new FinderPane
+    @tabView.addPane filesPane
+
+    actionsPane  = new KDTabPaneView
       name     : 'Actions'
       closable : no
 
-    dummyPane.addSubView new KDButtonView
+    actionsPane.addSubView new KDButtonView
       title      : 'Vertical'
       cssClass   : 'compact solid green'
       attributes :
         style    : 'display: block; margin: 20px; width: 200px; '
       callback   : -> ideAppController.splitTabView 'vertical'
 
-    dummyPane.addSubView new KDButtonView
+    actionsPane.addSubView new KDButtonView
       title      : 'Horizontal'
       cssClass   : 'compact solid green'
       attributes :
         style    : 'display: block; margin: 20px; width: 200px; '
       callback   : -> ideAppController.splitTabView 'horizontal'
 
-    dummyPane.addSubView new KDButtonView
+    actionsPane.addSubView new KDButtonView
       title      : 'Merge'
       cssClass   : 'compact solid green'
       attributes :
         style    : 'display: block; margin: 20px; width: 200px; '
       callback   : -> ideAppController.mergeSplitView()
 
-    @tabView.addPane dummyPane
-
-    ################################
-
-    tabPane    = new KDTabPaneView
-      name     : 'Files'
-      closable : no
-
-    tabPane.addSubView new FinderPane
-    @tabView.addPane tabPane
+    @tabView.addPane actionsPane
