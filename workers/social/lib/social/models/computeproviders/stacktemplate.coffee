@@ -225,9 +225,9 @@ JStackTemplate.create
   ]
 
   domains     : [
-    { domain  : "{{profile.nickname}}{{config.subdomain}}" }
-    { domain  : "digitalocean.{{profile.nickname}}{{config.subdomain}}" }
-    { domain  : "aws.{{profile.nickname}}{{config.subdomain}}" }
+    { domain  : "{{profile.nickname}}.kd.io" }
+    { domain  : "digitalocean.{{profile.nickname}}.kd.io" }
+    { domain  : "aws.{{profile.nickname}}.kd.io" }
   ]
 
   machines    : [

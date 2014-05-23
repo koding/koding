@@ -103,22 +103,6 @@ module.exports = class Koding extends ProviderInterface
     , meta }
 
 
-  # @postCreate = (options, callback)->
-
-  #   { postCreateOptions, machine, meta, stack } = options
-  #   { account, group, hostnameAliases } = postCreateOptions
-
-  #   JDomain = require '../domain'
-
-  #   JDomain.createDomains {
-  #     account, stack
-  #     group         : group.slug
-  #     domains       : hostnameAliases
-  #     hostnameAlias : hostnameAliases[0]
-  #   }
-
-  #   callback null
-
   @remove = (client, options, callback)->
 
     {hostnameAlias} = options
