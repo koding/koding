@@ -1,34 +1,33 @@
-package emailnotifier
+package controller
 
 import (
 	"errors"
 	"fmt"
-	"koding/db/mongodb/modelhelper"
-	socialmodels "socialapi/models"
-	"socialapi/workers/notification/models"
+	"socialapi/workers/emailnotifier/models"
+	"socialapi/workers/helper"
+	notificationmodels "socialapi/workers/notification/models"
+	"time"
 
 	"github.com/koding/logging"
 	"github.com/koding/rabbitmq"
 	"github.com/koding/worker"
-	"github.com/robfig/cron"
-	"github.com/sendgrid/sendgrid-go"
 	"github.com/streadway/amqp"
-	"labix.org/v2/mgo"
-	"labix.org/v2/mgo/bson"
 )
 
-const SCHEDULE = "0 0 0 * * *"
-
-var cronJob *cron.Cron
-
 var emailConfig = map[string]string{
-	models.NotificationContent_TYPE_COMMENT: "comment",
-	models.NotificationContent_TYPE_LIKE:    "likeActivities",
-	models.NotificationContent_TYPE_FOLLOW:  "followActions",
-	models.NotificationContent_TYPE_JOIN:    "groupJoined",
-	models.NotificationContent_TYPE_LEAVE:   "groupLeft",
-	models.NotificationContent_TYPE_MENTION: "mention",
+	notificationmodels.NotificationContent_TYPE_COMMENT: "comment",
+	notificationmodels.NotificationContent_TYPE_LIKE:    "likeActivities",
+	notificationmodels.NotificationContent_TYPE_FOLLOW:  "followActions",
+	notificationmodels.NotificationContent_TYPE_JOIN:    "groupJoined",
+	notificationmodels.NotificationContent_TYPE_LEAVE:   "groupLeft",
+	notificationmodels.NotificationContent_TYPE_MENTION: "mention",
 }
+
+const (
+	DAY         = 24 * time.Hour
+	TIMEFORMAT  = "20060102"
+	CACHEPREFIX = "dailymail"
+)
 
 type Action func(*Controller, []byte) error
 
@@ -36,14 +35,7 @@ type Controller struct {
 	routes   map[string]Action
 	log      logging.Logger
 	rmqConn  *amqp.Connection
-	settings *EmailSettings
-}
-
-type EmailSettings struct {
-	Username string
-	Password string
-	FromName string
-	FromMail string
+	settings *models.EmailSettings
 }
 
 func (n *Controller) DefaultErrHandler(delivery amqp.Delivery, err error) bool {
@@ -82,12 +74,10 @@ func New(rmq *rabbitmq.RabbitMQ, log logging.Logger, es *EmailSettings) (*Contro
 
 	nwc.routes = routes
 
-	nwc.initDailyEmailCron()
-
 	return nwc, nil
 }
 
-func (n *EmailNotifierWorkerController) initDailyEmailCron() {
+func (n *Controller) initDailyEmailCron() {
 
 	cronJob = cron.New()
 	cronJob.AddFunc(SCHEDULE, n.sendDailyMails)
@@ -101,7 +91,7 @@ func (n *Controller) SendInstantEmail(data []byte) error {
 	}
 	defer channel.Close()
 
-	notification := models.NewNotification()
+	notification := notificationmodels.NewNotification()
 	if err := notification.MapMessage(data); err != nil {
 		return err
 	}
@@ -116,7 +106,7 @@ func (n *Controller) SendInstantEmail(data []byte) error {
 		return nil
 	}
 
-	uc, err := fetchUserContact(notification.AccountId)
+	uc, err := models.FetchUserContact(notification.AccountId)
 	if err != nil {
 		return fmt.Errorf("an error occurred while fetching user contact: %s", err)
 	}
@@ -125,38 +115,58 @@ func (n *Controller) SendInstantEmail(data []byte) error {
 		return nil
 	}
 
-	container, err := buildContainer(notification.AccountId, activity, nc)
-	if err != nil {
+	mc := models.NewMailerContainer()
+	mc.AccountId = notification.AccountId
+	mc.Activity = activity
+	mc.Content = nc
+
+	if err := mc.PrepareContainer(); err != nil {
 		return err
 	}
-	container.CreatedAt = notification.ActivatedAt
 
-	body, err := renderInstantTemplate(uc, container)
+	mc.CreatedAt = notification.ActivatedAt
+
+	tp := models.NewTemplateParser()
+	tp.UserContact = uc
+	body, err := tp.RenderInstantTemplate(mc)
 	if err != nil {
 		return fmt.Errorf("an error occurred while preparing notification email: %s", err)
 	}
-	subject := prepareSubject(container)
 
-	if err := createToken(uc, nc.TypeConstant, uc.Token); err != nil {
+	tg := &models.TokenGenerator{
+		UserContact:      uc,
+		NotificationType: emailConfig[nc.TypeConstant],
+	}
+
+	if err := tg.CreateToken(); err != nil {
 		return err
 	}
 
-	return n.SendMail(uc, body, subject)
+	mailer := models.NewMailer()
+	mailer.EmailSettings = n.settings
+	mailer.UserContact = uc
+	mailer.Body = body
+	mailer.Subject = prepareSubject(mc)
+
+	if err := mailer.SendMail(); err != nil {
+		return err
+	}
+
+	n.log.Info("%s notified by email", uc.Username)
+
+	return nil
 }
 
-type UserContact struct {
-	AccountId     int64
-	UserOldId     bson.ObjectId
-	Email         string
-	FirstName     string
-	LastName      string
-	Username      string
-	Hash          string
-	Token         string
-	EmailSettings map[string]bool
+func prepareSubject(mc *models.MailerContainer) string {
+	t, err := mc.Content.GetContentType()
+	if err != nil {
+		return ""
+	}
+
+	return t.GetDefinition()
 }
 
-func validNotification(a *models.NotificationActivity, n *models.Notification) bool {
+func validNotification(a *notificationmodels.NotificationActivity, n *notificationmodels.Notification) bool {
 	// do not notify actor for her own action
 	if a.ActorId == n.AccountId {
 		return false
@@ -166,8 +176,8 @@ func validNotification(a *models.NotificationActivity, n *models.Notification) b
 	return !n.ActivatedAt.IsZero()
 }
 
-func (n *EmailNotifierWorkerController) checkMailSettings(uc *UserContact,
-	a *models.NotificationActivity, nc *models.NotificationContent) bool {
+func (n *EmailNotifierWorkerController) checkMailSettings(uc *models.UserContact,
+	a *notificationmodels.NotificationActivity, nc *notificationmodels.NotificationContent) bool {
 	// notifications are disabled
 	if val := uc.EmailSettings["global"]; !val {
 		return false
@@ -187,115 +197,17 @@ func (n *EmailNotifierWorkerController) checkMailSettings(uc *UserContact,
 	return notificationEnabled
 }
 
-func buildContainer(accountId int64, a *models.NotificationActivity,
-	nc *models.NotificationContent) (*NotificationContainer, error) {
-
-	// if content type not valid return
-	contentType, err := nc.GetContentType()
-	if err != nil {
-		return nil, err
-	}
-
-	container := &NotificationContainer{
-		Activity:  a,
-		Content:   nc,
-		AccountId: accountId,
-	}
-
-	// if notification target is related with an object (comment/status update)
-	if containsObject(nc) {
-		target := socialmodels.NewChannelMessage()
-		if err := target.ById(nc.TargetId); err != nil {
-			return nil, fmt.Errorf("target message not found")
-		}
-
-		prepareGroup(container, target)
-		prepareSlug(container, target)
-		prepareObjectType(container, target)
-		container.Message = fetchContentBody(nc, target)
-		contentType.SetActorId(target.AccountId)
-		contentType.SetListerId(accountId)
-	}
-
-	container.ActivityMessage = contentType.GetActivity()
-
-	return container, nil
-}
-
-func prepareGroup(container *NotificationContainer, cm *socialmodels.ChannelMessage) {
-	c := socialmodels.NewChannel()
-	if err := c.ById(cm.InitialChannelId); err != nil {
+func (n *EmailNotifierWorkerController) saveDailyMail(accountId, activityId int64) {
+	redisConn := helper.MustGetRedisConn()
+	key := prepareSetterCacheKey(accountId)
+	if _, err := redisConn.AddSetMembers(key, activityId); err != nil {
+		n.log.Error("daily mail error: %s", err)
 		return
 	}
-	// TODO fix these Slug and Name
-	container.Group = GroupContent{
-		Slug: c.GroupName,
-		Name: c.GroupName,
+
+	if err := redisConn.Expire(key, DAY); err != nil {
+		n.log.Error("daily mail error: %s", err)
 	}
-}
-
-func prepareSlug(container *NotificationContainer, cm *socialmodels.ChannelMessage) {
-	switch cm.TypeConstant {
-	case socialmodels.ChannelMessage_TYPE_POST:
-		container.Slug = cm.Slug
-	case socialmodels.ChannelMessage_TYPE_REPLY:
-		// TODO we need append something like comment id to parent message slug
-		container.Slug = fetchRepliedMessage(cm.Id).Slug
-	}
-}
-
-func prepareObjectType(container *NotificationContainer, cm *socialmodels.ChannelMessage) {
-	switch cm.TypeConstant {
-	case socialmodels.ChannelMessage_TYPE_POST:
-		container.ObjectType = "status update"
-	case socialmodels.ChannelMessage_TYPE_REPLY:
-		container.ObjectType = "comment"
-	}
-}
-
-// fetchUserContact gets user and account details with given account id
-func fetchUserContact(accountId int64) (*UserContact, error) {
-	a := socialmodels.NewAccount()
-	if err := a.ById(accountId); err != nil {
-		return nil, err
-	}
-
-	account, err := modelhelper.GetAccountById(a.OldId)
-	if err != nil {
-		if err == mgo.ErrNotFound {
-			return nil, errors.New("old account not found")
-		}
-
-		return nil, err
-	}
-
-	user, err := modelhelper.GetUser(account.Profile.Nickname)
-	if err != nil {
-		if err == mgo.ErrNotFound {
-			return nil, errors.New("user not found")
-		}
-
-		return nil, err
-	}
-
-	token, err := generateToken()
-	if err != nil {
-		return nil, err
-	}
-
-	uc := &UserContact{
-		AccountId:     accountId,
-		UserOldId:     user.ObjectId,
-		Email:         user.Email,
-		FirstName:     account.Profile.FirstName,
-		LastName:      account.Profile.LastName,
-		Username:      account.Profile.Nickname,
-		Hash:          account.Profile.Hash,
-		EmailSettings: user.EmailFrequency,
-		Token:         token,
-	}
-
-	return uc, nil
 }
 
 func containsObject(nc *models.NotificationContent) bool {
@@ -366,4 +278,8 @@ func (n *Controller) SendMail(uc *UserContact, body, subject string) error {
 	n.log.Info("%s notified by email", uc.Username)
 
 	return nil
+}
+
+func prepareSetterCacheKey(accountId int64) string {
+	return fmt.Sprintf("%s:%d:%s", CACHEPREFIX, accountId, time.Now().Format(TIMEFORMAT))
 }

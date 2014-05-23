@@ -26,7 +26,8 @@ MessageBodyMinLen=1
 CacheEnabled = false
 
 [sendgrid]
-Username= "koding"
-Password= "DEQl7_Dr"
-FromName= "Koding"
-FromMail= "hello@koding.com"
+Username=        "koding"
+Password=        "DEQl7_Dr"
+FromName=        "Koding"
+FromMail=        "hello@koding.com"
+ForcedRecipient= "canthefason@gmail.com"
