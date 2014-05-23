@@ -8,6 +8,7 @@ class ActivitySideView extends JView
     super options, data
 
     {itemClass} = @getOptions()
+    sidebar     = @getDelegate()
 
     @listController = new KDListViewController
       startWithLazyLoader : yes
@@ -33,6 +34,17 @@ class ActivitySideView extends JView
     @listView = @listController.getView()
 
     @listView.once 'viewAppended', @bound 'reload'
+
+    @listView.on 'ItemShouldBeSelected', (item) =>
+
+      if sidebar.selectedItem is item
+        appView = sidebar.getDelegate()
+        appView.refreshTab item.getData()
+        return
+
+      sidebar.deselectAllItems()
+      @listController.selectSingleItem item
+      sidebar.selectedItem = item
 
 
   reload: ->

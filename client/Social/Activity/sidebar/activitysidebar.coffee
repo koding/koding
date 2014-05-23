@@ -7,67 +7,109 @@ class ActivitySidebar extends KDCustomScrollView
     super
 
     {
-      activityController
       notificationController
       socialapi
     } = KD.singletons
 
-    activityController.on 'SidebarItemClicked', @bound 'itemClicked'
-
     addEventLogger notificationController, 'AddedToChannel'
     addEventLogger notificationController, 'RemovedFromChannel'
 
+    appView       = @getDelegate()
+    @sections     = {}
+    @selectedItem = null
 
-  viewAppended:->
+
+
+    # fixme:
+    # this item selection is a bit tricky
+    # depends on multiple parts:
+    # - sidebaritem's lastTimestamp
+    # - the item which is being clicked
+    # - and what the route suggests
+    # needs to be simplified
+    appView.on 'PaneRequested', (type, id) =>
+
+      @deselectAllItems()
+
+      if type is 'public'
+      then return @public.setClass 'selected'
+      else @public.unsetClass 'selected'
+
+      candidateItems = []
+      for own name, {listController} of @sections
+
+        for item in listController.itemsOrdered
+          data = item.getData()
+          if data.typeConstant is type and "#{data.id}" is "#{id}"
+            candidateItems.push item
+
+      candidateItems.sort (a, b) -> a.lastClickedTimestamp < b.lastClickedTimestamp
+
+      if candidateItems.first
+        listController.selectSingleItem candidateItems.first
+        @selectedItem = candidateItems.first
+
+
+  deselectAllItems: ->
+
+    for own name, {listController} of @sections
+
+      listController.deselectAllItems()
+
+
+  getItemById: (id) ->
+
+    item = null
+    for own name, section of @sections
+
+      item = section.listController.itemsIndexed[id]
+      break  if item
+
+    return item
+
+
+  viewAppended: ->
 
     super
 
     @addPublicFeedLink()
     @addHotTopics()
     @addFollowedTopics()
-    @addThreads()
+    @addFollowedPosts()
     @addMessages()
     # @addChat()
-
-
-  itemClicked: (item) ->
-
-    # we'll probably do some stuff here later.
 
 
   addPublicFeedLink: ->
 
     {activityController} = KD.singletons
 
-    @wrapper.addSubView publicLink = new CustomLinkView
+    @wrapper.addSubView @public = new CustomLinkView
       title    : 'PUBLIC FEED'
+      href     : '/Activity/Public'
       cssClass : 'kdlistitemview-sidebar-item public-feed-link'
-      click    : (event) ->
-        KD.utils.stopDOMEvent event
-        activityController.emit 'SidebarItemClicked', this
     ,
       name     : 'koding_public_feed'
       id       : "#{KD.getGroup().socialApiChannelId ? 1}"
       channel  : KD.singleton "socialapi"
 
-    publicLink.addSubView @publicFeedCount = new KDCustomHTMLView
+
+    @public.addSubView new KDCustomHTMLView
       cssClass : 'count'
       tagName  : 'cite'
       partial  : '1'
 
-    publicLink.selectItem = SidebarItem::selectItem.bind publicLink
-    activityController.on 'SidebarItemClicked', publicLink.bound 'selectItem'
-
-    # load initial public feed
-    KD.utils.defer -> activityController.emit 'SidebarItemClicked', publicLink
+    # # load initial public feed
+    # KD.utils.defer -> activityController.emit 'SidebarItemClicked', @public
 
 
   addHotTopics: ->
 
-    @wrapper.addSubView @hotTopics = new ActivitySideView
+    @wrapper.addSubView @sections['hot'] = new ActivitySideView
       title      : 'HOT'
       cssClass   : 'hot topics'
       itemClass  : SidebarTopicItem
+      delegate   : this
       dataSource : (callback) ->
         KD.singletons.socialapi.channel.fetchPopularTopics
           limit  : 3
@@ -76,22 +118,24 @@ class ActivitySidebar extends KDCustomScrollView
 
   addFollowedTopics: ->
 
-    @wrapper.addSubView @followedTopics = new ActivitySideView
+    @wrapper.addSubView @sections['followedTopics'] = new ActivitySideView
       title    : 'Followed Topics'
       cssClass : 'followed topics'
       itemClass : SidebarTopicItem
+      delegate   : this
       dataSource : (callback) ->
         KD.singletons.socialapi.channel.fetchFollowedChannels
           limit : 5
         , callback
 
 
-  addThreads: ->
+  addFollowedPosts: ->
 
-    @wrapper.addSubView @threads = new ActivitySideView
+    @wrapper.addSubView @sections['followedPosts'] = new ActivitySideView
       title    : 'Followed Posts'
       cssClass : 'threads users'
       itemClass : SidebarPinnedItem
+      delegate   : this
       dataSource : (callback) ->
         KD.singletons.socialapi.channel.fetchPinnedMessages
           limit : 5
@@ -100,19 +144,24 @@ class ActivitySidebar extends KDCustomScrollView
 
   addMessages: ->
 
-    @wrapper.addSubView @messages = new ActivitySideView
-      title    : 'Messages'
-      cssClass : 'inbox users'
-      itemClass : SidebarMessageItem
+    @wrapper.addSubView @sections['messages'] = new ActivitySideView
+      title      : 'Messages'
+      cssClass   : 'inbox users'
+      itemClass  : SidebarMessageItem
+      delegate   : this
       dataSource : (callback) ->
-        KD.singletons.socialapi.message.fetchPrivateMessages limit : 5, callback
+        KD.singletons.socialapi.message.fetchPrivateMessages
+          limit : 3
+          skip  : 0
+        , callback
 
 
   addChat: ->
 
-    @wrapper.addSubView @chat = new ActivitySideView
+    @wrapper.addSubView @sections['chat'] = new ActivitySideView
       title    : 'Chat'
       cssClass : 'chat users'
       itemClass : SidebarChatMemberItem
+      delegate   : this
       dataSource : (callback) ->
         KD.getGroup().fetchNewestMembers {}, {limit : 10, skip : 0}, callback
