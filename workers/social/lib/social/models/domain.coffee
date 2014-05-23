@@ -26,6 +26,7 @@ module.exports = class JDomain extends jraphical.Module
     softDelete      : no
 
     permissions     :
+
       'create domains'     : ['member']
       'edit domains'       : ['member']
       'edit own domains'   : ['member']
@@ -33,10 +34,10 @@ module.exports = class JDomain extends jraphical.Module
       'delete own domains' : ['member']
       'list domains'       : ['member']
 
-    sharedMethods:
+    sharedMethods   :
 
-      static:
-        one:
+      static        :
+        one         :
           (signature Object, Function)
         fetchDomains:
           (signature Function)
@@ -44,69 +45,48 @@ module.exports = class JDomain extends jraphical.Module
           (signature Object, Function)
         ]
 
-      instance      :
-        bindVM:
+      instance       :
+        bindVM       :
           (signature Object, Function)
-        unbindVM:
+        unbindVM     :
           (signature Object, Function)
-        remove:
+        remove       :
           (signature Function)
 
-    sharedEvents    :
-      static        : []
-      instance      : []
+    sharedEvents     :
+      static         : []
+      instance       : []
 
-    schema          :
-
-      domain        :
-        type        : String
-        required    : yes
-        set         : (value)-> value.toLowerCase()
-
-      domainType    :
-        type        : String
-        enum        : ['invalid domain type', [
-          'new'
-          'subdomain'
-          'existing'
-        ]]
-        default :  'subdomain'
-
-      hostnameAlias :
-        type        : Array
-        default     : []
     indexes          :
       domain         : ['unique', 'sparse']
       hostnameAlias  : 'sparse'
+      proposedDomain : 'sparse'
 
-      proxy         :
-        mode        :
-          type      : String # TODO: enumerate all possible modes
-          default   : 'vm'
-        username    : String
-        serviceName : String
-        key         : String
-        fullUrl     : String
+    schema           :
 
-      orderId       :
-        recurly     : String
-        resellerClub: String
+      domain         : String
 
-      regYears      :
-        type        : Number
-        default     : 0
+      proposedDomain : String
+        type         : String
+        required     : yes
+        set          : (value)-> value.toLowerCase()
 
-      dnsRecords    : [Object]
+      hostnameAlias  :
+        type         : Array
+        default      : []
 
-      createdAt     :
-        type        : Date
-        default     : -> new Date
+      proxy          :
+        mode         :
+          type       : String
+          default    : 'vm'
+        username     : String
+        serviceName  : String
+        key          : String
+        fullUrl      : String
 
-      modifiedAt    :
-        type        : Date
-        default     : -> new Date
+      meta           : require "bongo/bundles/meta"
+      group          : String
 
-      group         : String
 
   # filters domains such as shared-x/vm-x.groupSlug.kd.io
   # or x.koding.kd.io. Also shows only group related
