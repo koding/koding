@@ -48,6 +48,7 @@ func (o *Oskite) vmUpdater() {
 		for id, vm := range vms {
 			if !blacklist.Has(id.Hex()) {
 				o.startAlwaysOn(vm)
+				continue
 			}
 
 			_, err := updateState(id, vm.State)
