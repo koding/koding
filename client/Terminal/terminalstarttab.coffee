@@ -39,7 +39,8 @@ class TerminalStartTab extends JView
         then kontrol.kites.terminal
         else vmController.terminalKites
 
-      vmController.ready => @listVMSessions vms
+      vmController.on 'terminalsReady', =>
+        @listVMSessions vms
 
       osKites =
         if KD.useNewKites
@@ -76,6 +77,8 @@ class TerminalStartTab extends JView
       if KD.useNewKites
       then kontrol.kites.terminal
       else vmController.terminalKites
+
+    console.log { terminalKites }
 
     delegate = @getDelegate()
 
