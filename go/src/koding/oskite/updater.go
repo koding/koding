@@ -14,33 +14,49 @@ type VmCollection map[bson.ObjectId]*virt.VM
 
 var blacklist = set.New()
 
+// mongodbVMs returns a map of VMs that are bind to the given
+// serviceUniquename/hostkite in mongodb
+func mongodbVMs(serviceUniquename string) (VmCollection, error) {
+	vms := make([]*virt.VM, 0)
+
+	query := func(c *mgo.Collection) error {
+		return c.Find(bson.M{"hostKite": serviceUniquename}).All(&vms)
+	}
+
+	if err := mongodbConn.Run("jVMs", query); err != nil {
+		return nil, fmt.Errorf("allVMs fetching err: %s", err.Error())
+	}
+
+	vmsMap := make(map[bson.ObjectId]*virt.VM, len(vms))
+
+	for _, vm := range vms {
+		vmsMap[vm.Id] = vm
+	}
+
+	return vmsMap, nil
+}
+
 // vmUpdater updates the states of current available VMs on the host machine.
 func (o *Oskite) vmUpdater() {
-	query := func(c *mgo.Collection) error {
-		vm := &virt.VM{}
-
-		iter := c.Find(bson.M{"hostKite": o.ServiceUniquename}).Batch(50).Iter()
-		for iter.Next(&vm) {
-			vmId := vm.Id
-			if !blacklist.Has(vmId) {
-				o.startAlwaysOn(vm) // it also checks if the vm is alwaysOn or not
-			}
-
-			_, err := updateState(vmId, vm.State)
-			if err != nil {
-				log.Error("vm update state %s err %v", vmId, err)
-			}
-		}
-
-		return iter.Close()
-	}
-
 	for _ = range time.Tick(time.Second * 30) {
-		if err := mongodbConn.Run("jVMs", query); err != nil {
-			log.Error("allVMs fetching err: %s", err.Error())
+		vms, err := mongodbVMs(o.ServiceUniquename)
+		if err != nil {
+			log.Error("couldn't fetch vms %v", err)
+			continue
+		}
+
+		for id, vm := range vms {
+			if !blacklist.Has(id.Hex()) {
+				o.startAlwaysOn(vm)
+			}
+
+			_, err := updateState(id, vm.State)
+			if err != nil {
+				log.Error("vm update state %s err %v", id.Hex(), err)
+			}
+
 		}
 	}
-
 }
 
 func unprepareInQueue(vm *virt.VM) {
@@ -69,9 +85,12 @@ func (o *Oskite) startAlwaysOn(vm *virt.VM) {
 	}
 
 	go func() {
+		log.Info("alwaysOn is starting [%s - %v]", vm.HostnameAlias, vm.Id)
 		err := o.startSingleVM(vm, nil)
 		if err != nil {
 			log.Error("alwaysOn vm %s couldn't be started. err: %v", vm.HostnameAlias, err)
+		} else {
+			log.Info("alwaysOn vm started successfull [%s - %v]", vm.HostnameAlias, vm.Id)
 		}
 	}()
 }
