@@ -247,9 +247,19 @@ func getScreenPath(vos *virt.VOS) (string, error) {
 	// it can happen that the user deleted our screen binary
 	// accidently, if this happens fallback to default screen binary
 	_, err := vos.Stat(kodingScreenPath)
+	if err != nil {
+		log.Warning("vos.Stat kodingScreenPath %v, failing over to default screen path", err)
+	}
+
 	if os.IsNotExist(err) {
 		// check if the default screen binary exists too
 		_, err := vos.Stat(defaultScreenPath)
+		if err != nil {
+			log.Error("vos.Stat defaultScreenPath %v", err)
+		} else {
+			log.Info("vos.Stat success defaultScreenPath found %s", defaultScreenPath)
+		}
+
 		if os.IsNotExist(err) {
 			return "", &kite.BaseError{
 				Message: fmt.Sprintf("neither %s nor %s does exist.", kodingScreenPath, defaultScreenPath),
@@ -258,6 +268,25 @@ func getScreenPath(vos *virt.VOS) (string, error) {
 		}
 
 		screenPath = defaultScreenPath
+	}
+
+	// debugging, remove later
+	screenfile := vos.VM.File("rootfs" + defaultScreenPath)
+	log.Info("DEBUG: trying os.Stat defaultScreenPath %s", screenfile)
+	_, err = os.Stat(screenfile)
+	if err != nil {
+		log.Error("DEBUG: couldn't stat defaultScreenPath %s : %v", screenfile, err)
+	} else {
+		log.Info("DEBUG: result os.Stat defaultScreenPath %s", screenfile)
+	}
+
+	screenfile = vos.VM.File("rootfs" + kodingScreenPath)
+	log.Info("DEBUG: trying os.Stat kodingScreenPath %s", screenfile)
+	_, err = os.Stat(screenfile)
+	if err != nil {
+		log.Error("DEBUG: error couldn't stat %s : %v", screenfile, err)
+	} else {
+		log.Info("DEBUG: success os.Stat kodingScreenPath %s", screenfile)
 	}
 
 	return screenPath, nil
@@ -333,10 +362,7 @@ func newScreen(vos *virt.VOS, mode, session string) (*screen, error) {
 		Command:    cmdArgs,
 	}
 
-	fmt.Printf("s %#v\n", s)
-
 	return s, nil
-
 }
 
 // screenSessions returns a list of sessions that belongs to the given vos
