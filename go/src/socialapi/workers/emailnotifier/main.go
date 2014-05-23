@@ -5,8 +5,6 @@ import (
 	"koding/db/mongodb/modelhelper"
 	"socialapi/workers/emailnotifier/controller"
 	"socialapi/workers/helper"
-
-	"github.com/koding/worker"
 )
 
 var (
@@ -41,12 +39,6 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-
-	listener := worker.NewListener(
-		helper.WrapWithVersion(Name, flagVersion),
-		helper.WrapWithVersion(conf.EventExchangeName, flagVersion),
-		log,
-	)
 
 	runner.Listen(handler)
 	runner.Close()
