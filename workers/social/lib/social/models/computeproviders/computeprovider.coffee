@@ -113,6 +113,7 @@ module.exports = class ComputeProvider extends Base
 
     shouldReviveClient   : yes
     shouldPassCredential : yes
+    shouldReviveProvider : no
 
   , @create
 
