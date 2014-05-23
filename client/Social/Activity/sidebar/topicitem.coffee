@@ -1,5 +1,7 @@
 class SidebarTopicItem extends SidebarItem
 
+  JView.mixin @prototype
+
   getSuffix = (c)-> str : if c > 1 then ' Followers' else ' Follower'
 
   constructor: (options = {}, data) ->
@@ -13,8 +15,6 @@ class SidebarTopicItem extends SidebarItem
 
     @followButton = new TopicFollowButton {}, data
 
-
-  viewAppended: JView::viewAppended
 
   render: ->
 
