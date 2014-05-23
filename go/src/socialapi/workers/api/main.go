@@ -14,7 +14,6 @@ import (
 	"socialapi/workers/helper"
 	notificationapi "socialapi/workers/notification/api"
 	"syscall"
-	"github.com/coreos/go-log/log"
 	"github.com/rcrowley/go-tigertonic"
 )
 
@@ -70,7 +69,7 @@ func main() {
 	ch := make(chan os.Signal)
 	signal.Notify(ch, syscall.SIGINT, syscall.SIGQUIT, syscall.SIGTERM)
 
-	log.Info("Received %v", <-ch)
+	r.Log.Info("Received %v", <-ch)
 }
 
 func newServer() *tigertonic.Server {
