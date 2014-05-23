@@ -10,7 +10,7 @@ import (
 
 type Interaction struct {
 	// unique identifier of the Interaction
-	Id int64 `json:"id"`
+	Id int64 `json:"id,string"`
 
 	// Id of the interacted message
 	MessageId int64 `json:"messageId,string"      sql:"NOT NULL"`

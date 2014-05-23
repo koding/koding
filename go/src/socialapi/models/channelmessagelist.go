@@ -10,7 +10,7 @@ import (
 
 type ChannelMessageList struct {
 	// unique identifier of the channel message list
-	Id int64 `json:"id"`
+	Id int64 `json:"id,string"`
 
 	// Id of the channel
 	ChannelId int64 `json:"channelId,string"     sql:"NOT NULL"`
