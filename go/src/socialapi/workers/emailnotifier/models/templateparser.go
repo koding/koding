@@ -6,9 +6,12 @@ import (
 	"html/template"
 	"net/url"
 	"socialapi/config"
-	// socialmodels "socialapi/models"
-	// "socialapi/workers/notification/models"
 	"time"
+)
+
+const (
+	DATEFORMAT = "Jan 02"
+	TIMEFORMAT = "15:04"
 )
 
 type TemplateParser struct {
@@ -166,13 +169,13 @@ func getEmptyTemplate() *template.Template {
 }
 
 func getMonthAndDay(t time.Time) string {
-	return t.Format("Jan 02")
+	return t.Format(DATEFORMAT)
 }
 
 func prepareDate(mc *MailerContainer) string {
-	return mc.Activity.CreatedAt.Format("Jan 02")
+	return mc.Activity.CreatedAt.Format(DATEFORMAT)
 }
 
 func prepareTime(mc *MailerContainer) string {
-	return mc.Activity.CreatedAt.Format("15:04")
+	return mc.Activity.CreatedAt.Format(TIMEFORMAT)
 }
