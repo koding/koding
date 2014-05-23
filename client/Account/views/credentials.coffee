@@ -214,6 +214,8 @@ class AccountCredentialList extends KDListView
 
 class AccountCredentialListItem extends KDListItemView
 
+  JView.mixin @prototype
+
   constructor: (options = {}, data)->
     options.cssClass = KD.utils.curry "credential-item", options.cssClass
     super options, data
@@ -236,8 +238,6 @@ class AccountCredentialListItem extends KDListItemView
       cssClass : "solid small green"
       disabled : !@getData().owner
       callback : => delegate.showItemContent this
-
-  viewAppended: JView::viewAppended
 
   pistachio:->
     """
