@@ -36,7 +36,7 @@ func (l *Listener) createConsumer(rmq *rabbitmq.RabbitMQ) *rabbitmq.Consumer {
 	}
 
 	queue := rabbitmq.Queue{
-		Name:    fmt.Sprintf("%sWorkerQueue", l.WorkerName),
+		Name:    fmt.Sprintf("%s:WorkerQueue", l.WorkerName),
 		Durable: true,
 	}
 
