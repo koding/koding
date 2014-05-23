@@ -4,6 +4,28 @@ class ActivityAppController extends AppController
     name         : 'Activity'
     searchRoute  : '/Activity?q=:text:'
 
+  handleChannel = (type, slug) ->
+    {router, appManager} = KD.singletons
+    appManager.open 'Activity', (app) -> app.getView().navigateTo type, slug
+
+
+  KD.registerRoutes 'Activity',
+
+    '/:name?/Activity/Public' : -> handleChannel 'public'
+
+    '/:name?/Activity/Topic/:slug?' : ({params:{name, slug}, query}) ->
+      handleChannel 'topic', slug
+
+    '/:name?/Activity/Post/:slug?' : ({params:{name, slug}, query}) ->
+      handleChannel 'post', slug
+
+    '/:name?/Activity/Message/:slug?' : ({params:{name, slug}, query}) ->
+      handleChannel 'message', slug
+
+    '/:name?/Activity/Chat/:slug?' : ({params:{name, slug}, query}) ->
+      handleChannel 'chat', slug
+
+
   constructor: (options = {}) ->
 
     options.view    = new ActivityAppView testPath : 'activity-feed'
