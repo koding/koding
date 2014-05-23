@@ -144,21 +144,6 @@ func (n *DailyEmailNotifierWorkerController) prepareDailyEmail(accountId int64) 
 	return nil
 }
 
-func fetchAccountId(u *mongomodels.User) (int64, error) {
-	a, err := modelhelper.GetAccount(u.Name)
-	if err != nil {
-		return 0, fmt.Errorf("Could not send daily mail to %s: %s", u.Name, err)
-	}
-
-	account := socialmodels.NewAccount()
-	account.OldId = a.Id.Hex()
-	if err := account.FetchByOldId(); err != nil {
-		return 0, err
-	}
-
-	return account.Id, err
-}
-
 func (n *DailyEmailNotifierWorkerController) getDailyActivityIds(accountId int64) ([]int64, error) {
 	redisConn := helper.MustGetRedisConn()
 	members, err := redisConn.GetSetMembers(prepareGetterCacheKey(accountId))
