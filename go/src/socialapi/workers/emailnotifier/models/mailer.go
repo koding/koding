@@ -26,7 +26,7 @@ func (m *Mailer) SendMail() error {
 	fullname := fmt.Sprintf("%s %s", m.UserContact.FirstName, m.UserContact.LastName)
 
 	message := sendgrid.NewMail()
-	message.AddTo(m.UserContact.Email)
+	message.AddTo(m.getRecipient())
 	message.AddToName(fullname)
 	message.SetSubject(m.Subject)
 	message.SetHTML(m.Body)
@@ -38,6 +38,14 @@ func (m *Mailer) SendMail() error {
 	}
 
 	return nil
+}
+
+func (m *Mailer) getRecipient() string {
+	if m.EmailSettings.ForcedRecipient != "" {
+		return m.EmailSettings.ForcedRecipient
+	}
+
+	return m.UserContact.Email
 }
 
 func (m *Mailer) validateMailer() error {
