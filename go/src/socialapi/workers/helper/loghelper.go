@@ -13,7 +13,7 @@ import (
 type Formatter struct{}
 
 func (f *Formatter) Format(rec *logging.Record) string {
-	return fmt.Sprintf("%s %-8s [%s] %s",
+	return fmt.Sprintf("%-24s %-8s [%-15s] %s",
 		time.Now().UTC().Format("2006-01-02T15:04:05.999Z"),
 		logging.LevelNames[rec.Level],
 		rec.LoggerName,

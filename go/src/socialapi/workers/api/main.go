@@ -5,26 +5,24 @@ import (
 	"flag"
 	"fmt"
 	"koding/db/mongodb/modelhelper"
-	"socialapi/config"
 
 	// _ "net/http/pprof" // Imported for side-effect of handling /debug/pprof.
-	"github.com/rcrowley/go-tigertonic"
 	"os"
 	"os/signal"
 	"socialapi/workers/api/handlers"
+	"socialapi/workers/common/runner"
 	"socialapi/workers/helper"
 	notificationapi "socialapi/workers/notification/api"
 	"syscall"
+	"github.com/rcrowley/go-tigertonic"
 )
 
 var (
-	cert         = flag.String("cert", "", "certificate pathname")
-	key          = flag.String("key", "", "private key pathname")
-	flagConfig   = flag.String("config", "", "pathname of JSON configuration file")
-	host         = flag.String("host", "0.0.0.0", "listen address")
-	port         = flag.String("port", "7000", "listen port")
-	flagConfFile = flag.String("c", "", "Configuration profile from file")
-	flagDebug    = flag.Bool("d", false, "Debug mode")
+	cert       = flag.String("cert", "", "certificate pathname")
+	key        = flag.String("key", "", "private key pathname")
+	flagConfig = flag.String("config", "", "pathname of JSON configuration file")
+	host       = flag.String("host", "0.0.0.0", "listen address")
+	port       = flag.String("port", "7000", "listen port")
 
 	hMux       tigertonic.HostServeMux
 	mux, nsMux *tigertonic.TrieServeMux
@@ -47,34 +45,31 @@ func init() {
 }
 
 func main() {
-	flag.Parse()
-	if *flagConfFile == "" {
-		fmt.Println("Please define config file with -c", "Exiting...")
+	r := runner.New(Name)
+	if err := r.Init(); err != nil {
+		fmt.Println(err)
 		return
 	}
-	conf := config.MustRead(*flagConfFile)
-	log := helper.CreateLogger(Name, *flagDebug)
+
+	if !flag.Parsed() {
+		flag.Parse()
+	}
 
 	server := newServer()
 	// shutdown server
 	defer server.Close()
 
-	// panics if not successful
-	bongo := helper.MustInitBongo(Name, conf, log)
-	// do not forgot to close the bongo connection
-	defer bongo.Close()
-
 	// init redis
-	redisConn := helper.MustInitRedisConn(conf.Redis)
+	redisConn := helper.MustInitRedisConn(r.Conf.Redis)
 	defer redisConn.Close()
 
 	// init mongo connection
-	modelhelper.Initialize(conf.Mongo)
+	modelhelper.Initialize(r.Conf.Mongo)
 
 	ch := make(chan os.Signal)
 	signal.Notify(ch, syscall.SIGINT, syscall.SIGQUIT, syscall.SIGTERM)
 
-	log.Info("Received %v", <-ch)
+	r.Log.Info("Received %v", <-ch)
 }
 
 func newServer() *tigertonic.Server {

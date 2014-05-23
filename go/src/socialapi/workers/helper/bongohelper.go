@@ -10,7 +10,12 @@ import (
 	"github.com/koding/rabbitmq"
 )
 
-func MustInitBongo(appName string, c *config.Config, log logging.Logger) *bongo.Bongo {
+func MustInitBongo(
+	appName string,
+	eventExchangeName string,
+	c *config.Config,
+	log logging.Logger,
+) *bongo.Bongo {
 	rmqConf := &rabbitmq.Config{
 		Host:     c.Mq.Host,
 		Port:     c.Mq.Port,
@@ -20,7 +25,8 @@ func MustInitBongo(appName string, c *config.Config, log logging.Logger) *bongo.
 	}
 
 	bConf := &broker.Config{
-		RMQConfig: rmqConf,
+		RMQConfig:    rmqConf,
+		ExchangeName: eventExchangeName,
 	}
 
 	db := db.MustInit(c)
