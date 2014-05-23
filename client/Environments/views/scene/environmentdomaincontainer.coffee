@@ -53,8 +53,8 @@ class EnvironmentDomainContainer extends EnvironmentContainer
   addDomain: (domain) ->
 
     @addItem
-      title       : domain.domain
-      description : $.timeago domain.createdAt
+      title       : domain.proposedDomain
+      description : $.timeago domain.meta.createdAt
       activated   : yes
       aliases     : domain.hostnameAlias
       domain      : domain
