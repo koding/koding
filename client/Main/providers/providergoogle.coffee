@@ -5,7 +5,7 @@ class ProviderGoogle extends ProviderBaseView
   constructor:->
     super
       cssClass    : PROVIDER
-      providerId    : PROVIDER
+      provider    : PROVIDER
     ,
       name        : "Google Compute Engine"
       description : """
@@ -13,5 +13,3 @@ class ProviderGoogle extends ProviderBaseView
         Compute Engine is an IAAS that allows for scalable and efficient
         hosting configurations.
       """
-
-    @createFormView()
