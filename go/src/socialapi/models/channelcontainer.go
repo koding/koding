@@ -4,8 +4,8 @@ type ChannelContainer struct {
 	Channel             Channel                  `json:"channel"`
 	IsParticipant       bool                     `json:"isParticipant"`
 	ParticipantCount    int                      `json:"participantCount"`
-	ParticipantsPreview []string                 `json:"participantsPreview,omitempty"`
-	LastMessage         *ChannelMessageContainer `json:"lastMessage,omitempty"`
+	ParticipantsPreview []string                 `json:"participantsPreview"`
+	LastMessage         *ChannelMessageContainer `json:"lastMessage"`
 }
 
 func NewChannelContainer() *ChannelContainer {
