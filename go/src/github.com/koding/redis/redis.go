@@ -295,6 +295,12 @@ func (r *RedisSession) AddSetMembers(key string, rest ...interface{}) (int, erro
 	return reply, nil
 }
 
+// PopSetMember pops a random element of the set stored at key.
+// Returns set element and error state
+func (r *RedisSession) PopSetMember(key string) (interface{}, error) {
+	return r.Do("SPOP", r.addPrefix(key))
+}
+
 // RemoveSetMembers removes given elements from the set stored at key
 // Returns successfully removed key count and error state
 func (r *RedisSession) RemoveSetMembers(key string, rest ...interface{}) (int, error) {
