@@ -41,7 +41,7 @@ func (tp *TemplateParser) RenderInstantTemplate(mc *MailerContainer) (string, er
 	}
 	content := tp.renderContentTemplate(ec, mc)
 
-	return tp.renderTemplate(mc.Content.TypeConstant, content, mc.CreatedAt)
+	return tp.renderTemplate(mc.Content.TypeConstant, content, "", mc.CreatedAt)
 }
 
 func (tp *TemplateParser) RenderDailyTemplate(containers []*MailerContainer) (string, error) {
@@ -59,7 +59,11 @@ func (tp *TemplateParser) RenderDailyTemplate(containers []*MailerContainer) (st
 		contents = c + contents
 	}
 
-	return tp.renderTemplate("daily", contents, time.Now())
+	return tp.renderTemplate(
+		"daily",
+		contents,
+		"Here what's happened in Koding today!",
+		time.Now())
 }
 
 func (tp *TemplateParser) validateTemplateParser() error {
@@ -70,12 +74,13 @@ func (tp *TemplateParser) validateTemplateParser() error {
 	return nil
 }
 
-func (tp *TemplateParser) renderTemplate(contentType, content string, date time.Time) (string, error) {
+func (tp *TemplateParser) renderTemplate(contentType, content, description string, date time.Time) (string, error) {
 	t := template.Must(template.ParseFiles(
 		mainTemplateFile, footerTemplateFile, unsubscribeTemplateFile))
 	mc := tp.buildMailContent(contentType, getMonthAndDay(date))
 
 	mc.Content = template.HTML(content)
+	mc.Description = description
 
 	var doc bytes.Buffer
 	if err := t.Execute(&doc, mc); err != nil {
