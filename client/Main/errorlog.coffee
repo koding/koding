@@ -16,6 +16,7 @@ class ErrorLog
       } = KD.config
 
       {userAgent} = window.navigator
+      {protocol}  = KD.remote.mq.ws
 
       error = $.extend {
         error
@@ -23,6 +24,7 @@ class ErrorLog
         codeVersion
         userAgent
         idle
+        protocol
         useNewKites   : KD.useNewKites
         osKiteVersion : osVersion
       }, params
