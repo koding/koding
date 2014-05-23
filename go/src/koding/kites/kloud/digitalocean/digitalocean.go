@@ -195,6 +195,18 @@ func (d *DigitalOcean) WaitForState(eventId int, desiredState string, timeout ti
 	}
 }
 
+// CreateKey creates a new ssh key with the given name and the associated
+// public key. It returns a unique id that is associated with the given
+// publicKey. This id is used to show, edit or delete the key.
+func (d *DigitalOcean) CreateKey(name, publicKey string) (uint, error) {
+	return d.Client.CreateKey(name, publicKey)
+}
+
+// DestroyKey removes the ssh key that is associated with the given id.
+func (d *DigitalOcean) DestroyKey(id uint) error {
+	return d.Client.DestroyKey(id)
+}
+
 // CreateImage creates an image using Packer. It uses digitalocean.Builder
 // data. It returns the image info.
 func (d *DigitalOcean) CreateImage() (digitalocean.Image, error) {
