@@ -146,17 +146,33 @@ module.exports = class JStack extends jraphical.Module
       { delegate } = client.connection
 
       selector = @getSelector selector, delegate
+
       JStack.some selector, options, (err, _stacks)->
 
-        stacks = []
+        if err
 
-        daisy queue = _stacks.map (stack) -> ->
-          stack.revive (err, revivedStack)->
-            stacks.push revivedStack
-            queue.next()
+          msg = "Failed to fetch stacks"
+          callback new KodingError msg
+          console.warn msg, err
 
-        queue.push ->
-          callback null, stacks
+        else if not _stacks or _stacks.length is 0
+
+          callback null, []
+
+        else
+
+          stacks = []
+
+          queue = _stacks.map (stack) ->
+            stack.revive (err, revivedStack)->
+              stacks.push revivedStack
+              queue.next()
+
+          queue.push ->
+            callback null, stacks
+
+          daisy queue
+
 
 
   revive: (callback)->

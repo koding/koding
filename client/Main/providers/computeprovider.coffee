@@ -11,7 +11,7 @@ class ComputeProvider extends KDObject
   @fetchExisting = (options, callback)->
     KD.remote.api.ComputeProvider.fetchExisting options, callback
 
-  @fetchStacks = (callback)->
+  @fetchStacks = (callback = noop)->
 
     if @stacks
       callback null, @stacks
