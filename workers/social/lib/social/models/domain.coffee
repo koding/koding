@@ -109,6 +109,7 @@ module.exports = class JDomain extends jraphical.Module
       isGroupAlias      = re.test domain
       not isVmAlias and not isKodingSubdomain and isGroupAlias
 
+
   @fetchDomains: secure (client, callback)->
 
     {group} = client.context
@@ -118,6 +119,7 @@ module.exports = class JDomain extends jraphical.Module
       return callback err  if err
       return callback null unless domains
       callback null, filterDomains domains, delegate, group
+
 
   parseDomain = (domain)->
 
@@ -148,9 +150,10 @@ module.exports = class JDomain extends jraphical.Module
     # Return type as internal and slug and domain
     return {type: 'internal', slug, prefix, domain}
 
-  resolveDomain = (domainData, callback)->
 
-    return callback null  unless domainData.domainType
+  resolveDomain = (domainData, callback, check)->
+
+    return callback null  unless check
 
     {domain} = domainData
 
@@ -170,7 +173,9 @@ module.exports = class JDomain extends jraphical.Module
         if (intersection baseIps, remoteIps).length > 0
           return callback null
 
-        callback new KodingError "CNAME or A record for #{domain} is not matching with #{baseDomain}", "CNAMEMISMATCH"
+        callback new KodingError \
+          """CNAME or A record for #{domain} is not
+             matching with #{baseDomain}""", "CNAMEMISMATCH"
 
 
   createDomain = (options, callback)->
