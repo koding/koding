@@ -3,6 +3,7 @@ package controller
 import (
 	"errors"
 	"fmt"
+	"socialapi/config"
 	"socialapi/workers/emailnotifier/models"
 	"socialapi/workers/helper"
 	notificationmodels "socialapi/workers/notification/models"
@@ -24,9 +25,10 @@ var emailConfig = map[string]string{
 }
 
 const (
-	DAY         = 24 * time.Hour
-	TIMEFORMAT  = "20060102"
-	CACHEPREFIX = "dailymail"
+	DAY           = 24 * time.Hour
+	TIMEFORMAT    = "20060102"
+	CACHEPREFIX   = "dailymail"
+	RECIPIENTSKEY = "recipients"
 )
 
 type Action func(*Controller, []byte) error
@@ -198,16 +200,49 @@ func (n *EmailNotifierWorkerController) checkMailSettings(uc *models.UserContact
 }
 
 func (n *EmailNotifierWorkerController) saveDailyMail(accountId, activityId int64) {
-	redisConn := helper.MustGetRedisConn()
-	key := prepareSetterCacheKey(accountId)
-	if _, err := redisConn.AddSetMembers(key, activityId); err != nil {
+	if err := saveRecipient(accountId); err != nil {
 		n.log.Error("daily mail error: %s", err)
-		return
+	}
+
+	if err := saveActivity(accountId, activityId); err != nil {
+		n.log.Error("daily mail error: %s", err)
+	}
+}
+
+func saveRecipient(accountId int64) error {
+	redisConn := helper.MustGetRedisConn()
+	key := prepareRecipientsCacheKey()
+	if _, err := redisConn.AddSetMembers(key, accountId); err != nil {
+		return err
 	}
 
 	if err := redisConn.Expire(key, DAY); err != nil {
-		n.log.Error("daily mail error: %s", err)
+		return fmt.Errorf("Could not set ttl of recipients: %s", err)
 	}
+
+	return nil
+}
+
+func saveActivity(accountId, activityId int64) error {
+	redisConn := helper.MustGetRedisConn()
+	key := prepareSetterCacheKey(accountId)
+	if _, err := redisConn.AddSetMembers(key, activityId); err != nil {
+		return err
+	}
+
+	if err := redisConn.Expire(key, DAY); err != nil {
+		return fmt.Errorf("Could not set ttl of activity: %s", err)
+	}
+
+	return nil
+}
+
+func prepareRecipientsCacheKey() string {
+	return fmt.Sprintf("%s:%s:%s:%s",
+		config.Get().Environment,
+		CACHEPREFIX,
+		RECIPIENTSKEY,
+		time.Now().Format(TIMEFORMAT))
 }
 
 func containsObject(nc *models.NotificationContent) bool {
@@ -281,5 +316,9 @@ func (n *Controller) SendMail(uc *UserContact, body, subject string) error {
 }
 
 func prepareSetterCacheKey(accountId int64) string {
-	return fmt.Sprintf("%s:%d:%s", CACHEPREFIX, accountId, time.Now().Format(TIMEFORMAT))
+	return fmt.Sprintf("%s:%s:%d:%s",
+		config.Get().Environment,
+		CACHEPREFIX,
+		accountId,
+		time.Now().Format(TIMEFORMAT))
 }
