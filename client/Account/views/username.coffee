@@ -18,32 +18,32 @@ class AccountEditUsername extends JView
         firstName          :
           placeholder      : "firstname"
           name             : "firstName"
-          cssClass         : "thin half"
+          cssClass         : "medium half"
           nextElement      :
             lastName       :
-              cssClass     : "thin half"
+              cssClass     : "medium half"
               placeholder  : "lastname"
               name         : "lastName"
         email              :
-          cssClass         : "thin"
+          cssClass         : "medium"
           placeholder      : "you@yourdomain.com"
           name             : "email"
           testPath         : "account-email-input"
         username           :
-          cssClass         : "thin"
+          cssClass         : "medium"
           placeholder      : "username"
           name             : "username"
           attributes       :
             readonly       : "#{not /^guest-/.test @account.profile.nickname}"
           testPath         : "account-username-input"
         password           :
-          cssClass         : "thin half"
+          cssClass         : "medium half"
           placeholder      : "password"
           name             : "password"
           type             : "password"
           nextElement      :
             confirm        :
-              cssClass     : "thin half"
+              cssClass     : "medium half"
               placeholder  : "confirm password"
               name         : "confirmPassword"
               type         : "password"
