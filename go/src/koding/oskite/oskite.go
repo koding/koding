@@ -19,6 +19,7 @@ import (
 	"net"
 	"os"
 	"os/signal"
+	"runtime"
 	"strings"
 	"sync"
 	"syscall"
@@ -208,8 +209,6 @@ func (o *Oskite) runNewKite() {
 	if err != nil {
 		panic(err)
 	}
-
-	k.SetupSignalHandler()
 
 	o.NewKite = k.Kite
 
@@ -419,80 +418,92 @@ func (o *Oskite) startPinnedVMs() {
 
 func (o *Oskite) setupSignalHandler() {
 	log.Info("Setting up signal handler")
-	sigtermChannel := make(chan os.Signal)
-	signal.Notify(sigtermChannel, syscall.SIGINT, syscall.SIGTERM, syscall.SIGUSR1)
+	sigChan := make(chan os.Signal, 1)
+	signal.Notify(sigChan, syscall.SIGINT, syscall.SIGTERM, syscall.SIGUSR1, syscall.SIGUSR2)
+
 	go func() {
-		sig := <-sigtermChannel
-		log.Info("Shutdown initiated")
+		for sig := range sigChan {
+			if sig == syscall.SIGUSR2 {
+				buf := make([]byte, 1<<16)
+				runtime.Stack(buf, true)
+				fmt.Printf("%s", buf)
 
-		closeFunc := func() {
-			log.Info("Closing and shutting down. Bye!")
-			// close amqp connections
-			o.Kite.Close()
-			os.Exit(1)
-		}
-
-		defer closeFunc()
-
-		// force quit after ten seconds
-		if sig != syscall.SIGUSR1 {
-			time.AfterFunc(10*time.Second, func() {
-				log.Info("Force quit after 10 seconds!")
-				closeFunc()
-			})
-		}
-
-		// close the communication. We should not accept any calls anymore...
-		shuttingDown.SetClosed()
-
-		log.Info("Removing hostname '%s' from redis", o.RedisKontainerKey)
-		_, err := redigo.Int(o.RedisSession.Do("SREM", o.RedisKontainerSet, o.RedisKontainerKey))
-		if err != nil {
-			log.Error("redis SREM kontainers. err: %v", err.Error())
-		}
-
-		// ...but wait until the current calls are finished.
-		log.Info("Waiting until current calls are finished...")
-		requestWaitGroup.Wait()
-		log.Info("All calls are finished.")
-
-		//return early for non SIGUSR1.
-		if sig != syscall.SIGUSR1 {
-			return
-		}
-
-		// unprepare all VMS when we receive SIGUSR1
-		log.Info("Got a SIGUSR1. Unpreparing all VMs on this host.")
-
-		var wg sync.WaitGroup
-		for _, info := range infos {
-			wg.Add(1)
-			log.Info("Unpreparing " + info.vm.String())
-			prepareQueue <- &QueueJob{
-				msg: "vm unprepare because of shutdown oskite " + info.vm.HostnameAlias,
-				f: func() error {
-					defer wg.Done()
-
-					info.unprepareVM()
-					return nil
-				},
+				// debug.PrintStack()
+				continue
 			}
-		}
 
-		// Wait for all VM unprepares to complete.
-		wg.Wait()
+			log.Info("Shutdown initiated")
 
-		query := func(c *mgo.Collection) error {
-			_, err := c.UpdateAll(
-				bson.M{"hostKite": o.ServiceUniquename},
-				bson.M{"$set": bson.M{"hostKite": nil}},
-			) // ensure that really all are set to nil
-			return err
-		}
+			closeFunc := func() {
+				log.Info("Closing and shutting down. Bye!")
+				// close amqp connections
+				o.Kite.Close()
+				os.Exit(1)
+			}
 
-		err = mongodbConn.Run("jVMs", query)
-		if err != nil {
-			log.Error("Updating hostKite for all current VMs err: %v", err)
+			defer closeFunc()
+
+			// force quit after ten seconds
+			if sig != syscall.SIGUSR1 {
+				time.AfterFunc(10*time.Second, func() {
+					log.Info("Force quit after 10 seconds!")
+					closeFunc()
+				})
+			}
+
+			// close the communication. We should not accept any calls anymore...
+			shuttingDown.SetClosed()
+
+			log.Info("Removing hostname '%s' from redis", o.RedisKontainerKey)
+			_, err := redigo.Int(o.RedisSession.Do("SREM", o.RedisKontainerSet, o.RedisKontainerKey))
+			if err != nil {
+				log.Error("redis SREM kontainers. err: %v", err.Error())
+			}
+
+			// ...but wait until the current calls are finished.
+			log.Info("Waiting until current calls are finished...")
+			requestWaitGroup.Wait()
+			log.Info("All calls are finished.")
+
+			//return early for non SIGUSR1.
+			if sig != syscall.SIGUSR1 {
+				return
+			}
+
+			// unprepare all VMS when we receive SIGUSR1
+			log.Info("Got a SIGUSR1. Unpreparing all VMs on this host.")
+
+			var wg sync.WaitGroup
+			for _, info := range infos {
+				wg.Add(1)
+				log.Info("Unpreparing " + info.vm.String())
+				prepareQueue <- &QueueJob{
+					msg: "vm unprepare because of shutdown oskite " + info.vm.HostnameAlias,
+					f: func() error {
+						defer wg.Done()
+
+						info.unprepareVM()
+						return nil
+					},
+				}
+			}
+
+			// Wait for all VM unprepares to complete.
+			wg.Wait()
+
+			query := func(c *mgo.Collection) error {
+				_, err := c.UpdateAll(
+					bson.M{"hostKite": o.ServiceUniquename},
+					bson.M{"$set": bson.M{"hostKite": nil}},
+				) // ensure that really all are set to nil
+				return err
+			}
+
+			err = mongodbConn.Run("jVMs", query)
+			if err != nil {
+				log.Error("Updating hostKite for all current VMs err: %v", err)
+			}
+
 		}
 	}()
 }
