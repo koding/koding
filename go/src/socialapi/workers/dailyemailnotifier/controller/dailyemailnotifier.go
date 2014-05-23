@@ -4,6 +4,7 @@ import (
 	"fmt"
 	mongomodels "koding/db/models"
 	"koding/db/mongodb/modelhelper"
+	"socialapi/config"
 	socialmodels "socialapi/models"
 	"socialapi/workers/emailnotifier/models"
 	"socialapi/workers/helper"
@@ -15,10 +16,12 @@ import (
 )
 
 const (
-	DAY         = 24 * time.Hour
-	TIMEFORMAT  = "20060102"
-	CACHEPREFIX = "dailymail"
-	SCHEDULE    = "0 0 0 * * *"
+	DAY           = 24 * time.Hour
+	TIMEFORMAT    = "20060102"
+	DATEFORMAT    = "Jan 02"
+	CACHEPREFIX   = "dailymail"
+	RECIPIENTSKEY = "recipients"
+	SCHEDULE      = "0 0 0 * * *"
 )
 
 type DailyEmailNotifierWorkerController struct {
@@ -57,86 +60,88 @@ func (n *DailyEmailNotifierWorkerController) Shutdown() {
 }
 
 func (n *DailyEmailNotifierWorkerController) sendDailyMails() {
-	s := modelhelper.Selector{
-		"emailFrequency.daily": true,
-	}
+	redisConn := helper.MustGetRedisConn()
+	for {
+		key := prepareRecipientsCacheKey()
+		reply, err := redisConn.PopSetMember(key)
+		if err != nil {
+			n.log.Error("Could not fetch recipient %s", err)
+			return
+		}
 
-	users, err := modelhelper.GetSomeUsersBySelector(s)
-	if err != nil {
-		n.log.Error("Could not retrieved daily mail requesters: %s", err)
-	}
+		if reply == nil {
+			n.log.Info("all daily mails are sent")
+			return
+		}
+		accountId, err := redisConn.Int64(reply)
+		if err != nil {
+			n.log.Error("Could not cast recipient id: %s", err)
+			continue
+		}
 
-	for i := range users {
-		go n.prepareDailyEmail(&users[i])
+		if err := n.prepareDailyEmail(accountId); err != nil {
+			n.log.Error("error occurred: %s", err)
+		}
 	}
 }
 
-func (n *DailyEmailNotifierWorkerController) prepareDailyEmail(u *mongomodels.User) {
-	// notifications are disabled
-	if val := u.EmailFrequency["global"]; !val {
-		return
+func (n *DailyEmailNotifierWorkerController) prepareDailyEmail(accountId int64) error {
+	uc, err := models.FetchUserContact(accountId)
+	if err != nil {
+		return err
 	}
 
-	accountId, err := fetchAccountId(u)
-	if err != nil {
-		// n.log.Error("%s", err)
-		return
+	// notifications are disabled
+	if val := uc.EmailSettings["global"]; !val {
+		return nil
 	}
 
 	activityIds, err := n.getDailyActivityIds(accountId)
 	if err != nil {
-		n.log.Error("Could not fetch activity ids: %s", err)
-		return
+		return fmt.Errorf("Could not fetch activity ids: %s", err)
 	}
 
 	if len(activityIds) == 0 {
-		return
+		return nil
 	}
 
 	containers := make([]*models.MailerContainer, 0)
 	for _, activityId := range activityIds {
 		container, err := buildContainerForDailyMail(accountId, activityId)
 		if err != nil {
-			n.log.Error("error occurred while sending activity, ")
+			n.log.Error("error occurred while sending activity: %s ", err)
 			continue
 		}
 
 		containers = append(containers, container)
 	}
 
-	// TODO change this structure
-	uc, err := models.FetchUserContact(accountId)
-	if err != nil {
-		n.log.Error("an error occurred while fetching user contact: %s", err)
-		return
-	}
-
 	tp := models.NewTemplateParser()
 	tp.UserContact = uc
 	body, err := tp.RenderDailyTemplate(containers)
 	if err != nil {
-		n.log.Error("an error occurred while preparing notification email: %s", err)
-		return
+		return fmt.Errorf("an error occurred while preparing notification email: %s", err)
 	}
 
 	tg := models.NewTokenGenerator()
 	tg.UserContact = uc
 	tg.NotificationType = "daily"
 	if err := tg.CreateToken(); err != nil {
-		n.log.Error("an error occurred: %s", err)
-		return
+		return fmt.Errorf("an error occurred: %s", err)
 	}
 
 	mailer := models.NewMailer()
 	mailer.EmailSettings = n.settings
 	mailer.UserContact = uc
 	mailer.Body = body
-	mailer.Subject = "hellolay" // change subject
+	mailer.Subject = fmt.Sprintf("Your Koding Activity for today: %s",
+		time.Now().Format(DATEFORMAT))
 
 	if err := mailer.SendMail(); err != nil {
-		n.log.Error("an error occurred: %s", err)
-		return
+		return fmt.Errorf("an error occurred: %s", err)
 	}
+
+	return nil
 }
 
 func fetchAccountId(u *mongomodels.User) (int64, error) {
@@ -175,12 +180,26 @@ func (n *DailyEmailNotifierWorkerController) getDailyActivityIds(accountId int64
 	return activityIds, nil
 }
 
-func prepareGetterCacheKey(accountId int64) string {
-	// previous day
-	yesterday := time.Now().Unix() //- 86400 TODO do not forget
+func prepareRecipientsCacheKey() string {
+	return fmt.Sprintf("%s:%s:%s:%s",
+		config.Get().Environment,
+		CACHEPREFIX,
+		RECIPIENTSKEY,
+		preparePreviousDayCacheKey())
+}
 
-	return fmt.Sprintf("%s:%d:%s",
-		CACHEPREFIX, accountId, time.Unix(int64(yesterday), 0).Format(TIMEFORMAT))
+func prepareGetterCacheKey(accountId int64) string {
+	return fmt.Sprintf("%s:%s:%d:%s",
+		config.Get().Environment,
+		CACHEPREFIX,
+		accountId,
+		preparePreviousDayCacheKey())
+}
+
+func preparePreviousDayCacheKey() string {
+	yesterday := time.Now().Unix() - 86400
+
+	return time.Unix(int64(yesterday), 0).Format(TIMEFORMAT)
 }
 
 func buildContainerForDailyMail(accountId, activityId int64) (*models.MailerContainer, error) {
