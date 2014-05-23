@@ -147,7 +147,7 @@ class AccountCredentialListController extends AccountListViewController
     view = @getView().parent
     view.form?.destroy()
 
-    view.form = ComputeProvider.generateAddCredentialFormFor provider
+    view.form = ComputeProvider.UI.generateAddCredentialFormFor provider
     view.form.on "Cancel", -> view.form.destroy()
     view.form.on "CredentialAdded", (credential)=>
       credential.owner = yes
