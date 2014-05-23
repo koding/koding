@@ -36,28 +36,45 @@ func mongodbVMs(serviceUniquename string) (VmCollection, error) {
 	return vmsMap, nil
 }
 
+// updateStates updates the state field of the given ids to the given state argument.
+func updateStates(ids []string, state string) error {
+	bsonIds := make([]bson.M, len(ids))
+	for i, id := range ids {
+		bsonIds[i] = bson.M{"id": bson.ObjectIdHex(id)}
+	}
+
+	return mongodbConn.Run("jVMs", func(c *mgo.Collection) error {
+		return c.Update(bson.M{"$in": bsonIds}, bson.M{"$set": bson.M{"state": state}})
+	})
+}
+
 // vmUpdater updates the states of current available VMs on the host machine.
 func (o *Oskite) vmUpdater() {
-	for _ = range time.Tick(time.Second * 30) {
-		vms, err := mongodbVMs(o.ServiceUniquename)
-		if err != nil {
-			log.Error("couldn't fetch vms %v", err)
-			continue
-		}
+	query := func(c *mgo.Collection) error {
+		vm := virt.VM{}
 
-		for id, vm := range vms {
-			if !blacklist.Has(id.Hex()) {
+		iter := c.Find(bson.M{"hostKite": o.ServiceUniquename}).Batch(50).Iter()
+		for iter.Next(&vm) {
+			if !blacklist.Has(vm.Id.Hex()) {
 				o.startAlwaysOn(vm)
 				continue
 			}
 
-			_, err := updateState(id, vm.State)
+			_, err := updateState(vm.Id, vm.State)
 			if err != nil {
-				log.Error("vm update state %s err %v", id.Hex(), err)
+				log.Error("vm update state %s err %v", vm.Id.Hex(), err)
 			}
+		}
 
+		return iter.Close()
+	}
+
+	for _ = range time.Tick(time.Second * 30) {
+		if err := mongodbConn.Run("jVMs", query); err != nil {
+			log.Error("allVMs fetching err: %s", err.Error())
 		}
 	}
+
 }
 
 func unprepareInQueue(vm *virt.VM) {
@@ -75,7 +92,7 @@ func unprepareInQueue(vm *virt.VM) {
 
 // startAlwaysOn  starts a vm if it's alwaysOn and not pinned to the current
 // hostname
-func (o *Oskite) startAlwaysOn(vm *virt.VM) {
+func (o *Oskite) startAlwaysOn(vm virt.VM) {
 	if !vm.AlwaysOn {
 		return
 	}

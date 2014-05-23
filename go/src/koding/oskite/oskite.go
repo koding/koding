@@ -349,7 +349,7 @@ func (o *Oskite) handleCurrentVMs() {
 		info.startTimeout()
 
 		// start alwaysON VMs
-		o.startAlwaysOn(&vm)
+		o.startAlwaysOn(vm)
 		return true
 	})
 
@@ -404,7 +404,7 @@ func (o *Oskite) startPinnedVMs() {
 			if !iter.Next(&vm) {
 				break
 			}
-			if err := o.startSingleVM(&vm, nil); err != nil {
+			if err := o.startSingleVM(vm, nil); err != nil {
 				log.Error("startSingleVM error: %v", err)
 			}
 		}
@@ -705,8 +705,8 @@ func updateState(vmId bson.ObjectId, currentState string) (string, error) {
 	return state, mongodbConn.Run("jVMs", query)
 }
 
-func (o *Oskite) startSingleVM(vm *virt.VM, channel *kite.Channel) error {
-	info := getInfo(vm)
+func (o *Oskite) startSingleVM(vm virt.VM, channel *kite.Channel) error {
+	info := getInfo(&vm)
 	info.mutex.Lock()
 	defer info.mutex.Unlock()
 
@@ -719,12 +719,12 @@ func (o *Oskite) startSingleVM(vm *virt.VM, channel *kite.Channel) error {
 	// validate/sanitize zero values
 	vm.ApplyDefaults()
 
-	err := o.checkVM(vm)
+	err := o.checkVM(&vm)
 	if err != nil {
 		return err
 	}
 
-	err = o.validateVM(vm)
+	err = o.validateVM(&vm)
 	if err != nil {
 		return err
 	}
@@ -736,7 +736,7 @@ func (o *Oskite) startSingleVM(vm *virt.VM, channel *kite.Channel) error {
 			// prepare first
 			defer func() { done <- struct{}{} }()
 
-			if err = prepareProgress(nil, vm); err != nil {
+			if err = prepareProgress(nil, &vm); err != nil {
 				return fmt.Errorf("preparing VM %s", err)
 			}
 
