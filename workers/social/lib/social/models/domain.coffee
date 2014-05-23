@@ -200,7 +200,10 @@ module.exports = class JDomain extends jraphical.Module
             callback err, domain
 
 
-  @createDomain$: secure (client, {domain, stack}, callback)->
+  @createDomain$: permit 'create domains',
+  success: (client, data, callback)->
+
+    { domain, stack } = data
 
     error = (message, name)->
       callback new KodingError message, name
@@ -225,31 +228,20 @@ module.exports = class JDomain extends jraphical.Module
       unless group is slug
         return error "Invalid group"
 
-    JGroup.one {slug:group}, (err, group)->
+    JDomain.one {domain}, (err, model)->
       return callback err  if err
-      return error "Invalid group"  unless group
+      if model
+        return error "The domain #{domain} already exists", "DUPLICATEDOMAIN"
 
-      delegate.checkPermission group, 'create domains', (err, hasPermission)->
+      domainData = { domain, group }
 
+      resolveDomain domainData, (err)->
         return callback err  if err
-        return error "Access denied", "ACCESSDENIED"  unless hasPermission
 
-        JDomain.one {domain}, (err, model)->
-          return callback err  if err
-          if model
-            return error "The domain #{domain} already exists", "DUPLICATEDOMAIN"
-
-          domainData = { domain, group : group.slug }
-
-          if type is 'custom'
-            domainData.domainType = 'existing'
-
-          resolveDomain domainData, (err)->
-            return callback err  if err
-
-            createDomain {
-              domainData, account: delegate, group: group.slug, stack
-            }, callback
+        createDomain {
+          account: delegate, domainData, group, stack
+        }, callback
+      , type is 'custom'
 
 
   @createDomains = (options, callback)->
