@@ -37,32 +37,32 @@ func mongodbVMs(serviceUniquename string) (VmCollection, error) {
 }
 
 // updateStates updates the state field of the given ids to the given state argument.
-func updateStates(ids []string, state string) error {
-	bsonIds := make([]bson.M, len(ids))
-	for i, id := range ids {
-		bsonIds[i] = bson.M{"id": bson.ObjectIdHex(id)}
+func updateStates(ids []bson.ObjectId, state string) error {
+	if len(ids) == 0 {
+		return nil // no need to update
 	}
 
+	log.Info("Updating %s vms to the state %s", len(ids), state)
 	return mongodbConn.Run("jVMs", func(c *mgo.Collection) error {
-		return c.Update(bson.M{"$in": bsonIds}, bson.M{"$set": bson.M{"state": state}})
+		_, err := c.UpdateAll(bson.M{"_id": bson.M{"$in": ids}}, bson.M{"$set": bson.M{"state": state}})
+		return err
 	})
 }
 
 // vmUpdater updates the states of current available VMs on the host machine.
 func (o *Oskite) vmUpdater() {
+	vms := make([]virt.VM, 0)
+
 	query := func(c *mgo.Collection) error {
 		vm := virt.VM{}
 
 		iter := c.Find(bson.M{"hostKite": o.ServiceUniquename}).Batch(50).Iter()
 		for iter.Next(&vm) {
+			vms = append(vms, vm)
+
 			if !blacklist.Has(vm.Id.Hex()) {
 				o.startAlwaysOn(vm)
 				continue
-			}
-
-			_, err := updateState(vm.Id, vm.State)
-			if err != nil {
-				log.Error("vm update state %s err %v", vm.Id.Hex(), err)
 			}
 		}
 
@@ -70,9 +70,52 @@ func (o *Oskite) vmUpdater() {
 	}
 
 	for _ = range time.Tick(time.Second * 30) {
+		// start alwaysOn Vms
 		if err := mongodbConn.Run("jVMs", query); err != nil {
 			log.Error("allVMs fetching err: %s", err.Error())
 		}
+
+		// batch update the states now
+		currentStates := make(map[bson.ObjectId]string, 0)
+
+		for _, vm := range vms {
+			state := virt.GetVMState(vm.Id)
+			if state == "" {
+				state = "UNKNOWN"
+			}
+
+			// do not update if it's the same state
+			if vm.State == state {
+				continue
+			}
+
+			currentStates[vm.Id] = state
+		}
+
+		filter := func(desiredState string) []bson.ObjectId {
+			ids := make([]bson.ObjectId, 0)
+
+			for id, state := range currentStates {
+				if state == desiredState {
+					ids = append(ids, id)
+				}
+			}
+
+			return ids
+		}
+
+		if err := updateStates(filter("RUNNING"), "RUNNING"); err != nil {
+			log.Error("Updating RUNNING vms %v", err)
+		}
+
+		if err := updateStates(filter("STOPPED"), "STOPPED"); err != nil {
+			log.Error("Updating STOPPED vms %v", err)
+		}
+
+		currentStates = nil // garbage collection
+
+		// re initialize for next iteration
+		vms = make([]virt.VM, 0)
 	}
 
 }
