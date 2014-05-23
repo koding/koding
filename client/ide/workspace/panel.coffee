@@ -15,7 +15,7 @@ class Panel extends KDView
   createLayout: ->
     {layoutOptions}  = @getOptions()
     unless layoutOptions
-      return new Error 'You should pass layoutOptions to create a panel'
+      throw new Error 'You should pass layoutOptions to create a panel'
 
     @layout = new WorkspaceLayoutBuilder { delegate: this, layoutOptions }
     @addSubView @layout
@@ -35,7 +35,7 @@ class Panel extends KDView
     PaneClass = if paneType is 'custom' then paneOptions.paneClass else @findPaneClass paneType
 
     unless PaneClass
-      return new Error "PaneClass is not defined for \"#{paneOptions.type}\" pane type"
+      throw new Error "PaneClass is not defined for \"#{paneOptions.type}\" pane type"
 
     return PaneClass
 

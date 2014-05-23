@@ -46,10 +46,58 @@ class IDEAppController extends AppController
     @activeTabView = tabView
 
   splitTabView: (type = 'vertical') ->
-    @activeTabView.convertToSplitView type
+
+    IDEView        = @activeTabView.parent
+    IDEParent      = IDEView.parent
+    newIDEView     = new IDETabView
+    @activeTabView = null
+
+    IDEView.detach()
+
+    splitView   = new KDSplitView
+      type      : type
+      views     : [ null, newIDEView ]
+
+    splitView.once 'viewAppended', ->
+      splitView.panels.first.attach IDEView
+      splitView.options.views[0] = IDEView
+
+    IDEParent.addSubView splitView
+    @setActiveTabView newIDEView.tabView
 
   mergeSplitView: ->
-    @activeTabView.mergeSplitView()
+    splitView = @activeTabView.parent.parent.parent
+    {parent} = splitView
+    splitView.once 'SplitIsBeingMerged', (views) =>
+      @handleSplitMerge views, parent
+
+    splitView.merge()
+
+  handleSplitMerge: (views, splitParent) ->
+    IDEView        = new IDETabView
+    @activeTabView = null
+
+    # IDEView.detach()
+
+    panes = []
+
+    for view in views
+      {tabView} = view
+      for p in tabView.panes
+        # pane.tabHandle.detach()
+        {pane, handle} = tabView.removePane pane, yes
+        # IDEView.tabView.addPane pane
+        panes.push p
+
+      tabView.subViews = []
+      view.destroy()
+
+    splitParent.addSubView IDEView
+
+    for pane in panes
+      IDEView.tabView.addPane pane
+
+    @setActiveTabView IDEView.tabView
 
   openFile: (file, contents) ->
     @activeTabView.openFile file, contents

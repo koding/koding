@@ -53,52 +53,7 @@
 
   click: ->
     super
-    KD.getSingleton('appManager').tell 'IDE', 'setActiveTabView', this
-
-  convertToSplitView: (type = 'vertical') ->
-    oldTabView = new IDETabView
-    newTabView = new IDETabView
-
-    for pane in @tabView.panes
-      pane.unsetParent()
-      pane.detach()
-      oldTabView.tabView.addPane pane
-
-    @tabView.detach()
-    @holderView.detach()
-
-    @tabView    = oldTabView.tabView
-    @holderView = oldTabView.holderView
-
-    splitView   = new KDSplitView
-      type      : type
-      views     : [ oldTabView, newTabView ]
-
-    for tabView in [ oldTabView, newTabView ]
-      tabView.setOption 'splitView', splitView
-
-    @addSubView splitView
-    KD.getSingleton('appManager').tell 'IDE', 'setActiveTabView', oldTabView
-
-  mergeSplitView: ->
-    {splitView} = @getOptions()
-    {parent}    = splitView
-
-    splitView.once 'SplitIsBeingMerged', (views) =>
-      @handleSplitMerge views, parent
-
-    splitView.merge()
-
-  handleSplitMerge: (views, parent) ->
-    newTabView = new IDETabView
-
-    for view in views
-      {tabView} = view
-      for pane in tabView.panes
-        pane.unsetParent()
-        newTabView.tabView.addPane pane
-
-    parent.addSubView newTabView
+    KD.getSingleton('appManager').tell 'IDE', 'setActiveTabView', this.tabView
 
   openFile: (file, content) ->
     if @openFiles.indexOf(file) > -1
