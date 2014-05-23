@@ -349,7 +349,7 @@ func (o *Oskite) handleCurrentVMs() {
 		info.startTimeout()
 
 		// start alwaysON VMs
-		o.startAlwaysOn(&vm)
+		o.startAlwaysOn(vm)
 		return true
 	})
 
@@ -404,7 +404,7 @@ func (o *Oskite) startPinnedVMs() {
 			if !iter.Next(&vm) {
 				break
 			}
-			if err := o.startSingleVM(&vm, nil); err != nil {
+			if err := o.startSingleVM(vm, nil); err != nil {
 				log.Error("startSingleVM error: %v", err)
 			}
 		}
@@ -472,9 +472,6 @@ func (o *Oskite) setupSignalHandler() {
 				msg: "vm unprepare because of shutdown oskite " + info.vm.HostnameAlias,
 				f: func() error {
 					defer wg.Done()
-					// mutex is needed because it's handled in the queue
-					info.mutex.Lock()
-					defer info.mutex.Unlock()
 
 					info.unprepareVM()
 					return nil
@@ -636,7 +633,7 @@ func (o *Oskite) checkVM(vm *virt.VM) error {
 }
 
 func (o *Oskite) validateVM(vm *virt.VM) error {
-	if vm.IP == nil {
+	if vm.IP == nil || vm.IP.String() == "" {
 		ipInt := NextCounterValue("vm_ip", int(binary.BigEndian.Uint32(firstContainerIP.To4())))
 		ip := net.IPv4(byte(ipInt>>24), byte(ipInt>>16), byte(ipInt>>8), byte(ipInt))
 
@@ -708,12 +705,12 @@ func updateState(vmId bson.ObjectId, currentState string) (string, error) {
 	return state, mongodbConn.Run("jVMs", query)
 }
 
-func (o *Oskite) startSingleVM(vm *virt.VM, channel *kite.Channel) error {
-	info := getInfo(vm)
+func (o *Oskite) startSingleVM(vm virt.VM, channel *kite.Channel) error {
+	info := getInfo(&vm)
 	info.mutex.Lock()
 	defer info.mutex.Unlock()
 
-	if blacklist.Has(vm.Id) {
+	if blacklist.Has(vm.Id.Hex()) {
 		return errors.New("vm is blacklisted")
 	}
 
@@ -722,12 +719,12 @@ func (o *Oskite) startSingleVM(vm *virt.VM, channel *kite.Channel) error {
 	// validate/sanitize zero values
 	vm.ApplyDefaults()
 
-	err := o.checkVM(vm)
+	err := o.checkVM(&vm)
 	if err != nil {
 		return err
 	}
 
-	err = o.validateVM(vm)
+	err = o.validateVM(&vm)
 	if err != nil {
 		return err
 	}
@@ -739,7 +736,7 @@ func (o *Oskite) startSingleVM(vm *virt.VM, channel *kite.Channel) error {
 			// prepare first
 			defer func() { done <- struct{}{} }()
 
-			if err = prepareProgress(nil, vm); err != nil {
+			if err = prepareProgress(nil, &vm); err != nil {
 				return fmt.Errorf("preparing VM %s", err)
 			}
 
@@ -753,9 +750,9 @@ func (o *Oskite) startSingleVM(vm *virt.VM, channel *kite.Channel) error {
 
 	if err != nil {
 		log.Error("vm %s couldn't be started, adding to blacklist for one hour. reason err: %v", vm.HostnameAlias, err)
-		blacklist.Add(vm.Id)
+		blacklist.Add(vm.Id.Hex())
 		time.AfterFunc(time.Hour, func() {
-			blacklist.Remove(vm.Id)
+			blacklist.Remove(vm.Id.Hex())
 		})
 	}
 
