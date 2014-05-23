@@ -42,7 +42,7 @@ var TestProviderData = map[string]map[string]interface{}{
 			"client_id":     DIGITALOCEAN_CLIENT_ID,
 			"api_key":       DIGITALOCEAN_API_KEY,
 			"image":         "ubuntu-13-10-x64",
-			"region":        "ams2",
+			"region":        "sfo1",
 			"size":          "512mb",
 			"snapshot_name": "koding-{{timestamp}}",
 		},
