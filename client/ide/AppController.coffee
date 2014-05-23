@@ -30,7 +30,7 @@ class IDEAppController extends AppController
         {
           type      : 'custom'
           name      : 'editorPane'
-          paneClass : IDETabView
+          paneClass : IDEView
         }
       ]
 
@@ -47,20 +47,20 @@ class IDEAppController extends AppController
 
   splitTabView: (type = 'vertical') ->
 
-    IDEView        = @activeTabView.parent
-    IDEParent      = IDEView.parent
-    newIDEView     = new IDETabView
+    ideView        = @activeTabView.parent
+    IDEParent      = ideView.parent
+    newIDEView     = new IDEView
     @activeTabView = null
 
-    IDEView.detach()
+    ideView.detach()
 
     splitView   = new KDSplitView
       type      : type
       views     : [ null, newIDEView ]
 
     splitView.once 'viewAppended', ->
-      splitView.panels.first.attach IDEView
-      splitView.options.views[0] = IDEView
+      splitView.panels.first.attach ideView
+      splitView.options.views[0] = ideView
 
     IDEParent.addSubView splitView
     @setActiveTabView newIDEView.tabView
@@ -74,30 +74,29 @@ class IDEAppController extends AppController
     splitView.merge()
 
   handleSplitMerge: (views, splitParent) ->
-    IDEView        = new IDETabView
+    ideView        = new IDEView
     @activeTabView = null
 
-    # IDEView.detach()
+    # ideView.detach()
 
-    panes = []
+    panes   = []
 
     for view in views
       {tabView} = view
       for p in tabView.panes
         # pane.tabHandle.detach()
-        {pane, handle} = tabView.removePane pane, yes
-        # IDEView.tabView.addPane pane
-        panes.push p
+        {pane, handle} = tabView.removePane p, yes
+        # ideView.tabView.addPane pane
+        panes.push pane
 
-      tabView.subViews = []
       view.destroy()
 
-    splitParent.addSubView IDEView
+    splitParent.addSubView ideView
 
     for pane in panes
-      IDEView.tabView.addPane pane
+      ideView.tabView.addPane pane
 
-    @setActiveTabView IDEView.tabView
+    @setActiveTabView ideView.tabView
 
   openFile: (file, contents) ->
     @activeTabView.openFile file, contents

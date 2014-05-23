@@ -16,7 +16,7 @@ module.exports = [
 
   # ide
   "views/tabview/idefilestabview.coffee"
-  "views/tabview/idetabview.coffee"
+  "views/tabview/ideview.coffee"
   "views/tabview/idesocialstabview.coffee"
 
   "AppController.coffee"

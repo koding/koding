@@ -1,4 +1,4 @@
- class IDETabView extends WorkspaceTabView
+ class IDEView extends WorkspaceTabView
 
   constructor: (options = {}, data) ->
 
@@ -7,6 +7,7 @@
     @openFiles = []
 
     @on 'PlusHandleClicked', @bound 'createPlusContextMenu'
+    @once 'viewAppended', => KD.utils.wait 300, => @createEditor()
 
   getPlusMenuItems: ->
     return {
