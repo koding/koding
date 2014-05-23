@@ -1,5 +1,7 @@
 class SidebarPinnedItem extends SidebarItem
 
+  JView.mixin @prototype
+
   constructor: (options = {}, data) ->
 
     options.type     = "member"
@@ -21,9 +23,6 @@ class SidebarPinnedItem extends SidebarItem
     }
 
     @actor = new ProfileTextView {origin}
-
-
-  viewAppended: JView::viewAppended
 
 
   pistachio: ->

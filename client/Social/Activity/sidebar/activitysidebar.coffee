@@ -103,9 +103,9 @@ class ActivitySidebar extends KDCustomScrollView
     @wrapper.addSubView @messages = new ActivitySideView
       title    : 'Messages'
       cssClass : 'inbox users'
-      itemClass : SidebarMemberItem
+      itemClass : SidebarMessageItem
       dataSource : (callback) ->
-        KD.getGroup().fetchNewestMembers {}, {limit : 3, skip : 0}, callback
+        KD.singletons.socialapi.message.fetchPrivateMessages limit : 5, callback
 
 
   addChat: ->

@@ -9,18 +9,23 @@ class SidebarMessageItem extends SidebarItem
 
     data = @getData()
 
+    accountIds = Object.keys KD.remote.api.JAccount.cache
+    origin     =
+      constructorName : 'JAccount'
+      id              : accountIds[KD.utils.getRandomNumber accountIds.length - 1]
+
+    @actor = new ProfileTextView {origin}
+
     @avatar = new AvatarView
       size       : width : 30, height : 30
       cssClass   : "avatarview"
       showStatus : yes
-    , KD.whoami()
-
-    @actor = new ProfileTextView {}, KD.whoami()
+      origin     : origin
 
     @lastMessage = new KDCustomHTMLView
       cssClass  : 'user-numbers'
       pistachio : "{{ #(body)}}"
-    , data
+    , data.lastMessage
 
 
   viewAppended:->
