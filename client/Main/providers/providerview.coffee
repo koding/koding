@@ -1,16 +1,16 @@
 class ProviderView extends KDView
 
-  constructor:->
+  constructor:(options = {}, data)->
 
-    super cssClass: 'provider'
+    options.cssClass ?= 'provider'
+    super options, data
 
     @providerController = new KDListViewController
-      selection    : yes
-      viewOptions  :
-        cssClass   : 'provider-list'
-        wrapper    : yes
-        itemClass  : ProviderItemView
-    , items        : [
+      selection     : yes
+      viewOptions   :
+        cssClass    : 'provider-list'
+        itemClass   : ProviderItemView
+    , items         : [
       { name : "Koding",       view : new ProviderKoding }
       { name : "Google",       view : new ProviderGoogle }
       { name : "Amazon",       view : new ProviderAmazon }
@@ -22,6 +22,7 @@ class ProviderView extends KDView
 
     @mainView = new KDTabView
       cssClass : "provider-mainview"
+      stack    : @getOption 'stack'
       hideHandleContainer : yes
 
     @providerListView = new KDView
