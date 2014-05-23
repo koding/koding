@@ -27,7 +27,7 @@ class ActivitySidebar extends KDCustomScrollView
     @addFollowedTopics()
     @addThreads()
     @addMessages()
-    @addChat()
+    # @addChat()
 
 
   itemClicked: (item) ->
