@@ -78,8 +78,6 @@ class TerminalStartTab extends JView
       then kontrol.kites.terminal
       else vmController.terminalKites
 
-    console.log { terminalKites }
-
     delegate = @getDelegate()
 
     for own alias, kite of terminalKites
