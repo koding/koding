@@ -36,7 +36,7 @@ module.exports = class JErrorLog extends ElasticSearch
 
       timeStr = "#{year}#{month}#{date}#{hour}#{min}"
 
-      {err, reason} = params
+      {error:err, reason} = params
       {username} = record
 
       # to reduce noise in logs, we don't log if there was the same error from
