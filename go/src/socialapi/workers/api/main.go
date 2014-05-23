@@ -10,6 +10,7 @@ import (
 	"os"
 	"os/signal"
 	"socialapi/workers/api/handlers"
+	"socialapi/workers/common/runner"
 	"socialapi/workers/helper"
 	notificationapi "socialapi/workers/notification/api"
 	"syscall"
@@ -45,8 +46,8 @@ func init() {
 }
 
 func main() {
-	runner := &helper.Runner{}
-	if err := runner.Init(Name); err != nil {
+	r := runner.New(Name)
+	if err := r.Init(); err != nil {
 		fmt.Println(err)
 		return
 	}
@@ -60,11 +61,11 @@ func main() {
 	defer server.Close()
 
 	// init redis
-	redisConn := helper.MustInitRedisConn(runner.Conf.Redis)
+	redisConn := helper.MustInitRedisConn(r.Conf.Redis)
 	defer redisConn.Close()
 
 	// init mongo connection
-	modelhelper.Initialize(runner.Conf.Mongo)
+	modelhelper.Initialize(r.Conf.Mongo)
 
 	ch := make(chan os.Signal)
 	signal.Notify(ch, syscall.SIGINT, syscall.SIGQUIT, syscall.SIGTERM)

@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"socialapi/workers/common/runner"
 	"socialapi/workers/helper"
 	"socialapi/workers/populartopic/populartopic"
 )
@@ -11,16 +12,16 @@ var (
 )
 
 func main() {
-	runner := &helper.Runner{}
-	if err := runner.Init(Name); err != nil {
+	r := runner.New(Name)
+	if err := r.Init(); err != nil {
 		fmt.Println(err)
 		return
 	}
 
-	redis := helper.MustInitRedisConn(runner.Conf.Redis)
+	redis := helper.MustInitRedisConn(r.Conf.Redis)
 	// create message handler
-	handler := populartopic.NewPopularTopicsController(runner.Log, redis)
+	handler := populartopic.NewPopularTopicsController(r.Log, redis)
 
-	runner.Listen(handler)
-	runner.Close()
+	r.Listen(handler)
+	r.Close()
 }

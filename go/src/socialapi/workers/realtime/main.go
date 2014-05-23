@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"koding/db/mongodb/modelhelper"
+	"socialapi/workers/common/runner"
 	"socialapi/workers/helper"
 	"socialapi/workers/realtime/realtime"
 )
@@ -12,23 +13,23 @@ var (
 )
 
 func main() {
-	runner := &helper.Runner{}
-	if err := runner.Init(Name); err != nil {
+	r := runner.New(Name)
+	if err := r.Init(); err != nil {
 		fmt.Println(err)
 		return
 	}
 
 	// init mongo connection
-	modelhelper.Initialize(runner.Conf.Mongo)
+	modelhelper.Initialize(r.Conf.Mongo)
 
 	//create connection to RMQ for publishing realtime events
-	rmq := helper.NewRabbitMQ(runner.Conf, runner.Log)
+	rmq := helper.NewRabbitMQ(r.Conf, r.Log)
 
-	handler, err := realtime.NewRealtimeWorkerController(rmq, runner.Log)
+	handler, err := realtime.NewRealtimeWorkerController(rmq, r.Log)
 	if err != nil {
 		panic(err)
 	}
 
-	runner.Listen(handler)
-	runner.Close()
+	r.Listen(handler)
+	r.Close()
 }

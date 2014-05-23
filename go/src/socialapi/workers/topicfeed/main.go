@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	"socialapi/workers/helper"
+	"socialapi/workers/common/runner"
 	"socialapi/workers/topicfeed/topicfeed"
 )
 
@@ -11,15 +11,15 @@ var (
 )
 
 func main() {
-	runner := &helper.Runner{}
-	if err := runner.Init(Name); err != nil {
+	r := runner.New(Name)
+	if err := r.Init(); err != nil {
 		fmt.Println(err)
 		return
 	}
 
 	// create message handler
-	handler := topicfeed.NewTopicFeedController(runner.Log)
+	handler := topicfeed.NewTopicFeedController(r.Log)
 
-	runner.Listen(handler)
-	runner.Close()
+	r.Listen(handler)
+	r.Close()
 }
