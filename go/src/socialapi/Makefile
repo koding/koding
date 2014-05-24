@@ -11,7 +11,7 @@ MINOR=1
 # export MAJOR
 # export MINOR
 
-develop: apidev topicfeeddev realtimedev followingfeeddev populartopicdev popularpostdev notificationdev
+develop: apidev topicfeeddev realtimedev followingfeeddev populartopicdev popularpostdev notificationdev trollmodeldev
 
 apidev:
 	@echo "$(OK_COLOR)==> Running API Worker $(NO_COLOR)"
@@ -41,6 +41,10 @@ popularpostdev:
 	@echo "$(OK_COLOR)==> Running Popular Posts Worker $(NO_COLOR)"
 	@$(GOBINDIR)/rerun socialapi/workers/popularpost -c $(CONFIG) -d
 
+trollmodeldev:
+	@echo "$(OK_COLOR)==> Running Troll Mode Worker $(NO_COLOR)"
+	@$(GOBINDIR)/rerun socialapi/workers/trollmode -c $(CONFIG) -d
+
 PACKAGES = \
 	socialapi/workers/api \
 	socialapi/workers/topicfeed \
@@ -48,7 +52,8 @@ PACKAGES = \
 	socialapi/workers/followingfeed \
 	socialapi/workers/populartopic \
 	socialapi/workers/notification \
-	socialapi/workers/popularpost
+	socialapi/workers/popularpost \
+	socialapi/workers/trollmode
 
 default: all
 
