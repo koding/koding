@@ -162,7 +162,7 @@ func TestProviders(t *testing.T) {
 }
 
 func TestBuild(t *testing.T) {
-	t.Skip("To enable this test remove this line")
+	// t.Skip("To enable this test remove this line")
 
 	numberOfBuilds := 1
 
@@ -198,6 +198,18 @@ func TestBuild(t *testing.T) {
 			fmt.Println("============")
 			fmt.Printf("result %+v\n", result)
 			fmt.Println("============")
+
+			fmt.Println("destroying it now")
+			dropletId := result.Id
+			cArgs := &controllerArgs{
+				Provider:   data["provider"].(string),
+				Credential: data["credential"].(map[string]interface{}),
+				MachineID:  dropletId,
+			}
+
+			if _, err := remote.Tell("destroy", cArgs); err != nil {
+				t.Errorf("destroy: %s", err)
+			}
 		}
 
 		var wg sync.WaitGroup

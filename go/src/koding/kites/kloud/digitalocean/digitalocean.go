@@ -1,28 +1,20 @@
 package digitalocean
 
 import (
-	"crypto/rand"
-	"crypto/rsa"
-	"crypto/x509"
-	"encoding/pem"
+	"bytes"
 	"errors"
 	"fmt"
 	"koding/kites/kloud/klientprovisioner"
 	"koding/kites/kloud/packer"
 	"koding/kites/kloud/utils"
+	"log"
 	"net/url"
 	"strconv"
 	"time"
 
 	"code.google.com/p/go.crypto/ssh"
-
 	"github.com/mitchellh/mapstructure"
 	"github.com/mitchellh/packer/builder/digitalocean"
-)
-
-const (
-	sshConnectRetryInterval = 4 * time.Second
-	sshConnectMaxWait       = 1 * time.Minute
 )
 
 type DigitalOcean struct {
@@ -150,6 +142,7 @@ func (d *DigitalOcean) Build(raws ...interface{}) (interface{}, error) {
 	}
 
 	// create temporary key to deploy user based key
+	fmt.Println("creating temporary key")
 	privateKey, publicKey, err := temporaryKey()
 	if err != nil {
 		return nil, err
@@ -163,6 +156,7 @@ func (d *DigitalOcean) Build(raws ...interface{}) (interface{}, error) {
 	}
 
 	defer func() {
+		fmt.Println("destroying droplet key")
 		err := d.DestroyKey(keyId) // remove after we are done
 		if err != nil {
 			curlstr := fmt.Sprintf("curl '%v/ssh_keys/%v/destroy?client_id=%v&api_key=%v'",
@@ -173,6 +167,7 @@ func (d *DigitalOcean) Build(raws ...interface{}) (interface{}, error) {
 	}()
 
 	// now create a the machine based on our created image
+	fmt.Println("creating droplet")
 	dropletInfo, err := d.CreateDroplet(dropletName, keyId, image.Id)
 	if err != nil {
 		return nil, err
@@ -187,6 +182,7 @@ func (d *DigitalOcean) Build(raws ...interface{}) (interface{}, error) {
 	}
 
 	// our droplet has now an IP adress, get it
+	fmt.Println("getting info about droplet")
 	info, err := d.Info(dropletInfo.Droplet.Id)
 	if err != nil {
 		return nil, err
@@ -199,84 +195,55 @@ func (d *DigitalOcean) Build(raws ...interface{}) (interface{}, error) {
 		return nil, err
 	}
 
+	var client *ssh.Client
+	fmt.Println("connection to ssh")
+	client, err = connectSSH(sshAddress, sshConfig)
+	if err != nil {
+		return nil, err
+	}
+	defer client.Close()
+
+	session, err := client.NewSession()
+	if err != nil {
+		return nil, err
+	}
+	defer session.Close()
+
+	stdoutBuffer, stderrBuffer := new(bytes.Buffer), new(bytes.Buffer)
+	session.Stdout, session.Stderr = stdoutBuffer, stderrBuffer
+
+	fmt.Println("running ls on remote machine")
+	if err := session.Start("ls /"); err != nil {
+		fmt.Println("run session err:", err)
+	}
+
+	// Wait for the SCP connection to close, meaning it has consumed all
+	// our data and has completed. Or has errored.
+	log.Println("Waiting for SSH session to complete.")
+	err = session.Wait()
+	if err != nil {
+		if exitErr, ok := err.(*ssh.ExitError); ok {
+			// Otherwise, we have an ExitErorr, meaning we can just read
+			// the exit status
+			log.Printf("non-zero exit status: %d", exitErr.ExitStatus())
+
+			// If we exited with status 127, it means SCP isn't available.
+			// Return a more descriptive error for that.
+			if exitErr.ExitStatus() == 127 {
+				return nil, errors.New(
+					"SCP failed to start. This usually means that SCP is not\n" +
+						"properly installed on the remote system.")
+			}
+		}
+
+		return nil, err
+	}
+
+	fmt.Printf("Ssh completed stdout: %s, stderr: %s\n",
+		stdoutBuffer.String(), stderrBuffer.String())
+
 	return dropInfo, nil
 }
-
-// temporaryKey creates a new temporary public and private key
-func temporaryKey() (string, string, error) {
-	priv, err := rsa.GenerateKey(rand.Reader, 2014)
-	if err != nil {
-		return "", "", err
-	}
-
-	// ASN.1 DER encoded form
-	priv_der := x509.MarshalPKCS1PrivateKey(priv)
-	priv_blk := pem.Block{
-		Type:    "RSA PRIVATE KEY",
-		Headers: nil,
-		Bytes:   priv_der,
-	}
-
-	privateKey := string(pem.EncodeToMemory(&priv_blk))
-
-	// Marshal the public key into SSH compatible format
-	// TODO properly handle the public key error
-	pub, _ := ssh.NewPublicKey(&priv.PublicKey)
-	pub_sshformat := string(ssh.MarshalAuthorizedKey(pub))
-
-	return privateKey, pub_sshformat, nil
-}
-
-func sshConfig(privateKey string) (*ssh.ClientConfig, error) {
-	signer, err := ssh.ParsePrivateKey([]byte(privateKey))
-	if err != nil {
-		return nil, fmt.Errorf("Error setting up SSH config: %s", err)
-	}
-
-	return &ssh.ClientConfig{
-		User: "root",
-		Auth: []ssh.AuthMethod{
-			ssh.PublicKeys(signer),
-		},
-	}, nil
-}
-
-func connectSSH(ip string, config *ssh.ClientConfig) (*ssh.Client, error) {
-	for {
-		select {
-		case <-time.Tick(sshConnectRetryInterval):
-			client, err := ssh.Dial("tcp", ip+":22", config)
-			if err != nil {
-				fmt.Println("Failed to dial, will retry: " + err.Error())
-				continue
-			}
-			return client, nil
-		case <-time.After(sshConnectMaxWait):
-			return nil, errors.New("cannot connect with ssh")
-		}
-	}
-}
-
-//
-// func (d *DigitalOcean) uploadFile(privateKey, publicKey) error {
-// 	// The name of the public key on DO
-// 	name := fmt.Sprintf("koding-%s", time.Now().UTC().UnixNano())
-//
-// 	keyId, err := d.CreateKey(name, publicKey)
-// 	if err != nil {
-// 		return err
-// 	}
-//
-// 	signer, err := ssh.ParsePrivateKey([]byte(privateKey))
-// 	if err != nil {
-// 		return fmt.Errorf("Error setting up SSH config: %s", err)
-// 	}
-//
-// 	config := &ssh.ClientConfig{
-// 		User: root,
-// 		Auth: []ssh.AuthMethod{ssh.PublicKeys(signer)},
-// 	}
-// }
 
 // CheckEvent checks the given eventID and returns back the result. It's useful
 // for checking the status of an event. Usually it's called in a for/select
