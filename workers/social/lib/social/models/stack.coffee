@@ -163,7 +163,7 @@ module.exports = class JStack extends jraphical.Module
 
           stacks = []
 
-          queue = _stacks.map (stack) ->
+          queue = _stacks.map (stack) -> ->
             stack.revive (err, revivedStack)->
               stacks.push revivedStack
               queue.next()
