@@ -107,7 +107,7 @@ class MessagePane extends KDTabPaneView
 
   createInputWidget: ->
 
-    return  if @getOption("type") in ["post", "message"]
+    return  if @getOption("type") in ['post', 'privatemessage']
 
     channel = @getData()
 
