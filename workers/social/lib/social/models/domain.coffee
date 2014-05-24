@@ -181,6 +181,7 @@ module.exports = class JDomain extends jraphical.Module
     { domain, account, group, stack, hostnameAlias } = options
 
     domainData = { proposedDomain: domain, group }
+    domainData.hostnameAlias = hostnameAlias  if hostnameAlias?
 
     JStack = require './stack'
     JStack.getStack account, stack, (err, stack)=>
@@ -249,6 +250,7 @@ module.exports = class JDomain extends jraphical.Module
 
       JDomain.createDomain {
         domain, account, group, stack
+        hostnameAlias : [ hostnameAlias ]
       }, (err, domain)->
 
         if err? then console.error err  unless err.code is 11000
