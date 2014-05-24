@@ -14,10 +14,15 @@ import (
 	"strconv"
 	"time"
 
-	"code.google.com/p/gosshold/ssh"
+	"code.google.com/p/go.crypto/ssh"
 
 	"github.com/mitchellh/mapstructure"
 	"github.com/mitchellh/packer/builder/digitalocean"
+)
+
+const (
+	sshConnectRetryInterval = 4 * time.Second
+	sshConnectMaxWait       = 1 * time.Minute
 )
 
 type DigitalOcean struct {
@@ -145,7 +150,7 @@ func (d *DigitalOcean) Build(raws ...interface{}) (interface{}, error) {
 	}
 
 	// create temporary key to deploy user based key
-	privateKey, publicKey, err := d.temporaryKey()
+	privateKey, publicKey, err := temporaryKey()
 	if err != nil {
 		return nil, err
 	}
@@ -173,25 +178,32 @@ func (d *DigitalOcean) Build(raws ...interface{}) (interface{}, error) {
 		return nil, err
 	}
 
-	// Now we wait until it's ready, it takes ann 50-70 seconds to finish, but
-	// we also add a timeout to not let stuck it here.
+	// Now we wait until it's ready, it takes approx. 50-70 seconds to finish,
+	// but we also add a timeout  of five minutes to not let stuck it there
+	// forever.
 	err = d.WaitForState(dropletInfo.Droplet.EventId, "done", time.Minute*5)
 	if err != nil {
 		return nil, err
 	}
 
+	// our droplet has now an IP adress, get it
 	info, err := d.Info(dropletInfo.Droplet.Id)
 	if err != nil {
 		return nil, err
 	}
-
 	dropInfo := info.(Droplet)
+
+	sshAddress := dropInfo.IpAddress + ":22"
+	sshConfig, err := sshConfig(privateKey)
+	if err != nil {
+		return nil, err
+	}
 
 	return dropInfo, nil
 }
 
 // temporaryKey creates a new temporary public and private key
-func (d *DigitalOcean) temporaryKey() (string, string, error) {
+func temporaryKey() (string, string, error) {
 	priv, err := rsa.GenerateKey(rand.Reader, 2014)
 	if err != nil {
 		return "", "", err
@@ -213,6 +225,36 @@ func (d *DigitalOcean) temporaryKey() (string, string, error) {
 	pub_sshformat := string(ssh.MarshalAuthorizedKey(pub))
 
 	return privateKey, pub_sshformat, nil
+}
+
+func sshConfig(privateKey string) (*ssh.ClientConfig, error) {
+	signer, err := ssh.ParsePrivateKey([]byte(privateKey))
+	if err != nil {
+		return nil, fmt.Errorf("Error setting up SSH config: %s", err)
+	}
+
+	return &ssh.ClientConfig{
+		User: "root",
+		Auth: []ssh.AuthMethod{
+			ssh.PublicKeys(signer),
+		},
+	}, nil
+}
+
+func connectSSH(ip string, config *ssh.ClientConfig) (*ssh.Client, error) {
+	for {
+		select {
+		case <-time.Tick(sshConnectRetryInterval):
+			client, err := ssh.Dial("tcp", ip+":22", config)
+			if err != nil {
+				fmt.Println("Failed to dial, will retry: " + err.Error())
+				continue
+			}
+			return client, nil
+		case <-time.After(sshConnectMaxWait):
+			return nil, errors.New("cannot connect with ssh")
+		}
+	}
 }
 
 //
