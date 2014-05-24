@@ -191,6 +191,32 @@ func (a *Account) MarkAsTroll() error {
 	return nil
 }
 
+func (a *Account) UnMarkAsTroll() error {
+	if a.Id == 0 {
+		return nil, errors.New("Account id is not set")
+	}
+
+	if err := a.ById(a.Id); err != nil {
+		return err
+	}
+
+	// do not try to un-mark twice
+	if !a.IsTroll {
+		return fmt.Errorf("Account is not a troll %d", a.Id)
+	}
+
+	a.IsTroll = false
+	if err := a.Update(); err != nil {
+		return err
+	}
+
+	if err := bongo.B.PublishEvent("un_marked_as_troll", a); err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func (a *Account) CreateFollowingFeedChannel() (*Channel, error) {
 	if a.Id == 0 {
 		return nil, errors.New("Account id is not set")
