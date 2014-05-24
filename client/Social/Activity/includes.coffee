@@ -71,22 +71,16 @@ module.exports = [
   "widgets/widgetbutton.coffee"
   "widgets/activitywidgetformview.coffee"
   "widgets/statuswidget.coffee"
-  "widgets/codesnippetwidget.coffee"
-  "widgets/tutorialwidget.coffee"
-  "widgets/discussionwidget.coffee"
-  "widgets/blogpostwidget.coffee"
 
   "ContentDisplays/activitycontentdisplay.coffee"
   "ContentDisplays/StatusUpdate.coffee"
-  "ContentDisplays/activitysideviews.coffee"
-  "ContentDisplays/ActivityTicker.coffee"
+  # "ContentDisplays/ActivityTicker.coffee"
 
   # Activity content displays commons
   "ContentDisplays/ContentDisplayAuthorAvatar.coffee"
   "ContentDisplays/ContentDisplayMeta.coffee"
   "ContentDisplays/ContentDisplayTags.coffee"
   "ContentDisplays/ContentDisplayComments.coffee"
-  "ContentDisplays/ContentDisplayScoreBoard.coffee"
 
   # Activity List Items
   "views/activitylistitem.coffee"
