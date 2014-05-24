@@ -209,6 +209,8 @@ func (d *DigitalOcean) Build(raws ...interface{}) (interface{}, error) {
 	}
 	defer session.Close()
 
+	// TODO: add STDIN for enalbing uploading of files
+
 	stdoutBuffer, stderrBuffer := new(bytes.Buffer), new(bytes.Buffer)
 	session.Stdout, session.Stderr = stdoutBuffer, stderrBuffer
 
