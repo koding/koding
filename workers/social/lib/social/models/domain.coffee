@@ -151,11 +151,9 @@ module.exports = class JDomain extends jraphical.Module
     return {type: 'internal', slug, prefix, domain}
 
 
-  resolveDomain = (domainData, callback, check)->
+  resolveDomain = (domain, callback, check)->
 
     return callback null  unless check
-
-    {domain} = domainData
 
     dns = require 'dns'
     dns.resolve domain, (err, remoteIps)->
@@ -180,10 +178,9 @@ module.exports = class JDomain extends jraphical.Module
 
   createDomain = (options, callback)->
 
-    {domainData, account, group, stack} = options
+    { domain, account, group, stack, hostnameAlias } = options
 
-    domainData.proposedDomain = domainData.domain
-    delete domainData.domain
+    domainData = { proposedDomain: domain, group }
 
     JStack = require './stack'
     JStack.getStack account, stack, (err, stack)=>
@@ -233,13 +230,11 @@ module.exports = class JDomain extends jraphical.Module
       if model
         return error "The domain #{domain} already exists", "DUPLICATEDOMAIN"
 
-      domainData = { domain, group }
-
-      resolveDomain domainData, (err)->
+      resolveDomain domain, (err)->
         return callback err  if err
 
-        createDomain {
-          account: delegate, domainData, group, stack
+          domain, group, stack
+          account: delegate
         }, callback
       , type is 'custom'
 
@@ -250,10 +245,7 @@ module.exports = class JDomain extends jraphical.Module
 
     domains.forEach (domain) ->
 
-      createDomain {
-        domainData: {
-          domain, hostnameAlias : [ hostnameAlias ]
-        }, account, group, stack
+        domain, account, group, stack
       }, (err, domain)->
 
         if err? then console.error err  unless err.code is 11000
