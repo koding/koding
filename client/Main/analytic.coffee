@@ -9,6 +9,7 @@ do->
     KD.singletons.mainController.ready ->
       argsForMixpanel.username  = KD.whoami()?.profile?.nickname
       argsForMixpanel.userAgent = window.navigator.userAgent
+      argsForMixpanel.protocol  = KD.remote.mq.ws.protocol
 
       KD.remote?.api.JPageHit.create argsForMixpanel, ->
 
