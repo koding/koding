@@ -42,7 +42,7 @@ class ActivityAppView extends KDScrollView
     @addSubView @tabs
 
 
-  navigateTo: (type, slug) ->
+  open: (type, slug) ->
 
     item = @sidebar.getItemById(id) or @sidebar.public
     data = item.getData()
@@ -75,8 +75,6 @@ class ActivityAppView extends KDScrollView
     type      = data.typeConstant
     name      = "#{type}-#{channelId}"
     pane      = @tabs.getPaneByName name
-
-    log pane
 
     pane.refresh()
 

@@ -6,7 +6,7 @@ class ActivityAppController extends AppController
 
   handleChannel = (type, slug) ->
     {router, appManager} = KD.singletons
-    appManager.open 'Activity', (app) -> app.getView().navigateTo type, slug
+    appManager.open 'Activity', (app) -> app.getView().open type, slug
 
 
   KD.registerRoutes 'Activity',
