@@ -231,18 +231,20 @@ func (b *Bongo) executeQuery(i Modellable, data interface{}, q *Query) error {
 	return err
 }
 
-func (b *Bongo) PublishEvent(eventName string, i Modellable) {
+func (b *Bongo) PublishEvent(eventName string, i Modellable) error {
 	data, err := json.Marshal(i)
 	if err != nil {
-		b.log.Error("Error while publishing %s", err)
-		return
+		b.log.Error("Error while marshalling for publish %s", err)
+		return err
 	}
 
 	err = b.Broker.Publish(i.TableName()+"_"+eventName, data)
 	if err != nil {
 		b.log.Error("Error while publishing %s", err)
-		return
+		return err
 	}
+
+	return nil
 }
 
 func (b *Bongo) AfterCreate(i Modellable) {
