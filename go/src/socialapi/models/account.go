@@ -40,6 +40,10 @@ func (a *Account) ById(id int64) error {
 	return bongo.B.ById(a, id)
 }
 
+func (a *Account) Update() error {
+	return bongo.B.Update(a)
+}
+
 func (a *Account) FetchOrCreate() error {
 	if a.OldId == "" {
 		return errors.New("old id is not set")
