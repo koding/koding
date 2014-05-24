@@ -79,35 +79,32 @@ module.exports = class ComputeProvider extends Base
       { provider, stack, label } = options
       { r: { group, user, account } } = client
 
-      JStack = require '../stack'
-      JStack.getStack account, stack, (err, stack)=>
-        return callback err  if err?
+      provider.create client, options, (err, machineData)=>
 
-        provider.create client, options, (err, machineData)=>
+        return callback err  if err
 
+        { meta, postCreateOptions } = machineData
+
+        @createMachine {
+          provider : provider.slug
+          label, meta, group, user
+        }, (err, machine)->
+
+          # TODO if any error occurs here which means user paid for
+          # not created vm ~ GG
           return callback err  if err
 
-          { meta, postCreateOptions } = machineData
+          provider.postCreate {
+            postCreateOptions, machine, meta, stack: stack._id
+          }, (err)=>
 
-          @createMachine {
-            provider : provider.slug
-            label, meta, group, user
-          }, (err, machine)->
-
-            # TODO if any error occurs here which means user paid for
-            # not created vm ~ GG
             return callback err  if err
 
-            provider.postCreate {
-              postCreateOptions, machine, meta, stack: stack._id
-            }, (err)=>
+            stack.appendTo machines: machine.getId(), (err)->
 
-              return callback err  if err
+              account.sendNotification "MachineCreated"  unless err
+              callback err, machine
 
-              stack.appendTo machines: machine.getId(), (err)->
-
-                account.sendNotification "MachineCreated"  unless err
-                callback err
 
   @create$ = permit 'create machines', success: revive
 
@@ -115,7 +112,17 @@ module.exports = class ComputeProvider extends Base
     shouldPassCredential : yes
     shouldReviveProvider : no
 
-  , @create
+  , (client, options, callback)->
+
+    { stack } = options
+
+    JStack = require '../stack'
+    JStack.getStack account, stack, (err, revivedStack)=>
+      return callback err  if err?
+      return callback new KodingError "No such stack"  unless revivedStack
+
+      options.stack = revivedStack
+      @create client, options, callback
 
 
 
