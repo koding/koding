@@ -71,6 +71,15 @@ class StackView extends KDView
 
   deleteStack: ->
 
+    # REMOVE ME BEFORE PUBLISH ~ GG !!!
+    # ----
+    @stack.delete (err, res) =>
+      return KD.showError err  if err
+      KD.utils.defer @bound 'destroy'
+
+    return
+    # -----
+
     stackTitle = @stack.title or ""
     stackSlug  = "confirm"
 
@@ -190,6 +199,7 @@ class StackView extends KDView
 
 
   getMenuItems: ->
+    this_ = this
     items =
       'Show stack recipe'  :
         callback           : @bound "dumpStack"
@@ -199,7 +209,8 @@ class StackView extends KDView
           stackDump.config = @stack.config or ""
           @emit "CloneStackRequested", stackDump
       'Delete stack'       :
-        callback           : @bound "deleteStack"
+        callback           : ->
+          @destroy(); this_.deleteStack()
 
     return items
 
