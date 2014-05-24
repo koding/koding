@@ -176,7 +176,7 @@ module.exports = class JDomain extends jraphical.Module
              matching with #{baseDomain}""", "CNAMEMISMATCH"
 
 
-  createDomain = (options, callback)->
+  @createDomain = (options, callback)->
 
     { domain, account, group, stack, hostnameAlias } = options
 
@@ -233,9 +233,11 @@ module.exports = class JDomain extends jraphical.Module
       resolveDomain domain, (err)->
         return callback err  if err
 
+        JDomain.createDomain {
           domain, group, stack
           account: delegate
         }, callback
+
       , type is 'custom'
 
 
@@ -245,6 +247,7 @@ module.exports = class JDomain extends jraphical.Module
 
     domains.forEach (domain) ->
 
+      JDomain.createDomain {
         domain, account, group, stack
       }, (err, domain)->
 
