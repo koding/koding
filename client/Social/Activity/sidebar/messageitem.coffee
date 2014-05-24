@@ -1,5 +1,7 @@
 class SidebarMessageItem extends SidebarItem
 
+  JView.mixin @prototype
+
   constructor: (options = {}, data) ->
 
     options.type     = 'member'
@@ -10,26 +12,21 @@ class SidebarMessageItem extends SidebarItem
 
     data = @getData()
 
-    accountIds = Object.keys KD.remote.api.JAccount.cache
-    origin     =
-      constructorName : 'JAccount'
-      id              : accountIds[KD.utils.getRandomNumber accountIds.length - 1]
+    for account in data.participantsPreview when account isnt KD.whoami()
+      origin = constructorName : 'JAccount', id : account._id
+      break
 
     @actor = new ProfileTextView {origin}
 
-    @avatar = new AvatarView
+    @avatar = new AvatarStaticView
       size       : width : 30, height : 30
       cssClass   : "avatarview"
       showStatus : yes
       origin     : origin
 
-    @lastMessage = new KDCustomHTMLView
-      cssClass  : 'user-numbers'
-      pistachio : "{{ #(body)}}"
-    , data.lastMessage
 
-
-  viewAppended:->
-    @addSubView @avatar
-    @addSubView @actor
-    @addSubView @lastMessage
+  pistachio: ->
+    """
+    {{> @avatar}}{{> @actor}}
+    {span.user-numbers{ #(lastMessage.body)}}
+    """
