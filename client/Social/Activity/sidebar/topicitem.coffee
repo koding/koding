@@ -6,14 +6,13 @@ class SidebarTopicItem extends SidebarItem
 
   constructor: (options = {}, data) ->
 
-    options.type            = 'sidebar-item'
+    {name}                  = data
     options.pistachioParams = getSuffix data.participantCount
+    options.route           = "Topic/#{name}"
 
     super options, data
 
-    data = @getData()
-
-    @followButton = new TopicFollowButton {}, data
+    @followButton = new TopicFollowButton {}, @getData()
 
 
   render: ->

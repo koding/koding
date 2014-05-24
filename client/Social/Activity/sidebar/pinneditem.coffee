@@ -4,8 +4,10 @@ class SidebarPinnedItem extends SidebarItem
 
   constructor: (options = {}, data) ->
 
-    options.type     = "member"
-    options.cssClass = "kdlistitemview-sidebar-item"
+    {slug}           = data
+    options.route    = "Post/#{slug}"
+    options.type     = 'member'
+    options.cssClass = 'kdlistitemview-sidebar-item'
 
     super options, data
 

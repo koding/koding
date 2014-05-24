@@ -2,9 +2,10 @@ class SidebarMemberItem extends SidebarItem
 
   constructor: (options = {}, data) ->
 
-    options.type              = "member"
-    options.cssClass          = "kdlistitemview-sidebar-item"
-    options.hideLastMessage  ?= no
+    options.hideLastMessage ?= no
+    options.type             = 'member'
+    options.cssClass         = 'kdlistitemview-sidebar-item'
+    options.route            = "Chat/#{data.id}"
 
     super options, data
 

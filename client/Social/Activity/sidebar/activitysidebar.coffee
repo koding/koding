@@ -1,6 +1,44 @@
 class ActivitySidebar extends KDCustomScrollView
 
+
   addEventLogger = (source, eventName) -> source.on eventName, -> log eventName, arguments
+
+
+  typeMap =
+    privatemessage : 'Message'
+    topic          : 'Topic'
+    post           : 'Post'
+    chat           : 'Chat'
+
+
+  slugProps =
+    SocialMessage : 'slug'
+    SocialChannel : 'name'
+
+
+  # @getRoute = (data) ->
+
+  #   {typeConstant} = data
+  #   groupName      = KD.getGroup().slug
+  #   groupName      = ''  if groupName is 'koding'
+  #   slugProp       = slugProps[data.bongo_.constructorName]
+
+  #   return "#{groupName}/Activity/#{typeMap[typeConstant]}/#{data[slugProp]}"
+
+
+  # sanitize = (allItems) ->
+
+  #   sanitized = []
+  #   for own title, items of allItems
+  #     header = new KDObject { title }
+  #     items.forEach (item) ->
+  #       obj = new KDObject {}, item
+  #       obj.parentId = header.getId()
+  #       sanitized.push obj
+  #     sanitized.push header
+
+  #   return sanitized.reverse()
+
 
   constructor: ->
 
@@ -14,40 +52,40 @@ class ActivitySidebar extends KDCustomScrollView
     addEventLogger notificationController, 'AddedToChannel'
     addEventLogger notificationController, 'RemovedFromChannel'
 
-    appView       = @getDelegate()
     @sections     = {}
     @selectedItem = null
 
 
+  # fixme:
+  # this item selection is a bit tricky
+  # depends on multiple parts:
+  # - sidebaritem's lastTimestamp
+  # - the item which is being clicked
+  # - and what the route suggests
+  # needs to be simplified
+  selectItemByRouteOptions: (type, slug) ->
 
-    # fixme:
-    # this item selection is a bit tricky
-    # depends on multiple parts:
-    # - sidebaritem's lastTimestamp
-    # - the item which is being clicked
-    # - and what the route suggests
-    # needs to be simplified
-    appView.on 'PaneRequested', (type, id) =>
+    @deselectAllItems()
 
-      @deselectAllItems()
+    if type is 'public'
+    then return @public.setClass 'selected'
+    else @public.unsetClass 'selected'
 
-      if type is 'public'
-      then return @public.setClass 'selected'
-      else @public.unsetClass 'selected'
+    type = 'privatemessage' if type is 'message'
 
-      candidateItems = []
-      for own name, {listController} of @sections
+    candidateItems = []
+    for own name, {listController} of @sections
 
-        for item in listController.itemsOrdered
-          data = item.getData()
-          if data.typeConstant is type and "#{data.id}" is "#{id}"
-            candidateItems.push item
+      for item in listController.itemsOrdered
+        data = item.getData()
+        if data.typeConstant is type and (data.id is slug or data.name is slug or data.slug is slug)
+          candidateItems.push item
 
-      candidateItems.sort (a, b) -> a.lastClickedTimestamp < b.lastClickedTimestamp
+    candidateItems.sort (a, b) -> a.lastClickedTimestamp < b.lastClickedTimestamp
 
-      if candidateItems.first
-        listController.selectSingleItem candidateItems.first
-        @selectedItem = candidateItems.first
+    if candidateItems.first
+      listController.selectSingleItem candidateItems.first
+      @selectedItem = candidateItems.first
 
 
   deselectAllItems: ->
@@ -57,15 +95,30 @@ class ActivitySidebar extends KDCustomScrollView
       listController.deselectAllItems()
 
 
-  getItemById: (id) ->
+  # getItemById: (id) ->
 
-    item = null
+  #   item = null
+  #   for own name, section of @sections
+
+  #     item = section.listController.itemsIndexed[id]
+  #     break  if item
+
+  #   return item
+
+
+  getItemByRouteParams: (type, slug) ->
+
+    typeConstant = k for own k, v of typeMap when v = type
+
+    itemWeWant = null
     for own name, section of @sections
 
-      item = section.listController.itemsIndexed[id]
-      break  if item
+      section.listController.itemsOrdered.forEach (item)->
+        if item.typeConstant is typeConstant
+          slugProp = slugProps[item.bongo_.constructorName]
+          itemWeWant = item[slugProp] is slug
 
-    return item
+    return itemWeWant
 
 
   viewAppended: ->
@@ -109,6 +162,7 @@ class ActivitySidebar extends KDCustomScrollView
       title      : 'HOT'
       cssClass   : 'hot topics'
       itemClass  : SidebarTopicItem
+      dataPath   : 'popularTopics'
       delegate   : this
       dataSource : (callback) ->
         KD.singletons.socialapi.channel.fetchPopularTopics
@@ -119,9 +173,10 @@ class ActivitySidebar extends KDCustomScrollView
   addFollowedTopics: ->
 
     @wrapper.addSubView @sections['followedTopics'] = new ActivitySideView
-      title    : 'Followed Topics'
-      cssClass : 'followed topics'
-      itemClass : SidebarTopicItem
+      title      : 'Followed Topics'
+      cssClass   : 'followed topics'
+      itemClass  : SidebarTopicItem
+      dataPath   : 'followedTopics'
       delegate   : this
       dataSource : (callback) ->
         KD.singletons.socialapi.channel.fetchFollowedChannels
@@ -132,9 +187,10 @@ class ActivitySidebar extends KDCustomScrollView
   addFollowedPosts: ->
 
     @wrapper.addSubView @sections['followedPosts'] = new ActivitySideView
-      title    : 'Followed Posts'
-      cssClass : 'threads users'
-      itemClass : SidebarPinnedItem
+      title      : 'Followed Posts'
+      cssClass   : 'threads users'
+      itemClass  : SidebarPinnedItem
+      dataPath   : 'pinnedMessages'
       delegate   : this
       dataSource : (callback) ->
         KD.singletons.socialapi.channel.fetchPinnedMessages
@@ -148,6 +204,7 @@ class ActivitySidebar extends KDCustomScrollView
       title      : 'Messages'
       cssClass   : 'inbox users'
       itemClass  : SidebarMessageItem
+      dataPath   : 'privateMessages'
       delegate   : this
       dataSource : (callback) ->
         KD.singletons.socialapi.message.fetchPrivateMessages

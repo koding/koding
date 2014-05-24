@@ -44,38 +44,33 @@ class ActivityAppView extends KDScrollView
 
   open: (type, slug) ->
 
-    item = @sidebar.getItemById(id) or @sidebar.public
+    @sidebar.selectItemByRouteOptions type, slug
+
+    item = @sidebar.selectedItem or @sidebar.public
     data = item.getData()
-    id   = data.id + ''
-    name = "#{type}-#{id}"
-    log name, data
+    name = "#{type}-#{slug}"
     pane = @tabs.getPaneByName name
 
     if pane
     then @tabs.showPane pane
-    else @createTab data
-
-    @emit 'PaneRequested', type, id
+    else @createTab name, data
 
 
-  createTab: (data) ->
+
+  createTab: (name, data) ->
 
     channelId = data.id
     type      = data.typeConstant
-    name      = "#{type}-#{channelId}"
 
     @tabs.addPane pane = new MessagePane {name, type, channelId}, data
 
     return pane
 
 
-  refreshTab: (data) ->
+  refreshTab: (name) ->
 
-    channelId = data.id
-    type      = data.typeConstant
-    name      = "#{type}-#{channelId}"
-    pane      = @tabs.getPaneByName name
+    pane = @tabs.getPaneByName name
 
-    pane.refresh()
+    pane?.refresh()
 
     return pane

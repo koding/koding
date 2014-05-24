@@ -2,8 +2,9 @@ class SidebarMessageItem extends SidebarItem
 
   constructor: (options = {}, data) ->
 
-    options.type     = "member"
-    options.cssClass = "kdlistitemview-sidebar-item"
+    options.type     = 'member'
+    options.cssClass = 'kdlistitemview-sidebar-item'
+    options.route    = "Message/#{data.id}"
 
     super options, data
 
