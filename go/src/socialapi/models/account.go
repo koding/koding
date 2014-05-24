@@ -165,6 +165,32 @@ func (a *Account) FetchChannel(channelType string) (*Channel, error) {
 	return c, nil
 }
 
+func (a *Account) MarkAsTroll() error {
+	if a.Id == 0 {
+		return nil, errors.New("Account id is not set")
+	}
+
+	if err := a.ById(a.Id); err != nil {
+		return err
+	}
+
+	// do not try to mark twice
+	if a.IsTroll {
+		return fmt.Errorf("Account is already a troll %d", a.Id)
+	}
+
+	a.IsTroll = true
+	if err := a.Update(); err != nil {
+		return err
+	}
+
+	if err := bongo.B.PublishEvent("marked_as_troll", a); err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func (a *Account) CreateFollowingFeedChannel() (*Channel, error) {
 	if a.Id == 0 {
 		return nil, errors.New("Account id is not set")
