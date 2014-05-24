@@ -25,6 +25,11 @@ class ComputeProvider extends KDObject
   @create = (options, callback)->
     KD.remote.api.ComputeProvider.create options, callback
 
+  @createDefaultStack = ->
+    KD.remote.api.ComputeProvider.createGroupStack (err, stack)=>
+      delete ComputeProvider.stacks
+      KD.singletons.mainController.emit "renderStacks"
+
 
 class ComputeProvider.UI
 
