@@ -8,6 +8,7 @@ class ActivitySideView extends JView
     super options, data
 
     {itemClass} = @getOptions()
+    sidebar     = @getDelegate()
 
     @listController = new KDListViewController
       startWithLazyLoader : yes
@@ -32,7 +33,23 @@ class ActivitySideView extends JView
 
     @listView = @listController.getView()
 
-    @listView.once 'viewAppended', @bound 'reload'
+    @listView.once 'viewAppended', @bound 'init'
+
+    @listView.on 'ItemShouldBeSelected', (item) =>
+
+      return  if sidebar.selectedItem is item
+
+      sidebar.deselectAllItems()
+      @listController.selectSingleItem item
+      sidebar.selectedItem = item
+
+
+  init: ->
+
+    {dataPath} = @getOptions()
+    if items = KD.singletons.socialapi.getPrefetchedData()[dataPath]
+    then @renderItems null, items
+    else @reload()
 
 
   reload: ->

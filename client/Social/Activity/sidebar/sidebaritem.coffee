@@ -1,21 +1,23 @@
 class SidebarItem extends KDListItemView
 
-  constructor: ->
+  constructor: (options = {}, data) ->
 
-    super
+    groupSlug = KD.getGroup().slug
+    groupSlug = if groupSlug is 'koding' then '' else "/#{groupSlug}"
 
-    {activityController} = KD.singletons
-    activityController.on 'SidebarItemClicked', @bound 'selectItem'
+    options.type       or= 'sidebar-item'
+    options.route        = "#{groupSlug}/Activity/#{options.route}"
+    options.tagName    or= 'a'
+    options.attributes or= href : options.route
 
+    super options, data
 
-  selectItem: (item)->
+    # this is used to store the last timestamp once it is clicked
+    # to avoid selecting multiple items in case of having the same item
+    # on multiple sidebar sections e.g. having the same topic on both
+    # "FOLLOWED Topics" and "HOT Topics" sections
+    @lastClickedTimestamp = 0
 
-    if item.getId() is @getId()
-    then @setClass 'selected'
-    else @unsetClass 'selected'
-
-
-  click: ->
-
-    {activityController} = KD.singletons
-    activityController.emit 'SidebarItemClicked', this
+    @on 'click', =>
+      @getDelegate().emit 'ItemShouldBeSelected', this
+      @lastClickedTimestamp = Date.now()

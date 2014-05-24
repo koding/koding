@@ -1,29 +1,32 @@
 class SidebarMessageItem extends SidebarItem
 
+  JView.mixin @prototype
+
   constructor: (options = {}, data) ->
 
-    options.type     = "member"
-    options.cssClass = "kdlistitemview-sidebar-item"
+    options.type     = 'member'
+    options.cssClass = 'kdlistitemview-sidebar-item'
+    options.route    = "Message/#{data.id}"
 
     super options, data
 
     data = @getData()
 
-    @avatar = new AvatarView
+    for account in data.participantsPreview when account isnt KD.whoami()
+      origin = constructorName : 'JAccount', id : account._id
+      break
+
+    @actor = new ProfileTextView {origin}
+
+    @avatar = new AvatarStaticView
       size       : width : 30, height : 30
       cssClass   : "avatarview"
       showStatus : yes
-    , KD.whoami()
-
-    @actor = new ProfileTextView {}, KD.whoami()
-
-    @lastMessage = new KDCustomHTMLView
-      cssClass  : 'user-numbers'
-      pistachio : "{{ #(body)}}"
-    , data
+      origin     : origin
 
 
-  viewAppended:->
-    @addSubView @avatar
-    @addSubView @actor
-    @addSubView @lastMessage
+  pistachio: ->
+    """
+    {{> @avatar}}{{> @actor}}
+    {span.user-numbers{ #(lastMessage.body)}}
+    """

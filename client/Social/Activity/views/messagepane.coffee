@@ -64,11 +64,16 @@ class MessagePane extends KDTabPaneView
 
   fetch: (options = {}, callback)->
 
-    {appManager}            = KD.singletons
-    data                    = @getData()
-    {name, type, channelId} = @getOptions()
-    options.name = name
-    options.type = type
+    {
+      name
+      type
+      channelId
+    }            = @getOptions()
+    data         = @getData()
+    {appManager} = KD.singletons
+
+    options.name      = name
+    options.type      = type
     options.channelId = channelId
 
     # if it is a post it means we already have the data
@@ -102,7 +107,7 @@ class MessagePane extends KDTabPaneView
 
   createInputWidget: ->
 
-    return  if @getOption("type") in ["post", "message"]
+    return  if @getOption("type") in ['post', 'privatemessage']
 
     channel = @getData()
 

@@ -1,20 +1,19 @@
 class SidebarTopicItem extends SidebarItem
 
+  JView.mixin @prototype
+
   getSuffix = (c)-> str : if c > 1 then ' Followers' else ' Follower'
 
   constructor: (options = {}, data) ->
 
-    options.type            = 'sidebar-item'
+    {name}                  = data
     options.pistachioParams = getSuffix data.participantCount
+    options.route           = "Topic/#{name}"
 
     super options, data
 
-    data = @getData()
+    @followButton = new TopicFollowButton {}, @getData()
 
-    @followButton = new TopicFollowButton {}, data
-
-
-  viewAppended: JView::viewAppended
 
   render: ->
 

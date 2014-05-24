@@ -6,8 +6,10 @@ module.exports = [
   "pinnedactivitylistcontroller.coffee"
 
   "sidebar/activitysidebar.coffee"
+  "sidebar/activitysideview.coffee"
   "sidebar/sidebaritem.coffee"
   "sidebar/memberitem.coffee"
+  "sidebar/messageitem.coffee"
   "sidebar/chatmemberitem.coffee"
   "sidebar/topicitem.coffee"
   "sidebar/pinneditem.coffee"
@@ -69,22 +71,16 @@ module.exports = [
   "widgets/widgetbutton.coffee"
   "widgets/activitywidgetformview.coffee"
   "widgets/statuswidget.coffee"
-  "widgets/codesnippetwidget.coffee"
-  "widgets/tutorialwidget.coffee"
-  "widgets/discussionwidget.coffee"
-  "widgets/blogpostwidget.coffee"
 
   "ContentDisplays/activitycontentdisplay.coffee"
   "ContentDisplays/StatusUpdate.coffee"
-  "ContentDisplays/activitysideviews.coffee"
-  "ContentDisplays/ActivityTicker.coffee"
+  # "ContentDisplays/ActivityTicker.coffee"
 
   # Activity content displays commons
   "ContentDisplays/ContentDisplayAuthorAvatar.coffee"
   "ContentDisplays/ContentDisplayMeta.coffee"
   "ContentDisplays/ContentDisplayTags.coffee"
   "ContentDisplays/ContentDisplayComments.coffee"
-  "ContentDisplays/ContentDisplayScoreBoard.coffee"
 
   # Activity List Items
   "views/activitylistitem.coffee"
