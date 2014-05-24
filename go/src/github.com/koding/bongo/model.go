@@ -231,40 +231,30 @@ func (b *Bongo) executeQuery(i Modellable, data interface{}, q *Query) error {
 	return err
 }
 
-func (b *Bongo) AfterCreate(i Modellable) {
+func (b *Bongo) PublishEvent(eventName string, i Modellable) {
 	data, err := json.Marshal(i)
 	if err != nil {
+		b.log.Error("Error while publishing %s", err)
 		return
 	}
 
-	err = b.Broker.Publish(i.TableName()+"_created", data)
+	err = b.Broker.Publish(i.TableName()+"_"+eventName, data)
 	if err != nil {
+		b.log.Error("Error while publishing %s", err)
 		return
 	}
+}
+
+func (b *Bongo) AfterCreate(i Modellable) {
+	b.PublishEvent("created", i)
 }
 
 func (b *Bongo) AfterUpdate(i Modellable) {
-	data, err := json.Marshal(i)
-	if err != nil {
-		return
-	}
-
-	err = b.Broker.Publish(i.TableName()+"_updated", data)
-	if err != nil {
-		return
-	}
+	b.PublishEvent("updated", i)
 }
 
 func (b *Bongo) AfterDelete(i Modellable) {
-	data, err := json.Marshal(i)
-	if err != nil {
-		return
-	}
-
-	err = b.Broker.Publish(i.TableName()+"_deleted", data)
-	if err != nil {
-		return
-	}
+	b.PublishEvent("deleted", i)
 }
 
 func addSort(query *gorm.DB, options map[string]string) *gorm.DB {
