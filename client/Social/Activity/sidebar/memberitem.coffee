@@ -11,7 +11,7 @@ class SidebarMemberItem extends SidebarItem
 
     account = @getData()
 
-    @avatar = new AvatarView
+    @avatar = new AvatarStaticView
       size       : width : 30, height : 30
       cssClass   : "avatarview"
       showStatus : yes
