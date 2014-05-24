@@ -5,19 +5,22 @@ class EnvironmentsMainScene extends KDView
     options.cssClass = KD.utils.curry 'environment-content', options.cssClass
     super options, data
 
+    @stacks = []
     @on "CloneStackRequested", @bound "cloneStack"
 
 
   viewAppended:->
 
     @addSubView @renderHeader()
-    KD.singletons.mainController.ready @bound 'renderStacks'
-
+    { mainController } = KD.singletons
+    mainController.ready @bound 'renderStacks'
+    mainController.on "renderStacks", @bound 'renderStacks'
 
   renderStacks:->
 
     ComputeProvider.fetchStacks (err, stacks = [])=>
 
+      (stack?.destroy?() for stack in @stacks)
       @stacks = []
 
       for stack, index in stacks
@@ -26,7 +29,6 @@ class EnvironmentsMainScene extends KDView
         @forwardEvent stackView, "CloneStackRequested"
 
       @emit "StacksCreated"
-      callback?()
 
 
   createNewStack: (meta, modal)->
