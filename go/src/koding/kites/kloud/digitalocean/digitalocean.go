@@ -157,6 +157,16 @@ func (d *DigitalOcean) Build(raws ...interface{}) (interface{}, error) {
 		return nil, err
 	}
 
+	defer func() {
+		err := d.DestroyKey(keyId) // remove after we are done
+		if err != nil {
+			curlstr := fmt.Sprintf("curl '%v/ssh_keys/%v/destroy?client_id=%v&api_key=%v'",
+				digitalocean.DIGITALOCEAN_API_URL, keyId, d.Creds.ClientID, d.Creds.APIKey)
+
+			fmt.Printf("Error cleaning up ssh key. Please delete the key manually: %v", curlstr)
+		}
+	}()
+
 	// now create a the machine based on our created image
 	dropletInfo, err := d.CreateDroplet(dropletName, keyId, image.Id)
 	if err != nil {
@@ -203,7 +213,6 @@ func (d *DigitalOcean) temporaryKey() (string, string, error) {
 	pub_sshformat := string(ssh.MarshalAuthorizedKey(pub))
 
 	return privateKey, pub_sshformat, nil
-
 }
 
 //
