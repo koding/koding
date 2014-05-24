@@ -1,18 +1,15 @@
 package digitalocean
 
 import (
-	"bytes"
 	"errors"
 	"fmt"
 	"koding/kites/kloud/klientprovisioner"
 	"koding/kites/kloud/packer"
 	"koding/kites/kloud/utils"
-	"log"
 	"net/url"
 	"strconv"
 	"time"
 
-	"code.google.com/p/go.crypto/ssh"
 	"github.com/mitchellh/mapstructure"
 	"github.com/mitchellh/packer/builder/digitalocean"
 )
@@ -195,54 +192,16 @@ func (d *DigitalOcean) Build(raws ...interface{}) (interface{}, error) {
 		return nil, err
 	}
 
-	var client *ssh.Client
 	fmt.Println("connection to ssh")
-	client, err = connectSSH(sshAddress, sshConfig)
+	client, err := connectSSH(sshAddress, sshConfig)
 	if err != nil {
 		return nil, err
 	}
 	defer client.Close()
 
-	session, err := client.NewSession()
-	if err != nil {
+	if err := client.StartCommand("ls /"); err != nil {
 		return nil, err
 	}
-	defer session.Close()
-
-	// TODO: add STDIN for enalbing uploading of files
-
-	stdoutBuffer, stderrBuffer := new(bytes.Buffer), new(bytes.Buffer)
-	session.Stdout, session.Stderr = stdoutBuffer, stderrBuffer
-
-	fmt.Println("running ls on remote machine")
-	if err := session.Start("ls /"); err != nil {
-		fmt.Println("run session err:", err)
-	}
-
-	// Wait for the SCP connection to close, meaning it has consumed all
-	// our data and has completed. Or has errored.
-	log.Println("Waiting for SSH session to complete.")
-	err = session.Wait()
-	if err != nil {
-		if exitErr, ok := err.(*ssh.ExitError); ok {
-			// Otherwise, we have an ExitErorr, meaning we can just read
-			// the exit status
-			log.Printf("non-zero exit status: %d", exitErr.ExitStatus())
-
-			// If we exited with status 127, it means SCP isn't available.
-			// Return a more descriptive error for that.
-			if exitErr.ExitStatus() == 127 {
-				return nil, errors.New(
-					"SCP failed to start. This usually means that SCP is not\n" +
-						"properly installed on the remote system.")
-			}
-		}
-
-		return nil, err
-	}
-
-	fmt.Printf("Ssh completed stdout: %s, stderr: %s\n",
-		stdoutBuffer.String(), stderrBuffer.String())
 
 	return dropInfo, nil
 }
