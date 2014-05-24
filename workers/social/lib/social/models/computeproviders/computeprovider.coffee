@@ -1,5 +1,5 @@
 
-{Base, secure, signature} = require 'bongo'
+{Base, secure, signature, daisy} = require 'bongo'
 KodingError = require '../../error'
 
 {argv} = require 'optimist'
@@ -18,6 +18,7 @@ module.exports = class ComputeProvider extends Base
   {permit} = require '../group/permissionset'
 
   JMachine = require './machine'
+  JDomain  = require '../domain'
 
   @share()
 
@@ -190,23 +191,42 @@ module.exports = class ComputeProvider extends Base
         groupSlug   : group.slug
         account
       }, (err, stack)=>
+
         return callback err  if err
 
-        account.addStackTemplate template, (err)=>
-          return callback err  if err
+        queue      = []
+        results    =
+          machines : []
+          domains  : []
 
-          machines.forEach (machine)=>
+        queue.push ->
+          account.addStackTemplate template, (err)->
+            if err then callback err else queue.next()
 
-            machine.stack = stack._id
-            console.log "Creating vm from: #{machine.provider}..."
+        machines.forEach (machineInfo) =>
 
-            @create client, machine, (err, r)->
+          queue.push =>
+            machineInfo.stack = stack
+            @create client, machineInfo, (err, machine)->
+              results.machines.push { err, machine }
+              queue.next()
 
-              { slug } = machine.provider
+        domains.forEach (domainInfo) =>
 
-              console.log "Result for #{slug}..."
-              if err
-                console.error "Failed to create vm from #{slug}: ", err
-              else
-                console.log "Successfully created vm from #{slug}"
+          queue.push =>
+            domain = domainInfo.domain.replace "${username}", user.username
+            JDomain.createDomain {
+              domain, account,
+              stack : stack._id
+              group : group.slug
+            }, (err, r)->
+              console.warn err  if err?
+              results.domains.push { err, domain: r }
+              queue.next()
 
+        queue.push ->
+
+          callback null, stack
+          console.log "RESULT:", results
+
+        daisy queue
