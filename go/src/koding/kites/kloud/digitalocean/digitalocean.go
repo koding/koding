@@ -1,6 +1,10 @@
 package digitalocean
 
 import (
+	"crypto/rand"
+	"crypto/rsa"
+	"crypto/x509"
+	"encoding/pem"
 	"errors"
 	"fmt"
 	"koding/kites/kloud/klientprovisioner"
@@ -9,6 +13,8 @@ import (
 	"net/url"
 	"strconv"
 	"time"
+
+	"code.google.com/p/gosshold/ssh"
 
 	"github.com/mitchellh/mapstructure"
 	"github.com/mitchellh/packer/builder/digitalocean"
@@ -138,8 +144,21 @@ func (d *DigitalOcean) Build(raws ...interface{}) (interface{}, error) {
 		}
 	}
 
+	// create temporary key to deploy user based key
+	privateKey, publicKey, err := d.temporaryKey()
+	if err != nil {
+		return nil, err
+	}
+
+	// The name of the public key on DO
+	name := fmt.Sprintf("koding-%s", time.Now().UTC().UnixNano())
+	keyId, err := d.CreateKey(name, publicKey)
+	if err != nil {
+		return nil, err
+	}
+
 	// now create a the machine based on our created image
-	dropletInfo, err := d.CreateDroplet(dropletName, image.Id)
+	dropletInfo, err := d.CreateDroplet(dropletName, keyId, image.Id)
 	if err != nil {
 		return nil, err
 	}
@@ -151,8 +170,62 @@ func (d *DigitalOcean) Build(raws ...interface{}) (interface{}, error) {
 		return nil, err
 	}
 
-	return d.Info(dropletInfo.Droplet.Id)
+	info, err := d.Info(dropletInfo.Droplet.Id)
+	if err != nil {
+		return nil, err
+	}
+
+	dropInfo := info.(Droplet)
+
+	return dropInfo, nil
 }
+
+// temporaryKey creates a new temporary public and private key
+func (d *DigitalOcean) temporaryKey() (string, string, error) {
+	priv, err := rsa.GenerateKey(rand.Reader, 2014)
+	if err != nil {
+		return "", "", err
+	}
+
+	// ASN.1 DER encoded form
+	priv_der := x509.MarshalPKCS1PrivateKey(priv)
+	priv_blk := pem.Block{
+		Type:    "RSA PRIVATE KEY",
+		Headers: nil,
+		Bytes:   priv_der,
+	}
+
+	privateKey := string(pem.EncodeToMemory(&priv_blk))
+
+	// Marshal the public key into SSH compatible format
+	// TODO properly handle the public key error
+	pub, _ := ssh.NewPublicKey(&priv.PublicKey)
+	pub_sshformat := string(ssh.MarshalAuthorizedKey(pub))
+
+	return privateKey, pub_sshformat, nil
+
+}
+
+//
+// func (d *DigitalOcean) uploadFile(privateKey, publicKey) error {
+// 	// The name of the public key on DO
+// 	name := fmt.Sprintf("koding-%s", time.Now().UTC().UnixNano())
+//
+// 	keyId, err := d.CreateKey(name, publicKey)
+// 	if err != nil {
+// 		return err
+// 	}
+//
+// 	signer, err := ssh.ParsePrivateKey([]byte(privateKey))
+// 	if err != nil {
+// 		return fmt.Errorf("Error setting up SSH config: %s", err)
+// 	}
+//
+// 	config := &ssh.ClientConfig{
+// 		User: root,
+// 		Auth: []ssh.AuthMethod{ssh.PublicKeys(signer)},
+// 	}
+// }
 
 // CheckEvent checks the given eventID and returns back the result. It's useful
 // for checking the status of an event. Usually it's called in a for/select
@@ -229,9 +302,9 @@ func (d *DigitalOcean) CreateImage() (digitalocean.Image, error) {
 	return d.Image(d.Builder.SnapshotName)
 }
 
-// CreateDroplet creates a new droplet with a hostname and image_id. It returns
-// back the dropletInfo.
-func (d *DigitalOcean) CreateDroplet(hostname string, image_id uint) (*DropletInfo, error) {
+// CreateDroplet creates a new droplet with a hostname, key and image_id. It
+// returns back the dropletInfo.
+func (d *DigitalOcean) CreateDroplet(hostname string, keyId, image_id uint) (*DropletInfo, error) {
 	params := url.Values{}
 	params.Set("name", hostname)
 
@@ -248,6 +321,7 @@ func (d *DigitalOcean) CreateDroplet(hostname string, image_id uint) (*DropletIn
 	params.Set("size_slug", found_size.Slug)
 	params.Set("image_id", strconv.Itoa(int(image_id)))
 	params.Set("region_slug", found_region.Slug)
+	params.Set("ssh_key_ids", fmt.Sprintf("%v", keyId))
 	params.Set("private_networking", fmt.Sprintf("%v", d.Builder.PrivateNetworking))
 
 	body, err := digitalocean.NewRequest(*d.Client, "droplets/new", params)
