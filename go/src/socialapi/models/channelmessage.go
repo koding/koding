@@ -36,6 +36,9 @@ type ChannelMessage struct {
 	// in which channel this message is created
 	InitialChannelId int64 `json:"initialChannelId,string" sql:"NOT NULL"`
 
+	// holds troll, unsafe, etc
+	MetaBits int16 `json:"-"`
+
 	// Creation date of the message
 	CreatedAt time.Time `json:"createdAt"                  sql:"DEFAULT:CURRENT_TIMESTAMP"`
 

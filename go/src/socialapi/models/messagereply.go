@@ -17,6 +17,9 @@ type MessageReply struct {
 	// Id of the reply
 	ReplyId int64 `json:"replyId,string"         sql:"NOT NULL"`
 
+	// holds troll, unsafe, etc
+	MetaBits int16 `json:"-"`
+
 	// Creation of the MessageReply
 	CreatedAt time.Time `json:"createdAt"         sql:"NOT NULL"`
 }
