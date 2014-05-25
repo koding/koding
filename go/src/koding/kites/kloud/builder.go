@@ -2,7 +2,8 @@ package main
 
 import (
 	"errors"
-	"fmt"
+	"strconv"
+	"time"
 
 	"koding/kites/kloud/digitalocean"
 
@@ -23,6 +24,7 @@ type Builder interface {
 type buildArgs struct {
 	Provider     string
 	SnapshotName string
+	MachineName  string
 	Credential   map[string]interface{}
 	Builder      map[string]interface{}
 }
@@ -60,11 +62,15 @@ func (k *Kloud) build(r *kite.Request) (interface{}, error) {
 	}
 
 	signFunc := func() (string, error) {
-		fmt.Println("running signFucn")
 		return createKey(r.Username, k.KontrolURL, k.KontrolPrivateKey, k.KontrolPublicKey)
 	}
 
-	artifact, err := provider.Build(snapshotName, r.Username, signFunc)
+	machineName := r.Username + "-" + strconv.FormatInt(time.Now().UTC().UnixNano(), 10)
+	if args.MachineName != "" {
+		machineName = args.MachineName
+	}
+
+	artifact, err := provider.Build(snapshotName, machineName, signFunc)
 	if err != nil {
 		return nil, err
 	}
