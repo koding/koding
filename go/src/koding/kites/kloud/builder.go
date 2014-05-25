@@ -2,10 +2,15 @@ package main
 
 import (
 	"errors"
+	"log"
+	"strings"
+	"time"
 
 	"koding/kites/kloud/digitalocean"
 
+	"github.com/dgrijalva/jwt-go"
 	"github.com/koding/kite"
+	"github.com/nu7hatch/gouuid"
 )
 
 // Builder is used to create and provisiong a single image or machine for a
@@ -58,10 +63,36 @@ func build(r *kite.Request) (interface{}, error) {
 		snapshotName = args.SnapshotName
 	}
 
-	artifact, err := provider.Build(snapshotName, r.Username)
+	signer := func() (string, error) {
+		return createKey(r.Username)
+	}
+
+	artifact, err := provider.Build(snapshotName, r.Username, signer)
 	if err != nil {
 		return nil, err
 	}
 
 	return artifact, nil
+}
+
+func createKey(username string) (string, error) {
+	tknID, err := uuid.NewV4()
+	if err != nil {
+		return "", errors.New("cannot generate a token")
+	}
+
+	token := jwt.New(jwt.GetSigningMethod("RS256"))
+
+	token.Claims = map[string]interface{}{
+		"iss":        "koding",                     // Issuer, should be the same username as kontrol
+		"sub":        username,                     // Subject
+		"iat":        time.Now().UTC().Unix(),      // Issued At
+		"jti":        tknID.String(),               // JWT ID
+		"kontrolURL": kontrolURL,                   // Kontrol URL
+		"kontrolKey": strings.TrimSpace(publicKey), // Public key of kontrol
+	}
+
+	log.Printf("Registered machine on user: %s", username)
+
+	return token.SignedString([]byte(privateKey))
 }
