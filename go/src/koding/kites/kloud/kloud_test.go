@@ -5,7 +5,11 @@ import (
 	"fmt"
 	"io/ioutil"
 	"koding/kites/kloud/digitalocean"
+	"koding/kodingkite"
+	"koding/tools/config"
 	"log"
+	"net/url"
+	"os"
 	"strconv"
 	"sync"
 	"testing"
@@ -13,6 +17,11 @@ import (
 
 	"github.com/fatih/color"
 	"github.com/koding/kite"
+	kiteconfig "github.com/koding/kite/config"
+	"github.com/koding/kite/kontrol"
+	"github.com/koding/kite/protocol"
+	"github.com/koding/kite/testkeys"
+	"github.com/koding/kite/testutil"
 )
 
 const (
@@ -20,9 +29,11 @@ const (
 )
 
 var (
-	kloud        *kite.Kite
+	kloud        *kodingkite.KodingKite
 	remote       *kite.Client
 	flagTestData = flag.String("testdata", "", "Inject test data to build method.")
+	// flagTestPublicKey  = flag.String("public-key", "", "Public RSA key of Kontrol")
+	// flagTestPrivateKey = flag.String("private-key", "", "Private RSA key of Kontrol")
 
 	DIGITALOCEAN_CLIENT_ID       = "2d314ba76e8965c451f62d7e6a4bc56f"
 	DIGITALOCEAN_API_KEY         = "4c88127b50c0c731aeb5129bdea06deb"
@@ -52,33 +63,81 @@ var TestProviderData = map[string]map[string]interface{}{
 }
 
 func init() {
-	kloud = kite.New("kloud", "0.0.1")
-	kloud.Config.DisableAuthentication = true
-	kloud.Config.Port = 3636
+	flag.Parse()
 
-	kloud.HandleFunc("build", build)
-	kloud.HandleFunc("start", start)
-	kloud.HandleFunc("stop", stop)
-	kloud.HandleFunc("restart", restart)
-	kloud.HandleFunc("destroy", destroy)
-	kloud.HandleFunc("info", info)
-	// kloud.HandleFunc("resizeDisk", info)
-	// kloud.HandleFunc("snapshot", info)
+	conf := kiteconfig.New()
+	conf.Username = "testuser"
+	conf.KontrolURL = &url.URL{Scheme: "ws", Host: "localhost:4444"}
+	conf.KontrolKey = testkeys.Public
+	conf.KontrolUser = "testuser"
+	conf.KiteKey = testutil.NewKiteKey().Raw
+	conf.Port = 4444
+
+	kon := kontrol.New(conf.Copy(), "0.1.0", testkeys.Public, testkeys.Private)
+	kon.DataDir, _ = ioutil.TempDir("", "")
+	defer os.RemoveAll(kon.DataDir)
+	go kon.Run()
+	<-kon.Kite.ServerReadyNotify()
+
+	kloudConf := config.MustConfig("vagrant")
+
+	publicKey := *flagPublicKey
+	if publicKey == "" {
+		pubKey, err := ioutil.ReadFile(kloudConf.NewKontrol.PublicKeyFile)
+		if err != nil {
+			log.Fatalln(err)
+		}
+		publicKey = string(pubKey)
+	}
+
+	privateKey := *flagPrivateKey
+	if privateKey == "" {
+		privKey, err := ioutil.ReadFile(kloudConf.NewKontrol.PrivateKeyFile)
+		if err != nil {
+			log.Fatalln(err)
+		}
+		privateKey = string(privKey)
+	}
+
+	k := &Kloud{
+		Name:              "kloud-test",
+		Version:           "0.0.1",
+		Region:            "vagrant",
+		Port:              3636,
+		Config:            kloudConf,
+		KontrolURL:        "wss://kontrol.koding.com",
+		KontrolPrivateKey: privateKey,
+		KontrolPublicKey:  publicKey,
+	}
+
+	kloud = k.NewKloud()
+	kloud.Config.DisableAuthentication = true
+	kloud.Config.KontrolURL = &url.URL{Scheme: "ws", Host: "localhost:4444"}
 
 	go kloud.Run()
 	<-kloud.ServerReadyNotify()
 
+	fmt.Println("new client")
 	client := kite.New("client", "0.0.1")
-	client.Config.DisableAuthentication = true
-	client.Config.Username = "testkloud"
-	remote = client.NewClientString("ws://127.0.0.1:3636")
-	err := remote.Dial()
+	client.Config = conf
+
+	fmt.Println("getting kites")
+	kites, err := client.GetKites(protocol.KontrolQuery{
+		Username:    "testuser",
+		Environment: "vagrant",
+		Name:        "kloud-test",
+	})
 	if err != nil {
-		log.Fatal("err")
+		log.Fatalln(err)
+	}
+
+	remote = kites[0]
+	if err := remote.Dial(); err != nil {
+		log.Fatal(err)
 	}
 
 	// To disable packer output, comment it out for debugging
-	log.SetOutput(ioutil.Discard)
+	// log.SetOutput(ioutil.Discard)
 }
 
 func TestProviders(t *testing.T) {

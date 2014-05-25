@@ -25,15 +25,18 @@ var (
 	flagKontrolURL = flag.String("kontrol-url", "", "Kontrol URL to be connected")
 	flagPublicKey  = flag.String("public-key", "", "Public RSA key of Kontrol")
 	flagPrivateKey = flag.String("private-key", "", "Private RSA key of Kontrol")
-
-	// Koding config, will be initialized in main
-	conf *config.Config
-
-	// Kontrol related variables to generate tokens
-	publicKey  string
-	privateKey string
-	kontrolURL string
 )
+
+type Kloud struct {
+	Config            *config.Config
+	Name              string
+	Version           string
+	Region            string
+	Port              int
+	KontrolPublicKey  string
+	KontrolPrivateKey string
+	KontrolURL        string
+}
 
 func main() {
 	flag.Parse()
@@ -46,15 +49,15 @@ func main() {
 		os.Exit(0)
 	}
 
-	conf = config.MustConfig(*flagProfile)
+	conf := config.MustConfig(*flagProfile)
 
 	u, err := url.Parse(*flagKontrolURL)
 	if err != nil {
 		log.Fatalln(err)
 	}
-	kontrolURL = u.String()
+	kontrolURL := u.String()
 
-	publicKey = *flagPublicKey
+	publicKey := *flagPublicKey
 	if *flagPublicKey == "" {
 		pubKey, err := ioutil.ReadFile(conf.NewKontrol.PublicKeyFile)
 		if err != nil {
@@ -63,7 +66,7 @@ func main() {
 		publicKey = string(pubKey)
 	}
 
-	privateKey = *flagPrivateKey
+	privateKey := *flagPrivateKey
 	if *flagPrivateKey == "" {
 		privKey, err := ioutil.ReadFile(conf.NewKontrol.PrivateKeyFile)
 		if err != nil {
@@ -72,20 +75,35 @@ func main() {
 		privateKey = string(privKey)
 	}
 
-	k, err := kodingkite.New(conf, NAME, VERSION)
+	kloud := &Kloud{
+		Name:              NAME,
+		Version:           VERSION,
+		Region:            *flagRegion,
+		Port:              *flagPort,
+		Config:            conf,
+		KontrolURL:        kontrolURL,
+		KontrolPrivateKey: privateKey,
+		KontrolPublicKey:  publicKey,
+	}
+
+	kloud.NewKloud().Run()
+}
+
+func (k *Kloud) NewKloud() *kodingkite.KodingKite {
+	kt, err := kodingkite.New(k.Config, k.Name, k.Version)
 	if err != nil {
 		log.Fatalln(err)
 	}
 
-	k.Config.Region = *flagRegion
-	k.Config.Port = *flagPort
+	kt.Config.Region = k.Region
+	kt.Config.Port = k.Port
 
-	k.HandleFunc("build", build)
-	k.HandleFunc("start", start)
-	k.HandleFunc("stop", stop)
-	k.HandleFunc("restart", restart)
-	k.HandleFunc("destroy", destroy)
-	k.HandleFunc("info", info)
+	kt.HandleFunc("build", k.build)
+	kt.HandleFunc("start", start)
+	kt.HandleFunc("stop", stop)
+	kt.HandleFunc("restart", restart)
+	kt.HandleFunc("destroy", destroy)
+	kt.HandleFunc("info", info)
 
-	k.Run()
+	return kt
 }
