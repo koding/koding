@@ -22,9 +22,9 @@ class VirtualizationController extends KDController
       else
         @emit 'ready'
 
-    mc.on   'AccountChanged', => @emit 'VMListChanged'
+    mc.on 'AccountChanged', => @emit 'VMListChanged'
 
-    @on 'VMListChanged', @bound 'resetVMData'
+    @on 'VMListChanged', @bound 'fetchVMs'
 
   run: Promise.promisify (options, callback = noop)->
     options ?= {}
@@ -302,12 +302,17 @@ class VirtualizationController extends KDController
 
       @listenToVmState vm, kite
 
-      # we need to wait until the vm is on before opening a connection to the
-      # terminal kite.
-      kite.ready =>
-        @terminalKites[alias] = @getKite vm, 'terminal'
       resolve()
     .nodeify callback
+
+  registerTerminalKite: (vm) ->
+    new Promise (resolve) =>
+      { hostnameAlias: alias } = vm
+      @kites[alias].ready =>
+        # we need to wait until the vm is on before opening a connection to the
+        # terminal kite.
+        @terminalKites[alias] = @getKite vm, 'terminal'
+        resolve()
 
   listenToVmState: (vm, kite) ->
     alias = vm.hostnameAlias
@@ -376,7 +381,11 @@ class VirtualizationController extends KDController
       if useNewKites
         @registerNewKites vms
       else
-        @registerKites vms
+        @registerKites(vms).then =>
+          Promise.map vms, @bound 'registerTerminalKite'
+            .then => @emit 'terminalsReady'
+          # don't wait for the terminal kites to load:
+          return
     .catch(warn)
     .nodeify callback
 

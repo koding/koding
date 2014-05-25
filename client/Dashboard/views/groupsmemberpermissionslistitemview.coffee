@@ -1,5 +1,7 @@
 class GroupsMemberPermissionsListItemView extends KDListItemView
 
+  JView.mixin @prototype
+
   constructor:(options = {}, data)->
 
     options.type     = 'member'
@@ -69,8 +71,8 @@ class GroupsMemberPermissionsListItemView extends KDListItemView
 
     if group.slug is "koding"
       @editView.setStatus userStatus[nickname]
-      
-      @editView.on "UserConfirmed", (user)-> 
+
+      @editView.on "UserConfirmed", (user)->
         userStatus[user.profile.nickname] = "confirmed"
 
     list.emit "EditMemberRolesViewShown", this
@@ -102,8 +104,6 @@ class GroupsMemberPermissionsListItemView extends KDListItemView
     @cancelLink.hide()
     @editContainer.hide()
     @editContainer.destroySubViews()
-
-  viewAppended:JView::viewAppended
 
   updateRoles:(roles)->
     roles.push 'member'

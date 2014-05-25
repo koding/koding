@@ -71,6 +71,8 @@ class MessagesListController extends KDListViewController
 
 class NotificationListItem extends KDListItemView
 
+  JView.mixin @prototype
+
   activityNameMap =
     JNewStatusUpdate: "status."
     JStatusUpdate   : "your status update."

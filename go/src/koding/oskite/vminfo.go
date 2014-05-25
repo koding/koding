@@ -116,10 +116,6 @@ func (v *VMInfo) startTimeout() {
 		prepareQueue <- &QueueJob{
 			msg: "vm unprepare " + v.vm.HostnameAlias,
 			f: func() error {
-				// mutex is needed because it's handled in the queue
-				v.mutex.Lock()
-				defer v.mutex.Unlock()
-
 				v.unprepareVM()
 				return nil
 			},
@@ -146,6 +142,10 @@ func (v *VMInfo) isAlwaysOn() bool {
 }
 
 func (v *VMInfo) unprepareVM() {
+	// mutex is needed because it's handled in the queue
+	v.mutex.Lock()
+	defer v.mutex.Unlock()
+
 	if err := unprepareProgress(nil, v.vm, false); err != nil {
 		log.Warning("%v", err)
 	}

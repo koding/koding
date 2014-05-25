@@ -1,5 +1,7 @@
 class NFinderItem extends JTreeItemView
 
+  JView.mixin @prototype
+
   constructor:(options = {},data)->
 
     options.tagName or= "li"

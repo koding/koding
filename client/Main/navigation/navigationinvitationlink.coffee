@@ -1,5 +1,7 @@
 class NavigationInviteLink extends KDCustomHTMLView
 
+  JView.mixin @prototype
+
   constructor:(options = {}, data)->
     options.tagName  = "a"
     options.cssClass = "title"
@@ -24,8 +26,6 @@ class NavigationInviteLink extends KDCustomHTMLView
         new KDNotificationView title: 'Success!'
         modal.destroy()
         KD.mixpanel "Invite friend, success"
-
-  viewAppended: JView::viewAppended
 
   pistachio:-> "{{> @icon}} #{@getData().title}"
 
@@ -81,7 +81,7 @@ class NavigationInviteLink extends KDCustomHTMLView
 
     modal.modalTabs.addSubView modalHint, null, yes
 
-    inviteHint = new KDView
+    inviteHint = new JView
       cssClass  : "invite-hint fl"
       pistachio : "{{#(quota)-#(usage)}} Invites remaining"
     , @count.getData()

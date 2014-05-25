@@ -1,5 +1,7 @@
 class NFileItemView extends KDCustomHTMLView
 
+  JView.mixin @prototype
+
   loaderRequiredEvents = ['job', 'remove', 'save', 'saveAs']
 
   constructor:(options = {},data)->
@@ -56,9 +58,9 @@ class NFileItemView extends KDCustomHTMLView
   mouseDown:-> yes
 
   viewAppended:->
-
     @setTemplate @pistachio()
     @template.update()
+
     @hideLoader()
     @decorateItem()
 

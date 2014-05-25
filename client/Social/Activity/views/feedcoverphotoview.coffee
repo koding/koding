@@ -106,6 +106,9 @@ class FeedCoverPhotoView extends KDView
 
 
 class CollageItemList extends KDListItemView
+
+  JView.mixin @prototype
+
   constructor: (options = {}, data) ->
 
     super options, data
@@ -114,8 +117,6 @@ class CollageItemList extends KDListItemView
         width  : 158
         height : 158
     , @getData()
-
-  viewAppended:JView::viewAppended
 
   pistachio:->
     """

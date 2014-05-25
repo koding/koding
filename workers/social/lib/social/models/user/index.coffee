@@ -251,6 +251,7 @@ module.exports = class JUser extends jraphical.Module
   @authenticateClient:(clientId, context, callback)->
     JSession.one {clientId}, (err, session)=>
       if err
+        console.error "JUser.authenticateClient error finding session", {err, clientId}
         callback createKodingError err
       else unless session?
         JSession.createSession (err, { session, account })->
@@ -261,17 +262,28 @@ module.exports = class JUser extends jraphical.Module
         if username?
           JUser.one {username}, (err, user)=>
             if err
+              console.error "JUser.authenticateClient error finding user with username", {
+                err, username }
+
               callback createKodingError err
             else unless user?
+              console.warn "JUser#authenticateClient no user found with username", {
+                username }
+
               @logout clientId, callback
             else
               user.fetchAccount context, (err, account)->
                 if err
+                  console.warn "JUser#authenticateClient error fetching account", {
+                    context }
+
                   callback createKodingError err
                 else
                   #JAccount.emit "AccountAuthenticated", account
                   callback null, account
-        else @logout clientId, callback
+        else
+          console.warn "JUser#authenticateClient no username found", {session}
+          @logout clientId, callback
 
 
   getHash =(value)->
@@ -434,6 +446,8 @@ module.exports = class JUser extends jraphical.Module
       {sessionToken} = client
       delete client.connection.delegate
       delete client.sessionToken
+
+    console.log "JUser.logout JSession#remove", {sessionToken}
     JSession.remove { clientId: sessionToken }, callback
 
   @verifyEnrollmentEligibility = ({email, inviteCode}, callback)->
@@ -1023,6 +1037,9 @@ module.exports = class JUser extends jraphical.Module
         return callback err if err
         JUser.emit "UserBlocked", @
         # clear all of the cookies of the blocked user
+
+        console.log "JUser#block JSession#remove", {@username, blockedUntil}
+
         JSession.remove {username: @username}, callback
 
   unblock:(callback)->

@@ -1,5 +1,7 @@
 class EmbedBoxLinkViewDescription extends KDView
 
+  JView.mixin @prototype
+
   { getDescendantsByClassName, setText } = KD.dom
 
   constructor:(options={},data={})->

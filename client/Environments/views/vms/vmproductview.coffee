@@ -1,4 +1,7 @@
 class VmProductView extends KDListItemView
+
+  JView.mixin @prototype
+
   constructor : (options = {}, data = {}) ->
     options.type ?= 'vm-product'
 

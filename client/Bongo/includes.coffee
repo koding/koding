@@ -7,6 +7,7 @@ module.exports = [
   "sockjs-0.3-patched.js",
   "broker.js",
   "bongo.js",
+  "pistachio.js",
 
 
 ]

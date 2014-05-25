@@ -379,13 +379,16 @@ class WebTermAppView extends JView
 
       unless vm
         ErrorLog.create "terminal: handlePlusClick error", {reason:"0 vms"}
+        return
 
       osKite =
         if KD.useNewKites
         then vmc.kites.oskite[vm.hostnameAlias]
         else vmc.kites[vm.hostnameAlias]
 
-      if state = osKite.recentState?.state is 'RUNNING'
+      state = osKite.recentState?.state
+
+      if state is 'RUNNING'
       then @prepareAndRunTerminal vm
       else
         ErrorLog.create "terminal: handlePlusClick error",
@@ -402,9 +405,11 @@ class WebTermAppView extends JView
 
     {recentState}  = osKite
 
-    if state = recentState?.state is 'RUNNING'
+    state = osKite.recentState?.state
+
+    if state is 'RUNNING'
       @createNewTab {vm, mode}
-    else if recentState?.state is 'STOPPED' or 'FAILED'
+    else if state in ['STOPPED', 'FAILED']
       osKite?.vmOn().catch @bound "handlePrepareError"
     else
       ErrorLog.create "terminal: prepareAndRunTerminal error",

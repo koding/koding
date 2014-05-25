@@ -263,6 +263,8 @@ class AvatarPopupGroupSwitcher extends AvatarPopup
 
 class PopupGroupListItem extends KDListItemView
 
+  JView.mixin @prototype
+
   constructor:(options = {}, data)->
     options.tagName or= "li"
     options.type    or= "activity-ticker-item"
@@ -299,8 +301,6 @@ class PopupGroupListItem extends KDListItemView
             delayIn : 300
     else new KDCustomHTMLView
 
-  viewAppended: JView::viewAppended
-
   pistachio: ->
     {group} = @getData()
     {slug, customize} = group
@@ -315,6 +315,8 @@ class PopupGroupListItem extends KDListItemView
     """
 
 class PopupGroupListItemPending extends PopupGroupListItem
+
+  JView.mixin @prototype
 
   constructor:(options = {}, data)->
     super
@@ -357,7 +359,6 @@ class PopupGroupListItemPending extends PopupGroupListItem
             @destroy()
             @parent.emit 'PendingCountDecreased'
 
-  viewAppended: JView::viewAppended
 
   pistachio: ->
     """
