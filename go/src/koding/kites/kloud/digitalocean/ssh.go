@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"code.google.com/p/go.crypto/ssh"
+	"github.com/pkg/sftp"
 )
 
 const (
@@ -21,6 +22,15 @@ const (
 
 type sshClient struct {
 	*ssh.Client
+}
+
+func (s *sshClient) Create(path string) (*sftp.File, error) {
+	sftp, err := sftp.NewClient(s.Client)
+	if err != nil {
+		return nil, err
+	}
+
+	return sftp.Create(path)
 }
 
 func (s *sshClient) StartCommand(command string) error {

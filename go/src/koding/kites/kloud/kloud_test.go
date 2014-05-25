@@ -200,17 +200,17 @@ func TestBuild(t *testing.T) {
 			fmt.Printf("result %+v\n", result)
 			fmt.Println("============")
 
-			fmt.Println("destroying it now")
-			dropletId := result.Id
-			cArgs := &controllerArgs{
-				Provider:   data["provider"].(string),
-				Credential: data["credential"].(map[string]interface{}),
-				MachineID:  dropletId,
-			}
-
-			if _, err := remote.Tell("destroy", cArgs); err != nil {
-				t.Errorf("destroy: %s", err)
-			}
+			// fmt.Println("destroying it now")
+			// dropletId := result.Id
+			// cArgs := &controllerArgs{
+			// 	Provider:   data["provider"].(string),
+			// 	Credential: data["credential"].(map[string]interface{}),
+			// 	MachineID:  dropletId,
+			// }
+			//
+			// if _, err := remote.Tell("destroy", cArgs); err != nil {
+			// 	t.Errorf("destroy: %s", err)
+			// }
 		}
 
 		var wg sync.WaitGroup

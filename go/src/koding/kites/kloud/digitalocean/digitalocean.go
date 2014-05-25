@@ -118,10 +118,12 @@ func (d *DigitalOcean) Build(raws ...interface{}) (interface{}, error) {
 		return nil, fmt.Errorf("malformed data received %v. snapshot name must be a string", raws[0])
 	}
 
-	dropletName, ok := raws[1].(string)
+	username, ok := raws[1].(string)
 	if !ok {
 		return nil, fmt.Errorf("malformed data received %v. droplet name must be a string", raws[0])
 	}
+
+	dropletName := username + "-" + strconv.FormatInt(time.Now().UTC().UnixNano(), 10)
 
 	// needed because this is passed as `data` to packer.Provider
 	d.Builder.SnapshotName = snapshotName
@@ -199,9 +201,20 @@ func (d *DigitalOcean) Build(raws ...interface{}) (interface{}, error) {
 	}
 	defer client.Close()
 
-	if err := client.StartCommand("ls /"); err != nil {
+	keyPath := "/opt/kite/klient/key/kite.key"
+
+	fmt.Println("creating ", keyPath)
+	remoteFile, err := client.Create(keyPath)
+	if err != nil {
 		return nil, err
 	}
+
+	n, err := remoteFile.Write([]byte("hello fatih"))
+	if err != nil {
+		return nil, err
+	}
+
+	fmt.Printf("wrote %+v bytes\n", n)
 
 	return dropInfo, nil
 }
