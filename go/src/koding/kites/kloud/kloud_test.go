@@ -81,23 +81,25 @@ func init() {
 
 	kloudConf := config.MustConfig("vagrant")
 
-	publicKey := *flagPublicKey
-	if publicKey == "" {
-		pubKey, err := ioutil.ReadFile(kloudConf.NewKontrol.PublicKeyFile)
-		if err != nil {
-			log.Fatalln(err)
-		}
-		publicKey = string(pubKey)
+	pubKeyPath = *flagPublicKey
+	if *flagPublicKey != "" {
+		pubKeyPath = kloudConf.NewKontrol.PublicKeyFile
 	}
+	pubKey, err := ioutil.ReadFile(pubKeyPath)
+	if err != nil {
+		log.Fatalln(err)
+	}
+	publicKey = string(pubKey)
 
-	privateKey := *flagPrivateKey
-	if privateKey == "" {
-		privKey, err := ioutil.ReadFile(kloudConf.NewKontrol.PrivateKeyFile)
-		if err != nil {
-			log.Fatalln(err)
-		}
-		privateKey = string(privKey)
+	privKeyPath = *flagPrivateKey
+	if *flagPublicKey != "" {
+		privKeyPath = kloudConf.NewKontrol.PrivateKeyFile
 	}
+	privKey, err := ioutil.ReadFile(privKeyPath)
+	if err != nil {
+		log.Fatalln(err)
+	}
+	privateKey = string(privKey)
 
 	k := &Kloud{
 		Name:              "kloud-test",
