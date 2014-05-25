@@ -29,11 +29,10 @@ const (
 )
 
 var (
-	kloud        *kodingkite.KodingKite
-	remote       *kite.Client
-	flagTestData = flag.String("testdata", "", "Inject test data to build method.")
-	// flagTestPublicKey  = flag.String("public-key", "", "Public RSA key of Kontrol")
-	// flagTestPrivateKey = flag.String("private-key", "", "Private RSA key of Kontrol")
+	kloud           *kodingkite.KodingKite
+	remote          *kite.Client
+	flagTestDebug   = flag.Bool("debug", false, "Enable debug")
+	flagTestDestroy = flag.Bool("destroy", false, "Destroy test machines")
 
 	DIGITALOCEAN_CLIENT_ID       = "2d314ba76e8965c451f62d7e6a4bc56f"
 	DIGITALOCEAN_API_KEY         = "4c88127b50c0c731aeb5129bdea06deb"
@@ -81,25 +80,25 @@ func init() {
 
 	kloudConf := config.MustConfig("vagrant")
 
-	pubKeyPath = *flagPublicKey
-	if *flagPublicKey != "" {
+	pubKeyPath := *flagPublicKey
+	if *flagPublicKey == "" {
 		pubKeyPath = kloudConf.NewKontrol.PublicKeyFile
 	}
 	pubKey, err := ioutil.ReadFile(pubKeyPath)
 	if err != nil {
 		log.Fatalln(err)
 	}
-	publicKey = string(pubKey)
+	publicKey := string(pubKey)
 
-	privKeyPath = *flagPrivateKey
-	if *flagPublicKey != "" {
+	privKeyPath := *flagPrivateKey
+	if *flagPublicKey == "" {
 		privKeyPath = kloudConf.NewKontrol.PrivateKeyFile
 	}
 	privKey, err := ioutil.ReadFile(privKeyPath)
 	if err != nil {
 		log.Fatalln(err)
 	}
-	privateKey = string(privKey)
+	privateKey := string(privKey)
 
 	k := &Kloud{
 		Name:              "kloud-test",
@@ -139,7 +138,9 @@ func init() {
 	}
 
 	// To disable packer output, comment it out for debugging
-	// log.SetOutput(ioutil.Discard)
+	if !*flagTestDebug {
+		log.SetOutput(ioutil.Discard)
+	}
 }
 
 func TestProviders(t *testing.T) {
@@ -180,7 +181,7 @@ func TestProviders(t *testing.T) {
 
 		// droplet's names are based on username for now
 		if result.Name != testUser {
-			t.Error(err)
+			t.Error("droplet name is: %s, expecting: %s", result.Name, testUser)
 		}
 
 		dropletId := result.Id
@@ -235,10 +236,13 @@ func TestBuild(t *testing.T) {
 		}
 
 		buildFunc := func() {
+			machineName := "testkloud-" + strconv.FormatInt(time.Now().UTC().UnixNano(), 10)
+
 			bArgs := &buildArgs{
-				Provider:   data["provider"].(string),
-				Credential: data["credential"].(map[string]interface{}),
-				Builder:    data["builder"].(map[string]interface{}),
+				Provider:    data["provider"].(string),
+				Credential:  data["credential"].(map[string]interface{}),
+				Builder:     data["builder"].(map[string]interface{}),
+				MachineName: machineName,
 			}
 
 			resp, err := remote.Tell("build", bArgs)
@@ -253,25 +257,28 @@ func TestBuild(t *testing.T) {
 			}
 
 			// droplet's names are based on username for now
-			if result.Name != testUser {
-				t.Error(err)
+			if result.Name != machineName {
+				t.Errorf("droplet name is: %s, expecting: %s", result.Name, machineName)
 			}
 
 			fmt.Println("============")
 			fmt.Printf("result %+v\n", result)
 			fmt.Println("============")
 
-			// fmt.Println("destroying it now")
-			// dropletId := result.Id
-			// cArgs := &controllerArgs{
-			// 	Provider:   data["provider"].(string),
-			// 	Credential: data["credential"].(map[string]interface{}),
-			// 	MachineID:  dropletId,
-			// }
-			//
-			// if _, err := remote.Tell("destroy", cArgs); err != nil {
-			// 	t.Errorf("destroy: %s", err)
-			// }
+			if *flagTestDestroy {
+				fmt.Println("destroying it now")
+				dropletId := result.Id
+				cArgs := &controllerArgs{
+					Provider:   data["provider"].(string),
+					Credential: data["credential"].(map[string]interface{}),
+					MachineID:  dropletId,
+				}
+
+				if _, err := remote.Tell("destroy", cArgs); err != nil {
+					t.Errorf("destroy: %s", err)
+				}
+			}
+
 		}
 
 		var wg sync.WaitGroup
