@@ -7,7 +7,7 @@ class IDEAppController extends AppController
     preCondition :
       condition  : (options, cb)-> cb KD.isLoggedIn()
       failure    : (options, cb)->
-        KD.singletons.appManager.open 'IDE', conditionPassed : yes
+        KD.getSingleton('appManager').open 'IDE', conditionPassed : yes
         KD.showEnforceLoginModal()
 
   constructor: (options = {}, data) ->
