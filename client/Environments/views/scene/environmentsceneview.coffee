@@ -38,14 +38,12 @@ class EnvironmentScene extends KDDiaScene
     return  if Object.keys(items).length < 2
     {domain, machine, rule, extra} = items
 
-    return new KDNotificationView title: "FIXME ~GG"
-
     if domain and machine
-      jDomain = domain.dia.getData().domain # JDomain
-      vmName  = machine.dia.getData().title # JVM.hostnameAlias
-      jDomain.unbindVM hostnameAlias: vmName, (err)=>
+      jDomain   = domain.dia.getData().domain # JDomain
+      machineId = machine.dia.getData()._id   # JMachine._id
+      jDomain.unbindMachine machineId, (err)->
         return KD.showError err  if err
-        jDomain.hostnameAlias.splice jDomain.hostnameAlias.indexOf(vmName), 1
+        jDomain.machines.splice jDomain.machines.indexOf(machineId), 1
         removeConnection()
     else if domain and rule
       removeConnection()
@@ -67,23 +65,21 @@ class EnvironmentScene extends KDDiaScene
     return  if Object.keys(items).length < 2
     {domain, machine, rule, extra} = items
 
-    return new KDNotificationView title: "FIXME ~GG"
-
     if extra
       return new KDNotificationView
         title : "Assigning resources will be available soon."
 
-    if domain and machine and not KD.checkFlag 'nostradamus'
-      if domain.dia.getData().domain.hostnameAlias.length > 0
-        return new KDNotificationView
-          title : "A domain name can only be bound to one machine."
+    # if domain and machine
+    #   if domain.dia.getData().domain.machines.length > 0
+    #     return new KDNotificationView
+    #       title : "A domain name can only be bound to one machine."
 
     if domain and machine
-      jDomain = domain.dia.getData().domain # JDomain
-      vmName  = machine.dia.getData().title # JVM.hostnameAlias
-      jDomain.bindVM hostnameAlias: vmName, (err)=>
+      jDomain   = domain.dia.getData().domain # JDomain
+      machineId = machine.dia.getData()._id   # JMachine._id
+      jDomain.bindMachine machineId, (err)->
         return  if KD.showError err
-        jDomain.hostnameAlias.push vmName
+        jDomain.machines.push machineId
         createConnection()
     else if domain and rule
       createConnection()
@@ -134,8 +130,8 @@ class EnvironmentScene extends KDDiaScene
 
     for _mkey, machine of machineDias
       for _dkey, domain of domainDias
-        domainAliases = domain.getData().aliases
-        if domainAliases and machine.getData().title in domainAliases
+        machines = domain.getData().machines
+        if machines and machine.getData()._id in machines
           @connect {dia : domain , joint : 'right'}, {dia : machine, joint : 'left' }, yes
 
     for restriction in EnvironmentRuleContainer.restrictions?
