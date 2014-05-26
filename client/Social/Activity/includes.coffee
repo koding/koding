@@ -78,8 +78,8 @@ module.exports = [
 
   # Activity content displays commons
   "ContentDisplays/ContentDisplayAuthorAvatar.coffee"
-  "ContentDisplays/ContentDisplayMeta.coffee"
-  "ContentDisplays/ContentDisplayTags.coffee"
+  # "ContentDisplays/ContentDisplayMeta.coffee"
+  # "ContentDisplays/ContentDisplayTags.coffee"
   "ContentDisplays/ContentDisplayComments.coffee"
 
   # Activity List Items
