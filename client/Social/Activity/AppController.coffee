@@ -1,8 +1,10 @@
 class ActivityAppController extends AppController
 
+
   KD.registerAppClass this,
     name         : 'Activity'
     searchRoute  : '/Activity?q=:text:'
+
 
   constructor: (options = {}) ->
 

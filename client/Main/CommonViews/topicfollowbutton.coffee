@@ -23,6 +23,12 @@ class TopicFollowButton extends KDToggleButton
 
     super options, data
 
+  click: (event) ->
+
+    KD.utils.stopDOMEvent event
+
+    super
+
 
   setFollowingState : ->
 

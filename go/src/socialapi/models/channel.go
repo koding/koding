@@ -407,6 +407,7 @@ func (c *Channel) List(q *Query) ([]Channel, error) {
 		Selector: map[string]interface{}{
 			"group_name": q.GroupName,
 		},
+		Pagination: *bongo.NewPagination(q.Limit, q.Skip),
 	}
 
 	if q.Type != "" {

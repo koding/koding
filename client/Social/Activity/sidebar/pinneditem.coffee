@@ -1,9 +1,13 @@
 class SidebarPinnedItem extends SidebarItem
 
+  JView.mixin @prototype
+
   constructor: (options = {}, data) ->
 
-    options.type     = "member"
-    options.cssClass = "kdlistitemview-sidebar-item"
+    {slug}           = data
+    options.route    = "Post/#{slug}"
+    options.type     = 'member'
+    options.cssClass = 'kdlistitemview-sidebar-item'
 
     super options, data
 
@@ -13,7 +17,7 @@ class SidebarPinnedItem extends SidebarItem
       id              : data.account._id
       constructorName : data.account.constructorName
 
-    @avatar = new AvatarView {
+    @avatar = new AvatarStaticView {
       size       : width : 30, height : 30
       cssClass   : "avatarview"
       showStatus : yes
@@ -21,9 +25,6 @@ class SidebarPinnedItem extends SidebarItem
     }
 
     @actor = new ProfileTextView {origin}
-
-
-  viewAppended: JView::viewAppended
 
 
   pistachio: ->

@@ -24,15 +24,13 @@ class ActivityAppView extends KDScrollView
     {appStorageController} = KD.singletons
 
     @appStorage = appStorageController.storage 'Activity', '2.0'
-    @sidebar    = new ActivitySidebar tagName : 'aside'
+    @sidebar    = new ActivitySidebar tagName : 'aside', delegate : this
     @tabs       = new KDTabView
       tagName             : 'main'
       hideHandleContainer : yes
 
     @appStorage.setValue 'liveUpdates', off
 
-    {activityController} = KD.singletons
-    activityController.on 'SidebarItemClicked', @bound 'sidebarItemClicked'
 
 
   lazyLoadThresholdReached: -> @tabs.getActivePane().emit 'LazyLoadThresholdReached'
@@ -44,26 +42,35 @@ class ActivityAppView extends KDScrollView
     @addSubView @tabs
 
 
-  sidebarItemClicked: (item) ->
+  open: (type, slug) ->
 
+    @sidebar.selectItemByRouteOptions type, slug
+
+    item = @sidebar.selectedItem or @sidebar.public
     data = item.getData()
-    pane = @tabs.getPaneByName "#{data.id}"
+    name = "#{type}-#{slug}"
+    pane = @tabs.getPaneByName name
 
-    if pane and pane is @tabs.getActivePane()
-    then pane.refresh()
-    else if pane
+    if pane
     then @tabs.showPane pane
-    else @createTab data
+    else @createTab name, data
 
 
-  createTab: (data) ->
 
-    {id, typeConstant} = data
+  createTab: (name, data) ->
 
-    name      = id
-    channelId = name
-    type      = typeConstant
+    channelId = data.id
+    type      = data.typeConstant
 
     @tabs.addPane pane = new MessagePane {name, type, channelId}, data
+
+    return pane
+
+
+  refreshTab: (name) ->
+
+    pane = @tabs.getPaneByName name
+
+    pane?.refresh()
 
     return pane
