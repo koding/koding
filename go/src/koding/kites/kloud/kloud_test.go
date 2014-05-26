@@ -32,7 +32,8 @@ var (
 	kloud           *kodingkite.KodingKite
 	remote          *kite.Client
 	flagTestDebug   = flag.Bool("debug", false, "Enable debug")
-	flagTestDestroy = flag.Bool("destroy", false, "Destroy test machines")
+	flagTestBuilds  = flag.Int("builds", 1, "Number of builds")
+	flagTestDestroy = flag.Bool("no-destroy", false, "Do not destroy test machines")
 
 	DIGITALOCEAN_CLIENT_ID       = "2d314ba76e8965c451f62d7e6a4bc56f"
 	DIGITALOCEAN_API_KEY         = "4c88127b50c0c731aeb5129bdea06deb"
@@ -118,11 +119,9 @@ func init() {
 	go kloud.Run()
 	<-kloud.ServerReadyNotify()
 
-	fmt.Println("new client")
 	client := kite.New("client", "0.0.1")
 	client.Config = conf
 
-	fmt.Println("getting kites")
 	kites, err := client.GetKites(protocol.KontrolQuery{
 		Username:    "testuser",
 		Environment: "vagrant",
@@ -227,7 +226,7 @@ func TestProviders(t *testing.T) {
 func TestBuild(t *testing.T) {
 	// t.Skip("To enable this test remove this line")
 
-	numberOfBuilds := 1
+	numberOfBuilds := *flagTestBuilds
 
 	for provider, data := range TestProviderData {
 		if data == nil {
@@ -235,8 +234,8 @@ func TestBuild(t *testing.T) {
 			continue
 		}
 
-		buildFunc := func() {
-			machineName := "testkloud-" + strconv.FormatInt(time.Now().UTC().UnixNano(), 10)
+		buildFunc := func(i int) {
+			machineName := "testkloud-" + strconv.FormatInt(time.Now().UTC().UnixNano(), 10) + "-" + strconv.Itoa(i)
 
 			bArgs := &buildArgs{
 				Provider:    data["provider"].(string),
@@ -265,8 +264,8 @@ func TestBuild(t *testing.T) {
 			fmt.Printf("result %+v\n", result)
 			fmt.Println("============")
 
-			if *flagTestDestroy {
-				fmt.Println("destroying it now")
+			if !*flagTestDestroy {
+				fmt.Println("destroying ", machineName)
 				dropletId := result.Id
 				cArgs := &controllerArgs{
 					Provider:   data["provider"].(string),
@@ -278,17 +277,16 @@ func TestBuild(t *testing.T) {
 					t.Errorf("destroy: %s", err)
 				}
 			}
-
 		}
 
 		var wg sync.WaitGroup
 		for i := 0; i < numberOfBuilds; i++ {
 			wg.Add(1)
 
-			go func() {
+			go func(i int) {
 				defer wg.Done()
-				buildFunc()
-			}()
+				buildFunc(i)
+			}(i)
 		}
 
 		wg.Wait()
