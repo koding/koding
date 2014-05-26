@@ -105,4 +105,4 @@ class IDEAppController extends AppController
       parentSplitView.panels[panelIndexInParent]        = ideView.parent
 
   openFile: (file, contents) ->
-    @activeTabView.openFile file, contents
+    @activeTabView.emit 'FileNeedsToBeOpened', file, contents

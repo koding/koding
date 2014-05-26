@@ -6,7 +6,10 @@
 
     @openFiles = []
 
-    @on 'PlusHandleClicked', @bound 'createPlusContextMenu'
+    @on 'PlusHandleClicked',   @bound 'createPlusContextMenu'
+    @on 'FileNeedsToBeOpened', @bound 'openFile'
+    @forwardEvent @tabView, 'FileNeedsToBeOpened'
+
     @once 'viewAppended', => KD.utils.wait 300, => @createEditor()
 
   getPlusMenuItems: ->
