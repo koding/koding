@@ -178,7 +178,7 @@ module.exports = class ComputeProvider extends Base
 
   @createGroupStack = secure (client, callback)->
 
-    fetchStackTemplate client, (err, res)=>
+    fetchStackTemplate client, (err, res)->
       return callback err  if err
 
       { account, user, group, template } = res
