@@ -59,6 +59,7 @@ class IDEAppController extends AppController
 
     splitView.once 'viewAppended', ->
       splitView.panels.first.attach ideView
+      splitView.panels[0] = ideView.parent
       splitView.options.views[0] = ideView
 
     ideParent.addSubView splitView
