@@ -13,6 +13,7 @@ import (
 	"socialapi/workers/common/runner"
 	"socialapi/workers/helper"
 	notificationapi "socialapi/workers/notification/api"
+	trollmodeapi "socialapi/workers/trollmode/api"
 	"syscall"
 	"github.com/rcrowley/go-tigertonic"
 )
@@ -42,6 +43,7 @@ func init() {
 	mux = tigertonic.NewTrieServeMux()
 	mux = handlers.Inject(mux)
 	mux = notificationapi.InitHandlers(mux)
+	mux = trollmodeapi.InitHandlers(mux)
 }
 
 func main() {
