@@ -1,7 +1,5 @@
 package helper
 
-// TODO use loghelper under koding/worker package instead of this
-
 import (
 	"fmt"
 	"os"
@@ -9,6 +7,8 @@ import (
 
 	"github.com/koding/logging"
 )
+
+var log logging.Logger
 
 type Formatter struct{}
 
@@ -22,7 +22,7 @@ func (f *Formatter) Format(rec *logging.Record) string {
 }
 
 func CreateLogger(name string, debug bool) logging.Logger {
-	log := logging.NewLogger(name)
+	log = logging.NewLogger(name)
 	logHandler := logging.NewWriterHandler(os.Stderr)
 	logHandler.Formatter = &Formatter{}
 	logHandler.Colorize = true
@@ -31,6 +31,14 @@ func CreateLogger(name string, debug bool) logging.Logger {
 	if debug {
 		log.SetLevel(logging.DEBUG)
 		logHandler.SetLevel(logging.DEBUG)
+	}
+
+	return log
+}
+
+func MustGetLogger() logging.Logger {
+	if log == nil {
+		panic("Logger is not initialized. You should call \"MustInitLogger(name string, debug bool)\" first")
 	}
 
 	return log
