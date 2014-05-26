@@ -190,7 +190,7 @@ module.exports = class ComputeProvider extends Base
         baseStackId : template._id
         groupSlug   : group.slug
         account
-      }, (err, stack)=>
+      }, (err, stack)->
 
         return callback err  if err
 
@@ -203,17 +203,17 @@ module.exports = class ComputeProvider extends Base
           account.addStackTemplate template, (err)->
             if err then callback err else queue.next()
 
-        machines.forEach (machineInfo) =>
+        machines.forEach (machineInfo) ->
 
-          queue.push =>
+          queue.push ->
             machineInfo.stack = stack
-            @create client, machineInfo, (err, machine)->
+            ComputeProvider.create client, machineInfo, (err, machine)->
               results.machines.push { err, machine }
               queue.next()
 
-        domains.forEach (domainInfo) =>
+        domains.forEach (domainInfo) ->
 
-          queue.push =>
+          queue.push ->
             domain = domainInfo.domain.replace "${username}", user.username
             JDomain.createDomain {
               domain, account,
