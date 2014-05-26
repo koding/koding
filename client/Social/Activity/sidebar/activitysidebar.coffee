@@ -176,7 +176,7 @@ class ActivitySidebar extends KDCustomScrollView
       title      : 'Followed Topics'
       cssClass   : 'followed topics'
       itemClass  : SidebarTopicItem
-      dataPath   : 'followedTopics'
+      dataPath   : 'followedChannels'
       delegate   : this
       dataSource : (callback) ->
         KD.singletons.socialapi.channel.fetchFollowedChannels
