@@ -40,7 +40,7 @@ class IDEAppController extends AppController
       @getView().addSubView panel
 
       panel.once 'viewAppended', =>
-        @setActiveTabView panel.getPaneByName 'editorPane'
+        @setActiveTabView panel.getPaneByName('editorPane').tabView
 
   setActiveTabView: (tabView) ->
     @activeTabView = tabView
