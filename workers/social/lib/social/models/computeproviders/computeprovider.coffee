@@ -115,6 +115,7 @@ module.exports = class ComputeProvider extends Base
 
   , (client, options, callback)->
 
+    { r: { account } } = client
     { stack } = options
 
     JStack = require '../stack'
