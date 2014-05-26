@@ -56,7 +56,7 @@ class EnvironmentDomainContainer extends EnvironmentContainer
       title       : domain.proposedDomain
       description : $.timeago domain.meta.createdAt
       activated   : yes
-      aliases     : domain.hostnameAlias
+      machines    : domain.machines
       domain      : domain
 
   getDomainCreateForm: ->

@@ -23,9 +23,9 @@ module.exports = class JDomain extends jraphical.Module
 
   @set
 
-    softDelete      : no
+    softDelete        : no
 
-    permissions     :
+    permissions       :
 
       'create domains'     : ['member']
       'edit domains'       : ['member']
@@ -34,58 +34,58 @@ module.exports = class JDomain extends jraphical.Module
       'delete own domains' : ['member']
       'list domains'       : ['member']
 
-    sharedMethods   :
+    sharedMethods     :
 
-      static        :
-        one         :
+      static          :
+        one           :
           (signature Object, Function)
-        fetchDomains:
+        fetchDomains  :
           (signature Function)
-        createDomain: [
+        createDomain  : [
           (signature Object, Function)
         ]
 
-      instance       :
-        bindVM       :
-          (signature Object, Function)
-        unbindVM     :
-          (signature Object, Function)
-        remove       :
+      instance        :
+        bindMachine   :
+          (signature String, Function)
+        unbindMachine :
+          (signature String, Function)
+        remove        :
           (signature Function)
 
-    sharedEvents     :
-      static         : []
-      instance       : []
+    sharedEvents      :
+      static          : []
+      instance        : []
 
-    indexes          :
-      domain         : ['unique', 'sparse']
-      hostnameAlias  : 'sparse'
-      proposedDomain : 'sparse'
+    indexes           :
+      domain          : ['unique', 'sparse']
+      machines        : 'sparse'
+      proposedDomain  : 'sparse'
 
-    schema           :
+    schema            :
 
-      domain         : String
+      domain          : String
 
-      proposedDomain : String
-        type         : String
-        required     : yes
-        set          : (value)-> value.toLowerCase()
+      proposedDomain  : String
+        type          : String
+        required      : yes
+        set           : (value)-> value.toLowerCase()
 
-      hostnameAlias  :
-        type         : Array
-        default      : []
+      machines        :
+        type          : Array
+        default       : []
 
-      proxy          :
-        mode         :
-          type       : String
-          default    : 'vm'
-        username     : String
-        serviceName  : String
-        key          : String
-        fullUrl      : String
+      proxy           :
+        mode          :
+          type        : String
+          default     : 'vm'
+        username      : String
+        serviceName   : String
+        key           : String
+        fullUrl       : String
 
-      meta           : require "bongo/bundles/meta"
-      group          : String
+      meta            : require "bongo/bundles/meta"
+      group           : String
 
 
   # filters domains such as shared-x/vm-x.groupSlug.kd.io
@@ -256,28 +256,36 @@ module.exports = class JDomain extends jraphical.Module
         if err? then console.error err  unless err.code is 11000
 
 
+  bindMachine: (target, callback)->
+    @update $addToSet: machines: ObjectId(target), callback
 
-  bindVM: (client, params, callback)->
-    domainName = @domain
-    operation  = {'$addToSet': hostnameAlias: params.hostnameAlias}
-    JDomain.update {domain:domainName}, operation, callback
+  unbindMachine: (target, callback)->
+    @update $pullAll: machines: [ ObjectId(target) ], callback
 
-  unbindVM: (client, params, callback)->
-    domainName = @domain
-    operation  = {'$pull': hostnameAlias: params.hostnameAlias}
-    JDomain.update {domain:domainName}, operation, callback
 
-  bindVM$: permit
+  bindMachine$: permit
     advanced: [
       { permission: "edit own domains", validateWith: Validators.own }
     ]
-    success: (rest...)-> @bindVM rest...
+    success: (client, target, callback)->
+      JMachine = require './computeproviders/machine'
+      JMachine.count { _id : target }, (err, count)=>
+        if err? or count is 0
+        then callback new KodingError "Target does not exists"
+        else @bindMachine target, callback
 
-  unbindVM$: permit
+
+  unbindMachine$: permit
     advanced: [
       { permission: "edit own domains", validateWith: Validators.own }
     ]
-    success: (rest...)-> @unbindVM rest...
+    success: (client, target, callback)->
+      JMachine = require './computeproviders/machine'
+      JMachine.count { _id : target }, (err, count)=>
+        if err? or count is 0
+        then callback new KodingError "Target does not exists"
+        else @unbindMachine target, callback
+
 
   @one$: permit 'list domains',
     success: (client, selector, callback)->

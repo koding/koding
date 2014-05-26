@@ -173,8 +173,8 @@ class StackView extends KDView
       for j, dia of container.dias
         dump[name].push \
           if name is 'domains'
-            title   : dia.data.title
-            aliases : dia.data.aliases
+            title    : dia.data.title
+            machines : dia.data.machines
           else if name is 'machines'
             obj     =
               provider : dia.data.provider
