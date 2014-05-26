@@ -422,6 +422,8 @@ func createClient(b *Broker, session *sockjs.Session, clientChan chan *Client, e
 	if !session.Closed {
 		sendToClient(session, "broker.connected", client.SocketId)
 		clientChan <- client
+	} else {
+		errChan <- fmt.Errorf("Session already closed here")
 	}
 }
 
