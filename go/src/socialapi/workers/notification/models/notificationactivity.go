@@ -48,6 +48,10 @@ func (a NotificationActivity) TableName() string {
 	return "notification.notification_activity"
 }
 
+// Create method creates a new activity with obsolete field set as false
+// If there already exists one activity with same ActorId and
+// NotificationContentId pair, old one is set as obsolete, and
+// new one is created
 func (a *NotificationActivity) Create() error {
 	s := map[string]interface{}{
 		"notification_content_id": a.NotificationContentId,
