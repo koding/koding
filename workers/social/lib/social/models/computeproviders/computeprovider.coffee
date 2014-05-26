@@ -182,7 +182,7 @@ module.exports = class ComputeProvider extends Base
       return callback err  if err
 
       { account, user, group, template } = res
-      { machines, domains } = template
+      { machines, domains, connections } = template
 
       JStack = require '../stack'
       JStack.create {
@@ -195,10 +195,12 @@ module.exports = class ComputeProvider extends Base
 
         return callback err  if err
 
-        queue      = []
-        results    =
-          machines : []
-          domains  : []
+        queue         = []
+        results       =
+          rules       : []
+          machines    : []
+          domains     : []
+          connections : []
 
         queue.push ->
           account.addStackTemplate template, (err)->
@@ -223,6 +225,53 @@ module.exports = class ComputeProvider extends Base
             }, (err, r)->
               console.warn err  if err?
               results.domains.push { err, domain: r }
+              queue.next()
+
+        connections.forEach (connection) ->
+
+          queue.push ->
+
+            {rules, domains, machines, extras} = connection
+
+            # Assign rule to domain
+            if rules? and domains?
+
+              rule   = results.rules[rules]
+              domain = results.domains[domains]
+
+              unless rule?.err and domain?.err
+                results.connections.push
+                  err        : new KodingError "Not implemented"
+                  connection : null
+              else
+                results.connections.push
+                  err        : new KodingError "Missing edge"
+                  connection : null
+
+              queue.next()
+
+            # Assign a domain to machine
+            else if machines? and domains?
+
+              domain  = results.domains[domains]
+              machine = results.machines[machines]
+
+              unless domain?.err and machine?.err
+
+                { domain }  = domain
+                { machine } = machine
+
+                domain.bindMachine machine.getId(), (err)->
+                  results.connections.push { err, connection: ok: !err? }
+                  queue.next()
+
+              else
+                results.connections.push
+                  err        : new KodingError "Missing edge"
+                  connection : null
+                queue.next()
+
+            else
               queue.next()
 
         queue.push ->
