@@ -6,8 +6,12 @@ class VerifyPINModal extends KDModalViewWithForms
     options =
       title                       : "Please provide the code that we've emailed you"
       overlay                     : yes
+      overlayClick                : no
       width                       : 605
       height                      : "auto"
+      cancel                      : =>
+        callback null
+        @destroy()
       tabs                        :
         navigable                 : yes
         forms                     :
