@@ -95,7 +95,7 @@ module.exports = class JUser extends jraphical.Module
         authenticateWithOauth   : (signature Object, Function)
         unregister              : (signature String, Function)
         finishRegistration      : (signature Object, Function)
-        verifyPassword          : (signature String, Function)
+        verifyPassword          : (signature Object, Function)
 
     schema          :
       username      :
@@ -362,15 +362,31 @@ module.exports = class JUser extends jraphical.Module
               JSessionHistory.create {username}, ->
                 afterLogin connection, user, clientId, session, callback
 
-  @verifyPassword = secure (client, password, callback)->
+  @verifyPassword = secure (client, options, callback)->
     {connection: {delegate}} = client
+    {password, email, invalidatePin} = options
 
-    return callback createKodingError "Password cannot be empty!" if password is ""
+    invalidatePin = (err, user) ->
+      if email and user
+        # when email is set, we need to invalidate verification token
+        params =
+          action    : "update-email"
+          username  : user.username
+          email     : email
+        JVerificationToken = require '../verificationtoken'
+        JVerificationToken.invalidatePin params, (err) ->
+          return console.error 'Pin invalidation error occurred'  if err
+      callback err, no
 
-    @fetchUser client, (err, user) ->
-      return callback err if err
+    # fetch user for invalidating created token
+    @fetchUser client, (err, user) =>
+      return invalidatePin err if err
+      unless password and password isnt ""
+        return invalidatePin createKodingError("Password cannot be empty!"), user
+      confirmed = user.getAt('password') is hashPassword password, user.getAt('salt')
+      return callback null, yes  if confirmed
+      return invalidatePin null, user
 
-      return callback(null, user.getAt('password') is hashPassword password, user.getAt('salt'))
 
   logAndReturnLoginError = (username, error, callback)->
     JLog.log { type: "login", username: username, success: no }, ->
