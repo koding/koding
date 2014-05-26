@@ -3,6 +3,7 @@ package digitalocean
 import (
 	"errors"
 	"fmt"
+	"io/ioutil"
 	"koding/kites/kloud/klientprovisioner"
 	"koding/kites/kloud/packer"
 	"koding/kites/kloud/utils"
@@ -109,7 +110,7 @@ func (d *DigitalOcean) Prepare(raws ...interface{}) (err error) {
 // acceps two string arguments, first one is the snapshotname, second one is
 // the dropletName.
 func (d *DigitalOcean) Build(raws ...interface{}) (interface{}, error) {
-	if len(raws) != 2 {
+	if len(raws) != 3 {
 		return nil, errors.New("need one argument. No snaphost name is provided")
 	}
 
@@ -118,12 +119,15 @@ func (d *DigitalOcean) Build(raws ...interface{}) (interface{}, error) {
 		return nil, fmt.Errorf("malformed data received %v. snapshot name must be a string", raws[0])
 	}
 
-	username, ok := raws[1].(string)
+	dropletName, ok := raws[1].(string)
 	if !ok {
 		return nil, fmt.Errorf("malformed data received %v. droplet name must be a string", raws[0])
 	}
 
-	dropletName := username + "-" + strconv.FormatInt(time.Now().UTC().UnixNano(), 10)
+	signFunc, ok := raws[2].(func() (string, error))
+	if !ok {
+		return nil, fmt.Errorf("malformed data received %v. function signature must be func() (string,error)", raws[0])
+	}
 
 	// needed because this is passed as `data` to packer.Provider
 	d.Builder.SnapshotName = snapshotName
@@ -132,8 +136,10 @@ func (d *DigitalOcean) Build(raws ...interface{}) (interface{}, error) {
 	var err error
 
 	// check if snapshot image does exist, if not create a new one.
+	fmt.Println("getting image ", snapshotName)
 	image, err = d.Image(snapshotName)
 	if err != nil {
+		fmt.Println("image does not exist, creating a new one")
 		image, err = d.CreateImage()
 		if err != nil {
 			return nil, err
@@ -141,7 +147,7 @@ func (d *DigitalOcean) Build(raws ...interface{}) (interface{}, error) {
 	}
 
 	// create temporary key to deploy user based key
-	fmt.Println("creating temporary key")
+	fmt.Println("creating temporary ssh key")
 	privateKey, publicKey, err := temporaryKey()
 	if err != nil {
 		return nil, err
@@ -166,7 +172,7 @@ func (d *DigitalOcean) Build(raws ...interface{}) (interface{}, error) {
 	}()
 
 	// now create a the machine based on our created image
-	fmt.Println("creating droplet")
+	fmt.Println("creating droplet ", dropletName)
 	dropletInfo, err := d.CreateDroplet(dropletName, keyId, image.Id)
 	if err != nil {
 		return nil, err
@@ -175,6 +181,7 @@ func (d *DigitalOcean) Build(raws ...interface{}) (interface{}, error) {
 	// Now we wait until it's ready, it takes approx. 50-70 seconds to finish,
 	// but we also add a timeout  of five minutes to not let stuck it there
 	// forever.
+	fmt.Println("waiting for droplet to be ready ...")
 	err = d.WaitForState(dropletInfo.Droplet.EventId, "done", time.Minute*5)
 	if err != nil {
 		return nil, err
@@ -194,27 +201,46 @@ func (d *DigitalOcean) Build(raws ...interface{}) (interface{}, error) {
 		return nil, err
 	}
 
-	fmt.Println("connection to ssh")
+	fmt.Println("connection to ssh ", sshAddress)
 	client, err := connectSSH(sshAddress, sshConfig)
 	if err != nil {
 		return nil, err
 	}
 	defer client.Close()
 
+	// genereate kite key specific for the user
+	fmt.Println("creating kite key")
+	kiteKey, err := signFunc()
+	if err != nil {
+		return nil, err
+	}
+
+	// for debugging, remove it later ...
+	fmt.Println("writing kite key to temporary file (kite.key)")
+	if err := ioutil.WriteFile("kite.key", []byte(kiteKey), 0400); err != nil {
+		fmt.Println("couldn't write temporary kite file", err)
+	}
+
 	keyPath := "/opt/kite/klient/key/kite.key"
 
-	fmt.Println("creating ", keyPath)
+	fmt.Println("copying remote kite key", keyPath)
 	remoteFile, err := client.Create(keyPath)
 	if err != nil {
 		return nil, err
 	}
 
-	n, err := remoteFile.Write([]byte("hello fatih"))
+	n, err := remoteFile.Write([]byte(kiteKey))
 	if err != nil {
 		return nil, err
 	}
 
 	fmt.Printf("wrote %+v bytes\n", n)
+
+	// restart after we create with the key itself
+	fmt.Println("restarting klient on remote machine")
+	if err := client.StartCommand("service klient restart"); err != nil {
+		return nil, err
+	}
 
 	return dropInfo, nil
 }
