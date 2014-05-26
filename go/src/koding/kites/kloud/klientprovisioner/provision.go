@@ -49,17 +49,6 @@ var RawData = []interface{}{
 			"mkdir -p " + KlientKeyDir,
 		},
 	},
-	map[string]interface{}{
-		"type":        "file",
-		"source":      KlientKey,
-		"destination": KlientKeyDir + "/" + KlientKey,
-	},
-	map[string]interface{}{
-		"type": "shell",
-		"inline": []string{
-			"service klient restart",
-		},
-	},
 }
 
 // klientTemplate is ready to used and unmarshalled packer.Template. This is
@@ -83,23 +72,6 @@ var PackerTemplate = packer.Template{
 					"sleep 30",
 					"sudo dpkg -i /tmp/" + KlientDeb,
 					"mkdir -p " + KlientKeyDir,
-				},
-			},
-		},
-		{
-			Type: "file",
-			RawConfig: map[string]string{
-				"type":        "file",
-				"source":      KlientKey,
-				"destination": KlientKeyDir + "/" + KlientKey,
-			},
-		},
-		{
-			Type: "shell",
-			RawConfig: map[string]interface{}{
-				"type": "shell",
-				"inline": []string{
-					"service klient restart",
 				},
 			},
 		},
