@@ -40,4 +40,11 @@ class IDEFilesTabView extends WorkspaceTabView
         style    : 'display: block; margin: 20px; width: 200px; '
       callback   : -> ideAppController.mergeSplitView()
 
+    actionsPane.addSubView new KDButtonView
+      title      : 'New file'
+      cssClass   : 'compact solid green'
+      attributes :
+        style    : 'display: block; margin: 20px; width: 200px; '
+      callback   : -> ideAppController.openFile()
+
     @tabView.addPane actionsPane
