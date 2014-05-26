@@ -46,9 +46,8 @@ class IDEAppController extends AppController
     @activeTabView = tabView
 
   splitTabView: (type = 'vertical') ->
-
     ideView        = @activeTabView.parent
-    IDEParent      = ideView.parent
+    ideParent      = ideView.parent
     newIDEView     = new IDEView
     @activeTabView = null
 
@@ -62,41 +61,46 @@ class IDEAppController extends AppController
       splitView.panels.first.attach ideView
       splitView.options.views[0] = ideView
 
-    IDEParent.addSubView splitView
+    ideParent.addSubView splitView
     @setActiveTabView newIDEView.tabView
 
   mergeSplitView: ->
-    splitView = @activeTabView.parent.parent.parent
-    {parent} = splitView
+    panel     = @activeTabView.parent.parent
+    splitView = panel.parent
+    {parent}  = splitView
+
+    if parent instanceof KDSplitViewPanel
+      parentSplitView    = parent.parent
+      panelIndexInParent = parentSplitView.panels.indexOf parent
+
     splitView.once 'SplitIsBeingMerged', (views) =>
-      @handleSplitMerge views, parent
+      @handleSplitMerge views, parent, parentSplitView, panelIndexInParent
 
     splitView.merge()
 
-  handleSplitMerge: (views, splitParent) ->
-    ideView        = new IDEView
-    @activeTabView = null
-
-    # ideView.detach()
-
+  handleSplitMerge: (views, container, parentSplitView, panelIndexInParent) ->
+    ideView = new IDEView
     panes   = []
 
     for view in views
       {tabView} = view
-      for p in tabView.panes
-        # pane.tabHandle.detach()
-        {pane, handle} = tabView.removePane p, yes
-        # ideView.tabView.addPane pane
+
+      for p in tabView.panes by -1
+        {pane} = tabView.removePane p, yes
         panes.push pane
 
       view.destroy()
 
-    splitParent.addSubView ideView
+    container.addSubView ideView
 
     for pane in panes
       ideView.tabView.addPane pane
 
     @setActiveTabView ideView.tabView
+
+    if parentSplitView and panelIndexInParent
+      parentSplitView.options.views[panelIndexInParent] = ideView
+      parentSplitView.panels[panelIndexInParent]        = ideView.parent
 
   openFile: (file, contents) ->
     @activeTabView.openFile file, contents
