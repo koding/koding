@@ -8,6 +8,7 @@ import (
 	"koding/kodingkite"
 	"koding/tools/config"
 	"log"
+	"math/rand"
 	"net/url"
 	"os"
 	"strconv"
@@ -140,6 +141,8 @@ func init() {
 	if !*flagTestDebug {
 		log.SetOutput(ioutil.Discard)
 	}
+
+	rand.Seed(time.Now().UTC().UnixNano())
 }
 
 func TestProviders(t *testing.T) {
@@ -235,6 +238,8 @@ func TestBuild(t *testing.T) {
 		}
 
 		buildFunc := func(i int) {
+			time.Sleep(time.Millisecond * time.Duration(rand.Intn(2500))) // wait 0-2500 milliseconds
+
 			machineName := "testkloud-" + strconv.FormatInt(time.Now().UTC().UnixNano(), 10) + "-" + strconv.Itoa(i)
 
 			bArgs := &buildArgs{
