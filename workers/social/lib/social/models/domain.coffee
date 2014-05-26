@@ -257,10 +257,10 @@ module.exports = class JDomain extends jraphical.Module
 
 
   bindMachine: (target, callback)->
-    @update $addToSet: machines: ObjectId(target), callback
+    @update $addToSet: machines: target, callback
 
   unbindMachine: (target, callback)->
-    @update $pullAll: machines: [ ObjectId(target) ], callback
+    @update $pullAll: machines: [ target ], callback
 
 
   bindMachine$: permit
@@ -272,7 +272,7 @@ module.exports = class JDomain extends jraphical.Module
       JMachine.count { _id : target }, (err, count)=>
         if err? or count is 0
         then callback new KodingError "Target does not exists"
-        else @bindMachine target, callback
+        else @bindMachine ObjectId(target), callback
 
 
   unbindMachine$: permit
@@ -284,7 +284,7 @@ module.exports = class JDomain extends jraphical.Module
       JMachine.count { _id : target }, (err, count)=>
         if err? or count is 0
         then callback new KodingError "Target does not exists"
-        else @unbindMachine target, callback
+        else @unbindMachine ObjectId(target), callback
 
 
   @one$: permit 'list domains',
