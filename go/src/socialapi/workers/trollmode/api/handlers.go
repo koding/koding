@@ -18,5 +18,6 @@ func InitHandlers(mux *tigertonic.TrieServeMux) *tigertonic.TrieServeMux {
 		"/trollmode/{accountId}",
 		handler.Wrapper(UnMark, "trollmode-unmark"),
 	)
+
 	return mux
 }
