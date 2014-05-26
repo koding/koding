@@ -1,11 +1,9 @@
 package controller
 
 import (
+	"errors"
 	"fmt"
-	mongomodels "koding/db/models"
-	"koding/db/mongodb/modelhelper"
 	"socialapi/config"
-	socialmodels "socialapi/models"
 	"socialapi/workers/emailnotifier/models"
 	"socialapi/workers/helper"
 	notificationmodels "socialapi/workers/notification/models"
@@ -29,7 +27,12 @@ type DailyEmailNotifierWorkerController struct {
 	settings *models.EmailSettings
 }
 
-var cronJob *cron.Cron
+var ObsoleteActivity = errors.New("obsolete activity")
+
+var (
+	cronJob  *cron.Cron
+	contents map[int64]*notificationmodels.NotificationContent
+)
 
 func NewDailyEmailNotifierWorkerController(
 	log logging.Logger,
@@ -39,6 +42,8 @@ func NewDailyEmailNotifierWorkerController(
 		log:      log,
 		settings: es,
 	}
+
+	contents = make(map[int64]*notificationmodels.NotificationContent)
 
 	return c, c.initDailyEmailCron()
 }
@@ -109,11 +114,17 @@ func (n *DailyEmailNotifierWorkerController) prepareDailyEmail(accountId int64) 
 	for _, activityId := range activityIds {
 		container, err := buildContainerForDailyMail(accountId, activityId)
 		if err != nil {
-			n.log.Error("error occurred while sending activity: %s ", err)
+			if err != ObsoleteActivity {
+				n.log.Error("error occurred while sending activity: %s ", err)
+			}
 			continue
 		}
 
 		containers = append(containers, container)
+	}
+
+	if len(containers) == 0 {
+		return nil
 	}
 
 	tp := models.NewTemplateParser()
@@ -196,6 +207,10 @@ func buildContainerForDailyMail(accountId, activityId int64) (*models.MailerCont
 	nc, err := getContent(a)
 	if err != nil {
 		return nil, err
+	}
+
+	if a.Obsolete && nc.TypeConstant != notificationmodels.NotificationContent_TYPE_COMMENT {
+		return nil, ObsoleteActivity
 	}
 
 	mc := models.NewMailerContainer()
