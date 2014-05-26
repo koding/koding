@@ -188,12 +188,12 @@ func preparePreviousDayCacheKey() string {
 }
 
 func buildContainerForDailyMail(accountId, activityId int64) (*models.MailerContainer, error) {
-	// TODO cache notification contents in memory
 	a := notificationmodels.NewNotificationActivity()
 	if err := a.ById(activityId); err != nil {
 		return nil, err
 	}
-	nc, err := a.FetchContent()
+
+	nc, err := getContent(a)
 	if err != nil {
 		return nil, err
 	}
@@ -208,4 +208,18 @@ func buildContainerForDailyMail(accountId, activityId int64) (*models.MailerCont
 	}
 
 	return mc, nil
+}
+
+func getContent(a *notificationmodels.NotificationActivity) (*notificationmodels.NotificationContent, error) {
+	if val, ok := contents[a.NotificationContentId]; ok {
+		return val, nil
+	}
+
+	nc, err := a.FetchContent()
+	if err != nil {
+		return nil, err
+	}
+	contents[a.NotificationContentId] = nc
+
+	return nc, nil
 }
