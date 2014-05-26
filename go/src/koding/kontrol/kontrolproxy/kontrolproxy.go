@@ -524,10 +524,10 @@ func (p *Proxy) internal(req *http.Request, target *resolver.Target) http.Handle
 	log.Debug("internal - %s [%s] goes to %s -->  [build: %s server: %s]",
 		target.FetchedSource, userIP, resp.Request.Host, service.Build, resp.Request.Host)
 
-	return internelReverseProxy(resp)
+	return internalReverseProxy(resp)
 }
 
-func internelReverseProxy(res *http.Response) http.Handler {
+func internalReverseProxy(res *http.Response) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		defer res.Body.Close()
 		copyHeader(w.Header(), res.Header)
