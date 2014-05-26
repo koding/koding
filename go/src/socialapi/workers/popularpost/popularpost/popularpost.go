@@ -89,7 +89,7 @@ func (f *PopularPostController) handleInteractionEvent(incrementCount int, data 
 	}
 
 	if !f.isEligible(c, cm) {
-		f.log.Error("Not eligible Interaction Id:%d", i.Id)
+		f.log.Error(fmt.Sprintf("Not eligible Interaction Id:%d", i.Id))
 		return nil
 	}
 
@@ -113,9 +113,6 @@ func (f *PopularPostController) handleInteractionEvent(incrementCount int, data 
 }
 
 func (f *PopularPostController) isEligible(c *models.Channel, cm *models.ChannelMessage) bool {
-	// to-do do not forget to remove return true
-	return true
-
 	if c.PrivacyConstant != models.Channel_PRIVACY_PUBLIC {
 		return false
 	}
