@@ -224,6 +224,8 @@ class SocialApiController extends KDController
             "MessageRemoved"
           ]
 
+          socialapi.emit "ChannelRegistered-#{channelName}", map[channelName]
+
   message:
     edit   :(args...)-> messageApiMessageResFunc 'edit', args...
     post   :(args...)-> messageApiMessageResFunc 'post', args...
