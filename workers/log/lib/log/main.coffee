@@ -48,6 +48,8 @@ processMonitor = (require 'processes-monitor').start
     middleware : (name,callback) -> koding.disconnect callback
     middlewareTimeout : 15000
 
+require_koding_model = require "./require_koding_model"
+
 koding = new Bongo {
   verbose     : log.verbose
   root        : __dirname
@@ -56,7 +58,9 @@ koding = new Bongo {
   resourceName: log.queueName
   mq          : broker
   fetchClient :(sessionToken, context, callback)->
-    { JUser, JAccount } = koding.models
+    JUser    = require_koding_model "user/index"
+    JAccount = require_koding_model "account"
+
     [callback, context] = [context, callback] unless callback
     context             ?= group: 'koding'
     callback            ?= ->

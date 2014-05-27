@@ -2,6 +2,8 @@ elasticsearch = require 'es'
 UAParser      = require 'ua-parser-js'
 _             = require "underscore"
 
+require_koding_model = require '../require_koding_model'
+
 {
   secure
   signature
@@ -50,7 +52,7 @@ module.exports = class ElasticSearch extends Base
 
   @getUserInfo: (client, callback)->
     {sessionToken} = client
-    JSession       = require './session'
+    JSession       = require_koding_model 'session'
     JSession.one {clientId: sessionToken}, (err, session) =>
       return callback err  if err
 
