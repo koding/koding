@@ -19,14 +19,10 @@ class MessagePane extends KDTabPaneView
 
   bindChannelEvents: ->
 
-    {channel} = @getData()
-    channel  ?= KD.singleton("socialapi").openedChannels[@getOption "name"]
+    KD.singletons.socialapi.onChannelReady @getOption('name'), (channel) =>
 
-    return  unless channel
-
-    channel.on "MessageAdded", @bound "addMessage"
-    channel.on "MessageRemoved", @bound "removeMessage"
-
+      channel.on "MessageAdded", @bound "addMessage"
+      channel.on "MessageRemoved", @bound "removeMessage"
 
   addMessage: (message) ->
 
