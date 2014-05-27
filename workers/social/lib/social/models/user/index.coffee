@@ -364,7 +364,7 @@ module.exports = class JUser extends jraphical.Module
 
   @verifyPassword = secure (client, options, callback)->
     {connection: {delegate}} = client
-    {password, email, invalidatePin} = options
+    {password, email} = options
 
     invalidatePin = (err, user) ->
       if email and user
