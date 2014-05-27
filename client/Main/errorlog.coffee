@@ -29,4 +29,4 @@ class ErrorLog
         osKiteVersion : osVersion
       }, params
 
-      KD.remote.api.JErrorLog.create error, ->
+      KD.remote_log.api.JErrorLog.create error, ->
