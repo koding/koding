@@ -31,6 +31,7 @@ class SocialApiController extends KDController
       name = "socialapi.#{slug}-group-#{slug}"
       brokerChannel= KD.remote.subscribe name, subscriptionData
       @forwardMessageEvents brokerChannel, this, ["MessageAdded", "MessageRemoved"]
+      @emit "ChannelRegistered-group-#{slug}", this
 
   mapActivity = (data) ->
 
