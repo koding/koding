@@ -181,7 +181,6 @@ module.exports = class ComputeProvider extends Base
       return callback err  if err
 
       { account, user, group, template } = res
-      { machines, domains, connections } = template
 
       JStack = require '../stack'
       JStack.create {
@@ -205,15 +204,15 @@ module.exports = class ComputeProvider extends Base
           account.addStackTemplate template, (err)->
             if err then callback err else queue.next()
 
-        machines.forEach (machineInfo) ->
+        template.machines?.forEach (machineInfo)->
 
           queue.push ->
             machineInfo.stack = stack
             ComputeProvider.create client, machineInfo, (err, machine)->
-              results.machines.push { err, machine }
+              results.machines.push { err, obj: machine }
               queue.next()
 
-        domains.forEach (domainInfo) ->
+        template.domains?.forEach (domainInfo)->
 
           queue.push ->
             domain = domainInfo.domain.replace "${username}", user.username
@@ -223,51 +222,46 @@ module.exports = class ComputeProvider extends Base
               group : group.slug
             }, (err, r)->
               console.warn err  if err?
-              results.domains.push { err, domain: r }
+              results.domains.push { err, obj: r }
               queue.next()
 
-        connections.forEach (connection) ->
+        template.connections?.forEach (c)->
 
           queue.push ->
 
-            {rules, domains, machines, extras} = connection
-
             # Assign rule to domain
-            if rules? and domains?
+            if c.rules? and c.domains?
 
-              rule   = results.rules[rules]
-              domain = results.domains[domains]
+              rule   = results.rules[c.rules]
+              domain = results.domains[c.domains]
 
               unless rule?.err and domain?.err
                 results.connections.push
-                  err        : new KodingError "Not implemented"
-                  connection : null
+                  err : new KodingError "Not implemented"
+                  obj : null
               else
                 results.connections.push
-                  err        : new KodingError "Missing edge"
-                  connection : null
+                  err : new KodingError "Missing edge"
+                  obj : null
 
               queue.next()
 
             # Assign a domain to machine
-            else if machines? and domains?
+            else if c.machines? and c.domains?
 
-              domain  = results.domains[domains]
-              machine = results.machines[machines]
+              d = results.domains[c.domains]
+              m = results.machines[c.machines]
 
-              unless domain?.err and machine?.err
+              unless d?.err and m?.err
 
-                { domain }  = domain
-                { machine } = machine
-
-                domain.bindMachine machine.getId(), (err)->
-                  results.connections.push { err, connection: ok: !err? }
+                d.obj.bindMachine m.obj.getId(), (err)->
+                  results.connections.push { err, obj: ok: !err? }
                   queue.next()
 
               else
                 results.connections.push
-                  err        : new KodingError "Missing edge"
-                  connection : null
+                  err : new KodingError "Missing edge"
+                  obj : null
                 queue.next()
 
             else
