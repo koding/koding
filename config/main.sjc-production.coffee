@@ -11,6 +11,7 @@ mongoKontrol = 'dev:k9lc4G1k32nyD72@172.16.3.9:27017/kontrol'
 mongoReplSet = 'mongodb://dev:k9lc4G1k32nyD72@172.16.3.9,172.16.3.10,172.16.3.15/koding?replicaSet=koodingrs0&readPreference=primaryPreferred'
 
 socialQueueName = "koding-social-#{version}"
+logQueueName    = socialQueueName+'log'
 
 authExchange    = "auth-#{version}"
 authAllExchange = "authAll-#{version}"
@@ -139,6 +140,12 @@ module.exports =
     watch       : no
     queueName   : socialQueueName
     verbose     : no
+  log           :
+    login       : 'prod-social'
+    numberOfWorkers: 2
+    watch       : yes
+    queueName   : logQueueName
+    verbose     : no
   presence        :
     exchange      : 'services-presence'
   client          :
@@ -168,7 +175,9 @@ module.exports =
       useNeo4j: yes
       logToExternal : yes
       resourceName: socialQueueName
+      logResourceName: logQueueName
       socialApiUri: 'https://social.koding.com/xhr'
+      logApiUri   : 'https://log.koding.com/xhr'
       suppressLogs: yes
       version   : version
       mainUri   : "https://koding.com"

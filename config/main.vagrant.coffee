@@ -7,6 +7,7 @@ mongo           = 'localhost:27017/koding'
 mongoKontrol    = 'localhost:27017/kontrol'
 projectRoot     = nodePath.join __dirname, '..'
 socialQueueName = "koding-social-vagrant"
+logQueueName    = socialQueueName+'log'
 
 authExchange    = "auth"
 authAllExchange = "authAll"
@@ -133,6 +134,12 @@ module.exports =
     watch       : yes
     queueName   : socialQueueName
     verbose     : no
+  log           :
+    login       : 'prod-social'
+    numberOfWorkers: 1
+    watch       : yes
+    queueName   : logQueueName
+    verbose     : no
   followFeed    :
     host        : 'localhost'
     port        : 5672
@@ -170,7 +177,9 @@ module.exports =
       useNeo4j: yes
       logToExternal: no  # rollbar, mixpanel etc.
       resourceName: socialQueueName
+      logResourceName: logQueueName
       socialApiUri: 'http://lvh.me:3030/xhr'
+      logApiUri: 'http://lvh.me:3040/xhr'
       suppressLogs: no
       broker    :
         servicesEndpoint: 'http://lvh.me:3020/-/services/broker'

@@ -6,6 +6,7 @@ version = (fs.readFileSync nodePath.join(__dirname, '../VERSION'), 'utf-8').trim
 projectRoot = nodePath.join __dirname, '..'
 
 socialQueueName = "koding-social-#{version}"
+logQueueName    = socialQueueName+'log'
 
 authExchange    = "auth-#{version}"
 authAllExchange = "authAll-#{version}"
@@ -134,6 +135,12 @@ module.exports =
     watch       : no
     queueName   : socialQueueName
     verbose     : no
+  log           :
+    login       : 'prod-social'
+    numberOfWorkers: 2
+    watch       : yes
+    queueName   : logQueueName
+    verbose     : no
   presence        :
     exchange      : 'services-presence'
   client          :
@@ -163,7 +170,9 @@ module.exports =
       useNeo4j: yes
       logToExternal : yes
       resourceName: socialQueueName
+      logResourceName: logQueueName
       socialApiUri: 'https://stage-social.koding.com/xhr'
+      logApiUri: 'https://stage-log.koding.com/xhr'
       suppressLogs: no
       version   : version
       mainUri   : "https://latest.koding.com"

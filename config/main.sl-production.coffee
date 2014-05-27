@@ -136,6 +136,12 @@ module.exports =
     watch       : no
     queueName   : socialQueueName
     verbose     : no
+  log           :
+    login       : 'prod-social'
+    numberOfWorkers: 2
+    watch       : yes
+    queueName   : socialQueueName+'log'
+    verbose     : no
   presence        :
     exchange      : 'services-presence'
   client          :
@@ -165,7 +171,9 @@ module.exports =
       useNeo4j: yes
       logToExternal : yes
       resourceName: socialQueueName
+      logResourceName: socialQueueName+'log'
       socialApiUri: 'https://social.koding.com/xhr'
+      logApiUri: 'https://log.koding.com/xhr'
       suppressLogs: yes
       version   : version
       mainUri   : "https://koding.com"
