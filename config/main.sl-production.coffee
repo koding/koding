@@ -107,7 +107,7 @@ module.exports =
     cronSchedule         : '00 * * * * *'
     usageLimitInMinutes  : 60
   elasticSearch          :
-    host                 : "localhost"
+    host                 : "log0.sjc.koding.com"
     port                 : 9200
     enabled              : no
     queue                : "elasticSearchFeederQueue"
@@ -406,7 +406,3 @@ module.exports =
     secure      : cookieSecure
   troubleshoot  :
     recipientEmail: "support@koding.com"
-  pageHit         :
-    run           : yes
-    host          : "log0.sjc.koding.com"
-    port          : 9200

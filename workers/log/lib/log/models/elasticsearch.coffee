@@ -12,9 +12,8 @@ _             = require "underscore"
 KONFIG = require('koding-config-manager').load("main.#{argv.c}")
 
 {
-  pageHit: {
-    run, host, port
-  }
+  log           : { run }
+  elasticsearch : { host, port}
 } = KONFIG
 
 config = {
