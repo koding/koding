@@ -14,6 +14,11 @@ import (
 	"github.com/streadway/amqp"
 )
 
+const (
+	NOTIFICATION_TYPE_SUBSCRIBE   = "subscribe"
+	NOTIFICATION_TYPE_UNSUBSCRIBE = "unsubscribe"
+)
+
 type Action func(*NotificationWorkerController, []byte) error
 
 type NotificationWorkerController struct {
@@ -44,10 +49,12 @@ func NewNotificationWorkerController(rmq *rabbitmq.RabbitMQ, log logging.Logger,
 	}
 
 	routes := map[string]Action{
-		"api.message_reply_created":       (*NotificationWorkerController).CreateReplyNotification,
-		"api.interaction_created":         (*NotificationWorkerController).CreateInteractionNotification,
-		"api.channel_participant_created": (*NotificationWorkerController).JoinChannel,
-		"api.channel_participant_updated": (*NotificationWorkerController).LeaveChannel,
+		"api.message_reply_created":        (*NotificationWorkerController).CreateReplyNotification,
+		"api.interaction_created":          (*NotificationWorkerController).CreateInteractionNotification,
+		"api.channel_participant_created":  (*NotificationWorkerController).JoinChannel,
+		"api.channel_participant_updated":  (*NotificationWorkerController).LeaveChannel,
+		"api.channel_message_list_created": (*NotificationWorkerController).SubscribeMessage,
+		"api.channel_message_list_deleted": (*NotificationWorkerController).UnsubscribeMessage,
 	}
 
 	nwc.routes = routes
@@ -122,6 +129,46 @@ func (n *NotificationWorkerController) CreateReplyNotification(data []byte) erro
 	// if not subcribed, subscribe the actor to message
 	if !notifierSubscribed {
 		n.subscribe(nc.Id, rn.NotifierId, subscribedAt)
+	}
+
+	return nil
+}
+
+func (n *NotificationWorkerController) UnsubscribeMessage(data []byte) error {
+	return subscription(data, NOTIFICATION_TYPE_UNSUBSCRIBE)
+}
+
+func (n *NotificationWorkerController) SubscribeMessage(data []byte) error {
+	return subscription(data, NOTIFICATION_TYPE_SUBSCRIBE)
+}
+
+func subscription(data []byte, typeConstant string) error {
+	cml, err := helper.MapToChannelMessageList(data)
+	if err != nil {
+		return err
+	}
+
+	c := socialapimodels.NewChannel()
+	if err := c.ById(cml.ChannelId); err != nil {
+		return err
+	}
+
+	if c.TypeConstant != socialapimodels.Channel_TYPE_PINNED_ACTIVITY {
+		return nil
+	}
+
+	// user pinned (followed) a message
+	nc := models.NewNotificationContent()
+	nc.TargetId = cml.MessageId
+
+	n := models.NewNotification()
+	n.AccountId = c.CreatorId
+
+	switch typeConstant {
+	case NOTIFICATION_TYPE_SUBSCRIBE:
+		return n.Subscribe(nc)
+	case NOTIFICATION_TYPE_UNSUBSCRIBE:
+		return n.Unsubscribe(nc)
 	}
 
 	return nil
