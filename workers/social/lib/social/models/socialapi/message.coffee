@@ -46,6 +46,7 @@ module.exports = class SocialMessage extends Base
       initialChannelId : Number
       createdAt        : Date
       updatedAt        : Date
+      followed         : Boolean
 
   JAccount = require '../account'
 
