@@ -256,11 +256,17 @@ module.exports = class JDomain extends jraphical.Module
         if err? then console.error err  unless err.code is 11000
 
 
+  # There is something wrong with instance level @update         FIXME ~ GG
+  # I'm using static update with instance @getId and it works
+  # but we need to look at this at some point, this is not correct
+
   bindMachine: (target, callback)->
-    @update $addToSet: machines: target, callback
+    JDomain.update {_id: @getId()}, $addToSet: machines: target, callback
+    # @update $addToSet: machines: target, callback
 
   unbindMachine: (target, callback)->
-    @update $pullAll: machines: [ target ], callback
+    JDomain.update {_id: @getId()}, $pullAll: machines: [ target ], callback
+    # @update $pullAll: machines: [ target ], callback
 
 
   bindMachine$: permit
