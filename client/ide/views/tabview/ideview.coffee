@@ -45,14 +45,15 @@
 
     @createPane_ editor, paneOptions, file
 
-  createTerminal: ->
-    @createPane_ new TerminalPane, { name: 'Terminal' }
+  createTerminal: (vm) ->
+    terminalPane = new TerminalPane { vm }
+    @createPane_ terminalPane,    { name: 'Terminal' }
 
   createDrawingBoard: ->
-    @createPane_ new DrawingPane,  { name: 'Drawing'  }
+    @createPane_ new DrawingPane, { name: 'Drawing'  }
 
   createPreview: ->
-    @createPane_ new PreviewPane,  { name: 'Browser'  }
+    @createPane_ new PreviewPane, { name: 'Browser'  }
 
   removeOpenDocument: ->
     # TODO: This method is legacy, should be reimplemented in ace bundle.
