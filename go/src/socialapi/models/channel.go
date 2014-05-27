@@ -460,3 +460,23 @@ func (c *Channel) FetchLastMessage() (*ChannelMessage, error) {
 
 	return cm, nil
 }
+
+func (c *Channel) CheckChannelPinned(ids []int64) (bool, error) {
+	err := bongo.B.DB.Table(c.TableName()).
+		Where(ids).
+		Where("type_constant = ?", Channel_TYPE_PINNED_ACTIVITY).
+		Where("creator_id = ?", c.CreatorId).
+		Limit(1).
+		Find(c).Error
+
+	if err != nil {
+		if err == gorm.RecordNotFound {
+
+			return false, nil
+		}
+
+		return false, err
+	}
+
+	return true, nil
+}
