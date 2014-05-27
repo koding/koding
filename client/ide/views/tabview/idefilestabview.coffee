@@ -15,6 +15,15 @@ class IDEFilesTabView extends WorkspaceTabView
     filesPane.addSubView new FinderPane
     @tabView.addPane filesPane
 
+    vmsPane    = new KDTabPaneView
+      name     : 'VMs'
+      closable : no
+
+    vmsPane.addSubView new VMListPane
+    @tabView.addPane  vmsPane
+
+
+    ################################
     actionsPane  = new KDTabPaneView
       name     : 'Actions'
       closable : no
