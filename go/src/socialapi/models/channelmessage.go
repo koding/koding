@@ -189,6 +189,11 @@ func (c *ChannelMessage) BuildMessage(query *Query) (*ChannelMessageContainer, e
 	}
 	cmc.RepliesCount = repliesCount
 
+	cmc.Followed, err = c.FetchFollowedInfo(query)
+	if err != nil {
+		return nil, err
+	}
+
 	populatedChannelMessagesReplies := make([]*ChannelMessageContainer, len(replies))
 	for rl := 0; rl < len(replies); rl++ {
 		cmrc, err := replies[rl].FetchRelatives(query)
@@ -200,6 +205,17 @@ func (c *ChannelMessage) BuildMessage(query *Query) (*ChannelMessageContainer, e
 
 	cmc.Replies = populatedChannelMessagesReplies
 	return cmc, nil
+}
+
+func (c *ChannelMessage) FetchFollowedInfo(query *Query) (bool, error) {
+	channelIds, err := NewChannelMessageList().FetchMessageChannelIds(c.Id)
+	if err != nil {
+		return false, err
+	}
+	channel := NewChannel()
+	channel.CreatorId = query.AccountId
+
+	return channel.CheckChannelPinned(channelIds)
 }
 
 func (c *ChannelMessage) BuildEmptyMessageContainer() (*ChannelMessageContainer, error) {
