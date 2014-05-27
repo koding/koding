@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"koding/kites/kloud/digitalocean"
+	"koding/kites/kloud/kloud"
 	"koding/kodingkite"
 	"koding/tools/config"
 	"log"
@@ -27,9 +28,9 @@ import (
 )
 
 var (
-	kloud    *kodingkite.KodingKite
-	remote   *kite.Client
-	testuser string
+	kloudKite *kodingkite.KodingKite
+	remote    *kite.Client
+	testuser  string
 
 	flagTestDebug    = flag.Bool("debug", false, "Enable debug")
 	flagTestBuilds   = flag.Int("builds", 1, "Number of builds")
@@ -86,9 +87,7 @@ func setupKloud() *kodingkite.KodingKite {
 	}
 	privateKey := string(privKey)
 
-	k := &Kloud{
-		Name:              "kloud-test",
-		Version:           "0.0.1",
+	k := &kloud.Kloud{
 		Region:            "vagrant",
 		Port:              3636,
 		Config:            kloudConf,
@@ -126,12 +125,12 @@ func init() {
 	go kon.Run()
 	<-kon.Kite.ServerReadyNotify()
 
-	kloud = setupKloud()
-	kloud.Config.DisableAuthentication = true
-	kloud.Config.KontrolURL = &url.URL{Scheme: "ws", Host: "localhost:4444"}
+	kloudKite = setupKloud()
+	kloudKite.Config.DisableAuthentication = true
+	kloudKite.Config.KontrolURL = &url.URL{Scheme: "ws", Host: "localhost:4444"}
 
-	go kloud.Run()
-	<-kloud.ServerReadyNotify()
+	go kloudKite.Run()
+	<-kloudKite.ServerReadyNotify()
 
 	client := kite.New("client", "0.0.1")
 	client.Config = conf
@@ -139,7 +138,7 @@ func init() {
 	kites, err := client.GetKites(protocol.KontrolQuery{
 		Username:    testuser,
 		Environment: "vagrant",
-		Name:        "kloud-test",
+		Name:        "kloud",
 	})
 	if err != nil {
 		log.Fatalln(err)
@@ -174,7 +173,7 @@ func TestProviders(t *testing.T) {
 		snapshotName := "testkoding-" + strconv.FormatInt(time.Now().UTC().Unix(), 10)
 
 		testlog("Starting tests")
-		bArgs := &buildArgs{
+		bArgs := &kloud.BuildArgs{
 			Provider:     data["provider"].(string),
 			Credential:   data["credential"].(map[string]interface{}),
 			Builder:      data["builder"].(map[string]interface{}),
@@ -196,7 +195,7 @@ func TestProviders(t *testing.T) {
 
 		dropletId := result.Id
 
-		cArgs := &controllerArgs{
+		cArgs := &kloud.ControllerArgs{
 			Provider:   data["provider"].(string),
 			Credential: data["credential"].(map[string]interface{}),
 			MachineID:  dropletId,
@@ -248,7 +247,7 @@ func TestBuild(t *testing.T) {
 
 			machineName := "testkloud-" + strconv.FormatInt(time.Now().UTC().UnixNano(), 10) + "-" + strconv.Itoa(i)
 
-			bArgs := &buildArgs{
+			bArgs := &kloud.BuildArgs{
 				Provider:    data["provider"].(string),
 				Credential:  data["credential"].(map[string]interface{}),
 				Builder:     data["builder"].(map[string]interface{}),
@@ -278,7 +277,7 @@ func TestBuild(t *testing.T) {
 			if !*flagTestDestroy {
 				fmt.Println("destroying ", machineName)
 				dropletId := result.Id
-				cArgs := &controllerArgs{
+				cArgs := &kloud.ControllerArgs{
 					Provider:   data["provider"].(string),
 					Credential: data["credential"].(map[string]interface{}),
 					MachineID:  dropletId,
@@ -308,7 +307,7 @@ func TestBuild(t *testing.T) {
 //
 // func TestStart(t *testing.T) {
 // 	clientID, apiKey := digitalOceanKeys()
-// 	args := &controllerArgs{
+// 	args := &kloud.ControllerArgs{
 // 		Provider: "digitalocean",
 // 		Credential: map[string]interface{}{
 // 			"client_id": clientID,
@@ -324,7 +323,7 @@ func TestBuild(t *testing.T) {
 //
 // func TestStop(t *testing.T) {
 // 	clientID, apiKey := digitalOceanKeys()
-// 	args := &controllerArgs{
+// 	args := &kloud.ControllerArgs{
 // 		Provider: "digitalocean",
 // 		Credential: map[string]interface{}{
 // 			"client_id": clientID,
@@ -340,7 +339,7 @@ func TestBuild(t *testing.T) {
 //
 // func TestRestart(t *testing.T) {
 // 	clientID, apiKey := digitalOceanKeys()
-// 	args := &controllerArgs{
+// 	args := &kloud.ControllerArgs{
 // 		Provider: "digitalocean",
 // 		Credential: map[string]interface{}{
 // 			"client_id": clientID,
@@ -356,7 +355,7 @@ func TestBuild(t *testing.T) {
 //
 // func TestInfo(t *testing.T) {
 // 	clientID, apiKey := digitalOceanKeys()
-// 	args := &controllerArgs{
+// 	args := &kloud.ControllerArgs{
 // 		Provider: "digitalocean",
 // 		Credential: map[string]interface{}{
 // 			"client_id": clientID,

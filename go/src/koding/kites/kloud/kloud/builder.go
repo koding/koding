@@ -1,4 +1,4 @@
-package main
+package kloud
 
 import (
 	"errors"
@@ -21,7 +21,7 @@ type Builder interface {
 	Build(...interface{}) (interface{}, error)
 }
 
-type buildArgs struct {
+type BuildArgs struct {
 	Provider     string
 	SnapshotName string
 	MachineName  string
@@ -37,7 +37,7 @@ var (
 )
 
 func (k *Kloud) build(r *kite.Request) (interface{}, error) {
-	args := &buildArgs{}
+	args := &BuildArgs{}
 	if err := r.Args.One().Unmarshal(args); err != nil {
 		return nil, err
 	}
