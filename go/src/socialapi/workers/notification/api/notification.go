@@ -23,11 +23,6 @@ var (
 	cacheEnabled       = false
 )
 
-const (
-	NOTIFICATION_TYPE_SUBSCRIBE   = "subscribe"
-	NOTIFICATION_TYPE_UNSUBSCRIBE = "unsubscribe"
-)
-
 func init() {
 	helpers.MustInitLogger("NotificationAPI", false)
 }
@@ -61,47 +56,6 @@ func Glance(u *url.URL, h http.Header, req *models.Notification) (int, http.Head
 	}
 
 	return socialhelpers.NewDefaultOKResponse()
-}
-
-func SubscribeMessage(u *url.URL, h http.Header, req *models.NotificationRequest) (int, http.Header, interface{}, error) {
-	if err := subscription(req, NOTIFICATION_TYPE_SUBSCRIBE); err != nil {
-		return socialhelpers.NewBadRequestResponse(err)
-	}
-
-	return socialhelpers.NewDefaultOKResponse()
-}
-
-func UnsubscribeMessage(u *url.URL, h http.Header, req *models.NotificationRequest) (int, http.Header, interface{}, error) {
-	if err := subscription(req, NOTIFICATION_TYPE_UNSUBSCRIBE); err != nil {
-		return socialhelpers.NewBadRequestResponse(err)
-	}
-
-	return socialhelpers.NewDefaultOKResponse()
-}
-
-func subscription(nr *models.NotificationRequest, typeConstant string) error {
-	if err := validateSubscriptionRequest(nr); err != nil {
-		return err
-	}
-
-	nc := models.NewNotificationContent()
-	nc.TargetId = nr.TargetId
-	nc.TypeConstant = typeConstant
-
-	n := models.NewNotification()
-	n.AccountId = nr.AccountId
-	var err error
-	switch typeConstant {
-	case NOTIFICATION_TYPE_SUBSCRIBE:
-		err = n.Subscribe(nc)
-	case NOTIFICATION_TYPE_UNSUBSCRIBE:
-		err = n.Unsubscribe(nc)
-	}
-	if err != nil {
-		return err
-	}
-
-	return nil
 }
 
 func fetchNotifications(q *socialmodels.Query) (*models.NotificationResponse, error) {
@@ -147,18 +101,6 @@ func validateNotificationRequest(q *socialmodels.Query) error {
 	}
 	// update the limit if it is needed
 	q.Limit = int(math.Min(float64(q.Limit), float64(NOTIFICATION_LIMIT)))
-
-	return nil
-}
-
-func validateSubscriptionRequest(req *models.NotificationRequest) error {
-	if err := validateAccount(req.AccountId); err != nil {
-		return err
-	}
-
-	if err := socialmodels.NewChannelMessage().ById(req.TargetId); err != nil {
-		return err
-	}
 
 	return nil
 }
