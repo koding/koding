@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"koding/kites/kloud/klientprovisioner"
 	"koding/kites/kloud/packer"
+	"koding/kites/kloud/sshutil"
 	"koding/kites/kloud/utils"
 	"net/url"
 	"strconv"
@@ -148,7 +149,7 @@ func (d *DigitalOcean) Build(raws ...interface{}) (interface{}, error) {
 
 	// create temporary key to deploy user based key
 	fmt.Println("creating temporary ssh key")
-	privateKey, publicKey, err := temporaryKey()
+	privateKey, publicKey, err := sshutil.TemporaryKey()
 	if err != nil {
 		return nil, err
 	}
@@ -196,13 +197,13 @@ func (d *DigitalOcean) Build(raws ...interface{}) (interface{}, error) {
 	dropInfo := info.(Droplet)
 
 	sshAddress := dropInfo.IpAddress + ":22"
-	sshConfig, err := sshConfig(privateKey)
+	sshConfig, err := sshutil.SshConfig(privateKey)
 	if err != nil {
 		return nil, err
 	}
 
 	fmt.Println("connection to ssh ", sshAddress)
-	client, err := connectSSH(sshAddress, sshConfig)
+	client, err := sshutil.ConnectSSH(sshAddress, sshConfig)
 	if err != nil {
 		return nil, err
 	}

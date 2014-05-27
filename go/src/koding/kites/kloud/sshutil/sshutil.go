@@ -1,4 +1,4 @@
-package digitalocean
+package sshutil
 
 import (
 	"bytes"
@@ -20,11 +20,11 @@ const (
 	sshConnectMaxWait       = 1 * time.Minute
 )
 
-type sshClient struct {
+type SSHClient struct {
 	*ssh.Client
 }
 
-func (s *sshClient) Create(path string) (*sftp.File, error) {
+func (s *SSHClient) Create(path string) (*sftp.File, error) {
 	sftp, err := sftp.NewClient(s.Client)
 	if err != nil {
 		return nil, err
@@ -33,7 +33,7 @@ func (s *sshClient) Create(path string) (*sftp.File, error) {
 	return sftp.Create(path)
 }
 
-func (s *sshClient) StartCommand(command string) error {
+func (s *SSHClient) StartCommand(command string) error {
 	session, err := s.NewSession()
 	if err != nil {
 		return err
@@ -79,8 +79,8 @@ func (s *sshClient) StartCommand(command string) error {
 
 }
 
-// connectSSH tries to connect to the given IP and returns a new client.
-func connectSSH(ip string, config *ssh.ClientConfig) (*sshClient, error) {
+// ConnectSSH tries to connect to the given IP and returns a new client.
+func ConnectSSH(ip string, config *ssh.ClientConfig) (*SSHClient, error) {
 	for {
 		select {
 		case <-time.Tick(sshConnectRetryInterval):
@@ -89,15 +89,15 @@ func connectSSH(ip string, config *ssh.ClientConfig) (*sshClient, error) {
 				fmt.Println("Failed to dial, will retry: " + err.Error())
 				continue
 			}
-			return &sshClient{Client: client}, nil
+			return &SSHClient{Client: client}, nil
 		case <-time.After(sshConnectMaxWait):
 			return nil, errors.New("cannot connect with ssh")
 		}
 	}
 }
 
-// sshConfig returns a new clientConfig based on the given privateKey
-func sshConfig(privateKey string) (*ssh.ClientConfig, error) {
+// SshConfig returns a new clientConfig based on the given privateKey
+func SshConfig(privateKey string) (*ssh.ClientConfig, error) {
 	signer, err := ssh.ParsePrivateKey([]byte(privateKey))
 	if err != nil {
 		return nil, fmt.Errorf("Error setting up SSH config: %s", err)
@@ -111,8 +111,8 @@ func sshConfig(privateKey string) (*ssh.ClientConfig, error) {
 	}, nil
 }
 
-// temporaryKey creates a new temporary public and private key
-func temporaryKey() (string, string, error) {
+// TemporaryKey creates a new temporary public and private key
+func TemporaryKey() (string, string, error) {
 	priv, err := rsa.GenerateKey(rand.Reader, 2014)
 	if err != nil {
 		return "", "", err
