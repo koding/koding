@@ -15,6 +15,7 @@ module.exports = [
   "sidebar/pinneditem.coffee"
 
   "views/messagepane.coffee"
+  "views/topicmessagepane.coffee"
 
   # Activity commons
   "views/feedcoverphotoview.coffee"
