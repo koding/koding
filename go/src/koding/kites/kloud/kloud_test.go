@@ -19,22 +19,22 @@ import (
 	"github.com/fatih/color"
 	"github.com/koding/kite"
 	kiteconfig "github.com/koding/kite/config"
+	"github.com/koding/kite/kitekey"
 	"github.com/koding/kite/kontrol"
 	"github.com/koding/kite/protocol"
 	"github.com/koding/kite/testkeys"
 	"github.com/koding/kite/testutil"
 )
 
-const (
-	testUser = "testkloud"
-)
-
 var (
-	kloud           *kodingkite.KodingKite
-	remote          *kite.Client
-	flagTestDebug   = flag.Bool("debug", false, "Enable debug")
-	flagTestBuilds  = flag.Int("builds", 1, "Number of builds")
-	flagTestDestroy = flag.Bool("no-destroy", false, "Do not destroy test machines")
+	kloud    *kodingkite.KodingKite
+	remote   *kite.Client
+	testuser string
+
+	flagTestDebug    = flag.Bool("debug", false, "Enable debug")
+	flagTestBuilds   = flag.Int("builds", 1, "Number of builds")
+	flagTestDestroy  = flag.Bool("no-destroy", false, "Do not destroy test machines")
+	flagTestUsername = flag.String("user", "", "Create machines on behalf of this user")
 
 	DIGITALOCEAN_CLIENT_ID       = "2d314ba76e8965c451f62d7e6a4bc56f"
 	DIGITALOCEAN_API_KEY         = "4c88127b50c0c731aeb5129bdea06deb"
@@ -63,23 +63,7 @@ var TestProviderData = map[string]map[string]interface{}{
 	"googlecompute":   nil,
 }
 
-func init() {
-	flag.Parse()
-
-	conf := kiteconfig.New()
-	conf.Username = "testuser"
-	conf.KontrolURL = &url.URL{Scheme: "ws", Host: "localhost:4444"}
-	conf.KontrolKey = testkeys.Public
-	conf.KontrolUser = "testuser"
-	conf.KiteKey = testutil.NewKiteKey().Raw
-	conf.Port = 4444
-
-	kon := kontrol.New(conf.Copy(), "0.1.0", testkeys.Public, testkeys.Private)
-	kon.DataDir, _ = ioutil.TempDir("", "")
-	defer os.RemoveAll(kon.DataDir)
-	go kon.Run()
-	<-kon.Kite.ServerReadyNotify()
-
+func setupKloud() *kodingkite.KodingKite {
 	kloudConf := config.MustConfig("vagrant")
 
 	pubKeyPath := *flagPublicKey
@@ -113,7 +97,36 @@ func init() {
 		KontrolPublicKey:  publicKey,
 	}
 
-	kloud = k.NewKloud()
+	return k.NewKloud()
+}
+
+func init() {
+	flag.Parse()
+
+	testuser = "testuser" // same as in kite.key
+	if *flagTestUsername != "" {
+		os.Setenv("TESTKEY_USERNAME", *flagTestUsername)
+		testuser = *flagTestUsername
+	}
+
+	// now create a new test key with the given test username
+	kitekey.Write(testutil.NewKiteKey().Raw)
+
+	conf := kiteconfig.New()
+	conf.Username = "testuser"
+	conf.KontrolURL = &url.URL{Scheme: "ws", Host: "localhost:4444"}
+	conf.KontrolKey = testkeys.Public
+	conf.KontrolUser = "testuser"
+	conf.KiteKey = testutil.NewKiteKey().Raw
+	conf.Port = 4444
+
+	kon := kontrol.New(conf.Copy(), "0.1.0", testkeys.Public, testkeys.Private)
+	kon.DataDir, _ = ioutil.TempDir("", "")
+	defer os.RemoveAll(kon.DataDir)
+	go kon.Run()
+	<-kon.Kite.ServerReadyNotify()
+
+	kloud = setupKloud()
 	kloud.Config.DisableAuthentication = true
 	kloud.Config.KontrolURL = &url.URL{Scheme: "ws", Host: "localhost:4444"}
 
@@ -124,7 +137,7 @@ func init() {
 	client.Config = conf
 
 	kites, err := client.GetKites(protocol.KontrolQuery{
-		Username:    "testuser",
+		Username:    testuser,
 		Environment: "vagrant",
 		Name:        "kloud-test",
 	})
@@ -181,11 +194,6 @@ func TestProviders(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		// droplet's names are based on username for now
-		if result.Name != testUser {
-			t.Error("droplet name is: %s, expecting: %s", result.Name, testUser)
-		}
-
 		dropletId := result.Id
 
 		cArgs := &controllerArgs{
@@ -227,8 +235,6 @@ func TestProviders(t *testing.T) {
 }
 
 func TestBuild(t *testing.T) {
-	// t.Skip("To enable this test remove this line")
-
 	numberOfBuilds := *flagTestBuilds
 
 	for provider, data := range TestProviderData {
