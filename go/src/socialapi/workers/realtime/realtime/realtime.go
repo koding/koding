@@ -69,8 +69,9 @@ func NewRealtimeWorkerController(rmq *rabbitmq.RabbitMQ, log logging.Logger) (*R
 		"api.channel_message_list_updated": (*RealtimeWorkerController).MessageListUpdated,
 		"api.channel_message_list_deleted": (*RealtimeWorkerController).MessageListDeleted,
 
-		"api.channel_participant_created": (*RealtimeWorkerController).ChannelParticipantAdded,
-		"api.channel_participant_deleted": (*RealtimeWorkerController).ChannelParticipantRemoved,
+		"api.channel_participant_created": (*RealtimeWorkerController).ChannelParticipantEvent,
+		"api.channel_participant_updated": (*RealtimeWorkerController).ChannelParticipantEvent,
+		"api.channel_participant_deleted": (*RealtimeWorkerController).ChannelParticipantEvent,
 
 		"notification.notification_created": (*RealtimeWorkerController).NotifyUser,
 		"notification.notification_updated": (*RealtimeWorkerController).NotifyUser,
@@ -117,12 +118,31 @@ func (f *RealtimeWorkerController) MessageUpdated(data []byte) error {
 	return nil
 }
 
-func (f *RealtimeWorkerController) ChannelParticipantAdded(data []byte) error {
-	return f.handleChannelParticipantEvent("AddedToChannel", data)
-}
+func (f *RealtimeWorkerController) ChannelParticipantEvent(data []byte) error {
+	cp := models.NewChannelParticipant()
+	if err := json.Unmarshal(data, cp); err != nil {
+		return err
+	}
 
-func (f *RealtimeWorkerController) ChannelParticipantRemoved(data []byte) error {
-	return f.handleChannelParticipantEvent("RemovedFromChannel", data)
+	c := models.NewChannel()
+	if err := c.ById(cp.ChannelId); err != nil {
+		return err
+	}
+
+	var err error
+	if cp.StatusConstant == models.ChannelParticipant_STATUS_ACTIVE {
+		err = f.sendNotification(cp.AccountId, "AddedToChannel", c)
+	} else if cp.StatusConstant == models.ChannelParticipant_STATUS_LEFT {
+		err = f.sendNotification(cp.AccountId, "RemovedFromChannel", c)
+	} else {
+		err = fmt.Errorf("Unhandled event type for channel participation %s", cp.StatusConstant)
+	}
+
+	if err != nil {
+		f.log.Error("Ignoring err %s ", err.Error())
+	}
+
+	return nil
 }
 
 func (f *RealtimeWorkerController) handleChannelParticipantEvent(eventName string, data []byte) error {

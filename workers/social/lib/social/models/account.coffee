@@ -255,6 +255,7 @@ module.exports = class JAccount extends jraphical.Module
           (signature Object, Function)
 
     schema                  :
+      socialApiId           : String
       skillTags             : [String]
       locationTags          : [String]
       systemInfo            :
