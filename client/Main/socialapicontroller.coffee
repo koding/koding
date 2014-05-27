@@ -196,22 +196,29 @@ class SocialApiController extends KDController
   forwardMessageEvents : forwardMessageEvents
 
   registerAndOpenChannels = (socialApiChannels)->
+    {socialapi} = KD.singletons
+
+    map = {}
+
     getCurrentGroup (group)->
       for socialApiChannel in socialApiChannels
-        # lock
-        name = "socialapi.#{socialApiChannel.groupName}-#{socialApiChannel.typeConstant}-#{socialApiChannel.name}"
-        continue  if KD.singletons.socialapi.openedChannels[name]
-        KD.singletons.socialapi.openedChannels[name] = {}
+        {typeConstant, name} = socialApiChannel
+        channelName = "#{typeConstant}-#{name}"
+        continue  if socialapi.openedChannels[channelName]
+        socialapi.openedChannels[channelName] = {} # placeholder to  duplicate registration
+        map[channelName] = socialApiChannel
 
         subscriptionData =
           serviceType: 'socialapi'
           group      : group.slug
-          channelType: socialApiChannel.typeConstant
-          channelName: socialApiChannel.name
+          channelType: typeConstant
+          channelName: name
           isExclusive: yes
 
         KD.remote.subscribe name, subscriptionData, (brokerChannel)->
-          KD.singletons.socialapi.openedChannels[brokerChannel.name] = brokerChannel
+          {channelType, channelName} = brokerChannel.authenticationInfo
+          channelName = "#{channelType}-#{channelName}"
+          socialapi.openedChannels[channelName] = brokerChannel
           forwardMessageEvents brokerChannel, socialApiChannel, [
             "MessageAdded",
             "MessageRemoved"
