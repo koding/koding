@@ -140,6 +140,7 @@ module.exports =
     watch       : yes
     queueName   : logQueueName
     verbose     : no
+    run         : yes
   followFeed    :
     host        : 'localhost'
     port        : 5672
