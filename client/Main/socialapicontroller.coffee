@@ -33,6 +33,11 @@ class SocialApiController extends KDController
       @forwardMessageEvents brokerChannel, this, ["MessageAdded", "MessageRemoved"]
       @emit "ChannelRegistered-group-#{slug}", this
 
+  onChannelReady: (name, callback) ->
+    if channel = @openedChannels[name]
+    then callback channel
+    else @once "ChannelRegistered-#{name}", callback
+
   mapActivity = (data) ->
 
     return  unless plain = data.message or data
