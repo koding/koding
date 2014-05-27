@@ -34,8 +34,8 @@ func NewTrollModeController(log logging.Logger) *TrollModeController {
 	}
 
 	routes := map[string]Action{
-		"api.marked_as_troll":   (*TrollModeController).MarkedAsTroll,
-		"api.unmarked_as_troll": (*TrollModeController).UnMarkedAsTroll,
+		"api.account_marked_as_troll":   (*TrollModeController).MarkedAsTroll,
+		"api.account_unmarked_as_troll": (*TrollModeController).UnMarkedAsTroll,
 	}
 
 	ffc.routes = routes
