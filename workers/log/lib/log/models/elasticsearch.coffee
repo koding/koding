@@ -13,7 +13,7 @@ KONFIG = require('koding-config-manager').load("main.#{argv.c}")
 
 {
   log           : { run }
-  elasticsearch : { host, port}
+  elasticSearch : { host, port}
 } = KONFIG
 
 config = {
