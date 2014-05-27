@@ -14,6 +14,8 @@
 
   bindTabViewListeners: ->
     @tabView.on 'FileNeedsToBeOpened', @bound 'openFile'
+    @tabView.on 'VMTerminalRequested', @bound 'openVMTerminal'
+
   getPlusMenuItems: ->
     return {
       'Editor'        : callback : => @createEditor()
@@ -79,6 +81,9 @@
 
   getDummyFilePath: ->
     return 'localfile://Untitled.txt'
+
+  openVMTerminal: (vm) ->
+    @createTerminal vm
 
   createPlusContextMenu: ->
     offset        = @holderView.plusHandle.$().offset()

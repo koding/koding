@@ -107,3 +107,7 @@ class IDEAppController extends AppController
 
   openFile: (file, contents) ->
     @activeTabView.emit 'FileNeedsToBeOpened', file, contents
+
+  openVMTerminal: (vmData) ->
+    @activeTabView.emit 'VMTerminalRequested', vmData
+
