@@ -129,7 +129,7 @@ listReplies = (data, callback)->
   unless data.messageId
     return callback { message: "Request is not valid for adding a reply"}
 
-  url = "#{SOCIAL_API_URL}/message/#{data.messageId}/reply"
+  url = "/message/#{data.messageId}/reply"
   get url, data, callback
 
 fetchPopularTopics = (data, callback)->

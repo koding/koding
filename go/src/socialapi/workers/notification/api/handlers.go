@@ -11,10 +11,6 @@ func InitHandlers(mux *tigertonic.TrieServeMux) *tigertonic.TrieServeMux {
 	mux.Handle("GET", "/notification/{accountId}", api.HandlerWrapper(List, "notification-list"))
 	// glance notifications
 	mux.Handle("POST", "/notification/glance", api.HandlerWrapper(Glance, "notification-glance"))
-	// subscribe to message notification
-	mux.Handle("POST", "/notification/subscribe", api.HandlerWrapper(SubscribeMessage, "notification-subscribe"))
-	// unsubscribe from message notification
-	mux.Handle("POST", "/notification/unsubscribe", api.HandlerWrapper(UnsubscribeMessage, "notification-unsubscribe"))
 
 	return mux
 }

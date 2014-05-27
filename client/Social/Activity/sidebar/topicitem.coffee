@@ -25,7 +25,7 @@ class SidebarTopicItem extends SidebarItem
   pistachio: ->
 
     """
-    {span.ttag{ #(name)}}
+    {span.ttag{ '#' + #(name)}}
     {span.tag-info{ #(participantCount) + str}}
     {{> @followButton}}
     """
