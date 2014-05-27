@@ -64,7 +64,7 @@ class AccountEditUsername extends JView
     {email, password, confirmPassword, firstName, lastName, username} = formData
 
     profileUpdated = yes
-    passwordConfirmed = no
+    skipPasswordConfirmation = no
     queue = [
       =>
         # update firstname and lastname
@@ -89,15 +89,15 @@ class AccountEditUsername extends JView
             @emailForm.buttons.Save.hideLoader()
             return notify err.message
 
-          options = {passwordConfirmed, email}
-          confirmCurrentPassword options, (err) =>
+          options = {skipPasswordConfirmation, email}
+          confirmCurrentPassword options, (err) ->
             if err
               notify err
               profileUpdated = false
               return queue.next()
-            passwordConfirmed = true
-            new VerifyPINModal 'Update E-Mail', (pin)=>
-              KD.remote.api.JUser.changeEmail {email, pin}, (err)=>
+            skipPasswordConfirmation = true
+            new VerifyPINModal 'Update E-Mail', (pin)->
+              KD.remote.api.JUser.changeEmail {email, pin}, (err)->
                 if err
                   notify err.message
                   profileUpdated = false
@@ -119,8 +119,8 @@ class AccountEditUsername extends JView
             notify "An error occured"
             return queue.next()
 
-          passwordConfirmed = true unless user.passwordStatus is "valid"
-          confirmCurrentPassword {passwordConfirmed}, (err) =>
+          skipPasswordConfirmation = true  if user.passwordStatus isnt "valid"
+          confirmCurrentPassword {skipPasswordConfirmation}, (err) =>
             if err
               notify err
               profileUpdated = false
@@ -139,8 +139,8 @@ class AccountEditUsername extends JView
     ]
     daisy queue
 
-  confirmCurrentPassword = ({passwordConfirmed, email}, callback) ->
-    return callback null if passwordConfirmed
+  confirmCurrentPassword = ({skipPasswordConfirmation, email}, callback) ->
+    return callback null if skipPasswordConfirmation
     new VerifyPasswordModal "Confirm", (currentPassword) ->
       options = {password: currentPassword, email}
       KD.remote.api.JUser.verifyPassword options, (err, confirmed) ->
