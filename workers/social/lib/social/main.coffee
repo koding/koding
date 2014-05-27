@@ -40,9 +40,8 @@ processMonitor = (require 'processes-monitor').start
   name : "Social Worker #{process.pid}"
   stats_id: "worker.social." + process.pid
   interval : 30000
-  librato: KONFIG.librato
   limit_hard  :
-    memory   : 300
+    memory   : 600
     callback : (name,msg,details)->
       console.log "[#{JSON.stringify(new Date())}][SOCIAL WORKER #{name}] Using excessive memory, exiting."
       process.exit()

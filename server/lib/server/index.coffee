@@ -33,7 +33,6 @@ processMonitor = (require 'processes-monitor').start
   name                : "webServer on port #{webPort}"
   stats_id            : "webserver." + process.pid
   interval            : 30000
-  librato             : KONFIG.librato
   limit_hard          :
     memory            : 300
     callback          : ->
