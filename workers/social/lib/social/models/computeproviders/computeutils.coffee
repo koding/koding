@@ -100,7 +100,7 @@ fetchStackTemplate = (client, callback)->
     { user, group, account } = res
 
     # TODO Make this works with multiple stacks ~ gg
-    stackTemplateId = res.group.stackTemplates[0]
+    stackTemplateId = group.stackTemplates[0]
 
     # TODO make all these in seperate functions
     JStackTemplate = require "./stacktemplate"
