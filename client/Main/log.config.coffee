@@ -1,6 +1,6 @@
 getSessionToken=-> Cookies.get 'clientId'
 
-{ logArgUri: apiEndpoint } = KD.config
+{ logApiUri: apiEndpoint } = KD.config
 
 KD.remote_log = new Bongo
   apiEndpoint     : apiEndpoint
