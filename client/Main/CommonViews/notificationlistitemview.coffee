@@ -112,11 +112,11 @@ class NotificationListItem extends KDListItemView
         when "comment", "like"
           KD.remote.api.SocialMessage.fetch {id: data.targetId}, (err, message)=>
             return reject err  if err or not message
-            KD.remote.api.JAccount.one socialApiId: message.accountId, (err, origin)=>
+            KD.remote.api.JAccount.one _id: message.accountOldId, (err, origin)=>
               return reject err  if err or not origin
 
-              adjective = if message.accountId is KD.whoami()?.socialApiId then "your"
-              else if @actors.length == 1 and @actors[0].id is origin.getId() then "their own"
+              adjective = if message.accounOldId is KD.whoami()?.getId() then "your"
+              else if @actors.length == 1 and @actors[0].getId() is origin.getId() then "their own"
               else
                 originatorName = KD.utils.getFullnameFromAccount origin
                 "#{originatorName}'s"

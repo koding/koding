@@ -1,10 +1,10 @@
 package notification
 
 import (
-	"encoding/json"
 	"fmt"
 	"koding/db/mongodb/modelhelper"
 	socialapimodels "socialapi/models"
+	"socialapi/workers/helper"
 	"socialapi/workers/notification/models"
 	"time"
 
@@ -12,6 +12,11 @@ import (
 	"github.com/koding/rabbitmq"
 	"github.com/koding/worker"
 	"github.com/streadway/amqp"
+)
+
+const (
+	NOTIFICATION_TYPE_SUBSCRIBE   = "subscribe"
+	NOTIFICATION_TYPE_UNSUBSCRIBE = "unsubscribe"
 )
 
 type Action func(*NotificationWorkerController, []byte) error
@@ -44,10 +49,12 @@ func NewNotificationWorkerController(rmq *rabbitmq.RabbitMQ, log logging.Logger,
 	}
 
 	routes := map[string]Action{
-		"api.message_reply_created":       (*NotificationWorkerController).CreateReplyNotification,
-		"api.interaction_created":         (*NotificationWorkerController).CreateInteractionNotification,
-		"api.channel_participant_created": (*NotificationWorkerController).JoinChannel,
-		"api.channel_participant_updated": (*NotificationWorkerController).LeaveChannel,
+		"api.message_reply_created":        (*NotificationWorkerController).CreateReplyNotification,
+		"api.interaction_created":          (*NotificationWorkerController).CreateInteractionNotification,
+		"api.channel_participant_created":  (*NotificationWorkerController).JoinChannel,
+		"api.channel_participant_updated":  (*NotificationWorkerController).LeaveChannel,
+		"api.channel_message_list_created": (*NotificationWorkerController).SubscribeMessage,
+		"api.channel_message_list_deleted": (*NotificationWorkerController).UnsubscribeMessage,
 	}
 
 	nwc.routes = routes
@@ -67,7 +74,7 @@ func (n *NotificationWorkerController) HandleEvent(event string, data []byte) er
 }
 
 func (n *NotificationWorkerController) CreateReplyNotification(data []byte) error {
-	mr, err := mapMessageToMessageReply(data)
+	mr, err := helper.MapToMessageReply(data)
 	if err != nil {
 		return err
 	}
@@ -122,6 +129,46 @@ func (n *NotificationWorkerController) CreateReplyNotification(data []byte) erro
 	// if not subcribed, subscribe the actor to message
 	if !notifierSubscribed {
 		n.subscribe(nc.Id, rn.NotifierId, subscribedAt)
+	}
+
+	return nil
+}
+
+func (n *NotificationWorkerController) UnsubscribeMessage(data []byte) error {
+	return subscription(data, NOTIFICATION_TYPE_UNSUBSCRIBE)
+}
+
+func (n *NotificationWorkerController) SubscribeMessage(data []byte) error {
+	return subscription(data, NOTIFICATION_TYPE_SUBSCRIBE)
+}
+
+func subscription(data []byte, typeConstant string) error {
+	cml, err := helper.MapToChannelMessageList(data)
+	if err != nil {
+		return err
+	}
+
+	c := socialapimodels.NewChannel()
+	if err := c.ById(cml.ChannelId); err != nil {
+		return err
+	}
+
+	if c.TypeConstant != socialapimodels.Channel_TYPE_PINNED_ACTIVITY {
+		return nil
+	}
+
+	// user pinned (followed) a message
+	nc := models.NewNotificationContent()
+	nc.TargetId = cml.MessageId
+
+	n := models.NewNotification()
+	n.AccountId = c.CreatorId
+
+	switch typeConstant {
+	case NOTIFICATION_TYPE_SUBSCRIBE:
+		return n.Subscribe(nc)
+	case NOTIFICATION_TYPE_UNSUBSCRIBE:
+		return n.Unsubscribe(nc)
 	}
 
 	return nil
@@ -190,7 +237,7 @@ func buildNotification(contentId, notifierId int64, subscribedAt time.Time) *mod
 }
 
 func (n *NotificationWorkerController) CreateInteractionNotification(data []byte) error {
-	i, err := mapMessageToInteraction(data)
+	i, err := helper.MapToInteraction(data)
 	if err != nil {
 		return err
 	}
@@ -225,7 +272,7 @@ func (n *NotificationWorkerController) CreateInteractionNotification(data []byte
 }
 
 func (n *NotificationWorkerController) JoinChannel(data []byte) error {
-	cp, err := mapMessageToChannelParticipant(data)
+	cp, err := helper.MapToChannelParticipant(data)
 	if err != nil {
 		return err
 	}
@@ -234,7 +281,7 @@ func (n *NotificationWorkerController) JoinChannel(data []byte) error {
 }
 
 func (n *NotificationWorkerController) LeaveChannel(data []byte) error {
-	cp, err := mapMessageToChannelParticipant(data)
+	cp, err := helper.MapToChannelParticipant(data)
 	if err != nil {
 		return err
 	}
@@ -310,33 +357,6 @@ func interactGroup(cp *socialapimodels.ChannelParticipant, c *socialapimodels.Ch
 	}
 
 	return nil
-}
-
-func mapMessageToChannelParticipant(data []byte) (*socialapimodels.ChannelParticipant, error) {
-	cp := socialapimodels.NewChannelParticipant()
-	if err := json.Unmarshal(data, cp); err != nil {
-		return nil, err
-	}
-
-	return cp, nil
-}
-
-func mapMessageToMessageReply(data []byte) (*socialapimodels.MessageReply, error) {
-	mr := socialapimodels.NewMessageReply()
-	if err := json.Unmarshal(data, mr); err != nil {
-		return nil, err
-	}
-
-	return mr, nil
-}
-
-func mapMessageToInteraction(data []byte) (*socialapimodels.Interaction, error) {
-	i := socialapimodels.NewInteraction()
-	if err := json.Unmarshal(data, i); err != nil {
-		return nil, err
-	}
-
-	return i, nil
 }
 
 // copy/paste
