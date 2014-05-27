@@ -1,0 +1,16 @@
+{
+    "builder": {
+        "api_key": "",
+        "client_id": "",
+        "image": "ubuntu-13-10-x64",
+        "region": "ams1",
+        "size": "512mb",
+        "snapshot_name": "koding-{{timestamp}}",
+        "type": "digitalocean"
+    },
+    "credential": {
+        "api_key": "",
+        "client_id": ""
+    },
+    "provider": "digitalocean"
+}

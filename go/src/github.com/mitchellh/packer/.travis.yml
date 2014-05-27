@@ -1,0 +1,21 @@
+language: go
+
+go:
+    - 1.2
+    - tip
+
+install: make deps
+script:
+    - go test ./...
+    #- go test -race ./...
+
+notifications:
+    irc:
+        channels:
+            - "chat.freenode.net#packer-tool"
+        on_success: change
+        on_failure: always
+
+matrix:
+    allow_failures:
+        - go: tip
