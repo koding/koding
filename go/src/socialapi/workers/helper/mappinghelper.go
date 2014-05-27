@@ -40,3 +40,12 @@ func MapToMessageReply(data []byte) (*models.MessageReply, error) {
 
 	return i, nil
 }
+
+func MapToChannelParticipant(data []byte) (*models.ChannelParticipant, error) {
+	cp := models.NewChannelParticipant()
+	if err := json.Unmarshal(data, cp); err != nil {
+		return nil, err
+	}
+
+	return cp, nil
+}

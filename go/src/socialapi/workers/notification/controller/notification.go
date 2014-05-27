@@ -1,10 +1,10 @@
 package notification
 
 import (
-	"encoding/json"
 	"fmt"
 	"koding/db/mongodb/modelhelper"
 	socialapimodels "socialapi/models"
+	"socialapi/workers/helper"
 	"socialapi/workers/notification/models"
 	"time"
 
@@ -67,7 +67,7 @@ func (n *NotificationWorkerController) HandleEvent(event string, data []byte) er
 }
 
 func (n *NotificationWorkerController) CreateReplyNotification(data []byte) error {
-	mr, err := mapMessageToMessageReply(data)
+	mr, err := helper.MapToMessageReply(data)
 	if err != nil {
 		return err
 	}
@@ -190,7 +190,7 @@ func buildNotification(contentId, notifierId int64, subscribedAt time.Time) *mod
 }
 
 func (n *NotificationWorkerController) CreateInteractionNotification(data []byte) error {
-	i, err := mapMessageToInteraction(data)
+	i, err := helper.MapToInteraction(data)
 	if err != nil {
 		return err
 	}
@@ -225,7 +225,7 @@ func (n *NotificationWorkerController) CreateInteractionNotification(data []byte
 }
 
 func (n *NotificationWorkerController) JoinChannel(data []byte) error {
-	cp, err := mapMessageToChannelParticipant(data)
+	cp, err := helper.MapToChannelParticipant(data)
 	if err != nil {
 		return err
 	}
@@ -234,7 +234,7 @@ func (n *NotificationWorkerController) JoinChannel(data []byte) error {
 }
 
 func (n *NotificationWorkerController) LeaveChannel(data []byte) error {
-	cp, err := mapMessageToChannelParticipant(data)
+	cp, err := helper.MapToChannelParticipant(data)
 	if err != nil {
 		return err
 	}
@@ -310,33 +310,6 @@ func interactGroup(cp *socialapimodels.ChannelParticipant, c *socialapimodels.Ch
 	}
 
 	return nil
-}
-
-func mapMessageToChannelParticipant(data []byte) (*socialapimodels.ChannelParticipant, error) {
-	cp := socialapimodels.NewChannelParticipant()
-	if err := json.Unmarshal(data, cp); err != nil {
-		return nil, err
-	}
-
-	return cp, nil
-}
-
-func mapMessageToMessageReply(data []byte) (*socialapimodels.MessageReply, error) {
-	mr := socialapimodels.NewMessageReply()
-	if err := json.Unmarshal(data, mr); err != nil {
-		return nil, err
-	}
-
-	return mr, nil
-}
-
-func mapMessageToInteraction(data []byte) (*socialapimodels.Interaction, error) {
-	i := socialapimodels.NewInteraction()
-	if err := json.Unmarshal(data, i); err != nil {
-		return nil, err
-	}
-
-	return i, nil
 }
 
 // copy/paste
