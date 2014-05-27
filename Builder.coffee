@@ -103,6 +103,7 @@ module.exports = class Builder
     buildAPI
       rootDir   : __dirname
       modelsDir : './workers/social/lib/social/models'
+      identifier: "REMOTE_API"
       out       : '.build/api.js'
     , =>
       @buildAndWatchClient options
