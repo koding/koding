@@ -41,7 +41,6 @@ processMonitor = (require 'processes-monitor').start
   name : "Social Worker #{process.pid}"
   stats_id: "worker.social." + process.pid
   interval : 30000
-  librato: KONFIG.librato
   limit_hard  :
     memory   : 300
     callback : (name,msg,details)->
