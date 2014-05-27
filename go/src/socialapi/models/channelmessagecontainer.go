@@ -6,6 +6,7 @@ type ChannelMessageContainer struct {
 	RepliesCount int                              `json:"repliesCount"`
 	Replies      []*ChannelMessageContainer       `json:"replies"`
 	AccountOldId string                           `json:"accountOldId"`
+	Followed     bool                             `json:"followed"`
 }
 
 func NewChannelMessageContainer() *ChannelMessageContainer {
