@@ -36,13 +36,13 @@ type Notification struct {
 }
 
 func (n *Notification) BeforeCreate() {
-	if n.UnsubscribedAt.Equal(ZeroDate()) && n.SubscribedAt.Equal(ZeroDate()) {
+	if n.UnsubscribedAt.IsZero() && n.SubscribedAt.IsZero() {
 		n.SubscribedAt = time.Now()
 	}
 }
 
 func (n *Notification) BeforeUpdate() {
-	if n.UnsubscribedAt.Equal(ZeroDate()) && !n.SubscribeOnly {
+	if n.UnsubscribedAt.IsZero() && !n.SubscribeOnly {
 		n.Glanced = false
 		n.ActivatedAt = time.Now()
 	}
