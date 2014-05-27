@@ -366,26 +366,28 @@ module.exports = class JUser extends jraphical.Module
     {connection: {delegate}} = client
     {password, email} = options
 
-    invalidatePin = (err, user) ->
+    # handles error and decide to invalidate pin or not
+    # depending on email and user variables
+    handleError = (err, user) ->
       if email and user
-        # when email is set, we need to invalidate verification token
+        # when email and user is set, we need to invalidate verification token
         params =
           action    : "update-email"
           username  : user.username
           email     : email
         JVerificationToken = require '../verificationtoken'
         JVerificationToken.invalidatePin params, (err) ->
-          return console.error 'Pin invalidation error occurred'  if err
+          return console.error 'Pin invalidation error occurred', err  if err
       callback err, no
 
     # fetch user for invalidating created token
-    @fetchUser client, (err, user) =>
-      return invalidatePin err if err
-      unless password and password isnt ""
-        return invalidatePin createKodingError("Password cannot be empty!"), user
+    @fetchUser client, (err, user) ->
+      return handleError err  if err
+      if not password or password is ""
+        return handleError createKodingError("Password cannot be empty!"), user
       confirmed = user.getAt('password') is hashPassword password, user.getAt('salt')
       return callback null, yes  if confirmed
-      return invalidatePin null, user
+      return handleError null, user
 
 
   logAndReturnLoginError = (username, error, callback)->
