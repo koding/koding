@@ -5,13 +5,12 @@ KodingError = require '../../error'
 {argv} = require 'optimist'
 KONFIG = require('koding-config-manager').load("main.#{argv.c}")
 
-{
-  PROVIDERS, fetchStackTemplate, revive,
-  reviveClient, reviveCredential
-} = require './computeutils'
-
-
 module.exports = class ComputeProvider extends Base
+
+  {
+    PROVIDERS, fetchStackTemplate, revive,
+    reviveClient, reviveCredential
+  } = require './computeutils'
 
   @trait __dirname, '../../traits/protected'
 
