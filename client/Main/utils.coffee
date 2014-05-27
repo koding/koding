@@ -223,6 +223,18 @@ utils.extend utils,
         if candidate?.length > minLength then candidate
         else longText
 
+  decorateTags: (str = '') ->
+
+    {origin} = window.location
+    {slug}   = KD.getGroup()
+    prefix   = "#{origin}/#!#{if slug is 'koding' then '' else '/' + slug}"
+
+    str = str.replace /(\s)#(\w+)(\s?)/g, (match, s1, tag, s2) ->
+
+      return "#{s1}<a class='tag' href='#{prefix}/Activity/Topic/#{tag}'>##{tag}</a>#{s2}"
+
+    return str
+
   expandTokens: (str = "", data) ->
     return  str unless tokenMatches = str.match /\|.+?\|/g
 
@@ -669,4 +681,3 @@ utils.extend utils,
         from = new Date().getTime() / 1000
         to   = to
         niceify to - from
-
