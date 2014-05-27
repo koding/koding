@@ -3,21 +3,21 @@ class TerminalPane extends Pane
   constructor: (options = {}, data) ->
 
     options.cssClass = 'terminal-pane terminal'
+    options.vm     or= null
 
     super options, data
 
-  createWebTermView: ->
-    @fetchVm (err, vm) =>
-      @addSubView @webterm = new WebTermView
-        cssClass           : 'webterm'
-        advancedSettings   : no
-        delegate           : this
-        mode               : @getMode()
-        vm                 : vm
+  createTerminal: (vm) ->
+    @addSubView @webterm = new WebTermView
+      cssClass           : 'webterm'
+      advancedSettings   : no
+      delegate           : this
+      mode               : @getMode()
+      vm                 : vm
 
-      @vmOn(vm).then =>
-        @webterm.connectToTerminal()
-        @webterm.on 'WebTermConnected', (@remote) => @emit 'WebtermCreated'
+    @vmOn(vm).then =>
+      @webterm.connectToTerminal()
+      @webterm.on 'WebTermConnected', (@remote) => @emit 'WebtermCreated'
 
   fetchVm: (callback)->
     KD.singletons.vmController.fetchDefaultVm callback
@@ -44,4 +44,8 @@ class TerminalPane extends Pane
   notify: (message) -> console.log 'notify:', message
 
   viewAppended: ->
-    @createWebTermView()
+    {vm} = @getOptions()
+
+    if vm then @createTerminal vm
+    else
+      @fetchVm (err, vm) => @createTerminal vm
