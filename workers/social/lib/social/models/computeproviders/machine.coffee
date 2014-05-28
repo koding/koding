@@ -96,12 +96,16 @@ module.exports = class JMachine extends Module
       { r: { group, user } } = client
 
       selector =
-        _id      : machineId
+        $or      : [
+          { _id  : machineId }
+          { uid  : machineId }
+        ]
         users    : $elemMatch: id: user.getId()
         groups   : $elemMatch: id: group.getId()
 
       JMachine.one selector, (err, machine)->
         callback err, machine
+
 
   reviveUsers: permit 'populate users',
   success: (client, callback)->
