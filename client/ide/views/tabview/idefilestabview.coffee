@@ -2,6 +2,7 @@ class IDEFilesTabView extends WorkspaceTabView
 
   constructor: (options = {}, data) ->
 
+    options.cssClass      = 'ide-files-tab'
     options.addPlusHandle = no
 
     super options, data
