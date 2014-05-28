@@ -647,7 +647,7 @@ run =({configFile})->
     invoke 'addTagCategories'
     invoke 'webserver'
     invoke 'cronJobs'
-    invoke 'logWorker'                        if config.log.run
+    invoke 'logWorker'                        if config.log.runWorker
 
 task 'importDB', (options) ->
   if options.configFile is 'vagrant'

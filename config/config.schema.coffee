@@ -154,6 +154,7 @@ config =
       queueName   : 1
       verbose     : 1
       run         : 1
+      runWorker   : 1
     graphFeederWorker :
       numberOfWorkers : 1
     presence        :

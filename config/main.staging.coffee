@@ -142,6 +142,7 @@ module.exports =
     queueName   : logQueueName
     verbose     : no
     run         : no
+    runWorker   : yes
   presence        :
     exchange      : 'services-presence'
   client          :

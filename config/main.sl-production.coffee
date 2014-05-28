@@ -143,6 +143,7 @@ module.exports =
     queueName   : socialQueueName+'log'
     verbose     : no
     run         : yes
+    runWorker   : yes
   presence        :
     exchange      : 'services-presence'
   client          :
