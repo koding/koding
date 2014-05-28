@@ -14,11 +14,12 @@ module.exports = (options={}, callback)->
     options =
       type        : "weekly"
       channelName : "koding"
+      limit       : 5
 
     SocialChannel.fetchPopularTopics client, options, cb
 
   fetchFollowedChannels = (bongoModels, client, cb)->
-    SocialChannel.fetchFollowedChannels client, {}, cb
+    SocialChannel.fetchFollowedChannels client, { limit: 5 }, cb
 
   fetchPinnedMessages = (bongoModels, client, cb)->
     SocialChannel.fetchPinnedMessages client, {}, cb
