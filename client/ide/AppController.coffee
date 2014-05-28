@@ -111,3 +111,5 @@ class IDEAppController extends AppController
   openVMTerminal: (vmData) ->
     @activeTabView.emit 'VMTerminalRequested', vmData
 
+  openVMWebPage: (vmData) ->
+    @activeTabView.emit 'VMWebPageRequested', vmData

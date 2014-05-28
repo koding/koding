@@ -15,6 +15,7 @@
   bindTabViewListeners: ->
     @tabView.on 'FileNeedsToBeOpened', @bound 'openFile'
     @tabView.on 'VMTerminalRequested', @bound 'openVMTerminal'
+    @tabView.on 'VMWebPageRequested',  @bound 'openVMWebPage'
 
   getPlusMenuItems: ->
     return {
@@ -85,6 +86,9 @@
 
   openVMTerminal: (vm) ->
     @createTerminal vm
+
+  openVMWebPage: (vm) ->
+    @createPreview vm.hostnameAlias
 
   createPlusContextMenu: ->
     offset        = @holderView.plusHandle.$().offset()
