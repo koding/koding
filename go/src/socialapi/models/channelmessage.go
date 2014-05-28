@@ -98,6 +98,14 @@ func (c *ChannelMessage) Some(data interface{}, q *bongo.Query) error {
 	return bongo.B.Some(c, data, q)
 }
 
+func (c *ChannelMessage) UpdateMulti(rest ...map[string]interface{}) error {
+	return bongo.B.UpdateMulti(c, rest...)
+}
+
+func (c *ChannelMessage) CountWithQuery(q *bongo.Query) (int, error) {
+	return bongo.B.CountWithQuery(c, q)
+}
+
 func bodyLenCheck(body string) error {
 	if len(body) < config.Get().Limits.MessageBodyMinLen {
 		return fmt.Errorf("Message Body Length should be greater than %d, yours is %d ", config.Get().Limits.MessageBodyMinLen, len(body))
