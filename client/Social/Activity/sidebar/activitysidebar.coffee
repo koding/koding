@@ -1,9 +1,6 @@
 class ActivitySidebar extends KDCustomScrollView
 
 
-  addEventLogger = (source, eventName) -> source.on eventName, -> log eventName, arguments
-
-
   typeMap =
     privatemessage : 'Message'
     topic          : 'Topic'
@@ -49,11 +46,24 @@ class ActivitySidebar extends KDCustomScrollView
       socialapi
     } = KD.singletons
 
-    addEventLogger notificationController, 'AddedToChannel'
-    addEventLogger notificationController, 'RemovedFromChannel'
-
     @sections     = {}
     @selectedItem = null
+
+    notificationController.on 'AddedToChannel', (channel) =>
+
+      [topic] = socialapi.mapChannels channel
+
+      @sections.followedTopics.listController.addItem topic
+
+
+    notificationController.on 'RemovedFromChannel', (channel) =>
+
+      {listController} = @sections.followedTopics
+
+      [topic] = socialapi.mapChannels channel
+      item    = listController.itemsIndexed[topic.id]
+
+      listController.removeItem item
 
 
   # fixme:
