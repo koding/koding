@@ -49,13 +49,14 @@
 
   createTerminal: (vm) ->
     terminalPane = new TerminalPane { vm }
-    @createPane_ terminalPane,    { name: 'Terminal' }
+    @createPane_ terminalPane, { name: 'Terminal' }
 
   createDrawingBoard: ->
-    @createPane_ new DrawingPane, { name: 'Drawing'  }
+    @createPane_ new DrawingPane, { name: 'Drawing' }
 
-  createPreview: ->
-    @createPane_ new PreviewPane, { name: 'Browser'  }
+  createPreview: (url) ->
+    previewPane = new PreviewPane { url }
+    @createPane_ previewPane, { name: 'Browser' }
 
   removeOpenDocument: ->
     # TODO: This method is legacy, should be reimplemented in ace bundle.
