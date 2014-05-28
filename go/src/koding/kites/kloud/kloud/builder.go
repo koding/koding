@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/koding/kite"
+	"github.com/mitchellh/mapstructure"
 )
 
 // Builder is used to create and provisiong a single image or machine for a
@@ -17,6 +18,13 @@ type Builder interface {
 
 	// Build is creating a image and a machine.
 	Build(...interface{}) (interface{}, error)
+}
+
+type BuildResponse struct {
+	MachineName string `json:"machineName" mapstructure:"machineName"`
+	MachineId   int    `json:"machineId" mapstructure:"machineId"`
+	KiteId      string `json:"kiteId" mapstructure:"kiteId"`
+	IpAddress   string `json:"ipAddress" mapstructure:"ipAddress"`
 }
 
 type BuildArgs struct {
@@ -71,5 +79,10 @@ func (k *Kloud) build(r *kite.Request) (interface{}, error) {
 		return nil, err
 	}
 
-	return artifact, nil
+	response := &BuildResponse{}
+	if err := mapstructure.Decode(artifact, response); err != nil {
+		return nil, err
+	}
+
+	return response, nil
 }

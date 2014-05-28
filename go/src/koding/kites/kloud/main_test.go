@@ -258,15 +258,15 @@ func TestBuild(t *testing.T) {
 				t.Fatal(err)
 			}
 
-			var result digitalocean.Droplet
+			var result kloud.BuildResponse
 			err = resp.Unmarshal(&result)
 			if err != nil {
 				t.Fatal(err)
 			}
 
 			// droplet's names are based on username for now
-			if result.Name != machineName {
-				t.Errorf("droplet name is: %s, expecting: %s", result.Name, machineName)
+			if result.MachineName != machineName {
+				t.Errorf("droplet name is: %s, expecting: %s", result.MachineName, machineName)
 			}
 
 			fmt.Println("============")
@@ -275,7 +275,7 @@ func TestBuild(t *testing.T) {
 
 			if !*flagTestDestroy {
 				fmt.Println("destroying ", machineName)
-				dropletId := result.Id
+				dropletId := result.MachineId
 				cArgs := &kloud.ControllerArgs{
 					Provider:   data["provider"].(string),
 					Credential: data["credential"].(map[string]interface{}),

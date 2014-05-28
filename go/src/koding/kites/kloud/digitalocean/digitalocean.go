@@ -211,7 +211,7 @@ func (d *DigitalOcean) Build(raws ...interface{}) (interface{}, error) {
 	}
 	defer client.Close()
 
-	// genereate kite key specific for the user
+	// generate kite key specific for the user
 	kiteKey, kiteId, err := signFunc()
 	if err != nil {
 		return nil, err
@@ -242,7 +242,12 @@ func (d *DigitalOcean) Build(raws ...interface{}) (interface{}, error) {
 		return nil, err
 	}
 
-	return dropInfo, nil
+	return map[string]interface{}{
+		"kiteId":      kiteId,
+		"ipAddress":   dropInfo.IpAddress,
+		"machineName": dropInfo.Name,
+		"machineId":   dropInfo.Id,
+	}, nil
 }
 
 // CheckEvent checks the given eventID and returns back the result. It's useful
