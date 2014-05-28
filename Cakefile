@@ -174,7 +174,7 @@ task 'logWorker', "Run the logWorker", ({configFile}) ->
   {log} = KONFIG
 
   for i in [1..log.numberOfWorkers]
-    port = 3039 + i
+    port = 4029 + i
 
     processes.fork
       name           : if log.numberOfWorkers is 1 then "log" else "log-#{i}"

@@ -180,7 +180,7 @@ module.exports =
       resourceName: socialQueueName
       logResourceName: logQueueName
       socialApiUri: 'http://lvh.me:3030/xhr'
-      logApiUri: 'http://lvh.me:3040/xhr'
+      logApiUri: 'http://lvh.me:4030/xhr'
       suppressLogs: no
       broker    :
         servicesEndpoint: 'http://lvh.me:3020/-/services/broker'
