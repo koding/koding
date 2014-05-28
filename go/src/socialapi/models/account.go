@@ -32,6 +32,14 @@ func (a Account) TableName() string {
 	return "api.account"
 }
 
+func (a *Account) BeforeUpdate() {
+	SetAccountToCache(a)
+}
+
+func (a *Account) BeforeCreate() {
+	SetAccountToCache(a)
+}
+
 func (a *Account) One(q *bongo.Query) error {
 	return bongo.B.One(a, a, q)
 }
