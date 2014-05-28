@@ -292,15 +292,6 @@ module.exports =
     batchSize     : undefined
     cleanupCron   : '*/10 * * * * *'
   pidFile         : '/tmp/koding.server.pid'
-  loggr           :
-    push          : no
-    url           : ""
-    apiKey        : ""
-  librato         :
-    push          : no
-    email         : ""
-    token         : ""
-    interval      : 60000
   haproxy         :
     webPort       : 3020
   newkites        :
