@@ -154,7 +154,7 @@ func (n *DailyEmailNotifierWorkerController) prepareDailyEmail(accountId int64) 
 
 func (n *DailyEmailNotifierWorkerController) getDailyActivityIds(accountId int64) ([]int64, error) {
 	redisConn := helper.MustGetRedisConn()
-	members, err := redisConn.GetSetMembers(prepareGetterCacheKey(accountId))
+	members, err := redisConn.GetSetMembers(prepareDailyActivitiesCacheKey(accountId))
 	if err != nil {
 		return nil, err
 	}
@@ -181,7 +181,7 @@ func prepareRecipientsCacheKey() string {
 		preparePreviousDayCacheKey())
 }
 
-func prepareGetterCacheKey(accountId int64) string {
+func prepareDailyActivitiesCacheKey(accountId int64) string {
 	return fmt.Sprintf("%s:%s:%d:%s",
 		config.Get().Environment,
 		CACHEPREFIX,
@@ -190,9 +190,7 @@ func prepareGetterCacheKey(accountId int64) string {
 }
 
 func preparePreviousDayCacheKey() string {
-	yesterday := time.Now().Unix() - 86400
-
-	return time.Unix(int64(yesterday), 0).Format(TIMEFORMAT)
+	return time.Now().Add(-time.Hour * 24).Format(TIMEFORMAT)
 }
 
 func buildContainerForDailyMail(accountId, activityId int64) (*models.MailerContainer, error) {
