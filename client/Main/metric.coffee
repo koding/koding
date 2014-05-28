@@ -4,4 +4,4 @@ class Metric
 
     metric = $.extend { metric, userAgent }, params
 
-    KD.remote_log.api.JMetric.create metric, ->
+    KD.remoteLog.api.JMetric.create metric, ->

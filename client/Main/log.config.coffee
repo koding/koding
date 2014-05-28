@@ -2,7 +2,7 @@ getSessionToken=-> Cookies.get 'clientId'
 
 { logApiUri: apiEndpoint } = KD.config
 
-KD.remote_log = new Bongo
+KD.remoteLog = new Bongo
   apiEndpoint     : apiEndpoint
   resourceName    : KD.config.logResourceName
   getUserArea     :-> KD.getSingleton('groupsController').getUserArea()
