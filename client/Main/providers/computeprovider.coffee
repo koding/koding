@@ -34,9 +34,15 @@ class ComputeProvider extends KDObject
       KD.singletons.mainController.emit "renderStacks"
 
 
+class Machine extends KDObject
 
+  constructor:(options = {}, data)->
 
+    unless data?.bongo_?.constructorName is 'JMachine'
+      throw new Error 'Data should be a JMachine instance'
 
+    super options, data
+    { @name, @publicAddress } = @jMachine = @getData()
 
 
 
