@@ -7,31 +7,24 @@ module.exports = class Amazon extends ProviderInterface
 
   @create = (client, options, callback)->
 
-    { credential, name } = options
+    { credential, instanceType } = options
 
-    @fetchCredentialData credential, (err, credential)->
+    @fetchCredentialData credential, (err, cred)->
 
       return callback err  if err?
 
       meta =
-        {
-          "variables": {
-            "aws_access_key": credential.accessKeyId ? ""
-            "aws_secret_key": credential.secretAccessKey ? ""
-          },
-          "builders": [{
-            "type": "amazon-ebs",
-            "access_key": "{{user `aws_access_key`}}",
-            "secret_key": "{{user `aws_secret_key`}}",
-            "region": credential.region ? "us-east-1",
-            "source_ami": "ami-de0d9eb7",
-            "instance_type": name,
-            "ssh_username": "ubuntu",
-            "ami_name": "packer-example {{timestamp}}"
-          }]
-        }
+        type          : "amazon-ebs"
+        region        : "us-east-1"
+        source_ami    : "ami-de0d9eb7"
+        instance_type : instanceType
+        ssh_username  : "ubuntu"
+        ami_name      : "packer-example {{timestamp}}"
 
-      callback null, { meta }
+      callback null, {
+        meta, credential: cred.publicKey
+      }
+
 
   @fetchAvailable = (client, options, callback)->
 
