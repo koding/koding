@@ -227,7 +227,7 @@ utils.extend utils,
 
     {origin} = window.location
     {slug}   = KD.getGroup()
-    prefix   = "#{origin}/#!#{if slug is 'koding' then '' else '/' + slug}"
+    prefix   = "#{origin}#{if slug is 'koding' then '' else '/' + slug}"
 
     str = str.replace /(\s)#(\w+)(\s?)/g, (match, s1, tag, s2) ->
 
