@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"html/template"
 	"net/url"
+	"os"
 	"socialapi/config"
 	"time"
 )
@@ -19,14 +20,14 @@ type TemplateParser struct {
 }
 
 var (
-	mainTemplateFile        = "../socialapi/workers/emailnotifier/templates/main.tmpl"
-	footerTemplateFile      = "../socialapi/workers/emailnotifier/templates/footer.tmpl"
-	contentTemplateFile     = "../socialapi/workers/emailnotifier/templates/content.tmpl"
-	gravatarTemplateFile    = "../socialapi/workers/emailnotifier/templates/gravatar.tmpl"
-	groupTemplateFile       = "../socialapi/workers/emailnotifier/templates/group.tmpl"
-	previewTemplateFile     = "../socialapi/workers/emailnotifier/templates/preview.tmpl"
-	objectTemplateFile      = "../socialapi/workers/emailnotifier/templates/object.tmpl"
-	unsubscribeTemplateFile = "../socialapi/workers/emailnotifier/templates/unsubscribe.tmpl"
+	mainTemplateFile        = os.Getenv("GOPATH") + "/src/socialapi/workers/emailnotifier/templates/main.tmpl"
+	footerTemplateFile      = os.Getenv("GOPATH") + "/src/socialapi/workers/emailnotifier/templates/footer.tmpl"
+	contentTemplateFile     = os.Getenv("GOPATH") + "/src/socialapi/workers/emailnotifier/templates/content.tmpl"
+	gravatarTemplateFile    = os.Getenv("GOPATH") + "/src/socialapi/workers/emailnotifier/templates/gravatar.tmpl"
+	groupTemplateFile       = os.Getenv("GOPATH") + "/src/socialapi/workers/emailnotifier/templates/group.tmpl"
+	previewTemplateFile     = os.Getenv("GOPATH") + "/src/socialapi/workers/emailnotifier/templates/preview.tmpl"
+	objectTemplateFile      = os.Getenv("GOPATH") + "/src/socialapi/workers/emailnotifier/templates/object.tmpl"
+	unsubscribeTemplateFile = os.Getenv("GOPATH") + "/src/socialapi/workers/emailnotifier/templates/unsubscribe.tmpl"
 )
 
 func NewTemplateParser() *TemplateParser {
