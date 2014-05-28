@@ -14,6 +14,7 @@ module.exports = (options={}, callback)->
     options =
       type        : "weekly"
       channelName : "koding"
+      limit       : 5
 
     SocialChannel.fetchPopularTopics client, options, cb
 
