@@ -81,6 +81,6 @@ func List(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface
 	}
 
 	return helpers.HandleResultAndError(
-		models.AccountOldsIdByIds(list),
+		models.FetchAccountOldsIdByIdsFromCache(list),
 	)
 }
