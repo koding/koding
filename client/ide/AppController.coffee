@@ -113,3 +113,32 @@ class IDEAppController extends AppController
 
   openVMWebPage: (vmData) ->
     @activeTabView.emit 'VMWebPageRequested', vmData
+
+  collapseSidebar: ->
+    panel        = @workspace.getView()
+    splitView    = panel.layout.getSplitViewByName 'BaseSplit'
+    floatedPanel = splitView.panels.first
+    filesPane    = panel.getPaneByName 'filesPane'
+    desiredSize  = 289
+
+    splitView.once 'PanelSetToFloating', ->
+      floatedPanel._lastSize = desiredSize
+
+    splitView.setFloatingPanel 0, 39
+
+    filesPane.tabView.on 'PaneDidShow', ->
+      splitView.showPanel 0
+      floatedPanel._lastSize = desiredSize
+
+    floatedPanel.on 'ReceivedClickElsewhere', ->
+      KD.utils.defer ->
+        splitView.setFloatingPanel 0, 39
+
+  expandSidebar: ->
+    panel        = @workspace.getView()
+    splitView    = panel.layout.getSplitViewByName 'BaseSplit'
+    floatedPanel = splitView.panels.first
+
+    floatedPanel._lastSize = 250
+    splitView.unsetFloatingPanel 0
+    floatedPanel.off 'ReceivedClickElsewhere'
