@@ -58,13 +58,75 @@ func (t *TrollModeController) HandleEvent(event string, data []byte) error {
 	return handler(t, acc)
 }
 
-func (t *TrollModeController) MarkedAsTroll(data *models.Account) error {
-	t.log.Critical("marked as troll ehehe %v", data)
+func (t *TrollModeController) MarkedAsTroll(account *models.Account) error {
+	if account == nil {
+		return nil
+	}
+
+	query := &models.Query{
+		Type:      models.ChannelMessage_TYPE_POST,
+		AccountId: account.Id,
+	}
+
+	cm := models.NewChannelMessage()
+	totalMessageCount, err := cm.FetchTotalMessageCount(query)
+	if err != nil {
+		return err
+	}
+
+	// no need to continue if user doesnt have any channel message
+	if totalMessageCount == 0 {
+		t.log.Debug("Account %d doesnt have any post messages", account.Id)
+		return nil
+	}
+
+	processCount := 100
+
+	for i := 0; totalMessageCount <= 0; {
+		query.Limit = processCount
+		query.Skip = processCount * i
+
+		messageIds, err := cm.FetchMessageIds(query)
+		if err != nil {
+			return err
+		}
+
+		if len(messageIds) == 0 {
+			return nil
+		}
+
+		err = t.markMessagesAsTroll(cm, messageIds)
+		if err != nil {
+			return err
+		}
+
+		totalMessageCount = totalMessageCount - processCount
+		i++
+	}
+
 	return nil
 }
 
-func (t *TrollModeController) UnMarkedAsTroll(data *models.Account) error {
-	t.log.Critical("un marked as troll ehehe %v", data)
+func (t *TrollModeController) markMessagesAsTroll(cm *models.ChannelMessage, messageIds []int64) error {
+	if len(messageIds) == 0 {
+		return nil
+	}
+
+	for _, messageId := range messageIds {
+		err := cm.UpdateMulti(
+			map[string]interface{}{"id": messageId},
+			map[string]interface{}{"meta_bits": 1},
+		)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (t *TrollModeController) UnMarkedAsTroll(account *models.Account) error {
+	t.log.Critical("un marked as troll ehehe %v", account)
 	return nil
 }
 
