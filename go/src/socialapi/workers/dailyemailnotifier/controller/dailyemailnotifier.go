@@ -30,8 +30,7 @@ type DailyEmailNotifierWorkerController struct {
 var ObsoleteActivity = errors.New("obsolete activity")
 
 var (
-	cronJob  *cron.Cron
-	contents map[int64]*notificationmodels.NotificationContent
+	cronJob *cron.Cron
 )
 
 func NewDailyEmailNotifierWorkerController(
@@ -42,8 +41,6 @@ func NewDailyEmailNotifierWorkerController(
 		log:      log,
 		settings: es,
 	}
-
-	contents = make(map[int64]*notificationmodels.NotificationContent)
 
 	return c, c.initDailyEmailCron()
 }
@@ -204,7 +201,7 @@ func buildContainerForDailyMail(accountId, activityId int64) (*models.MailerCont
 		return nil, err
 	}
 
-	nc, err := getContent(a)
+	nc, err := a.FetchContent()
 	if err != nil {
 		return nil, err
 	}
@@ -223,18 +220,4 @@ func buildContainerForDailyMail(accountId, activityId int64) (*models.MailerCont
 	}
 
 	return mc, nil
-}
-
-func getContent(a *notificationmodels.NotificationActivity) (*notificationmodels.NotificationContent, error) {
-	if val, ok := contents[a.NotificationContentId]; ok {
-		return val, nil
-	}
-
-	nc, err := a.FetchContent()
-	if err != nil {
-		return nil, err
-	}
-	contents[a.NotificationContentId] = nc
-
-	return nc, nil
 }
