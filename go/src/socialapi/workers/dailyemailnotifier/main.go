@@ -3,13 +3,10 @@ package main
 import (
 	"fmt"
 	"koding/db/mongodb/modelhelper"
-	"os"
-	"os/signal"
 	"socialapi/workers/common/runner"
 	"socialapi/workers/dailyemailnotifier/controller"
 	"socialapi/workers/emailnotifier/models"
 	"socialapi/workers/helper"
-	"syscall"
 )
 
 var Name = "EmailDailyNotifier"
@@ -44,18 +41,5 @@ func main() {
 		r.Log.Error("an error occurred", err)
 	}
 
-	registerSignalHandler(handler)
-}
-
-func registerSignalHandler(h *controller.DailyEmailNotifierWorkerController) {
-	signals := make(chan os.Signal, 1)
-	signal.Notify(signals)
-	for {
-		signal := <-signals
-		switch signal {
-		case syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT, syscall.SIGSTOP:
-			h.Shutdown()
-			os.Exit(1)
-		}
-	}
+	r.RegisterSignalHandler(handler.Shutdown)
 }

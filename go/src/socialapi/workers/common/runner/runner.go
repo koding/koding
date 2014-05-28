@@ -3,8 +3,11 @@ package runner
 import (
 	"flag"
 	"fmt"
+	"os"
+	"os/signal"
 	"socialapi/config"
 	"socialapi/workers/helper"
+	"syscall"
 
 	"github.com/koding/bongo"
 	"github.com/koding/logging"
@@ -59,7 +62,7 @@ func (r *Runner) Init() error {
 }
 
 func (r *Runner) Listen(handler worker.Handler) {
-	listener := worker.NewListener(
+	r.Listener = worker.NewListener(
 		WrapWithVersion(r.Name, flagVersion),
 		WrapWithVersion(r.Conf.EventExchangeName, flagVersion),
 		r.Log,
@@ -67,10 +70,26 @@ func (r *Runner) Listen(handler worker.Handler) {
 
 	// blocking
 	// listen for events
-	listener.Listen(helper.NewRabbitMQ(r.Conf, r.Log), handler)
+	r.Listener.Listen(helper.NewRabbitMQ(r.Conf, r.Log), handler)
 }
 
 func (r *Runner) Close() {
-	r.Listener.Close()
+	if r.Listener != nil {
+		r.Listener.Close()
+	}
 	r.Bongo.Close()
+}
+
+func (r *Runner) RegisterSignalHandler(f func()) {
+	signals := make(chan os.Signal, 1)
+	signal.Notify(signals)
+	for {
+		signal := <-signals
+		switch signal {
+		case syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT, syscall.SIGSTOP:
+			f()
+			r.Close()
+			os.Exit(1)
+		}
+	}
 }
