@@ -112,6 +112,37 @@ func (c *ChannelMessage) CountWithQuery(q *bongo.Query) (int, error) {
 	return bongo.B.CountWithQuery(c, q)
 }
 
+func (c *ChannelMessage) isExemptContent() (bool, error) {
+	// set meta bits if only message is post or a reply
+	if c.TypeConstant != ChannelMessage_TYPE_POST &&
+		c.TypeConstant != ChannelMessage_TYPE_REPLY {
+		return false, nil
+	}
+
+	if c.AccountId == 0 && c.Id != 0 {
+		if err := c.ById(c.Id); err != nil {
+			return false, err
+		}
+	} else {
+		return false, fmt.Errorf("Couldnt find accountId from content %+v", c)
+	}
+
+	account, err := FetchAccountFromCache(c.AccountId)
+	if err != nil {
+		return false, err
+	}
+
+	if account == nil {
+		return false, fmt.Errorf("Account is nil, accountId:%d", c.AccountId)
+	}
+
+	if account.IsTroll {
+		return true, nil
+	}
+
+	return false, nil
+}
+
 func bodyLenCheck(body string) error {
 	if len(body) < config.Get().Limits.MessageBodyMinLen {
 		return fmt.Errorf("Message Body Length should be greater than %d, yours is %d ", config.Get().Limits.MessageBodyMinLen, len(body))
