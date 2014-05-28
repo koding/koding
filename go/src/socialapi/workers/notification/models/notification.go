@@ -4,10 +4,10 @@ import (
 	"encoding/json"
 	"errors"
 	// "fmt"
-	"github.com/jinzhu/gorm"
-	"github.com/koding/bongo"
 	"socialapi/models"
 	"time"
+	"github.com/jinzhu/gorm"
+	"github.com/koding/bongo"
 )
 
 type Notification struct {
@@ -218,7 +218,7 @@ func (n *Notification) buildNotificationContainer(actorId int64, nc *Notificatio
 	if err != nil {
 		return NotificationContainer{}
 	}
-	latestActorsOldIds, _ := models.AccountOldsIdByIds(ac.LatestActors)
+	latestActorsOldIds, _ := models.FetchAccountOldsIdByIdsFromCache(ac.LatestActors)
 
 	return NotificationContainer{
 		TargetId:              nc.TargetId,
