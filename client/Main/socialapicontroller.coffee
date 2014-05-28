@@ -47,8 +47,8 @@ class SocialApiController extends KDController
       @openedChannels[name] = brokerChannel
       @emit "ChannelRegistered-#{channelName}", this
 
-  onChannelReady: (name, type, callback) ->
-    channelName = "socialapi.#{KD.getGroup().slug}-#{type}-#{name}"
+  onChannelReady: (channel, callback) ->
+    channelName = generateChannelName channel
     channel = @openedChannels[channelName]
     if channel instanceof KD.remote.api.SocialChannel
     then callback channel
