@@ -139,10 +139,10 @@ func (d *DigitalOcean) Build(raws ...interface{}) (interface{}, error) {
 	var err error
 
 	// check if snapshot image does exist, if not create a new one.
-	fmt.Println("getting image ", snapshotName)
+	d.Log.Info("Fetching image %s", snapshotName)
 	image, err = d.Image(snapshotName)
 	if err != nil {
-		fmt.Println("image does not exist, creating a new one")
+		d.Log.Info("Image %s does not exist, creating a new one", snapshotName)
 		image, err = d.CreateImage()
 		if err != nil {
 			return nil, err
@@ -150,7 +150,7 @@ func (d *DigitalOcean) Build(raws ...interface{}) (interface{}, error) {
 	}
 
 	// create temporary key to deploy user based key
-	fmt.Println("creating temporary ssh key")
+	d.Log.Info("Creating temporary ssh key")
 	privateKey, publicKey, err := sshutil.TemporaryKey()
 	if err != nil {
 		return nil, err
@@ -164,18 +164,18 @@ func (d *DigitalOcean) Build(raws ...interface{}) (interface{}, error) {
 	}
 
 	defer func() {
-		fmt.Println("destroying droplet key")
+		d.Log.Info("Destroying droplet key")
 		err := d.DestroyKey(keyId) // remove after we are done
 		if err != nil {
 			curlstr := fmt.Sprintf("curl '%v/ssh_keys/%v/destroy?client_id=%v&api_key=%v'",
 				digitalocean.DIGITALOCEAN_API_URL, keyId, d.Creds.ClientID, d.Creds.APIKey)
 
-			fmt.Printf("Error cleaning up ssh key. Please delete the key manually: %v", curlstr)
+			d.Log.Error("Error cleaning up ssh key. Please delete the key manually: %v", curlstr)
 		}
 	}()
 
 	// now create a the machine based on our created image
-	fmt.Println("creating droplet ", dropletName)
+	d.Log.Info("Creating droplet %s", dropletName)
 	dropletInfo, err := d.CreateDroplet(dropletName, keyId, image.Id)
 	if err != nil {
 		return nil, err
@@ -184,14 +184,14 @@ func (d *DigitalOcean) Build(raws ...interface{}) (interface{}, error) {
 	// Now we wait until it's ready, it takes approx. 50-70 seconds to finish,
 	// but we also add a timeout  of five minutes to not let stuck it there
 	// forever.
-	fmt.Println("waiting for droplet to be ready ...")
+	d.Log.Info("Waiting for droplet to be ready ...")
 	err = d.WaitForState(dropletInfo.Droplet.EventId, "done", time.Minute*5)
 	if err != nil {
 		return nil, err
 	}
 
 	// our droplet has now an IP adress, get it
-	fmt.Println("getting info about droplet")
+	d.Log.Info("Getting info about droplet")
 	info, err := d.Info(dropletInfo.Droplet.Id)
 	if err != nil {
 		return nil, err
@@ -204,7 +204,7 @@ func (d *DigitalOcean) Build(raws ...interface{}) (interface{}, error) {
 		return nil, err
 	}
 
-	fmt.Println("connection to ssh ", sshAddress)
+	d.Log.Info("Connecting to ssh %s", sshAddress)
 	client, err := sshutil.ConnectSSH(sshAddress, sshConfig)
 	if err != nil {
 		return nil, err
@@ -212,35 +212,33 @@ func (d *DigitalOcean) Build(raws ...interface{}) (interface{}, error) {
 	defer client.Close()
 
 	// genereate kite key specific for the user
-	fmt.Println("creating kite key")
+	d.Log.Info("Creating kite key")
 	kiteKey, err := signFunc()
 	if err != nil {
 		return nil, err
 	}
 
 	// for debugging, remove it later ...
-	fmt.Println("writing kite key to temporary file (kite.key)")
+	d.Log.Info("Writing kite key to temporary file (kite.key)")
 	if err := ioutil.WriteFile("kite.key", []byte(kiteKey), 0400); err != nil {
-		fmt.Println("couldn't write temporary kite file", err)
+		d.Log.Info("couldn't write temporary kite file", err)
 	}
 
 	keyPath := "/opt/kite/klient/key/kite.key"
 
-	fmt.Println("copying remote kite key", keyPath)
+	d.Log.Info("Copying remote kite key %s", keyPath)
 	remoteFile, err := client.Create(keyPath)
 	if err != nil {
 		return nil, err
 	}
 
-	n, err := remoteFile.Write([]byte(kiteKey))
+	_, err = remoteFile.Write([]byte(kiteKey))
 	if err != nil {
 		return nil, err
 	}
 
-	fmt.Printf("wrote %+v bytes\n", n)
-
 	// restart after we create with the key itself
-	fmt.Println("restarting klient on remote machine")
+	d.Log.Info("Restarting klient on remote machine")
 	if err := client.StartCommand("service klient restart"); err != nil {
 		return nil, err
 	}
