@@ -143,22 +143,19 @@ class ActivitySidebar extends KDCustomScrollView
       cssClass : 'kdlistitemview-sidebar-item public-feed-link'
     ,
       name     : 'koding_public_feed'
-      id       : "#{KD.getGroup().socialApiChannelId ? 1}"
-      channel  : KD.singleton "socialapi"
+      id       : KD.getGroup().socialApiChannelId ? '1'
+      channel  : KD.singleton 'socialapi'
 
 
     @public.addSubView new KDCustomHTMLView
-      cssClass : 'count'
+      cssClass : 'count hidden'
       tagName  : 'cite'
       partial  : '1'
-
-    # # load initial public feed
-    # KD.utils.defer -> activityController.emit 'SidebarItemClicked', @public
 
 
   addHotTopics: ->
 
-    @wrapper.addSubView @sections['hot'] = new ActivitySideView
+    @wrapper.addSubView @sections.hot = new ActivitySideView
       title      : 'HOT'
       cssClass   : 'hot topics'
       itemClass  : SidebarTopicItem
@@ -172,7 +169,7 @@ class ActivitySidebar extends KDCustomScrollView
 
   addFollowedTopics: ->
 
-    @wrapper.addSubView @sections['followedTopics'] = new ActivitySideView
+    @wrapper.addSubView @sections.followedTopics = new ActivitySideView
       title      : 'Followed Topics'
       cssClass   : 'followed topics'
       itemClass  : SidebarTopicItem
@@ -186,7 +183,7 @@ class ActivitySidebar extends KDCustomScrollView
 
   addFollowedPosts: ->
 
-    @wrapper.addSubView @sections['followedPosts'] = new ActivitySideView
+    @wrapper.addSubView @sections.followedPosts = new ActivitySideView
       title      : 'Followed Posts'
       cssClass   : 'threads users'
       itemClass  : SidebarPinnedItem
@@ -200,7 +197,7 @@ class ActivitySidebar extends KDCustomScrollView
 
   addMessages: ->
 
-    @wrapper.addSubView @sections['messages'] = new ActivitySideView
+    @wrapper.addSubView @sections.messages = new ActivitySideView
       title      : 'Messages'
       cssClass   : 'inbox users'
       itemClass  : SidebarMessageItem
@@ -215,7 +212,7 @@ class ActivitySidebar extends KDCustomScrollView
 
   addChat: ->
 
-    @wrapper.addSubView @sections['chat'] = new ActivitySideView
+    @wrapper.addSubView @sections.chat = new ActivitySideView
       title    : 'Chat'
       cssClass : 'chat users'
       itemClass : SidebarChatMemberItem
