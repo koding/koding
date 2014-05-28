@@ -99,8 +99,11 @@ module.exports = class Koding extends ProviderInterface
     }
 
     callback null, {
-      postCreateOptions: { hostnameAliases, account, group }
-    , meta }
+      meta,
+      postCreateOptions: {
+        hostnameAliases, account, group
+      }
+    }
 
 
   @remove = (client, options, callback)->

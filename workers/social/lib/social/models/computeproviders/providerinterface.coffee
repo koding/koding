@@ -33,6 +33,6 @@ module.exports = class ProviderInterface
       if err?
         callback new KodingError "Failed to fetch credential"
       else if credData?
-        callback null, credData.meta
+        callback null, credData
       else
         callback null, {}
