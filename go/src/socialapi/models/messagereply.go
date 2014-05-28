@@ -36,6 +36,30 @@ func NewMessageReply() *MessageReply {
 	return &MessageReply{}
 }
 
+func (m *MessageReply) BeforeCreate() {
+	if m.ReplyId == 0 {
+		return
+	}
+
+	cm := NewChannelMessage()
+	cm.Id = m.ReplyId
+	if res, err := cm.isExemptContent(); err == nil && res {
+		m.MetaBits = updateTrollModeBit(m.MetaBits)
+	}
+}
+
+func (m *MessageReply) BeforeUpdate() {
+	if m.ReplyId == 0 {
+		return
+	}
+
+	cm := NewChannelMessage()
+	cm.Id = m.ReplyId
+	if res, err := cm.isExemptContent(); err == nil && res {
+		m.MetaBits = updateTrollModeBit(m.MetaBits)
+	}
+}
+
 func (m *MessageReply) AfterCreate() {
 	bongo.B.AfterCreate(m)
 }
