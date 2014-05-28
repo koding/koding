@@ -178,7 +178,7 @@ func (f *RealtimeWorkerController) handleInteractionEvent(eventName string, data
 		return err
 	}
 
-	oldId, err := models.AccountOldIdById(i.AccountId)
+	oldId, err := models.FetchAccountOldIdByIdFromCache(i.AccountId)
 	if err != nil {
 		return err
 	}
@@ -313,7 +313,7 @@ func (f *RealtimeWorkerController) NotifyUser(data []byte) error {
 		TargetId:     nc.TargetId,
 		TypeConstant: nc.TypeConstant,
 	}
-	ne.Content.ActorId, _ = models.AccountOldIdById(activity.ActorId)
+	ne.Content.ActorId, _ = models.FetchAccountOldIdByIdFromCache(activity.ActorId)
 
 	notificationMessage, err := json.Marshal(ne)
 	if err != nil {
