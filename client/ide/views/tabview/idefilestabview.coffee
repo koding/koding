@@ -57,4 +57,18 @@ class IDEFilesTabView extends WorkspaceTabView
         style    : 'display: block; margin: 20px; width: 200px; '
       callback   : -> ideAppController.openFile()
 
+    actionsPane.addSubView new KDButtonView
+      title      : 'Collapse sidebar'
+      cssClass   : 'compact solid green'
+      attributes :
+        style    : 'display: block; margin: 20px; width: 200px; '
+      callback   : -> ideAppController.collapseSidebar()
+
+    actionsPane.addSubView new KDButtonView
+      title      : 'Expand sidebar'
+      cssClass   : 'compact solid green'
+      attributes :
+        style    : 'display: block; margin: 20px; width: 200px; '
+      callback   : -> ideAppController.expandSidebar()
+
     @tabView.addPane actionsPane
