@@ -1,5 +1,7 @@
 package models
 
+import "fmt"
+
 var (
 	accountCache map[int64]*Account
 )
@@ -51,4 +53,17 @@ func FetchAccountOldsIdByIdsFromCache(ids []int64) ([]string, error) {
 	}
 
 	return oldIds, nil
+}
+
+func SetAccountToCache(a *Account) {
+	if a == nil {
+		return
+	}
+
+	if a.Id == 0 {
+		fmt.Println("account id is empty")
+		return
+	}
+
+	accountCache[a.Id] = a
 }
