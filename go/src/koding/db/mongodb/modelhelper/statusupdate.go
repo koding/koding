@@ -36,11 +36,13 @@ func AddStatusUpdate(s *models.StatusUpdate) error {
 	return Mongo.Run(POST_COLL, query)
 }
 
-func GetStatusUpdate(s Selector) (models.StatusUpdate, error) {
+func GetStatusUpdate(s Selector, o Options) (models.StatusUpdate, error) {
 	su := models.StatusUpdate{}
 
 	query := func(c *mgo.Collection) error {
-		return c.Find(s).One(&su)
+		q := c.Find(s)
+		decorateQuery(q, o)
+		return q.One(&su)
 	}
 
 	return su, Mongo.Run(POST_COLL, query)
