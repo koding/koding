@@ -37,15 +37,22 @@ class SocialApiController extends KDController
         channelName: slug
         isExclusive: yes
 
-      name = "socialapi.#{slug}-group-#{slug}"
-      brokerChannel= KD.remote.subscribe name, subscriptionData
-      @forwardMessageEvents brokerChannel, this, ["MessageAdded", "MessageRemoved"]
-      @emit "ChannelRegistered-group-#{slug}", this
+      channelName    = generateChannelName
+        name         : slug
+        typeConstant : 'group'
+        groupName    : slug
 
-  onChannelReady: (name, callback) ->
-    if channel = @openedChannels[name]
+      brokerChannel = KD.remote.subscribe channelName, subscriptionData
+      @forwardMessageEvents brokerChannel, this, ["MessageAdded", "MessageRemoved"]
+      @openedChannels[name] = brokerChannel
+      @emit "ChannelRegistered-#{channelName}", this
+
+  onChannelReady: (channel, callback) ->
+    channelName = generateChannelName channel
+    channel = @openedChannels[channelName]
+    if channel instanceof KD.remote.api.SocialChannel
     then callback channel
-    else @once "ChannelRegistered-#{name}", callback
+    else @once "ChannelRegistered-#{channelName}", callback
 
   mapActivity = (data) ->
 
@@ -215,33 +222,31 @@ class SocialApiController extends KDController
   registerAndOpenChannels = (socialApiChannels)->
     {socialapi} = KD.singletons
 
-    map = {}
-
     getCurrentGroup (group)->
       for socialApiChannel in socialApiChannels
-        {typeConstant, name} = socialApiChannel
-        channelName = "#{typeConstant}-#{name}"
+        channelName = generateChannelName socialApiChannel
         continue  if socialapi.openedChannels[channelName]
-        socialapi.openedChannels[channelName] = {} # placeholder to  duplicate registration
-        map[channelName] = socialApiChannel
+        socialapi.openedChannels[channelName] = {} # placeholder to avoid duplicate registration
 
         subscriptionData =
           serviceType: 'socialapi'
           group      : group.slug
-          channelType: typeConstant
-          channelName: name
+          channelType: socialApiChannel.typeConstant
+          channelName: channelName
           isExclusive: yes
 
         KD.remote.subscribe name, subscriptionData, (brokerChannel)->
-          {channelType, channelName} = brokerChannel.authenticationInfo
-          channelName = "#{channelType}-#{channelName}"
-          socialapi.openedChannels[channelName] = brokerChannel
+          {name} = brokerChannel
+          socialapi.openedChannels[name] = brokerChannel
           forwardMessageEvents brokerChannel, socialApiChannel, [
             "MessageAdded",
             "MessageRemoved"
           ]
 
-          socialapi.emit "ChannelRegistered-#{channelName}", map[channelName]
+          socialapi.emit "ChannelRegistered-#{name}", brokerChannel
+
+  generateChannelName = ({name, typeConstant, groupName}) ->
+    return "socialapi.#{groupName}-#{typeConstant}-#{name}"
 
   message:
     edit   :(args...)-> messageApiMessageResFunc 'edit', args...
