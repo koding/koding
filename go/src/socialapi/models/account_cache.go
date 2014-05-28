@@ -1,35 +1,49 @@
 package models
 
 var (
-	accountCache map[int64]string
+	accountCache map[int64]*Account
 )
 
 func init() {
-	accountCache = make(map[int64]string)
+	accountCache = make(map[int64]*Account)
 }
 
-func AccountOldIdById(id int64) (string, error) {
-	if oldId, ok := accountCache[id]; ok {
-		return oldId, nil
+func FetchAccountOldIdByIdFromCache(id int64) (string, error) {
+	if a, ok := accountCache[id]; ok && a != nil {
+		return a.OldId, nil
 	}
 
-	oldId, err := FetchOldIdByAccountId(id)
+	account, err := FetchAccountById(id)
 	if err != nil {
 		return "", err
 	}
 
-	accountCache[id] = oldId
-	return oldId, nil
+	accountCache[id] = account
+	return account.OldId, nil
 }
 
-func AccountOldsIdByIds(ids []int64) ([]string, error) {
+func FetchAccountFromCache(id int64) (*Account, error) {
+	if a, ok := accountCache[id]; ok && a != nil {
+		return a, nil
+	}
+
+	account, err := FetchAccountById(id)
+	if err != nil {
+		return nil, err
+	}
+
+	accountCache[id] = account
+	return account, nil
+}
+
+func FetchAccountOldsIdByIdsFromCache(ids []int64) ([]string, error) {
 	oldIds := make([]string, len(ids))
 	if len(oldIds) == 0 {
 		return oldIds, nil
 	}
 
 	for i, id := range ids {
-		oldId, err := AccountOldIdById(id)
+		oldId, err := FetchAccountOldIdByIdFromCache(id)
 		if err != nil {
 			return oldIds, err
 		}
