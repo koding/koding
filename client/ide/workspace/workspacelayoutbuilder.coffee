@@ -37,10 +37,11 @@ class WorkspaceLayoutBuilder extends KDSplitComboView
 
         views.push wrapper
 
-    splitView = new SplitViewWithOlderSiblings { type, sizes, views, cssClass }
+    SplitViewClass = @getOptions().splitViewClass or SplitViewWithOlderSiblings
+    splitView      = new SplitViewClass { type, sizes, views, cssClass }
     @splitViews[@baseSplitName] = splitView  if @baseSplitName
 
     return splitView
 
-  getSplitByName: (name) ->
+  getSplitViewByName: (name) ->
     return @splitViews[name] or null
