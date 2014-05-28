@@ -106,9 +106,13 @@ module.exports = class Builder
       identifier: "REMOTE_API"
       out       : '.build/api.js'
     , =>
-      @buildAndWatchClient options
-
-
+      buildAPI
+        rootDir   : __dirname
+        modelsDir : './workers/log/lib/log/models'
+        identifier: "REMOTE_LOGGING_API"
+        out       : '.build/logging-api.js'
+      , =>
+        @buildAndWatchClient options
 
   buildAndWatchClient: (options) ->
 

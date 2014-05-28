@@ -28,8 +28,6 @@ module.exports = class JPageHit extends ElasticSearch
       {pathname, query} = (require "url").parse path
       query             = (require "querystring").parse query
 
-      record.userAgent =
-
       record = _.extend {
         pathname
         query
