@@ -1,9 +1,6 @@
 class ActivitySidebar extends KDCustomScrollView
 
 
-  addEventLogger = (source, eventName) -> source.on eventName, -> log eventName, arguments
-
-
   typeMap =
     privatemessage : 'Message'
     topic          : 'Topic'
@@ -49,11 +46,24 @@ class ActivitySidebar extends KDCustomScrollView
       socialapi
     } = KD.singletons
 
-    addEventLogger notificationController, 'AddedToChannel'
-    addEventLogger notificationController, 'RemovedFromChannel'
-
     @sections     = {}
     @selectedItem = null
+
+    notificationController.on 'AddedToChannel', (channel) =>
+
+      [topic] = socialapi.mapChannels channel
+
+      @sections.followedTopics.listController.addItem topic
+
+
+    notificationController.on 'RemovedFromChannel', (channel) =>
+
+      {listController} = @sections.followedTopics
+
+      [topic] = socialapi.mapChannels channel
+      item    = listController.itemsIndexed[topic.id]
+
+      listController.removeItem item
 
 
   # fixme:
@@ -136,29 +146,27 @@ class ActivitySidebar extends KDCustomScrollView
   addPublicFeedLink: ->
 
     {activityController} = KD.singletons
+    {slug, socialApiChannelId} = KD.getGroup()
 
     @wrapper.addSubView @public = new CustomLinkView
       title    : 'PUBLIC FEED'
       href     : '/Activity/Public'
       cssClass : 'kdlistitemview-sidebar-item public-feed-link'
     ,
-      name     : 'koding_public_feed'
-      id       : "#{KD.getGroup().socialApiChannelId ? 1}"
-      channel  : KD.singleton "socialapi"
-
+      name         : slug
+      typeConstant : 'group'
+      groupName    : slug
+      id           : socialApiChannelId ? '1'
 
     @public.addSubView new KDCustomHTMLView
-      cssClass : 'count'
+      cssClass : 'count hidden'
       tagName  : 'cite'
       partial  : '1'
-
-    # # load initial public feed
-    # KD.utils.defer -> activityController.emit 'SidebarItemClicked', @public
 
 
   addHotTopics: ->
 
-    @wrapper.addSubView @sections['hot'] = new ActivitySideView
+    @wrapper.addSubView @sections.hot = new ActivitySideView
       title      : 'HOT'
       cssClass   : 'hot topics'
       itemClass  : SidebarTopicItem
@@ -172,7 +180,7 @@ class ActivitySidebar extends KDCustomScrollView
 
   addFollowedTopics: ->
 
-    @wrapper.addSubView @sections['followedTopics'] = new ActivitySideView
+    @wrapper.addSubView @sections.followedTopics = new ActivitySideView
       title      : 'Followed Topics'
       cssClass   : 'followed topics'
       itemClass  : SidebarTopicItem
@@ -186,7 +194,7 @@ class ActivitySidebar extends KDCustomScrollView
 
   addFollowedPosts: ->
 
-    @wrapper.addSubView @sections['followedPosts'] = new ActivitySideView
+    @wrapper.addSubView @sections.followedPosts = new ActivitySideView
       title      : 'Followed Posts'
       cssClass   : 'threads users'
       itemClass  : SidebarPinnedItem
@@ -200,7 +208,7 @@ class ActivitySidebar extends KDCustomScrollView
 
   addMessages: ->
 
-    @wrapper.addSubView @sections['messages'] = new ActivitySideView
+    @wrapper.addSubView @sections.messages = new ActivitySideView
       title      : 'Messages'
       cssClass   : 'inbox users'
       itemClass  : SidebarMessageItem
@@ -215,7 +223,7 @@ class ActivitySidebar extends KDCustomScrollView
 
   addChat: ->
 
-    @wrapper.addSubView @sections['chat'] = new ActivitySideView
+    @wrapper.addSubView @sections.chat = new ActivitySideView
       title    : 'Chat'
       cssClass : 'chat users'
       itemClass : SidebarChatMemberItem

@@ -86,7 +86,7 @@ class ActivityListItemView extends KDListItemView
 
   formatContent: (str = '') ->
 
-    return @utils.applyMarkdown @utils.expandTokens str, @getData()
+    return @utils.decorateTags @utils.applyMarkdown str, @getData()
 
 
   setAnchors: ->

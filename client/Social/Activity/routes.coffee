@@ -24,7 +24,7 @@ do ->
 
   KD.registerRoutes 'Activity',
 
-    '/:name?/Activity/Public' : -> handleChannel 'public'
+    '/:name?/Activity/Public' : ({params: {name}}) -> handleChannel 'group', name or 'koding'
 
     '/:name?/Activity/Topic/:slug?' : ({params:{name, slug}, query}) ->
       handleChannel 'topic', slug
@@ -43,5 +43,3 @@ do ->
       unless slug
       then router.openSection 'Activity', name, query
       else createContentDisplayHandler('Activity') arguments...
-
-

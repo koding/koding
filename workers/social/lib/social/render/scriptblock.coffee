@@ -138,8 +138,8 @@ module.exports = (options = {}, callback)->
 
 
 
-  SocialApi = require '../cache/socialapi'
-  SocialApi options, (err, data)->
+  socialApiCacheFn = require '../cache/socialapi'
+  socialApiCacheFn options, (err, data)->
     socialapidata = data
     {delegate} = options.client.connection
     # if user is exempt or super-admin do not cache his/her result set

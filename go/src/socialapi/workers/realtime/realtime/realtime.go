@@ -129,11 +129,15 @@ func (f *RealtimeWorkerController) ChannelParticipantEvent(data []byte) error {
 		return err
 	}
 
-	var err error
+	cmc, err := models.PopulateChannelContainer(*c, cp.AccountId)
+	if err != nil {
+		return err
+	}
+
 	if cp.StatusConstant == models.ChannelParticipant_STATUS_ACTIVE {
-		err = f.sendNotification(cp.AccountId, "AddedToChannel", c)
+		err = f.sendNotification(cp.AccountId, "AddedToChannel", cmc)
 	} else if cp.StatusConstant == models.ChannelParticipant_STATUS_LEFT {
-		err = f.sendNotification(cp.AccountId, "RemovedFromChannel", c)
+		err = f.sendNotification(cp.AccountId, "RemovedFromChannel", cmc)
 	} else {
 		err = fmt.Errorf("Unhandled event type for channel participation %s", cp.StatusConstant)
 	}
