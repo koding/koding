@@ -2,6 +2,7 @@ package models
 
 import (
 	"errors"
+	mongomodels "koding/db/models"
 	"koding/db/mongodb/modelhelper"
 	"socialapi/models"
 
@@ -18,7 +19,7 @@ type UserContact struct {
 	Username      string
 	Hash          string
 	Token         string
-	EmailSettings map[string]bool
+	EmailSettings *mongomodels.EmailFrequency
 }
 
 // fetchUserContact gets user and account details with given account id
@@ -59,7 +60,7 @@ func FetchUserContact(accountId int64) (*UserContact, error) {
 		LastName:      account.Profile.LastName,
 		Username:      account.Profile.Nickname,
 		Hash:          account.Profile.Hash,
-		EmailSettings: user.EmailFrequency,
+		EmailSettings: &user.EmailFrequency,
 		Token:         token,
 	}, nil
 }

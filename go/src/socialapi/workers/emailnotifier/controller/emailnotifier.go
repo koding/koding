@@ -181,13 +181,13 @@ func validNotification(a *notificationmodels.NotificationActivity, n *notificati
 func (n *EmailNotifierWorkerController) checkMailSettings(uc *models.UserContact,
 	a *notificationmodels.NotificationActivity, nc *notificationmodels.NotificationContent) bool {
 	// notifications are disabled
-	if val := uc.EmailSettings["global"]; !val {
+	if val := uc.EmailSettings.Global; !val {
 		return false
 	}
 
-	notificationEnabled := uc.EmailSettings[emailConfig[nc.TypeConstant]]
+	notificationEnabled := checkMailSettings(nc, uc)
 	// daily notifications are enabled
-	if val := uc.EmailSettings["daily"]; val {
+	if val := uc.EmailSettings.Daily; val {
 		if notificationEnabled {
 			go n.saveDailyMail(uc.AccountId, a.Id)
 		}
@@ -235,6 +235,25 @@ func saveActivity(accountId, activityId int64) error {
 	}
 
 	return nil
+}
+
+func checkMailSettings(nc *notificationmodels.NotificationContent, uc *models.UserContact) bool {
+	switch nc.TypeConstant {
+	case notificationmodels.NotificationContent_TYPE_COMMENT:
+		return uc.EmailSettings.Comment
+	case notificationmodels.NotificationContent_TYPE_LIKE:
+		return uc.EmailSettings.Like
+	case notificationmodels.NotificationContent_TYPE_FOLLOW:
+		return uc.EmailSettings.Follow
+	case notificationmodels.NotificationContent_TYPE_JOIN:
+		return uc.EmailSettings.Join
+	case notificationmodels.NotificationContent_TYPE_LEAVE:
+		return uc.EmailSettings.Leave
+	case notificationmodels.NotificationContent_TYPE_MENTION:
+		return uc.EmailSettings.Mention
+	}
+
+	return false
 }
 
 func prepareRecipientsCacheKey() string {

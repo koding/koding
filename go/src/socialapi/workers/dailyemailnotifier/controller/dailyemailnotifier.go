@@ -94,7 +94,7 @@ func (n *DailyEmailNotifierWorkerController) prepareDailyEmail(accountId int64) 
 	}
 
 	// notifications are disabled
-	if val := uc.EmailSettings["global"]; !val {
+	if val := uc.EmailSettings.Global; !val {
 		return nil
 	}
 
