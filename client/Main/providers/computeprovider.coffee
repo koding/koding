@@ -2,15 +2,6 @@ class ComputeProvider extends KDObject
 
   @providers = KD.config.providers
 
-  @credentialsFor = (provider, callback)->
-    KD.remote.api.JCredential.some { provider }, callback
-
-  @fetchAvailable = (options, callback)->
-    KD.remote.api.ComputeProvider.fetchAvailable options, callback
-
-  @fetchExisting = (options, callback)->
-    KD.remote.api.ComputeProvider.fetchExisting options, callback
-
   @fetchStacks = (callback = noop)->
 
     if @stacks
@@ -22,11 +13,23 @@ class ComputeProvider extends KDObject
       return callback err  if err?
       callback null, ComputeProvider.stacks = stacks
 
+
+  @credentialsFor = (provider, callback)->
+    KD.remote.api.JCredential.some { provider }, callback
+
+  @fetchAvailable = (options, callback)->
+    KD.remote.api.ComputeProvider.fetchAvailable options, callback
+
+  @fetchExisting = (options, callback)->
+    KD.remote.api.ComputeProvider.fetchExisting options, callback
+
   @create = (options, callback)->
     KD.remote.api.ComputeProvider.create options, callback
 
   @createDefaultStack = ->
     KD.remote.api.ComputeProvider.createGroupStack (err, stack)=>
+      return if KD.showError err
+
       delete ComputeProvider.stacks
       KD.singletons.mainController.emit "renderStacks"
 
