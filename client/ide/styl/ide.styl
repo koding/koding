@@ -9,6 +9,25 @@ ide.styl
 }
 
 .ide
-  bg           color, #1B2224
+  bg                    color, #1B2224
   .ace_editor
-    height     100%
+    height              100%
+
+
+  .ide-files-tab
+    .kdtabhandle
+      b
+        text-indent     -1000px
+      &.files
+        r-sprite        'ide', 'files-off'
+        &.active
+          r-sprite      'ide', 'files-on'
+      &.vms
+        r-sprite        'ide', 'vms-off'
+        &.active
+          r-sprite      'ide', 'vms-on'
+      &.actions
+        r-sprite        'ide', 'share-off'
+        &.active
+          r-sprite      'ide', 'share-on'
+
