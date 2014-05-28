@@ -14,6 +14,19 @@ class ComputeProvider extends KDObject
       callback null, ComputeProvider.stacks = stacks
 
 
+  @fetchMachines = (callback)->
+
+    @fetchStacks (err, stacks)->
+      return callback err  if err?
+
+      machines = []
+      stacks.forEach (stack)->
+        stack.machines.forEach (machine)->
+          machines.push new Machine { machine }
+
+      callback null, machines
+
+
   @credentialsFor = (provider, callback)->
     KD.remote.api.JCredential.some { provider }, callback
 
