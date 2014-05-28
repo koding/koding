@@ -5,6 +5,7 @@ import (
 	"koding/kodingkite"
 	"koding/tools/config"
 	"log"
+	"os"
 
 	"github.com/koding/logging"
 )
@@ -23,12 +24,15 @@ type Kloud struct {
 	KontrolPublicKey  string
 	KontrolPrivateKey string
 	KontrolURL        string
-	Log               logging.Logger
+
+	Log   logging.Logger
+	Debug bool
 }
 
 func (k *Kloud) NewKloud() *kodingkite.KodingKite {
 	k.Name = NAME
 	k.Version = VERSION
+	k.Log = createLogger(NAME, k.Debug)
 
 	kt, err := kodingkite.New(k.Config, k.Name, k.Version)
 	if err != nil {
@@ -52,6 +56,22 @@ func (k *Kloud) NewKloud() *kodingkite.KodingKite {
 
 func (k *Kloud) InitializeProviders() {
 	providers = map[string]interface{}{
-		"digitalocean": &digitalocean.DigitalOcean{},
+		"digitalocean": &digitalocean.DigitalOcean{
+			Log: createLogger("digitalocean", k.Debug),
+		},
 	}
+}
+
+func createLogger(name string, debug bool) logging.Logger {
+	log := logging.NewLogger(name)
+	logHandler := logging.NewWriterHandler(os.Stderr)
+	logHandler.Colorize = true
+	log.SetHandler(logHandler)
+
+	if debug {
+		log.SetLevel(logging.DEBUG)
+		logHandler.SetLevel(logging.DEBUG)
+	}
+
+	return log
 }

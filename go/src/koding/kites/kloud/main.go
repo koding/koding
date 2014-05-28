@@ -9,8 +9,6 @@ import (
 	"log"
 	"net/url"
 	"os"
-
-	"github.com/koding/logging"
 )
 
 var (
@@ -65,7 +63,7 @@ func main() {
 	k := &kloud.Kloud{
 		Region:            *flagRegion,
 		Port:              *flagPort,
-		Log:               createLogger(kloud.NAME, *flagDebug),
+		Debug:             *flagDebug,
 		Config:            conf,
 		KontrolURL:        kontrolURL,
 		KontrolPrivateKey: privateKey,
@@ -73,18 +71,4 @@ func main() {
 	}
 
 	k.NewKloud().Run()
-}
-
-func createLogger(name string, debug bool) logging.Logger {
-	log := logging.NewLogger(name)
-	logHandler := logging.NewWriterHandler(os.Stderr)
-	logHandler.Colorize = true
-	log.SetHandler(logHandler)
-
-	if debug {
-		log.SetLevel(logging.DEBUG)
-		logHandler.SetLevel(logging.DEBUG)
-	}
-
-	return log
 }
