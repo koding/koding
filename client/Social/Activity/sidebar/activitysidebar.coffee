@@ -144,8 +144,6 @@ class ActivitySidebar extends KDCustomScrollView
     ,
       name     : 'koding_public_feed'
       id       : KD.getGroup().socialApiChannelId ? '1'
-      channel  : KD.singleton 'socialapi'
-
 
     @public.addSubView new KDCustomHTMLView
       cssClass : 'count hidden'

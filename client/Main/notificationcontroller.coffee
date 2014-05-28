@@ -150,16 +150,20 @@ class NotificationController extends KDObject
 
       switch contents.type
         when "comment"
-          isMine = target.accountId is KD.whoami()?.socialApiId
+          isMine = target.accountOldId is KD.whoami()?.getId()
           subject = if target.type is "privateMessage" then "private message" else "status"
           if isMine then setTitle "#{actorName} commented on your #{subject}"
           else
-            KD.remote.api.JAccount.one socialApiId: target.accountId, (err, origin)->
+            KD.remote.api.JAccount.one _id: target.accountOldId, (err, origin)->
               return reject err  if err
               return reject {message: "message origin not found"}  unless origin
 
-              actorName = KD.utils.getFullnameFromAccount actor
-              setTitle "#{actorName} commented on #{actorName}'s #{subject}"
+              if origin.getId() is actor.getId()
+                ownerName = "their own"
+              else
+                ownerName = KD.utils.getFullnameFromAccount actor
+                ownerName = "#{ownerName}'s"
+              setTitle "#{actorName} commented on #{ownerName} #{subject}"
         when "like"
           setTitle "#{actorName} liked your status."
         when "follow"

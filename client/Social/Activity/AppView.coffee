@@ -56,13 +56,16 @@ class ActivityAppView extends KDScrollView
     else @createTab name, data
 
 
-
   createTab: (name, data) ->
 
     channelId = data.id
     type      = data.typeConstant
 
-    @tabs.addPane pane = new MessagePane {name, type, channelId}, data
+    paneClass = switch type
+      when 'topic' then TopicMessagePane
+      else MessagePane
+
+    @tabs.addPane pane = new paneClass {name, type, channelId}, data
 
     return pane
 

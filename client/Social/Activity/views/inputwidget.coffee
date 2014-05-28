@@ -218,8 +218,7 @@ class ActivityInputWidget extends KDView
     {body}       = data
     {channel}    = @getOptions()
 
-    # fixme i don't want to see this hardcoded public feed name around
-    if channel.name isnt 'koding_public_feed'
+    if channel.typeConstant is 'topic' and not body.match ///##{channel.name}///
       body += " ##{channel.name} "
 
     appManager.tell 'Activity', 'post', {body}, (err, activity) =>
