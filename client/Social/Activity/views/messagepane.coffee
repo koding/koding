@@ -7,25 +7,28 @@ class MessagePane extends KDTabPaneView
 
     super options, data
 
-    {itemClass} = @getOptions()
+    {itemClass, type} = @getOptions()
 
     @listController = new ActivityListController {itemClass}
     @createInputWidget()
 
     @bindChannelEvents()
 
-    @on 'LazyLoadThresholdReached', @bound 'lazyLoad'
+    @on 'LazyLoadThresholdReached', @bound 'lazyLoad'  if type in ['', 'topic']
 
 
   bindChannelEvents: ->
 
-    {channel} = @getData()
-    channel  ?= KD.singleton("socialapi").openedChannels[@getOption "name"]
+    {channel}   = @getData()
+    {name}      = @getOptions()
+    {socialapi} = KD.singletons
+    channel   or= socialapi.openedChannels[name]
 
     return  unless channel
 
-    channel.on "MessageAdded", @bound "addMessage"
-    channel.on "MessageRemoved", @bound "removeMessage"
+    channel
+      .on 'MessageAdded',   @bound 'addMessage'
+      .on 'MessageRemoved', @bound 'removeMessage'
 
 
   addMessage: (message) ->
