@@ -36,18 +36,16 @@ class ComputeProvider extends KDObject
 
 class Machine extends KDObject
 
-  constructor:(options = {}, data)->
+  constructor:(options = {})->
 
-    unless data?.bongo_?.constructorName is 'JMachine'
+    { machine } = options
+    unless machine?.bongo_?.constructorName is 'JMachine'
       throw new Error 'Data should be a JMachine instance'
 
-    super options, data
-    { @name, @publicAddress } = @jMachine = @getData()
+    delete options.machine
+    super options, machine
 
-
-
-
-
+    { @label, @publicAddress, @state } = @jMachine = @getData()
 
 
 
