@@ -50,6 +50,12 @@ type ChannelMessage struct {
 }
 
 func (c *ChannelMessage) BeforeCreate() {
+	c.MetaBits = assignTrollModeBitIfRequired(c.AccountId, c.MetaBits)
+	c.DeletedAt = ZeroDate()
+}
+
+func (c *ChannelMessage) BeforeUpdate() {
+	c.MetaBits = assignTrollModeBitIfRequired(c.AccountId, c.MetaBits)
 	c.DeletedAt = ZeroDate()
 }
 
