@@ -37,6 +37,14 @@ module.exports = class Amazon extends ProviderInterface
 
     callback null, [
       {
+        name  : "m1.small"
+        title : "M1 small"
+        spec  : {
+          cpu : 1, ram: 1.7, storage: 160
+        }
+        price : "$0.044 per Hour"
+      }
+      {
         name  : "m3.medium"
         title : "M3 medium"
         spec  : {
