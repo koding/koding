@@ -136,6 +136,15 @@ func (c *ChannelMessage) Create() error {
 	return bongo.B.Create(c)
 }
 
+func (c *ChannelMessage) CreateWithDefault() error {
+	return bongo.B.DB.Exec(
+		"INSERT INTO "+
+			c.TableName()+
+			" (\"body\",\"slug\",\"type_constant\",\"account_id\",\"initial_channel_id\",\"created_at\",\"updated_at\", \"deleted_at\")"+
+			"VALUES (?,?,?,?,?,?, ?, ?)", c.Body, c.Slug, c.TypeConstant, c.AccountId, c.InitialChannelId,
+		c.CreatedAt, c.UpdatedAt, c.DeletedAt).Error
+}
+
 func (c *ChannelMessage) Delete() error {
 	return bongo.B.Delete(c)
 }
