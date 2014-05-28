@@ -57,7 +57,7 @@ func (k *Kloud) build(r *kite.Request) (interface{}, error) {
 		snapshotName = args.SnapshotName
 	}
 
-	signFunc := func() (string, error) {
+	signFunc := func() (string, string, error) {
 		return createKey(r.Username, k.KontrolURL, k.KontrolPrivateKey, k.KontrolPublicKey)
 	}
 

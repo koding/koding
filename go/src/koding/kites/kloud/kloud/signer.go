@@ -2,7 +2,6 @@ package kloud
 
 import (
 	"errors"
-	"log"
 	"strings"
 	"time"
 
@@ -10,28 +9,26 @@ import (
 	"github.com/nu7hatch/gouuid"
 )
 
-type signer func() (string, error)
-
-func createKey(username, kontrolURL, privateKey, publicKey string) (string, error) {
+func createKey(username, kontrolURL, privateKey, publicKey string) (string, string, error) {
 	if username == "" {
-		return "", errors.New("username is empty")
+		return "", "", errors.New("username is empty")
 	}
 
 	if kontrolURL == "" {
-		return "", errors.New("kontrolURL is empty")
+		return "", "", errors.New("kontrolURL is empty")
 	}
 
 	if privateKey == "" {
-		return "", errors.New("privateKey is empty")
+		return "", "", errors.New("privateKey is empty")
 	}
 
 	if publicKey == "" {
-		return "", errors.New("publicKey is empty")
+		return "", "", errors.New("publicKey is empty")
 	}
 
 	tknID, err := uuid.NewV4()
 	if err != nil {
-		return "", errors.New("cannot generate a token")
+		return "", "", errors.New("cannot generate a token")
 	}
 
 	token := jwt.New(jwt.GetSigningMethod("RS256"))
@@ -45,7 +42,10 @@ func createKey(username, kontrolURL, privateKey, publicKey string) (string, erro
 		"kontrolKey": strings.TrimSpace(publicKey), // Public key of kontrol
 	}
 
-	log.Printf("Registered machine on user: %s", username)
+	tokenString, err := token.SignedString([]byte(privateKey))
+	if err != nil {
+		return "", "", err
+	}
 
-	return token.SignedString([]byte(privateKey))
+	return tokenString, tknID.String(), nil
 }
