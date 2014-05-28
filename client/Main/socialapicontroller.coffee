@@ -75,7 +75,6 @@ class SocialApiController extends KDController
 
     return m
 
-  mapActivities: mapActivities
   mapActivities = (messages)->
     # if no result, no need to do something
     return messages unless messages
@@ -86,6 +85,8 @@ class SocialApiController extends KDController
     {SocialMessage} = KD.remote.api
     revivedMessages = (mapActivity message for message in messages)
     return revivedMessages
+
+  mapActivities: mapActivities
 
   getCurrentGroup = (callback)->
     groupsController = KD.getSingleton "groupsController"
@@ -184,7 +185,6 @@ class SocialApiController extends KDController
       mappedAccounts.push {_id: account, constructorName : "JAccount"}
     return mappedAccounts
 
-  mapChannels: mapChannels
   mapChannels = (channels)->
     return channels unless channels
     revivedChannels = []
@@ -201,6 +201,8 @@ class SocialApiController extends KDController
     # bind all events
     registerAndOpenChannels revivedChannels
     return revivedChannels
+  mapChannels: mapChannels
+
 
   forwardMessageEvents = (source, target,  events)->
     events.forEach (event) ->
