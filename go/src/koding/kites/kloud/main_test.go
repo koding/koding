@@ -32,7 +32,6 @@ var (
 	remote    *kite.Client
 	testuser  string
 
-	flagTestDebug    = flag.Bool("debug", false, "Enable debug")
 	flagTestBuilds   = flag.Int("builds", 1, "Number of builds")
 	flagTestDestroy  = flag.Bool("no-destroy", false, "Do not destroy test machines")
 	flagTestUsername = flag.String("user", "", "Create machines on behalf of this user")
@@ -150,7 +149,7 @@ func init() {
 	}
 
 	// To disable packer output, comment it out for debugging
-	if !*flagTestDebug {
+	if !*flagDebug {
 		log.SetOutput(ioutil.Discard)
 	}
 

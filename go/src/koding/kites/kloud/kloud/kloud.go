@@ -1,9 +1,12 @@
 package kloud
 
 import (
+	"koding/kites/kloud/digitalocean"
 	"koding/kodingkite"
 	"koding/tools/config"
 	"log"
+
+	"github.com/koding/logging"
 )
 
 const (
@@ -20,6 +23,7 @@ type Kloud struct {
 	KontrolPublicKey  string
 	KontrolPrivateKey string
 	KontrolURL        string
+	Log               logging.Logger
 }
 
 func (k *Kloud) NewKloud() *kodingkite.KodingKite {
@@ -41,5 +45,13 @@ func (k *Kloud) NewKloud() *kodingkite.KodingKite {
 	kt.HandleFunc("destroy", destroy)
 	kt.HandleFunc("info", info)
 
+	k.InitializeProviders()
+
 	return kt
+}
+
+func (k *Kloud) InitializeProviders() {
+	providers = map[string]interface{}{
+		"digitalocean": &digitalocean.DigitalOcean{},
+	}
 }

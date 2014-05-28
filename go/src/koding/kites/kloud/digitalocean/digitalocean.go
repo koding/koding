@@ -12,6 +12,7 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/koding/logging"
 	"github.com/mitchellh/mapstructure"
 	"github.com/mitchellh/packer/builder/digitalocean"
 )
@@ -19,6 +20,7 @@ import (
 type DigitalOcean struct {
 	Client *digitalocean.DigitalOceanClient
 	Name   string
+	Log    logging.Logger
 
 	Creds struct {
 		ClientID string `mapstructure:"client_id"`

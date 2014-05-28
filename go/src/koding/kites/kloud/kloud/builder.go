@@ -5,8 +5,6 @@ import (
 	"strconv"
 	"time"
 
-	"koding/kites/kloud/digitalocean"
-
 	"github.com/koding/kite"
 )
 
@@ -31,9 +29,7 @@ type BuildArgs struct {
 
 var (
 	defaultSnapshotName = "koding-klient-0.0.1"
-	providers           = map[string]interface{}{
-		"digitalocean": &digitalocean.DigitalOcean{},
-	}
+	providers           = make(map[string]interface{})
 )
 
 func (k *Kloud) build(r *kite.Request) (interface{}, error) {
