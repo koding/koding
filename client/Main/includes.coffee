@@ -209,6 +209,7 @@ module.exports = [
 
   "providers/config.coffee",
   "providers/computeprovider.coffee",
+  "providers/computeprovider-ui.coffee",
 
   "providers/provideritemview.coffee",
   "providers/providerbaseview.coffee",
