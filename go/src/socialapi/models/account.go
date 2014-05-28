@@ -259,27 +259,13 @@ func (a *Account) FetchFollowerChannelIds() ([]int64, error) {
 	return channelIds, nil
 }
 
-func FetchOldIdByAccountId(accountId int64) (string, error) {
-
+func FetchAccountById(accountId int64) (*Account, error) {
 	a := NewAccount()
-	var data []string
-	q := &bongo.Query{
-		Selector: map[string]interface{}{
-			"id": accountId,
-		},
-		Pluck:      "old_id",
-		Pagination: *bongo.NewPagination(1, 0),
-	}
-	err := a.Some(&data, q)
-	if err != nil {
-		return "", err
+	if err := a.ById(accountId); err != nil {
+		return nil, err
 	}
 
-	if len(data) == 0 {
-		return "", nil
-	}
-
-	return data[0], nil
+	return a, nil
 }
 
 func FetchOldIdsByAccountIds(accountIds []int64) ([]string, error) {
