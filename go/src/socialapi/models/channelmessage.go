@@ -220,7 +220,7 @@ func (c *ChannelMessage) BuildEmptyMessageContainer() (*ChannelMessageContainer,
 	container := NewChannelMessageContainer()
 	container.Message = c
 
-	oldId, err := AccountOldIdById(c.AccountId)
+	oldId, err := FetchAccountOldIdByIdFromCache(c.AccountId)
 	if err != nil {
 		return nil, err
 	}
