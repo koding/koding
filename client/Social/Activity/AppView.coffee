@@ -48,7 +48,7 @@ class ActivityAppView extends KDScrollView
 
     item = @sidebar.selectedItem or @sidebar.public
     data = item.getData()
-    name = "#{type}-#{slug}"
+    name = if slug then "#{type}-#{slug}" else type
     pane = @tabs.getPaneByName name
 
     if pane
