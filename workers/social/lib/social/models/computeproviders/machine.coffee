@@ -40,13 +40,16 @@ module.exports = class JMachine extends Module
       kiteId            :
         type            : String
 
+      publicIp          :
+        type            : String
+
       provider          :
         type            : String
         required        : yes
 
       label             :
         type            : String
-        default         : ""
+        default         : -> ""
 
       initScript        :
         type            : String
@@ -99,7 +102,6 @@ module.exports = class JMachine extends Module
         callback err, machine
 
   reviveUsers: permit 'populate users',
-
   success: (client, callback)->
 
     JUser = require '../user'
@@ -117,7 +119,7 @@ module.exports = class JMachine extends Module
         else
           queue.next()
 
-    queue.push =>
+    queue.push ->
       callback null, accounts
 
     daisy queue
