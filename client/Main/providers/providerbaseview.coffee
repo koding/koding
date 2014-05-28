@@ -50,7 +50,7 @@ class ProviderBaseView extends KDTabPaneView
     @instanceList.on "InstanceSelected", @bound 'createInstance'
 
 
-  createInstance: (instance)=>
+  createInstance: (instance)->
 
     { provider } = @getOptions()
     { stack } = @getDelegate().getOptions()
@@ -64,8 +64,9 @@ class ProviderBaseView extends KDTabPaneView
 
       ComputeProvider.create {
         provider, label
-        credential : @_currentCredential
-        stack      : stack._id
+        instanceType : instance.getData().name
+        credential   : @_currentCredential
+        stack        : stack._id
       }, (err, res)=>
 
         @createInstanceForm.unsetClass 'in'
