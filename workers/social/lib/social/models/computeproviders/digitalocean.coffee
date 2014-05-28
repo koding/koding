@@ -7,30 +7,18 @@ module.exports = class DigitalOcean extends ProviderInterface
 
   @create = (client, options, callback)->
 
-    { credential, name } = options
+    { credential, instanceType } = options
 
-    @fetchCredentialData credential, (err, credential)->
+    @fetchCredentialData credential, (err, cred)->
 
       return callback err  if err?
 
       meta =
-        {
-          "variables": {
-            "do_client_id": credential.clientId ? "",
-            "do_api_key": credential.apiKey ? "",
-            "klient_deb": "klient_0.0.1_amd64.deb"
-          },
-          "builders": [
-            {
-              "type": "digitalocean",
-              "client_id": "{{user `do_client_id`}}",
-              "api_key": "{{user `do_api_key`}}",
-              "image": "ubuntu-13-10-x64",
-              "region": "ams1",
-              "size": "512mb",
-              "snapshot_name": "koding-{{timestamp}}"
-            }
-          ]
-        }
+        type   : "digitalocean"
+        image  : "ubuntu-13-10-x64"
+        region : "ams1"
+        size   : instanceType ? "512mb"
 
-      callback null, { meta }
+      callback null, {
+        meta, credential: cred.publicKey
+      }
