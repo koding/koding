@@ -1,4 +1,4 @@
-package main
+package kloud
 
 import (
 	"errors"
@@ -28,7 +28,7 @@ type Controller interface {
 	Info(...interface{}) (interface{}, error)
 }
 
-type controllerArgs struct {
+type ControllerArgs struct {
 	Provider   string
 	MachineID  interface{}
 	Credential map[string]interface{}
@@ -53,7 +53,7 @@ func setupAndGetController(provider string, credentials map[string]interface{}) 
 }
 
 func start(r *kite.Request) (interface{}, error) {
-	args := &controllerArgs{}
+	args := &ControllerArgs{}
 	if err := r.Args.One().Unmarshal(args); err != nil {
 		return nil, err
 	}
@@ -71,7 +71,7 @@ func start(r *kite.Request) (interface{}, error) {
 }
 
 func stop(r *kite.Request) (interface{}, error) {
-	args := &controllerArgs{}
+	args := &ControllerArgs{}
 	if err := r.Args.One().Unmarshal(args); err != nil {
 		return nil, err
 	}
@@ -89,7 +89,7 @@ func stop(r *kite.Request) (interface{}, error) {
 }
 
 func destroy(r *kite.Request) (interface{}, error) {
-	args := &controllerArgs{}
+	args := &ControllerArgs{}
 	if err := r.Args.One().Unmarshal(args); err != nil {
 		return nil, err
 	}
@@ -107,7 +107,7 @@ func destroy(r *kite.Request) (interface{}, error) {
 }
 
 func restart(r *kite.Request) (interface{}, error) {
-	args := &controllerArgs{}
+	args := &ControllerArgs{}
 	if err := r.Args.One().Unmarshal(args); err != nil {
 		return nil, err
 	}
@@ -125,7 +125,7 @@ func restart(r *kite.Request) (interface{}, error) {
 }
 
 func info(r *kite.Request) (interface{}, error) {
-	args := &controllerArgs{}
+	args := &ControllerArgs{}
 	if err := r.Args.One().Unmarshal(args); err != nil {
 		return nil, err
 	}

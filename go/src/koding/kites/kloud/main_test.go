@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"koding/kites/kloud/digitalocean"
+	"koding/kites/kloud/kloud"
 	"koding/kodingkite"
 	"koding/tools/config"
 	"log"
@@ -19,22 +20,21 @@ import (
 	"github.com/fatih/color"
 	"github.com/koding/kite"
 	kiteconfig "github.com/koding/kite/config"
+	"github.com/koding/kite/kitekey"
 	"github.com/koding/kite/kontrol"
 	"github.com/koding/kite/protocol"
 	"github.com/koding/kite/testkeys"
 	"github.com/koding/kite/testutil"
 )
 
-const (
-	testUser = "testkloud"
-)
-
 var (
-	kloud           *kodingkite.KodingKite
-	remote          *kite.Client
-	flagTestDebug   = flag.Bool("debug", false, "Enable debug")
-	flagTestBuilds  = flag.Int("builds", 1, "Number of builds")
-	flagTestDestroy = flag.Bool("no-destroy", false, "Do not destroy test machines")
+	kloudKite *kodingkite.KodingKite
+	remote    *kite.Client
+	testuser  string
+
+	flagTestBuilds   = flag.Int("builds", 1, "Number of builds")
+	flagTestDestroy  = flag.Bool("no-destroy", false, "Do not destroy test machines")
+	flagTestUsername = flag.String("user", "", "Create machines on behalf of this user")
 
 	DIGITALOCEAN_CLIENT_ID       = "2d314ba76e8965c451f62d7e6a4bc56f"
 	DIGITALOCEAN_API_KEY         = "4c88127b50c0c731aeb5129bdea06deb"
@@ -63,23 +63,7 @@ var TestProviderData = map[string]map[string]interface{}{
 	"googlecompute":   nil,
 }
 
-func init() {
-	flag.Parse()
-
-	conf := kiteconfig.New()
-	conf.Username = "testuser"
-	conf.KontrolURL = &url.URL{Scheme: "ws", Host: "localhost:4444"}
-	conf.KontrolKey = testkeys.Public
-	conf.KontrolUser = "testuser"
-	conf.KiteKey = testutil.NewKiteKey().Raw
-	conf.Port = 4444
-
-	kon := kontrol.New(conf.Copy(), "0.1.0", testkeys.Public, testkeys.Private)
-	kon.DataDir, _ = ioutil.TempDir("", "")
-	defer os.RemoveAll(kon.DataDir)
-	go kon.Run()
-	<-kon.Kite.ServerReadyNotify()
-
+func setupKloud() *kodingkite.KodingKite {
 	kloudConf := config.MustConfig("vagrant")
 
 	pubKeyPath := *flagPublicKey
@@ -102,9 +86,7 @@ func init() {
 	}
 	privateKey := string(privKey)
 
-	k := &Kloud{
-		Name:              "kloud-test",
-		Version:           "0.0.1",
+	k := &kloud.Kloud{
 		Region:            "vagrant",
 		Port:              3636,
 		Config:            kloudConf,
@@ -113,20 +95,49 @@ func init() {
 		KontrolPublicKey:  publicKey,
 	}
 
-	kloud = k.NewKloud()
-	kloud.Config.DisableAuthentication = true
-	kloud.Config.KontrolURL = &url.URL{Scheme: "ws", Host: "localhost:4444"}
+	return k.NewKloud()
+}
 
-	go kloud.Run()
-	<-kloud.ServerReadyNotify()
+func init() {
+	flag.Parse()
+
+	testuser = "testuser" // same as in kite.key
+	if *flagTestUsername != "" {
+		os.Setenv("TESTKEY_USERNAME", *flagTestUsername)
+		testuser = *flagTestUsername
+	}
+
+	// now create a new test key with the given test username
+	kitekey.Write(testutil.NewKiteKey().Raw)
+
+	conf := kiteconfig.New()
+	conf.Username = "testuser"
+	conf.KontrolURL = &url.URL{Scheme: "ws", Host: "localhost:4444"}
+	conf.KontrolKey = testkeys.Public
+	conf.KontrolUser = "testuser"
+	conf.KiteKey = testutil.NewKiteKey().Raw
+	conf.Port = 4444
+
+	kon := kontrol.New(conf.Copy(), "0.1.0", testkeys.Public, testkeys.Private)
+	kon.DataDir, _ = ioutil.TempDir("", "")
+	defer os.RemoveAll(kon.DataDir)
+	go kon.Run()
+	<-kon.Kite.ServerReadyNotify()
+
+	kloudKite = setupKloud()
+	kloudKite.Config.DisableAuthentication = true
+	kloudKite.Config.KontrolURL = &url.URL{Scheme: "ws", Host: "localhost:4444"}
+
+	go kloudKite.Run()
+	<-kloudKite.ServerReadyNotify()
 
 	client := kite.New("client", "0.0.1")
 	client.Config = conf
 
 	kites, err := client.GetKites(protocol.KontrolQuery{
-		Username:    "testuser",
+		Username:    testuser,
 		Environment: "vagrant",
-		Name:        "kloud-test",
+		Name:        "kloud",
 	})
 	if err != nil {
 		log.Fatalln(err)
@@ -138,7 +149,7 @@ func init() {
 	}
 
 	// To disable packer output, comment it out for debugging
-	if !*flagTestDebug {
+	if !*flagDebug {
 		log.SetOutput(ioutil.Discard)
 	}
 
@@ -161,7 +172,7 @@ func TestProviders(t *testing.T) {
 		snapshotName := "testkoding-" + strconv.FormatInt(time.Now().UTC().Unix(), 10)
 
 		testlog("Starting tests")
-		bArgs := &buildArgs{
+		bArgs := &kloud.BuildArgs{
 			Provider:     data["provider"].(string),
 			Credential:   data["credential"].(map[string]interface{}),
 			Builder:      data["builder"].(map[string]interface{}),
@@ -181,14 +192,9 @@ func TestProviders(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		// droplet's names are based on username for now
-		if result.Name != testUser {
-			t.Error("droplet name is: %s, expecting: %s", result.Name, testUser)
-		}
-
 		dropletId := result.Id
 
-		cArgs := &controllerArgs{
+		cArgs := &kloud.ControllerArgs{
 			Provider:   data["provider"].(string),
 			Credential: data["credential"].(map[string]interface{}),
 			MachineID:  dropletId,
@@ -227,8 +233,6 @@ func TestProviders(t *testing.T) {
 }
 
 func TestBuild(t *testing.T) {
-	// t.Skip("To enable this test remove this line")
-
 	numberOfBuilds := *flagTestBuilds
 
 	for provider, data := range TestProviderData {
@@ -242,7 +246,7 @@ func TestBuild(t *testing.T) {
 
 			machineName := "testkloud-" + strconv.FormatInt(time.Now().UTC().UnixNano(), 10) + "-" + strconv.Itoa(i)
 
-			bArgs := &buildArgs{
+			bArgs := &kloud.BuildArgs{
 				Provider:    data["provider"].(string),
 				Credential:  data["credential"].(map[string]interface{}),
 				Builder:     data["builder"].(map[string]interface{}),
@@ -272,7 +276,7 @@ func TestBuild(t *testing.T) {
 			if !*flagTestDestroy {
 				fmt.Println("destroying ", machineName)
 				dropletId := result.Id
-				cArgs := &controllerArgs{
+				cArgs := &kloud.ControllerArgs{
 					Provider:   data["provider"].(string),
 					Credential: data["credential"].(map[string]interface{}),
 					MachineID:  dropletId,
@@ -302,7 +306,7 @@ func TestBuild(t *testing.T) {
 //
 // func TestStart(t *testing.T) {
 // 	clientID, apiKey := digitalOceanKeys()
-// 	args := &controllerArgs{
+// 	args := &kloud.ControllerArgs{
 // 		Provider: "digitalocean",
 // 		Credential: map[string]interface{}{
 // 			"client_id": clientID,
@@ -318,7 +322,7 @@ func TestBuild(t *testing.T) {
 //
 // func TestStop(t *testing.T) {
 // 	clientID, apiKey := digitalOceanKeys()
-// 	args := &controllerArgs{
+// 	args := &kloud.ControllerArgs{
 // 		Provider: "digitalocean",
 // 		Credential: map[string]interface{}{
 // 			"client_id": clientID,
@@ -334,7 +338,7 @@ func TestBuild(t *testing.T) {
 //
 // func TestRestart(t *testing.T) {
 // 	clientID, apiKey := digitalOceanKeys()
-// 	args := &controllerArgs{
+// 	args := &kloud.ControllerArgs{
 // 		Provider: "digitalocean",
 // 		Credential: map[string]interface{}{
 // 			"client_id": clientID,
@@ -350,7 +354,7 @@ func TestBuild(t *testing.T) {
 //
 // func TestInfo(t *testing.T) {
 // 	clientID, apiKey := digitalOceanKeys()
-// 	args := &controllerArgs{
+// 	args := &kloud.ControllerArgs{
 // 		Provider: "digitalocean",
 // 		Credential: map[string]interface{}{
 // 			"client_id": clientID,

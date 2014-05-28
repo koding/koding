@@ -1,11 +1,9 @@
-package main
+package kloud
 
 import (
 	"errors"
 	"strconv"
 	"time"
-
-	"koding/kites/kloud/digitalocean"
 
 	"github.com/koding/kite"
 )
@@ -21,7 +19,7 @@ type Builder interface {
 	Build(...interface{}) (interface{}, error)
 }
 
-type buildArgs struct {
+type BuildArgs struct {
 	Provider     string
 	SnapshotName string
 	MachineName  string
@@ -31,13 +29,11 @@ type buildArgs struct {
 
 var (
 	defaultSnapshotName = "koding-klient-0.0.1"
-	providers           = map[string]interface{}{
-		"digitalocean": &digitalocean.DigitalOcean{},
-	}
+	providers           = make(map[string]interface{})
 )
 
 func (k *Kloud) build(r *kite.Request) (interface{}, error) {
-	args := &buildArgs{}
+	args := &BuildArgs{}
 	if err := r.Args.One().Unmarshal(args); err != nil {
 		return nil, err
 	}

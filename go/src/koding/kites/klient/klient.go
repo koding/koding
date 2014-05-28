@@ -7,6 +7,7 @@ import (
 	"koding/kite-handler/fs"
 	"koding/kite-handler/terminal"
 	"log"
+	"net"
 	"net/url"
 	"os"
 	"strconv"
@@ -25,6 +26,7 @@ var (
 	flagPort        = flag.Int("port", 3000, "Change running port")
 	flagVersion     = flag.Bool("version", false, "Show version and exit")
 	flagEnvironment = flag.String("environment", "public-host", "Change environment")
+	flagLocal       = flag.Bool("local", false, "Start klient in local environment.")
 )
 
 func main() {
@@ -67,14 +69,25 @@ func main() {
 
 func registerURL() *url.URL {
 	l := &localhost{}
-	p, err := l.PublicIp()
-	if err != nil {
-		return nil
+
+	var ip net.IP
+	var err error
+
+	if *flagLocal {
+		ip, err = l.LocalIP()
+		if err != nil {
+			return nil
+		}
+	} else {
+		ip, err = l.PublicIp()
+		if err != nil {
+			return nil
+		}
 	}
 
 	return &url.URL{
 		Scheme: "ws",
-		Host:   p.String() + ":" + strconv.Itoa(*flagPort),
+		Host:   ip.String() + ":" + strconv.Itoa(*flagPort),
 		Path:   "/" + NAME + "-" + VERSION,
 	}
 }
