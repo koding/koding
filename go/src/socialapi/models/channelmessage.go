@@ -340,3 +340,28 @@ func (c *ChannelMessage) FetchTotalMessageCount(q *Query) (int, error) {
 
 	return c.CountWithQuery(query)
 }
+
+func (c *ChannelMessage) FetchMessageIds(q *Query) ([]int64, error) {
+	query := &bongo.Query{
+		Selector: map[string]interface{}{
+			"account_id":    q.AccountId,
+			"type_constant": q.Type,
+		},
+		Pluck:      "id",
+		Pagination: *bongo.NewPagination(q.Limit, q.Skip),
+		Sort: map[string]string{
+			"created_at": "DESC",
+		},
+	}
+
+	var messageIds []int64
+	if err := c.Some(&messageIds, query); err != nil {
+		return nil, err
+	}
+
+	if messageIds == nil {
+		return make([]int64, 0), nil
+	}
+
+	return messageIds, nil
+}
