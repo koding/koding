@@ -33,6 +33,10 @@ module.exports = class JMachine extends Module
 
     schema              :
 
+      uid               :
+        type            : String
+        required        : yes
+
       kiteId            :
         type            : String
 
@@ -58,6 +62,21 @@ module.exports = class JMachine extends Module
         default         : "not-initialized"
 
       meta              : Object
+
+
+  @create = (data)->
+
+    # JMachine.uid is a unique id which is generated from:
+    #
+    # 0     letter 'u'
+    # 1     first letter of `username`
+    # 2     first letter of `group slug`
+    # 3     first letter of `provider`
+    # 4..12 32-bit random hex string
+
+    {user, group, provider} = data
+    data.uid = "u#{user[0]}#{group[0]}#{provider[0]}#{(require 'hat')(32)}"
+    return new JMachine data
 
 
   @one$: permit 'list machines',

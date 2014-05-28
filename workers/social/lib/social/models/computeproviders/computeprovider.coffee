@@ -160,7 +160,10 @@ module.exports = class ComputeProvider extends Base
     users  = [{ id: user.getId(), sudo: yes, owner: yes }]
     groups = [{ id: group.getId() }]
 
-    machine = new JMachine { provider, users, groups, meta, label }
+    machine = JMachine.create {
+      group : group.slug, user : user.username
+      provider, users, groups, meta, label
+    }
 
     machine.save (err)=>
 
