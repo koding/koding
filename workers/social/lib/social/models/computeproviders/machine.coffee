@@ -54,6 +54,7 @@ module.exports = class JMachine extends Module
       initScript        :
         type            : String
 
+      credential        : String
       users             : Array
       groups            : Array
 

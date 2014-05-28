@@ -83,11 +83,12 @@ module.exports = class ComputeProvider extends Base
 
         return callback err  if err
 
-        { meta, postCreateOptions } = machineData
+        { meta, postCreateOptions, credential } = machineData
 
         @createMachine {
           provider : provider.slug
           label, meta, group, user
+          credential
         }, (err, machine)->
 
           # TODO if any error occurs here which means user paid for
@@ -96,7 +97,7 @@ module.exports = class ComputeProvider extends Base
 
           provider.postCreate {
             postCreateOptions, machine, meta, stack: stack._id
-          }, (err)=>
+          }, (err)->
 
             return callback err  if err
 
@@ -155,17 +156,17 @@ module.exports = class ComputeProvider extends Base
 
   @createMachine = (options, callback)->
 
-    { provider, label, meta, group, user } = options
+    { provider, label, meta, group, user, credential } = options
 
     users  = [{ id: user.getId(), sudo: yes, owner: yes }]
     groups = [{ id: group.getId() }]
 
     machine = JMachine.create {
       group : group.slug, user : user.username
-      provider, users, groups, meta, label
+      provider, users, groups, meta, label, credential
     }
 
-    machine.save (err)=>
+    machine.save (err)->
 
       if err
         callback err
