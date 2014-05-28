@@ -328,3 +328,15 @@ func (c *ChannelMessage) GetMentionedUsernames() []string {
 
 	return flattened
 }
+
+func (c *ChannelMessage) FetchTotalMessageCount(q *Query) (int, error) {
+	query := &bongo.Query{
+		Selector: map[string]interface{}{
+			"account_id":    q.AccountId,
+			"type_constant": q.Type,
+		},
+		Pagination: *bongo.NewPagination(q.Limit, q.Skip),
+	}
+
+	return c.CountWithQuery(query)
+}
