@@ -61,7 +61,8 @@ module.exports = class JMachine extends Module
       state             :
         type            : String
         enum            : ["Wrong type specified!",
-          ["active", "not-initialized", "removed", "suspended"]
+          ["active", "not-initialized", "removed",
+           "suspended", "provisioning"]
         ]
         default         : "not-initialized"
 
