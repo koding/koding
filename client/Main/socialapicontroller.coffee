@@ -37,7 +37,11 @@ class SocialApiController extends KDController
         channelName: slug
         isExclusive: yes
 
-      channelName   = "socialapi.#{slug}-group-#{slug}"
+      channelName    = generateChannelName
+        name         : slug
+        typeConstant : 'group'
+        groupName    : slug
+
       brokerChannel = KD.remote.subscribe channelName, subscriptionData
       @forwardMessageEvents brokerChannel, this, ["MessageAdded", "MessageRemoved"]
       @openedChannels[name] = brokerChannel
@@ -220,15 +224,14 @@ class SocialApiController extends KDController
 
     getCurrentGroup (group)->
       for socialApiChannel in socialApiChannels
-        {typeConstant, name, groupName} = socialApiChannel
-        channelName = "socialapi.#{groupName}-#{typeConstant}-#{name}"
+        channelName = generateChannelName socialApiChannel
         continue  if socialapi.openedChannels[channelName]
         socialapi.openedChannels[channelName] = {} # placeholder to avoid duplicate registration
 
         subscriptionData =
           serviceType: 'socialapi'
           group      : group.slug
-          channelType: typeConstant
+          channelType: socialApiChannel.typeConstant
           channelName: channelName
           isExclusive: yes
 
@@ -241,6 +244,9 @@ class SocialApiController extends KDController
           ]
 
           socialapi.emit "ChannelRegistered-#{name}", brokerChannel
+
+  generateChannelName = ({name, typeConstant, groupName}) ->
+    return "socialapi.#{groupName}-#{typeConstant}-#{name}"
 
   message:
     edit   :(args...)-> messageApiMessageResFunc 'edit', args...
