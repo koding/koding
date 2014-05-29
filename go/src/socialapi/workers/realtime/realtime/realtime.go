@@ -124,8 +124,8 @@ func (f *Controller) ChannelParticipantEvent(data []byte) error {
 		return err
 	}
 
-	c := models.NewChannel()
-	if err := c.ById(cp.ChannelId); err != nil {
+	c, err := models.ChannelById(cp.ChannelId)
+	if err != nil {
 		return err
 	}
 
@@ -155,8 +155,8 @@ func (f *Controller) handleChannelParticipantEvent(eventName string, data []byte
 		return err
 	}
 
-	c := models.NewChannel()
-	if err := c.ById(cp.ChannelId); err != nil {
+	c, err := models.ChannelById(cp.ChannelId)
+	if err != nil {
 		return err
 	}
 
@@ -205,13 +205,13 @@ func (f *Controller) handleInteractionEvent(eventName string, data []byte) error
 }
 
 func (f *Controller) MessageReplySaved(data []byte) error {
-	i, err := helper.MapToMessageReply(data)
+	mr, err := helper.MapToMessageReply(data)
 	if err != nil {
 		return err
 	}
 
 	reply := models.NewChannelMessage()
-	if err := reply.ById(i.ReplyId); err != nil {
+	if err := reply.ById(mr.ReplyId); err != nil {
 		return err
 	}
 
@@ -220,7 +220,7 @@ func (f *Controller) MessageReplySaved(data []byte) error {
 		return err
 	}
 
-	err = f.sendInstanceEvent(i.MessageId, cmc, "ReplyAdded")
+	err = f.sendInstanceEvent(mr.MessageId, cmc, "ReplyAdded")
 	if err != nil {
 		fmt.Println(err)
 		return err
@@ -304,7 +304,7 @@ func (f *Controller) NotifyUser(data []byte) error {
 		return nil
 	}
 
-	oldAccount, err := fetchNotifierOldAccount(notification.AccountId)
+	oldAccount, err := fetchOldAccount(notification.AccountId)
 	if err != nil {
 		f.log.Warning("an error occurred while fetching old account: %s", err)
 		return nil
@@ -340,9 +340,24 @@ func (f *Controller) NotifyUser(data []byte) error {
 	return nil
 }
 
-// fetchNotifierOldAccount fetches mongo account of a given new account id.
+// to-do add eviction here
+func fetchOldAccountFromCache(accountId int64) (*mongomodels.Account, error) {
+	if account, ok := mongoAccounts[accountId]; ok {
+		return account, nil
+	}
+
+	account, err := fetchOldAccount(accountId)
+	if err != nil {
+		return nil, err
+	}
+
+	mongoAccounts[accountId] = account
+	return account, nil
+}
+
+// fetchOldAccount fetches mongo account of a given new account id.
 // this function must be used under another file for further use
-func fetchNotifierOldAccount(accountId int64) (*mongomodels.Account, error) {
+func fetchOldAccount(accountId int64) (*mongomodels.Account, error) {
 	newAccount := models.NewAccount()
 	if err := newAccount.ById(accountId); err != nil {
 		return nil, err
@@ -451,7 +466,7 @@ func (f *Controller) sendChannelEvent(cml *models.ChannelMessageList, eventName 
 
 func fetchSecretNames(channelId int64) ([]string, error) {
 	names := make([]string, 0)
-	c, err := fetchChannel(channelId)
+	c, err := models.ChannelById(channelId)
 	if err != nil {
 		return names, err
 	}
@@ -467,14 +482,6 @@ func fetchSecretNames(channelId int64) ([]string, error) {
 	return names, nil
 }
 
-func fetchChannel(channelId int64) (*models.Channel, error) {
-	c := models.NewChannel()
-	if err := c.ById(channelId); err != nil {
-		return nil, err
-	}
-	return c, nil
-}
-
 func (f *Controller) sendNotification(accountId int64, eventName string, data interface{}) error {
 	channel, err := f.rmqConn.Channel()
 	if err != nil {
@@ -482,7 +489,7 @@ func (f *Controller) sendNotification(accountId int64, eventName string, data in
 	}
 	defer channel.Close()
 
-	oldAccount, err := modelhelper.GetAccountBySocialApiId(accountId)
+	oldAccount, err := fetchOldAccountFromCache(accountId)
 	if err != nil {
 		return err
 	}
