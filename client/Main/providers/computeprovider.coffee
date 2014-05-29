@@ -40,7 +40,7 @@ class ComputeProvider extends KDObject
     KD.remote.api.ComputeProvider.create options, callback
 
   @createDefaultStack = ->
-    KD.remote.api.ComputeProvider.createGroupStack (err, stack)=>
+    KD.remote.api.ComputeProvider.createGroupStack (err, stack)->
       return if KD.showError err
 
       delete ComputeProvider.stacks
