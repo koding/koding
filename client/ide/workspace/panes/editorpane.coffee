@@ -22,10 +22,11 @@ class EditorPane extends Pane
       @getEditor().setValue content, 1
       @ace.setReadOnly yes  if @getOptions().readOnly
 
-    @addSubView @aceView
-
   getEditor: ->
     return @aceView.ace.editor
 
   getValue: ->
     return  @getEditor().getSession().getValue()
+
+  pistachio: ->
+    "{{> @aceView}}"
