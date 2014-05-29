@@ -21,11 +21,13 @@ var (
 )
 
 type Runner struct {
-	Log      logging.Logger
-	Conf     *config.Config
-	Bongo    *bongo.Bongo
-	Listener *worker.Listener
-	Name     string
+	Log             logging.Logger
+	Conf            *config.Config
+	Bongo           *bongo.Bongo
+	Listener        *worker.Listener
+	Name            string
+	ShutdownHandler func()
+	Done            chan bool
 }
 
 func New(name string) *Runner {
@@ -57,6 +59,8 @@ func (r *Runner) Init() error {
 		r.Conf,
 		r.Log,
 	)
+	r.ShutdownHandler = func() {}
+	go r.RegisterSignalHandler()
 
 	return nil
 }
@@ -77,19 +81,19 @@ func (r *Runner) Close() {
 	if r.Listener != nil {
 		r.Listener.Close()
 	}
+	r.ShutdownHandler()
 	r.Bongo.Close()
 }
 
-func (r *Runner) RegisterSignalHandler(f func()) {
+func (r *Runner) RegisterSignalHandler() {
 	signals := make(chan os.Signal, 1)
 	signal.Notify(signals)
 	for {
 		signal := <-signals
 		switch signal {
 		case syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT, syscall.SIGSTOP:
-			f()
 			r.Close()
-			os.Exit(1)
+			r.Done <- true
 		}
 	}
 }
