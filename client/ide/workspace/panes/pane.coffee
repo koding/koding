@@ -1,4 +1,4 @@
-class Pane extends KDView
+class Pane extends JView
 
   constructor: (options = {}, data) ->
 
