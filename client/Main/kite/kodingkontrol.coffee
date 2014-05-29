@@ -54,8 +54,9 @@ class KodingKontrol extends (require 'kontrol')
     { name, correlationName, region } = options
     return (kite = @getCachedKite name, correlationName)?
 
-  fetchRegion: (correlationName, region) ->
-    if region ?= @regions[correlationName]
+  fetchRegion: (correlationName, region, id) ->
+    region ?= @regions[correlationName]
+    if region? or id?
       return Promise.resolve region
 
     new Promise (resolve, reject) =>
