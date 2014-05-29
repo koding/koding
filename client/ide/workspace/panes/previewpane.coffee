@@ -13,7 +13,4 @@ class PreviewPane extends Pane
 
     delete viewerOptions.params.path  unless viewerOptions.params.path
 
-    @previewer = new PreviewerView viewerOptions
-
-  pistachio: ->
-    "{{> @previewer}}"
+    @addSubView @previewer = new PreviewerView viewerOptions

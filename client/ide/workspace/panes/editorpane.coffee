@@ -17,7 +17,7 @@ class EditorPane extends Pane
     unless content?
       throw new TypeError 'You must pass file content to EditorPane'
 
-    @aceView = new AceView delegate: @getDelegate(), file
+    @addSubView @aceView = new AceView delegate: @getDelegate(), file
     @aceView.ace.once 'ace.ready', =>
       @getEditor().setValue content, 1
       @ace.setReadOnly yes  if @getOptions().readOnly
@@ -27,6 +27,3 @@ class EditorPane extends Pane
 
   getValue: ->
     return  @getEditor().getSession().getValue()
-
-  pistachio: ->
-    "{{> @aceView}}"
