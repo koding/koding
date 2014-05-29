@@ -151,8 +151,7 @@ func createChannelMessage(su *mongomodels.StatusUpdate) (*models.ChannelMessage,
 		return nil, err
 	}
 
-	fmt.Printf("Channel message var %+v", cm)
-	if err := cm.CreateWithDefault(); err != nil {
+	if err := cm.CreateRaw(); err != nil {
 		return nil, err
 	}
 
