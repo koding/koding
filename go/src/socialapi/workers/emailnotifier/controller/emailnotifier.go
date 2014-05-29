@@ -57,7 +57,7 @@ func (n *Controller) HandleEvent(event string, data []byte) error {
 	return handler(n, data)
 }
 
-func New(rmq *rabbitmq.RabbitMQ, log logging.Logger, es *EmailSettings) (*Controller, error) {
+func New(rmq *rabbitmq.RabbitMQ, log logging.Logger, es *models.EmailSettings) (*Controller, error) {
 	rmqConn, err := rmq.Connect("NewEmailNotifierWorkerController")
 	if err != nil {
 		return nil, err
@@ -77,13 +77,6 @@ func New(rmq *rabbitmq.RabbitMQ, log logging.Logger, es *EmailSettings) (*Contro
 	nwc.routes = routes
 
 	return nwc, nil
-}
-
-func (n *Controller) initDailyEmailCron() {
-
-	cronJob = cron.New()
-	cronJob.AddFunc(SCHEDULE, n.sendDailyMails)
-	cronJob.Start()
 }
 
 func (n *Controller) SendInstantEmail(data []byte) error {
@@ -178,8 +171,8 @@ func validNotification(a *notificationmodels.NotificationActivity, n *notificati
 	return !n.ActivatedAt.IsZero()
 }
 
-func (n *EmailNotifierWorkerController) checkMailSettings(uc *models.UserContact,
-	a *notificationmodels.NotificationActivity, nc *notificationmodels.NotificationContent) bool {
+func (n *Controller) checkMailSettings(uc *models.UserContact, a *notificationmodels.NotificationActivity,
+	nc *notificationmodels.NotificationContent) bool {
 	// notifications are disabled
 	if val := uc.EmailSettings.Global; !val {
 		return false
@@ -199,7 +192,7 @@ func (n *EmailNotifierWorkerController) checkMailSettings(uc *models.UserContact
 	return notificationEnabled
 }
 
-func (n *EmailNotifierWorkerController) saveDailyMail(accountId, activityId int64) {
+func (n *Controller) saveDailyMail(accountId, activityId int64) {
 	if err := saveRecipient(accountId); err != nil {
 		n.log.Error("daily mail error: %s", err)
 	}
@@ -262,76 +255,6 @@ func prepareRecipientsCacheKey() string {
 		CACHEPREFIX,
 		RECIPIENTSKEY,
 		time.Now().Format(TIMEFORMAT))
-}
-
-func containsObject(nc *models.NotificationContent) bool {
-	return nc.TypeConstant == models.NotificationContent_TYPE_LIKE ||
-		nc.TypeConstant == models.NotificationContent_TYPE_MENTION ||
-		nc.TypeConstant == models.NotificationContent_TYPE_COMMENT
-}
-
-func fetchContentBody(nc *models.NotificationContent, cm *socialmodels.ChannelMessage) string {
-
-	switch nc.TypeConstant {
-	case models.NotificationContent_TYPE_LIKE:
-		return cm.Body
-	case models.NotificationContent_TYPE_MENTION:
-		return cm.Body
-	case models.NotificationContent_TYPE_COMMENT:
-		return fetchLastReplyBody(cm.Id)
-	}
-
-	return ""
-}
-
-func fetchLastReplyBody(targetId int64) string {
-	mr := socialmodels.NewMessageReply()
-	mr.MessageId = targetId
-	query := socialmodels.NewQuery()
-	query.Limit = 1
-	messages, err := mr.List(query)
-	if err != nil {
-		return ""
-	}
-
-	if len(messages) == 0 {
-		return ""
-	}
-
-	return messages[0].Body
-}
-
-func fetchRepliedMessage(replyId int64) *socialmodels.ChannelMessage {
-	mr := socialmodels.NewMessageReply()
-	mr.ReplyId = replyId
-
-	parent, err := mr.FetchRepliedMessage()
-	if err != nil {
-		parent = socialmodels.NewChannelMessage()
-	}
-
-	return parent
-}
-
-func (n *Controller) SendMail(uc *UserContact, body, subject string) error {
-	es := n.settings
-	sg := sendgrid.NewSendGridClient(es.Username, es.Password)
-	fullname := fmt.Sprintf("%s %s", uc.FirstName, uc.LastName)
-
-	message := sendgrid.NewMail()
-	message.AddTo(uc.Email)
-	message.AddToName(fullname)
-	message.SetSubject(subject)
-	message.SetHTML(body)
-	message.SetFrom(es.FromMail)
-	message.SetFromName(es.FromName)
-
-	if err := sg.Send(message); err != nil {
-		return fmt.Errorf("an error occurred while sending notification email to %s", uc.Username)
-	}
-	n.log.Info("%s notified by email", uc.Username)
-
-	return nil
 }
 
 func prepareSetterCacheKey(accountId int64) string {
