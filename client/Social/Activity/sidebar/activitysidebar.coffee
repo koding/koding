@@ -36,6 +36,7 @@ class ActivitySidebar extends KDCustomScrollView
 
   #   return sanitized.reverse()
 
+  revive = (obj) -> KD.singletons.socialapi.mapChannels(obj).first
 
   constructor: ->
 
@@ -51,19 +52,28 @@ class ActivitySidebar extends KDCustomScrollView
 
     notificationController.on 'AddedToChannel', (channel) =>
 
-      [topic] = socialapi.mapChannels channel
+      revived        = revive channel
+      listController = @getListController revived.typeConstant
 
-      @sections.followedTopics.listController.addItem topic
+      listController.addItem revived
 
 
     notificationController.on 'RemovedFromChannel', (channel) =>
 
-      {listController} = @sections.followedTopics
-
-      [topic] = socialapi.mapChannels channel
-      item    = listController.itemsIndexed[topic.id]
-
+      revived        = revive channel
+      listController = @getListController revived.typeConstant
+      item           = listController.itemsIndexed[revived.id]
       listController.removeItem item
+
+
+  getListController: (type) ->
+
+    section = switch type
+      when 'topic'          then @sections.followedTopics
+      when 'privatemessage' then @sections.messages
+      else {}
+
+    return section.listController
 
 
   # fixme:
