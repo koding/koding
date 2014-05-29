@@ -6,9 +6,10 @@ class SettingsPane extends Pane
 
     super options, data
 
-    @createSettings()
+    @createEditorSettings()
+    @createTerminalSettings()
 
-  createSettings: ->
+  createEditorSettings: ->
     @useSoftTabs         = new KodingSwitch
       cssClass           : "tiny settings-on-off"
       callback           : (state) -> console.log state
@@ -52,6 +53,7 @@ class SettingsPane extends Pane
       partial            : "⌘ Keyboard Shortcuts"
       click              : => log "show shortcuts"
 
+  createTerminalSettings: ->
   pistachio: ->
     """
     <p>Use soft tabs                           {{> @useSoftTabs}}</p>
