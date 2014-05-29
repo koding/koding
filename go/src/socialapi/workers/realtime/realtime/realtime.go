@@ -18,9 +18,11 @@ import (
 	"labix.org/v2/mgo"
 )
 
-type Action func(*RealtimeWorkerController, []byte) error
 
-type RealtimeWorkerController struct {
+
+type Action func(*Controller, []byte) error
+
+type Controller struct {
 	routes  map[string]Action
 	log     logging.Logger
 	rmqConn *amqp.Connection
@@ -37,44 +39,44 @@ type NotificationContent struct {
 	ActorId      string `json:"actorId"`
 }
 
-func (r *RealtimeWorkerController) DefaultErrHandler(delivery amqp.Delivery, err error) bool {
+func (r *Controller) DefaultErrHandler(delivery amqp.Delivery, err error) bool {
 	r.log.Error("an error occured deleting realtime event", err)
 	delivery.Ack(false)
 	return false
 }
 
-func NewRealtimeWorkerController(rmq *rabbitmq.RabbitMQ, log logging.Logger) (*RealtimeWorkerController, error) {
+func NewController(rmq *rabbitmq.RabbitMQ, log logging.Logger) (*Controller, error) {
 	rmqConn, err := rmq.Connect("NewRealtimeWorkerController")
 	if err != nil {
 		return nil, err
 	}
 
-	ffc := &RealtimeWorkerController{
+	ffc := &Controller{
 		log:     log,
 		rmqConn: rmqConn.Conn(),
 	}
 
 	routes := map[string]Action{
-		"api.channel_message_created": (*RealtimeWorkerController).MessageSaved,
-		"api.channel_message_updated": (*RealtimeWorkerController).MessageUpdated,
-		"api.channel_message_deleted": (*RealtimeWorkerController).MessageDeleted,
+		"api.channel_message_created": (*Controller).MessageSaved,
+		"api.channel_message_updated": (*Controller).MessageUpdated,
+		"api.channel_message_deleted": (*Controller).MessageDeleted,
 
-		"api.interaction_created": (*RealtimeWorkerController).InteractionSaved,
-		"api.interaction_deleted": (*RealtimeWorkerController).InteractionDeleted,
+		"api.interaction_created": (*Controller).InteractionSaved,
+		"api.interaction_deleted": (*Controller).InteractionDeleted,
 
-		"api.message_reply_created": (*RealtimeWorkerController).MessageReplySaved,
-		"api.message_reply_deleted": (*RealtimeWorkerController).MessageReplyDeleted,
+		"api.message_reply_created": (*Controller).MessageReplySaved,
+		"api.message_reply_deleted": (*Controller).MessageReplyDeleted,
 
-		"api.channel_message_list_created": (*RealtimeWorkerController).MessageListSaved,
-		"api.channel_message_list_updated": (*RealtimeWorkerController).MessageListUpdated,
-		"api.channel_message_list_deleted": (*RealtimeWorkerController).MessageListDeleted,
+		"api.channel_message_list_created": (*Controller).MessageListSaved,
+		"api.channel_message_list_updated": (*Controller).MessageListUpdated,
+		"api.channel_message_list_deleted": (*Controller).MessageListDeleted,
 
-		"api.channel_participant_created": (*RealtimeWorkerController).ChannelParticipantEvent,
-		"api.channel_participant_updated": (*RealtimeWorkerController).ChannelParticipantEvent,
-		"api.channel_participant_deleted": (*RealtimeWorkerController).ChannelParticipantEvent,
+		"api.channel_participant_created": (*Controller).ChannelParticipantEvent,
+		"api.channel_participant_updated": (*Controller).ChannelParticipantEvent,
+		"api.channel_participant_deleted": (*Controller).ChannelParticipantEvent,
 
-		"notification.notification_created": (*RealtimeWorkerController).NotifyUser,
-		"notification.notification_updated": (*RealtimeWorkerController).NotifyUser,
+		"notification.notification_created": (*Controller).NotifyUser,
+		"notification.notification_updated": (*Controller).NotifyUser,
 	}
 
 	ffc.routes = routes
@@ -82,7 +84,7 @@ func NewRealtimeWorkerController(rmq *rabbitmq.RabbitMQ, log logging.Logger) (*R
 	return ffc, nil
 }
 
-func (f *RealtimeWorkerController) HandleEvent(event string, data []byte) error {
+func (f *Controller) HandleEvent(event string, data []byte) error {
 	f.log.Debug("New Event Received %s", event)
 	handler, ok := f.routes[event]
 	if !ok {
@@ -93,17 +95,17 @@ func (f *RealtimeWorkerController) HandleEvent(event string, data []byte) error 
 }
 
 // no operation for message save for now
-func (f *RealtimeWorkerController) MessageSaved(data []byte) error {
+func (f *Controller) MessageSaved(data []byte) error {
 	return nil
 }
 
 // no operation for message delete for now
 // channel_message_delete will handle message deletions from the
-func (f *RealtimeWorkerController) MessageDeleted(data []byte) error {
+func (f *Controller) MessageDeleted(data []byte) error {
 	return nil
 }
 
-func (f *RealtimeWorkerController) MessageUpdated(data []byte) error {
+func (f *Controller) MessageUpdated(data []byte) error {
 	cm, err := helper.MapToChannelMessage(data)
 	if err != nil {
 		return err
@@ -118,7 +120,7 @@ func (f *RealtimeWorkerController) MessageUpdated(data []byte) error {
 	return nil
 }
 
-func (f *RealtimeWorkerController) ChannelParticipantEvent(data []byte) error {
+func (f *Controller) ChannelParticipantEvent(data []byte) error {
 	cp := models.NewChannelParticipant()
 	if err := json.Unmarshal(data, cp); err != nil {
 		return err
@@ -149,7 +151,7 @@ func (f *RealtimeWorkerController) ChannelParticipantEvent(data []byte) error {
 	return nil
 }
 
-func (f *RealtimeWorkerController) handleChannelParticipantEvent(eventName string, data []byte) error {
+func (f *Controller) handleChannelParticipantEvent(eventName string, data []byte) error {
 	cp := models.NewChannelParticipant()
 	if err := json.Unmarshal(data, cp); err != nil {
 		return err
@@ -163,15 +165,15 @@ func (f *RealtimeWorkerController) handleChannelParticipantEvent(eventName strin
 	return f.sendNotification(cp.AccountId, eventName, c)
 }
 
-func (f *RealtimeWorkerController) InteractionSaved(data []byte) error {
+func (f *Controller) InteractionSaved(data []byte) error {
 	return f.handleInteractionEvent("InteractionAdded", data)
 }
 
-func (f *RealtimeWorkerController) InteractionDeleted(data []byte) error {
+func (f *Controller) InteractionDeleted(data []byte) error {
 	return f.handleInteractionEvent("InteractionRemoved", data)
 }
 
-func (f *RealtimeWorkerController) handleInteractionEvent(eventName string, data []byte) error {
+func (f *Controller) handleInteractionEvent(eventName string, data []byte) error {
 	i, err := helper.MapToInteraction(data)
 	if err != nil {
 		return err
@@ -204,7 +206,7 @@ func (f *RealtimeWorkerController) handleInteractionEvent(eventName string, data
 	return nil
 }
 
-func (f *RealtimeWorkerController) MessageReplySaved(data []byte) error {
+func (f *Controller) MessageReplySaved(data []byte) error {
 	i, err := helper.MapToMessageReply(data)
 	if err != nil {
 		return err
@@ -229,7 +231,7 @@ func (f *RealtimeWorkerController) MessageReplySaved(data []byte) error {
 	return nil
 }
 
-func (f *RealtimeWorkerController) MessageReplyDeleted(data []byte) error {
+func (f *Controller) MessageReplyDeleted(data []byte) error {
 	i, err := helper.MapToMessageReply(data)
 	if err != nil {
 		return err
@@ -245,7 +247,7 @@ func (f *RealtimeWorkerController) MessageReplyDeleted(data []byte) error {
 }
 
 // send message to the channel
-func (f *RealtimeWorkerController) MessageListSaved(data []byte) error {
+func (f *Controller) MessageListSaved(data []byte) error {
 	cml, err := helper.MapToChannelMessageList(data)
 	if err != nil {
 		return err
@@ -260,11 +262,11 @@ func (f *RealtimeWorkerController) MessageListSaved(data []byte) error {
 }
 
 // no operation for channel_message_list_updated event
-func (f *RealtimeWorkerController) MessageListUpdated(data []byte) error {
+func (f *Controller) MessageListUpdated(data []byte) error {
 	return nil
 }
 
-func (f *RealtimeWorkerController) MessageListDeleted(data []byte) error {
+func (f *Controller) MessageListDeleted(data []byte) error {
 	cml, err := helper.MapToChannelMessageList(data)
 	if err != nil {
 		return err
@@ -277,7 +279,7 @@ func (f *RealtimeWorkerController) MessageListDeleted(data []byte) error {
 	return nil
 }
 
-func (f *RealtimeWorkerController) NotifyUser(data []byte) error {
+func (f *Controller) NotifyUser(data []byte) error {
 	channel, err := f.rmqConn.Channel()
 	if err != nil {
 		return errors.New("channel connection error")
@@ -360,7 +362,7 @@ func fetchNotifierOldAccount(accountId int64) (*mongomodels.Account, error) {
 	return account, nil
 }
 
-func (f *RealtimeWorkerController) sendInstanceEvent(instanceId int64, message interface{}, eventName string) error {
+func (f *Controller) sendInstanceEvent(instanceId int64, message interface{}, eventName string) error {
 	channel, err := f.rmqConn.Channel()
 	if err != nil {
 		return err
@@ -398,7 +400,7 @@ func (f *RealtimeWorkerController) sendInstanceEvent(instanceId int64, message i
 	)
 }
 
-func (f *RealtimeWorkerController) sendChannelEvent(cml *models.ChannelMessageList, eventName string) error {
+func (f *Controller) sendChannelEvent(cml *models.ChannelMessageList, eventName string) error {
 	channel, err := f.rmqConn.Channel()
 	if err != nil {
 		return err
@@ -475,7 +477,7 @@ func fetchChannel(channelId int64) (*models.Channel, error) {
 	return c, nil
 }
 
-func (f *RealtimeWorkerController) sendNotification(accountId int64, eventName string, data interface{}) error {
+func (f *Controller) sendNotification(accountId int64, eventName string, data interface{}) error {
 	channel, err := f.rmqConn.Channel()
 	if err != nil {
 		return err
