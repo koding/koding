@@ -33,15 +33,11 @@ func main() {
 		ForcedRecipient: r.Conf.SendGrid.ForcedRecipient,
 	}
 
-	handler, err := controller.NewDailyEmailNotifierWorkerController(
-		r.Log,
-		es,
-	)
+	handler, err := controller.New(r.Log, es)
 	if err != nil {
 		r.Log.Error("an error occurred", err)
 	}
-	fmt.Println("yeha")
+
 	r.ShutdownHandler = handler.Shutdown
 
-	r.Listen(handler)
 }

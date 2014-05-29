@@ -22,7 +22,7 @@ const (
 	SCHEDULE      = "0 0 0 * * *"
 )
 
-type DailyEmailNotifierWorkerController struct {
+type Controller struct {
 	log      logging.Logger
 	settings *models.EmailSettings
 }
@@ -33,11 +33,9 @@ var (
 	cronJob *cron.Cron
 )
 
-func NewDailyEmailNotifierWorkerController(
-	log logging.Logger,
-	es *models.EmailSettings) (*DailyEmailNotifierWorkerController, error) {
+func New(log logging.Logger, es *models.EmailSettings) (*Controller, error) {
 
-	c := &DailyEmailNotifierWorkerController{
+	c := &Controller{
 		log:      log,
 		settings: es,
 	}
@@ -45,23 +43,22 @@ func NewDailyEmailNotifierWorkerController(
 	return c, c.initDailyEmailCron()
 }
 
-func (n *DailyEmailNotifierWorkerController) initDailyEmailCron() error {
+func (n *Controller) initDailyEmailCron() error {
 	cronJob = cron.New()
 	err := cronJob.AddFunc(SCHEDULE, n.sendDailyMails)
 	if err != nil {
 		return err
 	}
-
 	cronJob.Start()
 
 	return nil
 }
 
-func (n *DailyEmailNotifierWorkerController) Shutdown() {
+func (n *Controller) Shutdown() {
 	cronJob.Stop()
 }
 
-func (n *DailyEmailNotifierWorkerController) sendDailyMails() {
+func (n *Controller) sendDailyMails() {
 	redisConn := helper.MustGetRedisConn()
 	for {
 		key := prepareRecipientsCacheKey()
@@ -87,7 +84,7 @@ func (n *DailyEmailNotifierWorkerController) sendDailyMails() {
 	}
 }
 
-func (n *DailyEmailNotifierWorkerController) prepareDailyEmail(accountId int64) error {
+func (n *Controller) prepareDailyEmail(accountId int64) error {
 	uc, err := models.FetchUserContact(accountId)
 	if err != nil {
 		return err
@@ -152,7 +149,7 @@ func (n *DailyEmailNotifierWorkerController) prepareDailyEmail(accountId int64) 
 	return nil
 }
 
-func (n *DailyEmailNotifierWorkerController) getDailyActivityIds(accountId int64) ([]int64, error) {
+func (n *Controller) getDailyActivityIds(accountId int64) ([]int64, error) {
 	redisConn := helper.MustGetRedisConn()
 	members, err := redisConn.GetSetMembers(prepareDailyActivitiesCacheKey(accountId))
 	if err != nil {
