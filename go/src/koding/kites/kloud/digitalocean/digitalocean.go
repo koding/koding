@@ -23,14 +23,14 @@ type DigitalOcean struct {
 	Log    logging.Logger
 
 	Creds struct {
-		ClientID string `mapstructure:"client_id"`
-		APIKey   string `mapstructure:"api_key"`
+		ClientID string `mapstructure:"clientId"`
+		APIKey   string `mapstructure:"apiKey"`
 	}
 
 	Builder struct {
 		Type     string `mapstructure:"type"`
-		ClientID string `mapstructure:"client_id"`
-		APIKey   string `mapstructure:"api_key"`
+		ClientID string `mapstructure:"clientId"`
+		APIKey   string `mapstructure:"apiKey"`
 
 		RegionID uint `mapstructure:"region_id"`
 		SizeID   uint `mapstructure:"size_id"`

@@ -34,6 +34,10 @@ func main() {
 		os.Exit(0)
 	}
 
+	if *flagKontrolURL == "" {
+		log.Fatal("Please specify kontrol url with -kontrol-url")
+	}
+
 	conf := config.MustConfig(*flagProfile)
 
 	u, err := url.Parse(*flagKontrolURL)
@@ -42,23 +46,25 @@ func main() {
 	}
 	kontrolURL := u.String()
 
-	publicKey := *flagPublicKey
+	pubKeyPath := *flagPublicKey
 	if *flagPublicKey == "" {
-		pubKey, err := ioutil.ReadFile(conf.NewKontrol.PublicKeyFile)
-		if err != nil {
-			log.Fatalln(err)
-		}
-		publicKey = string(pubKey)
+		pubKeyPath = conf.NewKontrol.PublicKeyFile
 	}
+	pubKey, err := ioutil.ReadFile(pubKeyPath)
+	if err != nil {
+		log.Fatalln(err)
+	}
+	publicKey := string(pubKey)
 
-	privateKey := *flagPrivateKey
-	if *flagPrivateKey == "" {
-		privKey, err := ioutil.ReadFile(conf.NewKontrol.PrivateKeyFile)
-		if err != nil {
-			log.Fatalln(err)
-		}
-		privateKey = string(privKey)
+	privKeyPath := *flagPrivateKey
+	if *flagPublicKey == "" {
+		privKeyPath = conf.NewKontrol.PrivateKeyFile
 	}
+	privKey, err := ioutil.ReadFile(privKeyPath)
+	if err != nil {
+		log.Fatalln(err)
+	}
+	privateKey := string(privKey)
 
 	k := &kloud.Kloud{
 		Config:            conf,

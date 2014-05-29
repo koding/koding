@@ -3,6 +3,7 @@ package kloud
 import (
 	"koding/db/mongodb"
 	"koding/kites/kloud/digitalocean"
+	"koding/kites/kloud/idlock"
 	"koding/kodingkite"
 	"koding/tools/config"
 	"log"
@@ -27,6 +28,8 @@ type Kloud struct {
 
 	Storage Storage
 
+	idlock *idlock.IdLock
+
 	Name    string
 	Version string
 	Region  string
@@ -47,6 +50,8 @@ func (k *Kloud) NewKloud() *kodingkite.KodingKite {
 
 	k.Name = NAME
 	k.Version = VERSION
+
+	k.idlock = idlock.New()
 
 	if k.Log == nil {
 		k.Log = createLogger(NAME, k.Debug)
