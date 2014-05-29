@@ -32,7 +32,7 @@ func main() {
 		defer redisConn.Close()
 	}
 
-	handler, err := notification.NewNotificationWorkerController(
+	handler, err := notification.New(
 		rmq,
 		r.Log,
 		cacheEnabled,

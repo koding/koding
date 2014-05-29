@@ -19,9 +19,9 @@ const (
 	NOTIFICATION_TYPE_UNSUBSCRIBE = "unsubscribe"
 )
 
-type Action func(*NotificationWorkerController, []byte) error
+type Action func(*Controller, []byte) error
 
-type NotificationWorkerController struct {
+type Controller struct {
 	routes          map[string]Action
 	log             logging.Logger
 	rmqConn         *amqp.Connection
@@ -29,32 +29,32 @@ type NotificationWorkerController struct {
 	cacheEnabled    bool
 }
 
-func (n *NotificationWorkerController) DefaultErrHandler(delivery amqp.Delivery, err error) bool {
+func (n *Controller) DefaultErrHandler(delivery amqp.Delivery, err error) bool {
 	n.log.Error("an error occured: %s", err)
 	delivery.Ack(false)
 
 	return false
 }
 
-func NewNotificationWorkerController(rmq *rabbitmq.RabbitMQ, log logging.Logger, cacheEnabled bool) (*NotificationWorkerController, error) {
+func New(rmq *rabbitmq.RabbitMQ, log logging.Logger, cacheEnabled bool) (*Controller, error) {
 	rmqConn, err := rmq.Connect("NewNotificationWorkerController")
 	if err != nil {
 		return nil, err
 	}
 
-	nwc := &NotificationWorkerController{
+	nwc := &Controller{
 		log:          log,
 		rmqConn:      rmqConn.Conn(),
 		cacheEnabled: cacheEnabled,
 	}
 
 	routes := map[string]Action{
-		"api.message_reply_created":        (*NotificationWorkerController).CreateReplyNotification,
-		"api.interaction_created":          (*NotificationWorkerController).CreateInteractionNotification,
-		"api.channel_participant_created":  (*NotificationWorkerController).JoinChannel,
-		"api.channel_participant_updated":  (*NotificationWorkerController).LeaveChannel,
-		"api.channel_message_list_created": (*NotificationWorkerController).SubscribeMessage,
-		"api.channel_message_list_deleted": (*NotificationWorkerController).UnsubscribeMessage,
+		"api.message_reply_created":        (*Controller).CreateReplyNotification,
+		"api.interaction_created":          (*Controller).CreateInteractionNotification,
+		"api.channel_participant_created":  (*Controller).JoinChannel,
+		"api.channel_participant_updated":  (*Controller).LeaveChannel,
+		"api.channel_message_list_created": (*Controller).SubscribeMessage,
+		"api.channel_message_list_deleted": (*Controller).UnsubscribeMessage,
 	}
 
 	nwc.routes = routes
@@ -63,7 +63,7 @@ func NewNotificationWorkerController(rmq *rabbitmq.RabbitMQ, log logging.Logger,
 }
 
 // copy/paste
-func (n *NotificationWorkerController) HandleEvent(event string, data []byte) error {
+func (n *Controller) HandleEvent(event string, data []byte) error {
 	n.log.Debug("New Event Received %s", event)
 	handler, ok := n.routes[event]
 	if !ok {
@@ -73,7 +73,7 @@ func (n *NotificationWorkerController) HandleEvent(event string, data []byte) er
 	return handler(n, data)
 }
 
-func (n *NotificationWorkerController) CreateReplyNotification(data []byte) error {
+func (n *Controller) CreateReplyNotification(data []byte) error {
 	mr, err := helper.MapToMessageReply(data)
 	if err != nil {
 		return err
@@ -134,11 +134,11 @@ func (n *NotificationWorkerController) CreateReplyNotification(data []byte) erro
 	return nil
 }
 
-func (n *NotificationWorkerController) UnsubscribeMessage(data []byte) error {
+func (n *Controller) UnsubscribeMessage(data []byte) error {
 	return subscription(data, NOTIFICATION_TYPE_UNSUBSCRIBE)
 }
 
-func (n *NotificationWorkerController) SubscribeMessage(data []byte) error {
+func (n *Controller) SubscribeMessage(data []byte) error {
 	return subscription(data, NOTIFICATION_TYPE_SUBSCRIBE)
 }
 
@@ -174,7 +174,7 @@ func subscription(data []byte, typeConstant string) error {
 	return nil
 }
 
-func (n *NotificationWorkerController) CreateMentionNotification(reply *socialapimodels.ChannelMessage) ([]int64, error) {
+func (n *Controller) CreateMentionNotification(reply *socialapimodels.ChannelMessage) ([]int64, error) {
 	mentionedUserIds := make([]int64, 0)
 	usernames := reply.GetMentionedUsernames()
 
@@ -212,14 +212,14 @@ func (n *NotificationWorkerController) CreateMentionNotification(reply *socialap
 	return mentionedUserIds, nil
 }
 
-func (n *NotificationWorkerController) notify(contentId, notifierId int64, subscribedAt time.Time) {
+func (n *Controller) notify(contentId, notifierId int64, subscribedAt time.Time) {
 	notification := buildNotification(contentId, notifierId, subscribedAt)
 	if err := notification.Upsert(); err != nil {
 		n.log.Error("An error occurred while notifying user %d: %s", notification.AccountId, err.Error())
 	}
 }
 
-func (n *NotificationWorkerController) subscribe(contentId, notifierId int64, subscribedAt time.Time) {
+func (n *Controller) subscribe(contentId, notifierId int64, subscribedAt time.Time) {
 	notification := buildNotification(contentId, notifierId, subscribedAt)
 	notification.SubscribeOnly = true
 	if err := notification.Create(); err != nil {
@@ -236,7 +236,7 @@ func buildNotification(contentId, notifierId int64, subscribedAt time.Time) *mod
 	return notification
 }
 
-func (n *NotificationWorkerController) CreateInteractionNotification(data []byte) error {
+func (n *Controller) CreateInteractionNotification(data []byte) error {
 	i, err := helper.MapToInteraction(data)
 	if err != nil {
 		return err
@@ -271,7 +271,7 @@ func (n *NotificationWorkerController) CreateInteractionNotification(data []byte
 	return nil
 }
 
-func (n *NotificationWorkerController) JoinChannel(data []byte) error {
+func (n *Controller) JoinChannel(data []byte) error {
 	cp, err := helper.MapToChannelParticipant(data)
 	if err != nil {
 		return err
@@ -280,7 +280,7 @@ func (n *NotificationWorkerController) JoinChannel(data []byte) error {
 	return processChannelParticipant(cp, models.NotificationContent_TYPE_JOIN)
 }
 
-func (n *NotificationWorkerController) LeaveChannel(data []byte) error {
+func (n *Controller) LeaveChannel(data []byte) error {
 	cp, err := helper.MapToChannelParticipant(data)
 	if err != nil {
 		return err
