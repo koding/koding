@@ -60,6 +60,36 @@ class SettingsPane extends Pane
       click              : => log "show shortcuts"
 
   createTerminalSettings: ->
+
+    @terminalFont     = new KDSelectBox
+      selectOptions   : __terminalSettings.fonts
+
+    @terminalFontSize = new KDSelectBox
+      selectOptions   : __terminalSettings.fontSizes
+
+    @terminalTheme    = new KDSelectBox
+      selectOptions   : __terminalSettings.themes
+
+    @bell             = new KodingSwitch
+      size            : "tiny settings-on-off"
+
+    mainView          = KD.getSingleton "mainView"
+    @fullscreen       = new KodingSwitch
+      size            : "tiny settings-on-off"
+      callback        : (state) =>
+        if state
+          mainView.enableFullscreen()
+        else
+          mainView.disableFullscreen()
+        {menu} = @getOptions()
+        menu.contextMenu.destroy()
+        menu.click()
+      defaultValue  : mainView.isFullscreen()
+
+    @scrollback     = new KDSelectBox
+      selectOptions : __terminalSettings.scrollback
+
+
   pistachio: ->
     """
     <p>Use soft tabs                           {{> @useSoftTabs}}</p>
@@ -80,4 +110,12 @@ class SettingsPane extends Pane
     <p class='hidden'>{{> @shortcuts}}</p>
     <hr>
     <p>Open Recent Files                       {{> @openRecentFiles}}</p>
+    <hr>
+    <p class="with-select">Font               {{> @terminalFont}}</p>
+    <p class="with-select">Font size          {{> @terminalFontSize}}</p>
+    <p class="with-select">Theme              {{> @terminalTheme}}</p>
+    <p class="with-select">Scrollback         {{> @scrollback}}</p>
+    <hr>
+    <p>Use visual bell                        {{> @bell}}</p>
+    <p>Fullscreen                             {{> @fullscreen}}</p>
     """
