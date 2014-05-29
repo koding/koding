@@ -9,6 +9,7 @@ import (
 
 	"github.com/koding/logging"
 	"labix.org/v2/mgo"
+	"labix.org/v2/mgo/bson"
 )
 
 var (
@@ -79,6 +80,11 @@ func (mwc *MigratorWorkerController) Start() error {
 
 		// create reply messages
 		if err := migrateComments(cm, &su, channelId); err != nil {
+			handleError(&su, err)
+			continue
+		}
+
+		if err := migrateLikes(cm, su.Id); err != nil {
 			handleError(&su, err)
 			continue
 		}
@@ -207,8 +213,40 @@ func migrateComments(parentMessage *models.ChannelMessage, su *mongomodels.Statu
 			return fmt.Errorf("comment cannot be inserted to message reply %s", err)
 		}
 
+		if err := migrateLikes(reply, comment.Id); err != nil {
+			return fmt.Errorf("likes cannot be migrated %s", err)
+		}
+
 		if err := completeCommentMigration(comment, reply); err != nil {
 			return fmt.Errorf("old comment cannot be flagged with new message id %s", err)
+		}
+	}
+
+	return nil
+}
+
+func migrateLikes(cm *models.ChannelMessage, oldId bson.ObjectId) error {
+	s := modelhelper.Selector{
+		"sourceId": oldId,
+		"as":       "like",
+	}
+	rels, err := modelhelper.GetAllRelationships(s)
+	if err != nil {
+		return fmt.Errorf("likes cannot be fetched %s", err)
+	}
+	for _, r := range rels {
+		a := models.NewAccount()
+		a.OldId = r.TargetId.Hex()
+		if err := a.FetchOrCreate(); err != nil {
+			return fmt.Errorf("interactor account could not found: %s", err)
+		}
+		i := models.NewInteraction()
+		i.MessageId = cm.Id
+		i.AccountId = a.Id
+		i.TypeConstant = models.Interaction_TYPE_LIKE
+		// creation date is not stored in mongo, so we could not set createdAt here.
+		if err := i.Create(); err != nil {
+			return fmt.Errorf("interaction could not created: %s", err)
 		}
 	}
 
