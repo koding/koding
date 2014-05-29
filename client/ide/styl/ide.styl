@@ -13,28 +13,29 @@ ide.styl
   .ace_editor
     height              100%
 
+// sidebar icons
+.ide-files-tab
+  .kdtabhandle
+    b
+      text-indent     -1000px
+    &.files
+      r-sprite        'ide', 'files-off'
+      &.active
+        r-sprite      'ide', 'files-on'
+    &.vms
+      r-sprite        'ide', 'vms-off'
+      &.active
+        r-sprite      'ide', 'vms-on'
+    &.settings
+      r-sprite        'ide', 'settings-off'
+      &.active
+        r-sprite      'ide', 'settings-on'
+    &.actions
+      r-sprite        'ide', 'share-off'
+      &.active
+        r-sprite      'ide', 'share-on'
 
-  .ide-files-tab
-    .kdtabhandle
-      b
-        text-indent     -1000px
-      &.files
-        r-sprite        'ide', 'files-off'
-        &.active
-          r-sprite      'ide', 'files-on'
-      &.vms
-        r-sprite        'ide', 'vms-off'
-        &.active
-          r-sprite      'ide', 'vms-on'
-      &.settings
-        r-sprite        'ide', 'settings-off'
-        &.active
-          r-sprite      'ide', 'settings-on'
-      &.actions
-        r-sprite        'ide', 'share-off'
-        &.active
-          r-sprite      'ide', 'share-on'
-
+// floating left
 .floating.kdsplitview-panel
   .ide-files-tab
     .application-tab-handle-holder
@@ -49,29 +50,82 @@ ide.styl
       abs()
       fl()
 
+// vm list pane
+.vm-list-pane
+  .vm-item
+    size                auto, 39px
+    bg                  color, #131313
+    position            relative
+    margin              13px
+    rounded             2px
+    .domain-name
+      text-decoration   underline
+      line-height       39px
+      color             #949290
+      font-size         13px
+      margin-left       14px
+    .actions-menu
+      border            none
+      display           inline-block
+      r-sprite          'ide', 'horizontal-dots'
+      pointer()
+      abs()
+      right             12px
+      top               11px
+      .chevron
+        bg              image, none
+      .chevron-separator
+        border          none
+    button.actions-menu
+      bg                image, none
+      display           none
+
+  .buy-vm-button
+    rounded             2px
+    color               #FFF
+    margin              0 13px
+    font-size           13px
+    text-indent         80px
+    line-height         39px
+    background          none
+    display             block
+    size                auto, 39px
+    position            relative
+    border              1px dashed #5A5A5A
+    text-decoration     none
+    .icon
+      display           inline-block
+      r-sprite          'ide', 'add-vm'
+      abs()
+      top               10px
+      left              50px
+
+
+// settings pane
 .settings-pane
-  line-height 20px
+  line-height           20px
 
   .kdselectbox
-    min-width 112px
-    display block
-    float right
+    min-width           112px
+    display             block
+    float               right
 
   p
-    color #D4CFC9
-    font-size 14px
-    padding 5px 20px
-    clear both
+    color               #D4CFC9
+    font-size           14px
+    padding             5px 20px
+    clear               both
     borderBox()
 
     &.with-select
-      line-height 32px
+      line-height       32px
 
     .settings-on-off
-      display block
-      float right
+      display           block
+      float             right
 
       &.on
-        background-color #4EA04C
+        bg              color, #4EA04C
       &.off
-        background-color #131313
+        bg              color, #131313
+

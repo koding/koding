@@ -26,10 +26,12 @@ class VMListPane extends Pane
       @addBuyVMButton()
 
   addBuyVMButton: ->
-    buyVMButton  = new KDButtonView
-      title      : 'Buy another VM'
-      cssClass   : 'solid green medium'
-      callback   : -> KD.getSingleton('router').handleRoute '/Pricing'
+    buyVMButton  = new KDCustomHTMLView
+      tagName    : 'a'
+      cssClass   : 'buy-vm-button'
+      partial    : '<span class="icon"></span>Buy another VM'
+      attributes :
+        href     : '/Pricing'
 
     @addSubView buyVMButton
 
@@ -47,26 +49,36 @@ class VMPaneListItem extends JView
     @createElements()
 
   createElements: ->
-    appManager = KD.getSingleton 'appManager'
-    data       = @getData()
+    appManager     = KD.getSingleton 'appManager'
+    data           = @getData()
 
-    @label     = new KDCustomHTMLView
-      tagName  : "span"
-      partial  : data.hostnameAlias.replace 'koding.kd.io', 'kd.io'
+    @domainName    = new KDCustomHTMLView
+      tagName      : 'span'
+      cssClass     : 'domain-name'
+      partial      : data.hostnameAlias.replace 'koding.kd.io', 'kd.io'
 
-    @openTerminalButton = new KDButtonView
-      title    : "T"
-      cssClass : "mini solid green"
-      callback : -> appManager.tell 'IDE', 'openVMTerminal', data
+    @actionsButton = new KDButtonViewWithMenu
+      title        : ""
+      icon         : yes
+      delegate     : this
+      cssClass     : 'actions'
+      iconClass    : 'icon'
+      cssClass     : 'actions-menu'
+      style        : 'resurrection'
+      menu         : @getMenuItems()
 
-    @openWebPageButton = new KDButtonView
-      title    : "W"
-      cssClass : "mini solid gray"
-      callback : -> appManager.tell 'IDE', 'openVMWebPage', data
+  getMenuItems: ->
+    data                  = @getData()
+    appManager            = KD.getSingleton 'appManager'
+    menuItems             =
+      "Open VM terminal"  : callback: => appManager.tell 'IDE', 'openVMTerminal', data
+      "Open VM domain"    : callback: => appManager.tell 'IDE', 'openVMWebPage',  data
+      "Mount to filetree" : callback: => appManager.tell 'IDE', 'mountVM',        data
+
+    return menuItems
 
   pistachio: ->
     """
-      {{> @label}}
-      {{> @openTerminalButton}}
-      {{> @openWebPageButton}}
+      {{> @domainName}}
+      {{> @actionsButton}}
     """
