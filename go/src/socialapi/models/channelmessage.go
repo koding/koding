@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/VerbalExpressions/GoVerbalExpressions"
+	"github.com/jinzhu/gorm"
 	"github.com/koding/bongo"
 )
 
@@ -189,7 +190,7 @@ func (c *ChannelMessage) BuildMessage(query *Query) (*ChannelMessageContainer, e
 	}
 	cmc.RepliesCount = repliesCount
 
-	cmc.IsFollowed, err = c.FetchFollowedInfo(query)
+	cmc.IsFollowed, err = c.CheckIsMessageFollowed(query)
 	if err != nil {
 		return nil, err
 	}
@@ -207,15 +208,31 @@ func (c *ChannelMessage) BuildMessage(query *Query) (*ChannelMessageContainer, e
 	return cmc, nil
 }
 
-func (c *ChannelMessage) FetchFollowedInfo(query *Query) (bool, error) {
-	channelIds, err := NewChannelMessageList().FetchMessageChannelIds(c.Id)
-	if err != nil {
+func (c *ChannelMessage) CheckIsMessageFollowed(query *Query) (bool, error) {
+	channel := NewChannel()
+	if err := channel.FetchPinnedActivityChannel(query.AccountId, query.GroupName); err != nil {
+		if err == gorm.RecordNotFound {
+			return false, nil
+		}
 		return false, err
 	}
-	channel := NewChannel()
-	channel.CreatorId = query.AccountId
 
-	return channel.CheckChannelPinned(channelIds)
+	cml := NewChannelMessageList()
+	q := &bongo.Query{
+		Selector: map[string]interface{}{
+			"channel_id": channel.Id,
+			"message_id": c.Id,
+		},
+	}
+	if err := cml.One(q); err != nil {
+		if err == gorm.RecordNotFound {
+			return false, nil
+		}
+
+		return false, err
+	}
+
+	return true, nil
 }
 
 func (c *ChannelMessage) BuildEmptyMessageContainer() (*ChannelMessageContainer, error) {
