@@ -20,18 +20,36 @@ type TemplateParser struct {
 }
 
 var (
-	mainTemplateFile        = os.Getenv("GOPATH") + "/src/socialapi/workers/emailnotifier/templates/main.tmpl"
-	footerTemplateFile      = os.Getenv("GOPATH") + "/src/socialapi/workers/emailnotifier/templates/footer.tmpl"
-	contentTemplateFile     = os.Getenv("GOPATH") + "/src/socialapi/workers/emailnotifier/templates/content.tmpl"
-	gravatarTemplateFile    = os.Getenv("GOPATH") + "/src/socialapi/workers/emailnotifier/templates/gravatar.tmpl"
-	groupTemplateFile       = os.Getenv("GOPATH") + "/src/socialapi/workers/emailnotifier/templates/group.tmpl"
-	previewTemplateFile     = os.Getenv("GOPATH") + "/src/socialapi/workers/emailnotifier/templates/preview.tmpl"
-	objectTemplateFile      = os.Getenv("GOPATH") + "/src/socialapi/workers/emailnotifier/templates/object.tmpl"
-	unsubscribeTemplateFile = os.Getenv("GOPATH") + "/src/socialapi/workers/emailnotifier/templates/unsubscribe.tmpl"
+	mainTemplateFile        string
+	footerTemplateFile      string
+	contentTemplateFile     string
+	gravatarTemplateFile    string
+	groupTemplateFile       string
+	previewTemplateFile     string
+	objectTemplateFile      string
+	unsubscribeTemplateFile string
 )
 
 func NewTemplateParser() *TemplateParser {
 	return &TemplateParser{}
+}
+
+func prepareTemplateFiles() error {
+	wd, err := os.Getwd()
+	if err != nil {
+		return err
+	}
+
+	mainTemplateFile = wd + "/workers/emailnotifier/templates/main.tmpl"
+	footerTemplateFile = wd + "/workers/emailnotifier/templates/footer.tmpl"
+	contentTemplateFile = wd + "/workers/emailnotifier/templates/content.tmpl"
+	gravatarTemplateFile = wd + "/workers/emailnotifier/templates/gravatar.tmpl"
+	groupTemplateFile = wd + "/workers/emailnotifier/templates/group.tmpl"
+	previewTemplateFile = wd + "/workers/emailnotifier/templates/preview.tmpl"
+	objectTemplateFile = wd + "/workers/emailnotifier/templates/object.tmpl"
+	unsubscribeTemplateFile = wd + "/workers/emailnotifier/templates/unsubscribe.tmpl"
+
+	return nil
 }
 
 func (tp *TemplateParser) RenderInstantTemplate(mc *MailerContainer) (string, error) {
@@ -71,6 +89,10 @@ func (tp *TemplateParser) RenderDailyTemplate(containers []*MailerContainer) (st
 }
 
 func (tp *TemplateParser) validateTemplateParser() error {
+	if err := prepareTemplateFiles(); err != nil {
+		return err
+	}
+
 	if tp.UserContact == nil {
 		return fmt.Errorf("TemplateParser UserContact is not set")
 	}
