@@ -73,19 +73,6 @@ class SettingsPane extends Pane
     @bell             = new KodingSwitch
       size            : "tiny settings-on-off"
 
-    mainView          = KD.getSingleton "mainView"
-    @fullscreen       = new KodingSwitch
-      size            : "tiny settings-on-off"
-      callback        : (state) =>
-        if state
-          mainView.enableFullscreen()
-        else
-          mainView.disableFullscreen()
-        {menu} = @getOptions()
-        menu.contextMenu.destroy()
-        menu.click()
-      defaultValue  : mainView.isFullscreen()
-
     @scrollback     = new KDSelectBox
       selectOptions : __terminalSettings.scrollback
 
@@ -117,5 +104,4 @@ class SettingsPane extends Pane
     <p class="with-select">Scrollback         {{> @scrollback}}</p>
     <hr>
     <p>Use visual bell                        {{> @bell}}</p>
-    <p>Fullscreen                             {{> @fullscreen}}</p>
     """
