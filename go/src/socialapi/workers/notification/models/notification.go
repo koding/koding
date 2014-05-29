@@ -36,13 +36,13 @@ type Notification struct {
 }
 
 func (n *Notification) BeforeCreate() {
-	if n.UnsubscribedAt.Equal(ZeroDate()) && n.SubscribedAt.Equal(ZeroDate()) {
+	if n.UnsubscribedAt.IsZero() && n.SubscribedAt.IsZero() {
 		n.SubscribedAt = time.Now()
 	}
 }
 
 func (n *Notification) BeforeUpdate() {
-	if n.UnsubscribedAt.Equal(ZeroDate()) && !n.SubscribeOnly {
+	if n.UnsubscribedAt.IsZero() && !n.SubscribeOnly {
 		n.Glanced = false
 		n.ActivatedAt = time.Now()
 	}
@@ -95,15 +95,24 @@ func (n *Notification) Upsert() error {
 
 		return bongo.B.Create(n)
 	}
-
-	if !unsubscribedAt.IsZero() {
-		n.UnsubscribedAt = unsubscribedAt
-	}
+	n.UnsubscribedAt = unsubscribedAt
 
 	return bongo.B.Update(n)
 }
 
 func (n *Notification) Subscribe(nc *NotificationContent) error {
+	n.UnsubscribedAt = ZeroDate()
+
+	return n.subscription(nc)
+}
+
+func (n *Notification) Unsubscribe(nc *NotificationContent) error {
+	n.UnsubscribedAt = time.Now()
+
+	return n.subscription(nc)
+}
+
+func (n *Notification) subscription(nc *NotificationContent) error {
 	if nc.TargetId == 0 {
 		return errors.New("target id cannot be empty")
 	}
@@ -116,13 +125,7 @@ func (n *Notification) Subscribe(nc *NotificationContent) error {
 	n.NotificationContentId = nc.Id
 	n.SubscribeOnly = true
 
-	return n.Create()
-}
-
-func (n *Notification) Unsubscribe(nc *NotificationContent) error {
-	n.UnsubscribedAt = time.Now()
-
-	return n.Subscribe(nc)
+	return n.Upsert()
 }
 
 func (n *Notification) List(q *models.Query) (*NotificationResponse, error) {

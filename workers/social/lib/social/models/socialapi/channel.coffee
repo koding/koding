@@ -131,7 +131,7 @@ module.exports = class SocialChannel extends Base
         return callback {message: "Message id is not set for pinning "}
       @doRequest 'pinMessage', client, options, callback
 
-  @unpinMessage = permit 'like posts',
+  @unpinMessage = permit 'pin posts',
     success:  (client, options, callback)->
       unless options.messageId
         return callback {message: "Message id is not set for un-pinning "}

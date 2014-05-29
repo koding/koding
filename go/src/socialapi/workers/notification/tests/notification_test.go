@@ -3,13 +3,14 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/koding/api/utils"
-	. "github.com/smartystreets/goconvey/convey"
-	"labix.org/v2/mgo/bson"
 	socialapimodels "socialapi/models"
 	"socialapi/workers/notification/models"
 	"testing"
 	"time"
+
+	"github.com/koding/api/utils"
+	. "github.com/smartystreets/goconvey/convey"
+	"labix.org/v2/mgo/bson"
 )
 
 var (
@@ -593,8 +594,9 @@ func TestNotificationCreation(t *testing.T) {
 				ResultedWithNoErrorCheck(cm, err)
 			})
 			Convey("First user should be able to subscribe to my message", func() {
-				response, err := subscribeMessage(firstUser.Id, cm.Id)
-				ResultedWithNoErrorCheck(response, err)
+				response, err := subscribeMessage(firstUser.Id, cm.Id, testGroupChannel.GroupName)
+				So(err, ShouldBeNil)
+				So(response, ShouldNotBeNil)
 				time.Now()
 			})
 			Convey("Second user should be able to reply my message", func() {
@@ -611,26 +613,28 @@ func TestNotificationCreation(t *testing.T) {
 				So(len(nl.Notifications[0].LatestActors), ShouldEqual, 1)
 				So(nl.Notifications[0].LatestActors[0], ShouldEqual, secondUser.Id)
 			})
-			Convey("I should be able to unsubscribe from my message", func() {
-				response, err := unsubscribeMessage(ownerAccount.Id, cm.Id)
-				ResultedWithNoErrorCheck(response, err)
+			Convey("First should be able to unsubscribe from my message", func() {
+				response, err := unsubscribeMessage(firstUser.Id, cm.Id, testGroupChannel.GroupName)
+				So(err, ShouldBeNil)
+				So(response, ShouldNotBeNil)
 			})
 			Convey("Third user should be able to subscribe to my message", func() {
-				response, err := subscribeMessage(thirdUser.Id, cm.Id)
-				ResultedWithNoErrorCheck(response, err)
+				response, err := subscribeMessage(thirdUser.Id, cm.Id, testGroupChannel.GroupName)
+				So(err, ShouldBeNil)
+				So(response, ShouldNotBeNil)
 			})
 			Convey("Forth user should be able to reply my message", func() {
 				replyMessage, err := addReply(cm.Id, forthUser.Id, testGroupChannel.Id)
 				ResultedWithNoErrorCheck(replyMessage, err)
 				time.Sleep(SLEEP_TIME * time.Second) // waiting for async message
 			})
-			// Convey("I should not be able to receive latest notification", func() {
-			// 	nl, err := getNotificationList(ownerAccount.Id)
-			// 	ResultedWithNoErrorCheck(nl, err)
-			// 	So(len(nl.Notifications), ShouldBeGreaterThan, 0)
-			// 	So(len(nl.Notifications[0].LatestActors), ShouldEqual, 1)
-			// 	So(nl.Notifications[0].LatestActors[0], ShouldEqual, secondUser.Id)
-			// })
+			Convey("First user should not be able to receive latest notification", func() {
+				nl, err := getNotificationList(firstUser.Id)
+				ResultedWithNoErrorCheck(nl, err)
+				So(len(nl.Notifications), ShouldBeGreaterThan, 0)
+				So(len(nl.Notifications[0].LatestActors), ShouldEqual, 1)
+				So(nl.Notifications[0].LatestActors[0], ShouldEqual, secondUser.Id)
+			})
 			Convey("Third user should be able to receive notification", func() {
 				nl, err := getNotificationList(thirdUser.Id)
 				ResultedWithNoErrorCheck(nl, err)
@@ -644,50 +648,53 @@ func TestNotificationCreation(t *testing.T) {
 			})
 		})
 
-		Convey("As a message owner I should be able to unsubscribe from notifications of my own message", func() {
-			var cm *socialapimodels.ChannelMessage
-			var err error
-			Convey("I should be able to create a message", func() {
-				messageBody := "notification subscriber message 2"
-				cm, err = createPostWithBody(testGroupChannel.Id, ownerAccount.Id, messageBody)
-				ResultedWithNoErrorCheck(cm, err)
-			})
-			Convey("I should be able to unsubscribe from my message notifications", func() {
-				response, err := unsubscribeMessage(ownerAccount.Id, cm.Id)
-				ResultedWithNoErrorCheck(response, err)
-			})
-			Convey("First user should be able to reply my message", func() {
-				replyMessage, err := addReply(cm.Id, firstUser.Id, testGroupChannel.Id)
-				ResultedWithNoErrorCheck(replyMessage, err)
-				time.Sleep(SLEEP_TIME * time.Second) // waiting for async message
-			})
-			Convey("I should not be able to receive notification", func() {
-				nl, err := getNotificationList(firstUser.Id)
-				ResultedWithNoErrorCheck(nl, err)
+		// Convey("As a message owner I should be able to unsubscribe from notifications of my own message", func() {
+		// 	var cm *socialapimodels.ChannelMessage
+		// 	var err error
+		// Convey("I should be able to create a message", func() {
+		// 	messageBody := "notification subscriber message 2"
+		// 	cm, err = createPostWithBody(testGroupChannel.Id, ownerAccount.Id, messageBody)
+		// 	ResultedWithNoErrorCheck(cm, err)
+		// })
+		// Convey("I should be able to unsubscribe from my message notifications", func() {
+		// 	response, err := unsubscribeMessage(ownerAccount.Id, cm.Id, testGroupChannel.GroupName)
+		// 	So(err, ShouldBeNil)
+		// 	So(response, ShouldNotBeNil)
+		// })
+		// Convey("First user should be able to reply my message", func() {
+		// 	replyMessage, err := addReply(cm.Id, firstUser.Id, testGroupChannel.Id)
+		// 	ResultedWithNoErrorCheck(replyMessage, err)
+		// 	time.Sleep(SLEEP_TIME * time.Second) // waiting for async message
+		// })
+		// Convey("I should not be able to receive notification", func() {
+		// 	nl, err := getNotificationList(firstUser.Id)
+		// 	So(err, ShouldBeNil)
+		// 	So(nl, ShouldNotBeNil)
 
-				So(len(nl.Notifications), ShouldBeGreaterThan, 0)
-				So(nl.Notifications[0].TargetId, ShouldNotEqual, cm.Id)
-			})
-			Convey("I should be able to subscribe to my message notifications", func() {
-				response, err := subscribeMessage(ownerAccount.Id, cm.Id)
-				ResultedWithNoErrorCheck(response, err)
-			})
-			Convey("Second user should be able to reply my message", func() {
-				replyMessage, err := addReply(cm.Id, secondUser.Id, testGroupChannel.Id)
-				ResultedWithNoErrorCheck(replyMessage, err)
-				time.Sleep(SLEEP_TIME * time.Second) // waiting for async message
-			})
+		// 	So(len(nl.Notifications), ShouldBeGreaterThan, 0)
+		// 	So(nl.Notifications[0].TargetId, ShouldNotEqual, cm.Id)
+		// })
+		// Convey("I should be able to subscribe to my message notifications", func() {
+		// 	response, err := subscribeMessage(ownerAccount.Id, cm.Id, testGroupChannel.GroupName)
+		// 	So(err, ShouldBeNil)
+		// 	So(response, ShouldNotBeNil)
+		// })
+		// Convey("Second user should be able to reply my message", func() {
+		// 	replyMessage, err := addReply(cm.Id, secondUser.Id, testGroupChannel.Id)
+		// 	ResultedWithNoErrorCheck(replyMessage, err)
+		// 	time.Sleep(SLEEP_TIME * time.Second) // waiting for async message
+		// })
 
-			// Convey("I should be able to receive notification", func() {
-			// 	nl, err := getNotificationList(ownerAccount.Id)
-			// 	ResultedWithNoErrorCheck(nl, err)
+		// Convey("I should be able to receive notification", func() {
+		// 	nl, err := getNotificationList(ownerAccount.Id)
+		// 	ResultedWithNoErrorCheck(nl, err)
 
-			// 	So(len(nl.Notifications), ShouldBeGreaterThan, 0)
-			// 	So(nl.Notifications[0].TargetId, ShouldEqual, cm.Id)
-			// 	So(len(nl.Notifications[0].LatestActors), ShouldEqual, 1)
-			// 	So(nl.Notifications[0].LatestActors[0], ShouldEqual, secondUser.Id)
-			// })
-		})
+		// 	So(len(nl.Notifications), ShouldBeGreaterThan, 0)
+		// 	So(nl.Notifications[0].TargetId, ShouldEqual, cm.Id)
+		// 	So(len(nl.Notifications[0].LatestActors), ShouldEqual, 1)
+		// 	So(nl.Notifications[0].LatestActors[0], ShouldEqual, secondUser.Id)
+		// })
+		// })
 	}
 
 	Convey("while testing notifications without cache", t, func() {
@@ -764,28 +771,36 @@ func followNotification(followerId, followeeId int64) (interface{}, error) {
 	return addChannelParticipant(channel.(*socialapimodels.Channel).Id, followerId, followerId)
 }
 
-func subscribeMessage(accountId, messageId int64) (interface{}, error) {
-	n := models.NewNotificationRequest()
-	n.AccountId = accountId
-	n.TargetId = messageId
-	res, err := utils.SendModel("POST", "/notification/subscribe", n)
+// copy/paste
+func subscribeMessage(accountId, messageId int64, groupName string) (*socialapimodels.PinRequest, error) {
+	req := socialapimodels.NewPinRequest()
+	req.AccountId = accountId
+	req.MessageId = messageId
+	req.GroupName = groupName
+
+	url := "/activity/pin/add"
+	cmI, err := utils.SendModel("POST", url, req)
 	if err != nil {
 		return nil, err
 	}
+	return cmI.(*socialapimodels.PinRequest), nil
 
-	return res, nil
 }
 
-func unsubscribeMessage(accountId, messageId int64) (interface{}, error) {
-	n := models.NewNotificationRequest()
-	n.AccountId = accountId
-	n.TargetId = messageId
-	res, err := utils.SendModel("POST", "/notification/unsubscribe", n)
+// copy/paste
+func unsubscribeMessage(accountId, messageId int64, groupName string) (*socialapimodels.PinRequest, error) {
+	req := socialapimodels.NewPinRequest()
+	req.AccountId = accountId
+	req.MessageId = messageId
+	req.GroupName = groupName
+
+	url := "/activity/pin/remove"
+	cmI, err := utils.SendModel("POST", url, req)
 	if err != nil {
 		return nil, err
 	}
+	return cmI.(*socialapimodels.PinRequest), nil
 
-	return res, nil
 }
 
 // copy/paste
