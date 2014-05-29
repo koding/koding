@@ -114,6 +114,8 @@ class IDEAppController extends AppController
   openVMWebPage: (vmData) ->
     @activeTabView.emit 'VMWebPageRequested', vmData
 
+  mountVM: (vmData) ->
+
   collapseSidebar: ->
     panel        = @workspace.getView()
     splitView    = panel.layout.getSplitViewByName 'BaseSplit'
