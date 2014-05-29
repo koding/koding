@@ -91,7 +91,6 @@ func (l *Listener) Listen(rmq *rabbitmq.RabbitMQ, handler Handler) {
 		panic(err)
 	}
 
-	l.Consumer.RegisterSignalHandler()
 	l.Consumer.Consume(l.Start(handler))
 }
 
