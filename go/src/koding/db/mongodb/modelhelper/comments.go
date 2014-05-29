@@ -29,3 +29,8 @@ func AddComment(c *models.Comment) error {
 	query := insertQuery(c)
 	return Mongo.Run("jComments", query)
 }
+
+func UpdateComment(c *models.Comment) error {
+	query := updateByIdQuery(c.Id.Hex(), c)
+	return Mongo.Run("jComments", query)
+}
