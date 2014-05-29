@@ -59,13 +59,13 @@ var (
 		"digitalocean": map[string]interface{}{
 			"provider": "digitalocean",
 			"credential": map[string]interface{}{
-				"client_id": DIGITALOCEAN_CLIENT_ID,
-				"api_key":   DIGITALOCEAN_API_KEY,
+				"clientId": DIGITALOCEAN_CLIENT_ID,
+				"apiKey":   DIGITALOCEAN_API_KEY,
 			},
 			"builder": map[string]interface{}{
 				"type":          "digitalocean",
-				"client_id":     DIGITALOCEAN_CLIENT_ID,
-				"api_key":       DIGITALOCEAN_API_KEY,
+				"clientId":      DIGITALOCEAN_CLIENT_ID,
+				"apiKey":        DIGITALOCEAN_API_KEY,
 				"image":         "ubuntu-13-10-x64",
 				"region":        "sfo1",
 				"size":          "512mb",
@@ -173,6 +173,9 @@ func init() {
 	rand.Seed(time.Now().UTC().UnixNano())
 }
 
+func TestMultiple(t *testing.T) {
+}
+
 func TestProviders(t *testing.T) {
 	t.Skip("To enable this test remove this line")
 	for provider, data := range TestProviderData {
@@ -247,7 +250,55 @@ func TestProviders(t *testing.T) {
 	}
 }
 
-func TestBuild(t *testing.T) {
+func build(i int, data map[string]interface{}) error {
+	time.Sleep(time.Millisecond * time.Duration(rand.Intn(2500))) // wait 0-2500 milliseconds
+
+	machineName := "testkloud-" + strconv.FormatInt(time.Now().UTC().UnixNano(), 10) + "-" + strconv.Itoa(i)
+
+	bArgs := &kloud.BuildArgs{
+		MachineId:   data["provider"].(string),
+		MachineName: machineName,
+	}
+
+	resp, err := remote.Tell("build", bArgs)
+	if err != nil {
+		return err
+	}
+
+	var result kloud.BuildResponse
+	err = resp.Unmarshal(&result)
+	if err != nil {
+		return err
+	}
+
+	// droplet's names are based on username for now
+	if result.MachineName != machineName {
+		return fmt.Errorf("droplet name is: %s, expecting: %s", result.MachineName, machineName)
+	}
+
+	fmt.Println("============")
+	fmt.Printf("result %+v\n", result)
+	fmt.Println("============")
+
+	if !*flagTestDestroy {
+		fmt.Println("destroying ", machineName)
+		dropletId := result.MachineId
+		cArgs := &kloud.ControllerArgs{
+			Provider:   data["provider"].(string),
+			Credential: data["credential"].(map[string]interface{}),
+			MachineID:  dropletId,
+		}
+
+		if _, err := remote.Tell("destroy", cArgs); err != nil {
+			return fmt.Errorf("destroy: %s", err)
+		}
+	}
+
+	return nil
+
+}
+
+func TestBuilds(t *testing.T) {
 	numberOfBuilds := *flagTestBuilds
 
 	for provider, data := range TestProviderData {
@@ -256,58 +307,15 @@ func TestBuild(t *testing.T) {
 			continue
 		}
 
-		buildFunc := func(i int) {
-			time.Sleep(time.Millisecond * time.Duration(rand.Intn(2500))) // wait 0-2500 milliseconds
-
-			machineName := "testkloud-" + strconv.FormatInt(time.Now().UTC().UnixNano(), 10) + "-" + strconv.Itoa(i)
-
-			bArgs := &kloud.BuildArgs{
-				MachineId:   data["provider"].(string),
-				MachineName: machineName,
-			}
-
-			resp, err := remote.Tell("build", bArgs)
-			if err != nil {
-				t.Fatal(err)
-			}
-
-			var result kloud.BuildResponse
-			err = resp.Unmarshal(&result)
-			if err != nil {
-				t.Fatal(err)
-			}
-
-			// droplet's names are based on username for now
-			if result.MachineName != machineName {
-				t.Errorf("droplet name is: %s, expecting: %s", result.MachineName, machineName)
-			}
-
-			fmt.Println("============")
-			fmt.Printf("result %+v\n", result)
-			fmt.Println("============")
-
-			if !*flagTestDestroy {
-				fmt.Println("destroying ", machineName)
-				dropletId := result.MachineId
-				cArgs := &kloud.ControllerArgs{
-					Provider:   data["provider"].(string),
-					Credential: data["credential"].(map[string]interface{}),
-					MachineID:  dropletId,
-				}
-
-				if _, err := remote.Tell("destroy", cArgs); err != nil {
-					t.Errorf("destroy: %s", err)
-				}
-			}
-		}
-
 		var wg sync.WaitGroup
 		for i := 0; i < numberOfBuilds; i++ {
 			wg.Add(1)
 
 			go func(i int) {
 				defer wg.Done()
-				buildFunc(i)
+				if err := build(i, data); err != nil {
+					t.Error(err)
+				}
 			}(i)
 		}
 
