@@ -44,6 +44,7 @@ func (t *TestStorage) Update(id string, data map[string]interface{}) error {
 }
 
 var (
+	conf      *kiteconfig.Config
 	kloudKite *kodingkite.KodingKite
 	remote    *kite.Client
 	testuser  string
@@ -77,44 +78,6 @@ var (
 	}
 )
 
-func setupKloud() *kodingkite.KodingKite {
-	kloudConf := config.MustConfig("vagrant")
-
-	pubKeyPath := *flagPublicKey
-	if *flagPublicKey == "" {
-		pubKeyPath = kloudConf.NewKontrol.PublicKeyFile
-	}
-	pubKey, err := ioutil.ReadFile(pubKeyPath)
-	if err != nil {
-		log.Fatalln(err)
-	}
-	publicKey := string(pubKey)
-
-	privKeyPath := *flagPrivateKey
-	if *flagPublicKey == "" {
-		privKeyPath = kloudConf.NewKontrol.PrivateKeyFile
-	}
-	privKey, err := ioutil.ReadFile(privKeyPath)
-	if err != nil {
-		log.Fatalln(err)
-	}
-	privateKey := string(privKey)
-
-	k := &kloud.Kloud{
-		Region:            "vagrant",
-		Port:              3636,
-		Config:            kloudConf,
-		Storage:           &TestStorage{},
-		KontrolURL:        "wss://kontrol.koding.com",
-		KontrolPrivateKey: privateKey,
-		KontrolPublicKey:  publicKey,
-	}
-
-	kt := k.NewKloud()
-
-	return kt
-}
-
 func init() {
 	flag.Parse()
 
@@ -127,7 +90,7 @@ func init() {
 	// now create a new test key with the given test username
 	kitekey.Write(testutil.NewKiteKey().Raw)
 
-	conf := kiteconfig.New()
+	conf = kiteconfig.New()
 	conf.Username = "testuser"
 	conf.KontrolURL = &url.URL{Scheme: "ws", Host: "localhost:4444"}
 	conf.KontrolKey = testkeys.Public
@@ -173,7 +136,117 @@ func init() {
 	rand.Seed(time.Now().UTC().UnixNano())
 }
 
+func build(i int, client *kite.Client, data map[string]interface{}) error {
+	time.Sleep(time.Millisecond * time.Duration(rand.Intn(2500))) // wait 0-2500 milliseconds
+
+	machineName := "testkloud-" + strconv.FormatInt(time.Now().UTC().UnixNano(), 10) + "-" + strconv.Itoa(i)
+
+	bArgs := &kloud.BuildArgs{
+		MachineId:   data["provider"].(string),
+		MachineName: machineName,
+	}
+
+	resp, err := client.Tell("build", bArgs)
+	if err != nil {
+		return err
+	}
+
+	var result kloud.BuildResponse
+	err = resp.Unmarshal(&result)
+	if err != nil {
+		return err
+	}
+
+	// droplet's names are based on username for now
+	if result.MachineName != machineName {
+		return fmt.Errorf("droplet name is: %s, expecting: %s", result.MachineName, machineName)
+	}
+
+	fmt.Println("============")
+	fmt.Printf("result %+v\n", result)
+	fmt.Println("============")
+
+	if !*flagTestDestroy {
+		fmt.Println("destroying ", machineName)
+		dropletId := result.MachineId
+		cArgs := &kloud.ControllerArgs{
+			Provider:   data["provider"].(string),
+			Credential: data["credential"].(map[string]interface{}),
+			MachineID:  dropletId,
+		}
+
+		if _, err := client.Tell("destroy", cArgs); err != nil {
+			return fmt.Errorf("destroy: %s", err)
+		}
+	}
+
+	return nil
+
+}
+
 func TestMultiple(t *testing.T) {
+	// number of clients that will query example kites
+	clientNumber := 1000
+
+	fmt.Printf("Creating %d clients\n", clientNumber)
+	clients := make([]*kite.Client, clientNumber)
+	for i := 0; i < clientNumber; i++ {
+		c := kite.New("client"+strconv.Itoa(i), "0.0.1")
+		c.Config = conf.Copy()
+		c.SetupKontrolClient()
+
+		kites, err := c.GetKites(protocol.KontrolQuery{
+			Username:    testuser,
+			Environment: "vagrant",
+			Name:        "kloud",
+		})
+		if err != nil {
+			log.Fatalln(err)
+		}
+
+		remote := kites[0]
+		if err := remote.Dial(); err != nil {
+			log.Fatal(err)
+		}
+
+		clients[i] = remote
+	}
+
+	var wg sync.WaitGroup
+
+	fmt.Printf("Calling with %d conccurent clients randomly\n", clientNumber)
+
+	// every one second
+	for i := 0; i < clientNumber; i++ {
+		wg.Add(1)
+
+		go func(i int) {
+			defer wg.Done()
+
+			time.Sleep(time.Millisecond * time.Duration(rand.Intn(500)))
+
+			for provider, data := range TestProviderData {
+				if data == nil {
+					color.Yellow("==> %s skipping test. test data is not available.", provider)
+					continue
+				}
+
+				start := time.Now()
+				err := build(i, clients[i], data)
+				elapsedTime := time.Since(start)
+
+				if err != nil {
+					fmt.Printf("[%d] aborted, elapsed %f sec err: %s\n",
+						i, elapsedTime.Seconds(), err)
+				} else {
+					fmt.Printf("[%d] finished, elapsed %f sec\n", i, elapsedTime.Seconds())
+				}
+			}
+		}(i)
+	}
+
+	wg.Wait()
+
 }
 
 func TestProviders(t *testing.T) {
@@ -250,55 +323,8 @@ func TestProviders(t *testing.T) {
 	}
 }
 
-func build(i int, data map[string]interface{}) error {
-	time.Sleep(time.Millisecond * time.Duration(rand.Intn(2500))) // wait 0-2500 milliseconds
-
-	machineName := "testkloud-" + strconv.FormatInt(time.Now().UTC().UnixNano(), 10) + "-" + strconv.Itoa(i)
-
-	bArgs := &kloud.BuildArgs{
-		MachineId:   data["provider"].(string),
-		MachineName: machineName,
-	}
-
-	resp, err := remote.Tell("build", bArgs)
-	if err != nil {
-		return err
-	}
-
-	var result kloud.BuildResponse
-	err = resp.Unmarshal(&result)
-	if err != nil {
-		return err
-	}
-
-	// droplet's names are based on username for now
-	if result.MachineName != machineName {
-		return fmt.Errorf("droplet name is: %s, expecting: %s", result.MachineName, machineName)
-	}
-
-	fmt.Println("============")
-	fmt.Printf("result %+v\n", result)
-	fmt.Println("============")
-
-	if !*flagTestDestroy {
-		fmt.Println("destroying ", machineName)
-		dropletId := result.MachineId
-		cArgs := &kloud.ControllerArgs{
-			Provider:   data["provider"].(string),
-			Credential: data["credential"].(map[string]interface{}),
-			MachineID:  dropletId,
-		}
-
-		if _, err := remote.Tell("destroy", cArgs); err != nil {
-			return fmt.Errorf("destroy: %s", err)
-		}
-	}
-
-	return nil
-
-}
-
 func TestBuilds(t *testing.T) {
+	t.Skip("To enable this test remove this line")
 	numberOfBuilds := *flagTestBuilds
 
 	for provider, data := range TestProviderData {
@@ -313,7 +339,7 @@ func TestBuilds(t *testing.T) {
 
 			go func(i int) {
 				defer wg.Done()
-				if err := build(i, data); err != nil {
+				if err := build(i, remote, data); err != nil {
 					t.Error(err)
 				}
 			}(i)
@@ -401,3 +427,41 @@ func TestBuilds(t *testing.T) {
 //
 // 	fmt.Printf("result %+v\n", result)
 // }
+
+func setupKloud() *kodingkite.KodingKite {
+	kloudConf := config.MustConfig("vagrant")
+
+	pubKeyPath := *flagPublicKey
+	if *flagPublicKey == "" {
+		pubKeyPath = kloudConf.NewKontrol.PublicKeyFile
+	}
+	pubKey, err := ioutil.ReadFile(pubKeyPath)
+	if err != nil {
+		log.Fatalln(err)
+	}
+	publicKey := string(pubKey)
+
+	privKeyPath := *flagPrivateKey
+	if *flagPublicKey == "" {
+		privKeyPath = kloudConf.NewKontrol.PrivateKeyFile
+	}
+	privKey, err := ioutil.ReadFile(privKeyPath)
+	if err != nil {
+		log.Fatalln(err)
+	}
+	privateKey := string(privKey)
+
+	k := &kloud.Kloud{
+		Region:            "vagrant",
+		Port:              3636,
+		Config:            kloudConf,
+		Storage:           &TestStorage{},
+		KontrolURL:        "wss://kontrol.koding.com",
+		KontrolPrivateKey: privateKey,
+		KontrolPublicKey:  publicKey,
+	}
+
+	kt := k.NewKloud()
+
+	return kt
+}
