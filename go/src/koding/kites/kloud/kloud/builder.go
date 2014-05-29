@@ -76,7 +76,7 @@ func (k *Kloud) build(r *kite.Request) (interface{}, error) {
 		return nil, err
 	}
 
-	if err := k.Storage.Add(artifact); err != nil {
+	if err := k.Storage.Update(args.MachineId, artifact); err != nil {
 		return nil, err
 	}
 	return artifact, nil

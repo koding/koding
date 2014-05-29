@@ -27,8 +27,7 @@ import (
 	"github.com/koding/kite/testutil"
 )
 
-type TestStorage struct {
-}
+type TestStorage struct{}
 
 func (t *TestStorage) MachineData(id string) (*kloud.MachineData, error) {
 	provider := TestProviderData[id]
@@ -40,7 +39,7 @@ func (t *TestStorage) MachineData(id string) (*kloud.MachineData, error) {
 	}, nil
 }
 
-func (t *TestStorage) Add(data map[string]interface{}) error {
+func (t *TestStorage) Update(id string, data map[string]interface{}) error {
 	return nil
 }
 
@@ -53,9 +52,8 @@ var (
 	flagTestDestroy  = flag.Bool("no-destroy", false, "Do not destroy test machines")
 	flagTestUsername = flag.String("user", "", "Create machines on behalf of this user")
 
-	DIGITALOCEAN_CLIENT_ID       = "2d314ba76e8965c451f62d7e6a4bc56f"
-	DIGITALOCEAN_API_KEY         = "4c88127b50c0c731aeb5129bdea06deb"
-	DIGITALOCEAN_TEST_DROPLET_ID = 1657055
+	DIGITALOCEAN_CLIENT_ID = "2d314ba76e8965c451f62d7e6a4bc56f"
+	DIGITALOCEAN_API_KEY   = "4c88127b50c0c731aeb5129bdea06deb"
 
 	TestProviderData = map[string]map[string]interface{}{
 		"digitalocean": map[string]interface{}{
@@ -64,7 +62,6 @@ var (
 				"client_id": DIGITALOCEAN_CLIENT_ID,
 				"api_key":   DIGITALOCEAN_API_KEY,
 			},
-			"machineId": DIGITALOCEAN_TEST_DROPLET_ID,
 			"builder": map[string]interface{}{
 				"type":          "digitalocean",
 				"client_id":     DIGITALOCEAN_CLIENT_ID,

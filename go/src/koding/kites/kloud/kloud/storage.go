@@ -3,12 +3,14 @@ package kloud
 import (
 	"koding/db/mongodb"
 
+	"github.com/mitchellh/mapstructure"
+
 	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
 )
 
 type Storage interface {
-	Add(map[string]interface{}) error
+	Update(id string, data map[string]interface{}) error
 
 	// MachineData returns to MachineData
 	MachineData(id string) (*MachineData, error)
@@ -65,11 +67,25 @@ func (m *MongoDB) MachineData(id string) (*MachineData, error) {
 	}, nil
 }
 
-func (m *MongoDB) Add(data map[string]interface{}) error {
-	// response := &BuildResponse{}
-	// if err := mapstructure.Decode(data, response); err != nil {
-	// 	return err
-	// }
+func (m *MongoDB) Update(id string, data map[string]interface{}) error {
+	response := &BuildResponse{}
+	if err := mapstructure.Decode(data, response); err != nil {
+		return err
+	}
+
+	err := m.session.Run("jMachines", func(c *mgo.Collection) error {
+		return c.UpdateId(
+			bson.ObjectIdHex(id),
+			bson.M{"$set": bson.M{
+				"kiteId":    response.KiteId,
+				"ipAddress": response.IpAddress,
+				"state":     "READY",
+			}},
+		)
+	})
+	if err != nil {
+		return err
+	}
 
 	return nil
 }
