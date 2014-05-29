@@ -299,6 +299,7 @@ module.exports = [
   "kite/kodingkite.coffee",
   "kite/kodingkontrol.coffee",
   "kite/kites/vmkite.coffee",
+  "kite/kites/klient.coffee",
   "kite/kites/oskite.coffee",
   "kite/kites/terminalkite.coffee",
 
