@@ -6,7 +6,6 @@ import (
 	mongomodels "koding/db/models"
 	"koding/db/mongodb/modelhelper"
 	"socialapi/models"
-	"time"
 
 	"github.com/koding/logging"
 	"labix.org/v2/mgo"
@@ -54,7 +53,7 @@ func (mwc *MigratorWorkerController) Start() error {
 		su, err := modelhelper.GetStatusUpdate(s, o)
 		if err != nil {
 			if err == mgo.ErrNotFound {
-				mwc.log.Info("Migration completed")
+				mwc.log.Notice("Migration completed")
 				return nil
 			}
 			return fmt.Errorf("status update cannot be fetched: %s", err)
@@ -68,9 +67,6 @@ func (mwc *MigratorWorkerController) Start() error {
 		}
 
 		// create reply messages
-		cm.CreatedAt = su.Meta.CreatedAt
-		cm.UpdatedAt = su.Meta.ModifiedAt
-		cm.Update()
 
 		// update mongo status update channelMessageId field
 		if err := completePostMigration(&su, cm); err != nil {
@@ -139,9 +135,15 @@ func createChannelMessage(su *mongomodels.StatusUpdate) (*models.ChannelMessage,
 	cm.Slug = su.Slug
 	cm.Body = su.Body
 	cm.TypeConstant = models.ChannelMessage_TYPE_POST
-	// cm.CreatedAt = su.Meta.CreatedAt
-	cm.CreatedAt = time.Now().Add(-48 * time.Hour)
-	cm.UpdatedAt = su.Meta.ModifiedAt
+	cm.CreatedAt = su.Meta.CreatedAt
+	// this is added because status update->modified at field is before createdAt
+	if cm.CreatedAt.After(su.Meta.ModifiedAt) {
+		cm.UpdatedAt = cm.CreatedAt
+	} else {
+		cm.UpdatedAt = su.Meta.ModifiedAt
+	}
+
+	// cm.CreatedAt = time.Now().Add(-48 * time.Hour)
 
 	if err := prepareMessageAccount(cm, su); err != nil {
 		return nil, err
