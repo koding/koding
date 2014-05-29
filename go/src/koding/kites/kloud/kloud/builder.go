@@ -38,6 +38,10 @@ func (k *Kloud) build(r *kite.Request) (interface{}, error) {
 		return nil, err
 	}
 
+	if args.MachineId == "" {
+		return nil, errors.New("machineId is missing.")
+	}
+
 	machineData, err := k.Storage.MachineData(args.MachineId)
 	if err != nil {
 		return nil, err
