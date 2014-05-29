@@ -211,7 +211,7 @@ func insertNewStatusUpdate(p *Post, m *Migrator) error {
 	}
 	// it seems post is already migrated with some incomplete relationships
 	if p.MigrationStatus == "Started" {
-		ep, err := helper.GetStatusUpdate(helper.Selector{"slug": p.Slug})
+		ep, err := helper.GetStatusUpdate(helper.Selector{"slug": p.Slug}, helper.Options{})
 		p.Id = ep.Id
 		return err
 	}
