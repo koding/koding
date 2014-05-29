@@ -35,7 +35,7 @@ func (mwc *MigratorWorkerController) Start() error {
 	s := modelhelper.Selector{
 		"socialMessageId": modelhelper.Selector{"$exists": false},
 	}
-	kodingChannel, err := createGroupChannel("koding", "koding")
+	kodingChannel, err := createGroupChannel("koding")
 	if err != nil {
 		return fmt.Errorf("Koding channel cannot be created: %s", err)
 	}
@@ -59,14 +59,29 @@ func (mwc *MigratorWorkerController) Start() error {
 			return fmt.Errorf("status update cannot be fetched: %s", err)
 		}
 
-		// create channel message
-		cm, err := createChannelMessage(&su)
+		channelId, err := fetchGroupChannelId(su.Group)
 		if err != nil {
+			return fmt.Errorf("channel id cannot be fetched :%s", err)
+		}
+
+		// create channel message
+		cm := mapStatusUpdateToChannelMessage(&su)
+		cm.InitialChannelId = channelId
+		if err := insertChannelMessage(cm, su.OriginId.Hex()); err != nil {
+			handleError(&su, err)
+			continue
+		}
+
+		if err := addChannelMessageToMessageList(cm); err != nil {
 			handleError(&su, err)
 			continue
 		}
 
 		// create reply messages
+		if err := migrateComments(cm, &su, channelId); err != nil {
+			handleError(&su, err)
+			continue
+		}
 
 		// update mongo status update channelMessageId field
 		if err := completePostMigration(&su, cm); err != nil {
@@ -80,9 +95,9 @@ func (mwc *MigratorWorkerController) Start() error {
 	return nil
 }
 
-func createGroupChannel(name, groupName string) (*models.Channel, error) {
+func createGroupChannel(groupName string) (*models.Channel, error) {
 	c := models.NewChannel()
-	c.Name = name
+	c.Name = groupName
 	c.GroupName = groupName
 	c.TypeConstant = models.Channel_TYPE_GROUP
 
@@ -130,39 +145,79 @@ func fetchGroupOwnerId(g *mongomodels.Group) (int64, error) {
 	return a.Id, nil
 }
 
-func createChannelMessage(su *mongomodels.StatusUpdate) (*models.ChannelMessage, error) {
-	cm := models.NewChannelMessage()
-	cm.Slug = su.Slug
-	cm.Body = su.Body
-	cm.TypeConstant = models.ChannelMessage_TYPE_POST
-	cm.CreatedAt = su.Meta.CreatedAt
-	// this is added because status update->modified at field is before createdAt
-	if cm.CreatedAt.After(su.Meta.ModifiedAt) {
-		cm.UpdatedAt = cm.CreatedAt
-	} else {
-		cm.UpdatedAt = su.Meta.ModifiedAt
-	}
+func insertChannelMessage(cm *models.ChannelMessage, accountOldId string) error {
 
-	// cm.CreatedAt = time.Now().Add(-48 * time.Hour)
-
-	if err := prepareMessageAccount(cm, su); err != nil {
-		return nil, err
-	}
-
-	if err := prepareMessageChannel(cm, su); err != nil {
-		return nil, err
+	if err := prepareMessageAccount(cm, accountOldId); err != nil {
+		return err
 	}
 
 	if err := cm.CreateRaw(); err != nil {
-		return nil, err
+		return err
 	}
 
-	return cm, nil
+	return nil
 }
 
-func prepareMessageAccount(cm *models.ChannelMessage, su *mongomodels.StatusUpdate) error {
+func addChannelMessageToMessageList(cm *models.ChannelMessage) error {
+	cml := models.NewChannelMessageList()
+	cml.ChannelId = cm.InitialChannelId
+	cml.MessageId = cm.Id
+	cml.AddedAt = cm.CreatedAt
+
+	return cml.CreateRaw()
+}
+
+func migrateComments(parentMessage *models.ChannelMessage, su *mongomodels.StatusUpdate, channelId int64) error {
+
+	s := modelhelper.Selector{
+		"sourceId":   su.Id,
+		"targetName": "JComment",
+	}
+	rels, err := modelhelper.GetAllRelationships(s)
+	if err != nil {
+		if err == modelhelper.ErrNotFound {
+			return nil
+		}
+		return fmt.Errorf("comment relationships cannot be fetched: %s", err)
+	}
+
+	for _, r := range rels {
+		comment, err := modelhelper.GetCommentById(r.TargetId.Hex())
+		if err != nil {
+			return fmt.Errorf("comment cannot be fetched %s", err)
+		}
+		// comment is already migrated
+		if comment.SocialMessageId != 0 {
+			continue
+		}
+
+		reply := mapCommentToChannelMessage(comment)
+		reply.InitialChannelId = channelId
+		// insert as channel message
+		if err := insertChannelMessage(reply, comment.OriginId.Hex()); err != nil {
+			return fmt.Errorf("comment cannot be inserted %s", err)
+		}
+
+		// insert as message reply
+		mr := models.NewMessageReply()
+		mr.MessageId = parentMessage.Id
+		mr.ReplyId = reply.Id
+		mr.CreatedAt = reply.CreatedAt
+		if err := mr.CreateRaw(); err != nil {
+			return fmt.Errorf("comment cannot be inserted to message reply %s", err)
+		}
+
+		if err := completeCommentMigration(comment, reply); err != nil {
+			return fmt.Errorf("old comment cannot be flagged with new message id %s", err)
+		}
+	}
+
+	return nil
+}
+
+func prepareMessageAccount(cm *models.ChannelMessage, accountOldId string) error {
 	a := models.NewAccount()
-	a.OldId = su.OriginId.Hex()
+	a.OldId = accountOldId
 	if err := a.FetchOrCreate(); err != nil {
 		return fmt.Errorf("account could not found: %s", err)
 	}
@@ -172,24 +227,58 @@ func prepareMessageAccount(cm *models.ChannelMessage, su *mongomodels.StatusUpda
 	return nil
 }
 
-func prepareMessageChannel(cm *models.ChannelMessage, su *mongomodels.StatusUpdate) error {
+func fetchGroupChannelId(groupName string) (int64, error) {
 	// koding group channel id is prefetched
-	if su.Group == "koding" {
-		cm.InitialChannelId = kodingChannelId
-		return nil
+	if groupName == "koding" {
+		return kodingChannelId, nil
 	}
 
-	c, err := createGroupChannel(su.Group, su.Group)
+	c, err := createGroupChannel(groupName)
 	if err != nil {
-		return err
+		return 0, err
 	}
-	cm.InitialChannelId = c.Id
 
-	return nil
+	return c.Id, nil
+}
+
+func mapStatusUpdateToChannelMessage(su *mongomodels.StatusUpdate) *models.ChannelMessage {
+	cm := models.NewChannelMessage()
+	cm.Slug = su.Slug
+	cm.Body = su.Body
+	cm.TypeConstant = models.ChannelMessage_TYPE_POST
+	cm.CreatedAt = su.Meta.CreatedAt
+	prepareMessageMetaDates(cm, &su.Meta)
+
+	return cm
+}
+
+func mapCommentToChannelMessage(c *mongomodels.Comment) *models.ChannelMessage {
+	cm := models.NewChannelMessage()
+	cm.Body = c.Body
+	cm.TypeConstant = models.ChannelMessage_TYPE_REPLY
+	cm.CreatedAt = c.Meta.CreatedAt
+	prepareMessageMetaDates(cm, &c.Meta)
+
+	return cm
+}
+
+func prepareMessageMetaDates(cm *models.ChannelMessage, meta *mongomodels.Meta) {
+	// this is added because status update->modified at field is before createdAt
+	if cm.CreatedAt.After(meta.ModifiedAt) {
+		cm.UpdatedAt = cm.CreatedAt
+	} else {
+		cm.UpdatedAt = meta.ModifiedAt
+	}
 }
 
 func completePostMigration(su *mongomodels.StatusUpdate, cm *models.ChannelMessage) error {
 	su.SocialMessageId = cm.Id
 
 	return modelhelper.UpdateStatusUpdate(su)
+}
+
+func completeCommentMigration(reply *mongomodels.Comment, cm *models.ChannelMessage) error {
+	reply.SocialMessageId = cm.Id
+
+	return modelhelper.UpdateComment(reply)
 }
