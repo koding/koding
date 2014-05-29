@@ -112,7 +112,7 @@ func (d *DigitalOcean) Prepare(raws ...interface{}) (err error) {
 // given snapshot/image exist it directly skips to creating the droplet. It
 // acceps two string arguments, first one is the snapshotname, second one is
 // the dropletName.
-func (d *DigitalOcean) Build(raws ...interface{}) (interface{}, error) {
+func (d *DigitalOcean) Build(raws ...interface{}) (map[string]interface{}, error) {
 	if len(raws) != 3 {
 		return nil, errors.New("need one argument. No snaphost name is provided")
 	}
@@ -127,7 +127,7 @@ func (d *DigitalOcean) Build(raws ...interface{}) (interface{}, error) {
 		return nil, fmt.Errorf("malformed data received %v. droplet name must be a string", raws[0])
 	}
 
-	signFunc, ok := raws[2].(func() (string, error))
+	signFunc, ok := raws[2].(func() (string, string, error))
 	if !ok {
 		return nil, fmt.Errorf("malformed data received %v. function signature must be func() (string,error)", raws[0])
 	}
@@ -211,12 +211,12 @@ func (d *DigitalOcean) Build(raws ...interface{}) (interface{}, error) {
 	}
 	defer client.Close()
 
-	// genereate kite key specific for the user
-	d.Log.Info("Creating kite key")
-	kiteKey, err := signFunc()
+	// generate kite key specific for the user
+	kiteKey, kiteId, err := signFunc()
 	if err != nil {
 		return nil, err
 	}
+	d.Log.Info("Kite key created for id %s", kiteId)
 
 	// for debugging, remove it later ...
 	d.Log.Info("Writing kite key to temporary file (kite.key)")
@@ -237,13 +237,17 @@ func (d *DigitalOcean) Build(raws ...interface{}) (interface{}, error) {
 		return nil, err
 	}
 
-	// restart after we create with the key itself
-	d.Log.Info("Restarting klient on remote machine")
-	if err := client.StartCommand("service klient restart"); err != nil {
+	d.Log.Info("Starting klient on remote machine")
+	if err := client.StartCommand("service klient start"); err != nil {
 		return nil, err
 	}
 
-	return dropInfo, nil
+	return map[string]interface{}{
+		"kiteId":      kiteId,
+		"ipAddress":   dropInfo.IpAddress,
+		"machineName": dropInfo.Name,
+		"machineId":   dropInfo.Id,
+	}, nil
 }
 
 // CheckEvent checks the given eventID and returns back the result. It's useful

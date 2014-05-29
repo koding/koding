@@ -37,9 +37,11 @@ func main() {
 	}
 
 	k := kite.New(NAME, VERSION)
-	k.Config = config.MustGet()
+	conf := config.MustGet()
+	k.Config = conf
 	k.Config.Port = *flagPort
 	k.Config.Environment = *flagEnvironment
+	k.Config.Id = conf.Id
 
 	k.HandleFunc("fs.readDirectory", fs.ReadDirectory)
 	k.HandleFunc("fs.glob", fs.Glob)

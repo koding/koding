@@ -61,10 +61,10 @@ func main() {
 	}
 
 	k := &kloud.Kloud{
+		Config:            conf,
 		Region:            *flagRegion,
 		Port:              *flagPort,
 		Debug:             *flagDebug,
-		Config:            conf,
 		KontrolURL:        kontrolURL,
 		KontrolPrivateKey: privateKey,
 		KontrolPublicKey:  publicKey,

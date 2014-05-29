@@ -11,29 +11,18 @@ import (
 	"koding/tools/build"
 	"koding/tools/config"
 	"log"
-	"net/url"
 	"os"
 	"path/filepath"
 	"runtime"
 	"strconv"
 	"strings"
 	"text/template"
-	"time"
-
-	"github.com/dgrijalva/jwt-go"
-	"github.com/nu7hatch/gouuid"
 )
 
 var (
 	flagProfile = flag.String("c", "", "Define config profile to be included")
 	flagRegion  = flag.String("r", "", "Define region profile to be included")
 	flagApp     = flag.String("a", "", "App to be build")
-
-	// klient specific flags
-	flagUsername   = flag.String("username", "", "Username to be created for the klient app")
-	flagKontrolURL = flag.String("kontrol-url", "", "Kontrol URL to be connected")
-	flagPublicKey  = flag.String("public-key", "", "Public RSA key of Kontrol")
-	flagPrivateKey = flag.String("private-key", "", "Private RSA key of Kontrol")
 
 	// kontrolproxy specific flags
 	flagProxy = flag.String("p", "", "Select user proxy or koding proxy") // Proxy only
@@ -86,64 +75,10 @@ func packageList() string {
 	return pkgs
 }
 
-func createKey(username, kontrolURL, publicKey, privateKey string) (string, error) {
-	tknID, err := uuid.NewV4()
-	if err != nil {
-		return "", errors.New("cannot generate a token")
-	}
-
-	token := jwt.New(jwt.GetSigningMethod("RS256"))
-
-	token.Claims = map[string]interface{}{
-		"iss":        "koding",                     // Issuer, should be the same username as kontrol
-		"sub":        username,                     // Subject
-		"iat":        time.Now().UTC().Unix(),      // Issued At
-		"jti":        tknID.String(),               // JWT ID
-		"kontrolURL": kontrolURL,                   // Kontrol URL
-		"kontrolKey": strings.TrimSpace(publicKey), // Public key of kontrol
-	}
-
-	log.Printf("Registered machine on user: %s", username)
-
-	return token.SignedString([]byte(privateKey))
-}
-
 func buildKlient() error {
-	if *flagPrivateKey == "" || *flagPublicKey == "" {
-		return errors.New("Please define config -c and region -r")
-	}
-
-	if *flagUsername == "" {
-		return errors.New("empty username")
-	}
-
-	parsed, err := url.Parse(*flagKontrolURL)
-	if err != nil {
-		return fmt.Errorf("cannot parse kontrol URL: %s", err)
-	}
-
 	gopath := os.Getenv("GOPATH")
 	if gopath == "" {
 		return errors.New("GOPATH is not set")
-	}
-
-	publicKey, err := ioutil.ReadFile(*flagPublicKey)
-	if err != nil {
-		return err
-	}
-
-	privateKey, err := ioutil.ReadFile(*flagPrivateKey)
-	if err != nil {
-		return err
-	}
-
-	key, err := createKey(*flagUsername, parsed.String(), string(publicKey), string(privateKey))
-	if err != nil {
-		return err
-	}
-
-	if err = ioutil.WriteFile("kite.key", []byte(key), 0400); err != nil {
-		return err
 	}
 
 	importPath := "koding/kites/klient"

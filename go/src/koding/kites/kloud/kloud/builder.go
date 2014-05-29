@@ -16,21 +16,21 @@ type Builder interface {
 	Prepare(...interface{}) error
 
 	// Build is creating a image and a machine.
-	Build(...interface{}) (interface{}, error)
+	Build(...interface{}) (map[string]interface{}, error)
+}
+
+type BuildResponse struct {
+	MachineName string `json:"machineName" mapstructure:"machineName"`
+	MachineId   int    `json:"machineId" mapstructure:"machineId"`
+	KiteId      string `json:"kiteId" mapstructure:"kiteId"`
+	IpAddress   string `json:"ipAddress" mapstructure:"ipAddress"`
 }
 
 type BuildArgs struct {
-	Provider     string
+	MachineId    string
 	SnapshotName string
 	MachineName  string
-	Credential   map[string]interface{}
-	Builder      map[string]interface{}
 }
-
-var (
-	defaultSnapshotName = "koding-klient-0.0.1"
-	providers           = make(map[string]interface{})
-)
 
 func (k *Kloud) build(r *kite.Request) (interface{}, error) {
 	args := &BuildArgs{}
@@ -38,7 +38,16 @@ func (k *Kloud) build(r *kite.Request) (interface{}, error) {
 		return nil, err
 	}
 
-	p, ok := providers[args.Provider]
+	if args.MachineId == "" {
+		return nil, errors.New("machineId is missing.")
+	}
+
+	machineData, err := k.Storage.MachineData(args.MachineId)
+	if err != nil {
+		return nil, err
+	}
+
+	p, ok := providers[machineData.Provider]
 	if !ok {
 		return nil, errors.New("provider not supported")
 	}
@@ -48,7 +57,7 @@ func (k *Kloud) build(r *kite.Request) (interface{}, error) {
 		return nil, errors.New("provider doesn't satisfy the builder interface.")
 	}
 
-	if err := provider.Prepare(args.Credential, args.Builder); err != nil {
+	if err := provider.Prepare(machineData.Credential, machineData.Builders); err != nil {
 		return nil, err
 	}
 
@@ -57,7 +66,7 @@ func (k *Kloud) build(r *kite.Request) (interface{}, error) {
 		snapshotName = args.SnapshotName
 	}
 
-	signFunc := func() (string, error) {
+	signFunc := func() (string, string, error) {
 		return createKey(r.Username, k.KontrolURL, k.KontrolPrivateKey, k.KontrolPublicKey)
 	}
 
@@ -71,5 +80,8 @@ func (k *Kloud) build(r *kite.Request) (interface{}, error) {
 		return nil, err
 	}
 
+	if err := k.Storage.Update(args.MachineId, artifact); err != nil {
+		return nil, err
+	}
 	return artifact, nil
 }
