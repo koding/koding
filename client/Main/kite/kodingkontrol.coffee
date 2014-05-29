@@ -114,14 +114,14 @@ class KodingKontrol extends (require 'kontrol')
     kite
 
   getKite: (options = {}) ->
-    { name, correlationName, region } = options
+    { name, correlationName, region, username, environment, id } = options
 
     kite = @getKiteProxy options
 
-    @fetchRegion(correlationName, region).then (region) =>
+    @fetchRegion(correlationName, region, id).then (region) =>
 
       @fetchKite
-        query : { name, region }
+        query : { name, region, username, environment }
         who   : @getWhoParams name, correlationName
 
     .then(kite.bound 'setTransport')
