@@ -7,7 +7,7 @@ checksum      = require "checksum"
   signature
 } = require 'bongo'
 
-uniqInt = 4
+uniqInt = 15
 
 module.exports = class JErrorLog extends ElasticSearch
   @share()
