@@ -149,7 +149,7 @@ func init() {
 	<-kloudKite.ServerReadyNotify()
 
 	client := kite.New("client", "0.0.1")
-	client.Config = conf
+	client.Config = conf.Copy()
 
 	kites, err := client.GetKites(protocol.KontrolQuery{
 		Username:    testuser,
