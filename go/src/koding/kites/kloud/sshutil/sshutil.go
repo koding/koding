@@ -40,19 +40,15 @@ func (s *SSHClient) StartCommand(command string) error {
 	}
 	defer session.Close()
 
-	// TODO: add STDIN for enalbing uploading of files
-
 	stdoutBuffer, stderrBuffer := new(bytes.Buffer), new(bytes.Buffer)
 	session.Stdout, session.Stderr = stdoutBuffer, stderrBuffer
 
-	fmt.Println("running ls on remote machine")
 	if err := session.Start(command); err != nil {
-		fmt.Println("run session err:", err)
+		return err
 	}
 
 	// Wait for the SCP connection to close, meaning it has consumed all
 	// our data and has completed. Or has errored.
-	log.Println("Waiting for SSH session to complete.")
 	err = session.Wait()
 	if err != nil {
 		if exitErr, ok := err.(*ssh.ExitError); ok {
@@ -72,26 +68,27 @@ func (s *SSHClient) StartCommand(command string) error {
 		return err
 	}
 
-	fmt.Printf("Ssh completed stdout: %s, stderr: %s\n",
-		stdoutBuffer.String(), stderrBuffer.String())
-
 	return nil
-
 }
 
 // ConnectSSH tries to connect to the given IP and returns a new client.
 func ConnectSSH(ip string, config *ssh.ClientConfig) (*SSHClient, error) {
+	var dialError error
 	for {
 		select {
 		case <-time.Tick(sshConnectRetryInterval):
 			client, err := ssh.Dial("tcp", ip, config)
 			if err != nil {
-				fmt.Println("Failed to dial, will retry: " + err.Error())
+				dialError = err
 				continue
 			}
 			return &SSHClient{Client: client}, nil
 		case <-time.After(sshConnectMaxWait):
-			return nil, errors.New("cannot connect with ssh")
+			if dialError != nil {
+				return nil, fmt.Errorf("cannot connect with ssh %s", dialError)
+			}
+
+			return nil, errors.New("cannot connect with ssh. timeout")
 		}
 	}
 }

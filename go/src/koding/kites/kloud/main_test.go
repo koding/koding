@@ -160,10 +160,6 @@ func build(i int, client *kite.Client, data map[string]interface{}) error {
 		return fmt.Errorf("droplet name is: %s, expecting: %s", result.MachineName, machineName)
 	}
 
-	fmt.Println("============")
-	fmt.Printf("result %+v\n", result)
-	fmt.Println("============")
-
 	if !*flagTestDestroy {
 		fmt.Println("destroying ", machineName)
 		dropletId := result.MachineId
@@ -178,12 +174,17 @@ func build(i int, client *kite.Client, data map[string]interface{}) error {
 		}
 	}
 
+	fmt.Println("============")
+	fmt.Printf("result %+v\n", result)
+	fmt.Println("============")
+
 	return nil
 
 }
 
 func TestMultiple(t *testing.T) {
 	// number of clients that will query example kites
+	t.Skip("To enable this test remove this line")
 	clientNumber := 10
 
 	fmt.Printf("Creating %d clients\n", clientNumber)
@@ -355,7 +356,6 @@ func TestProviders(t *testing.T) {
 }
 
 func TestBuilds(t *testing.T) {
-	t.Skip("To enable this test remove this line")
 	numberOfBuilds := *flagTestBuilds
 
 	for provider, data := range TestProviderData {
