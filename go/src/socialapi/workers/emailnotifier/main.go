@@ -38,7 +38,7 @@ func main() {
 		ForcedRecipient: r.Conf.SendGrid.ForcedRecipient,
 	}
 
-	handler, err := emailnotifier.New(
+	handler, err := controller.New(
 		rmq,
 		r.Log,
 		es,
