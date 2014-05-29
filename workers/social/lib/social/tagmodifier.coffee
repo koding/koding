@@ -1,6 +1,6 @@
 jraphical = require 'jraphical'
 
-JTag   = require './tag'
+JTag   = require './models/tag'
 amqp   = require 'amqp'
 {argv} = require 'optimist'
 
