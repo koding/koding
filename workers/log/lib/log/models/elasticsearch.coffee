@@ -2,6 +2,8 @@ elasticsearch = require 'es'
 UAParser      = require 'ua-parser-js'
 _             = require "underscore"
 
+require_koding_model = require '../require_koding_model'
+
 {
   secure
   signature
@@ -12,9 +14,8 @@ _             = require "underscore"
 KONFIG = require('koding-config-manager').load("main.#{argv.c}")
 
 {
-  pageHit: {
-    run, host, port
-  }
+  log           : { run }
+  elasticSearch : { host, port}
 } = KONFIG
 
 config = {
@@ -51,7 +52,7 @@ module.exports = class ElasticSearch extends Base
 
   @getUserInfo: (client, callback)->
     {sessionToken} = client
-    JSession       = require './session'
+    JSession       = require_koding_model 'session'
     JSession.one {clientId: sessionToken}, (err, session) =>
       return callback err  if err
 

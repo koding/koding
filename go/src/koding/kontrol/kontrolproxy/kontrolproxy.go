@@ -511,7 +511,7 @@ func (p *Proxy) internal(req *http.Request, target *resolver.Target) http.Handle
 		return templateHandler("maintenance.html", nil, 503)
 	}
 
-	resp, backendServer, err := RoundTrip(req, round, 0)
+	resp, err := RoundTrip(req, round)
 	if err != nil {
 		log.Info("internal recursive resolver error for %s (%s) - %s", req.Host, userIP, err)
 		return templateHandler("maintenance.html", nil, 503)
@@ -519,15 +519,15 @@ func (p *Proxy) internal(req *http.Request, target *resolver.Target) http.Handle
 
 	// TODO: salt them before we send it back.
 	// resp.Header.Set("X-Koding-Proxy-Fronted", proxyName)
-	// resp.Header.Set("X-Koding-Proxy-Backend", backendServer)
+	// resp.Header.Set("X-Koding-Proxy-Backend", resp.Request.Host)
 
 	log.Debug("internal - %s [%s] goes to %s -->  [build: %s server: %s]",
-		target.FetchedSource, userIP, resp.Request.Host, service.Build, backendServer)
+		target.FetchedSource, userIP, resp.Request.Host, service.Build, resp.Request.Host)
 
-	return internelReverseProxy(resp)
+	return internalReverseProxy(resp)
 }
 
-func internelReverseProxy(res *http.Response) http.Handler {
+func internalReverseProxy(res *http.Response) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		defer res.Body.Close()
 		copyHeader(w.Header(), res.Header)
@@ -536,41 +536,15 @@ func internelReverseProxy(res *http.Response) http.Handler {
 	})
 }
 
-func RoundTrip(req *http.Request, round *resolver.RoundRing, index int) (*http.Response, string, error) {
-	if index == 2 {
-		return nil, "", errors.New("to many servers are down in row")
-	}
-
+func RoundTrip(req *http.Request, round *resolver.RoundRing) (*http.Response, error) {
 	// means the healtChecker created a zero length ring. This is caused only
 	// when all hosts are sick.
 	if round.Ring == nil {
-		return nil, "", errors.New("all servers are down")
-	}
-
-	// get backendServer and forward ring to the next value. the next value will be
-	// used on the next request if this fails.
-	backendServer, ok := round.Ring.Value.(string)
-	if !ok {
-		return nil, "", fmt.Errorf("ring value is not string: %+v", backendServer)
-	}
-	round.Ring = round.Ring.Next()
-
-	// be sure that the backendServer has scheme prependend
-	backendServer = utils.CheckScheme(backendServer)
-	targetURL, err := url.Parse(backendServer)
-	if err != nil {
-		return nil, "", err
+		return nil, errors.New("all servers are down")
 	}
 
 	outreq := new(http.Request)
 	*outreq = *req // includes shallow copies of maps, but okay
-
-	if !utils.HasPort(targetURL.Host) {
-		outreq.URL.Host = utils.AddPort(targetURL.Host, "80")
-	} else {
-		outreq.URL.Host = targetURL.Host
-	}
-	outreq.URL.Scheme = targetURL.Scheme
 
 	outreq.Proto = "HTTP/1.1"
 	outreq.ProtoMajor = 1
@@ -604,15 +578,33 @@ func RoundTrip(req *http.Request, round *resolver.RoundRing, index int) (*http.R
 		outreq.Header.Set("X-Forwarded-For", clientIP)
 	}
 
-	res, err := http.DefaultTransport.RoundTrip(outreq)
-	if err != nil {
-		log.Error("roundtrip error for server %s. picking up the next one. err: %s", backendServer, err)
+	index := 0
+	var res *http.Response
+	for {
+		if index == 2 {
+			return nil, errors.New("to many servers are down in row")
+		}
 
-		index++
-		return RoundTrip(req, round, index) // pick up the next one
+		// get backendServer and forward ring to the next value. the next value
+		// will be used on the next request if this fails.
+		err := round.Director(outreq)
+		if err != nil {
+			return nil, err
+		}
+
+		res, err = http.DefaultTransport.RoundTrip(outreq)
+		if err != nil {
+			log.Error("roundtrip error for server %s. picking up the next one. err: %s",
+				outreq.URL.String(), err)
+
+			index++
+			continue
+		}
+
+		break
 	}
 
-	return res, backendServer, nil
+	return res, nil
 }
 
 // Hop-by-hop headers. These are removed when sent to the backend.

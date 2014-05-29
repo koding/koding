@@ -25,6 +25,8 @@ process.on 'uncaughtException', (err)->
 Bongo = require 'bongo'
 Broker = require 'broker'
 
+tagModifier = require './tagmodifier'
+
 KONFIG = require('koding-config-manager').load("main.#{argv.c}")
 Object.defineProperty global, 'KONFIG', value: KONFIG
 {mq, email, social, mongoReplSet} = KONFIG
@@ -40,16 +42,11 @@ processMonitor = (require 'processes-monitor').start
   name : "Social Worker #{process.pid}"
   stats_id: "worker.social." + process.pid
   interval : 30000
-  librato: KONFIG.librato
   limit_hard  :
-    memory   : 300
+    memory   : 600
     callback : (name,msg,details)->
       console.log "[#{JSON.stringify(new Date())}][SOCIAL WORKER #{name}] Using excessive memory, exiting."
       process.exit()
-  die :
-    after: "non-overlapping, random, 3 digits prime-number of minutes"
-    middleware : (name,callback) -> koding.disconnect callback
-    middlewareTimeout : 15000
 
 koding = new Bongo {
   verbose     : social.verbose

@@ -83,15 +83,6 @@ module.exports =
       awsAccessKeyId      : 'AKIAJO74E23N33AFRGAQ'
       awsSecretAccessKey  : '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'
       bucket              : 'koding-uploads'
-  loggr:
-    push: yes
-    url: "http://post.loggr.net/1/logs/koding/events"
-    apiKey: "eb65f620b72044118015d33b4177f805"
-  librato :
-    push      : no
-    email     : ""
-    token     : ""
-    interval  : 60000
   # loadBalancer  :
   #   port        : 3000
   #   heartbeat   : 5000
@@ -116,7 +107,7 @@ module.exports =
     cronSchedule         : '00 * * * * *'
     usageLimitInMinutes  : 60
   elasticSearch          :
-    host                 : "localhost"
+    host                 : "log0.sjc.koding.com"
     port                 : 9200
     enabled              : no
     queue                : "elasticSearchFeederQueue"
@@ -145,6 +136,14 @@ module.exports =
     watch       : no
     queueName   : socialQueueName
     verbose     : no
+  log           :
+    login       : 'prod-social'
+    numberOfWorkers: 2
+    watch       : yes
+    queueName   : socialQueueName+'log'
+    verbose     : no
+    run         : yes
+    runWorker   : yes
   presence        :
     exchange      : 'services-presence'
   client          :
@@ -174,7 +173,9 @@ module.exports =
       useNeo4j: yes
       logToExternal : yes
       resourceName: socialQueueName
+      logResourceName: socialQueueName+'log'
       socialApiUri: 'https://social.koding.com/xhr'
+      logApiUri: 'https://log.koding.com/xhr'
       suppressLogs: yes
       version   : version
       mainUri   : "https://koding.com"
@@ -406,7 +407,3 @@ module.exports =
     secure      : cookieSecure
   troubleshoot  :
     recipientEmail: "support@koding.com"
-  pageHit         :
-    run           : yes
-    host          : "log0.sjc.koding.com"
-    port          : 9200

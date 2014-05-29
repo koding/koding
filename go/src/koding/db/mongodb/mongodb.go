@@ -34,7 +34,7 @@ func (m *MongoDB) CreateSession(url string) {
 	}
 
 	m.Session.SetSafe(&mgo.Safe{})
-	m.Session.SetMode(mgo.Monotonic, true)
+	m.Session.SetMode(mgo.Strong, true)
 }
 
 func (m *MongoDB) Close() {

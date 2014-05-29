@@ -101,15 +101,6 @@ config =
         awsAccessKeyId      : 1
         awsSecretAccessKey  : 1
         bucket              : 1
-    loggr:
-      push: 1
-      url: 1
-      apiKey: 1
-    librato :
-      push      : 1
-      email     : 1
-      token     : 1
-      interval  : 1
     bitly :
       username  : 1
       apiKey    : 1
@@ -156,6 +147,14 @@ config =
       watch       : 1
       queueName   : 1
       verbose     : 1
+    log           :
+      login       : 1
+      numberOfWorkers: 1
+      watch       : 1
+      queueName   : 1
+      verbose     : 1
+      run         : 1
+      runWorker   : 1
     graphFeederWorker :
       numberOfWorkers : 1
     presence        :
@@ -196,7 +195,9 @@ config =
         useNeo4j      : 1
         logToExternal : 1
         resourceName  : 1
+        logResourceName: 1
         socialApiUri  : 1
+        logApiUri     : 1
         suppressLogs  : 1
         version       : 1
         mainUri       : 1
@@ -436,8 +437,4 @@ config =
       secure        : 1
     troubleshoot    :
       recipientEmail: 1
-    pageHit         :
-      run           : 1
-      host          : 1
-      port          : 1
 module.exports = config
