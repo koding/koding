@@ -11,6 +11,7 @@ module.exports = [
   "workspace/panes/previewpane.coffee"
   "workspace/panes/finderpane.coffee"
   "workspace/panes/vmlistpane.coffee"
+  "workspace/panes/settingspane.coffee"
 
   "workspace/panel.coffee"
   "workspace/workspace.coffee"
