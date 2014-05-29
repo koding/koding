@@ -59,5 +59,12 @@ class Machine extends KDObject
     super options, machine
 
     { @label, @publicAddress, @state } = @jMachine = @getData()
+    @kites = {}
 
+    {kontrolProd} = KD.singletons
 
+    @kites.klient = kontrolProd.getKite
+      name        : "klient"
+      username    : "gokmen"
+      environment : "public-host"
+      id          : "007"
