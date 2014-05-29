@@ -1,6 +1,9 @@
 class KodingKontrol extends (require 'kontrol')
 
-  constructor: ->
+  constructor: (options = {})->
+
+    @_kontrolUrl = options.kontrolUrl  if options.kontrolUrl?
+
     super @getAuthOptions()
 
     @kites = {}
@@ -33,14 +36,6 @@ class KodingKontrol extends (require 'kontrol')
     }[name] ? ''
 
   injectQueryParams: (args) ->
-
-    if args.kontrolUrl? and args.kontrolUrl isnt @_kontrolUrl
-      @_kontrolUrl = args.kontrolUrl
-      @reauthenticate()
-
-    if @_kontrolUrl? and not args.kontrolUrl?
-      delete @_kontrolUrl
-      @reauthenticate()
 
     args.query.version     ?= @getVersion args.query.name
     args.query.username    ?= KD.config.kites.kontrol.username
