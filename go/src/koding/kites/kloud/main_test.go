@@ -137,8 +137,6 @@ func init() {
 }
 
 func build(i int, client *kite.Client, data map[string]interface{}) error {
-	time.Sleep(time.Millisecond * time.Duration(rand.Intn(2500))) // wait 0-2500 milliseconds
-
 	machineName := "testkloud-" + strconv.FormatInt(time.Now().UTC().UnixNano(), 10) + "-" + strconv.Itoa(i)
 
 	bArgs := &kloud.BuildArgs{
@@ -186,7 +184,7 @@ func build(i int, client *kite.Client, data map[string]interface{}) error {
 
 func TestMultiple(t *testing.T) {
 	// number of clients that will query example kites
-	clientNumber := 100
+	clientNumber := 10
 
 	fmt.Printf("Creating %d clients\n", clientNumber)
 
@@ -201,8 +199,17 @@ func TestMultiple(t *testing.T) {
 		go func(i int) {
 			defer cg.Done()
 
+			// time.Sleep(time.Millisecond * time.Duration(rand.Intn(500)))
+
 			c := kite.New("client"+strconv.Itoa(i), "0.0.1")
-			c.Config = conf.Copy()
+
+			clientsMu.Lock()
+			clientConf := conf.Copy()
+			// username := "testuser" + strconv.Itoa(i)
+			// clientConf.Username = username
+			c.Config = clientConf
+			clientsMu.Unlock()
+
 			c.SetupKontrolClient()
 
 			kites, err := c.GetKites(protocol.KontrolQuery{
@@ -211,16 +218,18 @@ func TestMultiple(t *testing.T) {
 				Name:        "kloud",
 			})
 			if err != nil {
-				log.Fatalln(err)
+				t.Error(err)
+				return
 			}
 
-			remote := kites[0]
-			if err := remote.Dial(); err != nil {
-				log.Fatal(err)
+			r := kites[0]
+
+			if err := r.Dial(); err != nil {
+				t.Error(err)
 			}
 
 			clientsMu.Lock()
-			clients[i] = remote
+			clients[i] = r
 			clientsMu.Unlock()
 		}(i)
 
@@ -228,8 +237,8 @@ func TestMultiple(t *testing.T) {
 
 	cg.Wait()
 
-	fmt.Printf("Calling with %d conccurent clients randomly\n", clientNumber)
-	time.Sleep(time.Second * 2)
+	fmt.Printf("Calling with %d conccurent clients randomly. Starting after 3 seconds ...\n", clientNumber)
+	time.Sleep(time.Second * 1)
 
 	var wg sync.WaitGroup
 
@@ -240,7 +249,7 @@ func TestMultiple(t *testing.T) {
 		go func(i int) {
 			defer wg.Done()
 
-			time.Sleep(time.Millisecond * time.Duration(rand.Intn(500)))
+			// time.Sleep(time.Millisecond * time.Duration(rand.Intn(500)))
 
 			for provider, data := range TestProviderData {
 				if data == nil {
@@ -361,6 +370,7 @@ func TestBuilds(t *testing.T) {
 
 			go func(i int) {
 				defer wg.Done()
+				time.Sleep(time.Millisecond * time.Duration(rand.Intn(2500))) // wait 0-2500 milliseconds
 				if err := build(i, remote, data); err != nil {
 					t.Error(err)
 				}

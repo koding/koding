@@ -42,6 +42,10 @@ func (k *Kloud) build(r *kite.Request) (interface{}, error) {
 		return nil, errors.New("machineId is missing.")
 	}
 
+	// this locks are important to prevent consecutive calls from the same user
+	k.idlock.Get(r.Username).Lock()
+	defer k.idlock.Get(r.Username).Unlock()
+
 	machineData, err := k.Storage.MachineData(args.MachineId)
 	if err != nil {
 		return nil, err
@@ -83,5 +87,6 @@ func (k *Kloud) build(r *kite.Request) (interface{}, error) {
 	if err := k.Storage.Update(args.MachineId, artifact); err != nil {
 		return nil, err
 	}
+
 	return artifact, nil
 }
