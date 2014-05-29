@@ -14,3 +14,5 @@ module.exports =
     version: versionFile 'os'
   terminal:
     version: versionFile 'terminal'
+  klient:
+    version: versionFile 'klient'
