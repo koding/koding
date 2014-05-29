@@ -103,7 +103,7 @@ class EnvironmentsMainScene extends KDView
 
     paymentControl = KD.getSingleton("paymentController")
     paymentControl.fetchActiveSubscription tags: "vm", (err, subscription) ->
-      return warn err  if err
+      return  if err
       if not subscription or "nosync" in subscription.tags
         freePlanView.updatePartial """
           You are on a free developer plan,
