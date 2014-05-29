@@ -1,7 +1,5 @@
 class SettingsPane extends Pane
 
-  JView.mixin @prototype
-
   constructor: (options = {}, data) ->
 
     options.cssClass = KD.utils.curry 'settings-pane', options.cssClass
