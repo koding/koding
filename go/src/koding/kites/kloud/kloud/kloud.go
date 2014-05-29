@@ -1,6 +1,7 @@
 package kloud
 
 import (
+	"koding/db/mongodb"
 	"koding/kites/kloud/digitalocean"
 	"koding/kodingkite"
 	"koding/tools/config"
@@ -15,24 +16,45 @@ const (
 	NAME    = "kloud"
 )
 
+var (
+	defaultSnapshotName = "koding-klient-0.0.1"
+	providers           = make(map[string]interface{})
+)
+
 type Kloud struct {
-	Config            *config.Config
-	Name              string
-	Version           string
-	Region            string
-	Port              int
+	Config *config.Config
+	Log    logging.Logger
+
+	Storage Storage
+
+	Name    string
+	Version string
+	Region  string
+	Port    int
+
+	// needed for signing/generating kite tokens
 	KontrolPublicKey  string
 	KontrolPrivateKey string
 	KontrolURL        string
 
-	Log   logging.Logger
 	Debug bool
 }
 
 func (k *Kloud) NewKloud() *kodingkite.KodingKite {
+	if k.Config == nil {
+		panic("config is not initialized")
+	}
+
 	k.Name = NAME
 	k.Version = VERSION
-	k.Log = createLogger(NAME, k.Debug)
+
+	if k.Log == nil {
+		k.Log = createLogger(NAME, k.Debug)
+	}
+
+	if k.Storage == nil {
+		k.Storage = &MongoDB{session: mongodb.NewMongoDB(k.Config.Mongo)}
+	}
 
 	kt, err := kodingkite.New(k.Config, k.Name, k.Version)
 	if err != nil {

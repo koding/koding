@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/koding/kite"
-	"github.com/mitchellh/mapstructure"
 )
 
 // Builder is used to create and provisiong a single image or machine for a
@@ -17,7 +16,7 @@ type Builder interface {
 	Prepare(...interface{}) error
 
 	// Build is creating a image and a machine.
-	Build(...interface{}) (interface{}, error)
+	Build(...interface{}) (map[string]interface{}, error)
 }
 
 type BuildResponse struct {
@@ -28,17 +27,10 @@ type BuildResponse struct {
 }
 
 type BuildArgs struct {
-	Provider     string
+	MachineId    string
 	SnapshotName string
 	MachineName  string
-	Credential   map[string]interface{}
-	Builder      map[string]interface{}
 }
-
-var (
-	defaultSnapshotName = "koding-klient-0.0.1"
-	providers           = make(map[string]interface{})
-)
 
 func (k *Kloud) build(r *kite.Request) (interface{}, error) {
 	args := &BuildArgs{}
@@ -46,7 +38,12 @@ func (k *Kloud) build(r *kite.Request) (interface{}, error) {
 		return nil, err
 	}
 
-	p, ok := providers[args.Provider]
+	machineData, err := k.Storage.MachineData(args.MachineId)
+	if err != nil {
+		return nil, err
+	}
+
+	p, ok := providers[machineData.Provider]
 	if !ok {
 		return nil, errors.New("provider not supported")
 	}
@@ -56,7 +53,7 @@ func (k *Kloud) build(r *kite.Request) (interface{}, error) {
 		return nil, errors.New("provider doesn't satisfy the builder interface.")
 	}
 
-	if err := provider.Prepare(args.Credential, args.Builder); err != nil {
+	if err := provider.Prepare(machineData.Credential, machineData.Builders); err != nil {
 		return nil, err
 	}
 
@@ -79,10 +76,8 @@ func (k *Kloud) build(r *kite.Request) (interface{}, error) {
 		return nil, err
 	}
 
-	response := &BuildResponse{}
-	if err := mapstructure.Decode(artifact, response); err != nil {
+	if err := k.Storage.Add(artifact); err != nil {
 		return nil, err
 	}
-
-	return response, nil
+	return artifact, nil
 }

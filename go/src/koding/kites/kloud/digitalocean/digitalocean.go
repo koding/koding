@@ -112,7 +112,7 @@ func (d *DigitalOcean) Prepare(raws ...interface{}) (err error) {
 // given snapshot/image exist it directly skips to creating the droplet. It
 // acceps two string arguments, first one is the snapshotname, second one is
 // the dropletName.
-func (d *DigitalOcean) Build(raws ...interface{}) (interface{}, error) {
+func (d *DigitalOcean) Build(raws ...interface{}) (map[string]interface{}, error) {
 	if len(raws) != 3 {
 		return nil, errors.New("need one argument. No snaphost name is provided")
 	}

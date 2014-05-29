@@ -27,6 +27,23 @@ import (
 	"github.com/koding/kite/testutil"
 )
 
+type TestStorage struct {
+}
+
+func (t *TestStorage) MachineData(id string) (*kloud.MachineData, error) {
+	provider := TestProviderData[id]
+
+	return &kloud.MachineData{
+		Provider:   provider["provider"].(string),
+		Credential: provider["credential"].(map[string]interface{}),
+		Builders:   provider["builder"].(map[string]interface{}),
+	}, nil
+}
+
+func (t *TestStorage) Add(data map[string]interface{}) error {
+	return nil
+}
+
 var (
 	kloudKite *kodingkite.KodingKite
 	remote    *kite.Client
@@ -39,29 +56,29 @@ var (
 	DIGITALOCEAN_CLIENT_ID       = "2d314ba76e8965c451f62d7e6a4bc56f"
 	DIGITALOCEAN_API_KEY         = "4c88127b50c0c731aeb5129bdea06deb"
 	DIGITALOCEAN_TEST_DROPLET_ID = 1657055
-)
 
-var TestProviderData = map[string]map[string]interface{}{
-	"digitalocean": map[string]interface{}{
-		"provider": "digitalocean",
-		"credential": map[string]interface{}{
-			"client_id": DIGITALOCEAN_CLIENT_ID,
-			"api_key":   DIGITALOCEAN_API_KEY,
+	TestProviderData = map[string]map[string]interface{}{
+		"digitalocean": map[string]interface{}{
+			"provider": "digitalocean",
+			"credential": map[string]interface{}{
+				"client_id": DIGITALOCEAN_CLIENT_ID,
+				"api_key":   DIGITALOCEAN_API_KEY,
+			},
+			"machineId": DIGITALOCEAN_TEST_DROPLET_ID,
+			"builder": map[string]interface{}{
+				"type":          "digitalocean",
+				"client_id":     DIGITALOCEAN_CLIENT_ID,
+				"api_key":       DIGITALOCEAN_API_KEY,
+				"image":         "ubuntu-13-10-x64",
+				"region":        "sfo1",
+				"size":          "512mb",
+				"snapshot_name": "koding-{{timestamp}}",
+			},
 		},
-		"machineId": DIGITALOCEAN_TEST_DROPLET_ID,
-		"builder": map[string]interface{}{
-			"type":          "digitalocean",
-			"client_id":     DIGITALOCEAN_CLIENT_ID,
-			"api_key":       DIGITALOCEAN_API_KEY,
-			"image":         "ubuntu-13-10-x64",
-			"region":        "sfo1",
-			"size":          "512mb",
-			"snapshot_name": "koding-{{timestamp}}",
-		},
-	},
-	"amazon-instance": nil,
-	"googlecompute":   nil,
-}
+		"amazon-instance": nil,
+		"googlecompute":   nil,
+	}
+)
 
 func setupKloud() *kodingkite.KodingKite {
 	kloudConf := config.MustConfig("vagrant")
@@ -90,12 +107,15 @@ func setupKloud() *kodingkite.KodingKite {
 		Region:            "vagrant",
 		Port:              3636,
 		Config:            kloudConf,
+		Storage:           &TestStorage{},
 		KontrolURL:        "wss://kontrol.koding.com",
 		KontrolPrivateKey: privateKey,
 		KontrolPublicKey:  publicKey,
 	}
 
-	return k.NewKloud()
+	kt := k.NewKloud()
+
+	return kt
 }
 
 func init() {
@@ -173,9 +193,7 @@ func TestProviders(t *testing.T) {
 
 		testlog("Starting tests")
 		bArgs := &kloud.BuildArgs{
-			Provider:     data["provider"].(string),
-			Credential:   data["credential"].(map[string]interface{}),
-			Builder:      data["builder"].(map[string]interface{}),
+			MachineId:    data["provider"].(string),
 			SnapshotName: snapshotName,
 		}
 
@@ -247,9 +265,7 @@ func TestBuild(t *testing.T) {
 			machineName := "testkloud-" + strconv.FormatInt(time.Now().UTC().UnixNano(), 10) + "-" + strconv.Itoa(i)
 
 			bArgs := &kloud.BuildArgs{
-				Provider:    data["provider"].(string),
-				Credential:  data["credential"].(map[string]interface{}),
-				Builder:     data["builder"].(map[string]interface{}),
+				MachineId:   data["provider"].(string),
 				MachineName: machineName,
 			}
 
