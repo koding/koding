@@ -18,8 +18,6 @@ import (
 	"labix.org/v2/mgo"
 )
 
-
-
 type Action func(*Controller, []byte) error
 
 type Controller struct {
@@ -45,7 +43,7 @@ func (r *Controller) DefaultErrHandler(delivery amqp.Delivery, err error) bool {
 	return false
 }
 
-func NewController(rmq *rabbitmq.RabbitMQ, log logging.Logger) (*Controller, error) {
+func New(rmq *rabbitmq.RabbitMQ, log logging.Logger) (*Controller, error) {
 	rmqConn, err := rmq.Connect("NewRealtimeWorkerController")
 	if err != nil {
 		return nil, err

@@ -32,7 +32,7 @@ func main() {
 		FromName: conf.SendGrid.FromName,
 	}
 
-	handler, err := emailnotifier.NewEmailNotifierWorkerController(
+	handler, err := emailnotifier.New(
 		rmq,
 		r.Log,
 		es,

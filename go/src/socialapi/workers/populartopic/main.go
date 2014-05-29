@@ -20,7 +20,7 @@ func main() {
 
 	redis := helper.MustInitRedisConn(r.Conf.Redis)
 	// create message handler
-	handler := populartopic.NewPopularTopicsController(r.Log, redis)
+	handler := populartopic.New(r.Log, redis)
 
 	r.Listen(handler)
 	r.Close()

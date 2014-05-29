@@ -19,7 +19,7 @@ func main() {
 	}
 
 	// create message handler
-	handler := popularpost.NewPopularPostController(
+	handler := popularpost.New(
 		r.Log,
 		helper.MustInitRedisConn(r.Conf.Redis),
 	)
