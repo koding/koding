@@ -9,7 +9,7 @@ import (
 	"socialapi/workers/helper"
 )
 
-var Name = "EmailDailyNotifier"
+var Name = "DailyEmailNotifier"
 
 func main() {
 	r := runner.New(Name)
@@ -40,6 +40,8 @@ func main() {
 	if err != nil {
 		r.Log.Error("an error occurred", err)
 	}
+	fmt.Println("yeha")
+	r.ShutdownHandler = handler.Shutdown
 
-	r.RegisterSignalHandler(handler.Shutdown)
+	r.Listen(handler)
 }
