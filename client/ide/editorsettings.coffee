@@ -1,12 +1,5 @@
 __editorSettings =
 
-  compilerCallNames:
-    coffee    :
-      class   : 'CoffeeScript'
-      method  : 'compile'
-      options :
-        bare  : on
-
   softWrapOptions: [
       value: 'off'
       title: 'Off'
