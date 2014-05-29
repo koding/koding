@@ -532,7 +532,7 @@ module.exports = class AuthWorker extends EventEmitter
 
   connect: ->
     {bongo} = this
-    bongo.mq.ready =>
+    bongo.on 'connected', =>
       {connection} = bongo.mq
       @monitorPresence connection
 
