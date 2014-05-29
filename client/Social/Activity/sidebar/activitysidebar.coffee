@@ -156,14 +156,17 @@ class ActivitySidebar extends KDCustomScrollView
   addPublicFeedLink: ->
 
     {activityController} = KD.singletons
+    {slug, socialApiChannelId} = KD.getGroup()
 
     @wrapper.addSubView @public = new CustomLinkView
       title    : 'PUBLIC FEED'
       href     : '/Activity/Public'
       cssClass : 'kdlistitemview-sidebar-item public-feed-link'
     ,
-      name     : 'koding_public_feed'
-      id       : KD.getGroup().socialApiChannelId ? '1'
+      name         : slug
+      typeConstant : 'group'
+      groupName    : slug
+      id           : socialApiChannelId ? '1'
 
     @public.addSubView new KDCustomHTMLView
       cssClass : 'count hidden'
