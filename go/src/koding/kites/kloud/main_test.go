@@ -186,35 +186,52 @@ func build(i int, client *kite.Client, data map[string]interface{}) error {
 
 func TestMultiple(t *testing.T) {
 	// number of clients that will query example kites
-	clientNumber := 1000
+	clientNumber := 100
 
 	fmt.Printf("Creating %d clients\n", clientNumber)
+
+	var cg sync.WaitGroup
+
 	clients := make([]*kite.Client, clientNumber)
+	var clientsMu sync.Mutex
+
 	for i := 0; i < clientNumber; i++ {
-		c := kite.New("client"+strconv.Itoa(i), "0.0.1")
-		c.Config = conf.Copy()
-		c.SetupKontrolClient()
+		cg.Add(1)
 
-		kites, err := c.GetKites(protocol.KontrolQuery{
-			Username:    testuser,
-			Environment: "vagrant",
-			Name:        "kloud",
-		})
-		if err != nil {
-			log.Fatalln(err)
-		}
+		go func(i int) {
+			defer cg.Done()
 
-		remote := kites[0]
-		if err := remote.Dial(); err != nil {
-			log.Fatal(err)
-		}
+			c := kite.New("client"+strconv.Itoa(i), "0.0.1")
+			c.Config = conf.Copy()
+			c.SetupKontrolClient()
 
-		clients[i] = remote
+			kites, err := c.GetKites(protocol.KontrolQuery{
+				Username:    testuser,
+				Environment: "vagrant",
+				Name:        "kloud",
+			})
+			if err != nil {
+				log.Fatalln(err)
+			}
+
+			remote := kites[0]
+			if err := remote.Dial(); err != nil {
+				log.Fatal(err)
+			}
+
+			clientsMu.Lock()
+			clients[i] = remote
+			clientsMu.Unlock()
+		}(i)
+
 	}
 
-	var wg sync.WaitGroup
+	cg.Wait()
 
 	fmt.Printf("Calling with %d conccurent clients randomly\n", clientNumber)
+	time.Sleep(time.Second * 2)
+
+	var wg sync.WaitGroup
 
 	// every one second
 	for i := 0; i < clientNumber; i++ {
@@ -232,7 +249,12 @@ func TestMultiple(t *testing.T) {
 				}
 
 				start := time.Now()
-				err := build(i, clients[i], data)
+
+				clientsMu.Lock()
+				c := clients[i]
+				clientsMu.Unlock()
+
+				err := build(i, c, data)
 				elapsedTime := time.Since(start)
 
 				if err != nil {
