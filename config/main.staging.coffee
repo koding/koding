@@ -6,6 +6,7 @@ version = (fs.readFileSync nodePath.join(__dirname, '../VERSION'), 'utf-8').trim
 projectRoot = nodePath.join __dirname, '..'
 
 socialQueueName = "koding-social-#{version}"
+logQueueName    = socialQueueName+'log'
 
 authExchange    = "auth-#{version}"
 authAllExchange = "authAll-#{version}"
@@ -105,7 +106,7 @@ module.exports =
     cronSchedule         : '0 * * * * *'
     usageLimitInMinutes  : 60
   elasticSearch          :
-    host                 : "localhost"
+    host                 : "log0.sjc.koding.com"
     port                 : 9200
     enabled              : no
     queue                : "elasticSearchFeederQueue"
@@ -134,6 +135,14 @@ module.exports =
     watch       : no
     queueName   : socialQueueName
     verbose     : no
+  log           :
+    login       : 'prod-social'
+    numberOfWorkers: 2
+    watch       : yes
+    queueName   : logQueueName
+    verbose     : no
+    run         : no
+    runWorker   : yes
   presence        :
     exchange      : 'services-presence'
   client          :
@@ -163,7 +172,9 @@ module.exports =
       useNeo4j: yes
       logToExternal : yes
       resourceName: socialQueueName
+      logResourceName: logQueueName
       socialApiUri: 'https://stage-social.koding.com/xhr'
+      logApiUri: 'https://stage-log.koding.com/xhr'
       suppressLogs: no
       version   : version
       mainUri   : "https://latest.koding.com"
@@ -408,7 +419,3 @@ module.exports =
     port         : 2003
   troubleshoot    :
     recipientEmail: "can@koding.com"
-  pageHit         :
-    run           : no
-    host          : "log0.sjc.koding.com"
-    port          : 9200

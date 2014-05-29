@@ -107,7 +107,7 @@ module.exports =
     cronSchedule         : '00 * * * * *'
     usageLimitInMinutes  : 60
   elasticSearch          :
-    host                 : "localhost"
+    host                 : "log0.sjc.koding.com"
     port                 : 9200
     enabled              : no
     queue                : "elasticSearchFeederQueue"
@@ -136,6 +136,14 @@ module.exports =
     watch       : no
     queueName   : socialQueueName
     verbose     : no
+  log           :
+    login       : 'prod-social'
+    numberOfWorkers: 2
+    watch       : yes
+    queueName   : socialQueueName+'log'
+    verbose     : no
+    run         : yes
+    runWorker   : yes
   presence        :
     exchange      : 'services-presence'
   client          :
@@ -165,7 +173,9 @@ module.exports =
       useNeo4j: yes
       logToExternal : yes
       resourceName: socialQueueName
+      logResourceName: socialQueueName+'log'
       socialApiUri: 'https://social.koding.com/xhr'
+      logApiUri: 'https://log.koding.com/xhr'
       suppressLogs: yes
       version   : version
       mainUri   : "https://koding.com"
@@ -397,7 +407,3 @@ module.exports =
     secure      : cookieSecure
   troubleshoot  :
     recipientEmail: "support@koding.com"
-  pageHit         :
-    run           : yes
-    host          : "log0.sjc.koding.com"
-    port          : 9200
