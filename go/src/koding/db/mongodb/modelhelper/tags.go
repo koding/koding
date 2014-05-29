@@ -35,3 +35,15 @@ func CheckTagExistence(id string) (bool, error) {
 	query := checkExistence(id, &exists)
 	return exists, Mongo.Run("jTags", query)
 }
+
+func GetTag(s Selector, o Options) (*models.Tag, error) {
+	tag := new(models.Tag)
+
+	query := func(c *mgo.Collection) error {
+		q := c.Find(s)
+		decorateQuery(q, o)
+		return q.One(tag)
+	}
+
+	return tag, Mongo.Run("jTags", query)
+}
