@@ -39,11 +39,17 @@ class SettingsPane extends Pane
       callback           : (state) -> console.log state
 
     @keyboardHandler     = new KDSelectBox
+      selectOptions      : __editorSettings.keyboardHandlers
     @softWrap            = new KDSelectBox
+      selectOptions      : __editorSettings.softWrapOptions
     @syntax              = new KDSelectBox
-    @fontSize            = new KDSelectBox
-    @theme               = new KDSelectBox
-    @tabSize             = new KDSelectBox
+      selectOptions      : __editorSettings.getSyntaxOptions()
+    @editorFontSize      = new KDSelectBox
+      selectOptions      : __editorSettings.fontSizes
+    @editorTheme         = new KDSelectBox
+      selectOptions      : __editorSettings.themes
+    @editorTabSize       = new KDSelectBox
+      selectOptions      : __editorSettings.tabSizes
 
     @shortcuts           = new KDCustomHTMLView
       tagName            : "a"
@@ -68,9 +74,9 @@ class SettingsPane extends Pane
     <p class="with-select">Soft wrap           {{> @softWrap}}</p>
     <p class="with-select">Syntax              {{> @syntax}}</p>
     <p class="with-select">Key binding         {{> @keyboardHandler}}</p>
-    <p class="with-select">Font                {{> @fontSize}}</p>
-    <p class="with-select">Theme               {{> @theme}}</p>
-    <p class="with-select">Tab size            {{> @tabSize}}</p>
+    <p class="with-select">Font                {{> @editorFontSize}}</p>
+    <p class="with-select">Theme               {{> @editorTheme}}</p>
+    <p class="with-select">Tab size            {{> @editorTabSize}}</p>
     <p class='hidden'>{{> @shortcuts}}</p>
     <hr>
     <p>Open Recent Files                       {{> @openRecentFiles}}</p>
