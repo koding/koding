@@ -61,16 +61,3 @@ class Machine extends KDObject
     { @label, @publicAddress, @state } = @jMachine = @getData()
 
 
-
-    # kayt = null
-    # KD.singletons.kontrol.fetchKite(
-    #   query:
-    #     username:"gokmen"
-    #     name: "klient"
-    #     environment: "public-host"
-    # ).then (oskite)->
-    #   log {oskite}
-    #   kayt = oskite
-    #   oskite.connect()
-    #   oskite.tell "exec", [command : "ls /"]
-    # .then log, warn
