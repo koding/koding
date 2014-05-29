@@ -34,7 +34,10 @@ class MainController extends KDController
 
     KD.registerSingleton "mainController",            this
 
-    KD.registerSingleton "kontrol",                   new KodingKontrol
+    KD.registerSingleton "kontrol",     new KodingKontrol
+
+    KD.registerSingleton "kontrolProd", new KodingKontrol
+      kontrolUrl : "wss://kontrol.koding.com"
 
     KD.registerSingleton 'appManager',   appManager = new ApplicationManager
     KD.registerSingleton 'notificationController',    new NotificationController
@@ -82,7 +85,9 @@ class MainController extends KDController
     @on 'pageLoaded.as.loggedIn', (account)-> # ignore othter parameters
       KD.utils.setPreferredDomain account if account
 
-    (KD.getSingleton 'kontrol').reauthenticate()  if KD.useNewKites
+    if KD.useNewKites
+      (KD.getSingleton 'kontrol').reauthenticate()
+      (KD.getSingleton 'kontrolProd').reauthenticate()
 
     account.fetchMyPermissionsAndRoles (err, { permissions, roles }) =>
       return warn err  if err
