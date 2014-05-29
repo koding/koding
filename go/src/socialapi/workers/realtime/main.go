@@ -25,7 +25,7 @@ func main() {
 	//create connection to RMQ for publishing realtime events
 	rmq := helper.NewRabbitMQ(r.Conf, r.Log)
 
-	handler, err := realtime.NewRealtimeWorkerController(rmq, r.Log)
+	handler, err := realtime.New(rmq, r.Log)
 	if err != nil {
 		panic(err)
 	}
