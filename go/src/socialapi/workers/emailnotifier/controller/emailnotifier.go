@@ -25,9 +25,9 @@ var emailConfig = map[string]string{
 	models.NotificationContent_TYPE_MENTION: "mention",
 }
 
-type Action func(*EmailNotifierWorkerController, []byte) error
+type Action func(*Controller, []byte) error
 
-type EmailNotifierWorkerController struct {
+type Controller struct {
 	routes   map[string]Action
 	log      logging.Logger
 	rmqConn  *amqp.Connection
@@ -41,14 +41,14 @@ type EmailSettings struct {
 	FromMail string
 }
 
-func (n *EmailNotifierWorkerController) DefaultErrHandler(delivery amqp.Delivery, err error) bool {
+func (n *Controller) DefaultErrHandler(delivery amqp.Delivery, err error) bool {
 	n.log.Error("an error occured: %s", err)
 	delivery.Ack(false)
 
 	return false
 }
 
-func (n *EmailNotifierWorkerController) HandleEvent(event string, data []byte) error {
+func (n *Controller) HandleEvent(event string, data []byte) error {
 	n.log.Debug("New Event Received %s", event)
 	handler, ok := n.routes[event]
 	if !ok {
@@ -58,21 +58,21 @@ func (n *EmailNotifierWorkerController) HandleEvent(event string, data []byte) e
 	return handler(n, data)
 }
 
-func NewEmailNotifierWorkerController(rmq *rabbitmq.RabbitMQ, log logging.Logger, es *EmailSettings) (*EmailNotifierWorkerController, error) {
 	rmqConn, err := rmq.Connect("NewEmailNotifierWorkerController")
+func New(rmq *rabbitmq.RabbitMQ, log logging.Logger, es *EmailSettings) (*Controller, error) {
 	if err != nil {
 		return nil, err
 	}
 
-	nwc := &EmailNotifierWorkerController{
+	nwc := &Controller{
 		log:      log,
 		rmqConn:  rmqConn.Conn(),
 		settings: es,
 	}
 
 	routes := map[string]Action{
-		"notification.notification_created": (*EmailNotifierWorkerController).SendInstantEmail,
-		"notification.notification_updated": (*EmailNotifierWorkerController).SendInstantEmail,
+		"notification.notification_created": (*Controller).SendInstantEmail,
+		"notification.notification_updated": (*Controller).SendInstantEmail,
 	}
 
 	nwc.routes = routes
@@ -80,7 +80,7 @@ func NewEmailNotifierWorkerController(rmq *rabbitmq.RabbitMQ, log logging.Logger
 	return nwc, nil
 }
 
-func (n *EmailNotifierWorkerController) SendInstantEmail(data []byte) error {
+func (n *Controller) SendInstantEmail(data []byte) error {
 	channel, err := n.rmqConn.Channel()
 	if err != nil {
 		return errors.New("channel connection error")
@@ -322,7 +322,7 @@ func fetchRepliedMessage(replyId int64) *socialmodels.ChannelMessage {
 	return parent
 }
 
-func (n *EmailNotifierWorkerController) SendMail(uc *UserContact, body, subject string) error {
+func (n *Controller) SendMail(uc *UserContact, body, subject string) error {
 	es := n.settings
 	sg := sendgrid.NewSendGridClient(es.Username, es.Password)
 	fullname := fmt.Sprintf("%s %s", uc.FirstName, uc.LastName)

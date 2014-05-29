@@ -18,7 +18,7 @@ func main() {
 	}
 
 	// create message handler
-	handler := topicfeed.NewTopicFeedController(r.Log)
+	handler := topicfeed.New(r.Log)
 
 	r.Listen(handler)
 	r.Close()

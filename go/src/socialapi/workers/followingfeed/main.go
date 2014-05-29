@@ -18,7 +18,7 @@ func main() {
 	}
 
 	// create message handler
-	handler := followingfeed.NewFollowingFeedController(r.Log)
+	handler := followingfeed.New(r.Log)
 
 	r.Listen(handler)
 	r.Close()
