@@ -25,8 +25,6 @@ process.on 'uncaughtException', (err)->
 Bongo = require 'bongo'
 Broker = require 'broker'
 
-tagModifier = require './tagmodifier'
-
 KONFIG = require('koding-config-manager').load("main.#{argv.c}")
 Object.defineProperty global, 'KONFIG', value: KONFIG
 {mq, email, social, mongoReplSet} = KONFIG
@@ -110,3 +108,7 @@ app.use cors()
 app.post '/xhr', koding.expressify()
 
 app.listen argv.p
+
+setTimeout ->
+  tagModifier = require './tagmodifier'
+, 1000
