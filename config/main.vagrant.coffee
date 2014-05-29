@@ -190,7 +190,7 @@ module.exports =
       uploadsUriForGroup: 'https://koding-groups.s3.amazonaws.com'
       sourceUri : 'http://lvh.me:3526'
       newkontrol:
-        url     : 'wss://kontrol.koding.com'
+        url     : 'ws://127.0.0.1:4000/kontrol'
       fileFetchTimeout: 15 * 1000 # seconds
       externalProfiles  :
         github          :
