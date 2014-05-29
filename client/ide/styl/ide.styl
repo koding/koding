@@ -99,3 +99,33 @@ ide.styl
       abs()
       top               10px
       left              50px
+
+
+// settings pane
+.settings-pane
+  line-height           20px
+
+  .kdselectbox
+    min-width           112px
+    display             block
+    float               right
+
+  p
+    color               #D4CFC9
+    font-size           14px
+    padding             5px 20px
+    clear               both
+    borderBox()
+
+    &.with-select
+      line-height       32px
+
+    .settings-on-off
+      display           block
+      float             right
+
+      &.on
+        bg              color, #4EA04C
+      &.off
+        bg              color, #131313
+

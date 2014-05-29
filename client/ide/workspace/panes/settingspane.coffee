@@ -6,9 +6,10 @@ class SettingsPane extends Pane
 
     super options, data
 
-    @createSettings()
+    @createEditorSettings()
+    @createTerminalSettings()
 
-  createSettings: ->
+  createEditorSettings: ->
     @useSoftTabs         = new KodingSwitch
       cssClass           : "tiny settings-on-off"
       callback           : (state) -> console.log state
@@ -38,11 +39,17 @@ class SettingsPane extends Pane
       callback           : (state) -> console.log state
 
     @keyboardHandler     = new KDSelectBox
+      selectOptions      : IDE.settings.editor.keyboardHandlers
     @softWrap            = new KDSelectBox
+      selectOptions      : IDE.settings.editor.softWrapOptions
     @syntax              = new KDSelectBox
-    @fontSize            = new KDSelectBox
-    @theme               = new KDSelectBox
-    @tabSize             = new KDSelectBox
+      selectOptions      : IDE.settings.editor.getSyntaxOptions()
+    @editorFontSize      = new KDSelectBox
+      selectOptions      : IDE.settings.editor.fontSizes
+    @editorTheme         = new KDSelectBox
+      selectOptions      : IDE.settings.editor.themes
+    @editorTabSize       = new KDSelectBox
+      selectOptions      : IDE.settings.editor.tabSizes
 
     @shortcuts           = new KDCustomHTMLView
       tagName            : "a"
@@ -51,6 +58,24 @@ class SettingsPane extends Pane
         href             : "#"
       partial            : "⌘ Keyboard Shortcuts"
       click              : => log "show shortcuts"
+
+  createTerminalSettings: ->
+
+    @terminalFont     = new KDSelectBox
+      selectOptions   : IDE.settings.terminal.fonts
+
+    @terminalFontSize = new KDSelectBox
+      selectOptions   : IDE.settings.terminal.fontSizes
+
+    @terminalTheme    = new KDSelectBox
+      selectOptions   : IDE.settings.terminal.themes
+
+    @bell             = new KodingSwitch
+      size            : "tiny settings-on-off"
+
+    @scrollback     = new KDSelectBox
+      selectOptions : IDE.settings.terminal.scrollback
+
 
   pistachio: ->
     """
@@ -66,10 +91,17 @@ class SettingsPane extends Pane
     <p class="with-select">Soft wrap           {{> @softWrap}}</p>
     <p class="with-select">Syntax              {{> @syntax}}</p>
     <p class="with-select">Key binding         {{> @keyboardHandler}}</p>
-    <p class="with-select">Font                {{> @fontSize}}</p>
-    <p class="with-select">Theme               {{> @theme}}</p>
-    <p class="with-select">Tab size            {{> @tabSize}}</p>
+    <p class="with-select">Font                {{> @editorFontSize}}</p>
+    <p class="with-select">Theme               {{> @editorTheme}}</p>
+    <p class="with-select">Tab size            {{> @editorTabSize}}</p>
     <p class='hidden'>{{> @shortcuts}}</p>
     <hr>
     <p>Open Recent Files                       {{> @openRecentFiles}}</p>
+    <hr>
+    <p class="with-select">Font               {{> @terminalFont}}</p>
+    <p class="with-select">Font size          {{> @terminalFontSize}}</p>
+    <p class="with-select">Theme              {{> @terminalTheme}}</p>
+    <p class="with-select">Scrollback         {{> @scrollback}}</p>
+    <hr>
+    <p>Use visual bell                        {{> @bell}}</p>
     """

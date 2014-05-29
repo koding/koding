@@ -1,5 +1,8 @@
 module.exports = [
 
+  "editorsettings.coffee"
+  "terminalsettings.coffee"
+
   # workspace
   "workspace/workspacetabview.coffee"
   "workspace/workspacelayoutbuilder.coffee"
