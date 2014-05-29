@@ -28,7 +28,7 @@ class ActivitySettingsView extends KDCustomHTMLView
     {socialapi} = KD.singletons
     post = @getData()
 
-    unless post.followed
+    unless post.isFollowed
       menuItem = 'Follow Post'
       fn = socialapi.channel.pin
       logMessage = 'post pinned'

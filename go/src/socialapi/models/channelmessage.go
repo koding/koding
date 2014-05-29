@@ -189,7 +189,7 @@ func (c *ChannelMessage) BuildMessage(query *Query) (*ChannelMessageContainer, e
 	}
 	cmc.RepliesCount = repliesCount
 
-	cmc.Followed, err = c.FetchFollowedInfo(query)
+	cmc.IsFollowed, err = c.FetchFollowedInfo(query)
 	if err != nil {
 		return nil, err
 	}
