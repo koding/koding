@@ -23,6 +23,13 @@ class IDEFilesTabView extends WorkspaceTabView
     vmsPane.addSubView new VMListPane
     @tabView.addPane  vmsPane
 
+    settingsPane = new KDTabPaneView
+      name       : 'Settings'
+      closable   : no
+
+    settingsPane.addSubView new SettingsPane
+    @tabView.addPane settingsPane
+
 
     ################################
     actionsPane  = new KDTabPaneView
