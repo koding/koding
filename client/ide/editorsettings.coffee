@@ -1,4 +1,7 @@
-__editorSettings =
+IDE = IDE or {}
+IDE.settings or= {}
+
+IDE.settings.editor =
 
   softWrapOptions: [
       value: 'off'

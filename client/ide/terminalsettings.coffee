@@ -1,4 +1,7 @@
-__terminalSettings =
+IDE = IDE or {}
+IDE.settings or= {}
+
+IDE.settings.terminal =
   fonts     : [
       value : 'source-code-pro'
       title : 'Source Code Pro'

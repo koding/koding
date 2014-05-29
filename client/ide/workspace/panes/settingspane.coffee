@@ -39,17 +39,17 @@ class SettingsPane extends Pane
       callback           : (state) -> console.log state
 
     @keyboardHandler     = new KDSelectBox
-      selectOptions      : __editorSettings.keyboardHandlers
+      selectOptions      : IDE.settings.editor.keyboardHandlers
     @softWrap            = new KDSelectBox
-      selectOptions      : __editorSettings.softWrapOptions
+      selectOptions      : IDE.settings.editor.softWrapOptions
     @syntax              = new KDSelectBox
-      selectOptions      : __editorSettings.getSyntaxOptions()
+      selectOptions      : IDE.settings.editor.getSyntaxOptions()
     @editorFontSize      = new KDSelectBox
-      selectOptions      : __editorSettings.fontSizes
+      selectOptions      : IDE.settings.editor.fontSizes
     @editorTheme         = new KDSelectBox
-      selectOptions      : __editorSettings.themes
+      selectOptions      : IDE.settings.editor.themes
     @editorTabSize       = new KDSelectBox
-      selectOptions      : __editorSettings.tabSizes
+      selectOptions      : IDE.settings.editor.tabSizes
 
     @shortcuts           = new KDCustomHTMLView
       tagName            : "a"
@@ -62,19 +62,19 @@ class SettingsPane extends Pane
   createTerminalSettings: ->
 
     @terminalFont     = new KDSelectBox
-      selectOptions   : __terminalSettings.fonts
+      selectOptions   : IDE.settings.terminal.fonts
 
     @terminalFontSize = new KDSelectBox
-      selectOptions   : __terminalSettings.fontSizes
+      selectOptions   : IDE.settings.terminal.fontSizes
 
     @terminalTheme    = new KDSelectBox
-      selectOptions   : __terminalSettings.themes
+      selectOptions   : IDE.settings.terminal.themes
 
     @bell             = new KodingSwitch
       size            : "tiny settings-on-off"
 
     @scrollback     = new KDSelectBox
-      selectOptions : __terminalSettings.scrollback
+      selectOptions : IDE.settings.terminal.scrollback
 
 
   pistachio: ->
