@@ -194,6 +194,7 @@ config =
         userSitesDomain: 1
         useNeo4j      : 1
         logToExternal : 1
+        logToInternal : 1
         resourceName  : 1
         logResourceName: 1
         socialApiUri  : 1
