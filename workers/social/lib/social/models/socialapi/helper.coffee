@@ -1,3 +1,6 @@
+Bongo          = require "bongo"
+{secure, daisy, dash, signature, Base} = Bongo
+
 fetchGroup = (client, callback)->
   groupName = client.context.group or "koding"
   JGroup = require '../group'
@@ -11,6 +14,34 @@ fetchGroup = (client, callback)->
       if err then return callback {error: "Not allowed to open this group"}
       else callback null, group
 
+socialRequestWrapper = ({fnName, validate})->
+  return secure (client, options = {}, callback)->
+    if validate?.length > 0
+      errs = []
+      for property in validate
+        errs.push property unless options[property]
+      if errs.length > 0
+        msg = "#{errs.join(', ')} fields are required for #{fnName}"
+        return callback {message: msg}
+
+    doRequest fnName, client, options, callback
+
+
+doRequest = (funcName, client, options, callback)->
+  fetchGroup client, (err, group)->
+    return callback err if err
+    {connection:{delegate}} = client
+    delegate.createSocialApiId (err, socialApiId)->
+      return callback err if err
+
+      options.groupName = group.slug
+      options.accountId = socialApiId
+
+      requests = require './requests'
+      requests[funcName] options, callback
+
 module.exports = {
+  doRequest
+  socialRequestWrapper
   fetchGroup
 }
