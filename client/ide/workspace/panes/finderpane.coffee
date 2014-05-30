@@ -4,18 +4,20 @@ class FinderPane extends Pane
 
     super options, data
 
-    vmController = KD.getSingleton 'vmController'
-    vmController.fetchDefaultVmName (vmName) =>
-      @finder = new NFinderController
-        nodeIdPath       : 'path'
-        nodeParentIdPath : 'parentPath'
-        contextMenu      : yes
-        useStorage       : no
+    KD.getSingleton('appManager').open 'Finder', (finderApp) =>
+      @createFinderController finderApp
+      @bindListeners()
 
-      @addSubView @finder.getView()
-      @finder.updateVMRoot vmName, "/home/#{KD.nick()}"
+  createFinderController: (finderApp) ->
+    @finderController = finderApp.create()
+    @addSubView @finderController.getView()
+    @finderController.reset()
 
-      @finder.on 'FileNeedsToBeOpened', (file) =>
-        file.fetchContents (err, contents) ->
-          appManager = KD.getSingleton 'appManager'
-          appManager.tell 'IDE', 'openFile', file, contents
+    # this is legacy, should be deleted when we open source koding finder
+    @finderController.getView().subViews.first.destroy()
+
+  bindListeners: ->
+    @finderController.on 'FileNeedsToBeOpened', (file) =>
+      file.fetchContents (err, contents) ->
+        appManager = KD.getSingleton 'appManager'
+        appManager.tell 'IDE', 'openFile', file, contents
