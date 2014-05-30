@@ -54,6 +54,8 @@ module.exports = class SocialMessage extends Base
   Validators = require '../group/validators'
   {permit}   = require '../group/permissionset'
 
+  {fetchGroup, secureRequest, doRequest, permittedRequest} = require "./helper"
+
   @post = permit 'create posts',
     success: (client, data, callback)->
       SocialMessage.ensureGroupChannel client, (err, socialApiChannelId)->
@@ -66,13 +68,7 @@ module.exports = class SocialMessage extends Base
         return callback message: "Request is not valid for adding a reply"
       SocialMessage.ensureGroupChannel client, (err, socialApiChannelId)->
         data.initialChannelId = socialApiChannelId
-        SocialMessage.doRequest 'addReply', client, data, callback
-
-  @listReplies = secure (client, data, callback)->
-    unless data.messageId
-      return callback message: "Request is not valid for listing replies"
-
-    SocialMessage.doRequest "listReplies", client, data, callback
+        doRequest 'addReply', client, data, callback
 
   # todo add permission here
   @edit = secure (client, data, callback)->
@@ -85,28 +81,37 @@ module.exports = class SocialMessage extends Base
       {editMessage} = require './requests'
       editMessage data, callback
 
-  @delete = permit 'delete posts',
-    success: (client, data, callback)->
-      if not data.id
-        return callback message: "Request is not valid for deleting a message"
-      SocialMessage.doRequest 'deleteMessage', client, data, callback
+  @listReplies = secureRequest
+    fnName   : 'listReplies'
+    validate : ['messageId']
 
-  @like = permit 'like posts',
-    success: (client, data, callback)->
-      if not data.id
-        return callback message: "Request is not valid for liking a message"
-      SocialMessage.doRequest 'likeMessage', client, data, callback
+  @delete = permittedRequest
+    permissionName : 'delete posts'
+    validate       : ['id']
+    fnName         : 'deleteMessage'
 
-  @unlike = permit 'like posts',
-    success:  (client, data, callback)->
-      if not data.id
-        return callback message: "Request is not valid for unliking a message"
-      SocialMessage.doRequest 'unlikeMessage', client, data, callback
+  @like = permittedRequest
+    permissionName : 'like posts'
+    validate       : ['id']
+    fnName         : 'likeMessage'
 
-  @listLikers = secure (client, data, callback)->
-    if not data.id
-      return callback message: "Request is not valid for fetching likers"
-    SocialMessage.doRequest 'listLikers', client, data, callback
+  @unlike = permittedRequest
+    permissionName : 'like posts'
+    validate       : ['id']
+    fnName         : 'unlikeMessage'
+
+  @listLikers = secureRequest
+    fnName   : 'listLikers'
+    validate : ['id']
+
+  @fetchPrivateMessages = permittedRequest
+    permissionName: 'list private messages'
+    fnName        : 'fetchPrivateMessages'
+
+  @fetch = permittedRequest
+    permissionName: 'read posts'
+    fnName        : 'fetchMessage'
+    validate      : ['id']
 
   @sendPrivateMessage = permit 'send private message',
     success:  (client, data, callback)->
@@ -115,33 +120,7 @@ module.exports = class SocialMessage extends Base
 
       unless data.body.match(/@([\w]+)/g)?.length > 0
         return callback message: "You should have at least one recipient"
-      SocialMessage.doRequest 'sendPrivateMessage', client, data, callback
-
-  @fetchPrivateMessages = permit 'list private messages',
-    success:  (client, data, callback)->
-      SocialMessage.doRequest 'fetchPrivateMessages', client, data, callback
-
-  @doRequest = (funcName, client, options, callback)->
-    fetchGroup client, (err, group)->
-      return callback err if err
-      {connection:{delegate}} = client
-      delegate.createSocialApiId (err, socialApiId)->
-        return callback err if err
-
-        options.groupName = group.slug
-        options.accountId = socialApiId
-
-        requests = require './requests'
-        requests[funcName] options, callback
-
-
-  @fetch = permit 'read posts',
-    success: (client, data, callback)->
-      {connection:{delegate}} = client
-      unless data.id
-        return callback {message: "Request is not valid for reading a message"}
-      {fetchMessage} = require './requests'
-      fetchMessage data, callback
+      doRequest 'sendPrivateMessage', client, data, callback
 
   @ensureGroupChannel = (client, callback)->
     fetchGroup client, (err, group)->
@@ -167,5 +146,4 @@ module.exports = class SocialMessage extends Base
 
         if message.accountId == socialApiId
           return callback null, yes
-        console.log "fooo"
         delegate.canEditPost client, callback
