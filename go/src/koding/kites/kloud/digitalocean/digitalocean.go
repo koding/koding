@@ -28,25 +28,25 @@ type DigitalOcean struct {
 	}
 
 	Builder struct {
-		DropletId string `mapstructure:"machineId"`
+		DropletId   string `mapstructure:"machineId"`
+		DropletName string `mapstructure:"droplet_name" packer:"droplet_name"`
 
-		Type     string `mapstructure:"type"`
-		ClientID string `mapstructure:"client_id"`
-		APIKey   string `mapstructure:"api_key"`
+		Type     string `mapstructure:"type" packer:"type"`
+		ClientID string `mapstructure:"client_id" packer:"client_id"`
+		APIKey   string `mapstructure:"api_key" packer:"api_key"`
 
-		RegionID uint `mapstructure:"region_id"`
-		SizeID   uint `mapstructure:"size_id"`
-		ImageID  uint `mapstructure:"image_id"`
+		RegionID uint `mapstructure:"region_id" packer:"region_id"`
+		SizeID   uint `mapstructure:"size_id" packer:"size_id"`
+		ImageID  uint `mapstructure:"image_id" packer:"image_id"`
 
-		Region string `mapstructure:"region"`
-		Size   string `mapstructure:"size"`
-		Image  string `mapstructure:"image"`
+		Region string `mapstructure:"region" packer:"region"`
+		Size   string `mapstructure:"size" packer:"size"`
+		Image  string `mapstructure:"image" packer:"image"`
 
-		PrivateNetworking bool   `mapstructure:"private_networking"`
-		SnapshotName      string `mapstructure:"snapshot_name"`
-		DropletName       string `mapstructure:"droplet_name"`
-		SSHUsername       string `mapstructure:"ssh_username"`
-		SSHPort           uint   `mapstructure:"ssh_port"`
+		PrivateNetworking bool   `mapstructure:"private_networking" packer:"private_networking"`
+		SnapshotName      string `mapstructure:"snapshot_name" packer:"snapshot_name"`
+		SSHUsername       string `mapstructure:"ssh_username" packer:"ssh_username"`
+		SSHPort           uint   `mapstructure:"ssh_port" packer:"ssh_port"`
 
 		RawSSHTimeout   string `mapstructure:"ssh_timeout"`
 		RawStateTimeout string `mapstructure:"state_timeout"`

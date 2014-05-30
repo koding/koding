@@ -11,7 +11,7 @@ import (
 // templateData includes our klient converts the given raw interface to a
 // []byte data that can used to pass into packer.Template().
 func TemplateData(raw, provisioner interface{}) ([]byte, error) {
-	rawMapData, err := ToMap(raw, "mapstructure")
+	rawMapData, err := ToMap(raw, "packer")
 	if err != nil {
 		return nil, err
 	}
