@@ -241,6 +241,37 @@ func (f *Controller) sendReplyAddedEvent(mr *models.MessageReply) error {
 	return nil
 }
 
+func (f *Controller) sendReplyAddedEventAsNotificationEvent(mr *models.MessageReply) error {
+	parent, err := mr.FetchRepliedMessage()
+	if err != nil {
+		return err
+	}
+
+	cml := models.NewChannelMessageList()
+	channels, err := cml.FetchMessageChannels(parent.Id)
+	if err != nil {
+		return err
+	}
+
+	if len(channels) == 0 {
+		f.log.Info("Message:(%d) is not in any channel", parent.Id)
+		return nil
+	}
+
+	cml.MessageId = parent.Id
+	for _, channel := range channels {
+		// send this event to all channels
+		// that have this message
+		cml.ChannelId = channel.Id
+		err := f.sendEventAsNotification(cml)
+		if err != nil {
+			f.log.Error("err %s", err.Error())
+		}
+	}
+
+	return nil
+}
+
 func (f *Controller) MessageReplyDeleted(data []byte) error {
 	i, err := helper.MapToMessageReply(data)
 	if err != nil {
