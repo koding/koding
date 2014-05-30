@@ -10,7 +10,6 @@ import (
 
 	"github.com/VerbalExpressions/GoVerbalExpressions"
 	"github.com/koding/logging"
-	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
 )
 
@@ -59,33 +58,28 @@ func (mwc *Controller) migrateAllPosts() error {
 	s := modelhelper.Selector{
 		"socialMessageId": modelhelper.Selector{"$exists": false},
 	}
-	kodingChannel, err := createGroupChannel("koding")
+	kodingChannel, err := mwc.createGroupChannel("koding")
 	if err != nil {
 		return fmt.Errorf("Koding channel cannot be created: %s", err)
 	}
 	kodingChannelId = kodingChannel.Id
 
 	errCount := 0
+	successCount := 0
 
 	handleError := func(su *mongomodels.StatusUpdate, err error) {
 		mwc.log.Error("an error occured for %s: %s", su.Id.Hex(), err)
 		errCount++
 	}
 
-	for {
-		o.Skip = errCount
-		su, err := modelhelper.GetStatusUpdate(s, o)
-		if err != nil {
-			if err == mgo.ErrNotFound {
-				mwc.log.Notice("Post migration completed with %d errors", errCount)
-				return nil
-			}
-			return fmt.Errorf("status update cannot be fetched: %s", err)
-		}
+	iter := modelhelper.GetStatusUpdateIter(s, o)
+	defer iter.Close()
 
-		channelId, err := fetchGroupChannelId(su.Group)
+	var su mongomodels.StatusUpdate
+	for iter.Next(&su) {
+		channelId, err := mwc.fetchGroupChannelId(su.Group)
 		if err != nil {
-			return fmt.Errorf("channel id cannot be fetched :%s", err)
+			return fmt.Errorf("Post migration is interrupted with %d errors: channel id cannot be fetched :%s", errCount, err)
 		}
 
 		// create channel message
@@ -122,12 +116,19 @@ func (mwc *Controller) migrateAllPosts() error {
 			handleError(&su, err)
 			continue
 		}
+		successCount++
 	}
+
+	if err := iter.Err(); err != nil {
+		return fmt.Errorf("Post migration is interrupted with %d errors: %s", errCount, err)
+	}
+
+	mwc.log.Notice("Post migration completed for %d status updates with %d errors", successCount, errCount)
 
 	return nil
 }
 
-func createGroupChannel(groupName string) (*models.Channel, error) {
+func (mwc *Controller) createGroupChannel(groupName string) (*models.Channel, error) {
 	c := models.NewChannel()
 	c.Name = groupName
 	c.GroupName = groupName
@@ -292,13 +293,13 @@ func prepareMessageAccount(cm *models.ChannelMessage, accountOldId string) error
 	return nil
 }
 
-func fetchGroupChannelId(groupName string) (int64, error) {
+func (mwc *Controller) fetchGroupChannelId(groupName string) (int64, error) {
 	// koding group channel id is prefetched
 	if groupName == "koding" {
 		return kodingChannelId, nil
 	}
 
-	c, err := createGroupChannel(groupName)
+	c, err := mwc.createGroupChannel(groupName)
 	if err != nil {
 		return 0, err
 	}
