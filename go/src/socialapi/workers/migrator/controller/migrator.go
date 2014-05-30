@@ -6,7 +6,9 @@ import (
 	mongomodels "koding/db/models"
 	"koding/db/mongodb/modelhelper"
 	"socialapi/models"
+	"strings"
 
+	"github.com/VerbalExpressions/GoVerbalExpressions"
 	"github.com/koding/logging"
 	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
@@ -15,6 +17,15 @@ import (
 var (
 	ErrMigrated     = errors.New("already migrated")
 	kodingChannelId int64
+	tagRegex        = verbalexpressions.New().
+			BeginCapture().
+			Find("|#:JTag:").
+			Anything().
+			Then(":").
+			Anything().
+			Then("|").
+			EndCapture().
+			Regex()
 )
 
 type Controller struct {
@@ -294,7 +305,7 @@ func fetchGroupChannelId(groupName string) (int64, error) {
 func mapStatusUpdateToChannelMessage(su *mongomodels.StatusUpdate) *models.ChannelMessage {
 	cm := models.NewChannelMessage()
 	cm.Slug = su.Slug
-	cm.Body = su.Body
+	prepareBody(cm, su.Body)
 	cm.TypeConstant = models.ChannelMessage_TYPE_POST
 	cm.CreatedAt = su.Meta.CreatedAt
 	prepareMessageMetaDates(cm, &su.Meta)
@@ -319,6 +330,22 @@ func prepareMessageMetaDates(cm *models.ChannelMessage, meta *mongomodels.Meta) 
 	} else {
 		cm.UpdatedAt = meta.ModifiedAt
 	}
+}
+
+func prepareBody(cm *models.ChannelMessage, body string) {
+	res := tagRegex.FindAllStringSubmatch(body, -1)
+	cm.Body = body
+	if len(res) == 0 {
+		return
+	}
+
+	for _, element := range res {
+		tag := element[1][1 : len(element[1])-1]
+		tag = strings.Split(tag, ":")[3]
+		tag = "#" + tag
+		cm.Body = verbalexpressions.New().Find(element[1]).Replace(cm.Body, tag)
+	}
+
 }
 
 func completePostMigration(su *mongomodels.StatusUpdate, cm *models.ChannelMessage) error {
