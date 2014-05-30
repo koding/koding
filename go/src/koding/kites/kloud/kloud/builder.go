@@ -46,7 +46,7 @@ func (k *Kloud) build(r *kite.Request) (interface{}, error) {
 	k.idlock.Get(r.Username).Lock()
 	defer k.idlock.Get(r.Username).Unlock()
 
-	machineData, err := k.Storage.MachineData(args.MachineId)
+	machineData, err := k.Storage.Get(args.MachineId)
 	if err != nil {
 		return nil, err
 	}

@@ -29,7 +29,7 @@ import (
 
 type TestStorage struct{}
 
-func (t *TestStorage) MachineData(id string) (*kloud.MachineData, error) {
+func (t *TestStorage) Get(id string) (*kloud.MachineData, error) {
 	provider := TestProviderData[id]
 
 	return &kloud.MachineData{

@@ -40,7 +40,7 @@ type ControllerArgs struct {
 // provider returns the Provider responsible for the given machine Id. It also
 // calls provider.Prepare before returning.
 func (k *Kloud) provider(machineId string) (Provider, error) {
-	m, err := k.Storage.MachineData(machineId)
+	m, err := k.Storage.Get(machineId)
 	if err != nil {
 		return nil, err
 	}
