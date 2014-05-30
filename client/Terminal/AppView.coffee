@@ -35,14 +35,14 @@ class WebTermAppView extends JView
     @on 'TerminalStarted', ->
       KD.mixpanel "Open new Webterm, success"
 
-    {vmController} = KD.singletons
-    vmController.on 'vm.progress.error', => @notify cssClass : 'error'
+    # {vmController} = KD.singletons
+    # vmController.on 'vm.progress.error', => @notify cssClass : 'error'
 
-    @on "SessionSelected", ({vm, session}) => @createNewTab {vm, session, mode: 'resume'}
+    # @on "SessionSelected", ({vm, session}) => @createNewTab {vm, session, mode: 'resume'}
 
-    {vmController} = KD.singletons
-    {terminalKites} = vmController
-    vmController.ready @bound 'restoreTabs'
+    # {vmController} = KD.singletons
+    # {terminalKites} = vmController
+    # vmController.ready @bound 'restoreTabs'
 
   restoreTabs: ->
     @fetchStorage (storage) =>
@@ -104,7 +104,6 @@ class WebTermAppView extends JView
                            If you want always on VMs, you can upgrade your plan"
               cssClass  : "fail"
 
-
   initPane: (pane) ->
 
     return if pane.id of @initedPanes
@@ -118,7 +117,6 @@ class WebTermAppView extends JView
       if not pane.isDestroyed and @tabView.getActivePane() is pane
         @tabView.removePane pane
 
-
   handlePaneShown:(pane, index)->
     @_windowDidResize()
     {terminalView} = pane.getOptions()
@@ -130,11 +128,9 @@ class WebTermAppView extends JView
     KD.utils.defer -> terminalView.setKeyView()
     @fetchStorage (storage) -> storage.setValue 'activeIndex', index
 
-
   fetchStorage: (callback) ->
     storage = KD.getSingleton('appStorageController').storage 'Terminal', '1.0.1'
     storage.fetchStorage -> callback storage
-
 
   showApprovalModal: (remote, command)->
     modal = new KDModalView
@@ -250,16 +246,14 @@ class WebTermAppView extends JView
         wc.clearUnloadListeners()
         location.replace path
 
-
   createNewTab: (options = {}) ->
 
     {shouldShow, session} = options
-    {hostnameAlias: vmName, region} = options.vm
+    # {hostnameAlias: vmName, region} = options.vm
 
     # before creating new tab check for its existence first and then show that pane if it is already opened
-    pane = @findPane session
-
-    return @tabView.showPane pane  if pane
+    # pane = @findPane session
+    # return @tabView.showPane pane  if pane
 
     defaultOptions =
       testPath    : "webterm-tab"
@@ -268,7 +262,6 @@ class WebTermAppView extends JView
     terminalView   = new WebTermView (KD.utils.extend defaultOptions, options)
 
     @emit 'TerminalStarted'
-
     @appendTerminalTab terminalView, shouldShow
     terminalView.connectToTerminal()
     @forwardEvent terminalView, "WebTermConnected"
@@ -363,38 +356,44 @@ class WebTermAppView extends JView
 
     @prepareAndRunTerminal vm, mode
 
-
   showVMSelection:->
 
     return  if @vmselection and not @vmselection.isDestroyed
     @vmselection = new VMSelection delegate : this
 
-
   handlePlusClick:->
 
-    vmc = KD.getSingleton 'vmController'
-    if vmc.vms.length > 1 then @showVMSelection()
-    else
-      vm = vmc.vms.first
+    ComputeProvider.fetchMachines (err, machines)=>
+      machine = machines.first
 
-      unless vm
-        ErrorLog.create "terminal: handlePlusClick error", {reason:"0 vms"}
-        return
+      @createNewTab {machine, mode:'create'}
 
-      osKite =
-        if KD.useNewKites
-        then vmc.kites.oskite[vm.hostnameAlias]
-        else vmc.kites[vm.hostnameAlias]
+    # vmc = KD.getSingleton 'vmController'
+    # if vmc.vms.length > 1 then @showVMSelection()
+    # else
 
-      state = osKite.recentState?.state
+    #   console.log "here....."
 
-      if state is 'RUNNING'
-      then @prepareAndRunTerminal vm
-      else
-        ErrorLog.create "terminal: handlePlusClick error",
-          {reason: "vm has unknown state", osKiteState: state}
+    #   vm = vmc.vms.first
 
-        @notify cssClass : 'error'
+    #   unless vm
+    #     ErrorLog.create "terminal: handlePlusClick error", {reason:"0 vms"}
+    #     return
+
+    #   osKite =
+    #     if KD.useNewKites
+    #     then vmc.kites.oskite[vm.hostnameAlias]
+    #     else vmc.kites[vm.hostnameAlias]
+
+    #   state = osKite.recentState?.state
+
+    #   if state is 'RUNNING'
+    #   then @prepareAndRunTerminal vm
+    #   else
+    #     ErrorLog.create "terminal: handlePlusClick error",
+    #       {reason: "vm has unknown state", osKiteState: state}
+
+    #     @notify cssClass : 'error'
 
   prepareAndRunTerminal: (vm, mode = 'create') ->
     {vmController} = KD.singletons
@@ -434,7 +433,6 @@ class WebTermAppView extends JView
     {{> @tabHandleContainer}}
     {{> @tabView}}
     """
-
 
   notify: do ->
 
