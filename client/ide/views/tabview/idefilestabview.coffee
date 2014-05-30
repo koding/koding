@@ -7,8 +7,6 @@ class IDEFilesTabView extends WorkspaceTabView
 
     super options, data
 
-    ideAppController = KD.getSingleton('appManager').getFrontApp()
-
     filesPane  = new KDTabPaneView
       name     : 'Files'
       closable : no
@@ -31,7 +29,11 @@ class IDEFilesTabView extends WorkspaceTabView
     @tabView.addPane settingsPane
 
 
-    ################################
+    # actionsPane and these buttons are required for development
+    # they will be removed when global shortcuts are implemented
+
+    ideAppController = KD.getSingleton('appManager').getFrontApp()
+
     actionsPane  = new KDTabPaneView
       name     : 'Actions'
       closable : no
