@@ -6,6 +6,7 @@ import (
 	mongomodels "koding/db/models"
 	"koding/db/mongodb/modelhelper"
 	"socialapi/models"
+	"strconv"
 	"strings"
 
 	"github.com/VerbalExpressions/GoVerbalExpressions"
@@ -152,6 +153,11 @@ func (mwc *Controller) createGroupChannel(groupName string) (*models.Channel, er
 	// create channel
 	if err := c.Create(); err != nil {
 		return nil, err
+	}
+
+	group.SocialApiChannelId = strconv.FormatInt(c.Id, 10)
+	if err := modelhelper.UpdateGroup(group); err != nil {
+		mwc.log.Error("Group document cannot be updated: %s", err)
 	}
 
 	return c, nil
