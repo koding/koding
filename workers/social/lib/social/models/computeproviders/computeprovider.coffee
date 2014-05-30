@@ -170,8 +170,7 @@ module.exports = class ComputeProvider extends Base
 
       if err
         callback err
-        return console.warn \
-          "Failed to create Machine for ", {users, groups}
+        return console.warn "Failed to create Machine for ", {users, groups}
 
       callback null, machine
 
@@ -239,7 +238,7 @@ module.exports = class ComputeProvider extends Base
               rule   = results.rules[c.rules]
               domain = results.domains[c.domains]
 
-              unless rule?.err and domain?.err
+              if not rule?.err and not domain?.err
                 results.connections.push
                   err : new KodingError "Not implemented"
                   obj : null
@@ -253,12 +252,12 @@ module.exports = class ComputeProvider extends Base
             # Assign a domain to machine
             else if c.machines? and c.domains?
 
-              d = results.domains[c.domains]
-              m = results.machines[c.machines]
+              domain  = results.domains[c.domains]
+              machine = results.machines[c.machines]
 
-              unless d?.err and m?.err
+              if not domain?.err and not machine?.err
 
-                d.obj.bindMachine m.obj.getId(), (err)->
+                domain.obj.bindMachine machine.obj.getId(), (err)->
                   results.connections.push { err, obj: ok: !err? }
                   queue.next()
 
