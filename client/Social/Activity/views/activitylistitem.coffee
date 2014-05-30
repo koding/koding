@@ -129,8 +129,6 @@ class ActivityListItemView extends KDListItemView
 
   viewAppended:->
 
-    return if @getData().constructor is KD.remote.api.CStatusActivity
-
     JView::viewAppended.call this
 
     @setAnchors()
