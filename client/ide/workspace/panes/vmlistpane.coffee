@@ -57,15 +57,24 @@ class VMPaneListItem extends JView
       cssClass     : 'domain-name'
       partial      : data.hostnameAlias.replace 'koding.kd.io', 'kd.io'
 
-    @actionsButton = new KDButtonViewWithMenu
-      title        : ""
-      icon         : yes
-      delegate     : this
-      cssClass     : 'actions'
+    @actionsButton = new KDButtonView
+      title        : ''
       iconClass    : 'icon'
       cssClass     : 'actions-menu'
-      style        : 'resurrection'
-      menu         : @getMenuItems()
+      callback     : @bound 'createContextMenu'
+
+  createContextMenu: (event) ->
+    button = @actionsButton
+    menu   = new KDContextMenu
+      cssClass     : 'environments'
+      event        : event
+      delegate     : this
+      x            : button.getX() - 146
+      y            : button.getY() + 20
+      arrow        :
+        placement  : 'top'
+        margin     : 150
+    , @getMenuItems()
 
   getMenuItems: ->
     data                  = @getData()
