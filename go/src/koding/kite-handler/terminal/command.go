@@ -20,6 +20,9 @@ type Command struct {
 
 	// Args is passed to the program name
 	Args []string
+
+	// Session id used for reconnections, used by screen or tmux
+	Session string
 }
 
 var (
@@ -54,14 +57,16 @@ func newCommand(mode, session, username string) (*Command, error) {
 		name = "/bin/bash"
 		args = []string{}
 	case "create":
-		args = append(args, sessionPrefix+"."+randomString())
+		session = randomString()
+		args = append(args, sessionPrefix+"."+session)
 	default:
 		return nil, fmt.Errorf("mode '%s' is unknown. Valid modes are:  [shared|noscreen|resume|create]", mode)
 	}
 
 	c := &Command{
-		Name: name,
-		Args: args,
+		Name:    name,
+		Args:    args,
+		Session: session,
 	}
 
 	return c, nil
