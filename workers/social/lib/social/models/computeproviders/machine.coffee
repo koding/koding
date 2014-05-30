@@ -60,11 +60,24 @@ module.exports = class JMachine extends Module
 
       state             :
         type            : String
-        enum            : ["Wrong type specified!",
-          ["active", "not-initialized", "removed",
-           "suspended", "provisioning"]
-        ]
-        default         : "not-initialized"
+        enum            : ["Wrong type specified!", [
+
+          # States which description ending with '...' means its an ongoing
+          # proccess which you may get progress info about it
+          #
+          "NotInitialized"  # Initial state, machine instance does not exists
+          "Building"        # Build started machine instance creating...
+          "Starting"        # Machine is booting...
+          "Running"         # Machine is physically running
+          "Stopping"        # Machine is turning off...
+          "Stopped"         # Machine is turned off
+          "Rebooting"       # Machine is rebooting...
+          "Terminating"     # Machine is getting destroyed...
+          "Terminated"      # Machine is destroyed, not exists anymore
+
+        ]]
+
+        default         : "NotInitialized"
 
       meta              : Object
 
