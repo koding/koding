@@ -81,6 +81,14 @@ postToChannel = (data, callback)->
   url = "/channel/#{data.channelId}/message"
   post url, data, callback
 
+
+updateLastSeenTime = (data, callback)->
+  unless data.channelId and data.accountId
+    return callback {message: "Request is not valid"}
+
+  url = "/channel/#{data.channelId}/participant/#{data.accountId}/presence"
+  post url, data, callback
+
 editMessage = (data, callback)->
   if not data.body or not data.id
     return callback { message: "Request is not valid for editing a message"}
@@ -278,6 +286,7 @@ get = (url, data, callback)->
     , wrapCallback callback
 
 module.exports = {
+  updateLastSeenTime
   fetchProfileFeed
   searchTopics
   fetchPrivateMessages
