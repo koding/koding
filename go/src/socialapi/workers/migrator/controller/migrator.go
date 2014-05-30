@@ -30,6 +30,18 @@ func New(log logging.Logger) (*Controller, error) {
 }
 
 func (mwc *Controller) Start() error {
+	if err := mwc.migrateAllTags(); err != nil {
+		return err
+	}
+
+	if err := mwc.migrateAllPosts(); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (mwc *Controller) migrateAllPosts() error {
 	o := modelhelper.Options{
 		Sort: "meta.createdAt",
 	}
