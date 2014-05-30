@@ -77,7 +77,7 @@ func (mwc *Controller) migrateAllPosts() error {
 		su, err := modelhelper.GetStatusUpdate(s, o)
 		if err != nil {
 			if err == mgo.ErrNotFound {
-				mwc.log.Notice("Migration completed")
+				mwc.log.Notice("Post migration completed with %d errors", errCount)
 				return nil
 			}
 			return fmt.Errorf("status update cannot be fetched: %s", err)
@@ -102,12 +102,17 @@ func (mwc *Controller) migrateAllPosts() error {
 		}
 
 		// create reply messages
-		if err := migrateComments(cm, &su, channelId); err != nil {
+		if err := mwc.migrateComments(cm, &su, channelId); err != nil {
 			handleError(&su, err)
 			continue
 		}
 
-		if err := migrateLikes(cm, su.Id); err != nil {
+		if err := mwc.migrateLikes(cm, su.Id); err != nil {
+			handleError(&su, err)
+			continue
+		}
+
+		if err := mwc.migrateTags(cm, su.Id); err != nil {
 			handleError(&su, err)
 			continue
 		}
@@ -117,8 +122,6 @@ func (mwc *Controller) migrateAllPosts() error {
 			handleError(&su, err)
 			continue
 		}
-
-		fmt.Printf("\n\nStatus update var %+v \n\n", su)
 	}
 
 	return nil
@@ -236,7 +239,7 @@ func (mwc *Controller) migrateComments(parentMessage *models.ChannelMessage, su 
 			return fmt.Errorf("comment cannot be inserted to message reply %s", err)
 		}
 
-		if err := migrateLikes(reply, comment.Id); err != nil {
+		if err := mwc.migrateLikes(reply, comment.Id); err != nil {
 			return fmt.Errorf("likes cannot be migrated %s", err)
 		}
 
@@ -261,7 +264,8 @@ func (mwc *Controller) migrateLikes(cm *models.ChannelMessage, oldId bson.Object
 		a := models.NewAccount()
 		a.OldId = r.TargetId.Hex()
 		if err := a.FetchOrCreate(); err != nil {
-			return fmt.Errorf("interactor account could not found: %s", err)
+			mwc.log.Error("interactor account could not found: %s", err)
+			continue
 		}
 		i := models.NewInteraction()
 		i.MessageId = cm.Id
