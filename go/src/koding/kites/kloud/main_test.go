@@ -47,6 +47,7 @@ var (
 	kloudKite *kodingkite.KodingKite
 	remote    *kite.Client
 	testuser  string
+	storage   kloud.Storage
 
 	flagTestBuilds   = flag.Int("builds", 1, "Number of builds")
 	flagTestDestroy  = flag.Bool("no-destroy", false, "Do not destroy test machines")
@@ -159,8 +160,13 @@ func build(i int, client *kite.Client, data map[string]interface{}) error {
 		return fmt.Errorf("droplet name is: %s, expecting: %s", result.MachineName, machineName)
 	}
 
+	fmt.Println("============")
+	fmt.Printf("result %+v\n", result)
+	fmt.Println("============")
+
 	if !*flagTestDestroy {
 		fmt.Println("destroying ", machineName)
+
 		cArgs := &kloud.ControllerArgs{
 			MachineId: data["provider"].(string),
 		}
@@ -169,10 +175,6 @@ func build(i int, client *kite.Client, data map[string]interface{}) error {
 			return fmt.Errorf("destroy: %s", err)
 		}
 	}
-
-	fmt.Println("============")
-	fmt.Printf("result %+v\n", result)
-	fmt.Println("============")
 
 	return nil
 
@@ -476,11 +478,13 @@ func setupKloud() *kodingkite.KodingKite {
 	}
 	privateKey := string(privKey)
 
+	storage = &TestStorage{}
+
 	k := &kloud.Kloud{
 		Region:            "vagrant",
 		Port:              3636,
 		Config:            kloudConf,
-		Storage:           &TestStorage{},
+		Storage:           storage,
 		KontrolURL:        "wss://kontrol.koding.com",
 		KontrolPrivateKey: privateKey,
 		KontrolPublicKey:  publicKey,
