@@ -106,6 +106,6 @@ func (vm *VM) WaitForNetwork() error {
 			return errors.New("Timeout while waiting for VM Network state.")
 		}
 
-		time.Sleep(time.Millisecond * 100)
+		time.Sleep(time.Millisecond * 500)
 	}
 }
