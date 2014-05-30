@@ -216,6 +216,12 @@ func (f *Controller) MessageReplySaved(data []byte) error {
 		return err
 	}
 
+	f.sendReplyAddedEventAsNotificationEvent(mr)
+	f.sendReplyAddedEvent(mr)
+	return nil
+}
+
+func (f *Controller) sendReplyAddedEvent(mr *models.MessageReply) error {
 	reply := models.NewChannelMessage()
 	if err := reply.ById(mr.ReplyId); err != nil {
 		return err
