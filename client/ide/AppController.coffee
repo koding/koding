@@ -115,6 +115,14 @@ class IDEAppController extends AppController
     @activeTabView.emit 'VMWebPageRequested', vmData
 
   mountVM: (vmData) ->
+    panel        = @workspace.getView()
+    filesPane    = panel.getPaneByName 'filesPane'
+    filesPane.emit 'VMMountRequested', vmData
+
+  unmountVM: (vmData) ->
+    panel        = @workspace.getView()
+    filesPane    = panel.getPaneByName 'filesPane'
+    filesPane.emit 'VMUnmountRequested', vmData
 
   collapseSidebar: ->
     panel        = @workspace.getView()

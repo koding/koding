@@ -30,6 +30,11 @@ class IDEFilesTabView extends WorkspaceTabView
     settingsPane.addSubView new SettingsPane
     @tabView.addPane settingsPane
 
+    @on 'VMMountRequested', (vmData) =>
+      @finderPane.emit 'VMMountRequested', vmData
+
+    @on 'VMUnmountRequested', (vmData) =>
+      @finderPane.emit 'VMUnmountRequested', vmData
 
     # actionsPane and these buttons are required for development
     # they will be removed when global shortcuts are implemented
