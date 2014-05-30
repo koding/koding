@@ -87,12 +87,15 @@ func (vm *VM) WaitForNetwork() error {
 			"--", "/bin/cat", "/sys/class/net/eth0/operstate").CombinedOutput()
 
 		if strings.TrimSpace(string(out)) == "up" {
-			return true
+			if out, err := exec.Command("/usr/bin/lxc-attach", "--name", vm.String(),
+				"--", "/bin/stat", "/usr/bin/screen").CombinedOutput(); err != nil {
+				return true
+			} else {
+				return false
+			}
+			return false
 		}
-
-		return false
 	}
-
 	tryUntil := time.Now().Add(timeout)
 	for {
 		if up := isNetworkUp(); up {
