@@ -150,6 +150,12 @@ func (b *Bongo) Count(i Modellable, where ...interface{}) (int, error) {
 	return count, query.Count(&count).Error
 }
 
+func (b *Bongo) CountWithQuery(i Modellable, q *Query) (int, error) {
+	query := b.BuildQuery(i, q)
+	var count int
+	return count, query.Count(&count).Error
+}
+
 type Query struct {
 	Selector   map[string]interface{}
 	Sort       map[string]string
@@ -231,40 +237,32 @@ func (b *Bongo) executeQuery(i Modellable, data interface{}, q *Query) error {
 	return err
 }
 
-func (b *Bongo) AfterCreate(i Modellable) {
+func (b *Bongo) PublishEvent(eventName string, i Modellable) error {
 	data, err := json.Marshal(i)
 	if err != nil {
-		return
+		b.log.Error("Error while marshalling for publish %s", err)
+		return err
 	}
 
-	err = b.Broker.Publish(i.TableName()+"_created", data)
+	err = b.Broker.Publish(i.TableName()+"_"+eventName, data)
 	if err != nil {
-		return
+		b.log.Error("Error while publishing %s", err)
+		return err
 	}
+
+	return nil
+}
+
+func (b *Bongo) AfterCreate(i Modellable) {
+	b.PublishEvent("created", i)
 }
 
 func (b *Bongo) AfterUpdate(i Modellable) {
-	data, err := json.Marshal(i)
-	if err != nil {
-		return
-	}
-
-	err = b.Broker.Publish(i.TableName()+"_updated", data)
-	if err != nil {
-		return
-	}
+	b.PublishEvent("updated", i)
 }
 
 func (b *Bongo) AfterDelete(i Modellable) {
-	data, err := json.Marshal(i)
-	if err != nil {
-		return
-	}
-
-	err = b.Broker.Publish(i.TableName()+"_deleted", data)
-	if err != nil {
-		return
-	}
+	b.PublishEvent("deleted", i)
 }
 
 func addSort(query *gorm.DB, options map[string]string) *gorm.DB {

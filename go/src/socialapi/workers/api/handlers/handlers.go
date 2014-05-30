@@ -73,6 +73,8 @@ func Inject(mux *tigertonic.TrieServeMux) *tigertonic.TrieServeMux {
 	mux.Handle("POST", "/channel/{id}/participant/{accountId}/add", handlerWrapper(participant.Add, "participant-list"))
 	// remove participant from the channel
 	mux.Handle("POST", "/channel/{id}/participant/{accountId}/delete", handlerWrapper(participant.Delete, "participant-list"))
+	// update presence info
+	mux.Handle("POST", "/channel/{id}/participant/{accountId}/presence", handlerWrapper(participant.Presence, "participant-presence"))
 	// list messages of the channel
 	mux.Handle("GET", "/channel/{id}/history", handlerWrapper(messagelist.List, "channel-history-list"))
 	// register an account

@@ -11,6 +11,8 @@ MINOR=1
 # export MAJOR
 # export MINOR
 
+default: configure
+
 develop: apidev topicfeeddev realtimedev followingfeeddev populartopicdev popularpostdev notificationdev
 
 apidev:
@@ -49,8 +51,6 @@ PACKAGES = \
 	socialapi/workers/populartopic \
 	socialapi/workers/notification \
 	socialapi/workers/popularpost
-
-default: all
 
 createdb:
 	(vagrant ssh default --command "mongo localhost/koding --eval='db.jAccounts.update({},{\$$unset:{socialApiId:0}},{multi:true})'")
@@ -134,5 +134,3 @@ dep:
 	done;
 
 	@echo "$(OK_COLOR)==> Files are located at files $(NO_COLOR)";
-
-.PHONY: all
