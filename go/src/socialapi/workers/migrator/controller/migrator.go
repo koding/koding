@@ -17,19 +17,19 @@ var (
 	kodingChannelId int64
 )
 
-type MigratorWorkerController struct {
+type Controller struct {
 	log logging.Logger
 }
 
-func NewMigratorWorkerController(log logging.Logger) (*MigratorWorkerController, error) {
-	wc := &MigratorWorkerController{
+func New(log logging.Logger) (*Controller, error) {
+	wc := &Controller{
 		log: log,
 	}
 
 	return wc, nil
 }
 
-func (mwc *MigratorWorkerController) Start() error {
+func (mwc *Controller) Start() error {
 	o := modelhelper.Options{
 		Sort: "meta.createdAt",
 	}
@@ -173,7 +173,7 @@ func addChannelMessageToMessageList(cm *models.ChannelMessage) error {
 	return cml.CreateRaw()
 }
 
-func migrateComments(parentMessage *models.ChannelMessage, su *mongomodels.StatusUpdate, channelId int64) error {
+func (mwc *Controller) migrateComments(parentMessage *models.ChannelMessage, su *mongomodels.StatusUpdate, channelId int64) error {
 
 	s := modelhelper.Selector{
 		"sourceId":   su.Id,
@@ -225,7 +225,7 @@ func migrateComments(parentMessage *models.ChannelMessage, su *mongomodels.Statu
 	return nil
 }
 
-func migrateLikes(cm *models.ChannelMessage, oldId bson.ObjectId) error {
+func (mwc *Controller) migrateLikes(cm *models.ChannelMessage, oldId bson.ObjectId) error {
 	s := modelhelper.Selector{
 		"sourceId": oldId,
 		"as":       "like",

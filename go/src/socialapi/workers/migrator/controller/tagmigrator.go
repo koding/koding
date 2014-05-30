@@ -7,7 +7,7 @@ import (
 	"socialapi/models"
 )
 
-func (mwc *MigratorWorkerController) migrateAllTags() error {
+func (mwc *Controller) migrateAllTags() error {
 	o := modelhelper.Options{
 		Sort: "meta.createdAt",
 	}
@@ -89,8 +89,7 @@ func fetchTagCreatorId(t *mongomodels.Tag) (int64, error) {
 	return a.Id, nil
 }
 
-func completeTagMigration(tag *mongomodels.Tag, c *models.Channel) error {
-	tag.SocialApiChannelId = c.Id
+func (mwc *Controller) createTagFollowers(t *mongomodels.Tag, channelId int64) error {
 
 	return modelhelper.UpdateTag(tag)
 }

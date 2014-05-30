@@ -21,7 +21,7 @@ func main() {
 
 	modelhelper.Initialize(r.Conf.Mongo)
 
-	handler, err := controller.NewMigratorWorkerController(r.Log)
+	handler, err := controller.New(r.Log)
 	if err != nil {
 		panic(err)
 	}
