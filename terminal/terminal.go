@@ -24,7 +24,7 @@ const randomStringLength = 24 // 144 bit base64 encoded
 // Server is the type of object that is sent to the connected client.
 // Represents a running shell process on the server.
 type Server struct {
-	Session          string
+	Session          string `json:"session"`
 	remote           Remote
 	pty              *pty.PTY
 	currentSecond    int64
