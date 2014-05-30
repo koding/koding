@@ -19,7 +19,9 @@ import (
 )
 
 const (
-	ChannelUpdateEventName = "ChannelUpdateHappened"
+	ChannelUpdateEventName      = "ChannelUpdateHappened"
+	RemovedFromChannelEventName = "RemovedFromChannel"
+	AddedToChannelEventName     = "AddedToChannel"
 )
 
 var mongoAccounts map[int64]*mongomodels.Account
@@ -79,9 +81,10 @@ func New(rmq *rabbitmq.RabbitMQ, log logging.Logger) (*Controller, error) {
 		"api.channel_message_list_updated": (*Controller).MessageListUpdated,
 		"api.channel_message_list_deleted": (*Controller).MessageListDeleted,
 
-		"api.channel_participant_created": (*Controller).ChannelParticipantEvent,
-		"api.channel_participant_updated": (*Controller).ChannelParticipantEvent,
-		"api.channel_participant_deleted": (*Controller).ChannelParticipantEvent,
+		"api.channel_participant_removed_from_channel": (*Controller).ChannelParticipantRemovedFromChannelEvent,
+		"api.channel_participant_added_to_channel":     (*Controller).ChannelParticipantAddedToChannelEvent,
+		"api.channel_participant_created":              (*Controller).ChannelParticipantAddedToChannelEvent,
+		"api.channel_participant_updated":              (*Controller).ChannelParticipantUpdatedEvent,
 
 		"notification.notification_created": (*Controller).NotifyUser,
 		"notification.notification_updated": (*Controller).NotifyUser,
@@ -128,7 +131,38 @@ func (f *Controller) MessageUpdated(data []byte) error {
 	return nil
 }
 
-func (f *Controller) ChannelParticipantEvent(data []byte) error {
+// ChannelParticipantUpdatedEvent is fired when we update any info of the
+// channel participant
+// We are updating status_constant while removing user from the channel
+// but regarding operation has another event, so we are gonna ignore it
+func (f *Controller) ChannelParticipantUpdatedEvent(data []byte) error {
+	cp := models.NewChannelParticipant()
+	if err := json.Unmarshal(data, cp); err != nil {
+		return err
+	}
+
+	if cp.StatusConstant == models.ChannelParticipant_STATUS_LEFT {
+		f.log.Info("Ignoring participant (%d) left channel event", cp.AccountId)
+		return nil
+	}
+
+	c, err := models.ChannelById(cp.ChannelId)
+	if err != nil {
+		return err
+	}
+
+	return f.sendChannelUpdatedEventToParticipant(c, cp)
+}
+
+func (f *Controller) ChannelParticipantRemovedFromChannelEvent(data []byte) error {
+	return f.sendChannelParticipantEvent(data, RemovedFromChannelEventName)
+}
+
+func (f *Controller) ChannelParticipantAddedToChannelEvent(data []byte) error {
+	return f.sendChannelParticipantEvent(data, AddedToChannelEventName)
+}
+
+func (f *Controller) sendChannelParticipantEvent(data []byte, eventName string) error {
 	cp := models.NewChannelParticipant()
 	if err := json.Unmarshal(data, cp); err != nil {
 		return err
@@ -144,15 +178,7 @@ func (f *Controller) ChannelParticipantEvent(data []byte) error {
 		return err
 	}
 
-	if cp.StatusConstant == models.ChannelParticipant_STATUS_ACTIVE {
-		err = f.sendNotification(cp.AccountId, "AddedToChannel", cmc)
-	} else if cp.StatusConstant == models.ChannelParticipant_STATUS_LEFT {
-		err = f.sendNotification(cp.AccountId, "RemovedFromChannel", cmc)
-	} else {
-		err = fmt.Errorf("Unhandled event type for channel participation %s", cp.StatusConstant)
-	}
-
-	if err != nil {
+	if err := f.sendNotification(cp.AccountId, eventName, cmc); err != nil {
 		f.log.Error("Ignoring err %s ", err.Error())
 	}
 
@@ -334,31 +360,39 @@ func (f *Controller) sendChannelUpdatedEvent(channelId int64) error {
 		return nil
 	}
 
+	for _, accountId := range participants {
+		f.sendChannelUpdatedEventToAccount(c, accountId)
+	}
+
+	return nil
+}
+
+func (f *Controller) sendChannelUpdatedEventToAccount(c *models.Channel, accountId int64) error {
+
+	cp := models.NewChannelParticipant()
+	cp.ChannelId = c.Id
+	cp.AccountId = accountId
+	if err := cp.FetchParticipant(); err != nil {
+		f.log.Error("Err: %s, skipping account %d", err.Error(), accountId)
+		return nil
+	}
+
+	return f.sendChannelUpdatedEventToParticipant(c, cp)
+}
+
+func (f *Controller) sendChannelUpdatedEventToParticipant(c *models.Channel, cp *models.ChannelParticipant) error {
+	count, err := models.NewChannelMessageList().UnreadCount(cp)
+	if err != nil {
+		f.log.Notice("Error happened, setting unread count to 1 %s", err.Error())
+		count = 1
+	}
+
 	data := map[string]interface{}{
 		"channel":     c,
-		"unreadCount": 0,
+		"unreadCount": count,
 	}
 
-	cml := models.NewChannelMessageList()
-
-	for _, accountId := range participants {
-		cp := models.NewChannelParticipant()
-		cp.ChannelId = c.Id
-		cp.AccountId = accountId
-		if err := cp.FetchParticipant(); err != nil {
-			f.log.Error("Err: %s, skipping account %d", err.Error(), accountId)
-			continue
-		}
-
-		count, err := cml.UnreadCount(cp)
-		if err != nil {
-			f.log.Notice("Error happened, setting unread count to 1 %s", err.Error())
-			count = 1
-		}
-		data["unreadCount"] = count
-
-		f.sendNotification(accountId, ChannelUpdateEventName, data)
-	}
+	f.sendNotification(cp.AccountId, ChannelUpdateEventName, data)
 
 	return nil
 }
