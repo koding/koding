@@ -130,7 +130,7 @@ func ensurePinnedActivityChannel(accountId int64, groupName string) (*models.Cha
 		return nil, err
 	}
 
-	// if we found the channel
+	// if we find the channel
 	// return early
 	if c.Id != 0 {
 		return c, nil
