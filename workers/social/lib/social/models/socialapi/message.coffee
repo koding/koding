@@ -60,7 +60,7 @@ module.exports = class SocialMessage extends Base
     success: (client, data, callback)->
       SocialMessage.ensureGroupChannel client, (err, socialApiChannelId)->
         data.channelId = socialApiChannelId
-        SocialMessage.doRequest 'postToChannel', client, data, callback
+        doRequest 'postToChannel', client, data, callback
 
   @reply = permit 'create posts',
     success: (client, data, callback)->
