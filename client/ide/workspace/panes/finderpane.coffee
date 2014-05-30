@@ -21,3 +21,9 @@ class FinderPane extends Pane
       file.fetchContents (err, contents) ->
         appManager = KD.getSingleton 'appManager'
         appManager.tell 'IDE', 'openFile', file, contents
+
+    @on 'VMMountRequested', (vm) =>
+      @finderController.mountVm vm
+
+    @on 'VMUnmountRequested', (vm) =>
+      @finderController.unmountVm vm.hostnameAlias
