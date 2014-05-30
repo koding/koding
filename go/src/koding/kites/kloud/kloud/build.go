@@ -2,6 +2,7 @@ package kloud
 
 import (
 	"errors"
+	"fmt"
 	"strconv"
 	"time"
 
@@ -47,6 +48,10 @@ func (k *Kloud) build(r *kite.Request) (interface{}, error) {
 	if state != NotInitialized {
 		return nil, ErrAlreadyInitialized
 	}
+
+	eventId, _ := k.NewEventer()
+
+	fmt.Printf("eventId %+v\n", eventId)
 
 	snapshotName := defaultSnapshotName
 	if args.SnapshotName != "" {

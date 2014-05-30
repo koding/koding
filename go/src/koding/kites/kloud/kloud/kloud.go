@@ -26,7 +26,8 @@ type Kloud struct {
 	Config *config.Config
 	Log    logging.Logger
 
-	Storage Storage
+	Storage  Storage
+	Eventers map[string]Eventer
 
 	idlock *idlock.IdLock
 
@@ -59,6 +60,10 @@ func (k *Kloud) NewKloud() *kodingkite.KodingKite {
 
 	if k.Storage == nil {
 		k.Storage = &MongoDB{session: mongodb.NewMongoDB(k.Config.Mongo)}
+	}
+
+	if k.Eventers == nil {
+		k.Eventers = make(map[string]Eventer)
 	}
 
 	kt, err := kodingkite.New(k.Config, k.Name, k.Version)

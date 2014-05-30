@@ -1,6 +1,7 @@
 package kloud
 
 import (
+	"koding/kites/kloud/utils"
 	"sync"
 	"time"
 )
@@ -30,11 +31,16 @@ type event struct {
 }
 
 type events struct {
-	e           []*event
-	latestEvent *event
-	closed      bool
+	e      []*event
+	closed bool
 
 	sync.Mutex
+}
+
+func newEventer() Eventer {
+	return &events{
+		e: make([]*event, 0),
+	}
 }
 
 func (e *events) Push(ev *event) {
@@ -60,4 +66,12 @@ func (e *events) Close() {
 	defer e.Unlock()
 
 	e.closed = true
+}
+
+func (k *Kloud) NewEventer() (string, Eventer) {
+	eventer := newEventer()
+	eventId := utils.RandString(16)
+	k.Eventers[eventId] = eventer
+
+	return eventId, eventer
 }
