@@ -37,9 +37,11 @@ type ChannelParticipant struct {
 // here is why i did this not-so-good constants
 // https://code.google.com/p/go/issues/detail?id=359
 const (
-	ChannelParticipant_STATUS_ACTIVE          = "active"
-	ChannelParticipant_STATUS_LEFT            = "left"
-	ChannelParticipant_STATUS_REQUEST_PENDING = "requestpending"
+	ChannelParticipant_STATUS_ACTIVE              = "active"
+	ChannelParticipant_STATUS_LEFT                = "left"
+	ChannelParticipant_STATUS_REQUEST_PENDING     = "requestpending"
+	ChannelParticipant_Added_To_Channel_Event     = "added_to_channel"
+	ChannelParticipant_Removed_From_Channel_Event = "removed_from_channel"
 )
 
 func NewChannelParticipant() *ChannelParticipant {
@@ -97,7 +99,9 @@ func (c *ChannelParticipant) Create() error {
 			return err
 		}
 
-		if err := bongo.B.PublishEvent("added_to_channel", c); err != nil {
+		if err := bongo.B.PublishEvent(
+			ChannelParticipant_Added_To_Channel_Event, c,
+		); err != nil {
 			// log here
 		}
 
@@ -177,7 +181,9 @@ func (c *ChannelParticipant) Delete() error {
 		return err
 	}
 
-	if err := bongo.B.PublishEvent("removed_from_channel", c); err != nil {
+	if err := bongo.B.PublishEvent(
+		ChannelParticipant_Removed_From_Channel_Event, c,
+	); err != nil {
 		// log here
 	}
 
