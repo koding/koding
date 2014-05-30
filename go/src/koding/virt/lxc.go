@@ -49,7 +49,7 @@ func (vm *VM) AttachCommand(uid int, tty string, command ...string) *exec.Cmd {
 func GetVMState(vmId bson.ObjectId) string {
 	out, err := exec.Command("/usr/bin/lxc-info", "--name", VMName(vmId), "--state").CombinedOutput()
 	if err != nil {
-		lastError = commandError("lxc-info failed ", err, out)
+		commandError("lxc-info failed ", err, out)
 		return "UNKNOWN"
 	}
 	return strings.TrimSpace(string(out)[6:])
@@ -87,14 +87,14 @@ func (vm *VM) WaitForNetwork() error {
 			"--", "/bin/cat", "/sys/class/net/eth0/operstate").CombinedOutput()
 
 		if strings.TrimSpace(string(out)) == "up" {
-			if out, err := exec.Command("/usr/bin/lxc-attach", "--name", vm.String(),
+			if _, err := exec.Command("/usr/bin/lxc-attach", "--name", vm.String(),
 				"--", "/usr/bin/stat", "/usr/bin/screen").CombinedOutput(); err != nil {
 				return false
 			} else {
 				return true
 			}
-			return false
 		}
+		return false
 	}
 	tryUntil := time.Now().Add(timeout)
 	for {

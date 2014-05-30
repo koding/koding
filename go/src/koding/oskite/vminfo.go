@@ -3,12 +3,13 @@ package oskite
 import (
 	"koding/tools/kite"
 	"koding/tools/utils"
+	"koding/kodingkite"
 	"koding/virt"
 	"math/rand"
 	"sync"
 	"time"
 
-	kitelib "github.com/koding/kite"
+	newkite "github.com/koding/kite"
 
 	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
@@ -101,7 +102,7 @@ func (v *VMInfo) stopTimeoutNewKite(k *kodingkite.KodingKite) {
 
 	v.useCounter += 1
 	v.timeout.Stop()
-	k.OnDisconnect(func() {
+	k.OnDisconnect(func(c *newkite.Client) {
 		v.mutex.Lock()
 		defer v.mutex.Unlock()
 
