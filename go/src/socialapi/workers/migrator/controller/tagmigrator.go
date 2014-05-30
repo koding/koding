@@ -146,6 +146,35 @@ func (mwc *Controller) createTagFollowers(t *mongomodels.Tag, channelId int64) e
 	return iter.Err()
 }
 
+func (mwc *Controller) migrateTags(cm *models.ChannelMessage, oldId bson.ObjectId) error {
+	s := modelhelper.Selector{
+		"sourceId":   oldId,
+		"as":         "tag",
+		"targetName": "JTag",
+	}
+	rels, err := modelhelper.GetAllRelationships(s)
+	if err != nil {
+		return fmt.Errorf("tags cannot be fetched: %s", err)
+	}
+	for _, r := range rels {
+		t, err := modelhelper.GetTagById(r.TargetId.Hex())
+		if err != nil {
+			mwc.log.Error("tag cannot be fetched: %s", err)
+			continue
+		}
+
+		cml := models.NewChannelMessageList()
+		cml.ChannelId = t.SocialApiChannelId
+		cml.MessageId = cm.Id
+		cml.AddedAt = cm.CreatedAt
+		if err := cml.CreateRaw(); err != nil {
+			mwc.log.Error("message tag cannot be created")
+		}
+	}
+
+	return nil
+}
+
 func completeTagMigration(tag *mongomodels.Tag, channelId int64) error {
 	tag.SocialApiChannelId = channelId
 
