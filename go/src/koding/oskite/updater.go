@@ -147,11 +147,13 @@ func (o *Oskite) startAlwaysOn(vm virt.VM) {
 
 	go func() {
 		log.Info("alwaysOn is starting [%s - %v]", vm.HostnameAlias, vm.Id)
-		err := o.startSingleVM(vm, nil)
-		if err != nil {
-			log.Error("alwaysOn vm %s couldn't be started. err: %v", vm.HostnameAlias, err)
-		} else {
-			log.Info("alwaysOn vm started successfull [%s - %v]", vm.HostnameAlias, vm.Id)
+		if vm.State != "RUNNING" {
+			err := o.startSingleVM(vm, nil)
+			if err != nil {
+				log.Error("alwaysOn vm %s couldn't be started. err: %v", vm.HostnameAlias, err)
+			} else {
+				log.Info("alwaysOn vm started successfull [%s - %v]", vm.HostnameAlias, vm.Id)
+			}
 		}
 	}()
 }
