@@ -110,6 +110,11 @@ func (mwc *Controller) createTagFollowers(t *mongomodels.Tag, channelId int64) e
 		"as":         "follower",
 		"targetName": "JAccount",
 	}
+
+	return mwc.createChannelParticipants(s, channelId)
+}
+
+func (mwc *Controller) createChannelParticipants(s modelhelper.Selector, channelId int64) error {
 	iter := modelhelper.GetRelationshipIter(s)
 	defer iter.Close()
 	var r mongomodels.Relationship
@@ -122,7 +127,7 @@ func (mwc *Controller) createTagFollowers(t *mongomodels.Tag, channelId int64) e
 		a.OldId = r.TargetId.Hex()
 		err := a.FetchOrCreate()
 		if err != nil {
-			mwc.log.Error("Tag follower cannot be fetched: %s", err)
+			mwc.log.Error("Participant account cannot be fetched: %s", err)
 			continue
 		}
 
@@ -134,13 +139,13 @@ func (mwc *Controller) createTagFollowers(t *mongomodels.Tag, channelId int64) e
 		cp.UpdatedAt = r.TimeStamp
 		cp.CreatedAt = r.TimeStamp
 		if err := cp.CreateRaw(); err != nil {
-			mwc.log.Error("Tag follower cannot be created: %s", err)
+			mwc.log.Error("Participant cannot be created: %s", err)
 			continue
 		}
 
 		r.MigrationStatus = "Completed"
 		if err := modelhelper.UpdateRelationship(&r); err != nil {
-			mwc.log.Error("Tag follower cannot be flagged as migrated: %s", err)
+			mwc.log.Error("Participant relationship cannot be flagged as migrated: %s", err)
 		}
 	}
 

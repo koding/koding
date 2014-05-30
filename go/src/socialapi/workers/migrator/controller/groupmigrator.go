@@ -30,6 +30,11 @@ func (mwc *Controller) migrateAllGroups() error {
 			continue
 		}
 
+		// if err := mwc.createGroupMembers(&group, c.Id); err != nil {
+		// 	handleError(&group, err)
+		// 	continue
+		// }
+
 		if err := completeGroupMigration(&group, c.Id); err != nil {
 			handleError(&group, err)
 			continue
@@ -78,6 +83,16 @@ func (mwc *Controller) createGroupChannel(groupName string) (*models.Channel, er
 	}
 
 	return c, nil
+}
+
+func (mwc *Controller) createGroupMembers(g *mongomodels.Group, channelId int64) error {
+	s := modelhelper.Selector{
+		"sourceId":   g.Id,
+		"as":         "member",
+		"targetName": "JAccount",
+	}
+
+	return mwc.createChannelParticipants(s, channelId)
 }
 
 func fetchGroupOwnerId(g *mongomodels.Group) (int64, error) {
