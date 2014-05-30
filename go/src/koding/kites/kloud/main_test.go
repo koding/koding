@@ -194,8 +194,9 @@ func build(i int, client *kite.Client, data map[string]interface{}) error {
 }
 
 func TestMultiple(t *testing.T) {
-	// number of clients that will query example kites
 	t.Skip("To enable this test remove this line")
+
+	// number of clients that will query example kites
 	clientNumber := 10
 
 	fmt.Printf("Creating %d clients\n", clientNumber)
@@ -210,8 +211,6 @@ func TestMultiple(t *testing.T) {
 
 		go func(i int) {
 			defer cg.Done()
-
-			// time.Sleep(time.Millisecond * time.Duration(rand.Intn(500)))
 
 			c := kite.New("client"+strconv.Itoa(i), "0.0.1")
 
@@ -261,7 +260,7 @@ func TestMultiple(t *testing.T) {
 		go func(i int) {
 			defer wg.Done()
 
-			// time.Sleep(time.Millisecond * time.Duration(rand.Intn(500)))
+			time.Sleep(time.Millisecond * time.Duration(rand.Intn(500)))
 
 			for provider, data := range TestProviderData {
 				if data == nil {
@@ -293,7 +292,7 @@ func TestMultiple(t *testing.T) {
 }
 
 func TestProviders(t *testing.T) {
-	// t.Skip("To enable this test remove this line")
+	t.Skip("To enable this test remove this line")
 	for provider, data := range TestProviderData {
 		if data == nil {
 			color.Yellow("==> %s skipping test. test data is not available.", provider)
@@ -363,7 +362,6 @@ func TestProviders(t *testing.T) {
 }
 
 func TestBuilds(t *testing.T) {
-	t.SkipNow()
 	numberOfBuilds := *flagTestBuilds
 
 	for provider, data := range TestProviderData {
@@ -389,84 +387,6 @@ func TestBuilds(t *testing.T) {
 	}
 
 }
-
-//
-// func TestStart(t *testing.T) {
-// 	clientID, apiKey := digitalOceanKeys()
-// 	args := &kloud.ControllerArgs{
-// 		Provider: "digitalocean",
-// 		Credential: map[string]interface{}{
-// 			"client_id": clientID,
-// 			"api_key":   apiKey,
-// 		},
-// 		MachineID: TestDropletId,
-// 	}
-//
-// 	_, err := remote.Tell("start", args)
-//
-// 	fmt.Printf("\n==== err: %+v\n\n", err)
-// }
-//
-// func TestStop(t *testing.T) {
-// 	clientID, apiKey := digitalOceanKeys()
-// 	args := &kloud.ControllerArgs{
-// 		Provider: "digitalocean",
-// 		Credential: map[string]interface{}{
-// 			"client_id": clientID,
-// 			"api_key":   apiKey,
-// 		},
-// 		MachineID: TestDropletId,
-// 	}
-//
-// 	_, err := remote.Tell("stop", args)
-//
-// 	fmt.Printf("\n==== err: %+v\n\n", err)
-// }
-//
-// func TestRestart(t *testing.T) {
-// 	clientID, apiKey := digitalOceanKeys()
-// 	args := &kloud.ControllerArgs{
-// 		Provider: "digitalocean",
-// 		Credential: map[string]interface{}{
-// 			"client_id": clientID,
-// 			"api_key":   apiKey,
-// 		},
-// 		MachineID: TestDropletId,
-// 	}
-//
-// 	_, err := remote.Tell("restart", args)
-//
-// 	fmt.Printf("\n==== err: %+v\n\n", err)
-// }
-//
-// func TestInfo(t *testing.T) {
-// 	clientID, apiKey := digitalOceanKeys()
-// 	args := &kloud.ControllerArgs{
-// 		Provider: "digitalocean",
-// 		Credential: map[string]interface{}{
-// 			"client_id": clientID,
-// 			"api_key":   apiKey,
-// 		},
-// 		MachineID: TestDropletId,
-// 	}
-//
-// 	for provider, data := range TestProviderData {
-//
-// 	}
-//
-// 	resp, err := remote.Tell("info", args)
-// 	if err != nil {
-// 		t.Fatal(err)
-// 	}
-//
-// 	var result Droplet
-// 	err = resp.Unmarshal(&result)
-// 	if err != nil {
-// 		t.Fatal(err)
-// 	}
-//
-// 	fmt.Printf("result %+v\n", result)
-// }
 
 func setupKloud() *kodingkite.KodingKite {
 	kloudConf := config.MustConfig("vagrant")
