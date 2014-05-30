@@ -460,3 +460,15 @@ func (c *Channel) FetchLastMessage() (*ChannelMessage, error) {
 
 	return cm, nil
 }
+
+func (c *Channel) FetchPinnedActivityChannel(accountId int64, groupName string) error {
+	query := &bongo.Query{
+		Selector: map[string]interface{}{
+			"creator_id":    accountId,
+			"group_name":    groupName,
+			"type_constant": Channel_TYPE_PINNED_ACTIVITY,
+		},
+	}
+
+	return c.One(query)
+}

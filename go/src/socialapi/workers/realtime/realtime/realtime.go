@@ -438,8 +438,9 @@ func (f *Controller) NotifyUser(data []byte) error {
 		return nil
 	}
 
-	// do not notify user when notification is not yet activated
-	if notification.ActivatedAt.IsZero() {
+	// do not notify user when notification is not yet activated,
+	// or it is already glanced (subscription case)
+	if notification.ActivatedAt.IsZero() || notification.Glanced {
 		return nil
 	}
 

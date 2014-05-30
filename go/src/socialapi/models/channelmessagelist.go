@@ -188,7 +188,7 @@ func (c *ChannelMessageList) populateChannelMessages(channelMessages []ChannelMe
 
 }
 
-func (c *ChannelMessageList) FetchMessageChannels(messageId int64) ([]Channel, error) {
+func (c *ChannelMessageList) FetchMessageChannelIds(messageId int64) ([]int64, error) {
 	var channelIds []int64
 
 	q := &bongo.Query{
@@ -199,6 +199,15 @@ func (c *ChannelMessageList) FetchMessageChannels(messageId int64) ([]Channel, e
 	}
 
 	err := bongo.B.Some(c, &channelIds, q)
+	if err != nil {
+		return nil, err
+	}
+
+	return channelIds, nil
+}
+
+func (c *ChannelMessageList) FetchMessageChannels(messageId int64) ([]Channel, error) {
+	channelIds, err := c.FetchMessageChannelIds(messageId)
 	if err != nil {
 		return nil, err
 	}

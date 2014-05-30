@@ -68,6 +68,7 @@ class SocialApiController extends KDController
 
     m.replies      = mapActivities data.replies or []
     m.repliesCount = data.repliesCount
+    m.isFollowed   = data.isFollowed
 
     m.interactions    = interactions or
       like            :
