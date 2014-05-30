@@ -96,6 +96,11 @@ func (c *ChannelParticipant) Create() error {
 		if err := c.Update(); err != nil {
 			return err
 		}
+
+		if err := bongo.B.PublishEvent("added_to_channel", c); err != nil {
+			// log here
+		}
+
 		return nil
 	}
 
@@ -164,11 +169,20 @@ func (c *ChannelParticipant) Delete() error {
 		return err
 	}
 
-	return bongo.B.UpdatePartial(c,
+	if err := bongo.B.UpdatePartial(c,
 		bongo.Partial{
 			"status_constant": ChannelParticipant_STATUS_LEFT,
 		},
-	)
+	); err != nil {
+		return err
+	}
+
+	if err := bongo.B.PublishEvent("removed_from_channel", c); err != nil {
+		// log here
+	}
+
+	return nil
+
 }
 
 func (c *ChannelParticipant) List() ([]ChannelParticipant, error) {
