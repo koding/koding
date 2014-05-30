@@ -6,7 +6,6 @@ import (
 	mongomodels "koding/db/models"
 	"koding/db/mongodb/modelhelper"
 	"socialapi/models"
-	"strconv"
 	"strings"
 
 	"github.com/VerbalExpressions/GoVerbalExpressions"
@@ -41,6 +40,10 @@ func New(log logging.Logger) (*Controller, error) {
 }
 
 func (mwc *Controller) Start() error {
+	if err := mwc.migrateAllGroups(); err != nil {
+		return err
+	}
+
 	if err := mwc.migrateAllTags(); err != nil {
 		return err
 	}
@@ -127,64 +130,6 @@ func (mwc *Controller) migrateAllPosts() error {
 	mwc.log.Notice("Post migration completed for %d status updates with %d errors", successCount, errCount)
 
 	return nil
-}
-
-func (mwc *Controller) createGroupChannel(groupName string) (*models.Channel, error) {
-	c := models.NewChannel()
-	c.Name = groupName
-	c.GroupName = groupName
-	c.TypeConstant = models.Channel_TYPE_GROUP
-
-	group, err := modelhelper.GetGroup(groupName)
-	if err != nil {
-		return nil, err
-	}
-
-	if group.Visibility == "visible" {
-		c.PrivacyConstant = models.Channel_PRIVACY_PUBLIC
-	} else {
-		c.PrivacyConstant = models.Channel_PRIVACY_PRIVATE
-	}
-
-	// find group owner
-	creatorId, err := fetchGroupOwnerId(group)
-	if err != nil {
-		return nil, err
-	}
-
-	c.CreatorId = creatorId
-	// create channel
-	if err := c.Create(); err != nil {
-		return nil, err
-	}
-
-	group.SocialApiChannelId = strconv.FormatInt(c.Id, 10)
-	if err := modelhelper.UpdateGroup(group); err != nil {
-		mwc.log.Error("Group document cannot be updated: %s", err)
-	}
-
-	return c, nil
-}
-
-func fetchGroupOwnerId(g *mongomodels.Group) (int64, error) {
-	// fetch owner relationship
-	s := modelhelper.Selector{
-		"targetName": "JAccount",
-		"as":         "owner",
-		"sourceId":   g.Id,
-	}
-	r, err := modelhelper.GetRelationship(s)
-	if err != nil {
-		return 0, err
-	}
-
-	a := models.NewAccount()
-	a.OldId = r.TargetId.Hex()
-	if err := a.FetchOrCreate(); err != nil {
-		return 0, err
-	}
-
-	return a.Id, nil
 }
 
 func insertChannelMessage(cm *models.ChannelMessage, accountOldId string) error {
@@ -308,12 +253,13 @@ func (mwc *Controller) fetchGroupChannelId(groupName string) (int64, error) {
 		return kodingChannelId, nil
 	}
 
-	c, err := mwc.createGroupChannel(groupName)
+	c := models.NewChannel()
+	channelId, err := c.FetchChannelIdByNameAndGroupName(groupName, groupName)
 	if err != nil {
 		return 0, err
 	}
 
-	return c.Id, nil
+	return channelId, nil
 }
 
 func mapStatusUpdateToChannelMessage(su *mongomodels.StatusUpdate) *models.ChannelMessage {
