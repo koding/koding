@@ -39,6 +39,8 @@ module.exports = class SocialChannel extends Base
 
         fetchProfileFeed:
           (signature Object, Function)
+        updateLastSeenTime:
+          (signature Object, Function)
 
     schema             :
       id               : Number
