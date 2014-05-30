@@ -47,3 +47,13 @@ func GetStatusUpdate(s Selector, o Options) (models.StatusUpdate, error) {
 
 	return su, Mongo.Run(POST_COLL, query)
 }
+
+func GetStatusUpdateIter(s Selector, o Options) *mgo.Iter {
+	query := func(c *mgo.Collection) *mgo.Query {
+		q := c.Find(s)
+		decorateQuery(q, o)
+		return q
+	}
+
+	return Mongo.GetIter(POST_COLL, query)
+}
