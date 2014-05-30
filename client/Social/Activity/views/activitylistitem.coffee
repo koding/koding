@@ -84,9 +84,20 @@ class ActivityListItemView extends KDListItemView
     @destroy()
 
 
-  formatContent: (str = '') ->
+  formatContent: (body = '') ->
 
-    return @utils.decorateTags @utils.applyMarkdown str, @getData()
+    return KD.utils.applyMarkdown @transformTags body
+
+
+  transformTags: (text = '') ->
+
+    {origin} = window.location
+    {slug}   = KD.getGroup()
+    prefix   = "#{origin}#{if slug is 'koding' then '' else '/' + slug}"
+
+    return text.replace /#(\w+)/g, (match, tag) ->
+      tag = Encoder.XSSEncode tag
+      return "[##{tag}](#{prefix}/Activity/Topic/#{tag})"
 
 
   setAnchors: ->
