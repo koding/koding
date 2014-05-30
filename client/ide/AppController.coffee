@@ -11,6 +11,8 @@ class IDEAppController extends AppController
         KD.showEnforceLoginModal()
 
   constructor: (options = {}, data) ->
+    $('body').addClass 'dark'
+
     options.appInfo =
       type          : 'application'
       name          : 'IDE'

@@ -8,10 +8,54 @@ ide.styl
 */
 }
 
+// variables
+dark-panel-bg         = #2B2B2B
+dark-tab-header-bg    = #131313
+dark-active-tab-color = #9C9C9C
+dark-tab-color        = #5C5C5C
+
+// theming
+body.ide.dark
+  bg                    color, dark-panel-bg
+
+  .kdtabview
+    bg                  color, dark-panel-bg
+
+  .kdtabhandlecontainer
+    bg                  color, dark-tab-header-bg
+
+  .kdtabhandle
+    color               dark-tab-color
+    &.active
+      bg                color, dark-panel-bg
+      color             dark-active-tab-color
+    &.plus
+      border-left-color transparent
+
+  .ace-koding
+    bg                  color, dark-panel-bg
+    .ace_gutter
+      bg                color, dark-panel-bg
+      color             dark-active-tab-color
+    .ace_gutter-active-line
+      bg                color, dark-tab-header-bg
+
+  .editor-bottom-bar
+    bg                  color, dark-tab-header-bg
+
+  .kdsplitview-resizer
+    width               2px
+    bg                  color, dark-tab-header-bg
+
+  .terminal .green-on-black.console
+    bg                  color, dark-panel-bg
+
+
+// common app styling
 .ide
-  bg                    color, #1B2224
   .ace_editor
     height              100%
+
 
 // sidebar icons
 .ide-files-tab
@@ -35,6 +79,7 @@ ide.styl
       &.active
         r-sprite      'ide', 'share-on'
 
+
 // floating left
 .floating.kdsplitview-panel
   .ide-files-tab
@@ -49,6 +94,7 @@ ide.styl
       margin-left       39px
       abs()
       fl()
+
 
 // vm list pane
 .vm-list-pane
@@ -95,6 +141,7 @@ ide.styl
       abs()
       top               10px
       left              50px
+
 
 
 // settings pane
