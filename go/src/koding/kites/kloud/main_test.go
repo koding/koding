@@ -61,7 +61,7 @@ func (t *TestStorage) UpdateState(id string, state kloud.MachineState) error {
 }
 
 func (t *TestStorage) GetState(id string) (kloud.MachineState, error) {
-	return 0, nil
+	return kloud.NotInitialized, nil
 }
 
 var (

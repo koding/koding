@@ -39,14 +39,14 @@ func (k *Kloud) build(r *kite.Request) (interface{}, error) {
 		return nil, errors.New("machineId is missing.")
 	}
 
-	// state, err := k.Storage.GetState(args.MachineId)
-	// if err != nil {
-	// 	return nil, err
-	// }
+	state, err := k.Storage.GetState(args.MachineId)
+	if err != nil {
+		return nil, err
+	}
 
-	// if state != NotInitialized {
-	// 	return nil, ErrAlreadyInitialized
-	// }
+	if state != NotInitialized {
+		return nil, ErrAlreadyInitialized
+	}
 
 	snapshotName := defaultSnapshotName
 	if args.SnapshotName != "" {
