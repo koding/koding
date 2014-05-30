@@ -46,25 +46,6 @@ func (k *Kloud) build(r *kite.Request) (interface{}, error) {
 	k.idlock.Get(r.Username).Lock()
 	defer k.idlock.Get(r.Username).Unlock()
 
-	machineData, err := k.Storage.Get(args.MachineId)
-	if err != nil {
-		return nil, err
-	}
-
-	p, ok := providers[machineData.Provider]
-	if !ok {
-		return nil, errors.New("provider not supported")
-	}
-
-	provider, ok := p.(Builder)
-	if !ok {
-		return nil, errors.New("provider doesn't satisfy the builder interface.")
-	}
-
-	if err := provider.Prepare(machineData.Credential, machineData.Builders); err != nil {
-		return nil, err
-	}
-
 	snapshotName := defaultSnapshotName
 	if args.SnapshotName != "" {
 		snapshotName = args.SnapshotName
@@ -77,6 +58,11 @@ func (k *Kloud) build(r *kite.Request) (interface{}, error) {
 	machineName := r.Username + "-" + strconv.FormatInt(time.Now().UTC().UnixNano(), 10)
 	if args.MachineName != "" {
 		machineName = args.MachineName
+	}
+
+	provider, err := k.provider(args.MachineId)
+	if err != nil {
+		return nil, err
 	}
 
 	artifact, err := provider.Build(snapshotName, machineName, signFunc)
