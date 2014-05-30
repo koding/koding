@@ -101,10 +101,6 @@ module.exports = class SocialChannel extends Base
 
     @constructor.cycleChannel options, callback
 
-  @fetchActivities = secure (client, options = {}, callback)->
-    options.channelId = options.id
-    @doRequest 'fetchChannelActivities', client, options, callback
-
   # searchTopics - search topics for autocompletion
   @searchTopics          = secureRequest fnName: 'searchTopics'
 
@@ -155,6 +151,10 @@ module.exports = class SocialChannel extends Base
     fnName        : 'unpinMessage'
     validate      : ['messageId']
 
+  @fetchActivities = secure (client, options = {}, callback)->
+    options.channelId = options.id
+    doRequest 'fetchChannelActivities', client, options, callback
+
   @followUser = secure (client, options, callback)->
     {connection:{delegate}} = client
     return callback {message: "Access denied"}  if delegate.type isnt 'registered'
@@ -171,16 +171,3 @@ module.exports = class SocialChannel extends Base
           creatorId   : targetId
         method = if options.unfollow then unfollowUser else followUser
         method data, callback
-
-  @doRequest = (funcName, client, options, callback)->
-    fetchGroup client, (err, group)->
-      return callback err if err
-      {connection:{delegate}} = client
-      delegate.createSocialApiId (err, socialApiId)->
-        return callback err if err
-
-        options.groupName = group.slug
-        options.accountId = socialApiId
-
-        requests = require './requests'
-        requests[funcName] options, callback
