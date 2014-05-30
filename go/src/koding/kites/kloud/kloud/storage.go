@@ -77,9 +77,11 @@ func (m *MongoDB) Update(id string, data map[string]interface{}) error {
 		return c.UpdateId(
 			bson.ObjectIdHex(id),
 			bson.M{"$set": bson.M{
-				"kiteId":    response.KiteId,
-				"ipAddress": response.IpAddress,
-				"state":     "READY",
+				"kiteId":           response.KiteId,
+				"ipAddress":        response.IpAddress,
+				"state":            "READY",
+				"meta.machineId":   response.MachineId,
+				"meta.machineName": response.MachineName,
 			}},
 		)
 	})

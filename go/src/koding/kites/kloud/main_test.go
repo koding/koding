@@ -4,7 +4,6 @@ import (
 	"flag"
 	"fmt"
 	"io/ioutil"
-	"koding/kites/kloud/digitalocean"
 	"koding/kites/kloud/kloud"
 	"koding/kodingkite"
 	"koding/tools/config"
@@ -162,11 +161,8 @@ func build(i int, client *kite.Client, data map[string]interface{}) error {
 
 	if !*flagTestDestroy {
 		fmt.Println("destroying ", machineName)
-		dropletId := result.MachineId
 		cArgs := &kloud.ControllerArgs{
-			Provider:   data["provider"].(string),
-			Credential: data["credential"].(map[string]interface{}),
-			MachineID:  dropletId,
+			MachineId: data["provider"].(string),
 		}
 
 		if _, err := client.Tell("destroy", cArgs); err != nil {
@@ -309,18 +305,14 @@ func TestProviders(t *testing.T) {
 		}
 		testlog("Building image and creating the machine. Elapsed time %f seconds", time.Since(start).Seconds())
 
-		var result digitalocean.Droplet
+		var result kloud.BuildResponse
 		err = resp.Unmarshal(&result)
 		if err != nil {
 			t.Fatal(err)
 		}
 
-		dropletId := result.Id
-
 		cArgs := &kloud.ControllerArgs{
-			Provider:   data["provider"].(string),
-			Credential: data["credential"].(map[string]interface{}),
-			MachineID:  dropletId,
+			MachineId: data["provider"].(string),
 		}
 
 		start = time.Now()
@@ -356,6 +348,7 @@ func TestProviders(t *testing.T) {
 }
 
 func TestBuilds(t *testing.T) {
+	// t.SkipNow()
 	numberOfBuilds := *flagTestBuilds
 
 	for provider, data := range TestProviderData {

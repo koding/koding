@@ -3,7 +3,9 @@ package utils
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 	"reflect"
+	"strconv"
 )
 
 // templateData includes our klient converts the given raw interface to a
@@ -58,6 +60,14 @@ func ToUint(x interface{}) uint {
 		return i
 	case int:
 		return uint(i)
+	case string:
+		s, err := strconv.Atoi(i)
+		if err != nil {
+			log.Println("cannot convert %v", i)
+			return 0
+		}
+
+		return uint(s)
 	case int64:
 		return uint(i)
 	default:
