@@ -8,17 +8,6 @@ import (
 	"github.com/koding/kite"
 )
 
-// Builder is used to create and provisiong a single image or machine for a
-// given Provider.
-type Builder interface {
-	// Prepare is responsible of configuring the builder and validating the
-	// given configuration prior Build.
-	Prepare(...interface{}) error
-
-	// Build is creating a image and a machine.
-	Build(...interface{}) (map[string]interface{}, error)
-}
-
 type BuildResponse struct {
 	MachineName string `json:"machineName" mapstructure:"machineName"`
 	MachineId   int    `json:"machineId" mapstructure:"machineId"`
