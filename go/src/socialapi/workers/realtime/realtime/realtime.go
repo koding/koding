@@ -294,7 +294,16 @@ func (f *Controller) MessageListSaved(data []byte) error {
 		return err
 	}
 
-	err = f.sendChannelEvent(cml, "MessageAdded")
+	if err := f.sendEventAsNotification(cml); err != nil {
+		return err
+	}
+
+	if err := f.sendChannelEvent(cml, "MessageAdded"); err != nil {
+		return err
+	}
+
+	return nil
+}
 	if err != nil {
 		return err
 	}
