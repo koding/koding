@@ -5,6 +5,8 @@ import (
 	mongomodels "koding/db/models"
 	"koding/db/mongodb/modelhelper"
 	"socialapi/models"
+
+	"github.com/jinzhu/gorm"
 )
 
 func (mwc *Controller) migrateAllTags() error {
@@ -17,7 +19,7 @@ func (mwc *Controller) migrateAllTags() error {
 	errCount := 0
 
 	handleError := func(t *mongomodels.Tag, err error) {
-		mwc.log.Error("an error occured for %s: %s", t.Id.Hex(), err)
+		mwc.log.Error("an error occured for tag %s: %s", t.Id.Hex(), err)
 		errCount++
 	}
 
@@ -31,13 +33,17 @@ func (mwc *Controller) migrateAllTags() error {
 			}
 			return fmt.Errorf("tag cannot be fetched: %s", err)
 		}
-		c, err := createTagChannel(tag)
+		channelId, err := createTagChannel(tag)
 		if err != nil {
 			handleError(tag, err)
 			continue
 		}
+		if err := mwc.createTagFollowers(tag, channelId); err != nil {
+			handleError(tag, err)
+			continue
+		}
 
-		if err := completeTagMigration(tag, c); err != nil {
+		if err := completeTagMigration(tag, channelId); err != nil {
 			handleError(tag, err)
 			continue
 		}
@@ -47,27 +53,35 @@ func (mwc *Controller) migrateAllTags() error {
 	return nil
 }
 
-func createTagChannel(t *mongomodels.Tag) (*models.Channel, error) {
+func createTagChannel(t *mongomodels.Tag) (int64, error) {
 	creatorId, err := fetchTagCreatorId(t)
 	if err != nil {
-		return nil, err
+		return 0, err
 	}
 
 	c := models.NewChannel()
+
+	channelId, err := c.FetchChannelIdByNameAndGroupName(t.Slug, t.Group)
+	if err == nil {
+		return channelId, nil
+	}
+	if err != gorm.RecordNotFound {
+		return 0, err
+	}
+
 	c.CreatorId = creatorId
 	c.Name = t.Slug
 	c.GroupName = t.Group // create group if needed
-	// = t.Category "user-tag", "system tag" mevzusu ama bug isi hala var mi bilmiyorum
 	c.Purpose = "Channel for " + c.Name + " topic"
 	c.TypeConstant = models.Channel_TYPE_TOPIC
 	c.PrivacyConstant = models.Channel_PRIVACY_PRIVATE
 	c.CreatedAt = t.Meta.CreatedAt
 	c.UpdatedAt = t.Meta.ModifiedAt
 	if err := c.CreateRaw(); err != nil {
-		return nil, err
+		return 0, err
 	}
 
-	return c, nil
+	return c.Id, nil
 }
 
 func fetchTagCreatorId(t *mongomodels.Tag) (int64, error) {
@@ -90,6 +104,50 @@ func fetchTagCreatorId(t *mongomodels.Tag) (int64, error) {
 }
 
 func (mwc *Controller) createTagFollowers(t *mongomodels.Tag, channelId int64) error {
+	s := modelhelper.Selector{
+		"sourceId":   t.Id,
+		"as":         "follower",
+		"targetName": "JAccount",
+	}
+	iter := modelhelper.GetRelationshipIter(s)
+	defer iter.Close()
+	var r mongomodels.Relationship
+	for iter.Next(&r) {
+		if r.MigrationStatus == "Completed" {
+			continue
+		}
+		// fetch follower
+		a := models.NewAccount()
+		a.OldId = r.TargetId.Hex()
+		err := a.FetchOrCreate()
+		if err != nil {
+			mwc.log.Error("Tag follower cannot be fetched: %s", err)
+			continue
+		}
+
+		cp := models.NewChannelParticipant()
+		cp.ChannelId = channelId
+		cp.AccountId = a.Id
+		cp.StatusConstant = models.ChannelParticipant_STATUS_ACTIVE
+		cp.LastSeenAt = r.TimeStamp
+		cp.UpdatedAt = r.TimeStamp
+		cp.CreatedAt = r.TimeStamp
+		if err := cp.CreateRaw(); err != nil {
+			mwc.log.Error("Tag follower cannot be created: %s", err)
+			continue
+		}
+
+		r.MigrationStatus = "Completed"
+		if err := modelhelper.UpdateRelationship(&r); err != nil {
+			mwc.log.Error("Tag follower cannot be flagged as migrated: %s", err)
+		}
+	}
+
+	return iter.Err()
+}
+
+func completeTagMigration(tag *mongomodels.Tag, channelId int64) error {
+	tag.SocialApiChannelId = channelId
 
 	return modelhelper.UpdateTag(tag)
 }
