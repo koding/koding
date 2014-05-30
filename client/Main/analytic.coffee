@@ -11,7 +11,8 @@ do->
       argsForMixpanel.userAgent = window.navigator.userAgent
       argsForMixpanel.protocol  = KD.remote.mq.ws.protocol
 
-      KD.remoteLog?.api.JPageHit.create argsForMixpanel, ->
+      if KD.config.logToInternal
+        KD.remoteLog?.api.JPageHit.create argsForMixpanel, ->
 
 do->
   lastGAMessage = null
