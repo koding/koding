@@ -18,6 +18,12 @@ import (
 	"labix.org/v2/mgo"
 )
 
+var mongoAccounts map[int64]*mongomodels.Account
+
+func init() {
+	mongoAccounts = make(map[int64]*mongomodels.Account)
+}
+
 type Action func(*Controller, []byte) error
 
 type Controller struct {
