@@ -30,7 +30,7 @@ func (vm *VM) Shutdown() error {
 			return commandError("lxc-shutdown failed.", err, out)
 		}
 	}
-	vm.WaitForState("STOPPED", 5*time.Second) // may time out, then vm is force stopped
+	vm.WaitForState("STOPPED", time.Second * 5) // may time out, then vm is force stopped
 	return vm.Stop()
 }
 
