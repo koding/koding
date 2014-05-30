@@ -43,3 +43,7 @@ do ->
       unless slug
       then router.openSection 'Activity', name, query
       else createContentDisplayHandler('Activity') arguments...
+
+    '/:name?/Activity' : ({params:{name, slug}, query}) ->
+      {router, appManager} = KD.singletons
+      router.handleRoute '/Activity/Public'
