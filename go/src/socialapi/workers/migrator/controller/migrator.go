@@ -267,9 +267,9 @@ func (mwc *Controller) migrateLikes(cm *models.ChannelMessage, oldId bson.Object
 		i.MessageId = cm.Id
 		i.AccountId = a.Id
 		i.TypeConstant = models.Interaction_TYPE_LIKE
-		// creation date is not stored in mongo, so we could not set createdAt here.
-		if err := i.Create(); err != nil {
-			return fmt.Errorf("interaction could not created: %s", err)
+		i.CreatedAt = r.TimeStamp
+		if err := i.CreateRaw(); err != nil {
+			mwc.log.Error("interaction could not created: %s", err)
 		}
 	}
 
