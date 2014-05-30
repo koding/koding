@@ -24,16 +24,8 @@ import (
 	"github.com/koding/kite/protocol"
 	"github.com/koding/kite/testkeys"
 	"github.com/koding/kite/testutil"
+	"github.com/mitchellh/mapstructure"
 )
-
-type TestStorageFunc func(id string) (*kloud.MachineData, error)
-
-func (t TestStorageFunc) MachineData(id string) (*kloud.MachineData, error) {
-	return t(id)
-}
-func (t TestStorageFunc) Update(id string, data map[string]interface{}) error {
-	return nil
-}
 
 type TestStorage struct{}
 
@@ -48,6 +40,19 @@ func (t *TestStorage) MachineData(id string) (*kloud.MachineData, error) {
 }
 
 func (t *TestStorage) Update(id string, data map[string]interface{}) error {
+	response := &kloud.BuildResponse{}
+	if err := mapstructure.Decode(data, response); err != nil {
+		return err
+	}
+
+	provider := TestProviderData[id]
+	b := provider["builder"].(map[string]interface{})
+	b["machineId"] = strconv.Itoa(response.MachineId)
+	b["machineName"] = response.MachineName
+
+	provider["builder"] = b
+
+	TestProviderData[id] = provider
 	return nil
 }
 
@@ -176,19 +181,6 @@ func build(i int, client *kite.Client, data map[string]interface{}) error {
 	if !*flagTestDestroy {
 		fmt.Println("destroying ", machineName)
 
-		// change the interface on the fly to return our newly created dropletId
-		kloudRaw.Storage = TestStorageFunc(func(id string) (*kloud.MachineData, error) {
-			provider := TestProviderData[id]
-			b := provider["builder"].(map[string]interface{})
-			b["machineId"] = strconv.Itoa(result.MachineId)
-
-			return &kloud.MachineData{
-				Provider:   provider["provider"].(string),
-				Credential: provider["credential"].(map[string]interface{}),
-				Builders:   b,
-			}, nil
-		})
-
 		cArgs := &kloud.ControllerArgs{
 			MachineId: data["provider"].(string),
 		}
@@ -199,7 +191,6 @@ func build(i int, client *kite.Client, data map[string]interface{}) error {
 	}
 
 	return nil
-
 }
 
 func TestMultiple(t *testing.T) {
