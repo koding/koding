@@ -42,7 +42,7 @@ func updateStates(ids []bson.ObjectId, state string) error {
 		return nil // no need to update
 	}
 
-	log.Info("Updating %s vms to the state %s", len(ids), state)
+	log.Info("Updating %d vms to the state %s", len(ids), state)
 	return mongodbConn.Run("jVMs", func(c *mgo.Collection) error {
 		_, err := c.UpdateAll(bson.M{"_id": bson.M{"$in": ids}}, bson.M{"$set": bson.M{"state": state}})
 		return err
@@ -79,11 +79,7 @@ func (o *Oskite) vmUpdater() {
 		currentStates := make(map[bson.ObjectId]string, 0)
 
 		for _, vm := range vms {
-			state := virt.GetVMState(vm.Id)
-			if state == "" {
-				state = "UNKNOWN"
-			}
-
+			state := vm.GetState()
 			// do not update if it's the same state
 			if vm.State == state {
 				continue
@@ -110,6 +106,10 @@ func (o *Oskite) vmUpdater() {
 
 		if err := updateStates(filter("STOPPED"), "STOPPED"); err != nil {
 			log.Error("Updating STOPPED vms %v", err)
+		}
+
+        if err := updateStates(filter("UNKNOWN"), "UNKNOWN"); err != nil {
+			log.Error("Updating UNKNOWN vms %v", err)
 		}
 
 		currentStates = nil // garbage collection
@@ -146,7 +146,7 @@ func (o *Oskite) startAlwaysOn(vm virt.VM) {
 	}
 
 	go func() {
-		if vm.State != "RUNNING" {
+		if vm.State != "RUNNING" &&  vm.State != "UNKNOWN" {
 			log.Info("alwaysOn is starting [%s - %v]", vm.HostnameAlias, vm.Id)
 			err := o.startSingleVM(vm, nil)
 			if err != nil {
