@@ -32,7 +32,7 @@ var (
 func newCommand(mode, session, username string) (*Command, error) {
 	// let's assume by default its Screen
 	name := defaultScreenPath
-	args := []string{"-S"}
+	args := []string{"-e^Bb", "-s", "/bin/bash", "-S"}
 
 	switch mode {
 	case "shared", "resume":
@@ -63,8 +63,6 @@ func newCommand(mode, session, username string) (*Command, error) {
 		Name: name,
 		Args: args,
 	}
-
-	fmt.Printf("c %#v\n", c)
 
 	return c, nil
 }
