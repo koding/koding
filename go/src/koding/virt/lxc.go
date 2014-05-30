@@ -88,7 +88,7 @@ func (vm *VM) WaitForNetwork() error {
 
 		if strings.TrimSpace(string(out)) == "up" {
 			if out, err := exec.Command("/usr/bin/lxc-attach", "--name", vm.String(),
-				"--", "/bin/stat", "/usr/bin/screen").CombinedOutput(); err != nil {
+				"--", "/usr/bin/stat", "/usr/bin/screen").CombinedOutput(); err != nil {
 				return false
 			} else {
 				return true
