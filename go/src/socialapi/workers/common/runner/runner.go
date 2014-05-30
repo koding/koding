@@ -78,10 +78,10 @@ func (r *Runner) Listen(handler worker.Handler) {
 }
 
 func (r *Runner) Close() {
+	r.ShutdownHandler()
 	if r.Listener != nil {
 		r.Listener.Close()
 	}
-	r.ShutdownHandler()
 	r.Bongo.Close()
 }
 
