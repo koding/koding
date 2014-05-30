@@ -85,6 +85,9 @@ class WebTermView extends KDView
     return vmName
 
   getKite: ->
+
+    return (@getOption 'machine').kites.klient
+
     { kontrol, kiteController, vmController } = KD.singletons
     vmName = @getVMName()
     if KD.useNewKites
