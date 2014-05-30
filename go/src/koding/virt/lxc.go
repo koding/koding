@@ -65,7 +65,7 @@ func (vm *VM) WaitForState(state string, timeout time.Duration) error {
 		if time.Now().After(tryUntil) {
 			return errors.New("Timeout while waiting for VM state.")
 		}
-		time.Sleep(time.Second / 10)
+		time.Sleep(time.Millisecond * 500)
 	}
 	return nil
 }
