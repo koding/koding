@@ -61,7 +61,7 @@ module.exports = class SocialChannel extends Base
   Validators = require '../group/validators'
   {permit}   = require '../group/permissionset'
 
-  {fetchGroup} = require "./helper"
+  {fetchGroup, socialRequestWrapper, doRequest} = require "./helper"
 
   @generateChannelName = ({groupSlug, apiChannelType, apiChannelName})->
     return "socialapi-\
@@ -103,23 +103,41 @@ module.exports = class SocialChannel extends Base
     options.channelId = options.id
     @doRequest 'fetchChannelActivities', client, options, callback
 
-  @searchTopics = secure (client, options = {}, callback)->
-    @doRequest 'searchTopics', client, options, callback
+  # searchTopics - search topics for autocompletion
+  @searchTopics          = socialRequestWrapper fnName: 'searchTopics'
 
-  @fetchProfileFeed = secure (client, options = {}, callback)->
-    @doRequest 'fetchProfileFeed', client, options, callback
+  # fetchProfileFeed - lists all activities of an account
+  # within a specified group
+  @fetchProfileFeed      = socialRequestWrapper fnName: 'fetchProfileFeed'
 
-  @fetchPopularTopics = secure (client, options = {}, callback)->
-    @doRequest 'fetchPopularTopics', client, options, callback
+  # fetchPopularTopics - lists group specific popular topics
+  # it can be daily, weekly, monthly
+  @fetchPopularTopics    = socialRequestWrapper fnName: 'fetchPopularTopics'
 
-  @fetchPopularPosts = secure (client, options = {}, callback)->
-    @doRequest 'fetchPopularPosts', client, options, callback
+  # fetchPopularPosts -  lists group specific popular posts
+  # it can be daily, weekly, monthly
+  @fetchPopularPosts     = socialRequestWrapper fnName: 'fetchPopularPosts'
 
-  @fetchChannels = secure (client, options = {}, callback)->
-    @doRequest 'fetchGroupChannels', client, options, callback
+  # fetchChannels - lists group's topic channels
+  @fetchChannels         = socialRequestWrapper fnName: 'fetchGroupChannels'
 
-  @fetchFollowedChannels = secure (client, options = {}, callback)->
-    @doRequest 'fetchFollowedChannels', client, options, callback
+  # fetchFollowedChannels - lists followed channels(topics) of an account
+  @fetchFollowedChannels = socialRequestWrapper fnName: 'fetchFollowedChannels'
+
+  # follow - endpoint for users to follow topics
+  @follow = socialRequestWrapper
+    fnName  : 'followTopic'
+    validate: ["channelId"]
+
+  # unfollow - endpoint for users to give up following a channel
+  @unfollow = socialRequestWrapper
+    fnName  : 'unfollowTopic'
+    validate: ["channelId"]
+
+  # updateLastSeenTime - updates user's channel presence data
+  @updateLastSeenTime = socialRequestWrapper
+    fnName  : 'updateLastSeenTime'
+    validate: ["channelId"]
 
   @fetchPinnedMessages = permit 'pin posts',
     success: (client, options, callback)->
@@ -136,16 +154,6 @@ module.exports = class SocialChannel extends Base
       unless options.messageId
         return callback {message: "Message id is not set for un-pinning "}
       @doRequest 'unpinMessage', client, options, callback
-
-  @follow = secure (client, options, callback)->
-    unless options.channelId
-      return callback {message: "Channel id is not set for following a topic"}
-    @doRequest 'followTopic', client, options, callback
-
-  @unfollow = secure (client, options, callback)->
-    unless options.channelId
-      return callback {message: "Channel id is not set for topic unfollowing"}
-    @doRequest 'unfollowTopic', client, options, callback
 
   @followUser = secure (client, options, callback)->
     {connection:{delegate}} = client
