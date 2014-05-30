@@ -1,5 +1,7 @@
 Bongo          = require "bongo"
 {secure, daisy, dash, signature, Base} = Bongo
+Validators = require '../group/validators'
+{permit}   = require '../group/permissionset'
 
 fetchGroup = (client, callback)->
   groupName = client.context.group or "koding"
@@ -14,8 +16,16 @@ fetchGroup = (client, callback)->
       if err then return callback {error: "Not allowed to open this group"}
       else callback null, group
 
-socialRequestWrapper = ({fnName, validate})->
-  return secure (client, options = {}, callback)->
+secureRequest = (rest...)->
+  return secure requester rest...
+
+permittedRequest = (opts)->
+  {permissionName} = opts
+  return permit permissionName,
+    success: requester opts
+
+requester = ({fnName, validate})->
+  return (client, options = {}, callback)->
     if validate?.length > 0
       errs = []
       for property in validate
@@ -41,7 +51,8 @@ doRequest = (funcName, client, options, callback)->
       requests[funcName] options, callback
 
 module.exports = {
+  permittedRequest
   doRequest
-  socialRequestWrapper
+  secureRequest
   fetchGroup
 }
