@@ -56,12 +56,16 @@ class VMPaneListItem extends JView
       tagName      : 'span'
       cssClass     : 'domain-name'
       partial      : data.hostnameAlias.replace 'koding.kd.io', 'kd.io'
+      click        : @bound 'openVMDomain'
 
     @actionsButton = new KDButtonView
       title        : ''
       iconClass    : 'icon'
       cssClass     : 'actions-menu'
       callback     : @bound 'createContextMenu'
+
+  openVMDomain: ->
+    KD.getSingleton('appManager').tell 'IDE', 'openVMWebPage', @getData()
 
   createContextMenu: (event) ->
     button = @actionsButton
@@ -81,8 +85,8 @@ class VMPaneListItem extends JView
     appManager  = KD.getSingleton 'appManager'
     menuItems   =
       'Open VM terminal'  : callback: => appManager.tell 'IDE', 'openVMTerminal', data
-      'Open VM domain'    : callback: => appManager.tell 'IDE', 'openVMWebPage',  data
-      'Mount to filetree' : callback: => appManager.tell 'IDE', 'mountVM',        data
+      'Open VM domain'    : callback: @bound 'openVMDomain'
+      'Mount to filetree' : callback: => appManager.tell 'IDE', 'mountVM', data
 
     # FIXME: Find a better way to remove this drill down
     ideAppController   = appManager.getFrontApp()
