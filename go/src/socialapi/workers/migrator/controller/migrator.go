@@ -140,8 +140,11 @@ func (mwc *Controller) createGroupChannel(groupName string) (*models.Channel, er
 		return nil, err
 	}
 
-	// TODO check it causes any error
-	c.PrivacyConstant = group.Privacy
+	if group.Visibility == "visible" {
+		c.PrivacyConstant = models.Channel_PRIVACY_PUBLIC
+	} else {
+		c.PrivacyConstant = models.Channel_PRIVACY_PRIVATE
+	}
 
 	// find group owner
 	creatorId, err := fetchGroupOwnerId(group)
