@@ -49,8 +49,16 @@ func (o *Oskite) vosMethod(k *kodingkite.KodingKite, method string, vosFn vosFun
 
 		return vosFn(r, vos)
 	}
+    vm, err := checkAndGetVM(r.Username, params.VmName)
+	if err != nil {
+		return nil, err
+	}
+
+    info := getInfo(vm)
+    info.stopTimeoutNewKite(k)
 
 	k.HandleFunc(method, handler)
+	
 }
 
 // getVos returns a new VOS based on the given username and vmName
