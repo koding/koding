@@ -150,6 +150,12 @@ func (b *Bongo) Count(i Modellable, where ...interface{}) (int, error) {
 	return count, query.Count(&count).Error
 }
 
+func (b *Bongo) CountWithQuery(i Modellable, q *Query) (int, error) {
+	query := b.BuildQuery(i, q)
+	var count int
+	return count, query.Count(&count).Error
+}
+
 type Query struct {
 	Selector   map[string]interface{}
 	Sort       map[string]string
