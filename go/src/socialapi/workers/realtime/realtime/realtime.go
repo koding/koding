@@ -18,6 +18,10 @@ import (
 	"labix.org/v2/mgo"
 )
 
+const (
+	ChannelUpdateEventName = "ChannelUpdateHappened"
+)
+
 var mongoAccounts map[int64]*mongomodels.Account
 
 func init() {
