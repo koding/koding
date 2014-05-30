@@ -164,6 +164,16 @@ func (m *MessageReply) Count() (int, error) {
 }
 
 func (m *MessageReply) FetchRepliedMessage() (*ChannelMessage, error) {
+	parent := NewChannelMessage()
+
+	if m.MessageId != 0 {
+		if err := parent.ById(m.MessageId); err != nil {
+			return nil, err
+		}
+
+		return parent, nil
+	}
+
 	if m.ReplyId == 0 {
 		return nil, errors.New("ReplyId is not set")
 	}
@@ -178,7 +188,6 @@ func (m *MessageReply) FetchRepliedMessage() (*ChannelMessage, error) {
 		return nil, err
 	}
 
-	parent := NewChannelMessage()
 	if err := parent.ById(m.MessageId); err != nil {
 		return nil, err
 	}
