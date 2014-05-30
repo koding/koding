@@ -24,7 +24,7 @@ do ->
 
   KD.registerRoutes 'Activity',
 
-    '/:name?/Activity/Public' : ({params: {name}}) -> handleChannel 'group', name or 'koding'
+    '/:name?/Activity/Public' : ({params: {name}}) -> handleChannel 'public', name or 'koding'
 
     '/:name?/Activity/Topic/:slug?' : ({params:{name, slug}, query}) ->
       handleChannel 'topic', slug
