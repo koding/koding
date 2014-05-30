@@ -7,6 +7,7 @@ import (
 	"socialapi/models"
 
 	"github.com/jinzhu/gorm"
+	"labix.org/v2/mgo/bson"
 )
 
 func (mwc *Controller) migrateAllTags() error {
@@ -17,38 +18,38 @@ func (mwc *Controller) migrateAllTags() error {
 		"socialApiChannelId": modelhelper.Selector{"$exists": false},
 	}
 	errCount := 0
+	successCount := 0
 
 	handleError := func(t *mongomodels.Tag, err error) {
 		mwc.log.Error("an error occured for tag %s: %s", t.Id.Hex(), err)
 		errCount++
 	}
 
-	for {
-		o.Skip = errCount
-		tag, err := modelhelper.GetTag(s, o)
+	iter := modelhelper.GetTagIter(s, o)
+	var tag mongomodels.Tag
+	for iter.Next(&tag) {
+		channelId, err := createTagChannel(&tag)
 		if err != nil {
-			if err == modelhelper.ErrNotFound {
-				mwc.log.Notice("Tag migration completed with %d errors", errCount)
-				return nil
-			}
-			return fmt.Errorf("tag cannot be fetched: %s", err)
-		}
-		channelId, err := createTagChannel(tag)
-		if err != nil {
-			handleError(tag, err)
+			handleError(&tag, err)
 			continue
 		}
-		if err := mwc.createTagFollowers(tag, channelId); err != nil {
-			handleError(tag, err)
+		if err := mwc.createTagFollowers(&tag, channelId); err != nil {
+			handleError(&tag, err)
 			continue
 		}
 
-		if err := completeTagMigration(tag, channelId); err != nil {
-			handleError(tag, err)
+		if err := completeTagMigration(&tag, channelId); err != nil {
+			handleError(&tag, err)
 			continue
 		}
-
+		successCount++
 	}
+
+	if err := iter.Err(); err != nil {
+		return fmt.Errorf("Tag migration is interrupted with %d errors: %s", errCount, err)
+	}
+
+	mwc.log.Notice("Tag migration completed for %d tags with %d errors", successCount, errCount)
 
 	return nil
 }
