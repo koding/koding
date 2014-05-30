@@ -28,56 +28,32 @@ type DigitalOcean struct {
 	}
 
 	Builder struct {
-		Type     string `mapstructure:"type"`
-		ClientID string `mapstructure:"clientId"`
-		APIKey   string `mapstructure:"apiKey"`
+		DropletId   string `mapstructure:"machineId"`
+		DropletName string `mapstructure:"droplet_name" packer:"droplet_name"`
 
-		RegionID uint `mapstructure:"region_id"`
-		SizeID   uint `mapstructure:"size_id"`
-		ImageID  uint `mapstructure:"image_id"`
+		Type     string `mapstructure:"type" packer:"type"`
+		ClientID string `mapstructure:"client_id" packer:"client_id"`
+		APIKey   string `mapstructure:"api_key" packer:"api_key"`
 
-		Region string `mapstructure:"region"`
-		Size   string `mapstructure:"size"`
-		Image  string `mapstructure:"image"`
+		RegionID uint `mapstructure:"region_id" packer:"region_id"`
+		SizeID   uint `mapstructure:"size_id" packer:"size_id"`
+		ImageID  uint `mapstructure:"image_id" packer:"image_id"`
 
-		PrivateNetworking bool   `mapstructure:"private_networking"`
-		SnapshotName      string `mapstructure:"snapshot_name"`
-		DropletName       string `mapstructure:"droplet_name"`
-		SSHUsername       string `mapstructure:"ssh_username"`
-		SSHPort           uint   `mapstructure:"ssh_port"`
+		Region string `mapstructure:"region" packer:"region"`
+		Size   string `mapstructure:"size" packer:"size"`
+		Image  string `mapstructure:"image" packer:"image"`
+
+		PrivateNetworking bool   `mapstructure:"private_networking" packer:"private_networking"`
+		SnapshotName      string `mapstructure:"snapshot_name" packer:"snapshot_name"`
+		SSHUsername       string `mapstructure:"ssh_username" packer:"ssh_username"`
+		SSHPort           uint   `mapstructure:"ssh_port" packer:"ssh_port"`
 
 		RawSSHTimeout   string `mapstructure:"ssh_timeout"`
 		RawStateTimeout string `mapstructure:"state_timeout"`
 	}
 }
 
-// Setup prepares the state for upcoming methods like Start/Stop/etc.. It's
-// needs to be called before every other method call once. Raws contains the
-// credentials as a map[string]interface{} format.
-func (d *DigitalOcean) Setup(raws ...interface{}) (err error) {
-	d.Name = "digitalocean"
-	if len(raws) != 1 {
-		return errors.New("need at least two arguments")
-	}
-
-	// Credentials
-	if err := mapstructure.Decode(raws[0], &d.Creds); err != nil {
-		return err
-	}
-
-	if d.Creds.ClientID == "" {
-		return errors.New("credentials client_id is empty")
-	}
-
-	if d.Creds.APIKey == "" {
-		return errors.New("credentials api_key is empty")
-	}
-
-	d.Client = digitalocean.DigitalOceanClient{}.New(d.Creds.ClientID, d.Creds.APIKey)
-	return nil
-}
-
-// Setup prepares the state for upcoming methods like Build/etc.. It's needs to
+// Prepare prepares the state for upcoming methods like Build/etc.. It's needs to
 // be called before every other method call once. Raws contains the credentials
 // as a map[string]interface{} format.
 func (d *DigitalOcean) Prepare(raws ...interface{}) (err error) {
@@ -103,6 +79,9 @@ func (d *DigitalOcean) Prepare(raws ...interface{}) (err error) {
 	if d.Creds.APIKey == "" {
 		return errors.New("credentials api_key is empty")
 	}
+
+	d.Builder.ClientID = d.Creds.ClientID
+	d.Builder.APIKey = d.Creds.APIKey
 
 	d.Client = digitalocean.DigitalOceanClient{}.New(d.Creds.ClientID, d.Creds.APIKey)
 	return nil
@@ -401,32 +380,24 @@ func (d *DigitalOcean) MyImages() ([]digitalocean.Image, error) {
 
 // Start starts the machine for the given dropletID
 func (d *DigitalOcean) Start(raws ...interface{}) error {
-	if len(raws) == 0 {
-		return errors.New("zero arguments are passed")
-	}
-
-	var dropletId uint
-	if dropletId = utils.ToUint(raws[0]); dropletId == 0 {
-		return fmt.Errorf("malformed data received %v. droplet Id must be an int.", raws[0])
+	dropletId, err := d.DropletId(raws...)
+	if err != nil {
+		return err
 	}
 
 	path := fmt.Sprintf("droplets/%v/power_on", dropletId)
-	_, err := digitalocean.NewRequest(*d.Client, path, url.Values{})
+	_, err = digitalocean.NewRequest(*d.Client, path, url.Values{})
 	return err
 }
 
 // Stop stops the machine for the given dropletID
 func (d *DigitalOcean) Stop(raws ...interface{}) error {
-	if len(raws) == 0 {
-		return errors.New("zero arguments are passed")
+	dropletId, err := d.DropletId(raws...)
+	if err != nil {
+		return err
 	}
 
-	var dropletId uint
-	if dropletId = utils.ToUint(raws[0]); dropletId == 0 {
-		return fmt.Errorf("malformed data received %v. droplet Id must be an int.", raws[0])
-	}
-
-	err := d.Client.PowerOffDroplet(dropletId)
+	err = d.Client.PowerOffDroplet(dropletId)
 	if err != nil {
 		return err
 	}
@@ -436,17 +407,13 @@ func (d *DigitalOcean) Stop(raws ...interface{}) error {
 
 // Restart restart the machine for the given dropletID
 func (d *DigitalOcean) Restart(raws ...interface{}) error {
-	if len(raws) == 0 {
-		return errors.New("zero arguments are passed")
-	}
-
-	var dropletId uint
-	if dropletId = utils.ToUint(raws[0]); dropletId == 0 {
-		return fmt.Errorf("malformed data received %v. droplet Id must be an int.", raws[0])
+	dropletId, err := d.DropletId(raws...)
+	if err != nil {
+		return err
 	}
 
 	path := fmt.Sprintf("droplets/%v/reboot", dropletId)
-	_, err := digitalocean.NewRequest(*d.Client, path, url.Values{})
+	_, err = digitalocean.NewRequest(*d.Client, path, url.Values{})
 	return err
 }
 
@@ -457,13 +424,9 @@ func (d *DigitalOcean) DestroyImage(imageId uint) error {
 
 // Destroy destroys the machine with the given droplet ID.
 func (d *DigitalOcean) Destroy(raws ...interface{}) error {
-	if len(raws) == 0 {
-		return errors.New("zero arguments are passed")
-	}
-
-	var dropletId uint
-	if dropletId = utils.ToUint(raws[0]); dropletId == 0 {
-		return fmt.Errorf("malformed data received %v. droplet Id must be an int.", raws[0])
+	dropletId, err := d.DropletId(raws...)
+	if err != nil {
+		return err
 	}
 
 	return d.Client.DestroyDroplet(dropletId)
@@ -476,13 +439,9 @@ func (d *DigitalOcean) CreateSnapshot(dropletId uint, name string) error {
 
 // Info returns all information about the given droplet info.
 func (d *DigitalOcean) Info(raws ...interface{}) (interface{}, error) {
-	if len(raws) == 0 {
-		return nil, errors.New("zero arguments are passed")
-	}
-
-	var dropletId uint
-	if dropletId = utils.ToUint(raws[0]); dropletId == 0 {
-		return nil, fmt.Errorf("malformed data received %v. droplet Id must be an int.", raws[0])
+	dropletId, err := d.DropletId(raws...)
+	if err != nil {
+		return nil, err
 	}
 
 	path := fmt.Sprintf("droplets/%v", dropletId)
@@ -502,4 +461,23 @@ func (d *DigitalOcean) Info(raws ...interface{}) (interface{}, error) {
 	}
 
 	return result, err
+}
+
+func (d *DigitalOcean) DropletId(raws ...interface{}) (uint, error) {
+	var rawData interface{}
+
+	if len(raws) == 1 {
+		rawData = raws[0]
+	} else if d.Builder.DropletId != "" {
+		rawData = d.Builder.DropletId
+	} else {
+		return 0, errors.New("dropletId is not available")
+	}
+
+	dropletId := utils.ToUint(rawData)
+	if dropletId == 0 {
+		return 0, fmt.Errorf("malformed data received %v. droplet Id must be an int.", raws[0])
+	}
+
+	return dropletId, nil
 }

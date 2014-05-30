@@ -8,17 +8,6 @@ import (
 	"github.com/koding/kite"
 )
 
-// Builder is used to create and provisiong a single image or machine for a
-// given Provider.
-type Builder interface {
-	// Prepare is responsible of configuring the builder and validating the
-	// given configuration prior Build.
-	Prepare(...interface{}) error
-
-	// Build is creating a image and a machine.
-	Build(...interface{}) (map[string]interface{}, error)
-}
-
 type BuildResponse struct {
 	MachineName string `json:"machineName" mapstructure:"machineName"`
 	MachineId   int    `json:"machineId" mapstructure:"machineId"`
@@ -42,24 +31,9 @@ func (k *Kloud) build(r *kite.Request) (interface{}, error) {
 		return nil, errors.New("machineId is missing.")
 	}
 
-	machineData, err := k.Storage.MachineData(args.MachineId)
-	if err != nil {
-		return nil, err
-	}
-
-	p, ok := providers[machineData.Provider]
-	if !ok {
-		return nil, errors.New("provider not supported")
-	}
-
-	provider, ok := p.(Builder)
-	if !ok {
-		return nil, errors.New("provider doesn't satisfy the builder interface.")
-	}
-
-	if err := provider.Prepare(machineData.Credential, machineData.Builders); err != nil {
-		return nil, err
-	}
+	// this locks are important to prevent consecutive calls from the same user
+	k.idlock.Get(r.Username).Lock()
+	defer k.idlock.Get(r.Username).Unlock()
 
 	snapshotName := defaultSnapshotName
 	if args.SnapshotName != "" {
@@ -75,6 +49,11 @@ func (k *Kloud) build(r *kite.Request) (interface{}, error) {
 		machineName = args.MachineName
 	}
 
+	provider, err := k.provider(args.MachineId)
+	if err != nil {
+		return nil, err
+	}
+
 	artifact, err := provider.Build(snapshotName, machineName, signFunc)
 	if err != nil {
 		return nil, err
@@ -83,5 +62,6 @@ func (k *Kloud) build(r *kite.Request) (interface{}, error) {
 	if err := k.Storage.Update(args.MachineId, artifact); err != nil {
 		return nil, err
 	}
+
 	return artifact, nil
 }

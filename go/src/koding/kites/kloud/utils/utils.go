@@ -3,13 +3,15 @@ package utils
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 	"reflect"
+	"strconv"
 )
 
 // templateData includes our klient converts the given raw interface to a
 // []byte data that can used to pass into packer.Template().
 func TemplateData(raw, provisioner interface{}) ([]byte, error) {
-	rawMapData, err := ToMap(raw, "mapstructure")
+	rawMapData, err := ToMap(raw, "packer")
 	if err != nil {
 		return nil, err
 	}
@@ -58,6 +60,14 @@ func ToUint(x interface{}) uint {
 		return i
 	case int:
 		return uint(i)
+	case string:
+		s, err := strconv.Atoi(i)
+		if err != nil {
+			log.Println("cannot convert %v", i)
+			return 0
+		}
+
+		return uint(s)
 	case int64:
 		return uint(i)
 	default:

@@ -6,11 +6,16 @@ import (
 	"github.com/koding/kite"
 )
 
-// Controller manages a machine
-type Controller interface {
-	// Setup is needed to initialize the Controller. It should be called before
-	// calling the other interface methods
-	Setup(...interface{}) error
+// Provider manages a machine. It is used to create and provision a single
+// image or machine for a given Provider, to start/stop/destroy/restart a
+// machine.
+type Provider interface {
+	// Prepare is responsible of configuring and initializing the builder and
+	// validating the given configuration prior Build.
+	Prepare(...interface{}) error
+
+	// Build is creating a image and a machine.
+	Build(...interface{}) (map[string]interface{}, error)
 
 	// Start starts the machine
 	Start(...interface{}) error
@@ -29,113 +34,148 @@ type Controller interface {
 }
 
 type ControllerArgs struct {
-	Provider   string
-	MachineID  interface{}
-	Credential map[string]interface{}
+	MachineId string
 }
 
-func setupAndGetController(provider string, credentials map[string]interface{}) (Controller, error) {
-	p, ok := providers[provider]
+// provider returns the Provider responsible for the given machine Id. It also
+// calls provider.Prepare before returning.
+func (k *Kloud) provider(machineId string) (Provider, error) {
+	m, err := k.Storage.Get(machineId)
+	if err != nil {
+		return nil, err
+	}
+
+	provider, ok := providers[m.Provider]
 	if !ok {
 		return nil, errors.New("provider not supported")
 	}
 
-	controller, ok := p.(Controller)
-	if !ok {
-		return nil, errors.New("provider doesn't satisfy controller interface.")
-	}
-
-	if err := controller.Setup(credentials); err != nil {
+	if err := provider.Prepare(m.Credential, m.Builders); err != nil {
 		return nil, err
 	}
 
-	return controller, nil
+	return provider, nil
 }
 
-func start(r *kite.Request) (interface{}, error) {
+func (k *Kloud) start(r *kite.Request) (interface{}, error) {
 	args := &ControllerArgs{}
 	if err := r.Args.One().Unmarshal(args); err != nil {
 		return nil, err
 	}
 
-	controller, err := setupAndGetController(args.Provider, args.Credential)
+	if args.MachineId == "" {
+		return nil, errors.New("machineId is missing.")
+	}
+
+	k.idlock.Get(r.Username).Lock()
+	defer k.idlock.Get(r.Username).Unlock()
+
+	provider, err := k.provider(args.MachineId)
 	if err != nil {
 		return nil, err
 	}
 
-	if err := controller.Start(args.MachineID); err != nil {
+	if err := provider.Start(); err != nil {
 		return nil, err
 	}
 
 	return true, nil
 }
 
-func stop(r *kite.Request) (interface{}, error) {
+func (k *Kloud) stop(r *kite.Request) (interface{}, error) {
 	args := &ControllerArgs{}
 	if err := r.Args.One().Unmarshal(args); err != nil {
 		return nil, err
 	}
 
-	controller, err := setupAndGetController(args.Provider, args.Credential)
+	if args.MachineId == "" {
+		return nil, errors.New("machineId is missing.")
+	}
+
+	k.idlock.Get(r.Username).Lock()
+	defer k.idlock.Get(r.Username).Unlock()
+
+	provider, err := k.provider(args.MachineId)
 	if err != nil {
 		return nil, err
 	}
 
-	if err := controller.Stop(args.MachineID); err != nil {
+	if err := provider.Stop(); err != nil {
 		return nil, err
 	}
 
 	return true, nil
 }
 
-func destroy(r *kite.Request) (interface{}, error) {
+func (k *Kloud) destroy(r *kite.Request) (interface{}, error) {
 	args := &ControllerArgs{}
 	if err := r.Args.One().Unmarshal(args); err != nil {
 		return nil, err
 	}
 
-	controller, err := setupAndGetController(args.Provider, args.Credential)
+	if args.MachineId == "" {
+		return nil, errors.New("machineId is missing.")
+	}
+
+	k.idlock.Get(r.Username).Lock()
+	defer k.idlock.Get(r.Username).Unlock()
+
+	provider, err := k.provider(args.MachineId)
 	if err != nil {
 		return nil, err
 	}
 
-	if err := controller.Destroy(args.MachineID); err != nil {
+	if err := provider.Destroy(); err != nil {
 		return nil, err
 	}
 
 	return true, nil
 }
 
-func restart(r *kite.Request) (interface{}, error) {
+func (k *Kloud) restart(r *kite.Request) (interface{}, error) {
 	args := &ControllerArgs{}
 	if err := r.Args.One().Unmarshal(args); err != nil {
 		return nil, err
 	}
 
-	controller, err := setupAndGetController(args.Provider, args.Credential)
+	if args.MachineId == "" {
+		return nil, errors.New("machineId is missing.")
+	}
+
+	k.idlock.Get(r.Username).Lock()
+	defer k.idlock.Get(r.Username).Unlock()
+
+	provider, err := k.provider(args.MachineId)
 	if err != nil {
 		return nil, err
 	}
 
-	if err := controller.Restart(args.MachineID); err != nil {
+	if err := provider.Restart(); err != nil {
 		return nil, err
 	}
 
 	return true, nil
 }
 
-func info(r *kite.Request) (interface{}, error) {
+func (k *Kloud) info(r *kite.Request) (interface{}, error) {
 	args := &ControllerArgs{}
 	if err := r.Args.One().Unmarshal(args); err != nil {
 		return nil, err
 	}
 
-	controller, err := setupAndGetController(args.Provider, args.Credential)
+	if args.MachineId == "" {
+		return nil, errors.New("machineId is missing.")
+	}
+
+	k.idlock.Get(r.Username).Lock()
+	defer k.idlock.Get(r.Username).Unlock()
+
+	provider, err := k.provider(args.MachineId)
 	if err != nil {
 		return nil, err
 	}
 
-	info, err := controller.Info(args.MachineID)
+	info, err := provider.Info()
 	if err != nil {
 		return nil, err
 	}

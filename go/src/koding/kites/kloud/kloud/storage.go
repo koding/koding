@@ -10,10 +10,11 @@ import (
 )
 
 type Storage interface {
-	Update(id string, data map[string]interface{}) error
+	// Get returns to MachineData
+	Get(id string) (*MachineData, error)
 
-	// MachineData returns to MachineData
-	MachineData(id string) (*MachineData, error)
+	// Update updates the fields in the data for the given id
+	Update(id string, data map[string]interface{}) error
 }
 
 type MachineData struct {
@@ -42,8 +43,8 @@ type MongoDB struct {
 	session *mongodb.MongoDB
 }
 
-// MachineData returns the meta of the associated credential with the given machine id.
-func (m *MongoDB) MachineData(id string) (*MachineData, error) {
+// Get returns the meta of the associated credential with the given machine id.
+func (m *MongoDB) Get(id string) (*MachineData, error) {
 	machine := Machine{}
 	err := m.session.Run("jMachines", func(c *mgo.Collection) error {
 		return c.FindId(bson.ObjectIdHex(id)).One(&machine)
@@ -77,9 +78,11 @@ func (m *MongoDB) Update(id string, data map[string]interface{}) error {
 		return c.UpdateId(
 			bson.ObjectIdHex(id),
 			bson.M{"$set": bson.M{
-				"kiteId":    response.KiteId,
-				"ipAddress": response.IpAddress,
-				"state":     "READY",
+				"kiteId":           response.KiteId,
+				"ipAddress":        response.IpAddress,
+				"state":            "READY",
+				"meta.machineId":   response.MachineId,
+				"meta.machineName": response.MachineName,
 			}},
 		)
 	})

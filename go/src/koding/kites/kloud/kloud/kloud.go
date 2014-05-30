@@ -19,7 +19,7 @@ const (
 
 var (
 	defaultSnapshotName = "koding-klient-0.0.1"
-	providers           = make(map[string]interface{})
+	providers           = make(map[string]Provider)
 )
 
 type Kloud struct {
@@ -70,11 +70,11 @@ func (k *Kloud) NewKloud() *kodingkite.KodingKite {
 	kt.Config.Port = k.Port
 
 	kt.HandleFunc("build", k.build)
-	kt.HandleFunc("start", start)
-	kt.HandleFunc("stop", stop)
-	kt.HandleFunc("restart", restart)
-	kt.HandleFunc("destroy", destroy)
-	kt.HandleFunc("info", info)
+	kt.HandleFunc("start", k.start)
+	kt.HandleFunc("stop", k.stop)
+	kt.HandleFunc("restart", k.restart)
+	kt.HandleFunc("destroy", k.destroy)
+	kt.HandleFunc("info", k.info)
 
 	k.InitializeProviders()
 
@@ -82,7 +82,7 @@ func (k *Kloud) NewKloud() *kodingkite.KodingKite {
 }
 
 func (k *Kloud) InitializeProviders() {
-	providers = map[string]interface{}{
+	providers = map[string]Provider{
 		"digitalocean": &digitalocean.DigitalOcean{
 			Log: createLogger("digitalocean", k.Debug),
 		},
