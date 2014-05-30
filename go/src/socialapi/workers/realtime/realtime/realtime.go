@@ -308,8 +308,56 @@ func (f *Controller) MessageListSaved(data []byte) error {
 
 	return nil
 }
+
+func (f *Controller) sendChannelUpdatedEvent(channelId int64) error {
+	if channelId == 0 {
+		return fmt.Errorf("ChannelId or AccountId is not set")
+	}
+
+	c, err := models.ChannelById(channelId)
 	if err != nil {
 		return err
+	}
+
+	if c.TypeConstant == models.Channel_TYPE_GROUP {
+		f.log.Info("Not sending group (%s) event", c.GroupName)
+		return nil
+	}
+
+	participants, err := c.FetchParticipantIds()
+	if err != nil {
+		return err
+	}
+
+	if len(participants) == 0 {
+		f.log.Error("Participant count is %d, skipping", len(participants))
+		return nil
+	}
+
+	data := map[string]interface{}{
+		"channel":     c,
+		"unreadCount": 0,
+	}
+
+	cml := models.NewChannelMessageList()
+
+	for _, accountId := range participants {
+		cp := models.NewChannelParticipant()
+		cp.ChannelId = c.Id
+		cp.AccountId = accountId
+		if err := cp.FetchParticipant(); err != nil {
+			f.log.Error("Err: %s, skipping account %d", err.Error(), accountId)
+			continue
+		}
+
+		count, err := cml.UnreadCount(cp)
+		if err != nil {
+			f.log.Notice("Error happened, setting unread count to 1 %s", err.Error())
+			count = 1
+		}
+		data["unreadCount"] = count
+
+		f.sendNotification(accountId, ChannelUpdateEventName, data)
 	}
 
 	return nil
@@ -330,6 +378,7 @@ func (f *Controller) MessageListDeleted(data []byte) error {
 	if err != nil {
 		return err
 	}
+
 	return nil
 }
 
