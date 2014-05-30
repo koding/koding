@@ -26,6 +26,15 @@ import (
 	"github.com/koding/kite/testutil"
 )
 
+type TestStorageFunc func(id string) (*kloud.MachineData, error)
+
+func (t TestStorageFunc) MachineData(id string) (*kloud.MachineData, error) {
+	return t(id)
+}
+func (t TestStorageFunc) Update(id string, data map[string]interface{}) error {
+	return nil
+}
+
 type TestStorage struct{}
 
 func (t *TestStorage) MachineData(id string) (*kloud.MachineData, error) {
@@ -45,9 +54,9 @@ func (t *TestStorage) Update(id string, data map[string]interface{}) error {
 var (
 	conf      *kiteconfig.Config
 	kloudKite *kodingkite.KodingKite
+	kloudRaw  *kloud.Kloud
 	remote    *kite.Client
 	testuser  string
-	storage   kloud.Storage
 
 	flagTestBuilds   = flag.Int("builds", 1, "Number of builds")
 	flagTestDestroy  = flag.Bool("no-destroy", false, "Do not destroy test machines")
@@ -166,6 +175,19 @@ func build(i int, client *kite.Client, data map[string]interface{}) error {
 
 	if !*flagTestDestroy {
 		fmt.Println("destroying ", machineName)
+
+		// change the interface on the fly to return our newly created dropletId
+		kloudRaw.Storage = TestStorageFunc(func(id string) (*kloud.MachineData, error) {
+			provider := TestProviderData[id]
+			b := provider["builder"].(map[string]interface{})
+			b["machineId"] = strconv.Itoa(result.MachineId)
+
+			return &kloud.MachineData{
+				Provider:   provider["provider"].(string),
+				Credential: provider["credential"].(map[string]interface{}),
+				Builders:   b,
+			}, nil
+		})
 
 		cArgs := &kloud.ControllerArgs{
 			MachineId: data["provider"].(string),
@@ -478,19 +500,17 @@ func setupKloud() *kodingkite.KodingKite {
 	}
 	privateKey := string(privKey)
 
-	storage = &TestStorage{}
-
-	k := &kloud.Kloud{
+	kloudRaw = &kloud.Kloud{
 		Region:            "vagrant",
 		Port:              3636,
 		Config:            kloudConf,
-		Storage:           storage,
+		Storage:           &TestStorage{},
 		KontrolURL:        "wss://kontrol.koding.com",
 		KontrolPrivateKey: privateKey,
 		KontrolPublicKey:  publicKey,
 	}
 
-	kt := k.NewKloud()
+	kt := kloudRaw.NewKloud()
 
 	return kt
 }
