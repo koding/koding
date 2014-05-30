@@ -385,7 +385,7 @@ func unprepareLeftover(vmId bson.ObjectId) {
 				log.Error("leftover unprepare: %v", err)
 			}
 
-			if _, err := updateState(vmId, ""); err != nil {
+			if _, err := updateState(vmId, "UNKNOWN"); err != nil {
 				log.Error("%v", err)
 			}
 
@@ -700,10 +700,6 @@ func (o *Oskite) validateVM(vm *virt.VM) error {
 
 func updateState(vmId bson.ObjectId, currentState string) (string, error) {
 	state := virt.GetVMState(vmId)
-	if state == "" {
-		state = "UNKNOWN"
-	}
-
 	// do not update if it's the same state
 	if currentState == state {
 		return state, nil
