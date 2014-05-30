@@ -56,6 +56,14 @@ func (t *TestStorage) Update(id string, data map[string]interface{}) error {
 	return nil
 }
 
+func (t *TestStorage) UpdateState(id string, state kloud.MachineState) error {
+	return nil
+}
+
+func (t *TestStorage) GetState(id string) (kloud.MachineState, error) {
+	return 0, nil
+}
+
 var (
 	conf      *kiteconfig.Config
 	kloudKite *kodingkite.KodingKite
