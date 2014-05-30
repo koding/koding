@@ -8,20 +8,6 @@ import (
 	"github.com/koding/kite"
 )
 
-type MachineState int
-
-const (
-	NotInitialized MachineState = iota
-	Building
-	Starting
-	Running
-	Stopping
-	Stopped
-	Rebooting
-	Terminating
-	Terminated
-)
-
 type BuildResponse struct {
 	MachineName string `json:"machineName" mapstructure:"machineName"`
 	MachineId   int    `json:"machineId" mapstructure:"machineId"`
