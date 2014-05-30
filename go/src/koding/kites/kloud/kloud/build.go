@@ -21,7 +21,15 @@ type BuildArgs struct {
 	MachineName  string
 }
 
+var (
+	ErrAlreadyInitialized = errors.New("Machine is already initialized and prepared.")
+)
+
 func (k *Kloud) build(r *kite.Request) (interface{}, error) {
+	// this locks are important to prevent consecutive calls from the same user
+	k.idlock.Get(r.Username).Lock()
+	defer k.idlock.Get(r.Username).Unlock()
+
 	args := &BuildArgs{}
 	if err := r.Args.One().Unmarshal(args); err != nil {
 		return nil, err
@@ -31,9 +39,14 @@ func (k *Kloud) build(r *kite.Request) (interface{}, error) {
 		return nil, errors.New("machineId is missing.")
 	}
 
-	// this locks are important to prevent consecutive calls from the same user
-	k.idlock.Get(r.Username).Lock()
-	defer k.idlock.Get(r.Username).Unlock()
+	state, err := k.Storage.GetState(args.MachineId)
+	if err != nil {
+		return nil, err
+	}
+
+	if state != NotInitialized {
+		return nil, ErrAlreadyInitialized
+	}
 
 	snapshotName := defaultSnapshotName
 	if args.SnapshotName != "" {
@@ -60,6 +73,10 @@ func (k *Kloud) build(r *kite.Request) (interface{}, error) {
 	}
 
 	if err := k.Storage.Update(args.MachineId, artifact); err != nil {
+		return nil, err
+	}
+
+	if err := k.Storage.UpdateState(args.MachineId, Running); err != nil {
 		return nil, err
 	}
 

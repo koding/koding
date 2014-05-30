@@ -1,23 +1,5 @@
 package kloud
 
-import "sync"
-
-type Stater interface {
-	// Add adds or updates the state for the given id
-	Add(string, MachineState)
-
-	// Delete deletes the given id
-	Delete(string)
-
-	// Get returns the state for the given id
-	Get(string) MachineState
-}
-
-type States struct {
-	s map[string]MachineState
-	sync.Mutex
-}
-
 type MachineState int
 
 const (
@@ -32,29 +14,39 @@ const (
 	Terminated                             // Machine is destroyed, not exists anymore
 )
 
-func NewStater() Stater {
-	return &States{
-		s: make(map[string]MachineState),
+var states = map[string]MachineState{
+	"NotInitialized": NotInitialized,
+	"Building":       Building,
+	"Starting":       Starting,
+	"Running":        Running,
+	"Stopping":       Stopping,
+	"Stopped":        Stopped,
+	"Rebooting":      Rebooting,
+	"Terminating":    Terminating,
+	"Terminated":     Terminated,
+}
+
+func (m MachineState) String() string {
+	switch m {
+	case NotInitialized:
+		return "NotInitialized"
+	case Building:
+		return "Building"
+	case Starting:
+		return "Starting"
+	case Running:
+		return "Running"
+	case Stopping:
+		return "Stopping"
+	case Stopped:
+		return "Stopped"
+	case Rebooting:
+		return "Rebooting"
+	case Terminating:
+		return "Terminating"
+	case Terminated:
+		return "Terminated"
+	default:
+		return "UnknownState"
 	}
-}
-
-func (s *States) Add(id string, state MachineState) {
-	s.Lock()
-	defer s.Unlock()
-
-	s.s[id] = state
-}
-
-func (s *States) Delete(id string) {
-	s.Lock()
-	defer s.Unlock()
-
-	delete(s.s, id)
-}
-
-func (s *States) Get(id string) MachineState {
-	s.Lock()
-	defer s.Unlock()
-
-	return s.s[id]
 }

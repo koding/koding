@@ -1,6 +1,7 @@
 package kloud
 
 import (
+	"fmt"
 	"koding/db/mongodb"
 
 	"github.com/mitchellh/mapstructure"
@@ -15,6 +16,12 @@ type Storage interface {
 
 	// Update updates the fields in the data for the given id
 	Update(id string, data map[string]interface{}) error
+
+	// UpdateState updates the machine state
+	UpdateState(string, MachineState) error
+
+	// GetState returns the machine state
+	GetState(string) (MachineState, error)
 }
 
 type MachineData struct {
@@ -91,4 +98,30 @@ func (m *MongoDB) Update(id string, data map[string]interface{}) error {
 	}
 
 	return nil
+}
+
+func (m *MongoDB) UpdateState(id string, state MachineState) error {
+	return m.session.Run("jMachines", func(c *mgo.Collection) error {
+		return c.UpdateId(
+			bson.ObjectIdHex(id),
+			bson.M{"$set": bson.M{"state": state.String()}},
+		)
+	})
+}
+
+func (m *MongoDB) GetState(id string) (MachineState, error) {
+	machine := Machine{}
+	err := m.session.Run("jMachines", func(c *mgo.Collection) error {
+		return c.FindId(bson.ObjectIdHex(id)).One(&machine)
+	})
+	if err != nil {
+		return 0, err
+	}
+
+	state := states[machine.State]
+	if state == 0 {
+		return 0, fmt.Errorf("state is unknown: %v", state)
+	}
+
+	return state, nil
 }

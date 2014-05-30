@@ -27,7 +27,6 @@ type Kloud struct {
 	Log    logging.Logger
 
 	Storage Storage
-	Stater  Stater
 
 	idlock *idlock.IdLock
 
@@ -60,10 +59,6 @@ func (k *Kloud) NewKloud() *kodingkite.KodingKite {
 
 	if k.Storage == nil {
 		k.Storage = &MongoDB{session: mongodb.NewMongoDB(k.Config.Mongo)}
-	}
-
-	if k.Stater == nil {
-		k.Stater = NewStater()
 	}
 
 	kt, err := kodingkite.New(k.Config, k.Name, k.Version)
