@@ -267,7 +267,7 @@ func (f *Controller) sendReplyAddedEventAsNotificationEvent(mr *models.MessageRe
 		// send this event to all channels
 		// that have this message
 		cml.ChannelId = channel.Id
-		err := f.sendEventAsNotification(cml)
+		err := f.sendChannelUpdatedEvent(cml.ChannelId)
 		if err != nil {
 			f.log.Error("err %s", err.Error())
 		}
