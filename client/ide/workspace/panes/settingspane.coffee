@@ -79,6 +79,7 @@ class SettingsPane extends Pane
 
   pistachio: ->
     """
+    <div class="settings-header">Editor Settings</div>
     <p>Use soft tabs                           {{> @useSoftTabs}}</p>
     <p>Line numbers                            {{> @showGutter}}</p>
     <p>Use word wrapping                       {{> @useWordWrap}}</p>
@@ -87,7 +88,6 @@ class SettingsPane extends Pane
     <p class='hidden'>Highlight selected word  {{> @highlightWord}}</p>
     <p>Show invisibles                         {{> @showInvisibles}}</p>
     <p>Use scroll past end                     {{> @scrollPastEnd}}</p>
-    <hr>
     <p class="with-select">Soft wrap           {{> @softWrap}}</p>
     <p class="with-select">Syntax              {{> @syntax}}</p>
     <p class="with-select">Key binding         {{> @keyboardHandler}}</p>
@@ -95,13 +95,12 @@ class SettingsPane extends Pane
     <p class="with-select">Theme               {{> @editorTheme}}</p>
     <p class="with-select">Tab size            {{> @editorTabSize}}</p>
     <p class='hidden'>{{> @shortcuts}}</p>
-    <hr>
     <p>Open Recent Files                       {{> @openRecentFiles}}</p>
-    <hr>
+
+    <div class="settings-header">Terminal Settings</div>
     <p class="with-select">Font               {{> @terminalFont}}</p>
     <p class="with-select">Font size          {{> @terminalFontSize}}</p>
     <p class="with-select">Theme              {{> @terminalTheme}}</p>
     <p class="with-select">Scrollback         {{> @scrollback}}</p>
-    <hr>
     <p>Use visual bell                        {{> @bell}}</p>
     """
