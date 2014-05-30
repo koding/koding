@@ -77,12 +77,23 @@ class VMPaneListItem extends JView
     , @getMenuItems()
 
   getMenuItems: ->
-    data                  = @getData()
-    appManager            = KD.getSingleton 'appManager'
-    menuItems             =
-      "Open VM terminal"  : callback: => appManager.tell 'IDE', 'openVMTerminal', data
-      "Open VM domain"    : callback: => appManager.tell 'IDE', 'openVMWebPage',  data
-      "Mount to filetree" : callback: => appManager.tell 'IDE', 'mountVM',        data
+    data        = @getData()
+    appManager  = KD.getSingleton 'appManager'
+    menuItems   =
+      'Open VM terminal'  : callback: => appManager.tell 'IDE', 'openVMTerminal', data
+      'Open VM domain'    : callback: => appManager.tell 'IDE', 'openVMWebPage',  data
+      'Mount to filetree' : callback: => appManager.tell 'IDE', 'mountVM',        data
+
+    # FIXME: Find a better way to remove this drill down
+    ideAppController   = appManager.getFrontApp()
+    {finderController} = ideAppController.workspace.panel.getPaneByName('filesPane').finderPane
+    isVMAlreadyMounted = finderController.getVmNode data.hostnameAlias
+
+    if isVMAlreadyMounted
+      delete menuItems['Mount to filetree']
+      menuItems['Unmount from filetree'] =
+        callback : =>
+          appManager.tell 'IDE', 'unmountVM', data
 
     return menuItems
 
