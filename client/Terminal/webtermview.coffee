@@ -10,26 +10,28 @@ class WebTermView extends KDView
     @container = new KDView
       cssClass : "console ubuntu-mono green-on-black"
       bind     : "scroll"
-    @container.on "scroll", =>
-      @container.$().scrollLeft 0
+
+    @container.on "scroll", => @container.$().scrollLeft 0
+
     @addSubView @container
 
-    vmName = @getOption 'vmName'
-
     @terminal = new WebTerm.Terminal @container
+
     @options.advancedSettings ?= no
+
     if @options.advancedSettings
-      @advancedSettings = new KDButtonViewWithMenu
-        style         : 'editor-advanced-settings-menu'
-        icon          : yes
-        iconOnly      : yes
-        iconClass     : "cog"
-        type          : "contextmenu"
-        delegate      : this
-        itemClass     : WebtermSettingsView
-        click         : (pubInst, event)-> @contextMenu event
-        menu          : @getAdvancedSettingsMenuItems.bind this
-      @addSubView @advancedSettings
+
+      @addSubView @advancedSettings = new KDButtonViewWithMenu
+        style     : 'editor-advanced-settings-menu'
+        icon      : yes
+        iconOnly  : yes
+        iconClass : "cog"
+        type      : "contextmenu"
+        delegate  : this
+        itemClass : WebtermSettingsView
+        click     : (pubInst, event)-> @contextMenu event
+        menu      : @getAdvancedSettingsMenuItems.bind this
+
 
     @terminal.sessionEndedCallback = (sessions) =>
       @emit "WebTerm.terminated"
@@ -57,13 +59,13 @@ class WebTermView extends KDView
 
     KD.mixpanel "Open Webterm, click", {vmName}
 
-    @getDelegate().on 'KDTabPaneActive', =>
-      # @terminal.setSize 100, 100
-      @terminal.updateSize yes
+    @getDelegate().on 'KDTabPaneActive', => @terminal.updateSize yes
 
     @setKeyView()
 
+
   generateOptions:->
+
     delegateOptions = @getDelegate().getOptions()
     myOptions       = @getOptions()
 
