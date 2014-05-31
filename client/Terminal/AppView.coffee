@@ -42,67 +42,6 @@ class WebTermAppView extends JView
 
     # {vmController} = KD.singletons
     # {terminalKites} = vmController
-    # vmController.ready @bound 'restoreTabs'
-
-  restoreTabs: ->
-    @fetchStorage (storage) =>
-      sessions = storage.getValue 'savedSessions'
-      return  unless sessions?.length
-
-      @notify
-        title     : "Checking for previous sessions"
-        cssClass  : "success"
-
-      # group sessions by alias
-      aliases = []
-      sessions.forEach (session) ->
-        [alias, sessionId] = session.split ':'
-        aliases.push alias  unless alias in aliases
-
-      # fetch vms and store in an object with the key of alias
-      KD.singletons.vmController.fetchGroupVMs no, (err, vms) =>
-        return warn err  if err
-        vmList = {}
-        vms.map (vm) ->
-          vmList[vm.hostnameAlias] = vm
-
-        {dash} = Bongo
-
-        # fetch all active vm sessions via terminal kites
-        activeSessions = []
-        {vmController, kontrol} = KD.singletons
-        kites =
-          if KD.useNewKites
-          then kontrol.kites.terminal
-          else vmController.terminalKites
-        queue = aliases.map (alias)->->
-          # when we have sessions from another xontext in appStorage
-          # prevent restoring sessions of terminals in that context
-          kites[alias]?.webtermGetSessions().then (sessions) =>
-            activeSessions = activeSessions.concat sessions
-            queue.fin()
-          .catch (err) ->
-            warn err
-            queue.fin()
-
-        # after all active sessions are fetched, compare them with last open sessions
-        sessionRestored = no
-        dash queue, =>
-          sessions.forEach (session) =>
-            [alias, sessionId] = session.split ':'
-            if sessionId in activeSessions
-              sessionRestored = yes
-              @createNewTab
-                vm         : vmList[alias]
-                session    : sessionId
-                mode       : 'resume'
-                shouldShow : no
-
-          unless sessionRestored
-            @notify
-              title     : "Your previous sessions are no longer online since your VM is turned off due to inactivity. \
-                           If you want always on VMs, you can upgrade your plan"
-              cssClass  : "fail"
 
   initPane: (pane) ->
 
