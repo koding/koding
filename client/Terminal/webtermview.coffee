@@ -53,13 +53,16 @@ class WebTermView extends KDView
     window.addEventListener "blur",  => @terminal.setFocused no
     window.addEventListener "focus", => @setFocus @focused
 
+
     @getElement().addEventListener "mousedown", (event) =>
       @terminal.mousedownHappened = yes
     , yes
 
     @forwardEvent @terminal, 'command'
 
-    KD.mixpanel "Open Webterm, click", {vmName}
+    KD.mixpanel "Open Webterm, click", {
+      machineName : @getMachine().getName()
+    }
 
     @getDelegate().on 'KDTabPaneActive', => @terminal.updateSize yes
 
@@ -77,90 +80,87 @@ class WebTermView extends KDView
       sizeY       : @terminal.sizeY
       joinUser    : myOptions.joinUser  ? delegateOptions.joinUser
       session     : @sessionId ? myOptions.session ? delegateOptions.session
-      mode        : myOptions.mode      ? 'create'
+      mode        : myOptions.mode ? 'create'
 
-  getVMName:->
+    return params
 
-    if vm = @getOption 'vm'
-      { hostnameAlias: vmName } = vm
 
-    vmName = @getDelegate().getOption "vmName"  unless vmName
+  getMachine: -> @getOption 'machine'
+  getKite:    -> @getMachine().kites.klient
 
-    return vmName
-
-  getKite: ->
-
-    return (@getOption 'machine').kites.klient
-
-    { kontrol, kiteController, vmController } = KD.singletons
-    vmName = @getVMName()
-    if KD.useNewKites
-      kite = KD.singletons.kontrol.kites.terminal[vmName]
-      return kite  if kite?
-      kontrol.getKite
-        name            : 'terminal'
-        correlationName : vmName
-    else
-      kite = vmController.terminalKites[vmName]
-      return kite  if kite?
-      kiteController.getKite 'terminal', vmName, 'terminal'
 
   webtermConnect:(mode = 'create')->
 
-    return console.info "reconnection is in progress" if @reconnectionInProgress
+    if @reconnectionInProgress
+      return console.info "reconnection is in progress"
+
     @reconnectionInProgress = yes
+
     options = @generateOptions()
     options.mode = mode
 
-    {vmController, kontrol} = KD.singletons
-
     kite = @getKite()
-
     kite.webtermConnect(options).then (remote) =>
+
       @setOption "session", remote.session
       @terminal.eventHandler = (data)=>
         @emit "WebTermEvent", data
-      @terminal.server       = remote
+
+      @terminal.server = remote
       @sessionId = remote.session
 
       @emit "WebTermConnected", remote
       @reconnectionInProgress = false
 
     .catch (err) =>
+
       KD.utils.warnAndLog "terminal: webtermConnect error",
-        {hostnameAlias:@getVMName(), reason:err?.message, options}
+        { hostnameAlias: @getMachine().getName(), reason:err?.message, options }
 
       if err.code is "ErrInvalidSession"
+
         @reconnectionInProgress = false
         @emit 'TerminalCanceled',
-          vmName: @getVMName()
-          sessionId: @getOptions().session
-          error: err
+          machineId : @getMachine().uid
+          sessionId : @getOptions().session
+          error     : err
+
         return
+
       else
+
         @reconnectionInProgress = false
         throw err
 
+
   connectToTerminal: ->
+
     @appStorage = KD.getSingleton('appStorageController').storage 'Terminal', '1.0.1'
+
     @appStorage.fetchStorage =>
+
       @appStorage.setValue 'font'      , 'ubuntu-mono' if not @appStorage.getValue('font')?
       @appStorage.setValue 'fontSize'  , 14 if not @appStorage.getValue('fontSize')?
       @appStorage.setValue 'theme'     , 'green-on-black' if not @appStorage.getValue('theme')?
       @appStorage.setValue 'visualBell', false if not @appStorage.getValue('visualBell')?
       @appStorage.setValue 'scrollback', 1000 if not @appStorage.getValue('scrollback')?
       @updateSettings()
+
       {mode} = @getOptions()
       @webtermConnect mode
 
     KD.getSingleton("kiteController").on "KiteError", (err) =>
-      log "kite error:", err
+
+      warn "kite error:", err
+
       @reconnected = no
       {code, serviceGenericName} = err
 
-      vmName = (@getOption 'vmName') or @getDelegate().getOption "vmName"
+      machineName = @getMachine().getName()
 
-      ErrorLog.create "KiteError", {code, serviceGenericName, vmName, reason: err?.message}
+      ErrorLog.create "KiteError", {
+        code, serviceGenericName, machineName, reason: err?.message
+      }
 
       if code is 503 and serviceGenericName.indexOf("kite-os") is 0
         @reconnectAttemptFailed serviceGenericName, vmName
@@ -232,21 +232,28 @@ class WebTermView extends KDView
 
   destroy: ->
     super
+
     KD.utils.killRepeat @checker
+
     unless @status is "fail"
       @emit "TerminalClosed",
-        vmName   : @getVMName()
-        sessionId: @getOptions().session
+        machineId : @getMachine().uid
+        sessionId : @getOptions().session
 
     @terminal.server?.terminate()
 
+
   updateSettings: ->
+
     @container.unsetClass font.value for font in __webtermSettings.fonts
     @container.unsetClass theme.value for theme in __webtermSettings.themes
+
     @container.setClass @appStorage.getValue('font')
     @container.setClass @appStorage.getValue('theme')
+
     @container.$().css
       fontSize: @appStorage.getValue('fontSize') + 'px'
+
     @terminal.updateSize true
     @terminal.scrollToBottom(no)
     @terminal.controlCodeReader.visualBell = @appStorage.getValue 'visualBell'
