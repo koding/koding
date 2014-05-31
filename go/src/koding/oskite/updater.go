@@ -108,7 +108,7 @@ func (o *Oskite) vmUpdater() {
 			log.Error("Updating STOPPED vms %v", err)
 		}
 
-        if err := updateStates(filter("UNKNOWN"), "UNKNOWN"); err != nil {
+		if err := updateStates(filter("UNKNOWN"), "UNKNOWN"); err != nil {
 			log.Error("Updating UNKNOWN vms %v", err)
 		}
 
@@ -146,7 +146,7 @@ func (o *Oskite) startAlwaysOn(vm virt.VM) {
 	}
 
 	go func() {
-		if vm.State != "RUNNING" &&  vm.State != "UNKNOWN" {
+		if vm.State != "RUNNING" && vm.State != "UNKNOWN" {
 			log.Info("alwaysOn is starting [%s - %v]", vm.HostnameAlias, vm.Id)
 			err := o.startSingleVM(vm, nil)
 			if err != nil {
