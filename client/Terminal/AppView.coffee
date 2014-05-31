@@ -1,3 +1,8 @@
+
+# Notes:                                  ~ GG
+# RestoreTab functionality removed with
+# 8c9f80cff24c93107de583cb864b0001f1e737af
+
 class WebTermAppView extends JView
 
   loadingPartial = 'Loading Terminal...'
