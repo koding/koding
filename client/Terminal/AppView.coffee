@@ -305,84 +305,17 @@ class WebTermAppView extends JView
     .catch (err) ->
       warn err
 
-  addNewTab: (vm) ->
 
-    @_secondTab = yes
-    mode        = 'create'
 
-    @prepareAndRunTerminal vm, mode
 
-  showVMSelection:->
 
-    return  if @vmselection and not @vmselection.isDestroyed
-    @vmselection = new VMSelection delegate : this
 
   handlePlusClick:->
 
-    ComputeProvider.fetchMachines (err, machines)=>
-      machine = machines.first
+    # FIXME ~GG
+    # machine = @machines.first
+    # @createNewTab { machine, mode:'create' }
 
-      @createNewTab {machine, mode:'create'}
-
-    # vmc = KD.getSingleton 'vmController'
-    # if vmc.vms.length > 1 then @showVMSelection()
-    # else
-
-    #   console.log "here....."
-
-    #   vm = vmc.vms.first
-
-    #   unless vm
-    #     ErrorLog.create "terminal: handlePlusClick error", {reason:"0 vms"}
-    #     return
-
-    #   osKite =
-    #     if KD.useNewKites
-    #     then vmc.kites.oskite[vm.hostnameAlias]
-    #     else vmc.kites[vm.hostnameAlias]
-
-    #   state = osKite.recentState?.state
-
-    #   if state is 'RUNNING'
-    #   then @prepareAndRunTerminal vm
-    #   else
-    #     ErrorLog.create "terminal: handlePlusClick error",
-    #       {reason: "vm has unknown state", osKiteState: state}
-
-    #     @notify cssClass : 'error'
-
-  prepareAndRunTerminal: (vm, mode = 'create') ->
-    {vmController} = KD.singletons
-    osKite =
-      if KD.useNewKites
-      then vmController.kites.oskite[vm.hostnameAlias]
-      else vmController.kites[vm.hostnameAlias]
-
-    {recentState}  = osKite
-
-    state = osKite.recentState?.state
-
-    if state is 'RUNNING'
-      @createNewTab {vm, mode}
-    else if state in ['STOPPED', 'FAILED']
-      osKite?.vmOn().catch @bound "handlePrepareError"
-    else
-      ErrorLog.create "terminal: prepareAndRunTerminal error",
-        {vm, reason: "vm has unknown state", osKiteState: state}
-
-      @notify cssClass : 'error'
-      osKite?.vmOff()
-
-  handlePrepareError: (err) ->
-    title = err?.message
-
-    if title and /limit reached/.test title
-      title += ". Please upgrade to run more VMs."
-
-    numberOfVms = Object.keys(KD.singletons.vmController.vmsInfo).length
-    ErrorLog.create err?.message, {numberOfVms}
-
-    new KDNotificationView {title}
 
   pistachio: ->
     """
