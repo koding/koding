@@ -261,15 +261,19 @@ class WebTermAppView extends JView
     @tabView.addPane pane, shouldShow
     pane.addSubView terminalView
 
-    terminalView.on "WebTermNeedsToBeRecovered", ({vm, session}) =>
-      @createNewTab {vm, session, mode: 'resume', shouldShow : no}
+    # FIXME GG
+    # terminalView.on "WebTermNeedsToBeRecovered", ({vm, session}) =>
 
-      title = "Reconnected to Terminal"
-      Metric.create title, vm
-      @notify {title}
+    #   @createNewTab {
+    #     vm, session, mode: 'resume', shouldShow : no
+    #   }
 
-      pane.destroySubViews()
-      @tabView.removePane pane
+    #   title = "Reconnected to Terminal"
+    #   Metric.create title, vm
+    #   @notify {title}
+
+    #   pane.destroySubViews()
+    #   @tabView.removePane pane
 
     terminalView.once 'TerminalCanceled', ({ machineId }) =>
       @tabView.removePane pane
