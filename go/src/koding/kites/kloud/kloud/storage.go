@@ -3,8 +3,8 @@ package kloud
 import (
 	"fmt"
 	"koding/db/mongodb"
-
-	"github.com/mitchellh/mapstructure"
+	"koding/kites/kloud/kloud/protocol"
+	"strconv"
 
 	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
@@ -12,10 +12,10 @@ import (
 
 type Storage interface {
 	// Get returns to MachineData
-	Get(id string) (*MachineData, error)
+	Get(string) (*MachineData, error)
 
 	// Update updates the fields in the data for the given id
-	Update(id string, data map[string]interface{}) error
+	Update(string, *protocol.BuildResponse) error
 
 	// UpdateState updates the machine state
 	UpdateState(string, MachineState) error
@@ -75,21 +75,16 @@ func (m *MongoDB) Get(id string) (*MachineData, error) {
 	}, nil
 }
 
-func (m *MongoDB) Update(id string, data map[string]interface{}) error {
-	response := &BuildResponse{}
-	if err := mapstructure.Decode(data, response); err != nil {
-		return err
-	}
-
+func (m *MongoDB) Update(id string, resp *protocol.BuildResponse) error {
 	err := m.session.Run("jMachines", func(c *mgo.Collection) error {
 		return c.UpdateId(
 			bson.ObjectIdHex(id),
 			bson.M{"$set": bson.M{
-				"kiteId":           response.KiteId,
-				"ipAddress":        response.IpAddress,
-				"state":            "READY",
-				"meta.machineId":   response.MachineId,
-				"meta.machineName": response.MachineName,
+				"kiteId":            resp.KiteId,
+				"ipAddress":         resp.IpAddress,
+				"state":             "READY",
+				"meta.instanceId":   strconv.Itoa(resp.InstanceId),
+				"meta.instanceName": resp.InstanceName,
 			}},
 		)
 	})

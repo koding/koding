@@ -3,7 +3,10 @@ package kloud
 import (
 	"koding/db/mongodb"
 	"koding/kites/kloud/digitalocean"
+	"koding/kites/kloud/eventer"
 	"koding/kites/kloud/idlock"
+	"koding/kites/kloud/kloud/protocol"
+	"koding/kites/kloud/utils"
 	"koding/kodingkite"
 	"koding/tools/config"
 	"log"
@@ -18,8 +21,7 @@ const (
 )
 
 var (
-	defaultSnapshotName = "koding-klient-0.0.1"
-	providers           = make(map[string]Provider)
+	providers = make(map[string]protocol.Provider)
 )
 
 type Kloud struct {
@@ -27,7 +29,7 @@ type Kloud struct {
 	Log    logging.Logger
 
 	Storage  Storage
-	Eventers map[string]Eventer
+	Eventers map[string]eventer.Eventer
 
 	idlock *idlock.IdLock
 
@@ -63,7 +65,7 @@ func (k *Kloud) NewKloud() *kodingkite.KodingKite {
 	}
 
 	if k.Eventers == nil {
-		k.Eventers = make(map[string]Eventer)
+		k.Eventers = make(map[string]eventer.Eventer)
 	}
 
 	kt, err := kodingkite.New(k.Config, k.Name, k.Version)
@@ -87,11 +89,23 @@ func (k *Kloud) NewKloud() *kodingkite.KodingKite {
 }
 
 func (k *Kloud) InitializeProviders() {
-	providers = map[string]Provider{
+	providers = map[string]protocol.Provider{
 		"digitalocean": &digitalocean.DigitalOcean{
 			Log: createLogger("digitalocean", k.Debug),
 		},
 	}
+}
+
+func (k *Kloud) NewEventer() (string, eventer.Eventer) {
+	ev := eventer.New()
+	eventId := utils.RandString(16)
+	k.Eventers[eventId] = ev
+
+	return eventId, ev
+}
+
+func (k *Kloud) GetEvent(eventId string) *eventer.Event {
+	return k.Eventers[eventId].Pull()
 }
 
 func createLogger(name string, debug bool) logging.Logger {

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"koding/kites/kloud/klientprovisioner"
+	"koding/kites/kloud/kloud/protocol"
 	"koding/kites/kloud/packer"
 	"koding/kites/kloud/sshutil"
 	"koding/kites/kloud/utils"
@@ -28,7 +29,7 @@ type DigitalOcean struct {
 	}
 
 	Builder struct {
-		DropletId   string `mapstructure:"machineId"`
+		DropletId   string `mapstructure:"instanceId"`
 		DropletName string `mapstructure:"droplet_name" packer:"droplet_name"`
 
 		Type     string `mapstructure:"type" packer:"type"`
@@ -91,24 +92,19 @@ func (d *DigitalOcean) Prepare(raws ...interface{}) (err error) {
 // given snapshot/image exist it directly skips to creating the droplet. It
 // acceps two string arguments, first one is the snapshotname, second one is
 // the dropletName.
-func (d *DigitalOcean) Build(raws ...interface{}) (map[string]interface{}, error) {
-	if len(raws) != 3 {
-		return nil, errors.New("need one argument. No snaphost name is provided")
+func (d *DigitalOcean) Build(opts *protocol.BuildOptions) (*protocol.BuildResponse, error) {
+	if opts.ImageName == "" {
+		return nil, errors.New("snapshotName is empty")
 	}
+	snapshotName := opts.ImageName
 
-	snapshotName, ok := raws[0].(string)
-	if !ok {
-		return nil, fmt.Errorf("malformed data received %v. snapshot name must be a string", raws[0])
+	if opts.InstanceName == "" {
+		return nil, errors.New("dropletName is empty")
 	}
+	dropletName := opts.InstanceName
 
-	dropletName, ok := raws[1].(string)
-	if !ok {
-		return nil, fmt.Errorf("malformed data received %v. droplet name must be a string", raws[0])
-	}
-
-	signFunc, ok := raws[2].(func() (string, string, error))
-	if !ok {
-		return nil, fmt.Errorf("malformed data received %v. function signature must be func() (string,error)", raws[0])
+	if opts.SignFunc == nil {
+		return nil, errors.New("SignFunc is not defined.")
 	}
 
 	// needed because this is passed as `data` to packer.Provider
@@ -191,7 +187,7 @@ func (d *DigitalOcean) Build(raws ...interface{}) (map[string]interface{}, error
 	defer client.Close()
 
 	// generate kite key specific for the user
-	kiteKey, kiteId, err := signFunc()
+	kiteKey, kiteId, err := opts.SignFunc()
 	if err != nil {
 		return nil, err
 	}
@@ -221,11 +217,11 @@ func (d *DigitalOcean) Build(raws ...interface{}) (map[string]interface{}, error
 		return nil, err
 	}
 
-	return map[string]interface{}{
-		"kiteId":      kiteId,
-		"ipAddress":   dropInfo.IpAddress,
-		"machineName": dropInfo.Name,
-		"machineId":   dropInfo.Id,
+	return &protocol.BuildResponse{
+		KiteId:       kiteId,
+		IpAddress:    dropInfo.IpAddress,
+		InstanceName: dropInfo.Name,
+		InstanceId:   dropInfo.Id,
 	}, nil
 }
 

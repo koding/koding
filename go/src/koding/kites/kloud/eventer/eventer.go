@@ -1,7 +1,6 @@
-package kloud
+package eventer
 
 import (
-	"koding/kites/kloud/utils"
 	"sync"
 	"time"
 )
@@ -10,12 +9,12 @@ import (
 type Eventer interface {
 	// Push pushes the event to the top of the stack. It's needs to act as a
 	// LIFO.
-	Push(*event)
+	Push(*Event)
 
 	// Pull shows the latest event in the stack. It does not remove it.
 	// Consecutive calls may show the same content or other contents based on
 	// the content of the stack.
-	Pull() *event
+	Pull() *Event
 
 	// Close closes the eventer and shuts down input to the stack. No other
 	// events can be inserted after close is invoked. After close Pull should
@@ -23,27 +22,28 @@ type Eventer interface {
 	Close()
 }
 
-type event struct {
-	eventId     uint      `json:"eventID"`
-	machineId   string    `json:"machineID"`
-	message     string    `json:"message"`
-	lastUpdated time.Time `json:"-"`
+type Event struct {
+	EventId     uint      `json:"eventID"`
+	MachineId   string    `json:"machineID"`
+	Message     string    `json:"message"`
+	LastUpdated time.Time `json:"-"`
 }
 
 type events struct {
-	e      []*event
-	closed bool
+	e         []*Event
+	lastEvent Event
+	closed    bool
 
 	sync.Mutex
 }
 
-func newEventer() Eventer {
+func New() Eventer {
 	return &events{
-		e: make([]*event, 0),
+		e: make([]*Event, 0),
 	}
 }
 
-func (e *events) Push(ev *event) {
+func (e *events) Push(ev *Event) {
 	e.Lock()
 	defer e.Unlock()
 
@@ -54,7 +54,7 @@ func (e *events) Push(ev *event) {
 	e.e = append(e.e, ev)
 }
 
-func (e *events) Pull() *event {
+func (e *events) Pull() *Event {
 	e.Lock()
 	defer e.Unlock()
 
@@ -66,16 +66,5 @@ func (e *events) Close() {
 	defer e.Unlock()
 
 	e.closed = true
-}
-
-func (k *Kloud) NewEventer() (string, Eventer) {
-	eventer := newEventer()
-	eventId := utils.RandString(16)
-	k.Eventers[eventId] = eventer
-
-	return eventId, eventer
-}
-
-func (k *Kloud) GetEvent(eventId string) *event {
-	return k.Eventers[eventId].Pull()
+	// e.e = e.e[len(e.e)-1:]
 }

@@ -3,27 +3,24 @@ package kloud
 import (
 	"errors"
 	"fmt"
+	"koding/kites/kloud/kloud/protocol"
 	"strconv"
 	"time"
 
 	"github.com/koding/kite"
 )
 
-type BuildResponse struct {
-	MachineName string `json:"machineName" mapstructure:"machineName"`
-	MachineId   int    `json:"machineId" mapstructure:"machineId"`
-	KiteId      string `json:"kiteId" mapstructure:"kiteId"`
-	IpAddress   string `json:"ipAddress" mapstructure:"ipAddress"`
-}
-
 type BuildArgs struct {
 	MachineId    string
-	SnapshotName string
-	MachineName  string
+	ImageName    string
+	InstanceName string
 }
 
 var (
+	defaultImageName = "koding-klient-0.0.1"
+
 	ErrAlreadyInitialized = errors.New("Machine is already initialized and prepared.")
+	ErrBuilding           = errors.New("Machine is being build. Hold on...")
 )
 
 func (k *Kloud) build(r *kite.Request) (interface{}, error) {
@@ -45,26 +42,41 @@ func (k *Kloud) build(r *kite.Request) (interface{}, error) {
 		return nil, err
 	}
 
+	if state == Building {
+		return nil, ErrBuilding
+	}
+
+	// if it's something else (stopped, runnning, terminated, ...) it's been
+	// already built
 	if state != NotInitialized {
 		return nil, ErrAlreadyInitialized
 	}
 
-	eventId, _ := k.NewEventer()
+	k.Storage.UpdateState(args.MachineId, Building)
+	// defer func() {
+	// 	if err != nil {
+	// 		k.Storage.UpdateState(args.MachineId, NotInitialized)
+	// 	} else {
+	// 		k.Storage.UpdateState(args.MachineId, Running)
+	// 	}
+	// }()
+
+	eventId, eventer := k.NewEventer()
 
 	fmt.Printf("eventId %+v\n", eventId)
 
-	snapshotName := defaultSnapshotName
-	if args.SnapshotName != "" {
-		snapshotName = args.SnapshotName
+	imageName := defaultImageName
+	if args.ImageName != "" {
+		imageName = args.ImageName
 	}
 
 	signFunc := func() (string, string, error) {
 		return createKey(r.Username, k.KontrolURL, k.KontrolPrivateKey, k.KontrolPublicKey)
 	}
 
-	machineName := r.Username + "-" + strconv.FormatInt(time.Now().UTC().UnixNano(), 10)
-	if args.MachineName != "" {
-		machineName = args.MachineName
+	instanceName := r.Username + "-" + strconv.FormatInt(time.Now().UTC().UnixNano(), 10)
+	if args.InstanceName != "" {
+		instanceName = args.InstanceName
 	}
 
 	provider, err := k.provider(args.MachineId)
@@ -72,12 +84,19 @@ func (k *Kloud) build(r *kite.Request) (interface{}, error) {
 		return nil, err
 	}
 
-	artifact, err := provider.Build(snapshotName, machineName, signFunc)
+	buildOptions := &protocol.BuildOptions{
+		ImageName:    imageName,
+		InstanceName: instanceName,
+		SignFunc:     signFunc,
+		Eventer:      eventer,
+	}
+
+	buildResponse, err := provider.Build(buildOptions)
 	if err != nil {
 		return nil, err
 	}
 
-	if err := k.Storage.Update(args.MachineId, artifact); err != nil {
+	if err := k.Storage.Update(args.MachineId, buildResponse); err != nil {
 		return nil, err
 	}
 
@@ -85,5 +104,5 @@ func (k *Kloud) build(r *kite.Request) (interface{}, error) {
 		return nil, err
 	}
 
-	return artifact, nil
+	return buildResponse, nil
 }
