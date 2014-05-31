@@ -179,6 +179,11 @@ class AccountEditUsername extends JView
     {focus} = KD.utils.parseQuery()
     @emailForm.inputs[focus]?.setFocus()  if focus
 
+    notify = (message)->
+      new KDNotificationView
+        title    : message
+        duration : 3500
+
     if @userInfo.status is "unconfirmed"
       o =
         tagName      : "a"
@@ -186,13 +191,15 @@ class AccountEditUsername extends JView
         cssClass     : "action-link verify-email"
         testPath     : "account-email-edit"
         click        : =>
-          KD.remote.api.JPasswordRecovery.recoverPassword @account.profile.nickname, (err)=>
-            message = "Email confirmation mail is sent"
-            if err then message = err.message else @verifyEmail.hide()
+          KD.whoami().fetchFromUser "email", (err, email)=>
+            if err
+              notify err.message
+            else
+              KD.remote.api.JPasswordRecovery.recoverPassword email, (err)=>
+                message = "Email confirmation mail is sent"
+                if err then message = err.message else @verifyEmail.hide()
 
-            new KDNotificationView
-              title    : message
-              duration : 3500
+                notify message
 
     @addSubView @verifyEmail = new KDCustomHTMLView o
 

@@ -421,7 +421,7 @@ class WebTermAppView extends JView
     title = err?.message
 
     if title and /limit reached/.test title
-      title += " Please upgrade to run more VMs."
+      title += ". Please upgrade to run more VMs."
 
     numberOfVms = Object.keys(KD.singletons.vmController.vmsInfo).length
     ErrorLog.create err?.message, {numberOfVms}
