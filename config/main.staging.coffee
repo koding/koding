@@ -171,6 +171,7 @@ module.exports =
       userSitesDomain: 'kd.io'
       useNeo4j: yes
       logToExternal : yes
+      logToInternal : yes
       resourceName: socialQueueName
       logResourceName: logQueueName
       socialApiUri: 'https://stage-social.koding.com/xhr'
