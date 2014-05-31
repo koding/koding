@@ -290,17 +290,7 @@ func (c *Channel) FetchParticipantIds() ([]int64, error) {
 }
 
 func (c *Channel) AddMessage(messageId int64) (*ChannelMessageList, error) {
-	if c.Id == 0 {
-		return nil, errors.New("Channel Id is not set")
-	}
-
-	cml := NewChannelMessageList()
-
-	selector := map[string]interface{}{
-		"channel_id": c.Id,
-		"message_id": messageId,
-	}
-	err := cml.One(bongo.NewQS(selector))
+	cml, err := c.FetchMessageList(messageId)
 	if err == nil {
 		return nil, errors.New("Message is already in the channel")
 	}
@@ -321,18 +311,7 @@ func (c *Channel) AddMessage(messageId int64) (*ChannelMessageList, error) {
 }
 
 func (c *Channel) RemoveMessage(messageId int64) (*ChannelMessageList, error) {
-	if c.Id == 0 {
-		return nil, errors.New("Channel Id is not set")
-	}
-
-	cml := NewChannelMessageList()
-	selector := map[string]interface{}{
-		"channel_id": c.Id,
-		"message_id": messageId,
-	}
-	err := cml.One(bongo.NewQS(selector))
-	// one returns error when record not found case
-	// but we dont care if it is not there tho
+	cml, err := c.FetchMessageList(messageId)
 	if err != nil {
 		return nil, err
 	}
@@ -342,6 +321,20 @@ func (c *Channel) RemoveMessage(messageId int64) (*ChannelMessageList, error) {
 	}
 
 	return cml, nil
+}
+
+func (c *Channel) FetchMessageList(messageId int64) (*ChannelMessageList, error) {
+	if c.Id == 0 {
+		return nil, errors.New("Channel Id is not set")
+	}
+
+	cml := NewChannelMessageList()
+	selector := map[string]interface{}{
+		"channel_id": c.Id,
+		"message_id": messageId,
+	}
+
+	return cml, cml.One(bongo.NewQS(selector))
 }
 
 func (c *Channel) FetchChannelIdByNameAndGroupName(name, groupName string) (int64, error) {
