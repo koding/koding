@@ -11,10 +11,10 @@ type Eventer interface {
 	// LIFO.
 	Push(*Event)
 
-	// Pull shows the latest event in the stack. It does not remove it.
+	// Show shows the latest event in the stack. It does not remove it.
 	// Consecutive calls may show the same content or other contents based on
 	// the content of the stack.
-	Pull() *Event
+	Show() *Event
 
 	// Close closes the eventer and shuts down input to the stack. No other
 	// events can be inserted after close is invoked. After close Pull should
@@ -22,14 +22,23 @@ type Eventer interface {
 	Close()
 }
 
+type EventStatus int
+
+const (
+	Pending EventStatus = iota
+	Finished
+	Error
+)
+
 type Event struct {
-	EventId     uint      `json:"eventID"`
-	MachineId   string    `json:"machineID"`
-	Message     string    `json:"message"`
-	LastUpdated time.Time `json:"-"`
+	EventId     uint        `json:"eventID"`
+	MachineId   string      `json:"machineID"`
+	Message     string      `json:"message"`
+	Status      EventStatus `json:"status"`
+	LastUpdated time.Time   `json:"-"`
 }
 
-type events struct {
+type Events struct {
 	e         []*Event
 	lastEvent Event
 	closed    bool
@@ -37,13 +46,13 @@ type events struct {
 	sync.Mutex
 }
 
-func New() Eventer {
-	return &events{
+func New() *Events {
+	return &Events{
 		e: make([]*Event, 0),
 	}
 }
 
-func (e *events) Push(ev *Event) {
+func (e *Events) Push(ev *Event) {
 	e.Lock()
 	defer e.Unlock()
 
@@ -54,17 +63,26 @@ func (e *events) Push(ev *Event) {
 	e.e = append(e.e, ev)
 }
 
-func (e *events) Pull() *Event {
+func (e *Events) Show() *Event {
 	e.Lock()
 	defer e.Unlock()
 
 	return e.e[len(e.e)-1]
 }
 
-func (e *events) Close() {
+func (e *Events) Close() {
 	e.Lock()
 	defer e.Unlock()
 
 	e.closed = true
 	// e.e = e.e[len(e.e)-1:]
+}
+
+func (e *Events) String() string {
+	var msg string
+	for _, ev := range e.e {
+		msg = msg + ev.Message + "\n"
+	}
+
+	return msg
 }

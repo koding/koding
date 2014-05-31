@@ -82,6 +82,7 @@ func (k *Kloud) NewKloud() *kodingkite.KodingKite {
 	kt.HandleFunc("restart", k.restart)
 	kt.HandleFunc("destroy", k.destroy)
 	kt.HandleFunc("info", k.info)
+	kt.HandleFunc("event", k.event)
 
 	k.InitializeProviders()
 
@@ -105,7 +106,7 @@ func (k *Kloud) NewEventer() (string, eventer.Eventer) {
 }
 
 func (k *Kloud) GetEvent(eventId string) *eventer.Event {
-	return k.Eventers[eventId].Pull()
+	return k.Eventers[eventId].Show()
 }
 
 func createLogger(name string, debug bool) logging.Logger {
