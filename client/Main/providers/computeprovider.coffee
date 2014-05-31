@@ -58,13 +58,18 @@ class Machine extends KDObject
     delete options.machine
     super options, machine
 
-    { @label, @publicAddress, @state } = @jMachine = @getData()
+    { @label, @publicAddress, @state, @uid, @_id } = @jMachine = @getData()
+
     @kites = {}
 
     {kontrolProd} = KD.singletons
 
     @kites.klient = kontrolProd.getKite
       name        : "klient"
-      username    : "gokmen"
+      username    : KD.nick()
       environment : "public-host"
       id          : "007"
+
+  getName:->
+    @publicAddress or @uid or @label or "one of #{KD.nick()}'s machine"
+
