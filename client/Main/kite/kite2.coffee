@@ -12,6 +12,8 @@ class KDKite extends Kite
   createProperError = (err) ->
     e = new Error err.message
     e.type = err.type
+    e.name = err.type
+    e.code = err.code
     e
 
   tell: (method, params = {}) ->
