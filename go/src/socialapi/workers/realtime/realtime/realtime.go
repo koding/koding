@@ -151,7 +151,7 @@ func (f *Controller) ChannelParticipantUpdatedEvent(data []byte) error {
 		return err
 	}
 
-	return f.sendChannelUpdatedEventToParticipant(c, cp)
+	return f.sendChannelUpdatedEventToParticipant(c, nil, cp)
 }
 
 func (f *Controller) ChannelParticipantRemovedFromChannelEvent(data []byte) error {
@@ -303,7 +303,7 @@ func (f *Controller) sendReplyAddedEventAsNotificationEvent(mr *models.MessageRe
 		// send this event to all channels
 		// that have this message
 		cml.ChannelId = channel.Id
-		err := f.sendChannelUpdatedEvent(cml.ChannelId)
+		err := f.sendChannelUpdatedEvent(cml.ChannelId, parent)
 		if err != nil {
 			f.log.Error("err %s", err.Error())
 		}
@@ -334,7 +334,7 @@ func (f *Controller) MessageListSaved(data []byte) error {
 		return err
 	}
 
-	if err := f.sendChannelUpdatedEvent(cml.ChannelId); err != nil {
+	if err := f.sendChannelUpdatedEvent(cml.ChannelId, nil); err != nil {
 		return err
 	}
 
@@ -345,7 +345,7 @@ func (f *Controller) MessageListSaved(data []byte) error {
 	return nil
 }
 
-func (f *Controller) sendChannelUpdatedEvent(channelId int64) error {
+func (f *Controller) sendChannelUpdatedEvent(channelId int64, cm *models.ChannelMessage) error {
 	if channelId == 0 {
 		return fmt.Errorf("ChannelId or AccountId is not set")
 	}
@@ -371,13 +371,13 @@ func (f *Controller) sendChannelUpdatedEvent(channelId int64) error {
 	}
 
 	for _, accountId := range participants {
-		f.sendChannelUpdatedEventToAccount(c, accountId)
+		f.sendChannelUpdatedEventToAccount(c, cm, accountId)
 	}
 
 	return nil
 }
 
-func (f *Controller) sendChannelUpdatedEventToAccount(c *models.Channel, accountId int64) error {
+func (f *Controller) sendChannelUpdatedEventToAccount(c *models.Channel, cm *models.ChannelMessage, accountId int64) error {
 
 	cp := models.NewChannelParticipant()
 	cp.ChannelId = c.Id
@@ -387,11 +387,17 @@ func (f *Controller) sendChannelUpdatedEventToAccount(c *models.Channel, account
 		return nil
 	}
 
-	return f.sendChannelUpdatedEventToParticipant(c, cp)
+	return f.sendChannelUpdatedEventToParticipant(c, cm, cp)
 }
 
-func (f *Controller) sendChannelUpdatedEventToParticipant(c *models.Channel, cp *models.ChannelParticipant) error {
-	count, err := models.NewChannelMessageList().UnreadCount(cp)
+func (f *Controller) sendChannelUpdatedEventToParticipant(c *models.Channel, cm *models.ChannelMessage, cp *models.ChannelParticipant) error {
+	count := 0
+	var err error
+	if cm != nil {
+		count, err = models.NewMessageReply().UnreadCount(cm, cp)
+	} else {
+		count, err = models.NewChannelMessageList().UnreadCount(cp)
+	}
 	if err != nil {
 		f.log.Notice("Error happened, setting unread count to 1 %s", err.Error())
 		count = 1
