@@ -7,7 +7,7 @@ module.exports = class DigitalOcean extends ProviderInterface
 
   @create = (client, options, callback)->
 
-    { credential, instanceType } = options
+    { credential, instanceType, region } = options
 
     @fetchCredentialData credential, (err, cred)->
 
@@ -16,7 +16,7 @@ module.exports = class DigitalOcean extends ProviderInterface
       meta =
         type   : "digitalocean"
         image  : "ubuntu-13-10-x64"
-        region : "ams1"
+        region : region       ? "sfo1"
         size   : instanceType ? "512mb"
 
       callback null, {
