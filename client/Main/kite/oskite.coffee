@@ -76,8 +76,10 @@ class OsKite extends KDKite
 
   vmOn: do ->
     errPredicate = (err) ->
-      KiteError.codeIsnt('ErrQuotaExceeded')(err) or
-      not /ErrQuotaExceeded/.test err.message
+      not (
+        KiteError.codeIs('ErrQuotaExceeded')(err) or
+        /ErrQuotaExceeded/.test err.message
+      )
 
     (t = 0) ->
       @changeState 'RUNNING', 'vm.progress.start', 'vmOn', @vmPrepareAndStart
