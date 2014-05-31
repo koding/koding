@@ -104,9 +104,8 @@ func (o *Oskite) Run() {
 	if os.Getuid() != 0 {
 		log.Fatal("Must be run as root.")
 	}
-    // Set our umask to 0 so that subsequent file writes/creates do not alter their mode
+	// Set our umask to 0 so that subsequent file writes/creates do not alter their mode
 	syscall.Umask(0)
-
 
 	log.SetLevel(o.LogLevel)
 	log.Info("Using default VM timeout: %v", o.VmTimeout)
@@ -437,11 +436,9 @@ func (o *Oskite) setupSignalHandler() {
 			log.Info("Shutdown initiated")
 
 			log.Info("Removing hostname '%s' from redis", o.RedisKontainerKey)
-			_, err := redigo.Int(o.RedisSession.Do("SREM", o.RedisKontainerSet, o.RedisKontainerKey))
-			if err != nil {
+			if _, err := redigo.Int(o.RedisSession.Do("SREM", o.RedisKontainerSet, o.RedisKontainerKey)); err != nil {
 				log.Error("redis SREM kontainers. err: %v", err.Error())
 			}
-
 
 			closeFunc := func() {
 				log.Info("Closing and shutting down. Bye!")
