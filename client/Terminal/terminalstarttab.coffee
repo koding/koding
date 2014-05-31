@@ -23,54 +23,36 @@ class TerminalStartTab extends JView
 
   fetchMachines: (force = no) ->
 
+    ComputeProvider.fetchMachines (err, machines)=>
 
-    vmController.fetchVMs force, (err, vms)=>
       if err
-        ErrorLog.create "terminal: Couldn't fetch vms", reason:err
-        return new KDNotificationView title : "Couldn't fetch your VMs"
+        ErrorLog.create "terminal: Couldn't fetch machines", reason:err
+        return new KDNotificationView title : "Couldn't fetch your Machines"
 
-      vms.sort (a,b)-> a.hostnameAlias > b.hostnameAlias
+      machines = machines.filter (machine)-> machine.state is "READY"
 
-      @listVMs vms
+      @listMachines        machines
+      @listMachineSessions machines
 
-      terminalKites =
-        if KD.useNewKites
-        then kontrol.kites.terminal
-        else vmController.terminalKites
 
-      vmController.on 'terminalsReady', =>
-        @listVMSessions vms
-
-      osKites =
-        if KD.useNewKites
-        then kontrol.kites.oskite
-        else vmController.kites
-
-      for own alias, kite of osKites
-        if kite.recentState
-          @vmWrapper[alias]?.handleVMInfo kite.recentState
   listMachines: (machines)->
 
+    @machineWrapper.destroySubViews()
 
+    machines.forEach (machine)=>
 
+      @machineWrapper.addSubView @machineWrapper[machine.uid] = \
+        new TerminalStartTabVMItem {}, machine
 
-    @vmWrapper.destroySubViews()
-    vms.forEach (vm)=>
-      alias             = vm.hostnameAlias
-      @vmWrapper[alias] = new TerminalStartTabVMItem {}, vm
-      @vmWrapper.addSubView @vmWrapper[alias]
-      appView = @getDelegate()
-      appView.forwardEvent @vmWrapper[alias], 'VMItemClicked'
+      @getDelegate().forwardEvent @machineWrapper[machine.uid], 'VMItemClicked'
 
 
   listMachineSessions: (machines) ->
 
+    machines.forEach (machine)=>
 
-    delegate = @getDelegate()
-
-    for own alias, kite of terminalKites
-      vm = vmList[alias]
-      @vmWrapper[alias].addSubView new SessionStackView {kite, alias, vm, delegate}
+      @machineWrapper[machine.uid].addSubView \
+        new SessionStackView { machine, delegate: @getDelegate() }
 
 
   pistachio:->
