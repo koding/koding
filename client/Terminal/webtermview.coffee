@@ -35,10 +35,11 @@ class WebTermView extends KDView
 
     @terminal.sessionEndedCallback = (sessions) =>
       @emit "WebTerm.terminated"
-      @clearConnectionAttempts()
+      @clearBackoffTimeout()
 
     @terminal.flushedCallback = =>
       @emit 'WebTerm.flushed'
+
 
     @listenWindowResize()
 
@@ -46,7 +47,8 @@ class WebTermView extends KDView
       @setFocus no
       KD.getSingleton('windowController').removeLayer this
 
-    @on "KDObjectWillBeDestroyed", @bound "clearConnectionAttempts"
+    @on "KDObjectWillBeDestroyed", @bound "clearBackoffTimeout"
+
 
     window.addEventListener "blur",  => @terminal.setFocused no
     window.addEventListener "focus", => @setFocus @focused
