@@ -11,6 +11,8 @@ class WebTermAppView extends JView
 
     super options, data
 
+    @machines = {}
+
     @dirty = KD.utils.dict()
 
     @initedPanes = KD.utils.dict()
@@ -44,6 +46,23 @@ class WebTermAppView extends JView
     # vmController.on 'vm.progress.error', => @notify cssClass : 'error'
 
     # @on "SessionSelected", ({vm, session}) => @createNewTab {vm, session, mode: 'resume'}
+  viewAppended: ->
+    super
+
+    ComputeProvider.fetchMachines (err, machines)=>
+
+      machines.forEach (machine)=>
+        @machines[machine.uid] = machine
+
+    path = location.pathname + location.search + "?"
+    mainController = KD.getSingleton("mainController")
+
+    unless KD.isLoggedIn()
+      mainController.once "accountChanged.to.loggedIn", =>
+        wc = KD.singleton 'windowController'
+        wc.clearUnloadListeners()
+        location.replace path
+
 
     # {vmController} = KD.singletons
     # {terminalKites} = vmController
@@ -179,16 +198,6 @@ class WebTermAppView extends JView
 
     @addSubView new ChromeTerminalBanner
 
-  viewAppended: ->
-    super
-    path = location.pathname + location.search + "?"
-    mainController = KD.getSingleton("mainController")
-
-    unless KD.isLoggedIn()
-      mainController.once "accountChanged.to.loggedIn", =>
-        wc = KD.singleton 'windowController'
-        wc.clearUnloadListeners()
-        location.replace path
 
   createNewTab: (options = {}) ->
 
