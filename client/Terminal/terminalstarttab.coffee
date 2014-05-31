@@ -4,7 +4,7 @@ class TerminalStartTab extends JView
 
     super
 
-    @vmWrapper = new KDCustomHTMLView tagName : 'ul'
+    @machineWrapper = new KDCustomHTMLView tagName : 'ul'
 
     @message = new KDCustomHTMLView cssClass : 'terminal-bottom-message'
     @message.hide()
@@ -17,13 +17,12 @@ class TerminalStartTab extends JView
   viewAppended: (force = no) ->
 
     super
-    @fetchVMs force
+    @fetchMachines force
     @prepareMessage()
 
 
-  fetchVMs: (force = no) ->
+  fetchMachines: (force = no) ->
 
-    {vmController, kontrol} = KD.singletons
 
     vmController.fetchVMs force, (err, vms)=>
       if err
@@ -50,14 +49,10 @@ class TerminalStartTab extends JView
       for own alias, kite of osKites
         if kite.recentState
           @vmWrapper[alias]?.handleVMInfo kite.recentState
-
-    vmController.on 'vm.progress.start', ({alias, update}) => @vmWrapper[alias]?.handleVMStart update
-    vmController.on 'vm.progress.stop',  ({alias, update}) => @vmWrapper[alias]?.handleVMStop update
-    vmController.on 'vm.state.info',     ({alias, state})  => @vmWrapper[alias]?.handleVMInfo state
-    vmController.on 'vm.progress.error', ({alias, error}) => @vmWrapper[alias]?.handleVMError error
+  listMachines: (machines)->
 
 
-  listVMs:(vms)->
+
 
     @vmWrapper.destroySubViews()
     vms.forEach (vm)=>
@@ -68,15 +63,8 @@ class TerminalStartTab extends JView
       appView.forwardEvent @vmWrapper[alias], 'VMItemClicked'
 
 
-  listVMSessions: (vms) ->
-    {vmController, kontrol} = KD.singletons
-    vmList = {}
-    vms.forEach (vm) -> vmList[vm.hostnameAlias] = vm
+  listMachineSessions: (machines) ->
 
-    terminalKites =
-      if KD.useNewKites
-      then kontrol.kites.terminal
-      else vmController.terminalKites
 
     delegate = @getDelegate()
 
