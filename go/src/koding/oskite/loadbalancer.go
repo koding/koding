@@ -64,8 +64,11 @@ func (o *Oskite) loadBalancer(correlationName, username, deadService string) str
 		err := mongodbConn.Run("jVMs", func(c *mgo.Collection) error {
 			return c.Update(bson.M{"_id": vm.Id, "hostKite": nil}, bson.M{"$set": bson.M{"hostKite": resultOskite}})
 		})
-
-		blog(fmt.Sprintf("hostkite is empty returning '%s. (update err: %s)", resultOskite, err))
+		if err != nil {
+			blog(fmt.Sprintf("hostkite is empty returning '%s' (update err: %s)", resultOskite, err))
+		} else {
+			blog(fmt.Sprintf("hostkite is empty returning '%s'", resultOskite))
+		}
 		return resultOskite
 	}
 
