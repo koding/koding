@@ -42,8 +42,6 @@ class WebTermAppView extends JView
     @on 'TerminalStarted', ->
       KD.mixpanel "Open new Webterm, success"
 
-    # {vmController} = KD.singletons
-    # vmController.on 'vm.progress.error', => @notify cssClass : 'error'
 
     # @on "SessionSelected", ({vm, session}) => @createNewTab {vm, session, mode: 'resume'}
   viewAppended: ->
@@ -64,8 +62,6 @@ class WebTermAppView extends JView
         location.replace path
 
 
-    # {vmController} = KD.singletons
-    # {terminalKites} = vmController
 
   initPane: (pane) ->
 
