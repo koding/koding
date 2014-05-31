@@ -75,3 +75,7 @@ func (k *Kloud) NewEventer() (string, Eventer) {
 
 	return eventId, eventer
 }
+
+func (k *Kloud) GetEvent(eventId string) *event {
+	return k.Eventers[eventId].Pull()
+}
