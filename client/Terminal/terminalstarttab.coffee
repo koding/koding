@@ -9,10 +9,10 @@ class TerminalStartTab extends JView
     @message = new KDCustomHTMLView cssClass : 'terminal-bottom-message'
     @message.hide()
 
-    KD.singletons.notificationController.on 'NotificationHasArrived', ({event}) =>
-      if event in ["VMCreated", "VMRemoved"]
-
-        @viewAppended yes
+    # FIXME GG
+    # KD.singletons.notificationController.on 'NotificationHasArrived', ({event}) =>
+    #   if event in ["VMCreated", "VMRemoved"]
+    #     @viewAppended yes
 
   viewAppended: (force = no) ->
 
@@ -62,9 +62,10 @@ class TerminalStartTab extends JView
     <h2>Terminal allows you to interact directly with your VM.</h2>
     <figure><iframe src="//www.youtube.com/embed/DmjWnmSlSu4?origin=https://koding.com&showinfo=0&rel=0&theme=dark&modestbranding=1&autohide=1&loop=1" width="100%" height="100%" frameborder="0" webkitAllowFullScreen mozallowfullscreen allowFullScreen></iframe></figure>
     <h3>Your VMs</h3>
-    {{> @vmWrapper}}
+    {{> @machineWrapper}}
     {{> @message}}
     """
+
 
   prepareMessage: ->
 
