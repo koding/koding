@@ -62,6 +62,41 @@ class WebTermAppView extends JView
         location.replace path
 
 
+  addStartTab:->
+
+    pane = new KDTabPaneView
+      name          : 'intro'
+      tabHandleView : new KDCustomHTMLView
+        tagName     : 'span'
+        cssClass    : 'home'
+      view          : @startTab = new TerminalStartTab
+        tagName     : 'main'
+        delegate    : this
+      closable      : no
+
+    @tabView.addPane pane
+
+
+  handleQuery:(query)->
+    pane = @tabView.getActivePane()
+    {terminalView} = pane.getOptions()
+    terminalView.terminal?.scrollToBottom()
+    terminalView.once "TerminalClosed", @bound "removeSession"
+    terminalView.once 'WebTermConnected', (remote)=>
+      @emit "WebTermConnected"
+      if query.command
+        command = decodeURIComponent query.command
+        @showApprovalModal remote, command
+
+      # chrome app specific settings
+      if query.chromeapp
+
+        query.fullscreen = yes # forcing fullscreen
+        @chromeAppMode()
+
+      if query.fullscreen
+        KD.getSingleton("mainView").enableFullscreen()
+
 
   initPane: (pane) ->
 
@@ -119,20 +154,9 @@ class WebTermAppView extends JView
           callback: ->
             modal.destroy()
 
-  getAdvancedSettingsMenuView: (item, menu)->
-    pane = @tabView.getActivePane()
-    return  unless pane
-
-    {terminalView} = pane.getOptions()
-    settingsView = new KDView
-      cssClass: "editor-advanced-settings-menu"
-    settingsView.addSubView new WebtermSettingsView
-      menu    : menu
-      delegate: terminalView
-
-    return settingsView
 
   runCommand:(_command)->
+
     pane = @tabView.getActivePane()
     {terminalView} = pane.getOptions()
 
@@ -156,27 +180,23 @@ class WebTermAppView extends JView
       terminalView.once "TerminalClosed", @bound "removeSession"
       terminalView.once 'WebTermConnected', runner
 
-  handleQuery:(query)->
-    pane = @tabView.getActivePane()
+
+  getAdvancedSettingsMenuView: (item, menu)->
+
+    return  unless pane = @tabView.getActivePane()
+
     {terminalView} = pane.getOptions()
-    terminalView.terminal?.scrollToBottom()
-    terminalView.once "TerminalClosed", @bound "removeSession"
-    terminalView.once 'WebTermConnected', (remote)=>
-      @emit "WebTermConnected"
-      if query.command
-        command = decodeURIComponent query.command
-        @showApprovalModal remote, command
+    settingsView = new KDView
+      cssClass: "editor-advanced-settings-menu"
+    settingsView.addSubView new WebtermSettingsView {
+      menu, delegate: terminalView
+    }
 
-      # chrome app specific settings
-      if query.chromeapp
+    return settingsView
 
-        query.fullscreen = yes # forcing fullscreen
-        @chromeAppMode()
-
-      if query.fullscreen
-        KD.getSingleton("mainView").enableFullscreen()
 
   chromeAppMode: ->
+
     windowController = KD.getSingleton("windowController")
     mainController   = KD.getSingleton("mainController")
 
@@ -216,19 +236,6 @@ class WebTermAppView extends JView
     @forwardEvent terminalView, "WebTermConnected"
     @forwardEvent terminalView, "TerminalClosed"
 
-  addStartTab:->
-
-    pane = new KDTabPaneView
-      name          : 'intro'
-      tabHandleView : new KDCustomHTMLView
-        tagName     : 'span'
-        cssClass    : 'home'
-      view          : @startTab = new TerminalStartTab
-        tagName     : 'main'
-        delegate    : this
-      closable      : no
-
-    @tabView.addPane pane
 
   appendTerminalTab: (terminalView, shouldShow = yes) ->
 
