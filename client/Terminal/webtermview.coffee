@@ -162,73 +162,72 @@ class WebTermView extends KDView
         code, serviceGenericName, machineName, reason: err?.message
       }
 
-      if code is 503 and serviceGenericName.indexOf("kite-os") is 0
-        @reconnectAttemptFailed serviceGenericName, vmName
+  # FIXME GG
+  #     if code is 503 and serviceGenericName.indexOf("kite-os") is 0
+  #       @reconnectAttemptFailed serviceGenericName, vmName
 
-  reconnectAttemptFailed: (serviceGenericName, vmName) ->
-    return  if @reconnected or not serviceGenericName
+  # reconnectAttemptFailed: (serviceGenericName, vmName) ->
+  #   return  if @reconnected or not serviceGenericName
 
-    kiteController = KD.getSingleton "kiteController"
-    [prefix, kiteType, kiteRegion] = serviceGenericName.split "-"
-    serviceName = "~#{kiteType}-#{kiteRegion}~#{vmName}"
+  #   kiteController = KD.getSingleton "kiteController"
+  #   [prefix, kiteType, kiteRegion] = serviceGenericName.split "-"
+  #   serviceName = "~#{kiteType}-#{kiteRegion}~#{vmName}"
 
-    @setBackoffTimeout(
-      @bound "attemptToReconnect"
-      @bound "handleConnectionFailure"
-    )
+  #   @setBackoffTimeout(
+  #     @bound "attemptToReconnect"
+  #     @bound "handleConnectionFailure"
+  #   )
 
-    kiteController.kiteInstances[serviceName]?.cycleChannel()
+  #   kiteController.kiteInstances[serviceName]?.cycleChannel()
 
-  attemptToReconnect: ->
-    return  if @reconnected
-    @getDelegate().notify
-      cssClass  : "error"
-      title     : "Trying to reconnect your Terminal"
-      duration  : 2 * 60 * 1000 # 2 mins
+  # attemptToReconnect: ->
+  #   return  if @reconnected
+  #   @getDelegate().notify
+  #     cssClass  : "error"
+  #     title     : "Trying to reconnect your Terminal"
+  #     duration  : 2 * 60 * 1000 # 2 mins
 
-    hasResponse  = no
+  #   hasResponse  = no
 
-    {vm} = @getOptions()
-    {hostnameAlias, region} = vm
-    {vmController, kontrol} = KD.singletons
+  #   {vm} = @getOptions()
+  #   {hostnameAlias, region} = vm
+  #   {vmController, kontrol} = KD.singletons
 
-    kite =
-      if KD.useNewKites
-      then kontrol.kites.terminal[hostnameAlias]
-      else vmController.terminalKites[hostnameAlias]
-    kite?.webtermGetSessions().then (sessions) =>
-      hasResponse = yes
-      return if @reconnected
+  #   kite =
+  #     if KD.useNewKites
+  #     then kontrol.kites.terminal[hostnameAlias]
+  #     else vmController.terminalKites[hostnameAlias]
+  #   kite?.webtermGetSessions().then (sessions) =>
+  #     hasResponse = yes
+  #     return if @reconnected
 
-    @handleReconnect()
+  #   @handleReconnect()
 
-  clearConnectionAttempts: ->
-    @clearBackoffTimeout()
+  # handleReconnect: (force = no) ->
+  #   return  if not force and @reconnected
 
-  handleReconnect: (force = no) ->
-    return  if not force and @reconnected
+  #   @clearBackoffTimeout()
+  #   options =
+  #     session : @sessionId
+  #     vm      : @getOption('vm')
 
-    @clearConnectionAttempts()
-    options =
-      session : @sessionId
-      vm      : @getOption('vm')
+  #   @emit "WebTermNeedsToBeRecovered", options
+  #   @reconnected = yes
 
-    @emit "WebTermNeedsToBeRecovered", options
-    @reconnected = yes
+  # handleConnectionFailure: ->
+  #   title = "Sorry, something is wrong with our backend."
 
-  handleConnectionFailure: ->
-    title = "Sorry, something is wrong with our backend."
+  #   ErrorLog.create title
 
-    ErrorLog.create title
+  #   return if @failedToReconnect
+  #   @reconnected       = no
+  #   @failedToReconnect = yes
+  #   @clearBackoffTimeout()
+  #   @getDelegate().notify
+  #     title     : title
+  #     cssClass  : "error"
+  #     duration  : 15 * 1000 # 15 secs
 
-    return if @failedToReconnect
-    @reconnected       = no
-    @failedToReconnect = yes
-    @clearConnectionAttempts()
-    @getDelegate().notify
-      title     : title
-      cssClass  : "error"
-      duration  : 15 * 1000 # 15 secs
 
   destroy: ->
     super
