@@ -8,24 +8,24 @@ class NVMItemView extends NFileItemView
     @vm = KD.getSingleton 'vmController'
     @vm.on 'StateChanged', @bound 'checkVMState'
 
-    @changePathButton = new KDCustomHTMLView
-      tagName  : 'span'
-      cssClass : 'path-select'
-      delegate : @
-      click    : @bound "createRootContextMenu"
+    # @changePathButton = new KDCustomHTMLView
+    #   tagName  : 'span'
+    #   cssClass : 'path-select'
+    #   delegate : @
+    #   click    : @bound "createRootContextMenu"
 
-    @vmInfo = new KDCustomHTMLView
+    @vmInfo    = new KDCustomHTMLView
       tagName  : 'span'
       cssClass : 'vm-info'
-      partial  : "on <strong>#{data.vmName}</strong> VM"
+      partial  : "#{data.vmName}"
 
-    @vm.fetchVMDomains data.vmName, (err, domains)=>
+    @vm.fetchVMDomains data.vmName, (err, domains) =>
       if not err and domains.length > 0
-        @vmInfo.updatePartial """
-          on <a id="open-vm-page-#{data.vmName}"
-          href="http://#{domains.first}" target="_blank">
-          #{domains.first}</a> VM
-        """
+        @vmInfo.updatePartial domains.first
+
+    @terminalButton = new KDButtonView
+      cssClass      : 'terminal'
+      callback      : => @emit 'TerminalRequested'
 
   showLoader:->
 
@@ -91,13 +91,10 @@ class NVMItemView extends NFileItemView
     @getData().getKite()?.vmInfo().nodeify @bound 'checkVMState'
 
   pistachio:->
-    path = FSHelper.plainPath @getData().path
-
     """
-      {{> @icon}}
-      {{> @loader}}
-      {span.title[title="#{path}"]{ #(name)}}
-      {{> @changePathButton}}
       {{> @vmInfo}}
-      <span class='chevron'></span>
+      <div class="buttons">
+        {{> @terminalButton}}
+        <span class='chevron'></span>
+      </div>
     """
