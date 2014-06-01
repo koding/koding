@@ -1,6 +1,7 @@
 package eventer
 
 import (
+	"strings"
 	"sync"
 	"time"
 )
@@ -39,12 +40,15 @@ var EventStatuses = map[string]EventStatus{
 	"ERROR":    Error,
 }
 
-func (e EventStatus) MarshalJSON() ([]byte, error) {
+func (e *EventStatus) MarshalJSON() ([]byte, error) {
 	return []byte(`"` + e.String() + `"`), nil
 }
 
-func (e EventStatus) UnmarshalJSON(d []byte) error {
-	e = EventStatuses[string(d)]
+func (e *EventStatus) UnmarshalJSON(d []byte) error {
+	// comes as `"PENDING"`,  will convert to: `PENDING`
+	unquoted := strings.Replace(string(d), "\"", "", -1)
+
+	*e = EventStatuses[unquoted]
 	return nil
 }
 
