@@ -1,6 +1,10 @@
 package kloud
 
-import "github.com/koding/kite"
+import (
+	"errors"
+
+	"github.com/koding/kite"
+)
 
 type EventArgs struct {
 	EventId string
@@ -12,5 +16,11 @@ func (k *Kloud) event(r *kite.Request) (interface{}, error) {
 		return nil, err
 	}
 
-	return k.GetEvent(args.EventId), nil
+	if args.EventId == "" {
+		return nil, errors.New("eventId is empty.")
+
+	}
+
+	ev := k.GetEvent(args.EventId)
+	return ev, nil
 }

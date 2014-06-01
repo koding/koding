@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"io/ioutil"
+	"koding/kites/kloud/eventer"
 	"koding/kites/kloud/klientprovisioner"
 	"koding/kites/kloud/kloud/protocol"
 	"koding/kites/kloud/packer"
@@ -92,7 +93,7 @@ func (d *DigitalOcean) Prepare(raws ...interface{}) (err error) {
 // given snapshot/image exist it directly skips to creating the droplet. It
 // acceps two string arguments, first one is the snapshotname, second one is
 // the dropletName.
-func (d *DigitalOcean) Build(opts *protocol.BuildOptions) (*protocol.BuildResponse, error) {
+func (d *DigitalOcean) Build(opts *protocol.BuildOptions) (p *protocol.BuildResponse, err error) {
 	if opts.ImageName == "" {
 		return nil, errors.New("snapshotName is empty")
 	}
@@ -107,14 +108,34 @@ func (d *DigitalOcean) Build(opts *protocol.BuildOptions) (*protocol.BuildRespon
 		return nil, errors.New("SignFunc is not defined.")
 	}
 
+	if opts.Eventer == nil {
+		return nil, errors.New("Eventer is not defined.")
+	}
+
+	// push logs each step and also pushes each step to the eventer
+	push := func(msg string) {
+		d.Log.Info(msg)
+		opts.Eventer.Push(&eventer.Event{Message: msg, Status: eventer.Pending})
+	}
+
+	defer func() {
+		status := eventer.Finished
+		msg := "Build is finished successfully."
+		if err != nil {
+			status = eventer.Error
+			msg = err.Error()
+		}
+
+		opts.Eventer.Push(&eventer.Event{Message: msg, Status: status})
+	}()
+
 	// needed because this is passed as `data` to packer.Provider
 	d.Builder.SnapshotName = snapshotName
 
 	var image digitalocean.Image
-	var err error
 
 	// check if snapshot image does exist, if not create a new one.
-	d.Log.Info("Fetching image %s", snapshotName)
+	push(fmt.Sprintf("Fetching image %s", snapshotName))
 	image, err = d.Image(snapshotName)
 	if err != nil {
 		d.Log.Info("Image %s does not exist, creating a new one", snapshotName)
@@ -125,7 +146,7 @@ func (d *DigitalOcean) Build(opts *protocol.BuildOptions) (*protocol.BuildRespon
 	}
 
 	// create temporary key to deploy user based key
-	d.Log.Info("Creating temporary ssh key")
+	push(fmt.Sprintf("Creating temporary ssh key"))
 	privateKey, publicKey, err := sshutil.TemporaryKey()
 	if err != nil {
 		return nil, err
@@ -139,18 +160,18 @@ func (d *DigitalOcean) Build(opts *protocol.BuildOptions) (*protocol.BuildRespon
 	}
 
 	defer func() {
-		d.Log.Info("Destroying droplet key")
+		push(fmt.Sprintf("Destroying droplet key"))
 		err := d.DestroyKey(keyId) // remove after we are done
 		if err != nil {
 			curlstr := fmt.Sprintf("curl '%v/ssh_keys/%v/destroy?client_id=%v&api_key=%v'",
 				digitalocean.DIGITALOCEAN_API_URL, keyId, d.Creds.ClientID, d.Creds.APIKey)
 
-			d.Log.Error("Error cleaning up ssh key. Please delete the key manually: %v", curlstr)
+			push(fmt.Sprintf("Error cleaning up ssh key. Please delete the key manually: %v", curlstr))
 		}
 	}()
 
 	// now create a the machine based on our created image
-	d.Log.Info("Creating droplet %s", dropletName)
+	push(fmt.Sprintf("Creating droplet %s", dropletName))
 	dropletInfo, err := d.CreateDroplet(dropletName, keyId, image.Id)
 	if err != nil {
 		return nil, err
@@ -159,14 +180,14 @@ func (d *DigitalOcean) Build(opts *protocol.BuildOptions) (*protocol.BuildRespon
 	// Now we wait until it's ready, it takes approx. 50-70 seconds to finish,
 	// but we also add a timeout  of five minutes to not let stuck it there
 	// forever.
-	d.Log.Info("Waiting for droplet to be ready ...")
+	push(fmt.Sprintf("Waiting for droplet to be ready ..."))
 	err = d.WaitForState(dropletInfo.Droplet.EventId, "done", time.Minute*5)
 	if err != nil {
 		return nil, err
 	}
 
 	// our droplet has now an IP adress, get it
-	d.Log.Info("Getting info about droplet")
+	push(fmt.Sprintf("Getting info about droplet"))
 	info, err := d.Info(dropletInfo.Droplet.Id)
 	if err != nil {
 		return nil, err
@@ -179,7 +200,7 @@ func (d *DigitalOcean) Build(opts *protocol.BuildOptions) (*protocol.BuildRespon
 		return nil, err
 	}
 
-	d.Log.Info("Connecting to ssh %s", sshAddress)
+	push(fmt.Sprintf("Connecting to ssh %s", sshAddress))
 	client, err := sshutil.ConnectSSH(sshAddress, sshConfig)
 	if err != nil {
 		return nil, err
@@ -191,17 +212,17 @@ func (d *DigitalOcean) Build(opts *protocol.BuildOptions) (*protocol.BuildRespon
 	if err != nil {
 		return nil, err
 	}
-	d.Log.Info("Kite key created for id %s", kiteId)
+	push(fmt.Sprintf("Kite key created for id %s", kiteId))
 
 	// for debugging, remove it later ...
-	d.Log.Info("Writing kite key to temporary file (kite.key)")
+	push(fmt.Sprintf("Writing kite key to temporary file (kite.key)"))
 	if err := ioutil.WriteFile("kite.key", []byte(kiteKey), 0400); err != nil {
 		d.Log.Info("couldn't write temporary kite file", err)
 	}
 
 	keyPath := "/opt/kite/klient/key/kite.key"
 
-	d.Log.Info("Copying remote kite key %s", keyPath)
+	push(fmt.Sprintf("Copying remote kite key %s", keyPath))
 	remoteFile, err := client.Create(keyPath)
 	if err != nil {
 		return nil, err
@@ -212,7 +233,7 @@ func (d *DigitalOcean) Build(opts *protocol.BuildOptions) (*protocol.BuildRespon
 		return nil, err
 	}
 
-	d.Log.Info("Starting klient on remote machine")
+	push(fmt.Sprintf("Starting klient on remote machine"))
 	if err := client.StartCommand("service klient start"); err != nil {
 		return nil, err
 	}

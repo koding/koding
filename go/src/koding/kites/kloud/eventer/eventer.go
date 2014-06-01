@@ -16,8 +16,11 @@ type Eventer interface {
 	// the content of the stack.
 	Show() *Event
 
+	// Id returns the id for the given eventer
+	Id() string
+
 	// Close closes the eventer and shuts down input to the stack. No other
-	// events can be inserted after close is invoked. After close Pull should
+	// events can be inserted after close is invoked. After close Show() should
 	// show the latest item.
 	Close()
 }
@@ -31,24 +34,24 @@ const (
 )
 
 type Event struct {
-	EventId     uint        `json:"eventID"`
-	MachineId   string      `json:"machineID"`
+	EventId     string      `json:"eventID"`
 	Message     string      `json:"message"`
 	Status      EventStatus `json:"status"`
 	LastUpdated time.Time   `json:"-"`
 }
 
 type Events struct {
-	e         []*Event
-	lastEvent Event
-	closed    bool
+	events  []*Event
+	eventId string
+	closed  bool
 
 	sync.Mutex
 }
 
-func New() *Events {
+func New(id string) *Events {
 	return &Events{
-		e: make([]*Event, 0),
+		events:  make([]*Event, 0),
+		eventId: id,
 	}
 }
 
@@ -60,14 +63,17 @@ func (e *Events) Push(ev *Event) {
 		return
 	}
 
-	e.e = append(e.e, ev)
+	ev.EventId = e.eventId
+	ev.LastUpdated = time.Now()
+
+	e.events = append(e.events, ev)
 }
 
 func (e *Events) Show() *Event {
 	e.Lock()
 	defer e.Unlock()
 
-	return e.e[len(e.e)-1]
+	return e.events[len(e.events)-1]
 }
 
 func (e *Events) Close() {
@@ -75,12 +81,15 @@ func (e *Events) Close() {
 	defer e.Unlock()
 
 	e.closed = true
-	// e.e = e.e[len(e.e)-1:]
+}
+
+func (e *Events) Id() string {
+	return e.eventId
 }
 
 func (e *Events) String() string {
 	var msg string
-	for _, ev := range e.e {
+	for _, ev := range e.events {
 		msg = msg + ev.Message + "\n"
 	}
 

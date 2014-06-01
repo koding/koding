@@ -98,8 +98,9 @@ func (k *Kloud) InitializeProviders() {
 }
 
 func (k *Kloud) NewEventer() (string, eventer.Eventer) {
-	ev := eventer.New()
 	eventId := utils.RandString(16)
+	ev := eventer.New(eventId)
+
 	k.Eventers[eventId] = ev
 
 	return eventId, ev

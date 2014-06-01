@@ -1,9 +1,11 @@
 package main
 
 import (
+	"errors"
 	"flag"
 	"fmt"
 	"io/ioutil"
+	"koding/kites/kloud/eventer"
 	"koding/kites/kloud/kloud"
 	"koding/kodingkite"
 	"koding/tools/config"
@@ -167,15 +169,41 @@ func build(i int, client *kite.Client, data map[string]interface{}) error {
 		return err
 	}
 
-	var result kloudprotocol.BuildResponse
+	var result kloud.BuildResult
 	err = resp.Unmarshal(&result)
 	if err != nil {
 		return err
 	}
 
-	// droplet's names are based on username for now
-	if result.InstanceName != instanceName {
-		return fmt.Errorf("droplet name is: %s, expecting: %s", result.InstanceName, instanceName)
+	fmt.Printf("result %+v\n", result)
+
+	eArgs := &kloud.EventArgs{
+		EventId: result.EventId,
+	}
+
+	for {
+		resp, err := client.Tell("event", eArgs)
+		if err != nil {
+			return err
+		}
+
+		var event eventer.Event
+		if err := resp.Unmarshal(&event); err != nil {
+			return err
+		}
+
+		fmt.Printf("event %+v\n", event)
+
+		if event.Status == eventer.Finished {
+			break
+		}
+
+		if event.Status == eventer.Error {
+			return errors.New(event.Message)
+		}
+
+		time.Sleep(3 * time.Second)
+		continue // pending
 	}
 
 	fmt.Println("============")

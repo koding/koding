@@ -3,15 +3,17 @@ package kloud
 type MachineState int
 
 const (
-	NotInitialized MachineState = iota + 1 // Machine instance does not exists
-	Building                               // Build started machine instance creating...
-	Starting                               // Machine is booting...
-	Running                                // Machine is physically running
-	Stopping                               // Machine is turning off...
-	Stopped                                // Machine is turned off
-	Rebooting                              // Machine is rebooting...
-	Terminating                            // Machine is getting destroyed...
-	Terminated                             // Machine is destroyed, not exists anymore
+	// Machine instance does not exists
+	NotInitialized MachineState = iota + 1
+	Building                    // Build started machine instance creating...
+	Starting                    // Machine is booting...
+	Running                     // Machine is physically running
+	Stopping                    // Machine is turning off...
+	Stopped                     // Machine is turned off
+	Rebooting                   // Machine is rebooting...
+	Terminating                 // Machine is getting destroyed...
+	Terminated                  // Machine is destroyed, not exists anymore
+	Unknown                     // Unknown is a state that needs to be resolved manually
 )
 
 var states = map[string]MachineState{
@@ -24,6 +26,7 @@ var states = map[string]MachineState{
 	"Rebooting":      Rebooting,
 	"Terminating":    Terminating,
 	"Terminated":     Terminated,
+	"Unknown":        Unknown,
 }
 
 func (m MachineState) String() string {
@@ -46,6 +49,8 @@ func (m MachineState) String() string {
 		return "Terminating"
 	case Terminated:
 		return "Terminated"
+	case Unknown:
+		return "Unknown"
 	default:
 		return "UnknownState"
 	}

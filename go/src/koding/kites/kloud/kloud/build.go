@@ -17,10 +17,15 @@ type BuildArgs struct {
 	Username     string
 }
 
+type BuildResult struct {
+	EventId string
+}
+
 var (
 	defaultImageName = "koding-klient-0.0.1"
 
 	ErrAlreadyInitialized = errors.New("Machine is already initialized and prepared.")
+	ErrUnknownState       = errors.New("Machine is in unknown state. Please contact support.")
 	ErrBuilding           = errors.New("Machine is being build. Hold on...")
 )
 
@@ -47,6 +52,10 @@ func (k *Kloud) build(r *kite.Request) (interface{}, error) {
 		return nil, ErrBuilding
 	}
 
+	if state == Unknown {
+		return nil, ErrUnknownState
+	}
+
 	// if it's something else (stopped, runnning, terminated, ...) it's been
 	// already built
 	if state != NotInitialized {
@@ -55,27 +64,39 @@ func (k *Kloud) build(r *kite.Request) (interface{}, error) {
 
 	k.Storage.UpdateState(args.MachineId, Building)
 
-	eventId, eventer := k.NewEventer()
+	eventId, ev := k.NewEventer()
+	ev.Push(&eventer.Event{Message: "Building process started.", Status: eventer.Pending})
 
 	go func() {
 		k.idlock.Get(r.Username).Lock()
 		defer k.idlock.Get(r.Username).Unlock()
 
+		var status eventer.EventStatus
+		var msg string
 		args.Username = r.Username
-		err := k.buildMachine(args, eventer)
+
+		err := k.buildMachine(args, ev)
 		if err != nil {
 			k.Log.Error("Building machine failed. Machine is marked as UNKNOWN.\n"+
 				"Any other call are now forbidden until the state is resolved manually.\n"+
 				"Args: %v User: %s EventId: %d Events: %s",
-				args, r.Username, eventId, eventer)
+				args, r.Username, eventId, ev)
 
-			k.Storage.UpdateState(args.MachineId, NotInitialized)
+			status = eventer.Error
+			msg = err.Error()
+
+			k.Storage.UpdateState(args.MachineId, Unknown)
 		} else {
+			status = eventer.Finished
+			msg = "Build is finished successfully."
+
 			k.Storage.UpdateState(args.MachineId, Running)
 		}
+
+		ev.Push(&eventer.Event{Message: msg, Status: status})
 	}()
 
-	return eventId, nil
+	return BuildResult{EventId: eventId}, nil
 }
 
 func (k *Kloud) buildMachine(args *BuildArgs, ev eventer.Eventer) error {
