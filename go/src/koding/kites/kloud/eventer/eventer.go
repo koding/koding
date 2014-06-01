@@ -33,6 +33,34 @@ const (
 	Error
 )
 
+var EventStatuses = map[string]EventStatus{
+	"PENDING":  Pending,
+	"FINISHED": Finished,
+	"ERROR":    Error,
+}
+
+func (e EventStatus) MarshalJSON() ([]byte, error) {
+	return []byte(`"` + e.String() + `"`), nil
+}
+
+func (e EventStatus) UnmarshalJSON(d []byte) error {
+	e = EventStatuses[string(d)]
+	return nil
+}
+
+func (e EventStatus) String() string {
+	switch e {
+	case Pending:
+		return "PENDING"
+	case Finished:
+		return "FINISHED"
+	case Error:
+		return "ERROR"
+	default:
+		return "UNKNOWN_EVENT_STATUS"
+	}
+}
+
 type Event struct {
 	EventId     string      `json:"eventID"`
 	Message     string      `json:"message"`
