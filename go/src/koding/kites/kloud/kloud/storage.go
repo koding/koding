@@ -3,6 +3,7 @@ package kloud
 import (
 	"fmt"
 	"koding/db/mongodb"
+	"koding/kites/kloud/kloud/machinestate"
 	"koding/kites/kloud/kloud/protocol"
 	"strconv"
 
@@ -18,10 +19,10 @@ type Storage interface {
 	Update(string, *protocol.BuildResponse) error
 
 	// UpdateState updates the machine state
-	UpdateState(string, MachineState) error
+	UpdateState(string, machinestate.State) error
 
 	// GetState returns the machine state
-	GetState(string) (MachineState, error)
+	GetState(string) (machinestate.State, error)
 }
 
 type MachineData struct {
@@ -95,7 +96,7 @@ func (m *MongoDB) Update(id string, resp *protocol.BuildResponse) error {
 	return nil
 }
 
-func (m *MongoDB) UpdateState(id string, state MachineState) error {
+func (m *MongoDB) UpdateState(id string, state machinestate.State) error {
 	return m.session.Run("jMachines", func(c *mgo.Collection) error {
 		return c.UpdateId(
 			bson.ObjectIdHex(id),
@@ -104,7 +105,7 @@ func (m *MongoDB) UpdateState(id string, state MachineState) error {
 	})
 }
 
-func (m *MongoDB) GetState(id string) (MachineState, error) {
+func (m *MongoDB) GetState(id string) (machinestate.State, error) {
 	machine := Machine{}
 	err := m.session.Run("jMachines", func(c *mgo.Collection) error {
 		return c.FindId(bson.ObjectIdHex(id)).One(&machine)
@@ -113,7 +114,7 @@ func (m *MongoDB) GetState(id string) (MachineState, error) {
 		return 0, err
 	}
 
-	state := states[machine.State]
+	state := machinestate.States[machine.State]
 	if state == 0 {
 		return 0, fmt.Errorf("state is unknown: %v", state)
 	}

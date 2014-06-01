@@ -3,6 +3,7 @@ package kloud
 import (
 	"errors"
 	"koding/kites/kloud/eventer"
+	"koding/kites/kloud/kloud/machinestate"
 	"koding/kites/kloud/kloud/protocol"
 	"strconv"
 	"time"
@@ -48,21 +49,21 @@ func (k *Kloud) build(r *kite.Request) (interface{}, error) {
 		return nil, err
 	}
 
-	if state == Building {
+	if state == machinestate.Building {
 		return nil, ErrBuilding
 	}
 
-	if state == Unknown {
+	if state == machinestate.Unknown {
 		return nil, ErrUnknownState
 	}
 
 	// if it's something else (stopped, runnning, terminated, ...) it's been
 	// already built
-	if state != NotInitialized {
+	if state != machinestate.NotInitialized {
 		return nil, ErrAlreadyInitialized
 	}
 
-	k.Storage.UpdateState(args.MachineId, Building)
+	k.Storage.UpdateState(args.MachineId, machinestate.Building)
 
 	eventId, ev := k.NewEventer()
 	ev.Push(&eventer.Event{Message: "Building process started.", Status: eventer.Pending})
@@ -85,12 +86,12 @@ func (k *Kloud) build(r *kite.Request) (interface{}, error) {
 			status = eventer.Error
 			msg = err.Error()
 
-			k.Storage.UpdateState(args.MachineId, Unknown)
+			k.Storage.UpdateState(args.MachineId, machinestate.Unknown)
 		} else {
 			status = eventer.Finished
 			msg = "Build is finished successfully."
 
-			k.Storage.UpdateState(args.MachineId, Running)
+			k.Storage.UpdateState(args.MachineId, machinestate.Running)
 		}
 
 		ev.Push(&eventer.Event{Message: msg, Status: status})

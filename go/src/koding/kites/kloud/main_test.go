@@ -18,6 +18,7 @@ import (
 	"testing"
 	"time"
 
+	"koding/kites/kloud/kloud/machinestate"
 	kloudprotocol "koding/kites/kloud/kloud/protocol"
 
 	"github.com/fatih/color"
@@ -54,12 +55,12 @@ func (t *TestStorage) Update(id string, resp *kloudprotocol.BuildResponse) error
 	return nil
 }
 
-func (t *TestStorage) UpdateState(id string, state kloud.MachineState) error {
+func (t *TestStorage) UpdateState(id string, state machinestate.State) error {
 	return nil
 }
 
-func (t *TestStorage) GetState(id string) (kloud.MachineState, error) {
-	return kloud.NotInitialized, nil
+func (t *TestStorage) GetState(id string) (machinestate.State, error) {
+	return machinestate.NotInitialized, nil
 }
 
 var (
@@ -203,7 +204,7 @@ func build(i int, client *kite.Client, data map[string]interface{}) error {
 		}
 
 		time.Sleep(3 * time.Second)
-		continue // pending
+		continue // still pending
 	}
 
 	fmt.Println("============")
