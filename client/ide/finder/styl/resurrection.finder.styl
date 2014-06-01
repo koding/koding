@@ -1,5 +1,5 @@
-@import "../../Framework/src/themes/default/kdfn"
-@import "../../Main/styl/appfn"
+@import "../../../Framework/src/themes/default/kdfn"
+@import "../../../Main/styl/appfn"
 @import "nib/gradients"
 
 active-color       = #1B2224
@@ -24,13 +24,13 @@ resurrection.finder.styl
 
   .chevron
     abs()
-    top               7px
-    right             4px
-    z-index           2
-    float             none
-    display           none
-    margin            0
-    size              22px 22px
+    // top               7px
+  //   right             4px
+  //   z-index           2
+  //   float             none
+  //   display           none
+  //   margin            0
+  //   size              22px 22px
 
   &.selected
     color             #ddd
@@ -53,13 +53,9 @@ resurrection.finder.styl
           &.selected
             selectedNeighbor()
 
-    span.chevron
-      r-sprite            finder '16-chevron-white'
-      display       block
-
-    .vm span.path-select
-      display       block
-
+    // span.chevron
+    //   r-sprite            finder '16-chevron-white'
+    //   display       block
 
   &.unsaved
     span.icon
@@ -73,8 +69,7 @@ resurrection.finder.styl
 
   &:hover
     span.chevron
-    .vm span.path-select
-      display       block
+      display         inline-block
 
   &.expanded
     > div
@@ -145,12 +140,12 @@ resurrection.finder.styl
       rounded         2px
       fl()
 
-    button.kdbutton
-      margin          2px 10px 0 0
-      padding         2px 4px 2px 4px
-      width           auto
-      font-weight     normal
-      fr()
+    // button.kdbutton
+    //   margin          2px 10px 0 0
+    //   padding         2px 4px 2px 4px
+    //   width           auto
+    //   font-weight     normal
+    //   fr()
 
     .kdloader
       margin        5px
@@ -201,6 +196,8 @@ resurrection.finder.styl
         width       187px
 
 .file-container
+  margin            13px 0 0 13px
+  width             auto
 
   .app-header
     size            100% 37px
@@ -255,13 +252,25 @@ resurrection.finder.styl
       size              16px 16px
 
   .vm
-    margin-left         0 !important
-    height              32px
-    padding-top         1px
-    padding-bottom      3px
+    height              39px
+    line-height         39px
+    bg                  color, #131313
+    margin-right        13px
+    pointer()
+    position            relative
 
-    &.online span.icon
-      bg                color, #4cd449
+    .buttons
+      abs()
+      right             13px
+      top               12px
+      height            13px
+      z-index           200
+
+    .terminal
+      r-sprite          'ide', 'terminal'
+      rounded           0
+      border            none
+      margin-right      10px
 
     .kdloader
       margin            0
@@ -269,61 +278,51 @@ resurrection.finder.styl
       left              5px
       abs()
 
-    span.icon
-      margin            0 16px 0 0
-      width             5px !important
-      height            36px !important
-      bg                color, #bdbdbd
-      bg                image, none !important
-    span.chevron
-      top               3px
-
-    span.path-select
-      top               0
-      size              18px,18px
-      right             22px
-      display           none
-      bg                position, -220px -540px
-      kdfsprite()
-      abs()
+    .chevron
+      r-sprite          'ide', 'cog-15'
+      display           inline-block
+      position          relative
+      top               -10px
+      left              0
 
     span.vm-info
-      top               20px
-      left              22px
-      font-size         10px
-      font-style        italic
-      opacity           .7
-      line-height       10px
-      color             #aaa
-      abs()
-      a
-        color           #ccc
-        text-decoration none
+      color             #949290
+      text-decoration   underline
+      font-size         13px
+      margin-left       15px
 
     div.vm-toggle
       top               3px
       right             20px
       abs()
 
-  .folder
-  .mount
-    span.icon
-      r-sprite        finder '16-folder'
-    span.icon.application
-      r-sprite        finder '16-app'
+  .expanded
+    .folder
+      .icon
+        r-sprite        finder, 'expanded'
 
   .folder
-    span.icon
+    .icon
+      r-sprite          finder, 'collapsed'
+
+  .mount
+    .icon
+      r-sprite          finder '16-folder'
+    .icon.application
+      r-sprite          finder '16-app'
+
+  .folder
+    .icon
       &.app
-        r-sprite      finder '16-app'
+        r-sprite        finder '16-app'
 
   .broken
-    span.icon
-      bg            position, -60px -140px
+    .icon
+      bg                position, -60px -140px
 
   .file
-    span.icon
-      r-sprite        finder '16-file'
+    .icon
+      r-sprite          finder '16-file'
       // &.code
       //   bg          position, -40px -180px
       // &.image
@@ -489,3 +488,7 @@ resurrection.finder.styl
 
     .koding-on-off
       fr()
+
+.jtreeview-wrapper
+  .last-item-selected > li // to style vm header, might be broken in future.
+    background        transparent
