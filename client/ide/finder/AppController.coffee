@@ -6,11 +6,14 @@ class FinderController extends KDController
     options.useStorage       ?= yes
     options.addOrphansToRoot ?= no
     options.delegate         ?= this
-    @controller = new NFinderController options
 
-    @controller.getView().addSubView @getAppTitleView()
-    @controller.getView().addSubView @getUploader()
-    @controller.getView().addSubView @getMountVMButton()
+    @controller = new NFinderController options
+    finderView  = @controller.getView()
+
+    finderView.addSubView @getAppTitleView()
+    finderView.addSubView @getUploader()
+    finderView.addSubView @getMountVMButton()
+
     return @controller
 
   getAppTitleView: ->
