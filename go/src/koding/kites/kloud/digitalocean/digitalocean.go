@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"koding/kites/kloud/eventer"
 	"koding/kites/kloud/klientprovisioner"
+	"koding/kites/kloud/kloud/machinestate"
 	"koding/kites/kloud/kloud/protocol"
 	"koding/kites/kloud/packer"
 	"koding/kites/kloud/sshutil"
@@ -115,14 +116,14 @@ func (d *DigitalOcean) Build(opts *protocol.BuildOptions) (p *protocol.BuildResp
 	// push logs each step and also pushes each step to the eventer
 	push := func(msg string) {
 		d.Log.Info(msg)
-		opts.Eventer.Push(&eventer.Event{Message: msg, Status: eventer.Pending})
+		opts.Eventer.Push(&eventer.Event{Message: msg, Status: machinestate.Building})
 	}
 
 	defer func() {
-		status := eventer.Finished
+		status := machinestate.Running
 		msg := "Build is finished successfully."
 		if err != nil {
-			status = eventer.Error
+			status = machinestate.Unknown
 			msg = err.Error()
 		}
 

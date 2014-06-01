@@ -195,11 +195,11 @@ func build(i int, client *kite.Client, data map[string]interface{}) error {
 
 		fmt.Printf("event %+v\n", event)
 
-		if event.Status == eventer.Finished {
+		if event.Status == machinestate.Running {
 			break
 		}
 
-		if event.Status == eventer.Error {
+		if event.Status == machinestate.Unknown {
 			return errors.New(event.Message)
 		}
 

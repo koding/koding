@@ -1,7 +1,10 @@
 // Package machinestate defines the lifecycle of a machine with states.
 package machinestate
 
-import "strings"
+import (
+	"fmt"
+	"strings"
+)
 
 // State defines the Machines state
 type State int
@@ -60,7 +63,7 @@ var States = map[string]State{
 
 // MarshalJSON implements the json.Marshaler interface. The state is a quoted
 // string.
-func (s *State) MarshalJSON() ([]byte, error) {
+func (s State) MarshalJSON() ([]byte, error) {
 	return []byte(`"` + s.String() + `"`), nil
 }
 
@@ -70,7 +73,11 @@ func (s *State) UnmarshalJSON(d []byte) error {
 	// comes as `"PENDING"`,  will convert to: `PENDING`
 	unquoted := strings.Replace(string(d), "\"", "", -1)
 
-	*s = States[unquoted]
+	var ok bool
+	*s, ok = States[unquoted]
+	if !ok {
+		return fmt.Errorf("unknown value: %s", string(d))
+	}
 	return nil
 }
 

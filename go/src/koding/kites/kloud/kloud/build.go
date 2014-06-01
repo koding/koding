@@ -19,7 +19,8 @@ type BuildArgs struct {
 }
 
 type BuildResult struct {
-	EventId string
+	EventId string             `json:"eventId"`
+	State   machinestate.State `json:"state"`
 }
 
 var (
@@ -66,13 +67,13 @@ func (k *Kloud) build(r *kite.Request) (interface{}, error) {
 	k.Storage.UpdateState(args.MachineId, machinestate.Building)
 
 	eventId, ev := k.NewEventer()
-	ev.Push(&eventer.Event{Message: "Building process started.", Status: eventer.Pending})
+	ev.Push(&eventer.Event{Message: "Building process started.", Status: machinestate.Building})
 
 	go func() {
 		k.idlock.Get(r.Username).Lock()
 		defer k.idlock.Get(r.Username).Unlock()
 
-		var status eventer.EventStatus
+		var status machinestate.State
 		var msg string
 		args.Username = r.Username
 
@@ -83,21 +84,24 @@ func (k *Kloud) build(r *kite.Request) (interface{}, error) {
 				"Args: %v User: %s EventId: %d Events: %s",
 				args, r.Username, eventId, ev)
 
-			status = eventer.Error
+			status = machinestate.Unknown
 			msg = err.Error()
 
-			k.Storage.UpdateState(args.MachineId, machinestate.Unknown)
+			k.Storage.UpdateState(args.MachineId, status)
 		} else {
-			status = eventer.Finished
+			status = machinestate.Running
 			msg = "Build is finished successfully."
 
-			k.Storage.UpdateState(args.MachineId, machinestate.Running)
+			k.Storage.UpdateState(args.MachineId, status)
 		}
 
 		ev.Push(&eventer.Event{Message: msg, Status: status})
 	}()
 
-	return BuildResult{EventId: eventId}, nil
+	return BuildResult{
+		EventId: eventId,
+		State:   machinestate.Building,
+	}, nil
 }
 
 func (k *Kloud) buildMachine(args *BuildArgs, ev eventer.Eventer) error {

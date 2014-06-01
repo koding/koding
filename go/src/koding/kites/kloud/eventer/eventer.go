@@ -1,7 +1,7 @@
 package eventer
 
 import (
-	"strings"
+	"koding/kites/kloud/kloud/machinestate"
 	"sync"
 	"time"
 )
@@ -26,50 +26,11 @@ type Eventer interface {
 	Close()
 }
 
-type EventStatus int
-
-const (
-	Pending EventStatus = iota
-	Finished
-	Error
-)
-
-var EventStatuses = map[string]EventStatus{
-	"PENDING":  Pending,
-	"FINISHED": Finished,
-	"ERROR":    Error,
-}
-
-func (e *EventStatus) MarshalJSON() ([]byte, error) {
-	return []byte(`"` + e.String() + `"`), nil
-}
-
-func (e *EventStatus) UnmarshalJSON(d []byte) error {
-	// comes as `"PENDING"`,  will convert to: `PENDING`
-	unquoted := strings.Replace(string(d), "\"", "", -1)
-
-	*e = EventStatuses[unquoted]
-	return nil
-}
-
-func (e EventStatus) String() string {
-	switch e {
-	case Pending:
-		return "PENDING"
-	case Finished:
-		return "FINISHED"
-	case Error:
-		return "ERROR"
-	default:
-		return "UNKNOWN_EVENT_STATUS"
-	}
-}
-
 type Event struct {
-	EventId     string      `json:"eventID"`
-	Message     string      `json:"message"`
-	Status      EventStatus `json:"status"`
-	LastUpdated time.Time   `json:"-"`
+	EventId     string             `json:"eventID"`
+	Message     string             `json:"message"`
+	Status      machinestate.State `json:"status"`
+	LastUpdated time.Time          `json:"-"`
 }
 
 type Events struct {
