@@ -27,10 +27,10 @@ type Eventer interface {
 }
 
 type Event struct {
-	EventId     string             `json:"eventID"`
-	Message     string             `json:"message"`
-	Status      machinestate.State `json:"status"`
-	LastUpdated time.Time          `json:"-"`
+	EventId       string             `json:"eventID"`
+	Message       string             `json:"message"`
+	Status        machinestate.State `json:"status"`
+	LastUpdatedAt time.Time          `json:"lastUpdatedAt"`
 }
 
 type Events struct {
@@ -57,7 +57,7 @@ func (e *Events) Push(ev *Event) {
 	}
 
 	ev.EventId = e.eventId
-	ev.LastUpdated = time.Now()
+	ev.LastUpdatedAt = time.Now()
 
 	e.events = append(e.events, ev)
 }
