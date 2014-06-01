@@ -4,12 +4,13 @@ class FinderPane extends Pane
 
     super options, data
 
-    KD.getSingleton('appManager').open 'Finder', (finderApp) =>
-      @createFinderController finderApp
-      @bindListeners()
+    @createFinderController()
+    @bindListeners()
 
-  createFinderController: (finderApp) ->
+  createFinderController: ->
+    finderApp         = new FinderController
     @finderController = finderApp.create()
+
     @addSubView @finderController.getView()
     @finderController.reset()
 
