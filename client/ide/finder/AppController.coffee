@@ -24,6 +24,7 @@ class FinderController extends KDController
   getMountVMButton: ->
     return new KDButtonView
       title    : "Mount other VMs"
+      icon     : yes
       cssClass : "finder-mountvm clean-gray"
       callback : @bound 'showMountVMModal'
 

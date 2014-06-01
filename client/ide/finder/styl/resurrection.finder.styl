@@ -12,31 +12,33 @@ resurrection.finder.styl
 */
 }
 
+.nfinder
+  ul ul li.selected
+    bg                color, #131313
+    .chevron
+      display         inline-block
+
+.jtreeview-wrapper
+  kalc                height, 100% \- 78px
+
 .kdlistitemview-finderitem
   height              auto
   min-height          28px
   font-size           13px
-  color               #5e7074
+  color               #D4CFC9
   noTextSelection()
-
-  &:first-child
-    margin-top        0px
 
   .chevron
     abs()
-    // top               7px
-  //   right             4px
-  //   z-index           2
-  //   float             none
-  //   display           none
-  //   margin            0
-  //   size              22px 22px
+    top               5px
+    right             24px
+    z-index           2
+    float             none
+    display           none
+    margin            0
+    r-sprite          'finder', 'expanded'
 
   &.selected
-    color             #ddd
-    text-shadow       0 -1px 0 rgba(0,0,0,0.22)
-    bg                color, finderSelectedColor1
-
     // I'll find a better place for it ~ GG
     .vm
       span.path-select
@@ -53,10 +55,6 @@ resurrection.finder.styl
           &.selected
             selectedNeighbor()
 
-    // span.chevron
-    //   r-sprite            finder '16-chevron-white'
-    //   display       block
-
   &.unsaved
     span.icon
       color           black!important
@@ -66,10 +64,6 @@ resurrection.finder.styl
       vertical-align  top
       &:before
         content       "*"
-
-  &:hover
-    span.chevron
-      display         inline-block
 
   &.expanded
     > div
@@ -196,9 +190,6 @@ resurrection.finder.styl
         width       187px
 
 .file-container
-  margin            13px 0 0 13px
-  width             auto
-
   .app-header
     size            100% 37px
     bg              color transparent
@@ -211,29 +202,34 @@ resurrection.finder.styl
 
 
   .kdbutton.finder-mountvm
-    background    #1b2224
-    border        none
-    display       block
-    color         #60787d
-    font-size     12px
-    line-height   24px
-    font-weight   400
-    text-shadow   none
-    width         96%
-    margin        2%
-    abs           0 0 0px 0
-    z-index       20
+    rounded             2px
+    color               #FFF
+    font-size           13px
+    text-indent         80px
+    line-height         39px
+    background          none
+    font-weight         300
+    padding             0
+    text-align          left
+    text-shadow         none
+    display             block
+    size                auto, 39px
+    border              1px dashed #5A5A5A
+    text-decoration     none
+    z-index             20
+    kalc                width, 100% \- 30px
+    abs()
+    bottom              20px
+    left                16px
+    .icon
+      display           inline-block
+      r-sprite          'ide', 'add-vm'
+      padding           0
+      margin            0
+      abs()
+      top               10px
+      left              50px
 
-    &:hover
-      background  #60787d
-      color       #252e30
-
-    .button-title
-      color       inherit
-      font-size   inherit
-      line-height inherit
-      font-weight inherit
-      text-shadow inherit
 
   .vm
   .file
@@ -255,7 +251,7 @@ resurrection.finder.styl
     height              39px
     line-height         39px
     bg                  color, #131313
-    margin-right        13px
+    margin              13px !important
     pointer()
     position            relative
 
@@ -296,7 +292,7 @@ resurrection.finder.styl
       right             20px
       abs()
 
-  .expanded
+  .kdlistitemview-finderitem.expanded
     .folder
       .icon
         r-sprite        finder, 'expanded'
@@ -322,11 +318,11 @@ resurrection.finder.styl
 
   .file
     .icon
-      r-sprite          finder '16-file'
-      // &.code
-      //   bg          position, -40px -180px
-      // &.image
-      //   bg          position, -40px -200px
+      r-sprite          finder, 'file'
+      &.code
+        r-sprite        finder, 'code'
+      &.image
+        r-sprite        finder, 'image'
       // &.archive
       //   bg          position, -40px -220px
       // &.new-file
@@ -489,6 +485,6 @@ resurrection.finder.styl
     .koding-on-off
       fr()
 
-.jtreeview-wrapper
-  .last-item-selected > li // to style vm header, might be broken in future.
-    background        transparent
+// this widget is broken on prod too, currently disabled
+.no-vm-found-widget
+  display             none
