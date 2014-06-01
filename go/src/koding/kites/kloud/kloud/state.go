@@ -1,5 +1,7 @@
 package kloud
 
+import "strings"
+
 type MachineState int
 
 const (
@@ -27,6 +29,18 @@ var states = map[string]MachineState{
 	"Terminating":    Terminating,
 	"Terminated":     Terminated,
 	"Unknown":        Unknown,
+}
+
+func (m *MachineState) MarshalJSON() ([]byte, error) {
+	return []byte(`"` + m.String() + `"`), nil
+}
+
+func (m *MachineState) UnmarshalJSON(d []byte) error {
+	// comes as `"PENDING"`,  will convert to: `PENDING`
+	unquoted := strings.Replace(string(d), "\"", "", -1)
+
+	*m = states[unquoted]
+	return nil
 }
 
 func (m MachineState) String() string {
