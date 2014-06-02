@@ -48,7 +48,7 @@ module.exports =
     clusterSize : 5
     fallbackUrl : "https://showcase.koding.com:7000"
   sourceServer  :
-    enabled     : yes
+    enabled     : no
     port        : 1337
   neo4j         :
     read        : "http://172.16.6.12"
