@@ -2,6 +2,7 @@ package kloud
 
 import (
 	"errors"
+	"fmt"
 	"koding/kites/kloud/eventer"
 	"koding/kites/kloud/kloud/machinestate"
 	"koding/kites/kloud/kloud/protocol"
@@ -67,7 +68,6 @@ func (k *Kloud) build(r *kite.Request) (interface{}, error) {
 	k.Storage.UpdateState(args.MachineId, machinestate.Building)
 
 	eventId, ev := k.NewEventer()
-	ev.Push(&eventer.Event{Message: "Building process started.", Status: machinestate.Building})
 
 	go func() {
 		k.idlock.Get(r.Username).Lock()
@@ -117,12 +117,18 @@ func (k *Kloud) buildMachine(args *BuildArgs, ev eventer.Eventer) error {
 	}
 
 	buildOptions := &protocol.BuildOptions{
+		MachineId:    args.MachineId,
+		Username:     args.Username,
 		ImageName:    imageName,
 		InstanceName: instanceName,
 		Eventer:      ev,
-		Username:     args.Username,
 	}
 
+	msg := fmt.Sprintf("Building process started. Provider '%s'. Build options: %+v",
+		provider.Name(), buildOptions)
+	k.Log.Info(msg)
+
+	ev.Push(&eventer.Event{Message: msg, Status: machinestate.Building})
 	buildResponse, err := provider.Build(buildOptions)
 	if err != nil {
 		return err

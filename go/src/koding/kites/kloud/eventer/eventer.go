@@ -30,7 +30,7 @@ type Event struct {
 	EventId   string             `json:"eventID"`
 	Message   string             `json:"message"`
 	Status    machinestate.State `json:"status"`
-	UpdatedAt time.Time          `json:"updatedAt"`
+	TimeStamp time.Time          `json:"timeStamp"`
 }
 
 type Events struct {
@@ -57,7 +57,7 @@ func (e *Events) Push(ev *Event) {
 	}
 
 	ev.EventId = e.eventId
-	ev.UpdatedAt = time.Now()
+	ev.TimeStamp = time.Now()
 
 	e.events = append(e.events, ev)
 }

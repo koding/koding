@@ -20,9 +20,10 @@ import (
 	"github.com/mitchellh/packer/builder/digitalocean"
 )
 
+const ProviderName = "digitalocean"
+
 type DigitalOcean struct {
 	Client   *digitalocean.DigitalOceanClient
-	Name     string
 	Log      logging.Logger
 	SignFunc func(string) (string, string, error)
 
@@ -57,11 +58,14 @@ type DigitalOcean struct {
 	}
 }
 
+func (d *DigitalOcean) Name() string {
+	return ProviderName
+}
+
 // Prepare prepares the state for upcoming methods like Build/etc.. It's needs to
 // be called before every other method call once. Raws contains the credentials
 // as a map[string]interface{} format.
 func (d *DigitalOcean) Prepare(raws ...interface{}) (err error) {
-	d.Name = "digitalocean"
 	if len(raws) != 2 {
 		return errors.New("need at least two arguments")
 	}
@@ -116,8 +120,8 @@ func (d *DigitalOcean) Build(opts *protocol.BuildOptions) (p *protocol.BuildResp
 
 	// push logs and pushes each step to the eventer
 	push := func(msg string) {
-		d.Log.Info("[username: '%s' dropletName: '%s' snapshotName: '%s'] - %s",
-			opts.Username, opts.InstanceName, opts.ImageName, msg)
+		d.Log.Info("[machineId: '%s': username: '%s' dropletName: '%s' snapshotName: '%s'] - %s",
+			opts.MachineId, opts.Username, opts.InstanceName, opts.ImageName, msg)
 		opts.Eventer.Push(&eventer.Event{Message: msg, Status: machinestate.Building})
 	}
 
