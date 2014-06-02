@@ -89,10 +89,15 @@ func (k *Kloud) NewKloud() *kodingkite.KodingKite {
 	return kt
 }
 
+func (k *Kloud) SignFunc(username string) (string, string, error) {
+	return createKey(username, k.KontrolURL, k.KontrolPrivateKey, k.KontrolPublicKey)
+}
+
 func (k *Kloud) InitializeProviders() {
 	providers = map[string]protocol.Provider{
 		"digitalocean": &digitalocean.DigitalOcean{
-			Log: createLogger("digitalocean", k.Debug),
+			Log:      createLogger("digitalocean", k.Debug),
+			SignFunc: k.SignFunc,
 		},
 	}
 }

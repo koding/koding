@@ -21,9 +21,10 @@ import (
 )
 
 type DigitalOcean struct {
-	Client *digitalocean.DigitalOceanClient
-	Name   string
-	Log    logging.Logger
+	Client   *digitalocean.DigitalOceanClient
+	Name     string
+	Log      logging.Logger
+	SignFunc func(string) (string, string, error)
 
 	Creds struct {
 		ClientID string `mapstructure:"clientId"`
@@ -105,8 +106,8 @@ func (d *DigitalOcean) Build(opts *protocol.BuildOptions) (p *protocol.BuildResp
 	}
 	dropletName := opts.InstanceName
 
-	if opts.SignFunc == nil {
-		return nil, errors.New("SignFunc is not defined.")
+	if opts.Username == "" {
+		return nil, errors.New("username is empty")
 	}
 
 	if opts.Eventer == nil {
@@ -115,7 +116,8 @@ func (d *DigitalOcean) Build(opts *protocol.BuildOptions) (p *protocol.BuildResp
 
 	// push logs each step and also pushes each step to the eventer
 	push := func(msg string) {
-		d.Log.Info(msg)
+		d.Log.Info("[username: %s dropletName: %s snapshotName: %s] - %s",
+			opts.Username, opts.InstanceName, opts.ImageName, msg)
 		opts.Eventer.Push(&eventer.Event{Message: msg, Status: machinestate.Building})
 	}
 
@@ -209,7 +211,7 @@ func (d *DigitalOcean) Build(opts *protocol.BuildOptions) (p *protocol.BuildResp
 	defer client.Close()
 
 	// generate kite key specific for the user
-	kiteKey, kiteId, err := opts.SignFunc()
+	kiteKey, kiteId, err := d.SignFunc(opts.Username)
 	if err != nil {
 		return nil, err
 	}

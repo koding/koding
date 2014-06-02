@@ -73,28 +73,24 @@ func (k *Kloud) build(r *kite.Request) (interface{}, error) {
 		k.idlock.Get(r.Username).Lock()
 		defer k.idlock.Get(r.Username).Unlock()
 
-		var status machinestate.State
-		var msg string
+		status := machinestate.Running
+		msg := "Build is finished successfully."
+
+		//lets pass it alongside with args
 		args.Username = r.Username
 
 		err := k.buildMachine(args, ev)
 		if err != nil {
-			k.Log.Error("Building machine failed. Machine is marked as UNKNOWN.\n"+
-				"Any other call are now forbidden until the state is resolved manually.\n"+
+			k.Log.Error("Building machine failed. Machine state is marked as ERROR.\n"+
+				"Any other calls are now forbidden until the state is resolved manually.\n"+
 				"Args: %v User: %s EventId: %d Events: %s",
 				args, r.Username, eventId, ev)
 
 			status = machinestate.Unknown
 			msg = err.Error()
-
-			k.Storage.UpdateState(args.MachineId, status)
-		} else {
-			status = machinestate.Running
-			msg = "Build is finished successfully."
-
-			k.Storage.UpdateState(args.MachineId, status)
 		}
 
+		k.Storage.UpdateState(args.MachineId, status)
 		ev.Push(&eventer.Event{Message: msg, Status: status})
 	}()
 
@@ -110,10 +106,6 @@ func (k *Kloud) buildMachine(args *BuildArgs, ev eventer.Eventer) error {
 		imageName = args.ImageName
 	}
 
-	signFunc := func() (string, string, error) {
-		return createKey(args.Username, k.KontrolURL, k.KontrolPrivateKey, k.KontrolPublicKey)
-	}
-
 	instanceName := args.Username + "-" + strconv.FormatInt(time.Now().UTC().UnixNano(), 10)
 	if args.InstanceName != "" {
 		instanceName = args.InstanceName
@@ -127,8 +119,8 @@ func (k *Kloud) buildMachine(args *BuildArgs, ev eventer.Eventer) error {
 	buildOptions := &protocol.BuildOptions{
 		ImageName:    imageName,
 		InstanceName: instanceName,
-		SignFunc:     signFunc,
 		Eventer:      ev,
+		Username:     args.Username,
 	}
 
 	buildResponse, err := provider.Build(buildOptions)

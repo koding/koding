@@ -3,6 +3,9 @@ package protocol
 import "koding/kites/kloud/eventer"
 
 type BuildOptions struct {
+	// Username defines the username on behalf the machine is being build
+	Username string
+
 	// ImageName is used to build the machine based on this particular image
 	ImageName string
 
@@ -12,10 +15,6 @@ type BuildOptions struct {
 
 	// Eventer pushes the latest events to the build event.
 	Eventer eventer.Eventer
-
-	// SignFunc is used to sign/create a kite.key that is going to be included
-	// into the machine.
-	SignFunc func() (string, string, error)
 }
 
 // BuildResponse should be returned from a Build method
