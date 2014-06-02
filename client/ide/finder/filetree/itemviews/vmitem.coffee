@@ -8,11 +8,14 @@ class NVMItemView extends NFileItemView
     @vm = KD.getSingleton 'vmController'
     @vm.on 'StateChanged', @bound 'checkVMState'
 
-    # @changePathButton = new KDCustomHTMLView
-    #   tagName  : 'span'
-    #   cssClass : 'path-select'
-    #   delegate : @
-    #   click    : @bound "createRootContextMenu"
+    @folderSelector = new KDSelectBox
+      selectOptions : @createSelectOptions()
+      callback      : (path) =>
+        data        = @getData()
+        vm          = data.vmName
+        finder      = data.treeController.getDelegate()
+
+        finder?.updateVMRoot vm, path
 
     @vmInfo    = new KDCustomHTMLView
       tagName  : 'span'
@@ -37,43 +40,25 @@ class NVMItemView extends NFileItemView
     @parent?.isLoading = no
     @loader.hide()
 
-
-  createRootContextMenu:->
-    offset = @changePathButton.$().offset()
+  createSelectOptions: ->
     currentPath = @getData().path
-    width = 30 + currentPath.length * 3
+    nickname    = KD.nick()
+    parents     = []
+    nodes       = currentPath.split '/'
 
-    contextMenu = new KDContextMenu
-      menuWidth   : width
-      delegate    : @changePathButton
-      x           : offset.left - 106
-      y           : offset.top + 22
-      arrow       :
-        placement : "top"
-        margin    : 108
-      lazyLoad    : yes
-    , {}
-
-    parents = []
-    nodes = currentPath.split('/')
-    for x in [0...nodes.length-1]
-      nodes = currentPath.split('/')
-      path  = (nodes.splice 1,x).join "/"
+    for x in [ 0...nodes.length ]
+      nodes = currentPath.split '/'
+      path  = nodes.splice(1,x).join '/'
       parents.push "/#{path}"
+
     parents.reverse()
 
-    vm     = @getData().vmName
-    finder = @getData().treeController.getDelegate()
+    items  = []
 
-    @utils.defer ->
-      parents.forEach (path)->
-        contextMenu.treeController.addNode
-          title    : path
-          callback : ->
-            finder?.updateVMRoot vm, path, contextMenu.bound("destroy")
+    for path in parents when path
+      items.push title: path, value: path
 
-      contextMenu.positionContextMenu()
-      contextMenu.treeController.selectFirstNode()
+    return items
 
   checkVMState:(err, vm, info)->
     return unless vm is @getData().vmName
@@ -92,9 +77,12 @@ class NVMItemView extends NFileItemView
 
   pistachio:->
     """
-      {{> @vmInfo}}
-      <div class="buttons">
-        {{> @terminalButton}}
-        <span class='chevron'></span>
+      <div class="vm-header">
+        {{> @vmInfo}}
+        <div class="buttons">
+          {{> @terminalButton}}
+          <span class='chevron'></span>
+        </div>
       </div>
+      {{> @folderSelector}}
     """

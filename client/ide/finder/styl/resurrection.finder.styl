@@ -251,12 +251,25 @@ resurrection.finder.styl
       size              16px 16px
 
   .vm
-    height              39px
-    line-height         39px
-    bg                  color, #131313
     margin              13px !important
     pointer()
     position            relative
+
+    .vm-header
+      height            39px
+      line-height       39px
+      bg                color, #131313
+
+    .kdselectbox
+      bg                color, transparent
+      border            1px solid #555555
+      margin-top        14px
+      rounded           3px
+      width             100%
+      borderBox()
+      .arrows
+        r-sprite        'finder', 'expanded'
+        top             8px
 
     .buttons
       abs()
