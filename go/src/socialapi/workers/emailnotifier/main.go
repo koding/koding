@@ -46,7 +46,6 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-
 	r.Listen(handler)
-	r.Close()
+	r.Wait()
 }

@@ -39,6 +39,5 @@ func main() {
 	}
 
 	r.ShutdownHandler = handler.Shutdown
-
-	<-r.Done
+	r.Wait()
 }
