@@ -21,6 +21,8 @@ regions         =
   premium       : "premium-sj"
 
 cookieMaxAge = 1000 * 60 * 60 * 24 * 14 # two weeks
+
+# turn it off when you use non-https like: showcase.koding.com
 cookieSecure = yes
 
 module.exports =
