@@ -27,10 +27,20 @@ type Eventer interface {
 }
 
 type Event struct {
-	EventId   string             `json:"eventID"`
-	Message   string             `json:"message"`
-	Status    machinestate.State `json:"status"`
-	TimeStamp time.Time          `json:"timeStamp"`
+	// EventId is the id of the whole processEventId is the id of the whole process
+	EventId string `json:"eventID"`
+
+	// Message explains the current event's behaviour/content.
+	Message string `json:"message"`
+
+	// Status defines the current state of the machine
+	Status machinestate.State `json:"status"`
+
+	// Percentage shows the current percentage of the whole event process
+	Percentage int `json:"percentage"`
+
+	// TimeStamp contains the last updated event time
+	TimeStamp time.Time `json:"timeStamp"`
 }
 
 type Events struct {

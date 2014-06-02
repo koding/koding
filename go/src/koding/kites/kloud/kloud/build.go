@@ -26,10 +26,6 @@ type BuildResult struct {
 
 var (
 	defaultImageName = "koding-klient-0.0.1"
-
-	ErrAlreadyInitialized = errors.New("Machine is already initialized and prepared.")
-	ErrUnknownState       = errors.New("Machine is in unknown state. Please contact support.")
-	ErrBuilding           = errors.New("Machine is being build. Hold on...")
 )
 
 func (k *Kloud) build(r *kite.Request) (interface{}, error) {
@@ -91,7 +87,11 @@ func (k *Kloud) build(r *kite.Request) (interface{}, error) {
 		}
 
 		k.Storage.UpdateState(args.MachineId, status)
-		ev.Push(&eventer.Event{Message: msg, Status: status})
+		ev.Push(&eventer.Event{
+			Message:    msg,
+			Status:     status,
+			Percentage: 100,
+		})
 	}()
 
 	return BuildResult{
@@ -111,8 +111,20 @@ func (k *Kloud) buildMachine(args *BuildArgs, ev eventer.Eventer) error {
 		instanceName = args.InstanceName
 	}
 
-	provider, err := k.provider(args.MachineId)
+	m, err := k.Storage.Get(args.MachineId, &GetOption{
+		IncludeMachine:    true,
+		IncludeCredential: true,
+	})
 	if err != nil {
+		return err
+	}
+
+	provider, ok := providers[m.Provider]
+	if !ok {
+		return errors.New("provider not supported")
+	}
+
+	if err := provider.Prepare(m.Credential.Meta, m.Machine.Meta); err != nil {
 		return err
 	}
 

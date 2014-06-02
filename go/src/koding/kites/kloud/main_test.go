@@ -33,13 +33,22 @@ import (
 
 type TestStorage struct{}
 
-func (t *TestStorage) Get(id string) (*kloud.MachineData, error) {
+func (t *TestStorage) Get(id string, opt *kloud.GetOption) (*kloud.MachineData, error) {
 	provider := TestProviderData[id]
+
+	credential := &kloud.Credential{
+		Meta: provider["credential"].(map[string]interface{}),
+	}
+
+	machine := &kloud.Machine{
+		Meta:  provider["builder"].(map[string]interface{}),
+		State: machinestate.Running.String(), // assume it's running
+	}
 
 	return &kloud.MachineData{
 		Provider:   provider["provider"].(string),
-		Credential: provider["credential"].(map[string]interface{}),
-		Builders:   provider["builder"].(map[string]interface{}),
+		Credential: credential,
+		Machine:    machine,
 	}, nil
 }
 
@@ -61,10 +70,6 @@ func (t *TestStorage) UpdateState(id string, state machinestate.State) error {
 
 func (t *TestStorage) GetState(id string) (machinestate.State, error) {
 	return machinestate.NotInitialized, nil
-}
-
-func (t *TestStorage) GetMachine(id string) (*kloud.Machine, error) {
-	return nil, nil
 }
 
 var (
