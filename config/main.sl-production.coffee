@@ -57,6 +57,7 @@ module.exports =
   mongo         : mongo
   mongoKontrol  : mongoKontrol
   mongoReplSet  : mongoReplSet
+  mongoMinWrites: 3
   runNeo4jFeeder: yes
   runGoBroker   : no
   runGoBrokerKite : no

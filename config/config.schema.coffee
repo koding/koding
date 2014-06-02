@@ -69,6 +69,7 @@ config =
     mongo         : 1
     mongoKontrol  : 1
     mongoReplSet  : 1
+    mongoMinWrites: 1
     neo4j         :
       read        : 1
       write       : 1
