@@ -53,7 +53,9 @@ class ActivityLikeSummaryView extends KDView
 
     {actorsCount, actorsPreview} = @getData().interactions.like
 
-    linkCount = Math.min actorsPreview.length, 3
+    linkCount = switch
+      when actorsCount > 3 then 2
+      else actorsPreview.length
 
     for i in [0..linkCount - 1]
       @addSubView new ProfileLinkView null, accounts[i]
