@@ -7,6 +7,8 @@ class ErrorLog
     idleUserDetector.on 'userBack', -> idle = false
 
     KD.utils.throttle 500, (error, params={})->
+      return  unless KD.config.logToInternal
+
       {
         kites : {
           os       : {version  : osVersion}
@@ -29,4 +31,4 @@ class ErrorLog
         osKiteVersion : osVersion
       }, params
 
-      KD.remote.api.JErrorLog.create error, ->
+      KD.remoteLog.api.JErrorLog.create error, ->

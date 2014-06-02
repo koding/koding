@@ -147,6 +147,14 @@ config =
       watch       : 1
       queueName   : 1
       verbose     : 1
+    log           :
+      login       : 1
+      numberOfWorkers: 1
+      watch       : 1
+      queueName   : 1
+      verbose     : 1
+      run         : 1
+      runWorker   : 1
     graphFeederWorker :
       numberOfWorkers : 1
     presence        :
@@ -186,8 +194,11 @@ config =
         userSitesDomain: 1
         useNeo4j      : 1
         logToExternal : 1
+        logToInternal : 1
         resourceName  : 1
+        logResourceName: 1
         socialApiUri  : 1
+        logApiUri     : 1
         suppressLogs  : 1
         version       : 1
         mainUri       : 1
@@ -427,8 +438,4 @@ config =
       secure        : 1
     troubleshoot    :
       recipientEmail: 1
-    pageHit         :
-      run           : 1
-      host          : 1
-      port          : 1
 module.exports = config
