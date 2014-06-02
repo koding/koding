@@ -7,6 +7,7 @@ mongo           = 'localhost:27017/koding'
 mongoKontrol    = 'localhost:27017/kontrol'
 projectRoot     = nodePath.join __dirname, '..'
 socialQueueName = "koding-social-vagrant"
+logQueueName    = socialQueueName+'log'
 
 authExchange    = "auth"
 authAllExchange = "authAll"
@@ -136,6 +137,14 @@ module.exports =
     watch       : yes
     queueName   : socialQueueName
     verbose     : no
+  log           :
+    login       : 'prod-social'
+    numberOfWorkers: 1
+    watch       : yes
+    queueName   : logQueueName
+    verbose     : no
+    run         : no
+    runWorker   : yes
   followFeed    :
     host        : 'localhost'
     port        : 5672
@@ -172,8 +181,11 @@ module.exports =
       userSitesDomain: 'lvh.me'
       useNeo4j: yes
       logToExternal: no  # rollbar, mixpanel etc.
+      logToInternal: no  # log worker
       resourceName: socialQueueName
+      logResourceName: logQueueName
       socialApiUri: 'http://lvh.me:3030/xhr'
+      logApiUri: 'http://lvh.me:4030/xhr'
       suppressLogs: no
       broker    :
         servicesEndpoint: 'http://lvh.me:3020/-/services/broker'
@@ -295,15 +307,6 @@ module.exports =
     batchSize     : undefined
     cleanupCron   : '*/10 * * * * *'
   pidFile         : '/tmp/koding.server.pid'
-  loggr           :
-    push          : no
-    url           : ""
-    apiKey        : ""
-  librato         :
-    push          : no
-    email         : ""
-    token         : ""
-    interval      : 60000
   haproxy         :
     webPort       : 3020
   newkites        :
@@ -439,7 +442,3 @@ module.exports =
     secure        : cookieSecure
   troubleshoot    :
     recipientEmail: "can@koding.com"
-  pageHit         :
-    run           : no
-    host          : "localhost"
-    port          : 9200

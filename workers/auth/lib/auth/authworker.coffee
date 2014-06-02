@@ -179,13 +179,6 @@ module.exports = class AuthWorker extends EventEmitter
     @waitingAuthWhos[getWaitingAuthWhoKey options] = options.socketId
     @sendAuthMessage options
 
-  fetchReroutingExchange:(callback)->
-    @bongo.mq.connection.exchange(
-      @reroutingExchange
-      REROUTING_EXCHANGE_OPTIONS
-      callback
-    )
-
   makeExchangeFetcher =(exchangeName, exchangeOptions)->
     exKey   = "#{exchangeName}_"
     (callback)->
@@ -194,7 +187,7 @@ module.exports = class AuthWorker extends EventEmitter
         @[exchangeName]
         exchangeOptions
         (exchange)=> callback @[exKey] = exchange
-      )
+      ).on 'error', console.error.bind console
 
   fetchReroutingExchange: makeExchangeFetcher(
     'reroutingExchange', REROUTING_EXCHANGE_OPTIONS
@@ -218,16 +211,6 @@ module.exports = class AuthWorker extends EventEmitter
         routingKey
         suffix
       }
-
-  _fakePersistenceWorker:(secretChannelName)->
-    { connection } = @bongo.mq
-    options = {type: 'fanout', autoDelete: yes, durable: no}
-    connection.exchange secretChannelName, options, (exchange)->
-      connection.queue '', {autoDelete: yes, durable: no, exclusive: yes}, (queue)->
-        queue.bind exchange, '#'
-        queue.on 'queueBindOk', ->
-          queue.subscribe (message)->
-            console.log message.data+''
 
   notify:(routingKey, event, contents)->
     @fetchNotificationExchange (exchange)->
@@ -396,7 +379,6 @@ module.exports = class AuthWorker extends EventEmitter
 
           @addBinding 'chat', bindingKey, 'chat-hose', consumerRoutingKey, username
 
-          # @_fakePersistenceWorker secretChannelName
           @notify username, 'chatOpen', {
             publicName  : name
             routingKey  : personalToken
@@ -532,7 +514,7 @@ module.exports = class AuthWorker extends EventEmitter
 
   connect: ->
     {bongo} = this
-    bongo.mq.ready =>
+    bongo.on 'connected', =>
       {connection} = bongo.mq
       @monitorPresence connection
 

@@ -74,15 +74,22 @@ class OsKite extends KDKite
     else
       Promise.resolve()
 
-  vmOn: (t = 0) ->
-    @changeState 'RUNNING', 'vm.progress.start', 'vmOn', @vmPrepareAndStart
-      .catch ((it) -> not /ErrQuotaExceeded/.test it.message), (err) =>
-        if t < 5
-          return Promise.delay(1000 * Math.pow 1.3, ++t).then => @vmOn t
+  vmOn: do ->
+    errPredicate = (err) ->
+      not (
+        KiteError.codeIs('ErrQuotaExceeded')(err) or
+        /ErrQuotaExceeded/.test err.message
+      )
 
-        ErrorLog.create "terminal: vm turn on", attempt:t, reason: err?.message
-        throw err
-      .then => @emit 'vmOn'
+    (t = 0) ->
+      @changeState 'RUNNING', 'vm.progress.start', 'vmOn', @vmPrepareAndStart
+        .catch errPredicate, (err) =>
+          if t < 5
+            return Promise.delay(1000 * Math.pow 1.3, ++t).then => @vmOn t
+
+          ErrorLog.create "terminal: vm turn on", attempt:t, reason: err?.message
+          throw err
+        .then => @emit 'vmOn'
 
   vmOff: ->
     @changeState 'STOPPED', 'vm.progress.stop', 'vmOff', @vmStopAndUnprepare

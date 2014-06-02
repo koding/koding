@@ -406,9 +406,11 @@ class WebTermAppView extends JView
 
     {recentState}  = osKite
 
-    if state = recentState?.state is 'RUNNING'
+    state = osKite.recentState?.state
+
+    if state is 'RUNNING'
       @createNewTab {vm, mode}
-    else if recentState?.state is 'STOPPED' or 'FAILED'
+    else if state in ['STOPPED', 'FAILED']
       osKite?.vmOn().catch @bound "handlePrepareError"
     else
       ErrorLog.create "terminal: prepareAndRunTerminal error",
@@ -421,7 +423,7 @@ class WebTermAppView extends JView
     title = err?.message
 
     if title and /limit reached/.test title
-      title += " Please upgrade to run more VMs."
+      title += ". Please upgrade to run more VMs."
 
     numberOfVms = Object.keys(KD.singletons.vmController.vmsInfo).length
     ErrorLog.create err?.message, {numberOfVms}
