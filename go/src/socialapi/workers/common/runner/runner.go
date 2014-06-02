@@ -27,7 +27,7 @@ type Runner struct {
 	Listener        *worker.Listener
 	Name            string
 	ShutdownHandler func()
-	Done            chan bool
+	Done            chan error
 }
 
 func New(name string) *Runner {
@@ -60,6 +60,7 @@ func (r *Runner) Init() error {
 		r.Log,
 	)
 	r.ShutdownHandler = func() {}
+	r.Done = make(chan error, 1)
 	r.RegisterSignalHandler()
 
 	return nil
@@ -99,5 +100,9 @@ func (r *Runner) RegisterSignalHandler() {
 		}
 	}()
 }
-	}
+
+func (r *Runner) Wait() error {
+	err := <-r.Done
+
+	return err
 }
