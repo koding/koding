@@ -58,26 +58,34 @@ module.exports = class JMachine extends Module
       users             : Array
       groups            : Array
 
-      state             :
-        type            : String
-        enum            : ["Wrong type specified!", [
+      createdAt         : Date
 
-          # States which description ending with '...' means its an ongoing
-          # proccess which you may get progress info about it
-          #
-          "NotInitialized"  # Initial state, machine instance does not exists
-          "Building"        # Build started machine instance creating...
-          "Starting"        # Machine is booting...
-          "Running"         # Machine is physically running
-          "Stopping"        # Machine is turning off...
-          "Stopped"         # Machine is turned off
-          "Rebooting"       # Machine is rebooting...
-          "Terminating"     # Machine is getting destroyed...
-          "Terminated"      # Machine is destroyed, not exists anymore
+      status            :
 
-        ]]
+        modifiedAt      : Date
 
-        default         : "NotInitialized"
+        state           :
+          type          : String
+          enum          : ["Wrong type specified!", [
+
+            # States which description ending with '...' means its an ongoing
+            # proccess which you may get progress info about it
+            #
+            "NotInitialized"  # Initial state, machine instance does not exists
+            "Building"        # Build started machine instance creating...
+            "Starting"        # Machine is booting...
+            "Running"         # Machine is physically running
+            "Stopping"        # Machine is turning off...
+            "Stopped"         # Machine is turned off
+            "Rebooting"       # Machine is rebooting...
+            "Terminating"     # Machine is getting destroyed...
+            "Terminated"      # Machine is destroyed, not exists anymore
+            "Unknown"         # Machine is in an unknown state
+                              # needs to solved manually
+
+          ]]
+
+          default       : -> "NotInitialized"
 
       meta              : Object
 
@@ -93,7 +101,13 @@ module.exports = class JMachine extends Module
     # 4..12 32-bit random hex string
 
     {user, group, provider} = data
+
     data.uid = "u#{user[0]}#{group[0]}#{provider[0]}#{(require 'hat')(32)}"
+    data.createdAt = new Date()
+    data.status  =
+      state      : "NotInitialized"
+      modifiedAt : data.createdAt
+
     return new JMachine data
 
 
