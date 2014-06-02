@@ -58,8 +58,8 @@ func (n *Controller) HandleEvent(event string, data []byte) error {
 	return handler(n, data)
 }
 
-	rmqConn, err := rmq.Connect("NewEmailNotifierWorkerController")
 func New(rmq *rabbitmq.RabbitMQ, log logging.Logger, es *EmailSettings) (*Controller, error) {
+	rmqConn, err := rmq.Connect("NewEmailNotifierWorkerController")
 	if err != nil {
 		return nil, err
 	}
