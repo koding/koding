@@ -200,7 +200,7 @@ func (d *DigitalOcean) Build(opts *protocol.BuildOptions) (p *protocol.BuildResp
 				}
 
 				// the next steps percentage is 60, fake it until we got there
-				if n < 60 {
+				if n < 59 {
 					n += 2
 				}
 			}

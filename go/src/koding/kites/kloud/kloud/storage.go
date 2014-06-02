@@ -40,13 +40,17 @@ type MachineData struct {
 }
 
 type Machine struct {
-	Id         bson.ObjectId `bson:"_id" json:"-"`
-	KiteId     string        `bson:"kiteId"`
-	PublicIp   string        `bson:"publicIp"`
-	State      string        `bson:"state"`
-	Provider   string        `bson:"provider"`
-	Credential string        `bson:"credential"`
-	Meta       bson.M        `bson:"meta"`
+	Id       bson.ObjectId `bson:"_id" json:"-"`
+	KiteId   string        `bson:"kiteId"`
+	PublicIp string        `bson:"publicIp"`
+	Status   struct {
+		State      string    `bson:"state"`
+		ModifiedAt time.Time `bson:"modifiedAt"`
+	} `bson:"status"`
+	Provider   string    `bson:"provider"`
+	Credential string    `bson:"credential"`
+	CreatedAt  time.Time `json:"createdAt"`
+	Meta       bson.M    `bson:"meta"`
 }
 
 type Credential struct {
@@ -96,7 +100,6 @@ func (m *MongoDB) Update(id string, resp *protocol.BuildResponse) error {
 			bson.M{"$set": bson.M{
 				"kiteId":            resp.KiteId,
 				"ipAddress":         resp.IpAddress,
-				"state":             "READY",
 				"meta.instanceId":   strconv.Itoa(resp.InstanceId),
 				"meta.instanceName": resp.InstanceName,
 			}},
@@ -115,7 +118,7 @@ func (m *MongoDB) GetState(id string) (machinestate.State, error) {
 		return 0, err
 	}
 
-	state := machinestate.States[machine.Machine.State]
+	state := machinestate.States[machine.Machine.Status.State]
 	if state == 0 {
 		return 0, fmt.Errorf("state is unknown: %v", state)
 	}

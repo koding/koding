@@ -6,7 +6,6 @@ import (
 	"koding/kites/kloud/eventer"
 	"koding/kites/kloud/idlock"
 	"koding/kites/kloud/kloud/protocol"
-	"koding/kites/kloud/utils"
 	"koding/kodingkite"
 	"koding/tools/config"
 	"log"
@@ -102,13 +101,17 @@ func (k *Kloud) InitializeProviders() {
 	}
 }
 
-func (k *Kloud) NewEventer() (string, eventer.Eventer) {
-	eventId := utils.RandString(16)
-	ev := eventer.New(eventId)
+func (k *Kloud) NewEventer(id string) eventer.Eventer {
+	ev, ok := k.Eventers[id]
+	if ok {
+		// for now we delete old events, but in the future we might store them
+		// in the db for history/logging.
+		delete(k.Eventers, id)
+	}
 
-	k.Eventers[eventId] = ev
-
-	return eventId, ev
+	ev = eventer.New(id)
+	k.Eventers[id] = ev
+	return ev
 }
 
 func (k *Kloud) GetEvent(eventId string) *eventer.Event {

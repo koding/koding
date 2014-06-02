@@ -20,8 +20,7 @@ type BuildArgs struct {
 }
 
 type BuildResult struct {
-	EventId string             `json:"eventId"`
-	State   machinestate.State `json:"state"`
+	State machinestate.State `json:"state"`
 }
 
 var (
@@ -63,7 +62,7 @@ func (k *Kloud) build(r *kite.Request) (interface{}, error) {
 
 	k.Storage.UpdateState(args.MachineId, machinestate.Building)
 
-	eventId, ev := k.NewEventer()
+	ev := k.NewEventer(args.MachineId)
 
 	go func() {
 		k.idlock.Get(r.Username).Lock()
@@ -80,7 +79,7 @@ func (k *Kloud) build(r *kite.Request) (interface{}, error) {
 			k.Log.Error("Building machine failed. Machine state is marked as ERROR.\n"+
 				"Any other calls are now forbidden until the state is resolved manually.\n"+
 				"Args: %v User: %s EventId: %d Events: %s",
-				args, r.Username, eventId, ev)
+				args, r.Username, args.MachineId, ev)
 
 			status = machinestate.Unknown
 			msg = err.Error()
@@ -94,10 +93,7 @@ func (k *Kloud) build(r *kite.Request) (interface{}, error) {
 		})
 	}()
 
-	return BuildResult{
-		EventId: eventId,
-		State:   machinestate.Building,
-	}, nil
+	return BuildResult{State: machinestate.Building}, nil
 }
 
 func (k *Kloud) buildMachine(args *BuildArgs, ev eventer.Eventer) error {
