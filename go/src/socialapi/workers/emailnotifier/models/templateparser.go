@@ -6,6 +6,7 @@ import (
 	"html/template"
 	"net/url"
 	"os"
+	"path"
 	"socialapi/config"
 	"time"
 )
@@ -40,14 +41,14 @@ func prepareTemplateFiles() error {
 		return err
 	}
 
-	mainTemplateFile = wd + "/workers/emailnotifier/templates/main.tmpl"
-	footerTemplateFile = wd + "/workers/emailnotifier/templates/footer.tmpl"
-	contentTemplateFile = wd + "/workers/emailnotifier/templates/content.tmpl"
-	gravatarTemplateFile = wd + "/workers/emailnotifier/templates/gravatar.tmpl"
-	groupTemplateFile = wd + "/workers/emailnotifier/templates/group.tmpl"
-	previewTemplateFile = wd + "/workers/emailnotifier/templates/preview.tmpl"
-	objectTemplateFile = wd + "/workers/emailnotifier/templates/object.tmpl"
-	unsubscribeTemplateFile = wd + "/workers/emailnotifier/templates/unsubscribe.tmpl"
+	mainTemplateFile = path.Join(wd, "workers/emailnotifier/templates/main.tmpl")
+	footerTemplateFile = path.Join(wd, "workers/emailnotifier/templates/footer.tmpl")
+	contentTemplateFile = path.Join(wd, "workers/emailnotifier/templates/content.tmpl")
+	gravatarTemplateFile = path.Join(wd, "workers/emailnotifier/templates/gravatar.tmpl")
+	groupTemplateFile = path.Join(wd, "workers/emailnotifier/templates/group.tmpl")
+	previewTemplateFile = path.Join(wd, "workers/emailnotifier/templates/preview.tmpl")
+	objectTemplateFile = path.Join(wd, "workers/emailnotifier/templates/object.tmpl")
+	unsubscribeTemplateFile = path.Join(wd, "workers/emailnotifier/templates/unsubscribe.tmpl")
 
 	return nil
 }
