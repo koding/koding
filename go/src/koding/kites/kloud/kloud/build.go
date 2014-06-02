@@ -26,10 +26,6 @@ type BuildResult struct {
 
 var (
 	defaultImageName = "koding-klient-0.0.1"
-
-	ErrAlreadyInitialized = errors.New("Machine is already initialized and prepared.")
-	ErrUnknownState       = errors.New("Machine is in unknown state. Please contact support.")
-	ErrBuilding           = errors.New("Machine is being build. Hold on...")
 )
 
 func (k *Kloud) build(r *kite.Request) (interface{}, error) {
