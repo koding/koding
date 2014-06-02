@@ -1,9 +1,11 @@
 package main
 
 import (
+	"errors"
 	"flag"
 	"fmt"
 	"io/ioutil"
+	"koding/kites/kloud/eventer"
 	"koding/kites/kloud/kloud"
 	"koding/kodingkite"
 	"koding/tools/config"
@@ -16,6 +18,9 @@ import (
 	"testing"
 	"time"
 
+	"koding/kites/kloud/kloud/machinestate"
+	kloudprotocol "koding/kites/kloud/kloud/protocol"
+
 	"github.com/fatih/color"
 	"github.com/koding/kite"
 	kiteconfig "github.com/koding/kite/config"
@@ -24,7 +29,6 @@ import (
 	"github.com/koding/kite/protocol"
 	"github.com/koding/kite/testkeys"
 	"github.com/koding/kite/testutil"
-	"github.com/mitchellh/mapstructure"
 )
 
 type TestStorage struct{}
@@ -39,21 +43,28 @@ func (t *TestStorage) Get(id string) (*kloud.MachineData, error) {
 	}, nil
 }
 
-func (t *TestStorage) Update(id string, data map[string]interface{}) error {
-	response := &kloud.BuildResponse{}
-	if err := mapstructure.Decode(data, response); err != nil {
-		return err
-	}
-
+func (t *TestStorage) Update(id string, resp *kloudprotocol.BuildResponse) error {
 	provider := TestProviderData[id]
 	b := provider["builder"].(map[string]interface{})
-	b["machineId"] = strconv.Itoa(response.MachineId)
-	b["machineName"] = response.MachineName
+	b["instanceName"] = resp.InstanceName
+	b["instanceId"] = strconv.Itoa(resp.InstanceId)
 
 	provider["builder"] = b
 
 	TestProviderData[id] = provider
 	return nil
+}
+
+func (t *TestStorage) UpdateState(id string, state machinestate.State) error {
+	return nil
+}
+
+func (t *TestStorage) GetState(id string) (machinestate.State, error) {
+	return machinestate.NotInitialized, nil
+}
+
+func (t *TestStorage) GetMachine(id string) (*kloud.Machine, error) {
+	return nil, nil
 }
 
 var (
@@ -151,11 +162,11 @@ func init() {
 }
 
 func build(i int, client *kite.Client, data map[string]interface{}) error {
-	machineName := "testkloud-" + strconv.FormatInt(time.Now().UTC().UnixNano(), 10) + "-" + strconv.Itoa(i)
+	instanceName := "testkloud-" + strconv.FormatInt(time.Now().UTC().UnixNano(), 10) + "-" + strconv.Itoa(i)
 
 	bArgs := &kloud.BuildArgs{
-		MachineId:   data["provider"].(string),
-		MachineName: machineName,
+		MachineId:    data["provider"].(string),
+		InstanceName: instanceName,
 	}
 
 	resp, err := client.Tell("build", bArgs)
@@ -163,15 +174,41 @@ func build(i int, client *kite.Client, data map[string]interface{}) error {
 		return err
 	}
 
-	var result kloud.BuildResponse
+	var result kloud.BuildResult
 	err = resp.Unmarshal(&result)
 	if err != nil {
 		return err
 	}
 
-	// droplet's names are based on username for now
-	if result.MachineName != machineName {
-		return fmt.Errorf("droplet name is: %s, expecting: %s", result.MachineName, machineName)
+	fmt.Printf("result %+v\n", result)
+
+	eArgs := &kloud.EventArgs{
+		EventId: result.EventId,
+	}
+
+	for {
+		resp, err := client.Tell("event", eArgs)
+		if err != nil {
+			return err
+		}
+
+		var event eventer.Event
+		if err := resp.Unmarshal(&event); err != nil {
+			return err
+		}
+
+		fmt.Printf("event %+v\n", event)
+
+		if event.Status == machinestate.Running {
+			break
+		}
+
+		if event.Status == machinestate.Unknown {
+			return errors.New(event.Message)
+		}
+
+		time.Sleep(3 * time.Second)
+		continue // still pending
 	}
 
 	fmt.Println("============")
@@ -179,7 +216,7 @@ func build(i int, client *kite.Client, data map[string]interface{}) error {
 	fmt.Println("============")
 
 	if !*flagTestDestroy {
-		fmt.Println("destroying ", machineName)
+		fmt.Println("destroying ", instanceName)
 
 		cArgs := &kloud.ControllerArgs{
 			MachineId: data["provider"].(string),
@@ -304,12 +341,12 @@ func TestProviders(t *testing.T) {
 			color.Cyan("==> %s: %s", provider, fmt.Sprintf(msg, args...))
 		}
 
-		snapshotName := "testkoding-" + strconv.FormatInt(time.Now().UTC().Unix(), 10)
+		imageName := "testkoding-" + strconv.FormatInt(time.Now().UTC().Unix(), 10)
 
 		testlog("Starting tests")
 		bArgs := &kloud.BuildArgs{
-			MachineId:    data["provider"].(string),
-			SnapshotName: snapshotName,
+			MachineId: data["provider"].(string),
+			ImageName: imageName,
 		}
 
 		start := time.Now()
@@ -319,7 +356,7 @@ func TestProviders(t *testing.T) {
 		}
 		testlog("Building image and creating the machine. Elapsed time %f seconds", time.Since(start).Seconds())
 
-		var result kloud.BuildResponse
+		var result kloudprotocol.BuildResponse
 		err = resp.Unmarshal(&result)
 		if err != nil {
 			t.Fatal(err)

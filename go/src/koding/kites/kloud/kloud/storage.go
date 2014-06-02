@@ -1,9 +1,11 @@
 package kloud
 
 import (
+	"fmt"
 	"koding/db/mongodb"
-
-	"github.com/mitchellh/mapstructure"
+	"koding/kites/kloud/kloud/machinestate"
+	"koding/kites/kloud/kloud/protocol"
+	"strconv"
 
 	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
@@ -11,10 +13,19 @@ import (
 
 type Storage interface {
 	// Get returns to MachineData
-	Get(id string) (*MachineData, error)
+	Get(string) (*MachineData, error)
+
+	// GetMachine returns the machine information
+	GetMachine(string) (*Machine, error)
 
 	// Update updates the fields in the data for the given id
-	Update(id string, data map[string]interface{}) error
+	Update(string, *protocol.BuildResponse) error
+
+	// UpdateState updates the machine state for the given machine id
+	UpdateState(string, machinestate.State) error
+
+	// GetState returns the machine state for the given machine id
+	GetState(id string) (machinestate.State, error)
 }
 
 type MachineData struct {
@@ -68,21 +79,16 @@ func (m *MongoDB) Get(id string) (*MachineData, error) {
 	}, nil
 }
 
-func (m *MongoDB) Update(id string, data map[string]interface{}) error {
-	response := &BuildResponse{}
-	if err := mapstructure.Decode(data, response); err != nil {
-		return err
-	}
-
+func (m *MongoDB) Update(id string, resp *protocol.BuildResponse) error {
 	err := m.session.Run("jMachines", func(c *mgo.Collection) error {
 		return c.UpdateId(
 			bson.ObjectIdHex(id),
 			bson.M{"$set": bson.M{
-				"kiteId":           response.KiteId,
-				"ipAddress":        response.IpAddress,
-				"state":            "READY",
-				"meta.machineId":   response.MachineId,
-				"meta.machineName": response.MachineName,
+				"kiteId":            resp.KiteId,
+				"ipAddress":         resp.IpAddress,
+				"state":             "READY",
+				"meta.instanceId":   strconv.Itoa(resp.InstanceId),
+				"meta.instanceName": resp.InstanceName,
 			}},
 		)
 	})
@@ -91,4 +97,39 @@ func (m *MongoDB) Update(id string, data map[string]interface{}) error {
 	}
 
 	return nil
+}
+
+func (m *MongoDB) UpdateState(id string, state machinestate.State) error {
+	return m.session.Run("jMachines", func(c *mgo.Collection) error {
+		return c.UpdateId(
+			bson.ObjectIdHex(id),
+			bson.M{"$set": bson.M{"state": state.String()}},
+		)
+	})
+}
+
+func (m *MongoDB) GetMachine(id string) (*Machine, error) {
+	machine := &Machine{}
+	err := m.session.Run("jMachines", func(c *mgo.Collection) error {
+		return c.FindId(bson.ObjectIdHex(id)).One(&machine)
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return machine, nil
+}
+
+func (m *MongoDB) GetState(id string) (machinestate.State, error) {
+	machine, err := m.GetMachine(id)
+	if err != nil {
+		return 0, err
+	}
+
+	state := machinestate.States[machine.State]
+	if state == 0 {
+		return 0, fmt.Errorf("state is unknown: %v", state)
+	}
+
+	return state, nil
 }

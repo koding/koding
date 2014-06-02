@@ -3,7 +3,10 @@ package kloud
 import (
 	"koding/db/mongodb"
 	"koding/kites/kloud/digitalocean"
+	"koding/kites/kloud/eventer"
 	"koding/kites/kloud/idlock"
+	"koding/kites/kloud/kloud/protocol"
+	"koding/kites/kloud/utils"
 	"koding/kodingkite"
 	"koding/tools/config"
 	"log"
@@ -18,15 +21,15 @@ const (
 )
 
 var (
-	defaultSnapshotName = "koding-klient-0.0.1"
-	providers           = make(map[string]Provider)
+	providers = make(map[string]protocol.Provider)
 )
 
 type Kloud struct {
 	Config *config.Config
 	Log    logging.Logger
 
-	Storage Storage
+	Storage  Storage
+	Eventers map[string]eventer.Eventer
 
 	idlock *idlock.IdLock
 
@@ -61,6 +64,10 @@ func (k *Kloud) NewKloud() *kodingkite.KodingKite {
 		k.Storage = &MongoDB{session: mongodb.NewMongoDB(k.Config.Mongo)}
 	}
 
+	if k.Eventers == nil {
+		k.Eventers = make(map[string]eventer.Eventer)
+	}
+
 	kt, err := kodingkite.New(k.Config, k.Name, k.Version)
 	if err != nil {
 		log.Fatalln(err)
@@ -75,18 +82,37 @@ func (k *Kloud) NewKloud() *kodingkite.KodingKite {
 	kt.HandleFunc("restart", k.restart)
 	kt.HandleFunc("destroy", k.destroy)
 	kt.HandleFunc("info", k.info)
+	kt.HandleFunc("event", k.event)
 
 	k.InitializeProviders()
 
 	return kt
 }
 
+func (k *Kloud) SignFunc(username string) (string, string, error) {
+	return createKey(username, k.KontrolURL, k.KontrolPrivateKey, k.KontrolPublicKey)
+}
+
 func (k *Kloud) InitializeProviders() {
-	providers = map[string]Provider{
+	providers = map[string]protocol.Provider{
 		"digitalocean": &digitalocean.DigitalOcean{
-			Log: createLogger("digitalocean", k.Debug),
+			Log:      createLogger("digitalocean", k.Debug),
+			SignFunc: k.SignFunc,
 		},
 	}
+}
+
+func (k *Kloud) NewEventer() (string, eventer.Eventer) {
+	eventId := utils.RandString(16)
+	ev := eventer.New(eventId)
+
+	k.Eventers[eventId] = ev
+
+	return eventId, ev
+}
+
+func (k *Kloud) GetEvent(eventId string) *eventer.Event {
+	return k.Eventers[eventId].Show()
 }
 
 func createLogger(name string, debug bool) logging.Logger {

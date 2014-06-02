@@ -3,35 +3,11 @@ package kloud
 import (
 	"errors"
 
+	"koding/kites/kloud/kloud/machinestate"
+	"koding/kites/kloud/kloud/protocol"
+
 	"github.com/koding/kite"
 )
-
-// Provider manages a machine. It is used to create and provision a single
-// image or machine for a given Provider, to start/stop/destroy/restart a
-// machine.
-type Provider interface {
-	// Prepare is responsible of configuring and initializing the builder and
-	// validating the given configuration prior Build.
-	Prepare(...interface{}) error
-
-	// Build is creating a image and a machine.
-	Build(...interface{}) (map[string]interface{}, error)
-
-	// Start starts the machine
-	Start(...interface{}) error
-
-	// Stop stops the machine
-	Stop(...interface{}) error
-
-	// Restart restarts the machine
-	Restart(...interface{}) error
-
-	// Destroy destroys the machine
-	Destroy(...interface{}) error
-
-	// Info returns full information about a single machine
-	Info(...interface{}) (interface{}, error)
-}
 
 type ControllerArgs struct {
 	MachineId string
@@ -39,7 +15,7 @@ type ControllerArgs struct {
 
 // provider returns the Provider responsible for the given machine Id. It also
 // calls provider.Prepare before returning.
-func (k *Kloud) provider(machineId string) (Provider, error) {
+func (k *Kloud) provider(machineId string) (protocol.Provider, error) {
 	m, err := k.Storage.Get(machineId)
 	if err != nil {
 		return nil, err
@@ -157,6 +133,11 @@ func (k *Kloud) restart(r *kite.Request) (interface{}, error) {
 	return true, nil
 }
 
+type InfoResponse struct {
+	State machinestate.State
+	Data  interface{}
+}
+
 func (k *Kloud) info(r *kite.Request) (interface{}, error) {
 	args := &ControllerArgs{}
 	if err := r.Args.One().Unmarshal(args); err != nil {
@@ -180,5 +161,13 @@ func (k *Kloud) info(r *kite.Request) (interface{}, error) {
 		return nil, err
 	}
 
-	return info, nil
+	state, err := k.Storage.GetState(args.MachineId)
+	if err != nil {
+		return nil, err
+	}
+
+	return &InfoResponse{
+		State: state,
+		Data:  info,
+	}, nil
 }

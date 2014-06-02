@@ -24,6 +24,7 @@ const randomStringLength = 24 // 144 bit base64 encoded
 // Server is the type of object that is sent to the connected client.
 // Represents a running shell process on the server.
 type Server struct {
+	Session          string `json:"session"`
 	remote           Remote
 	pty              *pty.PTY
 	currentSecond    int64
@@ -94,7 +95,11 @@ func Connect(r *kite.Request) (interface{}, error) {
 	}
 
 	// We will return this object to the client.
-	server := &Server{remote: params.Remote, pty: pty.New("/dev/pts")}
+	server := &Server{
+		Session: command.Session,
+		remote:  params.Remote,
+		pty:     pty.New("/dev/pts"),
+	}
 	server.setSize(float64(params.SizeX), float64(params.SizeY))
 
 	cmd := exec.Command(command.Name, command.Args...)
