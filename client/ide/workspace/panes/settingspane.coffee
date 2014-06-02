@@ -119,12 +119,12 @@ class TerminalSettingsView extends IDESettingsView
     @fontSize   = new KDSelectBox  selectOptions : IDE.settings.terminal.fontSizes
     @theme      = new KDSelectBox  selectOptions : IDE.settings.terminal.themes
     @scrollback = new KDSelectBox  selectOptions : IDE.settings.terminal.scrollback
-    @bell       = new KodingSwitch size: "tiny settings-on-off"
+    @visualBell = new KodingSwitch size: "tiny settings-on-off"
 
   getStorageInformation: -> { name: 'Terminal', version: '1.0.1' }
 
   getSettingKeys: ->
-    return [ 'bell', 'font', 'theme', 'fontSize', 'scrollback' ]
+    return [ 'visualBell', 'font', 'theme', 'fontSize', 'scrollback' ]
 
   pistachio: ->
     """
@@ -133,7 +133,7 @@ class TerminalSettingsView extends IDESettingsView
       <p class="with-select">Font size   {{> @fontSize}}</p>
       <p class="with-select">Theme       {{> @theme}}</p>
       <p class="with-select">Scrollback  {{> @scrollback}}</p>
-      <p>Use visual bell                 {{> @bell}}</p>
+      <p>Use visual bell                 {{> @visualBell}}</p>
     """
 
 
