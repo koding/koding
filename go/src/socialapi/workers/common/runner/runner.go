@@ -60,7 +60,7 @@ func (r *Runner) Init() error {
 		r.Log,
 	)
 	r.ShutdownHandler = func() {}
-	go r.RegisterSignalHandler()
+	r.RegisterSignalHandler()
 
 	return nil
 }
@@ -86,14 +86,18 @@ func (r *Runner) Close() {
 }
 
 func (r *Runner) RegisterSignalHandler() {
-	signals := make(chan os.Signal, 1)
-	signal.Notify(signals)
-	for {
-		signal := <-signals
-		switch signal {
-		case syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT, syscall.SIGSTOP:
-			r.Close()
-			r.Done <- true
+	go func() {
+		signals := make(chan os.Signal, 1)
+		signal.Notify(signals)
+		for {
+			signal := <-signals
+			switch signal {
+			case syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT, syscall.SIGSTOP:
+				r.Close()
+				r.Done <- nil
+			}
 		}
+	}()
+}
 	}
 }
