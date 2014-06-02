@@ -178,6 +178,7 @@ module.exports =
       userSitesDomain: 'lvh.me'
       useNeo4j: yes
       logToExternal: no  # rollbar, mixpanel etc.
+      logToInternal: no  # log worker
       resourceName: socialQueueName
       logResourceName: logQueueName
       socialApiUri: 'http://lvh.me:3030/xhr'

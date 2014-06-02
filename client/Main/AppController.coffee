@@ -27,7 +27,7 @@ class AppController extends KDViewController
     Mousetrap[if isGlobal then 'bindGlobal' else 'bind'] binding, (event) =>
       @handleCommand command, @getOptions().name, event
 
-  handleCommand: (command, event) ->
+  handleCommand: (command, appName, event) ->
     { commands } = KD.getAppOptions @getOptions().name
 
     cmd = commands[command]
