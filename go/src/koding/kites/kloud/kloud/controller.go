@@ -25,9 +25,9 @@ func (k *Kloud) provider(machineId string) (protocol.Provider, error) {
 		return nil, err
 	}
 
-	state := machinestate.States[m.Machine.State]
+	state := machinestate.States[m.Machine.Status.State]
 	if state == 0 {
-		return nil, fmt.Errorf("state is unknown: %s", m.Machine.State)
+		return nil, fmt.Errorf("state is unknown: %s", m.Machine.Status.State)
 	}
 
 	if state == machinestate.NotInitialized {

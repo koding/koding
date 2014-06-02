@@ -41,9 +41,9 @@ func (t *TestStorage) Get(id string, opt *kloud.GetOption) (*kloud.MachineData, 
 	}
 
 	machine := &kloud.Machine{
-		Meta:  provider["builder"].(map[string]interface{}),
-		State: machinestate.Running.String(), // assume it's running
+		Meta: provider["builder"].(map[string]interface{}),
 	}
+	machine.Status.State = machinestate.Running.String() // assume it's running
 
 	return &kloud.MachineData{
 		Provider:   provider["provider"].(string),
