@@ -127,8 +127,12 @@ func (m *MongoDB) UpdateState(id string, state machinestate.State) error {
 	return m.session.Run("jMachines", func(c *mgo.Collection) error {
 		return c.UpdateId(
 			bson.ObjectIdHex(id),
-			bson.M{"$set": bson.M{"status.state": state.String()}},
-			bson.M{"$set": bson.M{"status.modifiedAt": time.Now()}},
+			bson.M{
+				"$set": bson.M{
+					"status.state":      state.String(),
+					"status.modifiedAt": time.Now(),
+				},
+			},
 		)
 	})
 }
