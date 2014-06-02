@@ -96,7 +96,7 @@ func New(c *config.Config) *Oskite {
 
 	// Ensure we are using a mongo master so that we can avoid db induced races
 	mongodbConn.Session.SetSafe(&mgo.Safe{
-		W:     3,    // Min # of servers to ack before success
+		W:     c.MongoMinWrites,    // Min # of servers to ack before success
 		FSync: true, // Should servers sync to disk before returning success
 	})
 
