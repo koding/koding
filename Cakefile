@@ -201,6 +201,37 @@ task 'socialWorker', "Run the socialWorker", ({configFile}) ->
               processes.kill "social-#{i}" for i in [1..social.numberOfWorkers]
     watcher.on 'change', -> console.log 'change happened', arguments
 
+task 'logWorker', "Run the logWorker", ({configFile}) ->
+  KONFIG = require('koding-config-manager').load("main.#{configFile}")
+  {log} = KONFIG
+
+  for i in [1..log.numberOfWorkers]
+    port = 4029 + i
+
+    processes.fork
+      name           : if log.numberOfWorkers is 1 then "log" else "log-#{i}"
+      cmd            : __dirname + "/workers/log/index -c #{configFile} -p #{port}"
+      restart        : yes
+      restartTimeout : 100
+      kontrol        :
+        enabled      : !!KONFIG.runKontrol
+        startMode    : "many"
+        registerToProxy: yes
+        proxyName    : 'log'
+        port         : port
+
+  if log.watch is yes
+    watcher = new Watcher
+      groups :
+        log  :
+          folders  : ['./workers/log']
+          onChange : (path) ->
+            if log.numberOfWorkers is 1
+              processes.kill "log"
+            else
+              processes.kill "log-#{i}" for i in [1..log.numberOfWorkers]
+
+    watcher.on 'change', -> console.log 'change happened', arguments
 
 task 'authWorker', "Run the authWorker", ({configFile}) ->
   KONFIG = require('koding-config-manager').load("main.#{configFile}")
@@ -658,6 +689,7 @@ run =({configFile})->
     invoke 'addTagCategories'
     invoke 'webserver'
     invoke 'cronJobs'
+    invoke 'logWorker'                        if config.log.runWorker
 
 task 'importDB', (options) ->
   if options.configFile is 'vagrant'

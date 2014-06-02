@@ -5,8 +5,12 @@ class VerifyPasswordModal extends KDModalViewWithForms
     options =
       title                       : "Please verify your current password "
       overlay                     : yes
+      overlayClick                : no
       width                       : 605
       height                      : "auto"
+      cancel                      : =>
+        callback null
+        @destroy()
       tabs                        :
         navigable                 : yes
         forms                     :

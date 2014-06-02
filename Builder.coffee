@@ -14,6 +14,7 @@ WebSocket         = require 'ws'
 WebSocketServer   = WebSocket.Server
 Promise           = require 'bluebird'
 which             = Promise.promisify require 'which'
+buildAPI          = require 'bongo-api-builder'
 
 log =
   info  : console.log
@@ -99,10 +100,19 @@ module.exports = class Builder
 
     @buildFramework()
 
-    exec 'coffee ./bongo-api-builder/build.coffee -o .build/api.js', =>
-      @buildAndWatchClient options
-
-
+    buildAPI
+      rootDir   : __dirname
+      modelsDir : './workers/social/lib/social/models'
+      identifier: "REMOTE_API"
+      out       : '.build/api.js'
+    , =>
+      buildAPI
+        rootDir   : __dirname
+        modelsDir : './workers/log/lib/log/models'
+        identifier: "REMOTE_LOGGING_API"
+        out       : '.build/logging-api.js'
+      , =>
+        @buildAndWatchClient options
 
   buildAndWatchClient: (options) ->
 

@@ -12,6 +12,8 @@ KD.remote = new Bongo
 
   getSessionToken: getSessionToken
 
+  apiDescriptor: REMOTE_API
+
   # createRoutingKey:(service, event)->
     # "client.#{Bongo.createId()}.#{KD.whoami().profile.nickname}.#{service}.#{event}"
 

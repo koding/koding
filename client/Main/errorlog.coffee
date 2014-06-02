@@ -7,6 +7,8 @@ class ErrorLog
     idleUserDetector.on 'userBack', -> idle = false
 
     KD.utils.throttle 500, (error, params={})->
+      return  unless KD.config.logToInternal
+
       {
         kites : {
           os       : {version  : osVersion}
@@ -16,6 +18,7 @@ class ErrorLog
       } = KD.config
 
       {userAgent} = window.navigator
+      {protocol}  = KD.remote.mq.ws
 
       error = $.extend {
         error
@@ -23,8 +26,9 @@ class ErrorLog
         codeVersion
         userAgent
         idle
+        protocol
         useNewKites   : KD.useNewKites
         osKiteVersion : osVersion
       }, params
 
-      KD.remote.api.JErrorLog.create error, ->
+      KD.remoteLog.api.JErrorLog.create error, ->

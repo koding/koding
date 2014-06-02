@@ -1,0 +1,11 @@
+{
+  "name": "koding-log",
+  "version": "0.0.1",
+  "description": "Log side of koding.com",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Senthil Arivudainambi <senthil@koding.com>",
+  "license": "Closed-source"
+}

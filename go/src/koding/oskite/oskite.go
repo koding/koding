@@ -19,6 +19,7 @@ import (
 	"net"
 	"os"
 	"os/signal"
+	"runtime"
 	"strings"
 	"sync"
 	"syscall"
@@ -209,8 +210,6 @@ func (o *Oskite) runNewKite() {
 		panic(err)
 	}
 
-	k.SetupSignalHandler()
-
 	o.NewKite = k.Kite
 
 	if k.TLSConfig != nil {
@@ -349,7 +348,7 @@ func (o *Oskite) handleCurrentVMs() {
 		info.startTimeout()
 
 		// start alwaysON VMs
-		o.startAlwaysOn(&vm)
+		o.startAlwaysOn(vm)
 		return true
 	})
 
@@ -404,7 +403,7 @@ func (o *Oskite) startPinnedVMs() {
 			if !iter.Next(&vm) {
 				break
 			}
-			if err := o.startSingleVM(&vm, nil); err != nil {
+			if err := o.startSingleVM(vm, nil); err != nil {
 				log.Error("startSingleVM error: %v", err)
 			}
 		}
@@ -419,83 +418,92 @@ func (o *Oskite) startPinnedVMs() {
 
 func (o *Oskite) setupSignalHandler() {
 	log.Info("Setting up signal handler")
-	sigtermChannel := make(chan os.Signal)
-	signal.Notify(sigtermChannel, syscall.SIGINT, syscall.SIGTERM, syscall.SIGUSR1)
+	sigChan := make(chan os.Signal, 1)
+	signal.Notify(sigChan, syscall.SIGINT, syscall.SIGTERM, syscall.SIGUSR1, syscall.SIGUSR2)
+
 	go func() {
-		sig := <-sigtermChannel
-		log.Info("Shutdown initiated")
+		for sig := range sigChan {
+			if sig == syscall.SIGUSR2 {
+				buf := make([]byte, 1<<16)
+				runtime.Stack(buf, true)
+				fmt.Printf("%s", buf)
 
-		closeFunc := func() {
-			log.Info("Closing and shutting down. Bye!")
-			// close amqp connections
-			o.Kite.Close()
-			os.Exit(1)
-		}
-
-		defer closeFunc()
-
-		// force quit after ten seconds
-		if sig != syscall.SIGUSR1 {
-			time.AfterFunc(10*time.Second, func() {
-				log.Info("Force quit after 10 seconds!")
-				closeFunc()
-			})
-		}
-
-		// close the communication. We should not accept any calls anymore...
-		shuttingDown.SetClosed()
-
-		log.Info("Removing hostname '%s' from redis", o.RedisKontainerKey)
-		_, err := redigo.Int(o.RedisSession.Do("SREM", o.RedisKontainerSet, o.RedisKontainerKey))
-		if err != nil {
-			log.Error("redis SREM kontainers. err: %v", err.Error())
-		}
-
-		// ...but wait until the current calls are finished.
-		log.Info("Waiting until current calls are finished...")
-		requestWaitGroup.Wait()
-		log.Info("All calls are finished.")
-
-		//return early for non SIGUSR1.
-		if sig != syscall.SIGUSR1 {
-			return
-		}
-
-		// unprepare all VMS when we receive SIGUSR1
-		log.Info("Got a SIGUSR1. Unpreparing all VMs on this host.")
-
-		var wg sync.WaitGroup
-		for _, info := range infos {
-			wg.Add(1)
-			log.Info("Unpreparing " + info.vm.String())
-			prepareQueue <- &QueueJob{
-				msg: "vm unprepare because of shutdown oskite " + info.vm.HostnameAlias,
-				f: func() error {
-					defer wg.Done()
-					// mutex is needed because it's handled in the queue
-					info.mutex.Lock()
-					defer info.mutex.Unlock()
-
-					info.unprepareVM()
-					return nil
-				},
+				// debug.PrintStack()
+				continue
 			}
-		}
 
-		// Wait for all VM unprepares to complete.
-		wg.Wait()
+			log.Info("Shutdown initiated")
 
-		query := func(c *mgo.Collection) error {
-			_, err := c.UpdateAll(
-				bson.M{"hostKite": o.ServiceUniquename},
-				bson.M{"$set": bson.M{"hostKite": nil}},
-			) // ensure that really all are set to nil
-			return err
-		}
+			closeFunc := func() {
+				log.Info("Closing and shutting down. Bye!")
+				// close amqp connections
+				o.Kite.Close()
+				os.Exit(1)
+			}
 
-		err = mongodbConn.Run("jVMs", query)
-		if err != nil {
-			log.Error("Updating hostKite for all current VMs err: %v", err)
+			defer closeFunc()
+
+			// force quit after ten seconds
+			if sig != syscall.SIGUSR1 {
+				time.AfterFunc(10*time.Second, func() {
+					log.Info("Force quit after 10 seconds!")
+					closeFunc()
+				})
+			}
+
+			// close the communication. We should not accept any calls anymore...
+			shuttingDown.SetClosed()
+
+			log.Info("Removing hostname '%s' from redis", o.RedisKontainerKey)
+			_, err := redigo.Int(o.RedisSession.Do("SREM", o.RedisKontainerSet, o.RedisKontainerKey))
+			if err != nil {
+				log.Error("redis SREM kontainers. err: %v", err.Error())
+			}
+
+			// ...but wait until the current calls are finished.
+			log.Info("Waiting until current calls are finished...")
+			requestWaitGroup.Wait()
+			log.Info("All calls are finished.")
+
+			//return early for non SIGUSR1.
+			if sig != syscall.SIGUSR1 {
+				return
+			}
+
+			// unprepare all VMS when we receive SIGUSR1
+			log.Info("Got a SIGUSR1. Unpreparing all VMs on this host.")
+
+			var wg sync.WaitGroup
+			for _, info := range infos {
+				wg.Add(1)
+				log.Info("Unpreparing " + info.vm.String())
+				prepareQueue <- &QueueJob{
+					msg: "vm unprepare because of shutdown oskite " + info.vm.HostnameAlias,
+					f: func() error {
+						defer wg.Done()
+
+						info.unprepareVM()
+						return nil
+					},
+				}
+			}
+
+			// Wait for all VM unprepares to complete.
+			wg.Wait()
+
+			query := func(c *mgo.Collection) error {
+				_, err := c.UpdateAll(
+					bson.M{"hostKite": o.ServiceUniquename},
+					bson.M{"$set": bson.M{"hostKite": nil}},
+				) // ensure that really all are set to nil
+				return err
+			}
+
+			err = mongodbConn.Run("jVMs", query)
+			if err != nil {
+				log.Error("Updating hostKite for all current VMs err: %v", err)
+			}
+
 		}
 	}()
 }
@@ -636,7 +644,7 @@ func (o *Oskite) checkVM(vm *virt.VM) error {
 }
 
 func (o *Oskite) validateVM(vm *virt.VM) error {
-	if vm.IP == nil {
+	if vm.IP == nil || vm.IP.String() == "" {
 		ipInt := NextCounterValue("vm_ip", int(binary.BigEndian.Uint32(firstContainerIP.To4())))
 		ip := net.IPv4(byte(ipInt>>24), byte(ipInt>>16), byte(ipInt>>8), byte(ipInt))
 
@@ -708,12 +716,12 @@ func updateState(vmId bson.ObjectId, currentState string) (string, error) {
 	return state, mongodbConn.Run("jVMs", query)
 }
 
-func (o *Oskite) startSingleVM(vm *virt.VM, channel *kite.Channel) error {
-	info := getInfo(vm)
+func (o *Oskite) startSingleVM(vm virt.VM, channel *kite.Channel) error {
+	info := getInfo(&vm)
 	info.mutex.Lock()
 	defer info.mutex.Unlock()
 
-	if blacklist.Has(vm.Id) {
+	if blacklist.Has(vm.Id.Hex()) {
 		return errors.New("vm is blacklisted")
 	}
 
@@ -722,12 +730,12 @@ func (o *Oskite) startSingleVM(vm *virt.VM, channel *kite.Channel) error {
 	// validate/sanitize zero values
 	vm.ApplyDefaults()
 
-	err := o.checkVM(vm)
+	err := o.checkVM(&vm)
 	if err != nil {
 		return err
 	}
 
-	err = o.validateVM(vm)
+	err = o.validateVM(&vm)
 	if err != nil {
 		return err
 	}
@@ -739,7 +747,7 @@ func (o *Oskite) startSingleVM(vm *virt.VM, channel *kite.Channel) error {
 			// prepare first
 			defer func() { done <- struct{}{} }()
 
-			if err = prepareProgress(nil, vm); err != nil {
+			if err = prepareProgress(nil, &vm); err != nil {
 				return fmt.Errorf("preparing VM %s", err)
 			}
 
@@ -753,9 +761,9 @@ func (o *Oskite) startSingleVM(vm *virt.VM, channel *kite.Channel) error {
 
 	if err != nil {
 		log.Error("vm %s couldn't be started, adding to blacklist for one hour. reason err: %v", vm.HostnameAlias, err)
-		blacklist.Add(vm.Id)
+		blacklist.Add(vm.Id.Hex())
 		time.AfterFunc(time.Hour, func() {
-			blacklist.Remove(vm.Id)
+			blacklist.Remove(vm.Id.Hex())
 		})
 	}
 

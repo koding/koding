@@ -18,32 +18,32 @@ class AccountEditUsername extends JView
         firstName          :
           placeholder      : "firstname"
           name             : "firstName"
-          cssClass         : "thin half"
+          cssClass         : "medium half"
           nextElement      :
             lastName       :
-              cssClass     : "thin half"
+              cssClass     : "medium half"
               placeholder  : "lastname"
               name         : "lastName"
         email              :
-          cssClass         : "thin"
+          cssClass         : "medium"
           placeholder      : "you@yourdomain.com"
           name             : "email"
           testPath         : "account-email-input"
         username           :
-          cssClass         : "thin"
+          cssClass         : "medium"
           placeholder      : "username"
           name             : "username"
           attributes       :
             readonly       : "#{not /^guest-/.test @account.profile.nickname}"
           testPath         : "account-username-input"
         password           :
-          cssClass         : "thin half"
+          cssClass         : "medium half"
           placeholder      : "password"
           name             : "password"
           type             : "password"
           nextElement      :
             confirm        :
-              cssClass     : "thin half"
+              cssClass     : "medium half"
               placeholder  : "confirm password"
               name         : "confirmPassword"
               type         : "password"
@@ -64,7 +64,7 @@ class AccountEditUsername extends JView
     {email, password, confirmPassword, firstName, lastName, username} = formData
 
     profileUpdated = yes
-    currentPasswordConfirmed = no
+    skipPasswordConfirmation = no
     queue = [
       =>
         # update firstname and lastname
@@ -86,12 +86,18 @@ class AccountEditUsername extends JView
           # but do not forget to warn users about other errors
           if err
             return queue.next() if err.message is "EmailIsSameError"
+            @emailForm.buttons.Save.hideLoader()
             return notify err.message
 
-          confirmCurrentPassword currentPasswordConfirmed, =>
-            currentPasswordConfirmed = true
-            new VerifyPINModal 'Update E-Mail', (pin)=>
-              KD.remote.api.JUser.changeEmail {email, pin}, (err)=>
+          options = {skipPasswordConfirmation, email}
+          confirmCurrentPassword options, (err) ->
+            if err
+              notify err
+              profileUpdated = false
+              return queue.next()
+            skipPasswordConfirmation = true
+            new VerifyPINModal 'Update E-Mail', (pin)->
+              KD.remote.api.JUser.changeEmail {email, pin}, (err)->
                 if err
                   notify err.message
                   profileUpdated = false
@@ -112,16 +118,20 @@ class AccountEditUsername extends JView
           if err
             notify "An error occured"
             return queue.next()
-          else
-            currentPasswordConfirmed = true unless user.passwordStatus is "valid"
-            confirmCurrentPassword currentPasswordConfirmed, =>
-              JUser.changePassword password, (err,docs)=>
-                @emailForm.inputs.password.setValue ""
-                @emailForm.inputs.confirm.setValue ""
-                if err
-                  return queue.next()  if err.message is "PasswordIsSame"
-                  return  notify err.message
-                return queue.next()
+
+          skipPasswordConfirmation = true  if user.passwordStatus isnt "valid"
+          confirmCurrentPassword {skipPasswordConfirmation}, (err) =>
+            if err
+              notify err
+              profileUpdated = false
+              return queue.next()
+            JUser.changePassword password, (err,docs)=>
+              @emailForm.inputs.password.setValue ""
+              @emailForm.inputs.confirm.setValue ""
+              if err
+                return queue.next()  if err.message is "PasswordIsSame"
+                return notify err.message
+              return queue.next()
       =>
         # if everything is OK or didnt change, show profile updated modal
         notify "Your account information is updated." if profileUpdated
@@ -129,12 +139,13 @@ class AccountEditUsername extends JView
     ]
     daisy queue
 
-  confirmCurrentPassword = (currentPasswordConfirmed, callback) ->
-    return callback null if currentPasswordConfirmed
+  confirmCurrentPassword = ({skipPasswordConfirmation, email}, callback) ->
+    return callback null if skipPasswordConfirmation
     new VerifyPasswordModal "Confirm", (currentPassword) ->
-      KD.remote.api.JUser.verifyPassword currentPassword, (err, confirmed) ->
-        return notify err.message if err
-        return notify "Current password cannot be confirmed" unless confirmed
+      options = {password: currentPassword, email}
+      KD.remote.api.JUser.verifyPassword options, (err, confirmed) ->
+        return callback err.message  if err
+        return callback "Current password cannot be confirmed" unless confirmed
         callback null
 
   viewAppended:->
@@ -168,6 +179,11 @@ class AccountEditUsername extends JView
     {focus} = KD.utils.parseQuery()
     @emailForm.inputs[focus]?.setFocus()  if focus
 
+    notify = (message)->
+      new KDNotificationView
+        title    : message
+        duration : 3500
+
     if @userInfo.status is "unconfirmed"
       o =
         tagName      : "a"
@@ -175,13 +191,15 @@ class AccountEditUsername extends JView
         cssClass     : "action-link verify-email"
         testPath     : "account-email-edit"
         click        : =>
-          KD.remote.api.JPasswordRecovery.recoverPassword @account.profile.nickname, (err)=>
-            message = "Email confirmation mail is sent"
-            if err then message = err.message else @verifyEmail.hide()
+          KD.whoami().fetchFromUser "email", (err, email)=>
+            if err
+              notify err.message
+            else
+              KD.remote.api.JPasswordRecovery.recoverPassword email, (err)=>
+                message = "Email confirmation mail is sent"
+                if err then message = err.message else @verifyEmail.hide()
 
-            new KDNotificationView
-              title    : message
-              duration : 3500
+                notify message
 
     @addSubView @verifyEmail = new KDCustomHTMLView o
 
