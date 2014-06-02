@@ -43,7 +43,10 @@ module.exports =
     clusterSize : 1
     queueName   : socialQueueName+'web'
     watch       : no
-  socialApiUrl  : "http://localhost:7000"
+  socialapi:
+    port        : 7000
+    clusterSize : 5
+    fallbackUrl : "https://showcase.koding.com:7000"
   sourceServer  :
     enabled     : yes
     port        : 1337
@@ -170,7 +173,8 @@ module.exports =
         apiKey       : embedlyApiKey
       userSitesDomain: 'kd.io'
       useNeo4j: yes
-      logToExternal : yes
+      logToExternal: no
+      logToInternal: no
       resourceName: socialQueueName
       logResourceName: logQueueName
       socialApiUri: 'https://showcase.koding.com/xhr'
