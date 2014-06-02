@@ -18,13 +18,18 @@ class FinderPane extends Pane
     @finderController.getView().subViews.first.destroy()
 
   bindListeners: ->
+    appManager = KD.getSingleton 'appManager'
+
     @finderController.on 'FileNeedsToBeOpened', (file) =>
       file.fetchContents (err, contents) ->
-        appManager = KD.getSingleton 'appManager'
         appManager.tell 'IDE', 'openFile', file, contents
+
+    @finderController.treeController.on 'TerminalRequested', (vm) =>
+      appManager.tell 'IDE', 'openVMTerminal', vm
 
     @on 'VMMountRequested', (vm) =>
       @finderController.mountVm vm
 
     @on 'VMUnmountRequested', (vm) =>
       @finderController.unmountVm vm.hostnameAlias
+

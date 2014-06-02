@@ -28,7 +28,9 @@ class NVMItemView extends NFileItemView
 
     @terminalButton = new KDButtonView
       cssClass      : 'terminal'
-      callback      : => @emit 'TerminalRequested'
+      callback      : =>
+        data        = @getData()
+        data.treeController.emit 'TerminalRequested', data.vm
 
   showLoader:->
 
