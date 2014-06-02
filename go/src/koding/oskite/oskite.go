@@ -93,6 +93,9 @@ type QueueJob struct {
 func New(c *config.Config) *Oskite {
 	conf = c
 	mongodbConn = mongodb.NewMongoDB(c.Mongo)
+
+	// Ensure we are using a mongo master so that we can avoid db induced races
+	mongodbConn.Session.SetSafe(&mgo.Safe{W: 3, WTimeout: 2, FSync: true})
 	modelhelper.Initialize(c.Mongo)
 
 	return &Oskite{
@@ -104,6 +107,7 @@ func (o *Oskite) Run() {
 	if os.Getuid() != 0 {
 		log.Fatal("Must be run as root.")
 	}
+
 	// Set our umask to 0 so that subsequent file writes/creates do not alter their mode
 	syscall.Umask(0)
 
@@ -436,7 +440,8 @@ func (o *Oskite) setupSignalHandler() {
 			log.Info("Shutdown initiated")
 
 			log.Info("Removing hostname '%s' from redis", o.RedisKontainerKey)
-			if _, err := redigo.Int(o.RedisSession.Do("SREM", o.RedisKontainerSet, o.RedisKontainerKey)); err != nil {
+			_, err := redigo.Int(o.RedisSession.Do("SREM", o.RedisKontainerSet, o.RedisKontainerKey))
+			if err != nil {
 				log.Error("redis SREM kontainers. err: %v", err.Error())
 			}
 
@@ -700,6 +705,10 @@ func (o *Oskite) validateVM(vm *virt.VM) error {
 
 func updateState(vmId bson.ObjectId, currentState string) (string, error) {
 	state := virt.GetVMState(vmId)
+	if state == "" {
+		state = "UNKNOWN"
+	}
+
 	// do not update if it's the same state
 	if currentState == state {
 		return state, nil

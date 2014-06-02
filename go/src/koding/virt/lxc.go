@@ -2,6 +2,7 @@ package virt
 
 import (
 	"errors"
+	"fmt"
 	"os/exec"
 	"strconv"
 	"strings"
@@ -30,7 +31,7 @@ func (vm *VM) Shutdown() error {
 			return commandError("lxc-shutdown failed.", err, out)
 		}
 	}
-	vm.WaitForState("STOPPED", time.Second * 5) // may time out, then vm is force stopped
+	vm.WaitForState("STOPPED", time.Second*5) // may time out, then vm is force stopped
 	return vm.Stop()
 }
 
@@ -79,31 +80,42 @@ func (vm *VM) SendMessageToVMUsers(message string) error {
 	return nil
 }
 
-func (vm *VM) WaitForNetwork() error {
+// WaitUntilReady waits until the network is up and the screen binary is
+// available and ready to use.
+func (vm *VM) WaitUntilReady() error {
 	timeout := time.Second * 5
-	isNetworkUp := func() bool {
-		// neglect error because it's not important and we also going to timeout
-		out, _ := exec.Command("/usr/bin/lxc-attach", "--name", vm.String(),
+
+	isNetworkUp := func() error {
+		out, err := exec.Command("/usr/bin/lxc-attach", "--name", vm.String(),
 			"--", "/bin/cat", "/sys/class/net/eth0/operstate").CombinedOutput()
 
-		if strings.TrimSpace(string(out)) == "up" {
-			if _, err := exec.Command("/usr/bin/lxc-attach", "--name", vm.String(),
-				"--", "/usr/bin/stat", "/usr/bin/screen").CombinedOutput(); err != nil {
-				return false
-			} else {
-				return true
+		operstate := strings.TrimSpace(string(out))
+		if operstate != "up" {
+			if err != nil {
+				return fmt.Errorf("Network is not up: %s", err)
 			}
+
+			return fmt.Errorf("Network is not up, operstate returns: %s", operstate)
 		}
-		return false
+
+		if _, err := exec.Command("/usr/bin/lxc-attach", "--name", vm.String(),
+			"--", "/usr/bin/stat", "/usr/bin/screen").CombinedOutput(); err != nil {
+			return fmt.Errorf("Screen binary doesn't exist: %s", err)
+		}
+
+		// network is up and and screen is also available, we are ready to go
+		return nil
 	}
+
 	tryUntil := time.Now().Add(timeout)
+	var err error
 	for {
-		if up := isNetworkUp(); up {
+		if err = isNetworkUp(); err == nil {
 			return nil
 		}
 
 		if time.Now().After(tryUntil) {
-			return errors.New("Timeout while waiting for VM Network state.")
+			return fmt.Errorf("Timeout while waiting for VM Network state. Reason: %v", err)
 		}
 
 		time.Sleep(time.Millisecond * 500)

@@ -173,7 +173,7 @@ func vmStart(vos *virt.VOS) (interface{}, error) {
 	}
 
 	// wait until network is up
-	if err := vos.VM.WaitForNetwork(); err != nil {
+	if err := vos.VM.WaitUntilReady(); err != nil {
 		return nil, err
 	}
 
