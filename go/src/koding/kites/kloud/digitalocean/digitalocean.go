@@ -114,23 +114,12 @@ func (d *DigitalOcean) Build(opts *protocol.BuildOptions) (p *protocol.BuildResp
 		return nil, errors.New("Eventer is not defined.")
 	}
 
-	// push logs each step and also pushes each step to the eventer
+	// push logs and pushes each step to the eventer
 	push := func(msg string) {
-		d.Log.Info("[username: %s dropletName: %s snapshotName: %s] - %s",
+		d.Log.Info("[username: '%s' dropletName: '%s' snapshotName: '%s'] - %s",
 			opts.Username, opts.InstanceName, opts.ImageName, msg)
 		opts.Eventer.Push(&eventer.Event{Message: msg, Status: machinestate.Building})
 	}
-
-	defer func() {
-		status := machinestate.Running
-		msg := "Build is finished successfully."
-		if err != nil {
-			status = machinestate.Unknown
-			msg = err.Error()
-		}
-
-		opts.Eventer.Push(&eventer.Event{Message: msg, Status: status})
-	}()
 
 	// needed because this is passed as `data` to packer.Provider
 	d.Builder.SnapshotName = snapshotName
