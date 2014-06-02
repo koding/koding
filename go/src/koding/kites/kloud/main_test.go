@@ -63,6 +63,10 @@ func (t *TestStorage) GetState(id string) (machinestate.State, error) {
 	return machinestate.NotInitialized, nil
 }
 
+func (t *TestStorage) GetMachine(id string) (*kloud.Machine, error) {
+	return nil, nil
+}
+
 var (
 	conf      *kiteconfig.Config
 	kloudKite *kodingkite.KodingKite

@@ -15,14 +15,17 @@ type Storage interface {
 	// Get returns to MachineData
 	Get(string) (*MachineData, error)
 
+	// GetMachine returns the machine information
+	GetMachine(string) (*Machine, error)
+
 	// Update updates the fields in the data for the given id
 	Update(string, *protocol.BuildResponse) error
 
-	// UpdateState updates the machine state
+	// UpdateState updates the machine state for the given machine id
 	UpdateState(string, machinestate.State) error
 
-	// GetState returns the machine state
-	GetState(string) (machinestate.State, error)
+	// GetState returns the machine state for the given machine id
+	GetState(id string) (machinestate.State, error)
 }
 
 type MachineData struct {
@@ -105,11 +108,20 @@ func (m *MongoDB) UpdateState(id string, state machinestate.State) error {
 	})
 }
 
-func (m *MongoDB) GetState(id string) (machinestate.State, error) {
-	machine := Machine{}
+func (m *MongoDB) GetMachine(id string) (*Machine, error) {
+	machine := &Machine{}
 	err := m.session.Run("jMachines", func(c *mgo.Collection) error {
 		return c.FindId(bson.ObjectIdHex(id)).One(&machine)
 	})
+	if err != nil {
+		return nil, err
+	}
+
+	return machine, nil
+}
+
+func (m *MongoDB) GetState(id string) (machinestate.State, error) {
+	machine, err := m.GetMachine(id)
 	if err != nil {
 		return 0, err
 	}

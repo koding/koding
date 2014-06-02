@@ -3,6 +3,7 @@ package kloud
 import (
 	"errors"
 
+	"koding/kites/kloud/kloud/machinestate"
 	"koding/kites/kloud/kloud/protocol"
 
 	"github.com/koding/kite"
@@ -132,6 +133,11 @@ func (k *Kloud) restart(r *kite.Request) (interface{}, error) {
 	return true, nil
 }
 
+type InfoResponse struct {
+	State machinestate.State
+	Data  interface{}
+}
+
 func (k *Kloud) info(r *kite.Request) (interface{}, error) {
 	args := &ControllerArgs{}
 	if err := r.Args.One().Unmarshal(args); err != nil {
@@ -155,5 +161,13 @@ func (k *Kloud) info(r *kite.Request) (interface{}, error) {
 		return nil, err
 	}
 
-	return info, nil
+	state, err := k.Storage.GetState(args.MachineId)
+	if err != nil {
+		return nil, err
+	}
+
+	return &InfoResponse{
+		State: state,
+		Data:  info,
+	}, nil
 }
