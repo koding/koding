@@ -188,7 +188,7 @@ func build(i int, client *kite.Client, data map[string]interface{}) error {
 	fmt.Printf("result %+v\n", result)
 
 	eArgs := &kloud.EventArgs{
-		EventId: result.EventId,
+		EventId: bArgs.MachineId,
 	}
 
 	for {
