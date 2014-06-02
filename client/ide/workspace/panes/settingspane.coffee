@@ -1,3 +1,142 @@
+class IDESettingsView extends JView
+
+  constructor: (options = {}, data) ->
+
+    super options, data
+
+    @unsetClass 'kdview'
+
+    @createElements()
+    @getSettings()
+
+    @on 'SettingsFetched', @bound 'setSettings'
+
+  getSettings: ->
+    {name, version}  = @getStorageInformation()
+    settingKeys      = @getSettingKeys()
+    appStorage       = KD.getSingleton('appStorageController').storage name, version
+
+    appStorage.fetchStorage =>
+      @settings      = {}
+      @settings[key] = appStorage.getValue key  for key in settingKeys
+
+      @emit 'SettingsFetched'
+
+  setSettings: ->
+    @[key].setDefaultValue value  for own key, value of @settings
+
+
+class EditorSettingsView extends IDESettingsView
+
+  createElements: ->
+    @useSoftTabs         = new KodingSwitch
+      cssClass           : "tiny settings-on-off"
+      callback           : (state) -> console.log state
+
+    @showGutter          = new KodingSwitch
+      cssClass           : "tiny settings-on-off"
+      callback           : (state) -> console.log state
+
+    @useWordWrap         = new KodingSwitch
+      cssClass           : "tiny settings-on-off"
+      callback           : (state) -> console.log state
+
+    @showPrintMargin     = new KodingSwitch
+      cssClass           : "tiny settings-on-off"
+      callback           : (state) -> console.log state
+
+    @highlightActiveLine = new KodingSwitch
+      cssClass           : "tiny settings-on-off"
+      callback           : (state) -> console.log state
+
+    @highlightWord       = new KodingSwitch
+      cssClass           : "tiny settings-on-off"
+      callback           : (state) -> console.log state
+
+    @showInvisibles      = new KodingSwitch
+      cssClass           : "tiny settings-on-off"
+      callback           : (state) -> console.log state
+
+    @scrollPastEnd       = new KodingSwitch
+      cssClass           : "tiny settings-on-off"
+      callback           : (state) -> console.log state
+
+    @openRecentFiles     = new KodingSwitch
+      cssClass           : "tiny settings-on-off"
+      callback           : (state) -> console.log state
+
+    @keyboardHandler     = new KDSelectBox
+      selectOptions      : IDE.settings.editor.keyboardHandlers
+
+    @softWrap            = new KDSelectBox
+      selectOptions      : IDE.settings.editor.softWrapOptions
+
+    @syntax              = new KDSelectBox
+      selectOptions      : IDE.settings.editor.getSyntaxOptions()
+
+    @fontSize            = new KDSelectBox
+      selectOptions      : IDE.settings.editor.fontSizes
+
+    @theme               = new KDSelectBox
+      selectOptions      : IDE.settings.editor.themes
+
+    @tabSize             = new KDSelectBox
+      selectOptions      : IDE.settings.editor.tabSizes
+
+  getStorageInformation: ->
+    return { name: 'Ace', version: '1.0.1' }
+
+  getSettingKeys: ->
+    return [
+      'theme', 'useSoftTabs', 'showGutter', 'useWordWrap', 'showPrintMargin'
+      'highlightActiveLine', 'showInvisibles', 'fontSize', 'tabSize'
+      'softWrap', 'keyboardHandler', 'scrollPastEnd', 'openRecentFiles'
+    ]
+
+  pistachio: ->
+    """
+      <div class="settings-header">Editor Settings</div>
+      <p>Use soft tabs                   {{> @useSoftTabs}}</p>
+      <p>Line numbers                    {{> @showGutter}}</p>
+      <p>Use word wrapping               {{> @useWordWrap}}</p>
+      <p>Show print margin               {{> @showPrintMargin}}</p>
+      <p>Highlight active line           {{> @highlightActiveLine}}</p>
+      <p>Show invisibles                 {{> @showInvisibles}}</p>
+      <p>Use scroll past end             {{> @scrollPastEnd}}</p>
+      <p class="with-select">Soft wrap   {{> @softWrap}}</p>
+      <p class="with-select">Key binding {{> @keyboardHandler}}</p>
+      <p class="with-select">Font        {{> @fontSize}}</p>
+      <p class="with-select">Theme       {{> @theme}}</p>
+      <p class="with-select">Tab size    {{> @tabSize}}</p>
+      <p>Open Recent Files               {{> @openRecentFiles}}</p>
+    """
+
+
+class TerminalSettingsView extends IDESettingsView
+
+  createElements: ->
+    @font       = new KDSelectBox  selectOptions : IDE.settings.terminal.fonts
+    @fontSize   = new KDSelectBox  selectOptions : IDE.settings.terminal.fontSizes
+    @theme      = new KDSelectBox  selectOptions : IDE.settings.terminal.themes
+    @scrollback = new KDSelectBox  selectOptions : IDE.settings.terminal.scrollback
+    @bell       = new KodingSwitch size: "tiny settings-on-off"
+
+  getStorageInformation: -> { name: 'Terminal', version: '1.0.1' }
+
+  getSettingKeys: ->
+    return [ 'bell', 'font', 'theme', 'fontSize', 'scrollback' ]
+
+  pistachio: ->
+    """
+      <div class="settings-header">Terminal Settings</div>
+      <p class="with-select">Font        {{> @font}}</p>
+      <p class="with-select">Font size   {{> @fontSize}}</p>
+      <p class="with-select">Theme       {{> @theme}}</p>
+      <p class="with-select">Scrollback  {{> @scrollback}}</p>
+      <p>Use visual bell                 {{> @bell}}</p>
+    """
+
+
 class SettingsPane extends Pane
 
   constructor: (options = {}, data) ->
@@ -6,101 +145,10 @@ class SettingsPane extends Pane
 
     super options, data
 
-    @createEditorSettings()
-    @createTerminalSettings()
+    @addSubView new EditorSettingsView
+    @addSubView new TerminalSettingsView
 
-  createEditorSettings: ->
-    @useSoftTabs         = new KodingSwitch
-      cssClass           : "tiny settings-on-off"
-      callback           : (state) -> console.log state
-    @showGutter          = new KodingSwitch
-      cssClass           : "tiny settings-on-off"
-      callback           : (state) -> console.log state
-    @useWordWrap         = new KodingSwitch
-      cssClass           : "tiny settings-on-off"
-      callback           : (state) -> console.log state
-    @showPrintMargin     = new KodingSwitch
-      cssClass           : "tiny settings-on-off"
-      callback           : (state) -> console.log state
-    @highlightActiveLine = new KodingSwitch
-      cssClass           : "tiny settings-on-off"
-      callback           : (state) -> console.log state
-    @highlightWord       = new KodingSwitch
-      cssClass           : "tiny settings-on-off"
-      callback           : (state) -> console.log state
-    @showInvisibles      = new KodingSwitch
-      cssClass           : "tiny settings-on-off"
-      callback           : (state) -> console.log state
-    @scrollPastEnd       = new KodingSwitch
-      cssClass           : "tiny settings-on-off"
-      callback           : (state) -> console.log state
-    @openRecentFiles     = new KodingSwitch
-      cssClass           : "tiny settings-on-off"
-      callback           : (state) -> console.log state
-
-    @keyboardHandler     = new KDSelectBox
-      selectOptions      : IDE.settings.editor.keyboardHandlers
-    @softWrap            = new KDSelectBox
-      selectOptions      : IDE.settings.editor.softWrapOptions
-    @syntax              = new KDSelectBox
-      selectOptions      : IDE.settings.editor.getSyntaxOptions()
-    @editorFontSize      = new KDSelectBox
-      selectOptions      : IDE.settings.editor.fontSizes
-    @editorTheme         = new KDSelectBox
-      selectOptions      : IDE.settings.editor.themes
-    @editorTabSize       = new KDSelectBox
-      selectOptions      : IDE.settings.editor.tabSizes
-
-    @shortcuts           = new KDCustomHTMLView
-      tagName            : "a"
-      cssClass           : "shortcuts"
-      attributes         :
-        href             : "#"
-      partial            : "⌘ Keyboard Shortcuts"
-      click              : => log "show shortcuts"
-
-  createTerminalSettings: ->
-
-    @terminalFont     = new KDSelectBox
-      selectOptions   : IDE.settings.terminal.fonts
-
-    @terminalFontSize = new KDSelectBox
-      selectOptions   : IDE.settings.terminal.fontSizes
-
-    @terminalTheme    = new KDSelectBox
-      selectOptions   : IDE.settings.terminal.themes
-
-    @bell             = new KodingSwitch
-      size            : "tiny settings-on-off"
-
-    @scrollback     = new KDSelectBox
-      selectOptions : IDE.settings.terminal.scrollback
-
-
-  pistachio: ->
-    """
-    <div class="settings-header">Editor Settings</div>
-    <p>Use soft tabs                           {{> @useSoftTabs}}</p>
-    <p>Line numbers                            {{> @showGutter}}</p>
-    <p>Use word wrapping                       {{> @useWordWrap}}</p>
-    <p>Show print margin                       {{> @showPrintMargin}}</p>
-    <p>Highlight active line                   {{> @highlightActiveLine}}</p>
-    <p class='hidden'>Highlight selected word  {{> @highlightWord}}</p>
-    <p>Show invisibles                         {{> @showInvisibles}}</p>
-    <p>Use scroll past end                     {{> @scrollPastEnd}}</p>
-    <p class="with-select">Soft wrap           {{> @softWrap}}</p>
-    <p class="with-select">Syntax              {{> @syntax}}</p>
-    <p class="with-select">Key binding         {{> @keyboardHandler}}</p>
-    <p class="with-select">Font                {{> @editorFontSize}}</p>
-    <p class="with-select">Theme               {{> @editorTheme}}</p>
-    <p class="with-select">Tab size            {{> @editorTabSize}}</p>
-    <p class='hidden'>{{> @shortcuts}}</p>
-    <p>Open Recent Files                       {{> @openRecentFiles}}</p>
-
-    <div class="settings-header">Terminal Settings</div>
-    <p class="with-select">Font               {{> @terminalFont}}</p>
-    <p class="with-select">Font size          {{> @terminalFontSize}}</p>
-    <p class="with-select">Theme              {{> @terminalTheme}}</p>
-    <p class="with-select">Scrollback         {{> @scrollback}}</p>
-    <p>Use visual bell                        {{> @bell}}</p>
-    """
+    # TODO: reimplement these settings
+    # <p class='hidden'>Highlight selected word {{> @highlightWord}}</p>
+    # <p class='hidden'>                      {{> @shortcuts}}</p>
+    # <p class="with-select">Syntax           {{> @syntax}}</p>
