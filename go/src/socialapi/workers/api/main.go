@@ -5,15 +5,13 @@ import (
 	"flag"
 	"fmt"
 	"koding/db/mongodb/modelhelper"
-
 	// _ "net/http/pprof" // Imported for side-effect of handling /debug/pprof.
 	"os"
-	"os/signal"
 	"socialapi/workers/api/handlers"
 	"socialapi/workers/common/runner"
 	"socialapi/workers/helper"
 	notificationapi "socialapi/workers/notification/api"
-	"syscall"
+
 	"github.com/rcrowley/go-tigertonic"
 )
 
@@ -66,10 +64,7 @@ func main() {
 	// init mongo connection
 	modelhelper.Initialize(r.Conf.Mongo)
 
-	ch := make(chan os.Signal)
-	signal.Notify(ch, syscall.SIGINT, syscall.SIGQUIT, syscall.SIGTERM)
-
-	r.Log.Info("Received %v", <-ch)
+	r.Wait()
 }
 
 func newServer() *tigertonic.Server {
