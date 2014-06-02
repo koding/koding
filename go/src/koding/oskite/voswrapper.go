@@ -47,12 +47,7 @@ func (o *Oskite) vosMethod(k *kodingkite.KodingKite, method string, vosFn vosFun
 			return nil, err
 		}
 
-		vm, err := checkAndGetVM(r.Username, params.VmName)
-		if err != nil {
-			return nil, err
-		}
-
-		info := getInfo(vm)
+		info := getInfo(vos.VM)
 		info.stopTimeoutNewKite(k)
 
 		return vosFn(r, vos)

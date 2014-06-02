@@ -1,9 +1,9 @@
 package oskite
 
 import (
+	"koding/kodingkite"
 	"koding/tools/kite"
 	"koding/tools/utils"
-	"koding/kodingkite"
 	"koding/virt"
 	"math/rand"
 	"sync"
