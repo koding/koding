@@ -111,8 +111,20 @@ func (k *Kloud) buildMachine(args *BuildArgs, ev eventer.Eventer) error {
 		instanceName = args.InstanceName
 	}
 
-	provider, err := k.provider(args.MachineId)
+	m, err := k.Storage.Get(args.MachineId, &GetOption{
+		IncludeMachine:    true,
+		IncludeCredential: true,
+	})
 	if err != nil {
+		return err
+	}
+
+	provider, ok := providers[m.Provider]
+	if !ok {
+		return errors.New("provider not supported")
+	}
+
+	if err := provider.Prepare(m.Credential.Meta, m.Machine.Meta); err != nil {
 		return err
 	}
 

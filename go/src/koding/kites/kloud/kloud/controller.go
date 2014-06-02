@@ -16,7 +16,10 @@ type ControllerArgs struct {
 // provider returns the Provider responsible for the given machine Id. It also
 // calls provider.Prepare before returning.
 func (k *Kloud) provider(machineId string) (protocol.Provider, error) {
-	m, err := k.Storage.Get(machineId)
+	m, err := k.Storage.Get(machineId, &GetOption{
+		IncludeMachine:    true,
+		IncludeCredential: true,
+	})
 	if err != nil {
 		return nil, err
 	}
@@ -26,7 +29,7 @@ func (k *Kloud) provider(machineId string) (protocol.Provider, error) {
 		return nil, errors.New("provider not supported")
 	}
 
-	if err := provider.Prepare(m.Credential, m.Builders); err != nil {
+	if err := provider.Prepare(m.Credential.Meta, m.Machine.Meta); err != nil {
 		return nil, err
 	}
 
