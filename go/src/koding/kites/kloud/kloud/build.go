@@ -87,7 +87,11 @@ func (k *Kloud) build(r *kite.Request) (interface{}, error) {
 		}
 
 		k.Storage.UpdateState(args.MachineId, status)
-		ev.Push(&eventer.Event{Message: msg, Status: status})
+		ev.Push(&eventer.Event{
+			Message:    msg,
+			Status:     status,
+			Percentage: 100,
+		})
 	}()
 
 	return BuildResult{
