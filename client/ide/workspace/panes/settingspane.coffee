@@ -108,7 +108,6 @@ class EditorSettingsView extends IDESettingsView
       <p class="with-select">Font        {{> @fontSize}}</p>
       <p class="with-select">Theme       {{> @theme}}</p>
       <p class="with-select">Tab size    {{> @tabSize}}</p>
-      <p>Open Recent Files               {{> @openRecentFiles}}</p>
     """
 
 
@@ -150,5 +149,6 @@ class SettingsPane extends Pane
 
     # TODO: reimplement these settings
     # <p class='hidden'>Highlight selected word {{> @highlightWord}}</p>
-    # <p class='hidden'>                      {{> @shortcuts}}</p>
-    # <p class="with-select">Syntax           {{> @syntax}}</p>
+    # <p class='hidden'>             {{> @shortcuts}}</p>
+    # <p class="with-select">Syntax  {{> @syntax}}</p>
+    # <p>Open Recent Files           {{> @openRecentFiles}}</p>
