@@ -25,6 +25,7 @@ type BuildResult struct {
 
 var (
 	defaultImageName = "koding-klient-0.0.1"
+	eventTypeBuild   = "build"
 )
 
 func (k *Kloud) build(r *kite.Request) (interface{}, error) {
@@ -62,7 +63,7 @@ func (k *Kloud) build(r *kite.Request) (interface{}, error) {
 
 	k.Storage.UpdateState(args.MachineId, machinestate.Building)
 
-	ev := k.NewEventer(args.MachineId)
+	ev := k.NewEventer(eventTypeBuild + "-" + args.MachineId)
 
 	go func() {
 		k.idlock.Get(r.Username).Lock()
@@ -124,7 +125,7 @@ func (k *Kloud) buildMachine(args *BuildArgs, ev eventer.Eventer) error {
 		return err
 	}
 
-	buildOptions := &protocol.BuildOptions{
+	buildOptions := &protocol.MachineOptions{
 		MachineId:    args.MachineId,
 		Username:     args.Username,
 		ImageName:    imageName,

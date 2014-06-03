@@ -131,6 +131,7 @@ func build(i int, client *kite.Client, data *kloud.MachineData) error {
 
 	eArgs := &kloud.EventArgs{
 		EventId: bArgs.MachineId,
+		Type:    "build",
 	}
 
 	for {

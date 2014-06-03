@@ -7,6 +7,7 @@ import (
 )
 
 type EventArgs struct {
+	Type    string
 	EventId string
 }
 
@@ -17,10 +18,13 @@ func (k *Kloud) event(r *kite.Request) (interface{}, error) {
 	}
 
 	if args.EventId == "" {
-		return nil, errors.New("eventId is empty.")
-
+		return nil, errors.New("eventId is missing.")
 	}
 
-	ev := k.GetEvent(args.EventId)
+	if args.Type == "" {
+		return nil, errors.New("event type is missing.")
+	}
+
+	ev := k.GetEvent(args.Type + "-" + args.EventId)
 	return ev, nil
 }

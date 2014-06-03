@@ -225,6 +225,7 @@ func (k *Kloud) restart(r *kite.Request) (interface{}, error) {
 		time.Sleep(time.Second * 3)
 	}
 
+	k.Storage.UpdateState(args.MachineId, machinestate.Starting)
 	return true, nil
 }
 

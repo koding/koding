@@ -102,7 +102,7 @@ func (d *DigitalOcean) Prepare(raws ...interface{}) (err error) {
 // given snapshot/image exist it directly skips to creating the droplet. It
 // acceps two string arguments, first one is the snapshotname, second one is
 // the dropletName.
-func (d *DigitalOcean) Build(opts *protocol.BuildOptions) (p *protocol.BuildResponse, err error) {
+func (d *DigitalOcean) Build(opts *protocol.MachineOptions) (p *protocol.BuildResponse, err error) {
 	if opts.ImageName == "" {
 		return nil, errors.New("snapshotName is empty")
 	}
