@@ -40,10 +40,10 @@ type MachineData struct {
 }
 
 type Machine struct {
-	Id       bson.ObjectId `bson:"_id" json:"-"`
-	KiteId   string        `bson:"kiteId"`
-	PublicIp string        `bson:"publicIp"`
-	Status   struct {
+	Id          bson.ObjectId `bson:"_id" json:"-"`
+	QueryString string        `bson:"queryString"`
+	PublicIp    string        `bson:"publicIp"`
+	Status      struct {
 		State      string    `bson:"state"`
 		ModifiedAt time.Time `bson:"modifiedAt"`
 	} `bson:"status"`

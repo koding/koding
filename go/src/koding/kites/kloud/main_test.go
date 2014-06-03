@@ -56,6 +56,9 @@ func (t *TestStorage) Update(id string, resp *kloudprotocol.BuildResponse) error
 	fmt.Printf("resp %+v\n", resp)
 
 	provider := TestProviderData[id]
+	provider["queryString"] = resp.QueryString
+	provider["IpAddress"] = resp.IpAddress
+
 	b := provider["builder"].(map[string]interface{})
 	b["instanceName"] = resp.InstanceName
 	b["instanceId"] = strconv.Itoa(resp.InstanceId)
@@ -83,6 +86,7 @@ var (
 
 	flagTestBuilds   = flag.Int("builds", 1, "Number of builds")
 	flagTestDestroy  = flag.Bool("no-destroy", false, "Do not destroy test machines")
+	flagTestRestart  = flag.Bool("restart", false, "Restart the given machine")
 	flagTestUsername = flag.String("user", "", "Create machines on behalf of this user")
 
 	DIGITALOCEAN_CLIENT_ID = "2d314ba76e8965c451f62d7e6a4bc56f"
@@ -234,6 +238,17 @@ func build(i int, client *kite.Client, data map[string]interface{}) error {
 		}
 	}
 
+	if *flagTestRestart {
+		fmt.Println("restarting ", instanceName)
+
+		cArgs := &kloud.ControllerArgs{
+			MachineId: data["provider"].(string),
+		}
+
+		if _, err := client.Tell("restart", cArgs); err != nil {
+			return fmt.Errorf("destroy: %s", err)
+		}
+	}
 	return nil
 }
 
@@ -406,6 +421,7 @@ func TestProviders(t *testing.T) {
 }
 
 func TestBuilds(t *testing.T) {
+	// t.Skip("skipping build")
 	numberOfBuilds := *flagTestBuilds
 
 	for provider, data := range TestProviderData {
@@ -429,7 +445,6 @@ func TestBuilds(t *testing.T) {
 
 		wg.Wait()
 	}
-
 }
 
 func setupKloud() *kodingkite.KodingKite {
