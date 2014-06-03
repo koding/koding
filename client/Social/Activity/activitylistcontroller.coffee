@@ -20,8 +20,8 @@ class ActivityListController extends KDListViewController
     viewOptions.comments         ?= yes
 
     options.noItemFoundWidget    ?= new KDCustomHTMLView
-      cssClass : "lazy-loader hidden"
-      partial  : "There is no activity."
+      cssClass : 'lazy-loader hidden'
+      partial  : 'There is no activity.'
 
     super options, data
 
@@ -33,7 +33,7 @@ class ActivityListController extends KDListViewController
   instantiateListItems: (messages) ->
 
     messages = messages.filter (message) => not @itemForId message.getId()
-    messages.forEach @messageEventHelper.bound "bindListeners"
+    messages.forEach @messageEventHelper.bound 'bindListeners'
 
     super messages
 
@@ -41,7 +41,7 @@ class ActivityListController extends KDListViewController
   # LEGACY
 
   postIsCreated: (post) =>
-    bugTag   = tag for tag in post.subject.tags when tag.slug is "bug"
+    bugTag   = tag for tag in post.subject.tags when tag.slug is 'bug'
     subject  = @prepareSubject post
     instance = @addItem subject, 0
 
