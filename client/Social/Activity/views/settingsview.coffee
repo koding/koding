@@ -46,17 +46,19 @@ class ActivitySettingsView extends KDCustomHTMLView
     return @menu
 
 
-  getOwnerMenu: (post) ->
+  getOwnerMenu: ->
 
     account              = KD.whoami()
     {activityController} = KD.singletons
     @addMenuItem 'Edit Post', => @emit 'ActivityEditIsClicked'
-    @addMenuItem 'Delete Post', => @confirmDeletePost post
+    @addMenuItem 'Delete Post', => @confirmDeletePost()
 
     return @menu
 
 
-  getAdminMenu: (post) ->
+  getAdminMenu: ->
+
+    post = @getData()
 
     @menu                = @getOwnerMenu()
     {activityController} = KD.singletons
@@ -81,20 +83,22 @@ class ActivitySettingsView extends KDCustomHTMLView
     return @menu
 
 
-  settingsMenu: (post) ->
+  settingsMenu: ->
 
     @getGenericMenu()
 
-    if KD.isMyPost post
+    if KD.isMyPost @getData()
     then @getOwnerMenu()
     else if KD.checkFlag('super-admin') or KD.hasAccess('delete posts')
     then @getAdminMenu()
 
     return @menu
 
+
   viewAppended: -> @addSubView @settings
 
-  confirmDeletePost:(post)->
+
+  confirmDeletePost: ->
 
     modal = new KDModalView
       title          : "Delete post"
