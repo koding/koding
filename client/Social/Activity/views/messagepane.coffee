@@ -25,23 +25,15 @@ class MessagePane extends KDTabPaneView
       return  unless channel
 
       channel
-        .on 'MessageAdded',   @bound 'addMessage'
+        .on 'MessageAdded',   @bound 'prependMessage'
         .on 'MessageRemoved', @bound 'removeMessage'
 
 
-  addMessage: (message) ->
+  appendMessage: (message) -> @listController.addItem message, @listController.getItemCount()
 
-    @listController.addItem message, 0
+  prependMessage: (message) -> @listController.addItem message, 0
 
-
-  removeMessage: (message) ->
-
-    @listController.removeItem message
-
-
-  appendMessage: (message) ->
-
-    @listController.addItem message, @listController.getItemCount()
+  removeMessage: (message) -> @listController.removeItem message
 
 
   viewAppended: ->
