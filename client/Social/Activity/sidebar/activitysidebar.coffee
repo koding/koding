@@ -45,6 +45,7 @@ class ActivitySidebar extends KDCustomScrollView
     {
       notificationController
       socialapi
+      windowController
     } = KD.singletons
 
     @sections     = {}
@@ -75,6 +76,11 @@ class ActivitySidebar extends KDCustomScrollView
       item = listController.itemForId id
 
       log item, update, '>>>>>>>>>>>>>>'
+
+    # windowController.addFocusListener (focused) ->
+    #   log 'browser focus:', focused
+
+
 
   getListController: (type) ->
 
