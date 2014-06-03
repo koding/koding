@@ -95,15 +95,20 @@ class KodingKontrol extends (require 'kontrol')
     kite
 
   getKite: (options = {}) ->
-    { name, correlationName, region, username, environment, id } = options
+
+    { queryString } = options
+
+    if queryString? and queryObject = KD.utils.splitKiteQuery queryString
+      options = queryObject
+    else
+      { name, correlationName, region,
+        username, environment, queryString } = options
 
     kite = @getKiteProxy options
 
-    @fetchRegion(correlationName, region, id).then (region) =>
-
-      @fetchKite
-        query : { name, region, username, environment }
-        who   : @getWhoParams name, correlationName
+    @fetchKite
+      query : queryObject or { name, region, username, environment }
+      who   : @getWhoParams name, correlationName
 
     .then(kite.bound 'setTransport')
     .then(kite.bound 'logTransportFailures')
