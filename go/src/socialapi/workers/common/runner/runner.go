@@ -3,8 +3,11 @@ package runner
 import (
 	"flag"
 	"fmt"
+	"os"
+	"os/signal"
 	"socialapi/config"
 	"socialapi/workers/helper"
+	"syscall"
 
 	"github.com/koding/bongo"
 	"github.com/koding/logging"
@@ -18,11 +21,13 @@ var (
 )
 
 type Runner struct {
-	Log      logging.Logger
-	Conf     *config.Config
-	Bongo    *bongo.Bongo
-	Listener *worker.Listener
-	Name     string
+	Log             logging.Logger
+	Conf            *config.Config
+	Bongo           *bongo.Bongo
+	Listener        *worker.Listener
+	Name            string
+	ShutdownHandler func()
+	Done            chan error
 }
 
 func New(name string) *Runner {
@@ -54,12 +59,15 @@ func (r *Runner) Init() error {
 		r.Conf,
 		r.Log,
 	)
+	r.ShutdownHandler = func() {}
+	r.Done = make(chan error, 1)
+	r.RegisterSignalHandler()
 
 	return nil
 }
 
 func (r *Runner) Listen(handler worker.Handler) {
-	listener := worker.NewListener(
+	r.Listener = worker.NewListener(
 		WrapWithVersion(r.Name, flagVersion),
 		WrapWithVersion(r.Conf.EventExchangeName, flagVersion),
 		r.Log,
@@ -67,10 +75,34 @@ func (r *Runner) Listen(handler worker.Handler) {
 
 	// blocking
 	// listen for events
-	listener.Listen(helper.NewRabbitMQ(r.Conf, r.Log), handler)
+	r.Listener.Listen(helper.NewRabbitMQ(r.Conf, r.Log), handler)
 }
 
 func (r *Runner) Close() {
-	r.Listener.Close()
+	r.ShutdownHandler()
+	if r.Listener != nil {
+		r.Listener.Close()
+	}
 	r.Bongo.Close()
+}
+
+func (r *Runner) RegisterSignalHandler() {
+	go func() {
+		signals := make(chan os.Signal, 1)
+		signal.Notify(signals)
+		for {
+			signal := <-signals
+			switch signal {
+			case syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT, syscall.SIGSTOP:
+				r.Close()
+				r.Done <- nil
+			}
+		}
+	}()
+}
+
+func (r *Runner) Wait() error {
+	err := <-r.Done
+
+	return err
 }

@@ -18,6 +18,7 @@ class ActivityListController extends KDListViewController
     {viewOptions}                 = options
     viewOptions.cssClass          = KD.utils.curry 'activity-related', viewOptions.cssClass
     viewOptions.comments         ?= yes
+    viewOptions.dataPath          = 'id'
 
     options.noItemFoundWidget    ?= new KDCustomHTMLView
       cssClass : "lazy-loader hidden"

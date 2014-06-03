@@ -46,7 +46,7 @@ module.exports =
   socialapi:
     port        : 7000
     clusterSize : 5
-    fallbackUrl : "https://showcase.koding.com:7000"
+    proxyUrl    : "https://social-api-1a.sj.koding.com:7000"
   sourceServer  :
     enabled     : no
     port        : 1337

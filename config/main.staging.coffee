@@ -21,6 +21,8 @@ regions         =
   premium       : "premium-sj"
 
 cookieMaxAge = 1000 * 60 * 60 * 24 * 14 # two weeks
+
+# turn it off when you use non-https like: showcase.koding.com
 cookieSecure = yes
 
 module.exports =
@@ -46,7 +48,7 @@ module.exports =
   socialapi:
     port        : 7000
     clusterSize : 5
-    fallbackUrl : "http://localhost:7000"
+    proxyUrl    : "http://social-api-1a.sj.koding.com:7000"
   sourceServer  :
     enabled     : yes
     port        : 1337

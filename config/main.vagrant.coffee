@@ -47,7 +47,7 @@ module.exports =
   socialapi:
     port        : 7000
     clusterSize : 5
-    fallbackUrl : "http://localhost:7000"
+    proxyUrl    : "http://localhost:7000"
   sourceServer  :
     enabled     : yes
     port        : 3526

@@ -39,18 +39,23 @@ emailnotifierdev:
 	@echo "$(OK_COLOR)==> Running Email Notifier Worker $(NO_COLOR)"
 	@$(GOBINDIR)/rerun socialapi/workers/emailnotifier -c $(CONFIG) -d
 
+dailyemailnotifierdev:
+	@echo "$(OK_COLOR)==> Running Daily Email Notifier Worker $(NO_COLOR)"
+	@$(GOBINDIR)/rerun socialapi/workers/dailyemailnotifier -c $(CONFIG) -d
+
 popularpostdev:
 	@echo "$(OK_COLOR)==> Running Popular Posts Worker $(NO_COLOR)"
 	@$(GOBINDIR)/rerun socialapi/workers/popularpost -c $(CONFIG) -d
 
 PACKAGES = \
 	socialapi/workers/api \
-	socialapi/workers/topicfeed \
-	socialapi/workers/realtime \
+	socialapi/workers/emailnotifier \
 	socialapi/workers/followingfeed \
-	socialapi/workers/populartopic \
 	socialapi/workers/notification \
-	socialapi/workers/popularpost
+	socialapi/workers/popularpost \
+	socialapi/workers/populartopic \
+	socialapi/workers/realtime \
+	socialapi/workers/topicfeed
 
 createdb:
 	(vagrant ssh default --command "mongo localhost/koding --eval='db.jAccounts.update({},{\$$unset:{socialApiId:0}},{multi:true})'")
