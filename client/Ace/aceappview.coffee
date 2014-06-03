@@ -75,43 +75,6 @@ class AceAppView extends JView
     @on "KDObjectWillBeDestroyed", ->
       KD.getSingleton("mainView").disableFullscreen()
 
-
-  createSessionData: (openPanes, data = {}) ->
-    paths     = []
-    recordKey = "#{@id}-#{@timestamp}"
-
-    for pane in openPanes
-      {aceView} = pane.getOptions()
-      continue  unless aceView
-      {path} = aceView.getData()
-      paths.push path if path.indexOf("localfile") is -1
-
-    data[recordKey] = paths
-
-    latest = data.latestSessions or= []
-    latest.push recordKey if latest.indexOf(recordKey) is -1
-    if latest.length > 10
-      shifted = latest.shift()
-      delete data[shifted]
-
-    return @sessionData = data
-
-  createSessionListItems: ->
-    items       = {}
-    sessionData = @sessionData
-    {nickname}  = KD.whoami().profile
-    itemCount   = 0
-    for sessionId in sessionData.latestSessions?
-      return items if itemCount > 14
-      sessionItems = sessionData[sessionId]
-      sessionItems.forEach (path, i) =>
-        filePath = path.replace("/home/#{nickname}", "~")
-        filePath = filePath.replace /^\[[^\[\]]*]/, ''
-        items[filePath] = callback: => @emit "SessionItemClicked", [path]
-        itemCount++
-
-    return items
-
   preview: ->
     file = @getActiveAceView().getData()
     {path, vmName} = file
