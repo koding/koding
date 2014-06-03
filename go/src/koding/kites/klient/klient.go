@@ -6,6 +6,7 @@ import (
 	"koding/kite-handler/command"
 	"koding/kite-handler/fs"
 	"koding/kite-handler/terminal"
+	"koding/kites/klient/protocol"
 	"log"
 	"net"
 	"net/url"
@@ -17,16 +18,15 @@ import (
 )
 
 const (
-	VERSION = "0.0.1"
-	NAME    = "klient"
+	VERSION = protocol.Version
+	NAME    = protocol.Name
 )
 
 var (
-	flagIP          = flag.String("ip", "", "Change public ip")
-	flagPort        = flag.Int("port", 3000, "Change running port")
-	flagVersion     = flag.Bool("version", false, "Show version and exit")
-	flagEnvironment = flag.String("environment", "public-host", "Change environment")
-	flagLocal       = flag.Bool("local", false, "Start klient in local environment.")
+	flagIP      = flag.String("ip", "", "Change public ip")
+	flagPort    = flag.Int("port", 3000, "Change running port")
+	flagVersion = flag.Bool("version", false, "Show version and exit")
+	flagLocal   = flag.Bool("local", false, "Start klient in local environment.")
 )
 
 func main() {
@@ -40,8 +40,11 @@ func main() {
 	conf := config.MustGet()
 	k.Config = conf
 	k.Config.Port = *flagPort
-	k.Config.Environment = *flagEnvironment
-	k.Config.Id = conf.Id
+	k.Config.Environment = protocol.Environment
+	k.Config.Region = protocol.Region
+
+	// always boot up with the same id in the kite.key
+	k.Id = conf.Id
 
 	k.HandleFunc("fs.readDirectory", fs.ReadDirectory)
 	k.HandleFunc("fs.glob", fs.Glob)
