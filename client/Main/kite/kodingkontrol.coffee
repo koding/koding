@@ -55,26 +55,6 @@ class KodingKontrol extends (require 'kontrol')
     { name, correlationName, region } = options
     return (kite = @getCachedKite name, correlationName)?
 
-  fetchRegion: (correlationName, region, id) ->
-    region ?= @regions[correlationName]
-    if region? or id?
-      return Promise.resolve region
-
-    new Promise (resolve, reject) =>
-      KD.remote.api.JVM.fetchVmRegion correlationName, (err, region) =>
-
-        if err
-          warn err
-          return reject err
-
-        if not region
-          # It's fallbacking to 'sj' for now but
-          region = 'sj'
-
-        @regions[correlationName] = region
-
-        resolve region
-
   fetchVmInfo: (correlationName) ->
     new Promise (resolve, reject) ->
       KD.remote.api.JVM.fetchVmInfo correlationName, (err, info) =>
