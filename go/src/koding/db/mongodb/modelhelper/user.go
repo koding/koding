@@ -53,3 +53,12 @@ func GetUserById(id string) (*models.User, error) {
 
 	return user, nil
 }
+
+func GetSomeUsersBySelector(s Selector) ([]models.User, error) {
+	users := make([]models.User, 0)
+	query := func(c *mgo.Collection) error {
+		return c.Find(s).All(&users)
+	}
+
+	return users, Mongo.Run("jUsers", query)
+}

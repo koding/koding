@@ -23,5 +23,5 @@ func main() {
 	handler := populartopic.New(r.Log, redis)
 
 	r.Listen(handler)
-	r.Close()
+	r.Wait()
 }

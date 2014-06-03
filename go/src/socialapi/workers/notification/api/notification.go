@@ -13,7 +13,6 @@ import (
 	"strconv"
 
 	"github.com/jinzhu/gorm"
-	"github.com/koding/api/helpers"
 	// "github.com/koding/bongo"
 )
 
@@ -23,9 +22,10 @@ var (
 	cacheEnabled       = false
 )
 
-func init() {
-	helpers.MustInitLogger("NotificationAPI", false)
-}
+const (
+	NOTIFICATION_TYPE_SUBSCRIBE   = "subscribe"
+	NOTIFICATION_TYPE_UNSUBSCRIBE = "unsubscribe"
+)
 
 func List(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface{}, error) {
 	q := socialhelpers.GetQuery(u)

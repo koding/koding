@@ -35,9 +35,10 @@ type (
 		CacheEnabled bool
 	}
 	SendGrid struct {
-		Username string
-		Password string
-		FromName string
-		FromMail string
+		Username        string
+		Password        string
+		FromName        string
+		FromMail        string
+		ForcedRecipient string
 	}
 )
