@@ -3,7 +3,7 @@ SET ROLE social;
 CREATE SCHEMA api;
 
 SET ROLE postgres;
-CREATE EXTENSION hstore SCHEMA api;
+CREATE EXTENSION IF NOT EXISTS hstore;
 SET ROLE social;
 
 GRANT usage ON SCHEMA api to socialapplication;
