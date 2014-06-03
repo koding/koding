@@ -44,7 +44,6 @@ body.ide.dark
     bg                  color, dark-tab-header-bg
 
   .kdsplitview-resizer
-    width               2px
     bg                  color, dark-tab-header-bg
 
   .terminal .green-on-black.console
@@ -53,6 +52,12 @@ body.ide.dark
 
 // common app styling
 .ide
+  .kdsplitview-resizer
+    z-index             1000 // yes!
+    &.vertical
+      width             2px
+    &.horizontal
+      height            2px
   .ace_editor
     height              100%
 
