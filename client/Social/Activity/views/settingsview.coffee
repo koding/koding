@@ -108,20 +108,18 @@ class ActivitySettingsView extends KDCustomHTMLView
             color    : "#e94b35"
           callback   : =>
 
-            if post.fake
-              @emit 'ActivityIsDeleted'
-              modal.buttons.Delete.hideLoader()
-              modal.destroy()
-              return
+            id = @getData().getId()
 
-            post.delete (err)=>
-              modal.buttons.Delete.hideLoader()
+            (KD.singleton 'appManager').tell 'Activity', 'delete', {id}, (err) =>
+
+              if err
+                new KDNotificationView
+                  type     : "mini"
+                  cssClass : "error editor"
+                  title    : "Error, please try again later!"
+                return
+
               modal.destroy()
-              unless err then @emit 'ActivityIsDeleted'
-              else new KDNotificationView
-                type     : "mini"
-                cssClass : "error editor"
-                title     : "Error, please try again later!"
         Cancel       :
           style      : "modal-cancel"
           title      : "cancel"
