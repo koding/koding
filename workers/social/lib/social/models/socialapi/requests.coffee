@@ -34,6 +34,7 @@ wrapCallback = (callback)->
   (err, response, body) ->
     if err
       if err.code is "ECONNREFUSED"
+        SOCIAL_API_URLS = []
         return callback {message: "Social API is currently under maintenance"}
       return callback err
 
