@@ -4,37 +4,13 @@ KONFIG = require('koding-config-manager').load("main.#{argv.c}")
 request        = require 'request'
 _ = require "underscore"
 
-SOCIAL_API_FALLBACK_URL = KONFIG.socialapi.fallbackUrl
-SOCIAL_API_URLS = []
-
-fetchApiURLs = (callback)->
-  { url, port } = KONFIG.kontrold.api
-  url = "#{ url }:#{ port }/workers/url/socialapiapi?all"
-  request url, {json:true}, (error, response, body) ->
-    if error or response.statusCode isnt 200 or not body
-      return callback {message: "Social Api is not reachable"}
-
-    return callback null, body
-
 getNextApiURL = (callback)->
-  unless SOCIAL_API_URLS.length > 0
-    fetchApiURLs (err, urls)->
-      return callback err if err
-      unless urls?.length > 0
-        console.warn "serving fallbackUrl", SOCIAL_API_FALLBACK_URL
-        return callback null, SOCIAL_API_FALLBACK_URL
-      SOCIAL_API_URLS = urls
-      nextapi = _.sample urls
-      return callback null, nextapi
-  else
-    nextapi = _.sample SOCIAL_API_URLS
-    return callback null, nextapi
+  return callback null, KONFIG.socialapi.proxyUrl
 
 wrapCallback = (callback)->
   (err, response, body) ->
     if err
       if err.code is "ECONNREFUSED"
-        SOCIAL_API_URLS = []
         return callback {message: "Social API is currently under maintenance"}
       return callback err
 
