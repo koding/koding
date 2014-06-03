@@ -37,7 +37,7 @@ module.exports = class JMachine extends Module
         type            : String
         required        : yes
 
-      kiteId            :
+      queryString       :
         type            : String
 
       publicIp          :
