@@ -15,6 +15,8 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/koding/kite/config"
+	kiteprotocol "github.com/koding/kite/protocol"
 	"github.com/koding/logging"
 	"github.com/mitchellh/mapstructure"
 	"github.com/mitchellh/packer/builder/digitalocean"
@@ -120,7 +122,7 @@ func (d *DigitalOcean) Build(opts *protocol.BuildOptions) (p *protocol.BuildResp
 
 	// push logs and pushes each step to the eventer
 	push := func(msg string, percentage int) {
-		d.Log.Info("[machineId: '%s': username: '%s' dropletName: '%s' snapshotName: '%s'] - %s",
+		d.Log.Debug("[machineId: '%s': username: '%s' dropletName: '%s' snapshotName: '%s'] - %s",
 			opts.MachineId, opts.Username, opts.InstanceName, opts.ImageName, msg)
 
 		opts.Eventer.Push(&eventer.Event{
@@ -263,8 +265,19 @@ func (d *DigitalOcean) Build(opts *protocol.BuildOptions) (p *protocol.BuildResp
 		return nil, err
 	}
 
+	// arslan/public-host/klient/0.0.1/unknown/testkloud-1401755272229370184-0/393ff626-8fa5-4713-648c-4a51604f98c6
+	klient := kiteprotocol.Kite{
+		Name:        "klient",
+		Username:    opts.Username,
+		ID:          kiteId,
+		Environment: "public-host",
+		Region:      config.DefaultConfig.Region,
+		Version:     "0.0.1",
+		Hostname:    opts.InstanceName,
+	}
+
 	return &protocol.BuildResponse{
-		KiteId:       kiteId,
+		QueryString:  klient.String(),
 		IpAddress:    dropInfo.IpAddress,
 		InstanceName: dropInfo.Name,
 		InstanceId:   dropInfo.Id,

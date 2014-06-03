@@ -98,7 +98,7 @@ func (m *MongoDB) Update(id string, resp *protocol.BuildResponse) error {
 		return c.UpdateId(
 			bson.ObjectIdHex(id),
 			bson.M{"$set": bson.M{
-				"kiteId":            resp.KiteId,
+				"queryString":       resp.QueryString,
 				"ipAddress":         resp.IpAddress,
 				"meta.instanceId":   strconv.Itoa(resp.InstanceId),
 				"meta.instanceName": resp.InstanceName,

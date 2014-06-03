@@ -51,6 +51,7 @@ module.exports =
   mongo         : mongo
   mongoKontrol  : mongoKontrol
   mongoReplSet  : null
+  mongoMinWrites: 1
   neo4j         :
     read        : "http://localhost"
     write       : "http://localhost"
