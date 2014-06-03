@@ -35,7 +35,7 @@ import (
 
 const (
 	OSKITE_NAME    = "oskite"
-	OSKITE_VERSION = "0.2.13"
+	OSKITE_VERSION = "0.3.0"
 )
 
 var (
@@ -93,6 +93,13 @@ type QueueJob struct {
 func New(c *config.Config) *Oskite {
 	conf = c
 	mongodbConn = mongodb.NewMongoDB(c.Mongo)
+
+	// Ensure we are using a mongo master so that we can avoid db induced races
+	mongodbConn.Session.SetSafe(&mgo.Safe{
+		W:     c.MongoMinWrites, // Min # of servers to ack before success
+		FSync: true,             // Should servers sync to disk before returning success
+	})
+
 	modelhelper.Initialize(c.Mongo)
 
 	return &Oskite{
@@ -104,6 +111,9 @@ func (o *Oskite) Run() {
 	if os.Getuid() != 0 {
 		log.Fatal("Must be run as root.")
 	}
+
+	// Set our umask to 0 so that subsequent file writes/creates do not alter their mode
+	syscall.Umask(0)
 
 	log.SetLevel(o.LogLevel)
 	log.Info("Using default VM timeout: %v", o.VmTimeout)
@@ -173,7 +183,6 @@ func (o *Oskite) Run() {
 	o.registerMethod("oskite.Info", true, o.oskiteInfo)
 	o.registerMethod("oskite.All", true, oskiteAllOld)
 
-	syscall.Umask(0) // don't know why richard calls this
 	o.registerMethod("fs.readDirectory", false, fsReadDirectoryOld)
 	o.registerMethod("fs.glob", false, fsGlobOld)
 	o.registerMethod("fs.readFile", false, fsReadFileOld)
@@ -385,7 +394,7 @@ func unprepareLeftover(vmId bson.ObjectId) {
 				log.Error("leftover unprepare: %v", err)
 			}
 
-			if _, err := updateState(vmId, ""); err != nil {
+			if _, err := updateState(vmId, "UNKNOWN"); err != nil {
 				log.Error("%v", err)
 			}
 
@@ -434,6 +443,12 @@ func (o *Oskite) setupSignalHandler() {
 
 			log.Info("Shutdown initiated")
 
+			log.Info("Removing hostname '%s' from redis", o.RedisKontainerKey)
+			_, err := redigo.Int(o.RedisSession.Do("SREM", o.RedisKontainerSet, o.RedisKontainerKey))
+			if err != nil {
+				log.Error("redis SREM kontainers. err: %v", err.Error())
+			}
+
 			closeFunc := func() {
 				log.Info("Closing and shutting down. Bye!")
 				// close amqp connections
@@ -453,12 +468,6 @@ func (o *Oskite) setupSignalHandler() {
 
 			// close the communication. We should not accept any calls anymore...
 			shuttingDown.SetClosed()
-
-			log.Info("Removing hostname '%s' from redis", o.RedisKontainerKey)
-			_, err := redigo.Int(o.RedisSession.Do("SREM", o.RedisKontainerSet, o.RedisKontainerKey))
-			if err != nil {
-				log.Error("redis SREM kontainers. err: %v", err.Error())
-			}
 
 			// ...but wait until the current calls are finished.
 			log.Info("Waiting until current calls are finished...")
