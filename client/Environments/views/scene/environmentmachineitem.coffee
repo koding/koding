@@ -27,6 +27,15 @@ class EnvironmentMachineItem extends EnvironmentItem
     vmAlwaysOnSwitch = new VMAlwaysOnToggleButtonView null, {vmName}
     items =
       customView4         : vmAlwaysOnSwitch
+      'Build Machine'     :
+        callback          : =>
+          machine = this.getData()
+          kloud = KD.singletons.kontrol.getKite {
+            name:"kloud", environment:"vagrant"
+          }
+          kloud.build machineId: machine._id, ->
+            log ">>>>>>", arguments
+
       'Re-initialize VM'  :
         disabled          : KD.isGuest()
         callback          : ->
