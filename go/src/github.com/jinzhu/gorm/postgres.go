@@ -1,6 +1,7 @@
 package gorm
 
 import (
+	"database/sql"
 	"fmt"
 	"reflect"
 )
@@ -34,6 +35,10 @@ func (d *postgres) SqlTag(value reflect.Value, size int) string {
 	case reflect.Struct:
 		if value.Type() == timeType {
 			return "timestamp with time zone"
+		}
+	case reflect.Map:
+		if value.Type() == reflect.TypeOf(map[string]sql.NullString{}) {
+			return "hstore"
 		}
 	default:
 		if _, ok := value.Interface().([]byte); ok {
