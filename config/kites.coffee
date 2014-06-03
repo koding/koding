@@ -16,3 +16,5 @@ module.exports =
     version: versionFile 'terminal'
   klient:
     version: versionFile 'klient'
+  kloud:
+    version: versionFile 'kloud'

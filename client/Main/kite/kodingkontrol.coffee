@@ -27,12 +27,13 @@ class KodingKontrol extends (require 'kontrol')
 
   getVersion: (name) ->
     return '1.0.0'  unless name?
-    { os, terminal, klient } = KD.config.kites
+    { os, terminal, klient, kloud } = KD.config.kites
     # TODO: this could be more elegant:
     {
-      oskite    : os.version
-      terminal  : terminal.version
-      klient    : klient.version
+      oskite   : os.version
+      terminal : terminal.version
+      klient   : klient.version
+      kloud    : kloud.version
     }[name] ? ''
 
   injectQueryParams: (args) ->
