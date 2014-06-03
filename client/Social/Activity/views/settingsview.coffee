@@ -48,8 +48,6 @@ class ActivitySettingsView extends KDCustomHTMLView
 
   getOwnerMenu: ->
 
-    account              = KD.whoami()
-    {activityController} = KD.singletons
     @addMenuItem 'Edit Post', => @emit 'ActivityEditIsClicked'
     @addMenuItem 'Delete Post', => @confirmDeletePost()
 
