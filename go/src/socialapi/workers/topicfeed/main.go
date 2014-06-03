@@ -21,5 +21,5 @@ func main() {
 	handler := topicfeed.New(r.Log)
 
 	r.Listen(handler)
-	r.Close()
+	r.Wait()
 }

@@ -25,5 +25,5 @@ func main() {
 	)
 
 	r.Listen(handler)
-	r.Close()
+	r.Wait()
 }
