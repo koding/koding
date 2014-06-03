@@ -38,8 +38,9 @@ type BuildResponse struct {
 	// droplet Id.
 	InstanceId int
 
-	// KiteId should container the id that is deployed inside the machine.
-	KiteId string
+	// QueryString should contain the kite id/query that is deployed inside the
+	// machine.
+	QueryString string
 
 	// IpAddress defines the publid ip address of the running machine.
 	IpAddress string
