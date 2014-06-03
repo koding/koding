@@ -309,7 +309,6 @@ func (d *DigitalOcean) CheckEvent(eventId int) (*Event, error) {
 // reached, if another generic error is produced or if the event status is of
 // type "ERROR".
 func (d *DigitalOcean) WaitForState(eventId int, desiredState string, timeout time.Duration) error {
-	n := 5
 	for {
 		select {
 		case <-time.After(timeout):
@@ -323,8 +322,6 @@ func (d *DigitalOcean) WaitForState(eventId int, desiredState string, timeout ti
 			if event.Event.ActionStatus == desiredState {
 				return nil
 			}
-
-			n += 5
 		}
 	}
 }
@@ -472,8 +469,21 @@ func (d *DigitalOcean) Restart(raws ...interface{}) error {
 	}
 
 	path := fmt.Sprintf("droplets/%v/reboot", dropletId)
-	_, err = digitalocean.NewRequest(*d.Client, path, url.Values{})
-	return err
+	body, err := digitalocean.NewRequest(*d.Client, path, url.Values{})
+	if err != nil {
+		return err
+	}
+
+	eventId, ok := body["event_id"].(float64)
+	if !ok {
+		return fmt.Errorf("restart malformed data %v", body)
+	}
+
+	if err := d.WaitForState(int(eventId), "done", time.Minute); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 // Destroyimage destroys an image for the given imageID.

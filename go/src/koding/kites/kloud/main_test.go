@@ -11,7 +11,6 @@ import (
 	"koding/tools/config"
 	"log"
 	"math/rand"
-	"net/url"
 	"os"
 	"strconv"
 	"sync"
@@ -24,58 +23,8 @@ import (
 	"github.com/fatih/color"
 	"github.com/koding/kite"
 	kiteconfig "github.com/koding/kite/config"
-	"github.com/koding/kite/kitekey"
-	"github.com/koding/kite/kontrol"
 	"github.com/koding/kite/protocol"
-	"github.com/koding/kite/testkeys"
-	"github.com/koding/kite/testutil"
 )
-
-type TestStorage struct{}
-
-func (t *TestStorage) Get(id string, opt *kloud.GetOption) (*kloud.MachineData, error) {
-	provider := TestProviderData[id]
-
-	credential := &kloud.Credential{
-		Meta: provider["credential"].(map[string]interface{}),
-	}
-
-	machine := &kloud.Machine{
-		Meta: provider["builder"].(map[string]interface{}),
-	}
-	machine.Status.State = machinestate.Running.String() // assume it's running
-
-	return &kloud.MachineData{
-		Provider:   provider["provider"].(string),
-		Credential: credential,
-		Machine:    machine,
-	}, nil
-}
-
-func (t *TestStorage) Update(id string, resp *kloudprotocol.BuildResponse) error {
-	fmt.Printf("resp %+v\n", resp)
-
-	provider := TestProviderData[id]
-	provider["queryString"] = resp.QueryString
-	provider["IpAddress"] = resp.IpAddress
-
-	b := provider["builder"].(map[string]interface{})
-	b["instanceName"] = resp.InstanceName
-	b["instanceId"] = strconv.Itoa(resp.InstanceId)
-
-	provider["builder"] = b
-
-	TestProviderData[id] = provider
-	return nil
-}
-
-func (t *TestStorage) UpdateState(id string, state machinestate.State) error {
-	return nil
-}
-
-func (t *TestStorage) GetState(id string) (machinestate.State, error) {
-	return machinestate.NotInitialized, nil
-}
 
 var (
 	conf      *kiteconfig.Config
@@ -83,30 +32,37 @@ var (
 	kloudRaw  *kloud.Kloud
 	remote    *kite.Client
 	testuser  string
+	storage   kloud.Storage
 
-	flagTestBuilds   = flag.Int("builds", 1, "Number of builds")
-	flagTestDestroy  = flag.Bool("no-destroy", false, "Do not destroy test machines")
-	flagTestRestart  = flag.Bool("restart", false, "Restart the given machine")
-	flagTestUsername = flag.String("user", "", "Create machines on behalf of this user")
+	flagTestBuilds     = flag.Int("builds", 1, "Number of builds")
+	flagTestDestroy    = flag.Bool("no-destroy", false, "Do not destroy test machines")
+	flagTestQuery      = flag.String("query", "", "Query as string for controller tests")
+	flagTestInstanceId = flag.String("instance", "", "Instance id (such as droplet Id)")
+	flagTestUsername   = flag.String("user", "", "Create machines on behalf of this user")
 
 	DIGITALOCEAN_CLIENT_ID = "2d314ba76e8965c451f62d7e6a4bc56f"
 	DIGITALOCEAN_API_KEY   = "4c88127b50c0c731aeb5129bdea06deb"
 
-	TestProviderData = map[string]map[string]interface{}{
-		"digitalocean": map[string]interface{}{
-			"provider": "digitalocean",
-			"credential": map[string]interface{}{
-				"clientId": DIGITALOCEAN_CLIENT_ID,
-				"apiKey":   DIGITALOCEAN_API_KEY,
+	TestProviderData = map[string]*kloud.MachineData{
+		"digitalocean": &kloud.MachineData{
+			Provider: "digitalocean",
+			Credential: &kloud.Credential{
+				Meta: map[string]interface{}{
+					"clientId": DIGITALOCEAN_CLIENT_ID,
+					"apiKey":   DIGITALOCEAN_API_KEY,
+				},
 			},
-			"builder": map[string]interface{}{
-				"type":          "digitalocean",
-				"clientId":      DIGITALOCEAN_CLIENT_ID,
-				"apiKey":        DIGITALOCEAN_API_KEY,
-				"image":         "ubuntu-13-10-x64",
-				"region":        "sfo1",
-				"size":          "512mb",
-				"snapshot_name": "koding-{{timestamp}}",
+			Machine: &kloud.Machine{
+				Provider: "digitalocean",
+				Meta: map[string]interface{}{
+					"type":          "digitalocean",
+					"clientId":      DIGITALOCEAN_CLIENT_ID,
+					"apiKey":        DIGITALOCEAN_API_KEY,
+					"image":         "ubuntu-13-10-x64",
+					"region":        "sfo1",
+					"size":          "512mb",
+					"snapshot_name": "koding-{{timestamp}}",
+				},
 			},
 		},
 		"amazon-instance": nil,
@@ -123,35 +79,15 @@ func init() {
 		testuser = *flagTestUsername
 	}
 
-	// now create a new test key with the given test username
-	kitekey.Write(testutil.NewKiteKey().Raw)
-
-	conf = kiteconfig.New()
-	conf.Username = "testuser"
-	conf.KontrolURL = &url.URL{Scheme: "ws", Host: "localhost:4444"}
-	conf.KontrolKey = testkeys.Public
-	conf.KontrolUser = "testuser"
-	conf.KiteKey = testutil.NewKiteKey().Raw
-	conf.Port = 4444
-
-	kon := kontrol.New(conf.Copy(), "0.1.0", testkeys.Public, testkeys.Private)
-	kon.DataDir, _ = ioutil.TempDir("", "")
-	defer os.RemoveAll(kon.DataDir)
-	go kon.Run()
-	<-kon.Kite.ServerReadyNotify()
-
 	kloudKite = setupKloud()
-	kloudKite.Config.DisableAuthentication = true
-	kloudKite.Config.KontrolURL = &url.URL{Scheme: "ws", Host: "localhost:4444"}
-
 	go kloudKite.Run()
 	<-kloudKite.ServerReadyNotify()
 
 	client := kite.New("client", "0.0.1")
-	client.Config = conf.Copy()
+	client.Config = kloudKite.Config.Copy()
 
 	kites, err := client.GetKites(protocol.KontrolQuery{
-		Username:    testuser,
+		Username:    "koding",
 		Environment: "vagrant",
 		Name:        "kloud",
 	})
@@ -172,11 +108,11 @@ func init() {
 	rand.Seed(time.Now().UTC().UnixNano())
 }
 
-func build(i int, client *kite.Client, data map[string]interface{}) error {
+func build(i int, client *kite.Client, data *kloud.MachineData) error {
 	instanceName := "testkloud-" + strconv.FormatInt(time.Now().UTC().UnixNano(), 10) + "-" + strconv.Itoa(i)
 
 	bArgs := &kloud.BuildArgs{
-		MachineId:    data["provider"].(string),
+		MachineId:    data.Provider,
 		InstanceName: instanceName,
 	}
 
@@ -230,7 +166,7 @@ func build(i int, client *kite.Client, data map[string]interface{}) error {
 		fmt.Println("destroying ", instanceName)
 
 		cArgs := &kloud.ControllerArgs{
-			MachineId: data["provider"].(string),
+			MachineId: data.Provider,
 		}
 
 		if _, err := client.Tell("destroy", cArgs); err != nil {
@@ -238,18 +174,32 @@ func build(i int, client *kite.Client, data map[string]interface{}) error {
 		}
 	}
 
-	if *flagTestRestart {
-		fmt.Println("restarting ", instanceName)
-
-		cArgs := &kloud.ControllerArgs{
-			MachineId: data["provider"].(string),
-		}
-
-		if _, err := client.Tell("restart", cArgs); err != nil {
-			return fmt.Errorf("destroy: %s", err)
-		}
-	}
 	return nil
+}
+
+func TestRestart(t *testing.T) {
+	t.SkipNow()
+	if *flagTestQuery == "" {
+		t.Fatal("Query is not defined for restart")
+	}
+
+	data := TestProviderData["digitalocean"]
+	cArgs := &kloud.ControllerArgs{
+		MachineId: data.Provider,
+	}
+
+	kloudRaw.Storage = TestStorageFunc(func(id string, opt *kloud.GetOption) (*kloud.MachineData, error) {
+		machineData := TestProviderData[id]
+		machineData.Machine.Status.State = machinestate.Running.String() // assume it's running
+		machineData.Machine.QueryString = *flagTestQuery
+		machineData.Machine.Meta["instanceId"] = *flagTestInstanceId
+		return machineData, nil
+	})
+
+	if _, err := remote.Tell("restart", cArgs); err != nil {
+		t.Errorf("destroy: %s", err)
+	}
+
 }
 
 func TestMultiple(t *testing.T) {
@@ -367,7 +317,7 @@ func TestProviders(t *testing.T) {
 
 		testlog("Starting tests")
 		bArgs := &kloud.BuildArgs{
-			MachineId: data["provider"].(string),
+			MachineId: data.Provider,
 			ImageName: imageName,
 		}
 
@@ -385,7 +335,7 @@ func TestProviders(t *testing.T) {
 		}
 
 		cArgs := &kloud.ControllerArgs{
-			MachineId: data["provider"].(string),
+			MachineId: data.Provider,
 		}
 
 		start = time.Now()

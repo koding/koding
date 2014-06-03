@@ -3,15 +3,22 @@ package kloud
 import (
 	"errors"
 	"fmt"
+	"time"
 
 	"koding/kites/kloud/kloud/machinestate"
 	"koding/kites/kloud/kloud/protocol"
 
 	"github.com/koding/kite"
+	prot "github.com/koding/kite/protocol"
 )
 
 type ControllerArgs struct {
 	MachineId string
+}
+
+type InfoResponse struct {
+	State machinestate.State
+	Data  interface{}
 }
 
 // provider returns the Provider responsible for the given machine Id. It also
@@ -150,16 +157,75 @@ func (k *Kloud) restart(r *kite.Request) (interface{}, error) {
 		return nil, err
 	}
 
+	k.Log.Info("restarting machine %s on %s", args.MachineId, provider.Name())
 	if err := provider.Restart(); err != nil {
 		return nil, err
 	}
 
-	return true, nil
-}
+	m, err := k.Storage.Get(args.MachineId, &GetOption{
+		IncludeMachine:    true,
+		IncludeCredential: true,
+	})
+	if err != nil {
+		k.Log.Error(err.Error())
+	}
 
-type InfoResponse struct {
-	State machinestate.State
-	Data  interface{}
+	query, err := prot.KiteFromString(m.Machine.QueryString)
+	if err != nil {
+		return nil, err
+	}
+
+	kontrolQuery := prot.KontrolQuery{
+		Username:    query.Username,
+		ID:          query.ID,
+		Hostname:    query.Hostname,
+		Name:        query.Name,
+		Environment: query.Environment,
+		Region:      query.Region,
+		Version:     query.Version,
+	}
+
+	checkKite := func() error {
+		fmt.Println("getting kites")
+		kites, err := k.Kite.GetKites(kontrolQuery)
+		if err != nil {
+			return err
+		}
+
+		remoteKite := kites[0]
+
+		fmt.Println("dialing kite")
+		if err := remoteKite.Dial(); err != nil {
+			return err
+		}
+
+		fmt.Println("executing kite.ping")
+		resp, err := remoteKite.Tell("kite.ping")
+		if err != nil {
+			return err
+		}
+
+		if resp.MustString() == "pong" {
+			return nil
+		}
+
+		return fmt.Errorf("wrong response %s", resp.MustString())
+	}
+
+	tryUntil := time.Now().Add(time.Minute)
+	for {
+		if err = checkKite(); err == nil {
+			break
+		}
+
+		if time.Now().After(tryUntil) {
+			return nil, fmt.Errorf("Timeout while waiting for kite. Reason: %v", err)
+		}
+
+		time.Sleep(time.Second * 3)
+	}
+
+	return true, nil
 }
 
 func (k *Kloud) info(r *kite.Request) (interface{}, error) {

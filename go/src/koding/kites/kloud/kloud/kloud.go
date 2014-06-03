@@ -11,6 +11,7 @@ import (
 	"log"
 	"os"
 
+	"github.com/koding/kite"
 	"github.com/koding/logging"
 )
 
@@ -26,6 +27,7 @@ var (
 type Kloud struct {
 	Config *config.Config
 	Log    logging.Logger
+	Kite   *kite.Kite
 
 	Storage  Storage
 	Eventers map[string]eventer.Eventer
@@ -85,6 +87,7 @@ func (k *Kloud) NewKloud() *kodingkite.KodingKite {
 
 	k.InitializeProviders()
 
+	k.Kite = kt.Kite
 	return kt
 }
 
