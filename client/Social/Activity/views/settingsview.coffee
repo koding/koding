@@ -48,8 +48,8 @@ class ActivitySettingsView extends KDCustomHTMLView
 
   getOwnerMenu: ->
 
-    @addMenuItem 'Edit Post', => @emit 'ActivityEditIsClicked'
-    @addMenuItem 'Delete Post', => @confirmDeletePost()
+    @addMenuItem 'Edit Post', @lazyBound 'emit', 'ActivityEditIsClicked'
+    @addMenuItem 'Delete Post', @bound 'confirmDeletePost'
 
     return @menu
 
