@@ -29,7 +29,7 @@ class TerminalStartTab extends JView
         ErrorLog.create "terminal: Couldn't fetch machines", reason:err
         return new KDNotificationView title : "Couldn't fetch your Machines"
 
-      machines = machines.filter (machine)-> machine.state is "READY"
+      machines = machines.filter (machine)-> machine.status.state is "Running"
 
       @listMachines        machines
       @listMachineSessions machines
