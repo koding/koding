@@ -53,6 +53,8 @@ func (t *TestStorage) Get(id string, opt *kloud.GetOption) (*kloud.MachineData, 
 }
 
 func (t *TestStorage) Update(id string, resp *kloudprotocol.BuildResponse) error {
+	fmt.Printf("resp %+v\n", resp)
+
 	provider := TestProviderData[id]
 	b := provider["builder"].(map[string]interface{})
 	b["instanceName"] = resp.InstanceName
