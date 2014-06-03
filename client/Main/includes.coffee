@@ -14,6 +14,7 @@ module.exports = [
   "KD.extend.coffee" # our extensions to KD global
   "kodingrouter.coffee",
   "mq.config.coffee",
+  "log.config.coffee",
 
   # jview
   "jview.coffee",

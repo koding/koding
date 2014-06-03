@@ -53,14 +53,16 @@ class ActivityLikeSummaryView extends KDView
 
     {actorsCount, actorsPreview} = @getData().interactions.like
 
-    linkCount = Math.min actorsPreview.length, 3
+    linkCount = switch
+      when actorsCount > 3 then 2
+      else actorsPreview.length
 
     for i in [0..linkCount - 1]
       @addSubView new ProfileLinkView null, accounts[i]
       @addTextElement partial: @getSeparatorPartial actorsCount, linkCount, i
 
     if (diff = actorsCount - linkCount) > 0
-      @addShowMoreLink()
+      @addShowMoreLink actorsCount, linkCount
       @addTextElement partial: " other#{if diff > 1 then 's' else ''}"
 
     @addTextElement partial: ' liked this.'
@@ -77,13 +79,11 @@ class ActivityLikeSummaryView extends KDView
         ', '
 
 
-  addShowMoreLink: ->
-
-    {actorsCount} = @getData().interactions.like
+  addShowMoreLink: (actorsCount, linkCount) ->
 
     @addSubView new KDCustomHTMLView
       tagName : 'strong'
-      partial : actorsCount - 3
+      partial : actorsCount - linkCount
       click   : @bound 'showLikers'
 
 

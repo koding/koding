@@ -207,6 +207,16 @@ func (f *Controller) InteractionDeleted(data []byte) error {
 	return f.handleInteractionEvent("InteractionRemoved", data)
 }
 
+// here inorder to solve overflow
+// bug of javascript with int64 values of Go
+type InteractionEvent struct {
+	MessageId    int64  `json:"messageId,string"`
+	AccountId    int64  `json:"accountId,string"`
+	AccountOldId string `json:"accountOldId"`
+	TypeConstant string `json:"typeConstant"`
+	Count        int    `json:"count"`
+}
+
 func (f *Controller) handleInteractionEvent(eventName string, data []byte) error {
 	i, err := helper.MapToInteraction(data)
 	if err != nil {
@@ -223,12 +233,12 @@ func (f *Controller) handleInteractionEvent(eventName string, data []byte) error
 		return err
 	}
 
-	res := map[string]interface{}{
-		"messageId":    i.MessageId,
-		"accountId":    i.AccountId,
-		"accountOldId": oldId,
-		"typeConstant": i.TypeConstant,
-		"count":        count,
+	res := &InteractionEvent{
+		MessageId:    i.MessageId,
+		AccountId:    i.AccountId,
+		AccountOldId: oldId,
+		TypeConstant: i.TypeConstant,
+		Count:        count,
 	}
 
 	err = f.sendInstanceEvent(i.MessageId, res, eventName)
