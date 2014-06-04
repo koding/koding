@@ -39,6 +39,10 @@ emailnotifierdev:
 	@echo "$(OK_COLOR)==> Running Email Notifier Worker $(NO_COLOR)"
 	@$(GOBINDIR)/rerun socialapi/workers/emailnotifier -c $(CONFIG) -d
 
+dailyemailnotifierdev:
+	@echo "$(OK_COLOR)==> Running Daily Email Notifier Worker $(NO_COLOR)"
+	@$(GOBINDIR)/rerun socialapi/workers/dailyemailnotifier -c $(CONFIG) -d
+
 popularpostdev:
 	@echo "$(OK_COLOR)==> Running Popular Posts Worker $(NO_COLOR)"
 	@$(GOBINDIR)/rerun socialapi/workers/popularpost -c $(CONFIG) -d

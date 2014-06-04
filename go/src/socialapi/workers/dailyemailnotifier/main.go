@@ -4,14 +4,12 @@ import (
 	"fmt"
 	"koding/db/mongodb/modelhelper"
 	"socialapi/workers/common/runner"
-	"socialapi/workers/emailnotifier/controller"
+	"socialapi/workers/dailyemailnotifier/controller"
 	"socialapi/workers/emailnotifier/models"
 	"socialapi/workers/helper"
 )
 
-var (
-	Name = "EmailNotifier"
-)
+var Name = "DailyEmailNotifier"
 
 func main() {
 	r := runner.New(Name)
@@ -27,9 +25,6 @@ func main() {
 	redisConn := helper.MustInitRedisConn(r.Conf.Redis)
 	defer redisConn.Close()
 
-	//create connection to RMQ for publishing realtime events
-	rmq := helper.NewRabbitMQ(r.Conf, r.Log)
-
 	es := &models.EmailSettings{
 		Username:        r.Conf.SendGrid.Username,
 		Password:        r.Conf.SendGrid.Password,
@@ -38,14 +33,11 @@ func main() {
 		ForcedRecipient: r.Conf.SendGrid.ForcedRecipient,
 	}
 
-	handler, err := controller.New(
-		rmq,
-		r.Log,
-		es,
-	)
+	handler, err := controller.New(r.Log, es)
 	if err != nil {
-		panic(err)
+		r.Log.Error("an error occurred", err)
 	}
-	r.Listen(handler)
+
+	r.ShutdownHandler = handler.Shutdown
 	r.Wait()
 }

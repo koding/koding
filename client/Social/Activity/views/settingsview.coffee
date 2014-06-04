@@ -46,17 +46,17 @@ class ActivitySettingsView extends KDCustomHTMLView
     return @menu
 
 
-  getOwnerMenu: (post) ->
+  getOwnerMenu: ->
 
-    account              = KD.whoami()
-    {activityController} = KD.singletons
-    @addMenuItem 'Edit Post', => @emit 'ActivityEditIsClicked'
-    @addMenuItem 'Delete Post', => @confirmDeletePost post
+    @addMenuItem 'Edit Post', @lazyBound 'emit', 'ActivityEditIsClicked'
+    @addMenuItem 'Delete Post', @bound 'confirmDeletePost'
 
     return @menu
 
 
-  getAdminMenu: (post) ->
+  getAdminMenu: ->
+
+    post = @getData()
 
     @menu                = @getOwnerMenu()
     {activityController} = KD.singletons
@@ -81,20 +81,22 @@ class ActivitySettingsView extends KDCustomHTMLView
     return @menu
 
 
-  settingsMenu: (post) ->
+  settingsMenu: ->
 
     @getGenericMenu()
 
-    if KD.isMyPost post
+    if KD.isMyPost @getData()
     then @getOwnerMenu()
     else if KD.checkFlag('super-admin') or KD.hasAccess('delete posts')
     then @getAdminMenu()
 
     return @menu
 
+
   viewAppended: -> @addSubView @settings
 
-  confirmDeletePost:(post)->
+
+  confirmDeletePost: ->
 
     modal = new KDModalView
       title          : "Delete post"
@@ -108,20 +110,18 @@ class ActivitySettingsView extends KDCustomHTMLView
             color    : "#e94b35"
           callback   : =>
 
-            if post.fake
-              @emit 'ActivityIsDeleted'
-              modal.buttons.Delete.hideLoader()
-              modal.destroy()
-              return
+            id = @getData().getId()
 
-            post.delete (err)=>
-              modal.buttons.Delete.hideLoader()
+            (KD.singleton 'appManager').tell 'Activity', 'delete', {id}, (err) =>
+
+              if err
+                new KDNotificationView
+                  type     : "mini"
+                  cssClass : "error editor"
+                  title    : "Error, please try again later!"
+                return
+
               modal.destroy()
-              unless err then @emit 'ActivityIsDeleted'
-              else new KDNotificationView
-                type     : "mini"
-                cssClass : "error editor"
-                title     : "Error, please try again later!"
         Cancel       :
           style      : "modal-cancel"
           title      : "cancel"
