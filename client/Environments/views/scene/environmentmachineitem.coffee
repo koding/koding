@@ -9,8 +9,8 @@ class EnvironmentMachineItem extends EnvironmentItem
     options.staticJoints       = ['right']
 
     options.allowedConnections =
-      EnvironmentDomainItem : ['right']
-      EnvironmentExtraItem  : ['left']
+      EnvironmentDomainItem    : ['right']
+      EnvironmentExtraItem     : ['left']
 
     super options, data
 
@@ -20,6 +20,7 @@ class EnvironmentMachineItem extends EnvironmentItem
       click       : @bound "openTerminal"
 
   contextMenuItems : ->
+
     colorSelection = new ColorSelection selectedColor : @getOption 'colorTag'
     colorSelection.on "ColorChanged", @bound 'setColorTag'
 
@@ -66,6 +67,7 @@ class EnvironmentMachineItem extends EnvironmentItem
     KD.getSingleton('vmController').remove @getData().hostnameAlias, @bound "destroy"
 
   showInitScriptEditor: ->
+
     modal =  new EditorModal
       editor              :
         title             : "VM Init Script Editor <span>(experimental)</span>"
@@ -81,18 +83,20 @@ class EnvironmentMachineItem extends EnvironmentItem
               @data.meta or= {}
               @data.meta.initScript = Encoder.htmlEncode modal.editor.getValue()
 
+
   pistachio:->
-    {label, provider, publicAddress} = @getData()
+
+    {label, provider, ipAddress} = @getData()
     title = label or provider
 
     """
       <div class='details'>
         <span class='toggle'></span>
         <h3>#{title}</h3>
-        <a href="http://#{publicAddress}" target="_blank" title="#{publicAddress}">
           <span class='url'></span>
+        <a href="http://#{ipAddress}" target="_blank" title="#{ipAddress}">
         </a>
-        {{> @terminalIcon}}
+        <!-- {{terminalIcon}} -->
         {{> @chevron}}
       </div>
     """
