@@ -14,7 +14,7 @@ class MessagePane extends KDTabPaneView
 
     @bindChannelEvents()
 
-    @on 'LazyLoadThresholdReached', @bound 'lazyLoad'  if type in ['', 'topic']
+    @on 'LazyLoadThresholdReached', @bound 'lazyLoad'  if data.typeConstant in ['group', 'topic']
 
 
   bindChannelEvents: ->
