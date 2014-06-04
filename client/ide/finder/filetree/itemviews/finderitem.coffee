@@ -23,7 +23,7 @@ class NFinderItem extends JTreeItemView
       else NFileItemView
 
     @childView = new childConstructor delegate: this, data
-    @childView.$().css "margin-left", (data.depth) * 14
+    @childView.$().css "margin-left", (data.depth) * 10
 
     if data.name? and data.name.length > 20 - data.depth
       @childView.setAttribute "title", FSHelper.plainPath data.name
