@@ -25,6 +25,21 @@ type InfoResponse struct {
 	Data  interface{}
 }
 
+type controlFunc func(*kite.Request, *Controller) (interface{}, error)
+
+func (k *Kloud) ControlFunc(method string, control controlFunc) {
+	handler := func(r *kite.Request) (interface{}, error) {
+		c, err := k.controller(r)
+		if err != nil {
+			return nil, err
+		}
+
+		return control(r, c)
+	}
+
+	k.Kite.HandleFunc(method, handler)
+}
+
 // controller returns the Controller struct with all necessary entities
 // responsible for the given machine Id. It also calls provider.Prepare before
 // returning.
@@ -72,12 +87,7 @@ func (k *Kloud) controller(r *kite.Request) (*Controller, error) {
 	}, nil
 }
 
-func (k *Kloud) start(r *kite.Request) (interface{}, error) {
-	c, err := k.controller(r)
-	if err != nil {
-		return nil, err
-	}
-
+func (k *Kloud) start(r *kite.Request, c *Controller) (interface{}, error) {
 	k.idlock.Get(r.Username).Lock()
 	defer k.idlock.Get(r.Username).Unlock()
 
@@ -97,12 +107,7 @@ func (k *Kloud) start(r *kite.Request) (interface{}, error) {
 	return true, nil
 }
 
-func (k *Kloud) stop(r *kite.Request) (interface{}, error) {
-	c, err := k.controller(r)
-	if err != nil {
-		return nil, err
-	}
-
+func (k *Kloud) stop(r *kite.Request, c *Controller) (interface{}, error) {
 	k.idlock.Get(r.Username).Lock()
 	defer k.idlock.Get(r.Username).Unlock()
 
@@ -122,12 +127,7 @@ func (k *Kloud) stop(r *kite.Request) (interface{}, error) {
 	return true, nil
 }
 
-func (k *Kloud) destroy(r *kite.Request) (interface{}, error) {
-	c, err := k.controller(r)
-	if err != nil {
-		return nil, err
-	}
-
+func (k *Kloud) destroy(r *kite.Request, c *Controller) (interface{}, error) {
 	k.idlock.Get(r.Username).Lock()
 	defer k.idlock.Get(r.Username).Unlock()
 
@@ -168,12 +168,7 @@ func (k *Kloud) destroy(r *kite.Request) (interface{}, error) {
 	return true, nil
 }
 
-func (k *Kloud) restart(r *kite.Request) (interface{}, error) {
-	c, err := k.controller(r)
-	if err != nil {
-		return nil, err
-	}
-
+func (k *Kloud) restart(r *kite.Request, c *Controller) (interface{}, error) {
 	k.idlock.Get(r.Username).Lock()
 	defer k.idlock.Get(r.Username).Unlock()
 
@@ -207,12 +202,7 @@ func (k *Kloud) restart(r *kite.Request) (interface{}, error) {
 	return true, nil
 }
 
-func (k *Kloud) info(r *kite.Request) (interface{}, error) {
-	c, err := k.controller(r)
-	if err != nil {
-		return nil, err
-	}
-
+func (k *Kloud) info(r *kite.Request, c *Controller) (interface{}, error) {
 	k.idlock.Get(r.Username).Lock()
 	defer k.idlock.Get(r.Username).Unlock()
 
