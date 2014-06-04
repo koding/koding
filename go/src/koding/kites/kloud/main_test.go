@@ -54,6 +54,12 @@ var (
 			},
 			Machine: &kloud.Machine{
 				Provider: "digitalocean",
+				Status: struct {
+					State      string    `bson:"state"`
+					ModifiedAt time.Time `bson:"modifiedAt"`
+				}{
+					State: machinestate.NotInitialized.String(),
+				},
 				Meta: map[string]interface{}{
 					"type":          "digitalocean",
 					"clientId":      DIGITALOCEAN_CLIENT_ID,
@@ -111,7 +117,7 @@ func init() {
 func build(i int, client *kite.Client, data *kloud.MachineData) error {
 	instanceName := "testkloud-" + strconv.FormatInt(time.Now().UTC().UnixNano(), 10) + "-" + strconv.Itoa(i)
 
-	bArgs := &kloud.BuildArgs{
+	bArgs := &kloud.Controller{
 		MachineId:    data.Provider,
 		InstanceName: instanceName,
 	}
@@ -341,7 +347,7 @@ func TestProviders(t *testing.T) {
 		imageName := "testkoding-" + strconv.FormatInt(time.Now().UTC().Unix(), 10)
 
 		testlog("Starting tests")
-		bArgs := &kloud.BuildArgs{
+		bArgs := &kloud.Controller{
 			MachineId: data.Provider,
 			ImageName: imageName,
 		}

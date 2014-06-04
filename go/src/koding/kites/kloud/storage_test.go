@@ -24,8 +24,6 @@ type TestStorage struct{}
 
 func (t *TestStorage) Get(id string, opt *kloud.GetOption) (*kloud.MachineData, error) {
 	machineData := TestProviderData[id]
-	machineData.Machine.Status.State = machinestate.Running.String() // assume it's running
-
 	return machineData, nil
 }
 
@@ -41,9 +39,12 @@ func (t *TestStorage) Update(id string, resp *protocol.BuildResponse) error {
 }
 
 func (t *TestStorage) UpdateState(id string, state machinestate.State) error {
+	machineData := TestProviderData[id]
+	machineData.Machine.Status.State = state.String()
+	TestProviderData[id] = machineData
 	return nil
 }
 
 func (t *TestStorage) GetState(id string) (machinestate.State, error) {
-	return machinestate.NotInitialized, nil
+	return machinestate.States[TestProviderData[id].Machine.Status.State], nil
 }

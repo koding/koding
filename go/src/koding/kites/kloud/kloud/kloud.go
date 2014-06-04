@@ -78,7 +78,7 @@ func (k *Kloud) NewKloud() *kodingkite.KodingKite {
 	kt.Config.Region = k.Region
 	kt.Config.Port = k.Port
 
-	kt.HandleFunc("build", k.build)
+	k.ControlFunc("build", k.build)
 	k.ControlFunc("start", k.start)
 	k.ControlFunc("stop", k.stop)
 	k.ControlFunc("restart", k.restart)

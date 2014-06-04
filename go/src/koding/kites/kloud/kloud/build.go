@@ -1,7 +1,6 @@
 package kloud
 
 import (
-	"errors"
 	"fmt"
 	"koding/kites/kloud/eventer"
 	"koding/kites/kloud/kloud/machinestate"
@@ -12,58 +11,29 @@ import (
 	"github.com/koding/kite"
 )
 
-type BuildArgs struct {
-	MachineId    string
-	ImageName    string
-	InstanceName string
-	Username     string
-}
-
 type BuildResult struct {
 	State machinestate.State `json:"state"`
 }
 
-var (
-	defaultImageName = "koding-klient-0.0.1"
-	eventTypeBuild   = "build"
-)
+var defaultImageName = "koding-klient-0.0.1"
 
-func (k *Kloud) build(r *kite.Request) (interface{}, error) {
-	// this locks are important to prevent consecutive calls from the same user
-	k.idlock.Get(r.Username).Lock()
-	defer k.idlock.Get(r.Username).Unlock()
-
-	args := &BuildArgs{}
-	if err := r.Args.One().Unmarshal(args); err != nil {
-		return nil, err
-	}
-
-	if args.MachineId == "" {
-		return nil, errors.New("machineId is missing.")
-	}
-
-	state, err := k.Storage.GetState(args.MachineId)
-	if err != nil {
-		return nil, err
-	}
-
-	if state == machinestate.Building {
+func (k *Kloud) build(r *kite.Request, c *Controller) (interface{}, error) {
+	fmt.Printf("c %+v\n", c)
+	if c.CurrenState == machinestate.Building {
 		return nil, ErrBuilding
 	}
 
-	if state == machinestate.Unknown {
+	if c.CurrenState == machinestate.Unknown {
 		return nil, ErrUnknownState
 	}
 
 	// if it's something else (stopped, runnning, terminated, ...) it's been
 	// already built
-	if state != machinestate.NotInitialized {
+	if c.CurrenState != machinestate.NotInitialized {
 		return nil, ErrAlreadyInitialized
 	}
 
-	k.Storage.UpdateState(args.MachineId, machinestate.Building)
-
-	ev := k.NewEventer(eventTypeBuild + "-" + args.MachineId)
+	k.Storage.UpdateState(c.MachineId, machinestate.Building)
 
 	go func() {
 		k.idlock.Get(r.Username).Lock()
@@ -72,22 +42,19 @@ func (k *Kloud) build(r *kite.Request) (interface{}, error) {
 		status := machinestate.Running
 		msg := "Build is finished successfully."
 
-		//lets pass it alongside with args
-		args.Username = r.Username
-
-		err := k.buildMachine(args, ev)
+		err := k.buildMachine(c)
 		if err != nil {
 			k.Log.Error("Building machine failed: %s. Machine state is marked as ERROR.\n"+
 				"Any other calls are now forbidden until the state is resolved manually.\n"+
 				"Args: %v User: %s EventId: %d Previous Events: %s",
-				err.Error(), args, r.Username, args.MachineId, ev)
+				err.Error(), c, r.Username, c.MachineId, c.Eventer)
 
 			status = machinestate.Unknown
 			msg = err.Error()
 		}
 
-		k.Storage.UpdateState(args.MachineId, status)
-		ev.Push(&eventer.Event{
+		k.Storage.UpdateState(c.MachineId, status)
+		c.Eventer.Push(&eventer.Event{
 			Message:    msg,
 			Status:     status,
 			Percentage: 100,
@@ -97,51 +64,35 @@ func (k *Kloud) build(r *kite.Request) (interface{}, error) {
 	return BuildResult{State: machinestate.Building}, nil
 }
 
-func (k *Kloud) buildMachine(args *BuildArgs, ev eventer.Eventer) error {
+func (k *Kloud) buildMachine(c *Controller) error {
 	imageName := defaultImageName
-	if args.ImageName != "" {
-		imageName = args.ImageName
+	if c.ImageName != "" {
+		imageName = c.ImageName
 	}
 
-	instanceName := args.Username + "-" + strconv.FormatInt(time.Now().UTC().UnixNano(), 10)
-	if args.InstanceName != "" {
-		instanceName = args.InstanceName
-	}
-
-	m, err := k.Storage.Get(args.MachineId, &GetOption{
-		IncludeMachine:    true,
-		IncludeCredential: true,
-	})
-	if err != nil {
-		return err
-	}
-
-	provider, ok := providers[m.Provider]
-	if !ok {
-		return errors.New("provider not supported")
-	}
-
-	if err := provider.Prepare(m.Credential.Meta, m.Machine.Meta); err != nil {
-		return err
+	instanceName := c.Username + "-" + strconv.FormatInt(time.Now().UTC().UnixNano(), 10)
+	if c.InstanceName != "" {
+		instanceName = c.InstanceName
 	}
 
 	buildOptions := &protocol.MachineOptions{
-		MachineId:    args.MachineId,
-		Username:     args.Username,
+		MachineId:    c.MachineId,
+		Username:     c.Username,
 		ImageName:    imageName,
 		InstanceName: instanceName,
-		Eventer:      ev,
+		Eventer:      c.Eventer,
 	}
 
 	msg := fmt.Sprintf("Building process started. Provider '%s'. Build options: %+v",
-		provider.Name(), buildOptions)
+		c.Provider.Name(), buildOptions)
 	k.Log.Info(msg)
 
-	ev.Push(&eventer.Event{Message: msg, Status: machinestate.Building})
-	buildResponse, err := provider.Build(buildOptions)
+	c.Eventer.Push(&eventer.Event{Message: msg, Status: machinestate.Building})
+
+	buildResponse, err := c.Provider.Build(buildOptions)
 	if err != nil {
 		return err
 	}
 
-	return k.Storage.Update(args.MachineId, buildResponse)
+	return k.Storage.Update(c.MachineId, buildResponse)
 }
