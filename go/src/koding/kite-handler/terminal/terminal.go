@@ -80,7 +80,7 @@ func Connect(r *kite.Request) (interface{}, error) {
 	}
 
 	if r.Args.One().Unmarshal(&params) != nil || params.SizeX <= 0 || params.SizeY <= 0 {
-		return nil, errors.New("{ remote: [object], session: [string], sizeX: [integer], sizeY: [integer], noScreen: [boolean] }")
+		return nil, errors.New(fmt.Sprintf("{ remote: [object], session: %s, sizeX: %d, sizeY: %d, noScreen: [bool] } { raw JSON : %v }", params.Session, params.SizeX, params.SizeY, r.Args.One()))
 	}
 
 	user, err := user.Current()

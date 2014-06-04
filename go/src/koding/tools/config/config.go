@@ -46,6 +46,7 @@ type Config struct {
 	}
 	Mongo        string
 	MongoKontrol string
+	MongoMinWrites int
 	Mq           struct {
 		Host          string
 		Port          int
