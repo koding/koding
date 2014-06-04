@@ -378,7 +378,6 @@ func (f *Controller) sendChannelUpdatedEvent(channelId int64, cm *models.Channel
 }
 
 func (f *Controller) sendChannelUpdatedEventToAccount(c *models.Channel, cm *models.ChannelMessage, accountId int64) error {
-
 	cp := models.NewChannelParticipant()
 	cp.ChannelId = c.Id
 	cp.AccountId = accountId
@@ -391,10 +390,20 @@ func (f *Controller) sendChannelUpdatedEventToAccount(c *models.Channel, cm *mod
 }
 
 func (f *Controller) sendChannelUpdatedEventToParticipant(c *models.Channel, cm *models.ChannelMessage, cp *models.ChannelParticipant) error {
+	data := map[string]interface{}{
+		"channel":     c,
+		"message":     cm,
+		"unreadCount": 0,
+	}
+
 	count := 0
 	var err error
 	if cm != nil {
-		count, err = models.NewMessageReply().UnreadCount(cm, cp)
+		cml, err := c.FetchMessageList(cm.Id)
+		if err != nil {
+			return err
+		}
+		count, err = models.NewMessageReply().UnreadCount(cml)
 	} else {
 		count, err = models.NewChannelMessageList().UnreadCount(cp)
 	}
@@ -402,19 +411,33 @@ func (f *Controller) sendChannelUpdatedEventToParticipant(c *models.Channel, cm 
 		f.log.Notice("Error happened, setting unread count to 1 %s", err.Error())
 		count = 1
 	}
-
-	data := map[string]interface{}{
-		"channel":     c,
-		"unreadCount": count,
-	}
-
+	data["unreadCount"] = count
 	f.sendNotification(cp.AccountId, ChannelUpdateEventName, data)
 
 	return nil
 }
 
-// no operation for channel_message_list_updated event
+// todo - refactor this part
 func (f *Controller) MessageListUpdated(data []byte) error {
+	cml, err := helper.MapToChannelMessageList(data)
+	if err != nil {
+		return err
+	}
+
+	c, err := models.ChannelById(cml.ChannelId)
+	if err != nil {
+		return err
+	}
+
+	cm := models.NewChannelMessage()
+	if err := cm.ById(cml.MessageId); err != nil {
+		return err
+	}
+
+	cp := models.NewChannelParticipant()
+	cp.AccountId = c.CreatorId
+
+	f.sendChannelUpdatedEventToParticipant(c, cm, cp)
 	return nil
 }
 
