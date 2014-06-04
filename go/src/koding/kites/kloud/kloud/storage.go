@@ -63,12 +63,10 @@ func (m *MongoDB) Get(id string, opt *GetOption) (*MachineData, error) {
 
 	credential := &Credential{}
 	if opt.IncludeCredential {
-		err := m.session.Run("jCredentialDatas", func(c *mgo.Collection) error {
+		// we neglect errors because credential is optional
+		m.session.Run("jCredentialDatas", func(c *mgo.Collection) error {
 			return c.Find(bson.M{"publicKey": machine.Credential}).One(credential)
 		})
-		if err != nil {
-			return nil, err
-		}
 	}
 
 	return &MachineData{
