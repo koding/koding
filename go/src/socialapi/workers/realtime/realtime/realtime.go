@@ -64,33 +64,30 @@ func New(rmq *rabbitmq.RabbitMQ, log logging.Logger) (*Controller, error) {
 	ffc := &Controller{
 		log:     log,
 		rmqConn: rmqConn.Conn(),
+		ffc.routes: map[string]Action{
+			"api.channel_message_created": (*Controller).MessageSaved,
+			"api.channel_message_updated": (*Controller).MessageUpdated,
+			"api.channel_message_deleted": (*Controller).MessageDeleted,
+
+			"api.interaction_created": (*Controller).InteractionSaved,
+			"api.interaction_deleted": (*Controller).InteractionDeleted,
+
+			"api.message_reply_created": (*Controller).MessageReplySaved,
+			"api.message_reply_deleted": (*Controller).MessageReplyDeleted,
+
+			"api.channel_message_list_created": (*Controller).MessageListSaved,
+			"api.channel_message_list_updated": (*Controller).MessageListUpdated,
+			"api.channel_message_list_deleted": (*Controller).MessageListDeleted,
+
+			"api.channel_participant_removed_from_channel": (*Controller).ChannelParticipantRemovedFromChannelEvent,
+			"api.channel_participant_added_to_channel":     (*Controller).ChannelParticipantAddedToChannelEvent,
+			"api.channel_participant_created":              (*Controller).ChannelParticipantAddedToChannelEvent,
+			"api.channel_participant_updated":              (*Controller).ChannelParticipantUpdatedEvent,
+
+			"notification.notification_created": (*Controller).NotifyUser,
+			"notification.notification_updated": (*Controller).NotifyUser,
+		},
 	}
-
-	routes := map[string]Action{
-		"api.channel_message_created": (*Controller).MessageSaved,
-		"api.channel_message_updated": (*Controller).MessageUpdated,
-		"api.channel_message_deleted": (*Controller).MessageDeleted,
-
-		"api.interaction_created": (*Controller).InteractionSaved,
-		"api.interaction_deleted": (*Controller).InteractionDeleted,
-
-		"api.message_reply_created": (*Controller).MessageReplySaved,
-		"api.message_reply_deleted": (*Controller).MessageReplyDeleted,
-
-		"api.channel_message_list_created": (*Controller).MessageListSaved,
-		"api.channel_message_list_updated": (*Controller).MessageListUpdated,
-		"api.channel_message_list_deleted": (*Controller).MessageListDeleted,
-
-		"api.channel_participant_removed_from_channel": (*Controller).ChannelParticipantRemovedFromChannelEvent,
-		"api.channel_participant_added_to_channel":     (*Controller).ChannelParticipantAddedToChannelEvent,
-		"api.channel_participant_created":              (*Controller).ChannelParticipantAddedToChannelEvent,
-		"api.channel_participant_updated":              (*Controller).ChannelParticipantUpdatedEvent,
-
-		"notification.notification_created": (*Controller).NotifyUser,
-		"notification.notification_updated": (*Controller).NotifyUser,
-	}
-
-	ffc.routes = routes
 
 	return ffc, nil
 }
@@ -151,7 +148,7 @@ func (f *Controller) ChannelParticipantUpdatedEvent(data []byte) error {
 		return err
 	}
 
-	return f.sendChannelUpdatedEventToParticipant(c, cp)
+	return f.sendChannelUpdatedEventToParticipant(c, nil, cp)
 }
 
 func (f *Controller) ChannelParticipantRemovedFromChannelEvent(data []byte) error {
@@ -303,7 +300,7 @@ func (f *Controller) sendReplyAddedEventAsNotificationEvent(mr *models.MessageRe
 		// send this event to all channels
 		// that have this message
 		cml.ChannelId = channel.Id
-		err := f.sendChannelUpdatedEvent(cml.ChannelId)
+		err := f.sendChannelUpdatedEvent(cml.ChannelId, parent)
 		if err != nil {
 			f.log.Error("err %s", err.Error())
 		}
@@ -334,7 +331,7 @@ func (f *Controller) MessageListSaved(data []byte) error {
 		return err
 	}
 
-	if err := f.sendChannelUpdatedEvent(cml.ChannelId); err != nil {
+	if err := f.sendChannelUpdatedEvent(cml.ChannelId, nil); err != nil {
 		return err
 	}
 
@@ -345,7 +342,7 @@ func (f *Controller) MessageListSaved(data []byte) error {
 	return nil
 }
 
-func (f *Controller) sendChannelUpdatedEvent(channelId int64) error {
+func (f *Controller) sendChannelUpdatedEvent(channelId int64, cm *models.ChannelMessage) error {
 	if channelId == 0 {
 		return fmt.Errorf("ChannelId or AccountId is not set")
 	}
@@ -371,14 +368,13 @@ func (f *Controller) sendChannelUpdatedEvent(channelId int64) error {
 	}
 
 	for _, accountId := range participants {
-		f.sendChannelUpdatedEventToAccount(c, accountId)
+		f.sendChannelUpdatedEventToAccount(c, cm, accountId)
 	}
 
 	return nil
 }
 
-func (f *Controller) sendChannelUpdatedEventToAccount(c *models.Channel, accountId int64) error {
-
+func (f *Controller) sendChannelUpdatedEventToAccount(c *models.Channel, cm *models.ChannelMessage, accountId int64) error {
 	cp := models.NewChannelParticipant()
 	cp.ChannelId = c.Id
 	cp.AccountId = accountId
@@ -387,28 +383,58 @@ func (f *Controller) sendChannelUpdatedEventToAccount(c *models.Channel, account
 		return nil
 	}
 
-	return f.sendChannelUpdatedEventToParticipant(c, cp)
+	return f.sendChannelUpdatedEventToParticipant(c, cm, cp)
 }
 
-func (f *Controller) sendChannelUpdatedEventToParticipant(c *models.Channel, cp *models.ChannelParticipant) error {
-	count, err := models.NewChannelMessageList().UnreadCount(cp)
+func (f *Controller) sendChannelUpdatedEventToParticipant(c *models.Channel, cm *models.ChannelMessage, cp *models.ChannelParticipant) error {
+	data := map[string]interface{}{
+		"channel":     c,
+		"message":     cm,
+		"unreadCount": 0,
+	}
+
+	count := 0
+	var err error
+	if cm != nil {
+		cml, err := c.FetchMessageList(cm.Id)
+		if err != nil {
+			return err
+		}
+		count, err = models.NewMessageReply().UnreadCount(cml)
+	} else {
+		count, err = models.NewChannelMessageList().UnreadCount(cp)
+	}
 	if err != nil {
 		f.log.Notice("Error happened, setting unread count to 1 %s", err.Error())
 		count = 1
 	}
-
-	data := map[string]interface{}{
-		"channel":     c,
-		"unreadCount": count,
-	}
-
+	data["unreadCount"] = count
 	f.sendNotification(cp.AccountId, ChannelUpdateEventName, data)
 
 	return nil
 }
 
-// no operation for channel_message_list_updated event
+// todo - refactor this part
 func (f *Controller) MessageListUpdated(data []byte) error {
+	cml, err := helper.MapToChannelMessageList(data)
+	if err != nil {
+		return err
+	}
+
+	c, err := models.ChannelById(cml.ChannelId)
+	if err != nil {
+		return err
+	}
+
+	cm := models.NewChannelMessage()
+	if err := cm.ById(cml.MessageId); err != nil {
+		return err
+	}
+
+	cp := models.NewChannelParticipant()
+	cp.AccountId = c.CreatorId
+
+	f.sendChannelUpdatedEventToParticipant(c, cm, cp)
 	return nil
 }
 

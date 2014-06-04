@@ -41,6 +41,8 @@ module.exports = class SocialChannel extends Base
           (signature Object, Function)
         updateLastSeenTime:
           (signature Object, Function)
+        glancePinnedPost:
+          (signature Object, Function)
 
     schema             :
       id               : Number
@@ -137,24 +139,34 @@ module.exports = class SocialChannel extends Base
     fnName  : 'updateLastSeenTime'
     validate: ["channelId"]
 
+  # glancePinnedPost - updates user's lastSeenDate for pinned posts
+  @glancePinnedPost = secureRequest
+    fnName  : 'glancePinnedPost'
+    validate: ["messageId"]
+
+  # fetchPinnedMessages - fetch user's pinned messages
   @fetchPinnedMessages = permittedRequest
     permissionName: 'pin posts'
     fnName        : 'fetchPinnedMessages'
 
+  # pinMessage - pin a message for future referance
   @pinMessage = permittedRequest
     permissionName: 'pin posts'
     fnName        : 'pinMessage'
     validate      : ['messageId']
 
+  # unpinMessage - remove a pinned message from followed posts
   @unpinMessage = permittedRequest
     permissionName: 'pin posts'
     fnName        : 'unpinMessage'
     validate      : ['messageId']
 
+  # fetchActivities - fetch activities of a channel
   @fetchActivities = secure (client, options = {}, callback)->
     options.channelId = options.id
     doRequest 'fetchChannelActivities', client, options, callback
 
+  # followUser - a user follows a user
   @followUser = secure (client, options, callback)->
     {connection:{delegate}} = client
     return callback {message: "Access denied"}  if delegate.type isnt 'registered'

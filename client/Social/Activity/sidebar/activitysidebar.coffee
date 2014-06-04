@@ -45,6 +45,7 @@ class ActivitySidebar extends KDCustomScrollView
     {
       notificationController
       socialapi
+      windowController
     } = KD.singletons
 
     @sections     = {}
@@ -64,6 +65,21 @@ class ActivitySidebar extends KDCustomScrollView
       listController = @getListController revived.typeConstant
       item           = listController.itemsIndexed[revived.id]
       listController.removeItem item
+
+    notificationController.on 'ChannelUpdateHappened', (update) =>
+
+      {unreadCount, channel} = update
+      {typeConstant, id}     = channel
+
+      listController = @getListController typeConstant
+
+      item = listController.itemForId id
+
+      log item, update, '>>>>>>>>>>>>>>'
+
+    # windowController.addFocusListener (focused) ->
+    #   log 'browser focus:', focused
+
 
 
   getListController: (type) ->
