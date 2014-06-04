@@ -462,7 +462,7 @@ func (d *DigitalOcean) Stop(opts *protocol.MachineOptions) error {
 
 	push("Stopping machine", 10)
 
-	path := fmt.Sprintf("droplets/%v/power_off", dropletId)
+	path := fmt.Sprintf("droplets/%v/shutdown", dropletId)
 	body, err := digitalocean.NewRequest(*d.Client, path, url.Values{})
 	if err != nil {
 		return err
