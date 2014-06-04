@@ -33,45 +33,36 @@ func (k *Kloud) Klient(queryString string) (*Klient, error) {
 		Version:     query.Version,
 	}
 
-	klient := &Klient{}
-
-	checkKite := func() error {
-		kites, err := k.Kite.GetKites(kontrolQuery)
-		if err != nil {
-			return err
-		}
-
-		remoteKite := kites[0]
-
-		connected, err := remoteKite.DialForever()
-		if err != nil {
-			return err
-		}
-
-		select {
-		case <-connected:
-		case <-time.After(time.Minute):
-			return errors.New("couldn't connect to remote klient kite")
-		}
-
-		// klient connection is ready
-		klient.client = remoteKite
-		return nil
-	}
-
-	tryUntil := time.Now().Add(time.Minute)
 	for {
-		if err = checkKite(); err == nil {
-			return klient, nil
-		}
+		select {
+		case <-time.Tick(time.Second * 2):
+			kites, err := k.Kite.GetKites(kontrolQuery)
+			if err != nil {
+				return nil, err
+			}
 
-		if time.Now().After(tryUntil) {
-			return nil, fmt.Errorf("Timeout while waiting for kite. Reason: %v", err)
-		}
+			remoteKite := kites[0]
 
-		time.Sleep(time.Second * 2)
+			connected, err := remoteKite.DialForever()
+			if err != nil {
+				return nil, err
+			}
+
+			select {
+			case <-connected:
+			case <-time.After(time.Minute):
+				return nil, errors.New("couldn't connect to remote klient kite")
+			}
+
+			// klient connection is ready now
+			return &Klient{
+				client: remoteKite,
+			}, nil
+		case <-time.After(time.Minute * 5):
+			return nil, fmt.Errorf("timeout while connection for kite")
+		}
 	}
-	return nil, err
+
 }
 
 // Ping checks if the given klient response with "pong" to the "ping" we send.
