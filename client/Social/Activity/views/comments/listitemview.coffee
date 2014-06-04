@@ -25,7 +25,7 @@ class CommentListItemView extends KDListItemView
       then @getSettingsButton edit: yes, delete: yes
       else if isOwner or canDeleteOwn
       then @getSettingsButton delete: yes
-      else KDView
+      else new KDView
 
 
   getSettingsButton: (options) ->
