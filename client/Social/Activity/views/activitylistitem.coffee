@@ -100,7 +100,6 @@ class ActivityListItemView extends KDListItemView
       post = text[offset + match.length]
       return match  if pre  isnt ' ' and offset isnt 0
       return match  if post isnt ' ' and (offset + match.length) isnt text.length
-      return match  if pre  is '&'
       return "[##{tag}](#{prefix}/Activity/Topic/#{tag})"
 
 
