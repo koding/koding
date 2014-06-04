@@ -49,7 +49,8 @@ class ComputeProvider extends KDObject
 
 class Machine extends KDObject
 
-  constructor:(options = {})->
+
+  constructor: (options = {})->
 
     { machine } = options
     unless machine?.bongo_?.constructorName is 'JMachine'
@@ -58,17 +59,20 @@ class Machine extends KDObject
     delete options.machine
     super options, machine
 
-    { @label, @publicAddress,
-      @status, @uid, @_id, @queryString } = @jMachine = @getData()
+    { @label, @publicAddress, @_id
+      @status, @uid, @queryString } = @jMachine = @getData()
 
     if @queryString?
       @kites   =
-        klient : KD.singletons.kontrolProd.getKite { @queryString }
+        klient : KD.singletons.kontrolProd.getKite {
+          @queryString, correlationName: @uid
+        }
+
     else
       @kites = {}
 
 
-  getName:->
+  getName: ->
     @publicAddress or @uid or @label or "one of #{KD.nick()}'s machine"
 
 
@@ -101,7 +105,9 @@ class MachineItem extends KDListItemView
     {{> @actionButton}}
     """
 
+
 class MachineList extends KDModalView
+
 
   constructor: (options = {}, data)->
 
@@ -114,7 +120,8 @@ class MachineList extends KDModalView
 
     super options, data
 
-  viewAppended:->
+
+  viewAppended: ->
 
     @addSubView @loader = new KDLoaderView
       cssClass    : "loader"
@@ -143,6 +150,7 @@ class MachineList extends KDModalView
 
     @fetchMachines()
 
+
   fetchMachines: ->
 
     @loader.show()
@@ -155,3 +163,4 @@ class MachineList extends KDModalView
       @loader.hide()
 
       @machineListController.replaceAllItems machines
+

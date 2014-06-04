@@ -65,59 +65,58 @@ class KodingKontrol extends (require 'kontrol')
   getWhoParams: (kiteName, correlationName) ->
     if kiteName in ['oskite', 'terminal']
       return vmName: correlationName
-    { correlationName }
-
-  getKiteByCorrelationName: (name, correlationName) ->
-    kite = @getKiteProxy { name, correlationName }
-
-    @fetchVmInfo(correlationName).then ({ region }) =>
-      @fetchKite
-        query : { name, region }
-        who   : @getWhoParams name, correlationName
-    .then(kite.bound 'setTransport')
-    .then(kite.bound 'logTransportFailures')
-    .catch(@error.bind this)
-
-    kite
+    return { correlationName }
 
   getKiteProxy: (options) ->
+
     { name, correlationName } = options
 
-    if (kite = @getCachedKite name, correlationName)?
-      return kite
-
     konstructor = KodingKite.constructors[name]
-
     kite = new konstructor options
 
     @setCachedKite name, correlationName, kite
 
-    kite
+    return kite
+
 
   getKite: (options = {}) ->
 
-    { queryString } = options
+    # Get options
+    { name, correlationName, region,
+      username, environment, queryString } = options
 
+    # If queryString provided try to split it first
+    # and if successful, use it as query
     if queryString? and queryObject = KD.utils.splitKiteQuery queryString
-      options = queryObject
-    else
-      { name, correlationName, region,
-        username, environment, queryString } = options
+      { name } = query = queryObject
 
-    kite = @getKiteProxy options
+    # Check for cached version of requested kite with correlationName
+    return kite  if (kite = @getCachedKite name, correlationName)?
 
+    # Get Kite Proxy, it will be created at this point
+    # since its not cached before
+    kite = @getKiteProxy { name, correlationName }
+
+    # Query kontrol
     @fetchKite
-      query : queryObject or { name, region, username, environment }
-      who   : @getWhoParams name, correlationName
+      query : query ? { name, region, username, environment }
 
+      # TODO : Implement optional kite.who
+      # who  : @getWhoParams name, correlationName
+
+    # Connect to kite
     .then(kite.bound 'setTransport')
     .then(kite.bound 'logTransportFailures')
+
+    # Report error
     .catch(@error.bind this)
 
-    kite
+    return kite
+
 
   error: (err)->
-    warn err
+
+    warn "[KodingKontrol] ", err
 
     {message} = err
     message   = if message then message else err
