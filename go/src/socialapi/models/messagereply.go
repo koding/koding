@@ -164,7 +164,7 @@ func (m *MessageReply) UnreadCount(cml *ChannelMessageList) (int, error) {
 	return bongo.B.Count(
 		m,
 		"message_id = ? and created_at > ?",
-		m.Id,
+		cml.MessageId,
 		cml.AddedAt.UTC().Format(time.RFC822Z),
 	)
 }
