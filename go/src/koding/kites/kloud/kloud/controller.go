@@ -119,7 +119,6 @@ func (k *Kloud) coreMethods(r *kite.Request, c *Controller, fn func(*protocol.Ma
 	if !ok {
 		return nil, fmt.Errorf("no state pair available for %s", r.Method)
 	}
-
 	k.Storage.UpdateState(c.MachineId, s.initial)
 
 	machOptions := &protocol.MachineOptions{

@@ -76,6 +76,15 @@ func (e *Events) Show() *Event {
 	e.Lock()
 	defer e.Unlock()
 
+	if len(e.events) == 0 {
+		return &Event{
+			EventId:   e.eventId,
+			Message:   "no event available",
+			TimeStamp: time.Now(),
+			Status:    machinestate.Unknown,
+		}
+	}
+
 	return e.events[len(e.events)-1]
 }
 

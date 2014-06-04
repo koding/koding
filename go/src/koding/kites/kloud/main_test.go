@@ -35,7 +35,7 @@ var (
 	storage   kloud.Storage
 
 	flagTestBuilds     = flag.Int("builds", 1, "Number of builds")
-	flagTestDestroy    = flag.Bool("no-destroy", false, "Do not destroy test machines")
+	flagTestControl    = flag.Bool("control", false, "Enable control tests too (start/stop/..)")
 	flagTestQuery      = flag.String("query", "", "Query as string for controller tests")
 	flagTestInstanceId = flag.String("instance", "", "Instance id (such as droplet Id)")
 	flagTestUsername   = flag.String("user", "", "Create machines on behalf of this user")
@@ -151,14 +151,23 @@ func listenEvent(args interface{}, desiredState machinestate.State) error {
 	return nil
 }
 
+// build builds a single machine with the given client and data. Use this
+// function to invoke concurrent and multiple builds.
 func build(i int, client *kite.Client, data *kloud.MachineData) error {
-	instanceName := "testkloud-" + strconv.FormatInt(time.Now().UTC().UnixNano(), 10) + "-" + strconv.Itoa(i)
+	uniqueId := strconv.FormatInt(time.Now().UTC().UnixNano(), 10)
+	instanceName := "testkloud-" + uniqueId + "-" + strconv.Itoa(i)
+
+	testlog := func(msg string, args ...interface{}) {
+		// mimick it like packer's own log
+		color.Cyan("==> %s: %s", data.Provider, fmt.Sprintf(msg, args...))
+	}
 
 	bArgs := &kloud.Controller{
 		MachineId:    data.Provider,
 		InstanceName: instanceName,
 	}
 
+	start := time.Now()
 	resp, err := client.Tell("build", bArgs)
 	if err != nil {
 		return err
@@ -180,23 +189,39 @@ func build(i int, client *kite.Client, data *kloud.MachineData) error {
 	if err := listenEvent(eArgs, machinestate.Running); err != nil {
 		return err
 	}
+	testlog("Building the machine. Elapsed time %f seconds", time.Since(start).Seconds())
 
-	if !*flagTestDestroy {
+	if *flagTestControl {
 		cArgs := &kloud.Controller{
 			MachineId: data.Provider,
 		}
 
-		if _, err := client.Tell("destroy", cArgs); err != nil {
-			return fmt.Errorf("destroy: %s", err)
+		methodPairs := []struct {
+			method       string
+			desiredState machinestate.State
+		}{
+			{method: "stop", desiredState: machinestate.Stopped},
+			{method: "start", desiredState: machinestate.Running},
+			{method: "restart", desiredState: machinestate.Running},
+			{method: "destroy", desiredState: machinestate.Terminated},
 		}
 
-		eArgs := &kloud.EventArgs{
-			EventId: bArgs.MachineId,
-			Type:    "destroy",
-		}
+		// do not change the order
+		for _, pair := range methodPairs {
+			if _, err := client.Tell(pair.method, cArgs); err != nil {
+				return fmt.Errorf("%s: %s", pair.method, err)
+			}
 
-		if err := listenEvent(eArgs, machinestate.Terminated); err != nil {
-			return err
+			eArgs := &kloud.EventArgs{
+				EventId: bArgs.MachineId,
+				Type:    pair.method,
+			}
+
+			start := time.Now()
+			if err := listenEvent(eArgs, pair.desiredState); err != nil {
+				return err
+			}
+			testlog("%s finished. Elapsed time %f seconds", pair.method, time.Since(start).Seconds())
 		}
 	}
 
@@ -352,7 +377,6 @@ func TestProviders(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		testlog("Building image and creating the machine. Elapsed time %f seconds", time.Since(start).Seconds())
 
 		var result kloudprotocol.BuildResponse
 		err = resp.Unmarshal(&result)

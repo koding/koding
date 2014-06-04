@@ -18,7 +18,6 @@ type BuildResult struct {
 var defaultImageName = "koding-klient-0.0.1"
 
 func (k *Kloud) build(r *kite.Request, c *Controller) (interface{}, error) {
-	fmt.Printf("c %+v\n", c)
 	if c.CurrenState == machinestate.Building {
 		return nil, ErrBuilding
 	}
