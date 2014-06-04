@@ -277,10 +277,12 @@ class SocialApiController extends KDController
       fnName             : 'fetchPopularPosts'
       validateOptionsWith: ['channelName']
       defaults           : type: 'weekly'
+      mapperFn           : fetchPopularPosts
 
     fetchPopularTopics   : channelRequesterFn
       fnName             : 'fetchPopularTopics'
       defaults           : type: 'weekly'
+      mapperFn           : mapChannels
 
     fetchPinnedMessages  : channelRequesterFn
       fnName             : 'fetchPinnedMessages'
