@@ -40,10 +40,13 @@ module.exports = (req, res) ->
   # replace nonalphanumeric characters
   ext = ext.replace(/\W+/g, "")
 
+  md5 = crypto.createHash("md5")
   for i in [noExt, width, height]
-    md5 = crypto.createHash("md5").update(i).digest("hex")
+    md5.update(i)
 
-  filename = "#{imagePath}/#{md5}.#{ext}"
+  digest = md5.digest("hex")
+
+  filename = "#{imagePath}/#{digest}.#{ext}"
 
   serveFile = (filename, res)->
     fileStream = fs.createReadStream filename
