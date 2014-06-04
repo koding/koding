@@ -2,9 +2,9 @@ package protocol
 
 import "koding/kites/kloud/eventer"
 
-// BuildOptions is passed to a build method. It contains all necessary
-// informations.
-type BuildOptions struct {
+// MachineOptions is passed to the methods of the Provider interface. It
+// contains all necessary informations.
+type MachineOptions struct {
 	// MachineId defines a unique ID in which the build informations are
 	// fetched from. MachineId is used to gather the Username, ImageName,
 	// InstanceName etc.. For example it could be a mongodb object id that
@@ -29,7 +29,7 @@ type BuildOptions struct {
 // BuildResponse should be returned from a Build method.
 type BuildResponse struct {
 	// InstanceName should define the name/hostname of the created machine. It
-	// should be equal to the InstanceName that was passed via BuildOptions.
+	// should be equal to the InstanceName that was passed via MachineOptions.
 	InstanceName string
 
 	// InstanceId should define a unique ID that defined the created machine.
@@ -56,22 +56,22 @@ type Provider interface {
 	Prepare(...interface{}) error
 
 	// Build is creating a image and a machine.
-	Build(*BuildOptions) (*BuildResponse, error)
+	Build(*MachineOptions) (*BuildResponse, error)
 
 	// Start starts the machine
-	Start(...interface{}) error
+	Start(*MachineOptions) error
 
 	// Stop stops the machine
-	Stop(...interface{}) error
+	Stop(*MachineOptions) error
 
 	// Restart restarts the machine
-	Restart(...interface{}) error
+	Restart(*MachineOptions) error
 
 	// Destroy destroys the machine
-	Destroy(...interface{}) error
+	Destroy(*MachineOptions) error
 
 	// Info returns full information about a single machine
-	Info(...interface{}) (interface{}, error)
+	Info(*MachineOptions) (interface{}, error)
 
 	// Name returns the underlying provider type
 	Name() string

@@ -98,11 +98,26 @@ func (d *DigitalOcean) Prepare(raws ...interface{}) (err error) {
 	return nil
 }
 
+type pushFunc func(string, int)
+
+func (d *DigitalOcean) pusher(opts *protocol.MachineOptions, state machinestate.State) pushFunc {
+	return func(msg string, percentage int) {
+		d.Log.Debug("[machineId: '%s': username: '%s' dropletName: '%s' snapshotName: '%s'] - %s",
+			opts.MachineId, opts.Username, opts.InstanceName, opts.ImageName, msg)
+
+		opts.Eventer.Push(&eventer.Event{
+			Message:    msg,
+			Status:     state,
+			Percentage: percentage,
+		})
+	}
+}
+
 // Build is building an image and creates a droplet based on that image. If the
 // given snapshot/image exist it directly skips to creating the droplet. It
 // acceps two string arguments, first one is the snapshotname, second one is
 // the dropletName.
-func (d *DigitalOcean) Build(opts *protocol.BuildOptions) (p *protocol.BuildResponse, err error) {
+func (d *DigitalOcean) Build(opts *protocol.MachineOptions) (p *protocol.BuildResponse, err error) {
 	if opts.ImageName == "" {
 		return nil, errors.New("snapshotName is empty")
 	}
@@ -121,17 +136,7 @@ func (d *DigitalOcean) Build(opts *protocol.BuildOptions) (p *protocol.BuildResp
 		return nil, errors.New("Eventer is not defined.")
 	}
 
-	// push logs and pushes each step to the eventer
-	push := func(msg string, percentage int) {
-		d.Log.Debug("[machineId: '%s': username: '%s' dropletName: '%s' snapshotName: '%s'] - %s",
-			opts.MachineId, opts.Username, opts.InstanceName, opts.ImageName, msg)
-
-		opts.Eventer.Push(&eventer.Event{
-			Message:    msg,
-			Status:     machinestate.Building,
-			Percentage: percentage,
-		})
-	}
+	push := d.pusher(opts, machinestate.Building)
 
 	// needed because this is passed as `data` to packer.Provider
 	d.Builder.SnapshotName = snapshotName
@@ -185,38 +190,15 @@ func (d *DigitalOcean) Build(opts *protocol.BuildOptions) (p *protocol.BuildResp
 	// Now we wait until it's ready, it takes approx. 50-70 seconds to finish,
 	// but we also add a timeout  of five minutes to not let stuck it there
 	// forever.
-	tickFunc := func() error {
-		n := 25
-		for {
-			select {
-			case <-time.After(time.Minute * 5):
-				return fmt.Errorf("Timeout while waiting to for droplet to become '%s'", "done")
-			case <-time.Tick(3 * time.Second):
-				push(fmt.Sprintf("Waiting for droplet to be ready ..."), n)
-				event, err := d.CheckEvent(dropletInfo.Droplet.EventId)
-				if err != nil {
-					return err
-				}
-
-				if event.Event.ActionStatus == "done" {
-					return nil
-				}
-
-				// the next steps percentage is 60, fake it until we got there
-				if n < 59 {
-					n += 2
-				}
-			}
-		}
-	}
-
-	if err := tickFunc(); err != nil {
+	if err := d.WaitUntilReady(dropletInfo.Droplet.EventId, 25, 59, push); err != nil {
 		return nil, err
 	}
 
 	// our droplet has now an IP adress, get it
 	push(fmt.Sprintf("Getting info about droplet"), 60)
-	info, err := d.Info(dropletInfo.Droplet.Id)
+	d.Builder.DropletId = strconv.Itoa(dropletInfo.Droplet.Id)
+
+	info, err := d.Info(opts)
 	if err != nil {
 		return nil, err
 	}
@@ -304,27 +286,34 @@ func (d *DigitalOcean) CheckEvent(eventId int) (*Event, error) {
 	return event, nil
 }
 
-// WaitForState checks the given state for the eventID and returns nil if the
+// WaitUntilReady checks the given state for the eventID and returns nil if the
 // state has been reached. It returns an error if the given timeout has been
 // reached, if another generic error is produced or if the event status is of
 // type "ERROR".
-func (d *DigitalOcean) WaitForState(eventId int, desiredState string, timeout time.Duration) error {
-	n := 5
+func (d *DigitalOcean) WaitUntilReady(eventId, from, to int, push pushFunc) error {
 	for {
 		select {
-		case <-time.After(timeout):
-			return fmt.Errorf("Timeout while waiting to for droplet to become '%s'", desiredState)
+		case <-time.After(time.Minute):
+			return errors.New("Timeout while waiting for droplet to become ready")
 		case <-time.Tick(3 * time.Second):
+			if push != nil {
+				push("Waiting for droplet to be ready", from)
+			}
+
 			event, err := d.CheckEvent(eventId)
 			if err != nil {
 				return err
 			}
 
-			if event.Event.ActionStatus == desiredState {
+			if event.Event.ActionStatus == "done" {
+				push("Waiting is done. Got a successfull result.", from)
 				return nil
 			}
 
-			n += 5
+			// the next steps percentage is 60, fake it until we got there
+			if from < to {
+				from += 2
+			}
 		}
 	}
 }
@@ -438,42 +427,81 @@ func (d *DigitalOcean) MyImages() ([]digitalocean.Image, error) {
 }
 
 // Start starts the machine for the given dropletID
-func (d *DigitalOcean) Start(raws ...interface{}) error {
-	dropletId, err := d.DropletId(raws...)
+func (d *DigitalOcean) Start(opts *protocol.MachineOptions) error {
+	push := d.pusher(opts, machinestate.Starting)
+	dropletId, err := d.DropletId()
 	if err != nil {
 		return err
 	}
 
+	push("Starting machine", 10)
+
 	path := fmt.Sprintf("droplets/%v/power_on", dropletId)
-	_, err = digitalocean.NewRequest(*d.Client, path, url.Values{})
-	return err
+	body, err := digitalocean.NewRequest(*d.Client, path, url.Values{})
+	if err != nil {
+		return err
+	}
+
+	push("Start message is being sent, waiting.", 30)
+
+	eventId, ok := body["event_id"].(float64)
+	if !ok {
+		return fmt.Errorf("restart malformed data %v", body)
+	}
+
+	return d.WaitUntilReady(int(eventId), 30, 80, push)
 }
 
 // Stop stops the machine for the given dropletID
-func (d *DigitalOcean) Stop(raws ...interface{}) error {
-	dropletId, err := d.DropletId(raws...)
+func (d *DigitalOcean) Stop(opts *protocol.MachineOptions) error {
+	push := d.pusher(opts, machinestate.Stopping)
+	dropletId, err := d.DropletId()
 	if err != nil {
 		return err
 	}
 
-	err = d.Client.PowerOffDroplet(dropletId)
+	push("Stopping machine", 10)
+
+	path := fmt.Sprintf("droplets/%v/shutdown", dropletId)
+	body, err := digitalocean.NewRequest(*d.Client, path, url.Values{})
 	if err != nil {
 		return err
 	}
 
-	return nil
+	push("Stop message is being sent, waiting.", 30)
+
+	eventId, ok := body["event_id"].(float64)
+	if !ok {
+		return fmt.Errorf("restart malformed data %v", body)
+	}
+
+	return d.WaitUntilReady(int(eventId), 30, 80, push)
 }
 
 // Restart restart the machine for the given dropletID
-func (d *DigitalOcean) Restart(raws ...interface{}) error {
-	dropletId, err := d.DropletId(raws...)
+func (d *DigitalOcean) Restart(opts *protocol.MachineOptions) error {
+	push := d.pusher(opts, machinestate.Rebooting)
+	dropletId, err := d.DropletId()
 	if err != nil {
 		return err
 	}
 
+	push("Rebooting machine", 10)
+
 	path := fmt.Sprintf("droplets/%v/reboot", dropletId)
-	_, err = digitalocean.NewRequest(*d.Client, path, url.Values{})
-	return err
+	body, err := digitalocean.NewRequest(*d.Client, path, url.Values{})
+	if err != nil {
+		return err
+	}
+
+	push("Reboot message is being sent, waiting.", 30)
+
+	eventId, ok := body["event_id"].(float64)
+	if !ok {
+		return fmt.Errorf("restart malformed data %v", body)
+	}
+
+	return d.WaitUntilReady(int(eventId), 30, 80, push)
 }
 
 // Destroyimage destroys an image for the given imageID.
@@ -482,13 +510,29 @@ func (d *DigitalOcean) DestroyImage(imageId uint) error {
 }
 
 // Destroy destroys the machine with the given droplet ID.
-func (d *DigitalOcean) Destroy(raws ...interface{}) error {
-	dropletId, err := d.DropletId(raws...)
+func (d *DigitalOcean) Destroy(opts *protocol.MachineOptions) error {
+	push := d.pusher(opts, machinestate.Terminating)
+	dropletId, err := d.DropletId()
 	if err != nil {
 		return err
 	}
 
-	return d.Client.DestroyDroplet(dropletId)
+	push("Terminating machine", 10)
+
+	path := fmt.Sprintf("droplets/%v/destroy", dropletId)
+	body, err := digitalocean.NewRequest(*d.Client, path, url.Values{})
+	if err != nil {
+		return err
+	}
+
+	push("Terminating message is being sent, waiting.", 30)
+
+	eventId, ok := body["event_id"].(float64)
+	if !ok {
+		return fmt.Errorf("restart malformed data %v", body)
+	}
+
+	return d.WaitUntilReady(int(eventId), 50, 80, push)
 }
 
 // CreateSnapshot cretes a new snapshot with the name from the given droplet Id.
@@ -497,8 +541,8 @@ func (d *DigitalOcean) CreateSnapshot(dropletId uint, name string) error {
 }
 
 // Info returns all information about the given droplet info.
-func (d *DigitalOcean) Info(raws ...interface{}) (interface{}, error) {
-	dropletId, err := d.DropletId(raws...)
+func (d *DigitalOcean) Info(opts *protocol.MachineOptions) (interface{}, error) {
+	dropletId, err := d.DropletId()
 	if err != nil {
 		return nil, err
 	}
@@ -523,19 +567,13 @@ func (d *DigitalOcean) Info(raws ...interface{}) (interface{}, error) {
 }
 
 func (d *DigitalOcean) DropletId(raws ...interface{}) (uint, error) {
-	var rawData interface{}
-
-	if len(raws) == 1 {
-		rawData = raws[0]
-	} else if d.Builder.DropletId != "" {
-		rawData = d.Builder.DropletId
-	} else {
+	if d.Builder.DropletId == "" {
 		return 0, errors.New("dropletId is not available")
 	}
 
-	dropletId := utils.ToUint(rawData)
+	dropletId := utils.ToUint(d.Builder.DropletId)
 	if dropletId == 0 {
-		return 0, fmt.Errorf("malformed data received %v. droplet Id must be an int.", raws[0])
+		return 0, fmt.Errorf("malformed data received %v. droplet Id must be an int.", d.Builder.DropletId)
 	}
 
 	return dropletId, nil

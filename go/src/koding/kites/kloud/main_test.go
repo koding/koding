@@ -11,7 +11,6 @@ import (
 	"koding/tools/config"
 	"log"
 	"math/rand"
-	"net/url"
 	"os"
 	"strconv"
 	"sync"
@@ -19,60 +18,12 @@ import (
 	"time"
 
 	"koding/kites/kloud/kloud/machinestate"
-	kloudprotocol "koding/kites/kloud/kloud/protocol"
 
 	"github.com/fatih/color"
 	"github.com/koding/kite"
 	kiteconfig "github.com/koding/kite/config"
-	"github.com/koding/kite/kitekey"
-	"github.com/koding/kite/kontrol"
 	"github.com/koding/kite/protocol"
-	"github.com/koding/kite/testkeys"
-	"github.com/koding/kite/testutil"
 )
-
-type TestStorage struct{}
-
-func (t *TestStorage) Get(id string, opt *kloud.GetOption) (*kloud.MachineData, error) {
-	provider := TestProviderData[id]
-
-	credential := &kloud.Credential{
-		Meta: provider["credential"].(map[string]interface{}),
-	}
-
-	machine := &kloud.Machine{
-		Meta: provider["builder"].(map[string]interface{}),
-	}
-	machine.Status.State = machinestate.Running.String() // assume it's running
-
-	return &kloud.MachineData{
-		Provider:   provider["provider"].(string),
-		Credential: credential,
-		Machine:    machine,
-	}, nil
-}
-
-func (t *TestStorage) Update(id string, resp *kloudprotocol.BuildResponse) error {
-	fmt.Printf("resp %+v\n", resp)
-
-	provider := TestProviderData[id]
-	b := provider["builder"].(map[string]interface{})
-	b["instanceName"] = resp.InstanceName
-	b["instanceId"] = strconv.Itoa(resp.InstanceId)
-
-	provider["builder"] = b
-
-	TestProviderData[id] = provider
-	return nil
-}
-
-func (t *TestStorage) UpdateState(id string, state machinestate.State) error {
-	return nil
-}
-
-func (t *TestStorage) GetState(id string) (machinestate.State, error) {
-	return machinestate.NotInitialized, nil
-}
 
 var (
 	conf      *kiteconfig.Config
@@ -80,29 +31,43 @@ var (
 	kloudRaw  *kloud.Kloud
 	remote    *kite.Client
 	testuser  string
+	storage   kloud.Storage
 
-	flagTestBuilds   = flag.Int("builds", 1, "Number of builds")
-	flagTestDestroy  = flag.Bool("no-destroy", false, "Do not destroy test machines")
-	flagTestUsername = flag.String("user", "", "Create machines on behalf of this user")
+	flagTestBuilds     = flag.Int("builds", 1, "Number of builds")
+	flagTestControl    = flag.Bool("control", false, "Enable control tests too (start/stop/..)")
+	flagTestQuery      = flag.String("query", "", "Query as string for controller tests")
+	flagTestInstanceId = flag.String("instance", "", "Instance id (such as droplet Id)")
+	flagTestUsername   = flag.String("user", "", "Create machines on behalf of this user")
 
 	DIGITALOCEAN_CLIENT_ID = "2d314ba76e8965c451f62d7e6a4bc56f"
 	DIGITALOCEAN_API_KEY   = "4c88127b50c0c731aeb5129bdea06deb"
 
-	TestProviderData = map[string]map[string]interface{}{
-		"digitalocean": map[string]interface{}{
-			"provider": "digitalocean",
-			"credential": map[string]interface{}{
-				"clientId": DIGITALOCEAN_CLIENT_ID,
-				"apiKey":   DIGITALOCEAN_API_KEY,
+	TestProviderData = map[string]*kloud.MachineData{
+		"digitalocean": &kloud.MachineData{
+			Provider: "digitalocean",
+			Credential: &kloud.Credential{
+				Meta: map[string]interface{}{
+					"clientId": DIGITALOCEAN_CLIENT_ID,
+					"apiKey":   DIGITALOCEAN_API_KEY,
+				},
 			},
-			"builder": map[string]interface{}{
-				"type":          "digitalocean",
-				"clientId":      DIGITALOCEAN_CLIENT_ID,
-				"apiKey":        DIGITALOCEAN_API_KEY,
-				"image":         "ubuntu-13-10-x64",
-				"region":        "sfo1",
-				"size":          "512mb",
-				"snapshot_name": "koding-{{timestamp}}",
+			Machine: &kloud.Machine{
+				Provider: "digitalocean",
+				Status: struct {
+					State      string    `bson:"state"`
+					ModifiedAt time.Time `bson:"modifiedAt"`
+				}{
+					State: machinestate.NotInitialized.String(),
+				},
+				Meta: map[string]interface{}{
+					"type":          "digitalocean",
+					"clientId":      DIGITALOCEAN_CLIENT_ID,
+					"apiKey":        DIGITALOCEAN_API_KEY,
+					"image":         "ubuntu-13-10-x64",
+					"region":        "sfo1",
+					"size":          "512mb",
+					"snapshot_name": "koding-{{timestamp}}",
+				},
 			},
 		},
 		"amazon-instance": nil,
@@ -119,35 +84,15 @@ func init() {
 		testuser = *flagTestUsername
 	}
 
-	// now create a new test key with the given test username
-	kitekey.Write(testutil.NewKiteKey().Raw)
-
-	conf = kiteconfig.New()
-	conf.Username = "testuser"
-	conf.KontrolURL = &url.URL{Scheme: "ws", Host: "localhost:4444"}
-	conf.KontrolKey = testkeys.Public
-	conf.KontrolUser = "testuser"
-	conf.KiteKey = testutil.NewKiteKey().Raw
-	conf.Port = 4444
-
-	kon := kontrol.New(conf.Copy(), "0.1.0", testkeys.Public, testkeys.Private)
-	kon.DataDir, _ = ioutil.TempDir("", "")
-	defer os.RemoveAll(kon.DataDir)
-	go kon.Run()
-	<-kon.Kite.ServerReadyNotify()
-
 	kloudKite = setupKloud()
-	kloudKite.Config.DisableAuthentication = true
-	kloudKite.Config.KontrolURL = &url.URL{Scheme: "ws", Host: "localhost:4444"}
-
 	go kloudKite.Run()
 	<-kloudKite.ServerReadyNotify()
 
 	client := kite.New("client", "0.0.1")
-	client.Config = conf.Copy()
+	client.Config = kloudKite.Config.Copy()
 
 	kites, err := client.GetKites(protocol.KontrolQuery{
-		Username:    testuser,
+		Username:    "koding",
 		Environment: "vagrant",
 		Name:        "kloud",
 	})
@@ -168,33 +113,13 @@ func init() {
 	rand.Seed(time.Now().UTC().UnixNano())
 }
 
-func build(i int, client *kite.Client, data map[string]interface{}) error {
-	instanceName := "testkloud-" + strconv.FormatInt(time.Now().UTC().UnixNano(), 10) + "-" + strconv.Itoa(i)
-
-	bArgs := &kloud.BuildArgs{
-		MachineId:    data["provider"].(string),
-		InstanceName: instanceName,
-	}
-
-	resp, err := client.Tell("build", bArgs)
-	if err != nil {
-		return err
-	}
-
-	var result kloud.BuildResult
-	err = resp.Unmarshal(&result)
-	if err != nil {
-		return err
-	}
-
-	fmt.Printf("result %+v\n", result)
-
-	eArgs := &kloud.EventArgs{
-		EventId: bArgs.MachineId,
-	}
-
+// listenEvent calls the event method of kloud with the given arguments until
+// the desiredState is received. It times out if the desired state is not
+// reached in 5 miunuts.
+func listenEvent(args interface{}, desiredState machinestate.State) error {
+	tryUntil := time.Now().Add(time.Minute * 5)
 	for {
-		resp, err := client.Tell("event", eArgs)
+		resp, err := remote.Tell("event", args)
 		if err != nil {
 			return err
 		}
@@ -206,35 +131,151 @@ func build(i int, client *kite.Client, data map[string]interface{}) error {
 
 		fmt.Printf("event %+v\n", event)
 
-		if event.Status == machinestate.Running {
-			break
+		if event.Status == desiredState {
+			return nil
 		}
 
 		if event.Status == machinestate.Unknown {
 			return errors.New(event.Message)
 		}
 
-		time.Sleep(3 * time.Second)
+		if time.Now().After(tryUntil) {
+			return fmt.Errorf("Timeout while waiting for state %s", desiredState)
+		}
+
+		time.Sleep(2 * time.Second)
 		continue // still pending
 	}
 
-	fmt.Println("============")
+	return nil
+}
+
+// build builds a single machine with the given client and data. Use this
+// function to invoke concurrent and multiple builds.
+func build(i int, client *kite.Client, data *kloud.MachineData) error {
+	uniqueId := strconv.FormatInt(time.Now().UTC().UnixNano(), 10)
+	instanceName := "testkloud-" + uniqueId + "-" + strconv.Itoa(i)
+
+	testlog := func(msg string, args ...interface{}) {
+		// mimick it like packer's own log
+		color.Cyan("==> %s: %s", data.Provider, fmt.Sprintf(msg, args...))
+	}
+
+	bArgs := &kloud.Controller{
+		MachineId:    data.Provider,
+		InstanceName: instanceName,
+	}
+
+	start := time.Now()
+	resp, err := client.Tell("build", bArgs)
+	if err != nil {
+		return err
+	}
+
+	var result kloud.ControlResult
+	err = resp.Unmarshal(&result)
+	if err != nil {
+		return err
+	}
+
 	fmt.Printf("result %+v\n", result)
-	fmt.Println("============")
 
-	if !*flagTestDestroy {
-		fmt.Println("destroying ", instanceName)
+	eArgs := &kloud.EventArgs{
+		EventId: bArgs.MachineId,
+		Type:    "build",
+	}
 
-		cArgs := &kloud.ControllerArgs{
-			MachineId: data["provider"].(string),
+	if err := listenEvent(eArgs, machinestate.Running); err != nil {
+		return err
+	}
+	testlog("Building the machine. Elapsed time %f seconds", time.Since(start).Seconds())
+
+	if *flagTestControl {
+		cArgs := &kloud.Controller{
+			MachineId: data.Provider,
 		}
 
-		if _, err := client.Tell("destroy", cArgs); err != nil {
-			return fmt.Errorf("destroy: %s", err)
+		methodPairs := []struct {
+			method       string
+			desiredState machinestate.State
+		}{
+			{method: "stop", desiredState: machinestate.Stopped},
+			{method: "start", desiredState: machinestate.Running},
+			{method: "restart", desiredState: machinestate.Running},
+			{method: "destroy", desiredState: machinestate.Terminated},
+		}
+
+		// do not change the order
+		for _, pair := range methodPairs {
+			if _, err := client.Tell(pair.method, cArgs); err != nil {
+				return fmt.Errorf("%s: %s", pair.method, err)
+			}
+
+			eArgs := &kloud.EventArgs{
+				EventId: bArgs.MachineId,
+				Type:    pair.method,
+			}
+
+			start := time.Now()
+			if err := listenEvent(eArgs, pair.desiredState); err != nil {
+				return err
+			}
+			testlog("%s finished. Elapsed time %f seconds", pair.method, time.Since(start).Seconds())
 		}
 	}
 
 	return nil
+}
+
+func TestBuild(t *testing.T) {
+	numberOfBuilds := *flagTestBuilds
+
+	for provider, data := range TestProviderData {
+		if data == nil {
+			color.Yellow("==> %s skipping test. test data is not available.", provider)
+			continue
+		}
+
+		var wg sync.WaitGroup
+		for i := 0; i < numberOfBuilds; i++ {
+			wg.Add(1)
+
+			go func(i int) {
+				defer wg.Done()
+				time.Sleep(time.Millisecond * time.Duration(rand.Intn(2500))) // wait 0-2500 milliseconds
+				if err := build(i, remote, data); err != nil {
+					t.Error(err)
+				}
+			}(i)
+		}
+
+		wg.Wait()
+	}
+}
+
+func TestRestart(t *testing.T) {
+	t.SkipNow()
+	if *flagTestQuery == "" {
+		t.Fatal("Query is not defined for restart")
+	}
+
+	data := TestProviderData["digitalocean"]
+	cArgs := &kloud.Controller{
+		MachineId: data.Provider,
+	}
+
+	kloudRaw.Storage = TestStorageFunc(func(id string, opt *kloud.GetOption) (*kloud.MachineData, error) {
+		machineData := TestProviderData[id]
+		machineData.Machine.Status.State = machinestate.Running.String() // assume it's running
+		machineData.Machine.QueryString = *flagTestQuery
+		machineData.Machine.Meta["instanceId"] = *flagTestInstanceId
+		return machineData, nil
+	})
+
+	if _, err := remote.Tell("restart", cArgs); err != nil {
+		t.Errorf("destroy: %s", err)
+	}
+
 }
 
 func TestMultiple(t *testing.T) {
@@ -332,103 +373,6 @@ func TestMultiple(t *testing.T) {
 	}
 
 	wg.Wait()
-
-}
-
-func TestProviders(t *testing.T) {
-	t.Skip("To enable this test remove this line")
-	for provider, data := range TestProviderData {
-		if data == nil {
-			color.Yellow("==> %s skipping test. test data is not available.", provider)
-			continue
-		}
-
-		testlog := func(msg string, args ...interface{}) {
-			// mimick it like packer's own log
-			color.Cyan("==> %s: %s", provider, fmt.Sprintf(msg, args...))
-		}
-
-		imageName := "testkoding-" + strconv.FormatInt(time.Now().UTC().Unix(), 10)
-
-		testlog("Starting tests")
-		bArgs := &kloud.BuildArgs{
-			MachineId: data["provider"].(string),
-			ImageName: imageName,
-		}
-
-		start := time.Now()
-		resp, err := remote.Tell("build", bArgs)
-		if err != nil {
-			t.Fatal(err)
-		}
-		testlog("Building image and creating the machine. Elapsed time %f seconds", time.Since(start).Seconds())
-
-		var result kloudprotocol.BuildResponse
-		err = resp.Unmarshal(&result)
-		if err != nil {
-			t.Fatal(err)
-		}
-
-		cArgs := &kloud.ControllerArgs{
-			MachineId: data["provider"].(string),
-		}
-
-		start = time.Now()
-		if _, err := remote.Tell("stop", cArgs); err != nil {
-			t.Errorf("stop: %s", err)
-		}
-		testlog("Stopping the machine. Elapsed time %f seconds", time.Since(start).Seconds())
-
-		start = time.Now()
-		if _, err := remote.Tell("start", cArgs); err != nil {
-			t.Errorf("start: %s", err)
-		}
-		testlog("Starting the machine. Elapsed time %f seconds", time.Since(start).Seconds())
-
-		start = time.Now()
-		if _, err := remote.Tell("restart", cArgs); err != nil {
-			t.Errorf("restart: %s", err)
-		}
-		testlog("Restarting the machine. Elapsed time %f seconds", time.Since(start).Seconds())
-
-		start = time.Now()
-		if _, err := remote.Tell("info", cArgs); err != nil {
-			t.Errorf("info: %s", err)
-		}
-		testlog("Getting info about the machine. Elapsed time %f seconds", time.Since(start).Seconds())
-
-		start = time.Now()
-		if _, err := remote.Tell("destroy", cArgs); err != nil {
-			t.Errorf("destroy: %s", err)
-		}
-		testlog("Destroying the machine. Elapsed time %f seconds", time.Since(start).Seconds())
-	}
-}
-
-func TestBuilds(t *testing.T) {
-	numberOfBuilds := *flagTestBuilds
-
-	for provider, data := range TestProviderData {
-		if data == nil {
-			color.Yellow("==> %s skipping test. test data is not available.", provider)
-			continue
-		}
-
-		var wg sync.WaitGroup
-		for i := 0; i < numberOfBuilds; i++ {
-			wg.Add(1)
-
-			go func(i int) {
-				defer wg.Done()
-				time.Sleep(time.Millisecond * time.Duration(rand.Intn(2500))) // wait 0-2500 milliseconds
-				if err := build(i, remote, data); err != nil {
-					t.Error(err)
-				}
-			}(i)
-		}
-
-		wg.Wait()
-	}
 
 }
 

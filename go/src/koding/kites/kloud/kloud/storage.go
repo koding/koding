@@ -1,7 +1,6 @@
 package kloud
 
 import (
-	"fmt"
 	"koding/db/mongodb"
 	"koding/kites/kloud/kloud/machinestate"
 	"koding/kites/kloud/kloud/protocol"
@@ -37,20 +36,6 @@ type MachineData struct {
 	Provider   string
 	Machine    *Machine
 	Credential *Credential
-}
-
-type Machine struct {
-	Id       bson.ObjectId `bson:"_id" json:"-"`
-	KiteId   string        `bson:"kiteId"`
-	PublicIp string        `bson:"publicIp"`
-	Status   struct {
-		State      string    `bson:"state"`
-		ModifiedAt time.Time `bson:"modifiedAt"`
-	} `bson:"status"`
-	Provider   string    `bson:"provider"`
-	Credential string    `bson:"credential"`
-	CreatedAt  time.Time `json:"createdAt"`
-	Meta       bson.M    `bson:"meta"`
 }
 
 type Credential struct {
@@ -99,7 +84,7 @@ func (m *MongoDB) Update(id string, resp *protocol.BuildResponse) error {
 			bson.ObjectIdHex(id),
 			bson.M{"$set": bson.M{
 				"queryString":       resp.QueryString,
-				"ipAddress":         resp.IpAddress,
+				"publicIp":          resp.IpAddress,
 				"meta.instanceId":   strconv.Itoa(resp.InstanceId),
 				"meta.instanceName": resp.InstanceName,
 			}},
@@ -118,12 +103,7 @@ func (m *MongoDB) GetState(id string) (machinestate.State, error) {
 		return 0, err
 	}
 
-	state := machinestate.States[machine.Machine.Status.State]
-	if state == 0 {
-		return 0, fmt.Errorf("state is unknown: %v", state)
-	}
-
-	return state, nil
+	return machine.Machine.State(), nil
 }
 
 func (m *MongoDB) UpdateState(id string, state machinestate.State) error {

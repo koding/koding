@@ -11,6 +11,7 @@ import (
 	"log"
 	"os"
 
+	"github.com/koding/kite"
 	"github.com/koding/logging"
 )
 
@@ -26,6 +27,7 @@ var (
 type Kloud struct {
 	Config *config.Config
 	Log    logging.Logger
+	Kite   *kite.Kite
 
 	Storage  Storage
 	Eventers map[string]eventer.Eventer
@@ -71,16 +73,17 @@ func (k *Kloud) NewKloud() *kodingkite.KodingKite {
 	if err != nil {
 		log.Fatalln(err)
 	}
+	k.Kite = kt.Kite
 
 	kt.Config.Region = k.Region
 	kt.Config.Port = k.Port
 
-	kt.HandleFunc("build", k.build)
-	kt.HandleFunc("start", k.start)
-	kt.HandleFunc("stop", k.stop)
-	kt.HandleFunc("restart", k.restart)
-	kt.HandleFunc("destroy", k.destroy)
-	kt.HandleFunc("info", k.info)
+	k.ControlFunc("build", k.build)
+	k.ControlFunc("start", k.start)
+	k.ControlFunc("stop", k.stop)
+	k.ControlFunc("restart", k.restart)
+	k.ControlFunc("destroy", k.destroy)
+	k.ControlFunc("info", k.info)
 	kt.HandleFunc("event", k.event)
 
 	k.InitializeProviders()
