@@ -1,1 +1,0 @@
-class FSBrokenLink extends FSItem
