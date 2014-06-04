@@ -123,10 +123,10 @@ class EnvironmentScene extends KDDiaScene
     machineDias  = @boxes.machines.dias
     domainDias   = @boxes.domains.dias
     domainsByDia = {}
-    rulesById    = {}
+    # rulesById    = {}
 
     domainsByDia[domain.data.title] = domain for key, domain of domainDias
-    rulesById[rule.data._id] = rule for key, rule of @boxes.rules.dias
+    # rulesById[rule.data._id] = rule for key, rule of @boxes.rules.dias
 
     for _mkey, machine of machineDias
       for _dkey, domain of domainDias
@@ -134,12 +134,12 @@ class EnvironmentScene extends KDDiaScene
         if machines and machine.getData()._id in machines
           @connect {dia : domain , joint : 'right'}, {dia : machine, joint : 'left' }, yes
 
-    for restriction in EnvironmentRuleContainer.restrictions?
-      domainDia = domainsByDia[restriction.domainName]
-      for filterId in restriction.filters
-        ruleDia = rulesById[filterId]
-        if domainDia and ruleDia
-          @connect {dia : domainDia, joint : 'left'}, {dia : ruleDia, joint : 'right' }, yes
+    # for restriction in EnvironmentRuleContainer.restrictions?
+    #   domainDia = domainsByDia[restriction.domainName]
+    #   for filterId in restriction.filters
+    #     ruleDia = rulesById[filterId]
+    #     if domainDia and ruleDia
+    #       @connect {dia : domainDia, joint : 'left'}, {dia : ruleDia, joint : 'right' }, yes
 
   createApproveModal:(items, action)->
     return unless KD.isLoggedIn()

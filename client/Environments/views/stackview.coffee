@@ -18,8 +18,8 @@ class StackView extends KDView
     @addSubView @scene = new EnvironmentScene {}, @stack
 
     # Rules Container
-    @rules = new EnvironmentRuleContainer {}, @stack
-    @scene.addContainer @rules
+    # @rules = new EnvironmentRuleContainer {}, @stack
+    # @scene.addContainer @rules
     # @rules.on "itemAdded", @lazyBound "updateView", yes
 
     # Domains Container
@@ -33,8 +33,8 @@ class StackView extends KDView
     # @machies.on 'itemAdded', @lazyBound 'updateView', yes
 
     # Extras Container
-    @extras = new EnvironmentExtraContainer {}, @stack
-    @scene.addContainer @extras
+    # @extras = new EnvironmentExtraContainer {}, @stack
+    # @scene.addContainer @extras
     # @extras.on 'itemAdded', @lazyBound 'updateView', yes
 
     @loadContainers()
@@ -43,9 +43,9 @@ class StackView extends KDView
   loadContainers: (data)->
 
     # Add rules
-    if @stack.rules?
-      @rules.removeAllItems()
-      @rules.addItem rule        for rule in @stack.rules
+    # if @stack.rules?
+    #   @rules.removeAllItems()
+    #   @rules.addItem rule        for rule in @stack.rules
 
     # Add domains
     if @stack.domains?
@@ -58,9 +58,9 @@ class StackView extends KDView
       @machines.addItem machine  for machine in @stack.machines
 
     # Add extras
-    if @stack.extras?
-      @extras.removeAllItems()
-      @extras.addItem extra      for extra in @stack.extras
+    # if @stack.extras?
+    #   @extras.removeAllItems()
+    #   @extras.addItem extra      for extra in @stack.extras
 
     @setHeight @getProperHeight()
 
@@ -182,9 +182,9 @@ class StackView extends KDView
             if dia.data.initScript
               obj.initScript = "[...]"
             obj
-          else if name is 'rules'
-            title   : dia.data.name
-            rules   : dia.data.rules
+          # else if name is 'rules'
+          #   title   : dia.data.name
+          #   rules   : dia.data.rules
           else dia.data
 
     return if asYaml then jsyaml.dump dump else dump
