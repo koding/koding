@@ -14,10 +14,11 @@ class EnvironmentScene extends KDDiaScene
 
   constructor: (options = {}, data)->
 
-    options     =
-      cssClass  : 'environments-scene'
-      lineWidth : 2
-      lineColor : "#4ED393"
+    options         =
+      cssClass      : 'environments-scene'
+      lineWidth     : 2
+      lineColor     : "#4ED393"
+      curveDistance : 30
 
     super options, data
 
@@ -148,7 +149,7 @@ class EnvironmentScene extends KDDiaScene
     return new EnvironmentApprovalModal {action}, items
 
   addContainer:(container, pos)->
-    pos ?= x: 10 + @containers.length * 230, y: 0
+    pos ?= x: 10 + @containers.length * 260, y: 0
     super container, pos
 
     {name} = container.constructor

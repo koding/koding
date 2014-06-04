@@ -17,10 +17,11 @@ class EnvironmentMachineContainer extends EnvironmentContainer
 
   constructor:(options={}, data)->
 
-    options     =
-      title     : 'virtual machines'
-      cssClass  : 'machines'
-      itemClass : EnvironmentMachineItem
+    options      =
+      title      : 'virtual machines'
+      cssClass   : 'machines'
+      itemClass  : EnvironmentMachineItem
+      itemHeight : 54
 
     super options, data
 

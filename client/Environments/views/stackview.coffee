@@ -195,7 +195,7 @@ class StackView extends KDView
 
   getProperHeight:->
     (Math.max.apply null, \
-      (box.diaCount() for box in @scene.containers)) * 45 + 170
+      (box.diaCount() for box in @scene.containers)) * 65 + 165
 
 
   getMenuItems: ->

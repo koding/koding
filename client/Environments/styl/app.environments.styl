@@ -948,14 +948,14 @@ div.environment-stack
   height                48px
   border                1px solid #BBB
   bg                    color #E9E9E9
-  width                 936px
+  width                 583px
   margin                30px auto
   border-radius         3px
   vendor                transition, height .2s ease
 
   .stack-title
     height              auto
-    padding             10px 15px
+    padding             10px 12px
     font-weight         300
     font-size           22px
     border-bottom       1px solid #e2e2e2
@@ -964,7 +964,7 @@ div.environment-stack
   .stack-button
     top                 0
     right               10px
-    height              49px
+    height              43px
     padding             0 10px
     abs()
 
@@ -995,11 +995,16 @@ div.environment-stack
 
 div.environments-container
 
-  width           220px
+  width           230px
   height          100%
   overflow-y      hidden
-  margin-top      15px
+  margin-top      10px
+  padding         10px
   noTextSelection()
+  borderBox()
+
+  &.machines
+    width         300px
 
   &::-webkit-scrollbar
     width         0
@@ -1025,15 +1030,11 @@ div.environments-container
     font-weight   200
     color         white
     border-radius 2px
-    width         180px
-    margin-left   20px
     height        33px
-    margin-top    13px
     font-size     18px
 
   .add-button
-    margin-left               20px
-    width                     180px
+    width                     100%
     height                    30px
     border                    1px solid #e6e6e6
     border-radius             3px
@@ -1042,7 +1043,6 @@ div.environments-container
     font-weight               bold
     font-size                 16px
     padding-bottom            7px
-    abs()
 
     &:hover
       background              white
@@ -1050,7 +1050,7 @@ div.environments-container
 div.environments-item
 
   cursor          default
-  width           180px
+  width           210px
   height          34px
   background      white
   border          none
@@ -1076,6 +1076,10 @@ div.environments-item
   span.url
     r-sprite      environments 'link'
     right         56px
+
+  &.machine
+    width         280px
+    height        60px
 
   &:hover
     // gradient      white, #efefef // rgba(254, 255, 255, 1.0), rgba(222, 233, 234, 1.0)
@@ -1109,7 +1113,7 @@ div.environments-item
     // shadow        0 0 6px #eee
 
   span.toggle
-    size          6px, 34px
+    size          6px, 100%
     background    #eee
     border-radius 2px 0 0 2px
     top           0
@@ -1128,6 +1132,9 @@ div.environments-item
 
   div.details
     padding       8px
+    height        100%
+    borderBox()
+
     span
       font-size   10px
       color       #aaa
