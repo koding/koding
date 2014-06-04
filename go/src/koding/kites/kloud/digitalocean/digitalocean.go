@@ -218,7 +218,7 @@ func (d *DigitalOcean) Build(opts *protocol.MachineOptions) (p *protocol.BuildRe
 	push(fmt.Sprintf("Getting info about droplet"), 60)
 	d.Builder.DropletId = strconv.Itoa(dropletInfo.Droplet.Id)
 
-	info, err := d.Info()
+	info, err := d.Info(opts)
 	if err != nil {
 		return nil, err
 	}
@@ -437,7 +437,7 @@ func (d *DigitalOcean) MyImages() ([]digitalocean.Image, error) {
 }
 
 // Start starts the machine for the given dropletID
-func (d *DigitalOcean) Start(raws ...interface{}) error {
+func (d *DigitalOcean) Start(opts *protocol.MachineOptions) error {
 	dropletId, err := d.DropletId()
 	if err != nil {
 		return err
@@ -449,7 +449,7 @@ func (d *DigitalOcean) Start(raws ...interface{}) error {
 }
 
 // Stop stops the machine for the given dropletID
-func (d *DigitalOcean) Stop(raws ...interface{}) error {
+func (d *DigitalOcean) Stop(opts *protocol.MachineOptions) error {
 	dropletId, err := d.DropletId()
 	if err != nil {
 		return err
@@ -494,7 +494,7 @@ func (d *DigitalOcean) DestroyImage(imageId uint) error {
 }
 
 // Destroy destroys the machine with the given droplet ID.
-func (d *DigitalOcean) Destroy(raws ...interface{}) error {
+func (d *DigitalOcean) Destroy(opts *protocol.MachineOptions) error {
 	dropletId, err := d.DropletId()
 	if err != nil {
 		return err
@@ -509,7 +509,7 @@ func (d *DigitalOcean) CreateSnapshot(dropletId uint, name string) error {
 }
 
 // Info returns all information about the given droplet info.
-func (d *DigitalOcean) Info(raws ...interface{}) (interface{}, error) {
+func (d *DigitalOcean) Info(opts *protocol.MachineOptions) (interface{}, error) {
 	dropletId, err := d.DropletId()
 	if err != nil {
 		return nil, err

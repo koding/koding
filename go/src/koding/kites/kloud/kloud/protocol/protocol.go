@@ -63,19 +63,19 @@ type Provider interface {
 	Build(*MachineOptions) (*BuildResponse, error)
 
 	// Start starts the machine
-	Start(...interface{}) error
+	Start(*MachineOptions) error
 
 	// Stop stops the machine
-	Stop(...interface{}) error
+	Stop(*MachineOptions) error
 
 	// Restart restarts the machine
 	Restart(*MachineOptions) error
 
 	// Destroy destroys the machine
-	Destroy(...interface{}) error
+	Destroy(*MachineOptions) error
 
 	// Info returns full information about a single machine
-	Info(...interface{}) (interface{}, error)
+	Info(*MachineOptions) (interface{}, error)
 
 	// Name returns the underlying provider type
 	Name() string

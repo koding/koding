@@ -21,7 +21,7 @@ type Controller struct {
 }
 
 type InfoResponse struct {
-	State machinestate.State
+	State string
 	Data  interface{}
 }
 
@@ -83,7 +83,13 @@ func (k *Kloud) start(r *kite.Request) (interface{}, error) {
 
 	k.Storage.UpdateState(c.MachineId, machinestate.Starting)
 
-	if err := c.Provider.Start(); err != nil {
+	machOptions := &protocol.MachineOptions{
+		MachineId: c.MachineId,
+		Username:  r.Username,
+		Eventer:   c.Eventer,
+	}
+
+	if err := c.Provider.Start(machOptions); err != nil {
 		return nil, err
 	}
 
@@ -102,7 +108,13 @@ func (k *Kloud) stop(r *kite.Request) (interface{}, error) {
 
 	k.Storage.UpdateState(c.MachineId, machinestate.Stopping)
 
-	if err := c.Provider.Stop(); err != nil {
+	machOptions := &protocol.MachineOptions{
+		MachineId: c.MachineId,
+		Username:  r.Username,
+		Eventer:   c.Eventer,
+	}
+
+	if err := c.Provider.Stop(machOptions); err != nil {
 		return nil, err
 	}
 
@@ -121,9 +133,16 @@ func (k *Kloud) destroy(r *kite.Request) (interface{}, error) {
 
 	k.Storage.UpdateState(c.MachineId, machinestate.Terminating)
 
-	if err := c.Provider.Destroy(); err != nil {
+	machOptions := &protocol.MachineOptions{
+		MachineId: c.MachineId,
+		Username:  r.Username,
+		Eventer:   c.Eventer,
+	}
+
+	if err := c.Provider.Destroy(machOptions); err != nil {
 		return nil, err
 	}
+
 	k.Storage.UpdateState(c.MachineId, machinestate.Terminated)
 
 	return true, nil
@@ -165,18 +184,19 @@ func (k *Kloud) info(r *kite.Request) (interface{}, error) {
 	k.idlock.Get(r.Username).Lock()
 	defer k.idlock.Get(r.Username).Unlock()
 
-	info, err := c.Provider.Info()
-	if err != nil {
-		return nil, err
+	machOptions := &protocol.MachineOptions{
+		MachineId: c.MachineId,
+		Username:  r.Username,
+		Eventer:   c.Eventer,
 	}
 
-	state, err := k.Storage.GetState(c.MachineId)
+	info, err := c.Provider.Info(machOptions)
 	if err != nil {
 		return nil, err
 	}
 
 	return &InfoResponse{
-		State: state,
+		State: c.MachineData.Machine.Status.State,
 		Data:  info,
 	}, nil
 }
