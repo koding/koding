@@ -40,7 +40,9 @@ module.exports = (req, res) ->
   # replace nonalphanumeric characters
   ext = ext.replace(/\W+/g, "")
 
-  md5      = crypto.createHash("md5").update(noExt).digest("hex")
+  for i in [noExt, width, height]
+    md5 = crypto.createHash("md5").update(i).digest("hex")
+
   filename = "#{imagePath}/#{md5}.#{ext}"
 
   serveFile = (filename, res)->
