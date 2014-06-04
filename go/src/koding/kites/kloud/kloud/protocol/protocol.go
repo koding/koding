@@ -69,7 +69,7 @@ type Provider interface {
 	Stop(...interface{}) error
 
 	// Restart restarts the machine
-	Restart(...interface{}) error
+	Restart(*MachineOptions) error
 
 	// Destroy destroys the machine
 	Destroy(...interface{}) error

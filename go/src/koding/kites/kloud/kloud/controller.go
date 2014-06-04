@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"koding/kites/kloud/eventer"
 	"koding/kites/kloud/kloud/machinestate"
 	"koding/kites/kloud/kloud/protocol"
 
@@ -12,8 +13,11 @@ import (
 	prot "github.com/koding/kite/protocol"
 )
 
-type ControllerArgs struct {
-	MachineId string
+type Controller struct {
+	MachineId   string
+	Provider    protocol.Provider
+	MachineData *MachineData
+	Eventer     eventer.Eventer
 }
 
 type InfoResponse struct {
@@ -21,10 +25,20 @@ type InfoResponse struct {
 	Data  interface{}
 }
 
-// provider returns the Provider responsible for the given machine Id. It also
-// calls provider.Prepare before returning.
-func (k *Kloud) provider(machineId string) (protocol.Provider, error) {
-	m, err := k.Storage.Get(machineId, &GetOption{
+// controller returns the Controller struct with all necessary entities
+// responsible for the given machine Id. It also calls provider.Prepare before
+// returning.
+func (k *Kloud) controller(r *kite.Request) (*Controller, error) {
+	args := &Controller{}
+	if err := r.Args.One().Unmarshal(args); err != nil {
+		return nil, err
+	}
+
+	if args.MachineId == "" {
+		return nil, errors.New("machineId is missing.")
+	}
+
+	m, err := k.Storage.Get(args.MachineId, &GetOption{
 		IncludeMachine:    true,
 		IncludeCredential: true,
 	})
@@ -50,129 +64,127 @@ func (k *Kloud) provider(machineId string) (protocol.Provider, error) {
 		return nil, err
 	}
 
-	return provider, nil
+	return &Controller{
+		MachineId:   args.MachineId,
+		Provider:    provider,
+		MachineData: m,
+		Eventer:     k.NewEventer(r.Method + "-" + args.MachineId),
+	}, nil
 }
 
 func (k *Kloud) start(r *kite.Request) (interface{}, error) {
-	args := &ControllerArgs{}
-	if err := r.Args.One().Unmarshal(args); err != nil {
+	c, err := k.controller(r)
+	if err != nil {
 		return nil, err
-	}
-
-	if args.MachineId == "" {
-		return nil, errors.New("machineId is missing.")
 	}
 
 	k.idlock.Get(r.Username).Lock()
 	defer k.idlock.Get(r.Username).Unlock()
 
-	k.Storage.UpdateState(args.MachineId, machinestate.Starting)
+	k.Storage.UpdateState(c.MachineId, machinestate.Starting)
 
-	provider, err := k.provider(args.MachineId)
-	if err != nil {
+	if err := c.Provider.Start(); err != nil {
 		return nil, err
 	}
 
-	if err := provider.Start(); err != nil {
-		return nil, err
-	}
-
-	k.Storage.UpdateState(args.MachineId, machinestate.Running)
+	k.Storage.UpdateState(c.MachineId, machinestate.Running)
 	return true, nil
 }
 
 func (k *Kloud) stop(r *kite.Request) (interface{}, error) {
-	args := &ControllerArgs{}
-	if err := r.Args.One().Unmarshal(args); err != nil {
+	c, err := k.controller(r)
+	if err != nil {
 		return nil, err
-	}
-
-	if args.MachineId == "" {
-		return nil, errors.New("machineId is missing.")
 	}
 
 	k.idlock.Get(r.Username).Lock()
 	defer k.idlock.Get(r.Username).Unlock()
 
-	k.Storage.UpdateState(args.MachineId, machinestate.Stopping)
+	k.Storage.UpdateState(c.MachineId, machinestate.Stopping)
 
-	provider, err := k.provider(args.MachineId)
-	if err != nil {
+	if err := c.Provider.Stop(); err != nil {
 		return nil, err
 	}
 
-	if err := provider.Stop(); err != nil {
-		return nil, err
-	}
-
-	k.Storage.UpdateState(args.MachineId, machinestate.Stopped)
+	k.Storage.UpdateState(c.MachineId, machinestate.Stopped)
 	return true, nil
 }
 
 func (k *Kloud) destroy(r *kite.Request) (interface{}, error) {
-	args := &ControllerArgs{}
-	if err := r.Args.One().Unmarshal(args); err != nil {
+	c, err := k.controller(r)
+	if err != nil {
 		return nil, err
-	}
-
-	if args.MachineId == "" {
-		return nil, errors.New("machineId is missing.")
 	}
 
 	k.idlock.Get(r.Username).Lock()
 	defer k.idlock.Get(r.Username).Unlock()
 
-	k.Storage.UpdateState(args.MachineId, machinestate.Terminating)
+	k.Storage.UpdateState(c.MachineId, machinestate.Terminating)
 
-	provider, err := k.provider(args.MachineId)
-	if err != nil {
+	if err := c.Provider.Destroy(); err != nil {
 		return nil, err
 	}
-
-	if err := provider.Destroy(); err != nil {
-		return nil, err
-	}
-	k.Storage.UpdateState(args.MachineId, machinestate.Terminated)
+	k.Storage.UpdateState(c.MachineId, machinestate.Terminated)
 
 	return true, nil
 }
 
 func (k *Kloud) restart(r *kite.Request) (interface{}, error) {
-	args := &ControllerArgs{}
-	if err := r.Args.One().Unmarshal(args); err != nil {
+	c, err := k.controller(r)
+	if err != nil {
 		return nil, err
-	}
-
-	if args.MachineId == "" {
-		return nil, errors.New("machineId is missing.")
 	}
 
 	k.idlock.Get(r.Username).Lock()
 	defer k.idlock.Get(r.Username).Unlock()
 
-	k.Storage.UpdateState(args.MachineId, machinestate.Rebooting)
+	k.Storage.UpdateState(c.MachineId, machinestate.Rebooting)
 
-	provider, err := k.provider(args.MachineId)
+	k.Log.Info("restarting machine %s on %s", c.MachineId, c.Provider.Name())
+
+	machOptions := &protocol.MachineOptions{
+		MachineId: c.MachineId,
+		Username:  r.Username,
+		Eventer:   c.Eventer,
+	}
+
+	if err := c.Provider.Restart(machOptions); err != nil {
+		return nil, err
+	}
+
+	k.Storage.UpdateState(c.MachineId, machinestate.Running)
+	return true, nil
+}
+
+func (k *Kloud) info(r *kite.Request) (interface{}, error) {
+	c, err := k.controller(r)
 	if err != nil {
 		return nil, err
 	}
 
-	k.Log.Info("restarting machine %s on %s", args.MachineId, provider.Name())
-	if err := provider.Restart(); err != nil {
+	k.idlock.Get(r.Username).Lock()
+	defer k.idlock.Get(r.Username).Unlock()
+
+	info, err := c.Provider.Info()
+	if err != nil {
 		return nil, err
 	}
 
-	m, err := k.Storage.Get(args.MachineId, &GetOption{
-		IncludeMachine:    true,
-		IncludeCredential: true,
-	})
-	if err != nil {
-		k.Log.Error(err.Error())
-	}
-
-	query, err := prot.KiteFromString(m.Machine.QueryString)
+	state, err := k.Storage.GetState(c.MachineId)
 	if err != nil {
 		return nil, err
+	}
+
+	return &InfoResponse{
+		State: state,
+		Data:  info,
+	}, nil
+}
+
+func (k *Kloud) remoteKiteAlive(queryString string) error {
+	query, err := prot.KiteFromString(queryString)
+	if err != nil {
+		return err
 	}
 
 	kontrolQuery := prot.KontrolQuery{
@@ -215,50 +227,15 @@ func (k *Kloud) restart(r *kite.Request) (interface{}, error) {
 	tryUntil := time.Now().Add(time.Minute)
 	for {
 		if err = checkKite(); err == nil {
-			break
+			return nil
 		}
 
 		if time.Now().After(tryUntil) {
-			return nil, fmt.Errorf("Timeout while waiting for kite. Reason: %v", err)
+			return fmt.Errorf("Timeout while waiting for kite. Reason: %v", err)
 		}
 
 		time.Sleep(time.Second * 3)
 	}
 
-	k.Storage.UpdateState(args.MachineId, machinestate.Starting)
-	return true, nil
-}
-
-func (k *Kloud) info(r *kite.Request) (interface{}, error) {
-	args := &ControllerArgs{}
-	if err := r.Args.One().Unmarshal(args); err != nil {
-		return nil, err
-	}
-
-	if args.MachineId == "" {
-		return nil, errors.New("machineId is missing.")
-	}
-
-	k.idlock.Get(r.Username).Lock()
-	defer k.idlock.Get(r.Username).Unlock()
-
-	provider, err := k.provider(args.MachineId)
-	if err != nil {
-		return nil, err
-	}
-
-	info, err := provider.Info()
-	if err != nil {
-		return nil, err
-	}
-
-	state, err := k.Storage.GetState(args.MachineId)
-	if err != nil {
-		return nil, err
-	}
-
-	return &InfoResponse{
-		State: state,
-		Data:  info,
-	}, nil
+	return errors.New("couldn't check remote kite")
 }

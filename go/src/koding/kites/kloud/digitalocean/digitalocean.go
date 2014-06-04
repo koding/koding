@@ -216,7 +216,9 @@ func (d *DigitalOcean) Build(opts *protocol.MachineOptions) (p *protocol.BuildRe
 
 	// our droplet has now an IP adress, get it
 	push(fmt.Sprintf("Getting info about droplet"), 60)
-	info, err := d.Info(dropletInfo.Droplet.Id)
+	d.Builder.DropletId = strconv.Itoa(dropletInfo.Droplet.Id)
+
+	info, err := d.Info()
 	if err != nil {
 		return nil, err
 	}
@@ -436,7 +438,7 @@ func (d *DigitalOcean) MyImages() ([]digitalocean.Image, error) {
 
 // Start starts the machine for the given dropletID
 func (d *DigitalOcean) Start(raws ...interface{}) error {
-	dropletId, err := d.DropletId(raws...)
+	dropletId, err := d.DropletId()
 	if err != nil {
 		return err
 	}
@@ -448,7 +450,7 @@ func (d *DigitalOcean) Start(raws ...interface{}) error {
 
 // Stop stops the machine for the given dropletID
 func (d *DigitalOcean) Stop(raws ...interface{}) error {
-	dropletId, err := d.DropletId(raws...)
+	dropletId, err := d.DropletId()
 	if err != nil {
 		return err
 	}
@@ -462,8 +464,8 @@ func (d *DigitalOcean) Stop(raws ...interface{}) error {
 }
 
 // Restart restart the machine for the given dropletID
-func (d *DigitalOcean) Restart(raws ...interface{}) error {
-	dropletId, err := d.DropletId(raws...)
+func (d *DigitalOcean) Restart(opts *protocol.MachineOptions) error {
+	dropletId, err := d.DropletId()
 	if err != nil {
 		return err
 	}
@@ -493,7 +495,7 @@ func (d *DigitalOcean) DestroyImage(imageId uint) error {
 
 // Destroy destroys the machine with the given droplet ID.
 func (d *DigitalOcean) Destroy(raws ...interface{}) error {
-	dropletId, err := d.DropletId(raws...)
+	dropletId, err := d.DropletId()
 	if err != nil {
 		return err
 	}
@@ -508,7 +510,7 @@ func (d *DigitalOcean) CreateSnapshot(dropletId uint, name string) error {
 
 // Info returns all information about the given droplet info.
 func (d *DigitalOcean) Info(raws ...interface{}) (interface{}, error) {
-	dropletId, err := d.DropletId(raws...)
+	dropletId, err := d.DropletId()
 	if err != nil {
 		return nil, err
 	}
@@ -533,19 +535,13 @@ func (d *DigitalOcean) Info(raws ...interface{}) (interface{}, error) {
 }
 
 func (d *DigitalOcean) DropletId(raws ...interface{}) (uint, error) {
-	var rawData interface{}
-
-	if len(raws) == 1 {
-		rawData = raws[0]
-	} else if d.Builder.DropletId != "" {
-		rawData = d.Builder.DropletId
-	} else {
+	if d.Builder.DropletId == "" {
 		return 0, errors.New("dropletId is not available")
 	}
 
-	dropletId := utils.ToUint(rawData)
+	dropletId := utils.ToUint(d.Builder.DropletId)
 	if dropletId == 0 {
-		return 0, fmt.Errorf("malformed data received %v. droplet Id must be an int.", raws[0])
+		return 0, fmt.Errorf("malformed data received %v. droplet Id must be an int.", d.Builder.DropletId)
 	}
 
 	return dropletId, nil

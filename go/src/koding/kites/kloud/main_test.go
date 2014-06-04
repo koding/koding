@@ -166,7 +166,7 @@ func build(i int, client *kite.Client, data *kloud.MachineData) error {
 	if !*flagTestDestroy {
 		fmt.Println("destroying ", instanceName)
 
-		cArgs := &kloud.ControllerArgs{
+		cArgs := &kloud.Controller{
 			MachineId: data.Provider,
 		}
 
@@ -185,7 +185,7 @@ func TestRestart(t *testing.T) {
 	}
 
 	data := TestProviderData["digitalocean"]
-	cArgs := &kloud.ControllerArgs{
+	cArgs := &kloud.Controller{
 		MachineId: data.Provider,
 	}
 
@@ -335,7 +335,7 @@ func TestProviders(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		cArgs := &kloud.ControllerArgs{
+		cArgs := &kloud.Controller{
 			MachineId: data.Provider,
 		}
 
