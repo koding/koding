@@ -62,6 +62,10 @@ func (c *ChannelMessageList) One(q *bongo.Query) error {
 	return bongo.B.One(c, c, q)
 }
 
+func (c *ChannelMessageList) Update() error {
+	return bongo.B.Update(c)
+}
+
 func (c *ChannelMessageList) Some(data interface{}, q *bongo.Query) error {
 	return bongo.B.Some(c, data, q)
 }

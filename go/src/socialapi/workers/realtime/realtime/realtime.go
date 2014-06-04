@@ -64,7 +64,7 @@ func New(rmq *rabbitmq.RabbitMQ, log logging.Logger) (*Controller, error) {
 	ffc := &Controller{
 		log:     log,
 		rmqConn: rmqConn.Conn(),
-		ffc.routes: map[string]Action{
+		routes: map[string]Action{
 			"api.channel_message_created": (*Controller).MessageSaved,
 			"api.channel_message_updated": (*Controller).MessageUpdated,
 			"api.channel_message_deleted": (*Controller).MessageDeleted,
