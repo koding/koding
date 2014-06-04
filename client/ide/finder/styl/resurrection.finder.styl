@@ -23,7 +23,7 @@ resurrection.finder.styl
 
 .kdlistitemview-finderitem
   height              auto
-  min-height          28px
+  min-height          23px
   font-size           13px
   color               #D4CFC9
   noTextSelection()
@@ -110,7 +110,7 @@ resurrection.finder.styl
       bg            position, -62px -242px
 
   > div
-    line-height       28px
+    line-height       23px
     height            100%
     width             auto
     .title
@@ -146,7 +146,7 @@ resurrection.finder.styl
       fl()
 
     &.rename-container
-      height        28px
+      height        23px
       padding-right 25px
       input.hitenterview
         bg          image, none
@@ -205,7 +205,6 @@ resurrection.finder.styl
     rounded             2px
     color               #FFF
     font-size           13px
-    text-indent         80px
     line-height         39px
     background          none
     font-weight         300
@@ -218,6 +217,7 @@ resurrection.finder.styl
     text-decoration     none
     z-index             20
     kalc                width, 100% \- 30px
+    text-align          center
     abs()
     bottom              20px
     left                16px
@@ -226,9 +226,7 @@ resurrection.finder.styl
       r-sprite          'ide', 'add-vm'
       padding           0
       margin            0
-      abs()
-      top               10px
-      left              50px
+      float             none
 
     &:active
     &:focus
@@ -247,11 +245,17 @@ resurrection.finder.styl
 
     span.icon
     span.path-select
-      margin            5px
+      margin            6px 2px 0
+      size              16px 16px
+
+  .folder
+    span.icon
+    span.path-select
+      margin            4px 0 0 0px
       size              16px 16px
 
   .vm
-    margin              13px !important
+    margin              13px 16px 5px !important
     pointer()
     position            relative
 
@@ -266,10 +270,14 @@ resurrection.finder.styl
       margin-top        14px
       rounded           3px
       width             100%
+      height            24px
       borderBox()
+      .title
+        line-height     22px
       .arrows
         r-sprite        'finder', 'expanded'
-        top             8px
+        top             2px
+        right           4px
 
     .buttons
       abs()
@@ -282,7 +290,7 @@ resurrection.finder.styl
       r-sprite          'ide', 'terminal'
       rounded           0
       border            none
-      margin-right      10px
+      margin-right      7px
 
     .kdloader
       margin            0
@@ -294,7 +302,7 @@ resurrection.finder.styl
       r-sprite          'ide', 'cog-15'
       display           inline-block
       position          relative
-      top               -10px
+      top               -9px
       left              0
 
     span.vm-info
