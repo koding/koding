@@ -64,33 +64,30 @@ func New(rmq *rabbitmq.RabbitMQ, log logging.Logger) (*Controller, error) {
 	ffc := &Controller{
 		log:     log,
 		rmqConn: rmqConn.Conn(),
+		ffc.routes: map[string]Action{
+			"api.channel_message_created": (*Controller).MessageSaved,
+			"api.channel_message_updated": (*Controller).MessageUpdated,
+			"api.channel_message_deleted": (*Controller).MessageDeleted,
+
+			"api.interaction_created": (*Controller).InteractionSaved,
+			"api.interaction_deleted": (*Controller).InteractionDeleted,
+
+			"api.message_reply_created": (*Controller).MessageReplySaved,
+			"api.message_reply_deleted": (*Controller).MessageReplyDeleted,
+
+			"api.channel_message_list_created": (*Controller).MessageListSaved,
+			"api.channel_message_list_updated": (*Controller).MessageListUpdated,
+			"api.channel_message_list_deleted": (*Controller).MessageListDeleted,
+
+			"api.channel_participant_removed_from_channel": (*Controller).ChannelParticipantRemovedFromChannelEvent,
+			"api.channel_participant_added_to_channel":     (*Controller).ChannelParticipantAddedToChannelEvent,
+			"api.channel_participant_created":              (*Controller).ChannelParticipantAddedToChannelEvent,
+			"api.channel_participant_updated":              (*Controller).ChannelParticipantUpdatedEvent,
+
+			"notification.notification_created": (*Controller).NotifyUser,
+			"notification.notification_updated": (*Controller).NotifyUser,
+		},
 	}
-
-	routes := map[string]Action{
-		"api.channel_message_created": (*Controller).MessageSaved,
-		"api.channel_message_updated": (*Controller).MessageUpdated,
-		"api.channel_message_deleted": (*Controller).MessageDeleted,
-
-		"api.interaction_created": (*Controller).InteractionSaved,
-		"api.interaction_deleted": (*Controller).InteractionDeleted,
-
-		"api.message_reply_created": (*Controller).MessageReplySaved,
-		"api.message_reply_deleted": (*Controller).MessageReplyDeleted,
-
-		"api.channel_message_list_created": (*Controller).MessageListSaved,
-		"api.channel_message_list_updated": (*Controller).MessageListUpdated,
-		"api.channel_message_list_deleted": (*Controller).MessageListDeleted,
-
-		"api.channel_participant_removed_from_channel": (*Controller).ChannelParticipantRemovedFromChannelEvent,
-		"api.channel_participant_added_to_channel":     (*Controller).ChannelParticipantAddedToChannelEvent,
-		"api.channel_participant_created":              (*Controller).ChannelParticipantAddedToChannelEvent,
-		"api.channel_participant_updated":              (*Controller).ChannelParticipantUpdatedEvent,
-
-		"notification.notification_created": (*Controller).NotifyUser,
-		"notification.notification_updated": (*Controller).NotifyUser,
-	}
-
-	ffc.routes = routes
 
 	return ffc, nil
 }
