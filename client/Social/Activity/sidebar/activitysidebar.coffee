@@ -66,19 +66,28 @@ class ActivitySidebar extends KDCustomScrollView
       item           = listController.itemsIndexed[revived.id]
       listController.removeItem item
 
-    notificationController.on 'ChannelUpdateHappened', (update) =>
 
-      {unreadCount, channel} = update
-      {typeConstant, id}     = channel
+    notificationController
+      .on 'ChannelUpdateHappened',  @bound 'notificationHasArrived'
+      .on 'NotificationHasArrived', @bound 'notificationHasArrived'
 
-      listController = @getListController typeConstant
-
-      item = listController.itemForId id
-
-      log item, update, '>>>>>>>>>>>>>>'
 
     # windowController.addFocusListener (focused) ->
     #   log 'browser focus:', focused
+
+
+
+  notificationHasArrived: (update) ->
+
+    {unreadCount, channel} = update
+    {typeConstant, id}     = channel
+
+    listController = @getListController typeConstant
+
+    item = listController.itemForId id
+
+    item.setUnreadCount unreadCount  if item.unreadCount
+
 
 
 
