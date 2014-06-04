@@ -18,7 +18,6 @@ import (
 	"time"
 
 	"koding/kites/kloud/kloud/machinestate"
-	kloudprotocol "koding/kites/kloud/kloud/protocol"
 
 	"github.com/fatih/color"
 	"github.com/koding/kite"
@@ -228,6 +227,32 @@ func build(i int, client *kite.Client, data *kloud.MachineData) error {
 	return nil
 }
 
+func TestBuild(t *testing.T) {
+	numberOfBuilds := *flagTestBuilds
+
+	for provider, data := range TestProviderData {
+		if data == nil {
+			color.Yellow("==> %s skipping test. test data is not available.", provider)
+			continue
+		}
+
+		var wg sync.WaitGroup
+		for i := 0; i < numberOfBuilds; i++ {
+			wg.Add(1)
+
+			go func(i int) {
+				defer wg.Done()
+				time.Sleep(time.Millisecond * time.Duration(rand.Intn(2500))) // wait 0-2500 milliseconds
+				if err := build(i, remote, data); err != nil {
+					t.Error(err)
+				}
+			}(i)
+		}
+
+		wg.Wait()
+	}
+}
+
 func TestRestart(t *testing.T) {
 	t.SkipNow()
 	if *flagTestQuery == "" {
@@ -349,102 +374,6 @@ func TestMultiple(t *testing.T) {
 
 	wg.Wait()
 
-}
-
-func TestProviders(t *testing.T) {
-	t.Skip("To enable this test remove this line")
-	for provider, data := range TestProviderData {
-		if data == nil {
-			color.Yellow("==> %s skipping test. test data is not available.", provider)
-			continue
-		}
-
-		testlog := func(msg string, args ...interface{}) {
-			// mimick it like packer's own log
-			color.Cyan("==> %s: %s", provider, fmt.Sprintf(msg, args...))
-		}
-
-		imageName := "testkoding-" + strconv.FormatInt(time.Now().UTC().Unix(), 10)
-
-		testlog("Starting tests")
-		bArgs := &kloud.Controller{
-			MachineId: data.Provider,
-			ImageName: imageName,
-		}
-
-		start := time.Now()
-		resp, err := remote.Tell("build", bArgs)
-		if err != nil {
-			t.Fatal(err)
-		}
-
-		var result kloudprotocol.BuildResponse
-		err = resp.Unmarshal(&result)
-		if err != nil {
-			t.Fatal(err)
-		}
-
-		cArgs := &kloud.Controller{
-			MachineId: data.Provider,
-		}
-
-		start = time.Now()
-		if _, err := remote.Tell("stop", cArgs); err != nil {
-			t.Errorf("stop: %s", err)
-		}
-		testlog("Stopping the machine. Elapsed time %f seconds", time.Since(start).Seconds())
-
-		start = time.Now()
-		if _, err := remote.Tell("start", cArgs); err != nil {
-			t.Errorf("start: %s", err)
-		}
-		testlog("Starting the machine. Elapsed time %f seconds", time.Since(start).Seconds())
-
-		start = time.Now()
-		if _, err := remote.Tell("restart", cArgs); err != nil {
-			t.Errorf("restart: %s", err)
-		}
-		testlog("Restarting the machine. Elapsed time %f seconds", time.Since(start).Seconds())
-
-		start = time.Now()
-		if _, err := remote.Tell("info", cArgs); err != nil {
-			t.Errorf("info: %s", err)
-		}
-		testlog("Getting info about the machine. Elapsed time %f seconds", time.Since(start).Seconds())
-
-		start = time.Now()
-		if _, err := remote.Tell("destroy", cArgs); err != nil {
-			t.Errorf("destroy: %s", err)
-		}
-		testlog("Destroying the machine. Elapsed time %f seconds", time.Since(start).Seconds())
-	}
-}
-
-func TestBuilds(t *testing.T) {
-	// t.Skip("skipping build")
-	numberOfBuilds := *flagTestBuilds
-
-	for provider, data := range TestProviderData {
-		if data == nil {
-			color.Yellow("==> %s skipping test. test data is not available.", provider)
-			continue
-		}
-
-		var wg sync.WaitGroup
-		for i := 0; i < numberOfBuilds; i++ {
-			wg.Add(1)
-
-			go func(i int) {
-				defer wg.Done()
-				time.Sleep(time.Millisecond * time.Duration(rand.Intn(2500))) // wait 0-2500 milliseconds
-				if err := build(i, remote, data); err != nil {
-					t.Error(err)
-				}
-			}(i)
-		}
-
-		wg.Wait()
-	}
 }
 
 func setupKloud() *kodingkite.KodingKite {
