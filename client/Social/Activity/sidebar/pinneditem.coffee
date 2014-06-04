@@ -31,4 +31,5 @@ class SidebarPinnedItem extends SidebarItem
     """
     {{> @avatar}}{{> @actor}}
     {span.user-numbers{ #(body)}}
+    {{> @unreadCount}}
     """

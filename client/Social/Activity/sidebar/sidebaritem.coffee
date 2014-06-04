@@ -12,6 +12,10 @@ class SidebarItem extends KDListItemView
 
     super options, data
 
+    @unreadCount = new KDCustomHTMLView
+      tagName  : 'cite'
+      cssClass : 'count hidden'
+
     # this is used to store the last timestamp once it is clicked
     # to avoid selecting multiple items in case of having the same item
     # on multiple sidebar sections e.g. having the same topic on both
@@ -21,3 +25,14 @@ class SidebarItem extends KDListItemView
     @on 'click', =>
       @getDelegate().emit 'ItemShouldBeSelected', this
       @lastClickedTimestamp = Date.now()
+
+    @once 'viewAppended', @bound 'setUnreadCount'
+
+
+  setUnreadCount: (unreadCount = 0) ->
+
+    if unreadCount is 0
+      @unreadCount.hide()
+    else
+      @unreadCount.updatePartial unreadCount
+      @unreadCount.show()

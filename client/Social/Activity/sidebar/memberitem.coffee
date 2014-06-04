@@ -38,3 +38,4 @@ class SidebarMemberItem extends SidebarItem
     @addSubView @actor
     @addSubView @count unless @getOption 'hideNewMessageCount'
     @addSubView @followersAndFollowing unless @getOption 'hideLastMessage'
+    @addSubView @unreadCount
