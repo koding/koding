@@ -167,11 +167,23 @@ func (k *Kloud) restart(r *kite.Request) (interface{}, error) {
 		Eventer:   c.Eventer,
 	}
 
-	if err := c.Provider.Restart(machOptions); err != nil {
-		return nil, err
-	}
+	go func() {
+		k.idlock.Get(r.Username).Lock()
+		defer k.idlock.Get(r.Username).Unlock()
 
-	k.Storage.UpdateState(c.MachineId, machinestate.Running)
+		status := machinestate.Running
+
+		err := c.Provider.Restart(machOptions)
+		if err != nil {
+			k.Log.Error("Restarting machine failed: %s. Machine state is marked as Unknown",
+				err.Error())
+
+			status = machinestate.Unknown
+		}
+
+		k.Storage.UpdateState(c.MachineId, status)
+	}()
+
 	return true, nil
 }
 

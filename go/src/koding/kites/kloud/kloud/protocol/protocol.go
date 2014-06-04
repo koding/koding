@@ -46,10 +46,6 @@ type BuildResponse struct {
 	IpAddress string
 }
 
-// ControlResponse should be returned from any of the control methods such as
-// start/stop/restart, etc..
-type ControlResponse struct{}
-
 // Provider manages a machine. It is used to create and provision a single
 // image or machine for a given Provider, to start/stop/destroy/restart a
 // machine.
