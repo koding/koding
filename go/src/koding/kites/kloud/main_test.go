@@ -114,6 +114,43 @@ func init() {
 	rand.Seed(time.Now().UTC().UnixNano())
 }
 
+// listenEvent calls the event method of kloud with the given arguments until
+// the desiredState is received. It times out if the desired state is not
+// reached in 5 miunuts.
+func listenEvent(args interface{}, desiredState machinestate.State) error {
+	tryUntil := time.Now().Add(time.Minute * 5)
+	for {
+		resp, err := remote.Tell("event", args)
+		if err != nil {
+			return err
+		}
+
+		var event eventer.Event
+		if err := resp.Unmarshal(&event); err != nil {
+			return err
+		}
+
+		fmt.Printf("event %+v\n", event)
+
+		if event.Status == desiredState {
+			return nil
+		}
+
+		if event.Status == machinestate.Unknown {
+			return errors.New(event.Message)
+		}
+
+		if time.Now().After(tryUntil) {
+			return fmt.Errorf("Timeout while waiting for state %s", desiredState)
+		}
+
+		time.Sleep(2 * time.Second)
+		continue // still pending
+	}
+
+	return nil
+}
+
 func build(i int, client *kite.Client, data *kloud.MachineData) error {
 	instanceName := "testkloud-" + strconv.FormatInt(time.Now().UTC().UnixNano(), 10) + "-" + strconv.Itoa(i)
 
@@ -140,29 +177,8 @@ func build(i int, client *kite.Client, data *kloud.MachineData) error {
 		Type:    "build",
 	}
 
-	for {
-		resp, err := client.Tell("event", eArgs)
-		if err != nil {
-			return err
-		}
-
-		var event eventer.Event
-		if err := resp.Unmarshal(&event); err != nil {
-			return err
-		}
-
-		fmt.Printf("event %+v\n", event)
-
-		if event.Status == machinestate.Running {
-			break
-		}
-
-		if event.Status == machinestate.Unknown {
-			return errors.New(event.Message)
-		}
-
-		time.Sleep(3 * time.Second)
-		continue // still pending
+	if err := listenEvent(eArgs, machinestate.Running); err != nil {
+		return err
 	}
 
 	if !*flagTestDestroy {
@@ -179,29 +195,8 @@ func build(i int, client *kite.Client, data *kloud.MachineData) error {
 			Type:    "destroy",
 		}
 
-		for {
-			resp, err := client.Tell("event", eArgs)
-			if err != nil {
-				return err
-			}
-
-			var event eventer.Event
-			if err := resp.Unmarshal(&event); err != nil {
-				return err
-			}
-
-			fmt.Printf("%+v\n", event)
-
-			if event.Status == machinestate.Terminated {
-				break
-			}
-
-			if event.Status == machinestate.Unknown {
-				return errors.New(event.Message)
-			}
-
-			time.Sleep(1 * time.Second)
-			continue // still pending
+		if err := listenEvent(eArgs, machinestate.Terminated); err != nil {
+			return err
 		}
 	}
 
