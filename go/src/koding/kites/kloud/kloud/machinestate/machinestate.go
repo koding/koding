@@ -10,9 +10,12 @@ import (
 type State int
 
 const (
+	// Unknown is a state that needs to be resolved manually
+	Unknown State = iota
+
 	// NotInitialzed defines a state where the machine instance does not exists
 	// and was not built once. It's waits to be initialized
-	NotInitialized State = iota + 1
+	NotInitialized
 
 	// Building is in progress of creating the machine A successfull Booting
 	// state results in a Running state.
@@ -43,9 +46,6 @@ const (
 	// Terminated defines the state where the machine is destroyed. It
 	// physically doesn't exist anymore.
 	Terminated
-
-	// Unknown is a state that needs to be resolved manually
-	Unknown
 )
 
 var States = map[string]State{
@@ -102,8 +102,8 @@ func (s State) String() string {
 	case Terminated:
 		return "Terminated"
 	case Unknown:
-		return "Unknown"
+		fallthrough
 	default:
-		return "UnknownState"
+		return "Unknown"
 	}
 }

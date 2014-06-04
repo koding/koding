@@ -11,8 +11,9 @@ import (
 	"github.com/koding/kite"
 )
 
-type BuildResult struct {
-	State machinestate.State `json:"state"`
+type ControlResult struct {
+	State   machinestate.State `json:"state"`
+	EventId string             `json:"eventId"`
 }
 
 var defaultImageName = "koding-klient-0.0.1"
@@ -41,7 +42,7 @@ func (k *Kloud) build(r *kite.Request, c *Controller) (interface{}, error) {
 		status := machinestate.Running
 		msg := "Build is finished successfully."
 
-		err := k.buildMachine(c)
+		err := k.buildMachine(r.Username, c)
 		if err != nil {
 			k.Log.Error("Building machine failed: %s. Machine state is marked as ERROR.\n"+
 				"Any other calls are now forbidden until the state is resolved manually.\n"+
@@ -60,23 +61,26 @@ func (k *Kloud) build(r *kite.Request, c *Controller) (interface{}, error) {
 		})
 	}()
 
-	return BuildResult{State: machinestate.Building}, nil
+	return ControlResult{
+		EventId: c.Eventer.Id(),
+		State:   machinestate.Building,
+	}, nil
 }
 
-func (k *Kloud) buildMachine(c *Controller) error {
+func (k *Kloud) buildMachine(username string, c *Controller) error {
 	imageName := defaultImageName
 	if c.ImageName != "" {
 		imageName = c.ImageName
 	}
 
-	instanceName := c.Username + "-" + strconv.FormatInt(time.Now().UTC().UnixNano(), 10)
+	instanceName := username + "-" + strconv.FormatInt(time.Now().UTC().UnixNano(), 10)
 	if c.InstanceName != "" {
 		instanceName = c.InstanceName
 	}
 
 	buildOptions := &protocol.MachineOptions{
 		MachineId:    c.MachineId,
-		Username:     c.Username,
+		Username:     username,
 		ImageName:    imageName,
 		InstanceName: instanceName,
 		Eventer:      c.Eventer,

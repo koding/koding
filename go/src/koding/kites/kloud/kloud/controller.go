@@ -3,14 +3,12 @@ package kloud
 import (
 	"errors"
 	"fmt"
-	"time"
 
 	"koding/kites/kloud/eventer"
 	"koding/kites/kloud/kloud/machinestate"
 	"koding/kites/kloud/kloud/protocol"
 
 	"github.com/koding/kite"
-	prot "github.com/koding/kite/protocol"
 )
 
 type Controller struct {
@@ -18,7 +16,6 @@ type Controller struct {
 	MachineId    string
 	ImageName    string
 	InstanceName string
-	Username     string
 
 	// Populated later
 	CurrenState machinestate.State `json:"-"`
@@ -33,6 +30,18 @@ type InfoResponse struct {
 }
 
 type controlFunc func(*kite.Request, *Controller) (interface{}, error)
+
+type statePair struct {
+	initial machinestate.State
+	final   machinestate.State
+}
+
+var states = map[string]*statePair{
+	"start":   &statePair{initial: machinestate.Starting, final: machinestate.Running},
+	"stop":    &statePair{initial: machinestate.Stopping, final: machinestate.Stopped},
+	"destroy": &statePair{initial: machinestate.Terminating, final: machinestate.Terminated},
+	"restart": &statePair{initial: machinestate.Rebooting, final: machinestate.Running},
+}
 
 func (k *Kloud) ControlFunc(method string, control controlFunc) {
 	handler := func(r *kite.Request) (interface{}, error) {
@@ -72,11 +81,6 @@ func (k *Kloud) controller(r *kite.Request) (*Controller, error) {
 		return nil, err
 	}
 
-	state := machinestate.States[m.Machine.Status.State]
-	if state == 0 {
-		return nil, fmt.Errorf("state is unknown: %s", m.Machine.Status.State)
-	}
-
 	provider, ok := providers[m.Provider]
 	if !ok {
 		return nil, errors.New("provider not supported")
@@ -90,22 +94,9 @@ func (k *Kloud) controller(r *kite.Request) (*Controller, error) {
 		MachineId:   args.MachineId,
 		Provider:    provider,
 		MachineData: m,
-		Username:    r.Username,
 		Eventer:     k.NewEventer(r.Method + "-" + args.MachineId),
-		CurrenState: state,
+		CurrenState: m.Machine.State(),
 	}, nil
-}
-
-type statePair struct {
-	initial machinestate.State
-	final   machinestate.State
-}
-
-var states = map[string]*statePair{
-	"start":   &statePair{initial: machinestate.Starting, final: machinestate.Running},
-	"stop":    &statePair{initial: machinestate.Stopping, final: machinestate.Stopped},
-	"destroy": &statePair{initial: machinestate.Terminating, final: machinestate.Terminated},
-	"restart": &statePair{initial: machinestate.Rebooting, final: machinestate.Running},
 }
 
 func (k *Kloud) coreMethods(r *kite.Request, c *Controller, fn func(*protocol.MachineOptions) error) (interface{}, error) {
@@ -149,7 +140,10 @@ func (k *Kloud) coreMethods(r *kite.Request, c *Controller, fn func(*protocol.Ma
 		})
 	}()
 
-	return true, nil
+	return ControlResult{
+		EventId: c.Eventer.Id(),
+		State:   s.initial,
+	}, nil
 }
 
 func (k *Kloud) start(r *kite.Request, c *Controller) (interface{}, error) {
@@ -204,63 +198,4 @@ func (k *Kloud) info(r *kite.Request, c *Controller) (interface{}, error) {
 		State: c.MachineData.Machine.Status.State,
 		Data:  info,
 	}, nil
-}
-
-func (k *Kloud) remoteKiteAlive(queryString string) error {
-	query, err := prot.KiteFromString(queryString)
-	if err != nil {
-		return err
-	}
-
-	kontrolQuery := prot.KontrolQuery{
-		Username:    query.Username,
-		ID:          query.ID,
-		Hostname:    query.Hostname,
-		Name:        query.Name,
-		Environment: query.Environment,
-		Region:      query.Region,
-		Version:     query.Version,
-	}
-
-	checkKite := func() error {
-		fmt.Println("getting kites")
-		kites, err := k.Kite.GetKites(kontrolQuery)
-		if err != nil {
-			return err
-		}
-
-		remoteKite := kites[0]
-
-		fmt.Println("dialing kite")
-		if err := remoteKite.Dial(); err != nil {
-			return err
-		}
-
-		fmt.Println("executing kite.ping")
-		resp, err := remoteKite.Tell("kite.ping")
-		if err != nil {
-			return err
-		}
-
-		if resp.MustString() == "pong" {
-			return nil
-		}
-
-		return fmt.Errorf("wrong response %s", resp.MustString())
-	}
-
-	tryUntil := time.Now().Add(time.Minute)
-	for {
-		if err = checkKite(); err == nil {
-			return nil
-		}
-
-		if time.Now().After(tryUntil) {
-			return fmt.Errorf("Timeout while waiting for kite. Reason: %v", err)
-		}
-
-		time.Sleep(time.Second * 3)
-	}
-
-	return errors.New("couldn't check remote kite")
 }

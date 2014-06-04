@@ -172,7 +172,7 @@ func build(i int, client *kite.Client, data *kloud.MachineData) error {
 		return err
 	}
 
-	var result kloud.BuildResult
+	var result kloud.ControlResult
 	err = resp.Unmarshal(&result)
 	if err != nil {
 		return err
