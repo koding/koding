@@ -286,3 +286,9 @@ class SocialApiController extends KDController
       channelApiChannelsResFunc 'searchTopics', args...
     fetchProfileFeed     : (args...)->
       channelApiActivitiesResFunc 'fetchProfileFeed', args...
+    glancePinnedPost     : (options, callback)->
+      return callback { message: "MessageId is not set" } unless options.messageId
+      KD.remote.api.SocialChannel.glancePinnedPost options, callback
+    updateLastSeenTime   : (options, callback)->
+      return callback { message: "Channel Id is not set" } unless options.channelId
+      KD.remote.api.SocialChannel.updateLastSeenTime options, callback

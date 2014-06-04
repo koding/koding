@@ -7,6 +7,7 @@ import (
 	"net/url"
 	"socialapi/models"
 	"socialapi/workers/api/modules/helpers"
+	"time"
 
 	"github.com/koding/bongo"
 )
@@ -97,6 +98,33 @@ func UnpinMessage(u *url.URL, h http.Header, req *models.PinRequest) (int, http.
 	return helpers.HandleResultAndError(
 		c.RemoveMessage(req.MessageId),
 	)
+}
+
+func Glance(u *url.URL, h http.Header, req *models.PinRequest) (int, http.Header, interface{}, error) {
+	if err := validatePinRequest(req); err != nil {
+		return helpers.NewBadRequestResponse(err)
+	}
+
+	c, err := ensurePinnedActivityChannel(req.AccountId, req.GroupName)
+	if err != nil {
+		return helpers.NewBadRequestResponse(err)
+	}
+
+	if err := checkPinMessagePrerequisites(c, req); err != nil {
+		return helpers.NewBadRequestResponse(err)
+	}
+
+	cml, err := c.FetchMessageList(req.MessageId)
+	if err != nil {
+		return helpers.NewBadRequestResponse(err)
+	}
+
+	cml.AddedAt = time.Now().UTC()
+	if err := cml.Update(); err != nil {
+		return helpers.NewBadRequestResponse(err)
+	}
+
+	return helpers.NewOKResponse(cml)
 }
 
 func validatePinRequest(req *models.PinRequest) error {

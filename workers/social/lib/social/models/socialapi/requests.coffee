@@ -149,6 +149,13 @@ unpinMessage = (data, callback)->
   url = "/activity/pin/remove"
   post url, data, callback
 
+glancePinnedPost = (data, callback)->
+  if not data.accountId or not data.messageId or not data.groupName
+    return callback { message: "Request is not valid"}
+
+  url = "/activity/pin/glance"
+  post url, data, callback
+
 followTopic = (data, callback)->
   if not data.accountId or not data.channelId
     return callback { message: "Request is not valid"}
@@ -263,6 +270,7 @@ get = (url, data, callback)->
     , wrapCallback callback
 
 module.exports = {
+  glancePinnedPost
   updateLastSeenTime
   fetchProfileFeed
   searchTopics
