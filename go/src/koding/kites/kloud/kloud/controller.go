@@ -133,17 +133,37 @@ func (k *Kloud) destroy(r *kite.Request) (interface{}, error) {
 
 	k.Storage.UpdateState(c.MachineId, machinestate.Terminating)
 
+	k.Log.Info("destroying machine %s on %s", c.MachineId, c.Provider.Name())
+
 	machOptions := &protocol.MachineOptions{
 		MachineId: c.MachineId,
 		Username:  r.Username,
 		Eventer:   c.Eventer,
 	}
 
-	if err := c.Provider.Destroy(machOptions); err != nil {
-		return nil, err
-	}
+	go func() {
+		k.idlock.Get(r.Username).Lock()
+		defer k.idlock.Get(r.Username).Unlock()
 
-	k.Storage.UpdateState(c.MachineId, machinestate.Terminated)
+		status := machinestate.Terminated
+		msg := "Termination is finished successfully."
+
+		err := c.Provider.Destroy(machOptions)
+		if err != nil {
+			k.Log.Error("Termination machine failed: %s. Machine state is marked as Unknown",
+				err.Error())
+
+			status = machinestate.Unknown
+			msg = err.Error()
+		}
+
+		k.Storage.UpdateState(c.MachineId, status)
+		c.Eventer.Push(&eventer.Event{
+			Message:    msg,
+			Status:     status,
+			Percentage: 100,
+		})
+	}()
 
 	return true, nil
 }

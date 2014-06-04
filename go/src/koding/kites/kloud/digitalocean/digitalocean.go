@@ -297,7 +297,7 @@ func (d *DigitalOcean) WaitUntilReady(eventId, from, to int, push pushFunc) erro
 			return errors.New("Timeout while waiting for droplet to become ready")
 		case <-time.Tick(3 * time.Second):
 			if push != nil {
-				push("Waiting for droplet to be ready ...", from)
+				push("Waiting for droplet to be ready", from)
 			}
 
 			event, err := d.CheckEvent(eventId)
@@ -306,6 +306,7 @@ func (d *DigitalOcean) WaitUntilReady(eventId, from, to int, push pushFunc) erro
 			}
 
 			if event.Event.ActionStatus == "done" {
+				push("Waiting is done. Got a successfull result.", from)
 				return nil
 			}
 
@@ -427,29 +428,59 @@ func (d *DigitalOcean) MyImages() ([]digitalocean.Image, error) {
 
 // Start starts the machine for the given dropletID
 func (d *DigitalOcean) Start(opts *protocol.MachineOptions) error {
+	push := d.pusher(opts, machinestate.Starting)
 	dropletId, err := d.DropletId()
 	if err != nil {
 		return err
 	}
 
+	push("Starting machine", 10)
+
 	path := fmt.Sprintf("droplets/%v/power_on", dropletId)
-	_, err = digitalocean.NewRequest(*d.Client, path, url.Values{})
-	return err
+	body, err := digitalocean.NewRequest(*d.Client, path, url.Values{})
+	if err != nil {
+		return err
+	}
+
+	push("Start message is being sent, waiting.", 30)
+
+	eventId, ok := body["event_id"].(float64)
+	if !ok {
+		return fmt.Errorf("restart malformed data %v", body)
+	}
+
+	return d.WaitUntilReady(int(eventId), 30, 80, push)
 }
 
 // Stop stops the machine for the given dropletID
 func (d *DigitalOcean) Stop(opts *protocol.MachineOptions) error {
+	push := d.pusher(opts, machinestate.Stopping)
 	dropletId, err := d.DropletId()
 	if err != nil {
 		return err
 	}
+
+	push("Stopping machine", 10)
 
 	err = d.Client.PowerOffDroplet(dropletId)
 	if err != nil {
 		return err
 	}
 
-	return nil
+	path := fmt.Sprintf("droplets/%v/power_off", dropletId)
+	body, err := digitalocean.NewRequest(*d.Client, path, url.Values{})
+	if err != nil {
+		return err
+	}
+
+	push("Stop message is being sent, waiting.", 30)
+
+	eventId, ok := body["event_id"].(float64)
+	if !ok {
+		return fmt.Errorf("restart malformed data %v", body)
+	}
+
+	return d.WaitUntilReady(int(eventId), 30, 80, push)
 }
 
 // Restart restart the machine for the given dropletID
@@ -468,20 +499,14 @@ func (d *DigitalOcean) Restart(opts *protocol.MachineOptions) error {
 		return err
 	}
 
-	push("Reboot message is being sent, waiting...", 30)
+	push("Reboot message is being sent, waiting.", 30)
 
 	eventId, ok := body["event_id"].(float64)
 	if !ok {
 		return fmt.Errorf("restart malformed data %v", body)
 	}
 
-	if err := d.WaitUntilReady(int(eventId), 30, 80, push); err != nil {
-		return err
-	}
-
-	push("Waiting is done. Got a successfull result.", 90)
-
-	return nil
+	return d.WaitUntilReady(int(eventId), 30, 80, push)
 }
 
 // Destroyimage destroys an image for the given imageID.
@@ -491,12 +516,28 @@ func (d *DigitalOcean) DestroyImage(imageId uint) error {
 
 // Destroy destroys the machine with the given droplet ID.
 func (d *DigitalOcean) Destroy(opts *protocol.MachineOptions) error {
+	push := d.pusher(opts, machinestate.Terminating)
 	dropletId, err := d.DropletId()
 	if err != nil {
 		return err
 	}
 
-	return d.Client.DestroyDroplet(dropletId)
+	push("Terminating machine", 10)
+
+	path := fmt.Sprintf("droplets/%v/destroy", dropletId)
+	body, err := digitalocean.NewRequest(*d.Client, path, url.Values{})
+	if err != nil {
+		return err
+	}
+
+	push("Terminating message is being sent, waiting.", 30)
+
+	eventId, ok := body["event_id"].(float64)
+	if !ok {
+		return fmt.Errorf("restart malformed data %v", body)
+	}
+
+	return d.WaitUntilReady(int(eventId), 50, 80, push)
 }
 
 // CreateSnapshot cretes a new snapshot with the name from the given droplet Id.

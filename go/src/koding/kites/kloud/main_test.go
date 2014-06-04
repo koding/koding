@@ -159,19 +159,43 @@ func build(i int, client *kite.Client, data *kloud.MachineData) error {
 		continue // still pending
 	}
 
-	fmt.Println("============")
-	fmt.Printf("result %+v\n", result)
-	fmt.Println("============")
-
 	if !*flagTestDestroy {
-		fmt.Println("destroying ", instanceName)
-
 		cArgs := &kloud.Controller{
 			MachineId: data.Provider,
 		}
 
 		if _, err := client.Tell("destroy", cArgs); err != nil {
 			return fmt.Errorf("destroy: %s", err)
+		}
+
+		eArgs := &kloud.EventArgs{
+			EventId: bArgs.MachineId,
+			Type:    "destroy",
+		}
+
+		for {
+			resp, err := client.Tell("event", eArgs)
+			if err != nil {
+				return err
+			}
+
+			var event eventer.Event
+			if err := resp.Unmarshal(&event); err != nil {
+				return err
+			}
+
+			fmt.Printf("%+v\n", event)
+
+			if event.Status == machinestate.Terminated {
+				break
+			}
+
+			if event.Status == machinestate.Unknown {
+				return errors.New(event.Message)
+			}
+
+			time.Sleep(1 * time.Second)
+			continue // still pending
 		}
 	}
 
