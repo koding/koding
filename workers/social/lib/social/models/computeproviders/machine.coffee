@@ -40,7 +40,7 @@ module.exports = class JMachine extends Module
       queryString       :
         type            : String
 
-      publicIp          :
+      ipAddress         :
         type            : String
 
       provider          :
