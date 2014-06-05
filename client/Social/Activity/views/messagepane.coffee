@@ -16,6 +16,13 @@ class MessagePane extends KDTabPaneView
 
     @on 'LazyLoadThresholdReached', @bound 'lazyLoad'  if data.typeConstant in ['group', 'topic']
 
+    {windowController} = KD.singletons
+
+
+    windowController.addFocusListener (focused) =>
+
+      @glance()  if focused and @active
+
 
   createInputWidget: ->
 
@@ -63,13 +70,13 @@ class MessagePane extends KDTabPaneView
 
     data = @getData()
     {id, typeConstant} = data
-    {windowController, socialapi} = KD.singletons
+    {socialapi} = KD.singletons
 
-    return  unless windowController.focused
+    # fixme: don't fire unnecessary last seen time requests
+    # find a consisten way here./
 
-    item = @getDelegate().parent.sidebar.selectedItem
-
-    return  unless item.count
+    # item = @getDelegate().parent.sidebar.selectedItem
+    # return  unless item.count
 
     if typeConstant is 'message'
     then socialapi.channel.glancePinnedPost messageId : id, log
