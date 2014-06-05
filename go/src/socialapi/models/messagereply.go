@@ -165,7 +165,7 @@ func (m *MessageReply) UnreadCount(cml *ChannelMessageList) (int, error) {
 		m,
 		"message_id = ? and created_at > ?",
 		cml.MessageId,
-		cml.AddedAt.UTC().Format(time.RFC822Z),
+		cml.AddedAt.UTC().Format(time.RFC3339),
 	)
 }
 
