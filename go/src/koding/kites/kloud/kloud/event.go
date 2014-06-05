@@ -25,6 +25,10 @@ func (k *Kloud) event(r *kite.Request) (interface{}, error) {
 		return nil, err
 	}
 
+	if len(args) == 0 {
+		return nil, NewError(ErrEventArgsEmpty)
+	}
+
 	events := make([]EventResponse, len(args))
 
 	for i, event := range args {

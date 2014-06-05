@@ -18,6 +18,7 @@ const (
 	ErrEventNotFound    = 201
 	ErrEventIdMissing   = 202
 	ErrEventTypeMissing = 203
+	ErrEventArgsEmpty   = 204
 
 	ErrSignUsernameEmpty   = 301
 	ErrSignKontrolURLEmpty = 302
@@ -40,6 +41,7 @@ var errors = map[int]string{
 	ErrEventIdMissing:   "Event id is missing.",
 	ErrEventTypeMissing: "Event type is missing.",
 	ErrEventNotFound:    "Event not found.",
+	ErrEventArgsEmpty:   "Event arguments is empty, expecting an array.",
 
 	// Signer errors
 	ErrSignUsernameEmpty:   "Username is empty",
