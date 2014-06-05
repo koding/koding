@@ -96,6 +96,7 @@ func (k *Kloud) buildMachine(username string, c *Controller) error {
 	if err != nil {
 		return err
 	}
+	k.Log.Debug("[controller]: method 'build' is successfull %#v", buildResponse)
 
 	return k.Storage.Update(c.MachineId, buildResponse)
 }
