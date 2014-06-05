@@ -81,14 +81,19 @@ class ActivityLikeCount extends CustomLinkView
     KD.remote.cacheable origins, callback
 
 
+  update: ->
+
+    {actorsCount} = @getData().interactions.like
+    if actorsCount then @show() else @hide()
+
+    @updatePartial actorsCount
+
+
   viewAppended: ->
 
     super
 
-    {interactions: {like: {actorsCount}}} = @getData()
-    if actorsCount then @show() else @hide()
+    @update()
 
 
-  pistachio: ->
-
-    "{{ #(interactions.like.actorsCount)}}"
+  pistachio: -> ""
