@@ -130,6 +130,7 @@ type Product struct {
 type Animal struct {
 	Counter   int64 `primaryKey:"yes"`
 	Name      string
+	From      string //test reserverd sql keyword as field name
 	CreatedAt time.Time
 	UpdatedAt time.Time
 }
@@ -148,12 +149,12 @@ func init() {
 		// GRANT ALL ON gorm.* TO 'gorm'@'localhost';
 		fmt.Println("testing mysql...")
 		db, err = gorm.Open("mysql", "gorm:gorm@/gorm?charset=utf8&parseTime=True")
-	case "sqlite":
-		fmt.Println("testing sqlite3...")
-		db, err = gorm.Open("sqlite3", "/tmp/gorm.db")
-	default:
+	case "postgres":
 		fmt.Println("testing postgres...")
 		db, err = gorm.Open("postgres", "user=gorm dbname=gorm sslmode=disable")
+	default:
+		fmt.Println("testing sqlite3...")
+		db, err = gorm.Open("sqlite3", "/tmp/gorm.db")
 	}
 
 	// db.SetLogger(Logger{log.New(os.Stdout, "\r\n", 0)})
@@ -223,10 +224,10 @@ func init() {
 	db.Save(&User{Name: "3", Age: 24, Birthday: t4})
 	db.Save(&User{Name: "5", Age: 26, Birthday: t4})
 
-	db.Save(&Animal{Name: "First"})
-	db.Save(&Animal{Name: "Amazing"})
-	db.Save(&Animal{Name: "Horse"})
-	db.Save(&Animal{Name: "Last"})
+	db.Save(&Animal{Name: "First", From: "hello"})
+	db.Save(&Animal{Name: "Amazing", From: "nerdz"})
+	db.Save(&Animal{Name: "Horse", From: "gorm"})
+	db.Save(&Animal{Name: "Last", From: "epic"})
 }
 
 func TestFirstAndLast(t *testing.T) {
@@ -609,11 +610,6 @@ func TestSelect(t *testing.T) {
 
 	if user.Name != "3" {
 		t.Errorf("Should got Name = 3 when searching with it, %+v", user.Id)
-	}
-
-	query := db.Where("name = ?", "3").Select("nam;e")
-	if query.Error == nil {
-		t.Errorf("Should got error with invalid select string")
 	}
 }
 
@@ -1768,6 +1764,12 @@ func TestScan(t *testing.T) {
 		t.Errorf("Scan into struct should work")
 	}
 
+	var doubleAgeRes result
+	db.Table("users").Select("age + age as age").Where("name = ?", 3).Scan(&doubleAgeRes)
+	if doubleAgeRes.Age != res.Age*2 {
+		t.Errorf("Scan double age as age")
+	}
+
 	var ress []result
 	db.Table("users").Select("name, age").Where("name = ?", 3).Scan(&ress)
 	if len(ress) != 2 || ress[0].Name != "3" || ress[1].Name != "3" {
@@ -1990,5 +1992,14 @@ func BenchmarkRawSql(b *testing.B) {
 		db.Exec(update_sql, "new-"+e, time.Now(), id)
 		// Delete
 		db.Exec(delete_sql, id)
+	}
+}
+
+func TestSelectWithEscapedFieldName(t *testing.T) {
+	var names []string
+	db.Model(Animal{}).Where(&Animal{From: "nerdz"}).Pluck("\"name\"", &names)
+
+	if len(names) != 1 {
+		t.Errorf("Expected one name, but got: %d", len(names))
 	}
 }

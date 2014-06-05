@@ -59,6 +59,7 @@ func Inject(mux *tigertonic.TrieServeMux) *tigertonic.TrieServeMux {
 	////////////////////////////////////////////////////////////////////////////////////
 	mux.Handle("POST", "/channel", handlerWrapper(channel.Create, "channel-create"))
 	mux.Handle("GET", "/channel", handlerWrapper(channel.List, "channel-list"))
+	mux.Handle("GET", "/channel/search", handlerWrapper(channel.Search, "channel-search"))
 	// deprecated, here for socialworker
 	mux.Handle("POST", "/channel/{id}", handlerWrapper(channel.Update, "channel-update"))
 	mux.Handle("POST", "/channel/{id}/update", handlerWrapper(channel.Update, "channel-update"))
@@ -72,12 +73,16 @@ func Inject(mux *tigertonic.TrieServeMux) *tigertonic.TrieServeMux {
 	mux.Handle("POST", "/channel/{id}/participant/{accountId}/add", handlerWrapper(participant.Add, "participant-list"))
 	// remove participant from the channel
 	mux.Handle("POST", "/channel/{id}/participant/{accountId}/delete", handlerWrapper(participant.Delete, "participant-list"))
+	// update presence info
+	mux.Handle("POST", "/channel/{id}/participant/{accountId}/presence", handlerWrapper(participant.Presence, "participant-presence"))
 	// list messages of the channel
 	mux.Handle("GET", "/channel/{id}/history", handlerWrapper(messagelist.List, "channel-history-list"))
 	// register an account
 	mux.Handle("POST", "/account", handlerWrapper(account.Register, "account-create"))
 	// list channels of the account
 	mux.Handle("GET", "/account/{id}/channels", handlerWrapper(account.ListChannels, "account-channel-list"))
+	// list posts of the account
+	mux.Handle("GET", "/account/{id}/posts", handlerWrapper(account.ListPosts, "account-post-list"))
 	// follow the account
 	mux.Handle("POST", "/account/{id}/follow", handlerWrapper(account.Follow, "account-follow"))
 	// un-follow the account
@@ -95,8 +100,13 @@ func Inject(mux *tigertonic.TrieServeMux) *tigertonic.TrieServeMux {
 	mux.Handle("POST", "/activity/pin/add", handlerWrapper(activity.PinMessage, "activity-add-pinned-message"))
 	// unpin a status update
 	mux.Handle("POST", "/activity/pin/remove", handlerWrapper(activity.UnpinMessage, "activity-remove-pinned-message"))
+
+	// @todo add tests
+	mux.Handle("POST", "/activity/pin/glance", handlerWrapper(activity.Glance, "activity-pinned-message-glance"))
 	// get popular topics
 	mux.Handle("GET", "/popular/topics/{statisticName}", handlerWrapper(popular.ListTopics, "list-popular-topics"))
+	mux.Handle("GET", "/popular/posts/{channelName}/{statisticName}", handlerWrapper(popular.ListPosts, "list-popular-posts"))
+
 	mux.Handle("POST", "/privatemessage/send", handlerWrapper(privatemessage.Send, "privatemessage-send"))
 	mux.Handle("GET", "/privatemessage/list", handlerWrapper(privatemessage.List, "privatemessage-list"))
 

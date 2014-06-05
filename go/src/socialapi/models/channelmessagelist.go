@@ -10,16 +10,16 @@ import (
 
 type ChannelMessageList struct {
 	// unique identifier of the channel message list
-	Id int64 `json:"id"`
+	Id int64 `json:"id,string"`
 
 	// Id of the channel
-	ChannelId int64 `json:"channelId"     sql:"NOT NULL"`
+	ChannelId int64 `json:"channelId,string"     sql:"NOT NULL"`
 
 	// Id of the message
-	MessageId int64 `json:"messageId"     sql:"NOT NULL"`
+	MessageId int64 `json:"messageId,string"     sql:"NOT NULL"`
 
 	// Addition date of the message to the channel
-	AddedAt time.Time `json:"addedAt"     sql:"NOT NULL"`
+	AddedAt time.Time `json:"addedAt"            sql:"NOT NULL"`
 }
 
 func (c *ChannelMessageList) BeforeCreate() {
@@ -38,11 +38,11 @@ func (c *ChannelMessageList) AfterUpdate() {
 	bongo.B.AfterUpdate(c)
 }
 
-func (c *ChannelMessageList) AfterDelete() {
+func (c ChannelMessageList) AfterDelete() {
 	bongo.B.AfterDelete(c)
 }
 
-func (c *ChannelMessageList) GetId() int64 {
+func (c ChannelMessageList) GetId() int64 {
 	return c.Id
 }
 
@@ -60,6 +60,10 @@ func (c *ChannelMessageList) ById(id int64) error {
 
 func (c *ChannelMessageList) One(q *bongo.Query) error {
 	return bongo.B.One(c, c, q)
+}
+
+func (c *ChannelMessageList) Update() error {
+	return bongo.B.Update(c)
 }
 
 func (c *ChannelMessageList) Some(data interface{}, q *bongo.Query) error {
@@ -83,7 +87,7 @@ func (c *ChannelMessageList) UnreadCount(cp *ChannelParticipant) (int, error) {
 		"channel_id = ? and added_at > ?",
 		cp.ChannelId,
 		// todo change this format to get from a specific place
-		cp.LastSeenAt.UTC().Format(time.RFC822Z),
+		cp.LastSeenAt.UTC().Format(time.RFC3339),
 	)
 }
 
@@ -133,13 +137,22 @@ func (c *ChannelMessageList) getMessages(q *Query) ([]*ChannelMessageContainer, 
 		return nil, errors.New("ChannelId is not set")
 	}
 
-	if err := bongo.B.DB.Table(c.TableName()).
-		Order("added_at desc").
-		Where("channel_id = ?", c.ChannelId).
-		Offset(q.Skip).
-		Limit(q.Limit).
-		Pluck("message_id", &messages).
-		Error; err != nil {
+	query := &bongo.Query{
+		Selector: map[string]interface{}{
+			"channel_id": c.ChannelId,
+		},
+		Pluck:      "message_id",
+		Pagination: *bongo.NewPagination(q.Limit, q.Skip),
+		Sort:       map[string]string{"added_at": "DESC"},
+	}
+
+	bongoQuery := bongo.B.BuildQuery(c, query)
+	if !q.From.IsZero() {
+		bongoQuery = bongoQuery.Where("added_at < ?", q.From)
+	}
+
+	bongoQuery = bongoQuery.Pluck(query.Pluck, &messages)
+	if err := bongoQuery.Error; err != nil {
 		return nil, err
 	}
 
@@ -179,7 +192,7 @@ func (c *ChannelMessageList) populateChannelMessages(channelMessages []ChannelMe
 
 }
 
-func (c *ChannelMessageList) FetchMessageChannels(messageId int64) ([]Channel, error) {
+func (c *ChannelMessageList) FetchMessageChannelIds(messageId int64) ([]int64, error) {
 	var channelIds []int64
 
 	q := &bongo.Query{
@@ -194,7 +207,40 @@ func (c *ChannelMessageList) FetchMessageChannels(messageId int64) ([]Channel, e
 		return nil, err
 	}
 
+	return channelIds, nil
+}
+
+func (c *ChannelMessageList) FetchMessageChannels(messageId int64) ([]Channel, error) {
+	channelIds, err := c.FetchMessageChannelIds(messageId)
+	if err != nil {
+		return nil, err
+	}
+
 	return NewChannel().FetchByIds(channelIds)
+}
+
+func (c *ChannelMessageList) FetchMessageIdsByChannelId(channelId int64, q *Query) ([]int64, error) {
+	query := &bongo.Query{
+		Selector: map[string]interface{}{
+			"channel_id": channelId,
+		},
+		Pluck:      "message_id",
+		Pagination: *bongo.NewPagination(q.Limit, q.Skip),
+		Sort: map[string]string{
+			"added_at": "DESC",
+		},
+	}
+
+	var messageIds []int64
+	if err := c.Some(&messageIds, query); err != nil {
+		return nil, err
+	}
+
+	if messageIds == nil {
+		return make([]int64, 0), nil
+	}
+
+	return messageIds, nil
 }
 
 // seperate this fucntion into modelhelper

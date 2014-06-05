@@ -10,7 +10,7 @@ import (
 
 type Account struct {
 	// unique id of the account
-	Id int64 `json:"id"`
+	Id int64 `json:"id,string"`
 
 	// old id of the account, which is originally
 	// perisisted in mongo
@@ -22,7 +22,7 @@ func NewAccount() *Account {
 	return &Account{}
 }
 
-func (a *Account) GetId() int64 {
+func (a Account) GetId() int64 {
 	return a.Id
 }
 
@@ -71,10 +71,6 @@ func (a *Account) Create() error {
 	}
 
 	return bongo.B.Create(a)
-}
-
-func (a *Account) Delete() error {
-	return bongo.B.Delete(a)
 }
 
 func (a *Account) Some(data interface{}, q *bongo.Query) error {
@@ -205,7 +201,7 @@ func (a *Account) FetchFollowerChannelIds() ([]int64, error) {
 	return channelIds, nil
 }
 
-func FetchOdlIdByAccountId(accountId int64) (string, error) {
+func FetchOldIdByAccountId(accountId int64) (string, error) {
 
 	a := NewAccount()
 	var data []string
@@ -213,8 +209,8 @@ func FetchOdlIdByAccountId(accountId int64) (string, error) {
 		Selector: map[string]interface{}{
 			"id": accountId,
 		},
-		Pluck: "old_id",
-		Limit: 1,
+		Pluck:      "old_id",
+		Pagination: *bongo.NewPagination(1, 0),
 	}
 	err := a.Some(&data, q)
 	if err != nil {

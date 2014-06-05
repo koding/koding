@@ -75,7 +75,12 @@ func List(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface
 	// set message id
 	i.MessageId = messageId
 
+	list, err := i.List(query)
+	if err != nil {
+		return helpers.NewBadRequestResponse(err)
+	}
+
 	return helpers.HandleResultAndError(
-		i.List(query),
+		models.AccountOldsIdByIds(list),
 	)
 }

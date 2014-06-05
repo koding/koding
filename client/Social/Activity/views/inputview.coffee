@@ -8,12 +8,12 @@ class ActivityInputView extends KDTokenizedInput
     options.multiline       ?= yes
     options.placeholder    or= "What's new #{KD.whoami().profile.firstName}?"
     options.tokenViewClass or= TokenView
-    options.rules  or=
-      tag            :
-        type         : "tag"
-        prefix       : "#"
-        pistachio    : "\#{{#(title)}}"
-        dataSource   : @bound "fetchTopics"
+    # options.rules  or=
+    #   tag            :
+    #     type         : "tag"
+    #     prefix       : "#"
+    #     pistachio    : "\#{{#(title)}}"
+    #     dataSource   : @bound "fetchTopics"
 
     super options, data
     @defaultTokens = initializeDefaultTokens()
@@ -49,15 +49,6 @@ class ActivityInputView extends KDTokenizedInput
     tokens = @defaultTokens or initializeDefaultTokens()
     fillTokenMap activity.tags , tokens.tags  if activity?.tags?.length
     super @renderTokens content, tokens
-
-  sanitizeInput: ->
-    {prefix} = @activeRule
-    value = @tokenInput.textContent.substring prefix.length
-    words = value.split /\W/, 3
-    if words.join("") isnt ""
-      newval = prefix + words.join "-"
-      @tokenInput.textContent = newval
-      @utils.selectText @tokenInput, 1
 
   selectToken: ->
     return  unless @menu

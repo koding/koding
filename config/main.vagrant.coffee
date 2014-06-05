@@ -44,7 +44,10 @@ module.exports =
     clusterSize : 1
     queueName   : socialQueueName+'web'
     watch       : yes
-  socialApiUrl  : "http://localhost:7000"
+  socialapi:
+    port        : 7000
+    clusterSize : 5
+    proxyUrl    : "http://localhost:7000"
   sourceServer  :
     enabled     : yes
     port        : 3526
@@ -71,7 +74,7 @@ module.exports =
   runTerminalKite: yes
   runProxy      : yes
   redis         : "localhost:6379"
-  subscriptionEndpoint   : "http://192.168.50.1:3020/-/subscription/check/"
+  subscriptionEndpoint   : "http://192.168.42.1:3020/-/subscription/check/"
   misc          :
     claimGlobalNamesForUsers: no
     updateAllSlugs : no

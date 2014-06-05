@@ -9,6 +9,9 @@ type (
 		Redis             string
 		Mongo             string
 		Environment       string
+		Uri               string
+		Notification      Notification
+		SendGrid          SendGrid
 	}
 
 	Postgres struct {
@@ -27,5 +30,15 @@ type (
 	}
 	Limits struct {
 		MessageBodyMinLen int
+	}
+	Notification struct {
+		CacheEnabled bool
+	}
+	SendGrid struct {
+		Username        string
+		Password        string
+		FromName        string
+		FromMail        string
+		ForcedRecipient string
 	}
 )

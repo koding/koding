@@ -197,6 +197,8 @@ func TestChannelMessage(t *testing.T) {
 
 			})
 
+			Convey("we should be able to get replies with \"from\" query param", nil)
+
 			Convey("non-owner can post reply to message", func() {
 				post, err := createPost(groupChannel.Id, account.Id)
 				So(err, ShouldBeNil)
@@ -362,11 +364,18 @@ func createPostWithBody(channelId, accountId int64, body string) (*models.Channe
 	cm.AccountId = accountId
 
 	url := fmt.Sprintf("/channel/%d/message", channelId)
-	cmI, err := sendModel("POST", url, cm)
+	res, err := marshallAndSendRequest("POST", url, cm)
 	if err != nil {
 		return nil, err
 	}
-	return cmI.(*models.ChannelMessage), nil
+
+	model := models.NewChannelMessageContainer()
+	err = json.Unmarshal(res, model)
+	if err != nil {
+		return nil, err
+	}
+
+	return model.Message, nil
 }
 
 func updatePost(cm *models.ChannelMessage) (*models.ChannelMessage, error) {
@@ -420,14 +429,14 @@ func addInteraction(interactionType string, postId, accountId int64) error {
 	return nil
 }
 
-func getInteractions(interactionType string, postId int64) ([]int64, error) {
+func getInteractions(interactionType string, postId int64) ([]string, error) {
 	url := fmt.Sprintf("/message/%d/interaction/%s", postId, interactionType)
 	res, err := sendRequest("GET", url, nil)
 	if err != nil {
 		return nil, err
 	}
 
-	var interactions []int64
+	var interactions []string
 	err = json.Unmarshal(res, &interactions)
 	if err != nil {
 		return nil, err
@@ -472,11 +481,18 @@ func addReply(postId, accountId, channelId int64) (*models.ChannelMessage, error
 	cm.InitialChannelId = channelId
 
 	url := fmt.Sprintf("/message/%d/reply", postId)
-	_, err := sendModel("POST", url, cm)
+	res, err := marshallAndSendRequest("POST", url, cm)
 	if err != nil {
 		return nil, err
 	}
-	return cm, nil
+
+	model := models.NewChannelMessageContainer()
+	err = json.Unmarshal(res, model)
+	if err != nil {
+		return nil, err
+	}
+
+	return model.Message, nil
 }
 
 func deleteReply(postId, replyId int64) error {
