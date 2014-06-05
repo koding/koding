@@ -30,4 +30,5 @@ class SidebarMessageItem extends SidebarItem
     """
     {{> @avatar}}{{> @actor}}
     {span.user-numbers{ #(lastMessage.body)}}
+    {{> @unreadCount}}
     """

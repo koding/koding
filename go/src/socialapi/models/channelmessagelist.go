@@ -4,7 +4,6 @@ import (
 	"errors"
 	"time"
 
-	"github.com/jinzhu/gorm"
 	"github.com/koding/bongo"
 )
 
@@ -62,6 +61,10 @@ func (c *ChannelMessageList) One(q *bongo.Query) error {
 	return bongo.B.One(c, c, q)
 }
 
+func (c *ChannelMessageList) Update() error {
+	return bongo.B.Update(c)
+}
+
 func (c *ChannelMessageList) Some(data interface{}, q *bongo.Query) error {
 	return bongo.B.Some(c, data, q)
 }
@@ -83,7 +86,7 @@ func (c *ChannelMessageList) UnreadCount(cp *ChannelParticipant) (int, error) {
 		"channel_id = ? and added_at > ?",
 		cp.ChannelId,
 		// todo change this format to get from a specific place
-		cp.LastSeenAt.UTC().Format(time.RFC822Z),
+		cp.LastSeenAt.UTC().Format(time.RFC3339),
 	)
 }
 
@@ -95,35 +98,42 @@ func (c *ChannelMessageList) Delete() error {
 	return bongo.B.Delete(c)
 }
 
-func (c *ChannelMessageList) List(q *Query) (*HistoryResponse, error) {
+func (c *ChannelMessageList) List(q *Query, populateUnreadCount bool) (*HistoryResponse, error) {
 	messageList, err := c.getMessages(q)
 	if err != nil {
 		return nil, err
 	}
 
+	if populateUnreadCount {
+		messageList = c.populateUnreadCount(messageList)
+	}
+
 	hr := NewHistoryResponse()
 	hr.MessageList = messageList
-
-	unreadCount := 0
-	cp := NewChannelParticipant()
-	cp.ChannelId = c.ChannelId
-	cp.AccountId = q.AccountId
-	err = cp.FetchParticipant()
-	// we are forcing unread count to 0 if user is not a participant
-	// of the channel
-	if err != nil && err != gorm.RecordNotFound {
-		return nil, err
-	}
-
-	if err == nil {
-		unreadCount, err = c.UnreadCount(cp)
-		if err != nil {
-			return nil, err
-		}
-	}
-
-	hr.UnreadCount = unreadCount
 	return hr, nil
+}
+
+// populateUnreadCount adds unread count into message containers
+func (c *ChannelMessageList) populateUnreadCount(messageList []*ChannelMessageContainer) []*ChannelMessageContainer {
+	channel := NewChannel()
+	channel.Id = c.ChannelId
+
+	for i, message := range messageList {
+		cml, err := channel.FetchMessageList(message.Message.Id)
+		if err != nil {
+			// helper.MustGetLogger().Error(err.Error())
+			continue
+		}
+
+		count, err := NewMessageReply().UnreadCount(cml)
+		if err != nil {
+			// helper.MustGetLogger().Error(err.Error())
+			continue
+		}
+		messageList[i].UnreadRepliesCount = count
+	}
+
+	return messageList
 }
 
 func (c *ChannelMessageList) getMessages(q *Query) ([]*ChannelMessageContainer, error) {

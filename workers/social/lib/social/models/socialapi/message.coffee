@@ -50,16 +50,16 @@ module.exports = class SocialMessage extends Base
 
   JAccount = require '../account'
 
-  {fetchGroup} = require "./helper"
-
   Validators = require '../group/validators'
   {permit}   = require '../group/permissionset'
 
-  {fetchGroup, secureRequest, doRequest, permittedRequest} = require "./helper"
+  { fetchGroup, secureRequest,
+    doRequest, permittedRequest,
+    ensureGroupChannel } = require "./helper"
 
   @post = permit 'create posts',
     success: (client, data, callback)->
-      SocialMessage.ensureGroupChannel client, (err, socialApiChannelId)->
+      ensureGroupChannel client, (err, socialApiChannelId)->
         data.channelId = socialApiChannelId
         doRequest 'postToChannel', client, data, callback
 
@@ -67,7 +67,7 @@ module.exports = class SocialMessage extends Base
     success: (client, data, callback)->
       if not data.messageId or not data.body
         return callback message: "Request is not valid for adding a reply"
-      SocialMessage.ensureGroupChannel client, (err, socialApiChannelId)->
+      ensureGroupChannel client, (err, socialApiChannelId)->
         data.initialChannelId = socialApiChannelId
         doRequest 'addReply', client, data, callback
 
@@ -122,13 +122,6 @@ module.exports = class SocialMessage extends Base
       unless data.body.match(/@([\w]+)/g)?.length > 0
         return callback message: "You should have at least one recipient"
       doRequest 'sendPrivateMessage', client, data, callback
-
-  @ensureGroupChannel = (client, callback)->
-    fetchGroup client, (err, group)->
-      return callback err  if err
-      group.createSocialApiChannelId (err, socialApiChannelId)->
-        return callback err  if err
-        callback null, socialApiChannelId
 
   # todo-- ask Chris about using validators.own
   # how to implement for this case

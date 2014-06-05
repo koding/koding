@@ -6,6 +6,7 @@ type ChannelContainer struct {
 	ParticipantCount    int                      `json:"participantCount"`
 	ParticipantsPreview []string                 `json:"participantsPreview"`
 	LastMessage         *ChannelMessageContainer `json:"lastMessage"`
+	UnreadCount         int                      `json:"unreadCount"`
 }
 
 func NewChannelContainer() *ChannelContainer {
@@ -21,6 +22,37 @@ func PopulateChannelContainers(channelList []Channel, accountId int64) ([]*Chann
 		if err != nil {
 			return nil, err
 		}
+	}
+
+	return channelContainers, nil
+}
+
+func PopulateChannelContainersWithUnreadCount(channelList []Channel, accountId int64) ([]*ChannelContainer, error) {
+	channelContainers, err := PopulateChannelContainers(channelList, accountId)
+	if err != nil {
+		return nil, err
+	}
+
+	cml := NewChannelMessageList()
+	for i, container := range channelContainers {
+		if !container.IsParticipant {
+			continue
+		}
+
+		cp := NewChannelParticipant()
+		cp.ChannelId = container.Channel.Id
+		cp.AccountId = accountId
+		if err := cp.FetchParticipant(); err != nil {
+			// helper.MustGetLogger().Error(err.Error())
+			continue
+		}
+
+		count, _ := cml.UnreadCount(cp)
+		if err != nil {
+			// helper.MustGetLogger().Error(err.Error())
+			continue
+		}
+		channelContainers[i].UnreadCount = count
 	}
 
 	return channelContainers, nil

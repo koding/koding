@@ -270,25 +270,6 @@ func getScreenPath(vos *virt.VOS) (string, error) {
 		screenPath = defaultScreenPath
 	}
 
-	// debugging, remove later
-	screenfile := vos.VM.File("rootfs" + defaultScreenPath)
-	log.Info("DEBUG: trying os.Stat defaultScreenPath %s", screenfile)
-	_, err = os.Stat(screenfile)
-	if err != nil {
-		log.Error("DEBUG: couldn't stat defaultScreenPath %s : %v", screenfile, err)
-	} else {
-		log.Info("DEBUG: result os.Stat defaultScreenPath %s", screenfile)
-	}
-
-	screenfile = vos.VM.File("rootfs" + kodingScreenPath)
-	log.Info("DEBUG: trying os.Stat kodingScreenPath %s", screenfile)
-	_, err = os.Stat(screenfile)
-	if err != nil {
-		log.Error("DEBUG: error couldn't stat %s : %v", screenfile, err)
-	} else {
-		log.Info("DEBUG: success os.Stat kodingScreenPath %s", screenfile)
-	}
-
 	return screenPath, nil
 }
 

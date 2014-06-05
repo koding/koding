@@ -65,7 +65,9 @@ module.exports = class SocialChannel extends Base
   Validators = require '../group/validators'
   {permit}   = require '../group/permissionset'
 
-  {fetchGroup, secureRequest, doRequest, permittedRequest} = require "./helper"
+  { fetchGroup, secureRequest,
+    doRequest, permittedRequest,
+    ensureGroupChannel, fetchGroup } = require "./helper"
 
   @generateChannelName = ({groupSlug, apiChannelType, apiChannelName})->
     return "socialapi-\
@@ -162,9 +164,18 @@ module.exports = class SocialChannel extends Base
     validate      : ['messageId']
 
   # fetchActivities - fetch activities of a channel
-  @fetchActivities = secure (client, options = {}, callback)->
+  @fetchActivities = secure (client, options, callback)->
     options.channelId = options.id
     doRequest 'fetchChannelActivities', client, options, callback
+
+  # fetchGroupActivities - fetch public activities of a group
+  @fetchGroupActivities = secure (client, options, callback)->
+    ensureGroupChannel client, (err, socialApiChannelId)->
+      return callback err if err
+      return callback { message: "Channel Id is not set" } unless socialApiChannelId
+
+      options.id = socialApiChannelId
+      SocialChannel.fetchActivities client, options, callback
 
   # followUser - a user follows a user
   @followUser = secure (client, options, callback)->

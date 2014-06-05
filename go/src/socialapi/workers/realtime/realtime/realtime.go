@@ -7,7 +7,7 @@ import (
 	mongomodels "koding/db/models"
 	"koding/db/mongodb/modelhelper"
 	"socialapi/models"
-	"socialapi/workers/helper"
+	"socialapi/workers/common/bytemapper"
 	notificationmodels "socialapi/workers/notification/models"
 	"strconv"
 
@@ -64,7 +64,7 @@ func New(rmq *rabbitmq.RabbitMQ, log logging.Logger) (*Controller, error) {
 	ffc := &Controller{
 		log:     log,
 		rmqConn: rmqConn.Conn(),
-		ffc.routes: map[string]Action{
+		routes: map[string]Action{
 			"api.channel_message_created": (*Controller).MessageSaved,
 			"api.channel_message_updated": (*Controller).MessageUpdated,
 			"api.channel_message_deleted": (*Controller).MessageDeleted,
@@ -114,7 +114,7 @@ func (f *Controller) MessageDeleted(data []byte) error {
 }
 
 func (f *Controller) MessageUpdated(data []byte) error {
-	cm, err := helper.MapToChannelMessage(data)
+	cm, err := bytemapper.ChannelMessage(data)
 	if err != nil {
 		return err
 	}
@@ -215,7 +215,7 @@ type InteractionEvent struct {
 }
 
 func (f *Controller) handleInteractionEvent(eventName string, data []byte) error {
-	i, err := helper.MapToInteraction(data)
+	i, err := bytemapper.Interaction(data)
 	if err != nil {
 		return err
 	}
@@ -248,7 +248,7 @@ func (f *Controller) handleInteractionEvent(eventName string, data []byte) error
 }
 
 func (f *Controller) MessageReplySaved(data []byte) error {
-	mr, err := helper.MapToMessageReply(data)
+	mr, err := bytemapper.MessageReply(data)
 	if err != nil {
 		return err
 	}
@@ -310,7 +310,7 @@ func (f *Controller) sendReplyAddedEventAsNotificationEvent(mr *models.MessageRe
 }
 
 func (f *Controller) MessageReplyDeleted(data []byte) error {
-	i, err := helper.MapToMessageReply(data)
+	i, err := bytemapper.MessageReply(data)
 	if err != nil {
 		return err
 	}
@@ -326,7 +326,7 @@ func (f *Controller) MessageReplyDeleted(data []byte) error {
 
 // send message to the channel
 func (f *Controller) MessageListSaved(data []byte) error {
-	cml, err := helper.MapToChannelMessageList(data)
+	cml, err := bytemapper.ChannelMessageList(data)
 	if err != nil {
 		return err
 	}
@@ -352,8 +352,18 @@ func (f *Controller) sendChannelUpdatedEvent(channelId int64, cm *models.Channel
 		return err
 	}
 
+	// do not send any -updated- event to group channels
 	if c.TypeConstant == models.Channel_TYPE_GROUP {
 		f.log.Info("Not sending group (%s) event", c.GroupName)
+		return nil
+	}
+
+	// do not send comment events to topic channels
+	if cm != nil && c.TypeConstant == models.Channel_TYPE_TOPIC {
+		f.log.Info(
+			"Not sending non-post (%s) event to topic channel",
+			cm.TypeConstant,
+		)
 		return nil
 	}
 
@@ -416,7 +426,7 @@ func (f *Controller) sendChannelUpdatedEventToParticipant(c *models.Channel, cm 
 
 // todo - refactor this part
 func (f *Controller) MessageListUpdated(data []byte) error {
-	cml, err := helper.MapToChannelMessageList(data)
+	cml, err := bytemapper.ChannelMessageList(data)
 	if err != nil {
 		return err
 	}
@@ -439,7 +449,7 @@ func (f *Controller) MessageListUpdated(data []byte) error {
 }
 
 func (f *Controller) MessageListDeleted(data []byte) error {
-	cml, err := helper.MapToChannelMessageList(data)
+	cml, err := bytemapper.ChannelMessageList(data)
 	if err != nil {
 		return err
 	}

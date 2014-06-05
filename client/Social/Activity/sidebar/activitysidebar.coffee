@@ -13,30 +13,8 @@ class ActivitySidebar extends KDCustomScrollView
     SocialChannel : 'name'
 
 
-  # @getRoute = (data) ->
-
-  #   {typeConstant} = data
-  #   groupName      = KD.getGroup().slug
-  #   groupName      = ''  if groupName is 'koding'
-  #   slugProp       = slugProps[data.bongo_.constructorName]
-
-  #   return "#{groupName}/Activity/#{typeMap[typeConstant]}/#{data[slugProp]}"
-
-
-  # sanitize = (allItems) ->
-
-  #   sanitized = []
-  #   for own title, items of allItems
-  #     header = new KDObject { title }
-  #     items.forEach (item) ->
-  #       obj = new KDObject {}, item
-  #       obj.parentId = header.getId()
-  #       sanitized.push obj
-  #     sanitized.push header
-
-  #   return sanitized.reverse()
-
   revive = (obj) -> KD.singletons.socialapi.mapChannels(obj).first
+
 
   constructor: ->
 
@@ -45,7 +23,6 @@ class ActivitySidebar extends KDCustomScrollView
     {
       notificationController
       socialapi
-      windowController
     } = KD.singletons
 
     @sections     = {}
@@ -66,20 +43,22 @@ class ActivitySidebar extends KDCustomScrollView
       item           = listController.itemsIndexed[revived.id]
       listController.removeItem item
 
-    notificationController.on 'ChannelUpdateHappened', (update) =>
 
-      {unreadCount, channel} = update
-      {typeConstant, id}     = channel
+    notificationController
+      .on 'ChannelUpdateHappened',  @bound 'notificationHasArrived'
+      .on 'NotificationHasArrived', @bound 'notificationHasArrived'
 
-      listController = @getListController typeConstant
 
-      item = listController.itemForId id
+  notificationHasArrived: (update) ->
 
-      log item, update, '>>>>>>>>>>>>>>'
+    {unreadCount, channel} = update
+    {typeConstant, id}     = channel
 
-    # windowController.addFocusListener (focused) ->
-    #   log 'browser focus:', focused
+    listController = @getListController typeConstant
 
+    item = listController.itemForId id
+
+    item.setUnreadCount unreadCount  if item.unreadCount
 
 
   getListController: (type) ->
@@ -104,8 +83,10 @@ class ActivitySidebar extends KDCustomScrollView
     @deselectAllItems()
 
     if type is 'public'
-    then return @public.setClass 'selected'
-    else @public.unsetClass 'selected'
+      @selectedItem = @public
+      return @public.setClass 'selected'
+    else
+      @public.unsetClass 'selected'
 
     type = 'privatemessage' if type is 'message'
 
