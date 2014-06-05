@@ -6,6 +6,10 @@ class ActivityLikeCount extends CustomLinkView
 
     super options, data
 
+    data
+      .on 'LikeAdded', @bound 'update'
+      .on 'LikeRemoved', @bound 'update'
+
 
   click: (event) ->
 
