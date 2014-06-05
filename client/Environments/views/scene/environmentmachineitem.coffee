@@ -5,12 +5,10 @@ class EnvironmentMachineItem extends EnvironmentItem
   constructor:(options={}, data)->
 
     options.cssClass           = 'machine'
-    options.joints             = ['left', 'right']
-    options.staticJoints       = ['right']
+    options.joints             = ['left']
 
     options.allowedConnections =
       EnvironmentDomainItem    : ['right']
-      EnvironmentExtraItem     : ['left']
 
     super options, data
 
