@@ -6,34 +6,53 @@ import (
 	"github.com/koding/kite"
 )
 
-type EventArgs struct {
+type EventArg struct {
 	Type    string
 	EventId string
 }
 
+type EventArgs []EventArg
+
+type EventResponse struct {
+	EventId string         `json:"event_id"`
+	Event   *eventer.Event `json:"event"`
+	Error   error          `json:"err"`
+}
+
 func (k *Kloud) event(r *kite.Request) (interface{}, error) {
-	args := &EventArgs{}
-	if err := r.Args.One().Unmarshal(args); err != nil {
+	args := EventArgs{}
+	if err := r.Args.One().Unmarshal(&args); err != nil {
 		return nil, err
 	}
 
-	if args.EventId == "" {
-		return nil, NewError(ErrEventIdMissing)
+	events := make([]EventResponse, len(args))
+
+	for i, event := range args {
+		if event.EventId == "" {
+			events[i] = EventResponse{Error: NewError(ErrEventIdMissing)}
+			continue
+		}
+
+		if event.Type == "" {
+			events[i] = EventResponse{
+				EventId: event.EventId,
+				Error:   NewError(ErrEventTypeMissing),
+			}
+			continue
+		}
+
+		ev, err := k.GetEvent(event.Type + "-" + event.EventId)
+		if err != nil {
+			events[i] = EventResponse{EventId: event.EventId, Error: err}
+			continue
+		}
+
+		events[i] = EventResponse{EventId: event.EventId, Event: ev}
 	}
 
-	if args.Type == "" {
-		return nil, NewError(ErrEventTypeMissing)
-	}
-
-	ev, err := k.GetEvent(args.Type + "-" + args.EventId)
-	if err != nil {
-		return nil, err
-	}
-
-	k.Log.Debug("[event]: returning: %s for the args: %v to user: %s",
-		ev.String(), args, r.Username)
-
-	return ev, nil
+	k.Log.Debug("[event]: returning: %#v for the args: %v to user: %s",
+		events, args, r.Username)
+	return events, nil
 }
 
 func (k *Kloud) NewEventer(id string) eventer.Eventer {

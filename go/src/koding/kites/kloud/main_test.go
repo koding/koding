@@ -5,7 +5,6 @@ import (
 	"flag"
 	"fmt"
 	"io/ioutil"
-	"koding/kites/kloud/eventer"
 	"koding/kites/kloud/kloud"
 	"koding/kodingkite"
 	"koding/tools/config"
@@ -116,7 +115,7 @@ func init() {
 // listenEvent calls the event method of kloud with the given arguments until
 // the desiredState is received. It times out if the desired state is not
 // reached in 10 miunuts.
-func listenEvent(args interface{}, desiredState machinestate.State) error {
+func listenEvent(args kloud.EventArgs, desiredState machinestate.State) error {
 	tryUntil := time.Now().Add(time.Minute * 10)
 	for {
 		resp, err := remote.Tell("event", args)
@@ -124,11 +123,17 @@ func listenEvent(args interface{}, desiredState machinestate.State) error {
 			return err
 		}
 
-		var event eventer.Event
-		if err := resp.Unmarshal(&event); err != nil {
+		var events []kloud.EventResponse
+		if err := resp.Unmarshal(&events); err != nil {
 			return err
 		}
 
+		e := events[0]
+		if e.Error != nil {
+			return e.Error
+		}
+
+		event := e.Event
 		fmt.Printf("event %+v\n", event)
 
 		if event.Status == desiredState {
@@ -187,10 +192,12 @@ func build(i int, client *kite.Client, data *kloud.MachineData) error {
 
 	fmt.Printf("result %+v\n", result)
 
-	eArgs := &kloud.EventArgs{
-		EventId: bArgs.MachineId,
-		Type:    "build",
-	}
+	eArgs := kloud.EventArgs([]kloud.EventArg{
+		kloud.EventArg{
+			EventId: bArgs.MachineId,
+			Type:    "build",
+		},
+	})
 
 	if err := listenEvent(eArgs, machinestate.Running); err != nil {
 		return err
@@ -218,10 +225,12 @@ func build(i int, client *kite.Client, data *kloud.MachineData) error {
 				return fmt.Errorf("%s: %s", pair.method, err)
 			}
 
-			eArgs := &kloud.EventArgs{
-				EventId: bArgs.MachineId,
-				Type:    pair.method,
-			}
+			eArgs := kloud.EventArgs([]kloud.EventArg{
+				kloud.EventArg{
+					EventId: bArgs.MachineId,
+					Type:    pair.method,
+				},
+			})
 
 			start := time.Now()
 			if err := listenEvent(eArgs, pair.desiredState); err != nil {
