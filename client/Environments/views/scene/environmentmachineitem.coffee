@@ -19,6 +19,14 @@ class EnvironmentMachineItem extends EnvironmentItem
       cssClass    : "terminal"
       click       : @bound "openTerminal"
 
+    { status: {state} } = @getData()
+
+    @setClass state.toLowerCase()
+
+    if state is "Running"
+      @terminalIcon.show()
+
+
   contextMenuItems : ->
 
     colorSelection = new ColorSelection selectedColor : @getOption 'colorTag'

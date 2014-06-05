@@ -1047,23 +1047,49 @@ div.environments-container
     &:hover
       background              white
 
+@-webkit-keyframes popHighlight
+  0%
+    -webkit-transform   scale(1)
+  33%
+    -webkit-transform   scale(1.02)
+  66%
+    -webkit-transform   scale(.998)
+  100%
+    -webkit-transform   scale(1)
+
+@-moz-keyframes popHighlight
+  0%
+    -moz-transform      scale(1)
+  33%
+    -moz-transform      scale(1.02)
+  66%
+    -moz-transform      scale(.998)
+  100%
+    -moz-transform      scale(1)
+
+
 div.environments-item
 
   cursor          default
   width           210px
   height          34px
   background      white
-  border          none
-  rounded         2px
+  border          1px solid #fff
+  rounded         3px
   vendor          transition, opacity .3s ease
   noTextSelection()
   borderBox()
 
-  span.url
+  &.notinitialized
+    background    rgba(255,255,255,.98)
+
+  &.running
+    background    #fff
+
   span.chevron
   span.terminal
     size          14px, 14px
-    bottom        10px
+    bottom        8px
     right         10px
     r-sprite      environments 'gear'
     display       block
@@ -1072,22 +1098,26 @@ div.environments-item
     r-sprite      environments 'terminal'
     cursor        pointer
     right         32px
+    bottom        12px !important
+
+  span.state
+    left          14px
 
   span.url
-    r-sprite      environments 'link'
-    right         56px
+    size          auto, 14px
+    text-align    right
+    right         5px
+    top           5px
 
   &.machine
     width         280px
     height        60px
 
   &:hover
-    // gradient      white, #efefef // rgba(254, 255, 255, 1.0), rgba(222, 233, 234, 1.0)
-    background    rgba(255,255,255,.6)
+    opacity       1
+    border-color  #ccc
     .environments-joint
       opacity     1
-    // span.chevron
-    //   display     block
 
   .status-indicator
 
@@ -1109,8 +1139,8 @@ div.environments-item
       background  none
 
   &.highlight
-    gradient      white, white // rgba(244, 244, 244, 1.0)
-    // shadow        0 0 6px #eee
+    border        1px solid #aaa
+    vendor        animation, popHighlight .5s 1
 
   span.toggle
     size          6px, 100%
@@ -1157,7 +1187,6 @@ div.environments-item
   &.machine
     // height            50px
 
-    span.url
     span.chevron
     span.terminal
       bottom          10px
