@@ -4,25 +4,24 @@ class ActivityLikeLink extends CustomLinkView
 
     options.cssClass = KD.utils.curry "action-link like-link", options.cssClass
 
-    @state = data.interactions.like.isInteracted
-
     super options, data
 
 
   click: ->
 
     {id}           = data = @getData()
+    {isInteracted} = data.interactions.like
     {like, unlike} = KD.singletons.socialapi.message
 
-    fn = if @state then unlike else like
-    fn {id}, @bound 'toggleState'
+    fn = if isInteracted then unlike else like
+    fn {id}, (err) ->
+
+      return @showError err  if err
+
+      @update()
 
 
-  toggleState: (err) ->
-
-    return @showError err  if err
-
-    @state = not @state
+  update: ->
 
     @setTemplate @pistachio()
 
