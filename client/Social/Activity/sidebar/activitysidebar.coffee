@@ -13,30 +13,8 @@ class ActivitySidebar extends KDCustomScrollView
     SocialChannel : 'name'
 
 
-  # @getRoute = (data) ->
-
-  #   {typeConstant} = data
-  #   groupName      = KD.getGroup().slug
-  #   groupName      = ''  if groupName is 'koding'
-  #   slugProp       = slugProps[data.bongo_.constructorName]
-
-  #   return "#{groupName}/Activity/#{typeMap[typeConstant]}/#{data[slugProp]}"
-
-
-  # sanitize = (allItems) ->
-
-  #   sanitized = []
-  #   for own title, items of allItems
-  #     header = new KDObject { title }
-  #     items.forEach (item) ->
-  #       obj = new KDObject {}, item
-  #       obj.parentId = header.getId()
-  #       sanitized.push obj
-  #     sanitized.push header
-
-  #   return sanitized.reverse()
-
   revive = (obj) -> KD.singletons.socialapi.mapChannels(obj).first
+
 
   constructor: ->
 
@@ -45,7 +23,6 @@ class ActivitySidebar extends KDCustomScrollView
     {
       notificationController
       socialapi
-      windowController
     } = KD.singletons
 
     @sections     = {}
@@ -72,11 +49,6 @@ class ActivitySidebar extends KDCustomScrollView
       .on 'NotificationHasArrived', @bound 'notificationHasArrived'
 
 
-    # windowController.addFocusListener (focused) ->
-    #   log 'browser focus:', focused
-
-
-
   notificationHasArrived: (update) ->
 
     {unreadCount, channel} = update
@@ -87,8 +59,6 @@ class ActivitySidebar extends KDCustomScrollView
     item = listController.itemForId id
 
     item.setUnreadCount unreadCount  if item.unreadCount
-
-
 
 
   getListController: (type) ->
