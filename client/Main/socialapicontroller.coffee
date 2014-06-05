@@ -13,7 +13,8 @@ class SocialApiController extends KDController
     return data  unless KD.socialApiData
 
     { popularTopics, followedChannels
-      pinnedMessages, privateMessages } = KD.socialApiData
+      pinnedMessages, privateMessages,
+      publicFeed } = KD.socialApiData
 
     processInCase = (fn, items) -> if items then fn items else []
 
@@ -21,6 +22,7 @@ class SocialApiController extends KDController
     data.followedChannels = processInCase mapChannels, followedChannels
     data.pinnedMessages   = processInCase mapActivities, pinnedMessages
     data.privateMessages  = processInCase mapPrivateMessages, privateMessages
+    data.publicFeed       = processInCase mapActivities, publicFeed
 
     return data
 
