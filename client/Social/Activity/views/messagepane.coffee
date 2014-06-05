@@ -17,6 +17,15 @@ class MessagePane extends KDTabPaneView
     @on 'LazyLoadThresholdReached', @bound 'lazyLoad'  if data.typeConstant in ['group', 'topic']
 
 
+  createInputWidget: ->
+
+    return  if @getOption("type") in ['post', 'privatemessage']
+
+    channel = @getData()
+
+    @input = new ActivityInputWidget {channel}
+
+
   bindChannelEvents: ->
 
     {socialapi} = KD.singletons
@@ -41,6 +50,34 @@ class MessagePane extends KDTabPaneView
     @addSubView @input  if @input
     @addSubView @listController.getView()
     @populate()
+
+
+  show: ->
+
+    super
+
+    KD.utils.wait 1000, @bound 'glance'
+
+
+  glance: ->
+
+    data = @getData()
+    {id, typeConstant} = data
+    {windowController, socialapi} = KD.singletons
+
+    return  unless windowController.focused
+
+    item = @getDelegate().parent.sidebar.selectedItem
+
+    return  unless item.count
+
+    if typeConstant is 'message'
+    then socialapi.channel.glancePinnedPost messageId : id, log
+    else socialapi.channel.updateLastSeenTime channelId : id, log
+
+
+
+
 
 
   populate: ->
@@ -97,12 +134,3 @@ class MessagePane extends KDTabPaneView
     @listController.showLazyLoader()
     @populate()
 
-
-  createInputWidget: ->
-
-    return  if @getOption("type") in ['post', 'privatemessage']
-
-    channel = @getData()
-
-    @input = new ActivityInputWidget {channel}
-      # .on 'Submit', @listController.bound 'addItem'
