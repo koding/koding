@@ -113,8 +113,10 @@ class ActivitySidebar extends KDCustomScrollView
     @deselectAllItems()
 
     if type is 'public'
-    then return @public.setClass 'selected'
-    else @public.unsetClass 'selected'
+      @selectedItem = @public
+      return @public.setClass 'selected'
+    else
+      @public.unsetClass 'selected'
 
     type = 'privatemessage' if type is 'message'
 
