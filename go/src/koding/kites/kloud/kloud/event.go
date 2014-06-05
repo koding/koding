@@ -25,7 +25,11 @@ func (k *Kloud) event(r *kite.Request) (interface{}, error) {
 		return nil, NewError(ErrEventTypeMissing)
 	}
 
-	ev := k.GetEvent(args.Type + "-" + args.EventId)
+	ev, err := k.GetEvent(args.Type + "-" + args.EventId)
+	if err != nil {
+		return nil, err
+	}
+
 	k.Log.Debug("[event]: returning: %s for the args: %v to user: %s",
 		ev.String(), args, r.Username)
 
@@ -47,6 +51,11 @@ func (k *Kloud) NewEventer(id string) eventer.Eventer {
 	return ev
 }
 
-func (k *Kloud) GetEvent(eventId string) *eventer.Event {
-	return k.Eventers[eventId].Show()
+func (k *Kloud) GetEvent(eventId string) (*eventer.Event, error) {
+	ev, ok := k.Eventers[eventId]
+	if !ok {
+		return nil, NewError(ErrEventNotFound)
+	}
+
+	return ev.Show(), nil
 }

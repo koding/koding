@@ -6,21 +6,23 @@ import (
 )
 
 const (
-	ErrAlreadyInitialized = 1
-	ErrNotInitialized     = 2
-	ErrUnknownState       = 3
-	ErrBuilding           = 4
-	ErrEventIdMissing     = 5
-	ErrEventTypeMissing   = 6
-	ErrMachineIdMissing   = 7
-	ErrProviderNotFound   = 8
-	ErrNoKiteConnection   = 9
+	ErrAlreadyInitialized = 101
+	ErrNotInitialized     = 102
+	ErrUnknownState       = 103
+	ErrBuilding           = 104
+	ErrMachineIdMissing   = 107
+	ErrProviderNotFound   = 108
+	ErrNoKiteConnection   = 109
 
-	ErrSignUsernameEmpty   = 10
-	ErrSignKontrolURLEmpty = 11
-	ErrSignPrivateKeyEmpty = 12
-	ErrSignPublicKeyEmpty  = 13
-	ErrSignGenerateToken   = 14
+	ErrEventNotFound    = 201
+	ErrEventIdMissing   = 202
+	ErrEventTypeMissing = 203
+
+	ErrSignUsernameEmpty   = 301
+	ErrSignKontrolURLEmpty = 302
+	ErrSignPrivateKeyEmpty = 303
+	ErrSignPublicKeyEmpty  = 304
+	ErrSignGenerateToken   = 305
 )
 
 var errors = map[int]string{
@@ -28,11 +30,14 @@ var errors = map[int]string{
 	ErrNotInitialized:     "Machine is not initialized.",
 	ErrUnknownState:       "Machine is in unknown state. Please contact support.",
 	ErrBuilding:           "Machine is being build. Hold on.",
-	ErrEventIdMissing:     "Event id is missing.",
-	ErrEventTypeMissing:   "Event type is missing.",
 	ErrMachineIdMissing:   "Machine id is missing.",
 	ErrProviderNotFound:   "Provider is not found",
 	ErrNoKiteConnection:   "Couldn't connect to remote klient kite",
+
+	// Event errors
+	ErrEventIdMissing:   "Event id is missing.",
+	ErrEventTypeMissing: "Event type is missing.",
+	ErrEventNotFound:    "Event not found.",
 
 	// Signer errors
 	ErrSignUsernameEmpty:   "Username is empty",
