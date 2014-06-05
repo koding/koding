@@ -29,8 +29,8 @@ module.exports = (req, res) ->
   noExt    = splitUrl.join(".")
 
   # arbitary limit to prevent ENAMETOOLONG errors
-  if ext.length > 10
-    ext = ext.substring(0, 10)
+  if ext.length > 20
+    ext = ext.substring(0, 20)
 
   # deal with extensions like:
   #   'com/LbobbpWTGJSa45Mhrb6g_y3YjLn5OthdnugrHZJQqom1eduFCnFmqdmOOZmUttP8hLg=h310'
@@ -40,8 +40,13 @@ module.exports = (req, res) ->
   # replace nonalphanumeric characters
   ext = ext.replace(/\W+/g, "")
 
-  md5      = crypto.createHash("md5").update(noExt).digest("hex")
-  filename = "#{imagePath}/#{md5}.#{ext}"
+  md5 = crypto.createHash("md5")
+  for i in [noExt, width, height]
+    md5.update(i)
+
+  digest = md5.digest("hex")
+
+  filename = "#{imagePath}/#{digest}.#{ext}"
 
   serveFile = (filename, res)->
     fileStream = fs.createReadStream filename
