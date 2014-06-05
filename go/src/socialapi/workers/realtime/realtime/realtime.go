@@ -352,8 +352,18 @@ func (f *Controller) sendChannelUpdatedEvent(channelId int64, cm *models.Channel
 		return err
 	}
 
+	// do not send any -updated- event to group channels
 	if c.TypeConstant == models.Channel_TYPE_GROUP {
 		f.log.Info("Not sending group (%s) event", c.GroupName)
+		return nil
+	}
+
+	// do not send comment events to topic channels
+	if cm != nil && c.TypeConstant == models.Channel_TYPE_TOPIC {
+		f.log.Info(
+			"Not sending non-post (%s) event to topic channel",
+			cm.TypeConstant,
+		)
 		return nil
 	}
 
