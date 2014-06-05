@@ -1,7 +1,6 @@
 package kloud
 
 import (
-	"errors"
 	"fmt"
 	"time"
 
@@ -51,7 +50,7 @@ func (k *Kloud) Klient(queryString string) (*Klient, error) {
 			select {
 			case <-connected:
 			case <-time.After(time.Minute):
-				return nil, errors.New("couldn't connect to remote klient kite")
+				return nil, NewError(ErrNoKiteConnection)
 			}
 
 			// klient connection is ready now

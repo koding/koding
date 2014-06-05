@@ -20,17 +20,17 @@ var defaultImageName = "koding-klient-0.0.1"
 
 func (k *Kloud) build(r *kite.Request, c *Controller) (interface{}, error) {
 	if c.CurrenState == machinestate.Building {
-		return nil, ErrBuilding
+		return nil, NewError(ErrBuilding)
 	}
 
 	if c.CurrenState == machinestate.Unknown {
-		return nil, ErrUnknownState
+		return nil, NewError(ErrUnknownState)
 	}
 
 	// if it's something else (stopped, runnning, terminated, ...) it's been
 	// already built
 	if c.CurrenState != machinestate.NotInitialized {
-		return nil, ErrAlreadyInitialized
+		return nil, NewError(ErrAlreadyInitialized)
 	}
 
 	k.Storage.UpdateState(c.MachineId, machinestate.Building)

@@ -1,7 +1,6 @@
 package kloud
 
 import (
-	"errors"
 	"fmt"
 
 	"koding/kites/kloud/eventer"
@@ -70,7 +69,7 @@ func (k *Kloud) controller(r *kite.Request) (*Controller, error) {
 	}
 
 	if args.MachineId == "" {
-		return nil, errors.New("machineId is missing.")
+		return nil, NewError(ErrMachineIdMissing)
 	}
 
 	m, err := k.Storage.Get(args.MachineId, &GetOption{
@@ -83,7 +82,7 @@ func (k *Kloud) controller(r *kite.Request) (*Controller, error) {
 
 	provider, ok := providers[m.Provider]
 	if !ok {
-		return nil, errors.New("provider not supported")
+		return nil, NewError(ErrProviderNotFound)
 	}
 
 	if err := provider.Prepare(m.Credential.Meta, m.Machine.Meta); err != nil {
@@ -104,7 +103,7 @@ func (k *Kloud) controller(r *kite.Request) (*Controller, error) {
 func (k *Kloud) coreMethods(r *kite.Request, c *Controller, fn func(*protocol.MachineOptions) error) (interface{}, error) {
 	// all core methods works only for machines that are initialized
 	if c.CurrenState == machinestate.NotInitialized {
-		return nil, ErrNotInitialized
+		return nil, NewError(ErrNotInitialized)
 	}
 
 	// get our state pair
@@ -182,7 +181,7 @@ func (k *Kloud) restart(r *kite.Request, c *Controller) (interface{}, error) {
 
 func (k *Kloud) info(r *kite.Request, c *Controller) (interface{}, error) {
 	if c.CurrenState == machinestate.NotInitialized {
-		return nil, ErrNotInitialized
+		return nil, NewError(ErrNotInitialized)
 	}
 
 	machOptions := &protocol.MachineOptions{
