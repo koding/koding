@@ -40,6 +40,7 @@ class ActivitySidebar extends KDCustomScrollView
     channel        = revive channel
     listController = @getListController channel.typeConstant
     listController.addItem channel
+    @updateTopicFollowButtons channel
 
 
   removeFromChannel: (channel) ->
@@ -48,6 +49,7 @@ class ActivitySidebar extends KDCustomScrollView
     listController = @getListController channel.typeConstant
     item           = listController.itemForId channel.getId()
     listController.removeItem item
+    @updateTopicFollowButtons channel
 
 
   notificationHasArrived: (update) ->
@@ -70,6 +72,15 @@ class ActivitySidebar extends KDCustomScrollView
       else {}
 
     return section.listController
+
+
+  updateTopicFollowButtons: (channel) ->
+
+    for name in ['hot', 'followedTopics']
+      item = @sections[name].listController.itemForId channel.getId()
+      continue  unless item
+      state = if channel.isParticipant then 'Following' else 'Follow'
+      item.followButton.setState state
 
 
   # fixme:
