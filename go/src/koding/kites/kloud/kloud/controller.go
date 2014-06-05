@@ -91,11 +91,13 @@ func (k *Kloud) controller(r *kite.Request) (*Controller, error) {
 	}
 
 	return &Controller{
-		MachineId:   args.MachineId,
-		Provider:    provider,
-		MachineData: m,
-		Eventer:     k.NewEventer(r.Method + "-" + args.MachineId),
-		CurrenState: m.Machine.State(),
+		MachineId:    args.MachineId,
+		ImageName:    args.ImageName,
+		InstanceName: args.InstanceName,
+		Provider:     provider,
+		MachineData:  m,
+		Eventer:      k.NewEventer(r.Method + "-" + args.MachineId),
+		CurrenState:  m.Machine.State(),
 	}, nil
 }
 

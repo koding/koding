@@ -35,6 +35,7 @@ var (
 
 	flagTestBuilds     = flag.Int("builds", 1, "Number of builds")
 	flagTestControl    = flag.Bool("control", false, "Enable control tests too (start/stop/..)")
+	flagTestImage      = flag.Bool("image", false, "Create temporary image instead of using default one.")
 	flagTestQuery      = flag.String("query", "", "Query as string for controller tests")
 	flagTestInstanceId = flag.String("instance", "", "Instance id (such as droplet Id)")
 	flagTestUsername   = flag.String("user", "", "Create machines on behalf of this user")
@@ -117,7 +118,7 @@ func init() {
 // the desiredState is received. It times out if the desired state is not
 // reached in 5 miunuts.
 func listenEvent(args interface{}, desiredState machinestate.State) error {
-	tryUntil := time.Now().Add(time.Minute * 5)
+	tryUntil := time.Now().Add(time.Minute * 10)
 	for {
 		resp, err := remote.Tell("event", args)
 		if err != nil {
@@ -154,6 +155,12 @@ func listenEvent(args interface{}, desiredState machinestate.State) error {
 // function to invoke concurrent and multiple builds.
 func build(i int, client *kite.Client, data *kloud.MachineData) error {
 	uniqueId := strconv.FormatInt(time.Now().UTC().UnixNano(), 10)
+
+	imageName := "" // an empty argument causes to use the standard library.
+	if *flagTestImage {
+		imageName = testuser + "-" + uniqueId + "-" + strconv.Itoa(i)
+	}
+
 	instanceName := "testkloud-" + uniqueId + "-" + strconv.Itoa(i)
 
 	testlog := func(msg string, args ...interface{}) {
@@ -164,6 +171,7 @@ func build(i int, client *kite.Client, data *kloud.MachineData) error {
 	bArgs := &kloud.Controller{
 		MachineId:    data.Provider,
 		InstanceName: instanceName,
+		ImageName:    imageName,
 	}
 
 	start := time.Now()
