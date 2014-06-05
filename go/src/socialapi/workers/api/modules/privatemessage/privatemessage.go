@@ -124,7 +124,7 @@ func List(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface
 	}
 
 	return helpers.HandleResultAndError(
-		models.PopulateChannelContainers(channels, q.AccountId),
+		models.PopulateChannelContainersWithUnreadCount(channels, q.AccountId),
 	)
 }
 
