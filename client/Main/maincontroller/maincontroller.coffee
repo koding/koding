@@ -37,6 +37,7 @@ class MainController extends KDController
     KD.registerSingleton "kontrol",                   new KodingKontrol
 
     KD.registerSingleton 'appManager',   appManager = new ApplicationManager
+    KD.registerSingleton 'globalKeyCombos',  combos = new KDKeyboardMap priority : 0
     KD.registerSingleton 'notificationController',    new NotificationController
     KD.registerSingleton 'linkController',            new LinkController
     KD.registerSingleton 'display',                   new ContentDisplayController
@@ -58,7 +59,6 @@ class MainController extends KDController
     KD.registerSingleton 'mainView',             mv = new MainView domId : 'kdmaincontainer'
     KD.registerSingleton 'mainViewController',  mvc = new MainViewController view : mv
     KD.registerSingleton 'kodingAppsController',      new KodingAppsController
-    KD.registerSingleton 'globalKeyCombos',  combos = new KDKeyboardMap priority : 0
 
     router.listen()
     @mainViewController = mvc
