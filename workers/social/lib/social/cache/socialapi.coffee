@@ -35,7 +35,7 @@ module.exports = (options={}, callback)->
     { fn:fetchFollowedChannels,  key: 'followedChannels' }
     { fn:fetchPinnedMessages,    key: 'pinnedMessages'   }
     { fn:fetchPrivateMessages,   key: 'privateMessages'  }
-    { fn:fetchGroupActivities,   key: 'groupMessages'    }
+    { fn:fetchGroupActivities,   key: 'publicFeed'       }
   ]
 
   queue = []
