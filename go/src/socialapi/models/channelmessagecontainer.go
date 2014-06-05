@@ -7,7 +7,7 @@ type ChannelMessageContainer struct {
 	Replies            []*ChannelMessageContainer       `json:"replies"`
 	AccountOldId       string                           `json:"accountOldId"`
 	IsFollowed         bool                             `json:"isFollowed"`
-	UnreadRepliesCount int                              `json:"unreadRepliesCount"`
+	UnreadRepliesCount int                              `json:"unreadRepliesCount,omitempty"`
 }
 
 func NewChannelMessageContainer() *ChannelMessageContainer {
