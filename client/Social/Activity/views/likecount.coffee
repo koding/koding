@@ -59,14 +59,14 @@ class ActivityLikeCount extends CustomLinkView
 
     {actorsCount} = @getData().interactions.like
 
-    tooltip =
+    title =
       switch actorsCount
         when 0 then ""
         when 1 then "#{names[0]}"
         when 2 then "#{names[0]} and #{names[1]}"
         else "#{names[0]}, #{names[1]}#{sep}#{names[2]} #{andMore}"
 
-    @getTooltip().update { title: tooltip }
+    @getTooltip().update {title}
 
 
   fetchAccounts: (callback) ->
