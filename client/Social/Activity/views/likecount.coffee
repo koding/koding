@@ -12,7 +12,7 @@ class ActivityLikeCount extends CustomLinkView
     KD.utils.stopDOMEvent event
 
     data = @getData()
-    {interactions: {like: {isInteracted, actorsPreview}}} = @getData()
+    {isInteracted, actorsPreview} = data.interactions.like
 
     return  unless isInteracted
 
@@ -25,9 +25,7 @@ class ActivityLikeCount extends CustomLinkView
 
   mouseEnter: ->
 
-    data = @getData()
-    {interactions: {like}} = data
-    {actorsCount, actorsPreview} = like
+    {actorsCount, actorsPreview} = @getData().interactions.like
 
     return @unsetClass "liked"  if actorsCount is 0
 
@@ -59,7 +57,7 @@ class ActivityLikeCount extends CustomLinkView
 
   updateTooltip: (names) ->
 
-    {interactions: {like: {actorsCount}}} = @getData()
+    {actorsCount} = @getData().interactions.like
 
     tooltip =
       switch actorsCount
@@ -73,7 +71,7 @@ class ActivityLikeCount extends CustomLinkView
 
   fetchAccounts: (callback) ->
 
-    {interactions: {like: {actorsPreview}}} = @getData()
+    {actorsPreview} = @getData().interactions.like
 
     return callback null, actorsPreview  unless actorsPreview.length
 

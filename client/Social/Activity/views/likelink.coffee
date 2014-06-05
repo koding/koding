@@ -11,10 +11,11 @@ class ActivityLikeLink extends CustomLinkView
 
   click: ->
 
-    {socialapi: {message: {like, unlike}}} = KD.singletons
+    {id}           = data = @getData()
+    {like, unlike} = KD.singletons.socialapi.message
 
     fn = if @state then unlike else like
-    fn id: @getData().id, @bound "toggleState"
+    fn {id}, @bound 'toggleState'
 
 
   toggleState: (err) ->
@@ -25,7 +26,7 @@ class ActivityLikeLink extends CustomLinkView
 
     @setTemplate @pistachio()
 
-    if @state
+    if @getData().interactions.like.isInteracted
     then @trackLike()
     else @trackUnlike()
 
@@ -52,4 +53,6 @@ class ActivityLikeLink extends CustomLinkView
 
   pistachio: ->
 
-    "#{if @state then "Unlike" else "Like"}"
+    {isInteracted} = @getData().interactions.like
+
+    "#{if isInteracted then "Unlike" else "Like"}"
