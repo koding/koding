@@ -150,12 +150,29 @@ func (b *Bongo) Count(i Modellable, where ...interface{}) (int, error) {
 	return count, query.Count(&count).Error
 }
 
+func (b *Bongo) CountWithQuery(i Modellable, q *Query) (int, error) {
+	query := b.BuildQuery(i, q)
+	var count int
+	return count, query.Count(&count).Error
+}
+
 type Query struct {
-	Selector map[string]interface{}
-	Sort     map[string]string
-	Limit    int
-	Skip     int
-	Pluck    string
+	Selector   map[string]interface{}
+	Sort       map[string]string
+	Pluck      string
+	Pagination Pagination
+}
+
+type Pagination struct {
+	Limit int
+	Skip  int
+}
+
+func NewPagination(limit int, skip int) *Pagination {
+	return &Pagination{
+		Limit: limit,
+		Skip:  skip,
+	}
 }
 
 func NewQS(selector map[string]interface{}) *Query {
@@ -166,7 +183,7 @@ func NewQS(selector map[string]interface{}) *Query {
 
 // selector, sort, limit, pluck,
 func (b *Bongo) Some(i Modellable, data interface{}, q *Query) error {
-	err := b.buildQuery(i, data, q)
+	err := b.executeQuery(i, data, q)
 	if err == gorm.RecordNotFound {
 		return nil
 	}
@@ -174,11 +191,11 @@ func (b *Bongo) Some(i Modellable, data interface{}, q *Query) error {
 }
 
 func (b *Bongo) One(i Modellable, data interface{}, q *Query) error {
-	q.Limit = 1
-	return b.buildQuery(i, data, q)
+	q.Pagination.Limit = 1
+	return b.executeQuery(i, data, q)
 }
 
-func (b *Bongo) buildQuery(i Modellable, data interface{}, q *Query) error {
+func (b *Bongo) BuildQuery(i Modellable, q *Query) *gorm.DB {
 	// init query
 	query := b.DB
 
@@ -188,13 +205,19 @@ func (b *Bongo) buildQuery(i Modellable, data interface{}, q *Query) error {
 	// add sort options
 	query = addSort(query, q.Sort)
 
+	query = addSkip(query, q.Pagination.Skip)
+
+	query = addLimit(query, q.Pagination.Limit)
+
 	// add selector
 	query = addWhere(query, q.Selector)
 
-	// if limit is minus or 0 ignore
-	if q.Limit > 0 {
-		query.Limit(q.Limit)
-	}
+	return query
+}
+
+func (b *Bongo) executeQuery(i Modellable, data interface{}, q *Query) error {
+	// init query
+	query := b.BuildQuery(i, q)
 
 	var err error
 	// TODO refactor this part
@@ -210,55 +233,36 @@ func (b *Bongo) buildQuery(i Modellable, data interface{}, q *Query) error {
 	} else {
 		err = query.Find(data).Error
 	}
+
 	return err
 }
 
-func (b *Bongo) AfterCreate(i Modellable) {
-	eventName := fmt.Sprintf("%s_created", i.TableName())
+func (b *Bongo) PublishEvent(eventName string, i Modellable) error {
 	data, err := json.Marshal(i)
 	if err != nil {
-		// here try to resend this message to RMQ again, than
-		// persist it to somewhere!#!##@$%#?
-		// those messages are really important now
-		fmt.Println("Error occured", err)
-		return
+		b.log.Error("Error while marshalling for publish %s", err)
+		return err
 	}
-	err = b.Broker.Publish(eventName, data)
+
+	err = b.Broker.Publish(i.TableName()+"_"+eventName, data)
 	if err != nil {
-		fmt.Println("jhasdjhadsjdasj", err)
+		b.log.Error("Error while publishing %s", err)
+		return err
 	}
+
+	return nil
+}
+
+func (b *Bongo) AfterCreate(i Modellable) {
+	b.PublishEvent("created", i)
 }
 
 func (b *Bongo) AfterUpdate(i Modellable) {
-	eventName := fmt.Sprintf("%s_updated", i.TableName())
-	data, err := json.Marshal(i)
-	if err != nil {
-		// here try to resend this message to RMQ again, than
-		// persist it to somewhere!#!##@$%#?
-		// those messages are really important now
-		fmt.Println("Error occured", err)
-		return
-	}
-	err = b.Broker.Publish(eventName, data)
-	if err != nil {
-		fmt.Println("jhasdjhadsjdasj", err)
-	}
+	b.PublishEvent("updated", i)
 }
 
 func (b *Bongo) AfterDelete(i Modellable) {
-	eventName := fmt.Sprintf("%s_deleted", i.TableName())
-	data, err := json.Marshal(i)
-	if err != nil {
-		// here try to resend this message to RMQ again, than
-		// persist it to somewhere!#!##@$%#?
-		// those messages are really important now
-		fmt.Println("Error occured", err)
-		return
-	}
-	err = b.Broker.Publish(eventName, data)
-	if err != nil {
-		fmt.Println("jhasdjhadsjdasj", err)
-	}
+	b.PublishEvent("deleted", i)
 }
 
 func addSort(query *gorm.DB, options map[string]string) *gorm.DB {
@@ -290,5 +294,24 @@ func addWhere(query *gorm.DB, selector map[string]interface{}) *gorm.DB {
 	if selector == nil {
 		return query
 	}
+
+	// instead sending one selector, do chaining here
 	return query.Where(selector)
+}
+
+func addSkip(query *gorm.DB, skip int) *gorm.DB {
+	if skip > 0 {
+		return query.Offset(skip)
+	}
+
+	return query
+}
+
+func addLimit(query *gorm.DB, limit int) *gorm.DB {
+	// if limit is minus or 0 ignore
+	if limit > 0 {
+		return query.Limit(limit)
+	}
+
+	return query
 }

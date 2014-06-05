@@ -88,11 +88,11 @@ do ->
         (
           if opt is 'email'
           then KD.remote.api.JMail
-          else KD.remote.api.JMailNotification
+          else KD.remote.api.JNotificationMailToken
         ).unsubscribeWithId token, email, opt, (err, content)->
           if err or not content
-            title   = 'An error occured'
-            content = 'Invalid unsubscribe token provided.'
+            title   = 'An error occurred'
+            content = 'Invalid unsubscription token provided.'
             log err
           else
             title   = 'E-mail settings updated'

@@ -149,7 +149,7 @@ func TestPrivateMesssage(t *testing.T) {
 			)
 			So(err, ShouldBeNil)
 			So(cmc, ShouldNotBeNil)
-			So(cmc.LastMessage.Body, ShouldEqual, body)
+			So(cmc.LastMessage.Message.Body, ShouldEqual, body)
 		})
 
 		Convey("private message should be listed by all recipients", func() {
@@ -173,7 +173,7 @@ func TestPrivateMesssage(t *testing.T) {
 			So(pm[0].Channel.TypeConstant, ShouldEqual, models.Channel_TYPE_PRIVATE_MESSAGE)
 			So(pm[0].Channel.Id, ShouldEqual, cmc.Channel.Id)
 			So(pm[0].Channel.GroupName, ShouldEqual, cmc.Channel.GroupName)
-			So(pm[0].LastMessage.Body, ShouldEqual, cmc.LastMessage.Body)
+			So(pm[0].LastMessage.Message.Body, ShouldEqual, cmc.LastMessage.Message.Body)
 			So(pm[0].Channel.PrivacyConstant, ShouldEqual, models.Channel_PRIVACY_PRIVATE)
 			So(len(pm[0].ParticipantsPreview), ShouldEqual, 3)
 			So(pm[0].IsParticipant, ShouldBeTrue)

@@ -3,8 +3,10 @@ package models
 type ChannelMessageContainer struct {
 	Message      *ChannelMessage                  `json:"message"`
 	Interactions map[string]*InteractionContainer `json:"interactions"`
+	RepliesCount int                              `json:"repliesCount"`
 	Replies      []*ChannelMessageContainer       `json:"replies"`
 	AccountOldId string                           `json:"accountOldId"`
+	IsFollowed   bool                             `json:"isFollowed"`
 }
 
 func NewChannelMessageContainer() *ChannelMessageContainer {

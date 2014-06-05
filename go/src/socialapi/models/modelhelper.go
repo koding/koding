@@ -57,3 +57,7 @@ func Slugify(message *ChannelMessage) (*ChannelMessage, error) {
 func RandomName() string {
 	return uniuri.New()
 }
+
+func ZeroDate() time.Time {
+	return time.Date(1, time.January, 1, 0, 0, 0, 0, time.UTC)
+}

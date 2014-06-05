@@ -48,7 +48,10 @@ module.exports =
     clusterSize : 1
     queueName   : socialQueueName+'web'
     watch       : no
-  socialApiUrl  : "http://localhost:7000"
+  socialapi:
+    port        : 7000
+    clusterSize : 5
+    proxyUrl    : "http://social-api-1a.sj.koding.com:7000"
   sourceServer  :
     enabled     : no
     port        : 1337

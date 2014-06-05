@@ -98,7 +98,8 @@ utils.extend utils,
     if not excludeSelector
       text.replace /\B\@([\w\-]+)/gim, (u) ->
         username = u.replace "@", ""
-        u.link "/#{username}"
+        "<a href='/#{username}' class='profile-link'>#{u}</a>"
+
     # context-sensitive expansion
     else
       result = ""
@@ -180,9 +181,8 @@ utils.extend utils,
     # log "[#{text.length}:#{Encoder.htmlEncode(text).length}/#{shortenedText.length}:#{Encoder.htmlEncode(shortenedText).length}]"
     text = if Encoder.htmlEncode(text).length > Encoder.htmlEncode(shortenedText).length
       morePart = "<span class='collapsedtext hide'>"
-      morePart += "<a href='#' class='more-link' title='Show more...'>Show more...</a>"
+      morePart += "<a href='#' class='more-link' title='Show more...'><i></i></a>"
       morePart += Encoder.htmlEncode(text).substr Encoder.htmlEncode(shortenedText).length
-      morePart += "<a href='#' class='less-link' title='Show less...'>...show less</a>"
       morePart += "</span>"
       Encoder.htmlEncode(shortenedText) + morePart
     else
@@ -669,4 +669,3 @@ utils.extend utils,
         from = new Date().getTime() / 1000
         to   = to
         niceify to - from
-

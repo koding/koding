@@ -1,4 +1,4 @@
-class BugStatusItemList extends StatusActivityItemView
+class BugStatusItemList extends ActivityListItemView
 
   JView.mixin @prototype
 
