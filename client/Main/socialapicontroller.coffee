@@ -72,6 +72,10 @@ class SocialApiController extends KDController
     m.repliesCount = data.repliesCount
     m.isFollowed   = data.isFollowed
 
+    # this is sent by the server when
+    # response for pinned messages
+    m.unreadRepliesCount = data.unreadRepliesCount
+
     m.interactions    = interactions or
       like            :
         actorsCount   : 0
@@ -202,9 +206,10 @@ class SocialApiController extends KDController
     {SocialChannel} = KD.remote.api
     for channel in channels
       data = channel.channel
-      data.isParticipant = channel.isParticipant
-      data.participantCount = channel.participantCount
+      data.isParticipant       = channel.isParticipant
+      data.participantCount    = channel.participantCount
       data.participantsPreview = mapAccounts channel.participantsPreview
+      data.unreadCount         = channel.unreadCount
       c = new SocialChannel data
       # push channel into stack
       revivedChannels.push c
