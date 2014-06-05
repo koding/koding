@@ -27,11 +27,15 @@ module.exports = (options={}, callback)->
   fetchPrivateMessages = (bongoModels, client, cb)->
     SocialMessage.fetchPrivateMessages client, {}, cb
 
+  fetchGroupActivities = (bongoModels, client, cb)->
+    SocialChannel.fetchGroupActivities client, {}, cb
+
   reqs = [
     { fn:fetchPopularTopics,     key: 'popularTopics'    }
     { fn:fetchFollowedChannels,  key: 'followedChannels' }
     { fn:fetchPinnedMessages,    key: 'pinnedMessages'   }
     { fn:fetchPrivateMessages,   key: 'privateMessages'  }
+    { fn:fetchGroupActivities,   key: 'groupMessages'    }
   ]
 
   queue = []
