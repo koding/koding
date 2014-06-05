@@ -40,8 +40,7 @@ class EnvironmentMachineItem extends EnvironmentItem
           kloud = KD.singletons.kontrol.getKite {
             name:"kloud", environment:"vagrant"
           }
-          kloud.build machineId: machine._id, ->
-            log ">>>>>>", arguments
+          kloud.build(machineId: machine._id).then(log, warn)
 
       'Re-initialize VM'  :
         disabled          : KD.isGuest()
