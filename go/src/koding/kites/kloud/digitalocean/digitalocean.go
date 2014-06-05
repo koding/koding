@@ -181,14 +181,14 @@ func (d *DigitalOcean) Build(opts *protocol.MachineOptions) (p *protocol.BuildRe
 
 	// create temporary key to deploy user based key
 	push(fmt.Sprintf("Creating temporary ssh key"), 15)
-
 	privateKey, publicKey, err := sshutil.TemporaryKey()
 	if err != nil {
 		return nil, err
 	}
 
 	// The name of the public key on DO
-	name := fmt.Sprintf("koding-%s", time.Now().UTC().UnixNano())
+	name := fmt.Sprintf("koding-%d", time.Now().UTC().UnixNano())
+	d.Log.Debug("Creating key with name '%s'", name)
 	keyId, err := d.CreateKey(name, publicKey)
 	if err != nil {
 		return nil, err
@@ -196,6 +196,7 @@ func (d *DigitalOcean) Build(opts *protocol.MachineOptions) (p *protocol.BuildRe
 
 	defer func() {
 		push("Destroying temporary droplet key", 95)
+		err := d.DestroyKey(keyId) // remove after we are done
 		if err != nil {
 			curlstr := fmt.Sprintf("curl '%v/ssh_keys/%v/destroy?client_id=%v&api_key=%v'",
 				digitalocean.DIGITALOCEAN_API_URL, keyId, d.Creds.ClientID, d.Creds.APIKey)
