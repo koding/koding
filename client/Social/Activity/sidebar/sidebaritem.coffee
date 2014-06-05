@@ -12,6 +12,7 @@ class SidebarItem extends KDListItemView
 
     super options, data
 
+    @count       = 0
     @unreadCount = new KDCustomHTMLView
       tagName  : 'cite'
       cssClass : 'count hidden'
@@ -26,10 +27,12 @@ class SidebarItem extends KDListItemView
       @getDelegate().emit 'ItemShouldBeSelected', this
       @lastClickedTimestamp = Date.now()
 
-    @once 'viewAppended', @bound 'setUnreadCount'
+    @once 'viewAppended', => @setUnreadCount @getData().unreadCount
 
 
   setUnreadCount: (unreadCount = 0) ->
+
+    @count = unreadCount
 
     if unreadCount is 0
       @unreadCount.hide()
