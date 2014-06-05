@@ -172,7 +172,7 @@ module.exports = class SocialChannel extends Base
   @fetchGroupActivities = secure (client, options, callback)->
     ensureGroupChannel client, (err, socialApiChannelId)->
       return callback err if err
-      return callback { message: "Channel Id is not set"} unless socialApiChannelId
+      return callback { message: "Channel Id is not set" } unless socialApiChannelId
 
       options.id = socialApiChannelId
       SocialChannel.fetchActivities client, options, callback
