@@ -138,7 +138,8 @@ class SocialApiController extends KDController
     channels = [].concat(channels)
     {SocialChannel} = KD.remote.api
     for channel in channels
-      data = channel.channel
+      data                     = channel.channel
+      data._id                 = data.id
       data.isParticipant       = channel.isParticipant
       data.participantCount    = channel.participantCount
       data.participantsPreview = mapAccounts channel.participantsPreview
