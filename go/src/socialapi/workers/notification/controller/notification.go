@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"koding/db/mongodb/modelhelper"
 	socialapimodels "socialapi/models"
-	"socialapi/workers/helper"
+	"socialapi/workers/common/bytemapper"
 	"socialapi/workers/notification/models"
 	"time"
 
@@ -74,7 +74,7 @@ func (n *Controller) HandleEvent(event string, data []byte) error {
 }
 
 func (n *Controller) CreateReplyNotification(data []byte) error {
-	mr, err := helper.MapToMessageReply(data)
+	mr, err := bytemapper.MessageReply(data)
 	if err != nil {
 		return err
 	}
@@ -143,7 +143,7 @@ func (n *Controller) SubscribeMessage(data []byte) error {
 }
 
 func subscription(data []byte, typeConstant string) error {
-	cml, err := helper.MapToChannelMessageList(data)
+	cml, err := bytemapper.ChannelMessageList(data)
 	if err != nil {
 		return err
 	}
@@ -237,7 +237,7 @@ func buildNotification(contentId, notifierId int64, subscribedAt time.Time) *mod
 }
 
 func (n *Controller) CreateInteractionNotification(data []byte) error {
-	i, err := helper.MapToInteraction(data)
+	i, err := bytemapper.Interaction(data)
 	if err != nil {
 		return err
 	}
@@ -272,7 +272,7 @@ func (n *Controller) CreateInteractionNotification(data []byte) error {
 }
 
 func (n *Controller) JoinChannel(data []byte) error {
-	cp, err := helper.MapToChannelParticipant(data)
+	cp, err := bytemapper.ChannelParticipant(data)
 	if err != nil {
 		return err
 	}
@@ -281,7 +281,7 @@ func (n *Controller) JoinChannel(data []byte) error {
 }
 
 func (n *Controller) LeaveChannel(data []byte) error {
-	cp, err := helper.MapToChannelParticipant(data)
+	cp, err := bytemapper.ChannelParticipant(data)
 	if err != nil {
 		return err
 	}
