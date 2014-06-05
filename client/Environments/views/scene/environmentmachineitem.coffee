@@ -14,7 +14,7 @@ class EnvironmentMachineItem extends EnvironmentItem
 
     @terminalIcon = new KDCustomHTMLView
       tagName     : "span"
-      cssClass    : "terminal"
+      cssClass    : "terminal hidden"
       click       : @bound "openTerminal"
 
     { status: {state} } = @getData()
@@ -103,6 +103,7 @@ class EnvironmentMachineItem extends EnvironmentItem
         <a href="http://#{ipAddress}" target="_blank" title="#{ipAddress}">
         </a>
         <!-- {{terminalIcon}} -->
+        {{> @terminalIcon}}
         {{> @chevron}}
       </div>
     """
