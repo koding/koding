@@ -6,13 +6,17 @@ class ActivityLikeCount extends CustomLinkView
 
     super options, data
 
+    data
+      .on 'LikeAdded', @bound 'update'
+      .on 'LikeRemoved', @bound 'update'
+
 
   click: (event) ->
 
     KD.utils.stopDOMEvent event
 
     data = @getData()
-    {interactions: {like: {isInteracted, actorsPreview}}} = @getData()
+    {isInteracted, actorsPreview} = data.interactions.like
 
     return  unless isInteracted
 
@@ -25,9 +29,7 @@ class ActivityLikeCount extends CustomLinkView
 
   mouseEnter: ->
 
-    data = @getData()
-    {interactions: {like}} = data
-    {actorsCount, actorsPreview} = like
+    {actorsCount, actorsPreview} = @getData().interactions.like
 
     return @unsetClass "liked"  if actorsCount is 0
 
@@ -59,21 +61,21 @@ class ActivityLikeCount extends CustomLinkView
 
   updateTooltip: (names) ->
 
-    {interactions: {like: {actorsCount}}} = @getData()
+    {actorsCount} = @getData().interactions.like
 
-    tooltip =
+    title =
       switch actorsCount
         when 0 then ""
         when 1 then "#{names[0]}"
         when 2 then "#{names[0]} and #{names[1]}"
         else "#{names[0]}, #{names[1]}#{sep}#{names[2]} #{andMore}"
 
-    @getTooltip().update { title: tooltip }
+    @getTooltip().update {title}
 
 
   fetchAccounts: (callback) ->
 
-    {interactions: {like: {actorsPreview}}} = @getData()
+    {actorsPreview} = @getData().interactions.like
 
     return callback null, actorsPreview  unless actorsPreview.length
 
@@ -83,14 +85,19 @@ class ActivityLikeCount extends CustomLinkView
     KD.remote.cacheable origins, callback
 
 
+  update: ->
+
+    {actorsCount} = @getData().interactions.like
+    if actorsCount then @show() else @hide()
+
+    @updatePartial actorsCount
+
+
   viewAppended: ->
 
     super
 
-    {interactions: {like: {actorsCount}}} = @getData()
-    if actorsCount then @show() else @hide()
+    @update()
 
 
-  pistachio: ->
-
-    "{{ #(interactions.like.actorsCount)}}"
+  pistachio: -> ""
