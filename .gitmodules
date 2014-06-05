@@ -1,3 +1,6 @@
 [submodule "client/Framework"]
 	path = client/Framework
 	url = git@github.com:koding/kd.git
+[submodule "client/Finder"]
+	path = client/Finder
+	url = git@github.com:koding/finder.git
