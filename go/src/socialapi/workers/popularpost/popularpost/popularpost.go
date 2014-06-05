@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"socialapi/config"
 	"socialapi/models"
-	"socialapi/workers/helper"
+	"socialapi/workers/common/bytemapper"
 	"time"
 
 	"github.com/koding/logging"
@@ -71,7 +71,7 @@ func (f *Controller) InteractionDeleted(data []byte) error {
 }
 
 func (f *Controller) handleInteractionEvent(incrementCount int, data []byte) error {
-	i, err := helper.MapToInteraction(data)
+	i, err := bytemapper.Interaction(data)
 	if err != nil {
 		return err
 	}
