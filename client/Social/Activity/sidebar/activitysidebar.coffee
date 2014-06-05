@@ -28,25 +28,26 @@ class ActivitySidebar extends KDCustomScrollView
     @sections     = {}
     @selectedItem = null
 
-    notificationController.on 'AddedToChannel', (channel) =>
-
-      revived        = revive channel
-      listController = @getListController revived.typeConstant
-
-      listController.addItem revived
-
-
-    notificationController.on 'RemovedFromChannel', (channel) =>
-
-      revived        = revive channel
-      listController = @getListController revived.typeConstant
-      item           = listController.itemsIndexed[revived.id]
-      listController.removeItem item
-
-
     notificationController
+      .on 'AddedToChannel',         @bound 'addToChannel'
+      .on 'RemovedFromChannel',     @bound 'removeFromChannel'
       .on 'ChannelUpdateHappened',  @bound 'notificationHasArrived'
       .on 'NotificationHasArrived', @bound 'notificationHasArrived'
+
+
+  addToChannel: (channel) ->
+
+    channel        = revive channel
+    listController = @getListController channel.typeConstant
+    listController.addItem channel
+
+
+  removeFromChannel: (channel) ->
+
+    channel        = revive channel
+    listController = @getListController channel.typeConstant
+    item           = listController.itemForId channel.getId()
+    listController.removeItem item
 
 
   notificationHasArrived: (update) ->
