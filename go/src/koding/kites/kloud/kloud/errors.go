@@ -13,6 +13,7 @@ const (
 	ErrMachineIdMissing   = 107
 	ErrProviderNotFound   = 108
 	ErrNoKiteConnection   = 109
+	ErrMachineTerminating = 110
 
 	ErrEventNotFound    = 201
 	ErrEventIdMissing   = 202
@@ -33,6 +34,7 @@ var errors = map[int]string{
 	ErrMachineIdMissing:   "Machine id is missing.",
 	ErrProviderNotFound:   "Provider is not found",
 	ErrNoKiteConnection:   "Couldn't connect to remote klient kite",
+	ErrMachineTerminating: "Machine is terminated.",
 
 	// Event errors
 	ErrEventIdMissing:   "Event id is missing.",

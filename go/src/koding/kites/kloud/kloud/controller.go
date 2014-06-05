@@ -83,6 +83,11 @@ func (k *Kloud) controller(r *kite.Request) (*Controller, error) {
 		return nil, err
 	}
 
+	if m.Machine.State() == machinestate.Terminating ||
+		m.Machine.State() == machinestate.Terminated {
+		return nil, NewError(ErrMachineTerminating)
+	}
+
 	k.Log.Debug("[controller]: got machine: %v", m.Machine)
 
 	provider, ok := providers[m.Provider]
