@@ -206,9 +206,10 @@ class SocialApiController extends KDController
     {SocialChannel} = KD.remote.api
     for channel in channels
       data = channel.channel
-      data.isParticipant = channel.isParticipant
-      data.participantCount = channel.participantCount
+      data.isParticipant       = channel.isParticipant
+      data.participantCount    = channel.participantCount
       data.participantsPreview = mapAccounts channel.participantsPreview
+      data.unreadCount         = channel.unreadCount
       c = new SocialChannel data
       # push channel into stack
       revivedChannels.push c
