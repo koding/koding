@@ -97,6 +97,15 @@ func (d *DigitalOcean) Prepare(raws ...interface{}) (err error) {
 	d.Builder.APIKey = d.Creds.APIKey
 
 	d.Client = digitalocean.DigitalOceanClient{}.New(d.Creds.ClientID, d.Creds.APIKey)
+
+	// authenticate credentials with a simple call
+	// TODO: cache gor a given clientID and apiKey
+	d.Log.Debug("Testing authentication with a simple /regions call")
+	_, err = d.Regions()
+	if err != nil {
+		return errors.New("authentication with DigitalOcean failed.")
+	}
+
 	return nil
 }
 
@@ -537,6 +546,10 @@ func (d *DigitalOcean) Restart(opts *protocol.MachineOptions) error {
 // Destroyimage destroys an image for the given imageID.
 func (d *DigitalOcean) DestroyImage(imageId uint) error {
 	return d.Client.DestroyImage(imageId)
+}
+
+func (d *DigitalOcean) Regions() ([]digitalocean.Region, error) {
+	return d.Client.Regions()
 }
 
 func (d *DigitalOcean) DestroyDroplet(dropletId uint) error {
