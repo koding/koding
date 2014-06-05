@@ -1,7 +1,6 @@
 package kloud
 
 import (
-	"errors"
 	"strings"
 	"time"
 
@@ -11,24 +10,24 @@ import (
 
 func createKey(username, kontrolURL, privateKey, publicKey string) (string, string, error) {
 	if username == "" {
-		return "", "", errors.New("username is empty")
+		return "", "", NewError(ErrSignUsernameEmpty)
 	}
 
 	if kontrolURL == "" {
-		return "", "", errors.New("kontrolURL is empty")
+		return "", "", NewError(ErrSignKontrolURLEmpty)
 	}
 
 	if privateKey == "" {
-		return "", "", errors.New("privateKey is empty")
+		return "", "", NewError(ErrSignPrivateKeyEmpty)
 	}
 
 	if publicKey == "" {
-		return "", "", errors.New("publicKey is empty")
+		return "", "", NewError(ErrSignPublicKeyEmpty)
 	}
 
 	tknID, err := uuid.NewV4()
 	if err != nil {
-		return "", "", errors.New("cannot generate a token")
+		return "", "", NewError(ErrSignGenerateToken)
 	}
 
 	token := jwt.New(jwt.GetSigningMethod("RS256"))

@@ -25,6 +25,8 @@ import (
 
 const ProviderName = "digitalocean"
 
+type pushFunc func(string, int)
+
 type DigitalOcean struct {
 	Client   *digitalocean.DigitalOceanClient
 	Log      logging.Logger
@@ -95,10 +97,17 @@ func (d *DigitalOcean) Prepare(raws ...interface{}) (err error) {
 	d.Builder.APIKey = d.Creds.APIKey
 
 	d.Client = digitalocean.DigitalOceanClient{}.New(d.Creds.ClientID, d.Creds.APIKey)
+
+	// authenticate credentials with a simple call
+	// TODO: cache gor a given clientID and apiKey
+	d.Log.Debug("Testing authentication with a simple /regions call")
+	_, err = d.Regions()
+	if err != nil {
+		return errors.New("authentication with DigitalOcean failed.")
+	}
+
 	return nil
 }
-
-type pushFunc func(string, int)
 
 func (d *DigitalOcean) pusher(opts *protocol.MachineOptions, state machinestate.State) pushFunc {
 	return func(msg string, percentage int) {
@@ -147,11 +156,27 @@ func (d *DigitalOcean) Build(opts *protocol.MachineOptions) (p *protocol.BuildRe
 	push(fmt.Sprintf("Fetching image %s", snapshotName), 10)
 	image, err = d.Image(snapshotName)
 	if err != nil {
-		d.Log.Info("Image %s does not exist, creating a new one", snapshotName)
+		push(fmt.Sprintf("Image %s does not exist, creating a new one", snapshotName), 12)
 		image, err = d.CreateImage()
 		if err != nil {
 			return nil, err
 		}
+
+		defer func() {
+			// return value of latest err, if there is no error just return lazily
+			if err == nil {
+				return
+			}
+
+			push("Destroying image", 95)
+			err := d.DestroyImage(image.Id)
+			if err != nil {
+				curlstr := fmt.Sprintf("curl '%v/images/%d/destroy?client_id=%v&api_key=%v'",
+					digitalocean.DIGITALOCEAN_API_URL, image.Id, d.Creds.ClientID, d.Creds.APIKey)
+
+				push(fmt.Sprintf("Error cleaning up droplet. Please delete the droplet manually: %v", curlstr), 95)
+			}
+		}()
 	}
 
 	// create temporary key to deploy user based key
@@ -170,8 +195,7 @@ func (d *DigitalOcean) Build(opts *protocol.MachineOptions) (p *protocol.BuildRe
 	}
 
 	defer func() {
-		push(fmt.Sprintf("Destroying droplet key"), 95)
-		err := d.DestroyKey(keyId) // remove after we are done
+		push("Destroying temporary droplet key", 95)
 		if err != nil {
 			curlstr := fmt.Sprintf("curl '%v/ssh_keys/%v/destroy?client_id=%v&api_key=%v'",
 				digitalocean.DIGITALOCEAN_API_URL, keyId, d.Creds.ClientID, d.Creds.APIKey)
@@ -186,6 +210,23 @@ func (d *DigitalOcean) Build(opts *protocol.MachineOptions) (p *protocol.BuildRe
 	if err != nil {
 		return nil, err
 	}
+	d.Builder.DropletId = strconv.Itoa(dropletInfo.Droplet.Id)
+
+	defer func() {
+		// return value of latest err, if there is no error just return lazily
+		if err == nil {
+			return
+		}
+
+		push("Destroying droplet", 95)
+		err := d.DestroyDroplet(uint(dropletInfo.Droplet.Id))
+		if err != nil {
+			curlstr := fmt.Sprintf("curl '%v/droplets/%v/destroy?client_id=%v&api_key=%v'",
+				digitalocean.DIGITALOCEAN_API_URL, dropletInfo.Droplet.Id, d.Creds.ClientID, d.Creds.APIKey)
+
+			push(fmt.Sprintf("Error cleaning up droplet. Please delete the droplet manually: %v", curlstr), 95)
+		}
+	}()
 
 	// Now we wait until it's ready, it takes approx. 50-70 seconds to finish,
 	// but we also add a timeout  of five minutes to not let stuck it there
@@ -196,8 +237,6 @@ func (d *DigitalOcean) Build(opts *protocol.MachineOptions) (p *protocol.BuildRe
 
 	// our droplet has now an IP adress, get it
 	push(fmt.Sprintf("Getting info about droplet"), 60)
-	d.Builder.DropletId = strconv.Itoa(dropletInfo.Droplet.Id)
-
 	info, err := d.Info(opts)
 	if err != nil {
 		return nil, err
@@ -507,6 +546,16 @@ func (d *DigitalOcean) Restart(opts *protocol.MachineOptions) error {
 // Destroyimage destroys an image for the given imageID.
 func (d *DigitalOcean) DestroyImage(imageId uint) error {
 	return d.Client.DestroyImage(imageId)
+}
+
+func (d *DigitalOcean) Regions() ([]digitalocean.Region, error) {
+	return d.Client.Regions()
+}
+
+func (d *DigitalOcean) DestroyDroplet(dropletId uint) error {
+	path := fmt.Sprintf("droplets/%v/destroy", dropletId)
+	_, err := digitalocean.NewRequest(*d.Client, path, url.Values{})
+	return err
 }
 
 // Destroy destroys the machine with the given droplet ID.

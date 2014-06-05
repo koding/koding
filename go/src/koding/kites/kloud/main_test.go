@@ -26,18 +26,19 @@ import (
 )
 
 var (
+	flagTestBuilds     = flag.Int("builds", 1, "Number of builds")
+	flagTestControl    = flag.Bool("control", false, "Enable control tests too (start/stop/..)")
+	flagTestImage      = flag.Bool("image", false, "Create temporary image instead of using default one.")
+	flagTestQuery      = flag.String("query", "", "Query as string for controller tests")
+	flagTestInstanceId = flag.String("instance", "", "Instance id (such as droplet Id)")
+	flagTestUsername   = flag.String("user", "", "Create machines on behalf of this user")
+
 	conf      *kiteconfig.Config
 	kloudKite *kodingkite.KodingKite
 	kloudRaw  *kloud.Kloud
 	remote    *kite.Client
 	testuser  string
 	storage   kloud.Storage
-
-	flagTestBuilds     = flag.Int("builds", 1, "Number of builds")
-	flagTestControl    = flag.Bool("control", false, "Enable control tests too (start/stop/..)")
-	flagTestQuery      = flag.String("query", "", "Query as string for controller tests")
-	flagTestInstanceId = flag.String("instance", "", "Instance id (such as droplet Id)")
-	flagTestUsername   = flag.String("user", "", "Create machines on behalf of this user")
 
 	DIGITALOCEAN_CLIENT_ID = "2d314ba76e8965c451f62d7e6a4bc56f"
 	DIGITALOCEAN_API_KEY   = "4c88127b50c0c731aeb5129bdea06deb"
@@ -57,7 +58,8 @@ var (
 					State      string    `bson:"state"`
 					ModifiedAt time.Time `bson:"modifiedAt"`
 				}{
-					State: machinestate.NotInitialized.String(),
+					State:      machinestate.NotInitialized.String(),
+					ModifiedAt: time.Now(),
 				},
 				Meta: map[string]interface{}{
 					"type":          "digitalocean",
@@ -105,19 +107,17 @@ func init() {
 		log.Fatal(err)
 	}
 
-	// To disable packer output, comment it out for debugging
-	if !*flagDebug {
-		log.SetOutput(ioutil.Discard)
-	}
+	// This disables packer output, comment it out for debugging packer
+	log.SetOutput(ioutil.Discard)
 
 	rand.Seed(time.Now().UTC().UnixNano())
 }
 
 // listenEvent calls the event method of kloud with the given arguments until
 // the desiredState is received. It times out if the desired state is not
-// reached in 5 miunuts.
+// reached in 10 miunuts.
 func listenEvent(args interface{}, desiredState machinestate.State) error {
-	tryUntil := time.Now().Add(time.Minute * 5)
+	tryUntil := time.Now().Add(time.Minute * 10)
 	for {
 		resp, err := remote.Tell("event", args)
 		if err != nil {
@@ -154,6 +154,12 @@ func listenEvent(args interface{}, desiredState machinestate.State) error {
 // function to invoke concurrent and multiple builds.
 func build(i int, client *kite.Client, data *kloud.MachineData) error {
 	uniqueId := strconv.FormatInt(time.Now().UTC().UnixNano(), 10)
+
+	imageName := "" // an empty argument causes to use the standard library.
+	if *flagTestImage {
+		imageName = testuser + "-" + uniqueId + "-" + strconv.Itoa(i)
+	}
+
 	instanceName := "testkloud-" + uniqueId + "-" + strconv.Itoa(i)
 
 	testlog := func(msg string, args ...interface{}) {
@@ -164,6 +170,7 @@ func build(i int, client *kite.Client, data *kloud.MachineData) error {
 	bArgs := &kloud.Controller{
 		MachineId:    data.Provider,
 		InstanceName: instanceName,
+		ImageName:    imageName,
 	}
 
 	start := time.Now()
@@ -407,6 +414,7 @@ func setupKloud() *kodingkite.KodingKite {
 		KontrolURL:        "wss://kontrol.koding.com",
 		KontrolPrivateKey: privateKey,
 		KontrolPublicKey:  publicKey,
+		Debug:             *flagDebug,
 	}
 
 	kt := kloudRaw.NewKloud()
