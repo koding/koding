@@ -36,6 +36,14 @@ requester = ({fnName, validate})->
 
     doRequest fnName, client, options, callback
 
+ensureGroupChannel = (client, callback)->
+  fetchGroup client, (err, group)->
+    return callback err  if err
+    return callback {message: "Group not found"} unless group
+    group.createSocialApiChannelId (err, socialApiChannelId)->
+      return callback err  if err
+      callback null, socialApiChannelId
+
 
 doRequest = (funcName, client, options, callback)->
   fetchGroup client, (err, group)->
@@ -51,6 +59,7 @@ doRequest = (funcName, client, options, callback)->
       requests[funcName] options, callback
 
 module.exports = {
+  ensureGroupChannel
   permittedRequest
   doRequest
   secureRequest
