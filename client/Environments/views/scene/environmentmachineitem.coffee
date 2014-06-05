@@ -92,17 +92,21 @@ class EnvironmentMachineItem extends EnvironmentItem
 
   pistachio:->
 
-    {label, provider, ipAddress} = @getData()
+    {label, provider, ipAddress, status:{state} } = @getData()
     title = label or provider
+
+    publicUrl = if ipAddress? then """
+      <a href="http://#{ipAddress}" target="_blank" title="#{ipAddress}">
+        <span class='url'>#{ipAddress}</span>
+      </a>
+    """ else ""
 
     """
       <div class='details'>
         <span class='toggle'></span>
         <h3>#{title}</h3>
-          <span class='url'></span>
-        <a href="http://#{ipAddress}" target="_blank" title="#{ipAddress}">
-        </a>
-        <!-- {{terminalIcon}} -->
+        #{publicUrl}
+        <span class='state'>#{state}</span>
         {{> @terminalIcon}}
         {{> @chevron}}
       </div>
