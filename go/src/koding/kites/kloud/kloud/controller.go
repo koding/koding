@@ -44,6 +44,9 @@ var states = map[string]*statePair{
 
 func (k *Kloud) ControlFunc(method string, control controlFunc) {
 	handler := func(r *kite.Request) (interface{}, error) {
+		k.Log.Debug("[controller] got a request for method: '%s' with args: %v",
+			method, string(r.Args.Raw))
+
 		// this locks are important to prevent consecutive calls from the same user
 		k.idlock.Get(r.Username).Lock()
 		defer k.idlock.Get(r.Username).Unlock()
@@ -80,6 +83,8 @@ func (k *Kloud) controller(r *kite.Request) (*Controller, error) {
 		return nil, err
 	}
 
+	k.Log.Debug("[controller]: got machine: %v", m.Machine)
+
 	provider, ok := providers[m.Provider]
 	if !ok {
 		return nil, NewError(ErrProviderNotFound)
@@ -100,6 +105,9 @@ func (k *Kloud) controller(r *kite.Request) (*Controller, error) {
 	}, nil
 }
 
+// coreMethods is running and returning the event id for the methods start,
+// stop, restart and destroy. This method is used to avoid duplication in other
+// methods.
 func (k *Kloud) coreMethods(r *kite.Request, c *Controller, fn func(*protocol.MachineOptions) error) (interface{}, error) {
 	// all core methods works only for machines that are initialized
 	if c.CurrenState == machinestate.NotInitialized {
@@ -126,9 +134,10 @@ func (k *Kloud) coreMethods(r *kite.Request, c *Controller, fn func(*protocol.Ma
 		status := s.final
 		msg := fmt.Sprintf("%s is finished successfully.", r.Method)
 
+		k.Log.Debug("[controller]: running method %s with mach options %v", r.Method, machOptions)
 		err := fn(machOptions)
 		if err != nil {
-			k.Log.Error("%s failed: %s. Machine state is Unknown now.", r.Method, err.Error())
+			k.Log.Error("[controller] %s failed: %s. Machine state is Unknown now.", r.Method, err.Error())
 			status = machinestate.Unknown
 			msg = err.Error()
 		}

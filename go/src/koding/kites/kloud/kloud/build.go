@@ -44,7 +44,7 @@ func (k *Kloud) build(r *kite.Request, c *Controller) (interface{}, error) {
 
 		err := k.buildMachine(r.Username, c)
 		if err != nil {
-			k.Log.Error("Building machine failed: %s. Machine state is marked as ERROR.\n"+
+			k.Log.Error("[controller] building machine failed: %s. Machine state is marked as ERROR.\n"+
 				"Any other calls are now forbidden until the state is resolved manually.\n"+
 				"Args: %v User: %s EventId: %v Previous Events: %s",
 				err.Error(), c, r.Username, c.MachineId, c.Eventer)
@@ -78,7 +78,7 @@ func (k *Kloud) buildMachine(username string, c *Controller) error {
 		instanceName = c.InstanceName
 	}
 
-	buildOptions := &protocol.MachineOptions{
+	machOptions := &protocol.MachineOptions{
 		MachineId:    c.MachineId,
 		Username:     username,
 		ImageName:    imageName,
@@ -87,12 +87,12 @@ func (k *Kloud) buildMachine(username string, c *Controller) error {
 	}
 
 	msg := fmt.Sprintf("Building process started. Provider '%s'. Build options: %+v",
-		c.Provider.Name(), buildOptions)
-	k.Log.Info(msg)
+		c.Provider.Name(), machOptions)
 
 	c.Eventer.Push(&eventer.Event{Message: msg, Status: machinestate.Building})
 
-	buildResponse, err := c.Provider.Build(buildOptions)
+	k.Log.Debug("[controller]: running method 'build' with machine options %v", machOptions)
+	buildResponse, err := c.Provider.Build(machOptions)
 	if err != nil {
 		return err
 	}

@@ -1,6 +1,7 @@
 package kloud
 
 import (
+	"fmt"
 	"koding/db/mongodb"
 	"koding/kites/kloud/digitalocean"
 	"koding/kites/kloud/eventer"
@@ -92,6 +93,7 @@ func (k *Kloud) NewKloud() *kodingkite.KodingKite {
 }
 
 func (k *Kloud) SignFunc(username string) (string, string, error) {
+	k.Log.Debug("Signing a key for user: '%s' kontrolURL: %s ", username, k.KontrolURL)
 	return createKey(username, k.KontrolURL, k.KontrolPrivateKey, k.KontrolPublicKey)
 }
 
@@ -104,23 +106,6 @@ func (k *Kloud) InitializeProviders() {
 	}
 }
 
-func (k *Kloud) NewEventer(id string) eventer.Eventer {
-	ev, ok := k.Eventers[id]
-	if ok {
-		// for now we delete old events, but in the future we might store them
-		// in the db for history/logging.
-		delete(k.Eventers, id)
-	}
-
-	ev = eventer.New(id)
-	k.Eventers[id] = ev
-	return ev
-}
-
-func (k *Kloud) GetEvent(eventId string) *eventer.Event {
-	return k.Eventers[eventId].Show()
-}
-
 func createLogger(name string, debug bool) logging.Logger {
 	log := logging.NewLogger(name)
 	logHandler := logging.NewWriterHandler(os.Stderr)
@@ -128,6 +113,7 @@ func createLogger(name string, debug bool) logging.Logger {
 	log.SetHandler(logHandler)
 
 	if debug {
+		fmt.Println("DEBUG mode is enabled.")
 		log.SetLevel(logging.DEBUG)
 		logHandler.SetLevel(logging.DEBUG)
 	}

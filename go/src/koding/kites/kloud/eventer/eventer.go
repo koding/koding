@@ -1,6 +1,7 @@
 package eventer
 
 import (
+	"fmt"
 	"koding/kites/kloud/kloud/machinestate"
 	"sync"
 	"time"
@@ -41,6 +42,11 @@ type Event struct {
 
 	// TimeStamp contains the last updated event time
 	TimeStamp time.Time `json:"timeStamp"`
+}
+
+func (e *Event) String() string {
+	return fmt.Sprintf("msg: %s, status: %s, timestamp: %s, percentage: %d",
+		e.Message, e.Status, e.TimeStamp, e.Percentage)
 }
 
 type Events struct {
