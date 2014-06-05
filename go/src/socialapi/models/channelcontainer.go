@@ -1,7 +1,5 @@
 package models
 
-import "socialapi/workers/helper"
-
 type ChannelContainer struct {
 	Channel             Channel                  `json:"channel"`
 	IsParticipant       bool                     `json:"isParticipant"`
@@ -45,13 +43,13 @@ func PopulateChannelContainersWithUnreadCount(channelList []Channel, accountId i
 		cp.ChannelId = container.Channel.Id
 		cp.AccountId = accountId
 		if err := cp.FetchParticipant(); err != nil {
-			helper.MustGetLogger().Error(err.Error())
+			// helper.MustGetLogger().Error(err.Error())
 			continue
 		}
 
 		count, _ := cml.UnreadCount(cp)
 		if err != nil {
-			helper.MustGetLogger().Error(err.Error())
+			// helper.MustGetLogger().Error(err.Error())
 			continue
 		}
 		channelContainers[i].UnreadCount = count
