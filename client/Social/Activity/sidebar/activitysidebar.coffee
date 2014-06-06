@@ -174,8 +174,8 @@ class ActivitySidebar extends KDCustomScrollView
   addHotTopics: ->
 
     @wrapper.addSubView @sections.hot = new ActivitySideView
-      title      : 'HOT'
-      cssClass   : 'hot topics'
+      title      : 'TRENDING'
+      cssClass   : 'hot topics hidden'
       itemClass  : SidebarTopicItem
       dataPath   : 'popularTopics'
       delegate   : this
@@ -188,7 +188,7 @@ class ActivitySidebar extends KDCustomScrollView
   addFollowedTopics: ->
 
     @wrapper.addSubView @sections.followedTopics = new ActivitySideView
-      title      : 'Followed Topics'
+      title      : 'My Feeds'
       cssClass   : 'followed topics'
       itemClass  : SidebarTopicItem
       dataPath   : 'followedChannels'
@@ -202,7 +202,7 @@ class ActivitySidebar extends KDCustomScrollView
   addFollowedPosts: ->
 
     @wrapper.addSubView @sections.followedPosts = new ActivitySideView
-      title      : 'Followed Posts'
+      title      : 'Conversations'
       cssClass   : 'threads users'
       itemClass  : SidebarPinnedItem
       dataPath   : 'pinnedMessages'
@@ -216,7 +216,7 @@ class ActivitySidebar extends KDCustomScrollView
   addMessages: ->
 
     @wrapper.addSubView @sections.messages = new ActivitySideView
-      title      : 'Messages'
+      title      : 'Private Conversations'
       cssClass   : 'inbox users'
       itemClass  : SidebarMessageItem
       dataPath   : 'privateMessages'
