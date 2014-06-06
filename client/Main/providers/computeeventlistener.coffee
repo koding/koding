@@ -1,6 +1,9 @@
 class ComputeEventListener extends KDObject
 
-  constructor:->
+  constructor:(options = {})->
+
+    super
+      interval : options.interval ? 4000
 
     @kloud          = KD.singletons.kontrol.getKite
       name          : "kloud"
@@ -9,7 +12,6 @@ class ComputeEventListener extends KDObject
     @listeners      = []
     @tickInProgress = no
     @running        = no
-    @timeout        = 5000
     @timer          = null
 
 
@@ -17,7 +19,8 @@ class ComputeEventListener extends KDObject
 
     return  if @running
     @running = yes
-    @timer = KD.utils.repeat @timeout, @bound 'tick'
+
+    @timer = KD.utils.repeat @getOption('interval'), @bound 'tick'
 
 
   stop:->
