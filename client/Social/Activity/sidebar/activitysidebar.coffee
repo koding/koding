@@ -68,6 +68,7 @@ class ActivitySidebar extends KDCustomScrollView
 
     section = switch type
       when 'topic'          then @sections.followedTopics
+      when 'pinnedactivity' then @sections.followedPosts
       when 'privatemessage' then @sections.messages
       else {}
 
