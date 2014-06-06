@@ -69,6 +69,7 @@ class ActivityListItemView extends KDListItemView
     @editWidget.on 'Submit', @bound 'resetEditing'
     @editWidget.on 'Cancel', @bound 'resetEditing'
     @editWidgetWrapper.addSubView @editWidget, null, yes
+    @editWidgetWrapper.show()
 
 
   resetEditing : ->
