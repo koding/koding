@@ -389,7 +389,9 @@ func (c *Channel) Search(q *Query) ([]Channel, error) {
 }
 
 func (c *Channel) ByName(q *Query) (Channel, error) {
-	// TODO - check permissions here
+	fmt.Println("-------- FIX THIS PART ------")
+	fmt.Println("TODO - check permissions here")
+	fmt.Println("-------- FIX THIS PART ------")
 	var channel Channel
 
 	if q.GroupName == "" {
