@@ -82,7 +82,7 @@ func (m *MongoDB) Update(id string, resp *protocol.BuildResponse) error {
 			bson.ObjectIdHex(id),
 			bson.M{"$set": bson.M{
 				"queryString":       resp.QueryString,
-				"publicIp":          resp.IpAddress,
+				"ipAddress":         resp.IpAddress,
 				"meta.instanceId":   strconv.Itoa(resp.InstanceId),
 				"meta.instanceName": resp.InstanceName,
 			}},

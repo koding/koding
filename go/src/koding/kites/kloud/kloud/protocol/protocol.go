@@ -42,7 +42,7 @@ type BuildResponse struct {
 	// machine.
 	QueryString string
 
-	// IpAddress defines the publid ip address of the running machine.
+	// IpAddress defines the public ip address of the running machine.
 	IpAddress string
 }
 
