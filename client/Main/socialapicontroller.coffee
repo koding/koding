@@ -228,9 +228,9 @@ class SocialApiController extends KDController
     switch type
       when "topic"
         return api.channel.byName {name: id}, callback
-      when "post"
-        return api.message.byId {id}, callback
-      when "message"
+      when "channel", "privatemessage"
+        return api.channel.byId {id}, callback
+      when "post", "message"
         return api.message.byId {id}, callback
       else
         return callback { message: "not implemented in revive" }
