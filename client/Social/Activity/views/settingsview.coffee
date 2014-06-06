@@ -29,13 +29,13 @@ class ActivitySettingsView extends KDCustomHTMLView
     post = @getData()
 
     unless post.isFollowed
-      menuItem = 'Follow Post'
-      fn = pin
+      title = 'Follow Post'
+      fn    = pin
     else
-      menuItem = 'Unfollow Post'
-      fn = unpin
+      title = 'Unfollow Post'
+      fn    = unpin
 
-    @addMenuItem menuItem, =>
+    @addMenuItem title, ->
         messageId = post.getId()
         fn {messageId}, (err)->
           return KD.showError err  if err
