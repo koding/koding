@@ -14,7 +14,7 @@ class ActivitySettingsView extends KDCustomHTMLView
       itemChildClass : ActivityItemMenuItem
       delegate       : this
       iconClass      : 'arrow'
-      menu           : @settingsMenu data
+      menu           : @bound 'settingsMenu'
       style          : 'resurrection'
       callback       : (event) => @settings.contextMenu event
 
