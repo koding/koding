@@ -28,10 +28,6 @@ var (
 	Name = "SocialAPI"
 )
 
-type context struct {
-	Username string
-}
-
 func init() {
 	flag.Usage = func() {
 		fmt.Fprintln(os.Stderr, "Usage: example [-cert=<cert>] [-key=<key>] [-config=<config>] [-host=<host>] [-port=<port>]")
