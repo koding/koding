@@ -135,6 +135,7 @@ module.exports =
     watch       : no
     queueName   : socialQueueName
     verbose     : no
+    kitePort    : 8765
   log           :
     login       : 'prod-social'
     numberOfWorkers: 2
