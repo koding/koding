@@ -36,6 +36,8 @@ func init() {
 	mux = tigertonic.NewTrieServeMux()
 	mux = handlers.Inject(mux)
 	mux = notificationapi.InitHandlers(mux)
+	tigertonic.SnakeCaseHTTPEquivErrors = true
+
 }
 
 func main() {
