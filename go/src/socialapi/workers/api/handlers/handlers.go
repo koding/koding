@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"net/http"
+	"socialapi/models"
 	"socialapi/workers/api/modules/account"
 	"socialapi/workers/api/modules/activity"
 	"socialapi/workers/api/modules/channel"
@@ -23,13 +24,19 @@ var (
 func handlerWrapper(handler interface{}, logName string) http.Handler {
 	return cors.Build(
 		tigertonic.Timed(
-			tigertonic.Marshaled(handler),
+			tigertonic.If(
+				func(r *http.Request) (http.Header, error) {
+					// this is an example
+					// set group name to context
+					tigertonic.Context(r).(*models.Context).GroupName = "koding"
+					return nil, nil
+				},
+				tigertonic.Marshaled(handler)),
 			logName,
 			nil,
 		))
 }
 
-// todo implement context support here for requests
 func Inject(mux *tigertonic.TrieServeMux) *tigertonic.TrieServeMux {
 
 	////////////////////////////////////////////////////////////////////////////////////
