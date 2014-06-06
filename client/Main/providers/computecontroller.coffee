@@ -75,3 +75,16 @@ class ComputeController extends KDController
       .catch (err)->
         warn "destroy err:", err
 
+
+  build: (machine)->
+
+    @kloud.build { machineId: machine._id }
+
+    .then (res)=>
+
+      @eventListener.addListener 'build', machine._id
+      log "build res:", res
+
+    .catch (err)->
+      warn "build err:", err
+
