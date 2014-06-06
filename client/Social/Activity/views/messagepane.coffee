@@ -49,7 +49,7 @@ class MessagePane extends KDTabPaneView
 
   prependMessage: (message) -> @listController.addItem message, 0
 
-  removeMessage: (message) -> @listController.removeItem message
+  removeMessage: (message) -> @listController.removeItem null, message
 
 
   viewAppended: ->
