@@ -17,6 +17,9 @@ class EnvironmentMachineItem extends EnvironmentItem
       cssClass    : "terminal hidden"
       click       : @bound "openTerminal"
 
+    @progress = new KDProgressBarView
+      cssClass : "progress hidden"
+
     { status: {state} } = @getData()
 
     @setClass state.toLowerCase()
@@ -106,6 +109,7 @@ class EnvironmentMachineItem extends EnvironmentItem
         <h3>#{title}</h3>
         #{publicUrl}
         <span class='state'>#{state}</span>
+        {{> @progress}}
         {{> @terminalIcon}}
         {{> @chevron}}
       </div>
