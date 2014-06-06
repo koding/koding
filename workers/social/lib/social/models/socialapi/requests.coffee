@@ -239,6 +239,24 @@ fetchProfileFeed = (data, callback)->
   url = "/account/#{data.targetId}/posts"
   get url, data, callback
 
+messageById = (data, callback)->
+  if not data.id
+    return callback { message: "id should be set"}
+  url = "/message/#{data.id}"
+  get url, data, callback
+
+channelById = (data, callback)->
+  if not data.id
+    return callback { message: "id should be set"}
+  url = "/channel/#{data.id}"
+  get url, data, callback
+
+channelByName = (data, callback)->
+  if not data.name
+    return callback { message: "name should be set"}
+  url = "/channel/name/#{data.name}"
+  get url, data, callback
+
 post = (url, data, callback)->
   getNextApiURL (err, apiurl)->
     return callback err if err
@@ -270,6 +288,9 @@ get = (url, data, callback)->
     , wrapCallback callback
 
 module.exports = {
+  messageById
+  channelById
+  channelByName
   glancePinnedPost
   updateLastSeenTime
   fetchProfileFeed

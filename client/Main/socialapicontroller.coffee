@@ -223,7 +223,25 @@ class SocialApiController extends KDController
         return callback err if err
         return callback null, mapperFn result
 
+
+  revive :(type, id, callback) ->
+    api = KD.singletons.socialapi
+    switch type
+      when "topic"
+        return api.channel.byName {name: id}, callback
+      when "channel", "privatemessage"
+        return api.channel.byId {id}, callback
+      when "post", "message"
+        return api.message.byId {id}, callback
+      else
+        return callback { message: "not implemented in revive" }
+
   message:
+    byId                 : messageRequesterFn
+      fnName             : 'byId'
+      validateOptionsWith: ['id']
+      mapperFn           : mapActivity
+
     edit                 : messageRequesterFn
       fnName             : 'edit'
       validateOptionsWith: ['id', 'body']
@@ -272,6 +290,16 @@ class SocialApiController extends KDController
     revive               : mapActivity
 
   channel:
+    byId                 : channelRequesterFn
+      fnName             : 'byId'
+      validateOptionsWith: ['id']
+      mapperFn           : mapChannels
+
+    byName               : channelRequesterFn
+      fnName             : 'byName'
+      validateOptionsWith: ['name']
+      mapperFn           : mapChannels
+
     list                 : channelRequesterFn
       fnName             : 'fetchChannels'
       mapperFn           : mapChannels
@@ -334,3 +362,5 @@ class SocialApiController extends KDController
     updateLastSeenTime   : channelRequesterFn
       fnName             : 'updateLastSeenTime'
       validateOptionsWith: ["channelId"]
+
+
