@@ -31,17 +31,14 @@ class ActivitySettingsView extends KDCustomHTMLView
     unless post.isFollowed
       menuItem = 'Follow Post'
       fn = socialapi.channel.pin
-      logMessage = 'post pinned'
     else
       menuItem = 'Unfollow Post'
       fn = socialapi.channel.unpin
-      logMessage = 'post unpinned'
 
     @addMenuItem menuItem, =>
         messageId = post.getId()
         fn {messageId}, (err)->
           return KD.showError err  if err
-          log logMessage
 
     return @menu
 
