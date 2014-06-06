@@ -73,7 +73,8 @@
     "minimist": "0.0.8",
     "which": "^1.0.5",
     "ua-parser-js": "0.6.2",
-    "checksum": "0.1.*"
+    "checksum": "0.1.*",
+    "amqplib": "^0.2.0"
   },
   "devDependencies": {},
   "optionalDependencies": {},
