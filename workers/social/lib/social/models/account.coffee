@@ -421,6 +421,8 @@ module.exports = class JAccount extends jraphical.Module
     @notifyOriginWhen 'PrivateMessageSent', 'FollowHappened'
     @notifyGroupWhen 'FollowHappened'
 
+  canEditPost: permit 'edit posts'
+
   createSocialApiId:(callback)->
     return callback null, @socialApiId  if @socialApiId
     {createAccount} = require './socialapi/requests'
