@@ -15,11 +15,12 @@ class ComputeEventListener extends KDObject
     @timer          = null
 
 
-  listen:->
+  start:->
 
     return  if @running
     @running = yes
 
+    @tick()
     @timer = KD.utils.repeat @getOption('interval'), @bound 'tick'
 
 
@@ -33,6 +34,7 @@ class ComputeEventListener extends KDObject
   addListener:(type, eventId)->
 
     @listeners.push { type, eventId }
+    @start()  unless @running
 
 
   tick:->
@@ -41,18 +43,34 @@ class ComputeEventListener extends KDObject
     return  if @tickInProgress
     @tickInProgress = yes
 
+    {computeController} = KD.singletons
     @kloud.event(@listeners)
 
-    .then (res)=>
+    .then (responses)=>
 
-      log res
+      activeListeners = []
+      responses.forEach (res)=>
+
+        if res.err
+          warn "Error on '#{res.event_id}':", res.err
+
+        else
+
+          [type, eventId] = res.event.eventId.split '-'
+
+          if res.event.percentage < 100
+            activeListeners.push { type, eventId }
+
+          log "#{res.event.eventId}", res.event
+
+          computeController.emit "public-#{eventId}", res.event
+          computeController.emit "#{res.event.eventId}", res.event
+
+      @listeners = activeListeners
+      @tickInProgress = no
 
     .catch (err)=>
 
+      @tickInProgress = no
       warn "Eventer error:", err
       @stop()
-
-    .finally =>
-
-      @tickInProgress = no
-
