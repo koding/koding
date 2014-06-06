@@ -74,7 +74,7 @@ class ActivityListItemView extends KDListItemView
   resetEditing : ->
 
     @editWidget.destroy()
-    @editWidgetWrapper.setClass "hidden"
+    @editWidgetWrapper.hide()
 
 
   delete: ->
