@@ -83,6 +83,8 @@ class ActivitySettingsView extends KDCustomHTMLView
 
   settingsMenu: ->
 
+    @menu = {}
+
     @addFollowActionMenu()
 
     if KD.isMyPost @getData()
