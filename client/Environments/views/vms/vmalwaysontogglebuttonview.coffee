@@ -1,5 +1,7 @@
 class VMAlwaysOnToggleButtonView extends JView
+
   constructor: (options = {}, data) ->
+
     options.cssClass = KD.utils.curry "toggle-menu"
     super options, data
 

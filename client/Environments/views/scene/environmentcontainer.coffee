@@ -54,7 +54,7 @@ class EnvironmentContainer extends KDDiaContainer
 
     index = 0
     for _key, dia of @dias
-      dia.setX 0
+      dia.setX 10
       dia.setY 50 + index * (@itemHeight + 14)
       index++
 
