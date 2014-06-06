@@ -388,6 +388,23 @@ func (c *Channel) Search(q *Query) ([]Channel, error) {
 	return channels, nil
 }
 
+func (c *Channel) ByName(q *Query) (Channel, error) {
+	// TODO - check permissions here
+	var channel Channel
+
+	if q.GroupName == "" {
+		return channel, fmt.Errorf("Query doesnt have any Group info %+v", q)
+	}
+
+	query := bongo.B.DB.Table(c.TableName()).Limit(q.Limit)
+
+	query = query.Where("type_constant = ?", q.Type)
+	query = query.Where("group_name = ?", q.GroupName)
+	query = query.Where("name = ?", q.Name)
+
+	return channel, query.Find(&channel).Error
+}
+
 func (c *Channel) List(q *Query) ([]Channel, error) {
 
 	if q.GroupName == "" {
