@@ -76,6 +76,20 @@ module.exports = class JStack extends jraphical.Module
 
       meta               : require 'bongo/bundles/meta'
 
+      status             :
+        type             : String
+        enum             : ["Wrong type specified!", [
+
+          # States which description ending with '...' means its an ongoing
+          # proccess which you may get progress info about it
+          #
+          "Initial"         # Initial state
+          "Terminating"     # Stack is getting destroyed...
+          "Terminated"      # Stack is destroyed, not exists anymore
+        ]]
+
+        default          : -> "Initial"
+
 
   @getStack = (account, _id, callback)->
 
@@ -134,6 +148,7 @@ module.exports = class JStack extends jraphical.Module
   @getSelector = (selector, account)->
     selector ?= {}
     selector.originId = account.getId()
+    selector.status   = $ne: "Terminated"
     return selector
 
   @some$ = permit 'list stacks',
@@ -214,6 +229,9 @@ module.exports = class JStack extends jraphical.Module
     ]
 
     success: (client, callback)->
+
+      # TODO Implement delete methods.
+      @update $set: status: "Terminating"
 
       JDomain  = require "./domain"
       JMachine = require "./computeproviders/machine"
