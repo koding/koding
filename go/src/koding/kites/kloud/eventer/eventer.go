@@ -29,7 +29,7 @@ type Eventer interface {
 
 type Event struct {
 	// EventId is the id of the whole processEventId is the id of the whole process
-	EventId string `json:"eventID"`
+	EventId string `json:"eventId"`
 
 	// Message explains the current event's behaviour/content.
 	Message string `json:"message"`
