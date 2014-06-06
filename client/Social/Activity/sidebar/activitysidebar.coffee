@@ -58,9 +58,7 @@ class ActivitySidebar extends KDCustomScrollView
     {typeConstant, id}     = channel
 
     listController = @getListController typeConstant
-
     item = listController.itemForId id
-
     item.setUnreadCount unreadCount  if item?.unreadCount
 
 
@@ -68,6 +66,7 @@ class ActivitySidebar extends KDCustomScrollView
 
     section = switch type
       when 'topic'          then @sections.followedTopics
+      when 'pinnedactivity' then @sections.followedPosts
       when 'privatemessage' then @sections.messages
       else {}
 
