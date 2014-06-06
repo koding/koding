@@ -23,7 +23,7 @@ class ActivitySettingsView extends KDCustomHTMLView
 
   addMenuItem: (title, callback) -> @menu[title] = {callback}
 
-  getGenericMenu: ->
+  addFollowActionMenu: ->
 
     {socialapi} = KD.singletons
     post = @getData()
@@ -46,7 +46,7 @@ class ActivitySettingsView extends KDCustomHTMLView
     return @menu
 
 
-  getOwnerMenu: ->
+  addOwnerMenu: ->
 
     @addMenuItem 'Edit Post', @lazyBound 'emit', 'ActivityEditIsClicked'
     @addMenuItem 'Delete Post', @bound 'confirmDeletePost'
@@ -54,7 +54,7 @@ class ActivitySettingsView extends KDCustomHTMLView
     return @menu
 
 
-  getAdminMenu: ->
+  addAdminMenu: ->
 
     post = @getData()
 
@@ -83,12 +83,12 @@ class ActivitySettingsView extends KDCustomHTMLView
 
   settingsMenu: ->
 
-    @getGenericMenu()
+    @addFollowActionMenu()
 
     if KD.isMyPost @getData()
-    then @getOwnerMenu()
+    then @addOwnerMenu()
     else if KD.checkFlag('super-admin') or KD.hasAccess('delete posts')
-    then @getAdminMenu()
+    then @addAdminMenu()
 
     return @menu
 
