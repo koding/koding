@@ -81,17 +81,23 @@ app        = express()
 
 app.configure ->
   app.set 'case sensitive routing', on
-  helmet.defaults app
+
+  headers = {}
+  if webserver.useCacheHeader
+    headers.maxAge = 1000 * 60 * 60 * 24 # 1 day
+
+  app.use express.static "#{projectRoot}/website/", headers
   app.use express.cookieParser()
   app.use express.session {"secret":"foo"}
   app.use express.bodyParser()
   app.use express.compress()
-  # 86400000 == one day
-  headers = {}
-  if webserver.useCacheHeader
-    headers.maxAge = 86400000
-
-  app.use express.static( "#{projectRoot}/website/", headers)
+  # helmet:
+  app.use helmet.hsts()
+  app.use helmet.xframe()
+  app.use helmet.iexss()
+  app.use helmet.ienoopen()
+  app.use helmet.contentTypeOptions()
+  app.use helmet.hidePoweredBy()
 
 # disable express default header
 app.disable 'x-powered-by'

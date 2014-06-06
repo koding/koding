@@ -40,6 +40,7 @@ class MainController extends KDController
       kontrolUrl : "wss://kontrol.koding.com"
 
     KD.registerSingleton 'appManager',   appManager = new ApplicationManager
+    KD.registerSingleton 'globalKeyCombos',  combos = new KDKeyboardMap priority : 0
     KD.registerSingleton 'notificationController',    new NotificationController
     KD.registerSingleton 'linkController',            new LinkController
     KD.registerSingleton 'display',                   new ContentDisplayController

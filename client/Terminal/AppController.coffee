@@ -20,8 +20,8 @@ class WebTermController extends AppController
       'ring bell'     : 'ringBell'
       'noop'          : (->)
     keyBindings  : [
-      { command: 'ring bell',     binding: 'alt+super+k',         global: yes }
-      { command: 'noop',          binding: ['super+v','super+r'], global: yes }
+      { command: 'ring bell',     binding: 'alt+meta+k',         global: yes }
+      { command: 'noop',          binding: ['meta+v','meta+r'], global: yes }
     ]
     behavior     : "application"
 
@@ -100,6 +100,9 @@ class WebTermController extends AppController
     return  if shouldReturn
 
     @getView().ready =>
+      if query.chromeapp
+        query.fullscreen = yes # forcing fullscreen
+
       @getView().handleQuery query
 
   ringBell: do (bell = try new Audio '/a/audio/bell.wav') -> (event) ->
