@@ -83,8 +83,11 @@ func (k *Kloud) controller(r *kite.Request) (*Controller, error) {
 		return nil, err
 	}
 
-	if m.Machine.State() == machinestate.Terminating ||
-		m.Machine.State() == machinestate.Terminated {
+	// prevent request if the machine is terminated. However we want the user
+	// to be able to build again
+	if (m.Machine.State() == machinestate.Terminating ||
+		m.Machine.State() == machinestate.Terminated) &&
+		r.Method != "build" {
 		return nil, NewError(ErrMachineTerminating)
 	}
 
