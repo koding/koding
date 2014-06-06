@@ -60,3 +60,18 @@ class ComputeController extends KDController
 
       delete @stacks
       @emit "renderStacks"
+
+  destroy: (machine)->
+
+    ComputeController.UI.askFor 'destroy', machine, =>
+
+      @kloud.destroy { machineId: machine._id }
+
+      .then (res)=>
+
+        @eventListener.addListener 'destroy', machine._id
+        log "destroy res:", res
+
+      .catch (err)->
+        warn "destroy err:", err
+
