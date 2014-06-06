@@ -7,6 +7,7 @@ import (
 	"koding/db/mongodb/modelhelper"
 	// _ "net/http/pprof" // Imported for side-effect of handling /debug/pprof.
 	"os"
+	"socialapi/models"
 	"socialapi/workers/api/handlers"
 	"socialapi/workers/common/runner"
 	"socialapi/workers/helper"
@@ -75,10 +76,11 @@ func newServer() *tigertonic.Server {
 	server := tigertonic.NewServer(
 		addr,
 		tigertonic.Logged(
-			tigertonic.WithContext(mux, context{}),
+			tigertonic.WithContext(mux, models.Context{}),
 			nil,
 		),
 	)
+
 	go listener(server)
 	return server
 }
