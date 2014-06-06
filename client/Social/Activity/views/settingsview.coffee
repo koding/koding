@@ -57,7 +57,7 @@ class ActivitySettingsView extends KDCustomHTMLView
 
     post = @getData()
 
-    @menu                = @getOwnerMenu()
+    @menu                = @addOwnerMenu()
     {activityController} = KD.singletons
 
     if KD.checkFlag 'exempt', KD.whoami()
