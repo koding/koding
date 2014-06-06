@@ -25,12 +25,14 @@ class StackView extends KDView
     # Domains Container
     @domains = new EnvironmentDomainContainer {}, @stack
     @scene.addContainer @domains
-    # @domains.on 'itemAdded', @lazyBound 'updateView', yes
+    @domains.on 'itemAdded',   @lazyBound 'updateView', yes
+    @domains.on 'itemRemoved', @lazyBound 'updateView', yes
 
     # VMs / Machines Container
     @machines = new EnvironmentMachineContainer {}, @stack
     @scene.addContainer @machines
-    # @machies.on 'itemAdded', @lazyBound 'updateView', yes
+    @machines.on 'itemAdded',   @lazyBound 'updateView', yes
+    @machines.on 'itemRemoved', @lazyBound 'updateView', yes
 
     # Extras Container
     # @extras = new EnvironmentExtraContainer {}, @stack
@@ -265,6 +267,7 @@ class StackView extends KDView
 
 
   updateView:(dataUpdated = no)->
+
     @scene.updateConnections()  if dataUpdated
 
     @setHeight @getProperHeight()  if @getHeight() > 50
