@@ -26,7 +26,7 @@ class EnvironmentMachineContainer extends EnvironmentContainer
     super options, data
 
     @on 'PlusButtonClicked', =>
-      ComputeProvider.UI.showProvidersModal @getData()
+      ComputeController.UI.showProvidersModal @getData()
 
   # loadItems:->
 

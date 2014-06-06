@@ -23,7 +23,8 @@ class TerminalStartTab extends JView
 
   fetchMachines: (force = no) ->
 
-    ComputeProvider.fetchMachines (err, machines)=>
+    {computeController} = KD.singletons
+    computeController.fetchMachines (err, machines)=>
 
       if err
         ErrorLog.create "terminal: Couldn't fetch machines", reason:err

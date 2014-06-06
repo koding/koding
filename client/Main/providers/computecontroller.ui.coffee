@@ -1,4 +1,4 @@
-class ComputeProvider.UI
+class ComputeController.UI
 
   requiresLogin = do -> ({ message }, fn) -> (args...)->
 
@@ -29,7 +29,7 @@ class ComputeProvider.UI
         label       : "Title"
         placeholder : "title for this credential"
 
-    Providers = ComputeProvider.providers
+    Providers = ComputeController.providers
 
     Object.keys(Providers[provider].credentialFields).forEach (field)->
       fields[field] = _.clone Providers[provider].credentialFields[field]

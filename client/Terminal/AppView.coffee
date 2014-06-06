@@ -50,7 +50,8 @@ class WebTermAppView extends JView
   viewAppended: ->
     super
 
-    ComputeProvider.fetchMachines (err, machines)=>
+    {computeController} = KD.singletons
+    computeController.fetchMachines (err, machines)=>
 
       machines.forEach (machine)=>
         @machines[machine.uid] = machine

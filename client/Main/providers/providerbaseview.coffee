@@ -61,8 +61,8 @@ class ProviderBaseView extends KDTabPaneView
     @createInstanceForm.once "Submit", (data)=>
 
       label = data.title
-
-      ComputeProvider.create {
+      {computeController} = KD.singletons
+      computeController.create {
         provider, label
         instanceType : instance.getData().name
         credential   : @_currentCredential
@@ -102,7 +102,7 @@ class ProviderBaseView extends KDTabPaneView
 
   createNewInstanceForm:->
 
-    @createInstanceForm = ComputeProvider.UI.generateCreateInstanceForm()
+    @createInstanceForm = ComputeController.UI.generateCreateInstanceForm()
 
     @createInstanceForm.on "Cancel", =>
       @createInstanceForm.unsetClass 'in'
@@ -116,7 +116,7 @@ class ProviderBaseView extends KDTabPaneView
     provider = @getOption 'provider'
 
     @addCredentialForm?.destroy()
-    @addCredentialForm = ComputeProvider.UI.generateAddCredentialFormFor provider
+    @addCredentialForm = ComputeController.UI.generateAddCredentialFormFor provider
 
     @addCredentialForm.on "Cancel", =>
       @addCredentialForm.unsetClass 'in'
@@ -149,7 +149,8 @@ class ProviderBaseView extends KDTabPaneView
 
     @_currentCredential = credentialKey
 
-    ComputeProvider.fetchAvailable
+    {computeController} = KD.singletons
+    computeController.fetchAvailable
       provider   : provider
       credential : credentialKey
     , (err, instances)=>
@@ -178,7 +179,9 @@ class ProviderBaseView extends KDTabPaneView
     @loader.show()
 
     provider = @getOption 'provider'
-    ComputeProvider.credentialsFor provider, (err, credentials = [])=>
+
+    {computeController} = KD.singletons
+    computeController.credentialsFor provider, (err, credentials = [])=>
 
       @loader.hide()
 

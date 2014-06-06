@@ -12,13 +12,14 @@ class EnvironmentsMainScene extends KDView
   viewAppended:->
 
     @addSubView @renderHeader()
-    { mainController } = KD.singletons
+    { computeController, mainController } = KD.singletons
+    computeController.on "renderStacks", @bound 'renderStacks'
     mainController.ready @bound 'renderStacks'
-    mainController.on "renderStacks", @bound 'renderStacks'
 
   renderStacks:->
 
-    ComputeProvider.fetchStacks (err, stacks = [])=>
+    {computeController} = KD.singletons
+    computeController.fetchStacks (err, stacks = [])=>
 
       (stack?.destroy?() for stack in @stacks)
       @stacks = []

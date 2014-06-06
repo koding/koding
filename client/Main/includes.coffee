@@ -209,8 +209,12 @@ module.exports = [
   "maintabs/maintabhandleholder.coffee",
 
   "providers/config.coffee",
-  "providers/computeprovider.coffee",
-  "providers/computeprovider-ui.coffee",
+  "providers/computecontroller.coffee",
+  "providers/computecontroller.ui.coffee",
+
+  "providers/machine.coffee",
+  "providers/machineitem.coffee",
+  "providers/machinelist.coffee",
 
   "providers/provideritemview.coffee",
   "providers/providerbaseview.coffee",
