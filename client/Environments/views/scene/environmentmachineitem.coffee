@@ -27,52 +27,89 @@ class EnvironmentMachineItem extends EnvironmentItem
     if state is "Running"
       @terminalIcon.show()
 
+    machine = @getData()
+
+    {computeController} = KD.singletons
+
+    computeController.on "public-#{machine._id}", (event)=>
+
+      {percentage, status} = event
+
+      if percentage < 100
+        @progress.show()
+        @progress.updateBar percentage
+      else
+        @progress.hide()
+
+      if status is 'Running'
+        @terminalIcon.show()
+      else
+        @terminalIcon.hide()
+
+      machine.update_
+        $set: "status.state": event.status
+
 
   contextMenuItems : ->
 
     colorSelection = new ColorSelection selectedColor : @getOption 'colorTag'
     colorSelection.on "ColorChanged", @bound 'setColorTag'
 
-    vmName = @getData().hostnameAlias
-    vmAlwaysOnSwitch = new VMAlwaysOnToggleButtonView null, {vmName}
+    this_   = this
+    machine = @getData()
+
+    vmAlwaysOnSwitch = new VMAlwaysOnToggleButtonView
+
     items =
-      customView4         : vmAlwaysOnSwitch
+
+      customView1         : vmAlwaysOnSwitch
+
       'Build Machine'     :
-        callback          : =>
-          machine = this.getData()
-          kloud = KD.singletons.kontrol.getKite {
-            name:"kloud", environment:"vagrant"
-          }
-          kloud.build(machineId: machine._id).then(log, warn)
+        callback          : ->
+          {computeController} = KD.singletons
+          computeController.build machine
+          @destroy()
 
       'Re-initialize VM'  :
         disabled          : KD.isGuest()
         callback          : ->
-          KD.getSingleton("vmController").reinitialize vmName
+          new KDNotificationView
+            title : "Not implemented yet!"
           @destroy()
+
       'Open VM Terminal'  :
-        callback          : =>
-          @openTerminal()
+
+        callback          : ->
+          this_.openTerminal()
           @destroy()
+
         separator         : yes
+
       'Update init script':
         separator         : yes
         callback          : @bound "showInitScriptEditor"
+
       'Delete'            :
         disabled          : KD.isGuest()
         separator         : yes
         action            : 'delete'
-      customView3         : colorSelection
+
+      customView2         : colorSelection
 
     return items
 
   openTerminal:->
+
     vmName = @getData().hostnameAlias
     KD.getSingleton("router").handleRoute "/Terminal", replaceState: yes
     KD.getSingleton("appManager").open "Terminal", params: {vmName}, forceNew: yes
 
+
   confirmDestroy:->
-    KD.getSingleton('vmController').remove @getData().hostnameAlias, @bound "destroy"
+
+    {computeController} = KD.singletons
+    computeController.destroy @getData()
+
 
   showInitScriptEditor: ->
 
@@ -94,8 +131,9 @@ class EnvironmentMachineItem extends EnvironmentItem
 
   pistachio:->
 
-    {label, provider, ipAddress, status:{state} } = @getData()
-    title = label or provider
+    {label, provider, ipAddress } = @getData()
+
+    title  = label or provider
 
     publicUrl = if ipAddress? then """
       <a href="http://#{ipAddress}" target="_blank" title="#{ipAddress}">
@@ -108,7 +146,7 @@ class EnvironmentMachineItem extends EnvironmentItem
         <span class='toggle'></span>
         <h3>#{title}</h3>
         #{publicUrl}
-        <span class='state'>#{state}</span>
+        {span.state{#(status.state)}}
         {{> @progress}}
         {{> @terminalIcon}}
         {{> @chevron}}
