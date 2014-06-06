@@ -103,3 +103,14 @@ class ComputeController.UI
 
       callback          : (data)->
         form.emit "Submit", data
+
+  @askFor: (action, target, callback)->
+
+    modal = KDModalView.confirm
+      title       : "Remove machine"
+      description : "Do you want to remove ?"
+      ok          :
+        title     : "Yes, remove"
+        callback  : ->
+          modal.destroy()
+          callback()
