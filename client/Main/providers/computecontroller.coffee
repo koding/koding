@@ -2,6 +2,20 @@ class ComputeController extends KDController
 
   @providers = KD.config.providers
 
+  constructor:->
+    super
+
+    { mainController, kontrol } = KD.singletons
+
+    mainController.ready =>
+
+      @kloud         = kontrol.getKite
+        name         : "kloud"
+        environment  : "vagrant"
+
+      @eventListener = new ComputeEventListener
+
+
   fetchStacks: (callback = noop)->
 
     if @stacks
