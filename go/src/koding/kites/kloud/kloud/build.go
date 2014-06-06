@@ -28,8 +28,7 @@ func (k *Kloud) build(r *kite.Request, c *Controller) (interface{}, error) {
 	}
 
 	// if it's something else (stopped, runnning, ...) it's been already built
-	if c.CurrenState != machinestate.Terminated ||
-		c.CurrenState != machinestate.NotInitialized {
+	if !c.CurrenState.In(machinestate.Terminated, machinestate.NotInitialized) {
 		return nil, NewError(ErrAlreadyInitialized)
 	}
 
