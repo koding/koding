@@ -211,6 +211,7 @@ module.exports = [
   "providers/config.coffee",
   "providers/computecontroller.coffee",
   "providers/computecontroller.ui.coffee",
+  "providers/computeeventlistener.coffee",
 
   "providers/machine.coffee",
   "providers/machineitem.coffee",
