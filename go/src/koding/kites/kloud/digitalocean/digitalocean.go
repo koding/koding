@@ -3,7 +3,6 @@ package digitalocean
 import (
 	"errors"
 	"fmt"
-	"io/ioutil"
 	"koding/kites/kloud/eventer"
 	"koding/kites/kloud/klientprovisioner"
 	"koding/kites/kloud/kloud/machinestate"
@@ -266,9 +265,10 @@ func (d *DigitalOcean) Build(opts *protocol.MachineOptions) (p *protocol.BuildRe
 
 	// for debugging, remove it later ...
 	push(fmt.Sprintf("Writing kite key to temporary file (kite.key)"), 75)
-	if err := ioutil.WriteFile("kite.key", []byte(kiteKey), 0400); err != nil {
-		d.Log.Info("couldn't write temporary kite file", err)
-	}
+	// DEBUG
+	// if err := ioutil.WriteFile("kite.key", []byte(kiteKey), 0400); err != nil {
+	// 	d.Log.Info("couldn't write temporary kite file", err)
+	// }
 
 	keyPath := "/opt/kite/klient/key/kite.key"
 
