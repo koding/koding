@@ -10,7 +10,7 @@ import (
 type Machine struct {
 	Id          bson.ObjectId `bson:"_id" json:"-"`
 	QueryString string        `bson:"queryString"`
-	PublicIp    string        `bson:"publicIp"`
+	IpAddress   string        `bson:"ipAddress"`
 	Status      struct {
 		State      string    `bson:"state"`
 		ModifiedAt time.Time `bson:"modifiedAt"`
