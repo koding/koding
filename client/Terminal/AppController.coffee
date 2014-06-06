@@ -101,6 +101,9 @@ class WebTermController extends AppController
     return  if shouldReturn
 
     @getView().ready =>
+      if query.chromeapp
+        query.fullscreen = yes # forcing fullscreen
+
       @getView().handleQuery query
 
   ringBell: do (bell = try new Audio '/a/audio/bell.wav') -> (event) ->
