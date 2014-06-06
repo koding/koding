@@ -10,7 +10,7 @@ import (
 )
 
 // lists followed channels of an account
-func ListChannels(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface{}, error) {
+func ListChannels(u *url.URL, h http.Header, _ interface{}, c *models.Context) (int, http.Header, interface{}, error) {
 	query := helpers.GetQuery(u)
 
 	accountId, err := helpers.GetURIInt64(u, "id")
