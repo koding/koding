@@ -49,7 +49,7 @@ class MessagePane extends KDTabPaneView
 
   prependMessage: (message) -> @listController.addItem message, 0
 
-  removeMessage: (message) -> @listController.removeItem message
+  removeMessage: (message) -> @listController.removeItem null, message
 
 
   viewAppended: ->
@@ -78,7 +78,7 @@ class MessagePane extends KDTabPaneView
     # item = @getDelegate().parent.sidebar.selectedItem
     # return  unless item.count
 
-    if typeConstant is 'message'
+    if typeConstant is 'post'
     then socialapi.channel.glancePinnedPost messageId : id, log
     else socialapi.channel.updateLastSeenTime channelId : id, log
 

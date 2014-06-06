@@ -7,7 +7,7 @@ import (
 	mongomodels "koding/db/models"
 	"koding/db/mongodb/modelhelper"
 	"socialapi/models"
-	"socialapi/workers/helper"
+	"socialapi/workers/common/bytemapper"
 	notificationmodels "socialapi/workers/notification/models"
 	"strconv"
 
@@ -114,7 +114,7 @@ func (f *Controller) MessageDeleted(data []byte) error {
 }
 
 func (f *Controller) MessageUpdated(data []byte) error {
-	cm, err := helper.MapToChannelMessage(data)
+	cm, err := bytemapper.ChannelMessage(data)
 	if err != nil {
 		return err
 	}
@@ -215,7 +215,7 @@ type InteractionEvent struct {
 }
 
 func (f *Controller) handleInteractionEvent(eventName string, data []byte) error {
-	i, err := helper.MapToInteraction(data)
+	i, err := bytemapper.Interaction(data)
 	if err != nil {
 		return err
 	}
@@ -248,7 +248,7 @@ func (f *Controller) handleInteractionEvent(eventName string, data []byte) error
 }
 
 func (f *Controller) MessageReplySaved(data []byte) error {
-	mr, err := helper.MapToMessageReply(data)
+	mr, err := bytemapper.MessageReply(data)
 	if err != nil {
 		return err
 	}
@@ -310,7 +310,7 @@ func (f *Controller) sendReplyAddedEventAsNotificationEvent(mr *models.MessageRe
 }
 
 func (f *Controller) MessageReplyDeleted(data []byte) error {
-	i, err := helper.MapToMessageReply(data)
+	i, err := bytemapper.MessageReply(data)
 	if err != nil {
 		return err
 	}
@@ -326,7 +326,7 @@ func (f *Controller) MessageReplyDeleted(data []byte) error {
 
 // send message to the channel
 func (f *Controller) MessageListSaved(data []byte) error {
-	cml, err := helper.MapToChannelMessageList(data)
+	cml, err := bytemapper.ChannelMessageList(data)
 	if err != nil {
 		return err
 	}
@@ -426,7 +426,7 @@ func (f *Controller) sendChannelUpdatedEventToParticipant(c *models.Channel, cm 
 
 // todo - refactor this part
 func (f *Controller) MessageListUpdated(data []byte) error {
-	cml, err := helper.MapToChannelMessageList(data)
+	cml, err := bytemapper.ChannelMessageList(data)
 	if err != nil {
 		return err
 	}
@@ -449,7 +449,7 @@ func (f *Controller) MessageListUpdated(data []byte) error {
 }
 
 func (f *Controller) MessageListDeleted(data []byte) error {
-	cml, err := helper.MapToChannelMessageList(data)
+	cml, err := bytemapper.ChannelMessageList(data)
 	if err != nil {
 		return err
 	}

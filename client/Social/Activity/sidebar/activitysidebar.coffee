@@ -28,25 +28,28 @@ class ActivitySidebar extends KDCustomScrollView
     @sections     = {}
     @selectedItem = null
 
-    notificationController.on 'AddedToChannel', (channel) =>
-
-      revived        = revive channel
-      listController = @getListController revived.typeConstant
-
-      listController.addItem revived
-
-
-    notificationController.on 'RemovedFromChannel', (channel) =>
-
-      revived        = revive channel
-      listController = @getListController revived.typeConstant
-      item           = listController.itemsIndexed[revived.id]
-      listController.removeItem item
-
-
     notificationController
+      .on 'AddedToChannel',         @bound 'addToChannel'
+      .on 'RemovedFromChannel',     @bound 'removeFromChannel'
       .on 'ChannelUpdateHappened',  @bound 'notificationHasArrived'
       .on 'NotificationHasArrived', @bound 'notificationHasArrived'
+
+
+  addToChannel: (channel) ->
+
+    channel        = revive channel
+    listController = @getListController channel.typeConstant
+    listController.addItem channel
+    @updateTopicFollowButtons channel
+
+
+  removeFromChannel: (channel) ->
+
+    channel        = revive channel
+    listController = @getListController channel.typeConstant
+    item           = listController.itemForId channel.getId()
+    listController.removeItem item
+    @updateTopicFollowButtons channel
 
 
   notificationHasArrived: (update) ->
@@ -58,7 +61,7 @@ class ActivitySidebar extends KDCustomScrollView
 
     item = listController.itemForId id
 
-    item.setUnreadCount unreadCount  if item.unreadCount
+    item.setUnreadCount unreadCount  if item?.unreadCount
 
 
   getListController: (type) ->
@@ -69,6 +72,15 @@ class ActivitySidebar extends KDCustomScrollView
       else {}
 
     return section.listController
+
+
+  updateTopicFollowButtons: (channel) ->
+
+    for name in ['hot', 'followedTopics']
+      item = @sections[name].listController.itemForId channel.getId()
+      continue  unless item
+      state = if channel.isParticipant then 'Following' else 'Follow'
+      item.followButton.setState state
 
 
   # fixme:
