@@ -16,11 +16,10 @@ import (
 )
 
 var (
-	cert       = flag.String("cert", "", "certificate pathname")
-	key        = flag.String("key", "", "private key pathname")
-	flagConfig = flag.String("config", "", "pathname of JSON configuration file")
-	host       = flag.String("host", "0.0.0.0", "listen address")
-	port       = flag.String("port", "7000", "listen port")
+	cert = flag.String("cert", "", "certificate pathname")
+	key  = flag.String("key", "", "private key pathname")
+	host = flag.String("host", "0.0.0.0", "listen address")
+	port = flag.String("port", "7000", "listen port")
 
 	hMux       tigertonic.HostServeMux
 	mux, nsMux *tigertonic.TrieServeMux
