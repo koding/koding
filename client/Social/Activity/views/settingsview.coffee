@@ -36,9 +36,9 @@ class ActivitySettingsView extends KDCustomHTMLView
       fn    = unpin
 
     @addMenuItem title, ->
-        messageId = post.getId()
-        fn {messageId}, (err)->
-          return KD.showError err  if err
+      messageId = post.getId()
+      fn {messageId}, (err)->
+        return KD.showError err  if err
 
     return @menu
 
