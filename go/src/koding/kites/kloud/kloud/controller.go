@@ -97,9 +97,9 @@ func (k *Kloud) controller(r *kite.Request) (*Controller, error) {
 		return nil, NewError(ErrMachineTerminating)
 	}
 
-	provider, ok := providers[m.Provider]
-	if !ok {
-		return nil, NewError(ErrProviderNotFound)
+	provider, err := k.GetProvider(m.Provider)
+	if err != nil {
+		return nil, err
 	}
 
 	if err := provider.Prepare(m.Credential.Meta, m.Machine.Meta); err != nil {
