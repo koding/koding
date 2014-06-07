@@ -33,8 +33,13 @@ class ComputeEventListener extends KDObject
 
   addListener:(type, eventId)->
 
-    @listeners.push { type, eventId }
-    @start()  unless @running
+    inList = no
+    @listeners.forEach (_)->
+      inList |= _.type is type and _.eventId is eventId
+
+    unless inList
+      @listeners.push { type, eventId }
+      @start()  unless @running
 
 
   tick:->
