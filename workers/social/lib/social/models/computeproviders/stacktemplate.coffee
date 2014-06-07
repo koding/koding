@@ -232,15 +232,15 @@ JStackTemplate.create
 
   machines    : [
     {
-      title: "Development VM", provider: "koding", instanceType: "micro"
+      label: "Development VM", provider: "koding", instanceType: "micro"
     }
     {
-      title: "Test VM on DO", provider: "digitalocean", instanceType: "micro",
+      label: "Test VM on DO", provider: "digitalocean", instanceType: "micro",
       credential: "703484dfc34fc9b9830c43eddb2725f5", image: "ubuntu-13-10-x64",
       region: "ams1", size: "512mb"
     }
     {
-      title: "AWS micro", provider: "amazon", instanceType: "micro",
+      label: "AWS micro", provider: "amazon", instanceType: "micro",
       credential: "0dffe6d974948f95b0abf60ec67b2c8b"
     }
   ]
