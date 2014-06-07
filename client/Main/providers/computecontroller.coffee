@@ -15,6 +15,8 @@ class ComputeController extends KDController
 
       @eventListener = new ComputeEventListener
 
+      @on "machineBuildCompleted", => delete @stacks
+
 
   fetchStacks: (callback = noop)->
 

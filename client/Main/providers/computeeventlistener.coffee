@@ -63,6 +63,9 @@ class ComputeEventListener extends KDObject
 
           log "#{res.event.eventId}", res.event
 
+          if res.event.percentage is 100 and type is "build"
+            computeController.emit "machineBuildCompleted", machineId: eventId
+
           computeController.emit "public-#{eventId}", res.event
           computeController.emit "#{res.event.eventId}", res.event
 
