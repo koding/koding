@@ -12,20 +12,15 @@ class EnvironmentMachineItem extends EnvironmentItem
 
     super options, data
 
+
     @terminalIcon = new KDCustomHTMLView
       tagName     : "span"
-      cssClass    : "terminal hidden"
+      cssClass    : "terminal"
       click       : @bound "openTerminal"
 
     @progress = new KDProgressBarView
-      cssClass : "progress hidden"
+      cssClass : "progress"
 
-    { status: {state} } = @getData()
-
-    @setClass state.toLowerCase()
-
-    if state is "Running"
-      @terminalIcon.show()
 
     machine = @getData()
 
@@ -36,24 +31,33 @@ class EnvironmentMachineItem extends EnvironmentItem
 
     computeController.on "public-#{machine._id}", (event)=>
 
-      {percentage, status} = event
+      if event.percentage?
 
-      if percentage < 100
-        @progress.show()
-        @progress.updateBar percentage
+        @progress.updateBar event.percentage
+
+        if event.percentage < 100 then @setClass 'loading busy'
+        else KD.utils.wait 1000, =>  @unsetClass 'loading busy'
+
       else
-        @progress.hide()
 
-      if status is 'Running'
-        @terminalIcon.show()
-      else
-        @terminalIcon.hide()
+        @unsetClass 'busy'
 
-      machine.update_
-        $set: "status.state": event.status
+      @updateState event.status
+
+    computeController.info machine
 
 
-  contextMenuItems : ->
+  updateState:(status)->
+
+    return unless status
+
+    if status is 'Running'
+    then @setClass 'running'
+    else @unsetClass 'running'
+
+    @getData().setAt "status.state", status
+
+
   invalidateMachine:(event)->
 
     if event.percentage is 100
@@ -64,6 +68,7 @@ class EnvironmentMachineItem extends EnvironmentItem
         else @setData newMachine
 
 
+  contextMenuItems: ->
 
     colorSelection = new ColorSelection selectedColor : @getOption 'colorTag'
     colorSelection.on "ColorChanged", @bound 'setColorTag'
@@ -110,6 +115,7 @@ class EnvironmentMachineItem extends EnvironmentItem
       customView2         : colorSelection
 
     return items
+
 
   openTerminal:->
 
