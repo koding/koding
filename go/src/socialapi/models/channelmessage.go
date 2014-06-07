@@ -1,8 +1,6 @@
 package models
 
 import (
-	"database/sql"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"socialapi/config"
@@ -11,7 +9,6 @@ import (
 	"github.com/VerbalExpressions/GoVerbalExpressions"
 	"github.com/jinzhu/gorm"
 	"github.com/koding/bongo"
-	"github.com/lib/pq/hstore"
 )
 
 var mentionRegex = verbalexpressions.New().
@@ -50,57 +47,11 @@ type ChannelMessage struct {
 	DeletedAt time.Time `json:"deletedAt"`
 
 	// Extra data storage
-	Data map[string]interface{} `json:"data" sql:"-"`
-
-	// Data storage is converted to Hstore value
-	Payload hstore.Hstore `json:"-"`
+	Payload gorm.Hstore `json:"payload,omitempty"`
 }
 
 func (c *ChannelMessage) BeforeCreate() {
-	c.preparePayload()
 	c.DeletedAt = ZeroDate()
-}
-
-func (c *ChannelMessage) BeforeUpdate() {
-	c.preparePayload()
-}
-
-func (c *ChannelMessage) preparePayload() {
-	if len(c.Data) == 0 {
-		return
-	}
-	c.Payload = hstore.Hstore{Map: map[string]sql.NullString{}}
-	for key, value := range c.Data {
-		if value == nil {
-			continue
-		}
-
-		if res, err := json.Marshal(value); err == nil {
-			c.Payload.Map[key] = sql.NullString{string(res), true}
-		}
-	}
-}
-
-func (c *ChannelMessage) AfterFind() {
-	c.prepareData()
-}
-
-func (c *ChannelMessage) prepareData() {
-	if len(c.Payload.Map) == 0 {
-		return
-	}
-
-	c.Data = map[string]interface{}{}
-	for key, value := range c.Payload.Map {
-		if !value.Valid {
-			continue
-		}
-		var res map[string]interface{}
-		if err := json.Unmarshal([]byte(value.String), &res); err == nil {
-			c.Data[key] = res
-		}
-	}
-
 }
 
 func (c *ChannelMessage) AfterCreate() {
