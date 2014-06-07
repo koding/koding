@@ -2,13 +2,29 @@ package gorm
 
 import (
 	"database/sql"
+	"database/sql/driver"
 	"fmt"
 	"reflect"
+
+	"github.com/lib/pq/hstore"
 )
 
 var hstoreType = reflect.TypeOf(Hstore{})
 
 type Hstore map[string]*string
+
+func (h Hstore) Value() (driver.Value, error) {
+	hstore := hstore.Hstore{Map: map[string]sql.NullString{}}
+	if len(h) == 0 {
+		return nil, nil
+	}
+
+	for key, value := range h {
+		hstore.Map[key] = sql.NullString{*value, true}
+	}
+	return hstore.Value()
+}
+
 type postgres struct {
 }
 
