@@ -65,6 +65,9 @@ class ActivityInputView extends KDTokenizedInput
     super event
     return  if event.isPropagationStopped()
     switch event.which
+      when 13 # Enter
+        KD.utils.stopDOMEvent event
+        @handleEnter event
       when 27 # Escape
         @emit "Escape"
 
