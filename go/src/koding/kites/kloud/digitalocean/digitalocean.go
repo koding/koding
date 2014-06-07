@@ -26,6 +26,8 @@ const ProviderName = "digitalocean"
 
 type pushFunc func(string, int)
 
+// DigitalOcean is responsible of creating/controlling and handling one single
+// Digital Ocean machine.
 type DigitalOcean struct {
 	Client   *digitalocean.DigitalOceanClient
 	Log      logging.Logger
