@@ -76,6 +76,9 @@ class ActivityInputView extends KDTokenizedInput
     return  if @getTokens().length >= TOKEN_LIMIT
     super
 
+  insertNewline: ->
+    document.execCommand 'insertText', no, "\n"
+
   getPosition: ->
     {startContainer, startOffset} = KD.utils.getSelectionRange()
     {parentNode} = startContainer
