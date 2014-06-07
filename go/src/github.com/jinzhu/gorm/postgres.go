@@ -25,6 +25,29 @@ func (h Hstore) Value() (driver.Value, error) {
 	return hstore.Value()
 }
 
+func (h *Hstore) Scan(value interface{}) error {
+	hstore := hstore.Hstore{}
+
+	if err := hstore.Scan(value); err != nil {
+		return err
+	}
+
+	if len(hstore.Map) == 0 {
+		return nil
+	}
+
+	*h = Hstore{}
+	for k := range hstore.Map {
+		if hstore.Map[k].Valid {
+			s := hstore.Map[k].String
+			(*h)[k] = &s
+		} else {
+			(*h)[k] = nil
+		}
+	}
+
+	return nil
+}
 type postgres struct {
 }
 
