@@ -83,7 +83,7 @@ func (vm *VM) SendMessageToVMUsers(message string) error {
 // WaitUntilReady waits until the network is up and the screen binary is
 // available and ready to use.
 func (vm *VM) WaitUntilReady() error {
-	timeout := time.Second * 5
+	timeout := time.Second * 30
 
 	isNetworkUp := func() error {
 		out, err := exec.Command("/usr/bin/lxc-attach", "--name", vm.String(),
