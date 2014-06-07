@@ -4,7 +4,7 @@ class EnvironmentMachineItem extends EnvironmentItem
 
   constructor:(options={}, data)->
 
-    options.cssClass           = 'machine'
+    options.cssClass           = 'machine busy'
     options.joints             = ['left']
 
     options.allowedConnections =
