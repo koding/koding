@@ -77,6 +77,8 @@ class ActivityInputView extends KDTokenizedInput
     super
 
   handleEnter: (event) ->
+    return @insertNewline()  if event.shiftKey
+
     position = @getPosition()
     read     = 0
     for part, index in @getValue().split '```'
