@@ -76,6 +76,17 @@ class ActivityInputView extends KDTokenizedInput
     return  if @getTokens().length >= TOKEN_LIMIT
     super
 
+  getPosition: ->
+    {startContainer, startOffset} = KD.utils.getSelectionRange()
+    {parentNode} = startContainer
+
+    position = 0
+    for node in @getEditableElement().childNodes
+      break  if node is startContainer or node is parentNode
+      position += node.textContent.length
+
+    return position + startOffset
+
   focus: ->
     return  if @focused
     super
