@@ -6,6 +6,9 @@ import (
 	"reflect"
 )
 
+var hstoreType = reflect.TypeOf(Hstore{})
+
+type Hstore map[string]*string
 type postgres struct {
 }
 
