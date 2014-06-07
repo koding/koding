@@ -150,15 +150,21 @@ class EnvironmentMachineItem extends EnvironmentItem
 
   pistachio:->
 
-    {label, provider, ipAddress } = @getData()
+    {label, provider, ipAddress, status:{state} } = @getData()
 
-    title  = label or provider
+    title = label or provider
 
-    publicUrl = if ipAddress? then """
-      <a href="http://#{ipAddress}" target="_blank" title="#{ipAddress}">
-        <span class='url'>#{ipAddress}</span>
-      </a>
-    """ else ""
+    publicUrl = ""
+
+    { NotInitialized, Terminated } = Machine.State
+
+    if state not in [ NotInitialized, Terminated ] and ipAddress?
+
+      publicUrl = """
+        <a href="http://#{ipAddress}" target="_blank" title="#{ipAddress}">
+          <span class='url'>#{ipAddress}</span>
+        </a>
+      """
 
     """
       <div class='details'>
