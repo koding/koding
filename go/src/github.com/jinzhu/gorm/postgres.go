@@ -130,7 +130,7 @@ func (d *postgres) SqlTag(value reflect.Value, size int) string {
 			return "timestamp with time zone"
 		}
 	case reflect.Map:
-		if value.Type() == reflect.TypeOf(map[string]sql.NullString{}) {
+		if value.Type() == hstoreType {
 			return "hstore"
 		}
 	default:
