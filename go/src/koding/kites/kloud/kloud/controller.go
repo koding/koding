@@ -108,7 +108,6 @@ func (k *Kloud) controller(r *kite.Request) (*Controller, error) {
 		InstanceName: args.InstanceName,
 		Provider:     provider,
 		MachineData:  m,
-		Eventer:      k.NewEventer(r.Method + "-" + args.MachineId),
 		CurrenState:  m.Machine.State(),
 	}, nil
 }
@@ -132,7 +131,7 @@ func (k *Kloud) coreMethods(r *kite.Request, c *Controller, fn func(*protocol.Ma
 	machOptions := &protocol.MachineOptions{
 		MachineId: c.MachineId,
 		Username:  r.Username,
-		Eventer:   c.Eventer,
+		Eventer:   k.NewEventer(r.Method + "-" + c.MachineId),
 	}
 
 	go func() {
