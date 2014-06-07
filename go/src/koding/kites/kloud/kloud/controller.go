@@ -49,12 +49,16 @@ func (k *Kloud) ControlFunc(method string, control controlFunc) {
 
 		// this locks are important to prevent consecutive calls from the same user
 		k.idlock.Get(r.Username).Lock()
-		defer k.idlock.Get(r.Username).Unlock()
-
 		c, err := k.controller(r)
 		if err != nil {
+			k.idlock.Get(r.Username).Unlock()
 			return nil, err
 		}
+		k.idlock.Get(r.Username).Unlock()
+
+		// now lock for machine-ids
+		k.idlock.Get(c.MachineId).Unlock()
+		defer k.idlock.Get(c.MachineId).Unlock()
 
 		return control(r, c)
 	}
@@ -135,8 +139,8 @@ func (k *Kloud) coreMethods(r *kite.Request, c *Controller, fn func(*protocol.Ma
 	}
 
 	go func() {
-		k.idlock.Get(r.Username).Lock()
-		defer k.idlock.Get(r.Username).Unlock()
+		k.idlock.Get(c.MachineId).Unlock()
+		defer k.idlock.Get(c.MachineId).Unlock()
 
 		status := s.final
 		msg := fmt.Sprintf("%s is finished successfully.", r.Method)

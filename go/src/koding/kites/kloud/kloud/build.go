@@ -36,8 +36,8 @@ func (k *Kloud) build(r *kite.Request, c *Controller) (interface{}, error) {
 	c.Eventer = k.NewEventer(r.Method + "-" + c.MachineId)
 
 	go func() {
-		k.idlock.Get(r.Username).Lock()
-		defer k.idlock.Get(r.Username).Unlock()
+		k.idlock.Get(c.MachineId).Unlock()
+		defer k.idlock.Get(c.MachineId).Unlock()
 
 		status := machinestate.Running
 		msg := "Build is finished successfully."
