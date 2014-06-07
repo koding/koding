@@ -110,7 +110,7 @@ func (d *DigitalOcean) Prepare(raws ...interface{}) (err error) {
 
 func (d *DigitalOcean) pusher(opts *protocol.MachineOptions, state machinestate.State) pushFunc {
 	return func(msg string, percentage int) {
-		d.Log.Debug("[machineId: '%s': username: '%s' dropletName: '%s' snapshotName: '%s'] - %s",
+		d.Log.Info("[machineId: '%s': username: '%s' dropletName: '%s' snapshotName: '%s'] - %s",
 			opts.MachineId, opts.Username, opts.InstanceName, opts.ImageName, msg)
 
 		opts.Eventer.Push(&eventer.Event{
@@ -257,6 +257,7 @@ func (d *DigitalOcean) Build(opts *protocol.MachineOptions) (p *protocol.BuildRe
 	defer client.Close()
 
 	// generate kite key specific for the user
+	push("Creating kite.key", 70)
 	kiteKey, kiteId, err := d.SignFunc(opts.Username)
 	if err != nil {
 		return nil, err

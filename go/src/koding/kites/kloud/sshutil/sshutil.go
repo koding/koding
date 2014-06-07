@@ -79,6 +79,7 @@ func ConnectSSH(ip string, config *ssh.ClientConfig) (*SSHClient, error) {
 		case <-time.Tick(sshConnectRetryInterval):
 			client, err := ssh.Dial("tcp", ip, config)
 			if err != nil {
+				fmt.Println("SSH DIAL ERR", err)
 				dialError = err
 				continue
 			}
