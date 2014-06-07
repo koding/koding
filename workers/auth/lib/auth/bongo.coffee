@@ -3,6 +3,7 @@ Bongo       = require 'bongo'
 Broker      = require 'broker'
 {argv}      = require 'optimist'
 {extend}    = require 'underscore'
+{ join: joinPath } = require 'path'
 
 KONFIG = require('koding-config-manager').load("main.#{argv.c}")
 
@@ -19,4 +20,14 @@ module.exports = new Bongo {
   models: 'workers/social/lib/social/models'
   mq: new Broker mqOptions
   resourceName: authWorker.queueName
+  # TODO: figure out how to recover when kontrol is down.
+  # kite          :
+  #   kontrol     : 'ws://localhost:4000'
+  #   name        : 'authWorker'
+  #   environment : KONFIG.environment
+  #   region      : argv.r
+  #   version     : KONFIG.version
+  #   username    : 'koding'
+  #   port        : KONFIG.authWorker.kitePort
+  #   kiteKey     : joinPath __dirname, '../../../../kite_home/koding/kite.key'
 }

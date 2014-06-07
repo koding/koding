@@ -9,8 +9,10 @@ htmlify   = require 'koding-htmlify'
 Emailer   = require '../social/lib/social/emailer'
 template  = require './templates'
 
-{mq, mongo, emailWorker, uri} = \
+{mq, mongo, emailWorker, emailSender, uri, environment, version} = \
   require('koding-config-manager').load("main.#{argv.c}")
+
+{ join: joinPath } = require 'path'
 
 if 'string' is typeof mongo
   mongo = "mongodb://#{mongo}?auto_reconnect"
@@ -22,6 +24,26 @@ worker = new Bongo {
   mq     : broker
   root   : __dirname
   models : ['../social/lib/social/models/email.coffee']
+  kite          :
+    kontrol     : 'ws://localhost:4000'
+    name        : 'emailSender'
+    environment : environment
+    region      : argv.r
+    version     : version
+    username    : 'koding'
+    port        : emailSender.kitePort
+    kiteKey     : joinPath __dirname, '../../kite_home/koding/kite.key'
+
+    fetchClient: (name, context, callback) ->
+      { JAccount } = koding.models
+      [callback, context] = [context, callback] unless callback
+      context   ?= group: 'koding'
+      callback  ?= ->
+      JAccount.one 'profile.nickname': name, (err, account) ->
+        return callback err  if err?
+
+        if account instanceof JAccount
+          callback null, { context, connection:delegate:account }
 }
 
 log = ->
