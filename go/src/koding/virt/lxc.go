@@ -83,6 +83,7 @@ func (vm *VM) SendMessageToVMUsers(message string) error {
 // WaitUntilReady waits until the network is up and the screen binary is
 // available and ready to use.
 func (vm *VM) WaitUntilReady() error {
+	// FIXME: We shouldnt be waiting a fixed duration here, but for a time depenant on server load. 
 	timeout := time.Second * 30
 
 	isNetworkUp := func() error {
