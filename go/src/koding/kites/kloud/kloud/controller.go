@@ -132,10 +132,12 @@ func (k *Kloud) coreMethods(r *kite.Request, c *Controller, fn func(*protocol.Ma
 	}
 	k.Storage.UpdateState(c.MachineId, s.initial)
 
+	c.Eventer = k.NewEventer(r.Method + "-" + c.MachineId)
+
 	machOptions := &protocol.MachineOptions{
 		MachineId: c.MachineId,
 		Username:  r.Username,
-		Eventer:   k.NewEventer(r.Method + "-" + c.MachineId),
+		Eventer:   c.Eventer,
 	}
 
 	go func() {
