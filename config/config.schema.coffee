@@ -39,6 +39,7 @@ config =
   main            :
     environment   : 1
     regions       :
+      kodingme    : 1
       vagrant     : 1
       sj          : 1
       aws         : 1
