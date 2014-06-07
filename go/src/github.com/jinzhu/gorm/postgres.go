@@ -3,6 +3,7 @@ package gorm
 import (
 	"database/sql"
 	"database/sql/driver"
+	"encoding/json"
 	"fmt"
 	"reflect"
 
@@ -45,6 +46,39 @@ func (h *Hstore) Scan(value interface{}) error {
 			(*h)[k] = nil
 		}
 	}
+
+	return nil
+}
+
+func (h *Hstore) UnmarshalJSON(data []byte) error {
+	hMap := map[string]interface{}{}
+	if err := json.Unmarshal(data, &hMap); err != nil {
+		return err
+	}
+
+	if len(hMap) == 0 {
+		return nil
+	}
+
+	resultMap := make(map[string]*string)
+	for key, value := range hMap {
+		// when value is a map, then marshal it
+		if reflect.ValueOf(value).Kind() == reflect.Map {
+			res, err := json.Marshal(value)
+			if err != nil {
+				return err
+			}
+
+			s := string(res)
+			resultMap[key] = &s
+			continue
+		}
+
+		// for the other types convert value to string
+		str := fmt.Sprintf("%v", value)
+		resultMap[key] = &str
+	}
+	*h = resultMap
 
 	return nil
 }
