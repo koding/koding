@@ -22,7 +22,7 @@ const (
 )
 
 var (
-	providers = make(map[string]protocol.Provider)
+	providers = make(map[string]func() protocol.Provider)
 )
 
 type Kloud struct {
@@ -97,11 +97,23 @@ func (k *Kloud) SignFunc(username string) (string, string, error) {
 	return createKey(username, k.KontrolURL, k.KontrolPrivateKey, k.KontrolPublicKey)
 }
 
+func (k *Kloud) GetProvider(providerName string) (protocol.Provider, error) {
+	providerFunc, ok := providers[providerName]
+	if !ok {
+		return nil, NewError(ErrProviderNotFound)
+	}
+
+	provider := providerFunc()
+	return provider, nil
+}
+
 func (k *Kloud) InitializeProviders() {
-	providers = map[string]protocol.Provider{
-		"digitalocean": &digitalocean.DigitalOcean{
-			Log:      createLogger("digitalocean", k.Debug),
-			SignFunc: k.SignFunc,
+	providers = map[string]func() protocol.Provider{
+		"digitalocean": func() protocol.Provider {
+			return &digitalocean.DigitalOcean{
+				Log:      createLogger("digitalocean", k.Debug),
+				SignFunc: k.SignFunc,
+			}
 		},
 	}
 }

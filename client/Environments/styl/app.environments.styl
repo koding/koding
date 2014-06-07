@@ -1067,6 +1067,14 @@ div.environments-container
   100%
     -moz-transform      scale(1)
 
+@-webkit-keyframes animate-stripes {
+    from {
+        background-position: 0 0;
+    }
+    to {
+       background-position: -50px 0;
+    }
+}
 
 div.environments-item
 
@@ -1080,11 +1088,43 @@ div.environments-item
   noTextSelection()
   borderBox()
 
-  &.notinitialized
-    background    rgba(255,255,255,.98)
+  // FIXME refactor with styl
+  &.busy
+    background-image: -webkit-gradient(linear, 0 0, 100% 100%,
+        color-stop(.25, rgba(0, 0, 0, .03)),
+        color-stop(.25, transparent),
+        color-stop(.5, transparent),
+        color-stop(.5, rgba(0, 0, 0, .03)),
+        color-stop(.75, rgba(0, 0, 0, .03)),
+        color-stop(.75, transparent),
+        to(transparent));
+    background-image:
+        -moz-linear-gradient(-45deg,
+            rgba(0, 0, 0, .03) 25%,
+            transparent 25%,
+            transparent 50%, rgba(0, 0, 0, .03) 50%,
+            rgba(0, 0, 0, .03) 75%,
+            transparent 75%, transparent
+        );
+    background-size: 50px 50px;
+    -moz-background-size: 50px 50px;
+    -webkit-background-size: 50px 50px;
+    -webkit-animation: animate-stripes 2s linear infinite;
+
+  &.loading
+
+    div.progressbar-container
+      display     block !important
+
+    span.chevron
+      display     none
+
 
   &.running
-    background    #fff
+
+    span.terminal
+      display     block
+
 
   span.chevron
   span.terminal
@@ -1095,6 +1135,7 @@ div.environments-item
     display       block
 
   span.terminal
+    display       none
     r-sprite      environments 'terminal'
     cursor        pointer
     right         32px
@@ -1140,7 +1181,7 @@ div.environments-item
 
   &.highlight
     border        1px solid #aaa
-    vendor        animation, popHighlight .5s 1
+    // vendor        animation, popHighlight .5s 1
 
   span.toggle
     size          6px, 100%
@@ -1198,9 +1239,10 @@ div.environments-item
       background      #EBA612
 
     div.progressbar-container
+      display         none
       top             42px
       height          8px
-      width           200px
+      width           253px
       abs()
       span.light-label
         display       none

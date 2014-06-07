@@ -15,6 +15,8 @@ class ComputeController extends KDController
 
       @eventListener = new ComputeEventListener
 
+      @on "machineBuildCompleted", => delete @stacks
+
 
   fetchStacks: (callback = noop)->
 
@@ -87,4 +89,32 @@ class ComputeController extends KDController
 
     .catch (err)->
       warn "build err:", err
+
+
+  info: (machine)->
+
+    log "[info]", machine
+
+    # If machine state is NotInitialized or Terminated
+    # we don't need to ask info to kloud kite.
+    { NotInitialized, Terminated, Building } = Machine.State
+    if machine.status.state in [ NotInitialized, Terminated ]
+      @emit "public-#{machine._id}", { status: machine.status.state }
+      return Promise.resolve()
+
+    if machine.status.state is Building
+      log "state is building, start polling"
+      @eventListener.addListener 'build', machine._id
+      return Promise.resolve()
+
+
+    @kloud.info { machineId: machine._id }
+
+    .then (res)=>
+
+      log "info res:", res
+      @emit "public-#{machine._id}", { status: res.State }
+
+    .catch (err)->
+      warn "info err:", err
 

@@ -27,17 +27,17 @@ func (k *Kloud) build(r *kite.Request, c *Controller) (interface{}, error) {
 		return nil, NewError(ErrUnknownState)
 	}
 
-	// if it's something else (stopped, runnning, terminated, ...) it's been
-	// already built
-	if c.CurrenState != machinestate.NotInitialized {
+	// if it's something else (stopped, runnning, ...) it's been already built
+	if !c.CurrenState.In(machinestate.Terminated, machinestate.NotInitialized) {
 		return nil, NewError(ErrAlreadyInitialized)
 	}
 
 	k.Storage.UpdateState(c.MachineId, machinestate.Building)
+	c.Eventer = k.NewEventer(r.Method + "-" + c.MachineId)
 
 	go func() {
-		k.idlock.Get(r.Username).Lock()
-		defer k.idlock.Get(r.Username).Unlock()
+		k.idlock.Get(c.MachineId).Lock()
+		defer k.idlock.Get(c.MachineId).Unlock()
 
 		status := machinestate.Running
 		msg := "Build is finished successfully."

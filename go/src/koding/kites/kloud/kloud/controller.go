@@ -49,12 +49,16 @@ func (k *Kloud) ControlFunc(method string, control controlFunc) {
 
 		// this locks are important to prevent consecutive calls from the same user
 		k.idlock.Get(r.Username).Lock()
-		defer k.idlock.Get(r.Username).Unlock()
-
 		c, err := k.controller(r)
 		if err != nil {
+			k.idlock.Get(r.Username).Unlock()
 			return nil, err
 		}
+		k.idlock.Get(r.Username).Unlock()
+
+		// now lock for machine-ids
+		k.idlock.Get(c.MachineId).Lock()
+		defer k.idlock.Get(c.MachineId).Unlock()
 
 		return control(r, c)
 	}
@@ -83,16 +87,19 @@ func (k *Kloud) controller(r *kite.Request) (*Controller, error) {
 		return nil, err
 	}
 
-	if m.Machine.State() == machinestate.Terminating ||
-		m.Machine.State() == machinestate.Terminated {
+	k.Log.Debug("[controller]: got machine: %v", m.Machine)
+
+	// prevent request if the machine is terminated. However we want the user
+	// to be able to build again
+	if (m.Machine.State() == machinestate.Terminating ||
+		m.Machine.State() == machinestate.Terminated) &&
+		r.Method != "build" {
 		return nil, NewError(ErrMachineTerminating)
 	}
 
-	k.Log.Debug("[controller]: got machine: %v", m.Machine)
-
-	provider, ok := providers[m.Provider]
-	if !ok {
-		return nil, NewError(ErrProviderNotFound)
+	provider, err := k.GetProvider(m.Provider)
+	if err != nil {
+		return nil, err
 	}
 
 	if err := provider.Prepare(m.Credential.Meta, m.Machine.Meta); err != nil {
@@ -105,7 +112,6 @@ func (k *Kloud) controller(r *kite.Request) (*Controller, error) {
 		InstanceName: args.InstanceName,
 		Provider:     provider,
 		MachineData:  m,
-		Eventer:      k.NewEventer(r.Method + "-" + args.MachineId),
 		CurrenState:  m.Machine.State(),
 	}, nil
 }
@@ -126,6 +132,8 @@ func (k *Kloud) coreMethods(r *kite.Request, c *Controller, fn func(*protocol.Ma
 	}
 	k.Storage.UpdateState(c.MachineId, s.initial)
 
+	c.Eventer = k.NewEventer(r.Method + "-" + c.MachineId)
+
 	machOptions := &protocol.MachineOptions{
 		MachineId: c.MachineId,
 		Username:  r.Username,
@@ -133,8 +141,8 @@ func (k *Kloud) coreMethods(r *kite.Request, c *Controller, fn func(*protocol.Ma
 	}
 
 	go func() {
-		k.idlock.Get(r.Username).Lock()
-		defer k.idlock.Get(r.Username).Unlock()
+		k.idlock.Get(c.MachineId).Lock()
+		defer k.idlock.Get(c.MachineId).Unlock()
 
 		status := s.final
 		msg := fmt.Sprintf("%s is finished successfully.", r.Method)

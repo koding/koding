@@ -33,8 +33,13 @@ class ComputeEventListener extends KDObject
 
   addListener:(type, eventId)->
 
-    @listeners.push { type, eventId }
-    @start()  unless @running
+    inList = no
+    @listeners.forEach (_)->
+      inList |= _.type is type and _.eventId is eventId
+
+    unless inList
+      @listeners.push { type, eventId }
+      @start()  unless @running
 
 
   tick:->
@@ -62,6 +67,9 @@ class ComputeEventListener extends KDObject
             activeListeners.push { type, eventId }
 
           log "#{res.event.eventId}", res.event
+
+          if res.event.percentage is 100 and type is "build"
+            computeController.emit "machineBuildCompleted", machineId: eventId
 
           computeController.emit "public-#{eventId}", res.event
           computeController.emit "#{res.event.eventId}", res.event

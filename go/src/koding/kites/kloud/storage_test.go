@@ -30,7 +30,7 @@ func (t *TestStorage) Get(id string, opt *kloud.GetOption) (*kloud.MachineData, 
 func (t *TestStorage) Update(id string, resp *protocol.BuildResponse) error {
 	machineData := TestProviderData[id]
 	machineData.Machine.QueryString = resp.QueryString
-	machineData.Machine.PublicIp = resp.IpAddress
+	machineData.Machine.IpAddress = resp.IpAddress
 	machineData.Machine.Meta["instanceName"] = resp.InstanceName
 	machineData.Machine.Meta["instanceId"] = strconv.Itoa(resp.InstanceId)
 

@@ -81,6 +81,17 @@ func (s *State) UnmarshalJSON(d []byte) error {
 	return nil
 }
 
+// In checks if the state is available in the given state.
+func (s State) In(states ...State) bool {
+	for _, state := range states {
+		if state == s {
+			return true
+		}
+	}
+
+	return false
+}
+
 func (s State) String() string {
 	switch s {
 	case NotInitialized:

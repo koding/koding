@@ -3,7 +3,6 @@ package digitalocean
 import (
 	"errors"
 	"fmt"
-	"io/ioutil"
 	"koding/kites/kloud/eventer"
 	"koding/kites/kloud/klientprovisioner"
 	"koding/kites/kloud/kloud/machinestate"
@@ -111,7 +110,7 @@ func (d *DigitalOcean) Prepare(raws ...interface{}) (err error) {
 
 func (d *DigitalOcean) pusher(opts *protocol.MachineOptions, state machinestate.State) pushFunc {
 	return func(msg string, percentage int) {
-		d.Log.Debug("[machineId: '%s': username: '%s' dropletName: '%s' snapshotName: '%s'] - %s",
+		d.Log.Info("[machineId: '%s': username: '%s' dropletName: '%s' snapshotName: '%s'] - %s",
 			opts.MachineId, opts.Username, opts.InstanceName, opts.ImageName, msg)
 
 		opts.Eventer.Push(&eventer.Event{
@@ -258,6 +257,7 @@ func (d *DigitalOcean) Build(opts *protocol.MachineOptions) (p *protocol.BuildRe
 	defer client.Close()
 
 	// generate kite key specific for the user
+	push("Creating kite.key", 70)
 	kiteKey, kiteId, err := d.SignFunc(opts.Username)
 	if err != nil {
 		return nil, err
@@ -266,9 +266,10 @@ func (d *DigitalOcean) Build(opts *protocol.MachineOptions) (p *protocol.BuildRe
 
 	// for debugging, remove it later ...
 	push(fmt.Sprintf("Writing kite key to temporary file (kite.key)"), 75)
-	if err := ioutil.WriteFile("kite.key", []byte(kiteKey), 0400); err != nil {
-		d.Log.Info("couldn't write temporary kite file", err)
-	}
+	// DEBUG
+	// if err := ioutil.WriteFile("kite.key", []byte(kiteKey), 0400); err != nil {
+	// 	d.Log.Info("couldn't write temporary kite file", err)
+	// }
 
 	keyPath := "/opt/kite/klient/key/kite.key"
 

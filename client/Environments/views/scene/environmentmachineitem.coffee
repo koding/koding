@@ -4,7 +4,7 @@ class EnvironmentMachineItem extends EnvironmentItem
 
   constructor:(options={}, data)->
 
-    options.cssClass           = 'machine'
+    options.cssClass           = 'machine busy'
     options.joints             = ['left']
 
     options.allowedConnections =
@@ -12,45 +12,63 @@ class EnvironmentMachineItem extends EnvironmentItem
 
     super options, data
 
+
     @terminalIcon = new KDCustomHTMLView
       tagName     : "span"
-      cssClass    : "terminal hidden"
+      cssClass    : "terminal"
       click       : @bound "openTerminal"
 
     @progress = new KDProgressBarView
-      cssClass : "progress hidden"
+      cssClass : "progress"
 
-    { status: {state} } = @getData()
-
-    @setClass state.toLowerCase()
-
-    if state is "Running"
-      @terminalIcon.show()
 
     machine = @getData()
 
     {computeController} = KD.singletons
 
+    computeController.on "build-#{machine._id}",   @bound 'invalidateMachine'
+    computeController.on "destroy-#{machine._id}", @bound 'invalidateMachine'
+
     computeController.on "public-#{machine._id}", (event)=>
 
-      {percentage, status} = event
+      if event.percentage?
 
-      if percentage < 100
-        @progress.show()
-        @progress.updateBar percentage
+        @progress.updateBar event.percentage
+
+        if event.percentage < 100 then @setClass 'loading busy'
+        else KD.utils.wait 1000, =>  @unsetClass 'loading busy'
+
       else
-        @progress.hide()
 
-      if status is 'Running'
-        @terminalIcon.show()
-      else
-        @terminalIcon.hide()
+        @unsetClass 'busy'
 
-      machine.update_
-        $set: "status.state": event.status
+      @updateState event.status
+
+    computeController.info machine
 
 
-  contextMenuItems : ->
+  updateState:(status)->
+
+    return unless status
+
+    if status is 'Running'
+    then @setClass 'running'
+    else @unsetClass 'running'
+
+    @getData().setAt "status.state", status
+
+
+  invalidateMachine:(event)->
+
+    if event.percentage is 100
+
+      machine = @getData()
+      KD.remote.api.JMachine.one machine._id, (err, newMachine)=>
+        if err then warn ".>", err
+        else @setData newMachine
+
+
+  contextMenuItems: ->
 
     colorSelection = new ColorSelection selectedColor : @getOption 'colorTag'
     colorSelection.on "ColorChanged", @bound 'setColorTag'
@@ -98,6 +116,7 @@ class EnvironmentMachineItem extends EnvironmentItem
 
     return items
 
+
   openTerminal:->
 
     vmName = @getData().hostnameAlias
@@ -131,15 +150,21 @@ class EnvironmentMachineItem extends EnvironmentItem
 
   pistachio:->
 
-    {label, provider, ipAddress } = @getData()
+    {label, provider, ipAddress, status:{state} } = @getData()
 
-    title  = label or provider
+    title = label or provider
 
-    publicUrl = if ipAddress? then """
-      <a href="http://#{ipAddress}" target="_blank" title="#{ipAddress}">
-        <span class='url'>#{ipAddress}</span>
-      </a>
-    """ else ""
+    publicUrl = ""
+
+    { NotInitialized, Terminated } = Machine.State
+
+    if state not in [ NotInitialized, Terminated ] and ipAddress?
+
+      publicUrl = """
+        <a href="http://#{ipAddress}" target="_blank" title="#{ipAddress}">
+          <span class='url'>#{ipAddress}</span>
+        </a>
+      """
 
     """
       <div class='details'>

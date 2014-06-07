@@ -124,7 +124,7 @@ module.exports = class JMachine extends Module
 
       selector =
         $or      : [
-          { _id  : machineId }
+          { _id  : ObjectId machineId }
           { uid  : machineId }
         ]
         users    : $elemMatch: id: user.getId()
