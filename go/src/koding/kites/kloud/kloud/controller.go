@@ -57,7 +57,7 @@ func (k *Kloud) ControlFunc(method string, control controlFunc) {
 		k.idlock.Get(r.Username).Unlock()
 
 		// now lock for machine-ids
-		k.idlock.Get(c.MachineId).Unlock()
+		k.idlock.Get(c.MachineId).Lock()
 		defer k.idlock.Get(c.MachineId).Unlock()
 
 		return control(r, c)
@@ -139,7 +139,7 @@ func (k *Kloud) coreMethods(r *kite.Request, c *Controller, fn func(*protocol.Ma
 	}
 
 	go func() {
-		k.idlock.Get(c.MachineId).Unlock()
+		k.idlock.Get(c.MachineId).Lock()
 		defer k.idlock.Get(c.MachineId).Unlock()
 
 		status := s.final
