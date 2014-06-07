@@ -31,6 +31,9 @@ class EnvironmentMachineItem extends EnvironmentItem
 
     {computeController} = KD.singletons
 
+    computeController.on "build-#{machine._id}",   @bound 'invalidateMachine'
+    computeController.on "destroy-#{machine._id}", @bound 'invalidateMachine'
+
     computeController.on "public-#{machine._id}", (event)=>
 
       {percentage, status} = event
@@ -51,6 +54,16 @@ class EnvironmentMachineItem extends EnvironmentItem
 
 
   contextMenuItems : ->
+  invalidateMachine:(event)->
+
+    if event.percentage is 100
+
+      machine = @getData()
+      KD.remote.api.JMachine.one machine._id, (err, newMachine)=>
+        if err then warn ".>", err
+        else @setData newMachine
+
+
 
     colorSelection = new ColorSelection selectedColor : @getOption 'colorTag'
     colorSelection.on "ColorChanged", @bound 'setColorTag'
