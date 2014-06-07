@@ -76,6 +76,19 @@ class ActivityInputView extends KDTokenizedInput
     return  if @getTokens().length >= TOKEN_LIMIT
     super
 
+  handleEnter: (event) ->
+    position = @getPosition()
+    read     = 0
+    for part, index in @getValue().split '```'
+      blockquote = index %% 2 is 1
+      read += part.length + (if blockquote then 6 else 0)
+      continue  if position > read
+
+      if blockquote
+      then @insertNewline()
+      else @emit 'Enter'
+      break
+
   insertNewline: ->
     document.execCommand 'insertText', no, "\n"
 
