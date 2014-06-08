@@ -101,7 +101,7 @@ func (m *Marshaler) HandleEvent(controllerValue reflect.Value, data []byte) erro
 
 	decoder := reflect.ValueOf(json.NewDecoder(bytes.NewReader(data)))
 	res := decoder.MethodByName("Decode").Call([]reflect.Value{rq})
-	if len(out) > 0 && !res[0].IsNil() {
+	if len(res) > 0 && !res[0].IsNil() {
 		return res[0].Interface().(error)
 	}
 
