@@ -4,21 +4,16 @@ class FinderPane extends Pane
 
     super options, data
 
-    vmController = KD.getSingleton 'vmController'
-    vmController.fetchDefaultVmName (vmName) =>
-     @finder = new NFinderController
-       nodeIdPath       : 'path'
-       nodeParentIdPath : 'parentPath'
-       contextMenu      : yes
-       useStorage       : no
+    appManager = KD.getSingleton 'appManager'
 
-     @addSubView @finder.getView()
-     @finder.updateVMRoot vmName, "/home/#{KD.nick()}"
+    appManager.open 'Finder', (finderApp) =>
+      fc = @finderController = finderApp.create()
+      @addSubView fc.getView()
+      fc.reset()
 
-     @finder.on 'FileNeedsToBeOpened', (file) =>
-       file.fetchContents (err, contents) ->
-         appManager = KD.getSingleton 'appManager'
-         appManager.tell 'IDE', 'openFile', file, contents
+      fc.on 'FileNeedsToBeOpened', (file)=>
+        file.fetchContents (err, contents) ->
+          appManager.tell 'IDE', 'openFile', file, contents
 
   bindListeners: ->
     appManager = KD.getSingleton 'appManager'
@@ -35,4 +30,3 @@ class FinderPane extends Pane
 
     @on 'VMUnmountRequested', (vm) =>
       @finderController.unmountVm vm.hostnameAlias
-
