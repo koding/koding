@@ -12,7 +12,7 @@ go get github.com/koding/websocketproxy
 
 ## Example
 
-Below is a simple app that runs on a server and proxies to the given backend url
+Below is a simple app that runs on a server and proxies to the given backend URL
 
 ```go
 package main

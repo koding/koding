@@ -15,6 +15,7 @@ import (
 
 	"github.com/koding/kite"
 	"github.com/koding/kite/config"
+	kiteprotocol "github.com/koding/kite/protocol"
 )
 
 const (
@@ -23,10 +24,14 @@ const (
 )
 
 var (
-	flagIP      = flag.String("ip", "", "Change public ip")
-	flagPort    = flag.Int("port", 3000, "Change running port")
-	flagVersion = flag.Bool("version", false, "Show version and exit")
-	flagLocal   = flag.Bool("local", false, "Start klient in local environment.")
+	flagIP          = flag.String("ip", "", "Change public ip")
+	flagPort        = flag.Int("port", 3000, "Change running port")
+	flagVersion     = flag.Bool("version", false, "Show version and exit")
+	flagLocal       = flag.Bool("local", false, "Start klient in local environment.")
+	flagProxy       = flag.Bool("proxy", false, "Start klient behind a proxy")
+	flagEnvironment = flag.String("env", protocol.Environment, "Change environment")
+	flagRegion      = flag.String("region", protocol.Region, "Change region")
+	flagRegisterURL = flag.String("register-url", "", "Change register URL to kontrol")
 )
 
 func main() {
@@ -40,8 +45,8 @@ func main() {
 	conf := config.MustGet()
 	k.Config = conf
 	k.Config.Port = *flagPort
-	k.Config.Environment = protocol.Environment
-	k.Config.Region = protocol.Region
+	k.Config.Environment = *flagEnvironment
+	k.Config.Region = *flagRegion
 
 	// always boot up with the same id in the kite.key
 	k.Id = conf.Id
@@ -65,8 +70,30 @@ func main() {
 
 	k.HandleFunc("exec", command.Exec)
 
-	if err := k.RegisterForever(registerURL()); err != nil {
-		log.Fatal(err)
+	register := registerURL()
+	if *flagRegisterURL != "" {
+		u, err := url.Parse(*flagRegisterURL)
+		if err != nil {
+			k.Log.Fatal("Couldn't parse register url: %s", err)
+		}
+
+		register = u
+	}
+
+	k.Log.Info("Going to register to kontrol with URL: %s", register)
+	if *flagProxy {
+		proxyQuery := &kiteprotocol.KontrolQuery{
+			Username:    k.Config.KontrolUser,
+			Environment: k.Config.Environment,
+			Name:        "proxy",
+		}
+
+		k.Log.Info("Seaching proxy: %#v", proxyQuery)
+		go k.RegisterToProxy(register, proxyQuery)
+	} else {
+		if err := k.RegisterForever(register); err != nil {
+			log.Fatal(err)
+		}
 	}
 
 	k.Run()
