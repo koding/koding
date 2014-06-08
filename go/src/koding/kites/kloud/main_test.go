@@ -28,6 +28,7 @@ var (
 	flagTestBuilds     = flag.Int("builds", 1, "Number of builds")
 	flagTestControl    = flag.Bool("control", false, "Enable control tests too (start/stop/..)")
 	flagTestImage      = flag.Bool("image", false, "Create temporary image instead of using default one.")
+	flagTestNoDestroy  = flag.Bool("no-destroy", false, "Do not destroy droplet")
 	flagTestQuery      = flag.String("query", "", "Query as string for controller tests")
 	flagTestInstanceId = flag.String("instance", "", "Instance id (such as droplet Id)")
 	flagTestUsername   = flag.String("user", "", "Create machines on behalf of this user")
@@ -209,14 +210,19 @@ func build(i int, client *kite.Client, data *kloud.MachineData) error {
 			MachineId: data.Provider,
 		}
 
-		methodPairs := []struct {
+		type pair struct {
 			method       string
 			desiredState machinestate.State
-		}{
+		}
+
+		methodPairs := []pair{
 			{method: "stop", desiredState: machinestate.Stopped},
 			{method: "start", desiredState: machinestate.Running},
 			{method: "restart", desiredState: machinestate.Running},
-			{method: "destroy", desiredState: machinestate.Terminated},
+		}
+
+		if !*flagTestNoDestroy {
+			methodPairs = append(methodPairs, pair{method: "destroy", desiredState: machinestate.Terminated})
 		}
 
 		// do not change the order
