@@ -82,9 +82,10 @@ func main() {
 
 	k.Log.Info("Going to register to kontrol with URL: %s", register)
 	if *flagProxy {
+		// Koding proxies in production only
 		proxyQuery := &kiteprotocol.KontrolQuery{
-			Username:    k.Config.KontrolUser,
-			Environment: k.Config.Environment,
+			Username:    "koding",
+			Environment: "production",
 			Name:        "proxy",
 		}
 
