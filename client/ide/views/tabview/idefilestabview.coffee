@@ -11,6 +11,8 @@ class IDEFilesTabView extends WorkspaceTabView
     @createVMsPane()
     @createSettingsPane()
 
+    @tabView.showPaneByIndex 0
+
   createFilesPane: ->
     filesPane  = new KDTabPaneView
       name     : 'Files'
