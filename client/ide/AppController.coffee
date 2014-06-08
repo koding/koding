@@ -171,9 +171,11 @@ class IDEAppController extends AppController
     panel        = @workspace.getView()
     splitView    = panel.layout.getSplitViewByName 'BaseSplit'
     floatedPanel = splitView.panels.first
+    filesPane    = panel.getPaneByName 'filesPane'
 
     floatedPanel._lastSize = 250
     splitView.unsetFloatingPanel 0
+    filesPane.tabView.showPaneByIndex 0
     floatedPanel.off 'ReceivedClickElsewhere'
 
   splitVertically: ->
