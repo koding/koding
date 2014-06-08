@@ -6,7 +6,6 @@ import (
 	"socialapi/models"
 	"github.com/koding/bongo"
 	"github.com/koding/logging"
-	"github.com/koding/worker"
 	"github.com/streadway/amqp"
 
 	verbalexpressions "github.com/VerbalExpressions/GoVerbalExpressions"
@@ -27,11 +26,14 @@ var topicRegex = verbalexpressions.New().
 // extend this regex with https://github.com/twitter/twitter-text-rb/blob/eacf388136891eb316f1c110da8898efb8b54a38/lib/twitter-text/regex.rb
 // to support all languages
 
-type Action func(*Controller, *models.ChannelMessage) error
-
 type Controller struct {
-	routes map[string]Action
-	log    logging.Logger
+	log logging.Logger
+}
+
+func New(log logging.Logger) *Controller {
+	return &Controller{
+		log: log,
+	}
 }
 
 func (t *Controller) DefaultErrHandler(delivery amqp.Delivery, err error) bool {
@@ -46,47 +48,10 @@ func (t *Controller) DefaultErrHandler(delivery amqp.Delivery, err error) bool {
 	return false
 }
 
-func New(log logging.Logger) *Controller {
-	ffc := &Controller{
-		log: log,
-	}
-
-	routes := map[string]Action{
-		"api.channel_message_created": (*Controller).MessageSaved,
-		"api.channel_message_update":  (*Controller).MessageUpdated,
-		"api.channel_message_deleted": (*Controller).MessageDeleted,
-	}
-
-	ffc.routes = routes
-
-	return ffc
-}
-
-func (f *Controller) HandleEvent(event string, data []byte) error {
-	f.log.Debug("New Event Received %s", event)
-	handler, ok := f.routes[event]
-	if !ok {
-		return worker.HandlerNotFoundErr
-	}
-
-	cm, err := mapMessage(data)
-	if err != nil {
-		return err
-	}
-
-	res, err := isEligible(cm)
-	if err != nil {
-		return err
-	}
-
-	if !res {
+func (f *Controller) MessageSaved(data *models.ChannelMessage) error {
+	if res, _ := isEligible(data); !res {
 		return nil
 	}
-
-	return handler(f, cm)
-}
-
-func (f *Controller) MessageSaved(data *models.ChannelMessage) error {
 
 	topics := extractTopics(data.Body)
 	if len(topics) == 0 {
@@ -147,6 +112,10 @@ func extractTopics(body string) []string {
 }
 
 func (f *Controller) MessageUpdated(data *models.ChannelMessage) error {
+	if res, _ := isEligible(data); !res {
+		return nil
+	}
+
 	f.log.Debug("udpate message %s", data.Id)
 	// fetch message's current topics from the db
 	channels, err := fetchMessageChannels(data.Id)
@@ -251,6 +220,10 @@ func getTopicDiff(channels []models.Channel, topics []string) map[string][]strin
 }
 
 func (f *Controller) MessageDeleted(data *models.ChannelMessage) error {
+	if res, _ := isEligible(data); !res {
+		return nil
+	}
+
 	cml := models.NewChannelMessageList()
 	selector := map[string]interface{}{
 		"message_id": data.Id,
