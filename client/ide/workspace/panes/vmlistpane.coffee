@@ -17,8 +17,8 @@ class VMListPane extends Pane
           title : "Couldn't fetch your VMs"
           type  : 'mini'
 
-      vms.sort (a,b) ->
-        return a.hostnameAlias > b.hostnameAlias
+      vms.sort (first, second) ->
+        return first.hostnameAlias > second.hostnameAlias
 
       for vm in vms
         @addSubView new VMPaneListItem {}, vm
@@ -68,8 +68,8 @@ class VMPaneListItem extends JView
     KD.getSingleton('appManager').tell 'IDE', 'openVMWebPage', @getData()
 
   createContextMenu: (event) ->
-    button = @actionsButton
-    menu   = new KDContextMenu
+    button         = @actionsButton
+    @contextMenu   = new KDContextMenu
       cssClass     : 'environments'
       event        : event
       delegate     : this
@@ -84,9 +84,12 @@ class VMPaneListItem extends JView
     data        = @getData()
     appManager  = KD.getSingleton 'appManager'
     menuItems   =
-      'Open VM terminal'  : callback: => appManager.tell 'IDE', 'openVMTerminal', data
-      'Open VM domain'    : callback: @bound 'openVMDomain'
-      'Mount to filetree' : callback: => appManager.tell 'IDE', 'mountVM', data
+      'Mount to filetree': callback: =>
+        @handleContextMenuClick appManager.tell 'IDE', 'mountVM', data
+      'Open VM terminal' : callback: =>
+        @handleContextMenuClick appManager.tell 'IDE', 'openVMTerminal', data
+      'Open VM domain'   : callback: =>
+        @handleContextMenuClick @openVMDomain()
 
     # FIXME: Find a better way to remove this drill down
     ideAppController   = appManager.getFrontApp()
@@ -100,6 +103,10 @@ class VMPaneListItem extends JView
           appManager.tell 'IDE', 'unmountVM', data
 
     return menuItems
+
+  handleContextMenuClick: (callback= noop) ->
+    callback()
+    @contextMenu?.destroy()
 
   pistachio: ->
     """
