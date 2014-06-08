@@ -139,6 +139,13 @@ class TerminalSettingsView extends IDESettingsView
   getSettingKeys: ->
     return [ 'visualBell', 'font', 'theme', 'fontSize', 'scrollback' ]
 
+  defaults:
+    font       : 'ubuntu-mono'
+    theme      : 'green-on-black'
+    fontSize   : 14
+    visualBell : no
+    scrollback : 1000
+
   pistachio: ->
     """
       <div class="settings-header">Terminal Settings</div>
