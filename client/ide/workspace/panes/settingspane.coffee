@@ -93,6 +93,20 @@ class EditorSettingsView extends IDESettingsView
       'softWrap', 'keyboardHandler', 'scrollPastEnd', 'openRecentFiles'
     ]
 
+  defaults:
+    useSoftTabs          : yes
+    showGutter           : yes
+    highlightActiveLine  : yes
+    scrollPastEnd        : yes
+    openRecentFiles      : yes
+    showInvisibles       : no
+    useWordWrap          : no
+    showPrintMargin      : no
+    fontSize             : 12
+    tabSize              : 4
+    softWrap             : 'off'
+    keyboardHandler      : 'default'
+
   pistachio: ->
     """
       <div class="settings-header">Editor Settings</div>
