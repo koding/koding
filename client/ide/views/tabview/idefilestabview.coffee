@@ -7,6 +7,11 @@ class IDEFilesTabView extends WorkspaceTabView
 
     super options, data
 
+    @createFilesPane()
+    @createVMsPane()
+    @createSettingsPane()
+
+  createFilesPane: ->
     filesPane  = new KDTabPaneView
       name     : 'Files'
       closable : no
@@ -16,6 +21,7 @@ class IDEFilesTabView extends WorkspaceTabView
 
     @tabView.addPane filesPane
 
+  createVMsPane: ->
     vmsPane    = new KDTabPaneView
       name     : 'VMs'
       closable : no
@@ -23,17 +29,16 @@ class IDEFilesTabView extends WorkspaceTabView
     vmsPane.addSubView new VMListPane
     @tabView.addPane  vmsPane
 
-    settingsPane = new KDTabPaneView
-      name       : 'Settings'
-      closable   : no
-
-    settingsPane.addSubView new SettingsPane
-    @tabView.addPane settingsPane
-
     @on 'VMMountRequested', (vmData) =>
       @finderPane.emit 'VMMountRequested', vmData
 
     @on 'VMUnmountRequested', (vmData) =>
       @finderPane.emit 'VMUnmountRequested', vmData
 
+  createSettingsPane: ->
+    settingsPane = new KDTabPaneView
+      name       : 'Settings'
+      closable   : no
 
+    settingsPane.addSubView new SettingsPane
+    @tabView.addPane settingsPane
