@@ -1,8 +1,5 @@
 module.exports = [
 
-  "editorsettings.coffee"
-  "terminalsettings.coffee"
-
   # workspace
   "workspace/workspacetabview.coffee"
   "workspace/workspacelayoutbuilder.coffee"
@@ -14,7 +11,14 @@ module.exports = [
   "workspace/panes/previewpane.coffee"
   "workspace/panes/finderpane.coffee"
   "workspace/panes/vmlistpane.coffee"
-  "workspace/panes/settingspane.coffee"
+
+  # settings
+  "workspace/panes/settings/editorsettings.coffee"
+  "workspace/panes/settings/terminalsettings.coffee"
+  "workspace/panes/settings/idesettingsview.coffee"
+  "workspace/panes/settings/editorsettingsview.coffee"
+  "workspace/panes/settings/terminalsettingsview.coffee"
+  "workspace/panes/settings/settingspane.coffee"
 
   "workspace/panel.coffee"
   "workspace/workspace.coffee"
