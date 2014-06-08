@@ -4,62 +4,32 @@ IDE.settings or= {}
 IDE.settings.editor =
 
   softWrapOptions: [
-      value: 'off'
-      title: 'Off'
-    ,
-      value: 40
-      title: '40 chars'
-    ,
-      value: 80
-      title: '80 chars'
-    ,
-      value: 'free'
-      title: 'Free'
+    { value: 'off',      title: 'Off'      }
+    { value: 40,         title: '40 chars' }
+    { value: 80,         title: '80 chars' }
+    { value: 'free',     title: 'Free'     }
   ]
 
   fontSizes: [
-      value: 10
-      title: '10px'
-    ,
-      value: 11
-      title: '11px'
-    ,
-      value: 12
-      title: '12px'
-    ,
-      value: 14
-      title: '14px'
-    ,
-      value: 16
-      title: '16px'
-    ,
-      value: 20
-      title: '20px'
-    ,
-      value: 24
-      title: '24px'
+    { value: 10,         title: '10px'     }
+    { value: 11,         title: '11px'     }
+    { value: 12,         title: '12px'     }
+    { value: 14,         title: '14px'     }
+    { value: 16,         title: '16px'     }
+    { value: 20,         title: '20px'     }
+    { value: 24,         title: '24px'     }
   ]
 
   tabSizes: [
-      value: 2
-      title: '2 chars'
-    ,
-      value: 4
-      title: '4 chars'
-    ,
-      value: 8
-      title: '8 chars'
+    { value: 2,          title: '2 chars'  }
+    { value: 4,          title: '4 chars'  }
+    { value: 8,          title: '8 chars'  }
   ]
 
   keyboardHandlers: [
-      value: "default"
-      title: "Default"
-    ,
-      value: "vim"
-      title: "Vim"
-    ,
-      value: "emacs"
-      title: "Emacs"
+    { value: "default",  title: "Default"  }
+    { value: "vim",      title: "Vim"      }
+    { value: "emacs",    title: "Emacs"    }
   ]
 
   themes:
