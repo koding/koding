@@ -134,20 +134,23 @@ class IDEAppController extends AppController
     splitView    = panel.layout.getSplitViewByName 'BaseSplit'
     floatedPanel = splitView.panels.first
     filesPane    = panel.getPaneByName 'filesPane'
+    {tabView}    = filesPane
     desiredSize  = 289
 
     splitView.once 'PanelSetToFloating', ->
       floatedPanel._lastSize = desiredSize
 
     splitView.setFloatingPanel 0, 39
+    tabView.showPaneByName 'Dummy'
 
-    filesPane.tabView.on 'PaneDidShow', ->
+    tabView.on 'PaneDidShow', ->
       splitView.showPanel 0
       floatedPanel._lastSize = desiredSize
 
     floatedPanel.on 'ReceivedClickElsewhere', ->
       KD.utils.defer ->
         splitView.setFloatingPanel 0, 39
+        tabView.showPaneByName 'Dummy'
 
   expandSidebar: ->
     panel        = @workspace.getView()

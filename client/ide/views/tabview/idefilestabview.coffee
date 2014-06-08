@@ -11,6 +11,13 @@ class IDEFilesTabView extends WorkspaceTabView
     @createVMsPane()
     @createSettingsPane()
 
+    # temp hack to fix collapsed panel tab change bug
+    dummyPane  = new KDTabPaneView
+      name     : 'Dummy'
+      closable : no
+
+    @tabView.addPane dummyPane
+
     @tabView.showPaneByIndex 0
 
   createFilesPane: ->
