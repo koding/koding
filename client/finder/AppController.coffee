@@ -4,24 +4,27 @@ class FinderController extends KDController
     name         : "Finder"
     background   : yes
 
-  constructor:(options, data)->
+  constructor: (options, data) ->
 
     options.appInfo = name : "Finder"
 
     super options, data
 
-  createFileFromPath: -> FSHelper.createFileFromPath arguments...
-
   create: (options = {}) ->
     options.useStorage       ?= yes
     options.addOrphansToRoot ?= no
     options.delegate         ?= this
-    @controller = new NFinderController options
 
-    @controller.getView().addSubView @getAppTitleView()
-    @controller.getView().addSubView @getUploader()
-    @controller.getView().addSubView @getMountVMButton()
+    @controller = new NFinderController options
+    finderView  = @controller.getView()
+
+    finderView.addSubView @getAppTitleView()
+    finderView.addSubView @getUploader()
+    finderView.addSubView @getMountVMButton()
+
     return @controller
+
+  createFileFromPath: -> FSHelper.createFileFromPath arguments...
 
   getAppTitleView: ->
     return new KDCustomHTMLView
@@ -31,6 +34,7 @@ class FinderController extends KDController
   getMountVMButton: ->
     return new KDButtonView
       title    : "Mount other VMs"
+      icon     : yes
       cssClass : "finder-mountvm clean-gray"
       callback : @bound 'showMountVMModal'
 
