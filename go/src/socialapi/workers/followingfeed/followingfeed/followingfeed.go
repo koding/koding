@@ -1,20 +1,17 @@
 package followingfeed
 
 import (
-	"encoding/json"
 	"fmt"
 	"socialapi/models"
 
 	"github.com/koding/logging"
-	"github.com/koding/worker"
 	"github.com/streadway/amqp"
 )
 
 type Action func(*Controller, *models.ChannelMessage) error
 
 type Controller struct {
-	routes map[string]Action
-	log    logging.Logger
+	log logging.Logger
 }
 
 func (f *Controller) DefaultErrHandler(delivery amqp.Delivery, err error) bool {
@@ -30,46 +27,16 @@ func (f *Controller) DefaultErrHandler(delivery amqp.Delivery, err error) bool {
 }
 
 func New(log logging.Logger) *Controller {
-	ffc := &Controller{
+	return &Controller{
 		log: log,
 	}
-
-	routes := map[string]Action{
-		"channel_message_created": (*Controller).MessageSaved,
-		"channel_message_update":  (*Controller).MessageUpdated,
-		"channel_message_deleted": (*Controller).MessageDeleted,
-	}
-
-	ffc.routes = routes
-
-	return ffc
-}
-
-func (f *Controller) HandleEvent(event string, data []byte) error {
-	f.log.Debug("New Event Received %s", event)
-	handler, ok := f.routes[event]
-	if !ok {
-		return worker.HandlerNotFoundErr
-	}
-
-	cm, err := mapMessage(data)
-	if err != nil {
-		return err
-	}
-
-	res, err := isEligible(cm)
-	if err != nil {
-		return err
-	}
-
-	if !res {
-		return nil
-	}
-
-	return handler(f, cm)
 }
 
 func (f *Controller) MessageSaved(data *models.ChannelMessage) error {
+	if res, _ := isEligible(data); !res {
+		return nil
+	}
+
 	a := models.NewAccount()
 	a.Id = data.AccountId
 	channelIds, err := a.FetchFollowerChannelIds()
@@ -81,6 +48,10 @@ func (f *Controller) MessageSaved(data *models.ChannelMessage) error {
 }
 
 func (f *Controller) MessageUpdated(data *models.ChannelMessage) error {
+	if res, _ := isEligible(data); !res {
+		return nil
+	}
+
 	fmt.Println("update", data.InitialChannelId)
 
 	return nil
@@ -88,18 +59,13 @@ func (f *Controller) MessageUpdated(data *models.ChannelMessage) error {
 }
 
 func (f *Controller) MessageDeleted(data *models.ChannelMessage) error {
+	if res, _ := isEligible(data); !res {
+		return nil
+	}
+
 	fmt.Println("delete", data.InitialChannelId)
 
 	return nil
-}
-
-func mapMessage(data []byte) (*models.ChannelMessage, error) {
-	cm := models.NewChannelMessage()
-	if err := json.Unmarshal(data, cm); err != nil {
-		return nil, err
-	}
-
-	return cm, nil
 }
 
 func isEligible(cm *models.ChannelMessage) (bool, error) {
