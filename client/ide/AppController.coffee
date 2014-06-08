@@ -9,6 +9,21 @@ class IDEAppController extends AppController
       failure    : (options, cb)->
         KD.getSingleton('appManager').open 'IDE', conditionPassed : yes
         KD.showEnforceLoginModal()
+    commands:
+      'split vertically'   : 'splitVertically'
+      'split horizontally' : 'splitHorizontally'
+      'merge splitview'    : 'mergeSplitView'
+      'create new file'    : 'createNewFile'
+      'collapse sidebar'   : 'collapseSidebar'
+      'expand sidebar'     : 'expandSidebar'
+    keyBindings: [
+      { command: 'split vertically',   binding: 'ctrl+alt+v', global: yes }
+      { command: 'split horizontally', binding: 'ctrl+alt+h', global: yes }
+      { command: 'merge splitview',    binding: 'ctrl+alt+m', global: yes }
+      { command: 'create new file',    binding: 'ctrl+alt+n', global: yes }
+      { command: 'collapse sidebar',   binding: 'ctrl+alt+c', global: yes }
+      { command: 'expand sidebar',     binding: 'ctrl+alt+e', global: yes }
+    ]
 
   constructor: (options = {}, data) ->
     $('body').addClass 'dark'
@@ -160,3 +175,18 @@ class IDEAppController extends AppController
     floatedPanel._lastSize = 250
     splitView.unsetFloatingPanel 0
     floatedPanel.off 'ReceivedClickElsewhere'
+
+  splitVertically: ->
+    @splitTabView 'vertical'
+
+  splitHorizontally: ->
+    @splitTabView 'horizontal'
+
+  createNewFile: do ->
+    newFileSeed = 1
+
+    return ->
+      file     = FSHelper.createFileFromPath "localfile://Untitled-#{newFileSeed++}.txt"
+      contents = ''
+
+      @openFile file, contents
