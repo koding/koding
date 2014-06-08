@@ -6,27 +6,33 @@ class IDESettingsView extends JView
 
     @unsetClass 'kdview'
 
+    {name, version} = @getStorageInformation()
+    controller      = KD.getSingleton 'appStorageController'
+    @appStorage     = controller.storage name, version
+
     @createElements()
     @getSettings()
 
     @on 'SettingsFetched', @bound 'setSettings'
+    @on 'SettingsChanged', @bound 'handleSettingsChanged'
 
   getSettings: ->
-    {name, version}  = @getStorageInformation()
-    settingKeys      = @getSettingKeys()
-    appStorage       = KD.getSingleton('appStorageController').storage name, version
+    settingKeys = @getSettingKeys()
 
-    appStorage.fetchStorage =>
-      @settings      = {}
+    @appStorage.fetchStorage =>
+      @settings = {}
 
       for key in settingKeys
-        value = appStorage.getValue key
-        @settings[key] = value or @defaults[key]
+        value = @appStorage.getValue key
+        @settings[key] = value ? @defaults[key]
 
       @emit 'SettingsFetched'
 
   setSettings: ->
     @[key].setDefaultValue value  for own key, value of @settings
+
+  handleSettingsChanged: (key, state) ->
+    @appStorage.setValue key, state
 
 
 class EditorSettingsView extends IDESettingsView
@@ -34,57 +40,63 @@ class EditorSettingsView extends IDESettingsView
   createElements: ->
     @useSoftTabs         = new KodingSwitch
       cssClass           : "tiny settings-on-off"
-      callback           : (state) -> console.log state
+      callback           : (state) => @emit 'SettingsChanged', 'useSoftTabs', state
 
     @showGutter          = new KodingSwitch
       cssClass           : "tiny settings-on-off"
-      callback           : (state) -> console.log state
+      callback           : (state) => @emit 'SettingsChanged', 'showGutter', state
 
     @useWordWrap         = new KodingSwitch
       cssClass           : "tiny settings-on-off"
-      callback           : (state) -> console.log state
+      callback           : (state) => @emit 'SettingsChanged', 'useWordWrap', state
 
     @showPrintMargin     = new KodingSwitch
       cssClass           : "tiny settings-on-off"
-      callback           : (state) -> console.log state
+      callback           : (state) => @emit 'SettingsChanged', 'showPrintMargin', state
 
     @highlightActiveLine = new KodingSwitch
       cssClass           : "tiny settings-on-off"
-      callback           : (state) -> console.log state
+      callback           : (state) => @emit 'SettingsChanged', 'highlightActiveLine', state
 
     @highlightWord       = new KodingSwitch
       cssClass           : "tiny settings-on-off"
-      callback           : (state) -> console.log state
+      callback           : (state) => @emit 'SettingsChanged', 'highlightWord', state
 
     @showInvisibles      = new KodingSwitch
       cssClass           : "tiny settings-on-off"
-      callback           : (state) -> console.log state
+      callback           : (state) => @emit 'SettingsChanged', 'showInvisibles', state
 
     @scrollPastEnd       = new KodingSwitch
       cssClass           : "tiny settings-on-off"
-      callback           : (state) -> console.log state
+      callback           : (state) => @emit 'SettingsChanged', 'scrollPastEnd', state
 
     @openRecentFiles     = new KodingSwitch
       cssClass           : "tiny settings-on-off"
-      callback           : (state) -> console.log state
+      callback           : (state) => @emit 'SettingsChanged', 'openRecentFiles', state
 
     @keyboardHandler     = new KDSelectBox
       selectOptions      : IDE.settings.editor.keyboardHandlers
+      callback           : (state) => @emit 'SettingsChanged', 'keyboardHandler', state
 
     @softWrap            = new KDSelectBox
       selectOptions      : IDE.settings.editor.softWrapOptions
+      callback           : (state) => @emit 'SettingsChanged', 'softWrap', state
 
     @syntax              = new KDSelectBox
       selectOptions      : IDE.settings.editor.getSyntaxOptions()
+      callback           : (state) => @emit 'SettingsChanged', 'syntax', state
 
     @fontSize            = new KDSelectBox
       selectOptions      : IDE.settings.editor.fontSizes
+      callback           : (state) => @emit 'SettingsChanged', 'fontSize', state
 
     @theme               = new KDSelectBox
       selectOptions      : IDE.settings.editor.themes
+      callback           : (state) => @emit 'SettingsChanged', 'theme', state
 
     @tabSize             = new KDSelectBox
       selectOptions      : IDE.settings.editor.tabSizes
+      callback           : (state) => @emit 'SettingsChanged', 'tabSize', state
 
   getStorageInformation: ->
     return { name: 'Ace', version: '1.0.1' }
@@ -131,11 +143,25 @@ class EditorSettingsView extends IDESettingsView
 class TerminalSettingsView extends IDESettingsView
 
   createElements: ->
-    @font       = new KDSelectBox  selectOptions : IDE.settings.terminal.fonts
-    @fontSize   = new KDSelectBox  selectOptions : IDE.settings.terminal.fontSizes
-    @theme      = new KDSelectBox  selectOptions : IDE.settings.terminal.themes
-    @scrollback = new KDSelectBox  selectOptions : IDE.settings.terminal.scrollback
-    @visualBell = new KodingSwitch size: "tiny settings-on-off"
+    @font           = new KDSelectBox
+      selectOptions : IDE.settings.terminal.fonts
+      callback      : (state) => @emit 'SettingsChanged', 'font', state
+
+    @fontSize       = new KDSelectBox
+      selectOptions : IDE.settings.terminal.fontSizes
+      callback      : (state) => @emit 'SettingsChanged', 'fontSize', state
+
+    @theme          = new KDSelectBox
+      selectOptions : IDE.settings.terminal.themes
+      callback      : (state) => @emit 'SettingsChanged', 'theme', state
+
+    @scrollback     = new KDSelectBox
+      selectOptions : IDE.settings.terminal.scrollback
+      callback      : (state) => @emit 'SettingsChanged', 'scrollback', state
+
+    @visualBell     = new KodingSwitch
+      size          : "tiny settings-on-off"
+      callback      : (state) => @emit 'SettingsChanged', 'visualBell', state
 
   getStorageInformation: -> { name: 'Terminal', version: '1.0.1' }
 
