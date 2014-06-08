@@ -9,6 +9,7 @@ class FinderPane extends Pane
     appManager.open 'Finder', (finderApp) =>
       fc = @finderController = finderApp.create()
       @addSubView fc.getView()
+      @bindListeners()
       fc.reset()
 
       fc.on 'FileNeedsToBeOpened', (file)=>
