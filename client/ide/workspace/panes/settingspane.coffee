@@ -18,7 +18,10 @@ class IDESettingsView extends JView
 
     appStorage.fetchStorage =>
       @settings      = {}
-      @settings[key] = appStorage.getValue key  for key in settingKeys
+
+      for key in settingKeys
+        value = appStorage.getValue key
+        @settings[key] = value or @defaults[key]
 
       @emit 'SettingsFetched'
 
