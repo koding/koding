@@ -311,21 +311,12 @@ class ActivityInputWidget extends KDView
       meta          :
         createdAt   : new Date
 
-    if not @preview
-
-      @addSubView @preview = new ActivityListItemView
-        cssClass      : 'preview'
-      , previewData
-
-      @preview.addSubView new KDCustomHTMLView
-        cssClass      : 'preview-indicator'
-        partial       : 'Previewing'
-        click         : => @hidePreview()
-
-    else
-
-      @preview.setData previewData
-      @preview.render()
+    @preview?.destroy()
+    @addSubView @preview = new ActivityListItemView cssClass: 'preview', data
+    @preview.addSubView new KDCustomHTMLView
+      cssClass : 'preview-indicator'
+      partial  : 'Previewing'
+      click    : @bound 'hidePreview'
 
     @setClass "preview-active"
 
