@@ -202,3 +202,16 @@ class IDEAppController extends AppController
       contents = ''
 
       @openFile file, contents
+
+  updateSettings: (component, key, value) ->
+    Class  = if component is 'editor' then EditorPane else TerminalPane
+    method = "set#{key.capitalize()}"
+
+    for ideView in @ideViews
+      for pane in ideView.tabView.panes
+        view = pane.getSubViews().first
+        if view instanceof Class
+          if component is 'editor'
+            view.aceView.ace[method] value
+          else
+            view.webtermView.updateSettings()
