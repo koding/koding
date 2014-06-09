@@ -92,16 +92,19 @@ class ActivityListItemView extends KDListItemView
 
   transformTags: (text = '') ->
 
-    {origin} = window.location
+
     {slug}   = KD.getGroup()
-    prefix   = "#{origin}#{if slug is 'koding' then '' else '/' + slug}"
 
     return text.replace /#(\w+)/g, (match, tag, offset) ->
       pre  = text[offset - 1]
       post = text[offset + match.length]
+
       return match  if (pre?.match /\S/)  and offset isnt 0
       return match  if (post?.match /\S/) and (offset + match.length) isnt text.length
-      return "[##{tag}](#{prefix}/Activity/Topic/#{tag})"
+
+      href = KD.utils.groupifyLink "/Activity/Topic/#{tag}"
+
+      return "[##{tag}](#{href})"
 
 
   setAnchors: ->
