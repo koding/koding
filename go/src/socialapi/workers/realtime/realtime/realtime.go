@@ -196,7 +196,12 @@ func (f *Controller) sendReplyAddedEvent(mr *models.MessageReply) error {
 }
 
 func (f *Controller) sendReplyEventAsChannelUpdatedEvent(mr *models.MessageReply, eventType ChannelUpdatedEventType) error {
-	parent, err := mr.FetchRepliedMessage()
+	parent, err := mr.FetchParent()
+	if err != nil {
+		return err
+	}
+
+	reply, err := mr.FetchReply()
 	if err != nil {
 		return err
 	}
@@ -214,9 +219,10 @@ func (f *Controller) sendReplyEventAsChannelUpdatedEvent(mr *models.MessageReply
 
 	cue := &channelUpdatedEvent{
 		// channel will be set in range loop
-		Channel:        nil,
-		ChannelMessage: parent,
-		EventType:      eventType,
+		Channel:              nil,
+		ParentChannelMessage: parent,
+		ReplyChannelMessage:  reply,
+		EventType:            eventType,
 	}
 
 	for _, channel := range channels {
@@ -260,9 +266,9 @@ func (f *Controller) MessageListSaved(cml *models.ChannelMessageList) error {
 	}
 
 	cue := &channelUpdatedEvent{
-		Channel:        c,
-		ChannelMessage: cm,
-		EventType:      channelUpdatedEventMessageAddedToChannel,
+		Channel:              c,
+		ParentChannelMessage: cm,
+		EventType:            channelUpdatedEventMessageAddedToChannel,
 	}
 
 	if err := f.sendChannelUpdatedEvent(cue); err != nil {
@@ -291,10 +297,10 @@ func (f *Controller) MessageListUpdated(cml *models.ChannelMessageList) error {
 	cp.AccountId = c.CreatorId
 
 	cue := &channelUpdatedEvent{
-		Channel:            c,
-		ChannelMessage:     cm,
-		ChannelParticipant: cp,
-		EventType:          channelUpdatedEventMessageUpdatedAtChannel,
+		Channel:              c,
+		ParentChannelMessage: cm,
+		ChannelParticipant:   cp,
+		EventType:            channelUpdatedEventMessageUpdatedAtChannel,
 	}
 
 	return f.sendChannelUpdatedEventToParticipant(cue)
@@ -316,10 +322,10 @@ func (f *Controller) MessageListDeleted(cml *models.ChannelMessageList) error {
 	cp.AccountId = c.CreatorId
 
 	cue := &channelUpdatedEvent{
-		Channel:            c,
-		ChannelMessage:     cm,
-		ChannelParticipant: cp,
-		EventType:          channelUpdatedEventMessageRemovedFromChannel,
+		Channel:              c,
+		ParentChannelMessage: cm,
+		ChannelParticipant:   cp,
+		EventType:            channelUpdatedEventMessageRemovedFromChannel,
 	}
 
 	f.sendChannelUpdatedEvent(cue)
