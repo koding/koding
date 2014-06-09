@@ -150,9 +150,9 @@ do ->
   if window.navigator.onLine?
     KD.utils.repeat 10000, ->
       if window.navigator.onLine
-        destroyCurrentModal()
+        destroyCurrentModal()  if currentModal
       else
-        showModal "small", "disconnected"  unless currentModal
+        showModal "new", "disconnected"  unless currentModal
   else
     window.connectionCheckerReponse = ->
 
@@ -165,4 +165,4 @@ do ->
       },
       "https://s3.amazonaws.com/koding-ping/ping.json"
 
-      item.ping -> destroyCurrentModal()
+      item.ping -> destroyCurrentModal()  if currentModal
