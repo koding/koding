@@ -15,12 +15,11 @@ func (t TestStorageFunc) Get(id string, opt *kloud.GetOption) (*kloud.MachineDat
 
 func (t TestStorageFunc) Update(id string, resp *protocol.BuildResponse) error  { return nil }
 func (t TestStorageFunc) UpdateState(id string, state machinestate.State) error { return nil }
-
-func (t TestStorageFunc) GetState(id string) (machinestate.State, error) {
-	return machinestate.Running, nil
-}
+func (t TestStorageFunc) Assignee() string                                      { return "TestStorageFunc" }
 
 type TestStorage struct{}
+
+func (t *TestStorage) Assignee() string { return "TestStorage" }
 
 func (t *TestStorage) Get(id string, opt *kloud.GetOption) (*kloud.MachineData, error) {
 	machineData := TestProviderData[id]
@@ -43,8 +42,4 @@ func (t *TestStorage) UpdateState(id string, state machinestate.State) error {
 	machineData.Machine.Status.State = state.String()
 	TestProviderData[id] = machineData
 	return nil
-}
-
-func (t *TestStorage) GetState(id string) (machinestate.State, error) {
-	return machinestate.States[TestProviderData[id].Machine.Status.State], nil
 }
