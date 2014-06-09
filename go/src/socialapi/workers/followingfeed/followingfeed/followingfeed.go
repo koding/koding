@@ -1,7 +1,6 @@
 package followingfeed
 
 import (
-	"fmt"
 	"socialapi/models"
 
 	"github.com/koding/logging"
@@ -43,7 +42,7 @@ func (f *Controller) MessageSaved(data *models.ChannelMessage) error {
 	if err != nil {
 		return err
 	}
-	fmt.Println(channelIds)
+
 	return nil
 }
 
@@ -51,8 +50,6 @@ func (f *Controller) MessageUpdated(data *models.ChannelMessage) error {
 	if res, _ := isEligible(data); !res {
 		return nil
 	}
-
-	fmt.Println("update", data.InitialChannelId)
 
 	return nil
 
@@ -62,8 +59,6 @@ func (f *Controller) MessageDeleted(data *models.ChannelMessage) error {
 	if res, _ := isEligible(data); !res {
 		return nil
 	}
-
-	fmt.Println("delete", data.InitialChannelId)
 
 	return nil
 }
