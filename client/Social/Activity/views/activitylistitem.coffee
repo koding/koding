@@ -87,8 +87,13 @@ class ActivityListItemView extends KDListItemView
 
   formatContent: (body = '') ->
 
-    return KD.utils.applyMarkdown @transformTags body
+    fns = [
+      @bound 'transformTags'
+      KD.utils.applyMarkdown
+    ]
 
+    body = fn body for fn in fns
+    return body
 
   transformTags: (text = '') ->
 
