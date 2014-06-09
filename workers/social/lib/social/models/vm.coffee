@@ -111,6 +111,7 @@ module.exports = class JVM extends Module
       webHome           : String
       planCode          : String
       subscriptionCode  : String
+      disableSecurePage : Boolean
       vmType            :
         type            : String
         default         : 'user'
