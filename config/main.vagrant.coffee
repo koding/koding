@@ -59,7 +59,7 @@ module.exports =
     read        : "http://localhost"
     write       : "http://localhost"
     port        : 7474
-  runNeo4jFeeder: yes
+  runNeo4jFeeder: no
   runGoBroker   : yes
   runGoBrokerKite: yes
   runPremiumBroker: yes
