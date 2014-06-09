@@ -182,11 +182,18 @@ class GroupsAppController extends AppController
     KD.whoami().fetchGroupsWithPendingInvitations groupIds:ids, (err, groups)=>
       @markPendingGroupInvitations controller, (group.getId() for group in groups)
 
+  forEachItemByIndex:(controller, ids, callback)->
+    [callback, ids] = [ids, callback]  unless callback
+    ids = [ids]  unless Array.isArray ids
+    ids.forEach (id)=>
+      item = controller.itemsIndexed[id]
+      callback item  if item?
+
   markPendingRequestGroups:(controller, ids)->
-    controller.forEachItemByIndex ids, (view)-> view.markPendingRequest()
+    @forEachItemByIndex controller, ids, (view)-> view.markPendingRequest()
 
   markPendingGroupInvitations:(controller, ids)->
-    controller.forEachItemByIndex ids, (view)-> view.markPendingInvitation()
+    @forEachItemByIndex controller, ids, (view)-> view.markPendingInvitation()
 
   monitorGroupItemOpenLink:(item)->
     item.on 'PrivateGroupIsOpened', @bound 'openPrivateGroup'
