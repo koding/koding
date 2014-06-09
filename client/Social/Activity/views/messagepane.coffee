@@ -9,7 +9,7 @@ class MessagePane extends KDTabPaneView
 
     {itemClass, type} = @getOptions()
 
-    @createParticipantsView()
+    @createParticipantsView() if @getData().typeConstant is 'privatemessage'
     @listController = new ActivityListController {itemClass}
     @createInputWidget()
 
@@ -81,7 +81,7 @@ class MessagePane extends KDTabPaneView
 
   viewAppended: ->
 
-    @addSubView @participantsView
+    @addSubView @participantsView if @participantsView
     @addSubView @input  if @input
     @addSubView @listController.getView()
     @populate()
