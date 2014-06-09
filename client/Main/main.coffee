@@ -117,6 +117,14 @@ do ->
       cssClass  : "small realtime"
       duration  : 3303
 
+  newDisconnectedModal =->
+    currentModal = new KDNotificationView
+      title         : "Looks like your Internet Connection is down"
+      type          : "tray"
+      closeManually : yes
+      content       : """<p>Koding will continue trying to reconnect but while your connection is down, <br> no changes you make will be saved back to your VM. Please save your work locally as well.</p>"""
+      duration      : 0
+
   modals =
     big   :
       disconnected    : smallDisconnectedModal
@@ -125,6 +133,8 @@ do ->
       disconnected    : smallDisconnectedModal
       reconnected     : smallReconnectedModal
       disconnectedMin : smallDisconnectedModal
+    new :
+      disconnected    : newDisconnectedModal
 
   showModal = (size, state)->
     destroyCurrentModal()
@@ -135,3 +145,24 @@ do ->
   destroyCurrentModal =->
     currentModal?.destroy()
     currentModal = null
+
+
+  if window.navigator.onLine?
+    KD.utils.repeat 5000, ->
+      unless window.navigator.onLine
+        showModal "small", "disconnected"  unless currentModal
+      else
+        destroyCurrentModal()
+  else
+    window.connectionCheckerReponse = ->
+
+    KD.utils.repeat 5000, ->
+      item = new ConnectionChecker {
+        jsonp       : "connectionCheckerReponse"
+        crossDomain : yes
+        fail        : ->
+          showModal "new", "disconnected"  unless currentModal
+      },
+      "https://s3.amazonaws.com/koding-ping/ping.json"
+
+      item.ping -> destroyCurrentModal()
