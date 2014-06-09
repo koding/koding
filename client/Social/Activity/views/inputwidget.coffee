@@ -298,9 +298,9 @@ class ActivityInputWidget extends KDView
 
     return unless value = @input.getValue().trim()
 
-    previewData =
-      on            : ->
-      watch         : ->
+    data            =
+      on            : -> return this
+      watch         : -> return this
       account       : KD.whoami().bongo_
       body          : value
       typeConstant  : 'post'
