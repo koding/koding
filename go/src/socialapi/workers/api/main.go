@@ -36,6 +36,11 @@ func init() {
 	mux = tigertonic.NewTrieServeMux()
 	mux = handlers.Inject(mux)
 	mux = notificationapi.InitHandlers(mux)
+	// add namespace support into
+	// all handlers
+	nsMux = tigertonic.NewTrieServeMux()
+	nsMux.HandleNamespace("", mux)
+	nsMux.HandleNamespace("/1.0", mux)
 	tigertonic.SnakeCaseHTTPEquivErrors = true
 
 }
@@ -76,7 +81,7 @@ func newServer() *tigertonic.Server {
 	server := tigertonic.NewServer(
 		addr,
 		tigertonic.Logged(
-			tigertonic.WithContext(mux, models.Context{}),
+			tigertonic.WithContext(nsMux, models.Context{}),
 			nil,
 		),
 	)

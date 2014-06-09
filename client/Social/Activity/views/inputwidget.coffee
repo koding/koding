@@ -38,6 +38,7 @@ class ActivityInputWidget extends KDView
 
     @input = new ActivityInputView defaultValue: options.defaultValue
     @input.on "Escape", @bound "reset"
+    @input.on "Enter", @bound "submit"
 
     @input.on "TokenAdded", (type, token) =>
       if token.slug is "bug" and type is "tag"

@@ -152,20 +152,20 @@ func (m *MessageReply) fetchMessages(query *Query) ([]ChannelMessage, error) {
 	return channelMessageReplies, nil
 }
 
-func (m *MessageReply) UnreadCount(cml *ChannelMessageList) (int, error) {
-	if cml.MessageId == 0 {
+func (m *MessageReply) UnreadCount(messageId int64, addedAt time.Time) (int, error) {
+	if messageId == 0 {
 		return 0, errors.New("MessageId is not set")
 	}
 
-	if cml.AddedAt.IsZero() {
+	if addedAt.IsZero() {
 		return 0, errors.New("Last seen at date is not valid - it is zero")
 	}
 
 	return bongo.B.Count(
 		m,
 		"message_id = ? and created_at > ?",
-		cml.MessageId,
-		cml.AddedAt.UTC().Format(time.RFC3339),
+		messageId,
+		addedAt.UTC().Format(time.RFC3339),
 	)
 }
 
