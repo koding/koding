@@ -18,6 +18,7 @@ class IDEAppController extends AppController
       'expand sidebar'     : 'expandSidebar'
       'go to left tab'     : 'goToLeftTab'
       'go to right tab'    : 'goToRightTab'
+      'go to tab number'   : 'goToTabNumber'
     keyBindings: [
       { command: 'split vertically',   binding: 'ctrl+alt+v', global: yes }
       { command: 'split horizontally', binding: 'ctrl+alt+h', global: yes }
@@ -27,6 +28,15 @@ class IDEAppController extends AppController
       { command: 'expand sidebar',     binding: 'ctrl+alt+e', global: yes }
       { command: 'go to left tab',     binding: 'ctrl+alt+[', global: yes }
       { command: 'go to right tab',    binding: 'ctrl+alt+]', global: yes }
+      { command: 'go to tab number',   binding: 'ctrl+alt+1', global: yes }
+      { command: 'go to tab number',   binding: 'ctrl+alt+2', global: yes }
+      { command: 'go to tab number',   binding: 'ctrl+alt+3', global: yes }
+      { command: 'go to tab number',   binding: 'ctrl+alt+4', global: yes }
+      { command: 'go to tab number',   binding: 'ctrl+alt+5', global: yes }
+      { command: 'go to tab number',   binding: 'ctrl+alt+6', global: yes }
+      { command: 'go to tab number',   binding: 'ctrl+alt+7', global: yes }
+      { command: 'go to tab number',   binding: 'ctrl+alt+8', global: yes }
+      { command: 'go to tab number',   binding: 'ctrl+alt+9', global: yes }
     ]
 
   constructor: (options = {}, data) ->
@@ -222,6 +232,16 @@ class IDEAppController extends AppController
     return if index is @activeTabView.length - 1
 
     @activeTabView.showPaneByIndex index + 1
+
+  goToTabNumber: (keyEvent) ->
+    keyEvent.preventDefault()
+    keyEvent.stopPropagation()
+
+    keyCodeMap    = [ 49, 50, 51, 52, 53, 54, 55, 56, 57 ]
+    requiredIndex = keyCodeMap.indexOf keyEvent.keyCode
+    tabView       = @activeTabView.getPaneByIndex requiredIndex
+
+    @activeTabView.showPaneByIndex requiredIndex
 
   forEachSubViewInIDEViews_: (callback = noop) ->
     for ideView in @ideViews
