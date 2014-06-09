@@ -148,15 +148,15 @@ do ->
 
 
   if window.navigator.onLine?
-    KD.utils.repeat 5000, ->
-      unless window.navigator.onLine
-        showModal "small", "disconnected"  unless currentModal
-      else
+    KD.utils.repeat 10000, ->
+      if window.navigator.onLine
         destroyCurrentModal()
+      else
+        showModal "small", "disconnected"  unless currentModal
   else
     window.connectionCheckerReponse = ->
 
-    KD.utils.repeat 5000, ->
+    KD.utils.repeat 30000, ->
       item = new ConnectionChecker {
         jsonp       : "connectionCheckerReponse"
         crossDomain : yes
