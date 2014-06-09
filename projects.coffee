@@ -89,11 +89,11 @@ projects =
     script        : "website/a/js/__app.viewer.js"
     sourceMapRoot : "Viewer/"
 
-  # Teamwork        :
-  #   path          : "client/Teamwork"
-  #   style         : "website/a/css/__app.teamwork.css"
-  #   script        : "website/a/js/__app.teamwork.js"
-  #   sourceMapRoot : "Teamwork/"
+  Teamwork        :
+    path          : "client/Teamwork"
+    style         : "website/a/css/__app.teamwork.css"
+    script        : "website/a/js/__app.teamwork.js"
+    sourceMapRoot : "Teamwork/"
 
   IDE             :
     path          : "client/IDE"
