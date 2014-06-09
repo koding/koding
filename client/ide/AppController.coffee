@@ -53,13 +53,16 @@ class IDEAppController extends AppController
 
     appView   = @getView()
     workspace = @workspace = new Workspace { layoutOptions }
+    @ideViews = []
 
     workspace.once 'ready', =>
       panel = workspace.getView()
       appView.addSubView panel
 
       panel.once 'viewAppended', =>
-        @setActiveTabView panel.getPaneByName('editorPane').tabView
+        ideView = panel.getPaneByName 'editorPane'
+        @setActiveTabView ideView.tabView
+        @ideViews.push ideView
         appView.emit 'KeyViewIsSet'
 
   setActiveTabView: (tabView) ->
@@ -76,6 +79,8 @@ class IDEAppController extends AppController
     splitView   = new KDSplitView
       type      : type
       views     : [ null, newIDEView ]
+
+    @ideViews.push newIDEView
 
     splitView.once 'viewAppended', ->
       splitView.panels.first.attach ideView
@@ -97,6 +102,10 @@ class IDEAppController extends AppController
       panelIndexInParent = parentSplitView.panels.indexOf parent
 
     splitView.once 'SplitIsBeingMerged', (views) =>
+      for view in views
+        index = @ideViews.indexOf view
+        @ideViews.splice index, 1
+
       @handleSplitMerge views, parent, parentSplitView, panelIndexInParent
 
     splitView.merge()
@@ -120,6 +129,7 @@ class IDEAppController extends AppController
       ideView.tabView.addPane pane
 
     @setActiveTabView ideView.tabView
+    @ideViews.push ideView
 
     if parentSplitView and panelIndexInParent
       parentSplitView.options.views[panelIndexInParent] = ideView
