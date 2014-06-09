@@ -126,7 +126,7 @@ func fetchRepliedMessage(replyId int64) *socialmodels.ChannelMessage {
 	mr := socialmodels.NewMessageReply()
 	mr.ReplyId = replyId
 
-	parent, err := mr.FetchRepliedMessage()
+	parent, err := mr.FetchParent()
 	if err != nil {
 		parent = socialmodels.NewChannelMessage()
 	}
