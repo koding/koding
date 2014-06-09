@@ -304,6 +304,7 @@ class ActivityInputWidget extends KDView
       account       : KD.whoami().bongo_
       body          : value
       typeConstant  : 'post'
+      replies       : []
       interactions  :
         like        :
           actorsCount : 0
