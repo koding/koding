@@ -60,7 +60,7 @@ func Marshaled(i interface{}) *Marshaler {
 	// check input parameter count
 	if t.NumIn() != 2 {
 		panic(NewMarshalerError(
-			"input arity was %v, not 1",
+			"input arity was %v, not 2",
 			t.NumIn(),
 		))
 	}
@@ -81,32 +81,40 @@ func Marshaled(i interface{}) *Marshaler {
 }
 
 func (m *Marshaler) HandleEvent(controllerValue reflect.Value, data []byte) error {
-	var rq reflect.Value
+	var parameter reflect.Value
 
 	if m.v.Type().NumIn() == 2 {
 		in2 := m.v.Type().In(1)
-		if reflect.Interface == in2.Kind() && 0 == in2.NumMethod() {
-			rq = nilRequest
+		// if incoming paramter is an empty interface
+		if reflect.Interface == in2.Kind() && in2.NumMethod() == 0 {
+			parameter = nilParameter
+			// if incoming parameter is a slice or a map
 		} else if reflect.Slice == in2.Kind() || reflect.Map == in2.Kind() {
 			// non-pointer maps/slices require special treatment because
 			// json.Unmarshal won't work on a non-pointer destination. We
 			// add a level indirection here, then deref it before .Call()
-			rq = reflect.New(in2)
+			parameter = reflect.New(in2)
 		} else {
-			rq = reflect.New(in2.Elem())
+			// if it is a struct
+			parameter = reflect.New(in2.Elem())
 		}
 	} else {
-		rq = nilRequest
+		// if handler doesnt have any incoming paramters
+		parameter = nilParameter
 	}
 
+	// this is where magic happens:)
+	// first read incoming []byte data into a io.reader then
+	// put this data into a decoder(create a decoder out of it)
+	// finally decode this data into given
 	decoder := reflect.ValueOf(json.NewDecoder(bytes.NewReader(data)))
-	res := decoder.MethodByName("Decode").Call([]reflect.Value{rq})
+	res := decoder.MethodByName("Decode").Call([]reflect.Value{parameter})
 	if len(res) > 0 && !res[0].IsNil() {
 		return res[0].Interface().(error)
 	}
 
-	if reflect.Slice == rq.Elem().Kind() || reflect.Map == rq.Elem().Kind() {
-		rq = rq.Elem()
+	if reflect.Slice == parameter.Elem().Kind() || reflect.Map == parameter.Elem().Kind() {
+		parameter = parameter.Elem()
 	}
 
 	var out []reflect.Value
@@ -114,7 +122,7 @@ func (m *Marshaler) HandleEvent(controllerValue reflect.Value, data []byte) erro
 	case 2:
 		out = m.v.Call([]reflect.Value{
 			controllerValue,
-			rq,
+			parameter,
 		})
 	default:
 		return fmt.Errorf("unknown signature %s", m.v.Type())
@@ -135,4 +143,4 @@ func NewMarshalerError(format string, args ...interface{}) MarshalerError {
 
 func (e MarshalerError) Error() string { return string(e) }
 
-var nilRequest = reflect.ValueOf((*interface{})(nil))
+var nilParameter = reflect.ValueOf((*interface{})(nil))
