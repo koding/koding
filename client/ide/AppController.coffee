@@ -63,6 +63,10 @@ class IDEAppController extends AppController
         ideView = panel.getPaneByName 'editorPane'
         @setActiveTabView ideView.tabView
         @ideViews.push ideView
+
+        splitView = panel.layout.getSplitViewByName 'BaseSplit'
+        splitView.on 'ResizeDidStop', @bound 'handleResize'
+
         appView.emit 'KeyViewIsSet'
 
   setActiveTabView: (tabView) ->
@@ -215,3 +219,12 @@ class IDEAppController extends AppController
             view.aceView.ace[method] value
           else
             view.webtermView.updateSettings()
+
+  handleResize: ->
+    # TODO: C/P from update settings, should make a common helper method
+    for ideView in @ideViews
+      for pane in ideView.tabView.panes
+        view = pane.getSubViews().first
+        if view instanceof EditorPane
+          view.aceView.ace.setHeight view.getHeight() - 23
+          view.aceView.ace.editor.resize yes
