@@ -35,12 +35,12 @@ func (b *Manager) HandleFunc(funcName string, handler interface{}) error {
 }
 
 func (b *Manager) HandleEvent(eventName string, data []byte) error {
-	handler, ok := b.routes[eventName]
+	route, ok := b.routes[eventName]
 	if !ok {
 		return worker.HandlerNotFoundErr
 	}
 
-	return handler.HandleEvent(b.controllerValue, data)
+	return route.HandleEvent(b.controllerValue, data)
 }
 
 func (m *Manager) DefaultErrHandler(delivery amqp.Delivery, err error) bool {
