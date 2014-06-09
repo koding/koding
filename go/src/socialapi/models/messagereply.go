@@ -180,10 +180,10 @@ func (m *MessageReply) Count() (int, error) {
 	)
 }
 
-func (m *MessageReply) FetchRepliedMessage() (*ChannelMessage, error) {
+func (m *MessageReply) FetchParent() (*ChannelMessage, error) {
 	parent := NewChannelMessage()
 
-	if m.MessageId != 0 {
+	if m.ReplyId != 0 {
 		if err := parent.ById(m.MessageId); err != nil {
 			return nil, err
 		}
@@ -210,4 +210,40 @@ func (m *MessageReply) FetchRepliedMessage() (*ChannelMessage, error) {
 	}
 
 	return parent, nil
+}
+
+func (m *MessageReply) FetchReply() (*ChannelMessage, error) {
+	reply := NewChannelMessage()
+
+	replyId, err := m.getReplyId()
+	if err != nil {
+		return nil, err
+	}
+
+	if err := reply.ById(replyId); err != nil {
+		return nil, err
+	}
+
+	return reply, nil
+}
+
+func (m *MessageReply) getReplyId() (int64, error) {
+	if m.Id == 0 && m.ReplyId == 0 {
+		return 0, errors.New("Required ids are not set")
+	}
+
+	if m.ReplyId != 0 {
+		return m.ReplyId, nil
+	}
+
+	if m.Id == 0 {
+		// shouldnt come here
+		return 0, errors.New("Couldnt fetch replyId")
+	}
+
+	if err := m.ById(m.Id); err != nil {
+		return 0, err
+	}
+
+	return m.ReplyId, nil
 }
