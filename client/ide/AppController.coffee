@@ -227,4 +227,4 @@ class IDEAppController extends AppController
         view = pane.getSubViews().first
         if view instanceof EditorPane
           view.aceView.ace.setHeight view.getHeight() - 23
-          view.aceView.ace.editor.resize yes
+          view.aceView.ace.editor?.resize yes
