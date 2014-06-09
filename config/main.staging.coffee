@@ -141,6 +141,7 @@ module.exports =
     watch       : no
     queueName   : socialQueueName
     verbose     : no
+    kitePort    : 8765
   log           :
     login       : 'prod-social'
     numberOfWorkers: 2
@@ -302,8 +303,6 @@ module.exports =
     batchSize       : undefined
     cleanupCron     : '*/10 * * * * *'
   pidFile       : '/tmp/koding.server.pid'
-  haproxy:
-    webPort     : 3020
   newkites      :
     useTLS          : yes
     certFile        : "/etc/ssl/koding/wildcard.sj.koding.com.crt"

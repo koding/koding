@@ -12,7 +12,6 @@ class DockController extends KDViewController
   ]
 
   constructor:(options = {}, data)->
-
     options.view or= new KDCustomHTMLView domId : 'dock'
 
     super options, data
@@ -36,6 +35,9 @@ class DockController extends KDViewController
     mainController = KD.getSingleton 'mainController'
 
     mainController.ready @bound 'accountChanged'
+
+    @trackStateTransitions()
+    @bindKeyCombos()
 
 
   buildNavItems:(sourceItems)->
@@ -140,13 +142,14 @@ class DockController extends KDViewController
 
       route   or= options.navItem?.path or '-'
 
-      for nav in @getItems()
+      for nav, i in @getItems()
         if (///^#{route}///.test nav.data.path) or (dockPath is nav.data.path) \
         or (nav.data.path is "/#{name}") or ("/#{name}" is nav.data.path) \
         or (nav.name is name)
           nav.setState state
           @navController.selectItem nav  if select
           hasNav = yes
+          @emit 'NavItemStateChanged', { item: nav, index: i, state }
 
       if not hasNav and state isnt 'initial'
         unless name in Object.keys(KD.config.apps)
@@ -179,3 +182,62 @@ class DockController extends KDViewController
 
       appManager.on "AppIsBeingShown", (instance, view, options) =>
         @setNavItemState {name:options.name, options}, 'active'
+
+  isRunning = (item) -> item?.state is 'running'
+
+  getRelativeItem: (increment, predicate) ->
+    i = @activeIndex
+    len = @navController.itemsOrdered.length
+    loop
+      i += increment
+      if i < 0
+        i += len
+      else if len <= i
+        i -= len
+      item = @itemStates[i]
+      return item  if item is this or predicate item
+
+  activatePreviousApp: (e) ->
+    e.preventDefault()
+    item = @getRelativeItem -1, isRunning
+    @setActiveItem item.item
+
+  activateNextApp: (e) ->
+    e.preventDefault()
+    item = @getRelativeItem 1, isRunning
+    @setActiveItem item.item
+
+  setActiveItem: (item) ->
+    KD.singletons.router.handleRoute item.getData().path
+
+  trackStateTransitions: ->
+    @itemStates = []
+    @activeIndex = null
+    @on 'NavItemStateChanged', (info) ->
+      { index, item, state } = info
+      @itemStates[index] = info
+      @activeIndex = index  if state is 'running'
+
+  openApp: (index) ->
+    len = @navController.itemsOrdered.length
+    index += len  if index < 0
+    item = @navController.itemsOrdered[index]
+    return  unless item?
+    { path } = item.getData()
+    KD.singletons.router.handleRoute path
+
+  bindKeyCombos: ->
+    { globalKeyCombos } = KD.singletons
+
+    globalKeyCombos
+      .addCombo 'command+option+[', @bound 'activatePreviousApp'
+      .addCombo 'command+option+]', @bound 'activateNextApp'
+      .addCombo 'command+option+1', => @openApp 0
+      .addCombo 'command+option+2', => @openApp 1
+      .addCombo 'command+option+3', => @openApp 2
+      .addCombo 'command+option+4', => @openApp 3
+      .addCombo 'command+option+5', => @openApp 4
+      .addCombo 'command+option+6', => @openApp 5
+      .addCombo 'command+option+7', => @openApp 6
+      .addCombo 'command+option+8', => @openApp 7
+      .addCombo 'command+option+9', => @openApp -1

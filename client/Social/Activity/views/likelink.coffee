@@ -18,7 +18,7 @@ class ActivityLikeLink extends CustomLinkView
     {like, unlike} = KD.singletons.socialapi.message
 
     fn = if isInteracted then unlike else like
-    fn {id}, (err) ->
+    fn {id}, (err) =>
 
       return @showError err  if err
 
