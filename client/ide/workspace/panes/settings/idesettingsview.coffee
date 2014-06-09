@@ -31,5 +31,10 @@ class IDESettingsView extends JView
   setSettings: ->
     @[key].setDefaultValue value  for own key, value of @settings
 
-  handleSettingsChanged: (key, state) ->
-    @appStorage.setValue key, state
+  handleSettingsChanged: (key, value) ->
+    @appStorage.setValue key, value
+
+    appManager = KD.getSingleton 'appManager'
+    component  = if this instanceof EditorSettingsView then 'editor' else 'terminal'
+
+    appManager.tell 'IDE', 'updateSettings', component, key, value
