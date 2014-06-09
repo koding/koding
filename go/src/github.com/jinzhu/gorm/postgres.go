@@ -83,22 +83,6 @@ func (h *Hstore) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
-func (h Hstore) MarshalJSON() ([]byte, error) {
-	if len(h) == 0 {
-		return json.Marshal(nil)
-	}
-
-	sqlMap := map[string]interface{}{}
-	for key := range h {
-		var res map[string]interface{}
-		if err := json.Unmarshal([]byte(fmt.Sprintf("%v", *(h[key]))), &res); err != nil {
-			sqlMap[key] = *(h[key])
-		}
-	}
-
-	return json.Marshal(sqlMap)
-}
-
 type postgres struct {
 }
 
