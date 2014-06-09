@@ -16,6 +16,8 @@ class IDEAppController extends AppController
       'create new file'    : 'createNewFile'
       'collapse sidebar'   : 'collapseSidebar'
       'expand sidebar'     : 'expandSidebar'
+      'go to left tab'     : 'goToLeftTab'
+      'go to right tab'    : 'goToRightTab'
     keyBindings: [
       { command: 'split vertically',   binding: 'ctrl+alt+v', global: yes }
       { command: 'split horizontally', binding: 'ctrl+alt+h', global: yes }
@@ -23,6 +25,8 @@ class IDEAppController extends AppController
       { command: 'create new file',    binding: 'ctrl+alt+n', global: yes }
       { command: 'collapse sidebar',   binding: 'ctrl+alt+c', global: yes }
       { command: 'expand sidebar',     binding: 'ctrl+alt+e', global: yes }
+      { command: 'go to left tab',     binding: 'ctrl+alt+[', global: yes }
+      { command: 'go to right tab',    binding: 'ctrl+alt+]', global: yes }
     ]
 
   constructor: (options = {}, data) ->
@@ -206,6 +210,18 @@ class IDEAppController extends AppController
       contents = ''
 
       @openFile file, contents
+
+  goToLeftTab: ->
+    index = @activeTabView.getActivePaneIndex()
+    return if index is 0
+
+    @activeTabView.showPaneByIndex index - 1
+
+  goToRightTab: ->
+    index = @activeTabView.getActivePaneIndex()
+    return if index is @activeTabView.length - 1
+
+    @activeTabView.showPaneByIndex index + 1
 
   forEachSubViewInIDEViews_: (callback = noop) ->
     for ideView in @ideViews
