@@ -43,7 +43,6 @@ module.exports =
     clusterSize : 1
     queueName   : socialQueueName+'web'
     watch       : no
-    kitePort    : 6742
   socialApiUrl  : "http://localhost:7000"
   sourceServer  :
     enabled     : yes
@@ -99,7 +98,6 @@ module.exports =
     queueName   : socialQueueName+'auth'
     numberOfWorkers: 2
     watch       : no
-    kitePort    : 6761
   emailConfirmationCheckerWorker :
     enabled              : yes
     login                : 'prod-social'
@@ -108,12 +106,19 @@ module.exports =
     watch                : no
     cronSchedule         : '0 * * * * *'
     usageLimitInMinutes  : 60
-    kitePort             : 4856
   elasticSearch          :
     host                 : "log0.sjc.koding.com"
     port                 : 9200
     enabled              : no
     queue                : "elasticSearchFeederQueue"
+  guestCleanerWorker     :
+    enabled              : yes
+    login                : 'prod-social'
+    queueName            : socialQueueName+'guestcleaner'
+    numberOfWorkers      : 2
+    watch                : no
+    cronSchedule         : '00 * * * * *'
+    usageLimitInMinutes  : 60
   sitemapWorker          :
     enabled              : yes
     login                : 'prod-social'

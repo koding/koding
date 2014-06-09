@@ -44,7 +44,6 @@ module.exports =
     clusterSize : 1
     queueName   : socialQueueName+'web'
     watch       : yes
-    kitePort    : 6742
   socialApiUrl  : "http://localhost:7000"
   sourceServer  :
     enabled     : yes
@@ -100,21 +99,27 @@ module.exports =
     authAllExchange: authAllExchange
     numberOfWorkers: 1
     watch       : yes
-    kitePort    : 6761
   emailConfirmationCheckerWorker :
-    enabled              : yes
+    enabled              : no
     login                : 'prod-social'
     queueName            : socialQueueName+'emailConfirmationCheckerWorker'
     numberOfWorkers      : 1
     watch                : yes
     cronSchedule         : '0 * * * * *'
     usageLimitInMinutes  : 60
-    kitePort             : 4856
   elasticSearch          :
     host                 : "localhost"
     port                 : 9200
     enabled              : no
     queue                : "elasticSearchFeederQueue"
+  guestCleanerWorker     :
+    enabled              : yes
+    login                : 'prod-social'
+    queueName            : socialQueueName+'guestcleaner'
+    numberOfWorkers      : 2
+    watch                : yes
+    cronSchedule         : '00 * * * * *'
+    usageLimitInMinutes  : 60
   sitemapWorker          :
     enabled              : yes
     login                : 'prod-social'
@@ -290,11 +295,10 @@ module.exports =
     cronInstant   : '*/10 * * * * *'
     cronDaily     : '0 10 0 * * *'
     run           : no
-    forcedRecipient : 'chris@koding.com'
+    forcedRecipient : undefined
     maxAge        : 3
   emailSender     :
-    run           : yes
-    kitePort      : 9834
+    run           : no
   guests          :
     # define this to limit the number of guset accounts
     # to be cleaned up per collection cycle.

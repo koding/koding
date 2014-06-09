@@ -5,18 +5,23 @@ Broker      = require 'broker'
 {extend}    = require 'underscore'
 
 KONFIG = require('koding-config-manager').load("main.#{argv.c}")
-
-{mq, projectRoot, authWorker} = KONFIG
+{mq, projectRoot, guestCleanerWorker} = KONFIG
 
 mongo = "mongodb://#{KONFIG.mongo}?auto_reconnect"
 
+
+# mongo += '?auto_reconnect'  if 'string' is typeof mongo
+
 mqOptions = extend {}, mq
-mqOptions.login = authWorker.login if authWorker?.login?
+mqOptions.login = guestCleanerWorker.login if guestCleanerWorker?.login?
 
 module.exports = new Bongo {
   mongo
   root: projectRoot
-  models: 'workers/social/lib/social/models'
+  models: [
+    'workers/social/lib/social/models'
+  ]
   mq: new Broker mqOptions
-  resourceName: authWorker.queueName
+  resourceName: guestCleanerWorker.queueName
 }
+ 

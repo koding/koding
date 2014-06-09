@@ -62,7 +62,6 @@ config =
       clusterSize : 1
       queueName   : 1
       watch       : 1
-      kitePort    : 1
     socialApiUrl  : 1
     sourceServer  :
       enabled     : 1
@@ -113,7 +112,14 @@ config =
       queueName       : 1
       numberOfWorkers : 1
       watch           : 1
-      kitePort        : 1
+    guestCleanerWorker    :
+      enabled             : 1
+      login               : 1
+      queueName           : 1
+      numberOfWorkers     : 1
+      watch               : 1
+      cronSchedule        : 1
+      usageLimitInMinutes : 1
     elasticSearch         :
       host                : 1
       port                : 1
@@ -127,7 +133,6 @@ config =
       watch               : 1
       cronSchedule        : 1
       usageLimitInMinutes : 1
-      kitePort            : 1
     sitemapWorker         :
       enabled             : 1
       login               : 1
@@ -308,7 +313,6 @@ config =
       maxAge      : 1
     emailSender   :
       run         : 1
-      kitePort    : 1
     guests        :
       poolSize        : 1
       batchSize       : 1

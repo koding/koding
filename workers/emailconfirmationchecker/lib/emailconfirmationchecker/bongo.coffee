@@ -2,7 +2,6 @@ Bongo       = require 'bongo'
 Broker      = require 'broker'
 {argv}      = require 'optimist'
 {extend}    = require 'underscore'
-{ join: joinPath } = require 'path'
 
 KONFIG = require('koding-config-manager').load("main.#{argv.c}")
 {mongo, mq, projectRoot, emailConfirmationCheckerWorker : config} = KONFIG
@@ -21,13 +20,4 @@ module.exports = new Bongo {
   ]
   mq: new Broker mqOptions
   resourceName: config.queueName
-  kite          :
-    kontrol     : 'ws://localhost:4000'
-    name        : 'emailConfirmationChecker'
-    environment : KONFIG.environment
-    region      : argv.r
-    version     : KONFIG.version
-    username    : 'koding'
-    port        : KONFIG.emailConfirmationCheckerWorker.kitePort
-    kiteKey     : joinPath __dirname, '../../../../kite_home/koding/kite.key'
 }

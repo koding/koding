@@ -13,7 +13,6 @@ option '-s', '--dontBuildSprites', 'dont build sprites'
 
 option '-y', '--yes', 'pass yes to corresponding command'
 option '-g', '--evengo', 'pass evengo to corresponding command'
-option '-r', '--region', 'the region that we are running'
 
 require('coffee-script').register()
 
@@ -128,7 +127,7 @@ task 'webserver', "Run the webserver", ({configFile, tests}) ->
           onChange  : ->
             processes.kill "server"
 
-task 'socialWorker', "Run the socialWorker", ({configFile, region}) ->
+task 'socialWorker', "Run the socialWorker", ({configFile}) ->
   KONFIG = require('koding-config-manager').load("main.#{configFile}")
   {social} = KONFIG
 
@@ -139,7 +138,7 @@ task 'socialWorker', "Run the socialWorker", ({configFile, region}) ->
 
     processes.fork
       name           : if social.numberOfWorkers is 1 then "social" else "social-#{i}"
-      cmd            : __dirname + "/workers/social/index -c #{configFile} -r #{region} -p #{port}"
+      cmd            : __dirname + "/workers/social/index -c #{configFile} -p #{port}"
       restart        : yes
       restartTimeout : 100
       kontrol        :
@@ -229,6 +228,26 @@ task 'authWorker', "Run the authWorker", ({configFile}) ->
             else
               processes.kill "auth-#{i}" for i in [1..numberOfWorkers]
 
+task 'guestCleanerWorker', "Run the guest cleanup worker", ({configFile})->
+  config = require('koding-config-manager').load("main.#{configFile}")
+
+  processes.fork
+    name           : 'guestCleanerWorker'
+    cmd            : "./workers/guestcleaner/index -c #{configFile}"
+    restart        : yes
+    restartTimeout : 1
+    kontrol        :
+      enabled      : if config.runKontrol is yes then yes else no
+      startMode    : "one"
+    verbose        : yes
+
+  watcher = new Watcher
+    groups        :
+      guestcleaner:
+        folders   : ['./workers/guestcleaner']
+        onChange  : (path) ->
+          processes.kill "guestCleanerWorker"
+
 
 task 'emailConfirmationCheckerWorker', "Run the email confirmtion worker", ({configFile})->
   config = require('koding-config-manager').load("main.#{configFile}")
@@ -290,12 +309,12 @@ task 'emailWorker', "Run the email worker", ({configFile})->
         onChange  : (path) ->
           processes.kill "emailWorker"
 
-task 'emailSender', "Run the emailSender", ({configFile, region})->
+task 'emailSender', "Run the emailSender", ({configFile})->
   config = require('koding-config-manager').load("main.#{configFile}")
 
   processes.fork
     name           : 'emailSender'
-    cmd            : "./workers/emailsender/index -c #{configFile} -r #{region}"
+    cmd            : "./workers/emailsender/index -c #{configFile}"
     restart        : yes
     restartTimeout : 100
     kontrol        :
@@ -620,6 +639,7 @@ run =({configFile})->
     invoke 'neo4jfeeder'                      if config.runNeo4jFeeder
     invoke 'elasticsearchfeeder'              if config.elasticSearch.enabled
     invoke 'authWorker'                       if config.authWorker
+    invoke 'guestCleanerWorker'               if config.guestCleanerWorker.enabled
     invoke 'emailConfirmationCheckerWorker'   if config.emailConfirmationCheckerWorker.enabled
     invoke 'socialWorker'
     invoke 'emailWorker'                      if config.emailWorker?.run is yes

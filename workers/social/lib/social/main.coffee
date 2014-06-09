@@ -58,8 +58,8 @@ koding = new Bongo {
   kite          :
     kontrol     : 'ws://localhost:4000'
     name        : 'social'
-    environment : KONFIG.environment
-    region      : argv.r
+    environment : 'vagrant'
+    region      : 'vagrant'
     version     : KONFIG.version
     username    : 'koding'
     port        : KONFIG.social.kitePort
