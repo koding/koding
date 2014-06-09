@@ -89,6 +89,7 @@ class ActivityListItemView extends KDListItemView
 
     fns = [
       @bound 'transformTags'
+      @bound 'formatBlockquotes'
       KD.utils.applyMarkdown
     ]
 
@@ -108,6 +109,21 @@ class ActivityListItemView extends KDListItemView
       return match  if (post?.match /\S/) and (offset + match.length) isnt text.length
       return "[##{tag}](#{prefix}/Activity/Topic/#{tag})"
 
+
+  formatBlockquotes: (text = '') ->
+
+    parts = text.split '```'
+    for part, index in parts
+      blockquote = index %% 2 is 1
+
+      if blockquote
+        if match = part.match /^\w+/
+          [lang] = match
+          part = "\n#{part}"  unless hljs.getLanguage lang
+
+        parts[index] = "\n```#{part}\n```\n"
+
+    parts.join ''
 
   setAnchors: ->
 
