@@ -1,4 +1,4 @@
- class IDEView extends WorkspaceTabView
+ class IDE.IDEView extends IDE.WorkspaceTabView
 
   constructor: (options = {}, data) ->
 
@@ -41,7 +41,7 @@
   createEditor: (file, content) ->
     file        = file    or FSHelper.createFileFromPath @getDummyFilePath()
     content     = content or ''
-    editor      = new EditorPane { file, content, delegate: this }
+    editor      = new IDE.EditorPane { file, content, delegate: this }
     paneOptions =
       name      : file.name
       editor    : editor
@@ -49,14 +49,14 @@
     @createPane_ editor, paneOptions, file
 
   createTerminal: (vm) ->
-    terminalPane = new TerminalPane { vm }
+    terminalPane = new IDE.TerminalPane { vm }
     @createPane_ terminalPane, { name: 'Terminal' }
 
   createDrawingBoard: ->
-    @createPane_ new DrawingPane, { name: 'Drawing' }
+    @createPane_ new IDE.DrawingPane, { name: 'Drawing' }
 
   createPreview: (url) ->
-    previewPane = new PreviewPane { url }
+    previewPane = new IDE.PreviewPane { url }
     @createPane_ previewPane, { name: 'Browser' }
 
   removeOpenDocument: ->

@@ -1,4 +1,4 @@
-class WorkspaceLayoutBuilder extends KDSplitComboView
+class IDE.WorkspaceLayoutBuilder extends KDSplitComboView
 
   init: ->
     @splitViews = {}

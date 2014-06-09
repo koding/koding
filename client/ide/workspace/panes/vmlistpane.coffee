@@ -1,4 +1,4 @@
-class VMListPane extends Pane
+class IDE.VMListPane extends IDE.Pane
 
   constructor: (options = {}, data) ->
 
@@ -21,7 +21,7 @@ class VMListPane extends Pane
         return first.hostnameAlias > second.hostnameAlias
 
       for vm in vms
-        @addSubView new VMPaneListItem {}, vm
+        @addSubView new IDE.VMPaneListItem {}, vm
 
       @addBuyVMButton()
 
@@ -36,7 +36,7 @@ class VMListPane extends Pane
     @addSubView buyVMButton
 
 
-class VMPaneListItem extends JView
+class IDE.VMPaneListItem extends JView
 
   constructor: (options = {}, data) ->
 

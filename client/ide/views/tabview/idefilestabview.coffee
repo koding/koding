@@ -1,4 +1,4 @@
-class IDEFilesTabView extends WorkspaceTabView
+class IDE.IDEFilesTabView extends IDE.WorkspaceTabView
 
   constructor: (options = {}, data) ->
 
@@ -25,7 +25,7 @@ class IDEFilesTabView extends WorkspaceTabView
       name     : 'Files'
       closable : no
 
-    @finderPane = new FinderPane
+    @finderPane = new IDE.FinderPane
     filesPane.addSubView @finderPane
 
     @tabView.addPane filesPane
@@ -35,7 +35,7 @@ class IDEFilesTabView extends WorkspaceTabView
       name     : 'VMs'
       closable : no
 
-    vmsPane.addSubView new VMListPane
+    vmsPane.addSubView new IDE.VMListPane
     @tabView.addPane  vmsPane
 
     @on 'VMMountRequested', (vmData) =>
@@ -49,5 +49,5 @@ class IDEFilesTabView extends WorkspaceTabView
       name       : 'Settings'
       closable   : no
 
-    settingsPane.addSubView new SettingsPane
+    settingsPane.addSubView new IDE.SettingsPane
     @tabView.addPane settingsPane

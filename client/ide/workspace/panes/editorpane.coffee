@@ -1,4 +1,4 @@
-class EditorPane extends Pane
+class IDE.EditorPane extends IDE.Pane
 
   constructor: (options = {}, data) ->
 
@@ -15,7 +15,7 @@ class EditorPane extends Pane
       throw new TypeError 'File must be an instance of FSFile'
 
     unless content?
-      throw new TypeError 'You must pass file content to EditorPane'
+      throw new TypeError 'You must pass file content to IDE.EditorPane'
 
     @addSubView @aceView = new AceView delegate: @getDelegate(), file
     @aceView.ace.once 'ace.ready', =>

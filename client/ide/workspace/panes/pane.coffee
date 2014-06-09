@@ -1,4 +1,4 @@
-class Pane extends JView
+class IDE.Pane extends JView
 
   constructor: (options = {}, data) ->
 

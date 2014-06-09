@@ -1,4 +1,4 @@
-class EditorSettingsView extends IDESettingsView
+class IDE.EditorSettingsView extends IDE.IDESettingsView
 
   createElements: ->
     @useSoftTabs         = new KodingSwitch

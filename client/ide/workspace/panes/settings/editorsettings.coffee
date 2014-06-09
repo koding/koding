@@ -1,4 +1,3 @@
-IDE = IDE or {}
 IDE.settings or= {}
 
 IDE.settings.editor =

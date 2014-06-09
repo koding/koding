@@ -1,4 +1,4 @@
-class Workspace extends KDController
+class IDE.Workspace extends KDController
 
   constructor: (options = {}, data) ->
 
@@ -10,7 +10,7 @@ class Workspace extends KDController
 
   createPanel: ->
     options    = @getOptions()
-    panelClass = options.panelClass or Panel
+    panelClass = options.panelClass or IDE.Panel
     @panel     = new panelClass layoutOptions: options.layoutOptions
 
     KD.utils.defer => @emit 'ready'

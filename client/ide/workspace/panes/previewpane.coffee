@@ -1,4 +1,4 @@
-class PreviewPane extends Pane
+class IDE.PreviewPane extends IDE.Pane
 
   constructor: (options = {}, data) ->
 

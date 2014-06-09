@@ -1,4 +1,4 @@
-class WorkspaceTabView extends JView
+class IDE.WorkspaceTabView extends JView
 
   constructor: (options = {}, data) ->
 

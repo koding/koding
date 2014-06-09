@@ -1,4 +1,4 @@
-class DrawingPane extends Pane
+class IDE.DrawingPane extends IDE.Pane
 
   constructor: (options = {}, data) ->
 

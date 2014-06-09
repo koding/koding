@@ -1,4 +1,4 @@
-class SettingsPane extends Pane
+class IDE.SettingsPane extends IDE.Pane
 
   constructor: (options = {}, data) ->
 
@@ -6,8 +6,8 @@ class SettingsPane extends Pane
 
     super options, data
 
-    @addSubView new EditorSettingsView
-    @addSubView new TerminalSettingsView
+    @addSubView new IDE.EditorSettingsView
+    @addSubView new IDE.TerminalSettingsView
 
     # TODO: reimplement these settings
     # <p class='hidden'>Highlight selected word {{> @highlightWord}}</p>

@@ -1,4 +1,4 @@
-class TerminalPane extends Pane
+class IDE.TerminalPane extends IDE.Pane
 
   constructor: (options = {}, data) ->
 

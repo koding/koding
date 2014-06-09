@@ -1,4 +1,4 @@
-class FinderPane extends Pane
+class IDE.FinderPane extends IDE.Pane
 
   constructor: (options = {}, data) ->
 

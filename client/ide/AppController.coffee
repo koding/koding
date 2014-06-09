@@ -56,17 +56,17 @@ class IDEAppController extends AppController
         {
           type      : 'custom'
           name      : 'filesPane'
-          paneClass : IDEFilesTabView
+          paneClass : IDE.IDEFilesTabView
         },
         {
           type      : 'custom'
           name      : 'editorPane'
-          paneClass : IDEView
+          paneClass : IDE.IDEView
         }
       ]
 
     appView   = @getView()
-    workspace = @workspace = new Workspace { layoutOptions }
+    workspace = @workspace = new IDE.Workspace { layoutOptions }
     @ideViews = []
 
     workspace.once 'ready', =>
@@ -89,7 +89,7 @@ class IDEAppController extends AppController
   splitTabView: (type = 'vertical') ->
     ideView        = @activeTabView.parent
     ideParent      = ideView.parent
-    newIDEView     = new IDEView
+    newIDEView     = new IDE.IDEView
     @activeTabView = null
 
     ideView.detach()
@@ -129,7 +129,7 @@ class IDEAppController extends AppController
     splitView.merge()
 
   handleSplitMerge: (views, container, parentSplitView, panelIndexInParent) ->
-    ideView = new IDEView
+    ideView = new IDE.IDEView
     panes   = []
 
     for view in views
@@ -249,7 +249,7 @@ class IDEAppController extends AppController
         callback view
 
   updateSettings: (component, key, value) ->
-    Class  = if component is 'editor' then EditorPane else TerminalPane
+    Class  = if component is 'editor' then IDE.EditorPane else IDE.TerminalPane
     method = "set#{key.capitalize()}"
 
     @forEachSubViewInIDEViews_ (view) ->
@@ -261,6 +261,6 @@ class IDEAppController extends AppController
 
   handleResize: ->
     @forEachSubViewInIDEViews_ (view) ->
-      if view instanceof EditorPane
+      if view instanceof IDE.EditorPane
         view.aceView.ace.setHeight view.getHeight() - 23
         view.aceView.ace.editor?.resize yes

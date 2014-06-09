@@ -1,4 +1,4 @@
-class TerminalSettingsView extends IDESettingsView
+class IDE.TerminalSettingsView extends IDE.IDESettingsView
 
   createElements: ->
     @font           = new KDSelectBox

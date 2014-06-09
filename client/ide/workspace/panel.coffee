@@ -1,4 +1,4 @@
-class Panel extends KDView
+class IDE.Panel extends KDView
 
   constructor: (options = {}, data) ->
 
@@ -17,7 +17,7 @@ class Panel extends KDView
     unless layoutOptions
       throw new Error 'You should pass layoutOptions to create a panel'
 
-    @layout = new WorkspaceLayoutBuilder { delegate: this, layoutOptions }
+    @layout = new IDE.WorkspaceLayoutBuilder { delegate: this, layoutOptions }
     @addSubView @layout
 
   createPane: (paneOptions) ->
