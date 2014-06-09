@@ -125,7 +125,7 @@ func (c *ChannelMessageList) populateUnreadCount(messageList []*ChannelMessageCo
 			continue
 		}
 
-		count, err := NewMessageReply().UnreadCount(cml)
+		count, err := NewMessageReply().UnreadCount(cml.MessageId, cml.AddedAt)
 		if err != nil {
 			// helper.MustGetLogger().Error(err.Error())
 			continue
