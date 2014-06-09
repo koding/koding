@@ -151,6 +151,7 @@ config =
       watch       : 1
       queueName   : 1
       verbose     : 1
+      kitePort    : 1
     log           :
       login       : 1
       numberOfWorkers: 1
