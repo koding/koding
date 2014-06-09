@@ -7,6 +7,7 @@ import (
 	"koding/db/mongodb/modelhelper"
 	// _ "net/http/pprof" // Imported for side-effect of handling /debug/pprof.
 	"os"
+	"socialapi/models"
 	"socialapi/workers/api/handlers"
 	"socialapi/workers/common/runner"
 	"socialapi/workers/helper"
@@ -16,21 +17,16 @@ import (
 )
 
 var (
-	cert       = flag.String("cert", "", "certificate pathname")
-	key        = flag.String("key", "", "private key pathname")
-	flagConfig = flag.String("config", "", "pathname of JSON configuration file")
-	host       = flag.String("host", "0.0.0.0", "listen address")
-	port       = flag.String("port", "7000", "listen port")
+	cert = flag.String("cert", "", "certificate pathname")
+	key  = flag.String("key", "", "private key pathname")
+	host = flag.String("host", "0.0.0.0", "listen address")
+	port = flag.String("port", "7000", "listen port")
 
 	hMux       tigertonic.HostServeMux
 	mux, nsMux *tigertonic.TrieServeMux
 
 	Name = "SocialAPI"
 )
-
-type context struct {
-	Username string
-}
 
 func init() {
 	flag.Usage = func() {
@@ -40,6 +36,8 @@ func init() {
 	mux = tigertonic.NewTrieServeMux()
 	mux = handlers.Inject(mux)
 	mux = notificationapi.InitHandlers(mux)
+	tigertonic.SnakeCaseHTTPEquivErrors = true
+
 }
 
 func main() {
@@ -78,10 +76,11 @@ func newServer() *tigertonic.Server {
 	server := tigertonic.NewServer(
 		addr,
 		tigertonic.Logged(
-			tigertonic.WithContext(mux, context{}),
+			tigertonic.WithContext(mux, models.Context{}),
 			nil,
 		),
 	)
+
 	go listener(server)
 	return server
 }

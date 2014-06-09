@@ -1,4 +1,4 @@
-package controller
+package emailnotifier
 
 import (
 	"errors"
@@ -11,7 +11,6 @@ import (
 
 	"github.com/koding/logging"
 	"github.com/koding/rabbitmq"
-	"github.com/koding/worker"
 	"github.com/streadway/amqp"
 )
 
@@ -31,10 +30,7 @@ const (
 	RECIPIENTSKEY = "recipients"
 )
 
-type Action func(*Controller, []byte) error
-
 type Controller struct {
-	routes   map[string]Action
 	log      logging.Logger
 	rmqConn  *amqp.Connection
 	settings *models.EmailSettings
@@ -45,16 +41,6 @@ func (n *Controller) DefaultErrHandler(delivery amqp.Delivery, err error) bool {
 	delivery.Ack(false)
 
 	return false
-}
-
-func (n *Controller) HandleEvent(event string, data []byte) error {
-	n.log.Debug("New Event Received %s", event)
-	handler, ok := n.routes[event]
-	if !ok {
-		return worker.HandlerNotFoundErr
-	}
-
-	return handler(n, data)
 }
 
 func New(rmq *rabbitmq.RabbitMQ, log logging.Logger, es *models.EmailSettings) (*Controller, error) {
@@ -69,27 +55,15 @@ func New(rmq *rabbitmq.RabbitMQ, log logging.Logger, es *models.EmailSettings) (
 		settings: es,
 	}
 
-	routes := map[string]Action{
-		"notification.notification_created": (*Controller).SendInstantEmail,
-		"notification.notification_updated": (*Controller).SendInstantEmail,
-	}
-
-	nwc.routes = routes
-
 	return nwc, nil
 }
 
-func (n *Controller) SendInstantEmail(data []byte) error {
+func (n *Controller) SendInstantEmail(notification *notificationmodels.Notification) error {
 	channel, err := n.rmqConn.Channel()
 	if err != nil {
 		return errors.New("channel connection error")
 	}
 	defer channel.Close()
-
-	notification := notificationmodels.NewNotification()
-	if err := notification.MapMessage(data); err != nil {
-		return err
-	}
 
 	// fetch latest activity for checking actor
 	activity, nc, err := notification.FetchLastActivity()

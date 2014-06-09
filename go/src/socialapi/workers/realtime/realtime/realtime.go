@@ -7,13 +7,11 @@ import (
 	mongomodels "koding/db/models"
 	"koding/db/mongodb/modelhelper"
 	"socialapi/models"
-	"socialapi/workers/common/bytemapper"
 	notificationmodels "socialapi/workers/notification/models"
 	"strconv"
 
 	"github.com/koding/logging"
 	"github.com/koding/rabbitmq"
-	"github.com/koding/worker"
 	"github.com/streadway/amqp"
 	"labix.org/v2/mgo"
 )
@@ -30,10 +28,7 @@ func init() {
 	mongoAccounts = make(map[int64]*mongomodels.Account)
 }
 
-type Action func(*Controller, []byte) error
-
 type Controller struct {
-	routes  map[string]Action
 	log     logging.Logger
 	rmqConn *amqp.Connection
 }
@@ -64,64 +59,14 @@ func New(rmq *rabbitmq.RabbitMQ, log logging.Logger) (*Controller, error) {
 	ffc := &Controller{
 		log:     log,
 		rmqConn: rmqConn.Conn(),
-		routes: map[string]Action{
-			"api.channel_message_created": (*Controller).MessageSaved,
-			"api.channel_message_updated": (*Controller).MessageUpdated,
-			"api.channel_message_deleted": (*Controller).MessageDeleted,
-
-			"api.interaction_created": (*Controller).InteractionSaved,
-			"api.interaction_deleted": (*Controller).InteractionDeleted,
-
-			"api.message_reply_created": (*Controller).MessageReplySaved,
-			"api.message_reply_deleted": (*Controller).MessageReplyDeleted,
-
-			"api.channel_message_list_created": (*Controller).MessageListSaved,
-			"api.channel_message_list_updated": (*Controller).MessageListUpdated,
-			"api.channel_message_list_deleted": (*Controller).MessageListDeleted,
-
-			"api.channel_participant_removed_from_channel": (*Controller).ChannelParticipantRemovedFromChannelEvent,
-			"api.channel_participant_added_to_channel":     (*Controller).ChannelParticipantAddedToChannelEvent,
-			"api.channel_participant_created":              (*Controller).ChannelParticipantAddedToChannelEvent,
-			"api.channel_participant_updated":              (*Controller).ChannelParticipantUpdatedEvent,
-
-			"notification.notification_created": (*Controller).NotifyUser,
-			"notification.notification_updated": (*Controller).NotifyUser,
-		},
 	}
 
 	return ffc, nil
 }
 
-func (f *Controller) HandleEvent(event string, data []byte) error {
-	f.log.Debug("New Event Received %s", event)
-	handler, ok := f.routes[event]
-	if !ok {
-		return worker.HandlerNotFoundErr
-	}
-
-	return handler(f, data)
-}
-
-// no operation for message save for now
-func (f *Controller) MessageSaved(data []byte) error {
-	return nil
-}
-
-// no operation for message delete for now
-// channel_message_delete will handle message deletions from the
-func (f *Controller) MessageDeleted(data []byte) error {
-	return nil
-}
-
-func (f *Controller) MessageUpdated(data []byte) error {
-	cm, err := bytemapper.ChannelMessage(data)
-	if err != nil {
-		return err
-	}
-
-	err = f.sendInstanceEvent(cm.GetId(), cm, "updateInstance")
-	if err != nil {
-		fmt.Println(err)
+func (f *Controller) MessageUpdated(cm *models.ChannelMessage) error {
+	if err := f.sendInstanceEvent(cm.GetId(), cm, "updateInstance"); err != nil {
+		f.log.Error(err.Error())
 		return err
 	}
 
@@ -132,12 +77,7 @@ func (f *Controller) MessageUpdated(data []byte) error {
 // channel participant
 // We are updating status_constant while removing user from the channel
 // but regarding operation has another event, so we are gonna ignore it
-func (f *Controller) ChannelParticipantUpdatedEvent(data []byte) error {
-	cp := models.NewChannelParticipant()
-	if err := json.Unmarshal(data, cp); err != nil {
-		return err
-	}
-
+func (f *Controller) ChannelParticipantUpdatedEvent(cp *models.ChannelParticipant) error {
 	if cp.StatusConstant == models.ChannelParticipant_STATUS_LEFT {
 		f.log.Info("Ignoring participant (%d) left channel event", cp.AccountId)
 		return nil
@@ -151,20 +91,15 @@ func (f *Controller) ChannelParticipantUpdatedEvent(data []byte) error {
 	return f.sendChannelUpdatedEventToParticipant(c, nil, cp)
 }
 
-func (f *Controller) ChannelParticipantRemovedFromChannelEvent(data []byte) error {
-	return f.sendChannelParticipantEvent(data, RemovedFromChannelEventName)
+func (f *Controller) ChannelParticipantRemovedFromChannelEvent(cp *models.ChannelParticipant) error {
+	return f.sendChannelParticipantEvent(cp, RemovedFromChannelEventName)
 }
 
-func (f *Controller) ChannelParticipantAddedToChannelEvent(data []byte) error {
-	return f.sendChannelParticipantEvent(data, AddedToChannelEventName)
+func (f *Controller) ChannelParticipantAddedToChannelEvent(cp *models.ChannelParticipant) error {
+	return f.sendChannelParticipantEvent(cp, AddedToChannelEventName)
 }
 
-func (f *Controller) sendChannelParticipantEvent(data []byte, eventName string) error {
-	cp := models.NewChannelParticipant()
-	if err := json.Unmarshal(data, cp); err != nil {
-		return err
-	}
-
+func (f *Controller) sendChannelParticipantEvent(cp *models.ChannelParticipant, eventName string) error {
 	c, err := models.ChannelById(cp.ChannelId)
 	if err != nil {
 		return err
@@ -182,26 +117,12 @@ func (f *Controller) sendChannelParticipantEvent(data []byte, eventName string) 
 	return nil
 }
 
-func (f *Controller) handleChannelParticipantEvent(eventName string, data []byte) error {
-	cp := models.NewChannelParticipant()
-	if err := json.Unmarshal(data, cp); err != nil {
-		return err
-	}
-
-	c, err := models.ChannelById(cp.ChannelId)
-	if err != nil {
-		return err
-	}
-
-	return f.sendNotification(cp.AccountId, eventName, c)
+func (f *Controller) InteractionSaved(i *models.Interaction) error {
+	return f.handleInteractionEvent("InteractionAdded", i)
 }
 
-func (f *Controller) InteractionSaved(data []byte) error {
-	return f.handleInteractionEvent("InteractionAdded", data)
-}
-
-func (f *Controller) InteractionDeleted(data []byte) error {
-	return f.handleInteractionEvent("InteractionRemoved", data)
+func (f *Controller) InteractionDeleted(i *models.Interaction) error {
+	return f.handleInteractionEvent("InteractionRemoved", i)
 }
 
 // here inorder to solve overflow
@@ -214,12 +135,7 @@ type InteractionEvent struct {
 	Count        int    `json:"count"`
 }
 
-func (f *Controller) handleInteractionEvent(eventName string, data []byte) error {
-	i, err := bytemapper.Interaction(data)
-	if err != nil {
-		return err
-	}
-
+func (f *Controller) handleInteractionEvent(eventName string, i *models.Interaction) error {
 	count, err := i.Count(i.TypeConstant)
 	if err != nil {
 		return err
@@ -247,12 +163,7 @@ func (f *Controller) handleInteractionEvent(eventName string, data []byte) error
 	return nil
 }
 
-func (f *Controller) MessageReplySaved(data []byte) error {
-	mr, err := bytemapper.MessageReply(data)
-	if err != nil {
-		return err
-	}
-
+func (f *Controller) MessageReplySaved(mr *models.MessageReply) error {
 	f.sendReplyAddedEventAsNotificationEvent(mr)
 	f.sendReplyAddedEvent(mr)
 	return nil
@@ -309,14 +220,9 @@ func (f *Controller) sendReplyAddedEventAsNotificationEvent(mr *models.MessageRe
 	return nil
 }
 
-func (f *Controller) MessageReplyDeleted(data []byte) error {
-	i, err := bytemapper.MessageReply(data)
-	if err != nil {
-		return err
-	}
+func (f *Controller) MessageReplyDeleted(i *models.MessageReply) error {
 
-	err = f.sendInstanceEvent(i.MessageId, i, "ReplyRemoved")
-	if err != nil {
+	if err := f.sendInstanceEvent(i.MessageId, i, "ReplyRemoved"); err != nil {
 		fmt.Println(err)
 		return err
 	}
@@ -325,12 +231,7 @@ func (f *Controller) MessageReplyDeleted(data []byte) error {
 }
 
 // send message to the channel
-func (f *Controller) MessageListSaved(data []byte) error {
-	cml, err := bytemapper.ChannelMessageList(data)
-	if err != nil {
-		return err
-	}
-
+func (f *Controller) MessageListSaved(cml *models.ChannelMessageList) error {
 	if err := f.sendChannelUpdatedEvent(cml.ChannelId, nil); err != nil {
 		return err
 	}
@@ -425,12 +326,7 @@ func (f *Controller) sendChannelUpdatedEventToParticipant(c *models.Channel, cm 
 }
 
 // todo - refactor this part
-func (f *Controller) MessageListUpdated(data []byte) error {
-	cml, err := bytemapper.ChannelMessageList(data)
-	if err != nil {
-		return err
-	}
-
+func (f *Controller) MessageListUpdated(cml *models.ChannelMessageList) error {
 	c, err := models.ChannelById(cml.ChannelId)
 	if err != nil {
 		return err
@@ -448,31 +344,20 @@ func (f *Controller) MessageListUpdated(data []byte) error {
 	return nil
 }
 
-func (f *Controller) MessageListDeleted(data []byte) error {
-	cml, err := bytemapper.ChannelMessageList(data)
-	if err != nil {
-		return err
-	}
-
-	err = f.sendChannelEvent(cml, "MessageRemoved")
-	if err != nil {
+func (f *Controller) MessageListDeleted(cml *models.ChannelMessageList) error {
+	if err := f.sendChannelEvent(cml, "MessageRemoved"); err != nil {
 		return err
 	}
 
 	return nil
 }
 
-func (f *Controller) NotifyUser(data []byte) error {
+func (f *Controller) NotifyUser(notification *notificationmodels.Notification) error {
 	channel, err := f.rmqConn.Channel()
 	if err != nil {
 		return errors.New("channel connection error")
 	}
 	defer channel.Close()
-
-	notification := notificationmodels.NewNotification()
-	if err := notification.MapMessage(data); err != nil {
-		return err
-	}
 
 	activity, nc, err := notification.FetchLastActivity()
 	if err != nil {
