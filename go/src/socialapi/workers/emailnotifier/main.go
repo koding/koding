@@ -5,7 +5,6 @@ import (
 	"koding/db/mongodb/modelhelper"
 	"socialapi/workers/common/manager"
 	"socialapi/workers/common/runner"
-	"socialapi/workers/emailnotifier/controller"
 	"socialapi/workers/emailnotifier/emailnotifier"
 	"socialapi/workers/emailnotifier/models"
 	"socialapi/workers/helper"
@@ -40,7 +39,7 @@ func main() {
 		ForcedRecipient: r.Conf.SendGrid.ForcedRecipient,
 	}
 
-	handler, err := controller.New(
+	handler, err := emailnotifier.New(
 		rmq,
 		r.Log,
 		es,
