@@ -38,7 +38,7 @@ func (f *Controller) MessageSaved(data *models.ChannelMessage) error {
 
 	a := models.NewAccount()
 	a.Id = data.AccountId
-	channelIds, err := a.FetchFollowerChannelIds()
+	_, err := a.FetchFollowerChannelIds()
 	if err != nil {
 		return err
 	}
