@@ -45,8 +45,6 @@ config =
       aws         : 1
       premium     : 1
     version       : 1
-    haproxy       :
-      webPort     : 1
     aws           :
       key         : 1
       secret      : 1
@@ -95,14 +93,6 @@ config =
       claimGlobalNamesForUsers: 1
       updateAllSlugs : 1
       debugConnectionErrors: 1
-    uploads       :
-      enableStreamingUploads: 1
-      distribution: 1
-      s3          :
-        awsAccountId        : 1
-        awsAccessKeyId      : 1
-        awsSecretAccessKey  : 1
-        bucket              : 1
     bitly :
       username  : 1
       apiKey    : 1
