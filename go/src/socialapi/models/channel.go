@@ -377,7 +377,9 @@ func (c *Channel) Search(q *Query) ([]Channel, error) {
 	query = query.Where("group_name = ?", q.GroupName)
 	query = query.Where("name like ?", q.Name+"%")
 
-	if err := query.Find(&channels).Error; err != gorm.RecordNotFound && err != nil {
+	if err := bongo.CheckErr(
+		query.Find(&channels),
+	); err != nil {
 		return nil, err
 	}
 
