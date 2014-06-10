@@ -150,8 +150,8 @@ class ActivityController extends KDObject
           new KDNotificationView
             title : "@#{acc.profile.nickname} won't be treated as a troll anymore!"
 
-    if data.originId
-      KD.remote.cacheable "JAccount", data.originId, (err, account)->
+    if data.account._id
+      KD.remote.cacheable "JAccount", data.account._id, (err, account)->
         kallback account if account
     else if data.bongo_.constructorName is 'JAccount'
       kallback data
@@ -186,8 +186,8 @@ class ActivityController extends KDObject
                   new KDNotificationView
                     title : "@#{acc.profile.nickname} marked as a troll!"
 
-            if data.originId
-              KD.remote.cacheable "JAccount", data.originId, (err, account)->
+            if data.account._id
+              KD.remote.cacheable "JAccount", data.account._id, (err, account)->
                 kallback account if account
             else if data.bongo_.constructorName is 'JAccount'
               kallback data

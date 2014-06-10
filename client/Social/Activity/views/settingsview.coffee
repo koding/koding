@@ -68,9 +68,10 @@ class ActivitySettingsView extends KDCustomHTMLView
         activityController.emit "ActivityItemMarkUserAsTrollClicked", post
 
     @addMenuItem 'Block User', ->
-      activityController.emit "ActivityItemBlockUserClicked", post.originId
+      activityController.emit "ActivityItemBlockUserClicked", post.account._id
     @addMenuItem 'Impersonate', ->
-      KD.remote.cacheable post.originType, post.originId, (err, owner) ->
+      {constructorName, _id} = post.account
+      KD.remote.cacheable constructorName, _id, (err, owner) ->
         return KD.showError err  if err
         return KD.showError message: "Account not found"  unless owner
         KD.impersonate owner.profile.nickname

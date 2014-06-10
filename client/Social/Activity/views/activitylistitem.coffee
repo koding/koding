@@ -43,7 +43,8 @@ class ActivityListItemView extends KDListItemView
     data.watch 'repliesCount', (count) =>
       @commentBox.decorateCommentedState() if count >= 0
 
-    KD.remote.cacheable data.originType, data.originId, (err, account)=>
+    {_id, constructorName} = data.account
+    KD.remote.cacheable constructorName, _id, (err, account)=>
       @setClass "exempt" if account and KD.checkFlag 'exempt', account
 
     embedOptions  =
