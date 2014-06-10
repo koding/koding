@@ -66,7 +66,7 @@ class ActivityListController extends KDListViewController
 
   isMine:(activity)->
     id = KD.whoami().getId()
-    id? and id in [activity.originId, activity.anchor?.id]
+    id? and id in [activity.account._id, activity.anchor?.id]
 
   unhideNewHiddenItems: ->
 
