@@ -319,3 +319,19 @@ func addLimit(query *gorm.DB, limit int) *gorm.DB {
 
 	return query
 }
+
+func CheckErr(res *gorm.DB) error {
+	if res == nil {
+		return nil
+	}
+
+	if res.Error == nil {
+		return nil
+	}
+
+	if res.Error == gorm.RecordNotFound {
+		return nil
+	}
+
+	return res.Error
+}
