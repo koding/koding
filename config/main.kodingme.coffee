@@ -6,7 +6,7 @@ customDomain    =
   public        : "http://koding.me"
   local         : "http://127.0.0.1"
   local_        : "localhost"
-  port          : 3020
+  port          : 80
 
 rabbitmq        =
   login         : "guest"
