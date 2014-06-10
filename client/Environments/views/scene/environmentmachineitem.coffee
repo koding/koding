@@ -1,6 +1,9 @@
 class EnvironmentMachineItem extends EnvironmentItem
 
   JView.mixin @prototype
+  stateClasses = ""
+  for state in Object.keys Machine.State
+    stateClasses += "#{state.toLowerCase()} "
 
   constructor:(options={}, data)->
 
