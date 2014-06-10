@@ -346,7 +346,7 @@ resurrection.activity.styl
 
             > .user-numbers
               padding     0 0 0 41px
-              width       100%
+              width       90%
               font-weight 300
               color       #949494
               margin-top  1px
@@ -1121,6 +1121,63 @@ span.collapsedtext
       r-sprite              activity, "facebook-21"
     &.share-linkedin
       r-sprite              activity, "linkedin-21"
+
+
+.kdtabpaneview.privatemessage
+  .chat-heads
+    size                    auto, 57px
+    line-height             57px
+    border-radius           12px
+    background              #dcdcdc
+    margin                  0 0 24px
+    overflow                visible
+
+    .description
+      color                 #4a4a4a
+      font-size             13px
+      padding               0 0 0 26px
+      display               block
+      overflow              visible
+      fl()
+
+      &:before
+        content             ''
+        display             inline-block
+        r-sprite            'activity', 'lock-16'
+        vertical-align      text-top
+        margin              0 8px 0 0
+
+    .heads
+      margin                12px 0 0 14px
+      fl()
+
+      .avatarview
+        size                auto, auto
+        margin              0 6px 0 0
+        border              1px solid #d4d4d4
+        fl()
+
+        img
+          display           block
+          margin            0
+          padding           0
+
+      .kdbutton.new-participant
+        display             block
+        size                30px, 30px
+        border              1px dashed #9c9c9c
+        rounded             50%
+        background          transparent
+        padding             0
+        fl()
+
+        .icon
+          margin            0 0 0 9px
+          display           block
+          r-sprite          'activity', 'new-participant-plus'
+
+
+
 
 
 

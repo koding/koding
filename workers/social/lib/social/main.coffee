@@ -16,6 +16,7 @@ log4js.configure {
 
 {exec} = require 'child_process'
 {extend} = require 'underscore'
+{ join: joinPath } = require 'path'
 
 process.on 'uncaughtException', (err)->
   exec './beep'
@@ -53,6 +54,28 @@ koding = new Bongo {
   models      : './models'
   resourceName: social.queueName
   mq          : broker
+
+  kite          :
+    kontrol     : 'ws://localhost:4000'
+    name        : 'social'
+    environment : 'vagrant'
+    region      : 'vagrant'
+    version     : KONFIG.version
+    username    : 'koding'
+    port        : KONFIG.social.kitePort
+    kiteKey     : joinPath __dirname, '../../../../kite_home/koding/kite.key'
+
+    fetchClient: (name, context, callback) ->
+      { JAccount } = koding.models
+      [callback, context] = [context, callback] unless callback
+      context   ?= group: 'koding'
+      callback  ?= ->
+      JAccount.one 'profile.nickname': name, (err, account) ->
+        return callback err  if err?
+
+        if account instanceof JAccount
+          callback null, { context, connection:delegate:account }
+
   fetchClient :(sessionToken, context, callback)->
     { JUser, JAccount } = koding.models
     [callback, context] = [context, callback] unless callback

@@ -33,13 +33,19 @@ class ActivityAppView extends KDScrollView
 
 
 
-  lazyLoadThresholdReached: -> @tabs.getActivePane().emit 'LazyLoadThresholdReached'
+  lazyLoadThresholdReached: -> @tabs.getActivePane()?.emit 'LazyLoadThresholdReached'
 
 
   viewAppended: ->
 
     @addSubView @sidebar
     @addSubView @tabs
+
+
+  showNewMessageModal: ->
+
+    unless @tabs.getActivePane()
+      @open 'public'
 
 
   open: (type, slug) ->

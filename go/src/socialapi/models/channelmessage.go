@@ -45,6 +45,9 @@ type ChannelMessage struct {
 
 	// Deletion date of the channel message
 	DeletedAt time.Time `json:"deletedAt"`
+
+	// Extra data storage
+	Payload gorm.Hstore `json:"payload,omitempty"`
 }
 
 func (c *ChannelMessage) BeforeCreate() {
