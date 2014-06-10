@@ -327,6 +327,8 @@ func addLimit(query *gorm.DB, limit int) *gorm.DB {
 	return query
 }
 
+// CheckErr checks error exitence and returns
+// if found, but this function suppress RecordNotFound errors
 func CheckErr(res *gorm.DB) error {
 	if res == nil {
 		return nil
