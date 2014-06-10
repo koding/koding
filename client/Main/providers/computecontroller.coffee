@@ -63,9 +63,14 @@ class ComputeController extends KDController
       delete @stacks
       @emit "renderStacks"
 
+
   destroy: (machine)->
 
     ComputeController.UI.askFor 'destroy', machine, =>
+
+      @eventListener.triggerState machine,
+        status      : Machine.State.Terminating
+        percentage  : 0
 
       @kloud.destroy { machineId: machine._id }
 
@@ -79,6 +84,10 @@ class ComputeController extends KDController
 
 
   build: (machine)->
+
+    @eventListener.triggerState machine,
+      status      : Machine.State.Building
+      percentage  : 0
 
     @kloud.build { machineId: machine._id }
 
