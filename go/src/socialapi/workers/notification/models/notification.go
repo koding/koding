@@ -4,10 +4,11 @@ import (
 	"encoding/json"
 	"errors"
 	// "fmt"
-	"github.com/jinzhu/gorm"
-	"github.com/koding/bongo"
 	"socialapi/models"
 	"time"
+
+	"github.com/jinzhu/gorm"
+	"github.com/koding/bongo"
 )
 
 type Notification struct {
@@ -158,7 +159,7 @@ func (n *Notification) fetchByAccountId(q *models.Query) ([]Notification, error)
 		Limit(q.Limit).
 		Find(&notifications).Error
 
-	if err != nil {
+	if err != gorm.RecordNotFound && err != nil {
 		return nil, err
 	}
 
