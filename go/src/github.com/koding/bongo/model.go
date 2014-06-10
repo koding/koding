@@ -10,6 +10,7 @@ import (
 	"github.com/jinzhu/gorm"
 )
 
+// Fetch fetchs the data from db by given parameters(fields of the struct)
 func (b *Bongo) Fetch(i Modellable) error {
 	if i.GetId() == 0 {
 		return errors.New(fmt.Sprintf("Id is not set for %s", i.TableName()))
