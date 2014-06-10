@@ -148,7 +148,7 @@ func (k *Kloud) coreMethods(r *kite.Request, c *Controller, fn func(*protocol.Ma
 			k.Log.Error("[controller] %s failed: %s. Machine state is Unknown now.",
 				r.Method, err.Error())
 
-			status = machinestate.Unknown
+			status = s.initial
 			msg = err.Error()
 		}
 
