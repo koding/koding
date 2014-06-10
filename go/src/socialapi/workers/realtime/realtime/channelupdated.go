@@ -84,13 +84,13 @@ func (f *Controller) isEligibleForBroadcasting(cue *channelUpdatedEvent, account
 		return true
 	}
 
-	// if parent mesasge's crateor is account
+	// if parent message's crateor is account
 	// dont send it
 	if cue.ParentChannelMessage.AccountId == accountId {
 		return false
 	}
 
-	// if reply mesasge's crateor is account
+	// if reply message's crateor is account
 	// dont send it
 	if cue.ReplyChannelMessage.AccountId == accountId {
 		return false
