@@ -151,10 +151,7 @@ class EnvironmentMachineItem extends EnvironmentItem
 
   openTerminal:->
 
-    vmName = @getData().hostnameAlias
     KD.getSingleton("router").handleRoute "/Terminal", replaceState: yes
-    KD.getSingleton("appManager").open "Terminal", params: {vmName}, forceNew: yes
-
 
   confirmDestroy:->
 
