@@ -276,6 +276,7 @@ func (b *Bongo) AfterDelete(i Modellable) {
 	b.PublishEvent("deleted", i)
 }
 
+// addSort injects sort parameters into query
 func addSort(query *gorm.DB, options map[string]string) *gorm.DB {
 
 	if options == nil {
@@ -293,6 +294,8 @@ func addSort(query *gorm.DB, options map[string]string) *gorm.DB {
 	return query.Order(strings.Join(opts, ","))
 }
 
+// addPluck basically adds select statement for
+// only required fields
 func addPluck(query *gorm.DB, plucked string) *gorm.DB {
 	if plucked == "" {
 		return query
@@ -301,6 +304,7 @@ func addPluck(query *gorm.DB, plucked string) *gorm.DB {
 	return query.Select(plucked)
 }
 
+// addWhere adds where query
 func addWhere(query *gorm.DB, selector map[string]interface{}) *gorm.DB {
 	if selector == nil {
 		return query
@@ -310,6 +314,7 @@ func addWhere(query *gorm.DB, selector map[string]interface{}) *gorm.DB {
 	return query.Where(selector)
 }
 
+// addSkip adds skip parameter into sql query
 func addSkip(query *gorm.DB, skip int) *gorm.DB {
 	if skip > 0 {
 		return query.Offset(skip)
@@ -318,6 +323,7 @@ func addSkip(query *gorm.DB, skip int) *gorm.DB {
 	return query
 }
 
+// addLimit adds limit into query if set
 func addLimit(query *gorm.DB, limit int) *gorm.DB {
 	// if limit is minus or 0 ignore
 	if limit > 0 {
