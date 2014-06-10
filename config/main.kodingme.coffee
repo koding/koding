@@ -2,14 +2,14 @@ fs              = require 'fs'
 nodePath        = require 'path'
 deepFreeze      = require 'koding-deep-freeze'
 
-customDomain =
-  public    : "http://koding.me"
-  local     : "http://127.0.0.1"
-  local_    : "localhost"
+customDomain    =
+  public        : "http://koding.me"
+  local         : "http://127.0.0.1"
+  local_        : "localhost"
 
-rabbitmq =
-  login   : "guest"
-  password: "guest"
+rabbitmq        =
+  login         : "guest"
+  password      : "guest"
 
 version         = "0.0.1"
 mongo           = "#{customDomain.local_}:27017/koding"
@@ -23,11 +23,10 @@ authAllExchange = "authAll"
 
 embedlyApiKey   = '94991069fb354d4e8fdb825e52d4134a'
 
-
-
 environment     = "kodingme"
+
 regions         =
-  kodingme       : "kodingme"
+  kodingme      : "kodingme"
   vagrant       : "vagrant"
   sj            : "sj"
   aws           : "aws"

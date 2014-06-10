@@ -13,6 +13,7 @@ option '-s', '--dontBuildSprites', 'dont build sprites'
 
 option '-y', '--yes', 'pass yes to corresponding command'
 option '-g', '--evengo', 'pass evengo to corresponding command'
+option '-r', '--region [REGION]', 'region flag'
 
 require('coffee-script').register()
 
@@ -58,14 +59,16 @@ compileGoBinaries = (configFile,callback)->
       stderr : process.stderr
       verbose : yes
       onExit :->
-        processes.spawn
-          name: 'build go in vagrant'
-          cmd : 'vagrant ssh default --command "/opt/koding/go/build.sh bin-vagrant"'
-          stdout : process.stdout
-          stderr : process.stderr
-          verbose : yes
-          onExit :->
-            callback null
+        callback null
+#         processes.spawn
+#           name: 'build go in vagrant'
+#           cmd : 'vagrant ssh default --command "/opt/koding/go/build.sh bin-vagrant"'
+#           stdout : process.stdout
+#           stderr : process.stderr
+#           verbose : yes
+#           onExit :->
+#             callback null
+      
   else
     callback null
 
@@ -86,14 +89,19 @@ task 'deleteNeo4j', "Drop all entries in the local Neo4j database", ({configFile
 task 'compileGo', "Compile the local go binaries", ({configFile})->
   compileGoBinaries configFile,->
 
-task 'webserver', "Run the webserver", ({configFile, tests}) ->
+task 'webserver', "Run the webserver", ({configFile, tests,region}) ->
   KONFIG = require('koding-config-manager').load("main.#{configFile}")
   {webserver,sourceServer} = KONFIG
 
   runServer = (config, port, index) ->
+    if region is "kodingme"
+      cmd = __dirname + "/server/index -c #{config} -p #{port}#{if tests then ' -t' else ''} --disable-newrelic"
+    else
+      cmd = __dirname + "/server/index -c #{config} -p #{port}#{if tests then ' -t' else ''}"
+
     processes.fork
       name              : "server"
-      cmd               : __dirname + "/server/index -c #{config} -p #{port}#{if tests then ' -t' else ''}"
+      cmd               : cmd
       restart           : yes
       restartTimeout    : 100
       kontrol           :
@@ -127,18 +135,25 @@ task 'webserver', "Run the webserver", ({configFile, tests}) ->
           onChange  : ->
             processes.kill "server"
 
-task 'socialWorker', "Run the socialWorker", ({configFile}) ->
+task 'socialWorker', "Run the socialWorker", ({configFile,region}) ->
   KONFIG = require('koding-config-manager').load("main.#{configFile}")
   {social} = KONFIG
 
   console.log 'CAKEFILE STARTING SOCIAL WORKERS'
 
+
+  
   for i in [1..social.numberOfWorkers]
     port = 3029 + i
+    
+    if region is "kodingme"
+      cmd = __dirname + "/workers/social/index -c #{configFile} -p #{port} --disable-newrelic"
+    else
+      cmd = __dirname + "/workers/social/index -c #{configFile} -p #{port}"
 
     processes.fork
       name           : if social.numberOfWorkers is 1 then "social" else "social-#{i}"
-      cmd            : __dirname + "/workers/social/index -c #{configFile} -p #{port}"
+      cmd            : cmd
       restart        : yes
       restartTimeout : 100
       kontrol        :
@@ -564,9 +579,17 @@ task 'kontrolApi', "Run the kontrolApi", (options) ->
 
 task 'kontrolKite', "Run the kontrol kite", (options) ->
   {configFile} = options
+
+  if options.region is "kodingme"
+    cmd = "sudo KITE_HOME=/home/ubuntu/koding/kite_home/koding /home/ubuntu/koding/go/bin/kontrol -c #{configFile} -r #{options.region}"
+  else 
+    cmd = "vagrant ssh default -c 'cd /opt/koding; sudo killall -q -KILL kontrol; sudo KITE_HOME=/opt/koding/kite_home/koding /opt/koding/go/bin-vagrant/kontrol -c #{configFile} -r vagrant'"
+    
+
+
   processes.spawn
     name    : 'kontrolKite'
-    cmd     : "vagrant ssh default -c 'cd /opt/koding; sudo killall -q -KILL kontrol; sudo KITE_HOME=/opt/koding/kite_home/koding /opt/koding/go/bin-vagrant/kontrol -c #{configFile} -r vagrant'"
+    cmd     : cmd
     stdout  : process.stdout
     stderr  : process.stderr
     verbose : yes
@@ -616,10 +639,11 @@ task 'migratePost', "Migrate Posts to JNewStatusUpdate", ({configFile})->
 run =({configFile})->
   process.stdout.setMaxListeners 100
   process.stderr.setMaxListeners 100
-
+  
   config = require('koding-config-manager').load("main.#{configFile}")
 
   compileGoBinaries configFile, ->
+    console.log ">>>>>>>>>>>"
     invoke 'kontrolDaemon'                    if config.runKontrol
     invoke 'kontrolApi'                       if config.runKontrol
 
