@@ -9,38 +9,8 @@ class CommentListItemView extends KDListItemView
     super options, data
 
 
+
   click: (event) -> KD.utils.showMoreClickHandler event
-
-
-  createMenu: ->
-
-    data         = @getData()
-    {activity}   = @getOptions()
-    isOwner      = KD.isMyPost activity or KD.isMyPost data
-    canEdit      = 'edit comments' in KD.config.permissions
-    canDeleteOwn = (KD.isMyPost(data) and 'edit own comments' in KD.config.permissions)
-
-    @settings =
-      if canEdit
-      then @getSettingsButton edit: yes, delete: yes
-      else if isOwner or canDeleteOwn
-      then @getSettingsButton delete: yes
-      else new KDView
-
-
-  getSettingsButton: (options) ->
-
-    menu = {}
-
-    if options.edit
-      menu['Edit Comment'] = callback: @bound 'showEditForm'
-
-    if options.delete
-      menu['Delete Comment'] = callback: @bound 'showDeleteModal'
-
-    delegate = this
-
-    return new CommentSettingsButton {delegate, menu}
 
 
   showEditForm: ->
@@ -101,6 +71,39 @@ class CommentListItemView extends KDListItemView
       @getDelegate().emit 'Mention', account.profile.nickname
 
 
+  addMenu: ->
+
+    comment       = @getData()
+    {activity}    = @getOptions()
+    owner         = KD.isMyPost comment
+    postOwner     = KD.isMyPost activity
+    hasPermission = KD.utils.hasPermission.bind()
+    canEdit       = hasPermission 'edit comments'
+    canEditOwn    = hasPermission 'edit own comments'
+
+    if canEdit or (owner and canEditOwn)
+      @addMenuView edit: yes, delete: yes
+    else if postOwner
+      @addMenuView delete: yes
+
+
+  addMenuView: (options) ->
+
+    @menuWrapper.destroySubViews()
+
+    menu = {}
+
+    if options.edit
+      menu['Edit Comment'] = callback: @bound 'showEditForm'
+
+    if options.delete
+      menu['Delete Comment'] = callback: @bound 'showDeleteModal'
+
+    delegate = this
+
+    @menuWrapper.addSubView new CommentSettingsButton {delegate, menu}
+
+
   viewAppended: ->
 
     data = @getData()
@@ -137,7 +140,8 @@ class CommentListItemView extends KDListItemView
     # if deleterId? and deleterId isnt origin.id
     #   @deleter = new ProfileLinkView {}, data.getAt 'deletedBy'
 
-    @createMenu()
+    @menuWrapper = new KDCustomHTMLView
+    @addMenu()
     @createReplyLink()
 
     @likeView    = new CommentLikeView {}, data
@@ -170,7 +174,7 @@ class CommentListItemView extends KDListItemView
     {{> @body}}
     {{> @formWrapper}}
     {{> @editInfo}}
-    {{> @settings}}
+    {{> @menuWrapper}}
     {{> @likeView}}
     {{> @replyView}}
     {{> @timeAgoView}}
