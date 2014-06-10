@@ -71,9 +71,9 @@ module.exports =
     port        : 7474
   runNeo4jFeeder: no
   runGoBroker   : yes
-  runGoBrokerKite: no
-  runPremiumBroker: no
-  runPremiumBrokerKite: no
+  runGoBrokerKite: yes
+  runPremiumBroker: yes
+  runPremiumBrokerKite: yes
   runKontrol    : yes
   runRerouting  : yes
   runUserPresence: no
@@ -204,7 +204,7 @@ module.exports =
       uploadsUriForGroup: 'https://koding-groups.s3.amazonaws.com'
       sourceUri : "#{customDomain.public}:3526"
       newkontrol:
-        url     : 'ws://127.0.0.1:4000/kontrol'
+        url     : "ws://#{customDomain.public}:4000/kontrol"
       fileFetchTimeout: 15 * 1000 # seconds
       externalProfiles  :
         github          :
@@ -328,8 +328,8 @@ module.exports =
       apiHost     : "127.0.0.1"
       apiPort     : 8888
       port        : 8080
-      kodingHost  : "example.com"
-      socialHost  : "social.example.com"
+      kodingHost  : customDomain.public_
+      socialHost  : customDomain.public_
     api           :
       port        : 8888
       url         : "#{customDomain.public}"
