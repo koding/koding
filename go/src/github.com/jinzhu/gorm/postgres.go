@@ -1,9 +1,87 @@
 package gorm
 
 import (
+	"database/sql"
+	"database/sql/driver"
+	"encoding/json"
 	"fmt"
 	"reflect"
+
+	"github.com/lib/pq/hstore"
 )
+
+var hstoreType = reflect.TypeOf(Hstore{})
+
+type Hstore map[string]*string
+
+func (h Hstore) Value() (driver.Value, error) {
+	hstore := hstore.Hstore{Map: map[string]sql.NullString{}}
+	if len(h) == 0 {
+		return nil, nil
+	}
+
+	for key, value := range h {
+		hstore.Map[key] = sql.NullString{*value, true}
+	}
+	return hstore.Value()
+}
+
+func (h *Hstore) Scan(value interface{}) error {
+	hstore := hstore.Hstore{}
+
+	if err := hstore.Scan(value); err != nil {
+		return err
+	}
+
+	if len(hstore.Map) == 0 {
+		return nil
+	}
+
+	*h = Hstore{}
+	for k := range hstore.Map {
+		if hstore.Map[k].Valid {
+			s := hstore.Map[k].String
+			(*h)[k] = &s
+		} else {
+			(*h)[k] = nil
+		}
+	}
+
+	return nil
+}
+
+func (h *Hstore) UnmarshalJSON(data []byte) error {
+	hMap := map[string]interface{}{}
+	if err := json.Unmarshal(data, &hMap); err != nil {
+		return err
+	}
+
+	if len(hMap) == 0 {
+		return nil
+	}
+
+	resultMap := make(map[string]*string)
+	for key, value := range hMap {
+		// when value is a map, then marshal it
+		if reflect.ValueOf(value).Kind() == reflect.Map {
+			res, err := json.Marshal(value)
+			if err != nil {
+				return err
+			}
+
+			s := string(res)
+			resultMap[key] = &s
+			continue
+		}
+
+		// for the other types convert value to string
+		str := fmt.Sprintf("%v", value)
+		resultMap[key] = &str
+	}
+	*h = resultMap
+
+	return nil
+}
 
 type postgres struct {
 }
@@ -34,6 +112,10 @@ func (d *postgres) SqlTag(value reflect.Value, size int) string {
 	case reflect.Struct:
 		if value.Type() == timeType {
 			return "timestamp with time zone"
+		}
+	case reflect.Map:
+		if value.Type() == hstoreType {
+			return "hstore"
 		}
 	default:
 		if _, ok := value.Interface().([]byte); ok {

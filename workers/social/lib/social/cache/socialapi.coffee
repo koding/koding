@@ -18,14 +18,17 @@ module.exports = (options={}, callback)->
 
     SocialChannel.fetchPopularTopics client, options, cb
 
+  defaultOptions =
+    limit: 5
+
   fetchFollowedChannels = (bongoModels, client, cb)->
-    SocialChannel.fetchFollowedChannels client, { limit: 5 }, cb
+    SocialChannel.fetchFollowedChannels client, defaultOptions, cb
 
   fetchPinnedMessages = (bongoModels, client, cb)->
-    SocialChannel.fetchPinnedMessages client, {}, cb
+    SocialChannel.fetchPinnedMessages client, defaultOptions, cb
 
   fetchPrivateMessages = (bongoModels, client, cb)->
-    SocialMessage.fetchPrivateMessages client, {}, cb
+    SocialMessage.fetchPrivateMessages client, defaultOptions, cb
 
   fetchGroupActivities = (bongoModels, client, cb)->
     SocialChannel.fetchGroupActivities client, {}, cb
