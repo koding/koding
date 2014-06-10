@@ -3,6 +3,8 @@ package kloud
 import (
 	"fmt"
 	"strconv"
+
+	"github.com/koding/kite"
 )
 
 const (
@@ -53,23 +55,17 @@ var errors = map[int]string{
 	ErrSignGenerateToken:   "Cannot generate token",
 }
 
-type Error struct {
-	Message string `json:"message"`
-	Code    int    `json:"code"`
-}
-
-func (e Error) Error() string {
-	return e.Message + " (error code: " + strconv.Itoa(e.Code) + ")"
-}
-
-func NewError(errorCode int) *Error {
+func NewError(errorCode int) *kite.Error {
 	errMsg, ok := errors[errorCode]
 	if !ok {
 		panic(fmt.Sprintf("no message is defined for error code %s", errorCode))
 	}
 
-	return &Error{
-		Message: errMsg,
-		Code:    errorCode,
+	code := strconv.Itoa(errorCode)
+
+	return &kite.Error{
+		Type:    "kloudError",
+		Message: errMsg + " (error code: " + code + ")",
+		CodeVal: code,
 	}
 }
