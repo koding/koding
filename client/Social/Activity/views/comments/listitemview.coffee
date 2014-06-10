@@ -8,6 +8,7 @@ class CommentListItemView extends KDListItemView
 
     super options, data
 
+    (KD.singleton 'mainController').on 'AccountChanged', @bound 'addMenu'
 
 
   click: (event) -> KD.utils.showMoreClickHandler event
