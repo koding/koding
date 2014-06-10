@@ -68,18 +68,9 @@ func (k *Kloud) NewKloud() *kodingkite.KodingKite {
 		k.Log = createLogger(NAME, k.Debug)
 	}
 
-	hostname, err := os.Hostname()
-	if err != nil {
-		panic(err) // we should not let it start
-	}
-
-	// TODO: add a unique identifier, for letting multiple version of the same
-	// worker work on the same hostname.
-	kloudUniqueId := fmt.Sprintf("%s-%s", NAME, hostname)
-
 	mongodbSession := &MongoDB{
 		session:  mongodb.NewMongoDB(k.Config.Mongo),
-		assignee: kloudUniqueId,
+		assignee: uniqueId(),
 	}
 
 	if err := mongodbSession.CleanupOldData(); err != nil {
@@ -134,6 +125,17 @@ func (k *Kloud) InitializeProviders() {
 			}
 		},
 	}
+}
+
+func uniqueId() string {
+	// TODO: add a unique identifier, for letting multiple version of the same
+	// worker work on the same hostname.
+	hostname, err := os.Hostname()
+	if err != nil {
+		panic(err) // we should not let it start
+	}
+
+	return fmt.Sprintf("%s-%s", NAME, hostname)
 }
 
 func createLogger(name string, debug bool) logging.Logger {
