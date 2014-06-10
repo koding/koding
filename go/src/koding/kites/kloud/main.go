@@ -21,6 +21,7 @@ var (
 	flagKontrolURL = flag.String("kontrol-url", "", "Kontrol URL to be connected")
 	flagPublicKey  = flag.String("public-key", "", "Public RSA key of Kontrol")
 	flagPrivateKey = flag.String("private-key", "", "Private RSA key of Kontrol")
+	flagUniqueId   = flag.String("id", "", "Start kloud with a uniqueId assignee name")
 )
 
 func main() {
@@ -71,6 +72,7 @@ func main() {
 		Region:            *flagRegion,
 		Port:              *flagPort,
 		Debug:             *flagDebug,
+		UniqueId:          *flagUniqueId,
 		KontrolURL:        kontrolURL,
 		KontrolPrivateKey: privateKey,
 		KontrolPublicKey:  publicKey,
