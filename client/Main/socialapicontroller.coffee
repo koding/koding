@@ -58,7 +58,8 @@ class SocialApiController extends KDController
 
   mapActivity = (data) ->
 
-    return  unless plain = data.message or data
+    return  unless data
+    return  unless plain = data.message
 
     {accountOldId, replies, interactions} = data
     {createdAt, deletedAt, updatedAt}     = plain
@@ -114,9 +115,9 @@ class SocialApiController extends KDController
 
     mappedChannels = []
 
-    for messageContainer in messages
-      message = mapActivity messageContainer.lastMessage
-      channel = mapChannels(messageContainer)?[0]
+    for channelContainer in messages
+      message = mapActivity channelContainer.lastMessage
+      channel = mapChannels(channelContainer)?[0]
       channel.lastMessage = message
 
       mappedChannels.push channel
@@ -144,6 +145,7 @@ class SocialApiController extends KDController
       data.participantCount    = channel.participantCount
       data.participantsPreview = mapAccounts channel.participantsPreview
       data.unreadCount         = channel.unreadCount
+      data.lastMessage = mapActivity channel.lastMessage if channel.lastMessage
       c = new SocialChannel data
       # push channel into stack
       revivedChannels.push c
