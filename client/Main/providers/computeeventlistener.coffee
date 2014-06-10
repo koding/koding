@@ -55,6 +55,13 @@ class ComputeEventListener extends KDObject
     computeController.emit "public-#{machine._id}", state
 
 
+  revertToPreviousState:(machine)->
+
+    status = @machineStatuses[machine.uid]
+    @triggerState machine, { status }  if status?
+    delete @machineStatuses[machine.uid]
+
+
   tick:->
 
     return  unless @listeners.length

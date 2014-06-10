@@ -79,7 +79,9 @@ class ComputeController extends KDController
         @eventListener.addListener 'destroy', machine._id
         log "destroy res:", res
 
-      .catch (err)->
+      .catch (err)=>
+
+        @eventListener.revertToPreviousState machine
         warn "destroy err:", err
 
 
@@ -96,7 +98,9 @@ class ComputeController extends KDController
       @eventListener.addListener 'build', machine._id
       log "build res:", res
 
-    .catch (err)->
+    .catch (err)=>
+
+      @eventListener.revertToPreviousState machine
       warn "build err:", err
 
 
@@ -115,6 +119,7 @@ class ComputeController extends KDController
 
     .catch (err)=>
 
+      @eventListener.revertToPreviousState machine
       warn "start err:", err
 
 
@@ -133,6 +138,7 @@ class ComputeController extends KDController
 
     .catch (err)=>
 
+      @eventListener.revertToPreviousState machine
       warn "stop err:", err
 
 
@@ -159,6 +165,7 @@ class ComputeController extends KDController
 
     .catch (err)=>
 
+      @eventListener.revertToPreviousState machine
       warn "info err:", err
 
 
