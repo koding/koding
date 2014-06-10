@@ -22,6 +22,7 @@ class ActivityAppView extends KDScrollView
 
     {entryPoint}           = KD.config
     {appStorageController} = KD.singletons
+    @_lastMessage          = null
 
     @appStorage = appStorageController.storage 'Activity', '2.0'
     @sidebar    = new ActivitySidebar tagName : 'aside', delegate : this
@@ -40,12 +41,6 @@ class ActivityAppView extends KDScrollView
 
     @addSubView @sidebar
     @addSubView @tabs
-
-
-  showNewMessageModal: ->
-
-    unless @tabs.getActivePane()
-      @open 'public'
 
 
   open: (type, slug) ->
@@ -83,3 +78,62 @@ class ActivityAppView extends KDScrollView
     pane?.refresh()
 
     return pane
+
+
+  showNewMessageModal: ->
+
+    @open 'public'  unless @tabs.getActivePane()
+
+    modal = new KDModalViewWithForms
+      title                   : 'New Private Message'
+      cssClass                : 'private-message'
+      content                 : ''
+      overlay                 : yes
+      width                   : 660
+      height                  : 'auto'
+      tabs                    :
+        forms                 :
+          Message             :
+            callback          : =>
+              {body} = modal.modalTabs.forms.Message.inputs
+              {send} = modal.modalTabs.forms.Message.buttons
+              val = body.getValue()
+              {router, socialapi} = KD.singletons
+              socialapi.message.sendPrivateMessage body : val, (err, channels) ->
+                send.hideLoader()
+                if err then KD.showError err
+                else
+                  [channel] = channels
+                  debugger
+                  router.handleRoute "/Activity/Message/#{channel.id}"
+                  @_lastMessage = null
+                  modal.destroy()
+            buttons           :
+              send            :
+                title         : 'Send'
+                style         : 'solid-green'
+                type          : 'submit'
+              cancel          :
+                title         : 'Nevermind'
+                style         : 'modal-cancel'
+                callback      : (event) =>
+                  @_lastMessage = null
+                  modal.destroy()
+            fields            :
+              body            :
+                label         : ''
+                name          : 'body'
+                type          : 'textarea'
+                defaultValue  : @_lastMessage  if @_lastMessage
+                placeholder   : "What's on your mind? Don't forget to @mention people you want this message to be sent."
+                keyup         : =>
+                  @_lastMessage = modal.modalTabs.forms.Message.inputs.body.getValue()
+                validate      :
+                  rules       :
+                    required  : yes
+                  messages    :
+                    required  : 'You forgot to put some message in.'
+
+    modal.on 'KDModalViewDestroyed', KD.singletons.router.bound 'back'
+
+    return modal

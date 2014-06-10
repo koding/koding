@@ -104,7 +104,7 @@ class ActivitySidebar extends KDCustomScrollView
     candidateItems = []
     for own name, {listController} of @sections
 
-      for item in listController.itemsOrdered
+      for item in listController.getListItems()
         data = item.getData()
         if data.typeConstant is type and (data.id is slug or data.name is slug or data.slug is slug)
           candidateItems.push item
@@ -141,7 +141,7 @@ class ActivitySidebar extends KDCustomScrollView
     itemWeWant = null
     for own name, section of @sections
 
-      section.listController.itemsOrdered.forEach (item)->
+      section.listController.getListItems().forEach (item)->
         if item.typeConstant is typeConstant
           slugProp = slugProps[item.bongo_.constructorName]
           itemWeWant = item[slugProp] is slug

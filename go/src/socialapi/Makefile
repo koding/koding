@@ -2,10 +2,10 @@
 NO_COLOR=\033[0m
 OK_COLOR=\033[0;32m
 GODIR=$(CURDIR)/../../../go
-GOPATH := $(realpath $(GODIR))
 GOBINDIR=$(GODIR)/bin
+GOPATH := $(realpath $(GODIR))
+GOBIN := $(realpath $(GOBINDIR))
 CONFIG=./config/vagrant.toml
-
 MAJOR=0
 MINOR=1
 # export MAJOR
