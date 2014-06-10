@@ -1,5 +1,7 @@
 class IDE.EditorPane extends IDE.Pane
 
+  shortcutsShown = no
+
   constructor: (options = {}, data) ->
 
     options.cssClass = KD.utils.curry 'editor-pane', options.cssClass
@@ -20,9 +22,12 @@ class IDE.EditorPane extends IDE.Pane
     @addSubView @aceView = new AceView delegate: @getDelegate(), file
     @aceView.ace.once 'ace.ready', =>
       # debugger
-      if content is ''
+      if content is '' and not shortcutsShown
+        shortcutsShown = yes
         content =
           """
+          Welcome to the new IDE :)
+          ======================
 
           Keyboard shortcuts:
           -------------------
