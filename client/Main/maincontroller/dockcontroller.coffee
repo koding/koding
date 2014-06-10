@@ -6,6 +6,7 @@ class DockController extends KDViewController
     { title : "Teamwork",  path : "/Teamwork", order : 20, type :"persistent" }
     { title : "Terminal",  path : "/Terminal", order : 30, type :"persistent" }
     { title : "Editor",    path : "/Ace",      order : 40, type :"persistent" }
+    { title : "IDE",       path : "/IDE",      order : 60, type :"persistent" }
     { title : "Apps",      path : "/Apps",     order : 50, type :"persistent" }
     # { title : "About",     path : "/About",    order : 70, type :"persistent" }
     { title : "DevTools",  path : "/DevTools", order : 60, type :"persistent" }
