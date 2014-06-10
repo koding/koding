@@ -97,6 +97,33 @@ func ByName(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interfa
 	)
 }
 
+func CheckParticipation(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface{}, error) {
+	q := helpers.GetQuery(u)
+	if q.Type == "" || q.AccountId == 0 {
+		return helpers.NewBadRequestResponse(errors.New("text"))
+	}
+
+	channel, err := models.NewChannel().ByName(q)
+	if err != nil {
+		return helpers.NewBadRequestResponse(err)
+	}
+
+	cp := models.NewChannelParticipant()
+	cp.ChannelId = channel.Id
+	cp.AccountId = q.AccountId
+
+	if err := cp.FetchParticipant(); err != nil {
+		if err == gorm.RecordNotFound {
+			if channel.TypeConstant == models.Channel_TYPE_GROUP {
+				return helpers.NewOKResponse(true)
+			}
+		}
+		return helpers.NewBadRequestResponse(err)
+	}
+
+	return helpers.NewOKResponse(true)
+}
+
 func Delete(u *url.URL, h http.Header, req *models.Channel) (int, http.Header, interface{}, error) {
 
 	id, err := helpers.GetURIInt64(u, "id")
