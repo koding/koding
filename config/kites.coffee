@@ -6,7 +6,7 @@ versionFile = (kiteName) ->
 
 module.exports =
   stack:
-    force: no
+    force: yes
     newKites: yes
   kontrol:
     username: 'koding'
