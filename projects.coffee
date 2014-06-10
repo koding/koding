@@ -171,6 +171,11 @@ bundles           =
     style         : "website/a/css/koding.css"
     script        : "website/a/js/koding.js"
 
+  TeamworkBundle  :
+    projects      : ['Ace', 'Terminal', 'Viewer', 'Teamwork', 'DevTools']
+    style         : "website/a/css/__teamwork.css"
+    script        : "website/a/js/__teamwork.js"
+
   IDEBundle       :
     projects      : ['Ace', 'Terminal', 'Viewer', 'IDE']
     style         : "website/a/css/__ide.css"
