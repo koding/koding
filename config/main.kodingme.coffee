@@ -5,14 +5,15 @@ deepFreeze      = require 'koding-deep-freeze'
 customDomain =
   public    : "http://koding.me"
   local     : "http://127.0.0.1"
+  local_    : "localhost"
 
 rabbitmq =
   login   : "guest"
   password: "guest"
 
 version         = "0.0.1"
-mongo           = "#{customDomain.local}:27017/koding"
-mongoKontrol    = "#{customDomain.local}:27017/kontrol"
+mongo           = "#{customDomain.local_}:27017/koding"
+mongoKontrol    = "#{customDomain.local_}:27017/kontrol"
 projectRoot     = nodePath.join __dirname, '..'
 socialQueueName = "koding-social-kodingme"
 logQueueName    = socialQueueName+'log'
@@ -50,7 +51,7 @@ module.exports =
   projectRoot   : projectRoot
   webserver     :
     useCacheHeader: no
-    login       : 'prod-webserver'
+    login       : "#{rabbitmq.login}"
     port        : 3020
     clusterSize : 1
     queueName   : socialQueueName+'web'
@@ -67,19 +68,19 @@ module.exports =
     read        : "#{customDomain.public}"
     write       : "#{customDomain.public}"
     port        : 7474
-  runNeo4jFeeder: yes
+  runNeo4jFeeder: no
   runGoBroker   : yes
-  runGoBrokerKite: yes
-  runPremiumBroker: yes
-  runPremiumBrokerKite: yes
+  runGoBrokerKite: no
+  runPremiumBroker: no
+  runPremiumBrokerKite: no
   runKontrol    : yes
   runRerouting  : yes
-  runUserPresence: yes
+  runUserPresence: no
   runPersistence: no
   compileGo     : yes
   buildClient   : yes
-  runOsKite     : yes
-  runTerminalKite: yes
+  runOsKite     : no
+  runTerminalKite: no
   runProxy      : yes
   redis         : "#{customDomain.local}:6379"
   subscriptionEndpoint   : "#{customDomain.public}:3020/-/subscription/check/"
@@ -133,6 +134,7 @@ module.exports =
     watch       : yes
     queueName   : socialQueueName
     verbose     : no
+    kitePort    : 8765
   log           :
     login       : "#{rabbitmq.login}"
     numberOfWorkers: 1
@@ -140,7 +142,7 @@ module.exports =
     queueName   : logQueueName
     verbose     : no
     run         : no
-    runWorker   : yes
+    runWorker   : no
   followFeed    :
     host        : "#{customDomain.local}"
     port        : 5672
@@ -159,7 +161,7 @@ module.exports =
     indexMaster : "index-master.html"
     index       : "default.html"
     useStaticFileServer: no
-    staticFilesBaseUrl: "#{customDomain.public}"
+    staticFilesBaseUrl: "#{customDomain.public}:3020"
     runtimeOptions:
       kites: require './kites.coffee'
       osKitePollingMs: 1000 * 60 # 1 min
@@ -180,18 +182,18 @@ module.exports =
       logToInternal: no  # log worker
       resourceName: socialQueueName
       logResourceName: logQueueName
-      socialApiUri: "http://#{customDomain.public}:3030/xhr"
-      logApiUri: "http://#{customDomain.public}:4030/xhr"
+      socialApiUri: "#{customDomain.public}:3030/xhr"
+      logApiUri: "#{customDomain.public}:4030/xhr"
       suppressLogs: no
       broker    :
-        servicesEndpoint: "#{customDomain.public}/-/services/broker"
+        servicesEndpoint: "#{customDomain.public}:3020/-/services/broker"
       premiumBroker:
-        servicesEndpoint: "#{customDomain.public}/-/services/premiumBroker"
+        servicesEndpoint: "#{customDomain.public}:3020/-/services/premiumBroker"
       brokerKite:
-        servicesEndpoint: "#{customDomain.public}/-/services/brokerKite"
+        servicesEndpoint: "#{customDomain.public}:3020/-/services/brokerKite"
         brokerExchange: 'brokerKite'
       premiumBrokerKite:
-        servicesEndpoint: "#{customDomain.public}/-/services/premiumBrokerKite"
+        servicesEndpoint: "#{customDomain.public}:3020/-/services/premiumBrokerKite"
         brokerExchange: 'premiumBrokerKite'
       apiUri    : "#{customDomain.public}"
       version   : version
@@ -225,9 +227,9 @@ module.exports =
         idleTime        : 1000 * 60 * 60
         externalUrl     : "https://s3.amazonaws.com/koding-ping/healthcheck.json"
   mq            :
-    host        : "#{customDomain.local}"
+    host        : "#{customDomain.local_}"
     port        : 5672
-    apiAddress  : "#{customDomain.local}"
+    apiAddress  : "#{customDomain.local_}"
     apiPort     : 15672
     login       : "#{rabbitmq.login}"
     componentUser: "#{rabbitmq.login}"
