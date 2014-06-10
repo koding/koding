@@ -55,6 +55,17 @@ class IDE.VMItemView extends NFileItemView
 
     return items
 
+  checkVMState:(err, vm, info)->
+    return unless vm is @getData().vmName
+
+    if err or not info
+      @unsetClass 'online'
+      return warn err
+
+    if info.state is "RUNNING"
+    then @setClass 'online'
+    else @unsetClass 'online'
+
   pistachio:->
     return """
       <div class="vm-header">
