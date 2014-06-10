@@ -4,6 +4,7 @@ deepFreeze      = require 'koding-deep-freeze'
 
 customDomain    =
   public        : "http://koding.me"
+  public_       : "koding.me"
   local         : "http://127.0.0.1"
   local_        : "localhost"
   port          : 80
@@ -186,14 +187,14 @@ module.exports =
       logApiUri: "#{customDomain.public}:4030/xhr"
       suppressLogs: no
       broker    :
-        servicesEndpoint: "#{customDomain.public}:#{customDomain.port}/-/services/broker"
+        servicesEndpoint: "#{customDomain.public_}:#{customDomain.port}/-/services/broker"
       premiumBroker:
-        servicesEndpoint: "#{customDomain.public}:#{customDomain.port}/-/services/premiumBroker"
+        servicesEndpoint: "#{customDomain.public_}:#{customDomain.port}/-/services/premiumBroker"
       brokerKite:
-        servicesEndpoint: "#{customDomain.public}:#{customDomain.port}/-/services/brokerKite"
+        servicesEndpoint: "#{customDomain.public_}:#{customDomain.port}/-/services/brokerKite"
         brokerExchange: 'brokerKite'
       premiumBrokerKite:
-        servicesEndpoint: "#{customDomain.public}:#{customDomain.port}/-/services/premiumBrokerKite"
+        servicesEndpoint: "#{customDomain.public_}:#{customDomain.port}/-/services/premiumBrokerKite"
         brokerExchange: 'premiumBrokerKite'
       apiUri    : "#{customDomain.public}"
       version   : version
