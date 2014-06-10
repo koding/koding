@@ -109,6 +109,11 @@ module.exports = class SocialChannel extends Base
 
     @constructor.cycleChannel options, callback
 
+  @checkChannelParticipation = secureRequest
+    fnName   : 'checkChannelParticipation'
+    validate : ['name', 'type']
+
+
   # byId - fetch channel by id
   @byId = secureRequest
     fnName  : 'channelById'
