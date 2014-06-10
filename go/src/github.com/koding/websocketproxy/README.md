@@ -12,7 +12,7 @@ go get github.com/koding/websocketproxy
 
 ## Example
 
-Below is a simple app that runs on a server and proxies to the given backend URL
+Below is a simple server that proxies to the given backend URL
 
 ```go
 package main
@@ -26,7 +26,6 @@ import (
 )
 
 var (
-	flagPort    = flag.String("port", "3000", "Port of the reverse proxy")
 	flagBackend = flag.String("backend", "", "Backend URL for proxying")
 )
 
@@ -36,7 +35,7 @@ func main() {
 		log.Fataln(err)
 	}
 
-	err := http.ListenAndServe(":"+*flagPort, websocketproxy.NewProxy(u))
+	err := http.ListenAndServe(":80", websocketproxy.NewProxy(u))
 	if err != nil {
 		log.Fataln(err)
 	}
@@ -45,8 +44,11 @@ func main() {
 
 Save it as `proxy.go` and run as:
 
-
 ```bash
-go run proxy.go -backend ws://example.com -port 80
+go run proxy.go -backend ws://example.com:3000
 ```
+
+Now all incoming WebSocket requests coming to this server will be proxied to
+`ws://example.com:3000`
+
 
