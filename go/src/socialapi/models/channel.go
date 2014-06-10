@@ -406,7 +406,7 @@ func (c *Channel) ByName(q *Query) (Channel, error) {
 	query = query.Where("group_name = ?", q.GroupName)
 	query = query.Where("name = ?", q.Name)
 
-	return channel, query.Find(&channel).Error
+	return channel, bongo.CheckErr(query.Find(&channel))
 }
 
 func (c *Channel) List(q *Query) ([]Channel, error) {
