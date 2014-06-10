@@ -3,6 +3,9 @@ module.exports = [
   # namespacing
   "namespaces.coffee"
 
+  # finder
+  "finder/idevmitem.coffee"
+
   # workspace
   "workspace/workspacetabview.coffee"
   "workspace/workspacelayoutbuilder.coffee"
@@ -34,5 +37,6 @@ module.exports = [
   "AppController.coffee"
 
   # stylus
+  "styl/ide.finder.styl"
   "styl/ide.styl"
 ]
