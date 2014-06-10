@@ -15,11 +15,9 @@ class ActivityWidgetItem extends JView
 
   createAuthor: ->
     {avatarWidth, avatarHeight} = @getOptions()
-    {originId, originType} = @getData()
+    {_id, constructorName} = @getData().account
 
-    origin =
-      id             : originId
-      constructorName: originType
+    origin = {id: _id, constructorName}
 
     @avatar = new AvatarView
       size        :

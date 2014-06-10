@@ -68,9 +68,10 @@ class ActivitySettingsView extends KDCustomHTMLView
         activityController.emit "ActivityItemMarkUserAsTrollClicked", post
 
     @addMenuItem 'Block User', ->
-      activityController.emit "ActivityItemBlockUserClicked", post.originId
+      activityController.emit "ActivityItemBlockUserClicked", post.account._id
     @addMenuItem 'Impersonate', ->
-      KD.remote.cacheable post.originType, post.originId, (err, owner) ->
+      {constructorName, _id} = post.account
+      KD.remote.cacheable constructorName, _id, (err, owner) ->
         return KD.showError err  if err
         return KD.showError message: "Account not found"  unless owner
         KD.impersonate owner.profile.nickname
@@ -85,11 +86,8 @@ class ActivitySettingsView extends KDCustomHTMLView
     @menu = {}
 
     @addFollowActionMenu()
-
-    if KD.isMyPost @getData()
-    then @addOwnerMenu()
-    else if KD.checkFlag('super-admin') or KD.hasAccess('delete posts')
-    then @addAdminMenu()
+    @addOwnerMenu()  if KD.isMyPost @getData()
+    @addAdminMenu()  if KD.checkFlag('super-admin') or KD.hasAccess('delete posts')
 
     return @menu
 

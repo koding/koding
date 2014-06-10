@@ -685,3 +685,7 @@ utils.extend utils,
   # parent window, which isn't available in a chrome app. Therefore, we
   # disable/change oauth behavior based on this flag: SA.
   oauthEnabled: -> window.name isnt "chromeapp"
+
+  hasPermission: (name) ->
+
+    (KD.config.permissions.indexOf name) >= 0
