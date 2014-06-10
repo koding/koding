@@ -85,11 +85,8 @@ class ActivitySettingsView extends KDCustomHTMLView
     @menu = {}
 
     @addFollowActionMenu()
-
-    if KD.isMyPost @getData()
-    then @addOwnerMenu()
-    else if KD.checkFlag('super-admin') or KD.hasAccess('delete posts')
-    then @addAdminMenu()
+    @addOwnerMenu()  if KD.isMyPost @getData()
+    @addAdminMenu()  if KD.checkFlag('super-admin') or KD.hasAccess('delete posts')
 
     return @menu
 
