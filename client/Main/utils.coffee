@@ -1,5 +1,15 @@
 utils.extend utils,
 
+  groupifyLink: (href, withOrigin = no) ->
+
+    {slug}   = KD.getGroup()
+    {origin} = window.location
+    href     = if slug is 'koding' then href else "#{slug}/#{href}"
+    href     = "#{origin}/#{href}"  if withOrigin
+
+    return href
+
+
   getPaymentMethodTitle: (billing)->
     # for convenience, accept either the payment method, or the billing object
     { billing } = billing  if billing.billing?

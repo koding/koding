@@ -16,6 +16,8 @@ module.exports = class SocialMessage extends Base
     #   'list private messages' : ['member', 'moderator']
     sharedMethods :
       static   :
+        byId   :
+          (signature Object, Function)
         post   :
           (signature Object, Function)
         reply  :
@@ -81,6 +83,12 @@ module.exports = class SocialMessage extends Base
       return callback {message: "You can not edit this post"} unless res
       {editMessage} = require './requests'
       editMessage data, callback
+
+
+  # byId -get message by id
+  @byId = secureRequest
+    fnName  : 'messageById'
+    validate: ["id"]
 
   @listReplies = secureRequest
     fnName   : 'listReplies'

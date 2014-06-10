@@ -14,7 +14,7 @@ class ActivitySettingsView extends KDCustomHTMLView
       itemChildClass : ActivityItemMenuItem
       delegate       : this
       iconClass      : 'arrow'
-      menu           : @settingsMenu data
+      menu           : @bound 'settingsMenu'
       style          : 'resurrection'
       callback       : (event) => @settings.contextMenu event
 
@@ -23,30 +23,29 @@ class ActivitySettingsView extends KDCustomHTMLView
 
   addMenuItem: (title, callback) -> @menu[title] = {callback}
 
-  getGenericMenu: ->
+  addFollowActionMenu: ->
 
-    {socialapi} = KD.singletons
+    {pin, unpin} = KD.singletons.socialapi.channel
     post = @getData()
 
     unless post.isFollowed
-      menuItem = 'Follow Post'
-      fn = socialapi.channel.pin
-      logMessage = 'post pinned'
+      title = 'Follow Post'
+      fn    = pin
     else
-      menuItem = 'Unfollow Post'
-      fn = socialapi.channel.unpin
-      logMessage = 'post unpinned'
+      title = 'Unfollow Post'
+      fn    = unpin
 
-    @addMenuItem menuItem, =>
-        messageId = post.getId()
-        fn {messageId}, (err)->
-          return KD.showError err  if err
-          log logMessage
+    @addMenuItem title, ->
+      messageId = post.getId()
+      fn {messageId}, (err)->
+        return KD.showError err  if err
+        post.isFollowed = not post.isFollowed
+
 
     return @menu
 
 
-  getOwnerMenu: ->
+  addOwnerMenu: ->
 
     @addMenuItem 'Edit Post', @lazyBound 'emit', 'ActivityEditIsClicked'
     @addMenuItem 'Delete Post', @bound 'confirmDeletePost'
@@ -54,11 +53,11 @@ class ActivitySettingsView extends KDCustomHTMLView
     return @menu
 
 
-  getAdminMenu: ->
+  addAdminMenu: ->
 
     post = @getData()
 
-    @menu                = @getOwnerMenu()
+    @menu                = @addOwnerMenu()
     {activityController} = KD.singletons
 
     if KD.checkFlag 'exempt', KD.whoami()
@@ -83,12 +82,14 @@ class ActivitySettingsView extends KDCustomHTMLView
 
   settingsMenu: ->
 
-    @getGenericMenu()
+    @menu = {}
+
+    @addFollowActionMenu()
 
     if KD.isMyPost @getData()
-    then @getOwnerMenu()
+    then @addOwnerMenu()
     else if KD.checkFlag('super-admin') or KD.hasAccess('delete posts')
-    then @getAdminMenu()
+    then @addAdminMenu()
 
     return @menu
 

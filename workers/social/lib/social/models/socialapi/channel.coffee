@@ -12,7 +12,11 @@ module.exports = class SocialChannel extends Base
   @set
     sharedMethods :
       static      :
-        fetchActivities     :
+        byId              :
+          (signature Object, Function)
+        byName            :
+          (signature Object, Function)
+        fetchActivities   :
           (signature Object, Function)
         fetchChannels     :
           (signature Object, Function)
@@ -104,6 +108,16 @@ module.exports = class SocialChannel extends Base
       apiChannelName: @name
 
     @constructor.cycleChannel options, callback
+
+  # byId - fetch channel by id
+  @byId = secureRequest
+    fnName  : 'channelById'
+    validate: ["id"]
+
+  # byName - fetch channel by name
+  @byName = secureRequest
+    fnName  : 'channelByName'
+    validate: ["name"]
 
   # searchTopics - search topics for autocompletion
   @searchTopics          = secureRequest fnName: 'searchTopics'

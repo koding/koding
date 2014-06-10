@@ -78,7 +78,7 @@ func List(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface
 
 	cml := models.NewChannelMessageList()
 	cml.ChannelId = c.Id
-	return helpers.HandleResultAndError(cml.List(query))
+	return helpers.HandleResultAndError(cml.List(query, true))
 }
 
 func UnpinMessage(u *url.URL, h http.Header, req *models.PinRequest) (int, http.Header, interface{}, error) {

@@ -9,6 +9,7 @@ class MessagePane extends KDTabPaneView
 
     {itemClass, type} = @getOptions()
 
+    @createParticipantsView() if @getData().typeConstant is 'privatemessage'
     @listController = new ActivityListController {itemClass}
     @createInputWidget()
 
@@ -22,6 +23,32 @@ class MessagePane extends KDTabPaneView
     windowController.addFocusListener (focused) =>
 
       @glance()  if focused and @active
+
+
+  createParticipantsView : ->
+
+    {participantsPreview} = @getData()
+
+    @participantsView = new KDCustomHTMLView
+      cssClass    : 'chat-heads'
+      partial     : '<span class="description">Private conversation between</span>'
+
+    @participantsView.addSubView heads = new KDCustomHTMLView
+      cssClass    : 'heads'
+
+    for participant in participantsPreview
+
+      participant.id = participant._id
+
+      heads.addSubView new AvatarView
+        size      :
+          width   : 30
+          height  : 30
+        origin    : participant
+
+    heads.addSubView @newParticipantButton = new KDButtonView
+      cssClass    : 'new-participant'
+      iconOnly    : yes
 
 
   createInputWidget: ->
@@ -49,11 +76,12 @@ class MessagePane extends KDTabPaneView
 
   prependMessage: (message) -> @listController.addItem message, 0
 
-  removeMessage: (message) -> @listController.removeItem message
+  removeMessage: (message) -> @listController.removeItem null, message
 
 
   viewAppended: ->
 
+    @addSubView @participantsView if @participantsView
     @addSubView @input  if @input
     @addSubView @listController.getView()
     @populate()
@@ -78,7 +106,7 @@ class MessagePane extends KDTabPaneView
     # item = @getDelegate().parent.sidebar.selectedItem
     # return  unless item.count
 
-    if typeConstant is 'message'
+    if typeConstant is 'post'
     then socialapi.channel.glancePinnedPost messageId : id, log
     else socialapi.channel.updateLastSeenTime channelId : id, log
 

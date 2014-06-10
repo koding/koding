@@ -69,12 +69,13 @@ class ActivityListItemView extends KDListItemView
     @editWidget.on 'Submit', @bound 'resetEditing'
     @editWidget.on 'Cancel', @bound 'resetEditing'
     @editWidgetWrapper.addSubView @editWidget, null, yes
+    @editWidgetWrapper.show()
 
 
   resetEditing : ->
 
     @editWidget.destroy()
-    @editWidgetWrapper.setClass "hidden"
+    @editWidgetWrapper.hide()
 
 
   delete: ->
@@ -86,22 +87,46 @@ class ActivityListItemView extends KDListItemView
 
   formatContent: (body = '') ->
 
-    return KD.utils.applyMarkdown @transformTags body
+    fns = [
+      @bound 'transformTags'
+      @bound 'formatBlockquotes'
+      KD.utils.applyMarkdown
+    ]
 
+    body = fn body for fn in fns
+    return body
 
   transformTags: (text = '') ->
 
-    {origin} = window.location
+
     {slug}   = KD.getGroup()
-    prefix   = "#{origin}#{if slug is 'koding' then '' else '/' + slug}"
 
     return text.replace /#(\w+)/g, (match, tag, offset) ->
       pre  = text[offset - 1]
       post = text[offset + match.length]
+
       return match  if (pre?.match /\S/)  and offset isnt 0
       return match  if (post?.match /\S/) and (offset + match.length) isnt text.length
-      return "[##{tag}](#{prefix}/Activity/Topic/#{tag})"
 
+      href = KD.utils.groupifyLink "/Activity/Topic/#{tag}"
+
+      return "[##{tag}](#{href})"
+
+
+  formatBlockquotes: (text = '') ->
+
+    parts = text.split '```'
+    for part, index in parts
+      blockquote = index %% 2 is 1
+
+      if blockquote
+        if match = part.match /^\w+/
+          [lang] = match
+          part = "\n#{part}"  unless hljs.getLanguage lang
+
+        parts[index] = "\n```#{part}\n```\n"
+
+    parts.join ''
 
   setAnchors: ->
 

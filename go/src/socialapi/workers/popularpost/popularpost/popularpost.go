@@ -4,12 +4,10 @@ import (
 	"fmt"
 	"socialapi/config"
 	"socialapi/models"
-	"socialapi/workers/helper"
 	"time"
 
 	"github.com/koding/logging"
 	"github.com/koding/redis"
-	"github.com/koding/worker"
 	"github.com/streadway/amqp"
 )
 
@@ -17,12 +15,9 @@ var (
 	PopularPostKey = "popularpost"
 )
 
-type Action func(*Controller, []byte) error
-
 type Controller struct {
-	routes map[string]Action
-	log    logging.Logger
-	redis  *redis.RedisSession
+	log   logging.Logger
+	redis *redis.RedisSession
 }
 
 func (t *Controller) DefaultErrHandler(delivery amqp.Delivery, err error) bool {
@@ -38,44 +33,21 @@ func (t *Controller) DefaultErrHandler(delivery amqp.Delivery, err error) bool {
 }
 
 func New(log logging.Logger, redis *redis.RedisSession) *Controller {
-	ppc := &Controller{
+	return &Controller{
 		log:   log,
 		redis: redis,
 	}
-
-	routes := map[string]Action{
-		"api.interaction_created": (*Controller).InteractionSaved,
-		"api.interaction_deleted": (*Controller).InteractionDeleted,
-	}
-
-	ppc.routes = routes
-	return ppc
 }
 
-func (f *Controller) HandleEvent(event string, data []byte) error {
-	f.log.Debug("New Event Recieved %s", event)
-	handler, ok := f.routes[event]
-	if !ok {
-		return worker.HandlerNotFoundErr
-	}
-
-	return handler(f, data)
+func (f *Controller) InteractionSaved(i *models.Interaction) error {
+	return f.handleInteractionEvent(1, i)
 }
 
-func (f *Controller) InteractionSaved(data []byte) error {
-	return f.handleInteractionEvent(1, data)
+func (f *Controller) InteractionDeleted(i *models.Interaction) error {
+	return f.handleInteractionEvent(-1, i)
 }
 
-func (f *Controller) InteractionDeleted(data []byte) error {
-	return f.handleInteractionEvent(-1, data)
-}
-
-func (f *Controller) handleInteractionEvent(incrementCount int, data []byte) error {
-	i, err := helper.MapToInteraction(data)
-	if err != nil {
-		return err
-	}
-
+func (f *Controller) handleInteractionEvent(incrementCount int, i *models.Interaction) error {
 	cm := models.NewChannelMessage()
 	if err := cm.ById(i.MessageId); err != nil {
 		return err

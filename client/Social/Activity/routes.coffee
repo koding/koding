@@ -18,8 +18,13 @@ do ->
 
 
   handleChannel = (type, slug) ->
-    {router, appManager} = KD.singletons
+    {appManager} = KD.singletons
     appManager.open 'Activity', (app) -> app.getView().open type, slug
+
+
+  handleNewMessage = (type, slug) ->
+    {appManager} = KD.singletons
+    appManager.open 'Activity', (app) -> app.getView().showNewMessageModal()
 
 
   KD.registerRoutes 'Activity',
@@ -31,6 +36,8 @@ do ->
 
     '/:name?/Activity/Post/:slug?' : ({params:{name, slug}, query}) ->
       handleChannel 'post', slug
+
+    '/:name?/Activity/Message/New' : handleNewMessage
 
     '/:name?/Activity/Message/:slug?' : ({params:{name, slug}, query}) ->
       handleChannel 'message', slug

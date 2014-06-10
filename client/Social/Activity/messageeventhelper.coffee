@@ -44,6 +44,7 @@ class MessageEventHelper extends KDObject
 
     like.actorsCount = count
     like.actorsPreview.unshift accountOldId  if accountOldId not in like.actorsPreview
+    like.isInteracted = yes  if KD.whoami().getId() is accountOldId
 
     message.emit "LikeAdded"
     message.emit "update"
@@ -55,6 +56,8 @@ class MessageEventHelper extends KDObject
 
     like.actorsCount   = count
     like.actorsPreview = like.actorsPreview.filter (id) -> id isnt accountOldId
+
+    like.isInteracted = no  if KD.whoami().getId() is accountOldId
 
     message.emit "LikeRemoved"
     message.emit "update"

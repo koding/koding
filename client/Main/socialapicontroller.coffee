@@ -58,7 +58,8 @@ class SocialApiController extends KDController
 
   mapActivity = (data) ->
 
-    return  unless plain = data.message or data
+    return  unless data
+    return  unless plain = data.message
 
     {accountOldId, replies, interactions} = data
     {createdAt, deletedAt, updatedAt}     = plain
@@ -71,6 +72,10 @@ class SocialApiController extends KDController
     m.replies      = mapActivities data.replies or []
     m.repliesCount = data.repliesCount
     m.isFollowed   = data.isFollowed
+
+    # this is sent by the server when
+    # response for pinned messages
+    m.unreadRepliesCount = data.unreadRepliesCount
 
     m.interactions    = interactions or
       like            :
@@ -103,73 +108,6 @@ class SocialApiController extends KDController
     groupsController.ready ->
       callback  KD.getSingleton("groupsController").getCurrentGroup()
 
-  fetchChannelActivities = (options, callback)->
-    unless options.id
-      return callback {message: "Channel id is not set for request"}
-    getCurrentGroup (group)->
-      options.groupName = group.slug
-      channelApiActivitiesResFunc "fetchActivities", options, callback
-
-  fetchGroupActivities = (options, callback)->
-    getCurrentGroup (group)->
-      unless group.socialApiChannelId
-        return callback {message: "Group doesnt have socialApiChannelId"}
-      options.id        = group.socialApiChannelId
-      options.groupName = group.slug
-      channelApiActivitiesResFunc "fetchActivities", options, callback
-
-  fetchChannels = (options, callback)->
-    getCurrentGroup (group)->
-      options.groupName = group.slug
-      channelApiChannelsResFunc 'fetchChannels', options, callback
-
-  popularItemsReq = (funcName, options, callback)->
-    # here not to break current frontend
-    options.type ?= "weekly"
-    unless options.type in ["daily", "weekly", "monthly"]
-      return callback {message: "type is not valid "}
-    getCurrentGroup (group)->
-      options.groupName = group.slug
-      channelApiChannelsResFunc funcName, options, callback
-
-  fetchPopularTopics = (options, callback)->
-    popularItemsReq 'fetchPopularTopics', options, callback
-
-  fetchPopularPosts = (options, callback)->
-    unless options.channelName
-      return callback {message:"channelName is not set"}
-    options.type ?= "weekly"
-    unless options.type in ["daily", "weekly", "monthly"]
-      return callback {message: "type is not valid "}
-    getCurrentGroup (group)->
-      options.groupName = group.slug
-      channelApiActivitiesResFunc "fetchPopularPosts", options, callback
-
-  messageApiMessageResFunc = (name, rest..., callback)->
-    KD.remote.api.SocialMessage[name] rest..., (err, res)->
-      return callback err if err
-      return callback null, mapActivity res
-
-  messageApiReplyResFunc = (name, rest..., callback)->
-    KD.remote.api.SocialMessage[name] rest..., (err, res)->
-      return callback err if err
-      return callback null, mapActivities res
-
-  channelApiActivitiesResFunc = (name, rest..., callback)->
-    KD.remote.api.SocialChannel[name] rest..., (err, result)->
-      return callback err if err
-      return callback null, mapActivities result
-
-  channelApiChannelsResFunc = (name, rest..., callback)->
-    KD.remote.api.SocialChannel[name] rest..., (err, result)->
-      return callback err if err
-      return callback null, mapChannels result
-
-  sendPrivateMessageRequest = (name, rest..., callback)->
-    KD.remote.api.SocialMessage[name] rest..., (err, result)->
-      return callback err if err
-      return callback null, mapPrivateMessages result
-
   mapPrivateMessages: mapPrivateMessages
   mapPrivateMessages = (messages)->
     messages = [].concat(messages)
@@ -177,9 +115,9 @@ class SocialApiController extends KDController
 
     mappedChannels = []
 
-    for messageContainer in messages
-      message = mapActivity messageContainer.lastMessage
-      channel = mapChannels(messageContainer)?[0]
+    for channelContainer in messages
+      message = mapActivity channelContainer.lastMessage
+      channel = mapChannels(channelContainer)?[0]
       channel.lastMessage = message
 
       mappedChannels.push channel
@@ -201,10 +139,13 @@ class SocialApiController extends KDController
     channels = [].concat(channels)
     {SocialChannel} = KD.remote.api
     for channel in channels
-      data = channel.channel
-      data.isParticipant = channel.isParticipant
-      data.participantCount = channel.participantCount
+      data                     = channel.channel
+      data._id                 = data.id
+      data.isParticipant       = channel.isParticipant
+      data.participantCount    = channel.participantCount
       data.participantsPreview = mapAccounts channel.participantsPreview
+      data.unreadCount         = channel.unreadCount
+      data.lastMessage = mapActivity channel.lastMessage if channel.lastMessage
       c = new SocialChannel data
       # push channel into stack
       revivedChannels.push c
@@ -251,46 +192,177 @@ class SocialApiController extends KDController
   generateChannelName = ({name, typeConstant, groupName}) ->
     return "socialapi.#{groupName}-#{typeConstant}-#{name}"
 
+  messageRequesterFn = (options)->
+    options.apiType = "message"
+    return requester options
+
+  channelRequesterFn = (options)->
+    options.apiType = "channel"
+    return requester options
+
+  requester = (req) ->
+    (options, callback)->
+      {fnName, validate, mapperFn, defaults, apiType} = req
+      # set default mapperFn
+      mapperFn or= ->
+      if validate?.length > 0
+        errs = []
+        for property in validate
+          errs.push property unless options[property]
+        if errs.length > 0
+          msg = "#{errs.join(', ')} fields are required for #{fnName}"
+          return callback {message: msg}
+
+      _.defaults options, defaults  if defaults
+
+      api = {}
+      if apiType is "channel"
+        api = KD.remote.api.SocialChannel
+      else
+        api = KD.remote.api.SocialMessage
+
+      api[fnName] options, (err, result)->
+        return callback err if err
+        return callback null, mapperFn result
+
+
+  revive :(type, id, callback) ->
+    api = KD.singletons.socialapi
+    switch type
+      when "topic"
+        return api.channel.byName {name: id}, callback
+      when "channel", "privatemessage"
+        return api.channel.byId {id}, callback
+      when "post", "message"
+        return api.message.byId {id}, callback
+      else
+        return callback { message: "not implemented in revive" }
+
   message:
-    edit   :(args...)-> messageApiMessageResFunc 'edit', args...
-    post   :(args...)-> messageApiMessageResFunc 'post', args...
-    reply  :(args...)-> messageApiMessageResFunc 'reply', args...
-    delete :(args...)-> KD.remote.api.SocialMessage.delete args...
-    like   :(args...)-> KD.remote.api.SocialMessage.like args...
-    unlike :(args...)-> KD.remote.api.SocialMessage.unlike args...
-    listReplies:(args...)-> messageApiReplyResFunc 'listReplies', args...
-    listLikers:(args...)-> KD.remote.api.SocialMessage.listLikers args...
-    sendPrivateMessage :(args...)->
-      sendPrivateMessageRequest 'sendPrivateMessage', args...
-    fetchPrivateMessages :(args...)->
-      sendPrivateMessageRequest 'fetchPrivateMessages', args...
-    revive : mapActivity
+    byId                 : messageRequesterFn
+      fnName             : 'byId'
+      validateOptionsWith: ['id']
+      mapperFn           : mapActivity
+
+    edit                 : messageRequesterFn
+      fnName             : 'edit'
+      validateOptionsWith: ['id', 'body']
+      mapperFn           : mapActivity
+
+    post                 : messageRequesterFn
+      fnName             : 'post'
+      validateOptionsWith: ['body']
+      mapperFn           : mapActivity
+
+    reply                : messageRequesterFn
+      fnName             : 'reply'
+      validateOptionsWith: ['body', 'messageId']
+      mapperFn           : mapActivity
+
+    delete               : messageRequesterFn
+      fnName             : 'delete'
+      validateOptionsWith: ['id']
+
+    like                 : messageRequesterFn
+      fnName             : 'like'
+      validateOptionsWith: ['id']
+
+    unlike               : messageRequesterFn
+      fnName             : 'unlike'
+      validateOptionsWith: ['id']
+
+    listReplies          : messageRequesterFn
+      fnName             : 'listReplies'
+      validateOptionsWith: ['messageId']
+      mapperFn           : mapActivities
+
+    listLikers           : messageRequesterFn
+      fnName             : 'listLikers'
+      validateOptionsWith: ['id']
+
+    sendPrivateMessage   : messageRequesterFn
+      fnName             : 'sendPrivateMessage'
+      validateOptionsWith: ['body']
+      mapperFn           : mapPrivateMessages
+
+    fetchPrivateMessages : messageRequesterFn
+      fnName             : 'fetchPrivateMessages'
+      mapperFn           : mapPrivateMessages
+
+    revive               : mapActivity
 
   channel:
-    list                 : fetchChannels
-    fetchActivities      : fetchChannelActivities
-    fetchGroupActivities : fetchGroupActivities
-    fetchPopularPosts    : fetchPopularPosts
-    fetchPopularTopics   : fetchPopularTopics
-    fetchPinnedMessages  : (args...)->
-      channelApiActivitiesResFunc 'fetchPinnedMessages', args...
-    pin                  : (args...)->
-      KD.remote.api.SocialChannel.pinMessage args...
-    unpin                : (args...)->
-      KD.remote.api.SocialChannel.unpinMessage args...
-    follow               : (args...)->
-      KD.remote.api.SocialChannel.follow args...
-    unfollow             : (args...)->
-      KD.remote.api.SocialChannel.unfollow args...
-    fetchFollowedChannels: (args...)->
-      channelApiChannelsResFunc 'fetchFollowedChannels', args...
-    searchTopics         : (args...)->
-      channelApiChannelsResFunc 'searchTopics', args...
-    fetchProfileFeed     : (args...)->
-      channelApiActivitiesResFunc 'fetchProfileFeed', args...
-    glancePinnedPost     : (options, callback)->
-      return callback { message: "MessageId is not set" } unless options.messageId
-      KD.remote.api.SocialChannel.glancePinnedPost options, callback
-    updateLastSeenTime   : (options, callback)->
-      return callback { message: "Channel Id is not set" } unless options.channelId
-      KD.remote.api.SocialChannel.updateLastSeenTime options, callback
+    byId                 : channelRequesterFn
+      fnName             : 'byId'
+      validateOptionsWith: ['id']
+      mapperFn           : mapChannels
+
+    byName               : channelRequesterFn
+      fnName             : 'byName'
+      validateOptionsWith: ['name']
+      mapperFn           : mapChannels
+
+    list                 : channelRequesterFn
+      fnName             : 'fetchChannels'
+      mapperFn           : mapChannels
+
+    fetchActivities      : channelRequesterFn
+      fnName             : 'fetchActivities'
+      validateOptionsWith: ["id"]
+      mapperFn           : mapActivities
+
+    fetchPopularPosts    : channelRequesterFn
+      fnName             : 'fetchPopularPosts'
+      validateOptionsWith: ['channelName']
+      defaults           : type: 'weekly'
+      mapperFn           : mapActivities
+
+    fetchPopularTopics   : channelRequesterFn
+      fnName             : 'fetchPopularTopics'
+      defaults           : type: 'weekly'
+      mapperFn           : mapChannels
+
+    fetchPinnedMessages  : channelRequesterFn
+      fnName             : 'fetchPinnedMessages'
+      validateOptionsWith: []
+      mapperFn           : mapActivities
+
+    pin                  : channelRequesterFn
+      fnName             : 'pinMessage'
+      validateOptionsWith: ['messageId']
+
+    unpin                : channelRequesterFn
+      fnName             : 'unpinMessage'
+      validateOptionsWith: ['messageId']
+
+    follow               : channelRequesterFn
+      fnName             : 'follow'
+      validateOptionsWith: ['channelId']
+
+    unfollow             : channelRequesterFn
+      fnName             : 'unfollow'
+      validateOptionsWith: ['channelId']
+
+    fetchFollowedChannels: channelRequesterFn
+      fnName             : 'fetchFollowedChannels'
+      mapperFn           : mapChannels
+
+    searchTopics         : channelRequesterFn
+      fnName             : 'searchTopics'
+      validateOptionsWith: ['name']
+      mapperFn           : mapChannels
+
+    fetchProfileFeed     : channelRequesterFn
+      fnName             : 'fetchProfileFeed'
+      validateOptionsWith: ['targetId']
+      mapperFn           : mapActivities
+
+    glancePinnedPost     : channelRequesterFn
+      fnName             : 'glancePinnedPost'
+      validateOptionsWith: ["messageId"]
+
+    updateLastSeenTime   : channelRequesterFn
+      fnName             : 'updateLastSeenTime'
+      validateOptionsWith: ["channelId"]
+
+

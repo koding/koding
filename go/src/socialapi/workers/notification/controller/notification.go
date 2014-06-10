@@ -4,13 +4,11 @@ import (
 	"fmt"
 	"koding/db/mongodb/modelhelper"
 	socialapimodels "socialapi/models"
-	"socialapi/workers/helper"
 	"socialapi/workers/notification/models"
 	"time"
 
 	"github.com/koding/logging"
 	"github.com/koding/rabbitmq"
-	"github.com/koding/worker"
 	"github.com/streadway/amqp"
 )
 
@@ -19,10 +17,7 @@ const (
 	NOTIFICATION_TYPE_UNSUBSCRIBE = "unsubscribe"
 )
 
-type Action func(*Controller, []byte) error
-
 type Controller struct {
-	routes          map[string]Action
 	log             logging.Logger
 	rmqConn         *amqp.Connection
 	notifierRmqConn *amqp.Connection
@@ -48,37 +43,10 @@ func New(rmq *rabbitmq.RabbitMQ, log logging.Logger, cacheEnabled bool) (*Contro
 		cacheEnabled: cacheEnabled,
 	}
 
-	routes := map[string]Action{
-		"api.message_reply_created":        (*Controller).CreateReplyNotification,
-		"api.interaction_created":          (*Controller).CreateInteractionNotification,
-		"api.channel_participant_created":  (*Controller).JoinChannel,
-		"api.channel_participant_updated":  (*Controller).LeaveChannel,
-		"api.channel_message_list_created": (*Controller).SubscribeMessage,
-		"api.channel_message_list_deleted": (*Controller).UnsubscribeMessage,
-	}
-
-	nwc.routes = routes
-
 	return nwc, nil
 }
 
-// copy/paste
-func (n *Controller) HandleEvent(event string, data []byte) error {
-	n.log.Debug("New Event Received %s", event)
-	handler, ok := n.routes[event]
-	if !ok {
-		return worker.HandlerNotFoundErr
-	}
-
-	return handler(n, data)
-}
-
-func (n *Controller) CreateReplyNotification(data []byte) error {
-	mr, err := helper.MapToMessageReply(data)
-	if err != nil {
-		return err
-	}
-
+func (n *Controller) CreateReplyNotification(mr *socialapimodels.MessageReply) error {
 	// fetch replier
 	reply := socialapimodels.NewChannelMessage()
 	if err := reply.ById(mr.ReplyId); err != nil {
@@ -134,20 +102,15 @@ func (n *Controller) CreateReplyNotification(data []byte) error {
 	return nil
 }
 
-func (n *Controller) UnsubscribeMessage(data []byte) error {
+func (n *Controller) UnsubscribeMessage(data *socialapimodels.ChannelMessageList) error {
 	return subscription(data, NOTIFICATION_TYPE_UNSUBSCRIBE)
 }
 
-func (n *Controller) SubscribeMessage(data []byte) error {
+func (n *Controller) SubscribeMessage(data *socialapimodels.ChannelMessageList) error {
 	return subscription(data, NOTIFICATION_TYPE_SUBSCRIBE)
 }
 
-func subscription(data []byte, typeConstant string) error {
-	cml, err := helper.MapToChannelMessageList(data)
-	if err != nil {
-		return err
-	}
-
+func subscription(cml *socialapimodels.ChannelMessageList, typeConstant string) error {
 	c := socialapimodels.NewChannel()
 	if err := c.ById(cml.ChannelId); err != nil {
 		return err
@@ -236,12 +199,7 @@ func buildNotification(contentId, notifierId int64, subscribedAt time.Time) *mod
 	return notification
 }
 
-func (n *Controller) CreateInteractionNotification(data []byte) error {
-	i, err := helper.MapToInteraction(data)
-	if err != nil {
-		return err
-	}
-
+func (n *Controller) CreateInteractionNotification(i *socialapimodels.Interaction) error {
 	cm := socialapimodels.NewChannelMessage()
 	if err := cm.ById(i.MessageId); err != nil {
 		return err
@@ -271,21 +229,11 @@ func (n *Controller) CreateInteractionNotification(data []byte) error {
 	return nil
 }
 
-func (n *Controller) JoinChannel(data []byte) error {
-	cp, err := helper.MapToChannelParticipant(data)
-	if err != nil {
-		return err
-	}
-
+func (n *Controller) JoinChannel(cp *socialapimodels.ChannelParticipant) error {
 	return processChannelParticipant(cp, models.NotificationContent_TYPE_JOIN)
 }
 
-func (n *Controller) LeaveChannel(data []byte) error {
-	cp, err := helper.MapToChannelParticipant(data)
-	if err != nil {
-		return err
-	}
-
+func (n *Controller) LeaveChannel(cp *socialapimodels.ChannelParticipant) error {
 	if cp.StatusConstant == socialapimodels.ChannelParticipant_STATUS_LEFT {
 		return processChannelParticipant(cp, models.NotificationContent_TYPE_LEAVE)
 	}
