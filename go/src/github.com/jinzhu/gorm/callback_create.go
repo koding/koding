@@ -35,13 +35,13 @@ func Create(scope *Scope) {
 
 		if len(columns) == 0 {
 			scope.Raw(fmt.Sprintf("INSERT INTO %v DEFAULT VALUES %v",
-				scope.TableName(),
+				scope.QuotedTableName(),
 				scope.Dialect().ReturningStr(scope.PrimaryKey()),
 			))
 		} else {
 			scope.Raw(fmt.Sprintf(
 				"INSERT INTO %v (%v) VALUES (%v) %v",
-				scope.TableName(),
+				scope.QuotedTableName(),
 				strings.Join(columns, ","),
 				strings.Join(sqls, ","),
 				scope.Dialect().ReturningStr(scope.PrimaryKey()),
@@ -51,12 +51,18 @@ func Create(scope *Scope) {
 		// execute create sql
 		var id interface{}
 		if scope.Dialect().SupportLastInsertId() {
-			if sql_result, err := scope.DB().Exec(scope.Sql, scope.SqlVars...); scope.Err(err) == nil {
-				id, err = sql_result.LastInsertId()
-				scope.Err(err)
+			if result, err := scope.DB().Exec(scope.Sql, scope.SqlVars...); scope.Err(err) == nil {
+				id, err = result.LastInsertId()
+				if scope.Err(err) == nil {
+					if count, err := result.RowsAffected(); err == nil {
+						scope.db.RowsAffected = count
+					}
+				}
 			}
 		} else {
-			scope.Err(scope.DB().QueryRow(scope.Sql, scope.SqlVars...).Scan(&id))
+			if scope.Err(scope.DB().QueryRow(scope.Sql, scope.SqlVars...).Scan(&id)) == nil {
+				scope.db.RowsAffected = 1
+			}
 		}
 
 		if !scope.HasError() {
