@@ -76,11 +76,16 @@ class EnvironmentMachineItem extends EnvironmentItem
 
     return unless status
 
-    if status is 'Running'
-    then @setClass 'running'
-    else @unsetClass 'running'
+    {Running, Starting} = Machine.State
 
-    @getData().setAt "status.state", status
+    @unsetClass stateClasses
+    @setClass status.toLowerCase()
+
+    if status in [Running, Starting]
+    then @statusToggle.setOn no
+    else @statusToggle.setOff no
+
+    @state.updatePartial status
 
 
   invalidateMachine:(event)->
