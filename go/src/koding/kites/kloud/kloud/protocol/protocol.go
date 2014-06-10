@@ -1,6 +1,9 @@
 package protocol
 
-import "koding/kites/kloud/eventer"
+import (
+	"koding/kites/kloud/eventer"
+	"koding/kites/kloud/kloud/machinestate"
+)
 
 // MachineOptions is passed to the methods of the Provider interface. It
 // contains all necessary informations.
@@ -46,6 +49,11 @@ type BuildResponse struct {
 	IpAddress string
 }
 
+type InfoResponse struct {
+	// State defines the state of the machine
+	State machinestate.State
+}
+
 // Provider manages a machine. It is used to create and provision a single
 // image or machine for a given Provider, to start/stop/destroy/restart a
 // machine.
@@ -71,7 +79,7 @@ type Provider interface {
 	Destroy(*MachineOptions) error
 
 	// Info returns full information about a single machine
-	Info(*MachineOptions) (interface{}, error)
+	Info(*MachineOptions) (*InfoResponse, error)
 
 	// Name returns the underlying provider type
 	Name() string

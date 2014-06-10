@@ -2,7 +2,9 @@
 
 package logging
 
-import "log/syslog"
+import (
+	"log/syslog"
+)
 
 ///////////////////
 //               //
@@ -50,7 +52,6 @@ func (b *SyslogHandler) Handle(rec *Record) {
 	case DEBUG:
 		fn = b.w.Debug
 	}
-
 	fn(message)
 }
 

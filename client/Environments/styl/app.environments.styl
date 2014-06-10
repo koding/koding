@@ -880,7 +880,7 @@ div.environments-scene
   kalc                  height, 100% \- 49px
 
   canvas
-    left                -8px
+    left                -6px
     top                 -2px
 
     // .zoom-slider
@@ -1078,6 +1078,8 @@ div.environments-container
 
 div.environments-item
 
+  padding       8px
+
   cursor          default
   width           210px
   height          34px
@@ -1087,6 +1089,11 @@ div.environments-item
   vendor          transition, opacity .3s ease
   noTextSelection()
   borderBox()
+
+  span
+    font-size   10px
+    color       #aaa
+    abs()
 
   // FIXME refactor with styl
   &.busy
@@ -1111,19 +1118,84 @@ div.environments-item
     -webkit-background-size: 50px 50px;
     -webkit-animation: animate-stripes 2s linear infinite;
 
+  .koding-on-off
+    display     none
+
+
   &.loading
 
     div.progressbar-container
       display     block !important
 
     span.chevron
-      display     none
+    span.terminal
+    .koding-on-off
+      display     none !important
 
+
+
+  &.building
+
+    div.progressbar-container
+      .bar
+        background    #FF7400 !important
+
+  &.terminating
+
+    div.progressbar-container
+      .bar
+        background    #E85F5F !important
+
+  &.terminated
+  &.notinitialized
+
+    background      rgba(255,255,255,.5)
+    border          1px solid #ccc
+
+    span.state
+      color       #E85F5F
+
+  &.stopping
+
+    span.url
+      display     block
+
+    div.progressbar-container
+      .bar
+        background    #E59611 !important
+
+  &.stopped
+
+    background      rgba(255,255,255,.5)
+    border          1px solid #ccc
+
+    .koding-on-off
+      display     block
+
+    span.state
+      color       #E59611
+
+  &.starting
+
+    div.progressbar-container
+      .bar
+        background    #5AA486 !important
 
   &.running
 
+    span.url
     span.terminal
+    .koding-on-off
       display     block
+
+    span.state
+      color       #5AA486
+
+
+  .koding-on-off
+    right: 5px;
+    position: absolute;
+    top: 35px;
 
 
   span.chevron
@@ -1132,19 +1204,20 @@ div.environments-item
     bottom        8px
     right         10px
     r-sprite      environments 'gear'
-    display       block
+    display       none
 
   span.terminal
-    display       none
+    // display       none
     r-sprite      environments 'terminal'
     cursor        pointer
-    right         32px
-    bottom        12px !important
+    right         45px
+    bottom        7px !important
 
   span.state
     left          14px
 
   span.url
+    display       none
     size          auto, 14px
     text-align    right
     right         5px
@@ -1201,15 +1274,6 @@ div.environments-item
     text-overflow ellipsis
     padding-left  6px
 
-  div.details
-    padding       8px
-    height        100%
-    borderBox()
-
-    span
-      font-size   10px
-      color       #aaa
-      abs()
 
   &.rule
     span.toggle
@@ -1241,13 +1305,24 @@ div.environments-item
     div.progressbar-container
       display         none
       top             42px
+      left            14px
       height          8px
       width           253px
+      border-radius   0
       abs()
+
+      .bar
+        background    #ccc
+        border        none
+        box-shadow    none
+        border-radius 0
+
       span.light-label
         display       none
+
       span.dark-label
         margin-top    2px
+
       &:last-of-type
         left          14px
 

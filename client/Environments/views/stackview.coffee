@@ -196,11 +196,12 @@ class StackView extends KDView
 
 
   getProperHeight:->
-    (Math.max.apply null, \
-      (box.diaCount() for box in @scene.containers)) * 65 + 165
+    (Math.max.apply null,                     \
+      (box.diaCount() * (box.itemHeight + 10) \
+        for box in @scene.containers))  + 170
 
 
-  getMenuItems: ->
+  getMenuItems:->
     this_ = this
     items =
       'Show stack recipe'  :

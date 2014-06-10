@@ -63,9 +63,14 @@ class ComputeController extends KDController
       delete @stacks
       @emit "renderStacks"
 
+
   destroy: (machine)->
 
     ComputeController.UI.askFor 'destroy', machine, =>
+
+      @eventListener.triggerState machine,
+        status      : Machine.State.Terminating
+        percentage  : 0
 
       @kloud.destroy { machineId: machine._id }
 
@@ -74,11 +79,17 @@ class ComputeController extends KDController
         @eventListener.addListener 'destroy', machine._id
         log "destroy res:", res
 
-      .catch (err)->
+      .catch (err)=>
+
+        @eventListener.revertToPreviousState machine
         warn "destroy err:", err
 
 
   build: (machine)->
+
+    @eventListener.triggerState machine,
+      status      : Machine.State.Building
+      percentage  : 0
 
     @kloud.build { machineId: machine._id }
 
@@ -87,34 +98,81 @@ class ComputeController extends KDController
       @eventListener.addListener 'build', machine._id
       log "build res:", res
 
-    .catch (err)->
+    .catch (err)=>
+
+      @eventListener.revertToPreviousState machine
       warn "build err:", err
+
+
+  start: (machine)->
+
+    @eventListener.triggerState machine,
+      status      : Machine.State.Starting
+      percentage  : 0
+
+    @kloud.start { machineId: machine._id }
+
+    .then (res)=>
+
+      @eventListener.addListener 'start', machine._id
+      log "start res:", res
+
+    .catch (err)=>
+
+      @eventListener.revertToPreviousState machine
+      warn "start err:", err
+
+
+  stop: (machine)->
+
+    @eventListener.triggerState machine,
+      status      : Machine.State.Stopping
+      percentage  : 0
+
+    @kloud.stop { machineId: machine._id }
+
+    .then (res)=>
+
+      @eventListener.addListener 'stop', machine._id
+      log "stop res:", res
+
+    .catch (err)=>
+
+      @eventListener.revertToPreviousState machine
+      warn "stop err:", err
 
 
   info: (machine)->
 
-    log "[info]", machine
+    stateEvent = StateEventMap[machine.status.state]
 
-    # If machine state is NotInitialized or Terminated
-    # we don't need to ask info to kloud kite.
-    { NotInitialized, Terminated, Building } = Machine.State
-    if machine.status.state in [ NotInitialized, Terminated ]
-      @emit "public-#{machine._id}", { status: machine.status.state }
+    if stateEvent
+      @eventListener.addListener stateEvent, machine._id
       return Promise.resolve()
 
-    if machine.status.state is Building
-      log "state is building, start polling"
-      @eventListener.addListener 'build', machine._id
-      return Promise.resolve()
-
+    @eventListener.triggerState machine,
+      status      : machine.status.state
+      percentage  : 0
 
     @kloud.info { machineId: machine._id }
 
-    .then (res)=>
+    .then (response)=>
 
-      log "info res:", res
-      @emit "public-#{machine._id}", { status: res.State }
+      log "info response:", response
+      @eventListener.triggerState machine,
+        status      : response.state
+        percentage  : 100
 
-    .catch (err)->
+    .catch (err)=>
+
+      @eventListener.revertToPreviousState machine
       warn "info err:", err
 
+
+  StateEventMap =
+
+    Stopping    : "stop"
+    Building    : "build"
+    Starting    : "start"
+    Rebooting   : "restart"
+    Terminating : "destroy"

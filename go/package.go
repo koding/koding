@@ -17,12 +17,16 @@ import (
 	"strconv"
 	"strings"
 	"text/template"
+
+	"github.com/koding/kite/reverseproxy"
 )
 
 var (
-	flagProfile = flag.String("c", "", "Define config profile to be included")
-	flagRegion  = flag.String("r", "", "Define region profile to be included")
-	flagApp     = flag.String("a", "", "App to be build")
+	flagProfile     = flag.String("c", "", "Define config profile to be included")
+	flagRegion      = flag.String("r", "", "Define region profile to be included")
+	flagEnvironment = flag.String("e", "", "Define environment profile to be included")
+	flagHost        = flag.String("h", "", "Define hostname for kite reveseproxy")
+	flagApp         = flag.String("a", "", "App to be build")
 
 	// kontrolproxy specific flags
 	flagProxy = flag.String("p", "", "Select user proxy or koding proxy") // Proxy only
@@ -33,6 +37,7 @@ var (
 	packages = map[string]func() error{
 		"oskite":       buildOsKite,
 		"kontrolproxy": buildKontrolProxy,
+		"reverseproxy": buildProxyKite,
 		"terminal":     buildTerminal,
 		"kontrol":      buildKontrol,
 		"klient":       buildKlient,
@@ -73,6 +78,50 @@ func packageList() string {
 	}
 
 	return pkgs
+}
+
+func buildProxyKite() error {
+	if *flagEnvironment == "" || *flagRegion == "" || *flagHost == "" {
+		return errors.New("Please define environment -e , region -r and host -h")
+	}
+
+	gopath := os.Getenv("GOPATH")
+	if gopath == "" {
+		return errors.New("GOPATH is not set")
+	}
+
+	importPath := "github.com/koding/kite/reverseproxy/reverseproxy"
+	upstartPath := filepath.Join(gopath, "src/koding/kites/reverseproxy/files/reverseproxy.conf")
+
+	temps := struct {
+		Environment string
+		Region      string
+		Host        string
+	}{
+		Environment: *flagEnvironment,
+		Region:      *flagRegion,
+		Host:        *flagHost,
+	}
+
+	files := []string{}
+	files = append(files, "certs/koding_com_cert.pem", "certs/koding_com_key.pem")
+
+	// change our upstartscript because it's a template
+	configUpstart, err := prepareUpstart(upstartPath, temps)
+	if err != nil {
+		return err
+	}
+	defer os.Remove(configUpstart)
+
+	kiteproxy := pkg{
+		appName:       *flagApp,
+		importPath:    importPath,
+		files:         files,
+		version:       reverseproxy.Version,
+		upstartScript: configUpstart,
+	}
+
+	return kiteproxy.build()
 }
 
 func buildKlient() error {

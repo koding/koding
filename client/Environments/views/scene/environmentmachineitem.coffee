@@ -1,10 +1,12 @@
 class EnvironmentMachineItem extends EnvironmentItem
 
-  JView.mixin @prototype
+  stateClasses = ""
+  for state in Object.keys Machine.State
+    stateClasses += "#{state.toLowerCase()} "
 
   constructor:(options={}, data)->
 
-    options.cssClass           = 'machine busy'
+    options.cssClass           = 'machine'
     options.joints             = ['left']
 
     options.allowedConnections =
@@ -12,19 +14,40 @@ class EnvironmentMachineItem extends EnvironmentItem
 
     super options, data
 
+  viewAppended: ->
 
-    @terminalIcon = new KDCustomHTMLView
-      tagName     : "span"
-      cssClass    : "terminal"
-      click       : @bound "openTerminal"
+    { label, provider, uid, status } = machine = @getData()
+    { computeController } = KD.singletons
 
-    @progress = new KDProgressBarView
+    @addSubView new KDCustomHTMLView
+      partial : "<span class='toggle'></span>"
+
+    @addSubView @title = new KDCustomHTMLView
+      partial : "<h3>#{label or provider or uid}</h3>"
+
+    @addSubView @ipAddress = new KDCustomHTMLView
+      partial  : @getIpLink()
+
+    @addSubView @state = new KDCustomHTMLView
+      tagName  : "span"
+      cssClass : "state"
+
+    @addSubView @statusToggle = new KodingSwitch
+      cssClass     : "tiny"
+      defaultValue : status.state is Machine.State.Running
+      callback     : (state)=>
+        if state
+          computeController.start machine
+        else
+          computeController.stop machine
+
+    @addSubView @progress = new KDProgressBarView
       cssClass : "progress"
 
-
-    machine = @getData()
-
-    {computeController} = KD.singletons
+    @addSubView @terminalIcon = new KDCustomHTMLView
+      tagName  : "span"
+      cssClass : "terminal"
+      click    : @bound "openTerminal"
 
     computeController.on "build-#{machine._id}",   @bound 'invalidateMachine'
     computeController.on "destroy-#{machine._id}", @bound 'invalidateMachine'
@@ -36,11 +59,13 @@ class EnvironmentMachineItem extends EnvironmentItem
         @progress.updateBar event.percentage
 
         if event.percentage < 100 then @setClass 'loading busy'
-        else KD.utils.wait 1000, =>  @unsetClass 'loading busy'
+        else return KD.utils.wait 1000, =>
+          @unsetClass 'loading busy'
+          @updateState event.status
 
       else
 
-        @unsetClass 'busy'
+        @unsetClass 'loading busy'
 
       @updateState event.status
 
@@ -51,11 +76,16 @@ class EnvironmentMachineItem extends EnvironmentItem
 
     return unless status
 
-    if status is 'Running'
-    then @setClass 'running'
-    else @unsetClass 'running'
+    {Running, Starting} = Machine.State
 
-    @getData().setAt "status.state", status
+    @unsetClass stateClasses
+    @setClass status.toLowerCase()
+
+    if status in [Running, Starting]
+    then @statusToggle.setOn no
+    else @statusToggle.setOff no
+
+    @state.updatePartial status
 
 
   invalidateMachine:(event)->
@@ -65,7 +95,9 @@ class EnvironmentMachineItem extends EnvironmentItem
       machine = @getData()
       KD.remote.api.JMachine.one machine._id, (err, newMachine)=>
         if err then warn ".>", err
-        else @setData newMachine
+        else
+          @setData newMachine
+          @ipAddress.updatePartial @getIpLink()
 
 
   contextMenuItems: ->
@@ -148,32 +180,17 @@ class EnvironmentMachineItem extends EnvironmentItem
               @data.meta.initScript = Encoder.htmlEncode modal.editor.getValue()
 
 
-  pistachio:->
+  getIpLink:->
 
-    {label, provider, ipAddress, status:{state} } = @getData()
+    { ipAddress, status:{state}  } = @getData()
+    { Running, Rebooting } = Machine.State
 
-    title = label or provider
+    if ipAddress? and state in [ Running, Rebooting ]
 
-    publicUrl = ""
-
-    { NotInitialized, Terminated } = Machine.State
-
-    if state not in [ NotInitialized, Terminated ] and ipAddress?
-
-      publicUrl = """
+      """
         <a href="http://#{ipAddress}" target="_blank" title="#{ipAddress}">
           <span class='url'>#{ipAddress}</span>
         </a>
       """
 
-    """
-      <div class='details'>
-        <span class='toggle'></span>
-        <h3>#{title}</h3>
-        #{publicUrl}
-        {span.state{#(status.state)}}
-        {{> @progress}}
-        {{> @terminalIcon}}
-        {{> @chevron}}
-      </div>
-    """
+    else ""

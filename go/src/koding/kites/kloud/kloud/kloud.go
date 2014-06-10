@@ -40,6 +40,9 @@ type Kloud struct {
 	Region  string
 	Port    int
 
+	// Used to uniquely identifiy kloud instances
+	UniqueId string
+
 	// needed for signing/generating kite tokens
 	KontrolPublicKey  string
 	KontrolPrivateKey string
@@ -58,23 +61,36 @@ func (k *Kloud) NewKloud() *kodingkite.KodingKite {
 
 	k.idlock = idlock.New()
 
-	if k.Log == nil {
-		k.Log = createLogger(NAME, k.Debug)
-	}
-
-	if k.Storage == nil {
-		k.Storage = &MongoDB{session: mongodb.NewMongoDB(k.Config.Mongo)}
-	}
-
-	if k.Eventers == nil {
-		k.Eventers = make(map[string]eventer.Eventer)
-	}
-
 	kt, err := kodingkite.New(k.Config, k.Name, k.Version)
 	if err != nil {
 		log.Fatalln(err)
 	}
 	k.Kite = kt.Kite
+
+	if k.Log == nil {
+		k.Log = createLogger(NAME, k.Debug)
+	}
+
+	if k.UniqueId == "" {
+		k.UniqueId = uniqueId()
+	}
+
+	mongodbSession := &MongoDB{
+		session:  mongodb.NewMongoDB(k.Config.Mongo),
+		assignee: k.UniqueId,
+	}
+
+	if err := mongodbSession.CleanupOldData(); err != nil {
+		k.Log.Notice("Cleaning up mongodb err: %s", err.Error())
+	}
+
+	if k.Storage == nil {
+		k.Storage = mongodbSession
+	}
+
+	if k.Eventers == nil {
+		k.Eventers = make(map[string]eventer.Eventer)
+	}
 
 	kt.Config.Region = k.Region
 	kt.Config.Port = k.Port
@@ -116,6 +132,17 @@ func (k *Kloud) InitializeProviders() {
 			}
 		},
 	}
+}
+
+func uniqueId() string {
+	// TODO: add a unique identifier, for letting multiple version of the same
+	// worker work on the same hostname.
+	hostname, err := os.Hostname()
+	if err != nil {
+		panic(err) // we should not let it start
+	}
+
+	return fmt.Sprintf("%s-%s", NAME, hostname)
 }
 
 func createLogger(name string, debug bool) logging.Logger {

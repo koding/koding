@@ -3,17 +3,20 @@ package kloud
 import (
 	"fmt"
 	"strconv"
+
+	"github.com/koding/kite"
 )
 
 const (
-	ErrAlreadyInitialized = 101
-	ErrNotInitialized     = 102
-	ErrUnknownState       = 103
-	ErrBuilding           = 104
-	ErrMachineIdMissing   = 107
-	ErrProviderNotFound   = 108
-	ErrNoKiteConnection   = 109
-	ErrMachineTerminating = 110
+	ErrAlreadyInitialized  = 101
+	ErrNotInitialized      = 102
+	ErrUnknownState        = 103
+	ErrBuilding            = 104
+	ErrMachineIdMissing    = 107
+	ErrProviderNotFound    = 108
+	ErrNoKiteConnection    = 109
+	ErrMachineTerminating  = 110
+	ErrMachinePendingEvent = 111
 
 	ErrEventNotFound    = 201
 	ErrEventIdMissing   = 202
@@ -28,14 +31,15 @@ const (
 )
 
 var errors = map[int]string{
-	ErrAlreadyInitialized: "Machine is already initialized and prepared.",
-	ErrNotInitialized:     "Machine is not initialized.",
-	ErrUnknownState:       "Machine is in unknown state. Please contact support.",
-	ErrBuilding:           "Machine is being build. Hold on.",
-	ErrMachineIdMissing:   "Machine id is missing.",
-	ErrProviderNotFound:   "Provider is not found",
-	ErrNoKiteConnection:   "Couldn't connect to remote klient kite",
-	ErrMachineTerminating: "Machine is terminated.",
+	ErrAlreadyInitialized:  "Machine is already initialized and prepared.",
+	ErrNotInitialized:      "Machine is not initialized.",
+	ErrUnknownState:        "Machine is in unknown state. Please contact support.",
+	ErrBuilding:            "Machine is being build. Hold on.",
+	ErrMachineIdMissing:    "Machine id is missing.",
+	ErrProviderNotFound:    "Provider is not found",
+	ErrNoKiteConnection:    "Couldn't connect to remote klient kite",
+	ErrMachineTerminating:  "Machine is terminated.",
+	ErrMachinePendingEvent: "MachineId has a pending event going on",
 
 	// Event errors
 	ErrEventIdMissing:   "Event id is missing.",
@@ -51,23 +55,17 @@ var errors = map[int]string{
 	ErrSignGenerateToken:   "Cannot generate token",
 }
 
-type Error struct {
-	Message string `json:"message"`
-	Code    int    `json:"code"`
-}
-
-func (e Error) Error() string {
-	return e.Message + " (error code: " + strconv.Itoa(e.Code) + ")"
-}
-
-func NewError(errorCode int) *Error {
+func NewError(errorCode int) *kite.Error {
 	errMsg, ok := errors[errorCode]
 	if !ok {
 		panic(fmt.Sprintf("no message is defined for error code %s", errorCode))
 	}
 
-	return &Error{
-		Message: errMsg,
-		Code:    errorCode,
+	code := strconv.Itoa(errorCode)
+
+	return &kite.Error{
+		Type:    "kloudError",
+		Message: errMsg + " (error code: " + code + ")",
+		CodeVal: code,
 	}
 }

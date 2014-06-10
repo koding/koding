@@ -30,7 +30,7 @@ class EnvironmentContainer extends KDDiaContainer
       cssClass : 'add-button'
       callback : => @emit 'PlusButtonClicked'
     @addSubView @addButton
-    @addButton.setY 54
+    @updateAddButton()
 
     {@appStorage} = @parent
 
