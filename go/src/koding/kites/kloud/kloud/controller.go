@@ -150,12 +150,15 @@ func (k *Kloud) coreMethods(r *kite.Request, c *Controller, fn func(*protocol.Ma
 		k.Log.Debug("[controller]: running method %s with mach options %v", r.Method, machOptions)
 		err := fn(machOptions)
 		if err != nil {
-			k.Log.Error("[controller] %s failed: %s. Machine state is Unknown now.", r.Method, err.Error())
+			k.Log.Error("[controller] %s failed: %s. Machine state is Unknown now.",
+				r.Method, err.Error())
+
 			status = machinestate.Unknown
 			msg = err.Error()
 		}
 
 		k.Storage.UpdateState(c.MachineId, status)
+		k.Storage.ResetAssignee(c.MachineId)
 		c.Eventer.Push(&eventer.Event{
 			Message:    msg,
 			Status:     status,

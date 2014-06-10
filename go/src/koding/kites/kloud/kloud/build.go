@@ -54,6 +54,7 @@ func (k *Kloud) build(r *kite.Request, c *Controller) (interface{}, error) {
 		}
 
 		k.Storage.UpdateState(c.MachineId, status)
+		k.Storage.ResetAssignee(c.MachineId)
 		c.Eventer.Push(&eventer.Event{
 			Message:    msg,
 			Status:     status,

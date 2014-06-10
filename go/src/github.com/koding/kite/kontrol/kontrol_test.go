@@ -16,9 +16,9 @@ import (
 	"github.com/koding/kite/config"
 	"github.com/koding/kite/kitekey"
 	"github.com/koding/kite/protocol"
-	"github.com/koding/kite/proxy"
 	"github.com/koding/kite/testkeys"
 	"github.com/koding/kite/testutil"
+	"github.com/koding/kite/tunnelproxy"
 )
 
 var (
@@ -289,8 +289,8 @@ func TestRegister(t *testing.T) {
 }
 
 func TestKontrol(t *testing.T) {
-	t.Log("Setting up proxy")
-	prx := proxy.New(conf.Copy(), "0.0.1", testkeys.Public, testkeys.Private)
+	t.Log("Setting up tunnelproxy")
+	prx := tunnelproxy.New(conf.Copy(), "0.0.1", testkeys.Public, testkeys.Private)
 	prx.Start()
 
 	time.Sleep(1e9)
@@ -303,7 +303,7 @@ func TestKontrol(t *testing.T) {
 	go mathKite.Run()
 	<-mathKite.ServerReadyNotify()
 
-	go mathKite.RegisterToProxy(true)
+	go mathKite.RegisterToTunnel()
 	<-mathKite.KontrolReadyNotify()
 
 	// exp2 kite is the mathworker client
@@ -407,7 +407,7 @@ func TestKontrol(t *testing.T) {
 	go mathKite2.Run()
 	<-mathKite2.ServerReadyNotify()
 
-	go mathKite2.RegisterToProxy(true)
+	go mathKite2.RegisterToTunnel()
 	<-mathKite2.KontrolReadyNotify()
 
 	// We must get Register event

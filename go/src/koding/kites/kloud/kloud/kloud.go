@@ -58,23 +58,41 @@ func (k *Kloud) NewKloud() *kodingkite.KodingKite {
 
 	k.idlock = idlock.New()
 
-	if k.Log == nil {
-		k.Log = createLogger(NAME, k.Debug)
-	}
-
-	if k.Storage == nil {
-		k.Storage = &MongoDB{session: mongodb.NewMongoDB(k.Config.Mongo)}
-	}
-
-	if k.Eventers == nil {
-		k.Eventers = make(map[string]eventer.Eventer)
-	}
-
 	kt, err := kodingkite.New(k.Config, k.Name, k.Version)
 	if err != nil {
 		log.Fatalln(err)
 	}
 	k.Kite = kt.Kite
+
+	if k.Log == nil {
+		k.Log = createLogger(NAME, k.Debug)
+	}
+
+	hostname, err := os.Hostname()
+	if err != nil {
+		panic(err) // we should not let it start
+	}
+
+	// TODO: add a unique identifier, for letting multiple version of the same
+	// worker work on the same hostname.
+	kloudUniqueId := fmt.Sprintf("%s-%s", NAME, hostname)
+
+	mongodbSession := &MongoDB{
+		session:  mongodb.NewMongoDB(k.Config.Mongo),
+		assignee: kloudUniqueId,
+	}
+
+	if err := mongodbSession.CleanupOldData(); err != nil {
+		k.Log.Notice("Cleaning up mongodb err: %s", err.Error())
+	}
+
+	if k.Storage == nil {
+		k.Storage = mongodbSession
+	}
+
+	if k.Eventers == nil {
+		k.Eventers = make(map[string]eventer.Eventer)
+	}
 
 	kt.Config.Region = k.Region
 	kt.Config.Port = k.Port

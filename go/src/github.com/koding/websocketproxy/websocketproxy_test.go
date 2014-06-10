@@ -17,12 +17,14 @@ var (
 
 func TestProxy(t *testing.T) {
 	// websocket proxy
+	supportedSubProtocols := []string{"test-protocol"}
 	upgrader := &websocket.Upgrader{
 		ReadBufferSize:  4096,
 		WriteBufferSize: 4096,
 		CheckOrigin: func(r *http.Request) bool {
 			return true
 		},
+		Subprotocols: supportedSubProtocols,
 	}
 
 	u, _ := url.Parse(backendURL)
@@ -67,13 +69,40 @@ func TestProxy(t *testing.T) {
 
 	time.Sleep(time.Millisecond * 100)
 
+	// let's us define two subprotocols, only one is supported by the server
+	clientSubProtocols := []string{"test-protocol", "test-notsupported"}
+	h := http.Header{}
+	for _, subprot := range clientSubProtocols {
+		h.Add("Sec-WebSocket-Protocol", subprot)
+	}
+
 	// frontend server, dial now our proxy, which will reverse proxy our
 	// message to the backend websocket server.
-	conn, _, err := websocket.DefaultDialer.Dial(serverURL+"/proxy", nil)
+	conn, resp, err := websocket.DefaultDialer.Dial(serverURL+"/proxy", h)
 	if err != nil {
 		t.Fatal(err)
 	}
 
+	// check if the server really accepted only the first one
+	in := func(desired string) bool {
+		for _, prot := range resp.Header[http.CanonicalHeaderKey("Sec-WebSocket-Protocol")] {
+			if desired == prot {
+				return true
+			}
+		}
+		return false
+	}
+
+	if !in("test-protocol") {
+		t.Error("test-protocol should be available")
+	}
+
+	if in("test-notsupported") {
+		t.Error("test-notsupported should be not recevied from the server.")
+	}
+
+	// now write a message and send it to the backend server (which goes trough
+	// proxy..)
 	msg := "hello kite"
 	err = conn.WriteMessage(websocket.TextMessage, []byte(msg))
 	if err != nil {

@@ -13,7 +13,7 @@ import (
 )
 
 var (
-	// DefaultUpgrader specifies the paramaters for upgrading an HTTP
+	// DefaultUpgrader specifies the parameters for upgrading an HTTP
 	// connection to a WebSocket connection.
 	DefaultUpgrader = &websocket.Upgrader{
 		ReadBufferSize:  1024,
@@ -24,20 +24,20 @@ var (
 	DefaultDialer = websocket.DefaultDialer
 )
 
-// WebsocketProxy is an HTTP Handler that takes an incoming websocket
+// WebsocketProxy is an HTTP Handler that takes an incoming WebSocket
 // connection and proxies it to another server.
 type WebsocketProxy struct {
 	// Backend returns the backend URL which the proxy uses to reverse proxy
-	// the incoming websocket connection. Request is the initial incoming and
+	// the incoming WebSocket connection. Request is the initial incoming and
 	// unmodified request.
 	Backend func(*http.Request) *url.URL
 
-	// Upgrader specifies the paramaters for upgrading an HTTP connection to a
-	// WebSocket connection. If nil, DefaultUpgrader is used.
+	// Upgrader specifies the parameters for upgrading a incoming HTTP
+	// connection to a WebSocket connection. If nil, DefaultUpgrader is used.
 	Upgrader *websocket.Upgrader
 
-	//  Dialer contains options for connecting to WebSocket server. If nil,
-	//  DefaultDialer is used.
+	//  Dialer contains options for connecting to the backend WebSocket server.
+	//  If nil, DefaultDialer is used.
 	Dialer *websocket.Dialer
 }
 
@@ -56,12 +56,20 @@ func NewProxy(target *url.URL) *WebsocketProxy {
 	return &WebsocketProxy{Backend: backend}
 }
 
-func (w *WebsocketProxy) CloseNotify() {
-}
-
 // ServeHTTP implements the http.Handler that proxies WebSocket connections.
 func (w *WebsocketProxy) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
+	if w.Backend == nil {
+		log.Println("websocketproxy: backend function is not defined")
+		http.Error(rw, "internal server error (code: 1)", http.StatusInternalServerError)
+		return
+	}
+
 	backendURL := w.Backend(req)
+	if backendURL == nil {
+		log.Println("websocketproxy: backend URL is nil")
+		http.Error(rw, "internal server error (code: 2)", http.StatusInternalServerError)
+		return
+	}
 
 	dialer := w.Dialer
 	if w.Dialer == nil {
@@ -70,20 +78,19 @@ func (w *WebsocketProxy) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 
 	// Pass headers from the incoming request to the dialer to forward them to
 	// the final destinations.
-	h := http.Header{}
-	h.Add("Origin", req.Header.Get("Origin"))
-	protocols := req.Header["Sec-WebSocket-Protocol"]
-	for _, prot := range protocols {
-		h.Add("Sec-WebSocket-Protocol", prot)
+	requestHeader := http.Header{}
+	requestHeader.Add("Origin", req.Header.Get("Origin"))
+	for _, prot := range req.Header[http.CanonicalHeaderKey("Sec-WebSocket-Protocol")] {
+		requestHeader.Add("Sec-WebSocket-Protocol", prot)
 	}
-	cookies := req.Header["Cookie"]
-	for _, cookie := range cookies {
-		h.Add("Cookie", cookie)
+	for _, cookie := range req.Header[http.CanonicalHeaderKey("Cookie")] {
+		requestHeader.Add("Cookie", cookie)
 	}
 
 	// Pass X-Forwarded-For headers too, code below is a part of
 	// httputil.ReverseProxy. See http://en.wikipedia.org/wiki/X-Forwarded-For
 	// for more information
+	// TODO: use RFC7239 http://tools.ietf.org/html/rfc7239
 	if clientIP, _, err := net.SplitHostPort(req.RemoteAddr); err == nil {
 		// If we aren't the first proxy retain prior
 		// X-Forwarded-For information as a comma+space
@@ -91,21 +98,24 @@ func (w *WebsocketProxy) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 		if prior, ok := req.Header["X-Forwarded-For"]; ok {
 			clientIP = strings.Join(prior, ", ") + ", " + clientIP
 		}
-		h.Set("X-Forwarded-For", clientIP)
+		requestHeader.Set("X-Forwarded-For", clientIP)
 	}
 
-	// Set the originating protol of the incoming HTTP request. The SSL might
+	// Set the originating protocol of the incoming HTTP request. The SSL might
 	// be terminated on our site and because we doing proxy adding this would
-	// be helpful for applications on the backedn.
-	h.Set("X-Forwarded-Proto", "http")
+	// be helpful for applications on the backend.
+	requestHeader.Set("X-Forwarded-Proto", "http")
 	if req.TLS != nil {
-		h.Set("X-Forwarded-Proto", "https")
+		requestHeader.Set("X-Forwarded-Proto", "https")
 	}
 
-	// Connect to the backend url, also pass the headers we prepared above.
+	// Connect to the backend URL, also pass the headers we get from the requst
+	// together with the Forwarded headers we prepared above.
 	// TODO: support multiplexing on the same backend connection instead of
-	// opening a new TCP connection time for each request.
-	connBackend, resp, err := dialer.Dial(backendURL.String(), h)
+	// opening a new TCP connection time for each request. This should be
+	// optional:
+	// http://tools.ietf.org/html/draft-ietf-hybi-websocket-multiplexing-01
+	connBackend, resp, err := dialer.Dial(backendURL.String(), requestHeader)
 	if err != nil {
 		log.Printf("websocketproxy: couldn't dial to remote backend url %s\n", err)
 		return
@@ -119,8 +129,10 @@ func (w *WebsocketProxy) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 
 	// Only pass those headers to the upgrader.
 	upgradeHeader := http.Header{}
-	upgradeHeader.Add("Sec-WebSocket-Protocol", resp.Header.Get("Sec-WebSocket-Protocol"))
-	upgradeHeader.Add("Set-Cookie", resp.Header.Get("Set-Cookie"))
+	upgradeHeader.Set("Sec-WebSocket-Protocol",
+		resp.Header.Get(http.CanonicalHeaderKey("Sec-WebSocket-Protocol")))
+	upgradeHeader.Set("Set-Cookie",
+		resp.Header.Get(http.CanonicalHeaderKey("Set-Cookie")))
 
 	// Now upgrade the existing incoming request to a WebSocket connection.
 	// Also pass the header that we gathered from the Dial handshake.
