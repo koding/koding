@@ -6,7 +6,7 @@ class EnvironmentMachineItem extends EnvironmentItem
 
   constructor:(options={}, data)->
 
-    options.cssClass           = 'machine busy'
+    options.cssClass           = 'machine'
     options.joints             = ['left']
 
     options.allowedConnections =
@@ -59,11 +59,13 @@ class EnvironmentMachineItem extends EnvironmentItem
         @progress.updateBar event.percentage
 
         if event.percentage < 100 then @setClass 'loading busy'
-        else KD.utils.wait 1000, =>  @unsetClass 'loading busy'
+        else return KD.utils.wait 1000, =>
+          @unsetClass 'loading busy'
+          @updateState event.status
 
       else
 
-        @unsetClass 'busy'
+        @unsetClass 'loading busy'
 
       @updateState event.status
 
