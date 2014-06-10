@@ -100,25 +100,14 @@ class ComputeController extends KDController
       warn "build err:", err
 
 
-  info: (machine)->
   start: (machine)->
 
-    log "[info]", machine
     @eventListener.triggerState machine,
       status      : Machine.State.Starting
       percentage  : 0
 
-    # If machine state is NotInitialized or Terminated
-    # we don't need to ask info to kloud kite.
-    { NotInitialized, Terminated, Building } = Machine.State
-    if machine.status.state in [ NotInitialized, Terminated ]
-      @emit "public-#{machine._id}", { status: machine.status.state }
-      return Promise.resolve()
     @kloud.start { machineId: machine._id }
 
-    if machine.status.state is Building
-      log "state is building, start polling"
-      @eventListener.addListener 'build', machine._id
     .then (res)=>
 
       @eventListener.addListener 'start', machine._id
@@ -146,16 +135,37 @@ class ComputeController extends KDController
 
       warn "stop err:", err
 
+
+  info: (machine)->
+
+    stateEvent = StateEventMap[machine.status.state]
+
+    if stateEvent
+      @eventListener.addListener stateEvent, machine._id
       return Promise.resolve()
 
+    @eventListener.triggerState machine,
+      status      : machine.status.state
+      percentage  : 0
 
     @kloud.info { machineId: machine._id }
 
-    .then (res)=>
+    .then (response)=>
 
-      log "info res:", res
-      @emit "public-#{machine._id}", { status: res.State }
+      log "info response:", response
+      @eventListener.triggerState machine,
+        status      : response.state
+        percentage  : 100
 
-    .catch (err)->
+    .catch (err)=>
+
       warn "info err:", err
 
+
+  StateEventMap =
+
+    Stopping    : "stop"
+    Building    : "build"
+    Starting    : "start"
+    Rebooting   : "restart"
+    Terminating : "destroy"
