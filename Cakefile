@@ -51,7 +51,9 @@ compileGoBinaries = (configFile,callback)->
   ###
 
   compileGo = require('koding-config-manager').load("main.#{configFile}").compileGo
+
   if compileGo
+
     processes.spawn
       name: 'build go'
       cmd : './go/build.sh'
@@ -59,17 +61,21 @@ compileGoBinaries = (configFile,callback)->
       stderr : process.stderr
       verbose : yes
       onExit :->
-        callback null
-#         processes.spawn
-#           name: 'build go in vagrant'
-#           cmd : 'vagrant ssh default --command "/opt/koding/go/build.sh bin-vagrant"'
-#           stdout : process.stdout
-#           stderr : process.stderr
-#           verbose : yes
-#           onExit :->
-#             callback null
-      
+
+        if configFile.region is 'kodingme'
+          callback null
+        else
+          processes.spawn
+            name: 'build go in vagrant'
+            cmd : 'vagrant ssh default --command "/opt/koding/go/build.sh bin-vagrant"'
+            stdout : process.stdout
+            stderr : process.stderr
+            verbose : yes
+            onExit :->
+              callback null
+
   else
+
     callback null
 
 task 'populateNeo4j', "Populate the local Neo4j Database from the config's mongo server", ({configFile})->
@@ -89,7 +95,8 @@ task 'deleteNeo4j', "Drop all entries in the local Neo4j database", ({configFile
 task 'compileGo', "Compile the local go binaries", ({configFile})->
   compileGoBinaries configFile,->
 
-task 'webserver', "Run the webserver", ({configFile, tests,region}) ->
+task 'webserver', "Run the webserver", ({configFile, tests, region}) ->
+
   KONFIG = require('koding-config-manager').load("main.#{configFile}")
   {webserver,sourceServer} = KONFIG
 
@@ -142,10 +149,10 @@ task 'socialWorker', "Run the socialWorker", ({configFile,region}) ->
   console.log 'CAKEFILE STARTING SOCIAL WORKERS'
 
 
-  
+
   for i in [1..social.numberOfWorkers]
     port = 3029 + i
-    
+
     if region is "kodingme"
       cmd = __dirname + "/workers/social/index -c #{configFile} -p #{port} --disable-newrelic"
     else
@@ -582,9 +589,9 @@ task 'kontrolKite', "Run the kontrol kite", (options) ->
 
   if options.region is "kodingme"
     cmd = "sudo KITE_HOME=/home/ubuntu/koding/kite_home/koding /home/ubuntu/koding/go/bin/kontrol -c #{configFile} -r #{options.region}"
-  else 
+  else
     cmd = "vagrant ssh default -c 'cd /opt/koding; sudo killall -q -KILL kontrol; sudo KITE_HOME=/opt/koding/kite_home/koding /opt/koding/go/bin-vagrant/kontrol -c #{configFile} -r vagrant'"
-    
+
 
 
   processes.spawn
@@ -639,11 +646,10 @@ task 'migratePost', "Migrate Posts to JNewStatusUpdate", ({configFile})->
 run =({configFile})->
   process.stdout.setMaxListeners 100
   process.stderr.setMaxListeners 100
-  
+
   config = require('koding-config-manager').load("main.#{configFile}")
 
   compileGoBinaries configFile, ->
-    console.log ">>>>>>>>>>>"
     invoke 'kontrolDaemon'                    if config.runKontrol
     invoke 'kontrolApi'                       if config.runKontrol
 
