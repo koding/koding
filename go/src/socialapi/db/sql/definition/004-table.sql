@@ -77,7 +77,8 @@ CREATE TABLE "api"."channel_message" (
     "initial_channel_id" bigint NOT NULL,
     "created_at" timestamp(6) WITH TIME ZONE NOT NULL DEFAULT now(),
     "updated_at" timestamp(6) WITH TIME ZONE NOT NULL DEFAULT now(),
-    "deleted_at" timestamp(6) WITH TIME ZONE
+    "deleted_at" timestamp(6) WITH TIME ZONE,
+    "payload" hstore
 )
 WITH (OIDS=FALSE);
 -- ALTER TABLE "api"."channel_message" OWNER TO "socialapplication";
