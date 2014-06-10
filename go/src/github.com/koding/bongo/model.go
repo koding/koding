@@ -59,6 +59,8 @@ func (b *Bongo) Update(i Modellable) error {
 	return b.Create(i)
 }
 
+// Delete deletes the data by it's id, it doesnt take any other fields
+// into consideration
 func (b *Bongo) Delete(i Modellable) error {
 	if i.GetId() == 0 {
 		return errors.New(fmt.Sprintf("Id is not set for %s", i.TableName()))
@@ -71,6 +73,8 @@ func (b *Bongo) Delete(i Modellable) error {
 	return nil
 }
 
+// FetchByIds fetches data from db by their ids in ordered fashion,
+// if non-found this function doesnt return any error.
 func (b *Bongo) FetchByIds(i Modellable, data interface{}, ids []int64) error {
 	if len(ids) == 0 {
 		return nil
