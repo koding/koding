@@ -40,6 +40,9 @@ type Kloud struct {
 	Region  string
 	Port    int
 
+	// Used to uniquely identifiy kloud instances
+	UniqueId string
+
 	// needed for signing/generating kite tokens
 	KontrolPublicKey  string
 	KontrolPrivateKey string
@@ -68,9 +71,13 @@ func (k *Kloud) NewKloud() *kodingkite.KodingKite {
 		k.Log = createLogger(NAME, k.Debug)
 	}
 
+	if k.UniqueId == "" {
+		k.UniqueId = uniqueId()
+	}
+
 	mongodbSession := &MongoDB{
 		session:  mongodb.NewMongoDB(k.Config.Mongo),
-		assignee: uniqueId(),
+		assignee: k.UniqueId,
 	}
 
 	if err := mongodbSession.CleanupOldData(); err != nil {
