@@ -21,7 +21,7 @@ class EnvironmentMachineContainer extends EnvironmentContainer
       title      : 'virtual machines'
       cssClass   : 'machines'
       itemClass  : EnvironmentMachineItem
-      itemHeight : 54
+      itemHeight : 55
 
     super options, data
 
