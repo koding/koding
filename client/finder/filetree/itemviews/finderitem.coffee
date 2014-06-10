@@ -14,13 +14,7 @@ class NFinderItem extends JTreeItemView
     @beingEdited      = no
     @beingProgress    = no
 
-    childConstructor = switch data.type
-      when "vm"         then NVMItemView
-      when "folder"     then NFolderItemView
-      when "section"    then NSectionItemView
-      when "mount"      then NMountItemView
-      when "brokenLink" then NBrokenLinkItemView
-      else NFileItemView
+    childConstructor = @getChildConstructor data.type
 
     @childView = new childConstructor delegate: this, data
     @childView.$().css "margin-left", (data.depth) * 14
@@ -37,6 +31,15 @@ class NFinderItem extends JTreeItemView
         {lastUploadedChunk, totalChunks} = fileInfo
         data.removeLocalFileInfo() if lastUploadedChunk is totalChunks
         @showProgressView 100 * lastUploadedChunk / totalChunks
+
+  getChildConstructor: (type) ->
+    switch type
+      when "vm"         then NVMItemView
+      when "folder"     then NFolderItemView
+      when "section"    then NSectionItemView
+      when "mount"      then NMountItemView
+      when "brokenLink" then NBrokenLinkItemView
+      else NFileItemView
 
   mouseDown:-> yes
 
