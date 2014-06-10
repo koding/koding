@@ -242,7 +242,7 @@ func build(i int, client *kite.Client, data *kloud.MachineData) error {
 			if err := listenEvent(eArgs, pair.desiredState); err != nil {
 				return err
 			}
-			testlog("%s finished. Elapsed time %f seconds", pair.method, time.Since(start).Seconds())
+			testlog("%s finished. Elapsed time %f seconds\n", pair.method, time.Since(start).Seconds())
 		}
 	}
 
