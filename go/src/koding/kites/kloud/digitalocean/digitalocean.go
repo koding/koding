@@ -240,7 +240,7 @@ func (d *DigitalOcean) CreateSnapshot(dropletId uint, name string) error {
 	return d.Client.CreateSnapshot(dropletId, name)
 }
 
-func (d *DigitalOcean) DropletStatus(dropletId uint) (*Droplet, error) {
+func (d *DigitalOcean) DropletInfo(dropletId uint) (*Droplet, error) {
 	path := fmt.Sprintf("droplets/%v", dropletId)
 	resp, err := digitalocean.NewRequest(*d.Client, path, url.Values{})
 	if err != nil {

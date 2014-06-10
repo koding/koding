@@ -177,7 +177,7 @@ func (d *DigitalOcean) Build(opts *protocol.MachineOptions) (p *protocol.BuildRe
 	// our droplet has now an IP adress, get it
 	push(fmt.Sprintf("Getting info about droplet"), 60)
 
-	dropInfo, err := d.DropletStatus(uint(dropletInfo.Droplet.Id))
+	dropInfo, err := d.DropletInfo(uint(dropletInfo.Droplet.Id))
 	if err != nil {
 		return nil, err
 	}
@@ -358,7 +358,7 @@ func (d *DigitalOcean) Info(opts *protocol.MachineOptions) (*protocol.InfoRespon
 		return nil, err
 	}
 
-	droplet, err := d.DropletStatus(dropletId)
+	droplet, err := d.DropletInfo(dropletId)
 	if err != nil {
 		return nil, err
 	}
