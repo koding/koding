@@ -243,5 +243,5 @@ func FetchOldIdsByAccountIds(accountIds []int64) ([]string, error) {
 		return make([]string, 0), nil
 	}
 
-	return oldIds, err
+	return oldIds, nil
 }
