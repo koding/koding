@@ -239,11 +239,11 @@ func (d *DigitalOcean) Build(opts *protocol.MachineOptions) (p *protocol.BuildRe
 
 	// our droplet has now an IP adress, get it
 	push(fmt.Sprintf("Getting info about droplet"), 60)
-	info, err := d.Info(opts)
+
+	dropInfo, err := d.DropletStatus(uint(dropletInfo.Droplet.Id))
 	if err != nil {
 		return nil, err
 	}
-	dropInfo := info.(Droplet)
 
 	sshAddress := dropInfo.IpAddress + ":22"
 	sshConfig, err := sshutil.SshConfig(privateKey)
@@ -594,12 +594,28 @@ func (d *DigitalOcean) CreateSnapshot(dropletId uint, name string) error {
 }
 
 // Info returns all information about the given droplet info.
-func (d *DigitalOcean) Info(opts *protocol.MachineOptions) (interface{}, error) {
+func (d *DigitalOcean) Info(opts *protocol.MachineOptions) (*protocol.InfoResponse, error) {
 	dropletId, err := d.DropletId()
 	if err != nil {
 		return nil, err
 	}
 
+	droplet, err := d.DropletStatus(dropletId)
+	if err != nil {
+		return nil, err
+	}
+
+	if statusToState(droplet.Status) == machinestate.Unknown {
+		d.Log.Warning("Unknown digitalocean status: %s. This needs to be fixed.", droplet.Status)
+	}
+
+	return &protocol.InfoResponse{
+		State: statusToState(droplet.Status),
+	}, nil
+
+}
+
+func (d *DigitalOcean) DropletStatus(dropletId uint) (*Droplet, error) {
 	path := fmt.Sprintf("droplets/%v", dropletId)
 	resp, err := digitalocean.NewRequest(*d.Client, path, url.Values{})
 	if err != nil {
@@ -616,10 +632,10 @@ func (d *DigitalOcean) Info(opts *protocol.MachineOptions) (interface{}, error) 
 		return nil, err
 	}
 
-	return result, err
+	return &result, err
 }
 
-func (d *DigitalOcean) DropletId(raws ...interface{}) (uint, error) {
+func (d *DigitalOcean) DropletId() (uint, error) {
 	if d.Builder.DropletId == "" {
 		return 0, errors.New("dropletId is not available")
 	}
@@ -630,4 +646,20 @@ func (d *DigitalOcean) DropletId(raws ...interface{}) (uint, error) {
 	}
 
 	return dropletId, nil
+}
+
+// statusToState converts a digitalocean status to a sensible
+// machinestate.State format
+func statusToState(status string) machinestate.State {
+	switch status {
+	case "active":
+		return machinestate.Running
+	case "off":
+		return machinestate.Stopped
+	case "new":
+		return machinestate.Building
+	default:
+		return machinestate.Unknown
+	}
+
 }

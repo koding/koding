@@ -23,11 +23,6 @@ type Controller struct {
 	Eventer     eventer.Eventer    `json:"-"`
 }
 
-type InfoResponse struct {
-	State string
-	Data  interface{}
-}
-
 type controlFunc func(*kite.Request, *Controller) (interface{}, error)
 
 type statePair struct {
@@ -205,6 +200,8 @@ func (k *Kloud) restart(r *kite.Request, c *Controller) (interface{}, error) {
 }
 
 func (k *Kloud) info(r *kite.Request, c *Controller) (interface{}, error) {
+	defer k.Storage.ResetAssignee(c.MachineId)
+
 	if c.CurrenState == machinestate.NotInitialized {
 		return nil, NewError(ErrNotInitialized)
 	}
@@ -220,8 +217,12 @@ func (k *Kloud) info(r *kite.Request, c *Controller) (interface{}, error) {
 		return nil, err
 	}
 
-	return &InfoResponse{
-		State: c.MachineData.Machine.Status.State,
-		Data:  info,
-	}, nil
+	response := &protocol.InfoResponse{State: info.State}
+	if info.State == machinestate.Unknown {
+		response.State = c.CurrenState
+	}
+
+	k.Storage.UpdateState(c.MachineId, response.State)
+
+	return response, nil
 }
