@@ -6,7 +6,7 @@ customDomain    =
   public        : "http://koding.me"
   local         : "http://127.0.0.1"
   local_        : "localhost"
-  port          : ":80"
+  port          : 3020
 
 rabbitmq        =
   login         : "guest"
@@ -44,7 +44,7 @@ module.exports =
     key         : 'AKIAJSUVKX6PD254UGAA'
     secret      : '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'
   uri           :
-    address     : "#{customDomain.public}#{customDomain.port}"
+    address     : "#{customDomain.public}:#{customDomain.port}"
   userSitesDomain: "#{customDomain.public}"
   containerSubnet: "10.128.2.0/9"
   vmPool        : "vms"
@@ -52,7 +52,7 @@ module.exports =
   webserver     :
     useCacheHeader: no
     login       : "#{rabbitmq.login}"
-    port        : "#{customDomain.port}"
+    port        : customDomain.port
     clusterSize : 1
     queueName   : socialQueueName+'web'
     watch       : yes
@@ -83,7 +83,7 @@ module.exports =
   runTerminalKite: no
   runProxy      : yes
   redis         : "#{customDomain.local}:6379"
-  subscriptionEndpoint   : "#{customDomain.public}#{customDomain.port}/-/subscription/check/"
+  subscriptionEndpoint   : "#{customDomain.public}:#{customDomain.port}/-/subscription/check/"
   misc          :
     claimGlobalNamesForUsers: no
     updateAllSlugs : no
@@ -161,7 +161,7 @@ module.exports =
     indexMaster : "index-master.html"
     index       : "default.html"
     useStaticFileServer: no
-    staticFilesBaseUrl: "#{customDomain.public}#{customDomain.port}"
+    staticFilesBaseUrl: "#{customDomain.public}:#{customDomain.port}"
     runtimeOptions:
       kites: require './kites.coffee'
       osKitePollingMs: 1000 * 60 # 1 min
@@ -186,14 +186,14 @@ module.exports =
       logApiUri: "#{customDomain.public}:4030/xhr"
       suppressLogs: no
       broker    :
-        servicesEndpoint: "#{customDomain.public}#{customDomain.port}/-/services/broker"
+        servicesEndpoint: "#{customDomain.public}:#{customDomain.port}/-/services/broker"
       premiumBroker:
-        servicesEndpoint: "#{customDomain.public}#{customDomain.port}/-/services/premiumBroker"
+        servicesEndpoint: "#{customDomain.public}:#{customDomain.port}/-/services/premiumBroker"
       brokerKite:
-        servicesEndpoint: "#{customDomain.public}#{customDomain.port}/-/services/brokerKite"
+        servicesEndpoint: "#{customDomain.public}:#{customDomain.port}/-/services/brokerKite"
         brokerExchange: 'brokerKite'
       premiumBrokerKite:
-        servicesEndpoint: "#{customDomain.public}#{customDomain.port}/-/services/premiumBrokerKite"
+        servicesEndpoint: "#{customDomain.public}:#{customDomain.port}/-/services/premiumBrokerKite"
         brokerExchange: 'premiumBrokerKite'
       apiUri    : "#{customDomain.public}"
       version   : version
@@ -374,15 +374,15 @@ module.exports =
     secret_url   : "https://www.odesk.com/services/api/auth?oauth_token="
     version      : "1.0"
     signature    : "HMAC-SHA1"
-    redirect_uri : "#{customDomain}#{customDomain.port}/-/oauth/odesk/callback"
+    redirect_uri : "#{customDomain}:#{customDomain.port}/-/oauth/odesk/callback"
   facebook       :
     clientId     : "475071279247628"
     clientSecret : "65cc36108bb1ac71920dbd4d561aca27"
-    redirectUri  : "#{customDomain}#{customDomain.port}/-/oauth/facebook/callback"
+    redirectUri  : "#{customDomain}:#{customDomain.port}/-/oauth/facebook/callback"
   google         :
     client_id    : "1058622748167.apps.googleusercontent.com"
     client_secret: "vlF2m9wue6JEvsrcAaQ-y9wq"
-    redirect_uri : "#{customDomain}#{customDomain.port}/-/oauth/google/callback"
+    redirect_uri : "#{customDomain}:#{customDomain.port}/-/oauth/google/callback"
   statsd         :
     use          : false
     ip           : "#{customDomain}"
@@ -394,11 +394,11 @@ module.exports =
   linkedin       :
     client_id    : "f4xbuwft59ui"
     client_secret: "fBWSPkARTnxdfomg"
-    redirect_uri : "#{customDomain}#{customDomain.port}/-/oauth/linkedin/callback"
+    redirect_uri : "#{customDomain}:#{customDomain.port}/-/oauth/linkedin/callback"
   twitter        :
     key          : "aFVoHwffzThRszhMo2IQQ"
     secret       : "QsTgIITMwo2yBJtpcp9sUETSHqEZ2Fh7qEQtRtOi2E"
-    redirect_uri : "#{customDomain}#{customDomain.port}/-/oauth/twitter/callback"
+    redirect_uri : "#{customDomain}:#{customDomain.port}/-/oauth/twitter/callback"
     request_url  : "https://twitter.com/oauth/request_token"
     access_url   : "https://twitter.com/oauth/access_token"
     secret_url   : "https://twitter.com/oauth/authenticate?oauth_token="
