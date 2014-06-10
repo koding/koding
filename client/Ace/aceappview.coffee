@@ -1,6 +1,5 @@
 class AceAppView extends JView
 
-
   constructor: (options = {}, data) ->
 
     super options, data
@@ -20,9 +19,7 @@ class AceAppView extends JView
     @attachAppMenuEvents()
     @on 'PlusHandleClicked', @bound 'addNewTab'
 
-
   embedFinder:->
-
     @appManager.open 'Finder', (finderApp)=>
       @finderController = finderApp.create()
       @finderWrapper.addSubView @finderController.getView()
@@ -30,9 +27,6 @@ class AceAppView extends JView
       @finderController.on 'FileNeedsToBeOpened', (file)=>
         @openFile file, yes
       @openLastFiles()
-
-
-
 
   openLastFiles:->
     vmc = KD.getSingleton("vmController")
@@ -46,7 +40,6 @@ class AceAppView extends JView
           @openFile fsfile
 
   attachEvents:->
-
     @tabView.on "PaneDidShow", (pane) ->
       {aceView} = pane.getOptions()
       return  unless aceView
