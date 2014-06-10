@@ -5,14 +5,15 @@ class ComputeEventListener extends KDObject
     super
       interval : options.interval ? 4000
 
-    @kloud          = KD.singletons.kontrol.getKite
-      name          : "kloud"
-      environment   : "vagrant"
+    @kloud           = KD.singletons.kontrol.getKite
+      name           : "kloud"
+      environment    : "vagrant"
 
-    @listeners      = []
-    @tickInProgress = no
-    @running        = no
-    @timer          = null
+    @listeners       = []
+    @machineStatuses = {}
+    @tickInProgress  = no
+    @running         = no
+    @timer           = null
 
 
   start:->
@@ -40,6 +41,18 @@ class ComputeEventListener extends KDObject
     unless inList
       @listeners.push { type, eventId }
       @start()  unless @running
+
+
+  triggerState:(machine, event)->
+
+    {computeController} = KD.singletons
+
+    state = { status : event.status }
+    state.percentage = event.percentage  if event.percentage?
+
+    @machineStatuses[machine.uid] = machine.status.state
+
+    computeController.emit "public-#{machine._id}", state
 
 
   tick:->
