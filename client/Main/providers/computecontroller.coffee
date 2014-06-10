@@ -128,6 +128,24 @@ class ComputeController extends KDController
 
       warn "start err:", err
 
+
+  stop: (machine)->
+
+    @eventListener.triggerState machine,
+      status      : Machine.State.Stopping
+      percentage  : 0
+
+    @kloud.stop { machineId: machine._id }
+
+    .then (res)=>
+
+      @eventListener.addListener 'stop', machine._id
+      log "stop res:", res
+
+    .catch (err)=>
+
+      warn "stop err:", err
+
       return Promise.resolve()
 
 
