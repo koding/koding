@@ -25,6 +25,7 @@ func (b *Bongo) Fetch(i Modellable) error {
 	return nil
 }
 
+// ById Fetches data from db by it's id
 func (b *Bongo) ById(i Modellable, id int64) error {
 	if err := b.DB.
 		Table(i.TableName()).
@@ -37,6 +38,7 @@ func (b *Bongo) ById(i Modellable, id int64) error {
 	return nil
 }
 
+// Creates a new record with the given struct and its fields
 func (b *Bongo) Create(i Modellable) error {
 	if err := b.DB.Save(i).Error; err != nil {
 		return err
@@ -45,6 +47,7 @@ func (b *Bongo) Create(i Modellable) error {
 	return nil
 }
 
+// Update updates all fields of a struct with assigned data
 func (b *Bongo) Update(i Modellable) error {
 	if i.GetId() == 0 {
 		return errors.New(fmt.Sprintf("Id is not set for %s", i.TableName()))
