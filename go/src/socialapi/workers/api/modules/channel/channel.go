@@ -112,16 +112,26 @@ func CheckParticipation(u *url.URL, h http.Header, _ interface{}) (int, http.Hea
 	cp.ChannelId = channel.Id
 	cp.AccountId = q.AccountId
 
-	if err := cp.FetchParticipant(); err != nil {
-		if err == gorm.RecordNotFound {
-			if channel.TypeConstant == models.Channel_TYPE_GROUP {
-				return helpers.NewOKResponse(true)
-			}
-		}
+	// fetch participant
+	if err := cp.FetchParticipant(); err == nil {
+		return helpers.NewOKResponse(true)
+	}
+
+	// if err is not `record not found`
+	// return it immediately
+	if err != gorm.RecordNotFound {
 		return helpers.NewBadRequestResponse(err)
 	}
 
-	return helpers.NewOKResponse(true)
+	// we here we have record-not-found
+
+	// if channel type is `group` then return true
+	if channel.TypeConstant == models.Channel_TYPE_GROUP {
+		return helpers.NewOKResponse(true)
+	}
+
+	// return here to the client
+	return helpers.NewBadRequestResponse(err)
 }
 
 func Delete(u *url.URL, h http.Header, req *models.Channel) (int, http.Header, interface{}, error) {
