@@ -61,48 +61,6 @@ func (d *DigitalOcean) Name() string {
 	return ProviderName
 }
 
-// Prepare prepares the state for upcoming methods like Build/etc.. It's needs to
-// be called before every other method call once. Raws contains the credentials
-// as a map[string]interface{} format.
-func (d *DigitalOcean) Prepare(raws ...interface{}) (err error) {
-	if len(raws) != 2 {
-		return errors.New("need at least two arguments")
-	}
-
-	// Credentials
-	if err := mapstructure.Decode(raws[0], &d.Creds); err != nil {
-		return err
-	}
-
-	// Builder data
-	if err := mapstructure.Decode(raws[1], &d.Builder); err != nil {
-		return err
-	}
-
-	if d.Creds.ClientID == "" {
-		return errors.New("credentials client_id is empty")
-	}
-
-	if d.Creds.APIKey == "" {
-		return errors.New("credentials api_key is empty")
-	}
-
-	d.Builder.ClientID = d.Creds.ClientID
-	d.Builder.APIKey = d.Creds.APIKey
-
-	d.Client = digitalocean.DigitalOceanClient{}.New(d.Creds.ClientID, d.Creds.APIKey)
-
-	// authenticate credentials with a simple call
-	// TODO: cache gor a given clientID and apiKey
-	d.Log.Debug("Testing authentication with a simple /regions call")
-	_, err = d.Regions()
-	if err != nil {
-		return errors.New("authentication with DigitalOcean failed.")
-	}
-
-	return nil
-}
-
 // CheckEvent checks the given eventID and returns back the result. It's useful
 // for checking the status of an event. Usually it's called in a for/select
 // statement and get polled.
@@ -299,7 +257,7 @@ func (d *DigitalOcean) DropletStatus(dropletId uint) (*Droplet, error) {
 		return nil, err
 	}
 
-	return *result, err
+	return &result, err
 }
 
 func (d *DigitalOcean) DropletId() (uint, error) {
