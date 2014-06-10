@@ -1,10 +1,12 @@
 package controller
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	mongomodels "koding/db/models"
 	"koding/db/mongodb/modelhelper"
+	"reflect"
 	"socialapi/models"
 	"strings"
 
@@ -87,7 +89,12 @@ func (mwc *Controller) migrateAllPosts() error {
 		}
 
 		// create channel message
-		cm := mapStatusUpdateToChannelMessage(&su)
+		cm, err := mapStatusUpdateToChannelMessage(&su)
+		if err != nil {
+			handleError(&su, err)
+			continue
+		}
+
 		cm.InitialChannelId = channelId
 		if err := insertChannelMessage(cm, su.OriginId.Hex()); err != nil {
 			handleError(&su, err)
@@ -262,15 +269,44 @@ func (mwc *Controller) fetchGroupChannelId(groupName string) (int64, error) {
 	return channelId, nil
 }
 
-func mapStatusUpdateToChannelMessage(su *mongomodels.StatusUpdate) *models.ChannelMessage {
+func mapStatusUpdateToChannelMessage(su *mongomodels.StatusUpdate) (*models.ChannelMessage, error) {
 	cm := models.NewChannelMessage()
 	cm.Slug = su.Slug
 	prepareBody(cm, su.Body)
 	cm.TypeConstant = models.ChannelMessage_TYPE_POST
 	cm.CreatedAt = su.Meta.CreatedAt
+	payload, err := mapEmbeddedLink(su.Link)
+	if err != nil {
+		return nil, err
+	}
+	cm.Payload = payload
+
 	prepareMessageMetaDates(cm, &su.Meta)
 
-	return cm
+	return cm, nil
+}
+
+func mapEmbeddedLink(link map[string]interface{}) (map[string]*string, error) {
+	resultMap := make(map[string]*string)
+	for key, value := range link {
+		// when value is a map, then marshal it
+		if reflect.ValueOf(value).Kind() == reflect.Map {
+			res, err := json.Marshal(value)
+			if err != nil {
+				return nil, err
+			}
+
+			s := string(res)
+			resultMap[key] = &s
+			continue
+		}
+
+		// for the other types convert value to string
+		str := fmt.Sprintf("%v", value)
+		resultMap[key] = &str
+	}
+
+	return resultMap, nil
 }
 
 func mapCommentToChannelMessage(c *mongomodels.Comment) *models.ChannelMessage {
