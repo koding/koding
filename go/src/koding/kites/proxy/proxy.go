@@ -7,7 +7,7 @@ import (
 	"log"
 
 	kiteconfig "github.com/koding/kite/config"
-	"github.com/koding/kite/proxy"
+	"github.com/koding/kite/tunnelproxy"
 )
 
 func main() {
@@ -40,8 +40,8 @@ func main() {
 	kiteConf.IP = *ip
 	kiteConf.Port = *port
 
-	p := proxy.New(kiteConf, *version, string(publicKey), string(privateKey))
-	p.PublicHost = *publicHost
+	t := tunnelproxy.New(kiteConf, *version, string(publicKey), string(privateKey))
+	t.PublicHost = *publicHost
 
-	p.Run()
+	t.Run()
 }
