@@ -187,14 +187,14 @@ module.exports =
       logApiUri: "#{customDomain.public}:4030/xhr"
       suppressLogs: no
       broker    :
-        servicesEndpoint: "#{customDomain.public_}:#{customDomain.port}/-/services/broker"
+        servicesEndpoint: "#{customDomain.public}:#{customDomain.port}/-/services/broker"
       premiumBroker:
-        servicesEndpoint: "#{customDomain.public_}:#{customDomain.port}/-/services/premiumBroker"
+        servicesEndpoint: "#{customDomain.public}:#{customDomain.port}/-/services/premiumBroker"
       brokerKite:
-        servicesEndpoint: "#{customDomain.public_}:#{customDomain.port}/-/services/brokerKite"
+        servicesEndpoint: "#{customDomain.public}:#{customDomain.port}/-/services/brokerKite"
         brokerExchange: 'brokerKite'
       premiumBrokerKite:
-        servicesEndpoint: "#{customDomain.public_}:#{customDomain.port}/-/services/premiumBrokerKite"
+        servicesEndpoint: "#{customDomain.public}:#{customDomain.port}/-/services/premiumBrokerKite"
         brokerExchange: 'premiumBrokerKite'
       apiUri    : "#{customDomain.public}"
       version   : version
@@ -250,7 +250,7 @@ module.exports =
     webProtocol       : 'http:'
     authExchange      : authExchange
     authAllExchange   : authAllExchange
-    failoverUri       : "#{customDomain.public}"
+    failoverUri       : customDomain.public_
   premiumBroker       :
     name              : "premiumBroker"
     serviceGenericName: "broker"
@@ -261,7 +261,7 @@ module.exports =
     webProtocol       : 'http:'
     authExchange      : authExchange
     authAllExchange   : authAllExchange
-    failoverUri       : "#{customDomain.public}"
+    failoverUri       : customDomain.public_
   brokerKite          :
     name              : "brokerKite"
     serviceGenericName: "brokerKite"
@@ -272,7 +272,7 @@ module.exports =
     webProtocol       : 'http:'
     authExchange      : authExchange
     authAllExchange   : authAllExchange
-    failoverUri       : "#{customDomain.public}"
+    failoverUri       : customDomain.public_
   premiumBrokerKite   :
     name              : "premiumBrokerKite"
     serviceGenericName: "brokerKite"
@@ -283,7 +283,7 @@ module.exports =
     webProtocol       : 'http:'
     authExchange      : authExchange
     authAllExchange   : authAllExchange
-    failoverUri       : "#{customDomain.public}"
+    failoverUri       : customDomain.public_
   kites:
     disconnectTimeout: 3e3
     vhost       : 'kite'
