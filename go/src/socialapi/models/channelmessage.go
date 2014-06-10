@@ -142,12 +142,12 @@ func (c *ChannelMessage) CreateRaw() error {
 	insertSql := "INSERT INTO " +
 		c.TableName() +
 		` ("body","slug","type_constant","account_id","initial_channel_id",` +
-		`"created_at","updated_at","deleted_at") ` +
-		"VALUES ($1,$2,$3,$4,$5,$6,$7,$8) " +
+		`"created_at","updated_at","deleted_at","payload") ` +
+		"VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9) " +
 		"RETURNING ID"
 
 	return bongo.B.DB.CommonDB().QueryRow(insertSql, c.Body, c.Slug, c.TypeConstant, c.AccountId, c.InitialChannelId,
-		c.CreatedAt, c.UpdatedAt, c.DeletedAt).Scan(&c.Id)
+		c.CreatedAt, c.UpdatedAt, c.DeletedAt, c.Payload).Scan(&c.Id)
 }
 
 func (c *ChannelMessage) Delete() error {
