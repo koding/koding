@@ -95,7 +95,9 @@ class EnvironmentMachineItem extends EnvironmentItem
       machine = @getData()
       KD.remote.api.JMachine.one machine._id, (err, newMachine)=>
         if err then warn ".>", err
-        else @setData newMachine
+        else
+          @setData newMachine
+          @ipAddress.updatePartial @getIpLink()
 
 
   contextMenuItems: ->
@@ -178,11 +180,17 @@ class EnvironmentMachineItem extends EnvironmentItem
               @data.meta.initScript = Encoder.htmlEncode modal.editor.getValue()
 
 
+  getIpLink:->
 
+    { ipAddress, status:{state}  } = @getData()
+    { Running, Rebooting } = Machine.State
 
+    if ipAddress? and state in [ Running, Rebooting ]
 
+      """
         <a href="http://#{ipAddress}" target="_blank" title="#{ipAddress}">
           <span class='url'>#{ipAddress}</span>
         </a>
       """
 
+    else ""
