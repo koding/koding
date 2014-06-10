@@ -461,22 +461,22 @@ func vmStopAndUnprepare(args *dnode.Partial, channel *kite.Channel, vos *virt.VO
 }
 
 func unprepareProgress(t tracer.Tracer, vm *virt.VM, destroy bool) error {
-	if err := vm.Unprepare(t, destroy); err == nil {
-
-		if err = mongodbConn.Run("jVMs", func(c *mgo.Collection) error {
-			return c.Update(bson.M{"_id": vm.Id}, bson.M{"$set": bson.M{"hostKite": nil}})
-		}); err != nil {
-			return fmt.Errorf("unprepareProgress hostKite nil setting: %v", err)
-		}
-
-		// mark it as stopped in mongodb
-		if _, err := updateState(vm.Id, vm.State); err != nil {
-			return err
-		}
-		return nil
-	} else {
+	if err := vm.Unprepare(t, destroy); err != nil {
 		return err
 	}
+
+	if err := mongodbConn.Run("jVMs", func(c *mgo.Collection) error {
+		return c.Update(bson.M{"_id": vm.Id}, bson.M{"$set": bson.M{"hostKite": nil}})
+	}); err != nil {
+		return fmt.Errorf("unprepareProgress hostKite nil setting: %v", err)
+	}
+
+	// mark it as stopped in mongodb
+	if _, err := updateState(vm.Id, vm.State); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func prepareProgress(t tracer.Tracer, vm *virt.VM) error {
