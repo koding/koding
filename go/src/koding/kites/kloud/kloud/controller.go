@@ -39,7 +39,7 @@ var states = map[string]*statePair{
 
 func (k *Kloud) ControlFunc(method string, control controlFunc) {
 	handler := func(r *kite.Request) (interface{}, error) {
-		k.Log.Debug("[controller] got a request for method: '%s' with args: %v",
+		k.Log.Info("[controller] got a request for method: '%s' with args: %v",
 			method, string(r.Args.Raw))
 
 		// this locks are important to prevent consecutive calls from the same user
@@ -82,7 +82,7 @@ func (k *Kloud) controller(r *kite.Request) (*Controller, error) {
 		return nil, err
 	}
 
-	k.Log.Debug("[controller]: got machine: %v", m.Machine)
+	k.Log.Info("[controller] got machine data with machineID (%s) : %#v", args.MachineId, m.Machine)
 
 	// prevent request if the machine is terminated. However we want the user
 	// to be able to build again
@@ -142,7 +142,7 @@ func (k *Kloud) coreMethods(r *kite.Request, c *Controller, fn func(*protocol.Ma
 		status := s.final
 		msg := fmt.Sprintf("%s is finished successfully.", r.Method)
 
-		k.Log.Debug("[controller]: running method %s with mach options %v", r.Method, machOptions)
+		k.Log.Info("[controller]: running method %s with mach options %v", r.Method, machOptions)
 		err := fn(machOptions)
 		if err != nil {
 			k.Log.Error("[controller] %s failed: %s. Machine state is Unknown now.",
@@ -150,6 +150,8 @@ func (k *Kloud) coreMethods(r *kite.Request, c *Controller, fn func(*protocol.Ma
 
 			status = s.initial
 			msg = err.Error()
+		} else {
+			k.Log.Info("[%s] is successfull. State is now: %+v", r.Method, status)
 		}
 
 		k.Storage.UpdateState(c.MachineId, status)
@@ -224,5 +226,6 @@ func (k *Kloud) info(r *kite.Request, c *Controller) (interface{}, error) {
 
 	k.Storage.UpdateState(c.MachineId, response.State)
 
+	k.Log.Info("[info] returning response %+v", response)
 	return response, nil
 }
