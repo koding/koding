@@ -135,7 +135,7 @@ func listenEvent(args kloud.EventArgs, desiredState machinestate.State) error {
 		}
 
 		event := e.Event
-		fmt.Printf("event %+v\n", event)
+		// fmt.Printf("event %+v\n", event)
 
 		if event.Status == desiredState {
 			return nil
@@ -170,7 +170,7 @@ func build(i int, client *kite.Client, data *kloud.MachineData) error {
 
 	testlog := func(msg string, args ...interface{}) {
 		// mimick it like packer's own log
-		color.Cyan("==> %s: %s", data.Provider, fmt.Sprintf(msg, args...))
+		color.Green("==> %s: %s", data.Provider, fmt.Sprintf(msg, args...))
 	}
 
 	bArgs := &kloud.Controller{
@@ -242,7 +242,7 @@ func build(i int, client *kite.Client, data *kloud.MachineData) error {
 			if err := listenEvent(eArgs, pair.desiredState); err != nil {
 				return err
 			}
-			testlog("%s finished. Elapsed time %f seconds", pair.method, time.Since(start).Seconds())
+			testlog("%s finished. Elapsed time %f seconds\n", pair.method, time.Since(start).Seconds())
 		}
 	}
 
