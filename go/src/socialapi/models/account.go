@@ -46,6 +46,10 @@ func (a *Account) FetchOrCreate() error {
 		return errors.New("old id is not set")
 	}
 
+	if a.Nick == "" {
+		return errors.New("nick is not set")
+	}
+
 	selector := map[string]interface{}{
 		"old_id": a.OldId,
 	}
