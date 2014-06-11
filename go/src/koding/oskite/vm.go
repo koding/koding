@@ -275,7 +275,11 @@ func vmInfo(vos *virt.VOS) (interface{}, error) {
 	}
 
 	info := getInfo(vos.VM)
-	info.State = vos.VM.GetState()
+	log.Info("[vm.info] getting state for VM [%s -%s]", vos.VM.Id, vos.VM.HostnameAlias)
+	info.State, err = vos.VM.GetState()
+	if err != nil {
+		log.Error("[vm.info] getting state failed for VM [%s - %s], err: %s", vos.VM.Id, vos.VM.HostnameAlias, err)
+	}
 	info.Prepared = prepared
 
 	infosMutex.Lock()
