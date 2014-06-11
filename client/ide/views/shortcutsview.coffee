@@ -1,4 +1,4 @@
-class IDE.ShortcutsView extends KDScrollView
+class IDE.ShortcutsView extends KDView
 
   constructor: (options = {}, data) ->
 
