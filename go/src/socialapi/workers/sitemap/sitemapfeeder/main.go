@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"koding/db/mongodb/modelhelper"
 	"socialapi/workers/common/manager"
 	"socialapi/workers/common/runner"
 	"socialapi/workers/helper"
@@ -19,8 +18,6 @@ func main() {
 		fmt.Println(err)
 		return
 	}
-
-	modelhelper.Initialize(r.Conf.Mongo)
 
 	redisConn := helper.MustInitRedisConn(r.Conf.Redis)
 	defer redisConn.Close()

@@ -2,7 +2,6 @@ package feeder
 
 import (
 	"fmt"
-	"koding/db/mongodb/modelhelper"
 	"socialapi/config"
 	socialmodels "socialapi/models"
 	"socialapi/workers/helper"
@@ -48,7 +47,9 @@ func (f *Controller) MessageAdded(cm *socialmodels.ChannelMessage) error {
 	}
 	// when a message is added, creator's profile page must also be updated
 	a := socialmodels.NewAccount()
-	a.Id = cm.AccountId
+	if err := a.ById(cm.AccountId); err != nil {
+		return err
+	}
 
 	return f.queueItem(newItemByAccount(a, STATUS_UPDATE))
 }
@@ -85,46 +86,37 @@ func (f *Controller) AccountDeleted(a *socialmodels.Account) error {
 	return f.queueItem(newItemByAccount(a, STATUS_DELETE))
 }
 
-func newItemByChannelMessage(cm *socialmodels.ChannelMessage, status string) (*models.SitemapItem, error) {
+func newItemByChannelMessage(cm *socialmodels.ChannelMessage, status string) *models.SitemapItem {
 	return &models.SitemapItem{
 		Id:           cm.Id,
 		TypeConstant: TYPE_CHANNEL_MESSAGE,
 		Slug:         cm.Slug,
 		Status:       status,
-	}, nil
+	}
 }
 
-func newItemByAccount(a *socialmodels.Account, status string) (*models.SitemapItem, error) {
+func newItemByAccount(a *socialmodels.Account, status string) *models.SitemapItem {
 	i := &models.SitemapItem{
 		Id:           a.Id,
 		TypeConstant: TYPE_ACCOUNT,
 		Status:       status,
 	}
 
-	oldAccount, err := modelhelper.GetAccountBySocialApiId(a.Id)
-	if err != nil {
-		return nil, err
-	}
+	i.Slug = a.Nick
 
-	i.Slug = oldAccount.Profile.Nickname
-
-	return i, nil
+	return i
 }
 
-func newItemByChannel(c *socialmodels.Channel, status string) (*models.SitemapItem, error) {
+func newItemByChannel(c *socialmodels.Channel, status string) *models.SitemapItem {
 	return &models.SitemapItem{
 		Id:           c.Id,
 		TypeConstant: TYPE_CHANNEL,
 		Slug:         c.GroupName,
 		Status:       status,
-	}, nil
+	}
 }
 
-func (f *Controller) queueItem(i *models.SitemapItem, err error) error {
-	if err != nil {
-		return err
-	}
-
+func (f *Controller) queueItem(i *models.SitemapItem) error {
 	// fetch file name
 	n := f.nameFetcher.Fetch(i)
 	// prepare cache key
@@ -142,5 +134,6 @@ func prepareFileCacheKey(fileName string) string {
 	return fmt.Sprintf("%s:%s:%s",
 		config.Get().Environment,
 		CACHEPREFIX,
-		fileName)
+		fileName,
+	)
 }
