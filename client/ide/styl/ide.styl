@@ -65,6 +65,13 @@ body.ide.dark
   .kdview.dummy
     display             none
 
+  .application-tabview
+    >.kdtabpaneview
+      overflow          visible
+
+      >.pane
+        overflow        visible
+
 
 // sidebar icons
 .ide-files-tab
@@ -114,6 +121,8 @@ body.ide.dark
 
 // vm list pane
 .vm-list-pane
+  height                auto
+
   .vm-item
     size                auto, 39px
     bg                  color, #131313
@@ -155,6 +164,8 @@ body.ide.dark
       display           inline-block
       r-sprite          'ide', 'add-vm'
       float             none
+      vertical-align    sub
+      margin-right      4px
 
 
 
