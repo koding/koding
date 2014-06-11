@@ -1,4 +1,4 @@
-class MessageEventHelper extends KDObject
+class MessageEventManager extends KDObject
 
   constructor: (options = {}, data) ->
 
