@@ -48,6 +48,9 @@
 
     @createPane_ editor, paneOptions, file
 
+  createShortcutsView: ->
+    @createPane_ new IDE.ShortcutsView, { name: 'Shortcuts' }
+
   createTerminal: (vm) ->
     terminalPane = new IDE.TerminalPane { vm }
     @createPane_ terminalPane, { name: 'Terminal' }
