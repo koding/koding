@@ -24,10 +24,10 @@ func (s *SitemapItem) Compose(value string) error {
 	}
 
 	id, err := strconv.ParseInt(r[0], 0, 64)
-    s.Id = id
-    if err != nil {
-        return fmt.Errorf("id cannot be cast", err)
-    }
+	s.Id = id
+	if err != nil {
+		return fmt.Errorf("id cannot be cast", err)
+	}
 
 	s.TypeConstant = r[1]
 	s.Slug = r[2]
