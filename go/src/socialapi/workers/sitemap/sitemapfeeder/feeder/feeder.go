@@ -16,9 +16,6 @@ const (
 	TYPE_ACCOUNT         = "account"
 	TYPE_CHANNEL_MESSAGE = "channelmessage"
 	TYPE_CHANNEL         = "channel"
-	STATUS_ADD           = "add"
-	STATUS_DELETE        = "delete"
-	STATUS_UPDATE        = "update"
 )
 
 type Controller struct {
@@ -42,7 +39,7 @@ func New(log logging.Logger) (*Controller, error) {
 }
 
 func (f *Controller) MessageAdded(cm *socialmodels.ChannelMessage) error {
-	if err := f.queueItem(newItemByChannelMessage(cm, STATUS_ADD)); err != nil {
+	if err := f.queueItem(newItemByChannelMessage(cm, models.STATUS_ADD)); err != nil {
 		return err
 	}
 	// when a message is added, creator's profile page must also be updated
@@ -51,39 +48,39 @@ func (f *Controller) MessageAdded(cm *socialmodels.ChannelMessage) error {
 		return err
 	}
 
-	return f.queueItem(newItemByAccount(a, STATUS_UPDATE))
+	return f.queueItem(newItemByAccount(a, models.STATUS_UPDATE))
 }
 
 func (f *Controller) MessageUpdated(cm *socialmodels.ChannelMessage) error {
-	return f.queueItem(newItemByChannelMessage(cm, STATUS_UPDATE))
+	return f.queueItem(newItemByChannelMessage(cm, models.STATUS_UPDATE))
 }
 
 func (f *Controller) MessageDeleted(cm *socialmodels.ChannelMessage) error {
-	return f.queueItem(newItemByChannelMessage(cm, STATUS_DELETE))
+	return f.queueItem(newItemByChannelMessage(cm, models.STATUS_DELETE))
 }
 
 func (f *Controller) ChannelUpdated(c *socialmodels.Channel) error {
-	return f.queueItem(newItemByChannel(c, STATUS_UPDATE))
+	return f.queueItem(newItemByChannel(c, models.STATUS_UPDATE))
 }
 
 func (f *Controller) ChannelAdded(c *socialmodels.Channel) error {
-	return f.queueItem(newItemByChannel(c, STATUS_ADD))
+	return f.queueItem(newItemByChannel(c, models.STATUS_ADD))
 }
 
 func (f *Controller) ChannelDeleted(c *socialmodels.Channel) error {
-	return f.queueItem(newItemByChannel(c, STATUS_DELETE))
+	return f.queueItem(newItemByChannel(c, models.STATUS_DELETE))
 }
 
 func (f *Controller) AccountAdded(a *socialmodels.Account) error {
-	return f.queueItem(newItemByAccount(a, STATUS_ADD))
+	return f.queueItem(newItemByAccount(a, models.STATUS_ADD))
 }
 
 func (f *Controller) AccountUpdated(a *socialmodels.Account) error {
-	return f.queueItem(newItemByAccount(a, STATUS_UPDATE))
+	return f.queueItem(newItemByAccount(a, models.STATUS_UPDATE))
 }
 
 func (f *Controller) AccountDeleted(a *socialmodels.Account) error {
-	return f.queueItem(newItemByAccount(a, STATUS_DELETE))
+	return f.queueItem(newItemByAccount(a, models.STATUS_DELETE))
 }
 
 func newItemByChannelMessage(cm *socialmodels.ChannelMessage, status string) *models.SitemapItem {
