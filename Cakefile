@@ -680,48 +680,65 @@ run =({configFile})->
     invoke 'logWorker'                        if config.log.runWorker
 
 task 'importDB', (options) ->
-  if options.configFile is 'vagrant'
-    (spawn 'bash', ['./vagrant/import.sh'])
-      .stdout
-        .on 'data', (it) ->
-          console.log "#{it}"
-        .on 'end', ->
-          console.log "Import is finished!".green
-          process.exit()
+
+  importDB options
+
+importDB = (options, callback = ->)->
+
+  if options.configFile in ['vagrant', 'kodingme']
+
+    check = """ mongo localhost/koding --quiet --eval="print(db.jGroups.count({slug:'guests'}))" """
+
+    exec check, (err, stdout, stderr)->
+
+      if err or stderr
+        console.error "An error occured:", err or stderr
+        callback null
+
+      else if stdout is "1\n"
+        console.warn "DB already exists, not importing at this time."
+        callback null
+
+      else
+        command = "tar jxvf ./install/default-db-dump.tar.bz2 && mongorestore -hlocalhost -dkoding dump/koding && rm -rf ./dump"
+        exec command, (err, stdout, stderr)->
+          console.log stdout
+          console.error stderr if stderr
+          console.info "DB didn't exists I created a blank one."
+          callback null
+
   else
-    console.error "You should only run this task with -c vagrant".red
+
+    callback null
+
 
 task 'run', (options)->
+
   {configFile} = options
   options.configFile = "vagrant" if configFile in ["",undefined,"undefined"]
   KONFIG = config = require('koding-config-manager').load("main.#{configFile}")
 
-  if "vagrant" is options.configFile
-    (spawn 'bash', ['./vagrant/needimport.sh'])
-      .stdout.on 'data', (it) ->
-        if "#{it}" is '1\n'
-          console.error "You need to run cake -c vagrant importDB".red
-          process.exit()
+  importDB options, ->
 
-  oldIndex = nodePath.join __dirname, "website/index.html"
-  if fs.existsSync oldIndex
-    fs.unlinkSync oldIndex
+    oldIndex = nodePath.join __dirname, "website/index.html"
+    if fs.existsSync oldIndex
+      fs.unlinkSync oldIndex
 
-  config.buildClient = yes if options.buildClient
+    config.buildClient = yes if options.buildClient
 
-  queue = []
-  if config.buildClient is yes
-    queue.push ->
+    queue = []
+    if config.buildClient is yes
+      queue.push ->
 
-      buildMethod =
-        if options.dontBuildSprites
-        then 'buildClient'
-        else 'buildSprites'
+        buildMethod =
+          if options.dontBuildSprites
+          then 'buildClient'
+          else 'buildSprites'
 
-      (new (require('./Builder')))[buildMethod] options
-      queue.next()
-  queue.push -> run options
-  daisy queue
+        (new (require('./Builder')))[buildMethod] options
+        queue.next()
+    queue.push -> run options
+    daisy queue
 
 task 'buildTests', "Build the client-side tests", (options) ->
 
