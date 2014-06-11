@@ -9,7 +9,6 @@ import (
 	"socialapi/workers/sitemap/models"
 
 	"github.com/koding/logging"
-	"github.com/koding/rabbitmq"
 	"github.com/streadway/amqp"
 )
 
@@ -25,7 +24,6 @@ const (
 
 type Controller struct {
 	log         logging.Logger
-	rmqConn     *amqp.Connection
 	nameFetcher FileNameFetcher
 }
 
@@ -35,15 +33,9 @@ func (f *Controller) DefaultErrHandler(delivery amqp.Delivery, err error) bool {
 	return false
 }
 
-func New(rmq *rabbitmq.RabbitMQ, log logging.Logger) (*Controller, error) {
-	rmqConn, err := rmq.Connect("NewSitemapFeederWorkerController")
-	if err != nil {
-		return nil, err
-	}
-
+func New(log logging.Logger) (*Controller, error) {
 	c := &Controller{
 		log:         log,
-		rmqConn:     rmqConn.Conn(),
 		nameFetcher: SimpleNameFetcher{},
 	}
 

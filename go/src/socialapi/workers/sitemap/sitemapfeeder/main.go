@@ -22,17 +22,16 @@ func main() {
 
 	modelhelper.Initialize(r.Conf.Mongo)
 
-	rmq := helper.NewRabbitMQ(r.Conf, r.Log)
 	redisConn := helper.MustInitRedisConn(r.Conf.Redis)
 	defer redisConn.Close()
 
-	handler, err := feeder.New(rmq, r.Log)
+	controller, err := feeder.New(r.Log)
 	if err != nil {
 		panic(err)
 	}
 
 	m := manager.New()
-	m.Controller(handler)
+	m.Controller(controller)
 
 	registerHandlers(m)
 
