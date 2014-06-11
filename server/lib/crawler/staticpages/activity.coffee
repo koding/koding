@@ -46,11 +46,10 @@ getSingleActivityPage = ({activityContent, account, models})->
   model          = models.first if models and Array.isArray models
 
   title  = activityContent?.title
-  graphMeta = getGraphMeta({
+  graphMeta = getGraphMeta
     title    : "Post on koding.com by #{activityContent.fullName}"
     body     : title
     shareUrl : "#{uri.address}/Activity/#{activityContent.slug}"
-  })
 
   """
 
