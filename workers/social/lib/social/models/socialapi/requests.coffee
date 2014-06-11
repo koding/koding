@@ -19,10 +19,10 @@ wrapCallback = (callback)->
     else
       return callback null, body
 
-createAccount = (id, callback)->
+createAccount = ({id, nickname}, callback)->
   return callback {message:"Accont id is not valid"} unless id
   url = "/account"
-  post url, {oldId: id}, callback
+  post url, {oldId: id, nick: nickname}, callback
 
 createChannel = (data, callback)->
   unless data.name or data.creatorId

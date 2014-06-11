@@ -17,6 +17,7 @@ ALTER TABLE api.account ADD PRIMARY KEY (id) NOT DEFERRABLE INITIALLY IMMEDIATE;
 --  Uniques structure for table account
 -- ----------------------------
 ALTER TABLE api.account ADD CONSTRAINT "account_old_id_key" UNIQUE ("old_id") NOT DEFERRABLE INITIALLY IMMEDIATE;
+ALTER TABLE api.account ADD CONSTRAINT "account_nick_key" UNIQUE ("nick") NOT DEFERRABLE INITIALLY IMMEDIATE;
 -- ----------------------------
 --  Indexes structure for table account
 -- ----------------------------

@@ -21,6 +21,7 @@ func fetchParticipantIds(participantNames []string) ([]int64, error) {
 		a := models.NewAccount()
 		a.Id = account.SocialApiId
 		a.OldId = account.Id.Hex()
+		a.Nick = account.Profile.Nickname
 		// fetch or create social api id
 		if a.Id == 0 {
 			if err := a.FetchOrCreate(); err != nil {

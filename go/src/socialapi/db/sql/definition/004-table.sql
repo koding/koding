@@ -46,7 +46,8 @@ GRANT SELECT, INSERT, UPDATE ON "api"."channel" TO "socialapplication";
 DROP TABLE IF EXISTS "api"."account";
 CREATE TABLE "api"."account" (
     "id" bigint NOT NULL DEFAULT nextval('api.account_id_seq'::regclass),
-    "old_id" varchar(24) NOT NULL COLLATE "default"
+    "old_id" varchar(24) NOT NULL COLLATE "default",
+    "nick" varchar(25) NOT NULL CHECK ("nick" <> '')
 )
 WITH (OIDS=FALSE);
 -- ALTER TABLE "api"."account" OWNER TO "socialapplication";

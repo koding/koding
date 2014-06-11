@@ -16,6 +16,9 @@ type Account struct {
 	// perisisted in mongo
 	// mongo ids has 24 char
 	OldId string `json:"oldId"      sql:"NOT NULL;UNIQUE;TYPE:VARCHAR(24);"`
+
+	// unique account nicknames
+	Nick string `json:"nick"        sql:"NOT NULL;UNIQUE;TYPE:VARCHAR(25);`
 }
 
 func NewAccount() *Account {

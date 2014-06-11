@@ -805,6 +805,7 @@ func unsubscribeMessage(accountId, messageId int64, groupName string) (*socialap
 
 // copy/paste
 func createAccount(a *socialapimodels.Account) (*socialapimodels.Account, error) {
+	a.Nick = a.OldId
 	acc, err := utils.SendModel("POST", "/account", a)
 	if err != nil {
 		return nil, err
