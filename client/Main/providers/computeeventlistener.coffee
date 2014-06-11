@@ -7,7 +7,7 @@ class ComputeEventListener extends KDObject
 
     @kloud           = KD.singletons.kontrol.getKite
       name           : "kloud"
-      environment    : "vagrant"
+      environment    : KD.config.environment
 
     @listeners       = []
     @machineStatuses = {}

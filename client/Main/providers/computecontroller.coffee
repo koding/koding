@@ -11,7 +11,7 @@ class ComputeController extends KDController
 
       @kloud         = kontrol.getKite
         name         : "kloud"
-        environment  : "vagrant"
+        environment  : KD.config.environment
 
       @eventListener = new ComputeEventListener
 
