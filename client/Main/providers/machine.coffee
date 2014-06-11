@@ -29,8 +29,9 @@ class Machine extends KDObject
       @status, @uid, @queryString } = @jMachine = @getData()
 
     if @queryString?
+
       @kites   =
-        klient : KD.singletons.kontrolProd.getKite {
+        klient : KD.singletons.kontrol.getKite {
           @queryString, correlationName: @uid
         }
 

@@ -36,8 +36,8 @@ class MainController extends KDController
 
     KD.registerSingleton "kontrol",     new KodingKontrol
 
-    KD.registerSingleton "kontrolProd", new KodingKontrol
-      kontrolUrl : "wss://kontrol.koding.com"
+    # KD.registerSingleton "kontrolProd", new KodingKontrol
+    #   kontrolUrl : "wss://kontrol.koding.com"
 
     KD.registerSingleton 'appManager',   appManager = new ApplicationManager
     KD.registerSingleton 'globalKeyCombos',  combos = new KDKeyboardMap priority : 0
@@ -89,7 +89,7 @@ class MainController extends KDController
 
     if KD.useNewKites
       (KD.getSingleton 'kontrol').reauthenticate()
-      (KD.getSingleton 'kontrolProd').reauthenticate()
+      # (KD.getSingleton 'kontrolProd').reauthenticate()
 
     account.fetchMyPermissionsAndRoles (err, { permissions, roles }) =>
       return warn err  if err
