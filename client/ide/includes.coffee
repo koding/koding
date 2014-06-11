@@ -9,6 +9,8 @@ module.exports = [
   # workspace
   "workspace/workspacetabview.coffee"
   "workspace/workspacelayoutbuilder.coffee"
+  "workspace/panel.coffee"
+  "workspace/workspace.coffee"
 
   "workspace/panes/pane.coffee"
   "workspace/panes/editorpane.coffee"
@@ -25,9 +27,7 @@ module.exports = [
   "workspace/panes/settings/editorsettingsview.coffee"
   "workspace/panes/settings/terminalsettingsview.coffee"
   "workspace/panes/settings/settingspane.coffee"
-
-  "workspace/panel.coffee"
-  "workspace/workspace.coffee"
+  "views/shortcutsview.coffee"
 
   # ide
   "views/tabview/idefilestabview.coffee"

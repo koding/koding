@@ -13,6 +13,7 @@ dark-panel-bg         = #2B2B2B
 dark-tab-header-bg    = #131313
 dark-active-tab-color = #9C9C9C
 dark-tab-color        = #5C5C5C
+text-color-green      = #4EA04C
 
 // theming
 body.ide.dark
@@ -163,7 +164,7 @@ body.ide.dark
   font-size             12px
 
   .settings-header
-    color               #4EA04C
+    color               text-color-green
     padding             25px 20px 10px
 
   .kdselectbox
@@ -185,7 +186,7 @@ body.ide.dark
       float             right
 
       &.on
-        bg              color, #4EA04C
+        bg              color, text-color-green
       &.off
         bg              color, #131313
 
@@ -198,3 +199,35 @@ body.ide.dark
     .arrows
       r-sprite          'finder', 'expanded'
       top               8px
+
+// key mappings
+.key-mappings
+  padding             50px
+  font-size           13px
+  .container
+    width             45%
+    margin-right      3%
+    fl()
+    p
+      color           text-color-green
+      margin-bottom   24px
+  .key-map
+    margin-bottom     16px
+  .keys
+    overflow          hidden
+    width             230px
+    fl()
+  .key
+    size              60px, 33px
+    line-height       33px
+    text-align        center
+    margin-right      12px
+    text-transform    uppercase
+    color             dark-tab-color
+    border            1px solid #979797
+    fl()
+  .description
+    color             #F4F1ED
+    height            33px
+    line-height       33px
+    fl()
