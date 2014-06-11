@@ -100,7 +100,7 @@ func ByName(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interfa
 func CheckParticipation(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface{}, error) {
 	q := helpers.GetQuery(u)
 	if q.Type == "" || q.AccountId == 0 {
-		return helpers.NewBadRequestResponse(errors.New("text"))
+		return helpers.NewBadRequestResponse(errors.New("type or accountid is not set"))
 	}
 
 	channel, err := models.NewChannel().ByName(q)
@@ -113,8 +113,9 @@ func CheckParticipation(u *url.URL, h http.Header, _ interface{}) (int, http.Hea
 	cp.AccountId = q.AccountId
 
 	// fetch participant
-	if err := cp.FetchParticipant(); err == nil {
-		return helpers.NewOKResponse(true)
+	err = cp.FetchParticipant()
+	if err == nil {
+		return helpers.NewOKResponse(cp)
 	}
 
 	// if err is not `record not found`
