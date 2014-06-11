@@ -88,6 +88,8 @@ class SocialApiController extends KDController
       deletedAt : new Date deletedAt
       updatedAt : new Date updatedAt
 
+    new MessageEventManager {}, m
+
     return m
 
   mapActivities = (messages)->
