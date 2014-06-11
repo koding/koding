@@ -588,7 +588,7 @@ task 'kontrolKite', "Run the kontrol kite", (options) ->
   {configFile} = options
 
   if options.region is "kodingme"
-    cmd = "sudo KITE_HOME=/home/ubuntu/koding/kite_home/koding /home/ubuntu/koding/go/bin/kontrol -c #{configFile} -r #{options.region}"
+    cmd = "sudo KITE_HOME=/home/ubuntu/koding/kite_home/kodingme /home/ubuntu/koding/go/bin/kontrol -c #{configFile} -r #{options.region}"
   else
     cmd = "vagrant ssh default -c 'cd /opt/koding; sudo killall -q -KILL kontrol; sudo KITE_HOME=/opt/koding/kite_home/koding /opt/koding/go/bin-vagrant/kontrol -c #{configFile} -r vagrant'"
 
