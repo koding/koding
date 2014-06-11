@@ -82,9 +82,11 @@ class ActivityLikeSummaryView extends KDView
   addShowMoreLink: (actorsCount, linkCount) ->
 
     @addSubView new KDCustomHTMLView
-      tagName : 'strong'
-      partial : actorsCount - linkCount
-      click   : @bound 'showLikers'
+      tagName    : 'a'
+      cssClass   : 'profile'
+      partial    : "<strong>#{actorsCount - linkCount}</strong>"
+      attributes : href: '#'
+      click      : @bound 'showLikers'
 
 
   addTextElement: (options = {}, data) ->
