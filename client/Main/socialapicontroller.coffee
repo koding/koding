@@ -204,7 +204,7 @@ class SocialApiController extends KDController
     (options, callback)->
       {fnName, validate, mapperFn, defaults, apiType} = req
       # set default mapperFn
-      mapperFn or= ->
+      mapperFn or= (value) -> return value
       if validate?.length > 0
         errs = []
         for property in validate
