@@ -1,4 +1,4 @@
-package sitemapfeeder
+package feeder
 
 import (
 	"fmt"

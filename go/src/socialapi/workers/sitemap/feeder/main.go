@@ -26,7 +26,7 @@ func main() {
 	redisConn := helper.MustInitRedisConn(r.Conf.Redis)
 	defer redisConn.Close()
 
-	handler, err := sitemapfeeder.New(rmq, r.Log)
+	handler, err := feeder.New(rmq, r.Log)
 	if err != nil {
 		panic(err)
 	}
@@ -41,13 +41,13 @@ func main() {
 }
 
 func registerHandlers(m *manager.Manager) {
-	m.HandleFunc("api.channel_message_created", (*sitemapfeeder.Controller).MessageAdded)
-	m.HandleFunc("api.channel_message_updated", (*sitemapfeeder.Controller).MessageUpdated)
-	m.HandleFunc("api.channel_message_deleted", (*sitemapfeeder.Controller).MessageDeleted)
-	m.HandleFunc("api.channel_created", (*sitemapfeeder.Controller).ChannelAdded)
-	m.HandleFunc("api.channel_updated", (*sitemapfeeder.Controller).ChannelUpdated)
-	m.HandleFunc("api.channel_deleted", (*sitemapfeeder.Controller).ChannelDeleted)
-	m.HandleFunc("api.account_created", (*sitemapfeeder.Controller).AccountAdded)
-	m.HandleFunc("api.account_updated", (*sitemapfeeder.Controller).AccountUpdated)
-	m.HandleFunc("api.account_deleted", (*sitemapfeeder.Controller).AccountDeleted)
+	m.HandleFunc("api.channel_message_created", (*feeder.Controller).MessageAdded)
+	m.HandleFunc("api.channel_message_updated", (*feeder.Controller).MessageUpdated)
+	m.HandleFunc("api.channel_message_deleted", (*feeder.Controller).MessageDeleted)
+	m.HandleFunc("api.channel_created", (*feeder.Controller).ChannelAdded)
+	m.HandleFunc("api.channel_updated", (*feeder.Controller).ChannelUpdated)
+	m.HandleFunc("api.channel_deleted", (*feeder.Controller).ChannelDeleted)
+	m.HandleFunc("api.account_created", (*feeder.Controller).AccountAdded)
+	m.HandleFunc("api.account_updated", (*feeder.Controller).AccountUpdated)
+	m.HandleFunc("api.account_deleted", (*feeder.Controller).AccountDeleted)
 }

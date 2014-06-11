@@ -1,4 +1,4 @@
-package sitemapfeeder
+package feeder
 
 type FileNameFetcher interface {
 	Fetch(i *SitemapItem) string
