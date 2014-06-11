@@ -4,8 +4,9 @@ import (
 	"fmt"
 	"koding/db/mongodb/modelhelper"
 	"socialapi/config"
-	"socialapi/models"
+	socialmodels "socialapi/models"
 	"socialapi/workers/helper"
+	"socialapi/workers/sitemap/models"
 
 	"github.com/koding/logging"
 	"github.com/koding/rabbitmq"
@@ -26,13 +27,6 @@ type Controller struct {
 	log         logging.Logger
 	rmqConn     *amqp.Connection
 	nameFetcher FileNameFetcher
-}
-
-type SitemapItem struct {
-	Id           int64
-	TypeConstant string
-	Slug         string
-	Status       string
 }
 
 func (f *Controller) DefaultErrHandler(delivery amqp.Delivery, err error) bool {
@@ -56,51 +50,51 @@ func New(rmq *rabbitmq.RabbitMQ, log logging.Logger) (*Controller, error) {
 	return c, nil
 }
 
-func (f *Controller) MessageAdded(cm *models.ChannelMessage) error {
+func (f *Controller) MessageAdded(cm *socialmodels.ChannelMessage) error {
 	if err := f.queueItem(newItemByChannelMessage(cm, STATUS_ADD)); err != nil {
 		return err
 	}
 	// when a message is added, creator's profile page must also be updated
-	a := models.NewAccount()
+	a := socialmodels.NewAccount()
 	a.Id = cm.AccountId
 
 	return f.queueItem(newItemByAccount(a, STATUS_UPDATE))
 }
 
-func (f *Controller) MessageUpdated(cm *models.ChannelMessage) error {
+func (f *Controller) MessageUpdated(cm *socialmodels.ChannelMessage) error {
 	return f.queueItem(newItemByChannelMessage(cm, STATUS_UPDATE))
 }
 
-func (f *Controller) MessageDeleted(cm *models.ChannelMessage) error {
+func (f *Controller) MessageDeleted(cm *socialmodels.ChannelMessage) error {
 	return f.queueItem(newItemByChannelMessage(cm, STATUS_DELETE))
 }
 
-func (f *Controller) ChannelUpdated(c *models.Channel) error {
+func (f *Controller) ChannelUpdated(c *socialmodels.Channel) error {
 	return f.queueItem(newItemByChannel(c, STATUS_UPDATE))
 }
 
-func (f *Controller) ChannelAdded(c *models.Channel) error {
+func (f *Controller) ChannelAdded(c *socialmodels.Channel) error {
 	return f.queueItem(newItemByChannel(c, STATUS_ADD))
 }
 
-func (f *Controller) ChannelDeleted(c *models.Channel) error {
+func (f *Controller) ChannelDeleted(c *socialmodels.Channel) error {
 	return f.queueItem(newItemByChannel(c, STATUS_DELETE))
 }
 
-func (f *Controller) AccountAdded(a *models.Account) error {
+func (f *Controller) AccountAdded(a *socialmodels.Account) error {
 	return f.queueItem(newItemByAccount(a, STATUS_ADD))
 }
 
-func (f *Controller) AccountUpdated(a *models.Account) error {
+func (f *Controller) AccountUpdated(a *socialmodels.Account) error {
 	return f.queueItem(newItemByAccount(a, STATUS_UPDATE))
 }
 
-func (f *Controller) AccountDeleted(a *models.Account) error {
+func (f *Controller) AccountDeleted(a *socialmodels.Account) error {
 	return f.queueItem(newItemByAccount(a, STATUS_DELETE))
 }
 
-func newItemByChannelMessage(cm *models.ChannelMessage, status string) (*SitemapItem, error) {
-	return &SitemapItem{
+func newItemByChannelMessage(cm *socialmodels.ChannelMessage, status string) (*models.SitemapItem, error) {
+	return &models.SitemapItem{
 		Id:           cm.Id,
 		TypeConstant: TYPE_CHANNEL_MESSAGE,
 		Slug:         cm.Slug,
@@ -108,8 +102,8 @@ func newItemByChannelMessage(cm *models.ChannelMessage, status string) (*Sitemap
 	}, nil
 }
 
-func newItemByAccount(a *models.Account, status string) (*SitemapItem, error) {
-	i := &SitemapItem{
+func newItemByAccount(a *socialmodels.Account, status string) (*models.SitemapItem, error) {
+	i := &models.SitemapItem{
 		Id:           a.Id,
 		TypeConstant: TYPE_ACCOUNT,
 		Status:       status,
@@ -125,8 +119,8 @@ func newItemByAccount(a *models.Account, status string) (*SitemapItem, error) {
 	return i, nil
 }
 
-func newItemByChannel(c *models.Channel, status string) (*SitemapItem, error) {
-	return &SitemapItem{
+func newItemByChannel(c *socialmodels.Channel, status string) (*models.SitemapItem, error) {
+	return &models.SitemapItem{
 		Id:           c.Id,
 		TypeConstant: TYPE_CHANNEL,
 		Slug:         c.GroupName,
@@ -134,7 +128,7 @@ func newItemByChannel(c *models.Channel, status string) (*SitemapItem, error) {
 	}, nil
 }
 
-func (f *Controller) queueItem(i *SitemapItem, err error) error {
+func (f *Controller) queueItem(i *models.SitemapItem, err error) error {
 	if err != nil {
 		return err
 	}
@@ -144,7 +138,7 @@ func (f *Controller) queueItem(i *SitemapItem, err error) error {
 	// prepare cache key
 	key := prepareFileCacheKey(n)
 	redisConn := helper.MustGetRedisConn()
-	value := i.prepareSetValue()
+	value := i.PrepareSetValue()
 	if _, err := redisConn.AddSetMembers(key, value); err != nil {
 		return err
 	}
@@ -157,8 +151,4 @@ func prepareFileCacheKey(fileName string) string {
 		config.Get().Environment,
 		CACHEPREFIX,
 		fileName)
-}
-
-func (s *SitemapItem) prepareSetValue() string {
-	return fmt.Sprintf("%d:%s:%s:%s", s.Id, s.TypeConstant, s.Slug, s.Status)
 }

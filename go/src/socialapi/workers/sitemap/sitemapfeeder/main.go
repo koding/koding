@@ -6,7 +6,7 @@ import (
 	"socialapi/workers/common/manager"
 	"socialapi/workers/common/runner"
 	"socialapi/workers/helper"
-	"socialapi/workers/sitemap/feeder/feeder"
+	"socialapi/workers/sitemap/sitemapfeeder/feeder"
 )
 
 var (
