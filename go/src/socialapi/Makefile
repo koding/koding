@@ -59,7 +59,7 @@ migrate:
 
 sitemapfeederdev:
 	@echo "$(OK_COLOR)==> Running Sitemap Feeder Worker $(NO_COLOR)"
-	@$(GOBINDIR)/rerun socialapi/workers/sitemap/feeder -c $(CONFIG) -d
+	@$(GOBINDIR)/rerun socialapi/workers/sitemap/sitemapfeeder -c $(CONFIG) -d
 
 PACKAGES = \
 	socialapi/workers/api \
@@ -71,7 +71,7 @@ PACKAGES = \
 	socialapi/workers/realtime \
 	socialapi/workers/topicfeed \
 	socialapi/workers/migrator \
-	socialapi/workers/sitemap/feeder
+	socialapi/workers/sitemap/sitemapfeeder
 
 default: all
 
