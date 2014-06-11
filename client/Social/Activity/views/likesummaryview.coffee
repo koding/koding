@@ -15,7 +15,7 @@ class ActivityLikeSummaryView extends KDView
 
     {id} = @getData()
 
-    KD.singleton("socialapi").message.listLikers {id}, (err, ids) ->
+    KD.singleton("socialapi").message.listLikers {id}, (err, ids = []) ->
 
       return KD.showError err  if err
       return  if ids.length is 0
