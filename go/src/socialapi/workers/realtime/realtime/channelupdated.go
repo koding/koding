@@ -32,7 +32,8 @@ func (f *Controller) sendChannelUpdatedEvent(cue *channelUpdatedEvent) error {
 
 	if err := f.validateChannelUpdatedEvents(cue); err != nil {
 		f.log.Error(err.Error())
-		return err
+		// this is not an error actually
+		return nil
 	}
 
 	// fetch all participants of related channel
