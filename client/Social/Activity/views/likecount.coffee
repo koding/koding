@@ -49,19 +49,19 @@ class ActivityLikeCount extends CustomLinkView
         name = KD.utils.getFullnameFromAccount account
         names.push "#{strong name}"
 
-      if actorsCount > 3
-        sep = ", "
-        andMore = "and <strong>#{actorsCount - 3} more.</strong>"
-      else
-        sep = " and "
-        andMore = ""
-
       @updateTooltip names
 
 
   updateTooltip: (names) ->
 
     {actorsCount} = @getData().interactions.like
+
+    if actorsCount > 3
+      sep = ", "
+      andMore = "and <strong>#{actorsCount - 3} more.</strong>"
+    else
+      sep = " and "
+      andMore = ""
 
     title =
       switch actorsCount
