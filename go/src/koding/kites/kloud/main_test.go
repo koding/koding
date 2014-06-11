@@ -135,7 +135,10 @@ func listenEvent(args kloud.EventArgs, desiredState machinestate.State) error {
 		}
 
 		event := e.Event
-		// fmt.Printf("event %+v\n", event)
+
+		if *flagDebug {
+			fmt.Printf("event %+v\n", event)
+		}
 
 		if event.Status == desiredState {
 			return nil

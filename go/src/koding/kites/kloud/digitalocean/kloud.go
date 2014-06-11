@@ -8,8 +8,6 @@ import (
 	"koding/kites/kloud/kloud/protocol"
 	"koding/kites/kloud/sshutil"
 	"net/url"
-	"strconv"
-	"time"
 
 	klientprotocol "koding/kites/klient/protocol"
 
@@ -83,7 +81,7 @@ func (d *DigitalOcean) Build(opts *protocol.MachineOptions) (p *protocol.BuildRe
 		return nil, errors.New("Eventer is not defined.")
 	}
 
-	push := d.pusher(opts, machinestate.Building)
+	d.setPusher(opts, machinestate.Building)
 
 	// needed because this is passed as `data` to packer.Provider
 	d.Builder.SnapshotName = snapshotName
@@ -91,10 +89,10 @@ func (d *DigitalOcean) Build(opts *protocol.MachineOptions) (p *protocol.BuildRe
 	var image digitalocean.Image
 
 	// check if snapshot image does exist, if not create a new one.
-	push(fmt.Sprintf("Fetching image %s", snapshotName), 10)
+	d.Push(fmt.Sprintf("Fetching image %s", snapshotName), 10)
 	image, err = d.Image(snapshotName)
 	if err != nil {
-		push(fmt.Sprintf("Image %s does not exist, creating a new one", snapshotName), 12)
+		d.Push(fmt.Sprintf("Image %s does not exist, creating a new one", snapshotName), 12)
 		image, err = d.CreateImage()
 		if err != nil {
 			return nil, err
@@ -106,89 +104,29 @@ func (d *DigitalOcean) Build(opts *protocol.MachineOptions) (p *protocol.BuildRe
 				return
 			}
 
-			push("Destroying image", 95)
+			d.Push("Destroying image", 95)
 			err := d.DestroyImage(image.Id)
 			if err != nil {
 				curlstr := fmt.Sprintf("curl '%v/images/%d/destroy?client_id=%v&api_key=%v'",
 					digitalocean.DIGITALOCEAN_API_URL, image.Id, d.Creds.ClientID, d.Creds.APIKey)
 
-				push(fmt.Sprintf("Error cleaning up droplet. Please delete the droplet manually: %v", curlstr), 95)
+				d.Push(fmt.Sprintf("Error cleaning up droplet. Please delete the droplet manually: %v", curlstr), 95)
 			}
 		}()
 	}
 
-	// create temporary key to deploy user based key
-	push(fmt.Sprintf("Creating temporary ssh key"), 15)
-	privateKey, publicKey, err := sshutil.TemporaryKey()
+	machine, err := d.DropletWithKey(dropletName, image.Id)
 	if err != nil {
 		return nil, err
 	}
 
-	// The name of the public key on DO
-	name := fmt.Sprintf("koding-%d", time.Now().UTC().UnixNano())
-	d.Log.Debug("Creating key with name '%s'", name)
-	keyId, err := d.CreateKey(name, publicKey)
+	sshAddress := machine.Droplet.IpAddress + ":22"
+	sshConfig, err := sshutil.SshConfig(machine.PrivateKey)
 	if err != nil {
 		return nil, err
 	}
 
-	defer func() {
-		push("Destroying temporary droplet key", 95)
-		err := d.DestroyKey(keyId) // remove after we are done
-		if err != nil {
-			curlstr := fmt.Sprintf("curl '%v/ssh_keys/%v/destroy?client_id=%v&api_key=%v'",
-				digitalocean.DIGITALOCEAN_API_URL, keyId, d.Creds.ClientID, d.Creds.APIKey)
-
-			push(fmt.Sprintf("Error cleaning up ssh key. Please delete the key manually: %v", curlstr), 95)
-		}
-	}()
-
-	// now create a the machine based on our created image
-	push(fmt.Sprintf("Creating droplet %s", dropletName), 20)
-	dropletInfo, err := d.CreateDroplet(dropletName, keyId, image.Id)
-	if err != nil {
-		return nil, err
-	}
-	d.Builder.DropletId = strconv.Itoa(dropletInfo.Droplet.Id)
-
-	defer func() {
-		// return value of latest err, if there is no error just return lazily
-		if err == nil {
-			return
-		}
-
-		push("Destroying droplet", 95)
-		err := d.DestroyDroplet(uint(dropletInfo.Droplet.Id))
-		if err != nil {
-			curlstr := fmt.Sprintf("curl '%v/droplets/%v/destroy?client_id=%v&api_key=%v'",
-				digitalocean.DIGITALOCEAN_API_URL, dropletInfo.Droplet.Id, d.Creds.ClientID, d.Creds.APIKey)
-
-			push(fmt.Sprintf("Error cleaning up droplet. Please delete the droplet manually: %v", curlstr), 95)
-		}
-	}()
-
-	// Now we wait until it's ready, it takes approx. 50-70 seconds to finish,
-	// but we also add a timeout  of five minutes to not let stuck it there
-	// forever.
-	if err := d.WaitUntilReady(dropletInfo.Droplet.EventId, 25, 59, push); err != nil {
-		return nil, err
-	}
-
-	// our droplet has now an IP adress, get it
-	push(fmt.Sprintf("Getting info about droplet"), 60)
-
-	dropInfo, err := d.DropletInfo(uint(dropletInfo.Droplet.Id))
-	if err != nil {
-		return nil, err
-	}
-
-	sshAddress := dropInfo.IpAddress + ":22"
-	sshConfig, err := sshutil.SshConfig(privateKey)
-	if err != nil {
-		return nil, err
-	}
-
-	push(fmt.Sprintf("Connecting to ssh %s", sshAddress), 65)
+	d.Push(fmt.Sprintf("Connecting to ssh %s", sshAddress), 65)
 	client, err := sshutil.ConnectSSH(sshAddress, sshConfig)
 	if err != nil {
 		return nil, err
@@ -196,15 +134,15 @@ func (d *DigitalOcean) Build(opts *protocol.MachineOptions) (p *protocol.BuildRe
 	defer client.Close()
 
 	// generate kite key specific for the user
-	push("Creating kite.key", 70)
+	d.Push("Creating kite.key", 70)
 	kiteKey, kiteId, err := d.SignFunc(opts.Username)
 	if err != nil {
 		return nil, err
 	}
-	push(fmt.Sprintf("Kite key created for id %s", kiteId), 75)
+	d.Push(fmt.Sprintf("Kite key created for id %s", kiteId), 75)
 
 	// for debugging, remove it later ...
-	push(fmt.Sprintf("Writing kite key to temporary file (kite.key)"), 75)
+	d.Push(fmt.Sprintf("Writing kite key to temporary file (kite.key)"), 75)
 	// DEBUG
 	// if err := ioutil.WriteFile("kite.key", []byte(kiteKey), 0400); err != nil {
 	// 	d.Log.Info("couldn't write temporary kite file", err)
@@ -212,7 +150,7 @@ func (d *DigitalOcean) Build(opts *protocol.MachineOptions) (p *protocol.BuildRe
 
 	keyPath := "/opt/kite/klient/key/kite.key"
 
-	push(fmt.Sprintf("Copying remote kite key %s", keyPath), 85)
+	d.Push(fmt.Sprintf("Copying remote kite key %s", keyPath), 85)
 	remoteFile, err := client.Create(keyPath)
 	if err != nil {
 		return nil, err
@@ -223,7 +161,7 @@ func (d *DigitalOcean) Build(opts *protocol.MachineOptions) (p *protocol.BuildRe
 		return nil, err
 	}
 
-	push(fmt.Sprintf("Starting klient on remote machine"), 90)
+	d.Push(fmt.Sprintf("Starting klient on remote machine"), 90)
 	if err := client.StartCommand("service klient start"); err != nil {
 		return nil, err
 	}
@@ -241,21 +179,21 @@ func (d *DigitalOcean) Build(opts *protocol.MachineOptions) (p *protocol.BuildRe
 
 	return &protocol.BuildResponse{
 		QueryString:  klient.String(),
-		IpAddress:    dropInfo.IpAddress,
-		InstanceName: dropInfo.Name,
-		InstanceId:   dropInfo.Id,
+		IpAddress:    machine.Droplet.IpAddress,
+		InstanceName: machine.Droplet.Name,
+		InstanceId:   machine.Droplet.Id,
 	}, nil
 }
 
 // Start starts the machine for the given dropletID
 func (d *DigitalOcean) Start(opts *protocol.MachineOptions) error {
-	push := d.pusher(opts, machinestate.Starting)
+	d.setPusher(opts, machinestate.Starting)
 	dropletId, err := d.DropletId()
 	if err != nil {
 		return err
 	}
 
-	push("Starting machine", 10)
+	d.Push("Starting machine", 10)
 
 	path := fmt.Sprintf("droplets/%v/power_on", dropletId)
 	body, err := digitalocean.NewRequest(*d.Client, path, url.Values{})
@@ -263,25 +201,25 @@ func (d *DigitalOcean) Start(opts *protocol.MachineOptions) error {
 		return err
 	}
 
-	push("Start message is being sent, waiting.", 30)
+	d.Push("Start message is being sent, waiting.", 30)
 
 	eventId, ok := body["event_id"].(float64)
 	if !ok {
 		return fmt.Errorf("restart malformed data %v", body)
 	}
 
-	return d.WaitUntilReady(int(eventId), 30, 80, push)
+	return d.WaitUntilReady(int(eventId), 30, 80)
 }
 
 // Stop stops the machine for the given dropletID
 func (d *DigitalOcean) Stop(opts *protocol.MachineOptions) error {
-	push := d.pusher(opts, machinestate.Stopping)
+	d.setPusher(opts, machinestate.Stopping)
 	dropletId, err := d.DropletId()
 	if err != nil {
 		return err
 	}
 
-	push("Stopping machine", 10)
+	d.Push("Stopping machine", 10)
 
 	path := fmt.Sprintf("droplets/%v/shutdown", dropletId)
 	body, err := digitalocean.NewRequest(*d.Client, path, url.Values{})
@@ -289,25 +227,25 @@ func (d *DigitalOcean) Stop(opts *protocol.MachineOptions) error {
 		return err
 	}
 
-	push("Stop message is being sent, waiting.", 30)
+	d.Push("Stop message is being sent, waiting.", 30)
 
 	eventId, ok := body["event_id"].(float64)
 	if !ok {
 		return fmt.Errorf("restart malformed data %v", body)
 	}
 
-	return d.WaitUntilReady(int(eventId), 30, 80, push)
+	return d.WaitUntilReady(int(eventId), 30, 80)
 }
 
 // Restart restart the machine for the given dropletID
 func (d *DigitalOcean) Restart(opts *protocol.MachineOptions) error {
-	push := d.pusher(opts, machinestate.Rebooting)
+	d.setPusher(opts, machinestate.Rebooting)
 	dropletId, err := d.DropletId()
 	if err != nil {
 		return err
 	}
 
-	push("Rebooting machine", 10)
+	d.Push("Rebooting machine", 10)
 
 	path := fmt.Sprintf("droplets/%v/reboot", dropletId)
 	body, err := digitalocean.NewRequest(*d.Client, path, url.Values{})
@@ -315,25 +253,25 @@ func (d *DigitalOcean) Restart(opts *protocol.MachineOptions) error {
 		return err
 	}
 
-	push("Reboot message is being sent, waiting.", 30)
+	d.Push("Reboot message is being sent, waiting.", 30)
 
 	eventId, ok := body["event_id"].(float64)
 	if !ok {
 		return fmt.Errorf("restart malformed data %v", body)
 	}
 
-	return d.WaitUntilReady(int(eventId), 30, 80, push)
+	return d.WaitUntilReady(int(eventId), 30, 80)
 }
 
 // Destroy destroys the machine with the given droplet ID.
 func (d *DigitalOcean) Destroy(opts *protocol.MachineOptions) error {
-	push := d.pusher(opts, machinestate.Terminating)
+	d.setPusher(opts, machinestate.Terminating)
 	dropletId, err := d.DropletId()
 	if err != nil {
 		return err
 	}
 
-	push("Terminating machine", 10)
+	d.Push("Terminating machine", 10)
 
 	path := fmt.Sprintf("droplets/%v/destroy", dropletId)
 	body, err := digitalocean.NewRequest(*d.Client, path, url.Values{})
@@ -341,14 +279,14 @@ func (d *DigitalOcean) Destroy(opts *protocol.MachineOptions) error {
 		return err
 	}
 
-	push("Terminating message is being sent, waiting.", 30)
+	d.Push("Terminating message is being sent, waiting.", 30)
 
 	eventId, ok := body["event_id"].(float64)
 	if !ok {
 		return fmt.Errorf("restart malformed data %v", body)
 	}
 
-	return d.WaitUntilReady(int(eventId), 50, 80, push)
+	return d.WaitUntilReady(int(eventId), 50, 80)
 }
 
 // Info returns all information about the given droplet info.
@@ -389,8 +327,8 @@ func statusToState(status string) machinestate.State {
 
 }
 
-func (d *DigitalOcean) pusher(opts *protocol.MachineOptions, state machinestate.State) pushFunc {
-	return func(msg string, percentage int) {
+func (d *DigitalOcean) setPusher(opts *protocol.MachineOptions, state machinestate.State) {
+	d.Push = func(msg string, percentage int) {
 		d.Log.Info("[machineId: '%s': username: '%s' dropletName: '%s' snapshotName: '%s'] - %s",
 			opts.MachineId, opts.Username, opts.InstanceName, opts.ImageName, msg)
 

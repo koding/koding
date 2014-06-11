@@ -25,6 +25,7 @@ type DigitalOcean struct {
 	Client   *digitalocean.DigitalOceanClient
 	Log      logging.Logger
 	SignFunc func(string) (string, string, error)
+	Push     pushFunc
 
 	Creds struct {
 		ClientID string `mapstructure:"clientId"`
@@ -84,15 +85,13 @@ func (d *DigitalOcean) CheckEvent(eventId int) (*Event, error) {
 // state has been reached. It returns an error if the given timeout has been
 // reached, if another generic error is produced or if the event status is of
 // type "ERROR".
-func (d *DigitalOcean) WaitUntilReady(eventId, from, to int, push pushFunc) error {
+func (d *DigitalOcean) WaitUntilReady(eventId, from, to int) error {
 	for {
 		select {
 		case <-time.After(time.Minute):
 			return errors.New("Timeout while waiting for droplet to become ready")
 		case <-time.Tick(3 * time.Second):
-			if push != nil {
-				push("Waiting for droplet to be ready", from)
-			}
+			d.Push("Waiting for droplet to be ready", from)
 
 			event, err := d.CheckEvent(eventId)
 			if err != nil {
@@ -100,7 +99,7 @@ func (d *DigitalOcean) WaitUntilReady(eventId, from, to int, push pushFunc) erro
 			}
 
 			if event.Event.ActionStatus == "done" {
-				push("Waiting is done. Got a successfull result.", from)
+				d.Push("Waiting is done. Got a successfull result.", from)
 				return nil
 			}
 
