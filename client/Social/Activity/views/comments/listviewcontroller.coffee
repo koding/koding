@@ -11,19 +11,13 @@ class CommentListViewController extends KDListViewController
 
     super options, data
 
-    @eventHelper = new MessageEventHelper
-
 
   instantiateListItems: (items) ->
-
-    items.forEach @eventHelper.bound 'bindListeners'
 
     super items.sort (a, b) -> a.meta.createdAt - b.meta.createdAt
 
 
   addItem: (item, index) ->
-
-    @eventHelper.bindListeners item
 
     super item, index
 
