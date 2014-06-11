@@ -54,6 +54,16 @@ func (m *MessageReply) Create() error {
 	return bongo.B.Create(m)
 }
 
+func (m *MessageReply) CreateRaw() error {
+	insertSql := "INSERT INTO " +
+		m.TableName() +
+		` ("message_id","reply_id","created_at") VALUES ($1,$2,$3) ` +
+		"RETURNING ID"
+	return bongo.B.DB.CommonDB().
+		QueryRow(insertSql, m.MessageId, m.ReplyId, m.CreatedAt).
+		Scan(&m.Id)
+}
+
 func (m *MessageReply) Some(data interface{}, q *bongo.Query) error {
 	return bongo.B.Some(m, data, q)
 }

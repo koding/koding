@@ -115,6 +115,18 @@ func (c *ChannelParticipant) Create() error {
 	return bongo.B.Create(c)
 }
 
+func (c *ChannelParticipant) CreateRaw() error {
+	insertSql := "INSERT INTO " +
+		c.TableName() +
+		` ("channel_id","account_id", "status_constant", "last_seen_at","created_at", "updated_at") ` +
+		"VALUES ($1,$2,$3,$4,$5,$6) " +
+		"RETURNING ID"
+
+	return bongo.B.DB.CommonDB().
+		QueryRow(insertSql, c.ChannelId, c.AccountId, c.StatusConstant, c.LastSeenAt, c.CreatedAt, c.UpdatedAt).
+		Scan(&c.Id)
+}
+
 func (c *ChannelParticipant) Update() error {
 	return bongo.B.Update(c)
 }
