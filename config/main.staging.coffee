@@ -75,19 +75,6 @@ module.exports =
     claimGlobalNamesForUsers: no
     updateAllSlugs : no
     debugConnectionErrors: yes
-  uploads       :
-    enableStreamingUploads: yes
-    distribution: 'https://d2mehr5c6bceom.cloudfront.net'
-    s3          :
-      awsAccountId        : '616271189586'
-      awsAccessKeyId      : 'AKIAJO74E23N33AFRGAQ'
-      awsSecretAccessKey  : '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'
-      bucket              : 'koding-uploads'
-  # loadBalancer  :
-  #   port        : 3000
-  #   heartbeat   : 5000
-    # httpRedirect:
-    #   port      : 80 # don't forget port 80 requires sudo
   bitly :
     username  : "kodingen"
     apiKey    : "R_677549f555489f455f7ff77496446ffa"
