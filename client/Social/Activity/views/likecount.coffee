@@ -23,7 +23,6 @@ class ActivityLikeCount extends CustomLinkView
     @fetchAccounts (err, accounts) =>
 
       return KD.showError err  if err
-
       new ShowMoreDataModalView title: "", accounts
 
 
@@ -38,11 +37,9 @@ class ActivityLikeCount extends CustomLinkView
     @fetchAccounts (err, accounts) =>
 
       return KD.showError err  if err
-
       return  unless accounts
 
-      names = []
-
+      names  = []
       strong = (x) -> "<strong>#{x}</strong>"
 
       for account in accounts
