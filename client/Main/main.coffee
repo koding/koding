@@ -28,8 +28,7 @@ do ->
     log "kd remote re-connected"
 
   status.on 'disconnected', (options={})->
-    reason = options.reason or= "unknown"
-    log "kd remote disconnected, reason: #{reason}"
+    log "kd remote disconnected"
 
   KD.remote.connect()
 
