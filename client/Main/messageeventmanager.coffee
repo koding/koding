@@ -4,41 +4,30 @@ class MessageEventManager extends KDObject
 
     super options, data
 
-    @messages = {}
-
-
-  bindListeners: (message) ->
-
-    @messages[message.getId()] = message
-
-    message
+    data
       .on "InteractionAdded", @bound "addInteraction"
       .on "InteractionRemoved", @bound "removeInteraction"
-      .on "ReplyAdded", @lazyBound "addReply", message
-      .on "ReplyRemoved", @lazyBound "removeReply", message
+      .on "ReplyAdded", @bound "addReply"
+      .on "ReplyRemoved", @bound "removeReply"
 
 
   addInteraction: (event) ->
 
-    {messageId, typeConstant} = event
-
-    return  unless message = @messages[messageId]
-
+    {typeConstant} = event
     fn = @bound "add#{typeConstant.capitalize()}"
-    KD.utils.defer => fn message, event
+    fn event
 
 
   removeInteraction: (event) ->
 
-    {messageId, typeConstant} = event
-
-    return  unless message = @messages[messageId]
-
+    {typeConstant} = event
     fn = @bound "remove#{typeConstant.capitalize()}"
-    KD.utils.defer => fn message, event
+    fn event
 
 
-  addLike: (message, {accountOldId, count}) ->
+  addLike: ({accountOldId, count}) ->
+
+    message = @getData()
 
     {like} = message.interactions
 
@@ -50,7 +39,9 @@ class MessageEventManager extends KDObject
     message.emit "update"
 
 
-  removeLike: (message, {accountOldId, count}) ->
+  removeLike: ({accountOldId, count}) ->
+
+    message = @getData()
 
     {like} = message.interactions
 
@@ -63,10 +54,11 @@ class MessageEventManager extends KDObject
     message.emit "update"
 
 
-  addReply: (message, plain) ->
+  addReply: (plain) ->
 
     reply = KD.singleton("socialapi").message.revive plain
 
+    message = @getData()
     message.replies.push reply
     message.repliesCount++
 
@@ -74,11 +66,12 @@ class MessageEventManager extends KDObject
     message.emit "update"
 
 
-  removeReply: (message, {replyId}) ->
+  removeReply: ({replyId}) ->
 
     for item in message.replies
       reply = item  if replyId is item.getId()
 
+    message = @getData()
     message.replies = message.replies.filter (reply) -> reply.getId() isnt replyId
     message.repliesCount--
 
