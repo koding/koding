@@ -157,8 +157,9 @@ func (c *ChannelMessageList) getMessages(q *Query) ([]*ChannelMessageContainer, 
 		bongoQuery = bongoQuery.Where("added_at < ?", q.From)
 	}
 
-	bongoQuery = bongoQuery.Pluck(query.Pluck, &messages)
-	if err := bongoQuery.Error; err != nil {
+	if err := bongo.CheckErr(
+		bongoQuery.Pluck(query.Pluck, &messages),
+	); err != nil {
 		return nil, err
 	}
 

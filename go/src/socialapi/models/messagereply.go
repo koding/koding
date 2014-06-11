@@ -139,8 +139,9 @@ func (m *MessageReply) fetchMessages(query *Query) ([]ChannelMessage, error) {
 		bongoQuery = bongoQuery.Where("created_at < ?", query.From)
 	}
 
-	bongoQuery = bongoQuery.Pluck(q.Pluck, &replies)
-	if err := bongoQuery.Error; err != nil {
+	if err := bongo.CheckErr(
+		bongoQuery.Pluck(q.Pluck, &replies),
+	); err != nil {
 		return nil, err
 	}
 

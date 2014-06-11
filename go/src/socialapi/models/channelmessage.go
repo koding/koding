@@ -150,6 +150,7 @@ func (c *ChannelMessage) FetchByIds(ids []int64) ([]ChannelMessage, error) {
 	if err := bongo.B.FetchByIds(c, &messages, ids); err != nil {
 		return nil, err
 	}
+
 	return messages, nil
 }
 

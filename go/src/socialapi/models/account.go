@@ -186,15 +186,15 @@ func (a *Account) FetchFollowerChannelIds() ([]int64, error) {
 
 	cp := NewChannelParticipant()
 	var channelIds []int64
-	err = bongo.B.DB.
+	res := bongo.B.DB.
 		Table(cp.TableName()).
 		Where(
 		"creator_id IN (?) and type_constant = ?",
 		followerIds,
 		Channel_TYPE_FOLLOWINGFEED,
-	).Find(&channelIds).Error
+	).Find(&channelIds)
 
-	if err != nil {
+	if err := bongo.CheckErr(res); err != nil {
 		return nil, err
 	}
 
@@ -229,19 +229,19 @@ func FetchOldIdsByAccountIds(accountIds []int64) ([]string, error) {
 	if len(accountIds) == 0 {
 		return make([]string, 0), nil
 	}
-	a := NewAccount()
-	err := bongo.B.DB.
-		Table(a.TableName()).
-		Where("id IN (?)", accountIds).
-		Pluck("old_id", &oldIds).Error
 
-	if err != nil {
-		return make([]string, 0), err
+	res := bongo.B.DB.
+		Table(Account{}.TableName()).
+		Where("id IN (?)", accountIds).
+		Pluck("old_id", &oldIds)
+
+	if err := bongo.CheckErr(res); err != nil {
+		return nil, err
 	}
 
 	if len(oldIds) == 0 {
 		return make([]string, 0), nil
 	}
 
-	return oldIds, err
+	return oldIds, nil
 }

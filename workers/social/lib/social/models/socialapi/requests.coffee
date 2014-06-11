@@ -257,6 +257,13 @@ channelByName = (data, callback)->
   url = "/channel/name/#{data.name}"
   get url, data, callback
 
+checkChannelParticipation = (data, callback)->
+  if not data.name or not data.type
+    return callback { message: "request is not valid" }
+
+  url = "/channel/checkparticipation"
+  get url, data, callback
+
 post = (url, data, callback)->
   getNextApiURL (err, apiurl)->
     return callback err if err
@@ -288,6 +295,7 @@ get = (url, data, callback)->
     , wrapCallback callback
 
 module.exports = {
+  checkChannelParticipation
   messageById
   channelById
   channelByName

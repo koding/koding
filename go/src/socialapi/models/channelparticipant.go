@@ -256,6 +256,10 @@ func (c *ChannelParticipant) FetchParticipatedChannelIds(a *Account, q *Query) (
 		return channelIds, err
 	}
 
+	if rows == nil {
+		return nil, nil
+	}
+
 	var channelId int64
 	for rows.Next() {
 		rows.Scan(&channelId)

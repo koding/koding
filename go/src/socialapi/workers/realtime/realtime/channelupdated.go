@@ -32,7 +32,8 @@ func (f *Controller) sendChannelUpdatedEvent(cue *channelUpdatedEvent) error {
 
 	if err := f.validateChannelUpdatedEvents(cue); err != nil {
 		f.log.Error(err.Error())
-		return err
+		// this is not an error actually
+		return nil
 	}
 
 	// fetch all participants of related channel
@@ -86,9 +87,12 @@ func (f *Controller) isEligibleForBroadcasting(cue *channelUpdatedEvent, account
 
 	// if parent message's crateor is account
 	// dont send it
-	if cue.ParentChannelMessage.AccountId == accountId {
-		return false
-	}
+	// this has introduced some bugs to system, like if someone
+	// comments to my post(i also pinned it)
+	// i wasnt getting any notification
+	// if cue.ParentChannelMessage.AccountId == accountId {
+	// 	return false
+	// }
 
 	// if reply message's crateor is account
 	// dont send it
