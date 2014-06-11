@@ -20,7 +20,8 @@ wrapCallback = (callback)->
       return callback null, body
 
 createAccount = ({id, nickname}, callback)->
-  return callback {message:"Accont id is not valid"} unless id
+  if not id or not nickname
+    return callback {message:"Request is not valid for creating account"}
   url = "/account"
   post url, {oldId: id, nick: nickname}, callback
 
