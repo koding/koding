@@ -267,6 +267,6 @@ class IDEAppController extends AppController
       {cursor, file} = data
 
       status.updatePartial """
-        <p class="line">#{cursor.row}:#{cursor.column}</p>
+        <p class="line">#{++cursor.row}:#{++cursor.column}</p>
         <p class="file-name">#{file.name}</p>
       """
