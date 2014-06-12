@@ -6,6 +6,7 @@ import (
 	"koding/kites/kloud/eventer"
 	"koding/kites/kloud/kloud/machinestate"
 	"koding/kites/kloud/kloud/protocol"
+	"koding/kites/kloud/pool"
 
 	"github.com/koding/logging"
 )
@@ -62,7 +63,7 @@ func (p *Provider) NewClient(opts *protocol.MachineOptions) (*Client, error) {
 		// create more droplets that the predefined pool size
 		initialCap := PoolSize - n
 
-		pool, err := NewPool(initialCap, PoolSize, &DoFactory{client: c})
+		pool, err := pool.NewPool(initialCap, PoolSize, &DoFactory{client: c})
 		if err != nil {
 			return nil, err
 		}

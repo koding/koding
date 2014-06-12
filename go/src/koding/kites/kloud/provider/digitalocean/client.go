@@ -8,6 +8,7 @@ import (
 	"koding/kites/kloud/kloud/machinestate"
 	"koding/kites/kloud/kloud/protocol"
 	"koding/kites/kloud/packer"
+	"koding/kites/kloud/pool"
 	"koding/kites/kloud/sshutil"
 	"koding/kites/kloud/utils"
 	"strconv"
@@ -26,13 +27,9 @@ type Client struct {
 	Log      logging.Logger
 	Push     func(string, int, machinestate.State)
 	SignFunc func(string) (string, string, error)
-	Pool     *Pool
+	Pool     *pool.Pool
 
 	sync.Once
-}
-
-type Droplet struct {
-	Droplet *do.Droplet
 }
 
 // Build is building an image and creates a droplet based on that image. If the
@@ -57,12 +54,12 @@ func (c *Client) Build(snapshotName, dropletName, username string) (*protocol.Bu
 		}
 	}
 
-	machine, err := c.DropletWithKey(dropletName, image.Id)
+	droplet, err := c.DropletWithKey(dropletName, image.Id)
 	if err != nil {
 		return nil, err
 	}
 
-	sshAddress := machine.Droplet.IpAddress + ":22"
+	sshAddress := droplet.IpAddress + ":22"
 	sshConfig, err := sshutil.SshConfig(privateKey)
 	if err != nil {
 		return nil, err
@@ -121,9 +118,9 @@ func (c *Client) Build(snapshotName, dropletName, username string) (*protocol.Bu
 
 	return &protocol.BuildResponse{
 		QueryString:  klient.String(),
-		IpAddress:    machine.Droplet.IpAddress,
-		InstanceName: machine.Droplet.Name,
-		InstanceId:   machine.Droplet.Id,
+		IpAddress:    droplet.IpAddress,
+		InstanceName: droplet.Name,
+		InstanceId:   droplet.Id,
 	}, nil
 }
 
@@ -281,7 +278,7 @@ func (c *Client) WaitUntilReady(eventId, from, to int, state machinestate.State)
 	}
 }
 
-func (c *Client) DropletWithKey(dropletName string, imageId uint) (dro *Droplet, err error) {
+func (c *Client) DropletWithKey(dropletName string, imageId uint) (dro *do.Droplet, err error) {
 	// The name of the public key on DO
 	keys, err := c.Keys()
 	if err != nil {
@@ -289,7 +286,7 @@ func (c *Client) DropletWithKey(dropletName string, imageId uint) (dro *Droplet,
 	}
 
 	var keyId uint
-	keyId = keys.Get(keyName)
+	keyId = keys.GetId(keyName)
 	if keyId == 0 {
 		keyId, err = c.CreateKey(keyName, publicKey)
 		if err != nil {
@@ -334,9 +331,7 @@ func (c *Client) DropletWithKey(dropletName string, imageId uint) (dro *Droplet,
 		return nil, err
 	}
 
-	return &Droplet{
-		Droplet: droplet,
-	}, nil
+	return droplet, nil
 }
 
 func (c *Client) NumberOfDroplets(filter string) (int, error) {

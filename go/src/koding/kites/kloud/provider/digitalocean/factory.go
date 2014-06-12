@@ -2,6 +2,7 @@ package digitalocean
 
 import (
 	"koding/kites/kloud/kloud/protocol"
+	"koding/kites/kloud/pool"
 	"strconv"
 	"time"
 )
@@ -12,7 +13,7 @@ type DoFactory struct {
 
 // CreateCacheDroplet creates a new droplet with a key, after creating the
 // machine one needs to rename the machine to use it.
-func (d *DoFactory) Create() (*Droplet, error) {
+func (d *DoFactory) Create() (*pool.Machine, error) {
 	image, err := d.client.Image(protocol.DefaultImageName)
 	if err != nil {
 		return nil, err
@@ -24,7 +25,9 @@ func (d *DoFactory) Create() (*Droplet, error) {
 		return nil, err
 	}
 
-	return droplet, nil
+	return &pool.Machine{
+		Id: uint(droplet.Id),
+	}, nil
 }
 
 // Destroy destroys the droplet with the given dropletId
