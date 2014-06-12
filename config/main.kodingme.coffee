@@ -2,16 +2,17 @@ fs              = require 'fs'
 nodePath        = require 'path'
 deepFreeze      = require 'koding-deep-freeze'
 
-customDomain    =
-  public        : "http://koding.me"
-  public_       : "koding.me"
-  local         : "http://127.0.0.1"
-  local_        : "localhost"
-  port          : 80
-
 rabbitmq        =
   login         : "guest"
   password      : "guest"
+
+hostname        = require("os").hostname()
+customDomain    =
+  public        : "http://#{hostname}"
+  public_       : "#{hostname}"
+  local         : "http://127.0.0.1"
+  local_        : "localhost"
+  port          : 80
 
 version         = "0.0.1"
 mongo           = "#{customDomain.local_}:27017/koding"
@@ -19,6 +20,9 @@ mongoKontrol    = "#{customDomain.local_}:27017/kontrol"
 projectRoot     = nodePath.join __dirname, '..'
 socialQueueName = "koding-social-kodingme"
 logQueueName    = socialQueueName+'log'
+
+
+
 
 authExchange    = "auth"
 authAllExchange = "authAll"

@@ -67,7 +67,7 @@ compileGoBinaries = (configFile,callback)->
         else
           processes.spawn
             name: 'build go in vagrant'
-            cmd : 'vagrant ssh default --command "/opt/koding/go/build.sh bin-vagrant"'
+            cmd : "vagrant ssh default --command '#{configFile.projectRoot}/go/build.sh bin-vagrant'"
             stdout : process.stdout
             stderr : process.stderr
             verbose : yes
@@ -587,9 +587,15 @@ task 'kontrolApi', "Run the kontrolApi", (options) ->
 
 task 'kontrolKite', "Run the kontrol kite", (options) ->
   {configFile} = options
+#   console.log ">>>>>>",configFile.projectRoot, configFile, options
+#   process.exit()
+  
+  config       = require('koding-config-manager').load("main.#{configFile}")
 
+  
+  
   if options.region is "kodingme"
-    cmd = "sudo KITE_HOME=/home/ubuntu/koding/kite_home/kodingme /home/ubuntu/koding/go/bin/kontrol -c #{configFile} -r #{options.region}"
+    cmd = "sudo KITE_HOME=#{config.projectRoot}/kite_home/kodingme #{config.projectRoot}/go/bin/kontrol -c #{configFile} -r #{options.region}"
   else
     cmd = "vagrant ssh default -c 'cd /opt/koding; sudo killall -q -KILL kontrol; sudo KITE_HOME=/opt/koding/kite_home/koding /opt/koding/go/bin-vagrant/kontrol -c #{configFile} -r vagrant'"
 
@@ -604,9 +610,19 @@ task 'kontrolKite', "Run the kontrol kite", (options) ->
 
 task 'proxyKite', "Run the proxy kite", (options) ->
   {configFile} = options
+  
+  config       = require('koding-config-manager').load("main.#{configFile}")
+
+  
+  if options.region is "kodingme"
+    cmd = "sudo KITE_HOME=#{config.projectRoot}/kite_home/koding #{config.projectRoot}/go/bin/proxy -c #{configFile} -r #{options.region}"
+  else
+    cmd = "vagrant ssh default -c 'cd /opt/koding; sudo killall -q -KILL proxy; sudo KITE_HOME=/opt/koding/kite_home/koding /opt/koding/go/bin-vagrant/proxy -c #{configFile} -r vagrant'"
+    
+  
   processes.spawn
     name    : 'proxyKite'
-    cmd     : "vagrant ssh default -c 'cd /opt/koding; sudo killall -q -KILL proxy; sudo KITE_HOME=/opt/koding/kite_home/koding /opt/koding/go/bin-vagrant/proxy -c #{configFile} -r vagrant'"
+    cmd     : cmd
     stdout  : process.stdout
     stderr  : process.stderr
     verbose : yes
