@@ -75,16 +75,16 @@ func (k *Kloud) NewKloud() *kodingkite.KodingKite {
 		k.UniqueId = uniqueId()
 	}
 
-	mongodbSession := &MongoDB{
-		session:  mongodb.NewMongoDB(k.Config.Mongo),
-		assignee: k.UniqueId,
-	}
-
-	if err := mongodbSession.CleanupOldData(); err != nil {
-		k.Log.Notice("Cleaning up mongodb err: %s", err.Error())
-	}
-
 	if k.Storage == nil {
+		mongodbSession := &MongoDB{
+			session:  mongodb.NewMongoDB(k.Config.Mongo),
+			assignee: k.UniqueId,
+		}
+
+		if err := mongodbSession.CleanupOldData(); err != nil {
+			k.Log.Notice("Cleaning up mongodb err: %s", err.Error())
+		}
+
 		k.Storage = mongodbSession
 	}
 

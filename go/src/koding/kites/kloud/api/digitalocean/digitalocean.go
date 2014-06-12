@@ -148,7 +148,7 @@ func (d *DigitalOcean) CreateDroplet(hostname string, keyId, image_id uint) (*Dr
 }
 
 // Droplets returns a slice of all Droplets.
-func (d *DigitalOcean) Droplets() ([]Droplet, error) {
+func (d *DigitalOcean) Droplets() (Droplets, error) {
 	resp, err := digitalocean.NewRequest(*d.Client, "droplets", url.Values{})
 	if err != nil {
 		return nil, err
@@ -168,10 +168,13 @@ func (d *DigitalOcean) Image(slug_or_name_or_id string) (digitalocean.Image, err
 	return d.Client.Image(slug_or_name_or_id)
 }
 
-// MyImages returns a slice of all personal images.
-func (d *DigitalOcean) MyImages() ([]digitalocean.Image, error) {
+// Image returns a slice of all images.
+func (d *DigitalOcean) Images(myImages bool) (Images, error) {
 	v := url.Values{}
-	v.Set("filter", "my_images")
+
+	if myImages {
+		v.Set("filter", "my_images")
+	}
 
 	resp, err := digitalocean.NewRequest(*d.Client, "images", v)
 	if err != nil {
