@@ -152,6 +152,7 @@ task 'socialWorker', "Run the socialWorker", ({configFile,region}) ->
 
   for i in [1..social.numberOfWorkers]
     port = 3029 + i
+    kitePort = port + 10000
 
     if region is "kodingme"
       cmd = __dirname + "/workers/social/index -c #{configFile} -p #{port} --disable-newrelic"
@@ -160,7 +161,7 @@ task 'socialWorker', "Run the socialWorker", ({configFile,region}) ->
 
     processes.fork
       name           : if social.numberOfWorkers is 1 then "social" else "social-#{i}"
-      cmd            : cmd
+      cmd            : cmd + " --kite-port=#{kitePort}"
       restart        : yes
       restartTimeout : 100
       kontrol        :

@@ -56,13 +56,13 @@ koding = new Bongo {
   mq          : broker
 
   kite          :
-    kontrol     : 'ws://localhost:4000'
+    kontrol     : KONFIG.client.runtimeOptions.newkontrol.url
     name        : 'social'
     environment : 'vagrant'
     region      : 'vagrant'
     version     : KONFIG.version
     username    : 'koding'
-    port        : KONFIG.social.kitePort
+    port        : argv['kite-port']
     kiteKey     : joinPath __dirname, '../../../../kite_home/koding/kite.key'
 
     fetchClient: (name, context, callback) ->

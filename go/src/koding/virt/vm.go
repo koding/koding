@@ -325,7 +325,7 @@ func (v *VM) mountAufs() error {
 	if out, err := exec.Command("/bin/mount", "--no-mtab", "-t", "aufs", "-o",
 		fmt.Sprintf("noplink,br=%s:%s", v.OverlayFile("/"), v.LowerdirFile("/")), "aufs",
 		v.File("rootfs")).CombinedOutput(); err != nil {
-		return commandError("mount overlay failed.", err, out)
+		return commandError(fmt.Sprintf("mount overlay failed. in: /bin/mount --no-mtab -t aufs -o noplink,br=%s:%s aufs %s", v.OverlayFile("/"), v.LowerdirFile("/"), v.File("rootfs")), err, out)
 	}
 
 	return nil
