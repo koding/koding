@@ -126,7 +126,7 @@ class PrivateMessageModal extends KDModalViewWithForms
     query = 'profile.nickname': val
 
     JAccount.one query, (err, account) =>
-      unless account
+      if not account or KD.isMine account
       then @autoComplete.showNoDataFound()
       else callback [account]
 
