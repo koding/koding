@@ -13,6 +13,7 @@
     @tabView.on 'FileNeedsToBeOpened', @bound 'openFile'
     @tabView.on 'VMTerminalRequested', @bound 'openVMTerminal'
     @tabView.on 'VMWebPageRequested',  @bound 'openVMWebPage'
+    @tabView.on 'PaneDidShow',         => @updateStatusBar()
 
     @once 'viewAppended', => KD.utils.wait 300, => @createEditor()
 
@@ -65,6 +66,36 @@
   createPreview: (url) ->
     previewPane = new IDE.PreviewPane { url }
     @createPane_ previewPane, { name: 'Browser' }
+
+    previewPane.on 'LocationChanged', (newLocation) =>
+      @updateStatusBar 'preview', newLocation
+
+  updateStatusBar: (paneType, data) ->
+    appManager = KD.getSingleton 'appManager'
+
+    unless paneType
+      subView  = @tabView.getActivePane().getSubViews().first
+      paneType = subView.getOptions().paneType
+
+    unless data
+      if paneType is 'editor'
+        {file} = subView.getOptions()
+        {ace}  = subView.aceView
+        cursor = if ace.editor? then ace.editor.getCursorPosition() else row: 0, column: 0
+        data   = { file, cursor }
+
+      else if paneType is 'terminal'
+        vmc    = KD.getSingleton 'vmController'
+        vmName = subView.getOptions().vm?.hostnameAlias or vmc.defaultVmName
+        data   = vmName: vmName.split('.').first
+
+      else if paneType is 'preview'
+        data   = subView.getOptions().url or 'Enter a URL to browse...'
+
+      else if paneType is 'drawing'
+        data   = 'Use this panel to draw something'
+
+    appManager.tell 'IDE', 'updateStatusBar', paneType, data
 
   removeOpenDocument: ->
     # TODO: This method is legacy, should be reimplemented in ace bundle.

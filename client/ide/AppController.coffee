@@ -269,4 +269,12 @@ class IDEAppController extends AppController
         <p class="line">#{++cursor.row}:#{++cursor.column}</p>
         <p>#{file.name}</p>
       """
+
+    else if component is 'terminal'
+      text = "Terminal on #{data.vmName}"
+
+    else if typeof data is 'string' then text = data
+
+    else text = ''
+
     status.updatePartial text
