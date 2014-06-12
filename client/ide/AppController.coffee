@@ -40,7 +40,6 @@ class IDEAppController extends AppController
     ]
 
   constructor: (options = {}, data) ->
-    $('body').addClass 'dark'
 
     options.appInfo =
       type          : 'application'
@@ -65,6 +64,8 @@ class IDEAppController extends AppController
         }
       ]
 
+    $('body').addClass 'dark' # for theming
+
     appView   = @getView()
     workspace = @workspace = new IDE.Workspace { layoutOptions }
     @ideViews = []
@@ -77,9 +78,6 @@ class IDEAppController extends AppController
         ideView = panel.getPaneByName 'editorPane'
         @setActiveTabView ideView.tabView
         @ideViews.push ideView
-
-        splitView = panel.layout.getSplitViewByName 'BaseSplit'
-        splitView.on 'ResizeDidStop', @bound 'handleResize'
 
         splitViewPanel = ideView.parent.parent
         splitViewPanel.addSubView @statusBar = new IDE.StatusBar
