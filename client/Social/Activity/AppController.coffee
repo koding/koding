@@ -32,10 +32,10 @@ class ActivityAppController extends AppController
 
   edit: (options = {}, callback = noop) ->
 
-    {id, body} = options
+    {id, body, payload} = options
     {socialapi} = KD.singletons
 
-    socialapi.message.edit {id, body}, callback
+    socialapi.message.edit {id, body, payload}, callback
 
 
   reply: ({activity, body}, callback = noop) ->
