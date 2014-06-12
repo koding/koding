@@ -12,9 +12,14 @@ class AvatarAreaIconMenu extends JView
         title    : 'Help'
 
     @helpIcon.click = (event)=>
-      KD.singletons.helpController.showHelp this
+      window.open "http://learn.koding.com"
       KD.utils.stopDOMEvent event
-      @animation?.destroy()
+
+      # We disabled this feature since '?' relies on vm to be up for
+      # certain items to show properly. SA
+      #
+      # KD.singletons.helpController.showHelp this
+      # @animation?.destroy()
 
     @notificationsPopup = new AvatarPopupNotifications
       cssClass : "notifications"
