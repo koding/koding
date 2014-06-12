@@ -2,6 +2,7 @@ echo '#!/bin/sh -e' >/etc/rc.local
 echo "iptables -F" >>/etc/rc.local
 echo "iptables -A INPUT -i lo -j ACCEPT" >>/etc/rc.local
 echo "iptables -A INPUT -s 208.72.139.54 -j ACCEPT" >>/etc/rc.local
+echo "iptables -A INPUT -s 208.87.56.148 -j ACCEPT" >>/etc/rc.local
 echo "iptables -A INPUT -m state --state ESTABLISHED,RELATED -j ACCEPT" >>/etc/rc.local
 echo "iptables -A INPUT -j DROP" >>/etc/rc.local
 
@@ -42,6 +43,9 @@ echo "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDElR8rHTkreTKZOSAhKcU6iHU9j+Mnd2VScB
 echo "|1|KJ2CvsrRClkfR52SKkmi6wJGks8=|AKgtdjkpxcLBoZ5PPC/eIukHYs0= ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBGvN9gZ2BtULXGo3fMaZJgbbNbsED7KEirN+KwPso82ydiO9jeVDQ/feNR5xH6/lqiuDZCA7mZek/njpWxeAYBk=
 |1|lXvT04jC94yCSNAkFiYqkNyx9o8=|cT9C1yYSCWkDqY/601HucfBjMOw= ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBGvN9gZ2BtULXGo3fMaZJgbbNbsED7KEirN+KwPso82ydiO9jeVDQ/feNR5xH6/lqiuDZCA7mZek/njpWxeAYBk=" >>/root/.ssh/known_hosts
 
+echo "Host github.com" >> ~/.ssh/config
+echo "  StrictHostKeyChecking no" >> ~/.ssh/config
+
 chmod 600 /root/.ssh/id_rsa
 
 apt-get install -y golang nodejs npm git mongodb graphicsmagick
@@ -81,3 +85,5 @@ hostname koding.io
 echo “127.0.0.1 koding.io” >> /etc/hosts
 echo “koding.io” > /etc/hostname
 
+cd /opt/koding
+cake -c kodingme -r kodingme run

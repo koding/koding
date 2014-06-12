@@ -78,20 +78,6 @@ compileGoBinaries = (configFile,callback)->
 
     callback null
 
-task 'populateNeo4j', "Populate the local Neo4j Database from the config's mongo server", ({configFile})->
-  invoke 'deleteNeo4j'
-
-  migrator = "cd go && export GOPATH=`pwd` && go run src/koding/migrators/mongo/mongo2neo4j.go -c #{configFile}"
-  processes.exec migrator
-
-task 'deleteNeo4j', "Drop all entries in the local Neo4j database", ({configFile})->
-  console.log "This task is hardcoded to delete only Neo running in localhost:7474\n"
-
-  query = """
-    curl -X POST -H "Content-Type: application/json" -d '{"query":"start kod=node:koding(\\"id:*\\") match kod-[r]-() delete kod, r"}' "http://localhost:7474/db/data/cypher" && curl -X POST -H "Content-Type: application/json" -d '{"query":"start kod=relationship(*) delete kod;"}' "http://localhost:7474/db/data/cypher" && curl -X POST -H "Content-Type: application/json" -d '{"query":"start kod=node(*) delete kod;"}' "http://localhost:7474/db/data/cypher"
-  """
-  processes.exec query
-
 task 'compileGo', "Compile the local go binaries", ({configFile})->
   compileGoBinaries configFile,->
 
@@ -501,37 +487,6 @@ task 'terminalKite', "Run the terminalKite", ({configFile})->
     stdout  : process.stdout
     stderr  : process.stderr
     verbose : yes
-
-task 'proxy', "Run the go-Proxy", ({configFile})->
-
-  processes.spawn
-    name  : 'proxy'
-    cmd   : if configFile == "vagrant" then "vagrant ssh default -c 'cd /opt/koding; sudo killall -q -KILL vmproxy; sudo ./go/bin-vagrant/vmproxy -c #{configFile}'" else "./go/bin/vmproxy -c #{configFile}"
-    restart: no
-    stdout  : process.stdout
-    stderr  : process.stderr
-    verbose : yes
-
-task 'neo4jfeeder', "Run the neo4jFeeder", (options)->
-
-  {configFile} = options
-  config       = require('koding-config-manager').load("main.#{configFile}")
-  feederConfig = config.graphFeederWorker
-
-  numberOfWorkers = if feederConfig.numberOfWorkers then feederConfig.numberOfWorkers else 1
-
-  for i in [1..numberOfWorkers]
-    processes.spawn
-      name    : if numberOfWorkers is 1 then "neo4jfeeder" else "neo4jfeeder-#{i}"
-      cmd     : "./go/bin/neo4jfeeder -c #{configFile} #{addFlags options}"
-      restart : yes
-      stdout  : process.stdout
-      stderr  : process.stderr
-      verbose : yes
-      kontrol        :
-        enabled      : if config.runKontrol is yes then yes else no
-        startMode    : "version"
-
 
 # this is not safe to run multiple version of it
 task 'elasticsearchfeeder', "Run the Elastic Search Feeder", (options)->

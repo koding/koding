@@ -1,3 +1,6 @@
+console.log ((__filename.split("/")).pop().split("."))
+process.exit()
+
 fs              = require 'fs'
 nodePath        = require 'path'
 deepFreeze      = require 'koding-deep-freeze'
@@ -20,6 +23,7 @@ mongoKontrol    = "#{customDomain.local_}:27017/kontrol"
 projectRoot     = nodePath.join __dirname, '..'
 socialQueueName = "koding-social-kodingme"
 logQueueName    = socialQueueName+'log'
+configName      = (__filename.split)[0]
 
 
 
