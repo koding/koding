@@ -630,13 +630,13 @@ run =({configFile})->
   invoke 'goBrokerKite'                     if config.runGoBrokerKite
   invoke 'premiumBroker'                    if config.runPremiumBroker
   invoke 'premiumBrokerKite'                if config.runPremiumBrokerKite
-  invoke 'osKite'                           if config.runOsKite
-  invoke 'terminalKite'                     if config.runTerminalKite
+  # invoke 'osKite'                           if config.runOsKite
+  # invoke 'terminalKite'                     if config.runTerminalKite
   invoke 'rerouting'                        if config.runRerouting
   invoke 'userpresence'                     if config.runUserPresence
   invoke 'persistence'                      if config.runPersistence
-  invoke 'proxy'                            if config.runProxy
-  invoke 'neo4jfeeder'                      if config.runNeo4jFeeder
+  # invoke 'proxy'                            if config.runProxy
+  # invoke 'neo4jfeeder'                      if config.runNeo4jFeeder
   invoke 'elasticsearchfeeder'              if config.elasticSearch.enabled
   invoke 'authWorker'                       if config.authWorker
   invoke 'guestCleanerWorker'               if config.guestCleanerWorker.enabled
