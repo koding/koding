@@ -1,10 +1,14 @@
 class SocialApiController extends KDController
 
   constructor: (options = {}, data) ->
+
     @openedChannels = {}
+    @_cache         = {}
+
     super options, data
 
-    KD.getSingleton("mainController").ready @bound "openGroupChannel"
+    KD.getSingleton('mainController').ready @bound 'openGroupChannel'
+
 
   getPrefetchedData:->
 
@@ -25,6 +29,7 @@ class SocialApiController extends KDController
     data.publicFeed       = processInCase mapActivities, publicFeed
 
     return data
+
 
   openGroupChannel: ->
     # to - do refactor this part to use same functions with other parts
@@ -118,8 +123,8 @@ class SocialApiController extends KDController
     mappedChannels = []
 
     for channelContainer in messages
-      message = mapActivity channelContainer.lastMessage
-      channel = mapChannels(channelContainer)?[0]
+      message             = mapActivity channelContainer.lastMessage
+      channel             = mapChannel channelContainer
       channel.lastMessage = message
 
       mappedChannels.push channel
@@ -135,26 +140,35 @@ class SocialApiController extends KDController
       mappedAccounts.push {_id: account, constructorName : "JAccount"}
     return mappedAccounts
 
+
+  mapChannel = (channel) ->
+
+    data                     = channel.channel
+    data._id                 = data.id
+    data.isParticipant       = channel.isParticipant
+    data.participantCount    = channel.participantCount
+    data.participantsPreview = mapAccounts channel.participantsPreview
+    data.unreadCount         = channel.unreadCount
+    data.lastMessage         = mapActivity channel.lastMessage  if channel.lastMessage
+
+    return new KD.remote.api.SocialChannel data
+
+
   mapChannels = (channels)->
-    return channels unless channels
-    revivedChannels = []
-    channels = [].concat(channels)
-    {SocialChannel} = KD.remote.api
-    for channel in channels
-      data                     = channel.channel
-      data._id                 = data.id
-      data.isParticipant       = channel.isParticipant
-      data.participantCount    = channel.participantCount
-      data.participantsPreview = mapAccounts channel.participantsPreview
-      data.unreadCount         = channel.unreadCount
-      data.lastMessage = mapActivity channel.lastMessage if channel.lastMessage
-      c = new SocialChannel data
-      # push channel into stack
-      revivedChannels.push c
+
+    return channels  unless channels
+
+    channels        = [].concat channels
+    revivedChannels = (mapChannel channel  for channel in channels)
+
     # bind all events
     registerAndOpenChannels revivedChannels
+
     return revivedChannels
+
+
   mapChannels: mapChannels
+
 
 
   forwardMessageEvents = (source, target,  events)->
@@ -327,12 +341,12 @@ class SocialApiController extends KDController
     byId                 : channelRequesterFn
       fnName             : 'byId'
       validateOptionsWith: ['id']
-      mapperFn           : mapChannels
+      mapperFn           : mapChannel
 
     byName               : channelRequesterFn
       fnName             : 'byName'
       validateOptionsWith: ['name']
-      mapperFn           : mapChannels
+      mapperFn           : mapChannel
 
     list                 : channelRequesterFn
       fnName             : 'fetchChannels'
