@@ -31,7 +31,7 @@ func (c *Client) InitializeCaching() error {
 					c.Log.Error("filling cache channel: %s", err.Error())
 				}
 
-				c.CacheDroplets <- droplet
+				c.PutCacheDroplet(droplet)
 			}()
 		}
 	})
@@ -52,6 +52,17 @@ func (c *Client) CreateCacheDroplet() (*Droplet, error) {
 	}
 
 	return droplet, nil
+
+}
+
+func (c *Client) PutCacheDroplet(droplet *Droplet) error {
+	select {
+	case c.CacheDroplets <- droplet:
+		return nil
+	default:
+		go c.DestroyDroplet(uint(droplet.Droplet.Id))
+		return errors.New("cache is already full, deletin previous droplet")
+	}
 }
 
 func (c *Client) GetCachedDroplet() (*Droplet, error) {
@@ -60,6 +71,7 @@ func (c *Client) GetCachedDroplet() (*Droplet, error) {
 		if droplet == nil {
 			return nil, errors.New("pool is closed")
 		}
+
 		return droplet, nil
 	default:
 		return c.CreateCacheDroplet()
