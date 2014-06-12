@@ -74,7 +74,8 @@
     "which": "^1.0.5",
     "ua-parser-js": "0.6.2",
     "checksum": "0.1.*",
-    "amqplib": "^0.2.0"
+    "amqplib": "^0.2.0",
+    "node-sockjs-client": "0.0.1"
   },
   "devDependencies": {},
   "optionalDependencies": {},
