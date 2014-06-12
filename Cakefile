@@ -44,7 +44,7 @@ addFlags = (options)->
   flags += " -v" if options.verbose
   return flags
 
-compileGoBinaries = (configFile,callback)->
+compileGoBinaries = (configFile, callback = ->)->
 
   ###
   #   TBD - CHECK FOR ERRORS
@@ -90,8 +90,12 @@ task 'deleteNeo4j', "Drop all entries in the local Neo4j database", ({configFile
   """
   processes.exec query
 
+task 'killGoProcesses', " Kill hanging go processes", (options) ->
+  command = "kill -9 `ps -ef | grep go/bin | grep -v grep | awk '{print $2}'`"
+  exec command
+
 task 'compileGo', "Compile the local go binaries", ({configFile})->
-  compileGoBinaries configFile,->
+  compileGoBinaries configFile
 
 task 'webserver', "Run the webserver", ({configFile, tests, region}) ->
 
@@ -659,40 +663,41 @@ task 'migratePost', "Migrate Posts to JNewStatusUpdate", ({configFile})->
     verbose : yes
 
 run =({configFile})->
+
   process.stdout.setMaxListeners 100
   process.stderr.setMaxListeners 100
 
   config = require('koding-config-manager').load("main.#{configFile}")
 
-  compileGoBinaries configFile, ->
-    invoke 'kontrolDaemon'                    if config.runKontrol
-    invoke 'kontrolApi'                       if config.runKontrol
+  invoke 'kontrolDaemon'                    if config.runKontrol
+  invoke 'kontrolApi'                       if config.runKontrol
 
-    invoke 'kontrolKite'                      if config.runKontrol
-    invoke 'proxyKite'                        if config.runKontrol
+  invoke 'kontrolKite'                      if config.runKontrol
+  invoke 'proxyKite'                        if config.runKontrol
 
-    invoke 'goBroker'                         if config.runGoBroker
-    invoke 'goBrokerKite'                     if config.runGoBrokerKite
-    invoke 'premiumBroker'                    if config.runPremiumBroker
-    invoke 'premiumBrokerKite'                if config.runPremiumBrokerKite
-    invoke 'osKite'                           if config.runOsKite
-    invoke 'terminalKite'                     if config.runTerminalKite
-    invoke 'rerouting'                        if config.runRerouting
-    invoke 'userpresence'                     if config.runUserPresence
-    invoke 'persistence'                      if config.runPersistence
-    invoke 'proxy'                            if config.runProxy
-    invoke 'neo4jfeeder'                      if config.runNeo4jFeeder
-    invoke 'elasticsearchfeeder'              if config.elasticSearch.enabled
-    invoke 'authWorker'                       if config.authWorker
-    invoke 'guestCleanerWorker'               if config.guestCleanerWorker.enabled
-    invoke 'emailConfirmationCheckerWorker'   if config.emailConfirmationCheckerWorker.enabled
-    invoke 'socialWorker'
-    invoke 'emailWorker'                      if config.emailWorker?.run is yes
-    invoke 'emailSender'                      if config.emailSender?.run is yes
-    invoke 'addTagCategories'
-    invoke 'webserver'
-    invoke 'cronJobs'
-    invoke 'logWorker'                        if config.log.runWorker
+  invoke 'goBroker'                         if config.runGoBroker
+  invoke 'goBrokerKite'                     if config.runGoBrokerKite
+  invoke 'premiumBroker'                    if config.runPremiumBroker
+  invoke 'premiumBrokerKite'                if config.runPremiumBrokerKite
+  invoke 'osKite'                           if config.runOsKite
+  invoke 'terminalKite'                     if config.runTerminalKite
+  invoke 'rerouting'                        if config.runRerouting
+  invoke 'userpresence'                     if config.runUserPresence
+  invoke 'persistence'                      if config.runPersistence
+  invoke 'proxy'                            if config.runProxy
+  invoke 'neo4jfeeder'                      if config.runNeo4jFeeder
+  invoke 'elasticsearchfeeder'              if config.elasticSearch.enabled
+  invoke 'authWorker'                       if config.authWorker
+  invoke 'guestCleanerWorker'               if config.guestCleanerWorker.enabled
+  invoke 'emailConfirmationCheckerWorker'   if config.emailConfirmationCheckerWorker.enabled
+  invoke 'socialWorker'
+  invoke 'emailWorker'                      if config.emailWorker?.run is yes
+  invoke 'emailSender'                      if config.emailSender?.run is yes
+  invoke 'addTagCategories'
+  invoke 'webserver'
+  invoke 'cronJobs'
+  invoke 'logWorker'                        if config.log.runWorker
+
 
 task 'importDB', (options) ->
 
@@ -730,44 +735,54 @@ importDB = (options, callback = ->)->
 task 'run', (options)->
 
   {configFile} = options
+
   options.configFile = "vagrant" if configFile in ["",undefined,"undefined"]
   KONFIG = config = require('koding-config-manager').load("main.#{configFile}")
 
-  importDB options, ->
+  buildEverything options, -> run options
 
-    oldIndex = nodePath.join __dirname, "website/index.html"
-    if fs.existsSync oldIndex
-      fs.unlinkSync oldIndex
 
-    config.buildClient = yes if options.buildClient
+buildEverything = (options, callback = ->)->
 
-    queue = []
-    if config.buildClient is yes
-      queue.push ->
+  daisy queue = [
 
-        buildMethod =
-          if options.dontBuildSprites
-          then 'buildClient'
-          else 'buildSprites'
+    -> importDB options, -> queue.next()
+  ,
+    -> compileGoBinaries options.configFile, -> queue.next()
+  ,
+    ->
+      oldIndex = nodePath.join __dirname, "website/index.html"
+      fs.unlinkSync oldIndex  if fs.existsSync oldIndex
+      queue.next()
+  ,
+    ->
+      buildClient options  if options.buildClient
+      queue.next()
+  ,
+    -> callback null
+  ]
 
-        (new (require('./Builder')))[buildMethod] options
-        queue.next()
-    queue.push -> run options
-    daisy queue
 
-task 'buildTests', "Build the client-side tests", (options) ->
+task 'buildEverything', "Build everything and exit.", (options)->
 
-task 'killGoProcesses', " Kill hanging go processes", (options) ->
-  command = "kill -9 `ps -ef | grep go/bin | grep -v grep | awk '{print $2}'`"
-  exec command
+  options.buildClient = yes
+  options.watch = no
 
-task 'buildClient', "Build the static web pages for webserver", (options)->
+  buildEverything options
+
+
+buildClient = (options)->
+
   buildMethod =
     if options.dontBuildSprites
     then 'buildClient'
     else 'buildSprites'
 
   (new (require('./Builder')))[buildMethod] options
+
+
+task 'buildClient', "Build the static web pages for webserver", (options)->
+  buildClient options
 
 task 'deleteCache', "Delete the local webserver cache", (options)->
   exec "rm -rf #{__dirname}/.build",->

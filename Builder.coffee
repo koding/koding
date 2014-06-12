@@ -94,7 +94,10 @@ module.exports = class Builder
       """
 
   buildClient: (options) ->
+
     @config ?= require('koding-config-manager').load("main.#{options.configFile}")
+
+    if options.watch? then @config.client.watch = options.watch
 
     try fs.mkdirSync ".build"
 
