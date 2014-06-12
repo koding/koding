@@ -68,10 +68,11 @@ class MessageEventManager extends KDObject
 
   removeReply: ({replyId}) ->
 
+    message = @getData()
+
     for item in message.replies
       reply = item  if replyId is item.getId()
 
-    message = @getData()
     message.replies = message.replies.filter (reply) -> reply.getId() isnt replyId
     message.repliesCount--
 
