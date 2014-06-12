@@ -37,8 +37,13 @@ class ActivitySidebar extends KDCustomScrollView
 
   addToChannel: (channel) ->
 
-    channel        = revive channel
+    {SocialChannel} = KD.remote.api
+
+    channel        = revive channel  unless channel instanceof SocialChannel
     listController = @getListController channel.typeConstant
+
+    return  if listController.itemForId channel.id
+
     listController.addItem channel
     @updateTopicFollowButtons channel
 
