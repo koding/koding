@@ -25,15 +25,18 @@ func main() {
 	// create logger for our package
 	log := helper.CreateLogger("DB Creation Script", *flagDebug)
 
-	helper.MustInitBongo(conf, log)
+	helper.MustInitBongo("CreateDB", conf, log)
 	db.DB.LogMode(true)
-	db.DB.Exec("drop table api.channel_message_list;")
-	db.DB.Exec("drop table api.channel_message;")
-	db.DB.Exec("drop table api.message_reply;")
-	db.DB.Exec("drop table api.channel_participant;")
-	db.DB.Exec("drop table api.channel;")
-	db.DB.Exec("drop table api.interaction;")
-	db.DB.Exec("drop table api.account;")
+	db.DB.Exec("drop table channel_message_list;")
+	db.DB.Exec("drop table channel_message;")
+	db.DB.Exec("drop table message_reply;")
+	db.DB.Exec("drop table channel_participant;")
+	db.DB.Exec("drop table channel;")
+	db.DB.Exec("drop table interaction;")
+	db.DB.Exec("drop table account;")
+	db.DB.Exec("drop table notification_content;")
+	db.DB.Exec("drop table notification;")
+	db.DB.Exec("drop table activity;")
 
 	if err := db.DB.CreateTable(&models.ChannelMessage{}).Error; err != nil {
 		panic(fmt.Sprintf("No error should happen when create table, but got %+v", err))
@@ -54,6 +57,15 @@ func main() {
 		panic(fmt.Sprintf("No error should happen when create table, but got %+v", err))
 	}
 	if err := db.DB.CreateTable(&models.Account{}).Error; err != nil {
+		panic(fmt.Sprintf("No error should happen when create table, but got %+v", err))
+	}
+	if err := db.DB.CreateTable(&models.NotificationContent{}).Error; err != nil {
+		panic(fmt.Sprintf("No error should happen when create table, but got %+v", err))
+	}
+	if err := db.DB.CreateTable(&models.Notification{}).Error; err != nil {
+		panic(fmt.Sprintf("No error should happen when create table, but got %+v", err))
+	}
+	if err := db.DB.CreateTable(&models.Activity{}).Error; err != nil {
 		panic(fmt.Sprintf("No error should happen when create table, but got %+v", err))
 	}
 }

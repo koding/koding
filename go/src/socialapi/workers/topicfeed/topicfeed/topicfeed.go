@@ -6,7 +6,6 @@ import (
 	"socialapi/models"
 	"github.com/koding/bongo"
 	"github.com/koding/logging"
-	"github.com/koding/worker"
 	"github.com/streadway/amqp"
 
 	verbalexpressions "github.com/VerbalExpressions/GoVerbalExpressions"
@@ -27,61 +26,32 @@ var topicRegex = verbalexpressions.New().
 // extend this regex with https://github.com/twitter/twitter-text-rb/blob/eacf388136891eb316f1c110da8898efb8b54a38/lib/twitter-text/regex.rb
 // to support all languages
 
-type Action func(*TopicFeedController, *models.ChannelMessage) error
-
-type TopicFeedController struct {
-	routes map[string]Action
-	log    logging.Logger
+type Controller struct {
+	log logging.Logger
 }
 
-func (t *TopicFeedController) DefaultErrHandler(delivery amqp.Delivery, err error) {
-	t.log.Error("an error occured putting message back to queue", err)
-	// multiple false
-	// reque true
-	delivery.Nack(false, true)
-}
-
-func NewTopicFeedController(log logging.Logger) *TopicFeedController {
-	ffc := &TopicFeedController{
+func New(log logging.Logger) *Controller {
+	return &Controller{
 		log: log,
 	}
-
-	routes := map[string]Action{
-		"api.channel_message_created": (*TopicFeedController).MessageSaved,
-		"api.channel_message_update":  (*TopicFeedController).MessageUpdated,
-		"api.channel_message_deleted": (*TopicFeedController).MessageDeleted,
-	}
-
-	ffc.routes = routes
-
-	return ffc
 }
 
-func (f *TopicFeedController) HandleEvent(event string, data []byte) error {
-	f.log.Debug("New Event Recieved %s", event)
-	handler, ok := f.routes[event]
-	if !ok {
-		return worker.HandlerNotFoundErr
+func (t *Controller) DefaultErrHandler(delivery amqp.Delivery, err error) bool {
+	if delivery.Redelivered {
+		t.log.Error("Redelivered message gave error again, putting to maintenance queue", err)
+		delivery.Ack(false)
+		return true
 	}
 
-	cm, err := mapMessage(data)
-	if err != nil {
-		return err
-	}
+	t.log.Error("an error occured putting message back to queue", err)
+	delivery.Nack(false, true)
+	return false
+}
 
-	res, err := isEligible(cm)
-	if err != nil {
-		return err
-	}
-
-	if !res {
+func (f *Controller) MessageSaved(data *models.ChannelMessage) error {
+	if res, _ := isEligible(data); !res {
 		return nil
 	}
-
-	return handler(f, cm)
-}
-
-func (f *TopicFeedController) MessageSaved(data *models.ChannelMessage) error {
 
 	topics := extractTopics(data.Body)
 	if len(topics) == 0 {
@@ -141,7 +111,11 @@ func extractTopics(body string) []string {
 	return flattened
 }
 
-func (f *TopicFeedController) MessageUpdated(data *models.ChannelMessage) error {
+func (f *Controller) MessageUpdated(data *models.ChannelMessage) error {
+	if res, _ := isEligible(data); !res {
+		return nil
+	}
+
 	f.log.Debug("udpate message %s", data.Id)
 	// fetch message's current topics from the db
 	channels, err := fetchMessageChannels(data.Id)
@@ -245,7 +219,11 @@ func getTopicDiff(channels []models.Channel, topics []string) map[string][]strin
 	return res
 }
 
-func (f *TopicFeedController) MessageDeleted(data *models.ChannelMessage) error {
+func (f *Controller) MessageDeleted(data *models.ChannelMessage) error {
+	if res, _ := isEligible(data); !res {
+		return nil
+	}
+
 	cml := models.NewChannelMessageList()
 	selector := map[string]interface{}{
 		"message_id": data.Id,

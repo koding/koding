@@ -1,13 +1,15 @@
-class InboxReplyForm extends NewCommentForm
-  constructor:(options,data)->
-    options = $.extend
-      type      : "reply"
-      cssClass  : "reply-to-thread-box"
-    ,options
-    super options,data
+class InboxReplyForm extends CommentInputForm
 
-  viewAppended:->
-    {profile} = KD.whoami()
+  constructor: (options = {}, data) ->
+
+    options.type     = "reply"
+    options.cssClass = KD.utils.curry "reply-to-thread-box", options.cssClass
+
+    super options, data
+
+
+  viewAppended: ->
+
     @addSubView @commentInput = new KDInputView
       type          : "textarea"
       placeholder   : "Click here to reply..."

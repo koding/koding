@@ -1,17 +1,19 @@
 # MAKEFLAGS += -j
 NO_COLOR=\033[0m
 OK_COLOR=\033[0;32m
-CWD=`pwd`
-GODIR=$(CWD)/../../../go
+GODIR=$(CURDIR)/../../../go
 GOBINDIR=$(GODIR)/bin
+GOPATH := $(realpath $(GODIR))
+GOBIN := $(realpath $(GOBINDIR))
 CONFIG=./config/vagrant.toml
-
 MAJOR=0
 MINOR=1
 # export MAJOR
 # export MINOR
 
-develop: apidev topicfeeddev realtimedev followingfeeddev populartopicdev
+default: configure
+
+develop: apidev topicfeeddev realtimedev followingfeeddev populartopicdev popularpostdev notificationdev
 
 apidev:
 	@echo "$(OK_COLOR)==> Running API Worker $(NO_COLOR)"
@@ -29,17 +31,49 @@ populartopicdev:
 	@echo "$(OK_COLOR)==> Running Popular Topics Worker $(NO_COLOR)"
 	@$(GOBINDIR)/rerun socialapi/workers/populartopic -c $(CONFIG) -d
 
+notificationdev:
+	@echo "$(OK_COLOR)==> Running Notification Worker $(NO_COLOR)"
+	@$(GOBINDIR)/rerun socialapi/workers/notification -c $(CONFIG) -d
+
+emailnotifierdev:
+	@echo "$(OK_COLOR)==> Running Email Notifier Worker $(NO_COLOR)"
+	@$(GOBINDIR)/rerun socialapi/workers/emailnotifier -c $(CONFIG) -d
+
+dailyemailnotifierdev:
+	@echo "$(OK_COLOR)==> Running Daily Email Notifier Worker $(NO_COLOR)"
+	@$(GOBINDIR)/rerun socialapi/workers/dailyemailnotifier -c $(CONFIG) -d
+
+popularpostdev:
+	@echo "$(OK_COLOR)==> Running Popular Posts Worker $(NO_COLOR)"
+	@$(GOBINDIR)/rerun socialapi/workers/popularpost -c $(CONFIG) -d
+
+configuremigration:
+	(vagrant ssh default --command "mongo localhost/koding --eval='db.relationships.update({},{\$$unset:{migrationStatus:0}},{multi:true})'")
+	(vagrant ssh default --command "mongo localhost/koding --eval='db.jNewStatusUpdates.update({},{\$$unset:{socialMessageId:0}},{multi:true})'")
+	(vagrant ssh default --command "mongo localhost/koding --eval='db.jComments.update({},{\$$unset:{socialMessageId:0}},{multi:true})'")
+	(vagrant ssh default --command "mongo localhost/koding --eval='db.jTags.update({},{\$$unset:{socialApiChannelId:0}},{multi:true})'")
+
+migrate:
+	@echo "$(OK_COLOR)==> Running Popular Posts Worker $(NO_COLOR)"
+	@$(GOBINDIR)/rerun socialapi/workers/migrator -c $(CONFIG) -d
+
 PACKAGES = \
 	socialapi/workers/api \
-	socialapi/workers/topicfeed \
-	socialapi/workers/realtime \
+	socialapi/workers/emailnotifier \
 	socialapi/workers/followingfeed \
-	socialapi/workers/populartopic
+	socialapi/workers/notification \
+	socialapi/workers/popularpost \
+	socialapi/workers/populartopic \
+	socialapi/workers/realtime \
+	socialapi/workers/topicfeed \
+	socialapi/workers/migrator
 
 default: all
 
 createdb:
-	@go run ./scripts/createdb.go -c ./config/vagrant.toml  -d
+	(vagrant ssh default --command "mongo localhost/koding --eval='db.jAccounts.update({},{\$$unset:{socialApiId:0}},{multi:true})'")
+	(vagrant ssh default --command "mongo localhost/koding --eval='db.jGroups.update({},{\$$unset:{socialApiChannelId:0}},{multi:true})'")
+	(vagrant ssh default --command "/opt/koding/go/src/socialapi/db/sql/definition/create.sh")
 
 configure: installall installrerun
 	@echo "$(OK_COLOR)==> Configuration is done $(NO_COLOR)"
@@ -61,9 +95,17 @@ test:
 		go test -v $$package; \
 	done;
 
+build:
+	@for package in $(PACKAGES); \
+	do \
+		(echo "$(OK_COLOR)==> Building $$package $(NO_COLOR)"); \
+		go install $$package; \
+	done;
+
 testapi:
-	(echo "$(OK_COLOR)==> Running go api tests $(NO_COLOR)"); \
-	@go run ./tests/*.go
+	@echo "$(OK_COLOR)==> Running go api tests $(NO_COLOR)"
+	@go test tests/*.go
+	@go test workers/notification/tests/*.go
 
 doc:
 	@for package in $(PACKAGES); \
@@ -79,7 +121,8 @@ pkgs = \
 	followingfeed \
 	realtime \
 	rerun \
-	topicfeed
+	topicfeed \
+	notification
 
 dep:
 	@echo "$(OK_COLOR)==> Copying files $(NO_COLOR)";
@@ -109,5 +152,3 @@ dep:
 	done;
 
 	@echo "$(OK_COLOR)==> Files are located at files $(NO_COLOR)";
-
-.PHONY: all

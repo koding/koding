@@ -5,7 +5,7 @@ import "github.com/koding/redis"
 var redisConn *redis.RedisSession
 
 func MustInitRedisConn(server string) *redis.RedisSession {
-	r, err := redis.NewRedisSession(server)
+	r, err := redis.NewRedisSession(&redis.RedisConf{Server: server})
 	if err != nil {
 		panic(err)
 	}

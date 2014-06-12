@@ -249,6 +249,8 @@ KD.extend
 
   isMine:(account)-> KD.whoami().profile.nickname is account.profile.nickname
 
+  isMyPost: (post) -> post.account._id is KD.whoami().getId()
+
   checkFlag:(flagToCheck, account = KD.whoami())->
     if account.globalFlags
       if 'string' is typeof flagToCheck

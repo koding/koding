@@ -38,7 +38,9 @@ func Create(u *url.URL, h http.Header, req *models.ChannelMessage) (int, http.He
 		return helpers.NewBadRequestResponse(err)
 	}
 
-	return helpers.NewOKResponse(req)
+	return helpers.HandleResultAndError(
+		req.BuildEmptyMessageContainer(),
+	)
 }
 
 func Delete(u *url.URL, h http.Header, req *models.ChannelMessage) (int, http.Header, interface{}, error) {
@@ -145,7 +147,9 @@ func Update(u *url.URL, h http.Header, req *models.ChannelMessage) (int, http.He
 		return helpers.NewBadRequestResponse(err)
 	}
 
-	return helpers.NewOKResponse(req)
+	return helpers.HandleResultAndError(
+		req.BuildEmptyMessageContainer(),
+	)
 }
 
 func Get(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface{}, error) {
@@ -161,7 +165,9 @@ func Get(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface{
 		return helpers.NewBadRequestResponse(err)
 	}
 
-	return helpers.NewOKResponse(cm)
+	return helpers.HandleResultAndError(
+		cm.BuildEmptyMessageContainer(),
+	)
 }
 
 func GetWithRelated(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface{}, error) {
