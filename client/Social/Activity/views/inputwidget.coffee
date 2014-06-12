@@ -240,12 +240,11 @@ class ActivityInputWidget extends KDView
       #   targetSelf : 1
 
 
-  update: (data, callback = noop) ->
+  update: ({body, payload}, callback = noop) ->
 
     {appManager} = KD.singletons
     {channelId}  = @getOptions()
     activity     = @getData()
-    {body}       = data
 
     return  @reset()  unless activity
 
