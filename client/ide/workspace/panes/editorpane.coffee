@@ -23,6 +23,7 @@ class IDE.EditorPane extends IDE.Pane
     @aceView.ace.once 'ace.ready', =>
       @getEditor().setValue content, 1
       @ace.setReadOnly yes  if @getOptions().readOnly
+      @emit 'EditorIsReady'
 
   getEditor: ->
     return @aceView.ace.editor
