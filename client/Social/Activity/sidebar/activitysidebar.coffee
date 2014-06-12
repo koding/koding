@@ -226,7 +226,7 @@ class ActivitySidebar extends KDCustomScrollView
 
   addMessages: ->
 
-    @wrapper.addSubView @sections.messages = new MessagesSideView
+    @wrapper.addSubView @sections.messages = new ActivitySideView
       title      : 'Private Conversations'
       cssClass   : 'inbox users'
       itemClass  : SidebarMessageItem

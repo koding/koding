@@ -7,8 +7,8 @@ class ActivitySideView extends JView
 
     super options, data
 
-    {itemClass} = @getOptions()
-    sidebar     = @getDelegate()
+    {itemClass, headerLink} = @getOptions()
+    sidebar = @getDelegate()
 
     @listController = new KDListViewController
       startWithLazyLoader : yes
@@ -29,7 +29,10 @@ class ActivitySideView extends JView
     @header = new KDCustomHTMLView
       tagName : 'h3'
       partial : @getOption 'title'
-      click   : @bound 'reload'
+      # click   : @bound 'reload'
+
+
+    @header.addSubView headerLink  if headerLink
 
     @listView = @listController.getView()
 
