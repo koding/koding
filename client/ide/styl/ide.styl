@@ -15,6 +15,7 @@ dark-active-tab-color = #9C9C9C
 dark-tab-color        = #5C5C5C
 text-color-green      = #4EA04C
 
+
 // theming
 body.ide.dark
   bg                    color, dark-panel-bg
@@ -125,7 +126,7 @@ body.ide.dark
 
   .vm-item
     size                auto, 39px
-    bg                  color, #131313
+    bg                  color, dark-tab-header-bg
     position            relative
     margin              13px
     rounded             2px
@@ -173,34 +174,27 @@ body.ide.dark
 .settings-pane
   line-height           20px
   font-size             12px
-
   .settings-header
     color               text-color-green
     padding             25px 20px 10px
-
   .kdselectbox
     min-width           100px
     display             block
     float               right
-
   p
     color               #D4CFC9
     padding             5px 20px
     clear               both
     borderBox()
-
     &.with-select
       line-height       32px
-
     .settings-on-off
       display           block
       float             right
-
       &.on
         bg              color, text-color-green
       &.off
-        bg              color, #131313
-
+        bg              color, dark-tab-header-bg
   .kdselectbox
     bg                  color, transparent
     border              1px solid #555555

@@ -5,8 +5,8 @@ class IDEAppController extends AppController
     route        : '/:name?/IDE'
     behavior     : 'application'
     preCondition :
-      condition  : (options, cb)-> cb KD.isLoggedIn()
-      failure    : (options, cb)->
+      condition  : (options, cb) -> cb KD.isLoggedIn()
+      failure    : (options, cb) ->
         KD.getSingleton('appManager').open 'IDE', conditionPassed : yes
         KD.showEnforceLoginModal()
     commands:

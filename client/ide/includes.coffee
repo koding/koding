@@ -27,9 +27,9 @@ module.exports = [
   "workspace/panes/settings/editorsettingsview.coffee"
   "workspace/panes/settings/terminalsettingsview.coffee"
   "workspace/panes/settings/settingspane.coffee"
-  "views/shortcutsview.coffee"
 
-  # ide
+  # views
+  "views/shortcutsview.coffee"
   "views/tabview/idefilestabview.coffee"
   "views/tabview/ideview.coffee"
   "views/tabview/idesocialstabview.coffee"

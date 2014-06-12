@@ -41,12 +41,12 @@
   createEditor: (file, content) ->
     file        = file    or FSHelper.createFileFromPath @getDummyFilePath()
     content     = content or ''
-    editor      = new IDE.EditorPane { file, content, delegate: this }
+    editorPane  = new IDE.EditorPane { file, content, delegate: this }
     paneOptions =
       name      : file.name
-      editor    : editor
+      editor    : editorPane
 
-    @createPane_ editor, paneOptions, file
+    @createPane_ editorPane, paneOptions, file
 
   createShortcutsView: ->
     @createPane_ new IDE.ShortcutsView, { name: 'Shortcuts' }
