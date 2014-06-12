@@ -45,16 +45,33 @@ class ActivityAppView extends KDScrollView
 
   open: (type, slug) ->
 
+    {socialapi, router, notificationController} = KD.singletons
+
+
+    kallback = (data) =>
+      name = if slug then "#{type}-#{slug}" else type
+      pane = @tabs.getPaneByName name
+
+      if pane
+      then @tabs.showPane pane
+      else @createTab name, data
+
     @sidebar.selectItemByRouteOptions type, slug
+    item = @sidebar.selectedItem
 
-    item = @sidebar.selectedItem or @sidebar.public
-    data = item.getData()
-    name = if slug then "#{type}-#{slug}" else type
-    pane = @tabs.getPaneByName name
+    if type is 'public'
+      item = @sidebar.public
+      kallback item.getData()
 
-    if pane
-    then @tabs.showPane pane
-    else @createTab name, data
+    else if not item
+      socialapi.cacheable type, slug, (err, data) ->
+        if err then router.handleNotFound router.getCurrentPath()
+        else
+          notificationController.emit 'AddedToChannel', data
+          KD.utils.wait 1000, -> kallback data
+
+    else
+      kallback item.getData()
 
 
   createTab: (name, data) ->
