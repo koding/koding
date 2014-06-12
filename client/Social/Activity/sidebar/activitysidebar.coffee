@@ -195,9 +195,12 @@ class ActivitySidebar extends KDCustomScrollView
       itemClass  : SidebarTopicItem
       dataPath   : 'popularTopics'
       delegate   : this
+      headerLink : new CustomLinkView
+        title    : 'ALL'
+        href     : KD.utils.groupifyLink '/Activity/Topic/All'
       dataSource : (callback) ->
         KD.singletons.socialapi.channel.fetchPopularTopics
-          limit  : 3
+          limit  : 5
         , callback
 
 
@@ -209,6 +212,9 @@ class ActivitySidebar extends KDCustomScrollView
       itemClass  : SidebarTopicItem
       dataPath   : 'followedChannels'
       delegate   : this
+      headerLink : new CustomLinkView
+        title    : 'ALL'
+        href     : KD.utils.groupifyLink '/Activity/Topic/All'
       dataSource : (callback) ->
         KD.singletons.socialapi.channel.fetchFollowedChannels
           limit : 5
@@ -223,6 +229,9 @@ class ActivitySidebar extends KDCustomScrollView
       itemClass  : SidebarPinnedItem
       dataPath   : 'pinnedMessages'
       delegate   : this
+      headerLink : new CustomLinkView
+        title    : 'ALL'
+        href     : KD.utils.groupifyLink '/Activity/Post/All'
       dataSource : (callback) ->
         KD.singletons.socialapi.channel.fetchPinnedMessages
           limit : 5
@@ -237,19 +246,24 @@ class ActivitySidebar extends KDCustomScrollView
       itemClass  : SidebarMessageItem
       dataPath   : 'privateMessages'
       delegate   : this
+      headerLink : new CustomLinkView
+        title    : 'NEW'
+        href     : KD.utils.groupifyLink '/Activity/Message/New'
       dataSource : (callback) ->
         KD.singletons.socialapi.message.fetchPrivateMessages
-          limit : 3
-          skip  : 0
+          limit : 5
         , callback
 
 
   addChat: ->
 
     @wrapper.addSubView @sections.chat = new ActivitySideView
-      title    : 'Chat'
-      cssClass : 'chat users'
-      itemClass : SidebarChatMemberItem
+      title      : 'Chat'
+      cssClass   : 'chat users'
+      itemClass  : SidebarChatMemberItem
       delegate   : this
+      headerLink : new CustomLinkView
+        title    : 'NEW'
+        href     : KD.utils.groupifyLink '/Activity/Chat/New'
       dataSource : (callback) ->
-        KD.getGroup().fetchNewestMembers {}, {limit : 10, skip : 0}, callback
+        KD.getGroup().fetchNewestMembers {}, {limit : 10}, callback
