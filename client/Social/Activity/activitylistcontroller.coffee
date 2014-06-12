@@ -28,16 +28,6 @@ class ActivityListController extends KDListViewController
 
     @hiddenItems = []
 
-    @messageEventHelper = new MessageEventHelper
-
-
-  instantiateListItems: (messages) ->
-
-    messages = messages.filter (message) => not @itemForId message.getId()
-    messages.forEach @messageEventHelper.bound 'bindListeners'
-
-    super messages
-
 
   # LEGACY
 

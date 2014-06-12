@@ -88,6 +88,8 @@ class SocialApiController extends KDController
       deletedAt : new Date deletedAt
       updatedAt : new Date updatedAt
 
+    new MessageEventManager {}, m
+
     return m
 
   mapActivities = (messages)->
@@ -364,5 +366,3 @@ class SocialApiController extends KDController
     updateLastSeenTime   : channelRequesterFn
       fnName             : 'updateLastSeenTime'
       validateOptionsWith: ["channelId"]
-
-
