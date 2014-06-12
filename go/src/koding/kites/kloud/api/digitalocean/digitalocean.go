@@ -1,31 +1,19 @@
-package digitalocean
+package api
 
 import (
 	"errors"
 	"fmt"
-	"koding/kites/kloud/klientprovisioner"
-	"koding/kites/kloud/packer"
-	"koding/kites/kloud/utils"
 	"net/url"
 	"strconv"
-	"time"
 
-	"github.com/koding/logging"
 	"github.com/mitchellh/mapstructure"
 	"github.com/mitchellh/packer/builder/digitalocean"
 )
 
-const ProviderName = "digitalocean"
-
-type pushFunc func(string, int)
-
 // DigitalOcean is responsible of creating/controlling and handling one single
 // Digital Ocean machine.
 type DigitalOcean struct {
-	Client   *digitalocean.DigitalOceanClient
-	Log      logging.Logger
-	SignFunc func(string) (string, string, error)
-	Push     pushFunc
+	Client *digitalocean.DigitalOceanClient
 
 	Creds struct {
 		ClientID string `mapstructure:"clientId"`
@@ -58,8 +46,39 @@ type DigitalOcean struct {
 	}
 }
 
-func (d *DigitalOcean) Name() string {
-	return ProviderName
+func New(credential, builder map[string]interface{}) (*DigitalOcean, error) {
+	d := DigitalOcean{}
+
+	// Credentials
+	if err := mapstructure.Decode(credential, &d.Creds); err != nil {
+		return nil, err
+	}
+
+	// Builder data
+	if err := mapstructure.Decode(builder, &d.Builder); err != nil {
+		return nil, err
+	}
+
+	if d.Creds.ClientID == "" {
+		return nil, errors.New("credentials client_id is empty")
+	}
+
+	if d.Creds.APIKey == "" {
+		return nil, errors.New("credentials api_key is empty")
+	}
+
+	d.Builder.ClientID = d.Creds.ClientID
+	d.Builder.APIKey = d.Creds.APIKey
+
+	d.Client = digitalocean.DigitalOceanClient{}.New(d.Creds.ClientID, d.Creds.APIKey)
+
+	// authenticate credentials with a simple call
+	_, err := d.Regions()
+	if err != nil {
+		return nil, errors.New("authentication with DigitalOcean failed.")
+	}
+
+	return &d, nil
 }
 
 // CheckEvent checks the given eventID and returns back the result. It's useful
@@ -81,36 +100,6 @@ func (d *DigitalOcean) CheckEvent(eventId int) (*Event, error) {
 	return event, nil
 }
 
-// WaitUntilReady checks the given state for the eventID and returns nil if the
-// state has been reached. It returns an error if the given timeout has been
-// reached, if another generic error is produced or if the event status is of
-// type "ERROR".
-func (d *DigitalOcean) WaitUntilReady(eventId, from, to int) error {
-	for {
-		select {
-		case <-time.After(time.Minute):
-			return errors.New("Timeout while waiting for droplet to become ready")
-		case <-time.Tick(3 * time.Second):
-			d.Push("Waiting for droplet to be ready", from)
-
-			event, err := d.CheckEvent(eventId)
-			if err != nil {
-				return err
-			}
-
-			if event.Event.ActionStatus == "done" {
-				d.Push("Waiting is done. Got a successfull result.", from)
-				return nil
-			}
-
-			// the next steps percentage is 60, fake it until we got there
-			if from < to {
-				from += 2
-			}
-		}
-	}
-}
-
 // CreateKey creates a new ssh key with the given name and the associated
 // public key. It returns a unique id that is associated with the given
 // publicKey. This id is used to show, edit or delete the key.
@@ -121,28 +110,6 @@ func (d *DigitalOcean) CreateKey(name, publicKey string) (uint, error) {
 // DestroyKey removes the ssh key that is associated with the given id.
 func (d *DigitalOcean) DestroyKey(id uint) error {
 	return d.Client.DestroyKey(id)
-}
-
-// CreateImage creates an image using Packer. It uses digitalocean.Builder
-// data. It returns the image info.
-func (d *DigitalOcean) CreateImage() (digitalocean.Image, error) {
-	data, err := utils.TemplateData(d.Builder, klientprovisioner.RawData)
-	if err != nil {
-		return digitalocean.Image{}, err
-	}
-
-	provider := &packer.Provider{
-		BuildName: "digitalocean",
-		Data:      data,
-	}
-
-	// this is basically a "packer build template.json"
-	if err := provider.Build(); err != nil {
-		return digitalocean.Image{}, err
-	}
-
-	// return the image result
-	return d.Image(d.Builder.SnapshotName)
 }
 
 // CreateDroplet creates a new droplet with a hostname, key and image_id. It
@@ -228,12 +195,6 @@ func (d *DigitalOcean) Regions() ([]digitalocean.Region, error) {
 	return d.Client.Regions()
 }
 
-func (d *DigitalOcean) DestroyDroplet(dropletId uint) error {
-	path := fmt.Sprintf("droplets/%v/destroy", dropletId)
-	_, err := digitalocean.NewRequest(*d.Client, path, url.Values{})
-	return err
-}
-
 // CreateSnapshot cretes a new snapshot with the name from the given droplet Id.
 func (d *DigitalOcean) CreateSnapshot(dropletId uint, name string) error {
 	return d.Client.CreateSnapshot(dropletId, name)
@@ -259,15 +220,87 @@ func (d *DigitalOcean) DropletInfo(dropletId uint) (*Droplet, error) {
 	return &result, err
 }
 
-func (d *DigitalOcean) DropletId() (uint, error) {
-	if d.Builder.DropletId == "" {
-		return 0, errors.New("dropletId is not available")
+func (d *DigitalOcean) Rename(dropletId uint, newName string) (int, error) {
+	params := url.Values{}
+	params.Set("name", newName)
+
+	path := fmt.Sprintf("droplets/%v/rename", dropletId)
+	body, err := digitalocean.NewRequest(*d.Client, path, params)
+	if err != nil {
+		return 0, err
 	}
 
-	dropletId := utils.ToUint(d.Builder.DropletId)
-	if dropletId == 0 {
-		return 0, fmt.Errorf("malformed data received %v. droplet Id must be an int.", d.Builder.DropletId)
+	eventId, ok := body["event_id"].(float64)
+	if !ok {
+		return 0, fmt.Errorf("restart malformed data %v", body)
 	}
 
-	return dropletId, nil
+	return int(eventId), nil
+}
+
+// Start starts the machine for the given dropletID
+func (d *DigitalOcean) PowerOn(dropletId uint) (int, error) {
+	path := fmt.Sprintf("droplets/%v/power_on", dropletId)
+	body, err := digitalocean.NewRequest(*d.Client, path, url.Values{})
+	if err != nil {
+		return 0, err
+	}
+
+	eventId, ok := body["event_id"].(float64)
+	if !ok {
+		return 0, fmt.Errorf("restart malformed data %v", body)
+	}
+
+	return int(eventId), nil
+}
+
+// Shutdown stops the machine for the given dropletID and returns the eventID
+// back to track the event.
+func (d *DigitalOcean) Shutdown(dropletId uint) (int, error) {
+	path := fmt.Sprintf("droplets/%v/shutdown", dropletId)
+	body, err := digitalocean.NewRequest(*d.Client, path, url.Values{})
+	if err != nil {
+		return 0, err
+	}
+
+	eventId, ok := body["event_id"].(float64)
+	if !ok {
+		return 0, fmt.Errorf("restart malformed data %v", body)
+	}
+
+	return int(eventId), nil
+}
+
+// Reboot restart the machine for the given dropletID and returns the eventId
+// back to track the event.
+func (d *DigitalOcean) Reboot(dropletId uint) (int, error) {
+	path := fmt.Sprintf("droplets/%v/reboot", dropletId)
+	body, err := digitalocean.NewRequest(*d.Client, path, url.Values{})
+	if err != nil {
+		return 0, err
+	}
+
+	eventId, ok := body["event_id"].(float64)
+	if !ok {
+		return 0, fmt.Errorf("restart malformed data %v", body)
+	}
+
+	return int(eventId), nil
+}
+
+// Destroy destroy the machine for the given dropletID and returns the eventId
+// back to track the event.
+func (d *DigitalOcean) DestroyDroplet(dropletId uint) (int, error) {
+	path := fmt.Sprintf("droplets/%v/destroy", dropletId)
+	body, err := digitalocean.NewRequest(*d.Client, path, url.Values{})
+	if err != nil {
+		return 0, err
+	}
+
+	eventId, ok := body["event_id"].(float64)
+	if !ok {
+		return 0, fmt.Errorf("restart malformed data %v", body)
+	}
+
+	return int(eventId), nil
 }

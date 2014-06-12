@@ -1,7 +1,6 @@
 package main
 
 import (
-	"errors"
 	"flag"
 	"fmt"
 	"io/ioutil"
@@ -142,10 +141,6 @@ func listenEvent(args kloud.EventArgs, desiredState machinestate.State) error {
 
 		if event.Status == desiredState {
 			return nil
-		}
-
-		if event.Status == machinestate.Unknown {
-			return errors.New(event.Message)
 		}
 
 		if time.Now().After(tryUntil) {

@@ -16,8 +16,6 @@ type ControlResult struct {
 	EventId string             `json:"eventId"`
 }
 
-var defaultImageName = "koding-klient-0.0.1"
-
 func (k *Kloud) build(r *kite.Request, c *Controller) (interface{}, error) {
 	if c.CurrenState == machinestate.Building {
 		return nil, NewError(ErrBuilding)
@@ -69,7 +67,7 @@ func (k *Kloud) build(r *kite.Request, c *Controller) (interface{}, error) {
 }
 
 func (k *Kloud) buildMachine(username string, c *Controller) error {
-	imageName := defaultImageName
+	imageName := protocol.DefaultImageName
 	if c.ImageName != "" {
 		imageName = c.ImageName
 	}
@@ -85,6 +83,8 @@ func (k *Kloud) buildMachine(username string, c *Controller) error {
 		ImageName:    imageName,
 		InstanceName: instanceName,
 		Eventer:      c.Eventer,
+		Credential:   c.MachineData.Credential.Meta,
+		Builder:      c.MachineData.Machine.Meta,
 	}
 
 	msg := fmt.Sprintf("Building process started. Provider '%s'. Build options: %+v",
