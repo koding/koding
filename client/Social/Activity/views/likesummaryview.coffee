@@ -52,6 +52,7 @@ class ActivityLikeSummaryView extends KDView
     return @hide() if accounts.length is 0
 
     {actorsCount, actorsPreview} = @getData().interactions.like
+    actorsCount = Math.max actorsCount, actorsPreview.length
 
     linkCount = switch
       when actorsCount > 3 then 2

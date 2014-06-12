@@ -83,7 +83,11 @@ class ActivityAppView extends KDScrollView
       when 'topic' then TopicMessagePane
       else MessagePane
 
-    @tabs.addPane pane = new paneClass {name, type, channelId}, data
+    itemClass = switch type
+      when 'privatemessage' then PrivateMessageListItemView
+      else ActivityListItemView
+
+    @tabs.addPane pane = new paneClass {name, itemClass, type, channelId}, data
 
     return pane
 
