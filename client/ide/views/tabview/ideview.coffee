@@ -46,6 +46,11 @@
       name      : file.name
       editor    : editorPane
 
+    editorPane.once 'EditorIsReady', ->
+      editorPane.aceView.ace.on 'ace.change.cursor', (cursor) ->
+        appManager = KD.getSingleton 'appManager'
+        appManager.tell 'IDE', 'updateStatusBar', 'editor', { file, cursor }
+
     @createPane_ editorPane, paneOptions, file
 
   createShortcutsView: ->
