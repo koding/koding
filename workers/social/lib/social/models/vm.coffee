@@ -140,7 +140,7 @@ module.exports = class JVM extends Module
       meta              : Object
       state             :
         type            : String
-        enum            : ['UNKNOWN', ['RUNNING','STOPPED','FAILED']]
+        enum            : ['unknown state', ['RUNNING','STOPPED','FAILED']]
         default         : 'STOPPED'
 
   @updateInitScript = secure (client, hostnameAlias, script, callback) ->
