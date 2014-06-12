@@ -12,10 +12,7 @@ import (
 )
 
 const (
-	CACHEPREFIX          = "sitemap"
-	TYPE_ACCOUNT         = "account"
-	TYPE_CHANNEL_MESSAGE = "channelmessage"
-	TYPE_CHANNEL         = "channel"
+	CACHEPREFIX = "sitemap"
 )
 
 type Controller struct {
@@ -86,7 +83,7 @@ func (f *Controller) AccountDeleted(a *socialmodels.Account) error {
 func newItemByChannelMessage(cm *socialmodels.ChannelMessage, status string) *models.SitemapItem {
 	return &models.SitemapItem{
 		Id:           cm.Id,
-		TypeConstant: TYPE_CHANNEL_MESSAGE,
+		TypeConstant: models.TYPE_CHANNEL_MESSAGE,
 		Slug:         cm.Slug,
 		Status:       status,
 	}
@@ -95,7 +92,7 @@ func newItemByChannelMessage(cm *socialmodels.ChannelMessage, status string) *mo
 func newItemByAccount(a *socialmodels.Account, status string) *models.SitemapItem {
 	i := &models.SitemapItem{
 		Id:           a.Id,
-		TypeConstant: TYPE_ACCOUNT,
+		TypeConstant: models.TYPE_ACCOUNT,
 		Status:       status,
 	}
 
@@ -107,7 +104,7 @@ func newItemByAccount(a *socialmodels.Account, status string) *models.SitemapIte
 func newItemByChannel(c *socialmodels.Channel, status string) *models.SitemapItem {
 	return &models.SitemapItem{
 		Id:           c.Id,
-		TypeConstant: TYPE_CHANNEL,
+		TypeConstant: models.TYPE_CHANNEL,
 		Slug:         c.GroupName,
 		Status:       status,
 	}

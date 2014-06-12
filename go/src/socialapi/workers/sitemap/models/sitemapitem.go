@@ -2,14 +2,18 @@ package models
 
 import (
 	"fmt"
+	"path"
 	"strconv"
 	"strings"
 )
 
 const (
-	STATUS_ADD    = "add"
-	STATUS_DELETE = "delete"
-	STATUS_UPDATE = "update"
+	TYPE_ACCOUNT         = "account"
+	TYPE_CHANNEL_MESSAGE = "channelmessage"
+	TYPE_CHANNEL         = "channel"
+	STATUS_ADD           = "add"
+	STATUS_DELETE        = "delete"
+	STATUS_UPDATE        = "update"
 )
 
 type SitemapItem struct {
