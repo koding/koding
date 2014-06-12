@@ -86,4 +86,5 @@ echo “127.0.0.1 koding.io” >> /etc/hosts
 echo “koding.io” > /etc/hostname
 
 cd /opt/koding
+cake -c kodingme -r kodingme buildEverything
 cake -c kodingme -r kodingme run
