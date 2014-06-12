@@ -21,8 +21,8 @@ type Pool struct {
 }
 
 // InitializeCaching should be called only once. It creates
-func (c *Client) NewPool(maxCap int, factory Factory) (*Pool, error) {
-	if maxCap <= 0 {
+func NewPool(initialCap, maxCap int, factory Factory) (*Pool, error) {
+	if initialCap <= 0 || maxCap <= 0 || initialCap > maxCap {
 		return nil, errors.New("invalid capacity settings")
 	}
 
@@ -30,23 +30,12 @@ func (c *Client) NewPool(maxCap int, factory Factory) (*Pool, error) {
 		return nil, errors.New("factory function is not given.")
 	}
 
-	droplets, err := c.Droplets()
-	if err != nil {
-		return nil, err
-	}
-
-	// if there is already some cache machine do not crate new ones.
-	// TODO: puth the previous droplets into the cache channel
-	droplets = droplets.Filter("koding-cache-*")
-	initialCapacity := maxCap - len(droplets)
-
 	p := &Pool{
 		droplets: make(chan *Droplet, maxCap),
 		factory:  factory,
-		log:      c.Log,
 	}
 
-	for i := 0; i < initialCapacity; i++ {
+	for i := 0; i < initialCap; i++ {
 		go func() {
 			droplet, err := p.factory.Create()
 			if err != nil {
@@ -61,7 +50,7 @@ func (c *Client) NewPool(maxCap int, factory Factory) (*Pool, error) {
 }
 
 // PutCacheDroplet puts the droplet into the cache pool. If the pool is full,
-// it destroys the droplet.
+// it factory is invoked to destroy the passed droplet.
 func (p *Pool) Put(droplet *Droplet) error {
 	select {
 	case p.droplets <- droplet:
@@ -72,10 +61,9 @@ func (p *Pool) Put(droplet *Droplet) error {
 	}
 }
 
-// Get fetchs a droplet from the cache pool. After a succesfull
-// fetch another goroutine is going to create a cached droplet to fill the
-// cache pool. If there is no droplet in the cache pool a new droplet is
-// created and returned.
+// Get fetchs a droplet from the cache pool. After a succesfull fetch another
+// goroutine is going to create a cached droplet to fill the cache pool. If
+// there is no droplet in the cache pool a new droplet is created and returned.
 func (p *Pool) Get() (*Droplet, error) {
 	select {
 	case droplet := <-p.droplets:

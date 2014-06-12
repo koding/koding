@@ -26,6 +26,7 @@ type Client struct {
 	Log      logging.Logger
 	Push     func(string, int, machinestate.State)
 	SignFunc func(string) (string, string, error)
+	Pool     *Pool
 
 	sync.Once
 }
@@ -276,23 +277,6 @@ func (c *Client) WaitUntilReady(eventId, from, to int, state machinestate.State)
 	}
 }
 
-// CreateCacheDroplet creates a new droplet with a key, after creating the
-// machine one needs to rename the machine to use it.
-func (c *Client) CreateCacheDroplet() (*Droplet, error) {
-	image, err := c.Image(protocol.DefaultImageName)
-	if err != nil {
-		return nil, err
-	}
-
-	dropletName := "koding-cache-" + strconv.FormatInt(time.Now().UTC().UnixNano(), 10)
-	droplet, err := c.DropletWithKey(dropletName, image.Id)
-	if err != nil {
-		return nil, err
-	}
-
-	return droplet, nil
-}
-
 func (c *Client) DropletWithKey(dropletName string, imageId uint) (dro *Droplet, err error) {
 	// create temporary key to deploy user based key
 	c.Push(fmt.Sprintf("Creating temporary ssh key"), 15, machinestate.Building)
@@ -367,6 +351,16 @@ func (c *Client) DropletWithKey(dropletName string, imageId uint) (dro *Droplet,
 		PrivateKey: privateKey,
 		KeyId:      keyId,
 	}, nil
+}
+
+func (c *Client) NumberOfDroplets(filter string) (int, error) {
+	droplets, err := c.Droplets()
+	if err != nil {
+		return 0, err
+	}
+
+	droplets = droplets.Filter(filter)
+	return len(droplets), nil
 }
 
 // statusToState converts a digitalocean status to a sensible
