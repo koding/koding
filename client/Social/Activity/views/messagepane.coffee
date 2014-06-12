@@ -8,14 +8,15 @@ class MessagePane extends KDTabPaneView
     super options, data
 
     {itemClass, type} = @getOptions()
+    {typeConstant}    = @getData()
 
-    @createParticipantsView() if @getData().typeConstant is 'privatemessage'
+    @createParticipantsView() if typeConstant is 'privatemessage'
     @listController = new ActivityListController {itemClass}
     @createInputWidget()
 
     @bindChannelEvents()
 
-    @on 'LazyLoadThresholdReached', @bound 'lazyLoad'  if data.typeConstant in ['group', 'topic']
+    @on 'LazyLoadThresholdReached', @bound 'lazyLoad'  if typeConstant in ['group', 'topic']
 
     {windowController} = KD.singletons
 

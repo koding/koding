@@ -87,6 +87,7 @@ module.exports = [
 
   # Activity List Items
   "views/activitylistitem.coffee"
+  "views/privatemessagelistitem.coffee"
 
   "styl/activity.styl"
   "styl/activity.responsive.styl"
