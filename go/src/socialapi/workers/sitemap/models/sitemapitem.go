@@ -47,3 +47,24 @@ func (s *SitemapItem) Compose(value string) error {
 
 	return nil
 }
+
+func (s *SitemapItem) Definition(rootURL string) *ItemDefinition {
+	d := &ItemDefinition{}
+	d.Location = s.composeLocation(rootURL)
+
+	return d
+}
+
+func (s *SitemapItem) composeLocation(rootURL string) string {
+	switch s.TypeConstant {
+	case TYPE_ACCOUNT:
+		return path.Join(rootURL, s.Slug)
+	case TYPE_CHANNEL_MESSAGE:
+		return path.Join(rootURL, "Activity", s.Slug)
+	case TYPE_CHANNEL:
+		// TODO not sure about its route
+		return path.Join(rootURL, "Activity", "Topic", s.Slug)
+	}
+
+	return ""
+}
