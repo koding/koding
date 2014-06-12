@@ -9,7 +9,7 @@ import (
 
 type Factory interface {
 	Create() (*Droplet, error)
-	Destroy(uint)
+	Destroy(uint) error
 }
 
 type Pool struct {

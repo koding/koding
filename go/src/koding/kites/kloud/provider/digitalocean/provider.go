@@ -10,12 +10,16 @@ import (
 	"github.com/koding/logging"
 )
 
-const ProviderName = "digitalocean"
+const (
+	ProviderName = "digitalocean"
+	PoolSize     = 10
+)
 
 type Provider struct {
-	Log      logging.Logger
-	SignFunc func(string) (string, string, error)
-	Push     func(string, int, machinestate.State)
+	Log         logging.Logger
+	SignFunc    func(string) (string, string, error)
+	Push        func(string, int, machinestate.State)
+	PoolEnabled bool
 }
 
 type Droplet struct {
@@ -49,6 +53,22 @@ func (p *Provider) NewClient(opts *protocol.MachineOptions) (*Client, error) {
 		Push:     push,
 		Log:      p.Log,
 		SignFunc: p.SignFunc,
+	}
+
+	if p.PoolEnabled {
+		n, err := c.NumberOfDroplets("koding-cache-*")
+		if err != nil {
+			return nil, err
+		}
+
+		initialCap := PoolSize - n
+
+		pool, err := NewPool(initialCap, PoolSize, &DoFactory{client: c})
+		if err != nil {
+			return nil, err
+		}
+
+		c.Pool = pool
 	}
 
 	p.Push = push
