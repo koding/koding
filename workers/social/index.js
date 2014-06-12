@@ -1,3 +1,3 @@
 require('coffee-script').register();
-require('newrelic');
+require('koding-newrelic');
 module.exports = require('./lib/social/main.coffee');

@@ -88,6 +88,8 @@ class SocialApiController extends KDController
       deletedAt : new Date deletedAt
       updatedAt : new Date updatedAt
 
+    new MessageEventManager {}, m
+
     return m
 
   mapActivities = (messages)->
@@ -204,7 +206,7 @@ class SocialApiController extends KDController
     (options, callback)->
       {fnName, validate, mapperFn, defaults, apiType} = req
       # set default mapperFn
-      mapperFn or= ->
+      mapperFn or= (value) -> return value
       if validate?.length > 0
         errs = []
         for property in validate
@@ -364,5 +366,3 @@ class SocialApiController extends KDController
     updateLastSeenTime   : channelRequesterFn
       fnName             : 'updateLastSeenTime'
       validateOptionsWith: ["channelId"]
-
-

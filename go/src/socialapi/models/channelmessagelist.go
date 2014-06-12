@@ -94,6 +94,17 @@ func (c *ChannelMessageList) Create() error {
 	return bongo.B.Create(c)
 }
 
+func (c *ChannelMessageList) CreateRaw() error {
+	insertSql := "INSERT INTO " +
+		c.TableName() +
+		` ("channel_id","message_id","added_at") VALUES ($1,$2,$3) ` +
+		"RETURNING ID"
+
+	return bongo.B.DB.CommonDB().
+		QueryRow(insertSql, c.ChannelId, c.MessageId, c.AddedAt).
+		Scan(&c.Id)
+}
+
 func (c *ChannelMessageList) Delete() error {
 	return bongo.B.Delete(c)
 }

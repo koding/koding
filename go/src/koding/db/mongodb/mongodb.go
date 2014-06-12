@@ -68,6 +68,13 @@ func (m *MongoDB) Run(collection string, s func(*mgo.Collection) error) error {
 	return s(c)
 }
 
+func (m *MongoDB) GetIter(collection string, s func(*mgo.Collection) *mgo.Query) *mgo.Iter {
+	session := m.GetSession()
+	defer session.Close()
+	c := session.DB("").C(collection)
+	return s(c).Iter()
+}
+
 // RunOnDatabase runs command on given database, instead of current database
 func (m *MongoDB) RunOnDatabase(database, collection string, s func(*mgo.Collection) error) error {
 	session := m.GetSession()

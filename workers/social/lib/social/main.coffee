@@ -56,7 +56,7 @@ koding = new Bongo {
   mq          : broker
 
   kite          :
-    kontrol     : 'ws://localhost:4000'
+    kontrol     : KONFIG.client.runtimeOptions.newkontrol.url
     name        : 'social'
     environment : 'vagrant'
     region      : 'vagrant'

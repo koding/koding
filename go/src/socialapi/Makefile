@@ -47,6 +47,16 @@ popularpostdev:
 	@echo "$(OK_COLOR)==> Running Popular Posts Worker $(NO_COLOR)"
 	@$(GOBINDIR)/rerun socialapi/workers/popularpost -c $(CONFIG) -d
 
+configuremigration:
+	(vagrant ssh default --command "mongo localhost/koding --eval='db.relationships.update({},{\$$unset:{migrationStatus:0}},{multi:true})'")
+	(vagrant ssh default --command "mongo localhost/koding --eval='db.jNewStatusUpdates.update({},{\$$unset:{socialMessageId:0}},{multi:true})'")
+	(vagrant ssh default --command "mongo localhost/koding --eval='db.jComments.update({},{\$$unset:{socialMessageId:0}},{multi:true})'")
+	(vagrant ssh default --command "mongo localhost/koding --eval='db.jTags.update({},{\$$unset:{socialApiChannelId:0}},{multi:true})'")
+
+migrate:
+	@echo "$(OK_COLOR)==> Running Popular Posts Worker $(NO_COLOR)"
+	@$(GOBINDIR)/rerun socialapi/workers/migrator -c $(CONFIG) -d
+
 PACKAGES = \
 	socialapi/workers/api \
 	socialapi/workers/emailnotifier \
@@ -55,7 +65,10 @@ PACKAGES = \
 	socialapi/workers/popularpost \
 	socialapi/workers/populartopic \
 	socialapi/workers/realtime \
-	socialapi/workers/topicfeed
+	socialapi/workers/topicfeed \
+	socialapi/workers/migrator
+
+default: all
 
 createdb:
 	(vagrant ssh default --command "mongo localhost/koding --eval='db.jAccounts.update({},{\$$unset:{socialApiId:0}},{multi:true})'")

@@ -35,7 +35,7 @@ import (
 
 const (
 	OSKITE_NAME    = "oskite"
-	OSKITE_VERSION = "0.3.3"
+	OSKITE_VERSION = "0.3.4"
 )
 
 var (
@@ -319,7 +319,7 @@ func (o *Oskite) prepareOsKite() {
 func (o *Oskite) handleCurrentVMs() {
 	currentIds, err := currentVMs()
 	if err != nil {
-		log.LogError(err, 0)
+		log.Error("%v", err)
 		return
 	}
 
@@ -706,9 +706,13 @@ func (o *Oskite) validateVM(vm *virt.VM) error {
 	return nil
 }
 
-func updateState(vmId bson.ObjectId, currentState string) (string, error) {
-	state := virt.GetVMState(vmId)
-	if state == "" {
+func updateState(vmId bson.ObjectId, currentState string) (result string, err error) {
+	log.Info("[updateState] getting state for VM [%s], going to update to [%s]",
+		vmId, currentState)
+
+	state, err := virt.GetVMState(vmId)
+	if err != nil {
+		log.Error("[updateState] getting state failed for VM [%s], err: %s", vmId, err)
 		state = "UNKNOWN"
 	}
 
