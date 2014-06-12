@@ -50,29 +50,27 @@ compileGoBinaries = (configFile,callback)->
   #   TBD - CHECK FOR ERRORS
   ###
 
-  compileGo = require('koding-config-manager').load("main.#{configFile}").compileGo
+  config = require('koding-config-manager').load("main.#{configFile}")
 
-  if compileGo
+  if config.compileGo
 
     processes.spawn
-      name: 'build go'
-      cmd : './go/build.sh'
-      stdout : process.stdout
-      stderr : process.stderr
+      name    : 'build go'
+      cmd     : './go/build.sh'
+      stdout  : process.stdout
+      stderr  : process.stderr
       verbose : yes
-      onExit :->
-
+      onExit  :->
         if configFile.region is 'kodingme'
           callback null
         else
           processes.spawn
-            name: 'build go in vagrant'
-            cmd : "vagrant ssh default --command '#{configFile.projectRoot}/go/build.sh bin-vagrant'"
-            stdout : process.stdout
-            stderr : process.stderr
+            name    : 'build go in vagrant'
+            cmd     : "vagrant ssh default --command '/opt/koding/go/build.sh bin-vagrant'"
+            stdout  : process.stdout
+            stderr  : process.stderr
             verbose : yes
-            onExit :->
-              callback null
+            onExit  : -> callback null
 
   else
 
@@ -589,11 +587,11 @@ task 'kontrolKite', "Run the kontrol kite", (options) ->
   {configFile} = options
 #   console.log ">>>>>>",configFile.projectRoot, configFile, options
 #   process.exit()
-  
+
   config       = require('koding-config-manager').load("main.#{configFile}")
 
-  
-  
+
+
   if options.region is "kodingme"
     cmd = "sudo KITE_HOME=#{config.projectRoot}/kite_home/kodingme #{config.projectRoot}/go/bin/kontrol -c #{configFile} -r #{options.region}"
   else
@@ -610,16 +608,16 @@ task 'kontrolKite', "Run the kontrol kite", (options) ->
 
 task 'proxyKite', "Run the proxy kite", (options) ->
   {configFile} = options
-  
+
   config       = require('koding-config-manager').load("main.#{configFile}")
 
-  
+
   if options.region is "kodingme"
     cmd = "sudo KITE_HOME=#{config.projectRoot}/kite_home/koding #{config.projectRoot}/go/bin/proxy -c #{configFile} -r #{options.region}"
   else
     cmd = "vagrant ssh default -c 'cd /opt/koding; sudo killall -q -KILL proxy; sudo KITE_HOME=/opt/koding/kite_home/koding /opt/koding/go/bin-vagrant/proxy -c #{configFile} -r vagrant'"
-    
-  
+
+
   processes.spawn
     name    : 'proxyKite'
     cmd     : cmd
