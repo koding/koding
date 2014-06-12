@@ -205,7 +205,6 @@ class ActivityInputWidget extends KDView
     return @showError err  if err
 
     @reset yes
-    @embedBox.resetEmbedAndHide()
     @emit "Submit", activity
 
     KD.mixpanel "Status update create, success", { length: activity?.body?.length }
