@@ -6,9 +6,10 @@ echo "iptables -A INPUT -s 208.87.56.148 -j ACCEPT" >>/etc/rc.local
 echo "iptables -A INPUT -m state --state ESTABLISHED,RELATED -j ACCEPT" >>/etc/rc.local
 echo "iptables -A INPUT -j DROP" >>/etc/rc.local
 
+
 /etc/rc.local
 
-mkdir /root/.ssh
+mkdir -p /root/.ssh
 
 echo "-----BEGIN RSA PRIVATE KEY-----
 MIIEpAIBAAKCAQEAxJUfKx05K3kymTkgISnFOoh1PY/jJ3dlUnAUE8WqCXlDQi+C

@@ -1,6 +1,3 @@
-console.log ((__filename.split("/")).pop().split("."))
-process.exit()
-
 fs              = require 'fs'
 nodePath        = require 'path'
 deepFreeze      = require 'koding-deep-freeze'

@@ -17,6 +17,7 @@ option '-r', '--region [REGION]', 'region flag'
 
 require('coffee-script').register()
 
+
 {spawn, exec} = require 'child_process'
 
 log =
@@ -75,6 +76,22 @@ compileGoBinaries = (configFile, callback = ->)->
   else
 
     callback null
+
+
+task 'kloudKite',"run kloud kite", ({configFile}) ->
+
+  KONFIG = require('koding-config-manager').load("main.#{configFile}")
+
+  cmd = """KITE_HOME=#{KONFIG.projectRoot}/kite_home/koding go run #{KONFIG.projectRoot}/go/src/koding/kites/kloud/main.go -c #{configFile} -r #{configFile} -public-key #{KONFIG.projectRoot}/certs/test_kontrol_rsa_public.pem -private-key #{KONFIG.projectRoot}/certs/test_kontrol_rsa_private.pem -kontrol-url "ws://koding.io:4000"
+  """
+  processes.spawn
+    name              : 'kloudKite'
+    cmd               : cmd
+    restart           : yes
+    restartTimeout    : 100
+    stdout            : process.stdout
+    stderr            : process.stderr
+
 
 task 'compileGo', "Compile the local go binaries", ({configFile})->
   compileGoBinaries configFile
@@ -626,17 +643,17 @@ run =({configFile})->
   invoke 'kontrolKite'                      if config.runKontrol
   invoke 'proxyKite'                        if config.runKontrol
 
+  invoke 'kloudKite'                        
+
   invoke 'goBroker'                         if config.runGoBroker
   invoke 'goBrokerKite'                     if config.runGoBrokerKite
   invoke 'premiumBroker'                    if config.runPremiumBroker
   invoke 'premiumBrokerKite'                if config.runPremiumBrokerKite
-  invoke 'osKite'                           if config.runOsKite
-  invoke 'terminalKite'                     if config.runTerminalKite
+
   invoke 'rerouting'                        if config.runRerouting
   invoke 'userpresence'                     if config.runUserPresence
   invoke 'persistence'                      if config.runPersistence
-  invoke 'proxy'                            if config.runProxy
-  invoke 'neo4jfeeder'                      if config.runNeo4jFeeder
+
   invoke 'elasticsearchfeeder'              if config.elasticSearch.enabled
   invoke 'authWorker'                       if config.authWorker
   invoke 'guestCleanerWorker'               if config.guestCleanerWorker.enabled
