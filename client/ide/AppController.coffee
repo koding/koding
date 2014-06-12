@@ -81,6 +81,9 @@ class IDEAppController extends AppController
         splitView = panel.layout.getSplitViewByName 'BaseSplit'
         splitView.on 'ResizeDidStop', @bound 'handleResize'
 
+        splitViewPanel = ideView.parent.parent
+        splitViewPanel.addSubView @statusBar = new IDE.StatusBar
+
         appView.emit 'KeyViewIsSet'
 
   setActiveTabView: (tabView) ->
