@@ -79,7 +79,12 @@ func (o *Oskite) vmUpdater() {
 		currentStates := make(map[bson.ObjectId]string, 0)
 
 		for _, vm := range vms {
-			state := vm.GetState()
+			log.Info("[updater] getting state for VM [%s - %s]", vm.Id, vm.HostnameAlias)
+			state, err := vm.GetState()
+			if err != nil {
+				log.Error("[updater] getting state failed for VM [%s - %s], err: %s", vm.Id, vm.HostnameAlias, err)
+			}
+
 			// do not update if it's the same state
 			if vm.State == state {
 				continue

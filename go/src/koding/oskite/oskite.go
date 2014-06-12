@@ -96,7 +96,7 @@ func New(c *config.Config) *Oskite {
 
 	// Ensure we are using a mongo master so that we can avoid db induced races
 	mongodbConn.Session.SetSafe(&mgo.Safe{
-		W:     c.MongoMinWrites, // Min # of servers to ack before success
+		W: c.MongoMinWrites, // Min # of servers to ack before success
 	})
 
 	modelhelper.Initialize(c.Mongo)
@@ -319,7 +319,7 @@ func (o *Oskite) prepareOsKite() {
 func (o *Oskite) handleCurrentVMs() {
 	currentIds, err := currentVMs()
 	if err != nil {
-		log.LogError(err, 0)
+		log.Error("%v", err)
 		return
 	}
 
@@ -706,9 +706,13 @@ func (o *Oskite) validateVM(vm *virt.VM) error {
 	return nil
 }
 
-func updateState(vmId bson.ObjectId, currentState string) (string, error) {
-	state := virt.GetVMState(vmId)
-	if state == "" {
+func updateState(vmId bson.ObjectId, currentState string) (result string, err error) {
+	log.Info("[updateState] getting state for VM [%s], going to update to [%s]",
+		vmId, currentState)
+
+	state, err := virt.GetVMState(vmId)
+	if err != nil {
+		log.Error("[updateState] getting state failed for VM [%s], err: %s", vmId, err)
 		state = "UNKNOWN"
 	}
 

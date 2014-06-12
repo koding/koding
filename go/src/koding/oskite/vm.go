@@ -275,7 +275,11 @@ func vmInfo(vos *virt.VOS) (interface{}, error) {
 	}
 
 	info := getInfo(vos.VM)
-	info.State = vos.VM.GetState()
+	log.Info("[vm.info] getting state for VM [%s -%s]", vos.VM.Id, vos.VM.HostnameAlias)
+	info.State, err = vos.VM.GetState()
+	if err != nil {
+		log.Error("[vm.info] getting state failed for VM [%s - %s], err: %s", vos.VM.Id, vos.VM.HostnameAlias, err)
+	}
 	info.Prepared = prepared
 
 	infosMutex.Lock()
@@ -461,22 +465,22 @@ func vmStopAndUnprepare(args *dnode.Partial, channel *kite.Channel, vos *virt.VO
 }
 
 func unprepareProgress(t tracer.Tracer, vm *virt.VM, destroy bool) error {
-	if err := vm.Unprepare(t, destroy); err == nil {
-
-		if err = mongodbConn.Run("jVMs", func(c *mgo.Collection) error {
-			return c.Update(bson.M{"_id": vm.Id}, bson.M{"$set": bson.M{"hostKite": nil}})
-		}); err != nil {
-			return fmt.Errorf("unprepareProgress hostKite nil setting: %v", err)
-		}
-
-		// mark it as stopped in mongodb
-		if _, err := updateState(vm.Id, vm.State); err != nil {
-			return err
-		}
-		return nil
-	} else {
+	if err := vm.Unprepare(t, destroy); err != nil {
 		return err
 	}
+
+	if err := mongodbConn.Run("jVMs", func(c *mgo.Collection) error {
+		return c.Update(bson.M{"_id": vm.Id}, bson.M{"$set": bson.M{"hostKite": nil}})
+	}); err != nil {
+		return fmt.Errorf("unprepareProgress hostKite nil setting: %v", err)
+	}
+
+	// mark it as stopped in mongodb
+	if _, err := updateState(vm.Id, vm.State); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func prepareProgress(t tracer.Tracer, vm *virt.VM) error {

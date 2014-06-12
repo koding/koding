@@ -1,7 +1,6 @@
 package virt
 
 import (
-	"errors"
 	"fmt"
 	"os/exec"
 	"strconv"
@@ -27,7 +26,12 @@ func (vm *VM) Stop() error {
 
 func (vm *VM) Shutdown() error {
 	if out, err := exec.Command("/usr/bin/lxc-shutdown", "--name", vm.String()).CombinedOutput(); err != nil {
-		if vm.GetState() != "STOPPED" {
+		state, stateErr := vm.GetState()
+		if stateErr != nil {
+			return commandError("lxc-shutdown failed.", stateErr, out)
+		}
+
+		if state != "STOPPED" {
 			return commandError("lxc-shutdown failed.", err, out)
 		}
 	}
@@ -47,27 +51,34 @@ func (vm *VM) AttachCommand(uid int, tty string, command ...string) *exec.Cmd {
 	return cmd
 }
 
-func GetVMState(vmId bson.ObjectId) string {
+func GetVMState(vmId bson.ObjectId) (string, error) {
 	out, err := exec.Command("/usr/bin/lxc-info", "--name", VMName(vmId), "--state").CombinedOutput()
 	if err != nil {
-		commandError("lxc-info failed ", err, out)
-		return "UNKNOWN"
+		return "UNKNOWN", commandError("lxc-info failed ", err, out)
 	}
-	return strings.TrimSpace(string(out)[6:])
+	return strings.TrimSpace(string(out)[6:]), nil
 }
 
-func (vm *VM) GetState() string {
+func (vm *VM) GetState() (string, error) {
 	return GetVMState(vm.Id)
 }
 
-func (vm *VM) WaitForState(state string, timeout time.Duration) error {
+func (vm *VM) WaitForState(desiredState string, timeout time.Duration) error {
 	tryUntil := time.Now().Add(timeout)
-	for vm.GetState() != state {
-		if time.Now().After(tryUntil) {
-			return errors.New("Timeout while waiting for VM state.")
+
+	for {
+		currentState, err := vm.GetState()
+		if currentState == desiredState {
+			break
 		}
+
+		if time.Now().After(tryUntil) {
+			return fmt.Errorf("Timeout while waiting for VM state, err: %s", err)
+		}
+
 		time.Sleep(time.Millisecond * 500)
 	}
+
 	return nil
 }
 
@@ -83,7 +94,7 @@ func (vm *VM) SendMessageToVMUsers(message string) error {
 // WaitUntilReady waits until the network is up and the screen binary is
 // available and ready to use.
 func (vm *VM) WaitUntilReady() error {
-	// FIXME: We shouldnt be waiting a fixed duration here, but for a time depenant on server load. 
+	// FIXME: We shouldnt be waiting a fixed duration here, but for a time depenant on server load.
 	timeout := time.Second * 30
 
 	isNetworkUp := func() error {
