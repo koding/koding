@@ -249,8 +249,9 @@ class ActivityInputWidget extends KDView
     return  @reset()  unless activity
 
     appManager.tell 'Activity', 'edit', {
-      body
       id: activity.id
+      body
+      payload
     }, (err, message) =>
 
       return KD.showError err  if err
