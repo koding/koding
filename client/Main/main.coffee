@@ -1,9 +1,7 @@
 do ->
   status           = new Status
   mainController   = new MainController
-  modalTimerId     = null
-  currentModal     = null
-  currentModalSize = null
+  currentNotif     = null
   firstLoad        = yes
 
   mainController.tempStorage = {}
@@ -22,53 +20,15 @@ do ->
     # $.cookie 'clientId', token
 
   status.on 'connected', ->
-    destroyCurrentModal()
+    destroyCurrentNotif()
     log 'kd remote connected'
 
   status.on 'reconnected', (options={})->
-    destroyCurrentModal()
-
-    modalSize  = options.modalSize  or= "big"
-    notifyUser = options.notifyUser or= "yes"
-    state      = "reconnected"
-
-    log "kd remote re-connected, modalSize: #{modalSize}"
-
-    clearTimeout modalTimerId
-    modalTimerId = null
-
-    # hide reconnected modal
-    # modalSize  = currentModalSize or options.modalSize
-    # notifyUser = options.notifyUser
-
-    # if notifyUser or currentModal
-    #   currentModal = showModal modalSize, state
+    destroyCurrentNotif()
+    log "kd remote re-connected"
 
   status.on 'disconnected', (options={})->
-    reason     = options.reason     or= "unknown"
-    modalSize  = options.modalSize  or= "big"
-    notifyUser = options.notifyUser or= "yes"
-    state      = "disconnected"
-
-    KD.logToExternalWithTime "User disconnected"
-
-    log "disconnected",\
-    "reason: #{reason}, modalSize: #{modalSize}, notifyUser: #{notifyUser}"
-
-    if notifyUser
-      # timeout to prevent user from seeing minor interruptions
-      # if reconnected within 2 secs, reconnected event clears this
-      modalTimerId = setTimeout =>
-        currentModalSize = modalSize
-        # in Status class there is constants that we can not
-        # reach from another class here o_0
-        # 4 represents disconnected state
-        return if status.state isnt 4
-        # disable modal
-        # currentModal = showModal modalSize, state
-      , 2000
-
-    currentModalSize = "small"
+    log "kd remote disconnected"
 
   KD.remote.connect()
 
@@ -76,62 +36,46 @@ do ->
   KD.exportKDFramework()
 
   ###
-  # CONNECTIVITIY MODALS
+  # INTERNET CONNECTIVITIY
   ###
 
-  bigDisconnectedModal =->
-    currentModal = new KDBlockingModalView
-      title   : "Something went wrong."
-      content : """
-        Your internet connection may be down or our servers are down temporarily.<br/><br/>
-        If you have unsaved work please close this dialog and <br/><strong>back up your unsaved work locally</strong> until the connection is re-established.<br/><br/>
-        <span class='small-loader fade in'></span> Trying to reconnect...
-      """
-      height  : "auto"
-      overlay : yes
-      buttons :
-        "Close and work offline" :
-          style     : "modal-clean-red"
-          callback  : ->
-            showModal "small", "disconnected"
-
-  smallDisconnectedModal =->
-    currentModal = new KDNotificationView
-      title         : "Trying to reconnect..."
+  smallDisconnectedNotif =->
+    currentNotif = new KDNotificationView
+      title         : "Looks like your Internet Connection is down"
       type          : "tray"
-      closeManually : no
-      content       : "Server connection has been lost, changes will not be saved until server reconnects, please back up locally."
+      closeManually : yes
+      content       : """<p>Koding will continue trying to reconnect but while your connection is down, <br> no changes you make will be saved back to your VM. Please save your work locally as well.</p>"""
       duration      : 0
 
-  bigReconnectedModal =->
-    currentModal = new KDNotificationView
-      title         : "Reconnected"
-      type          : "tray"
-      content       : "Server connection has been reset, you can continue working."
-      duration      : 3000
-
-  smallReconnectedModal =->
-    currentModal = new KDNotificationView
-      title     : "<span></span>Reconnected, Welcome Back!"
-      type      : "tray"
-      cssClass  : "small realtime"
-      duration  : 3303
-
   modals =
-    big   :
-      disconnected    : smallDisconnectedModal
-      reconnected     : smallReconnectedModal
     small :
-      disconnected    : smallDisconnectedModal
-      reconnected     : smallReconnectedModal
-      disconnectedMin : smallDisconnectedModal
+      disconnected : smallDisconnectedNotif
 
-  showModal = (size, state)->
-    destroyCurrentModal()
-    currentModalSize = size
+  showNotif = (size, state)->
+    destroyCurrentNotif()
     modal = modals[size][state]
     modal?()
 
-  destroyCurrentModal =->
-    currentModal?.destroy()
-    currentModal = null
+  destroyCurrentNotif =->
+    currentNotif?.destroy()
+    currentNotif = null
+
+  if window.navigator.onLine?
+    KD.utils.repeat 10000, ->
+      if window.navigator.onLine
+        destroyCurrentNotif()  if currentNotif
+      else
+        showNotif "small", "disconnected"  unless currentNotif
+  else
+    window.connectionCheckerReponse = ->
+
+    KD.utils.repeat 30000, ->
+      item = new ConnectionChecker {
+        jsonp       : "connectionCheckerReponse"
+        crossDomain : yes
+        fail        : ->
+          showNotif "small", "disconnected"  unless currentNotif
+      },
+      "https://s3.amazonaws.com/koding-ping/ping.json"
+
+      item.ping -> destroyCurrentNotif()  if currentNotif
