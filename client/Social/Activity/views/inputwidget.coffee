@@ -218,7 +218,7 @@ class ActivityInputWidget extends KDView
     if channel.typeConstant is 'topic' and not body.match ///##{channel.name}///
       body += " ##{channel.name} "
 
-    appManager.tell 'Activity', 'post', {body}, (err, activity) =>
+    appManager.tell 'Activity', 'post', {body, payload}, (err, activity) =>
 
       @reset()  unless err
 
