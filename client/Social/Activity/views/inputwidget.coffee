@@ -176,11 +176,12 @@ class ActivityInputWidget extends KDView
     #     else if data.$suggest and data.$suggest not in suggestedTags
     #       suggestedTags.push data.$suggest
 
+    payload = @getPayload()
 
     @lockSubmit()
 
     fn = @bound if activity then 'update' else 'create'
-    fn {body}, @bound 'submissionCallback'
+    fn {body, payload}, @bound 'submissionCallback'
 
     @emit "ActivitySubmitted"
     # fixme for bugs app
