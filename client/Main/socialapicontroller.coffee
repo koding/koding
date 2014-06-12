@@ -227,18 +227,48 @@ class SocialApiController extends KDController
         return callback err if err
         return callback null, mapperFn result
 
+  cacheItem: (item) ->
 
-  revive :(type, id, callback) ->
-    api = KD.singletons.socialapi
-    switch type
-      when "topic"
-        return api.channel.byName {name: id}, callback
-      when "channel", "privatemessage"
-        return api.channel.byId {id}, callback
-      when "post", "message"
-        return api.message.byId {id}, callback
-      else
-        return callback { message: "not implemented in revive" }
+    {typeConstant, id} = item
+
+    @_cache[typeConstant]     ?= {}
+    @_cache[typeConstant][id]  = item
+
+    return item
+
+  retrieveCachedItem: (type, id) ->
+
+    return item  if item = @_cache[type]?[id]
+
+    if type is 'topic'
+      debugger
+      for own id_, topic of @_cache.topic when topic.name is id
+        item = topic
+
+    return item
+
+
+  cacheable: (type, id, force, callback) ->
+
+    [callback, force] = [force, no]  unless callback
+
+    if not force and item = @retrieveCachedItem(type, id)
+
+      return callback null, item
+
+    kallback = (err, data) =>
+
+      return callback err  if err
+
+      callback null, @cacheItem data
+
+    return switch type
+      when 'topic'                     then @channel.byName {name: id}, kallback
+      when 'channel', 'privatemessage' then @channel.byId {id}, kallback
+      when 'post', 'message'           then @message.byId {id}, kallback
+      else callback { message: 'not implemented in revive' }
+
+
 
   message:
     byId                 : messageRequesterFn
