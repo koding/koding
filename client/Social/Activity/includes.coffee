@@ -7,7 +7,6 @@ module.exports = [
 
   "sidebar/activitysidebar.coffee"
   "sidebar/activitysideview.coffee"
-  "sidebar/messagessideview.coffee"
   "sidebar/sidebaritem.coffee"
   "sidebar/memberitem.coffee"
   "sidebar/messageitem.coffee"
@@ -31,6 +30,9 @@ module.exports = [
   "views/referalbox.coffee"
   "views/filterwarning.coffee"
   "views/activitymenuitem.coffee"
+  "views/chatheadautocompleteitem.coffee"
+  "views/privatemessagemodal.coffee"
+  "views/activityautocompleteuseritemview.coffee"
 
   "views/embedbox.coffee"
   "views/embedboxwidget.coffee"
