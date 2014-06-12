@@ -68,7 +68,7 @@ class EmbedBoxWidget extends KDView
     input.on 'change', fn
 
   checkInputForUrls: ->
-    @utils.defer =>
+    KD.utils.defer =>
       input = @getDelegate()
       text = input.getValue()
 
