@@ -9,38 +9,16 @@
 
 class AceView extends JView
 
-  constructor:(options = {}, file)->
-
-    options.advancedSettings ?= no
+  constructor: (options = {}, file) ->
 
     super options, file
 
     @listenWindowResize()
 
-    @caretPosition = new KDCustomHTMLView
-      tagName       : "div"
-      cssClass      : "caret-position section"
-      partial       : "<span>1</span>:<span>1</span>"
-
     @ace = new Ace
       delegate        : @
       enableShortcuts : yes
     , file
-
-    @advancedSettings = new KDButtonViewWithMenu
-      style         : 'editor-advanced-settings-menu'
-      icon          : yes
-      iconOnly      : yes
-      iconClass     : "cog"
-      type          : "contextmenu"
-      delegate      : this
-      itemClass     : AceSettingsView
-      click         : (pubInst, event)-> @contextMenu event
-      menu          : @getAdvancedSettingsMenuItems.bind @
-    @advancedSettings.disable()
-
-    unless options.advancedSettings
-      @advancedSettings.hide()
 
     @findAndReplaceView = new AceFindAndReplaceView delegate: @
     @findAndReplaceView.hide()
@@ -48,19 +26,8 @@ class AceView extends JView
     @setViewListeners()
 
   setViewListeners:->
-
-    @ace.on "ace.ready", => @advancedSettings.enable()
-
     @ace.on "ace.changeSetting", (setting, value)=>
       @ace["set#{setting.capitalize()}"]? value
-
-    @advancedSettings.emit "ace.settingsView.setDefaults", @ace
-
-    $spans = @caretPosition.$('span')
-
-    @ace.on "ace.change.cursor", (cursor)=>
-      $spans.eq(0).text ++cursor.row
-      $spans.eq(1).text ++cursor.column
 
     @ace.on "ace.requests.saveAs", (contents, options)=>
       @openSaveDialog options
@@ -129,45 +96,12 @@ class AceView extends JView
     mainView = KD.getSingleton "mainView"
     mainView.toggleFullscreen()
 
-  viewAppended:->
-
-    super
-    @_windowDidResize()
-
-  pistachio:->
-
-    """
-    <div class="kdview editor-main">
-      {{> @ace}}
-      <div class="editor-bottom-bar clearfix">
-        {{> @caretPosition}}
-        {{> @advancedSettings}}
-      </div>
-      {{> @findAndReplaceView}}
-    </div>
-    """
-
-  getAdvancedSettingsMenuItems:->
-
-    settings      :
-      type        : 'customView'
-      view        : new AceSettingsView
-        delegate  : @ace
-
   getSaveMenu:->
-
     "Save as..." :
       id         : 13
       parentId   : null
       callback   : =>
         @openSaveDialog closeAfter: no
-
-  _windowDidResize:->
-
-    height = @getHeight()
-    bottomBarHeight = @$('.editor-bottom-bar').height()
-    newHeight = height - bottomBarHeight
-    @ace.setHeight newHeight unless newHeight is 0
 
   openSaveDialog: (options = {}) ->
     { closeAfter }   = options
@@ -201,3 +135,15 @@ class AceView extends JView
               ace.editor.moveCursorTo oldCursorPosition.row, oldCursorPosition.column
 
     , { inputDefaultValue: file.name }
+
+  viewAppended:->
+    super
+    @_windowDidResize()
+
+  pistachio:->
+    """
+    <div class="kdview editor-main">
+      {{> @ace}}
+      {{> @findAndReplaceView}}
+    </div>
+    """
