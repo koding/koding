@@ -22,12 +22,6 @@ type Provider struct {
 	PoolEnabled bool
 }
 
-type Droplet struct {
-	Droplet    *do.Droplet
-	PrivateKey string
-	KeyId      uint
-}
-
 func (p *Provider) NewClient(opts *protocol.MachineOptions) (*Client, error) {
 	d, err := do.New(opts.Credential, opts.Builder)
 	if err != nil {
@@ -55,12 +49,17 @@ func (p *Provider) NewClient(opts *protocol.MachineOptions) (*Client, error) {
 		SignFunc: p.SignFunc,
 	}
 
+	// TODO: make this settable, not everyone want's a cache or has the ability
+	// to create machines upfront
 	if p.PoolEnabled {
+		// TODO: name should be in the form of "koding-cache-username-..."
 		n, err := c.NumberOfDroplets("koding-cache-*")
 		if err != nil {
 			return nil, err
 		}
 
+		// there are already some droplets in DigitalOcean, therefore do not
+		// create more droplets that the predefined pool size
 		initialCap := PoolSize - n
 
 		pool, err := NewPool(initialCap, PoolSize, &DoFactory{client: c})

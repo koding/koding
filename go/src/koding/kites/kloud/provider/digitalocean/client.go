@@ -31,6 +31,10 @@ type Client struct {
 	sync.Once
 }
 
+type Droplet struct {
+	Droplet *do.Droplet
+}
+
 // Build is building an image and creates a droplet based on that image. If the
 // given snapshot/image exist it directly skips to creating the droplet. It
 // acceps two string arguments, first one is the snapshotname, second one is
@@ -59,7 +63,7 @@ func (c *Client) Build(snapshotName, dropletName, username string) (*protocol.Bu
 	}
 
 	sshAddress := machine.Droplet.IpAddress + ":22"
-	sshConfig, err := sshutil.SshConfig(machine.PrivateKey)
+	sshConfig, err := sshutil.SshConfig(privateKey)
 	if err != nil {
 		return nil, err
 	}
@@ -278,36 +282,20 @@ func (c *Client) WaitUntilReady(eventId, from, to int, state machinestate.State)
 }
 
 func (c *Client) DropletWithKey(dropletName string, imageId uint) (dro *Droplet, err error) {
-	// create temporary key to deploy user based key
-	c.Push(fmt.Sprintf("Creating temporary ssh key"), 15, machinestate.Building)
-	privateKey, publicKey, err := sshutil.TemporaryKey()
-	if err != nil {
-		return nil, err
-	}
-
 	// The name of the public key on DO
-	keyName := fmt.Sprintf("koding-%s", dropletName)
-	c.Log.Debug("Creating key with name '%s'", keyName)
-	keyId, err := c.CreateKey(keyName, publicKey)
+	keys, err := c.Keys()
 	if err != nil {
 		return nil, err
 	}
 
-	defer func() {
-		// return value of latest err, if there is no error just return lazily
-		if err == nil {
-			return
-		}
-
-		c.Push("Destroying temporary droplet key", 95, machinestate.Building)
-		err := c.DestroyKey(keyId) // remove after we are done
+	var keyId uint
+	keyId = keys.Get(keyName)
+	if keyId == 0 {
+		keyId, err = c.CreateKey(keyName, publicKey)
 		if err != nil {
-			curlstr := fmt.Sprintf("curl '%v/ssh_keys/%v/destroy?client_id=%v&api_key=%v'",
-				digitalocean.DIGITALOCEAN_API_URL, keyId, c.Creds.ClientID, c.Creds.APIKey)
-
-			c.Log.Error("Error cleaning up ssh key. Please delete the key manually: %v", curlstr)
+			return nil, err
 		}
-	}()
+	}
 
 	c.Push(fmt.Sprintf("Creating droplet %s", dropletName), 20, machinestate.Building)
 	dropletInfo, err := c.CreateDroplet(dropletName, keyId, imageId)
@@ -347,9 +335,7 @@ func (c *Client) DropletWithKey(dropletName string, imageId uint) (dro *Droplet,
 	}
 
 	return &Droplet{
-		Droplet:    droplet,
-		PrivateKey: privateKey,
-		KeyId:      keyId,
+		Droplet: droplet,
 	}, nil
 }
 
