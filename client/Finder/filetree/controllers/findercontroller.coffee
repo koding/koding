@@ -43,7 +43,6 @@ class NFinderController extends KDViewController
           @unsetRecentFolder path
           @stopWatching path
 
-    @noVMFoundWidget = new VMMountStateWidget
     @cleanup()
 
     vmc = KD.getSingleton("vmController")
@@ -52,6 +51,7 @@ class NFinderController extends KDViewController
 
   registerWatcher:(path, stopWatching)->
     @watchers[path] = stop: stopWatching
+    @noMachineFoundWidget = new NoMachinesFoundWidget
 
   stopAllWatchers:->
     (watcher.stop() for own path, watcher of @watchers)
@@ -64,8 +64,8 @@ class NFinderController extends KDViewController
 
   loadView:(mainView)->
     mainView.addSubView @treeController.getView()
-    mainView.addSubView @noVMFoundWidget
     @viewLoaded = yes
+    mainView.addSubView @noMachineFoundWidget
 
     @reset()  if @getOptions().loadFilesOnInit
 
@@ -196,8 +196,8 @@ class NFinderController extends KDViewController
     @treeController.removeNodeView vmItem
     @vms = @vms.filter (vmData)-> vmData isnt vmItem.data
 
-    if @vms.length is 0
-      @noVMFoundWidget.show()
+    if @machines.length is 0
+      @noMachineFoundWidget.show()
       @emit 'EnvironmentsTabRequested'
 
   updateVMRoot:(vmName, path, callback)->
@@ -315,62 +315,3 @@ class NFinderController extends KDViewController
 
   _pipedVmName:(vmName)-> vmName.replace /\./g, '|'
 
-class VMMountStateWidget extends JView
-
-  constructor:->
-    super cssClass : 'no-vm-found-widget'
-
-    @loader = new KDLoaderView
-      size          : width : 20
-      loaderOptions :
-        speed       : 0.7
-        FPS         : 24
-
-    @warning = new KDCustomHTMLView
-      partial : "There is no attached VM"
-
-  pistachio:->
-    """
-    {{> @loader}}
-    {{> @warning}}
-    """
-
-  showMessage:(message)->
-    message or= """There is no VM attached to filetree, you can
-                   attach or create one from environment menu below."""
-
-    @warning.updatePartial message
-    @warning.show()
-
-    @loader.hide()
-
-  show:->
-    @setClass 'visible'
-    @warning.hide()
-    @loader.show()
-
-    if KD.getSingleton("groupsController").getGroupSlug() is KD.defaultSlug
-      @showMessage()
-
-    # Not sure about it I guess only owners can create GroupVM?
-    else if ("admin" in KD.config.roles) or ("owner" in KD.config.roles)
-      group = KD.getSingleton("groupsController").getCurrentGroup()
-      group.checkPayment (err, payments)=>
-        warn err  if err
-        if payments.length is 0
-          @showMessage """There is no VM attached for this group, you can
-                          attach one or you can <b>pay</b> and create
-                          a new one from environment menu below."""
-        else
-          @showMessage """There is no VM attached for this group, you can
-                          attach one or you can create a new one from
-                          environment menu below."""
-
-    else
-      @showMessage """There is no VM for this group or not attached to
-                      filetree yet, you can attach one from environment
-                      menu below."""
-
-  hide:->
-    @unsetClass 'visible'
-    @loader.hide()
