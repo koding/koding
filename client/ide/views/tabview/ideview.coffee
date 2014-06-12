@@ -5,17 +5,16 @@
     super options, data
 
     @openFiles = []
+    @bindListeners()
 
-    @on 'PlusHandleClicked',   @bound 'createPlusContextMenu'
+  bindListeners: ->
+    @on 'PlusHandleClicked', @bound 'createPlusContextMenu'
 
-    @bindTabViewListeners()
-
-    @once 'viewAppended', => KD.utils.wait 300, => @createEditor()
-
-  bindTabViewListeners: ->
     @tabView.on 'FileNeedsToBeOpened', @bound 'openFile'
     @tabView.on 'VMTerminalRequested', @bound 'openVMTerminal'
     @tabView.on 'VMWebPageRequested',  @bound 'openVMWebPage'
+
+    @once 'viewAppended', => KD.utils.wait 300, => @createEditor()
 
   getPlusMenuItems: ->
     return {

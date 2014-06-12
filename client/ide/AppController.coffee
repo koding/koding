@@ -265,8 +265,8 @@ class IDEAppController extends AppController
 
     if component is 'editor'
       {cursor, file} = data
-
-      status.updatePartial """
+      text = """
         <p class="line">#{++cursor.row}:#{++cursor.column}</p>
-        <p class="file-name">#{file.name}</p>
+        <p>#{file.name}</p>
       """
+    status.updatePartial text
