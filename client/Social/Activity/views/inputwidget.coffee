@@ -159,8 +159,7 @@ class ActivityInputWidget extends KDView
   submit: (callback) ->
 
     return  if @locked
-
-    return @reset yes  unless value = @input.getValue().trim()
+    return @reset yes  unless body = @input.getValue().trim()
 
     activity = @getData()
     {app}    = @getOptions()
@@ -185,7 +184,7 @@ class ActivityInputWidget extends KDView
     @lockSubmit()
 
     fn = @bound if activity then 'update' else 'create'
-    fn { body : value }, @bound 'submissionCallback'
+    fn {body}, @bound 'submissionCallback'
 
     @emit "ActivitySubmitted"
     # fixme for bugs app
