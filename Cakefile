@@ -167,10 +167,11 @@ task 'socialWorker', "Run the socialWorker", ({configFile}) ->
 
   for i in [1..social.numberOfWorkers]
     port = 3029 + i
+    kitePort = port + 10000
 
     processes.fork
       name           : if social.numberOfWorkers is 1 then "social" else "social-#{i}"
-      cmd            : __dirname + "/workers/social/index -c #{configFile} -p #{port}"
+      cmd            : __dirname + "/workers/social/index -c #{configFile} -p #{port} --kite-port=#{kitePort}"
       restart        : yes
       restartTimeout : 100
       kontrol        :

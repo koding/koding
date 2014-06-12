@@ -16,7 +16,7 @@ class CommentListItemView extends KDListItemView
 
   showEditForm: ->
 
-    @settings.hide()
+    @menuWrapper.hide()
     @body.hide()
     @editInfo.hide()
     @likeView.hide()
@@ -35,7 +35,7 @@ class CommentListItemView extends KDListItemView
 
     {meta: {createdAt, updatedAt}} = @getData()
 
-    @settings.show()
+    @menuWrapper.show()
     @likeView.show()
     @replyView?.show()
     @form.destroy()
