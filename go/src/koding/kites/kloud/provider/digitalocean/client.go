@@ -27,10 +27,6 @@ type Client struct {
 	Push     func(string, int, machinestate.State)
 	SignFunc func(string) (string, string, error)
 
-	CacheEnabled  bool
-	CacheCapacity int
-	CacheDroplets chan *Droplet
-
 	sync.Once
 }
 
@@ -278,6 +274,23 @@ func (c *Client) WaitUntilReady(eventId, from, to int, state machinestate.State)
 			}
 		}
 	}
+}
+
+// CreateCacheDroplet creates a new droplet with a key, after creating the
+// machine one needs to rename the machine to use it.
+func (c *Client) CreateCacheDroplet() (*Droplet, error) {
+	image, err := c.Image(protocol.DefaultImageName)
+	if err != nil {
+		return nil, err
+	}
+
+	dropletName := "koding-cache-" + strconv.FormatInt(time.Now().UTC().UnixNano(), 10)
+	droplet, err := c.DropletWithKey(dropletName, image.Id)
+	if err != nil {
+		return nil, err
+	}
+
+	return droplet, nil
 }
 
 func (c *Client) DropletWithKey(dropletName string, imageId uint) (dro *Droplet, err error) {
