@@ -210,10 +210,9 @@ class ActivityInputWidget extends KDView
     KD.mixpanel "Status update create, success", { length: activity?.body?.length }
 
 
-  create: (data, callback) ->
+  create: ({body, payload}, callback) ->
 
     {appManager} = KD.singletons
-    {body}       = data
     {channel}    = @getOptions()
 
     if channel.typeConstant is 'topic' and not body.match ///##{channel.name}///
