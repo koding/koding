@@ -17,14 +17,11 @@ do ->
         router.loadContent name, section, slug, route, query, passOptions
 
 
-  handleChannel = (type, slug) ->
-    {appManager} = KD.singletons
-    appManager.open 'Activity', (app) -> app.getView().open type, slug
+  handleChannel = (type, slug, callback) ->
 
-
-  handleNewMessage = (type, slug) ->
     {appManager} = KD.singletons
-    appManager.open 'Activity', (app) -> app.getView().showNewMessageModal()
+    callback    ?= (app) -> app.getView().open type, slug
+    appManager.open 'Activity', callback
 
 
   KD.registerRoutes 'Activity',
@@ -37,7 +34,14 @@ do ->
     '/:name?/Activity/Post/:slug?' : ({params:{name, slug}, query}) ->
       handleChannel 'post', slug
 
-    '/:name?/Activity/Message/New' : handleNewMessage
+    '/:name?/Activity/Message/New' : ->
+      handleChannel null, null, (app) -> app.getView().showNewMessageModal()
+
+    '/:name?/Activity/Topic/All' : ({params:{name, slug}, query}) ->
+      handleChannel null, null, (app) -> app.getView().showAllTopics()
+
+    '/:name?/Activity/Post/All' : ({params:{name, slug}, query}) ->
+      handleChannel null, null, (app) -> app.getView().showAllPosts()
 
     '/:name?/Activity/Message/:slug?' : ({params:{name, slug}, query}) ->
       handleChannel 'message', slug
