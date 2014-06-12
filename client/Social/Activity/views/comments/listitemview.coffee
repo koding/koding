@@ -119,8 +119,8 @@ class CommentListItemView extends KDListItemView
       origin      : origin
       showStatus  : yes
       size        :
-        width     : 40
-        height    : 40
+        width     : 42
+        height    : 42
 
     @author = new ProfileLinkView {origin}
 
