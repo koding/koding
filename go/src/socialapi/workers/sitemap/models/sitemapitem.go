@@ -23,13 +23,17 @@ type SitemapItem struct {
 	Status       string
 }
 
+func NewSitemapItem() *SitemapItem {
+	return &SitemapItem{}
+}
+
 func (s *SitemapItem) PrepareSetValue() string {
 	return fmt.Sprintf("%d:%s:%s:%s", s.Id, s.TypeConstant, s.Slug, s.Status)
 }
 
-// Compose converts value retrieved from cache to sitemapitem
+// Populate converts value retrieved from cache to sitemapitem
 // Value must be in format as: id:type:slug:status
-func (s *SitemapItem) Compose(value string) error {
+func (s *SitemapItem) Populate(value string) error {
 	r := strings.Split(value, ":")
 	if len(r) != 4 {
 		return fmt.Errorf("wrong value length")
