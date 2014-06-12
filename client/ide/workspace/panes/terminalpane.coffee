@@ -3,6 +3,7 @@ class IDE.TerminalPane extends IDE.Pane
   constructor: (options = {}, data) ->
 
     options.cssClass = 'terminal-pane terminal'
+    options.paneType = 'terminal'
     options.vm     or= null
 
     super options, data

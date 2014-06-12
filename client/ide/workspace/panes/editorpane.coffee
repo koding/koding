@@ -5,6 +5,7 @@ class IDE.EditorPane extends IDE.Pane
   constructor: (options = {}, data) ->
 
     options.cssClass = KD.utils.curry 'editor-pane', options.cssClass
+    options.paneType = 'editor'
 
     super options, data
 
