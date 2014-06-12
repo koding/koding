@@ -158,6 +158,8 @@ class ActivityInputWidget extends KDView
 
   submit: (callback) ->
 
+    return  if @locked
+
     return @reset yes  unless value = @input.getValue().trim()
 
     activity = @getData()
@@ -285,12 +287,14 @@ class ActivityInputWidget extends KDView
 
   lockSubmit: ->
 
+    @locked = yes
     @submitButton.disable()
     @submitButton.showLoader()
 
 
   unlockSubmit: ->
 
+    @locked = no
     @submitButton.enable()
     @submitButton.hideLoader()
 
