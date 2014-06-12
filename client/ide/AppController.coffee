@@ -262,3 +262,13 @@ class IDEAppController extends AppController
         else
           view.webtermView.updateSettings()
 
+  updateStatusBar: (component, data) ->
+    {status} = @statusBar
+
+    if component is 'editor'
+      {cursor, file} = data
+
+      status.updatePartial """
+        <p class="line">#{cursor.row}:#{cursor.column}</p>
+        <p class="file-name">#{file.name}</p>
+      """
