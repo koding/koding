@@ -27,40 +27,11 @@ type Client struct {
 	Push     func(string, int, machinestate.State)
 	SignFunc func(string) (string, string, error)
 
-	Caching         bool
-	CachingCapacity int
-	CachedMachines  chan *Droplet
+	CacheEnabled  bool
+	CacheCapacity int
+	CacheDroplets chan *Droplet
 
 	sync.Once
-}
-
-func (c *Client) InitializeCaching() error {
-	if !c.Caching {
-		return errors.New("Caching is disabled.")
-	}
-
-	c.Once.Do(func() {
-
-		c.CachedMachines = make(chan *Droplet, c.CachingCapacity)
-		for i := 0; i < c.CachingCapacity; i++ {
-			go func() {
-				image, err := c.Image(protocol.DefaultImageName)
-				if err != nil {
-					return
-				}
-
-				dropletName := "koding-cache-" + strconv.FormatInt(time.Now().UTC().UnixNano(), 10)
-				machine, err := c.DropletWithKey(dropletName, image.Id)
-				if err != nil {
-					return
-				}
-
-				c.CachedMachines <- machine
-			}()
-		}
-	})
-
-	return nil
 }
 
 // Build is building an image and creates a droplet based on that image. If the
