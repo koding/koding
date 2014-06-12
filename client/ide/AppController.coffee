@@ -259,8 +259,3 @@ class IDEAppController extends AppController
         else
           view.webtermView.updateSettings()
 
-  handleResize: ->
-    @forEachSubViewInIDEViews_ (view) ->
-      if view instanceof IDE.EditorPane
-        view.aceView.ace.setHeight view.getHeight() - 23
-        view.aceView.ace.editor?.resize yes
