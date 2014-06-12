@@ -176,10 +176,6 @@ class ActivityInputWidget extends KDView
     #     else if data.$suggest and data.$suggest not in suggestedTags
     #       suggestedTags.push data.$suggest
 
-    # fixme embedbox
-
-    # data.link_url   = @embedBox.url or ""
-    # data.link_embed = @embedBox.getDataForSubmit() or {}
 
     @lockSubmit()
 
