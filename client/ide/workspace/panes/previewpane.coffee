@@ -15,3 +15,7 @@ class IDE.PreviewPane extends IDE.Pane
     delete viewerOptions.params.path  unless viewerOptions.params.path
 
     @addSubView @previewer = new PreviewerView viewerOptions
+
+    @previewer.on 'ViewerLocationChanged', (newLocation) =>
+      @setOption 'url', newLocation
+      @emit 'LocationChanged', newLocation
