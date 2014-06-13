@@ -376,3 +376,49 @@ func (c *ChannelMessage) GetMentionedUsernames() []string {
 
 	return flattened
 }
+
+// BySlug fetchs channel message by its slug
+// checks if message is in the channel or not
+func (c *ChannelMessage) BySlug(query *Query) error {
+	if query.Slug == "" {
+		return errors.New("slug is not set")
+	}
+
+	// fetch message itself
+	q := &bongo.Query{
+		Selector: map[string]interface{}{
+			"slug": query.Slug,
+		},
+	}
+
+	if err := c.One(q); err != nil {
+		return nil
+	}
+
+	// fetch channel by group name
+	query.Name = query.GroupName
+	query.Type = Channel_TYPE_GROUP
+	ch := NewChannel()
+	channel, err := ch.ByName(query)
+	if err != nil {
+		return err
+	}
+
+	if channel.Id == 0 {
+		return errors.New("channel is not found")
+	}
+
+	// check if message is in the channel
+	cml := NewChannelMessageList()
+	res, err := cml.IsInChannel(c.Id, channel.Id)
+	if err != nil {
+		return err
+	}
+
+	// if message is not in the channel
+	if !res {
+		return gorm.RecordNotFound
+	}
+
+	return nil
+}
