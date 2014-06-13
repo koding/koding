@@ -46,10 +46,6 @@ func (a *Account) FetchOrCreate() error {
 		return errors.New("old id is not set")
 	}
 
-	if a.Nick == "" {
-		return errors.New("nick is not set")
-	}
-
 	selector := map[string]interface{}{
 		"old_id": a.OldId,
 	}
@@ -63,6 +59,10 @@ func (a *Account) FetchOrCreate() error {
 
 	// first check if the err is not found err
 	if err == gorm.RecordNotFound {
+		if a.Nick == "" {
+			return errors.New("nick is not set")
+		}
+
 		if err := a.Create(); err != nil {
 			return err
 		}
