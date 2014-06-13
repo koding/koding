@@ -12,13 +12,13 @@ import (
 
 type Channel struct {
 	// unique identifier of the channel
-	Id int64 `json:"id"`
+	Id int64 `json:"id,string"`
 
 	// Name of the channel
 	Name string `json:"name"                         sql:"NOT NULL;TYPE:VARCHAR(200);"`
 
 	// Creator of the channel
-	CreatorId int64 `json:"creatorId"                sql:"NOT NULL"`
+	CreatorId int64 `json:"creatorId,string"         sql:"NOT NULL"`
 
 	// Name of the group which channel is belong to
 	GroupName string `json:"groupName"               sql:"NOT NULL;TYPE:VARCHAR(200);"`
@@ -41,6 +41,9 @@ type Channel struct {
 
 	// Modification date of the channel
 	UpdatedAt time.Time `json:"updatedAt"            sql:"NOT NULL"`
+
+	// Deletion date of the channel
+	DeletedAt time.Time `json:"deletedAt"`
 }
 
 // to-do check for allowed channels
@@ -51,8 +54,8 @@ const (
 	Channel_TYPE_FOLLOWINGFEED   = "followingfeed"
 	Channel_TYPE_FOLLOWERS       = "followers"
 	Channel_TYPE_CHAT            = "chat"
-	Channel_TYPE_PINNED_ACTIVITY = "pinnedActivity"
-	Channel_TYPE_PRIVATE_MESSAGE = "privateMessage"
+	Channel_TYPE_PINNED_ACTIVITY = "pinnedactivity"
+	Channel_TYPE_PRIVATE_MESSAGE = "privatemessage"
 	Channel_TYPE_DEFAULT         = "default"
 	// Privacy
 	Channel_PRIVACY_PUBLIC  = "public"
@@ -85,15 +88,16 @@ func NewPrivateMessageChannel(creatorId int64, groupName string) *Channel {
 }
 
 func (c *Channel) BeforeCreate() {
-	c.CreatedAt = time.Now()
-	c.UpdatedAt = time.Now()
+	c.CreatedAt = time.Now().UTC()
+	c.UpdatedAt = time.Now().UTC()
+	c.DeletedAt = ZeroDate()
 }
 
 func (c *Channel) BeforeUpdate() {
 	c.UpdatedAt = time.Now()
 }
 
-func (c *Channel) GetId() int64 {
+func (c Channel) GetId() int64 {
 	return c.Id
 }
 
@@ -109,7 +113,7 @@ func (c *Channel) AfterUpdate() {
 	bongo.B.AfterUpdate(c)
 }
 
-func (c *Channel) AfterDelete() {
+func (c Channel) AfterDelete() {
 	bongo.B.AfterDelete(c)
 }
 
@@ -131,10 +135,21 @@ func (c *Channel) Create() error {
 		return fmt.Errorf("Channel name %q has empty space in it", c.Name)
 	}
 
-	if c.TypeConstant == Channel_TYPE_GROUP /* we can add more types here */ {
-		selector := map[string]interface{}{
-			"group_name":    c.GroupName,
-			"type_constant": c.TypeConstant,
+	if c.TypeConstant == Channel_TYPE_GROUP ||
+		c.TypeConstant == Channel_TYPE_FOLLOWERS /* we can add more types here */ {
+
+		var selector map[string]interface{}
+		switch c.TypeConstant {
+		case Channel_TYPE_GROUP:
+			selector = map[string]interface{}{
+				"group_name":    c.GroupName,
+				"type_constant": c.TypeConstant,
+			}
+		case Channel_TYPE_FOLLOWERS:
+			selector = map[string]interface{}{
+				"creator_id":    c.CreatorId,
+				"type_constant": c.TypeConstant,
+			}
 		}
 
 		// if err is nil
@@ -152,6 +167,19 @@ func (c *Channel) Create() error {
 	}
 
 	return bongo.B.Create(c)
+}
+
+func (c *Channel) CreateRaw() error {
+	insertSql := "INSERT INTO " +
+		c.TableName() +
+		` ("name","creator_id","group_name","purpose","secret_key","type_constant",` +
+		`"privacy_constant", "created_at", "updated_at", "deleted_at")` +
+		"VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10) " +
+		"RETURNING ID"
+
+	return bongo.B.DB.CommonDB().QueryRow(insertSql, c.Name, c.CreatorId,
+		c.GroupName, c.Purpose, c.SecretKey, c.TypeConstant, c.PrivacyConstant,
+		c.CreatedAt, c.UpdatedAt, c.DeletedAt).Scan(&c.Id)
 }
 
 func (c *Channel) Delete() error {
@@ -275,17 +303,7 @@ func (c *Channel) FetchParticipantIds() ([]int64, error) {
 }
 
 func (c *Channel) AddMessage(messageId int64) (*ChannelMessageList, error) {
-	if c.Id == 0 {
-		return nil, errors.New("Channel Id is not set")
-	}
-
-	cml := NewChannelMessageList()
-
-	selector := map[string]interface{}{
-		"channel_id": c.Id,
-		"message_id": messageId,
-	}
-	err := cml.One(bongo.NewQS(selector))
+	cml, err := c.FetchMessageList(messageId)
 	if err == nil {
 		return nil, errors.New("Message is already in the channel")
 	}
@@ -306,18 +324,7 @@ func (c *Channel) AddMessage(messageId int64) (*ChannelMessageList, error) {
 }
 
 func (c *Channel) RemoveMessage(messageId int64) (*ChannelMessageList, error) {
-	if c.Id == 0 {
-		return nil, errors.New("Channel Id is not set")
-	}
-
-	cml := NewChannelMessageList()
-	selector := map[string]interface{}{
-		"channel_id": c.Id,
-		"message_id": messageId,
-	}
-	err := cml.One(bongo.NewQS(selector))
-	// one returns error when record not found case
-	// but we dont care if it is not there tho
+	cml, err := c.FetchMessageList(messageId)
 	if err != nil {
 		return nil, err
 	}
@@ -327,6 +334,92 @@ func (c *Channel) RemoveMessage(messageId int64) (*ChannelMessageList, error) {
 	}
 
 	return cml, nil
+}
+
+func (c *Channel) FetchMessageList(messageId int64) (*ChannelMessageList, error) {
+	if c.Id == 0 {
+		return nil, errors.New("Channel Id is not set")
+	}
+
+	cml := NewChannelMessageList()
+	selector := map[string]interface{}{
+		"channel_id": c.Id,
+		"message_id": messageId,
+	}
+
+	return cml, cml.One(bongo.NewQS(selector))
+}
+
+func (c *Channel) FetchChannelIdByNameAndGroupName(name, groupName string) (int64, error) {
+	query := &bongo.Query{
+		Selector: map[string]interface{}{
+			"name":       name,
+			"group_name": groupName,
+		},
+		Pagination: *bongo.NewPagination(1, 0),
+		Pluck:      "id",
+	}
+	var ids []int64
+	if err := c.Some(&ids, query); err != nil {
+		return 0, err
+	}
+
+	if ids == nil {
+		return 0, gorm.RecordNotFound
+	}
+
+	if len(ids) == 0 {
+		return 0, gorm.RecordNotFound
+	}
+
+	return ids[0], nil
+}
+
+func (c *Channel) Search(q *Query) ([]Channel, error) {
+
+	if q.GroupName == "" {
+		return nil, fmt.Errorf("Query doesnt have any Group info %+v", q)
+	}
+
+	var channels []Channel
+
+	query := bongo.B.DB.Table(c.TableName()).Limit(q.Limit)
+
+	query = query.Where("type_constant = ?", q.Type)
+	query = query.Where("privacy_constant = ?", Channel_PRIVACY_PUBLIC)
+	query = query.Where("group_name = ?", q.GroupName)
+	query = query.Where("name like ?", q.Name+"%")
+
+	if err := bongo.CheckErr(
+		query.Find(&channels),
+	); err != nil {
+		return nil, err
+	}
+
+	if channels == nil {
+		return make([]Channel, 0), nil
+	}
+
+	return channels, nil
+}
+
+func (c *Channel) ByName(q *Query) (Channel, error) {
+	fmt.Println("-------- FIX THIS PART ------")
+	fmt.Println("TODO - check permissions here")
+	fmt.Println("-------- FIX THIS PART ------")
+	var channel Channel
+
+	if q.GroupName == "" {
+		return channel, fmt.Errorf("Query doesnt have any Group info %+v", q)
+	}
+
+	query := bongo.B.DB.Table(c.TableName()).Limit(q.Limit)
+
+	query = query.Where("type_constant = ?", q.Type)
+	query = query.Where("group_name = ?", q.GroupName)
+	query = query.Where("name = ?", q.Name)
+
+	return channel, bongo.CheckErr(query.Find(&channel))
 }
 
 func (c *Channel) List(q *Query) ([]Channel, error) {
@@ -341,6 +434,7 @@ func (c *Channel) List(q *Query) ([]Channel, error) {
 		Selector: map[string]interface{}{
 			"group_name": q.GroupName,
 		},
+		Pagination: *bongo.NewPagination(q.Limit, q.Skip),
 	}
 
 	if q.Type != "" {
@@ -350,6 +444,10 @@ func (c *Channel) List(q *Query) ([]Channel, error) {
 	err := c.Some(&channels, query)
 	if err != nil {
 		return nil, err
+	}
+
+	if channels == nil {
+		return make([]Channel, 0), nil
 	}
 
 	return channels, nil
@@ -368,8 +466,8 @@ func (c *Channel) FetchLastMessage() (*ChannelMessage, error) {
 		Sort: map[string]string{
 			"added_at": "DESC",
 		},
-		Limit: 1,
-		Pluck: "message_id",
+		Pagination: *bongo.NewPagination(1, 0),
+		Pluck:      "message_id",
 	}
 
 	var messageIds []int64
@@ -388,4 +486,16 @@ func (c *Channel) FetchLastMessage() (*ChannelMessage, error) {
 	}
 
 	return cm, nil
+}
+
+func (c *Channel) FetchPinnedActivityChannel(accountId int64, groupName string) error {
+	query := &bongo.Query{
+		Selector: map[string]interface{}{
+			"creator_id":    accountId,
+			"group_name":    groupName,
+			"type_constant": Channel_TYPE_PINNED_ACTIVITY,
+		},
+	}
+
+	return c.One(query)
 }

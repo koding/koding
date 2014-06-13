@@ -17,6 +17,7 @@ option '-r', '--region [REGION]', 'region flag'
 
 require('coffee-script').register()
 
+
 {spawn, exec} = require 'child_process'
 
 log =
@@ -76,19 +77,20 @@ compileGoBinaries = (configFile, callback = ->)->
 
     callback null
 
-task 'populateNeo4j', "Populate the local Neo4j Database from the config's mongo server", ({configFile})->
-  invoke 'deleteNeo4j'
 
-  migrator = "cd go && export GOPATH=`pwd` && go run src/koding/migrators/mongo/mongo2neo4j.go -c #{configFile}"
-  processes.exec migrator
+task 'kloudKite',"run kloud kite", ({configFile}) ->
 
-task 'deleteNeo4j', "Drop all entries in the local Neo4j database", ({configFile})->
-  console.log "This task is hardcoded to delete only Neo running in localhost:7474\n"
+  KONFIG = require('koding-config-manager').load("main.#{configFile}")
 
-  query = """
-    curl -X POST -H "Content-Type: application/json" -d '{"query":"start kod=node:koding(\\"id:*\\") match kod-[r]-() delete kod, r"}' "http://localhost:7474/db/data/cypher" && curl -X POST -H "Content-Type: application/json" -d '{"query":"start kod=relationship(*) delete kod;"}' "http://localhost:7474/db/data/cypher" && curl -X POST -H "Content-Type: application/json" -d '{"query":"start kod=node(*) delete kod;"}' "http://localhost:7474/db/data/cypher"
+  cmd = """KITE_HOME=#{KONFIG.projectRoot}/kite_home/koding go run #{KONFIG.projectRoot}/go/src/koding/kites/kloud/main.go -c #{configFile} -r #{configFile} -public-key #{KONFIG.projectRoot}/certs/test_kontrol_rsa_public.pem -private-key #{KONFIG.projectRoot}/certs/test_kontrol_rsa_private.pem -kontrol-url "ws://koding.io:4000"
   """
-  processes.exec query
+  processes.spawn
+    name              : 'kloudKite'
+    cmd               : cmd
+    restart           : yes
+    restartTimeout    : 100
+    stdout            : process.stdout
+    stderr            : process.stderr
 
 task 'killGoProcesses', " Kill hanging go processes", (options) ->
   command = "kill -9 `ps -ef | grep go/bin | grep -v grep | awk '{print $2}'`"
@@ -505,37 +507,6 @@ task 'terminalKite', "Run the terminalKite", ({configFile})->
     stderr  : process.stderr
     verbose : yes
 
-task 'proxy', "Run the go-Proxy", ({configFile})->
-
-  processes.spawn
-    name  : 'proxy'
-    cmd   : if configFile == "vagrant" then "vagrant ssh default -c 'cd /opt/koding; sudo killall -q -KILL vmproxy; sudo ./go/bin-vagrant/vmproxy -c #{configFile}'" else "./go/bin/vmproxy -c #{configFile}"
-    restart: no
-    stdout  : process.stdout
-    stderr  : process.stderr
-    verbose : yes
-
-task 'neo4jfeeder', "Run the neo4jFeeder", (options)->
-
-  {configFile} = options
-  config       = require('koding-config-manager').load("main.#{configFile}")
-  feederConfig = config.graphFeederWorker
-
-  numberOfWorkers = if feederConfig.numberOfWorkers then feederConfig.numberOfWorkers else 1
-
-  for i in [1..numberOfWorkers]
-    processes.spawn
-      name    : if numberOfWorkers is 1 then "neo4jfeeder" else "neo4jfeeder-#{i}"
-      cmd     : "./go/bin/neo4jfeeder -c #{configFile} #{addFlags options}"
-      restart : yes
-      stdout  : process.stdout
-      stderr  : process.stderr
-      verbose : yes
-      kontrol        :
-        enabled      : if config.runKontrol is yes then yes else no
-        startMode    : "version"
-
-
 # this is not safe to run multiple version of it
 task 'elasticsearchfeeder', "Run the Elastic Search Feeder", (options)->
   {configFile} = options
@@ -675,17 +646,17 @@ run =({configFile})->
   invoke 'kontrolKite'                      if config.runKontrol
   invoke 'proxyKite'                        if config.runKontrol
 
+  invoke 'kloudKite'                        
+
   invoke 'goBroker'                         if config.runGoBroker
   invoke 'goBrokerKite'                     if config.runGoBrokerKite
   invoke 'premiumBroker'                    if config.runPremiumBroker
   invoke 'premiumBrokerKite'                if config.runPremiumBrokerKite
-  invoke 'osKite'                           if config.runOsKite
-  invoke 'terminalKite'                     if config.runTerminalKite
+
   invoke 'rerouting'                        if config.runRerouting
   invoke 'userpresence'                     if config.runUserPresence
   invoke 'persistence'                      if config.runPersistence
-  invoke 'proxy'                            if config.runProxy
-  invoke 'neo4jfeeder'                      if config.runNeo4jFeeder
+
   invoke 'elasticsearchfeeder'              if config.elasticSearch.enabled
   invoke 'authWorker'                       if config.authWorker
   invoke 'guestCleanerWorker'               if config.guestCleanerWorker.enabled

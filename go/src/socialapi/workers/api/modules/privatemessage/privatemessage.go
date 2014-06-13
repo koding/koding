@@ -8,37 +8,8 @@ import (
 	"socialapi/models"
 	"socialapi/workers/api/modules/helpers"
 
-	"github.com/VerbalExpressions/GoVerbalExpressions"
 	"github.com/koding/bongo"
 )
-
-var mentionRegex = verbalexpressions.New().
-	Find("@").
-	BeginCapture().
-	Word().
-	EndCapture().
-	Regex()
-
-func extractParticipants(body string) []string {
-	flattened := make([]string, 0)
-
-	res := mentionRegex.FindAllStringSubmatch(body, -1)
-	if len(res) == 0 {
-		return flattened
-	}
-
-	participants := map[string]struct{}{}
-	// remove duplicate mentions
-	for _, ele := range res {
-		participants[ele[1]] = struct{}{}
-	}
-
-	for participant := range participants {
-		flattened = append(flattened, participant)
-	}
-
-	return flattened
-}
 
 func fetchParticipantIds(participantNames []string) ([]int64, error) {
 	participantIds := make([]int64, len(participantNames))
@@ -78,7 +49,9 @@ func Send(u *url.URL, h http.Header, req *models.PrivateMessageRequest) (int, ht
 	}
 
 	// // req.Recipients = append(req.Recipients, req.AccountId)
-	participantNames := extractParticipants(req.Body)
+	cm := models.NewChannelMessage()
+	cm.Body = req.Body
+	participantNames := cm.GetMentionedUsernames()
 	participantIds, err := fetchParticipantIds(participantNames)
 	if err != nil {
 		return helpers.NewBadRequestResponse(err)
@@ -103,12 +76,15 @@ func Send(u *url.URL, h http.Header, req *models.PrivateMessageRequest) (int, ht
 		return helpers.NewBadRequestResponse(err)
 	}
 
-	cm := models.NewChannelMessage()
-	cm.Body = req.Body
 	cm.TypeConstant = models.ChannelMessage_TYPE_PRIVATE_MESSAGE
 	cm.AccountId = req.AccountId
 	cm.InitialChannelId = c.Id
 	if err := cm.Create(); err != nil {
+		return helpers.NewBadRequestResponse(err)
+	}
+
+	messageContainer, err := cm.BuildEmptyMessageContainer()
+	if err != nil {
 		return helpers.NewBadRequestResponse(err)
 	}
 
@@ -127,9 +103,14 @@ func Send(u *url.URL, h http.Header, req *models.PrivateMessageRequest) (int, ht
 	cmc := models.NewChannelContainer()
 	cmc.Channel = *c
 	cmc.IsParticipant = true
-	cmc.LastMessage = cm
+	cmc.LastMessage = messageContainer
 	cmc.ParticipantCount = len(participantIds)
-	cmc.ParticipantsPreview = participantIds
+	participantOldIds, err := models.AccountOldsIdByIds(participantIds)
+	if err != nil {
+		return helpers.NewBadRequestResponse(err)
+	}
+
+	cmc.ParticipantsPreview = participantOldIds
 
 	return helpers.NewOKResponse(cmc)
 }
@@ -142,29 +123,9 @@ func List(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface
 		return helpers.NewBadRequestResponse(err)
 	}
 
-	populatedChannels := models.PopulateChannelContainers(channels, q.AccountId)
-
-	for i, populatedChannel := range populatedChannels {
-		cp := models.NewChannelParticipant()
-		cp.ChannelId = populatedChannel.Channel.Id
-
-		// add participant preview
-		cpList, err := cp.ListAccountIds(5)
-		if err != nil {
-			return helpers.NewBadRequestResponse(err)
-		}
-		populatedChannels[i].ParticipantsPreview = cpList
-
-		// add last message of the channel
-		cm, err := populatedChannel.Channel.FetchLastMessage()
-		if err != nil {
-			return helpers.NewBadRequestResponse(err)
-		}
-		populatedChannels[i].LastMessage = cm
-	}
-
-	return helpers.NewOKResponse(populatedChannels)
-
+	return helpers.HandleResultAndError(
+		models.PopulateChannelContainersWithUnreadCount(channels, q.AccountId),
+	)
 }
 
 func getPrivateMessageChannels(q *models.Query) ([]models.Channel, error) {

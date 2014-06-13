@@ -273,7 +273,26 @@ module.exports = class AuthWorker extends EventEmitter
       checkGroupPermission.call this, group, account, (err, hasPermission) ->
         if err then callback err
         else if hasPermission
-          SocialChannel.fetchSecretChannelName options, callback
+            client =
+              context   : group   : group.slug
+              connection: delegate: account
+
+            reqOptions =
+              type: options.apiChannelType
+              name: options.apiChannelName
+
+            SocialChannel.checkChannelParticipation client, reqOptions, (err, res)->
+              if err
+                console.warn """
+                  tries to open an unattended channel:
+                  user: #{account.profile.nickname}
+                  channelname: #{reqOptions.name}
+                  channeltype: #{reqOptions.type}
+
+                """
+                return callback err
+              SocialChannel.fetchSecretChannelName options, callback
+
         else
           callback {message: 'Access denied!', code: 403}
 

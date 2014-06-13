@@ -2,184 +2,162 @@ package realtime
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
+	mongomodels "koding/db/models"
 	"koding/db/mongodb/modelhelper"
 	"socialapi/models"
+	notificationmodels "socialapi/workers/notification/models"
 	"strconv"
+
 	"github.com/koding/logging"
 	"github.com/koding/rabbitmq"
-	"github.com/koding/worker"
-
 	"github.com/streadway/amqp"
+	"labix.org/v2/mgo"
 )
 
-type Action func(*RealtimeWorkerController, []byte) error
+const (
+	ChannelUpdateEventName      = "ChannelUpdateHappened"
+	RemovedFromChannelEventName = "RemovedFromChannel"
+	AddedToChannelEventName     = "AddedToChannel"
+)
 
-type RealtimeWorkerController struct {
-	routes  map[string]Action
+var mongoAccounts map[int64]*mongomodels.Account
+
+func init() {
+	mongoAccounts = make(map[int64]*mongomodels.Account)
+}
+
+type Controller struct {
 	log     logging.Logger
 	rmqConn *amqp.Connection
 }
 
-func (r *RealtimeWorkerController) DefaultErrHandler(delivery amqp.Delivery, err error) {
-	r.log.Error("an error occured putting message back to queue", err)
-	// multiple false
-	// reque true
-	delivery.Nack(false, true)
+type NotificationEvent struct {
+	RoutingKey string              `json:"routingKey"`
+	Content    NotificationContent `json:"contents"`
 }
 
-func NewRealtimeWorkerController(rmq *rabbitmq.RabbitMQ, log logging.Logger) (*RealtimeWorkerController, error) {
+type NotificationContent struct {
+	TypeConstant string `json:"type"`
+	TargetId     int64  `json:"targetId,string"`
+	ActorId      string `json:"actorId"`
+}
+
+func (r *Controller) DefaultErrHandler(delivery amqp.Delivery, err error) bool {
+	r.log.Error("an error occured deleting realtime event", err)
+	delivery.Ack(false)
+	return false
+}
+
+func New(rmq *rabbitmq.RabbitMQ, log logging.Logger) (*Controller, error) {
 	rmqConn, err := rmq.Connect("NewRealtimeWorkerController")
 	if err != nil {
 		return nil, err
 	}
 
-	ffc := &RealtimeWorkerController{
+	ffc := &Controller{
 		log:     log,
 		rmqConn: rmqConn.Conn(),
 	}
 
-	routes := map[string]Action{
-		"api.channel_message_created": (*RealtimeWorkerController).MessageSaved,
-		"api.channel_message_updated": (*RealtimeWorkerController).MessageUpdated,
-		"api.channel_message_deleted": (*RealtimeWorkerController).MessageDeleted,
-
-		"api.interaction_created": (*RealtimeWorkerController).InteractionSaved,
-		"api.interaction_deleted": (*RealtimeWorkerController).InteractionDeleted,
-
-		"api.message_reply_created": (*RealtimeWorkerController).MessageReplySaved,
-		"api.message_reply_deleted": (*RealtimeWorkerController).MessageReplyDeleted,
-
-		"api.channel_message_list_created": (*RealtimeWorkerController).MessageListSaved,
-		"api.channel_message_list_updated": (*RealtimeWorkerController).MessageListUpdated,
-		"api.channel_message_list_deleted": (*RealtimeWorkerController).MessageListDeleted,
-
-		"api.channel_participant_created": (*RealtimeWorkerController).ChannelParticipantAdded,
-		"api.channel_participant_deleted": (*RealtimeWorkerController).ChannelParticipantRemoved,
-	}
-
-	ffc.routes = routes
-
 	return ffc, nil
 }
 
-func (f *RealtimeWorkerController) HandleEvent(event string, data []byte) error {
-	f.log.Debug("New Event Recieved %s", event)
-	handler, ok := f.routes[event]
-	if !ok {
-		return worker.HandlerNotFoundErr
-	}
-
-	return handler(f, data)
-}
-
-func mapMessageToChannelMessage(data []byte) (*models.ChannelMessage, error) {
-	cm := models.NewChannelMessage()
-	if err := json.Unmarshal(data, cm); err != nil {
-		return nil, err
-	}
-
-	return cm, nil
-}
-
-func mapMessageToChannelMessageList(data []byte) (*models.ChannelMessageList, error) {
-	cm := models.NewChannelMessageList()
-	if err := json.Unmarshal(data, cm); err != nil {
-		return nil, err
-	}
-
-	return cm, nil
-}
-
-func mapMessageToInteraction(data []byte) (*models.Interaction, error) {
-	i := models.NewInteraction()
-	if err := json.Unmarshal(data, i); err != nil {
-		return nil, err
-	}
-
-	return i, nil
-}
-
-func mapMessageToMessageReply(data []byte) (*models.MessageReply, error) {
-	i := models.NewMessageReply()
-	if err := json.Unmarshal(data, i); err != nil {
-		return nil, err
-	}
-
-	return i, nil
-}
-
-// no operation for message save for now
-func (f *RealtimeWorkerController) MessageSaved(data []byte) error {
-	return nil
-}
-
-// no operation for message delete for now
-// channel_message_delete will handle message deletions from the
-func (f *RealtimeWorkerController) MessageDeleted(data []byte) error {
-	return nil
-}
-
-func (f *RealtimeWorkerController) MessageUpdated(data []byte) error {
-	cm, err := mapMessageToChannelMessage(data)
-	if err != nil {
-		return err
-	}
-
-	err = f.sendInstanceEvent(cm.GetId(), cm, "updateInstance")
-	if err != nil {
-		fmt.Println(err)
+func (f *Controller) MessageUpdated(cm *models.ChannelMessage) error {
+	if err := f.sendInstanceEvent(cm.GetId(), cm, "updateInstance"); err != nil {
+		f.log.Error(err.Error())
 		return err
 	}
 
 	return nil
 }
 
-func (f *RealtimeWorkerController) ChannelParticipantAdded(data []byte) error {
-	return f.handleChannelParticipantEvent("AddedToChannel", data)
-}
-
-func (f *RealtimeWorkerController) ChannelParticipantRemoved(data []byte) error {
-	return f.handleChannelParticipantEvent("RemovedFromChannel", data)
-}
-
-func (f *RealtimeWorkerController) handleChannelParticipantEvent(eventName string, data []byte) error {
-	cp := models.NewChannelParticipant()
-	if err := json.Unmarshal(data, cp); err != nil {
-		return err
+// ChannelParticipantUpdatedEvent is fired when we update any info of the
+// channel participant
+// We are updating status_constant while removing user from the channel
+// but regarding operation has another event, so we are gonna ignore it
+func (f *Controller) ChannelParticipantUpdatedEvent(cp *models.ChannelParticipant) error {
+	if cp.StatusConstant == models.ChannelParticipant_STATUS_LEFT {
+		f.log.Info("Ignoring participant (%d) left channel event", cp.AccountId)
+		return nil
 	}
 
-	c := models.NewChannel()
-	if err := c.ById(cp.ChannelId); err != nil {
-		return err
-	}
-	return f.sendNotification(cp.AccountId, eventName, c)
-}
-
-func (f *RealtimeWorkerController) InteractionSaved(data []byte) error {
-	return f.handleInteractionEvent("InteractionAdded", data)
-}
-
-func (f *RealtimeWorkerController) InteractionDeleted(data []byte) error {
-	return f.handleInteractionEvent("InteractionRemoved", data)
-}
-
-func (f *RealtimeWorkerController) handleInteractionEvent(eventName string, data []byte) error {
-	i, err := mapMessageToInteraction(data)
+	c, err := models.ChannelById(cp.ChannelId)
 	if err != nil {
 		return err
 	}
 
+	cue := &channelUpdatedEvent{
+		Channel:            c,
+		EventType:          channelUpdatedEventChannelParticipantUpdated,
+		ChannelParticipant: cp,
+	}
+
+	return f.sendChannelUpdatedEventToParticipant(cue)
+}
+
+func (f *Controller) ChannelParticipantRemovedFromChannelEvent(cp *models.ChannelParticipant) error {
+	return f.sendChannelParticipantEvent(cp, RemovedFromChannelEventName)
+}
+
+func (f *Controller) ChannelParticipantAddedToChannelEvent(cp *models.ChannelParticipant) error {
+	return f.sendChannelParticipantEvent(cp, AddedToChannelEventName)
+}
+
+func (f *Controller) sendChannelParticipantEvent(cp *models.ChannelParticipant, eventName string) error {
+	c, err := models.ChannelById(cp.ChannelId)
+	if err != nil {
+		return err
+	}
+
+	cmc, err := models.PopulateChannelContainer(*c, cp.AccountId)
+	if err != nil {
+		return err
+	}
+
+	if err := f.sendNotification(cp.AccountId, eventName, cmc); err != nil {
+		f.log.Error("Ignoring err %s ", err.Error())
+	}
+
+	return nil
+}
+
+func (f *Controller) InteractionSaved(i *models.Interaction) error {
+	return f.handleInteractionEvent("InteractionAdded", i)
+}
+
+func (f *Controller) InteractionDeleted(i *models.Interaction) error {
+	return f.handleInteractionEvent("InteractionRemoved", i)
+}
+
+// here inorder to solve overflow
+// bug of javascript with int64 values of Go
+type InteractionEvent struct {
+	MessageId    int64  `json:"messageId,string"`
+	AccountId    int64  `json:"accountId,string"`
+	AccountOldId string `json:"accountOldId"`
+	TypeConstant string `json:"typeConstant"`
+	Count        int    `json:"count"`
+}
+
+func (f *Controller) handleInteractionEvent(eventName string, i *models.Interaction) error {
 	count, err := i.Count(i.TypeConstant)
 	if err != nil {
 		return err
 	}
 
-	res := map[string]interface{}{
-		"messageId":    i.MessageId,
-		"accountId":    i.AccountId,
-		"typeConstant": i.TypeConstant,
-		"count":        count,
+	oldId, err := models.AccountOldIdById(i.AccountId)
+	if err != nil {
+		return err
+	}
+
+	res := &InteractionEvent{
+		MessageId:    i.MessageId,
+		AccountId:    i.AccountId,
+		AccountOldId: oldId,
+		TypeConstant: i.TypeConstant,
+		Count:        count,
 	}
 
 	err = f.sendInstanceEvent(i.MessageId, res, eventName)
@@ -191,18 +169,24 @@ func (f *RealtimeWorkerController) handleInteractionEvent(eventName string, data
 	return nil
 }
 
-func (f *RealtimeWorkerController) MessageReplySaved(data []byte) error {
-	i, err := mapMessageToMessageReply(data)
+func (f *Controller) MessageReplySaved(mr *models.MessageReply) error {
+	f.sendReplyEventAsChannelUpdatedEvent(mr, channelUpdatedEventReplyAdded)
+	f.sendReplyAddedEvent(mr)
+	return nil
+}
+
+func (f *Controller) sendReplyAddedEvent(mr *models.MessageReply) error {
+	reply := models.NewChannelMessage()
+	if err := reply.ById(mr.ReplyId); err != nil {
+		return err
+	}
+
+	cmc, err := reply.BuildEmptyMessageContainer()
 	if err != nil {
 		return err
 	}
 
-	reply := models.NewChannelMessage()
-	if err := reply.ById(i.ReplyId); err != nil {
-		return err
-	}
-
-	err = f.sendInstanceEvent(i.MessageId, reply, "ReplyAdded")
+	err = f.sendInstanceEvent(mr.MessageId, cmc, "ReplyAdded")
 	if err != nil {
 		fmt.Println(err)
 		return err
@@ -211,15 +195,58 @@ func (f *RealtimeWorkerController) MessageReplySaved(data []byte) error {
 	return nil
 }
 
-func (f *RealtimeWorkerController) MessageReplyDeleted(data []byte) error {
-	i, err := mapMessageToMessageReply(data)
+func (f *Controller) sendReplyEventAsChannelUpdatedEvent(mr *models.MessageReply, eventType ChannelUpdatedEventType) error {
+	parent, err := mr.FetchParent()
 	if err != nil {
 		return err
 	}
 
-	err = f.sendInstanceEvent(i.MessageId, i, "ReplyRemoved")
+	reply, err := mr.FetchReply()
 	if err != nil {
-		fmt.Println(err)
+		return err
+	}
+
+	cml := models.NewChannelMessageList()
+	channels, err := cml.FetchMessageChannels(parent.Id)
+	if err != nil {
+		return err
+	}
+
+	if len(channels) == 0 {
+		f.log.Info("Message:(%d) is not in any channel", parent.Id)
+		return nil
+	}
+
+	cue := &channelUpdatedEvent{
+		// channel will be set in range loop
+		Channel:              nil,
+		ParentChannelMessage: parent,
+		ReplyChannelMessage:  reply,
+		EventType:            eventType,
+	}
+
+	for _, channel := range channels {
+		if channel.TypeConstant == models.Channel_TYPE_TOPIC {
+			f.log.Critical("skip topic channels")
+			continue
+		}
+		cue.Channel = &channel
+		// send this event to all channels
+		// that have this message
+		err := f.sendChannelUpdatedEvent(cue)
+		if err != nil {
+			f.log.Error("err %s", err.Error())
+		}
+	}
+
+	return nil
+}
+
+func (f *Controller) MessageReplyDeleted(mr *models.MessageReply) error {
+
+	f.sendReplyEventAsChannelUpdatedEvent(mr, channelUpdatedEventReplyRemoved)
+
+	if err := f.sendInstanceEvent(mr.MessageId, mr, "ReplyRemoved"); err != nil {
 		return err
 	}
 
@@ -227,46 +254,193 @@ func (f *RealtimeWorkerController) MessageReplyDeleted(data []byte) error {
 }
 
 // send message to the channel
-func (f *RealtimeWorkerController) MessageListSaved(data []byte) error {
-	cml, err := mapMessageToChannelMessageList(data)
+func (f *Controller) MessageListSaved(cml *models.ChannelMessageList) error {
+	c, err := models.ChannelById(cml.ChannelId)
 	if err != nil {
 		return err
 	}
 
-	err = f.sendChannelEvent(cml, "MessageAdded")
-	if err != nil {
+	cm := models.NewChannelMessage()
+	if err := cm.ById(cml.MessageId); err != nil {
+		return err
+	}
+
+	cue := &channelUpdatedEvent{
+		Channel:              c,
+		ParentChannelMessage: cm,
+		EventType:            channelUpdatedEventMessageAddedToChannel,
+	}
+
+	if err := f.sendChannelUpdatedEvent(cue); err != nil {
+		return err
+	}
+
+	if err := f.sendChannelEvent(cml, "MessageAdded"); err != nil {
 		return err
 	}
 
 	return nil
 }
 
-// no operation for channel_message_list_updated event
-func (f *RealtimeWorkerController) MessageListUpdated(data []byte) error {
-	return nil
-}
-
-func (f *RealtimeWorkerController) MessageListDeleted(data []byte) error {
-	cml, err := mapMessageToChannelMessageList(data)
+func (f *Controller) MessageListUpdated(cml *models.ChannelMessageList) error {
+	c, err := models.ChannelById(cml.ChannelId)
 	if err != nil {
 		return err
 	}
 
-	err = f.sendChannelEvent(cml, "MessageRemoved")
+	cm := models.NewChannelMessage()
+	if err := cm.ById(cml.MessageId); err != nil {
+		return err
+	}
+
+	cp := models.NewChannelParticipant()
+	cp.AccountId = c.CreatorId
+
+	cue := &channelUpdatedEvent{
+		Channel:              c,
+		ParentChannelMessage: cm,
+		ChannelParticipant:   cp,
+		EventType:            channelUpdatedEventMessageUpdatedAtChannel,
+	}
+
+	return f.sendChannelUpdatedEventToParticipant(cue)
+}
+
+// todo - refactor this part
+func (f *Controller) MessageListDeleted(cml *models.ChannelMessageList) error {
+	c, err := models.ChannelById(cml.ChannelId)
 	if err != nil {
 		return err
 	}
+
+	cm := models.NewChannelMessage()
+	if err := cm.ById(cml.MessageId); err != nil {
+		return err
+	}
+
+	cp := models.NewChannelParticipant()
+	cp.AccountId = c.CreatorId
+
+	cue := &channelUpdatedEvent{
+		Channel:              c,
+		ParentChannelMessage: cm,
+		ChannelParticipant:   cp,
+		EventType:            channelUpdatedEventMessageRemovedFromChannel,
+	}
+
+	f.sendChannelUpdatedEvent(cue)
+	// f.sendNotification(cp.AccountId, ChannelUpdateEventName, cue)
+
+	if err := f.sendChannelEvent(cml, "MessageRemoved"); err != nil {
+		return err
+	}
+
 	return nil
 }
 
-func (f *RealtimeWorkerController) sendInstanceEvent(instanceId int64, message interface{}, eventName string) error {
+func (f *Controller) NotifyUser(notification *notificationmodels.Notification) error {
+	channel, err := f.rmqConn.Channel()
+	if err != nil {
+		return errors.New("channel connection error")
+	}
+	defer channel.Close()
+
+	activity, nc, err := notification.FetchLastActivity()
+	if err != nil {
+		return err
+	}
+
+	// do not notify actor for her own action
+	if activity.ActorId == notification.AccountId {
+		return nil
+	}
+
+	// do not notify user when notification is not yet activated,
+	// or it is already glanced (subscription case)
+	if notification.ActivatedAt.IsZero() || notification.Glanced {
+		return nil
+	}
+
+	oldAccount, err := fetchOldAccount(notification.AccountId)
+	if err != nil {
+		f.log.Warning("an error occurred while fetching old account: %s", err)
+		return nil
+	}
+
+	// fetch user profile name from bongo as routing key
+	ne := &NotificationEvent{}
+
+	ne.Content = NotificationContent{
+		TargetId:     nc.TargetId,
+		TypeConstant: nc.TypeConstant,
+	}
+	ne.Content.ActorId, _ = models.AccountOldIdById(activity.ActorId)
+
+	notificationMessage, err := json.Marshal(ne)
+	if err != nil {
+		return err
+	}
+
+	routingKey := oldAccount.Profile.Nickname
+
+	err = channel.Publish(
+		"notification",
+		routingKey,
+		false,
+		false,
+		amqp.Publishing{Body: notificationMessage},
+	)
+	if err != nil {
+		return fmt.Errorf("an error occurred while notifying user: %s", err)
+	}
+
+	return nil
+}
+
+// to-do add eviction here
+func fetchOldAccountFromCache(accountId int64) (*mongomodels.Account, error) {
+	if account, ok := mongoAccounts[accountId]; ok {
+		return account, nil
+	}
+
+	account, err := fetchOldAccount(accountId)
+	if err != nil {
+		return nil, err
+	}
+
+	mongoAccounts[accountId] = account
+	return account, nil
+}
+
+// fetchOldAccount fetches mongo account of a given new account id.
+// this function must be used under another file for further use
+func fetchOldAccount(accountId int64) (*mongomodels.Account, error) {
+	newAccount := models.NewAccount()
+	if err := newAccount.ById(accountId); err != nil {
+		return nil, err
+	}
+
+	account, err := modelhelper.GetAccountById(newAccount.OldId)
+	if err != nil {
+		if err == mgo.ErrNotFound {
+			return nil, errors.New("old account not found")
+		}
+
+		return nil, err
+	}
+
+	return account, nil
+}
+
+func (f *Controller) sendInstanceEvent(instanceId int64, message interface{}, eventName string) error {
 	channel, err := f.rmqConn.Channel()
 	if err != nil {
 		return err
 	}
 	defer channel.Close()
 
-	routingKey := "oid." + strconv.FormatInt(instanceId, 10) + ".event." + eventName
+	id := strconv.FormatInt(instanceId, 10)
+	routingKey := "oid." + id + ".event." + eventName
 
 	updateMessage, err := json.Marshal(message)
 	if err != nil {
@@ -274,7 +448,7 @@ func (f *RealtimeWorkerController) sendInstanceEvent(instanceId int64, message i
 	}
 
 	updateArr := make([]string, 1)
-	if eventName == "updateInstances" {
+	if eventName == "updateInstance" {
 		updateArr[0] = fmt.Sprintf("{\"$set\":%s}", string(updateMessage))
 	} else {
 		updateArr[0] = string(updateMessage)
@@ -285,6 +459,8 @@ func (f *RealtimeWorkerController) sendInstanceEvent(instanceId int64, message i
 		return err
 	}
 
+	f.log.Debug("Sending Instance Event Id:%s Message:%s ", id, updateMessage)
+
 	return channel.Publish(
 		"updateInstances", // exchange name
 		routingKey,        // routing key
@@ -294,7 +470,7 @@ func (f *RealtimeWorkerController) sendInstanceEvent(instanceId int64, message i
 	)
 }
 
-func (f *RealtimeWorkerController) sendChannelEvent(cml *models.ChannelMessageList, eventName string) error {
+func (f *Controller) sendChannelEvent(cml *models.ChannelMessageList, eventName string) error {
 	channel, err := f.rmqConn.Channel()
 	if err != nil {
 		return err
@@ -317,10 +493,17 @@ func (f *RealtimeWorkerController) sendChannelEvent(cml *models.ChannelMessageLi
 		return err
 	}
 
-	byteMessage, err := json.Marshal(cm)
+	cmc, err := cm.BuildEmptyMessageContainer()
 	if err != nil {
 		return err
 	}
+
+	byteMessage, err := json.Marshal(cmc)
+	if err != nil {
+		return err
+	}
+
+	f.log.Debug("Sending Channel Event ChannelId:%d Message:%s ", cml.ChannelId, byteMessage)
 
 	for _, secretName := range secretNames {
 		routingKey := "socialapi.channelsecret." + secretName + "." + eventName
@@ -340,7 +523,7 @@ func (f *RealtimeWorkerController) sendChannelEvent(cml *models.ChannelMessageLi
 
 func fetchSecretNames(channelId int64) ([]string, error) {
 	names := make([]string, 0)
-	c, err := fetchChannel(channelId)
+	c, err := models.ChannelById(channelId)
 	if err != nil {
 		return names, err
 	}
@@ -356,22 +539,14 @@ func fetchSecretNames(channelId int64) ([]string, error) {
 	return names, nil
 }
 
-func fetchChannel(channelId int64) (*models.Channel, error) {
-	c := models.NewChannel()
-	if err := c.ById(channelId); err != nil {
-		return nil, err
-	}
-	return c, nil
-}
-
-func (f *RealtimeWorkerController) sendNotification(accountId int64, eventName string, data interface{}) error {
+func (f *Controller) sendNotification(accountId int64, eventName string, data interface{}) error {
 	channel, err := f.rmqConn.Channel()
 	if err != nil {
 		return err
 	}
 	defer channel.Close()
 
-	oldAccount, err := modelhelper.GetAccountBySocialApiId(accountId)
+	oldAccount, err := fetchOldAccountFromCache(accountId)
 	if err != nil {
 		return err
 	}

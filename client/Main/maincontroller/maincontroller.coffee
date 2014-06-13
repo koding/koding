@@ -34,10 +34,7 @@ class MainController extends KDController
 
     KD.registerSingleton "mainController",            this
 
-    KD.registerSingleton "kontrol",     new KodingKontrol
-
-    # KD.registerSingleton "kontrolProd", new KodingKontrol
-    #   kontrolUrl : "wss://kontrol.koding.com"
+    KD.registerSingleton 'kontrol',                   new KodingKontrol
 
     KD.registerSingleton 'appManager',   appManager = new ApplicationManager
     KD.registerSingleton 'globalKeyCombos',  combos = new KDKeyboardMap priority : 0
@@ -63,6 +60,7 @@ class MainController extends KDController
     KD.registerSingleton 'mainView',             mv = new MainView domId : 'kdmaincontainer'
     KD.registerSingleton 'mainViewController',  mvc = new MainViewController view : mv
     KD.registerSingleton 'kodingAppsController',      new KodingAppsController
+    KD.registerSingleton 'socialapi',                 new SocialApiController
 
     router.listen()
     @mainViewController = mvc
@@ -71,7 +69,6 @@ class MainController extends KDController
     @ready =>
       KD.registerSingleton 'widgetController',        new WidgetController
       KD.registerSingleton 'onboardingController',    new OnboardingController
-      KD.registerSingleton "socialapi",               new SocialApiController
 
       @emit 'AppIsReady'
 
@@ -274,6 +271,3 @@ class MainController extends KDController
       for src in images
         image     = new Image
         image.src = src
-
-
-

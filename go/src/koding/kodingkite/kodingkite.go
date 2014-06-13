@@ -102,7 +102,7 @@ func getRegisterIP(environment string) (string, error) {
 	case "staging":
 		// Magical IP address of Openstack Metadata Service
 		// http://docs.openstack.org/grizzly/openstack-compute/admin/content/metadata-service.html
-		resp, err := http.Get("http://169.254.169.254/latest/meta-data/public-ipv4")
+		resp, err := http.Get("http://echoip.com")
 		if err != nil {
 			return "", errors.New("cannot get public IP address: " + err.Error())
 		}

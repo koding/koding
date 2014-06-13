@@ -7,6 +7,7 @@ import (
 	"socialapi/models"
 	"strconv"
 	"testing"
+
 	. "github.com/smartystreets/goconvey/convey"
 )
 
@@ -197,6 +198,8 @@ func TestChannelMessage(t *testing.T) {
 
 			})
 
+			Convey("we should be able to get replies with \"from\" query param", nil)
+
 			Convey("non-owner can post reply to message", func() {
 				post, err := createPost(groupChannel.Id, account.Id)
 				So(err, ShouldBeNil)
@@ -348,6 +351,24 @@ func TestChannelMessage(t *testing.T) {
 				So(interactions, ShouldNotBeNil)
 			})
 			Convey("while deleting messages, they should be removed from all channels", nil)
+
+			Convey("message can contain payload", func() {
+				payload := make(map[string]interface{})
+				payload["key1"] = "value1"
+				payload["key2"] = 2
+				payload["key3"] = true
+				payload["key4"] = 3.4
+
+				post, err := createPostWithPayload(groupChannel.Id, account.Id, payload)
+				So(err, ShouldBeNil)
+				So(post, ShouldNotBeNil)
+
+				So(post.Payload, ShouldNotBeNil)
+				So(*(post.Payload["key1"]), ShouldEqual, "value1")
+				So(*(post.Payload["key2"]), ShouldEqual, "2")
+				So(*(post.Payload["key3"]), ShouldEqual, "true")
+				So(*(post.Payload["key4"]), ShouldEqual, "3.4")
+			})
 		})
 	})
 }
@@ -356,17 +377,43 @@ func createPost(channelId, accountId int64) (*models.ChannelMessage, error) {
 	return createPostWithBody(channelId, accountId, "create a message")
 }
 
+type PayloadRequest struct {
+	Body      string                 `json:"body"`
+	AccountId int64                  `json:"accountId,string"`
+	Payload   map[string]interface{} `json:"payload"`
+}
+
+func createPostWithPayload(channelId, accountId int64, payload map[string]interface{}) (*models.ChannelMessage, error) {
+	pr := PayloadRequest{}
+	pr.Body = "message with payload"
+	pr.AccountId = accountId
+	pr.Payload = payload
+
+	return createPostRequest(channelId, pr)
+}
+
 func createPostWithBody(channelId, accountId int64, body string) (*models.ChannelMessage, error) {
 	cm := models.NewChannelMessage()
 	cm.Body = body
 	cm.AccountId = accountId
 
+	return createPostRequest(channelId, cm)
+}
+
+func createPostRequest(channelId int64, model interface{}) (*models.ChannelMessage, error) {
 	url := fmt.Sprintf("/channel/%d/message", channelId)
-	cmI, err := sendModel("POST", url, cm)
+	res, err := marshallAndSendRequest("POST", url, model)
 	if err != nil {
 		return nil, err
 	}
-	return cmI.(*models.ChannelMessage), nil
+
+	container := models.NewChannelMessageContainer()
+	err = json.Unmarshal(res, container)
+	if err != nil {
+		return nil, err
+	}
+
+	return container.Message, nil
 }
 
 func updatePost(cm *models.ChannelMessage) (*models.ChannelMessage, error) {
@@ -420,14 +467,14 @@ func addInteraction(interactionType string, postId, accountId int64) error {
 	return nil
 }
 
-func getInteractions(interactionType string, postId int64) ([]int64, error) {
+func getInteractions(interactionType string, postId int64) ([]string, error) {
 	url := fmt.Sprintf("/message/%d/interaction/%s", postId, interactionType)
 	res, err := sendRequest("GET", url, nil)
 	if err != nil {
 		return nil, err
 	}
 
-	var interactions []int64
+	var interactions []string
 	err = json.Unmarshal(res, &interactions)
 	if err != nil {
 		return nil, err
@@ -472,11 +519,18 @@ func addReply(postId, accountId, channelId int64) (*models.ChannelMessage, error
 	cm.InitialChannelId = channelId
 
 	url := fmt.Sprintf("/message/%d/reply", postId)
-	_, err := sendModel("POST", url, cm)
+	res, err := marshallAndSendRequest("POST", url, cm)
 	if err != nil {
 		return nil, err
 	}
-	return cm, nil
+
+	model := models.NewChannelMessageContainer()
+	err = json.Unmarshal(res, model)
+	if err != nil {
+		return nil, err
+	}
+
+	return model.Message, nil
 }
 
 func deleteReply(postId, replyId int64) error {

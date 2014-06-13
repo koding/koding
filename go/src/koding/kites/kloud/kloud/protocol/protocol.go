@@ -5,6 +5,10 @@ import (
 	"koding/kites/kloud/kloud/machinestate"
 )
 
+var (
+	DefaultImageName = "koding-klient-0.0.1"
+)
+
 // MachineOptions is passed to the methods of the Provider interface. It
 // contains all necessary informations.
 type MachineOptions struct {
@@ -24,6 +28,12 @@ type MachineOptions struct {
 	// InstanceName is used to change the machine name (usually hostname). If
 	// it's empty a unique name will be used.
 	InstanceName string
+
+	// Builder contains information about how to build the data
+	Builder map[string]interface{}
+
+	// Credential contains information for accessing third party provider services
+	Credential map[string]interface{}
 
 	// Eventer pushes the latest events to the build event.
 	Eventer eventer.Eventer
@@ -54,15 +64,17 @@ type InfoResponse struct {
 	State machinestate.State
 }
 
+// Initializer initializes a provider once. It might used to initialize the
+// Provider once before it's used as a Provider. This should be nonblocking or
+// last for a short time.
+type Initializer interface {
+	Init() error
+}
+
 // Provider manages a machine. It is used to create and provision a single
 // image or machine for a given Provider, to start/stop/destroy/restart a
 // machine.
 type Provider interface {
-	// Prepare is responsible of configuring and initializing the builder and
-	// validating the given configuration prior Build. Calling other methods
-	// before Prepare should be forbidden.
-	Prepare(...interface{}) error
-
 	// Build is creating a image and a machine.
 	Build(*MachineOptions) (*BuildResponse, error)
 

@@ -10,7 +10,7 @@ import (
 
 type Account struct {
 	// unique id of the account
-	Id int64 `json:"id"`
+	Id int64 `json:"id,string"`
 
 	// old id of the account, which is originally
 	// perisisted in mongo
@@ -22,7 +22,7 @@ func NewAccount() *Account {
 	return &Account{}
 }
 
-func (a *Account) GetId() int64 {
+func (a Account) GetId() int64 {
 	return a.Id
 }
 
@@ -71,10 +71,6 @@ func (a *Account) Create() error {
 	}
 
 	return bongo.B.Create(a)
-}
-
-func (a *Account) Delete() error {
-	return bongo.B.Delete(a)
 }
 
 func (a *Account) Some(data interface{}, q *bongo.Query) error {
@@ -190,22 +186,22 @@ func (a *Account) FetchFollowerChannelIds() ([]int64, error) {
 
 	cp := NewChannelParticipant()
 	var channelIds []int64
-	err = bongo.B.DB.
+	res := bongo.B.DB.
 		Table(cp.TableName()).
 		Where(
 		"creator_id IN (?) and type_constant = ?",
 		followerIds,
 		Channel_TYPE_FOLLOWINGFEED,
-	).Find(&channelIds).Error
+	).Find(&channelIds)
 
-	if err != nil {
+	if err := bongo.CheckErr(res); err != nil {
 		return nil, err
 	}
 
 	return channelIds, nil
 }
 
-func FetchOdlIdByAccountId(accountId int64) (string, error) {
+func FetchOldIdByAccountId(accountId int64) (string, error) {
 
 	a := NewAccount()
 	var data []string
@@ -213,8 +209,8 @@ func FetchOdlIdByAccountId(accountId int64) (string, error) {
 		Selector: map[string]interface{}{
 			"id": accountId,
 		},
-		Pluck: "old_id",
-		Limit: 1,
+		Pluck:      "old_id",
+		Pagination: *bongo.NewPagination(1, 0),
 	}
 	err := a.Some(&data, q)
 	if err != nil {
@@ -233,19 +229,19 @@ func FetchOldIdsByAccountIds(accountIds []int64) ([]string, error) {
 	if len(accountIds) == 0 {
 		return make([]string, 0), nil
 	}
-	a := NewAccount()
-	err := bongo.B.DB.
-		Table(a.TableName()).
-		Where("id IN (?)", accountIds).
-		Pluck("old_id", &oldIds).Error
 
-	if err != nil {
-		return make([]string, 0), err
+	res := bongo.B.DB.
+		Table(Account{}.TableName()).
+		Where("id IN (?)", accountIds).
+		Pluck("old_id", &oldIds)
+
+	if err := bongo.CheckErr(res); err != nil {
+		return nil, err
 	}
 
 	if len(oldIds) == 0 {
 		return make([]string, 0), nil
 	}
 
-	return oldIds, err
+	return oldIds, nil
 }

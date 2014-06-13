@@ -8,12 +8,12 @@ class ActivityInputView extends KDTokenizedInput
     options.multiline       ?= yes
     options.placeholder    or= "What's new #{KD.whoami().profile.firstName}?"
     options.tokenViewClass or= TokenView
-    options.rules  or=
-      tag            :
-        type         : "tag"
-        prefix       : "#"
-        pistachio    : "\#{{#(title)}}"
-        dataSource   : @bound "fetchTopics"
+    # options.rules  or=
+    #   tag            :
+    #     type         : "tag"
+    #     prefix       : "#"
+    #     pistachio    : "\#{{#(title)}}"
+    #     dataSource   : @bound "fetchTopics"
 
     super options, data
     @defaultTokens = initializeDefaultTokens()
@@ -50,15 +50,6 @@ class ActivityInputView extends KDTokenizedInput
     fillTokenMap activity.tags , tokens.tags  if activity?.tags?.length
     super @renderTokens content, tokens
 
-  sanitizeInput: ->
-    {prefix} = @activeRule
-    value = @tokenInput.textContent.substring prefix.length
-    words = value.split /\W/, 3
-    if words.join("") isnt ""
-      newval = prefix + words.join "-"
-      @tokenInput.textContent = newval
-      @utils.selectText @tokenInput, 1
-
   selectToken: ->
     return  unless @menu
     {prefix} = @activeRule
@@ -71,9 +62,12 @@ class ActivityInputView extends KDTokenizedInput
         return  true
 
   keyDown: (event) ->
-    super
+    super event
     return  if event.isPropagationStopped()
     switch event.which
+      when 13 # Enter
+        KD.utils.stopDOMEvent event
+        @handleEnter event
       when 27 # Escape
         @emit "Escape"
 
@@ -84,6 +78,35 @@ class ActivityInputView extends KDTokenizedInput
   keyUp: ->
     return  if @getTokens().length >= TOKEN_LIMIT
     super
+
+  handleEnter: (event) ->
+    return @insertNewline()  if event.shiftKey
+
+    position = @getPosition()
+    read     = 0
+    for part, index in @getValue().split '```'
+      blockquote = index %% 2 is 1
+      read += part.length + (if blockquote then 6 else 0)
+      continue  if position > read
+
+      if blockquote
+      then @insertNewline()
+      else @emit 'Enter'
+      break
+
+  insertNewline: ->
+    document.execCommand 'insertText', no, "\n"
+
+  getPosition: ->
+    {startContainer, startOffset} = KD.utils.getSelectionRange()
+    {parentNode} = startContainer
+
+    position = 0
+    for node in @getEditableElement().childNodes
+      break  if node is startContainer or node is parentNode
+      position += node.textContent.length
+
+    return position + startOffset
 
   focus: ->
     return  if @focused

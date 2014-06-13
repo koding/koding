@@ -16,8 +16,6 @@ type ControlResult struct {
 	EventId string             `json:"eventId"`
 }
 
-var defaultImageName = "koding-klient-0.0.1"
-
 func (k *Kloud) build(r *kite.Request, c *Controller) (interface{}, error) {
 	if c.CurrenState == machinestate.Building {
 		return nil, NewError(ErrBuilding)
@@ -46,8 +44,7 @@ func (k *Kloud) build(r *kite.Request, c *Controller) (interface{}, error) {
 		if err != nil {
 			k.Log.Error("[controller] building machine failed: %s. Machine state is marked as ERROR.\n"+
 				"Any other calls are now forbidden until the state is resolved manually.\n"+
-				"Args: %v User: %s EventId: %v Previous Events: %s",
-				err.Error(), c, r.Username, c.MachineId, c.Eventer)
+				"Args: %v User: %s EventId: %v ", err.Error(), c, r.Username, c.MachineId)
 
 			status = machinestate.Unknown
 			msg = err.Error()
@@ -69,7 +66,7 @@ func (k *Kloud) build(r *kite.Request, c *Controller) (interface{}, error) {
 }
 
 func (k *Kloud) buildMachine(username string, c *Controller) error {
-	imageName := defaultImageName
+	imageName := protocol.DefaultImageName
 	if c.ImageName != "" {
 		imageName = c.ImageName
 	}
@@ -85,6 +82,8 @@ func (k *Kloud) buildMachine(username string, c *Controller) error {
 		ImageName:    imageName,
 		InstanceName: instanceName,
 		Eventer:      c.Eventer,
+		Credential:   c.MachineData.Credential.Meta,
+		Builder:      c.MachineData.Machine.Meta,
 	}
 
 	msg := fmt.Sprintf("Building process started. Provider '%s'. Build options: %+v",

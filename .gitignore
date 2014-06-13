@@ -68,15 +68,24 @@ logs/*.log
 
 node_modules_koding/processes/src/.tmp*
 
-/client/Main/__generatedroutes__.coffee
-/client/Main/__generatedapps__.coffee
+/go/src/socialapi/topicfeed
+/go/src/socialapi/rerun
+/go/src/socialapi/realtime
+/go/src/socialapi/popularpost
+/go/src/socialapi/populartopic
+/go/src/socialapi/followingfeed
+/go/src/socialapi/api
+/go/src/socialapi/notification
+/go/src/socialapi/emailnotifier
+/go/src/socialapi/migrator
 
-website/a/sprites/*.sprite.png
-
-client/Main/__generated*
 website/a/css/kd.css
 website/a/css/koding.css
 website/a/js/bongo.js
 website/a/js/kd.js
 website/a/js/kd.libs.js
 website/a/js/koding.js
+
+client/Main/__generated*
+
+website/a/sprites/*.sprite.png

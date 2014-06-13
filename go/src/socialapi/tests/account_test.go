@@ -1,9 +1,9 @@
 package main
 
 import (
+	"labix.org/v2/mgo/bson"
 	"socialapi/models"
 	"testing"
-	"labix.org/v2/mgo/bson"
 
 	. "github.com/smartystreets/goconvey/convey"
 )
@@ -11,6 +11,8 @@ import (
 var AccountOldId = bson.NewObjectId()
 var AccountOldId2 = bson.NewObjectId()
 var AccountOldId3 = bson.NewObjectId()
+var AccountOldId4 = bson.NewObjectId()
+var AccountOldId5 = bson.NewObjectId()
 
 func TestAccountCreation(t *testing.T) {
 	Convey("while  creating account", t, func() {

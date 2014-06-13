@@ -12,13 +12,19 @@ module.exports = class SocialChannel extends Base
   @set
     sharedMethods :
       static      :
-        fetchActivities     :
+        byId              :
+          (signature Object, Function)
+        byName            :
+          (signature Object, Function)
+        fetchActivities   :
           (signature Object, Function)
         fetchChannels     :
           (signature Object, Function)
         fetchParticipants :
           (signature Object, Function)
         fetchPopularTopics:
+          (signature Object, Function)
+        fetchPopularPosts:
           (signature Object, Function)
         fetchPinnedMessages:
           (signature Object, Function)
@@ -31,6 +37,15 @@ module.exports = class SocialChannel extends Base
         unfollow:
           (signature Object, Function)
         fetchFollowedChannels:
+          (signature Object, Function)
+        searchTopics:
+          (signature Object, Function)
+
+        fetchProfileFeed:
+          (signature Object, Function)
+        updateLastSeenTime:
+          (signature Object, Function)
+        glancePinnedPost:
           (signature Object, Function)
 
     schema             :
@@ -54,13 +69,15 @@ module.exports = class SocialChannel extends Base
   Validators = require '../group/validators'
   {permit}   = require '../group/permissionset'
 
-  {fetchGroup} = require "./helper"
+  { fetchGroup, secureRequest,
+    doRequest, permittedRequest,
+    ensureGroupChannel, fetchGroup } = require "./helper"
 
   @generateChannelName = ({groupSlug, apiChannelType, apiChannelName})->
-    return "socialapi-
-group-#{groupSlug}-
-type-#{apiChannelType}-
-name-#{apiChannelName}"
+    return "socialapi-\
+    group-#{groupSlug}-\
+    type-#{apiChannelType}-\
+    name-#{apiChannelName}"
 
   @fetchSecretChannelName =(options, callback)->
     {groupSlug, apiChannelType, apiChannelName} = options
@@ -92,54 +109,107 @@ name-#{apiChannelName}"
 
     @constructor.cycleChannel options, callback
 
-  @fetchActivities = secure (client, options = {}, callback)->
+  @checkChannelParticipation = secureRequest
+    fnName   : 'checkChannelParticipation'
+    validate : ['name', 'type']
+
+
+  # byId - fetch channel by id
+  @byId = secureRequest
+    fnName  : 'channelById'
+    validate: ["id"]
+
+  # byName - fetch channel by name
+  @byName = secureRequest
+    fnName  : 'channelByName'
+    validate: ["name"]
+
+  # searchTopics - search topics for autocompletion
+  @searchTopics          = secureRequest fnName: 'searchTopics'
+
+  # fetchProfileFeed - lists all activities of an account
+  # within a specified group
+  @fetchProfileFeed      = secureRequest fnName: 'fetchProfileFeed'
+
+  # fetchPopularTopics - lists group specific popular topics
+  # it can be daily, weekly, monthly
+  @fetchPopularTopics    = secureRequest fnName: 'fetchPopularTopics'
+
+  # fetchPopularPosts -  lists group specific popular posts
+  # it can be daily, weekly, monthly
+  @fetchPopularPosts     = secureRequest fnName: 'fetchPopularPosts'
+
+  # fetchChannels - lists group's topic channels
+  @fetchChannels         = secureRequest fnName: 'fetchGroupChannels'
+
+  # fetchFollowedChannels - lists followed channels(topics) of an account
+  @fetchFollowedChannels = secureRequest fnName: 'fetchFollowedChannels'
+
+  # follow - endpoint for users to follow topics
+  @follow = secureRequest
+    fnName  : 'followTopic'
+    validate: ["channelId"]
+
+  # unfollow - endpoint for users to give up following a channel
+  @unfollow = secureRequest
+    fnName  : 'unfollowTopic'
+    validate: ["channelId"]
+
+  # updateLastSeenTime - updates user's channel presence data
+  @updateLastSeenTime = secureRequest
+    fnName  : 'updateLastSeenTime'
+    validate: ["channelId"]
+
+  # glancePinnedPost - updates user's lastSeenDate for pinned posts
+  @glancePinnedPost = secureRequest
+    fnName  : 'glancePinnedPost'
+    validate: ["messageId"]
+
+  # fetchPinnedMessages - fetch user's pinned messages
+  @fetchPinnedMessages = permittedRequest
+    permissionName: 'pin posts'
+    fnName        : 'fetchPinnedMessages'
+
+  # pinMessage - pin a message for future referance
+  @pinMessage = permittedRequest
+    permissionName: 'pin posts'
+    fnName        : 'pinMessage'
+    validate      : ['messageId']
+
+  # unpinMessage - remove a pinned message from followed posts
+  @unpinMessage = permittedRequest
+    permissionName: 'pin posts'
+    fnName        : 'unpinMessage'
+    validate      : ['messageId']
+
+  # fetchActivities - fetch activities of a channel
+  @fetchActivities = secure (client, options, callback)->
     options.channelId = options.id
-    @doRequest 'fetchChannelActivities', client, options, callback
+    doRequest 'fetchChannelActivities', client, options, callback
 
-  @fetchPopularTopics = secure (client, options = {}, callback)->
-    @doRequest 'fetchPopularTopics', client, options, callback
-
-  @fetchChannels = secure (client, options = {}, callback)->
-    @doRequest 'fetchGroupChannels', client, options, callback
-
-  @fetchFollowedChannels = secure (client, options = {}, callback)->
-    @doRequest 'fetchFollowedChannels', client, options, callback
-
-  @fetchPinnedMessages = permit 'pin posts',
-    success: (client, options, callback)->
-      @doRequest 'fetchPinnedMessages', client, options, callback
-
-  @pinMessage = permit 'pin posts',
-    success:  (client, options, callback)->
-      unless options.messageId
-        return callback {message: "Message id is not set for pinning "}
-      @doRequest 'pinMessage', client, options, callback
-
-  @unpinMessage = permit 'like posts',
-    success:  (client, options, callback)->
-      unless options.messageId
-        return callback {message: "Message id is not set for un-pinning "}
-      @doRequest 'unpinMessage', client, options, callback
-
-  @follow = secure (client, options, callback)->
-    unless options.channelId
-      return callback {message: "Channel id is not set for following a topic"}
-    @doRequest 'followTopic', client, options, callback
-
-  @unfollow = secure (client, options, callback)->
-    unless options.channelId
-      return callback {message: "Channel id is not set for topic unfollowing"}
-    @doRequest 'unfollowTopic', client, options, callback
-
-  @doRequest = (funcName, client, options, callback)->
-    fetchGroup client, (err, group)->
+  # fetchGroupActivities - fetch public activities of a group
+  @fetchGroupActivities = secure (client, options, callback)->
+    ensureGroupChannel client, (err, socialApiChannelId)->
       return callback err if err
-      {connection:{delegate}} = client
-      delegate.createSocialApiId (err, socialApiId)->
-        return callback err if err
+      return callback { message: "Channel Id is not set" } unless socialApiChannelId
 
-        options.groupName = group.slug
-        options.accountId = socialApiId
+      options.id = socialApiChannelId
+      SocialChannel.fetchActivities client, options, callback
 
-        requests = require './requests'
-        requests[funcName] options, callback
+  # followUser - a user follows a user
+  @followUser = secure (client, options, callback)->
+    {connection:{delegate}} = client
+    return callback {message: "Access denied"}  if delegate.type isnt 'registered'
+    unless options.followee
+      return callback {message: "Followee is not set"}
+
+    delegate.createSocialApiId (err, actorId) ->
+      return callback err  if err
+      options.followee.createSocialApiId (err, targetId) ->
+        return callback err  if err
+        {followUser, unfollowUser} = require './requests'
+        data =
+          accountId   : actorId
+          creatorId   : targetId
+        method = if options.unfollow then unfollowUser else followUser
+        method data, callback

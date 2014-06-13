@@ -5,9 +5,12 @@ import (
 	"net/url"
 	"socialapi/models"
 	"socialapi/workers/api/modules/helpers"
+
+	"github.com/koding/bongo"
 )
 
-func ListChannels(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface{}, error) {
+// lists followed channels of an account
+func ListChannels(u *url.URL, h http.Header, _ interface{}, c *models.Context) (int, http.Header, interface{}, error) {
 	query := helpers.GetQuery(u)
 
 	accountId, err := helpers.GetURIInt64(u, "id")
@@ -25,63 +28,43 @@ func ListChannels(u *url.URL, h http.Header, _ interface{}) (int, http.Header, i
 		return helpers.NewBadRequestResponse(err)
 	}
 
-	return helpers.NewOKResponse(
-		models.PopulateChannelContainers(channels, accountId),
+	return helpers.HandleResultAndError(
+		models.PopulateChannelContainersWithUnreadCount(channels, accountId),
 	)
 }
 
-func ListProfileFeed(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface{}, error) {
-	// query := helpers.GetQuery(u)
+func ListPosts(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface{}, error) {
+	query := helpers.GetQuery(u)
+	buildMessageQuery := query
 
-	// accountId, err := helpers.GetURIInt64(u, "id")
-	// if err != nil {
-	// 	return helpers.NewBadRequestResponse(err)
-	// }
+	accountId, err := helpers.GetURIInt64(u, "id")
+	if err != nil {
+		return helpers.NewBadRequestResponse(err)
+	}
 
-	// /// Get Group Channel
-	// selector := map[string]interface{}{
-	// 	"group_name":    query.GroupName,
-	// 	"type_constant": models.Channel_TYPE_GROUP,
-	// }
+	// Get Group Channel
+	selector := map[string]interface{}{
+		"group_name":    query.GroupName,
+		"type_constant": models.Channel_TYPE_GROUP,
+	}
 
-	// c := models.NewChannel()
-	// if err := c.One(bongo.NewQS(selector)); err != nil {
-	// 	return helpers.NewBadRequestResponse(err)
-	// }
+	c := models.NewChannel()
+	if err := c.One(bongo.NewQS(selector)); err != nil {
+		return helpers.NewBadRequestResponse(err)
+	}
+	// fetch only channel messages
+	query.Type = models.ChannelMessage_TYPE_POST
+	query.AccountId = accountId
+	cm := models.NewChannelMessage()
+	messages, err := cm.FetchMessagesByChannelId(c.Id, query)
+	if err != nil {
+		return helpers.NewBadRequestResponse(err)
+	}
 
-	// var results []models.ChannelMessage
-	// cm := models.NewChannelMessage()
-	// bongo.B.DB.Table(cm.TableName()).
-	// 	Select("api.channel_message.*").
-	// 	Joins("left join api.channel_message_list on api.channel_message.id = api.channel_message_list.message_id").
-	// 	Scan(&results)
-	// /// Fetch Messages that are created by account
-	// var cml ChannelMessageList = models.NewChannelMessageList()
-	// cmlQuery := &bongo.Query{
-	// 	Selector: map[string]interface{}{
-	// 		"channel_id": c.Id,
-	// 	},
-	// 	Sort: map[string]interface{}{
-	// 		"added_at": "DESC",
-	// 	},
-	// 	Limit: query.Limit,
-	// 	Skip:  query.Skip,
-	// 	Pluck: "message_id",
-	// }
-
-	// var messageIds []int64
-	// if err := cml.Some(&messageIds, cmlQuery); err != nil {
-	// 	return helpers.NewBadRequestResponse(err)
-	// }
-
-	// /// Fetch messages
-	// cm := models.NewChannelMessage()
-	// messages, err := cm.FetchByIds(messageIds)
-	// if err != nil {
-	// 	return helpers.NewBadRequestResponse(err)
-	// }
-
-	return helpers.NewOKResponse(nil)
+	buildMessageQuery.Limit = 3
+	return helpers.HandleResultAndError(
+		cm.BuildMessages(buildMessageQuery, messages),
+	)
 }
 
 func Follow(u *url.URL, h http.Header, req *models.Account) (int, http.Header, interface{}, error) {
