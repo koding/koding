@@ -345,6 +345,8 @@ func statusToState(status string) machinestate.State {
 		return machinestate.Stopped
 	case "new":
 		return machinestate.Building
+	case "archive":
+		return machinestate.Terminated
 	default:
 		return machinestate.Unknown
 	}
