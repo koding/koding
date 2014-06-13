@@ -68,6 +68,9 @@ class ActivityAppController extends AppController
     socialapi.channel.fetchActivities {id, from}, callback
 
 
+  getActiveChannel: -> @getView().sidebar.selectedItem.getData()
+
+
   #
   # LEGACY
   #
