@@ -268,9 +268,20 @@ class IDEAppController extends AppController
     @activeTabView.emit 'ShortcutsViewRequested'
 
   showActionsMenu: (button) ->
-    new IDE.StatusBarMenu
-      paneType : @getActivePaneView()?.getOptions().paneType or null
+    paneView   = @getActivePaneView()
+    paneType   = paneView?.getOptions().paneType or null
+    menu       = new IDE.StatusBarMenu
+      paneType : paneType
       delegate : button
+
+    menu.on 'viewAppended', ->
+      if paneType is 'editor' and paneView
+        {syntaxSelector} = menu
+        {ace}            = paneView.aceView
+
+        syntaxSelector.select.setValue ace.getSyntax()
+        syntaxSelector.on 'SelectionMade', (value) =>
+          ace.setSyntax value
 
   getActivePaneView: ->
     return @activeTabView.getActivePane().getSubViews().first
