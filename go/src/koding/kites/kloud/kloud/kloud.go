@@ -3,10 +3,10 @@ package kloud
 import (
 	"fmt"
 	"koding/db/mongodb"
-	"koding/kites/kloud/digitalocean"
 	"koding/kites/kloud/eventer"
 	"koding/kites/kloud/idlock"
 	"koding/kites/kloud/kloud/protocol"
+	"koding/kites/kloud/provider/digitalocean"
 	"koding/kodingkite"
 	"koding/tools/config"
 	"log"
@@ -75,16 +75,16 @@ func (k *Kloud) NewKloud() *kodingkite.KodingKite {
 		k.UniqueId = uniqueId()
 	}
 
-	mongodbSession := &MongoDB{
-		session:  mongodb.NewMongoDB(k.Config.Mongo),
-		assignee: k.UniqueId,
-	}
-
-	if err := mongodbSession.CleanupOldData(); err != nil {
-		k.Log.Notice("Cleaning up mongodb err: %s", err.Error())
-	}
-
 	if k.Storage == nil {
+		mongodbSession := &MongoDB{
+			session:  mongodb.NewMongoDB(k.Config.Mongo),
+			assignee: k.UniqueId,
+		}
+
+		if err := mongodbSession.CleanupOldData(); err != nil {
+			k.Log.Notice("Cleaning up mongodb err: %s", err.Error())
+		}
+
 		k.Storage = mongodbSession
 	}
 
@@ -126,7 +126,7 @@ func (k *Kloud) GetProvider(providerName string) (protocol.Provider, error) {
 func (k *Kloud) InitializeProviders() {
 	providers = map[string]func() protocol.Provider{
 		"digitalocean": func() protocol.Provider {
-			return &digitalocean.DigitalOcean{
+			return &digitalocean.Provider{
 				Log:      createLogger("digitalocean", k.Debug),
 				SignFunc: k.SignFunc,
 			}

@@ -82,7 +82,7 @@ func (k *Kloud) controller(r *kite.Request) (*Controller, error) {
 		return nil, err
 	}
 
-	k.Log.Info("[controller] got machine data with machineID (%s) : %#v", args.MachineId, m.Machine)
+	k.Log.Debug("[controller] got machine data with machineID (%s) : %#v", args.MachineId, m.Machine)
 
 	// prevent request if the machine is terminated. However we want the user
 	// to be able to build again
@@ -97,9 +97,9 @@ func (k *Kloud) controller(r *kite.Request) (*Controller, error) {
 		return nil, err
 	}
 
-	if err := provider.Prepare(m.Credential.Meta, m.Machine.Meta); err != nil {
-		return nil, err
-	}
+	// if err := provider.Prepare(m.Credential.Meta, m.Machine.Meta); err != nil {
+	// 	return nil, err
+	// }
 
 	return &Controller{
 		MachineId:    args.MachineId,
@@ -130,9 +130,11 @@ func (k *Kloud) coreMethods(r *kite.Request, c *Controller, fn func(*protocol.Ma
 	c.Eventer = k.NewEventer(r.Method + "-" + c.MachineId)
 
 	machOptions := &protocol.MachineOptions{
-		MachineId: c.MachineId,
-		Username:  r.Username,
-		Eventer:   c.Eventer,
+		MachineId:  c.MachineId,
+		Username:   r.Username,
+		Eventer:    c.Eventer,
+		Credential: c.MachineData.Credential.Meta,
+		Builder:    c.MachineData.Machine.Meta,
 	}
 
 	go func() {

@@ -8,7 +8,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/mitchellh/mapstructure"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -16,6 +15,8 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/mitchellh/mapstructure"
 )
 
 const DIGITALOCEAN_API_URL = "https://api.digitalocean.com"
