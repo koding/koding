@@ -214,6 +214,7 @@ module.exports = [
   "providers/computeeventlistener.coffee",
 
   "providers/machine.coffee",
+  "providers/dummymachine.coffee",
   "providers/machineitem.coffee",
   "providers/machinelist.coffee",
 

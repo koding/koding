@@ -19,6 +19,7 @@ module.exports = [
   "filetree/itemviews/mountitem.coffee",
   "filetree/itemviews/brokenlinkitem.coffee",
   "filetree/itemviews/sectionitem.coffee",
+  "filetree/itemviews/nomachinefoundview.coffee",
   "filetree/itemviews/vmitem.coffee",
 
   "filetree/itemsubviews/finderitemdeleteview.coffee",
@@ -38,6 +39,7 @@ module.exports = [
   "fs/fsmount.coffee",
   "fs/fsbrokenlink.coffee",
   "fs/fsvm.coffee",
+  "fs/fsmachine.coffee",
   "fs/appswatcher.coffee",
 
   # Styles
