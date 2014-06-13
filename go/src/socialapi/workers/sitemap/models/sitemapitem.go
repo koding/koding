@@ -2,7 +2,6 @@ package models
 
 import (
 	"fmt"
-	"path"
 	"strconv"
 	"strings"
 )
@@ -62,12 +61,12 @@ func (s *SitemapItem) Definition(rootURL string) *ItemDefinition {
 func (s *SitemapItem) composeLocation(rootURL string) string {
 	switch s.TypeConstant {
 	case TYPE_ACCOUNT:
-		return path.Join(rootURL, s.Slug)
+		return fmt.Sprintf("%s/%s", rootURL, s.Slug)
 	case TYPE_CHANNEL_MESSAGE:
-		return path.Join(rootURL, "Activity", s.Slug)
+		return fmt.Sprintf("%s/%s/%s", rootURL, "Activity", s.Slug)
 	case TYPE_CHANNEL:
 		// TODO not sure about its route
-		return path.Join(rootURL, "Activity", "Topic", s.Slug)
+		return fmt.Sprintf("%s/%s/%s/%s", rootURL, "Activity", "Topic", s.Slug)
 	}
 
 	return ""
