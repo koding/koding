@@ -255,7 +255,6 @@ class SocialApiController extends KDController
     return item  if item = @_cache[type]?[id]
 
     if type is 'topic'
-      debugger
       for own id_, topic of @_cache.topic when topic.name is id
         item = topic
 
