@@ -97,10 +97,6 @@ func (k *Kloud) controller(r *kite.Request) (*Controller, error) {
 		return nil, err
 	}
 
-	// if err := provider.Prepare(m.Credential.Meta, m.Machine.Meta); err != nil {
-	// 	return nil, err
-	// }
-
 	return &Controller{
 		MachineId:    args.MachineId,
 		ImageName:    args.ImageName,
@@ -108,6 +104,7 @@ func (k *Kloud) controller(r *kite.Request) (*Controller, error) {
 		Provider:     provider,
 		MachineData:  m,
 		CurrenState:  m.Machine.State(),
+		Eventer:      k.NewEventer(r.Method + "-" + args.MachineId),
 	}, nil
 }
 
@@ -126,8 +123,6 @@ func (k *Kloud) coreMethods(r *kite.Request, c *Controller, fn func(*protocol.Ma
 		return nil, fmt.Errorf("no state pair available for %s", r.Method)
 	}
 	k.Storage.UpdateState(c.MachineId, s.initial)
-
-	c.Eventer = k.NewEventer(r.Method + "-" + c.MachineId)
 
 	machOptions := &protocol.MachineOptions{
 		MachineId:  c.MachineId,
@@ -211,9 +206,11 @@ func (k *Kloud) info(r *kite.Request, c *Controller) (interface{}, error) {
 	}
 
 	machOptions := &protocol.MachineOptions{
-		MachineId: c.MachineId,
-		Username:  r.Username,
-		Eventer:   c.Eventer,
+		MachineId:  c.MachineId,
+		Username:   r.Username,
+		Eventer:    c.Eventer,
+		Credential: c.MachineData.Credential.Meta,
+		Builder:    c.MachineData.Machine.Meta,
 	}
 
 	info, err := c.Provider.Info(machOptions)

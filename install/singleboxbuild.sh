@@ -6,9 +6,13 @@ echo "iptables -A INPUT -s 208.87.56.148 -j ACCEPT" >>/etc/rc.local
 echo "iptables -A INPUT -p tcp --dport 4000 -j ACCEPT" >>/etc/rc.local
 echo "iptables -A INPUT -m state --state ESTABLISHED,RELATED -j ACCEPT" >>/etc/rc.local
 echo "iptables -A INPUT -j DROP" >>/etc/rc.local
-echo "export GOPATH=/opt/koding/go" >> /etc/rc.local
-
 /etc/rc.local
+
+echo "export GOPATH=/opt/koding/go" >> ~/.profile
+source ~/.profile
+
+echo "UTC" > /etc/timezone
+dpkg-reconfigure -f noninteractive tzdata
 
 mkdir -p /root/.ssh
 
@@ -65,13 +69,6 @@ apt-get install -y rabbitmq-server=3.2.4-1
 
 ########################
 
-echo "UTC" > /etc/timezone
-dpkg-reconfigure -f noninteractive tzdata
-
-
-
-
-
 cd /opt
 git clone git@git.sj.koding.com:koding/koding.git
 cd koding
@@ -101,6 +98,7 @@ cake -c kodingme -r kodingme buildEverything
 bash ./go/src/socialapi/db/sql/definition/install.sh
 bash ./go/src/socialapi/db/sql/definition/create.sh
 sed -i "s/#timezone =.*/timezone = 'UTC'/" /etc/postgresql/9.3/main/postgresql.conf
+service postgresql restart
 cd /opt/koding/go/src/socialapi/
 make configure
 make develop -j
