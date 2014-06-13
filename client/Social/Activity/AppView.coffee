@@ -52,6 +52,9 @@ class ActivityAppView extends KDScrollView
       name = if slug then "#{type}-#{slug}" else type
       pane = @tabs.getPaneByName name
 
+      unless @sidebar.selectedItem
+        @sidebar.selectItemByRouteOptions type, slug
+
       if pane
       then @tabs.showPane pane
       else @createTab name, data
@@ -66,13 +69,14 @@ class ActivityAppView extends KDScrollView
     else if not item
       type_ = switch type
         when 'message' then 'privatemessage'
+        when 'post'    then 'activity'
         else type
 
-      socialapi.cacheable type_, slug, (err, data) ->
+      socialapi.cacheable type_, slug, (err, data) =>
         if err then router.handleNotFound router.getCurrentPath()
         else
-          notificationController.emit 'AddedToChannel', data
-          KD.utils.wait 1000, -> kallback data
+          @sidebar.addToChannel data
+          kallback data
 
     else
       kallback item.getData()

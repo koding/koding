@@ -13,7 +13,12 @@ class ActivitySidebar extends KDCustomScrollView
     SocialChannel : 'name'
 
 
-  revive = (obj) -> KD.singletons.socialapi.mapChannels(obj).first
+  revive = (obj) ->
+
+    {SocialChannel, SocialMessage} = KD.remote.api
+    return unless obj instanceof SocialChannel or obj instanceof SocialMessage
+    then KD.singletons.socialapi.mapChannels(obj).first
+    else obj
 
 
   constructor: ->
@@ -29,23 +34,21 @@ class ActivitySidebar extends KDCustomScrollView
     @selectedItem = null
 
     notificationController
-      .on 'AddedToChannel',         @bound 'addToChannel'
-      .on 'RemovedFromChannel',     @bound 'removeFromChannel'
-      .on 'ChannelUpdateHappened',  @bound 'notificationHasArrived'
-      .on 'NotificationHasArrived', @bound 'notificationHasArrived'
+      .on 'AddedToChannel',            @bound 'addToChannel'
+      .on 'RemovedFromChannel',        @bound 'removeFromChannel'
+      .on 'ChannelUpdateHappened',     @bound 'notificationHasArrived'
+      .on 'NotificationHasArrived',    @bound 'notificationHasArrived'
 
 
-  addToChannel: (channel) ->
+  addToChannel: (data) ->
 
-    {SocialChannel} = KD.remote.api
+    data           = revive data
+    listController = @getListController data.typeConstant
 
-    channel        = revive channel  unless channel instanceof SocialChannel
-    listController = @getListController channel.typeConstant
+    return  if listController.itemForId data.id
 
-    return  if listController.itemForId channel.id
-
-    listController.addItem channel
-    @updateTopicFollowButtons channel
+    listController.addItem data
+    @updateTopicFollowButtons data
 
 
   removeFromChannel: (channel) ->
@@ -59,6 +62,12 @@ class ActivitySidebar extends KDCustomScrollView
 
   notificationHasArrived: (update) ->
 
+    log 'notificationHasArrived', update
+
+    switch update.event
+      when 'MessageAddedToChannel'     then return @addToChannel update.channelMessage
+      when 'MessageRemovedFromChannel' then return @removeFromChannel update.channelMessage
+
     {unreadCount, channel} = update
     {typeConstant, id}     = channel
 
@@ -70,9 +79,9 @@ class ActivitySidebar extends KDCustomScrollView
   getListController: (type) ->
 
     section = switch type
-      when 'topic'          then @sections.followedTopics
-      when 'pinnedactivity' then @sections.followedPosts
-      when 'privatemessage' then @sections.messages
+      when 'topic'                  then @sections.followedTopics
+      when 'pinnedactivity', 'post' then @sections.followedPosts
+      when 'privatemessage'         then @sections.messages
       else {}
 
     return section.listController
@@ -94,31 +103,36 @@ class ActivitySidebar extends KDCustomScrollView
   # - the item which is being clicked
   # - and what the route suggests
   # needs to be simplified
-  selectItemByRouteOptions: (type, slug) ->
+  selectItemByRouteOptions: (type, slug_) ->
 
     @deselectAllItems()
 
     if type is 'public'
       @selectedItem = @public
-      return @public.setClass 'selected'
+      @public.setClass 'selected'
+      return
+
     else
       @public.unsetClass 'selected'
 
-    type = 'privatemessage' if type is 'message'
+    type       = 'privatemessage'  if type is 'message'
+    candidates = []
 
-    candidateItems = []
-    for own name, {listController} of @sections
+    for own name_, {listController} of @sections
 
       for item in listController.getListItems()
+
         data = item.getData()
-        if data.typeConstant is type and (data.id is slug or data.name is slug or data.slug is slug)
-          candidateItems.push item
+        {typeConstant, id, name , slug} = data
 
-    candidateItems.sort (a, b) -> a.lastClickedTimestamp < b.lastClickedTimestamp
+        if typeConstant is type and slug_ in [id, name, slug]
+          candidates.push item
 
-    if candidateItems.first
-      listController.selectSingleItem candidateItems.first
-      @selectedItem = candidateItems.first
+    candidates.sort (a, b) -> a.lastClickedTimestamp < b.lastClickedTimestamp
+
+    if candidates.first
+      listController.selectSingleItem candidates.first
+      @selectedItem = candidates.first
 
 
   deselectAllItems: ->
