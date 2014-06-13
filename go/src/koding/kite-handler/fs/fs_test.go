@@ -339,6 +339,10 @@ func TestGetInfo(t *testing.T) {
 	if f.Name != filepath.Base(testFile) {
 		t.Errorf("got %s expecting %s", f.Name, testFile)
 	}
+
+	if !f.Exists {
+		t.Errorf("file %s should exists", testFile)
+	}
 }
 
 func TestSetPermissions(t *testing.T) {

@@ -18,6 +18,7 @@ type FileEntry struct {
 	Name     string      `json:"name"`
 	FullPath string      `json:"fullPath"`
 	IsDir    bool        `json:"isDir"`
+	Exists   bool        `json:"exists"`
 	Size     int64       `json:"size"`
 	Mode     os.FileMode `json:"mode"`
 	Time     time.Time   `json:"time"`
@@ -27,7 +28,11 @@ type FileEntry struct {
 }
 
 func NewFileEntry(name string, fullPath string) *FileEntry {
-	return &FileEntry{Name: name, FullPath: fullPath}
+	return &FileEntry{
+		Name:     name,
+		Exists:   true,
+		FullPath: fullPath,
+	}
 }
 
 func readDirectory(p string) ([]*FileEntry, error) {
@@ -124,8 +129,14 @@ func getInfo(path string) (*FileEntry, error) {
 	fi, err := os.Stat(path)
 	if err != nil {
 		if os.IsNotExist(err) {
-			return nil, errors.New("file does not exist")
+			// The file doesn't exists, let the client side let this know
+			// instead of returning error
+			return &FileEntry{
+				Name:   path,
+				Exists: false,
+			}, nil
 		}
+
 		return nil, err
 	}
 
@@ -135,6 +146,7 @@ func getInfo(path string) (*FileEntry, error) {
 func makeFileEntry(fullPath string, fi os.FileInfo) *FileEntry {
 	entry := &FileEntry{
 		Name:     fi.Name(),
+		Exists:   true,
 		FullPath: fullPath,
 		IsDir:    fi.IsDir(),
 		Size:     fi.Size(),
