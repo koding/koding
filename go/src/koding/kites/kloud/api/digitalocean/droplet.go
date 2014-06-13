@@ -109,7 +109,7 @@ func (d *DigitalOcean) DestroyDroplet(dropletId uint) (int, error) {
 
 	eventId, ok := body["event_id"].(float64)
 	if !ok {
-		return 0, fmt.Errorf("restart malformed data %v", body)
+		return 0, fmt.Errorf("destroy malformed data %v", body)
 	}
 
 	return int(eventId), nil
@@ -124,7 +124,7 @@ func (d *DigitalOcean) ShowDroplet(dropletId uint) (*Droplet, error) {
 
 	droplet, ok := resp["droplet"].(map[string]interface{})
 	if !ok {
-		return nil, fmt.Errorf("malformed data received %v", resp)
+		return nil, fmt.Errorf("show droplet malformed data received %v", resp)
 	}
 
 	var result Droplet
@@ -147,7 +147,7 @@ func (d *DigitalOcean) RenameDroplet(dropletId uint, newName string) (int, error
 
 	eventId, ok := body["event_id"].(float64)
 	if !ok {
-		return 0, fmt.Errorf("restart malformed data %v", body)
+		return 0, fmt.Errorf("rename malformed data %v", body)
 	}
 
 	return int(eventId), nil

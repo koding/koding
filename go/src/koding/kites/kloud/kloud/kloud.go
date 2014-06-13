@@ -23,7 +23,7 @@ const (
 )
 
 var (
-	providers = make(map[string]func() protocol.Provider)
+	providers = make(map[string]protocol.Provider)
 )
 
 type Kloud struct {
@@ -115,12 +115,11 @@ func (k *Kloud) SignFunc(username string) (string, string, error) {
 }
 
 func (k *Kloud) GetProvider(providerName string) (protocol.Provider, error) {
-	providerFunc, ok := providers[providerName]
+	provider, ok := providers[providerName]
 	if !ok {
 		return nil, NewError(ErrProviderNotFound)
 	}
 
-	provider := providerFunc()
 	return provider, nil
 }
 
@@ -129,13 +128,13 @@ func (k *Kloud) InitializeProviders() {
 	prefix := fmt.Sprintf("%s:%s", NAME, k.Kite.Config.Environment)
 	r.SetPrefix(prefix)
 
-	providers = map[string]func() protocol.Provider{
-		"digitalocean": func() protocol.Provider {
-			return &digitalocean.Provider{
-				Log:      createLogger("digitalocean", k.Debug),
-				SignFunc: k.SignFunc,
-				Redis:    r,
-			}
+	providers = map[string]protocol.Provider{
+		"digitalocean": &digitalocean.Provider{
+			Log:         createLogger("digitalocean", k.Debug),
+			SignFunc:    k.SignFunc,
+			Redis:       r,
+			Region:      k.Region,
+			Environment: k.Config.Environment,
 		},
 	}
 }

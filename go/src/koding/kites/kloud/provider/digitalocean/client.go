@@ -27,8 +27,12 @@ type Client struct {
 	Log      logging.Logger
 	Push     func(string, int, machinestate.State)
 	SignFunc func(string) (string, string, error)
-	Caching  bool
-	Redis    *redis.RedisSession
+
+	Caching     bool
+	CachePrefix string
+
+	Redis       *redis.RedisSession
+	RedisPrefix string
 
 	sync.Once
 }
@@ -345,6 +349,8 @@ func statusToState(status string) machinestate.State {
 		return machinestate.Stopped
 	case "new":
 		return machinestate.Building
+	case "archive":
+		return machinestate.Terminated
 	default:
 		return machinestate.Unknown
 	}
