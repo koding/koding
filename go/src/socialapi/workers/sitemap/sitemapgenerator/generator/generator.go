@@ -111,28 +111,16 @@ func (c *Controller) fetchElements() ([]*models.SitemapItem, error) {
 }
 
 func (c *Controller) getCurrentSet() (*models.ItemSet, error) {
-	fmt.Println("dosya adi", c.fileName)
-	input, err := ioutil.ReadFile(c.fileName)
-	if err != nil {
+	// check if this is a new sitemap file or not
+	n := fmt.Sprintf("%s.xml", c.fileName)
+	if _, err := os.Stat(n); os.IsNotExist(err) {
 		return models.NewItemSet(), nil
 	}
-	// defer input.Close()
-	fmt.Println("hehe", input)
+	input, err := ioutil.ReadFile(n)
+	if err != nil {
+		return nil, err
+	}
 
-	fmt.Println("bura?")
-
-	// data := make([]byte, 0)
-	// in, err := input.Read(data)
-	// if err != nil {
-	// 	return nil, err
-	// }
-	// fmt.Printf("ne var %d", in)
-
-	// if len(data) == 0 {
-	// 	return nil, errors.New("empty file")
-	// }
-
-	// fmt.Println("sura?", data)
 	s := models.NewItemSet()
 	if err := xml.Unmarshal(input, s); err != nil {
 		return nil, err
