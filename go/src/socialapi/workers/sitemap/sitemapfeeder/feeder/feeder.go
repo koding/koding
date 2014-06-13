@@ -24,7 +24,7 @@ func (f *Controller) DefaultErrHandler(delivery amqp.Delivery, err error) bool {
 func New(log logging.Logger) (*Controller, error) {
 	c := &Controller{
 		log:         log,
-		nameFetcher: SimpleNameFetcher{},
+		nameFetcher: ModNameFetcher{},
 	}
 
 	return c, nil
@@ -108,6 +108,25 @@ func newItemByChannel(c *socialmodels.Channel, status string) *models.SitemapIte
 func (f *Controller) queueItem(i *models.SitemapItem) error {
 	// fetch file name
 	n := f.nameFetcher.Fetch(i)
+
+	if err := f.updateFileNameCache(n); err != nil {
+		return err
+	}
+
+	return f.updateFileItemCache(n, i)
+}
+
+func (f *Controller) updateFileNameCache(fileName string) error {
+	key := sitemap.PrepareFileNameCacheKey()
+	redisConn := helper.MustGetRedisConn()
+	if _, err := redisConn.AddSetMembers(key, fileName); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (f *Controller) updateFileItemCache(fileName string, i *models.SitemapItem) error {
 	// prepare cache key
 	key := sitemap.PrepareFileCacheKey(fileName)
 	redisConn := helper.MustGetRedisConn()
