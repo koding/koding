@@ -68,6 +68,7 @@ module.exports = class Builder
     @config ?= require('koding-config-manager').load("main.#{options.configFile}")
 
     @canBuildSprites().then ->
+      log.info "Building sprites... (it may take a while)"
       sprite
         srcPath   : './sprites'
         destPath  : './website/a/sprites'
@@ -228,6 +229,10 @@ module.exports = class Builder
           @buildCSS options, project
           builtBundles.css.push project
 
+    if initial and options.callback?
+      options.callback()
+      delete options.callback
+
     if @config.client.watch is yes
       if initial
         log.info "\n All done. Watching for changes... \n"
@@ -283,7 +288,7 @@ module.exports = class Builder
           if file.sourcePath in @blackList
             @blackList.splice (@blackList.indexOf file.sourcePath), 1
           else if not checkFileCase file.sourcePath
-            log.error "File name case is wrong: #{ file.sourcePath }"
+            log.error "File is missing or misspelled: #{ file.sourcePath }"
             process.exit 1
 
           switch file.extension

@@ -703,9 +703,12 @@ importDB = (options, callback = ->)->
 task 'run', (options)->
 
   {configFile} = options
+  configFile = "vagrant" if configFile in ["",undefined,"undefined"]
 
-  options.configFile = "vagrant" if configFile in ["",undefined,"undefined"]
   KONFIG = config = require('koding-config-manager').load("main.#{configFile}")
+
+  options.configFile  = configFile
+  options.buildClient = config.buildClient
 
   buildEverything options, -> run options
 
@@ -713,19 +716,21 @@ task 'run', (options)->
 buildEverything = (options, callback = ->)->
 
   daisy queue = [
-
-    -> importDB options, -> queue.next()
-  ,
-    -> compileGoBinaries options.configFile, -> queue.next()
-  ,
     ->
       oldIndex = nodePath.join __dirname, "website/index.html"
       fs.unlinkSync oldIndex  if fs.existsSync oldIndex
       queue.next()
   ,
     ->
-      buildClient options  if options.buildClient
-      queue.next()
+      if options.buildClient
+        options.callback = -> queue.next()
+        buildClient options
+      else
+        queue.next()
+  ,
+    -> importDB options, -> queue.next()
+  ,
+    -> compileGoBinaries options.configFile, -> queue.next()
   ,
     -> callback null
   ]
