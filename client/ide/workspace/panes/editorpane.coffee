@@ -9,6 +9,8 @@ class IDE.EditorPane extends IDE.Pane
 
     super options, data
 
+    @on 'SaveRequested', @bound 'save'
+
     @createEditor()
 
   createEditor: ->
