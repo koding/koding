@@ -138,6 +138,10 @@ module.exports = class JVM extends Module
         default         : KONFIG.defaultVMConfigs.freeVM.cpu ? 1
       stack             : ObjectId
       meta              : Object
+      state             :
+        type            : String
+        enum            : ['unknown state', ['RUNNING','STOPPED','FAILED']]
+        default         : 'STOPPED'
 
   @updateInitScript = secure (client, hostnameAlias, script, callback) ->
     {delegate} = client.connection
