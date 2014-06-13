@@ -27,7 +27,7 @@ func (r *SingletonSession) Connect() (*RedisSession, error) {
 		return r.Session, nil
 	}
 
-	r.Session, r.Err = NewRedisSession(r.server)
+	r.Session, r.Err = NewRedisSession(&RedisConf{Server: r.server})
 	return r.Session, r.Err
 }
 

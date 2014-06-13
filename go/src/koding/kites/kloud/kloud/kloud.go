@@ -14,6 +14,7 @@ import (
 
 	"github.com/koding/kite"
 	"github.com/koding/logging"
+	"github.com/koding/redis"
 )
 
 const (
@@ -124,11 +125,16 @@ func (k *Kloud) GetProvider(providerName string) (protocol.Provider, error) {
 }
 
 func (k *Kloud) InitializeProviders() {
+	r := redis.MustRedisSession(&redis.RedisConf{Server: k.Config.Redis})
+	prefix := fmt.Sprintf("%s:%s", NAME, k.Kite.Config.Environment)
+	r.SetPrefix(prefix)
+
 	providers = map[string]func() protocol.Provider{
 		"digitalocean": func() protocol.Provider {
 			return &digitalocean.Provider{
 				Log:      createLogger("digitalocean", k.Debug),
 				SignFunc: k.SignFunc,
+				Redis:    r,
 			}
 		},
 	}

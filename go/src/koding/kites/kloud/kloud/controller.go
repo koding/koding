@@ -97,10 +97,6 @@ func (k *Kloud) controller(r *kite.Request) (*Controller, error) {
 		return nil, err
 	}
 
-	// if err := provider.Prepare(m.Credential.Meta, m.Machine.Meta); err != nil {
-	// 	return nil, err
-	// }
-
 	return &Controller{
 		MachineId:    args.MachineId,
 		ImageName:    args.ImageName,

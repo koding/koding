@@ -18,6 +18,7 @@ import (
 
 	kiteprotocol "github.com/koding/kite/protocol"
 	"github.com/koding/logging"
+	"github.com/koding/redis"
 	"github.com/mitchellh/packer/builder/digitalocean"
 )
 
@@ -27,6 +28,7 @@ type Client struct {
 	Push     func(string, int, machinestate.State)
 	SignFunc func(string) (string, string, error)
 	Caching  bool
+	Redis    *redis.RedisSession
 
 	sync.Once
 }
