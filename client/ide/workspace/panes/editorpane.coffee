@@ -27,6 +27,10 @@ class IDE.EditorPane extends IDE.Pane
       ace.setReadOnly yes  if @getOptions().readOnly
       @emit 'EditorIsReady'
 
+  save: ->
+    {ace} = @aceView
+    ace.emit 'ace.requests.save', ace.getContents()
+
   getEditor: ->
     return @aceView.ace.editor
 
