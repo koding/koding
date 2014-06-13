@@ -43,7 +43,6 @@ class IDE.StatusBarMenu extends KDContextMenu
         separator           : yes
 
     items['Show Shortcuts'] = callback: -> appManager.tell 'IDE', 'showShortcutsView'
-    items.Feedback          = callback: -> appManager.tell 'IDE', 'showFeedbackView'
     items.Contribute        = callback: -> appManager.tell 'IDE', 'showContributeView'
     items.Quit              = callback: ->
       appManager.quitByName 'IDE'
