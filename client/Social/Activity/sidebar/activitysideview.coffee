@@ -50,7 +50,7 @@ class ActivitySideView extends JView
   init: ->
 
     {dataPath} = @getOptions()
-    items = KD.singletons.socialapi.getPrefetchedData()[dataPath]
+    items = KD.singletons.socialapi.getPrefetchedData dataPath
     if items.length
     then @renderItems null, items
     else @reload()

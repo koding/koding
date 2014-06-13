@@ -10,25 +10,17 @@ class SocialApiController extends KDController
     KD.getSingleton('mainController').ready @bound 'openGroupChannel'
 
 
-  getPrefetchedData:->
+  getPrefetchedData: (dataPath) ->
 
-    data = {}
+    return  unless KD.socialApiData
+    return  unless data = KD.socialApiData[dataPath]
 
-    return data  unless KD.socialApiData
+    fn = switch dataPath
+      when 'popularTopics', 'followedChannels' then mapChannels
+      when 'publicFeed', 'pinnedMessages'      then mapActivities
+      when 'privateMessages'                   then mapPrivateMessages
 
-    { popularTopics, followedChannels
-      pinnedMessages, privateMessages,
-      publicFeed } = KD.socialApiData
-
-    processInCase = (fn, items) -> if items then fn items else []
-
-    data.popularTopics    = processInCase mapChannels, popularTopics
-    data.followedChannels = processInCase mapChannels, followedChannels
-    data.pinnedMessages   = processInCase mapActivities, pinnedMessages
-    data.privateMessages  = processInCase mapPrivateMessages, privateMessages
-    data.publicFeed       = processInCase mapActivities, publicFeed
-
-    return data
+    return fn data
 
 
   openGroupChannel: ->
