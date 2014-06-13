@@ -83,6 +83,7 @@ module.exports =
   runPremiumBroker: yes
   runPremiumBrokerKite: yes
   runKontrol    : yes
+  runKloud      : yes
   runRerouting  : yes
   runUserPresence: no
   runPersistence: no

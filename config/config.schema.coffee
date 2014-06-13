@@ -82,6 +82,7 @@ config =
     runPremiumBrokerKite: 1
     runPremiumBroker: 1
     runKontrol    : 1
+    runKloud      : 1
     runRerouting  : 1
     runUserPresence: 1
     runPersistence: 1
