@@ -255,9 +255,12 @@ class SocialApiController extends KDController
     return item  if item = @_cache[type]?[id]
 
     if type is 'topic'
-      debugger
       for own id_, topic of @_cache.topic when topic.name is id
         item = topic
+
+    if not item and type is 'activity'
+      for own id_, post of @_cache.post when post.slug is id
+        item = post
 
     return item
 
@@ -278,16 +281,21 @@ class SocialApiController extends KDController
 
     return switch type
       when 'topic'                     then @channel.byName {name: id}, kallback
+      when 'activity'                  then @message.bySlug {slug: id}, kallback
       when 'channel', 'privatemessage' then @channel.byId {id}, kallback
       when 'post', 'message'           then @message.byId {id}, kallback
       else callback { message: 'not implemented in revive' }
-
 
 
   message:
     byId                 : messageRequesterFn
       fnName             : 'byId'
       validateOptionsWith: ['id']
+      mapperFn           : mapActivity
+
+    bySlug               : messageRequesterFn
+      fnName             : 'bySlug'
+      validateOptionsWith: ['slug']
       mapperFn           : mapActivity
 
     edit                 : messageRequesterFn

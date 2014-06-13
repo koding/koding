@@ -1,6 +1,7 @@
 package message
 
 import (
+	"errors"
 	"net/http"
 	"net/url"
 	"socialapi/models"
@@ -185,6 +186,26 @@ func GetWithRelated(u *url.URL, h http.Header, _ interface{}) (int, http.Header,
 	}
 
 	cmc, err := cm.BuildMessage(helpers.GetQuery(u))
+	if err != nil {
+		return helpers.NewBadRequestResponse(err)
+	}
+
+	return helpers.NewOKResponse(cmc)
+}
+
+func GetBySlug(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface{}, error) {
+	q := helpers.GetQuery(u)
+
+	if q.Slug == "" {
+		return helpers.NewBadRequestResponse(errors.New("slug is not set"))
+	}
+
+	cm := models.NewChannelMessage()
+	if err := cm.BySlug(q); err != nil {
+		return helpers.NewBadRequestResponse(err)
+	}
+
+	cmc, err := cm.BuildMessage(q)
 	if err != nil {
 		return helpers.NewBadRequestResponse(err)
 	}

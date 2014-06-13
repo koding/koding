@@ -4,6 +4,7 @@ import (
 	"errors"
 	"time"
 
+	"github.com/jinzhu/gorm"
 	"github.com/koding/bongo"
 )
 
@@ -186,6 +187,30 @@ func (c *ChannelMessageList) getMessages(q *Query) ([]*ChannelMessageContainer, 
 	}
 
 	return populatedChannelMessages, nil
+}
+
+func (c *ChannelMessageList) IsInChannel(messageId, channelId int64) (bool, error) {
+	if messageId == 0 || channelId == 0 {
+		return false, errors.New("channelId/messageId is not set")
+	}
+
+	query := &bongo.Query{
+		Selector: map[string]interface{}{
+			"channel_id": channelId,
+			"message_id": messageId,
+		},
+	}
+
+	err := c.One(query)
+	if err == nil {
+		return true, nil
+	}
+
+	if err == gorm.RecordNotFound {
+		return false, nil
+	}
+
+	return false, err
 }
 
 func (c *ChannelMessageList) populateChannelMessages(channelMessages []ChannelMessage, query *Query) ([]*ChannelMessageContainer, error) {
