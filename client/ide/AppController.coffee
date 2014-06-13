@@ -243,13 +243,17 @@ class IDEAppController extends AppController
 
     @activeTabView.showPaneByIndex requiredIndex
 
-  forEachSubViewInIDEViews_: (callback = noop) ->
+  forEachSubViewInIDEViews_: (callback = noop, paneType) ->
     for ideView in @ideViews
       for pane in ideView.tabView.panes
         view = pane.getSubViews().first
-        callback view
+        if paneType and view.getOptions().paneType is paneType
+            callback view
+        else
+          callback view
 
   updateSettings: (component, key, value) ->
+    # TODO: Refactor this method by passing component type to helper method.
     Class  = if component is 'editor' then IDE.EditorPane else IDE.TerminalPane
     method = "set#{key.capitalize()}"
 
@@ -264,11 +268,20 @@ class IDEAppController extends AppController
     @activeTabView.emit 'ShortcutsViewRequested'
 
   showActionsMenu: (button) ->
-    view = @activeTabView.getActivePane().getSubViews().first
     new IDE.StatusBarMenu
-      paneType : view?.getOptions() or null
-      x        : button.getX()
-      y        : button.getY() - 120
+      paneType : @getActivePaneView()?.getOptions().paneType or null
+      delegate : button
+
+  getActivePaneView: ->
+    return @activeTabView.getActivePane().getSubViews().first
+
+  saveFile: ->
+    @getActivePaneView().emit 'SaveRequested'
+
+  saveAllFiles: ->
+    @forEachSubViewInIDEViews_ (view) ->
+      view.emit 'SaveRequested'
+    , 'editor'
 
   updateStatusBar: (component, data) ->
     {status} = @statusBar
