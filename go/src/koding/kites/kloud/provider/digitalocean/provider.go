@@ -8,6 +8,7 @@ import (
 	"koding/kites/kloud/kloud/protocol"
 
 	"github.com/koding/logging"
+	"github.com/koding/redis"
 )
 
 const (
@@ -20,6 +21,7 @@ type Provider struct {
 	SignFunc    func(string) (string, string, error)
 	Push        func(string, int, machinestate.State)
 	PoolEnabled bool
+	Redis       *redis.RedisSession
 }
 
 func (p *Provider) NewClient(opts *protocol.MachineOptions) (*Client, error) {
@@ -33,8 +35,7 @@ func (p *Provider) NewClient(opts *protocol.MachineOptions) (*Client, error) {
 	}
 
 	push := func(msg string, percentage int, state machinestate.State) {
-		p.Log.Info("[machineId: '%s': username: '%s' dropletName: '%s' snapshotName: '%s'] - %s",
-			opts.MachineId, opts.Username, opts.InstanceName, opts.ImageName, msg)
+		p.Log.Info("%s ==> %s (username: '%s')", opts.MachineId, msg, opts.Username)
 
 		opts.Eventer.Push(&eventer.Event{
 			Message:    msg,
@@ -48,10 +49,11 @@ func (p *Provider) NewClient(opts *protocol.MachineOptions) (*Client, error) {
 		Log:      p.Log,
 		SignFunc: p.SignFunc,
 		Caching:  true,
+		Redis:    p.Redis,
 	}
+	c.DigitalOcean = d
 
 	p.Push = push
-	c.DigitalOcean = d
 	return c, nil
 }
 
