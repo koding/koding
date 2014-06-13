@@ -10,10 +10,13 @@
   bindListeners: ->
     @on 'PlusHandleClicked', @bound 'createPlusContextMenu'
 
-    @tabView.on 'FileNeedsToBeOpened', @bound 'openFile'
-    @tabView.on 'VMTerminalRequested', @bound 'openVMTerminal'
-    @tabView.on 'VMWebPageRequested',  @bound 'openVMWebPage'
-    @tabView.on 'PaneDidShow',         => @updateStatusBar()
+    @tabView.on 'FileNeedsToBeOpened',    @bound 'openFile'
+    @tabView.on 'VMTerminalRequested',    @bound 'openVMTerminal'
+    @tabView.on 'VMWebPageRequested',     @bound 'openVMWebPage'
+    @tabView.on 'ShortcutsViewRequested', @bound 'createShortcutsView'
+
+    @tabView.on 'PaneDidShow', => # bound passes args also
+      @updateStatusBar()
 
     @once 'viewAppended', => KD.utils.wait 300, => @createEditor()
 
