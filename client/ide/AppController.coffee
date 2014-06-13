@@ -260,6 +260,16 @@ class IDEAppController extends AppController
         else
           view.webtermView.updateSettings()
 
+  showShortcutsView: ->
+    @activeTabView.emit 'ShortcutsViewRequested'
+
+  showActionsMenu: (button) ->
+    view = @activeTabView.getActivePane().getSubViews().first
+    new IDE.StatusBarMenu
+      paneType : view?.getOptions() or null
+      x        : button.getX()
+      y        : button.getY() - 120
+
   updateStatusBar: (component, data) ->
     {status} = @statusBar
 
