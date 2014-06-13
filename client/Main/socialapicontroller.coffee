@@ -258,6 +258,10 @@ class SocialApiController extends KDController
       for own id_, topic of @_cache.topic when topic.name is id
         item = topic
 
+    if not item and type is 'activity'
+      for own id_, post of @_cache.post when post.slug is id
+        item = post
+
     return item
 
 
