@@ -14,14 +14,14 @@ var (
 	channelUpdatedEventMessageUpdatedAtChannel   ChannelUpdatedEventType = "MessageListUpdated"
 	channelUpdatedEventReplyAdded                ChannelUpdatedEventType = "ReplyAdded"
 	channelUpdatedEventReplyRemoved              ChannelUpdatedEventType = "ReplyRemoved"
-	channelUpdatedEventChannelParticipantUpdated ChannelUpdatedEventType = "ReplyAdded"
+	channelUpdatedEventChannelParticipantUpdated ChannelUpdatedEventType = "ParticipantUpdated"
 )
 
 type channelUpdatedEvent struct {
 	Channel              *models.Channel            `json:"channel"`
 	ParentChannelMessage *models.ChannelMessage     `json:"channelMessage"`
 	ReplyChannelMessage  *models.ChannelMessage     `json:"-"`
-	EventType            ChannelUpdatedEventType    `json:"eventType"`
+	EventType            ChannelUpdatedEventType    `json:"event"`
 	ChannelParticipant   *models.ChannelParticipant `json:"-"`
 	UnreadCount          int                        `json:"unreadCount"`
 }
