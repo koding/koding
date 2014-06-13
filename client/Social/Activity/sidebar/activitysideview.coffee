@@ -7,11 +7,17 @@ class ActivitySideView extends JView
 
     super options, data
 
-    {itemClass, headerLink} = @getOptions()
+    {itemClass, headerLink, noItemText} = @getOptions()
     sidebar = @getDelegate()
+
+    if noItemText
+      noItemFoundWidget = new KDCustomHTMLView
+        cssClass : 'nothing'
+        partial  : noItemText
 
     @listController = new KDListViewController
       startWithLazyLoader : yes
+      noItemFoundWidget   : noItemFoundWidget
       lazyLoaderOptions   :
         spinnerOptions    :
           size            :
