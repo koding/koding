@@ -44,13 +44,9 @@ func (c *Client) UpdateCachedDroplets(imageId uint) error {
 		return nil
 	}
 
-	saddParams := []interface{}{c.Redis.AddPrefix(CacheRedisSetName)}
-	saddParams = append(saddParams, dropletIds...)
-
 	c.Redis.Send("MULTI")
 	c.Redis.Send("DEL", c.Redis.AddPrefix(CacheRedisSetName))
-	c.Redis.Send("SADD", saddParams)
-	// c.Redis.Send("SADD", redis.Args{}.Add(c.Redis.AddPrefix(CacheRedisSetName)).Add(dropletIds...)...)
+	c.Redis.Send("SADD", redis.Args{c.Redis.AddPrefix(CacheRedisSetName)}.Add(dropletIds...)...)
 	_, err = c.Redis.Do("EXEC")
 	return err
 }
