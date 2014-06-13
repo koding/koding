@@ -15,8 +15,8 @@ DBName=   "social"
 [mq]
 Host=     "localhost"
 Port=     5672
-Username= "PROD-k5it50s4676pO9O"
-Password= "djfjfhgh4455__5"
+Username= "guest"
+Password= "guest"
 Vhost=    "/"
 
 [limits]

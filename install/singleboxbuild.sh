@@ -3,9 +3,10 @@ echo "iptables -F" >>/etc/rc.local
 echo "iptables -A INPUT -i lo -j ACCEPT" >>/etc/rc.local
 echo "iptables -A INPUT -s 208.72.139.54 -j ACCEPT" >>/etc/rc.local
 echo "iptables -A INPUT -s 208.87.56.148 -j ACCEPT" >>/etc/rc.local
+echo "iptables -A INPUT -p tcp --dport 4000 -j ACCEPT" >>/etc/rc.local
 echo "iptables -A INPUT -m state --state ESTABLISHED,RELATED -j ACCEPT" >>/etc/rc.local
 echo "iptables -A INPUT -j DROP" >>/etc/rc.local
-
+echo "export GOPATH=/opt/koding/go" >> /etc/rc.local
 
 /etc/rc.local
 
@@ -64,6 +65,11 @@ apt-get install -y rabbitmq-server=3.2.4-1
 
 ########################
 
+echo "UTC" > /etc/timezone
+dpkg-reconfigure -f noninteractive tzdata
+
+
+
 
 
 cd /opt
@@ -75,7 +81,7 @@ git submodule update
 npm i gulp stylus coffee-script -g
 npm i --unsafe-perm
 
-### rabbit x-presense ###
+### rabbit x-presence ###
 cp /opt/koding/install/rabbit_presence_exchange-3.2.3-20140220.ez /usr/lib/rabbitmq/lib/rabbitmq_server-3.2.4/plugins/
 rabbitmq-plugins enable rabbit_presence_exchange
 service rabbitmq-server restart
@@ -88,4 +94,14 @@ echo “koding.io” > /etc/hostname
 
 cd /opt/koding
 cake -c kodingme -r kodingme buildEverything
-cake -c kodingme -r kodingme run
+# make now wraps cake run.
+# cake -c kodingme -r kodingme run
+
+### SOCIAL API ###
+bash ./go/src/socialapi/db/sql/definition/install.sh
+bash ./go/src/socialapi/db/sql/definition/create.sh
+sed -i "s/#timezone =.*/timezone = 'UTC'/" /etc/postgresql/9.3/main/postgresql.conf
+cd /opt/koding/go/src/socialapi/
+make configure
+make develop -j
+##################

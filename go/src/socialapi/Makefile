@@ -13,7 +13,10 @@ MINOR=1
 
 default: configure
 
-develop: apidev topicfeeddev realtimedev followingfeeddev populartopicdev popularpostdev notificationdev
+develop: apidev topicfeeddev realtimedev followingfeeddev populartopicdev popularpostdev notificationdev runkoding
+
+runkoding:
+	(cd /opt/koding && cake -c kodingme -r kodingme run)
 
 apidev:
 	@echo "$(OK_COLOR)==> Running API Worker $(NO_COLOR)"

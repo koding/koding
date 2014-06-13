@@ -62,7 +62,10 @@ module.exports =
     clusterSize : 1
     queueName   : socialQueueName+'web'
     watch       : yes
-  socialApiUrl  : "#{customDomain.public}:7000"
+  socialapi:
+    port        : 7000
+    clusterSize : 5
+    proxyUrl    : "#{customDomain.local}:7000"
   sourceServer  :
     enabled     : yes
     port        : 3526
