@@ -150,12 +150,12 @@ func (c *Controller) buildContainer(items []*models.SitemapItem) *models.ItemCon
 func (c *Controller) updateFile(container *models.ItemContainer, set *models.ItemSet) error {
 	set.Populate(container)
 
-	// TODO no need for indent in prod
 	header := []byte(xml.Header)
-	res, err := xml.MarshalIndent(set, " ", "  ")
+	res, err := xml.Marshal(set)
 	if err != nil {
-		fmt.Printf("hatali %s", err)
+		return err
 	}
+	// append header to xml file
 	res = append(header, res...)
 
 	c.MustWrite(res)
