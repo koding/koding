@@ -315,6 +315,7 @@ func mapCommentToChannelMessage(c *mongomodels.Comment) *models.ChannelMessage {
 	cm.Body = c.Body
 	cm.TypeConstant = models.ChannelMessage_TYPE_REPLY
 	cm.CreatedAt = c.Meta.CreatedAt
+	cm.DeletedAt = c.DeletedAt
 	prepareMessageMetaDates(cm, &c.Meta)
 
 	return cm
