@@ -12,14 +12,13 @@ import (
 	"github.com/garyburd/redigo/redis"
 )
 
+const (
+	CacheRedisSetName = "digitalocean"
+)
+
 var (
 	ErrNoCachedDroplets     = errors.New("No cached machines available.")
 	ErrCachedDropletInvalid = errors.New("Cached machine has an invalid status.")
-)
-
-const (
-	CacheMachinePrefix = "koding-cache"
-	CacheRedisSetName  = "digitalocean"
 )
 
 // UpdateCachedDroplets is syncronizing the cached Droplets with Redis
@@ -29,7 +28,7 @@ func (c *Client) UpdateCachedDroplets(imageId uint) error {
 		return err
 	}
 
-	cachedDroplets := droplets.Filter(CacheMachinePrefix + "-" + strconv.Itoa(int(imageId)))
+	cachedDroplets := droplets.Filter(c.CachePrefix + "-" + strconv.Itoa(int(imageId)))
 	c.Log.Info("Found %d cached droplets. Updating data with redis", cachedDroplets.Len())
 
 	dropletIds := make([]interface{}, 0)
@@ -58,7 +57,7 @@ func (c *Client) UpdateCachedDroplets(imageId uint) error {
 // of the created machine.
 func (c *Client) CreateCachedDroplet(imageId uint) error {
 	timeStamp := strconv.FormatInt(time.Now().UTC().UnixNano(), 10)
-	dropletName := CacheMachinePrefix + "-" + strconv.Itoa(int(imageId)) + "-" + timeStamp
+	dropletName := c.CachePrefix + "-" + strconv.Itoa(int(imageId)) + "-" + timeStamp
 
 	c.Log.Info("Creating a cached Droplet with name '%s' based on image id: %v",
 		dropletName, imageId)
@@ -104,7 +103,7 @@ func (c *Client) CachedDroplet(dropletName string, imageId uint) (uint, error) {
 		return 0, ErrCachedDropletInvalid
 	}
 
-	cacheName := CacheMachinePrefix + "-" + strconv.Itoa(int(imageId))
+	cacheName := c.CachePrefix + "-" + strconv.Itoa(int(imageId))
 	if !strings.Contains(cachedDroplet.Name, cacheName) {
 		return 0, fmt.Errorf("Found a cached droplet, but name seems to be wrong. Expecting %s, got %s",
 			cacheName, cachedDroplet.Name)
