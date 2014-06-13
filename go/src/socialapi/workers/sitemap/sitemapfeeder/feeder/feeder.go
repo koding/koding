@@ -1,18 +1,13 @@
 package feeder
 
 import (
-	"fmt"
-	"socialapi/config"
 	socialmodels "socialapi/models"
 	"socialapi/workers/helper"
+	"socialapi/workers/sitemap"
 	"socialapi/workers/sitemap/models"
 
 	"github.com/koding/logging"
 	"github.com/streadway/amqp"
-)
-
-const (
-	CACHEPREFIX = "sitemap"
 )
 
 type Controller struct {
@@ -114,7 +109,7 @@ func (f *Controller) queueItem(i *models.SitemapItem) error {
 	// fetch file name
 	n := f.nameFetcher.Fetch(i)
 	// prepare cache key
-	key := prepareFileCacheKey(n)
+	key := sitemap.PrepareFileCacheKey(fileName)
 	redisConn := helper.MustGetRedisConn()
 	value := i.PrepareSetValue()
 	if _, err := redisConn.AddSetMembers(key, value); err != nil {
@@ -122,12 +117,4 @@ func (f *Controller) queueItem(i *models.SitemapItem) error {
 	}
 
 	return nil
-}
-
-func prepareFileCacheKey(fileName string) string {
-	return fmt.Sprintf("%s:%s:%s",
-		config.Get().Environment,
-		CACHEPREFIX,
-		fileName,
-	)
 }
