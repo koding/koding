@@ -257,7 +257,28 @@ body.ide.dark
   font-size           13px
   .status
     margin-left       12px
+    fl()
     p
       display         inline-block
       &.line
         width         50px
+
+  .actions-button
+    abs()
+    pointer()
+    display           inline-block
+    right             2px
+    r-sprite          'ide', 'hamburger'
+
+.status-bar-menu
+  ul
+    bg                color, dark-tab-header-bg !important
+    padding           2px !important
+    rounded           0 !important
+  li
+    color             #E6E1DC !important
+    rounded           0 !important
+    &:hover
+      bg              color, dark-panel-bg !important
+    &.selected
+      bg              color, dark-panel-bg !important
