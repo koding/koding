@@ -42,9 +42,7 @@ func (k *Kloud) build(r *kite.Request, c *Controller) (interface{}, error) {
 
 		err := k.buildMachine(r.Username, c)
 		if err != nil {
-			k.Log.Error("[controller] building machine failed: %s. Machine state is marked as ERROR.\n"+
-				"Any other calls are now forbidden until the state is resolved manually.\n"+
-				"Args: %v User: %s EventId: %v ", err.Error(), c, r.Username, c.MachineId)
+			k.Log.Error("[controller] building machine failed: %s. Machine state is marked as UNKNOWN.", err.Error())
 
 			status = machinestate.Unknown
 			msg = err.Error()

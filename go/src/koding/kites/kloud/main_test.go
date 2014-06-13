@@ -41,39 +41,6 @@ var (
 
 	DIGITALOCEAN_CLIENT_ID = "2d314ba76e8965c451f62d7e6a4bc56f"
 	DIGITALOCEAN_API_KEY   = "4c88127b50c0c731aeb5129bdea06deb"
-
-	TestProviderData = map[string]*kloud.MachineData{
-		"digitalocean": &kloud.MachineData{
-			Provider: "digitalocean",
-			Credential: &kloud.Credential{
-				Meta: map[string]interface{}{
-					"clientId": DIGITALOCEAN_CLIENT_ID,
-					"apiKey":   DIGITALOCEAN_API_KEY,
-				},
-			},
-			Machine: &kloud.Machine{
-				Provider: "digitalocean",
-				Status: struct {
-					State      string    `bson:"state"`
-					ModifiedAt time.Time `bson:"modifiedAt"`
-				}{
-					State:      machinestate.NotInitialized.String(),
-					ModifiedAt: time.Now(),
-				},
-				Meta: map[string]interface{}{
-					"type":          "digitalocean",
-					"clientId":      DIGITALOCEAN_CLIENT_ID,
-					"apiKey":        DIGITALOCEAN_API_KEY,
-					"image":         "ubuntu-13-10-x64",
-					"region":        "sfo1",
-					"size":          "512mb",
-					"snapshot_name": "koding-{{timestamp}}",
-				},
-			},
-		},
-		"amazon-instance": nil,
-		"googlecompute":   nil,
-	}
 )
 
 func init() {
@@ -172,7 +139,7 @@ func build(i int, client *kite.Client, data *kloud.MachineData) error {
 	}
 
 	bArgs := &kloud.Controller{
-		MachineId:    data.Provider,
+		MachineId:    data.Provider + "_id" + strconv.Itoa(i),
 		InstanceName: instanceName,
 		ImageName:    imageName,
 	}
@@ -189,8 +156,6 @@ func build(i int, client *kite.Client, data *kloud.MachineData) error {
 		return err
 	}
 
-	fmt.Printf("result %+v\n", result)
-
 	eArgs := kloud.EventArgs([]kloud.EventArg{
 		kloud.EventArg{
 			EventId: bArgs.MachineId,
@@ -205,7 +170,7 @@ func build(i int, client *kite.Client, data *kloud.MachineData) error {
 
 	if *flagTestControl {
 		cArgs := &kloud.Controller{
-			MachineId: data.Provider,
+			MachineId: data.Provider + "_id" + strconv.Itoa(i),
 		}
 
 		type pair struct {
@@ -220,7 +185,10 @@ func build(i int, client *kite.Client, data *kloud.MachineData) error {
 		}
 
 		if !*flagTestNoDestroy {
-			methodPairs = append(methodPairs, pair{method: "destroy", desiredState: machinestate.Terminated})
+			methodPairs = append(methodPairs, pair{
+				method:       "destroy",
+				desiredState: machinestate.Terminated,
+			})
 		}
 
 		// do not change the order
@@ -248,6 +216,7 @@ func build(i int, client *kite.Client, data *kloud.MachineData) error {
 }
 
 func TestBuild(t *testing.T) {
+	t.SkipNow()
 	numberOfBuilds := *flagTestBuilds
 
 	for provider, data := range TestProviderData {
@@ -299,10 +268,10 @@ func TestRestart(t *testing.T) {
 }
 
 func TestMultiple(t *testing.T) {
-	t.Skip("To enable this test remove this line")
+	// t.Skip("To enable this test remove this line")
 
 	// number of clients that will query example kites
-	clientNumber := 10
+	clientNumber := 3
 
 	fmt.Printf("Creating %d clients\n", clientNumber)
 
@@ -320,28 +289,29 @@ func TestMultiple(t *testing.T) {
 			c := kite.New("client"+strconv.Itoa(i), "0.0.1")
 
 			clientsMu.Lock()
-			clientConf := conf.Copy()
-			// username := "testuser" + strconv.Itoa(i)
-			// clientConf.Username = username
+			clientConf := kloudKite.Config.Copy()
+			username := "testuser" + strconv.Itoa(i)
+			clientConf.Username = username
+
 			c.Config = clientConf
 			clientsMu.Unlock()
 
 			c.SetupKontrolClient()
 
 			kites, err := c.GetKites(protocol.KontrolQuery{
-				Username:    testuser,
+				Username:    "koding",
 				Environment: "vagrant",
 				Name:        "kloud",
 			})
 			if err != nil {
-				t.Error(err)
-				return
+
+				t.Fatal(err)
 			}
 
 			r := kites[0]
 
 			if err := r.Dial(); err != nil {
-				t.Error(err)
+				t.Fatal(err)
 			}
 
 			clientsMu.Lock()
@@ -358,36 +328,25 @@ func TestMultiple(t *testing.T) {
 
 	var wg sync.WaitGroup
 
-	// every one second
 	for i := 0; i < clientNumber; i++ {
 		wg.Add(1)
 
 		go func(i int) {
 			defer wg.Done()
 
-			time.Sleep(time.Millisecond * time.Duration(rand.Intn(500)))
+			clientsMu.Lock()
+			c := clients[i]
+			clientsMu.Unlock()
 
-			for provider, data := range TestProviderData {
-				if data == nil {
-					color.Yellow("==> %s skipping test. test data is not available.", provider)
-					continue
-				}
+			machineId := "digitalocean_id" + strconv.Itoa(i)
+			data, ok := TestProviderData[machineId]
+			if !ok {
+				t.Errorf("machineId '%s' is not available", machineId)
+				return
+			}
 
-				start := time.Now()
-
-				clientsMu.Lock()
-				c := clients[i]
-				clientsMu.Unlock()
-
-				err := build(i, c, data)
-				elapsedTime := time.Since(start)
-
-				if err != nil {
-					fmt.Printf("[%d] aborted, elapsed %f sec err: %s\n",
-						i, elapsedTime.Seconds(), err)
-				} else {
-					fmt.Printf("[%d] finished, elapsed %f sec\n", i, elapsedTime.Seconds())
-				}
+			if err := build(i, c, data); err != nil {
+				t.Error(err)
 			}
 		}(i)
 	}
