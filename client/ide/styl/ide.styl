@@ -271,6 +271,8 @@ body.ide.dark
     r-sprite          'ide', 'hamburger'
 
 .status-bar-menu
+  top                 inherit !important
+  bottom              34px
   ul
     bg                color, dark-tab-header-bg !important
     padding           2px !important
@@ -278,7 +280,11 @@ body.ide.dark
   li
     color             #E6E1DC !important
     rounded           0 !important
+    padding-left      15px !important
     &:hover
       bg              color, dark-panel-bg !important
     &.selected
       bg              color, dark-panel-bg !important
+    &.separator
+      border-bottom   1px solid dark-panel-bg !important
+      margin          1px 14px 1px 15px !important

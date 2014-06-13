@@ -21,12 +21,14 @@ class IDE.StatusBar extends KDView
 
 class IDE.StatusBarMenu extends KDContextMenu
 
-  constructor: (options = {}, data) ->
+  constructor: (options = {}) ->
 
+    menuItems        = @getMenuItems options.paneType
+    {delegate}       = options
+    options.x        = delegate.getX()
     options.cssClass = 'status-bar-menu'
-    data = @getMenuItems options.paneType
 
-    super options, data
+    super options, menuItems
 
     @on 'ContextMenuItemReceivedClick', @bound 'destroy'
 
