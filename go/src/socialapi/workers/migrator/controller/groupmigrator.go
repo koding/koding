@@ -22,6 +22,8 @@ func (mwc *Controller) migrateAllGroups() error {
 	}
 
 	iter := modelhelper.GetGroupIter(s)
+	defer iter.Close()
+
 	var group mongomodels.Group
 	for iter.Next(&group) {
 		c, err := mwc.createGroupChannel(group.Slug)
