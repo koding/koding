@@ -245,6 +245,12 @@ messageById = (data, callback)->
   url = "/message/#{data.id}"
   get url, data, callback
 
+messageBySlug = (data, callback)->
+  if not data.slug
+    return callback { message: "slug should be set"}
+  url = "/message/slug/#{data.slug}"
+  get url, data, callback
+
 channelById = (data, callback)->
   if not data.id
     return callback { message: "id should be set"}
@@ -295,6 +301,7 @@ get = (url, data, callback)->
     , wrapCallback callback
 
 module.exports = {
+  messageBySlug
   checkChannelParticipation
   messageById
   channelById
