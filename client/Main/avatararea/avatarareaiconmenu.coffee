@@ -6,8 +6,11 @@ class AvatarAreaIconMenu extends JView
 
     @setClass "account-menu"
 
-    @helpIcon    = new AvatarAreaIconLink
+    @helpIcon    = new CustomLinkView
+      title      : ''
       cssClass   : "help acc-dropdown-icon"
+      icon       :
+        cssClass : 'icon'
       attributes :
         title    : 'Help'
         href     : 'http://learn.koding.com'
