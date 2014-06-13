@@ -8,7 +8,6 @@ import (
 	"koding/kites/kloud/kloud/machinestate"
 	"koding/kites/kloud/kloud/protocol"
 	"koding/kites/kloud/packer"
-	"koding/kites/kloud/pool"
 	"koding/kites/kloud/sshutil"
 	"koding/kites/kloud/utils"
 	"strconv"
@@ -27,7 +26,7 @@ type Client struct {
 	Log      logging.Logger
 	Push     func(string, int, machinestate.State)
 	SignFunc func(string) (string, string, error)
-	Pool     *pool.Pool
+	Caching  bool
 
 	sync.Once
 }
@@ -54,7 +53,14 @@ func (c *Client) Build(snapshotName, dropletName, username string) (*protocol.Bu
 		}
 	}
 
-	droplet, err := c.DropletWithKey(dropletName, image.Id)
+	dropletId, err := c.GetDroplet(dropletName, image.Id)
+	if err != nil {
+		return nil, err
+	}
+
+	// our droplet has now an IP adress, get it
+	c.Push(fmt.Sprintf("Getting info about droplet"), 60, machinestate.Building)
+	droplet, err := c.ShowDroplet(dropletId)
 	if err != nil {
 		return nil, err
 	}
@@ -234,7 +240,7 @@ func (c *Client) Info() (*protocol.InfoResponse, error) {
 		return nil, err
 	}
 
-	droplet, err := c.DropletInfo(dropletId)
+	droplet, err := c.ShowDroplet(dropletId)
 	if err != nil {
 		return nil, err
 	}
@@ -278,11 +284,11 @@ func (c *Client) WaitUntilReady(eventId, from, to int, state machinestate.State)
 	}
 }
 
-func (c *Client) DropletWithKey(dropletName string, imageId uint) (dro *do.Droplet, err error) {
+func (c *Client) NewDroplet(dropletName string, imageId uint) (dropletId uint, err error) {
 	// The name of the public key on DO
 	keys, err := c.Keys()
 	if err != nil {
-		return nil, err
+		return 0, err
 	}
 
 	var keyId uint
@@ -290,14 +296,14 @@ func (c *Client) DropletWithKey(dropletName string, imageId uint) (dro *do.Dropl
 	if keyId == 0 {
 		keyId, err = c.CreateKey(keyName, publicKey)
 		if err != nil {
-			return nil, err
+			return 0, err
 		}
 	}
 
 	c.Push(fmt.Sprintf("Creating droplet %s", dropletName), 20, machinestate.Building)
 	dropletInfo, err := c.CreateDroplet(dropletName, keyId, imageId)
 	if err != nil {
-		return nil, err
+		return 0, err
 	}
 	c.Builder.DropletId = strconv.Itoa(dropletInfo.Droplet.Id)
 
@@ -321,27 +327,10 @@ func (c *Client) DropletWithKey(dropletName string, imageId uint) (dro *do.Dropl
 	// but we also add a timeout  of five minutes to not let stuck it there
 	// forever.
 	if err := c.WaitUntilReady(dropletInfo.Droplet.EventId, 25, 59, machinestate.Building); err != nil {
-		return nil, err
-	}
-
-	// our droplet has now an IP adress, get it
-	c.Push(fmt.Sprintf("Getting info about droplet"), 60, machinestate.Building)
-	droplet, err := c.DropletInfo(uint(dropletInfo.Droplet.Id))
-	if err != nil {
-		return nil, err
-	}
-
-	return droplet, nil
-}
-
-func (c *Client) NumberOfDroplets(filter string) (int, error) {
-	droplets, err := c.Droplets()
-	if err != nil {
 		return 0, err
 	}
 
-	droplets = droplets.Filter(filter)
-	return len(droplets), nil
+	return uint(dropletInfo.Droplet.Id), nil
 }
 
 // statusToState converts a digitalocean status to a sensible

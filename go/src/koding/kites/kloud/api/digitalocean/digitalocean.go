@@ -4,7 +4,6 @@ import (
 	"errors"
 	"fmt"
 	"net/url"
-	"strconv"
 
 	"github.com/mitchellh/mapstructure"
 	"github.com/mitchellh/packer/builder/digitalocean"
@@ -100,56 +99,6 @@ func (d *DigitalOcean) CheckEvent(eventId int) (*Event, error) {
 	return event, nil
 }
 
-// CreateDroplet creates a new droplet with a hostname, key and image_id. It
-// returns back the dropletInfo.
-func (d *DigitalOcean) CreateDroplet(hostname string, keyId, image_id uint) (*DropletInfo, error) {
-	params := url.Values{}
-	params.Set("name", hostname)
-
-	found_size, err := d.Client.Size(d.Builder.Size)
-	if err != nil {
-		return nil, fmt.Errorf("Invalid size or lookup failure: '%s': %s", d.Builder.Size, err)
-	}
-
-	found_region, err := d.Client.Region(d.Builder.Region)
-	if err != nil {
-		return nil, fmt.Errorf("Invalid region or lookup failure: '%s': %s", d.Builder.Region, err)
-	}
-
-	params.Set("size_slug", found_size.Slug)
-	params.Set("image_id", strconv.Itoa(int(image_id)))
-	params.Set("region_slug", found_region.Slug)
-	params.Set("ssh_key_ids", fmt.Sprintf("%v", keyId))
-	params.Set("private_networking", fmt.Sprintf("%v", d.Builder.PrivateNetworking))
-
-	body, err := digitalocean.NewRequest(*d.Client, "droplets/new", params)
-	if err != nil {
-		return nil, err
-	}
-
-	info := &DropletInfo{}
-	if err := mapstructure.Decode(body, info); err != nil {
-		return nil, err
-	}
-
-	return info, nil
-}
-
-// Droplets returns a slice of all Droplets.
-func (d *DigitalOcean) Droplets() (Droplets, error) {
-	resp, err := digitalocean.NewRequest(*d.Client, "droplets", url.Values{})
-	if err != nil {
-		return nil, err
-	}
-
-	var result DropletsResp
-	if err := mapstructure.Decode(resp, &result); err != nil {
-		return nil, err
-	}
-
-	return result.Droplets, nil
-}
-
 // Image returns a single image based on the given snaphot name, slug or id. It
 // checks for each occurency and returns for the first match.
 func (d *DigitalOcean) Image(slug_or_name_or_id string) (digitalocean.Image, error) {
@@ -189,26 +138,6 @@ func (d *DigitalOcean) Regions() ([]digitalocean.Region, error) {
 // CreateSnapshot cretes a new snapshot with the name from the given droplet Id.
 func (d *DigitalOcean) CreateSnapshot(dropletId uint, name string) error {
 	return d.Client.CreateSnapshot(dropletId, name)
-}
-
-func (d *DigitalOcean) DropletInfo(dropletId uint) (*Droplet, error) {
-	path := fmt.Sprintf("droplets/%v", dropletId)
-	resp, err := digitalocean.NewRequest(*d.Client, path, url.Values{})
-	if err != nil {
-		return nil, err
-	}
-
-	droplet, ok := resp["droplet"].(map[string]interface{})
-	if !ok {
-		return nil, fmt.Errorf("malformed data received %v", resp)
-	}
-
-	var result Droplet
-	if err := mapstructure.Decode(droplet, &result); err != nil {
-		return nil, err
-	}
-
-	return &result, err
 }
 
 func (d *DigitalOcean) Rename(dropletId uint, newName string) (int, error) {
@@ -266,23 +195,6 @@ func (d *DigitalOcean) Shutdown(dropletId uint) (int, error) {
 // back to track the event.
 func (d *DigitalOcean) Reboot(dropletId uint) (int, error) {
 	path := fmt.Sprintf("droplets/%v/reboot", dropletId)
-	body, err := digitalocean.NewRequest(*d.Client, path, url.Values{})
-	if err != nil {
-		return 0, err
-	}
-
-	eventId, ok := body["event_id"].(float64)
-	if !ok {
-		return 0, fmt.Errorf("restart malformed data %v", body)
-	}
-
-	return int(eventId), nil
-}
-
-// Destroy destroy the machine for the given dropletID and returns the eventId
-// back to track the event.
-func (d *DigitalOcean) DestroyDroplet(dropletId uint) (int, error) {
-	path := fmt.Sprintf("droplets/%v/destroy", dropletId)
 	body, err := digitalocean.NewRequest(*d.Client, path, url.Values{})
 	if err != nil {
 		return 0, err

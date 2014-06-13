@@ -6,7 +6,6 @@ import (
 	"koding/kites/kloud/eventer"
 	"koding/kites/kloud/kloud/machinestate"
 	"koding/kites/kloud/kloud/protocol"
-	"koding/kites/kloud/pool"
 
 	"github.com/koding/logging"
 )
@@ -48,27 +47,7 @@ func (p *Provider) NewClient(opts *protocol.MachineOptions) (*Client, error) {
 		Push:     push,
 		Log:      p.Log,
 		SignFunc: p.SignFunc,
-	}
-
-	// TODO: make this settable, not everyone want's a cache or has the ability
-	// to create machines upfront
-	if p.PoolEnabled {
-		// TODO: name should be in the form of "koding-cache-username-..."
-		n, err := c.NumberOfDroplets("koding-cache-*")
-		if err != nil {
-			return nil, err
-		}
-
-		// there are already some droplets in DigitalOcean, therefore do not
-		// create more droplets that the predefined pool size
-		initialCap := PoolSize - n
-
-		pool, err := pool.NewPool(initialCap, PoolSize, &DoFactory{client: c})
-		if err != nil {
-			return nil, err
-		}
-
-		c.Pool = pool
+		Caching:  true,
 	}
 
 	p.Push = push
