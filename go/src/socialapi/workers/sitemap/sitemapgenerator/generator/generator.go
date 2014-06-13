@@ -158,13 +158,15 @@ func (c *Controller) updateFile(container *models.ItemContainer, set *models.Ite
 	}
 	res = append(header, res...)
 
-	c.write(res)
+	c.MustWrite(res)
 
 	return nil
 }
 
-func (c *Controller) write(input []byte) {
-	output, err := os.Create(c.fileName)
+func (c *Controller) MustWrite(input []byte) {
+	n := fmt.Sprintf("%s.xml", c.fileName)
+
+	output, err := os.Create(n)
 	if err != nil {
 		panic(err)
 	}
