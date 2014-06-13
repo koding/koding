@@ -36,10 +36,16 @@ class IDE.StatusBarMenu extends KDContextMenu
     appManager = KD.getSingleton 'appManager'
     items      = {}
 
-    items.Shortcuts  = callback: -> appManager.tell 'IDE', 'showShortcutsView'
-    items.Feedback   = callback: -> appManager.tell 'IDE', 'showFeedbackView'
-    items.Contribute = callback: -> appManager.tell 'IDE', 'showContributeView'
-    items.Quit       = callback: ->
+    if paneType is 'editor'
+      items.Save            = callback: -> appManager.tell 'IDE', 'saveFile'
+      items['Save All']     =
+        callback            : -> appManager.tell 'IDE', 'saveAllFiles'
+        separator           : yes
+
+    items['Show Shortcuts'] = callback: -> appManager.tell 'IDE', 'showShortcutsView'
+    items.Feedback          = callback: -> appManager.tell 'IDE', 'showFeedbackView'
+    items.Contribute        = callback: -> appManager.tell 'IDE', 'showContributeView'
+    items.Quit              = callback: ->
       appManager.quitByName 'IDE'
       KD.getSingleton('router').handleRoute '/Activity'
 
