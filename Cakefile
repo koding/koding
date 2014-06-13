@@ -45,15 +45,15 @@ addFlags = (options)->
   flags += " -v" if options.verbose
   return flags
 
-compileGoBinaries = (configFile, callback = ->)->
+compileGoBinaries = (options, callback = ->)->
 
   ###
   #   TBD - CHECK FOR ERRORS
   ###
 
-  config = require('koding-config-manager').load("main.#{configFile}")
+  KONFIG = require('koding-config-manager').load("main.#{options.configFile}")
 
-  if config.compileGo
+  if KONFIG.compileGo
 
     processes.spawn
       name    : 'build go'
@@ -62,9 +62,7 @@ compileGoBinaries = (configFile, callback = ->)->
       stderr  : process.stderr
       verbose : yes
       onExit  :->
-        if configFile.region is 'kodingme'
-          callback null
-        else
+        if options.configFile is 'vagrant'
           processes.spawn
             name    : 'build go in vagrant'
             cmd     : "vagrant ssh default --command '/opt/koding/go/build.sh bin-vagrant'"
@@ -72,9 +70,9 @@ compileGoBinaries = (configFile, callback = ->)->
             stderr  : process.stderr
             verbose : yes
             onExit  : -> callback null
-
+        else
+          callback null
   else
-
     callback null
 
 
@@ -730,7 +728,7 @@ buildEverything = (options, callback = ->)->
   ,
     -> importDB options, -> queue.next()
   ,
-    -> compileGoBinaries options.configFile, -> queue.next()
+    -> compileGoBinaries options, -> queue.next()
   ,
     -> callback null
   ]
