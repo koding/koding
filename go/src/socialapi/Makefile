@@ -57,6 +57,10 @@ migrate:
 	@echo "$(OK_COLOR)==> Running Popular Posts Worker $(NO_COLOR)"
 	@$(GOBINDIR)/rerun socialapi/workers/migrator -c $(CONFIG) -d
 
+sitemapfeederdev:
+	@echo "$(OK_COLOR)==> Running Sitemap Feeder Worker $(NO_COLOR)"
+	@$(GOBINDIR)/rerun socialapi/workers/sitemap/sitemapfeeder -c $(CONFIG) -d
+
 PACKAGES = \
 	socialapi/workers/api \
 	socialapi/workers/emailnotifier \
@@ -66,7 +70,8 @@ PACKAGES = \
 	socialapi/workers/populartopic \
 	socialapi/workers/realtime \
 	socialapi/workers/topicfeed \
-	socialapi/workers/migrator
+	socialapi/workers/migrator \
+	socialapi/workers/sitemap/sitemapfeeder
 
 default: all
 

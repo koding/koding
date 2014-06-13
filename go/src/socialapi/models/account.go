@@ -16,6 +16,9 @@ type Account struct {
 	// perisisted in mongo
 	// mongo ids has 24 char
 	OldId string `json:"oldId"      sql:"NOT NULL;UNIQUE;TYPE:VARCHAR(24);"`
+
+	// unique account nicknames
+	Nick string `json:"nick"        sql:"NOT NULL;UNIQUE;TYPE:VARCHAR(25);`
 }
 
 func NewAccount() *Account {
@@ -41,6 +44,10 @@ func (a *Account) ById(id int64) error {
 func (a *Account) FetchOrCreate() error {
 	if a.OldId == "" {
 		return errors.New("old id is not set")
+	}
+
+	if a.Nick == "" {
+		return errors.New("nick is not set")
 	}
 
 	selector := map[string]interface{}{
