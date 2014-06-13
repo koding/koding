@@ -78,6 +78,16 @@ body.ide.dark
       >.pane
         overflow        visible
 
+  .kdselectbox
+    bg                  color, transparent
+    border              1px solid #555555
+    rounded             3px
+    width               120px
+    borderBox()
+    .arrows
+      r-sprite          'finder', 'expanded'
+      top               8px
+
 
 // sidebar icons
 .ide-files-tab
@@ -200,15 +210,6 @@ body.ide.dark
         bg              color, text-color-green
       &.off
         bg              color, dark-tab-header-bg
-  .kdselectbox
-    bg                  color, transparent
-    border              1px solid #555555
-    rounded             3px
-    width               120px
-    borderBox()
-    .arrows
-      r-sprite          'finder', 'expanded'
-      top               8px
 
 // key mappings
 .key-mappings
