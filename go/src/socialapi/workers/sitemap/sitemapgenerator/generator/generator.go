@@ -24,7 +24,6 @@ type Controller struct {
 const (
 	// TODO change this later
 	// SCHEDULE = "0 0-59/15 * * * *"
-	CACHEPREFIX = "sitemap"
 	SCHEDULE    = "* * * * * *"
 )
 
@@ -190,12 +189,4 @@ func (c *Controller) write(input []byte) {
 		panic(err)
 	}
 
-}
-
-func (c *Controller) prepareCacheKey() string {
-	return fmt.Sprintf("%s:%s:%s",
-		config.Get().Environment,
-		CACHEPREFIX,
-		c.fileName,
-	)
 }
