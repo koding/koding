@@ -72,17 +72,15 @@ class PrivateMessageModal extends KDModalViewWithForms
 
       return KD.showError err  if err
 
-      [channel] = channels
-      @getDelegate()._lastMessage = null
+      [channel]            = channels
+      appView              = @getDelegate()
+      {sidebar}            = appView
+      appView._lastMessage = null
 
-      notificationController.emit 'AddedToChannel', channel
+      sidebar.addToChannel channel
+      router.handleRoute "/Activity/Message/#{channel.id}"
 
-      # fixme:
-      # can't navigate to newly created conversation
-      # temporary fixed with a timeout
-      KD.utils.wait 1000, =>
-        router.handleRoute "/Activity/Message/#{channel.id}"
-        @destroy()
+      @destroy()
 
 
   createUserAutoComplete: ->
