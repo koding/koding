@@ -8,6 +8,7 @@ class PrivateMessageModal extends KDModalViewWithForms
     options.overlay   ?= yes
     options.width     ?= 660
     options.height   or= 'auto'
+    options.arrowTop or= no
     options.tabs     or=
       forms            :
         Message        :
@@ -50,6 +51,13 @@ class PrivateMessageModal extends KDModalViewWithForms
     @modalTabs.forms.Message.inputs.recipient.addSubView @chatHeads
 
     @createUserAutoComplete()
+
+    if @getOption 'arrowTop'
+      @addSubView (new KDCustomHTMLView
+        cssClass : 'modal-arrow'
+        position :
+          top    : @getOption 'arrowTop'
+      ), 'kdmodal-inner'
 
 
   submitMessage : ->
