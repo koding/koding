@@ -23,8 +23,7 @@ type Controller struct {
 
 const (
 	// TODO change this later
-	// SCHEDULE = "0 0-59/15 * * * *"
-	SCHEDULE    = "* * * * * *"
+	SCHEDULE = "0 0-59/30 * * * *"
 )
 
 var (
@@ -34,9 +33,8 @@ var (
 func New(log logging.Logger) (*Controller, error) {
 	c := &Controller{
 		log:          log,
-		fileSelector: SimpleFileSelector{},
+		fileSelector: CachedFileSelector{},
 	}
-	c.generate()
 
 	return c, nil
 }
@@ -56,25 +54,37 @@ func (c *Controller) Shutdown() {
 }
 
 func (c *Controller) generate() {
-	c.fileName = c.fileSelector.Select()
+	for {
+		name, err := c.fileSelector.Select()
+		if err != nil {
+			c.log.Error("Could not fetch file name: %s", err)
+			return
+		}
+		c.log.Info("Updating sitemap: %s", name)
+		// there is not any waiting sitemap updates
+		if name == "" {
+			return
+		}
 
-	els, err := c.fetchElements()
-	if err != nil {
-		c.log.Error("Could not fetch updated elements: %s", err)
-		return
-	}
+		c.fileName = name
 
-	container := c.buildContainer(els)
+		els, err := c.fetchElements()
+		if err != nil {
+			c.log.Error("Could not fetch updated elements: %s", err)
+			return
+		}
 
-	// TODO fetch current file and unmarshall data
-	s, err := c.getCurrentSet()
-	if err != nil {
-		c.log.Error("Could not get current set: %s", err)
-		return
-	}
+		container := c.buildContainer(els)
 
-	if err := c.updateFile(container, s); err != nil {
-		c.log.Error("Could not update file: %s", err)
+		s, err := c.getCurrentSet()
+		if err != nil {
+			c.log.Error("Could not get current set: %s", err)
+			return
+		}
+
+		if err := c.updateFile(container, s); err != nil {
+			c.log.Error("Could not update file: %s", err)
+		}
 	}
 }
 
