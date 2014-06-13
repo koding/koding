@@ -4,6 +4,7 @@ class CommentListViewController extends KDListViewController
 
     options.viewOptions =
       type              : 'comments'
+      dataPath          : 'id'
       itemClass         : CommentListItemView
       itemOptions       :
         delegate        : this
