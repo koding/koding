@@ -43,7 +43,8 @@ class IDE.StatusBarMenu extends KDContextMenu
         separator           : yes
 
     items['Show Shortcuts'] = callback: -> appManager.tell 'IDE', 'showShortcutsView'
-    items.Contribute        = callback: -> appManager.tell 'IDE', 'showContributeView'
+    items.Contribute        = callback: ->
+      KD.utils.createExternalLink 'https://github.com/koding/IDE'
     items.Quit              = callback: ->
       appManager.quitByName 'IDE'
       KD.getSingleton('router').handleRoute '/Activity'
