@@ -9,6 +9,7 @@ import (
 	"reflect"
 	"socialapi/models"
 	"strings"
+	"time"
 
 	"github.com/VerbalExpressions/GoVerbalExpressions"
 	"github.com/koding/logging"
@@ -320,8 +321,9 @@ func mapCommentToChannelMessage(c *mongomodels.Comment) *models.ChannelMessage {
 }
 
 func prepareMessageMetaDates(cm *models.ChannelMessage, meta *mongomodels.Meta) {
-	// this is added because status update->modified at field is before createdAt
-	if cm.CreatedAt.After(meta.ModifiedAt) {
+	lowerLimit := cm.CreatedAt.Add(-time.Second)
+	upperLimit := cm.CreatedAt.Add(time.Second)
+	if meta.ModifiedAt.After(lowerLimit) && meta.ModifiedAt.Before(upperLimit) {
 		cm.UpdatedAt = cm.CreatedAt
 	} else {
 		cm.UpdatedAt = meta.ModifiedAt
