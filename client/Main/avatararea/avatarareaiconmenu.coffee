@@ -10,10 +10,12 @@ class AvatarAreaIconMenu extends JView
       cssClass   : "help acc-dropdown-icon"
       attributes :
         title    : 'Help'
+        href     : 'http://learn.koding.com'
+        target   : '_blank'
 
-    @helpIcon.click = (event)=>
-      window.open "http://learn.koding.com"
-      KD.utils.stopDOMEvent event
+    # @helpIcon.click = (event)=>
+      # window.open "http://learn.koding.com"
+      # KD.utils.stopDOMEvent event
 
       # We disabled this feature since '?' relies on vm to be up for
       # certain items to show properly. SA
