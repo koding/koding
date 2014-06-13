@@ -382,7 +382,7 @@ func setupKloud() *kodingkite.KodingKite {
 	privateKey := string(privKey)
 
 	kloudRaw = &kloud.Kloud{
-		Region:            "vagrant",
+		Region:            "localhost",
 		Port:              3636,
 		Config:            kloudConf,
 		Storage:           &TestStorage{},

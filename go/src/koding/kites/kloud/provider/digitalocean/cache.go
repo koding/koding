@@ -140,7 +140,12 @@ func (c *Client) GetDroplet(dropletName string, imageId uint) (uint, error) {
 				return
 			}
 
-			c.CreateCachedDroplet(image.Id)
+			err = c.CreateCachedDroplet(image.Id)
+			if err != nil {
+				c.Log.Error("couldn't create a cache droplet %s, err: %s",
+					protocol.DefaultImageName, err)
+			}
+
 		}()
 
 		// Create a new one and return.
