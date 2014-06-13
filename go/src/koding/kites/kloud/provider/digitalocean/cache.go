@@ -3,6 +3,7 @@ package digitalocean
 import (
 	"errors"
 	"fmt"
+	"koding/kites/kloud/kloud/machinestate"
 	"koding/kites/kloud/kloud/protocol"
 	"strconv"
 	"strings"
@@ -11,13 +12,13 @@ import (
 	"github.com/garyburd/redigo/redis"
 )
 
-var (
-	ErrNoCachedDroplets = errors.New("No cached machines available.")
+const (
+	CacheRedisSetName = "digitalocean"
 )
 
-const (
-	CacheMachinePrefix = "koding-cache"
-	CacheRedisSetName  = "digitalocean"
+var (
+	ErrNoCachedDroplets     = errors.New("No cached machines available.")
+	ErrCachedDropletInvalid = errors.New("Cached machine has an invalid status.")
 )
 
 // UpdateCachedDroplets is syncronizing the cached Droplets with Redis
@@ -27,7 +28,7 @@ func (c *Client) UpdateCachedDroplets(imageId uint) error {
 		return err
 	}
 
-	cachedDroplets := droplets.Filter(CacheMachinePrefix + "-" + strconv.Itoa(int(imageId)))
+	cachedDroplets := droplets.Filter(c.CachePrefix + "-" + strconv.Itoa(int(imageId)))
 	c.Log.Info("Found %d cached droplets. Updating data with redis", cachedDroplets.Len())
 
 	dropletIds := make([]interface{}, 0)
@@ -44,13 +45,9 @@ func (c *Client) UpdateCachedDroplets(imageId uint) error {
 		return nil
 	}
 
-	saddParams := []interface{}{c.Redis.AddPrefix(CacheRedisSetName)}
-	saddParams = append(saddParams, dropletIds...)
-
 	c.Redis.Send("MULTI")
 	c.Redis.Send("DEL", c.Redis.AddPrefix(CacheRedisSetName))
-	c.Redis.Send("SADD", saddParams)
-	// c.Redis.Send("SADD", redis.Args{}.Add(c.Redis.AddPrefix(CacheRedisSetName)).Add(dropletIds...)...)
+	c.Redis.Send("SADD", redis.Args{c.Redis.AddPrefix(CacheRedisSetName)}.Add(dropletIds...)...)
 	_, err = c.Redis.Do("EXEC")
 	return err
 }
@@ -60,7 +57,7 @@ func (c *Client) UpdateCachedDroplets(imageId uint) error {
 // of the created machine.
 func (c *Client) CreateCachedDroplet(imageId uint) error {
 	timeStamp := strconv.FormatInt(time.Now().UTC().UnixNano(), 10)
-	dropletName := CacheMachinePrefix + "-" + strconv.Itoa(int(imageId)) + "-" + timeStamp
+	dropletName := c.CachePrefix + "-" + strconv.Itoa(int(imageId)) + "-" + timeStamp
 
 	c.Log.Info("Creating a cached Droplet with name '%s' based on image id: %v",
 		dropletName, imageId)
@@ -94,13 +91,19 @@ func (c *Client) CachedDroplet(dropletName string, imageId uint) (uint, error) {
 	c.Log.Info("Fetched cached Droplet id %v", dropletId)
 
 	// also test if the given dropletId is still existing in digitalOcean
-	c.Log.Info("Checking if droplet '%s' is valid.", dropletId)
+	c.Log.Info("Checking if droplet '%v' is valid.", dropletId)
 	cachedDroplet, err := c.ShowDroplet(uint(dropletId))
 	if err != nil {
 		return 0, err
 	}
+	fmt.Printf("cachedDroplet %+v\n", cachedDroplet)
 
-	cacheName := CacheMachinePrefix + "-" + strconv.Itoa(int(imageId))
+	if statusToState(cachedDroplet.Status) != machinestate.Running {
+		c.Log.Info("Cached droplet is not active, current status: '%s'", cachedDroplet.Status)
+		return 0, ErrCachedDropletInvalid
+	}
+
+	cacheName := c.CachePrefix + "-" + strconv.Itoa(int(imageId))
 	if !strings.Contains(cachedDroplet.Name, cacheName) {
 		return 0, fmt.Errorf("Found a cached droplet, but name seems to be wrong. Expecting %s, got %s",
 			cacheName, cachedDroplet.Name)
@@ -125,7 +128,7 @@ func (c *Client) GetDroplet(dropletName string, imageId uint) (uint, error) {
 		return dropletId, nil
 	}
 
-	if err == ErrNoCachedDroplets {
+	if err == ErrNoCachedDroplets || err == ErrCachedDropletInvalid {
 		c.Log.Info("No cached Droplets are available for image id: %v", imageId)
 		// TODO: for now just create one whenever we got one in the backend, we
 		// will handle this dynamically in the future

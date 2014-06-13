@@ -216,30 +216,33 @@ func build(i int, client *kite.Client, data *kloud.MachineData) error {
 }
 
 func TestBuild(t *testing.T) {
-	t.SkipNow()
+	// t.SkipNow()
 	numberOfBuilds := *flagTestBuilds
 
-	for provider, data := range TestProviderData {
-		if data == nil {
-			color.Yellow("==> %s skipping test. test data is not available.", provider)
-			continue
-		}
-
-		var wg sync.WaitGroup
-		for i := 0; i < numberOfBuilds; i++ {
-			wg.Add(1)
-
-			go func(i int) {
-				defer wg.Done()
-				time.Sleep(time.Millisecond * time.Duration(rand.Intn(2500))) // wait 0-2500 milliseconds
-				if err := build(i, remote, data); err != nil {
-					t.Error(err)
-				}
-			}(i)
-		}
-
-		wg.Wait()
+	if numberOfBuilds > 4 {
+		t.Fatal("number of builds should be equal or less than 3")
 	}
+
+	var wg sync.WaitGroup
+	for i := 0; i < numberOfBuilds; i++ {
+		wg.Add(1)
+
+		go func(i int) {
+			defer wg.Done()
+			machineId := "digitalocean_id" + strconv.Itoa(i)
+			data, ok := TestProviderData[machineId]
+			if !ok {
+				t.Errorf("machineId '%s' is not available", machineId)
+				return
+			}
+
+			if err := build(i, remote, data); err != nil {
+				t.Error(err)
+			}
+		}(i)
+	}
+
+	wg.Wait()
 }
 
 func TestRestart(t *testing.T) {
@@ -268,7 +271,7 @@ func TestRestart(t *testing.T) {
 }
 
 func TestMultiple(t *testing.T) {
-	// t.Skip("To enable this test remove this line")
+	t.Skip("To enable this test remove this line")
 
 	// number of clients that will query example kites
 	clientNumber := 3

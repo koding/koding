@@ -130,9 +130,11 @@ func (k *Kloud) InitializeProviders() {
 
 	providers = map[string]protocol.Provider{
 		"digitalocean": &digitalocean.Provider{
-			Log:      createLogger("digitalocean", k.Debug),
-			SignFunc: k.SignFunc,
-			Redis:    r,
+			Log:         createLogger("digitalocean", k.Debug),
+			SignFunc:    k.SignFunc,
+			Redis:       r,
+			Region:      k.Region,
+			Environment: k.Config.Environment,
 		},
 	}
 }
