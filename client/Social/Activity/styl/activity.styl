@@ -1605,6 +1605,23 @@ body.group.members
   border          1px solid #c1c1c1
   shadow          0 0 29px rgba(0,0,0,.33)
 
+  .modal-arrow
+    size          0, 0
+    right         100%
+    border        10px solid transparent
+    border-right-color #c1c1c1
+    z-index       10
+
+    &:before
+      z-index       9
+      content       ''
+      display       block
+      size          0, 0
+      abs           -10px 0 0 -9px
+      border        10px solid transparent
+      border-right-color #e9e9e9
+
+
   .kdmodal-inner
     margin        31px
     bg            color transparent
