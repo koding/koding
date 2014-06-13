@@ -22,11 +22,11 @@ func main() {
 	redisConn := helper.MustInitRedisConn(r.Conf.Redis)
 	defer redisConn.Close()
 
-	handler, err := generator.New(r.Log)
+	controller, err := generator.New(r.Log)
 	if err != nil {
 		r.Log.Error("Could not create sitemap generator: %s", err)
 	}
 
-	r.ShutdownHandler = handler.Shutdown
+	r.ShutdownHandler = controller.Shutdown
 	r.Wait()
 }
