@@ -38,7 +38,7 @@ do ->
       handleChannel null, null, (app) -> app.getView().showNewMessageModal()
 
     '/:name?/Activity/Topic/All' : ({params:{name, slug}, query}) ->
-      handleChannel null, null, (app) -> app.getView().showAllTopics()
+      handleChannel null, null, (app) -> app.getView().showAllTopicsModal()
 
     '/:name?/Activity/Post/All' : ({params:{name, slug}, query}) ->
       handleChannel null, null, (app) -> app.getView().showAllPosts()

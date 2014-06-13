@@ -118,3 +118,12 @@ class ActivityAppView extends KDScrollView
       _lastMessage : @_lastMessage
 
     return modal
+
+
+  showAllTopicsModal: ->
+
+    @open 'public'  unless @tabs.getActivePane()
+
+    return new YourTopicsModal delegate : this
+
+
