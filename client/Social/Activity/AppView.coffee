@@ -64,7 +64,11 @@ class ActivityAppView extends KDScrollView
       kallback item.getData()
 
     else if not item
-      socialapi.cacheable type, slug, (err, data) ->
+      type_ = switch type
+        when 'message' then 'privatemessage'
+        else type
+
+      socialapi.cacheable type_, slug, (err, data) ->
         if err then router.handleNotFound router.getCurrentPath()
         else
           notificationController.emit 'AddedToChannel', data
