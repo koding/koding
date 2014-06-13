@@ -43,6 +43,10 @@ func New(log logging.Logger) (*Controller, error) {
 }
 
 func (mwc *Controller) Start() error {
+	if err := mwc.migrateAllAccounts(); err != nil {
+		return err
+	}
+
 	if err := mwc.migrateAllGroups(); err != nil {
 		return err
 	}
