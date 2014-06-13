@@ -3,6 +3,7 @@ package digitalocean
 import (
 	"errors"
 	"fmt"
+	"koding/kites/kloud/kloud/machinestate"
 	"koding/kites/kloud/kloud/protocol"
 	"strconv"
 	"strings"
@@ -12,7 +13,8 @@ import (
 )
 
 var (
-	ErrNoCachedDroplets = errors.New("No cached machines available.")
+	ErrNoCachedDroplets     = errors.New("No cached machines available.")
+	ErrCachedDropletInvalid = errors.New("Cached machine has an invalid status.")
 )
 
 const (
@@ -90,10 +92,16 @@ func (c *Client) CachedDroplet(dropletName string, imageId uint) (uint, error) {
 	c.Log.Info("Fetched cached Droplet id %v", dropletId)
 
 	// also test if the given dropletId is still existing in digitalOcean
-	c.Log.Info("Checking if droplet '%s' is valid.", dropletId)
+	c.Log.Info("Checking if droplet '%v' is valid.", dropletId)
 	cachedDroplet, err := c.ShowDroplet(uint(dropletId))
 	if err != nil {
 		return 0, err
+	}
+	fmt.Printf("cachedDroplet %+v\n", cachedDroplet)
+
+	if statusToState(cachedDroplet.Status) != machinestate.Running {
+		c.Log.Info("Cached droplet is not active, current status: '%s'", cachedDroplet.Status)
+		return 0, ErrCachedDropletInvalid
 	}
 
 	cacheName := CacheMachinePrefix + "-" + strconv.Itoa(int(imageId))
@@ -121,7 +129,7 @@ func (c *Client) GetDroplet(dropletName string, imageId uint) (uint, error) {
 		return dropletId, nil
 	}
 
-	if err == ErrNoCachedDroplets {
+	if err == ErrNoCachedDroplets || err == ErrCachedDropletInvalid {
 		c.Log.Info("No cached Droplets are available for image id: %v", imageId)
 		// TODO: for now just create one whenever we got one in the backend, we
 		// will handle this dynamically in the future
