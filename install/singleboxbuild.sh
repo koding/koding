@@ -4,6 +4,8 @@ echo "iptables -A INPUT -i lo -j ACCEPT" >>/etc/rc.local
 echo "iptables -A INPUT -s 208.72.139.54 -j ACCEPT" >>/etc/rc.local
 echo "iptables -A INPUT -s 208.87.56.148 -j ACCEPT" >>/etc/rc.local
 echo "iptables -A INPUT -p tcp --dport 4000 -j ACCEPT" >>/etc/rc.local
+echo "iptables -A INPUT -p tcp --dport 3999 -j ACCEPT" >>/etc/rc.local
+echo "iptables -A INPUT -p tcp --dport 3000 -j ACCEPT" >>/etc/rc.local
 echo "iptables -A INPUT -m state --state ESTABLISHED,RELATED -j ACCEPT" >>/etc/rc.local
 echo "iptables -A INPUT -j DROP" >>/etc/rc.local
 /etc/rc.local
@@ -69,6 +71,7 @@ apt-get install -y rabbitmq-server=3.2.4-1
 
 ########################
 
+
 cd /opt
 git clone git@git.sj.koding.com:koding/koding.git
 cd koding
@@ -78,6 +81,12 @@ git submodule update
 npm i gulp stylus coffee-script -g
 npm i --unsafe-perm
 
+
+### Kontrol key initialization #####
+
+
+go run go/src/github.com/koding/kite/kontrol/kontrol/main.go -init -public-key /opt/koding/certs/test_kontrol_rsa_public.pem -private-key /opt/koding/certs/test_kontrol_rsa_private.pem -username koding  -kontrol-url "ws://koding.io:4000"
+
 ### rabbit x-presence ###
 cp /opt/koding/install/rabbit_presence_exchange-3.2.3-20140220.ez /usr/lib/rabbitmq/lib/rabbitmq_server-3.2.4/plugins/
 rabbitmq-plugins enable rabbit_presence_exchange
@@ -86,8 +95,8 @@ service rabbitmq-server restart
 
 
 hostname koding.io
-echo “127.0.0.1 koding.io” >> /etc/hosts
-echo “koding.io” > /etc/hostname
+echo "127.0.0.1 koding.io" >> /etc/hosts
+echo "koding.io" > /etc/hostname
 
 cd /opt/koding
 cake -c kodingme -r kodingme buildEverything
@@ -103,3 +112,6 @@ cd /opt/koding/go/src/socialapi/
 make configure
 make develop -j
 ##################
+
+
+

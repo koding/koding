@@ -45,15 +45,15 @@ addFlags = (options)->
   flags += " -v" if options.verbose
   return flags
 
-compileGoBinaries = (configFile, callback = ->)->
+compileGoBinaries = (options, callback = ->)->
 
   ###
   #   TBD - CHECK FOR ERRORS
   ###
 
-  config = require('koding-config-manager').load("main.#{configFile}")
+  KONFIG = require('koding-config-manager').load("main.#{options.configFile}")
 
-  if config.compileGo
+  if KONFIG.compileGo
 
     processes.spawn
       name    : 'build go'
@@ -62,9 +62,7 @@ compileGoBinaries = (configFile, callback = ->)->
       stderr  : process.stderr
       verbose : yes
       onExit  :->
-        if configFile.region is 'kodingme'
-          callback null
-        else
+        if options.configFile is 'vagrant'
           processes.spawn
             name    : 'build go in vagrant'
             cmd     : "vagrant ssh default --command '/opt/koding/go/build.sh bin-vagrant'"
@@ -72,9 +70,9 @@ compileGoBinaries = (configFile, callback = ->)->
             stderr  : process.stderr
             verbose : yes
             onExit  : -> callback null
-
+        else
+          callback null
   else
-
     callback null
 
 
@@ -82,7 +80,7 @@ task 'kloudKite',"run kloud kite", ({configFile}) ->
 
   KONFIG = require('koding-config-manager').load("main.#{configFile}")
 
-  cmd = """KITE_HOME=#{KONFIG.projectRoot}/kite_home/koding go run #{KONFIG.projectRoot}/go/src/koding/kites/kloud/main.go -c #{configFile} -r #{configFile} -public-key #{KONFIG.projectRoot}/certs/test_kontrol_rsa_public.pem -private-key #{KONFIG.projectRoot}/certs/test_kontrol_rsa_private.pem -kontrol-url "ws://koding.io:4000"
+  cmd = """go run #{KONFIG.projectRoot}/go/src/koding/kites/kloud/main.go -c #{configFile} -r #{configFile} -public-key #{KONFIG.projectRoot}/certs/test_kontrol_rsa_public.pem -private-key #{KONFIG.projectRoot}/certs/test_kontrol_rsa_private.pem -kontrol-url "ws://koding.io:4000"
   """
   processes.spawn
     name              : 'kloudKite'
@@ -565,7 +563,7 @@ task 'kontrolKite', "Run the kontrol kite", (options) ->
 
 
   if options.region is "kodingme"
-    cmd = "sudo KITE_HOME=#{config.projectRoot}/kite_home/kodingme #{config.projectRoot}/go/bin/kontrol -c #{configFile} -r #{options.region}"
+    cmd = "#{config.projectRoot}/go/bin/kontrol -c #{configFile} -r #{options.region}"
   else
     cmd = "vagrant ssh default -c 'cd /opt/koding; sudo killall -q -KILL kontrol; sudo KITE_HOME=/opt/koding/kite_home/koding /opt/koding/go/bin-vagrant/kontrol -c #{configFile} -r vagrant'"
 
@@ -585,7 +583,7 @@ task 'proxyKite', "Run the proxy kite", (options) ->
 
 
   if options.region is "kodingme"
-    cmd = "sudo KITE_HOME=#{config.projectRoot}/kite_home/koding #{config.projectRoot}/go/bin/proxy -c #{configFile} -r #{options.region}"
+    cmd = "#{config.projectRoot}/go/bin/reverseproxy -region #{options.region} -host koding.io -env production"
   else
     cmd = "vagrant ssh default -c 'cd /opt/koding; sudo killall -q -KILL proxy; sudo KITE_HOME=/opt/koding/kite_home/koding /opt/koding/go/bin-vagrant/proxy -c #{configFile} -r vagrant'"
 
@@ -730,7 +728,7 @@ buildEverything = (options, callback = ->)->
   ,
     -> importDB options, -> queue.next()
   ,
-    -> compileGoBinaries options.configFile, -> queue.next()
+    -> compileGoBinaries options, -> queue.next()
   ,
     -> callback null
   ]
