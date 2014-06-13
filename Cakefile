@@ -646,7 +646,7 @@ run =({configFile})->
   invoke 'kontrolKite'                      if config.runKontrol
   invoke 'proxyKite'                        if config.runKontrol
 
-  invoke 'kloudKite'                        
+  invoke 'kloudKite'                        if config.runKloud
 
   invoke 'goBroker'                         if config.runGoBroker
   invoke 'goBrokerKite'                     if config.runGoBrokerKite
