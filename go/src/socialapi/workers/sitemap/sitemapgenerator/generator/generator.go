@@ -2,15 +2,15 @@ package generator
 
 import (
 	"encoding/xml"
-	"errors"
 	"fmt"
 	"io/ioutil"
 	"os"
 	"socialapi/config"
 	"socialapi/workers/helper"
+	"socialapi/workers/sitemap"
 	"socialapi/workers/sitemap/models"
-	"time"
 
+	"github.com/garyburd/redigo/redis"
 	"github.com/koding/logging"
 	"github.com/robfig/cron"
 )
@@ -89,35 +89,29 @@ func (c *Controller) generate() {
 }
 
 func (c *Controller) fetchElements() ([]*models.SitemapItem, error) {
-	key := c.prepareCacheKey()
-
+	key := sitemap.PrepareFileCacheKey(c.fileName)
 	redisConn := helper.MustGetRedisConn()
-	members, err := redisConn.GetSetMembers(key)
-	if err != nil {
-		return nil, err
-	}
+	els := make([]*models.SitemapItem, 0)
 
-	if len(members) == 0 {
-		return nil, errors.New("members not found")
-	}
+	for {
+		item, err := redisConn.PopSetMember(key)
+		if err != nil && err != redis.ErrNil {
+			return els, err
+		}
 
-	els := make([]*models.SitemapItem, len(members))
-	for index, v := range members {
+		if item == "" {
+			return els, nil
+		}
+
 		i := &models.SitemapItem{}
-		value, err := redisConn.String(v)
-		if err != nil {
-			c.log.Error("Could not get item data: %s", err)
+
+		if err := i.Populate(item); err != nil {
+			c.log.Error("Could not update item %s: %s", item, err)
 			continue
 		}
 
-		if err := i.Populate(value); err != nil {
-			c.log.Error("Could not update item %s: %s", value, err)
-			continue
-		}
-		els[index] = i
+		els = append(els, i)
 	}
-
-	return els, nil
 }
 
 func (c *Controller) getCurrentSet() (*models.ItemSet, error) {
@@ -149,7 +143,6 @@ func (c *Controller) buildContainer(items []*models.SitemapItem) *models.ItemCon
 		case models.STATUS_DELETE:
 			container.Delete = append(container.Delete, item)
 		case models.STATUS_UPDATE:
-			item.LastModified = time.Now().UTC().Format(time.RFC3339)
 			container.Update = append(container.Update, item)
 		}
 	}
