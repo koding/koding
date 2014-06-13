@@ -112,7 +112,7 @@ func (mwc *Controller) migrateAllPosts() error {
 		}
 
 		// create reply messages
-		if err := mwc.migrateComments(cm, &su, channelId); err != nil {
+		if err := mwc.migrateComments(cm, &su); err != nil {
 			handleError(&su, err)
 			continue
 		}
@@ -166,7 +166,7 @@ func addChannelMessageToMessageList(cm *models.ChannelMessage) error {
 	return cml.CreateRaw()
 }
 
-func (mwc *Controller) migrateComments(parentMessage *models.ChannelMessage, su *mongomodels.StatusUpdate, channelId int64) error {
+func (mwc *Controller) migrateComments(parentMessage *models.ChannelMessage, su *mongomodels.StatusUpdate) error {
 
 	s := modelhelper.Selector{
 		"sourceId":   su.Id,
@@ -191,7 +191,7 @@ func (mwc *Controller) migrateComments(parentMessage *models.ChannelMessage, su 
 		}
 
 		reply := mapCommentToChannelMessage(comment)
-		reply.InitialChannelId = channelId
+		reply.InitialChannelId = parentMessage.InitialChannelId
 		// insert as channel message
 		if err := insertChannelMessage(reply, comment.OriginId.Hex()); err != nil {
 			return fmt.Errorf("comment cannot be inserted %s", err)
