@@ -21,9 +21,10 @@ class IDE.EditorPane extends IDE.Pane
       throw new TypeError 'You must pass file content to IDE.EditorPane'
 
     @addSubView @aceView = new AceView delegate: @getDelegate(), file
-    @aceView.ace.once 'ace.ready', =>
+    {ace} = @aceView
+    ace.once 'ace.ready', =>
       @getEditor().setValue content, 1
-      @ace.setReadOnly yes  if @getOptions().readOnly
+      ace.setReadOnly yes  if @getOptions().readOnly
       @emit 'EditorIsReady'
 
   getEditor: ->
