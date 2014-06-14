@@ -10,8 +10,8 @@ echo "iptables -A INPUT -m state --state ESTABLISHED,RELATED -j ACCEPT" >>/etc/r
 echo "iptables -A INPUT -j DROP" >>/etc/rc.local
 /etc/rc.local
 
-echo "export GOPATH=/opt/koding/go" >> ~/.profile
-source ~/.profile
+echo "export GOPATH=/opt/koding/go" >> ~/.bashrc
+source ~/.bashrc
 
 echo "UTC" > /etc/timezone
 dpkg-reconfigure -f noninteractive tzdata
