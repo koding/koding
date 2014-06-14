@@ -18,9 +18,14 @@ func main() {
 	app.Usage = "Command line client for kloud"
 	app.Flags = []cli.Flag{
 		cli.BoolFlag{"debug", "enable debug mode"},
+		cli.StringFlag{"kontrol, k", "https://kontrol.koding.com", "Kontrol url for query"},
 	}
 	app.Commands = []cli.Command{
 		command.BuildCommand(),
 	}
+	app.Before = func(c *cli.Context) error {
+		return nil
+	}
+
 	app.Run(os.Args)
 }
