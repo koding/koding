@@ -79,24 +79,18 @@ addFlags = (options)->
   return flags
 
 compileGoBinaries = (options, callback = ->)->
+  unless KONFIG.compileGo then return callback null
 
-  
-
-  if KONFIG.compileGo
-
-    processes.spawn
-      name    : 'build go'
-      cmd     : './go/build.sh'
-      onExit  :->
-        if options.configFile is 'vagrant'
-          processes.spawn
-            name    : 'build go in vagrant'
-            cmd     : "vagrant ssh default --command '/opt/koding/go/build.sh bin-vagrant'"
-            onExit  : -> callback null
-        else
-          callback null
-  else
-    callback null
+  processes.spawn
+    name    : 'build go'
+    cmd     : './go/build.sh'
+    restart : no
+    onExit  :->
+      unless options.configFile is 'vagrant' then return callback null
+      processes.spawn
+        name    : 'build go in vagrant'
+        cmd     : "vagrant ssh default --command '/opt/koding/go/build.sh bin-vagrant'"
+        onExit  : -> callback null
 
 kloudKite = (options, callback = ->)->
 
@@ -111,9 +105,9 @@ webserver = (options, callback=->)->
 
   runServer = (config, port, index) ->
     if region is "kodingme"
-      cmd = __dirname + "/server/index -c #{config} -p #{port}#{if tests then ' -t' else ''} --disable-newrelic"
+      cmd = __dirname + "/server/index -c #{configFile} -p #{port}#{if tests then ' -t' else ''} --disable-newrelic"
     else
-      cmd = __dirname + "/server/index -c #{config} -p #{port}#{if tests then ' -t' else ''}"
+      cmd = __dirname + "/server/index -c #{configFile} -p #{port}#{if tests then ' -t' else ''}"
 
     processes.fork
       name              : "server"
@@ -444,7 +438,7 @@ cronjobs = (options, callback=->)->
 migratePost = (options,callback=->)->
   processes.run 'migratePost', "./go/bin/posts -c #{options.configFile}"
     
-run =({configFile})->
+run =(options)->
 
   process.stdout.setMaxListeners 100
   process.stderr.setMaxListeners 100
@@ -465,14 +459,16 @@ run =({configFile})->
   invoke 'authWorker'                       if KONFIG.authWorker
   invoke 'guestCleanerWorker'               if KONFIG.guestCleanerWorker.enabled
   invoke 'emailConfirmationCheckerWorker'   if KONFIG.emailConfirmationCheckerWorker.enabled
-  invoke 'socialWorker'
   invoke 'emailWorker'                      if KONFIG.emailWorker?.run is yes
   invoke 'emailSender'                      if KONFIG.emailSender?.run is yes
   invoke 'addTagCategories'
-  invoke 'webserver'
   invoke 'cronJobs'
   invoke 'logWorker'                        if KONFIG.log.runWorker
-
+  
+  setTimeout ->
+    invoke 'webserver'
+    invoke 'socialWorker'
+  ,30000
 
 importDB = (options, callback = ->)->
   if options.configFile in ['vagrant', 'kodingme']
