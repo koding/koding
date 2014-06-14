@@ -1,32 +1,37 @@
 package main
 
 import (
+	"fmt"
 	"koding/kites/kloud/cli/command"
 	"os"
 
-	"github.com/codegangsta/cli"
+	"github.com/mitchellh/cli"
 )
 
 const (
 	Version = "0.0.1"
+	Name    = "kloudctl"
 )
 
 func main() {
-	app := cli.NewApp()
-	app.Name = "kloudctl"
-	app.Version = Version
-	app.Usage = "Command line client for kloud"
-	app.Flags = []cli.Flag{
-		cli.BoolFlag{"debug", "enable debug mode"},
-		cli.StringFlag{"kontrol, k", "https://kontrol.koding.com", "Kontrol url for query"},
-	}
-	app.Commands = []cli.Command{
-		command.BuildCommand(),
-		command.PingCommand(),
-	}
-	app.Before = func(c *cli.Context) error {
-		return nil
+	c := &cli.CLI{
+		Args: os.Args[1:],
+		Commands: map[string]cli.CommandFactory{
+			"ping":  command.NewPing(),
+			"build": command.NewBuild(),
+		},
+		HelpFunc: cli.BasicHelpFunc(Name),
 	}
 
-	app.Run(os.Args)
+	for _, arg := range os.Args {
+		if arg == "--version" {
+			fmt.Println(Version)
+			os.Exit(0)
+		}
+	}
+
+	_, err := c.Run()
+	if err != nil {
+		command.DefaultUi.Error(err.Error())
+	}
 }

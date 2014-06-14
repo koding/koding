@@ -5,22 +5,21 @@ import (
 	"fmt"
 	"strconv"
 
-	"github.com/codegangsta/cli"
 	"github.com/koding/kite"
 	"github.com/koding/kite/config"
 	"github.com/koding/kite/protocol"
 )
 
-type KloudFunc func(c *cli.Context, k *kite.Client)
+type KloudFunc func(args []string, k *kite.Client)
 
-func KloudContext(c *cli.Context, fn KloudFunc) {
+func KloudContext(args []string, fn KloudFunc) {
 	k, err := kloudClient()
 	if err != nil {
 		DefaultUi.Error(err.Error())
 		return
 	}
 
-	fn(c, k)
+	fn(args, k)
 }
 
 func kloudClient() (*kite.Client, error) {

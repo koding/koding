@@ -1,21 +1,28 @@
 package command
 
 import (
-	"github.com/codegangsta/cli"
 	"github.com/koding/kite"
+	"github.com/mitchellh/cli"
 )
 
-func PingCommand() cli.Command {
-	return cli.Command{
-		Name:  "ping",
-		Usage: "Send a ping message",
-		Action: func(c *cli.Context) {
-			KloudContext(c, pingAction)
-		},
+func NewPing() cli.CommandFactory {
+	return func() (cli.Command, error) {
+		return &Ping{}, nil
 	}
 }
 
-func pingAction(c *cli.Context, kloud *kite.Client) {
+type Ping struct{}
+
+func (p *Ping) Help() string { return "Send a ping message" }
+
+func (p *Ping) Run(args []string) int {
+	KloudContext(args, pingAction)
+	return 0
+}
+
+func (p *Ping) Synopsis() string { return "Send a ping message" }
+
+func pingAction(args []string, kloud *kite.Client) {
 	resp, err := kloud.Tell("kite.ping")
 	if err != nil {
 		DefaultUi.Error(err.Error())
