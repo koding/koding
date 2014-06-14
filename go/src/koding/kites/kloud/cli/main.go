@@ -22,6 +22,7 @@ func main() {
 	}
 	app.Commands = []cli.Command{
 		command.BuildCommand(),
+		command.PingCommand(),
 	}
 	app.Before = func(c *cli.Context) error {
 		return nil

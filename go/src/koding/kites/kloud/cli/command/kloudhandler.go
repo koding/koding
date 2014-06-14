@@ -43,6 +43,20 @@ func kloudClient() (*kite.Client, error) {
 		return nil, err
 	}
 
+	remoteKite := func(index int) (*kite.Client, error) {
+		remoteKloud := kites[index-1]
+		if err := remoteKloud.Dial(); err != nil {
+			return nil, err
+		}
+
+		return remoteKloud, nil
+	}
+
+	if len(kites) == 1 {
+		return remoteKite(1)
+	}
+
+	// we have more than one kloud instance
 	DefaultUi.Output("Which kloud instance do you want to use?\n")
 	for i, kite := range kites {
 		fmt.Printf("[%d\t %+v\n", i+1, kite)
@@ -62,10 +76,5 @@ func kloudClient() (*kite.Client, error) {
 		return nil, errors.New("Invalid input")
 	}
 
-	remoteKloud := kites[index-1]
-	if err := remoteKloud.Dial(); err != nil {
-		return nil, err
-	}
-
-	return remoteKloud, nil
+	return remoteKite(index)
 }

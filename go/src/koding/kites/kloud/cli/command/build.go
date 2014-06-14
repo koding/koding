@@ -2,7 +2,6 @@ package command
 
 import (
 	"fmt"
-	"log"
 
 	"github.com/codegangsta/cli"
 	"github.com/koding/kite"
@@ -21,7 +20,7 @@ func BuildCommand() cli.Command {
 	}
 }
 
-func buildAction(c *cli.Context, k *kite.Client) {
+func buildAction(c *cli.Context, kloud *kite.Client) {
 	// k := c.GlobalString("kontrol")
 	// fmt.Printf("k %+v\n", k)
 	//
@@ -31,12 +30,5 @@ func buildAction(c *cli.Context, k *kite.Client) {
 	// d := c.GlobalBool("debug")
 	// fmt.Printf("d %+v\n", d)
 
-	fmt.Println("Build ..")
-
-	resp, err := k.Tell("kite.ping")
-	if err != nil {
-		log.Fatalln(err)
-	}
-
-	fmt.Println(resp.MustString())
+	fmt.Println("Build todo..")
 }
