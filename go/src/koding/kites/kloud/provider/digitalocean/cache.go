@@ -45,6 +45,7 @@ func (c *Client) UpdateCachedDroplets(imageId uint) error {
 		return nil
 	}
 
+	// This needs to be atomic and once
 	c.Redis.Send("MULTI")
 	c.Redis.Send("DEL", c.Redis.AddPrefix(CacheRedisSetName))
 	c.Redis.Send("SADD", redis.Args{c.Redis.AddPrefix(CacheRedisSetName)}.Add(dropletIds...)...)
@@ -96,7 +97,6 @@ func (c *Client) CachedDroplet(dropletName string, imageId uint) (uint, error) {
 	if err != nil {
 		return 0, err
 	}
-	fmt.Printf("cachedDroplet %+v\n", cachedDroplet)
 
 	if statusToState(cachedDroplet.Status) != machinestate.Running {
 		c.Log.Info("Cached droplet is not active, current status: '%s'", cachedDroplet.Status)
@@ -140,7 +140,12 @@ func (c *Client) GetDroplet(dropletName string, imageId uint) (uint, error) {
 				return
 			}
 
-			c.CreateCachedDroplet(image.Id)
+			err = c.CreateCachedDroplet(image.Id)
+			if err != nil {
+				c.Log.Error("couldn't create a cache droplet %s, err: %s",
+					protocol.DefaultImageName, err)
+			}
+
 		}()
 
 		// Create a new one and return.
