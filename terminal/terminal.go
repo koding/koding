@@ -106,6 +106,7 @@ func Connect(r *kite.Request) (interface{}, error) {
 	cmd.Env = []string{"TERM=xterm-256color", "HOME=" + user.HomeDir}
 	cmd.Stdin = server.pty.Slave
 	cmd.Stdout = server.pty.Slave
+	cmd.Dir = user.HomeDir
 	// cmd.Stderr = server.pty.Slave
 
 	// Open in background, this is needed otherwise the process will be killed
