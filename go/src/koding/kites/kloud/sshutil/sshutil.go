@@ -73,17 +73,30 @@ func (s *SSHClient) StartCommand(command string) error {
 
 // ConnectSSH tries to connect to the given IP and returns a new client.
 func ConnectSSH(ip string, config *ssh.ClientConfig) (*SSHClient, error) {
+	dialFunc := func() (*SSHClient, error) {
+		client, err := ssh.Dial("tcp", ip, config)
+		if err != nil {
+			return nil, err
+		}
+		return &SSHClient{Client: client}, nil
+	}
+
+	// run it before we pass it to the ticker for re-dials
+	client, err := dialFunc()
+	if err == nil {
+		return client, nil
+	}
+
 	var dialError error
 	for {
 		select {
 		case <-time.Tick(sshConnectRetryInterval):
-			client, err := ssh.Dial("tcp", ip, config)
+			client, err := dialFunc()
 			if err != nil {
-				fmt.Println("SSH DIAL ERR", err)
 				dialError = err
 				continue
 			}
-			return &SSHClient{Client: client}, nil
+			return client, nil
 		case <-time.After(sshConnectMaxWait):
 			if dialError != nil {
 				return nil, fmt.Errorf("cannot connect with ssh %s", dialError)
