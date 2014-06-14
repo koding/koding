@@ -216,7 +216,7 @@ func build(i int, client *kite.Client, data *kloud.MachineData) error {
 }
 
 func TestBuild(t *testing.T) {
-	// t.SkipNow()
+	t.SkipNow()
 	numberOfBuilds := *flagTestBuilds
 
 	if numberOfBuilds > 4 {
@@ -271,7 +271,7 @@ func TestRestart(t *testing.T) {
 }
 
 func TestMultiple(t *testing.T) {
-	t.Skip("To enable this test remove this line")
+	// t.Skip("To enable this test remove this line")
 
 	// number of clients that will query example kites
 	clientNumber := 3

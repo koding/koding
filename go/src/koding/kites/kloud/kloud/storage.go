@@ -188,9 +188,10 @@ func (m *MongoDB) ResetAssignee(id string) error {
 // could unset the assigne.name
 func (m *MongoDB) CleanupOldData() error {
 	return m.session.Run("jMachines", func(c *mgo.Collection) error {
-		return c.Update(
+		_, err := c.UpdateAll(
 			bson.M{"assignee.name": m.Assignee()},
 			bson.M{"$set": bson.M{"assignee.name": nil}},
 		)
+		return err
 	})
 }
