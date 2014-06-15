@@ -13,6 +13,10 @@ func NewChannelContainer() *ChannelContainer {
 	return &ChannelContainer{}
 }
 
+func (c *ChannelContainer) ById(id int64) (*ChannelContainer, error) {
+	return c, nil
+}
+
 func PopulateChannelContainers(channelList []Channel, accountId int64) ([]*ChannelContainer, error) {
 	channelContainers := make([]*ChannelContainer, len(channelList))
 
