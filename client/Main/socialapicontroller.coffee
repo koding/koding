@@ -195,7 +195,7 @@ class SocialApiController extends KDController
             "MessageRemoved"
           ]
 
-          socialapi.emit "ChannelRegistered-#{name}", brokerChannel
+          socialapi.emit "ChannelRegistered-#{name}", socialApiChannel
 
   generateChannelName = ({name, typeConstant, groupName}) ->
     return "socialapi.#{groupName}-#{typeConstant}-#{name}"
