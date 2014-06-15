@@ -83,18 +83,13 @@ module.exports =
   compileGoBinaries:
     process :
       run : yes
-      cmd     : './go/build.sh'
+      cmd     : "./go/build.sh"
       restart : no
-
-  kontrolClient:
-    process:
-      run : yes
-      cmd: "./go/bin/kontrolclient -c #{configName}"
 
   kontrolProxy:
     process:
-      run : yes
-      cmd: "./go/bin/kontrolproxy -c #{configName} -v"
+      run : no 
+      cmd: "./go/bin/kontrolproxy -c #{configName} -r #{configName} -v"
 
   kontrolDaemon:
     process:
@@ -109,7 +104,7 @@ module.exports =
   kontrolKite:
     process:
       run : yes
-      cmd: "/go/bin/kontrol -c #{configName} -r #{configName}"
+      cmd: "./go/bin/kontrol -c #{configName} -r #{configName}"
 
   proxyKite:
     process:
@@ -118,6 +113,7 @@ module.exports =
 
   rerouting :
     process :
+      run            : yes
       cmd            : "./go/bin/rerouting -c #{configName}"
       kontrol        :
         enabled      : yes
@@ -138,7 +134,7 @@ module.exports =
     queueName   : socialQueueName+'web'
     watch       : yes
     process     :
-      cmd         : "#{projectRoot}/server/index -c #{configName} -p #{customDomain.port} --disable-newrelic" 
+      cmd         : "node ./server/index -c #{configName} -p #{customDomain.port} --disable-newrelic" 
       run         : yes
 
   authWorker    :
@@ -150,7 +146,7 @@ module.exports =
     watch       : ['./workers/auth']
     process     :
       run        : yes
-      cmd   		 : "#{projectRoot}/workers/auth/index -c #{configName}"
+      cmd   		 : "node ./workers/auth/index -c #{configName}"
       kontrol        :
         enabled      : yes
         startMode    : "many"
@@ -164,7 +160,7 @@ module.exports =
     kitePort    : 8765
     process     :
       run    : yes
-      cmd            : "#{projectRoot}/workers/social/index -c #{configName} -p 3020 --disable-newrelic --kite-port=13020"
+      cmd            : "node ./workers/social/index -c #{configName} -p 3030 --disable-newrelic --kite-port=13020"
       kontrol        :
         enabled         : yes
         startMode       : "many"
@@ -178,7 +174,7 @@ module.exports =
     watch       : ['./workers/log']
     queueName   : logQueueName
     process :
-      cmd            : "#{projectRoot}/workers/log/index -c #{configName} -p 4029"
+      cmd            : "node ./workers/log/index -c #{configName} -p 4029"
       run            : no
       kontrol        :
         enabled      : yes
@@ -196,7 +192,7 @@ module.exports =
     cronSchedule         : '0 * * * * *'
     usageLimitInMinutes  : 60
     process :
-      cmd            : "./workers/emailconfirmationchecker/index -c #{configName}"
+      cmd            : "node ./workers/emailconfirmationchecker/index -c #{configName}"
       kontrol        :
         enabled      : yes
         startMode    : "one"
@@ -228,7 +224,7 @@ module.exports =
     usageLimitInMinutes  : 60
     process:
       run            : yes 
-      cmd            : "./workers/guestcleaner/index -c #{configName}"
+      cmd            : "node ./workers/guestcleaner/index -c #{configName}"
       kontrol        :
         enabled      : yes
         startMode    : "one"
@@ -240,7 +236,7 @@ module.exports =
 
   graphiteFeeder:
     process:
-      run : yes
+      run : no
       cmd : "./go/bin/graphitefeeder -c #{configName}"
 
   migratePosts:
@@ -258,7 +254,7 @@ module.exports =
     cronSchedule         : '00 00 00 * * *'
     process :
       run            : no
-      cmd            : "./workers/sitemapgenerator/index -c #{configName}"
+      cmd            : "node ./workers/sitemapgenerator/index -c #{configName}"
       kontrol        :
         enabled      : yes
         startMode    : "one"
@@ -322,8 +318,8 @@ module.exports =
     maxAge        : 3
     watch         : ['./workers/emailnotifications']
     process:
-      run            : yes
-      cmd            : "./workers/emailnotifications/index -c #{configName}"
+      run            : no
+      cmd            : "node ./workers/emailnotifications/index -c #{configName}"
       kontrol        :
         enabled      : yes
         startMode    : "one"
@@ -332,7 +328,7 @@ module.exports =
     watch   : ['./workers/emailsender']
     process :
       run            : yes
-      cmd            : "./workers/emailsender/index -c #{configName}"
+      cmd            : "node ./workers/emailsender/index -c #{configName}"
       kontrol        :
         enabled      : yes
         startMode    : "one"

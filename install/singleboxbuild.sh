@@ -77,7 +77,7 @@ apt-get install -y rabbitmq-server=3.2.4-1
 cd /opt
 git clone git@git.sj.koding.com:koding/koding.git
 cd koding
-git checkout kodingme
+git checkout cake-rewrite
 git submodule init
 git submodule update
 npm i gulp stylus coffee-script -g
@@ -85,7 +85,7 @@ npm i --unsafe-perm
 
 
 ### Kontrol key initialization #####
-go run go/src/github.com/koding/kite/kontrol/kontrol/main.go -init -public-key /opt/koding/certs/test_kontrol_rsa_public.pem -private-key /opt/koding/certs/test_kontrol_rsa_private.pem -username koding  -kontrol-url "ws://koding.io:4000"
+go run /opt/koding/go/src/github.com/koding/kite/kontrol/kontrol/main.go -init -public-key /opt/koding/certs/test_kontrol_rsa_public.pem -private-key /opt/koding/certs/test_kontrol_rsa_private.pem -username koding  -kontrol-url "ws://$HOSTNAME:4000"
 
 ### rabbit x-presence ###
 cp /opt/koding/install/rabbit_presence_exchange-3.2.3-20140220.ez /usr/lib/rabbitmq/lib/rabbitmq_server-3.2.4/plugins/
@@ -109,7 +109,7 @@ sed -i "s/#timezone =.*/timezone = 'UTC'/" /etc/postgresql/9.3/main/postgresql.c
 service postgresql restart
 cd /opt/koding/go/src/socialapi/
 make configure
-make develop -j
+# make develop -j
 ##################
 
 
