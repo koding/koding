@@ -1,24 +1,3 @@
-class IDE.StatusBar extends KDView
-
-  constructor: (options = {}, data) ->
-
-    options.cssClass = 'status-bar'
-
-    super options, data
-
-    @status     = new KDCustomHTMLView
-      cssClass  : 'status'
-
-    @menuButton = new KDCustomHTMLView
-      tagName   : 'span'
-      cssClass  : 'actions-button'
-      click     : =>
-        KD.getSingleton('appManager').tell 'IDE', 'showActionsMenu', @menuButton
-
-    @addSubView @status
-    @addSubView @menuButton
-
-
 class IDE.StatusBarMenu extends KDContextMenu
 
   constructor: (options = {}) ->
@@ -56,20 +35,3 @@ class IDE.StatusBarMenu extends KDContextMenu
     items.Quit        = callback: ->
       appManager.quitByName 'IDE'
       KD.getSingleton('router').handleRoute '/Activity'
-
-
-class IDE.SyntaxSelectorMenuItem extends KDView
-
-  constructor: (options = {}, data) ->
-
-    options.cssClass  = 'syntax-selector'
-
-    super options, data
-
-    @addSubView @label  = new KDCustomHTMLView
-      tagName           : 'span'
-      partial           : 'Syntax'
-
-    @addSubView @select = new KDSelectBox
-      selectOptions     : IDE.settings.editor.getSyntaxOptions()
-      callback          : (value) => @emit 'SelectionMade', value

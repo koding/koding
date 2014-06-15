@@ -30,10 +30,14 @@ module.exports = [
 
   # views
   "views/shortcutsview.coffee"
-  "views/statusbar.coffee"
   "views/tabview/idefilestabview.coffee"
   "views/tabview/ideview.coffee"
   "views/tabview/idesocialstabview.coffee"
+
+  # status bar
+  "views/statusbar/syntaxselectormenuitem.coffee"
+  "views/statusbar/statusbarmenu.coffee"
+  "views/statusbar/statusbar.coffee"
 
   "AppController.coffee"
 
