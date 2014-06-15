@@ -18,6 +18,7 @@ func main() {
 	c.Commands = map[string]cli.CommandFactory{
 		"ping":  command.NewPing(),
 		"build": command.NewBuild(),
+		"event": command.NewEvent(),
 	}
 
 	_, err := c.Run()
