@@ -16,7 +16,7 @@ type EventArgs []EventArg
 type EventResponse struct {
 	EventId string         `json:"event_id"`
 	Event   *eventer.Event `json:"event"`
-	Error   error          `json:"err"`
+	Error   *kite.Error    `json:"err"`
 }
 
 func (k *Kloud) event(r *kite.Request) (interface{}, error) {
@@ -47,7 +47,7 @@ func (k *Kloud) event(r *kite.Request) (interface{}, error) {
 
 		ev, err := k.GetEvent(event.Type + "-" + event.EventId)
 		if err != nil {
-			events[i] = EventResponse{EventId: event.EventId, Error: err}
+			events[i] = EventResponse{EventId: event.EventId, Error: &kite.Error{Message: err.Error()}}
 			continue
 		}
 
