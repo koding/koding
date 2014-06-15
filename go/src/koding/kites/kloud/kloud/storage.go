@@ -1,6 +1,7 @@
 package kloud
 
 import (
+	"fmt"
 	"koding/db/mongodb"
 	"koding/kites/kloud/kloud/machinestate"
 	"koding/kites/kloud/kloud/protocol"
@@ -59,6 +60,10 @@ func (m *MongoDB) Assignee() string { return m.assignee }
 
 // Get returns the meta of the associated credential with the given machine id.
 func (m *MongoDB) Get(id string, opt *GetOption) (*MachineData, error) {
+	if !bson.IsObjectIdHex(id) {
+		return nil, fmt.Errorf("Invalid machine id: %q", id)
+	}
+
 	// we use findAndModify() to get a unique lock from the DB. That means only
 	// one instance should be responsible for this action. We will update the
 	// assignee if none else is doing stuff with it.
