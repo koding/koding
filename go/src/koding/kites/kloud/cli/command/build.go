@@ -4,38 +4,50 @@ import (
 	"flag"
 	"fmt"
 	"io/ioutil"
+	"time"
+
+	"koding/kites/kloud/kloud"
 
 	"github.com/koding/kite"
 	"github.com/mitchellh/cli"
 )
 
-var (
-	machineId string
-)
-
 type Build struct {
 	flag      *flag.FlagSet
-	machineId string
+	machineId *string
 }
 
 func NewBuild() cli.CommandFactory {
 	return func() (cli.Command, error) {
-		b := &Build{}
 		flagSet := flag.NewFlagSet("build", flag.ContinueOnError)
-		flagSet.StringVar(&b.machineId, "machine", "", "machine Id to be created")
 		flagSet.SetOutput(ioutil.Discard)
 
 		return &Build{
-			flag: flagSet,
+			flag:      flagSet,
+			machineId: flagSet.String("machine", "", "machine Id to be created"),
 		}, nil
 	}
 }
 
 func (b *Build) Synopsis() string { return "Build a machine" }
 
-func (b *Build) Action(args []string, kloud *kite.Client) error {
-	fmt.Printf("machineId %+v\n", b.machineId)
+func (b *Build) Action(args []string, k *kite.Client) error {
+	bArgs := &kloud.Controller{
+		MachineId: *b.machineId,
+	}
 
+	resp, err := k.TellWithTimeout("build", time.Second*4, bArgs)
+	if err != nil {
+		return err
+	}
+
+	var result kloud.ControlResult
+	err = resp.Unmarshal(&result)
+	if err != nil {
+		return err
+	}
+
+	DefaultUi.Info(fmt.Sprintf("%+v", result))
 	return nil
 }
 
@@ -51,7 +63,7 @@ func (b *Build) Help() string {
 
 func (b *Build) Run(args []string) int {
 	if len(args) == 0 {
-		DefaultUi.Info(b.Help())
+		fmt.Print(b.Help())
 		return 0
 	}
 
