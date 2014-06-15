@@ -72,10 +72,6 @@ config =
     mongoKontrol  : 1
     mongoReplSet  : 1
     mongoMinWrites: 1
-    neo4j         :
-      read        : 1
-      write       : 1
-      port        : 1
     runNeo4jFeeder: 1
     runGoBroker   : 1
     runGoBrokerKite: 1

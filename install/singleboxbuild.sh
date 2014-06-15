@@ -1,3 +1,7 @@
+HOSTNAME=`hostname`
+
+echo "127.0.0.1 "$HOSTNAME >> /etc/hosts
+
 echo '#!/bin/sh -e' >/etc/rc.local
 echo "iptables -F" >>/etc/rc.local
 echo "iptables -A INPUT -i lo -j ACCEPT" >>/etc/rc.local
@@ -10,8 +14,8 @@ echo "iptables -A INPUT -m state --state ESTABLISHED,RELATED -j ACCEPT" >>/etc/r
 echo "iptables -A INPUT -j DROP" >>/etc/rc.local
 /etc/rc.local
 
-echo "export GOPATH=/opt/koding/go" >> ~/.bashrc
-source ~/.bashrc
+echo "export GOPATH=/opt/koding/go" >> /etc/bash.bashrc
+source /etc/bash.bashrc
 
 echo "UTC" > /etc/timezone
 dpkg-reconfigure -f noninteractive tzdata
@@ -66,9 +70,7 @@ apt-get install -y redis-server
 #####################
 
 ### RABBITMQ INSTALL ###
-
 apt-get install -y rabbitmq-server=3.2.4-1
-
 ########################
 
 
@@ -83,8 +85,6 @@ npm i --unsafe-perm
 
 
 ### Kontrol key initialization #####
-
-
 go run go/src/github.com/koding/kite/kontrol/kontrol/main.go -init -public-key /opt/koding/certs/test_kontrol_rsa_public.pem -private-key /opt/koding/certs/test_kontrol_rsa_private.pem -username koding  -kontrol-url "ws://koding.io:4000"
 
 ### rabbit x-presence ###
@@ -94,9 +94,8 @@ service rabbitmq-server restart
 #########################
 
 
-hostname koding.io
-echo "127.0.0.1 koding.io" >> /etc/hosts
-echo "koding.io" > /etc/hostname
+
+
 
 cd /opt/koding
 cake -c kodingme -r kodingme buildEverything

@@ -1,6 +1,9 @@
 fs              = require 'fs'
 nodePath        = require 'path'
 deepFreeze      = require 'koding-deep-freeze'
+hat             = require 'hat'
+
+configName      = (_q=__filename.split('.'))[_q.length-2]
 
 rabbitmq        =
   login         : "guest"
@@ -18,11 +21,14 @@ version         = "0.0.1"
 mongo           = "#{customDomain.local_}:27017/koding"
 mongoKontrol    = "#{customDomain.local_}:27017/kontrol"
 projectRoot     = nodePath.join __dirname, '..'
-socialQueueName = "koding-social-kodingme"
+socialQueueName = "koding-social-#{configName}"
 logQueueName    = socialQueueName+'log'
-configName      = (__filename.split)[0]
 
+brokerUniqueId  = hat()
 
+# KEYS
+publicKeyFile   = "#{projectRoot}/certs/test_kontrol_rsa_public.pem"
+privateKeyFile  = "#{projectRoot}/certs/test_kontrol_rsa_private.pem" 
 
 
 authExchange    = "auth"
@@ -33,7 +39,7 @@ embedlyApiKey   = '94991069fb354d4e8fdb825e52d4134a'
 environment     = "kodingme"
 
 regions         =
-  kodingme      : "kodingme"
+  kodingme      : "#{configName}"
   vagrant       : "vagrant"
   sj            : "sj"
   aws           : "aws"
@@ -55,13 +61,6 @@ module.exports =
   containerSubnet: "10.128.2.0/9"
   vmPool        : "vms"
   projectRoot   : projectRoot
-  webserver     :
-    useCacheHeader: no
-    login       : "#{rabbitmq.login}"
-    port        : customDomain.port
-    clusterSize : 1
-    queueName   : socialQueueName+'web'
-    watch       : yes
   socialapi:
     port        : 7000
     clusterSize : 5
@@ -73,71 +72,89 @@ module.exports =
   mongoKontrol  : mongoKontrol
   mongoReplSet  : null
   mongoMinWrites: 1
-  neo4j         :
-    read        : "#{customDomain.public}"
-    write       : "#{customDomain.public}"
-    port        : 7474
-  runNeo4jFeeder: no
-  runGoBroker   : yes
-  runGoBrokerKite: yes
-  runPremiumBroker: yes
-  runPremiumBrokerKite: yes
-  runKontrol    : yes
-  runKloud      : yes
-  runRerouting  : yes
-  runUserPresence: no
-  runPersistence: no
-  compileGo     : yes
   buildClient   : yes
-  runOsKite     : no
-  runTerminalKite: no
-  runProxy      : yes
   redis         : "#{customDomain.local}:6379"
   subscriptionEndpoint   : "#{customDomain.public}:#{customDomain.port}/-/subscription/check/"
   misc          :
     claimGlobalNamesForUsers: no
     updateAllSlugs : no
     debugConnectionErrors: yes
-  bitly :
-    username  : "kodingen"
-    apiKey    : "R_677549f555489f455f7ff77496446ffa"
+  
+  compileGoBinaries:
+    process :
+      run : yes
+      cmd     : './go/build.sh'
+      restart : no
+
+  kontrolClient:
+    process:
+      run : yes
+      cmd: "./go/bin/kontrolclient -c #{configName}"
+
+  kontrolProxy:
+    process:
+      run : yes
+      cmd: "./go/bin/kontrolproxy -c #{configName} -v"
+
+  kontrolDaemon:
+    process:
+      run : yes
+      cmd: "./go/bin/kontroldaemon -c #{configName}"
+
+  kontrolApi:
+    process:
+      run : yes
+      cmd: "./go/bin/kontrolapi -c #{configName}"
+
+  kontrolKite:
+    process:
+      run : yes
+      cmd: "/go/bin/kontrol -c #{configName} -r #{configName}"
+
+  proxyKite:
+    process:
+      run : yes
+      cmd: "./go/bin/reverseproxy -region #{configName} -host #{hostname} -env production"
+
+  rerouting :
+    process :
+      cmd            : "./go/bin/rerouting -c #{configName}"
+      kontrol        :
+        enabled      : yes
+        startMode    : "one"
+
+  userpresence:
+    process:
+      run : no
+      cmd            : "./go/bin/userpresence -c #{configName}"
+      restart        : yes
+      kontrol        :
+        enabled      : yes
+        startMode    : "one"
+
+  webserver     :
+    useCacheHeader: no
+    login       : "#{rabbitmq.login}"
+    queueName   : socialQueueName+'web'
+    watch       : yes
+    process     :
+      cmd         : "#{projectRoot}/server/index -c #{configName} -p #{customDomain.port} --disable-newrelic" 
+      run         : yes
+
   authWorker    :
     login       : "#{rabbitmq.login}"
     queueName   : socialQueueName+'auth'
     authExchange: authExchange
     authAllExchange: authAllExchange
     numberOfWorkers: 1
-    watch       : yes
-  emailConfirmationCheckerWorker :
-    enabled              : no
-    login                : "#{rabbitmq.login}"
-    queueName            : socialQueueName+'emailConfirmationCheckerWorker'
-    numberOfWorkers      : 1
-    watch                : yes
-    cronSchedule         : '0 * * * * *'
-    usageLimitInMinutes  : 60
-  elasticSearch          :
-    host                 : "#{customDomain.local}"
-    port                 : 9200
-    enabled              : no
-    queue                : "elasticSearchFeederQueue"
-  guestCleanerWorker     :
-    enabled              : yes
-    login                : "#{rabbitmq.login}"
-    queueName            : socialQueueName+'guestcleaner'
-    numberOfWorkers      : 2
-    watch                : yes
-    cronSchedule         : '00 * * * * *'
-    usageLimitInMinutes  : 60
-  sitemapWorker          :
-    enabled              : yes
-    login                : "#{rabbitmq.login}"
-    queueName            : socialQueueName+'sitemapworker'
-    numberOfWorkers      : 2
-    watch                : yes
-    cronSchedule         : '00 00 00 * * *'
-  topicModifier          :
-    cronSchedule         : '0 */5 * * * *'
+    watch       : ['./workers/auth']
+    process     :
+      run        : yes
+      cmd   		 : "#{projectRoot}/workers/auth/index -c #{configName}"
+      kontrol        :
+        enabled      : yes
+        startMode    : "many"
+
   social        :
     login       : "#{rabbitmq.login}"
     numberOfWorkers: 1
@@ -145,14 +162,109 @@ module.exports =
     queueName   : socialQueueName
     verbose     : no
     kitePort    : 8765
+    process     :
+      run    : yes
+      cmd            : "#{projectRoot}/workers/social/index -c #{configName} -p 3020 --disable-newrelic --kite-port=13020"
+      kontrol        :
+        enabled         : yes
+        startMode       : "many"
+        registerToProxy : yes
+        proxyName       : 'social'
+        port            : 8765
+
   log           :
     login       : "#{rabbitmq.login}"
     numberOfWorkers: 1
-    watch       : yes
+    watch       : ['./workers/log']
     queueName   : logQueueName
-    verbose     : no
-    run         : no
-    runWorker   : no
+    process :
+      cmd            : "#{projectRoot}/workers/log/index -c #{configName} -p 4029"
+      run            : no
+      kontrol        :
+        enabled      : yes
+        startMode    : "many"
+        registerToProxy: yes
+        proxyName    : 'log'
+        port         : 4029
+        
+  emailConfirmationCheckerWorker :
+    enabled              : no
+    login                : "#{rabbitmq.login}"
+    queueName            : socialQueueName+'emailConfirmationCheckerWorker'
+    numberOfWorkers      : 1
+    watch                : ['./workers/emailconfirmationchecker']
+    cronSchedule         : '0 * * * * *'
+    usageLimitInMinutes  : 60
+    process :
+      cmd            : "./workers/emailconfirmationchecker/index -c #{configName}"
+      kontrol        :
+        enabled      : yes
+        startMode    : "one"
+  kloudKite :
+    process:
+      run : yes
+      cmd : "go run ./go/src/koding/kites/kloud/main.go -c #{configName} -r #{configName} -public-key #{publicKeyFile} -private-key #{privateKeyFile} -kontrol-url \"ws://#{customDomain.public_}:4000\""
+
+  elasticSearch          :
+    host                 : "#{customDomain.local}"
+    port                 : 9200
+    enabled              : no
+    queue                : "elasticSearchFeederQueue"
+    process:
+      run     : no
+      cmd     : "./go/bin/elasticsearchfeeder -c #{configName}"
+      restart : yes    
+      kontrol        :
+        enabled      : yes
+        startMode    : "one"
+
+  guestCleanerWorker     :
+    enabled              : yes
+    login                : "#{rabbitmq.login}"
+    queueName            : socialQueueName+'guestcleaner'
+    numberOfWorkers      : 2
+    watch                : ['./workers/guestcleaner']
+    cronSchedule         : '00 * * * * *'
+    usageLimitInMinutes  : 60
+    process:
+      run            : yes 
+      cmd            : "./workers/guestcleaner/index -c #{configName}"
+      kontrol        :
+        enabled      : yes
+        startMode    : "one"
+
+  cronJobs:
+    process :
+      run : yes
+      cmd : "./go/bin/cron -c #{configName}"
+
+  graphiteFeeder:
+    process:
+      run : yes
+      cmd : "./go/bin/graphitefeeder -c #{configName}"
+
+  migratePosts:
+    process:
+      run : no
+      cmd : "./go/bin/posts -c #{configName}"
+
+
+  sitemapWorker          :
+    enabled              : yes
+    login                : "#{rabbitmq.login}"
+    queueName            : socialQueueName+'sitemapworker'
+    numberOfWorkers      : 2
+    watch                : ['./workers/sitemapgenerator']
+    cronSchedule         : '00 00 00 * * *'
+    process :
+      run            : no
+      cmd            : "./workers/sitemapgenerator/index -c #{configName}"
+      kontrol        :
+        enabled      : yes
+        startMode    : "one"
+
+  topicModifier          :
+    cronSchedule         : '0 */5 * * * *'
   followFeed    :
     host        : "#{customDomain.local}"
     port        : 5672
@@ -163,6 +275,111 @@ module.exports =
     numberOfWorkers: 2
   presence      :
     exchange    : 'services-presence'
+
+
+  mq            :
+    host        : "#{customDomain.local_}"
+    port        : 5672
+    apiAddress  : "#{customDomain.local_}"
+    apiPort     : 15672
+    login       : "#{rabbitmq.login}"
+    componentUser: "#{rabbitmq.login}"
+    password    : "#{rabbitmq.password}"
+    # heartbeat disabled in vagrant, because it'll interfere with node-inspector
+    # when the debugger is paused, the target is not able to send the heartbeat,
+    # so it'll disconnect from RabbitMQ if heartbeat is enabled.
+    heartbeat   : 0
+    vhost       : '/'
+  broker              :
+    name              : "broker"
+    serviceGenericName: "broker"
+    ip                : ""
+    port              : 8008
+    certFile          : ""
+    keyFile           : ""
+    webProtocol       : 'http:'
+    authExchange      : authExchange
+    authAllExchange   : authAllExchange
+    failoverUri       : customDomain.public_
+    process:
+      run : yes
+      cmd               : "./go/bin/broker -c #{configName} -u #{brokerUniqueId}"
+      kontrol           :
+        enabled         : yes
+        binary          : brokerUniqueId
+        port            : 8008
+        hostname        : hostname
+
+  email         :
+    host        : "#{customDomain.public}"
+    protocol    : 'http:'
+    defaultFromAddress: 'hello@koding.com'
+  emailWorker     :
+    cronInstant   : '*/10 * * * * *'
+    cronDaily     : '0 10 0 * * *'
+    run           : no
+    forcedRecipient : undefined
+    maxAge        : 3
+    watch         : ['./workers/emailnotifications']
+    process:
+      run            : yes
+      cmd            : "./workers/emailnotifications/index -c #{configName}"
+      kontrol        :
+        enabled      : yes
+        startMode    : "one"
+
+  emailSender     :
+    watch   : ['./workers/emailsender']
+    process :
+      run            : yes
+      cmd            : "./workers/emailsender/index -c #{configName}"
+      kontrol        :
+        enabled      : yes
+        startMode    : "one"
+
+    run           : no
+  guests          :
+    # define this to limit the number of guset accounts
+    # to be cleaned up per collection cycle.
+    poolSize      : 1e4
+    batchSize     : undefined
+    cleanupCron   : '*/10 * * * * *'
+  pidFile         : '/tmp/koding.server.pid'
+  newkites        :
+    useTLS        : no
+    certFile      : ""
+    keyFile       : ""
+  newkontrol      :
+    port            : 4000
+    useTLS          : no
+    certFile        : ""
+    keyFile         : ""
+    publicKeyFile   : "./certs/test_kontrol_rsa_public.pem"
+    privateKeyFile  : "./certs/test_kontrol_rsa_private.pem"
+  proxyKite       :
+    domain        : "127.0.0.1"
+    certFile      : "./certs/vagrant_127.0.0.1_cert.pem"
+    keyFile       : "./certs/vagrant_127.0.0.1_key.pem"
+  etcd            : [ {host: "127.0.0.1", port: 4001} ]
+  kontrold        :
+    vhost         : "/"
+    overview      :
+      apiHost     : "127.0.0.1"
+      apiPort     : 8888
+      port        : 8080
+      kodingHost  : customDomain.public_
+      socialHost  : customDomain.public_
+    api           :
+      port        : 8888
+      url         : "#{customDomain.public}"
+    proxy         :
+      port        : 80
+      portssl     : 443
+      ftpip       : '127.0.0.1'
+
+
+
+
   client        :
     version     : version
     watch       : yes
@@ -236,116 +453,7 @@ module.exports =
       troubleshoot      :
         idleTime        : 1000 * 60 * 60
         externalUrl     : "https://s3.amazonaws.com/koding-ping/healthcheck.json"
-  mq            :
-    host        : "#{customDomain.local_}"
-    port        : 5672
-    apiAddress  : "#{customDomain.local_}"
-    apiPort     : 15672
-    login       : "#{rabbitmq.login}"
-    componentUser: "#{rabbitmq.login}"
-    password    : "#{rabbitmq.password}"
-    # heartbeat disabled in vagrant, because it'll interfere with node-inspector
-    # when the debugger is paused, the target is not able to send the heartbeat,
-    # so it'll disconnect from RabbitMQ if heartbeat is enabled.
-    heartbeat   : 0
-    vhost       : '/'
-  broker              :
-    name              : "broker"
-    serviceGenericName: "broker"
-    ip                : ""
-    port              : 8008
-    certFile          : ""
-    keyFile           : ""
-    webProtocol       : 'http:'
-    authExchange      : authExchange
-    authAllExchange   : authAllExchange
-    failoverUri       : customDomain.public_
-  premiumBroker       :
-    name              : "premiumBroker"
-    serviceGenericName: "broker"
-    ip                : ""
-    port              : 8009
-    certFile          : ""
-    keyFile           : ""
-    webProtocol       : 'http:'
-    authExchange      : authExchange
-    authAllExchange   : authAllExchange
-    failoverUri       : customDomain.public_
-  brokerKite          :
-    name              : "brokerKite"
-    serviceGenericName: "brokerKite"
-    ip                : ""
-    port              : 8010
-    certFile          : ""
-    keyFile           : ""
-    webProtocol       : 'http:'
-    authExchange      : authExchange
-    authAllExchange   : authAllExchange
-    failoverUri       : customDomain.public_
-  premiumBrokerKite   :
-    name              : "premiumBrokerKite"
-    serviceGenericName: "brokerKite"
-    ip                : ""
-    port              : 8011
-    certFile          : ""
-    keyFile           : ""
-    webProtocol       : 'http:'
-    authExchange      : authExchange
-    authAllExchange   : authAllExchange
-    failoverUri       : customDomain.public_
-  kites:
-    disconnectTimeout: 3e3
-    vhost       : 'kite'
-  email         :
-    host        : "#{customDomain.public}"
-    protocol    : 'http:'
-    defaultFromAddress: 'hello@koding.com'
-  emailWorker     :
-    cronInstant   : '*/10 * * * * *'
-    cronDaily     : '0 10 0 * * *'
-    run           : no
-    forcedRecipient : undefined
-    maxAge        : 3
-  emailSender     :
-    run           : no
-  guests          :
-    # define this to limit the number of guset accounts
-    # to be cleaned up per collection cycle.
-    poolSize      : 1e4
-    batchSize     : undefined
-    cleanupCron   : '*/10 * * * * *'
-  pidFile         : '/tmp/koding.server.pid'
-  newkites        :
-    useTLS        : no
-    certFile      : ""
-    keyFile       : ""
-  newkontrol      :
-    port            : 4000
-    useTLS          : no
-    certFile        : ""
-    keyFile         : ""
-    publicKeyFile   : "./certs/test_kontrol_rsa_public.pem"
-    privateKeyFile  : "./certs/test_kontrol_rsa_private.pem"
-  proxyKite       :
-    domain        : "127.0.0.1"
-    certFile      : "./certs/vagrant_127.0.0.1_cert.pem"
-    keyFile       : "./certs/vagrant_127.0.0.1_key.pem"
-  etcd            : [ {host: "127.0.0.1", port: 4001} ]
-  kontrold        :
-    vhost         : "/"
-    overview      :
-      apiHost     : "127.0.0.1"
-      apiPort     : 8888
-      port        : 8080
-      kodingHost  : customDomain.public_
-      socialHost  : customDomain.public_
-    api           :
-      port        : 8888
-      url         : "#{customDomain.public}"
-    proxy         :
-      port        : 80
-      portssl     : 443
-      ftpip       : '127.0.0.1'
+
   # crypto :
   #   encrypt: (str,key=Math.floor(Date.now()/1000/60))->
   #     crypto = require "crypto"
