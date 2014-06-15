@@ -7,26 +7,14 @@ import (
 
 func NewPing() cli.CommandFactory {
 	return func() (cli.Command, error) {
-		return &Ping{}, nil
+		f := NewFlag("ping", "Send a message")
+		f.action = ActionFunc(PingAction)
+		return f, nil
+
 	}
 }
 
-type Ping struct{}
-
-func (p *Ping) Help() string { return "Send a ping message" }
-
-func (p *Ping) Run(args []string) int {
-	err := KloudContext(args, pingAction)
-	if err != nil {
-		return 1
-	}
-
-	return 0
-}
-
-func (p *Ping) Synopsis() string { return "Send a ping message" }
-
-func pingAction(args []string, kloud *kite.Client) error {
+func PingAction(args []string, kloud *kite.Client) error {
 	resp, err := kloud.Tell("kite.ping")
 	if err != nil {
 		DefaultUi.Error(err.Error())

@@ -10,16 +10,31 @@ import (
 	"github.com/koding/kite/protocol"
 )
 
-type KloudFunc func(args []string, k *kite.Client) error
+type Actioner interface {
+	Action([]string, *kite.Client) error
+}
 
-func KloudContext(args []string, fn KloudFunc) error {
+type ActionFunc func(args []string, k *kite.Client) error
+
+func (a ActionFunc) Action(args []string, k *kite.Client) error {
+	return a(args, k)
+}
+
+func kloudWrapper(args []string, actioner Actioner) error {
 	k, err := kloudClient()
 	if err != nil {
 		DefaultUi.Error(err.Error())
 		return err
 	}
 
-	return fn(args, k)
+	err = actioner.Action(args, k)
+	if err != nil {
+		DefaultUi.Error(err.Error())
+		return err
+	}
+
+	return nil
+
 }
 
 func kloudClient() (*kite.Client, error) {
