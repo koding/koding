@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"koding/kites/kloud/cli/command"
 	"os"
 
@@ -14,20 +13,11 @@ const (
 )
 
 func main() {
-	c := &cli.CLI{
-		Args: os.Args[1:],
-		Commands: map[string]cli.CommandFactory{
-			"ping":  command.NewPing(),
-			"build": command.NewBuild(),
-		},
-		HelpFunc: cli.BasicHelpFunc(Name),
-	}
-
-	for _, arg := range os.Args {
-		if arg == "--version" {
-			fmt.Println(Version)
-			os.Exit(0)
-		}
+	c := cli.NewCLI(Name, Version)
+	c.Args = os.Args[1:]
+	c.Commands = map[string]cli.CommandFactory{
+		"ping":  command.NewPing(),
+		"build": command.NewBuild(),
 	}
 
 	_, err := c.Run()

@@ -10,16 +10,16 @@ import (
 	"github.com/koding/kite/protocol"
 )
 
-type KloudFunc func(args []string, k *kite.Client)
+type KloudFunc func(args []string, k *kite.Client) error
 
-func KloudContext(args []string, fn KloudFunc) {
+func KloudContext(args []string, fn KloudFunc) error {
 	k, err := kloudClient()
 	if err != nil {
 		DefaultUi.Error(err.Error())
-		return
+		return err
 	}
 
-	fn(args, k)
+	return fn(args, k)
 }
 
 func kloudClient() (*kite.Client, error) {

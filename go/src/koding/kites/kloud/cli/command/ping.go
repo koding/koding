@@ -16,17 +16,22 @@ type Ping struct{}
 func (p *Ping) Help() string { return "Send a ping message" }
 
 func (p *Ping) Run(args []string) int {
-	KloudContext(args, pingAction)
+	err := KloudContext(args, pingAction)
+	if err != nil {
+		return 1
+	}
+
 	return 0
 }
 
 func (p *Ping) Synopsis() string { return "Send a ping message" }
 
-func pingAction(args []string, kloud *kite.Client) {
+func pingAction(args []string, kloud *kite.Client) error {
 	resp, err := kloud.Tell("kite.ping")
 	if err != nil {
 		DefaultUi.Error(err.Error())
 	}
 
 	DefaultUi.Info(resp.MustString())
+	return nil
 }
