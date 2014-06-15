@@ -29,10 +29,13 @@ module.exports = [
   "workspace/panes/settings/settingspane.coffee"
 
   # views
-  "views/shortcutsview.coffee"
   "views/tabview/idefilestabview.coffee"
   "views/tabview/ideview.coffee"
   "views/tabview/idesocialstabview.coffee"
+
+  # shortcuts view
+  "views/shortcutsview/shortcutview.coffee"
+  "views/shortcutsview/shortcutsview.coffee"
 
   # status bar
   "views/statusbar/syntaxselectormenuitem.coffee"
