@@ -26,7 +26,6 @@ class FSFile extends FSItem
     @fetchContents no, callback
 
   fetchRawContents: (callback)->
-
     kite = @getKite()
     kite.vmOn().then =>
       kite.fsReadFile path: FSHelper.plainPath @path
@@ -52,9 +51,8 @@ class FSFile extends FSItem
 
     .nodeify(callback)
 
-
-
   saveAs:(contents, name, parentPath, callback)->
+
     @emit "fs.saveAs.started"
 
     newPath = FSHelper.plainPath "#{parentPath}/#{name}"
@@ -70,8 +68,7 @@ class FSFile extends FSItem
       .then (actualPath) =>
 
         file = FSHelper.createFileInstance {
-          type   : 'file'
-          path   : actualPath
+          path : actualPath
           @machine
         }
 
@@ -101,7 +98,7 @@ class FSFile extends FSItem
 
     kite = @getKite()
 
-    ok = kite.startVm()
+    ok = kite.vmOn()
     .then =>
 
       kite.fsWriteFile {
@@ -150,6 +147,8 @@ class FSFile extends FSItem
       @abortRequested = yes
       callback? null, abort: yes
 
+    kite = @getKite()
+
     iterateChunks = =>
 
       unless chunkQueue.length
@@ -167,16 +166,20 @@ class FSFile extends FSItem
         iterateChunks()
         return
 
-      @vmController.run
-        method   : 'fs.writeFile'
-        vmName   : @vmName
-        withArgs : {path: FSHelper.plainPath(@path), content, append}
-      , (err, res) =>
-        return callback? err  if err
+      kite.fsWriteFile {
+        path: FSHelper.plainPath @path
+        content, append
+      }
+
+      .then (res) =>
         @emit "ChunkUploaded", res
         iterateChunks()
 
-    iterateChunks() if chunkQueue.length > 0
+      .catch (err) ->
+        callback? err  if err
+
+    iterateChunks()  if chunkQueue.length > 0
+
 
   abort: -> @emit "AbortRequested"
 
@@ -214,4 +217,3 @@ class FSFile extends FSItem
         @emit "fs.save.finished", null, response
 
         return response
-
