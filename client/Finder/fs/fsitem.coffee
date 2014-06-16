@@ -192,7 +192,7 @@ class FSItem extends KDObject
     .finally =>
       @emit "fs.job.finished"
 
-  @isHidden: (name)-> return /^\./.test name
+  getExtension:-> FSHelper.getFileExtension @name
 
   ###
   INSTANCE METHODS
@@ -205,12 +205,10 @@ class FSItem extends KDObject
     super
 
     @vmController   = KD.getSingleton('vmController')
+  isHidden:-> FSHelper.isHidden @name
 
-  getExtension:-> FSItem.getFileExtension @name
 
   getPath: -> FSHelper.plainPath @path
-
-  isHidden:-> FSItem.isHidden @name
 
   exists:(callback=noop)->
     kite = @getKite()
