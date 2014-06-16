@@ -132,40 +132,41 @@ class NFinderController extends KDViewController
     return warn err if err or not info
     switch info.state
       when "MAINTENANCE" then @unmountVm vm
+  mountMachine:(machine, fetchContent = yes)->
 
-  mountVm:(vm, fetchContent = yes)->
+    unless machine.status.state is Machine.State.Running
+      return warn "Machine '#{machine.getName()}' was not ready, I skipped it."
 
-    { region, hostnameAlias: vmName, path } = vm
+    { uid } = machine
+    mRoots  = (@appStorage.getValue 'machineRoots') or {}
+    path    = mRoots[uid] or "/"
 
-    vmRoots = (@appStorage.getValue 'vmRoots') or {}
-    pipedVm = @_pipedVmName vmName
-    path    ?= "/home/#{KD.nick()}"
+    if @getMachineNode uid
+      return warn "Machine #{machine.getName()} is already mounted!"
 
-    if vmItem = @getVmNode vmName
-      return warn "VM #{vmName} is already mounted!"
+    @updateMountState uid, yes
 
-    @updateMountState vmName, yes
+    @machines.push FSHelper.createFileInstance
+      name           : path
+      path           : "[#{uid}]#{path}"
+      type           : "machine"
+      machine        : machine
+      treeController : @treeController
 
-    @vms.push FSHelper.createFile
-      name   : "#{path}"
-      path   : "[#{vmName}]#{path}"
-      type   : "vm"
-      vmName : vmName
-      vm     : vm
-      treeController: @treeController
+    @noMachineFoundWidget.hide()
 
-    @noVMFoundWidget.hide()
-    @treeController.addNode @vms.last
+    machineItem = @treeController.addNode @machines.last
 
-    vmItem = @getVmNode vmName
-    if fetchContent and vmItem
+    if fetchContent and machineItem
+
       @utils.defer =>
-        @treeController.expandFolder vmItem, (err)=>
-          if err?.name is 'VMNotFoundError'
-            return @unmountVm vmName
-          @treeController.selectNode vmItem
+
+        @treeController.expandFolder machineItem, (err)=>
+
+          @treeController.selectNode machineItem
+
           @utils.defer =>
-            if @getOptions().useStorage then @reloadPreviousState vmName
+            if @getOptions().useStorage then @reloadPreviousState uid
         , yes
 
   unmountVm:(vmName)->
