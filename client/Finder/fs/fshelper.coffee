@@ -235,6 +235,25 @@ class FSHelper
     queue.push "[#{vmName}]/"
     return queue
 
+  # FS Chunk helpers
+  #
+
+  @createChunkQueue = (data, skip=0, chunkSize=1024*1024)->
+
+    return unless data
+
+    chunks     = FSHelper.chunkify data, chunkSize
+    queue      = []
+
+    for chunk, index in chunks
+      isSkip = skip > index
+      queue.push
+        content : unless isSkip then btoa chunk
+        skip    : isSkip
+        append  : queue.length > 0 # first chunk is not an append
+
+    return queue
+
   @chunkify = (data, chunkSize)->
     chunks = []
     while data

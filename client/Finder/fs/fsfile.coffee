@@ -127,26 +127,10 @@ class FSFile extends FSItem
         @emit 'fs.append.finished', null, response
         Promise.cast response
 
-  @createChunkQueue: (data, chunkSize=1024*1024, skip=0)->
-
-    return unless data
-
-    chunks     = FSHelper.chunkify data, chunkSize
-    queue      = []
-
-    for chunk, index in chunks
-      isSkip = skip > index
-      queue.push
-        content : unless isSkip then btoa chunk
-        skip    : isSkip
-        append  : queue.length > 0 # first chunk is not an append
-
-    return queue
-
   saveBinary:(contents, callback)->
 
     info       = @getLocalFileInfo()
-    chunkQueue = FSFile.createChunkQueue contents, null, info.lastUploadedChunk
+    chunkQueue = FSHelper.createChunkQueue contents, info.lastUploadedChunk
     total      = chunkQueue.length
 
     @setLocalFileInfo totalChunks: total
