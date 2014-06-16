@@ -106,19 +106,6 @@ class NFinderController extends KDViewController
         else @noMachineFoundWidget.show()
 
 
-  updateMountState:(vmName, state)->
-    return  if KD.isGuest()
-    groupSlug  = KD.getSingleton("groupsController").getGroupSlug()
-    groupSlug ?= KD.defaultSlug
-    vms = @appStorage.getValue("mountedVM") or {}
-    vms[groupSlug] or= []
-    items = vms[groupSlug]
-    if state and vmName not in items
-      items.push vmName
-    else if not state and vmName in items
-      items.splice items.indexOf(vmName), 1
-    @appStorage.setValue "mountedVM", vms
-
   checkVMState: (err, vm, info)->
     return warn err if err or not info
     switch info.state
@@ -301,6 +288,18 @@ class NFinderController extends KDViewController
       if machineItem.data?.type is 'machine'
         return machineItem  if machineItem.data.uid is uid
 
+
+  # Settings helpers
+  #
+
+  updateMountState:(uid, state)->
+
+    return  if KD.isGuest()
+
+    machines = @appStorage.getValue("mountedMachines") or {}
+    machines[uid] = state
+
+    @appStorage.setValue "mountedMachines", machines
 
   # Basics
   #
