@@ -226,6 +226,7 @@ class ActivitySidebar extends KDCustomScrollView
       itemClass  : SidebarTopicItem
       dataPath   : 'followedChannels'
       delegate   : this
+      noItemText : "You didn't follow any topics yet."
       headerLink : new CustomLinkView
         title    : 'ALL'
         href     : KD.utils.groupifyLink '/Activity/Topic/All'
@@ -243,6 +244,7 @@ class ActivitySidebar extends KDCustomScrollView
       itemClass  : SidebarPinnedItem
       dataPath   : 'pinnedMessages'
       delegate   : this
+      noItemText : "You didn't participate in any conversations yet."
       headerLink : new CustomLinkView
         title    : 'ALL'
         href     : KD.utils.groupifyLink '/Activity/Post/All'
@@ -260,6 +262,7 @@ class ActivitySidebar extends KDCustomScrollView
       itemClass  : SidebarMessageItem
       dataPath   : 'privateMessages'
       delegate   : this
+      noItemText : "No private messages yet."
       headerLink : new CustomLinkView
         title    : 'NEW'
         href     : KD.utils.groupifyLink '/Activity/Message/New'
