@@ -104,7 +104,7 @@ func (k *Kloud) buildMachine(username string, c *Controller) error {
 	}
 	k.Log.Debug("[controller]: method 'build' is successfull %#v", resp)
 
-	storageData := &StorageData{
+	return k.Storage.Update(c.MachineId, &StorageData{
 		Type: "build",
 		Data: map[string]interface{}{
 			"queryString":  resp.QueryString,
@@ -112,7 +112,5 @@ func (k *Kloud) buildMachine(username string, c *Controller) error {
 			"instanceId":   strconv.Itoa(resp.InstanceId),
 			"instanceName": resp.InstanceName,
 		},
-	}
-
-	return k.Storage.Update(c.MachineId, storageData)
+	})
 }

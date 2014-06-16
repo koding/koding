@@ -174,6 +174,12 @@ func (k *Kloud) info(r *kite.Request, c *Controller) (interface{}, error) {
 	}
 
 	k.Storage.UpdateState(c.MachineId, response.State)
+	k.Storage.Update(c.MachineId, &StorageData{
+		Type: "info",
+		Data: map[string]interface{}{
+			"instanceName": info.Name,
+		},
+	})
 
 	k.Log.Info("[info] returning response %+v", response)
 	return response, nil

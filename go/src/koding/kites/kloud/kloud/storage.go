@@ -153,6 +153,8 @@ func (m *MongoDB) Get(id string, opt *GetOption) (*MachineData, error) {
 }
 
 func (m *MongoDB) Update(id string, s *StorageData) error {
+	m.log.Debug("[storage] got update request for id '%s' of type '%s'", id, s.Type)
+
 	if s.Type == "build" {
 		return m.session.Run("jMachines", func(c *mgo.Collection) error {
 			return c.UpdateId(
@@ -161,6 +163,17 @@ func (m *MongoDB) Update(id string, s *StorageData) error {
 					"queryString":       s.Data["queryString"],
 					"ipAddress":         s.Data["ipAddress"],
 					"meta.instanceId":   s.Data["instanceId"],
+					"meta.instanceName": s.Data["instanceName"],
+				}},
+			)
+		})
+	}
+
+	if s.Type == "info" {
+		return m.session.Run("jMachines", func(c *mgo.Collection) error {
+			return c.UpdateId(
+				bson.ObjectIdHex(id),
+				bson.M{"$set": bson.M{
 					"meta.instanceName": s.Data["instanceName"],
 				}},
 			)
