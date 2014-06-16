@@ -12,6 +12,7 @@ type (
 		Uri               string
 		Notification      Notification
 		SendGrid          SendGrid
+		EmailNotification EmailNotification
 	}
 
 	Postgres struct {
@@ -40,5 +41,8 @@ type (
 		FromName        string
 		FromMail        string
 		ForcedRecipient string
+	}
+	EmailNotification struct {
+		TemplateRoot string
 	}
 )
