@@ -248,7 +248,7 @@ class NFinderTreeController extends JTreeViewController
     nodeView.showRenameView (newValue)=>
       return if newValue is nodeData.name
 
-      nodeData.rename name: newValue, (err)=>
+      nodeData.rename newValue, (err)=>
         if err then @notify null, null, err
 
       # @setKeyView()
