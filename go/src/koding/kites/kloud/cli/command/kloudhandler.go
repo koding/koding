@@ -45,6 +45,7 @@ func kloudClient() (*kite.Client, error) {
 	}
 
 	k.Config = config
+	k.SetLogLevel(kite.WARNING)
 
 	kloudQuery := protocol.KontrolQuery{
 		Username:    "koding",
