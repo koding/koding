@@ -2,34 +2,32 @@ package command
 
 import (
 	"fmt"
-	"time"
-
 	"koding/kites/kloud/kloud"
 
 	"github.com/koding/kite"
 	"github.com/mitchellh/cli"
 )
 
-type Build struct {
+type Destroy struct {
 	id *string
 }
 
-func NewBuild() cli.CommandFactory {
+func NewDestroy() cli.CommandFactory {
 	return func() (cli.Command, error) {
-		f := NewFlag("build", "Build a machine")
-		f.action = &Build{
-			id: f.String("id", "", "machine Id to be created"),
+		f := NewFlag("destroy", "Destroy a machine")
+		f.action = &Destroy{
+			id: f.String("id", "", "Machine id of to be destroyed."),
 		}
 		return f, nil
 	}
 }
 
-func (b *Build) Action(args []string, k *kite.Client) error {
-	bArgs := &kloud.Controller{
-		MachineId: *b.id,
+func (d *Destroy) Action(args []string, k *kite.Client) error {
+	destroyArgs := &kloud.Controller{
+		MachineId: *d.id,
 	}
 
-	resp, err := k.TellWithTimeout("build", time.Second*4, bArgs)
+	resp, err := k.Tell("destroy", destroyArgs)
 	if err != nil {
 		return err
 	}

@@ -16,10 +16,11 @@ func main() {
 	c := cli.NewCLI(Name, Version)
 	c.Args = os.Args[1:]
 	c.Commands = map[string]cli.CommandFactory{
-		"ping":  command.NewPing(),
-		"build": command.NewBuild(),
-		"event": command.NewEvent(),
-		"info":  command.NewInfo(),
+		"ping":    command.NewPing(),
+		"build":   command.NewBuild(),
+		"event":   command.NewEvent(),
+		"info":    command.NewInfo(),
+		"destroy": command.NewDestroy(),
 	}
 
 	_, err := c.Run()
