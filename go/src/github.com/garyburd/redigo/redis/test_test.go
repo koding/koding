@@ -16,8 +16,52 @@ package redis
 
 import (
 	"bufio"
+	"errors"
 	"net"
+	"time"
 )
+
+type testConn struct {
+	Conn
+}
+
+func (t testConn) Close() error {
+	_, err := t.Conn.Do("SELECT", "9")
+	if err != nil {
+		return nil
+	}
+	_, err = t.Conn.Do("FLUSHDB")
+	if err != nil {
+		return err
+	}
+	return t.Conn.Close()
+}
+
+// DialTestDB dials the local Redis server and selects database 9. To prevent
+// stomping on real data, DialTestDB fails if database 9 contains data. The
+// returned connection flushes database 9 on close.
+func DialTestDB() (Conn, error) {
+	c, err := DialTimeout("tcp", ":6379", 0, 1*time.Second, 1*time.Second)
+	if err != nil {
+		return nil, err
+	}
+
+	_, err = c.Do("SELECT", "9")
+	if err != nil {
+		return nil, err
+	}
+
+	n, err := Int(c.Do("DBSIZE"))
+	if err != nil {
+		return nil, err
+	}
+
+	if n != 0 {
+		return nil, errors.New("database #9 is not empty, test can not continue")
+	}
+
+	return testConn{c}, nil
+}
 
 type dummyClose struct{ net.Conn }
 
@@ -27,3 +71,7 @@ func (dummyClose) Close() error { return nil }
 func NewConnBufio(rw bufio.ReadWriter) Conn {
 	return &conn{br: rw.Reader, bw: rw.Writer, conn: dummyClose{}}
 }
+
+var (
+	ErrNegativeInt = errNegativeInt
+)
