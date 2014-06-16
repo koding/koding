@@ -3,21 +3,23 @@ class KodingKite_KlientKite extends KodingKite
   @constructors['klient'] = this
 
   @createApiMapping
-    exec            : 'exec'
 
-    fsReadDirectory : 'fs.readDirectory'
-    fsGlob          : 'fs.glob'
-    fsReadFile      : 'fs.readFile'
-    fsGetInfo       : 'fs.getInfo'
-    fsSetPermissions: 'fs.setPermissions'
-    fsRemove        : 'fs.remove'
+    exec               : 'exec'
 
-    fsUniquePath    : 'fs.uniquePath'
-    fsWriteFile     : 'fs.writeFile'
-    fsRename        : 'fs.rename'
-    fsCreateDirectory: 'fs.createDirectory'
+    fsReadDirectory    : 'fs.readDirectory'
+    fsGlob             : 'fs.glob'
+    fsReadFile         : 'fs.readFile'
+    fsGetInfo          : 'fs.getInfo'
+    fsSetPermissions   : 'fs.setPermissions'
+    fsRemove           : 'fs.remove'
 
-    webtermGetSessions: 'webterm.getSessions'
-    webtermConnect    : 'webterm.connect'
-    webtermKillSession: 'webterm.killSession'
-    webtermPing       : 'webterm.ping'
+    fsUniquePath       : 'fs.uniquePath'
+    fsWriteFile        : 'fs.writeFile'
+    fsRename           : 'fs.rename'
+    fsCreateDirectory  : 'fs.createDirectory'
+
+    webtermGetSessions : 'webterm.getSessions'
+    webtermConnect     : 'webterm.connect'
+    webtermKillSession : 'webterm.killSession'
+    webtermPing        : 'webterm.ping'
+

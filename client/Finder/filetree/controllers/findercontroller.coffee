@@ -1,9 +1,9 @@
 class NFinderController extends KDViewController
 
   constructor:(options = {}, data)->
-    {nickname}  = KD.whoami().profile
 
     options.view = new KDView cssClass : "nfinder file-container"
+
     treeOptions  = {}
     treeOptions.treeItemClass     = options.treeItemClass     or= NFinderItem
     treeOptions.nodeIdPath        = options.nodeIdPath        or= "path"
