@@ -42,3 +42,8 @@ class Machine extends KDObject
   getName: ->
     @label or @publicAddress or @uid or "one of #{KD.nick()}'s machine"
 
+  getBaseKite: ->
+    return @kites.klient  if @kites.klient?
+    return {
+      vmOn : -> Promise.reject()
+    }
