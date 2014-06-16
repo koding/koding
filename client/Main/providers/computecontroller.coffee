@@ -44,7 +44,7 @@ class ComputeController extends KDController
         stack.machines.forEach (machine)->
           machines.push new Machine { machine }
 
-      callback null, machines
+      callback null, @machines = machines
 
 
   credentialsFor: (provider, callback)->
