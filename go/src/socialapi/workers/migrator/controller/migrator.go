@@ -248,13 +248,12 @@ func (mwc *Controller) migrateLikes(cm *models.ChannelMessage, oldId bson.Object
 }
 
 func prepareMessageAccount(cm *models.ChannelMessage, accountOldId string) error {
-	a := models.NewAccount()
-	a.OldId = accountOldId
-	if err := a.FetchOrCreate(); err != nil {
+	id, err := models.AccountIdByOldId(accountOldId, "")
+	if err != nil {
 		return fmt.Errorf("account could not found: %s", err)
 	}
 
-	cm.AccountId = a.Id
+	cm.AccountId = id
 
 	return nil
 }
