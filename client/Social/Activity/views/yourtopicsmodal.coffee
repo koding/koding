@@ -11,6 +11,9 @@ class YourTopicsModal extends KDModalView
 
     super options, data
 
+    {appManager, router} = KD.singletons
+    appManager.tell 'Activity', 'bindModalDestroy', this, router.visitedRoutes.last
+
 
   viewAppended: ->
 

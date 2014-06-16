@@ -111,3 +111,13 @@ class ActivityAppController extends AppController
         lastOne = activities.last.meta.createdAt
         @profileLastTo = (new Date(lastOne)).getTime()
       callback err, activities
+
+
+  bindModalDestroy: (modal, lastRoute) ->
+
+    {router} = KD.singletons
+
+    modal.once 'KDModalViewDestroyed', ->
+      router.back() if lastRoute is router.visitedRoutes.last
+
+    router.once 'RouteInfoHandled', -> modal?.destroy()

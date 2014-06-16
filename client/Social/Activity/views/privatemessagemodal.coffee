@@ -40,11 +40,9 @@ class PrivateMessageModal extends KDModalViewWithForms
 
     super options, data
 
-    @once 'KDModalViewDestroyed', ->
-      if /\/Activity\/Message\/New$/.test KD.singletons.router.visitedRoutes.last
-        KD.singletons.router.back()
+    {appManager, router} = KD.singletons
+    appManager.tell 'Activity', 'bindModalDestroy', this, router.visitedRoutes.last
 
-    KD.singletons.router.once 'RouteInfoHandled', -> modal?.destroy()
     @chatHeads?.destroy()
     @chatHeads = new KDView cssClass : 'chat-heads'
 
