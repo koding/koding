@@ -59,53 +59,52 @@ class FSItem extends KDObject
 
       .nodeify callback
 
-  @copyOrMove:(sourceItem, targetItem, commandPrefix, callback)->
-    sourceItem.emit "fs.job.started"
+  ## Instance Level ##
 
-    kite = sourceItem.getKite()
   # Helper to get corresponding kite
   # TODO: add check kite state functionality
   getKite: -> @machine.getBaseKite()# kites.klient
 
-    targetPath = FSHelper.plainPath "#{targetItem.path}/#{sourceItem.name}"
+  # Copy file instance to provided target folder
+  copy: (folderPath, callback)->
 
+    @emit "fs.job.started"
+
+    folderPath = folderPath.replace /\/$/, ''
+    folderPath = "#{folderPath}/#{@name}"
+
+    kite = @getKite()
     file = null
 
-    kite.vmOn().then ->
+    kite.vmOn().then =>
 
-      kite.fsUniquePath(path: targetPath).then (actualPath) ->
 
-        command = "#{ commandPrefix } #{ escapeFilePath sourceItem.path } #{ escapeFilePath actualPath }"
+      kite.fsUniquePath { path: folderPath }
+
+      .then (actualPath) =>
+
+        command = "cp -R #{ escapeFilePath @getPath() } #{ escapeFilePath actualPath }"
 
         kite.exec({command})
 
         .then(handleStdErr())
 
         .then ->
-          file = FSHelper.createFile {
-            path        : actualPath
-            parentPath  : targetItem.path
-            name        : sourceItem.name
-            type        : sourceItem.type
-            vmName      : sourceItem.vmName
-          }
 
-          return file
+          return FSHelper.createFileInstance
+            path        : actualPath
+            parentPath  : folderPath
+            name        : @name
+            type        : @type
+            machine     : @machine
 
     .nodeify(callback)
 
-    .finally ->
-      sourceItem.emit "fs.job.finished"
+    .finally =>
 
+      @emit "fs.job.finished"
       return file
 
-  @copy: (sourceItem, targetItem, callback) ->
-    @copyOrMove sourceItem, targetItem, 'cp -R', callback
-
-  @move:(sourceItem, targetItem, callback)->
-
-    newName = FSHelper.plainPath "#{ targetItem.path }/#{ sourceItem.name }"
-    sourceItem.rename path: newName, callback
 
   @compress:(file, type, callback)->
 
