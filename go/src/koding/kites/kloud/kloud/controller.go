@@ -51,87 +51,70 @@ func (k *Kloud) ControlFunc(method string, control controlFunc) {
 			return nil, NewError(ErrNoArguments)
 		}
 
-		k.Log.Info("[controller] got a request for method: '%s' with args: %v",
-			method, string(r.Args.Raw))
-
-		// this locks are important to prevent consecutive calls from the same
-		// user
-		k.idlock.Get(r.Username).Lock()
-		c, err := k.controller(r)
-		if err != nil {
-			k.idlock.Get(r.Username).Unlock()
+		args := &Controller{}
+		if err := r.Args.One().Unmarshal(args); err != nil {
 			return nil, err
 		}
-		k.idlock.Get(r.Username).Unlock()
 
-		// now lock for machine-ids
-		k.idlock.Get(c.MachineId).Lock()
-		defer k.idlock.Get(c.MachineId).Unlock()
+		k.Log.Info("[controller] got a request for method: '%s' with args: %v", method, args)
 
-		// call no our kite handler with the the controller context
+		if args.MachineId == "" {
+			return nil, NewError(ErrMachineIdMissing)
+		}
+
+		// Geth all the data we need. It also sets the assignee for the given
+		// machine id. Assignee means this kloud instance is now responsible
+		// for this machine. Its basically a distributed lock. Assignee gets
+		// reseted when there is an error or if the method call is finished.
+		m, err := k.Storage.Get(args.MachineId, &GetOption{
+			IncludeMachine:    true,
+			IncludeCredential: true,
+		})
+		if err != nil {
+			return nil, err
+		}
+
+		// if something goes wrong reset the assigne which was set in previous step
+		// by Storage.Get()
+		defer func() {
+			if err != nil {
+				k.Storage.ResetAssignee(args.MachineId)
+			}
+		}()
+
+		k.Log.Debug("[controller] got machine data with machineID (%s) : %#v",
+			args.MachineId, m.Machine)
+
+		// prevent request if the machine is terminated. However we want the user
+		// to be able to build again or get information, therefore build and info
+		// should be able to continue, however methods like start/stop/etc.. are
+		// forbidden.
+		if m.Machine.State().In(machinestate.Terminating, machinestate.Terminated) &&
+			!methodHas(r.Method, "build", "info") {
+			return nil, NewError(ErrMachineTerminating)
+		}
+
+		// now get the machine provider interface, it can be DO, AWS, GCE, and so on..
+		provider, err := k.GetProvider(m.Provider)
+		if err != nil {
+			return nil, err
+		}
+
+		// our Controller context
+		c := &Controller{
+			MachineId:    args.MachineId,
+			ImageName:    args.ImageName,
+			InstanceName: args.InstanceName,
+			Provider:     provider,
+			MachineData:  m,
+			CurrenState:  m.Machine.State(),
+		}
+
+		// call our kite handler with the the controller context
 		return control(r, c)
 	}
 
 	k.Kite.HandleFunc(method, handler)
-}
-
-// controller returns the Controller struct with all necessary entities
-// responsible for the given machine Id. It also calls provider.Prepare before
-// returning.
-func (k *Kloud) controller(r *kite.Request) (contr *Controller, err error) {
-	args := &Controller{}
-	if err := r.Args.One().Unmarshal(args); err != nil {
-		return nil, err
-	}
-
-	if args.MachineId == "" {
-		return nil, NewError(ErrMachineIdMissing)
-	}
-
-	// Geth all the data we need. It also sets the assignee for the given
-	// machine id.
-	m, err := k.Storage.Get(args.MachineId, &GetOption{
-		IncludeMachine:    true,
-		IncludeCredential: true,
-	})
-	if err != nil {
-		return nil, err
-	}
-
-	// if something goes wrong reset the assigne which was set in previous step
-	// by Storage.Get()
-	defer func() {
-		if err != nil {
-			k.Storage.ResetAssignee(args.MachineId)
-		}
-	}()
-
-	k.Log.Debug("[controller] got machine data with machineID (%s) : %#v",
-		args.MachineId, m.Machine)
-
-	// prevent request if the machine is terminated. However we want the user
-	// to be able to build again or get information, therefore build and info
-	// should be able to continue, however methods like start/stop/etc.. are
-	// forbidden.
-	if m.Machine.State().In(machinestate.Terminating, machinestate.Terminated) &&
-		!methodHas(r.Method, "build", "info") {
-		return nil, NewError(ErrMachineTerminating)
-	}
-
-	// now get the machine provider interface, it can DO, AWS, GCE, and so on..
-	provider, err := k.GetProvider(m.Provider)
-	if err != nil {
-		return nil, err
-	}
-
-	return &Controller{
-		MachineId:    args.MachineId,
-		ImageName:    args.ImageName,
-		InstanceName: args.InstanceName,
-		Provider:     provider,
-		MachineData:  m,
-		CurrenState:  m.Machine.State(),
-	}, nil
 }
 
 // methodHas checks if the method exist for the given methods
@@ -145,7 +128,7 @@ func methodHas(method string, methods ...string) bool {
 }
 
 func (k *Kloud) info(r *kite.Request, c *Controller) (interface{}, error) {
-	defer k.Storage.ResetAssignee(c.MachineId)
+	defer k.Storage.ResetAssignee(c.MachineId) // reset assignee after we are done
 
 	if c.CurrenState == machinestate.NotInitialized {
 		return nil, NewError(ErrNotInitialized)
@@ -186,6 +169,10 @@ func (k *Kloud) info(r *kite.Request, c *Controller) (interface{}, error) {
 }
 
 func (k *Kloud) start(r *kite.Request, c *Controller) (interface{}, error) {
+	if c.CurrenState.In(machinestate.Starting, machinestate.Running) {
+		return nil, NewErrorMessage("Machine is already starting/running.")
+	}
+
 	fn := func(m *protocol.MachineOptions) error {
 		return c.Provider.Start(m)
 	}
@@ -194,6 +181,10 @@ func (k *Kloud) start(r *kite.Request, c *Controller) (interface{}, error) {
 }
 
 func (k *Kloud) stop(r *kite.Request, c *Controller) (interface{}, error) {
+	if c.CurrenState.In(machinestate.Stopped, machinestate.Stopping) {
+		return nil, NewErrorMessage("Machine is already stopping/stopped.")
+	}
+
 	fn := func(m *protocol.MachineOptions) error {
 		return c.Provider.Stop(m)
 	}
@@ -210,6 +201,10 @@ func (k *Kloud) destroy(r *kite.Request, c *Controller) (interface{}, error) {
 }
 
 func (k *Kloud) restart(r *kite.Request, c *Controller) (interface{}, error) {
+	if c.CurrenState.In(machinestate.Rebooting) {
+		return nil, NewErrorMessage("Machine is already rebooting.")
+	}
+
 	fn := func(m *protocol.MachineOptions) error {
 		return c.Provider.Restart(m)
 	}
@@ -226,14 +221,6 @@ func (k *Kloud) coreMethods(
 	c *Controller,
 	fn func(*protocol.MachineOptions) error,
 ) (result interface{}, err error) {
-	// if something goes wrong reset the assigne which was set in in
-	// ControlFunc's Storage.Get method
-	defer func() {
-		if err != nil {
-			k.Storage.ResetAssignee(c.MachineId)
-		}
-	}()
-
 	// all core methods works only for machines that are initialized
 	if c.CurrenState == machinestate.NotInitialized {
 		return nil, NewError(ErrNotInitialized)

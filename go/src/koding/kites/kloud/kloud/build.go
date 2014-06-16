@@ -17,14 +17,6 @@ type ControlResult struct {
 }
 
 func (k *Kloud) build(r *kite.Request, c *Controller) (resp interface{}, err error) {
-	// if something goes wrong reset the assigne which was set in in
-	// ControlFunc's Storage.Get method
-	defer func() {
-		if err != nil {
-			k.Storage.ResetAssignee(c.MachineId)
-		}
-	}()
-
 	if c.CurrenState == machinestate.Building {
 		return nil, NewError(ErrBuilding)
 	}

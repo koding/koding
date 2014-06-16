@@ -70,6 +70,17 @@ func (m *MongoDB) Get(id string, opt *GetOption) (*MachineData, error) {
 		return nil, fmt.Errorf("Invalid machine id: %q", id)
 	}
 
+	// let's first check if the id exists, because we are going to use
+	// findAndModify() and it would be difficult to distinguish if the id
+	// really doesn't exist or if there is an assignee which is a different
+	// thing. (Because findAndModify() also returns "not found" for the case
+	// where the id exist but someone else is the assignee).
+	if err := m.session.Run("jMachines", func(c *mgo.Collection) error {
+		return c.FindId(bson.ObjectIdHex(id)).One(nil)
+	}); err == mgo.ErrNotFound {
+		return nil, NewError(ErrMachineNotFound)
+	}
+
 	// we use findAndModify() to get a unique lock from the DB. That means only
 	// one instance should be responsible for this action. We will update the
 	// assignee if none else is doing stuff with it.
@@ -124,16 +135,16 @@ func (m *MongoDB) Get(id string, opt *GetOption) (*MachineData, error) {
 			return err
 		})
 
-		// machine id is not found
+		// query didn't matched, means it's assigned to some other Kloud
+		// instances and an ongoing event is in process.
 		if err == mgo.ErrNotFound {
-			return nil, NewError(ErrMachineNotFound)
+			return nil, NewError(ErrMachinePendingEvent)
 		}
 
-		// means it's assigned to some other Kloud instances and an ongoing
-		// event is in process.
+		// some other error, this shouldn't be happed
 		if err != nil {
-			m.log.Error("Storage get err: %s", err.Error())
-			return nil, NewError(ErrMachinePendingEvent)
+			m.log.Error("Storage get error: %s", err.Error())
+			return nil, NewError(ErrBadState)
 		}
 	}
 
