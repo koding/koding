@@ -39,6 +39,10 @@ var states = map[string]*statePair{
 
 func (k *Kloud) ControlFunc(method string, control controlFunc) {
 	handler := func(r *kite.Request) (interface{}, error) {
+		if r.Args == nil {
+			return nil, NewError(ErrNoArguments)
+		}
+
 		k.Log.Info("[controller] got a request for method: '%s' with args: %v",
 			method, string(r.Args.Raw))
 
