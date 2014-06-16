@@ -39,6 +39,8 @@ var states = map[string]*statePair{
 
 func (k *Kloud) ControlFunc(method string, control controlFunc) {
 	handler := func(r *kite.Request) (interface{}, error) {
+		// calls with zero arguments causes args to be nil. Check it that we
+		// don't get a beloved panic
 		if r.Args == nil {
 			return nil, NewError(ErrNoArguments)
 		}
@@ -46,7 +48,8 @@ func (k *Kloud) ControlFunc(method string, control controlFunc) {
 		k.Log.Info("[controller] got a request for method: '%s' with args: %v",
 			method, string(r.Args.Raw))
 
-		// this locks are important to prevent consecutive calls from the same user
+		// this locks are important to prevent consecutive calls from the same
+		// user
 		k.idlock.Get(r.Username).Lock()
 		c, err := k.controller(r)
 		if err != nil {
@@ -59,6 +62,7 @@ func (k *Kloud) ControlFunc(method string, control controlFunc) {
 		k.idlock.Get(c.MachineId).Lock()
 		defer k.idlock.Get(c.MachineId).Unlock()
 
+		// call no our kite handler with the the controller context
 		return control(r, c)
 	}
 
@@ -68,7 +72,7 @@ func (k *Kloud) ControlFunc(method string, control controlFunc) {
 // controller returns the Controller struct with all necessary entities
 // responsible for the given machine Id. It also calls provider.Prepare before
 // returning.
-func (k *Kloud) controller(r *kite.Request) (*Controller, error) {
+func (k *Kloud) controller(r *kite.Request) (contr *Controller, err error) {
 	args := &Controller{}
 	if err := r.Args.One().Unmarshal(args); err != nil {
 		return nil, err
@@ -78,6 +82,8 @@ func (k *Kloud) controller(r *kite.Request) (*Controller, error) {
 		return nil, NewError(ErrMachineIdMissing)
 	}
 
+	// Geth all the data we need. It also sets the assignee for the given
+	// machine id.
 	m, err := k.Storage.Get(args.MachineId, &GetOption{
 		IncludeMachine:    true,
 		IncludeCredential: true,
@@ -86,16 +92,25 @@ func (k *Kloud) controller(r *kite.Request) (*Controller, error) {
 		return nil, err
 	}
 
-	k.Log.Debug("[controller] got machine data with machineID (%s) : %#v", args.MachineId, m.Machine)
+	// if something goes wrong reset the assigne which was set in previous step
+	// by Storage.Get.
+	defer func() {
+		if err != nil {
+			k.Storage.ResetAssignee(args.MachineId)
+		}
+	}()
+
+	k.Log.Debug("[controller] got machine data with machineID (%s) : %#v",
+		args.MachineId, m.Machine)
 
 	// prevent request if the machine is terminated. However we want the user
 	// to be able to build again
-	if (m.Machine.State() == machinestate.Terminating ||
-		m.Machine.State() == machinestate.Terminated) &&
+	if (m.Machine.State() == machinestate.Terminating || m.Machine.State() == machinestate.Terminated) &&
 		r.Method != "build" {
 		return nil, NewError(ErrMachineTerminating)
 	}
 
+	// now get the machine provider interface, it can DO, AWS, GCE, and so on..
 	provider, err := k.GetProvider(m.Provider)
 	if err != nil {
 		return nil, err
@@ -113,15 +128,30 @@ func (k *Kloud) controller(r *kite.Request) (*Controller, error) {
 }
 
 // coreMethods is running and returning the event id for the methods start,
-// stop, restart and destroy. This method is used to avoid duplication in other
-// methods.
-func (k *Kloud) coreMethods(r *kite.Request, c *Controller, fn func(*protocol.MachineOptions) error) (interface{}, error) {
+// stop, restart and destroy. This method is used to avoid duplicate codes in
+// start, stop, restart and destroy methods (because we do the same steps for
+// each of them)
+func (k *Kloud) coreMethods(
+	r *kite.Request,
+	c *Controller,
+	fn func(*protocol.MachineOptions) error,
+) (result interface{}, err error) {
+	// if something goes wrong reset the assigne which was set in in
+	// ControlFunc's Storage.Get method
+	defer func() {
+		if err != nil {
+			k.Storage.ResetAssignee(c.MachineId)
+		}
+	}()
+
 	// all core methods works only for machines that are initialized
 	if c.CurrenState == machinestate.NotInitialized {
 		return nil, NewError(ErrNotInitialized)
 	}
 
-	// get our state pair
+	// get our state pair. A state pair defines the inital state and the final
+	// state. For example, for "restart" method the initial state is
+	// "rebooting" and the final "running.
 	s, ok := states[r.Method]
 	if !ok {
 		return nil, fmt.Errorf("no state pair available for %s", r.Method)
@@ -136,6 +166,9 @@ func (k *Kloud) coreMethods(r *kite.Request, c *Controller, fn func(*protocol.Ma
 		Builder:    c.MachineData.Machine.Meta,
 	}
 
+	// Start our core method in a goroutine to not block it for the client
+	// side. However we do return an event id which is an unique for tracking
+	// the current status of the running method.
 	go func() {
 		k.idlock.Get(c.MachineId).Lock()
 		defer k.idlock.Get(c.MachineId).Unlock()
