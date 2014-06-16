@@ -1,7 +1,6 @@
 package command
 
 import (
-	"errors"
 	"fmt"
 	"koding/kites/kloud/kloud"
 	"strings"
@@ -12,49 +11,30 @@ import (
 )
 
 type Event struct {
-	id        *string
-	eventType *string
-	event     *string
-	interval  *time.Duration
+	event    *string
+	interval *time.Duration
 }
 
 func NewEvent() cli.CommandFactory {
 	return func() (cli.Command, error) {
 		f := NewFlag("event", "Track an event")
 		f.action = &Event{
-			id:        f.String("id", "", "Event id to track, for example: 12345"),
-			eventType: f.String("type", "", "Event type, for example: build"),
-			event:     f.String("event", "", "Event is the same as type-id. I.e: build-12345"),
-			interval:  f.Duration("interval", time.Second*4, "Polling interval, by default 4 seconds"),
+			event:    f.String("id", "", "Event id to be tracked."),
+			interval: f.Duration("interval", time.Second*4, "Polling interval, by default 4 seconds"),
 		}
 		return f, nil
 	}
 }
 
 func (e *Event) Action(args []string, k *kite.Client) error {
-	id := *e.id
-	eventType := *e.eventType
-
-	if *e.event != "" {
-		splitted := strings.Split(*e.event, "-")
-		if len(splitted) != 2 {
-			return fmt.Errorf("Incoming event data is malformed %v", *e.event)
-		}
-
-		eventType = splitted[0]
-		id = splitted[1]
-	} else {
-		if *e.id == "" {
-			return errors.New("'-id' flag is empty")
-		}
-
-		if *e.eventType == "" {
-			return errors.New("'-type' flag is empty")
-		}
-
-		eventType = *e.id
-		id = *e.id
+	// args[0] contains the build event in form of "build-123456"
+	splitted := strings.Split(*e.event, "-")
+	if len(splitted) != 2 {
+		return fmt.Errorf("Incoming event data is malformed %v", *e.event)
 	}
+
+	eventType := splitted[0]
+	id := splitted[1]
 
 	eArgs := kloud.EventArgs([]kloud.EventArg{
 		kloud.EventArg{
@@ -74,7 +54,13 @@ func (e *Event) Action(args []string, k *kite.Client) error {
 			return err
 		}
 
-		DefaultUi.Info(fmt.Sprintf("%+v", events[0]))
+		DefaultUi.Info(fmt.Sprintf("%s ==> %s [Status: %s Percentage: %d]",
+			fmt.Sprint(time.Now())[:19],
+			events[0].Event.Message,
+			events[0].Event.Status,
+			events[0].Event.Percentage,
+		))
+
 		time.Sleep(*e.interval)
 		continue // still pending
 	}
