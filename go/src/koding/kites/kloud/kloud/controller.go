@@ -104,9 +104,10 @@ func (k *Kloud) controller(r *kite.Request) (contr *Controller, err error) {
 		args.MachineId, m.Machine)
 
 	// prevent request if the machine is terminated. However we want the user
-	// to be able to build again
+	// to be able to build again or get information, therefore build and info
+	// are not permitted.
 	if (m.Machine.State() == machinestate.Terminating || m.Machine.State() == machinestate.Terminated) &&
-		r.Method != "build" {
+		(r.Method != "build" || r.Method != "info") {
 		return nil, NewError(ErrMachineTerminating)
 	}
 
