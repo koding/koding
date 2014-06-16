@@ -135,7 +135,7 @@
     offset        = @holderView.plusHandle.$().offset()
     contextMenu   = new KDContextMenu
       delegate    : this
-      x           : offset.left - 125
+      x           : offset.left - 133
       y           : offset.top  + 30
       arrow       :
         placement : 'top'
