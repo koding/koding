@@ -72,30 +72,16 @@ class NFinderController extends KDViewController
     @reset()  if @getOptions().loadFilesOnInit
 
   reset:->
-    KD.singletons.vmController.ready =>
-      if @getOptions().useStorage
-        @appStorage.ready => @loadVms()
-      else
-        @utils.defer => @loadVms()
 
-  parseSavedVms = (vms) ->
-    vms.reduce (memo, str) ->
-      [vmName, path] = str.split ':'
-      memo[0].push vmName
-      memo[1].push path
-      memo
-    , [[],[]]
+    KD.singletons.computeController.ready =>
 
-  fetchSavedVms: (savedVms, callback) ->
-    [vmNames, paths] = parseSavedVms savedVms
+      if @getOption 'useStorage'
+      then @appStorage.ready @bound 'loadMachines'
+      else @utils.defer      @bound 'loadMachines'
 
-    KD.getSingleton('vmController').fetchVmsByName vmNames, (err, vms) =>
-      return callback? err  if err
 
-      vms[i].path = paths[i]  for _, i in vms
   loadMachines:->
 
-      callback null, vms
     { computeController } = KD.singletons
 
     computeController.fetchMachines (err, machines)=>
