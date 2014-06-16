@@ -46,6 +46,12 @@ class ComputeController extends KDController
 
       callback null, @machines = machines
 
+  fetchMachine: (idOrUid, callback = noop)->
+
+    KD.remote.api.JMachine.one idOrUid, (err, machine)->
+      if KD.showError err then callback err
+      else if machine? then callback null, new Machine { machine }
+
 
   credentialsFor: (provider, callback)->
     KD.remote.api.JCredential.some { provider }, callback
