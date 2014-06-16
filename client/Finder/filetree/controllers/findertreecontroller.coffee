@@ -54,7 +54,7 @@ class NFinderTreeController extends JTreeViewController
     nodeData = nodeView.getData()
 
     switch nodeData.type
-      when "folder", "mount", "vm"
+      when "folder", "mount", "vm", "machine"
         @toggleFolder nodeView, callback
       when "file"
         @openFile nodeView
@@ -595,7 +595,7 @@ class NFinderTreeController extends JTreeViewController
   drop: (nodeView, event)->
 
     return if nodeView in @selectedNodes
-    return unless nodeView.getData?().type in ['folder', 'mount', 'vm']
+    return unless nodeView.getData?().type in ['folder', 'mount', 'machine']
 
     @selectedNodes = @selectedNodes.filter (node)->
       targetPath = nodeView.getData?().path

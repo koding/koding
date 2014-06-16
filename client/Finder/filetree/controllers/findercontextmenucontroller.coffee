@@ -11,7 +11,7 @@ class NFinderContextMenuController extends KDController
     else
       [fileView] = fileViews
       switch fileView.getData().type
-        when "vm"         then @getVmMenu fileView
+        when "machine"    then @getMachineMenu fileView
         when "file"       then @getFileMenu fileView
         when "folder"     then @getFolderMenu fileView
         when "mount"      then @getMountMenu fileView
@@ -196,7 +196,7 @@ class NFinderContextMenuController extends KDController
 
     items
 
-  getVmMenu:(fileView)->
+  getMachineMenu:(fileView)->
 
     fileData = fileView.getData()
 
