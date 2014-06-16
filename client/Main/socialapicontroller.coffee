@@ -43,13 +43,12 @@ class SocialApiController extends KDController
 
       brokerChannel = KD.remote.subscribe channelName, subscriptionData
       @forwardMessageEvents brokerChannel, this, ["MessageAdded", "MessageRemoved"]
-      @openedChannels[name] = brokerChannel
+      @openedChannels[channelName] = {delegate: brokerChannel, channel: this}
       @emit "ChannelRegistered-#{channelName}", this
 
   onChannelReady: (channel, callback) ->
     channelName = generateChannelName channel
-    channel = @openedChannels[channelName]
-    if channel instanceof KD.remote.api.SocialChannel
+    if channel = @openedChannels[channelName]?.channel
     then callback channel
     else @once "ChannelRegistered-#{channelName}", callback
 
@@ -187,15 +186,15 @@ class SocialApiController extends KDController
           channelName: channelName
           isExclusive: yes
 
-        KD.remote.subscribe name, subscriptionData, (brokerChannel)->
+        KD.remote.subscribe channelName, subscriptionData, (brokerChannel)->
           {name} = brokerChannel
-          socialapi.openedChannels[name] = brokerChannel
+          socialapi.openedChannels[name] = {delegate: brokerChannel, channel: socialApiChannel}
           forwardMessageEvents brokerChannel, socialApiChannel, [
             "MessageAdded",
             "MessageRemoved"
           ]
 
-          socialapi.emit "ChannelRegistered-#{name}", brokerChannel
+          socialapi.emit "ChannelRegistered-#{name}", socialApiChannel
 
   generateChannelName = ({name, typeConstant, groupName}) ->
     return "socialapi.#{groupName}-#{typeConstant}-#{name}"
