@@ -37,39 +37,35 @@ class NFinderController extends KDViewController
     mainController.on "accountChanged.to.loggedIn", @bound 'reset'
 
     if options.useStorage
+
       @appStorage.ready =>
+
         @treeController.on "file.opened", @bound 'setRecentFile'
+
         @treeController.on "folder.expanded", (folder)=>
           @setRecentFolder folder.path
+
         @treeController.on "folder.collapsed", ({path})=>
           @unsetRecentFolder path
           @stopWatching path
 
+
+    @noMachineFoundWidget = new NoMachinesFoundWidget
     @cleanup()
 
-    vmc = KD.getSingleton("vmController")
-    vmc.on "StateChanged", @bound "checkVMState"
-    vmc.on "VMDestroyed",  @bound "unmountVm"
+    # TODO ~ GG
+    # vmc = KD.getSingleton("vmController")
+    # vmc.on "StateChanged", @bound "checkVMState"
+    # vmc.on "VMDestroyed",  @bound "unmountVm"
 
-  registerWatcher:(path, stopWatching)->
-    @watchers[path] = stop: stopWatching
-    @noMachineFoundWidget = new NoMachinesFoundWidget
-
-  stopAllWatchers:->
-    (watcher.stop() for own path, watcher of @watchers)
-    @watchers = {}
-
-  stopWatching:(pathToStop)->
-    for own path, watcher of @watchers  when (path.indexOf pathToStop) is 0
-      watcher.stop()
-      delete @watchers[path]
 
   loadView:(mainView)->
+
     mainView.addSubView @treeController.getView()
-    @viewLoaded = yes
     mainView.addSubView @noMachineFoundWidget
 
-    @reset()  if @getOptions().loadFilesOnInit
+    if @getOption 'loadFilesOnInit' then do @reset
+
 
   reset:->
 
@@ -286,6 +282,22 @@ class NFinderController extends KDViewController
     machines[uid] = state
 
     @appStorage.setValue "mountedMachines", machines
+
+
+  # FS Watcher helpers
+  #
+
+  registerWatcher:(path, stopWatching)->
+    @watchers[path] = stop: stopWatching
+
+  stopAllWatchers:->
+    (watcher.stop() for own path, watcher of @watchers)
+    @watchers = {}
+
+  stopWatching:(pathToStop)->
+    for own path, watcher of @watchers  when (path.indexOf pathToStop) is 0
+      watcher.stop()
+      delete @watchers[path]
 
   # Basics
   #
