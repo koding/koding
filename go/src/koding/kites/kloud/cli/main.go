@@ -19,6 +19,7 @@ func main() {
 		"ping":  command.NewPing(),
 		"build": command.NewBuild(),
 		"event": command.NewEvent(),
+		"info":  command.NewInfo(),
 	}
 
 	_, err := c.Run()

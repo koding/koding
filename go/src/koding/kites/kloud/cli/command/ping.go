@@ -7,7 +7,7 @@ import (
 
 func NewPing() cli.CommandFactory {
 	return func() (cli.Command, error) {
-		f := NewFlag("ping", "Send a message")
+		f := NewFlag("ping", "Send a test ping message")
 		f.action = ActionFunc(PingAction)
 		return f, nil
 
