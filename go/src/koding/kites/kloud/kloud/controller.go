@@ -38,7 +38,13 @@ var states = map[string]*statePair{
 }
 
 func (k *Kloud) ControlFunc(method string, control controlFunc) {
-	handler := func(r *kite.Request) (interface{}, error) {
+	handler := func(r *kite.Request) (response interface{}, err error) {
+		defer func() {
+			if err != nil {
+				k.Log.Warning("[controller] %s error: %s", r.Method, err.Error())
+			}
+		}()
+
 		// calls with zero arguments causes args to be nil. Check it that we
 		// don't get a beloved panic
 		if r.Args == nil {
@@ -93,7 +99,7 @@ func (k *Kloud) controller(r *kite.Request) (contr *Controller, err error) {
 	}
 
 	// if something goes wrong reset the assigne which was set in previous step
-	// by Storage.Get.
+	// by Storage.Get()
 	defer func() {
 		if err != nil {
 			k.Storage.ResetAssignee(args.MachineId)
@@ -105,9 +111,10 @@ func (k *Kloud) controller(r *kite.Request) (contr *Controller, err error) {
 
 	// prevent request if the machine is terminated. However we want the user
 	// to be able to build again or get information, therefore build and info
-	// are not permitted.
-	if (m.Machine.State() == machinestate.Terminating || m.Machine.State() == machinestate.Terminated) &&
-		(r.Method != "build" || r.Method != "info") {
+	// should be able to continue, however methods like start/stop/etc.. are
+	// forbidden.
+	if m.Machine.State().In(machinestate.Terminating, machinestate.Terminated) &&
+		!methodHas(r.Method, "build", "info") {
 		return nil, NewError(ErrMachineTerminating)
 	}
 
@@ -126,6 +133,16 @@ func (k *Kloud) controller(r *kite.Request) (contr *Controller, err error) {
 		CurrenState:  m.Machine.State(),
 		Eventer:      k.NewEventer(r.Method + "-" + args.MachineId),
 	}, nil
+}
+
+// methodHas checks if the method exist for the given methods
+func methodHas(method string, methods ...string) bool {
+	for _, m := range methods {
+		if method == m {
+			return true
+		}
+	}
+	return false
 }
 
 // coreMethods is running and returning the event id for the methods start,
@@ -256,7 +273,11 @@ func (k *Kloud) info(r *kite.Request, c *Controller) (interface{}, error) {
 		return nil, err
 	}
 
-	response := &protocol.InfoResponse{State: info.State}
+	response := &protocol.InfoResponse{
+		State: info.State,
+		Name:  info.Name,
+	}
+
 	if info.State == machinestate.Unknown {
 		response.State = c.CurrenState
 	}

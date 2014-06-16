@@ -257,6 +257,7 @@ func (c *Client) Info() (*protocol.InfoResponse, error) {
 
 	return &protocol.InfoResponse{
 		State: statusToState(droplet.Status),
+		Name:  droplet.Name,
 	}, nil
 }
 
