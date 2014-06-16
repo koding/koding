@@ -148,21 +148,24 @@ class NFinderController extends KDViewController
       @noMachineFoundWidget.show()
       @emit 'EnvironmentsTabRequested'
 
-  updateVMRoot:(vmName, path, callback)->
-    return warn 'VM name and new path required!'  unless vmName or path
+  updateMachineRoot:(uid, path, callback)->
 
-    @unmountVm vmName
+    return warn 'Machine uid and new path required!'  unless uid or path
+
+    @unmountMachine uid
     callback?()
 
-    vmRoots = (@appStorage.getValue 'vmRoots') or {}
-    pipedVm = @_pipedVmName vmName
-    vmRoots[pipedVm] = path
-    @appStorage.setValue 'vmRoots', vmRoots  if @getOptions().useStorage
+    machineRoots = (@appStorage.getValue 'machineRoots') or {}
+    machineRoots[uid] = path
 
-    KD.singleton("vmController").fetchVmsByName [vmName], (err, [vm]) =>
+    if @getOptions().useStorage
+      @appStorage.setValue 'machineRoots', machineRoots
+
+    { computeController } = KD.singletons
+
+    computeController.fetchMachine uid, (err, machine)=>
       return KD.showError err  if err
-      vm.path = path
-      @mountVm vm
+      @mountMachine machine    if machine?
 
 
   setRecentFile:({path})->
