@@ -21,7 +21,7 @@ class NFinderTreeController extends JTreeViewController
   addNode:(nodeData, index)->
     fc = @getDelegate()
     return if @getOption('foldersOnly') and nodeData.type is "file"
-    return if nodeData.isHidden() and fc.isNodesHiddenFor nodeData.vmName
+    return if nodeData.isHidden() and fc.isNodesHiddenFor nodeData.machine.uid
     item = super nodeData, index
 
   highlightFile:(view)->
@@ -274,7 +274,7 @@ class NFinderTreeController extends JTreeViewController
       else
         @refreshFolder @nodes[parentPath], =>
           @notify "#{type} created!", "success"
-          node = @nodes["[#{file.vmName}]#{file.path}"]
+          node = @nodes["[#{file.machine.uid}]#{file.path}"]
           @selectNode node
           @showRenameDialog node
 
