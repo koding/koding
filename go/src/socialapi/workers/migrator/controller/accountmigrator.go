@@ -25,10 +25,11 @@ func (mwc *Controller) migrateAllAccounts() error {
 			continue
 		}
 
-		a := models.NewAccount()
-		a.OldId = oldAccount.Id.Hex()
-		a.Nick = oldAccount.Profile.Nickname
-		if err := a.FetchOrCreate(); err != nil {
+		id, err := models.AccountIdByOldId(
+			oldAccount.Id.Hex(),
+			oldAccount.Profile.Nickname,
+		)
+		if err != nil {
 			errCount++
 			mwc.log.Error("Error occurred for account %s: %s", oldAccount.Id.Hex())
 			continue
