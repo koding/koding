@@ -180,22 +180,22 @@ class NFinderController extends KDViewController
     @appStorage.setValue 'recentFiles', recentFiles.slice(0,10), =>
       @emit 'recentfiles.updated', recentFiles
 
-  hideDotFiles:(vmName)->
-    return  unless vmName
-    @setNodesHidden vmName, yes
+  hideDotFiles:(uid)->
+    return  unless uid
+    @setNodesHidden uid, yes
     for own path, node of @treeController.nodes
       file = node.getData()
-      if (file.vmName is vmName) and file.isHidden()
+      if (file.machine.uid is uid) and file.isHidden()
         @stopWatching file.path
         @treeController.removeNodeView node
 
-  showDotFiles:(vmName)->
-    return  unless vmName
-    @setNodesHidden vmName, no
-    for own path, node of @treeController.nodes when node.getData().type is 'vm'
-      return if node.getData().vmName is vmName
+  showDotFiles:(uid)->
+    return  unless uid
+    @setNodesHidden uid, no
+    for own path, node of @treeController.nodes when node.getData().type is 'machine'
+      return if node.getData().machine.uid is uid
         @treeController.collapseFolder node, =>
-          @reloadPreviousState vmName
+          @reloadPreviousState uid
         , yes
 
   isNodesHiddenFor:(uid)->
@@ -205,7 +205,7 @@ class NFinderController extends KDViewController
   setNodesHidden:(uid, state)->
     prefs = @appStorage.getValue('machinesDotFileChoices') or {}
     prefs[uid] = state
-    @appStorage.setValue 'vmsDotFileChoices', prefs
+    @appStorage.setValue 'machinesDotFileChoices', prefs
 
   getRecentFolders:->
     recentFolders = @appStorage.getValue('recentFolders')

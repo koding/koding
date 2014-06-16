@@ -91,12 +91,12 @@ class NFinderTreeController extends JTreeViewController
 
   toggleDotFiles:(nodeView)->
 
-    finder         = @getDelegate()
-    {vmName, path} = nodeView.getData()
+    finder = @getDelegate()
+    { machine:{ uid } } = nodeView.getData()
 
-    if finder.isNodesHiddenFor vmName
-    then finder.showDotFiles vmName
-    else finder.hideDotFiles vmName
+    if finder.isNodesHiddenFor uid
+    then finder.showDotFiles uid
+    else finder.hideDotFiles uid
 
   makeTopFolder:(nodeView)->
     {vmName, path} = nodeView.getData()
