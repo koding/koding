@@ -21,6 +21,7 @@ module.exports = [
   "filetree/itemviews/sectionitem.coffee",
   "filetree/itemviews/nomachinefoundview.coffee",
   "filetree/itemviews/vmitem.coffee",
+  "filetree/itemviews/machineitem.coffee",
 
   "filetree/itemsubviews/finderitemdeleteview.coffee",
   "filetree/itemsubviews/finderitemdeletedialog.coffee",
