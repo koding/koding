@@ -194,28 +194,18 @@ class FSItem extends KDObject
 
   getExtension:-> FSHelper.getFileExtension @name
 
-  ###
-  INSTANCE METHODS
-  ###
+  getPath:-> FSHelper.plainPath @path
 
-  constructor:(options, data)->
-
-    @[key] = value for own key, value of options
-
-    super
-
-    @vmController   = KD.getSingleton('vmController')
   isHidden:-> FSHelper.isHidden @name
 
+  exists: (callback = noop) ->
 
-  getPath: -> FSHelper.plainPath @path
-
-  exists:(callback=noop)->
     kite = @getKite()
 
     kite.vmOn().then =>
 
-      kite.fsExists(path: @getPath())
+      kite.fsGetInfo path: @getPath()
+      .then (info)-> info.exists
 
     .nodeify(callback)
 
