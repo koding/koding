@@ -98,42 +98,22 @@ class NFinderController extends KDViewController
       return callback? err  if err
 
       vms[i].path = paths[i]  for _, i in vms
+  loadMachines:->
 
       callback null, vms
-
-  loadVms:(vmNames, callback = (->))->
-    { JVM } = KD.remote.api
-    if vmNames
-      @fetchSavedVms vmNames, (err, vms) =>
-        return callback err  if err
-
-        @mountVms vms
-    else
-      groupSlug  = KD.getSingleton("groupsController").getGroupSlug()
-      groupSlug ?= KD.defaultSlug
-      @appStorage.fetchValue "mountedVM", (vms)=>
-        vms            or= {}
-        vms[groupSlug] or= []
-        groupVms = vms[groupSlug]
-        if groupVms.length > 0
-          @fetchSavedVms groupVms, (err, vms) =>
-            return callback err  if err
-
-            @mountVms vms
-        else
-          JVM.fetchVmsByContext {}, (err, vms)=>
-            return callback err  if err
-            if not vms or vms.length is 0
-              KD.getSingleton('vmController').fetchDefaultVmName (vm)=>
-                if vm then @mountVms [vm]
-                else @noVMFoundWidget.show()
-            else
-              @mountVms vms
+    { computeController } = KD.singletons
 
   getVmNode:(vmName)->
     return null  unless vmName
     for own path, vmItem of @treeController.nodes  when vmItem.data?.type is 'vm'
       return vmItem  if vmItem.data.vmName is vmName
+    computeController.fetchMachines (err, machines)=>
+
+      unless KD.showError err
+        if machines.length > 0
+        then @mountMachines machines
+        else @noMachineFoundWidget.show()
+
 
   updateMountState:(vmName, state)->
     return  if KD.isGuest()
