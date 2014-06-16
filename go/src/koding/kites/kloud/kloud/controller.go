@@ -131,7 +131,6 @@ func (k *Kloud) controller(r *kite.Request) (contr *Controller, err error) {
 		Provider:     provider,
 		MachineData:  m,
 		CurrenState:  m.Machine.State(),
-		Eventer:      k.NewEventer(r.Method + "-" + args.MachineId),
 	}, nil
 }
 
@@ -143,6 +142,73 @@ func methodHas(method string, methods ...string) bool {
 		}
 	}
 	return false
+}
+
+func (k *Kloud) info(r *kite.Request, c *Controller) (interface{}, error) {
+	defer k.Storage.ResetAssignee(c.MachineId)
+
+	if c.CurrenState == machinestate.NotInitialized {
+		return nil, NewError(ErrNotInitialized)
+	}
+
+	machOptions := &protocol.MachineOptions{
+		MachineId:  c.MachineId,
+		Username:   r.Username,
+		Eventer:    &eventer.Events{}, // add fake eventer to avoid errors on NewClient at provider
+		Credential: c.MachineData.Credential.Meta,
+		Builder:    c.MachineData.Machine.Meta,
+	}
+
+	info, err := c.Provider.Info(machOptions)
+	if err != nil {
+		return nil, err
+	}
+
+	response := &protocol.InfoResponse{
+		State: info.State,
+		Name:  info.Name,
+	}
+
+	if info.State == machinestate.Unknown {
+		response.State = c.CurrenState
+	}
+
+	k.Storage.UpdateState(c.MachineId, response.State)
+
+	k.Log.Info("[info] returning response %+v", response)
+	return response, nil
+}
+
+func (k *Kloud) start(r *kite.Request, c *Controller) (interface{}, error) {
+	fn := func(m *protocol.MachineOptions) error {
+		return c.Provider.Start(m)
+	}
+
+	return k.coreMethods(r, c, fn)
+}
+
+func (k *Kloud) stop(r *kite.Request, c *Controller) (interface{}, error) {
+	fn := func(m *protocol.MachineOptions) error {
+		return c.Provider.Stop(m)
+	}
+
+	return k.coreMethods(r, c, fn)
+}
+
+func (k *Kloud) destroy(r *kite.Request, c *Controller) (interface{}, error) {
+	fn := func(m *protocol.MachineOptions) error {
+		return c.Provider.Destroy(m)
+	}
+
+	return k.coreMethods(r, c, fn)
+}
+
+func (k *Kloud) restart(r *kite.Request, c *Controller) (interface{}, error) {
+	fn := func(m *protocol.MachineOptions) error {
+		return c.Provider.Restart(m)
+	}
+
+	return k.coreMethods(r, c, fn)
 }
 
 // coreMethods is running and returning the event id for the methods start,
@@ -175,6 +241,7 @@ func (k *Kloud) coreMethods(
 		return nil, fmt.Errorf("no state pair available for %s", r.Method)
 	}
 	k.Storage.UpdateState(c.MachineId, s.initial)
+	c.Eventer = k.NewEventer(r.Method + "-" + c.MachineId)
 
 	machOptions := &protocol.MachineOptions{
 		MachineId:  c.MachineId,
@@ -219,71 +286,4 @@ func (k *Kloud) coreMethods(
 		EventId: c.Eventer.Id(),
 		State:   s.initial,
 	}, nil
-}
-
-func (k *Kloud) start(r *kite.Request, c *Controller) (interface{}, error) {
-	fn := func(m *protocol.MachineOptions) error {
-		return c.Provider.Start(m)
-	}
-
-	return k.coreMethods(r, c, fn)
-}
-
-func (k *Kloud) stop(r *kite.Request, c *Controller) (interface{}, error) {
-	fn := func(m *protocol.MachineOptions) error {
-		return c.Provider.Stop(m)
-	}
-
-	return k.coreMethods(r, c, fn)
-}
-
-func (k *Kloud) destroy(r *kite.Request, c *Controller) (interface{}, error) {
-	fn := func(m *protocol.MachineOptions) error {
-		return c.Provider.Destroy(m)
-	}
-
-	return k.coreMethods(r, c, fn)
-}
-
-func (k *Kloud) restart(r *kite.Request, c *Controller) (interface{}, error) {
-	fn := func(m *protocol.MachineOptions) error {
-		return c.Provider.Restart(m)
-	}
-
-	return k.coreMethods(r, c, fn)
-}
-
-func (k *Kloud) info(r *kite.Request, c *Controller) (interface{}, error) {
-	defer k.Storage.ResetAssignee(c.MachineId)
-
-	if c.CurrenState == machinestate.NotInitialized {
-		return nil, NewError(ErrNotInitialized)
-	}
-
-	machOptions := &protocol.MachineOptions{
-		MachineId:  c.MachineId,
-		Username:   r.Username,
-		Eventer:    c.Eventer,
-		Credential: c.MachineData.Credential.Meta,
-		Builder:    c.MachineData.Machine.Meta,
-	}
-
-	info, err := c.Provider.Info(machOptions)
-	if err != nil {
-		return nil, err
-	}
-
-	response := &protocol.InfoResponse{
-		State: info.State,
-		Name:  info.Name,
-	}
-
-	if info.State == machinestate.Unknown {
-		response.State = c.CurrenState
-	}
-
-	k.Storage.UpdateState(c.MachineId, response.State)
-
-	k.Log.Info("[info] returning response %+v", response)
-	return response, nil
 }
