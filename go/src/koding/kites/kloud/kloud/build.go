@@ -31,7 +31,6 @@ func (k *Kloud) build(r *kite.Request, c *Controller) (interface{}, error) {
 	}
 
 	k.Storage.UpdateState(c.MachineId, machinestate.Building)
-	c.Eventer = k.NewEventer(r.Method + "-" + c.MachineId)
 
 	go func() {
 		k.idlock.Get(c.MachineId).Lock()

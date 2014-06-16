@@ -22,10 +22,10 @@ func NewEvent() cli.CommandFactory {
 	return func() (cli.Command, error) {
 		f := NewFlag("event", "Track an event")
 		f.action = &Event{
-			id:        f.String("id", "", "Event id to track"),
+			id:        f.String("id", "", "Event id to track, for example: 12345"),
 			eventType: f.String("type", "", "Event type, for example: build"),
-			event:     f.String("event", "", "Event is the same as id+type"),
-			interval:  f.Duration("interval", time.Second*4, "Polling interval"),
+			event:     f.String("event", "", "Event is the same as type-id. I.e: build-12345"),
+			interval:  f.Duration("interval", time.Second*4, "Polling interval, by default 4 seconds"),
 		}
 		return f, nil
 	}
@@ -41,8 +41,8 @@ func (e *Event) Action(args []string, k *kite.Client) error {
 			return fmt.Errorf("Incoming event data is malformed %v", *e.event)
 		}
 
-		id = splitted[0]
-		eventType = splitted[1]
+		eventType = splitted[0]
+		id = splitted[1]
 	} else {
 		if *e.id == "" {
 			return errors.New("'-id' flag is empty")
@@ -52,15 +52,14 @@ func (e *Event) Action(args []string, k *kite.Client) error {
 			return errors.New("'-type' flag is empty")
 		}
 
-		id = *e.id
 		eventType = *e.id
-
+		id = *e.id
 	}
 
 	eArgs := kloud.EventArgs([]kloud.EventArg{
 		kloud.EventArg{
-			EventId: id,
 			Type:    eventType,
+			EventId: id,
 		},
 	})
 
