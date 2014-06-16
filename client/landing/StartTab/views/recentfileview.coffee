@@ -22,8 +22,8 @@ class StartTabRecentFileItemView extends JView
 
     path = @getData()
     name = (path.split '/')[(path.split '/').length - 1]
-    extension = FSItem.getFileExtension name
     fileType  = FSItem.getFileType extension
+    extension = FSHelper.getFileExtension name
 
     """
       <span class='icon #{fileType} #{extension}'></span>
