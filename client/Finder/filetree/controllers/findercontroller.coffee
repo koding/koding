@@ -199,11 +199,6 @@ class NFinderController extends KDViewController
       vm.path = path
       @mountVm vm
 
-  cleanup:->
-    @treeController.removeAllNodes()
-    FSHelper.resetRegistry()
-    @stopAllWatchers()
-    @vms = []
 
   setRecentFile:({path})->
     recentFiles = @appStorage.getValue('recentFiles')
@@ -306,4 +301,13 @@ class NFinderController extends KDViewController
       if machineItem.data?.type is 'machine'
         return machineItem  if machineItem.data.uid is uid
 
+
+  # Basics
+  #
+
+  cleanup:->
+    @treeController.removeAllNodes()
+    FSHelper.resetRegistry()
+    @stopAllWatchers()
+    @machines = []
 
