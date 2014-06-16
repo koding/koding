@@ -232,21 +232,27 @@ class FSItem extends KDObject
     .then =>
       @emit "fs.delete.finished"
 
-  rename: ({ name: newName, path: newPath }, callback)->
+  # Move file to provided path, its using ::rename
+  move: (path, callback)->
 
-    newPath ?= FSHelper.plainPath "#{@parentPath}/#{newName}"
+    newName = FSHelper.plainPath "#{ path }/#{ @name }"
+    @rename path: newName, callback
+
+  rename: (newName, callback)->
 
     @emit "fs.job.started"
+
+    newPath = "#{FSHelper.getParentPath @getPath()}/#{newName}"
 
     kite = @getKite()
 
     kite.vmOn()
 
     .then =>
-      kite.fsRename(
-        oldpath: @getPath()
-        newpath: newPath
-      )
+
+      kite.fsRename
+        oldpath : @getPath()
+        newpath : newPath
 
     .nodeify(callback)
 
