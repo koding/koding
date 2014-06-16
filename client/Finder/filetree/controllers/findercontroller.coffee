@@ -22,10 +22,12 @@ class NFinderController extends KDViewController
 
     super options, data
 
+
     TreeControllerClass = options.treeControllerClass or NFinderTreeController
     @treeController     = new TreeControllerClass treeOptions, []
 
-    @appStorage = KD.getSingleton('appStorageController').storage 'Finder', '1.2'
+    {appStorageController} = KD.singletons
+    @appStorage = appStorageController.storage 'Finder', '2.0'
 
     @watchers = {}
 
