@@ -88,10 +88,6 @@ class NFinderController extends KDViewController
         else @noMachineFoundWidget.show()
 
 
-  checkVMState: (err, vm, info)->
-    return warn err if err or not info
-    switch info.state
-      when "MAINTENANCE" then @unmountVm vm
   mountMachine:(machine, fetchContent = yes)->
 
     unless machine.status.state is Machine.State.Running
@@ -258,7 +254,6 @@ class NFinderController extends KDViewController
     uploader.setPath path
     uploaderPlaceholder.show()
 
-  _pipedVmName:(vmName)-> vmName.replace /\./g, '|'
 
   # Filetree helpers
   #
