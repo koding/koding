@@ -131,7 +131,7 @@ func (c *Client) Build(snapshotName, dropletName, username string) (*protocol.Bu
 	return &protocol.BuildResponse{
 		QueryString:  klient.String(),
 		IpAddress:    droplet.IpAddress,
-		InstanceName: droplet.Name,
+		InstanceName: dropletName, // we don't use droplet.Name because it might have the cached name
 		InstanceId:   droplet.Id,
 	}, nil
 }
