@@ -13,12 +13,12 @@ class ActivitySidebar extends KDCustomScrollView
     SocialChannel : 'name'
 
 
-  revive = (obj) ->
+  revive = (data) ->
 
-    {SocialChannel, SocialMessage} = KD.remote.api
-    return unless obj instanceof SocialChannel or obj instanceof SocialMessage
-    then KD.singletons.socialapi.mapChannels(obj).first
-    else obj
+    return switch data.typeConstant
+      when 'post' then (KD.singleton 'socialapi').message.revive message: data
+      when 'topic' then (KD.singleton 'socialapi').mapChannel data
+      else data
 
 
   constructor: ->
