@@ -98,10 +98,6 @@ class NFinderController extends KDViewController
       callback null, vms
     { computeController } = KD.singletons
 
-  getVmNode:(vmName)->
-    return null  unless vmName
-    for own path, vmItem of @treeController.nodes  when vmItem.data?.type is 'vm'
-      return vmItem  if vmItem.data.vmName is vmName
     computeController.fetchMachines (err, machines)=>
 
       unless KD.showError err
@@ -301,4 +297,15 @@ class NFinderController extends KDViewController
     uploaderPlaceholder.show()
 
   _pipedVmName:(vmName)-> vmName.replace /\./g, '|'
+
+  # Filetree helpers
+  #
+  getMachineNode:(uid)->
+
+    return null  unless uid
+
+    for own path, machineItem of @treeController.nodes
+      if machineItem.data?.type is 'machine'
+        return machineItem  if machineItem.data.uid is uid
+
 
