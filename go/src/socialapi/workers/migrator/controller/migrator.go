@@ -9,6 +9,7 @@ import (
 	"reflect"
 	"socialapi/models"
 	"strings"
+	"time"
 
 	"github.com/VerbalExpressions/GoVerbalExpressions"
 	"github.com/koding/logging"
@@ -21,9 +22,9 @@ var (
 	tagRegex        = verbalexpressions.New().
 			BeginCapture().
 			Find("|#:JTag:").
-			Anything().
+			Word().
 			Then(":").
-			Anything().
+			Word().
 			Then("|").
 			EndCapture().
 			Regex()
@@ -42,6 +43,10 @@ func New(log logging.Logger) (*Controller, error) {
 }
 
 func (mwc *Controller) Start() error {
+	if err := mwc.migrateAllAccounts(); err != nil {
+		return err
+	}
+
 	if err := mwc.migrateAllGroups(); err != nil {
 		return err
 	}
@@ -107,7 +112,7 @@ func (mwc *Controller) migrateAllPosts() error {
 		}
 
 		// create reply messages
-		if err := mwc.migrateComments(cm, &su, channelId); err != nil {
+		if err := mwc.migrateComments(cm, &su); err != nil {
 			handleError(&su, err)
 			continue
 		}
@@ -161,7 +166,7 @@ func addChannelMessageToMessageList(cm *models.ChannelMessage) error {
 	return cml.CreateRaw()
 }
 
-func (mwc *Controller) migrateComments(parentMessage *models.ChannelMessage, su *mongomodels.StatusUpdate, channelId int64) error {
+func (mwc *Controller) migrateComments(parentMessage *models.ChannelMessage, su *mongomodels.StatusUpdate) error {
 
 	s := modelhelper.Selector{
 		"sourceId":   su.Id,
@@ -186,7 +191,7 @@ func (mwc *Controller) migrateComments(parentMessage *models.ChannelMessage, su 
 		}
 
 		reply := mapCommentToChannelMessage(comment)
-		reply.InitialChannelId = channelId
+		reply.InitialChannelId = parentMessage.InitialChannelId
 		// insert as channel message
 		if err := insertChannelMessage(reply, comment.OriginId.Hex()); err != nil {
 			return fmt.Errorf("comment cannot be inserted %s", err)
@@ -243,13 +248,12 @@ func (mwc *Controller) migrateLikes(cm *models.ChannelMessage, oldId bson.Object
 }
 
 func prepareMessageAccount(cm *models.ChannelMessage, accountOldId string) error {
-	a := models.NewAccount()
-	a.OldId = accountOldId
-	if err := a.FetchOrCreate(); err != nil {
+	id, err := models.AccountIdByOldId(accountOldId, "")
+	if err != nil {
 		return fmt.Errorf("account could not found: %s", err)
 	}
 
-	cm.AccountId = a.Id
+	cm.AccountId = id
 
 	return nil
 }
@@ -314,14 +318,16 @@ func mapCommentToChannelMessage(c *mongomodels.Comment) *models.ChannelMessage {
 	cm.Body = c.Body
 	cm.TypeConstant = models.ChannelMessage_TYPE_REPLY
 	cm.CreatedAt = c.Meta.CreatedAt
+	cm.DeletedAt = c.DeletedAt
 	prepareMessageMetaDates(cm, &c.Meta)
 
 	return cm
 }
 
 func prepareMessageMetaDates(cm *models.ChannelMessage, meta *mongomodels.Meta) {
-	// this is added because status update->modified at field is before createdAt
-	if cm.CreatedAt.After(meta.ModifiedAt) {
+	lowerLimit := cm.CreatedAt.Add(-time.Second)
+	upperLimit := cm.CreatedAt.Add(time.Second)
+	if meta.ModifiedAt.After(lowerLimit) && meta.ModifiedAt.Before(upperLimit) {
 		cm.UpdatedAt = cm.CreatedAt
 	} else {
 		cm.UpdatedAt = meta.ModifiedAt

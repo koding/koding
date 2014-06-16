@@ -13,12 +13,12 @@ class ActivitySidebar extends KDCustomScrollView
     SocialChannel : 'name'
 
 
-  revive = (obj) ->
+  revive = (data) ->
 
-    {SocialChannel, SocialMessage} = KD.remote.api
-    return unless obj instanceof SocialChannel or obj instanceof SocialMessage
-    then KD.singletons.socialapi.mapChannels(obj).first
-    else obj
+    return switch data.typeConstant
+      when 'post' then (KD.singleton 'socialapi').message.revive message: data
+      when 'topic' then (KD.singleton 'socialapi').mapChannel data
+      else data
 
 
   constructor: ->
@@ -40,9 +40,9 @@ class ActivitySidebar extends KDCustomScrollView
       .on 'NotificationHasArrived',    @bound 'notificationHasArrived'
 
 
-  addToChannel: (data) ->
+  addToChannel: (channel) ->
 
-    data           = revive data
+    data           = revive channel
     listController = @getListController data.typeConstant
 
     return  if listController.itemForId data.id
@@ -68,8 +68,14 @@ class ActivitySidebar extends KDCustomScrollView
       when 'MessageAddedToChannel'     then return @addToChannel update.channelMessage
       when 'MessageRemovedFromChannel' then return @removeFromChannel update.channelMessage
 
-    {unreadCount, channel} = update
-    {typeConstant, id}     = channel
+    @setChannelUnreadCount update  if update.channel
+
+
+  setChannelUnreadCount: ({unreadCount, channel}) ->
+
+    return  unless channel
+
+    {typeConstant, id} = channel
 
     listController = @getListController typeConstant
     item = listController.itemForId id

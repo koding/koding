@@ -50,3 +50,11 @@ func UpdateAccount(selector, options Selector) error {
 func RemoveAccount(id bson.ObjectId) error {
 	return RemoveDocument("jAccounts", id)
 }
+
+func GetAccountIter(selector Selector) *mgo.Iter {
+	query := func(c *mgo.Collection) *mgo.Query {
+		return c.Find(selector)
+	}
+
+	return Mongo.GetIter("jAccounts", query)
+}
