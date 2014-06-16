@@ -225,7 +225,7 @@ class TeamworkApp extends KDObject
       return warn res.stderr if res.exitStatus > 0
 
       contents  = res.stdout
-      extension = FSItem.getFileExtension path
+      extension = FSHelper.getFileExtension path
       error     = null
 
       switch extension

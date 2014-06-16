@@ -163,11 +163,6 @@ class FSItem extends KDObject
     .finally ->
       file.emit "fs.job.finished"
 
-  @getFileExtension: (path) ->
-    fileName = path or ''
-    [name, extension...]  = fileName.split '.'
-    extension = if extension.length is 0 then '' else extension.last
-
   @getFileType: (extension)->
 
     fileType = null

@@ -13,7 +13,7 @@ class TeamworkImporter extends KDObject
     @parseUrl()
 
   parseUrl: ->
-    extension      = FSItem.getFileExtension @url
+    extension      = FSHelper.getFileExtension @url
     gitHubUrlRegex = /http(s)?:\/\/github.com/
     gistUrlRegex   = /http(s)?:\/\/gist.github.com/
     isGitHubUrl    = gitHubUrlRegex.test @url

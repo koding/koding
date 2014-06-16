@@ -58,6 +58,12 @@ class FSHelper
             treeController.removeNodeView node
             break
 
+  @getFileExtension: (path) ->
+    fileName = path or ''
+    [name, extension...]  = fileName.split '.'
+    extension = if extension.length is 0 then '' else extension.last
+    return extension
+
   @plainPath:(path)-> path.replace /^\[.*\]/, ''
   @getVMNameFromPath:(path)-> (/^\[([^\]]+)\]/g.exec path)?[1]
 

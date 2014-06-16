@@ -84,7 +84,7 @@ class NFinderContextMenuController extends KDController
       # 'Upload to Dropbox'         :
       #   action                    : 'dropboxSaver'
 
-    if 'archive' isnt FSItem.getFileType FSItem.getFileExtension fileData.name
+    if 'archive' isnt FSHelper.getFileType FSHelper.getFileExtension fileData.name
       delete items.Extract
     else
       delete items.Compress
@@ -370,7 +370,7 @@ class NFinderContextMenuController extends KDController
 
     {path, type}     = fileView.getData()
     plainPath        = FSHelper.plainPath path
-    fileExtension    = FSItem.getFileExtension path
+    fileExtension    = FSHelper.getFileExtension path
 
     # FIXME: Add this ability later ~ GG
     # appsController   = KD.singleton "kodingAppsController"
