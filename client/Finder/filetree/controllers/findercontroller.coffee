@@ -235,15 +235,13 @@ class NFinderController extends KDViewController
           @reloadPreviousState vmName
         , yes
 
-  isNodesHiddenFor:(vmName)->
+  isNodesHiddenFor:(uid)->
     return yes  if @getOption 'hideDotFiles'
-    pipedVm = @_pipedVmName vmName
-    return (@appStorage.getValue('vmsDotFileChoices') or {})[pipedVm]
+    return (@appStorage.getValue('machinesDotFileChoices') or {})[uid]
 
-  setNodesHidden:(vmName, state)->
-    pipedVm = @_pipedVmName vmName
-    prefs   = @appStorage.getValue('vmsDotFileChoices') or {}
-    prefs[pipedVm] = state
+  setNodesHidden:(uid, state)->
+    prefs = @appStorage.getValue('machinesDotFileChoices') or {}
+    prefs[uid] = state
     @appStorage.setValue 'vmsDotFileChoices', prefs
 
   getRecentFolders:->
