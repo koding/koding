@@ -164,21 +164,24 @@ class NFinderController extends KDViewController
             if @getOptions().useStorage then @reloadPreviousState uid
         , yes
 
-  unmountVm:(vmName)->
-    vmItem = @getVmNode vmName
-    return warn 'No such VM!'  unless vmItem
 
-    @updateMountState vmName, no
-    @stopWatching vmItem.data.path
-    FSHelper.unregisterVmFiles vmName
-    @treeController.removeNodeView vmItem
-    @vms = @vms.filter (vmData)-> vmData isnt vmItem.data
   mountMachines: (machines) ->
 
     do @cleanup
     for machine in machines
       @mountMachine machine
 
+
+  unmountMachine: (uid)->
+
+    machineItem = @getMachineNode uid
+    return warn 'No such VM!'  unless machineItem
+
+    @updateMountState uid, no
+    @stopWatching machineItem.data.path
+    FSHelper.unregisterVmFiles uid
+    @treeController.removeNodeView machineItem
+    @machines = @machines.filter (vmData)-> vmData isnt machineItem.data
 
     if @machines.length is 0
       @noMachineFoundWidget.show()
