@@ -22,9 +22,9 @@ var (
 	tagRegex        = verbalexpressions.New().
 			BeginCapture().
 			Find("|#:JTag:").
-			Anything().
+			Word().
 			Then(":").
-			Anything().
+			Word().
 			Then("|").
 			EndCapture().
 			Regex()
