@@ -65,13 +65,13 @@ class FSHelper
 
     return data
 
-  @folderOnChange = ({ vmName, path, change, treeController })->
+
+  @folderOnChange = ({ machine, path, change, treeController })->
     return  unless treeController
     [ file ] = @parseWatcher {
-      vmName
-      parentPath  : path
-      files       : change.file
-      treeController
+      parentPath : path
+      files      : change.file
+      treeController, machine
     }
     switch change.event
       when "added"
