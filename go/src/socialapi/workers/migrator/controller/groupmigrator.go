@@ -22,6 +22,8 @@ func (mwc *Controller) migrateAllGroups() error {
 	}
 
 	iter := modelhelper.GetGroupIter(s)
+	defer iter.Close()
+
 	var group mongomodels.Group
 	for iter.Next(&group) {
 		c, err := mwc.createGroupChannel(group.Slug)
@@ -107,13 +109,12 @@ func fetchGroupOwnerId(g *mongomodels.Group) (int64, error) {
 		return 0, err
 	}
 
-	a := models.NewAccount()
-	a.OldId = r.TargetId.Hex()
-	if err := a.FetchOrCreate(); err != nil {
+	id, err := models.AccountIdByOldId(r.TargetId.Hex(), "")
+	if err != nil {
 		return 0, err
 	}
 
-	return a.Id, nil
+	return id, nil
 }
 
 func completeGroupMigration(g *mongomodels.Group, channelId int64) error {

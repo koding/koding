@@ -94,14 +94,12 @@ func fetchTagCreatorId(t *mongomodels.Tag) (int64, error) {
 	if err != nil {
 		return 0, fmt.Errorf("Tag creator cannot be fetched: %s", err)
 	}
-	a := models.NewAccount()
-	a.OldId = r.TargetId.Hex()
-
-	if err := a.FetchOrCreate(); err != nil {
+	id, err := models.AccountIdByOldId(r.TargetId.Hex(), "")
+	if err != nil {
 		return 0, fmt.Errorf("Tag creator cannot be created: %s", err)
 	}
 
-	return a.Id, nil
+	return id, nil
 }
 
 func (mwc *Controller) createTagFollowers(t *mongomodels.Tag, channelId int64) error {
@@ -123,9 +121,7 @@ func (mwc *Controller) createChannelParticipants(s modelhelper.Selector, channel
 			continue
 		}
 		// fetch follower
-		a := models.NewAccount()
-		a.OldId = r.TargetId.Hex()
-		err := a.FetchOrCreate()
+		id, err := models.AccountIdByOldId(r.TargetId.Hex(), "")
 		if err != nil {
 			mwc.log.Error("Participant account cannot be fetched: %s", err)
 			continue
@@ -133,7 +129,7 @@ func (mwc *Controller) createChannelParticipants(s modelhelper.Selector, channel
 
 		cp := models.NewChannelParticipant()
 		cp.ChannelId = channelId
-		cp.AccountId = a.Id
+		cp.AccountId = id
 		cp.StatusConstant = models.ChannelParticipant_STATUS_ACTIVE
 		cp.LastSeenAt = r.TimeStamp
 		cp.UpdatedAt = r.TimeStamp
