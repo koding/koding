@@ -42,6 +42,9 @@ class FSItem extends KDObject
     sourceItem.emit "fs.job.started"
 
     kite = sourceItem.getKite()
+  # Helper to get corresponding kite
+  # TODO: add check kite state functionality
+  getKite: -> @machine.getBaseKite()# kites.klient
 
     targetPath = FSHelper.plainPath "#{targetItem.path}/#{sourceItem.name}"
 
@@ -260,23 +263,3 @@ class FSItem extends KDObject
 
     .then =>
       @emit "fs.job.started"
-
-  getKite: ->
-    if @options.dummy
-      return null
-
-    FSItem.getKite { @vm, @vmName }
-
-  @getKite = ({vm, vmName})->
-    if KD.useNewKites
-      kontrol = KD.getSingleton 'kontrol'
-      kontrol.getKite \
-        if vm?
-          name              : 'oskite'
-          correlationName   : vm.hostnameAlias
-          region            : vm.region
-        else
-          name              : 'oskite'
-          correlationName   : vmName
-    else
-      KD.getSingleton('vmController').getKiteByVmName vmName
