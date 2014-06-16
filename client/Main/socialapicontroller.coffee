@@ -12,15 +12,15 @@ class SocialApiController extends KDController
 
   getPrefetchedData: (dataPath) ->
 
-    return  unless KD.socialApiData
-    return  unless data = KD.socialApiData[dataPath]
+    return [] unless KD.socialApiData
+    return [] unless data = KD.socialApiData[dataPath]
 
     fn = switch dataPath
       when 'popularTopics', 'followedChannels' then mapChannels
       when 'publicFeed', 'pinnedMessages'      then mapActivities
       when 'privateMessages'                   then mapPrivateMessages
 
-    return fn data
+    return fn(data) or []
 
 
   openGroupChannel: ->
