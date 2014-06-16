@@ -1,6 +1,6 @@
+
 class FSHelper
 
-  parseWatcherFile = ({ vmName, parentPath, file, user, treeController, osKite })->
   @createFileInstance = (options)->
 
     if typeof options is 'string'
@@ -33,18 +33,23 @@ class FSHelper
 
     return instance
 
+  parseWatcherFile = ({ machine, parentPath, file, user, treeController })->
+
+    { uid } = machine
     {name, size, mode} = file
+
     type      = if file.isBroken then 'brokenLink' else \
                 if file.isDir then 'folder' else 'file'
-    path      = if parentPath is "[#{vmName}]/" then "[#{vmName}]/#{name}" else \
+    path      = if parentPath is "[#{uid}]/" then "[#{uid}]/#{name}" else \
                 "#{parentPath}/#{name}"
     group     = user
     createdAt = file.time
+
     return { size, user, group, createdAt, mode, type, \
-             parentPath, path, name, vmName:vmName, treeController, osKite }
+             parentPath, path, name, machine, treeController }
 
+  @parseWatcher = ({ machine, parentPath, files, treeController })->
 
-  @parseWatcher = ({ vmName, parentPath, files, treeController, osKite })->
     data = []
     return data unless files
     files = [files] unless Array.isArray files
@@ -54,16 +59,9 @@ class FSHelper
     sortedFiles = partition(files.sort(sortFiles), (file) -> file.isDir)
       .reduce (acc, next) -> acc.concat next
 
-    nickname = KD.nick()
     for file in sortedFiles
-      data.push FSHelper.createFile \
-        parseWatcherFile {
-          vmName
-          parentPath
-          file
-          nickname
-          treeController
-        }
+      data.push FSHelper.createFileInstance \
+        parseWatcherFile { file, machine, parentPath, treeController }
 
     return data
 
