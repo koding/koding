@@ -106,34 +106,39 @@ class FSItem extends KDObject
       return file
 
 
-  @compress:(file, type, callback)->
+  # Compress file with given type
+  #
+  # TODO: add more checks for type
+  # TODO: add option for targetPath
+  compress: (type, callback)->
 
-    file.emit "fs.job.started"
+    @emit "fs.job.started"
 
-    kite = file.getKite()
+    kite = @getKite()
 
-    path = FSHelper.plainPath "#{file.path}.#{type}"
+    path = FSHelper.plainPath "#{@getPath()}.#{type}"
 
     kite.vmOn().then ->
 
       kite.fsUniquePath { path }
 
-    .then (actualPath) ->
+    .then (actualPath) =>
 
       command =
         if type is "tar.gz"
-          "tar -pczf #{escapeFilePath actualPath} #{escapeFilePath file.path}"
+          "tar -pczf #{escapeFilePath actualPath} #{escapeFilePath @getPath()}"
         else
-          "zip -r #{escapeFilePath actualPath} #{escapeFilePath file.path}"
+          "zip -r #{escapeFilePath actualPath} #{escapeFilePath @getPath()}"
 
-      kite.exec {command}
+      kite.exec { command }
 
     .then(handleStdErr())
 
     .nodeify(callback)
 
-    .finally ->
-      file.emit "fs.job.finished"
+    .finally =>
+      @emit "fs.job.finished"
+
 
   @extract: (file, callback = (->)) ->
     file.emit "fs.job.started"
