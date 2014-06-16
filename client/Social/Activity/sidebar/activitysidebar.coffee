@@ -68,8 +68,14 @@ class ActivitySidebar extends KDCustomScrollView
       when 'MessageAddedToChannel'     then return @addToChannel update.channelMessage
       when 'MessageRemovedFromChannel' then return @removeFromChannel update.channelMessage
 
-    {unreadCount, channel} = update
-    {typeConstant, id}     = channel
+    @setChannelUnreadCount update  if update.channel
+
+
+  setChannelUnreadCount: ({unreadCount, channel}) ->
+
+    return  unless channel
+
+    {typeConstant, id} = channel
 
     listController = @getListController typeConstant
     item = listController.itemForId id
