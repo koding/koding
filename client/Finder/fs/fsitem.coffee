@@ -140,22 +140,23 @@ class FSItem extends KDObject
       @emit "fs.job.finished"
 
 
-  @extract: (file, callback = (->)) ->
-    file.emit "fs.job.started"
+  @extract: (callback = (->)) ->
 
-    kite = file.getKite()
+    @emit "fs.job.started"
+
+    kite = @getKite()
 
     tarPattern = /\.tar\.gz$/
     zipPattern = /\.zip$/
 
-    path = FSHelper.plainPath file.path
+    path = @getPath()
 
     [isTarGz, extractFolder] = switch
 
-      when tarPattern .test file.name
+      when tarPattern .test @name
         [yes, path.replace tarPattern, '']
 
-      when zipPattern .test file.name
+      when zipPattern .test @name
         [no, path.replace zipPattern, '']
 
     kite.vmOn()
@@ -163,33 +164,33 @@ class FSItem extends KDObject
     .then ->
       kite.fsUniquePath(path: "#{ extractFolder }")
 
-    .then (actualPath) ->
+    .then (actualPath) =>
 
       command =
         if isTarGz
-          "cd #{escapeFilePath file.parentPath};mkdir -p #{escapeFilePath actualPath};tar -zxf #{escapeFilePath file.name} -C #{escapeFilePath actualPath}"
+          "cd #{escapeFilePath @parentPath};mkdir -p #{escapeFilePath actualPath};tar -zxf #{escapeFilePath @name} -C #{escapeFilePath actualPath}"
         else
-          "cd #{escapeFilePath file.parentPath};unzip -o #{escapeFilePath file.name} -d #{escapeFilePath actualPath}"
+          "cd #{escapeFilePath @parentPath};unzip -o #{escapeFilePath @name} -d #{escapeFilePath actualPath}"
 
       kite.exec({command})
 
     .then(handleStdErr())
 
-    .then ->
+    .then =>
 
-      file = FSHelper.createFile {
+      file = FSHelper.createFileInstance {
         path            : actualPath
-        parentPath      : file.parentPath
+        parentPath      : @parentPath
         type            : 'folder'
-        vmName          : file.vmName
+        machine         : @machine
       }
 
       return file
 
     .nodeify(callback)
 
-    .finally ->
-      file.emit "fs.job.finished"
+    .finally =>
+      @emit "fs.job.finished"
 
   @isHidden: (name)-> return /^\./.test name
 
