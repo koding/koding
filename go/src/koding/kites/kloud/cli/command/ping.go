@@ -17,7 +17,7 @@ func NewPing() cli.CommandFactory {
 func PingAction(args []string, kloud *kite.Client) error {
 	resp, err := kloud.Tell("kite.ping")
 	if err != nil {
-		DefaultUi.Error(err.Error())
+		return err
 	}
 
 	DefaultUi.Info(resp.MustString())
