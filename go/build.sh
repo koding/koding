@@ -18,6 +18,7 @@ services=(
   github.com/koding/kite/cmd/kite
   github.com/koding/kite/reverseproxy/reverseproxy
   koding/kites/kontrol
+  koding/kites/kloud
   koding/virt/vmproxy
   koding/virt/vmtool
   koding/overview
@@ -25,7 +26,6 @@ services=(
   koding/kontrol/kontrolftp
   koding/kontrol/kontroldaemon
   koding/kontrol/kontrolapi
-  koding/kontrol/kontrolclient
   koding/workers/neo4jfeeder
   koding/workers/elasticsearchfeeder
   koding/workers/externals

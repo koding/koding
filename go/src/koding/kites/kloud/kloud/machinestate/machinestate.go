@@ -88,7 +88,6 @@ func (s State) In(states ...State) bool {
 			return true
 		}
 	}
-
 	return false
 }
 

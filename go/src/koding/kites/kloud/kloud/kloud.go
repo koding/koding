@@ -80,6 +80,7 @@ func (k *Kloud) NewKloud() *kodingkite.KodingKite {
 		mongodbSession := &MongoDB{
 			session:  mongodb.NewMongoDB(k.Config.Mongo),
 			assignee: k.UniqueId,
+			log:      k.Log,
 		}
 
 		if err := mongodbSession.CleanupOldData(); err != nil {

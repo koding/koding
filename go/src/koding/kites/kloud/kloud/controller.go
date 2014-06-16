@@ -38,11 +38,24 @@ var states = map[string]*statePair{
 }
 
 func (k *Kloud) ControlFunc(method string, control controlFunc) {
-	handler := func(r *kite.Request) (interface{}, error) {
+	handler := func(r *kite.Request) (response interface{}, err error) {
+		defer func() {
+			if err != nil {
+				k.Log.Warning("[controller] %s error: %s", r.Method, err.Error())
+			}
+		}()
+
+		// calls with zero arguments causes args to be nil. Check it that we
+		// don't get a beloved panic
+		if r.Args == nil {
+			return nil, NewError(ErrNoArguments)
+		}
+
 		k.Log.Info("[controller] got a request for method: '%s' with args: %v",
 			method, string(r.Args.Raw))
 
-		// this locks are important to prevent consecutive calls from the same user
+		// this locks are important to prevent consecutive calls from the same
+		// user
 		k.idlock.Get(r.Username).Lock()
 		c, err := k.controller(r)
 		if err != nil {
@@ -55,6 +68,7 @@ func (k *Kloud) ControlFunc(method string, control controlFunc) {
 		k.idlock.Get(c.MachineId).Lock()
 		defer k.idlock.Get(c.MachineId).Unlock()
 
+		// call no our kite handler with the the controller context
 		return control(r, c)
 	}
 
@@ -64,7 +78,7 @@ func (k *Kloud) ControlFunc(method string, control controlFunc) {
 // controller returns the Controller struct with all necessary entities
 // responsible for the given machine Id. It also calls provider.Prepare before
 // returning.
-func (k *Kloud) controller(r *kite.Request) (*Controller, error) {
+func (k *Kloud) controller(r *kite.Request) (contr *Controller, err error) {
 	args := &Controller{}
 	if err := r.Args.One().Unmarshal(args); err != nil {
 		return nil, err
@@ -74,6 +88,8 @@ func (k *Kloud) controller(r *kite.Request) (*Controller, error) {
 		return nil, NewError(ErrMachineIdMissing)
 	}
 
+	// Geth all the data we need. It also sets the assignee for the given
+	// machine id.
 	m, err := k.Storage.Get(args.MachineId, &GetOption{
 		IncludeMachine:    true,
 		IncludeCredential: true,
@@ -82,16 +98,27 @@ func (k *Kloud) controller(r *kite.Request) (*Controller, error) {
 		return nil, err
 	}
 
-	k.Log.Debug("[controller] got machine data with machineID (%s) : %#v", args.MachineId, m.Machine)
+	// if something goes wrong reset the assigne which was set in previous step
+	// by Storage.Get()
+	defer func() {
+		if err != nil {
+			k.Storage.ResetAssignee(args.MachineId)
+		}
+	}()
+
+	k.Log.Debug("[controller] got machine data with machineID (%s) : %#v",
+		args.MachineId, m.Machine)
 
 	// prevent request if the machine is terminated. However we want the user
-	// to be able to build again
-	if (m.Machine.State() == machinestate.Terminating ||
-		m.Machine.State() == machinestate.Terminated) &&
-		r.Method != "build" {
+	// to be able to build again or get information, therefore build and info
+	// should be able to continue, however methods like start/stop/etc.. are
+	// forbidden.
+	if m.Machine.State().In(machinestate.Terminating, machinestate.Terminated) &&
+		!methodHas(r.Method, "build", "info") {
 		return nil, NewError(ErrMachineTerminating)
 	}
 
+	// now get the machine provider interface, it can DO, AWS, GCE, and so on..
 	provider, err := k.GetProvider(m.Provider)
 	if err != nil {
 		return nil, err
@@ -104,66 +131,52 @@ func (k *Kloud) controller(r *kite.Request) (*Controller, error) {
 		Provider:     provider,
 		MachineData:  m,
 		CurrenState:  m.Machine.State(),
-		Eventer:      k.NewEventer(r.Method + "-" + args.MachineId),
 	}, nil
 }
 
-// coreMethods is running and returning the event id for the methods start,
-// stop, restart and destroy. This method is used to avoid duplication in other
-// methods.
-func (k *Kloud) coreMethods(r *kite.Request, c *Controller, fn func(*protocol.MachineOptions) error) (interface{}, error) {
-	// all core methods works only for machines that are initialized
+// methodHas checks if the method exist for the given methods
+func methodHas(method string, methods ...string) bool {
+	for _, m := range methods {
+		if method == m {
+			return true
+		}
+	}
+	return false
+}
+
+func (k *Kloud) info(r *kite.Request, c *Controller) (interface{}, error) {
+	defer k.Storage.ResetAssignee(c.MachineId)
+
 	if c.CurrenState == machinestate.NotInitialized {
 		return nil, NewError(ErrNotInitialized)
 	}
 
-	// get our state pair
-	s, ok := states[r.Method]
-	if !ok {
-		return nil, fmt.Errorf("no state pair available for %s", r.Method)
-	}
-	k.Storage.UpdateState(c.MachineId, s.initial)
-
 	machOptions := &protocol.MachineOptions{
 		MachineId:  c.MachineId,
 		Username:   r.Username,
-		Eventer:    c.Eventer,
+		Eventer:    &eventer.Events{}, // add fake eventer to avoid errors on NewClient at provider
 		Credential: c.MachineData.Credential.Meta,
 		Builder:    c.MachineData.Machine.Meta,
 	}
 
-	go func() {
-		k.idlock.Get(c.MachineId).Lock()
-		defer k.idlock.Get(c.MachineId).Unlock()
+	info, err := c.Provider.Info(machOptions)
+	if err != nil {
+		return nil, err
+	}
 
-		status := s.final
-		msg := fmt.Sprintf("%s is finished successfully.", r.Method)
+	response := &protocol.InfoResponse{
+		State: info.State,
+		Name:  info.Name,
+	}
 
-		k.Log.Info("[controller]: running method %s with mach options %v", r.Method, machOptions)
-		err := fn(machOptions)
-		if err != nil {
-			k.Log.Error("[controller] %s failed: %s. Machine state is Unknown now.",
-				r.Method, err.Error())
+	if info.State == machinestate.Unknown {
+		response.State = c.CurrenState
+	}
 
-			status = s.initial
-			msg = err.Error()
-		} else {
-			k.Log.Info("[%s] is successfull. State is now: %+v", r.Method, status)
-		}
+	k.Storage.UpdateState(c.MachineId, response.State)
 
-		k.Storage.UpdateState(c.MachineId, status)
-		k.Storage.ResetAssignee(c.MachineId)
-		c.Eventer.Push(&eventer.Event{
-			Message:    msg,
-			Status:     status,
-			Percentage: 100,
-		})
-	}()
-
-	return ControlResult{
-		EventId: c.Eventer.Id(),
-		State:   s.initial,
-	}, nil
+	k.Log.Info("[info] returning response %+v", response)
+	return response, nil
 }
 
 func (k *Kloud) start(r *kite.Request, c *Controller) (interface{}, error) {
@@ -198,12 +211,37 @@ func (k *Kloud) restart(r *kite.Request, c *Controller) (interface{}, error) {
 	return k.coreMethods(r, c, fn)
 }
 
-func (k *Kloud) info(r *kite.Request, c *Controller) (interface{}, error) {
-	defer k.Storage.ResetAssignee(c.MachineId)
+// coreMethods is running and returning the event id for the methods start,
+// stop, restart and destroy. This method is used to avoid duplicate codes in
+// start, stop, restart and destroy methods (because we do the same steps for
+// each of them)
+func (k *Kloud) coreMethods(
+	r *kite.Request,
+	c *Controller,
+	fn func(*protocol.MachineOptions) error,
+) (result interface{}, err error) {
+	// if something goes wrong reset the assigne which was set in in
+	// ControlFunc's Storage.Get method
+	defer func() {
+		if err != nil {
+			k.Storage.ResetAssignee(c.MachineId)
+		}
+	}()
 
+	// all core methods works only for machines that are initialized
 	if c.CurrenState == machinestate.NotInitialized {
 		return nil, NewError(ErrNotInitialized)
 	}
+
+	// get our state pair. A state pair defines the inital state and the final
+	// state. For example, for "restart" method the initial state is
+	// "rebooting" and the final "running.
+	s, ok := states[r.Method]
+	if !ok {
+		return nil, fmt.Errorf("no state pair available for %s", r.Method)
+	}
+	k.Storage.UpdateState(c.MachineId, s.initial)
+	c.Eventer = k.NewEventer(r.Method + "-" + c.MachineId)
 
 	machOptions := &protocol.MachineOptions{
 		MachineId:  c.MachineId,
@@ -213,18 +251,39 @@ func (k *Kloud) info(r *kite.Request, c *Controller) (interface{}, error) {
 		Builder:    c.MachineData.Machine.Meta,
 	}
 
-	info, err := c.Provider.Info(machOptions)
-	if err != nil {
-		return nil, err
-	}
+	// Start our core method in a goroutine to not block it for the client
+	// side. However we do return an event id which is an unique for tracking
+	// the current status of the running method.
+	go func() {
+		k.idlock.Get(c.MachineId).Lock()
+		defer k.idlock.Get(c.MachineId).Unlock()
 
-	response := &protocol.InfoResponse{State: info.State}
-	if info.State == machinestate.Unknown {
-		response.State = c.CurrenState
-	}
+		status := s.final
+		msg := fmt.Sprintf("%s is finished successfully.", r.Method)
 
-	k.Storage.UpdateState(c.MachineId, response.State)
+		k.Log.Info("[controller]: running method %s with mach options %v", r.Method, machOptions)
+		err := fn(machOptions)
+		if err != nil {
+			k.Log.Error("[controller] %s failed: %s. Machine state is Unknown now.",
+				r.Method, err.Error())
 
-	k.Log.Info("[info] returning response %+v", response)
-	return response, nil
+			status = s.initial
+			msg = err.Error()
+		} else {
+			k.Log.Info("[%s] is successfull. State is now: %+v", r.Method, status)
+		}
+
+		k.Storage.UpdateState(c.MachineId, status)
+		k.Storage.ResetAssignee(c.MachineId)
+		c.Eventer.Push(&eventer.Event{
+			Message:    msg,
+			Status:     status,
+			Percentage: 100,
+		})
+	}()
+
+	return ControlResult{
+		EventId: c.Eventer.Id(),
+		State:   s.initial,
+	}, nil
 }

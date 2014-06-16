@@ -257,6 +257,7 @@ func (c *Client) Info() (*protocol.InfoResponse, error) {
 
 	return &protocol.InfoResponse{
 		State: statusToState(droplet.Status),
+		Name:  droplet.Name,
 	}, nil
 }
 
@@ -265,9 +266,10 @@ func (c *Client) Info() (*protocol.InfoResponse, error) {
 // reached, if another generic error is produced or if the event status is of
 // type "ERROR".
 func (c *Client) WaitUntilReady(eventId, from, to int, state machinestate.State) error {
+	timeout := time.After(time.Minute)
 	for {
 		select {
-		case <-time.After(time.Minute):
+		case <-timeout:
 			return errors.New("Timeout while waiting for droplet to become ready")
 		case <-time.Tick(3 * time.Second):
 			c.Push("Waiting for droplet to be ready", from, state)
