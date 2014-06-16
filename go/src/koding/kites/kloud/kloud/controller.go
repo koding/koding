@@ -264,8 +264,8 @@ func (k *Kloud) coreMethods(
 		k.Log.Info("[controller]: running method %s with mach options %v", r.Method, machOptions)
 		err := fn(machOptions)
 		if err != nil {
-			k.Log.Error("[controller] %s failed: %s. Machine state is Unknown now.",
-				r.Method, err.Error())
+			k.Log.Error("[controller] %s failed: %s. Machine state is %s now.",
+				r.Method, err.Error(), s.initial)
 
 			status = s.initial
 			msg = err.Error()
