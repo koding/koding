@@ -20,7 +20,10 @@ func main() {
 		"build":   command.NewBuild(),
 		"event":   command.NewEvent(),
 		"info":    command.NewInfo(),
+		"start":   command.NewStart(),
+		"stop":    command.NewStop(),
 		"destroy": command.NewDestroy(),
+		"restart": command.NewRestart(),
 	}
 
 	_, err := c.Run()

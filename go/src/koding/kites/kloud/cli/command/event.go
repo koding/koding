@@ -45,11 +45,11 @@ func (e *Event) Action(args []string, k *kite.Client) error {
 		eventType = splitted[1]
 	} else {
 		if *e.id == "" {
-			return errors.New("id flag is empty")
+			return errors.New("'-id' flag is empty")
 		}
 
 		if *e.eventType == "" {
-			return errors.New("type flag is empty")
+			return errors.New("'-type' flag is empty")
 		}
 
 		id = *e.id

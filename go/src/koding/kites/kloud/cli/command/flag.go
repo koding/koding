@@ -15,7 +15,7 @@ type Flag struct {
 }
 
 func NewFlag(name, synopsis string) *Flag {
-	flagSet := flag.NewFlagSet(name, flag.ExitOnError)
+	flagSet := flag.NewFlagSet(name, flag.PanicOnError)
 	flagSet.SetOutput(ioutil.Discard)
 
 	f := &Flag{
