@@ -195,7 +195,7 @@ class StartTabAppThumbView extends KDCustomHTMLView
 
   appDeleteCall:(manifest)->
     appPath   = @appsController.getAppPath manifest.path, yes
-    appFolder = FSHelper.createFileFromPath appPath, 'folder'
+    appFolder = FSHelper.createFileInstance path: appPath, type: 'folder'
     appFolder.remove (err, res) =>
 
       KD.showError err,
