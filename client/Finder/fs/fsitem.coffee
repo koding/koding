@@ -1,16 +1,36 @@
+
+# Base class for file instances
+# Requires to work with Klient Kite
+# and a provided Machine instance
+#
 class FSItem extends KDObject
 
-  ###
-  CLASS CONTEXT
-  ###
-
+  # Commonly used helpers
   { escapeFilePath, handleStdErr } = FSHelper
 
-  @create:({ path, type, vmName, treeController }, callback)->
+  # Assign every option to instance
+  constructor:(options, data)->
+    @[key] = value for own key, value of options
+    super
 
-    kite = FSItem.getKite {vmName}
+  # Only static method of FSItem
+  # Requires a valid machine object and a path to create
+  # file on the server, type folder is also supported
+  #
+  # If requested path already exists, it generates new paths
+  # eg, if /tmp/foo then /tmp/foo_1 will be created, and so on.
+  @create = ({ path, type, machine }, callback = noop)->
 
-    kite.vmOn().then ->
+    unless path or machine
+      warn message = "pass a path and machine to create a file"
+      return callback { message }
+
+    type ?= "file"
+    kite  = machine.getBaseKite()
+
+    kite.vmOn()
+
+    .then ->
 
       plainPath = FSHelper.plainPath path
 
