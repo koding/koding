@@ -17,6 +17,8 @@ class ComputeController extends KDController
 
       @on "machineBuildCompleted", => delete @stacks
 
+      @fetchStacks => @emit 'ready'
+
 
   fetchStacks: (callback = noop)->
 
@@ -27,12 +29,14 @@ class ComputeController extends KDController
 
     KD.remote.api.JStack.some {}, (err, stacks = [])=>
       return callback err  if err?
-      callback null, @stacks = stacks
+
+      @stacks = stacks     if stacks.length > 0
+      callback null, @stacks
 
 
-  fetchMachines: (callback)->
+  fetchMachines: (callback = noop)->
 
-    @fetchStacks (err, stacks)->
+    @fetchStacks (err, stacks)=>
       return callback err  if err?
 
       machines = []
