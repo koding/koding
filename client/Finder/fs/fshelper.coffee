@@ -43,11 +43,6 @@ class FSHelper
     return { size, user, group, createdAt, mode, type, \
              parentPath, path, name, vmName:vmName, treeController, osKite }
 
-  @handleStdErr = ->
-    (result) ->
-      { stdout, stderr, exitStatus } = result
-      throw new Error "std error: #{ stderr }"  if exitStatus > 0
-      return result
 
   @parseWatcher = ({ vmName, parentPath, files, treeController, osKite })->
     data = []
@@ -97,6 +92,12 @@ class FSHelper
 
   @plainPath:(path)-> path.replace /^\[.*\]/, ''
   @getVMNameFromPath:(path)-> (/^\[([^\]]+)\]/g.exec path)?[1]
+
+  @handleStdErr = ->
+    (result) ->
+      { stdout, stderr, exitStatus } = result
+      throw new Error "std error: #{ stderr }"  if exitStatus > 0
+      return result
 
   @minimizePath: (path)-> @plainPath(path).replace ///^\/home\/#{KD.nick()}///, '~'
 
@@ -148,11 +149,11 @@ class FSHelper
   @setFileListeners = (file)->
     file.on "fs.job.finished", =>
 
-  @getFileNameFromPath = getFileName = (path)->
+  @getFileNameFromPath = (path)->
     return path.split('/').pop()
 
   @trimExtension = (path)->
-    name = getFileName path
+    name = FSHelper.getFileName path
     return name.split('.').shift()
 
   @getParentPath = (path)->
@@ -173,23 +174,25 @@ class FSHelper
       vmName
     }, callback
 
-  @isValidFileName = (name) ->
-    return /^([a-zA-Z]:\\)?[^\x00-\x1F"<>\|:\*\?/]+$/.test name
-
-  @isEscapedPath = (path) ->
-    return /^\s\"/.test path
-
   @escapeFilePath = (name) ->
     return FSHelper.plainPath name.replace(/\'/g, '\\\'').replace(/\"/g, '\\"').replace(/\ /g, '\\ ')
 
   @unescapeFilePath = (name) ->
     return name.replace(/^(\s\")/g,'').replace(/(\"\s)$/g, '').replace(/\\\'/g,"'").replace(/\\"/g,'"')
 
+  @convertToRelative = (path)->
+    path.replace(/^\//, "").replace /(.+?)\/?$/, "$1/"
+
+  @isValidFileName = (name) ->
+    return /^([a-zA-Z]:\\)?[^\x00-\x1F"<>\|:\*\?/]+$/.test name
+
+  @isEscapedPath = (path) ->
+    return /^\s\"/.test path
+
   @isPublicPath = (path)->
     /^\/home\/.*\/Web\//.test FSHelper.plainPath path
 
-  @convertToRelative = (path)->
-    path.replace(/^\//, "").replace /(.+?)\/?$/, "$1/"
+  @isHidden = (name)-> /^\./.test name
 
   @isUnwanted = (path, isFile=no)->
 
@@ -235,6 +238,10 @@ class FSHelper
     queue.push "[#{vmName}]/"
     return queue
 
+  @getFullPath = (file)->
+    plainPath = @plainPath file.path
+    return "[#{file.machine.uid}]#{plainPath}"
+
   # FS Chunk helpers
   #
 
@@ -266,9 +273,6 @@ class FSHelper
         data = data.substr chunkSize
     return chunks
 
-  @getFullPath = (file)->
-    plainPath = @plainPath file.path
-    return "[#{file.vmName}]#{plainPath}"
   # Extension helpers
   #
 
