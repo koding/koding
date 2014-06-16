@@ -78,11 +78,6 @@ class NFinderController extends KDViewController
       else
         @utils.defer => @loadVms()
 
-  mountVms: (vms) ->
-    return  unless Array.isArray vms
-    @cleanup()
-    @mountVm vm  for vm in vms
-
   parseSavedVms = (vms) ->
     vms.reduce (memo, str) ->
       [vmName, path] = str.split ':'
@@ -178,6 +173,12 @@ class NFinderController extends KDViewController
     FSHelper.unregisterVmFiles vmName
     @treeController.removeNodeView vmItem
     @vms = @vms.filter (vmData)-> vmData isnt vmItem.data
+  mountMachines: (machines) ->
+
+    do @cleanup
+    for machine in machines
+      @mountMachine machine
+
 
     if @machines.length is 0
       @noMachineFoundWidget.show()
