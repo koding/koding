@@ -4,8 +4,6 @@ import (
 	"fmt"
 	"koding/db/mongodb"
 	"koding/kites/kloud/kloud/machinestate"
-	"koding/kites/kloud/kloud/protocol"
-	"strconv"
 	"time"
 
 	"github.com/koding/logging"
@@ -14,12 +12,17 @@ import (
 	"labix.org/v2/mgo/bson"
 )
 
+type StorageData struct {
+	Type string
+	Data map[string]interface{}
+}
+
 type Storage interface {
 	// Get returns to MachineData
 	Get(string, *GetOption) (*MachineData, error)
 
 	// Update updates the fields in the data for the given id
-	Update(string, *protocol.BuildResponse) error
+	Update(string, *StorageData) error
 
 	// UpdateState updates the machine state for the given machine id
 	UpdateState(string, machinestate.State) error
@@ -149,23 +152,22 @@ func (m *MongoDB) Get(id string, opt *GetOption) (*MachineData, error) {
 	}, nil
 }
 
-func (m *MongoDB) Update(id string, resp *protocol.BuildResponse) error {
-	err := m.session.Run("jMachines", func(c *mgo.Collection) error {
-		return c.UpdateId(
-			bson.ObjectIdHex(id),
-			bson.M{"$set": bson.M{
-				"queryString":       resp.QueryString,
-				"ipAddress":         resp.IpAddress,
-				"meta.instanceId":   strconv.Itoa(resp.InstanceId),
-				"meta.instanceName": resp.InstanceName,
-			}},
-		)
-	})
-	if err != nil {
-		return err
+func (m *MongoDB) Update(id string, s *StorageData) error {
+	if s.Type == "build" {
+		return m.session.Run("jMachines", func(c *mgo.Collection) error {
+			return c.UpdateId(
+				bson.ObjectIdHex(id),
+				bson.M{"$set": bson.M{
+					"queryString":       s.Data["queryString"],
+					"ipAddress":         s.Data["ipAddress"],
+					"meta.instanceId":   s.Data["instanceId"],
+					"meta.instanceName": s.Data["instanceName"],
+				}},
+			)
+		})
 	}
 
-	return nil
+	return fmt.Errorf("Storage type unknown: '%s'", s.Type)
 }
 
 func (m *MongoDB) UpdateState(id string, state machinestate.State) error {

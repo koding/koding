@@ -98,11 +98,21 @@ func (k *Kloud) buildMachine(username string, c *Controller) error {
 	c.Eventer.Push(&eventer.Event{Message: msg, Status: machinestate.Building})
 
 	k.Log.Debug("[controller]: running method 'build' with machine options %v", machOptions)
-	buildResponse, err := c.Provider.Build(machOptions)
+	resp, err := c.Provider.Build(machOptions)
 	if err != nil {
 		return err
 	}
-	k.Log.Debug("[controller]: method 'build' is successfull %#v", buildResponse)
+	k.Log.Debug("[controller]: method 'build' is successfull %#v", resp)
 
-	return k.Storage.Update(c.MachineId, buildResponse)
+	storageData := &StorageData{
+		Type: "build",
+		Data: map[string]interface{}{
+			"queryString":  resp.QueryString,
+			"ipAddress":    resp.IpAddress,
+			"instanceId":   strconv.Itoa(resp.InstanceId),
+			"instanceName": resp.InstanceName,
+		},
+	}
+
+	return k.Storage.Update(c.MachineId, storageData)
 }
