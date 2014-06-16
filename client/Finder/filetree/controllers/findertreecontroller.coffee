@@ -255,20 +255,21 @@ class NFinderTreeController extends JTreeViewController
       @beingEdited = null
 
   createFile:(nodeView, type = "file")->
+
     @notify "creating a new #{type}!"
     nodeData = nodeView.getData()
 
-    { vmName } = nodeData
+    { machine } = nodeData
 
     if nodeData.type is "file"
-      {parentPath} = nodeData
+      { parentPath } = nodeData
     else
       parentPath = nodeData.path
 
     path = FSHelper.plainPath \
       "#{parentPath}/New#{type.capitalize()}#{if type is 'file' then '.txt' else ''}"
 
-    FSItem.create { path, type, vmName, treeController: this }, (err, file)=>
+    machine.fs.create { path, type, treeController: this }, (err, file)=>
       if err
         @notify null, null, err
       else
