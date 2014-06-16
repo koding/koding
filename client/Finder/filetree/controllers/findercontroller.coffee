@@ -286,13 +286,13 @@ class NFinderController extends KDViewController
       then callback null, @treeController.nodes[path]
       else @expandFolders paths, callback
 
-  reloadPreviousState:(vmName)->
+  reloadPreviousState:(uid)->
     recentFolders = @getRecentFolders()
-    if vmName
+    if uid
       recentFolders = recentFolders.filter (folder)->
-        folder.indexOf "[#{vmName}]" is 0
+        folder.indexOf "[#{uid}]" is 0
       if recentFolders.length is 0
-        recentFolders = ["[#{vmName}]/home/#{KD.nick()}"]
+        recentFolders = ["[#{uid}]/"]
     @expandFolders recentFolders
 
   uploadTo: (path)->
