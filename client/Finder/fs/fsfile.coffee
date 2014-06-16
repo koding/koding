@@ -69,10 +69,10 @@ class FSFile extends FSItem
       ok = kite.fsUniquePath(path: "#{newPath}")
       .then (actualPath) =>
 
-        file = FSHelper.createFile {
+        file = FSHelper.createFileInstance {
           type   : 'file'
           path   : actualPath
-          @vmName
+          @machine
         }
 
         ok = file.save contents

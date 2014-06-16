@@ -23,7 +23,7 @@ class LocalSyncController extends KDController
     {dash} = Bongo
     queue  = @filesToSave.map (key)=>
       =>
-        fsfile = FSHelper.createFileFromPath key
+        fsfile = FSHelper.createFileInstance path: key
         @patchFileIfDiffExist fsfile, @storage.getValue("OE-#{key}"), (res)->
           queue.fin()
     dash queue, callback

@@ -34,7 +34,7 @@ class StartTabRecentFileItemView extends JView
   click:(event)->
 
     path   = @getData()
-    file   = FSHelper.createFileFromPath path
+    file   = FSHelper.createFileInstance { path }
 
     @loader.show()
     file.fetchContents (err, contents)=>

@@ -168,7 +168,7 @@ class KodingAppsController extends KDController
     # Which means this is an invm-app
     if vmName
 
-      file = FSHelper.createFileFromPath url
+      file = FSHelper.createFileInstance path: url
       file.fetchContents (err, partial)=>
         return  if err
 
@@ -370,7 +370,7 @@ class KodingAppsController extends KDController
         appPath : appPath
 
     .then ->
-      indexFile = FSHelper.createFileFromPath "#{appPath}/index.coffee"
+      indexFile = FSHelper.createFileInstance path:  "#{appPath}/index.coffee"
       indexFile.fetchContents().then (content) ->
         content = content.replace(/\%\%APPNAME\%\%/g, APPNAME)
                          .replace(/\%\%appname\%\%/g, appname)
@@ -378,13 +378,13 @@ class KodingAppsController extends KDController
         indexFile.save content
 
     .then ->
-      styleFile = FSHelper.createFileFromPath "#{appPath}/resources/style.css"
+      styleFile = FSHelper.createFileInstance path:  "#{appPath}/resources/style.css"
       styleFile.fetchContents().then (content) ->
         content = content.replace(/\%\%appname\%\%/g, appname)
         styleFile.save content
 
     .then ->
-      readmeFile = FSHelper.createFileFromPath "#{appPath}/README.md"
+      readmeFile = FSHelper.createFileInstance path:  "#{appPath}/README.md"
       readmeFile.fetchContents().then (content) ->
         author  = Encoder.htmlDecode(KD.utils.getFullnameFromAccount())
         content = content
@@ -393,11 +393,11 @@ class KodingAppsController extends KDController
         readmeFile.save content
 
     .then ->
-      FSHelper.createFileFromPath("#{appPath}/manifest.json")
+      FSHelper.createFileInstance path: ("#{appPath}/manifest.json")
               .save manifestStr
 
     .then ->
-      FSHelper.createFileFromPath("#{appPath}/ChangeLog")
+      FSHelper.createFileInstance path: ("#{appPath}/ChangeLog")
               .save changeLogStr
 
     .then ->
@@ -556,7 +556,7 @@ class KodingAppsController extends KDController
 
   @fetchManifest = (path, callback = noop)->
 
-    manifest = FSHelper.createFileFromPath path
+    manifest = FSHelper.createFileInstance path:  path
     manifest.fetchContents (err, response)=>
 
       return warn err  if err

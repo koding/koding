@@ -1,6 +1,37 @@
 class FSHelper
 
   parseWatcherFile = ({ vmName, parentPath, file, user, treeController, osKite })->
+  @createFileInstance = (options)->
+
+    if typeof options is 'string'
+      options = path: options
+    else if not options?.path?
+      return warn "pass a path and type to create a file instance"
+
+    unless options.machine?
+      warn "No machine instance passed, creating dummy file instance"
+      options.machine = new DummyMachine
+
+    options.type       ?= "file"
+    options.name       ?= @getFileNameFromPath options.path
+    options.parentPath ?= @getParentPath       options.path
+
+    if @registry[options.path]
+      instance = @registry[options.path]
+      @updateInstance options
+    else
+      constructor = switch options.type
+        when "mount"      then FSMount
+        when "folder"     then FSFolder
+        when "symLink"    then FSFolder
+        when "machine"    then FSMachine
+        when "brokenLink" then FSBrokenLink
+        else FSFile
+
+      instance = new constructor options
+      @register instance
+
+    return instance
 
     {name, size, mode} = file
     type      = if file.isBroken then 'brokenLink' else \
@@ -129,38 +160,6 @@ class FSHelper
     parentPath = path.split('/')
     parentPath.pop()
     return parentPath.join('/')
-
-  @createFileFromPath = (path, type = "file", dummy = no) ->
-    return warn "pass a path to create a file instance" unless path
-    vmName     = @getVMNameFromPath(path) or null
-    path       = @plainPath path  if vmName
-    parentPath = @getParentPath path
-    name       = @getFileNameFromPath path
-    return @createFile { path, parentPath, name, type, vmName, dummy }
-
-  @createFile = (options)->
-    unless options and options.type and options.path
-      return warn "pass a path and type to create a file instance"
-
-    unless options.vmName?
-      options.vmName = KD.getSingleton('vmController').defaultVmName
-
-    if @registry[options.path]
-      instance = @registry[options.path]
-      @updateInstance options
-    else
-      constructor = switch options.type
-        when "vm"         then FSVm
-        when "folder"     then FSFolder
-        when "mount"      then FSMount
-        when "symLink"    then FSFolder
-        when "brokenLink" then FSBrokenLink
-        else FSFile
-
-      instance = new constructor options
-      @register instance
-
-    return instance
 
   @createRecursiveFolder = ({ path, vmName }, callback = noop) ->
     return warn "Pass a path to create folders recursively"  unless path

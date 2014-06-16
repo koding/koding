@@ -92,7 +92,7 @@ class PlaygroundTeamwork extends TeamworkWorkspace
 
     files.forEach (path) =>
       filePath = "/home/#{KD.nick()}/Web/Teamwork/#{@getOptions().playground}/#{path.replace /^.\//, ''}"
-      file     = FSHelper.createFileFromPath filePath
+      file     = FSHelper.createFileInstance path: filePath
 
       file.fetchContents (err, contents) =>
         tabView.createEditor file, contents

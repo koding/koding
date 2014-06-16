@@ -59,7 +59,7 @@ class TeamworkImporter extends KDObject
       FSHelper.glob "#{@tempPath}/*", @vmName, (err, folders) =>
         return @handleError err  if err
         @folderName = FSHelper.getFileNameFromPath folders.first
-        folder      = FSHelper.createFileFromPath "#{rootPath}/#{@folderName}", "folder"
+        folder      = FSHelper.createFileInstance path: "#{rootPath}/#{@folderName}", type: "folder"
         folder.exists (err, isExists) =>
           return @handleError err  if err
           if isExists
@@ -119,8 +119,8 @@ class TeamworkImporter extends KDObject
     folderPath = "#{rootPath}/#{@folderName}"
     mdPath     = "#{folderPath}/README.md"
     shPath     = "#{folderPath}/install.sh"
-    mdFile     = FSHelper.createFileFromPath mdPath
-    shFile     = FSHelper.createFileFromPath shPath
+    mdFile     = FSHelper.createFileInstance path:  mdPath
+    shFile     = FSHelper.createFileInstance path:  shPath
     delegate   = @getDelegate()
     delegate.setVMRoot folderPath
 
@@ -173,7 +173,7 @@ class TeamworkImporter extends KDObject
   cloneRepo: ->
     {rootPath}    = @getOptions()
     [@folderName] = FSHelper.getFileNameFromPath(@url).split ".git"
-    repoFolder    = FSHelper.createFileFromPath "#{rootPath}/#{@folderName}", "folder"
+    repoFolder    = FSHelper.createFileInstance path:  "#{rootPath}/#{@folderName}", "folder"
     repoFolder.exists (err, isExists) =>
       return @handleError err  if err
       if isExists

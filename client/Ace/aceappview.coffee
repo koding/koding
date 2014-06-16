@@ -146,7 +146,7 @@ class AceAppView extends JView
       @addNewTab() if @tabView.panes.length is 0
 
   addNewTab: (file) ->
-    file = file or FSHelper.createFileFromPath 'localfile:/Untitled.txt'
+    file = file or FSHelper.createFileInstance path: 'localfile:/Untitled.txt'
     aceView = new AceView delegate: this, file
     path = FSHelper.getFullPath file
     @aceViews[path] = aceView
