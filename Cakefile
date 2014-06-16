@@ -4,28 +4,58 @@ option '-C', '--buildClient', 'override buildClient flag with yes'
 option '-c', '--configFile [CONFIG]', 'What config file to use.'
 option '-v', '--version [VERSION]', 'Switch to a specific version'
 option '-a', '--domain [DOMAIN]', 'Pass a domain to the task (right now only broker supports it)'
-
 option '-f', '--file [file]', 'run tests with just one file'
 option '-l', '--location [location]', 'run tests with this base url'
-
 option '-t', '--tests', 'require test suite'
 option '-s', '--dontBuildSprites', 'dont build sprites'
-
 option '-y', '--yes', 'pass yes to corresponding command'
 option '-g', '--evengo', 'pass evengo to corresponding command'
 option '-r', '--region [REGION]', 'region flag'
 
+
 require('coffee-script').register()
 
 
-{spawn, exec} = require 'child_process'
 
-log =
-  info  : console.log
-  error : console.log
-  debug : console.log
-  warn  : console.log
+task 'guestCleanerWorker', "Run the guest cleanup worker", (options)-> guestCleanerWorker options
+task 'emailConfirmationCheckerWorker', "Run the email confirmtion worker", (options)-> emailConfirmationCheckerWorker options
+task 'sitemapGeneratorWorker', "Generate the sitemap worker", (options)-> sitemapGeneratorWorker options
+task 'socialWorker', "Run the socialWorker", (options) -> socialWorker options
+task 'kloudKite',"run kloud kite", (options) -> kloudKite options
+task 'compileGo', "Compile the local go binaries", (options)-> compileGoBinaries options
+task 'webserver', "Run the webserver", (options) -> webserver options
+task 'logWorker', "Run the logWorker", (options) -> logWorker options
+task 'authWorker', "Run the authWorker", (options) -> authWorker options
+task 'goBroker', "Run the goBroker", (options)-> goBroker options
+task 'emailWorker', "Run the email worker", (options)-> emailWorker options
+task 'emailSender', "Run the emailSender", (options)-> emailSender options
+task 'premiumBroker', "Run the premium broker", (options)-> premiumBroker options
+task 'goBrokerKite', "Run the goBrokerKite", (options)-> goBrokerKite options
+task 'premiumBrokerKite', "Run the premium broker kite", (options)-> premiumBrokerKite options
+task 'rerouting', "Run rerouting", (options)-> rerouting options
+task 'userpresence', "Run userpresence", (options)-> userpresence options
+task 'elasticsearchfeeder', "Run the Elastic Search Feeder", (options)-> elasticsearchfeeder options
+task 'kontrolClient', "Run the kontrolClient", (options) -> kontrolClient options
+task 'kontrolProxy', "Run the kontrolProxy", (options) -> kontrolProxy options
+task 'kontrolDaemon', "Run the kontrolDaemon", (options) -> kontrolDaemon options
+task 'kontrolApi', "Run the kontrolApi", (options) -> kontrolApi options
+task 'kontrolKite', "Run the kontrol kite", (options) -> kontrolKite options
+task 'proxyKite', "Run the proxy kite", (options) -> proxyKite options
+task 'cronJobs', "Run CronJobs", (options)-> cronjobs options
+task 'migratePost', "Migrate Posts to JNewStatusUpdate", (options)-> migratePost options
+task 'checkConfig', "Check the local config files for errors", (options)-> checkConfig options
+task 'runGraphiteFeeder', "Collect analytics from database and feed to grahpite", (options)-> runGraphiteFeeder options
+task 'importDB', (options) -> importDB options
 
+# task  = (name, description, action) ->
+#   console.log "naber"
+#   [action, description] = [description, action] unless action
+#   tasks[name] = {name, description, action}
+
+
+{argv}             = require 'optimist'
+{spawn, exec}      = require 'child_process'
+log                = { info  : console.log, error : console.log, debug : console.log, warn  : console.log}
 processes          = new (require "processes") main : true
 {daisy}            = require 'sinkrow'
 fs                 = require "fs"
@@ -35,6 +65,9 @@ url                = require 'url'
 nodePath           = require 'path'
 portchecker        = require 'portchecker'
 Watcher            = require 'koding-watcher'
+KONFIG             = require('koding-config-manager').load("main.#{argv.c}")
+
+
 
 require 'colors'
 
@@ -46,73 +79,39 @@ addFlags = (options)->
   return flags
 
 compileGoBinaries = (options, callback = ->)->
+  unless KONFIG.compileGo then return callback null
 
-  ###
-  #   TBD - CHECK FOR ERRORS
-  ###
-
-  KONFIG = require('koding-config-manager').load("main.#{options.configFile}")
-
-  if KONFIG.compileGo
-
-    processes.spawn
-      name    : 'build go'
-      cmd     : './go/build.sh'
-      stdout  : process.stdout
-      stderr  : process.stderr
-      verbose : yes
-      onExit  :->
-        if options.configFile is 'vagrant'
-          processes.spawn
-            name    : 'build go in vagrant'
-            cmd     : "vagrant ssh default --command '/opt/koding/go/build.sh bin-vagrant'"
-            stdout  : process.stdout
-            stderr  : process.stderr
-            verbose : yes
-            onExit  : -> callback null
-        else
-          callback null
-  else
-    callback null
-
-
-task 'kloudKite',"run kloud kite", ({configFile}) ->
-
-  KONFIG = require('koding-config-manager').load("main.#{configFile}")
-
-  cmd = """go run #{KONFIG.projectRoot}/go/src/koding/kites/kloud/main.go -c #{configFile} -r #{configFile} -public-key #{KONFIG.projectRoot}/certs/test_kontrol_rsa_public.pem -private-key #{KONFIG.projectRoot}/certs/test_kontrol_rsa_private.pem -kontrol-url "ws://koding.io:4000"
-  """
   processes.spawn
-    name              : 'kloudKite'
-    cmd               : cmd
-    restart           : yes
-    restartTimeout    : 100
-    stdout            : process.stdout
-    stderr            : process.stderr
+    name    : 'build go'
+    cmd     : './go/build.sh'
+    restart : no
+    onExit  :->
+      unless options.configFile is 'vagrant' then return callback null
+      processes.spawn
+        name    : 'build go in vagrant'
+        cmd     : "vagrant ssh default --command '/opt/koding/go/build.sh bin-vagrant'"
+        onExit  : -> callback null
 
-task 'killGoProcesses', " Kill hanging go processes", (options) ->
-  command = "kill -9 `ps -ef | grep go/bin | grep -v grep | awk '{print $2}'`"
-  exec command
+kloudKite = (options, callback = ->)->
 
-task 'compileGo', "Compile the local go binaries", ({configFile})->
-  compileGoBinaries configFile
+  cmd = """go run #{KONFIG.projectRoot}/go/src/koding/kites/kloud/main.go -c #{options.configFile} -r #{options.configFile} -public-key #{KONFIG.projectRoot}/certs/test_kontrol_rsa_public.pem -private-key #{KONFIG.projectRoot}/certs/test_kontrol_rsa_private.pem -kontrol-url "ws://koding.io:4000"
+  """
+  processes.run 'kloudKite', cmd
 
-task 'webserver', "Run the webserver", ({configFile, tests, region}) ->
-
-  KONFIG = require('koding-config-manager').load("main.#{configFile}")
+webserver = (options, callback=->)->
+  {configFile, tests, region} = options
+  
   {webserver,sourceServer} = KONFIG
 
   runServer = (config, port, index) ->
     if region is "kodingme"
-      cmd = __dirname + "/server/index -c #{config} -p #{port}#{if tests then ' -t' else ''} --disable-newrelic"
+      cmd = __dirname + "/server/index -c #{configFile} -p #{port}#{if tests then ' -t' else ''} --disable-newrelic"
     else
-      cmd = __dirname + "/server/index -c #{config} -p #{port}#{if tests then ' -t' else ''}"
+      cmd = __dirname + "/server/index -c #{configFile} -p #{port}#{if tests then ' -t' else ''}"
 
     processes.fork
       name              : "server"
       cmd               : cmd
-      restart           : yes
-      restartTimeout    : 100
       kontrol           :
         enabled         : !!KONFIG.runKontrol
         startMode       : "many"
@@ -132,9 +131,7 @@ task 'webserver', "Run the webserver", ({configFile, tests, region}) ->
   if sourceServer?.enabled
     processes.fork
       name           : 'sourceserver'
-      cmd            : __dirname + "/server/lib/source-server -c #{configFile} -p #{sourceServer.port}"
-      restart        : yes
-      restartTimeout : 100
+      cmd            : __dirname + "/server/lib/source-server -c #{options.configFile} -p #{sourceServer.port}"
 
   if webserver.watch is yes
     watcher = new Watcher
@@ -144,28 +141,23 @@ task 'webserver', "Run the webserver", ({configFile, tests, region}) ->
           onChange  : ->
             processes.kill "server"
 
-task 'socialWorker', "Run the socialWorker", ({configFile,region}) ->
-  KONFIG = require('koding-config-manager').load("main.#{configFile}")
+socialWorker = (options, callback=->)->
+  {configFile,region} = options
+  
   {social} = KONFIG
-
-  console.log 'CAKEFILE STARTING SOCIAL WORKERS'
-
-
 
   for i in [1..social.numberOfWorkers]
     port = 3029 + i
     kitePort = port + 10000
 
     if region is "kodingme"
-      cmd = __dirname + "/workers/social/index -c #{configFile} -p #{port} --disable-newrelic"
+      cmd = __dirname + "/workers/social/index -c #{options.configFile} -p #{port} --disable-newrelic"
     else
-      cmd = __dirname + "/workers/social/index -c #{configFile} -p #{port}"
+      cmd = __dirname + "/workers/social/index -c #{options.configFile} -p #{port}"
 
     processes.fork
       name           : if social.numberOfWorkers is 1 then "social" else "social-#{i}"
       cmd            : cmd + " --kite-port=#{kitePort}"
-      restart        : yes
-      restartTimeout : 100
       kontrol        :
         enabled      : !!KONFIG.runKontrol
         startMode    : "many"
@@ -194,8 +186,9 @@ task 'socialWorker', "Run the socialWorker", ({configFile,region}) ->
               processes.kill "social-#{i}" for i in [1..social.numberOfWorkers]
     watcher.on 'change', -> console.log 'change happened', arguments
 
-task 'logWorker', "Run the logWorker", ({configFile}) ->
-  KONFIG = require('koding-config-manager').load("main.#{configFile}")
+logWorker = (options, callback)->
+  
+  
   {log} = KONFIG
 
   for i in [1..log.numberOfWorkers]
@@ -203,9 +196,7 @@ task 'logWorker', "Run the logWorker", ({configFile}) ->
 
     processes.fork
       name           : if log.numberOfWorkers is 1 then "log" else "log-#{i}"
-      cmd            : __dirname + "/workers/log/index -c #{configFile} -p #{port}"
-      restart        : yes
-      restartTimeout : 100
+      cmd            : __dirname + "/workers/log/index -c #{options.configFile} -p #{port}"
       kontrol        :
         enabled      : !!KONFIG.runKontrol
         startMode    : "many"
@@ -225,22 +216,20 @@ task 'logWorker', "Run the logWorker", ({configFile}) ->
               processes.kill "log-#{i}" for i in [1..log.numberOfWorkers]
 
     watcher.on 'change', -> console.log 'change happened', arguments
-
-task 'authWorker', "Run the authWorker", ({configFile}) ->
-  KONFIG = require('koding-config-manager').load("main.#{configFile}")
-  config = require('koding-config-manager').load("main.#{configFile}").authWorker
+  
+authWorker = (options, callback=->)->
+  
+  
+  config = KONFIG.authWorker
   numberOfWorkers = if config.numberOfWorkers then config.numberOfWorkers else 1
 
   for i in [1..numberOfWorkers]
     processes.fork
       name  		 : if numberOfWorkers is 1 then "auth" else "auth-#{i}"
-      cmd   		 : __dirname+"/workers/auth/index -c #{configFile}"
-      restart 		 : yes
-      restartTimeout : 1000
+      cmd   		 : __dirname+"/workers/auth/index -c #{options.configFile}"
       kontrol        :
         enabled      : !!KONFIG.runKontrol
         startMode    : "many"
-      verbose        : yes
 
   if config.watch is yes
     watcher = new Watcher
@@ -253,18 +242,14 @@ task 'authWorker', "Run the authWorker", ({configFile}) ->
             else
               processes.kill "auth-#{i}" for i in [1..numberOfWorkers]
 
-task 'guestCleanerWorker', "Run the guest cleanup worker", ({configFile})->
-  config = require('koding-config-manager').load("main.#{configFile}")
+guestCleanerWorker = (options, callback=->) ->
 
   processes.fork
     name           : 'guestCleanerWorker'
-    cmd            : "./workers/guestcleaner/index -c #{configFile}"
-    restart        : yes
-    restartTimeout : 1
+    cmd            : "./workers/guestcleaner/index -c #{options.configFile}"
     kontrol        :
-      enabled      : if config.runKontrol is yes then yes else no
+      enabled      : if KONFIG.runKontrol is yes then yes else no
       startMode    : "one"
-    verbose        : yes
 
   watcher = new Watcher
     groups        :
@@ -272,20 +257,15 @@ task 'guestCleanerWorker', "Run the guest cleanup worker", ({configFile})->
         folders   : ['./workers/guestcleaner']
         onChange  : (path) ->
           processes.kill "guestCleanerWorker"
-
-
-task 'emailConfirmationCheckerWorker', "Run the email confirmtion worker", ({configFile})->
-  config = require('koding-config-manager').load("main.#{configFile}")
+ 
+emailConfirmationCheckerWorker = (options, callback=->)->
 
   processes.fork
     name           : 'emailConfirmationCheckerWorker'
-    cmd            : "./workers/emailconfirmationchecker/index -c #{configFile}"
-    restart        : yes
-    restartTimeout : 1
+    cmd            : "./workers/emailconfirmationchecker/index -c #{options.configFile}"
     kontrol        :
-      enabled      : if config.runKontrol is yes then yes else no
+      enabled      : if KONFIG.runKontrol is yes then yes else no
       startMode    : "one"
-    verbose        : yes
 
   watcher = new Watcher
     groups        :
@@ -294,18 +274,14 @@ task 'emailConfirmationCheckerWorker', "Run the email confirmtion worker", ({con
         onChange  : (path) ->
           processes.kill "emailConfirmationCheckerWorker"
 
-task 'sitemapGeneratorWorker', "Generate the sitemap worker", ({configFile})->
-  config = require('koding-config-manager').load("main.#{configFile}")
-
+sitemapGeneratorWorker = (options, callback=->)->
+  
   processes.fork
     name           : 'sitemapGeneratorWorker'
-    cmd            : "./workers/sitemapgenerator/index -c #{configFile}"
-    restart        : yes
-    restartTimeout : 1
+    cmd            : "./workers/sitemapgenerator/index -c #{options.configFile}"
     kontrol        :
-      enabled      : if config.runKontrol is yes then yes else no
+      enabled      : if KONFIG.runKontrol is yes then yes else no
       startMode    : "one"
-    verbose        : yes
 
   watcher = new Watcher
     groups        :
@@ -313,19 +289,15 @@ task 'sitemapGeneratorWorker', "Generate the sitemap worker", ({configFile})->
         folders   : ['./workers/sitemapgenerator']
         onChange  : (path) ->
           processes.kill "sitemapGeneratorWorker"
-
-task 'emailWorker', "Run the email worker", ({configFile})->
-  config = require('koding-config-manager').load("main.#{configFile}")
-
+ 
+emailWorker = (options, callback=->)->
+  
   processes.fork
     name           : 'email'
-    cmd            : "./workers/emailnotifications/index -c #{configFile}"
-    restart        : yes
-    restartTimeout : 100
+    cmd            : "./workers/emailnotifications/index -c #{options.configFile}"
     kontrol        :
-      enabled      : if config.runKontrol is yes then yes else no
+      enabled      : if KONFIG.runKontrol is yes then yes else no
       startMode    : "one"
-    verbose        : yes
 
   watcher = new Watcher
     groups        :
@@ -333,19 +305,15 @@ task 'emailWorker', "Run the email worker", ({configFile})->
         folders   : ['./workers/emailnotifications']
         onChange  : (path) ->
           processes.kill "emailWorker"
-
-task 'emailSender', "Run the emailSender", ({configFile})->
-  config = require('koding-config-manager').load("main.#{configFile}")
-
+  
+emailSender = (options, callback=->)->
+  
   processes.fork
     name           : 'emailSender'
-    cmd            : "./workers/emailsender/index -c #{configFile}"
-    restart        : yes
-    restartTimeout : 100
+    cmd            : "./workers/emailsender/index -c #{options.configFile}"
     kontrol        :
-      enabled      : if config.runKontrol is yes then yes else no
+      enabled      : if KONFIG.runKontrol is yes then yes else no
       startMode    : "one"
-    verbose        : yes
 
   watcher = new Watcher
     groups        :
@@ -354,326 +322,155 @@ task 'emailSender', "Run the emailSender", ({configFile})->
         onChange  : (path) ->
           processes.kill "emailSender"
 
-task 'goBroker', "Run the goBroker", (options)->
-  {configFile} = options
-  config = require('koding-config-manager').load("main.#{configFile}")
-  {broker} = config
+goBroker = (options, callback=->)->
   uuid = hat()
-
   processes.spawn
     name              : 'broker'
-    cmd               : "./go/bin/broker -c #{configFile} -u #{uuid} #{addFlags options}"
-    restart           : yes
-    restartTimeout    : 100
-    stdout            : process.stdout
-    stderr            : process.stderr
+    cmd               : "./go/bin/broker -c #{options.configFile} -u #{uuid} #{addFlags options}"
     kontrol           :
-      enabled         : if config.runKontrol is yes then yes else no
+      enabled         : if KONFIG.runKontrol is yes then yes else no
       binary          : uuid
-      port            : broker.port
+      port            : KONFIG.broker.port
       hostname        : options.domain
-    verbose           : yes
 
-task 'premiumBroker', "Run the premium broker", (options)->
-  {configFile} = options
-  config = require('koding-config-manager').load("main.#{configFile}")
-  {broker} = config
+premiumBroker = (options, callback=->)->
   uuid = hat()
-
   processes.spawn
     name              : 'premiumBroker'
-    cmd               : "./go/bin/broker -c #{configFile} -u #{uuid} -b premiumBroker #{addFlags options}"
-    restart           : yes
-    restartTimeout    : 100
-    stdout            : process.stdout
-    stderr            : process.stderr
+    cmd               : "./go/bin/broker -c #{options.configFile} -u #{uuid} -b premiumBroker #{addFlags options}"
     kontrol           :
-      enabled         : if config.runKontrol is yes then yes else no
+      enabled         : if KONFIG.runKontrol is yes then yes else no
       binary          : uuid
-      port            : broker.port
+      port            : KONFIG.broker.port
       hostname        : options.domain
-    verbose           : yes
-
-task 'goBrokerKite', "Run the goBrokerKite", (options)->
-  {configFile} = options
-  config = require('koding-config-manager').load("main.#{configFile}")
-  {broker} = config
+  
+goBrokerKite = (options, callback=->)->
   uuid = hat()
-
   processes.spawn
     name              : 'brokerKite'
-    cmd               : "./go/bin/broker -c #{configFile} -u #{uuid} -b brokerKite #{addFlags options}"
-    restart           : yes
-    restartTimeout    : 100
-    stdout            : process.stdout
-    stderr            : process.stderr
+    cmd               : "./go/bin/broker -c #{options.configFile} -u #{uuid} -b brokerKite #{addFlags options}"
     kontrol           :
-      enabled         : if config.runKontrol is yes then yes else no
+      enabled         : if KONFIG.runKontrol is yes then yes else no
       binary          : uuid
-      port            : broker.port
+      port            : KONFIG.broker.port
       hostname        : options.domain
-    verbose           : yes
 
-task 'premiumBrokerKite', "Run the premium broker kite", (options)->
-  {configFile} = options
-  config = require('koding-config-manager').load("main.#{configFile}")
-  {broker} = config
+premiumBrokerKite = (options, callback=->)->
   uuid = hat()
-
   processes.spawn
     name              : 'premiumBrokerKite'
-    cmd               : "./go/bin/broker -c #{configFile} -u #{uuid} -b premiumBrokerKite #{addFlags options}"
-    restart           : yes
-    restartTimeout    : 100
-    stdout            : process.stdout
-    stderr            : process.stderr
+    cmd               : "./go/bin/broker -c #{options.configFile} -u #{uuid} -b premiumBrokerKite #{addFlags options}"
     kontrol           :
-      enabled         : if config.runKontrol is yes then yes else no
+      enabled         : if KONFIG.runKontrol is yes then yes else no
       binary          : uuid
-      port            : broker.port
+      port            : KONFIG.broker.port
       hostname        : options.domain
-    verbose           : yes
 
-task 'rerouting', "Run rerouting", (options)->
-
-  {configFile} = options
-  config = require('koding-config-manager').load("main.#{configFile}")
-
+rerouting = (options, callback=->)->
+  
   processes.spawn
     name           : 'rerouting'
-    cmd            : "./go/bin/rerouting -c #{configFile}"
-    restart        : yes
-    restartTimeout : 100
-    stdout         : process.stdout
-    stderr         : process.stderr
-    verbose        : yes
+    cmd            : "./go/bin/rerouting -c #{options.configFile}"
     kontrol        :
-      enabled      : if config.runKontrol is yes then yes else no
+      enabled      : if KONFIG.runKontrol is yes then yes else no
       startMode    : "one"
 
-task 'userpresence', "Run userpresence", (options)->
-
-  {configFile} = options
-  config = require('koding-config-manager').load("main.#{configFile}")
-
+userpresence = (options, callback=->)->
   processes.spawn
     name           : 'userPresence'
-    cmd            : "./go/bin/userpresence -c #{configFile}"
+    cmd            : "./go/bin/userpresence -c #{options.configFile}"
     restart        : yes
-    restartTimeout : 100
-    stdout         : process.stdout
-    stderr         : process.stderr
-    verbose        : yes
     kontrol        :
-      enabled      : if config.runKontrol is yes then yes else no
+      enabled      : if KONFIG.runKontrol is yes then yes else no
       startMode    : "one"
 
-task 'persistence', "Run persistence", (options)->
-
-  {configFile} = options
-  config = require('koding-config-manager').load("main.#{configFile}")
-
-  processes.spawn
-    name           : 'persistence'
-    cmd            : "./go/bin/persistence -c #{configFile}"
-    restart        : yes
-    restartTimeout : 100
-    stdout         : process.stdout
-    stderr         : process.stderr
-    verbose        : yes
-    kontrol        :
-      enabled      : if config.runKontrol is yes then yes else no
-      startMode    : "one"
-
-
-# start oskite in /opt/koding/go/src/koding/kites/os because the templates are now inside our oskite repository
-task 'osKite', "Run the osKite", ({configFile})->
-  processes.spawn
-    name  : 'osKite'
-    cmd   : if configFile == "vagrant" then "vagrant ssh default -c 'cd /opt/koding; sudo killall -q -KILL os; sudo KITE_HOME=/opt/koding/kite_home/koding /opt/koding/go/bin-vagrant/os -c #{configFile} -r vagrant -t go/src/koding/oskite/files/templates/'" else "./go/bin/os -c #{configFile}"
-    restart: no
-    stdout  : process.stdout
-    stderr  : process.stderr
-    verbose : yes
-
-task 'terminalKite', "Run the terminalKite", ({configFile})->
-  processes.spawn
-    name  : 'terminalKite'
-    cmd   : if configFile == "vagrant" then "vagrant ssh default -c 'cd /opt/koding; sudo killall -q -KILL terminal; sudo DNODE_PRINT_RECV=1 KITE_HOME=/opt/koding/kite_home/koding /opt/koding/go/bin-vagrant/terminal -c #{configFile} -r vagrant'" else "./go/bin/terminal -c #{configFile}"
-    restart: no
-    stdout  : process.stdout
-    stderr  : process.stderr
-    verbose : yes
-
-# this is not safe to run multiple version of it
-task 'elasticsearchfeeder', "Run the Elastic Search Feeder", (options)->
-  {configFile} = options
-  config       = require('koding-config-manager').load("main.#{configFile}")
+elasticsearchfeeder = (options,callback=->)->
+  
+  
   processes.spawn
     name    : "elasticsearchfeeder"
-    cmd     : "./go/bin/elasticsearchfeeder -c #{configFile} #{addFlags options}"
-    restart : yes
-    stdout  : process.stdout
-    stderr  : process.stderr
-    verbose : yes
+    cmd     : "./go/bin/elasticsearchfeeder -c #{options.configFile} #{addFlags options}"
+    restart : yes    
     kontrol        :
-      enabled      : if config.runKontrol is yes then yes else no
+      enabled      : if KONFIG.runKontrol is yes then yes else no
       startMode    : "one"
 
-task 'kontrolClient', "Run the kontrolClient", (options) ->
-  {configFile} = options
-  processes.spawn
-    name    : 'kontrolClient'
-    cmd     : "./go/bin/kontrolclient -c #{configFile}"
-    stdout  : process.stdout
-    stderr  : process.stderr
-    verbose : yes
-
-task 'kontrolProxy', "Run the kontrolProxy", (options) ->
-  {configFile} = options
-  processes.spawn
-    name    : 'kontrolProxy'
-    cmd     : "./go/bin/kontrolproxy -c #{configFile}"
-    stdout  : process.stdout
-    stderr  : process.stderr
-    verbose : yes
-
-task 'kontrolDaemon', "Run the kontrolDaemon", (options) ->
-  {configFile} = options
-  processes.spawn
-    name    : 'kontrolDaemon'
-    cmd     : "./go/bin/kontroldaemon -c #{configFile} #{addFlags options}"
-    stdout  : process.stdout
-    stderr  : process.stderr
-    verbose : yes
-
-task 'kontrolApi', "Run the kontrolApi", (options) ->
-  {configFile} = options
-  processes.spawn
-    name    : 'kontrolApi'
-    cmd     : "./go/bin/kontrolapi -c #{configFile}"
-    stdout  : process.stdout
-    stderr  : process.stderr
-    verbose : yes
-
-task 'kontrolKite', "Run the kontrol kite", (options) ->
-  {configFile} = options
-#   console.log ">>>>>>",configFile.projectRoot, configFile, options
-#   process.exit()
-
-  config       = require('koding-config-manager').load("main.#{configFile}")
-
-
-
+kontrolClient = (options,callback=->)->
+  
+  processes.run 'kontrolClient', "./go/bin/kontrolclient -c #{options.configFile}"
+    
+kontrolProxy = (options, callback=->) ->
+  processes.run 'kontrolProxy', "./go/bin/kontrolproxy -c #{options.configFile}"
+    
+kontrolDaemon = (options, callback=->)->
+  processes.run 'kontrolDaemon', "./go/bin/kontroldaemon -c #{options.configFile} #{addFlags options}"
+    
+kontrolApi = (options,callback=->)->
+  processes.run 'kontrolApi', "./go/bin/kontrolapi -c #{options.configFile}"
+    
+kontrolKite = (options, callback=->)->
   if options.region is "kodingme"
-    cmd = "#{config.projectRoot}/go/bin/kontrol -c #{configFile} -r #{options.region}"
+    cmd = "#{KONFIG.projectRoot}/go/bin/kontrol -c #{options.configFile} -r #{options.region}"
   else
-    cmd = "vagrant ssh default -c 'cd /opt/koding; sudo killall -q -KILL kontrol; sudo KITE_HOME=/opt/koding/kite_home/koding /opt/koding/go/bin-vagrant/kontrol -c #{configFile} -r vagrant'"
+    cmd = "vagrant ssh default -c 'cd /opt/koding; sudo killall -q -KILL kontrol; sudo KITE_HOME=/opt/koding/kite_home/koding /opt/koding/go/bin-vagrant/kontrol -c #{options.configFile} -r vagrant'"
 
-
-
-  processes.spawn
-    name    : 'kontrolKite'
-    cmd     : cmd
-    stdout  : process.stdout
-    stderr  : process.stderr
-    verbose : yes
-
-task 'proxyKite', "Run the proxy kite", (options) ->
-  {configFile} = options
-
-  config       = require('koding-config-manager').load("main.#{configFile}")
-
-
+  processes.run 'kontrolKite', cmd
+    
+proxyKite = (options, callback=->)->
   if options.region is "kodingme"
-    cmd = "#{config.projectRoot}/go/bin/reverseproxy -region #{options.region} -host koding.io -env production"
+    cmd = "#{KONFIG.projectRoot}/go/bin/reverseproxy -region #{options.region} -host koding.io -env production"
   else
-    cmd = "vagrant ssh default -c 'cd /opt/koding; sudo killall -q -KILL proxy; sudo KITE_HOME=/opt/koding/kite_home/koding /opt/koding/go/bin-vagrant/proxy -c #{configFile} -r vagrant'"
-
-
-  processes.spawn
-    name    : 'proxyKite'
-    cmd     : cmd
-    stdout  : process.stdout
-    stderr  : process.stderr
-    verbose : yes
-
-task 'checkConfig', "Check the local config files for errors", ({configFile})->
+    cmd = "vagrant ssh default -c 'cd /opt/koding; sudo killall -q -KILL proxy; sudo KITE_HOME=/opt/koding/kite_home/koding /opt/koding/go/bin-vagrant/proxy -c #{options.configFile} -r vagrant'"
+  processes.run 'proxyKite', cmd
+    
+checkConfig = (options,callback=->)->
   console.log "[KONFIG CHECK] If you don't see any errors, you're fine."
-  require('koding-config-manager').load("main.#{configFile}")
-  require('koding-config-manager').load("kite.applications.#{configFile}")
-  require('koding-config-manager').load("kite.databases.#{configFile}")
+  require('koding-config-manager').load("main.#{options.configFile}")
+  require('koding-config-manager').load("kite.applications.#{options.configFile}")
+  require('koding-config-manager').load("kite.databases.#{options.configFile}")
 
-task 'runGraphiteFeeder', "Collect analytics from database and feed to grahpite", ({configFile})->
-  console.log "Running Graphite feeder"
-  processes.spawn
-    name    : 'graphiteFeeder'
-    cmd     : "./go/bin/graphitefeeder -c #{configFile}"
-    stdout  : process.stdout
-    stderr  : process.stderr
-    verbose : yes
-
-task 'cronJobs', "Run CronJobs", ({configFile})->
-  console.log "Running CronJobs"
-  processes.spawn
-    name    : 'cronJobs'
-    cmd     : "./go/bin/cron -c #{configFile}"
-    stdout  : process.stdout
-    stderr  : process.stderr
-    verbose : yes
-
-task 'migratePost', "Migrate Posts to JNewStatusUpdate", ({configFile})->
-  console.log "Migrating Posts"
-  processes.spawn
-    name    : 'migratePost'
-    cmd     : "./go/bin/posts -c #{configFile}"
-    stdout  : process.stdout
-    stderr  : process.stderr
-    verbose : yes
-
-run =({configFile})->
+runGraphiteFeeder = (options, callback=->)->
+  processes.run 'graphiteFeeder',"./go/bin/graphitefeeder -c #{options.configFile}"
+    
+cronjobs = (options, callback=->)->
+  processes.run 'cronJobs',"./go/bin/cron -c #{options.configFile}"
+    
+migratePost = (options,callback=->)->
+  processes.run 'migratePost', "./go/bin/posts -c #{options.configFile}"
+    
+run =(options)->
 
   process.stdout.setMaxListeners 100
   process.stderr.setMaxListeners 100
 
-  config = require('koding-config-manager').load("main.#{configFile}")
-
-  invoke 'kontrolDaemon'                    if config.runKontrol
-  invoke 'kontrolApi'                       if config.runKontrol
-
-  invoke 'kontrolKite'                      if config.runKontrol
-  invoke 'proxyKite'                        if config.runKontrol
-
-  invoke 'kloudKite'                        if config.runKloud
-
-  invoke 'goBroker'                         if config.runGoBroker
-  invoke 'goBrokerKite'                     if config.runGoBrokerKite
-  invoke 'premiumBroker'                    if config.runPremiumBroker
-  invoke 'premiumBrokerKite'                if config.runPremiumBrokerKite
-
-  invoke 'rerouting'                        if config.runRerouting
-  invoke 'userpresence'                     if config.runUserPresence
-  invoke 'persistence'                      if config.runPersistence
-
-  invoke 'elasticsearchfeeder'              if config.elasticSearch.enabled
-  invoke 'authWorker'                       if config.authWorker
-  invoke 'guestCleanerWorker'               if config.guestCleanerWorker.enabled
-  invoke 'emailConfirmationCheckerWorker'   if config.emailConfirmationCheckerWorker.enabled
-  invoke 'socialWorker'
-  invoke 'emailWorker'                      if config.emailWorker?.run is yes
-  invoke 'emailSender'                      if config.emailSender?.run is yes
+  invoke 'kontrolDaemon'                    if KONFIG.runKontrol
+  invoke 'kontrolApi'                       if KONFIG.runKontrol
+  invoke 'kontrolKite'                      if KONFIG.runKontrol
+  invoke 'proxyKite'                        if KONFIG.runKontrol
+  invoke 'kloudKite'                        if KONFIG.runKloud
+  invoke 'goBroker'                         if KONFIG.runGoBroker
+  invoke 'goBrokerKite'                     if KONFIG.runGoBrokerKite
+  invoke 'premiumBroker'                    if KONFIG.runPremiumBroker
+  invoke 'premiumBrokerKite'                if KONFIG.runPremiumBrokerKite
+  invoke 'rerouting'                        if KONFIG.runRerouting
+  invoke 'userpresence'                     if KONFIG.runUserPresence
+  invoke 'persistence'                      if KONFIG.runPersistence
+  invoke 'elasticsearchfeeder'              if KONFIG.elasticSearch.enabled
+  invoke 'authWorker'                       if KONFIG.authWorker
+  invoke 'guestCleanerWorker'               if KONFIG.guestCleanerWorker.enabled
+  invoke 'emailConfirmationCheckerWorker'   if KONFIG.emailConfirmationCheckerWorker.enabled
+  invoke 'emailWorker'                      if KONFIG.emailWorker?.run is yes
+  invoke 'emailSender'                      if KONFIG.emailSender?.run is yes
   invoke 'addTagCategories'
-  invoke 'webserver'
   invoke 'cronJobs'
-  invoke 'logWorker'                        if config.log.runWorker
-
-
-task 'importDB', (options) ->
-
-  importDB options
+  invoke 'logWorker'                        if KONFIG.log.runWorker
+  
+  setTimeout ->
+    invoke 'webserver'
+    invoke 'socialWorker'
+  ,30000
 
 importDB = (options, callback = ->)->
-
   if options.configFile in ['vagrant', 'kodingme']
 
     check = """ mongo localhost/koding --quiet --eval="print(db.jGroups.count({slug:'guests'}))" """
@@ -703,14 +500,7 @@ importDB = (options, callback = ->)->
 
 task 'run', (options)->
 
-  {configFile} = options
-  configFile = "vagrant" if configFile in ["",undefined,"undefined"]
-
-  KONFIG = config = require('koding-config-manager').load("main.#{configFile}")
-
-  options.configFile  = configFile
-  options.buildClient = config.buildClient
-
+  options.buildClient = KONFIG.buildClient
   buildEverything options, -> run options
 
 
@@ -798,34 +588,7 @@ task 'buildAll',"build chris's modules", ->
           b next+1
   b 0
 
-task 'runExternals', "runs externals kite which imports info about github, will be used to show suggested tags, users to follow etc.", (options)->
-  {configFile} = options
-  config = require('koding-config-manager').load("main.#{configFile}")
 
-  processes.spawn
-    name              : 'externals'
-    cmd               : "./go/bin/externals -c #{configFile}"
-    restart           : yes
-    restartTimeout    : 100
-    stdout            : process.stdout
-    stderr            : process.stderr
-    kontrol           :
-      enabled         : if config.runKontrol is yes then yes else no
-    verbose           : yes
-
-task 'importPaymentData', "creates default payment data", (options)->
-  {configFile} = options
-  config = require('koding-config-manager').load("main.#{configFile}")
-
-  processes.spawn
-    cmd            : "node ./workers/productimport/index -c #{configFile}"
-    name           : 'importPaymentData'
-    stdout         : process.stdout
-    stderr         : process.stderr
-    kontrol        :
-      enabled      : if config.runKontrol is yes then yes else no
-      startMode    : "one"
-    verbose        : yes
 
 # ------------------- TEST STUFF --------------------------
 
