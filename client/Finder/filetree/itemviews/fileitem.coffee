@@ -47,7 +47,7 @@ class NFileItemView extends KDCustomHTMLView
 
     extension = FSHelper.getFileExtension @getData().name
     if extension
-      fileType = FSItem.getFileType extension
+      fileType = FSHelper.getFileType extension
       @icon.$().attr "class", "icon #{extension} #{fileType}"
 
   render:->

@@ -250,5 +250,46 @@ class FSHelper
   @getFullPath = (file)->
     plainPath = @plainPath file.path
     return "[#{file.vmName}]#{plainPath}"
+  # Extension helpers
+  #
+
+  @getFileType = (extension)->
+
+    fileType = null
+
+    _extension_sets =
+      code    : [
+        "php", "pl", "py", "jsp", "asp", "htm","html", "phtml","shtml"
+        "sh", "cgi", "htaccess","fcgi","wsgi","mvc","xml","sql","rhtml"
+        "js","json","coffee", "css","styl","sass", "erb"
+      ]
+      text    : [
+        "txt", "doc", "rtf", "csv", "docx", "pdf"
+      ]
+      archive : [
+        "zip","gz","bz2","tar","7zip","rar","gzip","bzip2","arj","cab"
+        "chm","cpio","deb","dmg","hfs","iso","lzh","lzma","msi","nsis"
+        "rpm","udf","wim","xar","z","jar","ace","7z","uue"
+      ]
+      image   : [
+        "png","gif","jpg","jpeg","bmp","svg","psd","qt","qtif","qif"
+        "qti","tif","tiff","aif","aiff"
+      ]
+      video   : [
+        "avi","mp4","h264","mov","mpg","ra","ram","mpg","mpeg","m4a"
+        "3gp","wmv","flv","swf","wma","rm","rpm","rv","webm"
+      ]
+      sound   : ["aac","au","gsm","mid","midi","snd","wav","3g2","mp3","asx","asf"]
+      app     : ["kdapp"]
+
+
+    for own type,set of _extension_sets
+      for ext in set when extension is ext
+        fileType = type
+        break
+      break if fileType
+
+    return fileType or 'unknown'
+
 
 KD.classes.FSHelper = FSHelper
