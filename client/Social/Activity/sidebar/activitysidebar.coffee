@@ -40,9 +40,9 @@ class ActivitySidebar extends KDCustomScrollView
       .on 'NotificationHasArrived',    @bound 'notificationHasArrived'
 
 
-  addToChannel: (data) ->
+  addToChannel: (channel) ->
 
-    data           = revive data
+    data           = revive channel
     listController = @getListController data.typeConstant
 
     return  if listController.itemForId data.id
