@@ -40,5 +40,5 @@ class Machine extends KDObject
 
 
   getName: ->
-    @publicAddress or @uid or @label or "one of #{KD.nick()}'s machine"
+    @label or @publicAddress or @uid or "one of #{KD.nick()}'s machine"
 
