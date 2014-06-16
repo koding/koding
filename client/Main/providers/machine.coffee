@@ -38,6 +38,11 @@ class Machine extends KDObject
     else
       @kites = {}
 
+    @fs =
+      # TODO: add options check
+      create : (options, callback)=>
+        options.machine = this
+        FSItem.create options, callback
 
   getName: ->
     @label or @publicAddress or @uid or "one of #{KD.nick()}'s machine"
