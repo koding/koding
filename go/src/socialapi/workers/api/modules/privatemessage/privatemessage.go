@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"net/url"
 	"socialapi/models"
-	"socialapi/workers/api/modules/helpers"
+	"socialapi/workers/common/response"
 
 	"github.com/koding/bongo"
 )
@@ -46,7 +46,7 @@ func appendCreatorIdIntoParticipantList(participants []int64, authorId int64) []
 
 func Send(u *url.URL, h http.Header, req *models.PrivateMessageRequest) (int, http.Header, interface{}, error) {
 	if req.AccountId == 0 {
-		return helpers.NewBadRequestResponse(errors.New("AcccountId is not defined"))
+		return response.NewBadRequestResponse(errors.New("AcccountId is not defined"))
 	}
 
 	// // req.Recipients = append(req.Recipients, req.AccountId)
@@ -55,7 +55,7 @@ func Send(u *url.URL, h http.Header, req *models.PrivateMessageRequest) (int, ht
 	participantNames := cm.GetMentionedUsernames()
 	participantIds, err := fetchParticipantIds(participantNames)
 	if err != nil {
-		return helpers.NewBadRequestResponse(err)
+		return response.NewBadRequestResponse(err)
 	}
 
 	// append creator to the recipients
@@ -64,7 +64,7 @@ func Send(u *url.URL, h http.Header, req *models.PrivateMessageRequest) (int, ht
 	// author and atleast one recipient should be in the
 	// recipient list
 	if len(participantIds) < 2 {
-		return helpers.NewBadRequestResponse(errors.New("You should define your recipients"))
+		return response.NewBadRequestResponse(errors.New("You should define your recipients"))
 	}
 
 	if req.GroupName == "" {
@@ -74,30 +74,30 @@ func Send(u *url.URL, h http.Header, req *models.PrivateMessageRequest) (int, ht
 	//// first create the channel
 	c := models.NewPrivateMessageChannel(req.AccountId, req.GroupName)
 	if err := c.Create(); err != nil {
-		return helpers.NewBadRequestResponse(err)
+		return response.NewBadRequestResponse(err)
 	}
 
 	cm.TypeConstant = models.ChannelMessage_TYPE_PRIVATE_MESSAGE
 	cm.AccountId = req.AccountId
 	cm.InitialChannelId = c.Id
 	if err := cm.Create(); err != nil {
-		return helpers.NewBadRequestResponse(err)
+		return response.NewBadRequestResponse(err)
 	}
 
 	messageContainer, err := cm.BuildEmptyMessageContainer()
 	if err != nil {
-		return helpers.NewBadRequestResponse(err)
+		return response.NewBadRequestResponse(err)
 	}
 
 	_, err = c.AddMessage(cm.Id)
 	if err != nil {
-		return helpers.NewBadRequestResponse(err)
+		return response.NewBadRequestResponse(err)
 	}
 
 	for _, participantId := range participantIds {
 		_, err := c.AddParticipant(participantId)
 		if err != nil {
-			return helpers.NewBadRequestResponse(err)
+			return response.NewBadRequestResponse(err)
 		}
 	}
 
@@ -108,23 +108,23 @@ func Send(u *url.URL, h http.Header, req *models.PrivateMessageRequest) (int, ht
 	cmc.ParticipantCount = len(participantIds)
 	participantOldIds, err := models.FetchAccountOldsIdByIdsFromCache(participantIds)
 	if err != nil {
-		return helpers.NewBadRequestResponse(err)
+		return response.NewBadRequestResponse(err)
 	}
 
 	cmc.ParticipantsPreview = participantOldIds
 
-	return helpers.NewOKResponse(cmc)
+	return response.NewOKResponse(cmc)
 }
 
 func List(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface{}, error) {
-	q := helpers.GetQuery(u)
+	q := response.GetQuery(u)
 
 	channels, err := getPrivateMessageChannels(q)
 	if err != nil {
-		return helpers.NewBadRequestResponse(err)
+		return response.NewBadRequestResponse(err)
 	}
 
-	return helpers.HandleResultAndError(
+	return response.HandleResultAndError(
 		models.PopulateChannelContainersWithUnreadCount(channels, q.AccountId),
 	)
 }

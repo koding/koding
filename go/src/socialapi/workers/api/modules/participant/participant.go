@@ -6,20 +6,20 @@ import (
 	"net/http"
 	"net/url"
 	"socialapi/models"
-	"socialapi/workers/api/modules/helpers"
+	"socialapi/workers/common/response"
 	"time"
 )
 
 func List(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface{}, error) {
-	channelId, err := helpers.GetURIInt64(u, "id")
+	channelId, err := response.GetURIInt64(u, "id")
 	if err != nil {
 		fmt.Println(err)
-		return helpers.NewBadRequestResponse(err)
+		return response.NewBadRequestResponse(err)
 	}
 
 	req := models.NewChannelParticipant()
 	req.ChannelId = channelId
-	return helpers.HandleResultAndError(
+	return response.HandleResultAndError(
 		req.List(),
 	)
 }
@@ -30,21 +30,21 @@ func Add(u *url.URL, h http.Header, req *models.ChannelParticipant) (int, http.H
 	// from the token
 	requesterId := req.AccountId
 	if requesterId == 0 {
-		return helpers.NewBadRequestResponse(errors.New("Requester AccountId is not set"))
+		return response.NewBadRequestResponse(errors.New("Requester AccountId is not set"))
 	}
 
-	channelId, err := helpers.GetURIInt64(u, "id")
+	channelId, err := response.GetURIInt64(u, "id")
 	if err != nil {
-		return helpers.NewBadRequestResponse(err)
+		return response.NewBadRequestResponse(err)
 	}
 
-	accountId, err := helpers.GetURIInt64(u, "accountId")
+	accountId, err := response.GetURIInt64(u, "accountId")
 	if err != nil {
-		return helpers.NewBadRequestResponse(err)
+		return response.NewBadRequestResponse(err)
 	}
 
 	if err := checkChannelPrerequisites(channelId, requesterId, accountId); err != nil {
-		return helpers.NewBadRequestResponse(err)
+		return response.NewBadRequestResponse(err)
 	}
 
 	// do not forget to override account id
@@ -53,10 +53,10 @@ func Add(u *url.URL, h http.Header, req *models.ChannelParticipant) (int, http.H
 	req.StatusConstant = models.ChannelParticipant_STATUS_ACTIVE
 
 	if err := req.Create(); err != nil {
-		return helpers.NewBadRequestResponse(err)
+		return response.NewBadRequestResponse(err)
 	}
 
-	return helpers.NewOKResponse(req)
+	return response.NewOKResponse(req)
 }
 
 func checkChannelPrerequisites(channelId, requesterId, accountId int64) error {
@@ -82,21 +82,21 @@ func Delete(u *url.URL, h http.Header, req *models.ChannelParticipant) (int, htt
 	// from the token
 	requesterId := req.AccountId
 	if requesterId == 0 {
-		return helpers.NewBadRequestResponse(errors.New("Requester AccountId is not set"))
+		return response.NewBadRequestResponse(errors.New("Requester AccountId is not set"))
 	}
 
-	channelId, err := helpers.GetURIInt64(u, "id")
+	channelId, err := response.GetURIInt64(u, "id")
 	if err != nil {
-		return helpers.NewBadRequestResponse(err)
+		return response.NewBadRequestResponse(err)
 	}
 
-	accountId, err := helpers.GetURIInt64(u, "accountId")
+	accountId, err := response.GetURIInt64(u, "accountId")
 	if err != nil {
-		return helpers.NewBadRequestResponse(err)
+		return response.NewBadRequestResponse(err)
 	}
 
 	if err := checkChannelPrerequisites(channelId, requesterId, accountId); err != nil {
-		return helpers.NewBadRequestResponse(err)
+		return response.NewBadRequestResponse(err)
 	}
 
 	// do not forget to override account id
@@ -104,10 +104,10 @@ func Delete(u *url.URL, h http.Header, req *models.ChannelParticipant) (int, htt
 	req.ChannelId = channelId
 
 	if err := req.Delete(); err != nil {
-		return helpers.NewBadRequestResponse(err)
+		return response.NewBadRequestResponse(err)
 	}
 
-	return helpers.NewOKResponse(req)
+	return response.NewOKResponse(req)
 }
 
 func Presence(u *url.URL, h http.Header, req *models.ChannelParticipant) (int, http.Header, interface{}, error) {
@@ -115,17 +115,17 @@ func Presence(u *url.URL, h http.Header, req *models.ChannelParticipant) (int, h
 	// from the token
 	requesterId := req.AccountId
 	if requesterId == 0 {
-		return helpers.NewBadRequestResponse(errors.New("Requester AccountId is not set"))
+		return response.NewBadRequestResponse(errors.New("Requester AccountId is not set"))
 	}
 
-	channelId, err := helpers.GetURIInt64(u, "id")
+	channelId, err := response.GetURIInt64(u, "id")
 	if err != nil {
-		return helpers.NewBadRequestResponse(err)
+		return response.NewBadRequestResponse(err)
 	}
 
-	accountId, err := helpers.GetURIInt64(u, "accountId")
+	accountId, err := response.GetURIInt64(u, "accountId")
 	if err != nil {
-		return helpers.NewBadRequestResponse(err)
+		return response.NewBadRequestResponse(err)
 	}
 
 	// do not forget to override account id
@@ -133,14 +133,14 @@ func Presence(u *url.URL, h http.Header, req *models.ChannelParticipant) (int, h
 	req.ChannelId = channelId
 
 	if err := req.FetchParticipant(); err != nil {
-		return helpers.NewBadRequestResponse(err)
+		return response.NewBadRequestResponse(err)
 	}
 
 	req.LastSeenAt = time.Now().UTC()
 
 	if err := req.Update(); err != nil {
-		return helpers.NewBadRequestResponse(err)
+		return response.NewBadRequestResponse(err)
 	}
 
-	return helpers.NewOKResponse(req)
+	return response.NewOKResponse(req)
 }
