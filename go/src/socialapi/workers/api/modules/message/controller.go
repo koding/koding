@@ -5,15 +5,15 @@ import (
 	"net/http"
 	"net/url"
 	"socialapi/models"
-	"socialapi/workers/api/modules/helpers"
+	"socialapi/workers/common/response"
 
 	"github.com/jinzhu/gorm"
 )
 
 func Create(u *url.URL, h http.Header, req *models.ChannelMessage) (int, http.Header, interface{}, error) {
-	channelId, err := helpers.GetURIInt64(u, "id")
+	channelId, err := response.GetURIInt64(u, "id")
 	if err != nil {
-		return helpers.NewBadRequestResponse(err)
+		return response.NewBadRequestResponse(err)
 	}
 
 	// override message type
@@ -26,7 +26,7 @@ func Create(u *url.URL, h http.Header, req *models.ChannelMessage) (int, http.He
 
 	if err := req.Create(); err != nil {
 		// todo this should be internal server error
-		return helpers.NewBadRequestResponse(err)
+		return response.NewBadRequestResponse(err)
 	}
 
 	cml := models.NewChannelMessageList()
@@ -35,34 +35,34 @@ func Create(u *url.URL, h http.Header, req *models.ChannelMessage) (int, http.He
 	cml.MessageId = req.Id
 	if err := cml.Create(); err != nil {
 		// todo this should be internal server error
-		return helpers.NewBadRequestResponse(err)
+		return response.NewBadRequestResponse(err)
 	}
 
-	return helpers.HandleResultAndError(
+	return response.HandleResultAndError(
 		req.BuildEmptyMessageContainer(),
 	)
 }
 
 func Delete(u *url.URL, h http.Header, req *models.ChannelMessage) (int, http.Header, interface{}, error) {
-	id, err := helpers.GetURIInt64(u, "id")
+	id, err := response.GetURIInt64(u, "id")
 	if err != nil {
-		return helpers.NewBadRequestResponse(err)
+		return response.NewBadRequestResponse(err)
 	}
 
 	if err := req.ById(id); err != nil {
 		if err == gorm.RecordNotFound {
-			return helpers.NewNotFoundResponse()
+			return response.NewNotFoundResponse()
 		}
-		return helpers.NewBadRequestResponse(err)
+		return response.NewBadRequestResponse(err)
 	}
 
 	err = deleteSingleMessage(req, true)
 	if err != nil {
-		return helpers.NewBadRequestResponse(err)
+		return response.NewBadRequestResponse(err)
 	}
 
 	// yes it is deleted but not removed completely from our system
-	return helpers.NewDeletedResponse()
+	return response.NewDeletedResponse()
 }
 
 func deleteSingleMessage(cm *models.ChannelMessage, deleteReplies bool) error {
@@ -125,89 +125,89 @@ func deleteSingleMessage(cm *models.ChannelMessage, deleteReplies bool) error {
 }
 
 func Update(u *url.URL, h http.Header, req *models.ChannelMessage) (int, http.Header, interface{}, error) {
-	id, err := helpers.GetURIInt64(u, "id")
+	id, err := response.GetURIInt64(u, "id")
 	if err != nil {
-		return helpers.NewBadRequestResponse(err)
+		return response.NewBadRequestResponse(err)
 	}
 
 	body := req.Body
 	if err := req.ById(id); err != nil {
 		if err == gorm.RecordNotFound {
-			return helpers.NewNotFoundResponse()
+			return response.NewNotFoundResponse()
 		}
-		return helpers.NewBadRequestResponse(err)
+		return response.NewBadRequestResponse(err)
 	}
 
 	if req.Id == 0 {
-		return helpers.NewBadRequestResponse(err)
+		return response.NewBadRequestResponse(err)
 	}
 
 	req.Body = body
 	if err := req.Update(); err != nil {
-		return helpers.NewBadRequestResponse(err)
+		return response.NewBadRequestResponse(err)
 	}
 
-	return helpers.HandleResultAndError(
+	return response.HandleResultAndError(
 		req.BuildEmptyMessageContainer(),
 	)
 }
 
 func Get(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface{}, error) {
-	id, err := helpers.GetURIInt64(u, "id")
+	id, err := response.GetURIInt64(u, "id")
 	if err != nil {
-		return helpers.NewBadRequestResponse(err)
+		return response.NewBadRequestResponse(err)
 	}
 	cm := models.NewChannelMessage()
 	if err := cm.ById(id); err != nil {
 		if err == gorm.RecordNotFound {
-			return helpers.NewNotFoundResponse()
+			return response.NewNotFoundResponse()
 		}
-		return helpers.NewBadRequestResponse(err)
+		return response.NewBadRequestResponse(err)
 	}
 
-	return helpers.HandleResultAndError(
+	return response.HandleResultAndError(
 		cm.BuildEmptyMessageContainer(),
 	)
 }
 
 func GetWithRelated(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface{}, error) {
-	id, err := helpers.GetURIInt64(u, "id")
+	id, err := response.GetURIInt64(u, "id")
 	if err != nil {
-		return helpers.NewBadRequestResponse(err)
+		return response.NewBadRequestResponse(err)
 	}
 
 	cm := models.NewChannelMessage()
 	if err := cm.ById(id); err != nil {
 		if err == gorm.RecordNotFound {
-			return helpers.NewNotFoundResponse()
+			return response.NewNotFoundResponse()
 		}
-		return helpers.NewBadRequestResponse(err)
+		return response.NewBadRequestResponse(err)
 	}
 
-	cmc, err := cm.BuildMessage(helpers.GetQuery(u))
+	cmc, err := cm.BuildMessage(response.GetQuery(u))
 	if err != nil {
-		return helpers.NewBadRequestResponse(err)
+		return response.NewBadRequestResponse(err)
 	}
 
-	return helpers.NewOKResponse(cmc)
+	return response.NewOKResponse(cmc)
 }
 
 func GetBySlug(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface{}, error) {
-	q := helpers.GetQuery(u)
+	q := response.GetQuery(u)
 
 	if q.Slug == "" {
-		return helpers.NewBadRequestResponse(errors.New("slug is not set"))
+		return response.NewBadRequestResponse(errors.New("slug is not set"))
 	}
 
 	cm := models.NewChannelMessage()
 	if err := cm.BySlug(q); err != nil {
-		return helpers.NewBadRequestResponse(err)
+		return response.NewBadRequestResponse(err)
 	}
 
 	cmc, err := cm.BuildMessage(q)
 	if err != nil {
-		return helpers.NewBadRequestResponse(err)
+		return response.NewBadRequestResponse(err)
 	}
 
-	return helpers.NewOKResponse(cmc)
+	return response.NewOKResponse(cmc)
 }
