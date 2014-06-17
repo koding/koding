@@ -20,6 +20,7 @@ class IDE.IDEView extends IDE.WorkspaceTabView
 
     @tabView.on 'PaneDidShow', => # bound passes args also
       @updateStatusBar()
+      @focusTab()
 
     @once 'viewAppended', => KD.utils.wait 300, => @createEditor()
 
@@ -105,6 +106,14 @@ class IDE.IDEView extends IDE.WorkspaceTabView
 
   removeOpenDocument: ->
     # TODO: This method is legacy, should be reimplemented in ace bundle.
+
+  focusTab: ->
+    pane     = @tabView.getActivePane().getSubViews().first
+    paneType = pane.getOptions().paneType
+
+    KD.utils.defer ->
+      if paneType is 'editor'        then pane.aceView.ace.focus()
+      else if paneType is 'terminal' then pane.webtermView?.setFocus yes
 
   click: ->
     super
