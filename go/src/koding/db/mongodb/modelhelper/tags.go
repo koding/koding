@@ -47,13 +47,3 @@ func GetTag(s Selector, o Options) (*models.Tag, error) {
 
 	return tag, Mongo.Run("jTags", query)
 }
-
-func GetTagIter(s Selector, o Options) *mgo.Iter {
-	query := func(c *mgo.Collection) *mgo.Query {
-		q := c.Find(s)
-		decorateQuery(q, o)
-		return q
-	}
-
-	return Mongo.GetIter("jTags", query)
-}

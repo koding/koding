@@ -4,6 +4,7 @@ import (
 	"fmt"
 	mongomodels "koding/db/models"
 	"koding/db/mongodb/modelhelper"
+	"koding/helpers"
 	"socialapi/models"
 
 	"github.com/jinzhu/gorm"
@@ -11,9 +12,6 @@ import (
 )
 
 func (mwc *Controller) migrateAllTags() error {
-	o := modelhelper.Options{
-		Sort: "meta.createdAt",
-	}
 	s := modelhelper.Selector{
 		"socialApiChannelId": modelhelper.Selector{"$exists": false},
 	}
@@ -25,29 +23,36 @@ func (mwc *Controller) migrateAllTags() error {
 		errCount++
 	}
 
-	iter := modelhelper.GetTagIter(s, o)
-	var tag mongomodels.Tag
-	for iter.Next(&tag) {
-		channelId, err := createTagChannel(&tag)
+	migrateTag := func(tag interface{}) error {
+		oldTag := tag.(*mongomodels.Tag)
+		channelId, err := createTagChannel(oldTag)
 		if err != nil {
-			handleError(&tag, err)
-			continue
+			handleError(oldTag, err)
+			return nil
 		}
-		if err := mwc.createTagFollowers(&tag, channelId); err != nil {
-			handleError(&tag, err)
-			continue
+		if err := mwc.createTagFollowers(oldTag, channelId); err != nil {
+			handleError(oldTag, err)
+			return nil
 		}
 
-		if err := completeTagMigration(&tag, channelId); err != nil {
-			handleError(&tag, err)
-			continue
+		if err := completeTagMigration(oldTag, channelId); err != nil {
+			handleError(oldTag, err)
+			return nil
 		}
 		successCount++
+
+		return nil
 	}
 
-	if err := iter.Err(); err != nil {
-		return fmt.Errorf("Tag migration is interrupted with %d errors: %s", errCount, err)
-	}
+	iterOptions := helpers.NewIterOptions()
+	iterOptions.CollectionName = "jTags"
+	iterOptions.F = migrateTag
+	iterOptions.Filter = s
+	iterOptions.Result = &mongomodels.Tag{}
+	iterOptions.Limit = 10000000
+	iterOptions.Skip = 0
+
+	helpers.Iter(modelhelper.Mongo, iterOptions)
 
 	mwc.log.Notice("Tag migration completed for %d tags with %d errors", successCount, errCount)
 
@@ -113,18 +118,18 @@ func (mwc *Controller) createTagFollowers(t *mongomodels.Tag, channelId int64) e
 }
 
 func (mwc *Controller) createChannelParticipants(s modelhelper.Selector, channelId int64) error {
-	iter := modelhelper.GetRelationshipIter(s)
-	defer iter.Close()
-	var r mongomodels.Relationship
-	for iter.Next(&r) {
+
+	migrateRelationship := func(relationship interface{}) error {
+		r := relationship.(*mongomodels.Relationship)
+
 		if r.MigrationStatus == "Completed" {
-			continue
+			return nil
 		}
 		// fetch follower
 		id, err := models.AccountIdByOldId(r.TargetId.Hex(), "")
 		if err != nil {
 			mwc.log.Error("Participant account cannot be fetched: %s", err)
-			continue
+			return nil
 		}
 
 		cp := models.NewChannelParticipant()
@@ -136,16 +141,26 @@ func (mwc *Controller) createChannelParticipants(s modelhelper.Selector, channel
 		cp.CreatedAt = r.TimeStamp
 		if err := cp.CreateRaw(); err != nil {
 			mwc.log.Error("Participant cannot be created: %s", err)
-			continue
+			return nil
 		}
 
 		r.MigrationStatus = "Completed"
-		if err := modelhelper.UpdateRelationship(&r); err != nil {
+		if err := modelhelper.UpdateRelationship(r); err != nil {
 			mwc.log.Error("Participant relationship cannot be flagged as migrated: %s", err)
 		}
+
+		return nil
 	}
 
-	return iter.Err()
+	iterOptions := helpers.NewIterOptions()
+	iterOptions.CollectionName = "relationships"
+	iterOptions.F = migrateRelationship
+	iterOptions.Filter = s
+	iterOptions.Result = &mongomodels.Relationship{}
+	iterOptions.Limit = 1000000000
+	iterOptions.Skip = 0
+
+	return helpers.Iter(modelhelper.Mongo, iterOptions)
 }
 
 func (mwc *Controller) migrateTags(cm *models.ChannelMessage, oldId bson.ObjectId) error {
@@ -156,12 +171,12 @@ func (mwc *Controller) migrateTags(cm *models.ChannelMessage, oldId bson.ObjectI
 	}
 	rels, err := modelhelper.GetAllRelationships(s)
 	if err != nil {
-		return fmt.Errorf("tags cannot be fetched: %s", err)
+		return fmt.Errorf("tags cannot be fetched for message %s: %s", oldId, err)
 	}
 	for _, r := range rels {
 		t, err := modelhelper.GetTagById(r.TargetId.Hex())
 		if err != nil {
-			mwc.log.Error("tag cannot be fetched: %s", err)
+			mwc.log.Error("Tag cannot be fetched for message %s: %s", oldId, err)
 			continue
 		}
 
@@ -170,7 +185,7 @@ func (mwc *Controller) migrateTags(cm *models.ChannelMessage, oldId bson.ObjectI
 		cml.MessageId = cm.Id
 		cml.AddedAt = cm.CreatedAt
 		if err := cml.CreateRaw(); err != nil {
-			mwc.log.Error("message tag cannot be created")
+			mwc.log.Error("Message tag cannot be created for message %s: %s", oldId, err)
 		}
 	}
 
