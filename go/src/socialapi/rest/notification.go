@@ -5,14 +5,12 @@ import (
 	"fmt"
 	"socialapi/models"
 	notificationmodels "socialapi/workers/notification/models"
-
-	"github.com/koding/api/utils"
 )
 
 func GetNotificationList(accountId int64, cacheEnabled bool) (*notificationmodels.NotificationResponse, error) {
 	url := fmt.Sprintf("/notification/%d?cache=%t", accountId, cacheEnabled)
 
-	res, err := utils.SendRequest("GET", url, nil)
+	res, err := sendRequest("GET", url, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -30,7 +28,7 @@ func GlanceNotifications(accountId int64) (interface{}, error) {
 	n := notificationmodels.NewNotification()
 	n.AccountId = accountId
 
-	res, err := utils.SendModel("POST", "/notification/glance", n)
+	res, err := sendModel("POST", "/notification/glance", n)
 	if err != nil {
 		return nil, err
 	}
@@ -44,7 +42,7 @@ func FollowNotification(followerId, followeeId int64) (interface{}, error) {
 	c.TypeConstant = models.Channel_TYPE_FOLLOWERS
 	c.CreatorId = followeeId
 
-	channel, err := utils.SendModel("POST", "/channel", c)
+	channel, err := sendModel("POST", "/channel", c)
 	if err != nil {
 		return nil, err
 	}
@@ -52,26 +50,31 @@ func FollowNotification(followerId, followeeId int64) (interface{}, error) {
 	return AddChannelParticipant(channel.(*models.Channel).Id, followerId, followerId)
 }
 
-func SubscribeMessage(accountId, messageId int64) (interface{}, error) {
-	n := notificationmodels.NewNotificationRequest()
-	n.AccountId = accountId
-	n.TargetId = messageId
-	res, err := utils.SendModel("POST", "/notification/subscribe", n)
+func SubscribeMessage(accountId, messageId int64, groupName string) (interface{}, error) {
+	req := models.NewPinRequest()
+	req.AccountId = accountId
+	req.MessageId = messageId
+	req.GroupName = groupName
+
+	url := "/activity/pin/add"
+	cmI, err := sendModel("POST", url, req)
 	if err != nil {
 		return nil, err
 	}
-
-	return res, nil
+	return cmI.(*models.PinRequest), nil
 }
 
-func UnSubscribeMessage(accountId, messageId int64) (interface{}, error) {
-	n := notificationmodels.NewNotificationRequest()
-	n.AccountId = accountId
-	n.TargetId = messageId
-	res, err := utils.SendModel("POST", "/notification/unsubscribe", n)
+func UnsubscribeMessage(accountId, messageId int64, groupName string) (*models.PinRequest, error) {
+	req := models.NewPinRequest()
+	req.AccountId = accountId
+	req.MessageId = messageId
+	req.GroupName = groupName
+
+	url := "/activity/pin/remove"
+	cmI, err := sendModel("POST", url, req)
 	if err != nil {
 		return nil, err
 	}
+	return cmI.(*models.PinRequest), nil
 
-	return res, nil
 }
