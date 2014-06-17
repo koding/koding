@@ -333,7 +333,6 @@ module.exports =
         enabled      : yes
         startMode    : "one"
 
-    run           : no
   guests          :
     # define this to limit the number of guset accounts
     # to be cleaned up per collection cycle.
@@ -400,7 +399,6 @@ module.exports =
       embedly        :
         apiKey       : embedlyApiKey
       userSitesDomain: "#{customDomain.public}"
-      useNeo4j: yes
       logToExternal: no  # rollbar, mixpanel etc.
       logToInternal: no  # log worker
       resourceName: socialQueueName
@@ -410,14 +408,6 @@ module.exports =
       suppressLogs: no
       broker    :
         servicesEndpoint: "#{customDomain.public}:#{customDomain.port}/-/services/broker"
-      premiumBroker:
-        servicesEndpoint: "#{customDomain.public}:#{customDomain.port}/-/services/premiumBroker"
-      brokerKite:
-        servicesEndpoint: "#{customDomain.public}:#{customDomain.port}/-/services/brokerKite"
-        brokerExchange: 'brokerKite'
-      premiumBrokerKite:
-        servicesEndpoint: "#{customDomain.public}:#{customDomain.port}/-/services/premiumBrokerKite"
-        brokerExchange: 'premiumBrokerKite'
       apiUri    : "#{customDomain.public}"
       version   : version
       mainUri   : "#{customDomain.public}"
@@ -450,23 +440,6 @@ module.exports =
         idleTime        : 1000 * 60 * 60
         externalUrl     : "https://s3.amazonaws.com/koding-ping/healthcheck.json"
 
-  # crypto :
-  #   encrypt: (str,key=Math.floor(Date.now()/1000/60))->
-  #     crypto = require "crypto"
-  #     str = str+""
-  #     key = key+""
-  #     cipher = crypto.createCipher('aes-256-cbc',""+key)
-  #     cipher.update(str,'utf-8')
-  #     a = cipher.final('hex')
-  #     return a
-  #   decrypt: (str,key=Math.floor(Date.now()/1000/60))->
-  #     crypto = require "crypto"
-  #     str = str+""
-  #     key = key+""
-  #     decipher = crypto.createDecipher('aes-256-cbc',""+key)
-  #     decipher.update(str,'hex')
-  #     b = decipher.final('utf-8')
-  #     return b
   recurly         :
     apiKey        : '4a0b7965feb841238eadf94a46ef72ee' # koding-test.recurly.com
     loggedRequests: /^(subscriptions|transactions)/
@@ -542,11 +515,6 @@ module.exports =
     rabbitMQ      : "notice"
     ldapserver    : "notice"
     broker        : "notice"
-  defaultVMConfigs:
-    freeVM        :
-      storage     : 3072
-      ram         : 1024
-      cpu         : 1
   sessionCookie   :
     maxAge        : cookieMaxAge
     secure        : cookieSecure
