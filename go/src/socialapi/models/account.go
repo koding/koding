@@ -146,7 +146,7 @@ func (a *Account) FetchFollowerIds() ([]int64, error) {
 	followerIds := make([]int64, 0)
 	if a.Id == 0 {
 		return nil, errors.New(
-			"Account id is not set for FetchFollowerChannelIds function ",
+			"account id is not set for FetchFollowerChannelIds function ",
 		)
 	}
 
@@ -165,7 +165,7 @@ func (a *Account) FetchFollowerIds() ([]int64, error) {
 
 func (a *Account) FetchChannel(channelType string) (*Channel, error) {
 	if a.Id == 0 {
-		return nil, errors.New("Account id is not set")
+		return nil, errors.New("account id is not set")
 	}
 
 	c := NewChannel()
@@ -183,7 +183,7 @@ func (a *Account) FetchChannel(channelType string) (*Channel, error) {
 
 func (a *Account) MarkAsTroll() error {
 	if a.Id == 0 {
-		return errors.New("Account id is not set")
+		return errors.New("account id is not set")
 	}
 
 	if err := a.ById(a.Id); err != nil {
@@ -192,7 +192,7 @@ func (a *Account) MarkAsTroll() error {
 
 	// do not try to mark twice
 	if a.IsTroll {
-		return fmt.Errorf("Account is already a troll %d", a.Id)
+		return fmt.Errorf("account is already a troll %d", a.Id)
 	}
 
 	a.IsTroll = true
@@ -209,7 +209,7 @@ func (a *Account) MarkAsTroll() error {
 
 func (a *Account) UnMarkAsTroll() error {
 	if a.Id == 0 {
-		return errors.New("Account id is not set")
+		return errors.New("account id is not set")
 	}
 
 	if err := a.ById(a.Id); err != nil {
@@ -218,7 +218,7 @@ func (a *Account) UnMarkAsTroll() error {
 
 	// do not try to un-mark twice
 	if !a.IsTroll {
-		return fmt.Errorf("Account is not a troll %d", a.Id)
+		return fmt.Errorf("account is not a troll %d", a.Id)
 	}
 
 	a.IsTroll = false
@@ -235,7 +235,7 @@ func (a *Account) UnMarkAsTroll() error {
 
 func (a *Account) CreateFollowingFeedChannel() (*Channel, error) {
 	if a.Id == 0 {
-		return nil, errors.New("Account id is not set")
+		return nil, errors.New("account id is not set")
 	}
 
 	c := NewChannel()
