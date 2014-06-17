@@ -86,32 +86,24 @@ createdb:
 	(vagrant ssh default --command "mongo localhost/koding --eval='db.jGroups.update({},{\$$unset:{socialApiChannelId:0}},{multi:true})'")
 	(vagrant ssh default --command "/opt/koding/go/src/socialapi/db/sql/definition/create.sh")
 
-configure: installall installrerun
+configure: install installrerun
 	@echo "$(OK_COLOR)==> Configuration is done $(NO_COLOR)"
 
 installrerun:
 	@go get github.com/skelterjohn/rerun
-	@go build github.com/skelterjohn/rerun
 	@go install github.com/skelterjohn/rerun
 
-installall:
-	@for package in $(PACKAGES); do (go build $$package); done
-	@for package in $(PACKAGES); do (go install $$package); done
-	@echo "$(OK_COLOR)==> Installed all packages $(NO_COLOR)"
+install:
+	@echo "$(OK_COLOR)==> Installing all packages $(NO_COLOR)"
+	@go install -v ${PACKAGES}
 
 test:
-	@for package in $(PACKAGES); \
-	do \
-		(echo "$(OK_COLOR)==> Running go test for $$package $(NO_COLOR)"); \
-		go test -v $$package; \
-	done;
+	@echo "$(OK_COLOR)==> Testing all packages $(NO_COLOR)"
+	@go test -v ${PACKAGES}
 
 build:
-	@for package in $(PACKAGES); \
-	do \
-		(echo "$(OK_COLOR)==> Building $$package $(NO_COLOR)"); \
-		go install $$package; \
-	done;
+	@echo "$(OK_COLOR)==> Building all packages $(NO_COLOR)"
+	@go build -v ${PACKAGES}
 
 testapi:
 	@echo "$(OK_COLOR)==> Running go api tests $(NO_COLOR)"
