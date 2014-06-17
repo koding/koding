@@ -55,7 +55,7 @@ func Glance(u *url.URL, h http.Header, req *models.Notification) (int, http.Head
 		return response.NewBadRequest(err)
 	}
 
-	return response.NewDefaultOKResponse()
+	return response.NewDefaultOK()
 }
 
 func fetchNotifications(q *socialmodels.Query) (*models.NotificationResponse, error) {

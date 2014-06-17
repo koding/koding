@@ -43,7 +43,7 @@ func NewDeleted() (int, http.Header, interface{}, error) {
 	return http.StatusAccepted, nil, nil, nil
 }
 
-func NewDefaultOKResponse() (int, http.Header, interface{}, error) {
+func NewDefaultOK() (int, http.Header, interface{}, error) {
 	res := map[string]interface{}{
 		"status": true,
 	}
