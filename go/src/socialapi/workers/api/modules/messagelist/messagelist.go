@@ -10,7 +10,7 @@ import (
 func List(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface{}, error) {
 	channelId, err := response.GetURIInt64(u, "id")
 	if err != nil {
-		return response.NewBadRequestResponse(err)
+		return response.NewBadRequest(err)
 	}
 
 	cml := models.NewChannelMessageList()

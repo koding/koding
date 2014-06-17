@@ -63,7 +63,7 @@ func ListTopics(u *url.URL, h http.Header, _ interface{}) (int, http.Header, int
 
 	year, dateNumber, err := getDateNumberAndYear(statisticName)
 	if err != nil {
-		return response.NewBadRequestResponse(errors.New("Unknown statistic name"))
+		return response.NewBadRequest(errors.New("Unknown statistic name"))
 	}
 
 	key := populartopic.PreparePopularTopicKey(
@@ -75,18 +75,18 @@ func ListTopics(u *url.URL, h http.Header, _ interface{}) (int, http.Header, int
 
 	popularTopicIds, err := getIds(key, query)
 	if err != nil {
-		return response.NewBadRequestResponse(err)
+		return response.NewBadRequest(err)
 	}
 
 	popularTopicIds, err = extendPopularTopicsIfNeeded(query, popularTopicIds)
 	if err != nil {
-		return response.NewBadRequestResponse(err)
+		return response.NewBadRequest(err)
 	}
 
 	c := models.NewChannel()
 	popularTopics, err := c.FetchByIds(popularTopicIds)
 	if err != nil {
-		return response.NewBadRequestResponse(err)
+		return response.NewBadRequest(err)
 	}
 
 	return response.HandleResultAndError(
@@ -148,7 +148,7 @@ func ListPosts(u *url.URL, h http.Header, _ interface{}) (int, http.Header, inte
 
 	year, dateNumber, err := getDateNumberAndYear(statisticName)
 	if err != nil {
-		return response.NewBadRequestResponse(errors.New("Unknown statistic name"))
+		return response.NewBadRequest(errors.New("Unknown statistic name"))
 	}
 
 	key := popularpost.PreparePopularPostKey(
@@ -161,17 +161,17 @@ func ListPosts(u *url.URL, h http.Header, _ interface{}) (int, http.Header, inte
 
 	popularPostIds, err := getIds(key, query)
 	if err != nil {
-		return response.NewBadRequestResponse(err)
+		return response.NewBadRequest(err)
 	}
 
 	popularPostIds, err = extendPopularPostsIfNeeded(query, popularPostIds, channelName)
 	if err != nil {
-		return response.NewBadRequestResponse(err)
+		return response.NewBadRequest(err)
 	}
 
 	popularPosts, err := models.NewChannelMessage().FetchByIds(popularPostIds)
 	if err != nil {
-		return response.NewBadRequestResponse(err)
+		return response.NewBadRequest(err)
 	}
 
 	query.Limit = 3

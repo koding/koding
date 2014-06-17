@@ -34,12 +34,12 @@ func Add(u *url.URL, h http.Header, req *models.Interaction) (int, http.Header, 
 	var err error
 	req, err = prepareInteraction(u, req)
 	if err != nil {
-		return response.NewBadRequestResponse(err)
+		return response.NewBadRequest(err)
 	}
 
 	// to-do check uniqness before saving
 	if err := req.Create(); err != nil {
-		return response.NewBadRequestResponse(err)
+		return response.NewBadRequest(err)
 	}
 
 	return response.NewOKResponse(req)
@@ -49,11 +49,11 @@ func Delete(u *url.URL, h http.Header, req *models.Interaction) (int, http.Heade
 	var err error
 	req, err = prepareInteraction(u, req)
 	if err != nil {
-		return response.NewBadRequestResponse(err)
+		return response.NewBadRequest(err)
 	}
 
 	if err := req.Delete(); err != nil {
-		return response.NewBadRequestResponse(err)
+		return response.NewBadRequest(err)
 	}
 
 	// yes it is deleted but not removed completely from our system
@@ -63,7 +63,7 @@ func Delete(u *url.URL, h http.Header, req *models.Interaction) (int, http.Heade
 func List(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface{}, error) {
 	messageId, err := response.GetURIInt64(u, "id")
 	if err != nil {
-		return response.NewBadRequestResponse(err)
+		return response.NewBadRequest(err)
 	}
 
 	query := response.GetQuery(u)
@@ -77,7 +77,7 @@ func List(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface
 
 	list, err := i.List(query)
 	if err != nil {
-		return response.NewBadRequestResponse(err)
+		return response.NewBadRequest(err)
 	}
 
 	return response.HandleResultAndError(

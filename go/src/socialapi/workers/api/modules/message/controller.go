@@ -13,7 +13,7 @@ import (
 func Create(u *url.URL, h http.Header, req *models.ChannelMessage) (int, http.Header, interface{}, error) {
 	channelId, err := response.GetURIInt64(u, "id")
 	if err != nil {
-		return response.NewBadRequestResponse(err)
+		return response.NewBadRequest(err)
 	}
 
 	// override message type
@@ -26,7 +26,7 @@ func Create(u *url.URL, h http.Header, req *models.ChannelMessage) (int, http.He
 
 	if err := req.Create(); err != nil {
 		// todo this should be internal server error
-		return response.NewBadRequestResponse(err)
+		return response.NewBadRequest(err)
 	}
 
 	cml := models.NewChannelMessageList()
@@ -35,7 +35,7 @@ func Create(u *url.URL, h http.Header, req *models.ChannelMessage) (int, http.He
 	cml.MessageId = req.Id
 	if err := cml.Create(); err != nil {
 		// todo this should be internal server error
-		return response.NewBadRequestResponse(err)
+		return response.NewBadRequest(err)
 	}
 
 	return response.HandleResultAndError(
@@ -46,19 +46,19 @@ func Create(u *url.URL, h http.Header, req *models.ChannelMessage) (int, http.He
 func Delete(u *url.URL, h http.Header, req *models.ChannelMessage) (int, http.Header, interface{}, error) {
 	id, err := response.GetURIInt64(u, "id")
 	if err != nil {
-		return response.NewBadRequestResponse(err)
+		return response.NewBadRequest(err)
 	}
 
 	if err := req.ById(id); err != nil {
 		if err == gorm.RecordNotFound {
 			return response.NewNotFoundResponse()
 		}
-		return response.NewBadRequestResponse(err)
+		return response.NewBadRequest(err)
 	}
 
 	err = deleteSingleMessage(req, true)
 	if err != nil {
-		return response.NewBadRequestResponse(err)
+		return response.NewBadRequest(err)
 	}
 
 	// yes it is deleted but not removed completely from our system
@@ -127,7 +127,7 @@ func deleteSingleMessage(cm *models.ChannelMessage, deleteReplies bool) error {
 func Update(u *url.URL, h http.Header, req *models.ChannelMessage) (int, http.Header, interface{}, error) {
 	id, err := response.GetURIInt64(u, "id")
 	if err != nil {
-		return response.NewBadRequestResponse(err)
+		return response.NewBadRequest(err)
 	}
 
 	body := req.Body
@@ -135,16 +135,16 @@ func Update(u *url.URL, h http.Header, req *models.ChannelMessage) (int, http.He
 		if err == gorm.RecordNotFound {
 			return response.NewNotFoundResponse()
 		}
-		return response.NewBadRequestResponse(err)
+		return response.NewBadRequest(err)
 	}
 
 	if req.Id == 0 {
-		return response.NewBadRequestResponse(err)
+		return response.NewBadRequest(err)
 	}
 
 	req.Body = body
 	if err := req.Update(); err != nil {
-		return response.NewBadRequestResponse(err)
+		return response.NewBadRequest(err)
 	}
 
 	return response.HandleResultAndError(
@@ -155,14 +155,14 @@ func Update(u *url.URL, h http.Header, req *models.ChannelMessage) (int, http.He
 func Get(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface{}, error) {
 	id, err := response.GetURIInt64(u, "id")
 	if err != nil {
-		return response.NewBadRequestResponse(err)
+		return response.NewBadRequest(err)
 	}
 	cm := models.NewChannelMessage()
 	if err := cm.ById(id); err != nil {
 		if err == gorm.RecordNotFound {
 			return response.NewNotFoundResponse()
 		}
-		return response.NewBadRequestResponse(err)
+		return response.NewBadRequest(err)
 	}
 
 	return response.HandleResultAndError(
@@ -173,7 +173,7 @@ func Get(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface{
 func GetWithRelated(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface{}, error) {
 	id, err := response.GetURIInt64(u, "id")
 	if err != nil {
-		return response.NewBadRequestResponse(err)
+		return response.NewBadRequest(err)
 	}
 
 	cm := models.NewChannelMessage()
@@ -181,12 +181,12 @@ func GetWithRelated(u *url.URL, h http.Header, _ interface{}) (int, http.Header,
 		if err == gorm.RecordNotFound {
 			return response.NewNotFoundResponse()
 		}
-		return response.NewBadRequestResponse(err)
+		return response.NewBadRequest(err)
 	}
 
 	cmc, err := cm.BuildMessage(response.GetQuery(u))
 	if err != nil {
-		return response.NewBadRequestResponse(err)
+		return response.NewBadRequest(err)
 	}
 
 	return response.NewOKResponse(cmc)
@@ -196,17 +196,17 @@ func GetBySlug(u *url.URL, h http.Header, _ interface{}) (int, http.Header, inte
 	q := response.GetQuery(u)
 
 	if q.Slug == "" {
-		return response.NewBadRequestResponse(errors.New("slug is not set"))
+		return response.NewBadRequest(errors.New("slug is not set"))
 	}
 
 	cm := models.NewChannelMessage()
 	if err := cm.BySlug(q); err != nil {
-		return response.NewBadRequestResponse(err)
+		return response.NewBadRequest(err)
 	}
 
 	cmc, err := cm.BuildMessage(q)
 	if err != nil {
-		return response.NewBadRequestResponse(err)
+		return response.NewBadRequest(err)
 	}
 
 	return response.NewOKResponse(cmc)

@@ -16,7 +16,7 @@ func GetPinnedActivityChannel(u *url.URL, h http.Header, _ interface{}) (int, ht
 	query := response.GetQuery(u)
 
 	if query.AccountId == 0 {
-		return response.NewBadRequestResponse(fmt.Errorf("Account id is not set for fetching pinned activity channel"))
+		return response.NewBadRequest(fmt.Errorf("Account id is not set for fetching pinned activity channel"))
 	}
 
 	return response.HandleResultAndError(
@@ -45,16 +45,16 @@ func checkPinMessagePrerequisites(channel *models.Channel, pinRequest *models.Pi
 
 func PinMessage(u *url.URL, h http.Header, req *models.PinRequest) (int, http.Header, interface{}, error) {
 	if err := validatePinRequest(req); err != nil {
-		return response.NewBadRequestResponse(err)
+		return response.NewBadRequest(err)
 	}
 
 	c, err := ensurePinnedActivityChannel(req.AccountId, req.GroupName)
 	if err != nil {
-		return response.NewBadRequestResponse(err)
+		return response.NewBadRequest(err)
 	}
 
 	if err := checkPinMessagePrerequisites(c, req); err != nil {
-		return response.NewBadRequestResponse(err)
+		return response.NewBadRequest(err)
 	}
 
 	return response.HandleResultAndError(c.AddMessage(req.MessageId))
@@ -64,16 +64,16 @@ func List(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface
 	query := response.GetQuery(u)
 
 	if query.AccountId == 0 {
-		return response.NewBadRequestResponse(errors.New("Account id is not set for fetching pinned activities"))
+		return response.NewBadRequest(errors.New("Account id is not set for fetching pinned activities"))
 	}
 
 	c, err := ensurePinnedActivityChannel(query.AccountId, query.GroupName)
 	if err != nil {
-		return response.NewBadRequestResponse(err)
+		return response.NewBadRequest(err)
 	}
 
 	if c.CreatorId != query.AccountId {
-		return response.NewBadRequestResponse(errors.New("Only owner can list pinned messages"))
+		return response.NewBadRequest(errors.New("Only owner can list pinned messages"))
 	}
 
 	cml := models.NewChannelMessageList()
@@ -83,16 +83,16 @@ func List(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface
 
 func UnpinMessage(u *url.URL, h http.Header, req *models.PinRequest) (int, http.Header, interface{}, error) {
 	if err := validatePinRequest(req); err != nil {
-		return response.NewBadRequestResponse(err)
+		return response.NewBadRequest(err)
 	}
 
 	c, err := ensurePinnedActivityChannel(req.AccountId, req.GroupName)
 	if err != nil {
-		return response.NewBadRequestResponse(err)
+		return response.NewBadRequest(err)
 	}
 
 	if err := checkPinMessagePrerequisites(c, req); err != nil {
-		return response.NewBadRequestResponse(err)
+		return response.NewBadRequest(err)
 	}
 
 	return response.HandleResultAndError(
@@ -102,26 +102,26 @@ func UnpinMessage(u *url.URL, h http.Header, req *models.PinRequest) (int, http.
 
 func Glance(u *url.URL, h http.Header, req *models.PinRequest) (int, http.Header, interface{}, error) {
 	if err := validatePinRequest(req); err != nil {
-		return response.NewBadRequestResponse(err)
+		return response.NewBadRequest(err)
 	}
 
 	c, err := ensurePinnedActivityChannel(req.AccountId, req.GroupName)
 	if err != nil {
-		return response.NewBadRequestResponse(err)
+		return response.NewBadRequest(err)
 	}
 
 	if err := checkPinMessagePrerequisites(c, req); err != nil {
-		return response.NewBadRequestResponse(err)
+		return response.NewBadRequest(err)
 	}
 
 	cml, err := c.FetchMessageList(req.MessageId)
 	if err != nil {
-		return response.NewBadRequestResponse(err)
+		return response.NewBadRequest(err)
 	}
 
 	cml.AddedAt = time.Now().UTC()
 	if err := cml.Update(); err != nil {
-		return response.NewBadRequestResponse(err)
+		return response.NewBadRequest(err)
 	}
 
 	return response.NewOKResponse(cml)

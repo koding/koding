@@ -30,7 +30,7 @@ const (
 func List(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface{}, error) {
 	q := response.GetQuery(u)
 	if err := validateNotificationRequest(q); err != nil {
-		return response.NewBadRequestResponse(err)
+		return response.NewBadRequest(err)
 	}
 
 	conf := config.Get()
@@ -49,10 +49,10 @@ func Glance(u *url.URL, h http.Header, req *models.Notification) (int, http.Head
 	q := socialmodels.NewQuery()
 	q.AccountId = req.AccountId
 	if err := validateNotificationRequest(q); err != nil {
-		return response.NewBadRequestResponse(err)
+		return response.NewBadRequest(err)
 	}
 	if err := req.Glance(); err != nil {
-		return response.NewBadRequestResponse(err)
+		return response.NewBadRequest(err)
 	}
 
 	return response.NewDefaultOKResponse()

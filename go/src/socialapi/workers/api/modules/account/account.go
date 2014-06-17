@@ -15,7 +15,7 @@ func ListChannels(u *url.URL, h http.Header, _ interface{}, c *models.Context) (
 
 	accountId, err := response.GetURIInt64(u, "id")
 	if err != nil {
-		return response.NewBadRequestResponse(err)
+		return response.NewBadRequest(err)
 	}
 
 	if query.Type == "" {
@@ -25,7 +25,7 @@ func ListChannels(u *url.URL, h http.Header, _ interface{}, c *models.Context) (
 	a := &models.Account{Id: accountId}
 	channels, err := a.FetchChannels(query)
 	if err != nil {
-		return response.NewBadRequestResponse(err)
+		return response.NewBadRequest(err)
 	}
 
 	return response.HandleResultAndError(
@@ -39,7 +39,7 @@ func ListPosts(u *url.URL, h http.Header, _ interface{}) (int, http.Header, inte
 
 	accountId, err := response.GetURIInt64(u, "id")
 	if err != nil {
-		return response.NewBadRequestResponse(err)
+		return response.NewBadRequest(err)
 	}
 
 	// Get Group Channel
@@ -50,7 +50,7 @@ func ListPosts(u *url.URL, h http.Header, _ interface{}) (int, http.Header, inte
 
 	c := models.NewChannel()
 	if err := c.One(bongo.NewQS(selector)); err != nil {
-		return response.NewBadRequestResponse(err)
+		return response.NewBadRequest(err)
 	}
 	// fetch only channel messages
 	query.Type = models.ChannelMessage_TYPE_POST
@@ -58,7 +58,7 @@ func ListPosts(u *url.URL, h http.Header, _ interface{}) (int, http.Header, inte
 	cm := models.NewChannelMessage()
 	messages, err := cm.FetchMessagesByChannelId(c.Id, query)
 	if err != nil {
-		return response.NewBadRequestResponse(err)
+		return response.NewBadRequest(err)
 	}
 
 	buildMessageQuery.Limit = 3
@@ -70,7 +70,7 @@ func ListPosts(u *url.URL, h http.Header, _ interface{}) (int, http.Header, inte
 func Follow(u *url.URL, h http.Header, req *models.Account) (int, http.Header, interface{}, error) {
 	targetId, err := response.GetURIInt64(u, "id")
 	if err != nil {
-		return response.NewBadRequestResponse(err)
+		return response.NewBadRequest(err)
 	}
 
 	return response.HandleResultAndError(
@@ -81,7 +81,7 @@ func Follow(u *url.URL, h http.Header, req *models.Account) (int, http.Header, i
 func Register(u *url.URL, h http.Header, req *models.Account) (int, http.Header, interface{}, error) {
 
 	if err := req.FetchOrCreate(); err != nil {
-		return response.NewBadRequestResponse(err)
+		return response.NewBadRequest(err)
 	}
 
 	return response.NewOKResponse(req)
@@ -90,7 +90,7 @@ func Register(u *url.URL, h http.Header, req *models.Account) (int, http.Header,
 func Unfollow(u *url.URL, h http.Header, req *models.Account) (int, http.Header, interface{}, error) {
 	targetId, err := response.GetURIInt64(u, "id")
 	if err != nil {
-		return response.NewBadRequestResponse(err)
+		return response.NewBadRequest(err)
 	}
 
 	return response.HandleResultAndError(req.Unfollow(targetId))
