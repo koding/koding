@@ -137,8 +137,8 @@ class ActivityAppView extends KDScrollView
     return new YourTopicsModal delegate : this
 
 
-  showAllPostsModal: ->
+  showAllConversationsModal: ->
 
     @open 'public'  unless @tabs.getActivePane()
 
-    return new AllPostsModal delegate : this
+    return new ConversationsModal delegate : this
