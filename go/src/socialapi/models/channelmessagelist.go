@@ -231,8 +231,8 @@ func (c *ChannelMessageList) populateChannelMessages(channelMessages []ChannelMe
 
 		populatedChannelMessages[i] = cmc
 	}
-	return populatedChannelMessages, nil
 
+	return populatedChannelMessages, nil
 }
 
 func (c *ChannelMessageList) FetchMessageChannelIds(messageId int64) ([]int64, error) {
