@@ -248,6 +248,12 @@ class IDEAppController extends AppController
   registerIDEView: (ideView) ->
     @ideViews.push ideView
 
+    ideView.on 'PaneRemoved', =>
+      ideViewLength  = 0
+      ideViewLength += ideView.tabView.panes.length  for ideView in @ideViews
+
+      @statusBar.empty()  if ideViewLength is 0
+
   forEachSubViewInIDEViews_: (callback = noop, paneType) ->
     for ideView in @ideViews
       for pane in ideView.tabView.panes
