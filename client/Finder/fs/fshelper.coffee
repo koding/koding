@@ -91,6 +91,8 @@ class FSHelper
   @plainPath:(path)-> path.replace /^\[.*\]/, ''
   @getVMNameFromPath:(path)-> (/^\[([^\]]+)\]/g.exec path)?[1]
 
+  @getUidFromPath:(path)-> (/^\[([^\]]+)\]/g.exec path)?[1]
+
   @handleStdErr = ->
     (result) ->
       { stdout, stderr, exitStatus } = result
@@ -155,10 +157,16 @@ class FSHelper
     return name.split('.').shift()
 
   @getParentPath = (path)->
-    path = path.substr(0, path.length-1) if path.substr(-1) is "/"
-    parentPath = path.split('/')
-    parentPath.pop()
-    return parentPath.join('/')
+
+    uid = @getUidFromPath path
+    if uid? then path = @plainPath path
+
+    path   = path.replace /\/$/, ''
+    parent = path.split '/'; parent.pop(); parent = parent.join '/'
+    parent = "/"  if parent is ""
+    parent = "[#{uid}]#{parent}"  if uid
+
+    return parent
 
   @createRecursiveFolder = ({ path, vmName }, callback = noop) ->
     return warn "Pass a path to create folders recursively"  unless path
