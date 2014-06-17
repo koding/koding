@@ -47,22 +47,23 @@ class IDEAppController extends AppController
 
     super options, data
 
-    layoutOptions   =
-      direction     : 'vertical'
-      splitName     : 'BaseSplit'
-      sizes         : [ '234px', null ]
-      views         : [
-        {
-          type      : 'custom'
-          name      : 'filesPane'
-          paneClass : IDE.IDEFilesTabView
-        },
-        {
-          type      : 'custom'
-          name      : 'editorPane'
-          paneClass : IDE.IDEView
-        }
-      ]
+    layoutOptions     =
+      splitOptions    :
+        direction     : 'vertical'
+        name          : 'BaseSplit'
+        sizes         : [ '234px', null ]
+        views         : [
+          {
+            type      : 'custom'
+            name      : 'filesPane'
+            paneClass : IDE.IDEFilesTabView
+          },
+          {
+            type      : 'custom'
+            name      : 'editorPane'
+            paneClass : IDE.IDEView
+          }
+        ]
 
     $('body').addClass 'dark' # for theming
 
