@@ -6,7 +6,9 @@ import (
 	"koding/db/mongodb/modelhelper"
 	"koding/helpers"
 	"socialapi/models"
+	"strings"
 
+	"github.com/VerbalExpressions/GoVerbalExpressions"
 	"github.com/jinzhu/gorm"
 	"labix.org/v2/mgo/bson"
 )
@@ -173,6 +175,8 @@ func (mwc *Controller) migrateTags(cm *models.ChannelMessage, oldId bson.ObjectI
 	if err != nil {
 		return fmt.Errorf("tags cannot be fetched for message %s: %s", oldId, err)
 	}
+	// store tag id/title pairs
+	tags := make(map[string]string)
 	for _, r := range rels {
 		t, err := modelhelper.GetTagById(r.TargetId.Hex())
 		if err != nil {
@@ -187,9 +191,49 @@ func (mwc *Controller) migrateTags(cm *models.ChannelMessage, oldId bson.ObjectI
 		if err := cml.CreateRaw(); err != nil {
 			mwc.log.Error("Message tag cannot be created for message %s: %s", oldId, err)
 		}
+
+		tags[t.Id.Hex()] = t.Title
+	}
+
+	if err := updateBody(cm, tags); err != nil {
+		return err
 	}
 
 	return nil
+}
+
+func updateBody(cm *models.ChannelMessage, tags map[string]string) error {
+	newTagExpr := verbalexpressions.New().Find(":").Word().Then("|")
+	conditionExpr := verbalexpressions.New().Find("|").Or(newTagExpr)
+	tagRegex := verbalexpressions.New().
+		BeginCapture().
+		Find("|#:JTag:").
+		Word().
+		And(conditionExpr).
+		EndCapture().
+		Regex()
+
+	res := tagRegex.FindAllStringSubmatch(cm.Body, -1)
+	// no tags found
+	if len(res) == 0 {
+		return nil
+	}
+
+	temp := cm.Body
+	for _, element := range res {
+		tag := element[0][1 : len(element[1])-1]
+		tagId := strings.Split(tag, ":")[2]
+		if title, ok := tags[tagId]; ok {
+			temp = verbalexpressions.New().Find(element[0]).Replace(temp, fmt.Sprintf("#%s", title))
+			continue
+		}
+		// if tag is not found then remove
+		temp = verbalexpressions.New().Find(element[0]).Replace(temp, "")
+	}
+
+	cm.Body = temp
+
+	return cm.UpdateBodyRaw()
 }
 
 func completeTagMigration(tag *mongomodels.Tag, channelId int64) error {
