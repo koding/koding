@@ -7,6 +7,11 @@ import (
 	"io/ioutil"
 )
 
+var (
+	// global flags variables
+	flagRandomKite bool
+)
+
 type Flag struct {
 	*flag.FlagSet
 	name     string
@@ -17,6 +22,7 @@ type Flag struct {
 func NewFlag(name, synopsis string) *Flag {
 	flagSet := flag.NewFlagSet(name, flag.PanicOnError)
 	flagSet.SetOutput(ioutil.Discard)
+	flagSet.BoolVar(&flagRandomKite, "random-kite", false, "Enable random choosing of kites for many options.")
 
 	f := &Flag{
 		name:     name,
