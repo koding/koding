@@ -146,6 +146,7 @@ func getPrivateMessageChannels(q *models.Query) ([]models.Channel, error) {
 		models.ChannelParticipant_STATUS_ACTIVE).
 		Limit(q.Limit).
 		Offset(q.Skip).
+		Order("api.channel.updated_at DESC").
 		Rows()
 	defer rows.Close()
 	if err != nil {
