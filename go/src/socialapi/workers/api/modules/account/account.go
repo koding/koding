@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"net/url"
 	"socialapi/models"
+	"socialapi/workers/common/request"
 	"socialapi/workers/common/response"
 
 	"github.com/koding/bongo"
@@ -11,9 +12,9 @@ import (
 
 // lists followed channels of an account
 func ListChannels(u *url.URL, h http.Header, _ interface{}, c *models.Context) (int, http.Header, interface{}, error) {
-	query := response.GetQuery(u)
+	query := request.GetQuery(u)
 
-	accountId, err := response.GetURIInt64(u, "id")
+	accountId, err := request.GetURIInt64(u, "id")
 	if err != nil {
 		return response.NewBadRequest(err)
 	}
@@ -34,10 +35,10 @@ func ListChannels(u *url.URL, h http.Header, _ interface{}, c *models.Context) (
 }
 
 func ListPosts(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface{}, error) {
-	query := response.GetQuery(u)
+	query := request.GetQuery(u)
 	buildMessageQuery := query
 
-	accountId, err := response.GetURIInt64(u, "id")
+	accountId, err := request.GetURIInt64(u, "id")
 	if err != nil {
 		return response.NewBadRequest(err)
 	}
@@ -68,7 +69,7 @@ func ListPosts(u *url.URL, h http.Header, _ interface{}) (int, http.Header, inte
 }
 
 func Follow(u *url.URL, h http.Header, req *models.Account) (int, http.Header, interface{}, error) {
-	targetId, err := response.GetURIInt64(u, "id")
+	targetId, err := request.GetURIInt64(u, "id")
 	if err != nil {
 		return response.NewBadRequest(err)
 	}
@@ -88,7 +89,7 @@ func Register(u *url.URL, h http.Header, req *models.Account) (int, http.Header,
 }
 
 func Unfollow(u *url.URL, h http.Header, req *models.Account) (int, http.Header, interface{}, error) {
-	targetId, err := response.GetURIInt64(u, "id")
+	targetId, err := request.GetURIInt64(u, "id")
 	if err != nil {
 		return response.NewBadRequest(err)
 	}

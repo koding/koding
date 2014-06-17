@@ -6,12 +6,13 @@ import (
 	"net/http"
 	"net/url"
 	"socialapi/models"
+	"socialapi/workers/common/request"
 	"socialapi/workers/common/response"
 	"time"
 )
 
 func List(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface{}, error) {
-	channelId, err := response.GetURIInt64(u, "id")
+	channelId, err := request.GetURIInt64(u, "id")
 	if err != nil {
 		fmt.Println(err)
 		return response.NewBadRequest(err)
@@ -33,12 +34,12 @@ func Add(u *url.URL, h http.Header, req *models.ChannelParticipant) (int, http.H
 		return response.NewBadRequest(errors.New("Requester AccountId is not set"))
 	}
 
-	channelId, err := response.GetURIInt64(u, "id")
+	channelId, err := request.GetURIInt64(u, "id")
 	if err != nil {
 		return response.NewBadRequest(err)
 	}
 
-	accountId, err := response.GetURIInt64(u, "accountId")
+	accountId, err := request.GetURIInt64(u, "accountId")
 	if err != nil {
 		return response.NewBadRequest(err)
 	}
@@ -85,12 +86,12 @@ func Delete(u *url.URL, h http.Header, req *models.ChannelParticipant) (int, htt
 		return response.NewBadRequest(errors.New("Requester AccountId is not set"))
 	}
 
-	channelId, err := response.GetURIInt64(u, "id")
+	channelId, err := request.GetURIInt64(u, "id")
 	if err != nil {
 		return response.NewBadRequest(err)
 	}
 
-	accountId, err := response.GetURIInt64(u, "accountId")
+	accountId, err := request.GetURIInt64(u, "accountId")
 	if err != nil {
 		return response.NewBadRequest(err)
 	}
@@ -118,12 +119,12 @@ func Presence(u *url.URL, h http.Header, req *models.ChannelParticipant) (int, h
 		return response.NewBadRequest(errors.New("Requester AccountId is not set"))
 	}
 
-	channelId, err := response.GetURIInt64(u, "id")
+	channelId, err := request.GetURIInt64(u, "id")
 	if err != nil {
 		return response.NewBadRequest(err)
 	}
 
-	accountId, err := response.GetURIInt64(u, "accountId")
+	accountId, err := request.GetURIInt64(u, "accountId")
 	if err != nil {
 		return response.NewBadRequest(err)
 	}

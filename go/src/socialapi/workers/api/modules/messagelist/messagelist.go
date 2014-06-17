@@ -4,11 +4,12 @@ import (
 	"net/http"
 	"net/url"
 	"socialapi/models"
+	"socialapi/workers/common/request"
 	"socialapi/workers/common/response"
 )
 
 func List(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface{}, error) {
-	channelId, err := response.GetURIInt64(u, "id")
+	channelId, err := request.GetURIInt64(u, "id")
 	if err != nil {
 		return response.NewBadRequest(err)
 	}
@@ -18,7 +19,7 @@ func List(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface
 
 	return response.HandleResultAndError(
 		cml.List(
-			response.GetQuery(u),
+			request.GetQuery(u),
 			false,
 		),
 	)

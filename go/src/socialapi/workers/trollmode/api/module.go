@@ -4,11 +4,12 @@ import (
 	"net/http"
 	"net/url"
 	"socialapi/models"
+	"socialapi/workers/common/request"
 	"socialapi/workers/common/response"
 )
 
 func Mark(u *url.URL, h http.Header, req map[string]interface{}) (int, http.Header, interface{}, error) {
-	targetId, err := response.GetURIInt64(u, "accountId")
+	targetId, err := request.GetURIInt64(u, "accountId")
 	if err != nil {
 		return response.NewBadRequest(err)
 	}
@@ -20,7 +21,7 @@ func Mark(u *url.URL, h http.Header, req map[string]interface{}) (int, http.Head
 }
 
 func UnMark(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface{}, error) {
-	targetId, err := response.GetURIInt64(u, "accountId")
+	targetId, err := request.GetURIInt64(u, "accountId")
 	if err != nil {
 		return response.NewBadRequest(err)
 	}

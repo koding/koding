@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"net/url"
 	"socialapi/models"
+	"socialapi/workers/common/request"
 	"socialapi/workers/common/response"
 	"socialapi/workers/helper"
 	"socialapi/workers/popularpost/popularpost"
@@ -57,7 +58,7 @@ func getIds(key string, query *models.Query) ([]int64, error) {
 }
 
 func ListTopics(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface{}, error) {
-	query := response.GetQuery(u)
+	query := request.GetQuery(u)
 
 	statisticName := u.Query().Get("statisticName")
 
@@ -140,7 +141,7 @@ func fetchMoreChannels(group string, count int) ([]models.Channel, error) {
 }
 
 func ListPosts(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface{}, error) {
-	query := response.GetQuery(u)
+	query := request.GetQuery(u)
 	query.Type = models.ChannelMessage_TYPE_POST
 
 	statisticName := u.Query().Get("statisticName")

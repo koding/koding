@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"net/url"
 	"socialapi/models"
+	"socialapi/workers/common/request"
 	"socialapi/workers/common/response"
 
 	"github.com/jinzhu/gorm"
@@ -48,7 +49,7 @@ func Create(u *url.URL, h http.Header, req *models.Channel) (int, http.Header, i
 
 func List(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface{}, error) {
 	c := models.NewChannel()
-	q := response.GetQuery(u)
+	q := request.GetQuery(u)
 	q.Type = models.Channel_TYPE_TOPIC
 	channelList, err := c.List(q)
 	if err != nil {
@@ -64,7 +65,7 @@ func List(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface
 }
 
 func Search(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface{}, error) {
-	q := response.GetQuery(u)
+	q := request.GetQuery(u)
 	q.Type = models.Channel_TYPE_TOPIC
 
 	channelList, err := models.NewChannel().Search(q)
@@ -81,7 +82,7 @@ func Search(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interfa
 }
 
 func ByName(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface{}, error) {
-	q := response.GetQuery(u)
+	q := request.GetQuery(u)
 	q.Type = models.Channel_TYPE_TOPIC
 
 	channelList, err := models.NewChannel().ByName(q)
@@ -98,7 +99,7 @@ func ByName(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interfa
 }
 
 func CheckParticipation(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface{}, error) {
-	q := response.GetQuery(u)
+	q := request.GetQuery(u)
 	if q.Type == "" || q.AccountId == 0 {
 		return response.NewBadRequest(errors.New("type or accountid is not set"))
 	}
@@ -137,7 +138,7 @@ func CheckParticipation(u *url.URL, h http.Header, _ interface{}) (int, http.Hea
 
 func Delete(u *url.URL, h http.Header, req *models.Channel) (int, http.Header, interface{}, error) {
 
-	id, err := response.GetURIInt64(u, "id")
+	id, err := request.GetURIInt64(u, "id")
 	if err != nil {
 		return response.NewBadRequest(err)
 	}
@@ -157,7 +158,7 @@ func Delete(u *url.URL, h http.Header, req *models.Channel) (int, http.Header, i
 }
 
 func Update(u *url.URL, h http.Header, req *models.Channel) (int, http.Header, interface{}, error) {
-	id, err := response.GetURIInt64(u, "id")
+	id, err := request.GetURIInt64(u, "id")
 	if err != nil {
 		return response.NewBadRequest(err)
 	}
@@ -193,11 +194,11 @@ func Update(u *url.URL, h http.Header, req *models.Channel) (int, http.Header, i
 }
 
 func Get(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface{}, error) {
-	id, err := response.GetURIInt64(u, "id")
+	id, err := request.GetURIInt64(u, "id")
 	if err != nil {
 		return response.NewBadRequest(err)
 	}
-	q := response.GetQuery(u)
+	q := request.GetQuery(u)
 
 	c := models.NewChannel()
 	if err := c.ById(id); err != nil {

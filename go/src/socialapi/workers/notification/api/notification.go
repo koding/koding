@@ -8,6 +8,7 @@ import (
 	"socialapi/config"
 	// TODO delete these socialapi dependencies
 	socialmodels "socialapi/models"
+	"socialapi/workers/common/request"
 	"socialapi/workers/common/response"
 	"socialapi/workers/notification/models"
 	"strconv"
@@ -28,7 +29,7 @@ const (
 )
 
 func List(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface{}, error) {
-	q := response.GetQuery(u)
+	q := request.GetQuery(u)
 	if err := validateNotificationRequest(q); err != nil {
 		return response.NewBadRequest(err)
 	}

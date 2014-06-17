@@ -5,12 +5,13 @@ import (
 	"net/url"
 	"socialapi/models"
 	"socialapi/workers/api/modules/helpers"
+	"socialapi/workers/common/request"
 	"socialapi/workers/common/response"
 	"time"
 )
 
 func Create(u *url.URL, h http.Header, reply *models.ChannelMessage) (int, http.Header, interface{}, error) {
-	parentId, err := response.GetURIInt64(u, "id")
+	parentId, err := request.GetURIInt64(u, "id")
 	if err != nil {
 		return response.NewBadRequest(err)
 	}
@@ -91,7 +92,7 @@ func updateAllContainingChannels(parentId int64) error {
 }
 
 func Delete(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface{}, error) {
-	parentId, err := response.GetURIInt64(u, "id")
+	parentId, err := request.GetURIInt64(u, "id")
 	if err != nil {
 		return response.NewBadRequest(err)
 	}
@@ -101,7 +102,7 @@ func Delete(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interfa
 		return response.NewBadRequest(err)
 	}
 
-	replyId, err := response.GetURIInt64(u, "replyId")
+	replyId, err := request.GetURIInt64(u, "replyId")
 	if err != nil {
 		return response.NewBadRequest(err)
 	}
@@ -131,7 +132,7 @@ func Delete(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interfa
 }
 
 func List(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface{}, error) {
-	messageId, err := response.GetURIInt64(u, "id")
+	messageId, err := request.GetURIInt64(u, "id")
 	if err != nil {
 		return response.NewBadRequest(err)
 	}
@@ -142,7 +143,7 @@ func List(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface
 	return response.HandleResultAndError(
 		helpers.ConvertMessagesToMessageContainers(
 			reply.List(
-				response.GetQuery(u),
+				request.GetQuery(u),
 			),
 		),
 	)

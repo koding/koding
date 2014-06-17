@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"net/url"
 	"socialapi/models"
+	"socialapi/workers/common/request"
 	"socialapi/workers/common/response"
 	"time"
 
@@ -13,7 +14,7 @@ import (
 )
 
 func GetPinnedActivityChannel(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface{}, error) {
-	query := response.GetQuery(u)
+	query := request.GetQuery(u)
 
 	if query.AccountId == 0 {
 		return response.NewBadRequest(fmt.Errorf("Account id is not set for fetching pinned activity channel"))
@@ -61,7 +62,7 @@ func PinMessage(u *url.URL, h http.Header, req *models.PinRequest) (int, http.He
 }
 
 func List(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface{}, error) {
-	query := response.GetQuery(u)
+	query := request.GetQuery(u)
 
 	if query.AccountId == 0 {
 		return response.NewBadRequest(errors.New("Account id is not set for fetching pinned activities"))

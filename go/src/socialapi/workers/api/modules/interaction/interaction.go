@@ -6,11 +6,12 @@ import (
 	"net/http"
 	"net/url"
 	"socialapi/models"
+	"socialapi/workers/common/request"
 	"socialapi/workers/common/response"
 )
 
 func prepareInteraction(u *url.URL, req *models.Interaction) (*models.Interaction, error) {
-	messageId, err := response.GetURIInt64(u, "id")
+	messageId, err := request.GetURIInt64(u, "id")
 	if err != nil {
 		return nil, errors.New("Couldnt get mesage id from URI")
 	}
@@ -61,12 +62,12 @@ func Delete(u *url.URL, h http.Header, req *models.Interaction) (int, http.Heade
 }
 
 func List(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface{}, error) {
-	messageId, err := response.GetURIInt64(u, "id")
+	messageId, err := request.GetURIInt64(u, "id")
 	if err != nil {
 		return response.NewBadRequest(err)
 	}
 
-	query := response.GetQuery(u)
+	query := request.GetQuery(u)
 	if query.Type == "" {
 		query.Type = "like"
 	}

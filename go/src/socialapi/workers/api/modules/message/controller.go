@@ -5,13 +5,14 @@ import (
 	"net/http"
 	"net/url"
 	"socialapi/models"
+	"socialapi/workers/common/request"
 	"socialapi/workers/common/response"
 
 	"github.com/jinzhu/gorm"
 )
 
 func Create(u *url.URL, h http.Header, req *models.ChannelMessage) (int, http.Header, interface{}, error) {
-	channelId, err := response.GetURIInt64(u, "id")
+	channelId, err := request.GetURIInt64(u, "id")
 	if err != nil {
 		return response.NewBadRequest(err)
 	}
@@ -44,7 +45,7 @@ func Create(u *url.URL, h http.Header, req *models.ChannelMessage) (int, http.He
 }
 
 func Delete(u *url.URL, h http.Header, req *models.ChannelMessage) (int, http.Header, interface{}, error) {
-	id, err := response.GetURIInt64(u, "id")
+	id, err := request.GetURIInt64(u, "id")
 	if err != nil {
 		return response.NewBadRequest(err)
 	}
@@ -125,7 +126,7 @@ func deleteSingleMessage(cm *models.ChannelMessage, deleteReplies bool) error {
 }
 
 func Update(u *url.URL, h http.Header, req *models.ChannelMessage) (int, http.Header, interface{}, error) {
-	id, err := response.GetURIInt64(u, "id")
+	id, err := request.GetURIInt64(u, "id")
 	if err != nil {
 		return response.NewBadRequest(err)
 	}
@@ -153,7 +154,7 @@ func Update(u *url.URL, h http.Header, req *models.ChannelMessage) (int, http.He
 }
 
 func Get(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface{}, error) {
-	id, err := response.GetURIInt64(u, "id")
+	id, err := request.GetURIInt64(u, "id")
 	if err != nil {
 		return response.NewBadRequest(err)
 	}
@@ -171,7 +172,7 @@ func Get(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface{
 }
 
 func GetWithRelated(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface{}, error) {
-	id, err := response.GetURIInt64(u, "id")
+	id, err := request.GetURIInt64(u, "id")
 	if err != nil {
 		return response.NewBadRequest(err)
 	}
@@ -184,7 +185,7 @@ func GetWithRelated(u *url.URL, h http.Header, _ interface{}) (int, http.Header,
 		return response.NewBadRequest(err)
 	}
 
-	cmc, err := cm.BuildMessage(response.GetQuery(u))
+	cmc, err := cm.BuildMessage(request.GetQuery(u))
 	if err != nil {
 		return response.NewBadRequest(err)
 	}
@@ -193,7 +194,7 @@ func GetWithRelated(u *url.URL, h http.Header, _ interface{}) (int, http.Header,
 }
 
 func GetBySlug(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface{}, error) {
-	q := response.GetQuery(u)
+	q := request.GetQuery(u)
 
 	if q.Slug == "" {
 		return response.NewBadRequest(errors.New("slug is not set"))

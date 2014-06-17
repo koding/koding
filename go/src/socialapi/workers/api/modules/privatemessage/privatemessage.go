@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"net/url"
 	"socialapi/models"
+	"socialapi/workers/common/request"
 	"socialapi/workers/common/response"
 
 	"github.com/koding/bongo"
@@ -117,7 +118,7 @@ func Send(u *url.URL, h http.Header, req *models.PrivateMessageRequest) (int, ht
 }
 
 func List(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface{}, error) {
-	q := response.GetQuery(u)
+	q := request.GetQuery(u)
 
 	channels, err := getPrivateMessageChannels(q)
 	if err != nil {
