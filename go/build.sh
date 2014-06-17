@@ -11,10 +11,7 @@ ldflags="-X koding/tools/lifecycle.version $(git rev-parse HEAD)"
 services=(
   koding/broker
   koding/rerouting
-  koding/userpresence
   koding/persistence
-  koding/kites/os
-  koding/kites/terminal
   github.com/koding/kite/cmd/kite
   github.com/koding/kite/reverseproxy/reverseproxy
   koding/kites/kontrol
@@ -26,13 +23,10 @@ services=(
   koding/kontrol/kontroldaemon
   koding/kontrol/kontrolapi
   koding/kontrol/kontrolclient
-  koding/workers/neo4jfeeder
   koding/workers/elasticsearchfeeder
   koding/workers/externals
   koding/workers/graphitefeeder
   koding/cron
-  koding/migrators/posts
-  koding/migrators/posts/remover
   socialapi/workers/api
 )
 

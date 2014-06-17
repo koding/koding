@@ -15,7 +15,6 @@ echo "iptables -F" >>/etc/rc.local
 echo "iptables -A INPUT -i lo -j ACCEPT" >>/etc/rc.local
 echo "iptables -A INPUT -s 208.72.139.54 -j ACCEPT" >>/etc/rc.local
 echo "iptables -A INPUT -s 208.87.56.148 -j ACCEPT" >>/etc/rc.local
-echo "iptables -A INPUT -s 12.130.117.34 -j ACCEPT" >>/etc/rc.local
 echo "iptables -A INPUT -p tcp --dport 4000 -j ACCEPT" >>/etc/rc.local
 echo "iptables -A INPUT -p tcp --dport 3999 -j ACCEPT" >>/etc/rc.local
 echo "iptables -A INPUT -p tcp --dport 3000 -j ACCEPT" >>/etc/rc.local
@@ -91,7 +90,7 @@ cd koding
 git checkout cake-rewrite
 git submodule init
 git submodule update
-npm i gulp stylus coffee-script -g
+npm i gulp stylus coffee-script -g 
 npm i --unsafe-perm
 
 
