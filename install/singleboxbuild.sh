@@ -1,3 +1,9 @@
+if [[ -n $1 ]]; then
+  echo $1 >/etc/host
+else
+  echo no param
+fi
+
 HOSTNAME=`hostname`
 
 echo "127.0.0.1 "$HOSTNAME >> /etc/hosts
@@ -15,8 +21,8 @@ echo "iptables -A INPUT -m state --state ESTABLISHED,RELATED -j ACCEPT" >>/etc/r
 echo "iptables -A INPUT -j DROP" >>/etc/rc.local
 /etc/rc.local
 
-echo "export GOPATH=/opt/koding/go" >> /etc/bash.bashrc
-source /etc/bash.bashrc
+echo "export GOPATH=/opt/koding/go" >> /etc/profile
+source /etc/profile
 
 echo "UTC" > /etc/timezone
 dpkg-reconfigure -f noninteractive tzdata
@@ -112,7 +118,7 @@ sed -i "s/#timezone =.*/timezone = 'UTC'/" /etc/postgresql/9.3/main/postgresql.c
 service postgresql restart
 cd /opt/koding/go/src/socialapi/
 make configure
-# make develop -j
+make develop -j
 ##################
 
 

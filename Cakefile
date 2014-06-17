@@ -43,9 +43,9 @@ task 'run', (options)->
   process.stdout.setMaxListeners 100
   process.stderr.setMaxListeners 100
 
-  (val.process.name = key; processes.spawn val.process) for key,val of KONFIG when val?.process?.run
+  for key,val of KONFIG when val?.process?.run
+    (val.process.name = key; processes.spawn val.process) 
 
-  # nitins genius idea to fix this
 
 buildEverything = (options, callback = ->)->
 
