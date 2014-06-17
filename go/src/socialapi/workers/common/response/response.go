@@ -11,7 +11,7 @@ import (
 	"github.com/jinzhu/gorm"
 )
 
-func NewBadRequestResponse(err error) (int, http.Header, interface{}, error) {
+func NewBadRequest(err error) (int, http.Header, interface{}, error) {
 	if err == nil {
 		err = errors.New("Request is not valid")
 	}
@@ -35,7 +35,7 @@ func NewOKResponse(res interface{}) (int, http.Header, interface{}, error) {
 	return http.StatusOK, nil, res, nil
 }
 
-func NewNotFoundResponse() (int, http.Header, interface{}, error) {
+func NewNotFound() (int, http.Header, interface{}, error) {
 	return http.StatusNotFound, nil, nil, NotFoundError{errors.New("Data not found")}
 }
 

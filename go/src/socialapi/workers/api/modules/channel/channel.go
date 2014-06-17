@@ -202,7 +202,7 @@ func Get(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface{
 	c := models.NewChannel()
 	if err := c.ById(id); err != nil {
 		if err == gorm.RecordNotFound {
-			return response.NewNotFoundResponse()
+			return response.NewNotFound()
 		}
 		return response.NewBadRequest(err)
 	}

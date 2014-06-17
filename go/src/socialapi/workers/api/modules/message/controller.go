@@ -51,7 +51,7 @@ func Delete(u *url.URL, h http.Header, req *models.ChannelMessage) (int, http.He
 
 	if err := req.ById(id); err != nil {
 		if err == gorm.RecordNotFound {
-			return response.NewNotFoundResponse()
+			return response.NewNotFound()
 		}
 		return response.NewBadRequest(err)
 	}
@@ -133,7 +133,7 @@ func Update(u *url.URL, h http.Header, req *models.ChannelMessage) (int, http.He
 	body := req.Body
 	if err := req.ById(id); err != nil {
 		if err == gorm.RecordNotFound {
-			return response.NewNotFoundResponse()
+			return response.NewNotFound()
 		}
 		return response.NewBadRequest(err)
 	}
@@ -160,7 +160,7 @@ func Get(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface{
 	cm := models.NewChannelMessage()
 	if err := cm.ById(id); err != nil {
 		if err == gorm.RecordNotFound {
-			return response.NewNotFoundResponse()
+			return response.NewNotFound()
 		}
 		return response.NewBadRequest(err)
 	}
@@ -179,7 +179,7 @@ func GetWithRelated(u *url.URL, h http.Header, _ interface{}) (int, http.Header,
 	cm := models.NewChannelMessage()
 	if err := cm.ById(id); err != nil {
 		if err == gorm.RecordNotFound {
-			return response.NewNotFoundResponse()
+			return response.NewNotFound()
 		}
 		return response.NewBadRequest(err)
 	}
