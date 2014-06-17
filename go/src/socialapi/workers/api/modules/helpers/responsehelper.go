@@ -7,7 +7,6 @@ import (
 	"socialapi/models"
 	"socialapi/workers/helper"
 	"strconv"
-	"github.com/koding/api/helpers"
 
 	"github.com/jinzhu/gorm"
 )
