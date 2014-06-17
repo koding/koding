@@ -1,4 +1,4 @@
- class IDE.IDEView extends IDE.WorkspaceTabView
+class IDE.IDEView extends IDE.WorkspaceTabView
 
   constructor: (options = {}, data) ->
 
