@@ -104,6 +104,9 @@ class MessagePane extends KDTabPaneView
     item = app.getView().sidebar.selectedItem
 
     return  unless item.count
+    # no need to send updatelastSeenTime or glance
+    # when checking publicfeeds
+    return  if typeConstant is 'group'
 
     if typeConstant is 'post'
     then socialapi.channel.glancePinnedPost   messageId : id, ->
