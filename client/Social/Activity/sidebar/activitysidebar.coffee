@@ -86,7 +86,7 @@ class ActivitySidebar extends KDCustomScrollView
 
     section = switch type
       when 'topic'                  then @sections.followedTopics
-      when 'pinnedactivity', 'post' then @sections.followedPosts
+      when 'pinnedactivity', 'post' then @sections.conversations
       when 'privatemessage'         then @sections.messages
       else {}
 
@@ -181,7 +181,7 @@ class ActivitySidebar extends KDCustomScrollView
     @addPublicFeedLink()
     @addHotTopics()
     @addFollowedTopics()
-    @addFollowedPosts()
+    @addConversations()
     @addMessages()
     # @addChat()
 
@@ -242,9 +242,9 @@ class ActivitySidebar extends KDCustomScrollView
         , callback
 
 
-  addFollowedPosts: ->
+  addConversations: ->
 
-    @wrapper.addSubView @sections.followedPosts = new ActivitySideView
+    @wrapper.addSubView @sections.conversations = new ActivitySideView
       title      : 'Conversations'
       cssClass   : 'threads users'
       itemClass  : SidebarPinnedItem
