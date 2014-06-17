@@ -140,7 +140,7 @@ class NFinderController extends KDViewController
 
     @updateMountState uid, no
     @stopWatching machineItem.data.path
-    FSHelper.unregisterVmFiles uid
+    FSHelper.unregisterMachineFiles uid
     @treeController.removeNodeView machineItem
     @machines = @machines.filter (vmData)-> vmData isnt machineItem.data
 

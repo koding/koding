@@ -136,8 +136,8 @@ class FSHelper
   @unregister = (path)->
     delete @registry[path]
 
-  @unregisterVmFiles = (vmName)->
-    for own path, file of @registry  when (path.indexOf "[#{vmName}]") is 0
+  @unregisterMachineFiles = (uid)->
+    for own path, file of @registry  when (path.indexOf "[#{uid}]") is 0
       @unregister path
 
   @updateInstance = (fileData)->
