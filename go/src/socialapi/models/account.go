@@ -36,11 +36,11 @@ func (a Account) TableName() string {
 	return "api.account"
 }
 
-func (a *Account) BeforeUpdate() {
+func (a *Account) AfterUpdate() {
 	SetAccountToCache(a)
 }
 
-func (a *Account) BeforeCreate() {
+func (a *Account) AfterCreate() {
 	SetAccountToCache(a)
 }
 
