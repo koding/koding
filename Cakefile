@@ -90,6 +90,7 @@ compileGoBinaries = (options, callback = ->)->
       processes.spawn
         name    : 'build go in vagrant'
         cmd     : "vagrant ssh default --command '/opt/koding/go/build.sh bin-vagrant'"
+        restart : no
         onExit  : -> callback null
 
 kloudKite = (options, callback = ->)->
