@@ -30,3 +30,41 @@ class IDE.WorkspaceLayoutBuilder extends KDSplitComboView
 
   getSplitViewByName: (name) ->
     return @splitViews[name] or null
+
+
+### Example Usage also see IDE.Panel::constructor
+
+layoutOptions        =
+  cssClass           : 'ide-workspace'
+  splitOptions       :
+    direction        : 'vertical'
+    name             : 'BaseSplit'
+    sizes            : [ '234px', null ]
+    views            : [
+      {
+        type         : 'custom'
+        name         : 'filesPane'
+        paneClass    : IDE.IDEFilesTabView
+      }
+      {
+        type         : 'split'
+        splitOptions :
+          direction  : 'horizontal'
+          name       : 'InnerSplit'
+          sizes      : [ '50%', '50%' ]
+          views      : [
+            {
+              type   : 'drawing'
+              name   : 'MainTerminal'
+            }
+            {
+              type   : 'editor'
+              name   : 'MainEditor'
+            }
+          ]
+      }
+    ]
+
+layout = new WorkspaceLayoutBuilder layoutOptions
+
+###
