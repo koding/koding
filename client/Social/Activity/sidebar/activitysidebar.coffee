@@ -95,11 +95,12 @@ class ActivitySidebar extends KDCustomScrollView
 
   updateTopicFollowButtons: (channel) ->
 
-    for name in ['hot', 'followedTopics']
-      item = @sections[name].listController.itemForId channel.getId()
-      continue  unless item
-      state = if channel.isParticipant then 'Following' else 'Follow'
-      item.followButton.setState state
+    # for name in ['hot', 'followedTopics']
+      # item = @sections[name].listController.itemForId channel.getId()
+      # continue  unless item
+    item  = @sections.followedTopics.listController.itemForId channel.getId()
+    state = if channel.isParticipant then 'Following' else 'Follow'
+    item?.followButton.setState state
 
 
   # fixme:
