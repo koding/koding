@@ -56,7 +56,7 @@ func Add(u *url.URL, h http.Header, req *models.ChannelParticipant) (int, http.H
 		return response.NewBadRequest(err)
 	}
 
-	return response.NewOKResponse(req)
+	return response.NewOK(req)
 }
 
 func checkChannelPrerequisites(channelId, requesterId, accountId int64) error {
@@ -107,7 +107,7 @@ func Delete(u *url.URL, h http.Header, req *models.ChannelParticipant) (int, htt
 		return response.NewBadRequest(err)
 	}
 
-	return response.NewOKResponse(req)
+	return response.NewOK(req)
 }
 
 func Presence(u *url.URL, h http.Header, req *models.ChannelParticipant) (int, http.Header, interface{}, error) {
@@ -142,5 +142,5 @@ func Presence(u *url.URL, h http.Header, req *models.ChannelParticipant) (int, h
 		return response.NewBadRequest(err)
 	}
 
-	return response.NewOKResponse(req)
+	return response.NewOK(req)
 }

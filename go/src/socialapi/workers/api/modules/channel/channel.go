@@ -43,7 +43,7 @@ func Create(u *url.URL, h http.Header, req *models.Channel) (int, http.Header, i
 		return response.NewBadRequest(err)
 	}
 
-	return response.NewOKResponse(req)
+	return response.NewOK(req)
 }
 
 func List(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface{}, error) {
@@ -115,7 +115,7 @@ func CheckParticipation(u *url.URL, h http.Header, _ interface{}) (int, http.Hea
 	// fetch participant
 	err = cp.FetchParticipant()
 	if err == nil {
-		return response.NewOKResponse(cp)
+		return response.NewOK(cp)
 	}
 
 	// if err is not `record not found`
@@ -128,7 +128,7 @@ func CheckParticipation(u *url.URL, h http.Header, _ interface{}) (int, http.Hea
 
 	// if channel type is `group` then return true
 	if channel.TypeConstant == models.Channel_TYPE_GROUP {
-		return response.NewOKResponse(true)
+		return response.NewOK(true)
 	}
 
 	// return here to the client
@@ -189,7 +189,7 @@ func Update(u *url.URL, h http.Header, req *models.Channel) (int, http.Header, i
 		return response.NewBadRequest(err)
 	}
 
-	return response.NewOKResponse(req)
+	return response.NewOK(req)
 }
 
 func Get(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface{}, error) {

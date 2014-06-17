@@ -113,7 +113,7 @@ func Send(u *url.URL, h http.Header, req *models.PrivateMessageRequest) (int, ht
 
 	cmc.ParticipantsPreview = participantOldIds
 
-	return response.NewOKResponse(cmc)
+	return response.NewOK(cmc)
 }
 
 func List(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface{}, error) {

@@ -28,10 +28,10 @@ func HandleResultAndError(res interface{}, err error) (int, http.Header, interfa
 		}
 		return NewBadRequestResponse(err)
 	}
-	return NewOKResponse(res)
+	return NewOK(res)
 }
 
-func NewOKResponse(res interface{}) (int, http.Header, interface{}, error) {
+func NewOK(res interface{}) (int, http.Header, interface{}, error) {
 	return http.StatusOK, nil, res, nil
 }
 

@@ -84,7 +84,7 @@ func Register(u *url.URL, h http.Header, req *models.Account) (int, http.Header,
 		return response.NewBadRequest(err)
 	}
 
-	return response.NewOKResponse(req)
+	return response.NewOK(req)
 }
 
 func Unfollow(u *url.URL, h http.Header, req *models.Account) (int, http.Header, interface{}, error) {

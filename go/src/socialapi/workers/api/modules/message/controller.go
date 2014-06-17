@@ -189,7 +189,7 @@ func GetWithRelated(u *url.URL, h http.Header, _ interface{}) (int, http.Header,
 		return response.NewBadRequest(err)
 	}
 
-	return response.NewOKResponse(cmc)
+	return response.NewOK(cmc)
 }
 
 func GetBySlug(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface{}, error) {
@@ -209,5 +209,5 @@ func GetBySlug(u *url.URL, h http.Header, _ interface{}) (int, http.Header, inte
 		return response.NewBadRequest(err)
 	}
 
-	return response.NewOKResponse(cmc)
+	return response.NewOK(cmc)
 }

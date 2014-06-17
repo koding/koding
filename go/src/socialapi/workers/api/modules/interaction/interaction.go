@@ -42,7 +42,7 @@ func Add(u *url.URL, h http.Header, req *models.Interaction) (int, http.Header, 
 		return response.NewBadRequest(err)
 	}
 
-	return response.NewOKResponse(req)
+	return response.NewOK(req)
 }
 
 func Delete(u *url.URL, h http.Header, req *models.Interaction) (int, http.Header, interface{}, error) {
@@ -57,7 +57,7 @@ func Delete(u *url.URL, h http.Header, req *models.Interaction) (int, http.Heade
 	}
 
 	// yes it is deleted but not removed completely from our system
-	return response.NewOKResponse(nil)
+	return response.NewOK(nil)
 }
 
 func List(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface{}, error) {

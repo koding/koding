@@ -124,7 +124,7 @@ func Glance(u *url.URL, h http.Header, req *models.PinRequest) (int, http.Header
 		return response.NewBadRequest(err)
 	}
 
-	return response.NewOKResponse(cml)
+	return response.NewOK(cml)
 }
 
 func validatePinRequest(req *models.PinRequest) error {
