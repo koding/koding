@@ -62,7 +62,7 @@ func Delete(u *url.URL, h http.Header, req *models.ChannelMessage) (int, http.He
 	}
 
 	// yes it is deleted but not removed completely from our system
-	return response.NewDeletedResponse()
+	return response.NewDeleted()
 }
 
 func deleteSingleMessage(cm *models.ChannelMessage, deleteReplies bool) error {

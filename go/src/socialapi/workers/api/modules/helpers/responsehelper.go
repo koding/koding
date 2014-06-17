@@ -60,7 +60,7 @@ func NewNotFoundResponse() (int, http.Header, interface{}, error) {
 	return http.StatusNotFound, nil, nil, NotFoundError{errors.New("Data not found")}
 }
 
-func NewDeletedResponse() (int, http.Header, interface{}, error) {
+func NewDeleted() (int, http.Header, interface{}, error) {
 	return http.StatusAccepted, nil, nil, nil
 }
 

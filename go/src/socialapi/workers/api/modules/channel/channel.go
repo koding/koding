@@ -153,7 +153,7 @@ func Delete(u *url.URL, h http.Header, req *models.Channel) (int, http.Header, i
 		return response.NewBadRequest(err)
 	}
 	// yes it is deleted but not removed completely from our system
-	return response.NewDeletedResponse()
+	return response.NewDeleted()
 }
 
 func Update(u *url.URL, h http.Header, req *models.Channel) (int, http.Header, interface{}, error) {

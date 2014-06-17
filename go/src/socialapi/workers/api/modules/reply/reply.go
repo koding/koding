@@ -127,7 +127,7 @@ func Delete(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interfa
 	}
 
 	// yes it is deleted but not removed completely from our system
-	return response.NewDeletedResponse()
+	return response.NewDeleted()
 }
 
 func List(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface{}, error) {
