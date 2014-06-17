@@ -59,6 +59,7 @@ func (c *Client) Build(snapshotName, dropletName, username string) (*protocol.Bu
 		}
 	}
 
+	c.Push(fmt.Sprintf("Getting the droplet '%s' image '%d'", dropletName, image.Id), 15, machinestate.Building)
 	dropletId, err := c.GetDroplet(dropletName, image.Id)
 	if err != nil {
 		return nil, err

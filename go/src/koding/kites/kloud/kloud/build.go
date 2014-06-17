@@ -46,6 +46,8 @@ func (k *Kloud) build(r *kite.Request, c *Controller) (resp interface{}, err err
 
 			status = c.CurrenState
 			msg = err.Error()
+		} else {
+			k.Log.Info("[%s] is successfull. State is now: %+v", r.Method, status)
 		}
 
 		k.Storage.UpdateState(c.MachineId, status)
