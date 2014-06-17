@@ -10,35 +10,41 @@ class IDEAppController extends AppController
         KD.getSingleton('appManager').open 'IDE', conditionPassed : yes
         KD.showEnforceLoginModal()
     commands:
-      'split vertically'   : 'splitVertically'
-      'split horizontally' : 'splitHorizontally'
-      'merge splitview'    : 'mergeSplitView'
-      'create new file'    : 'createNewFile'
-      'collapse sidebar'   : 'collapseSidebar'
-      'expand sidebar'     : 'expandSidebar'
-      'close tab'          : 'closeTab'
-      'go to left tab'     : 'goToLeftTab'
-      'go to right tab'    : 'goToRightTab'
-      'go to tab number'   : 'goToTabNumber'
+      'split vertically'    : 'splitVertically'
+      'split horizontally'  : 'splitHorizontally'
+      'merge splitview'     : 'mergeSplitView'
+      'create new file'     : 'createNewFile'
+      'create new terminal' : 'createNewTerminal'
+      'create new browser'  : 'createNewBrowser'
+      'create new drawing'  : 'createNewDrawing'
+      'collapse sidebar'    : 'collapseSidebar'
+      'expand sidebar'      : 'expandSidebar'
+      'close tab'           : 'closeTab'
+      'go to left tab'      : 'goToLeftTab'
+      'go to right tab'     : 'goToRightTab'
+      'go to tab number'    : 'goToTabNumber'
     keyBindings: [
-      { command: 'split vertically',   binding: 'ctrl+alt+v', global: yes }
-      { command: 'split horizontally', binding: 'ctrl+alt+h', global: yes }
-      { command: 'merge splitview',    binding: 'ctrl+alt+m', global: yes }
-      { command: 'create new file',    binding: 'ctrl+alt+n', global: yes }
-      { command: 'collapse sidebar',   binding: 'ctrl+alt+c', global: yes }
-      { command: 'expand sidebar',     binding: 'ctrl+alt+e', global: yes }
-      { command: 'close tab',          binding: 'ctrl+alt+w', global: yes }
-      { command: 'go to left tab',     binding: 'ctrl+alt+[', global: yes }
-      { command: 'go to right tab',    binding: 'ctrl+alt+]', global: yes }
-      { command: 'go to tab number',   binding: 'ctrl+alt+1', global: yes }
-      { command: 'go to tab number',   binding: 'ctrl+alt+2', global: yes }
-      { command: 'go to tab number',   binding: 'ctrl+alt+3', global: yes }
-      { command: 'go to tab number',   binding: 'ctrl+alt+4', global: yes }
-      { command: 'go to tab number',   binding: 'ctrl+alt+5', global: yes }
-      { command: 'go to tab number',   binding: 'ctrl+alt+6', global: yes }
-      { command: 'go to tab number',   binding: 'ctrl+alt+7', global: yes }
-      { command: 'go to tab number',   binding: 'ctrl+alt+8', global: yes }
-      { command: 'go to tab number',   binding: 'ctrl+alt+9', global: yes }
+      { command: 'split vertically',    binding: 'ctrl+alt+v', global: yes }
+      { command: 'split horizontally',  binding: 'ctrl+alt+h', global: yes }
+      { command: 'merge splitview',     binding: 'ctrl+alt+m', global: yes }
+      { command: 'create new file',     binding: 'ctrl+alt+n', global: yes }
+      { command: 'create new terminal', binding: 'ctrl+alt+t', global: yes }
+      { command: 'create new browser',  binding: 'ctrl+alt+b', global: yes }
+      { command: 'create new drawing',  binding: 'ctrl+alt+d', global: yes }
+      { command: 'collapse sidebar',    binding: 'ctrl+alt+c', global: yes }
+      { command: 'expand sidebar',      binding: 'ctrl+alt+e', global: yes }
+      { command: 'close tab',           binding: 'ctrl+alt+w', global: yes }
+      { command: 'go to left tab',      binding: 'ctrl+alt+[', global: yes }
+      { command: 'go to right tab',     binding: 'ctrl+alt+]', global: yes }
+      { command: 'go to tab number',    binding: 'ctrl+alt+1', global: yes }
+      { command: 'go to tab number',    binding: 'ctrl+alt+2', global: yes }
+      { command: 'go to tab number',    binding: 'ctrl+alt+3', global: yes }
+      { command: 'go to tab number',    binding: 'ctrl+alt+4', global: yes }
+      { command: 'go to tab number',    binding: 'ctrl+alt+5', global: yes }
+      { command: 'go to tab number',    binding: 'ctrl+alt+6', global: yes }
+      { command: 'go to tab number',    binding: 'ctrl+alt+7', global: yes }
+      { command: 'go to tab number',    binding: 'ctrl+alt+8', global: yes }
+      { command: 'go to tab number',    binding: 'ctrl+alt+9', global: yes }
     ]
 
   constructor: (options = {}, data) ->
@@ -225,6 +231,12 @@ class IDEAppController extends AppController
       contents = ''
 
       @openFile file, contents
+
+  createNewTerminal: -> @activeTabView.emit 'TerminalPaneRequested'
+
+  createNewBrowser: -> @activeTabView.emit 'PreviewPaneRequested'
+
+  createNewDrawing: -> @activeTabView.emit 'DrawingPaneRequested'
 
   goToLeftTab: ->
     index = @activeTabView.getActivePaneIndex()

@@ -14,6 +14,9 @@ class IDE.IDEView extends IDE.WorkspaceTabView
     @tabView.on 'VMTerminalRequested',    @bound 'openVMTerminal'
     @tabView.on 'VMWebPageRequested',     @bound 'openVMWebPage'
     @tabView.on 'ShortcutsViewRequested', @bound 'createShortcutsView'
+    @tabView.on 'TerminalPaneRequested',  @bound 'createTerminal'
+    @tabView.on 'PreviewPaneRequested',   @bound 'createPreview'
+    @tabView.on 'DrawingPaneRequested',   @bound 'createDrawingBoard'
 
     @tabView.on 'PaneDidShow', => # bound passes args also
       @updateStatusBar()
