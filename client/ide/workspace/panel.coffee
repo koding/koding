@@ -14,10 +14,13 @@ class IDE.Panel extends KDView
 
   createLayout: ->
     {layoutOptions}  = @getOptions()
+
     unless layoutOptions
       throw new Error 'You should pass layoutOptions to create a panel'
 
-    @layout = new IDE.WorkspaceLayoutBuilder { delegate: this, layoutOptions }
+    layoutOptions.delegate = this
+
+    @layout = new IDE.WorkspaceLayoutBuilder layoutOptions
     @addSubView @layout
 
   createPane: (paneOptions) ->
