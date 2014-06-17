@@ -136,10 +136,6 @@ class AceView extends JView
 
     , { inputDefaultValue: file.name }
 
-  viewAppended:->
-    super
-    @_windowDidResize()
-
   pistachio:->
     """
     <div class="kdview editor-main">
