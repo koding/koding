@@ -27,9 +27,9 @@ class IDE.StatusBarMenu extends KDContextMenu
     items.Save        = callback: -> appManager.tell 'IDE', 'saveFile'
     items['Save All'] = callback: -> appManager.tell 'IDE', 'saveAllFiles'
     items.customView  = @syntaxSelector = new IDE.SyntaxSelectorMenuItem
+    items.separator   = type: 'separator'
 
   addDefaultMenuItems: (items, appManager) ->
-    items.separator   = type: 'separator'
     items.Shortcuts   = callback: -> appManager.tell 'IDE', 'showShortcutsView'
     items.Contribute  = callback: -> KD.utils.createExternalLink 'https://github.com/koding/IDE'
     items.Quit        = callback: ->
