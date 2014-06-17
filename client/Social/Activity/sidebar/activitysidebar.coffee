@@ -16,8 +16,8 @@ class ActivitySidebar extends KDCustomScrollView
   revive = (data) ->
 
     return switch data.typeConstant
-      when 'post' then (KD.singleton 'socialapi').message.revive message: data
-      when 'topic' then (KD.singleton 'socialapi').mapChannel data
+      when 'post' then KD.singletons.socialapi.message.revive message: data
+      when 'topic' then KD.singletons.socialapi.mapChannel data
       else data
 
 
