@@ -61,7 +61,7 @@ class EmbedBoxWidget extends KDView
 
     fn = @bound 'checkInputForUrls'
 
-    input.on 'keydown', (event) =>
+    input.on 'keydown', (event) ->
       fn()  if event.which in [9, 13, 32]
 
     input.on 'paste', fn
