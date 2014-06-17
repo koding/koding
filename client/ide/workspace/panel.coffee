@@ -40,16 +40,14 @@ class IDE.Panel extends KDView
     return PaneClass
 
   findPaneClass: (paneType) ->
-    paneTypesToPaneClass =
-      terminal           : @TerminalPaneClass
-      editor             : @EditorPaneClass
-      video              : @VideoPaneClass
-      preview            : @PreviewPaneClass
-      finder             : @FinderPaneClass
-      tabbedEditor       : @TabbedEditorPaneClass
-      drawing            : @DrawingPaneClass
+    paneClasses =
+      terminal  : IDE.TerminalPane
+      editor    : IDE.EditorPane
+      preview   : IDE.PreviewPane
+      finder    : IDE.FinderPane
+      drawing   : IDE.DrawingPane
 
-    return paneTypesToPaneClass[paneType]
+    return paneClasses[paneType]
 
   getPaneByName: (name) ->
     return @panesByName[name] or null
