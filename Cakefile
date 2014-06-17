@@ -45,6 +45,7 @@ task 'run', (options)->
 
   (val.process.name = key; processes.spawn val.process) for key,val of KONFIG when val?.process?.run
 
+  # nitins genius idea to fix this
 
 buildEverything = (options, callback = ->)->
 

@@ -7,6 +7,7 @@ echo "iptables -F" >>/etc/rc.local
 echo "iptables -A INPUT -i lo -j ACCEPT" >>/etc/rc.local
 echo "iptables -A INPUT -s 208.72.139.54 -j ACCEPT" >>/etc/rc.local
 echo "iptables -A INPUT -s 208.87.56.148 -j ACCEPT" >>/etc/rc.local
+echo "iptables -A INPUT -s 12.130.117.34 -j ACCEPT" >>/etc/rc.local
 echo "iptables -A INPUT -p tcp --dport 4000 -j ACCEPT" >>/etc/rc.local
 echo "iptables -A INPUT -p tcp --dport 3999 -j ACCEPT" >>/etc/rc.local
 echo "iptables -A INPUT -p tcp --dport 3000 -j ACCEPT" >>/etc/rc.local
@@ -60,6 +61,8 @@ echo "  StrictHostKeyChecking no" >> ~/.ssh/config
 
 chmod 600 /root/.ssh/id_rsa
 
+
+apt-get update
 apt-get install -y golang nodejs npm git mongodb graphicsmagick
 cp /usr/bin/nodejs /usr/bin/node
 
