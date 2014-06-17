@@ -180,7 +180,7 @@ class ActivitySidebar extends KDCustomScrollView
     super
 
     @addPublicFeedLink()
-    @addHotTopics()
+    # @addHotTopics()
     @addFollowedTopics()
     @addConversations()
     @addMessages()
