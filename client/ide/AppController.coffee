@@ -79,7 +79,7 @@ class IDEAppController extends AppController
       panel.once 'viewAppended', =>
         ideView = panel.getPaneByName 'editorPane'
         @setActiveTabView ideView.tabView
-        @ideViews.push ideView
+        @registerIDEView ideView
 
         splitViewPanel = ideView.parent.parent
         splitViewPanel.addSubView @statusBar = new IDE.StatusBar
@@ -101,7 +101,7 @@ class IDEAppController extends AppController
       type      : type
       views     : [ null, newIDEView ]
 
-    @ideViews.push newIDEView
+    @registerIDEView newIDEView
 
     splitView.once 'viewAppended', ->
       splitView.panels.first.attach ideView
@@ -150,7 +150,7 @@ class IDEAppController extends AppController
       ideView.tabView.addPane pane
 
     @setActiveTabView ideView.tabView
-    @ideViews.push ideView
+    @registerIDEView ideView
 
     if parentSplitView and panelIndexInParent
       parentSplitView.options.views[panelIndexInParent] = ideView
@@ -244,6 +244,9 @@ class IDEAppController extends AppController
     requiredIndex = keyCodeMap.indexOf keyEvent.keyCode
 
     @activeTabView.showPaneByIndex requiredIndex
+
+  registerIDEView: (ideView) ->
+    @ideViews.push ideView
 
   forEachSubViewInIDEViews_: (callback = noop, paneType) ->
     for ideView in @ideViews
