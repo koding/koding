@@ -306,7 +306,7 @@ class IDEAppController extends AppController
     , 'editor'
 
   updateStatusBar: (component, data) ->
-    {status} = @statusBar
+    {status, menuButton} = @statusBar
 
     if component is 'editor'
       {cursor, file} = data
@@ -323,3 +323,4 @@ class IDEAppController extends AppController
     else text = ''
 
     status.updatePartial text
+    menuButton.show()
