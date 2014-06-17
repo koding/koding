@@ -22,11 +22,11 @@ class ConversationsModal extends KDModalView
 
     @addSubView new ActivitySideView
       title      : ''
-      itemClass  : SidebarTopicItem
-      dataPath   : 'followedChannels'
+      cssClass   : 'conversations your activity-modal'
+      itemClass  : SidebarPinnedItem
+      dataPath   : 'pinnedMessages'
       delegate   : this
-      headerLink : new KDCustomHTMLView
-      noItemText : "You don't follow anything yet."
+      noItemText : "You didn't participate in any conversations yet."
       dataSource : (callback) ->
         KD.singletons.socialapi.channel.fetchPinnedMessages
           limit : 10

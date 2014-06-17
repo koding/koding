@@ -33,7 +33,7 @@ module.exports = [
   "views/privatemessagemodal.coffee"
   "views/alltopicsmodal.coffee"
   "views/yourtopicsmodal.coffee"
-  "views/yourconversationsmodal.coffee"
+  "views/conversationsmodal.coffee"
   "views/activityautocompleteuseritemview.coffee"
 
   "views/embedbox.coffee"
