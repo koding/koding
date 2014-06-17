@@ -610,11 +610,11 @@ func TestNotificationCreation(t *testing.T) {
 				So(nl.Notifications[0].LatestActors[0], ShouldEqual, secondUser.Id)
 			})
 			Convey("I should be able to unsubscribe from my message", func() {
-				response, err := rest.UnSubscribeMessage(ownerAccount.Id, cm.Id)
+				response, err := rest.UnsubscribeMessage(ownerAccount.Id, cm.Id, testGroupChannel.GroupName)
 				ResultedWithNoErrorCheck(response, err)
 			})
 			Convey("Third user should be able to subscribe to my message", func() {
-				response, err := rest.SubscribeMessage(thirdUser.Id, cm.Id)
+				response, err := rest.SubscribeMessage(thirdUser.Id, cm.Id, testGroupChannel.GroupName)
 				ResultedWithNoErrorCheck(response, err)
 			})
 			Convey("First should be able to unsubscribe from my message", func() {
@@ -633,7 +633,7 @@ func TestNotificationCreation(t *testing.T) {
 				time.Sleep(SLEEP_TIME * time.Second) // waiting for async message
 			})
 			Convey("First user should not be able to receive latest notification", func() {
-				nl, err := getNotificationList(firstUser.Id)
+				nl, err := rest.GetNotificationList(firstUser.Id, false)
 				ResultedWithNoErrorCheck(nl, err)
 				So(len(nl.Notifications), ShouldBeGreaterThan, 0)
 				So(len(nl.Notifications[0].LatestActors), ShouldEqual, 1)
@@ -661,7 +661,7 @@ func TestNotificationCreation(t *testing.T) {
 				ResultedWithNoErrorCheck(cm, err)
 			})
 			Convey("I should be able to unsubscribe from my message notifications", func() {
-				response, err := rest.UnSubscribeMessage(ownerAccount.Id, cm.Id)
+				response, err := rest.UnsubscribeMessage(ownerAccount.Id, cm.Id, testGroupChannel.GroupName)
 				ResultedWithNoErrorCheck(response, err)
 			})
 			Convey("First user should be able to reply my message", func() {
@@ -677,7 +677,7 @@ func TestNotificationCreation(t *testing.T) {
 				So(nl.Notifications[0].TargetId, ShouldNotEqual, cm.Id)
 			})
 			Convey("I should be able to subscribe to my message notifications", func() {
-				response, err := rest.SubscribeMessage(ownerAccount.Id, cm.Id)
+				response, err := rest.SubscribeMessage(ownerAccount.Id, cm.Id, testGroupChannel.GroupName)
 				ResultedWithNoErrorCheck(response, err)
 			})
 			Convey("Second user should be able to reply my message", func() {
