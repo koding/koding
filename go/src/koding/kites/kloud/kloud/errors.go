@@ -8,47 +8,42 @@ import (
 )
 
 const (
-	ErrAlreadyInitialized  = 101
-	ErrNotInitialized      = 102
-	ErrUnknownState        = 103
-	ErrBuilding            = 104
-	ErrMachineIdMissing    = 107
-	ErrProviderNotFound    = 108
-	ErrNoKiteConnection    = 109
-	ErrMachineTerminating  = 110
-	ErrMachinePendingEvent = 111
-	ErrNoArguments         = 112
-	ErrMachineNotFound     = 113
+	ErrMachineInitialized    = 100
+	ErrMachineNotInitialized = 101
+	ErrMachineUnknownState   = 102
+	ErrMachineIsBuilding     = 103
+	ErrMachineIdMissing      = 104
+	ErrMachineTerminating    = 105
+	ErrMachineNotFound       = 106
+	ErrMachinePendingEvent   = 107
 
-	ErrEventNotFound    = 201
-	ErrEventIdMissing   = 202
-	ErrEventTypeMissing = 203
-	ErrEventArgsEmpty   = 204
+	ErrEventNotFound    = 200
+	ErrEventIdMissing   = 201
+	ErrEventTypeMissing = 202
+	ErrEventArgsEmpty   = 203
 
-	ErrSignUsernameEmpty   = 301
-	ErrSignKontrolURLEmpty = 302
-	ErrSignPrivateKeyEmpty = 303
-	ErrSignPublicKeyEmpty  = 304
-	ErrSignGenerateToken   = 305
+	ErrSignUsernameEmpty   = 300
+	ErrSignKontrolURLEmpty = 301
+	ErrSignPrivateKeyEmpty = 302
+	ErrSignPublicKeyEmpty  = 303
+	ErrSignGenerateToken   = 304
 
-	ErrBadState = 401
+	ErrBadState         = 400
+	ErrProviderNotFound = 401
+	ErrNoKiteConnection = 402
+	ErrNoArguments      = 403
 )
 
 var errors = map[int]string{
-	ErrAlreadyInitialized:  "Machine is already initialized and prepared.",
-	ErrNotInitialized:      "Machine is not initialized.",
-	ErrUnknownState:        "Machine is in unknown state. Please contact support.",
-	ErrBuilding:            "Machine is being build. Hold on.",
-	ErrMachineIdMissing:    "Machine id is missing.",
-	ErrProviderNotFound:    "Provider is not found",
-	ErrNoKiteConnection:    "Couldn't connect to remote klient kite",
-	ErrMachineTerminating:  "Machine is terminated.",
-	ErrMachinePendingEvent: "MachineId has a pending event going on",
-	ErrNoArguments:         "No arguments are passed.",
-	ErrMachineNotFound:     "Machine is not found",
-
-	// Generic errors
-	ErrBadState: "Bad state.",
+	// Machine errors
+	ErrMachineInitialized:    "Machine is already initialized and prepared.",
+	ErrMachineNotInitialized: "Machine is not initialized.",
+	ErrMachineUnknownState:   "Machine is in unknown state. Please contact support.",
+	ErrMachineIsBuilding:     "Machine is being build. Hold on.",
+	ErrMachineIdMissing:      "Machine id is missing.",
+	ErrMachineTerminating:    "Machine is terminated.",
+	ErrMachineNotFound:       "Machine is not found",
+	ErrMachinePendingEvent:   "Machine has a pending event going on",
 
 	// Event errors
 	ErrEventIdMissing:   "Event id is missing.",
@@ -62,6 +57,12 @@ var errors = map[int]string{
 	ErrSignPrivateKeyEmpty: "Private key is empty",
 	ErrSignPublicKeyEmpty:  "Public key is empty",
 	ErrSignGenerateToken:   "Cannot generate token",
+
+	// Generic errors
+	ErrBadState:         "Bad state.",
+	ErrProviderNotFound: "Provider is not found",
+	ErrNoKiteConnection: "Couldn't connect to remote klient kite",
+	ErrNoArguments:      "No arguments are passed.",
 }
 
 func NewErrorMessage(errMsg string) *kite.Error {

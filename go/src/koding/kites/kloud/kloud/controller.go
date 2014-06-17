@@ -131,7 +131,7 @@ func (k *Kloud) info(r *kite.Request, c *Controller) (interface{}, error) {
 	defer k.Storage.ResetAssignee(c.MachineId) // reset assignee after we are done
 
 	if c.CurrenState == machinestate.NotInitialized {
-		return nil, NewError(ErrNotInitialized)
+		return nil, NewError(ErrMachineNotInitialized)
 	}
 
 	machOptions := &protocol.MachineOptions{
@@ -223,7 +223,7 @@ func (k *Kloud) coreMethods(
 ) (result interface{}, err error) {
 	// all core methods works only for machines that are initialized
 	if c.CurrenState == machinestate.NotInitialized {
-		return nil, NewError(ErrNotInitialized)
+		return nil, NewError(ErrMachineNotInitialized)
 	}
 
 	// get our state pair. A state pair defines the inital state and the final
