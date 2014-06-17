@@ -3,10 +3,7 @@ package response
 import (
 	"errors"
 	"net/http"
-	"net/url"
-	"socialapi/models"
 	"socialapi/workers/helper"
-	"strconv"
 
 	"github.com/jinzhu/gorm"
 )
@@ -50,31 +47,3 @@ func NewDefaultOK() (int, http.Header, interface{}, error) {
 
 	return http.StatusOK, nil, res, nil
 }
-
-func GetId(u *url.URL) (int64, error) {
-	return strconv.ParseInt(u.Query().Get("id"), 10, 64)
-}
-
-func GetURIInt64(u *url.URL, queryParam string) (int64, error) {
-	return strconv.ParseInt(u.Query().Get(queryParam), 10, 64)
-}
-
-func GetQuery(u *url.URL) *models.Query {
-	return models.NewQuery().MapURL(u).SetDefaults()
-}
-
-type BadRequest struct {
-	error
-}
-
-func (err BadRequest) Name() string { return "koding.BadRequest" }
-
-func (err BadRequest) StatusCode() int { return http.StatusBadRequest }
-
-type NotFoundError struct {
-	error
-}
-
-func (err NotFoundError) Name() string { return "koding.NotFoundError" }
-
-func (err NotFoundError) StatusCode() int { return http.StatusNotFound }
