@@ -40,18 +40,24 @@ type Storage interface {
 type GetOption struct {
 	IncludeMachine    bool
 	IncludeCredential bool
+	IncludeStack      bool
 }
 
 type MachineData struct {
 	Provider   string
 	Machine    *Machine
 	Credential *Credential
+	Stack      *Stack
 }
 
 type Credential struct {
 	Id        bson.ObjectId `bson:"_id" json:"-"`
 	PublicKey string        `bson:"publicKey"`
 	Meta      bson.M        `bson:"meta"`
+}
+
+type Stack struct {
+	Id bson.ObjectId `bson:"_id" json:"-"`
 }
 
 type MongoDB struct {
@@ -156,10 +162,19 @@ func (m *MongoDB) Get(id string, opt *GetOption) (*MachineData, error) {
 		})
 	}
 
+	stack := &Stack{}
+	if opt.IncludeStack {
+		// we neglect errors because credential is optional
+		m.session.Run("jStacks", func(c *mgo.Collection) error {
+			return c.Find(bson.M{"publicKey": machine.Credential}).One(credential)
+		})
+	}
+
 	return &MachineData{
 		Provider:   machine.Provider,
 		Credential: credential,
 		Machine:    machine,
+		Stack:      stack,
 	}, nil
 }
 

@@ -11,11 +11,6 @@ import (
 	"github.com/koding/kite"
 )
 
-type ControlResult struct {
-	State   machinestate.State `json:"state"`
-	EventId string             `json:"eventId"`
-}
-
 func (k *Kloud) build(r *kite.Request, c *Controller) (resp interface{}, err error) {
 	if c.CurrenState == machinestate.Building {
 		return nil, NewError(ErrMachineIsBuilding)

@@ -13,6 +13,7 @@ import (
 type Controller struct {
 	// Incoming arguments
 	MachineId    string
+	StackId      string
 	ImageName    string
 	InstanceName string
 
@@ -21,6 +22,11 @@ type Controller struct {
 	Provider    protocol.Provider  `json:"-"`
 	MachineData *MachineData       `json:"-"`
 	Eventer     eventer.Eventer    `json:"-"`
+}
+
+type ControlResult struct {
+	State   machinestate.State `json:"state"`
+	EventId string             `json:"eventId"`
 }
 
 type controlFunc func(*kite.Request, *Controller) (interface{}, error)
@@ -69,6 +75,7 @@ func (k *Kloud) ControlFunc(method string, control controlFunc) {
 		m, err := k.Storage.Get(args.MachineId, &GetOption{
 			IncludeMachine:    true,
 			IncludeCredential: true,
+			IncludeStack:      args.StackId != "",
 		})
 		if err != nil {
 			return nil, err
@@ -215,7 +222,7 @@ func (k *Kloud) restart(r *kite.Request, c *Controller) (interface{}, error) {
 // coreMethods is running and returning the event id for the methods start,
 // stop, restart and destroy. This method is used to avoid duplicate codes in
 // start, stop, restart and destroy methods (because we do the same steps for
-// each of them)
+// each of them).
 func (k *Kloud) coreMethods(
 	r *kite.Request,
 	c *Controller,
