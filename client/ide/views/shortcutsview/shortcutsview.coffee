@@ -26,6 +26,7 @@ class IDE.ShortcutsView extends KDView
       'Ctrl-Alt-N'   : 'Create new file'
       'Ctrl-Alt-C'   : 'Collapse sidebar'
       'Ctrl-Alt-E'   : 'Expand sidebar'
+      'Ctrl-Alt-W'   : 'Close tab'
       'Ctrl-Alt-['   : 'Go to left tab'
       'Ctrl-Alt-]'   : 'Go to right tab'
       'Ctrl-Alt-1'   : 'Go to tab number'

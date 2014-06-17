@@ -16,6 +16,7 @@ class IDEAppController extends AppController
       'create new file'    : 'createNewFile'
       'collapse sidebar'   : 'collapseSidebar'
       'expand sidebar'     : 'expandSidebar'
+      'close tab'          : 'closeTab'
       'go to left tab'     : 'goToLeftTab'
       'go to right tab'    : 'goToRightTab'
       'go to tab number'   : 'goToTabNumber'
@@ -26,6 +27,7 @@ class IDEAppController extends AppController
       { command: 'create new file',    binding: 'ctrl+alt+n', global: yes }
       { command: 'collapse sidebar',   binding: 'ctrl+alt+c', global: yes }
       { command: 'expand sidebar',     binding: 'ctrl+alt+e', global: yes }
+      { command: 'close tab',          binding: 'ctrl+alt+w', global: yes }
       { command: 'go to left tab',     binding: 'ctrl+alt+[', global: yes }
       { command: 'go to right tab',    binding: 'ctrl+alt+]', global: yes }
       { command: 'go to tab number',   binding: 'ctrl+alt+1', global: yes }
@@ -244,6 +246,9 @@ class IDEAppController extends AppController
     requiredIndex = keyCodeMap.indexOf keyEvent.keyCode
 
     @activeTabView.showPaneByIndex requiredIndex
+
+  closeTab: ->
+    @activeTabView.removePane @activeTabView.getActivePane()
 
   registerIDEView: (ideView) ->
     @ideViews.push ideView
