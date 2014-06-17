@@ -49,6 +49,12 @@ class EnvironmentMachineItem extends EnvironmentItem
       cssClass : "terminal"
       click    : @bound "openTerminal"
 
+    if status.state is Machine.State.NotInitialized
+      @addSubView initView = new InitializeMachineView
+      initView.once "Initialize", ->
+        computeController.build machine
+        initView.destroy()
+
     computeController.on "build-#{machine._id}",   @bound 'invalidateMachine'
     computeController.on "destroy-#{machine._id}", @bound 'invalidateMachine'
 
