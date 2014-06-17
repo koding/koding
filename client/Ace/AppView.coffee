@@ -16,11 +16,11 @@ class AceView extends JView
     @listenWindowResize()
 
     @ace = new Ace
-      delegate        : @
+      delegate        : this
       enableShortcuts : yes
     , file
 
-    @findAndReplaceView = new AceFindAndReplaceView delegate: @
+    @findAndReplaceView = new AceFindAndReplaceView delegate: this
     @findAndReplaceView.hide()
 
     @setViewListeners()
