@@ -24,9 +24,9 @@ func NewBadRequest(err error) (int, http.Header, interface{}, error) {
 func HandleResultAndError(res interface{}, err error) (int, http.Header, interface{}, error) {
 	if err != nil {
 		if err == gorm.RecordNotFound {
-			return NewNotFoundResponse()
+			return NewNotFound()
 		}
-		return NewBadRequestResponse(err)
+		return NewBadRequest(err)
 	}
 	return NewOK(res)
 }
