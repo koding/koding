@@ -65,6 +65,7 @@ sitemapfeederdev:
 PACKAGES = \
 	socialapi/workers/api \
 	socialapi/workers/emailnotifier \
+	socialapi/workers/dailyemailnotifier \
 	socialapi/workers/followingfeed \
 	socialapi/workers/notification \
 	socialapi/workers/popularpost \
