@@ -2,6 +2,7 @@ package kloud
 
 import (
 	"fmt"
+	"io/ioutil"
 	"koding/db/mongodb"
 	"koding/kites/kloud/eventer"
 	"koding/kites/kloud/idlock"
@@ -128,6 +129,10 @@ func (k *Kloud) InitializeProviders() {
 	r := redis.MustRedisSession(&redis.RedisConf{Server: k.Config.Redis})
 	prefix := fmt.Sprintf("%s:%s", NAME, k.Kite.Config.Environment)
 	r.SetPrefix(prefix)
+
+	// Our digitalocean api uses lots of logs, the only way to supress them is
+	// to disable std log package.
+	log.SetOutput(ioutil.Discard)
 
 	providers = map[string]protocol.Provider{
 		"digitalocean": &digitalocean.Provider{
