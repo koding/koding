@@ -84,7 +84,7 @@ func PopulateChannelContainer(channel Channel, accountId int64) (*ChannelContain
 	cc.Channel = channel
 	cc.IsParticipant = isParticipant
 	cc.ParticipantCount = participantCount
-	participantOldIds, err := AccountOldsIdByIds(cpList)
+	participantOldIds, err := FetchAccountOldsIdByIdsFromCache(cpList)
 	if err != nil {
 		return nil, err
 	}

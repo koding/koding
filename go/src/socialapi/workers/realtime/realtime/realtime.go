@@ -148,7 +148,7 @@ func (f *Controller) handleInteractionEvent(eventName string, i *models.Interact
 		return err
 	}
 
-	oldId, err := models.AccountOldIdById(i.AccountId)
+	oldId, err := models.FetchAccountOldIdByIdFromCache(i.AccountId)
 	if err != nil {
 		return err
 	}
@@ -385,7 +385,7 @@ func (f *Controller) NotifyUser(notification *notificationmodels.Notification) e
 		TargetId:     nc.TargetId,
 		TypeConstant: nc.TypeConstant,
 	}
-	ne.Content.ActorId, _ = models.AccountOldIdById(activity.ActorId)
+	ne.Content.ActorId, _ = models.FetchAccountOldIdByIdFromCache(activity.ActorId)
 
 	notificationMessage, err := json.Marshal(ne)
 	if err != nil {

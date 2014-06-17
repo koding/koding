@@ -18,6 +18,9 @@ type MessageReply struct {
 	// Id of the reply
 	ReplyId int64 `json:"replyId,string"         sql:"NOT NULL"`
 
+	// holds troll, unsafe, etc
+	MetaBits int16 `json:"-"`
+
 	// Creation of the MessageReply
 	CreatedAt time.Time `json:"createdAt"         sql:"NOT NULL"`
 }
@@ -32,6 +35,30 @@ func (m MessageReply) TableName() string {
 
 func NewMessageReply() *MessageReply {
 	return &MessageReply{}
+}
+
+func (m *MessageReply) BeforeCreate() {
+	if m.ReplyId == 0 {
+		return
+	}
+
+	cm := NewChannelMessage()
+	cm.Id = m.ReplyId
+	if res, err := cm.isExemptContent(); err == nil && res {
+		m.MetaBits = updateTrollModeBit(m.MetaBits)
+	}
+}
+
+func (m *MessageReply) BeforeUpdate() {
+	if m.ReplyId == 0 {
+		return
+	}
+
+	cm := NewChannelMessage()
+	cm.Id = m.ReplyId
+	if res, err := cm.isExemptContent(); err == nil && res {
+		m.MetaBits = updateTrollModeBit(m.MetaBits)
+	}
 }
 
 func (m *MessageReply) AfterCreate() {

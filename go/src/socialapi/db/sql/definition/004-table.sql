@@ -47,6 +47,7 @@ DROP TABLE IF EXISTS "api"."account";
 CREATE TABLE "api"."account" (
     "id" bigint NOT NULL DEFAULT nextval('api.account_id_seq'::regclass),
     "old_id" varchar(24) NOT NULL COLLATE "default",
+    "is_troll" boolean NOT NULL DEFAULT false,
     "nick" varchar(25) NOT NULL CHECK ("nick" <> '')
 )
 WITH (OIDS=FALSE);
@@ -76,6 +77,7 @@ CREATE TABLE "api"."channel_message" (
     "type_constant" "api"."channel_message_type_constant_enum",
     "account_id" bigint NOT NULL,
     "initial_channel_id" bigint NOT NULL,
+    "meta_bits" smallint NOT NULL DEFAULT 0::smallint,
     "created_at" timestamp(6) WITH TIME ZONE NOT NULL DEFAULT now(),
     "updated_at" timestamp(6) WITH TIME ZONE NOT NULL DEFAULT now(),
     "deleted_at" timestamp(6) WITH TIME ZONE,
@@ -94,6 +96,7 @@ CREATE TABLE "api"."channel_message_list" (
     "id" bigint NOT NULL DEFAULT nextval('api.channel_message_list_id_seq'::regclass),
     "channel_id" bigint NOT NULL DEFAULT 0,
     "message_id" bigint NOT NULL DEFAULT 0,
+    "meta_bits" smallint NOT NULL DEFAULT 0::smallint,
     "added_at" timestamp(6) WITH TIME ZONE NOT NULL DEFAULT now()
 )
 WITH (OIDS=FALSE);
@@ -116,6 +119,7 @@ CREATE TABLE "api"."channel_participant" (
     "channel_id" bigint NOT NULL DEFAULT 0,
     "account_id" bigint NOT NULL DEFAULT 0,
     "status_constant" "api"."channel_participant_status_constant_enum",
+    "meta_bits" smallint NOT NULL DEFAULT 0::smallint,
     "last_seen_at" timestamp(6) WITH TIME ZONE NOT NULL DEFAULT now(),
     "created_at" timestamp(6) WITH TIME ZONE NOT NULL DEFAULT now(),
     "updated_at" timestamp(6) WITH TIME ZONE NOT NULL DEFAULT now()
@@ -140,6 +144,7 @@ CREATE TABLE "api"."interaction" (
     "message_id" bigint NOT NULL DEFAULT 0,
     "account_id" bigint NOT NULL DEFAULT 0,
     "type_constant" "api"."interaction_type_constant_enum",
+    "meta_bits" smallint NOT NULL DEFAULT 0::smallint,
     "created_at" timestamp(6) WITH TIME ZONE NOT NULL DEFAULT now()
 )
 WITH (OIDS=FALSE);
@@ -155,6 +160,7 @@ CREATE TABLE "api"."message_reply" (
     "id" bigint NOT NULL DEFAULT nextval('api.message_reply_id_seq'::regclass),
     "message_id" bigint NOT NULL DEFAULT 0,
     "reply_id" bigint NOT NULL DEFAULT 0,
+    "meta_bits" smallint NOT NULL DEFAULT 0::smallint,
     "created_at" timestamp(6) WITH TIME ZONE NOT NULL DEFAULT now()
 )
 WITH (OIDS=FALSE);

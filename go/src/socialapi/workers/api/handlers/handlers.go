@@ -65,11 +65,13 @@ func Inject(mux *tigertonic.TrieServeMux) *tigertonic.TrieServeMux {
 	////////////////////////////////////////////////////////////////////////////////////
 	/////////////////////////////////// Channel Operations /////////////////////////////
 	////////////////////////////////////////////////////////////////////////////////////
+
 	mux.Handle("POST", "/channel", handlerWrapper(channel.Create, "channel-create"))
 	mux.Handle("GET", "/channel", handlerWrapper(channel.List, "channel-list"))
 	mux.Handle("GET", "/channel/search", handlerWrapper(channel.Search, "channel-search"))
 	mux.Handle("GET", "/channel/name/{name}", handlerWrapper(channel.ByName, "channel-get-byname"))
 	mux.Handle("GET", "/channel/checkparticipation", handlerWrapper(channel.CheckParticipation, "channel-check-participation"))
+
 	// deprecated, here for socialworker
 	mux.Handle("POST", "/channel/{id}", handlerWrapper(channel.Update, "channel-update"))
 	mux.Handle("POST", "/channel/{id}/update", handlerWrapper(channel.Update, "channel-update"))
@@ -83,8 +85,8 @@ func Inject(mux *tigertonic.TrieServeMux) *tigertonic.TrieServeMux {
 	mux.Handle("POST", "/channel/{id}/participant/{accountId}/add", handlerWrapper(participant.Add, "participant-list"))
 	// remove participant from the channel
 	mux.Handle("POST", "/channel/{id}/participant/{accountId}/delete", handlerWrapper(participant.Delete, "participant-list"))
-	// update presence info
 	mux.Handle("POST", "/channel/{id}/participant/{accountId}/presence", handlerWrapper(participant.Presence, "participant-presence"))
+
 	// list messages of the channel
 	mux.Handle("GET", "/channel/{id}/history", handlerWrapper(messagelist.List, "channel-history-list"))
 	// register an account
@@ -97,8 +99,6 @@ func Inject(mux *tigertonic.TrieServeMux) *tigertonic.TrieServeMux {
 	mux.Handle("POST", "/account/{id}/follow", handlerWrapper(account.Follow, "account-follow"))
 	// un-follow the account
 	mux.Handle("POST", "/account/{id}/unfollow", handlerWrapper(account.Unfollow, "account-unfollow"))
-	// mark as troll
-	mux.Handle("POST", "/account/{id}/markastroll", handlerWrapper(account.MarkAsTroll, "account-mark-as-troll"))
 
 	// fetch profile feed
 	// mux.Handle("GET", "/account/{id}/profile/feed", handlerWrapper(account.ListProfileFeed, "list-profile-feed"))

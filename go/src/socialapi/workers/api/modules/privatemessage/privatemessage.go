@@ -106,7 +106,7 @@ func Send(u *url.URL, h http.Header, req *models.PrivateMessageRequest) (int, ht
 	cmc.IsParticipant = true
 	cmc.LastMessage = messageContainer
 	cmc.ParticipantCount = len(participantIds)
-	participantOldIds, err := models.AccountOldsIdByIds(participantIds)
+	participantOldIds, err := models.FetchAccountOldsIdByIdsFromCache(participantIds)
 	if err != nil {
 		return helpers.NewBadRequestResponse(err)
 	}

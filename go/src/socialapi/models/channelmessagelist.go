@@ -18,6 +18,9 @@ type ChannelMessageList struct {
 	// Id of the message
 	MessageId int64 `json:"messageId,string"     sql:"NOT NULL"`
 
+	// holds troll, unsafe, etc
+	MetaBits int16 `json:"-"`
+
 	// Addition date of the message to the channel
 	AddedAt time.Time `json:"addedAt"            sql:"NOT NULL"`
 }
