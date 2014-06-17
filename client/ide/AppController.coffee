@@ -252,7 +252,7 @@ class IDEAppController extends AppController
       ideViewLength  = 0
       ideViewLength += ideView.tabView.panes.length  for ideView in @ideViews
 
-      @statusBar.empty()  if ideViewLength is 0
+      @statusBar.showInformation()  if ideViewLength is 0
 
   forEachSubViewInIDEViews_: (callback = noop, paneType) ->
     for ideView in @ideViews

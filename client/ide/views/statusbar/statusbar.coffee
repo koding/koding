@@ -18,6 +18,5 @@ class IDE.StatusBar extends KDView
     @addSubView @status
     @addSubView @menuButton
 
-  empty: ->
-    @menuButton.hide()
+  showInformation: ->
     @status.updatePartial 'Click the plus button above to create a new panel'
