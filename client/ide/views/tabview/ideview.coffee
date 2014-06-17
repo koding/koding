@@ -105,7 +105,7 @@ class IDE.IDEView extends IDE.WorkspaceTabView
 
   click: ->
     super
-    KD.getSingleton('appManager').tell 'IDE', 'setActiveTabView', this.tabView
+    KD.getSingleton('appManager').tell 'IDE', 'setActiveTabView', @tabView
 
   openFile: (file, content) ->
     if @openFiles.indexOf(file) > -1
@@ -121,6 +121,7 @@ class IDE.IDEView extends IDE.WorkspaceTabView
   handlePaneRemoved: (pane) ->
     file = pane.getData()
     @openFiles.splice @openFiles.indexOf(file), 1
+    @emit 'PaneRemoved'
 
   getDummyFilePath: ->
     return 'localfile://Untitled.txt'
