@@ -51,7 +51,8 @@ class IDEAppController extends AppController
       splitOptions    :
         direction     : 'vertical'
         name          : 'BaseSplit'
-        sizes         : [ '234px', null ]
+        sizes         : [ 234, null ]
+        minimums      : [ 234, null ]
         views         : [
           {
             type      : 'custom'
