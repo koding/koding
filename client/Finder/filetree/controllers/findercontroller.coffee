@@ -108,6 +108,7 @@ class NFinderController extends KDViewController
       type           : "machine"
       machine        : machine
       treeController : @treeController
+      parentPath     : 0
 
     @noMachineFoundWidget.hide()
 
@@ -266,7 +267,7 @@ class NFinderController extends KDViewController
 
     for own path, machineItem of @treeController.nodes
       if machineItem.data?.type is 'machine'
-        return machineItem  if machineItem.data.uid is uid
+        return machineItem  if machineItem.data.machine.uid is uid
 
 
   # Settings helpers

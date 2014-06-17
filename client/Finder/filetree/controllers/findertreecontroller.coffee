@@ -99,9 +99,9 @@ class NFinderTreeController extends JTreeViewController
     else finder.hideDotFiles uid
 
   makeTopFolder:(nodeView)->
-    {vmName, path} = nodeView.getData()
+    {machine, path} = nodeView.getData()
     finder = @getDelegate()
-    finder.updateVMRoot vmName, FSHelper.plainPath path
+    finder.updateMachineRoot machine.uid, FSHelper.plainPath path
 
   refreshFolder:(nodeView, callback)->
 
