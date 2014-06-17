@@ -18,7 +18,7 @@ class IDE.IDEView extends IDE.WorkspaceTabView
     @tabView.on 'PreviewPaneRequested',   @bound 'createPreview'
     @tabView.on 'DrawingPaneRequested',   @bound 'createDrawingBoard'
 
-    @tabView.on 'PaneDidShow', => # bound passes args also
+    @tabView.on 'PaneDidShow', =>
       @updateStatusBar()
       @focusTab()
 

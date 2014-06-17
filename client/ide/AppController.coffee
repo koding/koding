@@ -60,7 +60,6 @@ class IDEAppController extends AppController
         direction     : 'vertical'
         name          : 'BaseSplit'
         sizes         : [ 234, null ]
-        minimums      : [ 234, null ]
         maximums      : [ 400, null ]
         views         : [
           {
@@ -198,7 +197,8 @@ class IDEAppController extends AppController
     splitView.setFloatingPanel 0, 39
     tabView.showPaneByName 'Dummy'
 
-    tabView.on 'PaneDidShow', ->
+    tabView.on 'PaneDidShow', (pane) ->
+      return if pane.options.name is 'Dummy'
       splitView.showPanel 0
       floatedPanel._lastSize = desiredSize
 
