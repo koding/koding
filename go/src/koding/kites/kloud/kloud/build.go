@@ -16,7 +16,7 @@ type ControlResult struct {
 	EventId string             `json:"eventId"`
 }
 
-func (k *Kloud) build(r *kite.Request, c *Controller) (interface{}, error) {
+func (k *Kloud) build(r *kite.Request, c *Controller) (resp interface{}, err error) {
 	if c.CurrenState == machinestate.Building {
 		return nil, NewError(ErrBuilding)
 	}
@@ -42,10 +42,12 @@ func (k *Kloud) build(r *kite.Request, c *Controller) (interface{}, error) {
 
 		err := k.buildMachine(r.Username, c)
 		if err != nil {
-			k.Log.Error("[controller] building machine failed: %s. Machine state is marked as UNKNOWN.", err.Error())
+			k.Log.Error("[controller] building machine failed: %s.", err.Error())
 
-			status = machinestate.Unknown
+			status = c.CurrenState
 			msg = err.Error()
+		} else {
+			k.Log.Info("[%s] is successfull. State is now: %+v", r.Method, status)
 		}
 
 		k.Storage.UpdateState(c.MachineId, status)
@@ -90,11 +92,19 @@ func (k *Kloud) buildMachine(username string, c *Controller) error {
 	c.Eventer.Push(&eventer.Event{Message: msg, Status: machinestate.Building})
 
 	k.Log.Debug("[controller]: running method 'build' with machine options %v", machOptions)
-	buildResponse, err := c.Provider.Build(machOptions)
+	resp, err := c.Provider.Build(machOptions)
 	if err != nil {
 		return err
 	}
-	k.Log.Debug("[controller]: method 'build' is successfull %#v", buildResponse)
+	k.Log.Debug("[controller]: method 'build' is successfull %#v", resp)
 
-	return k.Storage.Update(c.MachineId, buildResponse)
+	return k.Storage.Update(c.MachineId, &StorageData{
+		Type: "build",
+		Data: map[string]interface{}{
+			"queryString":  resp.QueryString,
+			"ipAddress":    resp.IpAddress,
+			"instanceId":   strconv.Itoa(resp.InstanceId),
+			"instanceName": resp.InstanceName,
+		},
+	})
 }

@@ -30,6 +30,8 @@ const (
 	ErrSignPrivateKeyEmpty = 303
 	ErrSignPublicKeyEmpty  = 304
 	ErrSignGenerateToken   = 305
+
+	ErrBadState = 401
 )
 
 var errors = map[int]string{
@@ -45,6 +47,9 @@ var errors = map[int]string{
 	ErrNoArguments:         "No arguments are passed.",
 	ErrMachineNotFound:     "Machine is not found",
 
+	// Generic errors
+	ErrBadState: "Bad state.",
+
 	// Event errors
 	ErrEventIdMissing:   "Event id is missing.",
 	ErrEventTypeMissing: "Event type is missing.",
@@ -57,6 +62,14 @@ var errors = map[int]string{
 	ErrSignPrivateKeyEmpty: "Private key is empty",
 	ErrSignPublicKeyEmpty:  "Public key is empty",
 	ErrSignGenerateToken:   "Cannot generate token",
+}
+
+func NewErrorMessage(errMsg string) *kite.Error {
+	return &kite.Error{
+		Type:    "kloudError",
+		Message: errMsg + " (error code: 900)",
+		CodeVal: "900",
+	}
 }
 
 func NewError(errorCode int) *kite.Error {

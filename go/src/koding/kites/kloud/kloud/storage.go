@@ -4,8 +4,6 @@ import (
 	"fmt"
 	"koding/db/mongodb"
 	"koding/kites/kloud/kloud/machinestate"
-	"koding/kites/kloud/kloud/protocol"
-	"strconv"
 	"time"
 
 	"github.com/koding/logging"
@@ -14,12 +12,17 @@ import (
 	"labix.org/v2/mgo/bson"
 )
 
+type StorageData struct {
+	Type string
+	Data map[string]interface{}
+}
+
 type Storage interface {
 	// Get returns to MachineData
 	Get(string, *GetOption) (*MachineData, error)
 
 	// Update updates the fields in the data for the given id
-	Update(string, *protocol.BuildResponse) error
+	Update(string, *StorageData) error
 
 	// UpdateState updates the machine state for the given machine id
 	UpdateState(string, machinestate.State) error
@@ -65,6 +68,17 @@ func (m *MongoDB) Assignee() string { return m.assignee }
 func (m *MongoDB) Get(id string, opt *GetOption) (*MachineData, error) {
 	if !bson.IsObjectIdHex(id) {
 		return nil, fmt.Errorf("Invalid machine id: %q", id)
+	}
+
+	// let's first check if the id exists, because we are going to use
+	// findAndModify() and it would be difficult to distinguish if the id
+	// really doesn't exist or if there is an assignee which is a different
+	// thing. (Because findAndModify() also returns "not found" for the case
+	// where the id exist but someone else is the assignee).
+	if err := m.session.Run("jMachines", func(c *mgo.Collection) error {
+		return c.FindId(bson.ObjectIdHex(id)).One(nil)
+	}); err == mgo.ErrNotFound {
+		return nil, NewError(ErrMachineNotFound)
 	}
 
 	// we use findAndModify() to get a unique lock from the DB. That means only
@@ -121,16 +135,16 @@ func (m *MongoDB) Get(id string, opt *GetOption) (*MachineData, error) {
 			return err
 		})
 
-		// machine id is not found
+		// query didn't matched, means it's assigned to some other Kloud
+		// instances and an ongoing event is in process.
 		if err == mgo.ErrNotFound {
-			return nil, NewError(ErrMachineNotFound)
+			return nil, NewError(ErrMachinePendingEvent)
 		}
 
-		// means it's assigned to some other Kloud instances and an ongoing
-		// event is in process.
+		// some other error, this shouldn't be happed
 		if err != nil {
-			m.log.Error("Storage get err: %s", err.Error())
-			return nil, NewError(ErrMachinePendingEvent)
+			m.log.Error("Storage get error: %s", err.Error())
+			return nil, NewError(ErrBadState)
 		}
 	}
 
@@ -149,23 +163,35 @@ func (m *MongoDB) Get(id string, opt *GetOption) (*MachineData, error) {
 	}, nil
 }
 
-func (m *MongoDB) Update(id string, resp *protocol.BuildResponse) error {
-	err := m.session.Run("jMachines", func(c *mgo.Collection) error {
-		return c.UpdateId(
-			bson.ObjectIdHex(id),
-			bson.M{"$set": bson.M{
-				"queryString":       resp.QueryString,
-				"ipAddress":         resp.IpAddress,
-				"meta.instanceId":   strconv.Itoa(resp.InstanceId),
-				"meta.instanceName": resp.InstanceName,
-			}},
-		)
-	})
-	if err != nil {
-		return err
+func (m *MongoDB) Update(id string, s *StorageData) error {
+	m.log.Debug("[storage] got update request for id '%s' of type '%s'", id, s.Type)
+
+	if s.Type == "build" {
+		return m.session.Run("jMachines", func(c *mgo.Collection) error {
+			return c.UpdateId(
+				bson.ObjectIdHex(id),
+				bson.M{"$set": bson.M{
+					"queryString":       s.Data["queryString"],
+					"ipAddress":         s.Data["ipAddress"],
+					"meta.instanceId":   s.Data["instanceId"],
+					"meta.instanceName": s.Data["instanceName"],
+				}},
+			)
+		})
 	}
 
-	return nil
+	if s.Type == "info" {
+		return m.session.Run("jMachines", func(c *mgo.Collection) error {
+			return c.UpdateId(
+				bson.ObjectIdHex(id),
+				bson.M{"$set": bson.M{
+					"meta.instanceName": s.Data["instanceName"],
+				}},
+			)
+		})
+	}
+
+	return fmt.Errorf("Storage type unknown: '%s'", s.Type)
 }
 
 func (m *MongoDB) UpdateState(id string, state machinestate.State) error {

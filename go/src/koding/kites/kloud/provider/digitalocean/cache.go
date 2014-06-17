@@ -60,14 +60,29 @@ func (c *Client) CreateCachedDroplet(imageId uint) error {
 	timeStamp := strconv.FormatInt(time.Now().UTC().UnixNano(), 10)
 	dropletName := c.CachePrefix + "-" + strconv.Itoa(int(imageId)) + "-" + timeStamp
 
-	c.Log.Info("Creating a cached Droplet with name '%s' based on image id: %v",
-		dropletName, imageId)
-	dropletId, err := c.NewDroplet(dropletName, imageId)
+	// The name of the public key on DO
+	keys, err := c.Keys()
 	if err != nil {
 		return err
 	}
 
-	if _, err := c.Redis.AddSetMembers(CacheRedisSetName, dropletId); err != nil {
+	var keyId uint
+	keyId = keys.GetId(keyName)
+	if keyId == 0 {
+		keyId, err = c.CreateKey(keyName, publicKey)
+		if err != nil {
+			return err
+		}
+	}
+
+	c.Log.Info("Creating a cached Droplet with name '%s' based on image id: %v",
+		dropletName, imageId)
+	dropletInfo, err := c.CreateDroplet(dropletName, keyId, imageId)
+	if err != nil {
+		return err
+	}
+
+	if _, err := c.Redis.AddSetMembers(CacheRedisSetName, uint(dropletInfo.Droplet.Id)); err != nil {
 		return err
 	}
 
@@ -128,6 +143,7 @@ func (c *Client) GetDroplet(dropletName string, imageId uint) (uint, error) {
 		return dropletId, nil
 	}
 
+	// create cached droplets if there are no available
 	if err == ErrNoCachedDroplets || err == ErrCachedDropletInvalid {
 		c.Log.Info("No cached Droplets are available for image id: %v", imageId)
 		// TODO: for now just create one whenever we got one in the backend, we
@@ -147,11 +163,7 @@ func (c *Client) GetDroplet(dropletName string, imageId uint) (uint, error) {
 			}
 
 		}()
-
-		// Create a new one and return.
-		return c.NewDroplet(dropletName, imageId)
 	}
 
-	c.Log.Warning("This is unexpected, an immediate fix is required: %s", err)
 	return c.NewDroplet(dropletName, imageId)
 }
