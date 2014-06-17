@@ -38,6 +38,7 @@ class ActivityInputWidget extends KDView
 
     @input = new ActivityInputView defaultValue: options.defaultValue
     @input.on "Escape", @bound "reset"
+    @input.on "Enter", @bound "submit"
 
     @input.on "TokenAdded", (type, token) =>
       if token.slug is "bug" and type is "tag"
@@ -156,6 +157,8 @@ class ActivityInputWidget extends KDView
 
 
   submit: (callback) ->
+
+    return  if @locked
 
     return @reset yes  unless value = @input.getValue().trim()
 
@@ -284,12 +287,14 @@ class ActivityInputWidget extends KDView
 
   lockSubmit: ->
 
+    @locked = yes
     @submitButton.disable()
     @submitButton.showLoader()
 
 
   unlockSubmit: ->
 
+    @locked = no
     @submitButton.enable()
     @submitButton.hideLoader()
 
@@ -298,12 +303,13 @@ class ActivityInputWidget extends KDView
 
     return unless value = @input.getValue().trim()
 
-    previewData =
-      on            : ->
-      watch         : ->
+    data            =
+      on            : -> return this
+      watch         : -> return this
       account       : KD.whoami().bongo_
       body          : value
       typeConstant  : 'post'
+      replies       : []
       interactions  :
         like        :
           actorsCount : 0
@@ -311,21 +317,12 @@ class ActivityInputWidget extends KDView
       meta          :
         createdAt   : new Date
 
-    if not @preview
-
-      @addSubView @preview = new ActivityListItemView
-        cssClass      : 'preview'
-      , previewData
-
-      @preview.addSubView new KDCustomHTMLView
-        cssClass      : 'preview-indicator'
-        partial       : 'Previewing'
-        click         : => @hidePreview()
-
-    else
-
-      @preview.setData previewData
-      @preview.render()
+    @preview?.destroy()
+    @addSubView @preview = new ActivityListItemView cssClass: 'preview', data
+    @preview.addSubView new KDCustomHTMLView
+      cssClass : 'preview-indicator'
+      partial  : 'Previewing'
+      click    : @bound 'hidePreview'
 
     @setClass "preview-active"
 

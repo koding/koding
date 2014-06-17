@@ -13,28 +13,12 @@ class ActivitySidebar extends KDCustomScrollView
     SocialChannel : 'name'
 
 
-  # @getRoute = (data) ->
+  revive = (data) ->
 
-  #   {typeConstant} = data
-  #   groupName      = KD.getGroup().slug
-  #   groupName      = ''  if groupName is 'koding'
-  #   slugProp       = slugProps[data.bongo_.constructorName]
-
-  #   return "#{groupName}/Activity/#{typeMap[typeConstant]}/#{data[slugProp]}"
-
-
-  # sanitize = (allItems) ->
-
-  #   sanitized = []
-  #   for own title, items of allItems
-  #     header = new KDObject { title }
-  #     items.forEach (item) ->
-  #       obj = new KDObject {}, item
-  #       obj.parentId = header.getId()
-  #       sanitized.push obj
-  #     sanitized.push header
-
-  #   return sanitized.reverse()
+    return switch data.typeConstant
+      when 'post' then (KD.singleton 'socialapi').message.revive message: data
+      when 'topic' then (KD.singleton 'socialapi').mapChannel data
+      else data
 
 
   constructor: ->
@@ -49,21 +33,73 @@ class ActivitySidebar extends KDCustomScrollView
     @sections     = {}
     @selectedItem = null
 
-    notificationController.on 'AddedToChannel', (channel) =>
+    notificationController
+      .on 'AddedToChannel',            @bound 'addToChannel'
+      .on 'RemovedFromChannel',        @bound 'removeFromChannel'
+      .on 'ChannelUpdateHappened',     @bound 'notificationHasArrived'
+      .on 'NotificationHasArrived',    @bound 'notificationHasArrived'
 
-      [topic] = socialapi.mapChannels channel
 
-      @sections.followedTopics.listController.addItem topic
+  addToChannel: (channel) ->
+
+    data           = revive channel
+    listController = @getListController data.typeConstant
+
+    return  if listController.itemForId data.id
+
+    listController.addItem data
+    @updateTopicFollowButtons data
 
 
-    notificationController.on 'RemovedFromChannel', (channel) =>
+  removeFromChannel: (channel) ->
 
-      {listController} = @sections.followedTopics
+    channel        = revive channel
+    listController = @getListController channel.typeConstant
+    item           = listController.itemForId channel.getId()
+    listController.removeItem item
+    @updateTopicFollowButtons channel
 
-      [topic] = socialapi.mapChannels channel
-      item    = listController.itemsIndexed[topic.id]
 
-      listController.removeItem item
+  notificationHasArrived: (update) ->
+
+    log 'notificationHasArrived', update
+
+    switch update.event
+      when 'MessageAddedToChannel'     then return @addToChannel update.channelMessage
+      when 'MessageRemovedFromChannel' then return @removeFromChannel update.channelMessage
+
+    @setChannelUnreadCount update  if update.channel
+
+
+  setChannelUnreadCount: ({unreadCount, channel}) ->
+
+    return  unless channel
+
+    {typeConstant, id} = channel
+
+    listController = @getListController typeConstant
+    item = listController.itemForId id
+    item.setUnreadCount unreadCount  if item?.unreadCount
+
+
+  getListController: (type) ->
+
+    section = switch type
+      when 'topic'                  then @sections.followedTopics
+      when 'pinnedactivity', 'post' then @sections.conversations
+      when 'privatemessage'         then @sections.messages
+      else {}
+
+    return section.listController
+
+
+  updateTopicFollowButtons: (channel) ->
+
+    for name in ['hot', 'followedTopics']
+      item = @sections[name].listController.itemForId channel.getId()
+      continue  unless item
+      state = if channel.isParticipant then 'Following' else 'Follow'
+      item.followButton.setState state
 
 
   # fixme:
@@ -73,29 +109,36 @@ class ActivitySidebar extends KDCustomScrollView
   # - the item which is being clicked
   # - and what the route suggests
   # needs to be simplified
-  selectItemByRouteOptions: (type, slug) ->
+  selectItemByRouteOptions: (type, slug_) ->
 
     @deselectAllItems()
 
     if type is 'public'
-    then return @public.setClass 'selected'
-    else @public.unsetClass 'selected'
+      @selectedItem = @public
+      @public.setClass 'selected'
+      return
 
-    type = 'privatemessage' if type is 'message'
+    else
+      @public.unsetClass 'selected'
 
-    candidateItems = []
-    for own name, {listController} of @sections
+    type       = 'privatemessage'  if type is 'message'
+    candidates = []
 
-      for item in listController.itemsOrdered
+    for own name_, {listController} of @sections
+
+      for item in listController.getListItems()
+
         data = item.getData()
-        if data.typeConstant is type and (data.id is slug or data.name is slug or data.slug is slug)
-          candidateItems.push item
+        {typeConstant, id, name , slug} = data
 
-    candidateItems.sort (a, b) -> a.lastClickedTimestamp < b.lastClickedTimestamp
+        if typeConstant is type and slug_ in [id, name, slug]
+          candidates.push item
 
-    if candidateItems.first
-      listController.selectSingleItem candidateItems.first
-      @selectedItem = candidateItems.first
+    candidates.sort (a, b) -> a.lastClickedTimestamp < b.lastClickedTimestamp
+
+    if candidates.first
+      listController.selectSingleItem candidates.first
+      @selectedItem = candidates.first
 
 
   deselectAllItems: ->
@@ -123,7 +166,7 @@ class ActivitySidebar extends KDCustomScrollView
     itemWeWant = null
     for own name, section of @sections
 
-      section.listController.itemsOrdered.forEach (item)->
+      section.listController.getListItems().forEach (item)->
         if item.typeConstant is typeConstant
           slugProp = slugProps[item.bongo_.constructorName]
           itemWeWant = item[slugProp] is slug
@@ -138,7 +181,7 @@ class ActivitySidebar extends KDCustomScrollView
     @addPublicFeedLink()
     @addHotTopics()
     @addFollowedTopics()
-    @addFollowedPosts()
+    @addConversations()
     @addMessages()
     # @addChat()
 
@@ -167,39 +210,50 @@ class ActivitySidebar extends KDCustomScrollView
   addHotTopics: ->
 
     @wrapper.addSubView @sections.hot = new ActivitySideView
-      title      : 'HOT'
-      cssClass   : 'hot topics'
+      title      : 'TRENDING'
+      cssClass   : 'hot topics hidden'
       itemClass  : SidebarTopicItem
       dataPath   : 'popularTopics'
       delegate   : this
+      headerLink : new CustomLinkView
+        title    : 'ALL'
+        href     : KD.utils.groupifyLink '/Activity/Topic/All'
       dataSource : (callback) ->
         KD.singletons.socialapi.channel.fetchPopularTopics
-          limit  : 3
+          limit  : 5
         , callback
 
 
   addFollowedTopics: ->
 
     @wrapper.addSubView @sections.followedTopics = new ActivitySideView
-      title      : 'Followed Topics'
+      title      : 'My Feeds'
       cssClass   : 'followed topics'
       itemClass  : SidebarTopicItem
       dataPath   : 'followedChannels'
       delegate   : this
+      noItemText : "You didn't follow any topics yet."
+      headerLink : new CustomLinkView
+        title    : 'ALL'
+        href     : KD.utils.groupifyLink '/Activity/Topic/All'
       dataSource : (callback) ->
         KD.singletons.socialapi.channel.fetchFollowedChannels
           limit : 5
         , callback
 
 
-  addFollowedPosts: ->
+  addConversations: ->
 
-    @wrapper.addSubView @sections.followedPosts = new ActivitySideView
-      title      : 'Followed Posts'
+    @wrapper.addSubView @sections.conversations = new ActivitySideView
+      title      : 'Conversations'
       cssClass   : 'threads users'
       itemClass  : SidebarPinnedItem
       dataPath   : 'pinnedMessages'
       delegate   : this
+      noItemText : "You didn't participate in any conversations yet."
+      headerLink : new CustomLinkView
+        title    : 'ALL'
+        href     : KD.utils.groupifyLink '/Activity/Post/All'
       dataSource : (callback) ->
         KD.singletons.socialapi.channel.fetchPinnedMessages
           limit : 5
@@ -209,24 +263,30 @@ class ActivitySidebar extends KDCustomScrollView
   addMessages: ->
 
     @wrapper.addSubView @sections.messages = new ActivitySideView
-      title      : 'Messages'
+      title      : 'Private Conversations'
       cssClass   : 'inbox users'
       itemClass  : SidebarMessageItem
       dataPath   : 'privateMessages'
       delegate   : this
+      noItemText : "No private messages yet."
+      headerLink : new CustomLinkView
+        title    : 'NEW'
+        href     : KD.utils.groupifyLink '/Activity/Message/New'
       dataSource : (callback) ->
         KD.singletons.socialapi.message.fetchPrivateMessages
-          limit : 3
-          skip  : 0
+          limit : 5
         , callback
 
 
   addChat: ->
 
     @wrapper.addSubView @sections.chat = new ActivitySideView
-      title    : 'Chat'
-      cssClass : 'chat users'
-      itemClass : SidebarChatMemberItem
+      title      : 'Chat'
+      cssClass   : 'chat users'
+      itemClass  : SidebarChatMemberItem
       delegate   : this
+      headerLink : new CustomLinkView
+        title    : 'NEW'
+        href     : KD.utils.groupifyLink '/Activity/Chat/New'
       dataSource : (callback) ->
-        KD.getGroup().fetchNewestMembers {}, {limit : 10, skip : 0}, callback
+        KD.getGroup().fetchNewestMembers {}, {limit : 10}, callback

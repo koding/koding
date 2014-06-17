@@ -16,6 +16,7 @@ log4js.configure {
 
 {exec} = require 'child_process'
 {extend} = require 'underscore'
+{ join: joinPath } = require 'path'
 
 process.on 'uncaughtException', (err)->
   exec './beep'
@@ -40,16 +41,11 @@ processMonitor = (require 'processes-monitor').start
   name : "Social Worker #{process.pid}"
   stats_id: "worker.social." + process.pid
   interval : 30000
-  librato: KONFIG.librato
   limit_hard  :
-    memory   : 300
+    memory   : 600
     callback : (name,msg,details)->
       console.log "[#{JSON.stringify(new Date())}][SOCIAL WORKER #{name}] Using excessive memory, exiting."
       process.exit()
-  die :
-    after: "non-overlapping, random, 3 digits prime-number of minutes"
-    middleware : (name,callback) -> koding.disconnect callback
-    middlewareTimeout : 15000
 
 koding = new Bongo {
   verbose     : social.verbose
@@ -58,6 +54,28 @@ koding = new Bongo {
   models      : './models'
   resourceName: social.queueName
   mq          : broker
+
+  kite          :
+    kontrol     : KONFIG.client.runtimeOptions.newkontrol.url
+    name        : 'social'
+    environment : 'vagrant'
+    region      : 'vagrant'
+    version     : KONFIG.version
+    username    : 'koding'
+    port        : argv['kite-port']
+    kiteKey     : joinPath __dirname, '../../../../kite_home/koding/kite.key'
+
+    fetchClient: (name, context, callback) ->
+      { JAccount } = koding.models
+      [callback, context] = [context, callback] unless callback
+      context   ?= group: 'koding'
+      callback  ?= ->
+      JAccount.one 'profile.nickname': name, (err, account) ->
+        return callback err  if err?
+
+        if account instanceof JAccount
+          callback null, { context, connection:delegate:account }
+
   fetchClient :(sessionToken, context, callback)->
     { JUser, JAccount } = koding.models
     [callback, context] = [context, callback] unless callback

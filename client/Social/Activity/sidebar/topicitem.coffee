@@ -28,4 +28,5 @@ class SidebarTopicItem extends SidebarItem
     {span.ttag{ '#' + #(name)}}
     {span.tag-info{ #(participantCount) + str}}
     {{> @followButton}}
+    {{> @unreadCount}}
     """

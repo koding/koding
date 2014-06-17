@@ -197,5 +197,5 @@ class MembersAppController extends AppController
 class MemberActivityListController extends ActivityListController
   # used for filtering received live updates
   addItem: (activity, index, animation)->
-    if activity.originId is @getOptions().creator.getId()
+    if activity.account._id is @getOptions().creator.getId()
       super activity, index, animation

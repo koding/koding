@@ -6,6 +6,7 @@ import (
 	"socialapi/rest"
 	"strconv"
 	"testing"
+
 	. "github.com/smartystreets/goconvey/convey"
 )
 
@@ -349,6 +350,24 @@ func TestChannelMessage(t *testing.T) {
 				So(interactions, ShouldNotBeNil)
 			})
 			Convey("while deleting messages, they should be removed from all channels", nil)
+
+			Convey("message can contain payload", func() {
+				payload := make(map[string]interface{})
+				payload["key1"] = "value1"
+				payload["key2"] = 2
+				payload["key3"] = true
+				payload["key4"] = 3.4
+
+				post, err := rest.CreatePostWithPayload(groupChannel.Id, account.Id, payload)
+				So(err, ShouldBeNil)
+				So(post, ShouldNotBeNil)
+
+				So(post.Payload, ShouldNotBeNil)
+				So(*(post.Payload["key1"]), ShouldEqual, "value1")
+				So(*(post.Payload["key2"]), ShouldEqual, "2")
+				So(*(post.Payload["key3"]), ShouldEqual, "true")
+				So(*(post.Payload["key4"]), ShouldEqual, "3.4")
+			})
 		})
 	})
 }

@@ -4,6 +4,7 @@ class CommentListViewController extends KDListViewController
 
     options.viewOptions =
       type              : 'comments'
+      dataPath          : 'id'
       itemClass         : CommentListItemView
       itemOptions       :
         delegate        : this
@@ -15,6 +16,11 @@ class CommentListViewController extends KDListViewController
   instantiateListItems: (items) ->
 
     super items.sort (a, b) -> a.meta.createdAt - b.meta.createdAt
+
+
+  addItem: (item, index) ->
+
+    super item, index
 
 
   loadView: (mainView) ->

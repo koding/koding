@@ -61,10 +61,10 @@ class AceFindAndReplaceView extends JView
 
   bindSpecialKeys: (input) ->
     "esc"           : (e) => @close()
-    "super+f"       : (e) =>
+    "meta+f"       : (e) =>
       e.preventDefault()
       @setViewHeight no
-    "super+shift+f" : (e) =>
+    "meta+shift+f" : (e) =>
       e.preventDefault()
       @setViewHeight yes
     "shift+enter"   : (e) =>

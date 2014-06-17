@@ -211,7 +211,7 @@ module.exports = class JDomain extends jraphical.Module
       return callback new KodingError \
         "Cannot resolve #{domain}", "RESOLVEFAILED"  if err
 
-      baseDomain = 'kd.io'
+      baseDomain = 'RANDOM3MGQvnuLpU97.kd.io'
       dns.resolve baseDomain, (err, baseIps)->
         return callback err  if err
 

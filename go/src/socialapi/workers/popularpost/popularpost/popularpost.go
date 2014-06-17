@@ -4,12 +4,10 @@ import (
 	"fmt"
 	"socialapi/config"
 	"socialapi/models"
-	"socialapi/workers/helper"
 	"time"
 
 	"github.com/koding/logging"
 	"github.com/koding/redis"
-	"github.com/koding/worker"
 	"github.com/streadway/amqp"
 )
 
@@ -17,15 +15,12 @@ var (
 	PopularPostKey = "popularpost"
 )
 
-type Action func(*PopularPostController, []byte) error
-
-type PopularPostController struct {
-	routes map[string]Action
-	log    logging.Logger
-	redis  *redis.RedisSession
+type Controller struct {
+	log   logging.Logger
+	redis *redis.RedisSession
 }
 
-func (t *PopularPostController) DefaultErrHandler(delivery amqp.Delivery, err error) bool {
+func (t *Controller) DefaultErrHandler(delivery amqp.Delivery, err error) bool {
 	if delivery.Redelivered {
 		t.log.Error("Redelivered message gave error again, putting to maintenance queue", err)
 		delivery.Ack(false)
@@ -37,47 +32,22 @@ func (t *PopularPostController) DefaultErrHandler(delivery amqp.Delivery, err er
 	return false
 }
 
-func NewPopularPostController(log logging.Logger, redis *redis.RedisSession) *PopularPostController {
-	ppc := &PopularPostController{
+func New(log logging.Logger, redis *redis.RedisSession) *Controller {
+	return &Controller{
 		log:   log,
 		redis: redis,
 	}
-
-	routes := map[string]Action{
-		// "api.channel_message_deleted": (*PopularPostController).MessageDeleted,
-
-		"api.interaction_created": (*PopularPostController).InteractionSaved,
-		"api.interaction_deleted": (*PopularPostController).InteractionDeleted,
-	}
-
-	ppc.routes = routes
-	return ppc
 }
 
-func (f *PopularPostController) HandleEvent(event string, data []byte) error {
-	f.log.Debug("New Event Recieved %s", event)
-	handler, ok := f.routes[event]
-	if !ok {
-		return worker.HandlerNotFoundErr
-	}
-
-	return handler(f, data)
+func (f *Controller) InteractionSaved(i *models.Interaction) error {
+	return f.handleInteractionEvent(1, i)
 }
 
-func (f *PopularPostController) InteractionSaved(data []byte) error {
-	return f.handleInteractionEvent(1, data)
+func (f *Controller) InteractionDeleted(i *models.Interaction) error {
+	return f.handleInteractionEvent(-1, i)
 }
 
-func (f *PopularPostController) InteractionDeleted(data []byte) error {
-	return f.handleInteractionEvent(-1, data)
-}
-
-func (f *PopularPostController) handleInteractionEvent(incrementCount int, data []byte) error {
-	i, err := helper.MapToInteraction(data)
-	if err != nil {
-		return err
-	}
-
+func (f *Controller) handleInteractionEvent(incrementCount int, i *models.Interaction) error {
 	cm := models.NewChannelMessage()
 	if err := cm.ById(i.MessageId); err != nil {
 		return err
@@ -112,7 +82,7 @@ func (f *PopularPostController) handleInteractionEvent(incrementCount int, data 
 
 }
 
-func (f *PopularPostController) isEligible(c *models.Channel, cm *models.ChannelMessage) bool {
+func (f *Controller) isEligible(c *models.Channel, cm *models.ChannelMessage) bool {
 	if c.PrivacyConstant != models.Channel_PRIVACY_PUBLIC {
 		return false
 	}

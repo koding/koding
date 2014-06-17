@@ -39,7 +39,8 @@ class TerminalStartTab extends JView
         then kontrol.kites.terminal
         else vmController.terminalKites
 
-      vmController.ready => @listVMSessions vms
+      vmController.on 'terminalsReady', =>
+        @listVMSessions vms
 
       osKites =
         if KD.useNewKites
@@ -88,10 +89,10 @@ class TerminalStartTab extends JView
 
     """
     <h1>This is where the magic happens!</h1>
-    <h2>Terminal allows you to interact directly with your VM.</h2>
-    <figure><iframe src="//www.youtube.com/embed/DmjWnmSlSu4?origin=https://koding.com&showinfo=0&rel=0&theme=dark&modestbranding=1&autohide=1&loop=1" width="100%" height="100%" frameborder="0" webkitAllowFullScreen mozallowfullscreen allowFullScreen></iframe></figure>
     <h3>Your VMs</h3>
     {{> @vmWrapper}}
+    <figure><iframe src="//www.youtube.com/embed/DmjWnmSlSu4?origin=https://koding.com&showinfo=0&rel=0&theme=dark&modestbranding=1&autohide=1&loop=1" width="100%" height="100%" frameborder="0" webkitAllowFullScreen mozallowfullscreen allowFullScreen></iframe></figure>
+    <h2>Terminal allows you to interact directly with your VM.</h2>
     {{> @message}}
     """
 

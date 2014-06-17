@@ -4,8 +4,6 @@ class AppController extends KDViewController
 
     super
 
-    @registerKeyBindings()
-
     { name, version } = @getOptions()
     { mainController } = KD.singletons
 
@@ -16,18 +14,35 @@ class AppController extends KDViewController
         { appStorageController } = KD.singletons
         @appStorage = appStorageController.storage name, version or "1.0.1"
 
+    @bindKeyCombos()
+
+  bindKeyCombos: ->
+    { globalKeyCombos } = KD.singletons
+
+    @appKeyListener = new KDKeyboardListener
+    @appKeyMap      = new KDKeyboardMap { priority: 10 }
+
+    @appKeyListener
+      .addComboMap globalKeyCombos
+      .addComboMap @appKeyMap
+
+    @registerDeclaredBindings()
+
+    KD.singletons.appManager.on 'AppIsBeingShown', (app) =>
+      @appKeyListener?.listen()  if app is this
+
+  registerAppKeys: (bindings = {}) ->
+    @appKeyMap.addCombo binding, fn  for own binding, fn of bindings
+    @appKeyListener.addComboMap @appKeyMap
+    @appKeyMap
+
   createContentDisplay:(models, callback)->
     warn "You need to override #createContentDisplay - #{@constructor.name}"
 
   handleQuery:(query)->
     @ready => @feedController?.handleQuery? query
 
-  registerKeyBinding: ({ binding, command, isGlobal }) ->
-    binding = binding.replace /\bsuper\b/g, 'mod'
-    Mousetrap[if isGlobal then 'bindGlobal' else 'bind'] binding, (event) =>
-      @handleCommand command, @getOptions().name, event
-
-  handleCommand: (command, event) ->
+  handleCommand: (command, appName, event) ->
     { commands } = KD.getAppOptions @getOptions().name
 
     cmd = commands[command]
@@ -39,19 +54,10 @@ class AppController extends KDViewController
     else
       throw new Error "Unknown command: #{command}"
 
-  bindKeys: (keyBindings) ->
-    Mousetrap.reset()
+  registerDeclaredBindings: ->
+    appName = @getOptions().name
+    { keyBindings } = KD.getAppOptions appName
 
-    for { binding, command, global: isGlobal } in keyBindings
-      bindings = binding  if Array.isArray binding
-
-      if bindings?
-        @registerKeyBinding { binding, command, isGlobal }  for binding in bindings
-      else
-        @registerKeyBinding { binding, command, isGlobal }
-
-
-  registerKeyBindings: ->
-    { keyBindings } = KD.getAppOptions @getOptions().name
-
-    @getView().on 'KeyViewIsSet', => @bindKeys keyBindings
+    keyBindings?.forEach (b) =>
+      @appKeyMap.addCombo b.binding, { global: b.global }, (ev) =>
+        @handleCommand b.command, appName, ev

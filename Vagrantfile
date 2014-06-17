@@ -78,7 +78,7 @@ Vagrant.configure("2") do |config|
     end
 
     # private network for vm to reach to services on host computer
-    config.vm.network "private_network", ip: "192.168.50.4"
+    config.vm.network "private_network", ip: "192.168.42.4"
 
     default.vm.network :forwarded_port, :guest =>  3021, :host =>  3021 # vmproxy
     default.vm.network :forwarded_port, :guest => 27017, :host => 27017 # mongodb

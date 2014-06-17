@@ -26,6 +26,9 @@ MessageBodyMinLen=5
 [Notification]
 CacheEnabled = false
 
+[emailnotification]
+templateRoot="../src/socialapi/workers/emailnotifier/templates/"
+
 [sendgrid]
 Username= "koding"
 Password= "DEQl7_Dr"

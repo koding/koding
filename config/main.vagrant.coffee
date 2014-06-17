@@ -7,6 +7,7 @@ mongo           = 'localhost:27017/koding'
 mongoKontrol    = 'localhost:27017/kontrol'
 projectRoot     = nodePath.join __dirname, '..'
 socialQueueName = "koding-social-vagrant"
+logQueueName    = socialQueueName+'log'
 
 authExchange    = "auth"
 authAllExchange = "authAll"
@@ -46,18 +47,19 @@ module.exports =
   socialapi:
     port        : 7000
     clusterSize : 5
-    fallbackUrl : "http://localhost:7000"
+    proxyUrl    : "http://localhost:7000"
   sourceServer  :
     enabled     : yes
     port        : 3526
   mongo         : mongo
   mongoKontrol  : mongoKontrol
   mongoReplSet  : null
+  mongoMinWrites: 1
   neo4j         :
     read        : "http://localhost"
     write       : "http://localhost"
     port        : 7474
-  runNeo4jFeeder: yes
+  runNeo4jFeeder: no
   runGoBroker   : yes
   runGoBrokerKite: yes
   runPremiumBroker: yes
@@ -72,24 +74,11 @@ module.exports =
   runTerminalKite: yes
   runProxy      : yes
   redis         : "localhost:6379"
-  subscriptionEndpoint   : "http://192.168.50.1:3020/-/subscription/check/"
+  subscriptionEndpoint   : "http://192.168.42.1:3020/-/subscription/check/"
   misc          :
     claimGlobalNamesForUsers: no
     updateAllSlugs : no
     debugConnectionErrors: yes
-  uploads       :
-    enableStreamingUploads: no
-    distribution: 'https://d2mehr5c6bceom.cloudfront.net'
-    s3          :
-      awsAccountId        : '616271189586'
-      awsAccessKeyId      : 'AKIAJO74E23N33AFRGAQ'
-      awsSecretAccessKey  : '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'
-      bucket              : 'koding-uploads'
-  # loadBalancer  :
-  #   port        : 3000
-  #   heartbeat   : 5000
-    # httpRedirect:
-    #   port      : 80 # don't forget port 80 requires sudo
   bitly :
     username  : "kodingen"
     apiKey    : "R_677549f555489f455f7ff77496446ffa"
@@ -136,6 +125,15 @@ module.exports =
     watch       : yes
     queueName   : socialQueueName
     verbose     : no
+    kitePort    : 8765
+  log           :
+    login       : 'prod-social'
+    numberOfWorkers: 1
+    watch       : yes
+    queueName   : logQueueName
+    verbose     : no
+    run         : no
+    runWorker   : yes
   followFeed    :
     host        : 'localhost'
     port        : 5672
@@ -172,8 +170,11 @@ module.exports =
       userSitesDomain: 'lvh.me'
       useNeo4j: yes
       logToExternal: no  # rollbar, mixpanel etc.
+      logToInternal: no  # log worker
       resourceName: socialQueueName
+      logResourceName: logQueueName
       socialApiUri: 'http://lvh.me:3030/xhr'
+      logApiUri: 'http://lvh.me:4030/xhr'
       suppressLogs: no
       broker    :
         servicesEndpoint: 'http://lvh.me:3020/-/services/broker'
@@ -295,17 +296,6 @@ module.exports =
     batchSize     : undefined
     cleanupCron   : '*/10 * * * * *'
   pidFile         : '/tmp/koding.server.pid'
-  loggr           :
-    push          : no
-    url           : ""
-    apiKey        : ""
-  librato         :
-    push          : no
-    email         : ""
-    token         : ""
-    interval      : 60000
-  haproxy         :
-    webPort       : 3020
   newkites        :
     useTLS        : no
     certFile      : ""
@@ -439,7 +429,3 @@ module.exports =
     secure        : cookieSecure
   troubleshoot    :
     recipientEmail: "can@koding.com"
-  pageHit         :
-    run           : no
-    host          : "localhost"
-    port          : 9200

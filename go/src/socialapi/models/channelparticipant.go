@@ -40,9 +40,11 @@ type ChannelParticipant struct {
 // here is why i did this not-so-good constants
 // https://code.google.com/p/go/issues/detail?id=359
 const (
-	ChannelParticipant_STATUS_ACTIVE          = "active"
-	ChannelParticipant_STATUS_LEFT            = "left"
-	ChannelParticipant_STATUS_REQUEST_PENDING = "requestpending"
+	ChannelParticipant_STATUS_ACTIVE              = "active"
+	ChannelParticipant_STATUS_LEFT                = "left"
+	ChannelParticipant_STATUS_REQUEST_PENDING     = "requestpending"
+	ChannelParticipant_Added_To_Channel_Event     = "added_to_channel"
+	ChannelParticipant_Removed_From_Channel_Event = "removed_from_channel"
 )
 
 func NewChannelParticipant() *ChannelParticipant {
@@ -99,6 +101,13 @@ func (c *ChannelParticipant) Create() error {
 		if err := c.Update(); err != nil {
 			return err
 		}
+
+		if err := bongo.B.PublishEvent(
+			ChannelParticipant_Added_To_Channel_Event, c,
+		); err != nil {
+			// log here
+		}
+
 		return nil
 	}
 
@@ -107,6 +116,18 @@ func (c *ChannelParticipant) Create() error {
 	}
 
 	return bongo.B.Create(c)
+}
+
+func (c *ChannelParticipant) CreateRaw() error {
+	insertSql := "INSERT INTO " +
+		c.TableName() +
+		` ("channel_id","account_id", "status_constant", "last_seen_at","created_at", "updated_at") ` +
+		"VALUES ($1,$2,$3,$4,$5,$6) " +
+		"RETURNING ID"
+
+	return bongo.B.DB.CommonDB().
+		QueryRow(insertSql, c.ChannelId, c.AccountId, c.StatusConstant, c.LastSeenAt, c.CreatedAt, c.UpdatedAt).
+		Scan(&c.Id)
 }
 
 func (c *ChannelParticipant) Update() error {
@@ -167,11 +188,22 @@ func (c *ChannelParticipant) Delete() error {
 		return err
 	}
 
-	return bongo.B.UpdatePartial(c,
+	if err := bongo.B.UpdatePartial(c,
 		bongo.Partial{
 			"status_constant": ChannelParticipant_STATUS_LEFT,
 		},
-	)
+	); err != nil {
+		return err
+	}
+
+	if err := bongo.B.PublishEvent(
+		ChannelParticipant_Removed_From_Channel_Event, c,
+	); err != nil {
+		// log here
+	}
+
+	return nil
+
 }
 
 func (c *ChannelParticipant) List() ([]ChannelParticipant, error) {
@@ -237,6 +269,10 @@ func (c *ChannelParticipant) FetchParticipatedChannelIds(a *Account, q *Query) (
 	defer rows.Close()
 	if err != nil {
 		return channelIds, err
+	}
+
+	if rows == nil {
+		return nil, nil
 	}
 
 	var channelId int64

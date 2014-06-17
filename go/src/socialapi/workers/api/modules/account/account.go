@@ -9,7 +9,8 @@ import (
 	"github.com/koding/bongo"
 )
 
-func ListChannels(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface{}, error) {
+// lists followed channels of an account
+func ListChannels(u *url.URL, h http.Header, _ interface{}, c *models.Context) (int, http.Header, interface{}, error) {
 	query := helpers.GetQuery(u)
 
 	accountId, err := helpers.GetURIInt64(u, "id")
@@ -28,7 +29,7 @@ func ListChannels(u *url.URL, h http.Header, _ interface{}) (int, http.Header, i
 	}
 
 	return helpers.HandleResultAndError(
-		models.PopulateChannelContainers(channels, accountId),
+		models.PopulateChannelContainersWithUnreadCount(channels, accountId),
 	)
 }
 

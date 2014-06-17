@@ -1,12 +1,15 @@
 package oskite
 
 import (
+	"koding/kodingkite"
 	"koding/tools/kite"
 	"koding/tools/utils"
 	"koding/virt"
 	"math/rand"
 	"sync"
 	"time"
+
+	newkite "github.com/koding/kite"
 
 	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
@@ -90,6 +93,24 @@ func (v *VMInfo) stopTimeout(channel *kite.Channel) {
 	})
 }
 
+// stopTimeout stops the timer for every incoming request for the given
+// channel. That whay we prevent that the VM is turned off after the timeout.
+func (v *VMInfo) stopTimeoutNewKite(k *kodingkite.KodingKite) {
+	if k == nil {
+		return
+	}
+
+	v.useCounter += 1
+	v.timeout.Stop()
+	k.OnDisconnect(func(c *newkite.Client) {
+		v.mutex.Lock()
+		defer v.mutex.Unlock()
+
+		v.useCounter -= 1
+		v.startTimeout()
+	})
+}
+
 // startTimeout starts the turn off timer for the VM that is associated with
 // the info instance. It does return if the VM is Always On.
 func (v *VMInfo) startTimeout() {
@@ -116,10 +137,6 @@ func (v *VMInfo) startTimeout() {
 		prepareQueue <- &QueueJob{
 			msg: "vm unprepare " + v.vm.HostnameAlias,
 			f: func() error {
-				// mutex is needed because it's handled in the queue
-				v.mutex.Lock()
-				defer v.mutex.Unlock()
-
 				v.unprepareVM()
 				return nil
 			},
@@ -146,6 +163,10 @@ func (v *VMInfo) isAlwaysOn() bool {
 }
 
 func (v *VMInfo) unprepareVM() {
+	// mutex is needed because it's handled in the queue
+	v.mutex.Lock()
+	defer v.mutex.Unlock()
+
 	if err := unprepareProgress(nil, v.vm, false); err != nil {
 		log.Warning("%v", err)
 	}

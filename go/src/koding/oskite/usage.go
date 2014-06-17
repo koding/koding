@@ -227,15 +227,16 @@ func (p *Plan) prepareLimits(username, groupId string) (*Limit, error) {
 
 func (l *Limit) check() error {
 	if l.CPU == LimitQuotaExceeded {
-		return &kitelib.Error{Message: "CPU limit reached", Code: ErrQuotaExceeded.Error()}
+		return &kitelib.Error{Message: "CPU limit reached", CodeVal: ErrQuotaExceeded.Error()}
+
 	}
 
 	if l.Disk == LimitQuotaExceeded {
-		return &kitelib.Error{Message: "Disk limit reached", Code: ErrQuotaExceeded.Error()}
+		return &kitelib.Error{Message: "Disk limit reached", CodeVal: ErrQuotaExceeded.Error()}
 	}
 
 	if l.RAM == LimitQuotaExceeded {
-		return &kitelib.Error{Message: "Ram limit reached", Code: ErrQuotaExceeded.Error()}
+		return &kitelib.Error{Message: "Ram limit reached", CodeVal: ErrQuotaExceeded.Error()}
 	}
 
 	return nil

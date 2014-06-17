@@ -100,8 +100,8 @@ func webtermConnect(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (
 		return nil, &kite.ArgumentError{Expected: "empty argument passed"}
 	}
 
-	if args.Unmarshal(&params) != nil || params.SizeX <= 0 || params.SizeY <= 0 {
-		return nil, &kite.ArgumentError{Expected: "{ remote: [object], session: [string], sizeX: [integer], sizeY: [integer], noScreen: [boolean] }"}
+	if err := args.Unmarshal(&params); err != nil {
+		return nil, kite.NewKiteErr(err)
 	}
 
 	if params.JoinUser != "" {
@@ -139,7 +139,14 @@ func webtermConnect(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (
 		screenPath:       screen.ScreenPath,
 	}
 
-	server.SetSize(float64(params.SizeX), float64(params.SizeY))
+	if params.Mode != "resume" || params.Mode != "shared" {
+		if params.SizeX <= 0 || params.SizeY <= 0 {
+			return nil, &kite.ArgumentError{Expected: "{ sizeX: [integer], sizeY: [integer] }"}
+		}
+
+		server.SetSize(float64(params.SizeX), float64(params.SizeY))
+	}
+
 	server.pty.Slave.Chown(vos.User.Uid, -1)
 
 	cmd := vos.VM.AttachCommand(vos.User.Uid, "/dev/pts/"+strconv.Itoa(server.pty.No), screen.Command...)
@@ -240,9 +247,19 @@ func getScreenPath(vos *virt.VOS) (string, error) {
 	// it can happen that the user deleted our screen binary
 	// accidently, if this happens fallback to default screen binary
 	_, err := vos.Stat(kodingScreenPath)
+	if err != nil {
+		log.Warning("vos.Stat kodingScreenPath %v, failing over to default screen path", err)
+	}
+
 	if os.IsNotExist(err) {
 		// check if the default screen binary exists too
 		_, err := vos.Stat(defaultScreenPath)
+		if err != nil {
+			log.Error("vos.Stat defaultScreenPath %v", err)
+		} else {
+			log.Info("vos.Stat success defaultScreenPath found %s", defaultScreenPath)
+		}
+
 		if os.IsNotExist(err) {
 			return "", &kite.BaseError{
 				Message: fmt.Sprintf("neither %s nor %s does exist.", kodingScreenPath, defaultScreenPath),
@@ -259,9 +276,26 @@ func getScreenPath(vos *virt.VOS) (string, error) {
 // newScreen returns a new screen instance that is used to start screen. The
 // screen command line is created differently based on the incoming mode.
 func newScreen(vos *virt.VOS, mode, session string) (*screen, error) {
-	screenPath, err := getScreenPath(vos)
-	if err != nil {
-		return nil, err
+	var screenPath string
+	var err error
+	attempts := 0
+
+	// we do try several trimes to get the binary path because the VM might not
+	// up immedieately.
+	for {
+		screenPath, err = getScreenPath(vos)
+		if err == nil {
+			break
+		}
+
+		// try 4 times before we hit our 15 sec timeout limit
+		if attempts != 4 {
+			time.Sleep(time.Second * 3) // wait a little bit ...
+			attempts++
+			continue
+		}
+
+		return nil, fmt.Errorf("tried five times: %s", err)
 	}
 
 	cmdArgs := []string{screenPath, "-c", kodingScreenrc, "-S"}
@@ -309,10 +343,7 @@ func newScreen(vos *virt.VOS, mode, session string) (*screen, error) {
 		Command:    cmdArgs,
 	}
 
-	fmt.Printf("s %#v\n", s)
-
 	return s, nil
-
 }
 
 // screenSessions returns a list of sessions that belongs to the given vos

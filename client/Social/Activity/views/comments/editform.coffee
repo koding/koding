@@ -12,9 +12,7 @@ class CommentEditForm extends CommentInputForm
     @input.on 'EscapePerformed', @bound 'cancel'
 
 
-  submit: ->
-
-    body = @input.getValue().trim()
+  enter: (body) ->
 
     return  unless body.length
 

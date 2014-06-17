@@ -372,6 +372,31 @@ func (r *RoundRing) Copy() *RoundRing {
 	return n
 }
 
+func (r *RoundRing) Director(req *http.Request) error {
+	value, ok := r.Ring.Value.(string)
+	if !ok {
+		return fmt.Errorf("ring value is not string: %+v", value)
+	}
+	r.Ring = r.Ring.Next()
+
+	// be sure that the backendServer has scheme prependend
+	backendServer := utils.CheckScheme(value)
+	targetURL, err := url.Parse(backendServer)
+	if err != nil {
+		return err
+	}
+
+	if !utils.HasPort(targetURL.Host) {
+		req.URL.Host = utils.AddPort(targetURL.Host, "80")
+	} else {
+		req.URL.Host = targetURL.Host
+	}
+
+	req.URL.Scheme = targetURL.Scheme
+
+	return nil
+}
+
 func (r *RoundRing) healtChecker(hosts []string, indexkey string) {
 	r.ticker = time.NewTicker(HealthCheckInterval)
 

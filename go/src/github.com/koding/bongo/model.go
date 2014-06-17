@@ -10,6 +10,7 @@ import (
 	"github.com/jinzhu/gorm"
 )
 
+// Fetch fetches the data from db by given parameters(fields of the struct)
 func (b *Bongo) Fetch(i Modellable) error {
 	if i.GetId() == 0 {
 		return errors.New(fmt.Sprintf("Id is not set for %s", i.TableName()))
@@ -24,6 +25,7 @@ func (b *Bongo) Fetch(i Modellable) error {
 	return nil
 }
 
+// ById Fetches data from db by it's id
 func (b *Bongo) ById(i Modellable, id int64) error {
 	if err := b.DB.
 		Table(i.TableName()).
@@ -36,6 +38,7 @@ func (b *Bongo) ById(i Modellable, id int64) error {
 	return nil
 }
 
+// Creates a new record with the given struct and its fields
 func (b *Bongo) Create(i Modellable) error {
 	if err := b.DB.Save(i).Error; err != nil {
 		return err
@@ -44,6 +47,7 @@ func (b *Bongo) Create(i Modellable) error {
 	return nil
 }
 
+// Update updates all fields of a struct with assigned data
 func (b *Bongo) Update(i Modellable) error {
 	if i.GetId() == 0 {
 		return errors.New(fmt.Sprintf("Id is not set for %s", i.TableName()))
@@ -55,6 +59,8 @@ func (b *Bongo) Update(i Modellable) error {
 	return b.Create(i)
 }
 
+// Delete deletes the data by it's id, it doesnt take any other fields
+// into consideration
 func (b *Bongo) Delete(i Modellable) error {
 	if i.GetId() == 0 {
 		return errors.New(fmt.Sprintf("Id is not set for %s", i.TableName()))
@@ -67,6 +73,8 @@ func (b *Bongo) Delete(i Modellable) error {
 	return nil
 }
 
+// FetchByIds fetches data from db by their ids in ordered fashion,
+// if non-found this function doesnt return any error.
 func (b *Bongo) FetchByIds(i Modellable, data interface{}, ids []int64) error {
 	if len(ids) == 0 {
 		return nil
@@ -78,12 +86,15 @@ func (b *Bongo) FetchByIds(i Modellable, data interface{}, ids []int64) error {
 		orderByQuery = orderByQuery + comma + " id = " + strconv.FormatInt(id, 10) + " desc"
 		comma = ","
 	}
-	return b.DB.
-		Table(i.TableName()).
-		Order(orderByQuery).
-		Where(ids).
-		Find(data).
-		Error
+
+	// supress not found errors
+	return CheckErr(
+		b.DB.
+			Table(i.TableName()).
+			Order(orderByQuery).
+			Where(ids).
+			Find(data),
+	)
 
 }
 
@@ -265,6 +276,7 @@ func (b *Bongo) AfterDelete(i Modellable) {
 	b.PublishEvent("deleted", i)
 }
 
+// addSort injects sort parameters into query
 func addSort(query *gorm.DB, options map[string]string) *gorm.DB {
 
 	if options == nil {
@@ -282,6 +294,8 @@ func addSort(query *gorm.DB, options map[string]string) *gorm.DB {
 	return query.Order(strings.Join(opts, ","))
 }
 
+// addPluck basically adds select statement for
+// only required fields
 func addPluck(query *gorm.DB, plucked string) *gorm.DB {
 	if plucked == "" {
 		return query
@@ -290,6 +304,7 @@ func addPluck(query *gorm.DB, plucked string) *gorm.DB {
 	return query.Select(plucked)
 }
 
+// addWhere adds where query
 func addWhere(query *gorm.DB, selector map[string]interface{}) *gorm.DB {
 	if selector == nil {
 		return query
@@ -299,6 +314,7 @@ func addWhere(query *gorm.DB, selector map[string]interface{}) *gorm.DB {
 	return query.Where(selector)
 }
 
+// addSkip adds skip parameter into sql query
 func addSkip(query *gorm.DB, skip int) *gorm.DB {
 	if skip > 0 {
 		return query.Offset(skip)
@@ -307,6 +323,7 @@ func addSkip(query *gorm.DB, skip int) *gorm.DB {
 	return query
 }
 
+// addLimit adds limit into query if set
 func addLimit(query *gorm.DB, limit int) *gorm.DB {
 	// if limit is minus or 0 ignore
 	if limit > 0 {
@@ -314,4 +331,22 @@ func addLimit(query *gorm.DB, limit int) *gorm.DB {
 	}
 
 	return query
+}
+
+// CheckErr checks error exitence and returns
+// if found, but this function suppress RecordNotFound errors
+func CheckErr(res *gorm.DB) error {
+	if res == nil {
+		return nil
+	}
+
+	if res.Error == nil {
+		return nil
+	}
+
+	if res.Error == gorm.RecordNotFound {
+		return nil
+	}
+
+	return res.Error
 }

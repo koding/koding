@@ -43,7 +43,8 @@ class ActivityListItemView extends KDListItemView
     data.watch 'repliesCount', (count) =>
       @commentBox.decorateCommentedState() if count >= 0
 
-    KD.remote.cacheable data.originType, data.originId, (err, account)=>
+    {_id, constructorName} = data.account
+    KD.remote.cacheable constructorName, _id, (err, account)=>
       @setClass "exempt" if account and KD.checkFlag 'exempt', account
 
     embedOptions  =
@@ -69,12 +70,13 @@ class ActivityListItemView extends KDListItemView
     @editWidget.on 'Submit', @bound 'resetEditing'
     @editWidget.on 'Cancel', @bound 'resetEditing'
     @editWidgetWrapper.addSubView @editWidget, null, yes
+    @editWidgetWrapper.show()
 
 
   resetEditing : ->
 
     @editWidget.destroy()
-    @editWidgetWrapper.setClass "hidden"
+    @editWidgetWrapper.hide()
 
 
   delete: ->
@@ -84,10 +86,48 @@ class ActivityListItemView extends KDListItemView
     @destroy()
 
 
-  formatContent: (str = '') ->
+  formatContent: (body = '') ->
 
-    return @utils.decorateTags @utils.applyMarkdown str, @getData()
+    fns = [
+      @bound 'transformTags'
+      @bound 'formatBlockquotes'
+      KD.utils.applyMarkdown
+    ]
 
+    body = fn body for fn in fns
+    return body
+
+  transformTags: (text = '') ->
+
+
+    {slug}   = KD.getGroup()
+
+    return text.replace /#(\w+)/g, (match, tag, offset) ->
+      pre  = text[offset - 1]
+      post = text[offset + match.length]
+
+      return match  if (pre?.match /\S/)  and offset isnt 0
+      return match  if (post?.match /\S/) and (offset + match.length) isnt text.length
+
+      href = KD.utils.groupifyLink "/Activity/Topic/#{tag}", yes
+
+      return "[##{tag}](#{href})"
+
+
+  formatBlockquotes: (text = '') ->
+
+    parts = text.split '```'
+    for part, index in parts
+      blockquote = index %% 2 is 1
+
+      if blockquote
+        if match = part.match /^\w+/
+          [lang] = match
+          part = "\n#{part}"  unless hljs.getLanguage lang
+
+        parts[index] = "\n```#{part}\n```\n"
+
+    parts.join ''
 
   setAnchors: ->
 
@@ -128,8 +168,6 @@ class ActivityListItemView extends KDListItemView
 
 
   viewAppended:->
-
-    return if @getData().constructor is KD.remote.api.CStatusActivity
 
     JView::viewAppended.call this
 

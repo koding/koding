@@ -591,7 +591,7 @@ func TestNotificationCreation(t *testing.T) {
 				ResultedWithNoErrorCheck(cm, err)
 			})
 			Convey("First user should be able to subscribe to my message", func() {
-				response, err := rest.SubscribeMessage(firstUser.Id, cm.Id)
+				response, err := rest.SubscribeMessage(firstUser.Id, cm.Id, testGroupChannel.GroupName)
 				ResultedWithNoErrorCheck(response, err)
 				time.Now()
 			})
@@ -617,18 +617,28 @@ func TestNotificationCreation(t *testing.T) {
 				response, err := rest.SubscribeMessage(thirdUser.Id, cm.Id)
 				ResultedWithNoErrorCheck(response, err)
 			})
+			Convey("First should be able to unsubscribe from my message", func() {
+				response, err := rest.UnsubscribeMessage(firstUser.Id, cm.Id, testGroupChannel.GroupName)
+				So(err, ShouldBeNil)
+				So(response, ShouldNotBeNil)
+			})
+			Convey("Third user should be able to subscribe to my message", func() {
+				response, err := rest.SubscribeMessage(thirdUser.Id, cm.Id, testGroupChannel.GroupName)
+				So(err, ShouldBeNil)
+				So(response, ShouldNotBeNil)
+			})
 			Convey("Forth user should be able to reply my message", func() {
 				replyMessage, err := rest.AddReply(cm.Id, forthUser.Id, testGroupChannel.Id)
 				ResultedWithNoErrorCheck(replyMessage, err)
 				time.Sleep(SLEEP_TIME * time.Second) // waiting for async message
 			})
-			// Convey("I should not be able to receive latest notification", func() {
-			// 	nl, err := rest.GetNotificationList(ownerAccount.Id, cacheEnabled)
-			// 	ResultedWithNoErrorCheck(nl, err)
-			// 	So(len(nl.Notifications), ShouldBeGreaterThan, 0)
-			// 	So(len(nl.Notifications[0].LatestActors), ShouldEqual, 1)
-			// 	So(nl.Notifications[0].LatestActors[0], ShouldEqual, secondUser.Id)
-			// })
+			Convey("First user should not be able to receive latest notification", func() {
+				nl, err := getNotificationList(firstUser.Id)
+				ResultedWithNoErrorCheck(nl, err)
+				So(len(nl.Notifications), ShouldBeGreaterThan, 0)
+				So(len(nl.Notifications[0].LatestActors), ShouldEqual, 1)
+				So(nl.Notifications[0].LatestActors[0], ShouldEqual, secondUser.Id)
+			})
 			Convey("Third user should be able to receive notification", func() {
 				nl, err := rest.GetNotificationList(thirdUser.Id, cacheEnabled)
 				ResultedWithNoErrorCheck(nl, err)
@@ -676,15 +686,6 @@ func TestNotificationCreation(t *testing.T) {
 				time.Sleep(SLEEP_TIME * time.Second) // waiting for async message
 			})
 
-			// Convey("I should be able to receive notification", func() {
-			// 	nl, err := rest.GetNotificationList(ownerAccount.Id, cacheEnabled)
-			// 	ResultedWithNoErrorCheck(nl, err)
-
-			// 	So(len(nl.Notifications), ShouldBeGreaterThan, 0)
-			// 	So(nl.Notifications[0].TargetId, ShouldEqual, cm.Id)
-			// 	So(len(nl.Notifications[0].LatestActors), ShouldEqual, 1)
-			// 	So(nl.Notifications[0].LatestActors[0], ShouldEqual, secondUser.Id)
-			// })
 		})
 	}
 
@@ -692,11 +693,6 @@ func TestNotificationCreation(t *testing.T) {
 		cacheEnabled = false
 		testCases()
 	})
-	// Convey("while testing notifications with cache", t, func() {
-	// 	cacheEnabled = true
-	// 	testCases()
-	// })
-
 }
 
 func ResultedWithNoErrorCheck(result interface{}, err error) {

@@ -25,7 +25,6 @@ resurrection.activity.styl
 
 .content-page.activity
   max-width             100%
-  min-height            1026px
   margin                85px auto 0
   padding               0
   position              static
@@ -346,7 +345,7 @@ resurrection.activity.styl
 
             > .user-numbers
               padding     0 0 0 41px
-              width       100%
+              width       90%
               font-weight 300
               color       #949494
               margin-top  1px
@@ -1123,6 +1122,167 @@ span.collapsedtext
       r-sprite              activity, "linkedin-21"
 
 
+.content-page.activity > main .kdtabpaneview.privatemessage
+  min-height                0px
+  .chat-heads
+    size                    auto, 57px
+    line-height             57px
+    border-radius           12px
+    background              #dcdcdc
+    margin                  0 0 24px
+    overflow                visible
+
+    .description
+      color                 #4a4a4a
+      font-size             13px
+      padding               0 0 0 26px
+      display               block
+      overflow              visible
+      fl()
+
+      &:before
+        content             ''
+        display             inline-block
+        r-sprite            'activity', 'lock-16'
+        vertical-align      text-top
+        margin              0 8px 0 0
+
+    .heads
+      margin                12px 0 0 14px
+      fl()
+
+      .avatarview
+        size                auto, auto
+        margin              0 6px 0 0
+        border              1px solid #d4d4d4
+        fl()
+
+        img
+          display           block
+          margin            0
+          padding           0
+
+      .kdbutton.new-participant
+        display             block
+        size                30px, 30px
+        border              1px dashed #9c9c9c
+        rounded             50%
+        background          transparent
+        padding             0
+        fl()
+
+        .icon
+          margin            0 0 0 9px
+          display           block
+          r-sprite          'activity', 'new-participant-plus'
+
+  .activity-item.privatemessage
+    background              #fafafa
+    rounded                 4px 4px 0 0
+    kalc                    min-height, 100vh \- 228px
+
+    .activity-content-wrapper
+      background            none
+
+      >article
+        margin-left         75px
+        margin-top          5px
+
+        p:first-of-type
+          padding-top       0
+
+        p
+          padding-left      0
+          padding-right     34px
+
+    .author-avatar
+      border-color          #fff
+      top                   19px
+      left                  19px
+
+    .meta
+      margin                23px 33px 0 75px
+
+      .profile:after
+        display             none
+
+      time
+        width               auto
+        overflow            visible
+        color               #d2d2d2
+        font-size           10px
+        margin              3px 0 0 0
+        fr()
+
+        &:after
+          display           none
+
+    .comment-container
+      .kdlistitemview-comment
+        background          none
+        border              none
+        padding             11px 33px 0 75px
+
+        &:last-of-type
+          padding-bottom    40px
+
+        .profile
+          font-weight       600
+
+        .comment-body-container
+          font-size         14px
+          padding-top       4px
+          opacity           .99
+
+        .like-view
+          display           none
+
+        .reply-link
+          display           none
+
+        .comment-menu
+          display           none
+
+        time
+          display           block
+          abs               14px 34px 0 0
+          width             auto
+          overflow          visible
+          color             #d2d2d2
+          font-size         10px
+
+        .avatarview
+          size              44px, 44px
+          border-color      #fff
+          top               6px
+          left              20px
+
+      .item-add-comment-box
+        position            fixed
+        bottom              0
+        size                649px auto
+
+        .avatarview
+          border            none
+          top               12px
+          left              17px
+
+        textarea
+          rounded           0
+          border-top        1px solid #d1d1d1
+          border-width      1px 0 0 0
+          margin            0 0 -2px 0
+          padding           11px 23px 7px 67px
+
+          &::-webkit-input-placeholder
+          &::-moz-placeholder
+            line-height     39px
+            font-weight     400
+            color           #b2b2b2
+
+
+
+
 
 /* Temp style for contentdisplay */
 
@@ -1435,3 +1595,198 @@ body.group.members
     font-weight     500
     position        relative
     line-height     40px
+
+
+// new private message and topics modal common styles
+.kdmodal.activity-modal
+
+  bg              color #e9e9e9
+  border          1px solid #c1c1c1
+  shadow          0 0 29px rgba(0,0,0,.33)
+
+  .modal-arrow
+    size          0, 0
+    right         100%
+    border        10px solid transparent
+    border-right-color #c1c1c1
+    z-index       10
+
+    &:before
+      z-index       9
+      content       ''
+      display       block
+      size          0, 0
+      abs           -10px 0 0 -9px
+      border        10px solid transparent
+      border-right-color #e9e9e9
+
+
+  .kdmodal-inner
+    margin        31px
+    bg            color transparent
+
+  .kdmodal-title span.title
+    font-size     12px !important
+    font-weight   600
+    color         logoBg
+
+  textarea.kdinput.text
+    border        1px solid #d1d1d1
+    border-bottom none
+    bg            color white
+    rounded       5px
+    height        150px
+    &:hover
+      border-color  #c1c1c1
+    &:focus
+      border-color  #b1b1b1
+      shadow        none
+    &.validation-error
+      border-color  red !important
+
+
+  textarea.kdinput.text
+  input.kdinput.text
+    font-size             12px
+    font-weight           600
+    &::-webkit-input-placeholder
+      font-size           12px
+      color               #a3a3a3
+      font-weight         600
+    &:-moz-placeholder
+      font-size           12px
+      color               #a3a3a3
+      font-weight         600
+
+  .formline.button-field
+    height                34px !important
+
+    button.kdbutton.transparent
+      border                none !important
+      text-transform        none !important
+      line-height           34px !important
+      margin                0 !important
+
+      &:hover
+        shadow              none !important
+
+        .button-title
+          text-shadow       none !important
+          color             #838383
+
+      .button-title
+        color               #a3a3a3
+        font-size           12px
+        text-decoration     underline !important
+
+  .nothing
+    font-weight             600
+    font-size               12px
+    margin                  10px 0 0
+    color                   #a3a3a3
+    text-align              center
+
+// your topics modal
+.kdmodal.topics.your
+
+  h3
+    hidden()
+
+  input.kdinput
+    border        none
+    shadow        none
+    &:focus
+      shadow      none
+
+
+// new private message modal
+.kdmodal.private-message
+
+  .formline.recipient
+    border        1px solid #d1d1d1
+    border-bottom none
+    rounded       5px
+    margin-bottom 16px
+    bg            color white
+
+
+    .input-wrapper
+      margin-bottom 0
+
+
+    input.kdinput.text
+      border      none
+      bg          color, transparent
+      outline     none
+      &:focus
+        outline   none
+        shadow    none
+
+    .kdautocompletewrapper
+      width       100%
+      fr()
+
+  .chat-heads
+    display       inline-block
+    width         auto
+    padding       9px
+    z-index       10
+    borderBox()
+    abs()
+
+  .chat-head
+    display       inline-block
+    size          30px 30px
+    margin-right  5px
+    rel()
+
+    &:hover
+      .close-icon
+        bg        color rgba(255,255,255,.9)
+        shadow    0 0 0 5px rgba(255,255,255,.9)
+        visible()
+
+
+    .close-icon
+      top         5px
+      right       5px
+      rounded     10px
+      size        20px 20px
+      hidden()
+
+    .avatarview
+      size        30px 30px
+
+  .formline.button-field
+
+    button.kdbutton.message-send
+      size                  77px 34px
+      text-align            center
+      rounded               8px
+      span.icon
+        display             inline-block
+        size                20px 20px
+        r-sprite            activity 'paper-plane'
+
+
+.kdautocomplete.listview-wrapper.private-message
+
+  border            1px solid #d1d1d1
+  border-top        1px solid transparent
+  border-bottom     1px solid transparent
+  shadow            0 3px 6px rgba(0,0,0,0.1)
+
+  .kdautocompletelistitem
+    font-size       12px
+    font-weight     600
+    padding         0 5px
+    border          none
+    cursor          pointer
+    line-height     27px
+    bg              color transparent
+    color           #838383
+    borderBox()
+
+  .kdautocompletelistitem.active
+    color           white
+    bg              color logoBg

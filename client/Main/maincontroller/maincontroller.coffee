@@ -32,11 +32,12 @@ class MainController extends KDController
 
   createSingletons:->
 
-    KD.registerSingleton "mainController",            this
+    KD.registerSingleton 'mainController',            this
 
-    KD.registerSingleton "kontrol",                   new KodingKontrol
+    KD.registerSingleton 'kontrol',                   new KodingKontrol
 
     KD.registerSingleton 'appManager',   appManager = new ApplicationManager
+    KD.registerSingleton 'globalKeyCombos',  combos = new KDKeyboardMap priority : 0
     KD.registerSingleton 'notificationController',    new NotificationController
     KD.registerSingleton 'linkController',            new LinkController
     KD.registerSingleton 'display',                   new ContentDisplayController

@@ -3,11 +3,13 @@ package models
 import "fmt"
 
 var (
-	accountCache map[int64]*Account
+	accountCache    map[int64]*Account
+	oldAccountCache map[string]int64
 )
 
 func init() {
 	accountCache = make(map[int64]*Account)
+	oldAccountCache = make(map[string]int64)
 }
 
 func FetchAccountOldIdByIdFromCache(id int64) (string, error) {
@@ -66,4 +68,21 @@ func SetAccountToCache(a *Account) {
 	}
 
 	accountCache[a.Id] = a
+}
+
+func AccountIdByOldId(oldId, nick string) (int64, error) {
+	if id, ok := oldAccountCache[oldId]; ok {
+		return id, nil
+	}
+
+	a := NewAccount()
+	a.OldId = oldId
+	a.Nick = nick
+	if err := a.FetchOrCreate(); err != nil {
+		return 0, err
+	}
+
+	oldAccountCache[oldId] = a.Id
+
+	return a.Id, nil
 }

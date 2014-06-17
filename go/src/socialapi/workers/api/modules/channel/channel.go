@@ -80,6 +80,61 @@ func Search(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interfa
 	)
 }
 
+func ByName(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface{}, error) {
+	q := helpers.GetQuery(u)
+	q.Type = models.Channel_TYPE_TOPIC
+
+	channelList, err := models.NewChannel().ByName(q)
+	if err != nil {
+		return helpers.NewBadRequestResponse(err)
+	}
+
+	return helpers.HandleResultAndError(
+		models.PopulateChannelContainer(
+			channelList,
+			q.AccountId,
+		),
+	)
+}
+
+func CheckParticipation(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface{}, error) {
+	q := helpers.GetQuery(u)
+	if q.Type == "" || q.AccountId == 0 {
+		return helpers.NewBadRequestResponse(errors.New("type or accountid is not set"))
+	}
+
+	channel, err := models.NewChannel().ByName(q)
+	if err != nil {
+		return helpers.NewBadRequestResponse(err)
+	}
+
+	cp := models.NewChannelParticipant()
+	cp.ChannelId = channel.Id
+	cp.AccountId = q.AccountId
+
+	// fetch participant
+	err = cp.FetchParticipant()
+	if err == nil {
+		return helpers.NewOKResponse(cp)
+	}
+
+	// if err is not `record not found`
+	// return it immediately
+	if err != gorm.RecordNotFound {
+		return helpers.NewBadRequestResponse(err)
+	}
+
+	// we here we have record-not-found
+
+	// if channel type is `group` then return true
+	if channel.TypeConstant == models.Channel_TYPE_GROUP {
+		return helpers.NewOKResponse(true)
+	}
+
+	// return here to the client
+	return helpers.NewBadRequestResponse(err)
+}
+
 func Delete(u *url.URL, h http.Header, req *models.Channel) (int, http.Header, interface{}, error) {
 
 	id, err := helpers.GetURIInt64(u, "id")

@@ -64,7 +64,7 @@ class BusinessView extends JView
             <i class="ruler icon"></i>
             <h5>Scale as you grow</h5>
             <p>
-              Fully scalable environments with customizable stacks gives you
+              Fully scalable environments with customizable stacks give you
               the ability to scale as you get bigger in size. Size matters.
             </p>
           </article>

@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/VerbalExpressions/GoVerbalExpressions"
+	"github.com/jinzhu/gorm"
 	"github.com/koding/bongo"
 )
 
@@ -47,6 +48,9 @@ type ChannelMessage struct {
 
 	// Deletion date of the channel message
 	DeletedAt time.Time `json:"deletedAt"`
+
+	// Extra data storage
+	Payload gorm.Hstore `json:"payload,omitempty"`
 }
 
 func (c *ChannelMessage) BeforeCreate() {
@@ -186,6 +190,20 @@ func (c *ChannelMessage) Create() error {
 	return bongo.B.Create(c)
 }
 
+// CreateRaw creates a new channel message without effected by auto generated createdAt
+// and updatedAt values
+func (c *ChannelMessage) CreateRaw() error {
+	insertSql := "INSERT INTO " +
+		c.TableName() +
+		` ("body","slug","type_constant","account_id","initial_channel_id",` +
+		`"created_at","updated_at","deleted_at","payload") ` +
+		"VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9) " +
+		"RETURNING ID"
+
+	return bongo.B.DB.CommonDB().QueryRow(insertSql, c.Body, c.Slug, c.TypeConstant, c.AccountId, c.InitialChannelId,
+		c.CreatedAt, c.UpdatedAt, c.DeletedAt, c.Payload).Scan(&c.Id)
+}
+
 func (c *ChannelMessage) Delete() error {
 	return bongo.B.Delete(c)
 }
@@ -200,6 +218,7 @@ func (c *ChannelMessage) FetchByIds(ids []int64) ([]ChannelMessage, error) {
 	if err := bongo.B.FetchByIds(c, &messages, ids); err != nil {
 		return nil, err
 	}
+
 	return messages, nil
 }
 
@@ -243,6 +262,11 @@ func (c *ChannelMessage) BuildMessage(query *Query) (*ChannelMessageContainer, e
 	}
 	cmc.RepliesCount = repliesCount
 
+	cmc.IsFollowed, err = c.CheckIsMessageFollowed(query)
+	if err != nil {
+		return nil, err
+	}
+
 	populatedChannelMessagesReplies := make([]*ChannelMessageContainer, len(replies))
 	for rl := 0; rl < len(replies); rl++ {
 		cmrc, err := replies[rl].FetchRelatives(query)
@@ -254,6 +278,33 @@ func (c *ChannelMessage) BuildMessage(query *Query) (*ChannelMessageContainer, e
 
 	cmc.Replies = populatedChannelMessagesReplies
 	return cmc, nil
+}
+
+func (c *ChannelMessage) CheckIsMessageFollowed(query *Query) (bool, error) {
+	channel := NewChannel()
+	if err := channel.FetchPinnedActivityChannel(query.AccountId, query.GroupName); err != nil {
+		if err == gorm.RecordNotFound {
+			return false, nil
+		}
+		return false, err
+	}
+
+	cml := NewChannelMessageList()
+	q := &bongo.Query{
+		Selector: map[string]interface{}{
+			"channel_id": channel.Id,
+			"message_id": c.Id,
+		},
+	}
+	if err := cml.One(q); err != nil {
+		if err == gorm.RecordNotFound {
+			return false, nil
+		}
+
+		return false, err
+	}
+
+	return true, nil
 }
 
 func (c *ChannelMessage) BuildEmptyMessageContainer() (*ChannelMessageContainer, error) {
@@ -415,4 +466,50 @@ func (c *ChannelMessage) FetchMessageIds(q *Query) ([]int64, error) {
 	}
 
 	return messageIds, nil
+}
+
+// BySlug fetchs channel message by its slug
+// checks if message is in the channel or not
+func (c *ChannelMessage) BySlug(query *Query) error {
+	if query.Slug == "" {
+		return errors.New("slug is not set")
+	}
+
+	// fetch message itself
+	q := &bongo.Query{
+		Selector: map[string]interface{}{
+			"slug": query.Slug,
+		},
+	}
+
+	if err := c.One(q); err != nil {
+		return nil
+	}
+
+	// fetch channel by group name
+	query.Name = query.GroupName
+	query.Type = Channel_TYPE_GROUP
+	ch := NewChannel()
+	channel, err := ch.ByName(query)
+	if err != nil {
+		return err
+	}
+
+	if channel.Id == 0 {
+		return errors.New("channel is not found")
+	}
+
+	// check if message is in the channel
+	cml := NewChannelMessageList()
+	res, err := cml.IsInChannel(c.Id, channel.Id)
+	if err != nil {
+		return err
+	}
+
+	// if message is not in the channel
+	if !res {
+		return gorm.RecordNotFound
+	}
+
+	return nil
 }

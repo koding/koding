@@ -195,7 +195,7 @@ func (v *VM) Prepare(t tracer.Tracer, reinitialize bool) (err error) {
 	if prepared {
 		// try to start if it's already prepared
 		funcs = append(funcs, &StepFunc{Msg: "Starting VM", Fn: v.Start})
-		funcs = append(funcs, &StepFunc{Msg: "Waiting for network", Fn: v.WaitForNetwork})
+		funcs = append(funcs, &StepFunc{Msg: "Waiting for network", Fn: v.WaitUntilReady})
 	} else {
 		// otherwise prepare it from scratch and start it
 		funcs = append(funcs, &StepFunc{Msg: "Create container", Fn: v.createContainerDir})
@@ -212,7 +212,7 @@ func (v *VM) Prepare(t tracer.Tracer, reinitialize bool) (err error) {
 		funcs = append(funcs, &StepFunc{Msg: "Add Ebtables rules", Fn: v.addEbtablesRule})
 		funcs = append(funcs, &StepFunc{Msg: "Add Static route", Fn: v.addStaticRoute})
 		funcs = append(funcs, &StepFunc{Msg: "Starting VM", Fn: v.Start})
-		funcs = append(funcs, &StepFunc{Msg: "Waiting for network", Fn: v.WaitForNetwork})
+		funcs = append(funcs, &StepFunc{Msg: "Waiting for network", Fn: v.WaitUntilReady})
 	}
 
 	for step, current := range funcs {
@@ -325,7 +325,7 @@ func (v *VM) mountAufs() error {
 	if out, err := exec.Command("/bin/mount", "--no-mtab", "-t", "aufs", "-o",
 		fmt.Sprintf("noplink,br=%s:%s", v.OverlayFile("/"), v.LowerdirFile("/")), "aufs",
 		v.File("rootfs")).CombinedOutput(); err != nil {
-		return commandError("mount overlay failed.", err, out)
+		return commandError(fmt.Sprintf("mount overlay failed. in: /bin/mount --no-mtab -t aufs -o noplink,br=%s:%s aufs %s", v.OverlayFile("/"), v.LowerdirFile("/"), v.File("rootfs")), err, out)
 	}
 
 	return nil

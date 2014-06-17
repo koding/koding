@@ -4,13 +4,11 @@ import (
 	"fmt"
 	"koding/db/mongodb/modelhelper"
 	socialapimodels "socialapi/models"
-	"socialapi/workers/helper"
 	"socialapi/workers/notification/models"
 	"time"
 
 	"github.com/koding/logging"
 	"github.com/koding/rabbitmq"
-	"github.com/koding/worker"
 	"github.com/streadway/amqp"
 )
 
@@ -19,66 +17,36 @@ const (
 	NOTIFICATION_TYPE_UNSUBSCRIBE = "unsubscribe"
 )
 
-type Action func(*NotificationWorkerController, []byte) error
-
-type NotificationWorkerController struct {
-	routes          map[string]Action
+type Controller struct {
 	log             logging.Logger
 	rmqConn         *amqp.Connection
 	notifierRmqConn *amqp.Connection
 	cacheEnabled    bool
 }
 
-func (n *NotificationWorkerController) DefaultErrHandler(delivery amqp.Delivery, err error) bool {
+func (n *Controller) DefaultErrHandler(delivery amqp.Delivery, err error) bool {
 	n.log.Error("an error occured: %s", err)
 	delivery.Ack(false)
 
 	return false
 }
 
-func NewNotificationWorkerController(rmq *rabbitmq.RabbitMQ, log logging.Logger, cacheEnabled bool) (*NotificationWorkerController, error) {
+func New(rmq *rabbitmq.RabbitMQ, log logging.Logger, cacheEnabled bool) (*Controller, error) {
 	rmqConn, err := rmq.Connect("NewNotificationWorkerController")
 	if err != nil {
 		return nil, err
 	}
 
-	nwc := &NotificationWorkerController{
+	nwc := &Controller{
 		log:          log,
 		rmqConn:      rmqConn.Conn(),
 		cacheEnabled: cacheEnabled,
 	}
 
-	routes := map[string]Action{
-		"api.message_reply_created":        (*NotificationWorkerController).CreateReplyNotification,
-		"api.interaction_created":          (*NotificationWorkerController).CreateInteractionNotification,
-		"api.channel_participant_created":  (*NotificationWorkerController).JoinChannel,
-		"api.channel_participant_updated":  (*NotificationWorkerController).LeaveChannel,
-		"api.channel_message_list_created": (*NotificationWorkerController).SubscribeMessage,
-		"api.channel_message_list_deleted": (*NotificationWorkerController).UnsubscribeMessage,
-	}
-
-	nwc.routes = routes
-
 	return nwc, nil
 }
 
-// copy/paste
-func (n *NotificationWorkerController) HandleEvent(event string, data []byte) error {
-	n.log.Debug("New Event Received %s", event)
-	handler, ok := n.routes[event]
-	if !ok {
-		return worker.HandlerNotFoundErr
-	}
-
-	return handler(n, data)
-}
-
-func (n *NotificationWorkerController) CreateReplyNotification(data []byte) error {
-	mr, err := helper.MapToMessageReply(data)
-	if err != nil {
-		return err
-	}
-
+func (n *Controller) CreateReplyNotification(mr *socialapimodels.MessageReply) error {
 	// fetch replier
 	reply := socialapimodels.NewChannelMessage()
 	if err := reply.ById(mr.ReplyId); err != nil {
@@ -134,20 +102,15 @@ func (n *NotificationWorkerController) CreateReplyNotification(data []byte) erro
 	return nil
 }
 
-func (n *NotificationWorkerController) UnsubscribeMessage(data []byte) error {
+func (n *Controller) UnsubscribeMessage(data *socialapimodels.ChannelMessageList) error {
 	return subscription(data, NOTIFICATION_TYPE_UNSUBSCRIBE)
 }
 
-func (n *NotificationWorkerController) SubscribeMessage(data []byte) error {
+func (n *Controller) SubscribeMessage(data *socialapimodels.ChannelMessageList) error {
 	return subscription(data, NOTIFICATION_TYPE_SUBSCRIBE)
 }
 
-func subscription(data []byte, typeConstant string) error {
-	cml, err := helper.MapToChannelMessageList(data)
-	if err != nil {
-		return err
-	}
-
+func subscription(cml *socialapimodels.ChannelMessageList, typeConstant string) error {
 	c := socialapimodels.NewChannel()
 	if err := c.ById(cml.ChannelId); err != nil {
 		return err
@@ -174,7 +137,7 @@ func subscription(data []byte, typeConstant string) error {
 	return nil
 }
 
-func (n *NotificationWorkerController) CreateMentionNotification(reply *socialapimodels.ChannelMessage) ([]int64, error) {
+func (n *Controller) CreateMentionNotification(reply *socialapimodels.ChannelMessage) ([]int64, error) {
 	mentionedUserIds := make([]int64, 0)
 	usernames := reply.GetMentionedUsernames()
 
@@ -212,14 +175,14 @@ func (n *NotificationWorkerController) CreateMentionNotification(reply *socialap
 	return mentionedUserIds, nil
 }
 
-func (n *NotificationWorkerController) notify(contentId, notifierId int64, subscribedAt time.Time) {
+func (n *Controller) notify(contentId, notifierId int64, subscribedAt time.Time) {
 	notification := buildNotification(contentId, notifierId, subscribedAt)
 	if err := notification.Upsert(); err != nil {
 		n.log.Error("An error occurred while notifying user %d: %s", notification.AccountId, err.Error())
 	}
 }
 
-func (n *NotificationWorkerController) subscribe(contentId, notifierId int64, subscribedAt time.Time) {
+func (n *Controller) subscribe(contentId, notifierId int64, subscribedAt time.Time) {
 	notification := buildNotification(contentId, notifierId, subscribedAt)
 	notification.SubscribeOnly = true
 	if err := notification.Create(); err != nil {
@@ -236,12 +199,7 @@ func buildNotification(contentId, notifierId int64, subscribedAt time.Time) *mod
 	return notification
 }
 
-func (n *NotificationWorkerController) CreateInteractionNotification(data []byte) error {
-	i, err := helper.MapToInteraction(data)
-	if err != nil {
-		return err
-	}
-
+func (n *Controller) CreateInteractionNotification(i *socialapimodels.Interaction) error {
 	cm := socialapimodels.NewChannelMessage()
 	if err := cm.ById(i.MessageId); err != nil {
 		return err
@@ -271,21 +229,11 @@ func (n *NotificationWorkerController) CreateInteractionNotification(data []byte
 	return nil
 }
 
-func (n *NotificationWorkerController) JoinChannel(data []byte) error {
-	cp, err := helper.MapToChannelParticipant(data)
-	if err != nil {
-		return err
-	}
-
+func (n *Controller) JoinChannel(cp *socialapimodels.ChannelParticipant) error {
 	return processChannelParticipant(cp, models.NotificationContent_TYPE_JOIN)
 }
 
-func (n *NotificationWorkerController) LeaveChannel(data []byte) error {
-	cp, err := helper.MapToChannelParticipant(data)
-	if err != nil {
-		return err
-	}
-
+func (n *Controller) LeaveChannel(cp *socialapimodels.ChannelParticipant) error {
 	if cp.StatusConstant == socialapimodels.ChannelParticipant_STATUS_LEFT {
 		return processChannelParticipant(cp, models.NotificationContent_TYPE_LEAVE)
 	}

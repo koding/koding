@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"koding/db/mongodb/modelhelper"
+	"socialapi/workers/common/manager"
 	"socialapi/workers/common/runner"
 	"socialapi/workers/helper"
 	"socialapi/workers/notification/controller"
@@ -32,7 +33,7 @@ func main() {
 		defer redisConn.Close()
 	}
 
-	handler, err := notification.NewNotificationWorkerController(
+	handler, err := notification.New(
 		rmq,
 		r.Log,
 		cacheEnabled,
@@ -41,6 +42,16 @@ func main() {
 		panic(err)
 	}
 
-	r.Listen(handler)
-	r.Close()
+	m := manager.New()
+	m.Controller(handler)
+
+	m.HandleFunc("api.message_reply_created", (*notification.Controller).CreateReplyNotification)
+	m.HandleFunc("api.interaction_created", (*notification.Controller).CreateInteractionNotification)
+	m.HandleFunc("api.channel_participant_created", (*notification.Controller).JoinChannel)
+	m.HandleFunc("api.channel_participant_updated", (*notification.Controller).LeaveChannel)
+	m.HandleFunc("api.channel_message_list_created", (*notification.Controller).SubscribeMessage)
+	m.HandleFunc("api.channel_message_list_deleted", (*notification.Controller).UnsubscribeMessage)
+
+	r.Listen(m)
+	r.Wait()
 }

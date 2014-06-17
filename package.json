@@ -31,7 +31,6 @@
     "hat": "0.0.3",
     "highlight.js": "7.3.0",
     "jsonify": "0.0.0",
-    "librato-metrics": "0.0.6",
     "log": "1.2.0",
     "log4js": "0.6.9",
     "log4js-node-syslog": "0.0.5",
@@ -65,7 +64,7 @@
     "node-uuid": "1.4.1",
     "newrelic": "1.1.1",
     "cors": "~2.1.1",
-    "helmet": "~0.1.2",
+    "helmet": "~0.2.4",
     "bluebird": "~1.0.8",
     "pistachio-compiler": "~0.0.3",
     "es": "0.4.x",
@@ -74,7 +73,8 @@
     "minimist": "0.0.8",
     "which": "^1.0.5",
     "ua-parser-js": "0.6.2",
-    "checksum": "0.1.*"
+    "checksum": "0.1.*",
+    "amqplib": "^0.2.0"
   },
   "devDependencies": {},
   "optionalDependencies": {},

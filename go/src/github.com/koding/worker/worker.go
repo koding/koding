@@ -91,7 +91,6 @@ func (l *Listener) Listen(rmq *rabbitmq.RabbitMQ, handler Handler) {
 		panic(err)
 	}
 
-	l.Consumer.RegisterSignalHandler()
 	l.Consumer.Consume(l.Start(handler))
 }
 
@@ -104,6 +103,10 @@ var HandlerNotFoundErr = errors.New("Handler Not Found")
 
 type Handler interface {
 	HandleEvent(string, []byte) error
+	ErrHandler
+}
+
+type ErrHandler interface {
 	// bool is whether publishing the message to maintenance qeueue or not
 	DefaultErrHandler(amqp.Delivery, error) bool
 }

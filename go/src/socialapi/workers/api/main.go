@@ -5,35 +5,29 @@ import (
 	"flag"
 	"fmt"
 	"koding/db/mongodb/modelhelper"
-
 	// _ "net/http/pprof" // Imported for side-effect of handling /debug/pprof.
 	"os"
-	"os/signal"
+	"socialapi/models"
 	"socialapi/workers/api/handlers"
 	"socialapi/workers/common/runner"
 	"socialapi/workers/helper"
 	notificationapi "socialapi/workers/notification/api"
 	trollmodeapi "socialapi/workers/trollmode/api"
-	"syscall"
+
 	"github.com/rcrowley/go-tigertonic"
 )
 
 var (
-	cert       = flag.String("cert", "", "certificate pathname")
-	key        = flag.String("key", "", "private key pathname")
-	flagConfig = flag.String("config", "", "pathname of JSON configuration file")
-	host       = flag.String("host", "0.0.0.0", "listen address")
-	port       = flag.String("port", "7000", "listen port")
+	cert = flag.String("cert", "", "certificate pathname")
+	key  = flag.String("key", "", "private key pathname")
+	host = flag.String("host", "0.0.0.0", "listen address")
+	port = flag.String("port", "7000", "listen port")
 
 	hMux       tigertonic.HostServeMux
 	mux, nsMux *tigertonic.TrieServeMux
 
 	Name = "SocialAPI"
 )
-
-type context struct {
-	Username string
-}
 
 func init() {
 	flag.Usage = func() {
@@ -44,6 +38,14 @@ func init() {
 	mux = handlers.Inject(mux)
 	mux = notificationapi.InitHandlers(mux)
 	mux = trollmodeapi.InitHandlers(mux)
+
+	// add namespace support into
+	// all handlers
+	nsMux = tigertonic.NewTrieServeMux()
+	nsMux.HandleNamespace("", mux)
+	nsMux.HandleNamespace("/1.0", mux)
+	tigertonic.SnakeCaseHTTPEquivErrors = true
+
 }
 
 func main() {
@@ -68,10 +70,7 @@ func main() {
 	// init mongo connection
 	modelhelper.Initialize(r.Conf.Mongo)
 
-	ch := make(chan os.Signal)
-	signal.Notify(ch, syscall.SIGINT, syscall.SIGQUIT, syscall.SIGTERM)
-
-	r.Log.Info("Received %v", <-ch)
+	r.Wait()
 }
 
 func newServer() *tigertonic.Server {
@@ -85,10 +84,11 @@ func newServer() *tigertonic.Server {
 	server := tigertonic.NewServer(
 		addr,
 		tigertonic.Logged(
-			tigertonic.WithContext(mux, context{}),
+			tigertonic.WithContext(nsMux, models.Context{}),
 			nil,
 		),
 	)
+
 	go listener(server)
 	return server
 }

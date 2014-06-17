@@ -3,6 +3,7 @@ package kite
 import (
 	"errors"
 	"fmt"
+	"runtime/debug"
 	"strings"
 
 	"github.com/dgrijalva/jwt-go"
@@ -38,18 +39,22 @@ func (c *Client) runMethod(method *Method, args *dnode.Partial) {
 	// functions like MustString(), MustSlice()... without the fear of panic.
 	defer func() {
 		if r := recover(); r != nil {
+			debug.PrintStack()
 			callFunc(nil, createError(r))
 		}
 	}()
 
 	// The request that will be constructed from incoming dnode message.
 	request, callFunc = c.newRequest(method.name, args)
-
 	if method.authenticate {
 		if err := request.authenticate(); err != nil {
 			callFunc(nil, err)
 			return
 		}
+	} else {
+		// if not valided accept any username it sends, also useful for test
+		// cases.
+		request.Username = request.Client.Kite.Username
 	}
 
 	// Call the handler function.
@@ -147,8 +152,8 @@ func (r *Request) authenticate() *Error {
 		}
 	}
 
-	// Fix username of the remote Kite if it is invalid.
-	// This prevents a Kite to impersonate someone else's Kite.
+	// Replace username of the remote Kite with the username that client send
+	// us. This prevents a Kite to impersonate someone else's Kite.
 	r.Client.Kite.Username = r.Username
 	return nil
 }
@@ -165,11 +170,10 @@ func (k *Kite) AuthenticateFromToken(r *Request) error {
 	}
 
 	if audience, ok := token.Claims["aud"].(string); !ok || !strings.HasPrefix(k.Kite().String(), audience) {
-		return fmt.Errorf("Invalid audience in token: %s", audience)
+		return fmt.Errorf("Invalid audience in token. \nHave: %s \nMust be a part of: %s", audience, k.Kite().String())
 	}
 
 	// We don't check for exp and nbf claims here because jwt-go package already checks them.
-
 	if username, ok := token.Claims["sub"].(string); !ok {
 		return errors.New("Username is not present in token")
 	} else {

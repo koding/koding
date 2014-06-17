@@ -24,10 +24,10 @@ class ActivityAppController extends AppController
 
   post: (options = {}, callback = noop) ->
 
-    {body}      = options
+    {body, payload} = options
     {socialapi} = KD.singletons
 
-    socialapi.message.post {body}, callback
+    socialapi.message.post {body, payload}, callback
 
 
   edit: (options = {}, callback = noop) ->
@@ -66,6 +66,9 @@ class ActivityAppController extends AppController
     {socialapi} = KD.singletons
 
     socialapi.channel.fetchActivities {id, from}, callback
+
+
+  getActiveChannel: -> @getView().sidebar.selectedItem.getData()
 
 
   #
@@ -108,3 +111,13 @@ class ActivityAppController extends AppController
         lastOne = activities.last.meta.createdAt
         @profileLastTo = (new Date(lastOne)).getTime()
       callback err, activities
+
+
+  bindModalDestroy: (modal, lastRoute) ->
+
+    {router} = KD.singletons
+
+    modal.once 'KDModalViewDestroyed', ->
+      router.back() if lastRoute is router.visitedRoutes.last
+
+    router.once 'RouteInfoHandled', -> modal?.destroy()

@@ -107,3 +107,11 @@ module.exports = class JVerificationToken extends Module
     Koding Team
 
     """
+
+  @invalidatePin = (options, callback)->
+    {email, action, username} = options
+    @one {email, action, username}, (err, verify)->
+      return callback err  if err
+      return callback new KodingError "token not found" unless verify
+      verify.remove()
+      callback null

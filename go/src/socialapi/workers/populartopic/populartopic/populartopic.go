@@ -17,15 +17,15 @@ var (
 	PopularTopicKey = "populartopic"
 )
 
-type Action func(*PopularTopicsController, *models.ChannelMessageList) error
+type Action func(*Controller, *models.ChannelMessageList) error
 
-type PopularTopicsController struct {
+type Controller struct {
 	routes map[string]Action
 	log    logging.Logger
 	redis  *redis.RedisSession
 }
 
-func (t *PopularTopicsController) DefaultErrHandler(delivery amqp.Delivery, err error) bool {
+func (t *Controller) DefaultErrHandler(delivery amqp.Delivery, err error) bool {
 	if delivery.Redelivered {
 		t.log.Error("Redelivered message gave error again, putting to maintenance queue", err)
 		delivery.Ack(false)
@@ -37,22 +37,22 @@ func (t *PopularTopicsController) DefaultErrHandler(delivery amqp.Delivery, err 
 	return false
 }
 
-func NewPopularTopicsController(log logging.Logger, redis *redis.RedisSession) *PopularTopicsController {
-	ffc := &PopularTopicsController{
+func New(log logging.Logger, redis *redis.RedisSession) *Controller {
+	ffc := &Controller{
 		log:   log,
 		redis: redis,
 	}
 
 	routes := map[string]Action{
-		"api.channel_message_list_created": (*PopularTopicsController).MessageSaved,
-		"api.channel_message_list_deleted": (*PopularTopicsController).MessageDeleted,
+		"api.channel_message_list_created": (*Controller).MessageSaved,
+		"api.channel_message_list_deleted": (*Controller).MessageDeleted,
 	}
 
 	ffc.routes = routes
 	return ffc
 }
 
-func (f *PopularTopicsController) HandleEvent(event string, data []byte) error {
+func (f *Controller) HandleEvent(event string, data []byte) error {
 	f.log.Debug("New Event Received %s", event)
 	handler, ok := f.routes[event]
 	if !ok {
@@ -72,15 +72,15 @@ func (f *PopularTopicsController) HandleEvent(event string, data []byte) error {
 	return handler(f, cml)
 }
 
-func (f *PopularTopicsController) MessageSaved(data *models.ChannelMessageList) error {
+func (f *Controller) MessageSaved(data *models.ChannelMessageList) error {
 	return f.handleMessageEvents(data, 1)
 }
 
-func (f *PopularTopicsController) MessageDeleted(data *models.ChannelMessageList) error {
+func (f *Controller) MessageDeleted(data *models.ChannelMessageList) error {
 	return f.handleMessageEvents(data, -1)
 }
 
-func (f *PopularTopicsController) handleMessageEvents(data *models.ChannelMessageList, increment int) error {
+func (f *Controller) handleMessageEvents(data *models.ChannelMessageList, increment int) error {
 	c, err := models.ChannelById(data.ChannelId)
 	if err != nil {
 		return err
@@ -176,7 +176,7 @@ func mapMessage(data []byte) (*models.ChannelMessageList, error) {
 	return cm, nil
 }
 
-func (f *PopularTopicsController) isEligible(c *models.Channel) bool {
+func (f *Controller) isEligible(c *models.Channel) bool {
 	if c.TypeConstant != models.Channel_TYPE_TOPIC {
 		return false
 	}

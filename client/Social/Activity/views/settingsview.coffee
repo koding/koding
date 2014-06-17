@@ -14,7 +14,7 @@ class ActivitySettingsView extends KDCustomHTMLView
       itemChildClass : ActivityItemMenuItem
       delegate       : this
       iconClass      : 'arrow'
-      menu           : @settingsMenu data
+      menu           : @bound 'settingsMenu'
       style          : 'resurrection'
       callback       : (event) => @settings.contextMenu event
 
@@ -23,32 +23,41 @@ class ActivitySettingsView extends KDCustomHTMLView
 
   addMenuItem: (title, callback) -> @menu[title] = {callback}
 
-  getGenericMenu: ->
+  addFollowActionMenu: ->
 
-    {socialapi} = KD.singletons
+    {pin, unpin} = KD.singletons.socialapi.channel
     post = @getData()
-    @addMenuItem 'Follow Post', =>
+
+    unless post.isFollowed
+      title = 'Follow Post'
+      fn    = pin
+    else
+      title = 'Unfollow Post'
+      fn    = unpin
+
+    @addMenuItem title, ->
       messageId = post.getId()
-      socialapi.channel.pin {messageId}, (err)->
+      fn {messageId}, (err)->
         return KD.showError err  if err
-        log 'post pinned'
+        post.isFollowed = not post.isFollowed
+
 
     return @menu
 
 
-  getOwnerMenu: (post) ->
+  addOwnerMenu: ->
 
-    account              = KD.whoami()
-    {activityController} = KD.singletons
-    @addMenuItem 'Edit Post', => @emit 'ActivityEditIsClicked'
-    @addMenuItem 'Delete Post', => @confirmDeletePost post
+    @addMenuItem 'Edit Post', @lazyBound 'emit', 'ActivityEditIsClicked'
+    @addMenuItem 'Delete Post', @bound 'confirmDeletePost'
 
     return @menu
 
 
-  getAdminMenu: (post) ->
+  addAdminMenu: ->
 
-    @menu                = @getOwnerMenu()
+    post = @getData()
+
+    @menu                = @addOwnerMenu()
     {activityController} = KD.singletons
 
     if KD.checkFlag 'exempt', KD.whoami()
@@ -59,9 +68,10 @@ class ActivitySettingsView extends KDCustomHTMLView
         activityController.emit "ActivityItemMarkUserAsTrollClicked", post
 
     @addMenuItem 'Block User', ->
-      activityController.emit "ActivityItemBlockUserClicked", post.originId
+      activityController.emit "ActivityItemBlockUserClicked", post.account._id
     @addMenuItem 'Impersonate', ->
-      KD.remote.cacheable post.originType, post.originId, (err, owner) ->
+      {constructorName, _id} = post.account
+      KD.remote.cacheable constructorName, _id, (err, owner) ->
         return KD.showError err  if err
         return KD.showError message: "Account not found"  unless owner
         KD.impersonate owner.profile.nickname
@@ -71,20 +81,21 @@ class ActivitySettingsView extends KDCustomHTMLView
     return @menu
 
 
-  settingsMenu: (post) ->
+  settingsMenu: ->
 
-    @getGenericMenu()
+    @menu = {}
 
-    if KD.isMyPost post
-    then @getOwnerMenu()
-    else if KD.checkFlag('super-admin') or KD.hasAccess('delete posts')
-    then @getAdminMenu()
+    @addFollowActionMenu()
+    @addOwnerMenu()  if KD.isMyPost @getData()
+    @addAdminMenu()  if KD.checkFlag('super-admin') or KD.hasAccess('delete posts')
 
     return @menu
 
+
   viewAppended: -> @addSubView @settings
 
-  confirmDeletePost:(post)->
+
+  confirmDeletePost: ->
 
     modal = new KDModalView
       title          : "Delete post"
@@ -98,20 +109,18 @@ class ActivitySettingsView extends KDCustomHTMLView
             color    : "#e94b35"
           callback   : =>
 
-            if post.fake
-              @emit 'ActivityIsDeleted'
-              modal.buttons.Delete.hideLoader()
-              modal.destroy()
-              return
+            id = @getData().getId()
 
-            post.delete (err)=>
-              modal.buttons.Delete.hideLoader()
+            (KD.singleton 'appManager').tell 'Activity', 'delete', {id}, (err) =>
+
+              if err
+                new KDNotificationView
+                  type     : "mini"
+                  cssClass : "error editor"
+                  title    : "Error, please try again later!"
+                return
+
               modal.destroy()
-              unless err then @emit 'ActivityIsDeleted'
-              else new KDNotificationView
-                type     : "mini"
-                cssClass : "error editor"
-                title     : "Error, please try again later!"
         Cancel       :
           style      : "modal-cancel"
           title      : "cancel"

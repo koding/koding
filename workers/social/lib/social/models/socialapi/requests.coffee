@@ -4,31 +4,8 @@ KONFIG = require('koding-config-manager').load("main.#{argv.c}")
 request        = require 'request'
 _ = require "underscore"
 
-SOCIAL_API_FALLBACK_URL = KONFIG.socialapi.fallbackUrl
-SOCIAL_API_URLS = []
-
-fetchApiURLs = (callback)->
-  { url, port } = KONFIG.kontrold.api
-  url = "#{ url }:#{ port }/workers/url/socialapiapi?all"
-  request url, {json:true}, (error, response, body) ->
-    if error or response.statusCode isnt 200 or not body
-      return callback {message: "Social Api is not reachable"}
-
-    return callback null, body
-
 getNextApiURL = (callback)->
-  unless SOCIAL_API_URLS.length > 0
-    fetchApiURLs (err, urls)->
-      return callback err if err
-      unless urls?.length > 0
-        console.warn "serving fallbackUrl", SOCIAL_API_FALLBACK_URL
-        return callback null, SOCIAL_API_FALLBACK_URL
-      SOCIAL_API_URLS = urls
-      nextapi = _.sample urls
-      return callback null, nextapi
-  else
-    nextapi = _.sample SOCIAL_API_URLS
-    return callback null, nextapi
+  return callback null, KONFIG.socialapi.proxyUrl
 
 wrapCallback = (callback)->
   (err, response, body) ->
@@ -42,10 +19,11 @@ wrapCallback = (callback)->
     else
       return callback null, body
 
-createAccount = (id, callback)->
-  return callback {message:"Accont id is not valid"} unless id
+createAccount = ({id, nickname}, callback)->
+  if not id or not nickname
+    return callback {message:"Request is not valid for creating account"}
   url = "/account"
-  post url, {oldId: id}, callback
+  post url, {oldId: id, nick: nickname}, callback
 
 createChannel = (data, callback)->
   unless data.name or data.creatorId
@@ -79,6 +57,14 @@ postToChannel = (data, callback)->
     return callback { message: "Request is not valid for posting message"}
 
   url = "/channel/#{data.channelId}/message"
+  post url, data, callback
+
+
+updateLastSeenTime = (data, callback)->
+  unless data.channelId and data.accountId
+    return callback {message: "Request is not valid"}
+
+  url = "/channel/#{data.channelId}/participant/#{data.accountId}/presence"
   post url, data, callback
 
 editMessage = (data, callback)->
@@ -164,6 +150,13 @@ unpinMessage = (data, callback)->
   url = "/activity/pin/remove"
   post url, data, callback
 
+glancePinnedPost = (data, callback)->
+  if not data.accountId or not data.messageId or not data.groupName
+    return callback { message: "Request is not valid"}
+
+  url = "/activity/pin/glance"
+  post url, data, callback
+
 followTopic = (data, callback)->
   if not data.accountId or not data.channelId
     return callback { message: "Request is not valid"}
@@ -247,6 +240,37 @@ fetchProfileFeed = (data, callback)->
   url = "/account/#{data.targetId}/posts"
   get url, data, callback
 
+messageById = (data, callback)->
+  if not data.id
+    return callback { message: "id should be set"}
+  url = "/message/#{data.id}"
+  get url, data, callback
+
+messageBySlug = (data, callback)->
+  if not data.slug
+    return callback { message: "slug should be set"}
+  url = "/message/slug/#{data.slug}"
+  get url, data, callback
+
+channelById = (data, callback)->
+  if not data.id
+    return callback { message: "id should be set"}
+  url = "/channel/#{data.id}"
+  get url, data, callback
+
+channelByName = (data, callback)->
+  if not data.name
+    return callback { message: "name should be set"}
+  url = "/channel/name/#{data.name}"
+  get url, data, callback
+
+checkChannelParticipation = (data, callback)->
+  if not data.name or not data.type
+    return callback { message: "request is not valid" }
+
+  url = "/channel/checkparticipation"
+  get url, data, callback
+
 post = (url, data, callback)->
   getNextApiURL (err, apiurl)->
     return callback err if err
@@ -278,6 +302,13 @@ get = (url, data, callback)->
     , wrapCallback callback
 
 module.exports = {
+  messageBySlug
+  checkChannelParticipation
+  messageById
+  channelById
+  channelByName
+  glancePinnedPost
+  updateLastSeenTime
   fetchProfileFeed
   searchTopics
   fetchPrivateMessages

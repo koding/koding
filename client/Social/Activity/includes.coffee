@@ -1,7 +1,6 @@
 module.exports = [
   "AppController.coffee"
   "AppView.coffee"
-  "messageeventhelper.coffee"
   "activitylistcontroller.coffee"
   "pinnedactivitylistcontroller.coffee"
 
@@ -30,6 +29,12 @@ module.exports = [
   "views/referalbox.coffee"
   "views/filterwarning.coffee"
   "views/activitymenuitem.coffee"
+  "views/chatheadautocompleteitem.coffee"
+  "views/privatemessagemodal.coffee"
+  "views/alltopicsmodal.coffee"
+  "views/yourtopicsmodal.coffee"
+  "views/conversationsmodal.coffee"
+  "views/activityautocompleteuseritemview.coffee"
 
   "views/embedbox.coffee"
   "views/embedboxwidget.coffee"
@@ -85,6 +90,7 @@ module.exports = [
 
   # Activity List Items
   "views/activitylistitem.coffee"
+  "views/privatemessagelistitem.coffee"
 
   "styl/activity.styl"
   "styl/activity.responsive.styl"

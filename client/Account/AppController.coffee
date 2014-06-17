@@ -8,7 +8,6 @@ class AccountAppController extends AppController
       items  : [
         { slug : 'Profile',   title : "User profile",        listType: "username" }
         { slug : 'Email',     title : "Email notifications", listType: "emailNotifications" }
-        { slug : 'Externals', title : "Linked accounts",     listType: "linkedAccounts" }
       ]
     billing :
       title : "Billing"
@@ -29,6 +28,9 @@ class AccountAppController extends AppController
       items : [
         { slug: 'Delete', title : "Delete account", listType: "deleteAccount" }
       ]
+
+  if KD.utils.oauthEnabled() is yes
+    items.personal.items.push({ slug : 'Externals', title : "Linked accounts",     listType: "linkedAccounts" })
 
   constructor:(options={}, data)->
 

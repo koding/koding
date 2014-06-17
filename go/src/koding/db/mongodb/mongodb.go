@@ -34,7 +34,7 @@ func (m *MongoDB) CreateSession(url string) {
 	}
 
 	m.Session.SetSafe(&mgo.Safe{})
-	m.Session.SetMode(mgo.Monotonic, true)
+	m.Session.SetMode(mgo.Strong, true)
 }
 
 func (m *MongoDB) Close() {
@@ -66,6 +66,13 @@ func (m *MongoDB) Run(collection string, s func(*mgo.Collection) error) error {
 	defer session.Close()
 	c := session.DB("").C(collection)
 	return s(c)
+}
+
+func (m *MongoDB) GetIter(collection string, s func(*mgo.Collection) *mgo.Query) *mgo.Iter {
+	session := m.GetSession()
+	defer session.Close()
+	c := session.DB("").C(collection)
+	return s(c).Iter()
 }
 
 // RunOnDatabase runs command on given database, instead of current database

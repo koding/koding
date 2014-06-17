@@ -21,6 +21,7 @@ func fetchParticipantIds(participantNames []string) ([]int64, error) {
 		a := models.NewAccount()
 		a.Id = account.SocialApiId
 		a.OldId = account.Id.Hex()
+		a.Nick = account.Profile.Nickname
 		// fetch or create social api id
 		if a.Id == 0 {
 			if err := a.FetchOrCreate(); err != nil {
@@ -124,7 +125,7 @@ func List(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface
 	}
 
 	return helpers.HandleResultAndError(
-		models.PopulateChannelContainers(channels, q.AccountId),
+		models.PopulateChannelContainersWithUnreadCount(channels, q.AccountId),
 	)
 }
 
@@ -145,6 +146,7 @@ func getPrivateMessageChannels(q *models.Query) ([]models.Channel, error) {
 		models.ChannelParticipant_STATUS_ACTIVE).
 		Limit(q.Limit).
 		Offset(q.Skip).
+		Order("api.channel.updated_at DESC").
 		Rows()
 	defer rows.Close()
 	if err != nil {

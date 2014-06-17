@@ -83,6 +83,16 @@ type User struct {
 	IgnoreStringSlice []string `sql:"-"`
 }
 
+type UserCompany struct {
+	Id        int64
+	UserId    int64
+	CompanyId int64
+}
+
+func (t UserCompany) TableName() string {
+	return "user_companies"
+}
+
 type CreditCard struct {
 	Id        int8
 	Number    string
@@ -135,6 +145,11 @@ type Animal struct {
 	UpdatedAt time.Time
 }
 
+type Details struct {
+	Id   int64
+	Bulk gorm.Hstore
+}
+
 var (
 	db                 gorm.DB
 	t1, t2, t3, t4, t5 time.Time
@@ -179,6 +194,7 @@ func init() {
 	db.Exec("drop table roles")
 	db.Exec("drop table companies")
 	db.Exec("drop table animals")
+	db.Exec("drop table user_companies")
 
 	if err = db.CreateTable(&Animal{}).Error; err != nil {
 		panic(fmt.Sprintf("No error should happen when create table, but got %+v", err))
@@ -209,6 +225,10 @@ func init() {
 	}
 
 	if err = db.AutoMigrate(Role{}).Error; err != nil {
+		panic(fmt.Sprintf("No error should happen when create table, but got %+v", err))
+	}
+
+	if err = db.AutoMigrate(UserCompany{}).Error; err != nil {
 		panic(fmt.Sprintf("No error should happen when create table, but got %+v", err))
 	}
 
@@ -314,24 +334,19 @@ func TestCreateAndUpdate(t *testing.T) {
 	name, name2, new_name := "update", "update2", "new_update"
 	user := User{Name: name, Age: 1, PasswordHash: []byte{'f', 'a', 'k', '4'}}
 
-	if !db.NewRecord(user) {
+	if !db.NewRecord(user) || !db.NewRecord(&user) {
 		t.Error("User should be new record")
 	}
 
-	if !db.NewRecord(&user) {
-		t.Error("User should be new record")
+	if count := db.Save(&user).RowsAffected; count != 1 {
+		t.Error("There should be one record be affected when create record")
 	}
 
-	db.Save(&user)
 	if user.Id == 0 {
 		t.Errorf("Should have ID after create")
 	}
 
-	if db.NewRecord(user) {
-		t.Error("User should not new record after save")
-	}
-
-	if db.NewRecord(&user) {
+	if db.NewRecord(user) || db.NewRecord(&user) {
 		t.Error("User should not new record after save")
 	}
 
@@ -341,7 +356,9 @@ func TestCreateAndUpdate(t *testing.T) {
 		t.Errorf("User's Password should be saved")
 	}
 
-	db.Save(&User{Name: name2, Age: 1})
+	if count := db.Save(&User{Name: name2, Age: 1}).RowsAffected; count != 1 {
+		t.Error("There should be one record be affected when update a record")
+	}
 
 	user.Name = new_name
 	db.Save(&user)
@@ -404,12 +421,8 @@ func TestWhere(t *testing.T) {
 	}
 
 	var users []User
-	if db.Where("name = ?", "none-noexisting").Find(&users).Error != nil {
-		t.Errorf("Shouldn't return error when looking for none existing records with find")
-	}
-
-	if len(users) != 0 {
-		t.Errorf("Users should be empty")
+	if !db.Where("name = ?", "none-noexisting").Find(&users).RecordNotFound() {
+		t.Errorf("Should get RecordNotFound error when looking for none existing records")
 	}
 }
 
@@ -1094,6 +1107,12 @@ func TestUpdate(t *testing.T) {
 
 	if db.Model(&animal2).UpdateColumn("CreatedAt", time.Now().Add(time.Hour)).Error != nil {
 		t.Error("No error should raise when update_column with CamelCase")
+	}
+
+	var animals []Animal
+	db.Find(&animals)
+	if count := db.Model(Animal{}).Update("CreatedAt", time.Now().Add(2*time.Hour)).RowsAffected; count != int64(len(animals)) {
+		t.Error("RowsAffected should be correct when do batch update")
 	}
 }
 
@@ -2002,4 +2021,65 @@ func TestSelectWithEscapedFieldName(t *testing.T) {
 	if len(names) != 1 {
 		t.Errorf("Expected one name, but got: %d", len(names))
 	}
+}
+
+func TestIndices(t *testing.T) {
+	if err := db.Model(&UserCompany{}).AddIndex("idx_user_company_user", "user_id").Error; err != nil {
+		t.Errorf("Got error when tried to create index: %+v", err)
+	}
+	if err := db.Model(&UserCompany{}).RemoveIndex("idx_user_company_user").Error; err != nil {
+		t.Errorf("Got error when tried to remove index: %+v", err)
+	}
+
+	if err := db.Model(&UserCompany{}).AddIndex("idx_user_company_user_company", "user_id", "company_id").Error; err != nil {
+		t.Errorf("Got error when tried to create index: %+v", err)
+	}
+	if err := db.Model(&UserCompany{}).RemoveIndex("idx_user_company_user_company").Error; err != nil {
+		t.Errorf("Got error when tried to remove index: %+v", err)
+	}
+
+	if err := db.Model(&UserCompany{}).AddUniqueIndex("idx_user_company_user_company", "user_id", "company_id").Error; err != nil {
+		t.Errorf("Got error when tried to create index: %+v", err)
+	}
+}
+
+func TestHstore(t *testing.T) {
+	if dialect := os.Getenv("GORM_DIALECT"); dialect != "postgres" {
+		t.Skip()
+	}
+
+	if err := db.Exec("CREATE EXTENSION IF NOT EXISTS hstore").Error; err != nil {
+		panic(fmt.Sprintf("No error should happen when create hstore extension, but got %+v", err))
+	}
+
+	db.Exec("drop table details")
+
+	if err := db.CreateTable(&Details{}).Error; err != nil {
+		panic(fmt.Sprintf("No error should happen when create table, but got %+v", err))
+	}
+
+	bankAccountId, phoneNumber, opinion := "123456", "14151321232", "sharkbait"
+	bulk := map[string]*string{
+		"bankAccountId": &bankAccountId,
+		"phoneNumber":   &phoneNumber,
+		"opinion":       &opinion,
+	}
+	d := Details{Bulk: bulk}
+	db.Save(&d)
+
+	var d2 Details
+	if err := db.First(&d2).Error; err != nil {
+		t.Errorf("Got error when tried to fetch details: %+v", err)
+	}
+
+	for k := range bulk {
+		r, ok := d2.Bulk[k]
+		if !ok {
+			t.Errorf("Details should be existed")
+		}
+		if res, _ := bulk[k]; *res != *r {
+			t.Errorf("Details should be equal")
+		}
+	}
+
 }

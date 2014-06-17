@@ -7,6 +7,7 @@ import (
 	"net/url"
 	"socialapi/models"
 	"socialapi/workers/api/modules/helpers"
+	"time"
 
 	"github.com/koding/bongo"
 )
@@ -77,7 +78,7 @@ func List(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface
 
 	cml := models.NewChannelMessageList()
 	cml.ChannelId = c.Id
-	return helpers.HandleResultAndError(cml.List(query))
+	return helpers.HandleResultAndError(cml.List(query, true))
 }
 
 func UnpinMessage(u *url.URL, h http.Header, req *models.PinRequest) (int, http.Header, interface{}, error) {
@@ -97,6 +98,33 @@ func UnpinMessage(u *url.URL, h http.Header, req *models.PinRequest) (int, http.
 	return helpers.HandleResultAndError(
 		c.RemoveMessage(req.MessageId),
 	)
+}
+
+func Glance(u *url.URL, h http.Header, req *models.PinRequest) (int, http.Header, interface{}, error) {
+	if err := validatePinRequest(req); err != nil {
+		return helpers.NewBadRequestResponse(err)
+	}
+
+	c, err := ensurePinnedActivityChannel(req.AccountId, req.GroupName)
+	if err != nil {
+		return helpers.NewBadRequestResponse(err)
+	}
+
+	if err := checkPinMessagePrerequisites(c, req); err != nil {
+		return helpers.NewBadRequestResponse(err)
+	}
+
+	cml, err := c.FetchMessageList(req.MessageId)
+	if err != nil {
+		return helpers.NewBadRequestResponse(err)
+	}
+
+	cml.AddedAt = time.Now().UTC()
+	if err := cml.Update(); err != nil {
+		return helpers.NewBadRequestResponse(err)
+	}
+
+	return helpers.NewOKResponse(cml)
 }
 
 func validatePinRequest(req *models.PinRequest) error {
@@ -123,22 +151,34 @@ func ensurePinnedActivityChannel(accountId int64, groupName string) (*models.Cha
 			"group_name":    groupName,
 			"type_constant": models.Channel_TYPE_PINNED_ACTIVITY,
 		},
+		Pagination: *bongo.NewPagination(1, 0),
 	}
 
 	if err := c.Some(c, query); err != nil {
 		return nil, err
 	}
 
-	if c.Id == 0 {
-		c.Name = "PinnedActivity"
-		c.CreatorId = accountId
-		c.GroupName = groupName
-		c.Purpose = "Pinned Activity"
-		c.TypeConstant = models.Channel_TYPE_PINNED_ACTIVITY
-		c.PrivacyConstant = models.Channel_PRIVACY_PRIVATE
-		if err := c.Create(); err != nil {
-			return nil, err
-		}
+	// if we find the channel
+	// return early
+	if c.Id != 0 {
+		return c, nil
+	}
+
+	c.Name = models.RandomName()
+	c.CreatorId = accountId
+	c.GroupName = groupName
+	c.TypeConstant = models.Channel_TYPE_PINNED_ACTIVITY
+	c.PrivacyConstant = models.Channel_PRIVACY_PRIVATE
+	if err := c.Create(); err != nil {
+		return nil, err
+	}
+
+	// after creating pinned channel
+	// add user a participant
+	// todo add test for this case
+	_, err := c.AddParticipant(accountId)
+	if err != nil {
+		return nil, err
 	}
 
 	return c, nil

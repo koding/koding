@@ -129,13 +129,19 @@ class LoginView extends JView
       tagName     : "h4"
       cssClass    : "form-header"
 
-    @github          = new KDCustomHTMLView
-      tagName     : "a"
-      cssClass    : "github-login"
-      partial     : "Sign in using <strong>GitHub</strong>"
-      click       : ->
-        KD.mixpanel "Github auth button in /Login, click"
-        KD.singletons.oauthController.openPopup "github"
+    if KD.utils.oauthEnabled() is yes
+      @github          = new KDCustomHTMLView
+        tagName     : "a"
+        cssClass    : "github-login"
+        partial     : "Sign in using <strong>GitHub</strong>"
+        click       : ->
+          KD.mixpanel "Github auth button in /Login, click"
+          KD.singletons.oauthController.openPopup "github"
+    else
+      @github = new KDCustomHTMLView
+        tagName     : "a"
+        cssClass    : "github-login"
+        partial     : "<a href='http://koding.com'>Learn more</a>"
 
     @github.setPartial "<span class='button-arrow'></span>"
 

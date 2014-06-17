@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"socialapi/workers/common/manager"
 	"socialapi/workers/common/runner"
 	"socialapi/workers/helper"
 	"socialapi/workers/popularpost/popularpost"
@@ -19,11 +20,17 @@ func main() {
 	}
 
 	// create message handler
-	handler := popularpost.NewPopularPostController(
+	handler := popularpost.New(
 		r.Log,
 		helper.MustInitRedisConn(r.Conf.Redis),
 	)
 
-	r.Listen(handler)
-	r.Close()
+	m := manager.New()
+	m.Controller(handler)
+	m.HandleFunc("api.interaction_created", (*popularpost.Controller).InteractionSaved)
+	m.HandleFunc("api.interaction_deleted", (*popularpost.Controller).InteractionDeleted)
+
+	// create message handler
+	r.Listen(m)
+	r.Wait()
 }

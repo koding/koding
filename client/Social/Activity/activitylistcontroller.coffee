@@ -11,37 +11,28 @@ class ActivityListController extends KDListViewController
     options.showHeader           ?= yes
     options.scrollView           ?= no
     options.wrapper              ?= no
-    options.boxed                ?= no
+    options.boxed                ?= yes
     options.itemClass           or= ActivityListItemView
 
     options.viewOptions         or= {}
     {viewOptions}                 = options
     viewOptions.cssClass          = KD.utils.curry 'activity-related', viewOptions.cssClass
     viewOptions.comments         ?= yes
+    viewOptions.dataPath          = 'id'
 
     options.noItemFoundWidget    ?= new KDCustomHTMLView
-      cssClass : "lazy-loader hidden"
-      partial  : "There is no activity."
+      cssClass : 'lazy-loader hidden'
+      partial  : 'There is no activity.'
 
     super options, data
 
     @hiddenItems = []
 
-    @messageEventHelper = new MessageEventHelper
-
-
-  instantiateListItems: (messages) ->
-
-    messages = messages.filter (message) => not @itemForId message.getId()
-    messages.forEach @messageEventHelper.bound "bindListeners"
-
-    super messages
-
 
   # LEGACY
 
   postIsCreated: (post) =>
-    bugTag   = tag for tag in post.subject.tags when tag.slug is "bug"
+    bugTag   = tag for tag in post.subject.tags when tag.slug is 'bug'
     subject  = @prepareSubject post
     instance = @addItem subject, 0
 
@@ -65,7 +56,7 @@ class ActivityListController extends KDListViewController
 
   isMine:(activity)->
     id = KD.whoami().getId()
-    id? and id in [activity.originId, activity.anchor?.id]
+    id? and id in [activity.account._id, activity.anchor?.id]
 
   unhideNewHiddenItems: ->
 

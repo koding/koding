@@ -35,11 +35,13 @@ class DomainCreateForm extends KDCustomHTMLView
         placeholder      : "Type your domain name..."
         noDomainSelector : yes
 
+    nickname = KD.whoami().profile.nickname
+
     dom.addSubView @redirectNotice = (new KDCustomHTMLView
       tagName  : "p"
       cssClass : "status-message"
       partial  : """
-        Before adding your domain, you need to create a <strong>CNAME RECORD</strong> pointing to: <strong>kd.io</strong> or an <br/>
+        Before adding your domain, you need to create a <strong>CNAME RECORD</strong> pointing to: <strong>#{nickname}.kd.io</strong> or an <br/>
         <strong>A RECORD</strong> which is pointing to: <strong>68.68.97.66</strong>
         Otherwise Koding won't be able to add your domain. <a href="http://learn.koding.com/add-cname-records-to-your-domain/" target="_blank">Learn how</a>
         """

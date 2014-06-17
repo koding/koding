@@ -12,12 +12,13 @@ class SidebarMessageItem extends SidebarItem
 
     data = @getData()
 
-    for account in data.participantsPreview when account isnt KD.whoami()
+    for account in data.participantsPreview when account._id isnt KD.whoami().getId()
       origin = constructorName : 'JAccount', id : account._id
       break
 
     @actor = new ProfileTextView {origin}
 
+    # we need a multiple avatarview here
     @avatar = new AvatarStaticView
       size       : width : 30, height : 30
       cssClass   : "avatarview"
@@ -29,4 +30,5 @@ class SidebarMessageItem extends SidebarItem
     """
     {{> @avatar}}{{> @actor}}
     {span.user-numbers{ #(lastMessage.body)}}
+    {{> @unreadCount}}
     """

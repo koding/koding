@@ -50,6 +50,11 @@ func NewRedisSession(conf *RedisConf) (*RedisSession, error) {
 	return s, nil
 }
 
+// Pool Returns the connection pool for redis
+func (r *RedisSession) Pool() *redis.Pool {
+	return r.pool
+}
+
 // Close closes the connection pool for redis
 func (r *RedisSession) Close() error {
 	return r.pool.Close()
@@ -61,7 +66,7 @@ func (r *RedisSession) SetPrefix(name string) {
 	r.prefix = name + ":"
 }
 
-func (r *RedisSession) addPrefix(name string) string {
+func (r *RedisSession) AddPrefix(name string) string {
 	return r.prefix + name
 }
 
@@ -90,7 +95,7 @@ func (r *RedisSession) Send(cmd string, args ...interface{}) error {
 // overwritten, regardless of its type. A return of nil means successfull.
 // Example usage: redis.Set("arslan:name", "fatih")
 func (r *RedisSession) Set(key, value string) error {
-	reply, err := r.Do("SET", r.addPrefix(key), value)
+	reply, err := r.Do("SET", r.AddPrefix(key), value)
 	if err != nil {
 		return err
 	}
@@ -105,7 +110,7 @@ func (r *RedisSession) Set(key, value string) error {
 // Get is used to get the value of key. If the key does not exist an empty
 // string is returned. Usage: redis.Get("arslan")
 func (r *RedisSession) Get(key string) (string, error) {
-	reply, err := redis.String(r.Do("GET", r.addPrefix(key)))
+	reply, err := redis.String(r.Do("GET", r.AddPrefix(key)))
 	if err != nil {
 		return "", err
 	}
@@ -116,7 +121,7 @@ func (r *RedisSession) Get(key string) (string, error) {
 // the stored value is a non-integer, zero is returned. Example usage:
 // redis.GetInt("counter")
 func (r *RedisSession) GetInt(key string) (int, error) {
-	reply, err := redis.Int(r.Do("GET", r.addPrefix(key)))
+	reply, err := redis.Int(r.Do("GET", r.AddPrefix(key)))
 	if err != nil {
 		return 0, err
 	}
@@ -130,7 +135,7 @@ func (r *RedisSession) GetInt(key string) (int, error) {
 func (r *RedisSession) Del(args ...interface{}) (int, error) {
 	prefixed := make([]interface{}, 0)
 	for _, arg := range args {
-		prefixed = append(prefixed, r.addPrefix(arg.(string)))
+		prefixed = append(prefixed, r.AddPrefix(arg.(string)))
 	}
 
 	reply, err := redis.Int(r.Do("DEL", prefixed...))
@@ -145,7 +150,7 @@ func (r *RedisSession) Del(args ...interface{}) (int, error) {
 // key contains a value of the wrong type or contains a string that can not be
 // represented as integer
 func (r *RedisSession) Incr(key string) (int, error) {
-	reply, err := redis.Int(r.Do("INCR", r.addPrefix(key)))
+	reply, err := redis.Int(r.Do("INCR", r.AddPrefix(key)))
 	if err != nil {
 		return 0, err
 	}
@@ -158,7 +163,7 @@ func (r *RedisSession) Incr(key string) (int, error) {
 // set will update the expire value.
 func (r *RedisSession) Expire(key string, timeout time.Duration) error {
 	seconds := strconv.Itoa(int(timeout.Seconds()))
-	reply, err := redis.Int(r.Do("EXPIRE", r.addPrefix(key), seconds))
+	reply, err := redis.Int(r.Do("EXPIRE", r.AddPrefix(key), seconds))
 	if err != nil {
 		return err
 	}
@@ -170,10 +175,44 @@ func (r *RedisSession) Expire(key string, timeout time.Duration) error {
 	return nil
 }
 
+// Set key to hold the string value and set key to timeout after a given
+// number of seconds. This command is equivalent to executing the following commands:
+// SET mykey value
+// EXPIRE mykey seconds
+// SETEX is atomic, and can be reproduced by using the previous two
+// commands inside an MULTI / EXEC block. It is provided as a faster alternative
+// to the given sequence of operations, because this operation is very common
+// when Redis is used as a cache.
+// An error is returned when seconds is invalid.
+func (r *RedisSession) Setex(key string, timeout time.Duration, item interface{}) error {
+	reply, err := redis.String(
+		r.Do(
+			"SETEX",
+			r.AddPrefix(key),
+			strconv.Itoa(int(timeout.Seconds())),
+			item,
+		),
+	)
+	if err != nil {
+		return err
+	}
+
+	if reply != "OK" {
+		return fmt.Errorf("reply string is wrong!: %s", reply)
+	}
+
+	return nil
+}
+
+// PubSubConn wraps a Conn with convenience methods for subscribers.
+func (r *RedisSession) CreatePubSubConn() *redis.PubSubConn {
+	return &redis.PubSubConn{Conn: r.pool.Get()}
+}
+
 // Exists returns true if key exists or false if not.
 func (r *RedisSession) Exists(key string) bool {
 	// does not have any err message to be checked, it return either 1 or 0
-	reply, _ := redis.Int(r.Do("EXISTS", r.addPrefix(key)))
+	reply, _ := redis.Int(r.Do("EXISTS", r.AddPrefix(key)))
 
 	if reply == 1 {
 		return true
@@ -216,7 +255,7 @@ func (r *RedisSession) Scard(key string) (int, error) {
 func (r *RedisSession) SortedSetIncrBy(key string, incrBy, item interface{}) (float64, error) {
 	prefixed := make([]interface{}, 0)
 	// add key
-	prefixed = append(prefixed, r.addPrefix(key))
+	prefixed = append(prefixed, r.AddPrefix(key))
 
 	// add incrBy
 	prefixed = append(prefixed, incrBy)
@@ -240,7 +279,7 @@ func (r *RedisSession) SortedSetReverseRange(key string, rest ...interface{}) ([
 	prefixedReq := make([]interface{}, len(rest)+1)
 
 	// prepend prefixed key
-	prefixedReq[0] = r.addPrefix(key)
+	prefixedReq[0] = r.AddPrefix(key)
 
 	for key, el := range rest {
 		prefixedReq[key+1] = el
@@ -252,22 +291,13 @@ func (r *RedisSession) SortedSetReverseRange(key string, rest ...interface{}) ([
 // HashMultipleSet sets multiple hashset elements stored at key with given field values.
 // Returns error state of this operation
 func (r *RedisSession) HashMultipleSet(key string, item map[string]interface{}) error {
-
-	// not an optimal solution
-	fieldValuePairs := make([]interface{}, 0)
-	fieldValuePairs = append(fieldValuePairs, r.addPrefix(key))
-	for field, value := range item {
-		fieldValuePairs = append(fieldValuePairs, field, value)
-	}
-
-	reply, err := r.Do("HMSET", fieldValuePairs...)
+	reply, err := r.Do("HMSET", redis.Args{}.Add(r.AddPrefix(key)).AddFlat(item)...)
 	if err != nil {
 		return err
 	}
 
 	if reply != "OK" {
 		return fmt.Errorf("reply string is wrong!: %s", reply)
-
 	}
 
 	return nil
@@ -311,7 +341,12 @@ func (r *RedisSession) RemoveSetMembers(key string, rest ...interface{}) (int, e
 // GetSetMembers returns all members included in the set at key
 // Returns members array and error state
 func (r *RedisSession) GetSetMembers(key string) ([]interface{}, error) {
-	return redis.Values(r.Do("SMEMBERS", r.addPrefix(key)))
+	return redis.Values(r.Do("SMEMBERS", r.AddPrefix(key)))
+}
+
+// PopSetMember removes and returns a random element from the set stored at key
+func (r *RedisSession) PopSetMember(key string) (string, error) {
+	return redis.String(r.Do("SPOP", r.AddPrefix(key)))
 }
 
 // SortBy sorts elements stored at key with given weight and order(ASC|DESC)
@@ -321,13 +356,13 @@ func (r *RedisSession) GetSetMembers(key string) ([]interface{}, error) {
 // When we give sortBy parameter as *:weight, it gets all weight values and sorts the objects
 // at given key with specified order.
 func (r *RedisSession) SortBy(key, sortBy, order string) ([]interface{}, error) {
-	return redis.Values(r.Do("SORT", r.addPrefix(key), "by", r.addPrefix(sortBy), order))
+	return redis.Values(r.Do("SORT", r.AddPrefix(key), "by", r.AddPrefix(sortBy), order))
 }
 
 // Keys returns all keys with given pattern
 // WARNING: Redis Doc says: "Don't use KEYS in your regular application code."
 func (r *RedisSession) Keys(key string) ([]interface{}, error) {
-	return redis.Values(r.Do("KEYS", r.addPrefix(key)))
+	return redis.Values(r.Do("KEYS", r.AddPrefix(key)))
 }
 
 // Bool converts the given value to boolean
@@ -350,12 +385,23 @@ func (r *RedisSession) Int64(reply interface{}) (int64, error) {
 	return redis.Int64(reply, nil)
 }
 
+// Values is a helper that converts an array command reply to a
+// []interface{}. If err is not equal to nil, then Values returns nil, err.
+// Otherwise, Values converts the reply as follows:
+// Reply type      Result
+// array           reply, nil
+// nil             nil, ErrNil
+// other           nil, error
+func (r *RedisSession) Values(reply interface{}) ([]interface{}, error) {
+	return redis.Values(reply, nil)
+}
+
 // prepareArgsWithKey helper method prepends key to given variadic parameter
 func (r *RedisSession) prepareArgsWithKey(key string, rest ...interface{}) []interface{} {
 	prefixedReq := make([]interface{}, len(rest)+1)
 
 	// prepend prefixed key
-	prefixedReq[0] = r.addPrefix(key)
+	prefixedReq[0] = r.AddPrefix(key)
 
 	for key, el := range rest {
 		prefixedReq[key+1] = el

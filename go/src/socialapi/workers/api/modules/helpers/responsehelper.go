@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"net/url"
 	"socialapi/models"
+	"socialapi/workers/helper"
 	"strconv"
 	"github.com/koding/api/helpers"
 
@@ -37,9 +38,9 @@ func NewBadRequestResponse(err error) (int, http.Header, interface{}, error) {
 		err = errors.New("Request is not valid")
 	}
 
-	helpers.MustGetLogger().Error("Bad Request: %s", err)
+	helper.MustGetLogger().Error("Bad Request: %s", err)
 
-	return http.StatusBadRequest, nil, nil, err
+	return http.StatusBadRequest, nil, nil, BadRequest{err}
 }
 
 func HandleResultAndError(res interface{}, err error) (int, http.Header, interface{}, error) {
@@ -57,7 +58,7 @@ func NewOKResponse(res interface{}) (int, http.Header, interface{}, error) {
 }
 
 func NewNotFoundResponse() (int, http.Header, interface{}, error) {
-	return http.StatusNotFound, nil, nil, errors.New("Data not found")
+	return http.StatusNotFound, nil, nil, NotFoundError{errors.New("Data not found")}
 }
 
 func NewDeletedResponse() (int, http.Header, interface{}, error) {
@@ -83,3 +84,19 @@ func GetURIInt64(u *url.URL, queryParam string) (int64, error) {
 func GetQuery(u *url.URL) *models.Query {
 	return models.NewQuery().MapURL(u).SetDefaults()
 }
+
+type BadRequest struct {
+	error
+}
+
+func (err BadRequest) Name() string { return "koding.BadRequest" }
+
+func (err BadRequest) StatusCode() int { return http.StatusBadRequest }
+
+type NotFoundError struct {
+	error
+}
+
+func (err NotFoundError) Name() string { return "koding.NotFoundError" }
+
+func (err NotFoundError) StatusCode() int { return http.StatusNotFound }

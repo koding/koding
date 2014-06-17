@@ -15,19 +15,7 @@ func CreatePostWithBody(channelId, accountId int64, body string) (*models.Channe
 	cm.Body = body
 	cm.AccountId = accountId
 
-	url := fmt.Sprintf("/channel/%d/message", channelId)
-	res, err := marshallAndSendRequest("POST", url, cm)
-	if err != nil {
-		return nil, err
-	}
-
-	model := models.NewChannelMessageContainer()
-	err = json.Unmarshal(res, model)
-	if err != nil {
-		return nil, err
-	}
-
-	return model.Message, nil
+	return createPostRequest(channelId, cm)
 }
 
 func GetPost(id int64, accountId int64, groupName string) (*models.ChannelMessage, error) {
@@ -56,4 +44,35 @@ func UpdatePost(cm *models.ChannelMessage) (*models.ChannelMessage, error) {
 	}
 
 	return cmI.(*models.ChannelMessage), nil
+}
+
+type PayloadRequest struct {
+	Body      string                 `json:"body"`
+	AccountId int64                  `json:"accountId,string"`
+	Payload   map[string]interface{} `json:"payload"`
+}
+
+func CreatePostWithPayload(channelId, accountId int64, payload map[string]interface{}) (*models.ChannelMessage, error) {
+	pr := PayloadRequest{}
+	pr.Body = "message with payload"
+	pr.AccountId = accountId
+	pr.Payload = payload
+
+	return createPostRequest(channelId, pr)
+}
+
+func createPostRequest(channelId int64, model interface{}) (*models.ChannelMessage, error) {
+	url := fmt.Sprintf("/channel/%d/message", channelId)
+	res, err := marshallAndSendRequest("POST", url, model)
+	if err != nil {
+		return nil, err
+	}
+
+	container := models.NewChannelMessageContainer()
+	err = json.Unmarshal(res, container)
+	if err != nil {
+		return nil, err
+	}
+
+	return container.Message, nil
 }

@@ -8,13 +8,56 @@ class MessagePane extends KDTabPaneView
     super options, data
 
     {itemClass, type} = @getOptions()
+    {typeConstant}    = @getData()
 
+    @createParticipantsView() if typeConstant is 'privatemessage'
     @listController = new ActivityListController {itemClass}
     @createInputWidget()
 
     @bindChannelEvents()
 
-    @on 'LazyLoadThresholdReached', @bound 'lazyLoad'  if type in ['', 'topic']
+    @on 'LazyLoadThresholdReached', @bound 'lazyLoad'  if typeConstant in ['group', 'topic']
+
+    {windowController} = KD.singletons
+
+    windowController.addFocusListener (focused) =>
+
+      @glance()  if focused and @active
+
+
+  createParticipantsView : ->
+
+    {participantsPreview} = @getData()
+
+    @participantsView = new KDCustomHTMLView
+      cssClass    : 'chat-heads'
+      partial     : '<span class="description">Private conversation between</span>'
+
+    @participantsView.addSubView heads = new KDCustomHTMLView
+      cssClass    : 'heads'
+
+    for participant in participantsPreview
+
+      participant.id = participant._id
+
+      heads.addSubView new AvatarView
+        size      :
+          width   : 30
+          height  : 30
+        origin    : participant
+
+    heads.addSubView @newParticipantButton = new KDButtonView
+      cssClass    : 'new-participant'
+      iconOnly    : yes
+
+
+  createInputWidget: ->
+
+    return  if @getOption("type") in ['post', 'privatemessage']
+
+    channel = @getData()
+
+    @input = new ActivityInputWidget {channel}
 
 
   bindChannelEvents: ->
@@ -25,30 +68,49 @@ class MessagePane extends KDTabPaneView
       return  unless channel
 
       channel
-        .on 'MessageAdded',   @bound 'addMessage'
+        .on 'MessageAdded',   @bound 'prependMessage'
         .on 'MessageRemoved', @bound 'removeMessage'
 
 
-  addMessage: (message) ->
+  appendMessage: (message) -> @listController.addItem message, @listController.getItemCount()
 
-    @listController.addItem message, 0
+  prependMessage: (message) -> @listController.addItem message, 0
 
-
-  removeMessage: (message) ->
-
-    @listController.removeItem message
-
-
-  appendMessage: (message) ->
-
-    @listController.addItem message, @listController.getItemCount()
+  removeMessage: (message) -> @listController.removeItem null, message
 
 
   viewAppended: ->
 
+    @addSubView @participantsView if @participantsView
     @addSubView @input  if @input
     @addSubView @listController.getView()
     @populate()
+
+
+  show: ->
+
+    super
+
+    KD.utils.wait 1000, @bound 'glance'
+
+
+  glance: ->
+
+    data = @getData()
+    {id, typeConstant} = data
+    {socialapi, appManager} = KD.singletons
+
+    app  = appManager.get 'Activity'
+    item = app.getView().sidebar.selectedItem
+
+    return  unless item.count
+    # no need to send updatelastSeenTime or glance
+    # when checking publicfeeds
+    return  if typeConstant is 'group'
+
+    if typeConstant is 'post'
+    then socialapi.channel.glancePinnedPost   messageId : id, ->
+    else socialapi.channel.updateLastSeenTime channelId : id, ->
 
 
   populate: ->
@@ -105,12 +167,3 @@ class MessagePane extends KDTabPaneView
     @listController.showLazyLoader()
     @populate()
 
-
-  createInputWidget: ->
-
-    return  if @getOption("type") in ['post', 'privatemessage']
-
-    channel = @getData()
-
-    @input = new ActivityInputWidget {channel}
-      # .on 'Submit', @listController.bound 'addItem'

@@ -25,8 +25,12 @@ MessageBodyMinLen=1
 [Notification]
 CacheEnabled = false
 
+[emailnotification]
+templateRoot="workers/emailnotifier/templates/"
+
 [sendgrid]
-Username= "koding"
-Password= "DEQl7_Dr"
-FromName= "Koding"
-FromMail= "hello@koding.com"
+Username=        "koding"
+Password=        "DEQl7_Dr"
+FromName=        "Koding"
+FromMail=        "hello@koding.com"
+ForcedRecipient= "canthefason@gmail.com"

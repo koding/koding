@@ -12,6 +12,7 @@ type (
 		Uri               string
 		Notification      Notification
 		SendGrid          SendGrid
+		EmailNotification EmailNotification
 	}
 
 	Postgres struct {
@@ -35,9 +36,13 @@ type (
 		CacheEnabled bool
 	}
 	SendGrid struct {
-		Username string
-		Password string
-		FromName string
-		FromMail string
+		Username        string
+		Password        string
+		FromName        string
+		FromMail        string
+		ForcedRecipient string
+	}
+	EmailNotification struct {
+		TemplateRoot string
 	}
 )

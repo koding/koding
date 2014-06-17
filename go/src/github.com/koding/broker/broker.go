@@ -68,7 +68,6 @@ func (b *Broker) Connect() error {
 	if err != nil {
 		return err
 	}
-	b.Producer.RegisterSignalHandler()
 
 	// b.Producer.NotifyReturn(func(message amqp.Return) {
 	// 	fmt.Println(message)

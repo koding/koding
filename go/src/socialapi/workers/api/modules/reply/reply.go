@@ -5,6 +5,7 @@ import (
 	"net/url"
 	"socialapi/models"
 	"socialapi/workers/api/modules/helpers"
+	"time"
 )
 
 func Create(u *url.URL, h http.Header, reply *models.ChannelMessage) (int, http.Header, interface{}, error) {
@@ -21,6 +22,15 @@ func Create(u *url.URL, h http.Header, reply *models.ChannelMessage) (int, http.
 		return helpers.NewBadRequestResponse(err)
 	}
 
+	// fetch parent
+	parent := models.NewChannelMessage()
+	if err := parent.ById(parentId); err != nil {
+		return helpers.NewBadRequestResponse(err)
+	}
+
+	// set reply message's inital channel id from parent's
+	reply.InitialChannelId = parent.InitialChannelId
+
 	// then add this message as a reply to a parent message
 	mr := models.NewMessageReply()
 	mr.MessageId = parentId
@@ -31,9 +41,52 @@ func Create(u *url.URL, h http.Header, reply *models.ChannelMessage) (int, http.
 		return helpers.NewBadRequestResponse(err)
 	}
 
+	// update all channels that contains this message
+	// todo move this to a worker
+	updateAllContainingChannels(parent.Id)
+
 	return helpers.HandleResultAndError(
 		reply.BuildEmptyMessageContainer(),
 	)
+}
+
+// fetch all channels that parent is in
+// update all channels
+func updateAllContainingChannels(parentId int64) error {
+	cml := models.NewChannelMessageList()
+	channels, err := cml.FetchMessageChannels(parentId)
+	if err != nil {
+		return err
+	}
+
+	if len(channels) == 0 {
+		return nil
+	}
+
+	for _, channel := range channels {
+		// if channel type is group, we dont need to update group's updatedAt
+		if channel.TypeConstant == models.Channel_TYPE_GROUP {
+			continue
+		}
+
+		// pinned activity channel holds messages one by one
+		if channel.TypeConstant != models.Channel_TYPE_PINNED_ACTIVITY {
+			channel.UpdatedAt = time.Now().UTC()
+			if err := channel.Update(); err != nil {
+				// err
+			}
+			continue
+		}
+
+		// if channel.TypeConstant == models.Channel_TYPE_PINNED_ACTIVITY {
+		err := models.NewChannelMessageList().UpdateAddedAt(channel.Id, parentId)
+		if err != nil {
+			// return err
+		}
+	}
+
+	return nil
+
 }
 
 func Delete(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface{}, error) {

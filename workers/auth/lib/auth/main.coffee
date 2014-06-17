@@ -7,13 +7,12 @@ KONFIG = require('koding-config-manager').load("main.#{argv.c}")
 
 AuthWorker = require './authworker'
 
-{librato, authWorker} = KONFIG
+{authWorker} = KONFIG
 
 processMonitor = (require 'processes-monitor').start
   name : "Auth Worker #{process.pid}"
   stats_id: "worker.auth." + process.pid
   interval : 30000
-  librato: librato
 
 authWorker = new AuthWorker koding, {
   authExchange    : KONFIG.authWorker.authExchange

@@ -1,7 +1,7 @@
 package virt
 
 import (
-	"errors"
+	"fmt"
 	"os/exec"
 	"strconv"
 	"strings"
@@ -26,11 +26,16 @@ func (vm *VM) Stop() error {
 
 func (vm *VM) Shutdown() error {
 	if out, err := exec.Command("/usr/bin/lxc-shutdown", "--name", vm.String()).CombinedOutput(); err != nil {
-		if vm.GetState() != "STOPPED" {
+		state, stateErr := vm.GetState()
+		if stateErr != nil {
+			return commandError("lxc-shutdown failed.", stateErr, out)
+		}
+
+		if state != "STOPPED" {
 			return commandError("lxc-shutdown failed.", err, out)
 		}
 	}
-	vm.WaitForState("STOPPED", 5*time.Second) // may time out, then vm is force stopped
+	vm.WaitForState("STOPPED", time.Second*5) // may time out, then vm is force stopped
 	return vm.Stop()
 }
 
@@ -46,26 +51,34 @@ func (vm *VM) AttachCommand(uid int, tty string, command ...string) *exec.Cmd {
 	return cmd
 }
 
-func GetVMState(vmId bson.ObjectId) string {
+func GetVMState(vmId bson.ObjectId) (string, error) {
 	out, err := exec.Command("/usr/bin/lxc-info", "--name", VMName(vmId), "--state").CombinedOutput()
 	if err != nil {
-		return ""
+		return "UNKNOWN", commandError("lxc-info failed ", err, out)
 	}
-	return strings.TrimSpace(string(out)[6:])
+	return strings.TrimSpace(string(out)[6:]), nil
 }
 
-func (vm *VM) GetState() string {
+func (vm *VM) GetState() (string, error) {
 	return GetVMState(vm.Id)
 }
 
-func (vm *VM) WaitForState(state string, timeout time.Duration) error {
+func (vm *VM) WaitForState(desiredState string, timeout time.Duration) error {
 	tryUntil := time.Now().Add(timeout)
-	for vm.GetState() != state {
-		if time.Now().After(tryUntil) {
-			return errors.New("Timeout while waiting for VM state.")
+
+	for {
+		currentState, err := vm.GetState()
+		if currentState == desiredState {
+			break
 		}
-		time.Sleep(time.Second / 10)
+
+		if time.Now().After(tryUntil) {
+			return fmt.Errorf("Timeout while waiting for VM state, err: %s", err)
+		}
+
+		time.Sleep(time.Millisecond * 500)
 	}
+
 	return nil
 }
 
@@ -78,30 +91,45 @@ func (vm *VM) SendMessageToVMUsers(message string) error {
 	return nil
 }
 
-func (vm *VM) WaitForNetwork() error {
-	timeout := time.Second * 5
-	isNetworkUp := func() bool {
-		// neglect error because it's not important and we also going to timeout
-		out, _ := exec.Command("/usr/bin/lxc-attach", "--name", vm.String(),
+// WaitUntilReady waits until the network is up and the screen binary is
+// available and ready to use.
+func (vm *VM) WaitUntilReady() error {
+	// FIXME: We shouldnt be waiting a fixed duration here, but for a time depenant on server load.
+	timeout := time.Second * 30
+
+	isNetworkUp := func() error {
+		out, err := exec.Command("/usr/bin/lxc-attach", "--name", vm.String(),
 			"--", "/bin/cat", "/sys/class/net/eth0/operstate").CombinedOutput()
 
-		if strings.TrimSpace(string(out)) == "up" {
-			return true
+		operstate := strings.TrimSpace(string(out))
+		if operstate != "up" {
+			if err != nil {
+				return fmt.Errorf("Network is not up: %s", err)
+			}
+
+			return fmt.Errorf("Network is not up, operstate returns: %s", operstate)
 		}
 
-		return false
+		if _, err := exec.Command("/usr/bin/lxc-attach", "--name", vm.String(),
+			"--", "/usr/bin/stat", "/usr/bin/screen").CombinedOutput(); err != nil {
+			return fmt.Errorf("Screen binary doesn't exist: %s", err)
+		}
+
+		// network is up and and screen is also available, we are ready to go
+		return nil
 	}
 
 	tryUntil := time.Now().Add(timeout)
+	var err error
 	for {
-		if up := isNetworkUp(); up {
+		if err = isNetworkUp(); err == nil {
 			return nil
 		}
 
 		if time.Now().After(tryUntil) {
-			return errors.New("Timeout while waiting for VM Network state.")
+			return fmt.Errorf("Timeout while waiting for VM Network state. Reason: %v", err)
 		}
 
-		time.Sleep(time.Millisecond * 100)
+		time.Sleep(time.Millisecond * 500)
 	}
 }

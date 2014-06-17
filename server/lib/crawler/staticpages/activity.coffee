@@ -46,13 +46,18 @@ getSingleActivityPage = ({activityContent, account, models})->
   model          = models.first if models and Array.isArray models
 
   title  = activityContent?.title
+  graphMeta = getGraphMeta
+    title    : "Post on koding.com by #{activityContent.fullName}"
+    body     : title
+    shareUrl : "#{uri.address}/Activity/#{activityContent.slug}"
+
   """
 
   <!DOCTYPE html>
   <html lang="en">
   <head>
     <title>#{title} - Koding</title>
-    #{getGraphMeta()}
+    #{graphMeta}
   </head>
     <body class="activity" itemscope itemtype="http://schema.org/WebPage">
       #{getDock()}

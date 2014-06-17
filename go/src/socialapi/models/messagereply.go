@@ -4,6 +4,7 @@ import (
 	"errors"
 	"time"
 
+	"github.com/jinzhu/gorm"
 	"github.com/koding/bongo"
 )
 
@@ -80,6 +81,16 @@ func (m *MessageReply) Create() error {
 	return bongo.B.Create(m)
 }
 
+func (m *MessageReply) CreateRaw() error {
+	insertSql := "INSERT INTO " +
+		m.TableName() +
+		` ("message_id","reply_id","created_at") VALUES ($1,$2,$3) ` +
+		"RETURNING ID"
+	return bongo.B.DB.CommonDB().
+		QueryRow(insertSql, m.MessageId, m.ReplyId, m.CreatedAt).
+		Scan(&m.Id)
+}
+
 func (m *MessageReply) Some(data interface{}, q *bongo.Query) error {
 	return bongo.B.Some(m, data, q)
 }
@@ -111,7 +122,7 @@ func (m *MessageReply) DeleteByOrQuery(messageId int64) error {
 	query := bongo.B.DB.Table(m.TableName())
 	query = query.Where("message_id = ? or reply_id = ?", messageId, messageId)
 
-	if err := query.Find(&messageReplies).Error; err != nil {
+	if err := query.Find(&messageReplies).Error; err != gorm.RecordNotFound && err != nil {
 		return err
 	}
 
@@ -148,7 +159,7 @@ func (m *MessageReply) fetchMessages(query *Query) ([]ChannelMessage, error) {
 	var replies []int64
 
 	if m.MessageId == 0 {
-		return nil, errors.New("MessageId is not set")
+		return nil, errors.New("messageId is not set")
 	}
 
 	q := &bongo.Query{
@@ -165,8 +176,9 @@ func (m *MessageReply) fetchMessages(query *Query) ([]ChannelMessage, error) {
 		bongoQuery = bongoQuery.Where("created_at < ?", query.From)
 	}
 
-	bongoQuery = bongoQuery.Pluck(q.Pluck, &replies)
-	if err := bongoQuery.Error; err != nil {
+	if err := bongo.CheckErr(
+		bongoQuery.Pluck(q.Pluck, &replies),
+	); err != nil {
 		return nil, err
 	}
 
@@ -179,9 +191,26 @@ func (m *MessageReply) fetchMessages(query *Query) ([]ChannelMessage, error) {
 	return channelMessageReplies, nil
 }
 
+func (m *MessageReply) UnreadCount(messageId int64, addedAt time.Time) (int, error) {
+	if messageId == 0 {
+		return 0, errors.New("messageId is not set")
+	}
+
+	if addedAt.IsZero() {
+		return 0, errors.New("last seen at date is not valid - it is zero")
+	}
+
+	return bongo.B.Count(
+		m,
+		"message_id = ? and created_at > ?",
+		messageId,
+		addedAt.UTC().Format(time.RFC3339),
+	)
+}
+
 func (m *MessageReply) Count() (int, error) {
 	if m.MessageId == 0 {
-		return 0, errors.New("MessageId is not set")
+		return 0, errors.New("messageId is not set")
 	}
 
 	return bongo.B.Count(m,
@@ -190,9 +219,19 @@ func (m *MessageReply) Count() (int, error) {
 	)
 }
 
-func (m *MessageReply) FetchRepliedMessage() (*ChannelMessage, error) {
+func (m *MessageReply) FetchParent() (*ChannelMessage, error) {
+	parent := NewChannelMessage()
+
+	if m.ReplyId != 0 {
+		if err := parent.ById(m.MessageId); err != nil {
+			return nil, err
+		}
+
+		return parent, nil
+	}
+
 	if m.ReplyId == 0 {
-		return nil, errors.New("ReplyId is not set")
+		return nil, errors.New("replyId is not set")
 	}
 
 	q := &bongo.Query{
@@ -205,10 +244,45 @@ func (m *MessageReply) FetchRepliedMessage() (*ChannelMessage, error) {
 		return nil, err
 	}
 
-	parent := NewChannelMessage()
 	if err := parent.ById(m.MessageId); err != nil {
 		return nil, err
 	}
 
 	return parent, nil
+}
+
+func (m *MessageReply) FetchReply() (*ChannelMessage, error) {
+	reply := NewChannelMessage()
+
+	replyId, err := m.getReplyId()
+	if err != nil {
+		return nil, err
+	}
+
+	if err := reply.ById(replyId); err != nil {
+		return nil, err
+	}
+
+	return reply, nil
+}
+
+func (m *MessageReply) getReplyId() (int64, error) {
+	if m.Id == 0 && m.ReplyId == 0 {
+		return 0, errors.New("required ids are not set")
+	}
+
+	if m.ReplyId != 0 {
+		return m.ReplyId, nil
+	}
+
+	if m.Id == 0 {
+		// shouldnt come here
+		return 0, errors.New("couldnt fetch replyId")
+	}
+
+	if err := m.ById(m.Id); err != nil {
+		return 0, err
+	}
+
+	return m.ReplyId, nil
 }

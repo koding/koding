@@ -47,7 +47,8 @@ DROP TABLE IF EXISTS "api"."account";
 CREATE TABLE "api"."account" (
     "id" bigint NOT NULL DEFAULT nextval('api.account_id_seq'::regclass),
     "old_id" varchar(24) NOT NULL COLLATE "default",
-    "is_troll" boolean NOT NULL DEFAULT false
+    "is_troll" boolean NOT NULL DEFAULT false,
+    "nick" varchar(25) NOT NULL CHECK ("nick" <> '')
 )
 WITH (OIDS=FALSE);
 -- ALTER TABLE "api"."account" OWNER TO "socialapplication";
@@ -79,7 +80,8 @@ CREATE TABLE "api"."channel_message" (
     "meta_bits" smallint NOT NULL DEFAULT 0::smallint,
     "created_at" timestamp(6) WITH TIME ZONE NOT NULL DEFAULT now(),
     "updated_at" timestamp(6) WITH TIME ZONE NOT NULL DEFAULT now(),
-    "deleted_at" timestamp(6) WITH TIME ZONE
+    "deleted_at" timestamp(6) WITH TIME ZONE,
+    "payload" hstore
 )
 WITH (OIDS=FALSE);
 -- ALTER TABLE "api"."channel_message" OWNER TO "socialapplication";

@@ -3,8 +3,10 @@ package main
 import (
 	"fmt"
 	"koding/db/mongodb/modelhelper"
+	"socialapi/workers/common/manager"
 	"socialapi/workers/common/runner"
-	"socialapi/workers/emailnotifier/controller"
+	"socialapi/workers/emailnotifier/emailnotifier"
+	"socialapi/workers/emailnotifier/models"
 	"socialapi/workers/helper"
 )
 
@@ -22,17 +24,22 @@ func main() {
 	// init mongo connection
 	modelhelper.Initialize(r.Conf.Mongo)
 
+	// init redis connection
+	redisConn := helper.MustInitRedisConn(r.Conf.Redis)
+	defer redisConn.Close()
+
 	//create connection to RMQ for publishing realtime events
 	rmq := helper.NewRabbitMQ(r.Conf, r.Log)
 
-	es := &emailnotifier.EmailSettings{
-		Username: conf.SendGrid.Username,
-		Password: conf.SendGrid.Password,
-		FromMail: conf.SendGrid.FromMail,
-		FromName: conf.SendGrid.FromName,
+	es := &models.EmailSettings{
+		Username:        r.Conf.SendGrid.Username,
+		Password:        r.Conf.SendGrid.Password,
+		FromMail:        r.Conf.SendGrid.FromMail,
+		FromName:        r.Conf.SendGrid.FromName,
+		ForcedRecipient: r.Conf.SendGrid.ForcedRecipient,
 	}
 
-	handler, err := emailnotifier.NewEmailNotifierWorkerController(
+	handler, err := emailnotifier.New(
 		rmq,
 		r.Log,
 		es,
@@ -41,6 +48,11 @@ func main() {
 		panic(err)
 	}
 
-	r.Listen(handler)
-	r.Close()
+	m := manager.New()
+	m.Controller(handler)
+	m.HandleFunc("notification.notification_created", (*emailnotifier.Controller).SendInstantEmail)
+	m.HandleFunc("notification.notification_updated", (*emailnotifier.Controller).SendInstantEmail)
+
+	r.Listen(m)
+	r.Wait()
 }

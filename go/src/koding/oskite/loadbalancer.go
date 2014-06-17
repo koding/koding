@@ -25,6 +25,8 @@ func (o *Oskite) loadBalancer(correlationName, username, deadService string) str
 	blog := func(v interface{}) {
 		log.Info("oskite loadbalancer for [correlationName: '%s' user: '%s' deadService: '%s'] results in --> %v.", correlationName, username, deadService, v)
 	}
+	// Ensure we are using a mongo master so that we can avoid db induced races
+	mongodbConn.Session.SetSafe(&mgo.Safe{W: 3, WTimeout: 2, FSync: true})
 
 	resultOskite := o.ServiceUniquename
 	lowestOskite := lowestOskiteLoad()
@@ -64,8 +66,11 @@ func (o *Oskite) loadBalancer(correlationName, username, deadService string) str
 		err := mongodbConn.Run("jVMs", func(c *mgo.Collection) error {
 			return c.Update(bson.M{"_id": vm.Id, "hostKite": nil}, bson.M{"$set": bson.M{"hostKite": resultOskite}})
 		})
-
-		blog(fmt.Sprintf("hostkite is empty returning '%s. (update err: %s)", resultOskite, err))
+		if err != nil {
+			blog(fmt.Sprintf("hostkite is empty returning '%s' (update err: %s)", resultOskite, err))
+		} else {
+			blog(fmt.Sprintf("hostkite is empty returning '%s'", resultOskite))
+		}
 		return resultOskite
 	}
 

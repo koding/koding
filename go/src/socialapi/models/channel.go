@@ -169,6 +169,19 @@ func (c *Channel) Create() error {
 	return bongo.B.Create(c)
 }
 
+func (c *Channel) CreateRaw() error {
+	insertSql := "INSERT INTO " +
+		c.TableName() +
+		` ("name","creator_id","group_name","purpose","secret_key","type_constant",` +
+		`"privacy_constant", "created_at", "updated_at", "deleted_at")` +
+		"VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10) " +
+		"RETURNING ID"
+
+	return bongo.B.DB.CommonDB().QueryRow(insertSql, c.Name, c.CreatorId,
+		c.GroupName, c.Purpose, c.SecretKey, c.TypeConstant, c.PrivacyConstant,
+		c.CreatedAt, c.UpdatedAt, c.DeletedAt).Scan(&c.Id)
+}
+
 func (c *Channel) Delete() error {
 	return bongo.B.Delete(c)
 }
@@ -290,17 +303,7 @@ func (c *Channel) FetchParticipantIds() ([]int64, error) {
 }
 
 func (c *Channel) AddMessage(messageId int64) (*ChannelMessageList, error) {
-	if c.Id == 0 {
-		return nil, errors.New("Channel Id is not set")
-	}
-
-	cml := NewChannelMessageList()
-
-	selector := map[string]interface{}{
-		"channel_id": c.Id,
-		"message_id": messageId,
-	}
-	err := cml.One(bongo.NewQS(selector))
+	cml, err := c.FetchMessageList(messageId)
 	if err == nil {
 		return nil, errors.New("Message is already in the channel")
 	}
@@ -321,18 +324,7 @@ func (c *Channel) AddMessage(messageId int64) (*ChannelMessageList, error) {
 }
 
 func (c *Channel) RemoveMessage(messageId int64) (*ChannelMessageList, error) {
-	if c.Id == 0 {
-		return nil, errors.New("Channel Id is not set")
-	}
-
-	cml := NewChannelMessageList()
-	selector := map[string]interface{}{
-		"channel_id": c.Id,
-		"message_id": messageId,
-	}
-	err := cml.One(bongo.NewQS(selector))
-	// one returns error when record not found case
-	// but we dont care if it is not there tho
+	cml, err := c.FetchMessageList(messageId)
 	if err != nil {
 		return nil, err
 	}
@@ -342,6 +334,20 @@ func (c *Channel) RemoveMessage(messageId int64) (*ChannelMessageList, error) {
 	}
 
 	return cml, nil
+}
+
+func (c *Channel) FetchMessageList(messageId int64) (*ChannelMessageList, error) {
+	if c.Id == 0 {
+		return nil, errors.New("Channel Id is not set")
+	}
+
+	cml := NewChannelMessageList()
+	selector := map[string]interface{}{
+		"channel_id": c.Id,
+		"message_id": messageId,
+	}
+
+	return cml, cml.One(bongo.NewQS(selector))
 }
 
 func (c *Channel) FetchChannelIdByNameAndGroupName(name, groupName string) (int64, error) {
@@ -384,7 +390,9 @@ func (c *Channel) Search(q *Query) ([]Channel, error) {
 	query = query.Where("group_name = ?", q.GroupName)
 	query = query.Where("name like ?", q.Name+"%")
 
-	if err := query.Find(&channels).Error; err != nil {
+	if err := bongo.CheckErr(
+		query.Find(&channels),
+	); err != nil {
 		return nil, err
 	}
 
@@ -393,6 +401,25 @@ func (c *Channel) Search(q *Query) ([]Channel, error) {
 	}
 
 	return channels, nil
+}
+
+func (c *Channel) ByName(q *Query) (Channel, error) {
+	fmt.Println("-------- FIX THIS PART ------")
+	fmt.Println("TODO - check permissions here")
+	fmt.Println("-------- FIX THIS PART ------")
+	var channel Channel
+
+	if q.GroupName == "" {
+		return channel, fmt.Errorf("Query doesnt have any Group info %+v", q)
+	}
+
+	query := bongo.B.DB.Table(c.TableName()).Limit(q.Limit)
+
+	query = query.Where("type_constant = ?", q.Type)
+	query = query.Where("group_name = ?", q.GroupName)
+	query = query.Where("name = ?", q.Name)
+
+	return channel, bongo.CheckErr(query.Find(&channel))
 }
 
 func (c *Channel) List(q *Query) ([]Channel, error) {
@@ -459,4 +486,16 @@ func (c *Channel) FetchLastMessage() (*ChannelMessage, error) {
 	}
 
 	return cm, nil
+}
+
+func (c *Channel) FetchPinnedActivityChannel(accountId int64, groupName string) error {
+	query := &bongo.Query{
+		Selector: map[string]interface{}{
+			"creator_id":    accountId,
+			"group_name":    groupName,
+			"type_constant": Channel_TYPE_PINNED_ACTIVITY,
+		},
+	}
+
+	return c.One(query)
 }

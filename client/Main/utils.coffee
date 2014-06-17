@@ -1,5 +1,15 @@
 utils.extend utils,
 
+  groupifyLink: (href, withOrigin = no) ->
+
+    {slug}   = KD.getGroup()
+    {origin} = window.location
+    href     = if slug is 'koding' then href else "#{slug}/#{href}"
+    href     = "#{origin}/#{href}"  if withOrigin
+
+    return href
+
+
   getPaymentMethodTitle: (billing)->
     # for convenience, accept either the payment method, or the billing object
     { billing } = billing  if billing.billing?
@@ -222,18 +232,6 @@ utils.extend utils,
       return \
         if candidate?.length > minLength then candidate
         else longText
-
-  decorateTags: (str = '') ->
-
-    {origin} = window.location
-    {slug}   = KD.getGroup()
-    prefix   = "#{origin}#{if slug is 'koding' then '' else '/' + slug}"
-
-    str = str.replace /(\s)#(\w+)(\s?)/g, (match, s1, tag, s2) ->
-
-      return "#{s1}<a class='tag' href='#{prefix}/Activity/Topic/#{tag}'>##{tag}</a>#{s2}"
-
-    return str
 
   expandTokens: (str = "", data) ->
     return  str unless tokenMatches = str.match /\|.+?\|/g
@@ -681,3 +679,13 @@ utils.extend utils,
         from = new Date().getTime() / 1000
         to   = to
         niceify to - from
+
+  # Chrome apps open links in a new browser window. OAuth authentication
+  # relies on `window.opener` to be present to communicate back to the
+  # parent window, which isn't available in a chrome app. Therefore, we
+  # disable/change oauth behavior based on this flag: SA.
+  oauthEnabled: -> window.name isnt "chromeapp"
+
+  hasPermission: (name) ->
+
+    (KD.config.permissions.indexOf name) >= 0

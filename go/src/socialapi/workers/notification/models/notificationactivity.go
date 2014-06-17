@@ -1,9 +1,11 @@
 package models
 
 import (
+	"fmt"
+	"time"
+
 	"github.com/jinzhu/gorm"
 	"github.com/koding/bongo"
-	"time"
 )
 
 // NotificationActivity stores each user NotificationActivity related to notification content.
@@ -46,6 +48,10 @@ func (a NotificationActivity) TableName() string {
 	return "notification.notification_activity"
 }
 
+// Create method creates a new activity with obsolete field set as false
+// If there already exists one activity with same ActorId and
+// NotificationContentId pair, old one is set as obsolete, and
+// new one is created
 func (a *NotificationActivity) Create() error {
 	s := map[string]interface{}{
 		"notification_content_id": a.NotificationContentId,
@@ -134,10 +140,17 @@ func (a *NotificationActivity) LastActivity() error {
 }
 
 func (a *NotificationActivity) FetchContent() (*NotificationContent, error) {
+	if a.NotificationContentId == 0 {
+		return nil, fmt.Errorf("NotificationContentId is not set")
+	}
 	nc := NewNotificationContent()
 	if err := nc.ById(a.NotificationContentId); err != nil {
 		return nil, err
 	}
 
 	return nc, nil
+}
+
+func (a *NotificationActivity) ById(id int64) error {
+	return bongo.B.ById(a, id)
 }

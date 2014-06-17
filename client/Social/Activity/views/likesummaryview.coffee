@@ -1,19 +1,10 @@
-class ActivityLikeSummaryView extends JView
+class ActivityLikeSummaryView extends KDView
 
   constructor: (options = {}, data) ->
 
     options.cssClass = KD.utils.curry "like-summary hidden", options.cssClass
 
     super options, data
-
-    @placeholder0 = new KDCustomHTMLView tagName : 'span'
-    @placeholder1 = new KDCustomHTMLView tagName : 'span'
-    @placeholder2 = new KDCustomHTMLView tagName : 'span'
-
-    @showMoreLink = new KDCustomHTMLView
-      tagName     : "strong"
-      partial     : data.interactions.like.actorsCount - 3
-      click       : @bound "showLikers"
 
     data
       .on "LikeAdded", @bound "updateActors"
@@ -24,7 +15,7 @@ class ActivityLikeSummaryView extends JView
 
     {id} = @getData()
 
-    KD.singleton("socialapi").message.listLikers {id}, (err, ids) ->
+    KD.singleton("socialapi").message.listLikers {id}, (err, ids = []) ->
 
       return KD.showError err  if err
       return  if ids.length is 0
@@ -44,23 +35,8 @@ class ActivityLikeSummaryView extends JView
 
       return KD.showError err  if err
 
-      for i in [0..accounts.length]
-        account = accounts[i]
-        continue  unless view = this["placeholder#{i}"]
-        view.destroySubViews()
-        view.addSubView new ProfileLinkView null, account
-        view = null
-
-      @setTemplate @pistachio()
-      @render()
-
-      {actorsCount} = @getData().interactions.like
-
-      @showMoreLink.updatePartial Math.max actorsCount - 3, 0
-
-      if accounts.length is 0
-      then @hide()
-      else @show()
+      @destroySubViews()
+      @refresh accounts
 
 
   fetchPreviewAccounts: (callback) ->
@@ -71,32 +47,56 @@ class ActivityLikeSummaryView extends JView
     KD.remote.cacheable origins, callback
 
 
+  refresh: (accounts = []) ->
+
+    return @hide() if accounts.length is 0
+
+    {actorsCount, actorsPreview} = @getData().interactions.like
+    actorsCount = Math.max actorsCount, actorsPreview.length
+
+    linkCount = switch
+      when actorsCount > 3 then 2
+      else actorsPreview.length
+
+    for i in [0..linkCount - 1]
+      @addSubView new ProfileLinkView null, accounts[i]
+      @addTextElement partial: @getSeparatorPartial actorsCount, linkCount, i
+
+    if (diff = actorsCount - linkCount) > 0
+      @addShowMoreLink actorsCount, linkCount
+      @addTextElement partial: " other#{if diff > 1 then 's' else ''}"
+
+    @addTextElement partial: ' liked this.'
+
+    @show()
+
+
+  getSeparatorPartial: (actorsCount, linkCount, index) ->
+
+    switch
+      when (linkCount - index) is (if actorsCount - linkCount then 1 else 2)
+        ' and '
+      when index < (linkCount - 1)
+        ', '
+
+
+  addShowMoreLink: (actorsCount, linkCount) ->
+
+    @addSubView new KDCustomHTMLView
+      tagName    : 'a'
+      cssClass   : 'profile'
+      partial    : "<strong>#{actorsCount - linkCount}</strong>"
+      attributes : href: '#'
+      click      : @bound 'showLikers'
+
+
+  addTextElement: (options = {}, data) ->
+    options.tagName = 'span'
+    @addSubView new KDCustomHTMLView options, data
+
+
   viewAppended: ->
 
     super
 
     @updateActors()
-
-
-  pistachio: ->
-
-    {actorsCount, actorsPreview} = @getData().interactions.like
-
-    body = ""
-
-    return body  unless actorsPreview.length
-
-    linkCount = Math.min actorsPreview.length, 3
-
-    for i in [0..linkCount - 1]
-      body += "{{> this.placeholder#{i}}}"
-
-      if (linkCount - i) is (if actorsCount - linkCount then 1 else 2)
-        body += " and "
-      else if i < (linkCount - 1)
-        body += ", "
-
-    if (diff = actorsCount - linkCount) > 0
-      body += "{{> this.showMoreLink}} other#{if diff > 1 then 's' else ''}"
-
-    body += " liked this."

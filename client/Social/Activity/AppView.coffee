@@ -22,6 +22,7 @@ class ActivityAppView extends KDScrollView
 
     {entryPoint}           = KD.config
     {appStorageController} = KD.singletons
+    @_lastMessage          = null
 
     @appStorage = appStorageController.storage 'Activity', '2.0'
     @sidebar    = new ActivitySidebar tagName : 'aside', delegate : this
@@ -33,7 +34,7 @@ class ActivityAppView extends KDScrollView
 
 
 
-  lazyLoadThresholdReached: -> @tabs.getActivePane().emit 'LazyLoadThresholdReached'
+  lazyLoadThresholdReached: -> @tabs.getActivePane()?.emit 'LazyLoadThresholdReached'
 
 
   viewAppended: ->
@@ -44,16 +45,41 @@ class ActivityAppView extends KDScrollView
 
   open: (type, slug) ->
 
+    {socialapi, router, notificationController} = KD.singletons
+
+
+    kallback = (data) =>
+      name = if slug then "#{type}-#{slug}" else type
+      pane = @tabs.getPaneByName name
+
+      unless @sidebar.selectedItem
+        @sidebar.selectItemByRouteOptions type, slug
+
+      if pane
+      then @tabs.showPane pane
+      else @createTab name, data
+
     @sidebar.selectItemByRouteOptions type, slug
+    item = @sidebar.selectedItem
 
-    item = @sidebar.selectedItem or @sidebar.public
-    data = item.getData()
-    name = if slug then "#{type}-#{slug}" else type
-    pane = @tabs.getPaneByName name
+    if type is 'public'
+      item = @sidebar.public
+      kallback item.getData()
 
-    if pane
-    then @tabs.showPane pane
-    else @createTab name, data
+    else if not item
+      type_ = switch type
+        when 'message' then 'privatemessage'
+        when 'post'    then 'activity'
+        else type
+
+      socialapi.cacheable type_, slug, (err, data) =>
+        if err then router.handleNotFound router.getCurrentPath()
+        else
+          @sidebar.addToChannel data
+          kallback data
+
+    else
+      kallback item.getData()
 
 
   createTab: (name, data) ->
@@ -65,7 +91,11 @@ class ActivityAppView extends KDScrollView
       when 'topic' then TopicMessagePane
       else MessagePane
 
-    @tabs.addPane pane = new paneClass {name, type, channelId}, data
+    itemClass = switch type
+      when 'privatemessage' then PrivateMessageListItemView
+      else ActivityListItemView
+
+    @tabs.addPane pane = new paneClass {name, itemClass, type, channelId}, data
 
     return pane
 
@@ -77,3 +107,38 @@ class ActivityAppView extends KDScrollView
     pane?.refresh()
 
     return pane
+
+
+  showNewMessageModal: ->
+
+    @open 'public'  unless @tabs.getActivePane()
+
+    bounds = @sidebar.sections.messages.options.headerLink.getBounds()
+
+    top       = bounds.y - 40
+    left      = bounds.x + bounds.w + 40
+    arrowTop  = 40 + (bounds.h / 2) - 10 #10 = arrow height
+
+    modal = new PrivateMessageModal
+      delegate     : this
+      _lastMessage : @_lastMessage
+      position     :
+        top        : top
+        left       : left
+      arrowTop     : arrowTop
+
+    return modal
+
+
+  showAllTopicsModal: ->
+
+    @open 'public'  unless @tabs.getActivePane()
+
+    return new YourTopicsModal delegate : this
+
+
+  showAllConversationsModal: ->
+
+    @open 'public'  unless @tabs.getActivePane()
+
+    return new ConversationsModal delegate : this
