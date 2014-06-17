@@ -61,6 +61,7 @@ class IDEAppController extends AppController
         name          : 'BaseSplit'
         sizes         : [ 234, null ]
         minimums      : [ 234, null ]
+        maximums      : [ 400, null ]
         views         : [
           {
             type      : 'custom'
