@@ -6,11 +6,11 @@ import (
 	"net/http"
 	"net/url"
 	"socialapi/models"
-	"socialapi/workers/api/modules/helpers"
+	"socialapi/workers/common/response"
 )
 
 func prepareInteraction(u *url.URL, req *models.Interaction) (*models.Interaction, error) {
-	messageId, err := helpers.GetURIInt64(u, "id")
+	messageId, err := response.GetURIInt64(u, "id")
 	if err != nil {
 		return nil, errors.New("Couldnt get mesage id from URI")
 	}
@@ -34,39 +34,39 @@ func Add(u *url.URL, h http.Header, req *models.Interaction) (int, http.Header, 
 	var err error
 	req, err = prepareInteraction(u, req)
 	if err != nil {
-		return helpers.NewBadRequestResponse(err)
+		return response.NewBadRequest(err)
 	}
 
 	// to-do check uniqness before saving
 	if err := req.Create(); err != nil {
-		return helpers.NewBadRequestResponse(err)
+		return response.NewBadRequest(err)
 	}
 
-	return helpers.NewOKResponse(req)
+	return response.NewOK(req)
 }
 
 func Delete(u *url.URL, h http.Header, req *models.Interaction) (int, http.Header, interface{}, error) {
 	var err error
 	req, err = prepareInteraction(u, req)
 	if err != nil {
-		return helpers.NewBadRequestResponse(err)
+		return response.NewBadRequest(err)
 	}
 
 	if err := req.Delete(); err != nil {
-		return helpers.NewBadRequestResponse(err)
+		return response.NewBadRequest(err)
 	}
 
 	// yes it is deleted but not removed completely from our system
-	return helpers.NewOKResponse(nil)
+	return response.NewOK(nil)
 }
 
 func List(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface{}, error) {
-	messageId, err := helpers.GetURIInt64(u, "id")
+	messageId, err := response.GetURIInt64(u, "id")
 	if err != nil {
-		return helpers.NewBadRequestResponse(err)
+		return response.NewBadRequest(err)
 	}
 
-	query := helpers.GetQuery(u)
+	query := response.GetQuery(u)
 	if query.Type == "" {
 		query.Type = "like"
 	}
@@ -77,10 +77,10 @@ func List(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface
 
 	list, err := i.List(query)
 	if err != nil {
-		return helpers.NewBadRequestResponse(err)
+		return response.NewBadRequest(err)
 	}
 
-	return helpers.HandleResultAndError(
+	return response.HandleResultAndError(
 		models.FetchAccountOldsIdByIdsFromCache(list),
 	)
 }

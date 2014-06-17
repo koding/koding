@@ -1,4 +1,4 @@
-package helpers
+package response
 
 import (
 	"errors"
@@ -11,28 +11,7 @@ import (
 	"github.com/jinzhu/gorm"
 )
 
-// type ApiResponse struct {
-// 	Status   int
-// 	Header   http.Header
-// 	Response interface{}
-// 	Error    error
-// }
-
-// type ApiRequest struct {
-// 	URL     *url.URL
-// 	Header  http.Header
-// 	Request interface{}
-// }
-
-// func NewResponse() *ApiResponse {
-// 	return &ApiResponse{
-// 		Status:   http.StatusOK,
-// 		Header:   nil,
-// 		Response: nil,
-// 		Error:    nil,
-// 	}
-// }
-func NewBadRequestResponse(err error) (int, http.Header, interface{}, error) {
+func NewBadRequest(err error) (int, http.Header, interface{}, error) {
 	if err == nil {
 		err = errors.New("Request is not valid")
 	}
@@ -45,26 +24,26 @@ func NewBadRequestResponse(err error) (int, http.Header, interface{}, error) {
 func HandleResultAndError(res interface{}, err error) (int, http.Header, interface{}, error) {
 	if err != nil {
 		if err == gorm.RecordNotFound {
-			return NewNotFoundResponse()
+			return NewNotFound()
 		}
-		return NewBadRequestResponse(err)
+		return NewBadRequest(err)
 	}
-	return NewOKResponse(res)
+	return NewOK(res)
 }
 
-func NewOKResponse(res interface{}) (int, http.Header, interface{}, error) {
+func NewOK(res interface{}) (int, http.Header, interface{}, error) {
 	return http.StatusOK, nil, res, nil
 }
 
-func NewNotFoundResponse() (int, http.Header, interface{}, error) {
+func NewNotFound() (int, http.Header, interface{}, error) {
 	return http.StatusNotFound, nil, nil, NotFoundError{errors.New("Data not found")}
 }
 
-func NewDeletedResponse() (int, http.Header, interface{}, error) {
+func NewDeleted() (int, http.Header, interface{}, error) {
 	return http.StatusAccepted, nil, nil, nil
 }
 
-func NewDefaultOKResponse() (int, http.Header, interface{}, error) {
+func NewDefaultOK() (int, http.Header, interface{}, error) {
 	res := map[string]interface{}{
 		"status": true,
 	}

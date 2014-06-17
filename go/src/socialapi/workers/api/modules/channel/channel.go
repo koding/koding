@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"net/url"
 	"socialapi/models"
-	"socialapi/workers/api/modules/helpers"
+	"socialapi/workers/common/response"
 
 	"github.com/jinzhu/gorm"
 )
@@ -36,26 +36,26 @@ func Create(u *url.URL, h http.Header, req *models.Channel) (int, http.Header, i
 	}
 
 	if err := validateChannelRequest(req); err != nil {
-		return helpers.NewBadRequestResponse(err)
+		return response.NewBadRequest(err)
 	}
 
 	if err := req.Create(); err != nil {
-		return helpers.NewBadRequestResponse(err)
+		return response.NewBadRequest(err)
 	}
 
-	return helpers.NewOKResponse(req)
+	return response.NewOK(req)
 }
 
 func List(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface{}, error) {
 	c := models.NewChannel()
-	q := helpers.GetQuery(u)
+	q := response.GetQuery(u)
 	q.Type = models.Channel_TYPE_TOPIC
 	channelList, err := c.List(q)
 	if err != nil {
-		return helpers.NewBadRequestResponse(err)
+		return response.NewBadRequest(err)
 	}
 
-	return helpers.HandleResultAndError(
+	return response.HandleResultAndError(
 		models.PopulateChannelContainers(
 			channelList,
 			q.AccountId,
@@ -64,15 +64,15 @@ func List(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface
 }
 
 func Search(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface{}, error) {
-	q := helpers.GetQuery(u)
+	q := response.GetQuery(u)
 	q.Type = models.Channel_TYPE_TOPIC
 
 	channelList, err := models.NewChannel().Search(q)
 	if err != nil {
-		return helpers.NewBadRequestResponse(err)
+		return response.NewBadRequest(err)
 	}
 
-	return helpers.HandleResultAndError(
+	return response.HandleResultAndError(
 		models.PopulateChannelContainers(
 			channelList,
 			q.AccountId,
@@ -81,15 +81,15 @@ func Search(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interfa
 }
 
 func ByName(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface{}, error) {
-	q := helpers.GetQuery(u)
+	q := response.GetQuery(u)
 	q.Type = models.Channel_TYPE_TOPIC
 
 	channelList, err := models.NewChannel().ByName(q)
 	if err != nil {
-		return helpers.NewBadRequestResponse(err)
+		return response.NewBadRequest(err)
 	}
 
-	return helpers.HandleResultAndError(
+	return response.HandleResultAndError(
 		models.PopulateChannelContainer(
 			channelList,
 			q.AccountId,
@@ -98,14 +98,14 @@ func ByName(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interfa
 }
 
 func CheckParticipation(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface{}, error) {
-	q := helpers.GetQuery(u)
+	q := response.GetQuery(u)
 	if q.Type == "" || q.AccountId == 0 {
-		return helpers.NewBadRequestResponse(errors.New("type or accountid is not set"))
+		return response.NewBadRequest(errors.New("type or accountid is not set"))
 	}
 
 	channel, err := models.NewChannel().ByName(q)
 	if err != nil {
-		return helpers.NewBadRequestResponse(err)
+		return response.NewBadRequest(err)
 	}
 
 	cp := models.NewChannelParticipant()
@@ -115,65 +115,65 @@ func CheckParticipation(u *url.URL, h http.Header, _ interface{}) (int, http.Hea
 	// fetch participant
 	err = cp.FetchParticipant()
 	if err == nil {
-		return helpers.NewOKResponse(cp)
+		return response.NewOK(cp)
 	}
 
 	// if err is not `record not found`
 	// return it immediately
 	if err != gorm.RecordNotFound {
-		return helpers.NewBadRequestResponse(err)
+		return response.NewBadRequest(err)
 	}
 
 	// we here we have record-not-found
 
 	// if channel type is `group` then return true
 	if channel.TypeConstant == models.Channel_TYPE_GROUP {
-		return helpers.NewOKResponse(true)
+		return response.NewOK(true)
 	}
 
 	// return here to the client
-	return helpers.NewBadRequestResponse(err)
+	return response.NewBadRequest(err)
 }
 
 func Delete(u *url.URL, h http.Header, req *models.Channel) (int, http.Header, interface{}, error) {
 
-	id, err := helpers.GetURIInt64(u, "id")
+	id, err := response.GetURIInt64(u, "id")
 	if err != nil {
-		return helpers.NewBadRequestResponse(err)
+		return response.NewBadRequest(err)
 	}
 
 	if err := req.ById(id); err != nil {
-		return helpers.NewBadRequestResponse(err)
+		return response.NewBadRequest(err)
 	}
 
 	if req.TypeConstant == models.Channel_TYPE_GROUP {
-		return helpers.NewBadRequestResponse(errors.New("You can not delete group channel"))
+		return response.NewBadRequest(errors.New("You can not delete group channel"))
 	}
 	if err := req.Delete(); err != nil {
-		return helpers.NewBadRequestResponse(err)
+		return response.NewBadRequest(err)
 	}
 	// yes it is deleted but not removed completely from our system
-	return helpers.NewDeletedResponse()
+	return response.NewDeleted()
 }
 
 func Update(u *url.URL, h http.Header, req *models.Channel) (int, http.Header, interface{}, error) {
-	id, err := helpers.GetURIInt64(u, "id")
+	id, err := response.GetURIInt64(u, "id")
 	if err != nil {
-		return helpers.NewBadRequestResponse(err)
+		return response.NewBadRequest(err)
 	}
 	req.Id = id
 
 	if req.Id == 0 {
-		return helpers.NewBadRequestResponse(err)
+		return response.NewBadRequest(err)
 	}
 
 	existingOne := models.NewChannel()
 	if err := existingOne.ById(id); err != nil {
-		return helpers.NewBadRequestResponse(err)
+		return response.NewBadRequest(err)
 	}
 
 	if existingOne.CreatorId != req.CreatorId {
-		return helpers.NewBadRequestResponse(errors.New("CreatorId doesnt match"))
+		return response.NewBadRequest(errors.New("CreatorId doesnt match"))
 	}
 
 	// only allow purpose and name to be updated
@@ -186,47 +186,28 @@ func Update(u *url.URL, h http.Header, req *models.Channel) (int, http.Header, i
 	}
 
 	if err := req.Update(); err != nil {
-		return helpers.NewBadRequestResponse(err)
+		return response.NewBadRequest(err)
 	}
 
-	return helpers.NewOKResponse(req)
+	return response.NewOK(req)
 }
 
 func Get(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface{}, error) {
-	id, err := helpers.GetURIInt64(u, "id")
+	id, err := response.GetURIInt64(u, "id")
 	if err != nil {
-		return helpers.NewBadRequestResponse(err)
+		return response.NewBadRequest(err)
 	}
-	q := helpers.GetQuery(u)
+	q := response.GetQuery(u)
 
 	c := models.NewChannel()
 	if err := c.ById(id); err != nil {
 		if err == gorm.RecordNotFound {
-			return helpers.NewNotFoundResponse()
+			return response.NewNotFound()
 		}
-		return helpers.NewBadRequestResponse(err)
+		return response.NewBadRequest(err)
 	}
 
-	return helpers.HandleResultAndError(
+	return response.HandleResultAndError(
 		models.PopulateChannelContainer(*c, q.AccountId),
 	)
-}
-
-func PostMessage(u *url.URL, h http.Header, req *models.Channel) (int, http.Header, interface{}, error) {
-	// id, err := helpers.GetURIInt64(u, "id")
-	// if err != nil {
-	// 	return helpers.NewBadRequestResponse(err)
-	// }
-
-	// req.Id = id
-	// // TODO - check if the user is member of the channel
-
-	// if err := req.Fetch(); err != nil {
-	// 	if err == gorm.RecordNotFound {
-	// 		return helpers.NewNotFoundResponse()
-	// 	}
-	// 	return helpers.NewBadRequestResponse(err)
-	// }
-
-	return helpers.NewOKResponse(req)
 }

@@ -4,21 +4,21 @@ import (
 	"net/http"
 	"net/url"
 	"socialapi/models"
-	"socialapi/workers/api/modules/helpers"
+	"socialapi/workers/common/response"
 )
 
 func List(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface{}, error) {
-	channelId, err := helpers.GetURIInt64(u, "id")
+	channelId, err := response.GetURIInt64(u, "id")
 	if err != nil {
-		return helpers.NewBadRequestResponse(err)
+		return response.NewBadRequest(err)
 	}
 
 	cml := models.NewChannelMessageList()
 	cml.ChannelId = channelId
 
-	return helpers.HandleResultAndError(
+	return response.HandleResultAndError(
 		cml.List(
-			helpers.GetQuery(u),
+			response.GetQuery(u),
 			false,
 		),
 	)
