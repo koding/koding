@@ -85,6 +85,7 @@ class EnvironmentMachineItem extends EnvironmentItem
     then @statusToggle.setOn no
     else @statusToggle.setOff no
 
+    @getData().setAt "status.state", status
     @state.updatePartial status
 
 
@@ -102,11 +103,14 @@ class EnvironmentMachineItem extends EnvironmentItem
 
   contextMenuItems: ->
 
+    machine = @getData()
+
+    return  if machine.status.state is Machine.State.NotInitialized
+
     colorSelection = new ColorSelection selectedColor : @getOption 'colorTag'
     colorSelection.on "ColorChanged", @bound 'setColorTag'
 
     this_   = this
-    machine = @getData()
 
     vmAlwaysOnSwitch = new VMAlwaysOnToggleButtonView
 
