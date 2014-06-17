@@ -42,6 +42,7 @@ func Create(u *url.URL, h http.Header, reply *models.ChannelMessage) (int, http.
 	}
 
 	// update all channels that contains this message
+	// todo move this to a worker
 	updateAllContainingChannels(parent.Id)
 
 	return helpers.HandleResultAndError(
