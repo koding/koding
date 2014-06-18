@@ -5,7 +5,7 @@ else
   HOSTNAME=`hostname`
 fi
 
-read -p "Hostname is `hostname` - Press [Enter] key to continue install..."
+# read -p "Hostname is `hostname` - Press [Enter] key to continue install..."
 
 
 echo "127.0.0.1 "$HOSTNAME >> /etc/hosts

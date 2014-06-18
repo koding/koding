@@ -65,9 +65,6 @@ module.exports =
     port        : 7000
     clusterSize : 5
     proxyUrl    : "#{customDomain.local}:7000"
-  sourceServer  :
-    enabled     : yes
-    port        : 3526
   mongo         : mongo
   mongoKontrol  : mongoKontrol
   mongoReplSet  : null
@@ -90,26 +87,31 @@ module.exports =
     process:
       run : no 
       cmd: "./go/bin/kontrolproxy -c #{configName} -r #{configName} -v"
+      restart : no
 
   kontrolDaemon:
     process:
       run : yes
       cmd: "./go/bin/kontroldaemon -c #{configName}"
+      restart : no
 
   kontrolApi:
     process:
       run : yes
       cmd: "./go/bin/kontrolapi -c #{configName}"
+      restart : no
 
   kontrolKite:
     process:
       run : yes
       cmd: "./go/bin/kontrol -c #{configName} -r #{configName}"
+      restart : no
 
   proxyKite:
     process:
       run : yes
       cmd: "./go/bin/reverseproxy -region #{configName} -host #{hostname} -env production"
+      restart : no
 
   rerouting :
     process :
@@ -118,6 +120,7 @@ module.exports =
       kontrol        :
         enabled      : yes
         startMode    : "one"
+      restart : no
 
   userpresence:
     process:
@@ -127,6 +130,7 @@ module.exports =
       kontrol        :
         enabled      : yes
         startMode    : "one"
+      restart : no
 
   webserver     :
     useCacheHeader: no
@@ -136,6 +140,13 @@ module.exports =
     process     :
       cmd         : "node ./server/index -c #{configName} -p #{customDomain.port} --disable-newrelic" 
       run         : yes
+
+  sourceMapServer :
+    watch       : yes
+    process     :
+      cmd         : "node ./server/lib/source-server -c #{configName} -p 3526"
+      run         : yes
+
 
   authWorker    :
     login       : "#{rabbitmq.login}"
