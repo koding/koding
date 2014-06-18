@@ -150,46 +150,45 @@ module.exports = class JCredential extends jraphical.Module
       @fetchByPublicKey client, publicKey, callback
 
 
-  @someHelper = (client, selector, options, callback)->
+  @some$ = permit 'list credentials',
 
-    [options, callback] = [callback, options]  unless callback
-    options ?= {}
+    success: (client, selector, options, callback)->
 
-    { delegate } = client.connection
-    items        = []
+      [options, callback] = [callback, options]  unless callback
+      options ?= {}
 
-    relSelector  =
-      targetName : @getName()
-      sourceId   : delegate.getId()
+      { delegate } = client.connection
+      items        = []
 
-    if selector.as? and selector.as in ['owner', 'user']
-      relSelector.as = selector.as
-      delete selector.as
+      relSelector  =
+        targetName : 'JCredential'
+        sourceId   : delegate.getId()
 
-    Relationship.someData relSelector, { targetId:1, as:1 }, (err, cursor)=>
+      if selector.as? and selector.as in ['owner', 'user']
+        relSelector.as = selector.as
+        delete selector.as
 
-      return callback err  if err?
+      Relationship.someData relSelector, { targetId:1, as:1 }, (err, cursor)=>
 
-      cursor.toArray (err, arr)=>
+        return callback err  if err?
 
-        map = arr.reduce (memo, doc)=>
-          memo[doc.targetId] = doc.as
-          memo
-        , {}
+        cursor.toArray (err, arr)=>
 
-        selector    ?= {}
-        selector._id = $in: (t.targetId for t in arr)
+          map = arr.reduce (memo, doc)=>
+            memo[doc.targetId] = doc.as
+            memo
+          , {}
 
-        @some selector, options, (err, items)->
-          return callback err  if err?
+          selector    ?= {}
+          selector._id = $in: (t.targetId for t in arr)
 
-          for item in items
-            item.owner = map[item._id] is 'owner'
+          @some selector, options, (err, items)->
+            return callback err  if err?
 
-          callback null, items
+            for item in items
+              item.owner = map[item._id] is 'owner'
 
-
-  @some$ = permit 'list credentials', success: JCredential.someHelper
+            callback null, items
 
 
   fetchUsers: permit
