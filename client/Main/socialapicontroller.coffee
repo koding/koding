@@ -409,3 +409,5 @@ class SocialApiController extends KDController
     updateLastSeenTime   : channelRequesterFn
       fnName             : 'updateLastSeenTime'
       validateOptionsWith: ["channelId"]
+
+    revive               : mapChannel
