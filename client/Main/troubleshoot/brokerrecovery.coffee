@@ -5,8 +5,7 @@ class BrokerRecovery extends KDObject
     super options, data
 
     @unsuccessfulAttempt = 0
-    @broker = if options.type is "kite" then KD.kite.mq \
-              else KD.remote.mq
+    @broker = KD.remote.mq
     KD.utils.repeat options.timeout, @bound "checkStatus"
 
     @on "brokerNotResponding", =>

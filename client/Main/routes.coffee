@@ -76,7 +76,6 @@ do ->
         @handleRoute '/Activity', entryPoint: KD.config.entryPoint
         new ReferrerModal
       else @handleRoute '/Login'
-    '/:name?/RegisterHostKey': KiteHelper.initiateRegistiration
     '/member/:username': ({params:{username}})->
       @handleRoute "/#{username}", replaceState: yes
     '/:name?/Unsubscribe/:token/:email/:opt?':

@@ -280,21 +280,13 @@ module.exports = [
   "pinger.coffee",
 
   # KITE CONTROLLER
-  "kite/kite.coffee",
-  "kite/kite2.coffee",
-  "kite/oskite.coffee",
-  "kite/terminalkite.coffee",
   "kite/kitecontroller.coffee",
-  "kite/kitehelper.coffee",
 
   # NEW KITES (extending kite.js)
   "kite/kodingkite.coffee",
   "kite/kodingkontrol.coffee",
-  "kite/kites/vmkite.coffee",
   "kite/kites/klient.coffee",
   "kite/kites/kloud.coffee",
-  "kite/kites/oskite.coffee",
-  "kite/kites/terminalkite.coffee",
 
   # Virtualization CONTROLLER
   "VirtualizationController.coffee",

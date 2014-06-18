@@ -114,12 +114,6 @@ class Troubleshoot extends KDObject
       troubleshoot : broker.bound 'ping'
       recover      : @brokerRecovery.bound 'recover'
 
-    # register kite
-    brokerKite = KD.kite.mq
-    @registerItem "brokerKite",
-      troubleshoot : brokerKite.bound 'ping'
-      recover      : @brokerKiteRecovery.bound 'recover'
-
   registerItem : (name, options) ->
     options.name = name
     @items[name] = new HealthChecker options

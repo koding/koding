@@ -413,6 +413,8 @@ module.exports =
       suppressLogs: no
       broker    :
         servicesEndpoint: "#{customDomain.public}:#{customDomain.port}/-/services/broker"
+      brokerKite    :
+        servicesEndpoint: "#{customDomain.public}:#{customDomain.port}/-/services/brokerKite"
       apiUri    : "#{customDomain.public}"
       version   : version
       mainUri   : "#{customDomain.public}"

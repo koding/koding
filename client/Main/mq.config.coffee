@@ -59,10 +59,7 @@ KD.remote = new Bongo
 
   mq: do ->
     {authExchange} = KD.config
-    if KD.config.usePremiumBroker
-      { servicesEndpoint } = KD.config.premiumBroker
-    else
-      { servicesEndpoint } = KD.config.broker
+    { servicesEndpoint } = KD.config.broker
 
     options = {
       servicesEndpoint
@@ -72,20 +69,3 @@ KD.remote = new Bongo
     }
     broker = new KDBroker.Broker null, options
 
-KD.kite =
-  mq: do ->
-    {authExchange} = KD.config
-    if KD.config.usePremiumBroker
-      { servicesEndpoint, brokerExchange } = KD.config.premiumBrokerKite
-    else
-      { servicesEndpoint, brokerExchange } = KD.config.brokerKite
-
-    options = {
-      servicesEndpoint
-      authExchange
-      autoReconnect: yes
-      getSessionToken
-      brokerExchange
-      tryResubscribing:no
-    }
-    broker = new KDBroker.Broker null, options

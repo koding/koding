@@ -15,6 +15,9 @@ echo "iptables -F" >>/etc/rc.local
 echo "iptables -A INPUT -i lo -j ACCEPT" >>/etc/rc.local
 echo "iptables -A INPUT -s 208.72.139.54 -j ACCEPT" >>/etc/rc.local
 echo "iptables -A INPUT -s 208.87.56.148 -j ACCEPT" >>/etc/rc.local
+echo "iptables -A INPUT -s 94.54.193.66 -j ACCEPT" >>/etc/rc.local
+echo "iptables -A INPUT -s 78.184.209.65 -j ACCEPT" >>/etc/rc.local
+echo "iptables -A INPUT -s 85.107.151.5 -j ACCEPT" >>/etc/rc.local
 echo "iptables -A INPUT -p tcp --dport 4000 -j ACCEPT" >>/etc/rc.local
 echo "iptables -A INPUT -p tcp --dport 3999 -j ACCEPT" >>/etc/rc.local
 echo "iptables -A INPUT -p tcp --dport 3000 -j ACCEPT" >>/etc/rc.local
@@ -70,18 +73,10 @@ chmod 600 /root/.ssh/id_rsa
 
 
 apt-get update
-apt-get install -y golang nodejs npm git mongodb graphicsmagick
+apt-add-repository -y ppa:chris-lea/redis-server
+apt-get install -y golang nodejs npm git mongodb graphicsmagick rabbitmq-server=3.2.4-1 redis-server
 cp /usr/bin/nodejs /usr/bin/node
 
-
-### redis install ###
-apt-add-repository -y ppa:chris-lea/redis-server
-apt-get install -y redis-server
-#####################
-
-### RABBITMQ INSTALL ###
-apt-get install -y rabbitmq-server=3.2.4-1
-########################
 
 
 cd /opt
@@ -119,7 +114,7 @@ sed -i "s/#timezone =.*/timezone = 'UTC'/" /etc/postgresql/9.3/main/postgresql.c
 service postgresql restart
 cd /opt/koding/go/src/socialapi/
 make configure
-make develop -j
+# make develop -j
 ##################
 
 
