@@ -137,6 +137,32 @@ func subscription(cml *socialapimodels.ChannelMessageList, typeConstant string) 
 	return nil
 }
 
+func (n *Controller) MentionNotification(cm *socialapimodels.ChannelMessage) error {
+	mentionedUsers, err := n.CreateMentionNotification(cm)
+	if err != nil {
+		return err
+	}
+
+	if len(mentionedUsers) == 0 {
+		return nil
+	}
+
+	rn := models.NewReplyNotification()
+	rn.TargetId = cm.Id
+	rn.NotifierId = cm.AccountId
+
+	nc, err := models.CreateNotificationContent(rn)
+	if err != nil {
+		return err
+	}
+
+	for _, recipient := range mentionedUsers {
+		n.notify(nc.Id, recipient, time.Now())
+	}
+
+	return nil
+}
+
 func (n *Controller) CreateMentionNotification(reply *socialapimodels.ChannelMessage) ([]int64, error) {
 	mentionedUserIds := make([]int64, 0)
 	usernames := reply.GetMentionedUsernames()
