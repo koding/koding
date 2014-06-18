@@ -500,3 +500,51 @@ func (c *Channel) FetchPinnedActivityChannel(accountId int64, groupName string) 
 
 	return c.One(query)
 }
+
+func (c *Channel) CanOpen(accountId int64) (bool, error) {
+	if c.Id == 0 {
+		return false, errors.New("channel id is not set")
+	}
+
+	if accountId == 0 {
+		return false, errors.New("accountId is not set")
+	}
+
+	// check if user is a participant
+	cp := NewChannelParticipant()
+	cp.ChannelId = c.Id
+	isParticipant, err := cp.IsParticipant(accountId)
+	if err != nil {
+		return false, err
+	}
+
+	// if already participant, return success
+	if isParticipant {
+		return true, nil
+	}
+
+	// anyone can read group activity
+	if c.TypeConstant == Channel_TYPE_GROUP {
+		return true, nil
+	}
+
+	// anyone can read topic feed
+	// this is here for non-participated topic channels
+	if c.TypeConstant == Channel_TYPE_TOPIC {
+		return true, nil
+	}
+
+	// see only your pinned posts
+	// user should be added as a participant to pinned post
+	if c.TypeConstant == Channel_TYPE_PINNED_ACTIVITY {
+		return false, nil
+	}
+
+	// see only your private messages
+	// user should be added as a participant to private message
+	if c.TypeConstant == Channel_TYPE_PRIVATE_MESSAGE {
+		return false, nil
+	}
+
+	return false, nil
+}
