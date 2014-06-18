@@ -3,6 +3,7 @@ package models
 import (
 	"errors"
 	"fmt"
+	"socialapi/request"
 	"strings"
 	"time"
 
@@ -375,7 +376,7 @@ func (c *Channel) FetchChannelIdByNameAndGroupName(name, groupName string) (int6
 	return ids[0], nil
 }
 
-func (c *Channel) Search(q *Query) ([]Channel, error) {
+func (c *Channel) Search(q *request.Query) ([]Channel, error) {
 
 	if q.GroupName == "" {
 		return nil, fmt.Errorf("Query doesnt have any Group info %+v", q)
@@ -403,7 +404,7 @@ func (c *Channel) Search(q *Query) ([]Channel, error) {
 	return channels, nil
 }
 
-func (c *Channel) ByName(q *Query) (Channel, error) {
+func (c *Channel) ByName(q *request.Query) (Channel, error) {
 	fmt.Println("-------- FIX THIS PART ------")
 	fmt.Println("TODO - check permissions here")
 	fmt.Println("-------- FIX THIS PART ------")
@@ -422,7 +423,7 @@ func (c *Channel) ByName(q *Query) (Channel, error) {
 	return channel, bongo.CheckErr(query.Find(&channel))
 }
 
-func (c *Channel) List(q *Query) ([]Channel, error) {
+func (c *Channel) List(q *request.Query) ([]Channel, error) {
 
 	if q.GroupName == "" {
 		return nil, fmt.Errorf("Query doesnt have any Group info %+v", q)

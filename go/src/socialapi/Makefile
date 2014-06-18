@@ -11,12 +11,12 @@ MINOR=1
 # export MAJOR
 # export MINOR
 
-default: configure
-
-develop: apidev topicfeeddev realtimedev followingfeeddev populartopicdev popularpostdev notificationdev runkoding
+develop: apidev topicfeeddev realtimedev followingfeeddev populartopicdev popularpostdev notificationdev trollmodeldev runkoding
 
 runkoding:
 	(cd /opt/koding && cake -c kodingme -r kodingme run)
+
+default: configure
 
 apidev:
 	@echo "$(OK_COLOR)==> Running API Worker $(NO_COLOR)"
@@ -50,26 +50,38 @@ popularpostdev:
 	@echo "$(OK_COLOR)==> Running Popular Posts Worker $(NO_COLOR)"
 	@$(GOBINDIR)/rerun socialapi/workers/popularpost -c $(CONFIG) -d
 
+trollmodeldev:
+	@echo "$(OK_COLOR)==> Running Troll Mode Worker $(NO_COLOR)"
+	@$(GOBINDIR)/rerun socialapi/workers/trollmode -c $(CONFIG) -d
+
 configuremigration:
 	(vagrant ssh default --command "mongo localhost/koding --eval='db.relationships.update({},{\$$unset:{migrationStatus:0}},{multi:true})'")
 	(vagrant ssh default --command "mongo localhost/koding --eval='db.jNewStatusUpdates.update({},{\$$unset:{socialMessageId:0}},{multi:true})'")
 	(vagrant ssh default --command "mongo localhost/koding --eval='db.jComments.update({},{\$$unset:{socialMessageId:0}},{multi:true})'")
 	(vagrant ssh default --command "mongo localhost/koding --eval='db.jTags.update({},{\$$unset:{socialApiChannelId:0}},{multi:true})'")
+	(vagrant ssh default --command "mongo localhost/koding --eval='db.jAccounts.update({},{\$$unset:{socialApiId:0}},{multi:true})'")
 
 migrate:
 	@echo "$(OK_COLOR)==> Running Popular Posts Worker $(NO_COLOR)"
 	@$(GOBINDIR)/rerun socialapi/workers/migrator -c $(CONFIG) -d
 
+sitemapfeederdev:
+	@echo "$(OK_COLOR)==> Running Sitemap Feeder Worker $(NO_COLOR)"
+	@$(GOBINDIR)/rerun socialapi/workers/sitemap/sitemapfeeder -c $(CONFIG) -d
+
 PACKAGES = \
 	socialapi/workers/api \
 	socialapi/workers/emailnotifier \
+	socialapi/workers/dailyemailnotifier \
 	socialapi/workers/followingfeed \
 	socialapi/workers/notification \
 	socialapi/workers/popularpost \
+	socialapi/workers/trollmode \
 	socialapi/workers/populartopic \
 	socialapi/workers/realtime \
 	socialapi/workers/topicfeed \
-	socialapi/workers/migrator
+	socialapi/workers/migrator \
+	socialapi/workers/sitemap/sitemapfeeder
 
 default: all
 
@@ -78,32 +90,24 @@ createdb:
 	(vagrant ssh default --command "mongo localhost/koding --eval='db.jGroups.update({},{\$$unset:{socialApiChannelId:0}},{multi:true})'")
 	(vagrant ssh default --command "/opt/koding/go/src/socialapi/db/sql/definition/create.sh")
 
-configure: installall installrerun
+configure: install installrerun
 	@echo "$(OK_COLOR)==> Configuration is done $(NO_COLOR)"
 
 installrerun:
 	@go get github.com/skelterjohn/rerun
-	@go build github.com/skelterjohn/rerun
 	@go install github.com/skelterjohn/rerun
 
-installall:
-	@for package in $(PACKAGES); do (go build $$package); done
-	@for package in $(PACKAGES); do (go install $$package); done
-	@echo "$(OK_COLOR)==> Installed all packages $(NO_COLOR)"
+install:
+	@echo "$(OK_COLOR)==> Installing all packages $(NO_COLOR)"
+	@go install -v ${PACKAGES}
 
 test:
-	@for package in $(PACKAGES); \
-	do \
-		(echo "$(OK_COLOR)==> Running go test for $$package $(NO_COLOR)"); \
-		go test -v $$package; \
-	done;
+	@echo "$(OK_COLOR)==> Testing all packages $(NO_COLOR)"
+	@go test -v ${PACKAGES}
 
 build:
-	@for package in $(PACKAGES); \
-	do \
-		(echo "$(OK_COLOR)==> Building $$package $(NO_COLOR)"); \
-		go install $$package; \
-	done;
+	@echo "$(OK_COLOR)==> Building all packages $(NO_COLOR)"
+	@go build -v ${PACKAGES}
 
 testapi:
 	@echo "$(OK_COLOR)==> Running go api tests $(NO_COLOR)"

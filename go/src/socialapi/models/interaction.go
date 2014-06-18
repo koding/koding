@@ -2,6 +2,7 @@ package models
 
 import (
 	"errors"
+	"socialapi/request"
 	"time"
 
 	"github.com/jinzhu/gorm"
@@ -17,6 +18,9 @@ type Interaction struct {
 
 	// Id of the actor
 	AccountId int64 `json:"accountId,string"      sql:"NOT NULL"`
+
+	// holds troll, unsafe, etc
+	MetaBits int16 `json:"-"`
 
 	// Type of the interaction
 	TypeConstant string `json:"typeConstant"      sql:"NOT NULL;TYPE:VARCHAR(100);"`
@@ -84,6 +88,23 @@ func (i Interaction) AfterDelete() {
 	bongo.B.AfterDelete(i)
 }
 
+func (i *Interaction) BeforeCreate() {
+	i.assignTrollModeBitIfRequired()
+}
+
+func (i *Interaction) BeforeUpdate() {
+	i.assignTrollModeBitIfRequired()
+}
+
+func (i *Interaction) assignTrollModeBitIfRequired() {
+	cm := NewChannelMessage()
+	cm.Id = i.MessageId
+	cm.AccountId = i.AccountId
+	if res, err := cm.isExemptContent(); err == nil && res {
+		i.MetaBits = updateTrollModeBit(i.MetaBits)
+	}
+}
+
 func (i *Interaction) Some(data interface{}, q *bongo.Query) error {
 	return bongo.B.Some(i, data, q)
 }
@@ -105,7 +126,7 @@ func (i *Interaction) Delete() error {
 	return nil
 }
 
-func (c *Interaction) List(query *Query) ([]int64, error) {
+func (c *Interaction) List(query *request.Query) ([]int64, error) {
 	var interactions []int64
 
 	if c.MessageId == 0 {

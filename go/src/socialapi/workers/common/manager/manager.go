@@ -80,6 +80,8 @@ func Marshaled(i interface{}) *Marshaler {
 	return &Marshaler{reflect.ValueOf(i)}
 }
 
+var nilParameter = reflect.ValueOf((*interface{})(nil))
+
 func (m *Marshaler) HandleEvent(controllerValue reflect.Value, data []byte) error {
 	var parameter reflect.Value
 
@@ -142,5 +144,3 @@ func NewMarshalerError(format string, args ...interface{}) MarshalerError {
 }
 
 func (e MarshalerError) Error() string { return string(e) }
-
-var nilParameter = reflect.ValueOf((*interface{})(nil))

@@ -159,8 +159,7 @@ class ActivityInputWidget extends KDView
   submit: (callback) ->
 
     return  if @locked
-
-    return @reset yes  unless value = @input.getValue().trim()
+    return @reset yes  unless body = @input.getValue().trim()
 
     activity = @getData()
     {app}    = @getOptions()
@@ -177,15 +176,12 @@ class ActivityInputWidget extends KDView
     #     else if data.$suggest and data.$suggest not in suggestedTags
     #       suggestedTags.push data.$suggest
 
-    # fixme embedbox
-
-    # data.link_url   = @embedBox.url or ""
-    # data.link_embed = @embedBox.getDataForSubmit() or {}
+    payload = @getPayload()
 
     @lockSubmit()
 
     fn = @bound if activity then 'update' else 'create'
-    fn { body : value }, @bound 'submissionCallback'
+    fn {body, payload}, @bound 'submissionCallback'
 
     @emit "ActivitySubmitted"
     # fixme for bugs app
@@ -209,22 +205,20 @@ class ActivityInputWidget extends KDView
     return @showError err  if err
 
     @reset yes
-    @embedBox.resetEmbedAndHide()
     @emit "Submit", activity
 
     KD.mixpanel "Status update create, success", { length: activity?.body?.length }
 
 
-  create: (data, callback) ->
+  create: ({body, payload}, callback) ->
 
     {appManager} = KD.singletons
-    {body}       = data
     {channel}    = @getOptions()
 
     if channel.typeConstant is 'topic' and not body.match ///##{channel.name}///
       body += " ##{channel.name} "
 
-    appManager.tell 'Activity', 'post', {body}, (err, activity) =>
+    appManager.tell 'Activity', 'post', {body, payload}, (err, activity) =>
 
       @reset()  unless err
 
@@ -246,18 +240,18 @@ class ActivityInputWidget extends KDView
       #   targetSelf : 1
 
 
-  update: (data, callback = noop) ->
+  update: ({body, payload}, callback = noop) ->
 
     {appManager} = KD.singletons
     {channelId}  = @getOptions()
     activity     = @getData()
-    {body}       = data
 
     return  @reset()  unless activity
 
     appManager.tell 'Activity', 'edit', {
-      body
       id: activity.id
+      body
+      payload
     }, (err, message) =>
 
       return KD.showError err  if err
@@ -277,6 +271,14 @@ class ActivityInputWidget extends KDView
     if unlock
     then @unlockSubmit()
     else KD.utils.wait 8000, @bound "unlockSubmit"
+
+
+  getPayload: ->
+
+    link_url   = @embedBox.url
+    link_embed = @embedBox.getDataForSubmit()
+
+    return {link_url, link_embed}  if link_url and link_embed
 
 
   showError: (err) ->

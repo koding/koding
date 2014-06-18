@@ -347,6 +347,11 @@ func (r *RedisSession) GetSetMembers(key string) ([]interface{}, error) {
 	return redis.Values(r.Do("SMEMBERS", r.AddPrefix(key)))
 }
 
+// PopSetMember removes and returns a random element from the set stored at key
+func (r *RedisSession) PopSetMember(key string) (string, error) {
+	return redis.String(r.Do("SPOP", r.AddPrefix(key)))
+}
+
 // SortBy sorts elements stored at key with given weight and order(ASC|DESC)
 //
 // i.e. Suppose we have elements stored at key as object_1, object_2 and object_3

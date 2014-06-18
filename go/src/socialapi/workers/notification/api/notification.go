@@ -6,9 +6,10 @@ import (
 	"net/http"
 	"net/url"
 	"socialapi/config"
+	"socialapi/request"
 	// TODO delete these socialapi dependencies
 	socialmodels "socialapi/models"
-	socialhelpers "socialapi/workers/api/modules/helpers"
+	"socialapi/workers/common/response"
 	"socialapi/workers/notification/models"
 	"strconv"
 
@@ -28,9 +29,9 @@ const (
 )
 
 func List(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface{}, error) {
-	q := socialhelpers.GetQuery(u)
+	q := request.GetQuery(u)
 	if err := validateNotificationRequest(q); err != nil {
-		return socialhelpers.NewBadRequestResponse(err)
+		return response.NewBadRequest(err)
 	}
 
 	conf := config.Get()
@@ -42,23 +43,23 @@ func List(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface
 		cacheEnabled = cache
 	}
 
-	return socialhelpers.HandleResultAndError(fetchNotifications(q))
+	return response.HandleResultAndError(fetchNotifications(q))
 }
 
 func Glance(u *url.URL, h http.Header, req *models.Notification) (int, http.Header, interface{}, error) {
-	q := socialmodels.NewQuery()
+	q := request.NewQuery()
 	q.AccountId = req.AccountId
 	if err := validateNotificationRequest(q); err != nil {
-		return socialhelpers.NewBadRequestResponse(err)
+		return response.NewBadRequest(err)
 	}
 	if err := req.Glance(); err != nil {
-		return socialhelpers.NewBadRequestResponse(err)
+		return response.NewBadRequest(err)
 	}
 
-	return socialhelpers.NewDefaultOKResponse()
+	return response.NewDefaultOK()
 }
 
-func fetchNotifications(q *socialmodels.Query) (*models.NotificationResponse, error) {
+func fetchNotifications(q *request.Query) (*models.NotificationResponse, error) {
 	var list *models.NotificationResponse
 	var err error
 
@@ -95,7 +96,7 @@ func fetchNotifications(q *socialmodels.Query) (*models.NotificationResponse, er
 	return list, nil
 }
 
-func validateNotificationRequest(q *socialmodels.Query) error {
+func validateNotificationRequest(q *request.Query) error {
 	if err := validateAccount(q.AccountId); err != nil {
 		return err
 	}

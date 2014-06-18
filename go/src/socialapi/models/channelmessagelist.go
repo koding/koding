@@ -2,8 +2,10 @@ package models
 
 import (
 	"errors"
+	"socialapi/request"
 	"time"
 
+	"github.com/jinzhu/gorm"
 	"github.com/koding/bongo"
 )
 
@@ -16,6 +18,9 @@ type ChannelMessageList struct {
 
 	// Id of the message
 	MessageId int64 `json:"messageId,string"     sql:"NOT NULL"`
+
+	// holds troll, unsafe, etc
+	MetaBits int16 `json:"-"`
 
 	// Addition date of the message to the channel
 	AddedAt time.Time `json:"addedAt"            sql:"NOT NULL"`
@@ -109,7 +114,7 @@ func (c *ChannelMessageList) Delete() error {
 	return bongo.B.Delete(c)
 }
 
-func (c *ChannelMessageList) List(q *Query, populateUnreadCount bool) (*HistoryResponse, error) {
+func (c *ChannelMessageList) List(q *request.Query, populateUnreadCount bool) (*HistoryResponse, error) {
 	messageList, err := c.getMessages(q)
 	if err != nil {
 		return nil, err
@@ -147,7 +152,7 @@ func (c *ChannelMessageList) populateUnreadCount(messageList []*ChannelMessageCo
 	return messageList
 }
 
-func (c *ChannelMessageList) getMessages(q *Query) ([]*ChannelMessageContainer, error) {
+func (c *ChannelMessageList) getMessages(q *request.Query) ([]*ChannelMessageContainer, error) {
 	var messages []int64
 
 	if c.ChannelId == 0 {
@@ -188,7 +193,31 @@ func (c *ChannelMessageList) getMessages(q *Query) ([]*ChannelMessageContainer, 
 	return populatedChannelMessages, nil
 }
 
-func (c *ChannelMessageList) populateChannelMessages(channelMessages []ChannelMessage, query *Query) ([]*ChannelMessageContainer, error) {
+func (c *ChannelMessageList) IsInChannel(messageId, channelId int64) (bool, error) {
+	if messageId == 0 || channelId == 0 {
+		return false, errors.New("channelId/messageId is not set")
+	}
+
+	query := &bongo.Query{
+		Selector: map[string]interface{}{
+			"channel_id": channelId,
+			"message_id": messageId,
+		},
+	}
+
+	err := c.One(query)
+	if err == nil {
+		return true, nil
+	}
+
+	if err == gorm.RecordNotFound {
+		return false, nil
+	}
+
+	return false, err
+}
+
+func (c *ChannelMessageList) populateChannelMessages(channelMessages []ChannelMessage, query *request.Query) ([]*ChannelMessageContainer, error) {
 	channelMessageCount := len(channelMessages)
 
 	populatedChannelMessages := make([]*ChannelMessageContainer, channelMessageCount)
@@ -206,8 +235,8 @@ func (c *ChannelMessageList) populateChannelMessages(channelMessages []ChannelMe
 
 		populatedChannelMessages[i] = cmc
 	}
-	return populatedChannelMessages, nil
 
+	return populatedChannelMessages, nil
 }
 
 func (c *ChannelMessageList) FetchMessageChannelIds(messageId int64) ([]int64, error) {
@@ -237,7 +266,7 @@ func (c *ChannelMessageList) FetchMessageChannels(messageId int64) ([]Channel, e
 	return NewChannel().FetchByIds(channelIds)
 }
 
-func (c *ChannelMessageList) FetchMessageIdsByChannelId(channelId int64, q *Query) ([]int64, error) {
+func (c *ChannelMessageList) FetchMessageIdsByChannelId(channelId int64, q *request.Query) ([]int64, error) {
 	query := &bongo.Query{
 		Selector: map[string]interface{}{
 			"channel_id": channelId,
@@ -277,4 +306,25 @@ func (c *ChannelMessageList) DeleteMessagesBySelector(selector map[string]interf
 		}
 	}
 	return nil
+}
+
+func (c *ChannelMessageList) UpdateAddedAt(channelId, messageId int64) error {
+	if messageId == 0 || channelId == 0 {
+		return errors.New("channelId/messageId is not set")
+	}
+
+	query := &bongo.Query{
+		Selector: map[string]interface{}{
+			"channel_id": channelId,
+			"message_id": messageId,
+		},
+	}
+
+	err := c.One(query)
+	if err != nil {
+		return err
+	}
+
+	c.AddedAt = time.Now().UTC()
+	return c.Update()
 }

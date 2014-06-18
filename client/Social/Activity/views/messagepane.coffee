@@ -20,7 +20,6 @@ class MessagePane extends KDTabPaneView
 
     {windowController} = KD.singletons
 
-
     windowController.addFocusListener (focused) =>
 
       @glance()  if focused and @active
@@ -99,21 +98,19 @@ class MessagePane extends KDTabPaneView
 
     data = @getData()
     {id, typeConstant} = data
-    {socialapi} = KD.singletons
+    {socialapi, appManager} = KD.singletons
 
-    # fixme: don't fire unnecessary last seen time requests
-    # find a consisten way here./
+    app  = appManager.get 'Activity'
+    item = app.getView().sidebar.selectedItem
 
-    # item = @getDelegate().parent.sidebar.selectedItem
-    # return  unless item.count
+    return  unless item.count
+    # no need to send updatelastSeenTime or glance
+    # when checking publicfeeds
+    return  if typeConstant is 'group'
 
     if typeConstant is 'post'
-    then socialapi.channel.glancePinnedPost messageId : id, log
-    else socialapi.channel.updateLastSeenTime channelId : id, log
-
-
-
-
+    then socialapi.channel.glancePinnedPost   messageId : id, ->
+    else socialapi.channel.updateLastSeenTime channelId : id, ->
 
 
   populate: ->
@@ -149,12 +146,14 @@ class MessagePane extends KDTabPaneView
 
 
   lazyLoad: ->
+    @listController.showLazyLoader()
 
     {appManager} = KD.singletons
     last         = @listController.getItemsOrdered().last
     from         = last.getData().meta.createdAt.toISOString()
 
     @fetch {from}, (err, items = []) =>
+      @listController.hideLazyLoader()
 
       return KD.showError err  if err
 

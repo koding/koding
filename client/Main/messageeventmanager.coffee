@@ -25,13 +25,13 @@ class MessageEventManager extends KDObject
     fn event
 
 
-  addLike: ({accountOldId, count}) ->
+  addLike: ({accountOldId}) ->
 
     message = @getData()
 
     {like} = message.interactions
 
-    like.actorsCount = count
+    like.actorsCount++
     like.actorsPreview.unshift accountOldId  if accountOldId not in like.actorsPreview
     like.isInteracted = yes  if KD.whoami().getId() is accountOldId
 
@@ -39,13 +39,12 @@ class MessageEventManager extends KDObject
     message.emit "update"
 
 
-  removeLike: ({accountOldId, count}) ->
-
+  removeLike: ({accountOldId}) ->
     message = @getData()
 
     {like} = message.interactions
 
-    like.actorsCount   = count
+    like.actorsCount--
     like.actorsPreview = like.actorsPreview.filter (id) -> id isnt accountOldId
 
     like.isInteracted = no  if KD.whoami().getId() is accountOldId

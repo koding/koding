@@ -18,6 +18,8 @@ module.exports = class SocialMessage extends Base
       static   :
         byId   :
           (signature Object, Function)
+        bySlug :
+          (signature Object, Function)
         post   :
           (signature Object, Function)
         reply  :
@@ -89,6 +91,11 @@ module.exports = class SocialMessage extends Base
   @byId = secureRequest
     fnName  : 'messageById'
     validate: ["id"]
+
+  # bySlug -get message by slug
+  @bySlug = secureRequest
+    fnName  : 'messageBySlug'
+    validate: ["slug"]
 
   @listReplies = secureRequest
     fnName   : 'listReplies'

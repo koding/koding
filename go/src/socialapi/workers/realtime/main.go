@@ -26,13 +26,13 @@ func main() {
 	//create connection to RMQ for publishing realtime events
 	rmq := helper.NewRabbitMQ(r.Conf, r.Log)
 
-	handler, err := realtime.New(rmq, r.Log)
+	c, err := realtime.New(rmq, r.Log)
 	if err != nil {
 		panic(err)
 	}
 
 	m := manager.New()
-	m.Controller(handler)
+	m.Controller(c)
 
 	// m.HandleFunc("api.channel_message_created", (*realtime.Controller).MessageSaved)
 	m.HandleFunc("api.channel_message_updated", (*realtime.Controller).MessageUpdated)
@@ -51,7 +51,6 @@ func main() {
 	m.HandleFunc("notification.notification_created", (*realtime.Controller).NotifyUser)
 	m.HandleFunc("notification.notification_updated", (*realtime.Controller).NotifyUser)
 
-	// create message handler
 	r.Listen(m)
 	r.Wait()
 }

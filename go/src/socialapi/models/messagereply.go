@@ -2,6 +2,7 @@ package models
 
 import (
 	"errors"
+	"socialapi/request"
 	"time"
 
 	"github.com/jinzhu/gorm"
@@ -18,6 +19,9 @@ type MessageReply struct {
 	// Id of the reply
 	ReplyId int64 `json:"replyId,string"         sql:"NOT NULL"`
 
+	// holds troll, unsafe, etc
+	MetaBits int16 `json:"-"`
+
 	// Creation of the MessageReply
 	CreatedAt time.Time `json:"createdAt"         sql:"NOT NULL"`
 }
@@ -32,6 +36,30 @@ func (m MessageReply) TableName() string {
 
 func NewMessageReply() *MessageReply {
 	return &MessageReply{}
+}
+
+func (m *MessageReply) BeforeCreate() {
+	if m.ReplyId == 0 {
+		return
+	}
+
+	cm := NewChannelMessage()
+	cm.Id = m.ReplyId
+	if res, err := cm.isExemptContent(); err == nil && res {
+		m.MetaBits = updateTrollModeBit(m.MetaBits)
+	}
+}
+
+func (m *MessageReply) BeforeUpdate() {
+	if m.ReplyId == 0 {
+		return
+	}
+
+	cm := NewChannelMessage()
+	cm.Id = m.ReplyId
+	if res, err := cm.isExemptContent(); err == nil && res {
+		m.MetaBits = updateTrollModeBit(m.MetaBits)
+	}
 }
 
 func (m *MessageReply) AfterCreate() {
@@ -117,18 +145,18 @@ func (m *MessageReply) DeleteByOrQuery(messageId int64) error {
 	return nil
 }
 
-func (m *MessageReply) List(query *Query) ([]ChannelMessage, error) {
+func (m *MessageReply) List(query *request.Query) ([]ChannelMessage, error) {
 	return m.fetchMessages(query)
 }
 
 func (m *MessageReply) ListAll() ([]ChannelMessage, error) {
-	query := NewQuery()
+	query := request.NewQuery()
 	query.Limit = 0
 	query.Skip = 0
 	return m.fetchMessages(query)
 }
 
-func (m *MessageReply) fetchMessages(query *Query) ([]ChannelMessage, error) {
+func (m *MessageReply) fetchMessages(query *request.Query) ([]ChannelMessage, error) {
 	var replies []int64
 
 	if m.MessageId == 0 {

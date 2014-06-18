@@ -52,6 +52,9 @@ class ActivityAppView extends KDScrollView
       name = if slug then "#{type}-#{slug}" else type
       pane = @tabs.getPaneByName name
 
+      unless @sidebar.selectedItem
+        @sidebar.selectItemByRouteOptions type, slug
+
       if pane
       then @tabs.showPane pane
       else @createTab name, data
@@ -64,11 +67,16 @@ class ActivityAppView extends KDScrollView
       kallback item.getData()
 
     else if not item
-      socialapi.cacheable type, slug, (err, data) ->
+      type_ = switch type
+        when 'message' then 'privatemessage'
+        when 'post'    then 'activity'
+        else type
+
+      socialapi.cacheable type_, slug, (err, data) =>
         if err then router.handleNotFound router.getCurrentPath()
         else
-          notificationController.emit 'AddedToChannel', data
-          KD.utils.wait 1000, -> kallback data
+          @sidebar.addItem data
+          kallback data
 
     else
       kallback item.getData()
@@ -105,8 +113,32 @@ class ActivityAppView extends KDScrollView
 
     @open 'public'  unless @tabs.getActivePane()
 
+    bounds = @sidebar.sections.messages.options.headerLink.getBounds()
+
+    top       = bounds.y - 40
+    left      = bounds.x + bounds.w + 40
+    arrowTop  = 40 + (bounds.h / 2) - 10 #10 = arrow height
+
     modal = new PrivateMessageModal
       delegate     : this
       _lastMessage : @_lastMessage
+      position     :
+        top        : top
+        left       : left
+      arrowTop     : arrowTop
 
     return modal
+
+
+  showAllTopicsModal: ->
+
+    @open 'public'  unless @tabs.getActivePane()
+
+    return new YourTopicsModal delegate : this
+
+
+  showAllConversationsModal: ->
+
+    @open 'public'  unless @tabs.getActivePane()
+
+    return new ConversationsModal delegate : this

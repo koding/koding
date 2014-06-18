@@ -89,12 +89,13 @@ func (f *Controller) ChannelParticipantUpdatedEvent(cp *models.ChannelParticipan
 	}
 
 	cue := &channelUpdatedEvent{
+		Controller:         f,
 		Channel:            c,
 		EventType:          channelUpdatedEventChannelParticipantUpdated,
 		ChannelParticipant: cp,
 	}
 
-	return f.sendChannelUpdatedEventToParticipant(cue)
+	return cue.sendForParticipant()
 }
 
 func (f *Controller) ChannelParticipantRemovedFromChannelEvent(cp *models.ChannelParticipant) error {
@@ -147,7 +148,7 @@ func (f *Controller) handleInteractionEvent(eventName string, i *models.Interact
 		return err
 	}
 
-	oldId, err := models.AccountOldIdById(i.AccountId)
+	oldId, err := models.FetchAccountOldIdByIdFromCache(i.AccountId)
 	if err != nil {
 		return err
 	}
@@ -195,7 +196,7 @@ func (f *Controller) sendReplyAddedEvent(mr *models.MessageReply) error {
 	return nil
 }
 
-func (f *Controller) sendReplyEventAsChannelUpdatedEvent(mr *models.MessageReply, eventType ChannelUpdatedEventType) error {
+func (f *Controller) sendReplyEventAsChannelUpdatedEvent(mr *models.MessageReply, eventType channelUpdatedEventType) error {
 	parent, err := mr.FetchParent()
 	if err != nil {
 		return err
@@ -219,6 +220,7 @@ func (f *Controller) sendReplyEventAsChannelUpdatedEvent(mr *models.MessageReply
 
 	cue := &channelUpdatedEvent{
 		// channel will be set in range loop
+		Controller:           f,
 		Channel:              nil,
 		ParentChannelMessage: parent,
 		ReplyChannelMessage:  reply,
@@ -233,7 +235,7 @@ func (f *Controller) sendReplyEventAsChannelUpdatedEvent(mr *models.MessageReply
 		cue.Channel = &channel
 		// send this event to all channels
 		// that have this message
-		err := f.sendChannelUpdatedEvent(cue)
+		err := cue.send()
 		if err != nil {
 			f.log.Error("err %s", err.Error())
 		}
@@ -266,12 +268,13 @@ func (f *Controller) MessageListSaved(cml *models.ChannelMessageList) error {
 	}
 
 	cue := &channelUpdatedEvent{
+		Controller:           f,
 		Channel:              c,
 		ParentChannelMessage: cm,
 		EventType:            channelUpdatedEventMessageAddedToChannel,
 	}
 
-	if err := f.sendChannelUpdatedEvent(cue); err != nil {
+	if err := cue.send(); err != nil {
 		return err
 	}
 
@@ -297,13 +300,18 @@ func (f *Controller) MessageListUpdated(cml *models.ChannelMessageList) error {
 	cp.AccountId = c.CreatorId
 
 	cue := &channelUpdatedEvent{
+		Controller:           f,
 		Channel:              c,
 		ParentChannelMessage: cm,
 		ChannelParticipant:   cp,
 		EventType:            channelUpdatedEventMessageUpdatedAtChannel,
 	}
 
-	return f.sendChannelUpdatedEventToParticipant(cue)
+	if err := cue.sendForParticipant(); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 // todo - refactor this part
@@ -322,13 +330,17 @@ func (f *Controller) MessageListDeleted(cml *models.ChannelMessageList) error {
 	cp.AccountId = c.CreatorId
 
 	cue := &channelUpdatedEvent{
+		Controller:           f,
 		Channel:              c,
 		ParentChannelMessage: cm,
 		ChannelParticipant:   cp,
 		EventType:            channelUpdatedEventMessageRemovedFromChannel,
 	}
 
-	f.sendChannelUpdatedEvent(cue)
+	if err := cue.send(); err != nil {
+		return err
+	}
+
 	// f.sendNotification(cp.AccountId, ChannelUpdateEventName, cue)
 
 	if err := f.sendChannelEvent(cml, "MessageRemoved"); err != nil {
@@ -374,7 +386,7 @@ func (f *Controller) NotifyUser(notification *notificationmodels.Notification) e
 		TargetId:     nc.TargetId,
 		TypeConstant: nc.TypeConstant,
 	}
-	ne.Content.ActorId, _ = models.AccountOldIdById(activity.ActorId)
+	ne.Content.ActorId, _ = models.FetchAccountOldIdByIdFromCache(activity.ActorId)
 
 	notificationMessage, err := json.Marshal(ne)
 	if err != nil {

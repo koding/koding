@@ -2,7 +2,7 @@ class FeederResultsController extends KDViewController
 
   constructor:(options = {}, data)->
 
-    options.view                or= new FeederTabView hideHandleCloseIcons : yes
+    options.view                or= new FeederTabView hideHandleContainer : yes
     options.paneClass           or= KDTabPaneView
     options.itemClass           or= KDListItemView
     options.listControllerClass or= KDListViewController
@@ -15,11 +15,11 @@ class FeederResultsController extends KDViewController
 
     @createTab name, filter for own name, filter of options.filters
 
+
   loadView:(mainView)->
 
-    mainView.hideHandleContainer()
     mainView.showPaneByIndex 0
-    @utils.defer mainView.bound "_windowDidResize"
+
 
   openTab:(filter, callback)->
     tabView = @getView()

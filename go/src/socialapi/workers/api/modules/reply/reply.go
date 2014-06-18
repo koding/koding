@@ -4,13 +4,16 @@ import (
 	"net/http"
 	"net/url"
 	"socialapi/models"
+	"socialapi/request"
 	"socialapi/workers/api/modules/helpers"
+	"socialapi/workers/common/response"
+	"time"
 )
 
 func Create(u *url.URL, h http.Header, reply *models.ChannelMessage) (int, http.Header, interface{}, error) {
-	parentId, err := helpers.GetURIInt64(u, "id")
+	parentId, err := request.GetURIInt64(u, "id")
 	if err != nil {
-		return helpers.NewBadRequestResponse(err)
+		return response.NewBadRequest(err)
 	}
 
 	// first create reply as a message
@@ -18,8 +21,17 @@ func Create(u *url.URL, h http.Header, reply *models.ChannelMessage) (int, http.
 
 	if err := reply.Create(); err != nil {
 		// todo this should be internal server error
-		return helpers.NewBadRequestResponse(err)
+		return response.NewBadRequest(err)
 	}
+
+	// fetch parent
+	parent := models.NewChannelMessage()
+	if err := parent.ById(parentId); err != nil {
+		return response.NewBadRequest(err)
+	}
+
+	// set reply message's inital channel id from parent's
+	reply.InitialChannelId = parent.InitialChannelId
 
 	// then add this message as a reply to a parent message
 	mr := models.NewMessageReply()
@@ -28,33 +40,76 @@ func Create(u *url.URL, h http.Header, reply *models.ChannelMessage) (int, http.
 	mr.CreatedAt = reply.CreatedAt
 	if err := mr.Create(); err != nil {
 		// todo this should be internal server error
-		return helpers.NewBadRequestResponse(err)
+		return response.NewBadRequest(err)
 	}
 
-	return helpers.HandleResultAndError(
+	// update all channels that contains this message
+	// todo move this to a worker
+	updateAllContainingChannels(parent.Id)
+
+	return response.HandleResultAndError(
 		reply.BuildEmptyMessageContainer(),
 	)
 }
 
-func Delete(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface{}, error) {
-	parentId, err := helpers.GetURIInt64(u, "id")
+// fetch all channels that parent is in
+// update all channels
+func updateAllContainingChannels(parentId int64) error {
+	cml := models.NewChannelMessageList()
+	channels, err := cml.FetchMessageChannels(parentId)
 	if err != nil {
-		return helpers.NewBadRequestResponse(err)
+		return err
+	}
+
+	if len(channels) == 0 {
+		return nil
+	}
+
+	for _, channel := range channels {
+		// if channel type is group, we dont need to update group's updatedAt
+		if channel.TypeConstant == models.Channel_TYPE_GROUP {
+			continue
+		}
+
+		// pinned activity channel holds messages one by one
+		if channel.TypeConstant != models.Channel_TYPE_PINNED_ACTIVITY {
+			channel.UpdatedAt = time.Now().UTC()
+			if err := channel.Update(); err != nil {
+				// err
+			}
+			continue
+		}
+
+		// if channel.TypeConstant == models.Channel_TYPE_PINNED_ACTIVITY {
+		err := models.NewChannelMessageList().UpdateAddedAt(channel.Id, parentId)
+		if err != nil {
+			// return err
+		}
+	}
+
+	return nil
+
+}
+
+func Delete(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface{}, error) {
+	parentId, err := request.GetURIInt64(u, "id")
+	if err != nil {
+		return response.NewBadRequest(err)
 	}
 
 	if parentId == 0 {
 		// todo add proper logging
-		return helpers.NewBadRequestResponse(err)
+		return response.NewBadRequest(err)
 	}
 
-	replyId, err := helpers.GetURIInt64(u, "replyId")
+	replyId, err := request.GetURIInt64(u, "replyId")
 	if err != nil {
-		return helpers.NewBadRequestResponse(err)
+		return response.NewBadRequest(err)
 	}
 
 	if replyId == 0 {
 		// todo add proper logging
-		return helpers.NewBadRequestResponse(err)
+		return response.NewBadRequest(err)
 	}
 
 	// first delete the connection between message and the reply
@@ -62,33 +117,33 @@ func Delete(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interfa
 	mr.MessageId = parentId
 	mr.ReplyId = replyId
 	if err := mr.Delete(); err != nil {
-		return helpers.NewBadRequestResponse(err)
+		return response.NewBadRequest(err)
 	}
 
 	// then delete the message itself
 	reply := models.NewChannelMessage()
 	reply.Id = replyId
 	if err := reply.Delete(); err != nil {
-		return helpers.NewBadRequestResponse(err)
+		return response.NewBadRequest(err)
 	}
 
 	// yes it is deleted but not removed completely from our system
-	return helpers.NewDeletedResponse()
+	return response.NewDeleted()
 }
 
 func List(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface{}, error) {
-	messageId, err := helpers.GetURIInt64(u, "id")
+	messageId, err := request.GetURIInt64(u, "id")
 	if err != nil {
-		return helpers.NewBadRequestResponse(err)
+		return response.NewBadRequest(err)
 	}
 
 	reply := models.NewMessageReply()
 	reply.MessageId = messageId
 
-	return helpers.HandleResultAndError(
+	return response.HandleResultAndError(
 		helpers.ConvertMessagesToMessageContainers(
 			reply.List(
-				helpers.GetQuery(u),
+				request.GetQuery(u),
 			),
 		),
 	)

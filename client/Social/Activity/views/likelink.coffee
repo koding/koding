@@ -18,11 +18,7 @@ class ActivityLikeLink extends CustomLinkView
     {like, unlike} = KD.singletons.socialapi.message
 
     fn = if isInteracted then unlike else like
-    fn {id}, (err) =>
-
-      return @showError err  if err
-
-      @update()
+    fn {id}, (err) => @showError err  if err
 
 
   update: ->
@@ -30,8 +26,12 @@ class ActivityLikeLink extends CustomLinkView
     @setTemplate @pistachio()
 
     if @getData().interactions.like.isInteracted
-    then @trackLike()
-    else @trackUnlike()
+      @trackLike()
+      @setClass 'liked'
+
+    else
+      @trackUnlike()
+      @unsetClass 'liked'
 
 
   trackLike: ->

@@ -5,6 +5,7 @@ import (
 	"errors"
 	// "fmt"
 	"socialapi/models"
+	"socialapi/request"
 	"time"
 
 	"github.com/jinzhu/gorm"
@@ -129,7 +130,7 @@ func (n *Notification) subscription(nc *NotificationContent) error {
 	return n.Upsert()
 }
 
-func (n *Notification) List(q *models.Query) (*NotificationResponse, error) {
+func (n *Notification) List(q *request.Query) (*NotificationResponse, error) {
 	if q.Limit == 0 {
 		return nil, errors.New("limit cannot be zero")
 	}
@@ -150,7 +151,7 @@ func (n *Notification) Some(data interface{}, q *bongo.Query) error {
 	return bongo.B.Some(n, data, q)
 }
 
-func (n *Notification) fetchByAccountId(q *models.Query) ([]Notification, error) {
+func (n *Notification) fetchByAccountId(q *request.Query) ([]Notification, error) {
 	var notifications []Notification
 
 	err := bongo.B.DB.Table(n.TableName()).
@@ -178,7 +179,7 @@ func (n *Notification) FetchByContent() error {
 
 // getDecoratedList fetches notifications of the given user and decorates it with
 // notification activity actors
-func (n *Notification) getDecoratedList(q *models.Query) ([]NotificationContainer, error) {
+func (n *Notification) getDecoratedList(q *request.Query) ([]NotificationContainer, error) {
 	result := make([]NotificationContainer, 0)
 
 	nList, err := n.fetchByAccountId(q)
@@ -222,7 +223,7 @@ func (n *Notification) buildNotificationContainer(actorId int64, nc *Notificatio
 	if err != nil {
 		return NotificationContainer{}
 	}
-	latestActorsOldIds, _ := models.AccountOldsIdByIds(ac.LatestActors)
+	latestActorsOldIds, _ := models.FetchAccountOldsIdByIdsFromCache(ac.LatestActors)
 
 	return NotificationContainer{
 		TargetId:              nc.TargetId,
@@ -238,8 +239,8 @@ func (n *Notification) buildNotificationContainer(actorId int64, nc *Notificatio
 
 func deductContentIds(nList []Notification) []int64 {
 	notificationContentIds := make([]int64, len(nList))
-	for _, n := range nList {
-		notificationContentIds = append(notificationContentIds, n.NotificationContentId)
+	for i, n := range nList {
+		notificationContentIds[i] = n.NotificationContentId
 	}
 
 	return notificationContentIds

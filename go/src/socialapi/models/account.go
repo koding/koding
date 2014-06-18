@@ -3,6 +3,7 @@ package models
 import (
 	"errors"
 	"fmt"
+	"socialapi/request"
 
 	"github.com/jinzhu/gorm"
 	"github.com/koding/bongo"
@@ -16,6 +17,12 @@ type Account struct {
 	// perisisted in mongo
 	// mongo ids has 24 char
 	OldId string `json:"oldId"      sql:"NOT NULL;UNIQUE;TYPE:VARCHAR(24);"`
+
+	// IsTroll
+	IsTroll bool `json:"isTroll"`
+
+	// unique account nicknames
+	Nick string `json:"nick"        sql:"NOT NULL;UNIQUE;TYPE:VARCHAR(25);`
 }
 
 func NewAccount() *Account {
@@ -30,12 +37,24 @@ func (a Account) TableName() string {
 	return "api.account"
 }
 
+func (a *Account) AfterUpdate() {
+	SetAccountToCache(a)
+}
+
+func (a *Account) AfterCreate() {
+	SetAccountToCache(a)
+}
+
 func (a *Account) One(q *bongo.Query) error {
 	return bongo.B.One(a, a, q)
 }
 
 func (a *Account) ById(id int64) error {
 	return bongo.B.ById(a, id)
+}
+
+func (a *Account) Update() error {
+	return bongo.B.Update(a)
 }
 
 func (a *Account) FetchOrCreate() error {
@@ -56,6 +75,10 @@ func (a *Account) FetchOrCreate() error {
 
 	// first check if the err is not found err
 	if err == gorm.RecordNotFound {
+		if a.Nick == "" {
+			return errors.New("nick is not set")
+		}
+
 		if err := a.Create(); err != nil {
 			return err
 		}
@@ -77,7 +100,7 @@ func (a *Account) Some(data interface{}, q *bongo.Query) error {
 	return bongo.B.Some(a, data, q)
 }
 
-func (a *Account) FetchChannels(q *Query) ([]Channel, error) {
+func (a *Account) FetchChannels(q *request.Query) ([]Channel, error) {
 	cp := NewChannelParticipant()
 	// fetch channel ids
 	cids, err := cp.FetchParticipatedChannelIds(a, q)
@@ -124,7 +147,7 @@ func (a *Account) FetchFollowerIds() ([]int64, error) {
 	followerIds := make([]int64, 0)
 	if a.Id == 0 {
 		return nil, errors.New(
-			"Account id is not set for FetchFollowerChannelIds function ",
+			"account id is not set for FetchFollowerChannelIds function ",
 		)
 	}
 
@@ -143,7 +166,7 @@ func (a *Account) FetchFollowerIds() ([]int64, error) {
 
 func (a *Account) FetchChannel(channelType string) (*Channel, error) {
 	if a.Id == 0 {
-		return nil, errors.New("Account id is not set")
+		return nil, errors.New("account id is not set")
 	}
 
 	c := NewChannel()
@@ -159,9 +182,61 @@ func (a *Account) FetchChannel(channelType string) (*Channel, error) {
 	return c, nil
 }
 
+func (a *Account) MarkAsTroll() error {
+	if a.Id == 0 {
+		return errors.New("account id is not set")
+	}
+
+	if err := a.ById(a.Id); err != nil {
+		return err
+	}
+
+	// do not try to mark twice
+	if a.IsTroll {
+		return fmt.Errorf("account is already a troll %d", a.Id)
+	}
+
+	a.IsTroll = true
+	if err := a.Update(); err != nil {
+		return err
+	}
+
+	if err := bongo.B.PublishEvent("marked_as_troll", a); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (a *Account) UnMarkAsTroll() error {
+	if a.Id == 0 {
+		return errors.New("account id is not set")
+	}
+
+	if err := a.ById(a.Id); err != nil {
+		return err
+	}
+
+	// do not try to un-mark twice
+	if !a.IsTroll {
+		return fmt.Errorf("account is not a troll %d", a.Id)
+	}
+
+	a.IsTroll = false
+	if err := a.Update(); err != nil {
+		return err
+	}
+
+	if err := bongo.B.PublishEvent("un_marked_as_troll", a); err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func (a *Account) CreateFollowingFeedChannel() (*Channel, error) {
 	if a.Id == 0 {
-		return nil, errors.New("Account id is not set")
+		return nil, errors.New("account id is not set")
 	}
 
 	c := NewChannel()
@@ -201,27 +276,13 @@ func (a *Account) FetchFollowerChannelIds() ([]int64, error) {
 	return channelIds, nil
 }
 
-func FetchOldIdByAccountId(accountId int64) (string, error) {
-
+func FetchAccountById(accountId int64) (*Account, error) {
 	a := NewAccount()
-	var data []string
-	q := &bongo.Query{
-		Selector: map[string]interface{}{
-			"id": accountId,
-		},
-		Pluck:      "old_id",
-		Pagination: *bongo.NewPagination(1, 0),
-	}
-	err := a.Some(&data, q)
-	if err != nil {
-		return "", err
+	if err := a.ById(accountId); err != nil {
+		return nil, err
 	}
 
-	if len(data) == 0 {
-		return "", nil
-	}
-
-	return data[0], nil
+	return a, nil
 }
 
 func FetchOldIdsByAccountIds(accountIds []int64) ([]string, error) {

@@ -25,16 +25,13 @@ class CommentInputForm extends KDView
     @input.on 'blur', @bound 'inputBlured'
 
 
-  submit: ->  @emit 'Submit', @input.getValue()
-
-
-  enter: ->
+  enter: (value) ->
 
     kallback = =>
 
-      @submit()
+      @emit 'Submit', value
 
-      KD.mixpanel 'Comment activity, click', @input.getValue().length
+      KD.mixpanel 'Comment activity, click', value.length
 
       @input.setValue ''
       @input.resize()

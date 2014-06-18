@@ -7,11 +7,17 @@ class ActivitySideView extends JView
 
     super options, data
 
-    {itemClass, headerLink} = @getOptions()
+    {itemClass, headerLink, noItemText} = @getOptions()
     sidebar = @getDelegate()
+
+    if noItemText
+      noItemFoundWidget = new KDCustomHTMLView
+        cssClass : 'nothing'
+        partial  : noItemText
 
     @listController = new KDListViewController
       startWithLazyLoader : yes
+      noItemFoundWidget   : noItemFoundWidget
       lazyLoaderOptions   :
         spinnerOptions    :
           size            :
@@ -50,8 +56,8 @@ class ActivitySideView extends JView
   init: ->
 
     {dataPath} = @getOptions()
-    items = KD.singletons.socialapi.getPrefetchedData()[dataPath]
-    if items.length
+    items = KD.singletons.socialapi.getPrefetchedData dataPath
+    if items?.length
     then @renderItems null, items
     else @reload()
 

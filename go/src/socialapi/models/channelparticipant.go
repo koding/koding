@@ -3,6 +3,7 @@ package models
 import (
 	"errors"
 	"fmt"
+	"socialapi/request"
 	"time"
 
 	"github.com/jinzhu/gorm"
@@ -23,6 +24,9 @@ type ChannelParticipant struct {
 
 	// Status of the participant in the channel
 	StatusConstant string `json:"statusConstant"   sql:"NOT NULL;TYPE:VARCHAR(100);"`
+
+	// holds troll, unsafe, etc
+	MetaBits int16 `json:"-"`
 
 	// date of the user's last access to regarding channel
 	LastSeenAt time.Time `json:"lastSeenAt"        sql:"NOT NULL"`
@@ -248,7 +252,7 @@ func (c *ChannelParticipant) ListAccountIds(limit int) ([]int64, error) {
 	return participants, nil
 }
 
-func (c *ChannelParticipant) FetchParticipatedChannelIds(a *Account, q *Query) ([]int64, error) {
+func (c *ChannelParticipant) FetchParticipatedChannelIds(a *Account, q *request.Query) ([]int64, error) {
 	if a.Id == 0 {
 		return nil, errors.New("Account.Id is not set")
 	}
