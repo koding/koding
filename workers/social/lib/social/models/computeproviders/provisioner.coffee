@@ -203,6 +203,19 @@ module.exports = class JProvisioner extends jraphical.Module
             callback null, provisioners
 
 
+  setPermissionFor: (target, {user, owner}, callback)->
+
+    Relationship.remove {
+      targetId : @getId()
+      sourceId : target.getId()
+    }, (err)->
+
+      if user
+        as = if owner then 'owner' else 'user'
+        target.addProvisioner this, { as }, (err)-> callback err
+      else
+        callback err
+
   # .share can be used like this:
   #
   # JProvisionerInstance.share { user: yes, owner: no, target: "gokmen"}, cb
