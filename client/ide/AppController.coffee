@@ -275,6 +275,9 @@ class IDEAppController extends AppController
       @statusBar.showInformation()  if ideViewLength is 0
 
   forEachSubViewInIDEViews_: (callback = noop, paneType) ->
+    if typeof callback is 'string'
+      [paneType, callback] = [callback, paneType]
+
     for ideView in @ideViews
       for pane in ideView.tabView.panes
         view = pane.getSubViews().first
@@ -322,9 +325,8 @@ class IDEAppController extends AppController
     @getActivePaneView().emit 'SaveRequested'
 
   saveAllFiles: ->
-    @forEachSubViewInIDEViews_ (view) ->
-      view.emit 'SaveRequested'
-    , 'editor'
+    @forEachSubViewInIDEViews_ 'editor', (editorPane) ->
+      editorPane.emit 'SaveRequested'
 
   updateStatusBar: (component, data) ->
     {status, menuButton} = @statusBar
@@ -347,6 +349,5 @@ class IDEAppController extends AppController
     menuButton.show()
 
   doResize: ->
-    @forEachSubViewInIDEViews_ (editorPane) ->
+    @forEachSubViewInIDEViews_ 'editor', (editorPane) ->
       editorPane.aceView.ace.editor.resize()
-    , 'editor'
