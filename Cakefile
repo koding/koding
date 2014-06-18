@@ -16,7 +16,6 @@ processes         = new (require "processes") main : true
 nodePath          = require 'path'
 fs                = require 'fs'
 {exec}            = require 'child_process'
-DigitalOceanAPI   = 
 doApi             = new (require 'digitalocean-api')('2d314ba76e8965c451f62d7e6a4bc56f', '4c88127b50c0c731aeb5129bdea06deb')
 Watcher           = require 'koding-watcher'
 KONFIG            = require('koding-config-manager').load("main.#{argv.c}")
