@@ -150,7 +150,7 @@ module.exports = class JCredential extends jraphical.Module
       @fetchByPublicKey client, publicKey, callback
 
 
-  someHelper: (client, selector, options, callback)->
+  @someHelper = (client, selector, options, callback)->
 
     [options, callback] = [callback, options]  unless callback
     options ?= {}
@@ -184,12 +184,12 @@ module.exports = class JCredential extends jraphical.Module
           return callback err  if err?
 
           for item in items
-            item.owner = yes  if map[item._id] is 'owner'
+            item.owner = map[item._id] is 'owner'
 
           callback null, items
 
 
-  @some$ = permit 'list credentials', success: JCredential::someHelper
+  @some$ = permit 'list credentials', success: JCredential.someHelper
 
 
   fetchUsers: permit

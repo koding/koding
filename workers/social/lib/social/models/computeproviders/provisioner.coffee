@@ -162,7 +162,7 @@ module.exports = class JProvisioner extends jraphical.Module
       @fetchBySlug client, slug, callback
 
 
-  @some$ = permit 'list provisioners', success: JCredential::someHelper
+  @some$ = permit 'list provisioners', success: JCredential.someHelper
 
 
   fetchUsers: JCredential::fetchUsers
