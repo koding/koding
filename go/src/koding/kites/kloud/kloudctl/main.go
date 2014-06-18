@@ -1,7 +1,7 @@
 package main
 
 import (
-	"koding/kites/kloud/cli/command"
+	"koding/kites/kloud/kloudctl/command"
 	"os"
 
 	"github.com/mitchellh/cli"

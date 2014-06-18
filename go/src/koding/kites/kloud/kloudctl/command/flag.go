@@ -22,7 +22,7 @@ type Flag struct {
 func NewFlag(name, synopsis string) *Flag {
 	flagSet := flag.NewFlagSet(name, flag.PanicOnError)
 	flagSet.SetOutput(ioutil.Discard)
-	flagSet.BoolVar(&flagRandomKite, "random-kite", false, "Enable random choosing of kites for many options.")
+	flagSet.BoolVar(&flagRandomKite, "random-kite", false, "Choose random kloud instance if there are multiple instances available.")
 
 	f := &Flag{
 		name:     name,
@@ -36,11 +36,14 @@ func NewFlag(name, synopsis string) *Flag {
 func (f *Flag) Synopsis() string { return f.synopsis }
 
 func (f *Flag) Help() string {
-	help := fmt.Sprintf("usage of %s:\n\n", f.name)
+	help := fmt.Sprintf("usage: kloudctl %s [<args>]\n\n", f.name)
+	help += f.synopsis + "\n\n"
 	f.VisitAll(func(fl *flag.Flag) {
 		format := "  -%s=%s: %s\n"
 		help += fmt.Sprintf(format, fl.Name, fl.DefValue, fl.Usage)
 	})
+
+	help += "\n"
 
 	return help
 }
