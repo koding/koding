@@ -276,7 +276,8 @@ class IDEAppController extends AppController
     for ideView in @ideViews
       for pane in ideView.tabView.panes
         view = pane.getSubViews().first
-        if paneType and view.getOptions().paneType is paneType
+        if paneType
+          if view.getOptions().paneType is paneType
             callback view
         else
           callback view
