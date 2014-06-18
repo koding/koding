@@ -238,8 +238,8 @@ func (n *Notification) buildNotificationContainer(actorId int64, nc *Notificatio
 
 func deductContentIds(nList []Notification) []int64 {
 	notificationContentIds := make([]int64, len(nList))
-	for _, n := range nList {
-		notificationContentIds = append(notificationContentIds, n.NotificationContentId)
+	for i, n := range nList {
+		notificationContentIds[i] = n.NotificationContentId
 	}
 
 	return notificationContentIds

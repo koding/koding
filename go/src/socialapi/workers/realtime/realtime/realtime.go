@@ -300,6 +300,7 @@ func (f *Controller) MessageListUpdated(cml *models.ChannelMessageList) error {
 	cp.AccountId = c.CreatorId
 
 	cue := &channelUpdatedEvent{
+		Controller:           f,
 		Channel:              c,
 		ParentChannelMessage: cm,
 		ChannelParticipant:   cp,
