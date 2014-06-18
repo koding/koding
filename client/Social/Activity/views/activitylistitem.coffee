@@ -97,8 +97,8 @@ class ActivityListItemView extends KDListItemView
     body = fn body for fn in fns
     return body
 
-  transformTags: (text = '') ->
 
+  transformTags: (text = '') ->
 
     {slug}   = KD.getGroup()
 
@@ -128,6 +128,7 @@ class ActivityListItemView extends KDListItemView
         parts[index] = "\n```#{part}\n```\n"
 
     parts.join ''
+
 
   setAnchors: ->
 
