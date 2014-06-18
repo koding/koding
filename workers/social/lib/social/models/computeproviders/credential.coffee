@@ -217,6 +217,20 @@ module.exports = class JCredential extends jraphical.Module
             callback null, []
 
 
+  setPermissionFor: (target, {user, owner}, callback)->
+
+    Relationship.remove
+      targetId : @getId()
+      sourceId : target.getId()
+    , (err)->
+
+      if user
+        as = if owner then 'owner' else 'user'
+        target.addCredential this, { as }, (err)-> callback err
+      else
+        callback err
+
+
   # .share can be used like this:
   #
   # JCredentialInstance.share { user: yes, owner: no, target: "gokmen"}, cb
