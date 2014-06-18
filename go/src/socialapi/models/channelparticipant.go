@@ -295,7 +295,7 @@ func (c *ChannelParticipant) FetchParticipantCount() (int, error) {
 
 func (c *ChannelParticipant) IsParticipant(accountId int64) (bool, error) {
 	if c.ChannelId == 0 {
-		return false, errors.New("Channel.Id is not set")
+		return false, errors.New("channel Id is not set")
 	}
 
 	selector := map[string]interface{}{
