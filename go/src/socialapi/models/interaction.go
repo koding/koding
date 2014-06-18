@@ -2,6 +2,7 @@ package models
 
 import (
 	"errors"
+	"socialapi/request"
 	"time"
 
 	"github.com/jinzhu/gorm"
@@ -125,7 +126,7 @@ func (i *Interaction) Delete() error {
 	return nil
 }
 
-func (c *Interaction) List(query *Query) ([]int64, error) {
+func (c *Interaction) List(query *request.Query) ([]int64, error) {
 	var interactions []int64
 
 	if c.MessageId == 0 {

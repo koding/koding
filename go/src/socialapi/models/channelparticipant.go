@@ -3,6 +3,7 @@ package models
 import (
 	"errors"
 	"fmt"
+	"socialapi/request"
 	"time"
 
 	"github.com/jinzhu/gorm"
@@ -251,7 +252,7 @@ func (c *ChannelParticipant) ListAccountIds(limit int) ([]int64, error) {
 	return participants, nil
 }
 
-func (c *ChannelParticipant) FetchParticipatedChannelIds(a *Account, q *Query) ([]int64, error) {
+func (c *ChannelParticipant) FetchParticipatedChannelIds(a *Account, q *request.Query) ([]int64, error) {
 	if a.Id == 0 {
 		return nil, errors.New("Account.Id is not set")
 	}

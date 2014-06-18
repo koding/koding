@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"net/url"
 	"socialapi/models"
-	"socialapi/workers/common/request"
+	"socialapi/request"
 	"socialapi/workers/common/response"
 	"time"
 

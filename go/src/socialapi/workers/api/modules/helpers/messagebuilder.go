@@ -2,11 +2,12 @@ package helpers
 
 import (
 	"socialapi/models"
+	"socialapi/request"
 
 	"github.com/koding/bongo"
 )
 
-func FetchAll(channelId int64, query *models.Query, accountId int64) {
+func FetchAll(channelId int64, query *request.Query, accountId int64) {
 	ConvertMessagesToMessageContainers(
 		FetchMessagesByIds(
 			FetchMessageIdsByChannelId(channelId, query),
@@ -14,7 +15,7 @@ func FetchAll(channelId int64, query *models.Query, accountId int64) {
 	)
 }
 
-func FetchMessageIdsByChannelId(channelId int64, q *models.Query) ([]int64, error) {
+func FetchMessageIdsByChannelId(channelId int64, q *request.Query) ([]int64, error) {
 	query := &bongo.Query{
 		Selector: map[string]interface{}{
 			"channel_id": channelId,

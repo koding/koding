@@ -3,6 +3,7 @@ package trollmode
 import (
 	"encoding/json"
 	"socialapi/models"
+	"socialapi/request"
 
 	"github.com/koding/logging"
 	"github.com/koding/worker"
@@ -63,7 +64,7 @@ func (t *TrollModeController) MarkedAsTroll(account *models.Account) error {
 		return nil
 	}
 
-	query := &models.Query{
+	query := &request.Query{
 		Type:      models.ChannelMessage_TYPE_POST,
 		AccountId: account.Id,
 	}

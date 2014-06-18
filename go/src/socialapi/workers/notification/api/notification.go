@@ -6,9 +6,9 @@ import (
 	"net/http"
 	"net/url"
 	"socialapi/config"
+	"socialapi/request"
 	// TODO delete these socialapi dependencies
 	socialmodels "socialapi/models"
-	"socialapi/workers/common/request"
 	"socialapi/workers/common/response"
 	"socialapi/workers/notification/models"
 	"strconv"
@@ -47,7 +47,7 @@ func List(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface
 }
 
 func Glance(u *url.URL, h http.Header, req *models.Notification) (int, http.Header, interface{}, error) {
-	q := socialmodels.NewQuery()
+	q := request.NewQuery()
 	q.AccountId = req.AccountId
 	if err := validateNotificationRequest(q); err != nil {
 		return response.NewBadRequest(err)
@@ -59,7 +59,7 @@ func Glance(u *url.URL, h http.Header, req *models.Notification) (int, http.Head
 	return response.NewDefaultOK()
 }
 
-func fetchNotifications(q *socialmodels.Query) (*models.NotificationResponse, error) {
+func fetchNotifications(q *request.Query) (*models.NotificationResponse, error) {
 	var list *models.NotificationResponse
 	var err error
 
@@ -96,7 +96,7 @@ func fetchNotifications(q *socialmodels.Query) (*models.NotificationResponse, er
 	return list, nil
 }
 
-func validateNotificationRequest(q *socialmodels.Query) error {
+func validateNotificationRequest(q *request.Query) error {
 	if err := validateAccount(q.AccountId); err != nil {
 		return err
 	}

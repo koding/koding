@@ -2,6 +2,7 @@ package models
 
 import (
 	"errors"
+	"socialapi/request"
 	"time"
 
 	"github.com/jinzhu/gorm"
@@ -113,7 +114,7 @@ func (c *ChannelMessageList) Delete() error {
 	return bongo.B.Delete(c)
 }
 
-func (c *ChannelMessageList) List(q *Query, populateUnreadCount bool) (*HistoryResponse, error) {
+func (c *ChannelMessageList) List(q *request.Query, populateUnreadCount bool) (*HistoryResponse, error) {
 	messageList, err := c.getMessages(q)
 	if err != nil {
 		return nil, err
@@ -151,7 +152,7 @@ func (c *ChannelMessageList) populateUnreadCount(messageList []*ChannelMessageCo
 	return messageList
 }
 
-func (c *ChannelMessageList) getMessages(q *Query) ([]*ChannelMessageContainer, error) {
+func (c *ChannelMessageList) getMessages(q *request.Query) ([]*ChannelMessageContainer, error) {
 	var messages []int64
 
 	if c.ChannelId == 0 {
@@ -216,7 +217,7 @@ func (c *ChannelMessageList) IsInChannel(messageId, channelId int64) (bool, erro
 	return false, err
 }
 
-func (c *ChannelMessageList) populateChannelMessages(channelMessages []ChannelMessage, query *Query) ([]*ChannelMessageContainer, error) {
+func (c *ChannelMessageList) populateChannelMessages(channelMessages []ChannelMessage, query *request.Query) ([]*ChannelMessageContainer, error) {
 	channelMessageCount := len(channelMessages)
 
 	populatedChannelMessages := make([]*ChannelMessageContainer, channelMessageCount)
@@ -265,7 +266,7 @@ func (c *ChannelMessageList) FetchMessageChannels(messageId int64) ([]Channel, e
 	return NewChannel().FetchByIds(channelIds)
 }
 
-func (c *ChannelMessageList) FetchMessageIdsByChannelId(channelId int64, q *Query) ([]int64, error) {
+func (c *ChannelMessageList) FetchMessageIdsByChannelId(channelId int64, q *request.Query) ([]int64, error) {
 	query := &bongo.Query{
 		Selector: map[string]interface{}{
 			"channel_id": channelId,

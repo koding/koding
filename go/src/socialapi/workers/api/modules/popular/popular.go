@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"net/url"
 	"socialapi/models"
-	"socialapi/workers/common/request"
+	"socialapi/request"
 	"socialapi/workers/common/response"
 	"socialapi/workers/helper"
 	"socialapi/workers/popularpost/popularpost"
@@ -33,7 +33,7 @@ func getDateNumberAndYear(statisticName string) (int, int, error) {
 	}
 }
 
-func getIds(key string, query *models.Query) ([]int64, error) {
+func getIds(key string, query *request.Query) ([]int64, error) {
 	// limit-1 is important, because redis is using 0 based index
 	popularIds := make([]int64, 0)
 	listIds, err := helper.MustGetRedisConn().
@@ -98,7 +98,7 @@ func ListTopics(u *url.URL, h http.Header, _ interface{}) (int, http.Header, int
 	)
 }
 
-func extendPopularTopicsIfNeeded(query *models.Query, popularTopics []int64) ([]int64, error) {
+func extendPopularTopicsIfNeeded(query *request.Query, popularTopics []int64) ([]int64, error) {
 	toBeAddedItemCount := query.Limit - len(popularTopics)
 
 	if toBeAddedItemCount > 0 {
@@ -130,7 +130,7 @@ func extendPopularTopicsIfNeeded(query *models.Query, popularTopics []int64) ([]
 }
 
 func fetchMoreChannels(group string, count int) ([]models.Channel, error) {
-	q := models.NewQuery()
+	q := request.NewQuery()
 	q.GroupName = group
 	q.Limit = count
 	q.Type = models.Channel_TYPE_TOPIC
@@ -184,7 +184,7 @@ func ListPosts(u *url.URL, h http.Header, _ interface{}) (int, http.Header, inte
 	)
 }
 
-func extendPopularPostsIfNeeded(query *models.Query, popularPostIds []int64, channelName string) ([]int64, error) {
+func extendPopularPostsIfNeeded(query *request.Query, popularPostIds []int64, channelName string) ([]int64, error) {
 	toBeAddedItemCount := query.Limit - len(popularPostIds)
 	if toBeAddedItemCount > 0 {
 		c := models.NewChannel()

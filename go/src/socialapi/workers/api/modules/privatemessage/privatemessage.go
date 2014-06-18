@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"net/url"
 	"socialapi/models"
-	"socialapi/workers/common/request"
+	"socialapi/request"
 	"socialapi/workers/common/response"
 
 	"github.com/koding/bongo"
@@ -130,7 +130,7 @@ func List(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface
 	)
 }
 
-func getPrivateMessageChannels(q *models.Query) ([]models.Channel, error) {
+func getPrivateMessageChannels(q *request.Query) ([]models.Channel, error) {
 	// build query for
 	c := models.NewChannel()
 	channelIds := make([]int64, 0)

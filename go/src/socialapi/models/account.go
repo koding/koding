@@ -3,6 +3,7 @@ package models
 import (
 	"errors"
 	"fmt"
+	"socialapi/request"
 
 	"github.com/jinzhu/gorm"
 	"github.com/koding/bongo"
@@ -99,7 +100,7 @@ func (a *Account) Some(data interface{}, q *bongo.Query) error {
 	return bongo.B.Some(a, data, q)
 }
 
-func (a *Account) FetchChannels(q *Query) ([]Channel, error) {
+func (a *Account) FetchChannels(q *request.Query) ([]Channel, error) {
 	cp := NewChannelParticipant()
 	// fetch channel ids
 	cids, err := cp.FetchParticipatedChannelIds(a, q)
