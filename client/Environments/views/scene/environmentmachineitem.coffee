@@ -35,11 +35,10 @@ class EnvironmentMachineItem extends EnvironmentItem
     @addSubView @statusToggle = new KodingSwitch
       cssClass     : "tiny"
       defaultValue : status.state is Machine.State.Running
-      callback     : (state)=>
+      callback     : (state)->
         if state
-          computeController.start machine
-        else
-          computeController.stop machine
+        then computeController.start machine
+        else computeController.stop machine
 
     @addSubView @progress = new KDProgressBarView
       cssClass : "progress"
