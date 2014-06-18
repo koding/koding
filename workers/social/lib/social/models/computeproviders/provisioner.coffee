@@ -85,6 +85,7 @@ module.exports = class JProvisioner extends jraphical.Module
 
       meta            : require 'bongo/bundles/meta'
 
+  @getName = -> 'JProvisioner'
 
   checkContent = (type, content)->
 
@@ -104,7 +105,6 @@ module.exports = class JProvisioner extends jraphical.Module
     err = new KodingError err  if err?
     return [err, content]
 
-  fetchUsers: JCredential::fetchUsers
 
   @create = permit 'create provisioner',
 
@@ -155,52 +155,17 @@ module.exports = class JProvisioner extends jraphical.Module
           callback err, res
 
 
-  @one$: permit 'list provisioners',
+  @one$ = permit 'list provisioners',
 
     success: (client, slug, callback)->
 
       @fetchBySlug client, slug, callback
 
 
-  @some$: permit 'list provisioners',
+  @some$ = permit 'list provisioners', success: JCredential::someHelper
 
-    success: (client, selector, options, callback)->
 
-      [options, callback] = [callback, options]  unless callback
-      options ?= {}
-
-      { delegate } = client.connection
-      provisioners  = []
-
-      relSelector  =
-        targetName : "JProvisioner"
-        sourceId   : delegate.getId()
-
-      if selector.as? and selector.as in ['owner', 'user']
-        relSelector.as = selector.as
-        delete selector.as
-
-      Relationship.someData relSelector, { targetId:1, as:1 }, (err, cursor)->
-
-        return callback err  if err?
-
-        cursor.toArray (err, arr)->
-
-          map = arr.reduce (memo, doc)->
-            memo[doc.targetId] = doc.as
-            memo
-          , {}
-
-          selector    ?= {}
-          selector._id = $in: (t.targetId for t in arr)
-
-          JProvisioner.some selector, options, (err, provisioners)->
-            return callback err  if err?
-
-            for provisioner in provisioners
-              provisioner.owner = yes  if map[provisioner._id] is 'owner'
-
-            callback null, provisioners
+  fetchUsers: JCredential::fetchUsers
 
 
   setPermissionFor: (target, {user, owner}, callback)->
