@@ -187,6 +187,11 @@ class AccountCredentialList extends KDListView
     credential = item.getData()
     @emit "ShowShareCredentialFormFor", credential
 
+  showItemParticipants: (item)->
+
+    credential = item.getData()
+    credential.fetchUsers (err, users)->
+      info err, users
 
   showItemContent: (item)->
 
@@ -239,10 +244,16 @@ class AccountCredentialListItem extends KDListItemView
       disabled : !@getData().owner
       callback : => delegate.showItemContent this
 
+    @participantsButton = new KDButtonView
+      title    : "Show Participants"
+      cssClass : "solid small green"
+      callback : => delegate.showItemParticipants this
+
   pistachio:->
     """
      {h1{#(title)}} {span{#(provider)}}
      <div class='buttons'>
-      {{> @showCredentialButton}}{{> @deleteButton}}{{> @shareButton}}
+      {{> @showCredentialButton}}{{> @deleteButton}}
+      {{> @shareButton}}{{> @participantsButton}}
      </div>
     """
