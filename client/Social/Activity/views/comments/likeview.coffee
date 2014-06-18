@@ -1,9 +1,11 @@
 class CommentLikeView extends ActivityLikeView
 
+  constructor : (options = {}, data) ->
+
+    super options, data
+
   pistachio: ->
 
     '''
-    <span class='comment-actions''>
     {{> @link}}{{> @count}}
-    </span>
     '''
