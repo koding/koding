@@ -29,7 +29,7 @@ var ErrNil = errors.New("redigo: nil returned")
 //
 //  Reply type    Result
 //  integer       int(reply), nil
-//  bulk          parsed reply, nil
+//  bulk string   parsed reply, nil
 //  nil           0, ErrNil
 //  other         0, error
 func Int(reply interface{}, err error) (int, error) {
@@ -60,7 +60,7 @@ func Int(reply interface{}, err error) (int, error) {
 //
 //  Reply type    Result
 //  integer       reply, nil
-//  bulk          parsed reply, nil
+//  bulk string   parsed reply, nil
 //  nil           0, ErrNil
 //  other         0, error
 func Int64(reply interface{}, err error) (int64, error) {
@@ -81,12 +81,44 @@ func Int64(reply interface{}, err error) (int64, error) {
 	return 0, fmt.Errorf("redigo: unexpected type for Int64, got type %T", reply)
 }
 
+var errNegativeInt = errors.New("redigo: unexpected value for Uint64")
+
+// Uint64 is a helper that converts a command reply to 64 bit integer. If err is
+// not equal to nil, then Int returns 0, err. Otherwise, Int64 converts the
+// reply to an int64 as follows:
+//
+//  Reply type    Result
+//  integer       reply, nil
+//  bulk string   parsed reply, nil
+//  nil           0, ErrNil
+//  other         0, error
+func Uint64(reply interface{}, err error) (uint64, error) {
+	if err != nil {
+		return 0, err
+	}
+	switch reply := reply.(type) {
+	case int64:
+		if reply < 0 {
+			return 0, errNegativeInt
+		}
+		return uint64(reply), nil
+	case []byte:
+		n, err := strconv.ParseUint(string(reply), 10, 64)
+		return n, err
+	case nil:
+		return 0, ErrNil
+	case Error:
+		return 0, reply
+	}
+	return 0, fmt.Errorf("redigo: unexpected type for Uint64, got type %T", reply)
+}
+
 // Float64 is a helper that converts a command reply to 64 bit float. If err is
 // not equal to nil, then Float64 returns 0, err. Otherwise, Float64 converts
 // the reply to an int as follows:
 //
 //  Reply type    Result
-//  bulk          parsed reply, nil
+//  bulk string   parsed reply, nil
 //  nil           0, ErrNil
 //  other         0, error
 func Float64(reply interface{}, err error) (float64, error) {
@@ -110,8 +142,8 @@ func Float64(reply interface{}, err error) (float64, error) {
 // reply to a string as follows:
 //
 //  Reply type      Result
-//  bulk            string(reply), nil
-//  status          reply, nil
+//  bulk string     string(reply), nil
+//  simple string   reply, nil
 //  nil             "",  ErrNil
 //  other           "",  error
 func String(reply interface{}, err error) (string, error) {
@@ -136,8 +168,8 @@ func String(reply interface{}, err error) (string, error) {
 // the reply to a slice of bytes as follows:
 //
 //  Reply type      Result
-//  bulk            reply, nil
-//  status          []byte(reply), nil
+//  bulk string     reply, nil
+//  simple string   []byte(reply), nil
 //  nil             nil, ErrNil
 //  other           nil, error
 func Bytes(reply interface{}, err error) ([]byte, error) {
@@ -163,7 +195,7 @@ func Bytes(reply interface{}, err error) ([]byte, error) {
 //
 //  Reply type      Result
 //  integer         value != 0, nil
-//  bulk            strconv.ParseBool(reply)
+//  bulk string     strconv.ParseBool(reply)
 //  nil             false, ErrNil
 //  other           false, error
 func Bool(reply interface{}, err error) (bool, error) {
@@ -186,12 +218,12 @@ func Bool(reply interface{}, err error) (bool, error) {
 // MultiBulk is deprecated. Use Values.
 func MultiBulk(reply interface{}, err error) ([]interface{}, error) { return Values(reply, err) }
 
-// Values is a helper that converts a multi-bulk command reply to a
-// []interface{}. If err is not equal to nil, then Values returns nil, err.
-// Otherwise, Multi converts the reply as follows:
+// Values is a helper that converts an array command reply to a []interface{}.
+// If err is not equal to nil, then Values returns nil, err. Otherwise, Values
+// converts the reply as follows:
 //
 //  Reply type      Result
-//  multi-bulk      reply, nil
+//  array           reply, nil
 //  nil             nil, ErrNil
 //  other           nil, error
 func Values(reply interface{}, err error) ([]interface{}, error) {
@@ -209,9 +241,9 @@ func Values(reply interface{}, err error) ([]interface{}, error) {
 	return nil, fmt.Errorf("redigo: unexpected type for Values, got type %T", reply)
 }
 
-// Strings is a helper that converts a multi-bulk command reply to a []string.
-// If err is not equal to nil, then Strings returns nil, err.  If one if the
-// multi-bulk items is not a bulk value or nil, then Strings returns an error.
+// Strings is a helper that converts an array command reply to a []string. If
+// err is not equal to nil, then Strings returns nil, err. If one of the array
+// items is not a bulk string or nil, then Strings returns an error.
 func Strings(reply interface{}, err error) ([]string, error) {
 	if err != nil {
 		return nil, err

@@ -75,7 +75,7 @@ class ActivityAppView extends KDScrollView
       socialapi.cacheable type_, slug, (err, data) =>
         if err then router.handleNotFound router.getCurrentPath()
         else
-          @sidebar.addToChannel data
+          @sidebar.addItem data
           kallback data
 
     else
