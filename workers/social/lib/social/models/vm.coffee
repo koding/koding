@@ -129,13 +129,13 @@ module.exports = class JVM extends Module
         default         : no
       maxMemoryInMB     :
         type            : Number
-        default         : KONFIG.defaultVMConfigs.freeVM.ram ? 1024
+        default         : 1024
       diskSizeInMB      :
         type            : Number
-        default         : KONFIG.defaultVMConfigs.freeVM.storage ? VMDefaultDiskSize
+        default         : VMDefaultDiskSize
       numCPUs           :
         type            : Number
-        default         : KONFIG.defaultVMConfigs.freeVM.cpu ? 1
+        default         : 1
       stack             : ObjectId
       meta              : Object
       state             :
