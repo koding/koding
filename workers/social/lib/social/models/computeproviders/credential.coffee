@@ -231,6 +231,37 @@ module.exports = class JCredential extends jraphical.Module
         callback err
 
 
+  shareWith: (client, options, callback)->
+
+    { delegate } = client.connection
+    { target, user, owner } = options
+    user ?= yes
+
+    # Owners cannot unassign them from a credential
+    # Only another owner can unassign any other owner
+    if delegate.profile.nickname is target
+      return callback null
+
+    JName.fetchModels target, (err, result)=>
+
+      if err or not result
+        return callback new KodingError "Target not found."
+
+      { models } = result
+      [ target ] = models
+
+      if target instanceof JUser
+        target.fetchOwnAccount (err, account)=>
+          if err or not account
+            return callback new KodingError "Failed to fetch account."
+          @setPermissionFor account, {user, owner}, callback
+
+      else if target instanceof JGroup
+        @setPermissionFor target, {user, owner}, callback
+
+      else
+        callback new KodingError "Target does not support credentials."
+
   # .share can be used like this:
   #
   # JCredentialInstance.share { user: yes, owner: no, target: "gokmen"}, cb
