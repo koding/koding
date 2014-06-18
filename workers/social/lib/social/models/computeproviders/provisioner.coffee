@@ -1,8 +1,9 @@
 
-jraphical       = require 'jraphical'
-JName           = require '../name'
-JUser           = require '../user'
-JGroup          = require '../group'
+jraphical   = require 'jraphical'
+JName       = require '../name'
+JUser       = require '../user'
+JGroup      = require '../group'
+JCredential = require './credential'
 
 module.exports = class JProvisioner extends jraphical.Module
 
@@ -103,33 +104,7 @@ module.exports = class JProvisioner extends jraphical.Module
     err = new KodingError err  if err?
     return [err, content]
 
-
-  fetchUsers: permit
-
-    advanced: [
-      { permission: 'update provisioner', validateWith: Validators.own }
-    ]
-
-    success: (client, callback)->
-
-      Relationship.someData targetId : @getId(), {
-        as:1, sourceId:1, sourceName:1
-      }, (err, cursor)->
-
-        return callback err  if err?
-
-        cursor.toArray (err, arr)->
-          return callback err  if err?
-
-          if arr.length > 0
-            callback null, ({
-              constructorName : u.sourceName
-              _id : u.sourceId
-              as  : u.as
-            } for u in arr)
-          else
-            callback null, []
-
+  fetchUsers: JCredential::fetchUsers
 
   @create = permit 'create provisioner',
 
