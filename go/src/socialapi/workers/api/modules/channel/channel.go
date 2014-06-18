@@ -124,7 +124,7 @@ func CheckParticipation(u *url.URL, h http.Header, _ interface{}) (int, http.Hea
 			))
 	}
 
-	return response.NewOK(cp)
+	return response.NewOK(channel)
 }
 
 func Delete(u *url.URL, h http.Header, req *models.Channel) (int, http.Header, interface{}, error) {
