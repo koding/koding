@@ -4,7 +4,6 @@ option '-s', '--dontBuildSprites', 'dont build sprites'
 option '-g', '--evengo', 'pass evengo to corresponding command'
 option '-r', '--region [REGION]', 'region flag'
 option '-w', '--worker [WORKER]', 'run a specific worker'
-option '-i', '--IP [IP]', 'droplet IP'
 
 require 'colors'
 
@@ -15,7 +14,6 @@ processes         = new (require "processes") main : true
 {daisy}           = require 'sinkrow'
 nodePath          = require 'path'
 fs                = require 'fs'
-{exec}            = require 'child_process'
 DigitalOceanAPI   = 
 doApi             = new (require 'digitalocean-api')('2d314ba76e8965c451f62d7e6a4bc56f', '4c88127b50c0c731aeb5129bdea06deb')
 Watcher           = require 'koding-watcher'
@@ -54,12 +52,10 @@ task 'y',->
     console.log "donnnnee."
   
 task 'z',->
-  doApi.sshKeyGetAll (err,res)->  console.log arguments
+  doApi.sshKeyAdd "foo", publicKey, (err,res)->
+    console.log arguments
 
-task "konnect",'',->
-  konnect argv.i
-
-konnect = (IP,username="root",password,callback) ->
+konnect = (IP,username,password,callback) ->
 
   Connection = require("ssh2")
   conn = new Connection()
@@ -85,8 +81,7 @@ konnect = (IP,username="root",password,callback) ->
             console.log "Stream :: close"
             conn.end()
       
-          stream.on "data", (data) -> 
-            console.log (data+"").replace("\n","")
+          stream.on "data", (data) -> data.replace("\n","")
   
   #     stream.stderr.on "data", (data) ->
   #       console.log "STDERR: " + data
@@ -96,8 +91,7 @@ konnect = (IP,username="root",password,callback) ->
     port         : 22
     username     : username
     privateKey   : require("fs").readFileSync(process.env['HOME']+"/.ssh/id_rsa")
-    publicKey    : publicKey
-    readyTimeout : 60000
+    readyTimeout : 30000
 
 task "cleanDroplets","",->
 
@@ -175,11 +169,9 @@ task 'droplet',"",->
                       unless err
                         console.log "droplet is ready."
                         console.log "ssh root@"+domainName
-                        console.log "ssh root@"+droplet.ip_address
-                        setTimeout ->                      
-                          konnect droplet.ip_address,"root","",->
-                            console.log "done"
-                        ,10000
+                        console.log "ssh root@"+droplet.ip_address                      
+                        konnect droplet.ip_address,"root","",->
+                          console.log "done"
         ,1000
 
 task 'run', (options)->
