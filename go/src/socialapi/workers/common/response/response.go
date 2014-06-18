@@ -18,6 +18,13 @@ func NewBadRequest(err error) (int, http.Header, interface{}, error) {
 	return http.StatusBadRequest, nil, nil, BadRequest{err}
 }
 
+// not to leak info about the resource
+// do send NotFound err
+func NewAccessDenied(err error) (int, http.Header, interface{}, error) {
+	helper.MustGetLogger().Error("Access Denied Err: %s", err.Error())
+	return NewNotFound()
+}
+
 func HandleResultAndError(res interface{}, err error) (int, http.Header, interface{}, error) {
 	if err != nil {
 		if err == gorm.RecordNotFound {
