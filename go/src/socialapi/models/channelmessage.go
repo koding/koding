@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"socialapi/config"
+	"socialapi/request"
 	"time"
 
 	"github.com/VerbalExpressions/GoVerbalExpressions"
@@ -230,7 +231,7 @@ func (c *ChannelMessage) FetchByIds(ids []int64) ([]ChannelMessage, error) {
 	return messages, nil
 }
 
-func (c *ChannelMessage) BuildMessages(query *Query, messages []ChannelMessage) ([]*ChannelMessageContainer, error) {
+func (c *ChannelMessage) BuildMessages(query *request.Query, messages []ChannelMessage) ([]*ChannelMessageContainer, error) {
 	containers := make([]*ChannelMessageContainer, len(messages))
 	if len(containers) == 0 {
 		return containers, nil
@@ -249,7 +250,7 @@ func (c *ChannelMessage) BuildMessages(query *Query, messages []ChannelMessage) 
 	return containers, nil
 }
 
-func (c *ChannelMessage) BuildMessage(query *Query) (*ChannelMessageContainer, error) {
+func (c *ChannelMessage) BuildMessage(query *request.Query) (*ChannelMessageContainer, error) {
 	cmc, err := c.FetchRelatives(query)
 	if err != nil {
 		return nil, err
@@ -288,7 +289,7 @@ func (c *ChannelMessage) BuildMessage(query *Query) (*ChannelMessageContainer, e
 	return cmc, nil
 }
 
-func (c *ChannelMessage) CheckIsMessageFollowed(query *Query) (bool, error) {
+func (c *ChannelMessage) CheckIsMessageFollowed(query *request.Query) (bool, error) {
 	channel := NewChannel()
 	if err := channel.FetchPinnedActivityChannel(query.AccountId, query.GroupName); err != nil {
 		if err == gorm.RecordNotFound {
@@ -340,7 +341,7 @@ func (c *ChannelMessage) BuildEmptyMessageContainer() (*ChannelMessageContainer,
 	return container, nil
 }
 
-func (c *ChannelMessage) FetchRelatives(query *Query) (*ChannelMessageContainer, error) {
+func (c *ChannelMessage) FetchRelatives(query *request.Query) (*ChannelMessageContainer, error) {
 	container, err := c.BuildEmptyMessageContainer()
 	if err != nil {
 		return nil, err
@@ -385,7 +386,7 @@ func (c *ChannelMessage) FetchRelatives(query *Query) (*ChannelMessageContainer,
 	return container, nil
 }
 
-func generateMessageListQuery(channelId int64, q *Query) *bongo.Query {
+func generateMessageListQuery(channelId int64, q *request.Query) *bongo.Query {
 	messageType := q.Type
 	if messageType == "" {
 		messageType = ChannelMessage_TYPE_POST
@@ -404,7 +405,7 @@ func generateMessageListQuery(channelId int64, q *Query) *bongo.Query {
 	}
 }
 
-func (c *ChannelMessage) FetchMessagesByChannelId(channelId int64, q *Query) ([]ChannelMessage, error) {
+func (c *ChannelMessage) FetchMessagesByChannelId(channelId int64, q *request.Query) ([]ChannelMessage, error) {
 	query := generateMessageListQuery(channelId, q)
 
 	var messages []ChannelMessage
@@ -439,7 +440,7 @@ func (c *ChannelMessage) GetMentionedUsernames() []string {
 	return flattened
 }
 
-func (c *ChannelMessage) FetchTotalMessageCount(q *Query) (int, error) {
+func (c *ChannelMessage) FetchTotalMessageCount(q *request.Query) (int, error) {
 	query := &bongo.Query{
 		Selector: map[string]interface{}{
 			"account_id":    q.AccountId,
@@ -451,7 +452,7 @@ func (c *ChannelMessage) FetchTotalMessageCount(q *Query) (int, error) {
 	return c.CountWithQuery(query)
 }
 
-func (c *ChannelMessage) FetchMessageIds(q *Query) ([]int64, error) {
+func (c *ChannelMessage) FetchMessageIds(q *request.Query) ([]int64, error) {
 	query := &bongo.Query{
 		Selector: map[string]interface{}{
 			"account_id":    q.AccountId,
@@ -478,7 +479,7 @@ func (c *ChannelMessage) FetchMessageIds(q *Query) ([]int64, error) {
 
 // BySlug fetchs channel message by its slug
 // checks if message is in the channel or not
-func (c *ChannelMessage) BySlug(query *Query) error {
+func (c *ChannelMessage) BySlug(query *request.Query) error {
 	if query.Slug == "" {
 		return errors.New("slug is not set")
 	}

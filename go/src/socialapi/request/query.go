@@ -1,4 +1,4 @@
-package models
+package request
 
 import (
 	"net/url"

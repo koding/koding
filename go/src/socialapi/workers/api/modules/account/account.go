@@ -4,18 +4,19 @@ import (
 	"net/http"
 	"net/url"
 	"socialapi/models"
-	"socialapi/workers/api/modules/helpers"
+	"socialapi/request"
+	"socialapi/workers/common/response"
 
 	"github.com/koding/bongo"
 )
 
 // lists followed channels of an account
 func ListChannels(u *url.URL, h http.Header, _ interface{}, c *models.Context) (int, http.Header, interface{}, error) {
-	query := helpers.GetQuery(u)
+	query := request.GetQuery(u)
 
-	accountId, err := helpers.GetURIInt64(u, "id")
+	accountId, err := request.GetURIInt64(u, "id")
 	if err != nil {
-		return helpers.NewBadRequestResponse(err)
+		return response.NewBadRequest(err)
 	}
 
 	if query.Type == "" {
@@ -25,21 +26,21 @@ func ListChannels(u *url.URL, h http.Header, _ interface{}, c *models.Context) (
 	a := &models.Account{Id: accountId}
 	channels, err := a.FetchChannels(query)
 	if err != nil {
-		return helpers.NewBadRequestResponse(err)
+		return response.NewBadRequest(err)
 	}
 
-	return helpers.HandleResultAndError(
+	return response.HandleResultAndError(
 		models.PopulateChannelContainersWithUnreadCount(channels, accountId),
 	)
 }
 
 func ListPosts(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface{}, error) {
-	query := helpers.GetQuery(u)
+	query := request.GetQuery(u)
 	buildMessageQuery := query
 
-	accountId, err := helpers.GetURIInt64(u, "id")
+	accountId, err := request.GetURIInt64(u, "id")
 	if err != nil {
-		return helpers.NewBadRequestResponse(err)
+		return response.NewBadRequest(err)
 	}
 
 	// Get Group Channel
@@ -50,7 +51,7 @@ func ListPosts(u *url.URL, h http.Header, _ interface{}) (int, http.Header, inte
 
 	c := models.NewChannel()
 	if err := c.One(bongo.NewQS(selector)); err != nil {
-		return helpers.NewBadRequestResponse(err)
+		return response.NewBadRequest(err)
 	}
 	// fetch only channel messages
 	query.Type = models.ChannelMessage_TYPE_POST
@@ -58,22 +59,22 @@ func ListPosts(u *url.URL, h http.Header, _ interface{}) (int, http.Header, inte
 	cm := models.NewChannelMessage()
 	messages, err := cm.FetchMessagesByChannelId(c.Id, query)
 	if err != nil {
-		return helpers.NewBadRequestResponse(err)
+		return response.NewBadRequest(err)
 	}
 
 	buildMessageQuery.Limit = 3
-	return helpers.HandleResultAndError(
+	return response.HandleResultAndError(
 		cm.BuildMessages(buildMessageQuery, messages),
 	)
 }
 
 func Follow(u *url.URL, h http.Header, req *models.Account) (int, http.Header, interface{}, error) {
-	targetId, err := helpers.GetURIInt64(u, "id")
+	targetId, err := request.GetURIInt64(u, "id")
 	if err != nil {
-		return helpers.NewBadRequestResponse(err)
+		return response.NewBadRequest(err)
 	}
 
-	return helpers.HandleResultAndError(
+	return response.HandleResultAndError(
 		req.Follow(targetId),
 	)
 }
@@ -81,17 +82,17 @@ func Follow(u *url.URL, h http.Header, req *models.Account) (int, http.Header, i
 func Register(u *url.URL, h http.Header, req *models.Account) (int, http.Header, interface{}, error) {
 
 	if err := req.FetchOrCreate(); err != nil {
-		return helpers.NewBadRequestResponse(err)
+		return response.NewBadRequest(err)
 	}
 
-	return helpers.NewOKResponse(req)
+	return response.NewOK(req)
 }
 
 func Unfollow(u *url.URL, h http.Header, req *models.Account) (int, http.Header, interface{}, error) {
-	targetId, err := helpers.GetURIInt64(u, "id")
+	targetId, err := request.GetURIInt64(u, "id")
 	if err != nil {
-		return helpers.NewBadRequestResponse(err)
+		return response.NewBadRequest(err)
 	}
 
-	return helpers.HandleResultAndError(req.Unfollow(targetId))
+	return response.HandleResultAndError(req.Unfollow(targetId))
 }

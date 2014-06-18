@@ -2,6 +2,7 @@ package models
 
 import (
 	"errors"
+	"socialapi/request"
 	"time"
 
 	"github.com/jinzhu/gorm"
@@ -144,18 +145,18 @@ func (m *MessageReply) DeleteByOrQuery(messageId int64) error {
 	return nil
 }
 
-func (m *MessageReply) List(query *Query) ([]ChannelMessage, error) {
+func (m *MessageReply) List(query *request.Query) ([]ChannelMessage, error) {
 	return m.fetchMessages(query)
 }
 
 func (m *MessageReply) ListAll() ([]ChannelMessage, error) {
-	query := NewQuery()
+	query := request.NewQuery()
 	query.Limit = 0
 	query.Skip = 0
 	return m.fetchMessages(query)
 }
 
-func (m *MessageReply) fetchMessages(query *Query) ([]ChannelMessage, error) {
+func (m *MessageReply) fetchMessages(query *request.Query) ([]ChannelMessage, error) {
 	var replies []int64
 
 	if m.MessageId == 0 {
