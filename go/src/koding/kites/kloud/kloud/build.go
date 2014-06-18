@@ -11,23 +11,18 @@ import (
 	"github.com/koding/kite"
 )
 
-type ControlResult struct {
-	State   machinestate.State `json:"state"`
-	EventId string             `json:"eventId"`
-}
-
 func (k *Kloud) build(r *kite.Request, c *Controller) (resp interface{}, err error) {
 	if c.CurrenState == machinestate.Building {
-		return nil, NewError(ErrBuilding)
+		return nil, NewError(ErrMachineIsBuilding)
 	}
 
 	if c.CurrenState == machinestate.Unknown {
-		return nil, NewError(ErrUnknownState)
+		return nil, NewError(ErrMachineUnknownState)
 	}
 
 	// if it's something else (stopped, runnning, ...) it's been already built
 	if !c.CurrenState.In(machinestate.Terminated, machinestate.NotInitialized) {
-		return nil, NewError(ErrAlreadyInitialized)
+		return nil, NewError(ErrMachineInitialized)
 	}
 
 	k.Storage.UpdateState(c.MachineId, machinestate.Building)

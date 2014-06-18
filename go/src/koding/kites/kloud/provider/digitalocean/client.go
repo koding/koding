@@ -1,6 +1,7 @@
 package digitalocean
 
 import (
+	"bytes"
 	"errors"
 	"fmt"
 	do "koding/kites/kloud/api/digitalocean"
@@ -12,6 +13,7 @@ import (
 	"koding/kites/kloud/utils"
 	"strconv"
 	"sync"
+	"text/template"
 	"time"
 
 	klientprotocol "koding/kites/klient/protocol"
@@ -91,18 +93,14 @@ func (c *Client) Build(snapshotName, dropletName, username string) (*protocol.Bu
 	if err != nil {
 		return nil, err
 	}
-	c.Push(fmt.Sprintf("Kite key created for id %s", kiteId), 75, machinestate.Building)
 
-	// for debugging, remove it later ...
-	c.Push(fmt.Sprintf("Writing kite key to temporary file (kite.key)"), 75, machinestate.Building)
-	// DEBUG
+	// for debugging
 	// if err := ioutil.WriteFile("kite.key", []byte(kiteKey), 0400); err != nil {
 	// 	d.Log.Info("couldn't write temporary kite file", err)
 	// }
 
 	keyPath := "/opt/kite/klient/key/kite.key"
-
-	c.Push(fmt.Sprintf("Copying remote kite key %s", keyPath), 85, machinestate.Building)
+	c.Push(fmt.Sprintf("Copying remote kite key %s", keyPath), 72, machinestate.Building)
 	remoteFile, err := client.Create(keyPath)
 	if err != nil {
 		return nil, err
@@ -110,6 +108,37 @@ func (c *Client) Build(snapshotName, dropletName, username string) (*protocol.Bu
 
 	_, err = remoteFile.Write([]byte(kiteKey))
 	if err != nil {
+		return nil, err
+	}
+
+	c.Push("Updating /etc/hosts file", 75, machinestate.Building)
+	hostFile, err := client.Create("/etc/hosts")
+	if err != nil {
+		return nil, err
+	}
+
+	if err := t.Execute(hostFile, dropletName); err != nil {
+		return nil, err
+	}
+
+	c.Push("Updating /etc/hostname file", 80, machinestate.Building)
+	hostnameFile, err := client.Create("/etc/hostname")
+	if err != nil {
+		return nil, err
+	}
+
+	_, err = hostnameFile.Write([]byte(dropletName))
+	if err != nil {
+		return nil, err
+	}
+
+	c.Push(fmt.Sprintf("Changing hostname"), 82, machinestate.Building)
+	if err := client.StartCommand(fmt.Sprintf("hostname %s", dropletName)); err != nil {
+		return nil, err
+	}
+
+	c.Push(fmt.Sprintf("Restarting networking on remote machine"), 85, machinestate.Building)
+	if err := client.StartCommand("service networking restart"); err != nil {
 		return nil, err
 	}
 
@@ -135,6 +164,16 @@ func (c *Client) Build(snapshotName, dropletName, username string) (*protocol.Bu
 		InstanceName: dropletName, // we don't use droplet.Name because it might have the cached name
 		InstanceId:   droplet.Id,
 	}, nil
+}
+
+func hostsFile(hostname string) ([]byte, error) {
+	t := template.Must(template.New("hosts").Parse(hosts))
+	buf := new(bytes.Buffer)
+	if err := t.Execute(buf, hostname); err != nil {
+		return nil, err
+	}
+
+	return buf.Bytes(), nil
 }
 
 // CreateImage creates an image using Packer. It uses digitalocean.Builder
