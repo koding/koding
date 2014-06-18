@@ -170,8 +170,9 @@ class ActivitySidebar extends KDCustomScrollView
 
   deselectAllItems: ->
 
-    for own name, {listController} of @sections
+    @selectedItem = null
 
+    for own name, {listController} of @sections
       listController.deselectAllItems()
 
 
