@@ -204,11 +204,15 @@ module.exports = class JProvisioner extends jraphical.Module
       Relationship.one
         targetId : @getId()
         sourceId : delegate.getId()
-      , (err, rel)->
+      , (err, rel)=>
 
         return callback err   if err?
         return callback null  unless rel?
-        rel.remove callback
+
+        if rel.data.as is 'owner'
+          @remove callback
+        else
+          rel.remove callback
 
 
   update$: permit
