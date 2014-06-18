@@ -2,6 +2,7 @@ package channel
 
 import (
 	"errors"
+	"fmt"
 	"net/http"
 	"net/url"
 	"socialapi/models"
@@ -109,31 +110,21 @@ func CheckParticipation(u *url.URL, h http.Header, _ interface{}) (int, http.Hea
 		return response.NewBadRequest(err)
 	}
 
-	cp := models.NewChannelParticipant()
-	cp.ChannelId = channel.Id
-	cp.AccountId = q.AccountId
-
-	// fetch participant
-	err = cp.FetchParticipant()
-	if err == nil {
-		return response.NewOK(cp)
-	}
-
-	// if err is not `record not found`
-	// return it immediately
-	if err != gorm.RecordNotFound {
+	canOpen, err := channel.CanOpen(q.AccountId)
+	if err != nil {
 		return response.NewBadRequest(err)
 	}
 
-	// we here we have record-not-found
-
-	// if channel type is `group` then return true
-	if channel.TypeConstant == models.Channel_TYPE_GROUP {
-		return response.NewOK(true)
+	if !canOpen {
+		return response.NewAccessDenied(
+			fmt.Errorf(
+				"account (%d) tried to retrieve the unattended private channel (%d)",
+				q.AccountId,
+				channel.Id,
+			))
 	}
 
-	// return here to the client
-	return response.NewBadRequest(err)
+	return response.NewOK(cp)
 }
 
 func Delete(u *url.URL, h http.Header, req *models.Channel) (int, http.Header, interface{}, error) {
