@@ -284,6 +284,19 @@ resurrection.activity.styl
         .kdlistview
           overflow        visible
 
+          .nothing
+            background    #d9d9d9
+            font-size     14px
+            padding       16px 26px
+            rounded       4px
+            line-height   15px
+            border        1px solid #cacaca
+            text-align    center
+            font-weight   400
+            color         #a0a0a0
+            margin-bottom 16px
+            borderBox()
+
         &.topics
 
           .ttag
@@ -1183,6 +1196,7 @@ span.collapsedtext
 
     .activity-content-wrapper
       background            none
+      margin-bottom         14px
 
       >article
         margin-left         75px
@@ -1194,6 +1208,41 @@ span.collapsedtext
         p
           padding-left      0
           padding-right     34px
+
+        p:last-of-type
+          padding-bottom    6px
+
+      .like-view
+        margin-left         76px
+
+    .like-view
+      size                  auto, 16px
+      line-height           normal
+      background            #ececec
+      rounded               8px
+      padding               0 6px
+      fl()
+
+      .like-link
+        r-sprite            'activity', 'heart'
+        font-size           0
+        margin-top          4px
+        fl()
+
+        &.liked
+          r-sprite          'activity', 'heart-filled'
+
+      .like-count
+        background          none
+        size                auto, auto
+        font-size           10px
+        color               #2b2b2b
+        padding             0
+        line-height         17px
+        margin              0 0 0 5px
+        vertical-align      middle
+        text-decoration     none
+        fl()
 
     .author-avatar
       border-color          #fff
@@ -1221,7 +1270,7 @@ span.collapsedtext
       .kdlistitemview-comment
         background          none
         border              none
-        padding             11px 33px 0 75px
+        padding             11px 33px 14px 75px
 
         &:last-of-type
           padding-bottom    40px
@@ -1232,10 +1281,8 @@ span.collapsedtext
         .comment-body-container
           font-size         14px
           padding-top       4px
+          padding-bottom    6px
           opacity           .99
-
-        .like-view
-          display           none
 
         .reply-link
           display           none

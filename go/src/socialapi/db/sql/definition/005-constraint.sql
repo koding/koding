@@ -124,7 +124,7 @@ ALTER TABLE api.channel_participant ADD CONSTRAINT "channel_participant_created_
 -- ----------------------------
 --  Primary key structure for table interaction
 -- ----------------------------
-ALTER TABLE api.interaction ADD PRIMARY KEY (id, "created_at", "type_constant") NOT DEFERRABLE INITIALLY IMMEDIATE;
+ALTER TABLE api.interaction ADD PRIMARY KEY (id) NOT DEFERRABLE INITIALLY IMMEDIATE;
 -- ----------------------------
 --  Uniques structure for table interaction
 -- ----------------------------

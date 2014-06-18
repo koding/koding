@@ -26,8 +26,12 @@ class ActivityLikeLink extends CustomLinkView
     @setTemplate @pistachio()
 
     if @getData().interactions.like.isInteracted
-    then @trackLike()
-    else @trackUnlike()
+      @trackLike()
+      @setClass 'liked'
+
+    else
+      @trackUnlike()
+      @unsetClass 'liked'
 
 
   trackLike: ->

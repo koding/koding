@@ -5,9 +5,11 @@ class PrivateMessageListItemView extends ActivityListItemView
 
     super options, data
 
+    @likeView    = new CommentLikeView {}, data
+
   pistachio: ->
     """
-    <div class="activity-content-wrapper">
+    <div class="activity-content-wrapper clearfix">
       {{> @avatar}}
       <div class='meta clearfix'>
         {{> @author}}
@@ -16,6 +18,7 @@ class PrivateMessageListItemView extends ActivityListItemView
       {{> @editWidgetWrapper}}
       {article{@formatContent #(body)}}
       {{> @embedBox}}
+      {{> @likeView}}
     </div>
     {{> @commentBox}}
     """

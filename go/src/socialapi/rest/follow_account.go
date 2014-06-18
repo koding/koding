@@ -1,4 +1,4 @@
-package main
+package rest
 
 import (
 	"fmt"
@@ -10,15 +10,15 @@ func testFollowingFeedOperations() {
 	source := rand.Int63()
 	target := rand.Int63()
 
-	if err := followAccount(source, target); err != nil {
+	if err := FollowAccount(source, target); err != nil {
 		fmt.Println("Err while following account, ", err)
 	}
-	if err := unfollowAccount(source, target); err != nil {
+	if err := UnFollowAccount(source, target); err != nil {
 		fmt.Println("Err while un-following account, ", err)
 	}
 }
 
-func followAccount(sourceId, targetId int64) error {
+func FollowAccount(sourceId, targetId int64) error {
 	a := models.NewAccount()
 	a.Id = sourceId
 
@@ -27,11 +27,11 @@ func followAccount(sourceId, targetId int64) error {
 	if err != nil {
 		return err
 	}
-	return nil
 
+	return nil
 }
 
-func unfollowAccount(sourceId, targetId int64) error {
+func UnFollowAccount(sourceId, targetId int64) error {
 	a := models.NewAccount()
 	a.Id = sourceId
 
@@ -41,5 +41,6 @@ func unfollowAccount(sourceId, targetId int64) error {
 	if err != nil {
 		return err
 	}
+
 	return nil
 }

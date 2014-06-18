@@ -12,6 +12,7 @@ import (
 	"socialapi/workers/common/runner"
 	"socialapi/workers/helper"
 	notificationapi "socialapi/workers/notification/api"
+	trollmodeapi "socialapi/workers/trollmode/api"
 
 	"github.com/rcrowley/go-tigertonic"
 )
@@ -36,6 +37,8 @@ func init() {
 	mux = tigertonic.NewTrieServeMux()
 	mux = handlers.Inject(mux)
 	mux = notificationapi.InitHandlers(mux)
+	mux = trollmodeapi.InitHandlers(mux)
+
 	// add namespace support into
 	// all handlers
 	nsMux = tigertonic.NewTrieServeMux()

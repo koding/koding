@@ -3,6 +3,7 @@ package main
 import (
 	"math/rand"
 	"socialapi/models"
+	"socialapi/rest"
 	"testing"
 
 	. "github.com/smartystreets/goconvey/convey"
@@ -14,15 +15,15 @@ func TestGroupChannel(t *testing.T) {
 		Convey("channel should be there", func() {
 			account := models.NewAccount()
 			account.OldId = AccountOldId.Hex()
-			account, err := createAccount(account)
+			account, err := rest.CreateAccount(account)
 			So(err, ShouldBeNil)
 			So(account, ShouldNotBeNil)
 
-			channel1, err := createChannelByGroupNameAndType(account.Id, "testgroup", models.Channel_TYPE_GROUP)
+			channel1, err := rest.CreateChannelByGroupNameAndType(account.Id, "testgroup", models.Channel_TYPE_GROUP)
 			So(err, ShouldBeNil)
 			So(channel1, ShouldNotBeNil)
 
-			channel2, err := createChannelByGroupNameAndType(account.Id, "testgroup", models.Channel_TYPE_GROUP)
+			channel2, err := rest.CreateChannelByGroupNameAndType(account.Id, "testgroup", models.Channel_TYPE_GROUP)
 			So(err, ShouldBeNil)
 			So(channel2, ShouldNotBeNil)
 
@@ -32,15 +33,15 @@ func TestGroupChannel(t *testing.T) {
 		Convey("owner should be able to update it", func() {
 			account := models.NewAccount()
 			account.OldId = AccountOldId.Hex()
-			account, err := createAccount(account)
+			account, err := rest.CreateAccount(account)
 			So(err, ShouldBeNil)
 			So(account, ShouldNotBeNil)
 
-			channel1, err := createChannelByGroupNameAndType(account.Id, "testgroup", models.Channel_TYPE_GROUP)
+			channel1, err := rest.CreateChannelByGroupNameAndType(account.Id, "testgroup", models.Channel_TYPE_GROUP)
 			So(err, ShouldBeNil)
 			So(channel1, ShouldNotBeNil)
 			// fetching channel returns creator id
-			_, err = updateChannel(channel1)
+			_, err = rest.UpdateChannel(channel1)
 			So(err, ShouldBeNil)
 		})
 
@@ -49,46 +50,46 @@ func TestGroupChannel(t *testing.T) {
 		Convey("normal user should not be able to update it", func() {
 			account := models.NewAccount()
 			account.OldId = AccountOldId.Hex()
-			account, err := createAccount(account)
+			account, err := rest.CreateAccount(account)
 			So(err, ShouldBeNil)
 			So(account, ShouldNotBeNil)
 
-			channel1, err := createChannelByGroupNameAndType(account.Id, "testgroup", models.Channel_TYPE_GROUP)
+			channel1, err := rest.CreateChannelByGroupNameAndType(account.Id, "testgroup", models.Channel_TYPE_GROUP)
 			So(err, ShouldBeNil)
 			So(channel1, ShouldNotBeNil)
 
 			channel1.CreatorId = rand.Int63()
-			_, err = updateChannel(channel1)
+			_, err = rest.UpdateChannel(channel1)
 			So(err, ShouldNotBeNil)
 		})
 
 		Convey("owner cant delete it", func() {
 			account := models.NewAccount()
 			account.OldId = AccountOldId.Hex()
-			account, err := createAccount(account)
+			account, err := rest.CreateAccount(account)
 			So(err, ShouldBeNil)
 			So(account, ShouldNotBeNil)
 
-			channel1, err := createChannelByGroupNameAndType(account.Id, "testgroup", models.Channel_TYPE_GROUP)
+			channel1, err := rest.CreateChannelByGroupNameAndType(account.Id, "testgroup", models.Channel_TYPE_GROUP)
 			So(err, ShouldBeNil)
 			So(channel1, ShouldNotBeNil)
 
-			err = deleteChannel(account.Id, channel1.Id)
+			err = rest.DeleteChannel(account.Id, channel1.Id)
 			So(err, ShouldNotBeNil)
 		})
 
 		Convey("normal user cant delete it", func() {
 			account := models.NewAccount()
 			account.OldId = AccountOldId.Hex()
-			account, err := createAccount(account)
+			account, err := rest.CreateAccount(account)
 			So(err, ShouldBeNil)
 			So(account, ShouldNotBeNil)
 
-			channel1, err := createChannelByGroupNameAndType(account.Id, "testgroup", models.Channel_TYPE_GROUP)
+			channel1, err := rest.CreateChannelByGroupNameAndType(account.Id, "testgroup", models.Channel_TYPE_GROUP)
 			So(err, ShouldBeNil)
 			So(channel1, ShouldNotBeNil)
 
-			err = deleteChannel(rand.Int63(), channel1.Id)
+			err = rest.DeleteChannel(rand.Int63(), channel1.Id)
 			So(err, ShouldNotBeNil)
 		})
 

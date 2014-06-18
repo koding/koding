@@ -59,7 +59,7 @@ func (f *Controller) handleInteractionEvent(incrementCount int, i *models.Intera
 	}
 
 	if !f.isEligible(c, cm) {
-		f.log.Error("Not eligible Interaction Id:%d", i.Id)
+		f.log.Error(fmt.Sprintf("Not eligible Interaction Id:%d", i.Id))
 		return nil
 	}
 

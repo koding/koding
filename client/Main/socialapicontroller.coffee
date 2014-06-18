@@ -62,6 +62,9 @@ class SocialApiController extends KDController
 
     plain._id = plain.id
 
+    {payload} = plain
+    delete plain.payload
+
     m = new KD.remote.api.SocialMessage plain
     m.account = mapAccounts(accountOldId)[0]
 
@@ -83,6 +86,13 @@ class SocialApiController extends KDController
       createdAt : new Date createdAt
       deletedAt : new Date deletedAt
       updatedAt : new Date updatedAt
+
+    if payload
+      m.link       =
+        link_url   : payload.link_url
+        link_embed :
+          try JSON.parse Encoder.htmlDecode payload.link_embed
+          catch e then null
 
     new MessageEventManager {}, m
 

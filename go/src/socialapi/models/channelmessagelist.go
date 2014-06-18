@@ -18,6 +18,9 @@ type ChannelMessageList struct {
 	// Id of the message
 	MessageId int64 `json:"messageId,string"     sql:"NOT NULL"`
 
+	// holds troll, unsafe, etc
+	MetaBits int16 `json:"-"`
+
 	// Addition date of the message to the channel
 	AddedAt time.Time `json:"addedAt"            sql:"NOT NULL"`
 }
@@ -231,8 +234,8 @@ func (c *ChannelMessageList) populateChannelMessages(channelMessages []ChannelMe
 
 		populatedChannelMessages[i] = cmc
 	}
-	return populatedChannelMessages, nil
 
+	return populatedChannelMessages, nil
 }
 
 func (c *ChannelMessageList) FetchMessageChannelIds(messageId int64) ([]int64, error) {
@@ -302,4 +305,25 @@ func (c *ChannelMessageList) DeleteMessagesBySelector(selector map[string]interf
 		}
 	}
 	return nil
+}
+
+func (c *ChannelMessageList) UpdateAddedAt(channelId, messageId int64) error {
+	if messageId == 0 || channelId == 0 {
+		return errors.New("channelId/messageId is not set")
+	}
+
+	query := &bongo.Query{
+		Selector: map[string]interface{}{
+			"channel_id": channelId,
+			"message_id": messageId,
+		},
+	}
+
+	err := c.One(query)
+	if err != nil {
+		return err
+	}
+
+	c.AddedAt = time.Now().UTC()
+	return c.Update()
 }

@@ -222,7 +222,7 @@ func (n *Notification) buildNotificationContainer(actorId int64, nc *Notificatio
 	if err != nil {
 		return NotificationContainer{}
 	}
-	latestActorsOldIds, _ := models.AccountOldsIdByIds(ac.LatestActors)
+	latestActorsOldIds, _ := models.FetchAccountOldsIdByIdsFromCache(ac.LatestActors)
 
 	return NotificationContainer{
 		TargetId:              nc.TargetId,

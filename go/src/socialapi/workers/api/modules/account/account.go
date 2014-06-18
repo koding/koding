@@ -95,14 +95,3 @@ func Unfollow(u *url.URL, h http.Header, req *models.Account) (int, http.Header,
 
 	return helpers.HandleResultAndError(req.Unfollow(targetId))
 }
-
-func MarkAsTroll(u *url.URL, h http.Header, req *models.Account) (int, http.Header, interface{}, error) {
-	targetId, err := helpers.GetURIInt64(u, "id")
-	if err != nil {
-		return helpers.NewBadRequestResponse(err)
-	}
-
-	return helpers.HandleResultAndError(
-		req.Unfollow(targetId),
-	)
-}

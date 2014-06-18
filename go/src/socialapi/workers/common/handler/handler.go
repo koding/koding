@@ -1,8 +1,9 @@
-package api
+package handler
 
 import (
-	"github.com/rcrowley/go-tigertonic"
 	"net/http"
+
+	"github.com/rcrowley/go-tigertonic"
 )
 
 var (
@@ -10,7 +11,7 @@ var (
 	cors = tigertonic.NewCORSBuilder().AddAllowedOrigins("*")
 )
 
-func HandlerWrapper(handler interface{}, logName string) http.Handler {
+func Wrapper(handler interface{}, logName string) http.Handler {
 	return cors.Build(
 		tigertonic.Timed(
 			tigertonic.Marshaled(handler),

@@ -45,11 +45,3 @@ func UpdateGroup(g *models.Group) error {
 	query := updateByIdQuery(g.Id.Hex(), g)
 	return Mongo.Run("jGroups", query)
 }
-
-func GetGroupIter(s Selector) *mgo.Iter {
-	query := func(c *mgo.Collection) *mgo.Query {
-		return c.Find(s)
-	}
-
-	return Mongo.GetIter("jGroups", query)
-}

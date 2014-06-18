@@ -106,7 +106,7 @@ func Send(u *url.URL, h http.Header, req *models.PrivateMessageRequest) (int, ht
 	cmc.IsParticipant = true
 	cmc.LastMessage = messageContainer
 	cmc.ParticipantCount = len(participantIds)
-	participantOldIds, err := models.AccountOldsIdByIds(participantIds)
+	participantOldIds, err := models.FetchAccountOldsIdByIdsFromCache(participantIds)
 	if err != nil {
 		return helpers.NewBadRequestResponse(err)
 	}
@@ -146,6 +146,7 @@ func getPrivateMessageChannels(q *models.Query) ([]models.Channel, error) {
 		models.ChannelParticipant_STATUS_ACTIVE).
 		Limit(q.Limit).
 		Offset(q.Skip).
+		Order("api.channel.updated_at DESC").
 		Rows()
 	defer rows.Close()
 	if err != nil {
