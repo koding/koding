@@ -424,10 +424,6 @@ module.exports = class JAccount extends jraphical.Module
         as          : 'user'
         targetType  : 'JStackTemplate'
 
-      provisioner   :
-        as          : ['owner', 'user']
-        targetType  : 'JProvisioner'
-
 
   constructor:->
     super
