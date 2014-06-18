@@ -115,7 +115,7 @@ class NotificationListItem extends KDListItemView
             KD.remote.api.JAccount.one _id: message.accountOldId, (err, origin)=>
               return reject err  if err or not origin
 
-              adjective = if message.accounOldId is KD.whoami()?.getId() then "your"
+              adjective = if message.accountOldId is KD.whoami()?.getId() then "your"
               else if @actors.length == 1 and @actors[0].getId() is origin.getId() then "their own"
               else
                 originatorName = KD.utils.getFullnameFromAccount origin
