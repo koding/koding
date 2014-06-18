@@ -146,12 +146,14 @@ class MessagePane extends KDTabPaneView
 
 
   lazyLoad: ->
+    @listController.showLazyLoader()
 
     {appManager} = KD.singletons
     last         = @listController.getItemsOrdered().last
     from         = last.getData().meta.createdAt.toISOString()
 
     @fetch {from}, (err, items = []) =>
+      @listController.hideLazyLoader()
 
       return KD.showError err  if err
 
