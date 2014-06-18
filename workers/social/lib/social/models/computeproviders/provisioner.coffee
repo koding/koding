@@ -260,7 +260,9 @@ module.exports = class JProvisioner extends jraphical.Module
         fieldsToUpdate.contentSum = contentSum
 
       fieldsToUpdate.label = label if label?
-      fieldsToUpdate.slug  = slug  if slug?
+      if slug?
+        slug  = "#{delegate.profile.nickname}/#{slug}"
+        fieldsToUpdate.slug = slug
 
       @update $set : fieldsToUpdate, (err)->
 
