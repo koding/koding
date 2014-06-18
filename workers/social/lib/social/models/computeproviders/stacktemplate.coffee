@@ -318,6 +318,7 @@ JStackTemplate.create
               "provider" : "digitalocean",
               "instanceType" : "512mb",
               "credential" : "4c05030bc45595e32d3727d887ecb3e8",
+              "provisioners" : [ "gokmen/hhvm-installer" ]
               "image" : "ubuntu-13-10-x64",
               "region" : "sfo1",
               "size" : "512mb"
@@ -327,6 +328,7 @@ JStackTemplate.create
               "provider" : "digitalocean",
               "instanceType" : "512mb",
               "credential" : "4c05030bc45595e32d3727d887ecb3e8",
+              "provisioners" : [ "gokmen/koding-base" ]
               "image" : "ubuntu-13-10-x64",
               "region" : "sfo1",
               "size" : "512mb"
@@ -336,6 +338,7 @@ JStackTemplate.create
               "provider" : "digitalocean",
               "instanceType" : "512mb",
               "credential" : "4c05030bc45595e32d3727d887ecb3e8",
+              "provisioners" : [ "devrim/koding-base" ]
               "image" : "ubuntu-13-10-x64",
               "region" : "sfo1",
               "size" : "512mb"
