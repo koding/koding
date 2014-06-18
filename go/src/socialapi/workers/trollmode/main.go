@@ -17,9 +17,14 @@ func main() {
 		return
 	}
 
-	// create message handler
-	handler := trollmode.NewTrollModeController(r.Log)
-
-	r.Listen(handler)
-	r.Close()
+	// too many egg in an egg
+	//  consider refactoring
+	r.Listen(
+		trollmode.NewManager(
+			trollmode.NewController(
+				r.Log,
+			),
+		),
+	)
+	r.Wait()
 }
