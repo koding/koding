@@ -119,6 +119,8 @@ class IDEAppController extends AppController
     ideParent.addSubView splitView
     @setActiveTabView newIDEView.tabView
 
+    splitView.on 'ResizeDidStop', KD.utils.throttle 500, @bound 'doResize'
+
   mergeSplitView: ->
     panel     = @activeTabView.parent.parent
     splitView = panel.parent
@@ -343,3 +345,8 @@ class IDEAppController extends AppController
 
     status.updatePartial text
     menuButton.show()
+
+  doResize: ->
+    @forEachSubViewInIDEViews_ (editorPane) ->
+      editorPane.aceView.ace.editor.resize()
+    , 'editor'
