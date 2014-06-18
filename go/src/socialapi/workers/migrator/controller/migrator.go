@@ -6,12 +6,11 @@ import (
 	"fmt"
 	mongomodels "koding/db/models"
 	"koding/db/mongodb/modelhelper"
+	"koding/helpers"
 	"reflect"
 	"socialapi/models"
-	"strings"
 	"time"
 
-	"github.com/VerbalExpressions/GoVerbalExpressions"
 	"github.com/koding/logging"
 	"labix.org/v2/mgo/bson"
 )
@@ -19,15 +18,6 @@ import (
 var (
 	ErrMigrated     = errors.New("already migrated")
 	kodingChannelId int64
-	tagRegex        = verbalexpressions.New().
-			BeginCapture().
-			Find("|#:JTag:").
-			Word().
-			Then(":").
-			Word().
-			Then("|").
-			EndCapture().
-			Regex()
 )
 
 type Controller struct {
@@ -63,9 +53,6 @@ func (mwc *Controller) Start() error {
 }
 
 func (mwc *Controller) migrateAllPosts() error {
-	o := modelhelper.Options{
-		Sort: "meta.createdAt",
-	}
 	s := modelhelper.Selector{
 		"socialMessageId": modelhelper.Selector{"$exists": false},
 	}
@@ -83,60 +70,67 @@ func (mwc *Controller) migrateAllPosts() error {
 		errCount++
 	}
 
-	iter := modelhelper.GetStatusUpdateIter(s, o)
-	defer iter.Close()
-
-	var su mongomodels.StatusUpdate
-	for iter.Next(&su) {
+	migratePost := func(post interface{}) error {
+		su := post.(*mongomodels.StatusUpdate)
 		channelId, err := mwc.fetchGroupChannelId(su.Group)
 		if err != nil {
-			return fmt.Errorf("Post migration is interrupted with %d errors: channel id cannot be fetched :%s", errCount, err)
+			return err
 		}
 
 		// create channel message
-		cm, err := mapStatusUpdateToChannelMessage(&su)
+		cm, err := mapStatusUpdateToChannelMessage(su)
 		if err != nil {
-			handleError(&su, err)
-			continue
+			handleError(su, err)
+			return nil
 		}
 
 		cm.InitialChannelId = channelId
 		if err := insertChannelMessage(cm, su.OriginId.Hex()); err != nil {
-			handleError(&su, err)
-			continue
+			handleError(su, err)
+			return nil
 		}
 
 		if err := addChannelMessageToMessageList(cm); err != nil {
-			handleError(&su, err)
-			continue
+			handleError(su, err)
+			return nil
 		}
 
 		// create reply messages
-		if err := mwc.migrateComments(cm, &su); err != nil {
-			handleError(&su, err)
-			continue
+		if err := mwc.migrateComments(cm, su); err != nil {
+			handleError(su, err)
+			return nil
 		}
 
 		if err := mwc.migrateLikes(cm, su.Id); err != nil {
-			handleError(&su, err)
-			continue
+			handleError(su, err)
+			return nil
 		}
 
 		if err := mwc.migrateTags(cm, su.Id); err != nil {
-			handleError(&su, err)
-			continue
+			handleError(su, err)
+			return nil
 		}
 
 		// update mongo status update channelMessageId field
-		if err := completePostMigration(&su, cm); err != nil {
-			handleError(&su, err)
-			continue
+		if err := completePostMigration(su, cm); err != nil {
+			handleError(su, err)
+			return nil
 		}
 		successCount++
+
+		return nil
 	}
 
-	if err := iter.Err(); err != nil {
-		return fmt.Errorf("Post migration is interrupted with %d errors: %s", errCount, err)
+	iterOptions := helpers.NewIterOptions()
+	iterOptions.CollectionName = "jNewStatusUpdates"
+	iterOptions.F = migratePost
+	iterOptions.Filter = s
+	iterOptions.Result = &mongomodels.StatusUpdate{}
+	iterOptions.Limit = 10000000
+	iterOptions.Skip = 0
+
+	if err := helpers.Iter(modelhelper.Mongo, iterOptions); err != nil {
+		mwc.log.Fatal("Post migration is interrupted with %d errors: channel id cannot be fetched :%s", errCount, err)
 	}
 
 	mwc.log.Notice("Post migration completed for %d status updates with %d errors", successCount, errCount)
@@ -276,7 +270,7 @@ func (mwc *Controller) fetchGroupChannelId(groupName string) (int64, error) {
 func mapStatusUpdateToChannelMessage(su *mongomodels.StatusUpdate) (*models.ChannelMessage, error) {
 	cm := models.NewChannelMessage()
 	cm.Slug = su.Slug
-	prepareBody(cm, su.Body)
+	cm.Body = su.Body // for now do not modify tags
 	cm.TypeConstant = models.ChannelMessage_TYPE_POST
 	cm.CreatedAt = su.Meta.CreatedAt
 	payload, err := mapEmbeddedLink(su.Link)
@@ -332,22 +326,6 @@ func prepareMessageMetaDates(cm *models.ChannelMessage, meta *mongomodels.Meta) 
 	} else {
 		cm.UpdatedAt = meta.ModifiedAt
 	}
-}
-
-func prepareBody(cm *models.ChannelMessage, body string) {
-	res := tagRegex.FindAllStringSubmatch(body, -1)
-	cm.Body = body
-	if len(res) == 0 {
-		return
-	}
-
-	for _, element := range res {
-		tag := element[1][1 : len(element[1])-1]
-		tag = strings.Split(tag, ":")[3]
-		tag = "#" + tag
-		cm.Body = verbalexpressions.New().Find(element[1]).Replace(cm.Body, tag)
-	}
-
 }
 
 func completePostMigration(su *mongomodels.StatusUpdate, cm *models.ChannelMessage) error {

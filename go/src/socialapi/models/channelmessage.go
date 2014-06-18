@@ -205,6 +205,14 @@ func (c *ChannelMessage) CreateRaw() error {
 		c.CreatedAt, c.UpdatedAt, c.DeletedAt, c.Payload).Scan(&c.Id)
 }
 
+// UpdateBodyRaw updates message body without effecting createdAt/UpdatedAt
+// timestamps
+func (c *ChannelMessage) UpdateBodyRaw() error {
+	updateSql := fmt.Sprintf("UPDATE %s SET body=? WHERE id=?", c.TableName())
+
+	return bongo.B.DB.Exec(updateSql, c.Body, c.Id).Error
+}
+
 func (c *ChannelMessage) Delete() error {
 	return bongo.B.Delete(c)
 }
