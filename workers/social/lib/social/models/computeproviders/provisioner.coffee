@@ -122,25 +122,34 @@ module.exports = class JProvisioner extends jraphical.Module
     return [err, content, contentSum]
 
 
-  checkData = (delegate, data, callback)->
-
-    {type, content, slug, label} = data
-
-    [err, content, contentSum] = checkContent type, content
-    if err? then return callback err
-
-    slug ?= (require 'hat') 32
-    slug  = "#{delegate.profile.nickname}/#{slug}"
+  checkSlug = (slug, callback)->
 
     JProvisioner.count { slug }, (err, res)->
       return callback err  if err?
       if not res? or res > 0
-        callback new KodingError "Slug `#{slug}` in use, provide different one"
-      else
-        callback null, {
-          type, slug, label, content, contentSum
-          originId : delegate.getId()
-        }
+      then callback new KodingError \
+        "Slug `#{slug}` in use, provide different one"
+      else callback null
+
+
+  checkData = (delegate, data, callback)->
+
+    {type, content, slug, label, accessLevel} = data
+
+    [err, content, contentSum] = checkContent type, content
+    if err? then return callback err
+
+    accessLevel ?= 'private'
+
+    slug ?= (require 'hat') 32
+    slug  = "#{delegate.profile.nickname}/#{slug}"
+
+    checkSlug slug, (err)->
+      return callback err  if err?
+      callback null, {
+        type, slug, label, content, contentSum
+        originId : delegate.getId(), accessLevel
+      }
 
 
   @create = permit 'create provisioner',
