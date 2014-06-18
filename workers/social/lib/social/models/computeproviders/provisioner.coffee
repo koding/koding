@@ -83,6 +83,10 @@ module.exports = class JProvisioner extends jraphical.Module
         type          : Object
         default       : -> { }
 
+      originId        :
+        type          : ObjectId
+        required      : yes
+
       meta            : require 'bongo/bundles/meta'
 
   @getName = -> 'JProvisioner'
@@ -106,33 +110,42 @@ module.exports = class JProvisioner extends jraphical.Module
     return [err, content]
 
 
+  checkData = (delegate, data, callback)->
+
+    {type, content, slug, label} = data
+
+    [err, content] = checkContent type, content
+    if err? then return callback err
+
+    slug ?= (require 'hat') 32
+    slug  = "#{delegate.profile.nickname}/#{slug}"
+
+    JProvisioner.count { slug }, (err, res)->
+      return callback err  if err?
+      if not res? or res > 0
+        callback new KodingError "Slug `#{slug}` in use, provide different one"
+      else
+        callback null, {
+          type, slug, label, content
+          originId : delegate.getId()
+        }
+
+
   @create = permit 'create provisioner',
 
     success: (client, data, callback)->
 
       {delegate} = client.connection
-      {content, type, label} = data
 
-      [err, content] = checkContent type, content
-      if err? then return callback err
+      checkData delegate, data, (err, data)->
 
-      slug = "#{delegate.profile.nickname}-#{(require 'hat')(32)}"
+        if err? then return callback err
 
-      provisioner = new JProvisioner {
-        slug, label, content, type
-      }
+        provisioner = new JProvisioner data
+        provisioner.save (err)->
 
-      provisioner.save (err)->
-
-        return callback err  if err
-
-        delegate.addProvisioner provisioner, as: "owner", (err)->
-
-          if err
-            provisioner.remove?()
-            callback err
-          else
-            callback null, provisioner
+          return callback err  if err
+          callback null, provisioner
 
 
   @fetchBySlug = (client, slug, callback)->
