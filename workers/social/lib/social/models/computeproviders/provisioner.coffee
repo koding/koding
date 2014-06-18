@@ -238,26 +238,36 @@ module.exports = class JProvisioner extends jraphical.Module
   update$: permit
 
     advanced: [
-      { permission: 'update provisioner', validateWith: Validators.own }
+      { permission: 'update own provisioner', validateWith: Validators.own }
+      # { permission: 'update provisioner' }
     ]
 
-    success: (client, options, callback)->
+    success: (client, data, callback)->
 
-      {content, label} = options
+      {content, slug, label, type} = data
 
-      if content?
-        [err, content] = checkContent type, content
-        if err? then return callback err
-
-      unless content or label
+      unless content or label or slug
         return callback new KodingError "Nothing to update"
 
-      fieldsToUpdate =
-        label             : label ? @label
-        'meta.modifiedAt' : new Date
+      fieldsToUpdate = { "meta.modifiedAt" : new Date }
 
-      fieldsToUpdate.content = content  if content?
+      if content?
+
+        [err, content, contentSum] = checkContent (type or @type), content
+        if err? then return callback err
+
+        fieldsToUpdate.content    = content
+        fieldsToUpdate.contentSum = contentSum
+
+      fieldsToUpdate.label = label if label?
+      fieldsToUpdate.slug  = slug  if slug?
 
       @update $set : fieldsToUpdate, (err)->
+
+        if slug and err and err.name is 'MongoError' and err.code is 11001
+          return callback new KodingError \
+            "Slug `#{slug}` in use, provide different one"
+
         return callback err  if err?
+
         callback null
