@@ -85,6 +85,7 @@ module.exports = class JCredential extends jraphical.Module
         targetType    : "JCredentialData"
         as            : "data"
 
+  @getName = -> 'JCredential'
 
   failed = (err, callback, rest...)->
     return false  unless err
@@ -142,52 +143,53 @@ module.exports = class JCredential extends jraphical.Module
           callback err, res
 
 
-  @one$: permit 'list credentials',
+  @one$ = permit 'list credentials',
 
     success: (client, publicKey, callback)->
 
       @fetchByPublicKey client, publicKey, callback
 
 
-  @some$: permit 'list credentials',
+  someHelper: (client, selector, options, callback)->
 
-    success: (client, selector, options, callback)->
+    [options, callback] = [callback, options]  unless callback
+    options ?= {}
 
-      [options, callback] = [callback, options]  unless callback
-      options ?= {}
+    { delegate } = client.connection
+    items        = []
 
-      { delegate } = client.connection
-      credentials  = []
+    relSelector  =
+      targetName : @getName()
+      sourceId   : delegate.getId()
 
-      relSelector  =
-        targetName : "JCredential"
-        sourceId   : delegate.getId()
+    if selector.as? and selector.as in ['owner', 'user']
+      relSelector.as = selector.as
+      delete selector.as
 
-      if selector.as? and selector.as in ['owner', 'user']
-        relSelector.as = selector.as
-        delete selector.as
+    Relationship.someData relSelector, { targetId:1, as:1 }, (err, cursor)=>
 
-      Relationship.someData relSelector, { targetId:1, as:1 }, (err, cursor)->
+      return callback err  if err?
 
-        return callback err  if err?
+      cursor.toArray (err, arr)=>
 
-        cursor.toArray (err, arr)->
+        map = arr.reduce (memo, doc)=>
+          memo[doc.targetId] = doc.as
+          memo
+        , {}
 
-          map = arr.reduce (memo, doc)->
-            memo[doc.targetId] = doc.as
-            memo
-          , {}
+        selector    ?= {}
+        selector._id = $in: (t.targetId for t in arr)
 
-          selector    ?= {}
-          selector._id = $in: (t.targetId for t in arr)
+        @some selector, options, (err, items)->
+          return callback err  if err?
 
-          JCredential.some selector, options, (err, credentials)->
-            return callback err  if err?
+          for item in items
+            item.owner = yes  if map[item._id] is 'owner'
 
-            for cred in credentials
-              cred.owner = yes  if map[cred._id] is 'owner'
+          callback null, items
 
-            callback null, credentials
+
+  @some$ = permit 'list credentials', success: JCredential::someHelper
 
 
   fetchUsers: permit
