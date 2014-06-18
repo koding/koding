@@ -4,6 +4,7 @@ JName       = require '../name'
 JUser       = require '../user'
 JGroup      = require '../group'
 JCredential = require './credential'
+crypto      = require 'crypto'
 
 module.exports = class JProvisioner extends jraphical.Module
 
@@ -79,6 +80,8 @@ module.exports = class JProvisioner extends jraphical.Module
 
         default       : -> "shell"
 
+      contentSum      : String
+
       content         :
         type          : Object
         default       : -> { }
@@ -93,6 +96,8 @@ module.exports = class JProvisioner extends jraphical.Module
 
   checkContent = (type, content)->
 
+    contentSum = "%SUM%"
+
     if not type?
       err = "Type missing."
     else if not content?
@@ -101,20 +106,27 @@ module.exports = class JProvisioner extends jraphical.Module
       switch type
         when "shell"
           unless content.script?
-          then err = "Type 'shell' requires a 'script'"
-          else content = { script: content.script }
+            err = "Type 'shell' requires a 'script'"
+          else
+
+            contentSum = crypto.createHash 'sha1'
+              .update "#{content.script}"
+              .digest 'hex'
+
+            content = { script: content.script }
+
         else
           err = "Type is not supported for now."
 
     err = new KodingError err  if err?
-    return [err, content]
+    return [err, content, contentSum]
 
 
   checkData = (delegate, data, callback)->
 
     {type, content, slug, label} = data
 
-    [err, content] = checkContent type, content
+    [err, content, contentSum] = checkContent type, content
     if err? then return callback err
 
     slug ?= (require 'hat') 32
@@ -126,7 +138,7 @@ module.exports = class JProvisioner extends jraphical.Module
         callback new KodingError "Slug `#{slug}` in use, provide different one"
       else
         callback null, {
-          type, slug, label, content
+          type, slug, label, content, contentSum
           originId : delegate.getId()
         }
 
