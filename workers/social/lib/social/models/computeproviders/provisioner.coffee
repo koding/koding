@@ -221,55 +221,13 @@ module.exports = class JProvisioner extends jraphical.Module
   # JProvisionerInstance.share { user: yes, owner: no, target: "gokmen"}, cb
   #                                       group or user slug -> ^^^^^^
 
-  shareWith: permit
+  shareWith$: permit
 
     advanced: [
-      { permission: 'update credential', validateWith: Validators.own }
+      { permission: 'update provisioner', validateWith: Validators.own }
     ]
 
-    success: (client, options, callback)->
-
-      { delegate } = client.connection
-      { target, user, owner } = options
-      user ?= yes
-
-      # Owners cannot unassign them from a credential
-      # Only another owner can unassign any other owner
-      if delegate.profile.nickname is target
-        return callback null
-
-      setPermissionFor = (target, callback)=>
-
-        Relationship.remove {
-          targetId : @getId()
-          sourceId : target.getId()
-        }, (err)=>
-
-          if user
-            as = if owner then 'owner' else 'user'
-            target.addProvisioner this, { as }, (err)-> callback err
-          else
-            callback err
-
-      JName.fetchModels target, (err, result)=>
-
-        if err or not result
-          return callback new KodingError "Target not found."
-
-        { models } = result
-        [ target ] = models
-
-        if target instanceof JUser
-          target.fetchOwnAccount (err, account)=>
-            if err or not account
-              return callback new KodingError "Failed to fetch account."
-            setPermissionFor account, callback
-
-        else if target instanceof JGroup
-          setPermissionFor target, callback
-
-        else
-          callback new KodingError "Target does not support provisioners."
+    success: JCredential::shareWith
 
 
   delete: permit 'delete provisioner',
