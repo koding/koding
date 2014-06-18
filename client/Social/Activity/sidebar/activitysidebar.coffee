@@ -259,7 +259,7 @@ class ActivitySidebar extends KDCustomScrollView
       itemClass  : SidebarTopicItem
       dataPath   : 'followedChannels'
       delegate   : this
-      noItemText : "You didn't follow any topics yet."
+      noItemText : "You don't follow any topics yet."
       headerLink : new CustomLinkView
         title    : 'ALL'
         href     : KD.utils.groupifyLink '/Activity/Topic/All'
