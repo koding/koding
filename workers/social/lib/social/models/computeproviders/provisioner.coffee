@@ -1,10 +1,10 @@
 
 jraphical   = require 'jraphical'
+crypto      = require 'crypto'
+
 JName       = require '../name'
 JUser       = require '../user'
 JGroup      = require '../group'
-JCredential = require './credential'
-crypto      = require 'crypto'
 
 module.exports = class JProvisioner extends jraphical.Module
 
@@ -24,15 +24,20 @@ module.exports = class JProvisioner extends jraphical.Module
     softDelete        : yes
 
     permissions       :
-      'create provisioner' : ['member']
-      'update provisioner' : ['member']
-      'list provisioners'  : ['member']
-      'delete provisioner' : ['member']
+
+      'create provisioner'     : ['member']
+      'list provisioners'      : ['member']
+
+      'update own provisioner' : ['member']
+      'delete own provisioner' : ['member']
+
+      'update provisioner'     : []
+      'delete provisioner'     : []
 
     sharedMethods     :
       static          :
         one           :
-          (signature String, Function)
+          (signature Object, Function)
         create        :
           (signature Object, Function)
         some          : [
@@ -42,12 +47,8 @@ module.exports = class JProvisioner extends jraphical.Module
       instance        :
         delete        :
           (signature Function)
-        shareWith     :
-          (signature Object, Function)
-        fetchUsers    :
-          (signature Function)
-        fetchData     :
-          (signature Function)
+        setAccess     :
+          (signature String, Function)
         update        :
           (signature Object, Function)
 
@@ -86,13 +87,19 @@ module.exports = class JProvisioner extends jraphical.Module
         type          : Object
         default       : -> { }
 
+      accessLevel     :
+        type          : String
+        enum          : ["Wrong access level specified!",
+          ["private", "group", "public"]
+        ]
+        default       : "private"
+
       originId        :
         type          : ObjectId
         required      : yes
 
       meta            : require 'bongo/bundles/meta'
 
-  @getName = -> 'JProvisioner'
 
   checkContent = (type, content)->
 
@@ -106,7 +113,7 @@ module.exports = class JProvisioner extends jraphical.Module
       switch type
         when "shell"
           unless content.script?
-            err = "Type 'shell' requires a 'script'"
+            err = "Type shell requires a `script`"
           else
 
             contentSum = crypto.createHash 'sha1'
@@ -169,84 +176,63 @@ module.exports = class JProvisioner extends jraphical.Module
           callback null, provisioner
 
 
-  @fetchBySlug = (client, slug, callback)->
+  someHelper = (client, selector, options, callback)->
 
-    options =
-      limit         : 1
-      targetOptions : selector : { slug }
+    [options, callback] = [callback, options]  unless callback
+    options ?= {}
 
-    {delegate} = client.connection
-    delegate.fetchProvisioner { }, options, (err, res)->
+    { delegate } = client.connection
 
-      return callback err        if err?
-      return callback null, res  if res?
+    unless typeof selector is 'object'
+      return callback new KodingError "Invalid query"
 
-      { group } = client.context
-      JGroup.one slug: group, (err, group)->
-        return callback err  if err?
+    selector.$and ?= []
+    selector.$and.push
+      $or : [
+        { originId      : delegate.getId() }
+        { accessLevel   : 'public' }
+        {
+          $and          : [
+            accessLevel : 'group'
+            group       : client.context.group
+          ]
+        }
+      ]
 
-        group.fetchProvisioner { }, options, (err, res)->
-          callback err, res
-
-
-  @one$ = permit 'list provisioners',
-
-    success: (client, slug, callback)->
-
-      @fetchBySlug client, slug, callback
-
-
-  @some$ = permit 'list provisioners', success: JCredential.someHelper
+    JProvisioner.some selector, options, (err, templates)->
+      callback err, templates
 
 
-  fetchUsers: JCredential::fetchUsers
+  @some$ = permit 'list provisioners', success: someHelper
+
+  @one$  = permit 'list provisioners',
+
+    success: (client, selector, callback)->
+
+      someHelper client, selector, limit: 1, (err, provisioners)->
+        callback err, (provisioners[0]  if provisioners?)
 
 
-  setPermissionFor: (target, {user, owner}, callback)->
-
-    Relationship.remove
-      targetId : @getId()
-      sourceId : target.getId()
-    , (err)=>
-
-      if user
-        as = if owner then 'owner' else 'user'
-        target.addProvisioner this, { as }, (err)-> callback err
-      else
-        callback err
-
-  # .share can be used like this:
-  #
-  # JProvisionerInstance.share { user: yes, owner: no, target: "gokmen"}, cb
-  #                                       group or user slug -> ^^^^^^
-
-  shareWith$: permit
+  delete: permit
 
     advanced: [
-      { permission: 'update provisioner', validateWith: Validators.own }
+      { permission: 'delete own provisioner', validateWith: Validators.own }
+      # { permission: 'delete provisioner' }
     ]
 
-    success: JCredential::shareWith
+    success: (client, callback)-> @remove callback
 
 
-  delete: permit 'delete provisioner',
+  setAccess: permit
 
-    success: (client, callback)->
+    advanced: [
+      { permission: 'update own provisioner', validateWith: Validators.own }
+      # { permission: 'update provisioner' }
+    ]
 
-      { delegate } = client.connection
+    success: (client, accessLevel, callback)->
 
-      Relationship.one
-        targetId : @getId()
-        sourceId : delegate.getId()
-      , (err, rel)=>
-
-        return callback err   if err?
-        return callback null  unless rel?
-
-        if rel.data.as is 'owner'
-          @remove callback
-        else
-          rel.remove callback
+      @update $set: { accessLevel }, callback
 
 
   update$: permit
