@@ -205,10 +205,10 @@ module.exports = class JProvisioner extends jraphical.Module
 
   setPermissionFor: (target, {user, owner}, callback)->
 
-    Relationship.remove {
+    Relationship.remove
       targetId : @getId()
       sourceId : target.getId()
-    }, (err)->
+    , (err)=>
 
       if user
         as = if owner then 'owner' else 'user'

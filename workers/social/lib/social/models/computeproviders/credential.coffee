@@ -222,7 +222,7 @@ module.exports = class JCredential extends jraphical.Module
     Relationship.remove
       targetId : @getId()
       sourceId : target.getId()
-    , (err)->
+    , (err)=>
 
       if user
         as = if owner then 'owner' else 'user'
