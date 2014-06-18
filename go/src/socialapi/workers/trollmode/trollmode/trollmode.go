@@ -2,22 +2,40 @@ package trollmode
 
 import (
 	"encoding/json"
+	"errors"
 	"socialapi/models"
 	"socialapi/request"
+	"socialapi/workers/common/manager"
 
 	"github.com/koding/logging"
 	"github.com/koding/worker"
 	"github.com/streadway/amqp"
 )
 
-type Action func(*TrollModeController, *models.Account) error
+const (
+	MarkedAsTroll   = "api.account_marked_as_troll"
+	UnMarkedAsTroll = "api.account_unmarked_as_troll"
+)
 
-type TrollModeController struct {
-	routes map[string]Action
-	log    logging.Logger
+func NewManager(controller worker.ErrHandler) *manager.Manager {
+	m := manager.New()
+	m.Controller(controller)
+	m.HandleFunc(MarkedAsTroll, (*Controller).MarkedAsTroll)
+	m.HandleFunc(UnMarkedAsTroll, (*Controller).UnMarkedAsTroll)
+	return m
 }
 
-func (t *TrollModeController) DefaultErrHandler(delivery amqp.Delivery, err error) bool {
+type Controller struct {
+	log logging.Logger
+}
+
+func NewController(log logging.Logger) *Controller {
+	return &Controller{
+		log: log,
+	}
+}
+
+func (t *Controller) DefaultErrHandler(delivery amqp.Delivery, err error) bool {
 	if delivery.Redelivered {
 		t.log.Error("Redelivered message gave error again, putting to maintenance queue", err)
 		delivery.Ack(false)
@@ -29,44 +47,31 @@ func (t *TrollModeController) DefaultErrHandler(delivery amqp.Delivery, err erro
 	return false
 }
 
-func NewTrollModeController(log logging.Logger) *TrollModeController {
-	ffc := &TrollModeController{
-		log: log,
-	}
-
-	routes := map[string]Action{
-		"api.account_marked_as_troll":   (*TrollModeController).MarkedAsTroll,
-		"api.account_unmarked_as_troll": (*TrollModeController).UnMarkedAsTroll,
-	}
-
-	ffc.routes = routes
-
-	return ffc
-}
-
-func (t *TrollModeController) HandleEvent(event string, data []byte) error {
-	t.log.Debug("New Event Received %s", event)
-	handler, ok := t.routes[event]
-	if !ok {
-		return worker.HandlerNotFoundErr
-	}
-
-	acc, err := mapMessage(data)
-	if err != nil {
-		return err
-	}
-
-	return handler(t, acc)
-}
-
-func (t *TrollModeController) MarkedAsTroll(account *models.Account) error {
-	if account == nil {
+func (t *Controller) MarkedAsTroll(account *models.Account) error {
+	if err := t.validateRequest(account); err != nil {
+		t.log.Error("Validation failed for marking troll; skipping, err: %s ", err.Error())
 		return nil
 	}
 
+	return t.processsAllMessagesAsTroll(account.Id)
+}
+
+func (t *Controller) validateRequest(account *models.Account) error {
+	if account == nil {
+		return errors.New("account is not set (nil)")
+	}
+
+	if account.Id == 0 {
+		return errors.New("account id is not set")
+	}
+
+	return nil
+}
+
+func (t *Controller) processsAllMessagesAsTroll(accountId int64) error {
 	query := &request.Query{
 		Type:      models.ChannelMessage_TYPE_POST,
-		AccountId: account.Id,
+		AccountId: accountId,
 	}
 
 	cm := models.NewChannelMessage()
@@ -77,7 +82,7 @@ func (t *TrollModeController) MarkedAsTroll(account *models.Account) error {
 
 	// no need to continue if user doesnt have any channel message
 	if totalMessageCount == 0 {
-		t.log.Debug("Account %d doesnt have any post messages", account.Id)
+		t.log.Notice("Account %d doesnt have any post messages", accountId)
 		return nil
 	}
 
@@ -106,9 +111,10 @@ func (t *TrollModeController) MarkedAsTroll(account *models.Account) error {
 	}
 
 	return nil
+
 }
 
-func (t *TrollModeController) markMessagesAsTroll(cm *models.ChannelMessage, messageIds []int64) error {
+func (t *Controller) markMessagesAsTroll(cm *models.ChannelMessage, messageIds []int64) error {
 	if len(messageIds) == 0 {
 		return nil
 	}
@@ -126,7 +132,7 @@ func (t *TrollModeController) markMessagesAsTroll(cm *models.ChannelMessage, mes
 	return nil
 }
 
-func (t *TrollModeController) UnMarkedAsTroll(account *models.Account) error {
+func (t *Controller) UnMarkedAsTroll(account *models.Account) error {
 	t.log.Critical("un marked as troll ehehe %v", account)
 	return nil
 }
