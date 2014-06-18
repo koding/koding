@@ -51,8 +51,8 @@ module.exports = class JMachine extends Module
         type            : String
         default         : -> ""
 
-      initScript        :
-        type            : String
+      provisioners      :
+        type            : [ ObjectId ]
 
       credential        : String
       users             : Array
