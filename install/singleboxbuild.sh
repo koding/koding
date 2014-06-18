@@ -74,9 +74,8 @@ chmod 600 /root/.ssh/id_rsa
 
 apt-get update
 apt-add-repository -y ppa:chris-lea/redis-server
-apt-get install -y golang nodejs npm git mongodb graphicsmagick rabbitmq-server=3.2.4-1 redis-server
+apt-get install -y golang nodejs npm git mongodb graphicsmagick rabbitmq-server=3.2.4-1 redis-server postgresql postgresql-contrib
 cp /usr/bin/nodejs /usr/bin/node
-
 
 
 cd /opt
@@ -108,13 +107,12 @@ cake -c kodingme -r kodingme buildEverything
 # cake -c kodingme -r kodingme run
 
 ### SOCIAL API ###
-bash ./go/src/socialapi/db/sql/definition/install.sh
 bash ./go/src/socialapi/db/sql/definition/create.sh
 sed -i "s/#timezone =.*/timezone = 'UTC'/" /etc/postgresql/9.3/main/postgresql.conf
 service postgresql restart
 cd /opt/koding/go/src/socialapi/
 make configure
-# make develop -j
+make develop -j
 ##################
 
 
