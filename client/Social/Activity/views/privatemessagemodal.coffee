@@ -81,10 +81,8 @@ class PrivateMessageModal extends KDModalViewWithForms
 
       [channel]            = channels
       appView              = @getDelegate()
-      {sidebar}            = appView
       appView._lastMessage = null
 
-      sidebar.addToChannel channel
       router.handleRoute "/Activity/Message/#{channel.id}"
 
       @destroy()
