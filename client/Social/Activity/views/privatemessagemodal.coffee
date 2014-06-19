@@ -50,6 +50,7 @@ class PrivateMessageModal extends KDModalViewWithForms
     @modalTabs.forms.Message.inputs.recipient.addSubView @chatHeads
 
     @createUserAutoComplete()
+    @setFocus()
 
     if @getOption 'arrowTop'
       @addSubView (new KDCustomHTMLView
@@ -58,6 +59,7 @@ class PrivateMessageModal extends KDModalViewWithForms
           top    : @getOption 'arrowTop'
       ), 'kdmodal-inner'
 
+  setFocus : -> @autoComplete.getView().setFocus()
 
   submitMessage : ->
 
