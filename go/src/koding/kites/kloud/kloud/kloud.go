@@ -69,9 +69,7 @@ func (k *Kloud) NewKloud() *kodingkite.KodingKite {
 	}
 	k.Kite = kt.Kite
 
-	if k.Log == nil {
-		k.Log = createLogger(NAME, k.Debug)
-	}
+	k.Log = createLogger(NAME, k.Debug)
 
 	if k.UniqueId == "" {
 		k.UniqueId = uniqueId()
@@ -157,16 +155,34 @@ func uniqueId() string {
 }
 
 func createLogger(name string, debug bool) logging.Logger {
+	handlers := make([]logging.Handler, 0)
+
 	log := logging.NewLogger(name)
-	logHandler := logging.NewWriterHandler(os.Stderr)
-	logHandler.Colorize = true
-	log.SetHandler(logHandler)
+	writerHandler := logging.NewWriterHandler(os.Stderr)
+	writerHandler.Colorize = true
 
 	if debug {
-		fmt.Println("DEBUG mode is enabled.")
 		log.SetLevel(logging.DEBUG)
-		logHandler.SetLevel(logging.DEBUG)
+		writerHandler.SetLevel(logging.DEBUG)
 	}
 
+	handlers = append(handlers, writerHandler)
+
+	logPath := "/var/log/koding/" + name + ".log"
+	logFile, err := os.Create(logPath)
+	if err != nil {
+		log.Warning("Can't open log file: %s", err)
+	} else {
+		fileHandler := logging.NewWriterHandler(logFile)
+		fileHandler.Colorize = false
+
+		if debug {
+			fileHandler.SetLevel(logging.DEBUG)
+		}
+
+		handlers = append(handlers, fileHandler)
+	}
+
+	log.SetHandler(logging.NewMultiHandler(handlers...))
 	return log
 }
