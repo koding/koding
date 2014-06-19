@@ -94,13 +94,16 @@ GRANT SELECT, INSERT, UPDATE ON "api"."channel_message" TO "socialapplication";
 -- ----------------------------
 DROP TABLE IF EXISTS "api"."channel_message_list";
 CREATE TABLE "api"."channel_message_list" (
-    "id" bigint NOT NULL DEFAULT nextval('api.channel_message_list_id_seq'::regclass),
-    "channel_id" bigint NOT NULL DEFAULT 0,
-    "message_id" bigint NOT NULL DEFAULT 0,
-    "meta_bits" smallint NOT NULL DEFAULT 0::smallint,
-    "added_at" timestamp(6) WITH TIME ZONE NOT NULL DEFAULT now()
-)
-WITH (OIDS=FALSE);
+    "id" BIGINT NOT NULL DEFAULT nextval(
+        'api.channel_message_list_id_seq' :: regclass
+    ),
+    "channel_id" BIGINT NOT NULL DEFAULT 0,
+    "message_id" BIGINT NOT NULL DEFAULT 0,
+    "meta_bits" SMALLINT NOT NULL DEFAULT 0 :: SMALLINT,
+    "added_at" TIMESTAMP (6) WITH TIME ZONE NOT NULL DEFAULT now(),
+    "revised_at" TIMESTAMP (6) WITH TIME ZONE NOT NULL DEFAULT now()
+) WITH (OIDS = FALSE);
+
 -- ALTER TABLE "api"."channel_message_list" OWNER TO "socialapplication";
 GRANT SELECT, INSERT, UPDATE, DELETE ON "api"."channel_message_list" TO "socialapplication";
 
