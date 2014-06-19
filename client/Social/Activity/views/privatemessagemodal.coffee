@@ -59,7 +59,7 @@ class PrivateMessageModal extends KDModalViewWithForms
           top    : @getOption 'arrowTop'
       ), 'kdmodal-inner'
 
-  setFocus : -> @autoComplete.getView().$input().focus()
+  setFocus : -> @autoComplete.getView().setFocus()
 
   submitMessage : ->
 
