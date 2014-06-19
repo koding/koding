@@ -97,8 +97,8 @@ class ActivityListItemView extends KDListItemView
     body = fn body for fn in fns
     return body
 
-  transformTags: (text = '') ->
 
+  transformTags: (text = '') ->
 
     {slug}   = KD.getGroup()
 
@@ -106,11 +106,15 @@ class ActivityListItemView extends KDListItemView
       pre  = text[offset - 1]
       post = text[offset + match.length]
 
-      return match  if (pre?.match /\S/)  and offset isnt 0
-      return match  if (post?.match /\S/) and (offset + match.length) isnt text.length
+      switch
+        when (pre?.match /\S/) and offset isnt 0
+          return match
+        when post?.match /[,.;:!?]/
+          break
+        when (post?.match /\S/) and (offset + match.length) isnt text.length
+          return match
 
       href = KD.utils.groupifyLink "/Activity/Topic/#{tag}", yes
-
       return "[##{tag}](#{href})"
 
 
@@ -128,6 +132,7 @@ class ActivityListItemView extends KDListItemView
         parts[index] = "\n```#{part}\n```\n"
 
     parts.join ''
+
 
   setAnchors: ->
 
