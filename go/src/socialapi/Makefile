@@ -36,7 +36,9 @@ PACKAGES = \
 	socialapi/workers/topicfeed \
 	socialapi/workers/migrator \
 	socialapi/workers/sitemap/sitemapfeeder \
-	socialapi/workers/sitemap/sitemapgenerator
+	socialapi/workers/sitemap/sitemapgenerator \
+	socialapi/workers/sitemap/sitemapinitializer \
+ 	socialapi/workers/sitemap/sitemaprootgenerator
 
 all: testapi
 
@@ -99,6 +101,14 @@ sitemapfeederdev:
 sitemapgeneratordev:
 	@echo "$(OK_COLOR)==> Running Sitemap Generator Worker $(NO_COLOR)"
 	@$(GOBINDIR)/rerun socialapi/workers/sitemap/sitemapgenerator -c $(CONFIG) $(DEBUG)
+
+sitemapinitdev:
+	@echo "$(OK_COLOR)==> Running Sitemap Initializer Worker $(NO_COLOR)"
+	@$(GOBINDIR)/rerun socialapi/workers/sitemap/sitemapinitializer -c $(CONFIG) $(DEBUG)
+
+sitemaprootgeneratordev:
+	@echo "$(OK_COLOR)==> Running Sitemap Root Generator Worker $(NO_COLOR)"
+	@$(GOBINDIR)/rerun socialapi/workers/sitemap/sitemaprootgenerator -c $(CONFIG) $(DEBUG)
 
 createdb:
 	(vagrant ssh default --command "mongo localhost/koding --eval='db.jAccounts.update({},{\$$unset:{socialApiId:0}},{multi:true})'")
