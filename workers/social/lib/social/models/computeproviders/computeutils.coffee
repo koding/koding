@@ -9,15 +9,18 @@ PROVIDERS =
   engineyard   : require './engineyard'
 
 
-reviveCredential = (client, pubKey, callback)->
+reviveCredential = (client, credential, callback)->
 
-  [pubKey, callback] = [callback, pubKey]  unless callback?
+  [credential, callback] = [callback, credential]  unless callback?
 
-  if not pubKey?
+  if not credential?
     return callback null
 
-  JCredential = require './credential'
-  JCredential.fetchByPublicKey client, pubKey, callback
+  if credential.bongo_?.constructorName is 'JCredential'
+    callback null, credential
+  else
+    JCredential = require './credential'
+    JCredential.fetchByPublicKey client, credential, callback
 
 
 reviveClient = (client, callback, revive = yes)->
@@ -45,7 +48,9 @@ reviveClient = (client, callback, revive = yes)->
 
 
 revive = do -> ({
-    shouldReviveClient, shouldPassCredential, shouldReviveProvider
+    shouldReviveClient
+    shouldPassCredential
+    shouldReviveProvider
   }, fn) ->
 
   (client, options, callback) ->
