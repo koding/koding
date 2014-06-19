@@ -9,19 +9,16 @@ module.exports = class DigitalOcean extends ProviderInterface
 
     { credential, instanceType, region } = options
 
-    @fetchCredentialData credential, (err, cred)->
+    # @fetchCredentialData credential, (err, cred)->
+    #   return callback err  if err?
 
-      return callback err  if err?
+    meta =
+      type   : "digitalocean"
+      image  : "ubuntu-13-10-x64"
+      region : region       ? "sfo1"
+      size   : instanceType ? "512mb"
 
-      meta =
-        type   : "digitalocean"
-        image  : "ubuntu-13-10-x64"
-        region : region       ? "sfo1"
-        size   : instanceType ? "512mb"
-
-      callback null, {
-        meta, credential: cred.publicKey
-      }
+    callback null, { meta, credential }
 
 
   @fetchAvailable = (client, options, callback)->
