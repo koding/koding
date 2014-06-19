@@ -27,20 +27,12 @@ func TestHandler_WebSocket(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(h.sockjsWebsocket))
 	defer server.CloseClientConnections()
 	url := "ws" + server.URL[4:]
-	conn, resp, err := websocket.DefaultDialer.Dial(url, nil)
-	if err != websocket.ErrBadHandshake {
-		t.Errorf("Expected error '%v', got '%v'", websocket.ErrBadHandshake, err)
-	}
-	if resp.StatusCode != http.StatusForbidden {
-		t.Errorf("Unexpected response code, got '%d', expected '%d'", resp.StatusCode, http.StatusForbidden)
-	}
-	if conn != nil {
-		t.Errorf("Connection should be nil, got '%v'", conn)
-	}
-	// another request with "origin" set properly
 	var connCh = make(chan Session)
 	h.handlerFunc = func(conn Session) { connCh <- conn }
-	conn, resp, err = websocket.DefaultDialer.Dial(url, map[string][]string{"Origin": []string{server.URL}})
+	conn, resp, err := websocket.DefaultDialer.Dial(url, nil)
+	if conn == nil {
+		t.Errorf("Connection should not be nil")
+	}
 	if err != nil {
 		t.Errorf("Unexpected error '%v'", err)
 	}
@@ -61,7 +53,7 @@ func TestHandler_WebSocketTerminationByServer(t *testing.T) {
 	url := "ws" + server.URL[4:]
 	h.handlerFunc = func(conn Session) {
 		conn.Close(1024, "some close message")
-		conn.Close(0, "this should be ognored")
+		conn.Close(0, "this should be ignored")
 	}
 	conn, _, err := websocket.DefaultDialer.Dial(url, map[string][]string{"Origin": []string{server.URL}})
 	_, msg, err := conn.ReadMessage()
@@ -73,8 +65,8 @@ func TestHandler_WebSocketTerminationByServer(t *testing.T) {
 		t.Errorf("Open frame expected, got '%s' and error '%v', expected '%s' without error", msg, err, `c[1024,"some close message"]`)
 	}
 	_, msg, err = conn.ReadMessage()
-	if err != io.ErrUnexpectedEOF {
-		t.Errorf("Expected EOF, got '%v'", err)
+	if err != io.EOF {
+		t.Errorf("Expected '%v', got '%v'", io.EOF, err)
 	}
 }
 

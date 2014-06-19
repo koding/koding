@@ -49,7 +49,7 @@ func TestCookies(t *testing.T) {
 	rec := httptest.NewRecorder()
 	req, _ := http.NewRequest("GET", "", nil)
 	optionsWithCookies := DefaultOptions
-	optionsWithCookies.CookieNeeded = true
+	optionsWithCookies.JSessionID = DefaultJSessionID
 	optionsWithCookies.cookie(rec, req)
 	if rec.Header().Get("set-cookie") != "JSESSIONID=dummy; Path=/" {
 		t.Errorf("Cookie not properly set in response")

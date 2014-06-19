@@ -1,9 +1,6 @@
 var origin = window.location.origin;
-var sock = new SockJS(origin+'/echo', {
-		debug: true,
-		devel: true,
-		protocols_whitelist: "['websocket', 'xdr-streaming', 'xhr-streaming', 'iframe-eventsource', 'iframe-htmlfile', 'xdr-polling', 'xhr-polling', 'iframe-xhr-polling', 'jsonp-polling']",
-		});
+
+var sock = new SockJS(origin+'/echo')
 
 document.getElementById("input").onkeydown= function (e) {
 	if (e.keyCode === 13) {
@@ -23,6 +20,8 @@ sock.onmessage = function(e) {
 };
 sock.onclose = function() {
 	console.log('connection closed');
+	document.getElementById("status").innerHTML = "disconnected";
+	document.getElementById("send").disabled=true;
 };
 
 function send() {

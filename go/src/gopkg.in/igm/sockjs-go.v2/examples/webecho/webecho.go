@@ -5,7 +5,7 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/igm/sockjs-go/sockjs"
+	"gopkg.in/igm/sockjs-go.v2/sockjs"
 )
 
 var (
