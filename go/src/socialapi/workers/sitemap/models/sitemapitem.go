@@ -63,9 +63,8 @@ func (s *SitemapItem) composeLocation(rootURL string) string {
 	case TYPE_ACCOUNT:
 		return fmt.Sprintf("%s/%s", rootURL, s.Slug)
 	case TYPE_CHANNEL_MESSAGE:
-		return fmt.Sprintf("%s/%s/%s", rootURL, "Activity", s.Slug)
+		return fmt.Sprintf("%s/%s/%s/%s", rootURL, "Activity", "Post", s.Slug)
 	case TYPE_CHANNEL:
-		// TODO not sure about its route
 		return fmt.Sprintf("%s/%s/%s/%s", rootURL, "Activity", "Topic", s.Slug)
 	}
 
