@@ -24,7 +24,7 @@ CREATE TABLESPACE social LOCATION '/data/postgresql/tablespace/social';
 
 CREATE TABLESPACE socialbig LOCATION '/data/postgresql/tablespace/socialbig';
 
-GRANT create ON TABLESPACE socialbig to social;
+GRANT CREATE ON TABLESPACE socialbig TO social;
 
-CREATE DATABASE social  OWNER social ENCODING 'UTF8' TABLESPACE social;
+CREATE DATABASE social OWNER social ENCODING 'UTF8' TABLESPACE social;
 
