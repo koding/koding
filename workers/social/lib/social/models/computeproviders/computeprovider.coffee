@@ -72,7 +72,8 @@ module.exports = class ComputeProvider extends Base
 
   @create = revive
 
-    shouldReviveClient   : yes
+    shouldReviveClient       : yes
+    shouldReviveProvisioners : yes
 
   , (client, options, callback)->
 
