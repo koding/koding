@@ -100,7 +100,7 @@ func newItemByChannel(c *socialmodels.Channel, status string) *models.SitemapIte
 	return &models.SitemapItem{
 		Id:           c.Id,
 		TypeConstant: models.TYPE_CHANNEL,
-		Slug:         c.GroupName,
+		Slug:         c.Name,
 		Status:       status,
 	}
 }
