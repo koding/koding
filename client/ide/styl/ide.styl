@@ -126,32 +126,37 @@ body.ide.dark
       top               8px
 
   .nfinder.file-container
+  .ide-files-tab .kdtabhandle-tabs
     min-width           234px
 
 // sidebar icons
 .ide-files-tab
   .application-tab-handle-holder
-    vendor            transition, none
+    vendor              transition, none
   .kdtabhandle
     b
-      text-indent     -1000px
+      text-indent       -1000px
     &.files
-      r-sprite        'ide', 'files-off'
+      r-sprite          'ide', 'files-off'
       &.active
-        r-sprite      'ide', 'files-on'
+        r-sprite        'ide', 'files-on'
     &.vms
-      r-sprite        'ide', 'vms-off'
+      r-sprite          'ide', 'vms-off'
       &.active
-        r-sprite      'ide', 'vms-on'
+        r-sprite        'ide', 'vms-on'
     &.settings
-      r-sprite        'ide', 'settings-off'
+      r-sprite          'ide', 'settings-off'
       &.active
-        r-sprite      'ide', 'settings-on'
-    &.actions
-      r-sprite        'ide', 'share-off'
-      &.active
-        r-sprite      'ide', 'share-on'
-
+        r-sprite        'ide', 'settings-on'
+  .toggle
+    display             inline-block
+    r-sprite            'ide', 'nav-collapse'
+    right               0
+    abs()
+    pointer()
+    &.active
+      r-sprite          'ide', 'nav-expand'
+      bottom            0
 
 // floating left
 .floating.kdsplitview-panel

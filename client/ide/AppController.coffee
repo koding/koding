@@ -220,6 +220,9 @@ class IDEAppController extends AppController
     filesPane.tabView.showPaneByIndex 0
     floatedPanel.off 'ReceivedClickElsewhere'
 
+  toggleSidebar: (shouldCollapse) ->
+    if shouldCollapse then @collapseSidebar() else @expandSidebar()
+
   splitVertically: ->
     @splitTabView 'vertical'
 
