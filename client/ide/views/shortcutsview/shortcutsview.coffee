@@ -7,6 +7,7 @@ class IDE.ShortcutsView extends KDView
     super options, data
 
     shortcuts = @getShortcuts()
+    isMacOS   = navigator.platform.indexOf('Mac') is 0
 
     for title, mapping of shortcuts
       container = new KDCustomHTMLView
@@ -14,6 +15,9 @@ class IDE.ShortcutsView extends KDView
         partial : "<p>#{title}</p>"
 
       for shortcut, description of mapping
+        metaKey  = if isMacOS then  'Cmd' else 'Ctrl'
+        shortcut = shortcut.replace 'Meta', metaKey
+
         container.addSubView new IDE.ShortcutView {}, { shortcut, description }
 
       @addSubView container
@@ -43,12 +47,12 @@ class IDE.ShortcutsView extends KDView
       'Ctrl-Alt-9'   : 'Go to tab number'
 
     'Editor Shortcuts':
-      'Ctrl-S'       : 'Save'
-      'Ctrl-F'       : 'Find'
-      'Ctrl-Shift-F' : 'Find and Replace'
-      'Ctrl-Enter'   : 'Fullscreen'
-      'Ctrl-G'       : 'Go to Line'
-      'Ctrl-L'       : 'Go to Line'
+      'Meta-S'       : 'Save'
+      'Meta-F'       : 'Find'
+      'Meta-Shift-F' : 'Find and Replace'
+      'Meta-Enter'   : 'Fullscreen'
+      'Meta-G'       : 'Go to Line'
+      'Meta-L'       : 'Go to Line'
       # 'Ctrl-Shift-S' : 'saveAs'
       # 'Ctrl-Shift-P' : 'preview'
       # 'Ctrl-Alt-S'   : 'saveAll'
