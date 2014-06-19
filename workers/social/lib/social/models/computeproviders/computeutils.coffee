@@ -37,7 +37,7 @@ reviveCredential = (client, credential, callback)->
     return callback null
 
   if credential.bongo_?.constructorName is 'JCredential'
-    callback null, credential
+    callback null, credential.publicKey
   else
     JCredential = require './credential'
     JCredential.fetchByPublicKey client, credential, callback
