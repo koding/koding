@@ -120,7 +120,7 @@ func Glance(u *url.URL, h http.Header, req *models.PinRequest) (int, http.Header
 		return response.NewBadRequest(err)
 	}
 
-	cml.AddedAt = time.Now().UTC()
+	cml.ReviseddAt = time.Now().UTC()
 	if err := cml.Update(); err != nil {
 		return response.NewBadRequest(err)
 	}
