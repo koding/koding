@@ -31,6 +31,9 @@ class ActivitySidebar extends KDCustomScrollView
     } = KD.singletons
 
     @sections     = {}
+    @itemsById    = {}
+    @itemsBySlug  = {}
+    @itemsByName  = {}
     @selectedItem = null
 
     notificationController
@@ -40,7 +43,7 @@ class ActivitySidebar extends KDCustomScrollView
       .on 'MessageAddedToChannel',     @bound 'messageAddedToChannel'
       .on 'MessageRemovedFromChannel', @bound 'messageRemovedFromChannel'
 
-      .on 'MessageListUpdated',        (update) -> log update.event, update
+      .on 'MessageListUpdated',        @bound 'setPostUnreadCount'
       .on 'ReplyRemoved',              (update) -> log update.event, update
 
       .on 'ParticipantUpdated',        @bound 'handleGlanced'
@@ -104,14 +107,6 @@ class ActivitySidebar extends KDCustomScrollView
       item.setUnreadCount unreadCount
 
 
-  messageListUpdated: (update) ->
-
-    {socialapi}        = KD.singletons
-    {unreadCount}      = update
-    {id, typeConstant} = update.channelMessage
-    type               = 'post'
-
-
   accountAddedToChannel: (update) ->
 
     {socialapi}   = KD.singletons
@@ -133,11 +128,18 @@ class ActivitySidebar extends KDCustomScrollView
     @removeItem id
 
 
-  channelUpdateHappened: (update) ->
+  channelUpdateHappened: (update) -> warn 'dont use this, :::educational purposes only!:::', update
 
-    log 'dont use this, educational purposes only!', update
 
-    # @setChannelUnreadCount update  if update.channel
+  setPostUnreadCount: ({unreadCount, channelMessage}) ->
+
+    return  unless channelMessage
+
+    {typeConstant, id} = channelMessage
+
+    listController = @getListController typeConstant
+    item = listController.itemForId id
+    item.setUnreadCount unreadCount  if item?.unreadCount
 
 
   setChannelUnreadCount: ({unreadCount, channel}) ->
@@ -162,31 +164,67 @@ class ActivitySidebar extends KDCustomScrollView
     return section.listController
 
 
+  getItemByData: (data) ->
+
+    item = @itemsById[data.id] or
+           @itemsBySlug[data.slug] or
+           @itemsByName[data.name]
+
+    debugger
+
+    return item or null
+
 
   # dom manipulation
 
   addItem: (data, prepend = no) ->
 
-    listController = @getListController data.typeConstant
     index          = if prepend then 0
+    listController = @getListController data.typeConstant
 
-    if item = listController.itemForId data.getId()
+    if item = @getItemByData data
       listController.moveItemToIndex item, index
+
       return item
 
+    item = listController.addItem data, index
+    @registerItem item
 
-    return listController.addItem data, index
-
-    # @updateTopicFollowButtons data.getId(), yes
+    return item
 
 
   removeItem: (id) ->
 
-    for name, {listController} of @sections when name isnt 'hot'
-      if item = listController.itemForId id
-        listController.removeItem item
+    if item = @getItemByData data
+      listController = @getListController data.typeConstant
+      @unregisterItem item
+      listController.removeItem item
 
-    # @updateTopicFollowButtons id, no
+
+  registerItem: (item) ->
+
+    data = item.getData()
+
+    @itemsById[data.id]     = item  if data.id
+    @itemsBySlug[data.slug] = item  if data.slug
+    @itemsByName[data.name] = item  if data.name
+
+
+  unregisterItem: (item) ->
+
+    data = item.getData()
+
+    if data.id
+      @itemsById[data.id] = null
+      delete @itemsById[data.id]
+
+    if data.slug
+      @itemsBySlug[data.slug] = null
+      delete @itemsBySlug[data.id]
+
+    if data.name
+      @itemsByName[data.name] = null
+      delete @itemsByName[data.name]
 
 
   updateTopicFollowButtons: (id, state) ->
@@ -213,7 +251,6 @@ class ActivitySidebar extends KDCustomScrollView
       @selectedItem = @public
       @public.setClass 'selected'
       return
-
     else
       @public.unsetClass 'selected'
 
@@ -243,17 +280,6 @@ class ActivitySidebar extends KDCustomScrollView
 
     for own name, {listController} of @sections
       listController.deselectAllItems()
-
-
-  # getItemById: (id) ->
-
-  #   item = null
-  #   for own name, section of @sections
-
-  #     item = section.listController.itemsIndexed[id]
-  #     break  if item
-
-  #   return item
 
 
   getItemByRouteParams: (type, slug) ->
