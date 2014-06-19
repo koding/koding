@@ -23,7 +23,11 @@ type ChannelMessageList struct {
 	MetaBits int16 `json:"-"`
 
 	// Addition date of the message to the channel
+	// this date will be update whever message added/removed/re-added to the channel
 	AddedAt time.Time `json:"addedAt"            sql:"NOT NULL"`
+
+	// Update time of the message/list
+	ReviseddAt time.Time `json:"revisedAt"        sql:"NOT NULL"`
 }
 
 func (c *ChannelMessageList) BeforeCreate() {
