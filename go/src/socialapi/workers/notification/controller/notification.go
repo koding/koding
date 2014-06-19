@@ -53,6 +53,16 @@ func (n *Controller) CreateReplyNotification(mr *socialapimodels.MessageReply) e
 		return err
 	}
 
+	cm := socialapimodels.NewChannelMessage()
+	// notify message owner
+	if err := cm.ById(mr.MessageId); err != nil {
+		return err
+	}
+
+	if cm.TypeConstant != socialapimodels.ChannelMessage_TYPE_POST {
+		return nil
+	}
+
 	rn := models.NewReplyNotification()
 	rn.TargetId = mr.MessageId
 	rn.NotifierId = reply.AccountId
@@ -60,12 +70,6 @@ func (n *Controller) CreateReplyNotification(mr *socialapimodels.MessageReply) e
 
 	nc, err := models.CreateNotificationContent(rn)
 	if err != nil {
-		return err
-	}
-
-	cm := socialapimodels.NewChannelMessage()
-	// notify message owner
-	if err = cm.ById(mr.MessageId); err != nil {
 		return err
 	}
 
@@ -138,6 +142,10 @@ func subscription(cml *socialapimodels.ChannelMessageList, typeConstant string) 
 }
 
 func (n *Controller) MentionNotification(cm *socialapimodels.ChannelMessage) error {
+	if cm.TypeConstant != socialapimodels.ChannelMessage_TYPE_POST {
+		return nil
+	}
+
 	mentionedUsers, err := n.CreateMentionNotification(cm)
 	if err != nil {
 		return err
