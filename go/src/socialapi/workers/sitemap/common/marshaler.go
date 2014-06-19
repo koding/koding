@@ -4,6 +4,8 @@ import (
 	"encoding/xml"
 	"fmt"
 	"os"
+	"path"
+	"socialapi/config"
 )
 
 func XML(i interface{}, fileName string) error {
@@ -21,7 +23,14 @@ func XML(i interface{}, fileName string) error {
 }
 
 func MustWrite(input []byte, fileName string) {
+	wd, err := os.Getwd()
+	if err != nil {
+		panic(err)
+	}
+
+	root := config.Get().Sitemap.XMLRoot
 	n := fmt.Sprintf("%s.xml", fileName)
+	n = path.Join(wd, root, n)
 
 	output, err := os.Create(n)
 	if err != nil {

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"path"
 	"socialapi/config"
 	"socialapi/workers/helper"
 	"socialapi/workers/sitemap/common"
@@ -64,7 +65,7 @@ func (c *Controller) generate() {
 			c.log.Error("Could not fetch file name: %s", err)
 			return
 		}
-		c.log.Info("Updating sitemap: %s", name)
+		c.log.Notice("Updating sitemap: %s", name)
 		// there is not any waiting sitemap updates
 		if name == "" {
 			return
@@ -124,8 +125,13 @@ func (c *Controller) fetchElements() ([]*models.SitemapItem, error) {
 }
 
 func (c *Controller) getCurrentSet() (*models.ItemSet, error) {
+	wd, err := os.Getwd()
+	if err != nil {
+		return nil, err
+	}
 	// check if this is a new sitemap file or not
 	n := fmt.Sprintf("%s.xml", c.fileName)
+	n = path.Join(wd, config.Get().Sitemap.XMLRoot, n)
 	if _, err := os.Stat(n); os.IsNotExist(err) {
 		return models.NewItemSet(), nil
 	}
