@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net"
 	"net/http"
+	"net/http/httputil"
 	"net/url"
 	"strconv"
 	"strings"
@@ -35,7 +36,9 @@ type Proxy struct {
 	kitesMu sync.Mutex
 
 	// muxer for proxy
-	mux *http.ServeMux
+	mux            *http.ServeMux
+	websocketProxy http.Handler
+	httpProxy      http.Handler
 
 	// Proxy properties used to give urls and bind the listener
 	Scheme     string
@@ -64,7 +67,7 @@ func New(conf *config.Config) *Proxy {
 
 	// create our websocketproxy http.handler
 
-	proxy := &websocketproxy.WebsocketProxy{
+	p.websocketProxy = &websocketproxy.WebsocketProxy{
 		Backend: p.backend,
 		Upgrader: &websocket.Upgrader{
 			ReadBufferSize:  4096,
@@ -76,8 +79,12 @@ func New(conf *config.Config) *Proxy {
 		},
 	}
 
+	p.httpProxy = &httputil.ReverseProxy{
+		Director: p.director,
+	}
+
 	p.mux.Handle("/", k)
-	p.mux.Handle("/proxy/", proxy)
+	p.mux.Handle("/proxy/", p)
 
 	// OnDisconnect is called whenever a kite is disconnected from us.
 	k.OnDisconnect(func(r *kite.Client) {
@@ -86,6 +93,26 @@ func New(conf *config.Config) *Proxy {
 	})
 
 	return p
+}
+
+// ServeHTTP implements the http.Handler interface.
+func (p *Proxy) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
+	if isWebsocket(req) {
+		p.websocketProxy.ServeHTTP(rw, req)
+		return
+	}
+
+	p.httpProxy.ServeHTTP(rw, req)
+}
+
+// isWebsocket checks wether the incoming request is a part of websocket
+// handshake
+func isWebsocket(req *http.Request) bool {
+	if strings.ToLower(req.Header.Get("Upgrade")) != "websocket" ||
+		!strings.Contains(strings.ToLower(req.Header.Get("Connection")), "upgrade") {
+		return false
+	}
+	return true
 }
 
 func (p *Proxy) CloseNotify() chan bool {
@@ -115,6 +142,13 @@ func (p *Proxy) handleRegister(r *kite.Request) (interface{}, error) {
 	p.Kite.Log.Info("Registering kite with url: '%s'. Can be reached now with: '%s'", kiteUrl, s)
 
 	return s, nil
+}
+
+func (p *Proxy) director(req *http.Request) {
+	u := p.backend(req)
+	req.URL.Scheme = u.Scheme
+	req.URL.Host = u.Host
+	req.URL.Path = u.Path
 }
 
 func (p *Proxy) backend(req *http.Request) *url.URL {
