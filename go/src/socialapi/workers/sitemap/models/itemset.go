@@ -2,7 +2,7 @@ package models
 
 import (
 	"encoding/xml"
-	"fmt"
+	"socialapi/workers/helper"
 	"time"
 )
 
@@ -43,8 +43,8 @@ func (s *ItemSet) updateItems(c *ItemContainer) {
 	for _, v := range c.Update {
 		currentDefinition, ok := itemMap[v.Location]
 		if !ok {
-			// TODO log this
-			fmt.Println("item does not exist")
+			helper.MustGetLogger().Warning("Updated item does not exist, so created")
+			s.Definitions = append(s.Definitions, v)
 			continue
 		}
 		currentDefinition.LastModified = time.Now().UTC().Format(time.RFC3339)
@@ -63,8 +63,7 @@ func (s *ItemSet) deleteItems(c *ItemContainer) {
 	for _, v := range c.Delete {
 		_, ok := itemMap[v.Location]
 		if !ok {
-			// TODO log this
-			fmt.Println("item does not exist")
+			helper.MustGetLogger().Warning("Updated item does not exist")
 			continue
 		}
 
