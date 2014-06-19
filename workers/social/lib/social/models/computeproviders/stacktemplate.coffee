@@ -73,7 +73,7 @@ module.exports = class JStackTemplate extends jraphical.Module
         required      : yes
 
       description     : String
-      config          : String
+      config          : Object
 
       accessLevel     :
         type          : String
@@ -195,7 +195,12 @@ JStackTemplate.create
   title       : "Default Koding stack"
   description : "Koding's default stack template for new users"
 
-  config      : "subdomain=\".kd.io\""
+  config      :
+
+    KODINGINSTALLER : "v1.0"
+    KONTROL_URL     : "https://kontrol.koding.com"
+    FOO_KODING      : "bar koding"
+    BAZ_KODING      : "foo koding"
 
   rules       : [
     {
@@ -261,122 +266,133 @@ JStackTemplate.create
 
   DigitalOcean ---
 
-  {
-      "_id" : ObjectId("53925a609b76835748c0c4fd"),
-      "meta" : {
-          "modifiedAt" : ISODate("2014-05-15T02:04:11.033Z"),
-          "createdAt" : ISODate("2014-05-15T02:04:11.032Z"),
-          "likes" : 0
+{
+  "_id" : ObjectId("53925a609b76835748c0c4fd"),
+  "meta" : {
+      "modifiedAt" : ISODate("2014-05-15T02:04:11.033Z"),
+      "createdAt" : ISODate("2014-05-15T02:04:11.032Z"),
+      "likes" : 0
+  },
+  "accessLevel" : "private",
+  "title" : "Digitalocean stack",
+  "description" : "Koding's default stack template for new users",
+  "config" : {
+      "KODINGINSTALLER" : "v1.0",
+      "KONTROL_URL" : "https://kontrol.koding.com",
+      "FOO_KODING" : "bar koding",
+      "BAZ_KODING" : "foo koding"
+  },
+  "rules" : [
+      {
+          "name" : "Allow Gokmen",
+          "rules" : [
+              {
+                  "type" : "ip",
+                  "match" : "176.33.13.53",
+                  "action" : "allow",
+                  "enabled" : true
+              }
+          ],
+          "enabled" : true
       },
-      "accessLevel" : "private",
-      "title" : "Digitalocean stack",
-      "description" : "Koding's default stack template for new users",
-      "config" : "subdomain=\".kd.io\"",
-      "rules" : [
-          {
-              "name" : "Allow Gokmen",
-              "rules" : [
-                  {
-                      "type" : "ip",
-                      "match" : "176.33.13.53",
-                      "action" : "allow",
-                      "enabled" : true
-                  }
-              ],
-              "enabled" : true
-          },
-          {
-              "name" : "Allow Turkey",
-              "rules" : [
-                  {
-                      "type" : "country",
-                      "match" : "TR",
-                      "action" : "allow",
-                      "enabled" : true
-                  }
-              ],
-              "enabled" : true
-          }
-      ],
-      "domains" : [
-          {
-              "domain" : "${username}.kd.io"
-          },
-          {
-              "domain" : "d1.${username}.kd.io"
-          },
-          {
-              "domain" : "d2.${username}.kd.io"
-          },
-          {
-              "domain" : "d3.${username}.kd.io"
-          }
-      ],
-      "machines" : [
-          {
-              "label" : "Test VM #1 on DO",
-              "provider" : "digitalocean",
-              "instanceType" : "512mb",
-              "credential" : "4c05030bc45595e32d3727d887ecb3e8",
-              "provisioners" : [ "gokmen/hhvm-installer" ]
-              "image" : "ubuntu-13-10-x64",
-              "region" : "sfo1",
-              "size" : "512mb"
-          },
-          {
-              "label" : "Test VM #2 on DO",
-              "provider" : "digitalocean",
-              "instanceType" : "512mb",
-              "credential" : "4c05030bc45595e32d3727d887ecb3e8",
-              "provisioners" : [ "gokmen/koding-base" ]
-              "image" : "ubuntu-13-10-x64",
-              "region" : "sfo1",
-              "size" : "512mb"
-          },
-          {
-              "label" : "Test VM #3 on DO",
-              "provider" : "digitalocean",
-              "instanceType" : "512mb",
-              "credential" : "4c05030bc45595e32d3727d887ecb3e8",
-              "provisioners" : [ "devrim/koding-base" ]
-              "image" : "ubuntu-13-10-x64",
-              "region" : "sfo1",
-              "size" : "512mb"
-          }
-      ],
-      "extras" : [],
-      "connections" : [
-          {
-              "rules" : 0,
-              "domains" : 0
-          },
-          {
-              "rules" : 0,
-              "domains" : 1
-          },
-          {
-              "rules" : 1,
-              "domains" : 0
-          },
-          {
-              "domains" : 0,
-              "machines" : 0
-          },
-          {
-              "domains" : 1,
-              "machines" : 0
-          },
-          {
-              "domains" : 2,
-              "machines" : 1
-          },
-          {
-              "domains" : 3,
-              "machines" : 2
-          }
-      ],
-      "group" : "koding",
-      "originId" : ObjectId("5196fcb0bc9bdb0000000011")
-  }
+      {
+          "name" : "Allow Turkey",
+          "rules" : [
+              {
+                  "type" : "country",
+                  "match" : "TR",
+                  "action" : "allow",
+                  "enabled" : true
+              }
+          ],
+          "enabled" : true
+      }
+  ],
+  "domains" : [
+      {
+          "domain" : "${username}.kd.io"
+      },
+      {
+          "domain" : "d1.${username}.kd.io"
+      },
+      {
+          "domain" : "d2.${username}.kd.io"
+      },
+      {
+          "domain" : "d3.${username}.kd.io"
+      }
+  ],
+  "machines" : [
+      {
+          "label" : "Test VM #1 on DO",
+          "provider" : "digitalocean",
+          "instanceType" : "512mb",
+          "credential" : "dce2e21086218f7eb83b865d63cd50b6",
+          "provisioners" : [
+              "devrim/koding-base"
+          ],
+          "image" : "ubuntu-13-10-x64",
+          "region" : "sfo1",
+          "size" : "512mb"
+      },
+      {
+          "label" : "Test VM #2 on DO",
+          "provider" : "digitalocean",
+          "instanceType" : "512mb",
+          "credential" : "dce2e21086218f7eb83b865d63cd50b6",
+          "provisioners" : [
+              "devrim/koding-base"
+          ],
+          "image" : "ubuntu-13-10-x64",
+          "region" : "sfo1",
+          "size" : "512mb"
+      },
+      {
+          "label" : "Test VM #3 on DO",
+          "provider" : "digitalocean",
+          "instanceType" : "512mb",
+          "credential" : "dce2e21086218f7eb83b865d63cd50b6",
+          "provisioners" : [
+              "devrim/koding-base"
+          ],
+          "image" : "ubuntu-13-10-x64",
+          "region" : "sfo1",
+          "size" : "512mb"
+      }
+  ],
+  "extras" : [],
+  "connections" : [
+      {
+          "rules" : 0,
+          "domains" : 0
+      },
+      {
+          "rules" : 0,
+          "domains" : 1
+      },
+      {
+          "rules" : 1,
+          "domains" : 0
+      },
+      {
+          "domains" : 0,
+          "machines" : 0
+      },
+      {
+          "domains" : 1,
+          "machines" : 0
+      },
+      {
+          "domains" : 2,
+          "machines" : 1
+      },
+      {
+          "domains" : 3,
+          "machines" : 2
+      }
+  ],
+  "group" : "koding",
+  "originId" : ObjectId("5196fcb0bc9bdb0000000011")
+}
 
 ###
