@@ -1,6 +1,7 @@
 package feeder
 
 import (
+	"errors"
 	socialmodels "socialapi/models"
 	"socialapi/workers/helper"
 	"socialapi/workers/sitemap/common"
@@ -14,6 +15,8 @@ type Controller struct {
 	log         logging.Logger
 	nameFetcher FileNameFetcher
 }
+
+var ErrIgnore = errors.New("ignore")
 
 func (f *Controller) DefaultErrHandler(delivery amqp.Delivery, err error) bool {
 	f.log.Error("an error occured deleting realtime event", err)
@@ -31,8 +34,26 @@ func New(log logging.Logger) *Controller {
 }
 
 func (f *Controller) MessageAdded(cm *socialmodels.ChannelMessage) error {
-	// TODO check privacy here
-	_, err := f.queueItem(newItemByChannelMessage(cm, models.STATUS_ADD))
+	return f.queueChannelMessage(cm, models.STATUS_ADD)
+}
+
+func (f *Controller) MessageUpdated(cm *socialmodels.ChannelMessage) error {
+	return f.queueChannelMessage(cm, models.STATUS_UPDATE)
+}
+
+func (f *Controller) MessageDeleted(cm *socialmodels.ChannelMessage) error {
+	return f.queueChannelMessage(cm, models.STATUS_DELETE)
+}
+
+func (f *Controller) queueChannelMessage(cm *socialmodels.ChannelMessage, status string) error {
+	if err := validateChannelMessage(cm); err != nil {
+		if err == ErrIgnore {
+			return nil
+		}
+
+		return err
+	}
+	_, err := f.queueItem(newItemByChannelMessage(cm, status))
 	if err != nil {
 		return err
 	}
@@ -85,6 +106,23 @@ func (f *Controller) AccountUpdated(a *socialmodels.Account) error {
 func (f *Controller) AccountDeleted(a *socialmodels.Account) error {
 	_, err := f.queueItem(newItemByAccount(a, models.STATUS_DELETE))
 	return err
+}
+
+func validateChannelMessage(cm *socialmodels.ChannelMessage) error {
+	if cm.TypeConstant != socialmodels.ChannelMessage_TYPE_POST {
+		return ErrIgnore
+	}
+
+	ch := socialmodels.NewChannel()
+	if err := ch.ById(cm.InitialChannelId); err != nil {
+		return err
+	}
+
+	if ch.PrivacyConstant == socialmodels.Channel_PRIVACY_PRIVATE {
+		return ErrIgnore
+	}
+
+	return nil
 }
 
 func newItemByChannelMessage(cm *socialmodels.ChannelMessage, status string) *models.SitemapItem {
