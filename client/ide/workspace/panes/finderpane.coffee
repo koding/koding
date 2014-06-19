@@ -30,13 +30,13 @@ class IDE.FinderPane extends IDE.Pane
     appManager = KD.getSingleton 'appManager'
     fc         = @finderController
 
-    fc.on 'FileNeedsToBeOpened', (file) =>
+    fc.on 'FileNeedsToBeOpened', (file) ->
       file.fetchContents (err, contents) ->
         appManager.tell 'IDE', 'openFile', file, contents
 
-    fc.treeController.on 'TerminalRequested', (vm) =>
+    fc.treeController.on 'TerminalRequested', (vm) ->
       appManager.tell 'IDE', 'openVMTerminal', vm
 
-    @on 'VMMountRequested',   (vm) => fc.mountVm vm
+    @on 'VMMountRequested',   (vm) -> fc.mountVm vm
 
-    @on 'VMUnmountRequested', (vm) => fc.unmountVm vm.hostnameAlias
+    @on 'VMUnmountRequested', (vm) -> fc.unmountVm vm.hostnameAlias

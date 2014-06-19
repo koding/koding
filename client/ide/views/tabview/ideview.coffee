@@ -117,7 +117,7 @@ class IDE.IDEView extends IDE.WorkspaceTabView
     paneType = pane.getOptions().paneType
 
     KD.utils.defer ->
-      if paneType is 'editor'        then pane.aceView.ace.focus()
+      if      paneType is 'editor'   then pane.aceView.ace.focus()
       else if paneType is 'terminal' then pane.webtermView?.setFocus yes
 
   click: ->
