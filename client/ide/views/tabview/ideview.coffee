@@ -22,7 +22,9 @@ class IDE.IDEView extends IDE.WorkspaceTabView
       @updateStatusBar()
       @focusTab()
 
-    @once 'viewAppended', => KD.utils.wait 300, => @createEditor()
+    @once 'viewAppended', => KD.utils.wait 300, =>
+      @createEditor()
+      @showShortcutsOnce()
 
   getPlusMenuItems: ->
     return {
@@ -143,6 +145,14 @@ class IDE.IDEView extends IDE.WorkspaceTabView
 
   openVMWebPage: (vm) ->
     @createPreview vm.hostnameAlias
+
+  showShortcutsOnce: ->
+    @appStorage = KD.getSingleton('appStorageController').storage 'IDE', '1.0.0'
+    @appStorage.fetchStorage (storage) =>
+      isShortcutsShown = @appStorage.getValue 'isShortcutsShown'
+      unless isShortcutsShown
+        @createShortcutsView()
+        @appStorage.setValue 'isShortcutsShown', yes
 
   createPlusContextMenu: ->
     offset        = @holderView.plusHandle.$().offset()
