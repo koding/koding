@@ -31,3 +31,6 @@ Password=        "DEQl7_Dr"
 FromName=        "Koding"
 FromMail=        "hello@koding.com"
 ForcedRecipient= "canthefason@gmail.com"
+
+[sitemap]
+XMLRoot="workers/sitemap/files/"

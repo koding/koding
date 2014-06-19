@@ -13,6 +13,7 @@ type (
 		Notification      Notification
 		SendGrid          SendGrid
 		EmailNotification EmailNotification
+		Sitemap           Sitemap
 	}
 
 	Postgres struct {
@@ -44,5 +45,8 @@ type (
 	}
 	EmailNotification struct {
 		TemplateRoot string
+	}
+	Sitemap struct {
+		XMLRoot string
 	}
 )
