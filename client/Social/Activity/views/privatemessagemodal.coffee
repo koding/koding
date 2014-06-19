@@ -9,6 +9,7 @@ class PrivateMessageModal extends KDModalViewWithForms
     options.width     ?= 660
     options.height   or= 'auto'
     options.arrowTop or= no
+    # options.draggable  = handle : '.kdmodal' # breaks autocomplete focus
     options.tabs     or=
       forms            :
         Message        :
