@@ -26,10 +26,6 @@ class IDE.FinderPane extends IDE.Pane
       @bindListeners()
       fc.reset()
 
-      fc.on 'FileNeedsToBeOpened', (file)=>
-        file.fetchContents (err, contents) ->
-          appManager.tell 'IDE', 'openFile', file, contents
-
   bindListeners: ->
     appManager = KD.getSingleton 'appManager'
 
