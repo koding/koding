@@ -43,6 +43,8 @@ class ActivityAppView extends KDScrollView
     @addSubView @tabs
 
 
+  # type: [public|topic|post|message|chat|null]
+  # slug: [slug|id|name]
   open: (type, slug) ->
 
     {socialapi, router, notificationController} = KD.singletons
