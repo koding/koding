@@ -29,7 +29,7 @@ func New(log logging.Logger) (*Controller, error) {
 }
 
 func (c *Controller) initCron() error {
-	cronJob := cron.New()
+	cronJob = cron.New()
 	if err := cronJob.AddFunc(SCHEDULE, c.generate); err != nil {
 		return err
 	}
