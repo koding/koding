@@ -153,33 +153,5 @@ func (c *Controller) buildContainer(items []*models.SitemapItem) *models.ItemCon
 func (c *Controller) updateFile(container *models.ItemContainer, set *models.ItemSet) error {
 	set.Populate(container)
 
-	header := []byte(xml.Header)
-	res, err := xml.Marshal(set)
-	if err != nil {
-		return err
-	}
-	// append header to xml file
-	res = append(header, res...)
-
-	c.MustWrite(res)
-
-	return nil
-}
-
-func (c *Controller) MustWrite(input []byte) {
-	n := fmt.Sprintf("%s.xml", c.fileName)
-
-	output, err := os.Create(n)
-	if err != nil {
-		panic(err)
-	}
-	defer func() {
-		if err := output.Close(); err != nil {
-			panic(err)
-		}
-	}()
-	if _, err := output.Write(input); err != nil {
-		panic(err)
-	}
-
+	return common.XML(set, c.fileName)
 }
