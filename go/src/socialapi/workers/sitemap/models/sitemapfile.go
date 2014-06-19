@@ -50,6 +50,8 @@ func (f *SitemapFile) ByName(name string) error {
 func (f *SitemapFile) Upsert(name string) error {
 	err := f.ByName(name)
 	if err == gorm.RecordNotFound {
+		f.Name = name
+
 		return f.Create()
 	}
 
