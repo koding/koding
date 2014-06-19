@@ -21,13 +21,13 @@ func (f *Controller) DefaultErrHandler(delivery amqp.Delivery, err error) bool {
 	return false
 }
 
-func New(log logging.Logger) (*Controller, error) {
+func New(log logging.Logger) *Controller {
 	c := &Controller{
 		log:         log,
 		nameFetcher: ModNameFetcher{},
 	}
 
-	return c, nil
+	return c
 }
 
 func (f *Controller) MessageAdded(cm *socialmodels.ChannelMessage) error {
