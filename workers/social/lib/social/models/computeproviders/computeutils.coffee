@@ -9,6 +9,26 @@ PROVIDERS =
   engineyard   : require './engineyard'
 
 
+reviveProvisioners = (client, provisioners, callback, revive = no)->
+
+  if not revive or not provisioners or provisioners.length is 0
+    return callback null, provisioners
+
+  JProvisioner = require './provisioner'
+
+  # TODO add multiple provisioner support
+  provisioner = provisioners[0]
+
+  JProvisioner.one$ client, slug: provisioner, (err, provision)->
+
+    if err or not provision?
+      console.warn "Requested provisioner: #{provisioner} not found !"
+      console.warn "or not accessible for #{client.r.user.username} !!"
+      callback null, []
+    else
+      callback null, [ provision.slug ]
+
+
 reviveCredential = (client, credential, callback)->
 
   [credential, callback] = [callback, credential]  unless callback?
@@ -51,6 +71,7 @@ revive = do -> ({
     shouldReviveClient
     shouldPassCredential
     shouldReviveProvider
+    shouldReviveProvisioners
   }, fn) ->
 
   (client, options, callback) ->
@@ -58,8 +79,8 @@ revive = do -> ({
     unless typeof callback is 'function'
       callback = (err)-> console.error "Unhandled error:", err.message
 
-    shouldReviveProvider  ?= yes
-    {provider, credential} = options
+    shouldReviveProvider ?= yes
+    {provider, credential, provisioners} = options
 
     if shouldReviveProvider
       if not provider or not provider_ = PROVIDERS[provider]
@@ -90,7 +111,12 @@ revive = do -> ({
         else
           options.credential = cred  if cred?
 
-        fn.call this, client, options, callback
+        reviveProvisioners client, provisioners, (err, provisioners)=>
+
+          options.provisioners = provisioners
+          fn.call this, client, options, callback
+
+        , shouldReviveProvisioners
 
     , shouldReviveClient
 
