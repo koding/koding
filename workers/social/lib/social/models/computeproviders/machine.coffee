@@ -1,6 +1,7 @@
 
 { Module }  = require 'jraphical'
 { revive }  = require './computeutils'
+KodingError = require '../../error'
 
 module.exports = class JMachine extends Module
 
@@ -27,10 +28,13 @@ module.exports = class JMachine extends Module
       instance          :
         reviveUsers     :
           (signature Function)
+        setProvisioner  :
+          (signature String, Function)
 
     permissions         :
       'list machines'   : ['member']
       'populate users'  : ['member']
+      'set provisioner' : ['member']
 
     schema              :
 
@@ -135,6 +139,32 @@ module.exports = class JMachine extends Module
 
       JMachine.one selector, (err, machine)->
         callback err, machine
+
+
+  setProvisioner: permit 'set provisioner',
+
+    success: revive
+
+      shouldReviveClient   : yes
+      shouldReviveProvider : no
+
+    , (client, provisioner, callback)->
+
+      { r: { group, user } } = client
+
+      userId    = user.getId()
+      approved  = no
+      approved |= u.owner and u.id.equals userId  for u, i in @users
+
+      if approved
+        JProvisioner = require './provisioner'
+        JProvisioner.one$ client, slug: provisioner, (err, provision)=>
+          if err or not provision?
+            callback new KodingError 'Provisioner not found'
+          else
+            @update $set: provisioners: [ provision.slug ], callback
+      else
+        callback new KodingError 'Access denied'
 
 
   reviveUsers: permit 'populate users',
