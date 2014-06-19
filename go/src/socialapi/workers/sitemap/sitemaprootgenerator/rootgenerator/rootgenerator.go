@@ -15,7 +15,7 @@ type Controller struct {
 }
 
 const (
-	SCHEDULE = "0 34 * * * *"
+	SCHEDULE = "0 5-59/30 * * * *"
 )
 
 var cronJob *cron.Cron
