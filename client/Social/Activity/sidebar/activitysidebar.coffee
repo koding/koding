@@ -170,8 +170,6 @@ class ActivitySidebar extends KDCustomScrollView
            @itemsBySlug[data.slug] or
            @itemsByName[data.name]
 
-    debugger
-
     return item or null
 
 
