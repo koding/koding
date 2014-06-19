@@ -25,7 +25,7 @@ MessageBodyMinLen=1
 CacheEnabled = false
 
 [emailnotification]
-templateRoot="workers/emailnotifier/templates/"
+TemplateRoot="workers/emailnotifier/templates/"
 
 [sendgrid]
 Username        = "koding"

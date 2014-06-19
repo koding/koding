@@ -25,6 +25,9 @@ MessageBodyMinLen=1
 [Notification]
 CacheEnabled = false
 
+[emailnotification]
+TemplateRoot="workers/emailnotifier/templates/"
+
 [sendgrid]
 Username=        "koding"
 Password=        "DEQl7_Dr"

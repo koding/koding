@@ -27,7 +27,7 @@ MessageBodyMinLen=5
 CacheEnabled = false
 
 [emailnotification]
-templateRoot="go/src/socialapi/workers/emailnotifier/templates/"
+TemplateRoot="go/src/socialapi/workers/emailnotifier/templates/"
 
 [sendgrid]
 Username= "koding"
