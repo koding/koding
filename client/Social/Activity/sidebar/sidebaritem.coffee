@@ -32,6 +32,7 @@ class SidebarItem extends KDListItemView
 
   setUnreadCount: (unreadCount = 0) ->
 
+    log 'unreadCount was:', @count, 'now it is:', unreadCount
     @count = unreadCount
 
     if unreadCount is 0
