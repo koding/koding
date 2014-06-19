@@ -154,7 +154,7 @@ class ActivitySidebar extends KDCustomScrollView
   addItem: (data, prepend = no) ->
 
     listController = @getListController data.typeConstant
-    index          = if prepend then listController.getItemCount() else 0
+    index          = if prepend then 0
 
     if item = listController.itemForId data.getId()
       listController.moveItemToIndex item, index
