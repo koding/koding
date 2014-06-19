@@ -1,5 +1,6 @@
-{ Module }     = require 'jraphical'
-{ revive }     = require './computeutils'
+
+{ Module }  = require 'jraphical'
+{ revive }  = require './computeutils'
 
 module.exports = class JMachine extends Module
 
@@ -124,37 +125,38 @@ module.exports = class JMachine extends Module
 
       { r: { group, user } } = client
 
-      selector =
-        $or      : [
-          { _id  : ObjectId machineId }
-          { uid  : machineId }
+      selector  =
+        $or     : [
+          { _id : ObjectId machineId }
+          { uid : machineId }
         ]
-        users    : $elemMatch: id: user.getId()
-        groups   : $elemMatch: id: group.getId()
+        users   : $elemMatch: id: user.getId()
+        groups  : $elemMatch: id: group.getId()
 
       JMachine.one selector, (err, machine)->
         callback err, machine
 
 
   reviveUsers: permit 'populate users',
-  success: (client, callback)->
 
-    JUser = require '../user'
+    success: (client, callback)->
 
-    accounts = []
-    queue    = []
+      JUser = require '../user'
 
-    (@users ? []).forEach (_user)->
-      queue.push -> JUser.one _id: _user.id, (err, user)->
-        if not err? and user
-          user.fetchOwnAccount (err, account)->
-            if not err? and account?
-              accounts.push account
+      accounts = []
+      queue    = []
+
+      (@users ? []).forEach (_user)->
+        queue.push -> JUser.one _id: _user.id, (err, user)->
+          if not err? and user
+            user.fetchOwnAccount (err, account)->
+              if not err? and account?
+                accounts.push account
+              queue.next()
+          else
             queue.next()
-        else
-          queue.next()
 
-    queue.push ->
-      callback null, accounts
+      queue.push ->
+        callback null, accounts
 
-    daisy queue
+      daisy queue
