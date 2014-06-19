@@ -22,7 +22,6 @@ type Controller struct {
 }
 
 const (
-	// TODO change this later
 	SCHEDULE = "0 0-59/30 * * * *"
 )
 
@@ -36,7 +35,7 @@ func New(log logging.Logger) (*Controller, error) {
 		fileSelector: CachedFileSelector{},
 	}
 
-	return c, nil
+	return c, c.initCron()
 }
 
 func (c *Controller) initCron() error {
