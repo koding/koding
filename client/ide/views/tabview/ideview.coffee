@@ -10,13 +10,16 @@ class IDE.IDEView extends IDE.WorkspaceTabView
   bindListeners: ->
     @on 'PlusHandleClicked', @bound 'createPlusContextMenu'
 
-    @tabView.on 'FileNeedsToBeOpened',    @bound 'openFile'
     @tabView.on 'VMTerminalRequested',    @bound 'openVMTerminal'
     @tabView.on 'VMWebPageRequested',     @bound 'openVMWebPage'
     @tabView.on 'ShortcutsViewRequested', @bound 'createShortcutsView'
     @tabView.on 'TerminalPaneRequested',  @bound 'createTerminal'
     @tabView.on 'PreviewPaneRequested',   @bound 'createPreview'
     @tabView.on 'DrawingPaneRequested',   @bound 'createDrawingBoard'
+
+    @tabView.on 'FileNeedsToBeOpened', (file, contents) =>
+      @closeUntitledFileIfNotChanged()
+      @openFile file, contents
 
     @tabView.on 'PaneDidShow', =>
       @updateStatusBar()
@@ -145,6 +148,12 @@ class IDE.IDEView extends IDE.WorkspaceTabView
 
   openVMWebPage: (vm) ->
     @createPreview vm.hostnameAlias
+
+  closeUntitledFileIfNotChanged: ->
+    for pane in @tabView.panes
+      if pane.data instanceof FSFile and pane.data.path is @getDummyFilePath()
+        if pane.subViews.first.getValue() is ''
+          @tabView.removePane pane
 
   showShortcutsOnce: ->
     @appStorage = KD.getSingleton('appStorageController').storage 'IDE', '1.0.0'
