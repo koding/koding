@@ -31,6 +31,9 @@ class NotificationController extends KDObject
         @emit notification.event, notification.contents
         @prepareNotification notification
 
+    @on 'ChannelUpdateHappened', (notification) =>
+      @emit notification.event, notification  if notification.event
+
     @on 'GuestTimePeriodHasEnded', ()->
       # todo add a notification to user
       deleteUserCookie()
