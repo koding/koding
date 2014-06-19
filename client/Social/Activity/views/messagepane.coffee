@@ -103,7 +103,7 @@ class MessagePane extends KDTabPaneView
     app  = appManager.get 'Activity'
     item = app.getView().sidebar.selectedItem
 
-    return  unless item.count
+    return  unless item?.count
     # no need to send updatelastSeenTime or glance
     # when checking publicfeeds
     return  if typeConstant is 'group'
