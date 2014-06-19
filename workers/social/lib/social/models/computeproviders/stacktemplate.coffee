@@ -26,11 +26,11 @@ module.exports = class JStackTemplate extends jraphical.Module
 
     permissions       :
 
-      'create stack template'     : ['member']
-      'list stack templates'      : ['member']
+      'create stack template'     : []
+      'list stack templates'      : []
 
-      'delete own stack template' : ['member']
-      'update own stack template' : ['member']
+      'delete own stack template' : []
+      'update own stack template' : []
 
       'delete stack template'     : []
       'update stack template'     : []
