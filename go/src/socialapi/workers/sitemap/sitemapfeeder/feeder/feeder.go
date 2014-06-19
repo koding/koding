@@ -68,28 +68,28 @@ func (f *Controller) queueChannelMessage(cm *socialmodels.ChannelMessage, status
 	return err
 }
 
-func (f *Controller) MessageUpdated(cm *socialmodels.ChannelMessage) error {
-	_, err := f.queueItem(newItemByChannelMessage(cm, models.STATUS_UPDATE))
-	return err
-}
-
-func (f *Controller) MessageDeleted(cm *socialmodels.ChannelMessage) error {
-	_, err := f.queueItem(newItemByChannelMessage(cm, models.STATUS_DELETE))
-	return err
-}
-
 func (f *Controller) ChannelUpdated(c *socialmodels.Channel) error {
-	_, err := f.queueItem(newItemByChannel(c, models.STATUS_UPDATE))
-	return err
+	return f.queueChannel(c, models.STATUS_UPDATE)
 }
 
 func (f *Controller) ChannelAdded(c *socialmodels.Channel) error {
-	_, err := f.queueItem(newItemByChannel(c, models.STATUS_ADD))
-	return err
+	return f.queueChannel(c, models.STATUS_ADD)
 }
 
 func (f *Controller) ChannelDeleted(c *socialmodels.Channel) error {
-	_, err := f.queueItem(newItemByChannel(c, models.STATUS_DELETE))
+	return f.queueChannel(c, models.STATUS_DELETE)
+}
+
+func (f *Controller) queueChannel(c *socialmodels.Channel, status string) error {
+	if err := validateChannel(c); err != nil {
+		if err == ErrIgnore {
+			return nil
+		}
+
+		return err
+	}
+	_, err := f.queueItem(newItemByChannel(c, status))
+
 	return err
 }
 
@@ -119,6 +119,15 @@ func validateChannelMessage(cm *socialmodels.ChannelMessage) error {
 	}
 
 	if ch.PrivacyConstant == socialmodels.Channel_PRIVACY_PRIVATE {
+		return ErrIgnore
+	}
+
+	return nil
+}
+
+func validateChannel(c *socialmodels.Channel) error {
+	// for now we are only adding topics, but later on we could add groups here
+	if c.TypeConstant != socialmodels.Channel_TYPE_TOPIC {
 		return ErrIgnore
 	}
 
