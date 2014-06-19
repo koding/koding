@@ -7,7 +7,7 @@ import (
 	"os"
 	"socialapi/config"
 	"socialapi/workers/helper"
-	"socialapi/workers/sitemap"
+	"socialapi/workers/sitemap/common"
 	"socialapi/workers/sitemap/models"
 
 	"github.com/garyburd/redigo/redis"
@@ -89,7 +89,7 @@ func (c *Controller) generate() {
 }
 
 func (c *Controller) fetchElements() ([]*models.SitemapItem, error) {
-	key := sitemap.PrepareFileCacheKey(c.fileName)
+	key := common.PrepareFileCacheKey(c.fileName)
 	redisConn := helper.MustGetRedisConn()
 	els := make([]*models.SitemapItem, 0)
 

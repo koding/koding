@@ -1,4 +1,4 @@
-package sitemap
+package common
 
 import (
 	"fmt"

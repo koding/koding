@@ -3,7 +3,7 @@ package feeder
 import (
 	socialmodels "socialapi/models"
 	"socialapi/workers/helper"
-	"socialapi/workers/sitemap"
+	"socialapi/workers/sitemap/common"
 	"socialapi/workers/sitemap/models"
 
 	"github.com/koding/logging"
@@ -117,7 +117,7 @@ func (f *Controller) queueItem(i *models.SitemapItem) error {
 }
 
 func (f *Controller) updateFileNameCache(fileName string) error {
-	key := sitemap.PrepareFileNameCacheKey()
+	key := common.PrepareFileNameCacheKey()
 	redisConn := helper.MustGetRedisConn()
 	if _, err := redisConn.AddSetMembers(key, fileName); err != nil {
 		return err
@@ -128,7 +128,7 @@ func (f *Controller) updateFileNameCache(fileName string) error {
 
 func (f *Controller) updateFileItemCache(fileName string, i *models.SitemapItem) error {
 	// prepare cache key
-	key := sitemap.PrepareFileCacheKey(fileName)
+	key := common.PrepareFileCacheKey(fileName)
 	redisConn := helper.MustGetRedisConn()
 	value := i.PrepareSetValue()
 	if _, err := redisConn.AddSetMembers(key, value); err != nil {
