@@ -31,7 +31,9 @@ func New(log logging.Logger) (*Controller, error) {
 }
 
 func (f *Controller) MessageAdded(cm *socialmodels.ChannelMessage) error {
-	if err := f.queueItem(newItemByChannelMessage(cm, models.STATUS_ADD)); err != nil {
+	// TODO check privacy here
+	_, err := f.queueItem(newItemByChannelMessage(cm, models.STATUS_ADD))
+	if err != nil {
 		return err
 	}
 	// when a message is added, creator's profile page must also be updated
@@ -40,39 +42,49 @@ func (f *Controller) MessageAdded(cm *socialmodels.ChannelMessage) error {
 		return err
 	}
 
-	return f.queueItem(newItemByAccount(a, models.STATUS_UPDATE))
+	_, err = f.queueItem(newItemByAccount(a, models.STATUS_UPDATE))
+
+	return err
 }
 
 func (f *Controller) MessageUpdated(cm *socialmodels.ChannelMessage) error {
-	return f.queueItem(newItemByChannelMessage(cm, models.STATUS_UPDATE))
+	_, err := f.queueItem(newItemByChannelMessage(cm, models.STATUS_UPDATE))
+	return err
 }
 
 func (f *Controller) MessageDeleted(cm *socialmodels.ChannelMessage) error {
-	return f.queueItem(newItemByChannelMessage(cm, models.STATUS_DELETE))
+	_, err := f.queueItem(newItemByChannelMessage(cm, models.STATUS_DELETE))
+	return err
 }
 
 func (f *Controller) ChannelUpdated(c *socialmodels.Channel) error {
-	return f.queueItem(newItemByChannel(c, models.STATUS_UPDATE))
+	_, err := f.queueItem(newItemByChannel(c, models.STATUS_UPDATE))
+	return err
 }
 
 func (f *Controller) ChannelAdded(c *socialmodels.Channel) error {
-	return f.queueItem(newItemByChannel(c, models.STATUS_ADD))
+	_, err := f.queueItem(newItemByChannel(c, models.STATUS_ADD))
+	return err
 }
 
 func (f *Controller) ChannelDeleted(c *socialmodels.Channel) error {
-	return f.queueItem(newItemByChannel(c, models.STATUS_DELETE))
+	_, err := f.queueItem(newItemByChannel(c, models.STATUS_DELETE))
+	return err
 }
 
 func (f *Controller) AccountAdded(a *socialmodels.Account) error {
-	return f.queueItem(newItemByAccount(a, models.STATUS_ADD))
+	_, err := f.queueItem(newItemByAccount(a, models.STATUS_ADD))
+	return err
 }
 
 func (f *Controller) AccountUpdated(a *socialmodels.Account) error {
-	return f.queueItem(newItemByAccount(a, models.STATUS_UPDATE))
+	_, err := f.queueItem(newItemByAccount(a, models.STATUS_UPDATE))
+	return err
 }
 
 func (f *Controller) AccountDeleted(a *socialmodels.Account) error {
-	return f.queueItem(newItemByAccount(a, models.STATUS_DELETE))
+	_, err := f.queueItem(newItemByAccount(a, models.STATUS_DELETE))
+	return err
 }
 
 func newItemByChannelMessage(cm *socialmodels.ChannelMessage, status string) *models.SitemapItem {
@@ -105,15 +117,20 @@ func newItemByChannel(c *socialmodels.Channel, status string) *models.SitemapIte
 	}
 }
 
-func (f *Controller) queueItem(i *models.SitemapItem) error {
+// queueItem push an item to cache and returns related file name
+func (f *Controller) queueItem(i *models.SitemapItem) (string, error) {
 	// fetch file name
 	n := f.nameFetcher.Fetch(i)
 
 	if err := f.updateFileNameCache(n); err != nil {
-		return err
+		return "", err
 	}
 
-	return f.updateFileItemCache(n, i)
+	if err := f.updateFileItemCache(n, i); err != nil {
+		return "", err
+	}
+
+	return n, nil
 }
 
 func (f *Controller) updateFileNameCache(fileName string) error {
