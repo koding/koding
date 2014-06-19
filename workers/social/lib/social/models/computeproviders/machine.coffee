@@ -108,6 +108,8 @@ module.exports = class JMachine extends Module
       state      : "NotInitialized"
       modifiedAt : data.createdAt
 
+    data.provisioners ?= [ ]
+
     return new JMachine data
 
 
