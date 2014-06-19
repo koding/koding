@@ -43,20 +43,40 @@ class ActivitySidebar extends KDCustomScrollView
       .on 'MessageListUpdated',        (update) -> log update.event, update
       .on 'ReplyRemoved',              (update) -> log update.event, update
 
+      .on 'ParticipantUpdated',        @bound 'handleGlanced'
       # .on 'ChannelUpdateHappened',     @bound 'channelUpdateHappened'
 
 
   # event handling
 
   messageAddedToChannel: (update) ->
-    if update.channel.typeConstant is 'pinnedactivity'
-      @replyAdded update
+    switch update.channel.typeConstant
+      when 'pinnedactivity' then @replyAdded update
+      when 'topic'          then @handleFollowedFeedUpdate update
 
-  messageRemovedFromChannel: (update)->
+  messageRemovedFromChannel: (update) ->
     log 'messageRemovedFromChannel', update
     {id} = update.channelMessage
 
     @removeItem id
+
+  handleGlanced: (update) ->
+
+    @selectedItem?.setUnreadCount update.unreadCount
+
+
+  handleFollowedFeedUpdate: (update) ->
+
+    {socialapi}   = KD.singletons
+    {unreadCount} = update
+    {id}          = update.channel
+
+    socialapi.cacheable 'channel', id, (err, data) =>
+
+      return KD.showError err  if err
+
+      item = @addItem data, yes
+      item.setUnreadCount unreadCount
 
 
   replyAdded: (update) ->
@@ -94,15 +114,16 @@ class ActivitySidebar extends KDCustomScrollView
 
   accountAddedToChannel: (update) ->
 
-    {socialapi} = KD.singletons
-    {id}        = update.channel
+    {socialapi}   = KD.singletons
+    {unreadCount} = update
+    {id}          = update.channel
 
     socialapi.cacheable 'channel', id, (err, channel) =>
 
       return KD.showError err  if err
 
-      @addItem channel, yes
-      # @updateTopicFollowButtons id, yes  if channel.typeConstant is 'topic'
+      item = @addItem channel, yes
+      item.setUnreadCount unreadCount or 1
 
 
   accountRemovedFromChannel: (update) ->
@@ -110,18 +131,11 @@ class ActivitySidebar extends KDCustomScrollView
     {id, typeConstant} = update.channel
 
     @removeItem id
-    # @updateTopicFollowButtons id, no  if channel.typeConstant is 'topic'
 
 
   channelUpdateHappened: (update) ->
 
-    # log 'ChannelUpdateHappened', update
-
     log 'dont use this, educational purposes only!', update
-
-    # switch update.event
-    #   when 'MessageAddedToChannel'     then return @addToChannel update.channelMessage
-    #   when 'MessageRemovedFromChannel' then return @removeFromChannel update.channelMessage
 
     # @setChannelUnreadCount update  if update.channel
 
