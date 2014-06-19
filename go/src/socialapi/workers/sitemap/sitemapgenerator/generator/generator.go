@@ -53,8 +53,13 @@ func (c *Controller) Shutdown() {
 }
 
 func (c *Controller) generate() {
+	c.log.Info("Sitemap update started")
 	for {
 		name, err := c.fileSelector.Select()
+		if err == redis.ErrNil {
+			return
+		}
+
 		if err != nil {
 			c.log.Error("Could not fetch file name: %s", err)
 			return
