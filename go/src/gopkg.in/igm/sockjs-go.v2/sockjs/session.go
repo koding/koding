@@ -22,7 +22,8 @@ const (
 )
 
 var (
-	// ErrSessionNotOpen error is returned in case of Session not open
+	// ErrSessionNotOpen error is used to denote session not in open state.
+	// Recv() and Send() operations are not suppored if session is closed.
 	ErrSessionNotOpen          = errors.New("sockjs: session not in open state")
 	errSessionReceiverAttached = errors.New("sockjs: another receiver already attached")
 )

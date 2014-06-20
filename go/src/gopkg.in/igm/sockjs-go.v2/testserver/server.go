@@ -6,9 +6,8 @@ import (
 	"net/http"
 	"strings"
 
-	// TODO(igm) change to gopkg.in v2
 	"code.google.com/p/go.net/websocket"
-	"github.com/igm/sockjs-go/sockjs"
+	"gopkg.in/igm/sockjs-go.v2/sockjs"
 )
 
 type testHandler struct {
@@ -31,7 +30,7 @@ func main() {
 	disabledWebsocketOptions.Websocket = false
 
 	cookieNeededOptions := sockjs.DefaultOptions
-	cookieNeededOptions.CookieNeeded = true
+	cookieNeededOptions.JSessionID = sockjs.DefaultJSessionID
 	// register various test handlers
 	var handlers = []*testHandler{
 		&testHandler{"/echo/websocket", websocket.Handler(echoWsHandler)},

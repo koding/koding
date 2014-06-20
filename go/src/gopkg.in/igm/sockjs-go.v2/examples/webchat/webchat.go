@@ -5,7 +5,7 @@ import (
 	"net/http"
 
 	"github.com/igm/pubsub"
-	"github.com/igm/sockjs-go/sockjs"
+	"gopkg.in/igm/sockjs-go.v2/sockjs"
 )
 
 var chat pubsub.Publisher

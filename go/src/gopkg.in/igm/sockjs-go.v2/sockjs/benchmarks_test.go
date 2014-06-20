@@ -11,7 +11,7 @@ import (
 	"testing"
 )
 
-func Benchmark_Simple(b *testing.B) {
+func BenchmarkSimple(b *testing.B) {
 	var messages = make(chan string, 10)
 	h := NewHandler("/echo", DefaultOptions, func(session Session) {
 		for m := range messages {
@@ -35,7 +35,7 @@ func Benchmark_Simple(b *testing.B) {
 	resp.Body.Close()
 }
 
-func Benchmark_Messages(b *testing.B) {
+func BenchmarkMessages(b *testing.B) {
 	msg := strings.Repeat("m", 10)
 	h := NewHandler("/echo", DefaultOptions, func(session Session) {
 		for n := 0; n < b.N; n++ {
@@ -54,7 +54,7 @@ func Benchmark_Messages(b *testing.B) {
 			// req, _ := http.NewRequest("POST", server.URL+fmt.Sprintf("/echo/server/%d/xhr_streaming", session), nil)
 			req, _ := http.NewRequest("GET", server.URL+fmt.Sprintf("/echo/server/%d/eventsource", session), nil)
 			for {
-				reqc += 1
+				reqc++
 				resp, err := http.DefaultClient.Do(req)
 				if err != nil {
 					log.Fatal(err)

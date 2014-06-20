@@ -1,4 +1,4 @@
-[![Build Status](https://api.travis-ci.org/igm/sockjs-go.svg?branch=master)](https://travis-ci.org/igm/sockjs-go) [![GoDoc](http://godoc.org/github.com/igm/sockjs-go/sockjs?status.png)](http://godoc.org/github.com/igm/sockjs-go/sockjs) [![Coverage Status](https://coveralls.io/repos/igm/sockjs-go/badge.png?branch=master)](https://coveralls.io/r/igm/sockjs-go?branch=master)
+[![Build Status](https://api.travis-ci.org/igm/sockjs-go.svg?branch=v2)](https://travis-ci.org/igm/sockjs-go) [![GoDoc](http://godoc.org/gopkg.in/igm/sockjs-go.v2/sockjs?status.png)](http://godoc.org/gopkg.in/igm/sockjs-go.v2/sockjs) [![Coverage Status](https://coveralls.io/repos/igm/sockjs-go/badge.png?branch=v2)](https://coveralls.io/r/igm/sockjs-go?branch=v2)
 
 What is SockJS?
 =
@@ -15,13 +15,13 @@ SockJS-Go server
 
 SockJS-Go is a [SockJS](https://github.com/sockjs/sockjs-client) server written in Go.
 
-To install **latest stable** (stable in terms of API, not ready for production and to be deprecated soon) version of `sockjs-go` run:
-
-    go get gopkg.in/igm/sockjs-go.v1/sockjs
-
-To install **v2** of `sockjs-go` run (available soon, with stable API and production ready)
+To use current stable version **v2**
 
     go get gopkg.in/igm/sockjs-go.v2/sockjs
+
+To use previous version **v1** (DEPRECATED)
+
+    go get gopkg.in/igm/sockjs-go.v1/sockjs
 
 To install **development** version of `sockjs-go` run:
 
@@ -31,7 +31,7 @@ To install **development** version of `sockjs-go` run:
 Versioning
 -
 
-SockJS-Go project adopted [gopkg.in](http://gopkg.in) approach for versioning.
+SockJS-Go project adopted [gopkg.in](http://gopkg.in) approach for versioning. SockJS-Go library details can be found [here](https://gopkg.in/igm/sockjs-go.v2/sockjs)
 
 
 Live Demo
@@ -55,7 +55,7 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/igm/sockjs-go/sockjs"
+	"gopkg.in/igm/sockjs-go.v2/sockjs"
 )
 
 func main() {
