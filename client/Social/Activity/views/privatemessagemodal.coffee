@@ -33,7 +33,7 @@ class PrivateMessageModal extends KDModalViewWithForms
               name         : 'body'
               type         : 'textarea'
               defaultValue : options._lastMessage
-              placeholder  : "What's on your mind? Don't forget to @mention people you want this message to be sent."
+              placeholder  : 'What\'s on your mind?'
               keyup        : @bound 'handleBodyKeyup'
               validate     :
                 rules      : required : yes
