@@ -2,7 +2,6 @@ package reverseproxy
 
 import (
 	"crypto/tls"
-	"fmt"
 	"net"
 	"net/http"
 	"net/http/httputil"
@@ -33,7 +32,7 @@ type Proxy struct {
 	closeC chan bool // To signal when kite is closed with Close()
 
 	// Holds registered kites. Keys are kite IDs.
-	kites   map[string]*url.URL
+	kites   map[string]url.URL
 	kitesMu sync.Mutex
 
 	// muxer for proxy
@@ -53,7 +52,7 @@ func New(conf *config.Config) *Proxy {
 
 	p := &Proxy{
 		Kite:   k,
-		kites:  make(map[string]*url.URL),
+		kites:  make(map[string]url.URL),
 		readyC: make(chan bool),
 		closeC: make(chan bool),
 		mux:    http.NewServeMux(),
@@ -127,7 +126,7 @@ func (p *Proxy) handleRegister(r *kite.Request) (interface{}, error) {
 		return nil, err
 	}
 
-	p.kites[r.Client.ID] = kiteUrl
+	p.kites[r.Client.ID] = *kiteUrl
 
 	proxyURL := url.URL{
 		Scheme: p.Scheme,
@@ -171,22 +170,14 @@ func (p *Proxy) backend(req *http.Request) *url.URL {
 
 	// change "http" with "ws" because websocket procol expects a ws or wss as
 	// scheme.
-	if err := replaceSchemeWithWS(backendURL); err != nil {
+	if err := replaceSchemeWithWS(&backendURL); err != nil {
 		return nil
 	}
 
 	p.Kite.Log.Info("[%s] Changing scheme from '%s' to '%s' to make Websocket connection.", kiteId, oldScheme, backendURL.Scheme)
 
-	// change now the path for the backend kite. Kite register itself with
-	// something like "localhost:7777/kite" however we are going to
-	// dial/connect to a sockjs server and there is no sessionId/serverId in
-	// the path. This causes problem because the SockJS serve can't parse it.
-	// Therefore we as an intermediate client are getting the path as (ommited the query):
-	// "/proxy/795/kite-fba0954a-07c7-4d34-4215-6a88733cf65c-OjLnvABL/websocket"
-	// which will be converted to
-	// "localhost:7777/kite/795/kite-fba0954a-07c7-4d34-4215-6a88733cf65c-OjLnvABL/websocket"
-
-	// backendURL.Path contains the baseURL, like "/kite"
+	// backendURL.Path contains the baseURL, like "/kite" and rest contains
+	// SockJS related endpoints, like /info or /123/kjasd213/websocket
 	backendURL.Path += "/" + rest
 
 	// also change the Origin to the client's host name, like as if someone
@@ -195,7 +186,7 @@ func (p *Proxy) backend(req *http.Request) *url.URL {
 	req.Header.Set("Origin", "http://"+backendURL.Host)
 
 	p.Kite.Log.Info("[%s] Proxying to backend url: '%s'.", kiteId, backendURL.String())
-	return backendURL
+	return &backendURL
 }
 
 func (p *Proxy) director(req *http.Request) {
@@ -224,8 +215,6 @@ func replaceSchemeWithWS(u *url.URL) error {
 		u.Scheme = "ws"
 	case "https":
 		u.Scheme = "wss"
-	default:
-		return fmt.Errorf("invalid scheme in url: %s", u.Scheme)
 	}
 	return nil
 }
