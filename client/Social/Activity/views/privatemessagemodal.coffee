@@ -150,9 +150,14 @@ class PrivateMessageModal extends KDModalViewWithForms
 
     val = @autoComplete.getView().getValue()
 
-    # fixme: handle backspace here
-    # to delete a chat-head
+    if event.which is 8 and val is '' and lastItemData = @autoComplete.getSelectedItemData().last
 
-    # if event.which is 8 and val is ''
-    #   log 'sil bi eleman'
-    #   debugger
+      [item] = (item for item in @autoComplete.itemWrapper.getSubViews() when item.getData() is lastItemData)
+      input = @autoComplete.getView()
+      if item.hasClass 'selected'
+        @autoComplete.removeFromSubmitQueue item, lastItemData
+        input.setPlaceHolder 'Type a username to start your conversation...'
+      else
+        fullname = KD.utils.getFullnameFromAccount lastItemData
+        input.setPlaceHolder "Hit backspace again to remove #{fullname}"
+        item.setClass 'selected'
