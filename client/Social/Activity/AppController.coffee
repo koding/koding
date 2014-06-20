@@ -72,9 +72,17 @@ class ActivityAppController extends AppController
 
   getActiveChannel: -> @getView().sidebar.selectedItem.getData()
 
-  goToNextTab: -> @getView().openNext()
 
-  goToPreviousTab: -> @getView().openPrev()
+  goToNextTab: (event) ->
+
+    KD.utils.stopDOMEvent event
+    @getView().openNext()
+
+
+  goToPreviousTab: (event) ->
+
+    KD.utils.stopDOMEvent event
+    @getView().openPrev()
 
 
   #
