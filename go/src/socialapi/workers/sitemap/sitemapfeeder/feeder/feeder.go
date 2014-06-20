@@ -181,7 +181,7 @@ func (f *Controller) queueItem(i *models.SitemapItem) (string, error) {
 }
 
 func (f *Controller) updateFileNameCache(fileName string) error {
-	key := common.PrepareFileNameCacheKey()
+	key := common.PrepareNextFileNameCacheKey()
 	redisConn := helper.MustGetRedisConn()
 	if _, err := redisConn.AddSetMembers(key, fileName); err != nil {
 		return err

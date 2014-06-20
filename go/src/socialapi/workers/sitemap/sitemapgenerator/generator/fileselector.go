@@ -22,7 +22,7 @@ type CachedFileSelector struct{}
 func (s CachedFileSelector) Select() (string, error) {
 	redisConn := helper.MustGetRedisConn()
 
-	item, err := redisConn.PopSetMember(common.PrepareFileNameCacheKey())
+	item, err := redisConn.PopSetMember(common.PreparePrevFileNameCacheKey())
 
 	if err != nil && err != redis.ErrNil {
 		return "", err
