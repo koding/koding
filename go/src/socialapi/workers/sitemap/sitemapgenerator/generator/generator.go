@@ -23,6 +23,8 @@ type Controller struct {
 }
 
 const (
+	// before sending this interval, beware that you have to change
+	// TIMERANGE in cache key file
 	SCHEDULE = "0 0-59/30 * * * *"
 )
 
@@ -76,6 +78,11 @@ func (c *Controller) generate() {
 		els, err := c.fetchElements()
 		if err != nil {
 			c.log.Error("Could not fetch updated elements: %s", err)
+			return
+		}
+
+		if len(els) == 0 {
+			c.log.Notice("Items are already added")
 			return
 		}
 
