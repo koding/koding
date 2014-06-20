@@ -113,7 +113,7 @@ class PrivateMessageModal extends KDModalViewWithForms
       heads = @autoComplete.getSelectedItemData()
       autoCompleteView.setWidth inputs.recipient.getWidth() - heads.length * 35
 
-    autoCompleteView.on 'keyup', @bound 'handleRecipientKeyup'
+    autoCompleteView.on 'keydown', @bound 'handleRecipientKeydown'
 
     inputs.recipient.addSubView autoCompleteView
 
@@ -146,18 +146,33 @@ class PrivateMessageModal extends KDModalViewWithForms
     @getDelegate()._lastMessage = body.getValue()
 
 
-  handleRecipientKeyup: (event) ->
+  placeholderIsChanged_ = no
 
-    val = @autoComplete.getView().getValue()
+  handleRecipientKeydown: (event) ->
 
-    if event.which is 8 and val is '' and lastItemData = @autoComplete.getSelectedItemData().last
+    return  unless lastItemData = @autoComplete.getSelectedItemData().last
 
-      [item] = (item for item in @autoComplete.itemWrapper.getSubViews() when item.getData() is lastItemData)
-      input = @autoComplete.getView()
+    val    = @autoComplete.getView().getValue()
+    input  = @autoComplete.getView()
+    [item] = (item for item in @autoComplete.itemWrapper.getSubViews() when item.getData() is lastItemData)
+
+    reset = ->
+      input.setPlaceHolder 'Type a username to start your conversation...'
+      item.unsetClass 'selected'
+      placeholderIsChanged_ = no
+
+    if event.which is 8 and val is ''
+
       if item.hasClass 'selected'
         @autoComplete.removeFromSubmitQueue item, lastItemData
-        input.setPlaceHolder 'Type a username to start your conversation...'
+        reset()
       else
         fullname = KD.utils.getFullnameFromAccount lastItemData
-        input.setPlaceHolder "Hit backspace again to remove #{fullname}"
+        input.setPlaceHolder "Hit backspace again to remove #{Encoder.htmlDecode fullname}"
+        placeholderIsChanged_ = yes
         item.setClass 'selected'
+
+    else
+
+      reset()
+
