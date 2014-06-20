@@ -6,6 +6,8 @@ option '-r', '--region [REGION]', 'region flag'
 option '-w', '--worker [WORKER]', 'run a specific worker'
 option '-i', '--IP [IP]', 'droplet IP'
 
+# fooo
+
 require 'colors'
 
 require('coffee-script').register()
@@ -22,7 +24,11 @@ KONFIG            = require('koding-config-manager').load("main.#{argv.c}")
 publicKey         = fs.readFileSync(process.env['HOME']+"/.ssh/id_rsa.pub")
 
 
+task 'killall','',->
 
+  exec "bash ./install/killall.sh", (err,cuf,cif)->
+    console.log arguments
+  
 
 checkConfig = (options,callback=->)->
   console.log "[KONFIG CHECK] If you don't see any errors, you're fine."
@@ -32,12 +38,12 @@ checkConfig = (options,callback=->)->
     
     
 
-importDB = (options, callback = ->)->
-  return callback null unless options.configFile in ['vagrant', 'kodingme']  
-  exec "bash ./install/createBlankMongo.sh", (err, stdout, stderr)->
-    console.log stdout
-    console.error stderr if stderr          
-    callback null
+# importDB = (options, callback = ->)->
+#   return callback null unless options.configFile in ['vagrant', 'kodingme']  
+#   exec "bash ./install/createBlankMongo.sh", (err, stdout, stderr)->
+#     console.log stdout
+#     console.error stderr if stderr          
+#     callback null
 
 
 task 'x',->
@@ -105,20 +111,19 @@ task "cleanDroplets","",->
     
     droplets.forEach (droplet)->
 
-      if droplet.name.indexOf("koding.me") isnt -1 or 
-      droplet.name.indexOf("koding.io") isnt -1 or
-      droplet.name.indexOf("koding.dvr") isnt -1 or
-      droplet.name.indexOf("devrim-") isnt -1 or
-      droplet.name.indexOf("koding-") isnt -1 or
-      droplet.name.indexOf("cache-") isnt -1 or
-      droplet.name.indexOf("gokmen-") isnt -1            
-        doApi.dropletDestroy droplet.id,(err,res)->
-          unless err
-            console.log "#{droplet.name} is destroyed"
-          else
-            console.log "error destroying " + droplet.name
-      else
-        console.log "skipping "+droplet.name
+      if droplet.name.indexOf("cihangir.koding.me") isnt 0
+        if droplet.name.indexOf("koding.me") isnt -1 or 
+        droplet.name.indexOf("koding.io") isnt -1 or
+        droplet.name.indexOf("koding.dvr") isnt -1 or
+        droplet.name.indexOf("devrim-") isnt -1 or
+        droplet.name.indexOf("koding-") isnt -1 or
+        droplet.name.indexOf("cache-") isnt -1 or
+        droplet.name.indexOf("gokmen-") isnt -1        
+          doApi.dropletDestroy droplet.id,(err,res)->
+            unless err then console.log "#{droplet.name} is destroyed"
+            else console.log "-error destroying " + droplet.name
+        else console.log "skipping "+droplet.name
+      else console.log "skipping "+droplet.name
 
 
 
@@ -132,16 +137,17 @@ task 'droplet',"",->
   # doApi.sizeGetAll (err,res)-> console.log arguments
   # doApi.sshKeyGetAll (err,res)->  console.log arguments
   # size ids: 512mb = 66 64gb = 69
-  # ubuntu image id 3240036 - LAMP id 3961756
+  # ubuntu image id 3240036 - LAMP id 3961756 - koding-installer 4395492
   subdomain  = eden.eve().toLowerCase()
   domainName = subdomain+".koding.me"
 
   doApi.sshKeyAdd domainName, publicKey+"", (err,sshKey)->
+    imageId = 3240036
     if err
       console.log err
     else
       console.log "publicKey with id #{sshKey.id} is added. creating droplet..."
-      doApi.dropletNew domainName, 69, 3240036, 3, { ssh_key_ids: [sshKey.id], private_networking: false, backups_enabled: false }, (err,newDroplet)->
+      doApi.dropletNew domainName, 69, imageId, 3, { ssh_key_ids: [sshKey.id], private_networking: false, backups_enabled: false }, (err,newDroplet)->
       # doApi.dropletNew domainName, 66,3961756, 3,{}, (err,res)->
         if err
           console.log "[ERROR]", err
@@ -214,8 +220,8 @@ buildEverything = (options, callback = ->)->
           buildClient options
         else
           queue.next()
-    ,
-      -> importDB options, -> queue.next()
+#     ,
+#       -> importDB options, -> queue.next()
     ,
       -> callback null
     ]

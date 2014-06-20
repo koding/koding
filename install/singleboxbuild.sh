@@ -7,6 +7,17 @@ fi
 
 # read -p "Hostname is `hostname` - Press [Enter] key to continue install..."
 
+# echo '{"https://index.docker.io/v1/":{"auth":"ZGV2cmltOm45czQvV2UuTWRqZWNq","email":"devrim@koding.com"}}' > ~/.dockercfg
+
+
+# docker pull koding/base
+
+
+
+apt-get update 
+apt-get install -y curl
+curl -s https://get.docker.io/ubuntu/ | sudo sh
+
 
 echo "127.0.0.1 "$HOSTNAME >> /etc/hosts
 
@@ -14,9 +25,12 @@ echo '#!/bin/sh -e' >/etc/rc.local
 echo "iptables -F" >>/etc/rc.local
 echo "iptables -A INPUT -i lo -j ACCEPT" >>/etc/rc.local
 echo "iptables -A INPUT -s 208.72.139.54 -j ACCEPT" >>/etc/rc.local
+echo "iptables -A INPUT -s 70.197.5.50 -j ACCEPT" >>/etc/rc.local
 echo "iptables -A INPUT -s 208.87.56.148 -j ACCEPT" >>/etc/rc.local
+echo "iptables -A INPUT -s 208.87.59.205 -j ACCEPT" >>/etc/rc.local
 echo "iptables -A INPUT -s 94.54.193.66 -j ACCEPT" >>/etc/rc.local
 echo "iptables -A INPUT -s 78.184.209.65 -j ACCEPT" >>/etc/rc.local
+echo "iptables -A INPUT -s 68.68.97.155 -j ACCEPT" >>/etc/rc.local
 echo "iptables -A INPUT -s 85.107.151.5 -j ACCEPT" >>/etc/rc.local
 echo "iptables -A INPUT -p tcp --dport 4000 -j ACCEPT" >>/etc/rc.local
 echo "iptables -A INPUT -p tcp --dport 3999 -j ACCEPT" >>/etc/rc.local
@@ -74,10 +88,14 @@ chmod 600 /root/.ssh/id_rsa
 
 apt-get update
 apt-add-repository -y ppa:chris-lea/redis-server
-apt-get install -y golang nodejs npm git mongodb graphicsmagick rabbitmq-server=3.2.4-1 redis-server postgresql postgresql-contrib
+apt-get install -y mongodb rabbitmq-server=3.2.4-1 redis-server postgresql postgresql-contrib
 cp /usr/bin/nodejs /usr/bin/node
 
 
+
+# install & build code
+apt-get install -y golang nodejs npm git graphicsmagick
+cp /usr/bin/nodejs /usr/bin/node
 cd /opt
 git clone git@git.sj.koding.com:koding/koding.git
 cd koding
@@ -112,7 +130,7 @@ sed -i "s/#timezone =.*/timezone = 'UTC'/" /etc/postgresql/9.3/main/postgresql.c
 service postgresql restart
 cd /opt/koding/go/src/socialapi/
 make configure
-make develop -j
+# make develop -j
 ##################
 
 
