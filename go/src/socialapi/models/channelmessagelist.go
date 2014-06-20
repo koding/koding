@@ -27,11 +27,12 @@ type ChannelMessageList struct {
 	AddedAt time.Time `json:"addedAt"            sql:"NOT NULL"`
 
 	// Update time of the message/list
-	ReviseddAt time.Time `json:"revisedAt"        sql:"NOT NULL"`
+	RevisedAt time.Time `json:"revisedAt"        sql:"NOT NULL"`
 }
 
 func (c *ChannelMessageList) BeforeCreate() {
 	c.AddedAt = time.Now()
+	c.RevisedAt = time.Now()
 }
 
 func (c *ChannelMessageList) BeforeUpdate() {
@@ -106,11 +107,11 @@ func (c *ChannelMessageList) Create() error {
 func (c *ChannelMessageList) CreateRaw() error {
 	insertSql := "INSERT INTO " +
 		c.TableName() +
-		` ("channel_id","message_id","added_at") VALUES ($1,$2,$3) ` +
+		` ("channel_id","message_id","added_at","revised_at") VALUES ($1,$2,$3,$4) ` +
 		"RETURNING ID"
 
 	return bongo.B.DB.CommonDB().
-		QueryRow(insertSql, c.ChannelId, c.MessageId, c.AddedAt).
+		QueryRow(insertSql, c.ChannelId, c.MessageId, c.AddedAt, c.RevisedAt).
 		Scan(&c.Id)
 }
 
