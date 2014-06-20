@@ -37,7 +37,7 @@ reviveCredential = (client, credential, callback)->
     return callback null
 
   if credential.bongo_?.constructorName is 'JCredential'
-    callback null, credential.publicKey
+    callback null, credential
   else
     JCredential = require './credential'
     JCredential.fetchByPublicKey client, credential, callback
@@ -109,7 +109,7 @@ revive = do -> ({
         if shouldPassCredential and not cred?
           return callback new KodingError "Credential failed.", "AccessDenied"
         else
-          options.credential = cred  if cred?
+          options.credential = cred.publicKey  if cred?.publicKey
 
         reviveProvisioners client, provisioners, (err, provisioners)=>
 
