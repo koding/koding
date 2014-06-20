@@ -153,6 +153,16 @@ class ActivitySidebar extends KDCustomScrollView
     item.setUnreadCount unreadCount  if item?.unreadCount
 
 
+  getItems: ->
+
+    items = [ @public ]
+    items = items.concat @sections.followedTopics.listController.getListItems()
+    items = items.concat @sections.conversations.listController.getListItems()
+    items = items.concat @sections.messages.listController.getListItems()
+
+    return items
+
+
   getListController: (type) ->
 
     section = switch type
