@@ -6,15 +6,25 @@ class AvatarAreaIconMenu extends JView
 
     @setClass "account-menu"
 
-    @helpIcon    = new AvatarAreaIconLink
+    @helpIcon    = new CustomLinkView
+      title      : ''
       cssClass   : "help acc-dropdown-icon"
+      icon       :
+        cssClass : 'icon'
       attributes :
         title    : 'Help'
+        href     : 'http://learn.koding.com'
+        target   : '_blank'
 
-    @helpIcon.click = (event)=>
-      KD.singletons.helpController.showHelp this
-      KD.utils.stopDOMEvent event
-      @animation?.destroy()
+    # @helpIcon.click = (event)=>
+      # window.open "http://learn.koding.com"
+      # KD.utils.stopDOMEvent event
+
+      # We disabled this feature since '?' relies on vm to be up for
+      # certain items to show properly. SA
+      #
+      # KD.singletons.helpController.showHelp this
+      # @animation?.destroy()
 
     @notificationsPopup = new AvatarPopupNotifications
       cssClass : "notifications"
@@ -90,6 +100,7 @@ class AvatarAreaIconMenu extends JView
 
   accountChanged:(account)->
 
+<<<<<<< HEAD
     {notificationsPopup} = this
 
     notificationsPopup.listController.removeAllItems()
@@ -99,3 +110,30 @@ class AvatarAreaIconMenu extends JView
       notificationsPopup.listController.fetchNotificationTeasers (err, notifications)=>
         return warn "Notifications cannot be received", err  if err
         notificationsPopup.listController.instantiateListItems notifications
+=======
+    {listController} = @notificationsPopup
+    listController.removeAllItems()
+
+    return  unless KD.isLoggedIn()
+
+    # Fetch Notifications
+    KD.utils.defer ->
+      listController.fetchNotificationTeasers (teasers)->
+        listController.instantiateListItems filterNotifications teasers
+
+
+  filterNotifications=(notifications)->
+    activityNameMap = [
+      "JNewStatusUpdate"
+      "JAccount"
+      "JPrivateMessage"
+      "JComment"
+      "JReview"
+      "JGroup"
+    ]
+    notifications.filter (notification) ->
+      return  unless notification.snapshot
+      try
+        snapshot = JSON.parse Encoder.htmlDecode notification.snapshot
+        snapshot.anchor.constructorName in activityNameMap
+>>>>>>> master

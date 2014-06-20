@@ -63,6 +63,7 @@ koding = new Bongo {
     version     : KONFIG.version
     username    : 'koding'
     port        : argv['kite-port']
+    prefix      : 'social'
     kiteKey     : joinPath __dirname, '../../../../kite_home/koding/kite.key'
 
     fetchClient: (name, context, callback) ->

@@ -1,5 +1,8 @@
 # this class will register itself just before application starts loading, right after framework is ready
 
+if localStorage.disableWebSocket is "true"
+  window.WebSocket = null
+
 KD.extend
 
   apiUri       : KD.config.apiUri

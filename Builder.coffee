@@ -80,7 +80,7 @@ module.exports = class Builder
   buildFramework:->
 
     @config ?= require('koding-config-manager').load("main.#{options.configFile}")
-    cmd = "cd client/Framework && npm i && gulp compile --outputDir=../../website/a/"
+    cmd = "cd client/Framework && npm i && gulp compile --uglify --outputDir=../../website/a/"
     exec cmd, (err, stdout, stderr)->
       console.log """\n\n
       ################################### FRAMEWORK COMPILED #################################

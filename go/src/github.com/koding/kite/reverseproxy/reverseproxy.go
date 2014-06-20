@@ -2,10 +2,13 @@ package reverseproxy
 
 import (
 	"crypto/tls"
+	"fmt"
 	"net"
 	"net/http"
+	"net/http/httputil"
 	"net/url"
 	"strconv"
+	"strings"
 	"sync"
 
 	"github.com/gorilla/websocket"
@@ -33,7 +36,9 @@ type Proxy struct {
 	kitesMu sync.Mutex
 
 	// muxer for proxy
-	mux *http.ServeMux
+	mux            *http.ServeMux
+	websocketProxy http.Handler
+	httpProxy      http.Handler
 
 	// Proxy properties used to give urls and bind the listener
 	Scheme     string
@@ -61,7 +66,8 @@ func New(conf *config.Config) *Proxy {
 	p.Kite.HandleFunc("register", p.handleRegister)
 
 	// create our websocketproxy http.handler
-	proxy := &websocketproxy.WebsocketProxy{
+
+	p.websocketProxy = &websocketproxy.WebsocketProxy{
 		Backend: p.backend,
 		Upgrader: &websocket.Upgrader{
 			ReadBufferSize:  4096,
@@ -73,8 +79,12 @@ func New(conf *config.Config) *Proxy {
 		},
 	}
 
-	p.mux.Handle("/kite", k)
-	p.mux.Handle("/proxy", proxy)
+	p.httpProxy = &httputil.ReverseProxy{
+		Director: p.director,
+	}
+
+	p.mux.Handle("/", k)
+	p.mux.Handle("/proxy/", p)
 
 	// OnDisconnect is called whenever a kite is disconnected from us.
 	k.OnDisconnect(func(r *kite.Client) {
@@ -83,6 +93,26 @@ func New(conf *config.Config) *Proxy {
 	})
 
 	return p
+}
+
+// ServeHTTP implements the http.Handler interface.
+func (p *Proxy) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
+	if isWebsocket(req) {
+		p.websocketProxy.ServeHTTP(rw, req)
+		return
+	}
+
+	p.httpProxy.ServeHTTP(rw, req)
+}
+
+// isWebsocket checks wether the incoming request is a part of websocket
+// handshake
+func isWebsocket(req *http.Request) bool {
+	if strings.ToLower(req.Header.Get("Upgrade")) != "websocket" ||
+		!strings.Contains(strings.ToLower(req.Header.Get("Connection")), "upgrade") {
+		return false
+	}
+	return true
 }
 
 func (p *Proxy) CloseNotify() chan bool {
@@ -114,6 +144,13 @@ func (p *Proxy) handleRegister(r *kite.Request) (interface{}, error) {
 	return s, nil
 }
 
+func (p *Proxy) director(req *http.Request) {
+	u := p.backend(req)
+	req.URL.Scheme = u.Scheme
+	req.URL.Host = u.Host
+	req.URL.Path = u.Path
+}
+
 func (p *Proxy) backend(req *http.Request) *url.URL {
 	kiteId := req.URL.Query().Get("kiteId")
 
@@ -126,16 +163,49 @@ func (p *Proxy) backend(req *http.Request) *url.URL {
 		return nil
 	}
 
-	p.Kite.Log.Info("Returning backend url: '%s' for kiteId: %s", backendURL.String(), kiteId)
+	// change "http" with "ws" because websocket procol expects a ws or wss as
+	// scheme
+	if err := replaceSchemeWithWS(backendURL); err != nil {
+		return nil
+	}
 
+	// change now the path for the backend kite. Kite register itself with
+	// something like "localhost:7777/kite" however we are going to
+	// dial/connect to a sockjs server and there is no sessionId/serverId in
+	// the path. This causes problem because the SockJS serve can't parse it.
+	// Therefore we as an intermediate client are getting the path as (ommited the query):
+	// "/proxy/795/kite-fba0954a-07c7-4d34-4215-6a88733cf65c-OjLnvABL/websocket"
+	// which will be converted to
+	// "localhost:7777/kite/795/kite-fba0954a-07c7-4d34-4215-6a88733cf65c-OjLnvABL/websocket"
+	backendURL.Path += strings.TrimPrefix(req.URL.Path, "/proxy")
+
+	// also change the Origin to the client's host name, like as if someone
+	// with the same backendUrl is trying to connect to the kite. Otherwise
+	// will get an "Origin not allowed"
+	req.Header.Set("Origin", "http://"+backendURL.Host)
+
+	p.Kite.Log.Info("Returning backend url: '%s' for kiteId: %s", backendURL.String(), kiteId)
 	return backendURL
+}
+
+// TODO: put this into a util package, is used by others too
+func replaceSchemeWithWS(u *url.URL) error {
+	switch u.Scheme {
+	case "http":
+		u.Scheme = "ws"
+	case "https":
+		u.Scheme = "wss"
+	default:
+		return fmt.Errorf("invalid scheme in url: %s", u.Scheme)
+	}
+	return nil
 }
 
 // ListenAndServe listens on the TCP network address addr and then calls Serve
 // with handler to handle requests on incoming connections.
 func (p *Proxy) ListenAndServe() error {
 	var err error
-	p.listener, err = net.Listen("tcp",
+	p.listener, err = net.Listen("tcp4",
 		net.JoinHostPort(p.Kite.Config.IP, strconv.Itoa(p.Kite.Config.Port)))
 	if err != nil {
 		return err
