@@ -119,8 +119,8 @@ func registerURL() *url.URL {
 	}
 
 	return &url.URL{
-		Scheme: "ws",
+		Scheme: "http",
 		Host:   ip.String() + ":" + strconv.Itoa(*flagPort),
-		Path:   "/" + NAME + "-" + VERSION,
+		Path:   "/" + NAME + "-" + VERSION + "/kite",
 	}
 }
