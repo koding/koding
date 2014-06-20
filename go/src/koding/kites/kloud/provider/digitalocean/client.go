@@ -306,7 +306,7 @@ func (c *Client) Info() (*protocol.InfoResponse, error) {
 // reached, if another generic error is produced or if the event status is of
 // type "ERROR".
 func (c *Client) WaitUntilReady(eventId, from, to int, state machinestate.State) error {
-	timeout := time.After(time.Minute)
+	timeout := time.After(5 * time.Minute)
 	for {
 		select {
 		case <-timeout:
@@ -360,6 +360,8 @@ func (c *Client) NewDroplet(dropletName string, imageId uint) (dropletId uint, e
 		if err == nil {
 			return
 		}
+
+		c.Log.Error("Creating droplet err: %s", err.Error())
 
 		c.Push("Destroying droplet", 95, machinestate.Building)
 		_, err := c.DestroyDroplet(uint(dropletInfo.Droplet.Id))
