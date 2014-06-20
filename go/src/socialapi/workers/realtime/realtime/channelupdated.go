@@ -185,6 +185,23 @@ func (cue *channelUpdatedEvent) calculateUnreadItemCount() (int, error) {
 		return models.NewChannelMessageList().UnreadCount(cue.ChannelParticipant)
 	}
 
+	// from this poin we need parent message
+
+	// for pinned posts calculate unread count from message's added at into that channel
+	if cue.Channel.TypeConstant == models.Channel_TYPE_PINNED_ACTIVITY {
+		cml, err := cue.Channel.FetchMessageList(cue.ParentChannelMessage.Id)
+		if err != nil {
+			return 0, err
+		}
+
+		// for pinned posts we are calculating unread count from reviseddAt of the
+		// regarding channel message list, since only participant for the channel
+		// is the owner and we cant use channel_participant for unread counts
+		// on the other hand messages should have their own unread count
+		// we are specialcasing the pinned posts here
+		return models.NewMessageReply().UnreadCount(cml.MessageId, cml.RevisedAt)
+	}
+
 	// for private messages calculate the unread reply count
 	if cue.Channel.TypeConstant == models.Channel_TYPE_PRIVATE_MESSAGE {
 		count, err := models.NewMessageReply().UnreadCount(cue.ParentChannelMessage.Id, cue.ChannelParticipant.LastSeenAt)
