@@ -2,9 +2,9 @@ module.exports =
 
   feeUnit   :
     type    : String
-    default : 'months'
-    enum    : ['fee unit should be "months" or "days"',[
-      'months'
+    default : 'month'
+    enum    : ['fee unit should be "month" or "days"',[
+      'month'
       'days'
     ]]
 

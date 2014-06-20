@@ -191,7 +191,8 @@ class AceView extends JView
       file.on "fs.saveAs.finished", =>
         {tabView} = @getDelegate()
         return  if tabView.willClose
-        @getDelegate().openFile FSHelper.createFileFromPath "#{parent.path}/#{name}", yes
+        @getDelegate().openFile \
+          FSHelper.createFileInstance path: "#{parent.path}/#{name}"
 
         if closeAfter
           @utils.defer =>

@@ -110,7 +110,7 @@ class ApplicationManager extends KDObject
   openFile:(file)->
 
     extension  = file.getExtension()
-    type       = FSItem.getFileType extension
+    type       = FSHelper.getFileType extension
     defaultApp = @defaultApps[extension]
 
     return @openFileWithApplication defaultApp, file  if defaultApp

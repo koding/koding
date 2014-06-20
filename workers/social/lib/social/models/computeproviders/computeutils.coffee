@@ -9,15 +9,38 @@ PROVIDERS =
   engineyard   : require './engineyard'
 
 
-reviveCredential = (client, pubKey, callback)->
+reviveProvisioners = (client, provisioners, callback, revive = no)->
 
-  [pubKey, callback] = [callback, pubKey]  unless callback?
+  if not revive or not provisioners or provisioners.length is 0
+    return callback null, provisioners
 
-  if not pubKey?
+  JProvisioner = require './provisioner'
+
+  # TODO add multiple provisioner support
+  provisioner = provisioners[0]
+
+  JProvisioner.one$ client, slug: provisioner, (err, provision)->
+
+    if err or not provision?
+      console.warn "Requested provisioner: #{provisioner} not found !"
+      console.warn "or not accessible for #{client.r.user.username} !!"
+      callback null, []
+    else
+      callback null, [ provision.slug ]
+
+
+reviveCredential = (client, credential, callback)->
+
+  [credential, callback] = [callback, credential]  unless callback?
+
+  if not credential?
     return callback null
 
-  JCredential = require './credential'
-  JCredential.fetchByPublicKey client, pubKey, callback
+  if credential.bongo_?.constructorName is 'JCredential'
+    callback null, credential
+  else
+    JCredential = require './credential'
+    JCredential.fetchByPublicKey client, credential, callback
 
 
 reviveClient = (client, callback, revive = yes)->
@@ -45,7 +68,10 @@ reviveClient = (client, callback, revive = yes)->
 
 
 revive = do -> ({
-    shouldReviveClient, shouldPassCredential, shouldReviveProvider
+    shouldReviveClient
+    shouldPassCredential
+    shouldReviveProvider
+    shouldReviveProvisioners
   }, fn) ->
 
   (client, options, callback) ->
@@ -53,8 +79,8 @@ revive = do -> ({
     unless typeof callback is 'function'
       callback = (err)-> console.error "Unhandled error:", err.message
 
-    shouldReviveProvider  ?= yes
-    {provider, credential} = options
+    shouldReviveProvider ?= yes
+    {provider, credential, provisioners} = options
 
     if shouldReviveProvider
       if not provider or not provider_ = PROVIDERS[provider]
@@ -83,9 +109,14 @@ revive = do -> ({
         if shouldPassCredential and not cred?
           return callback new KodingError "Credential failed.", "AccessDenied"
         else
-          options.credential = cred  if cred?
+          options.credential = cred.publicKey  if cred?.publicKey
 
-        fn.call this, client, options, callback
+        reviveProvisioners client, provisioners, (err, provisioners)=>
+
+          options.provisioners = provisioners
+          fn.call this, client, options, callback
+
+        , shouldReviveProvisioners
 
     , shouldReviveClient
 

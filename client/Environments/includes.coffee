@@ -22,6 +22,7 @@ module.exports = [
   "views/scene/environmentdomainitem.coffee"
   "views/scene/environmentmachineitem.coffee"
   "views/scene/environmentsceneview.coffee"
+  "views/scene/initializemachineview.coffee"
   "views/stackview.coffee"
   "views/resourcescontainer.coffee"
   "views/environmentsmainscene.coffee"

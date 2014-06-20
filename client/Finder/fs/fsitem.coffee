@@ -1,16 +1,36 @@
+
+# Base class for file instances
+# Requires to work with Klient Kite
+# and a provided Machine instance
+#
 class FSItem extends KDObject
 
-  ###
-  CLASS CONTEXT
-  ###
-
+  # Commonly used helpers
   { escapeFilePath, handleStdErr } = FSHelper
 
-  @create:({ path, type, vmName, treeController }, callback)->
+  # Assign every option to instance
+  constructor:(options, data)->
+    @[key] = value for own key, value of options
+    super
 
-    kite = FSItem.getKite {vmName}
+  # Only static method of FSItem
+  # Requires a valid machine object and a path to create
+  # file on the server, type folder is also supported
+  #
+  # If requested path already exists, it generates new paths
+  # eg, if /tmp/foo then /tmp/foo_1 will be created, and so on.
+  @create = ({ path, type, machine }, callback = noop)->
 
-    kite.vmOn().then ->
+    unless path or machine
+      warn message = "pass a path and machine to create a file"
+      return callback { message }
+
+    type ?= "file"
+    kite  = machine.getBaseKite()
+
+    kite.vmOn()
+
+    .then ->
 
       plainPath = FSHelper.plainPath path
 
@@ -24,110 +44,119 @@ class FSItem extends KDObject
         content         : ''
         donotoverwrite  : yes
 
-      kite.fsUniquePath(path: plainPath).then (actualPath) ->
+      kite.fsUniquePath path: plainPath
+
+      .then (actualPath) ->
 
         options.path = actualPath
 
         kite[method](options).then (stat) ->
 
-          FSHelper.createFile {
+          FSHelper.createFileInstance {
             path: actualPath
-            type
-            vmName
+            type, machine
           }
 
-      .nodeify(callback)
+      .nodeify callback
 
-  @copyOrMove:(sourceItem, targetItem, commandPrefix, callback)->
-    sourceItem.emit "fs.job.started"
+  ## Instance Level ##
 
-    kite = sourceItem.getKite()
+  # Helper to get corresponding kite
+  # TODO: add check kite state functionality
+  getKite: -> @machine.getBaseKite()# kites.klient
 
-    targetPath = FSHelper.plainPath "#{targetItem.path}/#{sourceItem.name}"
+  # Copy file instance to provided target folder
+  copy: (folderPath, callback)->
 
+    @emit "fs.job.started"
+
+    folderPath = folderPath.replace /\/$/, ''
+    folderPath = "#{folderPath}/#{@name}"
+
+    kite = @getKite()
     file = null
 
-    kite.vmOn().then ->
+    kite.vmOn().then =>
 
-      kite.fsUniquePath(path: targetPath).then (actualPath) ->
 
-        command = "#{ commandPrefix } #{ escapeFilePath sourceItem.path } #{ escapeFilePath actualPath }"
+      kite.fsUniquePath { path: folderPath }
+
+      .then (actualPath) =>
+
+        command = "cp -R #{ escapeFilePath @getPath() } #{ escapeFilePath actualPath }"
 
         kite.exec({command})
 
         .then(handleStdErr())
 
         .then ->
-          file = FSHelper.createFile {
-            path        : actualPath
-            parentPath  : targetItem.path
-            name        : sourceItem.name
-            type        : sourceItem.type
-            vmName      : sourceItem.vmName
-          }
 
-          return file
+          return FSHelper.createFileInstance
+            path        : actualPath
+            parentPath  : folderPath
+            name        : @name
+            type        : @type
+            machine     : @machine
 
     .nodeify(callback)
 
-    .finally ->
-      sourceItem.emit "fs.job.finished"
+    .finally =>
 
+      @emit "fs.job.finished"
       return file
 
-  @copy: (sourceItem, targetItem, callback) ->
-    @copyOrMove sourceItem, targetItem, 'cp -R', callback
 
-  @move:(sourceItem, targetItem, callback)->
+  # Compress file with given type
+  #
+  # TODO: add more checks for type
+  # TODO: add option for targetPath
+  compress: (type, callback)->
 
-    newName = FSHelper.plainPath "#{ targetItem.path }/#{ sourceItem.name }"
-    sourceItem.rename path: newName, callback
+    @emit "fs.job.started"
 
-  @compress:(file, type, callback)->
+    kite = @getKite()
 
-    file.emit "fs.job.started"
-
-    kite = file.getKite()
-
-    path = FSHelper.plainPath "#{file.path}.#{type}"
+    path = FSHelper.plainPath "#{@getPath()}.#{type}"
 
     kite.vmOn().then ->
 
       kite.fsUniquePath { path }
 
-    .then (actualPath) ->
+    .then (actualPath) =>
 
       command =
         if type is "tar.gz"
-          "tar -pczf #{escapeFilePath actualPath} #{escapeFilePath file.path}"
+          "tar -pczf #{escapeFilePath actualPath} #{escapeFilePath @getPath()}"
         else
-          "zip -r #{escapeFilePath actualPath} #{escapeFilePath file.path}"
+          "zip -r #{escapeFilePath actualPath} #{escapeFilePath @getPath()}"
 
-      kite.exec {command}
+      kite.exec { command }
 
     .then(handleStdErr())
 
     .nodeify(callback)
 
-    .finally ->
-      file.emit "fs.job.finished"
+    .finally =>
+      @emit "fs.job.finished"
 
-  @extract: (file, callback = (->)) ->
-    file.emit "fs.job.started"
 
-    kite = file.getKite()
+  @extract: (callback = (->)) ->
+
+    @emit "fs.job.started"
+
+    kite = @getKite()
 
     tarPattern = /\.tar\.gz$/
     zipPattern = /\.zip$/
 
-    path = FSHelper.plainPath file.path
+    path = @getPath()
 
     [isTarGz, extractFolder] = switch
 
-      when tarPattern .test file.name
+      when tarPattern .test @name
         [yes, path.replace tarPattern, '']
 
-      when zipPattern .test file.name
+      when zipPattern .test @name
         [no, path.replace zipPattern, '']
 
     kite.vmOn()
@@ -135,103 +164,48 @@ class FSItem extends KDObject
     .then ->
       kite.fsUniquePath(path: "#{ extractFolder }")
 
-    .then (actualPath) ->
+    .then (actualPath) =>
 
       command =
         if isTarGz
-          "cd #{escapeFilePath file.parentPath};mkdir -p #{escapeFilePath actualPath};tar -zxf #{escapeFilePath file.name} -C #{escapeFilePath actualPath}"
+          "cd #{escapeFilePath @parentPath};mkdir -p #{escapeFilePath actualPath};tar -zxf #{escapeFilePath @name} -C #{escapeFilePath actualPath}"
         else
-          "cd #{escapeFilePath file.parentPath};unzip -o #{escapeFilePath file.name} -d #{escapeFilePath actualPath}"
+          "cd #{escapeFilePath @parentPath};unzip -o #{escapeFilePath @name} -d #{escapeFilePath actualPath}"
 
       kite.exec({command})
 
     .then(handleStdErr())
 
-    .then ->
+    .then =>
 
-      file = FSHelper.createFile {
+      file = FSHelper.createFileInstance {
         path            : actualPath
-        parentPath      : file.parentPath
+        parentPath      : @parentPath
         type            : 'folder'
-        vmName          : file.vmName
+        machine         : @machine
       }
 
       return file
 
     .nodeify(callback)
 
-    .finally ->
-      file.emit "fs.job.finished"
+    .finally =>
+      @emit "fs.job.finished"
 
-  @getFileExtension: (path) ->
-    fileName = path or ''
-    [name, extension...]  = fileName.split '.'
-    extension = if extension.length is 0 then '' else extension.last
+  getExtension:-> FSHelper.getFileExtension @name
 
-  @getFileType: (extension)->
+  getPath:-> FSHelper.plainPath @path
 
-    fileType = null
+  isHidden:-> FSHelper.isHidden @name
 
-    _extension_sets =
-      code    : [
-        "php", "pl", "py", "jsp", "asp", "htm","html", "phtml","shtml"
-        "sh", "cgi", "htaccess","fcgi","wsgi","mvc","xml","sql","rhtml"
-        "js","json","coffee", "css","styl","sass", "erb"
-      ]
-      text    : [
-        "txt", "doc", "rtf", "csv", "docx", "pdf"
-      ]
-      archive : [
-        "zip","gz","bz2","tar","7zip","rar","gzip","bzip2","arj","cab"
-        "chm","cpio","deb","dmg","hfs","iso","lzh","lzma","msi","nsis"
-        "rpm","udf","wim","xar","z","jar","ace","7z","uue"
-      ]
-      image   : [
-        "png","gif","jpg","jpeg","bmp","svg","psd","qt","qtif","qif"
-        "qti","tif","tiff","aif","aiff"
-      ]
-      video   : [
-        "avi","mp4","h264","mov","mpg","ra","ram","mpg","mpeg","m4a"
-        "3gp","wmv","flv","swf","wma","rm","rpm","rv","webm"
-      ]
-      sound   : ["aac","au","gsm","mid","midi","snd","wav","3g2","mp3","asx","asf"]
-      app     : ["kdapp"]
+  exists: (callback = noop) ->
 
-
-    for own type,set of _extension_sets
-      for ext in set when extension is ext
-        fileType = type
-        break
-      break if fileType
-
-    return fileType or 'unknown'
-
-  @isHidden: (name)-> return /^\./.test name
-
-  ###
-  INSTANCE METHODS
-  ###
-
-  constructor:(options, data)->
-
-    @[key] = value for own key, value of options
-
-    super
-
-    @vmController   = KD.getSingleton('vmController')
-
-  getExtension:-> FSItem.getFileExtension @name
-
-  getPath: -> FSHelper.plainPath @path
-
-  isHidden:-> FSItem.isHidden @name
-
-  exists:(callback=noop)->
     kite = @getKite()
 
     kite.vmOn().then =>
 
-      kite.fsExists(path: @getPath())
+      kite.fsGetInfo path: @getPath()
+      .then (info)-> info.exists
 
     .nodeify(callback)
 
@@ -258,21 +232,27 @@ class FSItem extends KDObject
     .then =>
       @emit "fs.delete.finished"
 
-  rename: ({ name: newName, path: newPath }, callback)->
+  # Move file to provided path, its using ::rename
+  move: (path, callback)->
 
-    newPath ?= FSHelper.plainPath "#{@parentPath}/#{newName}"
+    newName = FSHelper.plainPath "#{ path }/#{ @name }"
+    @rename path: newName, callback
+
+  rename: (newName, callback)->
 
     @emit "fs.job.started"
+
+    newPath = "#{FSHelper.getParentPath @getPath()}/#{newName}"
 
     kite = @getKite()
 
     kite.vmOn()
 
     .then =>
-      kite.fsRename(
-        oldpath: @getPath()
-        newpath: newPath
-      )
+
+      kite.fsRename
+        oldpath : @getPath()
+        newpath : newPath
 
     .nodeify(callback)
 
@@ -303,23 +283,3 @@ class FSItem extends KDObject
 
     .then =>
       @emit "fs.job.started"
-
-  getKite: ->
-    if @options.dummy
-      return null
-
-    FSItem.getKite { @vm, @vmName }
-
-  @getKite = ({vm, vmName})->
-    if KD.useNewKites
-      kontrol = KD.getSingleton 'kontrol'
-      kontrol.getKite \
-        if vm?
-          name              : 'oskite'
-          correlationName   : vm.hostnameAlias
-          region            : vm.region
-        else
-          name              : 'oskite'
-          correlationName   : vmName
-    else
-      KD.getSingleton('vmController').getKiteByVmName vmName

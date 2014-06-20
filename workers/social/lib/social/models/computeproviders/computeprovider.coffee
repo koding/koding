@@ -72,11 +72,12 @@ module.exports = class ComputeProvider extends Base
 
   @create = revive
 
-    shouldReviveClient   : yes
+    shouldReviveClient       : yes
+    shouldReviveProvisioners : yes
 
   , (client, options, callback)->
 
-      { provider, stack, label } = options
+      { provider, stack, label, provisioners } = options
       { r: { group, user, account } } = client
 
       provider.create client, options, (err, machineData)=>
@@ -88,7 +89,7 @@ module.exports = class ComputeProvider extends Base
         @createMachine {
           provider : provider.slug
           label, meta, group, user
-          credential
+          credential, provisioners
         }, (err, machine)->
 
           # TODO if any error occurs here which means user paid for
@@ -156,14 +157,14 @@ module.exports = class ComputeProvider extends Base
 
   @createMachine = (options, callback)->
 
-    { provider, label, meta, group, user, credential } = options
+    { provider, label, meta, group, user, credential, provisioners } = options
 
     users  = [{ id: user.getId(), sudo: yes, owner: yes }]
     groups = [{ id: group.getId() }]
 
     machine = JMachine.create {
       group : group.slug, user : user.username
-      provider, users, groups, meta, label, credential
+      provider, users, groups, meta, label, credential, provisioners
     }
 
     machine.save (err)->

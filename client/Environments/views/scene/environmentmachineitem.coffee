@@ -35,11 +35,10 @@ class EnvironmentMachineItem extends EnvironmentItem
     @addSubView @statusToggle = new KodingSwitch
       cssClass     : "tiny"
       defaultValue : status.state is Machine.State.Running
-      callback     : (state)=>
+      callback     : (state)->
         if state
-          computeController.start machine
-        else
-          computeController.stop machine
+        then computeController.start machine
+        else computeController.stop machine
 
     @addSubView @progress = new KDProgressBarView
       cssClass : "progress"
@@ -48,6 +47,12 @@ class EnvironmentMachineItem extends EnvironmentItem
       tagName  : "span"
       cssClass : "terminal"
       click    : @bound "openTerminal"
+
+    if status.state is Machine.State.NotInitialized
+      @addSubView initView = new InitializeMachineView
+      initView.once "Initialize", ->
+        computeController.build machine
+        initView.destroy()
 
     computeController.on "build-#{machine._id}",   @bound 'invalidateMachine'
     computeController.on "destroy-#{machine._id}", @bound 'invalidateMachine'
@@ -85,6 +90,7 @@ class EnvironmentMachineItem extends EnvironmentItem
     then @statusToggle.setOn no
     else @statusToggle.setOff no
 
+    @getData().setAt "status.state", status
     @state.updatePartial status
 
 
@@ -102,33 +108,34 @@ class EnvironmentMachineItem extends EnvironmentItem
 
   contextMenuItems: ->
 
+    machine = @getData()
+
+    return if KD.isGuest()
+
+    buildReady = machine.status.state in [
+      Machine.State.NotInitialized
+      Machine.State.Terminated
+    ]
+
+    isRunning  = machine.status.state is Machine.State.Running
+
     colorSelection = new ColorSelection selectedColor : @getOption 'colorTag'
     colorSelection.on "ColorChanged", @bound 'setColorTag'
 
-    this_   = this
-    machine = @getData()
-
-    vmAlwaysOnSwitch = new VMAlwaysOnToggleButtonView
+    this_ = this
 
     items =
 
-      customView1         : vmAlwaysOnSwitch
-
       'Build Machine'     :
+        disabled          : !buildReady
         callback          : ->
           {computeController} = KD.singletons
           computeController.build machine
           @destroy()
 
-      'Re-initialize VM'  :
-        disabled          : KD.isGuest()
-        callback          : ->
-          new KDNotificationView
-            title : "Not implemented yet!"
-          @destroy()
-
       'Open VM Terminal'  :
 
+        disabled          : !isRunning
         callback          : ->
           this_.openTerminal()
           @destroy()

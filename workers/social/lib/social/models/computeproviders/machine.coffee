@@ -1,5 +1,7 @@
-{ Module }     = require 'jraphical'
-{ revive }     = require './computeutils'
+
+{ Module }  = require 'jraphical'
+{ revive }  = require './computeutils'
+KodingError = require '../../error'
 
 module.exports = class JMachine extends Module
 
@@ -26,10 +28,13 @@ module.exports = class JMachine extends Module
       instance          :
         reviveUsers     :
           (signature Function)
+        setProvisioner  :
+          (signature String, Function)
 
     permissions         :
       'list machines'   : ['member']
       'populate users'  : ['member']
+      'set provisioner' : ['member']
 
     schema              :
 
@@ -51,8 +56,8 @@ module.exports = class JMachine extends Module
         type            : String
         default         : -> ""
 
-      initScript        :
-        type            : String
+      provisioners      :
+        type            : [ ObjectId ]
 
       credential        : String
       users             : Array
@@ -108,6 +113,8 @@ module.exports = class JMachine extends Module
       state      : "NotInitialized"
       modifiedAt : data.createdAt
 
+    data.provisioners ?= [ ]
+
     return new JMachine data
 
 
@@ -122,37 +129,64 @@ module.exports = class JMachine extends Module
 
       { r: { group, user } } = client
 
-      selector =
-        $or      : [
-          { _id  : ObjectId machineId }
-          { uid  : machineId }
+      selector  =
+        $or     : [
+          { _id : ObjectId machineId }
+          { uid : machineId }
         ]
-        users    : $elemMatch: id: user.getId()
-        groups   : $elemMatch: id: group.getId()
+        users   : $elemMatch: id: user.getId()
+        groups  : $elemMatch: id: group.getId()
 
       JMachine.one selector, (err, machine)->
         callback err, machine
 
 
+  setProvisioner: permit 'set provisioner',
+
+    success: revive
+
+      shouldReviveClient   : yes
+      shouldReviveProvider : no
+
+    , (client, provisioner, callback)->
+
+      { r: { group, user } } = client
+
+      userId    = user.getId()
+      approved  = no
+      approved |= u.owner and u.id.equals userId  for u, i in @users
+
+      if approved
+        JProvisioner = require './provisioner'
+        JProvisioner.one$ client, slug: provisioner, (err, provision)=>
+          if err or not provision?
+            callback new KodingError 'Provisioner not found'
+          else
+            @update $set: provisioners: [ provision.slug ], callback
+      else
+        callback new KodingError 'Access denied'
+
+
   reviveUsers: permit 'populate users',
-  success: (client, callback)->
 
-    JUser = require '../user'
+    success: (client, callback)->
 
-    accounts = []
-    queue    = []
+      JUser = require '../user'
 
-    (@users ? []).forEach (_user)->
-      queue.push -> JUser.one _id: _user.id, (err, user)->
-        if not err? and user
-          user.fetchOwnAccount (err, account)->
-            if not err? and account?
-              accounts.push account
+      accounts = []
+      queue    = []
+
+      (@users ? []).forEach (_user)->
+        queue.push -> JUser.one _id: _user.id, (err, user)->
+          if not err? and user
+            user.fetchOwnAccount (err, account)->
+              if not err? and account?
+                accounts.push account
+              queue.next()
+          else
             queue.next()
-        else
-          queue.next()
 
-    queue.push ->
-      callback null, accounts
+      queue.push ->
+        callback null, accounts
 
-    daisy queue
+      daisy queue

@@ -116,7 +116,7 @@ class DNDUploader extends KDView
         lastItem = multipleItems.last
         for item in multipleItems
           {basename} = KD.getPathInfo item
-          fsFile = FSHelper.createFileFromPath item
+          fsFile = FSHelper.createFileInstance path: item
           @emit "dropFile",
             origin  : "internal"
             filename: basename
@@ -181,8 +181,8 @@ class DNDUploader extends KDView
     else @path
 
     modalStack   = KDModalView.createStack lastToFirst: yes
-    fsFolderItem = FSHelper.createFileFromPath folder, 'folder'
-    fsFileItem   = FSHelper.createFileFromPath "#{folder}/#{fileName}"
+    fsFolderItem = FSHelper.createFileInstance path: folder, type: 'folder'
+    fsFileItem   = FSHelper.createFileInstance path: "#{folder}/#{fileName}"
 
     return if FSHelper.isUnwanted fsFolderItem.path
     return if FSHelper.isUnwanted fsFileItem.path, yes

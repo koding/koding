@@ -38,7 +38,17 @@ class Machine extends KDObject
     else
       @kites = {}
 
+    @fs =
+      # TODO: add options check
+      create : (options, callback)=>
+        options.machine = this
+        FSItem.create options, callback
 
   getName: ->
-    @publicAddress or @uid or @label or "one of #{KD.nick()}'s machine"
+    @label or @publicAddress or @uid or "one of #{KD.nick()}'s machine"
 
+  getBaseKite: ->
+    return @kites.klient  if @kites.klient?
+    return {
+      vmOn : -> Promise.reject()
+    }

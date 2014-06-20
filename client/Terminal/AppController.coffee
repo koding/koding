@@ -17,10 +17,10 @@ class WebTermController extends AppController
         {title: "customViewAdvancedSettings"}
       ]
     commands     :
-      'ring bell'     : 'ringBell'
-      'noop'          : (->)
+      'ring bell': 'ringBell'
+      'noop'     : (->)
     keyBindings  : [
-      { command: 'ring bell',     binding: 'alt+meta+k',         global: yes }
+      { command: 'ring bell',     binding: 'alt+meta+k',        global: yes }
       { command: 'noop',          binding: ['meta+v','meta+r'], global: yes }
     ]
     behavior     : "application"

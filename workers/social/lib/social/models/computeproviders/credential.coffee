@@ -85,6 +85,7 @@ module.exports = class JCredential extends jraphical.Module
         targetType    : "JCredentialData"
         as            : "data"
 
+  @getName = -> 'JCredential'
 
   failed = (err, callback, rest...)->
     return false  unless err
@@ -142,14 +143,14 @@ module.exports = class JCredential extends jraphical.Module
           callback err, res
 
 
-  @one$: permit 'list credentials',
+  @one$ = permit 'list credentials',
 
     success: (client, publicKey, callback)->
 
       @fetchByPublicKey client, publicKey, callback
 
 
-  @some$: permit 'list credentials',
+  @some$ = permit 'list credentials',
 
     success: (client, selector, options, callback)->
 
@@ -157,23 +158,23 @@ module.exports = class JCredential extends jraphical.Module
       options ?= {}
 
       { delegate } = client.connection
-      credentials  = []
+      items        = []
 
       relSelector  =
-        targetName : "JCredential"
+        targetName : 'JCredential'
         sourceId   : delegate.getId()
 
       if selector.as? and selector.as in ['owner', 'user']
         relSelector.as = selector.as
         delete selector.as
 
-      Relationship.someData relSelector, { targetId:1, as:1 }, (err, cursor)->
+      Relationship.someData relSelector, { targetId:1, as:1 }, (err, cursor)=>
 
         return callback err  if err?
 
-        cursor.toArray (err, arr)->
+        cursor.toArray (err, arr)=>
 
-          map = arr.reduce (memo, doc)->
+          map = arr.reduce (memo, doc)=>
             memo[doc.targetId] = doc.as
             memo
           , {}
@@ -181,13 +182,13 @@ module.exports = class JCredential extends jraphical.Module
           selector    ?= {}
           selector._id = $in: (t.targetId for t in arr)
 
-          JCredential.some selector, options, (err, credentials)->
+          @some selector, options, (err, items)->
             return callback err  if err?
 
-            for cred in credentials
-              cred.owner = yes  if map[cred._id] is 'owner'
+            for item in items
+              item.owner = map[item._id] is 'owner'
 
-            callback null, credentials
+            callback null, items
 
 
   fetchUsers: permit
@@ -217,60 +218,64 @@ module.exports = class JCredential extends jraphical.Module
             callback null, []
 
 
+  setPermissionFor: (target, {user, owner}, callback)->
+
+    Relationship.remove
+      targetId : @getId()
+      sourceId : target.getId()
+    , (err)=>
+
+      if user
+        as = if owner then 'owner' else 'user'
+        target.addCredential this, { as }, (err)-> callback err
+      else
+        callback err
+
+
+  shareWith: (client, options, callback)->
+
+    { delegate } = client.connection
+    { target, user, owner } = options
+    user ?= yes
+
+    # Owners cannot unassign them from a credential
+    # Only another owner can unassign any other owner
+    if delegate.profile.nickname is target
+      return callback null
+
+    JName.fetchModels target, (err, result)=>
+
+      if err or not result
+        return callback new KodingError "Target not found."
+
+      { models } = result
+      [ target ] = models
+
+      if target instanceof JUser
+        target.fetchOwnAccount (err, account)=>
+          if err or not account
+            return callback new KodingError "Failed to fetch account."
+          @setPermissionFor account, {user, owner}, callback
+
+      else if target instanceof JGroup
+        @setPermissionFor target, {user, owner}, callback
+
+      else
+        callback new KodingError "Target does not support credentials."
+
+
   # .share can be used like this:
   #
   # JCredentialInstance.share { user: yes, owner: no, target: "gokmen"}, cb
   #                                      group or user slug -> ^^^^^^
 
-  shareWith: permit
+  shareWith$: permit
 
     advanced: [
       { permission: 'update credential', validateWith: Validators.own }
     ]
 
-    success: (client, options, callback)->
-
-      { delegate } = client.connection
-      { target, user, owner } = options
-      user ?= yes
-
-      # Owners cannot unassign them from a credential
-      # Only another owner can unassign any other owner
-      if delegate.profile.nickname is target
-        return callback null
-
-      setPermissionFor = (target, callback)=>
-
-        Relationship.remove {
-          targetId : @getId()
-          sourceId : target.getId()
-        }, (err)=>
-
-          if user
-            as = if owner then 'owner' else 'user'
-            target.addCredential this, { as }, (err)-> callback err
-          else
-            callback err
-
-      JName.fetchModels target, (err, result)=>
-
-        if err or not result
-          return callback new KodingError "Target not found."
-
-        { models } = result
-        [ target ] = models
-
-        if target instanceof JUser
-          target.fetchOwnAccount (err, account)=>
-            if err or not account
-              return callback new KodingError "Failed to fetch account."
-            setPermissionFor account, callback
-
-        else if target instanceof JGroup
-          setPermissionFor target, callback
-
-        else
-          callback new KodingError "Target does not support credentials."
+    success: JCredential::shareWith
 
 
   delete: permit 'delete credential',
