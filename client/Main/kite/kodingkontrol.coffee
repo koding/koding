@@ -10,20 +10,13 @@ class KodingKontrol extends (require 'kontrol')
     @regions = {}
 
   getAuthOptions: ->
-<<<<<<< HEAD
-    autoConnect : no
-    url         : @_kontrolUrl ? KD.config.newkontrol.url
-    auth        :
-      type      : 'sessionID'
-      key       : Cookies.get 'clientId'
-=======
     autoConnect     : no
-    url             : KD.config.newkontrol.url
+    url             : @_kontrolUrl ? KD.config.newkontrol.url
     auth            :
       type          : 'sessionID'
       key           : Cookies.get 'clientId'
     transportClass  : SockJS
->>>>>>> master
+
 
   reauthenticate: ->
     # disconnect the old kontrol kite
