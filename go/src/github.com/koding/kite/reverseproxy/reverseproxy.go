@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"net/http/httputil"
 	"net/url"
+	"path"
 	"strconv"
 	"strings"
 	"sync"
@@ -144,19 +145,18 @@ func (p *Proxy) backend(req *http.Request) *url.URL {
 	withoutProxy := strings.TrimPrefix(req.URL.Path, "/proxy")
 	paths := strings.Split(withoutProxy, "/")
 
-	// paths should have four parts ( + one empty path): /kiteID/sockjsServerID/sockjsSessionI/path
-	if len(paths) != 5 {
-		p.Kite.Log.Error("Incoming proxy request is invalid: %v", paths)
+	if len(paths) == 0 {
+		p.Kite.Log.Error("Invalid path '%s'", req.URL.String())
 		return nil
 	}
 
 	// remove the first empty path
 	paths = paths[1:]
 
-	// get our individual parths
-	kiteId, serverId, sessionId, endpoint := paths[0], paths[1], paths[2], paths[3]
+	// get our kiteId and indiviudal paths
+	kiteId, rest := paths[0], path.Join(paths[1:]...)
 
-	p.Kite.Log.Info("[%s] Incoming proxy request", kiteId)
+	p.Kite.Log.Info("[%s] Incoming proxy request for endpoint '/%s'", kiteId, rest)
 
 	p.kitesMu.Lock()
 	defer p.kitesMu.Unlock()
@@ -187,7 +187,7 @@ func (p *Proxy) backend(req *http.Request) *url.URL {
 	// "localhost:7777/kite/795/kite-fba0954a-07c7-4d34-4215-6a88733cf65c-OjLnvABL/websocket"
 
 	// backendURL.Path contains the baseURL, like "/kite"
-	backendURL.Path += fmt.Sprintf("/%s/%s/%s", serverId, sessionId, endpoint)
+	backendURL.Path += "/" + rest
 
 	// also change the Origin to the client's host name, like as if someone
 	// with the same backendUrl is trying to connect to the kite. Otherwise
