@@ -110,34 +110,32 @@ class EnvironmentMachineItem extends EnvironmentItem
 
     machine = @getData()
 
-    return  if machine.status.state is Machine.State.NotInitialized
+    return if KD.isGuest()
+
+    buildReady = machine.status.state in [
+      Machine.State.NotInitialized
+      Machine.State.Terminated
+    ]
+
+    isRunning  = machine.status.state is Machine.State.Running
 
     colorSelection = new ColorSelection selectedColor : @getOption 'colorTag'
     colorSelection.on "ColorChanged", @bound 'setColorTag'
 
-    this_   = this
-
-    vmAlwaysOnSwitch = new VMAlwaysOnToggleButtonView
+    this_ = this
 
     items =
 
-      customView1         : vmAlwaysOnSwitch
-
       'Build Machine'     :
+        disabled          : !buildReady
         callback          : ->
           {computeController} = KD.singletons
           computeController.build machine
           @destroy()
 
-      'Re-initialize VM'  :
-        disabled          : KD.isGuest()
-        callback          : ->
-          new KDNotificationView
-            title : "Not implemented yet!"
-          @destroy()
-
       'Open VM Terminal'  :
 
+        disabled          : !isRunning
         callback          : ->
           this_.openTerminal()
           @destroy()

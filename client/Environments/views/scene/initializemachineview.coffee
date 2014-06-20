@@ -7,8 +7,8 @@ class InitializeMachineView extends KDView
 
   viewAppended:->
 
-    @addSubView new KDCustomHTMLView
-      partial  : "This machine is not initialized, do you want to do it now?"
+    # @addSubView new KDCustomHTMLView
+    #   partial  : "This machine is not initialized, do you want to do it now?"
 
     @addSubView new KDButtonView
       title    : "Initialize"
