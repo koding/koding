@@ -9,13 +9,10 @@ import (
 )
 
 func XML(i interface{}, fileName string) error {
-	header := []byte(xml.Header)
-	res, err := xml.Marshal(i)
+	res, err := Marshal(i)
 	if err != nil {
 		return err
 	}
-	// append header to xml file
-	res = append(header, res...)
 
 	MustWrite(res, fileName)
 
@@ -45,4 +42,14 @@ func MustWrite(input []byte, fileName string) {
 		panic(err)
 	}
 
+}
+
+func Marshal(i interface{}) ([]byte, error) {
+	header := []byte(xml.Header)
+	res, err := xml.Marshal(i)
+	if err != nil {
+		return nil, err
+	}
+	// append header to xml file
+	return append(header, res...), nil
 }
