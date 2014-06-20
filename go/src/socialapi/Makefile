@@ -35,10 +35,7 @@ PACKAGES = \
 	socialapi/workers/realtime \
 	socialapi/workers/topicfeed \
 	socialapi/workers/migrator \
-	socialapi/workers/sitemap/sitemapfeeder \
-	socialapi/workers/sitemap/sitemapgenerator \
-	socialapi/workers/sitemap/sitemapinitializer \
- 	socialapi/workers/sitemap/sitemaprootgenerator
+	socialapi/workers/sitemap
 
 all: testapi
 
@@ -93,6 +90,8 @@ configuremigration:
 migrate:
 	@echo "$(OK_COLOR)==> Running Popular Posts Worker $(NO_COLOR)"
 	@$(GOBINDIR)/rerun socialapi/workers/migrator -c $(CONFIG) $(DEBUG)
+
+sitemapdev: sitemapfeederdev sitemapgeneratordev
 
 sitemapfeederdev:
 	@echo "$(OK_COLOR)==> Running Sitemap Feeder Worker $(NO_COLOR)"
