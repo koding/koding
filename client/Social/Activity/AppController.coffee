@@ -9,6 +9,8 @@ class ActivityAppController extends AppController
       'previous tab' : 'goToPreviousTab'
     keyBindings: [
       { command: 'next tab',      binding: 'ctrl+alt+]', global: yes }
+      { command: 'next tab',      binding: 'ctrl+alt+down', global: yes }
+      { command: 'previous tab',  binding: 'ctrl+alt+up', global: yes }
       { command: 'previous tab',  binding: 'ctrl+alt+[', global: yes }
     ]
 
