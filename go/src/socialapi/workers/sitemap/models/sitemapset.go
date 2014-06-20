@@ -3,6 +3,7 @@ package models
 import (
 	"encoding/xml"
 	"fmt"
+	"socialapi/config"
 	"time"
 )
 
@@ -16,7 +17,8 @@ func NewSitemapSet(files []SitemapFile, rootURL string) *SitemapSet {
 	ss.Sitemaps = make([]ItemDefinition, len(files))
 
 	for i := range files {
-		ss.Sitemaps[i].Location = fmt.Sprintf("%s.xml", files[i].Name)
+		uri := config.Get().Uri
+		ss.Sitemaps[i].Location = fmt.Sprintf("%s/sitemap/%s.xml", uri, files[i].Name)
 		if !files[i].UpdatedAt.IsZero() {
 			ss.Sitemaps[i].LastModified = files[i].UpdatedAt.UTC().Format(time.RFC3339)
 		}
