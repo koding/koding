@@ -180,6 +180,11 @@ func (cue *channelUpdatedEvent) calculateUnreadItemCount() (int, error) {
 		return models.NewChannelMessageList().UnreadCount(cue.ChannelParticipant)
 	}
 
+	// for topic channel unread count will be calculated from unread post count
+	if cue.Channel.TypeConstant == models.Channel_TYPE_TOPIC {
+		return models.NewChannelMessageList().UnreadCount(cue.ChannelParticipant)
+	}
+
 	if cue.Channel.TypeConstant == models.Channel_TYPE_PRIVATE_MESSAGE {
 		return models.NewMessageReply().UnreadCount(cue.ParentChannelMessage.Id, cue.ChannelParticipant.LastSeenAt)
 	}
