@@ -13,7 +13,7 @@ authAllExchange = "authAll-#{version}"
 
 embedlyApiKey   = '94991069fb354d4e8fdb825e52d4134a'
 
-environment     = "staging"
+environment     = "sandbox"
 regions         =
   vagrant       : "vagrant"
   sj            : "sj"
@@ -21,7 +21,7 @@ regions         =
   premium       : "premium-sj"
 
 cookieMaxAge = 1000 * 60 * 60 * 24 * 14 # two weeks
-cookieSecure = yes
+cookieSecure = no
 
 module.exports =
   environment   : environment
@@ -31,7 +31,7 @@ module.exports =
     key         : 'AKIAJSUVKX6PD254UGAA'
     secret      : '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'
   uri           :
-    address     : "https://showcase.koding.com"
+    address     : "http://sandbox.koding.com"
   userSitesDomain: 'staging.kd.io'
   containerSubnet: "10.128.2.0/9"
   vmPool        : "vms-staging"
@@ -39,7 +39,7 @@ module.exports =
   webserver     :
     useCacheHeader: yes
     login       : 'prod-webserver'
-    port        : 3000
+    port        : 80
     clusterSize : 1
     queueName   : socialQueueName+'web'
     watch       : no
@@ -51,9 +51,10 @@ module.exports =
     read        : "http://172.16.6.12"
     write       : "http://172.16.6.12"
     port        : 7474
-  mongo         : 'dev:k9lc4G1k32nyD72@68.68.97.107:27017/koding'
-  mongoKontrol  : 'dev:k9lc4G1k32nyD72@68.68.97.107:27017/kontrol'
+  mongo         : 'dev:k9lc4G1k32nyD72@172.16.10.36:27017/koding'
+  mongoKontrol  : 'dev:k9lc4G1k32nyD72@172.16.10.36:27017/kontrol'
   mongoReplSet  : null
+  mongoMinWrites: 1
   runNeo4jFeeder: yes
   runGoBroker   : no
   runGoBrokerKite: no
@@ -69,7 +70,7 @@ module.exports =
   runTerminalKite: no
   runProxy      : no
   redis         : "172.16.6.13:6379"
-  subscriptionEndpoint   : "https://showcase.koding.com/-/subscription/check/"
+  subscriptionEndpoint   : "http://sandbox.koding.com/-/subscription/check/"
   misc          :
     claimGlobalNamesForUsers: no
     updateAllSlugs : no
@@ -141,7 +142,7 @@ module.exports =
     indexMaster   : "index-master.html"
     index         : "default.html"
     useStaticFileServer: no
-    staticFilesBaseUrl: "https://showcase.koding.com"
+    staticFilesBaseUrl: "http://sandbox.koding.com"
     runtimeOptions:
       kites: require './kites.coffee'
       osKitePollingMs: 1000 * 60 # 1 min
@@ -159,13 +160,14 @@ module.exports =
       userSitesDomain: 'kd.io'
       useNeo4j: yes
       logToExternal : yes
+      logToInternal : yes
       resourceName: socialQueueName
       logResourceName: logQueueName
-      socialApiUri: 'https://showcase.koding.com/xhr'
-      logApiUri: 'https://showcase.koding.com/xhr'
+      socialApiUri: 'http://sandbox-social.sj.koding.com:3030/xhr'
+      logApiUri: 'https://stage-log.koding.com/xhr'
       suppressLogs: no
       version   : version
-      mainUri   : "https://showcase.koding.com"
+      mainUri   : "http://sandbox.koding.com"
       broker    :
         servicesEndpoint: "/-/services/broker"
       premiumBroker    :
@@ -184,7 +186,7 @@ module.exports =
       github    :
         clientId: "f733c52d991ae9642365"
       newkontrol:
-        url         : 'wss://stage-kontrol.koding.com'
+        url         : 'https://stage-kontrol.koding.com/kite'
       fileFetchTimeout: 15 * 1000 # seconds
       externalProfiles  :
         github          :
@@ -221,7 +223,7 @@ module.exports =
     name              : "broker"
     serviceGenericName: "broker"
     ip                : ""
-    port              : 444
+    port              : 443
     certFile          : "/opt/ssl_certs/wildcard.koding.com.cert"
     keyFile           : "/opt/ssl_certs/wildcard.koding.com.key"
     webProtocol       : 'https:'
