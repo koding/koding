@@ -68,7 +68,7 @@
     "bluebird": "~1.0.8",
     "pistachio-compiler": "~0.0.3",
     "es": "0.4.x",
-    "kite.js": "0.2.6",
+    "kite.js": "0.2.9",
     "node-sprite-generator": "^0.5.0",
     "minimist": "0.0.8",
     "which": "^1.0.5",

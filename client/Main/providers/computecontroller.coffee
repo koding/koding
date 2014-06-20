@@ -2,6 +2,8 @@ class ComputeController extends KDController
 
   @providers = KD.config.providers
 
+  @timeout = 5000
+
   constructor:->
     super
 
@@ -74,6 +76,12 @@ class ComputeController extends KDController
       @emit "renderStacks"
 
 
+  errorHandler = (task, eL, machine)-> (err)->
+
+    eL.revertToPreviousState machine
+    warn "info err:", err
+
+
   destroy: (machine)->
 
     ComputeController.UI.askFor 'destroy', machine, =>
@@ -84,15 +92,14 @@ class ComputeController extends KDController
 
       @kloud.destroy { machineId: machine._id }
 
+      .timeout ComputeController.timeout
+
       .then (res)=>
 
         @eventListener.addListener 'destroy', machine._id
         log "destroy res:", res
 
-      .catch (err)=>
-
-        @eventListener.revertToPreviousState machine
-        warn "destroy err:", err
+      .catch errorHandler 'destroy', @eventListener, machine
 
 
   build: (machine)->
@@ -103,15 +110,14 @@ class ComputeController extends KDController
 
     @kloud.build { machineId: machine._id }
 
+    .timeout ComputeController.timeout
+
     .then (res)=>
 
       @eventListener.addListener 'build', machine._id
       log "build res:", res
 
-    .catch (err)=>
-
-      @eventListener.revertToPreviousState machine
-      warn "build err:", err
+    .catch errorHandler 'build', @eventListener, machine
 
 
   start: (machine)->
@@ -122,15 +128,14 @@ class ComputeController extends KDController
 
     @kloud.start { machineId: machine._id }
 
+    .timeout ComputeController.timeout
+
     .then (res)=>
 
       @eventListener.addListener 'start', machine._id
       log "start res:", res
 
-    .catch (err)=>
-
-      @eventListener.revertToPreviousState machine
-      warn "start err:", err
+    .catch errorHandler 'start', @eventListener, machine
 
 
   stop: (machine)->
@@ -141,15 +146,14 @@ class ComputeController extends KDController
 
     @kloud.stop { machineId: machine._id }
 
+    .timeout ComputeController.timeout
+
     .then (res)=>
 
       @eventListener.addListener 'stop', machine._id
       log "stop res:", res
 
-    .catch (err)=>
-
-      @eventListener.revertToPreviousState machine
-      warn "stop err:", err
+    .catch errorHandler 'stop', @eventListener, machine
 
 
   info: (machine)->
@@ -166,6 +170,8 @@ class ComputeController extends KDController
 
     @kloud.info { machineId: machine._id }
 
+    .timeout ComputeController.timeout
+
     .then (response)=>
 
       log "info response:", response
@@ -173,10 +179,7 @@ class ComputeController extends KDController
         status      : response.state
         percentage  : 100
 
-    .catch (err)=>
-
-      @eventListener.revertToPreviousState machine
-      warn "info err:", err
+    .catch errorHandler 'info', @eventListener, machine
 
 
   StateEventMap =
