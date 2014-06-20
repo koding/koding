@@ -2,7 +2,10 @@ class ConnectionChecker extends KDObject
 
   constructor: (options, data)->
     super options, data
-    @url = @getData()
+
+    @url  = @getData()
+
+    {@fail, @jsonp} = @getOptions()
 
   ping: (callback) ->
     {crossDomain} = @getOptions()
@@ -12,7 +15,8 @@ class ConnectionChecker extends KDObject
 
     $.ajax
       url     : @url
-      success : -> callback()
+      success : -> callback arguments...
+      jsonpCallback : @jsonp  if @jsonp
       timeout : 5000
       dataType: "jsonp"
-      error   : ->
+      error   : => @fail? arguments...

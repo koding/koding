@@ -436,11 +436,6 @@ func (p *Proxy) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// remove www from the hostname (i.e. www.foo.com -> foo.com)
-	if strings.HasPrefix(r.Host, "www.") {
-		r.Host = strings.TrimPrefix(r.Host, "www.")
-	}
-
 	// redirect http to https
 	if r.TLS == nil && (r.Host == "koding.com" || r.Host == "latest.koding.com") {
 		// check if this cookie is set, if yes do not redirect to https
@@ -497,6 +492,11 @@ func (p *Proxy) redirect(req *http.Request, target *resolver.Target) http.Handle
 }
 
 func (p *Proxy) internal(req *http.Request, target *resolver.Target) http.Handler {
+	// remove www from the hostname (i.e. www.foo.com -> foo.com)
+	if strings.HasPrefix(req.Host, "www.") {
+		req.Host = strings.TrimPrefix(req.Host, "www.")
+	}
+
 	// switch to websocket immediately
 	if isWebsocket(req) {
 		return websocketHandler(target.URL.Host)
