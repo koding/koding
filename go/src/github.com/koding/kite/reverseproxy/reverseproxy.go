@@ -144,19 +144,9 @@ func (p *Proxy) handleRegister(r *kite.Request) (interface{}, error) {
 	return s, nil
 }
 
-func (p *Proxy) director(req *http.Request) {
-	u := p.backend(req)
-	if u == nil {
-		return
-	}
-
-	req.URL.Scheme = u.Scheme
-	req.URL.Host = u.Host
-	req.URL.Path = u.Path
-}
-
 func (p *Proxy) backend(req *http.Request) *url.URL {
 	kiteId := req.URL.Query().Get("kiteId")
+	p.Kite.Log.Info("[%s] Incoming proxy request", kiteId)
 
 	p.kitesMu.Lock()
 	defer p.kitesMu.Unlock()
@@ -167,11 +157,15 @@ func (p *Proxy) backend(req *http.Request) *url.URL {
 		return nil
 	}
 
+	oldScheme := backendURL.Scheme // for logging
+
 	// change "http" with "ws" because websocket procol expects a ws or wss as
-	// scheme
+	// scheme.
 	if err := replaceSchemeWithWS(backendURL); err != nil {
 		return nil
 	}
+
+	p.Kite.Log.Info("[%s] Changing scheme from '%s' to '%s' to make Websocket connection.", kiteId, oldScheme, backendURL.Scheme)
 
 	// change now the path for the backend kite. Kite register itself with
 	// something like "localhost:7777/kite" however we are going to
@@ -188,8 +182,27 @@ func (p *Proxy) backend(req *http.Request) *url.URL {
 	// will get an "Origin not allowed"
 	req.Header.Set("Origin", "http://"+backendURL.Host)
 
-	p.Kite.Log.Info("Returning backend url: '%s' for kiteId: %s", backendURL.String(), kiteId)
+	p.Kite.Log.Info("[%s] Proxying to backend url: '%s'.", kiteId, backendURL.String())
 	return backendURL
+}
+
+func (p *Proxy) director(req *http.Request) {
+	u := p.backend(req)
+	if u == nil {
+		return
+	}
+
+	// we don't need this for http proxy
+	req.Header.Del("Origin")
+
+	newScheme := "http"
+	if u.Scheme == "wss" {
+		newScheme = "https"
+	}
+
+	req.URL.Scheme = newScheme
+	req.URL.Host = u.Host
+	req.URL.Path = u.Path
 }
 
 // TODO: put this into a util package, is used by others too
