@@ -2,6 +2,8 @@ class ComputeController extends KDController
 
   @providers = KD.config.providers
 
+  @timeout = 5000
+
   constructor:->
     super
 
@@ -84,6 +86,8 @@ class ComputeController extends KDController
 
       @kloud.destroy { machineId: machine._id }
 
+      .timeout ComputeController.timeout
+
       .then (res)=>
 
         @eventListener.addListener 'destroy', machine._id
@@ -102,6 +106,8 @@ class ComputeController extends KDController
       percentage  : 0
 
     @kloud.build { machineId: machine._id }
+
+    .timeout ComputeController.timeout
 
     .then (res)=>
 
@@ -122,6 +128,8 @@ class ComputeController extends KDController
 
     @kloud.start { machineId: machine._id }
 
+    .timeout ComputeController.timeout
+
     .then (res)=>
 
       @eventListener.addListener 'start', machine._id
@@ -140,6 +148,8 @@ class ComputeController extends KDController
       percentage  : 0
 
     @kloud.stop { machineId: machine._id }
+
+    .timeout ComputeController.timeout
 
     .then (res)=>
 
@@ -165,6 +175,8 @@ class ComputeController extends KDController
       percentage  : 0
 
     @kloud.info { machineId: machine._id }
+
+    .timeout ComputeController.timeout
 
     .then (response)=>
 
