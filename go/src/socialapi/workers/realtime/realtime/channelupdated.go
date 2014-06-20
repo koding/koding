@@ -185,6 +185,6 @@ func (cue *channelUpdatedEvent) calculateUnreadItemCount() (int, error) {
 		return models.NewMessageReply().UnreadCount(cml.MessageId, cml.AddedAt)
 	}
 
-	cue.Controller.log.Critical("this shouldnt fall here")
+	cue.Controller.log.Critical("Calculating unread count shouldnt fall here")
 	return 0, nil
 }
