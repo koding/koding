@@ -50,7 +50,6 @@ class MainController extends KDController
     KD.registerSingleton 'paymentController',         new PaymentController
     KD.registerSingleton 'vmController',              new VirtualizationController
     KD.registerSingleton 'locationController',        new LocationController
-    KD.registerSingleton 'badgeController',           new BadgeController
     KD.registerSingleton 'helpController',            new HelpController
     KD.registerSingleton 'troubleshoot',              new Troubleshoot
     KD.registerSingleton 'appStorageController',      new AppStorageController

@@ -38,9 +38,6 @@ class ActivityLikeLink extends CustomLinkView
 
     KD.mixpanel "Activity like, success"
 
-    KD.getSingleton("badgeController").checkBadge
-      source : "JNewStatusUpdate" , property : "likes", relType : "like", targetSelf : 1
-
 
   trackUnlike: ->
 
