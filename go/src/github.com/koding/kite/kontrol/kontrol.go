@@ -7,7 +7,6 @@ import (
 	"errors"
 	"fmt"
 	"math/rand"
-	"net"
 	"strings"
 	"sync"
 	"time"
@@ -27,7 +26,6 @@ import (
 
 const (
 	KontrolVersion    = "0.0.4"
-	DefaultPort       = 4000
 	HeartbeatInterval = 5 * time.Second
 	HeartbeatDelay    = 10 * time.Second
 	KitesPrefix       = "/kites"
@@ -35,8 +33,9 @@ const (
 )
 
 var (
-	log      kite.Logger
-	TokenTTL = 48 * time.Hour
+	log         kite.Logger
+	TokenTTL    = 48 * time.Hour
+	DefaultPort = 4000
 
 	tokenCache   = make(map[string]string)
 	tokenCacheMu sync.Mutex
@@ -242,13 +241,6 @@ func (k *Kontrol) handleRegister(r *kite.Request) (interface{}, error) {
 		return nil, fmt.Errorf("Unexpected authentication type: %s", r.Authentication.Type)
 	}
 
-	// In case Kite.URL does not contain a hostname, the r.RemoteAddr is used.
-	host, port, _ := net.SplitHostPort(args.URL.Host)
-	if host == "0.0.0.0" || host == "" {
-		host, _, _ = net.SplitHostPort(r.Client.RemoteAddr())
-		args.URL.Host = net.JoinHostPort(host, port)
-	}
-
 	err := k.register(r.Client, args.URL)
 	if err != nil {
 		return nil, err
@@ -391,6 +383,8 @@ func validateKiteKey(k *protocol.Kite) error {
 	return nil
 }
 
+var keyOrder = []string{"username", "environment", "name", "version", "region", "hostname", "id"}
+
 // getQueryKey returns the etcd key for the query.
 func getQueryKey(q *protocol.KontrolQuery) (string, error) {
 	fields := map[string]string{
@@ -412,10 +406,14 @@ func getQueryKey(q *protocol.KontrolQuery) (string, error) {
 
 	empty := false   // encountered with empty field?
 	empytField := "" // for error log
-	for k, v := range fields {
+
+	// http://golang.org/doc/go1.3#map, order is important and we can't rely on
+	// maps because the keys are not ordered :)
+	for _, key := range keyOrder {
+		v := fields[key]
 		if v == "" {
 			empty = true
-			empytField = k
+			empytField = key
 			continue
 		}
 
@@ -476,7 +474,7 @@ func (k *Kontrol) handleGetKites(r *kite.Request) (interface{}, error) {
 		if whoClient == nil {
 			// TODO Enable code below after fix.
 			return nil, errors.New("target kite is not connected")
-			// whoClient = k.Kite.NewClientString(whoKite.URL)
+			// whoClient = k.Kite.NewClient(whoKite.URL)
 			// whoClient.Authentication = &kite.Authentication{Type: "token", Key: whoKite.Token}
 			// whoClient.Kite = whoKite.Kite
 
@@ -605,7 +603,6 @@ func (k *Kontrol) getKites(r *kite.Request, query protocol.KontrolQuery, watchCa
 	nodes := flatten(event.Node.Nodes)
 
 	// Convert etcd nodes to kites.
-
 	kites := make([]*protocol.KiteWithToken, len(nodes))
 	for i, n := range nodes {
 		kites[i], err = kiteWithTokenFromEtcdNode(n, token)
