@@ -85,6 +85,14 @@ func (cue *channelUpdatedEvent) isEligibleForBroadcasting(accountId int64) bool 
 		return true
 	}
 
+	// if we are gonna send this notification to topic channel
+	// do not send to initiator
+	if cue.Channel.TypeConstant == models.Channel_TYPE_TOPIC {
+		if cue.ParentChannelMessage.AccountId == accountId {
+			return false
+		}
+	}
+
 	// if reply is not set do send this event
 	if cue.ReplyChannelMessage == nil {
 		return true
