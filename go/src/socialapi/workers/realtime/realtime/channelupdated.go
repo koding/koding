@@ -185,17 +185,21 @@ func (cue *channelUpdatedEvent) calculateUnreadItemCount() (int, error) {
 		return models.NewChannelMessageList().UnreadCount(cue.ChannelParticipant)
 	}
 
+	// for private messages calculate the unread reply count
 	if cue.Channel.TypeConstant == models.Channel_TYPE_PRIVATE_MESSAGE {
-		return models.NewMessageReply().UnreadCount(cue.ParentChannelMessage.Id, cue.ChannelParticipant.LastSeenAt)
-	}
+		count, err := models.NewMessageReply().UnreadCount(cue.ParentChannelMessage.Id, cue.ChannelParticipant.LastSeenAt)
+		if err != nil {
+			return 0, err
+		}
 
-	if cue.Channel.TypeConstant == models.Channel_TYPE_TOPIC {
-		return models.NewChannelMessageList().UnreadCount(cue.ChannelParticipant)
-	}
+		// if unread count is 0
+		// set it to 1 for now
+		// because we want to show a notification with a sign
+		if count == 0 {
+			count = 1
+		}
 
-	cml, err := cue.Channel.FetchMessageList(cue.ParentChannelMessage.Id)
-	if err == nil {
-		return models.NewMessageReply().UnreadCount(cml.MessageId, cml.AddedAt)
+		return count, nil
 	}
 
 	cue.Controller.log.Critical("Calculating unread count shouldnt fall here")
