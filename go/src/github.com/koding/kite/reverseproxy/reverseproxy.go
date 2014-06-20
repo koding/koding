@@ -43,14 +43,12 @@ type Proxy struct {
 	// Proxy properties used to give urls and bind the listener
 	Scheme     string
 	PublicHost string // If given it must match the domain in certificate.
-	Port       int
+	PublicPort int    // Uses for registering and defining the public port.
 }
 
 func New(conf *config.Config) *Proxy {
 	k := kite.New(Name, Version)
 	k.Config = conf
-
-	// Listen on 3999 by default
 
 	p := &Proxy{
 		Kite:   k,
@@ -58,7 +56,6 @@ func New(conf *config.Config) *Proxy {
 		readyC: make(chan bool),
 		closeC: make(chan bool),
 		mux:    http.NewServeMux(),
-		Port:   k.Config.Port,
 	}
 
 	// third part kites are going to use this to register themself to
@@ -133,7 +130,7 @@ func (p *Proxy) handleRegister(r *kite.Request) (interface{}, error) {
 
 	proxyURL := url.URL{
 		Scheme: p.Scheme,
-		Host:   p.PublicHost + ":" + strconv.Itoa(p.Port),
+		Host:   p.PublicHost + ":" + strconv.Itoa(p.PublicPort),
 		Path:   "/proxy/" + r.Client.ID,
 	}
 
@@ -149,20 +146,16 @@ func (p *Proxy) backend(req *http.Request) *url.URL {
 
 	// paths should have four parts ( + one empty path): /kiteID/sockjsServerID/sockjsSessionI/path
 	if len(paths) != 5 {
-		p.Kite.Log.Error("[%s] Incoming proxy request is invalid", req.URL.Path)
+		p.Kite.Log.Error("Incoming proxy request is invalid: %v", paths)
 		return nil
 	}
 
 	// remove the first empty path
 	paths = paths[1:]
 
-	// paths should have four parts: /kiteID/sockjsServerID/sockjsSessionI/path
-	if len(paths) != 4 {
-		p.Kite.Log.Error("[%s] Incoming proxy request is invalid", req.URL.Path)
-		return nil
-	}
+	// get our individual parths
+	kiteId, serverId, sessionId, endpoint := paths[0], paths[1], paths[2], paths[3]
 
-	kiteId := paths[0]
 	p.Kite.Log.Info("[%s] Incoming proxy request", kiteId)
 
 	p.kitesMu.Lock()
@@ -192,7 +185,9 @@ func (p *Proxy) backend(req *http.Request) *url.URL {
 	// "/proxy/795/kite-fba0954a-07c7-4d34-4215-6a88733cf65c-OjLnvABL/websocket"
 	// which will be converted to
 	// "localhost:7777/kite/795/kite-fba0954a-07c7-4d34-4215-6a88733cf65c-OjLnvABL/websocket"
-	backendURL.Path += fmt.Sprintf("/%s/%s/%s", paths[1], paths[2], paths[3])
+
+	// backendURL.Path contains the baseURL, like "/kite"
+	backendURL.Path += fmt.Sprintf("/%s/%s/%s", serverId, sessionId, endpoint)
 
 	// also change the Origin to the client's host name, like as if someone
 	// with the same backendUrl is trying to connect to the kite. Otherwise
