@@ -100,17 +100,6 @@ class AvatarAreaIconMenu extends JView
 
   accountChanged:(account)->
 
-<<<<<<< HEAD
-    {notificationsPopup} = this
-
-    notificationsPopup.listController.removeAllItems()
-
-    if KD.isLoggedIn()
-      # Fetch Notifications
-      notificationsPopup.listController.fetchNotificationTeasers (err, notifications)=>
-        return warn "Notifications cannot be received", err  if err
-        notificationsPopup.listController.instantiateListItems notifications
-=======
     {listController} = @notificationsPopup
     listController.removeAllItems()
 
@@ -118,7 +107,8 @@ class AvatarAreaIconMenu extends JView
 
     # Fetch Notifications
     KD.utils.defer ->
-      listController.fetchNotificationTeasers (teasers)->
+      listController.fetchNotificationTeasers (err, teasers)->
+        return warn "Notifications cannot be received", err  if err?
         listController.instantiateListItems filterNotifications teasers
 
 
@@ -136,4 +126,3 @@ class AvatarAreaIconMenu extends JView
       try
         snapshot = JSON.parse Encoder.htmlDecode notification.snapshot
         snapshot.anchor.constructorName in activityNameMap
->>>>>>> master
