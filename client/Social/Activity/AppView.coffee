@@ -146,9 +146,9 @@ class ActivityAppView extends KDScrollView
 
     bounds = @sidebar.sections.messages.options.headerLink.getBounds()
 
-    top       = bounds.y - 40
+    top       = bounds.y - 310
     left      = bounds.x + bounds.w + 40
-    arrowTop  = 40 + (bounds.h / 2) - 10 #10 = arrow height
+    arrowTop  = 310 + (bounds.h / 2) - 10 #10 = arrow height
 
     modal = new PrivateMessageModal
       delegate     : this
