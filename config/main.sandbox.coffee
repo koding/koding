@@ -45,8 +45,8 @@ module.exports =
     watch       : no
   socialapi:
     port        : 7000
-    clusterSize : 5
-    proxyUrl    : "https://social-api-1a.sj.koding.com:7000"
+    clusterSize : 1
+    proxyUrl    : "http://172.16.10.30:7000"
   sourceServer  :
     enabled     : no
     port        : 1337
