@@ -1264,11 +1264,21 @@ div.nominateicon
   figure
     height                    358px
     border-radius             0 0 6px 6px
+
   .kdnotification
     abs()
-    top                       8px !important
     vendor                    shadow, none
     vendor                    rounded, 4px
+
+    &.mini
+      top                     8px !important
+
+    &.tray
+      max-width               50%
+      padding                 5px 10px
+
+      .kdnotification-content
+        font-size             13px
 
 
 @media only screen and (min-width : 320px) and (max-width : 568px)

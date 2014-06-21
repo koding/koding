@@ -74,6 +74,9 @@ class EnvironmentMachineItem extends EnvironmentItem
 
       @updateState event.status
 
+      if event.reverted
+        warn "State reverted!"
+
     computeController.info machine
 
 
@@ -142,9 +145,9 @@ class EnvironmentMachineItem extends EnvironmentItem
 
         separator         : yes
 
-      'Update init script':
+      'Update provisioner':
         separator         : yes
-        callback          : @bound "showInitScriptEditor"
+        callback          : @bound "prepareProvisionEditor"
 
       'Delete'            :
         disabled          : KD.isGuest()
@@ -166,22 +169,47 @@ class EnvironmentMachineItem extends EnvironmentItem
     computeController.destroy @getData()
 
 
-  showInitScriptEditor: ->
+  prepareProvisionEditor: ->
+
+    machine     = @data
+    provisioner = machine.provisioners.first
+
+    if provisioner
+
+      {JProvisioner} = KD.remote.api
+      JProvisioner.one slug: provisioner, (err, revivedProvisioner)=>
+
+        return if KD.showError err
+        @showEditorModalFor revivedProvisioner
+
+    else @showEditorModalFor()
+
+
+  showEditorModalFor: (provisioner)->
 
     modal =  new EditorModal
+
       editor              :
-        title             : "VM Init Script Editor <span>(experimental)</span>"
-        content           : @data.meta?.initScript or ""
-        saveMessage       : "VM init script saved"
-        saveFailedMessage : "Couldn't save VM init script"
-        saveCallback      : (script, modal) =>
-          KD.remote.api.JVM.updateInitScript @data.hostnameAlias, script, (err, res) =>
+        title             : "Machine Init Script Editor <span>(experimental)</span>"
+        content           : provisioner?.content?.script or ""
+        saveMessage       : "Machine init script saved"
+        saveFailedMessage : "Couldn't save Machine init script"
+
+        saveCallback      : (script, modal) ->
+
+          provisioner.update content: { script }, (err,res)->
+
             if err
               modal.emit "SaveFailed"
             else
               modal.emit "Saved"
-              @data.meta or= {}
-              @data.meta.initScript = Encoder.htmlEncode modal.editor.getValue()
+
+    # information = new KDNotificationView
+    #   container     : modal
+    #   type          : "tray"
+    #   content       : "Lorem ipsum dolor sen de affet."
+    #   duration      : 0
+    #   closeManually : no
 
 
   getIpLink:->
