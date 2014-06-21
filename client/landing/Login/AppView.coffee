@@ -451,7 +451,7 @@ class LoginView extends JView
 
         new KDNotificationView
           cssClass  : "login"
-          title     : "<span></span>Happy Coding!"
+          title     : "<span></span>Happy Koding!"
           # content   : "Successfully logged in."
           duration  : 2000
         @loginForm.reset()
