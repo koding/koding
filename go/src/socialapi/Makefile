@@ -11,59 +11,17 @@ MINOR=1
 # export MAJOR
 # export MINOR
 
-develop: apidev topicfeeddev realtimedev followingfeeddev populartopicdev popularpostdev notificationdev trollmodeldev
-default: configure
+# set debug level
+debug?=false
+ifeq ($(debug), true)
+	VERBOSE="-v"
+	DEBUG="-d"
+endif
 
-apidev:
-	@echo "$(OK_COLOR)==> Running API Worker $(NO_COLOR)"
-	@$(GOBINDIR)/rerun socialapi/workers/api -c $(CONFIG) -d
-topicfeeddev:
-	@echo "$(OK_COLOR)==> Running Topic Feed Worker $(NO_COLOR)"
-	@$(GOBINDIR)/rerun socialapi/workers/topicfeed -c $(CONFIG) -d
-realtimedev:
-	@echo "$(OK_COLOR)==> Running Realtime Worker $(NO_COLOR)"
-	@$(GOBINDIR)/rerun socialapi/workers/realtime -c $(CONFIG)  -d
-followingfeeddev:
-	@echo "$(OK_COLOR)==> Running Following Feed Worker $(NO_COLOR)"
-	@$(GOBINDIR)/rerun socialapi/workers/followingfeed -c $(CONFIG) -d
-populartopicdev:
-	@echo "$(OK_COLOR)==> Running Popular Topics Worker $(NO_COLOR)"
-	@$(GOBINDIR)/rerun socialapi/workers/populartopic -c $(CONFIG) -d
-
-notificationdev:
-	@echo "$(OK_COLOR)==> Running Notification Worker $(NO_COLOR)"
-	@$(GOBINDIR)/rerun socialapi/workers/notification -c $(CONFIG) -d
-
-emailnotifierdev:
-	@echo "$(OK_COLOR)==> Running Email Notifier Worker $(NO_COLOR)"
-	@$(GOBINDIR)/rerun socialapi/workers/emailnotifier -c $(CONFIG) -d
-
-dailyemailnotifierdev:
-	@echo "$(OK_COLOR)==> Running Daily Email Notifier Worker $(NO_COLOR)"
-	@$(GOBINDIR)/rerun socialapi/workers/dailyemailnotifier -c $(CONFIG) -d
-
-popularpostdev:
-	@echo "$(OK_COLOR)==> Running Popular Posts Worker $(NO_COLOR)"
-	@$(GOBINDIR)/rerun socialapi/workers/popularpost -c $(CONFIG) -d
-
-trollmodeldev:
-	@echo "$(OK_COLOR)==> Running Troll Mode Worker $(NO_COLOR)"
-	@$(GOBINDIR)/rerun socialapi/workers/trollmode -c $(CONFIG) -d
-
-configuremigration:
-	(vagrant ssh default --command "mongo localhost/koding --eval='db.relationships.update({},{\$$unset:{migrationStatus:0}},{multi:true})'")
-	(vagrant ssh default --command "mongo localhost/koding --eval='db.jNewStatusUpdates.update({},{\$$unset:{socialMessageId:0}},{multi:true})'")
-	(vagrant ssh default --command "mongo localhost/koding --eval='db.jComments.update({},{\$$unset:{socialMessageId:0}},{multi:true})'")
-	(vagrant ssh default --command "mongo localhost/koding --eval='db.jTags.update({},{\$$unset:{socialApiChannelId:0}},{multi:true})'")
-	(vagrant ssh default --command "mongo localhost/koding --eval='db.jAccounts.update({},{\$$unset:{socialApiId:0}},{multi:true})'")
-
-migrate:
-	@echo "$(OK_COLOR)==> Running Popular Posts Worker $(NO_COLOR)"
-	@$(GOBINDIR)/rerun socialapi/workers/migrator -c $(CONFIG) -d
-
-sitemapfeederdev:
-	@echo "$(OK_COLOR)==> Running Sitemap Feeder Worker $(NO_COLOR)"
-	@$(GOBINDIR)/rerun socialapi/workers/sitemap/sitemapfeeder -c $(CONFIG) -d
+# set config name
+ifneq ($(strip $(config)),)
+	CONFIG=$(config)
+endif
 
 PACKAGES = \
 	socialapi/workers/api \
@@ -79,7 +37,63 @@ PACKAGES = \
 	socialapi/workers/migrator \
 	socialapi/workers/sitemap/sitemapfeeder
 
-default: all
+all: testapi
+
+develop: apidev topicfeeddev realtimedev followingfeeddev populartopicdev popularpostdev notificationdev trollmodeldev
+default: configure
+
+apidev:
+	@echo $(debug)
+	@echo $(DEBUG)
+	@echo "$(OK_COLOR)==> Running API Worker $(NO_COLOR)"
+	@$(GOBINDIR)/rerun socialapi/workers/api -c $(CONFIG) $(DEBUG)
+topicfeeddev:
+	@echo "$(OK_COLOR)==> Running Topic Feed Worker $(NO_COLOR)"
+	@$(GOBINDIR)/rerun socialapi/workers/topicfeed -c $(CONFIG) $(DEBUG)
+realtimedev:
+	@echo "$(OK_COLOR)==> Running Realtime Worker $(NO_COLOR)"
+	@$(GOBINDIR)/rerun socialapi/workers/realtime -c $(CONFIG) $(DEBUG)
+followingfeeddev:
+	@echo "$(OK_COLOR)==> Running Following Feed Worker $(NO_COLOR)"
+	@$(GOBINDIR)/rerun socialapi/workers/followingfeed -c $(CONFIG) $(DEBUG)
+populartopicdev:
+	@echo "$(OK_COLOR)==> Running Popular Topics Worker $(NO_COLOR)"
+	@$(GOBINDIR)/rerun socialapi/workers/populartopic -c $(CONFIG) $(DEBUG)
+
+notificationdev:
+	@echo "$(OK_COLOR)==> Running Notification Worker $(NO_COLOR)"
+	@$(GOBINDIR)/rerun socialapi/workers/notification -c $(CONFIG) $(DEBUG)
+
+emailnotifierdev:
+	@echo "$(OK_COLOR)==> Running Email Notifier Worker $(NO_COLOR)"
+	@$(GOBINDIR)/rerun socialapi/workers/emailnotifier -c $(CONFIG) $(DEBUG)
+
+dailyemailnotifierdev:
+	@echo "$(OK_COLOR)==> Running Daily Email Notifier Worker $(NO_COLOR)"
+	@$(GOBINDIR)/rerun socialapi/workers/dailyemailnotifier -c $(CONFIG) $(DEBUG)
+
+popularpostdev:
+	@echo "$(OK_COLOR)==> Running Popular Posts Worker $(NO_COLOR)"
+	@$(GOBINDIR)/rerun socialapi/workers/popularpost -c $(CONFIG) $(DEBUG)
+
+trollmodeldev:
+	@echo "$(OK_COLOR)==> Running Troll Mode Worker $(NO_COLOR)"
+	@$(GOBINDIR)/rerun socialapi/workers/trollmode -c $(CONFIG) $(DEBUG)
+
+configuremigration:
+	(vagrant ssh default --command "mongo localhost/koding --eval='db.relationships.update({},{\$$unset:{migrationStatus:0}},{multi:true})'")
+	(vagrant ssh default --command "mongo localhost/koding --eval='db.jNewStatusUpdates.update({},{\$$unset:{socialMessageId:0}},{multi:true})'")
+	(vagrant ssh default --command "mongo localhost/koding --eval='db.jComments.update({},{\$$unset:{socialMessageId:0}},{multi:true})'")
+	(vagrant ssh default --command "mongo localhost/koding --eval='db.jTags.update({},{\$$unset:{socialApiChannelId:0}},{multi:true})'")
+	(vagrant ssh default --command "mongo localhost/koding --eval='db.jAccounts.update({},{\$$unset:{socialApiId:0}},{multi:true})'")
+
+migrate:
+	@echo "$(OK_COLOR)==> Running Popular Posts Worker $(NO_COLOR)"
+	@$(GOBINDIR)/rerun socialapi/workers/migrator -c $(CONFIG) $(DEBUG)
+
+sitemapfeederdev:
+	@echo "$(OK_COLOR)==> Running Sitemap Feeder Worker $(NO_COLOR)"
+	@$(GOBINDIR)/rerun socialapi/workers/sitemap/sitemapfeeder -c $(CONFIG) $(DEBUG)
 
 createdb:
 	(vagrant ssh default --command "mongo localhost/koding --eval='db.jAccounts.update({},{\$$unset:{socialApiId:0}},{multi:true})'")
@@ -94,16 +108,17 @@ installrerun:
 	@go install github.com/skelterjohn/rerun
 
 install:
+	@echo $(CONFIG)
 	@echo "$(OK_COLOR)==> Installing all packages $(NO_COLOR)"
-	@go install -v ${PACKAGES}
+	@go install $(VERBOSE) ${PACKAGES}
 
 test:
 	@echo "$(OK_COLOR)==> Testing all packages $(NO_COLOR)"
-	@go test -v ${PACKAGES}
+	@go test $(VERBOSE) ${PACKAGES}
 
 build:
 	@echo "$(OK_COLOR)==> Building all packages $(NO_COLOR)"
-	@go build -v ${PACKAGES}
+	@go build $(VERBOSE) ${PACKAGES}
 
 testapi:
 	@echo "$(OK_COLOR)==> Running go api tests $(NO_COLOR)"
