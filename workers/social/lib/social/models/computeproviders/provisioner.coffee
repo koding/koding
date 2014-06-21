@@ -98,6 +98,8 @@ module.exports = class JProvisioner extends jraphical.Module
         type          : ObjectId
         required      : yes
 
+      group           : String
+
       meta            : require 'bongo/bundles/meta'
 
 
@@ -168,6 +170,8 @@ module.exports = class JProvisioner extends jraphical.Module
       checkData delegate, data, (err, data)->
 
         if err? then return callback err
+
+        data.group = client.context.group
 
         provisioner = new JProvisioner data
         provisioner.save (err)->
