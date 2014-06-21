@@ -84,6 +84,35 @@ class ActivityAppView extends KDScrollView
       kallback item.getData()
 
 
+  openNext: ->
+
+    items    = @sidebar.getItems()
+    selected = @sidebar.selectedItem
+
+    index = items.indexOf selected
+    next  = index + 1
+    next  = Math.min next, items.length - 1
+    item  = items[next]
+
+    {route, href} = item.getOptions()
+
+    KD.singletons.router.handleRoute route or href
+
+
+  openPrev: ->
+
+    items    = @sidebar.getItems()
+    selected = @sidebar.selectedItem
+
+    index = items.indexOf selected
+    prev  = Math.min Math.max(0, index - 1), items.length - 1
+    item  = items[prev]
+
+    {route, href} = item.getOptions()
+
+    KD.singletons.router.handleRoute route or href
+
+
   createTab: (name, data) ->
 
     channelId = data.id
@@ -117,9 +146,9 @@ class ActivityAppView extends KDScrollView
 
     bounds = @sidebar.sections.messages.options.headerLink.getBounds()
 
-    top       = bounds.y - 40
+    top       = bounds.y - 310
     left      = bounds.x + bounds.w + 40
-    arrowTop  = 40 + (bounds.h / 2) - 10 #10 = arrow height
+    arrowTop  = 310 + (bounds.h / 2) - 10 #10 = arrow height
 
     modal = new PrivateMessageModal
       delegate     : this

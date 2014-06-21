@@ -4,7 +4,15 @@ class ActivityAppController extends AppController
   KD.registerAppClass this,
     name         : 'Activity'
     searchRoute  : '/Activity?q=:text:'
-
+    commands:
+      'next tab'     : 'goToNextTab'
+      'previous tab' : 'goToPreviousTab'
+    keyBindings: [
+      { command: 'next tab',      binding: 'ctrl+alt+]',    global: yes }
+      { command: 'next tab',      binding: 'ctrl+alt+down', global: yes }
+      { command: 'previous tab',  binding: 'ctrl+alt+up',   global: yes }
+      { command: 'previous tab',  binding: 'ctrl+alt+[',    global: yes }
+    ]
 
   constructor: (options = {}) ->
 
@@ -63,6 +71,18 @@ class ActivityAppController extends AppController
 
 
   getActiveChannel: -> @getView().sidebar.selectedItem.getData()
+
+
+  goToNextTab: (event) ->
+
+    KD.utils.stopDOMEvent event
+    @getView().openNext()
+
+
+  goToPreviousTab: (event) ->
+
+    KD.utils.stopDOMEvent event
+    @getView().openPrev()
 
 
   #

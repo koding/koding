@@ -18,3 +18,6 @@ class ChatHead extends KDCustomHTMLView
         width   : 30
         height  : 30
     , account
+
+
+  click: KDAutoCompletedItem::click

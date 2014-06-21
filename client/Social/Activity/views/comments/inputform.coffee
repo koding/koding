@@ -35,7 +35,7 @@ class CommentInputForm extends KDView
 
       @input.setValue ''
       @input.resize()
-      @input.setBlur()
+      @input.setFocus()
 
     KD.requireMembership
       callback  : kallback

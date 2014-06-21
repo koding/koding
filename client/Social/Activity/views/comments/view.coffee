@@ -58,9 +58,6 @@ class CommentView extends KDView
       return KD.showError err  if err
 
       KD.mixpanel 'Comment activity, success'
-      KD.getSingleton('badgeController').checkBadge
-        property: 'comments', relType: 'commenter', source: 'JNewStatusUpdate', targetSelf: 1
-
 
   decorateAsPassive: ->
 
