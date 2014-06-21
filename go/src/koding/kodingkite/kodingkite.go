@@ -38,7 +38,7 @@ func New(kodingConf *kodingconfig.Config, name, version string) (*KodingKite, er
 	kk := &KodingKite{
 		Kite:         k,
 		KodingConfig: kodingConf,
-		scheme:       "ws",
+		scheme:       "http",
 	}
 
 	// prepare our multilog handler
@@ -57,7 +57,7 @@ func New(kodingConf *kodingconfig.Config, name, version string) (*KodingKite, er
 
 	if kodingConf.NewKites.UseTLS {
 		kk.UseTLSFile(kodingConf.NewKites.CertFile, kodingConf.NewKites.KeyFile)
-		kk.scheme = "wss"
+		kk.scheme = "https"
 		kk.registerHostname, err = os.Hostname()
 	} else {
 		kk.registerHostname, err = getRegisterIP(kodingConf.Environment)
@@ -78,7 +78,7 @@ func (k *KodingKite) Run() {
 		Host:   k.registerHostname + ":" + strconv.Itoa(k.Kite.Config.Port),
 		// Put the kite's name and version into path because it is useful
 		// on Chrome Console when developing.
-		Path: "/" + k.Kite.Kite().Name + "-" + k.Kite.Kite().Version,
+		Path: "/" + k.Kite.Kite().Name + "-" + k.Kite.Kite().Version + "/kite",
 	}
 
 	go k.Kite.RegisterForever(registerWithURL)
