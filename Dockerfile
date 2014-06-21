@@ -7,9 +7,8 @@ RUN echo "UTC" > /etc/timezone
 RUN dpkg-reconfigure -f noninteractive tzdata
 
 RUN mkdir -p /root/.ssh
-RUN apt-get install -y golang nodejs git graphicsmagick openssh-client python
 
-RUN echo "-----BEGIN RSA PRIVATE KEY-----"                                  >/root/.ssh/id_rsa
+RUN echo "-----BEGIN RSA PRIVATE KEY-----"                                  > /root/.ssh/id_rsa
 RUN echo "MIIEpAIBAAKCAQEAxJUfKx05K3kymTkgISnFOoh1PY/jJ3dlUnAUE8WqCXlDQi+C" >>/root/.ssh/id_rsa
 RUN echo "FIJO+pKGNNyo8z2fF43iCGfc9h3a0qvhvyWY4f6tkllSBdWLWwV2O8edRJXIwMyu" >>/root/.ssh/id_rsa
 RUN echo "ku8SIXeNg0Qg0+iqZKUZJEnv6MSUcDNejFS0AVz4Dw3pSfLT+xTEWD4j9hM6I8BQ" >>/root/.ssh/id_rsa
@@ -52,15 +51,25 @@ RUN echo "  StrictHostKeyChecking no"   >> /root/.ssh/config
 
 
 # INSTALL AND BUILD CODE
-
+RUN echo installing now.
 WORKDIR /opt
 RUN git clone git@git.sj.koding.com:koding/koding.git
 WORKDIR /opt/koding
-RUN git checkout cake-rewrite
+
+ADD BUILD_DATA /opt/koding/BUILD_DATA
+
+RUN git checkout `cat /opt/koding/BUILD_DATA/BUILD_BRANCH`
 RUN git submodule init
 RUN git submodule update
 RUN npm i gulp stylus coffee-script -g 
 RUN npm i --unsafe-perm
-RUN cake -c kodingme -r kodingme buildEverything
+RUN node -e "require('koding-config-manager').printJson('main.`cat /opt/koding/BUILD_DATA/BUILD_CONFIG`')" >>/opt/koding/BUILD_DATA/BUILD_CONFIG.JSON
+RUN cake -c `cat /opt/koding/BUILD_DATA/BUILD_CONFIG` -r `cat /opt/koding/BUILD_DATA/BUILD_REGION` buildEverything
+
+RUN go run /opt/koding/go/src/github.com/koding/kite/kontrol/kontrol/main.go -init -public-key /opt/koding/certs/test_kontrol_rsa_public.pem -private-key /opt/koding/certs/test_kontrol_rsa_private.pem -username koding  -kontrol-url "http://`cat /opt/koding/BUILD_DATA/BUILD_HOSTNAME`:4000" 
+
 
 RUN echo DONE
+VOLUME ["/opt/koding"]
+
+ENTRYPOINT ["cake"]
