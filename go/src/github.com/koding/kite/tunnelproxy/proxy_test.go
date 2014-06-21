@@ -1,6 +1,7 @@
-package proxy
+package tunnelproxy
 
 import (
+	"log"
 	"net/url"
 	"strings"
 	"testing"
@@ -15,25 +16,26 @@ import (
 func TestProxy(t *testing.T) {
 	conf := config.New()
 	conf.Username = "testuser"
-	conf.KontrolURL = &url.URL{Scheme: "ws", Host: "localhost:4000"}
+	conf.KontrolURL = &url.URL{Scheme: "ws", Host: "localhost:5555"}
 	conf.KontrolKey = testkeys.Public
 	conf.KontrolUser = "testuser"
 	conf.KiteKey = testutil.NewKiteKey().Raw
 
+	DefaultPort = 4999
+	DefaultPublicHost = "localhost:4999"
 	prxConf := conf.Copy()
 	prxConf.DisableAuthentication = true // no kontrol running in test
 	prx := New(prxConf, "0.1.0", testkeys.Public, testkeys.Private)
 	prx.Start()
 
 	// Proxy kite is ready.
-
 	kite1 := kite.New("kite1", "1.0.0")
 	kite1.Config = conf.Copy()
 	kite1.HandleFunc("foo", func(r *kite.Request) (interface{}, error) {
 		return "bar", nil
 	})
 
-	prxClt := kite1.NewClientString("ws://localhost:3999/kite")
+	prxClt := kite1.NewClient("http://localhost:4999/kite")
 	err := prxClt.Dial()
 	if err != nil {
 		t.Fatal(err)
@@ -48,7 +50,7 @@ func TestProxy(t *testing.T) {
 
 	proxyURL := result.MustString()
 
-	t.Logf("Registered to proxy with URL: %s", proxyURL)
+	log.Printf("Registered to proxy with URL: %s", proxyURL)
 
 	if !strings.Contains(proxyURL, "/proxy") {
 		t.Fatalf("Invalid proxy URL: %s", proxyURL)
@@ -57,7 +59,7 @@ func TestProxy(t *testing.T) {
 	kite2 := kite.New("kite2", "1.0.0")
 	kite2.Config = conf.Copy()
 
-	kite1remote := kite2.NewClientString(proxyURL)
+	kite1remote := kite2.NewClient(proxyURL)
 
 	err = kite1remote.Dial()
 	if err != nil {
