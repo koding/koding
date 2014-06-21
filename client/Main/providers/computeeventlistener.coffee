@@ -92,8 +92,9 @@ class ComputeEventListener extends KDObject
           if res.event.percentage is 100 and type is "build"
             computeController.emit "machineBuildCompleted", machineId: eventId
 
-          computeController.emit "public-#{eventId}", res.event
-          computeController.emit "#{res.event.eventId}", res.event
+          unless res.event.status is 'Unknown'
+            computeController.emit "public-#{eventId}", res.event
+            computeController.emit "#{res.event.eventId}", res.event
 
       @listeners = activeListeners
       @tickInProgress = no
