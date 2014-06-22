@@ -337,7 +337,7 @@ class SocialApiController extends KDController
 
     sendPrivateMessage   : messageRequesterFn
       fnName             : 'sendPrivateMessage'
-      validateOptionsWith: ['body']
+      validateOptionsWith: ['body', 'recipients']
       mapperFn           : mapPrivateMessages
 
     fetchPrivateMessages : messageRequesterFn
