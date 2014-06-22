@@ -50,11 +50,9 @@ func Send(u *url.URL, h http.Header, req *models.PrivateMessageRequest) (int, ht
 		return response.NewBadRequest(errors.New("AcccountId is not defined"))
 	}
 
-	// // req.Recipients = append(req.Recipients, req.AccountId)
 	cm := models.NewChannelMessage()
 	cm.Body = req.Body
-	participantNames := cm.GetMentionedUsernames()
-	participantIds, err := fetchParticipantIds(participantNames)
+	participantIds, err := fetchParticipantIds(req.Recipients)
 	if err != nil {
 		return response.NewBadRequest(err)
 	}
@@ -64,7 +62,8 @@ func Send(u *url.URL, h http.Header, req *models.PrivateMessageRequest) (int, ht
 
 	// author and atleast one recipient should be in the
 	// recipient list
-	if len(participantIds) < 2 {
+	if len(participantIds) < 1 {
+		// user can send private message to themself
 		return response.NewBadRequest(errors.New("You should define your recipients"))
 	}
 
