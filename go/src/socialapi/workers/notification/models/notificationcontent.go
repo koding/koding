@@ -2,10 +2,10 @@ package models
 
 import (
 	"errors"
+
 	// "fmt"
-	"github.com/jinzhu/gorm"
-	"github.com/koding/bongo"
 	"time"
+	"github.com/koding/bongo"
 )
 
 type NotificationContent struct {
@@ -48,7 +48,7 @@ func (n NotificationContent) TableName() string {
 // and creates new one if it does not exist.
 func (n *NotificationContent) Create() error {
 	if err := n.FindByTarget(); err != nil {
-		if err != gorm.RecordNotFound {
+		if err != bongo.RecordNotFound {
 			return err
 		}
 		return bongo.B.Create(n)

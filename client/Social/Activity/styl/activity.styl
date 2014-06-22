@@ -286,6 +286,7 @@ resurrection.activity.styl
 
           .nothing
             background    #d9d9d9
+            width         278px
             font-size     14px
             padding       16px 26px
             rounded       4px
@@ -1215,34 +1216,22 @@ span.collapsedtext
       .like-view
         margin-left         76px
 
-    .like-view
-      size                  auto, 16px
-      line-height           normal
-      background            #ececec
-      rounded               8px
-      padding               0 6px
-      fl()
+        a.like-link
+          font-size         11px
+          color             #838383
+          noTextDeco()
 
-      .like-link
-        r-sprite            'activity', 'heart'
-        font-size           0
-        margin-top          4px
-        fl()
-
-        &.liked
-          r-sprite          'activity', 'heart-filled'
-
-      .like-count
-        background          none
-        size                auto, auto
-        font-size           10px
-        color               #2b2b2b
-        padding             0
-        line-height         17px
-        margin              0 0 0 5px
-        vertical-align      middle
-        text-decoration     none
-        fl()
+        .like-count
+          noTextDeco()
+          display           inline-block
+          height            16px
+          line-height       16px
+          padding           0 4px
+          background        #dfdfdf
+          color             #747474
+          rounded           2px
+          margin-left       7px
+          font-size         11px
 
     .author-avatar
       border-color          #fff
@@ -1788,6 +1777,7 @@ body.group.members
     rel()
 
     &:hover
+    &.selected
       .close-icon
         bg        color rgba(255,255,255,.9)
         shadow    0 0 0 5px rgba(255,255,255,.9)

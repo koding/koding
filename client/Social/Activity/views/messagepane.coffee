@@ -103,7 +103,7 @@ class MessagePane extends KDTabPaneView
     app  = appManager.get 'Activity'
     item = app.getView().sidebar.selectedItem
 
-    return  unless item.count
+    return  unless item?.count
     # no need to send updatelastSeenTime or glance
     # when checking publicfeeds
     return  if typeConstant is 'group'
@@ -146,12 +146,14 @@ class MessagePane extends KDTabPaneView
 
 
   lazyLoad: ->
+    @listController.showLazyLoader()
 
     {appManager} = KD.singletons
     last         = @listController.getItemsOrdered().last
     from         = last.getData().meta.createdAt.toISOString()
 
     @fetch {from}, (err, items = []) =>
+      @listController.hideLazyLoader()
 
       return KD.showError err  if err
 

@@ -31,49 +31,115 @@ class ActivitySidebar extends KDCustomScrollView
     } = KD.singletons
 
     @sections     = {}
+    @itemsById    = {}
+    @itemsBySlug  = {}
+    @itemsByName  = {}
     @selectedItem = null
 
     notificationController
       .on 'AddedToChannel',            @bound 'accountAddedToChannel'
       .on 'RemovedFromChannel',        @bound 'accountRemovedFromChannel'
-      .on 'ChannelUpdateHappened',     @bound 'notificationHasArrived'
-      .on 'NotificationHasArrived',    @bound 'notificationHasArrived'
-      # .on 'MessageAddedToChannel',     @bound 'notificationHasArrived'
-      # .on 'MessageRemovedFromChannel', @bound 'notificationHasArrived'
+      .on 'ReplyAdded',                @bound 'replyAdded'
+      .on 'MessageAddedToChannel',     @bound 'messageAddedToChannel'
+      .on 'MessageRemovedFromChannel', @bound 'messageRemovedFromChannel'
+
+      .on 'MessageListUpdated',        @bound 'setPostUnreadCount'
+      .on 'ReplyRemoved',              (update) -> log update.event, update
+
+      .on 'ParticipantUpdated',        @bound 'handleGlanced'
+      # .on 'ChannelUpdateHappened',     @bound 'channelUpdateHappened'
 
 
   # event handling
 
-  accountAddedToChannel: (channelContainer) ->
+  messageAddedToChannel: (update) ->
+    switch update.channel.typeConstant
+      when 'pinnedactivity' then @replyAdded update
+      when 'topic'          then @handleFollowedFeedUpdate update
 
-    {socialapi} = KD.singletons
-    {id} = channelContainer.channel
+  messageRemovedFromChannel: (update) ->
+    log 'messageRemovedFromChannel', update
+    {id} = update.channelMessage
+
+    @removeItem id
+
+  handleGlanced: (update) ->
+
+    @selectedItem?.setUnreadCount update.unreadCount
+
+
+  handleFollowedFeedUpdate: (update) ->
+
+    {socialapi}   = KD.singletons
+    {unreadCount} = update
+    {id}          = update.channel
+
+    socialapi.cacheable 'channel', id, (err, data) =>
+
+      return KD.showError err  if err
+
+      item = @addItem data, yes
+      item.setUnreadCount unreadCount
+
+
+  replyAdded: (update) ->
+
+    {socialapi}        = KD.singletons
+    {unreadCount}      = update
+    {id, typeConstant} = update.channelMessage
+    type               = 'post'
+
+    # if the reply is added to a private message
+    # we need to get the channel instead of the post
+    # the other case of reply being added is followed post
+    if typeConstant is 'privatemessage'
+      type = 'channel'
+      id   = update.channel.id
+
+    # so we fetch respectively
+    socialapi.cacheable type, id, (err, data) =>
+
+      return KD.showError err  if err
+
+      # and add to the sidebar
+      # (if the item is already on sidebar, it's handled on @addItem)
+      item = @addItem data, yes
+      item.setUnreadCount unreadCount
+
+
+  accountAddedToChannel: (update) ->
+
+    {socialapi}   = KD.singletons
+    {unreadCount} = update
+    {id}          = update.channel
 
     socialapi.cacheable 'channel', id, (err, channel) =>
 
       return KD.showError err  if err
 
-      @addItem channel
-      # @updateTopicFollowButtons id, yes  if channel.typeConstant is 'topic'
+      item = @addItem channel, yes
+      item.setUnreadCount unreadCount or 1
 
 
-  accountRemovedFromChannel: (channelContainer) ->
+  accountRemovedFromChannel: (update) ->
 
-    {id, typeConstant} = channelContainer.channel
+    {id, typeConstant} = update.channel
 
     @removeItem id
-    # @updateTopicFollowButtons id, no  if channel.typeConstant is 'topic'
 
 
-  notificationHasArrived: (update) ->
+  channelUpdateHappened: (update) -> warn 'dont use this, :::educational purposes only!:::', update
 
-    log 'notificationHasArrived', update
 
-    # switch update.event
-    #   when 'MessageAddedToChannel'     then return @addToChannel update.channelMessage
-    #   when 'MessageRemovedFromChannel' then return @removeFromChannel update.channelMessage
+  setPostUnreadCount: ({unreadCount, channelMessage}) ->
 
-    @setChannelUnreadCount update  if update.channel
+    return  unless channelMessage
+
+    {typeConstant, id} = channelMessage
+
+    listController = @getListController typeConstant
+    item = listController.itemForId id
+    item.setUnreadCount unreadCount  if item?.unreadCount
 
 
   setChannelUnreadCount: ({unreadCount, channel}) ->
@@ -87,6 +153,16 @@ class ActivitySidebar extends KDCustomScrollView
     item.setUnreadCount unreadCount  if item?.unreadCount
 
 
+  getItems: ->
+
+    items = [ @public ]
+    items = items.concat @sections.followedTopics.listController.getListItems()
+    items = items.concat @sections.conversations.listController.getListItems()
+    items = items.concat @sections.messages.listController.getListItems()
+
+    return items
+
+
   getListController: (type) ->
 
     section = switch type
@@ -98,26 +174,65 @@ class ActivitySidebar extends KDCustomScrollView
     return section.listController
 
 
+  getItemByData: (data) ->
+
+    item = @itemsById[data.id] or
+           @itemsBySlug[data.slug] or
+           @itemsByName[data.name]
+
+    return item or null
+
 
   # dom manipulation
 
-  addItem: (data) ->
+  addItem: (data, prepend = no) ->
 
+    index          = if prepend then 0
     listController = @getListController data.typeConstant
 
-    return  if listController.itemForId data.getId()
+    if item = @getItemByData data
+      listController.moveItemToIndex item, index
 
-    listController.addItem data
-    @updateTopicFollowButtons data.getId(), yes
+      return item
+
+    item = listController.addItem data, index
+    @registerItem item
+
+    return item
 
 
   removeItem: (id) ->
 
-    for name, {listController} of @sections when name isnt 'hot'
-      if item = listController.itemForId id
-        listController.removeItem item
+    if item = @getItemByData data
+      listController = @getListController data.typeConstant
+      @unregisterItem item
+      listController.removeItem item
 
-    @updateTopicFollowButtons id, no
+
+  registerItem: (item) ->
+
+    data = item.getData()
+
+    @itemsById[data.id]     = item  if data.id
+    @itemsBySlug[data.slug] = item  if data.slug
+    @itemsByName[data.name] = item  if data.name
+
+
+  unregisterItem: (item) ->
+
+    data = item.getData()
+
+    if data.id
+      @itemsById[data.id] = null
+      delete @itemsById[data.id]
+
+    if data.slug
+      @itemsBySlug[data.slug] = null
+      delete @itemsBySlug[data.id]
+
+    if data.name
+      @itemsByName[data.name] = null
+      delete @itemsByName[data.name]
 
 
   updateTopicFollowButtons: (id, state) ->
@@ -144,7 +259,6 @@ class ActivitySidebar extends KDCustomScrollView
       @selectedItem = @public
       @public.setClass 'selected'
       return
-
     else
       @public.unsetClass 'selected'
 
@@ -170,20 +284,10 @@ class ActivitySidebar extends KDCustomScrollView
 
   deselectAllItems: ->
 
+    @selectedItem = null
+
     for own name, {listController} of @sections
-
       listController.deselectAllItems()
-
-
-  # getItemById: (id) ->
-
-  #   item = null
-  #   for own name, section of @sections
-
-  #     item = section.listController.itemsIndexed[id]
-  #     break  if item
-
-  #   return item
 
 
   getItemByRouteParams: (type, slug) ->

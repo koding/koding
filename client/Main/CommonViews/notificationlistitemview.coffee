@@ -115,7 +115,7 @@ class NotificationListItem extends KDListItemView
             KD.remote.api.JAccount.one _id: message.accountOldId, (err, origin)=>
               return reject err  if err or not origin
 
-              adjective = if message.accounOldId is KD.whoami()?.getId() then "your"
+              adjective = if message.accountOldId is KD.whoami()?.getId() then "your"
               else if @actors.length == 1 and @actors[0].getId() is origin.getId() then "their own"
               else
                 originatorName = KD.utils.getFullnameFromAccount origin
@@ -132,8 +132,9 @@ class NotificationListItem extends KDListItemView
   click:->
     showPost = (err, post)->
       if post
-        groupSlug = if post.group is "koding" then "" else "/#{post.group}"
-        KD.getSingleton('router').handleRoute "#{groupSlug}/Activity/#{post.slug}", state:post
+        # TODO group slug must be prepended after groups are implemented
+        # groupSlug = if post.group is "koding" then "" else "/#{post.group}"
+        KD.getSingleton('router').handleRoute "/Activity/Post/#{post.message.slug}", state:post
 
       else
         new KDNotificationView
@@ -141,7 +142,7 @@ class NotificationListItem extends KDListItemView
           duration : 1000
 
     switch @getData().type
-      when "comment"
+      when "comment", "like"
         KD.remote.api.SocialMessage.fetch id: @getData().targetId, showPost
       when "follow"
         KD.getSingleton('router').handleRoute "/#{@actors[0].profile.nickname}"

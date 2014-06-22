@@ -6,8 +6,6 @@ import (
 	"socialapi/request"
 	"strings"
 	"time"
-
-	"github.com/jinzhu/gorm"
 	"github.com/koding/bongo"
 )
 
@@ -164,7 +162,7 @@ func (c *Channel) Create() error {
 			// return fmt.Errorf("%s typed channel is already created before for %s group", c.TypeConstant, c.GroupName)
 		}
 
-		if err != gorm.RecordNotFound {
+		if err != bongo.RecordNotFound {
 			return err
 		}
 
@@ -225,7 +223,7 @@ func (c *Channel) AddParticipant(participantId int64) (*ChannelParticipant, erro
 	cp.AccountId = participantId
 
 	err := cp.FetchParticipant()
-	if err != nil && err != gorm.RecordNotFound {
+	if err != nil && err != bongo.RecordNotFound {
 		return nil, err
 	}
 
@@ -262,7 +260,7 @@ func (c *Channel) RemoveParticipant(participantId int64) error {
 
 	err := cp.FetchParticipant()
 	// if user is not in this channel, do nothing
-	if err == gorm.RecordNotFound {
+	if err == bongo.RecordNotFound {
 		return nil
 	}
 
@@ -313,7 +311,7 @@ func (c *Channel) AddMessage(messageId int64) (*ChannelMessageList, error) {
 	}
 
 	// silence record not found err
-	if err != gorm.RecordNotFound {
+	if err != bongo.RecordNotFound {
 		return nil, err
 	}
 
@@ -369,11 +367,11 @@ func (c *Channel) FetchChannelIdByNameAndGroupName(name, groupName string) (int6
 	}
 
 	if ids == nil {
-		return 0, gorm.RecordNotFound
+		return 0, bongo.RecordNotFound
 	}
 
 	if len(ids) == 0 {
-		return 0, gorm.RecordNotFound
+		return 0, bongo.RecordNotFound
 	}
 
 	return ids[0], nil

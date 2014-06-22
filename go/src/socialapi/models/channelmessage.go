@@ -292,7 +292,7 @@ func (c *ChannelMessage) BuildMessage(query *request.Query) (*ChannelMessageCont
 func (c *ChannelMessage) CheckIsMessageFollowed(query *request.Query) (bool, error) {
 	channel := NewChannel()
 	if err := channel.FetchPinnedActivityChannel(query.AccountId, query.GroupName); err != nil {
-		if err == gorm.RecordNotFound {
+		if err == bongo.RecordNotFound {
 			return false, nil
 		}
 		return false, err
@@ -306,7 +306,7 @@ func (c *ChannelMessage) CheckIsMessageFollowed(query *request.Query) (bool, err
 		},
 	}
 	if err := cml.One(q); err != nil {
-		if err == gorm.RecordNotFound {
+		if err == bongo.RecordNotFound {
 			return false, nil
 		}
 
@@ -517,7 +517,7 @@ func (c *ChannelMessage) BySlug(query *request.Query) error {
 
 	// if message is not in the channel
 	if !res {
-		return gorm.RecordNotFound
+		return bongo.RecordNotFound
 	}
 
 	return nil

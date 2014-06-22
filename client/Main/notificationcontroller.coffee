@@ -31,6 +31,9 @@ class NotificationController extends KDObject
         @emit notification.event, notification.contents
         @prepareNotification notification
 
+    @on 'ChannelUpdateHappened', (notification) =>
+      @emit notification.event, notification  if notification.event
+
     @on 'GuestTimePeriodHasEnded', ()->
       # todo add a notification to user
       deleteUserCookie()
@@ -193,8 +196,9 @@ class NotificationController extends KDObject
       options.click = ->
         view = this
         if contents.type in ["comment", "like"]
-          groupSlug = if target.group is "koding" then "" else "/#{target.group}"
-          KD.getSingleton('router').handleRoute "#{groupSlug}/Activity/#{target.slug}", state:target
+          # TODO group slug must be prepended after groups are implemented
+          # groupSlug = if target.group is "koding" then "" else "/#{target.group}"
+          KD.getSingleton('router').handleRoute "/Activity/Post/#{target.message.slug}", state:target
           view.destroy()
         else if contents.type in ["join", "leave"]
           KD.getSingleton('router').handleRoute "/#{target.slug}"

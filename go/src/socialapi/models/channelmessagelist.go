@@ -4,8 +4,6 @@ import (
 	"errors"
 	"socialapi/request"
 	"time"
-
-	"github.com/jinzhu/gorm"
 	"github.com/koding/bongo"
 )
 
@@ -210,7 +208,7 @@ func (c *ChannelMessageList) IsInChannel(messageId, channelId int64) (bool, erro
 		return true, nil
 	}
 
-	if err == gorm.RecordNotFound {
+	if err == bongo.RecordNotFound {
 		return false, nil
 	}
 

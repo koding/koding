@@ -5,8 +5,6 @@ import (
 	"fmt"
 	"socialapi/request"
 	"time"
-
-	"github.com/jinzhu/gorm"
 	"github.com/koding/bongo"
 )
 
@@ -112,7 +110,7 @@ func (c *ChannelParticipant) Create() error {
 		return nil
 	}
 
-	if err != gorm.RecordNotFound {
+	if err != bongo.RecordNotFound {
 		return err
 	}
 
@@ -309,7 +307,7 @@ func (c *ChannelParticipant) IsParticipant(accountId int64) (bool, error) {
 		return true, nil
 	}
 
-	if err == gorm.RecordNotFound {
+	if err == bongo.RecordNotFound {
 		return false, nil
 	}
 

@@ -7,8 +7,6 @@ import (
 	"socialapi/models"
 	"socialapi/request"
 	"time"
-
-	"github.com/jinzhu/gorm"
 	"github.com/koding/bongo"
 )
 
@@ -77,7 +75,7 @@ func (n *Notification) One(q *bongo.Query) error {
 func (n *Notification) Create() error {
 	// TODO check notification content existence
 	if err := n.FetchByContent(); err != nil {
-		if err != gorm.RecordNotFound {
+		if err != bongo.RecordNotFound {
 			return err
 		}
 
@@ -91,7 +89,7 @@ func (n *Notification) Upsert() error {
 	unsubscribedAt := n.UnsubscribedAt
 
 	if err := n.FetchByContent(); err != nil {
-		if err != gorm.RecordNotFound {
+		if err != bongo.RecordNotFound {
 			return err
 		}
 
@@ -160,7 +158,7 @@ func (n *Notification) fetchByAccountId(q *request.Query) ([]Notification, error
 		Limit(q.Limit).
 		Find(&notifications).Error
 
-	if err != gorm.RecordNotFound && err != nil {
+	if err != bongo.RecordNotFound && err != nil {
 		return nil, err
 	}
 
@@ -239,8 +237,8 @@ func (n *Notification) buildNotificationContainer(actorId int64, nc *Notificatio
 
 func deductContentIds(nList []Notification) []int64 {
 	notificationContentIds := make([]int64, len(nList))
-	for _, n := range nList {
-		notificationContentIds = append(notificationContentIds, n.NotificationContentId)
+	for i, n := range nList {
+		notificationContentIds[i] = n.NotificationContentId
 	}
 
 	return notificationContentIds

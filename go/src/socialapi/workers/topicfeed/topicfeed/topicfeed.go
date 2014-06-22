@@ -9,7 +9,6 @@ import (
 	"github.com/streadway/amqp"
 
 	verbalexpressions "github.com/VerbalExpressions/GoVerbalExpressions"
-	"github.com/jinzhu/gorm"
 )
 
 // s := "naber #foo hede #bar dede gel # baz #123 #-`3sdf"
@@ -70,11 +69,11 @@ func (f *Controller) MessageSaved(data *models.ChannelMessage) error {
 func ensureChannelMessages(parentChannel *models.Channel, data *models.ChannelMessage, topics []string) error {
 	for _, topic := range topics {
 		tc, err := fetchTopicChannel(parentChannel.GroupName, topic)
-		if err != nil && err != gorm.RecordNotFound {
+		if err != nil && err != bongo.RecordNotFound {
 			return err
 		}
 
-		if err == gorm.RecordNotFound {
+		if err == bongo.RecordNotFound {
 			tc, err = createTopicChannel(data.AccountId, parentChannel.GroupName, topic, parentChannel.PrivacyConstant)
 			if err != nil {
 				return err
