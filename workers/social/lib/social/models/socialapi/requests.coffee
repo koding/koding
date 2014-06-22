@@ -182,6 +182,9 @@ fetchFollowedChannels = (data, callback)->
   get url, data, callback
 
 sendPrivateMessage = (data, callback)->
+  if not data.body or not data.recipients or data.recipients.length < 1
+    return callback { message: "Request is not valid"}
+
   url = "/privatemessage/send"
   post url, data, callback
 

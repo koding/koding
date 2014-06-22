@@ -47,7 +47,7 @@ func appendCreatorIdIntoParticipantList(participants []int64, authorId int64) []
 
 func Send(u *url.URL, h http.Header, req *models.PrivateMessageRequest) (int, http.Header, interface{}, error) {
 	if req.AccountId == 0 {
-		return response.NewBadRequest(errors.New("AcccountId is not defined"))
+		return response.NewBadRequest(errors.New("acccountId is not defined"))
 	}
 
 	cm := models.NewChannelMessage()
@@ -64,7 +64,7 @@ func Send(u *url.URL, h http.Header, req *models.PrivateMessageRequest) (int, ht
 	// recipient list
 	if len(participantIds) < 1 {
 		// user can send private message to themself
-		return response.NewBadRequest(errors.New("You should define your recipients"))
+		return response.NewBadRequest(errors.New("you should define your recipients"))
 	}
 
 	if req.GroupName == "" {
