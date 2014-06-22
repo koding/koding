@@ -4,8 +4,6 @@ import (
 	"errors"
 	"socialapi/request"
 	"time"
-
-	"github.com/jinzhu/gorm"
 	"github.com/koding/bongo"
 )
 
@@ -123,7 +121,7 @@ func (m *MessageReply) DeleteByOrQuery(messageId int64) error {
 	query := bongo.B.DB.Table(m.TableName())
 	query = query.Where("message_id = ? or reply_id = ?", messageId, messageId)
 
-	if err := query.Find(&messageReplies).Error; err != gorm.RecordNotFound && err != nil {
+	if err := query.Find(&messageReplies).Error; err != bongo.RecordNotFound && err != nil {
 		return err
 	}
 

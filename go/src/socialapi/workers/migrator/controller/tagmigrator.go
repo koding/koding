@@ -9,7 +9,7 @@ import (
 	"strings"
 
 	"github.com/VerbalExpressions/GoVerbalExpressions"
-	"github.com/jinzhu/gorm"
+	"github.com/koding/bongo"
 	"labix.org/v2/mgo/bson"
 )
 
@@ -73,7 +73,7 @@ func createTagChannel(t *mongomodels.Tag) (int64, error) {
 	if err == nil {
 		return channelId, nil
 	}
-	if err != gorm.RecordNotFound {
+	if err != bongo.RecordNotFound {
 		return 0, err
 	}
 

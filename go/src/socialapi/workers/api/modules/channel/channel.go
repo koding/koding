@@ -7,8 +7,7 @@ import (
 	"socialapi/models"
 	"socialapi/request"
 	"socialapi/workers/common/response"
-
-	"github.com/jinzhu/gorm"
+	"github.com/koding/bongo"
 )
 
 func validateChannelRequest(c *models.Channel) error {
@@ -121,7 +120,7 @@ func CheckParticipation(u *url.URL, h http.Header, _ interface{}) (int, http.Hea
 
 	// if err is not `record not found`
 	// return it immediately
-	if err != gorm.RecordNotFound {
+	if err != bongo.RecordNotFound {
 		return response.NewBadRequest(err)
 	}
 
@@ -202,7 +201,7 @@ func Get(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface{
 
 	c := models.NewChannel()
 	if err := c.ById(id); err != nil {
-		if err == gorm.RecordNotFound {
+		if err == bongo.RecordNotFound {
 			return response.NewNotFound()
 		}
 		return response.NewBadRequest(err)

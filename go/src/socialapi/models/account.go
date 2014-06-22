@@ -4,8 +4,6 @@ import (
 	"errors"
 	"fmt"
 	"socialapi/request"
-
-	"github.com/jinzhu/gorm"
 	"github.com/koding/bongo"
 )
 
@@ -74,7 +72,7 @@ func (a *Account) FetchOrCreate() error {
 	}
 
 	// first check if the err is not found err
-	if err == gorm.RecordNotFound {
+	if err == bongo.RecordNotFound {
 		if a.Nick == "" {
 			return errors.New("nick is not set")
 		}
@@ -123,7 +121,7 @@ func (a *Account) Follow(targetId int64) (*ChannelParticipant, error) {
 		return c.AddParticipant(targetId)
 	}
 
-	if err == gorm.RecordNotFound {
+	if err == bongo.RecordNotFound {
 		c, err := a.CreateFollowingFeedChannel()
 		if err != nil {
 			return nil, err
