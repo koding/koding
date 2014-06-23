@@ -63,12 +63,12 @@ module.exports = class Builder
         process.exit(1)
       throw err
 
-  buildSprites: (options) ->
+  buildSpritesAndClient: (options) ->
 
     @config ?= require('koding-config-manager').load("main.#{options.configFile}")
 
     @canBuildSprites().then ->
-      log.info "Building sprites... (it may take a while)"
+      log.info "Building sprites... (it may take a while) (if it fails, try `ulimit -n 1024` first)"
       sprite
         srcPath   : './sprites'
         destPath  : './website/a/sprites'
@@ -83,14 +83,10 @@ module.exports = class Builder
     cmd = "cd client/Framework && npm i && gulp compile --outputDir=../../website/a/"
     exec cmd, (err, stdout, stderr)->
       console.log """\n\n
-      ################################### FRAMEWORK COMPILED #################################
-
-
+      ----------------------------------- KD FRAMEWORK COMPILED -----------------------------------
        To use watcher for Framework use following command in different tab:
        $ #{cmd.replace 'compile ', ''}
-
-
-      ################################### FRAMEWORK COMPILED #################################
+      ---------------------------------------------------------------------------------------------
       \n
       """
 

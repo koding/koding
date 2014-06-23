@@ -2,14 +2,18 @@ fs              = require 'fs'
 nodePath        = require 'path'
 deepFreeze      = require 'koding-deep-freeze'
 hat             = require 'hat'
+{argv}          = require 'optimist'
 
-configName      = (_q=__filename.split('.'))[_q.length-2]
+hostname        = argv.h
+region          = argv.r
+configName      = argv.c
+environment     = argv.e
 
 rabbitmq        =
   login         : "guest"
   password      : "guest"
 
-hostname        = require("os").hostname()
+
 customDomain    =
   public        : "http://#{hostname}"
   public_       : "#{hostname}"
@@ -36,8 +40,6 @@ authAllExchange = "authAll"
 
 embedlyApiKey   = '94991069fb354d4e8fdb825e52d4134a'
 
-environment     = "kodingme"
-
 regions         =
   kodingme      : "#{configName}"
   vagrant       : "vagrant"
@@ -51,6 +53,8 @@ cookieSecure = no
 module.exports =
   environment   : environment
   regions       : regions
+  region        : region
+  hostname      : hostname
   version       : version
   aws           :
     key         : 'AKIAJSUVKX6PD254UGAA'
@@ -377,12 +381,9 @@ module.exports =
       portssl     : 443
       ftpip       : '127.0.0.1'
 
-
-
-
   client        :
     version     : version
-    watch       : yes
+    watch       : no
     watchDuration : 300
     includesPath: 'client'
     indexMaster : "index-master.html"

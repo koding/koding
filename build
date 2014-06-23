@@ -1,0 +1,6 @@
+#!/bin/bash
+
+rm ./BUILD_CONFIG.json
+rm ./website/index.html
+coffee ./build.coffee $@
+./go/build.sh

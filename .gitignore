@@ -37,7 +37,8 @@ kontrol-data-*
 /website/dev/sourceServer.json
 /website/a/js/requiresReload.txt
 /website_nonstatic/index.html
-/BUILD_DATA
+/install/BUILD_DATA
+BUILD_CONFIG.json
 ebin
 node_modules/.bin
 sftp-config.json
