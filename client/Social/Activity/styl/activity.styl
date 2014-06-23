@@ -1796,15 +1796,49 @@ body.group.members
 
   .formline.button-field
 
-    button.kdbutton.message-send
-      size                  77px 34px
+    button.kdbutton
       text-align            center
       rounded               8px
+
+    button.kdbutton.message-send
+      size                  77px 34px
       span.icon
         display             inline-block
         size                20px 20px
         r-sprite            activity 'paper-plane'
 
+// new private message modal
+.kdmodal.private-message.add-participant
+
+  .formline.recipient
+    border        1px solid transparent
+
+  .close-icon
+    hidden()
+
+  .kdmodal-inner
+    margin        20px
+
+  .chat-heads
+    display       block
+    padding       0 9px
+    borderBox()
+    rel()
+
+  .formline.button-field
+
+    button.kdbutton.add-to-convo
+      size                  100% 43px
+      span.button-title
+        line-height         43px
+        font-size           14px
+        padding-left        30px
+      span.icon
+        margin              14px 0 0 0
+        display             inline-block
+        size                20px 20px
+        r-sprite            activity 'add-participant'
+        abs()
 
 .kdautocomplete.listview-wrapper.private-message
 
