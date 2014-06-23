@@ -178,11 +178,22 @@ func (b *Bongo) CountWithQuery(i Modellable, q *Query) (int, error) {
 	return count, query.Count(&count).Error
 }
 
+type Scope func(d *gorm.DB) *gorm.DB
+
 type Query struct {
 	Selector   map[string]interface{}
 	Sort       map[string]string
 	Pluck      string
 	Pagination Pagination
+	Scopes     []Scope
+}
+
+func (q *Query) AddScope(scope Scope) {
+	if q.Scopes == nil {
+		q.Scopes = make([]Scope, 0)
+	}
+
+	q.Scopes = append(q.Scopes, scope)
 }
 
 type Pagination struct {
@@ -233,6 +244,13 @@ func (b *Bongo) BuildQuery(i Modellable, q *Query) *gorm.DB {
 
 	// add selector
 	query = addWhere(query, q.Selector)
+
+	// put scopes
+	if q.Scopes != nil && len(q.Scopes) > 0 {
+		for _, scope := range q.Scopes {
+			query = query.Scopes(scope)
+		}
+	}
 
 	return query
 }
