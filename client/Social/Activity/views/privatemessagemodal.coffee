@@ -122,7 +122,7 @@ class PrivateMessageModal extends KDModalViewWithForms
 
     {JAccount}   = KD.remote.api
     {inputValue} = args
-    {blacklist}  = @getOptions()
+    {blacklist}  = @getOptions() or []
 
     val = inputValue.replace /^@/, ''
 
@@ -130,7 +130,8 @@ class PrivateMessageModal extends KDModalViewWithForms
 
     query =
       'profile.nickname' : val
-      '_id'              : $nin : blacklist
+
+    query._id = $nin : blacklist  if blacklist
 
     JAccount.one query, (err, account) =>
       if not account or KD.isMine(account)
