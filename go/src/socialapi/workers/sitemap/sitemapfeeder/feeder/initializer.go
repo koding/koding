@@ -38,14 +38,13 @@ func (c *Controller) Start() error {
 func (c *Controller) createAccounts() error {
 	a := socialmodels.NewAccount()
 
-	skip := 0
+	query := &bongo.Query{
+		Pagination: bongo.Pagination{
+			Limit: LIMIT,
+			Skip:  0,
+		},
+	}
 	for {
-		query := &bongo.Query{
-			Pagination: bongo.Pagination{
-				Limit: LIMIT,
-				Skip:  skip,
-			},
-		}
 		var accounts []socialmodels.Account
 		err := a.Some(&accounts, query)
 		if err != nil {
@@ -58,7 +57,7 @@ func (c *Controller) createAccounts() error {
 
 		c.queueAccounts(accounts)
 
-		skip += LIMIT
+		query.Pagination.Skip += LIMIT
 	}
 
 	return nil
@@ -67,18 +66,17 @@ func (c *Controller) createAccounts() error {
 func (c *Controller) createPosts() error {
 	cm := socialmodels.NewChannelMessage()
 
-	skip := 0
+	query := &bongo.Query{
+		Pagination: bongo.Pagination{
+			Limit: LIMIT,
+			Skip:  0,
+		},
+		Selector: map[string]interface{}{
+			"type_constant": socialmodels.ChannelMessage_TYPE_POST,
+		},
+	}
 	for {
 		// fetch posts
-		query := &bongo.Query{
-			Pagination: bongo.Pagination{
-				Limit: LIMIT,
-				Skip:  skip,
-			},
-			Selector: map[string]interface{}{
-				"type_constant": socialmodels.ChannelMessage_TYPE_POST,
-			},
-		}
 		var posts []socialmodels.ChannelMessage
 		err := cm.Some(&posts, query)
 		if err != nil {
@@ -91,7 +89,7 @@ func (c *Controller) createPosts() error {
 
 		c.queuePosts(posts)
 
-		skip += LIMIT
+		query.Pagination.Skip += LIMIT
 	}
 
 	return nil
@@ -100,18 +98,17 @@ func (c *Controller) createPosts() error {
 func (c *Controller) createChannels() error {
 	ch := socialmodels.NewChannel()
 
-	skip := 0
+	query := &bongo.Query{
+		Pagination: bongo.Pagination{
+			Limit: LIMIT,
+			Skip:  0,
+		},
+		Selector: map[string]interface{}{
+			"type_constant": socialmodels.Channel_TYPE_TOPIC,
+		},
+	}
 	for {
 		// fetch topics
-		query := &bongo.Query{
-			Pagination: bongo.Pagination{
-				Limit: LIMIT,
-				Skip:  skip,
-			},
-			Selector: map[string]interface{}{
-				"type_constant": socialmodels.Channel_TYPE_TOPIC,
-			},
-		}
 		var channels []socialmodels.Channel
 		err := ch.Some(&channels, query)
 		if err != nil {
@@ -124,7 +121,7 @@ func (c *Controller) createChannels() error {
 
 		c.queueChannels(channels)
 
-		skip += LIMIT
+		query.Pagination.Skip += LIMIT
 	}
 
 	return nil
