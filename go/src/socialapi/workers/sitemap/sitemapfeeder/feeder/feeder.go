@@ -27,10 +27,14 @@ func (f *Controller) DefaultErrHandler(delivery amqp.Delivery, err error) bool {
 }
 
 func New(log logging.Logger) *Controller {
+	conf := *config.Get()
+	conf.Redis.DB = conf.Sitemap.RedisDB
+	// TODO later on seperate config structs could be better for each helper
+	redisConn := helper.MustInitRedisConn(&conf)
 	c := &Controller{
 		log:         log,
 		nameFetcher: ModNameFetcher{},
-		redisConn:   helper.MustGetRedisConn(),
+		redisConn:   redisConn,
 	}
 
 	return c
