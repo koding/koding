@@ -414,9 +414,6 @@ func (c *Channel) Search(q *request.Query) ([]Channel, error) {
 }
 
 func (c *Channel) ByName(q *request.Query) (Channel, error) {
-	fmt.Println("-------- FIX THIS PART ------")
-	fmt.Println("TODO - check permissions here")
-	fmt.Println("-------- FIX THIS PART ------")
 	var channel Channel
 
 	if q.GroupName == "" {
@@ -442,7 +439,6 @@ func (c *Channel) ByName(q *request.Query) (Channel, error) {
 }
 
 func (c *Channel) List(q *request.Query) ([]Channel, error) {
-
 	if q.GroupName == "" {
 		return nil, fmt.Errorf("Query doesnt have any Group info %+v", q)
 	}
