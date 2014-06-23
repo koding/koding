@@ -163,8 +163,10 @@ func (c *ChannelMessageList) getMessages(q *request.Query) ([]*ChannelMessageCon
 		},
 		Pluck:      "message_id",
 		Pagination: *bongo.NewPagination(q.Limit, q.Skip),
-		Sort:       map[string]string{"added_at": "DESC"},
 	}
+
+	query.AddScope(SortedByAddedAt)
+	query.AddScope(RemoveTrollContent(c, q.ShowExempt))
 
 	bongoQuery := bongo.B.BuildQuery(c, query)
 	if !q.From.IsZero() {
