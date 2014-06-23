@@ -67,7 +67,7 @@ func (c *Controller) generate() {
 			c.log.Error("Could not fetch file name: %s", err)
 			return
 		}
-		c.log.Notice("Updating sitemap: %s", name)
+		c.log.Info("Updating sitemap: %s", name)
 		// there is not any waiting sitemap updates
 		if name == "" {
 			return
@@ -78,12 +78,12 @@ func (c *Controller) generate() {
 		els, err := c.fetchElements()
 		if err != nil {
 			c.log.Error("Could not fetch updated elements: %s", err)
-			return
+			continue
 		}
 
 		if len(els) == 0 {
-			c.log.Notice("Items are already added")
-			return
+			c.log.Info("Items are already added")
+			continue
 		}
 
 		container := c.buildContainer(els)
@@ -91,7 +91,7 @@ func (c *Controller) generate() {
 		s, err := c.getCurrentSet()
 		if err != nil {
 			c.log.Error("Could not get current set: %s", err)
-			return
+			continue
 		}
 
 		if err := c.updateFile(container, s); err != nil {
