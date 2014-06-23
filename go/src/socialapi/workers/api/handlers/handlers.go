@@ -23,14 +23,19 @@ func Inject(mux *tigertonic.TrieServeMux) *tigertonic.TrieServeMux {
 	////////////////////////////////////////////////////////////////////////////////////
 	mux.Handle("POST", "/message/{id}", handler.Wrapper(message.Update, "message-update"))
 	mux.Handle("DELETE", "/message/{id}", handler.Wrapper(message.Delete, "message-delete"))
+
+	// added exempt clause
 	mux.Handle("GET", "/message/{id}", handler.Wrapper(message.Get, "message-get"))
+	// added exempt clause
 	mux.Handle("GET", "/message/slug/{slug}", handler.Wrapper(message.GetBySlug, "message-get-by-slug"))
+	// added exempt clause
 	mux.Handle("GET", "/message/{id}/related", handler.Wrapper(message.GetWithRelated, "message-get-with-related"))
 
 	////////////////////////////////////////////////////////////////////////////////////
 	///////////////////////////// Message Reply Operations /////////////////////////////
 	////////////////////////////////////////////////////////////////////////////////////
 	mux.Handle("POST", "/message/{id}/reply", handler.Wrapper(reply.Create, "reply-create"))
+	// added exempt clause
 	mux.Handle("GET", "/message/{id}/reply", handler.Wrapper(reply.List, "reply-list"))
 
 	////////////////////////////////////////////////////////////////////////////////////
@@ -39,6 +44,7 @@ func Inject(mux *tigertonic.TrieServeMux) *tigertonic.TrieServeMux {
 	mux.Handle("POST", "/message/{id}/interaction/{type}/add", handler.Wrapper(interaction.Add, "interactions-add"))
 	mux.Handle("POST", "/message/{id}/interaction/{type}/delete", handler.Wrapper(interaction.Delete, "interactions-delete"))
 	// get all the interactions for message
+	// added exempt clause
 	mux.Handle("GET", "/message/{id}/interaction/{type}", handler.Wrapper(interaction.List, "interactions-list-typed"))
 
 	////////////////////////////////////////////////////////////////////////////////////
@@ -46,6 +52,7 @@ func Inject(mux *tigertonic.TrieServeMux) *tigertonic.TrieServeMux {
 	////////////////////////////////////////////////////////////////////////////////////
 
 	mux.Handle("POST", "/channel", handler.Wrapper(channel.Create, "channel-create"))
+	// added exempt clause
 	mux.Handle("GET", "/channel", handler.Wrapper(channel.List, "channel-list"))
 	mux.Handle("GET", "/channel/search", handler.Wrapper(channel.Search, "channel-search"))
 	mux.Handle("GET", "/channel/name/{name}", handler.Wrapper(channel.ByName, "channel-get-byname"))
