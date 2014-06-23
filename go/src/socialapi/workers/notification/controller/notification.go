@@ -141,7 +141,10 @@ func subscription(cml *socialapimodels.ChannelMessageList, typeConstant string) 
 	return nil
 }
 
+// MentionNotification creates mention notifications for the related channel messages
 func (n *Controller) MentionNotification(cm *socialapimodels.ChannelMessage) error {
+	// Since the type of private channel messages is Private_Message,
+	// we did not need to add another "is channel private" check
 	if cm.TypeConstant != socialapimodels.ChannelMessage_TYPE_POST {
 		return nil
 	}
