@@ -109,7 +109,10 @@ func (b *Bongo) UpdatePartial(i Modellable, set map[string]interface{}) error {
 		return errors.New(fmt.Sprintf("Id is not set for %s", i.TableName()))
 	}
 
-	query := b.DB.Table(i.TableName())
+	// init query
+	query := b.DB.Model(i)
+
+	query = query.Table(i.TableName())
 
 	query = query.Where(i.GetId())
 
@@ -140,7 +143,9 @@ func (b *Bongo) UpdateMulti(i Modellable, rest ...map[string]interface{}) error 
 		return errors.New("Update partial parameter list is wrong")
 	}
 
-	query := b.DB.Table(i.TableName())
+	query := b.DB.Model(i)
+
+	query = query.Table(i.TableName())
 
 	//add selector
 	query = addWhere(query, selector)
