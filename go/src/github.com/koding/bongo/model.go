@@ -208,7 +208,7 @@ func (b *Bongo) One(i Modellable, data interface{}, q *Query) error {
 
 func (b *Bongo) BuildQuery(i Modellable, q *Query) *gorm.DB {
 	// init query
-	query := b.DB
+	query := b.DB.Model(i)
 
 	// add table name
 	query = query.Table(i.TableName())
