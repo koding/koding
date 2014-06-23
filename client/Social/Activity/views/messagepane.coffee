@@ -49,6 +49,12 @@ class MessagePane extends KDTabPaneView
     heads.addSubView @newParticipantButton = new KDButtonView
       cssClass    : 'new-participant'
       iconOnly    : yes
+      callback    : ->
+        new PrivateMessageRecipientModal
+          blacklist : participantsPreview.map (item) -> item._id
+          position  :
+            top     : @getY() + 50
+            left    : @getX() - 150
 
 
   createInputWidget: ->
