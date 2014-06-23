@@ -87,14 +87,20 @@ func (b *Bongo) FetchByIds(i Modellable, data interface{}, ids []int64) error {
 		comma = ","
 	}
 
+	// init query
+	query := b.DB.Model(i)
+
+	// add table name
+	query = query.Table(i.TableName())
+
+	query = query.Order(orderByQuery)
+
+	query = query.Where(ids)
+
+	query = query.Find(data)
+
 	// supress not found errors
-	return CheckErr(
-		b.DB.
-			Table(i.TableName()).
-			Order(orderByQuery).
-			Where(ids).
-			Find(data),
-	)
+	return CheckErr(query)
 
 }
 
