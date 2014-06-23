@@ -7,7 +7,7 @@ import (
 	"socialapi/config"
 	"socialapi/workers/common/runner"
 	"socialapi/workers/helper"
-	"socialapi/workers/sitemap"
+	"socialapi/workers/sitemap/common"
 	"socialapi/workers/sitemap/models"
 	"testing"
 
@@ -195,7 +195,7 @@ func createSitemapItem(id int64, typeConstant, status string) *models.SitemapIte
 }
 
 func addSitemapItem(i *models.SitemapItem) error {
-	key := sitemap.PrepareFileCacheKey(TESTFILE)
+	key := common.PrepareFileCacheKey(TESTFILE)
 	value := i.PrepareSetValue()
 
 	if _, err := redisConn.AddSetMembers(key, value); err != nil {
