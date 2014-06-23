@@ -36,11 +36,11 @@ func fetchAccountFileName(id int64) string {
 }
 
 func fetchChannelMessageName(id int64) string {
-	remainder := math.Mod(float64(id), float64(10000))
+	remainder := math.Mod(float64(id), float64(1000))
 	return fmt.Sprintf("channel_message_%d", int64(remainder))
 }
 
 func fetchChannelName(id int64) string {
-	remainder := math.Mod(float64(id), float64(10000))
+	remainder := math.Mod(float64(id), float64(1000))
 	return fmt.Sprintf("channel_%d", int64(remainder))
 }
