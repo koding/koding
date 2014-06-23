@@ -34,7 +34,9 @@ class IDE.StatusBarMenu extends KDContextMenu
     fsText   = if mainView.isFullscreen() then 'Exit' else 'Enter'
 
     items.Shortcuts  = callback: -> appManager.tell 'IDE', 'showShortcutsView'
-    items["#{fsText} Fullscreen"] = callback: -> mainView.toggleFullscreen()
+    items["#{fsText} Fullscreen"] = callback: ->
+      mainView.toggleFullscreen()
+      appManager.tell 'IDE', 'doResize'
     items.Contribute = callback: -> KD.utils.createExternalLink 'https://github.com/koding/IDE'
     items.Quit       = callback: ->
       appManager.quitByName 'IDE'
