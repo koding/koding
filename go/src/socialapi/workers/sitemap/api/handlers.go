@@ -2,7 +2,6 @@ package api
 
 import (
 	"errors"
-	"fmt"
 	"io/ioutil"
 	"net/http"
 	"os"
@@ -82,7 +81,6 @@ func Fetch(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *SitemapHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	fmt.Printf("request %+v \n", r)
 	sf := new(models.SitemapFile)
 
 	files := make([]models.SitemapFile, 0)
