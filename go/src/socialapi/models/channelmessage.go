@@ -451,6 +451,10 @@ func (c *ChannelMessage) FetchTotalMessageCount(q *request.Query) (int, error) {
 		Pagination: *bongo.NewPagination(q.Limit, q.Skip),
 	}
 
+	query.AddScope(RemoveTrollContent(
+		c, q.ShowExempt,
+	))
+
 	return c.CountWithQuery(query)
 }
 
@@ -466,6 +470,8 @@ func (c *ChannelMessage) FetchMessageIds(q *request.Query) ([]int64, error) {
 			"created_at": "DESC",
 		},
 	}
+
+	query.AddScope(RemoveTrollContent(c, q.ShowExempt))
 
 	var messageIds []int64
 	if err := c.Some(&messageIds, query); err != nil {
@@ -492,6 +498,10 @@ func (c *ChannelMessage) BySlug(query *request.Query) error {
 			"slug": query.Slug,
 		},
 	}
+
+	q.AddScope(RemoveTrollContent(
+		c, query.ShowExempt,
+	))
 
 	if err := c.One(q); err != nil {
 		return nil
