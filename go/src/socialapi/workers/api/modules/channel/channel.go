@@ -95,6 +95,10 @@ func ByName(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interfa
 	if err != nil {
 		// if the channel can not be opened by the requester
 		// do send an empty response
+		return response.NewBadRequest(err)
+	}
+
+	if !canOpen {
 		return response.NewOK(nil)
 	}
 
