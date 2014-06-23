@@ -131,24 +131,24 @@ func (c *Interaction) List(query *request.Query) ([]int64, error) {
 		return interactions, errors.New("Message is not set")
 	}
 
-	p := bongo.NewPagination(query.Limit, query.Skip)
-
-	return c.FetchInteractorIds(query.Type, p)
+	return c.FetchInteractorIds(query)
 }
 
-func (i *Interaction) FetchInteractorIds(interactionType string, p *bongo.Pagination) ([]int64, error) {
+func (i *Interaction) FetchInteractorIds(query *request.Query) ([]int64, error) {
 	interactorIds := make([]int64, 0)
 	q := &bongo.Query{
 		Selector: map[string]interface{}{
 			"message_id":    i.MessageId,
-			"type_constant": interactionType,
+			"type_constant": query.Type,
 		},
-		Pagination: *p,
+		Pagination: *bongo.NewPagination(query.Limit, query.Skip),
 		Pluck:      "account_id",
 		Sort: map[string]string{
 			"created_at": "desc",
 		},
 	}
+
+	q.AddScope(RemoveTrollContent(i, query.ShowExempt))
 
 	if err := i.Some(&interactorIds, q); err != nil {
 		// TODO log this error
