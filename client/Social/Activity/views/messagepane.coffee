@@ -98,7 +98,7 @@ class MessagePane extends KDTabPaneView
     super
 
     KD.utils.wait 1000, @bound 'glance'
-
+    KD.utils.defer @bound 'focus'
 
   glance: ->
 
@@ -119,6 +119,15 @@ class MessagePane extends KDTabPaneView
     else socialapi.channel.updateLastSeenTime channelId : id, ->
 
 
+  focus: ->
+
+    if @input
+      @input.input.$().trigger 'click'
+    else
+      @listController.getListItems().first?.commentBox.inputForm.input.setFocus()
+
+
+
   populate: ->
 
     @fetch null, (err, items = []) =>
@@ -129,6 +138,8 @@ class MessagePane extends KDTabPaneView
       @listController.hideLazyLoader()
       @listController.instantiateListItems items
       console.timeEnd('populate')
+
+      KD.utils.defer @bound 'focus'
 
 
   fetch: (options = {}, callback)->

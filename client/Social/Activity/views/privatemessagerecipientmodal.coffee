@@ -32,6 +32,7 @@ class PrivateMessageRecipientModal extends KDModalViewWithForms
     @chatHeads = new KDView cssClass : 'chat-heads'
     @modalTabs.forms.Message.inputs.results.addSubView @chatHeads
     @createUserAutoComplete()
+    @setFocus()
 
 
   setFocus : -> @autoComplete.getView().setFocus()
