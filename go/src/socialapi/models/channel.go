@@ -6,6 +6,7 @@ import (
 	"socialapi/request"
 	"strings"
 	"time"
+
 	"github.com/koding/bongo"
 )
 
@@ -385,11 +386,18 @@ func (c *Channel) Search(q *request.Query) ([]Channel, error) {
 
 	var channels []Channel
 
-	query := bongo.B.DB.Table(c.TableName()).Limit(q.Limit)
+	bongoQuery := &bongo.Query{
+		Selector: map[string]interface{}{
+			"group_name":       q.GroupName,
+			"type_constant":    q.Type,
+			"privacy_constant": Channel_PRIVACY_PUBLIC,
+		},
+		Pagination: *bongo.NewPagination(q.Limit, q.Skip),
+	}
 
-	query = query.Where("type_constant = ?", q.Type)
-	query = query.Where("privacy_constant = ?", Channel_PRIVACY_PUBLIC)
-	query = query.Where("group_name = ?", q.GroupName)
+	bongoQuery.AddScope(RemoveTrollContent(c, q.ShowExempt))
+
+	query := bongo.B.BuildQuery(c, bongoQuery)
 	query = query.Where("name like ?", q.Name+"%")
 
 	if err := bongo.CheckErr(
