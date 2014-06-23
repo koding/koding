@@ -423,13 +423,22 @@ func (c *Channel) ByName(q *request.Query) (Channel, error) {
 		return channel, fmt.Errorf("Query doesnt have any Group info %+v", q)
 	}
 
-	query := bongo.B.DB.Table(c.TableName()).Limit(q.Limit)
+	query := &bongo.Query{
+		Selector: map[string]interface{}{
+			"group_name":    q.GroupName,
+			"type_constant": q.Type,
+			"name":          q.Name,
+		},
+		Pagination: *bongo.NewPagination(q.Limit, q.Skip),
+	}
 
-	query = query.Where("type_constant = ?", q.Type)
-	query = query.Where("group_name = ?", q.GroupName)
-	query = query.Where("name = ?", q.Name)
+	query.AddScope(RemoveTrollContent(c, q.ShowExempt))
 
-	return channel, bongo.CheckErr(query.Find(&channel))
+	if err := c.One(query); err != nil {
+		return channel, err
+	}
+
+	return *c, nil
 }
 
 func (c *Channel) List(q *request.Query) ([]Channel, error) {
@@ -450,6 +459,8 @@ func (c *Channel) List(q *request.Query) ([]Channel, error) {
 	if q.Type != "" {
 		query.Selector["type_constant"] = q.Type
 	}
+
+	query.AddScope(RemoveTrollContent(c, q.ShowExempt))
 
 	err := c.Some(&channels, query)
 	if err != nil {
