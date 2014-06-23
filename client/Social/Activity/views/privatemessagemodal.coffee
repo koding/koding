@@ -159,8 +159,8 @@ class PrivateMessageModal extends KDModalViewWithForms
     input  = @autoComplete.getView()
     [item] = (item for item in @autoComplete.itemWrapper.getSubViews() when item.getData() is lastItemData)
 
-    reset = ->
-      input.setPlaceHolder 'Type a username to start your conversation...'
+    reset = =>
+      input.setPlaceHolder @autoComplete.getOptions().placeholder
       item.unsetClass 'selected'
       placeholderIsChanged_ = no
 
