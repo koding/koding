@@ -4,6 +4,7 @@ import (
 	"errors"
 	"socialapi/request"
 	"time"
+
 	"github.com/koding/bongo"
 )
 
@@ -169,6 +170,8 @@ func (m *MessageReply) fetchMessages(query *request.Query) ([]ChannelMessage, er
 		Pagination: *bongo.NewPagination(query.Limit, query.Skip),
 		Sort:       map[string]string{"created_at": "DESC"},
 	}
+
+	q.AddScope(RemoveTrollContent(m, query.ShowExempt))
 
 	bongoQuery := bongo.B.BuildQuery(m, q)
 	if !query.From.IsZero() {
