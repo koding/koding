@@ -5,7 +5,7 @@ class EnvironmentsAppController extends AppController
     route        : '/:name?/Environments'
     behavior     : 'application'
     preCondition :
-      condition  : (options, cb)-> cb KD.isLoggedIn()
+      condition  : (options, cb)-> cb KD.isLoggedIn() or KD._isLoggedIn
       failure    : (options, cb)->
         KD.singletons.appManager.open 'Environments', conditionPassed : yes
         KD.showEnforceLoginModal()
