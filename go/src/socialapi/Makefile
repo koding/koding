@@ -138,6 +138,7 @@ testapi:
 	@echo "$(OK_COLOR)==> Running go api tests $(NO_COLOR)"
 	@go test tests/*.go
 	@go test workers/notification/tests/*.go
+	@go test workers/sitemap/sitemapgenerator/generator/*.go
 
 doc:
 	@for package in $(PACKAGES); \
