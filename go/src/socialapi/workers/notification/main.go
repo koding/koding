@@ -51,6 +51,7 @@ func main() {
 	m.HandleFunc("api.channel_participant_updated", (*notification.Controller).LeaveChannel)
 	m.HandleFunc("api.channel_message_list_created", (*notification.Controller).SubscribeMessage)
 	m.HandleFunc("api.channel_message_list_deleted", (*notification.Controller).UnsubscribeMessage)
+	m.HandleFunc("api.channel_message_created", (*notification.Controller).MentionNotification)
 
 	r.Listen(m)
 	r.Wait()

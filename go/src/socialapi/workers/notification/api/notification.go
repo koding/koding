@@ -12,8 +12,7 @@ import (
 	"socialapi/workers/common/response"
 	"socialapi/workers/notification/models"
 	"strconv"
-
-	"github.com/jinzhu/gorm"
+	"github.com/koding/bongo"
 	// "github.com/koding/bongo"
 )
 
@@ -113,7 +112,7 @@ func validateAccount(accountId int64) error {
 	}
 
 	if err := a.ById(accountId); err != nil {
-		if err == gorm.RecordNotFound {
+		if err == bongo.RecordNotFound {
 			return errors.New("Account is not valid")
 		}
 		return err
@@ -124,7 +123,7 @@ func validateAccount(accountId int64) error {
 
 func validateMessage(messageId int64) error {
 	if err := socialmodels.NewChannelMessage().ById(messageId); err != nil {
-		if err == gorm.RecordNotFound {
+		if err == bongo.RecordNotFound {
 			return errors.New("Channel message does not exist")
 		}
 		return err

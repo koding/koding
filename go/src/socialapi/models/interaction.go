@@ -4,8 +4,6 @@ import (
 	"errors"
 	"socialapi/request"
 	"time"
-
-	"github.com/jinzhu/gorm"
 	"github.com/koding/bongo"
 )
 
@@ -207,7 +205,7 @@ func (i *Interaction) IsInteracted(accountId int64) (bool, error) {
 		return true, nil
 	}
 
-	if err == gorm.RecordNotFound {
+	if err == bongo.RecordNotFound {
 		return false, nil
 	}
 

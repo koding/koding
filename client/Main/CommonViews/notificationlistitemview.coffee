@@ -9,7 +9,7 @@ class NotificationListItem extends KDListItemView
     follow  : "started following you."
     join    : "your group"
     leave   : "your group"
-    mention : "in a comment."
+    mention : "in a post."
 
   actionPhraseMap =
     comment  : "commented on"
