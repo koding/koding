@@ -2,6 +2,7 @@ package feeder
 
 import (
 	"errors"
+	"socialapi/config"
 	socialmodels "socialapi/models"
 	"socialapi/workers/helper"
 	"socialapi/workers/sitemap/common"

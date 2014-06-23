@@ -20,6 +20,7 @@ type Controller struct {
 	log          logging.Logger
 	fileSelector FileSelector
 	fileName     string
+	redisConn    *redis.Session
 }
 
 const (
@@ -33,9 +34,13 @@ var (
 )
 
 func New(log logging.Logger) (*Controller, error) {
+	conf := *config.Get()
+	conf.Redis.DB = conf.Sitemap.RedisDB
+
 	c := &Controller{
 		log:          log,
 		fileSelector: CachedFileSelector{},
+		redisConn:    helper.MustInitRedisConn(conf),
 	}
 
 	return c, c.initCron()
@@ -108,11 +113,10 @@ func (c *Controller) generate() {
 
 func (c *Controller) fetchElements() ([]*models.SitemapItem, error) {
 	key := common.PrepareFileCacheKey(c.fileName)
-	redisConn := helper.MustGetRedisConn()
 	els := make([]*models.SitemapItem, 0)
 
 	for {
-		item, err := redisConn.PopSetMember(key)
+		item, err := c.redisConn.PopSetMember(key)
 		if err != nil && err != redis.ErrNil {
 			return els, err
 		}
