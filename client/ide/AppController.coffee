@@ -196,6 +196,7 @@ class IDEAppController extends AppController
     splitView.once 'PanelSetToFloating', =>
       floatedPanel._lastSize = desiredSize
       @getView().setClass 'sidebar-collapsed'
+      @isSidebarCollapsed = yes
 
     splitView.setFloatingPanel 0, 39
     tabView.showPaneByName 'Dummy'
@@ -221,9 +222,10 @@ class IDEAppController extends AppController
     filesPane.tabView.showPaneByIndex 0
     floatedPanel.off 'ReceivedClickElsewhere'
     @getView().unsetClass 'sidebar-collapsed'
+    @isSidebarCollapsed = no
 
-  toggleSidebar: (shouldCollapse) ->
-    if shouldCollapse then @collapseSidebar() else @expandSidebar()
+  toggleSidebar: ->
+    if @isSidebarCollapsed then @expandSidebar() else @collapseSidebar()
 
   splitVertically: ->
     @splitTabView 'vertical'

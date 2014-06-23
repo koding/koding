@@ -7,7 +7,6 @@ class IDE.IDEFilesTabView extends IDE.WorkspaceTabView
 
     super options, data
 
-    @isCollapsed = no
     @createFilesPane()
     @createVMsPane()
     @createSettingsPane()
@@ -25,9 +24,7 @@ class IDE.IDEFilesTabView extends IDE.WorkspaceTabView
       tagName  : 'span'
       cssClass : 'toggle'
       click    : ->
-        @toggleClass 'active'
-        @isCollapsed = !@isCollapsed
-        KD.getSingleton('appManager').tell 'IDE', 'toggleSidebar', @isCollapsed
+        KD.getSingleton('appManager').tell 'IDE', 'toggleSidebar'
 
   createFilesPane: ->
     filesPane  = new KDTabPaneView
