@@ -6,6 +6,7 @@ const (
 
 type MetaBits int16
 
+// IsSafe checks for data against if it is showable to the user
 func (m MetaBits) IsSafe() bool {
 	return (m == 0)
 }
