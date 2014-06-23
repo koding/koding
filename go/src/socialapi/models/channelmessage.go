@@ -267,7 +267,7 @@ func (c *ChannelMessage) BuildMessage(query *request.Query) (*ChannelMessageCont
 		return nil, err
 	}
 
-	repliesCount, err := mr.Count()
+	repliesCount, err := mr.Count(query)
 	if err != nil {
 		return nil, err
 	}
@@ -377,14 +377,14 @@ func (c *ChannelMessage) FetchRelatives(query *request.Query) (*ChannelMessageCo
 	interactionContainer.IsInteracted = isInteracted
 
 	// fetch interaction count
-	count, err := i.Count(query.Type)
+	count, err := i.Count(query)
 	if err != nil {
 		return nil, err
 	}
 
 	interactionContainer.ActorsCount = count
 
-	container.Interactions["like"] = interactionContainer
+	container.Interactions[query.Type] = interactionContainer
 	return container, nil
 }
 
