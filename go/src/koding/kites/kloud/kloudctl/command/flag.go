@@ -22,6 +22,8 @@ type Flag struct {
 func NewFlag(name, synopsis string) *Flag {
 	flagSet := flag.NewFlagSet(name, flag.PanicOnError)
 	flagSet.SetOutput(ioutil.Discard)
+
+	// global subcommand flags
 	flagSet.BoolVar(&flagRandomKite, "random-kite", false, "Choose random kloud instance if there are multiple instances available.")
 
 	f := &Flag{
