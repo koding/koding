@@ -216,40 +216,90 @@ putContentIntoFullPage = (content, pagination, contentType)->
   analytics     = require './analytics'
 
   """
-    <!DOCTYPE html>
-    <html lang="en">
-    <head>
-      <title>Koding | A New Way For Developers To Work</title>
-      #{getGraphMeta()}
-    </head>
-    <body itemscope itemtype="http://schema.org/WebPage" class="super activity">
-      <div id="kdmaincontainer" class="kdview">
-        #{getDock()}
-        <section id="main-panel-wrapper" class="kdview">
-          <div id="main-tab-view" class="kdview kdscrollview kdtabview">
-            <div class="kdview kdtabpaneview activity clearfix content-area-pane active">
+  <!DOCTYPE html>
+  <html lang="en">
+  <head>
+    <title>Koding | A New Way For Developers To Work</title>
+    #{getGraphMeta()}
+  </head>
+  <body itemscope itemtype="http://schema.org/WebPage" class="super activity">
+    <div id="kdmaincontainer" class="kdview">
+      #{getDock()}
+        <div id="content-page-activity" class="kdview kdscrollview content-page activity">
+          <main class="kdview kdscrollview static-feed kdtabview">
 
-              <div id="content-page-#{contentType.toLowerCase()}" class="kdview kdscrollview content-page #{contentType.toLowerCase()} loggedin">
-                <main class="">
-                  <div class="kdview activity-content feeder-tabs">
-                    <div class="kdview listview-wrapper">
-                      <div class="kdview kdscrollview">
-                        <div class="kdview kdlistview kdlistview-default activity-related">
-                          #{content}
-                        </div>
-                      </div>
-                    </div>
-                    <nav class="crawler-pagination clearfix">
-                      #{pagination}
-                    </nav>
-                  </div>
-                </main>
+            <!-- .kdlistitemview-activity is a single activity item -->
+
+            <div class="kdview kdlistitemview kdlistitemview-activity activity-item status">
+              <div class="activity-content-wrapper static-feed">
+                <a class="avatarview author-avatar" href="/sinan" style="background-image: none; background-size: 42px;">
+                  <img class="" width="42" height="42" src="//gravatar.com/avatar/fb9edfce4f54230c890431a97db6c99e?size=42&amp;d=https://koding-cdn.s3.amazonaws.com/images/default.avatar.42.png&amp;r=g" style="opacity: 1;">
+                </a>
+                <div class="meta">
+                  <a href="/sinan" class="profile">
+                    <span data-paths="profile.firstName profile.lastName" id="el-337">Sinan Yasar</span>
+                  </a>
+                  <time class="kdview">4 days ago</time>
+                  <span class="location">San Francisco</span>
+                </div>
+
+                <article data-paths="body" id="el-331">
+                  <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Suspendisse
+                  sem orci, porttitor ut mollis non, vehicula eu purus. Pellentesque massa
+                  odio, tempus cursus eros nec, lacinia aliquam risus. Mauris dignissim,
+                  metus quis aliquam pretium, lectus libero consequat quam, sed congue nulla
+                  arcu ac leo.</p>
+                </article>
               </div>
             </div>
-          </div>
-        </section>
-      </div>
-      #{analytics()}
-    </body>
-    </html>
+
+          </main>
+        </div>
+    </div>
+    #{analytics()}
+  </body>
+  </html>
   """
+
+# putContentIntoFullPage = (content, pagination, contentType)->
+#   getGraphMeta  = require './graphmeta'
+#   analytics     = require './analytics'
+
+#   """
+#     <!DOCTYPE html>
+#     <html lang="en">
+#     <head>
+#       <title>Koding | A New Way For Developers To Work</title>
+#       #{getGraphMeta()}
+#     </head>
+#     <body itemscope itemtype="http://schema.org/WebPage" class="super activity">
+#       <div id="kdmaincontainer" class="kdview">
+#         #{getDock()}
+#         <section id="main-panel-wrapper" class="kdview">
+#           <div id="main-tab-view" class="kdview kdscrollview kdtabview">
+#             <div class="kdview kdtabpaneview activity clearfix content-area-pane active">
+
+#               <div id="content-page-#{contentType.toLowerCase()}" class="kdview kdscrollview content-page #{contentType.toLowerCase()} loggedin">
+#                 <main class="">
+#                   <div class="kdview activity-content feeder-tabs">
+#                     <div class="kdview listview-wrapper">
+#                       <div class="kdview kdscrollview">
+#                         <div class="kdview kdlistview kdlistview-default activity-related">
+#                           #{content}
+#                         </div>
+#                       </div>
+#                     </div>
+#                     <nav class="crawler-pagination clearfix">
+#                       #{pagination}
+#                     </nav>
+#                   </div>
+#                 </main>
+#               </div>
+#             </div>
+#           </div>
+#         </section>
+#       </div>
+#       #{analytics()}
+#     </body>
+#     </html>
+#   """
