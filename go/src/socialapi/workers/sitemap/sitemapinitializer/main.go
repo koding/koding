@@ -28,6 +28,4 @@ func main() {
 		r.Log.Fatal("Could not finish sitemap initialization: %s", err)
 		os.Exit(1)
 	}
-
-	os.Exit(0)
 }
