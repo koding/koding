@@ -8,12 +8,14 @@ import (
 	"socialapi/workers/sitemap/models"
 
 	"github.com/koding/logging"
+	"github.com/koding/redis"
 	"github.com/streadway/amqp"
 )
 
 type Controller struct {
 	log         logging.Logger
 	nameFetcher FileNameFetcher
+	redisConn   *redis.RedisSession
 }
 
 var ErrIgnore = errors.New("ignore")
@@ -28,6 +30,7 @@ func New(log logging.Logger) *Controller {
 	c := &Controller{
 		log:         log,
 		nameFetcher: ModNameFetcher{},
+		redisConn:   helper.MustGetRedisConn(),
 	}
 
 	return c
@@ -182,8 +185,7 @@ func (f *Controller) queueItem(i *models.SitemapItem) (string, error) {
 
 func (f *Controller) updateFileNameCache(fileName string) error {
 	key := common.PrepareNextFileNameCacheKey()
-	redisConn := helper.MustGetRedisConn()
-	if _, err := redisConn.AddSetMembers(key, fileName); err != nil {
+	if _, err := f.redisConn.AddSetMembers(key, fileName); err != nil {
 		return err
 	}
 
@@ -193,9 +195,8 @@ func (f *Controller) updateFileNameCache(fileName string) error {
 func (f *Controller) updateFileItemCache(fileName string, i *models.SitemapItem) error {
 	// prepare cache key
 	key := common.PrepareFileCacheKey(fileName)
-	redisConn := helper.MustGetRedisConn()
 	value := i.PrepareSetValue()
-	if _, err := redisConn.AddSetMembers(key, value); err != nil {
+	if _, err := f.redisConn.AddSetMembers(key, value); err != nil {
 		return err
 	}
 
