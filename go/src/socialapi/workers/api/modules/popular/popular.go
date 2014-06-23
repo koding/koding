@@ -64,7 +64,7 @@ func ListTopics(u *url.URL, h http.Header, _ interface{}) (int, http.Header, int
 
 	year, dateNumber, err := getDateNumberAndYear(statisticName)
 	if err != nil {
-		return response.NewBadRequest(errors.New("Unknown statistic name"))
+		return response.NewBadRequest(errors.New("unknown statistic name"))
 	}
 
 	key := populartopic.PreparePopularTopicKey(
