@@ -86,14 +86,21 @@ func ByName(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interfa
 	q := request.GetQuery(u)
 	q.Type = models.Channel_TYPE_TOPIC
 
-	channelList, err := models.NewChannel().ByName(q)
+	channel, err := models.NewChannel().ByName(q)
 	if err != nil {
 		return response.NewBadRequest(err)
 	}
 
+	canOpen, err := channel.CanOpen(q.AccountId)
+	if err != nil {
+		// if the channel can not be opened by the requester
+		// do send an empty response
+		return response.NewOK(nil)
+	}
+
 	return response.HandleResultAndError(
 		models.PopulateChannelContainer(
-			channelList,
+			channel,
 			q.AccountId,
 		),
 	)
