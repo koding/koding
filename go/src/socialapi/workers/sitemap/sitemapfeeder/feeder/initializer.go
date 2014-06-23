@@ -152,6 +152,7 @@ func (c *Controller) queuePosts(posts []socialmodels.ChannelMessage) {
 			err := ch.ById(p.InitialChannelId)
 			if err != nil {
 				c.log.Error("Could not fetch post item privacy info %d: %s", p.Id, err)
+				continue
 			}
 			privacy = ch.PrivacyConstant
 		}
