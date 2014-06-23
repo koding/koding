@@ -394,6 +394,15 @@ class SocialApiController extends KDController
       fnName             : 'follow'
       validateOptionsWith: ['channelId']
 
+    addParticipant       : channelRequesterFn
+      fnName             : 'follow'
+      validateOptionsWith: ['channelId']
+
+    addParticipants      : (callback)->
+
+      callback message : 'Cihangir needs to create the endpoint first :)'
+
+
     unfollow             : channelRequesterFn
       fnName             : 'unfollow'
       validateOptionsWith: ['channelId']
