@@ -122,15 +122,18 @@ class PrivateMessageModal extends KDModalViewWithForms
 
     {JAccount}   = KD.remote.api
     {inputValue} = args
+    {blacklist}  = @getOptions()
 
     val = inputValue.replace /^@/, ''
 
-    return  if inputValue.length < 4
+    return @autoComplete.showNoDataFound()  if inputValue.length < 4
 
-    query = 'profile.nickname': val
+    query =
+      'profile.nickname' : val
+      '_id'              : $nin : blacklist
 
     JAccount.one query, (err, account) =>
-      if not account or KD.isMine account
+      if not account or KD.isMine(account)
       then @autoComplete.showNoDataFound()
       else callback [account]
 
