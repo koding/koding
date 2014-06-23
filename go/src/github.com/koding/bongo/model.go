@@ -150,7 +150,7 @@ func (b *Bongo) Count(i Modellable, where ...interface{}) (int, error) {
 	var count int
 
 	// init query
-	query := b.DB
+	query := b.DB.Model(i)
 
 	// add table name
 	query = query.Table(i.TableName())
