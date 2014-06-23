@@ -16,8 +16,12 @@ class CommentListPreviousLink extends CustomLinkView
     listedCount = @getDelegate().getItemCount() or replies.length
     count       = Math.min (repliesCount - listedCount), 10
 
+    partial = if listedCount + count < repliesCount
+    then "Show #{count} of #{repliesCount - listedCount} previous repl#{if count is 1 then 'y' else 'ies'}"
+    else "Show previous #{count} repl#{if count is 1 then 'y' else 'ies'}"
+
     if count > 0
-    then @updatePartial "Show previous #{count} repl#{if count is 1 then 'y' else 'ies'}"
+    then @updatePartial partial
     else @hide()
 
 
