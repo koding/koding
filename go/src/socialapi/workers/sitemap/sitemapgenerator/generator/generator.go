@@ -95,7 +95,8 @@ func (c *Controller) generate() {
 		}
 
 		if err := c.updateFile(container, s); err != nil {
-			c.log.Error("Could not update file: %s", err)
+			c.log.Critical("Could not update file: %s", err)
+			continue
 		}
 
 		if err := new(models.SitemapFile).Upsert(name); err != nil {

@@ -6,6 +6,7 @@ import (
 	"os"
 	"path"
 	"socialapi/config"
+	"socialapi/workers/helper"
 )
 
 func XML(i interface{}, fileName string) error {
@@ -14,15 +15,17 @@ func XML(i interface{}, fileName string) error {
 		return err
 	}
 
-	MustWrite(res, fileName)
+	if err := Write(res, fileName); err != nil {
+		return err
+	}
 
 	return nil
 }
 
-func MustWrite(input []byte, fileName string) {
+func Write(input []byte, fileName string) error {
 	wd, err := os.Getwd()
 	if err != nil {
-		panic(err)
+		return err
 	}
 
 	root := config.Get().Sitemap.XMLRoot
@@ -31,17 +34,18 @@ func MustWrite(input []byte, fileName string) {
 
 	output, err := os.Create(n)
 	if err != nil {
-		panic(err)
+		return err
 	}
 	defer func() {
 		if err := output.Close(); err != nil {
-			panic(err)
+			helper.MustGetLogger().Critical("Could not close sitemap file %s: %s", err)
 		}
 	}()
 	if _, err := output.Write(input); err != nil {
-		panic(err)
+		return err
 	}
 
+	return nil
 }
 
 func Marshal(i interface{}) ([]byte, error) {
