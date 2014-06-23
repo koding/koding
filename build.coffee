@@ -61,15 +61,16 @@ build = (o)->
       authToDocker (err)->
         configFile = require "./config/main.#{o.config}.coffee"
         configJSON = JSON.stringify(configFile,null,4)
-        fs.writeFile "./install/BUILD_CONFIG.json",configJSON,(err,res)->
-          if err
-            console.log "couldn't write config file. exiting."
-            process.exit()
-          else
-            createDataForDockerBuild ->
-              console.log "BUILD_CONFIG.json written."
-              buildClient "hebe",()->
-                log "client bitti."
+        exec "mkdir -p ./install/BUILD_DATA",->
+          fs.writeFile "./install/BUILD_DATA/BUILD_CONFIG.json",configJSON,(err,res)->
+            if err
+              console.log "couldn't write config file. exiting."
+              process.exit()
+            else
+              createDataForDockerBuild ->
+                console.log "BUILD_CONFIG.json written."
+                buildClient "hebe",()->
+                  log "client bitti."
 
 
 build options

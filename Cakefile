@@ -24,11 +24,84 @@ fs                = require 'fs'
 timethat          = require 'timethat'
 hat               = require 'hat'
 log = console.log
+# Watcher           = require 'koding-watcher'
+KONFIG            = require('koding-config-manager').load("main.#{argv.c}")
 publicKey         = fs.readFileSync(process.env['HOME']+"/.ssh/id_rsa.pub")
 
+
+task 'killall','',->
+
+  exec "bash ./install/killall.sh", (err,cuf,cif)->
+    console.log arguments
+  
+
+checkConfig = (options,callback=->)->
+  console.log "[KONFIG CHECK] If you don't see any errors, you're fine."
+  require('koding-config-manager').load("main.#{options.configFile}")
+  require('koding-config-manager').load("kite.applications.#{options.configFile}")
+  require('koding-config-manager').load("kite.databases.#{options.configFile}")
+    
     
 
+# importDB = (options, callback = ->)->
+#   return callback null unless options.configFile in ['vagrant', 'kodingme']  
+#   exec "bash ./install/createBlankMongo.sh", (err, stdout, stderr)->
+#     console.log stdout
+#     console.error stderr if stderr          
+#     callback null
 
+
+
+task 'buildLocally',(options)->
+
+  checkDocker = (callback) ->
+    exec "docker version",(err,stdout)->
+      if stdout.indexOf("Client version:") > -1
+        console.log "docker cmd found. all good."
+        callback null
+      else
+        console.log "Please install Docker first. Exiting."
+        process.exit()
+
+  fetchDockerAuthFile = (callback) ->
+    fs.readFile (process.env['HOME']+"/.dockercfg"),(err,res)->
+      if err then callback "-" else callback res+""
+
+
+
+  authToDocker = (callback) ->
+    dockerAuth = '{"https://index.docker.io/v1/":{"auth":"ZGV2cmltOm45czQvV2UuTWRqZWNq","email":"devrim@koding.com"}}'
+    authToken = "ZGV2cmltOm45czQvV2UuTWRqZWNq"
+    fetchDockerAuthFile (file)->
+      if file.indexOf(authToken) is -1
+        fs.writeFile "#{process.env['HOME']}/.dockercfg",dockerAuth,(err)->
+          console.log "docker file written."
+          callback null
+      else
+        console.log "docker file correct. unchanged."
+        callback null
+
+
+
+
+  checkDocker (err) ->
+    unless err
+      authToDocker (err)->
+        configFile = JSON.stringify require "./config/main.#{options.configFile}.coffee"
+        console.log configFile
+
+        processes.run """
+          mkdir -p ./install/BUILD_DATA
+          echo #{options.hostname} >./install/BUILD_DATA/BUILD_HOSTNAME
+          echo #{options.region}   >./install/BUILD_DATA/BUILD_REGION
+          echo #{options.configFile}   >./install/BUILD_DATA/BUILD_CONFIG
+          echo #{options.branch}   >./install/BUILD_DATA/BUILD_BRANCH
+        """
+        ,->
+          log "yup"
+
+task 'o',->
+  console.log "s"
 
 task 'rs',-> 
   eden = require 'node-eden'
@@ -194,9 +267,39 @@ task 'run', (options)->
 
 
 
+buildEverything = (options, callback = ->)->
+
+  exec "./go/build.sh",(err,stdout,stderr)->
+    console.log arguments
+    daisy queue = [
+      ->
+        oldIndex = nodePath.join __dirname, "website/index.html"
+        fs.unlinkSync oldIndex  if fs.existsSync oldIndex
+        queue.next()
+    ,
+      ->
+        if options.buildClient
+          options.callback = -> queue.next()
+          buildClient options
+        else
+          queue.next()
+    ,
+      -> callback null
+    ]
 
 
+task 'buildEverything', "Build everything and exit.", (options)->
 
+  options.buildClient = yes
+  options.watch = no
+  buildEverything options
+
+buildClient = (options)->
+  buildMethod = if options.dontBuildSprites then 'buildClient' else 'buildSprites'
+  (new (require('./Builder')))[buildMethod] options
+
+
+task 'buildClient', "Build the static web pages for webserver", (options)-> buildClient options
 task 'deleteCache', "Delete the local webserver cache", (options)-> (exec "rm -rf #{__dirname}/.build",-> console.log "Cache is pruned.")
 
 task 'cleanup', "Removes every cache, and file which is not committed yet", (options)->

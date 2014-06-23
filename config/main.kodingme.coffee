@@ -99,7 +99,7 @@ module.exports =
       cmd: "./go/bin/kontrolapi -c #{configName}"
       restart : no
 
-  kontrolKite:
+  kontrol:
     process:
       run : yes
       cmd: "./go/bin/kontrol -c #{configName} -r #{configName}"
