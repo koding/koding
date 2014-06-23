@@ -33,4 +33,4 @@ RUN go run /opt/koding/go/src/github.com/koding/kite/kontrol/kontrol/main.go -in
 RUN echo DONE
 VOLUME ["/opt/koding"]
 
-ENTRYPOINT ["run"]
+ENTRYPOINT ["bash /opt/koding/run"]
