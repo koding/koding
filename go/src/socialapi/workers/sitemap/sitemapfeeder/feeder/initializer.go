@@ -17,17 +17,17 @@ func (c *Controller) Start() error {
 	fileMap = make(map[string]struct{})
 	// iterate accounts
 	if err := c.createAccounts(); err != nil {
-		return errors.New("Could not create sitemap for accounts")
+		return errors.New("account sitemap not created")
 	}
 
 	// iterate posts
 	if err := c.createPosts(); err != nil {
-		return errors.New("Could not create sitemap for posts")
+		return errors.New("post sitemap not created")
 	}
 
 	// iterate channels
 	if err := c.createChannels(); err != nil {
-		return errors.New("Could not create sitemap for channels")
+		return errors.New("channel sitemap not created")
 	}
 
 	c.createFileNames()
