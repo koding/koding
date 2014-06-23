@@ -29,7 +29,7 @@ func main() {
 	cacheEnabled := r.Conf.Notification.CacheEnabled
 	if cacheEnabled {
 		// init redis
-		redisConn := helper.MustInitRedisConn(r.Conf.Redis)
+		redisConn := helper.MustInitRedisConn(r.Conf)
 		defer redisConn.Close()
 	}
 

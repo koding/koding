@@ -19,7 +19,7 @@ func main() {
 		return
 	}
 
-	redisConn := helper.MustInitRedisConn(r.Conf.Redis)
+	redisConn := helper.MustInitRedisConn(r.Conf)
 	defer redisConn.Close()
 
 	controller, err := generator.New(r.Log)

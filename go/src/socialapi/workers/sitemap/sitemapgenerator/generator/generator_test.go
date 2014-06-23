@@ -34,7 +34,8 @@ func TestSitemapGeneration(t *testing.T) {
 				So(err, ShouldBeNil)
 			})
 			Convey("redis should be able to initialized", func() {
-				redisConn = helper.MustInitRedisConn(r.Conf.Redis)
+				redisConf := r.Conf
+				redisConn = helper.MustInitRedisConn(redisConf)
 
 			})
 			Convey("controller should be able to created", func() {

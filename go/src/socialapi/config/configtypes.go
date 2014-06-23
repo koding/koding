@@ -6,7 +6,7 @@ type (
 		Mq                Mq
 		Limits            Limits
 		EventExchangeName string
-		Redis             string
+		Redis             Redis
 		Mongo             string
 		Environment       string
 		Uri               string
@@ -14,6 +14,12 @@ type (
 		SendGrid          SendGrid
 		EmailNotification EmailNotification
 		Sitemap           Sitemap
+	}
+
+	Redis struct {
+		URL   string
+		DB    int
+		Slave string
 	}
 
 	Postgres struct {
@@ -48,5 +54,6 @@ type (
 	}
 	Sitemap struct {
 		XMLRoot string
+		RedisDB int
 	}
 )

@@ -1,11 +1,15 @@
 package helper
 
-import "github.com/koding/redis"
+import (
+	"socialapi/config"
+
+	"github.com/koding/redis"
+)
 
 var redisConn *redis.RedisSession
 
-func MustInitRedisConn(server string) *redis.RedisSession {
-	r, err := redis.NewRedisSession(&redis.RedisConf{Server: server})
+func MustInitRedisConn(c *config.Config) *redis.RedisSession {
+	r, err := redis.NewRedisSession(&redis.RedisConf{Server: c.Redis.URL, DB: c.Redis.DB})
 	if err != nil {
 		panic(err)
 	}

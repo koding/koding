@@ -18,7 +18,7 @@ func main() {
 		return
 	}
 
-	redis := helper.MustInitRedisConn(r.Conf.Redis)
+	redis := helper.MustInitRedisConn(r.Conf)
 	// create message handler
 	handler := populartopic.New(r.Log, redis)
 

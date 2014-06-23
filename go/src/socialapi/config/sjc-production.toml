@@ -1,9 +1,6 @@
 EventExchangeName="BrokerMessageBus"
 Mongo="dev:k9lc4G1k32nyD72@172.16.3.9:27017/koding"
 Environment="production"
-Redis="172.16.10.16:6379"
-# slave one is not used, just here for future ref
-RedisSlave="172.16.10.17:6379"
 Uri="https://koding.com"
 
 [postgres]
@@ -19,6 +16,12 @@ Port=     5672
 Username= "guest"
 Password= "Xah8ibeekelah"
 Vhost=    "new"
+
+[redis]
+URL=      "172.16.10.16:6379"
+DB=       0
+# slave one is not used, just here for future ref
+Slave=    "172.16.10.17:6379"
 
 [limits]
 MessageBodyMinLen=5
@@ -36,4 +39,5 @@ FromName= "Koding"
 FromMail= "hello@koding.com"
 
 [sitemap]
-XMLRoot="go/src/socialapi/workers/sitemap/files/"
+XMLRoot= "go/src/socialapi/workers/sitemap/files/"
+RedisDB= 1

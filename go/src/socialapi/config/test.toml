@@ -1,8 +1,8 @@
 EventExchangeName="BrokerMessageBus"
 Mongo="localhost:27017/koding"
 Environment="test"
-Redis="localhost:6379"
 Uri="http://lvh.me:3020"
+
 [postgres]
 Host=     "localhost"
 Port=     5432
@@ -18,6 +18,10 @@ Port=     5672
 Username= "PROD-k5it50s4676pO9O"
 Password= "djfjfhgh4455__5"
 Vhost=    "/"
+
+[redis]
+URL=     "localhost:6379"
+DB=      2
 
 [limits]
 MessageBodyMinLen=1
@@ -37,3 +41,4 @@ ForcedRecipient= "canthefason@gmail.com"
 
 [sitemap]
 XMLRoot="../../files/"
+RedisDB=2

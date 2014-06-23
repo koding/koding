@@ -66,7 +66,7 @@ func main() {
 	defer server.Close()
 
 	// init redis
-	redisConn := helper.MustInitRedisConn(r.Conf.Redis)
+	redisConn := helper.MustInitRedisConn(r.Conf)
 	defer redisConn.Close()
 
 	// init mongo connection
