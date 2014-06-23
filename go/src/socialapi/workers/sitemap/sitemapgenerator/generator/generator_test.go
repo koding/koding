@@ -167,7 +167,8 @@ func TestSitemapGeneration(t *testing.T) {
 			})
 		})
 		Convey("We should be able to tear down suite", func() {
-			err := os.Remove(TESTFILE + ".xml")
+			testFile := fmt.Sprintf("%s%s", config.Get().Sitemap.XMLRoot, TESTFILE)
+			err := os.Remove(testFile + ".xml")
 			So(err, ShouldBeNil)
 		})
 	})
