@@ -158,16 +158,31 @@ func (i *Interaction) FetchInteractorIds(interactionType string, p *bongo.Pagina
 	return interactorIds, nil
 }
 
-func (c *Interaction) Count(interactionType string) (int, error) {
+func (c *Interaction) Count(q *request.Query) (int, error) {
 	if c.MessageId == 0 {
-		return 0, errors.New("MessageId is not set")
+		return 0, errors.New("messageId is not set")
 	}
 
-	return bongo.B.Count(c,
-		"message_id = ? and type_constant = ?",
-		c.MessageId,
-		interactionType,
-	)
+	if q.Type == "" {
+		return 0, errors.New("query type is not set")
+	}
+
+	query := &bongo.Query{
+		Selector: map[string]interface{}{
+			"message_id":    c.MessageId,
+			"type_constant": q.Type,
+		},
+	}
+
+	query.AddScope(RemoveTrollContent(
+		c, q.ShowExempt,
+	))
+
+	return c.CountWithQuery(query)
+}
+
+func (c *Interaction) CountWithQuery(q *bongo.Query) (int, error) {
+	return bongo.B.CountWithQuery(c, q)
 }
 
 func (c *Interaction) FetchAll(interactionType string) ([]Interaction, error) {
