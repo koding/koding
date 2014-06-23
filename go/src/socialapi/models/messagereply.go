@@ -210,15 +210,26 @@ func (m *MessageReply) UnreadCount(messageId int64, addedAt time.Time) (int, err
 	)
 }
 
-func (m *MessageReply) Count() (int, error) {
+func (m *MessageReply) Count(q *request.Query) (int, error) {
 	if m.MessageId == 0 {
 		return 0, errors.New("messageId is not set")
 	}
 
-	return bongo.B.Count(m,
-		"message_id = ?",
-		m.MessageId,
-	)
+	query := &bongo.Query{
+		Selector: map[string]interface{}{
+			"message_id": m.MessageId,
+		},
+	}
+
+	query.AddScope(RemoveTrollContent(
+		m, q.ShowExempt,
+	))
+
+	return m.CountWithQuery(query)
+}
+
+func (m *MessageReply) CountWithQuery(q *bongo.Query) (int, error) {
+	return bongo.B.CountWithQuery(m, q)
 }
 
 func (m *MessageReply) FetchParent() (*ChannelMessage, error) {
