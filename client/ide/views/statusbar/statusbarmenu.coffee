@@ -30,8 +30,13 @@ class IDE.StatusBarMenu extends KDContextMenu
     items.separator   = type: 'separator'
 
   addDefaultMenuItems: (items, appManager) ->
-    items.Shortcuts   = callback: -> appManager.tell 'IDE', 'showShortcutsView'
-    items.Contribute  = callback: -> KD.utils.createExternalLink 'https://github.com/koding/IDE'
-    items.Quit        = callback: ->
+    mainView = KD.getSingleton 'mainView'
+    fsText   = if mainView.isFullscreen() then 'Exit' else 'Enter'
+
+    items.Shortcuts  = callback: -> appManager.tell 'IDE', 'showShortcutsView'
+    items["#{fsText} Fullscreen"] = callback: -> mainView.toggleFullscreen()
+    items.Contribute = callback: -> KD.utils.createExternalLink 'https://github.com/koding/IDE'
+    items.Quit       = callback: ->
       appManager.quitByName 'IDE'
+      mainView.toggleFullscreen()  if mainView.isFullscreen()
       KD.getSingleton('router').handleRoute '/Activity'
