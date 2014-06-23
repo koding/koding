@@ -7,6 +7,7 @@ import (
 	"socialapi/models"
 	"socialapi/request"
 	"socialapi/workers/common/response"
+
 	"github.com/koding/bongo"
 )
 
@@ -153,16 +154,13 @@ func Update(u *url.URL, h http.Header, req *models.ChannelMessage) (int, http.He
 }
 
 func Get(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface{}, error) {
-	id, err := request.GetURIInt64(u, "id")
+	cm, err := getMessageByUrl(u)
 	if err != nil {
 		return response.NewBadRequest(err)
 	}
-	cm := models.NewChannelMessage()
-	if err := cm.ById(id); err != nil {
-		if err == bongo.RecordNotFound {
-			return response.NewNotFound()
-		}
-		return response.NewBadRequest(err)
+
+	if cm.Id == 0 {
+		return response.NewNotFound()
 	}
 
 	return response.HandleResultAndError(
@@ -170,18 +168,41 @@ func Get(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface{
 	)
 }
 
-func GetWithRelated(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface{}, error) {
+func getMessageByUrl(u *url.URL) (*models.ChannelMessage, error) {
 	id, err := request.GetURIInt64(u, "id")
+	if err != nil {
+		return nil, err
+	}
+
+	// get url query params
+	q := request.GetQuery(u)
+
+	query := &bongo.Query{
+		Selector: map[string]interface{}{
+			"id": id,
+		},
+		Pagination: *bongo.NewPagination(1, 0),
+	}
+
+	cm := models.NewChannelMessage()
+	// add exempt info
+	query.AddScope(models.RemoveTrollContent(cm, q.ShowExempt))
+
+	if err := cm.One(query); err != nil {
+		return nil, err
+	}
+
+	return cm, nil
+}
+
+func GetWithRelated(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface{}, error) {
+	cm, err := getMessageByUrl(u)
 	if err != nil {
 		return response.NewBadRequest(err)
 	}
 
-	cm := models.NewChannelMessage()
-	if err := cm.ById(id); err != nil {
-		if err == bongo.RecordNotFound {
-			return response.NewNotFound()
-		}
-		return response.NewBadRequest(err)
+	if cm.Id == 0 {
+		return response.NewNotFound()
 	}
 
 	cmc, err := cm.BuildMessage(request.GetQuery(u))
