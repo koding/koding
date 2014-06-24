@@ -250,7 +250,11 @@ KD.extend
 
   isLoggedIn:-> KD.whoami()?.type is 'registered'
 
-  isMine:(account)-> KD.whoami().profile.nickname is account.profile.nickname
+  isMine:(target)->
+    if target?.bongo_?.constructorName is 'JAccount'
+      KD.whoami().profile.nickname is target.profile.nickname
+    else if target?.originId?
+      KD.whoami()._id is target.originId
 
   isMyPost: (post) -> post.account._id is KD.whoami().getId()
 
