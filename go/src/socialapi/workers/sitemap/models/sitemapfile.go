@@ -4,7 +4,6 @@ import (
 	"errors"
 	"time"
 
-	"github.com/jinzhu/gorm"
 	"github.com/koding/bongo"
 )
 
@@ -12,8 +11,12 @@ var ErrNotSet = errors.New("name not set")
 
 type SitemapFile struct {
 	Id int64
+
 	// unique file name
 	Name string `sql:"NOT NULL"`
+
+	// file content
+	Blob []byte
 
 	// creation date of the file
 	CreatedAt time.Time
@@ -45,21 +48,6 @@ func (f *SitemapFile) ByName(name string) error {
 	q := bongo.NewQS(selector)
 
 	return bongo.B.One(f, f, q)
-}
-
-func (f *SitemapFile) Upsert(name string) error {
-	err := f.ByName(name)
-	if err == gorm.RecordNotFound {
-		f.Name = name
-
-		return f.Create()
-	}
-
-	if err != nil {
-		return err
-	}
-
-	return f.Update()
 }
 
 func (f *SitemapFile) Update() error {
