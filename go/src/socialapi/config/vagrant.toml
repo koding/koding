@@ -1,23 +1,22 @@
-EventExchangeName="BrokerMessageBus"
-Mongo="localhost:27017/koding"
-Environment="vagrant"
-Redis="localhost:6379"
-Uri="http://lvh.me:3020"
+EventExchangeName   ="BrokerMessageBus"
+Mongo               ="localhost:27017/koding"
+Environment         ="vagrant"
+Redis               ="localhost:6379"
+Uri                 ="http://lvh.me:3020"
+
 [postgres]
-Host=     "localhost"
-Port=     5432
-# Username= "postgres"
-# Password= "123123123"
-Username= "socialapplication"
-Password= "socialapplication"
-DBName=   "social"
+Host         = "localhost"
+Port         = 5432
+Username     = "socialapplication"
+Password     = "socialapplication"
+DBName       = "social"
 
 [mq]
-Host=     "localhost"
-Port=     5672
-Username= "PROD-k5it50s4676pO9O"
-Password= "djfjfhgh4455__5"
-Vhost=    "/"
+Host       = "localhost"
+Port       = 5672
+Username   = "PROD-k5it50s4676pO9O"
+Password   = "djfjfhgh4455__5"
+Vhost      =  "/"
 
 [limits]
 MessageBodyMinLen=1
@@ -29,8 +28,8 @@ CacheEnabled = false
 templateRoot="workers/emailnotifier/templates/"
 
 [sendgrid]
-Username=        "koding"
-Password=        "DEQl7_Dr"
-FromName=        "Koding"
-FromMail=        "hello@koding.com"
-ForcedRecipient= "canthefason@gmail.com"
+Username        = "koding"
+Password        = "DEQl7_Dr"
+FromName        = "Koding"
+FromMail        = "hello@koding.com"
+ForcedRecipient = "canthefason@gmail.com"
