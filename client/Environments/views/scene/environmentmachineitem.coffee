@@ -190,22 +190,39 @@ class EnvironmentMachineItem extends EnvironmentItem
 
   showEditorModalFor: (provisioner)->
 
-    modal =  new EditorModal
+    {JProvisioner} = KD.remote.api
+
+    machine = @getData()
+    modal   = new EditorModal
 
       editor              :
-        title             : "Machine Init Script Editor <span>(experimental)</span>"
+        title             : "Provisioner Script Editor"
         content           : provisioner?.content?.script or ""
-        saveMessage       : "Machine init script saved"
-        saveFailedMessage : "Couldn't save Machine init script"
+        saveMessage       : "Provisioner script saved"
+        saveFailedMessage : "Couldn't save provisioner script"
 
-        saveCallback      : (script, modal) ->
+        saveCallback      : (script, modal)->
 
-          provisioner.update content: { script }, (err,res)->
+          if KD.isMine provisioner
 
-            if err
-              modal.emit "SaveFailed"
-            else
-              modal.emit "Saved"
+            provisioner.update content: { script }, (err, res)->
+              modal.emit if err then "SaveFailed" else "Saved"
+
+          else
+
+            JProvisioner.create
+              type    : "shell"
+              content : { script }
+            , (err, newProvisioner)->
+
+              return  if KD.showError err
+
+              machine.setProvisioner newProvisioner.slug, (err)->
+                modal.emit if err then "SaveFailed" else "Saved"
+
+                unless KD.showError err
+                  machine.provisioners = [ newProvisioner.slug ]
+                  provisioner          = newProvisioner
 
     # information = new KDNotificationView
     #   container     : modal
