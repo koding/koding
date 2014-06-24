@@ -184,6 +184,33 @@ func TestMarkedAsTroll(t *testing.T) {
 				So(message.MetaBits.IsTroll(), ShouldBeTrue)
 			}
 		})
+
+		// mark interactions
+		Convey("interactions of a troll should be marked as exempt", func() {
+			post1, err := rest.CreatePost(groupChannel.Id, trollUser.Id)
+			tests.ResultedWithNoErrorCheck(post1, err)
+
+			err = rest.AddInteraction("like", post1.Id, trollUser.Id)
+			So(err, ShouldBeNil)
+
+			So(controller.markInteractions(trollUser), ShouldBeNil)
+
+			cm := models.NewInteraction()
+			q := &bongo.Query{
+				Selector: map[string]interface{}{
+					"account_id": trollUser.Id,
+				},
+			}
+
+			var interactions []models.Interaction
+			err = cm.Some(&interactions, q)
+			So(err, ShouldBeNil)
+
+			for _, interaction := range interactions {
+				So(interaction.MetaBits.IsTroll(), ShouldBeTrue)
+				So(interaction.MetaBits.IsTroll(), ShouldBeTrue)
+			}
+		})
 		})
 
 	})
