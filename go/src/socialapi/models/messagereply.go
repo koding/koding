@@ -81,6 +81,10 @@ func (m *MessageReply) Create() error {
 	return bongo.B.Create(m)
 }
 
+func (m *MessageReply) Update() error {
+	return bongo.B.Update(m)
+}
+
 func (m *MessageReply) CreateRaw() error {
 	insertSql := "INSERT INTO " +
 		m.TableName() +
