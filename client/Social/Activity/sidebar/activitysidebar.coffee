@@ -118,7 +118,7 @@ class ActivitySidebar extends KDCustomScrollView
       return KD.showError err  if err
 
       item = @addItem channel, yes
-      item.setUnreadCount unreadCount or 1
+      item.setUnreadCount unreadCount
 
 
   accountRemovedFromChannel: (update) ->

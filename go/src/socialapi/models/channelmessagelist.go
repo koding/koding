@@ -21,11 +21,16 @@ type ChannelMessageList struct {
 	MetaBits int16 `json:"-"`
 
 	// Addition date of the message to the channel
+	// this date will be update whever message added/removed/re-added to the channel
 	AddedAt time.Time `json:"addedAt"            sql:"NOT NULL"`
+
+	// Update time of the message/list
+	RevisedAt time.Time `json:"revisedAt"        sql:"NOT NULL"`
 }
 
 func (c *ChannelMessageList) BeforeCreate() {
 	c.AddedAt = time.Now()
+	c.RevisedAt = time.Now()
 }
 
 func (c *ChannelMessageList) BeforeUpdate() {
@@ -100,11 +105,11 @@ func (c *ChannelMessageList) Create() error {
 func (c *ChannelMessageList) CreateRaw() error {
 	insertSql := "INSERT INTO " +
 		c.TableName() +
-		` ("channel_id","message_id","added_at") VALUES ($1,$2,$3) ` +
+		` ("channel_id","message_id","added_at","revised_at") VALUES ($1,$2,$3,$4) ` +
 		"RETURNING ID"
 
 	return bongo.B.DB.CommonDB().
-		QueryRow(insertSql, c.ChannelId, c.MessageId, c.AddedAt).
+		QueryRow(insertSql, c.ChannelId, c.MessageId, c.AddedAt, c.RevisedAt).
 		Scan(&c.Id)
 }
 
@@ -139,7 +144,7 @@ func (c *ChannelMessageList) populateUnreadCount(messageList []*ChannelMessageCo
 			continue
 		}
 
-		count, err := NewMessageReply().UnreadCount(cml.MessageId, cml.AddedAt)
+		count, err := NewMessageReply().UnreadCount(cml.MessageId, cml.RevisedAt)
 		if err != nil {
 			// helper.MustGetLogger().Error(err.Error())
 			continue

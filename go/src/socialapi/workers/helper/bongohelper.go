@@ -35,7 +35,7 @@ func MustInitBongo(
 	bongo := bongo.New(broker, db, log)
 	err := bongo.Connect()
 	if err != nil {
-		panic(err)
+		log.Fatal("Error while starting bongo, exiting err: %s", err.Error())
 	}
 
 	return bongo

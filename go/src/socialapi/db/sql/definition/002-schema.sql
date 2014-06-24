@@ -8,6 +8,6 @@ SET ROLE postgres;
 CREATE EXTENSION IF NOT EXISTS hstore;
 SET ROLE social;
 
-GRANT usage ON SCHEMA api to socialapplication;
+GRANT USAGE ON SCHEMA api TO socialapplication;
 
-ALTER DATABASE social set search_path="$user", public, api;
+ALTER DATABASE social SET search_path="$user", public, api;

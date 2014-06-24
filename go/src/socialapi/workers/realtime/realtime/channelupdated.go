@@ -85,6 +85,14 @@ func (cue *channelUpdatedEvent) isEligibleForBroadcasting(accountId int64) bool 
 		return true
 	}
 
+	// if we are gonna send this notification to topic channel
+	// do not send to initiator
+	if cue.Channel.TypeConstant == models.Channel_TYPE_TOPIC {
+		if cue.ParentChannelMessage.AccountId == accountId {
+			return false
+		}
+	}
+
 	// if reply is not set do send this event
 	if cue.ReplyChannelMessage == nil {
 		return true
@@ -172,19 +180,45 @@ func (cue *channelUpdatedEvent) calculateUnreadItemCount() (int, error) {
 		return models.NewChannelMessageList().UnreadCount(cue.ChannelParticipant)
 	}
 
-	if cue.Channel.TypeConstant == models.Channel_TYPE_PRIVATE_MESSAGE {
-		return models.NewMessageReply().UnreadCount(cue.ParentChannelMessage.Id, cue.ChannelParticipant.LastSeenAt)
-	}
-
+	// for topic channel unread count will be calculated from unread post count
 	if cue.Channel.TypeConstant == models.Channel_TYPE_TOPIC {
 		return models.NewChannelMessageList().UnreadCount(cue.ChannelParticipant)
 	}
 
-	cml, err := cue.Channel.FetchMessageList(cue.ParentChannelMessage.Id)
-	if err == nil {
-		return models.NewMessageReply().UnreadCount(cml.MessageId, cml.AddedAt)
+	// from this poin we need parent message
+
+	// for pinned posts calculate unread count from message's added at into that channel
+	if cue.Channel.TypeConstant == models.Channel_TYPE_PINNED_ACTIVITY {
+		cml, err := cue.Channel.FetchMessageList(cue.ParentChannelMessage.Id)
+		if err != nil {
+			return 0, err
+		}
+
+		// for pinned posts we are calculating unread count from reviseddAt of the
+		// regarding channel message list, since only participant for the channel
+		// is the owner and we cant use channel_participant for unread counts
+		// on the other hand messages should have their own unread count
+		// we are specialcasing the pinned posts here
+		return models.NewMessageReply().UnreadCount(cml.MessageId, cml.RevisedAt)
 	}
 
-	cue.Controller.log.Critical("this shouldnt fall here")
+	// for private messages calculate the unread reply count
+	if cue.Channel.TypeConstant == models.Channel_TYPE_PRIVATE_MESSAGE {
+		count, err := models.NewMessageReply().UnreadCount(cue.ParentChannelMessage.Id, cue.ChannelParticipant.LastSeenAt)
+		if err != nil {
+			return 0, err
+		}
+
+		// if unread count is 0
+		// set it to 1 for now
+		// because we want to show a notification with a sign
+		if count == 0 {
+			count = 1
+		}
+
+		return count, nil
+	}
+
+	cue.Controller.log.Critical("Calculating unread count shouldnt fall here")
 	return 0, nil
 }
