@@ -74,6 +74,55 @@ func (t *Controller) processsAllMessagesAsTroll(accountId int64) error {
 		AccountId: accountId,
 	}
 
+func (c *Controller) markParticipations(account *models.Account) error {
+	var processCount = 100
+	var skip = 0
+	var erroredChannelParticipants []models.ChannelParticipant
+
+	cp := models.NewChannelParticipant()
+	q := &bongo.Query{
+		Selector: map[string]interface{}{
+			"account_id": account.Id,
+			// 0 means safe
+			"meta_bits": models.Safe,
+		},
+		Pagination: *bongo.NewPagination(processCount, 0),
+	}
+
+	for {
+
+		// set skip everytime here
+		q.Pagination.Skip = skip
+		var channelParticipants []models.ChannelParticipant
+		if err := cp.Some(&channelParticipants, q); err != nil {
+			return err
+		}
+
+		// we processed all channel participants
+		if len(channelParticipants) <= 0 {
+			break
+		}
+
+		for i, channelParticipant := range channelParticipants {
+			channelParticipant.MetaBits.MarkTroll()
+			if err := channelParticipant.Update(); err != nil {
+				c.log.Error(err.Error())
+				erroredChannelParticipants = append(erroredChannelParticipants, channelParticipants[i])
+			}
+		}
+
+		// increment skip count
+		skip = processCount + skip
+	}
+
+	if len(erroredChannelParticipants) != 0 {
+		err := errors.New(fmt.Sprintf("some errors: %v", erroredChannelParticipants))
+		c.log.Error(err.Error())
+		return err
+	}
+
+	return nil
+}
 	cm := models.NewChannelMessage()
 	totalMessageCount, err := cm.FetchTotalMessageCount(query)
 	if err != nil {
