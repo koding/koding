@@ -191,6 +191,29 @@ class EnvironmentMachineItem extends EnvironmentItem
 
     else @showEditorModalFor()
 
+  showInformation = do ->
+
+    information = null
+
+    (provisioner, modal)->
+
+      if provisioner?
+        message = "Build script <strong>#{provisioner.slug}</strong> loaded. "
+        unless KD.isMine provisioner
+          message += """When you edit it, it won't change the original,
+                        it will create your own copy of this build script."""
+      else
+        message = """This is a new build script. This bash script will be
+                     executed as root when the machine is rebuilt."""
+
+      information?.destroy?()
+      information = new KDNotificationView
+        container     : modal
+        type          : "tray"
+        content       : message
+        duration      : 0
+        closeManually : no
+
 
   showEditorModalFor: (provisioner)->
 
@@ -200,10 +223,10 @@ class EnvironmentMachineItem extends EnvironmentItem
     modal   = new EditorModal
 
       editor              :
-        title             : "Provisioner Script Editor"
+        title             : "Build Script Editor"
         content           : provisioner?.content?.script or ""
-        saveMessage       : "Provisioner script saved"
-        saveFailedMessage : "Couldn't save provisioner script"
+        saveMessage       : "Build script saved"
+        saveFailedMessage : "Couldn't save build script"
 
         saveCallback      : (script, modal)->
 
@@ -227,13 +250,9 @@ class EnvironmentMachineItem extends EnvironmentItem
                 unless KD.showError err
                   machine.provisioners = [ newProvisioner.slug ]
                   provisioner          = newProvisioner
+                  showInformation provisioner, modal
 
-    # information = new KDNotificationView
-    #   container     : modal
-    #   type          : "tray"
-    #   content       : "Lorem ipsum dolor sen de affet."
-    #   duration      : 0
-    #   closeManually : no
+    showInformation provisioner, modal
 
 
   getIpLink:->
