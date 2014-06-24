@@ -43,6 +43,10 @@ func (f *SitemapFile) Create() error {
 }
 
 func (f *SitemapFile) ByName(name string) error {
+	if name == "" {
+		return ErrNotSet
+	}
+
 	selector := map[string]interface{}{
 		"name": name,
 	}
