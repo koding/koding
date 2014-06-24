@@ -1,6 +1,7 @@
 package models
 
 const (
+	Safe  = 0
 	Troll = 1 << iota
 )
 
@@ -11,12 +12,12 @@ func (m MetaBits) IsSafe() bool {
 	return (m == 0)
 }
 
-func (m MetaBits) MarkTroll() {
+func (m *MetaBits) MarkTroll() {
 	// set first bit as 1
-	m |= Troll
+	*m = *m | Troll
 }
 
 func (m MetaBits) IsTroll() bool {
 	// get first bit
-	return (m & Troll) == 1
+	return (m & Troll) == Troll
 }
