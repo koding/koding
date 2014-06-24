@@ -10,4 +10,7 @@ CREATE TABLE "sitemap"."file" (
     "updated_at" timestamp(6) WITH TIME ZONE
 )
 WITH (OIDS=FALSE);
-GRANT SELECT, INSERT, UPDATE ON "sitemap"."file" TO "socialapplication";
+-- GRANT SELECT, INSERT, UPDATE ON "sitemap"."file" TO "socialapplication";
+-- TODO all permissions are granted for testing purposes
+-- we need another test user here
+ALTER TABLE "sitemap"."file" OWNER TO "socialapplication";
