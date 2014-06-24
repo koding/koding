@@ -4,6 +4,7 @@ import (
 	"errors"
 	"socialapi/request"
 	"time"
+
 	"github.com/koding/bongo"
 )
 
@@ -61,6 +62,10 @@ func (i *Interaction) ById(id int64) error {
 
 func (i *Interaction) Create() error {
 	return bongo.B.Create(i)
+}
+
+func (i *Interaction) Update() error {
+	return bongo.B.Update(i)
 }
 
 func (i *Interaction) CreateRaw() error {
