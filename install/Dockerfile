@@ -28,5 +28,4 @@ RUN ./build -c `cat /BUILD_DATA/BUILD_CONFIG` -r `cat /BUILD_DATA/BUILD_REGION` 
 
 RUN go run /opt/koding/go/src/github.com/koding/kite/kontrol/kontrol/main.go -init -public-key /opt/koding/certs/test_kontrol_rsa_public.pem -private-key /opt/koding/certs/test_kontrol_rsa_private.pem -username koding  -kontrol-url "http://`cat /BUILD_DATA/BUILD_HOSTNAME`:4000" 
 
-
 ENTRYPOINT ["/opt/koding/run"]

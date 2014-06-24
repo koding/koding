@@ -68,9 +68,12 @@ build = (o)->
               process.exit()
             else
               createDataForDockerBuild ->
-                console.log "BUILD_CONFIG.json written."
-                buildClient "hebe",()->
-                  log "client bitti."
+                console.log "BUILD_CONFIG.json written."                
+                if process.env['KODING_DOCKER'] is yes
+                  exec "./go/build.sh",(err,stdout,stderr)->
+                    log arguments
+                    buildClient "",()->
+                      log "client is built."
 
 
 build options
