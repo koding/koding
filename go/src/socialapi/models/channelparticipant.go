@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"socialapi/request"
 	"time"
+
 	"github.com/koding/bongo"
 )
 
@@ -258,7 +259,9 @@ func (c *ChannelParticipant) FetchParticipatedChannelIds(a *Account, q *request.
 	channelIds := make([]int64, 0)
 
 	// var results []ChannelParticipant
-	rows, err := bongo.B.DB.Table(c.TableName()).
+	rows, err := bongo.B.DB.
+		Model(c).
+		Table(c.TableName()).
 		Select("api.channel_participant.channel_id").
 		Joins("left join api.channel on api.channel_participant.channel_id = api.channel.id").
 		Where("api.channel_participant.account_id = ? and api.channel.type_constant = ? and  api.channel_participant.status_constant = ?", a.Id, q.Type, ChannelParticipant_STATUS_ACTIVE).
