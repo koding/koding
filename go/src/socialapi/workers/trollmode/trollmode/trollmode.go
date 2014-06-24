@@ -72,7 +72,55 @@ func (t *Controller) processsAllMessagesAsTroll(accountId int64) error {
 	query := &request.Query{
 		Type:      models.ChannelMessage_TYPE_POST,
 		AccountId: accountId,
+func (c *Controller) markChannels(account *models.Account) error {
+	var processCount = 100
+	var skip = 0
+	var erroredChannels []models.Channel
+
+	ch := models.NewChannel()
+	q := &bongo.Query{
+		Selector: map[string]interface{}{
+			"creator_id":    account.Id,
+			"type_constant": models.Channel_TYPE_PRIVATE_MESSAGE,
+			// 0 means safe
+			"meta_bits": models.Safe,
+		},
+		Pagination: *bongo.NewPagination(processCount, 0),
 	}
+
+	for {
+		// set skip everytime here
+		q.Pagination.Skip = skip
+		var channels []models.Channel
+		if err := ch.Some(&channels, q); err != nil {
+			return err
+		}
+
+		// we processed all messages
+		if len(channels) <= 0 {
+			break
+		}
+
+		for i, channel := range channels {
+			channel.MetaBits.MarkTroll()
+			if err := channel.Update(); err != nil {
+				c.log.Error(err.Error())
+				erroredChannels = append(erroredChannels, channels[i])
+			}
+		}
+
+		// increment skip count
+		skip = processCount + skip
+	}
+
+	if len(erroredChannels) != 0 {
+		err := errors.New(fmt.Sprintf("some errors: %v", erroredChannels))
+		c.log.Error(err.Error())
+		return err
+	}
+
+	return nil
+}
 
 func (c *Controller) markParticipations(account *models.Account) error {
 	var processCount = 100
