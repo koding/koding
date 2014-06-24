@@ -18,9 +18,11 @@ module.exports = (options = {}, callback)->
   {bongoModels, client, slug} = options
 
   createHTML = ->
+    loggedIn = no
     if client.connection?.delegate?.profile?.nickname
       {connection: {delegate}} = client
       {profile   : {nickname}, _id} = delegate
+      loggedIn = delegate.type is 'registered'
 
     replacer             = (k, v)-> if 'string' is typeof v then encoder.XSSEncode v else v
     encodedFeed          = JSON.stringify prefetchedFeeds, replacer
@@ -35,11 +37,6 @@ module.exports = (options = {}, callback)->
     {rollbar, version, environment} = KONFIG
 
     """
-    <script>
-      console.time("Framework loaded");
-      console.time("Koding.com loaded");
-    </script>
-
     <!-- SEGMENT.IO -->
     <script type="text/javascript">
       window.analytics||(window.analytics=[]),window.analytics.methods=["identify","track","trackLink","trackForm","trackClick","trackSubmit","page","pageview","ab","alias","ready","group","on","once","off"],window.analytics.factory=function(t){return function(){var a=Array.prototype.slice.call(arguments);return a.unshift(t),window.analytics.push(a),window.analytics}};for(var i=0;window.analytics.methods.length>i;i++){var method=window.analytics.methods[i];window.analytics[method]=window.analytics.factory(method)}window.analytics.load=function(t){var a=document.createElement("script");a.type="text/javascript",a.async=!0,a.src=("https:"===document.location.protocol?"https://":"http://")+"d2dq2ahtl5zl1z.cloudfront.net/analytics.js/v1/"+t+"/analytics.min.js";var n=document.getElementsByTagName("script")[0];n.parentNode.insertBefore(a,n)},window.analytics.SNIPPET_VERSION="2.0.8",
@@ -51,14 +48,15 @@ module.exports = (options = {}, callback)->
     <script>KD.customPartial=#{encodedCustomPartial}</script>
     <script>KD.campaignData=#{encodedCampaignData}</script>
     <script>KD.socialApiData=#{encoedSocialApiData}</script>
+    <script>KD._isLoggedIn=#{loggedIn};</script>
     <script src='/a/js/kd.libs.js?#{KONFIG.version}'></script>
     <script src='/a/js/kd.js?#{KONFIG.version}'></script>
     <script src='/a/js/koding.js?#{KONFIG.version}'></script>
     <script>
-    KD.utils.defer(function () {
-      KD.currentGroup = KD.remote.revive(#{currentGroup});
-      KD.userAccount = KD.remote.revive(#{userAccount});
-    });
+      KD.utils.defer(function () {
+        KD.currentGroup = KD.remote.revive(#{currentGroup});
+        KD.userAccount = KD.remote.revive(#{userAccount});
+      });
     </script>
     <script>KD.prefetchedFeeds=#{encodedFeed};</script>
 
