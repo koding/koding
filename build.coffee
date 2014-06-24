@@ -4,11 +4,16 @@ fs       = require 'fs'
 log      = console.log
 
 options =
-  config    : argv.c 
-  hostname  : argv.h
-  region    : argv.r
-  branch    : argv.b
+  config      : argv.c 
+  hostname    : argv.h
+  region      : argv.r
+  branch      : argv.b
+  projectRoot : argv.p or __dirname
 
+
+console.log options
+
+process.exit()
 
 
 build = (o)->
@@ -20,6 +25,7 @@ build = (o)->
     echo #{o.region}    >./install/BUILD_DATA/BUILD_REGION
     echo #{o.config}    >./install/BUILD_DATA/BUILD_CONFIG
     echo #{o.branch}    >./install/BUILD_DATA/BUILD_BRANCH
+    echo #{o.projectRoot}    >./install/BUILD_DATA/BUILD_PROJECT_ROOT
     """,->
       log "build data is written for docker deploy."
       callback null
@@ -69,7 +75,7 @@ build = (o)->
             else
               createDataForDockerBuild ->
                 console.log "BUILD_CONFIG.json written."                
-                if process.env['KODING_DOCKER'] is yes
+                if process.env['KODING_PROJECT_ROOT']
                   exec "./go/build.sh",(err,stdout,stderr)->
                     log arguments
                     buildClient "",()->

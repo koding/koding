@@ -8,6 +8,8 @@ hostname        = argv.h
 region          = argv.r
 configName      = argv.c
 environment     = argv.e
+projectRoot     = argv.p or nodePath.join __dirname, '..'
+
 
 rabbitmq        =
   login         : "guest"
@@ -25,8 +27,7 @@ version         = "0.0.1"
 mongo           = "#{customDomain.local_}:27017/koding"
 mongoKontrol    = "#{customDomain.local_}:27017/kontrol"
 
-projectRoot     = nodePath.join __dirname, '..'
-if process.env['KODING_DOCKER'] is yes then projectRoot     = "/opt/koding"
+
 
 
 socialQueueName = "koding-social-#{configName}"

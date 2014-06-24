@@ -3,4 +3,5 @@
 rm ./BUILD_CONFIG.json
 rm ./website/index.html
 coffee ./build.coffee $@
-
+cd ./install
+bash docker.sh

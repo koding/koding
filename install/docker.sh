@@ -2,11 +2,11 @@
 
 ### PREPARE ###
 
-docker pull koding/mongo
-docker pull koding/postgres
-docker pull koding/rabbitmq
-docker pull koding/redis
-docker build -t koding/codebase .
+# docker pull koding/mongo
+# docker pull koding/postgres
+# docker pull koding/rabbitmq
+# docker pull koding/redis
+# docker build --no-cache -t koding/codebase .
 
 
 ### RUN ###
