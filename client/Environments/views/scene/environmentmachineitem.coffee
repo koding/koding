@@ -163,7 +163,8 @@ class EnvironmentMachineItem extends EnvironmentItem
 
   openTerminal:->
 
-    KD.getSingleton("router").handleRoute "/Terminal", replaceState: yes
+    machine = new Machine machine: @getData()
+    modal   = new TerminalModal { machine }
 
   confirmDestroy:->
 
