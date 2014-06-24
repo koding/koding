@@ -11,7 +11,9 @@ class MessagePane extends KDTabPaneView
     {typeConstant}    = @getData()
 
     @createParticipantsView() if typeConstant is 'privatemessage'
+
     @listController = new ActivityListController {itemClass}
+
     @createInputWidget()
 
     @bindChannelEvents()
@@ -27,7 +29,7 @@ class MessagePane extends KDTabPaneView
 
     if typeConstant in ['privatemessage', 'post']
 
-      @listController.getListView().once 'ItemWasAdded', =>
+      @listController.getListView().once 'ItemWasAdded', (item) =>
 
         listView = @listController.getListItems().first.commentBox.controller.getListView()
         listView.on 'ItemWasAdded', @bound 'scrollDown'
@@ -40,6 +42,11 @@ class MessagePane extends KDTabPaneView
   scrollDown: ->
 
     return  unless @active
+
+    listView = @listController.getListItems().first.commentBox.controller.getListView()
+    unless @separator
+      @separator = new KDView cssClass : 'new-messages'
+      listView.addSubView @separator
 
     KD.utils.defer -> window.scrollTo 0, document.body.scrollHeight
 
@@ -126,6 +133,7 @@ class MessagePane extends KDTabPaneView
     KD.utils.wait 1000, @bound 'glance'
     KD.utils.defer @bound 'focus'
 
+
   glance: ->
 
     data = @getData()
@@ -141,8 +149,14 @@ class MessagePane extends KDTabPaneView
     return  if typeConstant is 'group'
 
     if typeConstant is 'post'
-    then socialapi.channel.glancePinnedPost   messageId : id, ->
-    else socialapi.channel.updateLastSeenTime channelId : id, ->
+    then socialapi.channel.glancePinnedPost   messageId : id, @bound 'glanced'
+    else socialapi.channel.updateLastSeenTime channelId : id, @bound 'glanced'
+
+
+  glanced: ->
+
+    @separator?.destroy()
+    @separator = null
 
 
   focus: ->

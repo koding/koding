@@ -776,6 +776,36 @@ span.collapsedtext
         margin          0 10px 0 16px
         vertical-align  middle
 
+    .new-messages
+      // bg                  color rgba(240, 112, 95, 0.3)
+      // background          -moz-linear-gradient(left,  rgba(250,250,250,1) 0%, rgba(240,112,95,0.3) 100%)
+      // background          -webkit-gradient(linear, left top, right top, color-stop(0%,rgba(250,250,250,1)), color-stop(100%,rgba(240,112,95,0.3)))
+      // background          -webkit-linear-gradient(left,  rgba(250,250,250,1) 0%,rgba(240,112,95,0.3) 100%)
+      // background          linear-gradient(to right,  rgba(250,250,250,1) 0%,rgba(240,112,95,0.3) 100%)
+      background rgb(250,250,250)
+      background -moz-linear-gradient(left,  rgba(250,250,250,1) 0%, rgba(240,112,95,1) 50%, rgba(250,250,250,1) 100%)
+      background -webkit-gradient(linear, left top, right top, color-stop(0%,rgba(250,250,250,1)), color-stop(50%,rgba(240,112,95,1)), color-stop(100%,rgba(250,250,250,1)))
+      background -webkit-linear-gradient(left,  rgba(250,250,250,1) 0%,rgba(240,112,95,1) 50%,rgba(250,250,250,1) 100%)
+      background linear-gradient(to right,  rgba(250,250,250,1) 0%,rgba(240,112,95,1) 50%,rgba(250,250,250,1) 100%)
+
+      size                auto 1px
+      overflow            visible
+      margin              0 33px 0 75px
+      borderBox()
+      &:after
+        text-align        center
+        width             90px
+        font-size         11px
+        top               -7px
+        right             50%
+        margin-right      -30px
+        padding           2px 0
+        content           'NEW REPLIES'
+        color             #fafafa
+        bg                color #f0705f
+        rounded           10px
+        abs()
+
     .kdlistitemview-comment
       background          #f7f7f7
       border-top          1px solid #e9e9e9
