@@ -215,3 +215,17 @@ func TestMarkedAsTroll(t *testing.T) {
 
 	})
 }
+
+func createPrivateMessageChannel(accountId int64, groupName string) (int64, error) {
+	// create first private channel
+	cmc, err := rest.SendPrivateMessage(
+		accountId,
+		"this is a body for private message @sinan",
+		groupName,
+	)
+	if err != nil {
+		return 0, err
+	}
+
+	return cmc.Channel.Id, nil
+}
