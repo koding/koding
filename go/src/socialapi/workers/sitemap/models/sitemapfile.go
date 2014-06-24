@@ -1,6 +1,7 @@
 package models
 
 import (
+	"encoding/xml"
 	"errors"
 	"time"
 
@@ -60,4 +61,10 @@ func (f *SitemapFile) Some(data interface{}, q *bongo.Query) error {
 
 func (f *SitemapFile) Fetch() error {
 	return bongo.B.Fetch(f)
+}
+
+func (f *SitemapFile) UnmarshalBlob() (*ItemSet, error) {
+	set := new(ItemSet)
+
+	return set, xml.Unmarshal(f.Blob, set)
 }
