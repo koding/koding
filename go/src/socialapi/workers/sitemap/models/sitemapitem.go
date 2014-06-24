@@ -15,6 +15,7 @@ const (
 	STATUS_UPDATE        = "update"
 )
 
+// Used as a auxiliary for forming xml data
 type SitemapItem struct {
 	Id           int64
 	TypeConstant string
