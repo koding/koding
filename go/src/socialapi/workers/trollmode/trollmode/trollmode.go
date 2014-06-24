@@ -211,19 +211,50 @@ func (c *Controller) markParticipations(account *models.Account) error {
 
 }
 
-func (t *Controller) markMessagesAsTroll(cm *models.ChannelMessage, messageIds []int64) error {
-	if len(messageIds) == 0 {
-		return nil
+func (c *Controller) markInteractions(account *models.Account) error {
+	var processCount = 100
+	var skip = 0
+	var erroredInteractions []models.Interaction
+
+	i := models.NewInteraction()
+	q := &bongo.Query{
+		Selector: map[string]interface{}{
+			"account_id": account.Id,
+			// 0 means safe
+			"meta_bits": models.Safe,
+		},
+		Pagination: *bongo.NewPagination(processCount, 0),
 	}
 
-	for _, messageId := range messageIds {
-		err := cm.UpdateMulti(
-			map[string]interface{}{"id": messageId},
-			map[string]interface{}{"meta_bits": 1},
-		)
-		if err != nil {
+	for {
+		// set skip everytime here
+		q.Pagination.Skip = skip
+		var interactions []models.Interaction
+		if err := i.Some(&interactions, q); err != nil {
 			return err
 		}
+
+		// we processed all channel participants
+		if len(interactions) <= 0 {
+			break
+		}
+
+		for i, interaction := range interactions {
+			interaction.MetaBits.MarkTroll()
+			if err := interaction.Update(); err != nil {
+				c.log.Error(err.Error())
+				erroredInteractions = append(erroredInteractions, interactions[i])
+			}
+		}
+
+		// increment skip count
+		skip = processCount + skip
+	}
+
+	if len(erroredInteractions) != 0 {
+		err := errors.New(fmt.Sprintf("some errors: %v", erroredInteractions))
+		c.log.Error(err.Error())
+		return err
 	}
 
 	return nil
