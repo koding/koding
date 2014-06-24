@@ -1,16 +1,16 @@
 package api
 
 import (
+	"encoding/xml"
 	"errors"
-	"io/ioutil"
 	"net/http"
-	"os"
-	"path"
 	"socialapi/config"
 	"socialapi/workers/helper"
 	"socialapi/workers/sitemap/common"
 	"socialapi/workers/sitemap/models"
+	"strings"
 
+	"github.com/jinzhu/gorm"
 	"github.com/rcrowley/go-tigertonic"
 
 	"github.com/koding/bongo"
@@ -57,48 +57,31 @@ func Generate(w http.ResponseWriter, _ *http.Request) {
 }
 
 func Fetch(w http.ResponseWriter, r *http.Request) {
-	wd, err := os.Getwd()
-	if err != nil {
-		return
-	}
 	fileName := r.URL.Query().Get("name")
-
-	n := path.Join(wd, config.Get().Sitemap.XMLRoot, fileName)
-	if _, err := os.Stat(n); os.IsNotExist(err) {
-		helper.MustGetLogger().Error("File not found: %s", n)
-		http.Error(w, ErrFetch.Error(), http.StatusBadRequest)
-		return
-	}
-	input, err := ioutil.ReadFile(n)
-	if err != nil {
-		helper.MustGetLogger().Error("File cannot be read: %s", err)
+	names := strings.Split(fileName, ".")
+	if len(names) == 0 {
+		helper.MustGetLogger().Error("Name does not validated: %s", fileName)
 		http.Error(w, ErrFetch.Error(), http.StatusBadRequest)
 		return
 	}
 
-	w.Header().Set("Content-Type", "application/xml")
-	w.Write(input)
-}
-
-func (h *SitemapHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	fileName = names[0]
 	sf := new(models.SitemapFile)
-
-	files := make([]models.SitemapFile, 0)
-	query := &bongo.Query{}
-
-	if err := sf.Some(&files, query); err != nil {
-		helper.MustGetLogger().Error("An error occurred while fetching files: %s", err)
-		return //response.NewBadRequest(ErrFetch)
+	if err := sf.ByName(fileName); err != nil {
+		if err == gorm.RecordNotFound {
+			helper.MustGetLogger().Error("File not found: %s", fileName)
+			http.Error(w, ErrFetch.Error(), http.StatusBadRequest)
+			return
+		}
 	}
 
-	set := models.NewSitemapSet(files, config.Get().Uri)
-
-	res, err := common.Marshal(set)
-	if err != nil {
-		helper.MustGetLogger().Error("An error occurred while marshaling files: %s", err)
-		return //response.NewBadRequest(ErrFetch)
+	if sf.Blob == nil || len(sf.Blob) == 0 {
+		helper.MustGetLogger().Error("Blob empty: %s", fileName)
+		http.Error(w, ErrFetch.Error(), http.StatusBadRequest)
+		return
 	}
 
+	header := []byte(xml.Header)
 	w.Header().Set("Content-Type", "application/xml")
-	w.Write(res)
+	w.Write(append(header, sf.Blob...))
 }
