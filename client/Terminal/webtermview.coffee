@@ -86,7 +86,7 @@ class WebTermView extends KDView
 
 
   getMachine: -> @getOption 'machine'
-  getKite:    -> @getMachine().kites.klient
+  getKite: -> @getMachine().getBaseKite()
 
 
   webtermConnect:(mode = 'create')->
