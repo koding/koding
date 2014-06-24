@@ -1,31 +1,44 @@
 FROM koding/base
 MAINTAINER Devrim Yasar <devrim@koding.com>
 
+USER root
 ENV HOME /root
-ENV KODING_DOCKER yes
+ENV DOCKER yes
+ENV KODING_PROJECT_ROOT "/opt/koding"
+ENV BLD /opt/koding/install/BUILD_DATA
 
 RUN echo "UTC" > /etc/timezone
 RUN dpkg-reconfigure -f noninteractive tzdata
 
-ADD .ssh /root/.ssh
-RUN chmod 600 /root/.ssh/id_rsa
-
 # INSTALL AND BUILD CODE
 RUN echo installing now.
 WORKDIR /opt
+
+ADD BUILD_DATA/.ssh /root/.ssh
+RUN chmod 600 /root/.ssh/id_rsa
+
 RUN git clone git@git.sj.koding.com:koding/koding.git
+ADD BUILD_DATA /opt/koding/install/BUILD_DATA
+
 WORKDIR /opt/koding
+RUN ls -lha /opt/koding
 
-ADD BUILD_DATA /BUILD_DATA
 
-RUN git checkout `cat /BUILD_DATA/BUILD_BRANCH`
+RUN ./configure -c `cat $BLD/BUILD_CONFIG` -r `cat $BLD/BUILD_REGION` -h `cat $BLD/BUILD_HOSTNAME` -b `cat $BLD/BUILD_BRANCH` -p /opt/koding
+
+RUN git checkout `cat $BLD/BUILD_BRANCH`
 RUN git submodule init
 RUN git submodule update
+
 RUN npm i gulp stylus coffee-script -g --silent
 RUN npm i --unsafe-perm --silent
 
-RUN ./build -c `cat /BUILD_DATA/BUILD_CONFIG` -r `cat /BUILD_DATA/BUILD_REGION` -h `cat /BUILD_DATA/BUILD_HOSTNAME` -b `cat /BUILD_DATA/BUILD_BRANCH`
 
-RUN go run /opt/koding/go/src/github.com/koding/kite/kontrol/kontrol/main.go -init -public-key /opt/koding/certs/test_kontrol_rsa_public.pem -private-key /opt/koding/certs/test_kontrol_rsa_private.pem -username koding  -kontrol-url "http://`cat /BUILD_DATA/BUILD_HOSTNAME`:4000" 
+RUN ./build
 
-ENTRYPOINT ["/opt/koding/run"]
+RUN go run /opt/koding/go/src/github.com/koding/kite/kontrol/kontrol/main.go -init -public-key /opt/koding/certs/test_kontrol_rsa_public.pem -private-key /opt/koding/certs/test_kontrol_rsa_private.pem -username koding  -kontrol-url "http://`cat $BLD/BUILD_HOSTNAME`:4000" 
+
+RUN ls -lha /opt/koding/server
+
+# RUN cat $BLD/BUILD_CONFIG.json
+# ENTRYPOINT ["/opt/koding/run"]

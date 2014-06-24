@@ -1,6 +1,4 @@
 #!/bin/bash
 
-rm ./BUILD_CONFIG.json
-rm ./website/index.html
+./go/build.sh
 coffee ./build.coffee $@
-

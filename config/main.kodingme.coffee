@@ -3,11 +3,16 @@ nodePath        = require 'path'
 deepFreeze      = require 'koding-deep-freeze'
 hat             = require 'hat'
 {argv}          = require 'optimist'
+path            = require 'path'
 
-hostname        = argv.h
-region          = argv.r
-configName      = argv.c
-environment     = argv.e
+BLD = path.join __dirname,"../install/BUILD_DATA"
+
+hostname        = (fs.readFileSync BLD+"/BUILD_HOSTNAME",   'utf8').replace("\n","")
+region          = (fs.readFileSync BLD+"/BUILD_REGION",      'utf8').replace("\n","")
+configName      = (fs.readFileSync BLD+"/BUILD_CONFIG",      'utf8').replace("\n","")
+environment     = (fs.readFileSync BLD+"/BUILD_ENVIRONMENT", 'utf8').replace("\n","")
+projectRoot     = (fs.readFileSync BLD+"/BUILD_PROJECT_ROOT",'utf8').replace("\n","")
+
 
 rabbitmq        =
   login         : "guest"
@@ -25,8 +30,7 @@ version         = "0.0.1"
 mongo           = "#{customDomain.local_}:27017/koding"
 mongoKontrol    = "#{customDomain.local_}:27017/kontrol"
 
-projectRoot     = nodePath.join __dirname, '..'
-if process.env['KODING_DOCKER'] is yes then projectRoot     = "/opt/koding"
+
 
 
 socialQueueName = "koding-social-#{configName}"
@@ -54,7 +58,7 @@ regions         =
 cookieMaxAge = 1000 * 60 * 60 * 24 * 14 # two weeks
 cookieSecure = no
 
-module.exports =
+module.exports = __ =
   environment   : environment
   regions       : regions
   region        : region
@@ -532,3 +536,6 @@ module.exports =
     secure        : cookieSecure
   troubleshoot    :
     recipientEmail: "can@koding.com"
+
+
+

@@ -1,0 +1,17 @@
+#!/bin/bash
+
+rm ./install/BUILD_DATA/BUILD_CONFIG.json > /dev/null
+rm ./website/index.html > /dev/null
+rm -rf ./go/bin
+rm -rf ./go/pkg
+
+coffee ./configure.coffee $@
+
+echo compressing current koding...
+
+zip -r -u -q ./install/koding.zip .
+
+echo done.
+
+cd install
+docker build .
