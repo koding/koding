@@ -93,8 +93,8 @@ class ActivitySidebar extends KDCustomScrollView
     # we need to get the channel instead of the post
     # the other case of reply being added is followed post
     if typeConstant is 'privatemessage'
-      type = 'channel'
-      id   = update.channel.id
+      type    = 'channel'
+      id      = update.channel.id
 
     # so we fetch respectively
     socialapi.cacheable type, id, (err, data) =>
@@ -118,7 +118,7 @@ class ActivitySidebar extends KDCustomScrollView
       return KD.showError err  if err
 
       item = @addItem channel, yes
-      item.setUnreadCount unreadCount or 1
+      item.setUnreadCount unreadCount
 
 
   accountRemovedFromChannel: (update) ->

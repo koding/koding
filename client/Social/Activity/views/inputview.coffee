@@ -82,17 +82,18 @@ class ActivityInputView extends KDTokenizedInput
   handleEnter: (event) ->
     return @insertNewline()  if event.shiftKey
 
-    position = @getPosition()
+    position = @getPosition() + 1
+    value    = @getValue()
     read     = 0
-    for part, index in @getValue().split '```'
-      blockquote = index %% 2 is 1
-      read += part.length + (if blockquote then 6 else 0)
-      continue  if position > read
 
-      if blockquote
-      then @insertNewline()
-      else @emit 'Enter'
-      break
+    for part, index in value.split '```'
+      blockquote = index %% 2 is 1
+      read += part.length + (if blockquote then 0 else 3)
+      break  if read > position
+
+    if blockquote
+    then @insertNewline()
+    else @emit 'Enter'
 
   insertNewline: ->
     document.execCommand 'insertText', no, "\n"

@@ -530,14 +530,19 @@ div.kdtooltip.activity-helper
       opacity         .5
 
 
-  // &.edit-widget
-  //   .input-view
-  //     button[type=submit]
-  //       size          auto auto
-  //       right         initial
-  //       bottom        initial
-  //       padding       0 10px
-  //       rel()
+  &.edit-widget
+    margin            0
+    padding           12px
+
+    .input-view >div
+      padding         11px
+      border          1px solid #e9e9e9
+      rounded         0
+      font-size       14px
+      line-height     19px
+      color           #4c4c4c
+      opacity         .99
+
 
 span.collapsedtext
   borderBox()
@@ -733,12 +738,11 @@ span.collapsedtext
       position            relative
 
       .avatarview
-        abs               12px 0 0 12px
+        abs               14px 0 0 14px
         border            1px solid #e4e4e4
         display           block
         z-index           2
-        size              42px 42px
-        borderBox()
+        size              40px 40px
 
       textarea
         background        #fff
@@ -772,6 +776,36 @@ span.collapsedtext
         margin          0 10px 0 16px
         vertical-align  middle
 
+    .new-messages
+      // bg                  color rgba(240, 112, 95, 0.3)
+      // background          -moz-linear-gradient(left,  rgba(250,250,250,1) 0%, rgba(240,112,95,0.3) 100%)
+      // background          -webkit-gradient(linear, left top, right top, color-stop(0%,rgba(250,250,250,1)), color-stop(100%,rgba(240,112,95,0.3)))
+      // background          -webkit-linear-gradient(left,  rgba(250,250,250,1) 0%,rgba(240,112,95,0.3) 100%)
+      // background          linear-gradient(to right,  rgba(250,250,250,1) 0%,rgba(240,112,95,0.3) 100%)
+      background rgb(250,250,250)
+      background -moz-linear-gradient(left,  rgba(250,250,250,1) 0%, rgba(240,112,95,1) 50%, rgba(250,250,250,1) 100%)
+      background -webkit-gradient(linear, left top, right top, color-stop(0%,rgba(250,250,250,1)), color-stop(50%,rgba(240,112,95,1)), color-stop(100%,rgba(250,250,250,1)))
+      background -webkit-linear-gradient(left,  rgba(250,250,250,1) 0%,rgba(240,112,95,1) 50%,rgba(250,250,250,1) 100%)
+      background linear-gradient(to right,  rgba(250,250,250,1) 0%,rgba(240,112,95,1) 50%,rgba(250,250,250,1) 100%)
+
+      size                auto 1px
+      overflow            visible
+      margin              0 33px 0 75px
+      borderBox()
+      &:after
+        text-align        center
+        width             90px
+        font-size         11px
+        top               -7px
+        right             50%
+        margin-right      -30px
+        padding           2px 0
+        content           'NEW REPLIES'
+        color             #fafafa
+        bg                color #f0705f
+        rounded           10px
+        abs()
+
     .kdlistitemview-comment
       background          #f7f7f7
       border-top          1px solid #e9e9e9
@@ -790,11 +824,10 @@ span.collapsedtext
 
       .avatarview
         display           block
-        size              42px 42px
+        size              40px 40px
         abs               12px 0 0 15px
         rounded           50%
         border            1px solid #e4e4e4
-        borderBox()
 
       a.profile
         font-size         14px
@@ -865,6 +898,14 @@ span.collapsedtext
           color           #cbcbcb
           text-align      right
           margin          4px 10px 0 0
+
+  &.editing
+    .activity-content-wrapper
+      > article
+        display           none
+
+      .activity-actions
+        display           none
 
 
 .activity-item.preview
@@ -1796,15 +1837,49 @@ body.group.members
 
   .formline.button-field
 
-    button.kdbutton.message-send
-      size                  77px 34px
+    button.kdbutton
       text-align            center
       rounded               8px
+
+    button.kdbutton.message-send
+      size                  77px 34px
       span.icon
         display             inline-block
         size                20px 20px
         r-sprite            activity 'paper-plane'
 
+// new private message modal
+.kdmodal.private-message.add-participant
+
+  .formline.recipient
+    border        1px solid transparent
+
+  .close-icon
+    hidden()
+
+  .kdmodal-inner
+    margin        20px
+
+  .chat-heads
+    display       block
+    padding       0 9px
+    borderBox()
+    rel()
+
+  .formline.button-field
+
+    button.kdbutton.add-to-convo
+      size                  100% 43px
+      span.button-title
+        line-height         43px
+        font-size           14px
+        padding-left        30px
+      span.icon
+        margin              14px 0 0 0
+        display             inline-block
+        size                20px 20px
+        r-sprite            activity 'add-participant'
+        abs()
 
 .kdautocomplete.listview-wrapper.private-message
 

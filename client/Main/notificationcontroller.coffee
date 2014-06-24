@@ -181,7 +181,7 @@ class NotificationController extends KDObject
         when "leave"
           setTitle "#{actorName} has left <a href='/#{target.slug}'>#{target.title}</a>."
         when "mention"
-          setTitle "#{actorName} mentioned you in a comment"
+          setTitle "#{actorName} mentioned you in a post."
 
       # when "newMessage"
       #   @emit "NewMessageArrived"

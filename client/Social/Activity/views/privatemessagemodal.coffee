@@ -122,15 +122,19 @@ class PrivateMessageModal extends KDModalViewWithForms
 
     {JAccount}   = KD.remote.api
     {inputValue} = args
+    {blacklist}  = @getOptions() or []
 
     val = inputValue.replace /^@/, ''
 
-    return  if inputValue.length < 4
+    return @autoComplete.showNoDataFound()  if inputValue.length < 4
 
-    query = 'profile.nickname': val
+    query =
+      'profile.nickname' : val
+
+    query._id = $nin : blacklist  if blacklist
 
     JAccount.one query, (err, account) =>
-      if not account or KD.isMine account
+      if not account or KD.isMine(account)
       then @autoComplete.showNoDataFound()
       else callback [account]
 
@@ -156,8 +160,8 @@ class PrivateMessageModal extends KDModalViewWithForms
     input  = @autoComplete.getView()
     [item] = (item for item in @autoComplete.itemWrapper.getSubViews() when item.getData() is lastItemData)
 
-    reset = ->
-      input.setPlaceHolder 'Type a username to start your conversation...'
+    reset = =>
+      input.setPlaceHolder @autoComplete.getOptions().placeholder
       item.unsetClass 'selected'
       placeholderIsChanged_ = no
 

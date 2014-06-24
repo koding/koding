@@ -6,12 +6,13 @@ import (
 	"socialapi/models"
 )
 
-func SendPrivateMessage(senderId int64, body string, groupName string) (*models.ChannelContainer, error) {
+func SendPrivateMessage(senderId int64, body string, groupName string, recipients []string) (*models.ChannelContainer, error) {
 
 	pmr := models.PrivateMessageRequest{}
 	pmr.AccountId = senderId
 	pmr.Body = body
 	pmr.GroupName = groupName
+	pmr.Recipients = recipients
 
 	url := "/privatemessage/send"
 	res, err := marshallAndSendRequest("POST", url, pmr)
