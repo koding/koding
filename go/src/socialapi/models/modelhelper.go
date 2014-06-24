@@ -60,11 +60,3 @@ func RandomName() string {
 func ZeroDate() time.Time {
 	return time.Date(1, time.January, 1, 0, 0, 0, 0, time.UTC)
 }
-
-func updateTrollModeBit(metaBits MetaBits) MetaBits {
-	if metaBits != 0 {
-		return metaBits
-	}
-
-	return 1
-}
