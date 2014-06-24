@@ -372,6 +372,10 @@ class VirtualizationController extends KDController
         KD.useNewKites = useNewKites
         localStorage.useNewKites = if useNewKites then "1" else "0"
         KD.singletons.kontrol.reauthenticate()  if useNewKites
+        if info.useWebSockets
+          KD.useWebSockets = yes
+        else
+          localStorage.disableWebSocket = 'true'
         resolve useNewKites
 
   handleFetchedVms: (vms, callback) ->
