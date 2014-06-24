@@ -10,6 +10,8 @@ import (
 	"strconv"
 	"testing"
 	"time"
+
+	"github.com/koding/bongo"
 	. "github.com/smartystreets/goconvey/convey"
 	"labix.org/v2/mgo/bson"
 )
@@ -32,6 +34,19 @@ func TestMarkedAsTroll(t *testing.T) {
 		adminUser.OldId = bson.NewObjectId().Hex()
 		adminUser, err = rest.CreateAccount(adminUser)
 		tests.ResultedWithNoErrorCheck(adminUser, err)
+
+		// create troll user
+		trollUser := models.NewAccount()
+		trollUser.OldId = bson.NewObjectId().Hex()
+		trollUser, err := rest.CreateAccount(trollUser)
+		tests.ResultedWithNoErrorCheck(trollUser, err)
+		trollUser.IsTroll = true
+
+		// create normal user
+		normalUser := models.NewAccount()
+		normalUser.OldId = bson.NewObjectId().Hex()
+		normalUser, err = rest.CreateAccount(normalUser)
+		tests.ResultedWithNoErrorCheck(normalUser, err)
 
 		// create groupName
 		rand.Seed(time.Now().UnixNano())
