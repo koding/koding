@@ -285,7 +285,7 @@ func (c *ChannelParticipant) FetchParticipatedChannelIds(a *Account, q *request.
 
 func (c *ChannelParticipant) FetchParticipantCount() (int, error) {
 	if c.ChannelId == 0 {
-		return 0, errors.New("Channel.Id is not set")
+		return 0, errors.New("channel Id is not set")
 	}
 
 	return c.Count("channel_id = ?", c.ChannelId)
