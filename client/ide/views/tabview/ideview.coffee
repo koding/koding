@@ -2,6 +2,8 @@ class IDE.IDEView extends IDE.WorkspaceTabView
 
   constructor: (options = {}, data) ->
 
+    options.tabViewClass = AceApplicationTabView
+
     super options, data
 
     @openFiles = []
@@ -57,6 +59,7 @@ class IDE.IDEView extends IDE.WorkspaceTabView
     paneOptions =
       name      : file.name
       editor    : editorPane
+      aceView   : editorPane.aceView # this is required for ace app. see AceApplicationTabView:6
 
     editorPane.once 'EditorIsReady', ->
       editorPane.aceView.ace.on 'ace.change.cursor', (cursor) ->
