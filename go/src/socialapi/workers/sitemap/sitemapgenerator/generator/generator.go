@@ -152,6 +152,7 @@ func (c *Controller) updateFile(container *models.ItemContainer) error {
 	sf.Blob = v
 
 	if newItem {
+		sf.Name = c.fileName
 		return sf.Create()
 	}
 
