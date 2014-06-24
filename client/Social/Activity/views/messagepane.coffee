@@ -25,6 +25,32 @@ class MessagePane extends KDTabPaneView
       @glance()  if focused and @active
 
 
+    if typeConstant in ['privatemessage', 'post']
+
+      @listController.getListView().once 'ItemWasAdded', =>
+
+        listView = @listController.getListItems().first.commentBox.controller.getListView()
+        listView.on 'ItemWasAdded', @bound 'scrollDown'
+
+    else
+
+      @listController.getListView().on 'ItemWasAdded', @bound 'scrollUp'
+
+
+  scrollDown: ->
+
+    return  unless @active
+
+    KD.utils.defer -> window.scrollTo 0, document.body.scrollHeight
+
+
+  scrollUp: ->
+
+    return  unless @active
+
+    window.scrollTo 0, 0
+
+
   createParticipantsView : ->
 
     {participantsPreview} = @getData()
