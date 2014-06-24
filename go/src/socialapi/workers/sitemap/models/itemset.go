@@ -20,8 +20,8 @@ func NewItemSet() *ItemSet {
 
 func (s *ItemSet) Populate(c *ItemContainer) {
 	s.addItems(c)
-	s.deleteItems(c)
 	s.updateItems(c)
+	s.deleteItems(c)
 }
 
 func (s *ItemSet) addItems(c *ItemContainer) {
