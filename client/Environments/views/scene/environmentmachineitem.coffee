@@ -51,10 +51,10 @@ class EnvironmentMachineItem extends EnvironmentItem
       click    : @bound "openTerminal"
 
     if status.state in [ NotInitialized, Terminated ]
-      @addSubView initView = new InitializeMachineView
-      initView.once "Initialize", ->
+      @addSubView @initView = new InitializeMachineView
+      @initView.on "Initialize", ->
         computeController.build machine
-        initView.destroy()
+        @setClass 'hidden-all'
 
     computeController.on "build-#{machine._id}",   @bound 'invalidateMachine'
     computeController.on "destroy-#{machine._id}", @bound 'invalidateMachine'
@@ -68,30 +68,34 @@ class EnvironmentMachineItem extends EnvironmentItem
         if event.percentage < 100 then @setClass 'loading busy'
         else return KD.utils.wait 1000, =>
           @unsetClass 'loading busy'
-          @updateState event.status
+          @updateState event
 
       else
 
         @unsetClass 'loading busy'
 
-      @updateState event.status
-
-      if event.reverted
-        warn "State reverted!"
+      @updateState event
 
     computeController.info machine
 
 
-  updateState:(status)->
+  updateState:(event)->
+
+    {status, reverted} = event
 
     return unless status
 
-    {Running, Starting} = Machine.State
+    {Running, Starting, NotInitialized, Terminated} = Machine.State
+
+    if reverted
+      warn "State reverted!"
+      if status in [ NotInitialized, Terminated ] and @initView?
+        @initView.unsetClass 'hidden-all'
 
     @unsetClass stateClasses
     @setClass status.toLowerCase()
 
-    if status in [Running, Starting]
+    if status in [ Running, Starting ]
     then @statusToggle.setOn no
     else @statusToggle.setOff no
 
