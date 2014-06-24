@@ -72,3 +72,7 @@ func (f *SitemapFile) UnmarshalBlob() (*ItemSet, error) {
 
 	return set, xml.Unmarshal(f.Blob, set)
 }
+
+func (f *SitemapFile) Delete() error {
+	return bongo.B.Delete(f)
+}
