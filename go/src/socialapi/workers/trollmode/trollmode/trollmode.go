@@ -171,44 +171,56 @@ func (c *Controller) markParticipations(account *models.Account) error {
 
 	return nil
 }
+
+func (c *Controller) markMessages(account *models.Account) error {
+	var processCount = 100
+	var skip = 0
+	var erroredMessages []models.ChannelMessage
+
 	cm := models.NewChannelMessage()
-	totalMessageCount, err := cm.FetchTotalMessageCount(query)
-	if err != nil {
+	q := &bongo.Query{
+		Selector: map[string]interface{}{
+			"account_id": account.Id,
+			// 0 means safe
+			// "meta_bits": models.Safe,
+		},
+		Pagination: *bongo.NewPagination(processCount, 0),
+	}
+
+	for {
+
+		// set skip everytime here
+		q.Pagination.Skip = skip
+		var messages []models.ChannelMessage
+		if err := cm.Some(&messages, q); err != nil {
+			return err
+		}
+
+		// we processed all channel participants
+		if len(messages) <= 0 {
+			break
+		}
+
+		for i, message := range messages {
+			message.MetaBits.MarkTroll()
+			// ChannelMessage update only updates body of the message
+			if err := bongo.B.Update(message); err != nil {
+				c.log.Error(err.Error())
+				erroredMessages = append(erroredMessages, messages[i])
+			}
+		}
+
+		// increment skip count
+		skip = processCount + skip
+	}
+
+	if len(erroredMessages) != 0 {
+		err := errors.New(fmt.Sprintf("some errors: %v", erroredMessages))
+		c.log.Error(err.Error())
 		return err
 	}
 
-	// no need to continue if user doesnt have any channel message
-	if totalMessageCount == 0 {
-		t.log.Notice("Account %d doesnt have any post messages", accountId)
-		return nil
-	}
-
-	processCount := 100
-
-	for i := 0; totalMessageCount <= 0; {
-		query.Limit = processCount
-		query.Skip = processCount * i
-
-		messageIds, err := cm.FetchMessageIds(query)
-		if err != nil {
-			return err
-		}
-
-		if len(messageIds) == 0 {
-			return nil
-		}
-
-		err = t.markMessagesAsTroll(cm, messageIds)
-		if err != nil {
-			return err
-		}
-
-		totalMessageCount = totalMessageCount - processCount
-		i++
-	}
-
 	return nil
-
 }
 
 func (c *Controller) markInteractions(account *models.Account) error {
