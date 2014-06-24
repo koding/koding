@@ -22,7 +22,7 @@ rabbitmq        =
 customDomain    =
   public        : "http://#{hostname}"
   public_       : "#{hostname}"
-  local         : "http://127.0.0.1"
+  local         : "http://0.0.0.0"
   local_        : "localhost"
   port          : 80
 

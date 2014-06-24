@@ -20,6 +20,10 @@ RUN chmod 600 /root/.ssh/id_rsa
 RUN git clone git@git.sj.koding.com:koding/koding.git
 ADD BUILD_DATA /opt/koding/install/BUILD_DATA
 
+RUN `cat $BLD/BUILD_HOSTNAME` >/etc/hostname
+RUN hostname `cat $BLD/BUILD_HOSTNAME`
+
+
 WORKDIR /opt/koding
 RUN ls -lha /opt/koding
 
