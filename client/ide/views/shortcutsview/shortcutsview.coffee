@@ -7,7 +7,8 @@ class IDE.ShortcutsView extends KDView
     super options, data
 
     shortcuts = @getShortcuts()
-    isMacOS   = navigator.platform.indexOf('Mac') is 0
+    apples    = [ "MacIntel", "MacPPC", "Mac68K", "Macintosh", "iPad" ]
+    isApple   = apples.indexOf(navigator.platform) > -1
 
     for title, mapping of shortcuts
       container = new KDCustomHTMLView
@@ -15,7 +16,7 @@ class IDE.ShortcutsView extends KDView
         partial : "<p>#{title}</p>"
 
       for shortcut, description of mapping
-        metaKey  = if isMacOS then  'Cmd' else 'Ctrl'
+        metaKey  = if isApple then  'Cmd' else 'Ctrl'
         shortcut = shortcut.replace 'Meta', metaKey
 
         container.addSubView new IDE.ShortcutView {}, { shortcut, description }
