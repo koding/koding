@@ -87,17 +87,38 @@ func TestMarkedAsTroll(t *testing.T) {
 			So(controller.MarkedAsTroll(a), ShouldBeNil)
 		})
 
-		Convey("messages of a troll should be processed without any error", func() {
-			trollUser := models.NewAccount()
-			trollUser.OldId = bson.NewObjectId().Hex()
-			trollUser, err := rest.CreateAccount(trollUser)
-			tests.ResultedWithNoErrorCheck(trollUser, err)
+		/////////////////////////  marking all content ////////////////////////
+		// mark channel
+		Convey("private channels of a troll should be marked as exempt", func() {
+			// fetch from api, because we need to test system from there
+			privatemessageChannelId1, err := createPrivateMessageChannel(trollUser.Id, groupName)
+			So(err, ShouldBeNil)
+			So(privatemessageChannelId1, ShouldBeGreaterThan, 0)
 
-			post, err := rest.CreatePost(groupChannel.Id, trollUser.Id)
-			tests.ResultedWithNoErrorCheck(post, err)
+			privatemessageChannelId2, err := createPrivateMessageChannel(trollUser.Id, groupName)
+			So(err, ShouldBeNil)
+			So(privatemessageChannelId2, ShouldBeGreaterThan, 0)
 
-			post, err = rest.CreatePost(groupChannel.Id, trollUser.Id)
-			tests.ResultedWithNoErrorCheck(post, err)
+			So(controller.markChannels(trollUser), ShouldBeNil)
+
+			// fetch channel from db
+			c1 := models.NewChannel()
+			err = c1.ById(privatemessageChannelId1)
+			So(err, ShouldBeNil)
+			So(c1.Id, ShouldEqual, privatemessageChannelId1)
+			// check here
+			So(c1.MetaBits.IsTroll(), ShouldBeTrue)
+
+			// fetch channel from db
+			c2 := models.NewChannel()
+			err = c2.ById(privatemessageChannelId2)
+			So(err, ShouldBeNil)
+			So(c2.Id, ShouldEqual, privatemessageChannelId2)
+
+			// check here
+			So(c2.MetaBits.IsTroll(), ShouldBeTrue)
+		})
+
 		})
 
 	})
