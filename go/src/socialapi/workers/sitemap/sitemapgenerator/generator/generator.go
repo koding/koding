@@ -2,17 +2,15 @@ package generator
 
 import (
 	"encoding/xml"
-	"fmt"
-	"io/ioutil"
-	"os"
-	"path"
+
 	"socialapi/config"
 	"socialapi/workers/helper"
 	"socialapi/workers/sitemap/common"
 	"socialapi/workers/sitemap/models"
 
-	"github.com/garyburd/redigo/redis"
+	"github.com/jinzhu/gorm"
 	"github.com/koding/logging"
+	"github.com/koding/redis"
 	"github.com/robfig/cron"
 )
 
@@ -37,10 +35,11 @@ func New(log logging.Logger) (*Controller, error) {
 	conf := *config.Get()
 	conf.Redis.DB = conf.Sitemap.RedisDB
 
+	redisConn := helper.MustInitRedisConn(&conf)
 	c := &Controller{
 		log:          log,
 		fileSelector: CachedFileSelector{},
-		redisConn:    helper.MustInitRedisConn(conf),
+		redisConn:    redisConn,
 	}
 
 	return c, c.initCron()
@@ -93,19 +92,9 @@ func (c *Controller) generate() {
 
 		container := c.buildContainer(els)
 
-		s, err := c.getCurrentSet()
-		if err != nil {
-			c.log.Error("Could not get current set: %s", err)
-			continue
-		}
-
-		if err := c.updateFile(container, s); err != nil {
+		if err := c.updateFile(container); err != nil {
 			c.log.Critical("Could not update file: %s", err)
 			continue
-		}
-
-		if err := new(models.SitemapFile).Upsert(name); err != nil {
-			c.log.Error("Could not update file meta: %s", err)
 		}
 
 	}
@@ -136,28 +125,37 @@ func (c *Controller) fetchElements() ([]*models.SitemapItem, error) {
 	}
 }
 
-func (c *Controller) getCurrentSet() (*models.ItemSet, error) {
-	wd, err := os.Getwd()
-	if err != nil {
-		return nil, err
+func (c *Controller) updateFile(container *models.ItemContainer) error {
+	sf := new(models.SitemapFile)
+	newItem := false
+	err := sf.ByName(c.fileName)
+	if err == gorm.RecordNotFound {
+		newItem = true
 	}
-	// check if this is a new sitemap file or not
-	n := fmt.Sprintf("%s.xml", c.fileName)
-	n = path.Join(wd, config.Get().Sitemap.XMLRoot, n)
-	if _, err := os.Stat(n); os.IsNotExist(err) {
-		return models.NewItemSet(), nil
-	}
-	input, err := ioutil.ReadFile(n)
-	if err != nil {
-		return nil, err
+
+	if err != nil && !newItem {
+		return err
 	}
 
 	s := models.NewItemSet()
-	if err := xml.Unmarshal(input, s); err != nil {
-		return nil, err
+	if !newItem && len(sf.Blob) > 0 {
+		if err := xml.Unmarshal(sf.Blob, &s); err != nil {
+			return err
+		}
 	}
 
-	return s, nil
+	s.Populate(container)
+	v, err := xml.Marshal(s)
+	if err != nil {
+		return err
+	}
+	sf.Blob = v
+
+	if newItem {
+		return sf.Create()
+	}
+
+	return sf.Update()
 }
 
 func (c *Controller) buildContainer(items []*models.SitemapItem) *models.ItemContainer {
@@ -175,10 +173,4 @@ func (c *Controller) buildContainer(items []*models.SitemapItem) *models.ItemCon
 	}
 
 	return container
-}
-
-func (c *Controller) updateFile(container *models.ItemContainer, set *models.ItemSet) error {
-	set.Populate(container)
-
-	return common.XML(set, c.fileName)
 }
