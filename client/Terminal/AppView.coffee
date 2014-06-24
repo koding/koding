@@ -43,6 +43,9 @@ class WebTermAppView extends JView
     @on "SessionSelected", ({ machine, session })=>
       @createNewTab { machine, session, mode: 'resume' }
 
+    @on "SessionRemoveRequested", ({ machine, session })=>
+      @removeSession { machineId: machine.uid, sessionId: session }
+
     @on 'TerminalStarted', ->
       KD.mixpanel "Open new Webterm, success"
 
@@ -317,8 +320,10 @@ class WebTermAppView extends JView
 
       session: sessionId
 
-    .then (response) ->
-      info 'Terminal session removed from #{machineId} klient kite'
+    .then (response) =>
+
+      info "Terminal session removed from #{machineId} klient kite"
+      @emit 'SessionListChanged'
 
     .catch (err) ->
       warn err
