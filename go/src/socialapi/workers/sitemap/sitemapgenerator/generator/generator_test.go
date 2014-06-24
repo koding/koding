@@ -3,7 +3,6 @@ package generator
 import (
 	"fmt"
 	"math/rand"
-	"os"
 	"socialapi/config"
 	"socialapi/workers/common/runner"
 	"socialapi/workers/helper"
@@ -48,7 +47,6 @@ func TestSitemapGeneration(t *testing.T) {
 		Convey("As a crawler I want to read sitemaps", func() {
 			var els []*models.SitemapItem
 			var container *models.ItemContainer
-			var set *models.ItemSet
 			var err error
 			var firstItem *models.SitemapItem
 			var secondItem *models.SitemapItem
@@ -75,17 +73,15 @@ func TestSitemapGeneration(t *testing.T) {
 					location := fmt.Sprintf("%s/%s", config.Get().Uri, firstItem.Slug)
 					So(container.Add[0].Location, ShouldEqual, location)
 				})
-				Convey("current item set must be empty", func() {
-					set, err = controller.getCurrentSet()
-					So(err, ShouldBeNil)
-					So(len(set.Definitions), ShouldEqual, 0)
-				})
 				Convey("item should be able to added to sitemap", func() {
-					err = controller.updateFile(container, set)
+					err = controller.updateFile(container)
 					So(err, ShouldBeNil)
-					currentSet, err := controller.getCurrentSet()
+					sf := new(models.SitemapFile)
+					err = sf.ByName(TESTFILE)
 					So(err, ShouldBeNil)
-					So(len(currentSet.Definitions), ShouldEqual, 1)
+					set, err := sf.UnmarshalBlob()
+					So(err, ShouldBeNil)
+					So(len(set.Definitions), ShouldEqual, 1)
 				})
 			})
 			Convey("second item should be able to appended to sitemap", func() {
@@ -102,11 +98,12 @@ func TestSitemapGeneration(t *testing.T) {
 				})
 				Convey("item should be appended to current sitemap", func() {
 					container = controller.buildContainer(els)
-					set, err = controller.getCurrentSet()
+					err = controller.updateFile(container)
 					So(err, ShouldBeNil)
-					err = controller.updateFile(container, set)
+					sf := new(models.SitemapFile)
+					err = sf.ByName(TESTFILE)
 					So(err, ShouldBeNil)
-					currentSet, err := controller.getCurrentSet()
+					currentSet, err := sf.UnmarshalBlob()
 					So(err, ShouldBeNil)
 					So(len(currentSet.Definitions), ShouldEqual, 2)
 				})
@@ -129,11 +126,12 @@ func TestSitemapGeneration(t *testing.T) {
 					So(len(container.Update), ShouldEqual, 1)
 				})
 				Convey("item should be updated in sitemap file", func() {
-					set, err = controller.getCurrentSet()
+					err = controller.updateFile(container)
 					So(err, ShouldBeNil)
-					err = controller.updateFile(container, set)
+					sf := new(models.SitemapFile)
+					err = sf.ByName(TESTFILE)
 					So(err, ShouldBeNil)
-					currentSet, err := controller.getCurrentSet()
+					currentSet, err := sf.UnmarshalBlob()
 					So(err, ShouldBeNil)
 					So(len(currentSet.Definitions), ShouldEqual, 2)
 					So(currentSet.Definitions[0].LastModified, ShouldNotBeEmpty)
@@ -157,19 +155,22 @@ func TestSitemapGeneration(t *testing.T) {
 					So(len(container.Update), ShouldEqual, 0)
 				})
 				Convey("item should be deleted from sitemap file", func() {
-					set, err = controller.getCurrentSet()
+					err = controller.updateFile(container)
 					So(err, ShouldBeNil)
-					err = controller.updateFile(container, set)
+					sf := new(models.SitemapFile)
+					err = sf.ByName(TESTFILE)
 					So(err, ShouldBeNil)
-					currentSet, err := controller.getCurrentSet()
+					currentSet, err := sf.UnmarshalBlob()
 					So(err, ShouldBeNil)
 					So(len(currentSet.Definitions), ShouldEqual, 1)
 				})
 			})
 		})
 		Convey("We should be able to tear down suite", func() {
-			testFile := fmt.Sprintf("%s%s", config.Get().Sitemap.XMLRoot, TESTFILE)
-			err := os.Remove(testFile + ".xml")
+			sf := new(models.SitemapFile)
+			err := sf.ByName(TESTFILE)
+			So(err, ShouldBeNil)
+			err = sf.Delete()
 			So(err, ShouldBeNil)
 		})
 	})
