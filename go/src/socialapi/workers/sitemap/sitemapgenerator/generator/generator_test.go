@@ -165,6 +165,32 @@ func TestSitemapGeneration(t *testing.T) {
 					So(len(currentSet.Definitions), ShouldEqual, 1)
 				})
 			})
+			Convey("items must be recovered in case of an error", func() {
+				var thirdItem *models.SitemapItem
+				Convey("updated item must be added by feeder", func() {
+					thirdItem = buildSitemapItem(models.TYPE_ACCOUNT, models.STATUS_ADD)
+
+					err = addSitemapItem(thirdItem)
+					So(err, ShouldBeNil)
+				})
+				Convey("generator should be able to build container", func() {
+					els, err = controller.fetchElements()
+					So(err, ShouldBeNil)
+					So(len(els), ShouldEqual, 1)
+					container = controller.buildContainer(els)
+				})
+				Convey("generator should be able to re-add to next queue in error case", func() {
+					controller.handleError(els)
+					key := common.PrepareNextFileNameCacheKey()
+					member, err := controller.redisConn.PopSetMember(key)
+					So(err, ShouldBeNil)
+					So(member, ShouldEqual, TESTFILE)
+					key = common.PrepareNextFileCacheKey(TESTFILE)
+					member, err = controller.redisConn.PopSetMember(key)
+					So(err, ShouldBeNil)
+					So(member, ShouldNotBeNil)
+				})
+			})
 		})
 		Convey("We should be able to tear down suite", func() {
 			sf := new(models.SitemapFile)

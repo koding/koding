@@ -81,7 +81,8 @@ func (c *Controller) generate() {
 
 		els, err := c.fetchElements()
 		if err != nil {
-			c.log.Error("Could not fetch updated elements: %s", err)
+			c.log.Critical("Could not fetch updated elements: %s", err)
+			c.handleError(els)
 			continue
 		}
 
@@ -93,6 +94,7 @@ func (c *Controller) generate() {
 		container := c.buildContainer(els)
 
 		if err := c.updateFile(container); err != nil {
+			c.handleError(els)
 			c.log.Critical("Could not update file: %s", err)
 			continue
 		}
@@ -100,29 +102,60 @@ func (c *Controller) generate() {
 	}
 }
 
+// handleError re-adds updated items to next file update queue
+func (c *Controller) handleError(items []*models.SitemapItem) {
+	// re-add filename to next queue
+	key := common.PrepareNextFileNameCacheKey()
+	if _, err := c.redisConn.AddSetMembers(key, c.fileName); err != nil {
+		c.log.Critical("Could not re-add the filename: %s", err)
+		return
+	}
+
+	key = common.PrepareNextFileCacheKey(c.fileName)
+	values := make([]interface{}, len(items))
+	for k := range items {
+		values[k] = items[k].PrepareSetValue()
+	}
+
+	if _, err := c.redisConn.AddSetMembers(key, values...); err != nil {
+		c.log.Critical("Could not re-add the updated items: %s", err)
+	}
+
+}
+
 func (c *Controller) fetchElements() ([]*models.SitemapItem, error) {
 	key := common.PrepareCurrentFileCacheKey(c.fileName)
 	els := make([]*models.SitemapItem, 0)
 
-	for {
-		item, err := c.redisConn.PopSetMember(key)
-		if err != nil && err != redis.ErrNil {
-			return els, err
-		}
+	members, err := c.redisConn.GetSetMembers(key)
+	if err != nil && err != redis.ErrNil {
+		return nil, err
+	}
 
+	for i := range members {
+		item, err := c.redisConn.String(members[i])
+		if err != nil {
+			c.log.Error("Could not convert item: %s", err)
+			continue
+		}
 		if item == "" {
-			return els, nil
-		}
-
-		i := &models.SitemapItem{}
-
-		if err := i.Populate(item); err != nil {
-			c.log.Error("Could not update item %s: %s", item, err)
 			continue
 		}
 
+		i := &models.SitemapItem{}
+		// if there is a syntax error in item, do not need to try to
+		// recreate it
+		if err := i.Populate(item); err != nil {
+			c.log.Error("Could not get item %s: %s", item, err)
+			continue
+		}
 		els = append(els, i)
 	}
+	if _, err := c.redisConn.Del(key); err != nil {
+		c.log.Error("Could not delete key %s: %s", key, err)
+	}
+
+	return els, nil
 }
 
 func (c *Controller) updateFile(container *models.ItemContainer) error {
