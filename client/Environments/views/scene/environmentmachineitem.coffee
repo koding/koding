@@ -19,6 +19,8 @@ class EnvironmentMachineItem extends EnvironmentItem
     { label, provider, uid, status } = machine = @getData()
     { computeController } = KD.singletons
 
+    { Running, NotInitialized, Terminated } = Machine.State
+
     @addSubView new KDCustomHTMLView
       partial : "<span class='toggle'></span>"
 
@@ -34,7 +36,7 @@ class EnvironmentMachineItem extends EnvironmentItem
 
     @addSubView @statusToggle = new KodingSwitch
       cssClass     : "tiny"
-      defaultValue : status.state is Machine.State.Running
+      defaultValue : status.state is Running
       callback     : (state)->
         if state
         then computeController.start machine
@@ -48,7 +50,7 @@ class EnvironmentMachineItem extends EnvironmentItem
       cssClass : "terminal"
       click    : @bound "openTerminal"
 
-    if status.state is Machine.State.NotInitialized
+    if status.state in [ NotInitialized, Terminated ]
       @addSubView initView = new InitializeMachineView
       initView.once "Initialize", ->
         computeController.build machine
@@ -171,7 +173,7 @@ class EnvironmentMachineItem extends EnvironmentItem
 
   prepareProvisionEditor: ->
 
-    machine     = @data
+    machine     = @getData()
     provisioner = machine.provisioners.first
 
     if provisioner
