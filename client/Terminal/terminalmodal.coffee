@@ -9,13 +9,11 @@ class TerminalModal extends KDModalView
 
     super options, data
 
-    {machine, command} = @getOptions()
+    {machine, command, readOnly} = @getOptions()
 
-    @webterm           = new WebTermView
-      delegate         : this
-      cssClass         : "webterm"
-      machine          : machine
-      advancedSettings : no
+    @webterm = new WebTermView {
+      delegate: this, machine, readOnly
+    }
 
     @webterm.on "WebTermEvent", (data)=>
       @emit "terminal.event", data
@@ -32,6 +30,7 @@ class TerminalModal extends KDModalView
 
     @webterm.on "WebTerm.terminated", =>
       @emit "terminal.terminated"
+      @destroy()
 
     @on "click", => @setCss 'zIndex', 10000 + KD.utils.uniqueId()
 
