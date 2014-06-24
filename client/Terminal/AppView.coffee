@@ -29,8 +29,8 @@ class WebTermAppView extends JView
       closeAppWhenAllTabsClosed : no
 
     @tabView
-      .on('TabsSorted',    @bound 'updateSessions')
-      .on('PaneDidShow',   @bound 'handlePaneShown')
+      .on('TabsSorted',      @bound 'updateSessions')
+      .on('PaneDidShow',     @bound 'handlePaneShown')
 
     @addStartTab()
 
@@ -313,7 +313,7 @@ class WebTermAppView extends JView
     @updateSessions()
 
     machine = @machines[machineId]
-    machine.kites.klient.webtermKillSession
+    machine.getBaseKite().webtermKillSession
 
       session: sessionId
 
