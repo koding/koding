@@ -23,8 +23,7 @@ ADD BUILD_DATA /opt/koding/install/BUILD_DATA
 WORKDIR /opt/koding
 RUN ls -lha /opt/koding
 
-
-# RUN ./configure -c `cat $BLD/BUILD_CONFIG` -r `cat $BLD/BUILD_REGION` -h `cat $BLD/BUILD_HOSTNAME` -b `cat $BLD/BUILD_BRANCH` -p /opt/koding
+RUN bash /opt/koding/configure -c `cat $BLD/BUILD_CONFIG` -r `cat $BLD/BUILD_REGION` -h `cat $BLD/BUILD_HOSTNAME` -b `cat $BLD/BUILD_BRANCH` -p /opt/koding
 
 RUN git checkout `cat $BLD/BUILD_BRANCH`
 RUN git submodule init
