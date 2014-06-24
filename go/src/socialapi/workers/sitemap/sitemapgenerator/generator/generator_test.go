@@ -197,7 +197,7 @@ func createSitemapItem(id int64, typeConstant, status string) *models.SitemapIte
 }
 
 func addSitemapItem(i *models.SitemapItem) error {
-	key := common.PrepareFileCacheKey(TESTFILE)
+	key := common.PrepareCurrentFileCacheKey(TESTFILE)
 	value := i.PrepareSetValue()
 
 	if _, err := redisConn.AddSetMembers(key, value); err != nil {

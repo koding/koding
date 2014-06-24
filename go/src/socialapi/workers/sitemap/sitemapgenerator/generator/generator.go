@@ -18,7 +18,7 @@ type Controller struct {
 	log          logging.Logger
 	fileSelector FileSelector
 	fileName     string
-	redisConn    *redis.Session
+	redisConn    *redis.RedisSession
 }
 
 const (
@@ -101,7 +101,7 @@ func (c *Controller) generate() {
 }
 
 func (c *Controller) fetchElements() ([]*models.SitemapItem, error) {
-	key := common.PrepareFileCacheKey(c.fileName)
+	key := common.PrepareCurrentFileCacheKey(c.fileName)
 	els := make([]*models.SitemapItem, 0)
 
 	for {

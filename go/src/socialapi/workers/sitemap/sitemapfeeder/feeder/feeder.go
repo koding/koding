@@ -117,6 +117,7 @@ func (f *Controller) AccountDeleted(a *socialmodels.Account) error {
 }
 
 func validateChannelMessage(cm *socialmodels.ChannelMessage) error {
+	// TODO if it is reply update parent message
 	if cm.TypeConstant != socialmodels.ChannelMessage_TYPE_POST {
 		return ErrIgnore
 	}
@@ -126,6 +127,7 @@ func validateChannelMessage(cm *socialmodels.ChannelMessage) error {
 		return err
 	}
 
+	// it could be a message in a private group
 	if ch.PrivacyConstant == socialmodels.Channel_PRIVACY_PRIVATE {
 		return ErrIgnore
 	}
@@ -199,7 +201,7 @@ func (f *Controller) updateFileNameCache(fileName string) error {
 
 func (f *Controller) updateFileItemCache(fileName string, i *models.SitemapItem) error {
 	// prepare cache key
-	key := common.PrepareFileCacheKey(fileName)
+	key := common.PrepareNextFileCacheKey(fileName)
 	value := i.PrepareSetValue()
 	if _, err := f.redisConn.AddSetMembers(key, value); err != nil {
 		return err
