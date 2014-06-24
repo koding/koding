@@ -38,8 +38,10 @@ class ApplicationTabView extends KDTabView
         if this is tabView
           @getActivePane()?.getHandle()?.$().click()
 
-    mainView = KD.getSingleton("mainViewController").getView()
-    mainView.mainTabView.on "PaneDidShow", focusActivePane
+    {mainController, mainViewController} = KD.singletons
+    mainController.ready =>
+      mainView = mainViewController.getView()
+      mainView.mainTabView.on "PaneDidShow", focusActivePane
 
     @on "KDObjectWillBeDestroyed", ->
       mainView.mainTabView.off "PaneDidShow", focusActivePane

@@ -11,8 +11,9 @@ class SessionStackView extends KDView
     delegate    = @getDelegate()
     {@loader}   = delegate.startTab.machineWrapper[machine.uid]
 
-    delegate.on "WebTermConnected", @bound "updateSessions"
-    delegate.on "TerminalClosed",   @bound "updateSessions"
+    delegate.on "WebTermConnected",   @bound "updateSessions"
+    delegate.on "TerminalClosed",     @bound "updateSessions"
+    delegate.on "SessionListChanged", @bound "updateSessions"
 
     @updateSessions()
 
@@ -23,7 +24,7 @@ class SessionStackView extends KDView
 
     { machine } = @getOptions()
 
-    machine.kites.klient.webtermGetSessions().then (sessions) =>
+    machine.getBaseKite().webtermGetSessions().then (sessions) =>
 
       @destroySubViews()
       @show()
@@ -31,7 +32,7 @@ class SessionStackView extends KDView
       @loader.hide()
       sessions?.forEach @bound 'addSession'
 
-      Metric.create "Sessions count", {count:sessions?.length}
+      Metric.create "Sessions count", { count:sessions?.length }
 
     .catch (err) =>
 

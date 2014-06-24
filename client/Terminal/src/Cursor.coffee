@@ -55,7 +55,7 @@ class WebTerm.Cursor
       @blinkInterval = null
     @inversed = true
     @updateCursorElement()
-    if @focused
+    if @focused and not @stopped
       @blinkInterval = window.setInterval =>
         @inversed = if localStorage?["WebTerm.slowDrawing"] is "true" then true else not @inversed
         @updateCursorElement()

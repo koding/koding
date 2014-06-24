@@ -19,6 +19,8 @@ class EnvironmentMachineItem extends EnvironmentItem
     { label, provider, uid, status } = machine = @getData()
     { computeController } = KD.singletons
 
+    { Running, NotInitialized, Terminated } = Machine.State
+
     @addSubView new KDCustomHTMLView
       partial : "<span class='toggle'></span>"
 
@@ -34,7 +36,7 @@ class EnvironmentMachineItem extends EnvironmentItem
 
     @addSubView @statusToggle = new KodingSwitch
       cssClass     : "tiny"
-      defaultValue : status.state is Machine.State.Running
+      defaultValue : status.state is Running
       callback     : (state)->
         if state
         then computeController.start machine
@@ -48,11 +50,11 @@ class EnvironmentMachineItem extends EnvironmentItem
       cssClass : "terminal"
       click    : @bound "openTerminal"
 
-    if status.state is Machine.State.NotInitialized
-      @addSubView initView = new InitializeMachineView
-      initView.once "Initialize", ->
+    if status.state in [ NotInitialized, Terminated ]
+      @addSubView @initView = new InitializeMachineView
+      @initView.on "Initialize", ->
         computeController.build machine
-        initView.destroy()
+        @setClass 'hidden-all'
 
     computeController.on "build-#{machine._id}",   @bound 'invalidateMachine'
     computeController.on "destroy-#{machine._id}", @bound 'invalidateMachine'
@@ -66,30 +68,34 @@ class EnvironmentMachineItem extends EnvironmentItem
         if event.percentage < 100 then @setClass 'loading busy'
         else return KD.utils.wait 1000, =>
           @unsetClass 'loading busy'
-          @updateState event.status
+          @updateState event
 
       else
 
         @unsetClass 'loading busy'
 
-      @updateState event.status
-
-      if event.reverted
-        warn "State reverted!"
+      @updateState event
 
     computeController.info machine
 
 
-  updateState:(status)->
+  updateState:(event)->
+
+    {status, reverted} = event
 
     return unless status
 
-    {Running, Starting} = Machine.State
+    {Running, Starting, NotInitialized, Terminated} = Machine.State
+
+    if reverted
+      warn "State reverted!"
+      if status in [ NotInitialized, Terminated ] and @initView?
+        @initView.unsetClass 'hidden-all'
 
     @unsetClass stateClasses
     @setClass status.toLowerCase()
 
-    if status in [Running, Starting]
+    if status in [ Running, Starting ]
     then @statusToggle.setOn no
     else @statusToggle.setOff no
 
@@ -161,7 +167,8 @@ class EnvironmentMachineItem extends EnvironmentItem
 
   openTerminal:->
 
-    KD.getSingleton("router").handleRoute "/Terminal", replaceState: yes
+    machine = new Machine machine: @getData()
+    modal   = new TerminalModal { machine }
 
   confirmDestroy:->
 
@@ -171,7 +178,7 @@ class EnvironmentMachineItem extends EnvironmentItem
 
   prepareProvisionEditor: ->
 
-    machine     = @data
+    machine     = @getData()
     provisioner = machine.provisioners.first
 
     if provisioner
@@ -184,32 +191,68 @@ class EnvironmentMachineItem extends EnvironmentItem
 
     else @showEditorModalFor()
 
+  showInformation = do ->
+
+    information = null
+
+    (provisioner, modal)->
+
+      if provisioner?
+        message = "Build script <strong>#{provisioner.slug}</strong> loaded. "
+        unless KD.isMine provisioner
+          message += """When you edit it, it won't change the original,
+                        it will create your own copy of this build script."""
+      else
+        message = """This is a new build script. This bash script will be
+                     executed as root when the machine is rebuilt."""
+
+      information?.destroy?()
+      information = new KDNotificationView
+        container     : modal
+        type          : "tray"
+        content       : message
+        duration      : 0
+        closeManually : no
+
 
   showEditorModalFor: (provisioner)->
 
-    modal =  new EditorModal
+    {JProvisioner} = KD.remote.api
+
+    machine = @getData()
+    modal   = new EditorModal
 
       editor              :
-        title             : "Machine Init Script Editor <span>(experimental)</span>"
+        title             : "Build Script Editor"
         content           : provisioner?.content?.script or ""
-        saveMessage       : "Machine init script saved"
-        saveFailedMessage : "Couldn't save Machine init script"
+        saveMessage       : "Build script saved"
+        saveFailedMessage : "Couldn't save build script"
 
-        saveCallback      : (script, modal) ->
+        saveCallback      : (script, modal)->
 
-          provisioner.update content: { script }, (err,res)->
+          if KD.isMine provisioner
 
-            if err
-              modal.emit "SaveFailed"
-            else
-              modal.emit "Saved"
+            provisioner.update content: { script }, (err, res)->
+              modal.emit if err then "SaveFailed" else "Saved"
 
-    # information = new KDNotificationView
-    #   container     : modal
-    #   type          : "tray"
-    #   content       : "Lorem ipsum dolor sen de affet."
-    #   duration      : 0
-    #   closeManually : no
+          else
+
+            JProvisioner.create
+              type    : "shell"
+              content : { script }
+            , (err, newProvisioner)->
+
+              return  if KD.showError err
+
+              machine.setProvisioner newProvisioner.slug, (err)->
+                modal.emit if err then "SaveFailed" else "Saved"
+
+                unless KD.showError err
+                  machine.provisioners = [ newProvisioner.slug ]
+                  provisioner          = newProvisioner
+                  showInformation provisioner, modal
+
+    showInformation provisioner, modal
 
 
   getIpLink:->

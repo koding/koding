@@ -1,6 +1,9 @@
 class WebTermView extends KDView
 
   constructor: (options = {}, data) ->
+
+    options.cssClass = KD.utils.curry 'webterm', options.cssClass
+
     super options, data
 
     @initBackoff()
@@ -15,7 +18,10 @@ class WebTermView extends KDView
 
     @addSubView @container
 
-    @terminal = new WebTerm.Terminal @container
+    { readOnly } = @getOptions()
+    @terminal = new WebTerm.Terminal
+      containerView : @container
+      readOnly      : readOnly ? no
 
     @options.advancedSettings ?= no
 
@@ -86,7 +92,7 @@ class WebTermView extends KDView
 
 
   getMachine: -> @getOption 'machine'
-  getKite:    -> @getMachine().kites.klient
+  getKite: -> @getMachine().getBaseKite()
 
 
   webtermConnect:(mode = 'create')->
