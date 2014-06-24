@@ -8,6 +8,11 @@
 # docker pull koding/redis
 # docker build --no-cache -t koding/codebase .
 
+# Remove all stopped containers.
+# docker rm $(docker ps -a -q)
+
+# Remove all untagged images
+# docker rmi $(docker images | grep "^<none>" | awk "{print $3}")
 
 ### RUN ###
 
@@ -29,7 +34,7 @@ docker run  --expose=5672                         --net=host -d --name=rabbitmq 
 docker run  --expose=6379                         --net=host -d --name=redis                                                   koding/redis    redis-server
 
 echo sleeping some secs to give some time to db servers to start
-echo sleep 5
+sleep 5
 
 echo starting go workers.
 docker run  --expose=4000    --volume=$LOG:$LOG   --net=host -d --name=kontrol          --entrypoint=$PRJ/go/bin/kontrol       koding/codebase -c $CFG -r $RGN

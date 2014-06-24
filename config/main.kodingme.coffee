@@ -432,7 +432,7 @@ module.exports = __ =
       uploadsUriForGroup: 'https://koding-groups.s3.amazonaws.com'
       sourceUri : "#{customDomain.public}:3526"
       newkontrol:
-        url     : "ws://#{customDomain.public_}:4000/kontrol"
+        url     : "http://#{customDomain.public_}:4000/kontrol"
       fileFetchTimeout: 15 * 1000 # seconds
       externalProfiles  :
         github          :
