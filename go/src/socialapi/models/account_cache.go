@@ -1,3 +1,4 @@
+// rewrite this part with cache/memory
 package models
 
 import "fmt"
@@ -8,6 +9,7 @@ var (
 )
 
 func init() {
+	// those are not thread safe!!!!
 	accountCache = make(map[int64]*Account)
 	oldAccountCache = make(map[string]int64)
 }
@@ -17,12 +19,8 @@ func FetchAccountOldIdByIdFromCache(id int64) (string, error) {
 		return a.OldId, nil
 	}
 
-	account, err := FetchAccountById(id)
-	if err != nil {
-		return "", err
-	}
+	account, err := ResetAccountCache(id)
 
-	accountCache[id] = account
 	return account.OldId, nil
 }
 
@@ -31,12 +29,17 @@ func FetchAccountFromCache(id int64) (*Account, error) {
 		return a, nil
 	}
 
+	return ResetAccountCache(id)
+}
+
+func ResetAccountCache(id int64) (*Account, error) {
 	account, err := FetchAccountById(id)
 	if err != nil {
 		return nil, err
 	}
 
-	accountCache[id] = account
+	SetAccountToCache(account)
+
 	return account, nil
 }
 
