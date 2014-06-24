@@ -119,6 +119,36 @@ func TestMarkedAsTroll(t *testing.T) {
 			So(c2.MetaBits.IsTroll(), ShouldBeTrue)
 		})
 
+		// mark channel
+		Convey("public channels of a troll should not be marked as exempt", nil)
+
+		// mark channel_participant
+		Convey("participations of a troll should not be marked as exempt", func() {
+			// fetch from api, because we need to test system from there
+			privatemessageChannelId1, err := createPrivateMessageChannel(trollUser.Id, groupName)
+			So(err, ShouldBeNil)
+			So(privatemessageChannelId1, ShouldBeGreaterThan, 0)
+
+			privatemessageChannelId2, err := createPrivateMessageChannel(trollUser.Id, groupName)
+			So(err, ShouldBeNil)
+			So(privatemessageChannelId2, ShouldBeGreaterThan, 0)
+
+			So(controller.markParticipations(trollUser), ShouldBeNil)
+
+			var participations []models.ChannelParticipant
+
+			query := &bongo.Query{
+				Selector: map[string]interface{}{
+					"account_id": trollUser.Id,
+				},
+			}
+
+			err = models.NewChannelParticipant().Some(&participations, query)
+			So(err, ShouldBeNil)
+			for _, participation := range participations {
+				So(participation.MetaBits.IsTroll(), ShouldBeTrue)
+			}
+		})
 		})
 
 	})
