@@ -10,8 +10,15 @@ class WebTerm.Terminal extends KDObject
     '\\': '\\\\'
     '\u001b': '\\e'
 
-  constructor: (containerView) ->
+  constructor: (options)->
+
+    { containerView, @readOnly } = options
+
     super()
+
+    if @readOnly
+      for keyHandler in ['keyDown', 'keyPress', 'keyUp', 'paste']
+        @[keyHandler] = noop
 
     localStorage?["WebTerm.logRawOutput"] ?= "false"
     localStorage?["WebTerm.slowDrawing"]  ?= "false"
@@ -47,6 +54,8 @@ class WebTerm.Terminal extends KDObject
     @inputHandler      = new WebTerm.InputHandler(this)
     @screenBuffer      = new WebTerm.ScreenBuffer(this)
     @cursor            = new WebTerm.Cursor(this)
+    @cursor.stopBlink()  if @readOnly
+
     @controlCodeReader = WebTerm.createAnsiControlCodeReader(this)
 
     @measurebox = new KDCustomHTMLView
@@ -55,7 +64,7 @@ class WebTerm.Terminal extends KDObject
 
     outputboxElement = document.createElement "div"
     @outputbox = $ outputboxElement
-    @outputbox.attr "contenteditable", yes
+    @outputbox.attr "contenteditable", !@readOnly
     @outputbox.attr "spellcheck", off
     @outputbox.css "cursor", "text"
     @outputbox.append @measurebox.getDomElement()
