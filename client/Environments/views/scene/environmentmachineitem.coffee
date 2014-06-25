@@ -99,7 +99,7 @@ class EnvironmentMachineItem extends EnvironmentItem
     then @statusToggle.setOn no
     else @statusToggle.setOff no
 
-    @getData().setAt "status.state", status
+    @getData().jMachine.setAt "status.state", status
     @state.updatePartial status
 
 
@@ -253,7 +253,7 @@ class EnvironmentMachineItem extends EnvironmentItem
 
   getIpLink:->
 
-    { ipAddress, status:{state}  } = @getData()
+    { ipAddress, status:{state} } = @getData().jMachine
     { Running, Rebooting } = Machine.State
 
     if ipAddress? and state in [ Running, Rebooting ]
