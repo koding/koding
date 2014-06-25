@@ -4,6 +4,7 @@ import (
 	"errors"
 	"socialapi/request"
 	"time"
+
 	"github.com/koding/bongo"
 )
 
@@ -28,13 +29,15 @@ type ChannelMessageList struct {
 	RevisedAt time.Time `json:"revisedAt"        sql:"NOT NULL"`
 }
 
-func (c *ChannelMessageList) BeforeCreate() {
+func (c *ChannelMessageList) BeforeCreate() error {
 	c.AddedAt = time.Now()
 	c.RevisedAt = time.Now()
+	return c.MarkIfExempt()
 }
 
-func (c *ChannelMessageList) BeforeUpdate() {
+func (c *ChannelMessageList) BeforeUpdate() error {
 	c.AddedAt = time.Now()
+	return c.MarkIfExempt()
 }
 
 func (c *ChannelMessageList) AfterCreate() {
@@ -332,4 +335,33 @@ func (c *ChannelMessageList) UpdateAddedAt(channelId, messageId int64) error {
 
 	c.AddedAt = time.Now().UTC()
 	return c.Update()
+}
+
+func (c *ChannelMessageList) MarkIfExempt() error {
+	isExempt, err := c.isExempt()
+	if err != nil {
+		return err
+	}
+
+	if isExempt {
+		c.MetaBits.MarkTroll()
+	}
+
+	return nil
+}
+
+func (c *ChannelMessageList) isExempt() (bool, error) {
+	// return early if channel is already exempt
+	if c.MetaBits.IsTroll() {
+		return true, nil
+	}
+
+	if c.MessageId == 0 {
+		return false, errors.New("message id is not set for exempt check")
+	}
+
+	cm := NewChannelMessage()
+	cm.Id = c.MessageId
+
+	return cm.isExempt()
 }
