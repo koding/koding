@@ -338,19 +338,18 @@ class IDEAppController extends AppController
   updateStatusBar: (component, data) ->
     {status, menuButton} = @statusBar
 
-    if component is 'editor'
+    text = if component is 'editor'
       {cursor, file} = data
-      text = """
+      """
         <p class="line">#{++cursor.row}:#{++cursor.column}</p>
         <p>#{file.name}</p>
       """
 
-    else if component is 'terminal'
-      text = "Terminal on #{data.vmName}"
+    else if component is 'terminal' then "Terminal on #{data.vmName}"
 
-    else if typeof data is 'string' then text = data
+    else if typeof data is 'string' then data
 
-    else text = ''
+    else ''
 
     status.updatePartial text
     menuButton.show()
