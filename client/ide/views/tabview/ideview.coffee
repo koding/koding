@@ -90,7 +90,7 @@ class IDE.IDEView extends IDE.WorkspaceTabView
 
     unless paneType
       subView  = @tabView.getActivePane().getSubViews().first
-      paneType = subView.getOptions().paneType
+      paneType = subView.getOptions().paneType  if subView
 
     unless data
       if paneType is 'editor'
