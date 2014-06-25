@@ -264,6 +264,10 @@ class EnvironmentMachineItem extends EnvironmentItem
       return new KDNotificationView
         title : "Machine is not running."
 
+    envVariables = ""
+    for key, value of @parent.getData().config or {}
+      envVariables += """export #{key}="#{value}"\n"""
+
     @reviveProvisioner (err, provisioner)=>
 
       if err or not provisioner
@@ -281,6 +285,7 @@ class EnvironmentMachineItem extends EnvironmentItem
           return new KDNotificationView
             title : "Failed to upload build script."
 
+        script  = "#{envVariables}\n\n#{script}\n"
         script += "\necho $?|kdevent;rm -f #{path};exit"
 
         file.save script, (err)=>
