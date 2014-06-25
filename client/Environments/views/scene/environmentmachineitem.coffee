@@ -172,21 +172,6 @@ class EnvironmentMachineItem extends EnvironmentItem
     computeController.destroy @getData()
 
 
-  prepareProvisionEditor: ->
-
-    machine     = @getData()
-    provisioner = machine.provisioners.first
-
-    if provisioner
-
-      {JProvisioner} = KD.remote.api
-      JProvisioner.one slug: provisioner, (err, revivedProvisioner)=>
-
-        return if KD.showError err
-        @showEditorModalFor revivedProvisioner
-
-    else @showEditorModalFor()
-
   showInformation = do ->
 
     information = null
@@ -211,44 +196,63 @@ class EnvironmentMachineItem extends EnvironmentItem
         closeManually : no
 
 
-  showEditorModalFor: (provisioner)->
+  reviveProvisioner: (callback)->
+
+    machine     = @getData()
+    provisioner = machine.provisioners.first
+
+    return callback null  unless provisioner
 
     {JProvisioner} = KD.remote.api
+    JProvisioner.one slug: provisioner, callback
+
+
+  showBuildScriptEditorModal: ->
 
     machine = @getData()
-    modal   = new EditorModal
 
-      editor              :
-        title             : "Build Script Editor"
-        content           : provisioner?.content?.script or ""
-        saveMessage       : "Build script saved"
-        saveFailedMessage : "Couldn't save build script"
+    @reviveProvisioner (err, provisioner)->
 
-        saveCallback      : (script, modal)->
+      return  if KD.showError err
 
-          if KD.isMine provisioner
+      modal   = new EditorModal
 
-            provisioner.update content: { script }, (err, res)->
-              modal.emit if err then "SaveFailed" else "Saved"
+        editor              :
+          title             : "Build Script Editor"
+          content           : provisioner?.content?.script or ""
+          saveMessage       : "Build script saved"
+          saveFailedMessage : "Couldn't save build script"
 
-          else
+          saveCallback      : (script, modal)->
 
-            JProvisioner.create
-              type    : "shell"
-              content : { script }
-            , (err, newProvisioner)->
+            if KD.isMine provisioner
 
-              return  if KD.showError err
-
-              machine.setProvisioner newProvisioner.slug, (err)->
+              provisioner.update content: { script }, (err, res)->
                 modal.emit if err then "SaveFailed" else "Saved"
 
-                unless KD.showError err
-                  machine.provisioners = [ newProvisioner.slug ]
-                  provisioner          = newProvisioner
-                  showInformation provisioner, modal
+            else
 
-    showInformation provisioner, modal
+              {JProvisioner} = KD.remote.api
+              JProvisioner.create
+                type    : "shell"
+                content : { script }
+              , (err, newProvisioner)->
+
+                return  if KD.showError err
+
+                machine.jMachine.setProvisioner newProvisioner.slug, (err)->
+                  modal.emit if err then "SaveFailed" else "Saved"
+
+                  unless KD.showError err
+                    machine.provisioners = [ newProvisioner.slug ]
+                    provisioner          = newProvisioner
+                    showInformation provisioner, modal
+
+
+      showInformation provisioner, modal
+
+
+
 
 
   getIpLink:->

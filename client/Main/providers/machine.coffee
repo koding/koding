@@ -25,7 +25,7 @@ class Machine extends KDObject
     delete options.machine
     super options, machine
 
-    { @label, @publicAddress, @_id
+    { @label, @publicAddress, @_id, @provisioners
       @status, @uid, @queryString } = @jMachine = @getData()
 
     if @queryString?
