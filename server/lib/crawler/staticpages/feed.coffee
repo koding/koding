@@ -237,21 +237,47 @@ putContentIntoFullPage = (content, pagination, contentType)->
                 </a>
                 <div class="meta">
                   <a href="/sinan" class="profile">
-                    <span data-paths="profile.firstName profile.lastName" id="el-337">Sinan Yasar</span>
+                    <span>Sinan Yasar</span>
                   </a>
                   <time class="kdview">4 days ago</time>
                   <span class="location">San Francisco</span>
                 </div>
-
-                <article data-paths="body" id="el-331">
+                <article>
                   <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Suspendisse
                   sem orci, porttitor ut mollis non, vehicula eu purus. Pellentesque massa
                   odio, tempus cursus eros nec, lacinia aliquam risus. Mauris dignissim,
                   metus quis aliquam pretium, lectus libero consequat quam, sed congue nulla
                   arcu ac leo.</p>
                 </article>
+                <div class="kdview like-summary">
+                  <a href="/sinan" class="profile"><span>Sinan Yasar</span></a>
+                  <span> liked this.</span>
+                </div>
+              </div>
+              <div class="kdview comment-container fixed-height active-comment commented">
+                <div class="kdview kdlistview kdlistview-comments">
+
+                  <!-- .kdlistitemview-comment is a single comment item -->
+
+                  <div class="kdview kdlistitemview kdlistitemview-comment">
+                    <a class="avatarview" href="/sinan" style="background-image: none; background-size: 42px;">
+                      <img width="42" height="42" src="//gravatar.com/avatar/fb9edfce4f54230c890431a97db6c99e?size=42&amp;d=https://koding-cdn.s3.amazonaws.com/images/default.avatar.42.png&amp;r=g" style="opacity: 1;">
+                    </a>
+                    <div class="comment-contents clearfix">
+                      <a href="/sinan" class="profile">Sinan Yasar</a>
+                      <div class="comment-body-container">
+                        <p>HULAHOP</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- .kdlistitemview-comment ends here -->
+
+                </div>
               </div>
             </div>
+
+            <!-- .kdlistitemview-activity ends here -->
 
           </main>
         </div>
