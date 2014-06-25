@@ -186,13 +186,10 @@ class MessagePane extends KDTabPaneView
 
   focus: ->
 
-    # if @input
-    #   @input.input.$().trigger 'click'
-    # else
-
-    unless @input
+    if @input
+      @input.focus()
+    else
       @listController.getListItems().first?.commentBox.inputForm.input.setFocus()
-
 
 
   populate: ->
