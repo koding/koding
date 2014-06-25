@@ -72,9 +72,10 @@ func Inject(mux *tigertonic.TrieServeMux) *tigertonic.TrieServeMux {
 	// remove participant from the channel
 	mux.Handle("POST", "/channel/{id}/participant/{accountId}/delete", handler.Wrapper(participant.Delete, "participant-list"))
 	mux.Handle("POST", "/channel/{id}/participant/{accountId}/presence", handler.Wrapper(participant.Presence, "participant-presence"))
-
 	// list messages of the channel
+	// added exempt clause
 	mux.Handle("GET", "/channel/{id}/history", handler.Wrapper(messagelist.List, "channel-history-list"))
+
 	// register an account
 	mux.Handle("POST", "/account", handler.Wrapper(account.Register, "account-create"))
 	// list channels of the account
