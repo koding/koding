@@ -37,28 +37,35 @@ func NewMessageReply() *MessageReply {
 	return &MessageReply{}
 }
 
-func (m *MessageReply) BeforeCreate() {
-	if m.ReplyId == 0 {
-		return
-	}
-
-	cm := NewChannelMessage()
-	cm.Id = m.ReplyId
-	if res, err := cm.isExemptContent(); err == nil && res {
-		m.MetaBits = updateTrollModeBit(m.MetaBits)
-	}
+func (m *MessageReply) BeforeCreate() error {
+	return m.MarkIfExempt()
 }
 
-func (m *MessageReply) BeforeUpdate() {
+func (m *MessageReply) BeforeUpdate() error {
+	return m.MarkIfExempt()
+}
+
+func (m *MessageReply) MarkIfExempt() error {
+	if m.MetaBits.IsTroll() {
+		return nil
+	}
+
 	if m.ReplyId == 0 {
-		return
+		return nil
 	}
 
 	cm := NewChannelMessage()
 	cm.Id = m.ReplyId
-	if res, err := cm.isExemptContent(); err == nil && res {
-		m.MetaBits = updateTrollModeBit(m.MetaBits)
+	isExempt, err := cm.isExempt()
+	if err != nil {
+		return err
 	}
+
+	if isExempt {
+		m.MetaBits.MarkTroll()
+	}
+
+	return nil
 }
 
 func (m *MessageReply) AfterCreate() {
