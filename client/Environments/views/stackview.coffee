@@ -114,17 +114,29 @@ class StackView extends KDView
    * @return {EditorModal} stack config editor
   ###
   createConfigEditor: ->
+
+    # FIXME we need to use key/value ui for this ~ GG
+
+    content = ""
+    for key, value of @stack.config or {}
+      content += "#{key}=#{value}\n"
+
     new EditorModal
       editor              :
         title             : "Stack Config Editor <span>(experimental)</span>"
-        content           : @stack.config or ""
+        content           : content
         saveMessage       : "Stack config saved."
         saveFailedMessage : "Couldn't save your config"
-        saveCallback      : =>
-          @stack.modify { config }, (err, res) =>
-            eventName = if err then "SaveFailed" else "Saved"
-            modal.emit eventName
+        saveCallback      : (config, modal)=>
 
+          newConfig = {}
+          for line in config.split '\n'
+            [key, value]   = line.split '='
+            newConfig[key] = value  if key? and value?
+
+          @stack.modify config: newConfig, (err, res) =>
+            modal.emit if err then "SaveFailed" else "Saved"
+            @stack.config = newConfig  unless err
 
   ### Stack Dump Helpers ###
 
