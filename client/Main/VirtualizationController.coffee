@@ -375,6 +375,11 @@ class VirtualizationController extends KDController
   shouldUseNewKites: ->
     new Promise (resolve, reject) ->
       KD.remote.api.JKiteStack.fetchInfo (err, info) ->
+        if info.useWebSockets
+          KD.useWebSockets = yes
+        else
+          KD.useWebSockets = no
+          localStorage.disableWebSocket = 'true'
         return resolve info.isEnabled and KD.useNewKites  if KD.useNewKites?
         return reject err  if err?
         useNewKites = info.isEnabled and Math.random() <= info.ratio
