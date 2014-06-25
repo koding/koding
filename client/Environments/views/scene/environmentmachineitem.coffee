@@ -48,7 +48,7 @@ class EnvironmentMachineItem extends EnvironmentItem
     @addSubView @terminalIcon = new KDCustomHTMLView
       tagName  : "span"
       cssClass : "terminal"
-      click    : @bound "openTerminal"
+      click    : @lazyBound "openTerminal", {}
 
     if status.state in [ NotInitialized, Terminated ]
       @addSubView @initView = new InitializeMachineView
@@ -99,7 +99,7 @@ class EnvironmentMachineItem extends EnvironmentItem
     then @statusToggle.setOn no
     else @statusToggle.setOff no
 
-    @getData().setAt "status.state", status
+    @getData().jMachine.setAt "status.state", status
     @state.updatePartial status
 
 
@@ -131,8 +131,6 @@ class EnvironmentMachineItem extends EnvironmentItem
     colorSelection = new ColorSelection selectedColor : @getOption 'colorTag'
     colorSelection.on "ColorChanged", @bound 'setColorTag'
 
-    this_ = this
-
     items =
 
       'Build Machine'     :
@@ -142,54 +140,40 @@ class EnvironmentMachineItem extends EnvironmentItem
           computeController.build machine
           @destroy()
 
-      'Open VM Terminal'  :
+      'Update build script':
+        callback          : @bound "showBuildScriptEditorModal"
 
+      'Run build script'  :
         disabled          : !isRunning
-        callback          : ->
-          this_.openTerminal()
-          @destroy()
-
+        callback          : @bound "runBuildScript"
         separator         : yes
 
-      'Update provisioner':
+      'Launch Terminal'   :
+        disabled          : !isRunning
+        callback          : @lazyBound "openTerminal", {}
         separator         : yes
-        callback          : @bound "prepareProvisionEditor"
 
       'Delete'            :
         disabled          : KD.isGuest()
-        separator         : yes
         action            : 'delete'
+        separator         : yes
 
       customView2         : colorSelection
 
     return items
 
 
-  openTerminal:->
+  openTerminal:(options = {})->
 
-    machine = new Machine machine: @getData()
-    modal   = new TerminalModal { machine }
+    options.machine = @getData()
+    new TerminalModal options
+
 
   confirmDestroy:->
 
     {computeController} = KD.singletons
     computeController.destroy @getData()
 
-
-  prepareProvisionEditor: ->
-
-    machine     = @getData()
-    provisioner = machine.provisioners.first
-
-    if provisioner
-
-      {JProvisioner} = KD.remote.api
-      JProvisioner.one slug: provisioner, (err, revivedProvisioner)=>
-
-        return if KD.showError err
-        @showEditorModalFor revivedProvisioner
-
-    else @showEditorModalFor()
 
   showInformation = do ->
 
@@ -215,49 +199,120 @@ class EnvironmentMachineItem extends EnvironmentItem
         closeManually : no
 
 
-  showEditorModalFor: (provisioner)->
+  reviveProvisioner: (callback)->
+
+    machine     = @getData()
+    provisioner = machine.provisioners.first
+
+    return callback null  unless provisioner
 
     {JProvisioner} = KD.remote.api
+    JProvisioner.one slug: provisioner, callback
+
+
+  showBuildScriptEditorModal: ->
 
     machine = @getData()
-    modal   = new EditorModal
 
-      editor              :
-        title             : "Build Script Editor"
-        content           : provisioner?.content?.script or ""
-        saveMessage       : "Build script saved"
-        saveFailedMessage : "Couldn't save build script"
+    @reviveProvisioner (err, provisioner)->
 
-        saveCallback      : (script, modal)->
+      return  if KD.showError err
 
-          if KD.isMine provisioner
+      modal   = new EditorModal
 
-            provisioner.update content: { script }, (err, res)->
-              modal.emit if err then "SaveFailed" else "Saved"
+        editor              :
+          title             : "Build Script Editor"
+          content           : provisioner?.content?.script or ""
+          saveMessage       : "Build script saved"
+          saveFailedMessage : "Couldn't save build script"
 
-          else
+          saveCallback      : (script, modal)->
 
-            JProvisioner.create
-              type    : "shell"
-              content : { script }
-            , (err, newProvisioner)->
+            if KD.isMine provisioner
 
-              return  if KD.showError err
-
-              machine.setProvisioner newProvisioner.slug, (err)->
+              provisioner.update content: { script }, (err, res)->
                 modal.emit if err then "SaveFailed" else "Saved"
 
-                unless KD.showError err
-                  machine.provisioners = [ newProvisioner.slug ]
-                  provisioner          = newProvisioner
-                  showInformation provisioner, modal
+            else
 
-    showInformation provisioner, modal
+              {JProvisioner} = KD.remote.api
+              JProvisioner.create
+                type    : "shell"
+                content : { script }
+              , (err, newProvisioner)->
+
+                return  if KD.showError err
+
+                machine.jMachine.setProvisioner newProvisioner.slug, (err)->
+                  modal.emit if err then "SaveFailed" else "Saved"
+
+                  unless KD.showError err
+                    machine.provisioners = [ newProvisioner.slug ]
+                    provisioner          = newProvisioner
+                    showInformation provisioner, modal
+
+
+      showInformation provisioner, modal
+
+
+  runBuildScript: ->
+
+    machine = @getData()
+
+    { status: { state } } = machine
+    unless state is Machine.State.Running
+      return new KDNotificationView
+        title : "Machine is not running."
+
+    @reviveProvisioner (err, provisioner)=>
+
+      if err or not provisioner
+        return new KDNotificationView
+          title : "Failed to fetch build script."
+
+      {content: {script}} = provisioner
+      script = Encoder.htmlDecode script
+
+      path = provisioner.slug.replace "/", "-"
+      path = "/tmp/init-#{path}"
+      machine.fs.create { path }, (err, file)=>
+
+        if err or not file
+          return new KDNotificationView
+            title : "Failed to upload build script."
+
+        script += "\necho $?|kdevent;rm -f #{path};exit"
+
+        file.save script, (err)=>
+          return if KD.showError err
+
+          modal = @openTerminal
+            command       : "bash #{path};exit"
+            readOnly      : yes
+            destroyOnExit : no
+
+          modal.once "terminal.event", (data)->
+
+            if data is "0"
+              title   = "Installed successfully!"
+              content = "You can now safely close this Terminal."
+            else
+              title   = "An error occured."
+              content = """Something went wrong while running build script.
+                           Please try again."""
+
+            new KDNotificationView {
+              title, content
+              type          : "tray"
+              duration      : 0
+              container     : modal
+              closeManually : no
+            }
 
 
   getIpLink:->
 
-    { ipAddress, status:{state}  } = @getData()
+    { ipAddress, status:{state} } = @getData().jMachine
     { Running, Rebooting } = Machine.State
 
     if ipAddress? and state in [ Running, Rebooting ]
