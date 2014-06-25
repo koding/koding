@@ -143,6 +143,8 @@ class EnvironmentMachineItem extends EnvironmentItem
       'Update build script':
         callback          : @bound "showBuildScriptEditorModal"
 
+      'Run build script'  :
+        callback          : @bound "runBuildScript"
         separator         : yes
 
       'Launch Terminal'   :
@@ -252,7 +254,59 @@ class EnvironmentMachineItem extends EnvironmentItem
       showInformation provisioner, modal
 
 
+  runBuildScript: ->
 
+    machine = @getData()
+
+    { status: { state } } = machine
+    unless state is Machine.State.Running
+      return new KDNotificationView
+        title : "Machine is not running."
+
+    @reviveProvisioner (err, provisioner)=>
+
+      if err or not provisioner
+        return new KDNotificationView
+          title : "Failed to fetch build script."
+
+      {content: {script}} = provisioner
+      script = Encoder.htmlDecode script
+
+      path = provisioner.slug.replace "/", "-"
+      path = "/tmp/init-#{path}"
+      machine.fs.create { path }, (err, file)=>
+
+        if err or not file
+          return new KDNotificationView
+            title : "Failed to upload build script."
+
+        script += "\necho $?|kdevent;rm -f #{path};exit"
+
+        file.save script, (err)=>
+          return if KD.showError err
+
+          modal = @openTerminal
+            command       : "bash #{path};exit"
+            readOnly      : yes
+            destroyOnExit : no
+
+          modal.once "terminal.event", (data)->
+
+            if data is "0"
+              title   = "Installed successfully!"
+              content = "You can now safely close this Terminal."
+            else
+              title   = "An error occured."
+              content = """Something went wrong while running build script.
+                           Please try again."""
+
+            new KDNotificationView {
+              title, content
+              type          : "tray"
+              duration      : 0
+              container     : modal
+              closeManually : no
+            }
 
 
   getIpLink:->
