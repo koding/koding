@@ -211,6 +211,37 @@ func TestMarkedAsTroll(t *testing.T) {
 				So(interaction.MetaBits.IsTroll(), ShouldBeTrue)
 			}
 		})
+
+		// mark message_reply
+		Convey("replies of a troll should be marked as exempt", func() {
+			// create post
+			post, err := rest.CreatePost(groupChannel.Id, trollUser.Id)
+			tests.ResultedWithNoErrorCheck(post, err)
+
+			// create reply
+			reply, err := rest.AddReply(post.Id, post.AccountId, groupChannel.Id)
+			So(err, ShouldBeNil)
+			So(reply, ShouldNotBeNil)
+			So(reply.AccountId, ShouldEqual, post.AccountId)
+
+			So(controller.markMessageRepliesAsExempt(reply), ShouldBeNil)
+
+			mr := models.NewMessageReply()
+			q := &bongo.Query{
+				Selector: map[string]interface{}{
+					"reply_id": reply.Id,
+				},
+			}
+
+			var mrs []models.MessageReply
+			err = mr.Some(&mrs, q)
+			So(err, ShouldBeNil)
+
+			So(len(mrs), ShouldBeGreaterThan, 0)
+
+			for _, mr := range mrs {
+				So(mr.MetaBits.IsTroll(), ShouldBeTrue)
+			}
 		})
 
 		// update channel data while creating
