@@ -20,6 +20,9 @@ func FetchAccountOldIdByIdFromCache(id int64) (string, error) {
 	}
 
 	account, err := ResetAccountCache(id)
+	if err != nil {
+		return "", err
+	}
 
 	return account.OldId, nil
 }
