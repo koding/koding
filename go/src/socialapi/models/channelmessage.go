@@ -54,20 +54,21 @@ type ChannelMessage struct {
 	Payload gorm.Hstore `json:"payload,omitempty"`
 }
 
-func (c *ChannelMessage) BeforeCreate() {
-	if res, err := c.isExemptContent(); err == nil && res {
-		c.MetaBits = updateTrollModeBit(c.MetaBits)
+func (c *ChannelMessage) BeforeCreate() error {
+	c.DeletedAt = ZeroDate()
+	if err := c.MarkIfExempt(); err != nil {
+		return err
 	}
 
-	c.DeletedAt = ZeroDate()
+	return nil
 }
 
-func (c *ChannelMessage) BeforeUpdate() {
-	if res, err := c.isExemptContent(); err == nil && res {
-		c.MetaBits = updateTrollModeBit(c.MetaBits)
-	}
-
+func (c *ChannelMessage) BeforeUpdate() error {
 	c.DeletedAt = ZeroDate()
+	if err := c.MarkIfExempt(); err != nil {
+		return err
+	}
+	return nil
 }
 
 func (c *ChannelMessage) AfterCreate() {
@@ -123,28 +124,36 @@ func (c *ChannelMessage) CountWithQuery(q *bongo.Query) (int, error) {
 	return bongo.B.CountWithQuery(c, q)
 }
 
-func (c *ChannelMessage) isExemptContent() (bool, error) {
-	// set meta bits if only message is post or a reply
-	if c.TypeConstant != ChannelMessage_TYPE_POST &&
-		c.TypeConstant != ChannelMessage_TYPE_REPLY {
-		return false, nil
+func (c *ChannelMessage) MarkIfExempt() error {
+	isExempt, err := c.isExempt()
+	if err != nil {
+		return err
 	}
 
-	if c.AccountId == 0 && c.Id != 0 {
-		if err := c.ById(c.Id); err != nil {
-			return false, err
-		}
-	} else {
-		return false, fmt.Errorf("Couldnt find accountId from content %+v", c)
+	if isExempt {
+		c.MetaBits.MarkTroll()
 	}
 
-	account, err := FetchAccountFromCache(c.AccountId)
+	return nil
+}
+
+func (c *ChannelMessage) isExempt() (bool, error) {
+	if c.MetaBits.IsTroll() {
+		return true, nil
+	}
+
+	accountId, err := c.getAccountId()
+	if err != nil {
+		return false, err
+	}
+
+	account, err := ResetAccountCache(accountId)
 	if err != nil {
 		return false, err
 	}
 
 	if account == nil {
-		return false, fmt.Errorf("Account is nil, accountId:%d", c.AccountId)
+		return false, fmt.Errorf("account is nil, accountId:%d", c.AccountId)
 	}
 
 	if account.IsTroll {
@@ -154,9 +163,26 @@ func (c *ChannelMessage) isExemptContent() (bool, error) {
 	return false, nil
 }
 
+func (c *ChannelMessage) getAccountId() (int64, error) {
+	if c.AccountId != 0 {
+		return c.AccountId, nil
+	}
+
+	if c.Id == 0 {
+		return 0, fmt.Errorf("couldnt find accountId from content %+v", c)
+	}
+
+	cm := NewChannelMessage()
+	if err := cm.ById(c.Id); err != nil {
+		return 0, err
+	}
+
+	return cm.AccountId, nil
+}
+
 func bodyLenCheck(body string) error {
 	if len(body) < config.Get().Limits.MessageBodyMinLen {
-		return fmt.Errorf("Message Body Length should be greater than %d, yours is %d ", config.Get().Limits.MessageBodyMinLen, len(body))
+		return fmt.Errorf("message Body Length should be greater than %d, yours is %d ", config.Get().Limits.MessageBodyMinLen, len(body))
 	}
 
 	return nil
