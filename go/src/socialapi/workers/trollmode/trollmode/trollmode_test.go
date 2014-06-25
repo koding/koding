@@ -244,6 +244,27 @@ func TestMarkedAsTroll(t *testing.T) {
 
 			So(cp.MetaBits.IsTroll(), ShouldBeTrue)
 		})
+
+		// update channel_message_list data while creating
+		Convey("when a troll content is added to a channel, meta_bits should be set", func() {
+			privatemessageChannelId, err := createPrivateMessageChannel(normalUser.Id, groupName)
+			So(err, ShouldBeNil)
+			So(privatemessageChannelId, ShouldBeGreaterThan, 0)
+
+			// add a message from a troll user
+			post, err := rest.CreatePost(privatemessageChannelId, trollUser.Id)
+			So(err, ShouldBeNil)
+			So(post, ShouldNotBeNil)
+
+			// fetch last message
+			c := models.NewChannel()
+			c.Id = privatemessageChannelId
+			ml, err := c.FetchMessageList(post.Id)
+			tests.ResultedWithNoErrorCheck(ml, err)
+
+			So(ml.MetaBits.IsTroll(), ShouldBeTrue)
+
+		})
 	})
 }
 
