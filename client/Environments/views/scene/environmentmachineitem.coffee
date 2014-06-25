@@ -144,6 +144,7 @@ class EnvironmentMachineItem extends EnvironmentItem
         callback          : @bound "showBuildScriptEditorModal"
 
       'Run build script'  :
+        disabled          : !isRunning
         callback          : @bound "runBuildScript"
         separator         : yes
 
