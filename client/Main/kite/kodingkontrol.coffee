@@ -13,6 +13,8 @@ class KodingKontrol extends (require 'kontrol')
       type          : 'sessionID'
       key           : Cookies.get 'clientId'
     transportClass  : SockJS
+    transportOptions:
+      heartbeatTimeout: 30 * 1000 # 30 seconds
 
   reauthenticate: ->
     # disconnect the old kontrol kite
