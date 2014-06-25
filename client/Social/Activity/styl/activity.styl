@@ -998,11 +998,65 @@ span.collapsedtext
 
 .activity-item.status
   .link-embed-box
-    .preview-text-link
-      input.preview-title-input
-        display             none
-      textarea.description-input
-        display             none
+    padding                 0 14px 15px
+    overflow                visible
+    borderBox()
+
+    .embed-link-view
+
+      .preview-image
+        display             block
+        margin              0
+        padding             0
+        z-index             10
+
+        img
+          display           block
+          margin            0
+          padding           0
+          width             100%
+
+      .preview-text
+        padding             17px
+        border              1px solid #e5e5e5
+        z-index             9
+        borderBox()
+
+        a.preview-text-link
+          noTextDeco()
+
+          h4
+            font-size       16px
+            line-height     18px
+            color           #4f4f4f
+            display         block
+
+        a.description
+          padding           14px 0
+          color             #727272
+          font-size         14px
+          line-height       16px
+          display           block
+          opacity           .99
+
+        .provider-info
+          overflow          visible
+          color             #bdbdbd
+          opacity           .99
+          font-size         14px
+          line-height       16px
+
+      .preview-image + .preview-text
+        border-top-color    #d2d2d2
+
+
+// .activity-item.status
+//   .link-embed-box
+//     .preview-text-link
+//       input.preview-title-input
+//         display             none
+//       textarea.description-input
+//         display             none
 
 
 /** Markdown Styling **/
@@ -1067,7 +1121,7 @@ span.collapsedtext
       vertical-align      top
       font-size           12px
   pre
-    padding               10px 0
+    padding               15px 14px
     code
       display             block
       line-height         16px
