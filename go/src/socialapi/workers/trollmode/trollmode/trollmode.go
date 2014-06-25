@@ -206,6 +206,56 @@ func (c *Controller) markMessages(account *models.Account) error {
 		}
 
 		// increment skip count
+
+func (c *Controller) markMessageListsAsExempt(message *models.ChannelMessage) error {
+	var processCount = 100
+	var skip = 0
+	var erroredMessages []models.ChannelMessageList
+
+	cml := models.NewChannelMessageList()
+	q := &bongo.Query{
+		Selector: map[string]interface{}{
+			"message_id": message.Id,
+			"meta_bits":  models.Safe,
+		},
+		Pagination: *bongo.NewPagination(processCount, 0),
+	}
+
+	for {
+
+		// set skip everytime here
+		q.Pagination.Skip = skip
+		var messageList []models.ChannelMessageList
+		if err := cml.Some(&messageList, q); err != nil {
+			return err
+		}
+
+		// we processed all channel participants
+		if len(messageList) <= 0 {
+			break
+		}
+
+		for i, item := range messageList {
+			item.MetaBits.MarkTroll()
+			if err := item.Update(); err != nil {
+				c.log.Error(err.Error())
+				erroredMessages = append(erroredMessages, messageList[i])
+			}
+		}
+
+		// increment skip count
+		skip = processCount + skip
+	}
+
+	if len(erroredMessages) != 0 {
+		err := errors.New(fmt.Sprintf("some errors: %v", erroredMessages))
+		c.log.Error(err.Error())
+		return err
+	}
+
+	return nil
+}
+
 func (c *Controller) markMessageRepliesAsExempt(message *models.ChannelMessage) error {
 	var processCount = 100
 	var skip = 0
