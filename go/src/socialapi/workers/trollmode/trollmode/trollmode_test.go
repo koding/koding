@@ -152,11 +152,31 @@ func TestMarkedAsTroll(t *testing.T) {
 
 		// mark channel_message_list
 		Convey("massages that are in all channels that are created by troll, should be marked as exempt", func() {
-			// post, err := rest.CreatePost(groupChannel.Id, trollUser.Id)
-			// tests.ResultedWithNoErrorCheck(post, err)
+			fmt.Println("groupChannel.Id, trollUser.Id")
+			fmt.Println(groupChannel.Id, trollUser.Id)
 
-			// post, err = rest.CreatePost(groupChannel.Id, trollUser.Id)
-			// tests.ResultedWithNoErrorCheck(post, err)
+			post, err := rest.CreatePost(groupChannel.Id, trollUser.Id)
+			tests.ResultedWithNoErrorCheck(post, err)
+
+			So(controller.markMessageListsAsExempt(post), ShouldBeNil)
+
+			cml := models.NewChannelMessageList()
+			q := &bongo.Query{
+				Selector: map[string]interface{}{
+					"message_id": post.Id,
+				},
+			}
+
+			var messages []models.ChannelMessageList
+			err = cml.Some(&messages, q)
+			So(err, ShouldBeNil)
+
+			// message should be in one channel
+			So(len(messages), ShouldBeGreaterThan, 0)
+
+			for _, message := range messages {
+				So(message.MetaBits.IsTroll(), ShouldBeTrue)
+			}
 		})
 
 		// mark channel_message
