@@ -3,7 +3,6 @@ package logger
 import (
 	"fmt"
 	stdlog "log"
-	"log/syslog"
 	"os"
 	"runtime"
 	"runtime/debug"
@@ -31,12 +30,12 @@ func NewGoLog(name string) *GoLogger {
 	logBackend.Color = true
 
 	// Send log to syslog
-	var syslogBackend, err = logging.NewSyslogBackend("", syslog.LOG_DEBUG|syslog.LOG_LOCAL0)
-	if err != nil {
-		panic(err)
-	}
+	// var syslogBackend, err = logging.NewSyslogBackend("", syslog.LOG_DEBUG|syslog.LOG_LOCAL0)
+	// if err != nil {
+	// 	panic(err)
+	// }
 
-	logging.SetBackend(logBackend, syslogBackend)
+	logging.SetBackend(NewLogBackend)
 
 	// go-logging calls Reset() each time it is imported. So if this
 	// pkg is imported in a library and then in a worker, the library
