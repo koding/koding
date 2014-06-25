@@ -7,6 +7,12 @@ class MessagePane extends KDTabPaneView
 
     super options, data
 
+    @lastScrollTops =
+      window        : 0
+      parent        : 0
+      self          : 0
+      body          : 0
+
     {itemClass, type} = @getOptions()
     {typeConstant}    = @getData()
 
@@ -56,6 +62,23 @@ class MessagePane extends KDTabPaneView
     return  unless @active
 
     window.scrollTo 0, 0
+
+
+  setScrollTops: ->
+
+    super
+
+    @lastScrollTops.window = window.scrollTop or 0
+    @lastScrollTops.body   = document.body.scrollTop
+
+
+  applyScrollTops: ->
+
+    super
+
+    KD.utils.defer =>
+      window.scrollTo 0, @lastScrollTops.window
+      document.body.scrollTop = @lastScrollTops.body
 
 
   createParticipantsView : ->
@@ -161,9 +184,11 @@ class MessagePane extends KDTabPaneView
 
   focus: ->
 
-    if @input
-      @input.input.$().trigger 'click'
-    else
+    # if @input
+    #   @input.input.$().trigger 'click'
+    # else
+
+    unless @input
       @listController.getListItems().first?.commentBox.inputForm.input.setFocus()
 
 
