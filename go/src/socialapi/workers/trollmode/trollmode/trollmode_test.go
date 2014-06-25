@@ -318,6 +318,28 @@ func TestMarkedAsTroll(t *testing.T) {
 
 		})
 
+		// update channel_message data while creating
+		Convey("when a troll replies to a status update, meta_bits should be set", func() {
+			// create post form a normal user
+			post, err := rest.CreatePost(groupChannel.Id, normalUser.Id)
+			tests.ResultedWithNoErrorCheck(post, err)
+
+			// create reply
+			reply, err := rest.AddReply(post.Id, trollUser.Id, groupChannel.Id)
+			So(err, ShouldBeNil)
+			So(reply, ShouldNotBeNil)
+			So(reply.AccountId, ShouldEqual, trollUser.Id)
+
+			So(controller.markMessageRepliesAsExempt(reply), ShouldBeNil)
+
+			m := models.NewChannelMessage()
+			So(m.ById(reply.Id), ShouldBeNil)
+			So(m, ShouldNotBeNil)
+
+			So(m.MetaBits.IsTroll(), ShouldBeTrue)
+
+		})
+
 		// update message_reply data while creating
 		Convey("when a troll replies to a status update, meta_bits should be set", func() {
 			// create post form a normal user
