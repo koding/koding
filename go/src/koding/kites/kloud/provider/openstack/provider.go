@@ -1,6 +1,7 @@
-package rackspace
+package openstack
 
 import (
+	os "koding/kites/kloud/api/openstack"
 	"koding/kites/kloud/kloud/machinestate"
 	"koding/kites/kloud/kloud/protocol"
 
@@ -8,7 +9,8 @@ import (
 )
 
 const (
-	ProviderName = "rackspace"
+	ProviderName = "rackspace" // we use rackspace for no
+	AuthURL      = "https://identity.api.rackspacecloud.com/v2.0/tokens"
 )
 
 type Provider struct {
@@ -25,6 +27,11 @@ func (p *Provider) Name() string {
 }
 
 func (p *Provider) Build(opts *protocol.MachineOptions) (*protocol.BuildResponse, error) {
+	_, err := os.New(AuthURL, opts.Credential, opts.Builder)
+	if err != nil {
+		return nil, err
+	}
+
 	return nil, nil
 }
 

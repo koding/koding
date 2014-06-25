@@ -2,18 +2,15 @@ package api
 
 import (
 	"errors"
+	"fmt"
 	"strings"
 
 	"github.com/mitchellh/mapstructure"
-	"github.com/rackspace/gophercloud"
-)
-
-const (
-	ApiKey = "96d6388ccb936f047fd35eb29c36df17"
+	"launchpad.net/goose/identity"
 )
 
 type Openstack struct {
-	Provider string `mapstructure:"provider"`
+	AuthURL  string `mapstructure:"authURL"`
 	Insecure bool   `mapstructure:"insecure"`
 
 	Creds struct {
@@ -39,9 +36,9 @@ type Openstack struct {
 	}
 }
 
-func New(provider string, credential, builder map[string]interface{}) (*Openstack, error) {
+func New(authURL string, credential, builder map[string]interface{}) (*Openstack, error) {
 	o := Openstack{
-		Provider: provider,
+		AuthURL: authURL,
 	}
 
 	// Credentials
@@ -62,21 +59,37 @@ func New(provider string, credential, builder map[string]interface{}) (*Openstac
 		return nil, errors.New("Password is not set")
 	}
 
+	// If we have ApiKey use that. If the user has provided a Password use that
+	// instead of the ApiKey. TODO: make it more smarter or choosable from user
+	// perspective.
+	secret := o.Creds.ApiKey
+	authMode := identity.AuthKeyPair
+	if o.Creds.Password != "" {
+		secret = o.Creds.Password
+		authMode = identity.AuthUserPass
+	}
+
 	// OpenStack's auto-generated openrc.sh files do not append the suffix
 	// /tokens to the authentication URL. This ensures it is present when
 	// specifying the URL.
-	if strings.Contains(provider, "://") && !strings.HasSuffix(provider, "/tokens") {
-		o.Provider += "/tokens"
+	if strings.Contains(authURL, "://") && !strings.HasSuffix(authURL, "/tokens") {
+		authURL += "/tokens"
 	}
 
-	authoptions := gophercloud.AuthOptions{
-		AllowReauth: true,
-		ApiKey:      o.Creds.ApiKey,
-		TenantId:    o.Creds.TenantId,
-		TenantName:  o.Creds.TenantName,
-		Username:    o.Creds.Username,
-		Password:    o.Creds.Password,
+	creds := &identity.Credentials{
+		URL:        authURL,
+		User:       o.Creds.Username,
+		Secrets:    secret,
+		TenantName: o.Creds.TenantName,
 	}
 
+	// Get an authenticator and authenticate with the credentials above
+	authenticator := identity.NewAuthenticator(authMode, nil)
+	credentials, err := authenticator.Auth(creds)
+	if err != nil {
+		return nil, err
+	}
+
+	fmt.Printf("credentials %+v\n", credentials)
 	return nil, nil
 }

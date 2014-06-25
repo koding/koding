@@ -7,7 +7,40 @@ import (
 )
 
 var (
+	DIGITALOCEAN_CLIENT_ID = "2d314ba76e8965c451f62d7e6a4bc56f"
+	DIGITALOCEAN_API_KEY   = "4c88127b50c0c731aeb5129bdea06deb"
+
+	RACKSPACE_USERNAME = "kodinginc"
+	RACKSPACE_PASSWORD = "frjJapvap3Ox!Uvk"
+	RACKSPACE_API_KEY  = "96d6388ccb936f047fd35eb29c36df17"
+)
+
+var (
 	TestProviderData = map[string]*kloud.MachineData{
+		"rackspace_id0": &kloud.MachineData{
+			Provider: "rackspace",
+			Credential: &kloud.Credential{
+				Meta: map[string]interface{}{
+					"username": RACKSPACE_USERNAME,
+					"apiKey":   RACKSPACE_API_KEY,
+				},
+			},
+			Machine: &kloud.Machine{
+				Provider: "rackspace",
+				Status: struct {
+					State      string    `bson:"state"`
+					ModifiedAt time.Time `bson:"modifiedAt"`
+				}{
+					State:      machinestate.NotInitialized.String(),
+					ModifiedAt: time.Now(),
+				},
+				Meta: map[string]interface{}{
+					"type":         "rackspace",
+					"source_image": "ubuntu-13-10-x64",
+					"region":       "us",
+				},
+			},
+		},
 		"digitalocean_id0": &kloud.MachineData{
 			Provider: "digitalocean",
 			Credential: &kloud.Credential{

@@ -38,9 +38,6 @@ var (
 	remote    *kite.Client
 	testuser  string
 	storage   kloud.Storage
-
-	DIGITALOCEAN_CLIENT_ID = "2d314ba76e8965c451f62d7e6a4bc56f"
-	DIGITALOCEAN_API_KEY   = "4c88127b50c0c731aeb5129bdea06deb"
 )
 
 func init() {
@@ -386,13 +383,12 @@ func setupKloud() *kodingkite.KodingKite {
 		Port:              3636,
 		Config:            kloudConf,
 		Storage:           &TestStorage{},
-		KontrolURL:        "wss://kontrol.koding.com",
+		KontrolURL:        "https://kontrol.koding.com/kite",
 		KontrolPrivateKey: privateKey,
 		KontrolPublicKey:  publicKey,
 		Debug:             *flagDebug,
 	}
 
 	kt := kloudRaw.NewKloud()
-
 	return kt
 }

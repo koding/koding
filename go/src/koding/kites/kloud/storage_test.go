@@ -3,8 +3,6 @@ package main
 import (
 	"koding/kites/kloud/kloud"
 	"koding/kites/kloud/kloud/machinestate"
-	"koding/kites/kloud/kloud/protocol"
-	"strconv"
 )
 
 type TestStorageFunc func(id string, opt *kloud.GetOption) (*kloud.MachineData, error)
@@ -13,10 +11,21 @@ func (t TestStorageFunc) Get(id string, opt *kloud.GetOption) (*kloud.MachineDat
 	return t(id, opt)
 }
 
-func (t TestStorageFunc) Update(id string, resp *protocol.BuildResponse) error  { return nil }
-func (t TestStorageFunc) UpdateState(id string, state machinestate.State) error { return nil }
-func (t TestStorageFunc) Assignee() string                                      { return "TestStorageFunc" }
-func (t TestStorageFunc) ResetAssignee(id string) error                         { return nil }
+func (t TestStorageFunc) Update(id string, data *kloud.StorageData) error {
+	return nil
+}
+
+func (t TestStorageFunc) UpdateState(id string, state machinestate.State) error {
+	return nil
+}
+
+func (t TestStorageFunc) Assignee() string {
+	return "TestStorageFunc"
+}
+
+func (t TestStorageFunc) ResetAssignee(id string) error {
+	return nil
+}
 
 type TestStorage struct{}
 
@@ -27,12 +36,19 @@ func (t *TestStorage) Get(id string, opt *kloud.GetOption) (*kloud.MachineData, 
 	return machineData, nil
 }
 
-func (t *TestStorage) Update(id string, resp *protocol.BuildResponse) error {
+func (t *TestStorage) Update(id string, s *kloud.StorageData) error {
 	machineData := TestProviderData[id]
-	machineData.Machine.QueryString = resp.QueryString
-	machineData.Machine.IpAddress = resp.IpAddress
-	machineData.Machine.Meta["instanceName"] = resp.InstanceName
-	machineData.Machine.Meta["instanceId"] = strconv.Itoa(resp.InstanceId)
+
+	if s.Type == "build" {
+		machineData.Machine.QueryString = s.Data["queryString"].(string)
+		machineData.Machine.IpAddress = s.Data["ipAddress"].(string)
+		machineData.Machine.Meta["instanceName"] = s.Data["instanceId"]
+		machineData.Machine.Meta["instanceId"] = s.Data["instanceName"]
+	}
+
+	if s.Type == "info" {
+		machineData.Machine.Meta["instanceName"] = s.Data["instanceId"]
+	}
 
 	TestProviderData[id] = machineData
 	return nil
