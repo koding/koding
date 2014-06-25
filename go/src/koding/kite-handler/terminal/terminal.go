@@ -102,7 +102,12 @@ func Connect(r *kite.Request) (interface{}, error) {
 	}
 	server.setSize(float64(params.SizeX), float64(params.SizeY))
 
-	cmd := exec.Command(command.Name, command.Args...)
+	// wrap the command with sudo -i for initiation login shell. This is needed
+	// in order to have Environments and other to be initialized correctly.
+	args := []string{"-i", command.Name}
+	args = append(args, command.Args...)
+	cmd := exec.Command("/usr/bin/sudo", args...)
+
 	cmd.Env = []string{"TERM=xterm-256color", "HOME=" + user.HomeDir}
 	cmd.Stdin = server.pty.Slave
 	cmd.Stdout = server.pty.Slave
