@@ -129,14 +129,14 @@ func (i *Interaction) Delete() error {
 	return nil
 }
 
-func (c *Interaction) List(query *request.Query) ([]int64, error) {
+func (i *Interaction) List(query *request.Query) ([]int64, error) {
 	var interactions []int64
 
-	if c.MessageId == 0 {
+	if i.MessageId == 0 {
 		return interactions, errors.New("Message is not set")
 	}
 
-	return c.FetchInteractorIds(query)
+	return i.FetchInteractorIds(query)
 }
 
 func (i *Interaction) FetchInteractorIds(query *request.Query) ([]int64, error) {
