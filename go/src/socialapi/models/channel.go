@@ -90,14 +90,16 @@ func NewPrivateMessageChannel(creatorId int64, groupName string) *Channel {
 	return c
 }
 
-func (c *Channel) BeforeCreate() {
+func (c *Channel) BeforeCreate() error {
 	c.CreatedAt = time.Now().UTC()
 	c.UpdatedAt = time.Now().UTC()
 	c.DeletedAt = ZeroDate()
+	return c.MarkIfExempt()
 }
 
-func (c *Channel) BeforeUpdate() {
+func (c *Channel) BeforeUpdate() error {
 	c.UpdatedAt = time.Now()
+	return c.MarkIfExempt()
 }
 
 func (c Channel) GetId() int64 {
@@ -563,4 +565,34 @@ func (c *Channel) CanOpen(accountId int64) (bool, error) {
 	}
 
 	return false, nil
+}
+
+func (c *Channel) MarkIfExempt() error {
+	// return early if channel is already exempt
+	if c.MetaBits.IsTroll() {
+		return nil
+	}
+
+	if c.AccountId == 0 && c.Id != 0 {
+		cn := NewChannel()
+		if err := cn.ById(c.Id); err != nil {
+			return err
+		}
+
+		// set account id
+		c.AccountId = cn.AccountId
+	} else {
+		return fmt.Errorf("couldnt find accountId from content %+v", c)
+	}
+
+	account, err := ResetAccountCache(c.AccountId)
+	if err != nil {
+		return err
+	}
+
+	if account.IsTroll {
+		c.MetaBits.MarkTroll()
+	}
+
+	return nil
 }
