@@ -568,31 +568,55 @@ func (c *Channel) CanOpen(accountId int64) (bool, error) {
 }
 
 func (c *Channel) MarkIfExempt() error {
-	// return early if channel is already exempt
-	if c.MetaBits.IsTroll() {
-		return nil
-	}
-
-	if c.AccountId == 0 && c.Id != 0 {
-		cn := NewChannel()
-		if err := cn.ById(c.Id); err != nil {
-			return err
-		}
-
-		// set account id
-		c.AccountId = cn.AccountId
-	} else {
-		return fmt.Errorf("couldnt find accountId from content %+v", c)
-	}
-
-	account, err := ResetAccountCache(c.AccountId)
+	isExempt, err := c.isExempt()
 	if err != nil {
 		return err
 	}
 
-	if account.IsTroll {
+	if isExempt {
 		c.MetaBits.MarkTroll()
 	}
 
 	return nil
+}
+
+func (c *Channel) isExempt() (bool, error) {
+	// return early if channel is already exempt
+	if c.MetaBits.IsTroll() {
+		return true, nil
+	}
+
+	accountId, err := c.getAccountId()
+	if err != nil {
+		return false, err
+	}
+
+	account, err := ResetAccountCache(accountId)
+	if err != nil {
+		return false, err
+	}
+
+	if account.IsTroll {
+		return true, nil
+	}
+
+	return false, nil
+}
+
+func (c *Channel) getAccountId() (int64, error) {
+	if c.CreatorId != 0 {
+		return c.CreatorId, nil
+	}
+
+	if c.Id == 0 {
+		return 0, fmt.Errorf("couldnt find accountId from content %+v", c)
+	}
+
+	cn := NewChannel()
+	if err := cn.ById(c.Id); err != nil {
+		return 0, err
+	}
+
+	return cn.CreatorId, nil
+
 }
