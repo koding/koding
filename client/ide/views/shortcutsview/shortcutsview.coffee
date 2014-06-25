@@ -31,6 +31,10 @@ class IDE.ShortcutsView extends KDView
       @addSubView container
 
   getShortcuts: ->
+
+    # FIXME
+    # get these from KD.appClasses.IDE.options.keyBindings
+    # and sanitize them and keep this only in one place - SY
     'Workspace Shortcuts':
       'Split vertically'       : 'Ctrl-Alt-V'
       'Split horizontally'     : 'Ctrl-Alt-H'
