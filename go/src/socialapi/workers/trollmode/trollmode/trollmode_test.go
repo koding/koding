@@ -318,6 +318,36 @@ func TestMarkedAsTroll(t *testing.T) {
 
 		})
 
+		// update message_reply data while creating
+		Convey("when a troll replies to a status update, meta_bits should be set", func() {
+			// create post form a normal user
+			post, err := rest.CreatePost(groupChannel.Id, normalUser.Id)
+			tests.ResultedWithNoErrorCheck(post, err)
+
+			// create reply
+			reply, err := rest.AddReply(post.Id, trollUser.Id, groupChannel.Id)
+			So(err, ShouldBeNil)
+			So(reply, ShouldNotBeNil)
+			So(reply.AccountId, ShouldEqual, trollUser.Id)
+
+			So(controller.markMessageRepliesAsExempt(reply), ShouldBeNil)
+
+			// check for reply's meta bit
+			mr := models.NewMessageReply()
+			q := &bongo.Query{
+				Selector: map[string]interface{}{
+					"reply_id": reply.Id,
+				},
+			}
+
+			var mrs []models.MessageReply
+			err = mr.Some(&mrs, q)
+			So(err, ShouldBeNil)
+
+			So(len(mrs), ShouldBeGreaterThan, 0)
+			So(mrs[0].MetaBits.IsTroll(), ShouldBeTrue)
+
+		})
 		// channel
 		Convey("when a troll creates a private channel, normal user should not be able to see it", func() {
 			privatemessageChannelId, err := createPrivateMessageChannel(trollUser.Id, groupName)
