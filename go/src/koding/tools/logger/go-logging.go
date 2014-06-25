@@ -35,7 +35,7 @@ func NewGoLog(name string) *GoLogger {
 	// 	panic(err)
 	// }
 
-	logging.SetBackend(NewLogBackend)
+	logging.SetBackend(logBackend)
 
 	// go-logging calls Reset() each time it is imported. So if this
 	// pkg is imported in a library and then in a worker, the library
