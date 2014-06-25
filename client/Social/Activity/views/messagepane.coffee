@@ -45,7 +45,7 @@ class MessagePane extends KDTabPaneView
       @listController.getListView().on 'ItemWasAdded', @bound 'scrollUp'
 
 
-  scrollDown: ->
+  scrollDown: (item) ->
 
     return  unless @active
 
@@ -53,6 +53,8 @@ class MessagePane extends KDTabPaneView
     unless @separator
       @separator = new KDView cssClass : 'new-messages'
       listView.addSubView @separator
+
+    return  unless item is listView.items.last
 
     KD.utils.defer -> window.scrollTo 0, document.body.scrollHeight
 
