@@ -3,6 +3,7 @@ package api
 import (
 	"errors"
 	"fmt"
+	"log"
 	"strings"
 
 	"github.com/mitchellh/mapstructure"
@@ -10,7 +11,9 @@ import (
 )
 
 type Openstack struct {
+	AuthURL  string
 	Provider string
+	Client   gophercloud.CloudServersProvider
 
 	Creds struct {
 		Username   string `mapstructure:"username"`
@@ -35,7 +38,7 @@ type Openstack struct {
 	}
 }
 
-func New(authURL string, credential, builder map[string]interface{}) (*Openstack, error) {
+func New(authURL, providerName string, credential, builder map[string]interface{}) (*Openstack, error) {
 	// OpenStack's auto-generated openrc.sh files do not append the suffix
 	// /tokens to the authentication URL. This ensures it is present when
 	// specifying the URL.
@@ -43,8 +46,9 @@ func New(authURL string, credential, builder map[string]interface{}) (*Openstack
 		authURL += "/tokens"
 	}
 
-	o := Openstack{
-		Provider: authURL, // gophercloud maps the key to URL, otherwise it uses the URL
+	o := &Openstack{
+		AuthURL:  authURL,
+		Provider: providerName,
 	}
 
 	// Credentials
@@ -81,6 +85,25 @@ func New(authURL string, credential, builder map[string]interface{}) (*Openstack
 
 	fmt.Printf("user %+v\n", access.User)
 	fmt.Printf("token %+v\n", access.Token)
+	fmt.Printf("providerName %+v\n", providerName)
 
-	return nil, nil
+	//fetches the api requisites from gophercloud for the appropriate
+	//openstack variant
+	api, err := gophercloud.PopulateApi(providerName)
+	if err != nil {
+		return nil, err
+	}
+
+	if o.Builder.RawRegion != "" {
+		api.Region = o.Builder.RawRegion
+	}
+
+	csp, err := gophercloud.ServersApi(access, api)
+	if err != nil {
+		log.Printf("Region: %s", o.Builder.RawRegion)
+		return nil, err
+	}
+	o.Client = csp
+
+	return o, nil
 }

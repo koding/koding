@@ -146,7 +146,7 @@ func (k *Kloud) InitializeProviders() {
 			SignFunc:     k.SignFunc,
 			Region:       k.Region,
 			Environment:  k.Config.Environment,
-			AuthURL:      "rackspace-us", // defaults to: https://identity.api.rackspacecloud.com/v2.0"
+			AuthURL:      "https://identity.api.rackspacecloud.com/v2.0",
 			ProviderName: "rackspace",
 		},
 	}

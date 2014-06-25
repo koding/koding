@@ -35,9 +35,7 @@ var (
 					ModifiedAt: time.Now(),
 				},
 				Meta: map[string]interface{}{
-					"type":         "rackspace",
-					"source_image": "ubuntu-13-10-x64",
-					"region":       "us",
+					"type": "rackspace",
 				},
 			},
 		},

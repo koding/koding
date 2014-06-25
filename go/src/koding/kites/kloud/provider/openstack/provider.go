@@ -1,7 +1,9 @@
 package openstack
 
 import (
+	"errors"
 	os "koding/kites/kloud/api/openstack"
+	"koding/kites/kloud/eventer"
 	"koding/kites/kloud/kloud/machinestate"
 	"koding/kites/kloud/kloud/protocol"
 
@@ -19,35 +21,61 @@ type Provider struct {
 	ProviderName string
 }
 
+type Client struct {
+}
+
 func (p *Provider) Name() string {
 	return p.ProviderName
 }
 
-func (p *Provider) Build(opts *protocol.MachineOptions) (*protocol.BuildResponse, error) {
-	_, err := os.New(p.AuthURL, opts.Credential, opts.Builder)
+func (p *Provider) NewClient(opts *protocol.MachineOptions) (*Client, error) {
+	_, err := os.New(p.AuthURL, p.ProviderName, opts.Credential, opts.Builder)
 	if err != nil {
 		return nil, err
+	}
+
+	if opts.Eventer == nil {
+		return nil, errors.New("Eventer is not defined.")
+	}
+
+	p.Push = func(msg string, percentage int, state machinestate.State) {
+		p.Log.Info("%s - %s ==> %s", opts.MachineId, opts.Username, msg)
+
+		opts.Eventer.Push(&eventer.Event{
+			Message:    msg,
+			Status:     state,
+			Percentage: percentage,
+		})
 	}
 
 	return nil, nil
 }
 
+func (p *Provider) Build(opts *protocol.MachineOptions) (*protocol.BuildResponse, error) {
+	_, err := p.NewClient(opts)
+	if err != nil {
+		return nil, err
+	}
+
+	return nil, errors.New("not supported yet.")
+}
+
 func (p *Provider) Start(opts *protocol.MachineOptions) error {
-	return nil
+	return errors.New("build is not supported yet.")
 }
 
 func (p *Provider) Stop(opts *protocol.MachineOptions) error {
-	return nil
+	return errors.New("build is not supported yet.")
 }
 
 func (p *Provider) Restart(opts *protocol.MachineOptions) error {
-	return nil
+	return errors.New("build is not supported yet.")
 }
 
 func (p *Provider) Destroy(opts *protocol.MachineOptions) error {
-	return nil
+	return errors.New("build is not supported yet.")
 }
 
 func (p *Provider) Info(opts *protocol.MachineOptions) (*protocol.InfoResponse, error) {
-	return nil, nil
+	return nil, errors.New("not supported yet.")
 }
