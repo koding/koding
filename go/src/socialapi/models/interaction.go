@@ -2,6 +2,7 @@ package models
 
 import (
 	"errors"
+	"fmt"
 	"socialapi/request"
 	"time"
 
@@ -91,21 +92,68 @@ func (i Interaction) AfterDelete() {
 	bongo.B.AfterDelete(i)
 }
 
-func (i *Interaction) BeforeCreate() {
-	i.assignTrollModeBitIfRequired()
+func (i *Interaction) BeforeCreate() error {
+	return i.MarkIfExempt()
 }
 
-func (i *Interaction) BeforeUpdate() {
-	i.assignTrollModeBitIfRequired()
+func (i *Interaction) BeforeUpdate() error {
+	return i.MarkIfExempt()
 }
 
-func (i *Interaction) assignTrollModeBitIfRequired() {
-	cm := NewChannelMessage()
-	cm.Id = i.MessageId
-	cm.AccountId = i.AccountId
-	if res, err := cm.isExemptContent(); err == nil && res {
-		i.MetaBits = updateTrollModeBit(i.MetaBits)
+func (i *Interaction) MarkIfExempt() error {
+	isExempt, err := i.isExempt()
+	if err != nil {
+		return err
 	}
+
+	if isExempt {
+		i.MetaBits.MarkTroll()
+	}
+
+	return nil
+}
+
+func (i *Interaction) isExempt() (bool, error) {
+	if i.MetaBits.IsTroll() {
+		return true, nil
+	}
+
+	accountId, err := i.getAccountId()
+	if err != nil {
+		return false, err
+	}
+
+	account, err := ResetAccountCache(accountId)
+	if err != nil {
+		return false, err
+	}
+
+	if account == nil {
+		return false, fmt.Errorf("account is nil, accountId:%d", i.AccountId)
+	}
+
+	if account.IsTroll {
+		return true, nil
+	}
+
+	return false, nil
+}
+
+func (i *Interaction) getAccountId() (int64, error) {
+	if i.AccountId != 0 {
+		return i.AccountId, nil
+	}
+
+	if i.Id == 0 {
+		return 0, fmt.Errorf("couldnt find accountId from content %+v", i)
+	}
+
+	ii := NewInteraction()
+	if err := ii.ById(i.Id); err != nil {
+		return 0, err
+	}
+
+	return ii.AccountId, nil
 }
 
 func (i *Interaction) Some(data interface{}, q *bongo.Query) error {
