@@ -1090,10 +1090,39 @@ div.environments-item
   noTextSelection()
   borderBox()
 
-  span
+  span.url
+  span.state
+  span.toggle
+  span.terminal
     font-size   10px
     color       #aaa
     abs()
+
+  &:hover
+    .init-machine-view
+      display   block
+
+  .init-machine-view
+    top         0
+    left        0
+    padding     10px
+    box-sizing  border-box
+
+    color       white
+
+    font-size   12px
+    line-height 14px
+
+    display     none
+    abs()
+
+    &.hidden-all
+      display   none !important
+
+    button
+      bottom    10px
+      right     10px
+      abs()
 
   // FIXME refactor with styl
   &.busy

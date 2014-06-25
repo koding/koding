@@ -21,7 +21,7 @@ class NFinderTreeController extends JTreeViewController
   addNode:(nodeData, index)->
     fc = @getDelegate()
     return if @getOption('foldersOnly') and nodeData.type is "file"
-    return if nodeData.isHidden() and fc.isNodesHiddenFor nodeData.vmName
+    return if nodeData.isHidden() and fc.isNodesHiddenFor nodeData.machine.uid
     item = super nodeData, index
 
   highlightFile:(view)->
@@ -54,7 +54,7 @@ class NFinderTreeController extends JTreeViewController
     nodeData = nodeView.getData()
 
     switch nodeData.type
-      when "folder", "mount", "vm"
+      when "folder", "mount", "vm", "machine"
         @toggleFolder nodeView, callback
       when "file"
         @openFile nodeView
@@ -91,17 +91,17 @@ class NFinderTreeController extends JTreeViewController
 
   toggleDotFiles:(nodeView)->
 
-    finder         = @getDelegate()
-    {vmName, path} = nodeView.getData()
+    finder = @getDelegate()
+    { machine:{ uid } } = nodeView.getData()
 
-    if finder.isNodesHiddenFor vmName
-    then finder.showDotFiles vmName
-    else finder.hideDotFiles vmName
+    if finder.isNodesHiddenFor uid
+    then finder.showDotFiles uid
+    else finder.hideDotFiles uid
 
   makeTopFolder:(nodeView)->
-    {vmName, path} = nodeView.getData()
+    {machine, path} = nodeView.getData()
     finder = @getDelegate()
-    finder.updateVMRoot vmName, FSHelper.plainPath path
+    finder.updateMachineRoot machine.uid, FSHelper.plainPath path
 
   refreshFolder:(nodeView, callback)->
 
@@ -248,33 +248,34 @@ class NFinderTreeController extends JTreeViewController
     nodeView.showRenameView (newValue)=>
       return if newValue is nodeData.name
 
-      nodeData.rename name: newValue, (err)=>
+      nodeData.rename newValue, (err)=>
         if err then @notify null, null, err
 
       # @setKeyView()
       @beingEdited = null
 
   createFile:(nodeView, type = "file")->
+
     @notify "creating a new #{type}!"
     nodeData = nodeView.getData()
 
-    { vmName } = nodeData
+    { machine } = nodeData
 
     if nodeData.type is "file"
-      {parentPath} = nodeData
+      { parentPath } = nodeData
     else
       parentPath = nodeData.path
 
     path = FSHelper.plainPath \
       "#{parentPath}/New#{type.capitalize()}#{if type is 'file' then '.txt' else ''}"
 
-    FSItem.create { path, type, vmName, treeController: this }, (err, file)=>
+    machine.fs.create { path, type, treeController: this }, (err, file)=>
       if err
         @notify null, null, err
       else
         @refreshFolder @nodes[parentPath], =>
           @notify "#{type} created!", "success"
-          node = @nodes["[#{file.vmName}]#{file.path}"]
+          node = @nodes["[#{file.machine.uid}]#{file.path}"]
           @selectNode node
           @showRenameDialog node
 
@@ -595,7 +596,7 @@ class NFinderTreeController extends JTreeViewController
   drop: (nodeView, event)->
 
     return if nodeView in @selectedNodes
-    return unless nodeView.getData?().type in ['folder', 'mount', 'vm']
+    return unless nodeView.getData?().type in ['folder', 'mount', 'machine']
 
     @selectedNodes = @selectedNodes.filter (node)->
       targetPath = nodeView.getData?().path

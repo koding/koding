@@ -1,11 +1,32 @@
 # this class will register itself just before application starts loading, right after framework is ready
 
+if localStorage.disableWebSocket?
+  if localStorage.disableWebSocket is "true"
+    window.WebSocket = null
+else if KD.config.kites.disableWebSocketByDefault
+  window.WebSocket = null
+
+
+
 KD.extend
 
   apiUri       : KD.config.apiUri
   appsUri      : KD.config.appsUri
   singleton    : KD.getSingleton.bind KD
-  useNewKites  : yes
+  useNewKites  : do ->
+    useNewKites = switch
+      when KD.config.kites.stack.force
+        Boolean KD.config.kites.stack.newKites
+      when localStorage.useNewKites?
+        Boolean Number localStorage.useNewKites
+    localStorage.useNewKites = if useNewKites then '1' else ''
+    return useNewKites
+  useWebSockets :
+    if localStorage.disableWebSocket is 'true'
+      WebSocket = null
+      no
+    else
+      yes
   appClasses   : {}
   appScripts   : {}
   appLabels    : {}
@@ -240,7 +261,11 @@ KD.extend
 
   isLoggedIn:-> KD.whoami()?.type is 'registered'
 
-  isMine:(account)-> KD.whoami().profile.nickname is account.profile.nickname
+  isMine:(target)->
+    if target?.bongo_?.constructorName is 'JAccount'
+      KD.whoami().profile.nickname is target.profile.nickname
+    else if target?.originId?
+      KD.whoami()._id is target.originId
 
   isMyPost: (post) -> post.account._id is KD.whoami().getId()
 

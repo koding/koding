@@ -10,11 +10,13 @@ class KodingKontrol extends (require 'kontrol')
     @regions = {}
 
   getAuthOptions: ->
-    autoConnect : no
-    url         : @_kontrolUrl ? KD.config.newkontrol.url
-    auth        :
-      type      : 'sessionID'
-      key       : Cookies.get 'clientId'
+    autoConnect     : no
+    url             : @_kontrolUrl ? KD.config.newkontrol.url
+    auth            :
+      type          : 'sessionID'
+      key           : Cookies.get 'clientId'
+    transportClass  : SockJS
+
 
   reauthenticate: ->
     # disconnect the old kontrol kite
@@ -82,7 +84,7 @@ class KodingKontrol extends (require 'kontrol')
   getKite: (options = {}) ->
 
     # Get options
-    { name, correlationName, region,
+    { name, correlationName, region, transportOptions,
       username, environment, queryString } = options
 
     # If queryString provided try to split it first
@@ -95,7 +97,7 @@ class KodingKontrol extends (require 'kontrol')
 
     # Get Kite Proxy, it will be created at this point
     # since its not cached before
-    kite = @getKiteProxy { name, correlationName }
+    kite = @getKiteProxy { name, correlationName, transportOptions }
 
     # Query kontrol
     @fetchKite

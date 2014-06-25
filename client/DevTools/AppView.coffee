@@ -66,7 +66,7 @@ class DevToolsMainView extends KDView
 
                 {CSSEditor, JSEditor} = @workspace.activePanel.panesByName
 
-                switch FSItem.getFileExtension file.path
+                switch FSHelper.getFileExtension file.path
                   when 'css', 'styl'
                   then editor = CSSEditor
                   else editor = JSEditor

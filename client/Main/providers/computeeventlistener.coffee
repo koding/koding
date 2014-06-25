@@ -47,7 +47,7 @@ class ComputeEventListener extends KDObject
 
     {computeController} = KD.singletons
 
-    state = { status : event.status }
+    state = { status : event.status, reverted : event.reverted }
     state.percentage = event.percentage  if event.percentage?
 
     @machineStatuses[machine.uid] = machine.status.state
@@ -57,8 +57,9 @@ class ComputeEventListener extends KDObject
 
   revertToPreviousState:(machine)->
 
-    status = @machineStatuses[machine.uid]
-    @triggerState machine, { status }  if status?
+    status   = @machineStatuses[machine.uid]
+    reverted = status isnt machine.status.state
+    @triggerState machine, { status, reverted }  if status?
     delete @machineStatuses[machine.uid]
 
 
@@ -69,7 +70,7 @@ class ComputeEventListener extends KDObject
     @tickInProgress = yes
 
     {computeController} = KD.singletons
-    @kloud.event(@listeners)
+    @kloud.event @listeners
 
     .then (responses)=>
 
@@ -91,8 +92,9 @@ class ComputeEventListener extends KDObject
           if res.event.percentage is 100 and type is "build"
             computeController.emit "machineBuildCompleted", machineId: eventId
 
-          computeController.emit "public-#{eventId}", res.event
-          computeController.emit "#{res.event.eventId}", res.event
+          unless res.event.status is 'Unknown'
+            computeController.emit "public-#{eventId}", res.event
+            computeController.emit "#{res.event.eventId}", res.event
 
       @listeners = activeListeners
       @tickInProgress = no

@@ -72,7 +72,7 @@ module.exports = class JStack extends jraphical.Module
       machines           : [ ObjectId ]
       extras             : [ ObjectId ]
 
-      config             : String
+      config             : Object
 
       meta               : require 'bongo/bundles/meta'
 

@@ -8,10 +8,8 @@ import (
 	"koding/kite-handler/terminal"
 	"koding/kites/klient/protocol"
 	"log"
-	"net"
 	"net/url"
 	"os"
-	"strconv"
 
 	"github.com/koding/kite"
 	"github.com/koding/kite/config"
@@ -70,17 +68,17 @@ func main() {
 
 	k.HandleFunc("exec", command.Exec)
 
-	register := registerURL()
+	registerURL := k.RegisterURL(*flagLocal)
 	if *flagRegisterURL != "" {
 		u, err := url.Parse(*flagRegisterURL)
 		if err != nil {
 			k.Log.Fatal("Couldn't parse register url: %s", err)
 		}
 
-		register = u
+		registerURL = u
 	}
 
-	k.Log.Info("Going to register to kontrol with URL: %s", register)
+	k.Log.Info("Going to register to kontrol with URL: %s", registerURL)
 	if *flagProxy {
 		// Koding proxies in production only
 		proxyQuery := &kiteprotocol.KontrolQuery{
@@ -90,37 +88,12 @@ func main() {
 		}
 
 		k.Log.Info("Seaching proxy: %#v", proxyQuery)
-		go k.RegisterToProxy(register, proxyQuery)
+		go k.RegisterToProxy(registerURL, proxyQuery)
 	} else {
-		if err := k.RegisterForever(register); err != nil {
+		if err := k.RegisterForever(registerURL); err != nil {
 			log.Fatal(err)
 		}
 	}
 
 	k.Run()
-}
-
-func registerURL() *url.URL {
-	l := &localhost{}
-
-	var ip net.IP
-	var err error
-
-	if *flagLocal {
-		ip, err = l.LocalIP()
-		if err != nil {
-			return nil
-		}
-	} else {
-		ip, err = l.PublicIp()
-		if err != nil {
-			return nil
-		}
-	}
-
-	return &url.URL{
-		Scheme: "ws",
-		Host:   ip.String() + ":" + strconv.Itoa(*flagPort),
-		Path:   "/" + NAME + "-" + VERSION,
-	}
 }

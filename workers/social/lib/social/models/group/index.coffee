@@ -339,6 +339,7 @@ module.exports = class JGroup extends Module
         as          : ['owner', 'user']
         targetType  : 'JCredential'
 
+
   constructor:->
     super
 

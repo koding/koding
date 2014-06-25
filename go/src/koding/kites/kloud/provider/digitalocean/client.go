@@ -1,6 +1,7 @@
 package digitalocean
 
 import (
+	"bytes"
 	"errors"
 	"fmt"
 	do "koding/kites/kloud/api/digitalocean"
@@ -12,6 +13,7 @@ import (
 	"koding/kites/kloud/utils"
 	"strconv"
 	"sync"
+	"text/template"
 	"time"
 
 	klientprotocol "koding/kites/klient/protocol"
@@ -59,6 +61,7 @@ func (c *Client) Build(snapshotName, dropletName, username string) (*protocol.Bu
 		}
 	}
 
+	c.Push(fmt.Sprintf("Getting the droplet '%s' image '%d'", dropletName, image.Id), 15, machinestate.Building)
 	dropletId, err := c.GetDroplet(dropletName, image.Id)
 	if err != nil {
 		return nil, err
@@ -90,18 +93,14 @@ func (c *Client) Build(snapshotName, dropletName, username string) (*protocol.Bu
 	if err != nil {
 		return nil, err
 	}
-	c.Push(fmt.Sprintf("Kite key created for id %s", kiteId), 75, machinestate.Building)
 
-	// for debugging, remove it later ...
-	c.Push(fmt.Sprintf("Writing kite key to temporary file (kite.key)"), 75, machinestate.Building)
-	// DEBUG
+	// for debugging
 	// if err := ioutil.WriteFile("kite.key", []byte(kiteKey), 0400); err != nil {
 	// 	d.Log.Info("couldn't write temporary kite file", err)
 	// }
 
 	keyPath := "/opt/kite/klient/key/kite.key"
-
-	c.Push(fmt.Sprintf("Copying remote kite key %s", keyPath), 85, machinestate.Building)
+	c.Push(fmt.Sprintf("Copying remote kite key %s", keyPath), 72, machinestate.Building)
 	remoteFile, err := client.Create(keyPath)
 	if err != nil {
 		return nil, err
@@ -109,6 +108,37 @@ func (c *Client) Build(snapshotName, dropletName, username string) (*protocol.Bu
 
 	_, err = remoteFile.Write([]byte(kiteKey))
 	if err != nil {
+		return nil, err
+	}
+
+	c.Push("Updating /etc/hosts file", 75, machinestate.Building)
+	hostFile, err := client.Create("/etc/hosts")
+	if err != nil {
+		return nil, err
+	}
+
+	if err := t.Execute(hostFile, dropletName); err != nil {
+		return nil, err
+	}
+
+	c.Push("Updating /etc/hostname file", 80, machinestate.Building)
+	hostnameFile, err := client.Create("/etc/hostname")
+	if err != nil {
+		return nil, err
+	}
+
+	_, err = hostnameFile.Write([]byte(dropletName))
+	if err != nil {
+		return nil, err
+	}
+
+	c.Push(fmt.Sprintf("Changing hostname"), 82, machinestate.Building)
+	if err := client.StartCommand(fmt.Sprintf("hostname %s", dropletName)); err != nil {
+		return nil, err
+	}
+
+	c.Push(fmt.Sprintf("Restarting networking on remote machine"), 85, machinestate.Building)
+	if err := client.StartCommand("service networking restart"); err != nil {
 		return nil, err
 	}
 
@@ -131,9 +161,19 @@ func (c *Client) Build(snapshotName, dropletName, username string) (*protocol.Bu
 	return &protocol.BuildResponse{
 		QueryString:  klient.String(),
 		IpAddress:    droplet.IpAddress,
-		InstanceName: droplet.Name,
+		InstanceName: dropletName, // we don't use droplet.Name because it might have the cached name
 		InstanceId:   droplet.Id,
 	}, nil
+}
+
+func hostsFile(hostname string) ([]byte, error) {
+	t := template.Must(template.New("hosts").Parse(hosts))
+	buf := new(bytes.Buffer)
+	if err := t.Execute(buf, hostname); err != nil {
+		return nil, err
+	}
+
+	return buf.Bytes(), nil
 }
 
 // CreateImage creates an image using Packer. It uses digitalocean.Builder
@@ -257,6 +297,7 @@ func (c *Client) Info() (*protocol.InfoResponse, error) {
 
 	return &protocol.InfoResponse{
 		State: statusToState(droplet.Status),
+		Name:  droplet.Name,
 	}, nil
 }
 
@@ -265,9 +306,10 @@ func (c *Client) Info() (*protocol.InfoResponse, error) {
 // reached, if another generic error is produced or if the event status is of
 // type "ERROR".
 func (c *Client) WaitUntilReady(eventId, from, to int, state machinestate.State) error {
+	timeout := time.After(5 * time.Minute)
 	for {
 		select {
-		case <-time.After(time.Minute):
+		case <-timeout:
 			return errors.New("Timeout while waiting for droplet to become ready")
 		case <-time.Tick(3 * time.Second):
 			c.Push("Waiting for droplet to be ready", from, state)
@@ -318,6 +360,8 @@ func (c *Client) NewDroplet(dropletName string, imageId uint) (dropletId uint, e
 		if err == nil {
 			return
 		}
+
+		c.Log.Error("Creating droplet err: %s", err.Error())
 
 		c.Push("Destroying droplet", 95, machinestate.Building)
 		_, err := c.DestroyDroplet(uint(dropletInfo.Droplet.Id))

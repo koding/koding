@@ -19,21 +19,23 @@ import (
 const version = "0.0.5"
 
 var (
-	profile     = flag.String("c", "", "Configuration profile")
-	region      = flag.String("r", "", "Region")
-	peersString = flag.String("p", "", "Peers (comma seperated)")
+	flagProfile    = flag.String("c", "", "Configuration profile")
+	flagRegion     = flag.String("r", "", "Region")
+	flagPeerString = flag.String("p", "", "Peers (comma seperated)")
+	flagPort       = flag.Int("port", 4000, "Port number of kontrol server")
 )
 
 func main() {
 	flag.Parse()
-	if *profile == "" {
+	if *flagProfile == "" {
 		log.Fatal("Please specify profile via -c. Aborting.")
 	}
-	if *region == "" {
+
+	if *flagRegion == "" {
 		log.Fatal("Please specify region via -r. Aborting.")
 	}
 
-	conf := config.MustConfig(*profile)
+	conf := config.MustConfig(*flagProfile)
 	modelhelper.Initialize(conf.Mongo)
 
 	publicKey, err := ioutil.ReadFile(conf.NewKontrol.PublicKeyFile)
@@ -59,14 +61,15 @@ func main() {
 	datadir := filepath.Join(cwd, "kontrol-data-"+hostname)
 
 	var peers []string
-	if *peersString != "" {
-		peers = strings.Split(*peersString, ",")
+	if *flagPeerString != "" {
+		peers = strings.Split(*flagPeerString, ",")
 	}
 
 	kiteConf := kiteconfig.MustGet()
 	kiteConf.Port = conf.NewKontrol.Port
 	kiteConf.Environment = conf.Environment
-	kiteConf.Region = *region
+	kiteConf.Region = *flagRegion
+	kiteConf.Port = *flagPort
 
 	kon := kontrol.New(kiteConf, version, string(publicKey), string(privateKey))
 	kon.Peers = peers

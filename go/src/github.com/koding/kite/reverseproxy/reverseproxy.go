@@ -4,8 +4,11 @@ import (
 	"crypto/tls"
 	"net"
 	"net/http"
+	"net/http/httputil"
 	"net/url"
+	"path"
 	"strconv"
+	"strings"
 	"sync"
 
 	"github.com/gorilla/websocket"
@@ -29,31 +32,30 @@ type Proxy struct {
 	closeC chan bool // To signal when kite is closed with Close()
 
 	// Holds registered kites. Keys are kite IDs.
-	kites   map[string]*url.URL
+	kites   map[string]url.URL
 	kitesMu sync.Mutex
 
 	// muxer for proxy
-	mux *http.ServeMux
+	mux            *http.ServeMux
+	websocketProxy http.Handler
+	httpProxy      http.Handler
 
 	// Proxy properties used to give urls and bind the listener
 	Scheme     string
 	PublicHost string // If given it must match the domain in certificate.
-	Port       int
+	PublicPort int    // Uses for registering and defining the public port.
 }
 
 func New(conf *config.Config) *Proxy {
 	k := kite.New(Name, Version)
 	k.Config = conf
 
-	// Listen on 3999 by default
-
 	p := &Proxy{
 		Kite:   k,
-		kites:  make(map[string]*url.URL),
+		kites:  make(map[string]url.URL),
 		readyC: make(chan bool),
 		closeC: make(chan bool),
 		mux:    http.NewServeMux(),
-		Port:   k.Config.Port,
 	}
 
 	// third part kites are going to use this to register themself to
@@ -61,7 +63,8 @@ func New(conf *config.Config) *Proxy {
 	p.Kite.HandleFunc("register", p.handleRegister)
 
 	// create our websocketproxy http.handler
-	proxy := &websocketproxy.WebsocketProxy{
+
+	p.websocketProxy = &websocketproxy.WebsocketProxy{
 		Backend: p.backend,
 		Upgrader: &websocket.Upgrader{
 			ReadBufferSize:  4096,
@@ -73,8 +76,12 @@ func New(conf *config.Config) *Proxy {
 		},
 	}
 
-	p.mux.Handle("/kite", k)
-	p.mux.Handle("/proxy", proxy)
+	p.httpProxy = &httputil.ReverseProxy{
+		Director: p.director,
+	}
+
+	p.mux.Handle("/", k)
+	p.mux.Handle("/proxy/", p)
 
 	// OnDisconnect is called whenever a kite is disconnected from us.
 	k.OnDisconnect(func(r *kite.Client) {
@@ -83,6 +90,28 @@ func New(conf *config.Config) *Proxy {
 	})
 
 	return p
+}
+
+// ServeHTTP implements the http.Handler interface.
+func (p *Proxy) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
+	if isWebsocket(req) {
+		// we don't use https explicitly, ssl termination is done here
+		req.URL.Scheme = "ws"
+		p.websocketProxy.ServeHTTP(rw, req)
+		return
+	}
+
+	p.httpProxy.ServeHTTP(rw, req)
+}
+
+// isWebsocket checks wether the incoming request is a part of websocket
+// handshake
+func isWebsocket(req *http.Request) bool {
+	if strings.ToLower(req.Header.Get("Upgrade")) != "websocket" ||
+		!strings.Contains(strings.ToLower(req.Header.Get("Connection")), "upgrade") {
+		return false
+	}
+	return true
 }
 
 func (p *Proxy) CloseNotify() chan bool {
@@ -99,13 +128,12 @@ func (p *Proxy) handleRegister(r *kite.Request) (interface{}, error) {
 		return nil, err
 	}
 
-	p.kites[r.Client.ID] = kiteUrl
+	p.kites[r.Client.ID] = *kiteUrl
 
 	proxyURL := url.URL{
-		Scheme:   p.Scheme,
-		Host:     p.PublicHost + ":" + strconv.Itoa(p.Port),
-		Path:     "proxy",
-		RawQuery: "kiteId=" + r.Client.ID,
+		Scheme: p.Scheme,
+		Host:   p.PublicHost + ":" + strconv.Itoa(p.PublicPort),
+		Path:   "/proxy/" + r.Client.ID,
 	}
 
 	s := proxyURL.String()
@@ -115,7 +143,22 @@ func (p *Proxy) handleRegister(r *kite.Request) (interface{}, error) {
 }
 
 func (p *Proxy) backend(req *http.Request) *url.URL {
-	kiteId := req.URL.Query().Get("kiteId")
+	withoutProxy := strings.TrimPrefix(req.URL.Path, "/proxy")
+	paths := strings.Split(withoutProxy, "/")
+
+	if len(paths) == 0 {
+		p.Kite.Log.Error("Invalid path '%s'", req.URL.String())
+		return nil
+	}
+
+	// remove the first empty path
+	paths = paths[1:]
+
+	// get our kiteId and indiviudal paths
+	kiteId, rest := paths[0], path.Join(paths[1:]...)
+
+	p.Kite.Log.Info("[%s] Incoming proxy request for scheme: '%s', endpoint '/%s'",
+		kiteId, req.URL.Scheme, rest)
 
 	p.kitesMu.Lock()
 	defer p.kitesMu.Unlock()
@@ -126,16 +169,32 @@ func (p *Proxy) backend(req *http.Request) *url.URL {
 		return nil
 	}
 
-	p.Kite.Log.Info("Returning backend url: '%s' for kiteId: %s", backendURL.String(), kiteId)
+	// backendURL.Path contains the baseURL, like "/kite" and rest contains
+	// SockJS related endpoints, like /info or /123/kjasd213/websocket
+	backendURL.Scheme = req.URL.Scheme
+	backendURL.Path += "/" + rest
 
-	return backendURL
+	p.Kite.Log.Info("[%s] Proxying to backend url: '%s'.", kiteId, backendURL.String())
+	return &backendURL
+}
+
+func (p *Proxy) director(req *http.Request) {
+	u := p.backend(req)
+	if u == nil {
+		return
+	}
+
+	// we don't use https explicitly, ssl termination is done here
+	req.URL.Scheme = "http"
+	req.URL.Host = u.Host
+	req.URL.Path = u.Path
 }
 
 // ListenAndServe listens on the TCP network address addr and then calls Serve
 // with handler to handle requests on incoming connections.
 func (p *Proxy) ListenAndServe() error {
 	var err error
-	p.listener, err = net.Listen("tcp",
+	p.listener, err = net.Listen("tcp4",
 		net.JoinHostPort(p.Kite.Config.IP, strconv.Itoa(p.Kite.Config.Port)))
 	if err != nil {
 		return err

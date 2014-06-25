@@ -124,8 +124,8 @@ class CollaborativeFinderTreeController extends NFinderTreeController
     return unless nodeView
 
     file      = nodeView.getData()
-    extension = FSItem.getFileExtension file.path
-    fileType  = FSItem.getFileType extension
+    extension = FSHelper.getFileExtension file.path
+    fileType  = FSHelper.getFileType extension
     delegate  = @getDelegate()
 
     return delegate.emit "CannotOpenImageFiles"  if fileType is "image"

@@ -1,24 +1,55 @@
+
 class FSHelper
 
-  parseWatcherFile = ({ vmName, parentPath, file, user, treeController, osKite })->
+  @createFileInstance = (options)->
 
+    if typeof options is 'string'
+      options = path: options
+    else if not options?.path?
+      return warn "pass a path and type to create a file instance"
+
+    unless options.machine?
+      warn "No machine instance passed, creating dummy file instance"
+      options.machine = new DummyMachine
+
+    options.type       ?= "file"
+    options.name       ?= @getFileNameFromPath options.path
+    options.parentPath ?= @getParentPath       options.path
+
+    if @registry[options.path]
+      instance = @registry[options.path]
+      @updateInstance options
+    else
+      constructor = switch options.type
+        when "mount"      then FSMount
+        when "folder"     then FSFolder
+        when "symLink"    then FSFolder
+        when "machine"    then FSMachine
+        when "brokenLink" then FSBrokenLink
+        else FSFile
+
+      instance = new constructor options
+      @register instance
+
+    return instance
+
+  parseWatcherFile = ({ machine, parentPath, file, user, treeController })->
+
+    { uid } = machine
     {name, size, mode} = file
+
     type      = if file.isBroken then 'brokenLink' else \
                 if file.isDir then 'folder' else 'file'
-    path      = if parentPath is "[#{vmName}]/" then "[#{vmName}]/#{name}" else \
+    path      = if parentPath is "[#{uid}]/" then "[#{uid}]/#{name}" else \
                 "#{parentPath}/#{name}"
     group     = user
     createdAt = file.time
+
     return { size, user, group, createdAt, mode, type, \
-             parentPath, path, name, vmName:vmName, treeController, osKite }
+             parentPath, path, name, machine, treeController }
 
-  @handleStdErr = ->
-    (result) ->
-      { stdout, stderr, exitStatus } = result
-      throw new Error "std error: #{ stderr }"  if exitStatus > 0
-      return result
+  @parseWatcher = ({ machine, parentPath, files, treeController })->
 
-  @parseWatcher = ({ vmName, parentPath, files, treeController, osKite })->
     data = []
     return data unless files
     files = [files] unless Array.isArray files
@@ -28,26 +59,19 @@ class FSHelper
     sortedFiles = partition(files.sort(sortFiles), (file) -> file.isDir)
       .reduce (acc, next) -> acc.concat next
 
-    nickname = KD.nick()
     for file in sortedFiles
-      data.push FSHelper.createFile \
-        parseWatcherFile {
-          vmName
-          parentPath
-          file
-          nickname
-          treeController
-        }
+      data.push FSHelper.createFileInstance \
+        parseWatcherFile { file, machine, parentPath, treeController }
 
     return data
 
-  @folderOnChange = ({ vmName, path, change, treeController })->
+
+  @folderOnChange = ({ machine, path, change, treeController })->
     return  unless treeController
     [ file ] = @parseWatcher {
-      vmName
-      parentPath  : path
-      files       : change.file
-      treeController
+      parentPath : path
+      files      : change.file
+      treeController, machine
     }
     switch change.event
       when "added"
@@ -58,8 +82,22 @@ class FSHelper
             treeController.removeNodeView node
             break
 
+  @getFileExtension: (path) ->
+    fileName = path or ''
+    [name, extension...]  = fileName.split '.'
+    extension = if extension.length is 0 then '' else extension.last
+    return extension
+
   @plainPath:(path)-> path.replace /^\[.*\]/, ''
   @getVMNameFromPath:(path)-> (/^\[([^\]]+)\]/g.exec path)?[1]
+
+  @getUidFromPath:(path)-> (/^\[([^\]]+)\]/g.exec path)?[1]
+
+  @handleStdErr = ->
+    (result) ->
+      { stdout, stderr, exitStatus } = result
+      throw new Error "std error: #{ stderr }"  if exitStatus > 0
+      return result
 
   @minimizePath: (path)-> @plainPath(path).replace ///^\/home\/#{KD.nick()}///, '~'
 
@@ -100,8 +138,8 @@ class FSHelper
   @unregister = (path)->
     delete @registry[path]
 
-  @unregisterVmFiles = (vmName)->
-    for own path, file of @registry  when (path.indexOf "[#{vmName}]") is 0
+  @unregisterMachineFiles = (uid)->
+    for own path, file of @registry  when (path.indexOf "[#{uid}]") is 0
       @unregister path
 
   @updateInstance = (fileData)->
@@ -111,50 +149,24 @@ class FSHelper
   @setFileListeners = (file)->
     file.on "fs.job.finished", =>
 
-  @getFileNameFromPath = getFileName = (path)->
+  @getFileNameFromPath = (path)->
     return path.split('/').pop()
 
   @trimExtension = (path)->
-    name = getFileName path
+    name = FSHelper.getFileName path
     return name.split('.').shift()
 
   @getParentPath = (path)->
-    path = path.substr(0, path.length-1) if path.substr(-1) is "/"
-    parentPath = path.split('/')
-    parentPath.pop()
-    return parentPath.join('/')
 
-  @createFileFromPath = (path, type = "file", dummy = no) ->
-    return warn "pass a path to create a file instance" unless path
-    vmName     = @getVMNameFromPath(path) or null
-    path       = @plainPath path  if vmName
-    parentPath = @getParentPath path
-    name       = @getFileNameFromPath path
-    return @createFile { path, parentPath, name, type, vmName, dummy }
+    uid = @getUidFromPath path
+    if uid? then path = @plainPath path
 
-  @createFile = (options)->
-    unless options and options.type and options.path
-      return warn "pass a path and type to create a file instance"
+    path   = path.replace /\/$/, ''
+    parent = path.split '/'; parent.pop(); parent = parent.join '/'
+    parent = "/"  if parent is ""
+    parent = "[#{uid}]#{parent}"  if uid
 
-    unless options.vmName?
-      options.vmName = KD.getSingleton('vmController').defaultVmName
-
-    if @registry[options.path]
-      instance = @registry[options.path]
-      @updateInstance options
-    else
-      constructor = switch options.type
-        when "vm"         then FSVm
-        when "folder"     then FSFolder
-        when "mount"      then FSMount
-        when "symLink"    then FSFolder
-        when "brokenLink" then FSBrokenLink
-        else FSFile
-
-      instance = new constructor options
-      @register instance
-
-    return instance
+    return parent
 
   @createRecursiveFolder = ({ path, vmName }, callback = noop) ->
     return warn "Pass a path to create folders recursively"  unless path
@@ -168,23 +180,25 @@ class FSHelper
       vmName
     }, callback
 
-  @isValidFileName = (name) ->
-    return /^([a-zA-Z]:\\)?[^\x00-\x1F"<>\|:\*\?/]+$/.test name
-
-  @isEscapedPath = (path) ->
-    return /^\s\"/.test path
-
   @escapeFilePath = (name) ->
     return FSHelper.plainPath name.replace(/\'/g, '\\\'').replace(/\"/g, '\\"').replace(/\ /g, '\\ ')
 
   @unescapeFilePath = (name) ->
     return name.replace(/^(\s\")/g,'').replace(/(\"\s)$/g, '').replace(/\\\'/g,"'").replace(/\\"/g,'"')
 
+  @convertToRelative = (path)->
+    path.replace(/^\//, "").replace /(.+?)\/?$/, "$1/"
+
+  @isValidFileName = (name) ->
+    return /^([a-zA-Z]:\\)?[^\x00-\x1F"<>\|:\*\?/]+$/.test name
+
+  @isEscapedPath = (path) ->
+    return /^\s\"/.test path
+
   @isPublicPath = (path)->
     /^\/home\/.*\/Web\//.test FSHelper.plainPath path
 
-  @convertToRelative = (path)->
-    path.replace(/^\//, "").replace /(.+?)\/?$/, "$1/"
+  @isHidden = (name)-> /^\./.test name
 
   @isUnwanted = (path, isFile=no)->
 
@@ -230,6 +244,29 @@ class FSHelper
     queue.push "[#{vmName}]/"
     return queue
 
+  @getFullPath = (file)->
+    plainPath = @plainPath file.path
+    return "[#{file.machine.uid}]#{plainPath}"
+
+  # FS Chunk helpers
+  #
+
+  @createChunkQueue = (data, skip=0, chunkSize=1024*1024)->
+
+    return unless data
+
+    chunks     = FSHelper.chunkify data, chunkSize
+    queue      = []
+
+    for chunk, index in chunks
+      isSkip = skip > index
+      queue.push
+        content : unless isSkip then btoa chunk
+        skip    : isSkip
+        append  : queue.length > 0 # first chunk is not an append
+
+    return queue
+
   @chunkify = (data, chunkSize)->
     chunks = []
     while data
@@ -242,8 +279,46 @@ class FSHelper
         data = data.substr chunkSize
     return chunks
 
-  @getFullPath = (file)->
-    plainPath = @plainPath file.path
-    return "[#{file.vmName}]#{plainPath}"
+  # Extension helpers
+  #
+
+  @getFileType = (extension)->
+
+    fileType = null
+
+    _extension_sets =
+      code    : [
+        "php", "pl", "py", "jsp", "asp", "htm","html", "phtml","shtml"
+        "sh", "cgi", "htaccess","fcgi","wsgi","mvc","xml","sql","rhtml"
+        "js","json","coffee", "css","styl","sass", "erb"
+      ]
+      text    : [
+        "txt", "doc", "rtf", "csv", "docx", "pdf"
+      ]
+      archive : [
+        "zip","gz","bz2","tar","7zip","rar","gzip","bzip2","arj","cab"
+        "chm","cpio","deb","dmg","hfs","iso","lzh","lzma","msi","nsis"
+        "rpm","udf","wim","xar","z","jar","ace","7z","uue"
+      ]
+      image   : [
+        "png","gif","jpg","jpeg","bmp","svg","psd","qt","qtif","qif"
+        "qti","tif","tiff","aif","aiff"
+      ]
+      video   : [
+        "avi","mp4","h264","mov","mpg","ra","ram","mpg","mpeg","m4a"
+        "3gp","wmv","flv","swf","wma","rm","rpm","rv","webm"
+      ]
+      sound   : ["aac","au","gsm","mid","midi","snd","wav","3g2","mp3","asx","asf"]
+      app     : ["kdapp"]
+
+
+    for own type,set of _extension_sets
+      for ext in set when extension is ext
+        fileType = type
+        break
+      break if fileType
+
+    return fileType or 'unknown'
+
 
 KD.classes.FSHelper = FSHelper

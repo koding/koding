@@ -62,13 +62,9 @@ type BuildResponse struct {
 type InfoResponse struct {
 	// State defines the state of the machine
 	State machinestate.State
-}
 
-// Initializer initializes a provider once. It might used to initialize the
-// Provider once before it's used as a Provider. This should be nonblocking or
-// last for a short time.
-type Initializer interface {
-	Init() error
+	// Name defines the name of the machine.
+	Name string
 }
 
 // Provider manages a machine. It is used to create and provision a single

@@ -12,6 +12,7 @@ module.exports = [
   "webtermsettings.coffee",
   "sessionstackview.coffee",
   "sessionitemview.coffee",
+  "terminalmodal.coffee",
 
   "src/ControlCodeReader.coffee",
   "src/Cursor.coffee",

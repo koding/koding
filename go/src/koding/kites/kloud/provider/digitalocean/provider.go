@@ -38,7 +38,7 @@ func (p *Provider) NewClient(opts *protocol.MachineOptions) (*Client, error) {
 	}
 
 	push := func(msg string, percentage int, state machinestate.State) {
-		p.Log.Info("%s ==> %s (username: '%s')", opts.MachineId, msg, opts.Username)
+		p.Log.Info("%s - %s ==> %s", opts.MachineId, opts.Username, msg)
 
 		opts.Eventer.Push(&eventer.Event{
 			Message:    msg,

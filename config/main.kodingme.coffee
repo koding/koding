@@ -30,9 +30,6 @@ version         = "0.0.1"
 mongo           = "#{customDomain.local_}:27017/koding"
 mongoKontrol    = "#{customDomain.local_}:27017/kontrol"
 
-
-
-
 socialQueueName = "koding-social-#{configName}"
 logQueueName    = socialQueueName+'log'
 
@@ -58,7 +55,7 @@ regions         =
 cookieMaxAge = 1000 * 60 * 60 * 24 * 14 # two weeks
 cookieSecure = no
 
-module.exports = __ =
+module.exports =
   environment   : environment
   regions       : regions
   region        : region
@@ -89,69 +86,12 @@ module.exports = __ =
     updateAllSlugs : no
     debugConnectionErrors: yes
 
-  kontrolProxy:
-    process:
-      run : no 
-      cmd: "./go/bin/kontrolproxy -c #{configName} -r #{configName} -v"
-      restart : no
-
-  kontrolDaemon:
-    process:
-      run : yes
-      cmd: "./go/bin/kontroldaemon -c #{configName}"
-      restart : no
-
-  kontrolApi:
-    process:
-      run : yes
-      cmd: "./go/bin/kontrolapi -c #{configName}"
-      restart : no
-
-  kontrol:
-    process:
-      run : yes
-      cmd: "./go/bin/kontrol -c #{configName} -r #{configName}"
-      restart : no
-
-  proxyKite:
-    process:
-      run : yes
-      cmd: "./go/bin/reverseproxy -region #{configName} -host #{hostname} -env production"
-      restart : no
-
-  rerouting :
-    process :
-      run            : yes
-      cmd            : "./go/bin/rerouting -c #{configName}"
-      kontrol        :
-        enabled      : yes
-        startMode    : "one"
-      restart : no
-
-  userpresence:
-    process:
-      run : no
-      cmd            : "./go/bin/userpresence -c #{configName}"
-      restart        : yes
-      kontrol        :
-        enabled      : yes
-        startMode    : "one"
-      restart : no
-
   webserver     :
     useCacheHeader: no
     login       : "#{rabbitmq.login}"
     queueName   : socialQueueName+'web'
     watch       : yes
-    process     :
-      cmd         : "node ./server/index -c #{configName} -p #{customDomain.port} --disable-newrelic" 
-      run         : yes
 
-  sourceMapServer :
-    watch       : yes
-    process     :
-      cmd         : "node ./server/lib/source-server -c #{configName} -p 3526"
-      run         : yes
 
 
   authWorker    :
@@ -161,12 +101,6 @@ module.exports = __ =
     authAllExchange: authAllExchange
     numberOfWorkers: 1
     watch       : ['./workers/auth']
-    process     :
-      run        : yes
-      cmd   		 : "node ./workers/auth/index -c #{configName}"
-      kontrol        :
-        enabled      : yes
-        startMode    : "many"
 
   social        :
     login       : "#{rabbitmq.login}"
@@ -175,30 +109,12 @@ module.exports = __ =
     queueName   : socialQueueName
     verbose     : no
     kitePort    : 8765
-    process     :
-      run    : yes
-      cmd            : "node ./workers/social/index -c #{configName} -p 3030 --disable-newrelic --kite-port=13020"
-      kontrol        :
-        enabled         : yes
-        startMode       : "many"
-        registerToProxy : yes
-        proxyName       : 'social'
-        port            : 8765
 
   log           :
     login       : "#{rabbitmq.login}"
     numberOfWorkers: 1
     watch       : ['./workers/log']
     queueName   : logQueueName
-    process :
-      cmd            : "node ./workers/log/index -c #{configName} -p 4029"
-      run            : no
-      kontrol        :
-        enabled      : yes
-        startMode    : "many"
-        registerToProxy: yes
-        proxyName    : 'log'
-        port         : 4029
         
   emailConfirmationCheckerWorker :
     enabled              : no
@@ -208,28 +124,12 @@ module.exports = __ =
     watch                : ['./workers/emailconfirmationchecker']
     cronSchedule         : '0 * * * * *'
     usageLimitInMinutes  : 60
-    process :
-      cmd            : "node ./workers/emailconfirmationchecker/index -c #{configName}"
-      kontrol        :
-        enabled      : yes
-        startMode    : "one"
-  kloudKite :
-    process:
-      run : yes
-      cmd : "go run ./go/src/koding/kites/kloud/main.go -c #{configName} -r #{configName} -public-key #{publicKeyFile} -private-key #{privateKeyFile} -kontrol-url \"ws://#{customDomain.public_}:4000\""
 
   elasticSearch          :
     host                 : "#{customDomain.local}"
     port                 : 9200
     enabled              : no
     queue                : "elasticSearchFeederQueue"
-    process:
-      run     : no
-      cmd     : "./go/bin/elasticsearchfeeder -c #{configName}"
-      restart : yes    
-      kontrol        :
-        enabled      : yes
-        startMode    : "one"
 
   guestCleanerWorker     :
     enabled              : yes
@@ -239,27 +139,6 @@ module.exports = __ =
     watch                : ['./workers/guestcleaner']
     cronSchedule         : '00 * * * * *'
     usageLimitInMinutes  : 60
-    process:
-      run            : yes 
-      cmd            : "node ./workers/guestcleaner/index -c #{configName}"
-      kontrol        :
-        enabled      : yes
-        startMode    : "one"
-
-  cronJobs:
-    process :
-      run : yes
-      cmd : "./go/bin/cron -c #{configName}"
-
-  graphiteFeeder:
-    process:
-      run : no
-      cmd : "./go/bin/graphitefeeder -c #{configName}"
-
-  migratePosts:
-    process:
-      run : no
-      cmd : "./go/bin/posts -c #{configName}"
 
 
   sitemapWorker          :
@@ -269,12 +148,6 @@ module.exports = __ =
     numberOfWorkers      : 2
     watch                : ['./workers/sitemapgenerator']
     cronSchedule         : '00 00 00 * * *'
-    process :
-      run            : no
-      cmd            : "node ./workers/sitemapgenerator/index -c #{configName}"
-      kontrol        :
-        enabled      : yes
-        startMode    : "one"
 
   topicModifier          :
     cronSchedule         : '0 */5 * * * *'
@@ -314,15 +187,7 @@ module.exports = __ =
     authExchange      : authExchange
     authAllExchange   : authAllExchange
     failoverUri       : customDomain.public_
-    process:
-      run : yes
-      cmd               : "./go/bin/broker -c #{configName} -u #{brokerUniqueId}"
-      kontrol           :
-        enabled         : yes
-        binary          : brokerUniqueId
-        port            : 8008
-        hostname        : hostname
-
+    
   email         :
     host        : "#{customDomain.public}"
     protocol    : 'http:'
@@ -334,21 +199,9 @@ module.exports = __ =
     forcedRecipient : undefined
     maxAge        : 3
     watch         : ['./workers/emailnotifications']
-    process:
-      run            : no
-      cmd            : "node ./workers/emailnotifications/index -c #{configName}"
-      kontrol        :
-        enabled      : yes
-        startMode    : "one"
 
   emailSender     :
     watch   : ['./workers/emailsender']
-    process :
-      run            : yes
-      cmd            : "node ./workers/emailsender/index -c #{configName}"
-      kontrol        :
-        enabled      : yes
-        startMode    : "one"
 
   guests          :
     # define this to limit the number of guset accounts

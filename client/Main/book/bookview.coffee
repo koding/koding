@@ -148,7 +148,7 @@ class BookView extends JView
   openFileWithPage:(file)->
     user = KD.nick()
     fileName = "/home/#{user}#{file}"
-    KD.getSingleton("appManager").openFile(FSHelper.createFileFromPath(fileName))
+    KD.getSingleton("appManager").openFile(FSHelper.createFileInstance path: fileName)
 
   toggleButton: (button, isDisabled)->
     @["#{button}Button"][if isDisabled then "setClass" else "unsetClass"] "disabled"

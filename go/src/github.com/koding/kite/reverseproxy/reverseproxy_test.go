@@ -19,16 +19,18 @@ import (
 	"github.com/koding/kite/testutil"
 )
 
-func TestProxy(t *testing.T) {
+func TestWebSocketProxy(t *testing.T) {
+	color.Blue("====> Starting WebSocket test")
 	conf := config.New()
 	conf.Username = "testuser"
-	conf.KontrolURL = &url.URL{Scheme: "ws", Host: "localhost:4000"}
+	conf.KontrolURL = &url.URL{Scheme: "http", Host: "localhost:5555", Path: "/kite"}
 	conf.KontrolKey = testkeys.Public
 	conf.KontrolUser = "testuser"
 	conf.KiteKey = testutil.NewKiteKey().Raw
 
 	// start kontrol
 	color.Green("Starting kontrol")
+	kontrol.DefaultPort = 5555
 	kon := kontrol.New(conf.Copy(), "0.1.0", testkeys.Public, testkeys.Private)
 	kon.DataDir, _ = ioutil.TempDir("", "")
 	defer os.RemoveAll(kon.DataDir)
@@ -38,16 +40,17 @@ func TestProxy(t *testing.T) {
 	// start proxy
 	color.Green("Starting Proxy and registering to Kontrol")
 	proxyConf := conf.Copy()
-	proxyConf.Port = 3999
+	proxyConf.Port = 4999
 	proxy := New(proxyConf)
 	proxy.PublicHost = "localhost"
-	proxy.Scheme = "ws"
+	proxy.PublicPort = proxyConf.Port
+	proxy.Scheme = "http"
 	go proxy.Run()
 	<-proxy.ReadyNotify()
 
 	proxyRegisterURL := &url.URL{
 		Scheme: proxy.Scheme,
-		Host:   proxy.PublicHost + ":" + strconv.Itoa(proxy.Port),
+		Host:   proxy.PublicHost + ":" + strconv.Itoa(proxy.PublicPort),
 		Path:   "/kite",
 	}
 
@@ -67,7 +70,7 @@ func TestProxy(t *testing.T) {
 	})
 
 	backendKite.Config.Port = 7777
-	kiteUrl := &url.URL{Scheme: "ws", Host: "localhost:7777"}
+	kiteUrl := &url.URL{Scheme: "http", Host: "localhost:7777", Path: "/kite"}
 
 	go backendKite.Run()
 	<-backendKite.ServerReadyNotify()
@@ -102,7 +105,7 @@ func TestProxy(t *testing.T) {
 		t.Fatalf("Invalid proxy URL: %s", proxyURL)
 	}
 
-	registerURL, err := url.Parse(result.MustString())
+	registerURL, err := url.Parse(proxyURL)
 	if err != nil {
 		t.Fatal(err)
 	}

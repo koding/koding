@@ -424,6 +424,7 @@ module.exports = class JAccount extends jraphical.Module
         as          : 'user'
         targetType  : 'JStackTemplate'
 
+
   constructor:->
     super
     @notifyOriginWhen 'PrivateMessageSent', 'FollowHappened'

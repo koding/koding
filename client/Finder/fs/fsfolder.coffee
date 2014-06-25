@@ -1,6 +1,7 @@
 class FSFolder extends FSFile
 
   fetchContents:(dontWatch, callback)->
+
     [callback, dontWatch] = [dontWatch, callback]  unless callback?
 
     dontWatch ?= yes
@@ -9,29 +10,24 @@ class FSFolder extends FSFile
 
     kite = @getKite()
 
-    kite.vmOn()
+    kite.init()
+
     .then =>
 
       kite.fsReadDirectory
         path      : FSHelper.plainPath @path
         onChange  : if dontWatch then null else (change) =>
-          FSHelper.folderOnChange {
-            @vmName
-            @path
-            change
-            treeController
-          }
+          FSHelper.folderOnChange { @path, change, @machine, treeController }
 
     .then (response) =>
-      files =
-        if response?.files?
-        then FSHelper.parseWatcher {
-          @vmName
-          parentPath: @path
-          files: response.files
-          treeController
+
+      if response?.files?
+
+        FSHelper.parseWatcher {
+          parentPath : @path
+          files      : response.files
+          treeController, @machine
         }
-        else []
 
     .nodeify(callback)
 
@@ -43,7 +39,7 @@ class FSFolder extends FSFile
 
     @emit "fs.save.started"
 
-    @getKite().vmOn()
+    @getKite().init()
 
     .then =>
       @vmController.fsCreateDirectory {

@@ -1,5 +1,9 @@
 package digitalocean
 
+import "text/template"
+
+var t = template.Must(template.New("hosts").Parse(hosts))
+
 const (
 	// name of the key saved in DigitalOcean
 	keyName = "koding-deployment"
@@ -35,4 +39,16 @@ LEMMz1YM6c6B6e1AG8O+80RHo+og6wSQBquQ7qNk/rxKt7YYRUPL+ETc1MqdWIWH
 bC3K2UUHqakRw36hwLLadePZFUqC9AY8ITeZ43vIKhBKBQj3lhfSuc+vyHwCSuc7
 6+smUFdsRVz6i3SWFOjeBYMNuDR/xgBEh9teQfn4/9aiEi2QAriN
 -----END RSA PRIVATE KEY-----`
+
+	// default ubuntu /etc/hosts file which is used to replace with our custom
+	// hostname later
+	hosts = `127.0.0.1       localhost
+127.0.1.1       {{.}} {{.}}
+
+# The following lines are desirable for IPv6 capable hosts
+::1     ip6-localhost ip6-loopback
+fe00::0 ip6-localnet
+ff00::0 ip6-mcastprefix
+ff02::1 ip6-allnodes
+ff02::2 ip6-allrouters`
 )

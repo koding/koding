@@ -187,6 +187,11 @@ class AccountCredentialList extends KDListView
     credential = item.getData()
     @emit "ShowShareCredentialFormFor", credential
 
+  showItemParticipants: (item)->
+
+    credential = item.getData()
+    credential.fetchUsers (err, users)->
+      info err, users
 
   showItemContent: (item)->
 
@@ -220,7 +225,8 @@ class AccountCredentialListItem extends KDListItemView
     options.cssClass = KD.utils.curry "credential-item", options.cssClass
     super options, data
 
-    delegate = @getDelegate()
+    delegate  = @getDelegate()
+    { owner } = @getData()
 
     @deleteButton = new KDButtonView
       title    : "Delete"
@@ -230,19 +236,26 @@ class AccountCredentialListItem extends KDListItemView
     @shareButton = new KDButtonView
       title    : "Share"
       cssClass : "solid small green"
-      disabled : !@getData().owner
+      disabled : !owner
       callback : => delegate.shareItem this
 
     @showCredentialButton = new KDButtonView
       title    : "Show Content"
       cssClass : "solid small green"
-      disabled : !@getData().owner
+      disabled : !owner
       callback : => delegate.showItemContent this
+
+    @participantsButton = new KDButtonView
+      title    : "Show Participants"
+      cssClass : "solid small green"
+      disabled : !owner
+      callback : => delegate.showItemParticipants this
 
   pistachio:->
     """
      {h1{#(title)}} {span{#(provider)}}
      <div class='buttons'>
-      {{> @showCredentialButton}}{{> @deleteButton}}{{> @shareButton}}
+      {{> @showCredentialButton}}{{> @deleteButton}}
+      {{> @shareButton}}{{> @participantsButton}}
      </div>
     """
