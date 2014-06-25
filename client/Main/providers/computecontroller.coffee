@@ -32,11 +32,26 @@ class ComputeController extends KDController
     KD.remote.api.JStack.some {}, (err, stacks = [])=>
       return callback err  if err?
 
-      @stacks = stacks     if stacks.length > 0
-      callback null, @stacks
+      if stacks.length > 0
+
+        machines = []
+        stacks.forEach (stack)->
+          stack.machines.forEach (machine, index)->
+            machine = new Machine { machine }
+            stack.machines[index] = machine
+            machines.push machine
+
+        @machines = machines
+        @stacks   = stacks
+        callback null, stacks
 
 
   fetchMachines: (callback = noop)->
+
+    if @machines
+      callback null, @machines
+      info "Machines returned from cache."
+      return
 
     @fetchStacks (err, stacks)=>
       return callback err  if err?
@@ -44,7 +59,7 @@ class ComputeController extends KDController
       machines = []
       stacks.forEach (stack)->
         stack.machines.forEach (machine)->
-          machines.push new Machine { machine }
+          machines.push machine
 
       callback null, @machines = machines
 

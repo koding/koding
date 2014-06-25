@@ -2,7 +2,8 @@ class TerminalModal extends KDModalView
 
   constructor: (options={}, data)->
 
-    options.cssClass  = KD.utils.curry "terminal", options.cssClass
+    options.cssClass       = KD.utils.curry "terminal", options.cssClass
+    options.destroyOnExit ?= yes
 
     if options.machine?.getName? and not options.title
       options.title = "Terminal on #{options.machine.getName()}"
@@ -30,7 +31,7 @@ class TerminalModal extends KDModalView
 
     @webterm.on "WebTerm.terminated", =>
       @emit "terminal.terminated"
-      @destroy()
+      @destroy()  if @getOption 'destroyOnExit'
 
     @on "click", => @setCss 'zIndex', 10000 + KD.utils.uniqueId()
 
