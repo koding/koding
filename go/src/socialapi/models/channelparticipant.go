@@ -59,12 +59,14 @@ func (c ChannelParticipant) TableName() string {
 	return "api.channel_participant"
 }
 
-func (c *ChannelParticipant) BeforeSave() {
+func (c *ChannelParticipant) BeforeCreate() error {
 	c.LastSeenAt = time.Now().UTC()
+	return c.MarkIfExempt()
 }
 
-func (c *ChannelParticipant) BeforeUpdate() {
+func (c *ChannelParticipant) BeforeUpdate() error {
 	c.LastSeenAt = time.Now().UTC()
+	return c.MarkIfExempt()
 }
 
 func (c *ChannelParticipant) AfterCreate() {
@@ -315,4 +317,57 @@ func (c *ChannelParticipant) IsParticipant(accountId int64) (bool, error) {
 	}
 
 	return false, err
+}
+
+func (c *ChannelParticipant) MarkIfExempt() error {
+	isExempt, err := c.isExempt()
+	if err != nil {
+		return err
+	}
+
+	if isExempt {
+		c.MetaBits.MarkTroll()
+	}
+
+	return nil
+}
+
+func (c *ChannelParticipant) isExempt() (bool, error) {
+	// return early if channel is already exempt
+	if c.MetaBits.IsTroll() {
+		return true, nil
+	}
+
+	accountId, err := c.getAccountId()
+	if err != nil {
+		return false, err
+	}
+
+	account, err := ResetAccountCache(accountId)
+	if err != nil {
+		return false, err
+	}
+
+	if account.IsTroll {
+		return true, nil
+	}
+
+	return false, nil
+}
+
+func (c *ChannelParticipant) getAccountId() (int64, error) {
+	if c.AccountId != 0 {
+		return c.AccountId, nil
+	}
+
+	if c.Id == 0 {
+		return 0, fmt.Errorf("couldnt find accountId from content %+v", c)
+	}
+
+	cp := NewChannelParticipant()
+	if err := cp.ById(c.Id); err != nil {
+		return 0, err
+	}
+
+	return cp.AccountId, nil
 }
