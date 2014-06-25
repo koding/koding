@@ -266,17 +266,7 @@ func (c *Controller) markInteractions(account *models.Account) error {
 
 	return nil
 }
-
 func (t *Controller) UnMarkedAsTroll(account *models.Account) error {
 	t.log.Critical("un marked as troll ehehe %v", account)
 	return nil
-}
-
-func mapMessage(data []byte) (*models.Account, error) {
-	cm := models.NewAccount()
-	if err := json.Unmarshal(data, cm); err != nil {
-		return nil, err
-	}
-
-	return cm, nil
 }
