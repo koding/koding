@@ -48,7 +48,7 @@ class EnvironmentMachineItem extends EnvironmentItem
     @addSubView @terminalIcon = new KDCustomHTMLView
       tagName  : "span"
       cssClass : "terminal"
-      click    : @bound "openTerminal"
+      click    : @lazyBound "openTerminal", {}
 
     if status.state in [ NotInitialized, Terminated ]
       @addSubView @initView = new InitializeMachineView
@@ -131,8 +131,6 @@ class EnvironmentMachineItem extends EnvironmentItem
     colorSelection = new ColorSelection selectedColor : @getOption 'colorTag'
     colorSelection.on "ColorChanged", @bound 'setColorTag'
 
-    this_ = this
-
     items =
 
       'Build Machine'     :
@@ -142,33 +140,31 @@ class EnvironmentMachineItem extends EnvironmentItem
           computeController.build machine
           @destroy()
 
-      'Open VM Terminal'  :
+      'Update build script':
+        callback          : @bound "showBuildScriptEditorModal"
 
+        separator         : yes
+
+      'Launch Terminal'   :
         disabled          : !isRunning
-        callback          : ->
-          this_.openTerminal()
-          @destroy()
-
+        callback          : @lazyBound "openTerminal", {}
         separator         : yes
-
-      'Update provisioner':
-        separator         : yes
-        callback          : @bound "prepareProvisionEditor"
 
       'Delete'            :
         disabled          : KD.isGuest()
-        separator         : yes
         action            : 'delete'
+        separator         : yes
 
       customView2         : colorSelection
 
     return items
 
 
-  openTerminal:->
+  openTerminal:(options = {})->
 
-    machine = new Machine machine: @getData()
-    modal   = new TerminalModal { machine }
+    options.machine = @getData()
+    new TerminalModal options
+
 
   confirmDestroy:->
 
