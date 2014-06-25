@@ -35,13 +35,8 @@ func NewController(log logging.Logger) *Controller {
 	}
 }
 
+// this worker is completely idempotent, so no need to cut the circuit
 func (t *Controller) DefaultErrHandler(delivery amqp.Delivery, err error) bool {
-	if delivery.Redelivered {
-		t.log.Error("Redelivered message gave error again, putting to maintenance queue", err)
-		delivery.Ack(false)
-		return true
-	}
-
 	t.log.Error("an error occured putting message back to queue", err)
 	delivery.Nack(false, true)
 	return false
