@@ -49,8 +49,8 @@ class EnvironmentItem extends KDDiaObject
       menuItems
 
     ctxMenu.on 'ContextMenuItemReceivedClick', (item) =>
-      {action} = item.getData()
-      ctxMenu.destroy()  if @["cm#{action}"]?
+      {action, callback} = item.getData()
+      ctxMenu.destroy()  if callback? or @["cm#{action}"]?
       @["cm#{action}"]?()
 
   # - Context Menu Actions - #
