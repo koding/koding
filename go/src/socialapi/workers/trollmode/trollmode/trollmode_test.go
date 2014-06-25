@@ -348,6 +348,35 @@ func TestMarkedAsTroll(t *testing.T) {
 			So(mrs[0].MetaBits.IsTroll(), ShouldBeTrue)
 
 		})
+
+		// update interaction data while creating
+		Convey("when a troll likes a status update, meta_bits should be set", func() {
+			// create post form a normal user
+			post, err := rest.CreatePost(groupChannel.Id, normalUser.Id)
+			tests.ResultedWithNoErrorCheck(post, err)
+
+			// add like
+			So(rest.AddInteraction("like", post.Id, trollUser.Id), ShouldBeNil)
+
+			// fetch likes
+			i := models.NewInteraction()
+			q := &bongo.Query{
+				Selector: map[string]interface{}{
+					"account_id": trollUser.Id,
+				},
+			}
+
+			var interactions []models.Interaction
+			So(i.Some(&interactions, q), ShouldBeNil)
+
+			for _, interaction := range interactions {
+				So(interaction.MetaBits.IsTroll(), ShouldBeTrue)
+			}
+
+		})
+
+		// ///////////////////////////// while querying ///////////////////////////
+
 		// channel
 		Convey("when a troll creates a private channel, normal user should not be able to see it", func() {
 			privatemessageChannelId, err := createPrivateMessageChannel(trollUser.Id, groupName)
