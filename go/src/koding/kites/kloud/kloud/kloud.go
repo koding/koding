@@ -8,6 +8,7 @@ import (
 	"koding/kites/kloud/idlock"
 	"koding/kites/kloud/kloud/protocol"
 	"koding/kites/kloud/provider/digitalocean"
+	"koding/kites/kloud/provider/openstack"
 	"koding/kodingkite"
 	"koding/tools/config"
 	"log"
@@ -139,6 +140,14 @@ func (k *Kloud) InitializeProviders() {
 			Redis:       r,
 			Region:      k.Region,
 			Environment: k.Config.Environment,
+		},
+		"rackspace": &openstack.Provider{
+			Log:          createLogger("rackspace", k.Debug),
+			SignFunc:     k.SignFunc,
+			Region:       k.Region,
+			Environment:  k.Config.Environment,
+			AuthURL:      "rackspace-us", // defaults to: https://identity.api.rackspacecloud.com/v2.0"
+			ProviderName: "rackspace",
 		},
 	}
 }

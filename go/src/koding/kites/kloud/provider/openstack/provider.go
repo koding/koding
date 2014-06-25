@@ -8,26 +8,23 @@ import (
 	"github.com/koding/logging"
 )
 
-const (
-	ProviderName = "rackspace" // we use rackspace for no
-	AuthURL      = "https://identity.api.rackspacecloud.com/v2.0/tokens"
-)
-
 type Provider struct {
 	Log      logging.Logger
 	SignFunc func(string) (string, string, error)
 	Push     func(string, int, machinestate.State)
 
-	Region      string
-	Environment string
+	Region       string
+	Environment  string
+	AuthURL      string
+	ProviderName string
 }
 
 func (p *Provider) Name() string {
-	return ProviderName
+	return p.ProviderName
 }
 
 func (p *Provider) Build(opts *protocol.MachineOptions) (*protocol.BuildResponse, error) {
-	_, err := os.New(AuthURL, opts.Credential, opts.Builder)
+	_, err := os.New(p.AuthURL, opts.Credential, opts.Builder)
 	if err != nil {
 		return nil, err
 	}

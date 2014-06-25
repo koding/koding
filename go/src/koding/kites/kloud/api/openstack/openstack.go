@@ -6,12 +6,11 @@ import (
 	"strings"
 
 	"github.com/mitchellh/mapstructure"
-	"launchpad.net/goose/identity"
+	"github.com/rackspace/gophercloud"
 )
 
 type Openstack struct {
-	AuthURL  string `mapstructure:"authURL"`
-	Insecure bool   `mapstructure:"insecure"`
+	Provider string
 
 	Creds struct {
 		Username   string `mapstructure:"username"`
@@ -37,8 +36,15 @@ type Openstack struct {
 }
 
 func New(authURL string, credential, builder map[string]interface{}) (*Openstack, error) {
+	// OpenStack's auto-generated openrc.sh files do not append the suffix
+	// /tokens to the authentication URL. This ensures it is present when
+	// specifying the URL.
+	if strings.Contains(authURL, "://") && !strings.HasSuffix(authURL, "/tokens") {
+		authURL += "/tokens"
+	}
+
 	o := Openstack{
-		AuthURL: authURL,
+		Provider: authURL, // gophercloud maps the key to URL, otherwise it uses the URL
 	}
 
 	// Credentials
@@ -55,41 +61,26 @@ func New(authURL string, credential, builder map[string]interface{}) (*Openstack
 		return nil, errors.New("Username is not set")
 	}
 
-	if o.Creds.Password == "" {
-		return nil, errors.New("Password is not set")
+	if o.Creds.Password == "" && o.Creds.ApiKey == "" {
+		return nil, errors.New("Password/ApiKey is not set")
 	}
 
-	// If we have ApiKey use that. If the user has provided a Password use that
-	// instead of the ApiKey. TODO: make it more smarter or choosable from user
-	// perspective.
-	secret := o.Creds.ApiKey
-	authMode := identity.AuthKeyPair
-	if o.Creds.Password != "" {
-		secret = o.Creds.Password
-		authMode = identity.AuthUserPass
+	authoptions := gophercloud.AuthOptions{
+		AllowReauth: true,
+		ApiKey:      o.Creds.ApiKey,
+		TenantId:    o.Creds.TenantId,
+		TenantName:  o.Creds.TenantName,
+		Username:    o.Creds.Username,
+		Password:    o.Creds.Password,
 	}
 
-	// OpenStack's auto-generated openrc.sh files do not append the suffix
-	// /tokens to the authentication URL. This ensures it is present when
-	// specifying the URL.
-	if strings.Contains(authURL, "://") && !strings.HasSuffix(authURL, "/tokens") {
-		authURL += "/tokens"
-	}
-
-	creds := &identity.Credentials{
-		URL:        authURL,
-		User:       o.Creds.Username,
-		Secrets:    secret,
-		TenantName: o.Creds.TenantName,
-	}
-
-	// Get an authenticator and authenticate with the credentials above
-	authenticator := identity.NewAuthenticator(authMode, nil)
-	credentials, err := authenticator.Auth(creds)
+	access, err := gophercloud.Authenticate(authURL, authoptions)
 	if err != nil {
 		return nil, err
 	}
 
-	fmt.Printf("credentials %+v\n", credentials)
+	fmt.Printf("user %+v\n", access.User)
+	fmt.Printf("token %+v\n", access.Token)
+
 	return nil, nil
 }

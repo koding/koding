@@ -31,6 +31,7 @@ var (
 	flagTestQuery      = flag.String("query", "", "Query as string for controller tests")
 	flagTestInstanceId = flag.String("instance", "", "Instance id (such as droplet Id)")
 	flagTestUsername   = flag.String("user", "", "Create machines on behalf of this user")
+	flagTestProvider   = flag.String("provider", "", "Provider backend for testing")
 
 	conf      *kiteconfig.Config
 	kloudKite *kodingkite.KodingKite
@@ -153,6 +154,8 @@ func build(i int, client *kite.Client, data *kloud.MachineData) error {
 		return err
 	}
 
+	return nil
+
 	eArgs := kloud.EventArgs([]kloud.EventArg{
 		kloud.EventArg{
 			EventId: bArgs.MachineId,
@@ -220,13 +223,19 @@ func TestBuild(t *testing.T) {
 		t.Fatal("number of builds should be equal or less than 3")
 	}
 
+	if *flagTestProvider == "" {
+		t.Fatal("provider is not given")
+		return
+	}
+
 	var wg sync.WaitGroup
 	for i := 0; i < numberOfBuilds; i++ {
 		wg.Add(1)
 
 		go func(i int) {
 			defer wg.Done()
-			machineId := "digitalocean_id" + strconv.Itoa(i)
+
+			machineId := *flagTestProvider + "_id" + strconv.Itoa(i)
 			data, ok := TestProviderData[machineId]
 			if !ok {
 				t.Errorf("machineId '%s' is not available", machineId)
@@ -239,6 +248,7 @@ func TestBuild(t *testing.T) {
 		}(i)
 	}
 
+	time.Sleep(time.Second * 3)
 	wg.Wait()
 }
 

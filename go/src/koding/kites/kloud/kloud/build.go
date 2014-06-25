@@ -93,6 +93,10 @@ func (k *Kloud) buildMachine(username string, c *Controller) error {
 	}
 	k.Log.Debug("[controller]: method 'build' is successfull %#v", resp)
 
+	if resp == nil {
+		return NewError(ErrBadResponse)
+	}
+
 	return k.Storage.Update(c.MachineId, &StorageData{
 		Type: "build",
 		Data: map[string]interface{}{

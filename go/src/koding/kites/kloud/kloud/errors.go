@@ -32,6 +32,7 @@ const (
 	ErrProviderNotFound = 401
 	ErrNoKiteConnection = 402
 	ErrNoArguments      = 403
+	ErrBadResponse      = 404
 )
 
 var errors = map[int]string{
@@ -63,6 +64,7 @@ var errors = map[int]string{
 	ErrProviderNotFound: "Provider is not found",
 	ErrNoKiteConnection: "Couldn't connect to remote klient kite",
 	ErrNoArguments:      "No arguments are passed.",
+	ErrBadResponse:      "Provider has a bad response.",
 }
 
 func NewErrorMessage(errMsg string) *kite.Error {
