@@ -1,9 +1,11 @@
 package trollmode
 
 import (
+	"fmt"
 	"math"
 	"math/rand"
 	"socialapi/models"
+	"socialapi/request"
 	"socialapi/rest"
 	"socialapi/workers/common/runner"
 	"socialapi/workers/common/tests"
@@ -60,6 +62,7 @@ func TestMarkedAsTroll(t *testing.T) {
 			groupName,
 			models.Channel_TYPE_GROUP,
 		)
+		tests.ResultedWithNoErrorCheck(groupChannel, err)
 
 		controller := NewController(r.Log)
 
@@ -231,7 +234,6 @@ func TestMarkedAsTroll(t *testing.T) {
 			So(err, ShouldBeNil)
 
 			for _, interaction := range interactions {
-				So(interaction.MetaBits.IsTroll(), ShouldBeTrue)
 				So(interaction.MetaBits.IsTroll(), ShouldBeTrue)
 			}
 		})
@@ -451,11 +453,15 @@ func TestMarkedAsTroll(t *testing.T) {
 
 			history, err := rest.GetHistory(
 				privatemessageChannelId,
-				sinan,
+				&request.Query{
+					AccountId: sinan,
+				},
 			)
+
 			So(err, ShouldNotBeNil)
 			So(history, ShouldBeNil)
 		})
+
 		// channel
 		Convey("when a troll creates a private channel, normal user should not be able to see it with `ShowExempt` flag", func() {
 			privatemessageChannelId, err := createPrivateMessageChannel(trollUser.Id, groupName)
@@ -794,6 +800,7 @@ func createPrivateMessageChannel(accountId int64, groupName string) (int64, erro
 		accountId,
 		"this is a body for private message @sinan",
 		groupName,
+		[]string{"sinan"},
 	)
 	if err != nil {
 		return 0, err
