@@ -201,10 +201,13 @@ class ActivitySidebar extends KDCustomScrollView
     return item
 
 
-  removeItem: (id) ->
+   removeItem: (id) ->
 
-    if item = @getItemByData data
+    if item = @itemsById[id]
+
+      data           = item.getData()
       listController = @getListController data.typeConstant
+
       @unregisterItem item
       listController.removeItem item
 
