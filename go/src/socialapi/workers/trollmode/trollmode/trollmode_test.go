@@ -450,6 +450,41 @@ func TestMarkedAsTroll(t *testing.T) {
 			So(err, ShouldNotBeNil)
 			So(history, ShouldBeNil)
 		})
+		// channel
+		Convey("when a troll creates a private channel, normal user should not be able to see it with `ShowExempt` flag", func() {
+			privatemessageChannelId, err := createPrivateMessageChannel(trollUser.Id, groupName)
+			So(err, ShouldBeNil)
+			So(privatemessageChannelId, ShouldBeGreaterThan, 0)
+
+			// fetch participants of this channel
+			c := models.NewChannel()
+			c.Id = privatemessageChannelId
+			participants, err := c.FetchParticipantIds(&request.Query{ShowExempt: true})
+			tests.ResultedWithNoErrorCheck(participants, err)
+			So(len(participants), ShouldEqual, 2)
+
+			var sinan int64
+			for _, participant := range participants {
+				if participant != trollUser.Id {
+					sinan = participant
+					break
+				}
+			}
+
+			// make sure we found sinan in participant list
+			So(sinan, ShouldBeGreaterThan, 0)
+
+			history, err := rest.GetHistory(
+				privatemessageChannelId,
+				&request.Query{
+					AccountId:  sinan,
+					ShowExempt: true,
+				},
+			)
+			So(err, ShouldBeNil)
+			So(history, ShouldNotBeNil)
+		})
+
 	})
 }
 
