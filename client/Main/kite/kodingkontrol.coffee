@@ -91,8 +91,16 @@ class KodingKontrol extends (require 'kontrol')
         who   : @getWhoParams name, correlationName
     .then(kite.bound 'setTransport')
     .then(kite.bound 'logTransportFailures')
-    .catch(@error.bind this)
+    .catch (err) =>
+      warn err
 
+      {message} = err
+      message   = if message then message else err
+
+      ErrorLog.create message
+
+      # delete this from the cache:
+      @setCachedKite name, correlationName
     kite
 
   getKiteProxy: (options) ->
@@ -112,6 +120,9 @@ class KodingKontrol extends (require 'kontrol')
   getKite: (options = {}) ->
     { name, correlationName, region } = options
 
+    if (kite = @getCachedKite name, correlationName)?
+      return kite
+
     kite = @getKiteProxy options
 
     @fetchRegion(correlationName, region).then (region) =>
@@ -125,11 +136,3 @@ class KodingKontrol extends (require 'kontrol')
     .catch(@error.bind this)
 
     kite
-
-  error: (err)->
-    warn err
-
-    {message} = err
-    message   = if message then message else err
-
-    ErrorLog.create message
