@@ -19,7 +19,7 @@ apt-get install -y curl
 curl -s https://get.docker.io/ubuntu/ | sudo sh
 
 
-echo "127.0.0.1 "$HOSTNAME >> /etc/hosts
+echo "127.0.0.1 localhost "$HOSTNAME >> /etc/hosts
 
 echo '#!/bin/sh -e' >/etc/rc.local
 echo "iptables -F" >>/etc/rc.local
@@ -39,8 +39,8 @@ echo "iptables -A INPUT -m state --state ESTABLISHED,RELATED -j ACCEPT" >>/etc/r
 echo "iptables -A INPUT -j DROP" >>/etc/rc.local
 /etc/rc.local
 
-echo "export GOPATH=/opt/koding/go" >> /etc/profile
-source /etc/profile
+# echo "export GOPATH=/opt/koding/go" >> /etc/profile
+# source /etc/profile
 
 echo "UTC" > /etc/timezone
 dpkg-reconfigure -f noninteractive tzdata
@@ -86,50 +86,50 @@ echo "  StrictHostKeyChecking no" >> ~/.ssh/config
 chmod 600 /root/.ssh/id_rsa
 
 
-apt-get update
-apt-add-repository -y ppa:chris-lea/redis-server
-apt-get install -y mongodb rabbitmq-server=3.2.4-1 redis-server postgresql postgresql-contrib
-cp /usr/bin/nodejs /usr/bin/node
+# apt-get update
+# apt-add-repository -y ppa:chris-lea/redis-server
+# apt-get install -y mongodb rabbitmq-server=3.2.4-1 redis-server postgresql postgresql-contrib
+# cp /usr/bin/nodejs /usr/bin/node
 
 
 
 # install & build code
-apt-get install -y golang nodejs npm git graphicsmagick
-cp /usr/bin/nodejs /usr/bin/node
-cd /opt
-git clone git@git.sj.koding.com:koding/koding.git
-cd koding
-git checkout cake-rewrite
-git submodule init
-git submodule update
-npm i gulp stylus coffee-script -g 
-npm i --unsafe-perm
+# apt-get install -y golang nodejs npm git graphicsmagick
+# cp /usr/bin/nodejs /usr/bin/node
+# cd /opt
+# git clone git@git.sj.koding.com:koding/koding.git
+# cd koding
+# git checkout cake-rewrite
+# git submodule init
+# git submodule update
+# npm i gulp stylus coffee-script -g 
+# npm i --unsafe-perm
 
 
 ### Kontrol key initialization #####
-go run /opt/koding/go/src/github.com/koding/kite/kontrol/kontrol/main.go -init -public-key /opt/koding/certs/test_kontrol_rsa_public.pem -private-key /opt/koding/certs/test_kontrol_rsa_private.pem -username koding  -kontrol-url "http://`hostname`:4000" 
+# go run /opt/koding/go/src/github.com/koding/kite/kontrol/kontrol/main.go -init -public-key /opt/koding/certs/test_kontrol_rsa_public.pem -private-key /opt/koding/certs/test_kontrol_rsa_private.pem -username koding  -kontrol-url "http://`hostname`:4000" 
 
 ### rabbit x-presence ###
-cp /opt/koding/install/rabbit_presence_exchange-3.2.3-20140220.ez /usr/lib/rabbitmq/lib/rabbitmq_server-3.2.4/plugins/
-rabbitmq-plugins enable rabbit_presence_exchange
-service rabbitmq-server restart
+# cp /opt/koding/install/rabbit_presence_exchange-3.2.3-20140220.ez /usr/lib/rabbitmq/lib/rabbitmq_server-3.2.4/plugins/
+# rabbitmq-plugins enable rabbit_presence_exchange
+# service rabbitmq-server restart
 #########################
 
 
 
 
 
-cd /opt/koding
-cake -c kodingme -r kodingme buildEverything
+# cd /opt/koding
+# cake -c kodingme -r kodingme buildEverything
 # make now wraps cake run.
 # cake -c kodingme -r kodingme run
 
 ### SOCIAL API ###
-bash ./go/src/socialapi/db/sql/definition/create.sh
-sed -i "s/#timezone =.*/timezone = 'UTC'/" /etc/postgresql/9.3/main/postgresql.conf
-service postgresql restart
-cd /opt/koding/go/src/socialapi/
-make configure
+# bash ./go/src/socialapi/db/sql/definition/create.sh
+# sed -i "s/#timezone =.*/timezone = 'UTC'/" /etc/postgresql/9.3/main/postgresql.conf
+# service postgresql restart
+# cd /opt/koding/go/src/socialapi/
+# make configure
 # make develop -j
 ##################
 

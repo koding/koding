@@ -1,0 +1,16 @@
+
+nasi deploy yapicaz?
+
+
+- ./deploy dosyasini b cake-rewrite -c kodingme -h foo.koding.me calistiricaz 
+-  RS server acilicak, foo.koding.me
+- ./install/prepare dosyasini kopyaliycaz 
+- ./configure dosyasini kopyaliycaz
+- ./prepare docker nodejs ve coffee install edicek
+- ./configure'u ./configure -h foo.koding.me -b cake-rewrite -c kodingme gibi calistiricak
+- hostname'ini guzel set edicez foo.koding.me
+- docker containerlari hazir edecek
+- sonra ./install/Dockerfile'i calistiricak 		: cd install; docker build -t koding/codebase .
+- sonra ./install/run/Dockerfile'i calistiricak : cd run;			docker build -t koding/run .
+- sonra ./install/run/docker.sh calistiricak.
+- that's it.

@@ -1,0 +1,16 @@
+#!/usr/bin/bash
+
+export HOME=/root
+
+apt-get update 
+apt-get install -y curl node npm
+curl -s https://get.docker.io/ubuntu/ | sudo sh
+npm i coffee-script -g 
+
+./configure.coffee $@
+
+
+docker build -t koding/run .
+
+cd ..
+./docker.sh

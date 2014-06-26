@@ -37,6 +37,7 @@ docker run  --expose=6379                         --net=host -d --name=redis    
 echo sleeping some secs to give some time to db servers to start
 sleep 5
 
+
 echo starting go workers.
 docker run  --expose=4000    --volume=$LOG:$LOG   --net=host -d --name=kontrol          --entrypoint=$GB/kontrol       				koding/run -c $CFG -r $RGN
 docker run                   --volume=$LOG:$LOG   --net=host -d --name=kloud            --entrypoint=$GB/kloud         				koding/run -c $CFG -r $RGN -public-key $PBKEY -private-key $PVKEY -kontrol-url "http://$HST:4000/kite"
