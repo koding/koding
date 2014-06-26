@@ -4,6 +4,7 @@ import (
 	"errors"
 	"socialapi/request"
 	"time"
+
 	"github.com/koding/bongo"
 )
 
@@ -330,4 +331,12 @@ func (c *ChannelMessageList) UpdateAddedAt(channelId, messageId int64) error {
 
 	c.AddedAt = time.Now().UTC()
 	return c.Update()
+}
+
+func (c *ChannelMessageList) Count(channelId int64) (int, error) {
+	if channelId == 0 {
+		return 0, errors.New("channel id is not set")
+	}
+
+	return bongo.B.Count(c, "channel_id = ?", channelId)
 }
