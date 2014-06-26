@@ -1,9 +1,5 @@
 class ActivityAppView extends KDScrollView
 
-  JView.mixin @prototype
-
-  headerHeight = 0
-
   {entryPoint, permissions, roles} = KD.config
 
   isGroup        = -> entryPoint?.type is 'group'
@@ -31,7 +27,6 @@ class ActivityAppView extends KDScrollView
       hideHandleContainer : yes
 
     @appStorage.setValue 'liveUpdates', off
-
 
 
   lazyLoadThresholdReached: -> @tabs.getActivePane()?.emit 'LazyLoadThresholdReached'
