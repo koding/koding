@@ -27,9 +27,9 @@ class ActivityActionsView extends JView
 
         data = @getData()
         if data?.group? and data.group isnt "koding"
-          shareUrl = "#{KD.config.mainUri}/#{data.group}/Activity/#{data.slug}"
+          shareUrl = "#{KD.config.mainUri}/#{data.group}/Activity/Post/#{data.slug}"
         else
-          shareUrl      = "#{KD.config.mainUri}/Activity/#{data.slug}"
+          shareUrl = "#{KD.config.mainUri}/Activity/Post/#{data.slug}"
 
         new KDContextMenu
           cssClass    : "activity-share-popup"

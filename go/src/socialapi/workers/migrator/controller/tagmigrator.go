@@ -9,7 +9,7 @@ import (
 	"strings"
 
 	"github.com/VerbalExpressions/GoVerbalExpressions"
-	"github.com/jinzhu/gorm"
+	"github.com/koding/bongo"
 	"labix.org/v2/mgo/bson"
 )
 
@@ -73,7 +73,7 @@ func createTagChannel(t *mongomodels.Tag) (int64, error) {
 	if err == nil {
 		return channelId, nil
 	}
-	if err != gorm.RecordNotFound {
+	if err != bongo.RecordNotFound {
 		return 0, err
 	}
 
@@ -82,7 +82,7 @@ func createTagChannel(t *mongomodels.Tag) (int64, error) {
 	c.GroupName = t.Group // create group if needed
 	c.Purpose = "Channel for " + c.Name + " topic"
 	c.TypeConstant = models.Channel_TYPE_TOPIC
-	c.PrivacyConstant = models.Channel_PRIVACY_PRIVATE
+	c.PrivacyConstant = models.Channel_PRIVACY_PUBLIC
 	c.CreatedAt = t.Meta.CreatedAt
 	c.UpdatedAt = t.Meta.ModifiedAt
 	if err := c.CreateRaw(); err != nil {

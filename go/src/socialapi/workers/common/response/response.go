@@ -4,8 +4,7 @@ import (
 	"errors"
 	"net/http"
 	"socialapi/workers/helper"
-
-	"github.com/jinzhu/gorm"
+	"github.com/koding/bongo"
 )
 
 func NewBadRequest(err error) (int, http.Header, interface{}, error) {
@@ -20,7 +19,7 @@ func NewBadRequest(err error) (int, http.Header, interface{}, error) {
 
 func HandleResultAndError(res interface{}, err error) (int, http.Header, interface{}, error) {
 	if err != nil {
-		if err == gorm.RecordNotFound {
+		if err == bongo.RecordNotFound {
 			return NewNotFound()
 		}
 		return NewBadRequest(err)

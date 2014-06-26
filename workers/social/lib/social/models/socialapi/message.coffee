@@ -134,7 +134,7 @@ module.exports = class SocialMessage extends Base
       unless data.body
         return callback message: "Message body should be set"
 
-      unless data.body.match(/@([\w]+)/g)?.length > 0
+      if not data.recipients or data.recipients.length < 1
         return callback message: "You should have at least one recipient"
       doRequest 'sendPrivateMessage', client, data, callback
 

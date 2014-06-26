@@ -337,7 +337,7 @@ class SocialApiController extends KDController
 
     sendPrivateMessage   : messageRequesterFn
       fnName             : 'sendPrivateMessage'
-      validateOptionsWith: ['body']
+      validateOptionsWith: ['body', 'recipients']
       mapperFn           : mapPrivateMessages
 
     fetchPrivateMessages : messageRequesterFn
@@ -393,6 +393,15 @@ class SocialApiController extends KDController
     follow               : channelRequesterFn
       fnName             : 'follow'
       validateOptionsWith: ['channelId']
+
+    addParticipant       : channelRequesterFn
+      fnName             : 'follow'
+      validateOptionsWith: ['channelId']
+
+    addParticipants      : (callback)->
+
+      callback message : 'Cihangir needs to create the endpoint first :)'
+
 
     unfollow             : channelRequesterFn
       fnName             : 'unfollow'

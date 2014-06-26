@@ -7,22 +7,76 @@ class MessagePane extends KDTabPaneView
 
     super options, data
 
+    @lastScrollTops =
+      window        : 0
+      parent        : 0
+      self          : 0
+      body          : 0
+
     {itemClass, type} = @getOptions()
     {typeConstant}    = @getData()
 
     @createParticipantsView() if typeConstant is 'privatemessage'
     @listController = new ActivityListController {itemClass}
-    @createInputWidget()
 
+    @createInputWidget()
     @bindChannelEvents()
 
     @on 'LazyLoadThresholdReached', @bound 'lazyLoad'  if typeConstant in ['group', 'topic']
 
     {windowController} = KD.singletons
-
     windowController.addFocusListener (focused) =>
 
       @glance()  if focused and @active
+
+
+    if typeConstant in ['privatemessage', 'post']
+
+      @listController.getListView().once 'ItemWasAdded', (item) =>
+        listView = @listController.getListItems().first.commentBox.controller.getListView()
+        listView.on 'ItemWasAdded', @bound 'scrollDown'
+
+    else
+
+      @listController.getListView().on 'ItemWasAdded', @bound 'scrollUp'
+
+
+  scrollDown: (item) ->
+
+    return  unless @active
+
+    listView = @listController.getListItems().first.commentBox.controller.getListView()
+    unless @separator
+      @separator = new KDView cssClass : 'new-messages'
+      listView.addSubView @separator
+
+    return  unless item is listView.items.last
+
+    KD.utils.defer -> window.scrollTo 0, document.body.scrollHeight
+
+
+  scrollUp: ->
+
+    return  unless @active
+
+    window.scrollTo 0, 0
+
+
+  setScrollTops: ->
+
+    super
+
+    @lastScrollTops.window = window.scrollTop or 0
+    @lastScrollTops.body   = document.body.scrollTop
+
+
+  applyScrollTops: ->
+
+    super
+
+    KD.utils.defer =>
+      window.scrollTo 0, @lastScrollTops.window
+      document.body.scrollTop = @lastScrollTops.body
 
 
   createParticipantsView : ->
@@ -49,6 +103,12 @@ class MessagePane extends KDTabPaneView
     heads.addSubView @newParticipantButton = new KDButtonView
       cssClass    : 'new-participant'
       iconOnly    : yes
+      callback    : ->
+        new PrivateMessageRecipientModal
+          blacklist : participantsPreview.map (item) -> item._id
+          position  :
+            top     : @getY() + 50
+            left    : @getX() - 150
 
 
   createInputWidget: ->
@@ -92,6 +152,7 @@ class MessagePane extends KDTabPaneView
     super
 
     KD.utils.wait 1000, @bound 'glance'
+    KD.utils.defer @bound 'focus'
 
 
   glance: ->
@@ -103,14 +164,28 @@ class MessagePane extends KDTabPaneView
     app  = appManager.get 'Activity'
     item = app.getView().sidebar.selectedItem
 
-    return  unless item.count
+    return  unless item?.count
     # no need to send updatelastSeenTime or glance
     # when checking publicfeeds
     return  if typeConstant is 'group'
 
     if typeConstant is 'post'
-    then socialapi.channel.glancePinnedPost   messageId : id, ->
-    else socialapi.channel.updateLastSeenTime channelId : id, ->
+    then socialapi.channel.glancePinnedPost   messageId : id, @bound 'glanced'
+    else socialapi.channel.updateLastSeenTime channelId : id, @bound 'glanced'
+
+
+  glanced: ->
+
+    @separator?.destroy()
+    @separator = null
+
+
+  focus: ->
+
+    if @input
+      @input.focus()
+    else
+      @listController.getListItems().first?.commentBox.inputForm.input.setFocus()
 
 
   populate: ->
@@ -123,6 +198,8 @@ class MessagePane extends KDTabPaneView
       @listController.hideLazyLoader()
       @listController.instantiateListItems items
       console.timeEnd('populate')
+
+      KD.utils.defer @bound 'focus'
 
 
   fetch: (options = {}, callback)->
@@ -146,10 +223,14 @@ class MessagePane extends KDTabPaneView
 
 
   lazyLoad: ->
+
     @listController.showLazyLoader()
 
     {appManager} = KD.singletons
     last         = @listController.getItemsOrdered().last
+
+    return  unless last
+
     from         = last.getData().meta.createdAt.toISOString()
 
     @fetch {from}, (err, items = []) =>

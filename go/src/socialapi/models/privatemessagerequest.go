@@ -3,6 +3,6 @@ package models
 type PrivateMessageRequest struct {
 	Body       string `json:"body"`
 	GroupName  string `json:"groupName"`
-	Recipients []int64
+	Recipients []string
 	AccountId  int64 `json:"accountId,string"`
 }

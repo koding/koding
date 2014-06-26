@@ -53,6 +53,16 @@ func (n *Controller) CreateReplyNotification(mr *socialapimodels.MessageReply) e
 		return err
 	}
 
+	cm := socialapimodels.NewChannelMessage()
+	// notify message owner
+	if err := cm.ById(mr.MessageId); err != nil {
+		return err
+	}
+
+	if cm.TypeConstant != socialapimodels.ChannelMessage_TYPE_POST {
+		return nil
+	}
+
 	rn := models.NewReplyNotification()
 	rn.TargetId = mr.MessageId
 	rn.NotifierId = reply.AccountId
@@ -60,12 +70,6 @@ func (n *Controller) CreateReplyNotification(mr *socialapimodels.MessageReply) e
 
 	nc, err := models.CreateNotificationContent(rn)
 	if err != nil {
-		return err
-	}
-
-	cm := socialapimodels.NewChannelMessage()
-	// notify message owner
-	if err = cm.ById(mr.MessageId); err != nil {
 		return err
 	}
 
@@ -132,6 +136,39 @@ func subscription(cml *socialapimodels.ChannelMessageList, typeConstant string) 
 		return n.Subscribe(nc)
 	case NOTIFICATION_TYPE_UNSUBSCRIBE:
 		return n.Unsubscribe(nc)
+	}
+
+	return nil
+}
+
+// MentionNotification creates mention notifications for the related channel messages
+func (n *Controller) MentionNotification(cm *socialapimodels.ChannelMessage) error {
+	// Since the type of private channel messages is Private_Message,
+	// we did not need to add another "is channel private" check
+	if cm.TypeConstant != socialapimodels.ChannelMessage_TYPE_POST {
+		return nil
+	}
+
+	mentionedUsers, err := n.CreateMentionNotification(cm)
+	if err != nil {
+		return err
+	}
+
+	if len(mentionedUsers) == 0 {
+		return nil
+	}
+
+	rn := models.NewReplyNotification()
+	rn.TargetId = cm.Id
+	rn.NotifierId = cm.AccountId
+
+	nc, err := models.CreateNotificationContent(rn)
+	if err != nil {
+		return err
+	}
+
+	for _, recipient := range mentionedUsers {
+		n.notify(nc.Id, recipient, time.Now())
 	}
 
 	return nil

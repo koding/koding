@@ -9,6 +9,17 @@ resurrection.activity.styl
 */
 }
 
+styleScrollBars()
+
+  .kdview.kdscrolltrack
+    bg                  color, transparent
+    overflow            visible
+    .kdscrollthumb
+      bg                color, rgba(0,0,0,.1)
+      margin            0 4px
+      width             7px
+      rounded           6px
+
 
 .activity-status-context
   display               none
@@ -187,63 +198,13 @@ resurrection.activity.styl
     borderBox()
     fix()
 
-    .kdview.kdscrolltrack
-      bg                  color, transparent
-      overflow            visible
-      .kdscrollthumb
-        bg                color, rgba(0,0,0,.1)
-        margin            0 4px
-        width             7px
-        rounded           6px
+    styleScrollBars()
 
     > main
       width               100%
       font-family         openSansFamily
       kalc                padding-left, \(100% \- 295px\)
       borderBox()
-
-      .kdlistitemview-sidebar-item
-        size              263px, 30px
-        padding           5px 5px 5px 9px
-        rounded           4px
-        font-size         14px
-        overflow          visible
-        position          relative
-        display           block
-        color             #4c4c4c
-        contentBox()
-        &:hover
-          bg              color rgba(0,0,0,.01)
-          pointer()
-          .profile
-          .ttag
-            text-decoration underline
-
-
-        cite.count
-          size            auto, 20px
-          line-height     20px
-          color           #fff
-          padding         0 7px
-          abs             10px 13px 0 0
-          font-size       10px
-          font-weight     700
-          background      #f0705f
-          rounded         3px
-          fr()
-
-      a.kdlistitemview-sidebar-item
-        noTextDeco()
-
-        &.public-feed-link
-          margin-top      31px
-          color           #6a6a6a
-          border          1px solid #a7a7a7
-          font-weight     600
-          line-height     30px
-
-          &.selected
-            border-color  #1aaf5d
 
       > section
         size              294px, auto
@@ -298,52 +259,8 @@ resurrection.activity.styl
             margin-bottom 16px
             borderBox()
 
-        &.topics
+        // &.topics
 
-          .ttag
-            display       block
-            font-weight   500
-            color         #4c4c4c
-            margin        1px 0 4px 0
-
-          .tag-info
-            display       block
-            font-weight   300
-            color         #949494
-            font-size     12px
-
-          .topic-follow-btn
-            size          24px, 18px
-            abs           11px 12px 0 0
-            border        1px solid #b1b1b1
-            background    transparent
-            shadow        none
-            outline       none
-            rounded       3px
-            margin        0
-            padding       0
-            borderBox()
-            &:hover
-              border-color    transparent
-              bg              color logoBg
-              .icon
-                r-sprite      activity 'check-white-9'
-
-            .icon
-              r-sprite        activity 'check-9'
-              margin          0 7px 0 0
-              padding         0
-              fr()
-
-            .button-title
-              hidden()
-
-            &.following
-              bg              color transparent
-              border-color    transparent
-
-              .icon
-                r-sprite      activity 'check-green-9'
 
         &.users
           .kdlistitemview-sidebar-item
@@ -390,43 +307,209 @@ resurrection.activity.styl
       a.public-feed-link.selected
         color               #fff
 
-      .kdlistitemview-sidebar-item.selected
-        background          #1aaf5d
+.activity
 
-        &:after
-          content           ""
-          display           block
-          border            6px solid transparent
-          border-left-color #1aaf5d
-          abs               50% 0 0 100%
-          vendor            transform, translateY(-50%)
+  .kdlistitemview-sidebar-item
+    size              263px, 30px
+    padding           5px 5px 5px 9px
+    rounded           4px
+    font-size         14px
+    overflow          visible
+    position          relative
+    display           block
+    color             #4c4c4c
+    contentBox()
+    &:hover
+      bg              color rgba(0,0,0,.01)
+      pointer()
+      .profile
+      .ttag
+        text-decoration underline
 
-        .profile
-          color             #fff
 
-        .user-numbers
-          color             #d1efdf !important
+    cite.count
+      size            auto, 20px
+      line-height     20px
+      color           #fff
+      padding         0 7px
+      abs             10px 13px 0 0
+      font-size       10px
+      font-weight     700
+      background      #f0705f
+      rounded         3px
+      fr()
 
-        .online-status.online
-          background        #fff !important
+    .ttag
+      display       block
+      font-weight   500
+      color         #4c4c4c
+      margin        1px 0 4px 0
 
-        .ttag
-          color             #fff
+    .tag-info
+      display       block
+      font-weight   300
+      color         #949494
+      font-size     12px
 
-        .tag-info
-          color             #d1efdf
+    .topic-follow-btn
+      size          24px, 18px
+      abs           11px 12px 0 0
+      border        1px solid #b1b1b1
+      background    transparent
+      shadow        none
+      outline       none
+      rounded       3px
+      margin        0
+      padding       0
+      borderBox()
+      &:hover
+        border-color    transparent
+        bg              color logoBg
+        .icon
+          r-sprite      activity 'check-white-9'
 
-        .topic-follow-btn
-          border-color      #e9e9e9
+      .icon
+        r-sprite        activity 'check-9'
+        margin          0 7px 0 0
+        padding         0
+        fr()
 
-          &.follow:before
-            color           #d1efdf
+      .button-title
+        hidden()
 
-          .icon
-            r-sprite        "activity", "check-white-9"
+      &.following
+        bg              color transparent
+        border-color    transparent
 
-          &.following .icon
-            r-sprite        "activity", "check-white-9"
+        .icon
+          r-sprite      activity 'check-green-9'
+
+  .kdlistitemview-sidebar-item.selected
+    background          #1aaf5d
+
+    &:after
+      content           ""
+      display           block
+      border            6px solid transparent
+      border-left-color #1aaf5d
+      abs               50% 0 0 100%
+      vendor            transform, translateY(-50%)
+
+    .profile
+      color             #fff
+
+    .user-numbers
+      color             #d1efdf !important
+
+    .online-status.online
+      background        #fff !important
+
+    .ttag
+      color             #fff
+
+    .tag-info
+      color             #d1efdf
+
+    .topic-follow-btn
+      border-color      #e9e9e9
+
+      &.follow:before
+        color           #d1efdf
+
+      .icon
+        r-sprite        "activity", "check-white-9"
+
+      &.following
+        bg              color transparent
+        border-color    transparent
+
+        .icon
+          r-sprite      "activity", "check-white-9"
+
+  a.kdlistitemview-sidebar-item
+
+    noTextDeco()
+
+    &.public-feed-link
+      margin-top      31px
+      color           #6a6a6a
+      border          1px solid #a7a7a7
+      font-weight     600
+      line-height     30px
+
+      &.selected
+        border-color  #1aaf5d
+
+
+.activity-modal
+
+  .listview-wrapper
+    margin-top        15px
+    height            200px
+
+    .lazy-loader
+      size            16px 16px
+      margin          10px auto
+
+    styleScrollBars()
+
+
+  textarea.kdinput.text
+
+    height            44px
+    bg                image none
+
+
+.activity-modal.your.topics
+
+  a.kdlistitemview-sidebar-item
+
+    size               auto auto
+    clear              both
+
+    .ttag
+      display       block
+      font-weight   500
+      color         #4c4c4c
+      margin        0
+      fl()
+
+    .tag-info
+      fr()
+
+    button
+    cite.count
+      hidden()
+
+  &.search-active
+
+    a.kdlistitemview-sidebar-item
+
+      .tag-info
+        margin-right  30px
+
+      .topic-follow-btn
+        top           8px
+        right         0
+        visible()
+
+.activity-modal.conversations
+
+  .kdlistitemview-member
+    margin-left       33px
+    size              213px 30px
+    min-height        0
+
+    .avatarview
+      top             5px
+      left            -30px
+
+    .profile
+      float           none
+
+    .user-numbers
+      float           none
+
 
 div.kdtooltip.activity-helper
   code
@@ -530,14 +613,19 @@ div.kdtooltip.activity-helper
       opacity         .5
 
 
-  // &.edit-widget
-  //   .input-view
-  //     button[type=submit]
-  //       size          auto auto
-  //       right         initial
-  //       bottom        initial
-  //       padding       0 10px
-  //       rel()
+  &.edit-widget
+    margin            0
+    padding           12px
+
+    .input-view >div
+      padding         11px
+      border          1px solid #e9e9e9
+      rounded         0
+      font-size       14px
+      line-height     19px
+      color           #4c4c4c
+      opacity         .99
+
 
 span.collapsedtext
   borderBox()
@@ -733,12 +821,11 @@ span.collapsedtext
       position            relative
 
       .avatarview
-        abs               12px 0 0 12px
+        abs               14px 0 0 14px
         border            1px solid #e4e4e4
         display           block
         z-index           2
-        size              42px 42px
-        borderBox()
+        size              40px 40px
 
       textarea
         background        #fff
@@ -772,6 +859,36 @@ span.collapsedtext
         margin          0 10px 0 16px
         vertical-align  middle
 
+    .new-messages
+      // bg                  color rgba(240, 112, 95, 0.3)
+      // background          -moz-linear-gradient(left,  rgba(250,250,250,1) 0%, rgba(240,112,95,0.3) 100%)
+      // background          -webkit-gradient(linear, left top, right top, color-stop(0%,rgba(250,250,250,1)), color-stop(100%,rgba(240,112,95,0.3)))
+      // background          -webkit-linear-gradient(left,  rgba(250,250,250,1) 0%,rgba(240,112,95,0.3) 100%)
+      // background          linear-gradient(to right,  rgba(250,250,250,1) 0%,rgba(240,112,95,0.3) 100%)
+      background rgb(250,250,250)
+      background -moz-linear-gradient(left,  rgba(250,250,250,1) 0%, rgba(240,112,95,1) 50%, rgba(250,250,250,1) 100%)
+      background -webkit-gradient(linear, left top, right top, color-stop(0%,rgba(250,250,250,1)), color-stop(50%,rgba(240,112,95,1)), color-stop(100%,rgba(250,250,250,1)))
+      background -webkit-linear-gradient(left,  rgba(250,250,250,1) 0%,rgba(240,112,95,1) 50%,rgba(250,250,250,1) 100%)
+      background linear-gradient(to right,  rgba(250,250,250,1) 0%,rgba(240,112,95,1) 50%,rgba(250,250,250,1) 100%)
+
+      size                auto 1px
+      overflow            visible
+      margin              0 33px 0 75px
+      borderBox()
+      &:after
+        text-align        center
+        width             90px
+        font-size         11px
+        top               -7px
+        right             50%
+        margin-right      -30px
+        padding           2px 0
+        content           'NEW REPLIES'
+        color             #fafafa
+        bg                color #f0705f
+        rounded           10px
+        abs()
+
     .kdlistitemview-comment
       background          #f7f7f7
       border-top          1px solid #e9e9e9
@@ -790,11 +907,10 @@ span.collapsedtext
 
       .avatarview
         display           block
-        size              42px 42px
+        size              40px 40px
         abs               12px 0 0 15px
         rounded           50%
         border            1px solid #e4e4e4
-        borderBox()
 
       a.profile
         font-size         14px
@@ -865,6 +981,14 @@ span.collapsedtext
           color           #cbcbcb
           text-align      right
           margin          4px 10px 0 0
+
+  &.editing
+    .activity-content-wrapper
+      > article
+        display           none
+
+      .activity-actions
+        display           none
 
 
 .activity-item.preview
@@ -957,11 +1081,65 @@ span.collapsedtext
 
 .activity-item.status
   .link-embed-box
-    .preview-text-link
-      input.preview-title-input
-        display             none
-      textarea.description-input
-        display             none
+    padding                 0 14px 15px
+    overflow                visible
+    borderBox()
+
+    .embed-link-view
+
+      .preview-image
+        display             block
+        margin              0
+        padding             0
+        z-index             10
+
+        img
+          display           block
+          margin            0
+          padding           0
+          width             100%
+
+      .preview-text
+        padding             17px
+        border              1px solid #e5e5e5
+        z-index             9
+        borderBox()
+
+        a.preview-text-link
+          noTextDeco()
+
+          h4
+            font-size       16px
+            line-height     18px
+            color           #4f4f4f
+            display         block
+
+        a.description
+          padding           14px 0
+          color             #727272
+          font-size         14px
+          line-height       16px
+          display           block
+          opacity           .99
+
+        .provider-info
+          overflow          visible
+          color             #bdbdbd
+          opacity           .99
+          font-size         14px
+          line-height       16px
+
+      .preview-image + .preview-text
+        border-top-color    #d2d2d2
+
+
+// .activity-item.status
+//   .link-embed-box
+//     .preview-text-link
+//       input.preview-title-input
+//         display             none
+//       textarea.description-input
+//         display             none
 
 
 /** Markdown Styling **/
@@ -1026,7 +1204,7 @@ span.collapsedtext
       vertical-align      top
       font-size           12px
   pre
-    padding               10px 0
+    padding               15px 14px
     code
       display             block
       line-height         16px
@@ -1216,34 +1394,22 @@ span.collapsedtext
       .like-view
         margin-left         76px
 
-    .like-view
-      size                  auto, 16px
-      line-height           normal
-      background            #ececec
-      rounded               8px
-      padding               0 6px
-      fl()
+        a.like-link
+          font-size         11px
+          color             #838383
+          noTextDeco()
 
-      .like-link
-        r-sprite            'activity', 'heart'
-        font-size           0
-        margin-top          4px
-        fl()
-
-        &.liked
-          r-sprite          'activity', 'heart-filled'
-
-      .like-count
-        background          none
-        size                auto, auto
-        font-size           10px
-        color               #2b2b2b
-        padding             0
-        line-height         17px
-        margin              0 0 0 5px
-        vertical-align      middle
-        text-decoration     none
-        fl()
+        .like-count
+          noTextDeco()
+          display           inline-block
+          height            16px
+          line-height       16px
+          padding           0 4px
+          background        #dfdfdf
+          color             #747474
+          rounded           2px
+          margin-left       7px
+          font-size         11px
 
     .author-avatar
       border-color          #fff
@@ -1789,6 +1955,7 @@ body.group.members
     rel()
 
     &:hover
+    &.selected
       .close-icon
         bg        color rgba(255,255,255,.9)
         shadow    0 0 0 5px rgba(255,255,255,.9)
@@ -1807,15 +1974,49 @@ body.group.members
 
   .formline.button-field
 
-    button.kdbutton.message-send
-      size                  77px 34px
+    button.kdbutton
       text-align            center
       rounded               8px
+
+    button.kdbutton.message-send
+      size                  77px 34px
       span.icon
         display             inline-block
         size                20px 20px
         r-sprite            activity 'paper-plane'
 
+// new private message modal
+.kdmodal.private-message.add-participant
+
+  .formline.recipient
+    border        1px solid transparent
+
+  .close-icon
+    hidden()
+
+  .kdmodal-inner
+    margin        20px
+
+  .chat-heads
+    display       block
+    padding       0 9px
+    borderBox()
+    rel()
+
+  .formline.button-field
+
+    button.kdbutton.add-to-convo
+      size                  100% 43px
+      span.button-title
+        line-height         43px
+        font-size           14px
+        padding-left        30px
+      span.icon
+        margin              14px 0 0 0
+        display             inline-block
+        size                20px 20px
+        r-sprite            activity 'add-participant'
+        abs()
 
 .kdautocomplete.listview-wrapper.private-message
 

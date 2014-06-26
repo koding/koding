@@ -23,19 +23,19 @@ ALTER TYPE "api"."channel_privacy_constant_enum" OWNER TO "social";
 
 DROP TABLE IF EXISTS "api"."channel";
 CREATE TABLE "api"."channel" (
-    "id" bigint NOT NULL DEFAULT api.channel_next_id(),
-    "name" varchar(200) NOT NULL COLLATE "default",
-    "creator_id" bigint NOT NULL,
-    "group_name" varchar(200) NOT NULL COLLATE "default",
-    "purpose" text COLLATE "default",
-    "secret_key" text COLLATE "default",
+    "id" BIGINT NOT NULL DEFAULT api.channel_next_id (),
+    "name" VARCHAR (200) NOT NULL COLLATE "default",
+    "creator_id" BIGINT NOT NULL,
+    "group_name" VARCHAR (200) NOT NULL COLLATE "default",
+    "purpose" TEXT COLLATE "default",
+    "secret_key" TEXT COLLATE "default",
     "type_constant" "api"."channel_type_constant_enum",
     "privacy_constant" "api"."channel_privacy_constant_enum",
-    "created_at" timestamp(6) WITH TIME ZONE NOT NULL DEFAULT now(),
-    "updated_at" timestamp(6) WITH TIME ZONE NOT NULL DEFAULT now(),
-    "deleted_at" timestamp(6) WITH TIME ZONE
-)
-WITH (OIDS=FALSE);
+    "created_at" TIMESTAMP (6) WITH TIME ZONE NOT NULL DEFAULT now(),
+    "updated_at" TIMESTAMP (6) WITH TIME ZONE NOT NULL DEFAULT now(),
+    "deleted_at" TIMESTAMP (6) WITH TIME ZONE
+) WITH (OIDS = FALSE);
+
 -- ALTER TABLE "api"."channel" OWNER TO "socialapplication";
 GRANT SELECT, INSERT, UPDATE ON "api"."channel" TO "socialapplication";
 
@@ -45,12 +45,12 @@ GRANT SELECT, INSERT, UPDATE ON "api"."channel" TO "socialapplication";
 -- ----------------------------
 DROP TABLE IF EXISTS "api"."account";
 CREATE TABLE "api"."account" (
-    "id" bigint NOT NULL DEFAULT nextval('api.account_id_seq'::regclass),
-    "old_id" varchar(24) NOT NULL COLLATE "default",
-    "is_troll" boolean NOT NULL DEFAULT false,
-    "nick" varchar(25) NOT NULL CHECK ("nick" <> '')
-)
-WITH (OIDS=FALSE);
+    "id" BIGINT NOT NULL DEFAULT nextval('api.account_id_seq' :: regclass),
+    "old_id" VARCHAR (24) NOT NULL COLLATE "default",
+    "is_troll" BOOLEAN NOT NULL DEFAULT FALSE,
+    "nick" VARCHAR (25) NOT NULL CHECK ("nick" <> '')
+) WITH (OIDS = FALSE);
+
 -- ALTER TABLE "api"."account" OWNER TO "socialapplication";
 GRANT SELECT, INSERT ON "api"."account" TO "socialapplication";
 
@@ -67,23 +67,24 @@ CREATE TYPE "api"."channel_message_type_constant_enum" AS ENUM (
     'chat',
     'privatemessage'
 );
+
 ALTER TYPE "api"."channel_message_type_constant_enum" OWNER TO "social";
 
 DROP TABLE IF EXISTS "api"."channel_message";
 CREATE TABLE "api"."channel_message" (
-    "id" bigint NOT NULL DEFAULT api.channel_message_next_id(),
-    "body" text COLLATE "default",
-    "slug" varchar(100) NOT NULL COLLATE "default",
+    "id" BIGINT NOT NULL DEFAULT api.channel_message_next_id (),
+    "body" TEXT COLLATE "default",
+    "slug" VARCHAR (100) NOT NULL COLLATE "default",
     "type_constant" "api"."channel_message_type_constant_enum",
-    "account_id" bigint NOT NULL,
-    "initial_channel_id" bigint NOT NULL,
-    "meta_bits" smallint NOT NULL DEFAULT 0::smallint,
-    "created_at" timestamp(6) WITH TIME ZONE NOT NULL DEFAULT now(),
-    "updated_at" timestamp(6) WITH TIME ZONE NOT NULL DEFAULT now(),
-    "deleted_at" timestamp(6) WITH TIME ZONE,
+    "account_id" BIGINT NOT NULL,
+    "initial_channel_id" BIGINT NOT NULL,
+    "meta_bits" SMALLINT NOT NULL DEFAULT 0 :: SMALLINT,
+    "created_at" TIMESTAMP (6) WITH TIME ZONE NOT NULL DEFAULT now(),
+    "updated_at" TIMESTAMP (6) WITH TIME ZONE NOT NULL DEFAULT now(),
+    "deleted_at" TIMESTAMP (6) WITH TIME ZONE,
     "payload" hstore
-)
-WITH (OIDS=FALSE);
+) WITH (OIDS = FALSE);
+
 -- ALTER TABLE "api"."channel_message" OWNER TO "socialapplication";
 GRANT SELECT, INSERT, UPDATE ON "api"."channel_message" TO "socialapplication";
 
@@ -93,13 +94,16 @@ GRANT SELECT, INSERT, UPDATE ON "api"."channel_message" TO "socialapplication";
 -- ----------------------------
 DROP TABLE IF EXISTS "api"."channel_message_list";
 CREATE TABLE "api"."channel_message_list" (
-    "id" bigint NOT NULL DEFAULT nextval('api.channel_message_list_id_seq'::regclass),
-    "channel_id" bigint NOT NULL DEFAULT 0,
-    "message_id" bigint NOT NULL DEFAULT 0,
-    "meta_bits" smallint NOT NULL DEFAULT 0::smallint,
-    "added_at" timestamp(6) WITH TIME ZONE NOT NULL DEFAULT now()
-)
-WITH (OIDS=FALSE);
+    "id" BIGINT NOT NULL DEFAULT nextval(
+        'api.channel_message_list_id_seq' :: regclass
+    ),
+    "channel_id" BIGINT NOT NULL DEFAULT 0,
+    "message_id" BIGINT NOT NULL DEFAULT 0,
+    "meta_bits" SMALLINT NOT NULL DEFAULT 0 :: SMALLINT,
+    "added_at" TIMESTAMP (6) WITH TIME ZONE NOT NULL DEFAULT now(),
+    "revised_at" TIMESTAMP (6) WITH TIME ZONE NOT NULL DEFAULT now()
+) WITH (OIDS = FALSE);
+
 -- ALTER TABLE "api"."channel_message_list" OWNER TO "socialapplication";
 GRANT SELECT, INSERT, UPDATE, DELETE ON "api"."channel_message_list" TO "socialapplication";
 
@@ -111,20 +115,23 @@ CREATE TYPE "api"."channel_participant_status_constant_enum" AS ENUM (
     'left',
     'requestpending'
 );
+
 ALTER TYPE "api"."channel_participant_status_constant_enum" OWNER TO "social";
 
 DROP TABLE IF EXISTS "api"."channel_participant";
 CREATE TABLE "api"."channel_participant" (
-    "id" bigint NOT NULL DEFAULT nextval('api.channel_participant_id_seq'::regclass),
-    "channel_id" bigint NOT NULL DEFAULT 0,
-    "account_id" bigint NOT NULL DEFAULT 0,
+    "id" BIGINT NOT NULL DEFAULT nextval(
+        'api.channel_participant_id_seq' :: regclass
+    ),
+    "channel_id" BIGINT NOT NULL DEFAULT 0,
+    "account_id" BIGINT NOT NULL DEFAULT 0,
     "status_constant" "api"."channel_participant_status_constant_enum",
-    "meta_bits" smallint NOT NULL DEFAULT 0::smallint,
-    "last_seen_at" timestamp(6) WITH TIME ZONE NOT NULL DEFAULT now(),
-    "created_at" timestamp(6) WITH TIME ZONE NOT NULL DEFAULT now(),
-    "updated_at" timestamp(6) WITH TIME ZONE NOT NULL DEFAULT now()
-)
-WITH (OIDS=FALSE);
+    "meta_bits" SMALLINT NOT NULL DEFAULT 0 :: SMALLINT,
+    "last_seen_at" TIMESTAMP (6) WITH TIME ZONE NOT NULL DEFAULT now(),
+    "created_at" TIMESTAMP (6) WITH TIME ZONE NOT NULL DEFAULT now(),
+    "updated_at" TIMESTAMP (6) WITH TIME ZONE NOT NULL DEFAULT now()
+) WITH (OIDS = FALSE);
+
 -- ALTER TABLE "api"."channel_participant" OWNER TO "socialapplication";
 GRANT SELECT, INSERT, UPDATE ON "api"."channel_participant" TO "socialapplication";
 
@@ -140,14 +147,16 @@ ALTER TYPE "api"."interaction_type_constant_enum" OWNER TO "social";
 
 DROP TABLE IF EXISTS "api"."interaction";
 CREATE TABLE "api"."interaction" (
-    "id" bigint NOT NULL DEFAULT nextval('api.interaction_id_seq'::regclass),
-    "message_id" bigint NOT NULL DEFAULT 0,
-    "account_id" bigint NOT NULL DEFAULT 0,
+    "id" BIGINT NOT NULL DEFAULT nextval(
+        'api.interaction_id_seq' :: regclass
+    ),
+    "message_id" BIGINT NOT NULL DEFAULT 0,
+    "account_id" BIGINT NOT NULL DEFAULT 0,
     "type_constant" "api"."interaction_type_constant_enum",
-    "meta_bits" smallint NOT NULL DEFAULT 0::smallint,
-    "created_at" timestamp(6) WITH TIME ZONE NOT NULL DEFAULT now()
-)
-WITH (OIDS=FALSE);
+    "meta_bits" SMALLINT NOT NULL DEFAULT 0 :: SMALLINT,
+    "created_at" TIMESTAMP (6) WITH TIME ZONE NOT NULL DEFAULT now()
+) WITH (OIDS = FALSE);
+
 -- ALTER TABLE "api"."interaction" OWNER TO "socialapplication";
 GRANT SELECT, INSERT, DELETE ON "api"."interaction" TO "socialapplication";
 
@@ -157,12 +166,14 @@ GRANT SELECT, INSERT, DELETE ON "api"."interaction" TO "socialapplication";
 -- ----------------------------
 DROP TABLE IF EXISTS "api"."message_reply";
 CREATE TABLE "api"."message_reply" (
-    "id" bigint NOT NULL DEFAULT nextval('api.message_reply_id_seq'::regclass),
-    "message_id" bigint NOT NULL DEFAULT 0,
-    "reply_id" bigint NOT NULL DEFAULT 0,
-    "meta_bits" smallint NOT NULL DEFAULT 0::smallint,
-    "created_at" timestamp(6) WITH TIME ZONE NOT NULL DEFAULT now()
-)
-WITH (OIDS=FALSE);
+    "id" BIGINT NOT NULL DEFAULT nextval(
+        'api.message_reply_id_seq' :: regclass
+    ),
+    "message_id" BIGINT NOT NULL DEFAULT 0,
+    "reply_id" BIGINT NOT NULL DEFAULT 0,
+    "meta_bits" SMALLINT NOT NULL DEFAULT 0 :: SMALLINT,
+    "created_at" TIMESTAMP (6) WITH TIME ZONE NOT NULL DEFAULT now()
+) WITH (OIDS = FALSE);
+
 -- ALTER TABLE "api"."message_reply" OWNER TO "socialapplication";
 GRANT SELECT, INSERT, DELETE ON "api"."message_reply" TO "socialapplication";

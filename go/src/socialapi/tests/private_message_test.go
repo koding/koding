@@ -37,20 +37,22 @@ func TestPrivateMesssage(t *testing.T) {
 				account.Id,
 				"this is a body message for private message @chris @devrim @sinan",
 				groupName,
+				[]string{"chris", "devrim", "sinan"},
 			)
 			So(err, ShouldBeNil)
 			So(cmc, ShouldNotBeNil)
 
 		})
 
-		Convey("0 recipient should fail", func() {
+		Convey("0 recipient should not fail", func() {
 			cmc, err := rest.SendPrivateMessage(
 				account.Id,
 				"this is a body for private message",
 				groupName,
+				[]string{},
 			)
-			So(err, ShouldNotBeNil)
-			So(cmc, ShouldBeNil)
+			So(err, ShouldBeNil)
+			So(cmc, ShouldNotBeNil)
 
 		})
 		Convey("if body is nil, should fail to create PM", func() {
@@ -58,6 +60,7 @@ func TestPrivateMesssage(t *testing.T) {
 				account.Id,
 				"",
 				groupName,
+				[]string{},
 			)
 			So(err, ShouldNotBeNil)
 			So(cmc, ShouldBeNil)
@@ -67,6 +70,7 @@ func TestPrivateMesssage(t *testing.T) {
 				account.Id,
 				"this is a body for private message @chris @devrim @sinan",
 				"",
+				[]string{"chris", "devrim", "sinan"},
 			)
 			So(err, ShouldBeNil)
 			So(cmc, ShouldNotBeNil)
@@ -77,6 +81,7 @@ func TestPrivateMesssage(t *testing.T) {
 				0,
 				"this is a body for private message",
 				"",
+				[]string{},
 			)
 			So(err, ShouldNotBeNil)
 			So(cmc, ShouldBeNil)
@@ -87,6 +92,7 @@ func TestPrivateMesssage(t *testing.T) {
 				account.Id,
 				"this is a body for private message @sinan",
 				groupName,
+				[]string{"sinan"},
 			)
 			So(err, ShouldBeNil)
 			So(cmc, ShouldNotBeNil)
@@ -97,6 +103,7 @@ func TestPrivateMesssage(t *testing.T) {
 				account.Id,
 				"this is a body for private message @devrim @sinan",
 				groupName,
+				[]string{"devrim", "sinan"},
 			)
 			So(err, ShouldBeNil)
 			So(cmc, ShouldNotBeNil)
@@ -112,6 +119,7 @@ func TestPrivateMesssage(t *testing.T) {
 				account.Id,
 				"this is a body for private message @chris @devrim @sinan",
 				groupName,
+				[]string{"chris", "devrim", "sinan"},
 			)
 			So(err, ShouldBeNil)
 			So(cmc, ShouldNotBeNil)
@@ -123,6 +131,7 @@ func TestPrivateMesssage(t *testing.T) {
 				account.Id,
 				"this is a body for @sinan private message @devrim",
 				groupName,
+				[]string{"devrim", "sinan"},
 			)
 			So(err, ShouldBeNil)
 			So(cmc, ShouldNotBeNil)
@@ -134,6 +143,7 @@ func TestPrivateMesssage(t *testing.T) {
 				account.Id,
 				"this is @chris a body for @devrim private message",
 				groupName,
+				[]string{"chris", "devrim"},
 			)
 			So(err, ShouldBeNil)
 			So(cmc, ShouldNotBeNil)
@@ -146,6 +156,7 @@ func TestPrivateMesssage(t *testing.T) {
 				account.Id,
 				body,
 				groupName,
+				[]string{"chris", "devrim"},
 			)
 			So(err, ShouldBeNil)
 			So(cmc, ShouldNotBeNil)
@@ -162,6 +173,7 @@ func TestPrivateMesssage(t *testing.T) {
 				account.Id,
 				body,
 				groupName,
+				[]string{"chris", "devrim"},
 			)
 			So(err, ShouldBeNil)
 			So(cmc, ShouldNotBeNil)

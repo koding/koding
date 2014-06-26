@@ -542,8 +542,6 @@ class ProfileView extends JView
             if err
               warn err
             else
-              KD.getSingleton("badgeController").checkBadge
-                source : "JAccount" ,property : "staffLikes", relType : "like", targetSelf : 1
               @thankButton.disable()
               @utils.wait 3000, =>
                 @thankButton.enable()

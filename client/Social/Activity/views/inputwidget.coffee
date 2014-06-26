@@ -231,14 +231,6 @@ class ActivityInputWidget extends KDView
           duration   : 5000
         KodingError  : 'Something went wrong while creating activity'
 
-      # fixme for badges
-
-      # KD.getSingleton("badgeController").checkBadge
-      #   property   : "statusUpdates"
-      #   relType    : "author"
-      #   source     : "JNewStatusUpdate"
-      #   targetSelf : 1
-
 
   update: ({body, payload}, callback = noop) ->
 
@@ -334,6 +326,12 @@ class ActivityInputWidget extends KDView
     @preview.destroy()
     @preview = null
     @unsetClass "preview-active"
+
+
+  focus: ->
+
+    @input.focus()
+    @input.setPlaceholder()
 
 
   viewAppended: ->

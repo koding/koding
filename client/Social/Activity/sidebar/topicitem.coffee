@@ -9,6 +9,7 @@ class SidebarTopicItem extends SidebarItem
     {name}                  = data
     options.pistachioParams = getSuffix data.participantCount
     options.route           = "Topic/#{name}"
+    options.cssClass        = 'clearfix'
 
     super options, data
 

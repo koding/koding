@@ -31,6 +31,7 @@ module.exports = [
   "views/activitymenuitem.coffee"
   "views/chatheadautocompleteitem.coffee"
   "views/privatemessagemodal.coffee"
+  "views/privatemessagerecipientmodal.coffee"
   "views/alltopicsmodal.coffee"
   "views/yourtopicsmodal.coffee"
   "views/conversationsmodal.coffee"
