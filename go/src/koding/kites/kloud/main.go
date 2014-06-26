@@ -35,17 +35,17 @@ func main() {
 		os.Exit(0)
 	}
 
-	if *flagKontrolURL == "" {
-		log.Fatal("Please specify kontrol url with -kontrol-url")
-	}
-
 	conf := config.MustConfig(*flagProfile)
 
-	u, err := url.Parse(*flagKontrolURL)
-	if err != nil {
-		log.Fatalln(err)
+	var kontrolURL string
+	if *flagKontrolURL == "" {
+		u, err := url.Parse(*flagKontrolURL)
+		if err != nil {
+			log.Fatalln(err)
+		}
+
+		kontrolURL = u.String()
 	}
-	kontrolURL := u.String()
 
 	pubKeyPath := *flagPublicKey
 	if *flagPublicKey == "" {

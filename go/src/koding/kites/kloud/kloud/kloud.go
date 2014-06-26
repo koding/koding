@@ -70,6 +70,11 @@ func (k *Kloud) NewKloud() *kodingkite.KodingKite {
 	}
 	k.Kite = kt.Kite
 
+	// read kontrolURL from kite.key if it doesn't exist.
+	if k.KontrolURL == "" {
+		k.KontrolURL = kt.Config.KontrolURL.String()
+	}
+
 	k.Log = createLogger(NAME, k.Debug)
 
 	if k.UniqueId == "" {
