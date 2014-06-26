@@ -1,6 +1,7 @@
 package messagelist
 
 import (
+	"errors"
 	"net/http"
 	"net/url"
 	"socialapi/models"
