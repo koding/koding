@@ -144,7 +144,7 @@ func buildKlient() error {
 	kclient := pkg{
 		appName:       *flagApp,
 		importPath:    importPath,
-		version:       "0.0.1",
+		version:       symbolvalue,
 		upstartScript: upstartPath,
 		symbolname:    "koding/kites/klient/protocol.Version",
 		symbolvalue:   symbolvalue,
