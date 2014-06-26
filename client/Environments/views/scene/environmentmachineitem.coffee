@@ -114,6 +114,12 @@ class EnvironmentMachineItem extends EnvironmentItem
           @setData new Machine machine: newMachine
           @ipAddress.updatePartial @getIpLink()
 
+        if /^build/.test event.eventId
+          KD.utils.wait 3000, =>
+            new KDNotificationView
+              title: "Preparing to run init script..."
+            @runBuildScript()
+
 
   contextMenuItems: ->
 
