@@ -134,12 +134,9 @@ func buildKlient() error {
 	importPath := "koding/kites/klient"
 	upstartPath := filepath.Join(gopath, "src", importPath, "files/klient.conf")
 
-	files := []string{filepath.Join(gopath, "bin-vagrant/kite")}
-
 	kclient := pkg{
 		appName:       *flagApp,
 		importPath:    importPath,
-		files:         files,
 		version:       "0.0.1",
 		upstartScript: upstartPath,
 	}
