@@ -23,6 +23,9 @@ type Openstack struct {
 	}
 
 	Builder struct {
+		ID   string `mapstructure:"instanceId"`
+		Type string `mapstructure:"type" packer:"type"`
+
 		SourceImage       string   `mapstructure:"source_image"`
 		Flavor            string   `mapstructure:"flavor"`
 		RawRegion         string   `mapstructure:"region"`
@@ -101,4 +104,18 @@ func New(authURL, providerName string, credential, builder map[string]interface{
 	o.Client = csp
 
 	return o, nil
+}
+
+// Id returns the servers unique Id
+func (o *Openstack) Id() string {
+	return o.Builder.ID
+}
+
+// Server returns a server instance from the server ID
+func (o *Openstack) Server() (*gophercloud.Server, error) {
+	if o.Id() == "" {
+		return nil, errors.New("Server id is empty")
+	}
+
+	return o.Client.ServerById(o.Id())
 }

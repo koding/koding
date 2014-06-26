@@ -6,6 +6,7 @@ import (
 	"koding/kites/kloud/eventer"
 	"koding/kites/kloud/kloud/machinestate"
 	"koding/kites/kloud/kloud/protocol"
+	"strings"
 
 	"github.com/koding/logging"
 )
@@ -58,11 +59,11 @@ func (p *Provider) Build(opts *protocol.MachineOptions) (*protocol.BuildResponse
 }
 
 func (p *Provider) Start(opts *protocol.MachineOptions) error {
-	return errors.New("build is not supported yet.")
+	return errors.New("Stop is not supported.")
 }
 
 func (p *Provider) Stop(opts *protocol.MachineOptions) error {
-	return errors.New("build is not supported yet.")
+	return errors.New("Stop is not supported.")
 }
 
 func (p *Provider) Restart(opts *protocol.MachineOptions) error {
@@ -74,11 +75,47 @@ func (p *Provider) Destroy(opts *protocol.MachineOptions) error {
 }
 
 func (p *Provider) Info(opts *protocol.MachineOptions) (*protocol.InfoResponse, error) {
-	// authentication is done inside this package
-	_, err := p.NewClient(opts)
+	o, err := p.NewClient(opts)
 	if err != nil {
 		return nil, err
 	}
 
+	server, err := o.Server()
+	if err != nil {
+		return nil, err
+	}
+
+	if statusToState(server.Status) == machinestate.Unknown {
+		p.Log.Warning("Unknown rackspace status: %s. This needs to be fixed.", server.Status)
+	}
+
+	return &protocol.InfoResponse{
+		State: statusToState(server.Status),
+		Name:  server.Name,
+	}, nil
+
 	return nil, errors.New("not supported yet.")
+}
+
+// statusToState converts a rackspacke status to a sensible machinestate.State
+// format
+func statusToState(status string) machinestate.State {
+	status = strings.ToLower(status)
+
+	switch status {
+	case "active":
+		return machinestate.Running
+	case "suspended":
+		return machinestate.Stopped
+	case "build", "rebuild":
+		return machinestate.Building
+	case "deleted":
+		return machinestate.Terminated
+	case "hard_reboot", "reboot":
+		return machinestate.Rebooting
+	case "migrating", "password", "resize":
+		return machinestate.Updating
+	default:
+		return machinestate.Unknown
+	}
 }
