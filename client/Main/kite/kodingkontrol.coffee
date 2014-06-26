@@ -111,16 +111,16 @@ class KodingKontrol extends (require 'kontrol')
     .then(kite.bound 'logTransportFailures')
 
     # Report error
-    .catch(@error.bind this)
+    .catch (err)=>
+
+      warn "[KodingKontrol] ", err
+
+      @setCachedKite name, correlationName, null
+
+      {message} = err
+      message   = if message then message else err
+
+      ErrorLog.create message
 
     return kite
 
-
-  error: (err)->
-
-    warn "[KodingKontrol] ", err
-
-    {message} = err
-    message   = if message then message else err
-
-    ErrorLog.create message
