@@ -97,6 +97,8 @@ class ActivityListItemView extends KDListItemView
     ]
 
     body = fn body for fn in fns
+    body = KD.utils.expandUsernames body, 'pre'
+
     return body
 
 
