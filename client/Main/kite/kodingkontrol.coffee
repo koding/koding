@@ -6,8 +6,10 @@ class KodingKontrol extends (require 'kontrol')
 
     super @getAuthOptions()
 
-    @kites = {}
+    @kites   = {}
     @regions = {}
+
+    @reauthenticate()
 
   getAuthOptions: ->
     autoConnect     : no
@@ -84,6 +86,8 @@ class KodingKontrol extends (require 'kontrol')
 
 
   getKite: (options = {}) ->
+
+    @reauthenticate()  unless @kite?
 
     # Get options
     { name, correlationName, region, transportOptions,
