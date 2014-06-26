@@ -1,5 +1,13 @@
 # this class will register itself just before application starts loading, right after framework is ready
 
+if localStorage.disableWebSocket?
+  if localStorage.disableWebSocket is "true"
+    window.WebSocket = null
+else if KD.config.kites.disableWebSocketByDefault
+  window.WebSocket = null
+
+
+
 KD.extend
 
   apiUri       : KD.config.apiUri
@@ -13,7 +21,12 @@ KD.extend
         Boolean Number localStorage.useNewKites
     localStorage.useNewKites = if useNewKites then '1' else ''
     return useNewKites
-  useWebSockets : yes
+  useWebSockets :
+    if localStorage.disableWebSocket is 'true'
+      WebSocket = null
+      no
+    else
+      yes
   appClasses   : {}
   appScripts   : {}
   appLabels    : {}
