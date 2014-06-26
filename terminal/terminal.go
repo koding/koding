@@ -80,8 +80,13 @@ func Connect(r *kite.Request) (interface{}, error) {
 		Mode         string
 	}
 
-	if r.Args.One().Unmarshal(&params) != nil || params.SizeX <= 0 || params.SizeY <= 0 {
-		return nil, errors.New(fmt.Sprintf("{ remote: [object], session: %s, sizeX: %d, sizeY: %d, noScreen: [bool] } { raw JSON : %v }", params.Session, params.SizeX, params.SizeY, r.Args.One()))
+	if err := r.Args.One().Unmarshal(&params); err != nil {
+		return nil, fmt.Errorf("{ remote: [object], session: %s, noScreen: [bool] }, err: %s",
+			params.Session, err)
+	}
+
+	if params.SizeX <= 0 || params.SizeY <= 0 {
+		return nil, fmt.Errorf("{ sizeX: %d, sizeY: %d } { raw JSON : %v }", params.SizeX, params.SizeY, r.Args.One())
 	}
 
 	user, err := user.Current()
@@ -107,6 +112,9 @@ func Connect(r *kite.Request) (interface{}, error) {
 	args := []string{"-i", command.Name}
 	args = append(args, command.Args...)
 	cmd := exec.Command("/usr/bin/sudo", args...)
+
+	// For test use this, sude is not going to work
+	// cmd := exec.Command(command.Name, command.Args...)
 
 	cmd.Env = []string{"TERM=xterm-256color", "HOME=" + user.HomeDir}
 	cmd.Stdin = server.pty.Slave
