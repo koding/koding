@@ -8,6 +8,9 @@ class YourTopicsModal extends KDModalView
     options.overlay   ?= yes
     options.width     ?= 330
     options.height   or= 'auto'
+    options.endpoints ?=
+      fetch            : KD.singletons.socialapi.channel.fetchFollowedChannels
+      search           : KD.singletons.socialapi.channel.searchTopics
 
     super options, data
 
@@ -56,9 +59,9 @@ class YourTopicsModal extends KDModalView
 
     return @fetchForSearch options, callback  if @searchActive
 
-    {channel} = KD.singletons.socialapi
+    {fetch} = @getOptions().endpoints
 
-    channel.fetchFollowedChannels options, (err, items = []) =>
+    fetch options, (err, items = []) =>
 
       @listController.hideLazyLoader()
       @beingFetched = no
@@ -70,12 +73,11 @@ class YourTopicsModal extends KDModalView
 
   fetchForSearch: (options = {}, callback) ->
 
-    {channel} = KD.singletons.socialapi
-
     options.name ?= @searchField.getValue()
     @lastTerm     = options.name
 
-    channel.searchTopics options, (err, items) =>
+    {search} = @getOptions().endpoints
+    search options, (err, items) =>
 
       @listController.hideLazyLoader()
       @beingFetched = no
