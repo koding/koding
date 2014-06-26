@@ -42,12 +42,12 @@ func (t *TestStorage) Update(id string, s *kloud.StorageData) error {
 	if s.Type == "build" {
 		machineData.Machine.QueryString = s.Data["queryString"].(string)
 		machineData.Machine.IpAddress = s.Data["ipAddress"].(string)
-		machineData.Machine.Meta["instanceName"] = s.Data["instanceId"]
-		machineData.Machine.Meta["instanceId"] = s.Data["instanceName"]
+		machineData.Machine.Meta["instanceId"] = s.Data["instanceId"]
+		machineData.Machine.Meta["instanceName"] = s.Data["instanceName"]
 	}
 
 	if s.Type == "info" {
-		machineData.Machine.Meta["instanceName"] = s.Data["instanceId"]
+		machineData.Machine.Meta["instanceName"] = s.Data["instanceName"]
 	}
 
 	TestProviderData[id] = machineData
