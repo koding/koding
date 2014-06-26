@@ -28,6 +28,12 @@ type Pkg struct {
 	Output     string `json:"output"`
 }
 
+// Symbol assigns the given value to the symbol name.
+type Symbol struct {
+	SymbolName  string
+	SymbolValue string
+}
+
 // NewPkg returns a new Pkg struct. If output is empty, t
 func NewPkg(importPath, output string) Pkg {
 	return Pkg{
@@ -50,6 +56,9 @@ type Deps struct {
 
 	// BuildGoPath is used to fetch dependencies of the given Packages
 	BuildGoPath string
+
+	// Used to embed a version for the given Symbol name
+	BuildSymbol *Symbol
 
 	// currentGoPath, is taken from current GOPATH environment variable
 	currentGoPath string
@@ -146,6 +155,11 @@ func (d *Deps) InstallDeps() error {
 		binFile := filepath.Join(binPath, filepath.Base(binPath))
 
 		args := []string{"build", "-o", binFile, pkg.ImportPath}
+		if d.BuildSymbol != nil {
+			args = []string{"build", "-ldflags", fmt.Sprintf("-X %s %s", d.BuildSymbol.SymbolName, d.BuildSymbol.SymbolValue),
+				"-o", binFile, pkg.ImportPath}
+		}
+
 		cmd := exec.Command("go", args...)
 		cmd.Stdout, cmd.Stderr = os.Stdout, os.Stderr
 

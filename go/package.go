@@ -51,6 +51,8 @@ type pkg struct {
 	files         []string
 	version       string
 	upstartScript string
+	symbolname    string
+	symbolvalue   string
 }
 
 func main() {
@@ -134,11 +136,18 @@ func buildKlient() error {
 	importPath := "koding/kites/klient"
 	upstartPath := filepath.Join(gopath, "src", importPath, "files/klient.conf")
 
+	symbolvalue := "0.0.1"
+	if *flagBuildNumber != 0 {
+		symbolvalue = "0.1." + strconv.Itoa(*flagBuildNumber)
+	}
+
 	kclient := pkg{
 		appName:       *flagApp,
 		importPath:    importPath,
 		version:       "0.0.1",
 		upstartScript: upstartPath,
+		symbolname:    "koding/kites/klient/protocol.Version",
+		symbolvalue:   symbolvalue,
 	}
 
 	return kclient.build()
@@ -398,6 +407,8 @@ func (p *pkg) build() error {
 		Files:         strings.Join(p.files, ","),
 		InstallPrefix: "opt/kite",
 		UpstartScript: p.upstartScript,
+		SymbolName:    p.symbolname,
+		SymbolValue:   p.symbolvalue,
 	}
 
 	debFile, err := deb.Build()
