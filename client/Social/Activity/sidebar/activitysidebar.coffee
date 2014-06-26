@@ -426,6 +426,7 @@ class ActivitySidebar extends KDCustomScrollView
 
     @registerListController @sections.messages
 
+
   addChat: ->
 
     @wrapper.addSubView @sections.chat = new ActivitySideView
