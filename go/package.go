@@ -27,7 +27,7 @@ var (
 	flagEnvironment = flag.String("e", "", "Define environment profile to be included")
 	flagHost        = flag.String("h", "", "Define hostname for kite reveseproxy")
 	flagApp         = flag.String("a", "", "App to be build")
-	flagBuildNumber = flag.String("b", "", "Build number is added to the generated file if specified")
+	flagBuildNumber = flag.Int("b", 0, "Build number is added to the generated file if specified")
 
 	// kontrolproxy specific flags
 	flagProxy = flag.String("p", "", "Select user proxy or koding proxy") // Proxy only
@@ -409,9 +409,9 @@ func (p *pkg) build() error {
 	oldname := debFile
 
 	newname := p.appName + "_" + p.version
-	if *flagBuildNumber != "" {
+	if *flagBuildNumber != 0 {
 		// http://semver.org/ see build-number paragraph
-		newname += "+" + *flagBuildNumber
+		newname = p.appName + "_0.1." + strconv.Itoa(*flagBuildNumber)
 	}
 
 	if *flagProfile == "" || *flagRegion == "" {
