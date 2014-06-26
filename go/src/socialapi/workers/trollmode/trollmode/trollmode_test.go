@@ -485,6 +485,29 @@ func TestMarkedAsTroll(t *testing.T) {
 			So(history, ShouldNotBeNil)
 		})
 
+		// channel_participant
+		Convey("when a troll joins a channel, they should not be in the participant list for normal users", func() {
+			privatemessageChannelId, err := createPrivateMessageChannel(trollUser.Id, groupName)
+			So(err, ShouldBeNil)
+			So(privatemessageChannelId, ShouldBeGreaterThan, 0)
+
+			// fetch participants of this channel
+			c := models.NewChannel()
+			c.Id = privatemessageChannelId
+			participants, err := c.FetchParticipantIds(&request.Query{})
+			tests.ResultedWithNoErrorCheck(participants, err)
+			So(len(participants), ShouldEqual, 1)
+
+			var trollExists bool
+			for _, participant := range participants {
+				if participant == trollUser.Id {
+					trollExists = true
+					break
+				}
+			}
+
+			So(trollExists, ShouldBeFalse)
+		})
 	})
 }
 
