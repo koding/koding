@@ -508,6 +508,27 @@ func TestMarkedAsTroll(t *testing.T) {
 
 			So(trollExists, ShouldBeFalse)
 		})
+		Convey("when a troll replies to a status update, they should be in the reply list for troll users", func() {
+			post1 := addPosts()
+
+			history, err := rest.GetPostWithRelatedData(
+				post1.Id,
+				&request.Query{
+					AccountId:  trollUser.Id,
+					GroupName:  groupChannel.GroupName,
+					ShowExempt: true,
+				},
+			)
+			So(err, ShouldBeNil)
+
+			So(history.Replies, ShouldNotBeNil)
+
+			// remove troll user's reply
+			So(len(history.Replies), ShouldEqual, 3)
+
+			// `normal user` liked it
+			So(history.RepliesCount, ShouldEqual, 3)
+		})
 	})
 }
 
