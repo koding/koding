@@ -268,6 +268,8 @@ func TestMarkedAsTroll(t *testing.T) {
 			}
 		})
 
+		//////////////// after marking, when troll adds new content/////////////
+
 		// update channel data while creating
 		Convey("when a troll creates a channel, meta_bits should be set", func() {
 			privatemessageChannelId1, err := createPrivateMessageChannel(trollUser.Id, groupName)
@@ -432,7 +434,7 @@ func TestMarkedAsTroll(t *testing.T) {
 			// fetch participants of this channel
 			c := models.NewChannel()
 			c.Id = privatemessageChannelId
-			participants, err := c.FetchParticipantIds()
+			participants, err := c.FetchParticipantIds(&request.Query{ShowExempt: true})
 			tests.ResultedWithNoErrorCheck(participants, err)
 			So(len(participants), ShouldEqual, 2)
 
