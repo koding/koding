@@ -17,10 +17,12 @@ import (
 
 type Deb struct {
 	// App informations
-	AppName string
-	Version string
-	Desc    string
-	Arch    string
+	AppName     string
+	Version     string
+	Desc        string
+	Arch        string
+	SymbolName  string
+	SymbolValue string
 
 	// Build fields
 	Output          string
@@ -116,6 +118,13 @@ func (d *Deb) createInstallDir() error {
 	dp, err := deps.LoadDeps(deps.NewPkg(d.ImportPath, d.AppName))
 	if err != nil {
 		return err
+	}
+
+	if d.SymbolName != "" && d.SymbolValue != "" {
+		dp.BuildSymbol = &deps.Symbol{
+			SymbolName:  d.SymbolName,
+			SymbolValue: d.SymbolValue,
+		}
 	}
 
 	err = dp.InstallDeps()
