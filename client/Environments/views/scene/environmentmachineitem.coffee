@@ -111,8 +111,14 @@ class EnvironmentMachineItem extends EnvironmentItem
       KD.remote.api.JMachine.one machine._id, (err, newMachine)=>
         if err then warn ".>", err
         else
-          @setData newMachine
+          @setData new Machine machine: newMachine
           @ipAddress.updatePartial @getIpLink()
+
+        if /^build/.test event.eventId
+          KD.utils.wait 3000, =>
+            new KDNotificationView
+              title: "Preparing to run init script..."
+            @runBuildScript()
 
 
   contextMenuItems: ->

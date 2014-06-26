@@ -4,9 +4,10 @@ KodingError = require '../../error'
 PROVIDERS =
   amazon       : require './amazon'
   koding       : require './koding'
-  google       : require './google'
+  rackspace    : require './rackspace'
   digitalocean : require './digitalocean'
   engineyard   : require './engineyard'
+  google       : require './google'
 
 
 reviveProvisioners = (client, provisioners, callback, revive = no)->

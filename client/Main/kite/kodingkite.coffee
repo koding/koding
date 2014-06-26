@@ -38,3 +38,6 @@ class KodingKite extends KDObject
       @::[method] = @createMethod @prototype, { method, rpcMethod }
 
   @constructors = {}
+
+  connect:    -> @transport?.connect()
+  disconnect: -> @transport?.disconnect()

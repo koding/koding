@@ -12,9 +12,10 @@ class ProviderView extends KDView
         itemClass   : ProviderItemView
     , items         : [
       { name : "Koding",       view : new ProviderKoding }
+      { name : "Rackspace",    view : new ProviderRackspace }
+      { name : "DigitalOcean", view : new ProviderDigitalOcean }
       { name : "Google",       view : new ProviderGoogle }
       { name : "Amazon",       view : new ProviderAmazon }
-      { name : "DigitalOcean", view : new ProviderDigitalOcean }
       { name : "EngineYard",   view : new ProviderEngineyard }
     ]
 

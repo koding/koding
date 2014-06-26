@@ -6,8 +6,10 @@ class KodingKontrol extends (require 'kontrol')
 
     super @getAuthOptions()
 
-    @kites = {}
+    @kites   = {}
     @regions = {}
+
+    @reauthenticate()
 
   getAuthOptions: ->
     autoConnect     : no
@@ -16,6 +18,8 @@ class KodingKontrol extends (require 'kontrol')
       type          : 'sessionID'
       key           : Cookies.get 'clientId'
     transportClass  : SockJS
+    transportOptions:
+      heartbeatTimeout: 30 * 1000 # 30 seconds
 
 
   reauthenticate: ->
@@ -83,6 +87,8 @@ class KodingKontrol extends (require 'kontrol')
 
   getKite: (options = {}) ->
 
+    @reauthenticate()  unless @kite?
+
     # Get options
     { name, correlationName, region, transportOptions,
       username, environment, queryString } = options
@@ -111,16 +117,16 @@ class KodingKontrol extends (require 'kontrol')
     .then(kite.bound 'logTransportFailures')
 
     # Report error
-    .catch(@error.bind this)
+    .catch (err)=>
+
+      warn "[KodingKontrol] ", err
+
+      @setCachedKite name, correlationName, null
+
+      {message} = err
+      message   = if message then message else err
+
+      ErrorLog.create message
 
     return kite
 
-
-  error: (err)->
-
-    warn "[KodingKontrol] ", err
-
-    {message} = err
-    message   = if message then message else err
-
-    ErrorLog.create message

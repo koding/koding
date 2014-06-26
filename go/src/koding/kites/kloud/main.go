@@ -38,7 +38,7 @@ func main() {
 	conf := config.MustConfig(*flagProfile)
 
 	var kontrolURL string
-	if *flagKontrolURL == "" {
+	if *flagKontrolURL != "" {
 		u, err := url.Parse(*flagKontrolURL)
 		if err != nil {
 			log.Fatalln(err)
