@@ -283,7 +283,7 @@ func (c *Channel) RemoveParticipant(participantId int64) error {
 	return nil
 }
 
-func (c *Channel) FetchParticipantIds() ([]int64, error) {
+func (c *Channel) FetchParticipantIds(q *request.Query) ([]int64, error) {
 	var participantIds []int64
 
 	if c.Id == 0 {
@@ -297,6 +297,8 @@ func (c *Channel) FetchParticipantIds() ([]int64, error) {
 		},
 		Pluck: "account_id",
 	}
+
+	query.AddScope(RemoveTrollContent(c, q.ShowExempt))
 
 	cp := NewChannelParticipant()
 	err := cp.Some(&participantIds, query)
