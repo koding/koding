@@ -732,6 +732,38 @@ func TestMarkedAsTroll(t *testing.T) {
 			// remove troll user from preview list
 			So(len(likes.ActorsPreview), ShouldEqual, 3)
 		})
+
+		// message_reply
+		Convey("when a troll replies to a status update, they should not be in the reply list for normal users", func() {
+			post1 := addPosts()
+
+			history, err := rest.GetPostWithRelatedData(
+				post1.Id,
+				&request.Query{
+					AccountId:  normalUser.Id,
+					GroupName:  groupChannel.GroupName,
+					ShowExempt: false,
+				},
+			)
+			So(err, ShouldBeNil)
+
+			So(history.Replies, ShouldNotBeNil)
+
+			// remove troll user's reply
+			So(len(history.Replies), ShouldEqual, 2)
+
+			// none of the replies' author should be troll user
+			for _, reply := range history.Replies {
+				So(reply.Message, ShouldNotBeNil)
+				So(reply.Message.AccountId, ShouldNotEqual, 0)
+				So(reply.Message.AccountId, ShouldNotEqual, trollUser.Id)
+			}
+
+			// `normal user` liked it
+			So(history.RepliesCount, ShouldEqual, 2)
+		})
+
+		// message_reply
 		Convey("when a troll replies to a status update, they should be in the reply list for troll users", func() {
 			post1 := addPosts()
 
