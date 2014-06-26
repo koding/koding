@@ -80,3 +80,14 @@ KD.config.providers        =
       apiKey               :
         label              : "API Key"
         placeholder        : "digitalocean api key"
+
+  rackspace                :
+    title                  : "Rackspace Credential"
+    description            : "Rackspace machines"
+    credentialFields       :
+      username             :
+        label              : "Username"
+        placeholder        : "username for rackspace"
+      apiKey               :
+        label              : "API Key"
+        placeholder        : "rackspace api key"

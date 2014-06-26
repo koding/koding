@@ -216,6 +216,7 @@ module.exports = [
   "providers/providerkoding.coffee",
   "providers/provideramazon.coffee",
   "providers/providergoogle.coffee",
+  "providers/providerrackspace.coffee",
 
   "providers/providerview.coffee",
 
