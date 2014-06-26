@@ -28,5 +28,17 @@ func MustRead(path string) *Config {
 		panic(err)
 	}
 
+	// set environment variable
+	env := os.Getenv("SOCIAL_API_ENV")
+	if env != "" {
+		conf.Environment = env
+	}
+
+	// set URI for webserver
+	hostname := os.Getenv("SOCIAL_API_HOSTNAME")
+	if hostname != "" {
+		conf.Uri = hostname
+	}
+
 	return conf
 }
