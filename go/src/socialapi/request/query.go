@@ -9,17 +9,17 @@ import (
 )
 
 type Query struct {
-	Skip       int
-	Limit      int
-	To         time.Time
-	From       time.Time
-	GroupName  string
-	Type       string
-	Privacy    string
-	AccountId  int64
-	Name       string
-	Slug       string
-	ShowExempt bool
+	Skip       int       `url:"skip"`
+	Limit      int       `url:"limit"`
+	To         time.Time `url:"to"`
+	From       time.Time `url:"from"`
+	GroupName  string    `url:"groupName"`
+	Type       string    `url:"type"`
+	Privacy    string    `url:"privacy"`
+	AccountId  int64     `url:"accountId"`
+	Name       string    `url:"name"`
+	Slug       string    `url:"slug"`
+	ShowExempt bool      `url:"showExempt"`
 }
 
 func NewQuery() *Query {
