@@ -208,18 +208,22 @@ func (c *ChannelParticipant) Delete() error {
 
 }
 
-func (c *ChannelParticipant) List() ([]ChannelParticipant, error) {
+func (c *ChannelParticipant) List(q *request.Query) ([]ChannelParticipant, error) {
 	var participants []ChannelParticipant
 
 	if c.ChannelId == 0 {
 		return participants, errors.New("ChannelId is not set")
 	}
+
 	query := &bongo.Query{
 		Selector: map[string]interface{}{
 			"channel_id":      c.ChannelId,
 			"status_constant": ChannelParticipant_STATUS_ACTIVE,
 		},
 	}
+
+	// add filter for troll content
+	query.AddScope(RemoveTrollContent(c, q.ShowExempt))
 
 	err := bongo.B.Some(c, &participants, query)
 	if err != nil {
