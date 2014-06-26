@@ -3,8 +3,11 @@
 // They are a part of the KiteQuert.
 package protocol
 
+var (
+	Version string
+)
+
 const (
-	Version     = "0.0.1"
 	Name        = "klient"
 	Environment = "public-host"
 	Region      = "public-region"
