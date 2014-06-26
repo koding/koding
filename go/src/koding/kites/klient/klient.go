@@ -66,6 +66,9 @@ func main() {
 
 	k.HandleFunc("exec", command.Exec)
 
+	// return current version of klient
+	k.HandleFunc("version", func(r *kite.Request) (interface{}, error) { return VERSION, nil })
+
 	registerURL := k.RegisterURL(*flagLocal)
 	if *flagRegisterURL != "" {
 		u, err := url.Parse(*flagRegisterURL)
