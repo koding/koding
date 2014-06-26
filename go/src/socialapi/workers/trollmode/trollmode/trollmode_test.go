@@ -514,6 +514,31 @@ func TestMarkedAsTroll(t *testing.T) {
 
 			So(trollExists, ShouldBeFalse)
 		})
+
+		// channel_participant
+		Convey("when a troll joins a channel, they should not be in the participant list for troll users", func() {
+			privatemessageChannelId, err := createPrivateMessageChannel(trollUser.Id, groupName)
+			So(err, ShouldBeNil)
+			So(privatemessageChannelId, ShouldBeGreaterThan, 0)
+
+			// fetch participants of this channel
+			c := models.NewChannel()
+			c.Id = privatemessageChannelId
+			participants, err := c.FetchParticipantIds(&request.Query{ShowExempt: true})
+			tests.ResultedWithNoErrorCheck(participants, err)
+			So(len(participants), ShouldEqual, 2)
+
+			var sinan int64
+			for _, participant := range participants {
+				if participant != trollUser.Id {
+					sinan = participant
+					break
+				}
+			}
+
+			// make sure we found sinan in participant list
+			So(sinan, ShouldNotEqual, 0)
+		})
 		// channel_message
 		Convey("when a troll posts a status update normal user shouldnt be able to see it", func() {
 			// first post
