@@ -24,5 +24,3 @@ WORKDIR /opt/koding
 
 # RUN cat $BLD/BUILD_CONFIG.json
 # ENTRYPOINT ["/opt/koding/run"]
-# RUN `cat $BLD/BUILD_HOSTNAME` >/etc/hostname
-# RUN hostname `cat $BLD/BUILD_HOSTNAME`

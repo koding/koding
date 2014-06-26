@@ -1,0 +1,5 @@
+
+./docker-remove.sh
+# docker build --no-cache -t koding/run .
+docker build -t koding/run .
+./docker.sh
