@@ -514,6 +514,24 @@ func TestMarkedAsTroll(t *testing.T) {
 
 			So(trollExists, ShouldBeFalse)
 		})
+		// channel_message
+		Convey("when a troll posts a status update normal user shouldnt be able to see it", func() {
+			// first post
+			post1, err := rest.CreatePost(groupChannel.Id, trollUser.Id)
+			tests.ResultedWithNoErrorCheck(post1, err)
+
+			// second post
+			post2, err := rest.CreatePost(groupChannel.Id, trollUser.Id)
+			tests.ResultedWithNoErrorCheck(post2, err)
+
+			// mark user as troll
+			So(controller.MarkedAsTroll(trollUser), ShouldBeNil)
+
+			// try to get post with normal user
+			post11, err := rest.GetPost(post1.Id, normalUser.Id, groupChannel.GroupName)
+			So(err, ShouldNotBeNil)
+			So(post11, ShouldBeNil)
+		})
 		Convey("when a troll replies to a status update, they should be in the reply list for troll users", func() {
 			post1 := addPosts()
 
