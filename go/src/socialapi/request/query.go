@@ -67,6 +67,11 @@ func (q *Query) MapURL(u *url.URL) *Query {
 		q.From, _ = time.Parse(time.RFC3339, from)
 	}
 
+	if showExempt := urlQuery.Get("showExempt"); showExempt != "" {
+		isExempt, _ := strconv.ParseBool(showExempt)
+		q.ShowExempt = isExempt
+	}
+
 	return q
 }
 
