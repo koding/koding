@@ -28,27 +28,32 @@ class Machine extends KDObject
     { @label, @publicAddress, @_id, @provisioners
       @status, @uid, @queryString } = @jMachine = @getData()
 
-    if @queryString?
-
-      @kites   =
-        klient : KD.singletons.kontrol.getKite {
-          @queryString, correlationName: @uid
-        }
-
-    else
-      @kites = {}
-
     @fs =
       # TODO: add options check
       create : (options, callback)=>
         options.machine = this
         FSItem.create options, callback
 
+
   getName: ->
     @label or @publicAddress or @uid or "one of #{KD.nick()}'s machine"
 
+
   getBaseKite: ->
-    return @kites.klient  if @kites.klient?
-    return {
-      init : -> Promise.reject()
-    }
+
+    { kontrol } = KD.singletons
+
+    klient = kontrol.kites?.klient?[@uid]
+    return klient  if klient
+
+    if @queryString?
+
+      kontrol.getKite { @queryString, correlationName: @uid }
+
+    else
+
+      {
+        init       : -> Promise.reject()
+        connect    : noop
+        disconnect : noop
+      }
