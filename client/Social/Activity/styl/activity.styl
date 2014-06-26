@@ -441,7 +441,7 @@ styleScrollBars()
         border-color  #1aaf5d
 
 
-.activity-modal.your.topics
+.activity-modal
 
   .listview-wrapper
     margin-top        15px
@@ -453,11 +453,18 @@ styleScrollBars()
 
     styleScrollBars()
 
+
+  textarea.kdinput.text
+
+    height            44px
+    bg                image none
+
+
+.activity-modal.your.topics
+
   a.kdlistitemview-sidebar-item
 
     size               auto auto
-    // display         inline-block
-    // height          auto
     clear              both
 
     .ttag
@@ -474,11 +481,6 @@ styleScrollBars()
     cite.count
       hidden()
 
-  textarea.kdinput.text
-
-    height            44px
-    bg                image none
-
   &.search-active
 
     a.kdlistitemview-sidebar-item
@@ -491,9 +493,22 @@ styleScrollBars()
         right         0
         visible()
 
+.activity-modal.conversations
 
+  .kdlistitemview-member
+    margin-left       33px
+    size              213px 30px
+    min-height        0
 
+    .avatarview
+      top             5px
+      left            -30px
 
+    .profile
+      float           none
+
+    .user-numbers
+      float           none
 
 
 div.kdtooltip.activity-helper

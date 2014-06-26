@@ -1,4 +1,4 @@
-class ConversationsModal extends KDModalView
+class ConversationsModal extends YourTopicsModal
 
   constructor: (options = {}, data) ->
 
@@ -8,6 +8,9 @@ class ConversationsModal extends KDModalView
     options.overlay   ?= yes
     options.width     ?= 330
     options.height   or= 'auto'
+    options.endpoints  =
+      fetch            : KD.singletons.socialapi.channel.fetchPinnedMessages
+      search           : KD.singletons.socialapi.channel.byName
 
     super options, data
 
@@ -18,16 +21,30 @@ class ConversationsModal extends KDModalView
   viewAppended: ->
 
     @addSubView new KDInputView
+      cssClass    : 'hidden'
       placeholder : 'Search conversations...'
+      keyup       : KD.utils.debounce 300, @bound 'search'
 
-    @addSubView new ActivitySideView
-      title      : ''
-      cssClass   : 'conversations your activity-modal'
-      itemClass  : SidebarPinnedItem
-      dataPath   : 'pinnedMessages'
-      delegate   : this
-      noItemText : "You didn't participate in any conversations yet."
-      dataSource : (callback) ->
-        KD.singletons.socialapi.channel.fetchPinnedMessages
-          limit : 10
-        , callback
+    @listController = new KDListViewController
+      startWithLazyLoader : yes
+      noItemFoundWidget   : new KDCustomHTMLView
+        cssClass          : 'nothing hidden'
+        partial           : 'You didn\'t participate in any conversations yet.'
+      lazyLoadThreshold   : 100
+      lazyLoaderOptions   :
+        spinnerOptions    :
+          size            :
+            width         : 16
+            height        : 16
+        partial           : ''
+      useCustomScrollView : yes
+      viewOptions         :
+        type              : 'activities'
+        itemClass         : SidebarPinnedItem
+        cssClass          : 'activities'
+
+    @addSubView @listController.getView()
+
+    @listController.customScrollView.wrapper.on 'LazyLoadThresholdReached', @bound 'handleLazyLoad'
+
+    @fetch {}, @bound 'populate'
