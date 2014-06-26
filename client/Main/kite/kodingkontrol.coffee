@@ -133,6 +133,14 @@ class KodingKontrol extends (require 'kontrol')
 
     .then(kite.bound 'setTransport')
     .then(kite.bound 'logTransportFailures')
-    .catch(@error.bind this)
+    .catch (err) =>
+      warn err
 
+      {message} = err
+      message   = if message then message else err
+
+      ErrorLog.create message
+
+      # delete this from the cache:
+      @setCachedKite name, correlationName
     kite
