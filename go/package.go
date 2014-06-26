@@ -27,6 +27,7 @@ var (
 	flagEnvironment = flag.String("e", "", "Define environment profile to be included")
 	flagHost        = flag.String("h", "", "Define hostname for kite reveseproxy")
 	flagApp         = flag.String("a", "", "App to be build")
+	flagBuildNumber = flag.String("b", "", "Build number is added to the generated file if specified")
 
 	// kontrolproxy specific flags
 	flagProxy = flag.String("p", "", "Select user proxy or koding proxy") // Proxy only
@@ -407,14 +408,19 @@ func (p *pkg) build() error {
 		log.Println("linux:", err)
 	}
 
-	// rename file to see for which region and env it is created
+	// customize our created file with the passed arguments
 	oldname := debFile
-	newname := ""
+
+	newname := p.appName + "_" + p.version
+	if *flagBuildNumber != "" {
+		// http://semver.org/ see build-number paragraph
+		newname += "+" + *flagBuildNumber
+	}
 
 	if *flagProfile == "" || *flagRegion == "" {
-		newname = fmt.Sprintf("%s_%s_%s.deb", p.appName, p.version, deb.Arch)
+		newname += fmt.Sprintf("_%s.deb", deb.Arch)
 	} else {
-		newname = fmt.Sprintf("%s_%s_%s-%s_%s.deb", p.appName, p.version, *flagProfile, *flagRegion, deb.Arch)
+		newname += fmt.Sprintf("_%s-%s_%s.deb", *flagProfile, *flagRegion, deb.Arch)
 	}
 
 	if err := os.Rename(oldname, newname); err != nil {
