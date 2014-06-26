@@ -24,3 +24,19 @@ func List(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface
 		),
 	)
 }
+
+func Count(u *url.URL, h http.Header, ml *models.ChannelMessageList) (int, http.Header, interface{}, error) {
+	if ml.ChannelId == 0 {
+		return response.NewBadRequest(errors.New("channel id is not set"))
+	}
+
+	count, err := models.NewChannelMessageList().Count(ml.ChannelId)
+	if err != nil {
+		return response.NewBadRequest(err)
+	}
+
+	res := new(models.CountResponse)
+	res.TotalCount = count
+
+	return response.NewOK(res)
+}
