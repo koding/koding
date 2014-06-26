@@ -33,14 +33,20 @@ createChannel = (data, callback)->
 
 fetchChannelActivities = (data, callback)->
   if not data.channelId or not data.accountId
-    return callback { message: "Request is not valid for creating channel"}
-
+    return callback { message: "Request is not valid for fetching activities"}
   url = "/channel/#{data.channelId}/history"
   get url, data, callback
 
+fetchActivityCount = (data, callback)->
+  if not data.channelId
+    return callback {message: "Request is not valid for fetching activity count"}
+
+  url = "/channel/count"
+  post url, data, callback
+
 fetchGroupChannels = (data, callback)->
   if not data.groupName or not data.accountId
-    return callback { message: "Request is not valid for creating channel"}
+    return callback { message: "Request is not valid for fetching channel"}
 
   url = "/channel"
   get url, data, callback
@@ -336,6 +342,7 @@ module.exports = {
   createChannel
   fetchMessage
   fetchChannelActivities
+  fetchActivityCount
   fetchGroupChannels
   listNotifications
   glanceNotifications
