@@ -21,15 +21,12 @@ type Provider struct {
 	ProviderName string
 }
 
-type Client struct {
-}
-
 func (p *Provider) Name() string {
 	return p.ProviderName
 }
 
-func (p *Provider) NewClient(opts *protocol.MachineOptions) (*Client, error) {
-	_, err := os.New(p.AuthURL, p.ProviderName, opts.Credential, opts.Builder)
+func (p *Provider) NewClient(opts *protocol.MachineOptions) (*os.Openstack, error) {
+	osClient, err := os.New(p.AuthURL, p.ProviderName, opts.Credential, opts.Builder)
 	if err != nil {
 		return nil, err
 	}
@@ -48,7 +45,7 @@ func (p *Provider) NewClient(opts *protocol.MachineOptions) (*Client, error) {
 		})
 	}
 
-	return nil, nil
+	return osClient, nil
 }
 
 func (p *Provider) Build(opts *protocol.MachineOptions) (*protocol.BuildResponse, error) {
@@ -77,5 +74,11 @@ func (p *Provider) Destroy(opts *protocol.MachineOptions) error {
 }
 
 func (p *Provider) Info(opts *protocol.MachineOptions) (*protocol.InfoResponse, error) {
+	// authentication is done inside this package
+	_, err := p.NewClient(opts)
+	if err != nil {
+		return nil, err
+	}
+
 	return nil, errors.New("not supported yet.")
 }

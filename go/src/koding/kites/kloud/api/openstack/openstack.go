@@ -2,7 +2,6 @@ package api
 
 import (
 	"errors"
-	"fmt"
 	"log"
 	"strings"
 
@@ -82,10 +81,6 @@ func New(authURL, providerName string, credential, builder map[string]interface{
 	if err != nil {
 		return nil, err
 	}
-
-	fmt.Printf("user %+v\n", access.User)
-	fmt.Printf("token %+v\n", access.Token)
-	fmt.Printf("providerName %+v\n", providerName)
 
 	//fetches the api requisites from gophercloud for the appropriate
 	//openstack variant
