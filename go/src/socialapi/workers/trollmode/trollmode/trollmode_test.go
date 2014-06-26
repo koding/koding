@@ -676,6 +676,35 @@ func TestMarkedAsTroll(t *testing.T) {
 		}
 
 		// interaction
+		Convey("when a troll likes a status update, like count should be incremented for troll users", func() {
+			// create a post from a normal user
+			post1 := addPosts()
+
+			history, err := rest.GetPostWithRelatedData(
+				post1.Id,
+				&request.Query{
+					AccountId:  trollUser.Id,
+					GroupName:  groupChannel.GroupName,
+					ShowExempt: true,
+				},
+			)
+
+			So(err, ShouldBeNil)
+			// interactions should be set
+			So(history.Message, ShouldNotBeNil)
+			So(history.Interactions, ShouldNotBeNil)
+			So(history.Interactions["like"], ShouldNotBeNil)
+			likes := history.Interactions["like"]
+
+			// `normal user` liked it
+			So(likes.IsInteracted, ShouldBeTrue)
+
+			// remove troll user from preview list
+			So(likes.ActorsCount, ShouldEqual, 3)
+
+		})
+
+		// interaction
 		Convey("when a troll likes a status update, they should not be in the liker list", func() {
 			// create a post from a normal user
 			post1 := addPosts()
