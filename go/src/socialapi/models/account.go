@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"socialapi/request"
+
 	"github.com/koding/bongo"
 )
 
@@ -141,7 +142,7 @@ func (a *Account) Unfollow(targetId int64) (*Account, error) {
 	return a, c.RemoveParticipant(targetId)
 }
 
-func (a *Account) FetchFollowerIds() ([]int64, error) {
+func (a *Account) FetchFollowerIds(q *request.Query) ([]int64, error) {
 	followerIds := make([]int64, 0)
 	if a.Id == 0 {
 		return nil, errors.New(
@@ -154,7 +155,7 @@ func (a *Account) FetchFollowerIds() ([]int64, error) {
 		return followerIds, err
 	}
 
-	participants, err := c.FetchParticipantIds()
+	participants, err := c.FetchParticipantIds(q)
 	if err != nil {
 		return followerIds, err
 	}
@@ -250,9 +251,9 @@ func (a *Account) CreateFollowingFeedChannel() (*Channel, error) {
 	return c, nil
 }
 
-func (a *Account) FetchFollowerChannelIds() ([]int64, error) {
+func (a *Account) FetchFollowerChannelIds(q *request.Query) ([]int64, error) {
 
-	followerIds, err := a.FetchFollowerIds()
+	followerIds, err := a.FetchFollowerIds(q)
 	if err != nil {
 		return nil, err
 	}
