@@ -268,7 +268,8 @@ func (i *Interaction) IsInteracted(accountId int64) (bool, error) {
 		"account_id": accountId,
 	}
 
-	err := i.One(bongo.NewQS(selector))
+	// do not set
+	err := NewInteraction().One(bongo.NewQS(selector))
 	if err == nil {
 		return true, nil
 	}
