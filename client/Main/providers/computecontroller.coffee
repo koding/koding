@@ -45,6 +45,9 @@ class ComputeController extends KDController
         @stacks   = stacks
         callback null, stacks
 
+      else
+        callback null, []
+
 
   fetchMachines: (callback = noop)->
 
