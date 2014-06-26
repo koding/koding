@@ -42,6 +42,10 @@ func TestMarkedAsTroll(t *testing.T) {
 		tests.ResultedWithNoErrorCheck(trollUser, err)
 		trollUser.IsTroll = true
 
+		// mark user as troll
+		res := rest.MarkAsTroll(trollUser)
+		So(res, ShouldBeNil)
+
 		// create normal user
 		normalUser := models.NewAccount()
 		normalUser.OldId = bson.NewObjectId().Hex()
