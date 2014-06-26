@@ -17,17 +17,14 @@ class MessagePane extends KDTabPaneView
     {typeConstant}    = @getData()
 
     @createParticipantsView() if typeConstant is 'privatemessage'
-
     @listController = new ActivityListController {itemClass}
 
     @createInputWidget()
-
     @bindChannelEvents()
 
     @on 'LazyLoadThresholdReached', @bound 'lazyLoad'  if typeConstant in ['group', 'topic']
 
     {windowController} = KD.singletons
-
     windowController.addFocusListener (focused) =>
 
       @glance()  if focused and @active
@@ -36,7 +33,6 @@ class MessagePane extends KDTabPaneView
     if typeConstant in ['privatemessage', 'post']
 
       @listController.getListView().once 'ItemWasAdded', (item) =>
-
         listView = @listController.getListItems().first.commentBox.controller.getListView()
         listView.on 'ItemWasAdded', @bound 'scrollDown'
 
@@ -227,10 +223,14 @@ class MessagePane extends KDTabPaneView
 
 
   lazyLoad: ->
+
     @listController.showLazyLoader()
 
     {appManager} = KD.singletons
     last         = @listController.getItemsOrdered().last
+
+    return  unless last
+
     from         = last.getData().meta.createdAt.toISOString()
 
     @fetch {from}, (err, items = []) =>
