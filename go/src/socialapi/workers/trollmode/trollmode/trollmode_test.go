@@ -649,6 +649,31 @@ func TestMarkedAsTroll(t *testing.T) {
 			So(likes.ActorsCount, ShouldEqual, 2)
 
 		})
+
+		addPosts := func() *models.ChannelMessage {
+			post, err := rest.CreatePost(groupChannel.Id, normalUser.Id)
+			tests.ResultedWithNoErrorCheck(post, err)
+
+			users := []int64{adminUser.Id, normalUser.Id, trollUser.Id}
+
+			// add interactions
+			for _, userId := range users {
+				// add like from troll user
+				err = rest.AddInteraction("like", post.Id, userId)
+				So(err, ShouldBeNil)
+			}
+
+			// add replies
+			for _, userId := range users {
+				// create reply
+				reply, err := rest.AddReply(post.Id, userId, groupChannel.Id)
+				So(err, ShouldBeNil)
+				So(reply, ShouldNotBeNil)
+				So(reply.AccountId, ShouldEqual, userId)
+			}
+
+			return post
+		}
 		Convey("when a troll replies to a status update, they should be in the reply list for troll users", func() {
 			post1 := addPosts()
 
