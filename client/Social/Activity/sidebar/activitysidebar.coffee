@@ -57,15 +57,15 @@ class ActivitySidebar extends KDCustomScrollView
       when 'pinnedactivity' then @replyAdded update
       when 'topic'          then @handleFollowedFeedUpdate update
 
+
   messageRemovedFromChannel: (update) ->
     log 'messageRemovedFromChannel', update
     {id} = update.channelMessage
 
     @removeItem id
 
-  handleGlanced: (update) ->
 
-    @selectedItem?.setUnreadCount update.unreadCount
+  handleGlanced: (update) -> @selectedItem?.setUnreadCount? update.unreadCount
 
 
   handleFollowedFeedUpdate: (update) ->
@@ -372,7 +372,7 @@ class ActivitySidebar extends KDCustomScrollView
       itemClass  : SidebarTopicItem
       dataPath   : 'followedChannels'
       delegate   : this
-      noItemText : "You don't follow any topics yet."
+      noItemText : 'You don\'t follow any topics yet.'
       headerLink : new CustomLinkView
         title    : 'ALL'
         href     : KD.utils.groupifyLink '/Activity/Topic/All'
@@ -392,7 +392,7 @@ class ActivitySidebar extends KDCustomScrollView
       itemClass  : SidebarPinnedItem
       dataPath   : 'pinnedMessages'
       delegate   : this
-      noItemText : "You didn't participate in any conversations yet."
+      noItemText : 'You didn\'t participate in any conversations yet.'
       headerLink : new CustomLinkView
         title    : 'ALL'
         href     : KD.utils.groupifyLink '/Activity/Post/All'
