@@ -116,7 +116,7 @@ class ActivityListItemView extends KDListItemView
         when (post?.match /\S/) and (offset + match.length) isnt text.length
           return match
 
-      href = KD.utils.groupifyLink "/Activity/Topic/#{tag}", yes
+      href = KD.utils.groupifyLink "Activity/Topic/#{tag}", yes
       return "[##{tag}](#{href})"
 
 
