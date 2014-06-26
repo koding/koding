@@ -28,7 +28,7 @@ class FSItem extends KDObject
     type ?= "file"
     kite  = machine.getBaseKite()
 
-    kite.vmOn()
+    kite.init()
 
     .then ->
 
@@ -76,7 +76,7 @@ class FSItem extends KDObject
     kite = @getKite()
     file = null
 
-    kite.vmOn().then =>
+    kite.init().then =>
 
 
       kite.fsUniquePath { path: folderPath }
@@ -118,7 +118,7 @@ class FSItem extends KDObject
 
     path = FSHelper.plainPath "#{@getPath()}.#{type}"
 
-    kite.vmOn().then ->
+    kite.init().then ->
 
       kite.fsUniquePath { path }
 
@@ -159,7 +159,7 @@ class FSItem extends KDObject
       when zipPattern .test @name
         [no, path.replace zipPattern, '']
 
-    kite.vmOn()
+    kite.init()
 
     .then ->
       kite.fsUniquePath(path: "#{ extractFolder }")
@@ -202,7 +202,7 @@ class FSItem extends KDObject
 
     kite = @getKite()
 
-    kite.vmOn().then =>
+    kite.init().then =>
 
       kite.fsGetInfo path: @getPath()
       .then (info)-> info.exists
@@ -212,7 +212,7 @@ class FSItem extends KDObject
   stat:(callback=noop)->
     kite = @getKite()
 
-    kite.vmOn().then =>
+    kite.init().then =>
 
       kite.fsGetInfo path: @getPath()
 
@@ -223,7 +223,7 @@ class FSItem extends KDObject
 
     kite = @getKite()
 
-    kite.vmOn().then =>
+    kite.init().then =>
 
       kite.fsRemove { path: @getPath(), recursive }
 
@@ -246,7 +246,7 @@ class FSItem extends KDObject
 
     kite = @getKite()
 
-    kite.vmOn()
+    kite.init()
 
     .then =>
 
@@ -271,7 +271,7 @@ class FSItem extends KDObject
 
     kite = @getKite()
 
-    kite.vmOn().then =>
+    kite.init().then =>
 
       kite.fsSetPermissions {
         path: @getPath()

@@ -23,6 +23,4 @@ class KodingKite_KlientKite extends KodingKite
     webtermKillSession : 'webterm.killSession'
     webtermPing        : 'webterm.ping'
 
-  vmOn: ->
-    warn "VM ON CALLED FROM KLIENT!!"
-    Promise.resolve()
+  init: -> Promise.resolve()

@@ -7,4 +7,4 @@ class DummyMachine extends Machine
 
     @kites   =
       klient :
-        vmOn : -> Promise.reject()
+        init : -> Promise.reject()

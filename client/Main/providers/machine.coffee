@@ -50,5 +50,5 @@ class Machine extends KDObject
   getBaseKite: ->
     return @kites.klient  if @kites.klient?
     return {
-      vmOn : -> Promise.reject()
+      init : -> Promise.reject()
     }

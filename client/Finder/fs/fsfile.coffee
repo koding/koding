@@ -27,7 +27,7 @@ class FSFile extends FSItem
 
   fetchRawContents: (callback)->
     kite = @getKite()
-    kite.vmOn().then =>
+    kite.init().then =>
       kite.fsReadFile path: FSHelper.plainPath @path
     .nodeify callback
 
@@ -61,7 +61,7 @@ class FSFile extends FSItem
 
     kite = @getKite()
 
-    kite.vmOn()
+    kite.init()
     .then =>
 
       ok = kite.fsUniquePath(path: "#{newPath}")
@@ -98,7 +98,7 @@ class FSFile extends FSItem
 
     kite = @getKite()
 
-    ok = kite.vmOn()
+    ok = kite.init()
     .then =>
 
       kite.fsWriteFile {
@@ -187,7 +187,7 @@ class FSFile extends FSItem
 
     @emit "fs.save.started"
 
-    ok = @getKite().vmOn()
+    ok = @getKite().init()
     .then =>
 
       contents = KD.utils.utf8Encode contents  if useEncoding
