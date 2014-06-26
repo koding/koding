@@ -7,7 +7,7 @@ eden       = require 'node-eden'
 RS         = require './install/pkgcloud'
 hat        = require 'hat'
 timethat   = require 'timethat'
-
+PRJ        = __dirname
 
 options =
   config      : argv.c or 'kodingme'
@@ -21,6 +21,7 @@ options =
 
 
 deploy = () -> 
+  log "deploy started, connecting to rackspace, please wait..."
   rs = 
     compute : RS.compute.createClient
       provider  : 'rackspace'
@@ -128,7 +129,10 @@ sftpCopy = (options, callback)->
     for file,nr in options.files
       do (file)->
         sftp.fastPut file.src,file.trg,(err,res)->
-          throw err if err
+          if err
+            log "couldn't copy:",file
+            throw err 
+          log file.src+" is copied to "+file.trg
           if copyCount is options.files.length then callback null,"done"
           copyCount++
 
@@ -152,14 +156,17 @@ konnect = (options,callback) ->
     log "Connection :: ready"  
 
     copyFiles = [
-      { src: "./install/prepare"                        , dst: "/root/prepare"},
-      { src: "./configure"                              , dst: "/root/configure"},
-      { src: "./install/run/docker.prod/Dockerfile"     , dst: "/root/Dockerfile"},
-      { src: "./install/run/docker.sh"                  , dst: "/root/docker.sh"}
+      { src: "#{PRJ}/install/prepare"                , trg: "/root/prepare"},
+      { src: "#{PRJ}/configure.coffee"               , trg: "/root/configure.coffee"},
+      { src: "#{PRJ}/install/docker.prod/Dockerfile" , trg: "/root/Dockerfile"},
+      { src: "#{PRJ}/install/docker.prod/run"        , trg: "/root/run"}
+      { src: "#{PRJ}/install/run/docker-remove.sh"   , trg: "/cleanup"}
+
     ]
 
     sftpCopy conn : conn, files : copyFiles,(err,res)->
-      conn.exec "/root/prepare -h #{hostname} -r #{region} -c #{config} -b #{branch}", (err, stream) ->
+      log "copyFiles finished."
+      conn.exec "bash /root/prepare -h #{hostname} -r #{region} -c #{config} -b #{branch}", (err, stream) ->
         throw err  if err
         listen "[configuring server]", stream,-> 
           log "Box is ready at: ssh root@#{hostname} pubkey is added, no need for passwd:#{password})" 

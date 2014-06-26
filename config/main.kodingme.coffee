@@ -15,6 +15,9 @@ projectRoot     = (fs.readFileSync BLD+"/BUILD_PROJECT_ROOT",'utf8').replace("\n
 
 
 rabbitmq        =
+  host          : "rabbitmq"
+  port          : 5672
+  apiPort       : 15672
   login         : "guest"
   password      : "guest"
 
@@ -27,8 +30,8 @@ customDomain    =
   port          : 80
 
 version         = "0.0.1"
-mongo           = "#{customDomain.local_}:27017/koding"
-mongoKontrol    = "#{customDomain.local_}:27017/kontrol"
+mongo           = "mongo:27017/koding"
+mongoKontrol    = "mongo:27017/kontrol"
 
 socialQueueName = "koding-social-#{configName}"
 logQueueName    = socialQueueName+'log'
@@ -131,34 +134,6 @@ module.exports =
     enabled              : no
     queue                : "elasticSearchFeederQueue"
 
-  guestCleanerWorker     :
-    enabled              : yes
-    login                : "#{rabbitmq.login}"
-    queueName            : socialQueueName+'guestcleaner'
-    numberOfWorkers      : 2
-    watch                : ['./workers/guestcleaner']
-    cronSchedule         : '00 * * * * *'
-    usageLimitInMinutes  : 60
-
-
-  sitemapWorker          :
-    enabled              : yes
-    login                : "#{rabbitmq.login}"
-    queueName            : socialQueueName+'sitemapworker'
-    numberOfWorkers      : 2
-    watch                : ['./workers/sitemapgenerator']
-    cronSchedule         : '00 00 00 * * *'
-
-  topicModifier          :
-    cronSchedule         : '0 */5 * * * *'
-  followFeed    :
-    host        : "#{customDomain.local}"
-    port        : 5672
-    componentUser: "#{rabbitmq.login}"
-    password    : "#{rabbitmq.login}"
-    vhost       : 'followfeed'
-  graphFeederWorker:
-    numberOfWorkers: 2
   presence      :
     exchange    : 'services-presence'
 
@@ -203,12 +178,6 @@ module.exports =
   emailSender     :
     watch   : ['./workers/emailsender']
 
-  guests          :
-    # define this to limit the number of guset accounts
-    # to be cleaned up per collection cycle.
-    poolSize      : 1e4
-    batchSize     : undefined
-    cleanupCron   : '*/10 * * * * *'
   pidFile         : '/tmp/koding.server.pid'
   newkites        :
     useTLS        : no

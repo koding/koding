@@ -1,0 +1,1 @@
+<InputEndpoint><LocalPort><%= localPort %></LocalPort><Name><%= name %></Name><Port><%= port %></Port><Protocol><%= protocol %></Protocol></InputEndpoint>

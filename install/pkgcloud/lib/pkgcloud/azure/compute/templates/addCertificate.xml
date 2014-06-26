@@ -1,0 +1,1 @@
+<?xml version="1.0" encoding="utf-8"?><CertificateFile xmlns="http://schemas.microsoft.com/windowsazure"><Data><%= CERT_BASE64 %></Data><CertificateFormat>pfx</CertificateFormat><Password><%= PASSWORD %></Password></CertificateFile>

@@ -1,0 +1,1 @@
+<OSImage xmlns="http://schemas.microsoft.com/windowsazure" xmlns:i="http://www.w3.org/2001/XMLSchema-instance"><Label><%= LABEL %></Label></OSImage>

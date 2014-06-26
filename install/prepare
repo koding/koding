@@ -1,16 +1,23 @@
-#!/usr/bin/bash
+#!/bin/bash
 
 export HOME=/root
 
 apt-get update 
 apt-get install -y curl node npm
+cp /usr/bin/nodejs /usr/sbin/node
 curl -s https://get.docker.io/ubuntu/ | sudo sh
 npm i coffee-script -g 
 
+chmod +x ./configure.coffee
 ./configure.coffee $@
 
 
 docker build -t koding/run .
 
 cd ..
-./docker.sh
+chmod +x ./run
+chmod +x ./cleanup
+./run
+
+
+docker run --net=host --name=rabbitmq koding/rabbitmq

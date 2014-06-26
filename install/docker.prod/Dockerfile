@@ -6,7 +6,8 @@ USER root
 ENV HOME /root
 ENV DOCKER yes
 ENV KODING_PROJECT_ROOT "/opt/koding"
-ENV BLD /opt/koding/install/BUILD_DATA
+ENV KODING_BUILD_DATA_PATH "/root/BUILD_DATA"
+ENV BLD "/root/BUILD_DATA"
 
 RUN echo "UTC" > /etc/timezone
 RUN dpkg-reconfigure -f noninteractive tzdata
@@ -17,7 +18,7 @@ ADD .ssh /root/.ssh
 RUN chmod 600 /root/.ssh/id_rsa
 
 RUN git clone git@git.sj.koding.com:koding/koding.git
-ADD BUILD_DATA /opt/koding/install/BUILD_DATA
+ADD BUILD_DATA /root/BUILD_DATA
 
 WORKDIR /opt/koding
 

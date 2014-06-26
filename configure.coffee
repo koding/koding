@@ -5,7 +5,6 @@ argv = {} ; argv[i.substring(1)] = process.argv[k+1] for i,k in process.argv whe
 {exec}   = require 'child_process'
 fs       = require 'fs'
 log      = console.log
-deploy   = require './install/deploy'
 
 options =
   config      : argv.c or 'kodingme'
@@ -65,6 +64,8 @@ configure = (o)->
       """
       Host github.com
         StrictHostKeyChecking no
+      Host git.sj.koding.com
+        StrictHostKeyChecking no
       """
     iptableRules =
       """
@@ -86,7 +87,8 @@ configure = (o)->
       iptables -A INPUT -j DROP      
       """
     
-    fs.mkdirSync     "/root/.ssh"
+    try
+      fs.mkdirSync     "/root/.ssh"
     fs.writeFileSync "/root/.ssh/id_rsa"     ,privateKey
     fs.writeFileSync "/root/.ssh/id_rsa.pub" ,publicKey
     fs.writeFileSync "/root/.ssh/config"     ,ssh_config
@@ -105,7 +107,7 @@ configure = (o)->
     
     exec "/etc/rc.local && hostname #{o.hostname}",()->
       log "iptableRules flushed, hostname is set.",arguments
-        callback null
+      callback null
 
 
   createDataForDockerBuild = (callback)->

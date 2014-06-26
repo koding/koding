@@ -1,0 +1,1 @@
+<?xml version="1.0" encoding="utf-8"?><CreateHostedService xmlns="http://schemas.microsoft.com/windowsazure"><ServiceName><%= NAME %></ServiceName><Label><%= LABEL_BASE64 %></Label><Description>service created by pkgcloud</Description><Location><%= LOCATION %></Location><ExtendedProperties></ExtendedProperties></CreateHostedService>

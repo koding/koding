@@ -1,0 +1,95 @@
+#!/bin/bash
+
+### PREPARE ###
+
+# docker pull koding/mongo
+# docker pull koding/postgres
+# docker pull koding/rabbitmq
+# docker pull koding/redis
+# docker build --no-cache -t koding/run .
+
+# Remove all stopped containers.
+# docker rm $(docker ps -a -q)
+
+# Remove all untagged images
+# docker rmi $(docker images | grep "^<none>" | awk "{print $3}")
+
+### RUN ###
+
+PRJ=/opt/koding       # `pwd`
+BLD=/root/BUILD_DATA        # /BUILD_DATA
+CFG=`cat $BLD/BUILD_CONFIG`
+RGN=`cat $BLD/BUILD_REGION` 
+HST=`cat $BLD/BUILD_HOSTNAME`
+PBKEY=$PRJ/certs/test_kontrol_rsa_public.pem
+PVKEY=$PRJ/certs/test_kontrol_rsa_private.pem
+LOG=/tmp/logs
+GB=$PRJ/go/bin
+SOCIALCONFIG=./go/src/socialapi/config/vagrant.toml
+
+mkdir -p $LOG
+
+# docker run  -p 27017:27017 -d --name=mongo            --entrypoint=mongod                  koding/mongo    --dbpath /root/data/db --smallfiles --nojournal
+# docker run  -p 5432:5432   -d --name=postgres                                              koding/postgres
+# docker run  -p 5672:5672   -d --name=rabbitmq                                              koding/rabbitmq
+# docker run  -p 6379:6379   -d --name=redis                                                 koding/redis    redis-server
+# docker run  -p 4000:4000   -d --name=kontrol           --entrypoint=$GB/kontrol       		 koding/run      -c $CFG -r $RGN
+# docker run                 -d --name=kloud             --entrypoint=$GB/kloud         		 koding/run      -c $CFG -r $RGN -public-key $PBKEY -private-key $PVKEY -kontrol-url "http://$HST:4000/kite"
+# docker run                 -d --name=rerouting         --entrypoint=$GB/rerouting     		 koding/run      -c $CFG
+# docker run                 -d --name=cronJobs          --entrypoint=$GB/cron          		 koding/run      -c $CFG
+# docker run  -p 8008:8008   -d --name=broker            --entrypoint=$GB/broker        		 koding/run      -c $CFG
+# docker run  -p 4001:4001   -d --name=proxy             --entrypoint=$GB/reverseproxy  		 koding/run      -region $RGN -host $HST -env production 
+# docker run  -p 7000:7000   -d --name=socialapi         --entrypoint=$GB/api       		 		 koding/run      -c $SOCIALCONFIG -port 7000
+# docker run                 -d --name=dailymailnotifier --entrypoint=$GB/dailymailnotifier  koding/run      -c $SOCIALCONFIG
+# docker run                 -d --name=notification      --entrypoint=$GB/notification       koding/run      -c $SOCIALCONFIG
+# docker run                 -d --name=popularpost       --entrypoint=$GB/popularpost        koding/run      -c $SOCIALCONFIG
+# docker run                 -d --name=populartopic      --entrypoint=$GB/populartopic       koding/run      -c $SOCIALCONFIG
+# docker run                 -d --name=realtime          --entrypoint=$GB/realtime       		 koding/run      -c $SOCIALCONFIG
+# docker run                 -d --name=sitemapfeeder     --entrypoint=$GB/sitemapfeeder      koding/run      -c $SOCIALCONFIG
+# docker run                 -d --name=topicfeed         --entrypoint=$GB/topicfeed       	 koding/run      -c $SOCIALCONFIG
+# docker run                 -d --name=trollmode         --entrypoint=$GB/trollmode       	 koding/run      -c $SOCIALCONFIG
+# docker run  -p 80:80       -d --name=webserver         --entrypoint=node 									 koding/run      $PRJ/server/index.js               -c $CFG -p 80   --disable-newrelic
+# docker run  -p 3526:3526   -d --name=sourceMapServer   --entrypoint=node 									 koding/run      $PRJ/server/lib/source-server/index.js   -c $CFG -p 3526
+# docker run                 -d --name=authWorker        --entrypoint=node 									 koding/run      $PRJ/workers/auth/index.js         -c $CFG
+# docker run  -p 3030:3030   -d --name=social            --entrypoint=node 									 koding/run      $PRJ/workers/social/index.js       -c $CFG -p 3030 --disable-newrelic --kite-port=13020
+# docker run                 -d --name=guestCleaner      --entrypoint=node 									 koding/run      $PRJ/workers/guestcleaner/index.js -c $CFG
+# docker run                 -d --name=emailSender       --entrypoint=node 									 koding/run      $PRJ/workers/emailsender/index.js  -c $CFG
+
+echo docker run                 -d --name=mongo            --entrypoint=mongod                  koding/mongo    --dbpath /root/data/db --smallfiles --nojournal
+echo docker run     -d --name=postgres                                              koding/postgres
+echo docker run     -d --name=rabbitmq                                              koding/rabbitmq
+echo docker run     -d --name=redis                                                 koding/redis    redis-server
+echo docker run     -d --name=kontrol           --entrypoint=$GB/kontrol       		 --link=mongo:mongo koding/run      -c $CFG -r $RGN
+echo docker run                 -d --name=kloud             --entrypoint=$GB/kloud         		 koding/run      -c $CFG -r $RGN -public-key $PBKEY -private-key $PVKEY -kontrol-url "http://$HST:4000/kite"
+echo docker run                 -d --name=rerouting         --entrypoint=$GB/rerouting     		 koding/run      -c $CFG
+echo docker run                 -d --name=cronJobs          --entrypoint=$GB/cron          		 koding/run      -c $CFG
+echo docker run  -p 8008:8008   -d --name=broker            --entrypoint=$GB/broker        		 koding/run      -c $CFG
+echo docker run  -p 4001:4001   -d --name=proxy             --entrypoint=$GB/reverseproxy  		 koding/run      -region $RGN -host $HST -env production 
+echo docker run  -p 7000:7000   -d --name=socialapi         --entrypoint=$GB/api       		 		 koding/run      -c $SOCIALCONFIG -port 7000
+echo docker run                 -d --name=dailymailnotifier --entrypoint=$GB/dailymailnotifier  koding/run      -c $SOCIALCONFIG
+echo docker run                 -d --name=notification      --entrypoint=$GB/notification       koding/run      -c $SOCIALCONFIG
+echo docker run                 -d --name=popularpost       --entrypoint=$GB/popularpost        koding/run      -c $SOCIALCONFIG
+echo docker run                 -d --name=populartopic      --entrypoint=$GB/populartopic       koding/run      -c $SOCIALCONFIG
+echo docker run                 -d --name=realtime          --entrypoint=$GB/realtime       		 koding/run      -c $SOCIALCONFIG
+echo docker run                 -d --name=sitemapfeeder     --entrypoint=$GB/sitemapfeeder      koding/run      -c $SOCIALCONFIG
+echo docker run                 -d --name=topicfeed         --entrypoint=$GB/topicfeed       	 koding/run      -c $SOCIALCONFIG
+echo docker run                 -d --name=trollmode         --entrypoint=$GB/trollmode       	 koding/run      -c $SOCIALCONFIG
+echo docker run  -p 80:80       -d --name=webserver         --entrypoint=node 									 koding/run      $PRJ/server/index.js               -c $CFG -p 80   --disable-newrelic
+echo docker run  -p 3526:3526   -d --name=sourceMapServer   --entrypoint=node 									 koding/run      $PRJ/server/lib/source-server/index.js   -c $CFG -p 3526
+echo docker run                 -d --name=authWorker        --entrypoint=node 									 koding/run      $PRJ/workers/auth/index.js         -c $CFG
+echo docker run  -p 3030:3030   -d --name=social            --entrypoint=node 									 koding/run      $PRJ/workers/social/index.js       -c $CFG -p 3030 --disable-newrelic --kite-port=13020
+echo docker run                 -d --name=guestCleaner      --entrypoint=node 									 koding/run      $PRJ/workers/guestcleaner/index.js -c $CFG
+echo docker run                 -d --name=emailSender       --entrypoint=node 									 koding/run      $PRJ/workers/emailsender/index.js  -c $CFG
+
+
+
+
+
+
+
+
+
+
+
+
+
