@@ -6,6 +6,7 @@ import (
 	"socialapi/request"
 	"strings"
 	"time"
+
 	"github.com/koding/bongo"
 )
 
@@ -418,7 +419,7 @@ func (c *Channel) ByName(q *request.Query) (Channel, error) {
 	query = query.Where("group_name = ?", q.GroupName)
 	query = query.Where("name = ?", q.Name)
 
-	return channel, bongo.CheckErr(query.Find(&channel))
+	return channel, query.Find(&channel).Error
 }
 
 func (c *Channel) List(q *request.Query) ([]Channel, error) {
