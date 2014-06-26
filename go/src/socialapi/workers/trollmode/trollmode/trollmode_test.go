@@ -539,6 +539,30 @@ func TestMarkedAsTroll(t *testing.T) {
 			// make sure we found sinan in participant list
 			So(sinan, ShouldNotEqual, 0)
 		})
+
+		// channel_message_list
+		Convey("when an exempt content is added to a channel, they should not be listed in regarding channel", func() {
+			privatemessageChannelId, err := createPrivateMessageChannel(normalUser.Id, groupName)
+			So(err, ShouldBeNil)
+			So(privatemessageChannelId, ShouldBeGreaterThan, 0)
+
+			// create post form a troll user
+			post, err := rest.CreatePost(privatemessageChannelId, trollUser.Id)
+			tests.ResultedWithNoErrorCheck(post, err)
+
+			history, err := rest.GetHistory(
+				privatemessageChannelId,
+				&request.Query{
+					AccountId: normalUser.Id,
+				},
+			)
+
+			So(err, ShouldBeNil)
+			So(history, ShouldNotBeNil)
+			So(history.MessageList, ShouldNotBeNil)
+			So(len(history.MessageList), ShouldEqual, 1)
+
+		})
 		// channel_message
 		Convey("when a troll posts a status update normal user shouldnt be able to see it", func() {
 			// first post
