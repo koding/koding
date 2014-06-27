@@ -94,11 +94,13 @@ func (c *Channel) BeforeCreate() error {
 	c.CreatedAt = time.Now().UTC()
 	c.UpdatedAt = time.Now().UTC()
 	c.DeletedAt = ZeroDate()
+
 	return c.MarkIfExempt()
 }
 
 func (c *Channel) BeforeUpdate() error {
 	c.UpdatedAt = time.Now()
+
 	return c.MarkIfExempt()
 }
 
