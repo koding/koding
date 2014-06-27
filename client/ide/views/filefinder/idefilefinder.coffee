@@ -30,7 +30,7 @@ class IDE.FileFinder extends KDCustomHTMLView
     @on 'ReceivedClickElsewhere', @bound 'destroy'
 
   search: (text) ->
-    return @cancelSearch()  if text is ''
+    return @clearSearch()  if text is ''
 
     vmController    = KD.getSingleton 'vmController'
     rootPath        = "/home/#{KD.nick()}/"
@@ -41,7 +41,7 @@ class IDE.FileFinder extends KDCustomHTMLView
       return @showWarning 'An error occured, please try again.' if err
       return @showWarning 'No files found'  unless res.stdout
 
-      @cancelSearch()
+      @clearSearch()
 
       files = res.stdout.split '\n'
       items = []
@@ -91,7 +91,7 @@ class IDE.FileFinder extends KDCustomHTMLView
       [selected] = @listController.selectedItems
       @openFile selected.getData().path  if selected
 
-  cancelSearch: ->
+  clearSearch: ->
     @content.destroySubViews()
     @listController?.destroy()
     @isSearchActive = no
