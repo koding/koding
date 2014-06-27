@@ -32,11 +32,13 @@ type ChannelMessageList struct {
 func (c *ChannelMessageList) BeforeCreate() error {
 	c.AddedAt = time.Now()
 	c.RevisedAt = time.Now()
+
 	return c.MarkIfExempt()
 }
 
 func (c *ChannelMessageList) BeforeUpdate() error {
 	c.AddedAt = time.Now()
+
 	return c.MarkIfExempt()
 }
 
@@ -285,6 +287,9 @@ func (c *ChannelMessageList) FetchMessageIdsByChannelId(channelId int64, q *requ
 			"added_at": "DESC",
 		},
 	}
+
+	// remove troll content
+	query.AddScope(RemoveTrollContent(c, q.ShowExempt))
 
 	var messageIds []int64
 	if err := c.Some(&messageIds, query); err != nil {
