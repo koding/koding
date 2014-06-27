@@ -6,7 +6,6 @@ import (
 	"net/http"
 	"socialapi/config"
 	"socialapi/workers/helper"
-	"socialapi/workers/sitemap/common"
 	"socialapi/workers/sitemap/models"
 	"strings"
 
@@ -83,4 +82,14 @@ func Fetch(w http.ResponseWriter, r *http.Request) {
 	header := []byte(xml.Header)
 	w.Header().Set("Content-Type", "application/xml")
 	w.Write(append(header, sf.Blob...))
+}
+
+func marshal(i interface{}) ([]byte, error) {
+	header := []byte(xml.Header)
+	res, err := xml.Marshal(i)
+	if err != nil {
+		return nil, err
+	}
+	// append header to xml file
+	return append(header, res...), nil
 }
