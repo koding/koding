@@ -2,7 +2,7 @@ EventExchangeName="BrokerMessageBus"
 Mongo="mongo:27017/koding"
 Environment="docker"
 Redis="redis:6379"
-Uri="http://lvh.me:3020"
+Uri=""
 
 [postgres]
 Host=     "postgres"

@@ -62,6 +62,7 @@
     "oauth": "0.9.10",
     "optimist": "0.3.1",
     "pistachio-compiler": "~0.0.3",
+    "pkgcloud": "^0.9.6",
     "portchecker": "~0.1.1",
     "progress": "0.0.4",
     "prompt": "0.1.12",

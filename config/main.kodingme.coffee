@@ -5,7 +5,7 @@ hat             = require 'hat'
 {argv}          = require 'optimist'
 path            = require 'path'
 
-BLD = path.join __dirname,"../install/BUILD_DATA"
+BLD = process.env['KODING_BUILD_DATA_PATH'] or path.join __dirname,"../install/BUILD_DATA"
 
 hostname        = (fs.readFileSync BLD+"/BUILD_HOSTNAME",   'utf8').replace("\n","")
 region          = (fs.readFileSync BLD+"/BUILD_REGION",      'utf8').replace("\n","")
@@ -95,8 +95,6 @@ module.exports =
     queueName   : socialQueueName+'web'
     watch       : yes
 
-
-
   authWorker    :
     login       : "#{rabbitmq.login}"
     queueName   : socialQueueName+'auth'
@@ -137,7 +135,6 @@ module.exports =
   presence      :
     exchange    : 'services-presence'
 
-
   mq            :
     host        : "#{customDomain.local_}"
     port        : 5672
@@ -151,6 +148,7 @@ module.exports =
     # so it'll disconnect from RabbitMQ if heartbeat is enabled.
     heartbeat   : 0
     vhost       : '/'
+
   broker              :
     name              : "broker"
     serviceGenericName: "broker"
@@ -167,6 +165,7 @@ module.exports =
     host        : "#{customDomain.public}"
     protocol    : 'http:'
     defaultFromAddress: 'hello@koding.com'
+
   emailWorker     :
     cronInstant   : '*/10 * * * * *'
     cronDaily     : '0 10 0 * * *'
