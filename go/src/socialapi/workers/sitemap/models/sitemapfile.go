@@ -8,7 +8,7 @@ import (
 	"github.com/koding/bongo"
 )
 
-var ErrNotSet = errors.New("name not set")
+var ErrNotSet = errors.New("name is not set")
 
 type SitemapFile struct {
 	Id int64
