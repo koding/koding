@@ -24,6 +24,7 @@ type Controller struct {
 const (
 	// before sending this interval, beware that you have to change
 	// TIMERANGE in cache key file
+	// run cron job every 30 minutes starting from 0
 	SCHEDULE = "0 0-59/30 * * * *"
 )
 
