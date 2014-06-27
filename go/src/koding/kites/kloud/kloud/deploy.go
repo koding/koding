@@ -2,7 +2,6 @@ package kloud
 
 import (
 	"fmt"
-	"io/ioutil"
 	"koding/kites/kloud/kloud/protocol"
 	"koding/kites/kloud/sshutil"
 	"path/filepath"
@@ -54,8 +53,6 @@ func (k *Kloud) DeployFunc(username, hostname, ipAddress string) (*protocol.Depl
 	if err != nil {
 		return nil, err
 	}
-
-	ioutil.WriteFile("kite.key", []byte(kiteKey), 0755)
 
 	remoteFile, err := sftp.Create("/etc/kite/kite.key")
 	if err != nil {
