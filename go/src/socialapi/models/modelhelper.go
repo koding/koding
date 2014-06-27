@@ -50,7 +50,7 @@ func Slugify(message *ChannelMessage) (*ChannelMessage, error) {
 		query["slug"] = suggestedSlug
 	}
 
-	return nil, fmt.Errorf("Couldnt generate unique slug:%s", message.Slug)
+	return nil, fmt.Errorf("couldnt generate unique slug:%s", message.Slug)
 }
 
 func RandomName() string {
