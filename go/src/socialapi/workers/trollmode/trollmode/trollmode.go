@@ -68,16 +68,6 @@ func (t *Controller) MarkedAsTroll(account *models.Account) error {
 		return err
 	}
 
-	if err := t.markMessageLists(account); err != nil {
-		t.log.Error("Error while processing message lists, err: %s ", err.Error())
-		return err
-	}
-
-	if err := t.markMessageReplies(account); err != nil {
-		t.log.Error("Error while processing message replies, err: %s ", err.Error())
-		return err
-	}
-
 	return nil
 }
 
