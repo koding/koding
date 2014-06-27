@@ -56,6 +56,7 @@ fetchTopicContent = (models, options, callback) ->
     return callback err  if err or not channel
 
     options.channelId = channel.channel.id
+    options.route = "Topic/#{entrySlug}"
     feed.createFeed models, options, callback
 
 
@@ -64,11 +65,14 @@ fetchGroupContent = (models, options, callback) ->
   entrySlug |= "koding"
   {JGroup} = models
 
+  # TODO change this slug after groups are implemented
   JGroup.one slug: "koding", (err, group) ->
     return callback err  if err
     return callback notFoundError "group"  unless group
 
     options.channelId = group.socialApiChannelId
+    # TODO change this with group implementation
+    options.route ="Public"
     feed.createFeed models, options, callback
 
 

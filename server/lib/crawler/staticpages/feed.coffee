@@ -8,7 +8,7 @@ ITEMSPERPAGE = 20
 
 createFeed = (models, options, callback)->
   {JAccount, SocialChannel} = models
-  {page, channelId, client} = options
+  {page, channelId, client, route} = options
 
   return callback "channelId not set"  unless channelId
 
@@ -37,7 +37,7 @@ createFeed = (models, options, callback)->
 
         content = schemaorgTagsOpening + pageContent + schemaorgTagsClosing
 
-        pagination = getPagination page, itemCount, "Activity"
+        pagination = getPagination page, itemCount, "Activity/#{route}"
         fullPage = putContentIntoFullPage content, pagination
 
         callback null, fullPage
