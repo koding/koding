@@ -4,6 +4,9 @@ import (
 	"encoding/json"
 	"fmt"
 	"socialapi/models"
+	"socialapi/request"
+
+	"github.com/google/go-querystring/query"
 )
 
 func SendPrivateMessage(senderId int64, body string, groupName string, recipients []string) (*models.ChannelContainer, error) {
@@ -29,8 +32,13 @@ func SendPrivateMessage(senderId int64, body string, groupName string, recipient
 	return model, nil
 }
 
-func GetPrivateMessages(accountId int64, groupName string) ([]models.ChannelContainer, error) {
-	url := fmt.Sprintf("/privatemessage/list?accountId=%d&groupName=%s", accountId, groupName)
+func GetPrivateMessages(q *request.Query) ([]models.ChannelContainer, error) {
+	v, err := query.Values(q)
+	if err != nil {
+		return nil, err
+	}
+
+	url := fmt.Sprintf("/privatemessage/list?%s", v.Encode())
 	res, err := sendRequest("GET", url, nil)
 	if err != nil {
 		return nil, err
