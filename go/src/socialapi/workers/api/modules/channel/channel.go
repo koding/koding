@@ -210,6 +210,11 @@ func Get(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface{
 		return response.NewBadRequest(err)
 	}
 
+	// add troll mode filter
+	if c.MetaBits.IsTroll() && !query.ShowExempt {
+		return response.NewNotFound()
+	}
+
 	return response.HandleResultAndError(
 		models.PopulateChannelContainer(*c, q.AccountId),
 	)
