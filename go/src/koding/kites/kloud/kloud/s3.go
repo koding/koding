@@ -10,11 +10,14 @@ import (
 	"launchpad.net/goamz/s3"
 )
 
+var defaultKlientBucket = "klient/production"
+
 type Bucket struct {
 	bucket *s3.Bucket
+	folder string
 }
 
-func NewBucket() *Bucket {
+func NewBucket(name, folder string) *Bucket {
 	auth := aws.Auth{
 		AccessKey: "AKIAI6IUMWKF3F4426CA",
 		SecretKey: "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",
@@ -23,19 +26,19 @@ func NewBucket() *Bucket {
 	s := s3.New(auth, aws.USEast)
 
 	return &Bucket{
-		bucket: s.Bucket("koding-kites"),
+		bucket: s.Bucket(name),
+		folder: folder,
 	}
 }
 
 func (b *Bucket) Latest() (string, error) {
-	path := "klient/latest"
-	l, err := b.bucket.List(path, "", "", 100)
+	l, err := b.bucket.List(b.folder, "", "", 100)
 	if err != nil {
 		return "", err
 	}
 
 	if len(l.Contents) == 0 {
-		return "", fmt.Errorf("No .deb binary available for %s", path)
+		return "", fmt.Errorf("No .deb binary available for %s", b.folder)
 	}
 
 	return l.Contents[0].Key, nil

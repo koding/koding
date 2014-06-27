@@ -386,12 +386,18 @@ func setupKloud() *kodingkite.KodingKite {
 	}
 	privateKey := string(privKey)
 
+	klientFolder := "klient/development/latest"
+	if *flagProdMode {
+		klientFolder = "klient/production/latest"
+	}
+
 	kloudRaw = &kloud.Kloud{
 		Region:            "localhost",
 		Port:              3636,
 		Config:            kloudConf,
 		Storage:           &TestStorage{},
 		KontrolURL:        "https://kontrol.koding.com/kite",
+		Bucket:            kloud.NewBucket("koding-kites", klientFolder),
 		KontrolPrivateKey: privateKey,
 		KontrolPublicKey:  publicKey,
 		Debug:             *flagDebug,

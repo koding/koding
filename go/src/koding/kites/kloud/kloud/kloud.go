@@ -51,6 +51,9 @@ type Kloud struct {
 	KontrolPrivateKey string
 	KontrolURL        string
 
+	// S3 related stuff, like signing url, downloading list and so on.
+	Bucket *Bucket
+
 	Debug bool
 }
 
