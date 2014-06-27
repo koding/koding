@@ -1,12 +1,12 @@
 package trollmode
 
 import (
-	"encoding/json"
 	"errors"
+	"fmt"
 	"socialapi/models"
-	"socialapi/request"
 	"socialapi/workers/common/manager"
 
+	"github.com/koding/bongo"
 	"github.com/koding/logging"
 	"github.com/koding/worker"
 	"github.com/streadway/amqp"
@@ -48,7 +48,37 @@ func (t *Controller) MarkedAsTroll(account *models.Account) error {
 		return nil
 	}
 
-	return t.processsAllMessagesAsTroll(account.Id)
+	if err := t.markChannels(account); err != nil {
+		t.log.Error("Error while processing channels, err: %s ", err.Error())
+		return err
+	}
+
+	if err := t.markParticipations(account); err != nil {
+		t.log.Error("Error while processing participations, err: %s ", err.Error())
+		return err
+	}
+
+	if err := t.markMessages(account); err != nil {
+		t.log.Error("Error while processing channels messages, err: %s ", err.Error())
+		return err
+	}
+
+	if err := t.markInteractions(account); err != nil {
+		t.log.Error("Error while processing interactions, err: %s ", err.Error())
+		return err
+	}
+
+	if err := t.markMessageLists(account); err != nil {
+		t.log.Error("Error while processing message lists, err: %s ", err.Error())
+		return err
+	}
+
+	if err := t.markMessageReplies(account); err != nil {
+		t.log.Error("Error while processing message replies, err: %s ", err.Error())
+		return err
+	}
+
+	return nil
 }
 
 func (t *Controller) validateRequest(account *models.Account) error {
@@ -63,10 +93,6 @@ func (t *Controller) validateRequest(account *models.Account) error {
 	return nil
 }
 
-func (t *Controller) processsAllMessagesAsTroll(accountId int64) error {
-	query := &request.Query{
-		Type:      models.ChannelMessage_TYPE_POST,
-		AccountId: accountId,
 func (c *Controller) markChannels(account *models.Account) error {
 	var processCount = 100
 	var skip = 0
@@ -197,6 +223,16 @@ func (c *Controller) markMessages(account *models.Account) error {
 		}
 
 		for i, message := range messages {
+			// mark all message_list items as exempt
+			if err := c.markMessageLists(&message); err != nil {
+				return err
+			}
+
+			// mark all message_replies items as exempt
+			if err := c.markMessageReplies(&message); err != nil {
+				return err
+			}
+
 			message.MetaBits.MarkTroll()
 			// ChannelMessage update only updates body of the message
 			if err := bongo.B.Update(message); err != nil {
@@ -206,8 +242,19 @@ func (c *Controller) markMessages(account *models.Account) error {
 		}
 
 		// increment skip count
+		skip += processCount
+	}
 
-func (c *Controller) markMessageListsAsExempt(message *models.ChannelMessage) error {
+	if len(erroredMessages) != 0 {
+		err := errors.New(fmt.Sprintf("some errors: %v", erroredMessages))
+		c.log.Error(err.Error())
+		return err
+	}
+
+	return nil
+}
+
+func (c *Controller) markMessageLists(message *models.ChannelMessage) error {
 	var processCount = 100
 	var skip = 0
 	var erroredMessages []models.ChannelMessageList
@@ -256,7 +303,7 @@ func (c *Controller) markMessageListsAsExempt(message *models.ChannelMessage) er
 	return nil
 }
 
-func (c *Controller) markMessageRepliesAsExempt(message *models.ChannelMessage) error {
+func (c *Controller) markMessageReplies(message *models.ChannelMessage) error {
 	var processCount = 100
 	var skip = 0
 	var erroredMessages []models.MessageReply
