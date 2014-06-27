@@ -1,7 +1,6 @@
 package trollmode
 
 import (
-	"fmt"
 	"math"
 	"math/rand"
 	"socialapi/models"
@@ -159,13 +158,11 @@ func TestMarkedAsTroll(t *testing.T) {
 
 		// mark channel_message_list
 		Convey("massages that are in all channels that are created by troll, should be marked as exempt", func() {
-			fmt.Println("groupChannel.Id, trollUser.Id")
-			fmt.Println(groupChannel.Id, trollUser.Id)
 
 			post, err := rest.CreatePost(groupChannel.Id, trollUser.Id)
 			tests.ResultedWithNoErrorCheck(post, err)
 
-			So(controller.markMessageListsAsExempt(post), ShouldBeNil)
+			So(controller.markMessageLists(post), ShouldBeNil)
 
 			cml := models.NewChannelMessageList()
 			q := &bongo.Query{
@@ -250,7 +247,7 @@ func TestMarkedAsTroll(t *testing.T) {
 			So(reply, ShouldNotBeNil)
 			So(reply.AccountId, ShouldEqual, post.AccountId)
 
-			So(controller.markMessageRepliesAsExempt(reply), ShouldBeNil)
+			So(controller.markMessageReplies(reply), ShouldBeNil)
 
 			mr := models.NewMessageReply()
 			q := &bongo.Query{
@@ -358,7 +355,7 @@ func TestMarkedAsTroll(t *testing.T) {
 			So(reply, ShouldNotBeNil)
 			So(reply.AccountId, ShouldEqual, trollUser.Id)
 
-			So(controller.markMessageRepliesAsExempt(reply), ShouldBeNil)
+			So(controller.markMessageReplies(reply), ShouldBeNil)
 
 			m := models.NewChannelMessage()
 			So(m.ById(reply.Id), ShouldBeNil)
@@ -380,7 +377,7 @@ func TestMarkedAsTroll(t *testing.T) {
 			So(reply, ShouldNotBeNil)
 			So(reply.AccountId, ShouldEqual, trollUser.Id)
 
-			So(controller.markMessageRepliesAsExempt(reply), ShouldBeNil)
+			So(controller.markMessageReplies(reply), ShouldBeNil)
 
 			// check for reply's meta bit
 			mr := models.NewMessageReply()
@@ -808,10 +805,6 @@ func TestMarkedAsTroll(t *testing.T) {
 
 			So(err, ShouldBeNil)
 			So(channelContainers, ShouldNotBeNil)
-
-			fmt.Println("groupName -->", groupName)
-			fmt.Println("trollUser.Id -->", trollUser.Id)
-			fmt.Println("channelContainers -->", channelContainers)
 
 			found := false
 			for _, container := range channelContainers {
