@@ -1,63 +1,95 @@
-{ isLoggedIn, error_404, error_500 } = require '../server/helpers'
-{htmlEncode}                         = require 'htmlencode'
-kodinghome                           = require './staticpages/kodinghome'
-activity                             = require './staticpages/activity'
-crawlableFeed                        = require './staticpages/feed'
-profile                              = require './staticpages/profile'
-{Relationship}                       = require 'jraphical'
+{ error_404, error_500 } = require '../server/helpers'
+{htmlEncode}             = require 'htmlencode'
+kodinghome               = require './staticpages/kodinghome'
+activity                 = require './staticpages/activity'
+feed                     = require './staticpages/feed'
+profile                  = require './staticpages/profile'
+{argv}                   = require 'optimist'
+{uri}                    = require('koding-config-manager').load("main.#{argv.c}")
+{createActivityContent}  = require './helpers'
 
-{
-  forceTwoDigits
-  formatDate
-  getFullName
-  getNickname
-  getUserHash
-  createActivityContent
-  decorateComment
-}          = require './helpers'
+notFoundError = (name) ->
+  {description: "invalid #{name}", error: 'koding.NotFoundError'}
 
-fetchLastStatusUpdatesOfUser = (account, Relationship, JNewStatusUpdate, callback) ->
-  {daisy} = require "bongo"
-  return callback null, null  unless account?._id
-  originId = account._id
 
-  feedOptions  =
-    sort       : 'timestamp' : -1
-    limit      : 20
+fetchProfileContent = (models, options, callback) ->
+  {client, name} = options
+  {JAccount, SocialChannel} = models
+  JAccount.one "profile.nickname": name, (err, account) ->
+    return callback err  if err or not account
 
-  selector     =
-    targetId   : originId
-    targetName : "JAccount"
-    sourceName : "JNewStatusUpdate"
-    as         : "author"
-    data       :          # we should filter by group because when the group is
-      group    : "koding" # private publishing on profile page will cause data leak ~EA
+    fetchOptions =
+      targetId : account.socialApiId
+      limit    : 5
 
-  Relationship.some selector, feedOptions, (err, relationships)->
-    return callback err, null  if err
-    return callback null, null  unless relationships?.length > 0
-    queue = [0..relationships.length - 1].map (index)=>=>
-      rel = relationships[index]
-      queue.next  unless rel?.sourceId?
-      sel =
-        _id        : rel.sourceId
-        originType : "JAccount"
-      JNewStatusUpdate.one sel, {}, (error, statusUpdate)=>
-        queue.next()  if error
-        queue.next()  unless statusUpdate
-        queue.statusUpdates or= []
-        queue.statusUpdates.push statusUpdate
-        queue.next()
-    queue.push =>
-      return callback null, queue.statusUpdates
-    daisy queue
+    SocialChannel.fetchProfileFeed client, fetchOptions, (err, result) ->
+      return callback err  if err or not result
+      feed.buildContent models, result, options, (err, content) ->
+        return callback err  if err or not content
+        callback null, profile account, content
 
-isInAppRoute = (firstLetter)->
-  # user nicknames can start with numbers
-  intRegex = /^\d/
-  return false if intRegex.test firstLetter
-  return true  if firstLetter.toUpperCase() is firstLetter
-  return false
+
+fetchPostContent = (models, options, callback) ->
+  {SocialMessage} = models
+  {client, entrySlug} = options
+  SocialMessage.bySlug client, slug: entrySlug, (err, activity) ->
+    return callback err  if err or not activity
+
+    createActivityContent models, activity, (err, content, activityContent)->
+      return callback err  if err or not content
+      graphMeta =
+        title    : "Post on koding.com by #{activityContent.fullName}"
+        body     : "#{activityContent.body}"
+        shareUrl : "#{uri.address}/Activity/Post/#{activityContent.slug}"
+      fullPage = feed.putContentIntoFullPage content, "", graphMeta
+      callback null, fullPage
+
+
+fetchTopicContent = (models, options, callback) ->
+  {client, entrySlug} = options
+
+  {SocialChannel} = models
+  SocialChannel.byName client, name: entrySlug, (err, channel) ->
+    return callback err  if err or not channel
+
+    options.channelId = channel.channel.id
+    feed.createFeed models, options, callback
+
+
+fetchGroupContent = (models, options, callback) ->
+  {entrySlug, client, page} = options
+  entrySlug |= "koding"
+  {JGroup} = models
+
+  JGroup.one slug: "koding", (err, group) ->
+    return callback err  if err
+    return callback notFoundError "group"  unless group
+
+    options.channelId = group.socialApiChannelId
+    feed.createFeed models, options, callback
+
+
+fetchContent = (models, options, callback) ->
+  {section, entrySlug, client} = options
+
+  switch section
+    when "Public"
+      options.entrySlug = "koding"
+      fetchGroupContent models, options, callback
+    when "Topic"
+      fetchTopicContent models, options, callback
+    when "Post"
+      fetchPostContent models, options, callback
+    else
+      return fetchProfileContent models, options, callback  if options.isProfile
+      return callback notFoundError "section"
+
+
+getPage = (query) ->
+  {page}  = query
+  page = parseInt( page, 10 );
+  page   or= 1
+
 
 module.exports =
   crawl: (bongo, {req, res, slug, isProfile}) ->
