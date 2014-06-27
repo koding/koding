@@ -24,6 +24,9 @@ fetchProfileContent = (models, options, callback) ->
 
     SocialChannel.fetchProfileFeed client, fetchOptions, (err, result) ->
       return callback err  if err or not result
+      unless result.length
+        return callback null, profile account, ""
+
       feed.buildContent models, result, options, (err, content) ->
         return callback err  if err or not content
         callback null, profile account, content
