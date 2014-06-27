@@ -6,7 +6,7 @@ class IDE.FileFinder extends KDCustomHTMLView
 
     super options, data
 
-    @addSubView @input = new KDInputView
+    @addSubView @input = input = new KDInputView
       type         : 'text'
       placeholder  : 'Type file name to search'
       callback     : @bound 'search'
@@ -16,7 +16,10 @@ class IDE.FileFinder extends KDCustomHTMLView
         'down'     : => @handleNavigation 'down'
         'up'       : => @handleNavigation 'up'
 
-    @input.on 'keyup', KD.utils.debounce 300, @bound 'handleKeyUp'
+    input.on 'keyup', KD.utils.debounce 300, @bound 'handleKeyUp'
+    input.on 'keyup', =>
+      if input.getValue() is '' then input.unsetClass 'has-text'
+      else input.setClass 'has-text'
 
     @addSubView new KDCustomHTMLView cssClass: 'icon'
     @addSubView @content = new KDCustomHTMLView
