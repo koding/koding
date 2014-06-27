@@ -56,19 +56,14 @@ type ChannelMessage struct {
 
 func (c *ChannelMessage) BeforeCreate() error {
 	c.DeletedAt = ZeroDate()
-	if err := c.MarkIfExempt(); err != nil {
-		return err
-	}
 
-	return nil
+	return c.MarkIfExempt()
 }
 
 func (c *ChannelMessage) BeforeUpdate() error {
 	c.DeletedAt = ZeroDate()
-	if err := c.MarkIfExempt(); err != nil {
-		return err
-	}
-	return nil
+
+	return c.MarkIfExempt()
 }
 
 func (c *ChannelMessage) AfterCreate() {
