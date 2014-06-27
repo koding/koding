@@ -159,7 +159,7 @@ konnect = (options,callback) ->
       { src: "#{PRJ}/configure"                      , trg: "/root/configure"},
       { src: "#{PRJ}/install/docker.prod/Dockerfile" , trg: "/root/Dockerfile"},
       { src: "#{PRJ}/install/docker.prod/run"        , trg: "/root/run"}
-      { src: "#{PRJ}/install/run/docker-remove.sh"   , trg: "/cleanup"}
+      { src: "#{PRJ}/install/run/docker-remove.sh"   , trg: "/root/cleanup"}
 
     ]
 

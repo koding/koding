@@ -18,13 +18,14 @@ WORKDIR /opt
 ADD .ssh /root/.ssh
 RUN chmod 600 /root/.ssh/id_rsa
 
-RUN git clone git@git.sj.koding.com:koding/koding.git
 ADD BUILD_DATA /root/BUILD_DATA
+
+RUN git clone git@git.sj.koding.com:koding/koding.git --branch `cat $BLD/BUILD_BRANCH` --single-branch
 
 WORKDIR /opt/koding
 
-RUN git checkout `cat $BLD/BUILD_BRANCH`
-RUN git pull origin `cat $BLD/BUILD_BRANCH`
+# RUN git checkout `cat $BLD/BUILD_BRANCH` 
+# RUN git pull origin `cat $BLD/BUILD_BRANCH`
 RUN git submodule init
 RUN git submodule update
 
@@ -35,7 +36,7 @@ RUN chmod +x ./build
 RUN ./build
 RUN ./go/build.sh
 RUN go run /opt/koding/go/src/github.com/koding/kite/kontrol/kontrol/main.go -init -public-key /opt/koding/certs/test_kontrol_rsa_public.pem -private-key /opt/koding/certs/test_kontrol_rsa_private.pem -username koding  -kontrol-url "http://`cat $BLD/BUILD_HOSTNAME`:4000/kite" 
-# RUN go run /opt/koding/go/src/github.com/koding/kite/kontrol/kontrol/main.go -init -public-key /opt/koding/certs/test_kontrol_rsa_public.pem -private-key /opt/koding/certs/test_kontrol_rsa_private.pem -username koding  -kontrol-url "http://0.0.0.0:4000" 
+
 WORKDIR /opt/koding/go/src/socialapi
 RUN make install
 WORKDIR /opt/koding

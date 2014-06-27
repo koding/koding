@@ -4,7 +4,7 @@ argv = {} ; argv[i.substring(1)] = process.argv[k+1] for i,k in process.argv whe
 
 {exec}   = require 'child_process'
 fs       = require 'fs'
-log      = console.log
+log      = log
 
 options =
   config      : argv.c or 'kodingme'
@@ -127,10 +127,10 @@ configure = (o)->
   checkDocker = (callback) ->
     exec "docker version",(err,stdout)->
       if stdout.indexOf("Client version:") > -1
-        console.log "docker cmd found. all good."
+        log "docker cmd found. all good."
         callback null
       else
-        console.log "Please install Docker first. Exiting."
+        log "Please install Docker first. Exiting."
         process.exit()
 
   fetchDockerAuthFile = (callback) ->
@@ -140,12 +140,19 @@ configure = (o)->
   prepareConfigFile = (callback) ->
     configFile = require "./config/main.#{o.config}.coffee"
     configJSON = JSON.stringify(configFile,null,4)
-    fs.writeFile "./install/BUILD_DATA/BUILD_CONFIG.json",configJSON,(err,res)->
+
+    if process.env['KODING_BUILD_DATA_PATH']
+      configPath = process.env['KODING_BUILD_DATA_PATH']+"/BUILD_CONFIG.json"
+    else
+      configPath = require('path').join __dirname, "./install/BUILD_DATA/BUILD_CONFIG.json"
+
+
+    fs.writeFile configPath,configJSON,(err,res)->
       if err
-        console.log "couldn't write config file. exiting."
+        log "couldn't write config file. exiting."
         process.exit()
       else
-        console.log "BUILD_CONFIG.json written."
+        log "BUILD_CONFIG.json written."
         callback null             
 
 
@@ -155,10 +162,10 @@ configure = (o)->
     fetchDockerAuthFile (file)->
       if file.indexOf(authToken) is -1
         fs.writeFile "#{process.env['HOME']}/.dockercfg",dockerAuth,(err)->
-          console.log "docker file written."
+          log "docker file written."
           callback null
       else
-        console.log "docker file correct. unchanged."
+        log "docker file correct. unchanged."
         callback null
 
   if o.target is not 'localhost'
@@ -171,7 +178,9 @@ configure = (o)->
           log "configure complate for #{o.target}."
     else if o.target is 'rackspace'
       prepareHost ->
-        console.log "configure complete #{o.target}."
+        prepareConfigFile ->
+          log "configure complate for #{o.target}."
+          
 
 
 
