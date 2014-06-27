@@ -1,7 +1,7 @@
 package feeder
 
 import (
-	"errors"
+	"fmt"
 	socialmodels "socialapi/models"
 	"socialapi/workers/sitemap/models"
 
@@ -16,17 +16,17 @@ func (c *Controller) Start() error {
 	fileMap = make(map[string]struct{})
 	// iterate accounts
 	if err := c.createAccounts(); err != nil {
-		return errors.New("account sitemap not created")
+		return fmt.Errorf("account sitemap not created: %s", err)
 	}
 
 	// iterate posts
 	if err := c.createPosts(); err != nil {
-		return errors.New("post sitemap not created")
+		return fmt.Errorf("post sitemap not created: %s", err)
 	}
 
 	// iterate channels
 	if err := c.createChannels(); err != nil {
-		return errors.New("channel sitemap not created")
+		return fmt.Errorf("channel sitemap not created: %s", err)
 	}
 
 	c.createFileNames()
