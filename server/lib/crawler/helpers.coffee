@@ -70,7 +70,7 @@ normalizeActivityBody = (activity, bodyString="") ->
     tagContent =
       """
         <span class="kdview token">
-          <a class="ttag expandable" href="#{uri.address}/Activity?tagged=#{title}">
+          <a class="ttag expandable" href="#{uri.address}/Activity/Topic/#{title}">
             <span>#{tagTitle}</span>
           </a>
         </span>
@@ -169,12 +169,12 @@ prepareActivity = (models, {activity, profile}, callback) ->
   {like:{actorsCount}} = interactions
 
   activityContent =
-    slug             : slug
+    slug             : slug or "#"
     fullName         : profile.fullName
     nickname         : profile.nickname
     hash             : profile.hash
     avatar           : profile.avatar
-    body             : body
+    body             : renderBody activity
     createdAt        : renderCreatedAt activity
     commentCount     : repliesCount
     likeCount        : actorsCount
@@ -205,9 +205,6 @@ createActivityContent = (models, activity, callback) ->
   createProfile models, activity, (err, profile) ->
     return callback err, null  if err
 
-    slug    = teaser?.slug or "#"
-    createdAt = renderCreatedAt activity
-    body = renderBody activity
     prepareActivity models, {activity, profile}, (err, activityContent) ->
       return callback err  if err
       content = getActivityContent activityContent
