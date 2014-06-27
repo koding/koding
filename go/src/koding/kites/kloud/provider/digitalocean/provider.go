@@ -18,7 +18,7 @@ const (
 
 type Provider struct {
 	Log         logging.Logger
-	SignFunc    func(string) (string, string, error)
+	DeployFunc  func(string, string, string) (*protocol.DeployArtifact, error)
 	Push        func(string, int, machinestate.State)
 	PoolEnabled bool
 	Redis       *redis.RedisSession
@@ -50,7 +50,7 @@ func (p *Provider) NewClient(opts *protocol.MachineOptions) (*Client, error) {
 	c := &Client{
 		Push:        push,
 		Log:         p.Log,
-		SignFunc:    p.SignFunc,
+		DeployFunc:  p.DeployFunc,
 		Caching:     true,
 		CachePrefix: "cache-" + p.Region + "-" + p.Environment,
 		Redis:       p.Redis,

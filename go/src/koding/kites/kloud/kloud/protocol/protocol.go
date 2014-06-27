@@ -9,6 +9,32 @@ var (
 	DefaultImageName = "koding-klient-0.0.1"
 )
 
+// Provider manages a machine. It is used to create and provision a single
+// image or machine for a given Provider, to start/stop/destroy/restart a
+// machine.
+type Provider interface {
+	// Build is creating a image and a machine.
+	Build(*MachineOptions) (*BuildResponse, error)
+
+	// Start starts the machine
+	Start(*MachineOptions) error
+
+	// Stop stops the machine
+	Stop(*MachineOptions) error
+
+	// Restart restarts the machine
+	Restart(*MachineOptions) error
+
+	// Destroy destroys the machine
+	Destroy(*MachineOptions) error
+
+	// Info returns full information about a single machine
+	Info(*MachineOptions) (*InfoResponse, error)
+
+	// Name returns the underlying provider type
+	Name() string
+}
+
 // MachineOptions is passed to the methods of the Provider interface. It
 // contains all necessary informations.
 type MachineOptions struct {
@@ -67,28 +93,6 @@ type InfoResponse struct {
 	Name string
 }
 
-// Provider manages a machine. It is used to create and provision a single
-// image or machine for a given Provider, to start/stop/destroy/restart a
-// machine.
-type Provider interface {
-	// Build is creating a image and a machine.
-	Build(*MachineOptions) (*BuildResponse, error)
-
-	// Start starts the machine
-	Start(*MachineOptions) error
-
-	// Stop stops the machine
-	Stop(*MachineOptions) error
-
-	// Restart restarts the machine
-	Restart(*MachineOptions) error
-
-	// Destroy destroys the machine
-	Destroy(*MachineOptions) error
-
-	// Info returns full information about a single machine
-	Info(*MachineOptions) (*InfoResponse, error)
-
-	// Name returns the underlying provider type
-	Name() string
+type DeployArtifact struct {
+	KiteQuery string
 }

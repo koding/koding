@@ -32,12 +32,16 @@ func (k *Kloud) Klient(queryString string) (*Klient, error) {
 		Version:     query.Version,
 	}
 
+	timeout := time.After(time.Minute)
+
+	k.Log.Info("Querying for Klient: %s", queryString)
 	for {
 		select {
 		case <-time.Tick(time.Second * 2):
 			kites, err := k.Kite.GetKites(kontrolQuery)
 			if err != nil {
-				return nil, err
+				// still not up, try again until the kite is ready
+				continue
 			}
 
 			remoteKite := kites[0]
@@ -57,7 +61,7 @@ func (k *Kloud) Klient(queryString string) (*Klient, error) {
 			return &Klient{
 				client: remoteKite,
 			}, nil
-		case <-time.After(time.Minute * 5):
+		case <-timeout:
 			return nil, fmt.Errorf("timeout while connection for kite")
 		}
 	}
