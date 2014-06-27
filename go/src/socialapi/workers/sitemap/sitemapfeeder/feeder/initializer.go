@@ -29,9 +29,7 @@ func (c *Controller) Start() error {
 		return fmt.Errorf("channel sitemap not created: %s", err)
 	}
 
-	c.createFileNames()
-
-	return nil
+	return c.createFileNames()
 }
 
 func (c *Controller) createAccounts() error {
@@ -179,7 +177,7 @@ func (c *Controller) queueChannels(channels []socialmodels.Channel) {
 	}
 }
 
-func (c *Controller) createFileNames() {
+func (c *Controller) createFileNames() error {
 	for k := range fileMap {
 		sf := models.NewSitemapFile()
 
@@ -191,12 +189,15 @@ func (c *Controller) createFileNames() {
 
 		if err != bongo.RecordNotFound {
 			c.log.Error("Could not fetch file names: %s", err)
+			return err
 		}
 
 		sf.Name = k
 		if err := sf.Create(); err != nil {
 			c.log.Error("Could not create file names: %s", err)
+			return err
 		}
-
 	}
+
+	return nil
 }
