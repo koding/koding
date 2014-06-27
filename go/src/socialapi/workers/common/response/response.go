@@ -4,12 +4,13 @@ import (
 	"errors"
 	"net/http"
 	"socialapi/workers/helper"
+
 	"github.com/koding/bongo"
 )
 
 func NewBadRequest(err error) (int, http.Header, interface{}, error) {
 	if err == nil {
-		err = errors.New("Request is not valid")
+		err = errors.New("request is not valid")
 	}
 
 	helper.MustGetLogger().Error("Bad Request: %s", err)
@@ -39,7 +40,7 @@ func NewOK(res interface{}) (int, http.Header, interface{}, error) {
 }
 
 func NewNotFound() (int, http.Header, interface{}, error) {
-	return http.StatusNotFound, nil, nil, NotFoundError{errors.New("Data not found")}
+	return http.StatusNotFound, nil, nil, NotFoundError{errors.New("content not found")}
 }
 
 func NewDeleted() (int, http.Header, interface{}, error) {
