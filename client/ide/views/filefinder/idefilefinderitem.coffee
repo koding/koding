@@ -11,4 +11,4 @@ class IDE.FileFinderItem extends KDListItemView
     """
 
   click: ->
-    @emit 'FileNeedsToBeOpened', @getData()
+    @emit 'FileNeedsToBeOpened', @getData().path
