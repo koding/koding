@@ -116,10 +116,11 @@ class IDE.IDEView extends IDE.WorkspaceTabView
     # TODO: This method is legacy, should be reimplemented in ace bundle.
 
   focusTab: ->
-    pane     = @tabView.getActivePane().getSubViews().first
-    paneType = pane.getOptions().paneType
+    pane = @tabView.getActivePane().getSubViews().first
+    return unless pane
 
     KD.utils.defer ->
+      paneType = pane.getOptions().paneType
       if      paneType is 'editor'   then pane.aceView.ace.focus()
       else if paneType is 'terminal' then pane.webtermView?.setFocus yes
 
