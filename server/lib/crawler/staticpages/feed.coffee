@@ -1,64 +1,75 @@
 {argv}                  = require 'optimist'
 {uri}                   = require('koding-config-manager').load("main.#{argv.c}")
 {daisy}                 = require "bongo"
-{Relationship}          = require 'jraphical'
 encoder                 = require 'htmlencode'
-{createActivityContent, decorateComment} = require '../helpers'
+{createActivityContent} = require '../helpers'
 
 ITEMSPERPAGE = 20
 
-module.exports = (bongo, page, contentType, callback)=>
-  {JName, JAccount, JNewStatusUpdate, JTag} = bongo.models
+createFeed = (models, options, callback)->
+  {JAccount, SocialChannel} = models
+  {page, channelId, client} = options
+
+  return callback "channelId not set"  unless channelId
+
   skip = 0
   if page > 0
     skip = (page - 1) * ITEMSPERPAGE
 
   options = {
+    id    : channelId
     limit : ITEMSPERPAGE
     skip  : skip
-    sort: 'meta.createdAt': -1
   }
 
-  if contentType is "Activity"
-    model = JNewStatusUpdate
-  else if contentType is "Topics"
-    model = JTag
-  else
-    return callback new Error "Unknown content type.", null
+  SocialChannel.fetchActivityCount {channelId}, (err, {totalCount: itemCount})->
+    return callback err  if err
+    return callback null, getEmptyPage()  if itemCount is 0
+
+    SocialChannel.fetchActivities client, options, (err, result) ->
+      return callback err  if err
+
+      options.page = page
+      buildContent models, result.messageList, options, (err, pageContent) ->
+        return callback err  if err
+        schemaorgTagsOpening = getSchemaOpeningTags()
+        schemaorgTagsClosing = getSchemaClosingTags()
+
+        content = schemaorgTagsOpening + pageContent + schemaorgTagsClosing
+
+        pagination = getPagination page, itemCount, "Activity"
+        fullPage = putContentIntoFullPage content, pagination
+
+        callback null, fullPage
+
+
+buildContent = (models, messageList, options, callback) ->
+  {SocialChannel} = models
+  {client, page} = options
 
   pageContent = ""
-  selector = group : "koding"
-  model.count selector, (error, count)=>
-    return callback error, null  if error
-    return callback null, getEmptyPage contentType  if count is 0
-    model.some selector, options, (err, contents)=>
-      return callback err, null  if err
-      return callback null, getEmptyPage contentType  if count is 0
-      queue = [0...contents.length].map (index)=>=>
-        queue.pageContent or= ""
+  queue = [0...messageList.length].map (index)->->
+    queue.pageContent or= ""
+    activity = messageList[index]
 
-        content = contents[index]
+    createActivityContent models, activity, (err, content)->
+      if err
+        console.error "activity not listed", err
+        return queue.next()
 
-        if contentType is "Activity"
-          createFullHTML = no
-          putBody = yes
-          createActivityContent JAccount, content, {}, createFullHTML, putBody, (error, content)=>
-            return queue.next()  if error or not content
-            queue.pageContent = queue.pageContent + content
-            queue.next()
-        else if contentType is "Topics"
-          appendDecoratedTopic content, queue
-        else queue.next()
-      queue.push =>
-        schemaorgTagsOpening = getSchemaOpeningTags contentType
-        schemaorgTagsClosing = getSchemaClosingTags contentType
+      unless content
+        # TODO Activity id can be added to error message
+        console.error "content not found"
+        return queue.next()
 
-        content = schemaorgTagsOpening + queue.pageContent + schemaorgTagsClosing
+      pageContent = pageContent + content
+      queue.next()
 
-        pagination = getPagination page, count, contentType
-        fullPage = putContentIntoFullPage content, pagination, contentType
-        return callback null, fullPage
-      daisy queue
+  queue.push ->
+    callback null, pageContent
+
+  daisy queue
+
 
 getPagination = (currentPage, numberOfItems, route="")->
   # This is the number of adjacent link around current page.
@@ -113,35 +124,17 @@ appendDecoratedTopic = (tag, queue)=>
   queue.pageContent += createTagNode tag
   queue.next()
 
-getSchemaOpeningTags = (contentType)=>
-  openingTags = ""
-  if contentType is "Activity"
-    openingTags =
-      """
+getSchemaOpeningTags = =>
+  return """
         <article itemscope itemtype="http://schema.org/BlogPosting">
           <div itemscope itemtype="http://schema.org/ItemList">
             <meta itemprop="mainContentOfPage" content="true"/>
             <h2 itemprop="name" class="invisible">Latest activities</h2><br>
             <meta itemprop="itemListOrder" content="Descending" />
       """
-  else if contentType is "Topics"
-    openingTags =
-      """
-        <div itemscope itemtype="http://schema.org/ItemList">
-          <meta itemprop="mainContentOfPage" content="true"/>
-          <h2 itemprop="name" class='invisible'>Latest topics</h2><br>
-          <meta itemprop="itemListOrder" content="Descending" />
-          <div></div>
-      """
-  return openingTags
 
-getSchemaClosingTags = (contentType)=>
-  closingTags = ""
-  if contentType is "Activity"
-    closingTags = "</div></article>"
-  else if contentType is "Topics"
-    closingTags = "</div>"
-  return closingTags
+getSchemaClosingTags = =>
+  return closingTags = "</div></article>"
 
 createTagNode = (tag)->
   tagContent = ""
@@ -162,13 +155,6 @@ createTagNode = (tag)->
     <article>#{encoder.XSSEncode(tag.body) ? ''}</article>
   </div>
   """
-
-createFollowersCount = (numberOfFollowers)->
-  return "<span>#{numberOfFollowers}</span> followers"
-
-createUserInteractionMeta = (numberOfFollowers)->
-  userInteractionMeta = "<meta itemprop=\"interactionCount\" content=\"UserComments:#{numberOfFollowers}\"/>"
-  return userInteractionMeta
 
 getDock = ->
   """
@@ -208,19 +194,22 @@ getDock = ->
       </div>
   </header>
   """
-getEmptyPage = (contentType) ->
-  putContentIntoFullPage "There is no activity yet", "", contentType
 
-putContentIntoFullPage = (content, pagination, contentType)->
+getEmptyPage = ->
+  putContentIntoFullPage "There is no activity yet", ""
+
+putContentIntoFullPage = (content, pagination, graphMeta)->
   getGraphMeta  = require './graphmeta'
   analytics     = require './analytics'
+
+  graphMeta = getGraphMeta graphMeta
 
   """
   <!DOCTYPE html>
   <html lang="en">
   <head>
     <title>Koding | A New Way For Developers To Work</title>
-    #{getGraphMeta()}
+    #{graphMeta}
   </head>
   <body itemscope itemtype="http://schema.org/WebPage" class="super activity">
     <div id="kdmaincontainer" class="kdview">
@@ -239,3 +228,10 @@ putContentIntoFullPage = (content, pagination, contentType)->
   </html>
   """
 
+module.exports = {
+  buildContent
+  createFeed
+  putContentIntoFullPage
+  getDock
+  getEmptyPage
+}
