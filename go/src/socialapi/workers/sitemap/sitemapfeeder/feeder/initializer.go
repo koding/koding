@@ -5,7 +5,6 @@ import (
 	socialmodels "socialapi/models"
 	"socialapi/workers/sitemap/models"
 
-	"github.com/jinzhu/gorm"
 	"github.com/koding/bongo"
 )
 
@@ -190,7 +189,7 @@ func (c *Controller) createFileNames() {
 			return
 		}
 
-		if err != gorm.RecordNotFound {
+		if err != bongo.RecordNotFound {
 			c.log.Error("Could not fetch file names: %s", err)
 		}
 

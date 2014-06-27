@@ -8,7 +8,7 @@ import (
 	"socialapi/workers/sitemap/common"
 	"socialapi/workers/sitemap/models"
 
-	"github.com/jinzhu/gorm"
+	"github.com/koding/bongo"
 	"github.com/koding/logging"
 	"github.com/koding/redis"
 	"github.com/robfig/cron"
@@ -162,7 +162,7 @@ func (c *Controller) updateFile(container *models.ItemContainer) error {
 	sf := new(models.SitemapFile)
 	newItem := false
 	err := sf.ByName(c.fileName)
-	if err == gorm.RecordNotFound {
+	if err == bongo.RecordNotFound {
 		newItem = true
 	}
 

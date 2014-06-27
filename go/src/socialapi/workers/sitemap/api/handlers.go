@@ -10,7 +10,6 @@ import (
 	"socialapi/workers/sitemap/models"
 	"strings"
 
-	"github.com/jinzhu/gorm"
 	"github.com/rcrowley/go-tigertonic"
 
 	"github.com/koding/bongo"
@@ -68,7 +67,7 @@ func Fetch(w http.ResponseWriter, r *http.Request) {
 	fileName = names[0]
 	sf := new(models.SitemapFile)
 	if err := sf.ByName(fileName); err != nil {
-		if err == gorm.RecordNotFound {
+		if err == bongo.RecordNotFound {
 			helper.MustGetLogger().Error("File not found: %s", fileName)
 			http.Error(w, ErrFetch.Error(), http.StatusBadRequest)
 			return
