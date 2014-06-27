@@ -200,7 +200,7 @@ prepareActivity = (models, {activity, profile}, callback) ->
 
 createActivityContent = (models, activity, callback) ->
   {htmlEncode}   = require 'htmlencode'
-  {getSingleActivityPage, getSingleActivityContent} = require './staticpages/activity'
+  {getActivityContent} = require './staticpages/activity'
 
   createProfile models, activity, (err, profile) ->
     return callback err, null  if err
@@ -210,7 +210,7 @@ createActivityContent = (models, activity, callback) ->
     body = renderBody activity
     prepareActivity models, {activity, profile}, (err, activityContent) ->
       return callback err  if err
-      content = getSingleActivityContent activityContent
+      content = getActivityContent activityContent
       result = {activityContent, profile}
       return callback null, content, activityContent
 

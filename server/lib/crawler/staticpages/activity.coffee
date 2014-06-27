@@ -66,7 +66,7 @@ addLikeSeperator = (index, count) ->
   return " and " if index < count - 1
   return ""      if index == count - 1
 
-getSingleActivityContent = (activityContent)->
+getActivityContent = (activityContent)->
   slugWithDomain = "#{uri.address}/Activity/Public/#{activityContent.slug}"
   {body, nickname, fullName, hash, avatar, createdAt, commentCount, likeCount} = activityContent
   avatarImage   = createAvatarImage hash, avatar
@@ -132,5 +132,5 @@ getSingleActivityContent = (activityContent)->
 
 module.exports = {
   getAvatarImageUrl
-  getSingleActivityContent
+  getActivityContent
 }
