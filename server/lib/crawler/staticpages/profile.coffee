@@ -1,106 +1,13 @@
-{argv}  = require 'optimist'
-encoder = require 'htmlencode'
-{uri}   = require('koding-config-manager').load("main.#{argv.c}")
-{ formatDate, getProfile, getAvatarImageUrl } = require '../helpers'
-
-createLinkToStatusUpdate = (createDate, slug) ->
-  content =
-    """
-    <a href="#{uri.address}/Activity/#{slug}"><time class="kdview">#{createDate}</time></a>
-    """
-  return content
-
-createStatusUpdateNode = (statusUpdate, profile)=>
-  {meta:{createdAt}} = statusUpdate  if statusUpdate
-  createdAt          = if createdAt then formatDate createdAt else ""
-  slug               = if statusUpdate?.slug then statusUpdate.slug else ""
-
-  linkToStatusUpdate = createLinkToStatusUpdate createdAt, slug
-
-  commentsList = ""
-  if statusUpdate?.replies
-    for comment in statusUpdate.replies
-      profile = getProfile comment.author
-      avatarUrl = getAvatarImageUrl profile.hash, profile.avatar
-      nickname = encoder.XSSEncode profile.nickname
-      fullname = encoder.XSSEncode profile.fullName
-
-      commentsList +=
-        """
-          <div class="kdview kdlistitemview kdlistitemview-comment">
-            <a class="avatarview online" href="/#{comment.author.nickname}" style="width: 40px; height: 40px; background-size: 40px; background-image: none;"><img class="" width="40" height="40" src="#{avatarUrl}" style="opacity: 1;"></a>
-            <div class="comment-contents clearfix">
-              <a class="profile" href="/#{nickname}" itemprop="name">#{fullname}</a>
-              <div class="comment-body-container"><p itemprop="commentText">#{comment.body}</p></div>
-
-            </div>
-          </div>
-        """
-
-  commentsContent =
-    """
-      <div class="kdview comment-container commented">
-        <div class="kdview listview-wrapper">
-          <div class="kdview kdscrollview">
-            <div class="kdview kdlistview kdlistview-comments">
-              #{commentsList}
-            </div>
-          </div>
-        </div>
-      </div>
-    """
-
-  marked = require 'marked'
-
-  body = marked statusUpdate.body,
-    gfm       : true
-    pedantic  : false
-    sanitize  : true
-
-  statusUpdateContent = ""
-  if statusUpdate?.body
-    statusUpdateContent =
-    """
-    <div class="kdview activity-item status">
-      <a class="profile" href="/#{profile.nickname}">#{profile.fullName}</a>
-      <article data-paths="body" id="el-1223">
-        <p>#{body}</p>
-      </article>
-      <footer>#{linkToStatusUpdate}</footer>
-      #{commentsContent}
-    </div>
-    """
-  return statusUpdateContent
-
-createLinkToUserProfile = (fullName, nickname) ->
-  content =
-    """
-      <a href=\"#{uri.address}/#{nickname}\">#{fullName}</a>
-    """
-  return content
-
-getStatusUpdates = (statusUpdates, profile) ->
-  linkToProfile = createLinkToUserProfile profile.fullName, profile.nickname
-  if statusUpdates?.length > 0
-    updates = (createStatusUpdateNode(statusUpdate, profile) for statusUpdate in statusUpdates)
-    updatesContent = updates.join("")
-  else
-    updatesContent =
-    """
-    <div class="lazy-loader">#{profile.fullName} has not shared any posts yet.</div>
-    """
-  return updatesContent
-
+{ getProfile } = require '../helpers'
+{ getAvatarImageUrl }      = require './activity'
+{ getDock }                = require './feed'
 
 module.exports = (account, statusUpdates)=>
-  getStyles    = require './styleblock'
   getGraphMeta = require './graphmeta'
   analytics    = require './analytics'
 
   {profile:{nickname}} = account  if account
 
-  profile = getProfile account
-  sUpdates = getStatusUpdates statusUpdates, profile, (err, sUpdates) ->
   """
   <!DOCTYPE html>
   <html lang="en">
@@ -109,15 +16,17 @@ module.exports = (account, statusUpdates)=>
     #{getGraphMeta()}
   </head>
     <body class='koding profile' itemscope itemtype="http://schema.org/WebPage">
-      #{putContent(account, sUpdates)}
+      #{putContent(account, statusUpdates)}
       #{analytics()}
     </body>
   </html>
   """
 
 putContent = (account, sUpdates)=>
-  getGraphMeta = require './graphmeta'
   profile      = getProfile account
+
+  if sUpdates is ""
+    sUpdates = """<div class="lazy-loader">#{profile.fullName} has not shared any posts yet.</div>"""
 
   numberOfLikes     = if account?.counts?.likes     then account.counts.likes     else "0"
   numberOfFollowers = if account?.counts?.followers then account.counts.followers else "0"
