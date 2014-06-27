@@ -1,6 +1,7 @@
 package kloud
 
 import (
+	"fmt"
 	"log"
 	"os"
 	"time"
@@ -14,13 +15,6 @@ type Bucket struct {
 }
 
 func NewBucket() *Bucket {
-	// os.Getenv("AWS_ACCESS_KEY_ID")
-	// os.Getenv("AWS_SECRET_ACCESS_KEY")
-	// auth, err := aws.EnvAuth()
-	// if err != nil {
-	// 	panic(err)
-	// }
-
 	auth := aws.Auth{
 		AccessKey: "AKIAI6IUMWKF3F4426CA",
 		SecretKey: "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",
@@ -33,8 +27,18 @@ func NewBucket() *Bucket {
 	}
 }
 
-func (b *Bucket) List(path string) (*s3.ListResp, error) {
-	return b.bucket.List("", "", "", 100)
+func (b *Bucket) Latest() (string, error) {
+	path := "klient/latest"
+	l, err := b.bucket.List(path, "", "", 100)
+	if err != nil {
+		return "", err
+	}
+
+	if len(l.Contents) == 0 {
+		return "", fmt.Errorf("No .deb binary available for %s", path)
+	}
+
+	return l.Contents[0].Key, nil
 }
 
 func (b *Bucket) SignedURL(path string, expires time.Time) string {

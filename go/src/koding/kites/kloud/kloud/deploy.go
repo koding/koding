@@ -5,6 +5,7 @@ import (
 	"io/ioutil"
 	"koding/kites/kloud/kloud/protocol"
 	"koding/kites/kloud/sshutil"
+	"path/filepath"
 	"time"
 
 	klientprotocol "koding/kites/klient/protocol"
@@ -15,8 +16,7 @@ import (
 )
 
 var (
-	klientFile = "/klient/latest/klient_latest.deb"
-	expiresAt  = func() time.Time { return time.Now().Add(time.Minute) }
+	expiresAt = func() time.Time { return time.Now().Add(time.Minute) }
 )
 
 func (k *Kloud) DeployFunc(username, hostname, ipAddress string) (*protocol.DeployArtifact, error) {
@@ -68,10 +68,16 @@ func (k *Kloud) DeployFunc(username, hostname, ipAddress string) (*protocol.Depl
 		return nil, err
 	}
 
-	signedUrl := NewBucket().SignedURL(klientFile, expiresAt())
-	k.Log.Info("Signed url is created: '%s'", signedUrl)
+	bucket := NewBucket()
+	latestDeb, err := bucket.Latest()
+	if err != nil {
+		return nil, err
+	}
 
-	k.Log.Info("Downloading klient to the machine")
+	// signedURL allows us to have public access for a limited time frame
+	signedUrl := bucket.SignedURL(latestDeb, expiresAt())
+
+	k.Log.Info("Downloading '%s' to /tmp inside the machine", filepath.Base(latestDeb))
 	out, err := client.StartCommand(fmt.Sprintf("wget -O /tmp/klient-latest.deb '%s'", signedUrl))
 	if err != nil {
 		fmt.Println("out", out)
@@ -82,6 +88,18 @@ func (k *Kloud) DeployFunc(username, hostname, ipAddress string) (*protocol.Depl
 	out, err = client.StartCommand("dpkg -i /tmp/klient-latest.deb")
 	if err != nil {
 		fmt.Println("out", out)
+		return nil, err
+	}
+
+	k.Log.Info("Removing leftover klient from the machine")
+	out, err = client.StartCommand("rm -f /tmp/klient-latest.deb")
+	if err != nil {
+		fmt.Println("out", out)
+		return nil, err
+	}
+
+	out, err = client.StartCommand("service klient restart")
+	if err != nil {
 		return nil, err
 	}
 
@@ -112,11 +130,6 @@ func (k *Kloud) DeployFunc(username, hostname, ipAddress string) (*protocol.Depl
 	// 	return nil, err
 	// }
 	//
-	out, err = client.StartCommand("service klient restart")
-	if err != nil {
-		return nil, err
-	}
-
 	// arslan/public-host/klient/0.0.1/unknown/testkloud-1401755272229370184-0/393ff626-8fa5-4713-648c-4a51604f98c6
 	query := kiteprotocol.Kite{
 		Username:    username,       // kite.key is signed for this user
