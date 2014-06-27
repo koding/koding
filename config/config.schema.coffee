@@ -162,6 +162,7 @@ config =
       staticFilesBaseUrl: 1
       runtimeOptions  :
         kites:
+          disableWebSocketByDefault: 1
           stack:
             force: 1
             newKites: 1

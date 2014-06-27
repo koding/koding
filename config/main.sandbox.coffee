@@ -18,7 +18,7 @@ regions         =
   vagrant       : "vagrant"
   sj            : "sj"
   aws           : "aws"
-  premium       : "premium-sj"
+  premium       : "sj"
 
 cookieMaxAge = 1000 * 60 * 60 * 24 * 14 # two weeks
 cookieSecure = no
@@ -32,9 +32,9 @@ module.exports =
     secret      : 'RkZRBOR8jtbAo+to2nbYWwPlZvzG9ZjyC8yhTh1q'
   uri           :
     address     : "http://sandbox.koding.com"
-  userSitesDomain: 'staging.kd.io'
+  userSitesDomain: 'sandbox.kd.io'
   containerSubnet: "10.128.2.0/9"
-  vmPool        : "vms-staging"
+  vmPool        : "vms-sandbox"
   projectRoot   : projectRoot
   webserver     :
     useCacheHeader: yes
@@ -43,7 +43,7 @@ module.exports =
     clusterSize : 1
     queueName   : socialQueueName+'web'
     watch       : no
-  socialApiUrl  : "http://localhost:7000"
+  socialApiUrl  : "http://sandbox-social.sj.koding.com:7000"
   sourceServer  :
     enabled     : yes
     port        : 1337
@@ -267,8 +267,8 @@ module.exports =
     disconnectTimeout: 3e3
     vhost       : 'kite'
   email         :
-    host        : "latest.koding.com"
-    protocol    : 'https:'
+    host        : "sandbox.koding.com"
+    protocol    : 'http:'
     defaultFromAddress: 'hello@koding.com'
   emailWorker   :
     cronInstant : '*/10 * * * * *'
@@ -343,15 +343,15 @@ module.exports =
     secret_url   : "https://www.odesk.com/services/api/auth?oauth_token="
     version      : "1.0"
     signature    : "HMAC-SHA1"
-    redirect_uri : "https://latest.koding.com/-/oauth/odesk/callback"
+    redirect_uri : "http://sandbox.koding.com/-/oauth/odesk/callback"
   facebook       :
     clientId     : "475071279247628"
     clientSecret : "65cc36108bb1ac71920dbd4d561aca27"
-    redirectUri  : "https://latest.koding.com/-/oauth/facebook/callback"
+    redirectUri  : "http://sandbox.koding.com/-/oauth/facebook/callback"
   google         :
     client_id    : "1058622748167.apps.googleusercontent.com"
     client_secret: "vlF2m9wue6JEvsrcAaQ-y9wq"
-    redirect_uri : "https://latest.koding.com/-/oauth/google/callback"
+    redirect_uri : "http://sandbox.koding.com/-/oauth/google/callback"
   statsd         :
     use          : true
     ip           : "172.168.2.7"
@@ -359,11 +359,11 @@ module.exports =
   linkedin       :
     client_id    : "aza9cks1zb3d"
     client_secret: "zIMa5kPYbZjHfOsq"
-    redirect_uri : "https://latest.koding.com/-/oauth/linkedin/callback"
+    redirect_uri : "http://sandbox.koding.com/-/oauth/linkedin/callback"
   twitter        :
     key          : "tvkuPsOd7qzTlFoJORwo6w"
     secret       : "48HXyTkCYy4hvUuRa7t4vvhipv4h04y6Aq0n5wDYmA"
-    redirect_uri : "https://latest.koding.com/-/oauth/twitter/callback"
+    redirect_uri : "http://sandbox.koding.com/-/oauth/twitter/callback"
     request_url  : "https://twitter.com/oauth/request_token"
     access_url   : "https://twitter.com/oauth/access_token"
     secret_url   : "https://twitter.com/oauth/authenticate?oauth_token="
