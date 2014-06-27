@@ -867,6 +867,10 @@ func TestMarkedAsTroll(t *testing.T) {
 
 			So(found, ShouldBeFalse)
 		})
+		Convey("public  channel messages should be filtered", nil)
+		Convey("topic   channel messages should be filtered", nil)
+		Convey("private channel messages should be filtered", nil)
+		Convey("pinned  channel messages should be filtered", nil)
 
 	})
 }
