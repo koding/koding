@@ -4,11 +4,11 @@
 package protocol
 
 var (
-	Version string
+	Version     string
+	Environment string
 )
 
 const (
-	Name        = "klient"
-	Environment = "public-host"
-	Region      = "public-region"
+	Name   = "klient"
+	Region = "public-region"
 )
