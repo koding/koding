@@ -77,18 +77,6 @@ normalizeActivityBody = (activity, bodyString="") ->
       """
     return tagContent
 
-createLinkContent = (href, title, text) ->
-  marked = require 'marked'
-  renderer = new marked.Renderer()
-  renderer.link= (href, title, text)->
-    linkHTML = "<a href=\"#{href}\""
-    linkHTML += " title=\"#{title}\""  if title
-
-    re = new RegExp("#{uri.address}", "g")
-    linkHTML += if re.test href then ">#{text}</a>" \
-    else " rel=\"nofollow\">#{text}</a>"
-
-    return linkHTML
 
 createProfile = (models, activity, callback)->
   {JAccount} = models
