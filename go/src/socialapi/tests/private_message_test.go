@@ -3,6 +3,7 @@ package main
 import (
 	"math/rand"
 	"socialapi/models"
+	"socialapi/request"
 	"socialapi/rest"
 	"strconv"
 	"testing"
@@ -178,7 +179,7 @@ func TestPrivateMesssage(t *testing.T) {
 			So(err, ShouldBeNil)
 			So(cmc, ShouldNotBeNil)
 
-			pm, err := rest.GetPrivateMessages(account.Id, groupName)
+			pm, err := rest.GetPrivateMessages(&request.Query{AccountId: account.Id, GroupName: groupName})
 			So(err, ShouldBeNil)
 			So(pm, ShouldNotBeNil)
 			So(pm[0], ShouldNotBeNil)
