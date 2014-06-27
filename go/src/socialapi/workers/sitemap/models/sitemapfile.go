@@ -50,6 +50,10 @@ func (f *SitemapFile) Create() error {
 	return bongo.B.Create(f)
 }
 
+func (f *SitemapFile) One(q *bongo.Query) error {
+	return bongo.B.One(f, f, q)
+}
+
 func (f *SitemapFile) ByName(name string) error {
 	if name == "" {
 		return ErrNotSet
@@ -60,7 +64,7 @@ func (f *SitemapFile) ByName(name string) error {
 	}
 	q := bongo.NewQS(selector)
 
-	return bongo.B.One(f, f, q)
+	return f.One(q)
 }
 
 func (f *SitemapFile) Update() error {
