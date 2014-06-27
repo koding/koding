@@ -10,6 +10,7 @@ class IDEAppController extends AppController
         KD.getSingleton('appManager').open 'IDE', conditionPassed : yes
         KD.showEnforceLoginModal()
     commands:
+      'find file by name'   : 'showFileFinder'
       'split vertically'    : 'splitVertically'
       'split horizontally'  : 'splitHorizontally'
       'merge splitview'     : 'mergeSplitView'
@@ -24,6 +25,7 @@ class IDEAppController extends AppController
       'go to right tab'     : 'goToRightTab'
       'go to tab number'    : 'goToTabNumber'
     keyBindings: [
+      { command: 'find file by name',   binding: 'ctrl+alt+f', global: yes }
       { command: 'split vertically',    binding: 'ctrl+alt+v', global: yes }
       { command: 'split horizontally',  binding: 'ctrl+alt+h', global: yes }
       { command: 'merge splitview',     binding: 'ctrl+alt+m', global: yes }
@@ -353,6 +355,13 @@ class IDEAppController extends AppController
 
     status.updatePartial text
     menuButton.show()
+
+  showFileFinder: ->
+    if @fileFinder
+      @fileFinder.input.setFocus()
+    else
+      @fileFinder = new IDE.FileFinder
+      @fileFinder.once 'KDObjectWillBeDestroyed', => @fileFinder = null
 
   doResize: ->
     @forEachSubViewInIDEViews_ 'editor', (editorPane) ->

@@ -357,3 +357,61 @@ body.ide.dark
       height          24px !important
     .arrows
       top             3px !important
+
+
+// file-finder
+.ide
+  .file-finder
+    abs()
+    z-index          10000
+    top              96px
+    left             50%
+    margin-left      -235px
+    width            450px
+    padding          10px
+    rounded          5px
+    bg               color, dark-tab-header-bg
+    vendor           box-shadow, 0px 2px 28px rgba(0, 0, 0, .5)
+    .icon
+      abs()
+      z-index        2
+      top            20px
+      right          20px
+      r-sprite       'ide', 'search'
+    .kdinput
+      color          #928D87
+      bg             color, #D4CFC9
+      border         1px solid dark-panel-bg
+      height         36px
+      font-size      14px
+      &:focus
+        box-shadow   none
+        border       1px solid dark-panel-bg
+      &:hover
+        border       1px solid dark-panel-bg
+    .kdlistitemview.selected
+      rounded        3px
+      bg             color, dark-panel-bg
+    .kdlistview
+      max-height     200px
+      overflow       auto !important
+      margin-top    10px
+    .warning
+      padding          20px 20px 10px 20px
+      color            #74706B
+      font-size        14px
+      text-align       center
+    .file-item
+      font-size        12px
+      padding          12px
+      width            auto
+      p
+        line-height    14px
+      .name
+        color          #D4CFC9
+      .path
+        color          #858585
+      &:hover
+        rounded        3px
+        bg             color, dark-panel-bg
+        pointer()
