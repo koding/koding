@@ -425,10 +425,12 @@ func (p *pkg) build() error {
 		newname = p.appName + "_0.1." + strconv.Itoa(*flagBuildNumber)
 	}
 
-	if *flagProfile == "" || *flagRegion == "" {
-		newname += fmt.Sprintf("_%s.deb", deb.Arch)
-	} else {
+	if *flagProfile != "" && *flagRegion != "" {
 		newname += fmt.Sprintf("_%s-%s_%s.deb", *flagProfile, *flagRegion, deb.Arch)
+	} else if *flagEnvironment != "" {
+		newname += fmt.Sprintf("_%s_%s.deb", *flagEnvironment, deb.Arch)
+	} else {
+		newname += fmt.Sprintf("_%s.deb", deb.Arch)
 	}
 
 	if err := os.Rename(oldname, newname); err != nil {
