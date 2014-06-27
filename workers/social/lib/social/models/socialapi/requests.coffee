@@ -41,8 +41,8 @@ fetchActivityCount = (data, callback)->
   if not data.channelId
     return callback {message: "Request is not valid for fetching activity count"}
 
-  url = "/channel/count"
-  post url, data, callback
+  url = "/channel/#{data.channelId}/history/count"
+  get url, data, callback
 
 fetchGroupChannels = (data, callback)->
   if not data.groupName or not data.accountId
