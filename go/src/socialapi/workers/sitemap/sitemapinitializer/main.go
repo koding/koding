@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"os"
 	"socialapi/workers/common/runner"
 	"socialapi/workers/helper"
 	"socialapi/workers/sitemap/sitemapfeeder/feeder"
@@ -26,6 +25,5 @@ func main() {
 
 	if err := controller.Start(); err != nil {
 		r.Log.Fatal("Could not finish sitemap initialization: %s", err)
-		os.Exit(1)
 	}
 }
