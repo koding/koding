@@ -1,0 +1,20 @@
+#!/bin/bash
+
+export HOME=/root
+
+apt-get update > /dev/null
+apt-get install -y curl node npm > /dev/null
+cp /usr/bin/nodejs /usr/sbin/node
+curl -s https://get.docker.io/ubuntu/ | sudo sh
+npm i coffee-script -g --silent
+
+chmod +x /root/configure
+/root/configure $@
+
+
+docker build -t koding/run .
+
+cd ..
+chmod +x /root/run
+chmod +x /root/cleanup
+/root/run

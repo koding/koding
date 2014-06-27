@@ -21,6 +21,9 @@ rabbitmq        =
   login         : "guest"
   password      : "guest"
 
+redis =
+  host : "redis"
+  port : "6379"
 
 customDomain    =
   public        : "http://#{hostname}"
@@ -82,7 +85,7 @@ module.exports =
   mongoReplSet  : null
   mongoMinWrites: 1
   buildClient   : yes
-  redis         : "#{customDomain.local}:6379"
+  redis         : "#{redis.host}:#{redis.port}"
   subscriptionEndpoint   : "#{customDomain.public}:#{customDomain.port}/-/subscription/check/"
   misc          :
     claimGlobalNamesForUsers: no
@@ -189,26 +192,6 @@ module.exports =
     keyFile         : ""
     publicKeyFile   : "./certs/test_kontrol_rsa_public.pem"
     privateKeyFile  : "./certs/test_kontrol_rsa_private.pem"
-  proxyKite       :
-    domain        : "127.0.0.1"
-    certFile      : "./certs/vagrant_127.0.0.1_cert.pem"
-    keyFile       : "./certs/vagrant_127.0.0.1_key.pem"
-  etcd            : [ {host: "127.0.0.1", port: 4001} ]
-  kontrold        :
-    vhost         : "/"
-    overview      :
-      apiHost     : "127.0.0.1"
-      apiPort     : 8888
-      port        : 8080
-      kodingHost  : customDomain.public_
-      socialHost  : customDomain.public_
-    api           :
-      port        : 8888
-      url         : "#{customDomain.public}"
-    proxy         :
-      port        : 80
-      portssl     : 443
-      ftpip       : '127.0.0.1'
 
   client        :
     version     : version

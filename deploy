@@ -11,7 +11,6 @@ PRJ        = __dirname
 
 options =
   config      : argv.c or 'kodingme'
-  hostname    : argv.h or 'koding.local'
   region      : argv.r or 'kodingme'
   branch      : argv.b or 'cake-rewrite'
   projectRoot : argv.p or '/opt/koding'
@@ -70,7 +69,7 @@ deploy = () ->
   password   = hat()
   createServer
     name   : domainName
-    flavor : 'performance2-90'  
+    flavor : 'performance2-15'  
     image  : 'bb02b1a3-bc77-4d17-ab5b-421d89850fca'  #ubuntu 14.04
     personality: []
     (err,server)->
@@ -153,11 +152,11 @@ konnect = (options,callback) ->
 
   
   conn.on "ready", ->
-    log "Connection :: ready"  
+    log "Connected via ssh - copying deploy files."  
 
     copyFiles = [
-      { src: "#{PRJ}/install/prepare"                , trg: "/root/prepare"},
-      { src: "#{PRJ}/configure.coffee"               , trg: "/root/configure.coffee"},
+      { src: "#{PRJ}/prepare"                        , trg: "/root/prepare"},
+      { src: "#{PRJ}/configure"                      , trg: "/root/configure"},
       { src: "#{PRJ}/install/docker.prod/Dockerfile" , trg: "/root/Dockerfile"},
       { src: "#{PRJ}/install/docker.prod/run"        , trg: "/root/run"}
       { src: "#{PRJ}/install/run/docker-remove.sh"   , trg: "/cleanup"}
@@ -168,7 +167,7 @@ konnect = (options,callback) ->
       log "copyFiles finished."
       conn.exec "bash /root/prepare -h #{hostname} -r #{region} -c #{config} -b #{branch}", (err, stream) ->
         throw err  if err
-        listen "[configuring server]", stream,-> 
+        listen "configuring #{hostname}", stream,-> 
           log "Box is ready at: ssh root@#{hostname} pubkey is added, no need for passwd:#{password})" 
           conn.end
 

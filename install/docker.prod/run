@@ -30,31 +30,31 @@ SOCIALCONFIG=./go/src/socialapi/config/vagrant.toml
 mkdir -p $LOG
 
 
-echo docker run                 -d --name=mongo            --entrypoint=mongod                  koding/mongo    --dbpath /root/data/db --smallfiles --nojournal
-echo docker run     						-d --name=postgres                                              koding/postgres
-echo docker run     						-d --name=rabbitmq                                              koding/rabbitmq
-echo docker run     						-d --name=redis                                                 koding/redis    redis-server
-echo docker run     						-d --name=kontrol           --entrypoint=$GB/kontrol       		 																--link=mongo:mongo --link=postgres:postgres --link=redis:redis --link=redis:redis koding/run  -c $CFG -r $RGN
-echo docker run                 -d --name=kloud             --entrypoint=$GB/kloud         		 																--link=mongo:mongo --link=postgres:postgres --link=redis:redis --link=redis:redis koding/run  -c $CFG -r $RGN -public-key $PBKEY -private-key $PVKEY -kontrol-url "http://$HST:4000/kite"
-echo docker run                 -d --name=rerouting         --entrypoint=$GB/rerouting     		 																--link=mongo:mongo --link=postgres:postgres --link=redis:redis --link=redis:redis koding/run  -c $CFG
-echo docker run                 -d --name=cronJobs          --entrypoint=$GB/cron          		 																--link=mongo:mongo --link=postgres:postgres --link=redis:redis --link=redis:redis koding/run  -c $CFG
-echo docker run  -p 8008:8008   -d --name=broker            --entrypoint=$GB/broker        		 																--link=mongo:mongo --link=postgres:postgres --link=redis:redis --link=redis:redis koding/run  -c $CFG
-echo docker run  -p 4001:4001   -d --name=proxy             --entrypoint=$GB/reverseproxy  		 																--link=mongo:mongo --link=postgres:postgres --link=redis:redis --link=redis:redis koding/run  -region $RGN -host $HST -env production 
-echo docker run  -p 7000:7000   -d --name=socialapi         --entrypoint=$GB/api       		 		 -e "SOCIAL_API_HOSTNAME=$HST" 	--link=mongo:mongo --link=postgres:postgres --link=redis:redis --link=redis:redis koding/run  -c $SOCIALCONFIG -port 7000
-echo docker run                 -d --name=dailymailnotifier --entrypoint=$GB/dailymailnotifier -e "SOCIAL_API_HOSTNAME=$HST" 	--link=mongo:mongo --link=postgres:postgres --link=redis:redis --link=redis:redis koding/run  -c $SOCIALCONFIG
-echo docker run                 -d --name=notification      --entrypoint=$GB/notification      -e "SOCIAL_API_HOSTNAME=$HST" 	--link=mongo:mongo --link=postgres:postgres --link=redis:redis --link=redis:redis koding/run  -c $SOCIALCONFIG
-echo docker run                 -d --name=popularpost       --entrypoint=$GB/popularpost       -e "SOCIAL_API_HOSTNAME=$HST" 	--link=mongo:mongo --link=postgres:postgres --link=redis:redis --link=redis:redis koding/run  -c $SOCIALCONFIG
-echo docker run                 -d --name=populartopic      --entrypoint=$GB/populartopic      -e "SOCIAL_API_HOSTNAME=$HST" 	--link=mongo:mongo --link=postgres:postgres --link=redis:redis --link=redis:redis koding/run  -c $SOCIALCONFIG
-echo docker run                 -d --name=realtime          --entrypoint=$GB/realtime       	 -e "SOCIAL_API_HOSTNAME=$HST" 	--link=mongo:mongo --link=postgres:postgres --link=redis:redis --link=redis:redis koding/run  -c $SOCIALCONFIG
-echo docker run                 -d --name=sitemapfeeder     --entrypoint=$GB/sitemapfeeder     -e "SOCIAL_API_HOSTNAME=$HST"  --link=mongo:mongo --link=postgres:postgres --link=redis:redis --link=redis:redis koding/run  -c $SOCIALCONFIG
-echo docker run                 -d --name=topicfeed         --entrypoint=$GB/topicfeed       	 -e "SOCIAL_API_HOSTNAME=$HST"  --link=mongo:mongo --link=postgres:postgres --link=redis:redis --link=redis:redis koding/run  -c $SOCIALCONFIG
-echo docker run                 -d --name=trollmode         --entrypoint=$GB/trollmode       	 -e "SOCIAL_API_HOSTNAME=$HST"  --link=mongo:mongo --link=postgres:postgres --link=redis:redis --link=redis:redis koding/run  -c $SOCIALCONFIG
-echo docker run  -p 80:80       -d --name=webserver         --entrypoint=node 								 																--link=mongo:mongo --link=postgres:postgres --link=redis:redis --link=redis:redis koding/run  $PRJ/server/index.js               -c $CFG -p 80   --disable-newrelic
-echo docker run  -p 3526:3526   -d --name=sourceMapServer   --entrypoint=node 								 																--link=mongo:mongo --link=postgres:postgres --link=redis:redis --link=redis:redis koding/run  $PRJ/server/lib/source-server/index.js   -c $CFG -p 3526
-echo docker run                 -d --name=authWorker        --entrypoint=node 								 																--link=mongo:mongo --link=postgres:postgres --link=redis:redis --link=redis:redis koding/run  $PRJ/workers/auth/index.js         -c $CFG
-echo docker run  -p 3030:3030   -d --name=social            --entrypoint=node 								 																--link=mongo:mongo --link=postgres:postgres --link=redis:redis --link=redis:redis koding/run  $PRJ/workers/social/index.js       -c $CFG -p 3030 --disable-newrelic --kite-port=13020
-echo docker run                 -d --name=guestCleaner      --entrypoint=node 								 																--link=mongo:mongo --link=postgres:postgres --link=redis:redis --link=redis:redis koding/run  $PRJ/workers/guestcleaner/index.js -c $CFG
-echo docker run                 -d --name=emailSender       --entrypoint=node 								 																--link=mongo:mongo --link=postgres:postgres --link=redis:redis --link=redis:redis koding/run  $PRJ/workers/emailsender/index.js  -c $CFG
+docker run                 -d --name=mongo            --entrypoint=mongod                  koding/mongo    --dbpath /root/data/db --smallfiles --nojournal
+docker run     						-d --name=postgres                                              koding/postgres
+docker run     						-d --name=rabbitmq                                              koding/rabbitmq
+docker run     						-d --name=redis                                                 koding/redis    redis-server
+docker run     						-d --name=kontrol           --entrypoint=$GB/kontrol       		 																--link=mongo:mongo --link=postgres:postgres --link=redis:redis --link=redis:redis koding/run  -c $CFG -r $RGN
+docker run                 -d --name=kloud             --entrypoint=$GB/kloud         		 																--link=mongo:mongo --link=postgres:postgres --link=redis:redis --link=redis:redis koding/run  -c $CFG -r $RGN -public-key $PBKEY -private-key $PVKEY -kontrol-url "http://$HST:4000/kite"
+docker run                 -d --name=rerouting         --entrypoint=$GB/rerouting     		 																--link=mongo:mongo --link=postgres:postgres --link=redis:redis --link=redis:redis koding/run  -c $CFG
+docker run                 -d --name=cronJobs          --entrypoint=$GB/cron          		 																--link=mongo:mongo --link=postgres:postgres --link=redis:redis --link=redis:redis koding/run  -c $CFG
+docker run  -p 8008:8008   -d --name=broker            --entrypoint=$GB/broker        		 																--link=mongo:mongo --link=postgres:postgres --link=redis:redis --link=redis:redis koding/run  -c $CFG
+docker run  -p 4001:4001   -d --name=proxy             --entrypoint=$GB/reverseproxy  		 																--link=mongo:mongo --link=postgres:postgres --link=redis:redis --link=redis:redis koding/run  -region $RGN -host $HST -env production 
+docker run  -p 7000:7000   -d --name=socialapi         --entrypoint=$GB/api       		 		 -e "SOCIAL_API_HOSTNAME=$HST" 	--link=mongo:mongo --link=postgres:postgres --link=redis:redis --link=redis:redis koding/run  -c $SOCIALCONFIG -port 7000
+docker run                 -d --name=dailymailnotifier --entrypoint=$GB/dailymailnotifier -e "SOCIAL_API_HOSTNAME=$HST" 	--link=mongo:mongo --link=postgres:postgres --link=redis:redis --link=redis:redis koding/run  -c $SOCIALCONFIG
+docker run                 -d --name=notification      --entrypoint=$GB/notification      -e "SOCIAL_API_HOSTNAME=$HST" 	--link=mongo:mongo --link=postgres:postgres --link=redis:redis --link=redis:redis koding/run  -c $SOCIALCONFIG
+docker run                 -d --name=popularpost       --entrypoint=$GB/popularpost       -e "SOCIAL_API_HOSTNAME=$HST" 	--link=mongo:mongo --link=postgres:postgres --link=redis:redis --link=redis:redis koding/run  -c $SOCIALCONFIG
+docker run                 -d --name=populartopic      --entrypoint=$GB/populartopic      -e "SOCIAL_API_HOSTNAME=$HST" 	--link=mongo:mongo --link=postgres:postgres --link=redis:redis --link=redis:redis koding/run  -c $SOCIALCONFIG
+docker run                 -d --name=realtime          --entrypoint=$GB/realtime       	 -e "SOCIAL_API_HOSTNAME=$HST" 	--link=mongo:mongo --link=postgres:postgres --link=redis:redis --link=redis:redis koding/run  -c $SOCIALCONFIG
+docker run                 -d --name=sitemapfeeder     --entrypoint=$GB/sitemapfeeder     -e "SOCIAL_API_HOSTNAME=$HST"  --link=mongo:mongo --link=postgres:postgres --link=redis:redis --link=redis:redis koding/run  -c $SOCIALCONFIG
+docker run                 -d --name=topicfeed         --entrypoint=$GB/topicfeed       	 -e "SOCIAL_API_HOSTNAME=$HST"  --link=mongo:mongo --link=postgres:postgres --link=redis:redis --link=redis:redis koding/run  -c $SOCIALCONFIG
+docker run                 -d --name=trollmode         --entrypoint=$GB/trollmode       	 -e "SOCIAL_API_HOSTNAME=$HST"  --link=mongo:mongo --link=postgres:postgres --link=redis:redis --link=redis:redis koding/run  -c $SOCIALCONFIG
+docker run  -p 80:80       -d --name=webserver         --entrypoint=node 								 																--link=mongo:mongo --link=postgres:postgres --link=redis:redis --link=redis:redis koding/run  $PRJ/server/index.js               -c $CFG -p 80   --disable-newrelic
+docker run  -p 3526:3526   -d --name=sourceMapServer   --entrypoint=node 								 																--link=mongo:mongo --link=postgres:postgres --link=redis:redis --link=redis:redis koding/run  $PRJ/server/lib/source-server/index.js   -c $CFG -p 3526
+docker run                 -d --name=authWorker        --entrypoint=node 								 																--link=mongo:mongo --link=postgres:postgres --link=redis:redis --link=redis:redis koding/run  $PRJ/workers/auth/index.js         -c $CFG
+docker run  -p 3030:3030   -d --name=social            --entrypoint=node 								 																--link=mongo:mongo --link=postgres:postgres --link=redis:redis --link=redis:redis koding/run  $PRJ/workers/social/index.js       -c $CFG -p 3030 --disable-newrelic --kite-port=13020
+docker run                 -d --name=guestCleaner      --entrypoint=node 								 																--link=mongo:mongo --link=postgres:postgres --link=redis:redis --link=redis:redis koding/run  $PRJ/workers/guestcleaner/index.js -c $CFG
+docker run                 -d --name=emailSender       --entrypoint=node 								 																--link=mongo:mongo --link=postgres:postgres --link=redis:redis --link=redis:redis koding/run  $PRJ/workers/emailsender/index.js  -c $CFG
 
 
 
