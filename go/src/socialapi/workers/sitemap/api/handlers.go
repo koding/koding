@@ -18,15 +18,22 @@ var ErrFetch = errors.New("could not fetch files")
 
 type SitemapHandler struct{}
 
-// TODO wrap this TrieServeMux
+type ErrorResponse struct {
+	XMLName xml.Name `xml:"response"`
+	Error   string   `xml:"error"`
+}
+
 func InitHandlers(mux *tigertonic.TrieServeMux) *tigertonic.TrieServeMux {
-	// list notifications
-	// mux.Handle("GET", "/sitemap.xml", handler.XMLWrapper(&SitemapHandler{}, "sitemap"))
 	mux.HandleFunc("GET", "/sitemap.xml", Generate)
 
 	mux.HandleFunc("GET", "/sitemap/{name}", Fetch)
 
 	return mux
+}
+
+func NewDefaultError(err error) []byte {
+	res, _ := marshal(&ErrorResponse{Error: err.Error()})
+	return res
 }
 
 func Generate(w http.ResponseWriter, _ *http.Request) {
@@ -37,17 +44,17 @@ func Generate(w http.ResponseWriter, _ *http.Request) {
 
 	if err := sf.Some(&files, query); err != nil {
 		helper.MustGetLogger().Error("An error occurred while fetching files: %s", err)
-		http.Error(w, ErrFetch.Error(), http.StatusInternalServerError)
-		return //response.NewBadRequest(ErrFetch)
+		w.Write(NewDefaultError(ErrFetch))
+		return
 	}
 
 	set := models.NewSitemapSet(files, config.Get().Uri)
 
-	res, err := common.Marshal(set)
+	res, err := marshal(set)
 	if err != nil {
-		helper.MustGetLogger().Error("An error occurred while marshaling files: %s", err)
-		http.Error(w, ErrFetch.Error(), http.StatusInternalServerError)
-		return //response.NewBadRequest(ErrFetch)
+		helper.MustGetLogger().Error("An error occurred while marshalling files: %s", err)
+		w.Write(NewDefaultError(ErrFetch))
+		return
 	}
 
 	w.Header().Set("Content-Type", "application/xml")
@@ -59,7 +66,7 @@ func Fetch(w http.ResponseWriter, r *http.Request) {
 	names := strings.Split(fileName, ".")
 	if len(names) == 0 {
 		helper.MustGetLogger().Error("Name does not validated: %s", fileName)
-		http.Error(w, ErrFetch.Error(), http.StatusBadRequest)
+		w.Write(NewDefaultError(ErrFetch))
 		return
 	}
 
@@ -68,17 +75,18 @@ func Fetch(w http.ResponseWriter, r *http.Request) {
 	if err := sf.ByName(fileName); err != nil {
 		if err == bongo.RecordNotFound {
 			helper.MustGetLogger().Error("File not found: %s", fileName)
-			http.Error(w, ErrFetch.Error(), http.StatusBadRequest)
+			w.Write(NewDefaultError(ErrFetch))
 			return
 		}
 	}
 
 	if sf.Blob == nil || len(sf.Blob) == 0 {
 		helper.MustGetLogger().Error("Blob empty: %s", fileName)
-		http.Error(w, ErrFetch.Error(), http.StatusBadRequest)
+		w.Write(NewDefaultError(ErrFetch))
 		return
 	}
 
+	// append default xml header to the result set with UTF-8 encoding
 	header := []byte(xml.Header)
 	w.Header().Set("Content-Type", "application/xml")
 	w.Write(append(header, sf.Blob...))
