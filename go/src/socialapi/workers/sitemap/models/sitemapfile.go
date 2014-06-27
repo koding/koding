@@ -26,6 +26,10 @@ type SitemapFile struct {
 	UpdatedAt time.Time
 }
 
+func NewSitemapFile() *SitemapFile {
+	return &SitemapFile{}
+}
+
 func (f SitemapFile) GetId() int64 {
 	return f.Id
 }
@@ -68,7 +72,7 @@ func (f *SitemapFile) Fetch() error {
 }
 
 func (f *SitemapFile) UnmarshalBlob() (*ItemSet, error) {
-	set := new(ItemSet)
+	set := NewItemSet()
 
 	return set, xml.Unmarshal(f.Blob, set)
 }

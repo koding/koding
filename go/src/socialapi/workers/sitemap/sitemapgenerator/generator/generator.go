@@ -159,7 +159,7 @@ func (c *Controller) fetchElements() ([]*models.SitemapItem, error) {
 }
 
 func (c *Controller) updateFile(container *models.ItemContainer) error {
-	sf := new(models.SitemapFile)
+	sf := models.NewSitemapFile()
 	newItem := false
 	err := sf.ByName(c.fileName)
 	if err == bongo.RecordNotFound {

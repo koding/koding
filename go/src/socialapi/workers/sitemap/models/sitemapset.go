@@ -13,7 +13,7 @@ type SitemapSet struct {
 }
 
 func NewSitemapSet(files []SitemapFile, rootURL string) *SitemapSet {
-	ss := new(SitemapSet)
+	ss := &SitemapSet{}
 	ss.Sitemaps = make([]ItemDefinition, len(files))
 
 	for i := range files {

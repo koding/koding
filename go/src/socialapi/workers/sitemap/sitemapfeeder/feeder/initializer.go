@@ -181,7 +181,7 @@ func (c *Controller) queueChannels(channels []socialmodels.Channel) {
 
 func (c *Controller) createFileNames() {
 	for k := range fileMap {
-		sf := new(models.SitemapFile)
+		sf := models.NewSitemapFile()
 
 		// file is already created
 		err := sf.ByName(k)

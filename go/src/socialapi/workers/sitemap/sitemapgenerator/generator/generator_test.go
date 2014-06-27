@@ -76,7 +76,7 @@ func TestSitemapGeneration(t *testing.T) {
 				Convey("item should be able to added to sitemap", func() {
 					err = controller.updateFile(container)
 					So(err, ShouldBeNil)
-					sf := new(models.SitemapFile)
+					sf := models.NewSitemapFile()
 					err = sf.ByName(TESTFILE)
 					So(err, ShouldBeNil)
 					set, err := sf.UnmarshalBlob()
@@ -100,7 +100,7 @@ func TestSitemapGeneration(t *testing.T) {
 					container = controller.buildContainer(els)
 					err = controller.updateFile(container)
 					So(err, ShouldBeNil)
-					sf := new(models.SitemapFile)
+					sf := models.NewSitemapFile()
 					err = sf.ByName(TESTFILE)
 					So(err, ShouldBeNil)
 					currentSet, err := sf.UnmarshalBlob()
@@ -128,7 +128,7 @@ func TestSitemapGeneration(t *testing.T) {
 				Convey("item should be updated in sitemap file", func() {
 					err = controller.updateFile(container)
 					So(err, ShouldBeNil)
-					sf := new(models.SitemapFile)
+					sf := models.NewSitemapFile()
 					err = sf.ByName(TESTFILE)
 					So(err, ShouldBeNil)
 					currentSet, err := sf.UnmarshalBlob()
@@ -157,7 +157,7 @@ func TestSitemapGeneration(t *testing.T) {
 				Convey("item should be deleted from sitemap file", func() {
 					err = controller.updateFile(container)
 					So(err, ShouldBeNil)
-					sf := new(models.SitemapFile)
+					sf := models.NewSitemapFile()
 					err = sf.ByName(TESTFILE)
 					So(err, ShouldBeNil)
 					currentSet, err := sf.UnmarshalBlob()
@@ -193,7 +193,7 @@ func TestSitemapGeneration(t *testing.T) {
 			})
 		})
 		Convey("We should be able to tear down suite", func() {
-			sf := new(models.SitemapFile)
+			sf := models.NewSitemapFile()
 			err := sf.ByName(TESTFILE)
 			So(err, ShouldBeNil)
 			err = sf.Delete()
