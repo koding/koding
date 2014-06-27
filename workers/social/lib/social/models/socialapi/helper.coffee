@@ -54,6 +54,7 @@ doRequest = (funcName, client, options, callback)->
 
       options.groupName = group.slug
       options.accountId = socialApiId
+      options.showExempt = delegate.isExempt
 
       requests = require './requests'
       requests[funcName] options, callback
