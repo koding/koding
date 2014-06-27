@@ -75,6 +75,22 @@ func (q *Query) MapURL(u *url.URL) *Query {
 	return q
 }
 
+func (q *Query) Clone() *Query {
+	cq := NewQuery()
+	cq.Skip = q.Skip
+	cq.Limit = q.Limit
+	cq.To = q.To
+	cq.From = q.From
+	cq.GroupName = q.GroupName
+	cq.Type = q.Type
+	cq.Privacy = q.Privacy
+	cq.AccountId = q.AccountId
+	cq.Name = q.Name
+	cq.Slug = q.Slug
+	cq.ShowExempt = q.ShowExempt
+	return cq
+}
+
 func (q *Query) SetDefaults() *Query {
 	if q.Skip == 0 {
 		// no need to do something
