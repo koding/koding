@@ -87,13 +87,6 @@ getActivityContent = (activityContent)->
         """
       tags += content
 
-  marked = require 'marked'
-
-  body = marked body,
-    gfm       : true
-    pedantic  : false
-    sanitize  : true
-
   content  =
     """
     <div class="kdview kdlistitemview kdlistitemview-activity activity-item status">
