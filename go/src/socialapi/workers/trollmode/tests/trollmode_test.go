@@ -15,7 +15,6 @@ import (
 
 func TestTrollModeSetting(t *testing.T) {
 	var AccountOldId = bson.NewObjectId()
-
 	Convey("while testing troll mode", t, func() {
 		Convey("First Create User", func() {
 			account := models.NewAccount()
