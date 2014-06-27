@@ -110,7 +110,6 @@ class ActivityInputView extends KDTokenizedInput
     return position + startOffset
 
   focus: ->
-    return  if @focused
     super
     value = @getValue()
     unless value
