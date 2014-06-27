@@ -346,18 +346,17 @@ app.all '/:name/:section?/:slug?*', (req, res, next)->
   bongoModels = koding.models
 
   if isInAppRoute name
-
     if name is 'Develop'
       return res.redirect 301, '/Terminal'
 
-    if name in ['Activity', 'Topics']
-
+    if name in ['Activity']
       isLoggedIn req, res, (err, loggedIn, account)->
-        return next()  if loggedIn
 
+        return next()  if loggedIn
         staticHome = require "../crawler/staticpages/kodinghome"
         return res.send 200, staticHome() if path is ""
-        return Crawler.crawl koding, req, res, path
+
+        return Crawler.crawl koding, {req, res, slug: path}
 
     else
 
@@ -388,7 +387,6 @@ app.all '/:name/:section?/:slug?*', (req, res, next)->
   # Checks if its a User or Group from JName collection
   #
   else
-
     isLoggedIn req, res, (err, loggedIn, account)->
       return res.send 404, error_404()  if err
 
@@ -398,7 +396,7 @@ app.all '/:name/:section?/:slug?*', (req, res, next)->
         { models } = result
         if models.last?
           if models.last.bongo_?.constructorName isnt "JGroup" and not loggedIn
-            return Crawler.crawl koding, req, res, name
+            return Crawler.crawl koding, {req, res, slug: name, isProfile: yes}
 
           generateFakeClient req, res, (err, client)->
             homePageOptions = {section, account, bongoModels, isCustomPreview, client}
@@ -418,7 +416,7 @@ app.get "/", (req, res, next)->
     staticHome = require "../crawler/staticpages/kodinghome"
     slug = req.query._escaped_fragment_
     return res.send 200, staticHome() if slug is ""
-    return Crawler.crawl koding, req, res, slug
+    return Crawler.crawl koding, {req, res, slug}
 
   # User requests
   #
