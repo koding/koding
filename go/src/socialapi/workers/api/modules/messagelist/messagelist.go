@@ -26,6 +26,12 @@ func List(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface
 		return response.NewBadRequest(err)
 	}
 
+	// if channel is exempt and
+	// user should see the content, return not found err
+	if c.MetaBits.IsTroll() && !query.ShowExempt {
+		return response.NewNotFound()
+	}
+
 	canOpen, err := c.CanOpen(query.AccountId)
 	if err != nil {
 		return response.NewBadRequest(err)
