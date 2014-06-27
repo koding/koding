@@ -60,7 +60,7 @@ module.exports = (bongo, page, contentType, callback)=>
         return callback null, fullPage
       daisy queue
 
-getPagination = (currentPage, numberOfItems, contentType)->
+getPagination = (currentPage, numberOfItems, route="")->
   # This is the number of adjacent link around current page.
   # E.g. let current page be 9, then pagination will look like this:
   # First Prev ... 4 5 6 7 8 9 10 11 12 13 14 ... Next Last
@@ -71,12 +71,12 @@ getPagination = (currentPage, numberOfItems, contentType)->
   firstLink = prevLink = nextLink = lastLink = ""
 
   if currentPage > 1
-    firstLink = getSinglePageLink 1, contentType, "First"
-    prevLink  = getSinglePageLink (currentPage - 1), contentType, "Prev"
+    firstLink = getSinglePageLink 1, "First", route
+    prevLink  = getSinglePageLink (currentPage - 1), "Prev", route
 
   if currentPage < numberOfPages
-    lastLink  = getSinglePageLink numberOfPages, contentType, "Last"
-    nextLink  = getSinglePageLink (currentPage + 1), contentType, "Next"
+    lastLink  = getSinglePageLink numberOfPages, "Last", route
+    nextLink  = getSinglePageLink (currentPage + 1), "Next", route
 
   pagination = firstLink + prevLink
 
@@ -92,7 +92,7 @@ getPagination = (currentPage, numberOfItems, contentType)->
     pagination += getNoHrefLink " ... "
 
   [start..end].map (pageNumber)=>
-    pagination += getSinglePageLink pageNumber, contentType
+    pagination += getSinglePageLink pageNumber, null, route
 
   if end < numberOfPages
     pagination += getNoHrefLink " ... "
@@ -105,8 +105,8 @@ getPagination = (currentPage, numberOfItems, contentType)->
 getNoHrefLink = (linkText)->
   "<a href='#'>#{linkText}  </a>"
 
-getSinglePageLink = (pageNumber, contentType, linkText=pageNumber)->
-  link = "<a href='#{uri.address}/#{contentType}?page=#{pageNumber}'>#{linkText}  </a>"
+getSinglePageLink = (pageNumber, linkText=pageNumber, route)->
+  link = "<a href='#{uri.address}/#{route}?page=#{pageNumber}'>#{linkText}  </a>"
   return link
 
 appendDecoratedTopic = (tag, queue)=>
