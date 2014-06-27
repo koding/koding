@@ -19,13 +19,18 @@ var (
 )
 
 func (k *Kloud) DeployFunc(username, hostname, ipAddress string) (*protocol.DeployArtifact, error) {
+
+	log := func(msg string) {
+		k.Log.Info("%s ==> %s", username, msg)
+	}
+
 	sshAddress := ipAddress + ":22"
 	sshConfig, err := sshutil.SshConfig(protocol.PrivateKey)
 	if err != nil {
 		return nil, err
 	}
 
-	k.Log.Info("Connecting to SSH '%s'", sshAddress)
+	log("Connecting to SSH: " + sshAddress)
 	client, err := sshutil.ConnectSSH(sshAddress, sshConfig)
 	if err != nil {
 		return nil, err
@@ -37,7 +42,7 @@ func (k *Kloud) DeployFunc(username, hostname, ipAddress string) (*protocol.Depl
 		return nil, err
 	}
 
-	k.Log.Info("Creating a kite.key directory")
+	log("Creating a kite.key directory")
 	err = sftp.Mkdir("/etc/kite")
 	if err != nil {
 		return nil, err
@@ -48,7 +53,7 @@ func (k *Kloud) DeployFunc(username, hostname, ipAddress string) (*protocol.Depl
 		return nil, NewError(ErrSignGenerateToken)
 	}
 
-	k.Log.Info("Generating kite.key")
+	log("Creating a key with kontrolURL: " + k.KontrolURL)
 	kiteKey, err := k.createKey(username, tknID.String())
 	if err != nil {
 		return nil, err
@@ -59,13 +64,14 @@ func (k *Kloud) DeployFunc(username, hostname, ipAddress string) (*protocol.Depl
 		return nil, err
 	}
 
-	k.Log.Info("Copying a Key to remote machine username '%s'", username)
+	log("Copying kite.key to remote machine")
 	_, err = remoteFile.Write([]byte(kiteKey))
 	if err != nil {
 		return nil, err
 	}
 
 	bucket := NewBucket()
+	log("Fetcing latest klient.deb binary")
 	latestDeb, err := bucket.Latest()
 	if err != nil {
 		return nil, err
@@ -74,27 +80,28 @@ func (k *Kloud) DeployFunc(username, hostname, ipAddress string) (*protocol.Depl
 	// signedURL allows us to have public access for a limited time frame
 	signedUrl := bucket.SignedURL(latestDeb, expiresAt())
 
-	k.Log.Info("Downloading '%s' to /tmp inside the machine", filepath.Base(latestDeb))
+	log("Downloading '" + filepath.Base(latestDeb) + "' to /tmp inside the machine")
 	out, err := client.StartCommand(fmt.Sprintf("wget -O /tmp/klient-latest.deb '%s'", signedUrl))
 	if err != nil {
 		fmt.Println("out", out)
 		return nil, err
 	}
 
-	k.Log.Info("Installing klient on the machine")
+	log("Installing klient deb on the machine")
 	out, err = client.StartCommand("dpkg -i /tmp/klient-latest.deb")
 	if err != nil {
 		fmt.Println("out", out)
 		return nil, err
 	}
 
-	k.Log.Info("Removing leftover klient from the machine")
+	log("Removing leftover klient deb from the machine")
 	out, err = client.StartCommand("rm -f /tmp/klient-latest.deb")
 	if err != nil {
 		fmt.Println("out", out)
 		return nil, err
 	}
 
+	log("Restarting klient with kite.key")
 	out, err = client.StartCommand("service klient restart")
 	if err != nil {
 		return nil, err
