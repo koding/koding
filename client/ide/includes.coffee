@@ -34,8 +34,8 @@ module.exports = [
   "views/tabview/idesocialstabview.coffee"
 
   # file finder
-  "views/idefilefinderitem.coffee"
-  "views/idefilefinder.coffee"
+  "views/filefinder/idefilefinderitem.coffee"
+  "views/filefinder/idefilefinder.coffee"
 
   # shortcuts view
   "views/shortcutsview/shortcutview.coffee"
