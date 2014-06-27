@@ -81,7 +81,7 @@ class IDE.ShortcutsView extends KDView
       'Go to matching bracket' : 'Ctrl-P'
       'Go to page down'        : 'Ctrl-V'
       'Go to word left'        : { Others: 'Ctrl-Left',      Apple: 'Alt-Left'  }
-      'Go to word right'        : { Others: 'Ctrl-Right',    Apple: 'Alt-Right' }
+      'Go to word right'       : { Others: 'Ctrl-Right',    Apple: 'Alt-Right' }
       'Add multi-cursor above' : 'Ctrl-Alt-Up'
       'Add multi-cursor below' : 'Ctrl-Alt-Down'
       'Add next occurrence to multi-selection'     : 'Ctrl-Alt-Right'

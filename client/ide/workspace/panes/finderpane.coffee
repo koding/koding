@@ -33,7 +33,7 @@ class IDE.FinderPane extends IDE.Pane
     fc.on 'FileNeedsToBeOpened', (file) ->
       file.fetchContents (err, contents) ->
         appManager.tell 'IDE', 'openFile', file, contents
-        KD.singletons.windowController.setKeyView null
+        KD.getSingleton('windowController').setKeyView null
 
     fc.treeController.on 'TerminalRequested', (vm) ->
       appManager.tell 'IDE', 'openVMTerminal', vm
