@@ -17,12 +17,11 @@ import (
 
 type Deb struct {
 	// App informations
-	AppName     string
-	Version     string
-	Desc        string
-	Arch        string
-	SymbolName  string
-	SymbolValue string
+	AppName string
+	Version string
+	Desc    string
+	Arch    string
+	Ldflags string
 
 	// Build fields
 	Output          string
@@ -119,13 +118,7 @@ func (d *Deb) createInstallDir() error {
 	if err != nil {
 		return err
 	}
-
-	if d.SymbolName != "" && d.SymbolValue != "" {
-		dp.BuildSymbol = &deps.Symbol{
-			SymbolName:  d.SymbolName,
-			SymbolValue: d.SymbolValue,
-		}
-	}
+	dp.Ldflags = d.Ldflags
 
 	err = dp.InstallDeps()
 	if err != nil {
