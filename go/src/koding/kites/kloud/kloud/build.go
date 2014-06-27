@@ -61,11 +61,6 @@ func (k *Kloud) build(r *kite.Request, c *Controller) (resp interface{}, err err
 }
 
 func (k *Kloud) buildMachine(username string, c *Controller) error {
-	imageName := protocol.DefaultImageName
-	if c.ImageName != "" {
-		imageName = c.ImageName
-	}
-
 	instanceName := username + "-" + strconv.FormatInt(time.Now().UTC().UnixNano(), 10)
 	if c.InstanceName != "" {
 		instanceName = c.InstanceName
@@ -74,7 +69,7 @@ func (k *Kloud) buildMachine(username string, c *Controller) error {
 	machOptions := &protocol.MachineOptions{
 		MachineId:    c.MachineId,
 		Username:     username,
-		ImageName:    imageName,
+		ImageName:    c.ImageName,
 		InstanceName: instanceName,
 		Eventer:      c.Eventer,
 		Credential:   c.MachineData.Credential.Meta,

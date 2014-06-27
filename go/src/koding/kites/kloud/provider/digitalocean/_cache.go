@@ -131,39 +131,36 @@ func (c *Client) CachedDroplet(dropletName string, imageId uint) (uint, error) {
 }
 
 func (c *Client) GetDroplet(dropletName string, imageId uint) (uint, error) {
-	if !c.Caching {
-		c.Log.Info("Creating a new Droplet with name '%s' based on image id: %v",
-			dropletName, imageId)
-		return c.NewDroplet(dropletName, imageId)
+	if c.Caching {
+		c.Log.Info("Trying to find a cached Droplet based on image id: %v", imageId)
+		dropletId, err := c.CachedDroplet(dropletName, imageId)
+		if err == nil {
+			return dropletId, nil
+		}
+
+		// create cached droplets if there are no available
+		if err == ErrNoCachedDroplets || err == ErrCachedDropletInvalid {
+			c.Log.Info("No cached Droplets are available for image id: %v", imageId)
+			// TODO: for now just create one whenever we got one in the backend, we
+			// will handle this dynamically in the future
+			go func() {
+				image, err := c.Image(protocol.DefaultImageName)
+				if err != nil {
+					c.Log.Error("couldn't get image information for %s, err: %s",
+						protocol.DefaultImageName, err)
+					return
+				}
+
+				err = c.CreateCachedDroplet(image.Id)
+				if err != nil {
+					c.Log.Error("couldn't create a cache droplet %s, err: %s",
+						protocol.DefaultImageName, err)
+				}
+			}()
+		}
 	}
 
-	c.Log.Info("Trying to find a cached Droplet based on image id: %v", imageId)
-	dropletId, err := c.CachedDroplet(dropletName, imageId)
-	if err == nil {
-		return dropletId, nil
-	}
-
-	// create cached droplets if there are no available
-	if err == ErrNoCachedDroplets || err == ErrCachedDropletInvalid {
-		c.Log.Info("No cached Droplets are available for image id: %v", imageId)
-		// TODO: for now just create one whenever we got one in the backend, we
-		// will handle this dynamically in the future
-		go func() {
-			image, err := c.Image(protocol.DefaultImageName)
-			if err != nil {
-				c.Log.Error("couldn't get image information for %s, err: %s",
-					protocol.DefaultImageName, err)
-				return
-			}
-
-			err = c.CreateCachedDroplet(image.Id)
-			if err != nil {
-				c.Log.Error("couldn't create a cache droplet %s, err: %s",
-					protocol.DefaultImageName, err)
-			}
-
-		}()
-	}
-
+	c.Log.Info("Creating a new Droplet with name '%s' based on image id: %v",
+		dropletName, imageId)
 	return c.NewDroplet(dropletName, imageId)
 }

@@ -115,11 +115,6 @@ func (k *Kloud) NewKloud() *kodingkite.KodingKite {
 	return kt
 }
 
-func (k *Kloud) SignFunc(username string) (string, string, error) {
-	k.Log.Debug("Signing a key for user: '%s' kontrolURL: %s ", username, k.KontrolURL)
-	return createKey(username, k.KontrolURL, k.KontrolPrivateKey, k.KontrolPublicKey)
-}
-
 func (k *Kloud) GetProvider(providerName string) (protocol.Provider, error) {
 	provider, ok := providers[providerName]
 	if !ok {
@@ -141,14 +136,14 @@ func (k *Kloud) InitializeProviders() {
 	providers = map[string]protocol.Provider{
 		"digitalocean": &digitalocean.Provider{
 			Log:         createLogger("digitalocean", k.Debug),
-			SignFunc:    k.SignFunc,
+			DeployFunc:  k.DeployFunc,
 			Redis:       r,
 			Region:      k.Region,
 			Environment: k.Config.Environment,
 		},
 		"rackspace": &openstack.Provider{
 			Log:          createLogger("rackspace", k.Debug),
-			SignFunc:     k.SignFunc,
+			DeployFunc:   k.DeployFunc,
 			Region:       k.Region,
 			Environment:  k.Config.Environment,
 			AuthURL:      "https://identity.api.rackspacecloud.com/v2.0",

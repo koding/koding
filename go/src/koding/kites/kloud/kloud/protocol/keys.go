@@ -1,18 +1,14 @@
-package digitalocean
-
-import "text/template"
-
-var t = template.Must(template.New("hosts").Parse(hosts))
+package protocol
 
 const (
-	// name of the key saved in DigitalOcean
-	keyName = "koding-deployment"
+	// name of the key saved on remote provider
+	KeyName = "koding-deployment"
 
 	// RSA key pair that we add to the newly created machine for
 	// provisioning.
-	publicKey = `ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDYFQFq/DEN0B2YbiZqb3jr+iQphLrzW6svvBjQLUXiKA0P0NfgedvNbqqr2WQcQDKqdZQSHJPccfYYvjyy0wEwD7hq8BDkHTv83nMNxJb3hdmo/ibZmGoUBkw3K7E8fzaWzUDDNSlzBk3UrGayaaLxzOw1LhO5XUfesKNWCg4HzdzjjOklNpJ61iQP4u8JRqXJaOV5RPogHYFDlGXPOaBuDxvOZZanEgaKsfFkwEvpU0km5001XVf8spM7o8f2iEalG9CMF1UVk38/BKBngxSLRyYdP/K0ZdRBSq1syKs8/KPrDWQ6eyqG2cW6Zrb8wb2IDg7Na+PfnUlQn9S+jmF9 hello@koding.com`
+	PublicKey = `ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDYFQFq/DEN0B2YbiZqb3jr+iQphLrzW6svvBjQLUXiKA0P0NfgedvNbqqr2WQcQDKqdZQSHJPccfYYvjyy0wEwD7hq8BDkHTv83nMNxJb3hdmo/ibZmGoUBkw3K7E8fzaWzUDDNSlzBk3UrGayaaLxzOw1LhO5XUfesKNWCg4HzdzjjOklNpJ61iQP4u8JRqXJaOV5RPogHYFDlGXPOaBuDxvOZZanEgaKsfFkwEvpU0km5001XVf8spM7o8f2iEalG9CMF1UVk38/BKBngxSLRyYdP/K0ZdRBSq1syKs8/KPrDWQ6eyqG2cW6Zrb8wb2IDg7Na+PfnUlQn9S+jmF9 hello@koding.com`
 
-	privateKey = `-----BEGIN RSA PRIVATE KEY-----
+	PrivateKey = `-----BEGIN RSA PRIVATE KEY-----
 MIIEowIBAAKCAQEA2BUBavwxDdAdmG4mam946/okKYS681urL7wY0C1F4igND9DX
 4HnbzW6qq9lkHEAyqnWUEhyT3HH2GL48stMBMA+4avAQ5B07/N5zDcSW94XZqP4m
 2ZhqFAZMNyuxPH82ls1AwzUpcwZN1Kxmsmmi8czsNS4TuV1H3rCjVgoOB83c44zp
@@ -39,16 +35,4 @@ LEMMz1YM6c6B6e1AG8O+80RHo+og6wSQBquQ7qNk/rxKt7YYRUPL+ETc1MqdWIWH
 bC3K2UUHqakRw36hwLLadePZFUqC9AY8ITeZ43vIKhBKBQj3lhfSuc+vyHwCSuc7
 6+smUFdsRVz6i3SWFOjeBYMNuDR/xgBEh9teQfn4/9aiEi2QAriN
 -----END RSA PRIVATE KEY-----`
-
-	// default ubuntu /etc/hosts file which is used to replace with our custom
-	// hostname later
-	hosts = `127.0.0.1       localhost
-127.0.1.1       {{.}} {{.}}
-
-# The following lines are desirable for IPv6 capable hosts
-::1     ip6-localhost ip6-loopback
-fe00::0 ip6-localnet
-ff00::0 ip6-mcastprefix
-ff02::1 ip6-allnodes
-ff02::2 ip6-allrouters`
 )
