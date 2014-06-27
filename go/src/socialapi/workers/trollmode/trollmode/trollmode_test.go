@@ -791,6 +791,56 @@ func TestMarkedAsTroll(t *testing.T) {
 			// `normal user` liked it
 			So(history.RepliesCount, ShouldEqual, 3)
 		})
+		// private messsage
+		Convey("listing private messages should work for normal users", func() {
+			privatemessageChannelId, err := createPrivateMessageChannel(trollUser.Id, groupName)
+			So(err, ShouldBeNil)
+			So(privatemessageChannelId, ShouldBeGreaterThan, 0)
+
+			// fetch participants of this channel
+			c := models.NewChannel()
+			c.Id = privatemessageChannelId
+			participants, err := c.FetchParticipantIds(
+				&request.Query{
+					GroupName:  groupName,
+					ShowExempt: true,
+				},
+			)
+			tests.ResultedWithNoErrorCheck(participants, err)
+			So(len(participants), ShouldEqual, 2)
+
+			var otherUser int64
+			for _, participant := range participants {
+				if participant != trollUser.Id {
+					otherUser = participant
+					break
+				}
+			}
+
+			So(otherUser, ShouldNotEqual, 0)
+
+			channelContainers, err := rest.GetPrivateMessages(
+				&request.Query{
+					AccountId:  trollUser.Id,
+					ShowExempt: true,
+				},
+			)
+
+			So(err, ShouldBeNil)
+			So(channelContainers, ShouldNotBeNil)
+
+			found := false
+			for _, container := range channelContainers {
+				So(container.Channel, ShouldNotBeNil)
+				So(container.Channel.Id, ShouldNotEqual, 0)
+				if container.Channel.Id == privatemessageChannelId {
+					found = true
+				}
+			}
+
+			So(found, ShouldBeFalse)
+		})
+
 	})
 }
 
