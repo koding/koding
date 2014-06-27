@@ -3,7 +3,6 @@ package models
 import (
 	"errors"
 	"fmt"
-	"socialapi/models"
 	"socialapi/request"
 	"time"
 
@@ -277,7 +276,7 @@ func (c *ChannelParticipant) FetchParticipatedChannelIds(a *Account, q *request.
 
 	// add exempt clause if needed
 	if !q.ShowExempt {
-		query = query.Where("api.channel.meta_bits = ?", models.Safe)
+		query = query.Where("api.channel.meta_bits = ?", Safe)
 	}
 
 	rows, err := query.Limit(q.Limit).
