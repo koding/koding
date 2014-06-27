@@ -38,11 +38,15 @@ func (f SitemapFile) TableName() string {
 	return "sitemap.file"
 }
 
-func (f *SitemapFile) Create() error {
+func (f *SitemapFile) BeforeCreate() error {
 	if f.Name == "" {
 		return ErrNotSet
 	}
 
+	return nil
+}
+
+func (f *SitemapFile) Create() error {
 	return bongo.B.Create(f)
 }
 
