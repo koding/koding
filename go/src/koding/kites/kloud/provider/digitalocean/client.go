@@ -48,14 +48,11 @@ func (c *Client) Build(snapshotName, dropletName, username string) (*protocol.Bu
 	c.Push(fmt.Sprintf("Fetching image %s", snapshotName), 10, machinestate.Building)
 	image, err = c.Image(snapshotName)
 	if err != nil {
-		c.Push(fmt.Sprintf("Image %s does not exist, creating a new one", snapshotName), 12, machinestate.Building)
-		image, err = c.CreateImage()
-		if err != nil {
-			return nil, err
-		}
+		return nil, err
 	}
 
-	c.Push(fmt.Sprintf("Getting the droplet '%s' image '%d'", dropletName, image.Id), 15, machinestate.Building)
+	c.Push(fmt.Sprintf("Getting the droplet '%s' image '%d'",
+		dropletName, image.Id), 15, machinestate.Building)
 	dropletId, err := c.NewDroplet(dropletName, image.Id)
 	if err != nil {
 		return nil, err

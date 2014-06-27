@@ -5,10 +5,6 @@ import (
 	"koding/kites/kloud/kloud/machinestate"
 )
 
-var (
-	DefaultImageName = "koding-klient-0.0.1"
-)
-
 // Provider manages a machine. It is used to create and provision a single
 // image or machine for a given Provider, to start/stop/destroy/restart a
 // machine.

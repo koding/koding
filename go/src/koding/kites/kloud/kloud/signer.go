@@ -39,10 +39,5 @@ func (k *Kloud) createKey(username, kiteId string) (string, error) {
 		"kontrolKey": strings.TrimSpace(k.KontrolPublicKey), // Public key of kontrol
 	}
 
-	tokenString, err := token.SignedString([]byte(k.KontrolPrivateKey))
-	if err != nil {
-		return "", err
-	}
-
-	return tokenString, nil
+	return token.SignedString([]byte(k.KontrolPrivateKey))
 }

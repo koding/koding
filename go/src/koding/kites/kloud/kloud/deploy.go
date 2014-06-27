@@ -2,18 +2,21 @@ package kloud
 
 import (
 	"fmt"
+	"io/ioutil"
 	"koding/kites/kloud/kloud/protocol"
 	"koding/kites/kloud/sshutil"
+	"time"
 
 	klientprotocol "koding/kites/klient/protocol"
 
 	kiteprotocol "github.com/koding/kite/protocol"
-
 	"github.com/nu7hatch/gouuid"
+	"github.com/pkg/sftp"
 )
 
 var (
-	keyPath = "/opt/kite/klient/key/kite.key"
+	klientFile = "/klient/latest/klient_latest.deb"
+	expiresAt  = func() time.Time { return time.Now().Add(time.Minute) }
 )
 
 func (k *Kloud) DeployFunc(username, hostname, ipAddress string) (*protocol.DeployArtifact, error) {
@@ -30,55 +33,87 @@ func (k *Kloud) DeployFunc(username, hostname, ipAddress string) (*protocol.Depl
 	}
 	defer client.Close()
 
+	sftp, err := sftp.NewClient(client.Client)
+	if err != nil {
+		return nil, err
+	}
+
+	k.Log.Info("Creating a kite.key directory")
+	err = sftp.Mkdir("/etc/kite")
+	if err != nil {
+		return nil, err
+	}
+
 	tknID, err := uuid.NewV4()
 	if err != nil {
 		return nil, NewError(ErrSignGenerateToken)
 	}
 
+	k.Log.Info("Generating kite.key")
 	kiteKey, err := k.createKey(username, tknID.String())
 	if err != nil {
 		return nil, err
 	}
 
-	k.Log.Info("Copying a Key to remote machine username '%s'", username)
-	remoteFile, err := client.Create(keyPath)
+	ioutil.WriteFile("kite.key", []byte(kiteKey), 0755)
+
+	remoteFile, err := sftp.Create("/etc/kite/kite.key")
 	if err != nil {
 		return nil, err
 	}
 
+	k.Log.Info("Copying a Key to remote machine username '%s'", username)
 	_, err = remoteFile.Write([]byte(kiteKey))
 	if err != nil {
 		return nil, err
 	}
 
-	hostFile, err := client.Create("/etc/hosts")
+	signedUrl := NewBucket().SignedURL(klientFile, expiresAt())
+	k.Log.Info("Signed url is created: '%s'", signedUrl)
+
+	k.Log.Info("Downloading klient to the machine")
+	out, err := client.StartCommand(fmt.Sprintf("wget -O /tmp/klient-latest.deb '%s'", signedUrl))
 	if err != nil {
+		fmt.Println("out", out)
 		return nil, err
 	}
 
-	if err := t.Execute(hostFile, hostname); err != nil {
-		return nil, err
-	}
-
-	hostnameFile, err := client.Create("/etc/hostname")
+	k.Log.Info("Installing klient on the machine")
+	out, err = client.StartCommand("dpkg -i /tmp/klient-latest.deb")
 	if err != nil {
+		fmt.Println("out", out)
 		return nil, err
 	}
 
-	_, err = hostnameFile.Write([]byte(hostname))
+	// hostFile, err := client.Create("/etc/hosts")
+	// if err != nil {
+	// 	return nil, err
+	// }
+	//
+	// if err := t.Execute(hostFile, hostname); err != nil {
+	// 	return nil, err
+	// }
+	//
+	// hostnameFile, err := client.Create("/etc/hostname")
+	// if err != nil {
+	// 	return nil, err
+	// }
+	//
+	// _, err = hostnameFile.Write([]byte(hostname))
+	// if err != nil {
+	// 	return nil, err
+	// }
+
+	// if err := client.StartCommand(fmt.Sprintf("hostname %s", hostname)); err != nil {
+	// 	return nil, err
+	// }
+	// out, err = client.StartCommand("service networking restart")
+	// if err != nil {
+	// 	return nil, err
+	// }
+	//
+	out, err = client.StartCommand("service klient restart")
 	if err != nil {
-		return nil, err
-	}
-
-	if err := client.StartCommand(fmt.Sprintf("hostname %s", hostname)); err != nil {
-		return nil, err
-	}
-
-	if err := client.StartCommand("service networking restart"); err != nil {
-		return nil, err
-	}
-
-	if err := client.StartCommand("service klient start"); err != nil {
 		return nil, err
 	}
 
@@ -93,16 +128,16 @@ func (k *Kloud) DeployFunc(username, hostname, ipAddress string) (*protocol.Depl
 		Version:     "0.0.1",
 	}
 
-	k.Log.Info("Connecting to remote Klient instance")
-	klient, err := k.Klient(query.String())
-	if err != nil {
-		k.Log.Warning("Connecting to remote Klient instance err: %s", err)
-	} else {
-		k.Log.Info("Sending a ping message")
-		if err := klient.Ping(); err != nil {
-			k.Log.Warning("Sending a ping message err:", err)
-		}
-	}
+	// k.Log.Info("Connecting to remote Klient instance")
+	// klient, err := k.Klient(query.String())
+	// if err != nil {
+	// 	k.Log.Warning("Connecting to remote Klient instance err: %s", err)
+	// } else {
+	// 	k.Log.Info("Sending a ping message")
+	// 	if err := klient.Ping(); err != nil {
+	// 		k.Log.Warning("Sending a ping message err:", err)
+	// 	}
+	// }
 
 	return &protocol.DeployArtifact{
 		KiteQuery: query.String(),

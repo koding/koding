@@ -77,7 +77,7 @@ func (p *Provider) Build(opts *protocol.MachineOptions) (*protocol.BuildResponse
 	}
 
 	if opts.ImageName == "" {
-		return nil, errors.New("snapshotName is empty")
+		opts.ImageName = "ubuntu-14-04-x64"
 	}
 
 	if opts.InstanceName == "" {

@@ -33,18 +33,19 @@ func (s *SSHClient) Create(path string) (*sftp.File, error) {
 	return sftp.Create(path)
 }
 
-func (s *SSHClient) StartCommand(command string) error {
+func (s *SSHClient) StartCommand(command string) (string, error) {
 	session, err := s.NewSession()
 	if err != nil {
-		return err
+		return "", err
 	}
 	defer session.Close()
 
-	stdoutBuffer, stderrBuffer := new(bytes.Buffer), new(bytes.Buffer)
-	session.Stdout, session.Stderr = stdoutBuffer, stderrBuffer
+	combinedOutput := new(bytes.Buffer)
+	session.Stdout = combinedOutput
+	session.Stderr = combinedOutput
 
 	if err := session.Start(command); err != nil {
-		return err
+		return "", err
 	}
 
 	// Wait for the SCP connection to close, meaning it has consumed all
@@ -59,16 +60,16 @@ func (s *SSHClient) StartCommand(command string) error {
 			// If we exited with status 127, it means SCP isn't available.
 			// Return a more descriptive error for that.
 			if exitErr.ExitStatus() == 127 {
-				return errors.New(
+				return "", errors.New(
 					"SCP failed to start. This usually means that SCP is not\n" +
 						"properly installed on the remote system.")
 			}
 		}
 
-		return err
+		return "", err
 	}
 
-	return nil
+	return combinedOutput.String(), nil
 }
 
 // ConnectSSH tries to connect to the given IP and returns a new client.
