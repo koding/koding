@@ -14,12 +14,7 @@ import (
 	"github.com/pkg/sftp"
 )
 
-var (
-	expiresAt = func() time.Time { return time.Now().Add(time.Minute) }
-)
-
 func (k *Kloud) DeployFunc(username, hostname, ipAddress string) (*protocol.DeployArtifact, error) {
-
 	log := func(msg string) {
 		k.Log.Info("%s ==> %s", username, msg)
 	}
@@ -78,7 +73,7 @@ func (k *Kloud) DeployFunc(username, hostname, ipAddress string) (*protocol.Depl
 	}
 
 	// signedURL allows us to have public access for a limited time frame
-	signedUrl := bucket.SignedURL(latestDeb, expiresAt())
+	signedUrl := bucket.SignedURL(latestDeb, time.Now().Add(time.Minute))
 
 	log("Downloading '" + filepath.Base(latestDeb) + "' to /tmp inside the machine")
 	out, err := client.StartCommand(fmt.Sprintf("wget -O /tmp/klient-latest.deb '%s'", signedUrl))

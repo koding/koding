@@ -27,9 +27,6 @@ func (k *Kloud) createKey(username, kiteId string) (string, error) {
 
 	token := jwt.New(jwt.GetSigningMethod("RS256"))
 
-	k.Log.Info("Creating a key for username: '%s' with kontrolURL: '%s'",
-		username, k.KontrolURL)
-
 	token.Claims = map[string]interface{}{
 		"iss":        "koding",                              // Issuer, should be the same username as kontrol
 		"sub":        username,                              // Subject

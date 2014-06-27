@@ -136,14 +136,12 @@ func (k *Kloud) InitializeProviders() {
 	providers = map[string]protocol.Provider{
 		"digitalocean": &digitalocean.Provider{
 			Log:         createLogger("digitalocean", k.Debug),
-			DeployFunc:  k.DeployFunc,
 			Redis:       r,
 			Region:      k.Region,
 			Environment: k.Config.Environment,
 		},
 		"rackspace": &openstack.Provider{
 			Log:          createLogger("rackspace", k.Debug),
-			DeployFunc:   k.DeployFunc,
 			Region:       k.Region,
 			Environment:  k.Config.Environment,
 			AuthURL:      "https://identity.api.rackspacecloud.com/v2.0",

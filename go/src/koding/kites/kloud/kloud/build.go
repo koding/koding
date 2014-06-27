@@ -86,16 +86,21 @@ func (k *Kloud) buildMachine(username string, c *Controller) error {
 	if err != nil {
 		return err
 	}
-	k.Log.Debug("[controller]: method 'build' is successfull %#v", resp)
-
 	if resp == nil {
 		return NewError(ErrBadResponse)
+	}
+	k.Log.Debug("[controller]: method 'build' is successfull %#v", resp)
+
+	k.Log.Info("[controller]: deploying klient.deb and setting up machine")
+	artifact, err := k.DeployFunc(username, resp.InstanceName, resp.IpAddress)
+	if err != nil {
+		return err
 	}
 
 	return k.Storage.Update(c.MachineId, &StorageData{
 		Type: "build",
 		Data: map[string]interface{}{
-			"queryString":  resp.QueryString,
+			"queryString":  artifact.KiteQuery,
 			"ipAddress":    resp.IpAddress,
 			"instanceId":   strconv.Itoa(resp.InstanceId),
 			"instanceName": resp.InstanceName,

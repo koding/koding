@@ -20,9 +20,8 @@ import (
 
 type Client struct {
 	*do.DigitalOcean
-	Log        logging.Logger
-	Push       func(string, int, machinestate.State)
-	DeployFunc func(string, string, string) (*protocol.DeployArtifact, error)
+	Log  logging.Logger
+	Push func(string, int, machinestate.State)
 
 	Caching     bool
 	CachePrefix string
@@ -65,15 +64,7 @@ func (c *Client) Build(snapshotName, dropletName, username string) (*protocol.Bu
 		return nil, err
 	}
 
-	// deploy klient and kite.key
-	c.Push(fmt.Sprintf("Deploying klient kite"), 80, machinestate.Building)
-	artifact, err := c.DeployFunc(username, dropletName, droplet.IpAddress)
-	if err != nil {
-		return nil, err
-	}
-
 	return &protocol.BuildResponse{
-		QueryString:  artifact.KiteQuery,
 		IpAddress:    droplet.IpAddress,
 		InstanceName: dropletName, // we don't use droplet.Name because it might have the cached name
 		InstanceId:   droplet.Id,

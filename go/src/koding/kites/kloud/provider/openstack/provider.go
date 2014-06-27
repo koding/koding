@@ -12,9 +12,8 @@ import (
 )
 
 type Provider struct {
-	Log        logging.Logger
-	DeployFunc func(string, string, string) (*protocol.DeployArtifact, error)
-	Push       func(string, int, machinestate.State)
+	Log  logging.Logger
+	Push func(string, int, machinestate.State)
 
 	Region       string
 	Environment  string
