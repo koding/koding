@@ -99,7 +99,8 @@ class IDE.FileFinder extends KDCustomHTMLView
     file = FSHelper.createFileFromPath path
 
     file.fetchContents (err, contents) =>
-      return warn err  if err # TODO: Handle error
+      return @showWarning 'An error occured, please try again.'  if err
+
       @destroy()
       KD.getSingleton('appManager').tell 'IDE', 'openFile', file, contents
 
