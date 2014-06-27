@@ -9,7 +9,6 @@ class IDE.FileFinder extends KDCustomHTMLView
     @addSubView @input = input = new KDInputView
       type         : 'text'
       placeholder  : 'Type file name to search'
-      callback     : @bound 'search'
       keyup        :
         'esc'      : @bound 'destroy'
         'enter'    : @bound 'handleEnterKey'
@@ -18,7 +17,7 @@ class IDE.FileFinder extends KDCustomHTMLView
 
     input.on 'keyup', KD.utils.debounce 300, @bound 'handleKeyUp'
     input.on 'keyup', =>
-      if input.getValue() is '' then input.unsetClass 'has-text'
+      if   input.getValue() is '' then input.unsetClass 'has-text'
       else input.setClass 'has-text'
 
     @addSubView new KDCustomHTMLView cssClass: 'icon'
