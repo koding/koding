@@ -115,45 +115,6 @@ module.exports = (account, statusUpdates)=>
   </html>
   """
 
-getDock = ->
-  """
-  <header id="main-header" class="kdview">
-      <div class="inner-container">
-          <a id="koding-logo" href="/">
-              <cite></cite>
-          </a>
-          <div id="dock" class="">
-              <div id="main-nav" class="kdview kdlistview kdlistview-navigation">
-                  <a class="kdview kdlistitemview kdlistitemview-main-nav activity kddraggable running" href="/Activity" style="left: 0px;">
-                      <span class="icon"></span>
-                      <cite>Activity</cite>
-                  </a>
-                  <a class="kdview kdlistitemview kdlistitemview-main-nav teamwork kddraggable" href="/Teamwork" style="left: 55px;">
-                      <span class="icon"></span>
-                      <cite>Teamwork</cite>
-                  </a>
-                  <a class="kdview kdlistitemview kdlistitemview-main-nav terminal kddraggable" href="/Terminal" style="left: 110px;">
-                      <span class="icon"></span>
-                      <cite>Terminal</cite>
-                  </a>
-                  <a class="kdview kdlistitemview kdlistitemview-main-nav editor kddraggable" href="/Ace" style="left: 165px;">
-                      <span class="icon"></span>
-                      <cite>Editor</cite>
-                  </a>
-                  <a class="kdview kdlistitemview kdlistitemview-main-nav apps kddraggable" href="/Apps" style="left: 220px;">
-                      <span class="icon"></span>
-                      <cite>Apps</cite>
-                  </a>
-              </div>
-          </div>
-          <div class="account-area">
-            <a class="custom-link-view header-sign-in" href="/Register">create an account</a>
-            <a class="custom-link-view header-sign-in" href="/Login">login</a>
-          </div>
-      </div>
-  </header>
-  """
-
 putContent = (account, sUpdates)=>
   getGraphMeta = require './graphmeta'
   profile      = getProfile account
