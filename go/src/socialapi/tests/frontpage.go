@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"socialapi/models"
+	"socialapi/request"
 	"socialapi/rest"
 
 	"labix.org/v2/mgo/bson"
@@ -41,8 +42,9 @@ func testFrontpageOperations() {
 		}
 	}
 }
+
 func fetchHistoryAndCheckMessages(channelId, accountId int64) {
-	history, err := rest.GetHistory(channelId, accountId)
+	history, err := rest.GetHistory(channelId, &request.Query{AccountId: accountId})
 	if err != nil {
 		fmt.Println(err)
 		return
