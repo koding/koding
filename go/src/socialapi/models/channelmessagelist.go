@@ -19,7 +19,7 @@ type ChannelMessageList struct {
 	MessageId int64 `json:"messageId,string"     sql:"NOT NULL"`
 
 	// holds troll, unsafe, etc
-	MetaBits MetaBits `json:"-"`
+	MetaBits MetaBits `json:"metaBits"`
 
 	// Addition date of the message to the channel
 	// this date will be update whever message added/removed/re-added to the channel

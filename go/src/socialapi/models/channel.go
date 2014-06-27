@@ -37,7 +37,7 @@ type Channel struct {
 	PrivacyConstant string `json:"privacyConstant"   sql:"NOT NULL;TYPE:VARCHAR(100);"`
 
 	// MetaBits holds meta bit information about the channel
-	MetaBits MetaBits `json:"-"`
+	MetaBits MetaBits `json:"metaBits"`
 
 	// Creation date of the channel
 	CreatedAt time.Time `json:"createdAt"            sql:"NOT NULL"`

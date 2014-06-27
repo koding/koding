@@ -25,7 +25,7 @@ type ChannelParticipant struct {
 	StatusConstant string `json:"statusConstant"   sql:"NOT NULL;TYPE:VARCHAR(100);"`
 
 	// holds troll, unsafe, etc
-	MetaBits MetaBits `json:"-"`
+	MetaBits MetaBits `json:"metaBits"`
 
 	// date of the user's last access to regarding channel
 	LastSeenAt time.Time `json:"lastSeenAt"        sql:"NOT NULL"`

@@ -20,7 +20,7 @@ type Interaction struct {
 	AccountId int64 `json:"accountId,string"      sql:"NOT NULL"`
 
 	// holds troll, unsafe, etc
-	MetaBits MetaBits `json:"-"`
+	MetaBits MetaBits `json:"metaBits"`
 
 	// Type of the interaction
 	TypeConstant string `json:"typeConstant"      sql:"NOT NULL;TYPE:VARCHAR(100);"`
