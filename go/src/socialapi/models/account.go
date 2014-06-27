@@ -291,6 +291,7 @@ func FetchOldIdsByAccountIds(accountIds []int64) ([]string, error) {
 	}
 
 	res := bongo.B.DB.
+		Model(Account{}).
 		Table(Account{}.TableName()).
 		Where("id IN (?)", accountIds).
 		Pluck("old_id", &oldIds)
