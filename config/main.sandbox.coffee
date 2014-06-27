@@ -220,8 +220,8 @@ module.exports =
     heartbeat   : 20
     vhost       : 'new'
   broker              :
-    name              : "broker"
-    serviceGenericName: "broker"
+    name              : "sandboxBroker"
+    serviceGenericName: "sandboxBroker"
     ip                : ""
     port              : 443
     certFile          : "/opt/ssl_certs/wildcard.koding.com.cert"
@@ -229,7 +229,7 @@ module.exports =
     webProtocol       : 'https:'
     authExchange      : authExchange
     authAllExchange   : authAllExchange
-    failoverUri       : 'stage-broker.koding.com'
+    failoverUri       : 'sandbox.koding.com'
   premiumBroker       :
     name              : "premiumBroker"
     serviceGenericName: "broker"
@@ -240,29 +240,29 @@ module.exports =
     webProtocol       : 'https:'
     authExchange      : authExchange
     authAllExchange   : authAllExchange
-    failoverUri       : 'stage-premiumbroker.koding.com'
+    failoverUri       : 'sandbox.koding.com'
   brokerKite          :
-    name              : "brokerKite"
-    serviceGenericName: "brokerKite"
+    name              : "sandboxBrokerKite"
+    serviceGenericName: "sandboxBrokerKite"
     ip                : ""
-    port              : 443
+    port              : 444
     certFile          : "/opt/ssl_certs/wildcard.koding.com.cert"
     keyFile           : "/opt/ssl_certs/wildcard.koding.com.key"
     webProtocol       : 'https:'
     authExchange      : authExchange
     authAllExchange   : authAllExchange
-    failoverUri       : 'stage-brokerkite.koding.com'
+    failoverUri       : 'sandbox.koding.com'
   premiumBrokerKite   :
     name              : "premiumBrokerKite"
     serviceGenericName: "brokerKite"
     ip                : ""
-    port              : 443
+    port              : 444
     certFile          : "/opt/ssl_certs/wildcard.koding.com.cert"
     keyFile           : "/opt/ssl_certs/wildcard.koding.com.key"
     webProtocol       : 'https:'
     authExchange      : authExchange
     authAllExchange   : authAllExchange
-    failoverUri       : 'stage-premiumbrokerkite.koding.com'
+    failoverUri       : 'sandbox.koding.com'
   kites:
     disconnectTimeout: 3e3
     vhost       : 'kite'

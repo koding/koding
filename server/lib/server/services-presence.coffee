@@ -1,6 +1,6 @@
 request = require 'request'
 
-supportedServices = ['broker', 'premiumBroker', 'brokerKite', 'premiumBrokerKite']
+supportedServices = ['broker', 'sandboxBroker', 'premiumBroker', 'brokerKite', 'sandboxBrokerKite', 'premiumBrokerKite']
 
 getFailoverUrl = (serviceName)->
   { webProtocol, failoverUri, port } = KONFIG[serviceName]
