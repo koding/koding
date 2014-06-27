@@ -3,6 +3,7 @@ package models
 import (
 	"errors"
 	"fmt"
+	"socialapi/models"
 	"socialapi/request"
 	"time"
 
@@ -61,11 +62,13 @@ func (c ChannelParticipant) TableName() string {
 
 func (c *ChannelParticipant) BeforeCreate() error {
 	c.LastSeenAt = time.Now().UTC()
+
 	return c.MarkIfExempt()
 }
 
 func (c *ChannelParticipant) BeforeUpdate() error {
 	c.LastSeenAt = time.Now().UTC()
+
 	return c.MarkIfExempt()
 }
 
@@ -265,15 +268,22 @@ func (c *ChannelParticipant) FetchParticipatedChannelIds(a *Account, q *request.
 	channelIds := make([]int64, 0)
 
 	// var results []ChannelParticipant
-	rows, err := bongo.B.DB.
+	query := bongo.B.DB.
 		Model(c).
 		Table(c.TableName()).
 		Select("api.channel_participant.channel_id").
 		Joins("left join api.channel on api.channel_participant.channel_id = api.channel.id").
-		Where("api.channel_participant.account_id = ? and api.channel.type_constant = ? and  api.channel_participant.status_constant = ?", a.Id, q.Type, ChannelParticipant_STATUS_ACTIVE).
-		Limit(q.Limit).
+		Where("api.channel_participant.account_id = ? and api.channel.type_constant = ? and  api.channel_participant.status_constant = ?", a.Id, q.Type, ChannelParticipant_STATUS_ACTIVE)
+
+	// add exempt clause if needed
+	if !q.ShowExempt {
+		query = query.Where("api.channel.meta_bits = ?", models.Safe)
+	}
+
+	rows, err := query.Limit(q.Limit).
 		Offset(q.Skip).
 		Rows()
+
 	defer rows.Close()
 	if err != nil {
 		return channelIds, err
