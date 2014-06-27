@@ -41,6 +41,26 @@ const (
 	Interaction_TYPE_DONWVOTE = "downvote"
 )
 
+func (i *Interaction) BeforeCreate() error {
+	return i.MarkIfExempt()
+}
+
+func (i *Interaction) BeforeUpdate() error {
+	return i.MarkIfExempt()
+}
+
+func (i *Interaction) AfterCreate() {
+	bongo.B.AfterCreate(i)
+}
+
+func (i *Interaction) AfterUpdate() {
+	bongo.B.AfterUpdate(i)
+}
+
+func (i Interaction) AfterDelete() {
+	bongo.B.AfterDelete(i)
+}
+
 func (i Interaction) GetId() int64 {
 	return i.Id
 }
@@ -78,26 +98,6 @@ func (i *Interaction) CreateRaw() error {
 	return bongo.B.DB.CommonDB().
 		QueryRow(insertSql, i.MessageId, i.AccountId, i.TypeConstant, i.CreatedAt).
 		Scan(&i.Id)
-}
-
-func (i *Interaction) AfterCreate() {
-	bongo.B.AfterCreate(i)
-}
-
-func (i *Interaction) AfterUpdate() {
-	bongo.B.AfterUpdate(i)
-}
-
-func (i Interaction) AfterDelete() {
-	bongo.B.AfterDelete(i)
-}
-
-func (i *Interaction) BeforeCreate() error {
-	return i.MarkIfExempt()
-}
-
-func (i *Interaction) BeforeUpdate() error {
-	return i.MarkIfExempt()
 }
 
 func (i *Interaction) MarkIfExempt() error {
