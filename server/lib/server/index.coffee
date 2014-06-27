@@ -331,15 +331,16 @@ isInAppRoute = (name)->
 # Handles all internal pages
 # /USER || /SECTION || /GROUP[/SECTION] || /APP
 #
-app.all '/:name/:section?*', (req, res, next)->
-
+app.all '/:name/:section?/:slug?*', (req, res, next)->
   {JName, JGroup} = koding.models
-  {name, section} = req.params
+  {name, section, slug} = req.params
   isCustomPreview = req.cookies["custom-partials-preview-mode"]
-  path            = if section then "#{name}/#{section}" else name
+
+  path = name
+  path = "#{path}/#{section}"  if section
+  path = "#{path}/#{slug}"     if slug
 
   return res.redirect 301, req.url.substring 7  if name in ['koding', 'guests']
-
   # Checks if its an internal request like /Activity, /Terminal ...
   #
   bongoModels = koding.models
