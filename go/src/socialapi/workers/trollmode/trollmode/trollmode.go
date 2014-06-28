@@ -113,7 +113,7 @@ func (c *Controller) markChannels(account *models.Account) error {
 		}
 
 		for i, channel := range channels {
-			channel.MetaBits.MarkTroll()
+			channel.MetaBits.Mark(models.Troll)
 			if err := channel.Update(); err != nil {
 				erroredChannels = append(erroredChannels, channels[i])
 			}
@@ -160,7 +160,7 @@ func (c *Controller) markParticipations(account *models.Account) error {
 		}
 
 		for i, channelParticipant := range channelParticipants {
-			channelParticipant.MetaBits.MarkTroll()
+			channelParticipant.MetaBits.Mark(models.Troll)
 			if err := channelParticipant.Update(); err != nil {
 				erroredChannelParticipants = append(erroredChannelParticipants, channelParticipants[i])
 			}
@@ -217,7 +217,7 @@ func (c *Controller) markMessages(account *models.Account) error {
 				return err
 			}
 
-			message.MetaBits.MarkTroll()
+			message.MetaBits.Mark(models.Troll)
 			// ChannelMessage update only updates body of the message
 			if err := bongo.B.Update(message); err != nil {
 				erroredMessages = append(erroredMessages, messages[i])
@@ -264,7 +264,7 @@ func (c *Controller) markMessageLists(message *models.ChannelMessage) error {
 		}
 
 		for i, item := range messageList {
-			item.MetaBits.MarkTroll()
+			item.MetaBits.Mark(models.Troll)
 			if err := item.Update(); err != nil {
 				erroredMessages = append(erroredMessages, messageList[i])
 			}
@@ -310,7 +310,7 @@ func (c *Controller) markMessageReplies(message *models.ChannelMessage) error {
 		}
 
 		for i, messageReply := range messageList {
-			messageReply.MetaBits.MarkTroll()
+			messageReply.MetaBits.Mark(models.Troll)
 			if err := messageReply.Update(); err != nil {
 				erroredMessages = append(erroredMessages, messageList[i])
 			}
@@ -356,7 +356,7 @@ func (c *Controller) markInteractions(account *models.Account) error {
 		}
 
 		for i, interaction := range interactions {
-			interaction.MetaBits.MarkTroll()
+			interaction.MetaBits.Mark(models.Troll)
 			if err := interaction.Update(); err != nil {
 				erroredInteractions = append(erroredInteractions, interactions[i])
 			}
