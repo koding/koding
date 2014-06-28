@@ -62,7 +62,7 @@ func (m *MessageReply) MarkIfExempt() error {
 	}
 
 	if isExempt {
-		m.MetaBits.MarkTroll()
+		m.MetaBits.Mark(Troll)
 	}
 
 	return nil

@@ -349,7 +349,7 @@ func (c *ChannelMessageList) MarkIfExempt() error {
 	}
 
 	if isExempt {
-		c.MetaBits.MarkTroll()
+		c.MetaBits.Mark(Troll)
 	}
 
 	return nil
