@@ -115,7 +115,6 @@ func (c *Controller) markChannels(account *models.Account) error {
 		for i, channel := range channels {
 			channel.MetaBits.MarkTroll()
 			if err := channel.Update(); err != nil {
-				c.log.Error(err.Error())
 				erroredChannels = append(erroredChannels, channels[i])
 			}
 		}
@@ -125,9 +124,7 @@ func (c *Controller) markChannels(account *models.Account) error {
 	}
 
 	if len(erroredChannels) != 0 {
-		err := errors.New(fmt.Sprintf("some errors: %v", erroredChannels))
-		c.log.Error(err.Error())
-		return err
+		return errors.New(fmt.Sprintf("some errors: %v", erroredChannels))
 	}
 
 	return nil
@@ -165,7 +162,6 @@ func (c *Controller) markParticipations(account *models.Account) error {
 		for i, channelParticipant := range channelParticipants {
 			channelParticipant.MetaBits.MarkTroll()
 			if err := channelParticipant.Update(); err != nil {
-				c.log.Error(err.Error())
 				erroredChannelParticipants = append(erroredChannelParticipants, channelParticipants[i])
 			}
 		}
@@ -175,9 +171,7 @@ func (c *Controller) markParticipations(account *models.Account) error {
 	}
 
 	if len(erroredChannelParticipants) != 0 {
-		err := errors.New(fmt.Sprintf("some errors: %v", erroredChannelParticipants))
-		c.log.Error(err.Error())
-		return err
+		return errors.New(fmt.Sprintf("some errors: %v", erroredChannelParticipants))
 	}
 
 	return nil
@@ -193,7 +187,7 @@ func (c *Controller) markMessages(account *models.Account) error {
 		Selector: map[string]interface{}{
 			"account_id": account.Id,
 			// 0 means safe
-			// "meta_bits": models.Safe,
+			"meta_bits": models.Safe,
 		},
 		Pagination: *bongo.NewPagination(processCount, 0),
 	}
@@ -226,7 +220,6 @@ func (c *Controller) markMessages(account *models.Account) error {
 			message.MetaBits.MarkTroll()
 			// ChannelMessage update only updates body of the message
 			if err := bongo.B.Update(message); err != nil {
-				c.log.Error(err.Error())
 				erroredMessages = append(erroredMessages, messages[i])
 			}
 		}
@@ -236,9 +229,7 @@ func (c *Controller) markMessages(account *models.Account) error {
 	}
 
 	if len(erroredMessages) != 0 {
-		err := errors.New(fmt.Sprintf("some errors: %v", erroredMessages))
-		c.log.Error(err.Error())
-		return err
+		return errors.New(fmt.Sprintf("some errors: %v", erroredMessages))
 	}
 
 	return nil
@@ -275,7 +266,6 @@ func (c *Controller) markMessageLists(message *models.ChannelMessage) error {
 		for i, item := range messageList {
 			item.MetaBits.MarkTroll()
 			if err := item.Update(); err != nil {
-				c.log.Error(err.Error())
 				erroredMessages = append(erroredMessages, messageList[i])
 			}
 		}
@@ -285,9 +275,7 @@ func (c *Controller) markMessageLists(message *models.ChannelMessage) error {
 	}
 
 	if len(erroredMessages) != 0 {
-		err := errors.New(fmt.Sprintf("some errors: %v", erroredMessages))
-		c.log.Error(err.Error())
-		return err
+		return errors.New(fmt.Sprintf("some errors: %v", erroredMessages))
 	}
 
 	return nil
@@ -324,7 +312,6 @@ func (c *Controller) markMessageReplies(message *models.ChannelMessage) error {
 		for i, messageReply := range messageList {
 			messageReply.MetaBits.MarkTroll()
 			if err := messageReply.Update(); err != nil {
-				c.log.Error(err.Error())
 				erroredMessages = append(erroredMessages, messageList[i])
 			}
 		}
@@ -334,9 +321,7 @@ func (c *Controller) markMessageReplies(message *models.ChannelMessage) error {
 	}
 
 	if len(erroredMessages) != 0 {
-		err := errors.New(fmt.Sprintf("some errors: %v", erroredMessages))
-		c.log.Error(err.Error())
-		return err
+		return errors.New(fmt.Sprintf("some errors: %v", erroredMessages))
 	}
 
 	return nil
@@ -373,7 +358,6 @@ func (c *Controller) markInteractions(account *models.Account) error {
 		for i, interaction := range interactions {
 			interaction.MetaBits.MarkTroll()
 			if err := interaction.Update(); err != nil {
-				c.log.Error(err.Error())
 				erroredInteractions = append(erroredInteractions, interactions[i])
 			}
 		}
@@ -383,14 +367,13 @@ func (c *Controller) markInteractions(account *models.Account) error {
 	}
 
 	if len(erroredInteractions) != 0 {
-		err := errors.New(fmt.Sprintf("some errors: %v", erroredInteractions))
-		c.log.Error(err.Error())
-		return err
+		return errors.New(fmt.Sprintf("some errors: %v", erroredInteractions))
 	}
 
 	return nil
 }
-func (t *Controller) UnMarkedAsTroll(account *models.Account) error {
-	t.log.Critical("un marked as troll ehehe %v", account)
+
+func (c *Controller) UnMarkedAsTroll(account *models.Account) error {
+	c.log.Critical("un marked as troll ehehe %v", account)
 	return nil
 }
