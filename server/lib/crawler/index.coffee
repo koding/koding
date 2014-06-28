@@ -57,12 +57,13 @@ fetchTopicContent = (models, options, callback) ->
 
     options.channelId = channel.channel.id
     options.route = "Topic/#{entrySlug}"
+    options.contentType = "topic"
     feed.createFeed models, options, callback
 
 
 fetchGroupContent = (models, options, callback) ->
   {entrySlug, client, page} = options
-  entrySlug |= "koding"
+  entrySlug ||= "koding"
   {JGroup} = models
 
   # TODO change this slug after groups are implemented
@@ -73,6 +74,7 @@ fetchGroupContent = (models, options, callback) ->
     options.channelId = group.socialApiChannelId
     # TODO change this with group implementation
     options.route ="Public"
+    options.contentType = "post"
     feed.createFeed models, options, callback
 
 
@@ -81,7 +83,6 @@ fetchContent = (models, options, callback) ->
 
   switch section
     when "Public"
-      options.entrySlug = "koding"
       fetchGroupContent models, options, callback
     when "Topic"
       fetchTopicContent models, options, callback
@@ -100,8 +101,6 @@ getPage = (query) ->
 
 module.exports =
   crawl: (bongo, {req, res, slug, isProfile}) ->
-    {query} = req
-
     {Base, race, dash, daisy} = require "bongo"
 
     [name, section, entrySlug] = slug.split("/")
@@ -120,6 +119,7 @@ module.exports =
     generateFakeClient req, res, (err, client) ->
       return handleError err  if err or not client
 
+      {query} = req
       page = getPage query
       options = {section, entrySlug, client, page, isProfile, name}
       fetchContent models, options, (err, content) ->
