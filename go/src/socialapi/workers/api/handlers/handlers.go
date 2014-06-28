@@ -24,18 +24,18 @@ func Inject(mux *tigertonic.TrieServeMux) *tigertonic.TrieServeMux {
 	mux.Handle("POST", "/message/{id}", handler.Wrapper(message.Update, "message-update"))
 	mux.Handle("DELETE", "/message/{id}", handler.Wrapper(message.Delete, "message-delete"))
 
-	// added exempt clause
+	// exempt contents are filtered
 	mux.Handle("GET", "/message/{id}", handler.Wrapper(message.Get, "message-get"))
-	// added exempt clause
+	// exempt contents are filtered
 	mux.Handle("GET", "/message/slug/{slug}", handler.Wrapper(message.GetBySlug, "message-get-by-slug"))
-	// added exempt clause
+	// exempt contents are filtered
 	mux.Handle("GET", "/message/{id}/related", handler.Wrapper(message.GetWithRelated, "message-get-with-related"))
 
 	////////////////////////////////////////////////////////////////////////////////////
 	///////////////////////////// Message Reply Operations /////////////////////////////
 	////////////////////////////////////////////////////////////////////////////////////
 	mux.Handle("POST", "/message/{id}/reply", handler.Wrapper(reply.Create, "reply-create"))
-	// added exempt clause
+	// exempt contents are filtered
 	mux.Handle("GET", "/message/{id}/reply", handler.Wrapper(reply.List, "reply-list"))
 
 	////////////////////////////////////////////////////////////////////////////////////
@@ -44,7 +44,7 @@ func Inject(mux *tigertonic.TrieServeMux) *tigertonic.TrieServeMux {
 	mux.Handle("POST", "/message/{id}/interaction/{type}/add", handler.Wrapper(interaction.Add, "interactions-add"))
 	mux.Handle("POST", "/message/{id}/interaction/{type}/delete", handler.Wrapper(interaction.Delete, "interactions-delete"))
 	// get all the interactions for message
-	// added exempt clause
+	// exempt contents are filtered
 	mux.Handle("GET", "/message/{id}/interaction/{type}", handler.Wrapper(interaction.List, "interactions-list-typed"))
 
 	////////////////////////////////////////////////////////////////////////////////////
@@ -52,12 +52,12 @@ func Inject(mux *tigertonic.TrieServeMux) *tigertonic.TrieServeMux {
 	////////////////////////////////////////////////////////////////////////////////////
 
 	mux.Handle("POST", "/channel", handler.Wrapper(channel.Create, "channel-create"))
-	// added exempt clause
+	// exempt contents are filtered
 	mux.Handle("GET", "/channel", handler.Wrapper(channel.List, "channel-list"))
-	// added exempt clause
+	// exempt contents are filtered
 	mux.Handle("GET", "/channel/search", handler.Wrapper(channel.Search, "channel-search"))
 
-	// added troll mode protection
+	// exempt contents are filtered
 	mux.Handle("GET", "/channel/name/{name}", handler.Wrapper(channel.ByName, "channel-get-byname"))
 	mux.Handle("GET", "/channel/checkparticipation", handler.Wrapper(channel.CheckParticipation, "channel-check-participation"))
 
@@ -66,20 +66,20 @@ func Inject(mux *tigertonic.TrieServeMux) *tigertonic.TrieServeMux {
 	mux.Handle("POST", "/channel/{id}/update", handler.Wrapper(channel.Update, "channel-update"))
 	mux.Handle("POST", "/channel/{id}/delete", handler.Wrapper(channel.Delete, "channel-delete"))
 
-	// added troll mdoe protection
+	// exempt contents are filtered
 	mux.Handle("GET", "/channel/{id}", handler.Wrapper(channel.Get, "channel-get"))
 	// add a new messages to the channel
 	mux.Handle("POST", "/channel/{id}/message", handler.Wrapper(message.Create, "channel-message-create"))
 	// list participants of the channel
-	// added troll mode protection
+	// exempt contents are filtered
 	mux.Handle("GET", "/channel/{id}/participant", handler.Wrapper(participant.List, "participant-list"))
-	// add participant to the channel
+	// exempt contents are filtered
 	mux.Handle("POST", "/channel/{id}/participant/{accountId}/add", handler.Wrapper(participant.Add, "participant-list"))
-	// remove participant from the channel
+	// exempt contents are filtered
 	mux.Handle("POST", "/channel/{id}/participant/{accountId}/delete", handler.Wrapper(participant.Delete, "participant-list"))
 	mux.Handle("POST", "/channel/{id}/participant/{accountId}/presence", handler.Wrapper(participant.Presence, "participant-presence"))
 	// list messages of the channel
-	// added exempt clause
+	// exempt contents are filtered
 	mux.Handle("GET", "/channel/{id}/history", handler.Wrapper(messagelist.List, "channel-history-list"))
 
 	// register an account
@@ -100,7 +100,7 @@ func Inject(mux *tigertonic.TrieServeMux) *tigertonic.TrieServeMux {
 	// get pinning channel of the account
 	mux.Handle("GET", "/activity/pin/channel", handler.Wrapper(activity.GetPinnedActivityChannel, "activity-pin-get-channel"))
 
-	// added troll mode protection
+	// exempt contents are filtered
 	mux.Handle("GET", "/activity/pin/list", handler.Wrapper(activity.List, "activity-pin-list-message"))
 	// pin a new status update
 	mux.Handle("POST", "/activity/pin/add", handler.Wrapper(activity.PinMessage, "activity-add-pinned-message"))
@@ -111,15 +111,15 @@ func Inject(mux *tigertonic.TrieServeMux) *tigertonic.TrieServeMux {
 	mux.Handle("POST", "/activity/pin/glance", handler.Wrapper(activity.Glance, "activity-pinned-message-glance"))
 
 	// get popular topics
-	// added troll mode protection
+	// exempt contents are filtered
 	mux.Handle("GET", "/popular/topics/{statisticName}", handler.Wrapper(popular.ListTopics, "list-popular-topics"))
 
-	// added troll mode protection
+	// exempt contents are filtered
 	mux.Handle("GET", "/popular/posts/{channelName}/{statisticName}", handler.Wrapper(popular.ListPosts, "list-popular-posts"))
 
 	mux.Handle("POST", "/privatemessage/send", handler.Wrapper(privatemessage.Send, "privatemessage-send"))
 
-	// added troll mode protection
+	// exempt contents are filtered
 	mux.Handle("GET", "/privatemessage/list", handler.Wrapper(privatemessage.List, "privatemessage-list"))
 
 	return mux
