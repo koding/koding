@@ -332,6 +332,8 @@ func (c *ChannelParticipant) IsParticipant(accountId int64) (bool, error) {
 	return false, err
 }
 
+// Put them all behind an interface
+// channels, messages, lists, participants, etc
 func (c *ChannelParticipant) MarkIfExempt() error {
 	isExempt, err := c.isExempt()
 	if err != nil {
@@ -359,6 +361,10 @@ func (c *ChannelParticipant) isExempt() (bool, error) {
 	account, err := ResetAccountCache(accountId)
 	if err != nil {
 		return false, err
+	}
+
+	if account == nil {
+		return false, fmt.Errorf("account is nil, accountId:%d", accountId)
 	}
 
 	if account.IsTroll {
