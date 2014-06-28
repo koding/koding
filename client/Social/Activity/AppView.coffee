@@ -17,8 +17,11 @@ class ActivityAppView extends KDView
 
     super options, data
 
+    {
+      appStorageController
+      windowController
+    }                      = KD.singletons
     {entryPoint}           = KD.config
-    {appStorageController} = KD.singletons
     @_lastMessage          = null
 
     @appStorage  = appStorageController.storage 'Activity', '2.0'
@@ -30,6 +33,9 @@ class ActivityAppView extends KDView
 
     @appStorage.setValue 'liveUpdates', off
 
+    windowController.on 'ScrollHappened', @bound 'scroll'  unless isKoding()
+
+
 
   lazyLoadThresholdReached: -> @tabs.getActivePane()?.emit 'LazyLoadThresholdReached'
 
@@ -39,6 +45,13 @@ class ActivityAppView extends KDView
     @addSubView @groupHeader  unless isKoding()
     @addSubView @sidebar
     @addSubView @tabs
+
+
+  scroll: ->
+
+    if window.scrollY > 316
+    then @setClass 'fixed'
+    else @unsetClass 'fixed'
 
 
   # type: [public|topic|post|message|chat|null]
