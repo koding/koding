@@ -51,9 +51,8 @@ buildContent = (models, messageList, options, callback) ->
   {client, page} = options
 
   pageContent = ""
-  queue = [0...messageList.length].map (index)->->
+  queue = messageList.map (activity)->->
     queue.pageContent or= ""
-    activity = messageList[index]
 
     createActivityContent models, activity, (err, content)->
       if err
