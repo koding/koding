@@ -89,7 +89,7 @@ createProfile = (models, activity, callback)->
     callback null, renderedProfile
 
 renderCreatedAt = (activity) ->
-  {message:{createdAt}} = activity  #if model
+  {message:{createdAt}} = activity  if activity
   return formatDate new Date(createdAt)
 
 renderBody = (activity) ->
@@ -142,8 +142,9 @@ prepareComments = (models, activity, callback) ->
 
 prepareLikes = (models, activity, callback) ->
   {JAccount} = models
-  {interactions:{like}} = activity
-  return callback null  unless like.actorsPreview.length
+
+  like = activity?.interactions?.like
+  return callback null  unless like?.actorsPreview?.length
 
   queue = []
   actors = []
