@@ -70,7 +70,7 @@ func TestSitemapGeneration(t *testing.T) {
 					So(len(container.Delete), ShouldEqual, 0)
 					So(len(container.Update), ShouldEqual, 0)
 
-					location := fmt.Sprintf("%s/%s", config.Get().Uri, firstItem.Slug)
+					location := fmt.Sprintf("%s/%s", config.MustGet().Uri, firstItem.Slug)
 					So(container.Add[0].Location, ShouldEqual, location)
 				})
 				Convey("item should be able to added to sitemap", func() {

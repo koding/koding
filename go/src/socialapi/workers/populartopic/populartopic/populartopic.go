@@ -112,7 +112,7 @@ func (f *Controller) handleMessageEvents(data *models.ChannelMessageList, increm
 func PreparePopularTopicKey(group, statisticName string, year, dateNumber int) string {
 	return fmt.Sprintf(
 		"%s:%s:%s:%d:%s:%d",
-		config.Get().Environment,
+		config.MustGet().Environment,
 		group,
 		PopularTopicKey,
 		year,

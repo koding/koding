@@ -41,7 +41,7 @@ func prepareTemplateFiles() error {
 		return err
 	}
 
-	root := config.Get().EmailNotification.TemplateRoot
+	root := config.MustGet().EmailNotification.TemplateRoot
 	mainTemplateFile = path.Join(wd, root, "main.tmpl")
 	footerTemplateFile = path.Join(wd, root, "footer.tmpl")
 	contentTemplateFile = path.Join(wd, root, "content.tmpl")
@@ -127,7 +127,7 @@ func (tp *TemplateParser) buildMailContent(contentType string, currentDate strin
 			ContentType: contentType,
 			Recipient:   url.QueryEscape(tp.UserContact.Email),
 		},
-		Uri: config.Get().Uri,
+		Uri: config.MustGet().Uri,
 	}
 }
 
@@ -135,7 +135,7 @@ func buildEventContent(mc *MailerContainer) (*EventContent, error) {
 	ec := &EventContent{
 		Action:       mc.ActivityMessage,
 		ActivityTime: prepareTime(mc),
-		Uri:          config.Get().Uri,
+		Uri:          config.MustGet().Uri,
 		Slug:         mc.Slug,
 		Message:      mc.Message,
 		Group:        mc.Group,

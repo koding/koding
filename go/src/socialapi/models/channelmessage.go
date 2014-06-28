@@ -176,8 +176,8 @@ func (c *ChannelMessage) getAccountId() (int64, error) {
 }
 
 func bodyLenCheck(body string) error {
-	if len(body) < config.Get().Limits.MessageBodyMinLen {
-		return fmt.Errorf("message Body Length should be greater than %d, yours is %d ", config.Get().Limits.MessageBodyMinLen, len(body))
+	if len(body) < config.MustGet().Limits.MessageBodyMinLen {
+		return fmt.Errorf("message body length should be greater than %d, yours is %d ", config.MustGet().Limits.MessageBodyMinLen, len(body))
 	}
 
 	return nil

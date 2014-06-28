@@ -174,7 +174,7 @@ func (n *Controller) getDailyActivityIds(accountId int64) ([]int64, error) {
 
 func prepareRecipientsCacheKey() string {
 	return fmt.Sprintf("%s:%s:%s:%s",
-		config.Get().Environment,
+		config.MustGet().Environment,
 		CACHEPREFIX,
 		RECIPIENTSKEY,
 		preparePreviousDayCacheKey())
@@ -182,7 +182,7 @@ func prepareRecipientsCacheKey() string {
 
 func prepareDailyActivitiesCacheKey(accountId int64) string {
 	return fmt.Sprintf("%s:%s:%d:%s",
-		config.Get().Environment,
+		config.MustGet().Environment,
 		CACHEPREFIX,
 		accountId,
 		preparePreviousDayCacheKey())

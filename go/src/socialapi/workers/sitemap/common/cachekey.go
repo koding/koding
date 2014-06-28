@@ -22,7 +22,7 @@ func PrepareNextFileCacheKey(fileName string) string {
 
 func prepareFileCacheKey(segment, fileName string) string {
 	return fmt.Sprintf("%s:%s:%s:%s",
-		config.Get().Environment,
+		config.MustGet().Environment,
 		CACHEPREFIX,
 		segment,
 		fileName,
@@ -39,7 +39,7 @@ func PrepareCurrentFileNameCacheKey() string {
 
 func prepareFileNameCacheKey(segment string) string {
 	return fmt.Sprintf("%s:%s:%s:%s",
-		config.Get().Environment,
+		config.MustGet().Environment,
 		CACHEPREFIX,
 		segment,
 		"fileNames",

@@ -12,6 +12,7 @@ import (
 	"socialapi/workers/common/response"
 	"socialapi/workers/notification/models"
 	"strconv"
+
 	"github.com/koding/bongo"
 	// "github.com/koding/bongo"
 )
@@ -33,7 +34,7 @@ func List(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface
 		return response.NewBadRequest(err)
 	}
 
-	conf := config.Get()
+	conf := config.MustGet()
 	cacheEnabled = conf.Notification.CacheEnabled
 
 	urlQuery := u.Query()

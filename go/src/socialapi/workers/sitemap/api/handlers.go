@@ -48,7 +48,7 @@ func Generate(w http.ResponseWriter, _ *http.Request) {
 		return
 	}
 
-	set := models.NewSitemapSet(files, config.Get().Uri)
+	set := models.NewSitemapSet(files, config.MustGet().Uri)
 
 	res, err := marshal(set)
 	if err != nil {
