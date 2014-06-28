@@ -2,6 +2,7 @@ package openstack
 
 import (
 	"errors"
+	"fmt"
 	os "koding/kites/kloud/api/openstack"
 	"koding/kites/kloud/eventer"
 	"koding/kites/kloud/kloud/machinestate"
@@ -9,6 +10,11 @@ import (
 	"strings"
 
 	"github.com/koding/logging"
+)
+
+var (
+	DefaultImageName = "Ubuntu 14.04 LTS (Trusty Tahr) (PVHVM)"
+	DefaultImageId   = "bb02b1a3-bc77-4d17-ab5b-421d89850fca"
 )
 
 type Provider struct {
@@ -49,10 +55,54 @@ func (p *Provider) NewClient(opts *protocol.MachineOptions) (*os.Openstack, erro
 }
 
 func (p *Provider) Build(opts *protocol.MachineOptions) (*protocol.BuildResponse, error) {
-	_, err := p.NewClient(opts)
+	o, err := p.NewClient(opts)
 	if err != nil {
 		return nil, err
 	}
+
+	if opts.ImageName == "" {
+		opts.ImageName = DefaultImageId
+	}
+
+	// check if snapshot image does exist, if not create a new one.
+	p.Push(fmt.Sprintf("Fetching image %s", DefaultImageName), 10, machinestate.Building)
+	image, err := o.Image(opts.ImageName)
+	if err != nil {
+		return nil, err
+	}
+
+	fmt.Printf("image %+v\n", image)
+
+	// // XXX - validate image and flavor is available
+	//
+	// if opts.InstanceName == "" {
+	// 	return nil, errors.New("server name is empty")
+	// }
+	//
+	// if opts.ImageName == "" {
+	// 	opts.ImageName = "ubuntu-14-04-x64"
+	// }
+	//
+	// securityGroups := make([]map[string]interface{}, len(s.SecurityGroups))
+	// for i, groupName := range s.SecurityGroups {
+	// 	securityGroups[i] = make(map[string]interface{})
+	// 	securityGroups[i]["name"] = groupName
+	// }
+	//
+	// server := gophercloud.NewServer{
+	// 	Name:        opts.InstanceName,
+	// 	ImageRef:    s.SourceImage,
+	// 	FlavorRef:   s.Flavor,
+	// 	KeyPairName: keyName,
+	// }
+	//
+	// serverResp, err := csp.CreateServer(server)
+	// if err != nil {
+	// 	err := fmt.Errorf("Error launching source server: %s", err)
+	// 	state.Put("error", err)
+	// 	ui.Error(err.Error())
+	// 	return multistep.ActionHalt
+	// }
 
 	return nil, errors.New("not supported yet.")
 }

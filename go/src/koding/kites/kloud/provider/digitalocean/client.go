@@ -43,7 +43,7 @@ func (c *Client) Build(snapshotName, dropletName, username string) (*protocol.Bu
 	var image digitalocean.Image
 	var err error
 
-	// check if snapshot image does exist, if not create a new one.
+	// check if snapshot image does exist
 	c.Push(fmt.Sprintf("Fetching image %s", snapshotName), 10, machinestate.Building)
 	image, err = c.Image(snapshotName)
 	if err != nil {
