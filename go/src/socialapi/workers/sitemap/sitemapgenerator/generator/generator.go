@@ -99,8 +99,8 @@ func (c *Controller) generate() {
 			c.log.Critical("Could not update file: %s", err)
 			continue
 		}
-
 	}
+	c.log.Info("Sitemap update finished")
 }
 
 // handleError re-adds updated items to next file update queue
