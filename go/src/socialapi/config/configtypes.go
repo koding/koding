@@ -53,7 +53,6 @@ type (
 		TemplateRoot string
 	}
 	Sitemap struct {
-		XMLRoot string
 		RedisDB int
 	}
 )

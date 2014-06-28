@@ -39,5 +39,4 @@ FromName= "Koding"
 FromMail= "hello@koding.com"
 
 [sitemap]
-XMLRoot= "go/src/socialapi/workers/sitemap/files/"
 RedisDB= 1

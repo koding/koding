@@ -40,3 +40,4 @@ ForcedRecipient = "canthefason@gmail.com"
 [sitemap]
 XMLRoot = "workers/sitemap/files/"
 RedisDB = 1
+
