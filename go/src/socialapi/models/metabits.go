@@ -1,23 +1,25 @@
 package models
 
 const (
-	Safe  = 0
-	Troll = 1 << iota
+	Troll MetaBits = 1 << iota
+	// all other bits will up be here
+
+	// safe should be the last one assigned as 0
+	Safe MetaBits = 0
 )
 
 type MetaBits int16
 
-// IsSafe checks for data against if it is showable to the user
-func (m MetaBits) IsSafe() bool {
-	return (m == 0)
+func (m *MetaBits) Mark(data MetaBits) {
+	// bitwise OR
+	*m = *m | data
 }
 
-func (m *MetaBits) MarkTroll() {
-	// set first bit as 1
-	*m = *m | Troll
+func (m *MetaBits) UnMark(data MetaBits) {
+	// bit clear (AND NOT)
+	*m = *m &^ data
 }
 
-func (m MetaBits) IsTroll() bool {
-	// get first bit
-	return (m & Troll) == Troll
+func (m MetaBits) Is(data MetaBits) bool {
+	return (m & data) == data
 }
