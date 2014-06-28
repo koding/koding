@@ -4,7 +4,7 @@ import (
 	"socialapi/workers/helper"
 	"socialapi/workers/sitemap/common"
 
-	"github.com/garyburd/redigo/redis"
+	"github.com/koding/redis"
 )
 
 type FileSelector interface {
@@ -24,7 +24,7 @@ func (s CachedFileSelector) Select() (string, error) {
 
 	item, err := redisConn.PopSetMember(common.PrepareCurrentFileNameCacheKey())
 
-	if err != nil && err != redis.ErrNil {
+	if err != redis.ErrNil {
 		return "", err
 	}
 
