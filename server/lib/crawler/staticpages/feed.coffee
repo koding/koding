@@ -8,7 +8,7 @@ ITEMSPERPAGE = 20
 
 createFeed = (models, options, callback)->
   {JAccount, SocialChannel} = models
-  {page, channelId, client, route} = options
+  {page, channelId, client, route, contentType} = options
 
   return callback "channelId not set"  unless channelId
 
@@ -32,8 +32,8 @@ createFeed = (models, options, callback)->
       options.page = page
       buildContent models, result.messageList, options, (err, pageContent) ->
         return callback err  if err
-        schemaorgTagsOpening = getSchemaOpeningTags()
-        schemaorgTagsClosing = getSchemaClosingTags()
+        schemaorgTagsOpening = getSchemaOpeningTags contentType
+        schemaorgTagsClosing = getSchemaClosingTags contentType
 
         content = schemaorgTagsOpening + pageContent + schemaorgTagsClosing
 
@@ -124,17 +124,31 @@ appendDecoratedTopic = (tag, queue)=>
   queue.pageContent += createTagNode tag
   queue.next()
 
-getSchemaOpeningTags = =>
-  return """
-        <article itemscope itemtype="http://schema.org/BlogPosting">
+getSchemaOpeningTags = (contentType) ->
+  openingTag = ""
+  title = ""
+  switch contentType
+    when "post"
+      title = "activities"
+      openingTag += """<article itemscope itemtype="http://schema.org/BlogPosting">"""
+    when "topic"
+      title = "topics"
+
+  openingTag +=
+      """
           <div itemscope itemtype="http://schema.org/ItemList">
             <meta itemprop="mainContentOfPage" content="true"/>
-            <h2 itemprop="name" class="invisible">Latest activities</h2><br>
+            <h2 itemprop="name" class="invisible">Latest #{title}</h2><br>
             <meta itemprop="itemListOrder" content="Descending" />
       """
 
-getSchemaClosingTags = =>
-  return closingTags = "</div></article>"
+  return openingTag
+
+getSchemaClosingTags = (contentType) ->
+  closingTag = "</div>"
+  closingTag += "</article>"  if contentType is "post"
+
+  return closingTag
 
 createTagNode = (tag)->
   tagContent = ""
