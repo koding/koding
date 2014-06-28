@@ -184,7 +184,7 @@ func (c *Controller) createFileNames() error {
 		// file is already created
 		err := sf.ByName(k)
 		if err == nil {
-			return
+			return err
 		}
 
 		if err != bongo.RecordNotFound {
