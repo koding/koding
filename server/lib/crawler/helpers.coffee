@@ -83,7 +83,7 @@ createProfile = (models, activity, callback)->
   {accountOldId} = activity
   JAccount.one "_id" : accountOldId, (err, acc) =>
     return callback err  if err
-    return callback "account not found"  unless acc
+    return callback message: "account not found"  unless acc
 
     renderedProfile = getProfile acc
     callback null, renderedProfile
