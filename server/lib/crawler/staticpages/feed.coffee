@@ -22,8 +22,9 @@ createFeed = (models, options, callback)->
     skip  : skip
   }
 
-  SocialChannel.fetchActivityCount {channelId}, (err, {totalCount: itemCount})->
+  SocialChannel.fetchActivityCount {channelId}, (err, response)->
     return callback err  if err
+    itemCount = response?.totalCount
     return callback null, getEmptyPage()  unless itemCount
 
     SocialChannel.fetchActivities client, options, (err, result) ->
