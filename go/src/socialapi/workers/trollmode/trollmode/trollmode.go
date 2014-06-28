@@ -36,42 +36,42 @@ func NewController(log logging.Logger) *Controller {
 }
 
 // this worker is completely idempotent, so no need to cut the circuit
-func (t *Controller) DefaultErrHandler(delivery amqp.Delivery, err error) bool {
-	t.log.Error("an error occured putting message back to queue", err)
+func (c *Controller) DefaultErrHandler(delivery amqp.Delivery, err error) bool {
+	c.log.Error("an error occured putting message back to queue", err)
 	delivery.Nack(false, true)
 	return false
 }
 
-func (t *Controller) MarkedAsTroll(account *models.Account) error {
-	if err := t.validateRequest(account); err != nil {
-		t.log.Error("Validation failed for marking troll; skipping, err: %s ", err.Error())
+func (c *Controller) MarkedAsTroll(account *models.Account) error {
+	if err := c.validateRequest(account); err != nil {
+		c.log.Error("Validation failed for marking troll; skipping, err: %s ", err.Error())
 		return nil
 	}
 
-	if err := t.markChannels(account); err != nil {
-		t.log.Error("Error while processing channels, err: %s ", err.Error())
+	if err := c.markChannels(account); err != nil {
+		c.log.Error("Error while processing channels, err: %s ", err.Error())
 		return err
 	}
 
-	if err := t.markParticipations(account); err != nil {
-		t.log.Error("Error while processing participations, err: %s ", err.Error())
+	if err := c.markParticipations(account); err != nil {
+		c.log.Error("Error while processing participations, err: %s ", err.Error())
 		return err
 	}
 
-	if err := t.markMessages(account); err != nil {
-		t.log.Error("Error while processing channels messages, err: %s ", err.Error())
+	if err := c.markMessages(account); err != nil {
+		c.log.Error("Error while processing channels messages, err: %s ", err.Error())
 		return err
 	}
 
-	if err := t.markInteractions(account); err != nil {
-		t.log.Error("Error while processing interactions, err: %s ", err.Error())
+	if err := c.markInteractions(account); err != nil {
+		c.log.Error("Error while processing interactions, err: %s ", err.Error())
 		return err
 	}
 
 	return nil
 }
 
-func (t *Controller) validateRequest(account *models.Account) error {
+func (c *Controller) validateRequest(account *models.Account) error {
 	if account == nil {
 		return errors.New("account is not set (nil)")
 	}
