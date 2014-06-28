@@ -41,6 +41,52 @@ styleScrollBars()
   position              static
   overflow              visible
 
+  &.group
+    margin-top          55px
+    min-height          2070px
+
+    > main
+      margin-top        24px
+      margin-left       24px
+      padding-left      0
+      size              637px, auto
+      fl()
+
+    > aside
+      margin-top           24px
+      top                  0
+      fl()
+      rel()
+
+      .group-description
+        font-size          13px
+        line-height        17px
+        letter-spacing     .2px
+        color              #4a4a4a
+        padding            0 8px
+        font-weight        400
+        opacity            .9
+
+      .group-members
+        .kdscrollview
+          height           auto
+          max-height       217px
+        .kdlistview
+          padding          20px 0 0
+        .kdlistitemview
+          display          inline-block
+          size             auto auto
+        .avatarview
+          margin           0 8px 8px 0
+          fl()
+          rounded          4px
+          img
+            rounded        4px
+
+          &:nth-of-type(4n)
+            margin-right   0
+
+  &.fixed > main
   > main
     size                689px, auto
     kalc                margin-left, \(\(100% \- 995px\)\/2\)\+299px
@@ -48,9 +94,18 @@ styleScrollBars()
     borderBox()
     fl()
 
+  &.fixed > aside
+    margin-top         24px
+    top                55px
+    float              none
+    fix()
+
+  > main
+
     .kdtabpaneview
 
       min-height        990px
+
 
     > .activity-input-widget
       margin-bottom     36px
@@ -1602,108 +1657,73 @@ span.collapsedtext
 
 
 // Group Activity
+
 body.group.activity
-  .content-page
-    margin-top             55px
-    min-height             2070px
 
-    main
-      margin-top           24px
+  .group-cover-view
+    max-width            948px
+    line-height          0
+    height               316px
+    bg                   color, #e6e6e6
+    margin               0 auto
+    kalc                 margin-right, 50% \- 478px
+    z-index              3
+    bg                   size, 948px \, 316px
+    bg                   image, -webkit-linear-gradient(90deg\, rgba(0, 0, 0, .1) 50%\, transparent 50%) \,
+                                -webkit-linear-gradient(0deg\, rgba(0, 0, 0, .1) 50%\, transparent 50% \, transparent 100% \, rgba(0, 0, 0, .1) 100%)
+    bg                   image, -moz-linear-gradient(90deg\, rgba(0, 0, 0, .1) 50%\, transparent 50%) \,
+                                -moz-linear-gradient(0deg\, rgba(0, 0, 0, .1) 50%\, transparent 50% \, transparent 100% \, rgba(0, 0, 0, .1) 100%)
+    .avatarview
+    .avatarview img
+      rounded            0
 
-    > aside
-      padding-top          306px
-
-      .group-description
-        font-size          13px
-        line-height        17px
-        letter-spacing     .2px
-        color              #4a4a4a
-        padding            17px 0 0
-        font-weight        400
-        opacity            .9
-
-      .group-members
-        .kdscrollview
-          height           auto
-          max-height       217px
-        .kdlistview
-          padding          20px 0 0
-        .kdlistitemview
-          display          inline-block
-          size             auto auto
-        .avatarview
-          margin           0 8px 8px 0
-          fl()
-          rounded          4px
-          img
-            rounded        4px
-
-          &:nth-of-type(4n)
-            margin-right   0
+    .kdscrollview
+      overflow           hidden
 
 
-    .group-cover-view
-      max-width            948px
-      line-height          0
-      height               316px
-      bg                   color, #e6e6e6
-      margin               0 auto
-      kalc                 margin-right, 50% \- 462px
-      z-index              3
-      bg                   size, 948px \, 316px
-      bg                   image, -webkit-linear-gradient(90deg\, rgba(0, 0, 0, .1) 50%\, transparent 50%) \,
-                                  -webkit-linear-gradient(0deg\, rgba(0, 0, 0, .1) 50%\, transparent 50% \, transparent 100% \, rgba(0, 0, 0, .1) 100%)
-      bg                   image, -moz-linear-gradient(90deg\, rgba(0, 0, 0, .1) 50%\, transparent 50%) \,
-                                  -moz-linear-gradient(0deg\, rgba(0, 0, 0, .1) 50%\, transparent 50% \, transparent 100% \, rgba(0, 0, 0, .1) 100%)
-      .avatarview
-      .avatarview img
-        rounded            0
+    figure
+      abs                0 0 0 0
+      size               100%, 100%
+      bg                 size cover
 
-      .kdscrollview
-        overflow           hidden
+    .kdlistview-collage
+      width              100%
 
+      .kdlistitemview
+        display          inline-block
+        size             auto auto
 
-      figure
-        abs                0 0 0 0
-        size               100%, 100%
-        bg                 size cover
+    .kdbutton.update-cover
+      abs                0 27px 27px 0
+      margin             0
+      padding            0 0 0 14px
+      font-size          13px
+      font-weight        400
+      color              #fff
+      size               auto, 36px
+      line-height        35px
+      z-index            5
+      rounded            12px
+      bg                 color, #1aaf5d
+      border             1px solid #159950
 
-      .kdlistview-collage
-        width              100%
+      .button-title
+        padding          0
+        line-height      35px
+        color            inherit
+        font-size        inherit
+        font-weight      inherit
 
-        .kdlistitemview
-          display          inline-block
-          size             auto auto
-
-      .kdbutton.update-cover
-        abs                0 27px 27px 0
-        margin             0
-        padding            0 0 0 14px
-        font-size          13px
-        font-weight        400
-        color              #fff
-        size               auto, 36px
-        line-height        35px
-        z-index            5
-        rounded            12px
-        bg                 color, #1aaf5d
-        border             1px solid #159950
-
-        .button-title
-          padding          0
-          line-height      35px
-          color            inherit
-          font-size        inherit
-          font-weight      inherit
-
-        .icon
-          r-sprite         activity image
-          margin           9px 13px 0 9px
-          padding          0
-          fr()
+      .icon
+        r-sprite         activity image
+        margin           9px 13px 0 9px
+        padding          0
+        fr()
 
   .kdmodal.group-cover-uploader
     .kdmodal-content
+      .file-droparea
+        height            315px
       figure
         bg                size, cover
       .kdloader
