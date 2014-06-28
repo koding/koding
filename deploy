@@ -8,8 +8,24 @@ RS         = require 'pkgcloud'
 hat        = require 'hat'
 timethat   = require 'timethat'
 PRJ        = __dirname
+BLD        = PRJ+"/install/BUILD_DATA"
+fs     = require 'fs'
+{exec}            = require 'child_process'
 
-options =
+rs = 
+  compute : RS.compute.createClient
+    provider  : 'rackspace'
+    username  : "kodinginc"
+    apiKey    : "96d6388ccb936f047fd35eb29c36df17"
+    region    : 'IAD'
+
+  dns : RS.dns.createClient
+    provider  : 'rackspace'
+    username  : "kodinginc"
+    apiKey    : "96d6388ccb936f047fd35eb29c36df17"
+
+
+options = o =
   config      : argv.c or 'kodingme'
   region      : argv.r or 'kodingme'
   branch      : argv.b or 'cake-rewrite'
@@ -17,23 +33,28 @@ options =
   version     : argv.v or "1.0"
   environment : argv.e or "prod"
   target      : argv.t or "rackspace"
+  hostname    : argv.h or eden.eve().toLowerCase()+".koding.me"
 
 
-deploy = () -> 
-  log "deploy started, connecting to rackspace, please wait..."
-  rs = 
-    compute : RS.compute.createClient
-      provider  : 'rackspace'
-      username  : "kodinginc"
-      apiKey    : "96d6388ccb936f047fd35eb29c36df17"
-      region    : 'IAD'
 
-    dns : RS.dns.createClient
-      provider  : 'rackspace'
-      username  : "kodinginc"
-      apiKey    : "96d6388ccb936f047fd35eb29c36df17"
+class Deploy
 
-  createServer = (options,callback)->
+  @createDeployData = (callback=->)->
+    exec """
+        mkdir -p ./install/BUILD_DATA
+        echo #{o.hostname}     >#{BLD}/BUILD_HOSTNAME
+        echo #{o.region}       >#{BLD}/BUILD_REGION
+        echo #{o.config}       >#{BLD}/BUILD_CONFIG
+        echo #{o.branch}       >#{BLD}/BUILD_BRANCH
+        echo #{o.projectRoot}  >#{BLD}/BUILD_PROJECT_ROOT
+        echo #{o.environment}  >#{BLD}/BUILD_ENVIRONMENT
+        echo #{o.version}      >#{BLD}/BUILD_VERSION"""
+    ,->
+      fs.writeFileSync "#{BLD}/BUILD_CONFIG.json",JSON.stringify(require "./config/main.#{o.config}.coffee",null,4)
+      log "build data is written to #{BLD}/ for deploy."
+      callback null
+
+  @createServer = (options,callback)->
     start = new Date()
     rs.compute.createServer options,(err,vm)->
       unless err
@@ -54,7 +75,7 @@ deploy = () ->
         ,1000
       else
         callback err
-  getPublicIP = (server)->
+  @getPublicIP = (server)->
     return val.addr for val,key in server.addresses.public when val.version is 4
   
   ### DNS ###
@@ -63,41 +84,7 @@ deploy = () ->
   # console.dir rs.dns
   # rs.dns.getRecords "4255573",-> 
   #   log arguments
-  
-  subdomain  = eden.eve().toLowerCase()
-  domainName = subdomain+".koding.me"
-  password   = hat()
-  createServer
-    name   : domainName
-    flavor : 'performance2-15'  
-    image  : 'bb02b1a3-bc77-4d17-ab5b-421d89850fca'  #ubuntu 14.04
-    personality: []
-    (err,server)->
-      if err then throw err
-      else
-        publicIP = getPublicIP server
-        rs.dns.createRecord "4255573",
-          name : domainName
-          type : "A"
-          ttl  : "3600"
-          data : publicIP
-          (err,rec)->
-
-            log "A RECORD #{domainName} -> #{publicIP} is placed with TTL 3600."
-            log "Server password is #{server.adminPass}"
-            log "Server is now ready at ssh root@#{domainName}"
             
-            setTimeout ->
-              konnect 
-                IP        : publicIP
-                username  : "root"
-                password  : server.adminPass
-                hostname  : domainName
-                region    : "kodingme"
-                config    : "kodingme"
-                branch    : "cake-rewrite"            
-            ,10000
-          
   # some useful extras for later.
   # rs.getServers (err,servers)-> 
   #   for server,index in servers
@@ -114,61 +101,102 @@ deploy = () ->
   #   for val,key in images
   #     log val.id,val.name
 
-listen = (op, stream, callback)->
-  stream.on "data", (data)         -> log ("[#{op}] #{data}").replace("\n","")
-  stream.on "exit", (code, signal) -> log "[#{op}] did exit."
-  stream.on "close",               -> 
-    log "[#{op}] did close."
-    callback null,"close"
+  listen = (op, stream, callback)->
+    stream.on "data", (data)         -> log ("[#{op}] #{data}").replace("\n","")
+    stream.on "exit", (code, signal) -> log "[#{op}] did exit."
+    stream.on "close",               -> 
+      log "[#{op}] did close."
+      callback null,"close"
 
-sftpCopy = (options, callback)->
-  copyCount = 1
-  results = []
-  options.conn.sftp (err, sftp) ->
-    for file,nr in options.files
-      do (file)->
-        sftp.fastPut file.src,file.trg,(err,res)->
-          if err
-            log "couldn't copy:",file
-            throw err 
-          log file.src+" is copied to "+file.trg
-          if copyCount is options.files.length then callback null,"done"
-          copyCount++
+  sftpCopy = (options, callback)->
+    copyCount = 1
+    results = []
+    options.conn.sftp (err, sftp) ->
+      for file,nr in options.files
+        do (file)->
+          sftp.fastPut file.src,file.trg,(err,res)->
+            if err
+              log "couldn't copy:",file
+              throw err 
+            log file.src+" is copied to "+file.trg
+            if copyCount is options.files.length then callback null,"done"
+            copyCount++
 
 
-konnect = (options,callback) ->
+  @konnect = (options,callback) ->
 
-  {IP,username,password, hostname, region, config,branch} = options
-  conn = new Connection()
+    {IP,username,password} = options
+    conn = new Connection()
 
-  conn.connect
-    host         : IP
-    port         : 22
-    username     : username
-    # privateKey   : require("fs").readFileSync(process.env['HOME']+"/.ssh/id_rsa")
-    # publicKey    : publicKey
-    readyTimeout : 60000
-    password     : password
+    conn.connect
+      host         : IP
+      port         : 22
+      username     : username
+      # privateKey   : require("fs").readFileSync(process.env['HOME']+"/.ssh/id_rsa")
+      # publicKey    : publicKey
+      readyTimeout : 60000
+      password     : password
 
-  
-  conn.on "ready", ->
-    log "Connected via ssh - copying deploy files."  
+    
+    conn.on "ready", ->
+      log "Connected via ssh - copying deploy files."  
 
-    copyFiles = [
-      { src: "#{PRJ}/prepare"                        , trg: "/root/prepare"},
-      { src: "#{PRJ}/configure"                      , trg: "/root/configure"},
-      { src: "#{PRJ}/install/docker.prod/Dockerfile" , trg: "/root/Dockerfile"},
-      { src: "#{PRJ}/install/docker.prod/run"        , trg: "/root/run"}
-      { src: "#{PRJ}/install/run/docker-remove.sh"   , trg: "/root/cleanup"}
+      copyFiles = [
+        { src: "#{PRJ}/prepare"                        , trg: "/root/prepare"},
+        { src: "#{PRJ}/install/docker.prod/Dockerfile" , trg: "/root/Dockerfile"},
+        { src: "#{PRJ}/install/docker.prod/run"        , trg: "/root/run"}
+        { src: "#{PRJ}/install/run/docker-remove.sh"   , trg: "/root/cleanup"}
+        { src: "#{BLD}/BUILD_CONFIG.json"              , trg: "/root/BUILD_DATA/BUILD_CONFIG.json"}
+        { src: "#{BLD}/BUILD_HOSTNAME"                 , trg: "/root/BUILD_DATA/BUILD_HOSTNAME"}
+        { src: "#{BLD}/BUILD_REGION"                   , trg: "/root/BUILD_DATA/BUILD_REGION"}
+        { src: "#{BLD}/BUILD_CONFIG"                   , trg: "/root/BUILD_DATA/BUILD_CONFIG"}
+        { src: "#{BLD}/BUILD_BRANCH"                   , trg: "/root/BUILD_DATA/BUILD_BRANCH"}
+        { src: "#{BLD}/BUILD_PROJECT_ROOT"             , trg: "/root/BUILD_DATA/BUILD_PROJECT_ROOT"}
+        { src: "#{BLD}/BUILD_ENVIRONMENT"              , trg: "/root/BUILD_DATA/BUILD_ENVIRONMENT"}
+        { src: "#{BLD}/BUILD_VERSION"                  , trg: "/root/BUILD_DATA/BUILD_VERSION"}
 
-    ]
+      ]
+      conn.exec "mkdir -p /root/BUILD_DATA && ls -lha /root/BUILD_DATA", (err, stream) ->
+        sftpCopy conn : conn, files : copyFiles,(err,res)->
+          log "copyFiles finished."
+          conn.exec "bash /root/prepare", (err, stream) ->
+            throw err  if err
+            listen "configuring #{o.hostname}", stream,-> 
+              log "Box is ready at: ssh root@#{o.hostname} pubkey is added, no need for passwd:#{password})" 
+              conn.end
 
-    sftpCopy conn : conn, files : copyFiles,(err,res)->
-      log "copyFiles finished."
-      conn.exec "bash /root/prepare -h #{hostname} -r #{region} -c #{config} -b #{branch}", (err, stream) ->
-        throw err  if err
-        listen "configuring #{hostname}", stream,-> 
-          log "Box is ready at: ssh root@#{hostname} pubkey is added, no need for passwd:#{password})" 
-          conn.end
 
-deploy()
+
+
+Deploy.createDeployData ->
+  domainName = options.hostname
+  password   = hat()
+  Deploy.createServer
+    name   : domainName
+    flavor : 'performance2-15'  
+    image  : 'bb02b1a3-bc77-4d17-ab5b-421d89850fca'  #ubuntu 14.04
+    personality: []
+    (err,server)->
+      if err then throw err
+      else
+        publicIP = Deploy.getPublicIP server
+        rs.dns.createRecord "4255573",
+          name : domainName
+          type : "A"
+          ttl  : "3600"
+          data : publicIP
+          (err,rec)->
+
+            log "A RECORD #{domainName} -> #{publicIP} is placed with TTL 3600."
+            log "Server password is #{server.adminPass}"
+            log "Server is now ready at ssh root@#{domainName}"
+
+            setTimeout ->
+              Deploy.konnect 
+                IP         : publicIP
+                username   : "root"
+                password   : server.adminPass
+            ,10000
+
+
+

@@ -38,5 +38,5 @@ RUN ./go/build.sh
 RUN go run /opt/koding/go/src/github.com/koding/kite/kontrol/kontrol/main.go -init -public-key /opt/koding/certs/test_kontrol_rsa_public.pem -private-key /opt/koding/certs/test_kontrol_rsa_private.pem -username koding  -kontrol-url "http://`cat $BLD/BUILD_HOSTNAME`:4000/kite" 
 
 WORKDIR /opt/koding/go/src/socialapi
-RUN make install
+RUN make install 
 WORKDIR /opt/koding

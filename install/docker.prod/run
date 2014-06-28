@@ -25,7 +25,7 @@ PBKEY=$PRJ/certs/test_kontrol_rsa_public.pem
 PVKEY=$PRJ/certs/test_kontrol_rsa_private.pem
 LOG=/tmp/logs
 GB=$PRJ/go/bin
-SOCIALCONFIG=./go/src/socialapi/config/vagrant.toml
+SOCIALCONFIG=./go/src/socialapi/config/docker.toml
 
 mkdir -p $LOG
 
@@ -34,6 +34,7 @@ docker run                 -d --name=mongo            --entrypoint=mongod       
 docker run     						 -d --name=postgres                                              koding/postgres
 docker run     						 -d --name=rabbitmq                                              koding/rabbitmq
 docker run     						 -d --name=redis                                                 koding/redis    redis-server
+sleep 5
 docker run     						 -d --name=kontrol           --entrypoint=$GB/kontrol       		 															 --link=mongo:mongo --link=postgres:postgres --link=redis:redis --link=rabbitmq:rabbitmq koding/run  -c $CFG -r $RGN
 docker run                 -d --name=kloud             --entrypoint=$GB/kloud         		 															 --link=mongo:mongo --link=postgres:postgres --link=redis:redis --link=rabbitmq:rabbitmq koding/run  -c $CFG -r $RGN -public-key $PBKEY -private-key $PVKEY -kontrol-url "http://$HST:4000/kite"
 docker run                 -d --name=rerouting         --entrypoint=$GB/rerouting     		 															 --link=mongo:mongo --link=postgres:postgres --link=redis:redis --link=rabbitmq:rabbitmq koding/run  -c $CFG
