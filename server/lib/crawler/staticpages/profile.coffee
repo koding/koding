@@ -22,11 +22,11 @@ module.exports = (account, statusUpdates)=>
   </html>
   """
 
-putContent = (account, sUpdates)=>
+putContent = (account, statusUpdates)=>
   profile      = getProfile account
 
-  if sUpdates is ""
-    sUpdates = """<div class="lazy-loader">#{profile.fullName} has not shared any posts yet.</div>"""
+  if statusUpdates is ""
+    statusUpdates = """<div class="lazy-loader">#{profile.fullName} has not shared any posts yet.</div>"""
 
   numberOfLikes     = if account?.counts?.likes     then account.counts.likes     else "0"
   numberOfFollowers = if account?.counts?.followers then account.counts.followers else "0"
@@ -72,7 +72,7 @@ putContent = (account, sUpdates)=>
                   <div class="kdview kdtabpaneview statuses clearfix active">
                     <div class="kdview kdlistview kdlistview-statuses activity-related">
                       <div class="kdview kdlistitemview kdlistitemview-activity" itemscope itemtype="http://schema.org/UserComments">
-                        #{sUpdates}
+                        #{statusUpdates}
                       </div>
                     </div>
                   </div>
