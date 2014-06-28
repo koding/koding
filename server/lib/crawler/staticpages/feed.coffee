@@ -102,7 +102,7 @@ getPagination = (currentPage, numberOfItems, route="")->
   if start > 1
     pagination += getNoHrefLink " ... "
 
-  [start..end].map (pageNumber)=>
+  [start..end].map (pageNumber)->
     pagination += getSinglePageLink pageNumber, null, route
 
   if end < numberOfPages
@@ -120,7 +120,7 @@ getSinglePageLink = (pageNumber, linkText=pageNumber, route)->
   link = "<a href='#{uri.address}/#{route}?page=#{pageNumber}'>#{linkText}  </a>"
   return link
 
-appendDecoratedTopic = (tag, queue)=>
+appendDecoratedTopic = (tag, queue)->
   queue.pageContent += createTagNode tag
   queue.next()
 
