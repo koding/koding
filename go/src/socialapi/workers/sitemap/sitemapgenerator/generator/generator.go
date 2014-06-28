@@ -4,7 +4,6 @@ import (
 	"encoding/xml"
 
 	"socialapi/config"
-	"socialapi/workers/helper"
 	"socialapi/workers/sitemap/common"
 	"socialapi/workers/sitemap/models"
 
@@ -32,11 +31,7 @@ var (
 	cronJob *cron.Cron
 )
 
-func New(log logging.Logger) (*Controller, error) {
-	conf := *config.Get()
-	conf.Redis.DB = conf.Sitemap.RedisDB
-
-	redisConn := helper.MustInitRedisConn(&conf)
+func New(log logging.Logger, redisConn *redis.RedisSession) (*Controller, error) {
 	c := &Controller{
 		log:          log,
 		fileSelector: CachedFileSelector{},
@@ -196,7 +191,7 @@ func (c *Controller) updateFile(container *models.ItemContainer) error {
 func (c *Controller) buildContainer(items []*models.SitemapItem) *models.ItemContainer {
 	container := models.NewItemContainer()
 	for _, v := range items {
-		item := v.Definition(config.Get().Uri)
+		item := v.Definition(config.MustGet().Uri)
 		switch v.Status {
 		case models.STATUS_ADD:
 			container.Add = append(container.Add, item)

@@ -19,10 +19,13 @@ func main() {
 		return
 	}
 
-	redisConn := helper.MustInitRedisConn(r.Conf)
+	conf := *r.Conf
+	// different redis db is used for sitemap,
+	conf.Redis.DB = r.Conf.Sitemap.RedisDB
+	redisConn := helper.MustInitRedisConn(&conf)
 	defer redisConn.Close()
 
-	controller, err := generator.New(r.Log)
+	controller, err := generator.New(r.Log, redisConn)
 	if err != nil {
 		r.Log.Error("Could not create sitemap generator: %s", err)
 	}
