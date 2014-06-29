@@ -337,7 +337,7 @@ func (c *Controller) markMessageReplies(message *models.ChannelMessage) error {
 	return nil
 }
 
-func (c *Controller) markInteractions(account *models.Account) error {
+func (c *Controller) markInteractions(account *models.Account, currentStatus models.MetaBits) error {
 	var processCount = 100
 	var skip = 0
 	var erroredInteractions []models.Interaction
@@ -347,7 +347,7 @@ func (c *Controller) markInteractions(account *models.Account) error {
 		Selector: map[string]interface{}{
 			"account_id": account.Id,
 			// 0 means safe
-			"meta_bits": models.Safe,
+			"meta_bits": currentStatus,
 		},
 		Pagination: *bongo.NewPagination(processCount, 0),
 	}
@@ -366,7 +366,12 @@ func (c *Controller) markInteractions(account *models.Account) error {
 		}
 
 		for i, interaction := range interactions {
-			interaction.MetaBits.Mark(models.Troll)
+			if currentStatus == models.Safe {
+				interaction.MetaBits.Mark(models.Troll)
+			} else {
+				interaction.MetaBits.UnMark(models.Troll)
+			}
+
 			if err := interaction.Update(); err != nil {
 				erroredInteractions = append(erroredInteractions, interactions[i])
 			}
