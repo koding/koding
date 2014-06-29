@@ -76,10 +76,13 @@ module.exports =
   containerSubnet: "10.128.2.0/9"
   vmPool        : "vms"
   projectRoot   : projectRoot
+
+  # THIS IS WHERE WEBSERVER & SOCIAL WORKER KNOW HOW TO CONNECT TO SOCIALAPI
   socialapi:
     port        : 7000
     clusterSize : 5
-    proxyUrl    : "#{customDomain.local}:7000"
+    proxyUrl    : "#{customDomain.public}:7000"
+    
   mongo         : mongo
   mongoKontrol  : mongoKontrol
   mongoReplSet  : null
@@ -140,9 +143,9 @@ module.exports =
 
   mq            :
     host          : "#{rabbitmq.host}"
-    port          : "#{rabbitmq.port}"
+    port          : rabbitmq.port
     apiAddress    : "#{rabbitmq.host}"
-    apiPort       : "#{rabbitmq.apiPort}"
+    apiPort       : rabbitmq.apiPort
     login         : "#{rabbitmq.login}"
     componentUser : "#{rabbitmq.login}"
     password      : "#{rabbitmq.password}"
@@ -281,31 +284,31 @@ module.exports =
     secret_url   : "https://www.odesk.com/services/api/auth?oauth_token="
     version      : "1.0"
     signature    : "HMAC-SHA1"
-    redirect_uri : "#{customDomain}:#{customDomain.port}/-/oauth/odesk/callback"
+    redirect_uri : "#{customDomain.host}:#{customDomain.port}/-/oauth/odesk/callback"
   facebook       :
     clientId     : "475071279247628"
     clientSecret : "65cc36108bb1ac71920dbd4d561aca27"
-    redirectUri  : "#{customDomain}:#{customDomain.port}/-/oauth/facebook/callback"
+    redirectUri  : "#{customDomain.host}:#{customDomain.port}/-/oauth/facebook/callback"
   google         :
     client_id    : "1058622748167.apps.googleusercontent.com"
     client_secret: "vlF2m9wue6JEvsrcAaQ-y9wq"
-    redirect_uri : "#{customDomain}:#{customDomain.port}/-/oauth/google/callback"
+    redirect_uri : "#{customDomain.host}:#{customDomain.port}/-/oauth/google/callback"
   statsd         :
     use          : false
-    ip           : "#{customDomain}"
+    ip           : "#{customDomain.host}"
     port         : 8125
   graphite       :
     use          : false
-    host         : "#{customDomain}"
+    host         : "#{customDomain.host}"
     port         : 2003
   linkedin       :
     client_id    : "f4xbuwft59ui"
     client_secret: "fBWSPkARTnxdfomg"
-    redirect_uri : "#{customDomain}:#{customDomain.port}/-/oauth/linkedin/callback"
+    redirect_uri : "#{customDomain.host}:#{customDomain.port}/-/oauth/linkedin/callback"
   twitter        :
     key          : "aFVoHwffzThRszhMo2IQQ"
     secret       : "QsTgIITMwo2yBJtpcp9sUETSHqEZ2Fh7qEQtRtOi2E"
-    redirect_uri : "#{customDomain}:#{customDomain.port}/-/oauth/twitter/callback"
+    redirect_uri : "#{customDomain.host}:#{customDomain.port}/-/oauth/twitter/callback"
     request_url  : "https://twitter.com/oauth/request_token"
     access_url   : "https://twitter.com/oauth/access_token"
     secret_url   : "https://twitter.com/oauth/authenticate?oauth_token="

@@ -35,7 +35,7 @@ docker run     						 -d --name=postgres                                        
 docker run     						 -d --name=rabbitmq                                              koding/rabbitmq
 docker run     						 -d --name=redis                                                 koding/redis    redis-server
 sleep 5
-docker run     						 -d --name=kontrol           --entrypoint=$GB/kontrol       		 															 --link=mongo:mongo --link=postgres:postgres --link=redis:redis --link=rabbitmq:rabbitmq koding/run  -c $CFG -r $RGN
+docker run -p 4000:4000		 -d --name=kontrol           --entrypoint=$GB/kontrol       		 															 --link=mongo:mongo --link=postgres:postgres --link=redis:redis --link=rabbitmq:rabbitmq koding/run  -c $CFG -r $RGN
 docker run                 -d --name=kloud             --entrypoint=$GB/kloud         		 															 --link=mongo:mongo --link=postgres:postgres --link=redis:redis --link=rabbitmq:rabbitmq koding/run  -c $CFG -r $RGN -public-key $PBKEY -private-key $PVKEY -kontrol-url "http://$HST:4000/kite"
 docker run                 -d --name=rerouting         --entrypoint=$GB/rerouting     		 															 --link=mongo:mongo --link=postgres:postgres --link=redis:redis --link=rabbitmq:rabbitmq koding/run  -c $CFG
 docker run                 -d --name=cronJobs          --entrypoint=$GB/cron          		 															 --link=mongo:mongo --link=postgres:postgres --link=redis:redis --link=rabbitmq:rabbitmq koding/run  -c $CFG
