@@ -46,7 +46,7 @@ func (m *MessageReply) BeforeUpdate() error {
 }
 
 func (m *MessageReply) MarkIfExempt() error {
-	if m.MetaBits.IsTroll() {
+	if m.MetaBits.Is(Troll) {
 		return nil
 	}
 

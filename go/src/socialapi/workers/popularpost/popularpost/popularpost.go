@@ -83,11 +83,11 @@ func (f *Controller) handleInteractionEvent(incrementCount int, i *models.Intera
 }
 
 func (f *Controller) isEligible(c *models.Channel, cm *models.ChannelMessage) bool {
-	if c.MetaBits.IsTroll() {
+	if c.MetaBits.Is(models.Troll) {
 		return false
 	}
 
-	if cm.MetaBits.IsTroll() {
+	if cm.MetaBits.Is(models.Troll) {
 		return false
 	}
 

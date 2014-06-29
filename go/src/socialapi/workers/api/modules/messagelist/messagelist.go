@@ -28,7 +28,7 @@ func List(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface
 
 	// if channel is exempt and
 	// user should see the content, return not found err
-	if c.MetaBits.IsTroll() && !query.ShowExempt {
+	if c.MetaBits.Is(models.Troll) && !query.ShowExempt {
 		return response.NewNotFound()
 	}
 

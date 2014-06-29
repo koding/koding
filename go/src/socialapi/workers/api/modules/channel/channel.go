@@ -211,7 +211,7 @@ func Get(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface{
 	}
 
 	// add troll mode filter
-	if c.MetaBits.IsTroll() && !q.ShowExempt {
+	if c.MetaBits.Is(models.Troll) && !q.ShowExempt {
 		return response.NewNotFound()
 	}
 

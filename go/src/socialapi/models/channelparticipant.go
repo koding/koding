@@ -349,7 +349,7 @@ func (c *ChannelParticipant) MarkIfExempt() error {
 
 func (c *ChannelParticipant) isExempt() (bool, error) {
 	// return early if channel is already exempt
-	if c.MetaBits.IsTroll() {
+	if c.MetaBits.Is(Troll) {
 		return true, nil
 	}
 

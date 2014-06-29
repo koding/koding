@@ -357,7 +357,7 @@ func (c *ChannelMessageList) MarkIfExempt() error {
 
 func (c *ChannelMessageList) isExempt() (bool, error) {
 	// return early if channel is already exempt
-	if c.MetaBits.IsTroll() {
+	if c.MetaBits.Is(Troll) {
 		return true, nil
 	}
 

@@ -177,7 +177,7 @@ func mapMessage(data []byte) (*models.ChannelMessageList, error) {
 }
 
 func (f *Controller) isEligible(c *models.Channel) bool {
-	if c.MetaBits.IsTroll() {
+	if c.MetaBits.Is(models.Troll) {
 		return false
 	}
 

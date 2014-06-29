@@ -133,7 +133,7 @@ func (c *ChannelMessage) MarkIfExempt() error {
 }
 
 func (c *ChannelMessage) isExempt() (bool, error) {
-	if c.MetaBits.IsTroll() {
+	if c.MetaBits.Is(Troll) {
 		return true, nil
 	}
 

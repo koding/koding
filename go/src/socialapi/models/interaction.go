@@ -114,7 +114,7 @@ func (i *Interaction) MarkIfExempt() error {
 }
 
 func (i *Interaction) isExempt() (bool, error) {
-	if i.MetaBits.IsTroll() {
+	if i.MetaBits.Is(Troll) {
 		return true, nil
 	}
 
