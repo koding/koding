@@ -187,7 +187,7 @@ func (c *Controller) markParticipations(account *models.Account, currentStatus m
 	return nil
 }
 
-func (c *Controller) markMessages(account *models.Account) error {
+func (c *Controller) markMessages(account *models.Account, currentStatus models.MetaBits) error {
 	var processCount = 100
 	var skip = 0
 	var erroredMessages []models.ChannelMessage
@@ -197,7 +197,7 @@ func (c *Controller) markMessages(account *models.Account) error {
 		Selector: map[string]interface{}{
 			"account_id": account.Id,
 			// 0 means safe
-			"meta_bits": models.Safe,
+			"meta_bits": currentStatus,
 		},
 		Pagination: *bongo.NewPagination(processCount, 0),
 	}
@@ -218,16 +218,21 @@ func (c *Controller) markMessages(account *models.Account) error {
 
 		for i, message := range messages {
 			// mark all message_list items as exempt
-			if err := c.markMessageLists(&message); err != nil {
+			if err := c.markMessageLists(&message, currentStatus); err != nil {
 				return err
 			}
 
 			// mark all message_replies items as exempt
-			if err := c.markMessageReplies(&message); err != nil {
+			if err := c.markMessageReplies(&message, currentStatus); err != nil {
 				return err
 			}
 
-			message.MetaBits.Mark(models.Troll)
+			if currentStatus == models.Safe {
+				message.MetaBits.Mark(models.Troll)
+			} else {
+				message.MetaBits.UnMark(models.Troll)
+			}
+
 			// ChannelMessage update only updates body of the message
 			if err := bongo.B.Update(message); err != nil {
 				erroredMessages = append(erroredMessages, messages[i])
@@ -245,7 +250,7 @@ func (c *Controller) markMessages(account *models.Account) error {
 	return nil
 }
 
-func (c *Controller) markMessageLists(message *models.ChannelMessage) error {
+func (c *Controller) markMessageLists(message *models.ChannelMessage, currentStatus models.MetaBits) error {
 	var processCount = 100
 	var skip = 0
 	var erroredMessages []models.ChannelMessageList
@@ -254,7 +259,7 @@ func (c *Controller) markMessageLists(message *models.ChannelMessage) error {
 	q := &bongo.Query{
 		Selector: map[string]interface{}{
 			"message_id": message.Id,
-			"meta_bits":  models.Safe,
+			"meta_bits":  currentStatus,
 		},
 		Pagination: *bongo.NewPagination(processCount, 0),
 	}
@@ -274,7 +279,13 @@ func (c *Controller) markMessageLists(message *models.ChannelMessage) error {
 		}
 
 		for i, item := range messageList {
-			item.MetaBits.Mark(models.Troll)
+
+			if currentStatus == models.Safe {
+				item.MetaBits.Mark(models.Troll)
+			} else {
+				item.MetaBits.UnMark(models.Troll)
+			}
+
 			if err := item.Update(); err != nil {
 				erroredMessages = append(erroredMessages, messageList[i])
 			}
