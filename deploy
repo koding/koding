@@ -50,7 +50,7 @@ class Deploy
         echo #{o.environment}  >#{BLD}/BUILD_ENVIRONMENT
         echo #{o.version}      >#{BLD}/BUILD_VERSION"""
     ,->
-      fs.writeFileSync "#{BLD}/BUILD_CONFIG.json",JSON.stringify(require "./config/main.#{o.config}.coffee",null,4)
+      fs.writeFileSync "#{BLD}/BUILD_CONFIG.json",(JSON.stringify(require "./config/main.#{o.config}.coffee",null,4))
       log "build data is written to #{BLD}/ for deploy."
       callback null
 
@@ -163,7 +163,7 @@ class Deploy
             throw err  if err
             listen "configuring #{o.hostname}", stream,-> 
               log "Box is ready at: ssh root@#{o.hostname} pubkey is added, no need for passwd:#{password})" 
-              conn.end
+              conn.end()
 
 
 

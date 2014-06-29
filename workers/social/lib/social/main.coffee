@@ -35,6 +35,8 @@ mongo = "mongodb://#{KONFIG.mongo}?auto_reconnect"  if 'string' is typeof KONFIG
 mqOptions = extend {}, mq
 mqOptions.login = social.login if social?.login?
 
+console.log "connecting to rabbit with:",{mqOptions}
+
 broker = new Broker mqOptions
 
 processMonitor = (require 'processes-monitor').start
