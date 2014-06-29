@@ -139,13 +139,13 @@ module.exports =
     exchange    : 'services-presence'
 
   mq            :
-    host        : "#{customDomain.local_}"
-    port        : 5672
-    apiAddress  : "#{customDomain.local_}"
-    apiPort     : 15672
-    login       : "#{rabbitmq.login}"
-    componentUser: "#{rabbitmq.login}"
-    password    : "#{rabbitmq.password}"
+    host          : "#{rabbitmq.host}"
+    port          : "#{rabbitmq.port}"
+    apiAddress    : "#{rabbitmq.host}"
+    apiPort       : "#{rabbitmq.apiPort}"
+    login         : "#{rabbitmq.login}"
+    componentUser : "#{rabbitmq.login}"
+    password      : "#{rabbitmq.password}"
     # heartbeat disabled in vagrant, because it'll interfere with node-inspector
     # when the debugger is paused, the target is not able to send the heartbeat,
     # so it'll disconnect from RabbitMQ if heartbeat is enabled.
