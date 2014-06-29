@@ -48,22 +48,51 @@ func (c *Controller) MarkedAsTroll(account *models.Account) error {
 		return nil
 	}
 
-	if err := c.markChannels(account); err != nil {
+	if err := c.markChannels(account, models.Safe); err != nil {
 		c.log.Error("Error while processing channels, err: %s ", err.Error())
 		return err
 	}
 
-	if err := c.markParticipations(account); err != nil {
+	if err := c.markParticipations(account, models.Safe); err != nil {
 		c.log.Error("Error while processing participations, err: %s ", err.Error())
 		return err
 	}
 
-	if err := c.markMessages(account); err != nil {
+	if err := c.markMessages(account, models.Safe); err != nil {
 		c.log.Error("Error while processing channels messages, err: %s ", err.Error())
 		return err
 	}
 
-	if err := c.markInteractions(account); err != nil {
+	if err := c.markInteractions(account, models.Safe); err != nil {
+		c.log.Error("Error while processing interactions, err: %s ", err.Error())
+		return err
+	}
+
+	return nil
+}
+
+func (c *Controller) UnMarkedAsTroll(account *models.Account) error {
+	if err := c.validateRequest(account); err != nil {
+		c.log.Error("Validation failed for un-marking troll; skipping, err: %s ", err.Error())
+		return nil
+	}
+
+	if err := c.markChannels(account, models.Troll); err != nil {
+		c.log.Error("Error while processing channels, err: %s ", err.Error())
+		return err
+	}
+
+	if err := c.markParticipations(account, models.Troll); err != nil {
+		c.log.Error("Error while processing participations, err: %s ", err.Error())
+		return err
+	}
+
+	if err := c.markMessages(account, models.Troll); err != nil {
+		c.log.Error("Error while processing channels messages, err: %s ", err.Error())
+		return err
+	}
+
+	if err := c.markInteractions(account, models.Troll); err != nil {
 		c.log.Error("Error while processing interactions, err: %s ", err.Error())
 		return err
 	}
@@ -401,10 +430,5 @@ func (c *Controller) markInteractions(account *models.Account, currentStatus mod
 		return errors.New(fmt.Sprintf("some errors: %v", erroredInteractions))
 	}
 
-	return nil
-}
-
-func (c *Controller) UnMarkedAsTroll(account *models.Account) error {
-	c.log.Critical("un marked as troll ehehe %v", account)
 	return nil
 }
