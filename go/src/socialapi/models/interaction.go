@@ -30,9 +30,9 @@ type Interaction struct {
 }
 
 var AllowedInteractions = map[string]struct{}{
-	"like":     struct{}{},
-	"upvote":   struct{}{},
-	"downvote": struct{}{},
+	"like":     {},
+	"upvote":   {},
+	"downvote": {},
 }
 
 const (
