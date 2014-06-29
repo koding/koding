@@ -46,6 +46,12 @@ func TestChannelHistory(t *testing.T) {
 							So(history, ShouldNotBeNil)
 							So(len(history.MessageList), ShouldEqual, 10)
 						})
+						Convey("We should be able to get channel message count", func() {
+							count, err := rest.CountHistory(channel.Id)
+							So(err, ShouldBeNil)
+							So(count, ShouldNotBeNil)
+							So(count.TotalCount, ShouldEqual, 10)
+						})
 					})
 				})
 			})

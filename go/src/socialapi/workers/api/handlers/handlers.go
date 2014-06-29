@@ -68,6 +68,8 @@ func Inject(mux *tigertonic.TrieServeMux) *tigertonic.TrieServeMux {
 
 	// list messages of the channel
 	mux.Handle("GET", "/channel/{id}/history", handler.Wrapper(messagelist.List, "channel-history-list"))
+	// message count of the channel
+	mux.Handle("GET", "/channel/{id}/history/count", handler.Wrapper(messagelist.Count, "channel-history-count"))
 	// register an account
 	mux.Handle("POST", "/account", handler.Wrapper(account.Register, "account-create"))
 	// list channels of the account

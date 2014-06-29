@@ -7,6 +7,7 @@ import (
 	"socialapi/models"
 	"socialapi/request"
 	"socialapi/workers/common/response"
+
 	"github.com/koding/bongo"
 )
 
@@ -86,6 +87,9 @@ func ByName(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interfa
 
 	channelList, err := models.NewChannel().ByName(q)
 	if err != nil {
+		if err == bongo.RecordNotFound {
+			return response.NewNotFound()
+		}
 		return response.NewBadRequest(err)
 	}
 

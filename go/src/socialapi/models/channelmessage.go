@@ -492,7 +492,7 @@ func (c *ChannelMessage) BySlug(query *request.Query) error {
 	}
 
 	if err := c.One(q); err != nil {
-		return nil
+		return err
 	}
 
 	// fetch channel by group name
