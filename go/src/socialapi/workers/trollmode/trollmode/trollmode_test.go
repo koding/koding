@@ -113,7 +113,7 @@ func TestMarkedAsTroll(t *testing.T) {
 			So(err, ShouldBeNil)
 			So(c1.Id, ShouldEqual, privatemessageChannelId1)
 			// check here
-			So(c1.MetaBits.IsTroll(), ShouldBeTrue)
+			So(c1.MetaBits.Is(models.Troll), ShouldBeTrue)
 
 			// fetch channel from db
 			c2 := models.NewChannel()
@@ -122,7 +122,7 @@ func TestMarkedAsTroll(t *testing.T) {
 			So(c2.Id, ShouldEqual, privatemessageChannelId2)
 
 			// check here
-			So(c2.MetaBits.IsTroll(), ShouldBeTrue)
+			So(c2.MetaBits.Is(models.Troll), ShouldBeTrue)
 		})
 
 		// mark channel
@@ -152,7 +152,7 @@ func TestMarkedAsTroll(t *testing.T) {
 			err = models.NewChannelParticipant().Some(&participations, query)
 			So(err, ShouldBeNil)
 			for _, participation := range participations {
-				So(participation.MetaBits.IsTroll(), ShouldBeTrue)
+				So(participation.MetaBits.Is(models.Troll), ShouldBeTrue)
 			}
 		})
 
@@ -179,7 +179,7 @@ func TestMarkedAsTroll(t *testing.T) {
 			So(len(messages), ShouldBeGreaterThan, 0)
 
 			for _, message := range messages {
-				So(message.MetaBits.IsTroll(), ShouldBeTrue)
+				So(message.MetaBits.Is(models.Troll), ShouldBeTrue)
 			}
 		})
 
@@ -205,7 +205,7 @@ func TestMarkedAsTroll(t *testing.T) {
 			So(err, ShouldBeNil)
 
 			for _, message := range messages {
-				So(message.MetaBits.IsTroll(), ShouldBeTrue)
+				So(message.MetaBits.Is(models.Troll), ShouldBeTrue)
 			}
 		})
 
@@ -231,7 +231,7 @@ func TestMarkedAsTroll(t *testing.T) {
 			So(err, ShouldBeNil)
 
 			for _, interaction := range interactions {
-				So(interaction.MetaBits.IsTroll(), ShouldBeTrue)
+				So(interaction.MetaBits.Is(models.Troll), ShouldBeTrue)
 			}
 		})
 
@@ -263,7 +263,7 @@ func TestMarkedAsTroll(t *testing.T) {
 			So(len(mrs), ShouldBeGreaterThan, 0)
 
 			for _, mr := range mrs {
-				So(mr.MetaBits.IsTroll(), ShouldBeTrue)
+				So(mr.MetaBits.Is(models.Troll), ShouldBeTrue)
 			}
 		})
 
@@ -281,7 +281,7 @@ func TestMarkedAsTroll(t *testing.T) {
 			So(err, ShouldBeNil)
 			So(c1.Id, ShouldEqual, privatemessageChannelId1)
 
-			So(c1.MetaBits.IsTroll(), ShouldBeTrue)
+			So(c1.MetaBits.Is(models.Troll), ShouldBeTrue)
 		})
 
 		// update channel_participant data while creating
@@ -298,7 +298,7 @@ func TestMarkedAsTroll(t *testing.T) {
 			So(cp.FetchParticipant(), ShouldBeNil)
 			So(cp.AccountId, ShouldEqual, trollUser.Id)
 
-			So(cp.MetaBits.IsTroll(), ShouldBeTrue)
+			So(cp.MetaBits.Is(models.Troll), ShouldBeTrue)
 		})
 
 		// update channel_message_list data while creating
@@ -318,7 +318,7 @@ func TestMarkedAsTroll(t *testing.T) {
 			ml, err := c.FetchMessageList(post.Id)
 			tests.ResultedWithNoErrorCheck(ml, err)
 
-			So(ml.MetaBits.IsTroll(), ShouldBeTrue)
+			So(ml.MetaBits.Is(models.Troll), ShouldBeTrue)
 
 		})
 
@@ -339,7 +339,7 @@ func TestMarkedAsTroll(t *testing.T) {
 			lastMessage, err := c.FetchLastMessage()
 			tests.ResultedWithNoErrorCheck(lastMessage, err)
 
-			So(lastMessage.MetaBits.IsTroll(), ShouldBeTrue)
+			So(lastMessage.MetaBits.Is(models.Troll), ShouldBeTrue)
 
 		})
 
@@ -361,7 +361,7 @@ func TestMarkedAsTroll(t *testing.T) {
 			So(m.ById(reply.Id), ShouldBeNil)
 			So(m, ShouldNotBeNil)
 
-			So(m.MetaBits.IsTroll(), ShouldBeTrue)
+			So(m.MetaBits.Is(models.Troll), ShouldBeTrue)
 
 		})
 
@@ -392,7 +392,7 @@ func TestMarkedAsTroll(t *testing.T) {
 			So(err, ShouldBeNil)
 
 			So(len(mrs), ShouldBeGreaterThan, 0)
-			So(mrs[0].MetaBits.IsTroll(), ShouldBeTrue)
+			So(mrs[0].MetaBits.Is(models.Troll), ShouldBeTrue)
 
 		})
 
@@ -417,7 +417,7 @@ func TestMarkedAsTroll(t *testing.T) {
 			So(i.Some(&interactions, q), ShouldBeNil)
 
 			for _, interaction := range interactions {
-				So(interaction.MetaBits.IsTroll(), ShouldBeTrue)
+				So(interaction.MetaBits.Is(models.Troll), ShouldBeTrue)
 			}
 
 		})
