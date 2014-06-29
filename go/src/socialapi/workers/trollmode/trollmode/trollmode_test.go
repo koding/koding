@@ -105,7 +105,7 @@ func TestMarkedAsTroll(t *testing.T) {
 			So(err, ShouldBeNil)
 			So(privatemessageChannelId2, ShouldBeGreaterThan, 0)
 
-			So(controller.markChannels(trollUser), ShouldBeNil)
+			So(controller.markChannels(trollUser, models.Safe), ShouldBeNil)
 
 			// fetch channel from db
 			c1 := models.NewChannel()
@@ -139,7 +139,7 @@ func TestMarkedAsTroll(t *testing.T) {
 			So(err, ShouldBeNil)
 			So(privatemessageChannelId2, ShouldBeGreaterThan, 0)
 
-			So(controller.markParticipations(trollUser), ShouldBeNil)
+			So(controller.markParticipations(trollUser, models.Safe), ShouldBeNil)
 
 			var participations []models.ChannelParticipant
 
@@ -162,7 +162,7 @@ func TestMarkedAsTroll(t *testing.T) {
 			post, err := rest.CreatePost(groupChannel.Id, trollUser.Id)
 			tests.ResultedWithNoErrorCheck(post, err)
 
-			So(controller.markMessageLists(post), ShouldBeNil)
+			So(controller.markMessageLists(post, models.Safe), ShouldBeNil)
 
 			cml := models.NewChannelMessageList()
 			q := &bongo.Query{
@@ -191,7 +191,7 @@ func TestMarkedAsTroll(t *testing.T) {
 			post2, err := rest.CreatePost(groupChannel.Id, trollUser.Id)
 			tests.ResultedWithNoErrorCheck(post2, err)
 
-			So(controller.markMessages(trollUser), ShouldBeNil)
+			So(controller.markMessages(trollUser, models.Safe), ShouldBeNil)
 
 			cm := models.NewChannelMessage()
 			q := &bongo.Query{
@@ -217,7 +217,7 @@ func TestMarkedAsTroll(t *testing.T) {
 			err = rest.AddInteraction("like", post1.Id, trollUser.Id)
 			So(err, ShouldBeNil)
 
-			So(controller.markInteractions(trollUser), ShouldBeNil)
+			So(controller.markInteractions(trollUser, models.Safe), ShouldBeNil)
 
 			cm := models.NewInteraction()
 			q := &bongo.Query{
@@ -247,7 +247,7 @@ func TestMarkedAsTroll(t *testing.T) {
 			So(reply, ShouldNotBeNil)
 			So(reply.AccountId, ShouldEqual, post.AccountId)
 
-			So(controller.markMessageReplies(reply), ShouldBeNil)
+			So(controller.markMessageReplies(reply, models.Safe), ShouldBeNil)
 
 			mr := models.NewMessageReply()
 			q := &bongo.Query{
@@ -355,7 +355,7 @@ func TestMarkedAsTroll(t *testing.T) {
 			So(reply, ShouldNotBeNil)
 			So(reply.AccountId, ShouldEqual, trollUser.Id)
 
-			So(controller.markMessageReplies(reply), ShouldBeNil)
+			So(controller.markMessageReplies(reply, models.Safe), ShouldBeNil)
 
 			m := models.NewChannelMessage()
 			So(m.ById(reply.Id), ShouldBeNil)
@@ -377,7 +377,7 @@ func TestMarkedAsTroll(t *testing.T) {
 			So(reply, ShouldNotBeNil)
 			So(reply.AccountId, ShouldEqual, trollUser.Id)
 
-			So(controller.markMessageReplies(reply), ShouldBeNil)
+			So(controller.markMessageReplies(reply, models.Safe), ShouldBeNil)
 
 			// check for reply's meta bit
 			mr := models.NewMessageReply()
