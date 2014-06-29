@@ -291,7 +291,7 @@ func (c *Controller) markMessageLists(message *models.ChannelMessage) error {
 	return nil
 }
 
-func (c *Controller) markMessageReplies(message *models.ChannelMessage) error {
+func (c *Controller) markMessageReplies(message *models.ChannelMessage, currentStatus models.MetaBits) error {
 	var processCount = 100
 	var skip = 0
 	var erroredMessages []models.MessageReply
@@ -300,7 +300,7 @@ func (c *Controller) markMessageReplies(message *models.ChannelMessage) error {
 	q := &bongo.Query{
 		Selector: map[string]interface{}{
 			"reply_id":  message.Id,
-			"meta_bits": models.Safe,
+			"meta_bits": currentStatus,
 		},
 		Pagination: *bongo.NewPagination(processCount, 0),
 	}
@@ -320,7 +320,12 @@ func (c *Controller) markMessageReplies(message *models.ChannelMessage) error {
 		}
 
 		for i, messageReply := range messageList {
-			messageReply.MetaBits.Mark(models.Troll)
+			if currentStatus == models.Safe {
+				messageReply.MetaBits.Mark(models.Troll)
+			} else {
+				messageReply.MetaBits.UnMark(models.Troll)
+			}
+
 			if err := messageReply.Update(); err != nil {
 				erroredMessages = append(erroredMessages, messageList[i])
 			}
