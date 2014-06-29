@@ -83,7 +83,7 @@ func (c *Controller) validateRequest(account *models.Account) error {
 	return nil
 }
 
-func (c *Controller) markChannels(account *models.Account) error {
+func (c *Controller) markChannels(account *models.Account, currentStatus models.MetaBits) error {
 	var processCount = 100
 	var skip = 0
 	var erroredChannels []models.Channel
@@ -93,8 +93,7 @@ func (c *Controller) markChannels(account *models.Account) error {
 		Selector: map[string]interface{}{
 			"creator_id":    account.Id,
 			"type_constant": models.Channel_TYPE_PRIVATE_MESSAGE,
-			// 0 means safe
-			"meta_bits": models.Safe,
+			"meta_bits":     currentStatus,
 		},
 		Pagination: *bongo.NewPagination(processCount, 0),
 	}
@@ -113,7 +112,13 @@ func (c *Controller) markChannels(account *models.Account) error {
 		}
 
 		for i, channel := range channels {
-			channel.MetaBits.Mark(models.Troll)
+
+			if currentStatus == models.Safe {
+				channel.MetaBits.Mark(models.Troll)
+			} else {
+				channel.MetaBits.UnMark(models.Troll)
+			}
+
 			if err := channel.Update(); err != nil {
 				erroredChannels = append(erroredChannels, channels[i])
 			}
