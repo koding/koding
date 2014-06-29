@@ -135,7 +135,7 @@ func (c *Controller) markChannels(account *models.Account, currentStatus models.
 	return nil
 }
 
-func (c *Controller) markParticipations(account *models.Account) error {
+func (c *Controller) markParticipations(account *models.Account, currentStatus models.MetaBits) error {
 	var processCount = 100
 	var skip = 0
 	var erroredChannelParticipants []models.ChannelParticipant
@@ -144,8 +144,7 @@ func (c *Controller) markParticipations(account *models.Account) error {
 	q := &bongo.Query{
 		Selector: map[string]interface{}{
 			"account_id": account.Id,
-			// 0 means safe
-			"meta_bits": models.Safe,
+			"meta_bits":  currentStatus,
 		},
 		Pagination: *bongo.NewPagination(processCount, 0),
 	}
@@ -165,7 +164,13 @@ func (c *Controller) markParticipations(account *models.Account) error {
 		}
 
 		for i, channelParticipant := range channelParticipants {
-			channelParticipant.MetaBits.Mark(models.Troll)
+
+			if currentStatus == models.Safe {
+				channelParticipant.MetaBits.Mark(models.Troll)
+			} else {
+				channelParticipant.MetaBits.UnMark(models.Troll)
+			}
+
 			if err := channelParticipant.Update(); err != nil {
 				erroredChannelParticipants = append(erroredChannelParticipants, channelParticipants[i])
 			}
