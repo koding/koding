@@ -3,6 +3,7 @@ package tests
 import (
 	"math/rand"
 	"socialapi/models"
+	"socialapi/request"
 	"socialapi/rest"
 	"socialapi/workers/common/tests"
 	"strconv"
@@ -88,7 +89,7 @@ func TestTrollModeActivityFeed(t *testing.T) {
 				post, err := rest.CreatePost(groupChannel.Id, trollUser.Id)
 				tests.ResultedWithNoErrorCheck(post, err)
 
-				history, err := rest.GetHistory(groupChannel.Id, trollUser.Id)
+				history, err := rest.GetHistory(groupChannel.Id, &request.Query{AccountId: trollUser.Id, ShowExempt: true})
 				tests.ResultedWithNoErrorCheck(history, err)
 				So(len(history.MessageList), ShouldEqual, 1)
 			})
@@ -97,10 +98,9 @@ func TestTrollModeActivityFeed(t *testing.T) {
 				post, err := rest.CreatePost(groupChannel.Id, trollUser.Id)
 				tests.ResultedWithNoErrorCheck(post, err)
 
-				history, err := rest.GetHistory(groupChannel.Id, normalUser1.Id)
+				history, err := rest.GetHistory(groupChannel.Id, &request.Query{AccountId: trollUser.Id})
 				tests.ResultedWithNoErrorCheck(history, err)
-				// to-do remove this check
-				So(len(history.MessageList), ShouldEqual, 2)
+				So(len(history.MessageList), ShouldEqual, 0)
 				// So(len(history.MessageList), ShouldEqual, 0)
 			})
 		})
