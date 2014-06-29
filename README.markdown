@@ -37,10 +37,6 @@ information about the folder structure.
 * team:    a folder for our remote working developers. You can find the working
            hours of every remote working developers here.
 
-* tests:   PLEASE FILL HERE
-
-* vagrant: PLEASE FILL HERE
-
 * website: assets used by the webserver for our koding.com homepage
 
 * workers: contains all our backend based code. Like authWorker, socialWorker
