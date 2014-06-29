@@ -111,8 +111,14 @@ class EnvironmentMachineItem extends EnvironmentItem
       KD.remote.api.JMachine.one machine._id, (err, newMachine)=>
         if err then warn ".>", err
         else
-          @setData newMachine
+          @setData new Machine machine: newMachine
           @ipAddress.updatePartial @getIpLink()
+
+        if /^build/.test event.eventId
+          KD.utils.wait 3000, =>
+            new KDNotificationView
+              title: "Preparing to run init script..."
+            @runBuildScript()
 
 
   contextMenuItems: ->
@@ -264,6 +270,10 @@ class EnvironmentMachineItem extends EnvironmentItem
       return new KDNotificationView
         title : "Machine is not running."
 
+    envVariables = ""
+    for key, value of @parent.getData().config or {}
+      envVariables += """export #{key}="#{value}"\n"""
+
     @reviveProvisioner (err, provisioner)=>
 
       if err or not provisioner
@@ -281,6 +291,7 @@ class EnvironmentMachineItem extends EnvironmentItem
           return new KDNotificationView
             title : "Failed to upload build script."
 
+        script  = "#{envVariables}\n\n#{script}\n"
         script += "\necho $?|kdevent;rm -f #{path};exit"
 
         file.save script, (err)=>

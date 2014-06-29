@@ -8,6 +8,7 @@ import (
 	"koding/kites/kloud/idlock"
 	"koding/kites/kloud/kloud/protocol"
 	"koding/kites/kloud/provider/digitalocean"
+	"koding/kites/kloud/provider/openstack"
 	"koding/kodingkite"
 	"koding/tools/config"
 	"log"
@@ -50,6 +51,9 @@ type Kloud struct {
 	KontrolPrivateKey string
 	KontrolURL        string
 
+	// S3 related stuff, like signing url, downloading list and so on.
+	Bucket *Bucket
+
 	Debug bool
 }
 
@@ -68,6 +72,11 @@ func (k *Kloud) NewKloud() *kodingkite.KodingKite {
 		log.Fatalln(err)
 	}
 	k.Kite = kt.Kite
+
+	// read kontrolURL from kite.key if it doesn't exist.
+	if k.KontrolURL == "" {
+		k.KontrolURL = kt.Config.KontrolURL.String()
+	}
 
 	k.Log = createLogger(NAME, k.Debug)
 
@@ -109,11 +118,6 @@ func (k *Kloud) NewKloud() *kodingkite.KodingKite {
 	return kt
 }
 
-func (k *Kloud) SignFunc(username string) (string, string, error) {
-	k.Log.Debug("Signing a key for user: '%s' kontrolURL: %s ", username, k.KontrolURL)
-	return createKey(username, k.KontrolURL, k.KontrolPrivateKey, k.KontrolPublicKey)
-}
-
 func (k *Kloud) GetProvider(providerName string) (protocol.Provider, error) {
 	provider, ok := providers[providerName]
 	if !ok {
@@ -135,10 +139,16 @@ func (k *Kloud) InitializeProviders() {
 	providers = map[string]protocol.Provider{
 		"digitalocean": &digitalocean.Provider{
 			Log:         createLogger("digitalocean", k.Debug),
-			SignFunc:    k.SignFunc,
 			Redis:       r,
 			Region:      k.Region,
 			Environment: k.Config.Environment,
+		},
+		"rackspace": &openstack.Provider{
+			Log:          createLogger("rackspace", k.Debug),
+			Region:       k.Region,
+			Environment:  k.Config.Environment,
+			AuthURL:      "https://identity.api.rackspacecloud.com/v2.0",
+			ProviderName: "rackspace",
 		},
 	}
 }

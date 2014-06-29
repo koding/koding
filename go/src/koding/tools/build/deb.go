@@ -21,6 +21,7 @@ type Deb struct {
 	Version string
 	Desc    string
 	Arch    string
+	Ldflags string
 
 	// Build fields
 	Output          string
@@ -117,6 +118,7 @@ func (d *Deb) createInstallDir() error {
 	if err != nil {
 		return err
 	}
+	dp.Ldflags = d.Ldflags
 
 	err = dp.InstallDeps()
 	if err != nil {

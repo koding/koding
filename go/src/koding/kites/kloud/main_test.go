@@ -31,6 +31,7 @@ var (
 	flagTestQuery      = flag.String("query", "", "Query as string for controller tests")
 	flagTestInstanceId = flag.String("instance", "", "Instance id (such as droplet Id)")
 	flagTestUsername   = flag.String("user", "", "Create machines on behalf of this user")
+	flagTestProvider   = flag.String("provider", "", "Provider backend for testing")
 
 	conf      *kiteconfig.Config
 	kloudKite *kodingkite.KodingKite
@@ -38,9 +39,6 @@ var (
 	remote    *kite.Client
 	testuser  string
 	storage   kloud.Storage
-
-	DIGITALOCEAN_CLIENT_ID = "2d314ba76e8965c451f62d7e6a4bc56f"
-	DIGITALOCEAN_API_KEY   = "4c88127b50c0c731aeb5129bdea06deb"
 )
 
 func init() {
@@ -223,13 +221,19 @@ func TestBuild(t *testing.T) {
 		t.Fatal("number of builds should be equal or less than 3")
 	}
 
+	if *flagTestProvider == "" {
+		t.Fatal("provider is not given")
+		return
+	}
+
 	var wg sync.WaitGroup
 	for i := 0; i < numberOfBuilds; i++ {
 		wg.Add(1)
 
 		go func(i int) {
 			defer wg.Done()
-			machineId := "digitalocean_id" + strconv.Itoa(i)
+
+			machineId := *flagTestProvider + "_id" + strconv.Itoa(i)
 			data, ok := TestProviderData[machineId]
 			if !ok {
 				t.Errorf("machineId '%s' is not available", machineId)
@@ -242,6 +246,7 @@ func TestBuild(t *testing.T) {
 		}(i)
 	}
 
+	time.Sleep(time.Second * 3)
 	wg.Wait()
 }
 
@@ -381,18 +386,23 @@ func setupKloud() *kodingkite.KodingKite {
 	}
 	privateKey := string(privKey)
 
+	klientFolder := "klient/development/latest"
+	if *flagProdMode {
+		klientFolder = "klient/production/latest"
+	}
+
 	kloudRaw = &kloud.Kloud{
 		Region:            "localhost",
 		Port:              3636,
 		Config:            kloudConf,
 		Storage:           &TestStorage{},
-		KontrolURL:        "wss://kontrol.koding.com",
+		KontrolURL:        "https://kontrol.koding.com/kite",
+		Bucket:            kloud.NewBucket("koding-kites", klientFolder),
 		KontrolPrivateKey: privateKey,
 		KontrolPublicKey:  publicKey,
 		Debug:             *flagDebug,
 	}
 
 	kt := kloudRaw.NewKloud()
-
 	return kt
 }

@@ -23,4 +23,6 @@ class KodingKite_KlientKite extends KodingKite
     webtermKillSession : 'webterm.killSession'
     webtermPing        : 'webterm.ping'
 
-  init: -> Promise.resolve()
+  init: ->
+    @connect()
+    Promise.resolve()

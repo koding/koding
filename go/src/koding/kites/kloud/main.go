@@ -16,6 +16,7 @@ var (
 	flagPort       = flag.Int("port", 3000, "Change running port")
 	flagVersion    = flag.Bool("version", false, "Show version and exit")
 	flagDebug      = flag.Bool("debug", false, "Enable debug mode")
+	flagProdMode   = flag.Bool("prod", false, "Enable production mode")
 	flagRegion     = flag.String("r", "", "Change region")
 	flagProfile    = flag.String("c", "", "Configuration profile from file")
 	flagKontrolURL = flag.String("kontrol-url", "", "Kontrol URL to be connected")
@@ -35,17 +36,17 @@ func main() {
 		os.Exit(0)
 	}
 
-	if *flagKontrolURL == "" {
-		log.Fatal("Please specify kontrol url with -kontrol-url")
-	}
-
 	conf := config.MustConfig(*flagProfile)
 
-	u, err := url.Parse(*flagKontrolURL)
-	if err != nil {
-		log.Fatalln(err)
+	var kontrolURL string
+	if *flagKontrolURL != "" {
+		u, err := url.Parse(*flagKontrolURL)
+		if err != nil {
+			log.Fatalln(err)
+		}
+
+		kontrolURL = u.String()
 	}
-	kontrolURL := u.String()
 
 	pubKeyPath := *flagPublicKey
 	if *flagPublicKey == "" {
@@ -67,12 +68,18 @@ func main() {
 	}
 	privateKey := string(privKey)
 
+	klientFolder := "klient/development/latest"
+	if *flagProdMode {
+		klientFolder = "klient/production/latest"
+	}
+
 	k := &kloud.Kloud{
 		Config:            conf,
 		Region:            *flagRegion,
 		Port:              *flagPort,
 		Debug:             *flagDebug,
 		UniqueId:          *flagUniqueId,
+		Bucket:            kloud.NewBucket("koding-kites", klientFolder),
 		KontrolURL:        kontrolURL,
 		KontrolPrivateKey: privateKey,
 		KontrolPublicKey:  publicKey,

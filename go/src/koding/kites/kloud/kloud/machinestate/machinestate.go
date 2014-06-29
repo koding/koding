@@ -46,6 +46,11 @@ const (
 	// Terminated defines the state where the machine is destroyed. It
 	// physically doesn't exist anymore.
 	Terminated
+
+	// Updating defines the state where the machine is being updated. That
+	// might be a hostname renaming, changing password, resizing the disk and
+	// so on.
+	Updating
 )
 
 var States = map[string]State{
@@ -58,6 +63,7 @@ var States = map[string]State{
 	"Rebooting":      Rebooting,
 	"Terminating":    Terminating,
 	"Terminated":     Terminated,
+	"Updating":       Updating,
 	"Unknown":        Unknown,
 }
 
@@ -111,6 +117,8 @@ func (s State) String() string {
 		return "Terminating"
 	case Terminated:
 		return "Terminated"
+	case Updating:
+		return "Updating"
 	case Unknown:
 		fallthrough
 	default:

@@ -17,7 +17,8 @@ class ComputeController extends KDController
 
       @eventListener = new ComputeEventListener
 
-      @on "machineBuildCompleted", => delete @stacks
+      @on "MachineBuilt",   @bound 'reset'
+      @on "MachineDestroy", @bound 'reset'
 
       @fetchStacks => @emit 'ready'
 
@@ -45,6 +46,9 @@ class ComputeController extends KDController
         @stacks   = stacks
         callback null, stacks
 
+      else
+        callback null, []
+
 
   fetchMachines: (callback = noop)->
 
@@ -62,6 +66,7 @@ class ComputeController extends KDController
           machines.push machine
 
       callback null, @machines = machines
+
 
   fetchMachine: (idOrUid, callback = noop)->
 
@@ -87,9 +92,14 @@ class ComputeController extends KDController
     KD.remote.api.ComputeProvider.createGroupStack (err, stack)=>
       return if KD.showError err
 
-      delete @stacks
+      @reset()
       @emit "renderStacks"
 
+
+  reset:->
+
+    @stacks   = null
+    @machines = null
 
   errorHandler = (task, eL, machine)-> (err)->
 
@@ -158,6 +168,8 @@ class ComputeController extends KDController
     @eventListener.triggerState machine,
       status      : Machine.State.Stopping
       percentage  : 0
+
+    machine.getBaseKite().disconnect()
 
     @kloud.stop { machineId: machine._id }
 

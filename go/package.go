@@ -27,6 +27,7 @@ var (
 	flagEnvironment = flag.String("e", "", "Define environment profile to be included")
 	flagHost        = flag.String("h", "", "Define hostname for kite reveseproxy")
 	flagApp         = flag.String("a", "", "App to be build")
+	flagBuildNumber = flag.Int("b", 0, "Build number is added to the generated file if specified")
 
 	// kontrolproxy specific flags
 	flagProxy = flag.String("p", "", "Select user proxy or koding proxy") // Proxy only
@@ -50,6 +51,7 @@ type pkg struct {
 	files         []string
 	version       string
 	upstartScript string
+	ldflags       string
 }
 
 func main() {
@@ -133,14 +135,22 @@ func buildKlient() error {
 	importPath := "koding/kites/klient"
 	upstartPath := filepath.Join(gopath, "src", importPath, "files/klient.conf")
 
-	files := []string{filepath.Join(gopath, "bin-vagrant/kite")}
+	symbolvalue := "0.0.1"
+	if *flagBuildNumber != 0 {
+		symbolvalue = "0.1." + strconv.Itoa(*flagBuildNumber)
+	}
+
+	ldflags := fmt.Sprintf("-X koding/kites/klient/protocol.Version %s", symbolvalue)
+	if *flagEnvironment != "" {
+		ldflags += fmt.Sprintf(" -X koding/kites/klient/protocol.Environment %s", *flagEnvironment)
+	}
 
 	kclient := pkg{
 		appName:       *flagApp,
 		importPath:    importPath,
-		files:         files,
-		version:       "0.0.1",
+		version:       symbolvalue,
 		upstartScript: upstartPath,
+		ldflags:       ldflags,
 	}
 
 	return kclient.build()
@@ -400,6 +410,7 @@ func (p *pkg) build() error {
 		Files:         strings.Join(p.files, ","),
 		InstallPrefix: "opt/kite",
 		UpstartScript: p.upstartScript,
+		Ldflags:       p.ldflags,
 	}
 
 	debFile, err := deb.Build()
@@ -407,14 +418,21 @@ func (p *pkg) build() error {
 		log.Println("linux:", err)
 	}
 
-	// rename file to see for which region and env it is created
+	// customize our created file with the passed arguments
 	oldname := debFile
-	newname := ""
 
-	if *flagProfile == "" || *flagRegion == "" {
-		newname = fmt.Sprintf("%s_%s_%s.deb", p.appName, p.version, deb.Arch)
+	newname := p.appName + "_" + p.version
+	if *flagBuildNumber != 0 {
+		// http://semver.org/ see build-number paragraph
+		newname = p.appName + "_0.1." + strconv.Itoa(*flagBuildNumber)
+	}
+
+	if *flagProfile != "" && *flagRegion != "" {
+		newname += fmt.Sprintf("_%s-%s_%s.deb", *flagProfile, *flagRegion, deb.Arch)
+	} else if *flagEnvironment != "" {
+		newname += fmt.Sprintf("_%s_%s.deb", *flagEnvironment, deb.Arch)
 	} else {
-		newname = fmt.Sprintf("%s_%s_%s-%s_%s.deb", p.appName, p.version, *flagProfile, *flagRegion, deb.Arch)
+		newname += fmt.Sprintf("_%s.deb", deb.Arch)
 	}
 
 	if err := os.Rename(oldname, newname); err != nil {

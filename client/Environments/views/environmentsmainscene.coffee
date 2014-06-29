@@ -14,7 +14,9 @@ class EnvironmentsMainScene extends KDView
     @addSubView @renderHeader()
     { computeController, mainController } = KD.singletons
     computeController.on "renderStacks", @bound 'renderStacks'
+
     mainController.ready @bound 'renderStacks'
+    @once 'NoStacksFound', computeController.bound 'createDefaultStack'
 
   renderStacks:->
 
@@ -29,6 +31,7 @@ class EnvironmentsMainScene extends KDView
           stackView = new StackView {isDefault: index is 0}, stack
         @forwardEvent stackView, "CloneStackRequested"
 
+      @emit "NoStacksFound"  if stacks.length is 0
       @emit "StacksCreated"
 
 

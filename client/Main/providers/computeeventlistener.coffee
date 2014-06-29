@@ -77,24 +77,24 @@ class ComputeEventListener extends KDObject
       activeListeners = []
       responses.forEach (res)=>
 
-        if res.err
-          warn "Error on '#{res.event_id}':", res.err
+        warn "Error on '#{res.event_id}':", res.err  if res.err?
 
-        else
+        [type, eventId] = res.event.eventId.split '-'
 
-          [type, eventId] = res.event.eventId.split '-'
+        if res.event.percentage < 100
+          activeListeners.push { type, eventId }
 
-          if res.event.percentage < 100
-            activeListeners.push { type, eventId }
+        log "#{res.event.eventId}", res.event
 
-          log "#{res.event.eventId}", res.event
+        if res.event.percentage is 100
+          if type is "build"
+            computeController.emit "MachineBuilt", machineId: eventId
+          else if type is "destroy"
+            computeController.emit "MachineDestroy", machineId: eventId
 
-          if res.event.percentage is 100 and type is "build"
-            computeController.emit "machineBuildCompleted", machineId: eventId
-
-          unless res.event.status is 'Unknown'
-            computeController.emit "public-#{eventId}", res.event
-            computeController.emit "#{res.event.eventId}", res.event
+        unless res.event.status is 'Unknown'
+          computeController.emit "public-#{eventId}",    res.event
+          computeController.emit "#{res.event.eventId}", res.event
 
       @listeners = activeListeners
       @tickInProgress = no

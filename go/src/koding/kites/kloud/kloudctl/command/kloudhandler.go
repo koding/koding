@@ -53,10 +53,19 @@ func kloudClient() (*kite.Client, error) {
 	k.Config = config
 	k.SetLogLevel(kite.WARNING)
 
+	query, err := protocol.KiteFromString(flagKloudQuery + "////")
+	if err != nil {
+		return nil, err
+	}
+
 	kloudQuery := protocol.KontrolQuery{
-		Username:    "koding",
-		Environment: "vagrant",
-		Name:        "kloud",
+		Username:    query.Username,
+		ID:          query.ID,
+		Hostname:    query.Hostname,
+		Name:        query.Name,
+		Environment: query.Environment,
+		Region:      query.Region,
+		Version:     query.Version,
 	}
 
 	kites, err := k.GetKites(kloudQuery)

@@ -3,9 +3,12 @@
 // They are a part of the KiteQuert.
 package protocol
 
+var (
+	Version     string
+	Environment string
+)
+
 const (
-	Version     = "0.0.1"
-	Name        = "klient"
-	Environment = "public-host"
-	Region      = "public-region"
+	Name   = "klient"
+	Region = "public-region"
 )

@@ -15,6 +15,9 @@ services=(
   github.com/koding/kite/cmd/kite
   github.com/koding/kite/reverseproxy/reverseproxy
   koding/kites/kontrol
+  koding/kites/klient
+  koding/kites/kloud
+  koding/kites/kloud/kloudctl
   koding/virt/vmproxy
   koding/virt/vmtool
   koding/overview

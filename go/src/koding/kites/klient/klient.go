@@ -16,11 +16,6 @@ import (
 	kiteprotocol "github.com/koding/kite/protocol"
 )
 
-const (
-	VERSION = protocol.Version
-	NAME    = protocol.Name
-)
-
 var (
 	flagIP          = flag.String("ip", "", "Change public ip")
 	flagPort        = flag.Int("port", 3000, "Change running port")
@@ -30,6 +25,9 @@ var (
 	flagEnvironment = flag.String("env", protocol.Environment, "Change environment")
 	flagRegion      = flag.String("region", protocol.Region, "Change region")
 	flagRegisterURL = flag.String("register-url", "", "Change register URL to kontrol")
+
+	VERSION = protocol.Version
+	NAME    = protocol.Name
 )
 
 func main() {
@@ -67,6 +65,9 @@ func main() {
 	k.HandleFunc("webterm.killSession", terminal.KillSession)
 
 	k.HandleFunc("exec", command.Exec)
+
+	// return current version of klient
+	k.HandleFunc("version", func(r *kite.Request) (interface{}, error) { return VERSION, nil })
 
 	registerURL := k.RegisterURL(*flagLocal)
 	if *flagRegisterURL != "" {
