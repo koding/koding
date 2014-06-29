@@ -35,7 +35,9 @@ PACKAGES = \
 	socialapi/workers/realtime \
 	socialapi/workers/topicfeed \
 	socialapi/workers/migrator \
-	socialapi/workers/sitemap
+	socialapi/workers/sitemap/sitemapfeeder \
+	socialapi/workers/sitemap/sitemapgenerator \
+	socialapi/workers/sitemap/sitemapinitializer
 
 all: testapi
 
