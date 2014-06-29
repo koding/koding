@@ -162,7 +162,7 @@ class Deploy
           conn.exec "bash /root/prepare", (err, stream) ->
             throw err  if err
             listen "configuring #{o.hostname}", stream,-> 
-              log "Box is ready at: ssh root@#{o.hostname} pubkey is added, no need for passwd:#{password})" 
+              log "Box is ready at: ssh root@#{o.hostname} pubkey is added, no need for passwd:#{password}" 
               conn.end()
 
 

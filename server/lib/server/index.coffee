@@ -288,7 +288,8 @@ app.get "/-/presence/:service", (req, res) ->
   # else
     # res.send 404
 
-app.get '/-/services/:service', require './services-presence'
+# deprecated.
+# app.get '/-/services/:service', require './services-presence'
 
 app.get "/-/api/user/:username/flags/:flag", (req, res)->
   {username, flag} = req.params

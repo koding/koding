@@ -27,6 +27,7 @@ echo "iptables -A INPUT -s 208.87.59.205  -j ACCEPT"                    >>/etc/r
 echo "iptables -A INPUT -s 94.54.193.66   -j ACCEPT"                    >>/etc/rc.local
 echo "iptables -A INPUT -s 78.184.209.65  -j ACCEPT"                    >>/etc/rc.local
 echo "iptables -A INPUT -s 68.68.97.155   -j ACCEPT"                    >>/etc/rc.local
+echo "iptables -A INPUT -s 204.14.159.23  -j ACCEPT"                    >>/etc/rc.local
 echo "iptables -A INPUT -s 85.107.151.5   -j ACCEPT"                    >>/etc/rc.local
 echo "iptables -A INPUT -p tcp --dport 4000 -j ACCEPT"                  >>/etc/rc.local
 echo "iptables -A INPUT -p tcp --dport 3999 -j ACCEPT"                  >>/etc/rc.local
