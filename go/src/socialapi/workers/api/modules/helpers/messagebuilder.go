@@ -81,21 +81,3 @@ func ConvertMessagesToMessageContainers(messages []models.ChannelMessage, err er
 
 	return containers, nil
 }
-
-func AddTotalReplyCountToContainers(containers []*models.ChannelMessageContainer) ([]*models.ChannelMessageContainer, error) {
-	if len(containers) == 0 {
-		return containers, nil
-	}
-
-	for i, container := range containers {
-		mr := models.NewMessageReply()
-		mr.MessageId = container.Message.Id
-		repliesCount, err := mr.Count()
-		if err != nil {
-			// ignore
-		}
-		containers[i].RepliesCount = repliesCount
-	}
-
-	return containers, nil
-}

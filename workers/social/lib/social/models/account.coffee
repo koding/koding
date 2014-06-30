@@ -970,8 +970,23 @@ module.exports = class JAccount extends jraphical.Module
       else
         @update {$pullAll: globalFlags: ["exempt"]}, ()->
 
+      # mark user as troll in social api
+      @markUserAsExemptInSocialAPI client, exempt, (err, data)->
+        console.error err if err
+
     else
       callback new KodingError 'Access denied'
+
+  markUserAsExemptInSocialAPI: (client, exempt, callback)->
+    {markAsTroll, unmarkAsTroll} = require './socialapi/helper'
+    @createSocialApiId (err, accountId)->
+      return callback err if err
+      return callback {message: "account id is not set"} unless accountId
+
+      if exempt
+        markAsTroll {accountId}, callback
+      else
+        unmarkAsTroll {accountId}, callback
 
   flagAccount: secure (client, flag, callback)->
     {delegate} = client.connection

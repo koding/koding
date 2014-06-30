@@ -39,7 +39,7 @@ type ChannelMessage struct {
 	InitialChannelId int64 `json:"initialChannelId,string" sql:"NOT NULL"`
 
 	// holds troll, unsafe, etc
-	MetaBits int16 `json:"-"`
+	MetaBits MetaBits `json:"metaBits"`
 
 	// Creation date of the message
 	CreatedAt time.Time `json:"createdAt"                  sql:"DEFAULT:CURRENT_TIMESTAMP"`
@@ -54,20 +54,16 @@ type ChannelMessage struct {
 	Payload gorm.Hstore `json:"payload,omitempty"`
 }
 
-func (c *ChannelMessage) BeforeCreate() {
-	if res, err := c.isExemptContent(); err == nil && res {
-		c.MetaBits = updateTrollModeBit(c.MetaBits)
-	}
-
+func (c *ChannelMessage) BeforeCreate() error {
 	c.DeletedAt = ZeroDate()
+
+	return c.MarkIfExempt()
 }
 
-func (c *ChannelMessage) BeforeUpdate() {
-	if res, err := c.isExemptContent(); err == nil && res {
-		c.MetaBits = updateTrollModeBit(c.MetaBits)
-	}
-
+func (c *ChannelMessage) BeforeUpdate() error {
 	c.DeletedAt = ZeroDate()
+
+	return c.MarkIfExempt()
 }
 
 func (c *ChannelMessage) AfterCreate() {
@@ -123,28 +119,36 @@ func (c *ChannelMessage) CountWithQuery(q *bongo.Query) (int, error) {
 	return bongo.B.CountWithQuery(c, q)
 }
 
-func (c *ChannelMessage) isExemptContent() (bool, error) {
-	// set meta bits if only message is post or a reply
-	if c.TypeConstant != ChannelMessage_TYPE_POST &&
-		c.TypeConstant != ChannelMessage_TYPE_REPLY {
-		return false, nil
+func (c *ChannelMessage) MarkIfExempt() error {
+	isExempt, err := c.isExempt()
+	if err != nil {
+		return err
 	}
 
-	if c.AccountId == 0 && c.Id != 0 {
-		if err := c.ById(c.Id); err != nil {
-			return false, err
-		}
-	} else {
-		return false, fmt.Errorf("Couldnt find accountId from content %+v", c)
+	if isExempt {
+		c.MetaBits.Mark(Troll)
 	}
 
-	account, err := FetchAccountFromCache(c.AccountId)
+	return nil
+}
+
+func (c *ChannelMessage) isExempt() (bool, error) {
+	if c.MetaBits.Is(Troll) {
+		return true, nil
+	}
+
+	accountId, err := c.getAccountId()
+	if err != nil {
+		return false, err
+	}
+
+	account, err := ResetAccountCache(accountId)
 	if err != nil {
 		return false, err
 	}
 
 	if account == nil {
-		return false, fmt.Errorf("Account is nil, accountId:%d", c.AccountId)
+		return false, fmt.Errorf("account is nil, accountId:%d", c.AccountId)
 	}
 
 	if account.IsTroll {
@@ -154,9 +158,26 @@ func (c *ChannelMessage) isExemptContent() (bool, error) {
 	return false, nil
 }
 
+func (c *ChannelMessage) getAccountId() (int64, error) {
+	if c.AccountId != 0 {
+		return c.AccountId, nil
+	}
+
+	if c.Id == 0 {
+		return 0, fmt.Errorf("couldnt find accountId from content %+v", c)
+	}
+
+	cm := NewChannelMessage()
+	if err := cm.ById(c.Id); err != nil {
+		return 0, err
+	}
+
+	return cm.AccountId, nil
+}
+
 func bodyLenCheck(body string) error {
 	if len(body) < config.Get().Limits.MessageBodyMinLen {
-		return fmt.Errorf("Message Body Length should be greater than %d, yours is %d ", config.Get().Limits.MessageBodyMinLen, len(body))
+		return fmt.Errorf("message Body Length should be greater than %d, yours is %d ", config.Get().Limits.MessageBodyMinLen, len(body))
 	}
 
 	return nil
@@ -217,6 +238,8 @@ func (c *ChannelMessage) Delete() error {
 	return bongo.B.Delete(c)
 }
 
+//  FetchByIds fetchs given ids from database, it doesnt add any meta bits
+// properties into query
 func (c *ChannelMessage) FetchByIds(ids []int64) ([]ChannelMessage, error) {
 	var messages []ChannelMessage
 
@@ -265,7 +288,7 @@ func (c *ChannelMessage) BuildMessage(query *request.Query) (*ChannelMessageCont
 		return nil, err
 	}
 
-	repliesCount, err := mr.Count()
+	repliesCount, err := mr.Count(query)
 	if err != nil {
 		return nil, err
 	}
@@ -375,14 +398,14 @@ func (c *ChannelMessage) FetchRelatives(query *request.Query) (*ChannelMessageCo
 	interactionContainer.IsInteracted = isInteracted
 
 	// fetch interaction count
-	count, err := i.Count(query.Type)
+	count, err := i.Count(query)
 	if err != nil {
 		return nil, err
 	}
 
 	interactionContainer.ActorsCount = count
 
-	container.Interactions["like"] = interactionContainer
+	container.Interactions[query.Type] = interactionContainer
 	return container, nil
 }
 
@@ -449,6 +472,10 @@ func (c *ChannelMessage) FetchTotalMessageCount(q *request.Query) (int, error) {
 		Pagination: *bongo.NewPagination(q.Limit, q.Skip),
 	}
 
+	query.AddScope(RemoveTrollContent(
+		c, q.ShowExempt,
+	))
+
 	return c.CountWithQuery(query)
 }
 
@@ -464,6 +491,8 @@ func (c *ChannelMessage) FetchMessageIds(q *request.Query) ([]int64, error) {
 			"created_at": "DESC",
 		},
 	}
+
+	query.AddScope(RemoveTrollContent(c, q.ShowExempt))
 
 	var messageIds []int64
 	if err := c.Some(&messageIds, query); err != nil {
@@ -491,8 +520,12 @@ func (c *ChannelMessage) BySlug(query *request.Query) error {
 		},
 	}
 
+	q.AddScope(RemoveTrollContent(
+		c, query.ShowExempt,
+	))
+
 	if err := c.One(q); err != nil {
-		return nil
+		return err
 	}
 
 	// fetch channel by group name

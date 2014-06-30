@@ -5,12 +5,20 @@ import (
 	"fmt"
 	"math/rand"
 	"socialapi/models"
+	"socialapi/request"
 	"strconv"
 	"time"
+
+	"github.com/google/go-querystring/query"
 )
 
-func GetHistory(channelId, accountId int64) (*models.HistoryResponse, error) {
-	url := fmt.Sprintf("/channel/%d/history?accountId=%d", channelId, accountId)
+func GetHistory(channelId int64, q *request.Query) (*models.HistoryResponse, error) {
+	v, err := query.Values(q)
+	if err != nil {
+		return nil, err
+	}
+
+	url := fmt.Sprintf("/channel/%d/history?%s", channelId, v.Encode())
 	res, err := sendRequest("GET", url, nil)
 	if err != nil {
 		return nil, err
@@ -23,6 +31,23 @@ func GetHistory(channelId, accountId int64) (*models.HistoryResponse, error) {
 	}
 
 	return &history, nil
+}
+
+func CountHistory(channelId int64) (*models.CountResponse, error) {
+	c := models.NewChannelMessageList()
+	c.ChannelId = channelId
+	res, err := marshallAndSendRequest("POST", "/channel/count", c)
+	if err != nil {
+		return nil, err
+	}
+
+	var count models.CountResponse
+	err = json.Unmarshal(res, &count)
+	if err != nil {
+		return nil, err
+	}
+
+	return &count, nil
 }
 
 func FetchChannels(accountId int64) ([]*models.Channel, error) {

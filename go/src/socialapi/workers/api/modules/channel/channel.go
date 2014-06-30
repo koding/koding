@@ -2,11 +2,13 @@ package channel
 
 import (
 	"errors"
+	"fmt"
 	"net/http"
 	"net/url"
 	"socialapi/models"
 	"socialapi/request"
 	"socialapi/workers/common/response"
+
 	"github.com/koding/bongo"
 )
 
@@ -84,14 +86,25 @@ func ByName(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interfa
 	q := request.GetQuery(u)
 	q.Type = models.Channel_TYPE_TOPIC
 
-	channelList, err := models.NewChannel().ByName(q)
+	channel, err := models.NewChannel().ByName(q)
 	if err != nil {
 		return response.NewBadRequest(err)
 	}
 
+	canOpen, err := channel.CanOpen(q.AccountId)
+	if err != nil {
+		// if the channel can not be opened by the requester
+		// do send an empty response
+		return response.NewBadRequest(err)
+	}
+
+	if !canOpen {
+		return response.NewOK(nil)
+	}
+
 	return response.HandleResultAndError(
 		models.PopulateChannelContainer(
-			channelList,
+			channel,
 			q.AccountId,
 		),
 	)
@@ -108,31 +121,21 @@ func CheckParticipation(u *url.URL, h http.Header, _ interface{}) (int, http.Hea
 		return response.NewBadRequest(err)
 	}
 
-	cp := models.NewChannelParticipant()
-	cp.ChannelId = channel.Id
-	cp.AccountId = q.AccountId
-
-	// fetch participant
-	err = cp.FetchParticipant()
-	if err == nil {
-		return response.NewOK(cp)
-	}
-
-	// if err is not `record not found`
-	// return it immediately
-	if err != bongo.RecordNotFound {
+	canOpen, err := channel.CanOpen(q.AccountId)
+	if err != nil {
 		return response.NewBadRequest(err)
 	}
 
-	// we here we have record-not-found
-
-	// if channel type is `group` then return true
-	if channel.TypeConstant == models.Channel_TYPE_GROUP {
-		return response.NewOK(true)
+	if !canOpen {
+		return response.NewAccessDenied(
+			fmt.Errorf(
+				"account (%d) tried to retrieve the unattended private channel (%d)",
+				q.AccountId,
+				channel.Id,
+			))
 	}
 
-	// return here to the client
-	return response.NewBadRequest(err)
+	return response.NewOK(channel)
 }
 
 func Delete(u *url.URL, h http.Header, req *models.Channel) (int, http.Header, interface{}, error) {
@@ -205,6 +208,11 @@ func Get(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface{
 			return response.NewNotFound()
 		}
 		return response.NewBadRequest(err)
+	}
+
+	// add troll mode filter
+	if c.MetaBits.Is(models.Troll) && !q.ShowExempt {
+		return response.NewNotFound()
 	}
 
 	return response.HandleResultAndError(

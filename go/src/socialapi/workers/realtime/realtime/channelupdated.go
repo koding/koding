@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"socialapi/models"
+	"socialapi/request"
 )
 
 type channelUpdatedEventType string
@@ -41,7 +42,11 @@ func (cue *channelUpdatedEvent) send() error {
 	// if you ask why we are not sending those messaages to the channel's channel
 	// instead of sending events as notifications?, because we are also sending
 	// unread counts of the related channel's messages by the notifiee
-	participants, err := cue.Channel.FetchParticipantIds()
+	participants, err := cue.Channel.FetchParticipantIds(
+		// make sure exempt users are getting reatime notifications
+		&request.Query{ShowExempt: true},
+	)
+
 	if err != nil {
 		cue.Controller.log.Error("Error occured while fetching participants %s", err.Error())
 		return err

@@ -4,6 +4,7 @@ import (
 	"errors"
 	"socialapi/request"
 	"time"
+
 	"github.com/koding/bongo"
 )
 
@@ -18,7 +19,7 @@ type MessageReply struct {
 	ReplyId int64 `json:"replyId,string"         sql:"NOT NULL"`
 
 	// holds troll, unsafe, etc
-	MetaBits int16 `json:"-"`
+	MetaBits MetaBits `json:"metaBits"`
 
 	// Creation of the MessageReply
 	CreatedAt time.Time `json:"createdAt"         sql:"NOT NULL"`
@@ -36,28 +37,35 @@ func NewMessageReply() *MessageReply {
 	return &MessageReply{}
 }
 
-func (m *MessageReply) BeforeCreate() {
-	if m.ReplyId == 0 {
-		return
-	}
-
-	cm := NewChannelMessage()
-	cm.Id = m.ReplyId
-	if res, err := cm.isExemptContent(); err == nil && res {
-		m.MetaBits = updateTrollModeBit(m.MetaBits)
-	}
+func (m *MessageReply) BeforeCreate() error {
+	return m.MarkIfExempt()
 }
 
-func (m *MessageReply) BeforeUpdate() {
+func (m *MessageReply) BeforeUpdate() error {
+	return m.MarkIfExempt()
+}
+
+func (m *MessageReply) MarkIfExempt() error {
+	if m.MetaBits.Is(Troll) {
+		return nil
+	}
+
 	if m.ReplyId == 0 {
-		return
+		return nil
 	}
 
 	cm := NewChannelMessage()
 	cm.Id = m.ReplyId
-	if res, err := cm.isExemptContent(); err == nil && res {
-		m.MetaBits = updateTrollModeBit(m.MetaBits)
+	isExempt, err := cm.isExempt()
+	if err != nil {
+		return err
 	}
+
+	if isExempt {
+		m.MetaBits.Mark(Troll)
+	}
+
+	return nil
 }
 
 func (m *MessageReply) AfterCreate() {
@@ -78,6 +86,10 @@ func (m *MessageReply) ById(id int64) error {
 
 func (m *MessageReply) Create() error {
 	return bongo.B.Create(m)
+}
+
+func (m *MessageReply) Update() error {
+	return bongo.B.Update(m)
 }
 
 func (m *MessageReply) CreateRaw() error {
@@ -170,6 +182,8 @@ func (m *MessageReply) fetchMessages(query *request.Query) ([]ChannelMessage, er
 		Sort:       map[string]string{"created_at": "DESC"},
 	}
 
+	q.AddScope(RemoveTrollContent(m, query.ShowExempt))
+
 	bongoQuery := bongo.B.BuildQuery(m, q)
 	if !query.From.IsZero() {
 		bongoQuery = bongoQuery.Where("created_at < ?", query.From)
@@ -207,15 +221,26 @@ func (m *MessageReply) UnreadCount(messageId int64, addedAt time.Time) (int, err
 	)
 }
 
-func (m *MessageReply) Count() (int, error) {
+func (m *MessageReply) Count(q *request.Query) (int, error) {
 	if m.MessageId == 0 {
 		return 0, errors.New("messageId is not set")
 	}
 
-	return bongo.B.Count(m,
-		"message_id = ?",
-		m.MessageId,
-	)
+	query := &bongo.Query{
+		Selector: map[string]interface{}{
+			"message_id": m.MessageId,
+		},
+	}
+
+	query.AddScope(RemoveTrollContent(
+		m, q.ShowExempt,
+	))
+
+	return m.CountWithQuery(query)
+}
+
+func (m *MessageReply) CountWithQuery(q *bongo.Query) (int, error) {
+	return bongo.B.CountWithQuery(m, q)
 }
 
 func (m *MessageReply) FetchParent() (*ChannelMessage, error) {

@@ -83,6 +83,14 @@ func (f *Controller) handleInteractionEvent(incrementCount int, i *models.Intera
 }
 
 func (f *Controller) isEligible(c *models.Channel, cm *models.ChannelMessage) bool {
+	if c.MetaBits.Is(models.Troll) {
+		return false
+	}
+
+	if cm.MetaBits.Is(models.Troll) {
+		return false
+	}
+
 	if c.PrivacyConstant != models.Channel_PRIVACY_PUBLIC {
 		return false
 	}

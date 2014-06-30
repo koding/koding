@@ -75,6 +75,8 @@ class ActivityInputView extends KDTokenizedInput
       if @tokenInput and /^\W+$/.test @tokenInput.textContent then @cancel()
       else if @selectToken() then KD.utils.stopDOMEvent event
 
+    return yes
+
   keyUp: ->
     return  if @getTokens().length >= TOKEN_LIMIT
     super
@@ -110,7 +112,6 @@ class ActivityInputView extends KDTokenizedInput
     return position + startOffset
 
   focus: ->
-    return  if @focused
     super
     value = @getValue()
     unless value

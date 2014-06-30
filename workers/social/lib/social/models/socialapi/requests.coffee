@@ -33,14 +33,20 @@ createChannel = (data, callback)->
 
 fetchChannelActivities = (data, callback)->
   if not data.channelId or not data.accountId
-    return callback { message: "Request is not valid for creating channel"}
-
+    return callback { message: "Request is not valid for fetching activities"}
   url = "/channel/#{data.channelId}/history"
+  get url, data, callback
+
+fetchActivityCount = (data, callback)->
+  if not data.channelId
+    return callback {message: "Request is not valid for fetching activity count"}
+
+  url = "/channel/#{data.channelId}/history/count"
   get url, data, callback
 
 fetchGroupChannels = (data, callback)->
   if not data.groupName or not data.accountId
-    return callback { message: "Request is not valid for creating channel"}
+    return callback { message: "Request is not valid for fetching channel"}
 
   url = "/channel"
   get url, data, callback
@@ -274,6 +280,20 @@ checkChannelParticipation = (data, callback)->
   url = "/channel/checkparticipation"
   get url, data, callback
 
+markAsTroll = (data, callback)->
+  unless data.accountId
+    return callback {message: "Request is not valid"}
+
+  url = "/trollmode/#{data.accountId}"
+  post url, data, callback
+
+unmarkAsTroll = (data, callback)->
+  unless data.accountId
+    return callback {message: "Request is not valid"}
+
+  url = "/trollmode/#{data.accountId}"
+  deleteReq url, data, callback
+
 post = (url, data, callback)->
   getNextApiURL (err, apiurl)->
     return callback err if err
@@ -305,6 +325,8 @@ get = (url, data, callback)->
     , wrapCallback callback
 
 module.exports = {
+  unmarkAsTroll
+  markAsTroll
   messageBySlug
   checkChannelParticipation
   messageById
@@ -336,6 +358,7 @@ module.exports = {
   createChannel
   fetchMessage
   fetchChannelActivities
+  fetchActivityCount
   fetchGroupChannels
   listNotifications
   glanceNotifications

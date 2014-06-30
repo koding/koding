@@ -319,6 +319,7 @@ class ActivitySidebar extends KDCustomScrollView
 
     super
 
+    @wrapper.addSubView new GroupDescription  unless KD.getGroup().slug is 'koding'
     @addPublicFeedLink()
     # @addHotTopics()
     @addFollowedTopics()

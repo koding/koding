@@ -8,6 +8,8 @@ func init() {
 	channelCache = make(map[int64]*Channel)
 }
 
+// todo fix!!
+// this will fail when a channel marked as troll
 func ChannelById(id int64) (*Channel, error) {
 	if channel, ok := channelCache[id]; ok {
 		return channel, nil

@@ -66,8 +66,14 @@ class ActivityAppController extends AppController
 
     id = channelId
     {socialapi} = KD.singletons
+    {socialApiChannelId} = KD.getGroup()
 
-    socialapi.channel.fetchActivities {id, from}, callback
+    if socialApiChannelId is channelId and socialapi.getPrefetchedData('publicFeed').length > 0
+      messages = socialapi.getPrefetchedData 'publicFeed'
+      KD.utils.defer ->  callback null, messages
+      KD.socialApiData.publicFeed = null
+    else
+      socialapi.channel.fetchActivities {id, from}, callback
 
 
   getActiveChannel: -> @getView().sidebar.selectedItem.getData()

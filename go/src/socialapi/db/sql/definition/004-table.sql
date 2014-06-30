@@ -31,6 +31,7 @@ CREATE TABLE "api"."channel" (
     "secret_key" TEXT COLLATE "default",
     "type_constant" "api"."channel_type_constant_enum",
     "privacy_constant" "api"."channel_privacy_constant_enum",
+    "meta_bits" SMALLINT NOT NULL DEFAULT 0::SMALLINT,
     "created_at" TIMESTAMP (6) WITH TIME ZONE NOT NULL DEFAULT now(),
     "updated_at" TIMESTAMP (6) WITH TIME ZONE NOT NULL DEFAULT now(),
     "deleted_at" TIMESTAMP (6) WITH TIME ZONE

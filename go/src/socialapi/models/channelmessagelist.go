@@ -4,6 +4,7 @@ import (
 	"errors"
 	"socialapi/request"
 	"time"
+
 	"github.com/koding/bongo"
 )
 
@@ -18,7 +19,7 @@ type ChannelMessageList struct {
 	MessageId int64 `json:"messageId,string"     sql:"NOT NULL"`
 
 	// holds troll, unsafe, etc
-	MetaBits int16 `json:"-"`
+	MetaBits MetaBits `json:"metaBits"`
 
 	// Addition date of the message to the channel
 	// this date will be update whever message added/removed/re-added to the channel
@@ -28,13 +29,17 @@ type ChannelMessageList struct {
 	RevisedAt time.Time `json:"revisedAt"        sql:"NOT NULL"`
 }
 
-func (c *ChannelMessageList) BeforeCreate() {
+func (c *ChannelMessageList) BeforeCreate() error {
 	c.AddedAt = time.Now()
 	c.RevisedAt = time.Now()
+
+	return c.MarkIfExempt()
 }
 
-func (c *ChannelMessageList) BeforeUpdate() {
+func (c *ChannelMessageList) BeforeUpdate() error {
 	c.AddedAt = time.Now()
+
+	return c.MarkIfExempt()
 }
 
 func (c *ChannelMessageList) AfterCreate() {
@@ -96,6 +101,10 @@ func (c *ChannelMessageList) UnreadCount(cp *ChannelParticipant) (int, error) {
 		// todo change this format to get from a specific place
 		cp.LastSeenAt.UTC().Format(time.RFC3339),
 	)
+}
+
+func (c *ChannelMessageList) CountWithQuery(q *bongo.Query) (int, error) {
+	return bongo.B.CountWithQuery(c, q)
 }
 
 func (c *ChannelMessageList) Create() error {
@@ -168,8 +177,10 @@ func (c *ChannelMessageList) getMessages(q *request.Query) ([]*ChannelMessageCon
 		},
 		Pluck:      "message_id",
 		Pagination: *bongo.NewPagination(q.Limit, q.Skip),
-		Sort:       map[string]string{"added_at": "DESC"},
 	}
+
+	query.AddScope(SortedByAddedAt)
+	query.AddScope(RemoveTrollContent(c, q.ShowExempt))
 
 	bongoQuery := bongo.B.BuildQuery(c, query)
 	if !q.From.IsZero() {
@@ -281,6 +292,9 @@ func (c *ChannelMessageList) FetchMessageIdsByChannelId(channelId int64, q *requ
 		},
 	}
 
+	// remove troll content
+	query.AddScope(RemoveTrollContent(c, q.ShowExempt))
+
 	var messageIds []int64
 	if err := c.Some(&messageIds, query); err != nil {
 		return nil, err
@@ -330,4 +344,53 @@ func (c *ChannelMessageList) UpdateAddedAt(channelId, messageId int64) error {
 
 	c.AddedAt = time.Now().UTC()
 	return c.Update()
+}
+
+func (c *ChannelMessageList) MarkIfExempt() error {
+	isExempt, err := c.isExempt()
+	if err != nil {
+		return err
+	}
+
+	if isExempt {
+		c.MetaBits.Mark(Troll)
+	}
+
+	return nil
+}
+
+func (c *ChannelMessageList) isExempt() (bool, error) {
+	// return early if channel is already exempt
+	if c.MetaBits.Is(Troll) {
+		return true, nil
+	}
+
+	if c.MessageId == 0 {
+		return false, errors.New("message id is not set for exempt check")
+	}
+
+	cm := NewChannelMessage()
+	cm.Id = c.MessageId
+
+	return cm.isExempt()
+
+}
+
+func (c *ChannelMessageList) Count(channelId int64) (int, error) {
+	if channelId == 0 {
+		return 0, errors.New("channel id is not set")
+	}
+
+	query := &bongo.Query{
+		Selector: map[string]interface{}{
+			"channel_id": channelId,
+		},
+	}
+
+	query.AddScope(RemoveTrollContent(
+		// dont show trolls
+		c, false,
+	))
+
+	return c.CountWithQuery(query)
 }

@@ -58,7 +58,9 @@ func (r *Runner) Init() error {
 		WrapWithVersion(r.Conf.EventExchangeName, flagVersion),
 		r.Conf,
 		r.Log,
+		*flagDebug,
 	)
+
 	r.ShutdownHandler = func() {}
 	r.Done = make(chan error, 1)
 	r.RegisterSignalHandler()

@@ -2,6 +2,7 @@ package main
 
 import (
 	"socialapi/models"
+	"socialapi/request"
 	"socialapi/rest"
 	"testing"
 
@@ -41,10 +42,16 @@ func TestChannelHistory(t *testing.T) {
 
 						}
 						Convey("We should be able to fetch the history", func() {
-							history, err := rest.GetHistory(channel.Id, channelParticipant.Id)
+							history, err := rest.GetHistory(channel.Id, &request.Query{AccountId: channelParticipant.AccountId})
 							So(err, ShouldBeNil)
 							So(history, ShouldNotBeNil)
 							So(len(history.MessageList), ShouldEqual, 10)
+						})
+						Convey("We should be able to get channel message count", func() {
+							count, err := rest.CountHistory(channel.Id)
+							So(err, ShouldBeNil)
+							So(count, ShouldNotBeNil)
+							So(count.TotalCount, ShouldEqual, 10)
 						})
 					})
 				})
