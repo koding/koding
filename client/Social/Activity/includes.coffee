@@ -12,6 +12,7 @@ module.exports = [
   "sidebar/chatmemberitem.coffee"
   "sidebar/topicitem.coffee"
   "sidebar/pinneditem.coffee"
+  "sidebar/groupdescription.coffee"
 
   "views/messagepane.coffee"
   "views/topicmessagepane.coffee"

@@ -57,15 +57,15 @@ class ActivitySidebar extends KDCustomScrollView
       when 'pinnedactivity' then @replyAdded update
       when 'topic'          then @handleFollowedFeedUpdate update
 
+
   messageRemovedFromChannel: (update) ->
     log 'messageRemovedFromChannel', update
     {id} = update.channelMessage
 
     @removeItem id
 
-  handleGlanced: (update) ->
 
-    @selectedItem?.setUnreadCount update.unreadCount
+  handleGlanced: (update) -> @selectedItem?.setUnreadCount? update.unreadCount
 
 
   handleFollowedFeedUpdate: (update) ->
@@ -201,12 +201,22 @@ class ActivitySidebar extends KDCustomScrollView
     return item
 
 
-  removeItem: (id) ->
+   removeItem: (id) ->
 
-    if item = @getItemByData data
+    if item = @itemsById[id]
+
+      data           = item.getData()
       listController = @getListController data.typeConstant
+
       @unregisterItem item
       listController.removeItem item
+
+
+  registerListController: (section) ->
+
+    return  unless lc = section.listController
+
+    lc.getListView().on 'ItemWasAdded', @bound 'registerItem'
 
 
   registerItem: (item) ->
@@ -309,6 +319,7 @@ class ActivitySidebar extends KDCustomScrollView
 
     super
 
+    @wrapper.addSubView new GroupDescription  unless KD.getGroup().slug is 'koding'
     @addPublicFeedLink()
     # @addHotTopics()
     @addFollowedTopics()
@@ -354,6 +365,8 @@ class ActivitySidebar extends KDCustomScrollView
           limit  : 5
         , callback
 
+    @registerListController @sections.hot
+
 
   addFollowedTopics: ->
 
@@ -363,7 +376,7 @@ class ActivitySidebar extends KDCustomScrollView
       itemClass  : SidebarTopicItem
       dataPath   : 'followedChannels'
       delegate   : this
-      noItemText : "You don't follow any topics yet."
+      noItemText : 'You don\'t follow any topics yet.'
       headerLink : new CustomLinkView
         title    : 'ALL'
         href     : KD.utils.groupifyLink '/Activity/Topic/All'
@@ -371,6 +384,8 @@ class ActivitySidebar extends KDCustomScrollView
         KD.singletons.socialapi.channel.fetchFollowedChannels
           limit : 5
         , callback
+
+    @registerListController @sections.followedTopics
 
 
   addConversations: ->
@@ -381,7 +396,7 @@ class ActivitySidebar extends KDCustomScrollView
       itemClass  : SidebarPinnedItem
       dataPath   : 'pinnedMessages'
       delegate   : this
-      noItemText : "You didn't participate in any conversations yet."
+      noItemText : 'You didn\'t participate in any conversations yet.'
       headerLink : new CustomLinkView
         title    : 'ALL'
         href     : KD.utils.groupifyLink '/Activity/Post/All'
@@ -389,6 +404,8 @@ class ActivitySidebar extends KDCustomScrollView
         KD.singletons.socialapi.channel.fetchPinnedMessages
           limit : 5
         , callback
+
+    @registerListController @sections.conversations
 
 
   addMessages: ->
@@ -405,8 +422,10 @@ class ActivitySidebar extends KDCustomScrollView
         href     : KD.utils.groupifyLink '/Activity/Message/New'
       dataSource : (callback) ->
         KD.singletons.socialapi.message.fetchPrivateMessages
-          limit : 5
+          limit  : 5
         , callback
+
+    @registerListController @sections.messages
 
 
   addChat: ->

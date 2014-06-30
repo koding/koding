@@ -222,6 +222,9 @@ func GetBySlug(u *url.URL, h http.Header, _ interface{}) (int, http.Header, inte
 
 	cm := models.NewChannelMessage()
 	if err := cm.BySlug(q); err != nil {
+		if err == bongo.RecordNotFound {
+			return response.NewNotFound()
+		}
 		return response.NewBadRequest(err)
 	}
 

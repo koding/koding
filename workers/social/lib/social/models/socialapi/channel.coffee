@@ -18,6 +18,8 @@ module.exports = class SocialChannel extends Base
           (signature Object, Function)
         fetchActivities   :
           (signature Object, Function)
+        fetchActivityCount:
+          (signature Object, Function)
         fetchChannels     :
           (signature Object, Function)
         fetchParticipants :
@@ -186,6 +188,10 @@ module.exports = class SocialChannel extends Base
   @fetchActivities = secure (client, options, callback)->
     options.channelId = options.id
     doRequest 'fetchChannelActivities', client, options, callback
+
+  @fetchActivityCount = (options, callback) ->
+    {fetchActivityCount} = require './requests'
+    fetchActivityCount options, callback
 
   # fetchGroupActivities - fetch public activities of a group
   @fetchGroupActivities = secure (client, options, callback)->

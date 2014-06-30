@@ -1,4 +1,4 @@
-class EmbedBoxLinkViewContent extends JView
+class EmbedBoxLinkViewContent extends KDView
 
   constructor:(options={},data)->
     super options, data
@@ -16,9 +16,7 @@ class EmbedBoxLinkViewContent extends JView
 
     @embedDescription = new EmbedBoxLinkViewDescription contentOptions, data
 
-  pistachio:->
-    """
-    {{> @embedTitle}}
-    {{> @embedDescription}}
-    {{> @embedProvider}}
-    """
+  viewAppended : ->
+    @addSubView @embedTitle
+    @addSubView @embedDescription
+    @addSubView @embedProvider

@@ -103,6 +103,10 @@ func (c *ChannelMessageList) UnreadCount(cp *ChannelParticipant) (int, error) {
 	)
 }
 
+func (c *ChannelMessageList) CountWithQuery(q *bongo.Query) (int, error) {
+	return bongo.B.CountWithQuery(c, q)
+}
+
 func (c *ChannelMessageList) Create() error {
 	return bongo.B.Create(c)
 }
@@ -369,4 +373,24 @@ func (c *ChannelMessageList) isExempt() (bool, error) {
 	cm.Id = c.MessageId
 
 	return cm.isExempt()
+
+}
+
+func (c *ChannelMessageList) Count(channelId int64) (int, error) {
+	if channelId == 0 {
+		return 0, errors.New("channel id is not set")
+	}
+
+	query := &bongo.Query{
+		Selector: map[string]interface{}{
+			"channel_id": channelId,
+		},
+	}
+
+	query.AddScope(RemoveTrollContent(
+		// dont show trolls
+		c, false,
+	))
+
+	return c.CountWithQuery(query)
 }

@@ -74,11 +74,10 @@ class ActivitySideView extends JView
   renderItems: (err, items = []) ->
 
     @listController.hideLazyLoader()
-    unless err
-      for data in items
-        sidebar = @getDelegate()
-        item    = @listController.addItem data
-        sidebar.registerItem item
+
+    return  if err
+
+    @listController.addItem itemData for itemData in items
 
 
   pistachio: ->

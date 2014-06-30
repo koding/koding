@@ -8,10 +8,10 @@ class ActivityAppController extends AppController
       'next tab'     : 'goToNextTab'
       'previous tab' : 'goToPreviousTab'
     keyBindings: [
-      { command: 'next tab',      binding: 'ctrl+alt+]',    global: yes }
-      { command: 'next tab',      binding: 'ctrl+alt+down', global: yes }
-      { command: 'previous tab',  binding: 'ctrl+alt+up',   global: yes }
-      { command: 'previous tab',  binding: 'ctrl+alt+[',    global: yes }
+      { command: 'next tab',      binding: 'meta+alt+]',    global: yes }
+      { command: 'next tab',      binding: 'meta+alt+down', global: yes }
+      { command: 'previous tab',  binding: 'meta+alt+up',   global: yes }
+      { command: 'previous tab',  binding: 'meta+alt+[',    global: yes }
     ]
 
   constructor: (options = {}) ->
@@ -66,8 +66,14 @@ class ActivityAppController extends AppController
 
     id = channelId
     {socialapi} = KD.singletons
+    {socialApiChannelId} = KD.getGroup()
 
-    socialapi.channel.fetchActivities {id, from}, callback
+    if socialApiChannelId is channelId and socialapi.getPrefetchedData('publicFeed').length > 0
+      messages = socialapi.getPrefetchedData 'publicFeed'
+      KD.utils.defer ->  callback null, messages
+      KD.socialApiData.publicFeed = null
+    else
+      socialapi.channel.fetchActivities {id, from}, callback
 
 
   getActiveChannel: -> @getView().sidebar.selectedItem.getData()

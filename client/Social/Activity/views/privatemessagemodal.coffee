@@ -63,19 +63,13 @@ class PrivateMessageModal extends KDModalViewWithForms
 
   submitMessage : ->
 
-    {body} = @modalTabs.forms.Message.inputs
-    {send} = @modalTabs.forms.Message.buttons
-    val    = body.getValue()
-
+    body       = @modalTabs.forms.Message.inputs.body.getValue()
+    {send}     = @modalTabs.forms.Message.buttons
     recipients = (nickname for {profile:{nickname}} in @autoComplete.getSelectedItemData())
-    recipients = recipients.map (recipient)-> "@#{recipient}"
-    recipients = recipients.join ' '
-
-    val = "#{val} // #{recipients}"
 
     {router, socialapi, notificationController} = KD.singletons
 
-    socialapi.message.sendPrivateMessage body : val, (err, channels) =>
+    socialapi.message.sendPrivateMessage {body, recipients}, (err, channels) =>
 
       send.hideLoader()
 

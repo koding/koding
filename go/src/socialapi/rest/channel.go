@@ -33,6 +33,23 @@ func GetHistory(channelId int64, q *request.Query) (*models.HistoryResponse, err
 	return &history, nil
 }
 
+func CountHistory(channelId int64) (*models.CountResponse, error) {
+	c := models.NewChannelMessageList()
+	c.ChannelId = channelId
+	res, err := marshallAndSendRequest("POST", "/channel/count", c)
+	if err != nil {
+		return nil, err
+	}
+
+	var count models.CountResponse
+	err = json.Unmarshal(res, &count)
+	if err != nil {
+		return nil, err
+	}
+
+	return &count, nil
+}
+
 func FetchChannels(accountId int64) ([]*models.Channel, error) {
 	url := fmt.Sprintf("/account/%d/channels", accountId)
 	res, err := sendRequest("GET", url, nil)

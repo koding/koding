@@ -9,6 +9,17 @@ resurrection.activity.styl
 */
 }
 
+styleScrollBars()
+
+  .kdview.kdscrolltrack
+    bg                  color, transparent
+    overflow            visible
+    .kdscrollthumb
+      bg                color, rgba(0,0,0,.1)
+      margin            0 4px
+      width             7px
+      rounded           6px
+
 
 .activity-status-context
   display               none
@@ -30,6 +41,52 @@ resurrection.activity.styl
   position              static
   overflow              visible
 
+  &.group
+    margin-top          55px
+    min-height          2070px
+
+    > main
+      margin-top        24px
+      margin-left       24px
+      padding-left      0
+      size              637px, auto
+      fl()
+
+    > aside
+      margin-top           24px
+      top                  0
+      fl()
+      rel()
+
+      .group-description
+        font-size          13px
+        line-height        17px
+        letter-spacing     .2px
+        color              #4a4a4a
+        padding            0 8px
+        font-weight        400
+        opacity            .9
+
+      .group-members
+        .kdscrollview
+          height           auto
+          max-height       217px
+        .kdlistview
+          padding          20px 0 0
+        .kdlistitemview
+          display          inline-block
+          size             auto auto
+        .avatarview
+          margin           0 8px 8px 0
+          fl()
+          rounded          4px
+          img
+            rounded        4px
+
+          &:nth-of-type(4n)
+            margin-right   0
+
+  &.fixed > main
   > main
     size                689px, auto
     kalc                margin-left, \(\(100% \- 995px\)\/2\)\+299px
@@ -37,9 +94,22 @@ resurrection.activity.styl
     borderBox()
     fl()
 
+  &.fixed > aside
+    margin-top         24px
+    top                55px
+    float              none
+    fix()
+
+  > main
+    &.static-feed
+      margin-left       auto
+      margin-right      auto
+      float             none
+
     .kdtabpaneview
 
       min-height        990px
+
 
     > .activity-input-widget
       margin-bottom     36px
@@ -187,63 +257,13 @@ resurrection.activity.styl
     borderBox()
     fix()
 
-    .kdview.kdscrolltrack
-      bg                  color, transparent
-      overflow            visible
-      .kdscrollthumb
-        bg                color, rgba(0,0,0,.1)
-        margin            0 4px
-        width             7px
-        rounded           6px
+    styleScrollBars()
 
     > main
       width               100%
       font-family         openSansFamily
       kalc                padding-left, \(100% \- 295px\)
       borderBox()
-
-      .kdlistitemview-sidebar-item
-        size              263px, 30px
-        padding           5px 5px 5px 9px
-        rounded           4px
-        font-size         14px
-        overflow          visible
-        position          relative
-        display           block
-        color             #4c4c4c
-        contentBox()
-        &:hover
-          bg              color rgba(0,0,0,.01)
-          pointer()
-          .profile
-          .ttag
-            text-decoration underline
-
-
-        cite.count
-          size            auto, 20px
-          line-height     20px
-          color           #fff
-          padding         0 7px
-          abs             10px 13px 0 0
-          font-size       10px
-          font-weight     700
-          background      #f0705f
-          rounded         3px
-          fr()
-
-      a.kdlistitemview-sidebar-item
-        noTextDeco()
-
-        &.public-feed-link
-          margin-top      31px
-          color           #6a6a6a
-          border          1px solid #a7a7a7
-          font-weight     600
-          line-height     30px
-
-          &.selected
-            border-color  #1aaf5d
 
       > section
         size              294px, auto
@@ -298,52 +318,8 @@ resurrection.activity.styl
             margin-bottom 16px
             borderBox()
 
-        &.topics
+        // &.topics
 
-          .ttag
-            display       block
-            font-weight   500
-            color         #4c4c4c
-            margin        1px 0 4px 0
-
-          .tag-info
-            display       block
-            font-weight   300
-            color         #949494
-            font-size     12px
-
-          .topic-follow-btn
-            size          24px, 18px
-            abs           11px 12px 0 0
-            border        1px solid #b1b1b1
-            background    transparent
-            shadow        none
-            outline       none
-            rounded       3px
-            margin        0
-            padding       0
-            borderBox()
-            &:hover
-              border-color    transparent
-              bg              color logoBg
-              .icon
-                r-sprite      activity 'check-white-9'
-
-            .icon
-              r-sprite        activity 'check-9'
-              margin          0 7px 0 0
-              padding         0
-              fr()
-
-            .button-title
-              hidden()
-
-            &.following
-              bg              color transparent
-              border-color    transparent
-
-              .icon
-                r-sprite      activity 'check-green-9'
 
         &.users
           .kdlistitemview-sidebar-item
@@ -390,43 +366,209 @@ resurrection.activity.styl
       a.public-feed-link.selected
         color               #fff
 
-      .kdlistitemview-sidebar-item.selected
-        background          #1aaf5d
+.activity
 
-        &:after
-          content           ""
-          display           block
-          border            6px solid transparent
-          border-left-color #1aaf5d
-          abs               50% 0 0 100%
-          vendor            transform, translateY(-50%)
+  .kdlistitemview-sidebar-item
+    size              263px, 30px
+    padding           5px 5px 5px 9px
+    rounded           4px
+    font-size         14px
+    overflow          visible
+    position          relative
+    display           block
+    color             #4c4c4c
+    contentBox()
+    &:hover
+      bg              color rgba(0,0,0,.01)
+      pointer()
+      .profile
+      .ttag
+        text-decoration underline
 
-        .profile
-          color             #fff
 
-        .user-numbers
-          color             #d1efdf !important
+    cite.count
+      size            auto, 20px
+      line-height     20px
+      color           #fff
+      padding         0 7px
+      abs             10px 13px 0 0
+      font-size       10px
+      font-weight     700
+      background      #f0705f
+      rounded         3px
+      fr()
 
-        .online-status.online
-          background        #fff !important
+    .ttag
+      display       block
+      font-weight   500
+      color         #4c4c4c
+      margin        1px 0 4px 0
 
-        .ttag
-          color             #fff
+    .tag-info
+      display       block
+      font-weight   300
+      color         #949494
+      font-size     12px
 
-        .tag-info
-          color             #d1efdf
+    .topic-follow-btn
+      size          24px, 18px
+      abs           11px 12px 0 0
+      border        1px solid #b1b1b1
+      background    transparent
+      shadow        none
+      outline       none
+      rounded       3px
+      margin        0
+      padding       0
+      borderBox()
+      &:hover
+        border-color    transparent
+        bg              color logoBg
+        .icon
+          r-sprite      activity 'check-white-9'
 
-        .topic-follow-btn
-          border-color      #e9e9e9
+      .icon
+        r-sprite        activity 'check-9'
+        margin          0 7px 0 0
+        padding         0
+        fr()
 
-          &.follow:before
-            color           #d1efdf
+      .button-title
+        hidden()
 
-          .icon
-            r-sprite        "activity", "check-white-9"
+      &.following
+        bg              color transparent
+        border-color    transparent
 
-          &.following .icon
-            r-sprite        "activity", "check-white-9"
+        .icon
+          r-sprite      activity 'check-green-9'
+
+  .kdlistitemview-sidebar-item.selected
+    background          #1aaf5d
+
+    &:after
+      content           ""
+      display           block
+      border            6px solid transparent
+      border-left-color #1aaf5d
+      abs               50% 0 0 100%
+      vendor            transform, translateY(-50%)
+
+    .profile
+      color             #fff
+
+    .user-numbers
+      color             #d1efdf !important
+
+    .online-status.online
+      background        #fff !important
+
+    .ttag
+      color             #fff
+
+    .tag-info
+      color             #d1efdf
+
+    .topic-follow-btn
+      border-color      #e9e9e9
+
+      &.follow:before
+        color           #d1efdf
+
+      .icon
+        r-sprite        "activity", "check-white-9"
+
+      &.following
+        bg              color transparent
+        border-color    transparent
+
+        .icon
+          r-sprite      "activity", "check-white-9"
+
+  a.kdlistitemview-sidebar-item
+
+    noTextDeco()
+
+    &.public-feed-link
+      margin-top      31px
+      color           #6a6a6a
+      border          1px solid #a7a7a7
+      font-weight     600
+      line-height     30px
+
+      &.selected
+        border-color  #1aaf5d
+
+
+.activity-modal
+
+  .listview-wrapper
+    margin-top        15px
+    height            200px
+
+    .lazy-loader
+      size            16px 16px
+      margin          10px auto
+
+    styleScrollBars()
+
+
+  textarea.kdinput.text
+
+    height            44px
+    bg                image none
+
+
+.activity-modal.your.topics
+
+  a.kdlistitemview-sidebar-item
+
+    size               auto auto
+    clear              both
+
+    .ttag
+      display       block
+      font-weight   500
+      color         #4c4c4c
+      margin        0
+      fl()
+
+    .tag-info
+      fr()
+
+    button
+    cite.count
+      hidden()
+
+  &.search-active
+
+    a.kdlistitemview-sidebar-item
+
+      .tag-info
+        margin-right  30px
+
+      .topic-follow-btn
+        top           8px
+        right         0
+        visible()
+
+.activity-modal.conversations
+
+  .kdlistitemview-member
+    margin-left       33px
+    size              213px 30px
+    min-height        0
+
+    .avatarview
+      top             5px
+      left            -30px
+
+    .profile
+      float           none
+
+    .user-numbers
+      float           none
+
 
 div.kdtooltip.activity-helper
   code
@@ -734,6 +876,17 @@ span.collapsedtext
 
 
   .comment-container
+    overflow              visible
+
+    > .listview-wrapper
+      overflow            visible
+
+      > .kdscrollview
+        overflow          visible
+
+        > .kdlistview
+          overflow        visible
+
     .item-add-comment-box
       position            relative
 
@@ -998,11 +1151,65 @@ span.collapsedtext
 
 .activity-item.status
   .link-embed-box
-    .preview-text-link
-      input.preview-title-input
-        display             none
-      textarea.description-input
-        display             none
+    padding                 0 14px 15px
+    overflow                visible
+    borderBox()
+
+    .embed-link-view
+
+      .preview-image
+        display             block
+        margin              0
+        padding             0
+        z-index             10
+
+        img
+          display           block
+          margin            0
+          padding           0
+          width             100%
+
+      .preview-text
+        padding             17px
+        border              1px solid #e5e5e5
+        z-index             9
+        borderBox()
+
+        a.preview-text-link
+          noTextDeco()
+
+          h4
+            font-size       16px
+            line-height     18px
+            color           #4f4f4f
+            display         block
+
+        a.description
+          padding           14px 0
+          color             #727272
+          font-size         14px
+          line-height       16px
+          display           block
+          opacity           .99
+
+        .provider-info
+          overflow          visible
+          color             #bdbdbd
+          opacity           .99
+          font-size         14px
+          line-height       16px
+
+      .preview-image + .preview-text
+        border-top-color    #d2d2d2
+
+
+// .activity-item.status
+//   .link-embed-box
+//     .preview-text-link
+//       input.preview-title-input
+//         display             none
+//       textarea.description-input
+//         display             none
 
 
 /** Markdown Styling **/
@@ -1067,7 +1274,7 @@ span.collapsedtext
       vertical-align      top
       font-size           12px
   pre
-    padding               10px 0
+    padding               15px 14px
     code
       display             block
       line-height         16px
@@ -1454,108 +1661,73 @@ span.collapsedtext
 
 
 // Group Activity
+
 body.group.activity
-  .content-page
-    margin-top             55px
-    min-height             2070px
 
-    main
-      margin-top           24px
+  .group-cover-view
+    max-width            948px
+    line-height          0
+    height               316px
+    bg                   color, #e6e6e6
+    margin               0 auto
+    kalc                 margin-right, 50% \- 478px
+    z-index              3
+    bg                   size, 948px \, 316px
+    bg                   image, -webkit-linear-gradient(90deg\, rgba(0, 0, 0, .1) 50%\, transparent 50%) \,
+                                -webkit-linear-gradient(0deg\, rgba(0, 0, 0, .1) 50%\, transparent 50% \, transparent 100% \, rgba(0, 0, 0, .1) 100%)
+    bg                   image, -moz-linear-gradient(90deg\, rgba(0, 0, 0, .1) 50%\, transparent 50%) \,
+                                -moz-linear-gradient(0deg\, rgba(0, 0, 0, .1) 50%\, transparent 50% \, transparent 100% \, rgba(0, 0, 0, .1) 100%)
+    .avatarview
+    .avatarview img
+      rounded            0
 
-    > aside
-      padding-top          306px
-
-      .group-description
-        font-size          13px
-        line-height        17px
-        letter-spacing     .2px
-        color              #4a4a4a
-        padding            17px 0 0
-        font-weight        400
-        opacity            .9
-
-      .group-members
-        .kdscrollview
-          height           auto
-          max-height       217px
-        .kdlistview
-          padding          20px 0 0
-        .kdlistitemview
-          display          inline-block
-          size             auto auto
-        .avatarview
-          margin           0 8px 8px 0
-          fl()
-          rounded          4px
-          img
-            rounded        4px
-
-          &:nth-of-type(4n)
-            margin-right   0
+    .kdscrollview
+      overflow           hidden
 
 
-    .group-cover-view
-      max-width            948px
-      line-height          0
-      height               316px
-      bg                   color, #e6e6e6
-      margin               0 auto
-      kalc                 margin-right, 50% \- 462px
-      z-index              3
-      bg                   size, 948px \, 316px
-      bg                   image, -webkit-linear-gradient(90deg\, rgba(0, 0, 0, .1) 50%\, transparent 50%) \,
-                                  -webkit-linear-gradient(0deg\, rgba(0, 0, 0, .1) 50%\, transparent 50% \, transparent 100% \, rgba(0, 0, 0, .1) 100%)
-      bg                   image, -moz-linear-gradient(90deg\, rgba(0, 0, 0, .1) 50%\, transparent 50%) \,
-                                  -moz-linear-gradient(0deg\, rgba(0, 0, 0, .1) 50%\, transparent 50% \, transparent 100% \, rgba(0, 0, 0, .1) 100%)
-      .avatarview
-      .avatarview img
-        rounded            0
+    figure
+      abs                0 0 0 0
+      size               100%, 100%
+      bg                 size cover
 
-      .kdscrollview
-        overflow           hidden
+    .kdlistview-collage
+      width              100%
 
+      .kdlistitemview
+        display          inline-block
+        size             auto auto
 
-      figure
-        abs                0 0 0 0
-        size               100%, 100%
-        bg                 size cover
+    .kdbutton.update-cover
+      abs                0 27px 27px 0
+      margin             0
+      padding            0 0 0 14px
+      font-size          13px
+      font-weight        400
+      color              #fff
+      size               auto, 36px
+      line-height        35px
+      z-index            5
+      rounded            12px
+      bg                 color, #1aaf5d
+      border             1px solid #159950
 
-      .kdlistview-collage
-        width              100%
+      .button-title
+        padding          0
+        line-height      35px
+        color            inherit
+        font-size        inherit
+        font-weight      inherit
 
-        .kdlistitemview
-          display          inline-block
-          size             auto auto
-
-      .kdbutton.update-cover
-        abs                0 27px 27px 0
-        margin             0
-        padding            0 0 0 14px
-        font-size          13px
-        font-weight        400
-        color              #fff
-        size               auto, 36px
-        line-height        35px
-        z-index            5
-        rounded            12px
-        bg                 color, #1aaf5d
-        border             1px solid #159950
-
-        .button-title
-          padding          0
-          line-height      35px
-          color            inherit
-          font-size        inherit
-          font-weight      inherit
-
-        .icon
-          r-sprite         activity image
-          margin           9px 13px 0 9px
-          padding          0
-          fr()
+      .icon
+        r-sprite         activity image
+        margin           9px 13px 0 9px
+        padding          0
+        fr()
 
   .kdmodal.group-cover-uploader
     .kdmodal-content
+      .file-droparea
+        height            315px
       figure
         bg                size, cover
       .kdloader

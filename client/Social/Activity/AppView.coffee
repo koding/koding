@@ -1,13 +1,9 @@
-class ActivityAppView extends KDScrollView
-
-  JView.mixin @prototype
-
-  headerHeight = 0
+class ActivityAppView extends KDView
 
   {entryPoint, permissions, roles} = KD.config
 
   isGroup        = -> entryPoint?.type is 'group'
-  isKoding       = -> entryPoint?.slug is 'koding'
+  isKoding       = -> KD.getGroup().slug is 'koding'
   isMember       = -> 'member' in roles
   canListMembers = -> 'list members' in permissions
   isPrivateGroup = -> not isKoding() and isGroup()
@@ -16,21 +12,28 @@ class ActivityAppView extends KDScrollView
   constructor:(options = {}, data)->
 
     options.cssClass   = 'content-page activity'
+    options.cssClass   = KD.utils.curry 'group', options.cssClass  unless isKoding()
     options.domId      = 'content-page-activity'
 
     super options, data
 
+    {
+      appStorageController
+      windowController
+    }                      = KD.singletons
     {entryPoint}           = KD.config
-    {appStorageController} = KD.singletons
     @_lastMessage          = null
 
-    @appStorage = appStorageController.storage 'Activity', '2.0'
-    @sidebar    = new ActivitySidebar tagName : 'aside', delegate : this
-    @tabs       = new KDTabView
+    @appStorage  = appStorageController.storage 'Activity', '2.0'
+    @groupHeader = new FeedCoverPhotoView
+    @sidebar     = new ActivitySidebar tagName : 'aside', delegate : this
+    @tabs        = new KDTabView
       tagName             : 'main'
       hideHandleContainer : yes
 
     @appStorage.setValue 'liveUpdates', off
+
+    windowController.on 'ScrollHappened', @bound 'scroll'  unless isKoding()
 
 
 
@@ -39,8 +42,16 @@ class ActivityAppView extends KDScrollView
 
   viewAppended: ->
 
+    @addSubView @groupHeader  unless isKoding()
     @addSubView @sidebar
     @addSubView @tabs
+
+
+  scroll: ->
+
+    if window.scrollY > 316
+    then @setClass 'fixed'
+    else @unsetClass 'fixed'
 
 
   # type: [public|topic|post|message|chat|null]

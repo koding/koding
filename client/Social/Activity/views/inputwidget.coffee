@@ -328,6 +328,12 @@ class ActivityInputWidget extends KDView
     @unsetClass "preview-active"
 
 
+  focus: ->
+
+    @input.focus()
+    @input.setPlaceholder()
+
+
   viewAppended: ->
 
     @addSubView @avatar
