@@ -98,7 +98,7 @@ sitemapfeederdev:
 createdb:
 	(vagrant ssh default --command "mongo localhost/koding --eval='db.jAccounts.update({},{\$$unset:{socialApiId:0}},{multi:true})'")
 	(vagrant ssh default --command "mongo localhost/koding --eval='db.jGroups.update({},{\$$unset:{socialApiChannelId:0}},{multi:true})'")
-	(vagrant ssh default --command "/opt/koding/go/src/socialapi/db/sql/definition/create.sh")
+	(vagrant ssh default --command "/opt/koding/go/src/socialapi/db/sql/definition/create.sh /opt/koding/go/src/socialapi/db/sql")
 
 configure: install installrerun
 	@echo "$(OK_COLOR)==> Configuration is done $(NO_COLOR)"
