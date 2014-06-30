@@ -64,6 +64,10 @@ func (p *Provider) Build(opts *protocol.MachineOptions) (*protocol.BuildResponse
 		opts.ImageName = DefaultImageId
 	}
 
+	if opts.InstanceName == "" {
+		return nil, errors.New("dropletName is empty")
+	}
+
 	// - validate image and flavor is available
 	p.Push(fmt.Sprintf("Fetching image %s", DefaultImageName), 10, machinestate.Building)
 	image, err := o.Image(opts.ImageName)
@@ -73,21 +77,22 @@ func (p *Provider) Build(opts *protocol.MachineOptions) (*protocol.BuildResponse
 
 	fmt.Printf("image %+v\n", image)
 
-	//
-	// if opts.InstanceName == "" {
-	// 	return nil, errors.New("server name is empty")
-	// }
-	//
-	// if opts.ImageName == "" {
-	// 	opts.ImageName = "ubuntu-14-04-x64"
-	// }
-	//
-	// securityGroups := make([]map[string]interface{}, len(s.SecurityGroups))
-	// for i, groupName := range s.SecurityGroups {
-	// 	securityGroups[i] = make(map[string]interface{})
-	// 	securityGroups[i]["name"] = groupName
-	// }
-	//
+	// check if our key exist
+	key, err := o.ShowKey(protocol.KeyName)
+	if err != nil {
+		return nil, err
+	}
+
+	// key doesn't exist, create a new one
+	if key.Name == "" {
+		key, err = o.CreateKey(protocol.KeyName, protocol.PublicKey)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	fmt.Printf("key %+v\n", key)
+
 	// server := gophercloud.NewServer{
 	// 	Name:        opts.InstanceName,
 	// 	ImageRef:    s.SourceImage,
