@@ -59,13 +59,13 @@ KD.remote = new Bongo
 
   mq: do ->
     {authExchange} = KD.config
-    { servicesEndpoint } = KD.config.broker
+    # { servicesEndpoint } = KD.config.broker
 
     options = {
-      servicesEndpoint
+      # servicesEndpoint
       authExchange
       autoReconnect: yes
       getSessionToken
     }
-    broker = new KDBroker.Broker null, options
+    broker = new KDBroker.Broker "#{KD.config.broker.host}://#{KD.config.broker.host}:#{KD.config.broker.port}", options
 

@@ -82,7 +82,7 @@ module.exports =
     port        : 7000
     clusterSize : 5
     proxyUrl    : "#{customDomain.public}:7000"
-    
+
   mongo         : mongo
   mongoKontrol  : mongoKontrol
   mongoReplSet  : null
@@ -227,10 +227,6 @@ module.exports =
       socialApiUri: "#{customDomain.public}:3030/xhr"
       logApiUri: "#{customDomain.public}:4030/xhr"
       suppressLogs: no
-      broker    :
-        servicesEndpoint: "#{customDomain.public}:#{customDomain.port}/-/services/broker"
-      brokerKite    :
-        servicesEndpoint: "#{customDomain.public}:#{customDomain.port}/-/services/brokerKite"
       apiUri    : "#{customDomain.public}"
       version   : version
       mainUri   : "#{customDomain.public}"
