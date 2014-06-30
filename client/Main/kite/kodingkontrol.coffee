@@ -143,4 +143,5 @@ class KodingKontrol extends (require 'kontrol')
 
       # delete this from the cache:
       @setCachedKite name, correlationName
-    kite
+
+    return kite
