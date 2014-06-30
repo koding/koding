@@ -16,7 +16,7 @@ import (
 	"github.com/koding/kite/kontrol"
 )
 
-const version = "0.0.5"
+const version = "0.0.6"
 
 var (
 	profile     = flag.String("c", "", "Configuration profile")
