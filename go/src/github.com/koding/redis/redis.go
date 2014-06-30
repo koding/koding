@@ -19,6 +19,8 @@ type RedisConf struct {
 	DB     int
 }
 
+var ErrNil = redis.ErrNil
+
 func NewRedisSession(conf *RedisConf) (*RedisSession, error) {
 	s := &RedisSession{}
 

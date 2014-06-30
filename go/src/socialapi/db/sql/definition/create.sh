@@ -42,3 +42,17 @@ sudo -u postgres psql social < $1/notification_definition/004-table.sql
 
 # create constraints
 sudo -u postgres psql social < $1/notification_definition/005-constraint.sql
+
+# SITEMAP WORKER SQL IMPORTS
+
+# create sequences
+sudo -u postgres psql social < $1/sitemap_definition/002-schema.sql
+
+# create sequences
+sudo -u postgres psql social < $1/sitemap_definition/003-sequence.sql
+
+# create tables
+sudo -u postgres psql social < $1/sitemap_definition/004-table.sql
+
+# create constraints
+sudo -u postgres psql social < $1/sitemap_definition/005-constraint.sql
