@@ -146,7 +146,12 @@ func validateChannelMessage(cm *socialmodels.ChannelMessage) error {
 
 func validateChannel(c *socialmodels.Channel) error {
 	// for now we are only adding topics, but later on we could add groups here
-	if c.TypeConstant != socialmodels.Channel_TYPE_TOPIC {
+	if c.TypeConstant != socialmodels.Channel_TYPE_TOPIC &&
+		c.TypeConstant != socialmodels.Channel_TYPE_GROUP {
+		return ErrIgnore
+	}
+
+	if c.PrivacyConstant == socialmodels.Channel_PRIVACY_PRIVATE {
 		return ErrIgnore
 	}
 
