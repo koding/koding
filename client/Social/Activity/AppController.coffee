@@ -106,33 +106,6 @@ class ActivityAppController extends AppController
     @utils.defer -> callback contentDisplay
 
 
-  fetchActivitiesProfilePage:(options, callback)->
-
-    {originId} = options
-    options.to = options.to or @profileLastTo or Date.now()
-    if KD.checkFlag 'super-admin'
-      appStorage = new AppStorage 'Activity', '1.0'
-      appStorage.fetchStorage (storage)=>
-        options.withExempt = appStorage.getValue('showLowQualityContent') or off
-        @fetchActivitiesProfilePageWithExemptOption options, callback
-    else
-      options.withExempt = false
-      @fetchActivitiesProfilePageWithExemptOption options, callback
-
-
-  fetchActivitiesProfilePageWithExemptOption:(options, callback)->
-
-    {JNewStatusUpdate} = KD.remote.api
-    eventSuffix = "#{@getFeedFilter()}_#{@getActivityFilter()}"
-    JNewStatusUpdate.fetchProfileFeed options, (err, activities)=>
-      return @emit "activitiesCouldntBeFetched", err  if err
-
-      if activities?.length > 0
-        lastOne = activities.last.meta.createdAt
-        @profileLastTo = (new Date(lastOne)).getTime()
-      callback err, activities
-
-
   bindModalDestroy: (modal, lastRoute) ->
 
     {router} = KD.singletons
