@@ -1,0 +1,1 @@
+{ "indexes" : [ { "v" : 1, "key" : { "_id" : 1 }, "ns" : "koding.jPosts", "name" : "_id_" }, { "v" : 1, "key" : { "slug" : 1 }, "unique" : true, "ns" : "koding.jPosts", "name" : "slug_1" }, { "v" : 1, "key" : { "group" : 1 }, "ns" : "koding.jPosts", "name" : "group_1", "sparse" : true } ] }

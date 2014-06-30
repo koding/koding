@@ -1,0 +1,1 @@
+{ "options" : { "create" : "jStackTemplates" }, "indexes" : [ { "v" : 1, "key" : { "_id" : 1 }, "ns" : "koding.jStackTemplates", "name" : "_id_" } ] }

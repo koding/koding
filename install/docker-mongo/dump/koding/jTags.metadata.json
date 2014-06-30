@@ -1,0 +1,1 @@
+{ "indexes" : [ { "v" : 1, "key" : { "_id" : 1 }, "ns" : "koding.jTags", "name" : "_id_" }, { "v" : 1, "key" : { "title" : 1 }, "ns" : "koding.jTags", "name" : "title_1", "sparse" : true } ] }

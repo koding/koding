@@ -1,0 +1,1 @@
+{ "indexes" : [ { "v" : 1, "key" : { "_id" : 1 }, "ns" : "koding.jActivityCaches", "name" : "_id_" }, { "v" : 1, "key" : { "to" : 1 }, "unique" : true, "ns" : "koding.jActivityCaches", "name" : "to_1" }, { "v" : 1, "key" : { "from" : 1 }, "unique" : true, "ns" : "koding.jActivityCaches", "name" : "from_1" } ] }

@@ -1,0 +1,1 @@
+{ "indexes" : [ { "v" : 1, "key" : { "_id" : 1 }, "ns" : "koding.jProxyRestrictions", "name" : "_id_" }, { "v" : 1, "key" : { "domainName" : 1 }, "unique" : true, "ns" : "koding.jProxyRestrictions", "name" : "domainName_1" } ] }
