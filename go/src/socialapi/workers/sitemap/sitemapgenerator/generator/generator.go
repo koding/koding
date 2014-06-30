@@ -60,6 +60,7 @@ func (c *Controller) generate() {
 	for {
 		name, err := c.fileSelector.Select()
 		if err == redis.ErrNil {
+			c.log.Info("Sitemap update finished")
 			return
 		}
 
@@ -67,11 +68,12 @@ func (c *Controller) generate() {
 			c.log.Error("Could not fetch file name: %s", err)
 			return
 		}
-		c.log.Info("Updating sitemap: %s", name)
 		// there is not any waiting sitemap updates
 		if name == "" {
-			return
+			continue
 		}
+
+		c.log.Info("Updating sitemap: %s", name)
 
 		c.fileName = name
 
@@ -95,7 +97,6 @@ func (c *Controller) generate() {
 			continue
 		}
 	}
-	c.log.Info("Sitemap update finished")
 }
 
 // handleError re-adds updated items to next file update queue
