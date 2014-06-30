@@ -2,6 +2,7 @@ package feeder
 
 import (
 	"errors"
+	"fmt"
 	"socialapi/config"
 	socialmodels "socialapi/models"
 	"socialapi/workers/helper"
@@ -148,7 +149,7 @@ func newItemByChannelMessage(cm *socialmodels.ChannelMessage, status string) *mo
 	return &models.SitemapItem{
 		Id:           cm.Id,
 		TypeConstant: models.TYPE_CHANNEL_MESSAGE,
-		Slug:         cm.Slug,
+		Slug:         fmt.Sprintf("%s/%s", "Post", cm.Slug),
 		Status:       status,
 	}
 }
@@ -166,10 +167,18 @@ func newItemByAccount(a *socialmodels.Account, status string) *models.SitemapIte
 }
 
 func newItemByChannel(c *socialmodels.Channel, status string) *models.SitemapItem {
+	slug := "Public"
+	switch c.TypeConstant {
+	case socialmodels.Channel_TYPE_TOPIC:
+		slug = fmt.Sprintf("Topic/%s", c.Name)
+	case socialmodels.Channel_TYPE_GROUP:
+		// TODO implement when group routes are defined
+	}
+
 	return &models.SitemapItem{
 		Id:           c.Id,
 		TypeConstant: models.TYPE_CHANNEL,
-		Slug:         c.Name,
+		Slug:         slug,
 		Status:       status,
 	}
 }
