@@ -84,7 +84,7 @@ func main() {
 }
 
 func authenticateFromSessionID(r *kite.Request) error {
-	username, err := findUsernameFromSessionID(r.Authentication.Key)
+	username, err := findUsernameFromSessionID(r.Auth.Key)
 	if err != nil {
 		return err
 	}
