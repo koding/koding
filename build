@@ -4,20 +4,18 @@
 {exec}   = require 'child_process'
 fs       = require 'fs'
 log      = console.log
- 
+Builder  = require './Builder'
+builder  = new Builder
+
 build = (o)->
  
-	exec "cd node_modules_koding/koding-broker-client && cake build",->
-		log "koding-broker-client is built."
-	 
-	  buildClient = ->
-	    boo = require('./Builder')
-	    b = new boo
-	    b.buildSpritesAndClient {}
+  buildClient = -> builder.buildSpritesAndClient {}
 
+  exec "cd node_modules_koding/koding-broker-client && cake build",->
+    log "koding-broker-client is built."
 
-	  buildClient "",()->
-	    log "client is built."
+    buildClient "",()->
+      log "client is built."
  
  
 build()

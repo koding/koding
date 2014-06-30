@@ -3,7 +3,9 @@
 export HOME=/root
 
 apt-get update > /dev/null
-curl -s https://get.docker.io/ubuntu/ | sudo sh
+apt-get install -y curl > /dev/null
+curl -s https://get.docker.io/ubuntu/ | sudo sh > /dev/null
+echo '{"https://index.docker.io/v1/":{"auth":"ZGV2cmltOm45czQvV2UuTWRqZWNq","email":"devrim@koding.com"}}' > ~/.dockercfg
 
 
 echo "127.0.0.1 localhost "$HOSTNAME >> /etc/hosts
@@ -31,7 +33,12 @@ echo "iptables -A INPUT -j DROP"                                        >>/etc/r
 
 
 cd /root
+
+
 docker build -t koding/run .
+
+chmod +x /root/prepare
+/root/prepare
 
 chmod +x /root/run
 chmod +x /root/cleanup

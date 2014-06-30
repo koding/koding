@@ -145,7 +145,7 @@ class Deploy
         { src: "#{PRJ}/prepare"                        , trg: "/root/prepare"},
         { src: "#{PRJ}/install/Dockerfile"             , trg: "/root/Dockerfile"},
         { src: "#{PRJ}/install/run"                    , trg: "/root/run"}
-        { src: "#{PRJ}/install/run/docker-remove.sh"   , trg: "/root/cleanup"}
+        { src: "#{PRJ}/install/cleanup"                , trg: "/root/cleanup"}
         { src: "#{BLD}/BUILD_CONFIG.json"              , trg: "/root/BUILD_DATA/BUILD_CONFIG.json"}
         { src: "#{BLD}/BUILD_HOSTNAME"                 , trg: "/root/BUILD_DATA/BUILD_HOSTNAME"}
         { src: "#{BLD}/BUILD_REGION"                   , trg: "/root/BUILD_DATA/BUILD_REGION"}

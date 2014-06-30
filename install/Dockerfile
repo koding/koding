@@ -7,10 +7,8 @@ RUN git checkout `cat $BLD/BUILD_BRANCH`
 RUN git pull origin `cat $BLD/BUILD_BRANCH`
 RUN git submodule init
 RUN git submodule update
-
 RUN npm i gulp stylus coffee-script -g --silent
 RUN npm i --unsafe-perm --silent
-
 RUN chmod +x ./build
 RUN echo "building client (stdout is supressed, stderr is visible)"
 RUN ./build > /dev/null
