@@ -13,6 +13,18 @@ configName      = (fs.readFileSync BLD+"/BUILD_CONFIG",      'utf8').replace("\n
 environment     = (fs.readFileSync BLD+"/BUILD_ENVIRONMENT", 'utf8').replace("\n","")
 projectRoot     = (fs.readFileSync BLD+"/BUILD_PROJECT_ROOT",'utf8').replace("\n","")
 
+broker = 
+  name              : "broker"
+  serviceGenericName: "broker"
+  ip                : ""
+  webProtocol       : "http:"
+  host              : customDomain.public_
+  port              : 8008
+  certFile          : ""
+  keyFile           : ""
+  authExchange      : authExchange
+  authAllExchange   : authAllExchange
+  failoverUri       : customDomain.public_
 
 rabbitmq        =
   host          : "rabbitmq"
@@ -155,17 +167,8 @@ module.exports =
     heartbeat   : 0
     vhost       : '/'
 
-  broker              :
-    name              : "broker"
-    serviceGenericName: "broker"
-    ip                : ""
-    port              : 8008
-    certFile          : ""
-    keyFile           : ""
-    webProtocol       : 'http:'
-    authExchange      : authExchange
-    authAllExchange   : authAllExchange
-    failoverUri       : customDomain.public_
+  broker              : broker
+
     
   email         :
     host        : "#{customDomain.public}"
@@ -213,6 +216,8 @@ module.exports =
         maxAge      : cookieMaxAge
         secure      : cookieSecure
       environment        : environment
+      broker :
+        uri  : "#{broker.webProtocol}://#{broker.host}:#{broker.port}/subscribe"
       activityFetchCount : 20
       authExchange       : authExchange
       github         :
