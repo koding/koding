@@ -24,6 +24,11 @@ redis =
   host : "redis"
   port : "6379"
 
+socialapi =
+  port        : 7000
+  proxyUrl    : "socialapi"
+  clusterSize : 5
+
 customDomain    =
   public        : "http://#{hostname}"
   public_       : "#{hostname}"
@@ -91,10 +96,7 @@ module.exports =
   projectRoot   : projectRoot
 
   # THIS IS WHERE WEBSERVER & SOCIAL WORKER KNOW HOW TO CONNECT TO SOCIALAPI
-  socialapi:
-    port        : 7000
-    clusterSize : 5
-    proxyUrl    : "#{customDomain.public}:7000"
+  socialapi: socialapi
 
   mongo         : mongo
   mongoKontrol  : mongoKontrol
