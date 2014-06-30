@@ -17,7 +17,7 @@ func main() {
 		return
 	}
 
-	// too many egg in an egg
+	// too many eggs in an egg
 	//  consider refactoring
 	r.Listen(
 		trollmode.NewManager(

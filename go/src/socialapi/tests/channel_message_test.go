@@ -3,6 +3,7 @@ package main
 import (
 	"math/rand"
 	"socialapi/models"
+	"socialapi/request"
 	"socialapi/rest"
 	"strconv"
 	"testing"
@@ -78,7 +79,14 @@ func TestChannelMessage(t *testing.T) {
 				err = rest.AddInteraction("like", post.Id, post.AccountId)
 				So(err, ShouldBeNil)
 
-				cmc, err := rest.GetPostWithRelatedData(post.Id, post.AccountId, groupName)
+				cmc, err := rest.GetPostWithRelatedData(
+					post.Id,
+					&request.Query{
+						AccountId: post.AccountId,
+						GroupName: groupName,
+					},
+				)
+
 				So(err, ShouldBeNil)
 				So(cmc, ShouldNotBeNil)
 
@@ -98,7 +106,14 @@ func TestChannelMessage(t *testing.T) {
 				err = rest.AddInteraction("like", post.Id, nonOwnerAccount.Id)
 				So(err, ShouldBeNil)
 
-				cmc, err := rest.GetPostWithRelatedData(post.Id, nonOwnerAccount.Id, groupName)
+				cmc, err := rest.GetPostWithRelatedData(
+					post.Id,
+					&request.Query{
+						AccountId: nonOwnerAccount.Id,
+						GroupName: groupName,
+					},
+				)
+
 				So(err, ShouldBeNil)
 				So(cmc, ShouldNotBeNil)
 
@@ -133,7 +148,14 @@ func TestChannelMessage(t *testing.T) {
 				err = rest.AddInteraction("like", post.Id, post.AccountId)
 				So(err, ShouldBeNil)
 
-				cmc, err := rest.GetPostWithRelatedData(post.Id, post.AccountId, groupName)
+				cmc, err := rest.GetPostWithRelatedData(
+					post.Id,
+					&request.Query{
+						AccountId: post.AccountId,
+						GroupName: groupName,
+					},
+				)
+
 				So(err, ShouldBeNil)
 				So(cmc, ShouldNotBeNil)
 
@@ -146,7 +168,14 @@ func TestChannelMessage(t *testing.T) {
 				err = rest.DeleteInteraction("like", post.Id, account.Id)
 				So(err, ShouldBeNil)
 
-				cmc, err = rest.GetPostWithRelatedData(post.Id, post.AccountId, groupName)
+				cmc, err = rest.GetPostWithRelatedData(
+					post.Id,
+					&request.Query{
+						AccountId: post.AccountId,
+						GroupName: groupName,
+					},
+				)
+
 				So(err, ShouldBeNil)
 				So(cmc, ShouldNotBeNil)
 
@@ -168,7 +197,14 @@ func TestChannelMessage(t *testing.T) {
 
 				So(reply.AccountId, ShouldEqual, post.AccountId)
 
-				cmc, err := rest.GetPostWithRelatedData(post.Id, post.AccountId, groupName)
+				cmc, err := rest.GetPostWithRelatedData(
+					post.Id,
+					&request.Query{
+						AccountId: post.AccountId,
+						GroupName: groupName,
+					},
+				)
+
 				So(err, ShouldBeNil)
 				So(cmc, ShouldNotBeNil)
 
@@ -210,7 +246,14 @@ func TestChannelMessage(t *testing.T) {
 
 				So(reply.AccountId, ShouldEqual, nonOwnerAccount.Id)
 
-				cmc, err := rest.GetPostWithRelatedData(post.Id, post.AccountId, groupName)
+				cmc, err := rest.GetPostWithRelatedData(
+					post.Id,
+					&request.Query{
+						AccountId: post.AccountId,
+						GroupName: groupName,
+					},
+				)
+
 				So(err, ShouldBeNil)
 				So(cmc, ShouldNotBeNil)
 
@@ -233,7 +276,14 @@ func TestChannelMessage(t *testing.T) {
 				err = rest.AddInteraction("like", reply.Id, nonOwnerAccount.Id)
 				So(err, ShouldBeNil)
 
-				cmc, err := rest.GetPostWithRelatedData(post.Id, account.Id, groupName)
+				cmc, err := rest.GetPostWithRelatedData(
+					post.Id,
+					&request.Query{
+						AccountId: account.Id,
+						GroupName: groupName,
+					},
+				)
+
 				So(err, ShouldBeNil)
 				So(cmc, ShouldNotBeNil)
 
@@ -268,7 +318,14 @@ func TestChannelMessage(t *testing.T) {
 				err = rest.DeletePost(reply.Id, nonOwnerAccount.Id, groupName)
 				So(err, ShouldBeNil)
 
-				cmc, err := rest.GetPostWithRelatedData(post.Id, account.Id, groupName)
+				cmc, err := rest.GetPostWithRelatedData(
+					post.Id,
+					&request.Query{
+						AccountId: account.Id,
+						GroupName: groupName,
+					},
+				)
+
 				So(err, ShouldBeNil)
 				So(cmc, ShouldNotBeNil)
 
@@ -292,11 +349,24 @@ func TestChannelMessage(t *testing.T) {
 				err = rest.DeletePost(post.Id, account.Id, groupName)
 				So(err, ShouldBeNil)
 
-				cmc, err := rest.GetPostWithRelatedData(reply1.Id, account.Id, groupName)
+				cmc, err := rest.GetPostWithRelatedData(
+					reply1.Id,
+					&request.Query{
+						AccountId: account.Id,
+						GroupName: groupName,
+					},
+				)
 				So(err, ShouldNotBeNil)
 				So(cmc, ShouldBeNil)
 
-				cmc, err = rest.GetPostWithRelatedData(reply2.Id, account.Id, groupName)
+				cmc, err = rest.GetPostWithRelatedData(
+					reply2.Id,
+					&request.Query{
+						AccountId: account.Id,
+						GroupName: groupName,
+					},
+				)
+
 				So(err, ShouldNotBeNil)
 				So(cmc, ShouldBeNil)
 

@@ -133,7 +133,9 @@ func getPrivateMessageChannels(q *request.Query) ([]models.Channel, error) {
 	// build query for
 	c := models.NewChannel()
 	channelIds := make([]int64, 0)
-	rows, err := bongo.B.DB.Table(c.TableName()).
+	query := bongo.B.DB.
+		Model(c).
+		Table(c.TableName()).
 		Select("api.channel_participant.channel_id").
 		Joins("left join api.channel_participant on api.channel_participant.channel_id = api.channel.id").
 		Where("api.channel_participant.account_id = ? and "+
@@ -143,11 +145,19 @@ func getPrivateMessageChannels(q *request.Query) ([]models.Channel, error) {
 		q.AccountId,
 		q.GroupName,
 		models.Channel_TYPE_PRIVATE_MESSAGE,
-		models.ChannelParticipant_STATUS_ACTIVE).
-		Limit(q.Limit).
+		models.ChannelParticipant_STATUS_ACTIVE)
+
+	// add exempt clause if needed
+	if !q.ShowExempt {
+		query = query.Where("api.channel.meta_bits = ?", models.Safe)
+	}
+
+	query = query.Limit(q.Limit).
 		Offset(q.Skip).
-		Order("api.channel.updated_at DESC").
-		Rows()
+		Order("api.channel.updated_at DESC")
+
+	rows, err := query.Rows()
+
 	defer rows.Close()
 	if err != nil {
 		return nil, err

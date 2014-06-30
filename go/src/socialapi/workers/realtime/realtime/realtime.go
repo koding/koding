@@ -7,6 +7,7 @@ import (
 	mongomodels "koding/db/models"
 	"koding/db/mongodb/modelhelper"
 	"socialapi/models"
+	"socialapi/request"
 	notificationmodels "socialapi/workers/notification/models"
 	"strconv"
 
@@ -143,7 +144,12 @@ type InteractionEvent struct {
 }
 
 func (f *Controller) handleInteractionEvent(eventName string, i *models.Interaction) error {
-	count, err := i.Count(i.TypeConstant)
+	q := &request.Query{
+		Type:       models.Interaction_TYPE_LIKE,
+		ShowExempt: false, // this is default value
+	}
+
+	count, err := i.Count(q)
 	if err != nil {
 		return err
 	}

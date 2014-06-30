@@ -36,6 +36,9 @@ type Channel struct {
 	// Privacy constant of the channel
 	PrivacyConstant string `json:"privacyConstant"   sql:"NOT NULL;TYPE:VARCHAR(100);"`
 
+	// MetaBits holds meta bit information about the channel
+	MetaBits MetaBits `json:"metaBits"`
+
 	// Creation date of the channel
 	CreatedAt time.Time `json:"createdAt"            sql:"NOT NULL"`
 
@@ -87,14 +90,18 @@ func NewPrivateMessageChannel(creatorId int64, groupName string) *Channel {
 	return c
 }
 
-func (c *Channel) BeforeCreate() {
+func (c *Channel) BeforeCreate() error {
 	c.CreatedAt = time.Now().UTC()
 	c.UpdatedAt = time.Now().UTC()
 	c.DeletedAt = ZeroDate()
+
+	return c.MarkIfExempt()
 }
 
-func (c *Channel) BeforeUpdate() {
+func (c *Channel) BeforeUpdate() error {
 	c.UpdatedAt = time.Now()
+
+	return c.MarkIfExempt()
 }
 
 func (c Channel) GetId() int64 {
@@ -278,7 +285,7 @@ func (c *Channel) RemoveParticipant(participantId int64) error {
 	return nil
 }
 
-func (c *Channel) FetchParticipantIds() ([]int64, error) {
+func (c *Channel) FetchParticipantIds(q *request.Query) ([]int64, error) {
 	var participantIds []int64
 
 	if c.Id == 0 {
@@ -292,6 +299,8 @@ func (c *Channel) FetchParticipantIds() ([]int64, error) {
 		},
 		Pluck: "account_id",
 	}
+
+	query.AddScope(RemoveTrollContent(c, q.ShowExempt))
 
 	cp := NewChannelParticipant()
 	err := cp.Some(&participantIds, query)
@@ -383,11 +392,18 @@ func (c *Channel) Search(q *request.Query) ([]Channel, error) {
 
 	var channels []Channel
 
-	query := bongo.B.DB.Table(c.TableName()).Limit(q.Limit)
+	bongoQuery := &bongo.Query{
+		Selector: map[string]interface{}{
+			"group_name":       q.GroupName,
+			"type_constant":    q.Type,
+			"privacy_constant": Channel_PRIVACY_PUBLIC,
+		},
+		Pagination: *bongo.NewPagination(q.Limit, q.Skip),
+	}
 
-	query = query.Where("type_constant = ?", q.Type)
-	query = query.Where("privacy_constant = ?", Channel_PRIVACY_PUBLIC)
-	query = query.Where("group_name = ?", q.GroupName)
+	bongoQuery.AddScope(RemoveTrollContent(c, q.ShowExempt))
+
+	query := bongo.B.BuildQuery(c, bongoQuery)
 	query = query.Where("name like ?", q.Name+"%")
 
 	if err := bongo.CheckErr(
@@ -404,26 +420,31 @@ func (c *Channel) Search(q *request.Query) ([]Channel, error) {
 }
 
 func (c *Channel) ByName(q *request.Query) (Channel, error) {
-	fmt.Println("-------- FIX THIS PART ------")
-	fmt.Println("TODO - check permissions here")
-	fmt.Println("-------- FIX THIS PART ------")
 	var channel Channel
 
 	if q.GroupName == "" {
 		return channel, fmt.Errorf("Query doesnt have any Group info %+v", q)
 	}
 
-	query := bongo.B.DB.Table(c.TableName()).Limit(q.Limit)
+	query := &bongo.Query{
+		Selector: map[string]interface{}{
+			"group_name":    q.GroupName,
+			"type_constant": q.Type,
+			"name":          q.Name,
+		},
+		Pagination: *bongo.NewPagination(q.Limit, q.Skip),
+	}
 
-	query = query.Where("type_constant = ?", q.Type)
-	query = query.Where("group_name = ?", q.GroupName)
-	query = query.Where("name = ?", q.Name)
+	query.AddScope(RemoveTrollContent(c, q.ShowExempt))
 
-	return channel, query.Find(&channel).Error
+	if err := c.One(query); err != nil {
+		return channel, err
+	}
+
+	return *c, nil
 }
 
 func (c *Channel) List(q *request.Query) ([]Channel, error) {
-
 	if q.GroupName == "" {
 		return nil, fmt.Errorf("Query doesnt have any Group info %+v", q)
 	}
@@ -440,6 +461,8 @@ func (c *Channel) List(q *request.Query) ([]Channel, error) {
 	if q.Type != "" {
 		query.Selector["type_constant"] = q.Type
 	}
+
+	query.AddScope(RemoveTrollContent(c, q.ShowExempt))
 
 	err := c.Some(&channels, query)
 	if err != nil {
@@ -498,4 +521,106 @@ func (c *Channel) FetchPinnedActivityChannel(accountId int64, groupName string) 
 	}
 
 	return c.One(query)
+}
+
+func (c *Channel) CanOpen(accountId int64) (bool, error) {
+	if c.Id == 0 {
+		return false, errors.New("channel id is not set")
+	}
+
+	if accountId == 0 {
+		return false, errors.New("accountId is not set")
+	}
+
+	// check if user is a participant
+	cp := NewChannelParticipant()
+	cp.ChannelId = c.Id
+	isParticipant, err := cp.IsParticipant(accountId)
+	if err != nil {
+		return false, err
+	}
+
+	// if already participant, return success
+	if isParticipant {
+		return true, nil
+	}
+
+	// anyone can read group activity
+	if c.TypeConstant == Channel_TYPE_GROUP {
+		return true, nil
+	}
+
+	// anyone can read topic feed
+	// this is here for non-participated topic channels
+	if c.TypeConstant == Channel_TYPE_TOPIC {
+		return true, nil
+	}
+
+	// see only your pinned posts
+	// user should be added as a participant to pinned post
+	if c.TypeConstant == Channel_TYPE_PINNED_ACTIVITY {
+		return false, nil
+	}
+
+	// see only your private messages
+	// user should be added as a participant to private message
+	if c.TypeConstant == Channel_TYPE_PRIVATE_MESSAGE {
+		return false, nil
+	}
+
+	return false, nil
+}
+
+func (c *Channel) MarkIfExempt() error {
+	isExempt, err := c.isExempt()
+	if err != nil {
+		return err
+	}
+
+	if isExempt {
+		c.MetaBits.Mark(Troll)
+	}
+
+	return nil
+}
+
+func (c *Channel) isExempt() (bool, error) {
+	// return early if channel is already exempt
+	if c.MetaBits.Is(Troll) {
+		return true, nil
+	}
+
+	accountId, err := c.getAccountId()
+	if err != nil {
+		return false, err
+	}
+
+	account, err := ResetAccountCache(accountId)
+	if err != nil {
+		return false, err
+	}
+
+	if account.IsTroll {
+		return true, nil
+	}
+
+	return false, nil
+}
+
+func (c *Channel) getAccountId() (int64, error) {
+	if c.CreatorId != 0 {
+		return c.CreatorId, nil
+	}
+
+	if c.Id == 0 {
+		return 0, fmt.Errorf("couldnt find accountId from content %+v", c)
+	}
+
+	cn := NewChannel()
+	if err := cn.ById(c.Id); err != nil {
+		return 0, err
+	}
+
+	return cn.CreatorId, nil
+
 }

@@ -280,6 +280,20 @@ checkChannelParticipation = (data, callback)->
   url = "/channel/checkparticipation"
   get url, data, callback
 
+markAsTroll = (data, callback)->
+  unless data.accountId
+    return callback {message: "Request is not valid"}
+
+  url = "/trollmode/#{data.accountId}"
+  post url, data, callback
+
+unmarkAsTroll = (data, callback)->
+  unless data.accountId
+    return callback {message: "Request is not valid"}
+
+  url = "/trollmode/#{data.accountId}"
+  deleteReq url, data, callback
+
 post = (url, data, callback)->
   getNextApiURL (err, apiurl)->
     return callback err if err
@@ -311,6 +325,8 @@ get = (url, data, callback)->
     , wrapCallback callback
 
 module.exports = {
+  unmarkAsTroll
+  markAsTroll
   messageBySlug
   checkChannelParticipation
   messageById

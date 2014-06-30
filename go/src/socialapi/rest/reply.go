@@ -4,10 +4,18 @@ import (
 	"encoding/json"
 	"fmt"
 	"socialapi/models"
+	"socialapi/request"
+
+	"github.com/google/go-querystring/query"
 )
 
-func GetPostWithRelatedData(id int64, accountId int64, groupName string) (*models.ChannelMessageContainer, error) {
-	url := fmt.Sprintf("/message/%d/related?accountId=%d&groupName=%s", id, accountId, groupName)
+func GetPostWithRelatedData(id int64, q *request.Query) (*models.ChannelMessageContainer, error) {
+	v, err := query.Values(q)
+	if err != nil {
+		return nil, err
+	}
+
+	url := fmt.Sprintf("/message/%d/related?%s", id, v.Encode())
 	cm := models.NewChannelMessageContainer()
 	cmI, err := sendModel("GET", url, cm)
 	if err != nil {

@@ -9,16 +9,17 @@ import (
 )
 
 type Query struct {
-	Skip      int
-	Limit     int
-	To        time.Time
-	From      time.Time
-	GroupName string
-	Type      string
-	Privacy   string
-	AccountId int64
-	Name      string
-	Slug      string
+	Skip       int       `url:"skip"`
+	Limit      int       `url:"limit"`
+	To         time.Time `url:"to"`
+	From       time.Time `url:"from"`
+	GroupName  string    `url:"groupName"`
+	Type       string    `url:"type"`
+	Privacy    string    `url:"privacy"`
+	AccountId  int64     `url:"accountId"`
+	Name       string    `url:"name"`
+	Slug       string    `url:"slug"`
+	ShowExempt bool      `url:"showExempt"`
 }
 
 func NewQuery() *Query {
@@ -66,7 +67,28 @@ func (q *Query) MapURL(u *url.URL) *Query {
 		q.From, _ = time.Parse(time.RFC3339, from)
 	}
 
+	if showExempt := urlQuery.Get("showExempt"); showExempt != "" {
+		isExempt, _ := strconv.ParseBool(showExempt)
+		q.ShowExempt = isExempt
+	}
+
 	return q
+}
+
+func (q *Query) Clone() *Query {
+	cq := NewQuery()
+	cq.Skip = q.Skip
+	cq.Limit = q.Limit
+	cq.To = q.To
+	cq.From = q.From
+	cq.GroupName = q.GroupName
+	cq.Type = q.Type
+	cq.Privacy = q.Privacy
+	cq.AccountId = q.AccountId
+	cq.Name = q.Name
+	cq.Slug = q.Slug
+	cq.ShowExempt = q.ShowExempt
+	return cq
 }
 
 func (q *Query) SetDefaults() *Query {

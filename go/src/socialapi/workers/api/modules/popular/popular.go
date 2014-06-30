@@ -64,7 +64,7 @@ func ListTopics(u *url.URL, h http.Header, _ interface{}) (int, http.Header, int
 
 	year, dateNumber, err := getDateNumberAndYear(statisticName)
 	if err != nil {
-		return response.NewBadRequest(errors.New("Unknown statistic name"))
+		return response.NewBadRequest(errors.New("unknown statistic name"))
 	}
 
 	key := populartopic.PreparePopularTopicKey(
@@ -102,7 +102,7 @@ func extendPopularTopicsIfNeeded(query *request.Query, popularTopics []int64) ([
 	toBeAddedItemCount := query.Limit - len(popularTopics)
 
 	if toBeAddedItemCount > 0 {
-		normalChannels, err := fetchMoreChannels(query.GroupName, query.Limit)
+		normalChannels, err := fetchMoreChannels(query)
 		if err != nil {
 			return popularTopics, err
 		}
@@ -129,15 +129,11 @@ func extendPopularTopicsIfNeeded(query *request.Query, popularTopics []int64) ([
 	return popularTopics, nil
 }
 
-func fetchMoreChannels(group string, count int) ([]models.Channel, error) {
-	q := request.NewQuery()
-	q.GroupName = group
-	q.Limit = count
+func fetchMoreChannels(query *request.Query) ([]models.Channel, error) {
+	q := query.Clone()
 	q.Type = models.Channel_TYPE_TOPIC
-	q.SetDefaults()
-	c := models.NewChannel()
 
-	return c.List(q)
+	return models.NewChannel().List(q)
 }
 
 func ListPosts(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface{}, error) {

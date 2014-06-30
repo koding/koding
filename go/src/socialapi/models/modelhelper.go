@@ -50,7 +50,7 @@ func Slugify(message *ChannelMessage) (*ChannelMessage, error) {
 		query["slug"] = suggestedSlug
 	}
 
-	return nil, fmt.Errorf("Couldnt generate unique slug:%s", message.Slug)
+	return nil, fmt.Errorf("couldnt generate unique slug:%s", message.Slug)
 }
 
 func RandomName() string {
@@ -59,12 +59,4 @@ func RandomName() string {
 
 func ZeroDate() time.Time {
 	return time.Date(1, time.January, 1, 0, 0, 0, 0, time.UTC)
-}
-
-func updateTrollModeBit(metaBits int16) int16 {
-	// if metaBits != 0 {
-	// 	return metaBits
-	// }
-
-	return 1
 }

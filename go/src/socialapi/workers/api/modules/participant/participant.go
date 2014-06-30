@@ -21,7 +21,7 @@ func List(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface
 	req := models.NewChannelParticipant()
 	req.ChannelId = channelId
 	return response.HandleResultAndError(
-		req.List(),
+		req.List(request.GetQuery(u)),
 	)
 }
 

@@ -101,11 +101,10 @@ func TestPinnedActivityChannel(t *testing.T) {
 				_, err := rest.AddPinnedMessage(account.Id, post.Id, "koding")
 				// there should be an err
 				So(err, ShouldBeNil)
-			})
 
-			Convey("owner should  be able to remove message from it", func() {
-				_, err := rest.RemovePinnedMessage(account.Id, post.Id, "koding")
+				_, err = rest.RemovePinnedMessage(account.Id, post.Id, "koding")
 				So(err, ShouldBeNil)
+
 			})
 
 			Convey("owner should be able to list messages", func() {
