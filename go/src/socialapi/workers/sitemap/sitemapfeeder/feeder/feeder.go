@@ -77,27 +77,35 @@ func (f *Controller) queueChannelMessage(cm *socialmodels.ChannelMessage, status
 	return err
 }
 
-func (f *Controller) ChannelUpdated(c *socialmodels.Channel) error {
-	return f.queueChannel(c, models.STATUS_UPDATE)
+func (f *Controller) ChannelMessageListUpdated(c *socialmodels.ChannelMessageList) error {
+	return f.queueChannelMessageList(c, models.STATUS_UPDATE)
 }
 
-func (f *Controller) ChannelAdded(c *socialmodels.Channel) error {
-	return f.queueChannel(c, models.STATUS_ADD)
+func (f *Controller) ChannelMessageListAdded(c *socialmodels.ChannelMessageList) error {
+	return f.queueChannelMessageList(c, models.STATUS_UPDATE)
 }
 
-func (f *Controller) ChannelDeleted(c *socialmodels.Channel) error {
-	return f.queueChannel(c, models.STATUS_DELETE)
+func (f *Controller) ChannelMessageListDeleted(c *socialmodels.ChannelMessageList) error {
+	return f.queueChannelMessageList(c, models.STATUS_DELETE)
 }
 
-func (f *Controller) queueChannel(c *socialmodels.Channel, status string) error {
-	if err := validateChannel(c); err != nil {
+func (f *Controller) queueChannelMessageList(c *socialmodels.ChannelMessageList, status string) error {
+	ch, err := socialmodels.ChannelById(c.ChannelId)
+	if err != nil {
+		return nil
+	}
+
+	// Even validateChannel returns just ErrIgnore now, for preventing
+	// potential future errors, we are checking for err existence here
+	if err := validateChannel(ch); err != nil {
 		if err == ErrIgnore {
 			return nil
 		}
 
 		return err
 	}
-	_, err := f.queueItem(newItemByChannel(c, status))
+
+	_, err = f.queueItem(newItemByChannel(ch, status))
 
 	return err
 }
