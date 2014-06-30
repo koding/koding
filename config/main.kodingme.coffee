@@ -13,19 +13,6 @@ configName      = (fs.readFileSync BLD+"/BUILD_CONFIG",      'utf8').replace("\n
 environment     = (fs.readFileSync BLD+"/BUILD_ENVIRONMENT", 'utf8').replace("\n","")
 projectRoot     = (fs.readFileSync BLD+"/BUILD_PROJECT_ROOT",'utf8').replace("\n","")
 
-broker = 
-  name              : "broker"
-  serviceGenericName: "broker"
-  ip                : ""
-  webProtocol       : "http:"
-  host              : customDomain.public_
-  port              : 8008
-  certFile          : ""
-  keyFile           : ""
-  authExchange      : authExchange
-  authAllExchange   : authAllExchange
-  failoverUri       : customDomain.public_
-
 rabbitmq        =
   host          : "rabbitmq"
   port          : 5672
@@ -43,6 +30,20 @@ customDomain    =
   local         : "http://0.0.0.0"
   local_        : "localhost"
   port          : 80
+
+broker = 
+  name              : "broker"
+  serviceGenericName: "broker"
+  ip                : ""
+  webProtocol       : "http:"
+  host              : customDomain.public_
+  port              : 8008
+  certFile          : ""
+  keyFile           : ""
+  authExchange      : authExchange
+  authAllExchange   : authAllExchange
+  failoverUri       : customDomain.public_
+
 
 version         = "0.0.1"
 mongo           = "mongo:27017/koding"
@@ -217,7 +218,7 @@ module.exports =
         secure      : cookieSecure
       environment        : environment
       broker :
-        uri  : "#{broker.webProtocol}://#{broker.host}:#{broker.port}/subscribe"
+        uri  : "#{broker.webProtocol}//#{broker.host}:#{broker.port}/subscribe"
       activityFetchCount : 20
       authExchange       : authExchange
       github         :

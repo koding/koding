@@ -67,5 +67,5 @@ KD.remote = new Bongo
       autoReconnect: yes
       getSessionToken
     }
-    broker = new KDBroker.Broker "#{KD.config.broker.uri}", options
     console.log "connecting to:"+KD.config.broker.uri
+    broker = new KDBroker.Broker "#{KD.config.broker.uri}", options

@@ -69,7 +69,7 @@
     "request": "2.9.202",
     "source-map": "0.1.9",
     "sqwish": "0.2.0",
-    "ssh2": "^0.3.0",
+    "ssh2": "^0.3.2",
     "stylus": "0.37.0",
     "timethat": "0.0.2",
     "ua-parser-js": "0.6.2",

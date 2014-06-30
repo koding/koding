@@ -274,7 +274,7 @@ utils.flatUrl = function(url) {
 utils.amendUrl = function(url) {
     var dl = _document.location;
     if (!url) {
-        throw new Error('Wrong url for SockJS');
+        throw new Error('Wrong url for SockJS '+url);
     }
     if (!utils.flatUrl(url)) {
         throw new Error('Only basic urls are supported in SockJS');
