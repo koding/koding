@@ -2,11 +2,11 @@
 DROP DATABASE IF EXISTS social;
 
 -- Drop role
-DROP OWNED BY social CASCADE;
+-- DROP OWNED BY social CASCADE;
 DROP ROLE IF EXISTS social;
 
 -- Drop user
-DROP OWNED BY socialapplication CASCADE;
+-- DROP OWNED BY socialapplication CASCADE;
 DROP USER IF EXISTS socialapplication;
 
 -- Drop tablespaces
