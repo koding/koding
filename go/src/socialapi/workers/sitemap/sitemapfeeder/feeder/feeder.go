@@ -42,7 +42,7 @@ func New(log logging.Logger) *Controller {
 }
 
 func (f *Controller) MessageAdded(cm *socialmodels.ChannelMessage) error {
-	return f.queueChannelMessage(cm, models.STATUS_ADD)
+	return f.queueChannelMessage(cm, models.STATUS_UPDATE)
 }
 
 func (f *Controller) MessageUpdated(cm *socialmodels.ChannelMessage) error {
@@ -102,7 +102,7 @@ func (f *Controller) queueChannel(c *socialmodels.Channel, status string) error 
 }
 
 func (f *Controller) AccountAdded(a *socialmodels.Account) error {
-	_, err := f.queueItem(newItemByAccount(a, models.STATUS_ADD))
+	_, err := f.queueItem(newItemByAccount(a, models.STATUS_UPDATE))
 	return err
 }
 
