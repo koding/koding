@@ -20,7 +20,7 @@ func NewItemSet() *ItemSet {
 
 func (s *ItemSet) Populate(c *ItemContainer) {
 	s.addItems(c)
-	s.updateItems(c)
+	s.upsertItems(c)
 	s.deleteItems(c)
 }
 
@@ -30,7 +30,7 @@ func (s *ItemSet) addItems(c *ItemContainer) {
 	}
 }
 
-func (s *ItemSet) updateItems(c *ItemContainer) {
+func (s *ItemSet) upsertItems(c *ItemContainer) {
 	// for preventing iteration of current items for each updated element
 	// first we store current item pointers in a map with their unique slugs
 	itemMap := make(map[string]*ItemDefinition)
@@ -43,7 +43,6 @@ func (s *ItemSet) updateItems(c *ItemContainer) {
 	for _, v := range c.Update {
 		currentDefinition, ok := itemMap[v.Location]
 		if !ok {
-			helper.MustGetLogger().Warning("Updated item does not exist, so created")
 			s.Definitions = append(s.Definitions, v)
 			continue
 		}
