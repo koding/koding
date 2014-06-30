@@ -333,7 +333,9 @@ isInAppRoute = (name)->
 #
 app.all '/:name/:section?/:slug?*', (req, res, next)->
   {JName, JGroup} = koding.models
-  {name, section, slug} = req.params
+
+  {params} = req
+  {name, section, slug} = params
   isCustomPreview = req.cookies["custom-partials-preview-mode"]
 
   path = name
@@ -352,7 +354,7 @@ app.all '/:name/:section?/:slug?*', (req, res, next)->
     if name in ['Activity']
       isLoggedIn req, res, (err, loggedIn, account)->
 
-        return next()  if loggedIn
+        return  serveHome req, res, next  if loggedIn
         staticHome = require "../crawler/staticpages/kodinghome"
         return res.send 200, staticHome() if path is ""
 
@@ -375,13 +377,17 @@ app.all '/:name/:section?/:slug?*', (req, res, next)->
 
             if err
               options = { account, name, section, client,
-                          bongoModels, isCustomPreview }
+                          bongoModels, isCustomPreview,
+                          params }
+
               JGroup.render[prefix].subPage options, serveSub
             else if not result? then next()
             else
               { models } = result
               options = { account, name, section, models,
-                          client, bongoModels, isCustomPreview }
+                          client, bongoModels, isCustomPreview,
+                          params }
+
               JGroup.render[prefix].subPage options, serveSub
 
   # Checks if its a User or Group from JName collection
@@ -399,7 +405,9 @@ app.all '/:name/:section?/:slug?*', (req, res, next)->
             return Crawler.crawl koding, {req, res, slug: name, isProfile: yes}
 
           generateFakeClient req, res, (err, client)->
-            homePageOptions = {section, account, bongoModels, isCustomPreview, client}
+            homePageOptions = { section, account, bongoModels,
+                                isCustomPreview, client, params }
+
             models.last.fetchHomepageView homePageOptions, (err, view)->
               if err then next err
               else if view? then res.send view
