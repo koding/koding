@@ -64,7 +64,7 @@ func (p *Provider) Build(opts *protocol.MachineOptions) (*protocol.BuildResponse
 		opts.ImageName = DefaultImageId
 	}
 
-	// check if snapshot image does exist, if not create a new one.
+	// - validate image and flavor is available
 	p.Push(fmt.Sprintf("Fetching image %s", DefaultImageName), 10, machinestate.Building)
 	image, err := o.Image(opts.ImageName)
 	if err != nil {
@@ -73,7 +73,6 @@ func (p *Provider) Build(opts *protocol.MachineOptions) (*protocol.BuildResponse
 
 	fmt.Printf("image %+v\n", image)
 
-	// // XXX - validate image and flavor is available
 	//
 	// if opts.InstanceName == "" {
 	// 	return nil, errors.New("server name is empty")
