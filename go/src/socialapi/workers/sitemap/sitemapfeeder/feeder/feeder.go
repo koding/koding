@@ -54,6 +54,8 @@ func (f *Controller) MessageDeleted(cm *socialmodels.ChannelMessage) error {
 	return f.queueChannelMessage(cm, models.STATUS_DELETE)
 }
 
+// queueChannelMessage updates account sitemap file if message's initial channel is public.
+// Also adds post's url to the sitemap
 func (f *Controller) queueChannelMessage(cm *socialmodels.ChannelMessage, status string) error {
 	if err := validateChannelMessage(cm); err != nil {
 		if err == ErrIgnore {
@@ -62,16 +64,20 @@ func (f *Controller) queueChannelMessage(cm *socialmodels.ChannelMessage, status
 
 		return err
 	}
+
+	// add post's url to the sitemap
 	_, err := f.queueItem(newItemByChannelMessage(cm, status))
 	if err != nil {
 		return err
 	}
+
 	// when a message is added, creator's profile page must also be updated
 	a := socialmodels.NewAccount()
 	if err := a.ById(cm.AccountId); err != nil {
 		return err
 	}
 
+	// update account's sitemap url
 	_, err = f.queueItem(newItemByAccount(a, models.STATUS_UPDATE))
 
 	return err
@@ -131,8 +137,8 @@ func validateChannelMessage(cm *socialmodels.ChannelMessage) error {
 		return ErrIgnore
 	}
 
-	ch := socialmodels.NewChannel()
-	if err := ch.ById(cm.InitialChannelId); err != nil {
+	ch, err := socialmodels.ChannelById(cm.InitialChannelId)
+	if err != nil {
 		return err
 	}
 
