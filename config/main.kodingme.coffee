@@ -26,7 +26,7 @@ redis =
 
 socialapi =
   port        : 7000
-  proxyUrl    : "socialapi"
+  proxyUrl    : "http://socialapi:7000"
   clusterSize : 5
 
 customDomain    =

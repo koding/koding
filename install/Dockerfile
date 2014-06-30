@@ -1,26 +1,22 @@
-FROM koding/base
+FROM koding/koding
 MAINTAINER Devrim Yasar <devrim@koding.com>
 
-USER root
-ENV HOME /root
-ENV DOCKER yes
-ENV KODING_PROJECT_ROOT "/opt/koding"
-ENV BLD /opt/koding/install/BUILD_DATA
 
-RUN echo "UTC" > /etc/timezone
-RUN dpkg-reconfigure -f noninteractive tzdata
+ADD BUILD_DATA /root/BUILD_DATA
+RUN git checkout `cat $BLD/BUILD_BRANCH` 
+RUN git pull origin `cat $BLD/BUILD_BRANCH`
+RUN git submodule init
+RUN git submodule update
 
-WORKDIR /opt
+RUN npm i gulp stylus coffee-script -g --silent
+RUN npm i --unsafe-perm --silent
 
-ADD BUILD_DATA/.ssh /root/.ssh
-RUN chmod 600 /root/.ssh/id_rsa
+RUN chmod +x ./build
+RUN echo "building client (stdout is supressed, stderr is visible)"
+RUN ./build > /dev/null
+RUN ./go/build.sh
+RUN go run /opt/koding/go/src/github.com/koding/kite/kontrol/kontrol/main.go -init -public-key /opt/koding/certs/test_kontrol_rsa_public.pem -private-key /opt/koding/certs/test_kontrol_rsa_private.pem -username koding  -kontrol-url "http://`cat $BLD/BUILD_HOSTNAME`:4000/kite" 
 
-RUN git clone git@git.sj.koding.com:koding/koding.git
-ADD BUILD_DATA /opt/koding/install/BUILD_DATA
-
+WORKDIR /opt/koding/go/src/socialapi
+RUN make install 
 WORKDIR /opt/koding
-
-
-
-# RUN cat $BLD/BUILD_CONFIG.json
-# ENTRYPOINT ["/opt/koding/run"]

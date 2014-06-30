@@ -143,8 +143,8 @@ class Deploy
 
       copyFiles = [
         { src: "#{PRJ}/prepare"                        , trg: "/root/prepare"},
-        { src: "#{PRJ}/install/docker.prod/Dockerfile" , trg: "/root/Dockerfile"},
-        { src: "#{PRJ}/install/docker.prod/run"        , trg: "/root/run"}
+        { src: "#{PRJ}/install/Dockerfile"             , trg: "/root/Dockerfile"},
+        { src: "#{PRJ}/install/run"                    , trg: "/root/run"}
         { src: "#{PRJ}/install/run/docker-remove.sh"   , trg: "/root/cleanup"}
         { src: "#{BLD}/BUILD_CONFIG.json"              , trg: "/root/BUILD_DATA/BUILD_CONFIG.json"}
         { src: "#{BLD}/BUILD_HOSTNAME"                 , trg: "/root/BUILD_DATA/BUILD_HOSTNAME"}
@@ -156,7 +156,11 @@ class Deploy
         { src: "#{BLD}/BUILD_VERSION"                  , trg: "/root/BUILD_DATA/BUILD_VERSION"}
 
       ]
-      conn.exec "mkdir -p /root/BUILD_DATA && ls -lha /root/BUILD_DATA", (err, stream) ->
+      conn.exec """mkdir -p /root/BUILD_DATA && 
+                   mkdir -p /root/docker-koding-codebase && 
+                   ls -lha /root/BUILD_DATA
+                   """
+      , (err, stream) ->
         sftpCopy conn : conn, files : copyFiles,(err,res)->
           log "copyFiles finished."
           conn.exec "bash /root/prepare", (err, stream) ->
