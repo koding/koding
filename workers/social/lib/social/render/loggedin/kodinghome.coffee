@@ -6,6 +6,7 @@ module.exports = (options, callback)->
   getSidebar      = require './sidebar'
   getStatusWidget = require './statuswidget'
 
+  options.entryPoint = { slug : "koding", type: "group" }
 
   prepareHTML = (scripts)->
     """
