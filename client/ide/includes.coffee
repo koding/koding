@@ -37,6 +37,10 @@ module.exports = [
   "views/filefinder/idefilefinderitem.coffee"
   "views/filefinder/idefilefinder.coffee"
 
+  # content search
+  "views/contentsearch/idecontentsearchresultview.coffee"
+  "views/contentsearch/idecontentsearch.coffee"
+
   # shortcuts view
   "views/shortcutsview/shortcutview.coffee"
   "views/shortcutsview/shortcutsview.coffee"

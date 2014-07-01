@@ -418,7 +418,35 @@ body.ide.dark
         bg             color, dark-panel-bg
         pointer()
 
-//Save as dialog
+// content search
+.ide .search-result
+  .filename
+    color             #858585
+    margin            20px 0 10px 20px
+    font-size         14px
+  pre
+    font-family       Menlo, Monaco, Consolas, monospace
+    margin            0 20px
+    color             #d4cfc9
+    width             auto
+    font-size         14px
+    overflow          hidden
+    line-height       16px
+    span
+      fl()
+      &.line-number
+        width         30px
+  .separator
+    color             #d4cfc9
+    margin            2px 0 12px 20px
+  .match
+    bg                color, #00A64C
+    color             #fff
+    display           inline
+    pointer()
+
+
+// save as dialog
 body.ide .kddialogview.save-as-dialog
   right                 auto
   left                  50%

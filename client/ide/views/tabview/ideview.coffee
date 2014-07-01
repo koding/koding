@@ -18,6 +18,7 @@ class IDE.IDEView extends IDE.WorkspaceTabView
     @tabView.on 'TerminalPaneRequested',  @bound 'createTerminal'
     @tabView.on 'PreviewPaneRequested',   @bound 'createPreview'
     @tabView.on 'DrawingPaneRequested',   @bound 'createDrawingBoard'
+    @tabView.on 'ViewNeedsToBeShown',     @bound 'showView'
 
     @tabView.on 'FileNeedsToBeOpened', (file, contents) =>
       @closeUntitledFileIfNotChanged()
@@ -84,6 +85,9 @@ class IDE.IDEView extends IDE.WorkspaceTabView
 
     previewPane.on 'LocationChanged', (newLocation) =>
       @updateStatusBar 'preview', newLocation
+
+  showView: (view) ->
+    @createPane_ view, { name: 'Search Result' }
 
   updateStatusBar: (paneType, data) ->
     appManager = KD.getSingleton 'appManager'

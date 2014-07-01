@@ -11,6 +11,7 @@ class IDEAppController extends AppController
         KD.showEnforceLoginModal()
     commands:
       'find file by name'   : 'showFileFinder'
+      'search all files'    : 'showContentSearch'
       'split vertically'    : 'splitVertically'
       'split horizontally'  : 'splitHorizontally'
       'merge splitview'     : 'mergeSplitView'
@@ -26,6 +27,7 @@ class IDEAppController extends AppController
       'go to tab number'    : 'goToTabNumber'
     keyBindings: [
       { command: 'find file by name',   binding: 'ctrl+alt+f', global: yes }
+      { command: 'search all files',    binding: 'ctrl+alt+o', global: yes }
       { command: 'split vertically',    binding: 'ctrl+alt+v', global: yes }
       { command: 'split horizontally',  binding: 'ctrl+alt+h', global: yes }
       { command: 'merge splitview',     binding: 'ctrl+alt+m', global: yes }
@@ -95,6 +97,8 @@ class IDEAppController extends AppController
         splitViewPanel.addSubView @statusBar = new IDE.StatusBar
 
         appView.emit 'KeyViewIsSet'
+
+        @showContentSearch()
 
   setActiveTabView: (tabView) ->
     @activeTabView = tabView
@@ -362,6 +366,15 @@ class IDEAppController extends AppController
     else
       @fileFinder = new IDE.FileFinder
       @fileFinder.once 'KDObjectWillBeDestroyed', => @fileFinder = null
+
+  showContentSearch: ->
+    if @contentSearch
+      @contentSearch.input.setFocus()
+    else
+      @contentSearch = new IDE.ContentSearch
+      @contentSearch.once 'KDObjectWillBeDestroyed', => @contentSearch = null
+      @contentSearch.once 'ViewNeedsToBeShown', (view) =>
+        @activeTabView.emit 'ViewNeedsToBeShown', view
 
   doResize: ->
     @forEachSubViewInIDEViews_ 'editor', (editorPane) ->
