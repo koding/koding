@@ -23,7 +23,7 @@ USER root
 
 RUN service postgresql start && bash /definition/create.sh
 
-# EXPOSE 5432
+EXPOSE 5432
 
 RUN ls -lha /usr/lib/postgresql/9.3/bin/
 
