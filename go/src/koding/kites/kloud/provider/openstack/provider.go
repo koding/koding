@@ -7,7 +7,7 @@ import (
 	"koding/kites/kloud/eventer"
 	"koding/kites/kloud/kloud/machinestate"
 	"koding/kites/kloud/kloud/protocol"
-	"strings"
+	"koding/kites/kloud/waitstate"
 	"time"
 
 	"github.com/koding/logging"
@@ -118,21 +118,37 @@ func (p *Provider) Build(opts *protocol.MachineOptions) (*protocol.BuildResponse
 		return nil, fmt.Errorf("Error creating server: %s", err)
 	}
 
-	for {
-		server, err := o.Client.ServerById(resp.Id)
+	// percentages
+	start := 25
+	finish := 60
+
+	var server *gophercloud.Server
+	stateFunc := func() (machinestate.State, error) {
+		p.Push("Waiting for machine to be ready", start, machinestate.Building)
+		server, err = o.Client.ServerById(resp.Id)
 		if err != nil {
-			return nil, err
+			return 0, err
 		}
 
-		p.Push(fmt.Sprintf("Checking server for ready: %s", opts.InstanceName), 40, machinestate.Building)
-		if statusToState(server.Status) == machinestate.Running {
-			pretty.Println("server", server)
-			break
+		if start < finish {
+			start += 2
 		}
 
-		time.Sleep(time.Second * 3)
+		return statusToState(server.Status), nil
 	}
 
+	ws := waitstate.WaitState{
+		StateFunc:    stateFunc,
+		DesiredState: machinestate.Running,
+		Timeout:      5 * time.Minute,
+		Interval:     2 * time.Second,
+	}
+
+	if err := ws.Wait(); err != nil {
+		return nil, err
+	}
+
+	pretty.Println("server", server)
 	return nil, errors.New("not supported yet")
 
 	// return &protocol.BuildResponse{
@@ -180,27 +196,4 @@ func (p *Provider) Info(opts *protocol.MachineOptions) (*protocol.InfoResponse, 
 	}, nil
 
 	return nil, errors.New("not supported yet.")
-}
-
-// statusToState converts a rackspacke status to a sensible machinestate.State
-// format
-func statusToState(status string) machinestate.State {
-	status = strings.ToLower(status)
-
-	switch status {
-	case "active":
-		return machinestate.Running
-	case "suspended":
-		return machinestate.Stopped
-	case "build", "rebuild":
-		return machinestate.Building
-	case "deleted":
-		return machinestate.Terminated
-	case "hard_reboot", "reboot":
-		return machinestate.Rebooting
-	case "migrating", "password", "resize":
-		return machinestate.Updating
-	default:
-		return machinestate.Unknown
-	}
 }
