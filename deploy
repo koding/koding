@@ -156,22 +156,21 @@ class Deploy
         { src: "#{BLD}/BUILD_VERSION"                  , trg: "/root/BUILD_DATA/BUILD_VERSION"}
 
       ]
-      conn.exec """mkdir -p /root/BUILD_DATA && 
-                   mkdir -p /root/docker-koding-codebase && 
-                   ls -lha /root/BUILD_DATA
-                   """
+      conn.exec """mkdir -p /root/BUILD_DATA &&
+                   bash /root/prepare"""
       , (err, stream) ->
         sftpCopy conn : conn, files : copyFiles,(err,res)->
           log "copyFiles finished."
           conn.exec "bash /root/prepare", (err, stream) ->
             throw err  if err
             listen "configuring #{o.hostname}", stream,-> 
-              log "Box is ready at: ssh root@#{o.hostname} pubkey is added, no need for passwd:#{password}" 
+              log "Box is ready at: ssh root@#{o.hostname} passwd:#{password}"
+              log "Deployment and configuration took: "+timethat.calc deployStart,new Date()
               conn.end()
 
 
 
-
+deployStart = new Date()
 Deploy.createDeployData ->
   domainName = options.hostname
   password   = hat()

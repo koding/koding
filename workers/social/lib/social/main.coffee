@@ -19,7 +19,6 @@ log4js.configure {
 { join: joinPath } = require 'path'
 
 process.on 'uncaughtException', (err)->
-  exec './beep'
   console.log err, err?.stack
   process.exit 1
 

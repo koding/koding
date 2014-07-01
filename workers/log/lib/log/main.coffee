@@ -16,7 +16,6 @@ log4js.configure {
 {extend} = require 'underscore'
 
 process.on 'uncaughtException', (err)->
-  exec './beep'
   console.log err, err?.stack
   process.exit 1
 
