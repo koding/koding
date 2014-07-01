@@ -16,18 +16,17 @@ body.ide
   .nfinder
     ul ul li.selected
       bg                color, #131313
-      .chevron
-        display         inline-block
 
   .jtreeview-wrapper
     kalc                height, 100% \- 78px
 
   .kdlistitemview-finderitem
     height              auto
-    min-height          23px
+    min-height          24px
     font-size           13px
     color               #D4CFC9
     background-color    transparent
+    margin-bottom       4px
     noTextSelection()
 
     .chevron
@@ -85,7 +84,7 @@ body.ide
       label
         color           white
       button.kdbutton
-        margin          6px 15px 0 0
+        margin          3px 15px 0 0
         padding         2px 4px 2px 4px
         width           auto
         font-weight     normal
@@ -104,15 +103,15 @@ body.ide
       abs()
       size            15px, 15px
       bg              position, -82px -222px
-      right           5px
-      top             6px
+      right           7px
+      top             3px
       kdfsprite()
       &:focus
       &:active
         bg            position, -62px -242px
 
     > div
-      line-height       23px
+      line-height       24px
       height            100%
       width             auto
       .title
@@ -129,7 +128,7 @@ body.ide
 
       input.kdinput.text
         margin          2px 5px 0 0
-        height          23px
+        height          24px
         line-height     1em
         border          none
         shadow          none
@@ -148,7 +147,7 @@ body.ide
         fl()
 
       &.rename-container
-        height        23px
+        height        24px
         padding-right 25px
         input.hitenterview
           bg          image, none
@@ -229,6 +228,7 @@ body.ide
         padding           0
         margin            0
         float             none
+        vertical-align    sub
 
       &:active
       &:focus
@@ -247,17 +247,16 @@ body.ide
 
       span.icon
       span.path-select
-        margin            6px 2px 0
+        margin            4px 2px 0 2px
         size              16px 16px
 
     .folder
       span.icon
       span.path-select
-        margin            4px 0 0 0px
-        size              16px 16px
+        margin            4px 6px 0 0px
 
     .vm
-      margin              13px 16px 5px !important
+      margin              15px 14px 11px 13px !important
       pointer()
       position            relative
 
@@ -293,7 +292,7 @@ body.ide
         r-sprite          'ide', 'terminal'
         rounded           0
         border            none
-        margin            2px 7px 0 0
+        margin            0 7px 0 0
         float             none
         display           inline-block
 
@@ -304,7 +303,7 @@ body.ide
         abs()
 
       .chevron
-        r-sprite          'ide', 'cog-15'
+        r-sprite          'ide', 'cog'
         display           inline-block !important
         position          relative
         top               -8px

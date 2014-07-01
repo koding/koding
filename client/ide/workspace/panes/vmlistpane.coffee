@@ -80,16 +80,15 @@ class IDE.VMPaneListItem extends JView
         margin     : 150
     , @getMenuItems()
 
+    @contextMenu.on 'ContextMenuItemReceivedClick', => @contextMenu.destroy()
+
   getMenuItems: ->
     data        = @getData()
     appManager  = KD.getSingleton 'appManager'
     menuItems   =
-      'Mount to filetree': callback: =>
-        @handleContextMenuClick appManager.tell 'IDE', 'mountVM', data
-      'Open VM terminal' : callback: =>
-        @handleContextMenuClick appManager.tell 'IDE', 'openVMTerminal', data
-      'Open VM domain'   : callback: =>
-        @handleContextMenuClick @openVMDomain()
+      'Mount to filetree': callback: -> appManager.tell 'IDE', 'mountVM', data
+      'Open VM terminal' : callback: -> appManager.tell 'IDE', 'openVMTerminal', data
+      'Open VM domain'   : callback: @bound 'openVMDomain'
 
     # FIXME: Find a better way to remove this drill down
     ideAppController   = appManager.getFrontApp()
@@ -103,10 +102,6 @@ class IDE.VMPaneListItem extends JView
           appManager.tell 'IDE', 'unmountVM', data
 
     return menuItems
-
-  handleContextMenuClick: (callback= noop) ->
-    callback()
-    @contextMenu?.destroy()
 
   pistachio: ->
     """

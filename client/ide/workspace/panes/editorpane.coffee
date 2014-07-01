@@ -5,8 +5,11 @@ class IDE.EditorPane extends IDE.Pane
   constructor: (options = {}, data) ->
 
     options.cssClass = KD.utils.curry 'editor-pane', options.cssClass
+    options.paneType = 'editor'
 
     super options, data
+
+    @on 'SaveRequested', @bound 'save'
 
     @createEditor()
 
@@ -20,58 +23,15 @@ class IDE.EditorPane extends IDE.Pane
       throw new TypeError 'You must pass file content to IDE.EditorPane'
 
     @addSubView @aceView = new AceView delegate: @getDelegate(), file
-    @aceView.ace.once 'ace.ready', =>
-      # debugger
-      if content is '' and not shortcutsShown
-        shortcutsShown = yes
-        content =
-          """
-          Welcome to the new IDE :)
-          ======================
-
-          Keyboard shortcuts:
-          -------------------
-
-          Editor:
-          -------
-
-          "save",       "Ctrl-S"
-          "saveAs",     "Ctrl-Shift-S"
-          "find",       "Ctrl-F"
-          "replace",    "Ctrl-Shift-F"
-          "preview",    "Ctrl-Shift-P"
-          "fullscreen", "Ctrl-Enter"
-          "gotoLine",   "Ctrl-G"
-          "gotoLineL",  "Ctrl-L"
-          "saveAll",    "Ctrl-Alt-S"
-          "closeTab",   "Ctrl-W"
-          "settings",   "Ctrl-,"
-
-          Workspace:
-          ----------
-
-          'split vertically',   'Ctrl-Alt-v'
-          'split horizontally', 'Ctrl-Alt-h'
-          'merge splitview',    'Ctrl-Alt-m'
-          'create new file',    'Ctrl-Alt-n'
-          'collapse sidebar',   'Ctrl-Alt-c'
-          'expand sidebar',     'Ctrl-Alt-e'
-          'go to left tab',     'Ctrl-Alt-['
-          'go to right tab',    'Ctrl-Alt-]'
-          'go to tab number',   'Ctrl-Alt-1'
-          'go to tab number',   'Ctrl-Alt-2'
-          'go to tab number',   'Ctrl-Alt-3'
-          'go to tab number',   'Ctrl-Alt-4'
-          'go to tab number',   'Ctrl-Alt-5'
-          'go to tab number',   'Ctrl-Alt-6'
-          'go to tab number',   'Ctrl-Alt-7'
-          'go to tab number',   'Ctrl-Alt-8'
-          'go to tab number',   'Ctrl-Alt-9'
-
-          """
-
+    {ace} = @aceView
+    ace.once 'ace.ready', =>
       @getEditor().setValue content, 1
-      @ace.setReadOnly yes  if @getOptions().readOnly
+      ace.setReadOnly yes  if @getOptions().readOnly
+      @emit 'EditorIsReady'
+
+  save: ->
+    {ace} = @aceView
+    ace.emit 'ace.requests.save', ace.getContents()
 
   getEditor: ->
     return @aceView.ace.editor

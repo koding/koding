@@ -9,6 +9,8 @@ module.exports = [
   # workspace
   "workspace/workspacetabview.coffee"
   "workspace/workspacelayoutbuilder.coffee"
+  "workspace/panel.coffee"
+  "workspace/workspace.coffee"
 
   "workspace/panes/pane.coffee"
   "workspace/panes/editorpane.coffee"
@@ -26,13 +28,23 @@ module.exports = [
   "workspace/panes/settings/terminalsettingsview.coffee"
   "workspace/panes/settings/settingspane.coffee"
 
-  "workspace/panel.coffee"
-  "workspace/workspace.coffee"
-
-  # ide
+  # views
   "views/tabview/idefilestabview.coffee"
   "views/tabview/ideview.coffee"
   "views/tabview/idesocialstabview.coffee"
+
+  # file finder
+  "views/filefinder/idefilefinderitem.coffee"
+  "views/filefinder/idefilefinder.coffee"
+
+  # shortcuts view
+  "views/shortcutsview/shortcutview.coffee"
+  "views/shortcutsview/shortcutsview.coffee"
+
+  # status bar
+  "views/statusbar/syntaxselectormenuitem.coffee"
+  "views/statusbar/statusbarmenu.coffee"
+  "views/statusbar/statusbar.coffee"
 
   "AppController.coffee"
 

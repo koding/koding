@@ -3,6 +3,7 @@ class IDE.DrawingPane extends IDE.Pane
   constructor: (options = {}, data) ->
 
     options.cssClass = KD.utils.curry 'drawing-pane', options.cssClass
+    options.paneType = 'drawing'
 
     super options, data
 

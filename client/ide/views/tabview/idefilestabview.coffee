@@ -20,6 +20,12 @@ class IDE.IDEFilesTabView extends IDE.WorkspaceTabView
 
     @tabView.showPaneByIndex 0
 
+    @tabView.tabHandleContainer.addSubView new KDCustomHTMLView
+      tagName  : 'span'
+      cssClass : 'toggle'
+      click    : ->
+        KD.getSingleton('appManager').tell 'IDE', 'toggleSidebar'
+
   createFilesPane: ->
     filesPane  = new KDTabPaneView
       name     : 'Files'

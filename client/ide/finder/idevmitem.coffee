@@ -46,12 +46,12 @@ class IDE.VMItemView extends NFileItemView
       path  = nodes.splice(1,x).join '/'
       parents.push "/#{path}"
 
-    parents.reverse()
-
-    items = []
+    parents = _.unique parents.reverse()
+    items   = []
+    root    = "/home/#{KD.nick()}/"
 
     for path in parents when path
-      items.push title: path, value: path
+      items.push title: path.replace(root, '~/'), value: path
 
     return items
 

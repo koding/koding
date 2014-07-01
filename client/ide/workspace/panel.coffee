@@ -14,10 +14,13 @@ class IDE.Panel extends KDView
 
   createLayout: ->
     {layoutOptions}  = @getOptions()
+
     unless layoutOptions
       throw new Error 'You should pass layoutOptions to create a panel'
 
-    @layout = new IDE.WorkspaceLayoutBuilder { delegate: this, layoutOptions }
+    layoutOptions.delegate = this
+
+    @layout = new IDE.WorkspaceLayoutBuilder layoutOptions
     @addSubView @layout
 
   createPane: (paneOptions) ->
@@ -40,16 +43,14 @@ class IDE.Panel extends KDView
     return PaneClass
 
   findPaneClass: (paneType) ->
-    paneTypesToPaneClass =
-      terminal           : @TerminalPaneClass
-      editor             : @EditorPaneClass
-      video              : @VideoPaneClass
-      preview            : @PreviewPaneClass
-      finder             : @FinderPaneClass
-      tabbedEditor       : @TabbedEditorPaneClass
-      drawing            : @DrawingPaneClass
+    paneClasses =
+      terminal  : IDE.TerminalPane
+      editor    : IDE.EditorPane
+      preview   : IDE.PreviewPane
+      finder    : IDE.FinderPane
+      drawing   : IDE.DrawingPane
 
-    return paneTypesToPaneClass[paneType]
+    return paneClasses[paneType]
 
   getPaneByName: (name) ->
     return @panesByName[name] or null

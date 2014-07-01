@@ -5,42 +5,51 @@ class IDEAppController extends AppController
     route        : '/:name?/IDE'
     behavior     : 'application'
     preCondition :
-      condition  : (options, cb)-> cb KD.isLoggedIn()
-      failure    : (options, cb)->
+      condition  : (options, cb) -> cb KD.isLoggedIn()
+      failure    : (options, cb) ->
         KD.getSingleton('appManager').open 'IDE', conditionPassed : yes
         KD.showEnforceLoginModal()
     commands:
-      'split vertically'   : 'splitVertically'
-      'split horizontally' : 'splitHorizontally'
-      'merge splitview'    : 'mergeSplitView'
-      'create new file'    : 'createNewFile'
-      'collapse sidebar'   : 'collapseSidebar'
-      'expand sidebar'     : 'expandSidebar'
-      'go to left tab'     : 'goToLeftTab'
-      'go to right tab'    : 'goToRightTab'
-      'go to tab number'   : 'goToTabNumber'
+      'find file by name'   : 'showFileFinder'
+      'split vertically'    : 'splitVertically'
+      'split horizontally'  : 'splitHorizontally'
+      'merge splitview'     : 'mergeSplitView'
+      'create new file'     : 'createNewFile'
+      'create new terminal' : 'createNewTerminal'
+      'create new browser'  : 'createNewBrowser'
+      'create new drawing'  : 'createNewDrawing'
+      'collapse sidebar'    : 'collapseSidebar'
+      'expand sidebar'      : 'expandSidebar'
+      'close tab'           : 'closeTab'
+      'go to left tab'      : 'goToLeftTab'
+      'go to right tab'     : 'goToRightTab'
+      'go to tab number'    : 'goToTabNumber'
     keyBindings: [
-      { command: 'split vertically',   binding: 'ctrl+alt+v', global: yes }
-      { command: 'split horizontally', binding: 'ctrl+alt+h', global: yes }
-      { command: 'merge splitview',    binding: 'ctrl+alt+m', global: yes }
-      { command: 'create new file',    binding: 'ctrl+alt+n', global: yes }
-      { command: 'collapse sidebar',   binding: 'ctrl+alt+c', global: yes }
-      { command: 'expand sidebar',     binding: 'ctrl+alt+e', global: yes }
-      { command: 'go to left tab',     binding: 'ctrl+alt+[', global: yes }
-      { command: 'go to right tab',    binding: 'ctrl+alt+]', global: yes }
-      { command: 'go to tab number',   binding: 'ctrl+alt+1', global: yes }
-      { command: 'go to tab number',   binding: 'ctrl+alt+2', global: yes }
-      { command: 'go to tab number',   binding: 'ctrl+alt+3', global: yes }
-      { command: 'go to tab number',   binding: 'ctrl+alt+4', global: yes }
-      { command: 'go to tab number',   binding: 'ctrl+alt+5', global: yes }
-      { command: 'go to tab number',   binding: 'ctrl+alt+6', global: yes }
-      { command: 'go to tab number',   binding: 'ctrl+alt+7', global: yes }
-      { command: 'go to tab number',   binding: 'ctrl+alt+8', global: yes }
-      { command: 'go to tab number',   binding: 'ctrl+alt+9', global: yes }
+      { command: 'find file by name',   binding: 'ctrl+alt+f', global: yes }
+      { command: 'split vertically',    binding: 'ctrl+alt+v', global: yes }
+      { command: 'split horizontally',  binding: 'ctrl+alt+h', global: yes }
+      { command: 'merge splitview',     binding: 'ctrl+alt+m', global: yes }
+      { command: 'create new file',     binding: 'ctrl+alt+n', global: yes }
+      { command: 'create new terminal', binding: 'ctrl+alt+t', global: yes }
+      { command: 'create new browser',  binding: 'ctrl+alt+b', global: yes }
+      { command: 'create new drawing',  binding: 'ctrl+alt+d', global: yes }
+      { command: 'collapse sidebar',    binding: 'ctrl+alt+c', global: yes }
+      { command: 'expand sidebar',      binding: 'ctrl+alt+e', global: yes }
+      { command: 'close tab',           binding: 'ctrl+alt+w', global: yes }
+      { command: 'go to left tab',      binding: 'ctrl+alt+[', global: yes }
+      { command: 'go to right tab',     binding: 'ctrl+alt+]', global: yes }
+      { command: 'go to tab number',    binding: 'ctrl+alt+1', global: yes }
+      { command: 'go to tab number',    binding: 'ctrl+alt+2', global: yes }
+      { command: 'go to tab number',    binding: 'ctrl+alt+3', global: yes }
+      { command: 'go to tab number',    binding: 'ctrl+alt+4', global: yes }
+      { command: 'go to tab number',    binding: 'ctrl+alt+5', global: yes }
+      { command: 'go to tab number',    binding: 'ctrl+alt+6', global: yes }
+      { command: 'go to tab number',    binding: 'ctrl+alt+7', global: yes }
+      { command: 'go to tab number',    binding: 'ctrl+alt+8', global: yes }
+      { command: 'go to tab number',    binding: 'ctrl+alt+9', global: yes }
     ]
 
   constructor: (options = {}, data) ->
-    $('body').addClass 'dark'
 
     options.appInfo =
       type          : 'application'
@@ -48,22 +57,26 @@ class IDEAppController extends AppController
 
     super options, data
 
-    layoutOptions   =
-      direction     : 'vertical'
-      splitName     : 'BaseSplit'
-      sizes         : [ '234px', null ]
-      views         : [
-        {
-          type      : 'custom'
-          name      : 'filesPane'
-          paneClass : IDE.IDEFilesTabView
-        },
-        {
-          type      : 'custom'
-          name      : 'editorPane'
-          paneClass : IDE.IDEView
-        }
-      ]
+    layoutOptions     =
+      splitOptions    :
+        direction     : 'vertical'
+        name          : 'BaseSplit'
+        sizes         : [ 234, null ]
+        maximums      : [ 400, null ]
+        views         : [
+          {
+            type      : 'custom'
+            name      : 'filesPane'
+            paneClass : IDE.IDEFilesTabView
+          },
+          {
+            type      : 'custom'
+            name      : 'editorPane'
+            paneClass : IDE.IDEView
+          }
+        ]
+
+    $('body').addClass 'dark' # for theming
 
     appView   = @getView()
     workspace = @workspace = new IDE.Workspace { layoutOptions }
@@ -76,10 +89,10 @@ class IDEAppController extends AppController
       panel.once 'viewAppended', =>
         ideView = panel.getPaneByName 'editorPane'
         @setActiveTabView ideView.tabView
-        @ideViews.push ideView
+        @registerIDEView ideView
 
-        splitView = panel.layout.getSplitViewByName 'BaseSplit'
-        splitView.on 'ResizeDidStop', @bound 'handleResize'
+        splitViewPanel = ideView.parent.parent
+        splitViewPanel.addSubView @statusBar = new IDE.StatusBar
 
         appView.emit 'KeyViewIsSet'
 
@@ -98,7 +111,7 @@ class IDEAppController extends AppController
       type      : type
       views     : [ null, newIDEView ]
 
-    @ideViews.push newIDEView
+    @registerIDEView newIDEView
 
     splitView.once 'viewAppended', ->
       splitView.panels.first.attach ideView
@@ -107,6 +120,8 @@ class IDEAppController extends AppController
 
     ideParent.addSubView splitView
     @setActiveTabView newIDEView.tabView
+
+    splitView.on 'ResizeDidStop', KD.utils.throttle 500, @bound 'doResize'
 
   mergeSplitView: ->
     panel     = @activeTabView.parent.parent
@@ -147,7 +162,7 @@ class IDEAppController extends AppController
       ideView.tabView.addPane pane
 
     @setActiveTabView ideView.tabView
-    @ideViews.push ideView
+    @registerIDEView ideView
 
     if parentSplitView and panelIndexInParent
       parentSplitView.options.views[panelIndexInParent] = ideView
@@ -180,13 +195,16 @@ class IDEAppController extends AppController
     {tabView}    = filesPane
     desiredSize  = 289
 
-    splitView.once 'PanelSetToFloating', ->
+    splitView.once 'PanelSetToFloating', =>
       floatedPanel._lastSize = desiredSize
+      @getView().setClass 'sidebar-collapsed'
+      @isSidebarCollapsed = yes
 
     splitView.setFloatingPanel 0, 39
     tabView.showPaneByName 'Dummy'
 
-    tabView.on 'PaneDidShow', ->
+    tabView.on 'PaneDidShow', (pane) ->
+      return if pane.options.name is 'Dummy'
       splitView.showPanel 0
       floatedPanel._lastSize = desiredSize
 
@@ -205,6 +223,11 @@ class IDEAppController extends AppController
     splitView.unsetFloatingPanel 0
     filesPane.tabView.showPaneByIndex 0
     floatedPanel.off 'ReceivedClickElsewhere'
+    @getView().unsetClass 'sidebar-collapsed'
+    @isSidebarCollapsed = no
+
+  toggleSidebar: ->
+    if @isSidebarCollapsed then @expandSidebar() else @collapseSidebar()
 
   splitVertically: ->
     @splitTabView 'vertical'
@@ -220,6 +243,12 @@ class IDEAppController extends AppController
       contents = ''
 
       @openFile file, contents
+
+  createNewTerminal: -> @activeTabView.emit 'TerminalPaneRequested'
+
+  createNewBrowser: -> @activeTabView.emit 'PreviewPaneRequested'
+
+  createNewDrawing: -> @activeTabView.emit 'DrawingPaneRequested'
 
   goToLeftTab: ->
     index = @activeTabView.getActivePaneIndex()
@@ -242,13 +271,33 @@ class IDEAppController extends AppController
 
     @activeTabView.showPaneByIndex requiredIndex
 
-  forEachSubViewInIDEViews_: (callback = noop) ->
+  closeTab: ->
+    @activeTabView.removePane @activeTabView.getActivePane()
+
+  registerIDEView: (ideView) ->
+    @ideViews.push ideView
+
+    ideView.on 'PaneRemoved', =>
+      ideViewLength  = 0
+      ideViewLength += ideView.tabView.panes.length  for ideView in @ideViews
+
+      @statusBar.showInformation()  if ideViewLength is 0
+
+  forEachSubViewInIDEViews_: (callback = noop, paneType) ->
+    if typeof callback is 'string'
+      [paneType, callback] = [callback, paneType]
+
     for ideView in @ideViews
       for pane in ideView.tabView.panes
         view = pane.getSubViews().first
-        callback view
+        if paneType
+          if view.getOptions().paneType is paneType
+            callback view
+        else
+          callback view
 
   updateSettings: (component, key, value) ->
+    # TODO: Refactor this method by passing component type to helper method.
     Class  = if component is 'editor' then IDE.EditorPane else IDE.TerminalPane
     method = "set#{key.capitalize()}"
 
@@ -259,8 +308,61 @@ class IDEAppController extends AppController
         else
           view.webtermView.updateSettings()
 
-  handleResize: ->
-    @forEachSubViewInIDEViews_ (view) ->
-      if view instanceof IDE.EditorPane
-        view.aceView.ace.setHeight view.getHeight() - 23
-        view.aceView.ace.editor?.resize yes
+  showShortcutsView: ->
+    @activeTabView.emit 'ShortcutsViewRequested'
+
+  showActionsMenu: (button) ->
+    paneView   = @getActivePaneView()
+    paneType   = paneView?.getOptions().paneType or null
+    menu       = new IDE.StatusBarMenu
+      paneType : paneType
+      delegate : button
+
+    menu.on 'viewAppended', ->
+      if paneType is 'editor' and paneView
+        {syntaxSelector} = menu
+        {ace}            = paneView.aceView
+
+        syntaxSelector.select.setValue ace.getSyntax()
+        syntaxSelector.on 'SelectionMade', (value) =>
+          ace.setSyntax value
+
+  getActivePaneView: ->
+    return @activeTabView.getActivePane().getSubViews().first
+
+  saveFile: ->
+    @getActivePaneView().emit 'SaveRequested'
+
+  saveAllFiles: ->
+    @forEachSubViewInIDEViews_ 'editor', (editorPane) ->
+      editorPane.emit 'SaveRequested'
+
+  updateStatusBar: (component, data) ->
+    {status, menuButton} = @statusBar
+
+    text = if component is 'editor'
+      {cursor, file} = data
+      """
+        <p class="line">#{++cursor.row}:#{++cursor.column}</p>
+        <p>#{file.name}</p>
+      """
+
+    else if component is 'terminal' then "Terminal on #{data.vmName}"
+
+    else if typeof data is 'string' then data
+
+    else ''
+
+    status.updatePartial text
+    menuButton.show()
+
+  showFileFinder: ->
+    if @fileFinder
+      @fileFinder.input.setFocus()
+    else
+      @fileFinder = new IDE.FileFinder
+      @fileFinder.once 'KDObjectWillBeDestroyed', => @fileFinder = null
+
+  doResize: ->
+    @forEachSubViewInIDEViews_ 'editor', (editorPane) ->
+      editorPane.aceView.ace.editor.resize()

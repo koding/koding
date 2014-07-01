@@ -13,6 +13,8 @@ dark-panel-bg         = #2B2B2B
 dark-tab-header-bg    = #131313
 dark-active-tab-color = #9C9C9C
 dark-tab-color        = #5C5C5C
+text-color-green      = #4EA04C
+
 
 // theming
 body.ide.dark
@@ -49,6 +51,46 @@ body.ide.dark
   .terminal .green-on-black.console
     bg                  color, dark-panel-bg
 
+  .ace-koding .ace_print-margin
+    bg                  color, #3F3F3F
+
+  .kdtabhandle.plus
+    r-sprite            'ide', 'tab-plus'
+    border-left         none
+    margin              4px
+    .icon
+      bg                image, none
+      margin            0
+
+  .ace-find-replace-view
+    bottom              0 !important
+    bg                  color, dark-tab-header-bg
+    border-bottom-color dark-tab-header-bg
+    box-shadow          inset 0 -1px 0 dark-tab-header-bg
+    a, input
+      border-color      dark-panel-bg
+      &.active
+        border-color    dark-panel-bg !important
+
+    input
+      bg                color, dark-panel-bg
+      box-shadow        0 1px 0 dark-panel-bg
+      color             dark-active-tab-color
+      &:hover
+        bg              color, dark-panel-bg
+        border          1px solid dark-panel-bg
+        box-shadow      0 1px 0 dark-panel-bg
+      &:focus
+        bg              color, dark-panel-bg
+        border          1px solid dark-panel-bg
+        box-shadow      0 1px 0 dark-panel-bg
+    button
+      bg                color, dark-panel-bg
+      color             dark-active-tab-color
+      border            1px solid dark-panel-bg
+      &:hover
+        bg              color, dark-panel-bg
+        opacity         .8
 
 // common app styling
 .ide
@@ -58,37 +100,69 @@ body.ide.dark
       width             2px
     &.horizontal
       height            2px
+
   .ace_editor
     height              100%
+
   .kdtabhandle.dummy
   .kdview.dummy
     display             none
 
+  .application-tabview
+    >.kdtabpaneview
+      overflow          visible
+
+      >.pane
+        overflow        visible
+
+  .kdselectbox
+    bg                  color, transparent
+    border              1px solid #555555
+    rounded             3px
+    width               120px
+    borderBox()
+    .arrows
+      r-sprite          'finder', 'expanded'
+      top               8px
+
+  .nfinder.file-container
+  .ide-files-tab .kdtabhandle-tabs
+    min-width           234px
 
 // sidebar icons
 .ide-files-tab
   .application-tab-handle-holder
-    vendor            transition, none
+    vendor              transition, none
   .kdtabhandle
     b
-      text-indent     -1000px
+      text-indent       -1000px
     &.files
-      r-sprite        'ide', 'files-off'
+      r-sprite          'ide', 'files-off'
       &.active
-        r-sprite      'ide', 'files-on'
+        r-sprite        'ide', 'files-on'
     &.vms
-      r-sprite        'ide', 'vms-off'
+      r-sprite          'ide', 'vms-off'
       &.active
-        r-sprite      'ide', 'vms-on'
+        r-sprite        'ide', 'vms-on'
     &.settings
-      r-sprite        'ide', 'settings-off'
+      r-sprite          'ide', 'settings-off'
       &.active
-        r-sprite      'ide', 'settings-on'
-    &.actions
-      r-sprite        'ide', 'share-off'
-      &.active
-        r-sprite      'ide', 'share-on'
+        r-sprite        'ide', 'settings-on'
+  .toggle
+    display             inline-block
+    r-sprite            'ide', 'nav-collapse'
+    right               0
+    abs()
+    pointer()
 
+.sidebar-collapsed .toggle
+  r-sprite              'ide', 'nav-expand'
+
+.sidebar-collapsed
+  .ide-files-tab
+    .kdtabhandle-tabs
+      position          relative
+      top               38px
 
 // floating left
 .floating.kdsplitview-panel
@@ -113,9 +187,11 @@ body.ide.dark
 
 // vm list pane
 .vm-list-pane
+  height                auto
+
   .vm-item
     size                auto, 39px
-    bg                  color, #131313
+    bg                  color, dark-tab-header-bg
     position            relative
     margin              13px
     rounded             2px
@@ -154,6 +230,8 @@ body.ide.dark
       display           inline-block
       r-sprite          'ide', 'add-vm'
       float             none
+      vertical-align    sub
+      margin-right      4px
 
 
 
@@ -161,43 +239,184 @@ body.ide.dark
 .settings-pane
   line-height           20px
   font-size             12px
-
   .settings-header
-    color               #4EA04C
+    color               text-color-green
     padding             25px 20px 10px
-
   .kdselectbox
     min-width           100px
     display             block
     float               right
-
   p
     color               #D4CFC9
     padding             5px 20px
     clear               both
     borderBox()
-
     &.with-select
       line-height       32px
-
     .settings-on-off
       display           block
       float             right
-
       &.on
-        bg              color, #4EA04C
+        bg              color, text-color-green
       &.off
-        bg              color, #131313
+        bg              color, dark-tab-header-bg
 
+// key mappings
+.key-mappings
+  padding             50px
+  font-size           13px
+  size                auto, auto
+  .container
+    min-width         370px
+    width             45%
+    margin-right      3%
+    fl()
+    p
+      color           text-color-green
+      margin-bottom   24px
+  .key-map
+    margin-bottom     16px
+  .keys
+    overflow          hidden
+    width             230px
+    fl()
+  .key
+    size              60px, 33px
+    line-height       33px
+    text-align        center
+    margin-right      12px
+    text-transform    uppercase
+    color             dark-tab-color
+    border            1px solid #979797
+    fl()
+  .description
+    color             #F4F1ED
+    height            33px
+    line-height       33px
+    fl()
+
+// status bar
+.kdsplitcomboview
+  > .kdsplitview
+    > .panel-1
+      .pane-wrapper
+        kalc          height, 100% \- 34px
+
+.status-bar
+  abs()
+  bottom              0
+  width               100%
+  height              34px
+  line-height         34px
+  color               dark-tab-color
+  background          dark-tab-header-bg
+  font-size           13px
+  .status
+    margin-left       12px
+    fl()
+    p
+      display         inline-block
+      &.line
+        width         50px
+
+  .actions-button
+    abs()
+    pointer()
+    display           inline-block
+    right             2px
+    r-sprite          'ide', 'hamburger'
+
+.status-bar-menu
+  top                 inherit !important
+  bottom              34px
+  ul
+    bg                color, dark-tab-header-bg !important
+    padding           2px !important
+    rounded           0 !important
+  li
+    color             #E6E1DC !important
+    rounded           0 !important
+    padding-left      15px !important
+    &:hover
+      bg              color, dark-panel-bg !important
+    &.selected
+      bg              color, dark-panel-bg !important
+    &.separator
+      border-bottom   1px solid dark-panel-bg !important
+      margin          14px !important
+
+.syntax-selector
+  padding             3px 10px 3px 0
+  span
+    font-size         13px
   .kdselectbox
-    bg                  color, transparent
-    border              1px solid #555555
-    rounded             3px
-    width               120px
-    borderBox()
+    height            24px
+    margin-left       29px
+    span
+      line-height     24px !important
+      height          24px !important
     .arrows
       r-sprite          'finder', 'expanded'
       top               8px
+
+// file-finder
+.ide
+  .file-finder
+    abs()
+    z-index          10000
+    top              96px
+    left             50%
+    margin-left      -235px
+    width            450px
+    padding          10px
+    rounded          5px
+    bg               color, dark-tab-header-bg
+    vendor           box-shadow, 0px 2px 28px rgba(0, 0, 0, .5)
+    .icon
+      abs()
+      z-index        2
+      top            20px
+      right          20px
+      r-sprite       'ide', 'search'
+    .kdinput
+      color          #928D87
+      bg             color, #D4CFC9
+      border         1px solid dark-panel-bg
+      height         36px
+      font-size      14px
+      &.has-text
+        color        dark-tab-header-bg
+      &:focus
+        box-shadow   none
+        border       1px solid dark-panel-bg
+      &:hover
+        border       1px solid dark-panel-bg
+    .kdlistitemview.selected
+      rounded        3px
+      bg             color, dark-panel-bg
+    .kdlistview
+      max-height     200px
+      overflow       auto !important
+      margin-top    10px
+    .warning
+      padding          20px 20px 10px 20px
+      color            #74706B
+      font-size        14px
+      text-align       center
+    .file-item
+      font-size        12px
+      padding          12px
+      width            auto
+      p
+        line-height    14px
+      .name
+        color          #D4CFC9
+      .path
+        color          #858585
+      &:hover
+        rounded        3px
+        bg             color, dark-panel-bg
+        pointer()
 
 //Save as dialog
 body.ide .kddialogview.save-as-dialog
