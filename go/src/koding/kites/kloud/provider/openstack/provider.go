@@ -118,11 +118,13 @@ func (p *Provider) Build(opts *protocol.MachineOptions) (*protocol.BuildResponse
 		return nil, fmt.Errorf("Error creating server: %s", err)
 	}
 
-	// percentages
+	// eventer percentages
 	start := 25
 	finish := 60
 
+	// store successfull result here
 	var server *gophercloud.Server
+
 	stateFunc := func() (machinestate.State, error) {
 		p.Push("Waiting for machine to be ready", start, machinestate.Building)
 		server, err = o.Client.ServerById(resp.Id)
@@ -149,14 +151,12 @@ func (p *Provider) Build(opts *protocol.MachineOptions) (*protocol.BuildResponse
 	}
 
 	pretty.Println("server", server)
-	return nil, errors.New("not supported yet")
 
-	// return &protocol.BuildResponse{
-	// 	IpAddress:    droplet.IpAddress,
-	// 	InstanceName: dropletName, // we don't use droplet.Name because it might have the cached name
-	// 	InstanceId:   droplet.Id,
-	// }, nil
-
+	return &protocol.BuildResponse{
+		IpAddress:    server.AccessIPv4,
+		InstanceName: server.Name,
+		InstanceId:   server.Id,
+	}, nil
 }
 
 func (p *Provider) Start(opts *protocol.MachineOptions) error {
