@@ -102,7 +102,7 @@ func (k *Kloud) buildMachine(username string, c *Controller) error {
 		Data: map[string]interface{}{
 			"queryString":  artifact.KiteQuery,
 			"ipAddress":    resp.IpAddress,
-			"instanceId":   strconv.Itoa(resp.InstanceId),
+			"instanceId":   resp.InstanceId,
 			"instanceName": resp.InstanceName,
 		},
 	})
