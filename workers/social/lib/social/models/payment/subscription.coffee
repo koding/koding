@@ -145,19 +145,14 @@ module.exports = class JPaymentSubscription extends jraphical.Module
         Refund for the remaining days of your current plan: #{ oldPlan.title }
         """
 
-      # There is a bug somewhere that's causing us to refund
-      # and charge less when upgrading, temporarily commenting
-      # this out: SA
-      #
-      # if applyRefund
-      #   @refund { amount, description }, (err) ->
-      #     return callback err  if err
+      if applyRefund
+        @refund { amount, description }, (err) ->
+          return callback err  if err
 
-      #     callback null, amount
-      # else
-      #   callback null, 0
+          callback null, amount
+      else
+        callback null, 0
 
-      callback null, 0
 
   resume: (callback) ->
     @fetchLinkedSubscription (err, subscription) =>
@@ -294,15 +289,15 @@ module.exports = class JPaymentSubscription extends jraphical.Module
     queue = [
       =>
         newPlan.checkQuota {@usage}, (err) -> queue.next err
-      =>
-        if operation
-        then operation.call this, (err) -> queue.next err
-        else queue.next()
       ->
         newPlan.subscribe paymentMethodId, subOptions, (err, newSub) ->
           return callback err  if err
           newSubscription = newSub
           queue.next err
+      =>
+        if operation
+        then operation.call this, (err) -> queue.next err
+        else queue.next()
       =>
         @addLinkedSubscription newSubscription, (err) -> queue.next err
       ->
