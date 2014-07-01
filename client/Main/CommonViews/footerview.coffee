@@ -36,7 +36,7 @@ class FooterView extends JView
 
       <nav class="footer-block">
         <h5>COMMUNITY</h5>
-        <a href='/Activity' target='_self'>ACTIVITY</a>
+        <a href='/Activity/Public' target='_self'>ACTIVITY</a>
         <a href='http://blog.koding.com'>KODING BLOG</a>
         <a href='https://www.facebook.com/kodingcom/events'>MEETUPS</a>
         <a href='http://stories.koding.com'>TESTIMONIALS</a>
