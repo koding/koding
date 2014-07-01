@@ -11,7 +11,6 @@ import (
 	"time"
 
 	"github.com/koding/logging"
-	"github.com/kr/pretty"
 	"github.com/rackspace/gophercloud"
 )
 
@@ -149,8 +148,6 @@ func (p *Provider) Build(opts *protocol.MachineOptions) (*protocol.BuildResponse
 	if err := ws.Wait(); err != nil {
 		return nil, err
 	}
-
-	pretty.Println("server", server)
 
 	return &protocol.BuildResponse{
 		IpAddress:    server.AccessIPv4,
