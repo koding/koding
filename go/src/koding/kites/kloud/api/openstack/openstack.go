@@ -23,12 +23,16 @@ type Openstack struct {
 	}
 
 	Builder struct {
-		ID   string `mapstructure:"instanceId"`
-		Type string `mapstructure:"type" packer:"type"`
+		// Populated by Kloud
+		ID           string `mapstructure:"instanceId"`
+		InstanceName string `mapstructure:"instanceName"`
 
-		SourceImage       string   `mapstructure:"source_image"`
-		Flavor            string   `mapstructure:"flavor"`
-		RawRegion         string   `mapstructure:"region"`
+		// Used in production
+		SourceImage string `mapstructure:"imageId"`
+		Flavor      string `mapstructure:"flavorId"`
+		RawRegion   string `mapstructure:"region"`
+
+		// Not Used
 		RawSSHTimeout     string   `mapstructure:"ssh_timeout"`
 		SSHUsername       string   `mapstructure:"ssh_username"`
 		SSHPort           int      `mapstructure:"ssh_port"`
@@ -37,6 +41,7 @@ type Openstack struct {
 		FloatingIpPool    string   `mapstructure:"floating_ip_pool"`
 		FloatingIp        string   `mapstructure:"floating_ip"`
 		SecurityGroups    []string `mapstructure:"security_groups"`
+		Type              string   `mapstructure:"type" packer:"type"`
 	}
 }
 
@@ -92,6 +97,7 @@ func New(authURL, providerName string, credential, builder map[string]interface{
 		return nil, err
 	}
 
+	// if not given the default is used which is returned for that account.
 	if o.Builder.RawRegion != "" {
 		api.Region = o.Builder.RawRegion
 	}
