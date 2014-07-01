@@ -33,7 +33,9 @@ NAME=mongo              && docker run                 -h $NAME -d --name=$NAME  
 NAME=postgres           && docker run                 -h $NAME -d --name=$NAME  										 koding/postgres
 NAME=rabbitmq           && docker run                 -h $NAME -d --name=$NAME                       koding/rabbitmq
 NAME=redis              && docker run                 -h $NAME -d --name=$NAME                       koding/redis    redis-server
+
 sleep 5
+
 NAME=logger             && docker run  -p 8000:8000		-h $NAME -d --name=$NAME  -v=/var/run/docker.sock:/tmp/docker.sock progrium/logspout syslog://logs.papertrailapp.com:49069
 NAME=kontrol            && docker run  -p 4000:4000   -h $NAME -d --name=$NAME  --entrypoint=$GB/kontrol                                          														--link=mongo:mongo --link=postgres:postgres --link=redis:redis --link=rabbitmq:rabbitmq koding/run  -c $CFG -r $RGN
 NAME=kloud              && docker run                 -h $NAME -d --name=$NAME  --entrypoint=$GB/kloud                                            														--link=mongo:mongo --link=postgres:postgres --link=redis:redis --link=rabbitmq:rabbitmq koding/run  -c $CFG -r $RGN -public-key $PBKEY -private-key $PVKEY -kontrol-url "http://$HST:4000/kite"
@@ -52,13 +54,16 @@ NAME=sitemapfeeder      && docker run                 -h $NAME -d --name=$NAME  
 NAME=topicfeed          && docker run                 -h $NAME -d --name=$NAME  --entrypoint=$GB/topicfeed         -e "SOCIAL_API_HOSTNAME=$HST"  														--link=mongo:mongo --link=postgres:postgres --link=redis:redis --link=rabbitmq:rabbitmq koding/run  -c $SOCIALCONFIG
 NAME=trollmode          && docker run                 -h $NAME -d --name=$NAME  --entrypoint=$GB/trollmode         -e "SOCIAL_API_HOSTNAME=$HST"  														--link=mongo:mongo --link=postgres:postgres --link=redis:redis --link=rabbitmq:rabbitmq koding/run  -c $SOCIALCONFIG
 
-NAME=webserver          && docker run  -p 80:80       -h $NAME -d --name=$NAME  --entrypoint=node                                                 --link=socialapi:socialapi --link=mongo:mongo --link=postgres:postgres --link=redis:redis --link=rabbitmq:rabbitmq koding/run  $PRJ/server/index.js                   -c $CFG -p 80   --disable-newrelic
-NAME=authWorker         && docker run                 -h $NAME -d --name=$NAME  --entrypoint=node                                                 --link=socialapi:socialapi --link=mongo:mongo --link=postgres:postgres --link=redis:redis --link=rabbitmq:rabbitmq koding/run  $PRJ/workers/auth/index.js             -c $CFG
-NAME=social             && docker run  -p 3030:3030   -h $NAME -d --name=$NAME  --entrypoint=node                                                 --link=socialapi:socialapi --link=mongo:mongo --link=postgres:postgres --link=redis:redis --link=rabbitmq:rabbitmq koding/run  $PRJ/workers/social/index.js           -c $CFG -p 3030 --disable-newrelic --kite-port=13020
+NAME=webserver          && docker run  -p 80:80       -h $NAME -d --name=$NAME  --entrypoint=node                                                 --link=socialapi:socialapi  --link=mongo:mongo --link=postgres:postgres --link=redis:redis --link=rabbitmq:rabbitmq koding/run  $PRJ/server/index.js                   -c $CFG -p 80   --disable-newrelic
+NAME=authWorker         && docker run                 -h $NAME -d --name=$NAME  --entrypoint=node                                                 --link=socialapi:socialapi  --link=mongo:mongo --link=postgres:postgres --link=redis:redis --link=rabbitmq:rabbitmq koding/run  $PRJ/workers/auth/index.js             -c $CFG
+NAME=social             && docker run  -p 3030:3030   -h $NAME -d --name=$NAME  --entrypoint=node                                                 --link=socialapi:socialapi  --link=mongo:mongo --link=postgres:postgres --link=redis:redis --link=rabbitmq:rabbitmq koding/run  $PRJ/workers/social/index.js           -c $CFG -p 3030 --disable-newrelic --kite-port=13020
 
 NAME=sourceMapServer    && docker run  -p 3526:3526   -h $NAME -d --name=$NAME  --entrypoint=node                                                 														--link=mongo:mongo --link=postgres:postgres --link=redis:redis --link=rabbitmq:rabbitmq koding/run  $PRJ/server/lib/source-server/index.js -c $CFG -p 3526
 NAME=guestCleaner       && docker run                 -h $NAME -d --name=$NAME  --entrypoint=node                                                 														--link=mongo:mongo --link=postgres:postgres --link=redis:redis --link=rabbitmq:rabbitmq koding/run  $PRJ/workers/guestcleaner/index.js     -c $CFG
 NAME=emailSender        && docker run                 -h $NAME -d --name=$NAME  --entrypoint=node                                                 														--link=mongo:mongo --link=postgres:postgres --link=redis:redis --link=rabbitmq:rabbitmq koding/run  $PRJ/workers/emailsender/index.js      -c $CFG
+
+NAME=permissionUpdate   && docker run                 -h $NAME -d --name=$NAME  --entrypoint=node         				   																													--link=mongo:mongo 																																			koding/run  -c $SOCIALCONFIG --hard
+
 
 
 
