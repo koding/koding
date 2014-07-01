@@ -79,6 +79,11 @@ class LoginView extends JView
 
     image.classList.add 'off-screen-login-image'
 
+    document.head.appendChild (new KDCustomHTMLView {
+      tagName    : 'style'
+      partial    : ".kdview.login-screen:after { background-image : url('#{bgImageUrl}')}"
+    }).getElement()
+
   constructor:(options = {}, data)->
 
     {entryPoint} = KD.config
