@@ -198,8 +198,7 @@ module.exports = class JDomain extends jraphical.Module
             callback err, domain
 
 
-  @createDomain$: permit 'create domains',
-  success: (client, data, callback)->
+  @createDomain$: permit 'create domains', success: (client, data, callback)->
 
     { domain, stack } = data
 
