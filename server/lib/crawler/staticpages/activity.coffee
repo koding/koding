@@ -28,6 +28,7 @@ prepareComments = (activityContent)->
   commentsList = ""
   return commentsList  unless activityContent?.replies
 
+  activityContent.replies.reverse()
   for comment in activityContent.replies
     {replier, message} = comment
     {hash, avatar, nickname, fullName} = replier
