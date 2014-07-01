@@ -27,6 +27,7 @@ createFeed = (models, options, callback)->
     itemCount = response?.totalCount
     return callback null, getEmptyPage()  unless itemCount
 
+    options.replyLimit = 25
     SocialChannel.fetchActivities client, options, (err, result) ->
       return callback err  if err
 
