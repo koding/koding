@@ -34,9 +34,8 @@ func GetHistory(channelId int64, q *request.Query) (*models.HistoryResponse, err
 }
 
 func CountHistory(channelId int64) (*models.CountResponse, error) {
-	c := models.NewChannelMessageList()
-	c.ChannelId = channelId
-	res, err := marshallAndSendRequest("POST", "/channel/count", c)
+	url := fmt.Sprintf("/channel/%d/history/count", channelId)
+	res, err := marshallAndSendRequest("GET", url, nil)
 	if err != nil {
 		return nil, err
 	}
