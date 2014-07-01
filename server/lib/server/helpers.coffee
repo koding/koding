@@ -103,7 +103,6 @@ serveHome = (req, res, next)->
   isCustomPreview = req.cookies["custom-partials-preview-mode"]
   {generateFakeClient}   = require "./client"
 
-  {params} = req
   generateFakeClient req, res, (err, client)->
     if err or not client
       console.error err
@@ -118,7 +117,7 @@ serveHome = (req, res, next)->
       fn                    = if state then loggedIn else loggedOut
       options = { client, account,
                   bongoModels, params,
-                  isCustomPreview, params}
+                  isCustomPreview }
 
       fn.kodingHome options, (err, subPage)->
         return next()  if err
