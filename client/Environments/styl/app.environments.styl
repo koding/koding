@@ -1086,7 +1086,7 @@ div.environments-item
   background      white
   border          1px solid #fff
   rounded         3px
-  vendor          transition, opacity .3s ease
+  // vendor          transition, opacity .3s ease
   noTextSelection()
   borderBox()
 
@@ -1126,106 +1126,33 @@ div.environments-item
 
   // FIXME refactor with styl
   &.busy
-    background-image: -webkit-gradient(linear, 0 0, 100% 100%,
+    background-image -webkit-gradient(linear, 0 0, 100% 100%,
         color-stop(.25, rgba(0, 0, 0, .03)),
         color-stop(.25, transparent),
         color-stop(.5, transparent),
         color-stop(.5, rgba(0, 0, 0, .03)),
         color-stop(.75, rgba(0, 0, 0, .03)),
         color-stop(.75, transparent),
-        to(transparent));
-    background-image:
+        to(transparent))
+
+    background-image
         -moz-linear-gradient(-45deg,
             rgba(0, 0, 0, .03) 25%,
             transparent 25%,
             transparent 50%, rgba(0, 0, 0, .03) 50%,
             rgba(0, 0, 0, .03) 75%,
             transparent 75%, transparent
-        );
-    background-size: 50px 50px;
-    -moz-background-size: 50px 50px;
-    -webkit-background-size: 50px 50px;
-    -webkit-animation: animate-stripes 2s linear infinite;
+        )
+    background-size           50px 50px
+    -moz-background-size      50px 50px
+    -webkit-background-size   50px 50px
+    -webkit-animation         animate-stripes 2s linear infinite
 
   .koding-on-off
     display     none
-
-
-  &.loading
-
-    div.progressbar-container
-      display     block !important
-
-    span.chevron
-    span.terminal
-    .koding-on-off
-      display     none !important
-
-
-
-  &.building
-
-    div.progressbar-container
-      .bar
-        background    #FF7400 !important
-
-  &.terminating
-
-    div.progressbar-container
-      .bar
-        background    #E85F5F !important
-
-  &.terminated
-  &.notinitialized
-
-    background      rgba(255,255,255,.5)
-    border          1px solid #ccc
-
-    span.state
-      color       #E85F5F
-
-  &.stopping
-
-    span.url
-      display     block
-
-    div.progressbar-container
-      .bar
-        background    #E59611 !important
-
-  &.stopped
-
-    background      rgba(255,255,255,.5)
-    border          1px solid #ccc
-
-    .koding-on-off
-      display     block
-
-    span.state
-      color       #E59611
-
-  &.starting
-
-    div.progressbar-container
-      .bar
-        background    #5AA486 !important
-
-  &.running
-
-    span.url
-    span.terminal
-    .koding-on-off
-      display     block
-
-    span.state
-      color       #5AA486
-
-
-  .koding-on-off
-    right: 5px;
-    position: absolute;
-    top: 35px;
-
+    right       5px
+    top         35px
+    abs()
 
   span.chevron
   span.terminal
@@ -1233,10 +1160,10 @@ div.environments-item
     bottom        8px
     right         10px
     r-sprite      environments 'gear'
-    display       none
+    abs()
 
   span.terminal
-    // display       none
+    display       none
     r-sprite      environments 'terminal'
     cursor        pointer
     right         45px
@@ -1309,6 +1236,25 @@ div.environments-item
       background      #4E89D3
 
   &.domain
+
+    opacity           .6
+
+    button
+      display         none
+      top             6px
+      right           6px
+      abs()
+
+    &.verified
+      opacity         1
+      button
+        display       none !important
+
+    &:hover
+      opacity         1
+      button
+        display       block
+
     span.toggle
       background      #4ED393
 
@@ -1320,6 +1266,72 @@ div.environments-item
 
   &.machine
     // height            50px
+
+    &.loading
+
+      div.progressbar-container
+        display     block !important
+
+      span.terminal
+      .koding-on-off
+        display     none !important
+
+    &.building
+
+      div.progressbar-container
+        .bar
+          background    #FF7400 !important
+
+    &.terminating
+
+      div.progressbar-container
+        .bar
+          background    #E85F5F !important
+
+    &.terminated
+    &.notinitialized
+
+      background      rgba(255,255,255,.5)
+      border          1px solid #ccc
+
+      span.state
+        color       #E85F5F
+
+    &.stopping
+
+      span.url
+        display     block
+
+      div.progressbar-container
+        .bar
+          background    #E59611 !important
+
+    &.stopped
+
+      background      rgba(255,255,255,.5)
+      border          1px solid #ccc
+
+      .koding-on-off
+        display     block
+
+      span.state
+        color       #E59611
+
+    &.starting
+
+      div.progressbar-container
+        .bar
+          background    #5AA486 !important
+
+    &.running
+
+      span.url
+      span.terminal
+      .koding-on-off
+        display     block
+
+      span.state
+        color       #5AA486
 
     span.chevron
     span.terminal

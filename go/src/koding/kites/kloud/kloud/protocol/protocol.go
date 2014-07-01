@@ -71,7 +71,7 @@ type BuildResponse struct {
 	// It's different than the machineID and is usually an unique id which is
 	// given by the third-party provider, for example DigitalOcean returns a
 	// droplet Id.
-	InstanceId int
+	InstanceId string
 
 	// QueryString should contain the kite id/query that is deployed inside the
 	// machine.
