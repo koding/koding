@@ -74,19 +74,11 @@ getActivityContent = (activityContent)->
   createdAt     = createCreationDate createdAt, activityContent.slug
   author        = createAuthor fullName, nickname
 
+  {formatBody} = require './bodyrenderer'
+  body = formatBody body
   commentsList = prepareComments activityContent
 
   likeList = prepareLikes activityContent
-
-  tags = ""
-  if activityContent?.tags?.length > 0
-    tags = "tags: "
-    for tag in activityContent.tags
-      content =
-        """
-          <a href="#{uri.address}/Topics/#{tag.slug}">#{tag.title}</a>
-        """
-      tags += content
 
   content  =
     """
