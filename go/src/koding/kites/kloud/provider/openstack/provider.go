@@ -65,13 +65,17 @@ func (p *Provider) Build(opts *protocol.MachineOptions) (*protocol.BuildResponse
 		return nil, err
 	}
 
+	if opts.InstanceName == "" {
+		return nil, errors.New("server name is empty")
+	}
+
 	imageId := DefaultImageId
 	if opts.ImageName != "" {
 		imageId = opts.ImageName
 	}
 
-	if opts.InstanceName == "" {
-		return nil, errors.New("dropletName is empty")
+	if o.Builder.SourceImage != "" {
+		imageId = o.Builder.SourceImage
 	}
 
 	p.Push(fmt.Sprintf("Checking for image availability %s", imageId), 10, machinestate.Building)
@@ -94,20 +98,26 @@ func (p *Provider) Build(opts *protocol.MachineOptions) (*protocol.BuildResponse
 		}
 	}
 
+	// TODO: prevent this and throw an error in the future
+	flavorId := o.Builder.Flavor
+	if flavorId == "" {
+		flavorId = DefaultFlavorId
+	}
+
 	// check if the flavor does exist
 	flavors, err := o.Flavors()
 	if err != nil {
 		return nil, err
 	}
 
-	if !flavors.Has(DefaultFlavorId) {
+	if !flavors.Has(flavorId) {
 		return nil, fmt.Errorf("Flavor id '%s' doesn't exist", DefaultFlavorId)
 	}
 
 	newServer := gophercloud.NewServer{
 		Name:        opts.InstanceName,
 		ImageRef:    imageId,
-		FlavorRef:   DefaultFlavorId,
+		FlavorRef:   flavorId,
 		KeyPairName: key.Name,
 	}
 
