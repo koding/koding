@@ -3,7 +3,6 @@ package kodingkite
 import (
 	"errors"
 	"io/ioutil"
-	"log"
 	"net/http"
 	"net/url"
 	"os"
@@ -42,18 +41,18 @@ func New(kodingConf *kodingconfig.Config, name, version string) (*KodingKite, er
 	}
 
 	// prepare our multilog handler
-	syslog, err := logging.NewSyslogHandler(name)
-	if err != nil {
-		log.Fatalf("Cannot connect to syslog: %s", err.Error())
-	}
+	// syslog, err := logging.NewSyslogHandler(name)
+	// if err != nil {
+	// 	log.Fatalf("Cannot connect to syslog: %s", err.Error())
+	// }
 
-	logger := logging.NewLogger(name)
-	logger.SetHandler(logging.NewMultiHandler(logging.StderrHandler, syslog))
+	// logger := logging.NewLogger(name)
+	// logger.SetHandler(logging.NewMultiHandler(logging.StderrHandler, syslog))
 
-	k.Log = logger
-	k.SetLogLevel = func(l kite.Level) {
-		logger.SetLevel(convertLevel(l))
-	}
+	// k.Log = logger
+	// k.SetLogLevel = func(l kite.Level) {
+	// 	logger.SetLevel(convertLevel(l))
+	// }
 
 	if kodingConf.NewKites.UseTLS {
 		kk.UseTLSFile(kodingConf.NewKites.CertFile, kodingConf.NewKites.KeyFile)
