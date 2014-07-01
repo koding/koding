@@ -23,8 +23,8 @@ type Openstack struct {
 	}
 
 	Builder struct {
-		ID   string `mapstructure:"instanceId"`
-		Type string `mapstructure:"type" packer:"type"`
+		ID           string `mapstructure:"instanceId"`
+		InstanceName string `mapstructure:"instanceName"`
 
 		SourceImage       string   `mapstructure:"source_image"`
 		Flavor            string   `mapstructure:"flavor"`
@@ -37,6 +37,7 @@ type Openstack struct {
 		FloatingIpPool    string   `mapstructure:"floating_ip_pool"`
 		FloatingIp        string   `mapstructure:"floating_ip"`
 		SecurityGroups    []string `mapstructure:"security_groups"`
+		Type              string   `mapstructure:"type" packer:"type"`
 	}
 }
 

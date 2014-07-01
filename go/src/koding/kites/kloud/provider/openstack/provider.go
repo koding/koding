@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/koding/logging"
+	"github.com/kr/pretty"
 	"github.com/rackspace/gophercloud"
 )
 
@@ -167,11 +168,56 @@ func (p *Provider) Build(opts *protocol.MachineOptions) (*protocol.BuildResponse
 }
 
 func (p *Provider) Start(opts *protocol.MachineOptions) error {
+
 	return errors.New("Stop is not supported.")
 }
 
 func (p *Provider) Stop(opts *protocol.MachineOptions) error {
-	return errors.New("Stop is not supported.")
+	o, err := p.NewClient(opts)
+	if err != nil {
+		return err
+	}
+	p.Push("Stopping machine", 10, machinestate.Stopping)
+
+	// create backup name the same as the given instanceName
+	backup := gophercloud.CreateImage{
+		Name: o.Builder.InstanceName,
+	}
+
+	p.Push(fmt.Sprintf("Creating a backup image with name: %s for id: %s",
+		backup.Name, o.Id()), 30, machinestate.Stopping)
+	respId, err := o.Client.CreateImage(o.Id(), backup)
+	if err != nil {
+		return err
+	}
+
+	fmt.Printf("respId %+v\n", respId)
+
+	p.Push(fmt.Sprintf("Deleting server: %s", o.Id()), 50, machinestate.Stopping)
+	if err := o.Client.DeleteServerById(o.Id()); err != nil {
+		return err
+	}
+
+	stateFunc := func() (machinestate.State, error) {
+		p.Push("Waiting for machine to be deleted", 60, machinestate.Stopping)
+		server, err := o.Server()
+		if err != nil {
+			return 0, err
+		}
+
+		pretty.Println("server", server)
+
+		return statusToState(server.Status), nil
+	}
+
+	ws := waitstate.WaitState{
+		StateFunc:    stateFunc,
+		DesiredState: machinestate.Stopped,
+		Timeout:      5 * time.Minute,
+		Interval:     3 * time.Second,
+	}
+
+	return ws.Wait()
 }
 
 func (p *Provider) Restart(opts *protocol.MachineOptions) error {
