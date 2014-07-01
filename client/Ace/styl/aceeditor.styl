@@ -43,303 +43,304 @@ body.ace #main-header
 
 // OLD STYLES
 // BURAK CLEANUP PLEASE
-.ace_editor
-  size                    100%, 100%
+body.ace
+  .ace_editor
+    size                    100%, 100%
 
-.ace_gutter
-  .ace_gutter-cell.ace_error
-    bg                    image, url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAsAAAALCAYAAACprHcmAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAyJpVFh0WE1MOmNvbS5hZG9iZS54bXAAAAAAADw/eHBhY2tldCBiZWdpbj0i77u/IiBpZD0iVzVNME1wQ2VoaUh6cmVTek5UY3prYzlkIj8+IDx4OnhtcG1ldGEgeG1sbnM6eD0iYWRvYmU6bnM6bWV0YS8iIHg6eG1wdGs9IkFkb2JlIFhNUCBDb3JlIDUuMC1jMDYwIDYxLjEzNDc3NywgMjAxMC8wMi8xMi0xNzozMjowMCAgICAgICAgIj4gPHJkZjpSREYgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIj4gPHJkZjpEZXNjcmlwdGlvbiByZGY6YWJvdXQ9IiIgeG1sbnM6eG1wPSJodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvIiB4bWxuczp4bXBNTT0iaHR0cDovL25zLmFkb2JlLmNvbS94YXAvMS4wL21tLyIgeG1sbnM6c3RSZWY9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC9zVHlwZS9SZXNvdXJjZVJlZiMiIHhtcDpDcmVhdG9yVG9vbD0iQWRvYmUgUGhvdG9zaG9wIENTNSBNYWNpbnRvc2giIHhtcE1NOkluc3RhbmNlSUQ9InhtcC5paWQ6NTdBRDIwREZBMkU1MTFFMUE5MTFEOEE4OEQ1MUI3NjgiIHhtcE1NOkRvY3VtZW50SUQ9InhtcC5kaWQ6NTdBRDIwRTBBMkU1MTFFMUE5MTFEOEE4OEQ1MUI3NjgiPiA8eG1wTU06RGVyaXZlZEZyb20gc3RSZWY6aW5zdGFuY2VJRD0ieG1wLmlpZDo1N0FEMjBEREEyRTUxMUUxQTkxMUQ4QTg4RDUxQjc2OCIgc3RSZWY6ZG9jdW1lbnRJRD0ieG1wLmRpZDo1N0FEMjBERUEyRTUxMUUxQTkxMUQ4QTg4RDUxQjc2OCIvPiA8L3JkZjpEZXNjcmlwdGlvbj4gPC9yZGY6UkRGPiA8L3g6eG1wbWV0YT4gPD94cGFja2V0IGVuZD0iciI/Ph9XQI4AAAEYSURBVHjaYvz//z8DDDxRYXUDUiCsAcQ3gHiXzJ3fu2DyjCDFQEVcQPY8IA5nwAQrgTgJqOkbE1RgMUghh4MnUDsjXBWYDzFgMVjgsTKLCxD/fxXl/B8Eviyf/f+xGvv/z4umgvmv4z3+g+RB6kCK+0CcJ7oC/z/N7AYr+HXrKpj+NLcfLA5V3McIJNYALQiGWS2x+xoDi6Iqw58nDxheOKgiu30tyM2PwT7l5mXgr+wCK/x98woDi4wCg0BNH1gcCh6DnOGG7ObPS2b8f6zC+v/z/EnobnaDBd06oM5ADls3hh+HdyFCw86d4cehnSDmemDQBcEUcwMF5gNxKJZwBvkpAaj4KyOWGPQFYlsgPgzEm5FjECDAADkAmrsoFWqHAAAAAElFTkSuQmCC")
-  .ace_gutter-cell.ace_warning
-    bg                    image, url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAwAAAALCAYAAABLcGxfAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAyJpVFh0WE1MOmNvbS5hZG9iZS54bXAAAAAAADw/eHBhY2tldCBiZWdpbj0i77u/IiBpZD0iVzVNME1wQ2VoaUh6cmVTek5UY3prYzlkIj8+IDx4OnhtcG1ldGEgeG1sbnM6eD0iYWRvYmU6bnM6bWV0YS8iIHg6eG1wdGs9IkFkb2JlIFhNUCBDb3JlIDUuMC1jMDYwIDYxLjEzNDc3NywgMjAxMC8wMi8xMi0xNzozMjowMCAgICAgICAgIj4gPHJkZjpSREYgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIj4gPHJkZjpEZXNjcmlwdGlvbiByZGY6YWJvdXQ9IiIgeG1sbnM6eG1wPSJodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvIiB4bWxuczp4bXBNTT0iaHR0cDovL25zLmFkb2JlLmNvbS94YXAvMS4wL21tLyIgeG1sbnM6c3RSZWY9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC9zVHlwZS9SZXNvdXJjZVJlZiMiIHhtcDpDcmVhdG9yVG9vbD0iQWRvYmUgUGhvdG9zaG9wIENTNSBNYWNpbnRvc2giIHhtcE1NOkluc3RhbmNlSUQ9InhtcC5paWQ6NTdBRDIwREJBMkU1MTFFMUE5MTFEOEE4OEQ1MUI3NjgiIHhtcE1NOkRvY3VtZW50SUQ9InhtcC5kaWQ6NTdBRDIwRENBMkU1MTFFMUE5MTFEOEE4OEQ1MUI3NjgiPiA8eG1wTU06RGVyaXZlZEZyb20gc3RSZWY6aW5zdGFuY2VJRD0ieG1wLmlpZDo1N0FEMjBEOUEyRTUxMUUxQTkxMUQ4QTg4RDUxQjc2OCIgc3RSZWY6ZG9jdW1lbnRJRD0ieG1wLmRpZDo1N0FEMjBEQUEyRTUxMUUxQTkxMUQ4QTg4RDUxQjc2OCIvPiA8L3JkZjpEZXNjcmlwdGlvbj4gPC9yZGY6UkRGPiA8L3g6eG1wbWV0YT4gPD94cGFja2V0IGVuZD0iciI/Pu5I9lIAAADBSURBVHjaYvz//z8DBpjM2AkkmRly/5egSzFiaJjMGAIkV0N5EUBNK3FrmMwoCCSPAbEiEP8D4kdAbAXU9A6mhAnNxgQg1gAqYAdiTiBbHYhTkRUwIZkuCyQLMD3EkAeUk8NmQx0Qy2HRIAXEDagaJjM6Q52DC8RC1TCwIJnOguQ8dA0guXog3sv4fxJDNJCxBEU69z8ujbEgnR5YIu4KkPwFxEZoMl4gDc1AzAoOb4giUPgLQ/13G0qzQeOnESDAADgWL1D1Oi1VAAAAAElFTkSuQmCC")
+  .ace_gutter
+    .ace_gutter-cell.ace_error
+      bg                    image, url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAsAAAALCAYAAACprHcmAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAyJpVFh0WE1MOmNvbS5hZG9iZS54bXAAAAAAADw/eHBhY2tldCBiZWdpbj0i77u/IiBpZD0iVzVNME1wQ2VoaUh6cmVTek5UY3prYzlkIj8+IDx4OnhtcG1ldGEgeG1sbnM6eD0iYWRvYmU6bnM6bWV0YS8iIHg6eG1wdGs9IkFkb2JlIFhNUCBDb3JlIDUuMC1jMDYwIDYxLjEzNDc3NywgMjAxMC8wMi8xMi0xNzozMjowMCAgICAgICAgIj4gPHJkZjpSREYgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIj4gPHJkZjpEZXNjcmlwdGlvbiByZGY6YWJvdXQ9IiIgeG1sbnM6eG1wPSJodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvIiB4bWxuczp4bXBNTT0iaHR0cDovL25zLmFkb2JlLmNvbS94YXAvMS4wL21tLyIgeG1sbnM6c3RSZWY9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC9zVHlwZS9SZXNvdXJjZVJlZiMiIHhtcDpDcmVhdG9yVG9vbD0iQWRvYmUgUGhvdG9zaG9wIENTNSBNYWNpbnRvc2giIHhtcE1NOkluc3RhbmNlSUQ9InhtcC5paWQ6NTdBRDIwREZBMkU1MTFFMUE5MTFEOEE4OEQ1MUI3NjgiIHhtcE1NOkRvY3VtZW50SUQ9InhtcC5kaWQ6NTdBRDIwRTBBMkU1MTFFMUE5MTFEOEE4OEQ1MUI3NjgiPiA8eG1wTU06RGVyaXZlZEZyb20gc3RSZWY6aW5zdGFuY2VJRD0ieG1wLmlpZDo1N0FEMjBEREEyRTUxMUUxQTkxMUQ4QTg4RDUxQjc2OCIgc3RSZWY6ZG9jdW1lbnRJRD0ieG1wLmRpZDo1N0FEMjBERUEyRTUxMUUxQTkxMUQ4QTg4RDUxQjc2OCIvPiA8L3JkZjpEZXNjcmlwdGlvbj4gPC9yZGY6UkRGPiA8L3g6eG1wbWV0YT4gPD94cGFja2V0IGVuZD0iciI/Ph9XQI4AAAEYSURBVHjaYvz//z8DDDxRYXUDUiCsAcQ3gHiXzJ3fu2DyjCDFQEVcQPY8IA5nwAQrgTgJqOkbE1RgMUghh4MnUDsjXBWYDzFgMVjgsTKLCxD/fxXl/B8Eviyf/f+xGvv/z4umgvmv4z3+g+RB6kCK+0CcJ7oC/z/N7AYr+HXrKpj+NLcfLA5V3McIJNYALQiGWS2x+xoDi6Iqw58nDxheOKgiu30tyM2PwT7l5mXgr+wCK/x98woDi4wCg0BNH1gcCh6DnOGG7ObPS2b8f6zC+v/z/EnobnaDBd06oM5ADls3hh+HdyFCw86d4cehnSDmemDQBcEUcwMF5gNxKJZwBvkpAaj4KyOWGPQFYlsgPgzEm5FjECDAADkAmrsoFWqHAAAAAElFTkSuQmCC")
+    .ace_gutter-cell.ace_warning
+      bg                    image, url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAwAAAALCAYAAABLcGxfAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAyJpVFh0WE1MOmNvbS5hZG9iZS54bXAAAAAAADw/eHBhY2tldCBiZWdpbj0i77u/IiBpZD0iVzVNME1wQ2VoaUh6cmVTek5UY3prYzlkIj8+IDx4OnhtcG1ldGEgeG1sbnM6eD0iYWRvYmU6bnM6bWV0YS8iIHg6eG1wdGs9IkFkb2JlIFhNUCBDb3JlIDUuMC1jMDYwIDYxLjEzNDc3NywgMjAxMC8wMi8xMi0xNzozMjowMCAgICAgICAgIj4gPHJkZjpSREYgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIj4gPHJkZjpEZXNjcmlwdGlvbiByZGY6YWJvdXQ9IiIgeG1sbnM6eG1wPSJodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvIiB4bWxuczp4bXBNTT0iaHR0cDovL25zLmFkb2JlLmNvbS94YXAvMS4wL21tLyIgeG1sbnM6c3RSZWY9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC9zVHlwZS9SZXNvdXJjZVJlZiMiIHhtcDpDcmVhdG9yVG9vbD0iQWRvYmUgUGhvdG9zaG9wIENTNSBNYWNpbnRvc2giIHhtcE1NOkluc3RhbmNlSUQ9InhtcC5paWQ6NTdBRDIwREJBMkU1MTFFMUE5MTFEOEE4OEQ1MUI3NjgiIHhtcE1NOkRvY3VtZW50SUQ9InhtcC5kaWQ6NTdBRDIwRENBMkU1MTFFMUE5MTFEOEE4OEQ1MUI3NjgiPiA8eG1wTU06RGVyaXZlZEZyb20gc3RSZWY6aW5zdGFuY2VJRD0ieG1wLmlpZDo1N0FEMjBEOUEyRTUxMUUxQTkxMUQ4QTg4RDUxQjc2OCIgc3RSZWY6ZG9jdW1lbnRJRD0ieG1wLmRpZDo1N0FEMjBEQUEyRTUxMUUxQTkxMUQ4QTg4RDUxQjc2OCIvPiA8L3JkZjpEZXNjcmlwdGlvbj4gPC9yZGY6UkRGPiA8L3g6eG1wbWV0YT4gPD94cGFja2V0IGVuZD0iciI/Pu5I9lIAAADBSURBVHjaYvz//z8DBpjM2AkkmRly/5egSzFiaJjMGAIkV0N5EUBNK3FrmMwoCCSPAbEiEP8D4kdAbAXU9A6mhAnNxgQg1gAqYAdiTiBbHYhTkRUwIZkuCyQLMD3EkAeUk8NmQx0Qy2HRIAXEDagaJjM6Q52DC8RC1TCwIJnOguQ8dA0guXog3sv4fxJDNJCxBEU69z8ujbEgnR5YIu4KkPwFxEZoMl4gDc1AzAoOb4giUPgLQ/13G0qzQeOnESDAADgWL1D1Oi1VAAAAAElFTkSuQmCC")
 
-.kdnotification.editor.mini
-  shadow                  0 1px 3px rgba(0, 0, 0, 0.3)
-  rounded                 2px
-  margin-top              15px
-  .kdnotification-title
-    text-shadow           none
-    font-size             10px
-    line-height           10px
-    padding               0 10px
+  .kdnotification.editor.mini
+    shadow                  0 1px 3px rgba(0, 0, 0, 0.3)
+    rounded                 2px
+    margin-top              15px
+    .kdnotification-title
+      text-shadow           none
+      font-size             10px
+      line-height           10px
+      padding               0 10px
 
 
-.kdtabhandle
-  .inactive
-    color                 rgba(255,255,255,0.85)
-    text-shadow           0 -1px 0 rgba(0,0,0,.61)
-    bg                    color,rgba(255,255,255,.2)
-    span.close-tab
-      bg                  color,transparent
+  .kdtabhandle
+    .inactive
+      color                 rgba(255,255,255,0.85)
+      text-shadow           0 -1px 0 rgba(0,0,0,.61)
+      bg                    color,rgba(255,255,255,.2)
+      span.close-tab
+        bg                  color,transparent
 
-.save-file-container
-  bg                      color, #eee
-  borderBox()
-  &.save-as-dialog
-    border                1px solid #bbb
+  .save-file-container
+    bg                      color, #eee
+    borderBox()
+    &.save-as-dialog
+      border                1px solid #bbb
 
-.save-as-dialog
-  .kddialog-buttons
-    height                65px !important
-  .kddialog-wrapper
-    margin-bottom         80px !important
-  button
-    margin                10px 10px 0 0 !important
-    &:first-child
-      margin-right        20px !important
+  .save-as-dialog
+    .kddialog-buttons
+      height                65px !important
+    .kddialog-wrapper
+      margin-bottom         80px !important
+    button
+      margin                10px 10px 0 0 !important
+      &:first-child
+        margin-right        20px !important
 
-.editor-main
-  bg                      color, #161616
-  .code-wrapper
-    size(100%,100%)
-    .ace_scroller
-      overflow-x          none
-      cursor              text
+  .editor-main
+    bg                      color, #161616
+    .code-wrapper
+      size(100%,100%)
+      .ace_scroller
+        overflow-x          none
+        cursor              text
 
-  .ace_content
-    cursor                text
+    .ace_content
+      cursor                text
 
-  &.not-editable
-    .ace_cursor.ace_hidden
-      display             none
+    &.not-editable
+      .ace_cursor.ace_hidden
+        display             none
 
-.ace-find-replace-view
-  display                 block
-  bottom                  20px
-  bg                      color, #252E30
-  color                   #5e7074
-  z-index                 1000
-  padding-top             3px
-  border-bottom           1px solid #2b3638
-  shadow                  inset 0 -1px 0 #1f2729
-  borderBox()
-  abs()
-
-  .ace-find-replace-settings
-    width                 100px
+  .ace-find-replace-view
+    display                 block
+    bottom                  20px
+    bg                      color, #252E30
+    color                   #5e7074
+    z-index                 1000
+    padding-top             3px
+    border-bottom           1px solid #2b3638
+    shadow                  inset 0 -1px 0 #1f2729
+    borderBox()
     abs()
-    left                  0
 
-  .ace-find-replace-inputs
-    padding               0 194px 0 86px
-    width                 auto
+    .ace-find-replace-settings
+      width                 100px
+      abs()
+      left                  0
+
+    .ace-find-replace-inputs
+      padding               0 194px 0 86px
+      width                 auto
+
+      .kdinput
+        height              24px
+        padding             0 5px
+        font-size           12px
+        rounded             2px
+        line-height         24px
+        color               #7e9ea3
+        bg                  color, #2f3b3d
+        shadow              0 1px 0 #374447
+        border              1px solid #14181a
+        borderBox()
+
+        &:nth-child(2)
+          margin-top        3px
+
+        &:hover
+          border            1px solid #14181a
+          background        #354245
+
+        &:focus
+          background        #354245
+          border            1px solid #7e9ea3
+          shadow            0 0 3px #7e9ea3
+
+    .ace-find-replace-buttons
+      width                 190px
+      abs()
+      right                 0
+      top                   3px
+
+      .kdbutton
+        cursor              pointer
+        rounded             3px
+        size                91px, 24px
+        border              1px solid #374447
+        margin-bottom       3px
+        color               #7e9ea3
+        bg                  color, #212a2b
+        shadow              0 1px 0 #14181a
+        -webkit-transition  -webkit-transform .1s ease,
+                            background        .1s ease
+        -moz-transition     -moz-transform    .1s ease,
+                            background        .1s ease
+        transition          transform         .1s ease,
+                            background        .1s ease
+        borderBox()
+
+        &:hover
+          bg                color, #2b3638
+        &:active
+          shadow            none
+          vendor            transform, translateY(1px)
 
     .kdinput
-      height              24px
-      padding             0 5px
-      font-size           12px
-      rounded             2px
-      line-height         24px
-      color               #7e9ea3
-      bg                  color, #2f3b3d
-      shadow              0 1px 0 #374447
-      border              1px solid #14181a
-      borderBox()
+      width                 100%
 
-      &:nth-child(2)
-        margin-top        3px
+    .close-icon
+      bg                    position,-80px -222px
 
-      &:hover
-        border            1px solid #14181a
-        background        #354245
+    .multiple-choice
+      fl()
+      position              relative
+      margin-left           4px
+      a
+        cursor              pointer
+        size                26px, 24px
+        border              1px solid #374447
+        margin-bottom       3px
+        color               #7e9ea3
+        bg                  color, #212a2b
+        shadow              0 1px 0 #14181a
+        -webkit-transition  -webkit-transform .1s ease,
+                            background        .1s ease
+        -moz-transition     -moz-transform    .1s ease,
+                            background        .1s ease
+        transition          transform         .1s ease,
+                            background        .1s ease
+        text-indent         -10000px
+        borderBox()
 
-      &:focus
-        background        #354245
-        border            1px solid #7e9ea3
-        shadow            0 0 3px #7e9ea3
+        &:nth-child(1)
+        &:nth-child(2)
+          border-right            none
 
-  .ace-find-replace-buttons
-    width                 190px
+        &:nth-child(3)
+          border-right-color      #374447
+
+        &.multiple-choice-case-sensitive
+          r-sprite            ace '26-search-case'
+          &.active
+            r-sprite          ace '26-search-case-active'
+        &.multiple-choice-regex
+          r-sprite            ace '26-search-regex'
+          &.active
+            r-sprite          ace '26-search-regex-active'
+        &.multiple-choice-whole-word
+          r-sprite            ace '26-search-whole'
+          &.active
+            r-sprite          ace '26-search-whole-active'
+        &.active
+          border-color      #374447 !important
+
+  .editor-bottom-bar
+    bg                      color, #252E30
+    color                   #5e7074
+    size                    100% 20px
+    z-index                 1000
+    borderBox()
     abs()
-    right                 0
-    top                   3px
+    &.clearfix
+      bottom                0
 
-    .kdbutton
-      cursor              pointer
-      rounded             3px
-      size                91px, 24px
-      border              1px solid #374447
-      margin-bottom       3px
-      color               #7e9ea3
-      bg                  color, #212a2b
-      shadow              0 1px 0 #14181a
-      -webkit-transition  -webkit-transform .1s ease,
-                          background        .1s ease
-      -moz-transition     -moz-transform    .1s ease,
-                          background        .1s ease
-      transition          transform         .1s ease,
-                          background        .1s ease
+    .section
+      padding               3px
+      font-size             10px
+      line-height           12px
+      color                 #5e7074
+      size                  auto 12px
+      fl()
+      &.caret-position
+        width               48px
+        text-align          center
+        color               #5e7074
+        margin              0
+        span
+          margin            0 2px
+
+  .terminal-tab
+    border                  1px solid #ddd
+    borderBox()
+
+    input.kdinput.text
+      color                 #28fe14
+      font-family           mono
+      border                none
+      display               block
+      line-height           initial
+      rounded               0
+      size                  100%, initial
+      shadow                none
+      bg                    color, transparent
+
+    .anyterm-screen
+      size                  100%, 100%
+      padding               2px
+      margin                0
+      color                 #28fe14
+      bg                    color, #111
+      bg                    image, url("/a/images/gterminal.png")
+      bg                    repeat, no-repeat
+      bg                    size, cover
       borderBox()
+      span.cursor
+        bg                  color, transparent
+        border              1px solid #b4b4b4
 
-      &:hover
-        bg                color, #2b3638
-      &:active
-        shadow            none
-        vendor            transform, translateY(1px)
+    &.terminal-on-focus
+      span.cursor
+        border              0
+        margin              0
+        bg                  color,transparent
+        bg                  image,url("/a/images/blinking-cursor.gif")
+        bg                  repeat,no-repeat
 
-  .kdinput
-    width                 100%
 
-  .close-icon
-    bg                    position,-80px -222px
-
-  .multiple-choice
-    fl()
-    position              relative
-    margin-left           4px
-    a
-      cursor              pointer
-      size                26px, 24px
-      border              1px solid #374447
-      margin-bottom       3px
-      color               #7e9ea3
-      bg                  color, #212a2b
-      shadow              0 1px 0 #14181a
-      -webkit-transition  -webkit-transform .1s ease,
-                          background        .1s ease
-      -moz-transition     -moz-transform    .1s ease,
-                          background        .1s ease
-      transition          transform         .1s ease,
-                          background        .1s ease
-      text-indent         -10000px
-      borderBox()
-
-      &:nth-child(1)
-      &:nth-child(2)
-        border-right            none
-
-      &:nth-child(3)
-        border-right-color      #374447
-
-      &.multiple-choice-case-sensitive
-        r-sprite            ace '26-search-case'
-        &.active
-          r-sprite          ace '26-search-case-active'
-      &.multiple-choice-regex
-        r-sprite            ace '26-search-regex'
-        &.active
-          r-sprite          ace '26-search-regex-active'
-      &.multiple-choice-whole-word
-        r-sprite            ace '26-search-whole'
-        &.active
-          r-sprite          ace '26-search-whole-active'
-      &.active
-        border-color      #374447 !important
-
-.editor-bottom-bar
-  bg                      color, #252E30
-  color                   #5e7074
-  size                    100% 20px
-  z-index                 1000
-  borderBox()
-  abs()
-  &.clearfix
-    bottom                0
-
-  .section
-    padding               3px
-    font-size             10px
-    line-height           12px
-    color                 #5e7074
-    size                  auto 12px
-    fl()
-    &.caret-position
-      width               48px
-      text-align          center
-      color               #5e7074
-      margin              0
+  .kdmodal.goto
+    .kdmodal-content
+      margin-top            0 !important
+    .kdmodal-inner
+      margin                0 !important
+    .close-icon
+      hidden()
+    .title
+      line-height           30px
+    button
+      abs                   12px, 9px
+      size                  auto, 42px
+      padding               2px 10px !important
       span
-        margin            0 2px
+        line-height         42px !important
+        text-transform      uppercase !important
+    .kdformview .formline
+      padding               11px
+      .input-wrapper > input
+        min-width           0
+        max-width           98px
 
-.terminal-tab
-  border                  1px solid #ddd
-  borderBox()
+  .kdmodal.key-bindings
+    table
+      size                  100%, auto
+      margin                0
+      font-size             14px
+      borderBox()
+      fl()
 
-  input.kdinput.text
-    color                 #28fe14
-    font-family           mono
-    border                none
-    display               block
-    line-height           initial
-    rounded               0
-    size                  100%, initial
-    shadow                none
-    bg                    color, transparent
+      &~table
+        padding             0 0 0 12px
+        border-left         1px solid #dedede
 
-  .anyterm-screen
-    size                  100%, 100%
-    padding               2px
-    margin                0
-    color                 #28fe14
-    bg                    color, #111
-    bg                    image, url("/a/images/gterminal.png")
-    bg                    repeat, no-repeat
-    bg                    size, cover
-    borderBox()
-    span.cursor
-      bg                  color, transparent
-      border              1px solid #b4b4b4
+      thead
+        font-weight         500
 
-  &.terminal-on-focus
-    span.cursor
-      border              0
-      margin              0
-      bg                  color,transparent
-      bg                  image,url("/a/images/blinking-cursor.gif")
-      bg                  repeat,no-repeat
+        th
+          padding           8px 6px
 
+      tr
+        line-height         18px
+        border-bottom       1px solid #dedede
 
-.kdmodal.goto
-  .kdmodal-content
-    margin-top            0 !important
-  .kdmodal-inner
-    margin                0 !important
-  .close-icon
-    hidden()
-  .title
-    line-height           30px
-  button
-    abs                   12px, 9px
-    size                  auto, 42px
-    padding               2px 10px !important
-    span
-      line-height         42px !important
-      text-transform      uppercase !important
-  .kdformview .formline
-    padding               11px
-    .input-wrapper > input
-      min-width           0
-      max-width           98px
+        td
+          padding           8px 6px
+          min-width         140px
 
-.kdmodal.key-bindings
-  table
-    size                  100%, auto
-    margin                0
-    font-size             14px
-    borderBox()
-    fl()
+          ~td
+            border-left     1px solid #dfdfdf
 
-    &~table
-      padding             0 0 0 12px
-      border-left         1px solid #dedede
-
-    thead
-      font-weight         500
-
-      th
-        padding           8px 6px
-
-    tr
-      line-height         18px
-      border-bottom       1px solid #dedede
-
-      td
-        padding           8px 6px
-        min-width         140px
-
-        ~td
-          border-left     1px solid #dfdfdf
-
-      &:nth-child(2n)
-        background        #f7f7f7
+        &:nth-child(2n)
+          background        #f7f7f7
 
 
