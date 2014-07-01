@@ -32,9 +32,9 @@ module.exports =
     secret      : 'RkZRBOR8jtbAo+to2nbYWwPlZvzG9ZjyC8yhTh1q'
   uri           :
     address     : "http://sandbox.koding.com"
-  userSitesDomain: 'staging.kd.io'
+  userSitesDomain: 'sandbox.kd.io'
   containerSubnet: "10.128.2.0/9"
-  vmPool        : "vms-staging"
+  vmPool        : "vms-sandbox"
   projectRoot   : projectRoot
   webserver     :
     useCacheHeader: yes
@@ -221,7 +221,7 @@ module.exports =
     componentUser: "guest"
     password    : 'djfjfhgh4455__5'
     heartbeat   : 20
-    vhost       : 'new'
+    vhost       : 'sandbox'
   broker              :
     name              : "broker"
     serviceGenericName: "broker"
@@ -232,7 +232,7 @@ module.exports =
     webProtocol       : 'https:'
     authExchange      : authExchange
     authAllExchange   : authAllExchange
-    failoverUri       : 'stage-broker.koding.com'
+    failoverUri       : 'sandbox.koding.com'
   premiumBroker       :
     name              : "premiumBroker"
     serviceGenericName: "broker"
@@ -248,13 +248,13 @@ module.exports =
     name              : "brokerKite"
     serviceGenericName: "brokerKite"
     ip                : ""
-    port              : 443
+    port              : 453
     certFile          : "/opt/ssl_certs/wildcard.koding.com.cert"
     keyFile           : "/opt/ssl_certs/wildcard.koding.com.key"
     webProtocol       : 'https:'
     authExchange      : authExchange
     authAllExchange   : authAllExchange
-    failoverUri       : 'stage-brokerkite.koding.com'
+    failoverUri       : 'sandbox.koding.com'
   premiumBrokerKite   :
     name              : "premiumBrokerKite"
     serviceGenericName: "brokerKite"
@@ -305,19 +305,19 @@ module.exports =
     keyFile       : "/opt/koding/certs/y_koding_com_key.pem"
   etcd            : [ {host: "127.0.0.1", port: 4001} ]
   kontrold        :
-    vhost         : "/"
+    vhost         : "sandbox"
     overview      :
-      apiHost     : "172.16.6.16"
-      apiPort     : 80
+      apiHost     : "172.16.10.34"
+      apiPort     : 8081
       port        : 8080
-      kodingHost  : "latest.koding.com"
-      socialHost  : "stage-social.koding.com"
+      kodingHost  : "sandbox.koding.com"
+      socialHost  : "sandbox-social.koding.com"
     api           :
-      port        : 80
-      url         : "http://stage-kontrol.sj.koding.com"
+      port        : 8081
+      url         : "http://sandbox-web.sj.koding.com:8081"
     proxy         :
-      port        : 80
-      portssl     : 443
+      port        : 8082
+      portssl     : 444
       ftpip       : '54.208.3.200'
   recurly         :
     apiKey        : '4a0b7965feb841238eadf94a46ef72ee' # koding-test.recurly.com

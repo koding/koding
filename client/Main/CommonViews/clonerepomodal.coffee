@@ -26,6 +26,7 @@ class CloneRepoModal extends ModalViewWithTerminal
 
     super options, data
 
+  viewAppended: ->
     @addSubView @repoPath = new KDHitEnterInputView
       type             : "text"
       placeholder      : "Type a git repository URL..."
@@ -41,7 +42,10 @@ class CloneRepoModal extends ModalViewWithTerminal
     return if @cloning
     @buttons.Clone.showLoader()
 
-    command  = "cd #{FSHelper.plainPath @getOptions().path} ; git clone #{@repoPath.getValue()}; echo $?|kdevent;"
+    command  = """
+      cd #{FSHelper.plainPath @getOptions().path} ; git clone #{@repoPath.getValue()}; echo -e "\\e]1;$?;$(date +%s%N)\\e\\\\"
+    """
+
     @cloning = yes
     @setClass "running"
     @run command
