@@ -1,7 +1,7 @@
 EventExchangeName="BrokerMessageBus"
 Mongo="dev:k9lc4G1k32nyD72@172.16.10.36:27017/koding"
 Environment="sandbox"
-Uri="https://koding.com"
+Uri="http://sandbox.koding.com"
 
 [postgres]
 Host=     "172.16.10.45"
@@ -15,7 +15,7 @@ Host=     "172.16.6.14"
 Port=     5672
 Username= "guest"
 Password= "djfjfhgh4455__5"
-Vhost=    "new"
+Vhost=    "sandbox"
 
 [redis]
 URL=      "localhost:6379"
