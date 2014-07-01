@@ -10,11 +10,15 @@ import (
 	"strings"
 
 	"github.com/koding/logging"
+	"github.com/rackspace/gophercloud"
 )
 
 var (
 	DefaultImageName = "Ubuntu 14.04 LTS (Trusty Tahr) (PVHVM)"
 	DefaultImageId   = "bb02b1a3-bc77-4d17-ab5b-421d89850fca"
+
+	// id: 2 name: 512MB Standard Instance cpu: 1 ram: 512 disk: 20
+	DefaultFlavorId = "2"
 )
 
 type Provider struct {
@@ -60,22 +64,20 @@ func (p *Provider) Build(opts *protocol.MachineOptions) (*protocol.BuildResponse
 		return nil, err
 	}
 
-	if opts.ImageName == "" {
-		opts.ImageName = DefaultImageId
+	imageId := DefaultImageId
+	if opts.ImageName != "" {
+		imageId = opts.ImageName
 	}
 
 	if opts.InstanceName == "" {
 		return nil, errors.New("dropletName is empty")
 	}
 
-	// - validate image and flavor is available
-	p.Push(fmt.Sprintf("Fetching image %s", DefaultImageName), 10, machinestate.Building)
-	image, err := o.Image(opts.ImageName)
+	p.Push(fmt.Sprintf("Checking for image availability %s", imageId), 10, machinestate.Building)
+	_, err = o.Image(imageId)
 	if err != nil {
 		return nil, err
 	}
-
-	fmt.Printf("image %+v\n", image)
 
 	// check if our key exist
 	key, err := o.ShowKey(protocol.KeyName)
@@ -91,24 +93,34 @@ func (p *Provider) Build(opts *protocol.MachineOptions) (*protocol.BuildResponse
 		}
 	}
 
-	fmt.Printf("key %+v\n", key)
+	// check if the flavor does exist
+	flavors, err := o.Flavors()
+	if err != nil {
+		return nil, err
+	}
 
-	// server := gophercloud.NewServer{
-	// 	Name:        opts.InstanceName,
-	// 	ImageRef:    s.SourceImage,
-	// 	FlavorRef:   s.Flavor,
-	// 	KeyPairName: keyName,
+	if !flavors.Has(DefaultFlavorId) {
+		return nil, fmt.Errorf("Flavor id '%s' doesn't exist", DefaultFlavorId)
+	}
+
+	server := gophercloud.NewServer{
+		Name:        opts.InstanceName,
+		ImageRef:    imageId,
+		FlavorRef:   DefaultFlavorId,
+		KeyPairName: key.Name,
+	}
+
+	fmt.Printf("server %+v\n", server)
+
+	// serverResp, err := o.Client.CreateServer(server)
+	// if err != nil {
+	// 	return nil, fmt.Errorf("Error creating server: %s", err)
 	// }
 	//
-	// serverResp, err := csp.CreateServer(server)
-	// if err != nil {
-	// 	err := fmt.Errorf("Error launching source server: %s", err)
-	// 	state.Put("error", err)
-	// 	ui.Error(err.Error())
-	// 	return multistep.ActionHalt
-	// }
+	// fmt.Printf("serverResp %+v\n", serverResp)
 
-	return nil, errors.New("not supported yet.")
+	return nil, errors.New("not supported yet")
+
 }
 
 func (p *Provider) Start(opts *protocol.MachineOptions) error {
