@@ -143,14 +143,12 @@ func (b *Bongo) UpdateMulti(i Modellable, rest ...map[string]interface{}) error 
 		return errors.New("Update partial parameter list is wrong")
 	}
 
-	query := b.DB.Model(i)
-
-	query = query.Table(i.TableName())
+	query := b.DB.Table(i.TableName())
 
 	//add selector
 	query = addWhere(query, selector)
 
-	if err := query.Update(set).Error; err != nil {
+	if err := query.Updates(set).Error; err != nil {
 		return err
 	}
 
