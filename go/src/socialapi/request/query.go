@@ -20,6 +20,7 @@ type Query struct {
 	Name       string    `url:"name"`
 	Slug       string    `url:"slug"`
 	ShowExempt bool      `url:"showExempt"`
+	ReplyLimit int       `url:"replyLimit"`
 }
 
 func NewQuery() *Query {
@@ -70,6 +71,11 @@ func (q *Query) MapURL(u *url.URL) *Query {
 	if showExempt := urlQuery.Get("showExempt"); showExempt != "" {
 		isExempt, _ := strconv.ParseBool(showExempt)
 		q.ShowExempt = isExempt
+	}
+
+	if replyLimit := urlQuery.Get("replyLimit"); replyLimit != "" {
+		replyLimit, _ := strconv.Atoi(replyLimit)
+		q.ReplyLimit = replyLimit
 	}
 
 	return q
