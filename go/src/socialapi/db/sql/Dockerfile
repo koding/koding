@@ -15,8 +15,9 @@ RUN sed -i "s/#listen_addresses =.*/listen_addresses = '*'/" /etc/postgresql/9.3
 # database are possible.
 RUN echo "host all  all    0.0.0.0/0  md5" >> /etc/postgresql/9.3/main/pg_hba.conf
 
-ADD definition /definition
+ADD definition              /definition
 ADD notification_definition /notification_definition
+ADD sitemap_definition      /sitemap_definition
 
 
 USER root
