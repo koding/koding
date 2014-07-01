@@ -105,7 +105,7 @@ func (f *Controller) isEligible(c *models.Channel, cm *models.ChannelMessage) bo
 func PreparePopularPostKey(group, channelName, statisticName string, year, dateNumber int) string {
 	return fmt.Sprintf(
 		"%s:%s:%s:%s:%d:%s:%d",
-		config.Get().Environment,
+		config.MustGet().Environment,
 		group,
 		PopularPostKey,
 		channelName,

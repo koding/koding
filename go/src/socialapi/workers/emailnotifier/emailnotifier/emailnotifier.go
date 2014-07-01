@@ -225,7 +225,7 @@ func checkMailSettings(nc *notificationmodels.NotificationContent, uc *models.Us
 
 func prepareRecipientsCacheKey() string {
 	return fmt.Sprintf("%s:%s:%s:%s",
-		config.Get().Environment,
+		config.MustGet().Environment,
 		CACHEPREFIX,
 		RECIPIENTSKEY,
 		time.Now().Format(TIMEFORMAT))
@@ -233,7 +233,7 @@ func prepareRecipientsCacheKey() string {
 
 func prepareSetterCacheKey(accountId int64) string {
 	return fmt.Sprintf("%s:%s:%d:%s",
-		config.Get().Environment,
+		config.MustGet().Environment,
 		CACHEPREFIX,
 		accountId,
 		time.Now().Format(TIMEFORMAT))

@@ -19,13 +19,10 @@ func main() {
 		return
 	}
 
-	redisConn := helper.MustInitRedisConn(r.Conf.Redis)
+	redisConn := helper.MustInitRedisConn(r.Conf)
 	defer redisConn.Close()
 
-	controller, err := feeder.New(r.Log)
-	if err != nil {
-		panic(err)
-	}
+	controller := feeder.New(r.Log)
 
 	m := manager.New()
 	m.Controller(controller)

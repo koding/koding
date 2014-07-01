@@ -12,6 +12,7 @@ import (
 	"socialapi/workers/common/runner"
 	"socialapi/workers/helper"
 	notificationapi "socialapi/workers/notification/api"
+	sitemapapi "socialapi/workers/sitemap/api"
 	trollmodeapi "socialapi/workers/trollmode/api"
 
 	"github.com/rcrowley/go-tigertonic"
@@ -38,6 +39,7 @@ func init() {
 	mux = handlers.Inject(mux)
 	mux = notificationapi.InitHandlers(mux)
 	mux = trollmodeapi.InitHandlers(mux)
+	mux = sitemapapi.InitHandlers(mux)
 
 	// add namespace support into
 	// all handlers
@@ -64,7 +66,7 @@ func main() {
 	defer server.Close()
 
 	// init redis
-	redisConn := helper.MustInitRedisConn(r.Conf.Redis)
+	redisConn := helper.MustInitRedisConn(r.Conf)
 	defer redisConn.Close()
 
 	// init mongo connection

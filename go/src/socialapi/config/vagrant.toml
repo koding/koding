@@ -1,8 +1,7 @@
-EventExchangeName   ="BrokerMessageBus"
-Mongo               ="localhost:27017/koding"
-Environment         ="vagrant"
-Redis               ="localhost:6379"
-Uri                 ="http://lvh.me:3020"
+EventExchangeName  = "BrokerMessageBus"
+Mongo              = "localhost:27017/koding"
+Environment        = "vagrant"
+Uri                = "http://lvh.me:3020"
 
 [postgres]
 Host         = "localhost"
@@ -18,6 +17,10 @@ Username   = "PROD-k5it50s4676pO9O"
 Password   = "djfjfhgh4455__5"
 Vhost      =  "/"
 
+[redis]
+URL = "localhost:6379"
+DB  = 0
+
 [limits]
 MessageBodyMinLen=1
 
@@ -25,7 +28,7 @@ MessageBodyMinLen=1
 CacheEnabled = false
 
 [emailnotification]
-templateRoot="workers/emailnotifier/templates/"
+TemplateRoot="workers/emailnotifier/templates/"
 
 [sendgrid]
 Username        = "koding"
@@ -33,3 +36,8 @@ Password        = "DEQl7_Dr"
 FromName        = "Koding"
 FromMail        = "hello@koding.com"
 ForcedRecipient = "canthefason@gmail.com"
+
+[sitemap]
+XMLRoot = "workers/sitemap/files/"
+RedisDB = 1
+

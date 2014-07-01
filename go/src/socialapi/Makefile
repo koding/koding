@@ -35,7 +35,9 @@ PACKAGES = \
 	socialapi/workers/realtime \
 	socialapi/workers/topicfeed \
 	socialapi/workers/migrator \
-	socialapi/workers/sitemap/sitemapfeeder
+	socialapi/workers/sitemap/sitemapfeeder \
+	socialapi/workers/sitemap/sitemapgenerator \
+	socialapi/workers/sitemap/sitemapinitializer
 
 all: testapi
 
@@ -91,14 +93,28 @@ migrate:
 	@echo "$(OK_COLOR)==> Running Popular Posts Worker $(NO_COLOR)"
 	@$(GOBINDIR)/rerun socialapi/workers/migrator -c $(CONFIG) $(DEBUG)
 
+sitemapdev: sitemapfeederdev sitemapgeneratordev
+
 sitemapfeederdev:
 	@echo "$(OK_COLOR)==> Running Sitemap Feeder Worker $(NO_COLOR)"
 	@$(GOBINDIR)/rerun socialapi/workers/sitemap/sitemapfeeder -c $(CONFIG) $(DEBUG)
 
+sitemapgeneratordev:
+	@echo "$(OK_COLOR)==> Running Sitemap Generator Worker $(NO_COLOR)"
+	@$(GOBINDIR)/rerun socialapi/workers/sitemap/sitemapgenerator -c $(CONFIG) $(DEBUG)
+
+sitemapinitdev:
+	@echo "$(OK_COLOR)==> Running Sitemap Initializer Worker $(NO_COLOR)"
+	@$(GOBINDIR)/rerun socialapi/workers/sitemap/sitemapinitializer -c $(CONFIG) $(DEBUG)
+
+sitemaprootgeneratordev:
+	@echo "$(OK_COLOR)==> Running Sitemap Root Generator Worker $(NO_COLOR)"
+	@$(GOBINDIR)/rerun socialapi/workers/sitemap/sitemaprootgenerator -c $(CONFIG) $(DEBUG)
+
 createdb:
 	(vagrant ssh default --command "mongo localhost/koding --eval='db.jAccounts.update({},{\$$unset:{socialApiId:0}},{multi:true})'")
 	(vagrant ssh default --command "mongo localhost/koding --eval='db.jGroups.update({},{\$$unset:{socialApiChannelId:0}},{multi:true})'")
-	(vagrant ssh default --command "/opt/koding/go/src/socialapi/db/sql/definition/create.sh")
+	(vagrant ssh default --command "/opt/koding/go/src/socialapi/db/sql/definition/create.sh /opt/koding/go/src/socialapi/db/sql")
 
 configure: install installrerun
 	@echo "$(OK_COLOR)==> Configuration is done $(NO_COLOR)"
@@ -124,6 +140,7 @@ testapi:
 	@echo "$(OK_COLOR)==> Running go api tests $(NO_COLOR)"
 	@go test tests/*.go
 	@go test workers/notification/tests/*.go
+	@go test workers/sitemap/sitemapgenerator/generator/*.go
 
 doc:
 	@for package in $(PACKAGES); \

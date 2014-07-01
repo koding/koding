@@ -58,12 +58,11 @@ class ModalViewWithTerminal extends KDModalView
 
   createWebTermView: (terminalWrapper)->
 
-    handler = => @webterm.connectToTerminal()
     @webterm           = new WebTermView
       delegate         : terminalWrapper
       cssClass         : "webterm"
       advancedSettings : no
-    WebTermView.setTerminalTimeout null, 15000, handler, handler
+    @webterm.connectToTerminal()
 
   run: (command)->
     if @hidden

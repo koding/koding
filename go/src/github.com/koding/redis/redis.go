@@ -19,14 +19,7 @@ type RedisConf struct {
 	DB     int
 }
 
-func MustRedisSession(conf *RedisConf) *RedisSession {
-	session, err := NewRedisSession(conf)
-	if err != nil {
-		panic(err)
-	}
-
-	return session
-}
+var ErrNil = redis.ErrNil
 
 func NewRedisSession(conf *RedisConf) (*RedisSession, error) {
 	s := &RedisSession{}
@@ -321,30 +314,41 @@ func (r *RedisSession) GetHashMultipleSet(key string, rest ...interface{}) ([]in
 }
 
 // AddSetMembers adds given elements to the set stored at key. Given elements
-// that are already included in set are ignored.  Returns successfully added
-// key count and error state
+// that are already included in set are ignored.
+// Returns successfully added key count and error state
 func (r *RedisSession) AddSetMembers(key string, rest ...interface{}) (int, error) {
 	prefixedReq := r.prepareArgsWithKey(key, rest...)
-	return redis.Int(r.Do("SADD", prefixedReq...))
-}
 
-// PopSetMember removes and returns a random element from the set value stored
-// at key.
-func (r *RedisSession) PopSetMember(key string) (string, error) {
-	return redis.String(r.Do("SPOP", r.AddPrefix(key)))
+	reply, err := redis.Int(r.Do("SADD", prefixedReq...))
+	if err != nil {
+		return 0, err
+	}
+
+	return reply, nil
 }
 
 // RemoveSetMembers removes given elements from the set stored at key
 // Returns successfully removed key count and error state
 func (r *RedisSession) RemoveSetMembers(key string, rest ...interface{}) (int, error) {
 	prefixedReq := r.prepareArgsWithKey(key, rest...)
-	return redis.Int(r.Do("SREM", prefixedReq...))
+
+	reply, err := redis.Int(r.Do("SREM", prefixedReq...))
+	if err != nil {
+		return 0, err
+	}
+
+	return reply, nil
 }
 
 // GetSetMembers returns all members included in the set at key
 // Returns members array and error state
 func (r *RedisSession) GetSetMembers(key string) ([]interface{}, error) {
 	return redis.Values(r.Do("SMEMBERS", r.AddPrefix(key)))
+}
+
+// PopSetMember removes and returns a random element from the set stored at key
+func (r *RedisSession) PopSetMember(key string) (string, error) {
+	return redis.String(r.Do("SPOP", r.AddPrefix(key)))
 }
 
 // SortBy sorts elements stored at key with given weight and order(ASC|DESC)
