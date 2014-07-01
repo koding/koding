@@ -3,6 +3,7 @@ package models
 import (
 	"errors"
 	"fmt"
+	"math"
 	"socialapi/config"
 	"socialapi/request"
 	"time"
@@ -18,6 +19,11 @@ var mentionRegex = verbalexpressions.New().
 	Word().
 	EndCapture().
 	Regex()
+
+const (
+	DEFAULT_REPLY_LIMIT = 3
+	MAX_REPLY_LIMIT     = 25
+)
 
 type ChannelMessage struct {
 	// unique identifier of the channel message
@@ -282,7 +288,13 @@ func (c *ChannelMessage) BuildMessage(query *request.Query) (*ChannelMessageCont
 	mr := NewMessageReply()
 	mr.MessageId = c.Id
 	q := query
-	q.Limit = 3
+
+	if query.ReplyLimit == 0 {
+		q.Limit = DEFAULT_REPLY_LIMIT
+	} else {
+		q.Limit = int(math.Min(float64(q.ReplyLimit), float64(MAX_REPLY_LIMIT)))
+	}
+
 	replies, err := mr.List(query)
 	if err != nil {
 		return nil, err
