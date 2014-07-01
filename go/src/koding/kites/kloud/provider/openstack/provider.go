@@ -8,8 +8,10 @@ import (
 	"koding/kites/kloud/kloud/machinestate"
 	"koding/kites/kloud/kloud/protocol"
 	"strings"
+	"time"
 
 	"github.com/koding/logging"
+	"github.com/kr/pretty"
 	"github.com/rackspace/gophercloud"
 )
 
@@ -103,23 +105,41 @@ func (p *Provider) Build(opts *protocol.MachineOptions) (*protocol.BuildResponse
 		return nil, fmt.Errorf("Flavor id '%s' doesn't exist", DefaultFlavorId)
 	}
 
-	server := gophercloud.NewServer{
+	newServer := gophercloud.NewServer{
 		Name:        opts.InstanceName,
 		ImageRef:    imageId,
 		FlavorRef:   DefaultFlavorId,
 		KeyPairName: key.Name,
 	}
 
-	fmt.Printf("server %+v\n", server)
+	p.Push(fmt.Sprintf("Creating server %s", opts.InstanceName), 20, machinestate.Building)
+	resp, err := o.Client.CreateServer(newServer)
+	if err != nil {
+		return nil, fmt.Errorf("Error creating server: %s", err)
+	}
 
-	// serverResp, err := o.Client.CreateServer(server)
-	// if err != nil {
-	// 	return nil, fmt.Errorf("Error creating server: %s", err)
-	// }
-	//
-	// fmt.Printf("serverResp %+v\n", serverResp)
+	for {
+		server, err := o.Client.ServerById(resp.Id)
+		if err != nil {
+			return nil, err
+		}
+
+		p.Push(fmt.Sprintf("Checking server for ready: %s", opts.InstanceName), 40, machinestate.Building)
+		if statusToState(server.Status) == machinestate.Running {
+			pretty.Println("server", server)
+			break
+		}
+
+		time.Sleep(time.Second * 3)
+	}
 
 	return nil, errors.New("not supported yet")
+
+	// return &protocol.BuildResponse{
+	// 	IpAddress:    droplet.IpAddress,
+	// 	InstanceName: dropletName, // we don't use droplet.Name because it might have the cached name
+	// 	InstanceId:   droplet.Id,
+	// }, nil
 
 }
 
