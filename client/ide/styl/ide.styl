@@ -198,3 +198,72 @@ body.ide.dark
     .arrows
       r-sprite          'finder', 'expanded'
       top               8px
+
+//Save as dialog
+body.ide .kddialogview.save-as-dialog
+  right                 auto
+  left                  50%
+  size                  390px, auto
+  margin-left           -195px
+  background            #F9F7F3
+
+  .kddialog-wrapper
+    padding             25px 32px 0
+    margin              0 0 108px 0
+
+  form
+    .kdlabel
+      font-size         14px
+      color             #8B8B8B
+      display           block
+      margin            0 0 13px
+      opacity           .99
+      line-height       1em
+
+    .kdinput
+      margin            0 0 17px
+      background        #fff
+      border            1px solid #E6E1DC
+      rounded           3px
+      color             #9A9A9A
+      font-size         14px
+
+
+
+
+  .save-file-container
+    background          #2B2B2B
+    border              none
+    rounded             3px
+
+    .vm-header
+      .buttons
+        display         none
+
+    .jtreeview-wrapper
+      height            100%
+
+    button.finder-mountvm
+      display           none
+
+  .kddialog-buttons
+    background          transparent
+    border              none
+    rounded             0 0 4px 4px
+    padding             0 32px 32px
+    borderBox()
+
+    .kdbutton.green
+      background        #4EA04C
+      rounded           5px
+      width             82px
+
+    .kdbutton.nobg
+      background        transparent
+      padding           0
+      margin            0 25px 0 0
+
+      .button-title
+        color           #767676
+        text-decoration underline
+
