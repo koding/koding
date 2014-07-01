@@ -154,7 +154,7 @@ class IDE.IDEView extends IDE.WorkspaceTabView
     @createPreview vm.hostnameAlias
 
   closeUntitledFileIfNotChanged: ->
-    for pane in @tabView.panes
+    for pane in @tabView.panes when pane
       if pane.data instanceof FSFile and pane.data.path is @getDummyFilePath()
         if pane.subViews.first.getValue() is ''
           @tabView.removePane pane
