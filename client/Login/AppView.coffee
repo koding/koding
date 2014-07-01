@@ -86,57 +86,38 @@ class LoginView extends JView
 
   constructor:(options = {}, data)->
 
-    {entryPoint} = KD.config
-    options.cssClass = 'hidden'
+    options.cssClass = 'login-screen login'
 
     super options, data
 
-    @setCss 'background-image', "url('../a/images/unsplash/#{backgroundImageNr}.jpg')"
-
-    @hidden = yes
-
-    handler =(route, event)=>
-      stop event
-      KD.getSingleton('router').handleRoute route, {entryPoint}
-
-    homeHandler     = handler.bind null, '/'
-    loginHandler    = handler.bind null, '/Login'
-    registerHandler = handler.bind null, '/Register'
-    recoverHandler  = handler.bind null, '/Recover'
-
     @logo = new KDCustomHTMLView
-      tagName   : "a"
-      cssClass  : "koding-logo"
-      partial   : '<cite></cite>'
-      click     : (event)->
-        KD.utils.stopDOMEvent event
-        homeHandler()
+      tagName    : 'a'
+      cssClass   : 'koding-logo'
+      partial    : '<cite></cite>'
+      attributes : href : '/'
 
-    @backToLoginLink = new KDCustomHTMLView
-      tagName     : "a"
-      partial     : "Sign In"
+    @backToLoginLink = new CustomLinkView
+      title       : 'Sign In'
+      href        : '/Login'
       click       : ->
-        KD.mixpanel "Login button form in /Login, click"
-        loginHandler()
+        KD.mixpanel 'Login button form in /Login, click'
 
+    @goToRecoverLink = new CustomLinkView
+      cssClass    : 'forgot-link'
+      title       : 'Forgot your password?'
+      testPath    : 'landing-recover-password'
+      href        : '/Recover'
 
-    @goToRecoverLink = new KDCustomHTMLView
-      tagName     : "a"
-      cssClass    : "forgot-link"
-      partial     : "Forgot your password?"
-      testPath    : "landing-recover-password"
-      click       : recoverHandler
+    @goToRegisterLink = new CustomLinkView
+      title       : 'Sign up'
+      href        : '/Register'
 
-    @goToRegisterLink = new KDCustomHTMLView
-      tagName     : "a"
-      partial     : "Sign up"
-      click       : ->
-        KD.mixpanel "Register button form in /Login, click"
-        registerHandler()
-
-    @formHeader      = new KDCustomHTMLView
+    @formHeader = new KDCustomHTMLView
       tagName     : "h4"
       cssClass    : "form-header"
+      click       : (event)->
+        return  unless $(event.target).is 'a.register'
+        KD.mixpanel 'Register button form in /Login, click'
 
     if KD.utils.oauthEnabled() is yes
       @github          = new KDCustomHTMLView
@@ -246,7 +227,6 @@ class LoginView extends JView
 
   viewAppended:->
 
-    @setClass "login-screen login"
 
     @setTemplate @pistachio()
     @template.update()
@@ -263,6 +243,8 @@ class LoginView extends JView
         content    : ""
         closeTimer : 4000
         container  : this
+
+    KD.utils.defer => @setClass 'shown'
 
   pistachio:->
       # {{> @loginOptions}}
@@ -497,23 +479,23 @@ class LoginView extends JView
 
     KD.getSingleton('router').clear @getRouteWithEntryPoint 'Register'
     $('body').removeClass 'recovery'
-    @show =>
-      @animateToForm "register"
-      @$('.flex-wrapper').addClass 'taller'
-      KD.getSingleton('mainController').emit 'InvitationReceived', invite
+    @animateToForm "register"
+    @$('.flex-wrapper').addClass 'taller'
+    KD.getSingleton('mainController').emit 'InvitationReceived', invite
 
-  hide:(callback)->
+
+  hide: (callback) ->
 
     @$('.flex-wrapper').removeClass 'expanded'
     @emit "LoginViewHidden"
     @setClass 'hidden'
     callback?()
 
-  show:(callback)->
+
+  show: (callback) ->
 
     @unsetClass 'hidden'
     @emit "LoginViewShown"
-    @hidden = no
     callback?()
 
   # click:(event)->
@@ -540,74 +522,71 @@ class LoginView extends JView
 
   animateToForm: (name)->
 
-    @show =>
-      switch name
-        when "register"
-          # @utils.wait 5000, =>
-          #   @utils.registerDummyUser()
+    switch name
+      when "register"
 
-          KD.remote.api.JUser.isRegistrationEnabled (status)=>
-            if status is no
-              log "Registrations are disabled!!!"
-              @setFailureNotice
-                cssClass  : "registrations-disabled"
-                title     : "REGISTRATIONS ARE CURRENTLY DISABLED"
-                message   : "We're sorry for that, please follow us on <a href='http://twitter.com/koding' target='_blank'>twitter</a>
-                  if you want to be notified when registrations are enabled again."
-              @github.hide()
-              @$(".login-footer").addClass 'hidden'
-              @animateToForm "failureNotice"
-            else
-              @github.show()
-              @$(".login-footer").removeClass 'hidden'
+        KD.remote.api.JUser.isRegistrationEnabled (status)=>
+          if status is no
+            log "Registrations are disabled!!!"
+            @setFailureNotice
+              cssClass  : "registrations-disabled"
+              title     : "REGISTRATIONS ARE CURRENTLY DISABLED"
+              message   : "We're sorry for that, please follow us on <a href='http://twitter.com/koding' target='_blank'>twitter</a>
+                if you want to be notified when registrations are enabled again."
+            @github.hide()
+            @$(".login-footer").addClass 'hidden'
+            @animateToForm "failureNotice"
+          else
+            @github.show()
+            @$(".login-footer").removeClass 'hidden'
 
-          KD.mixpanel "Register form, click"
+        KD.mixpanel "Register form, click"
 
-        when "home"
-          parent.notification?.destroy()
-          if @headBannerMsg?
-            @headBanner.updatePartial @headBannerMsg
-            @headBanner.show()
+      when "home"
+        parent.notification?.destroy()
+        if @headBannerMsg?
+          @headBanner.updatePartial @headBannerMsg
+          @headBanner.show()
 
-      @unsetClass "register recover login reset home resendEmail finishRegistration"
-      @emit "LoginViewAnimated", name
-      @setClass name
-      @$('.flex-wrapper').removeClass 'three one'
+    @unsetClass 'register recover login reset home resendEmail finishRegistration'
+    @emit "LoginViewAnimated", name
+    @setClass name
+    @$('.flex-wrapper').removeClass 'three one'
 
-      @formHeader.hide()
-      @goToRecoverLink.show()
+    @formHeader.hide()
+    @github.show()
+    @goToRecoverLink.show()
 
-      switch name
-        when "register"
-          @registerForm.email.input.setFocus()
-        when "finishRegistration"
-          @finishRegistrationForm.username.input.setFocus()
-        when "redeem"
-          @$('.flex-wrapper').addClass 'one'
-          @redeemForm.inviteCode.input.setFocus()
-        when "login"
-          @formHeader.show()
-          @formHeader.updatePartial "Don't have an account yet? "
-          @formHeader.addSubView @goToRegisterLink
-          @loginForm.username.input.setFocus()
-        when "recover"
-          @$('.flex-wrapper').addClass 'one'
-          @github.hide()
-          @goToRecoverLink.hide()
-          @recoverForm.usernameOrEmail.input.setFocus()
-        when "resendEmail"
-          @$('.flex-wrapper').addClass 'one'
-          @resendForm.usernameOrEmail.input.setFocus()
-        when "failureNotice"
-          @$('.flex-wrapper').addClass 'one'
-          @github.hide()
-          @$(".login-footer").addClass 'hidden'
-          @failureNotice.show()
-        when "reset"
-          @formHeader.show()
-          @formHeader.updatePartial "Set your new password below"
-          @goToRecoverLink.hide()
-          @github.hide()
+    switch name
+      when "register"
+        @registerForm.email.input.setFocus()
+      when "finishRegistration"
+        @finishRegistrationForm.username.input.setFocus()
+      when "redeem"
+        @$('.flex-wrapper').addClass 'one'
+        @redeemForm.inviteCode.input.setFocus()
+      when "login"
+        @formHeader.show()
+        @formHeader.updatePartial "Don't have an account yet? <a class='register' href='/Register'>Sign Up</a>"
+        @loginForm.username.input.setFocus()
+      when "recover"
+        @$('.flex-wrapper').addClass 'one'
+        @github.hide()
+        @goToRecoverLink.hide()
+        @recoverForm.usernameOrEmail.input.setFocus()
+      when "resendEmail"
+        @$('.flex-wrapper').addClass 'one'
+        @resendForm.usernameOrEmail.input.setFocus()
+      when "failureNotice"
+        @$('.flex-wrapper').addClass 'one'
+        @github.hide()
+        @$(".login-footer").addClass 'hidden'
+        @failureNotice.show()
+      when "reset"
+        @formHeader.show()
+        @formHeader.updatePartial "Set your new password below"
+        @goToRecoverLink.hide()
+        @github.hide()
 
   getRouteWithEntryPoint:(route)->
     {entryPoint} = KD.config
