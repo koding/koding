@@ -2,8 +2,6 @@ class LoginView extends JView
 
   stop = KD.utils.stopDOMEvent
 
-  @backgroundImageNr = backgroundImageNr = KD.utils.getRandomNumber 15
-
   backgroundImages  = [
 
       path         : '1'
@@ -72,8 +70,14 @@ class LoginView extends JView
 
   ]
 
+  @backgroundImageNr = backgroundImageNr = KD.utils.getRandomNumber 15
 
+  do ->
+    image      = new Image
+    bgImageUrl = "../a/images/unsplash/#{backgroundImageNr}.jpg"
+    image.src  = bgImageUrl
 
+    image.classList.add 'off-screen-login-image'
 
   constructor:(options = {}, data)->
 
