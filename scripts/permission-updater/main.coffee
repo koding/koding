@@ -1,4 +1,3 @@
-Broker = require 'broker'
 Bongo = require 'bongo'
 { join: joinPath } = require 'path'
 
@@ -13,7 +12,6 @@ modelPath = '../../workers/social/lib/social/models'
 koding = new Bongo
   root   : __dirname
   mongo  : mongo
-  # mq     : new Broker KONFIG.mq
   models : modelPath
 
 done = ->
