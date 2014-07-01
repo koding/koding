@@ -36,7 +36,7 @@ class IDE.FileFinder extends KDCustomHTMLView
     @isSearchActive = yes
     @lastTerm       = text
 
-    vmController.run "find #{rootPath} -type f -iname *#{text}* -not -path '*/.*'", (err, res) =>
+    vmController.run "find '#{rootPath}' -type f -iname '*#{Encoder.XSSEncode text}*' -not -path '*/.*'", (err, res) =>
       return @showWarning 'An error occured, please try again.' if err
       return @showWarning 'No files found'  unless res.stdout
 
