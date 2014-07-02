@@ -110,7 +110,7 @@ func (b *Bongo) UpdatePartial(i Modellable, set map[string]interface{}) error {
 	}
 
 	// init query
-	query := b.DB.Model(i)
+	query := b.DB
 
 	query = query.Table(i.TableName())
 
