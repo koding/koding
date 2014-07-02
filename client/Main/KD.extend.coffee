@@ -185,8 +185,10 @@ KD.extend
     return "Logs are logged to backend too."
 
   impersonate : (username)->
-    KD.remote.api.JAccount.impersonate username, (err)->
-      if err then new KDNotificationView title: err.message
+    KD.remote.api.JAccount.impersonate username, (err)=>
+      if err
+        options = userMessage: "You are not allowed to impersonate"
+        @showErrorNotification err, options
       else location.reload()
 
   notify_:(message, type='', duration = 3500)->
