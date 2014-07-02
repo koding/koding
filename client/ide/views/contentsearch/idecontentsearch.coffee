@@ -52,8 +52,12 @@ class IDE.ContentSearch extends KDModalViewWithForms
     super options, data
 
   search: ->
+    @warningView.hide()
+
     vmController = KD.getSingleton 'vmController'
-    @searchText  = Encoder.XSSEncode @input.getValue()
+    @searchText  = Encoder.XSSEncode @findInput.getValue()
+    @rootPath    = Encoder.XSSEncode @whereInput.getValue()
+
     vmController.run "ag '#{@searchText}' '#{@rootPath}' -C 3 --ackmate --stats", (err, res) =>
       return @showWarning 'Something went wrong, please try again.', yes  if err or res.stderr
 
