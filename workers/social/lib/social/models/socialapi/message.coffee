@@ -87,6 +87,18 @@ module.exports = class SocialMessage extends Base
       editMessage data, callback
 
 
+  @delete = secure (client, data, callback)->
+    if not data.id
+      return callback { message: "Request is not valid for deleting a message" }
+
+    # check ownership of the account
+    SocialMessage.canDelete client, data, (err, res)->
+      return callback err if err
+      return callback {message: "You can not delete this post"} unless res
+      {deleteMessage} = require './requests'
+      deleteMessage data, callback
+
+
   # byId -get message by id
   @byId = secureRequest
     fnName  : 'messageById'
@@ -100,11 +112,6 @@ module.exports = class SocialMessage extends Base
   @listReplies = secureRequest
     fnName   : 'listReplies'
     validate : ['messageId']
-
-  @delete = permittedRequest
-    permissionName : 'delete posts'
-    validate       : ['id']
-    fnName         : 'deleteMessage'
 
   @like = permittedRequest
     permissionName : 'like posts'
@@ -141,18 +148,26 @@ module.exports = class SocialMessage extends Base
   # todo-- ask Chris about using validators.own
   # how to implement for this case
   @canEdit = (client, data, callback)->
+    {delegate} = client.connection
+    checkMessagePermission client, data, delegate.canEditPost, callback
+
+  @canDelete = (client, data, callback)->
+    {delegate} = client.connection
+    checkMessagePermission client, data, delegate.canDeletePost, callback
+
+  checkMessagePermission = (client, data, fn, callback)->
     return callback {message: "Id is not set"} unless data.id
     {delegate} = client.connection
-    req = id : data.id
     # get api id of the client
     delegate.createSocialApiId (err, socialApiId)->
       return callback err  if err
       # fetch the message
-      {fetchMessage} = require './requests'
-      fetchMessage req, (err, message)->
+      {messageById} = require './requests'
+      messageById data, (err, message)->
         return callback err  if err
         return callback { message: "Post is not found" }  unless message
 
         if message.accountId == socialApiId
           return callback null, yes
-        delegate.canEditPost client, callback
+        fn client, callback
+

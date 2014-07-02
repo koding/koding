@@ -423,6 +423,8 @@ module.exports = class JAccount extends jraphical.Module
 
   canEditPost: permit 'edit posts'
 
+  canDeletePost: permit 'delete posts'
+
   createSocialApiId:(callback)->
     return callback null, @socialApiId  if @socialApiId
     {createAccount} = require './socialapi/requests'
