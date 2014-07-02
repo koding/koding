@@ -445,6 +445,102 @@ body.ide.dark
     display             inline
     pointer()
 
+// content search modal
+.ide .kdmodal
+  .kdtabview
+    bg                  color, #F9F7F3 !important
+
+.ide .content-search-modal
+  .kdmodal-inner
+  .kdmodal-content
+    margin              0 !important
+    rounded             4px
+
+  .formline.button-field
+    height              55px !important
+    margin-top          16px !important
+
+  .kdtabview
+    padding             25px 32px
+    width               auto
+
+  label
+    font-size           14px
+    margin              0 0 4px 0
+
+  .findinput  label
+  .whereinput label
+    float               none
+
+  .whereinput
+    margin-bottom       28px
+
+  .close-icon
+    display             none
+
+  .kdinput.text
+    bg                  color, #FFF
+    border              1px solid #E6E1DC
+    rounded             3px
+    &:hover
+      border            1px solid #E6E1DC
+    &:focus
+      box-shadow        none
+
+  .formline.switch
+    size                180px, 35px
+    label
+      fl()
+      left              45px
+      position          relative
+      top               -2px
+
+  .switch
+    .input-wrapper
+      width             45px !important
+      abs()
+
+  .warningview
+    margin-top          7px
+
+  .notification
+    height              42px
+    line-height         42px
+    text-align          center
+    color               #FFF
+    font-size           14px
+    rounded             2px
+    margin-bottom       26px
+    bg                  color, #FECD77
+    color               #846837
+    &.error
+      bg                color, #DC4832
+      color             #FFF
+
+  .kdbutton#cancel-button
+    text-transform      capitalize
+    border              none
+    font-size           14px
+    color               #767676
+    padding             6px 12px !important
+    margin              0 !important
+    height              29px
+    position            relative
+    top                 9px
+    left                -6px
+    &:focus
+      box-shadow        none
+
+  .kdbutton#search-button
+    rounded             5px !important
+    bg                  color, #4EA04C
+    height              45px
+    padding             0
+    span
+      font-size         14px
+      font-weight       normal
+      line-height       45px
+      padding           13px 18px 15px 19px
 
 // save as dialog
 body.ide .kddialogview.save-as-dialog
