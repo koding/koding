@@ -33,12 +33,12 @@ class IDE.ContentSearch extends KDModalViewWithForms
             caseToggle      :
               label         : 'Case Sensitive'
               itemClass     : KodingSwitch
-              defaultValue  : no
               cssClass      : 'tiny switch'
             regExpToggle    :
               label         : 'Regular Expression'
               itemClass     : KodingSwitch
               defaultValue  : no
+              defaultValue  : yes
               cssClass      : 'tiny switch'
             wholeWordToggle :
               label         : 'Whole Word'
