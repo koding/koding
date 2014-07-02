@@ -171,13 +171,13 @@ module.exports =
       broker    :
         servicesEndpoint: "/-/services/broker"
       premiumBroker    :
-        servicesEndpoint: "/-/services/premiumBroker"
+        servicesEndpoint: "/-/services/broker"
       brokerKite:
         servicesEndpoint: "/-/services/brokerKite"
         brokerExchange: 'brokerKite'
       premiumBrokerKite:
-        servicesEndpoint: "/-/services/premiumBrokerKite"
-        brokerExchange: 'premiumBrokerKite'
+        servicesEndpoint: "/-/services/brokerKite"
+        brokerExchange: 'brokerKite'
       apiUri    : 'https://koding.com'
       appsUri   : 'https://rest.kd.io'
       uploadsUri: 'https://koding-uploads.s3.amazonaws.com'
@@ -218,10 +218,10 @@ module.exports =
     componentUser: "guest"
     password    : 'djfjfhgh4455__5'
     heartbeat   : 20
-    vhost       : 'new'
+    vhost       : 'sandbox'
   broker              :
-    name              : "sandboxBroker"
-    serviceGenericName: "sandboxBroker"
+    name              : "broker"
+    serviceGenericName: "broker"
     ip                : ""
     port              : 443
     certFile          : "/opt/ssl_certs/wildcard.koding.com.cert"
@@ -242,10 +242,10 @@ module.exports =
     authAllExchange   : authAllExchange
     failoverUri       : 'sandbox.koding.com'
   brokerKite          :
-    name              : "sandboxBrokerKite"
-    serviceGenericName: "sandboxBrokerKite"
+    name              : "brokerKite"
+    serviceGenericName: "brokerKite"
     ip                : ""
-    port              : 444
+    port              : 453
     certFile          : "/opt/ssl_certs/wildcard.koding.com.cert"
     keyFile           : "/opt/ssl_certs/wildcard.koding.com.key"
     webProtocol       : 'https:'
@@ -256,7 +256,7 @@ module.exports =
     name              : "premiumBrokerKite"
     serviceGenericName: "brokerKite"
     ip                : ""
-    port              : 444
+    port              : 453
     certFile          : "/opt/ssl_certs/wildcard.koding.com.cert"
     keyFile           : "/opt/ssl_certs/wildcard.koding.com.key"
     webProtocol       : 'https:'
@@ -302,19 +302,19 @@ module.exports =
     keyFile       : "/opt/koding/certs/y_koding_com_key.pem"
   etcd            : [ {host: "127.0.0.1", port: 4001} ]
   kontrold        :
-    vhost         : "/"
+    vhost         : "sandbox"
     overview      :
-      apiHost     : "172.16.6.16"
-      apiPort     : 80
+      apiHost     : "172.16.10.34"
+      apiPort     : 8081
       port        : 8080
-      kodingHost  : "latest.koding.com"
-      socialHost  : "stage-social.koding.com"
+      kodingHost  : "sandbox.koding.com"
+      socialHost  : "sandbox-social.koding.com"
     api           :
-      port        : 80
-      url         : "http://stage-kontrol.sj.koding.com"
+      port        : 8081
+      url         : "http://sandbox-web.sj.koding.com:8081"
     proxy         :
-      port        : 80
-      portssl     : 443
+      port        : 8082
+      portssl     : 444
       ftpip       : '54.208.3.200'
   recurly         :
     apiKey        : '4a0b7965feb841238eadf94a46ef72ee' # koding-test.recurly.com
