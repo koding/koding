@@ -25,7 +25,7 @@ class PricingFeaturesView extends JView
         <p>
           Memory is shared between your running VMs. Each VM starts with
           allocated memory. If you have 10GB limit, you can run 10VMs at
-          1GB, or 3 x 3GB and 1 x 10GB.
+          1GB, or 3 x 3GB or 1 x 10GB.
         </p>
       </article>
       <article class="feature">
