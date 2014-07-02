@@ -2,6 +2,7 @@ package feeder
 
 import (
 	"errors"
+	"fmt"
 	"socialapi/config"
 	socialmodels "socialapi/models"
 	"socialapi/workers/helper"
@@ -42,7 +43,7 @@ func New(log logging.Logger) *Controller {
 }
 
 func (f *Controller) MessageAdded(cm *socialmodels.ChannelMessage) error {
-	return f.queueChannelMessage(cm, models.STATUS_ADD)
+	return f.queueChannelMessage(cm, models.STATUS_UPDATE)
 }
 
 func (f *Controller) MessageUpdated(cm *socialmodels.ChannelMessage) error {
@@ -53,6 +54,8 @@ func (f *Controller) MessageDeleted(cm *socialmodels.ChannelMessage) error {
 	return f.queueChannelMessage(cm, models.STATUS_DELETE)
 }
 
+// queueChannelMessage updates account sitemap file if message's initial channel is public.
+// Also adds post's url to the sitemap
 func (f *Controller) queueChannelMessage(cm *socialmodels.ChannelMessage, status string) error {
 	if err := validateChannelMessage(cm); err != nil {
 		if err == ErrIgnore {
@@ -61,48 +64,60 @@ func (f *Controller) queueChannelMessage(cm *socialmodels.ChannelMessage, status
 
 		return err
 	}
+
+	// add post's url to the sitemap
 	_, err := f.queueItem(newItemByChannelMessage(cm, status))
 	if err != nil {
 		return err
 	}
+
 	// when a message is added, creator's profile page must also be updated
 	a := socialmodels.NewAccount()
 	if err := a.ById(cm.AccountId); err != nil {
 		return err
 	}
 
+	// update account's sitemap url
 	_, err = f.queueItem(newItemByAccount(a, models.STATUS_UPDATE))
 
 	return err
 }
 
-func (f *Controller) ChannelUpdated(c *socialmodels.Channel) error {
-	return f.queueChannel(c, models.STATUS_UPDATE)
+func (f *Controller) ChannelMessageListUpdated(c *socialmodels.ChannelMessageList) error {
+	return f.queueChannelMessageList(c, models.STATUS_UPDATE)
 }
 
-func (f *Controller) ChannelAdded(c *socialmodels.Channel) error {
-	return f.queueChannel(c, models.STATUS_ADD)
+func (f *Controller) ChannelMessageListAdded(c *socialmodels.ChannelMessageList) error {
+	return f.queueChannelMessageList(c, models.STATUS_UPDATE)
 }
 
-func (f *Controller) ChannelDeleted(c *socialmodels.Channel) error {
-	return f.queueChannel(c, models.STATUS_DELETE)
+func (f *Controller) ChannelMessageListDeleted(c *socialmodels.ChannelMessageList) error {
+	return f.queueChannelMessageList(c, models.STATUS_DELETE)
 }
 
-func (f *Controller) queueChannel(c *socialmodels.Channel, status string) error {
-	if err := validateChannel(c); err != nil {
+func (f *Controller) queueChannelMessageList(c *socialmodels.ChannelMessageList, status string) error {
+	ch, err := socialmodels.ChannelById(c.ChannelId)
+	if err != nil {
+		return nil
+	}
+
+	// Even validateChannel returns just ErrIgnore now, for preventing
+	// potential future errors, we are checking for err existence here
+	if err := validateChannel(ch); err != nil {
 		if err == ErrIgnore {
 			return nil
 		}
 
 		return err
 	}
-	_, err := f.queueItem(newItemByChannel(c, status))
+
+	_, err = f.queueItem(newItemByChannel(ch, status))
 
 	return err
 }
 
 func (f *Controller) AccountAdded(a *socialmodels.Account) error {
-	_, err := f.queueItem(newItemByAccount(a, models.STATUS_ADD))
+	_, err := f.queueItem(newItemByAccount(a, models.STATUS_UPDATE))
 	return err
 }
 
@@ -122,8 +137,8 @@ func validateChannelMessage(cm *socialmodels.ChannelMessage) error {
 		return ErrIgnore
 	}
 
-	ch := socialmodels.NewChannel()
-	if err := ch.ById(cm.InitialChannelId); err != nil {
+	ch, err := socialmodels.ChannelById(cm.InitialChannelId)
+	if err != nil {
 		return err
 	}
 
@@ -137,7 +152,12 @@ func validateChannelMessage(cm *socialmodels.ChannelMessage) error {
 
 func validateChannel(c *socialmodels.Channel) error {
 	// for now we are only adding topics, but later on we could add groups here
-	if c.TypeConstant != socialmodels.Channel_TYPE_TOPIC {
+	if c.TypeConstant != socialmodels.Channel_TYPE_TOPIC &&
+		c.TypeConstant != socialmodels.Channel_TYPE_GROUP {
+		return ErrIgnore
+	}
+
+	if c.PrivacyConstant == socialmodels.Channel_PRIVACY_PRIVATE {
 		return ErrIgnore
 	}
 
@@ -148,7 +168,7 @@ func newItemByChannelMessage(cm *socialmodels.ChannelMessage, status string) *mo
 	return &models.SitemapItem{
 		Id:           cm.Id,
 		TypeConstant: models.TYPE_CHANNEL_MESSAGE,
-		Slug:         cm.Slug,
+		Slug:         fmt.Sprintf("%s/%s", "Post", cm.Slug),
 		Status:       status,
 	}
 }
@@ -166,10 +186,18 @@ func newItemByAccount(a *socialmodels.Account, status string) *models.SitemapIte
 }
 
 func newItemByChannel(c *socialmodels.Channel, status string) *models.SitemapItem {
+	slug := "Public"
+	switch c.TypeConstant {
+	case socialmodels.Channel_TYPE_TOPIC:
+		slug = fmt.Sprintf("Topic/%s", c.Name)
+	case socialmodels.Channel_TYPE_GROUP:
+		// TODO implement when group routes are defined
+	}
+
 	return &models.SitemapItem{
 		Id:           c.Id,
 		TypeConstant: models.TYPE_CHANNEL,
-		Slug:         c.Name,
+		Slug:         slug,
 		Status:       status,
 	}
 }

@@ -141,6 +141,10 @@ testapi:
 	@go test tests/*.go
 	@go test workers/notification/tests/*.go
 	@go test workers/sitemap/sitemapgenerator/generator/*.go
+	@go test workers/trollmode/tests/*.go
+	@go test -c workers/trollmode/trollmode/*.go
+	@./trollmode.test -c ./config/vagrant.toml
+	@rm  ./trollmode.test
 
 doc:
 	@for package in $(PACKAGES); \
