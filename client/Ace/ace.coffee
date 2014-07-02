@@ -97,17 +97,19 @@ class Ace extends KDView
       @emit "ace.change.cursor", @editor.getSession().getSelection().getCursor()
 
     if @getOptions().enableShortcuts
-      @addKeyCombo "save", "Ctrl-S", @bound "requestSave"
-      @addKeyCombo "saveAs", "Ctrl-Shift-S", @bound "requestSaveAs"
-      @addKeyCombo "find", "Ctrl-F", => @showFindReplaceView no
-      @addKeyCombo "replace", "Ctrl-Shift-F", => @showFindReplaceView yes
-      @addKeyCombo "preview", "Ctrl-Shift-P", => @getDelegate().preview()
-      @addKeyCombo "fullscreen", "Ctrl-Enter", => @getDelegate().toggleFullscreen()
-      @addKeyCombo "gotoLine", "Ctrl-G", @bound "showGotoLine"
-      @addKeyCombo "gotoLineL", "Ctrl-L", noop
-      @addKeyCombo "saveAll", "Ctrl-Alt-S", @bound "saveAllFiles"
-      @addKeyCombo "closeTab", "Ctrl-W", "Ctrl-W", @bound "closeTab"
-      @addKeyCombo "settings", "Ctrl-,", noop # ace creates a settings view for this shortcut, overriding it.
+      @addKeyCombo "save",       "Ctrl-S",           @bound "requestSave"
+      @addKeyCombo "find",       "Ctrl-F", =>        @showFindReplaceView no
+      @addKeyCombo "replace",    "Ctrl-Shift-F", =>  @showFindReplaceView yes
+      @addKeyCombo "fullscreen", "Ctrl-Enter", =>    @getDelegate().toggleFullscreen()
+      @addKeyCombo "gotoLine",   "Ctrl-G",           @bound "showGotoLine"
+      @addKeyCombo "gotoLineL",  "Ctrl-L",           @bound "showGotoLine"
+      @addKeyCombo "settings",   "Ctrl-,",           noop # override default ace settings view
+
+      # these features are broken with IDE, should reimplement again
+      # @addKeyCombo "saveAs",     "Ctrl-Shift-S",     @bound "requestSaveAs"
+      # @addKeyCombo "preview",    "Ctrl-Shift-P", =>  @getDelegate().preview()
+      # @addKeyCombo "saveAll",    "Ctrl-Alt-S",       @bound "saveAllFiles"
+      # @addKeyCombo "closeTab",   "Ctrl-W", "Ctrl-W", @bound "closeTab"
 
   showFindReplaceView: (openReplaceView) ->
     {findAndReplaceView} = @getDelegate()

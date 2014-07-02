@@ -492,7 +492,7 @@ utils.extend utils,
           style     : "solid green medium"
           callback  : => callback input, finderController, dialog
         Cancel      :
-          style     : "solid medium"
+          style     : "solid medium nobg"
           callback  : =>
             finderController.stopAllWatchers()
             finderController.destroy()
@@ -518,9 +518,11 @@ utils.extend utils,
     dialog.show()
     input.setFocus()
 
-    finderController    = new NFinderController
-      nodeIdPath        : "path"
-      nodeParentIdPath  : "parentPath"
+    finderController = KD.singletons['appManager'].get('Finder').create
+      addAppTitle       : no
+      treeItemClass     : IDE.FinderItem
+      nodeIdPath        : 'path'
+      nodeParentIdPath  : 'parentPath'
       foldersOnly       : yes
       contextMenu       : no
       loadFilesOnInit   : yes
