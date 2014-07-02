@@ -96,6 +96,8 @@ func getRegisterIP(environment string) (string, error) {
 	switch environment {
 	case "production":
 		fallthrough
+	case "prod":
+		fallthrough
 	case "kodingme":
 		fallthrough
 	case "staging":
