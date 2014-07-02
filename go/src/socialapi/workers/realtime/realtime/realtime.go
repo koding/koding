@@ -99,11 +99,11 @@ func (f *Controller) ChannelParticipantUpdatedEvent(cp *models.ChannelParticipan
 	return cue.sendForParticipant()
 }
 
-func (f *Controller) ChannelParticipantRemovedFromChannelEvent(cp *models.ChannelParticipant) error {
+func (f *Controller) ChannelParticipantRemoved(cp *models.ChannelParticipant) error {
 	return f.sendChannelParticipantEvent(cp, RemovedFromChannelEventName)
 }
 
-func (f *Controller) ChannelParticipantAddedToChannelEvent(cp *models.ChannelParticipant) error {
+func (f *Controller) ChannelParticipantAdded(cp *models.ChannelParticipant) error {
 	return f.sendChannelParticipantEvent(cp, AddedToChannelEventName)
 }
 
