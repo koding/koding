@@ -18,6 +18,14 @@ done = ->
   console.log "Finished!"
   process.exit 1
 
+inRoles = (role, roles) ->
+  return role in roles  if Array.isArray roles
+  # handle the special case that groups permissions are not copied over
+  if ('public' of roles) and ('private' of roles)
+    return role in roles.public  if role is 'guest'
+    return role in roles.private
+  no
+
 workQueue = []
 
 koding.once 'dbClientReady', ->
@@ -46,7 +54,7 @@ koding.once 'dbClientReady', ->
       moduleDefaults = defaults[perms.module]
       continue  unless moduleDefaults?
 
-      for own permission, roles of moduleDefaults when perms.role in roles
+      for own permission, roles of moduleDefaults when inRoles perms.role, roles
         seen[perms.module] ?= {}
         seen[perms.module][perms.role] ?= {}
         seen[perms.module][perms.role][permission] ?= 1
