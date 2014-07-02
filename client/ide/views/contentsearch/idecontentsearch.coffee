@@ -64,6 +64,9 @@ class IDE.ContentSearch extends KDModalViewWithForms
     formatted  = {}
     stats      = {}
 
+    if lines[0] is '0 matches'
+      return @showWarning 'No results found, refine your search.'
+
     for line in lines
       parts    = line.split ':'
       fileName = parts[1]  if parts[0] is '' and parts[1] and not parts[2] # filename line, like :Web/index.html
