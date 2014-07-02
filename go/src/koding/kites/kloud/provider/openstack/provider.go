@@ -135,7 +135,6 @@ func (p *Provider) Build(opts *protocol.MachineOptions) (*protocol.ProviderArtif
 	var server *gophercloud.Server
 
 	stateFunc := func() (machinestate.State, error) {
-		p.Push("Waiting for machine to be ready", start, machinestate.Building)
 		server, err = o.Client.ServerById(resp.Id)
 		if err != nil {
 			return 0, err
@@ -145,6 +144,8 @@ func (p *Provider) Build(opts *protocol.MachineOptions) (*protocol.ProviderArtif
 			start += 2
 		}
 
+		p.Push(fmt.Sprintf("Starting server '%s', curent task state: '%s'",
+			opts.InstanceName, server.OsExtStsTaskState), start, machinestate.Building)
 		return statusToState(server.Status), nil
 	}
 
@@ -207,7 +208,8 @@ func (p *Provider) Start(opts *protocol.MachineOptions) (*protocol.ProviderArtif
 		KeyPairName: key.Name,
 	}
 
-	p.Push(fmt.Sprintf("Starting server '%s' based on image id '%s' image name: %s", o.Builder.InstanceName, image.Id, image.Name), 30, machinestate.Starting)
+	p.Push(fmt.Sprintf("Starting server '%s' based on image id '%s' image name: %s",
+		o.Builder.InstanceName, image.Id, image.Name), 30, machinestate.Starting)
 	resp, err := o.Client.CreateServer(newServer)
 	if err != nil {
 		return nil, fmt.Errorf("Error creating server: %s", err)
@@ -221,7 +223,6 @@ func (p *Provider) Start(opts *protocol.MachineOptions) (*protocol.ProviderArtif
 	var server *gophercloud.Server
 
 	stateFunc := func() (machinestate.State, error) {
-		p.Push("Waiting for machine to be ready", start, machinestate.Starting)
 		server, err = o.Client.ServerById(resp.Id)
 		if err != nil {
 			return 0, err
@@ -231,6 +232,8 @@ func (p *Provider) Start(opts *protocol.MachineOptions) (*protocol.ProviderArtif
 			start += 2
 		}
 
+		p.Push(fmt.Sprintf("Starting server '%s', curent state: '%s'",
+			o.Builder.InstanceName, server.OsExtStsTaskState), start, machinestate.Starting)
 		return statusToState(server.Status), nil
 	}
 
@@ -277,7 +280,6 @@ func (p *Provider) Stop(opts *protocol.MachineOptions) error {
 		return err
 	}
 
-	start := time.Now()
 	stateFunc := func() (machinestate.State, error) {
 		server, err := o.Server()
 		if err != nil {
@@ -287,24 +289,17 @@ func (p *Provider) Stop(opts *protocol.MachineOptions) error {
 		// and empty taks means the image creating and uploading task has been
 		// finished, now we can move on to the next step.
 		if server.OsExtStsTaskState == "" {
-			// compensate for first 5 seconds, the api might give an empty
-			// state before even the event is sending us the correct task state
-			// within OsExtStsTaskState
-			if start.Before(time.Now().Add(time.Second * 5)) {
-				return statusToState(server.Status), nil
-			}
-
 			return machinestate.Stopping, nil
 		}
 
-		p.Push(fmt.Sprintf("Taking image '%s' of machine, curent state: %s", respId, server.OsExtStsTaskState), 60, machinestate.Stopping)
+		p.Push(fmt.Sprintf("Taking image '%s' of machine, curent state: '%s'", respId, server.OsExtStsTaskState), 60, machinestate.Stopping)
 		return statusToState(server.Status), nil
 	}
 
 	imageCreation := waitstate.WaitState{
 		StateFunc:    stateFunc,
 		DesiredState: machinestate.Stopping,
-		Timeout:      5 * time.Minute,
+		Timeout:      7 * time.Minute,
 		Interval:     3 * time.Second,
 	}
 
@@ -313,18 +308,18 @@ func (p *Provider) Stop(opts *protocol.MachineOptions) error {
 		return err
 	}
 
-	p.Push(fmt.Sprintf("Deleting server: %s", o.Id()), 50, machinestate.Stopping)
+	p.Push(fmt.Sprintf("Deleting server: %s", o.Id()), 70, machinestate.Stopping)
 	if err := o.Client.DeleteServerById(o.Id()); err != nil {
 		return err
 	}
 
 	stateFunc = func() (machinestate.State, error) {
-		p.Push("Waiting for machine to be deleted", 60, machinestate.Stopping)
 		server, err := o.Server()
 		if err == os.ErrServerNotFound {
 			return machinestate.Stopped, nil
 		}
 
+		p.Push(fmt.Sprintf("Deleting server '%s', curent task state: '%s'", server.Name, server.OsExtStsTaskState), 80, machinestate.Stopping)
 		return statusToState(server.Status), nil
 	}
 
@@ -351,12 +346,12 @@ func (p *Provider) Restart(opts *protocol.MachineOptions) error {
 	}
 
 	stateFunc := func() (machinestate.State, error) {
-		p.Push("Waiting for machine to be rebooted", 60, machinestate.Rebooting)
 		server, err := o.Server()
 		if err != nil {
 			return machinestate.Unknown, err
 		}
 
+		p.Push(fmt.Sprintf("Rebooting server '%s', curent state: '%s'", server.Name, server.OsExtStsTaskState), 50, machinestate.Rebooting)
 		return statusToState(server.Status), nil
 	}
 
@@ -373,7 +368,7 @@ func (p *Provider) Restart(opts *protocol.MachineOptions) error {
 
 func (p *Provider) Destroy(opts *protocol.MachineOptions) error {
 	p.Push("Terminating machine", 10, machinestate.Terminating)
-	return errors.New("build is not supported yet.")
+	return errors.New("destroy is not supported yet.")
 }
 
 func (p *Provider) Info(opts *protocol.MachineOptions) (*protocol.InfoArtifact, error) {
