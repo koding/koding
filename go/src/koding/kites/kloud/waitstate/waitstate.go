@@ -2,6 +2,7 @@ package waitstate
 
 import (
 	"errors"
+	"fmt"
 	"koding/kites/kloud/kloud/machinestate"
 	"time"
 )
@@ -33,6 +34,10 @@ func (w *WaitState) Wait() error {
 			if state == w.DesiredState {
 				return nil
 			}
+		case <-time.After(time.Second * 10):
+			// cancel the current ongoing process
+			fmt.Println("Canceling current event asking")
+			continue
 		case <-timeout:
 			return ErrWaitTimeout
 		}
