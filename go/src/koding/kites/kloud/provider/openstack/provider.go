@@ -190,31 +190,57 @@ func (p *Provider) Stop(opts *protocol.MachineOptions) error {
 		return err
 	}
 
-	fmt.Printf("respId %+v\n", respId)
+	stateFunc := func() (machinestate.State, error) {
+		server, err := o.Server()
+		if err != nil {
+			return 0, err
+		}
+
+		// and empty taks means the image creating and uploading task has been
+		// finished, now we can move on to the next step.
+		if server.OsExtStsTaskState == "" {
+			return machinestate.Stopping, nil
+		}
+
+		p.Push(fmt.Sprintf("Taking image '%s' of machine, curent state: %s", respId, server.OsExtStsTaskState), 60, machinestate.Stopping)
+		return statusToState(server.Status), nil
+	}
+
+	imageCreation := waitstate.WaitState{
+		StateFunc:    stateFunc,
+		DesiredState: machinestate.Stopping,
+		Timeout:      5 * time.Minute,
+		Interval:     3 * time.Second,
+	}
+
+	// wait until we finished with our task
+	if err := imageCreation.Wait(); err != nil {
+		return err
+	}
 
 	p.Push(fmt.Sprintf("Deleting server: %s", o.Id()), 50, machinestate.Stopping)
 	if err := o.Client.DeleteServerById(o.Id()); err != nil {
 		return err
 	}
 
-	stateFunc := func() (machinestate.State, error) {
+	stateFunc = func() (machinestate.State, error) {
 		p.Push("Waiting for machine to be deleted", 60, machinestate.Stopping)
 		server, err := o.Server()
-		if err != nil {
-			return 0, err
+		if err == os.ErrServerNotFound {
+			return machinestate.Stopped, nil
 		}
 
 		return statusToState(server.Status), nil
 	}
 
-	ws := waitstate.WaitState{
+	deleteServer := waitstate.WaitState{
 		StateFunc:    stateFunc,
 		DesiredState: machinestate.Stopped,
 		Timeout:      5 * time.Minute,
 		Interval:     3 * time.Second,
 	}
 
-	return ws.Wait()
+	return deleteServer.Wait()
 }
 
 func (p *Provider) Restart(opts *protocol.MachineOptions) error {
@@ -235,25 +261,25 @@ func (p *Provider) Info(opts *protocol.MachineOptions) (*protocol.InfoResponse, 
 	server := &gophercloud.Server{}
 	server, err = o.Server()
 	if err == os.ErrServerNotFound {
-		p.Log.Debug("Server does not exist, checking if it has a backup")
-		image, err := o.Image(o.Id())
+		p.Log.Debug("Server does not exist, checking if it has a backup image")
+		images, err := o.Images()
 		if err != nil {
 			return nil, err
 		}
 
-		if image == nil {
-			p.Log.Debug("Image does not exist, returning unknown state")
+		if images.HasName(o.Builder.InstanceName) {
+			// means the machine was deleted and an image exist that points to it
+			p.Log.Debug("Image '%s' does exist", o.Builder.InstanceName)
 			return &protocol.InfoResponse{
-				State: machinestate.Terminated,
+				State: machinestate.Stopped,
 				Name:  o.Builder.InstanceName,
 			}, nil
 
 		}
 
-		// means the machine was deleted and an image exist that points to it
-		p.Log.Debug("Image does exist, ")
+		p.Log.Debug("Image does not exist, returning unknown state")
 		return &protocol.InfoResponse{
-			State: machinestate.Stopped,
+			State: machinestate.Terminated,
 			Name:  o.Builder.InstanceName,
 		}, nil
 	}
