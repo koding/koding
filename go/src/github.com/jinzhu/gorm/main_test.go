@@ -2049,6 +2049,7 @@ func TestHstore(t *testing.T) {
 	}
 
 	if err := db.Exec("CREATE EXTENSION IF NOT EXISTS hstore").Error; err != nil {
+		fmt.Println("\033[31mHINT: Must be superuser to create hstore extension (ALTER USER gorm WITH SUPERUSER;)\033[0m")
 		panic(fmt.Sprintf("No error should happen when create hstore extension, but got %+v", err))
 	}
 
@@ -2082,4 +2083,18 @@ func TestHstore(t *testing.T) {
 		}
 	}
 
+}
+
+func TestCreate(t *testing.T) {
+	if err := db.Create(&UserCompany{Id: 10, UserId: 1, CompanyId: 1}).Error; err != nil {
+		t.Error("Should be able to create record with predefined Id")
+	}
+
+	if db.First(&UserCompany{}, 10).RecordNotFound() {
+		t.Error("Record created with predefined primary key not found")
+	}
+
+	if err := db.Create(&UserCompany{Id: 10, UserId: 10, CompanyId: 10}).Error; err == nil {
+		t.Error("Should not be able to create record with predefined duplicate Id")
+	}
 }
