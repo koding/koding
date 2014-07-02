@@ -38,3 +38,6 @@ class IDE.EditorPane extends IDE.Pane
 
   getValue: ->
     return  @getEditor().getSession().getValue()
+
+  goToLine: (lineNumber) ->
+    @aceView.ace.gotoLine lineNumber

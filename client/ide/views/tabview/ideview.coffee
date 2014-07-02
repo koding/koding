@@ -20,9 +20,9 @@ class IDE.IDEView extends IDE.WorkspaceTabView
     @tabView.on 'DrawingPaneRequested',   @bound 'createDrawingBoard'
     @tabView.on 'ViewNeedsToBeShown',     @bound 'showView'
 
-    @tabView.on 'FileNeedsToBeOpened', (file, contents) =>
+    @tabView.on 'FileNeedsToBeOpened', (file, contents, callback) =>
       @closeUntitledFileIfNotChanged()
-      @openFile file, contents
+      @openFile file, contents, callback
 
     @tabView.on 'PaneDidShow', =>
       @updateStatusBar()
@@ -53,7 +53,7 @@ class IDE.IDEView extends IDE.WorkspaceTabView
 
     pane.once 'KDObjectWillBeDestroyed', => @handlePaneRemoved pane
 
-  createEditor: (file, content) ->
+  createEditor: (file, content, callback = noop) ->
     file        = file    or FSHelper.createFileFromPath @getDummyFilePath()
     content     = content or ''
     editorPane  = new IDE.EditorPane { file, content, delegate: this }
@@ -66,6 +66,8 @@ class IDE.IDEView extends IDE.WorkspaceTabView
       editorPane.aceView.ace.on 'ace.change.cursor', (cursor) ->
         appManager = KD.getSingleton 'appManager'
         appManager.tell 'IDE', 'updateStatusBar', 'editor', { file, cursor }
+
+      callback editorPane
 
     @createPane_ editorPane, paneOptions, file
 
@@ -132,16 +134,18 @@ class IDE.IDEView extends IDE.WorkspaceTabView
     super
     KD.getSingleton('appManager').tell 'IDE', 'setActiveTabView', @tabView
 
-  openFile: (file, content) ->
+  openFile: (file, content, callback = noop) ->
     if @openFiles.indexOf(file) > -1
-      @switchToEditorTabByFile file
+      editorPane = @switchToEditorTabByFile file
+      callback editorPane
     else
-      @createEditor file, content
+      @createEditor file, content, callback
       @openFiles.push file
 
   switchToEditorTabByFile: (file) ->
     for pane, index in @tabView.panes when file is pane.getData()
       @tabView.showPaneByIndex index
+      return editorPane = pane.getSubViews().first
 
   handlePaneRemoved: (pane) ->
     file = pane.getData()

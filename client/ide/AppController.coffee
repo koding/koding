@@ -170,8 +170,8 @@ class IDEAppController extends AppController
       parentSplitView.options.views[panelIndexInParent] = ideView
       parentSplitView.panels[panelIndexInParent]        = ideView.parent
 
-  openFile: (file, contents) ->
-    @activeTabView.emit 'FileNeedsToBeOpened', file, contents
+  openFile: (file, contents, callback = noop) ->
+    @activeTabView.emit 'FileNeedsToBeOpened', file, contents, callback
 
   openVMTerminal: (vmData) ->
     @activeTabView.emit 'VMTerminalRequested', vmData
