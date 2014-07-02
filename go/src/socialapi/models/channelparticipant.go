@@ -192,11 +192,8 @@ func (c *ChannelParticipant) Delete() error {
 		return err
 	}
 
-	if err := bongo.B.UpdatePartial(c,
-		bongo.Partial{
-			"status_constant": ChannelParticipant_STATUS_LEFT,
-		},
-	); err != nil {
+	c.StatusConstant = ChannelParticipant_STATUS_LEFT
+	if err := c.Update(); err != nil {
 		return err
 	}
 
