@@ -115,3 +115,13 @@ class IDE.ContentSearch extends KDModalViewWithForms
     view.show()
     @searchButton.hideLoader()
 
+  viewAppended: ->
+    super
+
+    searchForm      = @modalTabs.forms.Search
+    {@warningView}  = searchForm.fields
+    {@searchButton} = searchForm.buttons
+    {@findInput,  @whereInput} = searchForm.inputs
+    {@caseToggle, @regExpToggle, @wholeWordToggle} = searchForm.inputs
+
+    @findInput.setFocus()
