@@ -104,6 +104,7 @@ class IDE.ContentSearch extends KDModalViewWithForms
   createResultsView: (result, stats, searchText) ->
     resultsView = new IDE.ContentSearchResultView { result, stats, searchText }
     @emit 'ViewNeedsToBeShown', resultsView
+    @destroy()
 
   showWarning: (text, isError) ->
     view = @warningView
