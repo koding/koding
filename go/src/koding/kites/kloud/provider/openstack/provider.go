@@ -11,7 +11,6 @@ import (
 	"time"
 
 	"github.com/koding/logging"
-	"github.com/kr/pretty"
 	"github.com/rackspace/gophercloud"
 )
 
@@ -205,8 +204,6 @@ func (p *Provider) Stop(opts *protocol.MachineOptions) error {
 			return 0, err
 		}
 
-		pretty.Println("server", server)
-
 		return statusToState(server.Status), nil
 	}
 
@@ -234,9 +231,31 @@ func (p *Provider) Info(opts *protocol.MachineOptions) (*protocol.InfoResponse, 
 		return nil, err
 	}
 
-	server, err := o.Server()
-	if err != nil {
-		return nil, err
+	p.Log.Debug("Checking for server info: %s", o.Id())
+	server := &gophercloud.Server{}
+	server, err = o.Server()
+	if err == os.ErrServerNotFound {
+		p.Log.Debug("Server does not exist, checking if it has a backup")
+		image, err := o.Image(o.Id())
+		if err != nil {
+			return nil, err
+		}
+
+		if image == nil {
+			p.Log.Debug("Image does not exist, returning unknown state")
+			return &protocol.InfoResponse{
+				State: machinestate.Terminated,
+				Name:  o.Builder.InstanceName,
+			}, nil
+
+		}
+
+		// means the machine was deleted and an image exist that points to it
+		p.Log.Debug("Image does exist, ")
+		return &protocol.InfoResponse{
+			State: machinestate.Stopped,
+			Name:  o.Builder.InstanceName,
+		}, nil
 	}
 
 	if statusToState(server.Status) == machinestate.Unknown {
