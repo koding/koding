@@ -207,7 +207,7 @@ func (p *Provider) Start(opts *protocol.MachineOptions) (*protocol.ProviderArtif
 		KeyPairName: key.Name,
 	}
 
-	p.Push(fmt.Sprintf("Starting server '%s' based on image '%s'", o.Builder.InstanceName, image.Id), 30, machinestate.Starting)
+	p.Push(fmt.Sprintf("Starting server '%s' based on image id '%s' image name: %s", o.Builder.InstanceName, image.Id, image.Name), 30, machinestate.Starting)
 	resp, err := o.Client.CreateServer(newServer)
 	if err != nil {
 		return nil, fmt.Errorf("Error creating server: %s", err)
@@ -339,10 +339,40 @@ func (p *Provider) Stop(opts *protocol.MachineOptions) error {
 }
 
 func (p *Provider) Restart(opts *protocol.MachineOptions) error {
-	return errors.New("build is not supported yet.")
+	o, err := p.NewClient(opts)
+	if err != nil {
+		return err
+	}
+
+	p.Push("Rebooting machine", 10, machinestate.Rebooting)
+	hardShutdown := false
+	if err := o.Client.RebootServer(o.Id(), hardShutdown); err != nil {
+		return err
+	}
+
+	stateFunc := func() (machinestate.State, error) {
+		p.Push("Waiting for machine to be rebooted", 60, machinestate.Rebooting)
+		server, err := o.Server()
+		if err != nil {
+			return machinestate.Unknown, err
+		}
+
+		return statusToState(server.Status), nil
+	}
+
+	rebootServer := waitstate.WaitState{
+		StateFunc:    stateFunc,
+		DesiredState: machinestate.Running,
+		Timeout:      5 * time.Minute,
+		Interval:     3 * time.Second,
+	}
+
+	return rebootServer.Wait()
+
 }
 
 func (p *Provider) Destroy(opts *protocol.MachineOptions) error {
+	p.Push("Terminating machine", 10, machinestate.Terminating)
 	return errors.New("build is not supported yet.")
 }
 
