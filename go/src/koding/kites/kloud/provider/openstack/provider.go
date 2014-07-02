@@ -326,7 +326,7 @@ func (p *Provider) Destroy(opts *protocol.MachineOptions) error {
 	return errors.New("build is not supported yet.")
 }
 
-func (p *Provider) Info(opts *protocol.MachineOptions) (*protocol.InfoResponse, error) {
+func (p *Provider) Info(opts *protocol.MachineOptions) (*protocol.InfoArtifact, error) {
 	o, err := p.NewClient(opts)
 	if err != nil {
 		return nil, err
@@ -345,7 +345,7 @@ func (p *Provider) Info(opts *protocol.MachineOptions) (*protocol.InfoResponse, 
 		if images.HasName(o.Builder.InstanceName) {
 			// means the machine was deleted and an image exist that points to it
 			p.Log.Debug("Image '%s' does exist, means it's stopped.", o.Builder.InstanceName)
-			return &protocol.InfoResponse{
+			return &protocol.InfoArtifact{
 				State: machinestate.Stopped,
 				Name:  o.Builder.InstanceName,
 			}, nil
@@ -353,7 +353,7 @@ func (p *Provider) Info(opts *protocol.MachineOptions) (*protocol.InfoResponse, 
 		}
 
 		p.Log.Debug("Image does not exist, returning unknown state.")
-		return &protocol.InfoResponse{
+		return &protocol.InfoArtifact{
 			State: machinestate.Terminated,
 			Name:  o.Builder.InstanceName,
 		}, nil
@@ -363,7 +363,7 @@ func (p *Provider) Info(opts *protocol.MachineOptions) (*protocol.InfoResponse, 
 		p.Log.Warning("Unknown rackspace status: %s. This needs to be fixed.", server.Status)
 	}
 
-	return &protocol.InfoResponse{
+	return &protocol.InfoArtifact{
 		State: statusToState(server.Status),
 		Name:  server.Name,
 	}, nil

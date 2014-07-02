@@ -25,7 +25,7 @@ type Provider interface {
 	Destroy(*MachineOptions) error
 
 	// Info returns full information about a single machine
-	Info(*MachineOptions) (*InfoResponse, error)
+	Info(*MachineOptions) (*InfoArtifact, error)
 
 	// Name returns the underlying provider type
 	Name() string
@@ -81,7 +81,7 @@ type BuildResponse struct {
 	IpAddress string
 }
 
-type InfoResponse struct {
+type InfoArtifact struct {
 	// State defines the state of the machine
 	State machinestate.State
 

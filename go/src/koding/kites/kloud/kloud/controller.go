@@ -154,7 +154,7 @@ func (k *Kloud) info(r *kite.Request, c *Controller) (interface{}, error) {
 		return nil, err
 	}
 
-	response := &protocol.InfoResponse{
+	response := &protocol.InfoArtifact{
 		State: info.State,
 		Name:  info.Name,
 	}

@@ -33,7 +33,7 @@ func (i *Info) Action(args []string, k *kite.Client) error {
 		return err
 	}
 
-	var result protocol.InfoResponse
+	var result protocol.InfoArtifact
 	err = resp.Unmarshal(&result)
 	if err != nil {
 		return err

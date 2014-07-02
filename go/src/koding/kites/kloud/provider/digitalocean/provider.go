@@ -125,7 +125,7 @@ func (p *Provider) Destroy(opts *protocol.MachineOptions) error {
 	return doClient.Destroy()
 }
 
-func (p *Provider) Info(opts *protocol.MachineOptions) (*protocol.InfoResponse, error) {
+func (p *Provider) Info(opts *protocol.MachineOptions) (*protocol.InfoArtifact, error) {
 	doClient, err := p.NewClient(opts)
 	if err != nil {
 		return nil, err
