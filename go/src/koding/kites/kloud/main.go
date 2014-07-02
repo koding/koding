@@ -18,6 +18,7 @@ var (
 	flagDebug      = flag.Bool("debug", false, "Enable debug mode")
 	flagProdMode   = flag.Bool("prod", false, "Enable production mode")
 	flagRegion     = flag.String("r", "", "Change region")
+	flagEnv        = flag.String("env", "", "Change environment")
 	flagProfile    = flag.String("c", "", "Configuration profile from file")
 	flagKontrolURL = flag.String("kontrol-url", "", "Kontrol URL to be connected")
 	flagPublicKey  = flag.String("public-key", "", "Public RSA key of Kontrol")
@@ -37,6 +38,10 @@ func main() {
 	}
 
 	conf := config.MustConfig(*flagProfile)
+
+	if *flagEnv != "" {
+		conf.Environment = *flagEnv
+	}
 
 	var kontrolURL string
 	if *flagKontrolURL != "" {
