@@ -133,6 +133,8 @@ class ComputeController extends KDController
       status      : Machine.State.Building
       percentage  : 0
 
+    machine.getBaseKite().disconnect()
+
     @kloud.build { machineId: machine._id }
 
     .timeout ComputeController.timeout

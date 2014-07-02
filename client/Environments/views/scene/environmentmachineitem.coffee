@@ -1,5 +1,7 @@
 class EnvironmentMachineItem extends EnvironmentItem
 
+  # TODO: move functionality to delegate ~ GG
+
   stateClasses = ""
   for state in Object.keys Machine.State
     stateClasses += "#{state.toLowerCase()} "
