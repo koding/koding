@@ -6,7 +6,7 @@ class IDE.ContentSearchResultView extends KDScrollView
 
     super options, data
 
-    {result, stats, searchText} = options
+    {result, stats, searchText, isCaseSensitive} = options
 
     for fileName, lines of result
       @addSubView new KDCustomHTMLView
@@ -24,8 +24,9 @@ class IDE.ContentSearchResultView extends KDScrollView
             cssClass : 'line'
 
           if line.occurence
-            regExp   = new RegExp searchText, 'g'
-            replaced = line.line.replace regExp, """<p class="match" data-file-path="#{fileName}" data-line-number="#{line.lineNumber}">#{Encoder.htmlEncode searchText}</p>"""
+            flags    = if isCaseSensitive then 'g' else 'gi'
+            regExp   = new RegExp searchText, flags
+            replaced = line.line.replace regExp, (match) -> """<p class="match" data-file-path="#{fileName}" data-line-number="#{line.lineNumber}">#{match}</p>"""
             view.updatePartial "<span class='line-number'>#{line.lineNumber}</span>#{replaced}"
           else
             view.updatePartial "<span class='line-number'>#{line.lineNumber}</span><span>#{Encoder.htmlEncode line.line}</span>"

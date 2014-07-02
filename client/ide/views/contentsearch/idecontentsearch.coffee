@@ -33,11 +33,6 @@ class IDE.ContentSearch extends KDModalViewWithForms
             caseToggle      :
               label         : 'Case Sensitive'
               itemClass     : KodingSwitch
-              cssClass      : 'tiny switch'
-            regExpToggle    :
-              label         : 'Regular Expression'
-              itemClass     : KodingSwitch
-              defaultValue  : no
               defaultValue  : yes
               cssClass      : 'tiny switch'
             wholeWordToggle :
@@ -45,6 +40,15 @@ class IDE.ContentSearch extends KDModalViewWithForms
               itemClass     : KodingSwitch
               defaultValue  : no
               cssClass      : 'tiny switch'
+            # regExpToggle    :
+            #   label         : 'Use filename regexp'
+            #   itemClass     : KodingSwitch
+            #   defaultValue  : no
+            #   cssClass      : 'tiny switch'
+            #   nextElement   :
+            #     regExpValue :
+            #       itemClass : KDInputView
+            #       type      : 'text'
             warningView     :
               itemClass     : KDView
               cssClass      : 'hidden notification'
@@ -54,11 +58,28 @@ class IDE.ContentSearch extends KDModalViewWithForms
   search: ->
     @warningView.hide()
 
-    vmController = KD.getSingleton 'vmController'
-    @searchText  = Encoder.XSSEncode @findInput.getValue()
-    @rootPath    = Encoder.XSSEncode @whereInput.getValue()
+    vmController    = KD.getSingleton 'vmController'
+    @searchText     = Encoder.XSSEncode @findInput.getValue()
+    @rootPath       = Encoder.XSSEncode @whereInput.getValue()
+    isCaseSensitive = @caseToggle.getValue()
+    isWholeWord     = @wholeWordToggle.getValue()
+    # isRegExp        = @regExpToggle.getValue()
 
-    vmController.run "ag '#{@searchText}' '#{@rootPath}' -C 3 --ackmate --stats", (err, res) =>
+    query = "ag '#{@searchText}' '#{@rootPath}'"
+    flags = [
+      '-C 3'       # Print 3 lines before and after matches
+      '--ackmate'  # Print results in AckMate-parseable format
+      '--stats'    # Print stats (files scanned, time taken, etc.)
+      '-i'         # Match case insensitively
+      '-w'         # Only match whole words
+    ]
+
+    flags.splice flags.indexOf('-i'), 1  if isCaseSensitive
+    flags.splice flags.indexOf('-w'), 1  unless isWholeWord
+
+    query = "#{query} #{flags.join ' '}"
+
+    vmController.run query, (err, res) =>
       return @showWarning 'Something went wrong, please try again.', yes  if err or res.stderr
 
       @formatOutput res.stdout, @bound 'createResultsView'
@@ -103,10 +124,12 @@ class IDE.ContentSearch extends KDModalViewWithForms
           line = parts.join() # join the parts to have actual line again
           formatted[fileName].push { lineNumber, line }
 
-    callback formatted, stats, @searchText
+    callback formatted, stats
 
-  createResultsView: (result, stats, searchText) ->
-    resultsView = new IDE.ContentSearchResultView { result, stats, searchText }
+  createResultsView: (result, stats) ->
+    {searchText}    = this
+    isCaseSensitive = @caseToggle.getValue()
+    resultsView = new IDE.ContentSearchResultView { result, stats, searchText, isCaseSensitive }
     @emit 'ViewNeedsToBeShown', resultsView
     @destroy()
 
