@@ -2,7 +2,6 @@ package gophercloud
 
 import (
 	"fmt"
-
 	"github.com/racker/perigee"
 )
 
@@ -179,7 +178,7 @@ func (c *Context) papersPlease(p Provider, options AuthOptions) (*Access, error)
 			access.context = c
 
 		default:
-			err = &AuthError{
+			err = &AuthError {
 				StatusCode: resp.StatusCode,
 			}
 		}

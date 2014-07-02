@@ -1,3 +1,5 @@
+// +build acceptance,old
+
 package main
 
 import (
