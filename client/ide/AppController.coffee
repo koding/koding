@@ -98,8 +98,6 @@ class IDEAppController extends AppController
 
         appView.emit 'KeyViewIsSet'
 
-        @showContentSearch()
-
   setActiveTabView: (tabView) ->
     @activeTabView = tabView
 
