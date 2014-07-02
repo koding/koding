@@ -187,6 +187,7 @@ func (p *Provider) Start(opts *protocol.MachineOptions) error {
 		}
 	}
 
+	p.Push(fmt.Sprintf("Checking if backup image '%s' exists", o.Builder.InstanceName), 20, machinestate.Starting)
 	images, err := o.Images()
 	if err != nil {
 		return err
@@ -238,8 +239,15 @@ func (p *Provider) Start(opts *protocol.MachineOptions) error {
 		Interval:     2 * time.Second,
 	}
 
-	err := startServer.Wait()
-	if err != nil {
+	if err := startServer.Wait(); err != nil {
+		return err
+	}
+
+	// TODO: update instanceId in storage with the new server ID
+
+	// now delete our backup image, we don't need it anymore
+	p.Push(fmt.Sprintf("Deleting backup image %s - %s", image.Name, image.Id), 80, machinestate.Starting)
+	if err := o.Client.DeleteImageById(image.Id); err != nil {
 		return err
 	}
 
