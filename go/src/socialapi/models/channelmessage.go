@@ -285,6 +285,7 @@ func (c *ChannelMessage) BuildMessage(query *request.Query) (*ChannelMessageCont
 	*q = *query
 
 	q.Limit = query.ReplyLimit
+	q.Skip = query.ReplySkip
 
 	replies, err := mr.List(q)
 	if err != nil {
