@@ -19,8 +19,9 @@ class IDE.ContentSearch extends KDModalViewWithForms
   search: ->
     vmController = KD.getSingleton 'vmController'
     @searchText  = Encoder.XSSEncode @input.getValue()
+    vmController.run "ag '#{@searchText}' '#{@rootPath}' -C 3 --ackmate --stats", (err, res) =>
+      return @showWarning 'Something went wrong, please try again.', yes  if err or res.stderr
 
-    vmController.run "ag '#{@searchText}' -C 3 --ackmate --stats", (err, res) =>
       @formatOutput res.stdout, @bound 'createResultsView'
 
   formatOutput: (output, callback = noop) ->
