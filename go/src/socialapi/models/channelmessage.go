@@ -3,7 +3,6 @@ package models
 import (
 	"errors"
 	"fmt"
-	"math"
 	"socialapi/config"
 	"socialapi/request"
 	"time"
@@ -19,11 +18,6 @@ var mentionRegex = verbalexpressions.New().
 	Word().
 	EndCapture().
 	Regex()
-
-const (
-	DEFAULT_REPLY_LIMIT = 3
-	MAX_REPLY_LIMIT     = 25
-)
 
 type ChannelMessage struct {
 	// unique identifier of the channel message
@@ -287,33 +281,30 @@ func (c *ChannelMessage) BuildMessage(query *request.Query) (*ChannelMessageCont
 
 	mr := NewMessageReply()
 	mr.MessageId = c.Id
-	q := query
+	q := request.NewQuery()
+	*q = *query
 
-	if query.ReplyLimit == 0 {
-		q.Limit = DEFAULT_REPLY_LIMIT
-	} else {
-		q.Limit = int(math.Min(float64(q.ReplyLimit), float64(MAX_REPLY_LIMIT)))
-	}
+	q.Limit = query.ReplyLimit
 
-	replies, err := mr.List(query)
+	replies, err := mr.List(q)
 	if err != nil {
 		return nil, err
 	}
 
-	repliesCount, err := mr.Count(query)
+	repliesCount, err := mr.Count(q)
 	if err != nil {
 		return nil, err
 	}
 	cmc.RepliesCount = repliesCount
 
-	cmc.IsFollowed, err = c.CheckIsMessageFollowed(query)
+	cmc.IsFollowed, err = c.CheckIsMessageFollowed(q)
 	if err != nil {
 		return nil, err
 	}
 
 	populatedChannelMessagesReplies := make([]*ChannelMessageContainer, len(replies))
 	for rl := 0; rl < len(replies); rl++ {
-		cmrc, err := replies[rl].FetchRelatives(query)
+		cmrc, err := replies[rl].FetchRelatives(q)
 		if err != nil {
 			return nil, err
 		}

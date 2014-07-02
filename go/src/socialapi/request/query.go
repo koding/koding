@@ -1,11 +1,18 @@
 package request
 
 import (
+	"math"
 	"net/url"
 	"strconv"
 	"time"
 
 	"github.com/kennygrant/sanitize"
+)
+
+const (
+	DEFAULT_REPLY_LIMIT = 3
+	MAX_REPLY_LIMIT     = 25
+	MAX_LIMIT           = 25
 )
 
 type Query struct {
@@ -102,8 +109,8 @@ func (q *Query) SetDefaults() *Query {
 		// no need to do something
 	}
 
-	if q.Limit == 0 || q.Limit > 25 {
-		q.Limit = 25
+	if q.Limit == 0 || q.Limit > MAX_LIMIT {
+		q.Limit = MAX_LIMIT
 	}
 
 	if q.From.IsZero() {
@@ -112,6 +119,12 @@ func (q *Query) SetDefaults() *Query {
 
 	if q.GroupName == "" {
 		q.GroupName = "koding"
+	}
+
+	if q.ReplyLimit == 0 {
+		q.ReplyLimit = DEFAULT_REPLY_LIMIT
+	} else {
+		q.ReplyLimit = int(math.Min(float64(q.ReplyLimit), float64(MAX_REPLY_LIMIT)))
 	}
 
 	return q
