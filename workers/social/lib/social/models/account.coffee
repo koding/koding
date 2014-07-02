@@ -971,7 +971,7 @@ module.exports = class JAccount extends jraphical.Module
       callback new KodingError 'Access denied'
 
   markUserAsExemptInSocialAPI: (client, exempt, callback)->
-    {markAsTroll, unmarkAsTroll} = require './socialapi/helper'
+    {markAsTroll, unmarkAsTroll} = require './socialapi/requests'
     @createSocialApiId (err, accountId)->
       return callback err if err
       return callback {message: "account id is not set"} unless accountId
