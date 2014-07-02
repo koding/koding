@@ -351,7 +351,7 @@ func (p *Provider) Restart(opts *protocol.MachineOptions) error {
 			return machinestate.Unknown, err
 		}
 
-		p.Push(fmt.Sprintf("Rebooting server '%s', curent state: '%s'", server.Name, server.OsExtStsTaskState), 50, machinestate.Rebooting)
+		p.Push(fmt.Sprintf("Rebooting server '%s', curent task state: '%s'", server.Name, server.OsExtStsTaskState), 50, machinestate.Rebooting)
 		return statusToState(server.Status), nil
 	}
 
@@ -367,8 +367,39 @@ func (p *Provider) Restart(opts *protocol.MachineOptions) error {
 }
 
 func (p *Provider) Destroy(opts *protocol.MachineOptions) error {
+	o, err := p.NewClient(opts)
+	if err != nil {
+		return err
+	}
+
 	p.Push("Terminating machine", 10, machinestate.Terminating)
-	return errors.New("destroy is not supported yet.")
+	if err := o.Client.DeleteServerById(o.Id()); err != nil {
+		return nil
+	}
+
+	stateFunc := func() (machinestate.State, error) {
+		server, err := o.Server()
+		if err == os.ErrServerNotFound {
+			// server is not destroyed
+			return machinestate.Terminated, nil
+		}
+
+		if err != nil {
+			return machinestate.Unknown, err
+		}
+
+		p.Push(fmt.Sprintf("Deleting server '%s', curent task state: '%s'", o.Builder.InstanceName, server.OsExtStsTaskState), 50, machinestate.Terminating)
+		return statusToState(server.Status), nil
+	}
+
+	destroyServer := waitstate.WaitState{
+		StateFunc:    stateFunc,
+		DesiredState: machinestate.Terminated,
+		Timeout:      5 * time.Minute,
+		Interval:     3 * time.Second,
+	}
+
+	return destroyServer.Wait()
 }
 
 func (p *Provider) Info(opts *protocol.MachineOptions) (*protocol.InfoArtifact, error) {
