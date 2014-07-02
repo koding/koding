@@ -3,8 +3,6 @@ package generator
 import (
 	"socialapi/workers/helper"
 	"socialapi/workers/sitemap/common"
-
-	"github.com/koding/redis"
 )
 
 type FileSelector interface {
@@ -24,9 +22,9 @@ func (s CachedFileSelector) Select() (string, error) {
 
 	item, err := redisConn.PopSetMember(common.PrepareCurrentFileNameCacheKey())
 
-	if err != redis.ErrNil {
+	if err != nil {
 		return "", err
 	}
 
-	return item, err
+	return item, nil
 }

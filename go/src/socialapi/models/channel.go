@@ -311,10 +311,15 @@ func (c *Channel) FetchParticipantIds(q *request.Query) ([]int64, error) {
 	return participantIds, nil
 }
 
+var AlreadyInTheChannel = errors.New("message is already in the channel")
+
+// AddMessage adds given message to the channel, it the message is already in the
+// channel, it doesnt add again, this method is idempotent
+// you can call many times, but message will be in the channel list once
 func (c *Channel) AddMessage(messageId int64) (*ChannelMessageList, error) {
 	cml, err := c.FetchMessageList(messageId)
 	if err == nil {
-		return nil, errors.New("Message is already in the channel")
+		return nil, AlreadyInTheChannel
 	}
 
 	// silence record not found err
