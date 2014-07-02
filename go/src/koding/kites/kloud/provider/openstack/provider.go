@@ -59,7 +59,7 @@ func (p *Provider) NewClient(opts *protocol.MachineOptions) (*os.Openstack, erro
 	return osClient, nil
 }
 
-func (p *Provider) Build(opts *protocol.MachineOptions) (*protocol.BuildResponse, error) {
+func (p *Provider) Build(opts *protocol.MachineOptions) (*protocol.BuildArtifact, error) {
 	o, err := p.NewClient(opts)
 	if err != nil {
 		return nil, err
@@ -159,7 +159,7 @@ func (p *Provider) Build(opts *protocol.MachineOptions) (*protocol.BuildResponse
 		return nil, err
 	}
 
-	return &protocol.BuildResponse{
+	return &protocol.BuildArtifact{
 		IpAddress:    server.AccessIPv4,
 		InstanceName: server.Name,
 		InstanceId:   server.Id,

@@ -10,7 +10,7 @@ import (
 // machine.
 type Provider interface {
 	// Build is creating a image and a machine.
-	Build(*MachineOptions) (*BuildResponse, error)
+	Build(*MachineOptions) (*BuildArtifact, error)
 
 	// Start starts the machine
 	Start(*MachineOptions) error
@@ -61,8 +61,8 @@ type MachineOptions struct {
 	Eventer eventer.Eventer
 }
 
-// BuildResponse should be returned from a Build method.
-type BuildResponse struct {
+// BuildArtifact should be returned from a Build method.
+type BuildArtifact struct {
 	// InstanceName should define the name/hostname of the created machine. It
 	// should be equal to the InstanceName that was passed via MachineOptions.
 	InstanceName string

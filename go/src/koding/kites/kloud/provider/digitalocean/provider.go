@@ -68,7 +68,7 @@ func (p *Provider) Name() string {
 // given snapshot/image exist it directly skips to creating the droplet. It
 // acceps two string arguments, first one is the snapshotname, second one is
 // the dropletName.
-func (p *Provider) Build(opts *protocol.MachineOptions) (*protocol.BuildResponse, error) {
+func (p *Provider) Build(opts *protocol.MachineOptions) (*protocol.BuildArtifact, error) {
 	doClient, err := p.NewClient(opts)
 	if err != nil {
 		return nil, err
