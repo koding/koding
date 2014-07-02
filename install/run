@@ -32,19 +32,21 @@ GB=$PRJ/go/bin
 SOCIALCONFIG=./go/src/socialapi/config/docker.toml
 
 NAME=mongo              && docker run                 -h $SUB -d --name=$NAME  --entrypoint=mongod  koding/mongo    --dbpath /root/data/db --smallfiles --nojournal
-NAME=postgres           && docker run                 -h $SUB -d --name=$NAME  										 koding/postgres
+NAME=postgres           && docker run                 -h $SUB -d --name=$NAME  										  koding/postgres
 NAME=rabbitmq           && docker run                 -h $SUB -d --name=$NAME                       koding/rabbitmq
 NAME=redis              && docker run                 -h $SUB -d --name=$NAME                       koding/redis    redis-server
 
 sleep 5
 
 NAME=logger             && docker run  -p 8000:8000		-h $SUB -d --name=$NAME  -v=/var/run/docker.sock:/tmp/docker.sock progrium/logspout syslog://logs.papertrailapp.com:49069
-NAME=kontrol            && docker run  -p 4000:4000   -h $SUB -d --name=$NAME  --entrypoint=$GB/kontrol                                          														--link=mongo:mongo --link=postgres:postgres --link=redis:redis --link=rabbitmq:rabbitmq koding/run  -c $CFG -r $RGN
-NAME=kloud              && docker run                 -h $SUB -d --name=$NAME  --entrypoint=$GB/kloud                                            														--link=mongo:mongo --link=postgres:postgres --link=redis:redis --link=rabbitmq:rabbitmq koding/run  -c $CFG -r $RGN -env prod -public-key $PBKEY -private-key $PVKEY -kontrol-url "http://$HST:4000/kite"
-NAME=rerouting          && docker run                 -h $SUB -d --name=$NAME  --entrypoint=$GB/rerouting                                        														--link=mongo:mongo --link=postgres:postgres --link=redis:redis --link=rabbitmq:rabbitmq koding/run  -c $CFG
-NAME=cronJobs           && docker run                 -h $SUB -d --name=$NAME  --entrypoint=$GB/cron                                             														--link=mongo:mongo --link=postgres:postgres --link=redis:redis --link=rabbitmq:rabbitmq koding/run  -c $CFG
-NAME=broker             && docker run  -p 8008:8008   -h $SUB -d --name=$NAME  --entrypoint=$GB/broker                                           														--link=mongo:mongo --link=postgres:postgres --link=redis:redis --link=rabbitmq:rabbitmq koding/run  -c $CFG
-NAME=proxy              && docker run  -p 4001:4001   -h $SUB -d --name=$NAME  --entrypoint=$GB/reverseproxy                                     														--link=mongo:mongo --link=postgres:postgres --link=redis:redis --link=rabbitmq:rabbitmq koding/run  -region $RGN -host $HST -env production 
+NAME=kontrol            && docker run  -p 4000:4000   -h $SUB -d --name=$NAME  --entrypoint=$GB/kontrol                                          														--link=mongo:mongo 																																		  koding/run  -c $CFG -r $RGN
+NAME=kloud              && docker run  -p 3000:3000   -h $SUB -d --name=$NAME  --entrypoint=$GB/kloud                                            														--link=mongo:mongo 												  --link=redis:redis 												  koding/run  -c $CFG -r $RGN --port 3000 -env prod -public-key $PBKEY -private-key $PVKEY -kontrol-url "http://$HST:4000/kite"
+NAME=rerouting          && docker run                 -h $SUB -d --name=$NAME  --entrypoint=$GB/rerouting                                        														  																														 --link=rabbitmq:rabbitmq koding/run  -c $CFG
+NAME=cronJobs           && docker run                 -h $SUB -d --name=$NAME  --entrypoint=$GB/cron                                             														--link=mongo:mongo  											  --link=redis:redis --link=rabbitmq:rabbitmq koding/run  -c $CFG
+NAME=broker             && docker run  -p 8008:8008   -h $SUB -d --name=$NAME  --entrypoint=$GB/broker                                           																						     											  --link=redis:redis --link=rabbitmq:rabbitmq koding/run  -c $CFG
+NAME=proxy              && docker run  -p 4001:4001   -h $SUB -d --name=$NAME  --entrypoint=$GB/reverseproxy                                     																							 												  								    												koding/run  -region $RGN -port 4001 -env production -publicHost $HST -publicPort 4001
+
+
 
 NAME=socialapi          && docker run  --expose=7000  -h $SUB -d --name=$NAME  --entrypoint=$GB/api               -e "SOCIAL_API_HOSTNAME=$HST"  														--link=mongo:mongo --link=postgres:postgres --link=redis:redis --link=rabbitmq:rabbitmq koding/run  -c $SOCIALCONFIG -port 7000
 NAME=dailymailnotifier  && docker run                 -h $SUB -d --name=$NAME  --entrypoint=$GB/dailymailnotifier -e "SOCIAL_API_HOSTNAME=$HST"  														--link=mongo:mongo --link=postgres:postgres --link=redis:redis --link=rabbitmq:rabbitmq koding/run  -c $SOCIALCONFIG
