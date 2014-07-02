@@ -70,6 +70,7 @@ class IDE.ContentSearch extends KDModalViewWithForms
       '-C 3'       # Print 3 lines before and after matches
       '--ackmate'  # Print results in AckMate-parseable format
       '--stats'    # Print stats (files scanned, time taken, etc.)
+      '--silent'   # Suppress all log messages, including errors.
       '-i'         # Match case insensitively
       '-w'         # Only match whole words
     ]
