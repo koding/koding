@@ -281,8 +281,8 @@ func (c *ChannelMessage) BuildMessage(query *request.Query) (*ChannelMessageCont
 
 	mr := NewMessageReply()
 	mr.MessageId = c.Id
-	q := request.NewQuery()
-	*q = *query
+
+	q := query.Clone()
 
 	q.Limit = query.ReplyLimit
 	q.Skip = query.ReplySkip
