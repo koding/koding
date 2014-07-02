@@ -10,10 +10,10 @@ import (
 // machine.
 type Provider interface {
 	// Build is creating a image and a machine.
-	Build(*MachineOptions) (*BuildArtifact, error)
+	Build(*MachineOptions) (*ProviderArtifact, error)
 
 	// Start starts the machine
-	Start(*MachineOptions) error
+	Start(*MachineOptions) (*ProviderArtifact, error)
 
 	// Stop stops the machine
 	Stop(*MachineOptions) error
@@ -31,7 +31,6 @@ type Provider interface {
 	Name() string
 }
 
-// MachineOptions is passed to the methods of the Provider interface. It
 // contains all necessary informations.
 type MachineOptions struct {
 	// MachineId defines a unique ID in which the build informations are
@@ -62,7 +61,7 @@ type MachineOptions struct {
 }
 
 // BuildArtifact should be returned from a Build method.
-type BuildArtifact struct {
+type ProviderArtifact struct {
 	// InstanceName should define the name/hostname of the created machine. It
 	// should be equal to the InstanceName that was passed via MachineOptions.
 	InstanceName string
@@ -73,14 +72,11 @@ type BuildArtifact struct {
 	// droplet Id.
 	InstanceId string
 
-	// QueryString should contain the kite id/query that is deployed inside the
-	// machine.
-	QueryString string
-
 	// IpAddress defines the public ip address of the running machine.
 	IpAddress string
 }
 
+// InfoArtifact should be returned from a Info method.
 type InfoArtifact struct {
 	// State defines the state of the machine
 	State machinestate.State
@@ -89,6 +85,7 @@ type InfoArtifact struct {
 	Name string
 }
 
+// DeployArtifact should be returned from a Deploy Method
 type DeployArtifact struct {
 	KiteQuery string
 }

@@ -59,7 +59,7 @@ func (p *Provider) NewClient(opts *protocol.MachineOptions) (*os.Openstack, erro
 	return osClient, nil
 }
 
-func (p *Provider) Build(opts *protocol.MachineOptions) (*protocol.BuildArtifact, error) {
+func (p *Provider) Build(opts *protocol.MachineOptions) (*protocol.ProviderArtifact, error) {
 	o, err := p.NewClient(opts)
 	if err != nil {
 		return nil, err
@@ -159,44 +159,46 @@ func (p *Provider) Build(opts *protocol.MachineOptions) (*protocol.BuildArtifact
 		return nil, err
 	}
 
-	return &protocol.BuildArtifact{
+	return &protocol.ProviderArtifact{
 		IpAddress:    server.AccessIPv4,
 		InstanceName: server.Name,
 		InstanceId:   server.Id,
 	}, nil
 }
 
-func (p *Provider) Start(opts *protocol.MachineOptions) error {
+func (p *Provider) Start(opts *protocol.MachineOptions) (*protocol.ProviderArtifact, error) {
 	o, err := p.NewClient(opts)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	p.Push("Starting machine", 10, machinestate.Stopping)
 
 	// check if our key exist
 	key, err := o.ShowKey(protocol.KeyName)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	// key doesn't exist, create a new one
 	if key.Name == "" {
 		key, err = o.CreateKey(protocol.KeyName, protocol.PublicKey)
 		if err != nil {
-			return err
+			return nil, err
 		}
 	}
 
-	p.Push(fmt.Sprintf("Checking if backup image '%s' exists", o.Builder.InstanceName), 20, machinestate.Starting)
+	p.Push(fmt.Sprintf("Checking if backup image '%s' exists", o.Builder.InstanceName),
+		20, machinestate.Starting)
 	images, err := o.Images()
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	image, err := images.ImageByName(o.Builder.InstanceName)
 	if err != nil {
-		return err
+		return nil, err
 	}
+	p.Push(fmt.Sprintf("Backup image '%s' does exists", o.Builder.InstanceName), 20, machinestate.Starting)
 
 	newServer := gophercloud.NewServer{
 		Name:        o.Builder.InstanceName,
@@ -205,10 +207,10 @@ func (p *Provider) Start(opts *protocol.MachineOptions) error {
 		KeyPairName: key.Name,
 	}
 
-	p.Push(fmt.Sprintf("Starting server %s", opts.InstanceName), 30, machinestate.Starting)
+	p.Push(fmt.Sprintf("Starting server '%s' based on image '%s'", o.Builder.InstanceName, image.Id), 30, machinestate.Starting)
 	resp, err := o.Client.CreateServer(newServer)
 	if err != nil {
-		return fmt.Errorf("Error creating server: %s", err)
+		return nil, fmt.Errorf("Error creating server: %s", err)
 	}
 
 	// eventer percentages
@@ -240,18 +242,20 @@ func (p *Provider) Start(opts *protocol.MachineOptions) error {
 	}
 
 	if err := startServer.Wait(); err != nil {
-		return err
+		return nil, err
 	}
-
-	// TODO: update instanceId in storage with the new server ID
 
 	// now delete our backup image, we don't need it anymore
 	p.Push(fmt.Sprintf("Deleting backup image %s - %s", image.Name, image.Id), 80, machinestate.Starting)
 	if err := o.Client.DeleteImageById(image.Id); err != nil {
-		return err
+		return nil, err
 	}
 
-	return nil
+	return &protocol.ProviderArtifact{
+		InstanceId:   server.Id,
+		InstanceName: server.Name,
+		IpAddress:    server.AccessIPv4,
+	}, nil
 }
 
 func (p *Provider) Stop(opts *protocol.MachineOptions) error {
@@ -273,6 +277,7 @@ func (p *Provider) Stop(opts *protocol.MachineOptions) error {
 		return err
 	}
 
+	start := time.Now()
 	stateFunc := func() (machinestate.State, error) {
 		server, err := o.Server()
 		if err != nil {
@@ -282,6 +287,13 @@ func (p *Provider) Stop(opts *protocol.MachineOptions) error {
 		// and empty taks means the image creating and uploading task has been
 		// finished, now we can move on to the next step.
 		if server.OsExtStsTaskState == "" {
+			// compensate for first 5 seconds, the api might give an empty
+			// state before even the event is sending us the correct task state
+			// within OsExtStsTaskState
+			if start.Before(time.Now().Add(time.Second * 5)) {
+				return statusToState(server.Status), nil
+			}
+
 			return machinestate.Stopping, nil
 		}
 

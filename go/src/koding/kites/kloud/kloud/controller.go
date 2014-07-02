@@ -149,17 +149,12 @@ func (k *Kloud) info(r *kite.Request, c *Controller) (interface{}, error) {
 		Builder:    c.MachineData.Machine.Meta,
 	}
 
-	info, err := c.Provider.Info(machOptions)
+	response, err := c.Provider.Info(machOptions)
 	if err != nil {
 		return nil, err
 	}
 
-	response := &protocol.InfoArtifact{
-		State: info.State,
-		Name:  info.Name,
-	}
-
-	if info.State == machinestate.Unknown {
+	if response.State == machinestate.Unknown {
 		response.State = c.CurrenState
 	}
 
@@ -167,7 +162,7 @@ func (k *Kloud) info(r *kite.Request, c *Controller) (interface{}, error) {
 	k.Storage.Update(c.MachineId, &StorageData{
 		Type: "info",
 		Data: map[string]interface{}{
-			"instanceName": info.Name,
+			"instanceName": response.Name,
 		},
 	})
 
@@ -181,7 +176,33 @@ func (k *Kloud) start(r *kite.Request, c *Controller) (interface{}, error) {
 	}
 
 	fn := func(m *protocol.MachineOptions) error {
-		return c.Provider.Start(m)
+		resp, err := c.Provider.Start(m)
+		if err != nil {
+			return err
+		}
+
+		// some providers might provide zero information, therefore do not
+		// update anything for them
+		if resp == nil {
+			return nil
+		}
+
+		err = k.Storage.Update(c.MachineId, &StorageData{
+			Type: "build",
+			Data: map[string]interface{}{
+				"ipAddress":    resp.IpAddress,
+				"instanceId":   resp.InstanceId,
+				"instanceName": resp.InstanceName,
+			},
+		})
+
+		if err != nil {
+			k.Log.Error("[start] mongo update of essential data was not possible: %s", err.Error())
+		}
+
+		// do not return the error, the machine is already prepared and
+		// started, it should be ready
+		return nil
 	}
 
 	return k.coreMethods(r, c, fn)
@@ -223,11 +244,8 @@ func (k *Kloud) restart(r *kite.Request, c *Controller) (interface{}, error) {
 // stop, restart and destroy. This method is used to avoid duplicate codes in
 // start, stop, restart and destroy methods (because we do the same steps for
 // each of them).
-func (k *Kloud) coreMethods(
-	r *kite.Request,
-	c *Controller,
-	fn func(*protocol.MachineOptions) error,
-) (result interface{}, err error) {
+func (k *Kloud) coreMethods(r *kite.Request, c *Controller, fn func(*protocol.MachineOptions) error) (result interface{}, err error) {
+
 	// all core methods works only for machines that are initialized
 	if c.CurrenState == machinestate.NotInitialized {
 		return nil, NewError(ErrMachineNotInitialized)
