@@ -165,9 +165,9 @@ module.exports = class SocialMessage extends Base
       {messageById} = require './requests'
       messageById data, (err, message)->
         return callback err  if err
-        return callback { message: "Post is not found" }  unless message
-
-        if message.accountId == socialApiId
+        return callback { message: "Post is not found" }  unless message?.message
+        {message: {accountId}} = message
+        if accountId is socialApiId
           return callback null, yes
         fn client, callback
 
