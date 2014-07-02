@@ -59,7 +59,7 @@ func (p *Provider) NewClient(opts *protocol.MachineOptions) (*os.Openstack, erro
 	return osClient, nil
 }
 
-func (p *Provider) Build(opts *protocol.MachineOptions) (*protocol.BuildResponse, error) {
+func (p *Provider) Build(opts *protocol.MachineOptions) (*protocol.ProviderArtifact, error) {
 	o, err := p.NewClient(opts)
 	if err != nil {
 		return nil, err
@@ -159,16 +159,103 @@ func (p *Provider) Build(opts *protocol.MachineOptions) (*protocol.BuildResponse
 		return nil, err
 	}
 
-	return &protocol.BuildResponse{
+	return &protocol.ProviderArtifact{
 		IpAddress:    server.AccessIPv4,
 		InstanceName: server.Name,
 		InstanceId:   server.Id,
 	}, nil
 }
 
-func (p *Provider) Start(opts *protocol.MachineOptions) error {
+func (p *Provider) Start(opts *protocol.MachineOptions) (*protocol.ProviderArtifact, error) {
+	o, err := p.NewClient(opts)
+	if err != nil {
+		return nil, err
+	}
+	p.Push("Starting machine", 10, machinestate.Stopping)
 
-	return errors.New("Stop is not supported.")
+	// check if our key exist
+	key, err := o.ShowKey(protocol.KeyName)
+	if err != nil {
+		return nil, err
+	}
+
+	// key doesn't exist, create a new one
+	if key.Name == "" {
+		key, err = o.CreateKey(protocol.KeyName, protocol.PublicKey)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	p.Push(fmt.Sprintf("Checking if backup image '%s' exists", o.Builder.InstanceName),
+		20, machinestate.Starting)
+	images, err := o.Images()
+	if err != nil {
+		return nil, err
+	}
+
+	image, err := images.ImageByName(o.Builder.InstanceName)
+	if err != nil {
+		return nil, err
+	}
+	p.Push(fmt.Sprintf("Backup image '%s' does exists", o.Builder.InstanceName), 20, machinestate.Starting)
+
+	newServer := gophercloud.NewServer{
+		Name:        o.Builder.InstanceName,
+		ImageRef:    image.Id,
+		FlavorRef:   o.Builder.Flavor,
+		KeyPairName: key.Name,
+	}
+
+	p.Push(fmt.Sprintf("Starting server '%s' based on image '%s'", o.Builder.InstanceName, image.Id), 30, machinestate.Starting)
+	resp, err := o.Client.CreateServer(newServer)
+	if err != nil {
+		return nil, fmt.Errorf("Error creating server: %s", err)
+	}
+
+	// eventer percentages
+	start := 35
+	finish := 60
+
+	// store successfull result here
+	var server *gophercloud.Server
+
+	stateFunc := func() (machinestate.State, error) {
+		p.Push("Waiting for machine to be ready", start, machinestate.Starting)
+		server, err = o.Client.ServerById(resp.Id)
+		if err != nil {
+			return 0, err
+		}
+
+		if start < finish {
+			start += 2
+		}
+
+		return statusToState(server.Status), nil
+	}
+
+	startServer := waitstate.WaitState{
+		StateFunc:    stateFunc,
+		DesiredState: machinestate.Running,
+		Timeout:      5 * time.Minute,
+		Interval:     2 * time.Second,
+	}
+
+	if err := startServer.Wait(); err != nil {
+		return nil, err
+	}
+
+	// now delete our backup image, we don't need it anymore
+	p.Push(fmt.Sprintf("Deleting backup image %s - %s", image.Name, image.Id), 80, machinestate.Starting)
+	if err := o.Client.DeleteImageById(image.Id); err != nil {
+		return nil, err
+	}
+
+	return &protocol.ProviderArtifact{
+		InstanceId:   server.Id,
+		InstanceName: server.Name,
+		IpAddress:    server.AccessIPv4,
+	}, nil
 }
 
 func (p *Provider) Stop(opts *protocol.MachineOptions) error {
@@ -190,6 +277,7 @@ func (p *Provider) Stop(opts *protocol.MachineOptions) error {
 		return err
 	}
 
+	start := time.Now()
 	stateFunc := func() (machinestate.State, error) {
 		server, err := o.Server()
 		if err != nil {
@@ -199,6 +287,13 @@ func (p *Provider) Stop(opts *protocol.MachineOptions) error {
 		// and empty taks means the image creating and uploading task has been
 		// finished, now we can move on to the next step.
 		if server.OsExtStsTaskState == "" {
+			// compensate for first 5 seconds, the api might give an empty
+			// state before even the event is sending us the correct task state
+			// within OsExtStsTaskState
+			if start.Before(time.Now().Add(time.Second * 5)) {
+				return statusToState(server.Status), nil
+			}
+
 			return machinestate.Stopping, nil
 		}
 
@@ -251,7 +346,7 @@ func (p *Provider) Destroy(opts *protocol.MachineOptions) error {
 	return errors.New("build is not supported yet.")
 }
 
-func (p *Provider) Info(opts *protocol.MachineOptions) (*protocol.InfoResponse, error) {
+func (p *Provider) Info(opts *protocol.MachineOptions) (*protocol.InfoArtifact, error) {
 	o, err := p.NewClient(opts)
 	if err != nil {
 		return nil, err
@@ -269,16 +364,16 @@ func (p *Provider) Info(opts *protocol.MachineOptions) (*protocol.InfoResponse, 
 
 		if images.HasName(o.Builder.InstanceName) {
 			// means the machine was deleted and an image exist that points to it
-			p.Log.Debug("Image '%s' does exist", o.Builder.InstanceName)
-			return &protocol.InfoResponse{
+			p.Log.Debug("Image '%s' does exist, means it's stopped.", o.Builder.InstanceName)
+			return &protocol.InfoArtifact{
 				State: machinestate.Stopped,
 				Name:  o.Builder.InstanceName,
 			}, nil
 
 		}
 
-		p.Log.Debug("Image does not exist, returning unknown state")
-		return &protocol.InfoResponse{
+		p.Log.Debug("Image does not exist, returning unknown state.")
+		return &protocol.InfoArtifact{
 			State: machinestate.Terminated,
 			Name:  o.Builder.InstanceName,
 		}, nil
@@ -288,7 +383,7 @@ func (p *Provider) Info(opts *protocol.MachineOptions) (*protocol.InfoResponse, 
 		p.Log.Warning("Unknown rackspace status: %s. This needs to be fixed.", server.Status)
 	}
 
-	return &protocol.InfoResponse{
+	return &protocol.InfoArtifact{
 		State: statusToState(server.Status),
 		Name:  server.Name,
 	}, nil

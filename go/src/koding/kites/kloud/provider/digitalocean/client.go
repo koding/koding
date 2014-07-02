@@ -36,7 +36,7 @@ type Client struct {
 // given snapshot/image exist it directly skips to creating the droplet. It
 // acceps two string arguments, first one is the snapshotname, second one is
 // the dropletName.
-func (c *Client) Build(snapshotName, dropletName, username string) (*protocol.BuildResponse, error) {
+func (c *Client) Build(snapshotName, dropletName, username string) (*protocol.ProviderArtifact, error) {
 	// needed because this is passed as `data` to packer.Provider
 	c.Builder.SnapshotName = snapshotName
 
@@ -64,7 +64,7 @@ func (c *Client) Build(snapshotName, dropletName, username string) (*protocol.Bu
 		return nil, err
 	}
 
-	return &protocol.BuildResponse{
+	return &protocol.ProviderArtifact{
 		IpAddress:    droplet.IpAddress,
 		InstanceName: dropletName, // we don't use droplet.Name because it might have the cached name
 		InstanceId:   strconv.Itoa(droplet.Id),
@@ -175,7 +175,7 @@ func (c *Client) Destroy() error {
 	return c.WaitUntilReady(int(eventId), 50, 80, machinestate.Terminating)
 }
 
-func (c *Client) Info() (*protocol.InfoResponse, error) {
+func (c *Client) Info() (*protocol.InfoArtifact, error) {
 	dropletId, err := c.DropletId()
 	if err != nil {
 		return nil, err
@@ -190,7 +190,7 @@ func (c *Client) Info() (*protocol.InfoResponse, error) {
 		c.Log.Warning("Unknown digitalocean status: %s. This needs to be fixed.", droplet.Status)
 	}
 
-	return &protocol.InfoResponse{
+	return &protocol.InfoArtifact{
 		State: statusToState(droplet.Status),
 		Name:  droplet.Name,
 	}, nil
