@@ -28,7 +28,7 @@ module.exports = class DigitalOcean extends ProviderInterface
         name  : "512mb"
         title : "512 MB"
         spec  : {
-          cpu : 1, ram: 0.5, storage: 20, transfer: "1TB"
+          cpu : 1, ram: 512, storage: 20, transfer: "1TB"
         }
         price : "$5 per Month"
       }
@@ -36,7 +36,7 @@ module.exports = class DigitalOcean extends ProviderInterface
         name  : "1gb"
         title : "1 GB"
         spec  : {
-          cpu : 1, ram: 1, storage: 30, transfer: "2TB"
+          cpu : 1, ram: 1024, storage: 30, transfer: "2TB"
         }
         price : "$10 per Month"
       }
@@ -44,7 +44,7 @@ module.exports = class DigitalOcean extends ProviderInterface
         name  : "2gb"
         title : "2 GB"
         spec  : {
-          cpu : 2, ram: 2, storage: 40, transfer: "3TB"
+          cpu : 2, ram: 2048, storage: 40, transfer: "3TB"
         }
         price : "$20 per Month"
       }
@@ -52,7 +52,7 @@ module.exports = class DigitalOcean extends ProviderInterface
         name  : "4gb"
         title : "4 GB"
         spec  : {
-          cpu : 2, ram: 4, storage: 60, transfer: "4TB"
+          cpu : 2, ram: 4096, storage: 60, transfer: "4TB"
         }
         price : "$40 per Month"
       }
@@ -60,7 +60,7 @@ module.exports = class DigitalOcean extends ProviderInterface
         name  : "8gb"
         title : "8 GB"
         spec  : {
-          cpu : 4, ram: 8, storage: 80, transfer: "5TB"
+          cpu : 4, ram: 8192, storage: 80, transfer: "5TB"
         }
         price : "$80 per Month"
       }
