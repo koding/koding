@@ -112,15 +112,14 @@ class ActivitySettingsView extends KDCustomHTMLView
             id = @getData().getId()
 
             (KD.singleton 'appManager').tell 'Activity', 'delete', {id}, (err) =>
+              return modal.destroy()  unless err
+              options =
+                userMessage : "You are not allowed to delete this post."
 
-              if err
-                new KDNotificationView
-                  type     : "mini"
-                  cssClass : "error editor"
-                  title    : "Error, please try again later!"
-                return
+              KD.showErrorNotification err, options
 
               modal.destroy()
+
         Cancel       :
           style      : "modal-cancel"
           title      : "cancel"

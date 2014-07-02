@@ -180,11 +180,13 @@ class ActivityController extends KDObject
           callback   : =>
             kallback = (acc)=>
               acc.markUserAsExempt true, (err, res)->
-                if err then warn err
+                if err
+                  options = userMessage: "You are not allowed to mark this user as a troll"
+                  KD.showErrorNotification err, options
                 else
-                  modal.destroy()
-                  new KDNotificationView
-                    title : "@#{acc.profile.nickname} marked as a troll!"
+                  KD.showNotification "@#{acc.profile.nickname} marked as a troll!"
+
+                modal.destroy()
 
             if data.account._id
               KD.remote.cacheable "JAccount", data.account._id, (err, account)->

@@ -246,7 +246,10 @@ class ActivityInputWidget extends KDView
       payload
     }, (err, message) =>
 
-      return KD.showError err  if err
+      if err
+        options =
+          userMessage: "You are not allowed to edit this post."
+        return @showError err, options
 
       @reset()
       callback()
@@ -273,9 +276,10 @@ class ActivityInputWidget extends KDView
     return {link_url, link_embed}  if link_url and link_embed
 
 
-  showError: (err) ->
+  showError: (err, options = {}) ->
 
-    KD.showError err
+    KD.showErrorNotification err, options
+
     @unlockSubmit()
 
 
