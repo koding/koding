@@ -1,1 +1,0 @@
-{ "indexes" : [ { "v" : 1, "key" : { "_id" : 1 }, "ns" : "koding.jInvitationRequests", "name" : "_id_" }, { "v" : 1, "key" : { "email" : 1 }, "ns" : "koding.jInvitationRequests", "name" : "email_1", "sparse" : true }, { "v" : 1, "key" : { "status" : 1 }, "ns" : "koding.jInvitationRequests", "name" : "status_1", "sparse" : true } ] }
