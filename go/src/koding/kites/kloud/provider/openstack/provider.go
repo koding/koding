@@ -167,8 +167,83 @@ func (p *Provider) Build(opts *protocol.MachineOptions) (*protocol.BuildResponse
 }
 
 func (p *Provider) Start(opts *protocol.MachineOptions) error {
+	o, err := p.NewClient(opts)
+	if err != nil {
+		return err
+	}
+	p.Push("Starting machine", 10, machinestate.Stopping)
 
-	return errors.New("Stop is not supported.")
+	// check if our key exist
+	key, err := o.ShowKey(protocol.KeyName)
+	if err != nil {
+		return err
+	}
+
+	// key doesn't exist, create a new one
+	if key.Name == "" {
+		key, err = o.CreateKey(protocol.KeyName, protocol.PublicKey)
+		if err != nil {
+			return err
+		}
+	}
+
+	images, err := o.Images()
+	if err != nil {
+		return err
+	}
+
+	image, err := images.ImageByName(o.Builder.InstanceName)
+	if err != nil {
+		return err
+	}
+
+	newServer := gophercloud.NewServer{
+		Name:        o.Builder.InstanceName,
+		ImageRef:    image.Id,
+		FlavorRef:   o.Builder.Flavor,
+		KeyPairName: key.Name,
+	}
+
+	p.Push(fmt.Sprintf("Starting server %s", opts.InstanceName), 30, machinestate.Starting)
+	resp, err := o.Client.CreateServer(newServer)
+	if err != nil {
+		return fmt.Errorf("Error creating server: %s", err)
+	}
+
+	// eventer percentages
+	start := 35
+	finish := 60
+
+	// store successfull result here
+	var server *gophercloud.Server
+
+	stateFunc := func() (machinestate.State, error) {
+		p.Push("Waiting for machine to be ready", start, machinestate.Starting)
+		server, err = o.Client.ServerById(resp.Id)
+		if err != nil {
+			return 0, err
+		}
+
+		if start < finish {
+			start += 2
+		}
+
+		return statusToState(server.Status), nil
+	}
+
+	startServer := waitstate.WaitState{
+		StateFunc:    stateFunc,
+		DesiredState: machinestate.Running,
+		Timeout:      5 * time.Minute,
+		Interval:     2 * time.Second,
+	}
+
+	err := startServer.Wait()
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (p *Provider) Stop(opts *protocol.MachineOptions) error {
@@ -269,7 +344,7 @@ func (p *Provider) Info(opts *protocol.MachineOptions) (*protocol.InfoResponse, 
 
 		if images.HasName(o.Builder.InstanceName) {
 			// means the machine was deleted and an image exist that points to it
-			p.Log.Debug("Image '%s' does exist", o.Builder.InstanceName)
+			p.Log.Debug("Image '%s' does exist, means it's stopped.", o.Builder.InstanceName)
 			return &protocol.InfoResponse{
 				State: machinestate.Stopped,
 				Name:  o.Builder.InstanceName,
@@ -277,7 +352,7 @@ func (p *Provider) Info(opts *protocol.MachineOptions) (*protocol.InfoResponse, 
 
 		}
 
-		p.Log.Debug("Image does not exist, returning unknown state")
+		p.Log.Debug("Image does not exist, returning unknown state.")
 		return &protocol.InfoResponse{
 			State: machinestate.Terminated,
 			Name:  o.Builder.InstanceName,
