@@ -252,7 +252,7 @@ class MainController extends KDController
 
     KD.utils.defer ->
 
-      KD.singletons.appManager.require 'Login', ->
+      KD.singletons.appManager.require 'Login'
 
       images = [
         '/a/images/city.jpg'
