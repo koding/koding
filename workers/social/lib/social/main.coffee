@@ -38,15 +38,15 @@ console.log "connecting to rabbit with:",{mqOptions}
 
 broker = new Broker mqOptions
 
-processMonitor = (require 'processes-monitor').start
-  name : "Social Worker #{process.pid}"
-  stats_id: "worker.social." + process.pid
-  interval : 30000
-  limit_hard  :
-    memory   : 600
-    callback : (name,msg,details)->
-      console.log "[#{JSON.stringify(new Date())}][SOCIAL WORKER #{name}] Using excessive memory, exiting."
-      process.exit()
+# processMonitor = (require 'processes-monitor').start
+#   name : "Social Worker #{process.pid}"
+#   stats_id: "worker.social." + process.pid
+#   interval : 30000
+#   limit_hard  :
+#     memory   : 600
+#     callback : (name,msg,details)->
+#       console.log "[#{JSON.stringify(new Date())}][SOCIAL WORKER #{name}] Using excessive memory, exiting."
+#       process.exit()
 
 koding = new Bongo {
   verbose     : social.verbose
