@@ -2,19 +2,54 @@ class IDE.ContentSearch extends KDModalViewWithForms
 
   constructor: (options = {}, data) ->
 
-    options.cssClass = 'content-search'
+    options.cssClass        = 'content-search-modal'
+    options.tabs            =
+      forms                 :
+        Search              :
+          buttons           :
+            searchButton    :
+              title         : 'Search'
+              style         : 'search solid green'
+              domId         : 'search-button'
+              type          : 'submit'
+              loader        :
+                color       : '#FFFFFF'
+              callback      : @bound 'search'
+            cancel          :
+              title         : 'Close'
+              style         : 'cancel'
+              domId         : 'cancel-button'
+              callback      : @bound "destroy"
+          fields            :
+            findInput       :
+              type          : 'text'
+              label         : 'Find'
+              placeholder   : 'Find'
+            whereInput      :
+              type          : 'text'
+              label         : 'Where'
+              placeholder   : "/home/#{KD.nick()}" #/Documents"
+              defaultValue  : "/home/#{KD.nick()}" #/Documents"
+            caseToggle      :
+              label         : 'Case Sensitive'
+              itemClass     : KodingSwitch
+              defaultValue  : no
+              cssClass      : 'tiny switch'
+            regExpToggle    :
+              label         : 'Regular Expression'
+              itemClass     : KodingSwitch
+              defaultValue  : no
+              cssClass      : 'tiny switch'
+            wholeWordToggle :
+              label         : 'Whole Word'
+              itemClass     : KodingSwitch
+              defaultValue  : no
+              cssClass      : 'tiny switch'
+            warningView     :
+              itemClass     : KDView
+              cssClass      : 'hidden notification'
 
     super options, data
-
-    @addSubView @input = input = new KDInputView
-      type         : 'text'
-      placeholder  : 'Type file name to search'
-      keyup        :
-        'esc'      : @bound 'destroy'
-        'enter'    : @bound 'search'
-
-    @appendToDomBody()
-    @input.setFocus()
 
   search: ->
     vmController = KD.getSingleton 'vmController'
