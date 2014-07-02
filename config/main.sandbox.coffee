@@ -174,13 +174,13 @@ module.exports =
       broker    :
         servicesEndpoint: "/-/services/broker"
       premiumBroker    :
-        servicesEndpoint: "/-/services/premiumBroker"
+        servicesEndpoint: "/-/services/broker"
       brokerKite:
         servicesEndpoint: "/-/services/brokerKite"
         brokerExchange: 'brokerKite'
       premiumBrokerKite:
-        servicesEndpoint: "/-/services/premiumBrokerKite"
-        brokerExchange: 'premiumBrokerKite'
+        servicesEndpoint: "/-/services/brokerKite"
+        brokerExchange: 'brokerKite'
       apiUri    : 'https://koding.com'
       appsUri   : 'https://rest.kd.io'
       uploadsUri: 'https://koding-uploads.s3.amazonaws.com'
@@ -243,7 +243,7 @@ module.exports =
     webProtocol       : 'https:'
     authExchange      : authExchange
     authAllExchange   : authAllExchange
-    failoverUri       : 'stage-premiumbroker.koding.com'
+    failoverUri       : 'sandbox.koding.com'
   brokerKite          :
     name              : "brokerKite"
     serviceGenericName: "brokerKite"
@@ -259,13 +259,13 @@ module.exports =
     name              : "premiumBrokerKite"
     serviceGenericName: "brokerKite"
     ip                : ""
-    port              : 443
+    port              : 453
     certFile          : "/opt/ssl_certs/wildcard.koding.com.cert"
     keyFile           : "/opt/ssl_certs/wildcard.koding.com.key"
     webProtocol       : 'https:'
     authExchange      : authExchange
     authAllExchange   : authAllExchange
-    failoverUri       : 'stage-premiumbrokerkite.koding.com'
+    failoverUri       : 'sandbox.koding.com'
   kites:
     disconnectTimeout: 3e3
     vhost       : 'kite'

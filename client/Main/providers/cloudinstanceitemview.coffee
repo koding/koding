@@ -17,6 +17,6 @@ class CloudInstanceItemView extends KDListItemView
 
   pistachio:-> """
     {h2{ #(title) }}
-    cpu: {{ #(spec.cpu)}}x - ram: {{ #(spec.ram)}} GiB - storage: {{ #(spec.storage)}} GB
+    cpu: {{ #(spec.cpu)}}x - ram: {{ #(spec.ram)}} mb - storage: {{ #(spec.storage)}} GB
     {{ #(price) }} {{> @selectButton}}
   """

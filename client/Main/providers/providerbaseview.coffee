@@ -60,10 +60,9 @@ class ProviderBaseView extends KDTabPaneView
     @createInstanceForm.setClass 'in'
     @createInstanceForm.once "Submit", (data)=>
 
-      label = data.title
-      {computeController} = KD.singletons
-      computeController.create {
-        provider, label
+      KD.singletons.computeController.create {
+        provider
+        label        : data.title
         instanceType : instance.getData().name
         credential   : @_currentCredential
         stack        : stack._id
