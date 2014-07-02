@@ -1,9 +1,13 @@
+// +build acceptance,old
+
 package main
 
 import (
 	"flag"
 	"fmt"
 	"github.com/rackspace/gophercloud"
+	"os"
+	"github.com/racker/perigee"
 )
 
 var id = flag.String("i", "", "Server ID to get info on.  Defaults to first server in your account if unspecified.")
@@ -13,6 +17,7 @@ var quiet = flag.Bool("quiet", false, "Run quietly, for acceptance testing.  $? 
 func main() {
 	flag.Parse()
 
+	resultCode := 0
 	withIdentity(false, func(auth gophercloud.AccessProvider) {
 		withServerApi(auth, func(servers gophercloud.CloudServersProvider) {
 			var (
@@ -79,7 +84,26 @@ func main() {
 				}
 			}
 		})
+
+		// Negative test -- We should absolutely never panic for a server that doesn't exist.
+		withServerApi(auth, func(servers gophercloud.CloudServersProvider) {
+			_, err := servers.ServerById(randomString("garbage", 32))
+			if err == nil {
+				fmt.Printf("Expected a 404 response when looking for a server known not to exist\n")
+				resultCode = 1
+			}
+			perigeeError, ok := err.(*perigee.UnexpectedResponseCodeError)
+			if !ok {
+				fmt.Printf("Unexpected error type\n")
+				resultCode = 1
+			} else {
+				if perigeeError.Actual != 404 {
+					fmt.Printf("Expected a 404 error code\n")
+				}
+			}
+		})
 	})
+	os.Exit(resultCode)
 }
 
 // locateAServer queries the set of servers owned by the user.  If at least one
