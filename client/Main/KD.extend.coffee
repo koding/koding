@@ -314,6 +314,37 @@ KD.extend
       error err
     err?
 
+  showNotification: (message, options = {})->
+    return  if not message or message is ""
+
+    # TODO these css/type parameters will be changed according to error type
+    type = 'growl'
+
+    options.duration or= 3500
+    options.title      = message
+    # options.css      or= css
+    options.type     or= type
+
+    options.fn message  if options.fn and typeof options.fn? is 'function'
+
+    new KDNotificationView options
+
+  # TODO after error message handling method is decided replace this function
+  # with showError
+  showErrorNotification: (err, options = {}) ->
+    {message, name} = err  if err
+
+    switch name
+      when 'AccessDenied'
+        options.fn = warn
+        options.type = 'growl'
+        message = options.userMessage
+      else
+        options.userMessage = "Error, please try again later!"
+        options.fn = error
+
+    @showNotification message, options
+
   getPathInfo: (fullPath)->
     return no unless fullPath
     path      = FSHelper.plainPath fullPath
