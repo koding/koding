@@ -263,186 +263,186 @@ body.ide.dark
 
 // key mappings
 .key-mappings
-  padding             50px
-  font-size           13px
-  size                auto, auto
+  padding               50px
+  font-size             13px
+  size                  auto, auto
   .container
-    min-width         370px
-    width             45%
-    margin-right      3%
+    min-width           370px
+    width               45%
+    margin-right        3%
     fl()
     p
-      color           text-color-green
-      margin-bottom   24px
+      color             text-color-green
+      margin-bottom     24px
   .key-map
-    margin-bottom     16px
+    margin-bottom       16px
   .keys
-    overflow          hidden
-    width             230px
+    overflow            hidden
+    width               230px
     fl()
   .key
-    size              60px, 33px
-    line-height       33px
-    text-align        center
-    margin-right      12px
-    text-transform    uppercase
-    color             dark-tab-color
-    border            1px solid #979797
+    size                60px, 33px
+    line-height         33px
+    text-align          center
+    margin-right        12px
+    text-transform      uppercase
+    color               dark-tab-color
+    border              1px solid #979797
     fl()
   .description
-    color             #F4F1ED
-    height            33px
-    line-height       33px
+    color               #F4F1ED
+    height              33px
+    line-height         33px
     fl()
 
 // status bar
-.kdsplitcomboview
-  > .kdsplitview
-    > .panel-1
-      .pane-wrapper
-        kalc          height, 100% \- 34px
+.ide
+  .kdsplitcomboview
+    > .kdsplitview
+      > .panel-1
+        .pane-wrapper
+          kalc          height, 100% \- 34px
 
-.status-bar
-  abs()
-  bottom              0
-  width               100%
-  height              34px
-  line-height         34px
-  color               dark-tab-color
-  background          dark-tab-header-bg
-  font-size           13px
-  .status
-    margin-left       12px
-    fl()
-    p
-      display         inline-block
-      &.line
-        width         50px
-
-  .actions-button
+  .status-bar
     abs()
-    pointer()
-    display           inline-block
-    right             2px
-    r-sprite          'ide', 'hamburger'
+    bottom              0
+    width               100%
+    height              34px
+    line-height         34px
+    color               dark-tab-color
+    background          dark-tab-header-bg
+    font-size           13px
+    .status
+      margin-left       12px
+      fl()
+      p
+        display         inline-block
+        &.line
+          width         50px
 
-.status-bar-menu
-  top                 inherit !important
-  bottom              34px
-  ul
-    bg                color, dark-tab-header-bg !important
-    padding           2px !important
-    rounded           0 !important
-  li
-    color             #E6E1DC !important
-    rounded           0 !important
-    padding-left      15px !important
-    &:hover
-      bg              color, dark-panel-bg !important
-    &.selected
-      bg              color, dark-panel-bg !important
-    &.separator
-      border-bottom   1px solid dark-panel-bg !important
-      margin          14px !important
+    .actions-button
+      abs()
+      pointer()
+      display           inline-block
+      right             2px
+      r-sprite          'ide', 'hamburger'
 
-.syntax-selector
-  padding             3px 10px 3px 0
-  span
-    font-size         13px
-  .kdselectbox
-    height            24px
-    margin-left       29px
+  .status-bar-menu
+    top                 inherit !important
+    bottom              34px
+    ul
+      bg                color, dark-tab-header-bg !important
+      padding           2px !important
+      rounded           0 !important
+    li
+      color             #E6E1DC !important
+      rounded           0 !important
+      padding-left      15px !important
+      &:hover
+        bg              color, dark-panel-bg !important
+      &.selected
+        bg              color, dark-panel-bg !important
+      &.separator
+        border-bottom   1px solid dark-panel-bg !important
+        margin          14px !important
+
+  .syntax-selector
+    padding             3px 10px 3px 0
     span
-      line-height     24px !important
-      height          24px !important
-    .arrows
-      r-sprite          'finder', 'expanded'
-      top               8px
+      font-size         13px
+    .kdselectbox
+      height            24px
+      margin-left       29px
+      span
+        line-height     24px !important
+        height          24px !important
+      .arrows
+        r-sprite        'finder', 'expanded'
+        top             8px
 
 // file-finder
-.ide
-  .file-finder
+.ide .file-finder
+  abs()
+  z-index               10000
+  top                   96px
+  left                  50%
+  margin-left           -235px
+  width                 450px
+  padding               10px
+  rounded               5px
+  bg                    color, dark-tab-header-bg
+  vendor                box-shadow, 0px 2px 28px rgba(0, 0, 0, .5)
+  .icon
     abs()
-    z-index          10000
-    top              96px
-    left             50%
-    margin-left      -235px
-    width            450px
-    padding          10px
-    rounded          5px
-    bg               color, dark-tab-header-bg
-    vendor           box-shadow, 0px 2px 28px rgba(0, 0, 0, .5)
-    .icon
-      abs()
-      z-index        2
-      top            20px
-      right          20px
-      r-sprite       'ide', 'search'
-    .kdinput
-      color          #928D87
-      bg             color, #D4CFC9
-      border         1px solid dark-panel-bg
-      height         36px
-      font-size      14px
-      &.has-text
-        color        dark-tab-header-bg
-      &:focus
-        box-shadow   none
-        border       1px solid dark-panel-bg
-      &:hover
-        border       1px solid dark-panel-bg
-    .kdlistitemview.selected
-      rounded        3px
-      bg             color, dark-panel-bg
-    .kdlistview
-      max-height     200px
-      overflow       auto !important
-      margin-top    10px
-    .warning
-      padding          20px 20px 10px 20px
-      color            #74706B
-      font-size        14px
-      text-align       center
-    .file-item
-      font-size        12px
-      padding          12px
-      width            auto
-      p
-        line-height    14px
-      .name
-        color          #D4CFC9
-      .path
-        color          #858585
-      &:hover
-        rounded        3px
-        bg             color, dark-panel-bg
-        pointer()
+    z-index             2
+    top                 20px
+    right               20px
+    r-sprite            'ide', 'search'
+  .kdinput
+    color               #928D87
+    bg                  color, #D4CFC9
+    border              1px solid dark-panel-bg
+    height              36px
+    font-size           14px
+    &.has-text
+      color             dark-tab-header-bg
+    &:focus
+      box-shadow        none
+      border            1px solid dark-panel-bg
+    &:hover
+      border            1px solid dark-panel-bg
+  .kdlistitemview.selected
+    rounded             3px
+    bg                  color, dark-panel-bg
+  .kdlistview
+    max-height          200px
+    overflow            auto !important
+    margin-top          10px
+  .warning
+    padding             20px 20px 10px 20px
+    color               #74706B
+    font-size           14px
+    text-align          center
+  .file-item
+    font-size           12px
+    padding             12px
+    width               auto
+    p
+      line-height       14px
+    .name
+      color             #D4CFC9
+    .path
+      color             #858585
+    &:hover
+      rounded           3px
+      bg                color, dark-panel-bg
+      pointer()
 
-// content search
+// content search view
 .ide .search-result
   .filename
-    color             #858585
-    margin            20px 0 10px 20px
-    font-size         14px
+    color               #858585
+    margin              20px 0 10px 20px
+    font-size           14px
   pre
-    font-family       Menlo, Monaco, Consolas, monospace
-    margin            0 20px
-    color             #d4cfc9
-    width             auto
-    font-size         14px
-    overflow          hidden
-    line-height       16px
+    font-family         Menlo, Monaco, Consolas, monospace
+    margin              0 20px
+    color               #d4cfc9
+    width               auto
+    font-size           14px
+    overflow            hidden
+    line-height         16px
     span
       fl()
       &.line-number
-        width         30px
+        width           30px
   .separator
-    color             #d4cfc9
-    margin            2px 0 12px 20px
+    color               #d4cfc9
+    margin              2px 0 12px 20px
   .match
-    bg                color, #00A64C
-    color             #fff
-    display           inline
+    bg                  color, #00A64C
+    color               #fff
+    display             inline
     pointer()
 
 
@@ -474,9 +474,6 @@ body.ide .kddialogview.save-as-dialog
       rounded           3px
       color             #9A9A9A
       font-size         14px
-
-
-
 
   .save-file-container
     background          #2B2B2B
@@ -513,4 +510,3 @@ body.ide .kddialogview.save-as-dialog
       .button-title
         color           #767676
         text-decoration underline
-
