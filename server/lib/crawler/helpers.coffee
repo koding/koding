@@ -1,5 +1,6 @@
 {argv}  = require 'optimist'
 {uri}   = require('koding-config-manager').load("main.#{argv.c}")
+{daisy} = require('bongo')
 encoder = require 'htmlencode'
 
 getProfile = (account) ->
@@ -28,12 +29,6 @@ getProfile = (account) ->
     fullName    : encoder.XSSEncode fullName
 
   return userProfile
-
-getAvatarImageUrl = (hash, avatar)->
-  imgURL   = "//gravatar.com/avatar/#{hash}?size=90&d=https://koding-cdn.s3.amazonaws.com/images/default.avatar.140.png&r=g"
-  if avatar
-    imgURL = "//i.embed.ly/1/display/crop?grow=false&width=90&height=90&key=94991069fb354d4e8fdb825e52d4134a&url=#{encodeURIComponent avatar}"
-  return imgURL
 
 forceTwoDigits = (val) ->
   if val < 10
@@ -75,124 +70,149 @@ normalizeActivityBody = (activity, bodyString="") ->
     tagContent =
       """
         <span class="kdview token">
-          <a class="ttag expandable" href="#{uri.address}/Activity?tagged=#{title}">
+          <a class="ttag expandable" href="#{uri.address}/Activity/Topic/#{title}">
             <span>#{tagTitle}</span>
           </a>
         </span>
       """
     return tagContent
 
-createActivityContent = (JAccount, model, comments, createFullHTML=no, putBody=yes, callback) ->
-  {Relationship} = require 'jraphical'
+
+createProfile = (models, activity, callback)->
+  {JAccount} = models
+  {accountOldId} = activity
+  JAccount.one "_id" : accountOldId, (err, acc) =>
+    return callback err  if err
+    return callback message: "account not found"  unless acc
+
+    renderedProfile = getProfile acc
+    callback null, renderedProfile
+
+renderCreatedAt = (activity) ->
+  {message:{createdAt}} = activity  if activity
+  return formatDate new Date(createdAt)
+
+renderBody = (activity) ->
+  marked = require 'marked'
+  # If href goes to outside of koding, add rel=nofollow.
+  # this is necessary to prevent link abusers.
+  renderer = new marked.Renderer()
+  renderer.link= (href, title, text)->
+    linkHTML = "<a href=\"#{href}\""
+    if title
+      linkHTML += " title=\"#{title}\""
+
+    re = new RegExp("#{uri.address}", "g")
+    if re.test href
+      linkHTML += ">#{text}</a>"
+    else
+      linkHTML += " rel=\"nofollow\">#{text}</a>"
+    return linkHTML
+
+  {message:{body}} = activity
+
+  body = marked body,
+    renderer  : renderer
+    gfm       : true
+    pedantic  : false
+    sanitize  : true
+
+  return body
+
+
+prepareComments = (models, activity, callback) ->
+  {JAccount} = models
+  {replies} = activity
+  return callback null  unless replies.length
+
+  queue = []
+  queue = replies.map (reply) ->->
+    JAccount.one _id: reply.accountOldId, (err, account) ->
+      if err
+        console.error "Could not fetch replier information #{reply.accountOldId}"
+        return queue.next()
+
+      reply.replier = getProfile account
+      queue.next()
+
+  queue.push ->
+    callback null, replies
+
+  daisy queue
+
+prepareLikes = (models, activity, callback) ->
+  {JAccount} = models
+
+  like = activity?.interactions?.like
+  return callback null  unless like?.actorsPreview?.length
+
+  queue = []
+  actors = []
+  queue = like.actorsPreview.map (actor)->->
+    JAccount.one _id: actor, (err, account) ->
+      if err
+        console.error "Could not fetch interactor information #{actor}"
+        return queue.next()
+
+      actors.push getProfile account
+
+      queue.next()
+
+  queue.push ->
+    callback null, actors
+
+  daisy queue
+
+
+prepareActivity = (models, {activity, profile}, callback) ->
+  {message, repliesCount, interactions} = activity
+  {slug, body, createdAt} = message
+  {like:{actorsCount}} = interactions
+
+  activityContent =
+    slug             : slug or "#"
+    fullName         : profile.fullName
+    nickname         : profile.nickname
+    hash             : profile.hash
+    avatar           : profile.avatar
+    body             : renderBody activity
+    createdAt        : renderCreatedAt activity
+    commentCount     : repliesCount
+    likeCount        : actorsCount
+
+  queue = [
+    ->
+      prepareComments models, activity, (err, replies) ->
+        return callback err  if err
+        activityContent.replies = replies  if replies
+        queue.next()
+    ,
+    ->
+      prepareLikes models, activity, (err, likers) ->
+        return callback err  if err
+        activityContent.likers = likers  if likers
+        queue.next()
+    ,
+    ->
+      callback null, activityContent
+    ]
+
+  daisy queue
+
+createActivityContent = (models, activity, callback) ->
   {htmlEncode}   = require 'htmlencode'
-  marked         = require 'marked'
-  {getSingleActivityPage, getSingleActivityContent} = require './staticpages/activity'
+  {getActivityContent} = require './staticpages/activity'
 
-  statusUpdateId = model.getId()
-  jAccountId = model.originId
-  selector =
-    "sourceId" : statusUpdateId,
-    "as"       : "author"
+  createProfile models, activity, (err, profile) ->
+    return callback err, null  if err
 
-  return callback new Error "Cannot call fetchTeaser function.", null unless typeof model.fetchTeaser is "function"
-  model.fetchTeaser (error, teaser)=>
-    tags = []
-    tags = teaser.tags  if teaser?.tags?
-
-    sel =
-      "_id" : model.originId
-
-    JAccount.one sel, (err, acc) =>
-      if err
-        console.error err
-        return callback err, null
-
-      profile = getProfile acc
-      slug    = teaser?.slug or "#"
-
-      {meta:{createdAt}} = model  if model
-      createdAt          = if createdAt then formatDate createdAt else ""
-
-      # If href goes to outside of koding, add rel=nofollow.
-      # this is necessary to prevent link abusers.
-      renderer = new marked.Renderer()
-      renderer.link= (href, title, text)->
-        linkHTML = "<a href=\"#{href}\""
-        if title
-          linkHTML += " title=\"#{title}\""
-
-        re = new RegExp("#{uri.address}", "g")
-        if re.test href
-          linkHTML += ">#{text}</a>"
-        else
-          linkHTML += " rel=\"nofollow\">#{text}</a>"
-        return linkHTML
-
-      if model?.body? and putBody
-        body = marked model.body,
-          renderer  : renderer
-          gfm       : true
-          pedantic  : false
-          sanitize  : true
-        body = normalizeActivityBody model, body
-      else
-        body = ""
-      activityContent =
-        slug             : teaser.slug
-        fullName         : profile.fullName
-        nickname         : profile.nickname
-        hash             : profile.hash
-        avatar           : profile.avatar
-        title            : if model?.title then model.title else model.body or ""
-        body             : body
-        createdAt        : createdAt
-        numberOfComments : teaser.repliesCount or 0
-        numberOfLikes    : model?.meta?.likes or 0
-        comments         : comments
-        tags             : tags
-        type             : model?.bongo_?.constructorName
-      activityContent.title = encoder.XSSEncode activityContent.title
-      if createFullHTML
-        content = getSingleActivityPage {activityContent, model}
-      else
-        content = getSingleActivityContent activityContent, model
-      return callback null, content
-
-decorateComment = (JAccount, comment, callback) ->
-  { Relationship } = require 'jraphical'
-  createdAt = formatDate(new Date(comment.timestamp_))
-  commentSummary = {body: comment.body, createdAt: createdAt}
-  selector =
-  {
-    "targetId" : comment.getId(),
-    "sourceName": "JAccount"
-  }
-  Relationship.one selector, (err, rel) =>
-    if err
-      console.error err
-      callback err, null
-    return callback err, null  unless rel?.sourceId?
-    sel = { "_id" : rel.sourceId}
-
-    JAccount.one sel, (err, acc) =>
-      if err
-        console.error err
-        callback err, null
-
-      profile = getProfile acc
-
-      commentSummary.authorName     = profile.fullName
-      commentSummary.authorNickname = profile.nickname
-      commentSummary.authorHash     = profile.hash or ''
-      commentSummary.authorAvatar   = profile.avatar
-
-      callback null, commentSummary
+    prepareActivity models, {activity, profile}, (err, activityContent) ->
+      return callback err  if err
+      content = getActivityContent activityContent
+      result = {activityContent, profile}
+      return callback null, content, activityContent
 
 module.exports = {
   getProfile
-  getAvatarImageUrl
-  forceTwoDigits
-  formatDate
   createActivityContent
-  decorateComment
 }

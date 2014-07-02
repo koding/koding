@@ -1,4 +1,4 @@
-class ActivityTicker extends ActivityRightBase
+class ActivityTicker extends ActivitySideView
 
   constructor:(options={}, data)->
 
@@ -270,7 +270,7 @@ class ActivityTicker extends ActivityRightBase
     return null if @checkGuestUser(source) or @checkGuestUser(target)
 
     #CtF instead of filtering later on we should implement its view
-    return null  if as is "commenter" 
+    return null  if as is "commenter"
 
     # filter user followed status activity
     if @getConstructorName(source) is "JNewStatusUpdate" and \

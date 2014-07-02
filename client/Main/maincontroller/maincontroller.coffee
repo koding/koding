@@ -32,9 +32,9 @@ class MainController extends KDController
 
   createSingletons:->
 
-    KD.registerSingleton "mainController",            this
+    KD.registerSingleton 'mainController',            this
 
-    KD.registerSingleton "kontrol",                   new KodingKontrol
+    KD.registerSingleton 'kontrol',                   new KodingKontrol
 
     KD.registerSingleton 'appManager',   appManager = new ApplicationManager
     KD.registerSingleton 'globalKeyCombos',  combos = new KDKeyboardMap priority : 0
@@ -50,7 +50,6 @@ class MainController extends KDController
     KD.registerSingleton 'paymentController',         new PaymentController
     KD.registerSingleton 'vmController',              new VirtualizationController
     KD.registerSingleton 'locationController',        new LocationController
-    KD.registerSingleton 'badgeController',           new BadgeController
     KD.registerSingleton 'helpController',            new HelpController
     KD.registerSingleton 'troubleshoot',              new Troubleshoot
     KD.registerSingleton 'appStorageController',      new AppStorageController
@@ -59,6 +58,7 @@ class MainController extends KDController
     KD.registerSingleton 'mainView',             mv = new MainView domId : 'kdmaincontainer'
     KD.registerSingleton 'mainViewController',  mvc = new MainViewController view : mv
     KD.registerSingleton 'kodingAppsController',      new KodingAppsController
+    KD.registerSingleton 'socialapi',                 new SocialApiController
 
     router.listen()
     @mainViewController = mvc
@@ -67,7 +67,6 @@ class MainController extends KDController
     @ready =>
       KD.registerSingleton 'widgetController',        new WidgetController
       KD.registerSingleton 'onboardingController',    new OnboardingController
-      KD.registerSingleton "socialapi",               new SocialApiController
 
       @emit 'AppIsReady'
 
@@ -270,6 +269,3 @@ class MainController extends KDController
       for src in images
         image     = new Image
         image.src = src
-
-
-

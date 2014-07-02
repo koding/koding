@@ -2,6 +2,7 @@ package main
 
 import (
 	"socialapi/models"
+	"socialapi/rest"
 	"testing"
 	"labix.org/v2/mgo/bson"
 
@@ -11,6 +12,8 @@ import (
 var AccountOldId = bson.NewObjectId()
 var AccountOldId2 = bson.NewObjectId()
 var AccountOldId3 = bson.NewObjectId()
+var AccountOldId4 = bson.NewObjectId()
+var AccountOldId5 = bson.NewObjectId()
 
 func TestAccountCreation(t *testing.T) {
 	Convey("while  creating account", t, func() {
@@ -18,7 +21,7 @@ func TestAccountCreation(t *testing.T) {
 
 			Convey("Should error if you dont pass old id", func() {
 				account := models.NewAccount()
-				account, err := createAccount(account)
+				account, err := rest.CreateAccount(account)
 				So(err, ShouldNotBeNil)
 				So(account, ShouldBeNil)
 			})
@@ -26,7 +29,7 @@ func TestAccountCreation(t *testing.T) {
 			Convey("Should not error if you pass old id", func() {
 				account := models.NewAccount()
 				account.OldId = AccountOldId.Hex()
-				account, err := createAccount(account)
+				account, err := rest.CreateAccount(account)
 				So(err, ShouldBeNil)
 				So(account, ShouldNotBeNil)
 			})
@@ -35,12 +38,12 @@ func TestAccountCreation(t *testing.T) {
 				// first create account
 				account := models.NewAccount()
 				account.OldId = AccountOldId.Hex()
-				firstAccount, err := createAccount(account)
+				firstAccount, err := rest.CreateAccount(account)
 				So(err, ShouldBeNil)
 				So(firstAccount, ShouldNotBeNil)
 
 				// then try to create it again
-				secondAccount, err := createAccount(account)
+				secondAccount, err := rest.CreateAccount(account)
 				So(err, ShouldBeNil)
 				So(secondAccount, ShouldNotBeNil)
 
@@ -48,13 +51,4 @@ func TestAccountCreation(t *testing.T) {
 			})
 		})
 	})
-}
-
-func createAccount(a *models.Account) (*models.Account, error) {
-	acc, err := sendModel("POST", "/account", a)
-	if err != nil {
-		return nil, err
-	}
-
-	return acc.(*models.Account), nil
 }

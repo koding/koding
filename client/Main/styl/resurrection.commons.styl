@@ -127,7 +127,7 @@ a.custom-link-view.border-only-green
 
 .kdcontextmenu.resurrection
   width                 130px
-  margin                4px 0 0 14px
+  margin                7px 0 0 18px
   rounded               6px
   border                1px solid #e4e4e4
   shadow                0 8px 35px rgba(0, 0, 0, .22)
@@ -530,6 +530,7 @@ button.app-settings-menu
     opacity            0
 
   .kdloader
+    size               auto, auto
     vendor             transform, translateX(-50%) translateY(-50%)
 
 
@@ -1112,7 +1113,7 @@ a.action-link.verify-email
   .avatarview
     display         block
     left            -41px
-    top             15px !important
+    top             15px
     abs()
 
   .follow-btn
@@ -1166,11 +1167,14 @@ a.action-link.verify-email
     white-space     nowrap
     overflow        hidden
     text-overflow   ellipsis
-    color           #3c4752
-    opacity         .8
+    color           #9a9a9a
     letter-spacing  0
     line-height     15px
     fl()
+
+  .profile
+    color           #3c4752
+
   .user-numbers
     height          18px
     margin          3px 0 0
@@ -1512,7 +1516,7 @@ Markdown widget
 @css {
 /*
 resurrection.commons.styl
-Testimonials view that used on landing pages
+Testimonials view that is used on landing pages
 */
 }
 section.testimonials
@@ -1539,7 +1543,7 @@ section.testimonials
     &:before
       content           ""
       display           block
-      r-sprite          "business", "quote"
+      r-sprite          app quote
       opacity           .4
       abs               0px 0 0 0px
 

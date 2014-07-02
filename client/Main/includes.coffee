@@ -22,6 +22,7 @@ module.exports = [
 
   # mainapp controllers
   "activitycontroller.coffee",
+  "messageeventmanager.coffee",
   "socialapicontroller.coffee",
   "notificationcontroller.coffee",
   "linkcontroller.coffee",
@@ -95,12 +96,12 @@ module.exports = [
   "navigation/navigationcontroller.coffee",
 
   "CommonViews/VideoPopup.coffee",
-  "CommonViews/LikeView.coffee",
   "CommonViews/ShowMoreDataModalView.coffee",
   "CommonViews/SkillTagFormView.coffee",
   "CommonViews/SkillTagAutoCompleteController.coffee",
   "CommonViews/SkillTagAutoCompletedItem.coffee",
   "CommonViews/messagesList.coffee",
+  "CommonViews/notificationlistitemview.coffee",
   "CommonViews/SplitViewWithOlderSiblings.coffee",
   "CommonViews/ContentPageSplitBelowHeader.coffee",
   "CommonViews/CommonListHeader.coffee",
@@ -112,24 +113,10 @@ module.exports = [
   "CommonViews/VerifyPasswordModal.coffee",
 
   "CommonViews/followbutton.coffee",
+  "CommonViews/topicfollowbutton.coffee",
 
   # "CommonViews/remotesmodal.coffee",
   # "CommonViews/databasesmodal.coffee",
-
-  # "CommonViews/opinions/opinionview.coffee",
-  # "CommonViews/opinions/discussionactivityopinionview.coffee",
-  # "CommonViews/opinions/discussionactivityopinionlistitemview.coffee",
-  # "CommonViews/opinions/tutorialactivityopinionview.coffee",
-  # "CommonViews/opinions/tutorialactivityopinionlistitemview.coffee",
-  # "CommonViews/opinions/tutorialopinionviewheader.coffee",
-  # "CommonViews/opinions/opinionviewheader.coffee",
-  # "CommonViews/opinions/opinionlistviewcontroller.coffee",
-  # "CommonViews/opinions/opinionlistitemview.coffee",
-  # "CommonViews/opinions/opinioncommentlistitemview.coffee",
-  # "CommonViews/opinions/opinionformview.coffee",
-  # "CommonViews/opinions/opinioncommentview.coffee",
-  # "CommonViews/opinions/discussionformview.coffee",
-  # "CommonViews/opinions/tutorialformview.coffee",
 
   "CommonViews/markdownmodal.coffee",
   "CommonViews/dropboxdownloaditemview.coffee",
@@ -165,8 +152,6 @@ module.exports = [
   # LOCATION
   "locationcontroller.coffee",
   "CommonViews/location/locationform.coffee",
-  # BadgeController
-  "badgecontroller.coffee",
 
   # PAYMENT
   # controller

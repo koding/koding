@@ -214,6 +214,18 @@ func (scope *Scope) TableName() string {
 	}
 }
 
+func (scope *Scope) QuotedTableName() string {
+	if scope.Search != nil && len(scope.Search.TableName) > 0 {
+		return scope.Search.TableName
+	} else {
+		keys := strings.Split(scope.TableName(), ".")
+		for i, v := range keys {
+			keys[i] = scope.Quote(v)
+		}
+		return strings.Join(keys, ".")
+	}
+}
+
 // CombinedConditionSql get combined condition sql
 func (scope *Scope) CombinedConditionSql() string {
 	return scope.joinsSql() + scope.whereSql() + scope.groupSql() +
@@ -302,8 +314,12 @@ func (scope *Scope) Exec() *Scope {
 	defer scope.Trace(time.Now())
 
 	if !scope.HasError() {
-		_, err := scope.DB().Exec(scope.Sql, scope.SqlVars...)
-		scope.Err(err)
+		result, err := scope.DB().Exec(scope.Sql, scope.SqlVars...)
+		if scope.Err(err) == nil {
+			if count, err := result.RowsAffected(); err == nil {
+				scope.db.RowsAffected = count
+			}
+		}
 	}
 	return scope
 }

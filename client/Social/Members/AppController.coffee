@@ -92,8 +92,8 @@ class MembersAppController extends AppController
         statuses            :
           noItemFoundText   : "#{owner} #{auxVerb.have} not shared any posts yet."
           dataSource        : (selector, options = {}, callback)=>
-            options.originId = account.getId()
-            KD.getSingleton("appManager").tell 'Activity', 'fetchActivitiesProfilePage', options, callback
+            options.targetId = account.socialApiId
+            KD.singletons.socialapi.channel.fetchProfileFeed options, callback
         followers           :
           loggedInOnly      : yes
           itemClass         : GroupMembersPageListItemView
@@ -197,5 +197,5 @@ class MembersAppController extends AppController
 class MemberActivityListController extends ActivityListController
   # used for filtering received live updates
   addItem: (activity, index, animation)->
-    if activity.originId is @getOptions().creator.getId()
+    if activity.account._id is @getOptions().creator.getId()
       super activity, index, animation

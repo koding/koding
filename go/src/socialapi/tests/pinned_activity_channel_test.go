@@ -1,9 +1,9 @@
 package main
 
 import (
-	"fmt"
 	"math/rand"
 	"socialapi/models"
+	"socialapi/rest"
 	"strconv"
 	"testing"
 	"time"
@@ -20,28 +20,28 @@ func TestPinnedActivityChannel(t *testing.T) {
 
 			account := models.NewAccount()
 			account.OldId = AccountOldId.Hex()
-			account, err := createAccount(account)
+			account, err := rest.CreateAccount(account)
 			So(err, ShouldBeNil)
 			So(account, ShouldNotBeNil)
 			So(account.Id, ShouldNotEqual, 0)
 
 			nonOwnerAccount := models.NewAccount()
 			nonOwnerAccount.OldId = AccountOldId.Hex()
-			nonOwnerAccount, err = createAccount(nonOwnerAccount)
+			nonOwnerAccount, err = rest.CreateAccount(nonOwnerAccount)
 			So(err, ShouldBeNil)
 			So(nonOwnerAccount, ShouldNotBeNil)
 
-			groupChannel, err := createChannelByGroupNameAndType(account.Id, groupName, models.Channel_TYPE_GROUP)
+			groupChannel, err := rest.CreateChannelByGroupNameAndType(account.Id, groupName, models.Channel_TYPE_GROUP)
 			So(err, ShouldBeNil)
 			So(groupChannel, ShouldNotBeNil)
 
-			post, err := createPost(groupChannel.Id, account.Id)
+			post, err := rest.CreatePost(groupChannel.Id, account.Id)
 			So(err, ShouldBeNil)
 			So(post, ShouldNotBeNil)
 
 			Convey("requester should have one", func() {
 				account := account
-				channel, err := fetchPinnedActivityChannel(account.Id, groupName)
+				channel, err := rest.FetchPinnedActivityChannel(account.Id, groupName)
 				So(err, ShouldBeNil)
 				So(channel, ShouldNotBeNil)
 				So(channel.Id, ShouldNotEqual, 0)
@@ -54,10 +54,10 @@ func TestPinnedActivityChannel(t *testing.T) {
 			Convey("non-owner should not be able to update it", nil)
 
 			Convey("owner should not be able to add new participants into it", func() {
-				channel, err := fetchPinnedActivityChannel(account.Id, groupName)
+				channel, err := rest.FetchPinnedActivityChannel(account.Id, groupName)
 				So(err, ShouldBeNil)
 				So(channel, ShouldNotBeNil)
-				channelParticipant, err := addChannelParticipant(channel.Id, account.Id, nonOwnerAccount.Id)
+				channelParticipant, err := rest.AddChannelParticipant(channel.Id, account.Id, nonOwnerAccount.Id)
 				// there should be an err
 				So(err, ShouldNotBeNil)
 				// channel should be nil
@@ -65,10 +65,10 @@ func TestPinnedActivityChannel(t *testing.T) {
 			})
 
 			Convey("normal user shouldnt be able to add new participants to it", func() {
-				channel, err := fetchPinnedActivityChannel(account.Id, groupName)
+				channel, err := rest.FetchPinnedActivityChannel(account.Id, groupName)
 				So(err, ShouldBeNil)
 				So(channel, ShouldNotBeNil)
-				channelParticipant, err := addChannelParticipant(channel.Id, nonOwnerAccount.Id, nonOwnerAccount.Id)
+				channelParticipant, err := rest.AddChannelParticipant(channel.Id, nonOwnerAccount.Id, nonOwnerAccount.Id)
 				// there should be an err
 				So(err, ShouldNotBeNil)
 				// channel should be nil
@@ -76,10 +76,10 @@ func TestPinnedActivityChannel(t *testing.T) {
 			})
 
 			Convey("owner should  not be able to remove participant from it", func() {
-				channel, err := fetchPinnedActivityChannel(account.Id, groupName)
+				channel, err := rest.FetchPinnedActivityChannel(account.Id, groupName)
 				So(err, ShouldBeNil)
 				So(channel, ShouldNotBeNil)
-				channelParticipant, err := deleteChannelParticipant(channel.Id, account.Id, nonOwnerAccount.Id)
+				channelParticipant, err := rest.DeleteChannelParticipant(channel.Id, account.Id, nonOwnerAccount.Id)
 				// there should be an err
 				So(err, ShouldNotBeNil)
 				// channel should be nil
@@ -87,10 +87,10 @@ func TestPinnedActivityChannel(t *testing.T) {
 			})
 
 			Convey("normal user shouldnt be able to remove participants from it", func() {
-				channel, err := fetchPinnedActivityChannel(account.Id, groupName)
+				channel, err := rest.FetchPinnedActivityChannel(account.Id, groupName)
 				So(err, ShouldBeNil)
 				So(channel, ShouldNotBeNil)
-				channelParticipant, err := deleteChannelParticipant(channel.Id, nonOwnerAccount.Id, nonOwnerAccount.Id)
+				channelParticipant, err := rest.DeleteChannelParticipant(channel.Id, nonOwnerAccount.Id, nonOwnerAccount.Id)
 				// there should be an err
 				So(err, ShouldNotBeNil)
 				// channel should be nil
@@ -98,44 +98,43 @@ func TestPinnedActivityChannel(t *testing.T) {
 			})
 
 			Convey("owner should be able to add new message into it", func() {
-				_, err := addPinnedMessage(account.Id, post.Id, "koding")
+				_, err := rest.AddPinnedMessage(account.Id, post.Id, "koding")
 				// there should be an err
 				So(err, ShouldBeNil)
-			})
 
-			Convey("owner should  be able to remove message from it", func() {
-				_, err := removePinnedMessage(account.Id, post.Id, "koding")
+				_, err = rest.RemovePinnedMessage(account.Id, post.Id, "koding")
 				So(err, ShouldBeNil)
+
 			})
 
 			Convey("owner should be able to list messages", func() {
-				pinnedChannel, err := fetchPinnedActivityChannel(account.Id, groupName)
+				pinnedChannel, err := rest.FetchPinnedActivityChannel(account.Id, groupName)
 				So(err, ShouldBeNil)
 				So(pinnedChannel, ShouldNotBeNil)
 
-				groupChannel, err := createChannelByGroupNameAndType(account.Id, groupName, models.Channel_TYPE_GROUP)
+				groupChannel, err := rest.CreateChannelByGroupNameAndType(account.Id, groupName, models.Channel_TYPE_GROUP)
 				So(err, ShouldBeNil)
 				So(groupChannel, ShouldNotBeNil)
 
-				post1, err := createPostWithBody(groupChannel.Id, account.Id, "create a message #1times")
+				post1, err := rest.CreatePostWithBody(groupChannel.Id, account.Id, "create a message #1times")
 				So(err, ShouldBeNil)
 				So(post1, ShouldNotBeNil)
 
 				// use account id as message id
-				_, err = addPinnedMessage(account.Id, post1.Id, groupName)
+				_, err = rest.AddPinnedMessage(account.Id, post1.Id, groupName)
 				// there should be an err
 				So(err, ShouldBeNil)
 
-				post2, err := createPostWithBody(groupChannel.Id, account.Id, "create a message #1another")
+				post2, err := rest.CreatePostWithBody(groupChannel.Id, account.Id, "create a message #1another")
 				So(err, ShouldBeNil)
 				So(post2, ShouldNotBeNil)
 
 				// use account id as message id
-				_, err = addPinnedMessage(account.Id, post2.Id, groupName)
+				_, err = rest.AddPinnedMessage(account.Id, post2.Id, groupName)
 				// there should be an err
 				So(err, ShouldBeNil)
 
-				history, err := fetchPinnedMessages(account.Id, groupName)
+				history, err := rest.FetchPinnedMessages(account.Id, groupName)
 				// there should be an err
 				So(err, ShouldBeNil)
 				// channel should be nil
@@ -164,11 +163,11 @@ func TestPinnedActivityChannel(t *testing.T) {
 
 			Convey("Messages shouldnt be added as pinned twice ", func() {
 				// use account id as message id
-				_, err := addPinnedMessage(account.Id, post.Id, "koding")
+				_, err := rest.AddPinnedMessage(account.Id, post.Id, "koding")
 				// there should be an err
 				So(err, ShouldBeNil)
 				// use account id as message id
-				_, err = addPinnedMessage(account.Id, post.Id, "koding")
+				_, err = rest.AddPinnedMessage(account.Id, post.Id, "koding")
 				// there should be an err
 				So(err, ShouldNotBeNil)
 			})
@@ -177,53 +176,4 @@ func TestPinnedActivityChannel(t *testing.T) {
 
 		})
 	})
-}
-
-func fetchPinnedMessages(accountId int64, groupName string) (*models.HistoryResponse, error) {
-	url := fmt.Sprintf("/activity/pin/list?accountId=%d&groupName=%s", accountId, groupName)
-	history, err := sendModel("GET", url, models.NewHistoryResponse())
-	if err != nil {
-		return nil, err
-	}
-	return history.(*models.HistoryResponse), nil
-}
-
-func addPinnedMessage(accountId, messageId int64, groupName string) (*models.PinRequest, error) {
-	req := models.NewPinRequest()
-	req.AccountId = accountId
-	req.MessageId = messageId
-	req.GroupName = groupName
-
-	url := "/activity/pin/add"
-	cmI, err := sendModel("POST", url, req)
-	if err != nil {
-		return nil, err
-	}
-	return cmI.(*models.PinRequest), nil
-
-}
-
-func removePinnedMessage(accountId, messageId int64, groupName string) (*models.PinRequest, error) {
-	req := models.NewPinRequest()
-	req.AccountId = accountId
-	req.MessageId = messageId
-	req.GroupName = groupName
-
-	url := "/activity/pin/remove"
-	cmI, err := sendModel("POST", url, req)
-	if err != nil {
-		return nil, err
-	}
-	return cmI.(*models.PinRequest), nil
-
-}
-
-func fetchPinnedActivityChannel(accountId int64, groupName string) (*models.Channel, error) {
-	url := fmt.Sprintf("/activity/pin/channel?accountId=%d&groupName=%s", accountId, groupName)
-	cm := models.NewChannel()
-	cmI, err := sendModel("GET", url, cm)
-	if err != nil {
-		return nil, err
-	}
-	return cmI.(*models.Channel), nil
 }

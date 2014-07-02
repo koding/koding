@@ -1,9 +1,9 @@
 package models
 
 type PinRequest struct {
-	MessageId int64  `json:"messageId"`
+	MessageId int64  `json:"messageId,string"`
 	GroupName string `json:"groupName"`
-	AccountId int64  `json:"accountId"`
+	AccountId int64  `json:"accountId,string"`
 }
 
 func NewPinRequest() *PinRequest {

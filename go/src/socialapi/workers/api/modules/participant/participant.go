@@ -6,20 +6,22 @@ import (
 	"net/http"
 	"net/url"
 	"socialapi/models"
-	"socialapi/workers/api/modules/helpers"
+	"socialapi/request"
+	"socialapi/workers/common/response"
+	"time"
 )
 
 func List(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface{}, error) {
-	channelId, err := helpers.GetURIInt64(u, "id")
+	channelId, err := request.GetURIInt64(u, "id")
 	if err != nil {
 		fmt.Println(err)
-		return helpers.NewBadRequestResponse(err)
+		return response.NewBadRequest(err)
 	}
 
 	req := models.NewChannelParticipant()
 	req.ChannelId = channelId
-	return helpers.HandleResultAndError(
-		req.List(),
+	return response.HandleResultAndError(
+		req.List(request.GetQuery(u)),
 	)
 }
 
@@ -29,21 +31,21 @@ func Add(u *url.URL, h http.Header, req *models.ChannelParticipant) (int, http.H
 	// from the token
 	requesterId := req.AccountId
 	if requesterId == 0 {
-		return helpers.NewBadRequestResponse(errors.New("Requester AccountId is not set"))
+		return response.NewBadRequest(errors.New("Requester AccountId is not set"))
 	}
 
-	channelId, err := helpers.GetURIInt64(u, "id")
+	channelId, err := request.GetURIInt64(u, "id")
 	if err != nil {
-		return helpers.NewBadRequestResponse(err)
+		return response.NewBadRequest(err)
 	}
 
-	accountId, err := helpers.GetURIInt64(u, "accountId")
+	accountId, err := request.GetURIInt64(u, "accountId")
 	if err != nil {
-		return helpers.NewBadRequestResponse(err)
+		return response.NewBadRequest(err)
 	}
 
 	if err := checkChannelPrerequisites(channelId, requesterId, accountId); err != nil {
-		return helpers.NewBadRequestResponse(err)
+		return response.NewBadRequest(err)
 	}
 
 	// do not forget to override account id
@@ -52,10 +54,10 @@ func Add(u *url.URL, h http.Header, req *models.ChannelParticipant) (int, http.H
 	req.StatusConstant = models.ChannelParticipant_STATUS_ACTIVE
 
 	if err := req.Create(); err != nil {
-		return helpers.NewBadRequestResponse(err)
+		return response.NewBadRequest(err)
 	}
 
-	return helpers.NewOKResponse(req)
+	return response.NewOK(req)
 }
 
 func checkChannelPrerequisites(channelId, requesterId, accountId int64) error {
@@ -66,10 +68,6 @@ func checkChannelPrerequisites(channelId, requesterId, accountId int64) error {
 
 	if c.TypeConstant == models.Channel_TYPE_PINNED_ACTIVITY {
 		return errors.New("You can not add/remove a new participant for pinned activity channel")
-	}
-
-	if c.TypeConstant == models.Channel_TYPE_GROUP {
-		return errors.New("You can not add/remove a new participant for group activity channel")
 	}
 
 	if c.TypeConstant == models.Channel_TYPE_CHAT {
@@ -85,21 +83,21 @@ func Delete(u *url.URL, h http.Header, req *models.ChannelParticipant) (int, htt
 	// from the token
 	requesterId := req.AccountId
 	if requesterId == 0 {
-		return helpers.NewBadRequestResponse(errors.New("Requester AccountId is not set"))
+		return response.NewBadRequest(errors.New("Requester AccountId is not set"))
 	}
 
-	channelId, err := helpers.GetURIInt64(u, "id")
+	channelId, err := request.GetURIInt64(u, "id")
 	if err != nil {
-		return helpers.NewBadRequestResponse(err)
+		return response.NewBadRequest(err)
 	}
 
-	accountId, err := helpers.GetURIInt64(u, "accountId")
+	accountId, err := request.GetURIInt64(u, "accountId")
 	if err != nil {
-		return helpers.NewBadRequestResponse(err)
+		return response.NewBadRequest(err)
 	}
 
 	if err := checkChannelPrerequisites(channelId, requesterId, accountId); err != nil {
-		return helpers.NewBadRequestResponse(err)
+		return response.NewBadRequest(err)
 	}
 
 	// do not forget to override account id
@@ -107,8 +105,43 @@ func Delete(u *url.URL, h http.Header, req *models.ChannelParticipant) (int, htt
 	req.ChannelId = channelId
 
 	if err := req.Delete(); err != nil {
-		return helpers.NewBadRequestResponse(err)
+		return response.NewBadRequest(err)
 	}
 
-	return helpers.NewOKResponse(req)
+	return response.NewOK(req)
+}
+
+func Presence(u *url.URL, h http.Header, req *models.ChannelParticipant) (int, http.Header, interface{}, error) {
+	// we are getting requester from body for now, but it will be gotten
+	// from the token
+	requesterId := req.AccountId
+	if requesterId == 0 {
+		return response.NewBadRequest(errors.New("Requester AccountId is not set"))
+	}
+
+	channelId, err := request.GetURIInt64(u, "id")
+	if err != nil {
+		return response.NewBadRequest(err)
+	}
+
+	accountId, err := request.GetURIInt64(u, "accountId")
+	if err != nil {
+		return response.NewBadRequest(err)
+	}
+
+	// do not forget to override account id
+	req.AccountId = accountId
+	req.ChannelId = channelId
+
+	if err := req.FetchParticipant(); err != nil {
+		return response.NewBadRequest(err)
+	}
+
+	req.LastSeenAt = time.Now().UTC()
+
+	if err := req.Update(); err != nil {
+		return response.NewBadRequest(err)
+	}
+
+	return response.NewOK(req)
 }

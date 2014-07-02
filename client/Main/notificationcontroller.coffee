@@ -31,6 +31,9 @@ class NotificationController extends KDObject
         @emit notification.event, notification.contents
         @prepareNotification notification
 
+    @on 'ChannelUpdateHappened', (notification) =>
+      @emit notification.event, notification  if notification.event
+
     @on 'GuestTimePeriodHasEnded', ()->
       # todo add a notification to user
       deleteUserCookie()
@@ -106,117 +109,124 @@ class NotificationController extends KDObject
         Cookies.expire 'clientId'
         location.reload yes
 
-  prepareNotification: (notification)->
+  fetchActor: (contents) ->
+    new Promise (resolve, reject) =>
+      {actorId} = contents
+      KD.remote.api.JAccount.one _id: actorId, (err, actor) =>
+        return reject err  if err
+        return reject {message: "actor not found"}  unless actor
+        resolve {actor, contents}
 
-    # NOTIFICATION SAMPLES
 
-    # 1 - < actor fullname > commented on your < activity type >.
-    # 2 - < actor fullname > also commented on the < activity type > that you commented.
-    # 3 - < actor fullname > liked your < activity type >.
-    # 4 - < actor fullname > sent you a private message.
-    # 5 - < actor fullname > replied to your private message.
-    # 6 - < actor fullname > also replied to your private message.
-    # 7 - Your membership request to < group title > has been approved.
-    # 8 - < actor fullname > has requested access to < group title >.
-    # 9 - < actor fullname > has invited you to < group title >.
-    # 10 - < actor fullname > has joined < group title >.
-    # 11 - < actor fullname > has left < group title >.
+  fetchTarget: (data)->
+    new Promise (resolve, reject) =>
+      helper = (err, target) ->
+        return reject err  if err
+        data.target = target
+        resolve data
 
+      {targetId, type} = data.contents
+      switch type
+        when "comment", "like"
+          KD.remote.api.SocialMessage.fetch id: targetId, helper
+        when "follow"
+          KD.remote.api.JAccount.one socialApiId: targetId, helper
+        when "join", "leave"
+          KD.remote.api.JGroup.one socialApiChannelId: targetId, helper
+        else
+          resolve data
+
+
+  prepareMessage: (data) ->
     options = {}
-    {origin, subject, actionType, actorType} = notification.contents
+    options.actorAvatar = new AvatarView
+      size      :
+        width   : 35
+        height  : 35
+      , data.actor
 
-    isMine = if origin?._id and origin._id is KD.whoami()._id then yes else no
-    actor = notification.contents[actorType]
+    @prepareTitle data, options
 
-    return  unless actor
 
-    fetchSubjectObj = (callback)=>
-      if not subject or subject.constructorName is "JPrivateMessage"
-        return callback null
-      if subject.constructorName in ["JComment", "JOpinion"]
-        method = 'fetchRelated'
-        args   = subject.id
-      else
-        method = 'one'
-        args   = _id: subject.id
-      KD.remote.api[subject.constructorName]?[method] args, callback
+  prepareTitle: (data, options) ->
+    new Promise (resolve, reject) ->
+      {actor, contents, target} = data
+      actorName = KD.utils.getFullnameFromAccount actor
+      setTitle = (title) ->
+        options.title = title
+        resolve options
 
-    KD.remote.cacheable actor.constructorName, actor.id, (err, actorAccount)=>
-      # Ignore all guest notifications
-      # https://app.asana.com/0/1177356931469/7014047104322
-      return  if actorAccount.type is 'unregistered'
-      fetchSubjectObj (err, subjectObj)=>
-
-        # TODO: Cross group notifications is not working, so hide for now. -- fka
-        # https://app.asana.com/0/3716548652471/7601810287306
-        return if err or not subjectObj
-
-        actorName = KD.utils.getFullnameFromAccount actorAccount
-        options.actorAvatar = new AvatarView
-          size      :
-            width   : 35
-            height  : 35
-          , actorAccount
-        options.title = switch actionType
-          when "reply", "opinion"
-            if isMine
-              switch subject.constructorName
-                when "JPrivateMessage"
-                  "#{actorName} replied to your #{subjectMap()[subject.constructorName]}."
-                else
-                  "#{actorName} commented on your #{subjectMap()[subject.constructorName]}."
-            else
-              switch subject.constructorName
-                when "JPrivateMessage"
-                  "#{actorName} also replied to your #{subjectMap()[subject.constructorName]}."
-                else
-                  originatorName   = KD.utils.getFullnameFromAccount origin
-                  if actorName is originatorName
-                    originatorName = "their own"
-                    separator      = ""
-                  else
-                    separator      = "'s"
-                  "#{actorName} also commented on #{originatorName}#{separator} #{subjectMap()[subject.constructorName]}."
-
-          when "like"
-            "#{actorName} liked your #{subjectMap()[subject.constructorName]}."
-          when "newMessage"
-            @emit "NewMessageArrived"
-            "#{actorName} sent you a #{subjectMap()[subject.constructorName]}."
-          when "groupRequestApproved"
-            "Your membership request to <a href='#'>#{subjectObj.title}</a> has been approved."
-          when "groupAccessRequested"
-            "#{actorName} has requested access to <a href='#'>#{subjectObj.title}</a>."
-          when "groupInvited"
-            "#{actorName} has invited you to <a href='#'>#{subjectObj.title}</a>."
-          when "groupJoined"
-            "#{actorName} has joined <a href='/#{subjectObj.slug}'>#{subjectObj.title}</a>."
-          when "groupLeft"
-            "#{actorName} has left <a href='/#{subjectObj.slug}'>#{subjectObj.title}</a>."
+      switch contents.type
+        when "comment"
+          isMine = target.accountOldId is KD.whoami()?.getId()
+          subject = if target.type is "privateMessage" then "private message" else "status"
+          if isMine then setTitle "#{actorName} commented on your #{subject}"
           else
-            if actorType is "follower"
-              "#{actorName} started following you."
+            KD.remote.api.JAccount.one _id: target.accountOldId, (err, origin)->
+              return reject err  if err
+              return reject {message: "message origin not found"}  unless origin
 
-        if subject
-          options.click = ->
-            view = this
-            if subject.constructorName is "JPrivateMessage"
-              KD.getSingleton('router').handleRoute "/Inbox"
-            else if subjectObj.constructor.name is "JOpinion"
-              KD.remote.api.JOpinion.fetchRelated subjectObj._id, (err, post) ->
-                KD.getSingleton('router').handleRoute "/Activity/#{post.slug}", state:post
-                view.destroy()
-            else if subject.constructorName is 'JGroup'
-              suffix = ''
-              suffix = '/Dashboard' if actionType is 'groupAccessRequested'
-              KD.getSingleton('router').handleRoute "/#{subjectObj.slug}#{suffix}"
-              view.destroy()
-            else
-              KD.getSingleton('router').handleRoute "/Activity/#{subjectObj.slug}", state:subjectObj
-              view.destroy()
+              if origin.getId() is actor.getId()
+                ownerName = "their own"
+              else
+                ownerName = KD.utils.getFullnameFromAccount actor
+                ownerName = "#{ownerName}'s"
+              setTitle "#{actorName} commented on #{ownerName} #{subject}"
+        when "like"
+          setTitle "#{actorName} liked your status."
+        when "follow"
+          setTitle "#{actorName} started following you."
+        when "join"
+          setTitle "#{actorName} has joined <a href='/#{target.slug}'>#{target.title}</a>."
+        when "leave"
+          setTitle "#{actorName} has left <a href='/#{target.slug}'>#{target.title}</a>."
+        when "mention"
+          setTitle "#{actorName} mentioned you in a post."
 
-        options.type  = actionType or actorType or ''
-        @notify options
+      # when "newMessage"
+      #   @emit "NewMessageArrived"
+      #   "#{actorName} sent you a #{subjectMap()[subject.constructorName]}."
+      # when "groupInvited"
+      #   "#{actorName} has invited you to <a href='#'>#{subjectObj.title}</a>."
+
+
+  prepareClick: (data, options) ->
+    {target, contents} = data
+    if target
+      options.click = ->
+        view = this
+        if contents.type in ["comment", "like"]
+          # TODO group slug must be prepended after groups are implemented
+          # groupSlug = if target.group is "koding" then "" else "/#{target.group}"
+          KD.getSingleton('router').handleRoute "/Activity/Post/#{target.message.slug}", state:target
+          view.destroy()
+        else if contents.type in ["join", "leave"]
+          KD.getSingleton('router').handleRoute "/#{target.slug}"
+          view.destroy()
+
+
+  # NOTIFICATION SAMPLES
+
+  # 1 - < actor fullname > commented on your < activity type >.
+  # 2 - < actor fullname > also commented on the < activity type > that you commented.
+  # 3 - < actor fullname > liked your < activity type >.
+  # 4 - < actor fullname > sent you a private message.
+  # 5 - < actor fullname > replied to your private message.
+  # 6 - < actor fullname > also replied to your private message.
+  # 7 - < actor fullname > has invited you to < group title >.
+  # 8 - < actor fullname > has joined < group title >.
+  # 9 - < actor fullname > has left < group title >.
+
+  prepareNotification: (notification)->
+    {contents} = notification
+    @fetchActor(contents).then (data) =>
+      @fetchTarget(data).then (data) =>
+        @prepareMessage(data).then (options) =>
+          @prepareClick data, options
+          @notify options
+        .catch (err) ->
+          warn err  if err
+
 
   notify:(options  = {})->
 

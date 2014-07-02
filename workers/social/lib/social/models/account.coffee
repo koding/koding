@@ -125,10 +125,6 @@ module.exports = class JAccount extends jraphical.Module
           (signature Object, Object, Function)
         fetchTopics:
           (signature Object, Object, Function)
-        fetchActivityTeasers: [
-          (signature Object, Function)
-          (signature Object, Object, Function)
-        ]
         fetchMail: [
           (signature Function)
           (signature Object, Function)
@@ -153,10 +149,6 @@ module.exports = class JAccount extends jraphical.Module
         ]
         setEmailPreferences:
           (signature Object, Function)
-        glanceActivities: [
-          (signature Function)
-          (signature String, Function)
-        ]
         fetchRole:
           (signature Function)
         flagAccount:
@@ -263,7 +255,7 @@ module.exports = class JAccount extends jraphical.Module
           (signature Object, Function)
 
     schema                  :
-      socialApiId           : Number
+      socialApiId           : String
       skillTags             : [String]
       locationTags          : [String]
       systemInfo            :
@@ -429,10 +421,12 @@ module.exports = class JAccount extends jraphical.Module
     @notifyOriginWhen 'PrivateMessageSent', 'FollowHappened'
     @notifyGroupWhen 'FollowHappened'
 
+  canEditPost: permit 'edit posts'
+
   createSocialApiId:(callback)->
     return callback null, @socialApiId  if @socialApiId
     {createAccount} = require './socialapi/requests'
-    createAccount @getId(), (err, account)=>
+    createAccount {id: @getId(), nickname: @profile.nickname}, (err, account)=>
       return callback err if err
       return callback {message: "Account is not set, malformed response from social api"} unless account?.id
       @update $set: socialApiId: account.id, (err)->
@@ -761,22 +755,6 @@ module.exports = class JAccount extends jraphical.Module
       else
         @setEmailPreferences user, prefs, callback
 
-  glanceActivities: secure (client, activityId, callback)->
-    [callback, activityId] = [activityId, callback] unless callback
-    {delegate} = client.connection
-    unless @equals delegate
-      callback new KodingError 'Access denied'
-    else
-      selector = {'data.flags.glanced' : $ne : yes}
-      selector.targetId = activityId if activityId
-      @fetchActivities selector, (err, activities)->
-        if err
-          callback err
-        else
-          queue = activities.map (activity)->->
-            activity.mark client, 'glanced', -> queue.fin()
-          dash queue, callback
-
   fetchLikedContents: secure ({connection, context}, options, selector, callback)->
 
     {delegate} = connection
@@ -983,8 +961,23 @@ module.exports = class JAccount extends jraphical.Module
       else
         @update {$pullAll: globalFlags: ["exempt"]}, ()->
 
+      # mark user as troll in social api
+      @markUserAsExemptInSocialAPI client, exempt, (err, data)->
+        console.error err if err
+
     else
       callback new KodingError 'Access denied'
+
+  markUserAsExemptInSocialAPI: (client, exempt, callback)->
+    {markAsTroll, unmarkAsTroll} = require './socialapi/helper'
+    @createSocialApiId (err, accountId)->
+      return callback err if err
+      return callback {message: "account id is not set"} unless accountId
+
+      if exempt
+        markAsTroll {accountId}, callback
+      else
+        unmarkAsTroll {accountId}, callback
 
   flagAccount: secure (client, flag, callback)->
     {delegate} = client.connection
@@ -1009,8 +1002,6 @@ module.exports = class JAccount extends jraphical.Module
       @update {$set: globalFlags: flags}, callback
     else
       callback new KodingError 'Access denied'
-
-  canEditPost  : permit 'edit posts'
 
   fetchUserByAccountIdOrNickname:(accountIdOrNickname, callback)->
 
@@ -1162,13 +1153,6 @@ module.exports = class JAccount extends jraphical.Module
       callback new KodingError 'Access denied'
     else
       @fetchActivities selector, options, @constructor.collectTeasersAllCallback callback
-
-  fetchActivityTeasers : secure ({connection}, selector, options, callback)->
-
-    unless @equals connection.delegate
-      callback new KodingError 'Access denied'
-    else
-      @fetchActivities selector, options, callback
 
   modify: secure (client, fields, callback) ->
 

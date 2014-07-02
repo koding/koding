@@ -6,9 +6,20 @@ type (
 		Mq                Mq
 		Limits            Limits
 		EventExchangeName string
-		Redis             string
+		Redis             Redis
 		Mongo             string
 		Environment       string
+		Uri               string
+		Notification      Notification
+		SendGrid          SendGrid
+		EmailNotification EmailNotification
+		Sitemap           Sitemap
+	}
+
+	Redis struct {
+		URL   string
+		DB    int
+		Slave string
 	}
 
 	Postgres struct {
@@ -27,5 +38,21 @@ type (
 	}
 	Limits struct {
 		MessageBodyMinLen int
+	}
+	Notification struct {
+		CacheEnabled bool
+	}
+	SendGrid struct {
+		Username        string
+		Password        string
+		FromName        string
+		FromMail        string
+		ForcedRecipient string
+	}
+	EmailNotification struct {
+		TemplateRoot string
+	}
+	Sitemap struct {
+		RedisDB int
 	}
 )

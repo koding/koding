@@ -13,8 +13,9 @@ func BeforeCreate(scope *Scope) {
 
 func UpdateTimeStampWhenCreate(scope *Scope) {
 	if !scope.HasError() {
-		scope.SetColumn("CreatedAt", time.Now())
-		scope.SetColumn("UpdatedAt", time.Now())
+		now := time.Now()
+		scope.SetColumn("CreatedAt", now)
+		scope.SetColumn("UpdatedAt", now)
 	}
 }
 
@@ -32,23 +33,36 @@ func Create(scope *Scope) {
 			}
 		}
 
-		scope.Raw(fmt.Sprintf(
-			"INSERT INTO %v (%v) VALUES (%v) %v",
-			scope.TableName(),
-			strings.Join(columns, ","),
-			strings.Join(sqls, ","),
-			scope.Dialect().ReturningStr(scope.PrimaryKey()),
-		))
+		if len(columns) == 0 {
+			scope.Raw(fmt.Sprintf("INSERT INTO %v DEFAULT VALUES %v",
+				scope.QuotedTableName(),
+				scope.Dialect().ReturningStr(scope.PrimaryKey()),
+			))
+		} else {
+			scope.Raw(fmt.Sprintf(
+				"INSERT INTO %v (%v) VALUES (%v) %v",
+				scope.QuotedTableName(),
+				strings.Join(columns, ","),
+				strings.Join(sqls, ","),
+				scope.Dialect().ReturningStr(scope.PrimaryKey()),
+			))
+		}
 
 		// execute create sql
 		var id interface{}
 		if scope.Dialect().SupportLastInsertId() {
-			if sql_result, err := scope.DB().Exec(scope.Sql, scope.SqlVars...); scope.Err(err) == nil {
-				id, err = sql_result.LastInsertId()
-				scope.Err(err)
+			if result, err := scope.DB().Exec(scope.Sql, scope.SqlVars...); scope.Err(err) == nil {
+				id, err = result.LastInsertId()
+				if scope.Err(err) == nil {
+					if count, err := result.RowsAffected(); err == nil {
+						scope.db.RowsAffected = count
+					}
+				}
 			}
 		} else {
-			scope.Err(scope.DB().QueryRow(scope.Sql, scope.SqlVars...).Scan(&id))
+			if scope.Err(scope.DB().QueryRow(scope.Sql, scope.SqlVars...).Scan(&id)) == nil {
+				scope.db.RowsAffected = 1
+			}
 		}
 
 		if !scope.HasError() {
@@ -69,6 +83,6 @@ func init() {
 	DefaultCallback.Create().Register("gorm:update_time_stamp_when_create", UpdateTimeStampWhenCreate)
 	DefaultCallback.Create().Register("gorm:create", Create)
 	DefaultCallback.Create().Register("gorm:save_after_associations", SaveAfterAssociations)
-	DefaultCallback.Create().Register("gorm:after_create", AfterCreate)
 	DefaultCallback.Create().Register("gorm:commit_or_rollback_transaction", CommitOrRollbackTransaction)
+	DefaultCallback.Create().Register("gorm:after_create", AfterCreate)
 }

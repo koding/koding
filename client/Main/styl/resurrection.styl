@@ -20,7 +20,7 @@ html.app
 
 body
   font-family       openSansFamily
-  font-weight       300
+  font-weight       400
 
   &.noscroll
     overflow        hidden
@@ -29,6 +29,9 @@ body
     #main-header
       nav
         hidden()
+
+  > .invisible
+    display         none
 
 input
 textarea
@@ -420,6 +423,8 @@ pre
       .icon
         margin      17px 0 0 17px
         r-sprite    app account-search
+        padding     0
+
     &.groups
       abs()
       top           0
@@ -464,7 +469,7 @@ pre
   .account-menu
     vendor             transform-origin-x, 274px
     vendor             backface-visibility, hidden
-    -webkit-transition -webkit-transform .5s ease \,\
+    -webkit-transition -webkit-transform .5s ease \,
                        opacity .5s ease
 
   .avatar-area
@@ -475,7 +480,7 @@ pre
     opacity            1
     vendor             transform-origin-x, 100%
     vendor             backface-visibility, hidden
-    -webkit-transition -webkit-transform .5s ease \,\
+    -webkit-transition -webkit-transform .5s ease \,
                        opacity .5s ease
     borderBox()
     rel()
