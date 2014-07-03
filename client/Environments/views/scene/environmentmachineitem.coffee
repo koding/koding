@@ -134,7 +134,7 @@ class EnvironmentMachineItem extends EnvironmentItem
       Machine.State.Terminated
     ]
 
-    isRunning  = machine.status.state is Machine.State.Running
+    running  = machine.status.state is Machine.State.Running
 
     colorSelection = new ColorSelection selectedColor : @getOption 'colorTag'
     colorSelection.on "ColorChanged", @bound 'setColorTag'
@@ -152,12 +152,11 @@ class EnvironmentMachineItem extends EnvironmentItem
         callback          : @bound "showBuildScriptEditorModal"
 
       'Run build script'  :
-        disabled          : !isRunning
-        callback          : @bound "runBuildScript"
+        disabled          : !running
         separator         : yes
 
       'Launch Terminal'   :
-        disabled          : !isRunning
+        disabled          : !running
         callback          : @lazyBound "openTerminal", {}
         separator         : yes
 
@@ -167,6 +166,13 @@ class EnvironmentMachineItem extends EnvironmentItem
         separator         : yes
 
       customView2         : colorSelection
+
+    if running
+      items['Run build script'].children =
+        'In Terminal'   :
+          callback      : @lazyBound "runBuildScript", inTerminal = yes
+        'In Background' :
+          callback      : @lazyBound "runBuildScript", inTerminal = no
 
     return items
 
@@ -263,7 +269,7 @@ class EnvironmentMachineItem extends EnvironmentItem
       showInformation provisioner, modal
 
 
-  runBuildScript: ->
+  runBuildScript: (inTerminal = yes)->
 
     machine = @getData()
 
@@ -278,9 +284,12 @@ class EnvironmentMachineItem extends EnvironmentItem
 
     @reviveProvisioner (err, provisioner)=>
 
-      if err or not provisioner
+      if err
         return new KDNotificationView
           title : "Failed to fetch build script."
+      else if not provisioner
+        return new KDNotificationView
+          title : "Provision script is not set."
 
       {content: {script}} = provisioner
       script = Encoder.htmlDecode script
@@ -299,8 +308,32 @@ class EnvironmentMachineItem extends EnvironmentItem
         file.save script, (err)=>
           return if KD.showError err
 
+          command = "bash #{path};exit"
+
+          if not inTerminal
+
+            new KDNotificationView
+              title: "Init script running in background..."
+
+            machine.getBaseKite().exec { command }
+              .then (res)->
+
+                new KDNotificationView
+                  title: "Init script executed"
+
+                info  "Init script executed : ", res.stdout  if res.stdout
+                error "Init script failed   : ", res.stderr  if res.stderr
+
+              .catch (err)->
+
+                new KDNotificationView
+                  title: "Init script executed successfully"
+                error "Init script failed:", err
+
+            return
+
           modal = @openTerminal
-            command       : "bash #{path};exit"
+            command       : command
             readOnly      : yes
             destroyOnExit : no
 

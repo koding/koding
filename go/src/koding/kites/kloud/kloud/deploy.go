@@ -66,7 +66,7 @@ func (k *Kloud) DeployFunc(username, hostname, ipAddress string) (*protocol.Depl
 		return nil, err
 	}
 
-	log("Fetcing latest klient.deb binary")
+	log("Fetching latest klient.deb binary")
 	latestDeb, err := k.Bucket.Latest()
 	if err != nil {
 		return nil, err
@@ -81,7 +81,7 @@ func (k *Kloud) DeployFunc(username, hostname, ipAddress string) (*protocol.Depl
 	kiteVersion, kiteEnv := splitted[1], splitted[2]
 
 	// signedURL allows us to have public access for a limited time frame
-	signedUrl := k.Bucket.SignedURL(latestDeb, time.Now().Add(time.Minute))
+	signedUrl := k.Bucket.SignedURL(latestDeb, time.Now().Add(time.Minute*3))
 
 	log("Downloading '" + filepath.Base(latestDeb) + "' to /tmp inside the machine")
 	out, err := client.StartCommand(fmt.Sprintf("wget -O /tmp/klient-latest.deb '%s'", signedUrl))

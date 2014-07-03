@@ -5,9 +5,10 @@ package gophercloud
 
 import (
 	"fmt"
+	"strings"
+
 	"github.com/mitchellh/mapstructure"
 	"github.com/racker/perigee"
-	"strings"
 )
 
 // genericServersProvider structures provide the implementation for generic OpenStack-compatible
@@ -86,6 +87,7 @@ func (gsp *genericServersProvider) ServerById(id string) (*Server, error) {
 			MoreHeaders: map[string]string{
 				"X-Auth-Token": gsp.access.AuthToken(),
 			},
+			OkCodes: []int{200},
 		})
 	})
 
@@ -495,7 +497,7 @@ func (gsp *genericServersProvider) ListDefaultSGRules() ([]SGRule, error) {
 			MoreHeaders: map[string]string{
 				"X-Auth-Token": gsp.access.AuthToken(),
 			},
-			Results: &struct{Security_group_default_rules *[]SGRule}{&sgrs},
+			Results: &struct{ Security_group_default_rules *[]SGRule }{&sgrs},
 		})
 	})
 	return sgrs, err
@@ -510,8 +512,10 @@ func (gsp *genericServersProvider) CreateDefaultSGRule(r SGRule) (*SGRule, error
 			MoreHeaders: map[string]string{
 				"X-Auth-Token": gsp.access.AuthToken(),
 			},
-			Results: &struct{Security_group_default_rule **SGRule}{&sgr},
-			ReqBody: struct{Security_group_default_rule SGRule `json:"security_group_default_rule"`}{r},
+			Results: &struct{ Security_group_default_rule **SGRule }{&sgr},
+			ReqBody: struct {
+				Security_group_default_rule SGRule `json:"security_group_default_rule"`
+			}{r},
 		})
 	})
 	return sgr, err
@@ -526,7 +530,7 @@ func (gsp *genericServersProvider) GetSGRule(id string) (*SGRule, error) {
 			MoreHeaders: map[string]string{
 				"X-Auth-Token": gsp.access.AuthToken(),
 			},
-			Results: &struct{Security_group_default_rule **SGRule}{&sgr},
+			Results: &struct{ Security_group_default_rule **SGRule }{&sgr},
 		})
 	})
 	return sgr, err

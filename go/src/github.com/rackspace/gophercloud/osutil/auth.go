@@ -2,9 +2,8 @@ package osutil
 
 import (
 	"fmt"
-	"os"
-
 	"github.com/rackspace/gophercloud"
+	"os"
 )
 
 var (

@@ -24,19 +24,47 @@ class EnvironmentDomainItem extends EnvironmentItem
     @deletionModal = new DomainDeletionModal {}, @domain
     @deletionModal.on "domainRemoved", @bound 'destroy'
 
+  getState:->
 
-  activateDomain:->
+    states = ["Activate", "Deactivate"]
 
-    new KDNotificationView title: "FIXME GG~"
+    if @domain.domain
+      title        : states[1]
+      newTitle     : states[0]
+      newData      : null
+      notification : "Deactivating..."
+      command      : "deactivateDomain"
+    else
+      title        : states[0]
+      newTitle     : states[1]
+      newData      : @domain.proposedDomain
+      notification : "Activating..."
+      command      : "activateDomain"
+
+  toggleDomainState:->
+
+    state = @getState()
+
+    new KDNotificationView
+      title : state.notification
+      type  : "tray"
+
+    @domain[state.command] (err)=>
+      unless err
+        @activateButton.setTitle state.newTitle
+        @domain.domain = state.newData
+        @updateStateStyle()
+
 
   viewAppended:->
 
+    state = @getState()
     @updateStateStyle()
 
     @activateButton = new KDButtonView
-      title    : "Activate"
+      title    : state.title
       cssClass : "solid green mini"
-      callback : @bound 'activateDomain'
+      callback : @bound 'toggleDomainState'
 
     super
 

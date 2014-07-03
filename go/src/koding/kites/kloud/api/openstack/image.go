@@ -1,6 +1,7 @@
 package api
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/rackspace/gophercloud"
@@ -13,8 +14,25 @@ func (i Images) String() string {
 	for d, image := range i {
 		out += fmt.Sprintf("[%d] name: %+v id: %+v\n", d, image.Name, image.Id)
 	}
-
 	return out
+}
+
+func (i Images) HasName(name string) bool {
+	for _, image := range i {
+		if image.Name == name {
+			return true
+		}
+	}
+	return false
+}
+
+func (i Images) ImageByName(name string) (gophercloud.Image, error) {
+	for _, image := range i {
+		if image.Name == name {
+			return image, nil
+		}
+	}
+	return gophercloud.Image{}, errors.New("image not found")
 }
 
 // Image returns a single image based on the given image id, slug or id. It

@@ -1,12 +1,12 @@
 package gophercloud
 
-import (
-	"github.com/mitchellh/mapstructure"
+import(
+ "github.com/mitchellh/mapstructure"
 )
 
 //The default generic openstack api
 var OpenstackApi = map[string]interface{}{
-	"Name":      "nova",
+        "Name":      "nova",
 	"UrlChoice": PublicURL,
 }
 
@@ -17,9 +17,10 @@ var RackspaceApi = map[string]interface{}{
 	"UrlChoice": PublicURL,
 }
 
+
 //Populates an ApiCriteria struct with the api values
-//from one of the api maps
-func PopulateApi(variant string) (ApiCriteria, error) {
+//from one of the api maps 
+func PopulateApi(variant string) (ApiCriteria, error){
 	var Api ApiCriteria
 	var variantMap map[string]interface{}
 
@@ -30,13 +31,13 @@ func PopulateApi(variant string) (ApiCriteria, error) {
 	case "openstack":
 		variantMap = OpenstackApi
 
-	case "rackspace":
+	case "rackspace": 
 		variantMap = RackspaceApi
 	}
 
-	err := mapstructure.Decode(variantMap, &Api)
-	if err != nil {
-		return Api, err
-	}
-	return Api, err
+	err := mapstructure.Decode(variantMap,&Api)
+		if err != nil{
+			return Api,err
+		}
+	return Api, err 
 }

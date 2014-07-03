@@ -2,6 +2,9 @@
 # NOTE: All domain registry related stuff removed
 # you can look at them from 745b4914f14fa424a3e38db68e09a1bc832be7f4
 
+{argv}   = require 'optimist'
+KONFIG   = require('koding-config-manager').load("main.#{argv.c}")
+
 jraphical = require 'jraphical'
 module.exports = class JDomain extends jraphical.Module
 
@@ -50,6 +53,10 @@ module.exports = class JDomain extends jraphical.Module
           (signature String, Function)
         unbindMachine :
           (signature String, Function)
+        activateDomain:
+          (signature Function)
+        deactivateDomain:
+          (signature Function)
         remove        :
           (signature Function)
 
@@ -121,7 +128,9 @@ module.exports = class JDomain extends jraphical.Module
       callback null, filterDomains domains, delegate, group
 
 
-  parseDomain = (domain)->
+  parseDomain = (domain, { nickname, group })->
+
+    { userSitesDomain } = KONFIG
 
     # Custom error
     err = (message = "Invalid domain: #{domain}")->
@@ -132,23 +141,30 @@ module.exports = class JDomain extends jraphical.Module
       /^[a-z0-9]+([\-\.]{1}[a-z0-9]+)*\.[a-z]{2,5}$/i.test domain
 
     # Return domain type as custom and keep the domain as is
-    return {type: 'custom', domain}  unless /\.kd\.io$/.test domain
+    unless ///\.#{userSitesDomain}$///.test domain
+      return { type: 'custom', domain }
 
     # Basic check
-    unless /([a-z0-9\-]+)\.kd\.io$/.test domain
-      return err()
+    return err()  unless ///([a-z0-9\-]+)\.#{userSitesDomain}$///.test domain
 
     # Check for shared|vm prefix
-    if /^shared|vm[\-]?([0-9]+)?/.test prefix
-      return err "Domain name cannot start with shared|vm"
+    # if /^shared|vm[\-]?([0-9]+)?/.test prefix
+    #   return err "Domain name cannot start with shared|vm"
 
     # Parse domain
-    match = domain.match /([a-z0-9\-]+)\.([a-z0-9\-]+)\.kd\.io$/
-    return err "Invalid domain: #{domain}."  unless match
+    match = domain.match ///([a-z0-9\-]+)\.([a-z0-9\-]+)\.#{userSitesDomain}$///
+    return err "Invalid domain: #{domain}"  unless match
     [rest..., prefix, slug] = match
 
+    if slug isnt nickname
+      return err "Creating root domains is not allowed"
+
+    slug = "koding"  if nickname is slug
+    if group? and group isnt slug
+      return err "Invalid group"
+
     # Return type as internal and slug and domain
-    return {type: 'internal', slug, prefix, domain}
+    return { type: 'internal', slug, prefix, domain }
 
 
   resolveDomain = (domain, callback, check)->
@@ -180,6 +196,11 @@ module.exports = class JDomain extends jraphical.Module
 
     { domain, account, group, stack, hostnameAlias } = options
 
+    { nickname } = account.profile
+
+    {err, domain, type, slug, prefix} = parseDomain domain, { nickname, group }
+    return callback err  if err
+
     domainData = { proposedDomain: domain, group }
     domainData.hostnameAlias = hostnameAlias  if hostnameAlias?
 
@@ -198,6 +219,19 @@ module.exports = class JDomain extends jraphical.Module
             callback err, domain
 
 
+  checkExistence = (domain, callback)->
+
+    JDomain.count { domain }, (err, count)->
+
+      return callback err  if err
+
+      if count > 0
+        callback new KodingError \
+          "The domain #{domain} already exists", "DUPLICATEDOMAIN"
+      else
+        callback null
+
+
   @createDomain$: permit 'create domains', success: (client, data, callback)->
 
     { domain, stack } = data
@@ -209,26 +243,14 @@ module.exports = class JDomain extends jraphical.Module
       return error "Domain is not provided"
 
     {delegate} = client.connection
-    {err, domain, type, slug, prefix} = parseDomain domain
-
-    return callback err  if err
-
     {group}    = client.context
     {nickname} = delegate.profile
 
-    if type is 'internal'
+    {err, domain, type, slug, prefix} = parseDomain domain, { nickname, group }
+    return callback err  if err
 
-      if slug isnt nickname
-        return error "Creating root domains is not allowed"
-
-      slug = "koding"  if nickname is slug
-      unless group is slug
-        return error "Invalid group"
-
-    JDomain.one {domain}, (err, model)->
+    checkExistence domain, (err)->
       return callback err  if err
-      if model
-        return error "The domain #{domain} already exists", "DUPLICATEDOMAIN"
 
       resolveDomain domain, (err)->
         return callback err  if err
@@ -253,6 +275,37 @@ module.exports = class JDomain extends jraphical.Module
       }, (err, domain)->
 
         if err? then console.error err  unless err.code is 11000
+
+
+  updateState: (state, callback)->
+
+    if state
+
+      domain = @proposedDomain
+
+      checkExistence domain, (err)=>
+        return callback err  if err
+        @update $set: { domain }, callback
+
+    else
+
+      @update $unset: domain: 1, callback
+
+
+  activateDomain: permit
+    advanced    : [
+      { permission: "edit own domains", validateWith: Validators.own }
+    ]
+    success: (client, callback)->
+      @updateState yes, callback
+
+
+  deactivateDomain: permit
+    advanced    : [
+      { permission: "edit own domains", validateWith: Validators.own }
+    ]
+    success: (client, callback)->
+      @updateState no, callback
 
 
   bindMachine: (target, callback)->
