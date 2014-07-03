@@ -91,15 +91,16 @@ class ComputeController extends KDController
 
     KD.remote.api.ComputeProvider.createGroupStack (err, stack)=>
       return if KD.showError err
-
-      @reset()
-      @emit "renderStacks"
+      @reset yes
 
 
-  reset:->
+  reset: (render = no)->
 
     @stacks   = null
     @machines = null
+
+    @emit "renderStacks"  if render
+
 
   errorHandler = (task, eL, machine)-> (err)->
 

@@ -27,7 +27,7 @@ class EnvironmentMachineItem extends EnvironmentItem
       partial : "<span class='toggle'></span>"
 
     @addSubView @title = new KDCustomHTMLView
-      partial : "<h3>#{label or provider or uid}</h3>"
+      partial : "<h3>#{label or provider or uid}<cite>#{provider}</cite></h3>"
 
     @addSubView @ipAddress = new KDCustomHTMLView
       partial  : @getIpLink()
@@ -169,10 +169,10 @@ class EnvironmentMachineItem extends EnvironmentItem
 
     if running
       items['Run build script'].children =
-        'In Terminal'   :
-          callback      : @lazyBound "runBuildScript", inTerminal = yes
-        'In Background' :
-          callback      : @lazyBound "runBuildScript", inTerminal = no
+        'Inside a terminal' :
+          callback        : @lazyBound "runBuildScript", inTerminal = yes
+        'As background process' :
+          callback        : @lazyBound "runBuildScript", inTerminal = no
 
     return items
 
@@ -333,6 +333,7 @@ class EnvironmentMachineItem extends EnvironmentItem
             return
 
           modal = @openTerminal
+            title         : "Running init script for #{machine.getName()}..."
             command       : command
             readOnly      : yes
             destroyOnExit : no

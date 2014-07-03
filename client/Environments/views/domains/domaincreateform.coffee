@@ -97,7 +97,6 @@ class DomainCreateForm extends KDCustomHTMLView
       return @handleDomainCreationError err  if err
 
       @showSuccess domain
-      @updateDomains()
 
   handleDomainCreationError: (err) ->
     warn "An error occured while creating domain:", err
