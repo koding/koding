@@ -57,7 +57,7 @@ class ActivitySettingsView extends KDCustomHTMLView
 
     post = @getData()
 
-    return @menu  unless KD.checkFlag('super-admin')
+    @addOwnerMenu()
 
     {activityController} = KD.singletons
 
@@ -89,7 +89,7 @@ class ActivitySettingsView extends KDCustomHTMLView
 
     @addFollowActionMenu()
     @addOwnerMenu()  if KD.isMyPost @getData()
-    @addAdminMenu()
+    @addAdminMenu()  if KD.checkFlag('super-admin')
 
     return @menu
 
