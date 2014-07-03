@@ -144,8 +144,8 @@ module.exports = class JDomain extends jraphical.Module
     return err()  unless ///([a-z0-9\-]+)\.#{userSitesDomain}$///.test domain
 
     # Check for shared|vm prefix
-    if /^shared|vm[\-]?([0-9]+)?/.test prefix
-      return err "Domain name cannot start with shared|vm"
+    # if /^shared|vm[\-]?([0-9]+)?/.test prefix
+    #   return err "Domain name cannot start with shared|vm"
 
     # Parse domain
     match = domain.match ///([a-z0-9\-]+)\.([a-z0-9\-]+)\.#{userSitesDomain}$///
