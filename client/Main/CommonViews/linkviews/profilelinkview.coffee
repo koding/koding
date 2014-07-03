@@ -27,6 +27,9 @@ class ProfileLinkView extends LinkView
         @utils.defer =>
           @tooltip?.getView()?.updateData @getData() if @getData()?.profile.nickname?
 
+    @troll = new KDCustomHTMLView
+      tagName   : 'span'
+
     @setClass "profile"
 
   render: (fields) ->
@@ -34,11 +37,17 @@ class ProfileLinkView extends LinkView
     slug = KD.getGroup()?.slug or 'koding'
     href = if slug is "koding" then "/#{nickname}" else "/#{slug}/#{nickname}"
     @setAttribute "href", href  if nickname
+
+    # only admin can see troll users
+    if KD.checkFlag "super-admin"
+      trollField = if @getData().isExempt then " (T)" else ""
+      @troll.updatePartial trollField
+
     super fields
 
   pistachio:->
     {profile} = @getData()
     JView::pistachio.call this,
       if profile.firstName is "" and profile.lastName is ""
-      then "{{#(profile.nickname)}}"
-      else "{{#(profile.firstName)+' '+#(profile.lastName)}}"
+      then "{{#(profile.nickname)}} {{>@troll}}"
+      else "{{#(profile.firstName)+' '+#(profile.lastName)}} {{>@troll}}"
