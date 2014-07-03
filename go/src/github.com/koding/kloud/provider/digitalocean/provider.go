@@ -2,10 +2,11 @@ package digitalocean
 
 import (
 	"errors"
-	do "koding/kites/kloud/api/digitalocean"
-	"koding/kites/kloud/eventer"
-	"koding/kites/kloud/kloud/machinestate"
-	"koding/kites/kloud/kloud/protocol"
+
+	do "github.com/koding/kloud/api/digitalocean"
+	"github.com/koding/kloud/eventer"
+	"github.com/koding/kloud/machinestate"
+	"github.com/koding/kloud/protocol"
 
 	"github.com/koding/logging"
 	"github.com/koding/redis"

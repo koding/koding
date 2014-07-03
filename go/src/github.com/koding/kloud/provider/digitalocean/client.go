@@ -3,15 +3,16 @@ package digitalocean
 import (
 	"errors"
 	"fmt"
-	do "koding/kites/kloud/api/digitalocean"
 	"koding/kites/kloud/klientprovisioner"
-	"koding/kites/kloud/kloud/machinestate"
-	"koding/kites/kloud/kloud/protocol"
-	"koding/kites/kloud/packer"
-	"koding/kites/kloud/utils"
 	"strconv"
 	"sync"
 	"time"
+
+	do "github.com/koding/kloud/api/digitalocean"
+	"github.com/koding/kloud/machinestate"
+	"github.com/koding/kloud/packer"
+	"github.com/koding/kloud/protocol"
+	"github.com/koding/kloud/utils"
 
 	"github.com/koding/logging"
 	"github.com/koding/redis"

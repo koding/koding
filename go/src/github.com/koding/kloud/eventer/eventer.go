@@ -2,9 +2,10 @@ package eventer
 
 import (
 	"fmt"
-	"koding/kites/kloud/kloud/machinestate"
 	"sync"
 	"time"
+
+	"github.com/koding/kloud/machinestate"
 )
 
 // Eventer is showing and managing a list of events.

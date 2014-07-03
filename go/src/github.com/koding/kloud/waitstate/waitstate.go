@@ -3,8 +3,9 @@ package waitstate
 import (
 	"errors"
 	"fmt"
-	"koding/kites/kloud/kloud/machinestate"
 	"time"
+
+	"github.com/koding/kloud/machinestate"
 )
 
 var ErrWaitTimeout = errors.New("timeout while waiting for state")

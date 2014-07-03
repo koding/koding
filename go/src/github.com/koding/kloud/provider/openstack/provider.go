@@ -3,11 +3,12 @@ package openstack
 import (
 	"errors"
 	"fmt"
-	os "koding/kites/kloud/api/openstack"
-	"koding/kites/kloud/eventer"
-	"koding/kites/kloud/kloud/machinestate"
-	"koding/kites/kloud/kloud/protocol"
-	"koding/kites/kloud/waitstate"
+
+	os "github.com/koding/kloud/api/openstack"
+	"github.com/koding/kloud/eventer"
+	"github.com/koding/kloud/machinestate"
+	"github.com/koding/kloud/protocol"
+	"github.com/koding/kloud/waitstate"
 
 	"github.com/koding/logging"
 	"github.com/rackspace/gophercloud"

@@ -4,11 +4,13 @@ import (
 	"flag"
 	"fmt"
 	"io/ioutil"
-	"koding/kites/kloud/kloud"
+	"koding/db/mongodb"
 	"koding/tools/config"
 	"log"
 	"net/url"
 	"os"
+
+	"github.com/koding/kloud"
 )
 
 var (
@@ -77,6 +79,18 @@ func main() {
 	if *flagProdMode {
 		klientFolder = "klient/production/latest"
 	}
+
+	mongodbStorage := &mongodb.Storage{
+		session:  mongodb.NewMongoDB(k.Config.Mongo),
+		assignee: k.UniqueId,
+		log:      k.Log,
+	}
+
+	if err := mongodbSession.CleanupOldData(); err != nil {
+		k.Log.Notice("Cleaning up mongodb err: %s", err.Error())
+	}
+
+	k.Storage = mongodbSession
 
 	k := &kloud.Kloud{
 		Config:            conf,

@@ -1,8 +1,9 @@
 package openstack
 
 import (
-	"koding/kites/kloud/kloud/machinestate"
 	"strings"
+
+	"github.com/koding/kloud/machinestate"
 )
 
 // statusToState converts a rackspacke status to a sensible machinestate.State
