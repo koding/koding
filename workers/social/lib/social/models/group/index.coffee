@@ -1605,8 +1605,7 @@ module.exports = class JGroup extends Module
         callback()
 
   createSocialApiChannelId: (callback) ->
-    # disable for now
-    # return callback null, @socialApiChannelId  if @socialApiChannelId
+    return callback null, @socialApiChannelId  if @socialApiChannelId
     @fetchOwner (err, owner)=>
       return callback err if err
       unless owner
