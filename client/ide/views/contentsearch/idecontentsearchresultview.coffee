@@ -3,6 +3,7 @@ class IDE.ContentSearchResultView extends KDScrollView
   constructor: (options = {}, data) ->
 
     options.cssClass = 'content-search-result'
+    options.paneType = 'searchResult'
 
     super options, data
 

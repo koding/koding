@@ -116,6 +116,10 @@ class IDE.IDEView extends IDE.WorkspaceTabView
       else if paneType is 'drawing'
         data   = 'Use this panel to draw something'
 
+      else if paneType is 'searchResult'
+        {stats, searchText} = subView.getOptions()
+        data = { stats, searchText }
+
     appManager.tell 'IDE', 'updateStatusBar', paneType, data
 
   removeOpenDocument: ->
