@@ -37,7 +37,7 @@ class NotificationController extends KDObject
           @emit notification.event, notification.contents
 
         else
-          @emit "#{notification.event}-out-of-context", notification.contents
+          @emit "#{notification.event}-off-context", notification.contents
 
     @on 'ChannelUpdateHappened', (notification) =>
       @emit notification.event, notification  if notification.event
