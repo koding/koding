@@ -1,9 +1,9 @@
 package main
 
 import (
-	"koding/kites/kloud/kloudctl/command"
 	"os"
 
+	"github.com/koding/kloudctl/command"
 	"github.com/mitchellh/cli"
 )
 

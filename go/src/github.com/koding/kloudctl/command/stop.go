@@ -2,32 +2,32 @@ package command
 
 import (
 	"fmt"
-	"koding/kites/kloud/kloud"
 
 	"github.com/koding/kite"
+	"github.com/koding/kloud"
 	"github.com/mitchellh/cli"
 )
 
-type Start struct {
+type Stop struct {
 	id *string
 }
 
-func NewStart() cli.CommandFactory {
+func NewStop() cli.CommandFactory {
 	return func() (cli.Command, error) {
-		f := NewFlag("start", "Start a machine")
-		f.action = &Start{
-			id: f.String("id", "", "Machine id of to be started."),
+		f := NewFlag("stop", "Stop a machine")
+		f.action = &Stop{
+			id: f.String("id", "", "Machine id of to be stopped."),
 		}
 		return f, nil
 	}
 }
 
-func (s *Start) Action(args []string, k *kite.Client) error {
-	startArgs := &kloud.Controller{
+func (s *Stop) Action(args []string, k *kite.Client) error {
+	stopArgs := &kloud.Controller{
 		MachineId: *s.id,
 	}
 
-	resp, err := k.Tell("start", startArgs)
+	resp, err := k.Tell("stop", stopArgs)
 	if err != nil {
 		return err
 	}

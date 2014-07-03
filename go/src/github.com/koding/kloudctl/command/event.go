@@ -2,11 +2,11 @@ package command
 
 import (
 	"fmt"
-	"koding/kites/kloud/kloud"
 	"strings"
 	"time"
 
 	"github.com/koding/kite"
+	"github.com/koding/kloud"
 	"github.com/mitchellh/cli"
 )
 

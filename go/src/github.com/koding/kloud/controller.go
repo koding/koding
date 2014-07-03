@@ -3,11 +3,10 @@ package kloud
 import (
 	"fmt"
 
+	"github.com/koding/kite"
 	"github.com/koding/kloud/eventer"
 	"github.com/koding/kloud/machinestate"
 	"github.com/koding/kloud/protocol"
-
-	"github.com/koding/kite"
 )
 
 type Controller struct {

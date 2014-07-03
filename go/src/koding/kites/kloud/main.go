@@ -16,24 +16,26 @@ import (
 )
 
 var (
-	flagIP      = flag.String("ip", "", "Change public ip")
-	flagPort    = flag.Int("port", 3000, "Change running port")
-	flagVersion = flag.Bool("version", false, "Show version and exit")
+	flagProfile  = flag.String("c", "", "Configuration profile from file")
+	flagIP       = flag.String("ip", "", "Change public ip")
+	flagPort     = flag.Int("port", 3000, "Change running port")
+	flagRegion   = flag.String("r", "", "Change region")
+	flagEnv      = flag.String("env", "", "Change environment")
+	flagUniqueId = flag.String("id", "", "Start kloud with a uniqueId assignee name")
 
-	flagDebug       = flag.Bool("debug", false, "Enable debug mode")
-	flagProdMode    = flag.Bool("prod", false, "Enable production mode")
-	flagRegion      = flag.String("r", "", "Change region")
-	flagLocal       = flag.Bool("local", false, "Start klient in local environment.")
-	flagRegisterURL = flag.String("register-url", "", "Change register URL to kontrol")
-	flagEnv         = flag.String("env", "", "Change environment")
-	flagProfile     = flag.String("c", "", "Configuration profile from file")
+	flagVersion  = flag.Bool("version", false, "Show version and exit")
+	flagDebug    = flag.Bool("debug", false, "Enable debug mode")
+	flagProdMode = flag.Bool("prod", false, "Enable production mode")
 
+	// Deployment related flags
 	flagKontrolURL = flag.String("kontrol-url", "", "Kontrol URL to be connected")
 	flagPublicKey  = flag.String("public-key", "", "Public RSA key of Kontrol")
 	flagPrivateKey = flag.String("private-key", "", "Private RSA key of Kontrol")
-	flagUniqueId   = flag.String("id", "", "Start kloud with a uniqueId assignee name")
 
-	flagProxy = flag.Bool("proxy", false, "Start klient behind a proxy")
+	// Kontrol registiraiton related  flags
+	flagLocal       = flag.Bool("local", false, "Start klient in local environment.")
+	flagRegisterURL = flag.String("register-url", "", "Change register URL to kontrol")
+	flagProxy       = flag.Bool("proxy", false, "Start klient behind a proxy")
 )
 
 func main() {
