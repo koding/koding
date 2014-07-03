@@ -53,34 +53,33 @@ class ActivitySettingsView extends KDCustomHTMLView
     return @menu
 
 
-  addAdminMenu: ->
-
+  prepareAdminMenu: ->
     post = @getData()
 
     @addOwnerMenu()
 
     {activityController} = KD.singletons
 
-    if KD.checkFlag 'exempt', KD.whoami()
-      @addMenuItem 'Unmark User as Troll', ->
-        activityController.emit "ActivityItemUnMarkUserAsTrollClicked", post
-    else
-      @addMenuItem 'Mark User as Troll', ->
-        activityController.emit "ActivityItemMarkUserAsTrollClicked", post
+    {constructorName, _id} = post.account
+    KD.remote.cacheable constructorName, _id, (err, owner) =>
+      return KD.showErrorNotification err  if err
+      return KD.showNotification "Account not found"  unless owner
 
-    @addMenuItem 'Block User', ->
-      activityController.emit "ActivityItemBlockUserClicked", post.account._id
-    @addMenuItem 'Impersonate', ->
-      {constructorName, _id} = post.account
-      KD.remote.cacheable constructorName, _id, (err, owner) ->
-        return KD.showErrorNotification err  if err
-        return KD.showNotification "Account not found"  unless owner
+      if owner.isExempt
+        @addMenuItem 'Unmark User as Troll', ->
+          activityController.emit "ActivityItemUnMarkUserAsTrollClicked", post
+      else
+        @addMenuItem 'Mark User as Troll', ->
+          activityController.emit "ActivityItemMarkUserAsTrollClicked", post
+
+      @addMenuItem 'Block User', ->
+        activityController.emit "ActivityItemBlockUserClicked", post.account._id
+      @addMenuItem 'Impersonate', ->
         KD.impersonate owner.profile.nickname
 
-    # TODO since system tag is not implemented for new social menu item is regressed
-    # @addMenuItem 'Add System Tag', => @selectSystemTag post
-
-    return @menu
+      # TODO since system tag is not implemented for new social menu item is regressed
+      # @addMenuItem 'Add System Tag', => @selectSystemTag post
+      @settings.getOptions().menu = @menu
 
 
   settingsMenu: ->
@@ -89,7 +88,7 @@ class ActivitySettingsView extends KDCustomHTMLView
 
     @addFollowActionMenu()
     @addOwnerMenu()  if KD.isMyPost @getData()
-    @addAdminMenu()  if KD.checkFlag('super-admin')
+    @prepareAdminMenu()  if KD.checkFlag('super-admin')
 
     return @menu
 
