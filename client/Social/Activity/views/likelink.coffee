@@ -11,7 +11,8 @@ class ActivityLikeLink extends CustomLinkView
       .on 'LikeRemoved', @bound 'update'
 
 
-  click: ->
+  click: (e) ->
+    e.preventDefault()
 
     {id}           = data = @getData()
     {isInteracted} = data.interactions.like
