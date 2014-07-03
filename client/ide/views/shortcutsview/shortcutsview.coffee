@@ -39,6 +39,8 @@ class IDE.ShortcutsView extends KDView
       'Split vertically'       : 'Ctrl-Alt-V'
       'Split horizontally'     : 'Ctrl-Alt-H'
       'Merge splitview'        : 'Ctrl-Alt-M'
+      'Find file by name'      : 'Ctrl-Alt-O'
+      'Search in all files'    : 'Ctrl-Alt-F'
       'Open new file'          : 'Ctrl-Alt-N'
       'Open new terminal'      : 'Ctrl-Alt-T'
       'Open new browser'       : 'Ctrl-Alt-B'

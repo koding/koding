@@ -26,8 +26,8 @@ class IDEAppController extends AppController
       'go to right tab'     : 'goToRightTab'
       'go to tab number'    : 'goToTabNumber'
     keyBindings: [
-      { command: 'find file by name',   binding: 'ctrl+alt+f', global: yes }
-      { command: 'search all files',    binding: 'ctrl+alt+o', global: yes }
+      { command: 'find file by name',   binding: 'ctrl+alt+o', global: yes }
+      { command: 'search all files',    binding: 'ctrl+alt+f', global: yes }
       { command: 'split vertically',    binding: 'ctrl+alt+v', global: yes }
       { command: 'split horizontally',  binding: 'ctrl+alt+h', global: yes }
       { command: 'merge splitview',     binding: 'ctrl+alt+m', global: yes }
