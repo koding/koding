@@ -33,7 +33,7 @@ class EnvironmentDomainContainer extends EnvironmentContainer
         title          : "Add Domain"
         cssClass       : "domain-creation"
         view           : domainCreateForm
-        width          : 700
+        width          : 600
         overlay        : yes
         buttons        :
           createButton :
