@@ -52,9 +52,10 @@ doRequest = (funcName, client, options, callback)->
     delegate.createSocialApiId (err, socialApiId)->
       return callback err if err
 
-      options.groupName = group.slug
-      options.accountId = socialApiId
-      options.showExempt = delegate.isExempt
+      options.groupChannelId = group.socialApiChannelId
+      options.groupName      = group.slug
+      options.accountId      = socialApiId
+      options.showExempt     = delegate.isExempt
 
       requests = require './requests'
       requests[funcName] options, callback
