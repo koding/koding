@@ -11,23 +11,29 @@ import (
 	"net/url"
 	"os"
 
+	"github.com/koding/kite/protocol"
 	"github.com/koding/kloud"
-	"github.com/koding/logging"
 )
 
 var (
-	flagIP         = flag.String("ip", "", "Change public ip")
-	flagPort       = flag.Int("port", 3000, "Change running port")
-	flagVersion    = flag.Bool("version", false, "Show version and exit")
-	flagDebug      = flag.Bool("debug", false, "Enable debug mode")
-	flagProdMode   = flag.Bool("prod", false, "Enable production mode")
-	flagRegion     = flag.String("r", "", "Change region")
-	flagEnv        = flag.String("env", "", "Change environment")
-	flagProfile    = flag.String("c", "", "Configuration profile from file")
+	flagIP      = flag.String("ip", "", "Change public ip")
+	flagPort    = flag.Int("port", 3000, "Change running port")
+	flagVersion = flag.Bool("version", false, "Show version and exit")
+
+	flagDebug       = flag.Bool("debug", false, "Enable debug mode")
+	flagProdMode    = flag.Bool("prod", false, "Enable production mode")
+	flagRegion      = flag.String("r", "", "Change region")
+	flagLocal       = flag.Bool("local", false, "Start klient in local environment.")
+	flagRegisterURL = flag.String("register-url", "", "Change register URL to kontrol")
+	flagEnv         = flag.String("env", "", "Change environment")
+	flagProfile     = flag.String("c", "", "Configuration profile from file")
+
 	flagKontrolURL = flag.String("kontrol-url", "", "Kontrol URL to be connected")
 	flagPublicKey  = flag.String("public-key", "", "Public RSA key of Kontrol")
 	flagPrivateKey = flag.String("private-key", "", "Private RSA key of Kontrol")
 	flagUniqueId   = flag.String("id", "", "Start kloud with a uniqueId assignee name")
+
+	flagProxy = flag.Bool("proxy", false, "Start klient behind a proxy")
 )
 
 func main() {
@@ -82,25 +88,23 @@ func main() {
 		klientFolder = "klient/production/latest"
 	}
 
-	uniqueId := uniqueId()
+	id := uniqueId()
 	if *flagUniqueId != "" {
-		uniqueId = uniqueId()
+		id = uniqueId()
 	}
 
-	log := createLogger()
-
+	mongodbLog := kloud.Logger("kloud-storage", *flagDebug)
 	mongodbStorage := &storage.MongoDB{
-		Session:  mongodb.NewMongoDB(conf.Mongo),
-		Assignee: uniqueId,
-		Log:      log,
+		Session:      mongodb.NewMongoDB(conf.Mongo),
+		AssigneeName: id,
+		Log:          mongodbLog,
 	}
 
 	if err := mongodbStorage.CleanupOldData(); err != nil {
-		k.Log.Notice("Cleaning up mongodb err: %s", err.Error())
+		mongodbLog.Notice("Cleaning up mongodb err: %s", err.Error())
 	}
 
 	k := &kloud.Kloud{
-		Log:               log,
 		Storage:           mongodbStorage,
 		Region:            *flagRegion,
 		Environment:       conf.Environment,
@@ -114,8 +118,33 @@ func main() {
 
 	kite := k.NewKloud()
 
-	go kite.RegisterForever(registerWithURL)
-	<-kite.KontrolReadyNotify()
+	registerURL := kite.RegisterURL(*flagLocal)
+	if *flagRegisterURL != "" {
+		u, err := url.Parse(*flagRegisterURL)
+		if err != nil {
+			k.Log.Fatal("Couldn't parse register url: %s", err)
+		}
+
+		registerURL = u
+	}
+
+	kite.Log.Info("Going to register to kontrol with URL: %s", registerURL)
+	if *flagProxy {
+		kite.Log.Info("Proxy mode is enabled")
+		// Koding proxies in production only
+		proxyQuery := &protocol.KontrolQuery{
+			Username:    "koding",
+			Environment: "production",
+			Name:        "proxy",
+		}
+
+		k.Log.Info("Seaching proxy: %#v", proxyQuery)
+		go kite.RegisterToProxy(registerURL, proxyQuery)
+	} else {
+		if err := kite.RegisterForever(registerURL); err != nil {
+			kite.Log.Fatal(err.Error())
+		}
+	}
 
 	kite.Run()
 }
@@ -128,38 +157,5 @@ func uniqueId() string {
 		panic(err) // we should not let it start
 	}
 
-	return fmt.Sprintf("%s-%s", NAME, hostname)
-}
-
-func createLogger(name string, debug bool) logging.Logger {
-	handlers := make([]logging.Handler, 0)
-
-	log := logging.NewLogger(name)
-	writerHandler := logging.NewWriterHandler(os.Stderr)
-	writerHandler.Colorize = true
-
-	if debug {
-		log.SetLevel(logging.DEBUG)
-		writerHandler.SetLevel(logging.DEBUG)
-	}
-
-	handlers = append(handlers, writerHandler)
-
-	logPath := "/var/log/koding/" + name + ".log"
-	logFile, err := os.Create(logPath)
-	if err != nil {
-		log.Warning("Can't open log file: %s", err)
-	} else {
-		fileHandler := logging.NewWriterHandler(logFile)
-		fileHandler.Colorize = false
-
-		if debug {
-			fileHandler.SetLevel(logging.DEBUG)
-		}
-
-		handlers = append(handlers, fileHandler)
-	}
-
-	log.SetHandler(logging.NewMultiHandler(handlers...))
-	return log
+	return fmt.Sprintf("%s-%s", kloud.NAME, hostname)
 }

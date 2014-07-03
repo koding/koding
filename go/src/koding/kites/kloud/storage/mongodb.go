@@ -14,14 +14,14 @@ import (
 
 // MongoDB implements the kloud packages Storage interface
 type MongoDB struct {
-	session  *mongodb.MongoDB
-	assignee string
-	log      logging.Logger
+	Session      *mongodb.MongoDB
+	AssigneeName string
+	Log          logging.Logger
 }
 
 // Assignee returns the assignee responsible for MongoDB actions, in our case
 // it's the Kloud name together with hostname and a unique identifier.
-func (m *MongoDB) Assignee() string { return m.assignee }
+func (m *MongoDB) Assignee() string { return m.AssigneeName }
 
 // Get returns the meta of the associated credential with the given machine id.
 func (m *MongoDB) Get(id string, opt *kloud.GetOption) (*kloud.MachineData, error) {
@@ -34,7 +34,7 @@ func (m *MongoDB) Get(id string, opt *kloud.GetOption) (*kloud.MachineData, erro
 	// really doesn't exist or if there is an assignee which is a different
 	// thing. (Because findAndModify() also returns "not found" for the case
 	// where the id exist but someone else is the assignee).
-	if err := m.session.Run("jMachines", func(c *mgo.Collection) error {
+	if err := m.Session.Run("jMachines", func(c *mgo.Collection) error {
 		return c.FindId(bson.ObjectIdHex(id)).One(nil)
 	}); err == mgo.ErrNotFound {
 		return nil, kloud.NewError(kloud.ErrMachineNotFound)
@@ -55,7 +55,7 @@ func (m *MongoDB) Get(id string, opt *kloud.GetOption) (*kloud.MachineData, erro
 
 	machine := &kloud.Machine{}
 	if opt.IncludeMachine {
-		err := m.session.Run("jMachines", func(c *mgo.Collection) error {
+		err := m.Session.Run("jMachines", func(c *mgo.Collection) error {
 			// If Find() is successful the Update() above will be applied
 			// (which set's us as assignee). If not, it means someone else is
 			// working on this document and we should return with an error. The
@@ -102,7 +102,7 @@ func (m *MongoDB) Get(id string, opt *kloud.GetOption) (*kloud.MachineData, erro
 
 		// some other error, this shouldn't be happed
 		if err != nil {
-			m.log.Error("Storage get error: %s", err.Error())
+			m.Log.Error("Storage get error: %s", err.Error())
 			return nil, kloud.NewError(kloud.ErrBadState)
 		}
 	}
@@ -110,7 +110,7 @@ func (m *MongoDB) Get(id string, opt *kloud.GetOption) (*kloud.MachineData, erro
 	credential := &kloud.Credential{}
 	if opt.IncludeCredential {
 		// we neglect errors because credential is optional
-		m.session.Run("jCredentialDatas", func(c *mgo.Collection) error {
+		m.Session.Run("jCredentialDatas", func(c *mgo.Collection) error {
 			return c.Find(bson.M{"publicKey": machine.Credential}).One(credential)
 		})
 	}
@@ -118,7 +118,7 @@ func (m *MongoDB) Get(id string, opt *kloud.GetOption) (*kloud.MachineData, erro
 	stack := &kloud.Stack{}
 	if opt.IncludeStack {
 		// we neglect errors because credential is optional
-		m.session.Run("jStacks", func(c *mgo.Collection) error {
+		m.Session.Run("jStacks", func(c *mgo.Collection) error {
 			return c.Find(bson.M{"publicKey": machine.Credential}).One(credential)
 		})
 	}
@@ -132,10 +132,10 @@ func (m *MongoDB) Get(id string, opt *kloud.GetOption) (*kloud.MachineData, erro
 }
 
 func (m *MongoDB) Update(id string, s *kloud.StorageData) error {
-	m.log.Debug("[storage] got update request for id '%s' of type '%s'", id, s.Type)
+	m.Log.Debug("[storage] got update request for id '%s' of type '%s'", id, s.Type)
 
 	if s.Type == "build" {
-		return m.session.Run("jMachines", func(c *mgo.Collection) error {
+		return m.Session.Run("jMachines", func(c *mgo.Collection) error {
 			return c.UpdateId(
 				bson.ObjectIdHex(id),
 				bson.M{"$set": bson.M{
@@ -149,7 +149,7 @@ func (m *MongoDB) Update(id string, s *kloud.StorageData) error {
 	}
 
 	if s.Type == "info" {
-		return m.session.Run("jMachines", func(c *mgo.Collection) error {
+		return m.Session.Run("jMachines", func(c *mgo.Collection) error {
 			return c.UpdateId(
 				bson.ObjectIdHex(id),
 				bson.M{"$set": bson.M{
@@ -163,7 +163,7 @@ func (m *MongoDB) Update(id string, s *kloud.StorageData) error {
 }
 
 func (m *MongoDB) UpdateState(id string, state machinestate.State) error {
-	return m.session.Run("jMachines", func(c *mgo.Collection) error {
+	return m.Session.Run("jMachines", func(c *mgo.Collection) error {
 		return c.UpdateId(
 			bson.ObjectIdHex(id),
 			bson.M{
@@ -178,7 +178,7 @@ func (m *MongoDB) UpdateState(id string, state machinestate.State) error {
 
 // ResetAssignee resets the assigne for the given id to nil.
 func (m *MongoDB) ResetAssignee(id string) error {
-	return m.session.Run("jMachines", func(c *mgo.Collection) error {
+	return m.Session.Run("jMachines", func(c *mgo.Collection) error {
 		return c.UpdateId(
 			bson.ObjectIdHex(id),
 			bson.M{"$set": bson.M{"assignee.name": nil}},
@@ -190,7 +190,7 @@ func (m *MongoDB) ResetAssignee(id string) error {
 // didn't get unset. This happens when the kloud instance crashes before it
 // could unset the assigne.name
 func (m *MongoDB) CleanupOldData() error {
-	return m.session.Run("jMachines", func(c *mgo.Collection) error {
+	return m.Session.Run("jMachines", func(c *mgo.Collection) error {
 		_, err := c.UpdateAll(
 			bson.M{"assignee.name": m.Assignee()},
 			bson.M{"$set": bson.M{"assignee.name": nil}},

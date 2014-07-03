@@ -3,6 +3,7 @@ package kloud
 import (
 	"io/ioutil"
 	"log"
+	"os"
 
 	"github.com/koding/kloud/eventer"
 	"github.com/koding/kloud/idlock"
@@ -90,12 +91,12 @@ func (k *Kloud) InitializeProviders() {
 
 	k.Providers = map[string]protocol.Provider{
 		"digitalocean": &digitalocean.Provider{
-			Log:         createLogger("digitalocean", k.Debug),
+			Log:         Logger("digitalocean", k.Debug),
 			Region:      k.Region,
 			Environment: k.Kite.Config.Environment,
 		},
 		"rackspace": &openstack.Provider{
-			Log:          createLogger("rackspace", k.Debug),
+			Log:          Logger("rackspace", k.Debug),
 			Region:       k.Region,
 			Environment:  k.Kite.Config.Environment,
 			AuthURL:      "https://identity.api.rackspacecloud.com/v2.0",
@@ -111,4 +112,18 @@ func (k *Kloud) GetProvider(providerName string) (protocol.Provider, error) {
 	}
 
 	return provider, nil
+}
+
+func Logger(name string, debug bool) logging.Logger {
+	log := logging.NewLogger(name)
+	writerHandler := logging.NewWriterHandler(os.Stderr)
+	writerHandler.Colorize = true
+
+	if debug {
+		log.SetLevel(logging.DEBUG)
+		writerHandler.SetLevel(logging.DEBUG)
+	}
+
+	log.SetHandler(writerHandler)
+	return log
 }
