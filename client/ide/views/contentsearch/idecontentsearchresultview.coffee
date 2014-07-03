@@ -11,7 +11,7 @@ class IDE.ContentSearchResultView extends KDScrollView
 
     for fileName, lines of result
       @addSubView new KDCustomHTMLView
-        partial  : "~/#{fileName}"
+        partial  : "#{fileName}"
         cssClass : 'filename'
 
       for line in lines
