@@ -12,6 +12,7 @@ import (
 	"github.com/koding/kloud/provider/openstack"
 
 	"github.com/koding/kite"
+	"github.com/koding/kite/config"
 	"github.com/koding/logging"
 )
 
@@ -55,9 +56,24 @@ func (k *Kloud) NewKloud() *kite.Kite {
 
 	k.Kite = kite.New(k.Name, k.Version)
 
+	// Read variables from kite.key
+	k.Kite.Config = config.MustGet()
+
 	// read kontrolURL from kite.key if it doesn't exist.
 	if k.KontrolURL == "" {
 		k.KontrolURL = k.Kite.Config.KontrolURL.String()
+	}
+
+	if k.Region != "" {
+		k.Kite.Config.Region = k.Region
+	}
+
+	if k.Port != 0 {
+		k.Kite.Config.Port = k.Port
+	}
+
+	if k.Environment != "" {
+		k.Kite.Config.Environment = k.Environment
 	}
 
 	if k.Log == nil {
@@ -67,9 +83,6 @@ func (k *Kloud) NewKloud() *kite.Kite {
 	if k.Eventers == nil {
 		k.Eventers = make(map[string]eventer.Eventer)
 	}
-
-	k.Kite.Config.Region = k.Region
-	k.Kite.Config.Port = k.Port
 
 	k.ControlFunc("build", k.build)
 	k.ControlFunc("start", k.start)
