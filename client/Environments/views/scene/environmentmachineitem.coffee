@@ -333,6 +333,7 @@ class EnvironmentMachineItem extends EnvironmentItem
             return
 
           modal = @openTerminal
+            title         : "Running init script for #{machine.getName()}..."
             command       : command
             readOnly      : yes
             destroyOnExit : no
