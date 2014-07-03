@@ -57,7 +57,8 @@ class ActivitySettingsView extends KDCustomHTMLView
 
     post = @getData()
 
-    @menu                = @addOwnerMenu()
+    @addOwnerMenu()
+
     {activityController} = KD.singletons
 
     if KD.checkFlag 'exempt', KD.whoami()
@@ -72,11 +73,12 @@ class ActivitySettingsView extends KDCustomHTMLView
     @addMenuItem 'Impersonate', ->
       {constructorName, _id} = post.account
       KD.remote.cacheable constructorName, _id, (err, owner) ->
-        return KD.showError err  if err
-        return KD.showError message: "Account not found"  unless owner
+        return KD.showErrorNotification err  if err
+        return KD.showNotification "Account not found"  unless owner
         KD.impersonate owner.profile.nickname
 
-    @addMenuItem 'Add System Tag', => @selectSystemTag post
+    # TODO since system tag is not implemented for new social menu item is regressed
+    # @addMenuItem 'Add System Tag', => @selectSystemTag post
 
     return @menu
 
@@ -87,7 +89,7 @@ class ActivitySettingsView extends KDCustomHTMLView
 
     @addFollowActionMenu()
     @addOwnerMenu()  if KD.isMyPost @getData()
-    @addAdminMenu()  if KD.checkFlag('super-admin') or KD.hasAccess('delete posts')
+    @addAdminMenu()  if KD.checkFlag('super-admin')
 
     return @menu
 
@@ -112,15 +114,14 @@ class ActivitySettingsView extends KDCustomHTMLView
             id = @getData().getId()
 
             (KD.singleton 'appManager').tell 'Activity', 'delete', {id}, (err) =>
+              return modal.destroy()  unless err
+              options =
+                userMessage : "You are not allowed to delete this post."
 
-              if err
-                new KDNotificationView
-                  type     : "mini"
-                  cssClass : "error editor"
-                  title    : "Error, please try again later!"
-                return
+              KD.showErrorNotification err, options
 
               modal.destroy()
+
         Cancel       :
           style      : "modal-cancel"
           title      : "cancel"

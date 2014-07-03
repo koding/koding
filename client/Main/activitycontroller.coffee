@@ -54,11 +54,13 @@ class ActivityController extends KDObject
               blockingTime = calculateBlockingTime modal.modalTabs.forms.BlockUser.inputs.duration.getValue()
               @blockUser nicknameOrAccountId, blockingTime, (err, res)->
                 if err
-                  warn err
+                  options = userMessage: "You are not allowed to block user!"
+                  KD.showErrorNotification err, options
                   modal.modalTabs.forms.BlockUser.buttons.blockUser.hideLoader()
                 else
-                  modal.destroy()
-                  new KDNotificationView title : "User is blocked!"
+                  KD.showNotification "User is blocked!"
+
+                modal.destroy()
 
             buttons           :
               blockUser       :
@@ -145,10 +147,11 @@ class ActivityController extends KDObject
 
     kallback = (acc)=>
       acc.markUserAsExempt false, (err, res)->
-        if err then warn err
+        if err
+          options = userMessage: "You are not allowed to mark this user as a troll"
+          KD.showErrorNotification err, options
         else
-          new KDNotificationView
-            title : "@#{acc.profile.nickname} won't be treated as a troll anymore!"
+          KD.showNotification "@#{acc.profile.nickname} won't be treated as a troll anymore!"
 
     if data.account._id
       KD.remote.cacheable "JAccount", data.account._id, (err, account)->
@@ -180,11 +183,13 @@ class ActivityController extends KDObject
           callback   : =>
             kallback = (acc)=>
               acc.markUserAsExempt true, (err, res)->
-                if err then warn err
+                if err
+                  options = userMessage: "You are not allowed to mark this user as a troll"
+                  KD.showErrorNotification err, options
                 else
-                  modal.destroy()
-                  new KDNotificationView
-                    title : "@#{acc.profile.nickname} marked as a troll!"
+                  KD.showNotification "@#{acc.profile.nickname} marked as a troll!"
+
+                modal.destroy()
 
             if data.account._id
               KD.remote.cacheable "JAccount", data.account._id, (err, account)->
