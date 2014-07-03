@@ -423,6 +423,8 @@ module.exports = class JAccount extends jraphical.Module
 
   canEditPost: permit 'edit posts'
 
+  canDeletePost: permit 'delete posts'
+
   createSocialApiId:(callback)->
     return callback null, @socialApiId  if @socialApiId
     {createAccount} = require './socialapi/requests'
@@ -923,8 +925,8 @@ module.exports = class JAccount extends jraphical.Module
 
   dummyAdmins = [ "sinan", "devrim", "gokmen", "chris", "fatihacet", "arslan",
                   "sent-hil", "kiwigeraint", "cihangirsavas", "leventyalcin",
-                  "leeolayvar", "stefanbc", "szkl", "alfredo", "canthefason",
-                  "nitin" ]
+                  "leeolayvar", "stefanbc", "szkl", "canthefason", "nitin",
+                  "rsbrown"]
 
   userIsExempt: (callback)->
     # console.log @isExempt, this
@@ -969,7 +971,7 @@ module.exports = class JAccount extends jraphical.Module
       callback new KodingError 'Access denied'
 
   markUserAsExemptInSocialAPI: (client, exempt, callback)->
-    {markAsTroll, unmarkAsTroll} = require './socialapi/helper'
+    {markAsTroll, unmarkAsTroll} = require './socialapi/requests'
     @createSocialApiId (err, accountId)->
       return callback err if err
       return callback {message: "account id is not set"} unless accountId
