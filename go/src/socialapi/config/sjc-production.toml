@@ -24,7 +24,7 @@ DB=       0
 Slave=    "172.16.10.17:6379"
 
 [limits]
-MessageBodyMinLen=5
+MessageBodyMinLen=1
 
 [Notification]
 CacheEnabled = false
