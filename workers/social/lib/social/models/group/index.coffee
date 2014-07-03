@@ -1605,8 +1605,7 @@ module.exports = class JGroup extends Module
         callback()
 
   createSocialApiChannelId: (callback) ->
-    # disable for now
-    # return callback null, @socialApiChannelId  if @socialApiChannelId
+    return callback null, @socialApiChannelId  if @socialApiChannelId
     @fetchOwner (err, owner)=>
       return callback err if err
       unless owner
@@ -1615,10 +1614,11 @@ module.exports = class JGroup extends Module
         return callback err if err
         # required data for creating a channel
         data =
-          name         : @slug
-          creatorId    : socialApiId
-          group        : @slug
-          typeConstant : "group"
+          name            : @slug
+          creatorId       : socialApiId
+          groupName       : @slug
+          typeConstant    : "group"
+          privacyConstant : @privacy
 
         {createChannel} = require '../socialapi/requests'
         createChannel data, (err, socialApiChannel)=>

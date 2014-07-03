@@ -528,6 +528,41 @@ func (c *Channel) FetchPinnedActivityChannel(accountId int64, groupName string) 
 	return c.One(query)
 }
 
+func EnsurePinnedActivityChannel(accountId int64, groupName string) (*Channel, error) {
+	c := NewChannel()
+	err := c.FetchPinnedActivityChannel(accountId, groupName)
+
+	// if we find the channel
+	// return early
+	if err == nil {
+		return c, nil
+	}
+
+	// silence not found error
+	if err != bongo.RecordNotFound {
+		return nil, err
+	}
+
+	c.Name = RandomName()
+	c.CreatorId = accountId
+	c.GroupName = groupName
+	c.TypeConstant = Channel_TYPE_PINNED_ACTIVITY
+	c.PrivacyConstant = Channel_PRIVACY_PRIVATE
+	if err := c.Create(); err != nil {
+		return nil, err
+	}
+
+	// after creating pinned channel
+	// add user a participant
+	// todo add test for this case
+	_, err = c.AddParticipant(accountId)
+	if err != nil {
+		return nil, err
+	}
+
+	return c, nil
+}
+
 func (c *Channel) CanOpen(accountId int64) (bool, error) {
 	if c.Id == 0 {
 		return false, errors.New("channel id is not set")

@@ -9,8 +9,6 @@ import (
 	"socialapi/request"
 	"socialapi/workers/common/response"
 	"time"
-
-	"github.com/koding/bongo"
 )
 
 func GetPinnedActivityChannel(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface{}, error) {
@@ -21,7 +19,7 @@ func GetPinnedActivityChannel(u *url.URL, h http.Header, _ interface{}) (int, ht
 	}
 
 	return response.HandleResultAndError(
-		ensurePinnedActivityChannel(
+		models.EnsurePinnedActivityChannel(
 			query.AccountId,
 			query.GroupName,
 		),
@@ -49,7 +47,7 @@ func PinMessage(u *url.URL, h http.Header, req *models.PinRequest) (int, http.He
 		return response.NewBadRequest(err)
 	}
 
-	c, err := ensurePinnedActivityChannel(req.AccountId, req.GroupName)
+	c, err := models.EnsurePinnedActivityChannel(req.AccountId, req.GroupName)
 	if err != nil {
 		return response.NewBadRequest(err)
 	}
@@ -68,7 +66,7 @@ func List(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface
 		return response.NewBadRequest(errors.New("Account id is not set for fetching pinned activities"))
 	}
 
-	c, err := ensurePinnedActivityChannel(query.AccountId, query.GroupName)
+	c, err := models.EnsurePinnedActivityChannel(query.AccountId, query.GroupName)
 	if err != nil {
 		return response.NewBadRequest(err)
 	}
@@ -87,7 +85,7 @@ func UnpinMessage(u *url.URL, h http.Header, req *models.PinRequest) (int, http.
 		return response.NewBadRequest(err)
 	}
 
-	c, err := ensurePinnedActivityChannel(req.AccountId, req.GroupName)
+	c, err := models.EnsurePinnedActivityChannel(req.AccountId, req.GroupName)
 	if err != nil {
 		return response.NewBadRequest(err)
 	}
@@ -106,7 +104,7 @@ func Glance(u *url.URL, h http.Header, req *models.PinRequest) (int, http.Header
 		return response.NewBadRequest(err)
 	}
 
-	c, err := ensurePinnedActivityChannel(req.AccountId, req.GroupName)
+	c, err := models.EnsurePinnedActivityChannel(req.AccountId, req.GroupName)
 	if err != nil {
 		return response.NewBadRequest(err)
 	}
@@ -142,45 +140,4 @@ func validatePinRequest(req *models.PinRequest) error {
 	}
 
 	return nil
-}
-
-func ensurePinnedActivityChannel(accountId int64, groupName string) (*models.Channel, error) {
-	c := models.NewChannel()
-	query := &bongo.Query{
-		Selector: map[string]interface{}{
-			"creator_id":    accountId,
-			"group_name":    groupName,
-			"type_constant": models.Channel_TYPE_PINNED_ACTIVITY,
-		},
-		Pagination: *bongo.NewPagination(1, 0),
-	}
-
-	if err := c.Some(c, query); err != nil {
-		return nil, err
-	}
-
-	// if we find the channel
-	// return early
-	if c.Id != 0 {
-		return c, nil
-	}
-
-	c.Name = models.RandomName()
-	c.CreatorId = accountId
-	c.GroupName = groupName
-	c.TypeConstant = models.Channel_TYPE_PINNED_ACTIVITY
-	c.PrivacyConstant = models.Channel_PRIVACY_PRIVATE
-	if err := c.Create(); err != nil {
-		return nil, err
-	}
-
-	// after creating pinned channel
-	// add user a participant
-	// todo add test for this case
-	_, err := c.AddParticipant(accountId)
-	if err != nil {
-		return nil, err
-	}
-
-	return c, nil
 }
