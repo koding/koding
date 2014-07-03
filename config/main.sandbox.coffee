@@ -119,15 +119,15 @@ module.exports =
     numberOfWorkers: 2
   social        :
     login       : 'prod-social'
-    numberOfWorkers: 7
+    numberOfWorkers: 1
     watch       : no
     queueName   : socialQueueName
     verbose     : no
     kitePort    : 8765
   log           :
     login       : 'prod-social'
-    numberOfWorkers: 2
-    watch       : yes
+    numberOfWorkers: 1
+    watch       : no
     queueName   : logQueueName
     verbose     : no
     run         : no
@@ -159,12 +159,12 @@ module.exports =
         apiKey       : embedlyApiKey
       userSitesDomain: 'kd.io'
       useNeo4j: yes
-      logToExternal : yes
-      logToInternal : yes
+      logToExternal : no
+      logToInternal : no
       resourceName: socialQueueName
       logResourceName: logQueueName
       socialApiUri: 'http://sandbox-social.sj.koding.com:3030/xhr'
-      logApiUri: 'https://stage-log.koding.com/xhr'
+      logApiUri: 'https://sandbox-social.sj.koding.com:4030/xhr'
       suppressLogs: no
       version   : version
       mainUri   : "http://sandbox.koding.com"
