@@ -145,7 +145,7 @@ func (p *Provider) Build(opts *protocol.MachineOptions) (*protocol.ProviderArtif
 		return nil, err
 	}
 
-	p.Push(fmt.Sprintf("Server is created", opts.InstanceName), 70, machinestate.Building)
+	p.Push(fmt.Sprintf("Server is created %s", opts.InstanceName), 70, machinestate.Building)
 	return &protocol.ProviderArtifact{
 		IpAddress:    server.AccessIPv4,
 		InstanceName: server.Name,
