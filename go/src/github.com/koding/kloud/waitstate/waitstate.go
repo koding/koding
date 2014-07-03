@@ -36,11 +36,13 @@ func (w *WaitState) Wait() error {
 	}
 
 	timeout := time.After(w.Timeout)
-	ticker := time.Tick(w.Interval)
+
+	ticker := time.NewTicker(w.Interval)
+	defer ticker.Stop()
 
 	for {
 		select {
-		case <-ticker:
+		case <-ticker.C:
 			if w.Start < w.Finish {
 				w.Start += 2
 			}

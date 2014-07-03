@@ -148,6 +148,7 @@ func (p *Provider) Build(opts *protocol.MachineOptions) (*protocol.ProviderArtif
 		IpAddress:    server.AccessIPv4,
 		InstanceName: server.Name,
 		InstanceId:   server.Id,
+		Username:     opts.Username,
 	}, nil
 }
 

@@ -182,7 +182,6 @@ func newKloud(kloudKite *kite.Kite) *kloud.Kloud {
 	}
 
 	kld := kloud.NewKloud()
-	kld.Debug = *flagDebug
 	kld.Storage = mongodbStorage
 	kld.Deployer = deployer
 
