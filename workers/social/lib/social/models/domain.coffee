@@ -215,6 +215,19 @@ module.exports = class JDomain extends jraphical.Module
             callback err, domain
 
 
+  checkExistence = (domain, callback)->
+
+    JDomain.count { domain }, (err, count)->
+
+      return callback err  if err
+
+      if count > 0
+        callback new KodingError \
+          "The domain #{domain} already exists", "DUPLICATEDOMAIN"
+      else
+        callback null
+
+
   @createDomain$: permit 'create domains', success: (client, data, callback)->
 
     { domain, stack } = data
@@ -232,10 +245,8 @@ module.exports = class JDomain extends jraphical.Module
     {err, domain, type, slug, prefix} = parseDomain domain, { nickname, group }
     return callback err  if err
 
-    JDomain.one {domain}, (err, model)->
+    checkExistence domain, (err)->
       return callback err  if err
-      if model
-        return error "The domain #{domain} already exists", "DUPLICATEDOMAIN"
 
       resolveDomain domain, (err)->
         return callback err  if err
