@@ -28,8 +28,16 @@ class NotificationController extends KDObject
     @notificationChannel.on 'message', (notification)=>
       @emit "NotificationHasArrived", notification
       if notification.contents
-        @emit notification.event, notification.contents
         @prepareNotification notification
+
+        unless notification.context
+          @emit notification.event, notification.contents
+
+        if notification.context is KD.getGroup().slug
+          @emit notification.event, notification.contents
+
+        else
+          @emit "#{notification.event}-off-context", notification.contents
 
     @on 'ChannelUpdateHappened', (notification) =>
       @emit notification.event, notification  if notification.event

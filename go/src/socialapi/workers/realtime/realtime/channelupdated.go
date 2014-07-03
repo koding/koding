@@ -172,7 +172,12 @@ func (cue *channelUpdatedEvent) sendForParticipant() error {
 
 	cue.UnreadCount = count
 
-	err = cue.Controller.sendNotification(cue.ChannelParticipant.AccountId, ChannelUpdateEventName, cue)
+	err = cue.Controller.sendNotification(
+		cue.ChannelParticipant.AccountId,
+		cue.Channel.GroupName,
+		ChannelUpdateEventName,
+		cue,
+	)
 	if err != nil {
 		cue.Controller.log.Error(err.Error())
 	}
