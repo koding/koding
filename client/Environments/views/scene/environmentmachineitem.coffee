@@ -169,10 +169,10 @@ class EnvironmentMachineItem extends EnvironmentItem
 
     if running
       items['Run build script'].children =
-        'In Terminal'   :
-          callback      : @lazyBound "runBuildScript", inTerminal = yes
-        'In Background' :
-          callback      : @lazyBound "runBuildScript", inTerminal = no
+        'Inside a terminal' :
+          callback        : @lazyBound "runBuildScript", inTerminal = yes
+        'As background process' :
+          callback        : @lazyBound "runBuildScript", inTerminal = no
 
     return items
 
