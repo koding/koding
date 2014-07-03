@@ -165,7 +165,11 @@ func (s *DB) Scan(dest interface{}) *DB {
 
 func (s *DB) FirstOrInit(out interface{}, where ...interface{}) *DB {
 	c := s.clone()
-	if c.First(out, where...).Error == RecordNotFound {
+	r := c.First(out, where...)
+	if r.Error != nil {
+		if !r.RecordNotFound() {
+			return r
+		}
 		c.NewScope(out).inlineCondition(where...).initialize()
 	} else {
 		c.NewScope(out).updatedAttrsWithValues(convertInterfaceToMap(s.search.AssignAttrs), false)
@@ -175,9 +179,13 @@ func (s *DB) FirstOrInit(out interface{}, where ...interface{}) *DB {
 
 func (s *DB) FirstOrCreate(out interface{}, where ...interface{}) *DB {
 	c := s.clone()
-	if c.First(out, where...).Error == RecordNotFound {
+	r := c.First(out, where...)
+	if r.Error != nil {
+		if !r.RecordNotFound() {
+			return r
+		}
 		c.NewScope(out).inlineCondition(where...).initialize().callCallbacks(s.parent.callback.creates)
-	} else if len(s.search.AssignAttrs) > 0 {
+	} else if len(c.search.AssignAttrs) > 0 {
 		c.NewScope(out).Set("gorm:update_interface", s.search.AssignAttrs).callCallbacks(s.parent.callback.updates)
 	}
 	return c
@@ -212,6 +220,11 @@ func (s *DB) Save(value interface{}) *DB {
 	} else {
 		return scope.callCallbacks(s.parent.callback.updates).db
 	}
+}
+
+func (s *DB) Create(value interface{}) *DB {
+	scope := s.clone().NewScope(value)
+	return scope.callCallbacks(s.parent.callback.creates).db
 }
 
 func (s *DB) Delete(value interface{}) *DB {

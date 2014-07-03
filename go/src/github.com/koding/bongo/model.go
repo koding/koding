@@ -106,7 +106,7 @@ func (b *Bongo) FetchByIds(i Modellable, data interface{}, ids []int64) error {
 
 func (b *Bongo) UpdatePartial(i Modellable, set map[string]interface{}) error {
 	if i.GetId() == 0 {
-		return errors.New(fmt.Sprintf("Id is not set for %s", i.TableName()))
+		return fmt.Errorf("id is not set for %s", i.TableName())
 	}
 
 	// init query
@@ -140,7 +140,7 @@ func (b *Bongo) UpdateMulti(i Modellable, rest ...map[string]interface{}) error 
 		selector = rest[0]
 		set = rest[1]
 	default:
-		return errors.New("Update partial parameter list is wrong")
+		return errors.New("update partial parameter list is wrong")
 	}
 
 	query := b.DB.Table(i.TableName())
