@@ -89,8 +89,8 @@ class DomainCreateForm extends KDCustomHTMLView
       createButton.hideLoader()
       return notifyUser "#{domain} is an invalid subdomain."
 
-    domain =
-      Encoder.XSSEncode "#{domain}.#{domains.getValue()}"
+    domain = Encoder.XSSEncode \
+      "#{domain}.#{KD.nick()}.#{KD.config.userSitesDomain}"
 
     @createJDomain domain, (err, domain)=>
       createButton.hideLoader()
