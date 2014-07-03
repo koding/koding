@@ -52,10 +52,13 @@ func (p *Provider) NewClient(opts *protocol.MachineOptions) (*Client, error) {
 		Log:         p.Log,
 		Caching:     true,
 		CachePrefix: "cache-" + p.Region + "-" + p.Environment,
-		Redis:       p.Redis,
-		RedisPrefix: p.Redis.AddPrefix(""),
 	}
 	c.DigitalOcean = d
+
+	if p.Redis != nil {
+		c.Redis = p.Redis
+		c.RedisPrefix = p.Redis.AddPrefix("")
+	}
 
 	p.Push = push
 	return c, nil
