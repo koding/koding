@@ -2,6 +2,9 @@
 # NOTE: All domain registry related stuff removed
 # you can look at them from 745b4914f14fa424a3e38db68e09a1bc832be7f4
 
+{argv}   = require 'optimist'
+KONFIG   = require('koding-config-manager').load("main.#{argv.c}")
+
 jraphical = require 'jraphical'
 module.exports = class JDomain extends jraphical.Module
 
@@ -123,6 +126,8 @@ module.exports = class JDomain extends jraphical.Module
 
   parseDomain = (domain)->
 
+    { userSitesDomain } = KONFIG
+
     # Custom error
     err = (message = "Invalid domain: #{domain}")->
       err: new KodingError message, "INVALIDDOMAIN"
@@ -132,19 +137,19 @@ module.exports = class JDomain extends jraphical.Module
       /^[a-z0-9]+([\-\.]{1}[a-z0-9]+)*\.[a-z]{2,5}$/i.test domain
 
     # Return domain type as custom and keep the domain as is
-    return {type: 'custom', domain}  unless /\.kd\.io$/.test domain
+    unless ///\.#{userSitesDomain}$///.test domain
+      return { type: 'custom', domain }
 
     # Basic check
-    unless /([a-z0-9\-]+)\.kd\.io$/.test domain
-      return err()
+    return err()  unless ///([a-z0-9\-]+)\.#{userSitesDomain}$///.test domain
 
     # Check for shared|vm prefix
     if /^shared|vm[\-]?([0-9]+)?/.test prefix
       return err "Domain name cannot start with shared|vm"
 
     # Parse domain
-    match = domain.match /([a-z0-9\-]+)\.([a-z0-9\-]+)\.kd\.io$/
-    return err "Invalid domain: #{domain}."  unless match
+    match = domain.match ///([a-z0-9\-]+)\.([a-z0-9\-]+)\.#{userSitesDomain}$///
+    return err "Invalid domain: #{domain}"  unless match
     [rest..., prefix, slug] = match
 
     # Return type as internal and slug and domain
