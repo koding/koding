@@ -124,7 +124,7 @@ module.exports = class JDomain extends jraphical.Module
       callback null, filterDomains domains, delegate, group
 
 
-  parseDomain = (domain)->
+  parseDomain = (domain, { nickname, group })->
 
     { userSitesDomain } = KONFIG
 
@@ -152,8 +152,15 @@ module.exports = class JDomain extends jraphical.Module
     return err "Invalid domain: #{domain}"  unless match
     [rest..., prefix, slug] = match
 
+    if slug isnt nickname
+      return err "Creating root domains is not allowed"
+
+    slug = "koding"  if nickname is slug
+    if group? and group isnt slug
+      return err "Invalid group"
+
     # Return type as internal and slug and domain
-    return {type: 'internal', slug, prefix, domain}
+    return { type: 'internal', slug, prefix, domain }
 
 
   resolveDomain = (domain, callback, check)->
@@ -185,6 +192,11 @@ module.exports = class JDomain extends jraphical.Module
 
     { domain, account, group, stack, hostnameAlias } = options
 
+    { nickname } = account.profile
+
+    {err, domain, type, slug, prefix} = parseDomain domain, { nickname, group }
+    return callback err  if err
+
     domainData = { proposedDomain: domain, group }
     domainData.hostnameAlias = hostnameAlias  if hostnameAlias?
 
@@ -214,21 +226,11 @@ module.exports = class JDomain extends jraphical.Module
       return error "Domain is not provided"
 
     {delegate} = client.connection
-    {err, domain, type, slug, prefix} = parseDomain domain
-
-    return callback err  if err
-
     {group}    = client.context
     {nickname} = delegate.profile
 
-    if type is 'internal'
-
-      if slug isnt nickname
-        return error "Creating root domains is not allowed"
-
-      slug = "koding"  if nickname is slug
-      unless group is slug
-        return error "Invalid group"
+    {err, domain, type, slug, prefix} = parseDomain domain, { nickname, group }
+    return callback err  if err
 
     JDomain.one {domain}, (err, model)->
       return callback err  if err
