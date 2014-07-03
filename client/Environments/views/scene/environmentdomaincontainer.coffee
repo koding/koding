@@ -62,8 +62,6 @@ class EnvironmentDomainContainer extends EnvironmentContainer
   getDomainCreateForm: ->
 
     domainCreateForm = new DomainCreateForm {}, { @stack }
-
-    @on "itemRemoved", domainCreateForm.bound "updateDomains"
     domainCreateForm.on "DomainSaved", (domain) =>
       @addDomain domain
       @emit "itemAdded"

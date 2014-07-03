@@ -60,7 +60,8 @@ class ProviderBaseView extends KDTabPaneView
     @createInstanceForm.setClass 'in'
     @createInstanceForm.once "Submit", (data)=>
 
-      KD.singletons.computeController.create {
+      { computeController } = KD.singletons
+      computeController.create {
         provider
         label        : data.title
         instanceType : instance.getData().name
@@ -83,8 +84,10 @@ class ProviderBaseView extends KDTabPaneView
             return new KDNotificationView
               title: "An error occured"
 
-          new KDModalView
-            content : "<pre>#{packerTemplate}</pre>"
+          new KDNotificationView
+            title: "Machine instance created!"
+
+          computeController.reset yes
 
 
   showAvailablesFor:(value)->
