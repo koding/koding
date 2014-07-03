@@ -6,7 +6,8 @@ module.exports = (options, callback)->
   getSidebar      = require './sidebar'
   getStatusWidget = require './statuswidget'
 
-  options.entryPoint = { slug : "koding", type: "group" }
+  entryPoint         = { slug : "koding", type: "group" }
+  options.entryPoint = entryPoint
 
   prepareHTML = (scripts)->
     """
@@ -20,7 +21,7 @@ module.exports = (options, callback)->
 
       <!--[if IE]><script>(function(){window.location.href='/unsupported.html'})();</script><![endif]-->
 
-      #{KONFIG.getConfigScriptTag { roles: ['guest'], permissions: [] } }
+      #{KONFIG.getConfigScriptTag { entryPoint, roles: ['guest'], permissions: [] } }
       #{scripts}
 
     </body>
