@@ -302,7 +302,7 @@ unmarkAsTroll = (data, callback)->
     return callback {message: "Request is not valid"}
 
   url = "/trollmode/#{data.accountId}"
-  deleteReq url, data, callback
+  deleteReq url, callback
 
 getSiteMap = (data, callback)->
   url = data.name
