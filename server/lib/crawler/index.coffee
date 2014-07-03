@@ -19,8 +19,9 @@ fetchProfileContent = (models, options, callback) ->
     return callback err  if err or not account
 
     fetchOptions =
-      targetId : account.socialApiId
-      limit    : 5
+      targetId   : account.socialApiId
+      limit      : 5
+      replyLimit : 25
 
     SocialChannel.fetchProfileFeed client, fetchOptions, (err, result) ->
       return callback err  if err or not result
@@ -35,7 +36,7 @@ fetchProfileContent = (models, options, callback) ->
 fetchPostContent = (models, options, callback) ->
   {SocialMessage} = models
   {client, entrySlug} = options
-  SocialMessage.bySlug client, slug: entrySlug, (err, activity) ->
+  SocialMessage.bySlug client, slug: entrySlug, replyLimit: 25, (err, activity) ->
     return callback err  if err or not activity
 
     createActivityContent models, activity, (err, content, activityContent)->

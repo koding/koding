@@ -21,7 +21,7 @@ func main() {
 	m := manager.New()
 	m.Controller(topicfeed.New(r.Log))
 
-	m.HandleFunc("api.channel_message_update", (*topicfeed.Controller).MessageUpdated)
+	m.HandleFunc("api.channel_message_updated", (*topicfeed.Controller).MessageUpdated)
 	m.HandleFunc("api.channel_message_deleted", (*topicfeed.Controller).MessageDeleted)
 	m.HandleFunc("api.channel_message_created", (*topicfeed.Controller).MessageSaved)
 

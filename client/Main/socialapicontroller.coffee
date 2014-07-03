@@ -193,7 +193,7 @@ class SocialApiController extends KDController
           serviceType: 'socialapi'
           group      : group.slug
           channelType: socialApiChannel.typeConstant
-          channelName: channelName
+          channelName: socialApiChannel.name
           isExclusive: yes
 
         KD.remote.subscribe channelName, subscriptionData, (brokerChannel)->
