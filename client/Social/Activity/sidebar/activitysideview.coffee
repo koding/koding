@@ -41,6 +41,7 @@ class ActivitySideView extends JView
     @header.addSubView headerLink  if headerLink
 
     @listView = @listController.getView()
+    sidebar.bindItemEvents @listView
 
     @listView.once 'viewAppended', @bound 'init'
 
