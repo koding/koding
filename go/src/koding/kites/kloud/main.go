@@ -11,6 +11,9 @@ import (
 	"net/url"
 	"os"
 
+	"launchpad.net/goamz/aws"
+	"launchpad.net/goamz/s3"
+
 	"github.com/koding/kite/protocol"
 	"github.com/koding/kloud"
 )
@@ -112,7 +115,7 @@ func main() {
 		Environment:       conf.Environment,
 		Port:              *flagPort,
 		Debug:             *flagDebug,
-		Bucket:            kloud.NewBucket("koding-kites", klientFolder),
+		Bucket:            newBucket("koding-kites", klientFolder),
 		KontrolURL:        kontrolURL,
 		KontrolPrivateKey: privateKey,
 		KontrolPublicKey:  publicKey,
@@ -149,6 +152,20 @@ func main() {
 	}
 
 	kite.Run()
+}
+
+func newBucket(name, folder string) *kloud.Bucket {
+	auth := aws.Auth{
+		AccessKey: "AKIAI6IUMWKF3F4426CA",
+		SecretKey: "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",
+	}
+
+	s := s3.New(auth, aws.USEast)
+
+	return &kloud.Bucket{
+		Bucket: s.Bucket(name),
+		Folder: folder,
+	}
 }
 
 func uniqueId() string {
