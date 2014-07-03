@@ -83,8 +83,7 @@ module.exports = class SocialMessage extends Base
     SocialMessage.canEdit client, data, (err, res)->
       return callback err if err
       return callback {message: "You can not edit this post"} unless res
-      {editMessage} = require './requests'
-      editMessage data, callback
+      doRequest 'editMessage', client, data, callback
 
 
   @delete = secure (client, data, callback)->
@@ -95,8 +94,7 @@ module.exports = class SocialMessage extends Base
     SocialMessage.canDelete client, data, (err, res)->
       return callback err if err
       return callback {message: "You can not delete this post"} unless res
-      {deleteMessage} = require './requests'
-      deleteMessage data, callback
+      doRequest 'deleteMessage', client, data, callback
 
 
   # byId -get message by id
@@ -149,21 +147,20 @@ module.exports = class SocialMessage extends Base
   # how to implement for this case
   @canEdit = (client, data, callback)->
     {delegate} = client.connection
-    checkMessagePermission client, data, delegate.canEditPost, callback
+    @checkMessagePermission client, data, delegate.canEditPost, callback
 
   @canDelete = (client, data, callback)->
     {delegate} = client.connection
-    checkMessagePermission client, data, delegate.canDeletePost, callback
+    @checkMessagePermission client, data, delegate.canDeletePost, callback
 
-  checkMessagePermission = (client, data, fn, callback)->
+  @checkMessagePermission = (client, data, fn, callback)->
     return callback {message: "Id is not set"} unless data.id
     {delegate} = client.connection
     # get api id of the client
-    delegate.createSocialApiId (err, socialApiId)->
+    delegate.createSocialApiId (err, socialApiId)=>
       return callback err  if err
       # fetch the message
-      {messageById} = require './requests'
-      messageById data, (err, message)->
+      @byId client, data, (err, message)->
         return callback err  if err
         return callback { message: "Post is not found" }  unless message?.message
         {message: {accountId}} = message
