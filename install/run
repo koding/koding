@@ -66,7 +66,7 @@ NAME=sourceMapServer    && docker run  -p 3526:3526   -h $SUB -d --name=$NAME  -
 NAME=guestCleaner       && docker run                 -h $SUB -d --name=$NAME  --entrypoint=node                                                 														--link=mongo:mongo --link=postgres:postgres --link=redis:redis --link=rabbitmq:rabbitmq koding/run  $PRJ/workers/guestcleaner/index.js     -c $CFG
 NAME=emailSender        && docker run                 -h $SUB -d --name=$NAME  --entrypoint=node                                                 														--link=mongo:mongo --link=postgres:postgres --link=redis:redis --link=rabbitmq:rabbitmq koding/run  $PRJ/workers/emailsender/index.js      -c $CFG
 
-NAME=permissionUpdater  && docker run                 -h $SUB -d --name=$NAME  --entrypoint=node         				   																													--link=mongo:mongo 																																			koding/run  $PRJ/scripts/permission-updater -c $SOCIALCONFIG --hard
+NAME=permissionUpdater  && docker run                 -h $SUB -d --name=$NAME  --entrypoint=node  --link=mongo:mongo koding/run  $PRJ/scripts/permission-updater -c $SOCIALCONFIG --hard
 
 
 
