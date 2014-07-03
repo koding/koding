@@ -51,7 +51,6 @@ Broker     = require 'broker'
 fs         = require 'fs'
 hat        = require 'hat'
 nodePath   = require 'path'
-http       = require "https"
 helmet     = require 'helmet'
 {JSession} = koding.models
 app        = express()

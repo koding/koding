@@ -133,8 +133,8 @@ task 'socialWorker', "Run the socialWorker", ({configFile}) ->
 
   console.log 'CAKEFILE STARTING SOCIAL WORKERS'
 
-  for i in [1..social.numberOfWorkers]
-    port = 3029 + i
+  for i in [0...social.numberOfWorkers]
+    port = social.port + i
     kitePort = port + 10000
 
     processes.fork

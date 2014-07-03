@@ -407,3 +407,5 @@ module.exports =
     port         : 2003
   troubleshoot    :
     recipientEmail: "can@koding.com"
+  webAndSocialProxy:
+    port           : null

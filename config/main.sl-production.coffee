@@ -395,3 +395,5 @@ module.exports =
     secure      : cookieSecure
   troubleshoot  :
     recipientEmail: "support@koding.com"
+  webAndSocialProxy:
+    port           : null
