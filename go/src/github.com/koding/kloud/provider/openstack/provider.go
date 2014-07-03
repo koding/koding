@@ -26,8 +26,6 @@ type Provider struct {
 	Log  logging.Logger
 	Push func(string, int, machinestate.State)
 
-	Region       string
-	Environment  string
 	AuthURL      string
 	ProviderName string
 }

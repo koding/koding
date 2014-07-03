@@ -42,8 +42,32 @@ var states = map[string]*statePair{
 	"restart": &statePair{initial: machinestate.Rebooting, final: machinestate.Running},
 }
 
-func (k *Kloud) ControlFunc(method string, control controlFunc) {
-	handler := func(r *kite.Request) (response interface{}, err error) {
+func (k *Kloud) Build(r *kite.Request) (resp interface{}, err error) {
+	return k.ControlFunc(k.build).ServeKite(r)
+}
+
+func (k *Kloud) Start(r *kite.Request) (resp interface{}, err error) {
+	return k.ControlFunc(k.start).ServeKite(r)
+}
+
+func (k *Kloud) Stop(r *kite.Request) (resp interface{}, err error) {
+	return k.ControlFunc(k.stop).ServeKite(r)
+}
+
+func (k *Kloud) Restart(r *kite.Request) (resp interface{}, err error) {
+	return k.ControlFunc(k.restart).ServeKite(r)
+}
+
+func (k *Kloud) Destroy(r *kite.Request) (resp interface{}, err error) {
+	return k.ControlFunc(k.destroy).ServeKite(r)
+}
+
+func (k *Kloud) Info(r *kite.Request) (resp interface{}, err error) {
+	return k.ControlFunc(k.info).ServeKite(r)
+}
+
+func (k *Kloud) ControlFunc(control controlFunc) kite.Handler {
+	return kite.HandlerFunc(func(r *kite.Request) (response interface{}, err error) {
 		defer func() {
 			if err != nil {
 				k.Log.Warning("[controller] %s error: %s", r.Method, err.Error())
@@ -61,7 +85,7 @@ func (k *Kloud) ControlFunc(method string, control controlFunc) {
 			return nil, err
 		}
 
-		k.Log.Info("[controller] got a request for method: '%s' with args: %v", method, args)
+		k.Log.Info("[controller] got a request for method: '%s' with args: %v", r.Method, args)
 
 		if args.MachineId == "" {
 			return nil, NewError(ErrMachineIdMissing)
@@ -118,9 +142,7 @@ func (k *Kloud) ControlFunc(method string, control controlFunc) {
 
 		// call our kite handler with the the controller context
 		return control(r, c)
-	}
-
-	k.Kite.HandleFunc(method, handler)
+	})
 }
 
 // methodHas checks if the method exist for the given methods

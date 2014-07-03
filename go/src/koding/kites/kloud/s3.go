@@ -1,4 +1,4 @@
-package kloud
+package main
 
 import (
 	"fmt"
@@ -6,6 +6,7 @@ import (
 	"os"
 	"time"
 
+	"launchpad.net/goamz/aws"
 	"launchpad.net/goamz/s3"
 )
 
@@ -52,4 +53,18 @@ func (b *Bucket) Upload(path string) error {
 		"application/gzip",
 		s3.Private,
 	)
+}
+
+func newBucket(name, folder string) *Bucket {
+	auth := aws.Auth{
+		AccessKey: "AKIAI6IUMWKF3F4426CA",
+		SecretKey: "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",
+	}
+
+	s := s3.New(auth, aws.USEast)
+
+	return &Bucket{
+		Bucket: s.Bucket(name),
+		Folder: folder,
+	}
 }

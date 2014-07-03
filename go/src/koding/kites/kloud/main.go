@@ -11,11 +11,11 @@ import (
 	"net/url"
 	"os"
 
-	"launchpad.net/goamz/aws"
-	"launchpad.net/goamz/s3"
-
+	"github.com/koding/kite"
+	kiteconfig "github.com/koding/kite/config"
 	"github.com/koding/kite/protocol"
 	"github.com/koding/kloud"
+	"github.com/koding/logging"
 )
 
 var (
@@ -52,10 +52,86 @@ func main() {
 		os.Exit(0)
 	}
 
-	conf := config.MustConfig(*flagProfile)
+	k := newKite()
+
+	registerURL := k.RegisterURL(*flagLocal)
+	fmt.Printf("registerU %+v\n", registerURL)
+	if *flagRegisterURL != "" {
+		u, err := url.Parse(*flagRegisterURL)
+		if err != nil {
+			k.Log.Fatal("Couldn't parse register url: %s", err)
+		}
+
+		registerURL = u
+	}
+
+	if *flagProxy {
+		k.Log.Info("Proxy mode is enabled")
+		// Koding proxies in production only
+		proxyQuery := &protocol.KontrolQuery{
+			Username:    "koding",
+			Environment: "production",
+			Name:        "proxy",
+		}
+
+		k.Log.Info("Seaching proxy: %#v", proxyQuery)
+		go k.RegisterToProxy(registerURL, proxyQuery)
+	} else {
+		if err := k.RegisterForever(registerURL); err != nil {
+			k.Log.Fatal(err.Error())
+		}
+	}
+
+	k.Run()
+}
+
+func newKite() *kite.Kite {
+	k := kite.New(kloud.NAME, kloud.VERSION)
+	k.Config = kiteconfig.MustGet()
+
+	if *flagRegion != "" {
+		k.Config.Region = *flagRegion
+	}
+
+	if *flagPort != 0 {
+		k.Config.Port = *flagPort
+	}
 
 	if *flagEnv != "" {
-		conf.Environment = *flagEnv
+		k.Config.Environment = *flagEnv
+	} else {
+		k.Config.Environment = config.MustConfig(*flagProfile).Environment
+	}
+
+	kld := newKloud(k)
+
+	k.HandleFunc("build", kld.Build)
+	k.HandleFunc("start", kld.Start)
+	k.HandleFunc("stop", kld.Stop)
+	k.HandleFunc("restart", kld.Restart)
+	k.HandleFunc("info", kld.Info)
+	k.HandleFunc("destroy", kld.Destroy)
+	k.HandleFunc("event", kld.Event)
+
+	return k
+}
+
+func newKloud(kloudKite *kite.Kite) *kloud.Kloud {
+	id := uniqueId()
+	if *flagUniqueId != "" {
+		id = uniqueId()
+	}
+
+	conf := config.MustConfig(*flagProfile)
+
+	mongodbStorage := &storage.MongoDB{
+		Session:      mongodb.NewMongoDB(conf.Mongo),
+		AssigneeName: id,
+		Log:          logging.NewLogger("kloud-storage"),
+	}
+
+	if err := mongodbStorage.CleanupOldData(); err != nil {
+		kloudKite.Log.Warning("Cleaning up mongodb err: %s", err.Error())
 	}
 
 	var kontrolURL string
@@ -66,6 +142,14 @@ func main() {
 		}
 
 		kontrolURL = u.String()
+	} else {
+		// read kontrolURL from kite.key if it doesn't exist.
+		kontrolURL = kiteconfig.MustGet().KontrolURL.String()
+	}
+
+	klientFolder := "klient/development/latest"
+	if *flagProdMode {
+		klientFolder = "klient/production/latest"
 	}
 
 	pubKeyPath := *flagPublicKey
@@ -88,84 +172,21 @@ func main() {
 	}
 	privateKey := string(privKey)
 
-	klientFolder := "klient/development/latest"
-	if *flagProdMode {
-		klientFolder = "klient/production/latest"
-	}
-
-	id := uniqueId()
-	if *flagUniqueId != "" {
-		id = uniqueId()
-	}
-
-	mongodbLog := kloud.Logger("kloud-storage", *flagDebug)
-	mongodbStorage := &storage.MongoDB{
-		Session:      mongodb.NewMongoDB(conf.Mongo),
-		AssigneeName: id,
-		Log:          mongodbLog,
-	}
-
-	if err := mongodbStorage.CleanupOldData(); err != nil {
-		mongodbLog.Notice("Cleaning up mongodb err: %s", err.Error())
-	}
-
-	k := &kloud.Kloud{
-		Storage:           mongodbStorage,
-		Region:            *flagRegion,
-		Environment:       conf.Environment,
-		Port:              *flagPort,
-		Debug:             *flagDebug,
-		Bucket:            newBucket("koding-kites", klientFolder),
+	deployer := &KodingDeploy{
+		Kite:              kloudKite,
+		Log:               logging.NewLogger("kloud-deploy"),
 		KontrolURL:        kontrolURL,
 		KontrolPrivateKey: privateKey,
 		KontrolPublicKey:  publicKey,
+		Bucket:            newBucket("koding-kites", klientFolder),
 	}
 
-	kite := k.NewKloud()
+	kld := kloud.NewKloud()
+	kld.Debug = *flagDebug
+	kld.Storage = mongodbStorage
+	kld.Deployer = deployer
 
-	registerURL := kite.RegisterURL(*flagLocal)
-	if *flagRegisterURL != "" {
-		u, err := url.Parse(*flagRegisterURL)
-		if err != nil {
-			k.Log.Fatal("Couldn't parse register url: %s", err)
-		}
-
-		registerURL = u
-	}
-
-	kite.Log.Info("Going to register to kontrol with URL: %s", registerURL)
-	if *flagProxy {
-		kite.Log.Info("Proxy mode is enabled")
-		// Koding proxies in production only
-		proxyQuery := &protocol.KontrolQuery{
-			Username:    "koding",
-			Environment: "production",
-			Name:        "proxy",
-		}
-
-		k.Log.Info("Seaching proxy: %#v", proxyQuery)
-		go kite.RegisterToProxy(registerURL, proxyQuery)
-	} else {
-		if err := kite.RegisterForever(registerURL); err != nil {
-			kite.Log.Fatal(err.Error())
-		}
-	}
-
-	kite.Run()
-}
-
-func newBucket(name, folder string) *kloud.Bucket {
-	auth := aws.Auth{
-		AccessKey: "AKIAI6IUMWKF3F4426CA",
-		SecretKey: "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",
-	}
-
-	s := s3.New(auth, aws.USEast)
-
-	return &kloud.Bucket{
-		Bucket: s.Bucket(name),
-		Folder: folder,
-	}
+	return kld
 }
 
 func uniqueId() string {

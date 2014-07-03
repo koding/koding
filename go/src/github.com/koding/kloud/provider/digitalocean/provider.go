@@ -22,9 +22,6 @@ type Provider struct {
 	Push        func(string, int, machinestate.State)
 	PoolEnabled bool
 	Redis       *redis.RedisSession
-
-	Region      string
-	Environment string
 }
 
 func (p *Provider) NewClient(opts *protocol.MachineOptions) (*Client, error) {
@@ -51,7 +48,7 @@ func (p *Provider) NewClient(opts *protocol.MachineOptions) (*Client, error) {
 		Push:        push,
 		Log:         p.Log,
 		Caching:     true,
-		CachePrefix: "cache-" + p.Region + "-" + p.Environment,
+		CachePrefix: "cache-digitalocean",
 	}
 	c.DigitalOcean = d
 

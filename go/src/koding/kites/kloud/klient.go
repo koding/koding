@@ -1,4 +1,4 @@
-package kloud
+package main
 
 import (
 	"fmt"
@@ -6,6 +6,7 @@ import (
 
 	"github.com/koding/kite"
 	"github.com/koding/kite/protocol"
+	"github.com/koding/kloud"
 )
 
 // Klient represents a remote klient instance
@@ -16,7 +17,7 @@ type Klient struct {
 // Klient returns a new connected klient instance to the given queryString. The
 // klient is ready to use. It's connected and will redial if there is any
 // disconnections.
-func (k *Kloud) Klient(queryString string) (*Klient, error) {
+func (k *KodingDeploy) Klient(queryString string) (*Klient, error) {
 	query, err := protocol.KiteFromString(queryString)
 	if err != nil {
 		return nil, err
@@ -54,7 +55,7 @@ func (k *Kloud) Klient(queryString string) (*Klient, error) {
 			select {
 			case <-connected:
 			case <-time.After(time.Minute):
-				return nil, NewError(ErrNoKiteConnection)
+				return nil, kloud.NewError(kloud.ErrNoKiteConnection)
 			}
 
 			// klient connection is ready now

@@ -1,28 +1,29 @@
-package kloud
+package main
 
 import (
 	"strings"
 	"time"
 
 	"github.com/dgrijalva/jwt-go"
+	"github.com/koding/kloud"
 )
 
 // createKey signs a new key and returns the token back
-func (k *Kloud) createKey(username, kiteId string) (string, error) {
+func (k *KodingDeploy) createKey(username, kiteId string) (string, error) {
 	if username == "" {
-		return "", NewError(ErrSignUsernameEmpty)
+		return "", kloud.NewError(kloud.ErrSignUsernameEmpty)
 	}
 
 	if k.KontrolURL == "" {
-		return "", NewError(ErrSignKontrolURLEmpty)
+		return "", kloud.NewError(kloud.ErrSignKontrolURLEmpty)
 	}
 
 	if k.KontrolPrivateKey == "" {
-		return "", NewError(ErrSignPrivateKeyEmpty)
+		return "", kloud.NewError(kloud.ErrSignPrivateKeyEmpty)
 	}
 
 	if k.KontrolPublicKey == "" {
-		return "", NewError(ErrSignPublicKeyEmpty)
+		return "", kloud.NewError(kloud.ErrSignPublicKeyEmpty)
 	}
 
 	token := jwt.New(jwt.GetSigningMethod("RS256"))

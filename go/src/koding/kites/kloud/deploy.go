@@ -1,4 +1,4 @@
-package kloud
+package main
 
 import (
 	"fmt"
@@ -6,8 +6,11 @@ import (
 	"strings"
 	"time"
 
+	"github.com/koding/kite"
+	"github.com/koding/kloud"
 	"github.com/koding/kloud/protocol"
 	"github.com/koding/kloud/sshutil"
+	"github.com/koding/logging"
 
 	klientprotocol "koding/kites/klient/protocol"
 
@@ -16,7 +19,23 @@ import (
 	"github.com/pkg/sftp"
 )
 
-func (k *Kloud) DeployFunc(username, hostname, ipAddress string) (*protocol.DeployArtifact, error) {
+type KodingDeploy struct {
+	Kite *kite.Kite
+	Log  logging.Logger
+
+	// needed for signing/generating kite tokens
+	KontrolPublicKey  string
+	KontrolPrivateKey string
+	KontrolURL        string
+
+	Bucket *Bucket
+}
+
+func (k *KodingDeploy) Deploy(artifact *protocol.ProviderArtifact) (*protocol.DeployArtifact, error) {
+	username := artifact.Username
+	ipAddress := artifact.IpAddress
+	hostname := artifact.InstanceName
+
 	log := func(msg string) {
 		k.Log.Info("%s ==> %s", username, msg)
 	}
@@ -47,7 +66,7 @@ func (k *Kloud) DeployFunc(username, hostname, ipAddress string) (*protocol.Depl
 
 	tknID, err := uuid.NewV4()
 	if err != nil {
-		return nil, NewError(ErrSignGenerateToken)
+		return nil, kloud.NewError(kloud.ErrSignGenerateToken)
 	}
 
 	log("Creating a key with kontrolURL: " + k.KontrolURL)

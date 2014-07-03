@@ -18,7 +18,7 @@ type EventResponse struct {
 	Error   *kite.Error    `json:"err"`
 }
 
-func (k *Kloud) event(r *kite.Request) (interface{}, error) {
+func (k *Kloud) Event(r *kite.Request) (interface{}, error) {
 	args := EventArgs{}
 	if err := r.Args.One().Unmarshal(&args); err != nil {
 		return nil, err
