@@ -53,6 +53,10 @@ module.exports = class JDomain extends jraphical.Module
           (signature String, Function)
         unbindMachine :
           (signature String, Function)
+        activateDomain:
+          (signature Function)
+        deactivateDomain:
+          (signature Function)
         remove        :
           (signature Function)
 
@@ -271,6 +275,37 @@ module.exports = class JDomain extends jraphical.Module
       }, (err, domain)->
 
         if err? then console.error err  unless err.code is 11000
+
+
+  updateState: (state, callback)->
+
+    if state
+
+      domain = @proposedDomain
+
+      checkExistence domain, (err)=>
+        return callback err  if err
+        @update $set: { domain }, callback
+
+    else
+
+      @update $unset: domain: 1, callback
+
+
+  activateDomain: permit
+    advanced    : [
+      { permission: "edit own domains", validateWith: Validators.own }
+    ]
+    success: (client, callback)->
+      @updateState yes, callback
+
+
+  deactivateDomain: permit
+    advanced    : [
+      { permission: "edit own domains", validateWith: Validators.own }
+    ]
+    success: (client, callback)->
+      @updateState no, callback
 
 
   bindMachine: (target, callback)->
