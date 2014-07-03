@@ -196,7 +196,6 @@ class ActivitySidebar extends KDCustomScrollView
       return item
 
     item = listController.addItem data, index
-    @registerItem item
 
     return item
 
@@ -208,15 +207,13 @@ class ActivitySidebar extends KDCustomScrollView
       data           = item.getData()
       listController = @getListController data.typeConstant
 
-      @unregisterItem item
       listController.removeItem item
 
 
-  registerListController: (section) ->
+  bindItemEvents: (listView) ->
 
-    return  unless lc = section.listController
-
-    lc.getListView().on 'ItemWasAdded', @bound 'registerItem'
+    listView.on 'ItemWasAdded',   @bound 'registerItem'
+    listView.on 'ItemWasRemoved', @bound 'unregisterItem'
 
 
   registerItem: (item) ->
@@ -365,8 +362,6 @@ class ActivitySidebar extends KDCustomScrollView
           limit  : 5
         , callback
 
-    @registerListController @sections.hot
-
 
   addFollowedTopics: ->
 
@@ -385,7 +380,7 @@ class ActivitySidebar extends KDCustomScrollView
           limit : 5
         , callback
 
-    @registerListController @sections.followedTopics
+
 
 
   addConversations: ->
@@ -405,8 +400,6 @@ class ActivitySidebar extends KDCustomScrollView
           limit : 5
         , callback
 
-    @registerListController @sections.conversations
-
 
   addMessages: ->
 
@@ -424,8 +417,6 @@ class ActivitySidebar extends KDCustomScrollView
         KD.singletons.socialapi.message.fetchPrivateMessages
           limit  : 5
         , callback
-
-    @registerListController @sections.messages
 
 
   addChat: ->
