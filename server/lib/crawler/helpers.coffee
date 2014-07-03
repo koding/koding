@@ -49,35 +49,6 @@ formatDate = (date) ->
   monthName = months[month]
   return "#{monthName} #{day}, #{year} #{hour}:#{minute}"
 
-normalizeActivityBody = (activity, bodyString="") ->
-  if bodyString
-    body = bodyString
-  else
-    {body} = activity
-
-  tagMap = {}
-  activity.tags?.forEach (tag) -> tagMap[tag.getId()] = tag
-
-  return body.replace /\|(.+?)\|/g, (match, tokenString) ->
-    [prefix, constructorName, id, title] = tokenString.split /:/
-
-    switch prefix
-      when "#" then token = tagMap?[id]
-
-    tagTitle = if token then token.title else title
-
-    return ""  unless tagTitle
-    tagContent =
-      """
-        <span class="kdview token">
-          <a class="ttag expandable" href="#{uri.address}/Activity/Topic/#{title}">
-            <span>#{tagTitle}</span>
-          </a>
-        </span>
-      """
-    return tagContent
-
-
 createProfile = (models, activity, callback)->
   {JAccount} = models
   {accountOldId} = activity
@@ -91,34 +62,6 @@ createProfile = (models, activity, callback)->
 renderCreatedAt = (activity) ->
   {message:{createdAt}} = activity  if activity
   return formatDate new Date(createdAt)
-
-renderBody = (activity) ->
-  marked = require 'marked'
-  # If href goes to outside of koding, add rel=nofollow.
-  # this is necessary to prevent link abusers.
-  renderer = new marked.Renderer()
-  renderer.link= (href, title, text)->
-    linkHTML = "<a href=\"#{href}\""
-    if title
-      linkHTML += " title=\"#{title}\""
-
-    re = new RegExp("#{uri.address}", "g")
-    if re.test href
-      linkHTML += ">#{text}</a>"
-    else
-      linkHTML += " rel=\"nofollow\">#{text}</a>"
-    return linkHTML
-
-  {message:{body}} = activity
-
-  body = marked body,
-    renderer  : renderer
-    gfm       : true
-    pedantic  : false
-    sanitize  : true
-
-  return body
-
 
 prepareComments = (models, activity, callback) ->
   {JAccount} = models
@@ -175,7 +118,7 @@ prepareActivity = (models, {activity, profile}, callback) ->
     nickname         : profile.nickname
     hash             : profile.hash
     avatar           : profile.avatar
-    body             : renderBody activity
+    body             : body
     createdAt        : renderCreatedAt activity
     commentCount     : repliesCount
     likeCount        : actorsCount

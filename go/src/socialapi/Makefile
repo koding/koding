@@ -29,6 +29,7 @@ PACKAGES = \
 	socialapi/workers/dailyemailnotifier \
 	socialapi/workers/followingfeed \
 	socialapi/workers/notification \
+	socialapi/workers/pinnedpost \
 	socialapi/workers/popularpost \
 	socialapi/workers/trollmode \
 	socialapi/workers/populartopic \
@@ -41,7 +42,7 @@ PACKAGES = \
 
 all: testapi
 
-develop: apidev topicfeeddev realtimedev followingfeeddev populartopicdev popularpostdev notificationdev trollmodeldev
+develop: apidev topicfeeddev realtimedev followingfeeddev populartopicdev popularpostdev notificationdev trollmodeldev pinnedpostdev
 default: configure
 
 apidev:
@@ -61,6 +62,10 @@ followingfeeddev:
 populartopicdev:
 	@echo "$(OK_COLOR)==> Running Popular Topics Worker $(NO_COLOR)"
 	@$(GOBINDIR)/rerun socialapi/workers/populartopic -c $(CONFIG) $(DEBUG)
+
+pinnedpostdev:
+	@echo "$(OK_COLOR)==> Running PinnedPost Worker $(NO_COLOR)"
+	@$(GOBINDIR)/rerun socialapi/workers/pinnedpost -c $(CONFIG) $(DEBUG)
 
 notificationdev:
 	@echo "$(OK_COLOR)==> Running Notification Worker $(NO_COLOR)"

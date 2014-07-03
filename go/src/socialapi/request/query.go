@@ -1,6 +1,7 @@
 package request
 
 import (
+	"math"
 	"net/url"
 	"strconv"
 	"time"
@@ -8,18 +9,27 @@ import (
 	"github.com/kennygrant/sanitize"
 )
 
+const (
+	DEFAULT_REPLY_LIMIT = 3
+	MAX_REPLY_LIMIT     = 25
+	MAX_LIMIT           = 25
+)
+
 type Query struct {
-	Skip       int       `url:"skip"`
-	Limit      int       `url:"limit"`
-	To         time.Time `url:"to"`
-	From       time.Time `url:"from"`
-	GroupName  string    `url:"groupName"`
-	Type       string    `url:"type"`
-	Privacy    string    `url:"privacy"`
-	AccountId  int64     `url:"accountId"`
-	Name       string    `url:"name"`
-	Slug       string    `url:"slug"`
-	ShowExempt bool      `url:"showExempt"`
+	Skip           int       `url:"skip"`
+	Limit          int       `url:"limit"`
+	To             time.Time `url:"to"`
+	From           time.Time `url:"from"`
+	GroupName      string    `url:"groupName"`
+	GroupChannelId int64     `url:"groupChannelId"`
+	Type           string    `url:"type"`
+	Privacy        string    `url:"privacy"`
+	AccountId      int64     `url:"accountId"`
+	Name           string    `url:"name"`
+	Slug           string    `url:"slug"`
+	ShowExempt     bool      `url:"showExempt"`
+	ReplyLimit     int       `url:"replyLimit"`
+	ReplySkip      int       `url:"replySkip"`
 }
 
 func NewQuery() *Query {
@@ -58,6 +68,7 @@ func (q *Query) MapURL(u *url.URL) *Query {
 	}
 
 	q.AccountId, _ = strconv.ParseInt(urlQuery.Get("accountId"), 10, 64)
+	q.GroupChannelId, _ = strconv.ParseInt(urlQuery.Get("groupChannelId"), 10, 64)
 
 	if to := urlQuery.Get("to"); to != "" {
 		q.To, _ = time.Parse(time.RFC3339, to)
@@ -72,22 +83,23 @@ func (q *Query) MapURL(u *url.URL) *Query {
 		q.ShowExempt = isExempt
 	}
 
+	if replyLimit := urlQuery.Get("replyLimit"); replyLimit != "" {
+		replyLimit, _ := strconv.Atoi(replyLimit)
+		q.ReplyLimit = replyLimit
+	}
+
+	if replySkip := urlQuery.Get("replyLimit"); replySkip != "" {
+		replySkip, _ := strconv.Atoi(replySkip)
+		q.ReplySkip = replySkip
+	}
+
 	return q
 }
 
 func (q *Query) Clone() *Query {
 	cq := NewQuery()
-	cq.Skip = q.Skip
-	cq.Limit = q.Limit
-	cq.To = q.To
-	cq.From = q.From
-	cq.GroupName = q.GroupName
-	cq.Type = q.Type
-	cq.Privacy = q.Privacy
-	cq.AccountId = q.AccountId
-	cq.Name = q.Name
-	cq.Slug = q.Slug
-	cq.ShowExempt = q.ShowExempt
+	*cq = *q
+
 	return cq
 }
 
@@ -96,8 +108,8 @@ func (q *Query) SetDefaults() *Query {
 		// no need to do something
 	}
 
-	if q.Limit == 0 || q.Limit > 25 {
-		q.Limit = 25
+	if q.Limit == 0 || q.Limit > MAX_LIMIT {
+		q.Limit = MAX_LIMIT
 	}
 
 	if q.From.IsZero() {
@@ -106,6 +118,12 @@ func (q *Query) SetDefaults() *Query {
 
 	if q.GroupName == "" {
 		q.GroupName = "koding"
+	}
+
+	if q.ReplyLimit == 0 {
+		q.ReplyLimit = DEFAULT_REPLY_LIMIT
+	} else {
+		q.ReplyLimit = int(math.Min(float64(q.ReplyLimit), float64(MAX_REPLY_LIMIT)))
 	}
 
 	return q
