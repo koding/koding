@@ -27,7 +27,7 @@ class EnvironmentMachineItem extends EnvironmentItem
       partial : "<span class='toggle'></span>"
 
     @addSubView @title = new KDCustomHTMLView
-      partial : "<h3>#{label or provider or uid}</h3>"
+      partial : "<h3>#{label or provider or uid}<cite>#{provider}</cite></h3>"
 
     @addSubView @ipAddress = new KDCustomHTMLView
       partial  : @getIpLink()
