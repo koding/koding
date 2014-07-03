@@ -146,6 +146,8 @@ class IDE.ContentSearch extends KDModalViewWithForms
   viewAppended: ->
     super
 
+    @addSubView new KDCustomHTMLView cssClass: 'icon'
+
     searchForm      = @modalTabs.forms.Search
     {@warningView}  = searchForm.fields
     {@searchButton} = searchForm.buttons
