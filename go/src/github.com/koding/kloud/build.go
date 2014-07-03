@@ -84,28 +84,32 @@ func (k *Kloud) buildMachine(username string, c *Controller) error {
 	c.Eventer.Push(&eventer.Event{Message: msg, Status: machinestate.Building})
 
 	k.Log.Debug("[controller]: running method 'build' with machine options %v", machOptions)
-	resp, err := c.Provider.Build(machOptions)
+	providerArtifact, err := c.Provider.Build(machOptions)
 	if err != nil {
 		return err
 	}
-	if resp == nil {
+	if providerArtifact == nil {
 		return NewError(ErrBadResponse)
 	}
-	k.Log.Debug("[controller]: method 'build' is successfull %#v", resp)
+	k.Log.Debug("[controller]: method 'build' is successfull %#v", providerArtifact)
 
-	k.Log.Info("[controller]: deploying klient.deb and setting up machine")
-	artifact, err := k.DeployFunc(username, resp.InstanceName, resp.IpAddress)
-	if err != nil {
-		return err
+	storageData := map[string]interface{}{
+		"ipAddress":    providerArtifact.IpAddress,
+		"instanceId":   providerArtifact.InstanceId,
+		"instanceName": providerArtifact.InstanceName,
+	}
+
+	if k.Deployer != nil {
+		deployArtifact, err := k.Deployer.Deploy(providerArtifact)
+		if err != nil {
+			return err
+		}
+
+		storageData["queryString"] = deployArtifact.KiteQuery
 	}
 
 	return k.Storage.Update(c.MachineId, &StorageData{
 		Type: "build",
-		Data: map[string]interface{}{
-			"queryString":  artifact.KiteQuery,
-			"ipAddress":    resp.IpAddress,
-			"instanceId":   resp.InstanceId,
-			"instanceName": resp.InstanceName,
-		},
+		Data: storageData,
 	})
 }

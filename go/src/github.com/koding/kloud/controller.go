@@ -67,7 +67,7 @@ func (k *Kloud) ControlFunc(method string, control controlFunc) {
 			return nil, NewError(ErrMachineIdMissing)
 		}
 
-		// Geth all the data we need. It also sets the assignee for the given
+		// Get all the data we need. It also sets the assignee for the given
 		// machine id. Assignee means this kloud instance is now responsible
 		// for this machine. Its basically a distributed lock. Assignee gets
 		// reseted when there is an error or if the method call is finished.

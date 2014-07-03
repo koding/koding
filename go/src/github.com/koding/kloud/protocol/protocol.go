@@ -60,7 +60,7 @@ type MachineOptions struct {
 	Eventer eventer.Eventer
 }
 
-// BuildArtifact should be returned from a Build method.
+// ProviderArtifact should be returned from a Build method.
 type ProviderArtifact struct {
 	// InstanceName should define the name/hostname of the created machine. It
 	// should be equal to the InstanceName that was passed via MachineOptions.
@@ -74,6 +74,9 @@ type ProviderArtifact struct {
 
 	// IpAddress defines the public ip address of the running machine.
 	IpAddress string
+
+	// Username defines the username on behalf the machine is being build.
+	Username string
 }
 
 // InfoArtifact should be returned from a Info method.
@@ -83,6 +86,13 @@ type InfoArtifact struct {
 
 	// Name defines the name of the machine.
 	Name string
+}
+
+// Deployer deploys a machine after it's being built.
+type Deployer interface {
+	// Deploy can only be executed after a build. The machine needs to be
+	// publicly available.
+	Deploy(*ProviderArtifact) (*DeployArtifact, error)
 }
 
 // DeployArtifact should be returned from a Deploy Method

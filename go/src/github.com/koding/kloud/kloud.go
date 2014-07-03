@@ -28,6 +28,7 @@ type Kloud struct {
 	Storage   Storage
 	Eventers  map[string]eventer.Eventer
 	Providers map[string]protocol.Provider
+	Deployer  protocol.Deployer
 
 	idlock *idlock.IdLock
 
