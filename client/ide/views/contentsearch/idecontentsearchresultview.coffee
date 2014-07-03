@@ -33,16 +33,15 @@ class IDE.ContentSearchResultView extends KDScrollView
 
           view.updatePartial "<span class='line-number'>#{line.lineNumber}</span>#{replaced}"
 
-  viewAppended: ->
-    super
+  click: (event) ->
+    {target} = event
+    return unless  target.classList.contains 'match'
 
-    $('.match').click ->
-      $el        = $ this
-      filePath   = $el.data 'file-path'
-      lineNumber = $el.data 'line-number'
+    filePath   = target.getAttribute 'data-file-path'
+    lineNumber = target.getAttribute 'data-line-number'
+    file       = FSHelper.createFileFromPath filePath
 
-      file = FSHelper.createFileFromPath filePath
-      file.fetchContents (err, contents) ->
-        KD.getSingleton('appManager').tell 'IDE', 'openFile', file, contents, (editorPane) ->
-          KD.utils.wait 500, -> # setting editor font size is kinda buggy, temp fix for it
-            editorPane.goToLine lineNumber
+    file.fetchContents (err, contents) ->
+      KD.getSingleton('appManager').tell 'IDE', 'openFile', file, contents, (editorPane) ->
+        KD.utils.wait 500, -> # setting editor font size is kinda buggy, temp fix for it
+          editorPane.goToLine lineNumber
