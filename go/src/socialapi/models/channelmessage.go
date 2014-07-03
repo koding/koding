@@ -281,27 +281,31 @@ func (c *ChannelMessage) BuildMessage(query *request.Query) (*ChannelMessageCont
 
 	mr := NewMessageReply()
 	mr.MessageId = c.Id
-	q := query
-	q.Limit = 3
-	replies, err := mr.List(query)
+
+	q := query.Clone()
+
+	q.Limit = query.ReplyLimit
+	q.Skip = query.ReplySkip
+
+	replies, err := mr.List(q)
 	if err != nil {
 		return nil, err
 	}
 
-	repliesCount, err := mr.Count(query)
+	repliesCount, err := mr.Count(q)
 	if err != nil {
 		return nil, err
 	}
 	cmc.RepliesCount = repliesCount
 
-	cmc.IsFollowed, err = c.CheckIsMessageFollowed(query)
+	cmc.IsFollowed, err = c.CheckIsMessageFollowed(q)
 	if err != nil {
 		return nil, err
 	}
 
 	populatedChannelMessagesReplies := make([]*ChannelMessageContainer, len(replies))
 	for rl := 0; rl < len(replies); rl++ {
-		cmrc, err := replies[rl].FetchRelatives(query)
+		cmrc, err := replies[rl].FetchRelatives(q)
 		if err != nil {
 			return nil, err
 		}

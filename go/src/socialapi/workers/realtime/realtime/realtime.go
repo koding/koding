@@ -99,11 +99,11 @@ func (f *Controller) ChannelParticipantUpdatedEvent(cp *models.ChannelParticipan
 	return cue.sendForParticipant()
 }
 
-func (f *Controller) ChannelParticipantRemovedFromChannelEvent(cp *models.ChannelParticipant) error {
+func (f *Controller) ChannelParticipantRemoved(cp *models.ChannelParticipant) error {
 	return f.sendChannelParticipantEvent(cp, RemovedFromChannelEventName)
 }
 
-func (f *Controller) ChannelParticipantAddedToChannelEvent(cp *models.ChannelParticipant) error {
+func (f *Controller) ChannelParticipantAdded(cp *models.ChannelParticipant) error {
 	return f.sendChannelParticipantEvent(cp, AddedToChannelEventName)
 }
 
@@ -489,23 +489,6 @@ func (f *Controller) sendInstanceEvent(instanceId int64, message interface{}, ev
 }
 
 func (f *Controller) sendChannelEvent(cml *models.ChannelMessageList, eventName string) error {
-	channel, err := f.rmqConn.Channel()
-	if err != nil {
-		return err
-	}
-	defer channel.Close()
-
-	secretNames, err := fetchSecretNames(cml.ChannelId)
-	if err != nil {
-		return err
-	}
-
-	// if we dont have any secret names, just return
-	if len(secretNames) < 1 {
-		f.log.Info("Channel %d doest have any secret name", cml.ChannelId)
-		return nil
-	}
-
 	cm := models.NewChannelMessage()
 	if err := cm.ById(cml.MessageId); err != nil {
 		return err
@@ -516,12 +499,32 @@ func (f *Controller) sendChannelEvent(cml *models.ChannelMessageList, eventName 
 		return err
 	}
 
-	byteMessage, err := json.Marshal(cmc)
+	return f.publishToChannel(cml.ChannelId, eventName, cmc)
+}
+
+func (f *Controller) publishToChannel(channelId int64, eventName string, data interface{}) error {
+	// fetch secret names of the channel
+	secretNames, err := fetchSecretNames(channelId)
 	if err != nil {
 		return err
 	}
 
-	f.log.Debug("Sending Channel Event ChannelId:%d Message:%s ", cml.ChannelId, byteMessage)
+	// if we dont have any secret names, just return
+	if len(secretNames) < 1 {
+		f.log.Info("Channel %d doest have any secret name", channelId)
+		return nil
+	}
+
+	byteMessage, err := json.Marshal(data)
+	if err != nil {
+		return err
+	}
+
+	channel, err := f.rmqConn.Channel()
+	if err != nil {
+		return err
+	}
+	defer channel.Close()
 
 	for _, secretName := range secretNames {
 		routingKey := "socialapi.channelsecret." + secretName + "." + eventName
@@ -537,6 +540,7 @@ func (f *Controller) sendChannelEvent(cml *models.ChannelMessageList, eventName 
 		}
 	}
 	return nil
+
 }
 
 func fetchSecretNames(channelId int64) ([]string, error) {
