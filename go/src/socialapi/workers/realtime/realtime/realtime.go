@@ -118,7 +118,12 @@ func (f *Controller) sendChannelParticipantEvent(cp *models.ChannelParticipant, 
 		return err
 	}
 
-	if err := f.sendNotification(cp.AccountId, eventName, cmc); err != nil {
+	if err := f.sendNotification(
+		cp.AccountId,
+		c.GroupName,
+		eventName,
+		cmc,
+	); err != nil {
 		f.log.Error("Ignoring err %s ", err.Error())
 	}
 
@@ -561,7 +566,9 @@ func fetchSecretNames(channelId int64) ([]string, error) {
 	return names, nil
 }
 
-func (f *Controller) sendNotification(accountId int64, eventName string, data interface{}) error {
+func (f *Controller) sendNotification(
+	accountId int64, groupName string, eventName string, data interface{},
+) error {
 	channel, err := f.rmqConn.Channel()
 	if err != nil {
 		return err
@@ -575,6 +582,7 @@ func (f *Controller) sendNotification(accountId int64, eventName string, data in
 
 	notification := map[string]interface{}{
 		"event":    eventName,
+		"context":  groupName,
 		"contents": data,
 	}
 

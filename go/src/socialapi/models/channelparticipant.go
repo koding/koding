@@ -268,8 +268,19 @@ func (c *ChannelParticipant) FetchParticipatedChannelIds(a *Account, q *request.
 		Model(c).
 		Table(c.TableName()).
 		Select("api.channel_participant.channel_id").
-		Joins("left join api.channel on api.channel_participant.channel_id = api.channel.id").
-		Where("api.channel_participant.account_id = ? and api.channel.type_constant = ? and  api.channel_participant.status_constant = ?", a.Id, q.Type, ChannelParticipant_STATUS_ACTIVE)
+		Joins(
+		`left join api.channel on
+		 api.channel_participant.channel_id = api.channel.id`).
+		Where(
+		`api.channel_participant.account_id = ? and
+		 api.channel.group_name = ? and
+		 api.channel.type_constant = ? and
+		 api.channel_participant.status_constant = ?`,
+		a.Id,
+		q.GroupName,
+		q.Type,
+		ChannelParticipant_STATUS_ACTIVE,
+	)
 
 	// add exempt clause if needed
 	if !q.ShowExempt {
