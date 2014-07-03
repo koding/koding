@@ -5,12 +5,14 @@ import (
 	"fmt"
 	"io/ioutil"
 	"koding/db/mongodb"
+	"koding/kites/kloud/storage"
 	"koding/tools/config"
 	"log"
 	"net/url"
 	"os"
 
 	"github.com/koding/kloud"
+	"github.com/koding/logging"
 )
 
 var (
@@ -80,29 +82,84 @@ func main() {
 		klientFolder = "klient/production/latest"
 	}
 
-	mongodbStorage := &mongodb.Storage{
-		session:  mongodb.NewMongoDB(k.Config.Mongo),
-		assignee: k.UniqueId,
-		log:      k.Log,
+	uniqueId := uniqueId()
+	if *flagUniqueId != "" {
+		uniqueId = uniqueId()
 	}
 
-	if err := mongodbSession.CleanupOldData(); err != nil {
+	log := createLogger()
+
+	mongodbStorage := &storage.MongoDB{
+		Session:  mongodb.NewMongoDB(conf.Mongo),
+		Assignee: uniqueId,
+		Log:      log,
+	}
+
+	if err := mongodbStorage.CleanupOldData(); err != nil {
 		k.Log.Notice("Cleaning up mongodb err: %s", err.Error())
 	}
 
-	k.Storage = mongodbSession
-
 	k := &kloud.Kloud{
-		Config:            conf,
+		Log:               log,
+		Storage:           mongodbStorage,
 		Region:            *flagRegion,
+		Environment:       conf.Environment,
 		Port:              *flagPort,
 		Debug:             *flagDebug,
-		UniqueId:          *flagUniqueId,
 		Bucket:            kloud.NewBucket("koding-kites", klientFolder),
 		KontrolURL:        kontrolURL,
 		KontrolPrivateKey: privateKey,
 		KontrolPublicKey:  publicKey,
 	}
 
-	k.NewKloud().Run()
+	kite := k.NewKloud()
+
+	go kite.RegisterForever(registerWithURL)
+	<-kite.KontrolReadyNotify()
+
+	kite.Run()
+}
+
+func uniqueId() string {
+	// TODO: add a unique identifier, for letting multiple version of the same
+	// worker work on the same hostname.
+	hostname, err := os.Hostname()
+	if err != nil {
+		panic(err) // we should not let it start
+	}
+
+	return fmt.Sprintf("%s-%s", NAME, hostname)
+}
+
+func createLogger(name string, debug bool) logging.Logger {
+	handlers := make([]logging.Handler, 0)
+
+	log := logging.NewLogger(name)
+	writerHandler := logging.NewWriterHandler(os.Stderr)
+	writerHandler.Colorize = true
+
+	if debug {
+		log.SetLevel(logging.DEBUG)
+		writerHandler.SetLevel(logging.DEBUG)
+	}
+
+	handlers = append(handlers, writerHandler)
+
+	logPath := "/var/log/koding/" + name + ".log"
+	logFile, err := os.Create(logPath)
+	if err != nil {
+		log.Warning("Can't open log file: %s", err)
+	} else {
+		fileHandler := logging.NewWriterHandler(logFile)
+		fileHandler.Colorize = false
+
+		if debug {
+			fileHandler.SetLevel(logging.DEBUG)
+		}
+
+		handlers = append(handlers, fileHandler)
+	}
+
+	log.SetHandler(logging.NewMultiHandler(handlers...))
+	return log
 }
