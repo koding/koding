@@ -31,14 +31,20 @@ func CreateChannelParticipant(channelId int64) (*models.ChannelParticipant, erro
 
 func AddChannelParticipant(channelId, requesterId, accountId int64) (*models.ChannelParticipant, error) {
 	c := models.NewChannelParticipant()
-	c.AccountId = requesterId
+	c.AccountId = accountId
 
-	url := fmt.Sprintf("/channel/%d/participant/%d/add", channelId, accountId)
-	cmI, err := sendModel("POST", url, c)
+	res := make([]*models.ChannelParticipant, 1)
+	res[0] = c
+
+	url := fmt.Sprintf("/channel/%d/participant/add?accountId=%d", channelId, requesterId)
+	cps, err := sendModel("POST", url, &res)
 	if err != nil {
 		return nil, err
 	}
-	return cmI.(*models.ChannelParticipant), nil
+
+	a := *(cps.(*[]*models.ChannelParticipant))
+
+	return a[0], nil
 }
 
 func ListChannelParticipants(channelId, accountId int64) ([]*models.ChannelParticipant, error) {
@@ -59,12 +65,16 @@ func ListChannelParticipants(channelId, accountId int64) ([]*models.ChannelParti
 
 func DeleteChannelParticipant(channelId int64, requesterId, accountId int64) (*models.ChannelParticipant, error) {
 	c := models.NewChannelParticipant()
-	c.AccountId = requesterId
+	c.AccountId = accountId
 
-	url := fmt.Sprintf("/channel/%d/participant/%d/delete", channelId, accountId)
-	cmI, err := sendModel("POST", url, c)
+	res := make([]*models.ChannelParticipant, 1)
+	res[0] = c
+	url := fmt.Sprintf("/channel/%d/participant/delete?accountId=%d", channelId, requesterId)
+	cps, err := sendModel("POST", url, &res)
 	if err != nil {
 		return nil, err
 	}
-	return cmI.(*models.ChannelParticipant), nil
+
+	a := *(cps.(*[]*models.ChannelParticipant))
+	return a[0], nil
 }
