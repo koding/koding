@@ -23,6 +23,7 @@ func NewWithPath(name, configPath string) *LXC {
 	}
 }
 
+// runInContainerContext runs the given function in the container context.
 func (l *LXC) runInContainerContext(fn ContainerFunc) error {
 	c, err := lxc.NewContainer(l.Name, l.ConfigPath)
 	if err != nil {
