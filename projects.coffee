@@ -29,12 +29,6 @@ projects =
     script        : "website/a/js/__app.feeder.js"
     sourceMapRoot : "Social/Feeder/"
 
-  # Groups          :
-  #   path          : "client/Groups"
-  #   style         : "website/a/css/__app.groups.css"
-  #   script        : "website/a/js/__app.groups.js"
-  #   sourceMapRoot : "Groups/"
-
   Account         :
     path          : "client/Account"
     style         : "website/a/css/__app.account.css"
