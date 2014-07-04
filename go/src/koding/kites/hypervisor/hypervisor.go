@@ -9,7 +9,7 @@ import (
 
 	"github.com/koding/kite"
 	"github.com/koding/kite/config"
-	kiteprotocol "github.com/koding/kite/protocol"
+	"github.com/koding/kite/protocol"
 )
 
 const (
@@ -73,7 +73,7 @@ func runMain() error {
 
 	if *flagProxy {
 		// Koding proxies in production only
-		proxyQuery := &kiteprotocol.KontrolQuery{
+		proxyQuery := &protocol.KontrolQuery{
 			Username:    "koding",
 			Environment: "production",
 			Name:        "proxy",
