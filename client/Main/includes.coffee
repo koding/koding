@@ -179,7 +179,6 @@ module.exports = [
 
   "maintabs/maintabview.coffee",
   "maintabs/maintabpaneview.coffee",
-  "maintabs/maintabhandleholder.coffee",
 
   # global notifications
   "globalnotification.coffee",
