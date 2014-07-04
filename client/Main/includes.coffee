@@ -175,18 +175,6 @@ module.exports = [
   "payment/existingaccountworkflow.coffee",
 
 
-  # BOOK
-  # "book/embedded/tableofcontents.coffee",
-  # "book/embedded/updatewidget.coffee",
-  # "book/embedded/topics.coffee",
-  # "book/embedded/startbutton.coffee",
-  # "book/embedded/developbutton.coffee",
-  # "book/embedded/socialshare.coffee",
-  # "book/bookdata.coffee",
-  # "book/pointerview.coffee",
-  # "book/bookview.coffee",
-  # "book/bookpage.coffee",
-
   #maintabs
 
   "maintabs/maintabview.coffee",
