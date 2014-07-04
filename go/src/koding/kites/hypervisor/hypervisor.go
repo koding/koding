@@ -8,6 +8,7 @@ import (
 	"os"
 
 	"github.com/koding/kite"
+	"github.com/koding/kite-lxc"
 	"github.com/koding/kite/config"
 	"github.com/koding/kite/protocol"
 )
@@ -54,12 +55,12 @@ func runMain() error {
 		k.Config.Environment = *flagEnvironment
 	}
 
-	k.HandleFunc("create", nil)
-	k.HandleFunc("start", nil)
-	k.HandleFunc("stop", nil)
-	k.HandleFunc("destroy", nil)
-	k.HandleFunc("info", nil)
-	k.HandleFunc("ls", nil)
+	k.HandleFunc("create", lxc.Create)
+	k.HandleFunc("start", lxc.Start)
+	k.HandleFunc("stop", lxc.Stop)
+	k.HandleFunc("destroy", lxc.Destroy)
+	k.HandleFunc("info", lxc.Info)
+	k.HandleFunc("ls", lxc.Ls)
 
 	registerURL := k.RegisterURL(*flagLocal)
 	if *flagRegisterURL != "" {
