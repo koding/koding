@@ -1,4 +1,4 @@
-package lxc
+package api
 
 import (
 	"errors"

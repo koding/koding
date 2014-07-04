@@ -36,11 +36,12 @@ func init() {
 }
 
 func TestCreate(t *testing.T) {
-	resp, err := remote.Tell("create", struct {
-		Name string
-	}{
-		Name: ContainerName,
-	})
+	params := CreateParams{
+		Name:     ContainerName,
+		Template: ContainerType,
+	}
+
+	resp, err := remote.Tell("create", params)
 	if err != nil {
 		t.Fatal(err)
 	}

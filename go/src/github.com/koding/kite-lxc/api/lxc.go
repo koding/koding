@@ -1,8 +1,8 @@
-package lxc
+package api
 
 import "github.com/lxc/go-lxc"
 
-type ContainerFunc func(*Container) error
+type ContainerFunc func(*lxc.Container) error
 
 type LXC struct {
 	Name       string
