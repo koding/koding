@@ -29,27 +29,9 @@ func CreateChannelParticipant(channelId int64) (*models.ChannelParticipant, erro
 	return AddChannelParticipant(channelId, account.Id, account.Id)
 }
 
-func AddChannelParticipant(channelId, requesterId, accountId int64) (*models.ChannelParticipant, error) {
-	c := models.NewChannelParticipant()
-	c.AccountId = accountId
-
-	res := make([]*models.ChannelParticipant, 1)
-	res[0] = c
-
-	url := fmt.Sprintf("/channel/%d/participant/add?accountId=%d", channelId, requesterId)
-	cps, err := sendModel("POST", url, &res)
-	if err != nil {
-		return nil, err
-	}
-
-	a := *(cps.(*[]*models.ChannelParticipant))
-
-	return a[0], nil
-}
-
 func ListChannelParticipants(channelId, accountId int64) ([]*models.ChannelParticipant, error) {
 
-	url := fmt.Sprintf("/channel/%d/participant?accountId=%d", channelId, accountId)
+	url := fmt.Sprintf("/channel/%d/participants?accountId=%d", channelId, accountId)
 	res, err := sendRequest("GET", url, nil)
 	if err != nil {
 		return nil, err
@@ -63,13 +45,30 @@ func ListChannelParticipants(channelId, accountId int64) ([]*models.ChannelParti
 	return participants, nil
 }
 
+func AddChannelParticipant(channelId, requesterId, accountId int64) (*models.ChannelParticipant, error) {
+	c := models.NewChannelParticipant()
+	c.AccountId = accountId
+
+	res := []*models.ChannelParticipant{c}
+
+	url := fmt.Sprintf("/channel/%d/participants/add?accountId=%d", channelId, requesterId)
+	cps, err := sendModel("POST", url, &res)
+	if err != nil {
+		return nil, err
+	}
+
+	a := *(cps.(*[]*models.ChannelParticipant))
+
+	return a[0], nil
+}
+
 func DeleteChannelParticipant(channelId int64, requesterId, accountId int64) (*models.ChannelParticipant, error) {
 	c := models.NewChannelParticipant()
 	c.AccountId = accountId
 
-	res := make([]*models.ChannelParticipant, 1)
-	res[0] = c
-	url := fmt.Sprintf("/channel/%d/participant/delete?accountId=%d", channelId, requesterId)
+	res := []*models.ChannelParticipant{c}
+
+	url := fmt.Sprintf("/channel/%d/participants/remove?accountId=%d", channelId, requesterId)
 	cps, err := sendModel("POST", url, &res)
 	if err != nil {
 		return nil, err
