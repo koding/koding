@@ -96,6 +96,8 @@ class SocialApiController extends KDController
 
     new MessageEventManager {}, m
 
+    KD.singletons.socialapi.cacheItem m
+
     return m
 
   mapActivities = (messages)->
@@ -152,7 +154,12 @@ class SocialApiController extends KDController
     data.unreadCount         = channel.unreadCount
     data.lastMessage         = mapActivity channel.lastMessage  if channel.lastMessage
 
-    return new KD.remote.api.SocialChannel data
+
+    channelInstance = new KD.remote.api.SocialChannel data
+
+    KD.singletons.socialapi.cacheItem channelInstance
+
+    return channelInstance
 
 
   mapChannels = (channels)->
@@ -187,6 +194,7 @@ class SocialApiController extends KDController
       for socialApiChannel in socialApiChannels
         channelName = generateChannelName socialApiChannel
         continue  if socialapi.openedChannels[channelName]
+        socialapi.cacheItem socialApiChannel
         socialapi.openedChannels[channelName] = {} # placeholder to avoid duplicate registration
 
         subscriptionData =
@@ -267,7 +275,6 @@ class SocialApiController extends KDController
 
 
   cacheable: (type, id, force, callback) ->
-
     [callback, force] = [force, no]  unless callback
 
     if not force and item = @retrieveCachedItem(type, id)

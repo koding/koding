@@ -109,23 +109,32 @@ class ActivitySidebar extends KDCustomScrollView
 
   accountAddedToChannel: (update) ->
 
-    {socialapi}   = KD.singletons
-    {unreadCount} = update
-    {id}          = update.channel
+    {socialapi}                     = KD.singletons
+    {unreadCount, participantCount} = update
+    {id, typeConstant}              = update.channel
 
-    socialapi.cacheable 'channel', id, (err, channel) =>
+    socialapi.cacheable typeConstant, id, (err, channel) =>
 
       return KD.showError err  if err
 
       item = @addItem channel, yes
+      channel.participantCount = participantCount
+      channel.emit 'update'
       item.setUnreadCount unreadCount
 
 
   accountRemovedFromChannel: (update) ->
 
-    {id, typeConstant} = update.channel
+    {socialapi}                     = KD.singletons
+    {id, typeConstant}              = update.channel
+    {unreadCount, participantCount} = update
 
-    @removeItem id
+    # @removeItem id
+
+    socialapi.cacheable typeConstant, id, (err, channel) =>
+      channel.participantCount = participantCount
+      channel.emit 'update'
+
 
 
   channelUpdateHappened: (update) -> warn 'dont use this, :::educational purposes only!:::', update
@@ -200,7 +209,7 @@ class ActivitySidebar extends KDCustomScrollView
     return item
 
 
-   removeItem: (id) ->
+  removeItem: (id) ->
 
     if item = @itemsById[id]
 
