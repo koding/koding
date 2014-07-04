@@ -281,15 +281,10 @@ module.exports = [
 
   "styl/appfn.styl",
   "styl/resurrection.styl",
-  # "styl/resurrection.activity.styl",
   "styl/resurrection.account.dropdown.styl",
   "styl/resurrection.anims.styl",
-  # "styl/resurrection.activity.styl",
-  # "styl/resurrection.apps.styl",
   "styl/resurrection.commons.styl",
   "styl/troubleshoot.styl",
-  # "styl/formworkflow.styl"
-  # "styl/resurrection.feeder.styl",
 
   "styl/dock.responsive.styl"
   "styl/app.markdown.styl"
