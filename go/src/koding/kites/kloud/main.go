@@ -88,13 +88,10 @@ func main() {
 func newKite() *kite.Kite {
 	k := kite.New(kloud.NAME, kloud.VERSION)
 	k.Config = kiteconfig.MustGet()
+	k.Config.Port = *flagPort
 
 	if *flagRegion != "" {
 		k.Config.Region = *flagRegion
-	}
-
-	if *flagPort != 0 {
-		k.Config.Port = *flagPort
 	}
 
 	if *flagEnv != "" {
