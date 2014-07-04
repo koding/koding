@@ -25,18 +25,21 @@ func List(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface
 	)
 }
 
-func Add(u *url.URL, h http.Header, participants []*models.ChannelParticipant) (int, http.Header, interface{}, error) {
+func AddMulti(u *url.URL, h http.Header, participants []*models.ChannelParticipant) (int, http.Header, interface{}, error) {
 	query := request.GetQuery(u)
-	channelId := query.Id
 
-	if err := checkChannelPrerequisites(channelId, query.AccountId, participants); err != nil {
+	if err := checkChannelPrerequisites(
+		query.Id,
+		query.AccountId,
+		participants,
+	); err != nil {
 		return response.NewBadRequest(err)
 	}
 
 	for i := range participants {
 		participant := models.NewChannelParticipant()
 		participant.AccountId = participants[i].AccountId
-		participant.ChannelId = channelId
+		participant.ChannelId = query.Id
 
 		if err := participant.Create(); err != nil {
 			return response.NewBadRequest(err)
@@ -48,16 +51,19 @@ func Add(u *url.URL, h http.Header, participants []*models.ChannelParticipant) (
 	return response.NewOK(participants)
 }
 
-func Delete(u *url.URL, h http.Header, participants []*models.ChannelParticipant) (int, http.Header, interface{}, error) {
+func RemoveMulti(u *url.URL, h http.Header, participants []*models.ChannelParticipant) (int, http.Header, interface{}, error) {
 	query := request.GetQuery(u)
-	channelId := query.Id
 
-	if err := checkChannelPrerequisites(channelId, query.AccountId, participants); err != nil {
+	if err := checkChannelPrerequisites(
+		query.Id,
+		query.AccountId,
+		participants,
+	); err != nil {
 		return response.NewBadRequest(err)
 	}
 
 	for i := range participants {
-		participants[i].ChannelId = channelId
+		participants[i].ChannelId = query.Id
 		if err := participants[i].Delete(); err != nil {
 			return response.NewBadRequest(err)
 		}
@@ -66,29 +72,34 @@ func Delete(u *url.URL, h http.Header, participants []*models.ChannelParticipant
 	return response.NewOK(participants)
 }
 
-func Presence(u *url.URL, h http.Header, participants []*models.ChannelParticipant) (int, http.Header, interface{}, error) {
+func UpdatePresence(u *url.URL, h http.Header, participant *models.ChannelParticipant) (int, http.Header, interface{}, error) {
 	query := request.GetQuery(u)
-	channelId := query.Id
 
-	if err := checkChannelPrerequisites(channelId, query.AccountId, participants); err != nil {
+	participant.ChannelId = query.Id
+	// only requester can update their last seen date
+	participant.AccountId = query.AccountId
+
+	if err := checkChannelPrerequisites(
+		query.Id,
+		query.AccountId,
+		[]*models.ChannelParticipant{participant},
+	); err != nil {
 		return response.NewBadRequest(err)
 	}
 
-	for i := range participants {
-
-		participants[i].ChannelId = channelId
-		if err := participants[i].FetchParticipant(); err != nil {
-			return response.NewBadRequest(err)
-		}
-
-		participants[i].LastSeenAt = time.Now().UTC()
-
-		if err := participants[i].Update(); err != nil {
-			return response.NewBadRequest(err)
-		}
+	// @todo add a new function into participant just
+	// for updating with lastSeenDate
+	if err := participant.FetchParticipant(); err != nil {
+		return response.NewBadRequest(err)
 	}
 
-	return response.NewOK(participants)
+	participant.LastSeenAt = time.Now().UTC()
+
+	if err := participant.Update(); err != nil {
+		return response.NewBadRequest(err)
+	}
+
+	return response.NewOK(participant)
 }
 
 func checkChannelPrerequisites(channelId, requesterId int64, participants []*models.ChannelParticipant) error {
@@ -105,13 +116,26 @@ func checkChannelPrerequisites(channelId, requesterId int64, participants []*mod
 		return err
 	}
 
-	// if requester tries to add participant into pinned activity channel
-	// return error
+	if c.TypeConstant == models.Channel_TYPE_GROUP {
+		return errors.New("can not add/remove participants for pinned activity channel")
+	}
+
 	if c.TypeConstant == models.Channel_TYPE_PINNED_ACTIVITY {
 		return errors.New("can not add/remove participants for pinned activity channel")
 	}
 
+	if c.TypeConstant == models.Channel_TYPE_TOPIC {
+		if len(participants) != 1 {
+			return errors.New("you can not add only one participant into topic channel")
+		}
+
+		if participants[0].AccountId != requesterId {
+			return errors.New("you can not add others into topic channel")
+		}
+	}
+
 	// return early for non private message channels
+	// no need to continue from here for other channels
 	if c.TypeConstant != models.Channel_TYPE_PRIVATE_MESSAGE {
 		return nil
 	}
