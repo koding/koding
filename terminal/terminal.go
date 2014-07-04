@@ -31,6 +31,7 @@ type Server struct {
 	messageCounter   int
 	byteCounter      int
 	lineFeeedCounter int
+	throttling       bool
 }
 
 type Remote struct {
@@ -113,7 +114,7 @@ func Connect(r *kite.Request) (interface{}, error) {
 	args = append(args, command.Args...)
 	cmd := exec.Command("/usr/bin/sudo", args...)
 
-	// For test use this, sude is not going to work
+	// For test use this, sudo is not going to work
 	// cmd := exec.Command(command.Name, command.Args...)
 
 	cmd.Env = []string{"TERM=xterm-256color", "HOME=" + user.HomeDir}
@@ -157,18 +158,20 @@ func Connect(r *kite.Request) (interface{}, error) {
 			}
 
 			// Rate limiting...
-			s := time.Now().Unix()
-			if server.currentSecond != s {
-				server.currentSecond = s
-				server.messageCounter = 0
-				server.byteCounter = 0
-				server.lineFeeedCounter = 0
-			}
-			server.messageCounter += 1
-			server.byteCounter += n
-			server.lineFeeedCounter += bytes.Count(buf[:n], []byte{'\n'})
-			if server.messageCounter > 100 || server.byteCounter > 1<<18 || server.lineFeeedCounter > 300 {
-				time.Sleep(time.Second)
+			if server.throttling {
+				s := time.Now().Unix()
+				if server.currentSecond != s {
+					server.currentSecond = s
+					server.messageCounter = 0
+					server.byteCounter = 0
+					server.lineFeeedCounter = 0
+				}
+				server.messageCounter += 1
+				server.byteCounter += n
+				server.lineFeeedCounter += bytes.Count(buf[:n], []byte{'\n'})
+				if server.messageCounter > 100 || server.byteCounter > 1<<18 || server.lineFeeedCounter > 300 {
+					time.Sleep(time.Second)
+				}
 			}
 
 			server.remote.Output.Call(string(filterInvalidUTF8(buf[:n])))
