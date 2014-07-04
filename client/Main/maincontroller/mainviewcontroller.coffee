@@ -94,8 +94,8 @@ class MainViewController extends KDViewController
 
     fullSizeApps = ['Login']
     appsWithDock = [
-      'Activity', 'Topics', 'Members', 'content-display'
-      'Apps', 'Dashboard', 'Account', 'Environments', 'Bugs'
+      'Activity', 'Members', 'content-display', 'Apps', 'Dashboard', 'Account'
+      'Environments', 'Bugs'
     ]
 
     if (isApp = behavior is 'application') or (name in fullSizeApps)
