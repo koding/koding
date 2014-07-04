@@ -17,11 +17,11 @@ func Destroy(r *kite.Request) (interface{}, error) {
 }
 
 func Start(r *kite.Request) (interface{}, error) {
-	return nil, ErrNotSupported
+	return apiWrapper(start).ServeKite(r)
 }
 
 func Stop(r *kite.Request) (interface{}, error) {
-	return nil, ErrNotSupported
+	return apiWrapper(stop).ServeKite(r)
 }
 
 func Info(r *kite.Request) (interface{}, error) {

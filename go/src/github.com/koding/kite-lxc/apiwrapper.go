@@ -68,6 +68,22 @@ func create(r *kite.Request, l *api.LXC) (interface{}, error) {
 	return true, nil
 }
 
+func start(r *kite.Request, l *api.LXC) (interface{}, error) {
+	if err := l.Start(); err != nil {
+		return nil, err
+	}
+
+	return true, nil
+}
+
+func stop(r *kite.Request, l *api.LXC) (interface{}, error) {
+	if err := l.Stop(); err != nil {
+		return nil, err
+	}
+
+	return true, nil
+}
+
 func destroy(r *kite.Request, l *api.LXC) (interface{}, error) {
 	if err := l.Destroy(); err != nil {
 		return nil, err

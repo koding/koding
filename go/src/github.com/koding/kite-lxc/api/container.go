@@ -60,3 +60,19 @@ func (l *LXC) Destroy() error {
 
 	return l.runInContainerContext(fn)
 }
+
+func (l *LXC) Start() error {
+	fn := func(c *lxc.Container) error {
+		return c.Start()
+	}
+
+	return l.runInContainerContext(fn)
+}
+
+func (l *LXC) Stop() error {
+	fn := func(c *lxc.Container) error {
+		return c.Stop()
+	}
+
+	return l.runInContainerContext(fn)
+}

@@ -23,6 +23,8 @@ func init() {
 	lxc.Config.Port = 3636
 	lxc.HandleFunc("create", Create)
 	lxc.HandleFunc("destroy", Destroy)
+	lxc.HandleFunc("start", Start)
+	lxc.HandleFunc("stop", Stop)
 
 	go lxc.Run()
 	<-lxc.ServerReadyNotify()
@@ -52,6 +54,36 @@ func TestCreate(t *testing.T) {
 	}
 }
 
+func TestStart(t *testing.T) {
+	params := ContainerParams{
+		Name: ContainerName,
+	}
+
+	resp, err := remote.Tell("start", params)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if !resp.MustBool() {
+		t.Fatal("start should return true")
+	}
+}
+
+func TestStop(t *testing.T) {
+	params := ContainerParams{
+		Name: ContainerName,
+	}
+
+	resp, err := remote.Tell("stop", params)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if !resp.MustBool() {
+		t.Fatal("stop should return true")
+	}
+}
+
 func TestDestroy(t *testing.T) {
 	params := ContainerParams{
 		Name: ContainerName,
@@ -63,6 +95,6 @@ func TestDestroy(t *testing.T) {
 	}
 
 	if !resp.MustBool() {
-		t.Fatal("create should return true")
+		t.Fatal("destroy should return true")
 	}
 }
