@@ -11,7 +11,9 @@ class ActivityLikeLink extends CustomLinkView
       .on 'LikeRemoved', @bound 'update'
 
 
-  click: ->
+  click: (event) ->
+
+    KD.utils.stopDOMEvent event
 
     {id}           = data = @getData()
     {isInteracted} = data.interactions.like

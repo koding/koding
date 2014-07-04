@@ -106,9 +106,9 @@ styleScrollBars()
       margin-right      auto
       float             none
 
-    .kdtabpaneview
+    // .kdtabpaneview
 
-      min-height        990px
+    //   min-height        990px
 
 
     > .activity-input-widget
@@ -330,15 +330,16 @@ styleScrollBars()
               display     block
               float       none
               padding     0 0 0 41px
+              line-height 18px
               width       100%
               borderBox()
 
             > .user-numbers
               padding     0 0 0 41px
+              margin      -1px 0 0
               width       90%
               font-weight 300
               color       #949494
-              margin-top  1px
               borderBox()
 
               span
@@ -945,6 +946,7 @@ span.collapsedtext
       overflow            visible
       margin              0 33px 0 75px
       borderBox()
+      hidden()
       &:after
         text-align        center
         width             90px
@@ -957,6 +959,7 @@ span.collapsedtext
         color             #fafafa
         bg                color #f0705f
         rounded           10px
+        hidden()
         abs()
 
     .kdlistitemview-comment

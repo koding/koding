@@ -61,12 +61,6 @@ class DashboardAppController extends AppController
             viewClass  : GroupsBlockedUserView
             lazy       : yes
         ,
-          name         : 'Badges'
-          kodingOnly   : yes # this is only intended for koding group, we assume koding group is super-group
-          viewOptions  :
-            viewClass  : BadgeDashboardView
-            lazy       : yes
-        ,
           name         : 'Widgets'
           kodingOnly   : yes # this is only intended for koding group, we assume koding group is super-group
           viewOptions  :
