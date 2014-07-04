@@ -16,7 +16,7 @@ const (
 )
 
 type Query struct {
-	Id             int64     `url:"id"`
+	Id             int64     `url:"id,omitempty"`
 	Skip           int       `url:"skip"`
 	Limit          int       `url:"limit"`
 	To             time.Time `url:"to"`
