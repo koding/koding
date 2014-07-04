@@ -55,12 +55,12 @@ func runMain() error {
 		k.Config.Environment = *flagEnvironment
 	}
 
-	k.HandleFunc("create", lxc.Create)
-	k.HandleFunc("start", lxc.Start)
-	k.HandleFunc("stop", lxc.Stop)
-	k.HandleFunc("destroy", lxc.Destroy)
-	k.HandleFunc("info", lxc.Info)
-	k.HandleFunc("ls", lxc.Ls)
+	k.HandleFunc("lxc.create", lxc.Create)
+	k.HandleFunc("lxc.start", lxc.Start)
+	k.HandleFunc("lxc.stop", lxc.Stop)
+	k.HandleFunc("lxc.destroy", lxc.Destroy)
+	k.HandleFunc("lxc.info", lxc.Info)
+	k.HandleFunc("lxc.ls", lxc.Ls)
 
 	registerURL := k.RegisterURL(*flagLocal)
 	if *flagRegisterURL != "" {
