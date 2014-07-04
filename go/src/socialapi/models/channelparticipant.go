@@ -48,7 +48,12 @@ const (
 )
 
 func NewChannelParticipant() *ChannelParticipant {
-	return &ChannelParticipant{}
+	return &ChannelParticipant{
+		StatusConstant: ChannelParticipant_STATUS_ACTIVE,
+		LastSeenAt:     time.Now().UTC(),
+		CreatedAt:      time.Now().UTC(),
+		UpdatedAt:      time.Now().UTC(),
+	}
 }
 
 func (c ChannelParticipant) GetId() int64 {
