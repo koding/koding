@@ -52,3 +52,11 @@ func (l *LXC) Create(opts CreateOptions) error {
 
 	return l.runInContainerContext(fn)
 }
+
+func (l *LXC) Destroy() error {
+	fn := func(c *lxc.Container) error {
+		return c.Destroy()
+	}
+
+	return l.runInContainerContext(fn)
+}

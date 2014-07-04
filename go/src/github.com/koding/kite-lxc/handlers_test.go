@@ -22,6 +22,7 @@ func init() {
 	lxc.Config.DisableAuthentication = true
 	lxc.Config.Port = 3636
 	lxc.HandleFunc("create", Create)
+	lxc.HandleFunc("destroy", Destroy)
 
 	go lxc.Run()
 	<-lxc.ServerReadyNotify()
@@ -42,6 +43,21 @@ func TestCreate(t *testing.T) {
 	}
 
 	resp, err := remote.Tell("create", params)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if !resp.MustBool() {
+		t.Fatal("create should return true")
+	}
+}
+
+func TestDestroy(t *testing.T) {
+	params := ContainerParams{
+		Name: ContainerName,
+	}
+
+	resp, err := remote.Tell("destroy", params)
 	if err != nil {
 		t.Fatal(err)
 	}
