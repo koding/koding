@@ -1,1 +1,0 @@
-class StartTabAppItemContainer extends KDView
