@@ -64,7 +64,7 @@ do ->
         {mainController} = KD.singletons
         mainController.doLogout()
     '/:name?/Topics/:slug'   : ({params:{name, slug}}) ->
-      route = "/Activity?q=#{slug}"
+      route = unless slug then "/Activity/Topic/#{slug}" else "/Activity"
       route = "#{name}/#{route}"  if name
       @handleRoute route
     '/:slug/:name' : ({params, query}, model, route) ->
