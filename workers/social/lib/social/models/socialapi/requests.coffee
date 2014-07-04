@@ -155,21 +155,33 @@ glancePinnedPost = (data, callback)->
   url = "/activity/pin/glance"
   post url, data, callback
 
-followTopic = (data, callback)->
-  if not data.accountId or not data.channelId
-    return callback { message: "Request is not valid"}
+listParticipants = (data, callback)->
+  return callback { message: "Request is not valid" } unless data.channelId
+  url = "/channel/#{data.channelId}/participants"
+  get url, data, callback
 
-  url = "/channel/#{data.channelId}/\
-        participant/#{data.accountId}/add"
-  post url, data, callback
+addParticipants = (data, callback)->
+  url = "/channel/#{data.channelId}/participants/add"
+  doChannelParticipantOperation data, url, callback
 
-unfollowTopic = (data, callback)->
-  if not data.accountId or not data.channelId
-    return callback { message: "Request is not valid"}
+removeParticipants = (data, callback)->
+  url = "/channel/#{data.channelId}/participants/remove"
+  doChannelParticipantOperation data, url, callback
 
-  url = "/channel/#{data.channelId}/\
-        participant/#{data.accountId}/delete"
-  post url, data, callback
+doChannelParticipantOperation = (data, url, callback)->
+  return callback { message: "Request is not valid" } unless data.channelId
+
+  # if accountIds is not set and also accountId is not set
+  # return error
+  if not data.accountIds
+    return callback { message: "Request is not valid" } if not data.accountId
+    data.accountIds = [data.accountId]
+
+  # make the object according to channel participant data
+  req = ({accountId} for accountId in data.accountIds)
+
+  url = "#{url}?accountId=#{accountId}"
+  post url, req, callback
 
 updateLastSeenTime = (data, callback)->
   unless data.channelId and data.accountId
@@ -337,8 +349,9 @@ module.exports = {
   fetchPrivateMessages
   sendPrivateMessage
   fetchFollowedChannels
-  followTopic
-  unfollowTopic
+  listParticipants
+  addParticipants
+  removeParticipants
   fetchPinnedMessages
   pinMessage
   unpinMessage
