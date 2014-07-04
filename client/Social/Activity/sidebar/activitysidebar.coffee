@@ -209,7 +209,7 @@ class ActivitySidebar extends KDCustomScrollView
     return item
 
 
-   removeItem: (id) ->
+  removeItem: (id) ->
 
     if item = @itemsById[id]
 
