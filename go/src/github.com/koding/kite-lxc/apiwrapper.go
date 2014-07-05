@@ -18,10 +18,15 @@ type ContainerParams struct {
 	ConfigPath string
 }
 
-type apiFunc func(*kite.Request, *api.LXC) (interface{}, error)
+// lxcFunc implements the kite Handler interface
+type lxcFunc func(*kite.Request, *api.LXC) (interface{}, error)
 
-// apiWrapper creates a
-func apiWrapper(fn apiFunc) kite.Handler {
+func (l lxcFunc) ServeKite(r *kite.Request) (interface{}, error) {
+	return lxcWrapper(l).ServeKite(r)
+}
+
+// lxcWrapper creates a new kite.Handler based on the given lxcFunc
+func lxcWrapper(fn lxcFunc) kite.Handler {
 	return kite.HandlerFunc(func(r *kite.Request) (response interface{}, err error) {
 		if r.Args == nil {
 			return nil, errors.New("arguments are not passed")
@@ -49,45 +54,4 @@ func apiWrapper(fn apiFunc) kite.Handler {
 		return fn(r, l)
 	})
 
-}
-
-func create(r *kite.Request, l *api.LXC) (interface{}, error) {
-	var params CreateParams
-	if err := r.Args.One().Unmarshal(&params); err != nil {
-		return nil, fmt.Errorf("invalid arguments: %s", err)
-	}
-
-	opts := api.CreateOptions{
-		Template: params.Template,
-	}
-
-	if err := l.Create(opts); err != nil {
-		return nil, err
-	}
-
-	return true, nil
-}
-
-func start(r *kite.Request, l *api.LXC) (interface{}, error) {
-	if err := l.Start(); err != nil {
-		return nil, err
-	}
-
-	return true, nil
-}
-
-func stop(r *kite.Request, l *api.LXC) (interface{}, error) {
-	if err := l.Stop(); err != nil {
-		return nil, err
-	}
-
-	return true, nil
-}
-
-func destroy(r *kite.Request, l *api.LXC) (interface{}, error) {
-	if err := l.Destroy(); err != nil {
-		return nil, err
-	}
-
-	return true, nil
 }

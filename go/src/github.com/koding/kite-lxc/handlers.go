@@ -2,32 +2,63 @@ package lxc
 
 import (
 	"errors"
+	"fmt"
 
 	"github.com/koding/kite"
+	"github.com/koding/kite-lxc/api"
 )
 
 var ErrNotSupported = errors.New("not supported")
 
-func Create(r *kite.Request) (interface{}, error) {
-	return apiWrapper(create).ServeKite(r)
+var (
+	Create  = lxcFunc(create)
+	Destroy = lxcFunc(destroy)
+	Start   = lxcFunc(start)
+	Stop    = lxcFunc(stop)
+	Info    = lxcFunc(info)
+)
+
+func create(r *kite.Request, l *api.LXC) (interface{}, error) {
+	var params CreateParams
+	if err := r.Args.One().Unmarshal(&params); err != nil {
+		return nil, fmt.Errorf("invalid arguments: %s", err)
+	}
+
+	opts := api.CreateOptions{
+		Template: params.Template,
+	}
+
+	if err := l.Create(opts); err != nil {
+		return nil, err
+	}
+
+	return true, nil
 }
 
-func Destroy(r *kite.Request) (interface{}, error) {
-	return apiWrapper(destroy).ServeKite(r)
+func start(r *kite.Request, l *api.LXC) (interface{}, error) {
+	if err := l.Start(); err != nil {
+		return nil, err
+	}
+
+	return true, nil
 }
 
-func Start(r *kite.Request) (interface{}, error) {
-	return apiWrapper(start).ServeKite(r)
+func info(r *kite.Request, l *api.LXC) (interface{}, error) {
+	return l.Info()
 }
 
-func Stop(r *kite.Request) (interface{}, error) {
-	return apiWrapper(stop).ServeKite(r)
+func stop(r *kite.Request, l *api.LXC) (interface{}, error) {
+	if err := l.Stop(); err != nil {
+		return nil, err
+	}
+
+	return true, nil
 }
 
-func Info(r *kite.Request) (interface{}, error) {
-	return nil, ErrNotSupported
-}
+func destroy(r *kite.Request, l *api.LXC) (interface{}, error) {
+	if err := l.Destroy(); err != nil {
+		return nil, err
+	}
 
-func Ls(r *kite.Request) (interface{}, error) {
-	return nil, ErrNotSupported
+	return true, nil
 }

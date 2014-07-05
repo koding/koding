@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/koding/kite"
+	golxc "github.com/lxc/go-lxc"
 )
 
 const (
@@ -21,10 +22,11 @@ func init() {
 	lxc = kite.New("lxc", "0.0.1")
 	lxc.Config.DisableAuthentication = true
 	lxc.Config.Port = 3636
-	lxc.HandleFunc("create", Create)
-	lxc.HandleFunc("destroy", Destroy)
-	lxc.HandleFunc("start", Start)
-	lxc.HandleFunc("stop", Stop)
+	lxc.Handle("create", Create).DisableAuthentication()
+	lxc.Handle("destroy", Destroy)
+	lxc.Handle("start", Start)
+	lxc.Handle("stop", Stop)
+	lxc.Handle("info", Info)
 
 	go lxc.Run()
 	<-lxc.ServerReadyNotify()
@@ -66,6 +68,26 @@ func TestStart(t *testing.T) {
 
 	if !resp.MustBool() {
 		t.Fatal("start should return true")
+	}
+}
+
+func TestInfo(t *testing.T) {
+	params := ContainerParams{
+		Name: ContainerName,
+	}
+
+	resp, err := remote.Tell("info", params)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	state := new(golxc.State)
+	if err := resp.Unmarshal(state); err != nil {
+		t.Error(err)
+	}
+
+	if *state != golxc.RUNNING {
+		t.Errorf("State should be RUNNING, got: %s", state)
 	}
 }
 

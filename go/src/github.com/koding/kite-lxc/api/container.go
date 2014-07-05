@@ -76,3 +76,13 @@ func (l *LXC) Stop() error {
 
 	return l.runInContainerContext(fn)
 }
+
+func (l *LXC) Info() (lxc.State, error) {
+	var state lxc.State
+	fn := func(c *lxc.Container) error {
+		state = c.State()
+		return nil
+	}
+
+	return state, l.runInContainerContext(fn)
+}
