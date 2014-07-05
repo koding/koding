@@ -130,6 +130,15 @@ func checkChannelPrerequisites(channelId, requesterId int64, participants []*mod
 		return err
 	}
 
+	canOpen, err := c.CanOpen(requesterId)
+	if err != nil {
+		return err
+	}
+
+	if !canOpen {
+		return errors.New("can not open channel")
+	}
+
 	if c.TypeConstant == models.Channel_TYPE_GROUP {
 		return errors.New("can not add/remove participants for pinned activity channel")
 	}
