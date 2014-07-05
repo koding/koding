@@ -22,7 +22,7 @@ func init() {
 	lxc = kite.New("lxc", "0.0.1")
 	lxc.Config.DisableAuthentication = true
 	lxc.Config.Port = 3636
-	lxc.Handle("create", Create).DisableAuthentication()
+	lxc.Handle("create", Create)
 	lxc.Handle("destroy", Destroy)
 	lxc.Handle("start", Start)
 	lxc.Handle("stop", Stop)
@@ -69,14 +69,8 @@ func TestStart(t *testing.T) {
 	if !resp.MustBool() {
 		t.Fatal("start should return true")
 	}
-}
 
-func TestInfo(t *testing.T) {
-	params := ContainerParams{
-		Name: ContainerName,
-	}
-
-	resp, err := remote.Tell("info", params)
+	resp, err = remote.Tell("info", params)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -103,6 +97,20 @@ func TestStop(t *testing.T) {
 
 	if !resp.MustBool() {
 		t.Fatal("stop should return true")
+	}
+
+	resp, err = remote.Tell("info", params)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	state := new(golxc.State)
+	if err := resp.Unmarshal(state); err != nil {
+		t.Error(err)
+	}
+
+	if *state != golxc.STOPPED {
+		t.Errorf("State should be STOPPED, got: %s", state)
 	}
 }
 

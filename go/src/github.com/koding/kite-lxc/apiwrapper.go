@@ -18,15 +18,15 @@ type ContainerParams struct {
 	ConfigPath string
 }
 
-// lxcFunc implements the kite Handler interface
-type lxcFunc func(*kite.Request, *api.LXC) (interface{}, error)
+// LxcFunc implements the kite Handler interface
+type LXCFunc func(*kite.Request, *api.LXC) (interface{}, error)
 
-func (l lxcFunc) ServeKite(r *kite.Request) (interface{}, error) {
+func (l LXCFunc) ServeKite(r *kite.Request) (interface{}, error) {
 	return lxcWrapper(l).ServeKite(r)
 }
 
-// lxcWrapper creates a new kite.Handler based on the given lxcFunc
-func lxcWrapper(fn lxcFunc) kite.Handler {
+// lxcWrapper creates a new kite.Handler based on the given LXCFunc
+func lxcWrapper(fn LXCFunc) kite.Handler {
 	return kite.HandlerFunc(func(r *kite.Request) (response interface{}, err error) {
 		if r.Args == nil {
 			return nil, errors.New("arguments are not passed")

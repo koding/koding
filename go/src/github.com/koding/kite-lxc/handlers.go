@@ -11,11 +11,20 @@ import (
 var ErrNotSupported = errors.New("not supported")
 
 var (
-	Create  = lxcFunc(create)
-	Destroy = lxcFunc(destroy)
-	Start   = lxcFunc(start)
-	Stop    = lxcFunc(stop)
-	Info    = lxcFunc(info)
+	// Create is calling lxc-create with the given CreateParams information
+	Create = LXCFunc(create)
+
+	// Destroy is calling lxc-destroy with the given ContainerParams information
+	Destroy = LXCFunc(destroy)
+
+	// Start is calling lxc-start with the given ContainerParams information
+	Start = LXCFunc(start)
+
+	// Stop is calling lxc-stop with the given ContainerParams information
+	Stop = LXCFunc(stop)
+
+	// Info is calling lxc-info with the given ContainerParams information
+	Info = LXCFunc(info)
 )
 
 func create(r *kite.Request, l *api.LXC) (interface{}, error) {
