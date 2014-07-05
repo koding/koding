@@ -180,7 +180,7 @@ doChannelParticipantOperation = (data, url, callback)->
   # make the object according to channel participant data
   req = ({accountId} for accountId in data.accountIds)
 
-  url = "#{url}?accountId=#{accountId}"
+  url = "#{url}?accountId=#{data.accountId}"
   post url, req, callback
 
 updateLastSeenTime = (data, callback)->
