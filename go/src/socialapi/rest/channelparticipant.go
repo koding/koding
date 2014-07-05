@@ -8,10 +8,10 @@ import (
 	"labix.org/v2/mgo/bson"
 )
 
-func CreateChannelParticipants(channelId int64, c int) ([]*models.ChannelParticipant, error) {
+func CreateChannelParticipants(channelId, accountId int64, c int) ([]*models.ChannelParticipant, error) {
 	var participants []*models.ChannelParticipant
 	for i := 0; i < c; i++ {
-		participant, err := CreateChannelParticipant(channelId)
+		participant, err := CreateChannelParticipant(channelId, accountId)
 		if err != nil {
 			return nil, err
 		}
@@ -22,11 +22,11 @@ func CreateChannelParticipants(channelId int64, c int) ([]*models.ChannelPartici
 	return participants, nil
 }
 
-func CreateChannelParticipant(channelId int64) (*models.ChannelParticipant, error) {
+func CreateChannelParticipant(channelId, accountId int64) (*models.ChannelParticipant, error) {
 	account := models.NewAccount()
 	account.OldId = bson.NewObjectId().Hex()
 	account, _ = CreateAccount(account)
-	return AddChannelParticipant(channelId, account.Id, account.Id)
+	return AddChannelParticipant(channelId, accountId, account.Id)
 }
 
 func ListChannelParticipants(channelId, accountId int64) ([]*models.ChannelParticipant, error) {
