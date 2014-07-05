@@ -4,30 +4,32 @@ import (
 	"math/rand"
 	"socialapi/models"
 	"socialapi/rest"
+	"strconv"
 	"testing"
+	"time"
 
 	. "github.com/smartystreets/goconvey/convey"
 )
 
 func TestGroupChannel(t *testing.T) {
-	Convey("while testing group channel", t, func() {
-
+	Convey("while  testing pinned activity channel", t, func() {
+		rand.Seed(time.Now().UnixNano())
+		groupName := "testgroup" + strconv.FormatInt(rand.Int63(), 10)
 		Convey("channel should be there", func() {
+
 			account := models.NewAccount()
 			account.OldId = AccountOldId.Hex()
 			account, err := rest.CreateAccount(account)
 			So(err, ShouldBeNil)
 			So(account, ShouldNotBeNil)
 
-			channel1, err := rest.CreateChannelByGroupNameAndType(account.Id, "testgroup", models.Channel_TYPE_GROUP)
+			channel1, err := rest.CreateChannelByGroupNameAndType(account.Id, groupName, models.Channel_TYPE_GROUP)
 			So(err, ShouldBeNil)
 			So(channel1, ShouldNotBeNil)
 
-			channel2, err := rest.CreateChannelByGroupNameAndType(account.Id, "testgroup", models.Channel_TYPE_GROUP)
-			So(err, ShouldBeNil)
-			So(channel2, ShouldNotBeNil)
-
-			So(channel1.Id, ShouldEqual, channel2.Id)
+			channel2, err := rest.CreateChannelByGroupNameAndType(account.Id, groupName, models.Channel_TYPE_GROUP)
+			So(err, ShouldNotBeNil)
+			So(channel2, ShouldBeNil)
 		})
 
 		Convey("owner should be able to update it", func() {
@@ -37,7 +39,7 @@ func TestGroupChannel(t *testing.T) {
 			So(err, ShouldBeNil)
 			So(account, ShouldNotBeNil)
 
-			channel1, err := rest.CreateChannelByGroupNameAndType(account.Id, "testgroup", models.Channel_TYPE_GROUP)
+			channel1, err := rest.CreateChannelByGroupNameAndType(account.Id, groupName, models.Channel_TYPE_GROUP)
 			So(err, ShouldBeNil)
 			So(channel1, ShouldNotBeNil)
 			// fetching channel returns creator id
@@ -54,7 +56,7 @@ func TestGroupChannel(t *testing.T) {
 			So(err, ShouldBeNil)
 			So(account, ShouldNotBeNil)
 
-			channel1, err := rest.CreateChannelByGroupNameAndType(account.Id, "testgroup", models.Channel_TYPE_GROUP)
+			channel1, err := rest.CreateChannelByGroupNameAndType(account.Id, groupName, models.Channel_TYPE_GROUP)
 			So(err, ShouldBeNil)
 			So(channel1, ShouldNotBeNil)
 
@@ -70,7 +72,7 @@ func TestGroupChannel(t *testing.T) {
 			So(err, ShouldBeNil)
 			So(account, ShouldNotBeNil)
 
-			channel1, err := rest.CreateChannelByGroupNameAndType(account.Id, "testgroup", models.Channel_TYPE_GROUP)
+			channel1, err := rest.CreateChannelByGroupNameAndType(account.Id, groupName, models.Channel_TYPE_GROUP)
 			So(err, ShouldBeNil)
 			So(channel1, ShouldNotBeNil)
 
@@ -85,7 +87,7 @@ func TestGroupChannel(t *testing.T) {
 			So(err, ShouldBeNil)
 			So(account, ShouldNotBeNil)
 
-			channel1, err := rest.CreateChannelByGroupNameAndType(account.Id, "testgroup", models.Channel_TYPE_GROUP)
+			channel1, err := rest.CreateChannelByGroupNameAndType(account.Id, groupName, models.Channel_TYPE_GROUP)
 			So(err, ShouldBeNil)
 			So(channel1, ShouldNotBeNil)
 
@@ -100,6 +102,5 @@ func TestGroupChannel(t *testing.T) {
 		Convey("member can post status update", nil)
 
 		Convey("non-member can not post status update", nil)
-
 	})
 }
