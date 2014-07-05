@@ -40,12 +40,13 @@ class PrivateMessageRecipientModal extends KDModalViewWithForms
 
   addParticipants: ->
 
-    recipients = (nickname for {profile:{nickname}} in @autoComplete.getSelectedItemData())
+    recipients = (socialApiId for {socialApiId} in @autoComplete.getSelectedItemData())
 
     return KD.showError message : 'Please add a recipient.'  unless recipients.length
 
+    options  = {channelId: @getData().id, accountIds:recipients}
 
-    KD.singletons.socialapi.channel.addParticipants (err, result) ->
+    KD.singletons.socialapi.channel.addParticipants options, (err, result) ->
 
       return KD.showError err  if err
 
