@@ -12,14 +12,28 @@ import (
 )
 
 func List(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface{}, error) {
-	channelId, err := request.GetURIInt64(u, "id")
+	query := request.GetQuery(u)
+
+	if query.Id == 0 {
+		return response.NewBadRequest(errors.New("channel id is not set"))
+	}
+
+	c, err := models.ChannelById(query.Id)
 	if err != nil {
-		fmt.Println(err)
 		return response.NewBadRequest(err)
 	}
 
+	canOpen, err := c.CanOpen(query.AccountId)
+	if err != nil {
+		return response.NewBadRequest(err)
+	}
+
+	if !canOpen {
+		return response.NewAccessDenied(fmt.Errorf("user %d tried to open unattended channel %d", query.AccountId, query.Id))
+	}
+
 	req := models.NewChannelParticipant()
-	req.ChannelId = channelId
+	req.ChannelId = query.Id
 	return response.HandleResultAndError(
 		req.List(request.GetQuery(u)),
 	)
