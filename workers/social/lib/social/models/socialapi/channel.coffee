@@ -50,6 +50,8 @@ module.exports = class SocialChannel extends Base
           (signature Object, Function)
         glancePinnedPost     :
           (signature Object, Function)
+        cycleChannel:
+          (signature Object, Function)
 
     schema             :
       id               : Number

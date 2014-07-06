@@ -46,11 +46,11 @@ class PrivateMessageRecipientModal extends KDModalViewWithForms
 
     options  = { channelId: @getData().id, accountIds: recipients }
 
-    KD.singletons.socialapi.channel.addParticipants options, (err, result) ->
-
-      return KD.showError err  if err
-
-      @destroy()
+    api = KD.singletons.socialapi
+    api.cycleChannel @getData(), =>
+      api.channel.addParticipants options, (err, result) =>
+        return KD.showError err  if err
+        @destroy()
 
 
   createUserAutoComplete: ->
