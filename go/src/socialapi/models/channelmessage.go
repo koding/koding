@@ -23,13 +23,16 @@ type ChannelMessage struct {
 	// unique identifier of the channel message
 	Id int64 `json:"id,string"`
 
+	// Token holds the uuid for interoperability with the bongo-client
+	Token string `json:"token"`
+
 	// Body of the mesage
 	Body string `json:"body"`
 
 	// Generated Slug for body
 	Slug string `json:"slug"                               sql:"NOT NULL;TYPE:VARCHAR(100);"`
 
-	// type of the message
+	// type of the m essage
 	TypeConstant string `json:"typeConstant"               sql:"NOT NULL;TYPE:VARCHAR(100);"`
 
 	// Creator of the channel message
@@ -55,8 +58,10 @@ type ChannelMessage struct {
 }
 
 func (c *ChannelMessage) BeforeCreate() error {
+	c.CreatedAt = time.Now().UTC()
+	c.UpdatedAt = time.Now().UTC()
 	c.DeletedAt = ZeroDate()
-
+	c.Token = NewToken(c.CreatedAt).String()
 	return c.MarkIfExempt()
 }
 
