@@ -141,7 +141,7 @@ func newKloud(kloudKite *kite.Kite) *kloud.Kloud {
 		kontrolURL = u.String()
 	} else {
 		// read kontrolURL from kite.key if it doesn't exist.
-		kontrolURL = kiteconfig.MustGet().KontrolURL.String()
+		kontrolURL = kiteconfig.MustGet().KontrolURL
 	}
 
 	klientFolder := "klient/development/latest"
