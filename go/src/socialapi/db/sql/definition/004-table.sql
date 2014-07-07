@@ -24,11 +24,11 @@ ALTER TYPE "api"."channel_privacy_constant_enum" OWNER TO "social";
 DROP TABLE IF EXISTS "api"."channel";
 CREATE TABLE "api"."channel" (
     "id" BIGINT NOT NULL DEFAULT api.channel_next_id (),
+    "token" UUID NOT NULL DEFAULT uuid_generate_v1(),
     "name" VARCHAR (200) NOT NULL COLLATE "default",
     "creator_id" BIGINT NOT NULL,
     "group_name" VARCHAR (200) NOT NULL COLLATE "default",
     "purpose" TEXT COLLATE "default",
-    "secret_key" TEXT COLLATE "default",
     "type_constant" "api"."channel_type_constant_enum",
     "privacy_constant" "api"."channel_privacy_constant_enum",
     "meta_bits" SMALLINT NOT NULL DEFAULT 0::SMALLINT,
@@ -74,6 +74,7 @@ ALTER TYPE "api"."channel_message_type_constant_enum" OWNER TO "social";
 DROP TABLE IF EXISTS "api"."channel_message";
 CREATE TABLE "api"."channel_message" (
     "id" BIGINT NOT NULL DEFAULT api.channel_message_next_id (),
+    "token" UUID NOT NULL DEFAULT uuid_generate_v1(),
     "body" TEXT COLLATE "default",
     "slug" VARCHAR (100) NOT NULL COLLATE "default",
     "type_constant" "api"."channel_message_type_constant_enum",
