@@ -78,7 +78,7 @@ module.exports = class SocialMessage extends Base
 
   # todo add permission here
   @edit = secure (client, data, callback)->
-    if not data.body or not data.id
+    if not data?.body or not data.id
       return callback { message: "Request is not valid for editing a message"}
     # check ownership of the account
     SocialMessage.canEdit client, data, (err, res)->
