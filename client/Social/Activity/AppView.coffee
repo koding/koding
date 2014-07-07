@@ -159,6 +159,7 @@ class ActivityAppView extends KDView
     top      = bounds.y - 310
     left     = bounds.x + bounds.w + 40
     arrowTop = 310 + (bounds.h / 2) - 10 #10 = arrow height
+    arrowTop = arrowTop + top  if top < 0
 
     modal = new PrivateMessageModal
       delegate     : this
