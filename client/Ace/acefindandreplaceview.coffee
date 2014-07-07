@@ -2,7 +2,7 @@ class AceFindAndReplaceView extends JView
 
   constructor: (options = {}, data) ->
 
-    options.cssClass = "ace-find-replace-view"
+    options.cssClass = 'ace-find-replace-view'
 
     super options, data
 
@@ -10,72 +10,72 @@ class AceFindAndReplaceView extends JView
     @lastViewHeight   = 0
 
     @findInput = new KDHitEnterInputView
-      type         : "text"
-      placeholder  : "Find..."
+      type         : 'text'
+      placeholder  : 'Find...'
       validate     :
         rules      :
           required : yes
-      keyup        : @bindSpecialKeys "find"
+      keyup        : @bindSpecialKeys 'find'
       callback     : => @findNext()
 
     @findNextButton = new KDButtonView
-      cssClass     : "editor-button"
-      title        : "Find Next"
+      cssClass     : 'editor-button'
+      title        : 'Find Next'
       callback     : => @findNext()
 
     @findPrevButton = new KDButtonView
-      cssClass     : "editor-button"
-      title        : "Find Prev"
+      cssClass     : 'editor-button'
+      title        : 'Find Prev'
       callback     : => @findPrev()
 
     @replaceInput = new KDHitEnterInputView
-      type         : "text"
-      cssClass     : "ace-replace-input"
-      placeholder  : "Replace..."
+      type         : 'text'
+      cssClass     : 'ace-replace-input'
+      placeholder  : 'Replace...'
       validate     :
         rules      :
           required : yes
-      keyup        : @bindSpecialKeys "replace"
+      keyup        : @bindSpecialKeys 'replace'
       callback     : => @replace()
 
     @replaceButton = new KDButtonView
-      title        : "Replace"
-      cssClass     : "ace-replace-button"
+      title        : 'Replace'
+      cssClass     : 'ace-replace-button'
       callback     : => @replace()
 
     @replaceAllButton = new KDButtonView
-      title        : "Replace All"
-      cssClass     : "ace-replace-button"
+      title        : 'Replace All'
+      cssClass     : 'ace-replace-button'
       callback     : => @replaceAll()
 
     @closeButton = new KDCustomHTMLView
-      tagName      : "span"
-      cssClass     : "close-icon"
+      tagName      : 'span'
+      cssClass     : 'close-icon'
       click        : => @close()
 
     @choices = new KDMultipleChoice
-      cssClass     : "clean-gray editor-button control-button"
-      labels       : ["case-sensitive", "whole-word", "regex"]
+      cssClass     : 'clean-gray editor-button control-button'
+      labels       : ['case-sensitive', 'whole-word', 'regex']
       multiple     : yes
-      defaultValue : "fakeValueToDeselectFirstOne"
+      defaultValue : 'fakeValueToDeselectFirstOne'
 
   bindSpecialKeys: (input) ->
-    "esc"           : (e) => @close()
-    "meta+f"       : (e) =>
+    'esc'          : (e) => @close()
+    'meta+f'       : (e) =>
       e.preventDefault()
       @setViewHeight no
-    "meta+shift+f" : (e) =>
+    'meta+shift+f' : (e) =>
       e.preventDefault()
       @setViewHeight yes
-    "shift+enter"   : (e) =>
-      @findPrev() if input is "find"
+    'shift+enter'  : (e) =>
+      @findPrev() if input is 'find'
 
   close: ->
     @hide()
     @resizeEditor 0
     @findInput.setValue    ""
     @replaceInput.setValue ""
-    @emit "FindAndReplaceViewClosed"
+    @emit 'FindAndReplaceViewClosed'
 
   setViewHeight: (isReplaceMode) ->
     height = if isReplaceMode then 60 else 31
@@ -99,19 +99,19 @@ class AceFindAndReplaceView extends JView
   getSearchOptions: ->
     @selections   = @choices.getValue()
 
-    caseSensitive : @selections.indexOf("case-sensitive") > -1
-    wholeWord     : @selections.indexOf("whole-word") > -1
-    regExp        : @selections.indexOf("regex") > -1
+    caseSensitive : @selections.indexOf('case-sensitive') > -1
+    wholeWord     : @selections.indexOf('whole-word') > -1
+    regExp        : @selections.indexOf('regex') > -1
     backwards     : no
 
-  findNext: -> @findHelper "next"
+  findNext: -> @findHelper 'next'
 
-  findPrev: -> @findHelper "prev"
+  findPrev: -> @findHelper 'prev'
 
   findHelper: (direction) ->
     keyword = @findInput.getValue()
     return unless keyword
-    methodName = if direction is "prev" then "findPrevious" else "find"
+    methodName = if direction is 'prev' then 'findPrevious' else 'find'
     @getDelegate().ace.editor[methodName] @findInput.getValue(), @getSearchOptions()
     @findInput.focus()
 
@@ -125,7 +125,7 @@ class AceFindAndReplaceView extends JView
     return unless findKeyword or replaceKeyword
 
     {editor}   = @getDelegate().ace
-    methodName = if doReplaceAll then "replaceAll" else "replace"
+    methodName = if doReplaceAll then 'replaceAll' else 'replace'
 
     @findNext()
     editor[methodName] replaceKeyword
