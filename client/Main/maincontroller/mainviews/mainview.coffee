@@ -1,8 +1,11 @@
 class MainView extends KDView
 
-  constructor:->
 
-    super
+  constructor: (options = {}, data)->
+
+    options.domId    = 'kdmaincontainer'
+
+    super options, data
 
     @notifications = []
 
