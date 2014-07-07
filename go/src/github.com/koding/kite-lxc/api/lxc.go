@@ -33,3 +33,7 @@ func (l *LXC) runInContainerContext(fn ContainerFunc) error {
 
 	return fn(c)
 }
+
+type MetaData struct {
+	D *Info
+}

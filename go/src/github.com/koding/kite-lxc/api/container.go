@@ -6,6 +6,8 @@ import (
 	"github.com/lxc/go-lxc"
 )
 
+type Info struct{}
+
 type CreateOptions struct {
 	Template string
 	Distro   string

@@ -22,11 +22,11 @@ func init() {
 	lxc = kite.New("lxc", "0.0.1")
 	lxc.Config.DisableAuthentication = true
 	lxc.Config.Port = 3636
-	lxc.Handle("create", Create)
-	lxc.Handle("destroy", Destroy)
-	lxc.Handle("start", Start)
-	lxc.Handle("stop", Stop)
-	lxc.Handle("info", Info)
+	lxc.HandleFunc("create", Create)
+	lxc.HandleFunc("destroy", Destroy)
+	lxc.HandleFunc("start", Start)
+	lxc.HandleFunc("stop", Stop)
+	lxc.HandleFunc("info", Info)
 
 	go lxc.Run()
 	<-lxc.ServerReadyNotify()
