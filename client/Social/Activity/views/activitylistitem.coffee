@@ -18,8 +18,8 @@ class ActivityListItemView extends KDListItemView
 
     @avatar = new AvatarView
       size       :
-        width    : 42
-        height   : 42
+        width    : 35
+        height   : 35
       cssClass   : 'author-avatar'
       origin     : origin
 
