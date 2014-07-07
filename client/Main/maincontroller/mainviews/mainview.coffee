@@ -323,6 +323,7 @@ class MainView extends KDView
 
   isFullscreen: -> @hasClass "fullscreen"
 
+
   toggleFullscreen: ->
 
     if @isFullscreen()
@@ -351,7 +352,8 @@ class MainView extends KDView
           appView.ready removePulsing
         else removePulsing()
 
-  _logoutAnimation:->
+
+  _logoutAnimation: ->
 
     {body}      = document
     turnOffLine = new KDCustomHTMLView cssClass : "turn-off-line"
