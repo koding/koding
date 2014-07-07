@@ -41,7 +41,7 @@ class ProfileLinkView extends LinkView
     # only admin can see troll users
     if KD.checkFlag "super-admin"
       trollField = if @getData().isExempt then " (T)" else ""
-      @troll.updatePartial trollField
+      @troll.updatePartial trollField  if @troll
 
     super fields
 
@@ -49,5 +49,5 @@ class ProfileLinkView extends LinkView
     {profile} = @getData()
     JView::pistachio.call this,
       if profile.firstName is "" and profile.lastName is ""
-      then "{{#(profile.nickname)}} {{>@troll}}"
-      else "{{#(profile.firstName)+' '+#(profile.lastName)}} {{>@troll}}"
+      then "{{#(profile.nickname)}} {{> @troll}}"
+      else "{{#(profile.firstName)+' '+#(profile.lastName)}} {{> @troll}}"
