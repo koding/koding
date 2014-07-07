@@ -21,6 +21,7 @@ module.exports = (options, callback)->
       <script>(function(){window.location.href='/unsupported.html'})();</script>
       <![endif]-->
       #{KONFIG.getConfigScriptTag { entryPoint, roles: ['guest'], permissions: [] } }
+      <script>KD.isLoggedInOnLoad=false;</script>
       #{scripts}
     </body>
     </html>
