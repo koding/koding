@@ -1,0 +1,335 @@
+@import "../../Framework/src/themes/default/kdfn"
+@import "../styl/appfn"
+@import "../styl/app.fonts"
+
+@css {
+/*
+MAIN SIDEBAR stylesheet
+resurrection.styl
+*/
+}
+
+
+#main-sidebar
+
+  size            211px 100%
+  z-index         100
+  bg              color #2C2E34
+  fix()
+
+#dock
+  padding           13px
+  margin-top        2px
+  position          relative
+  borderBox()
+
+  &:after
+    opacity         0
+    content         ""
+    vendor          transition, opacity .5s ease
+
+  &.remove-app-state
+    height          180px
+
+    &:after
+      opacity       1
+      size          100%, 30px
+      content       "drag here to remove"
+      text-align    center
+      color         #eee
+      padding-top   10px
+      bottom        0
+      font-size     13px
+      font-weight   300
+      abs()
+
+#dock > .kdlistview
+
+
+  // .on-top
+  //   z-index         100
+  //   border          none !important
+  //   shadow          none !important
+  //   background      none !important
+
+  > a
+    display         block
+    size            auto 28px
+    opacity         1
+    z-index         1
+    vendor          transition, top .2s  linear \,\
+                                left .2s linear
+    font-size       14px
+    line-height     18px
+    color           #B8B8B8
+    padding         5px 8px 5px 32px
+    rounded         4px
+    borderBox()
+    noTextDeco()
+
+    cite
+      font-style    normal
+
+    .fake-icon
+      width           30px
+      height          20px
+      left            13px
+      top             14px
+      text-align      center
+      padding-top     4px
+      padding-bottom  4px
+      font-size       20px
+      color           white
+      border-radius   3px
+      abs()
+      hidden()
+
+    > figure
+      display       block
+      width         16px
+      height        16px
+      bg            color #B8B8B8
+      top           6px
+      left          8px
+      abs()
+
+    &.selected
+      bg            color #222428
+
+    // &.remove
+    //   cursor        url('/a/images/cursor-trash.png'), auto
+
+    // &.explode
+    //   vendor        animation, explode .5s ease-in-out 100
+
+
+    // &.running
+    //   shadow        inset 0 2px 0 #1aaf5d
+    //   borderBox()
+
+    // &.loading
+    //   vendor      animation, pulse 1.5s ease-in-out 100
+
+    &.activity > figure
+      r-sprite      app new-nav-activity
+    // &.editor > figure
+    //   r-sprite      app nav-editor
+    &.terminal > figure
+      r-sprite      app new-nav-terminal
+    &.ide > figure
+      r-sprite      app new-nav-ide
+    &.vm > figure
+      r-sprite      app new-nav-vm
+    &.vm.running > figure
+      r-sprite      app new-nav-vm-green
+    // &.apps > figure
+    //   r-sprite      app nav-apps
+    // &.teamwork > figure
+    //   r-sprite      app nav-teamwork
+    // &.bugs > figure
+    //   r-sprite      app nav-bugs
+    // &.devtools > figure
+    //   r-sprite      app nav-develop
+    // &.finder > figure
+    //   r-sprite      app nav-finder
+
+
+
+.account-area
+  // vendor            transform-style, preserve-3d
+  // vendor            perspective, 300px
+  // vendor            transition, right .5s ease
+  // border-left       1px solid #252E31
+  bottom            0
+  left              0
+  background        #222428
+  size              100% 59px
+  abs()
+
+  > div
+    display         inline-block
+    width           auto
+    vertical-align  top
+
+
+  .acc-dropdown-icon
+    size            45px 59px
+    display         inline-block
+    border-left     1px solid #1f2628
+
+    .icon
+      padding-bottom 1px
+    // i know, this is not a proper solution. [BC]
+
+    &.help
+      width         30px
+      .icon
+        margin      18px 0 0 13px
+        r-sprite    app question-mark
+
+    .count
+      vendor        transform, scale(0)
+      size          16px, 16px
+      bg            color, #e94b35
+      top           9px
+      right         6px
+      font-size     10px
+      color         #fff
+      line-height   16px
+      text-align    center
+      rounded       100%
+      -webkit-transition -webkit-transform .3s cubic-bezier(0.68, -0.55, 0.265, 1.55)
+      -moz-transition    -moz-transform .3s ease
+      transition         transform .3s cubic-bezier(0.68, -0.55, 0.265, 1.55)
+      z-index            1001
+      abs()
+
+      &.in
+        vendor        transform, scale(1)
+
+    .icon
+      display       block
+    &.notifications .icon
+      margin        18px 0 0 13px
+      r-sprite      app account-notifications
+    // &.search
+    //   width         55px
+    //   .icon
+    //     margin      17px 0 0 17px
+    //     r-sprite    app account-search
+    //     padding     0
+
+    &.groups
+      abs()
+      top           0
+      right         0
+      size          50px 59px
+      .icon
+        margin      26px 0 0 11px
+        r-sprite    app 'account-arrow'
+
+  // .search-form-container
+  //   bg                 color, #212932
+  //   size               400px 55px
+  //   opacity            0
+  //   vendor             transform, rotateY(90deg)
+  //   vendor             transform-origin-x, 0
+  //   vendor             backface-visibility, hidden
+  //   -webkit-transition -webkit-transform .5s ease \,\
+  //                      opacity .5s ease
+  //   top                0
+  //   left               100%
+  //   abs()
+  //   borderBox()
+
+  //   .kdinput
+  //     text-align       left
+  //     size             100% 55px
+  //     border           none
+  //     shadow           none
+  //     text-indent      14px
+  //     bg               color, transparent
+  //     color            #9caeb3
+  //     font-size        16px
+
+  //     &:hover
+  //       border         none
+
+  //     &:focus
+  //       shadow         none
+  //       outline        none
+  //       border         none
+
+  .account-menu
+    vendor             transform-origin-x, 274px
+    vendor             backface-visibility, hidden
+    -webkit-transition -webkit-transform .5s ease \,
+                       opacity .5s ease
+
+  .avatar-area
+    bg                 color, #222428
+    padding            10px 12px
+    size               100% 100%
+    opacity            1
+    vendor             transform-origin-x, 100%
+    vendor             backface-visibility, hidden
+    -webkit-transition -webkit-transform .5s ease \,
+                       opacity .5s ease
+    borderBox()
+    rel()
+
+    .avatarview
+      margin-right    14px
+      fl()
+
+    a.profile
+      font-size     14px
+      line-height   18px
+      font-weight   400
+      margin        11px 0
+      white-space   nowrap
+      width         100px
+      display       block
+      color         white
+      overflow      hidden
+      text-overflow ellipsis
+      noTextDeco()
+
+    h3
+      margin        0
+      color         #828a93
+      font-size     12px
+      font-weight   300
+      margin-top    2px
+
+  // &.search-open
+  //   right             400px
+
+  //   .account-menu
+  //   .avatar-area
+  //     vendor          transform, rotateY(-90deg)
+  //     opacity         0
+
+  //   .search-form-container
+  //     vendor          transform, rotateY(0deg)
+  //     opacity         1
+
+  .header-sign-in
+    font-size         16px
+    color             #e9e9e9
+    line-height       55px
+    margin-right       8px
+    noTextDeco()
+
+    &:last-of-type
+      margin-right    18px
+
+
+h3.sidebar-title
+  font-weight     500
+  size            auto 30px
+  padding         5px 5px 5px 8px
+  line-height     30px
+  font-size       13px
+  color           #7F7F80
+  text-transform  uppercase
+  pointer()
+
+  // &:after
+  //   content         ""
+  //   display         inline-block
+  //   size            15px, 2px
+  //   background      #cecece
+  //   margin          -2px 0 0 8px
+  //   vertical-align  middle
+
+  a
+    font-size       10px
+    font-weight     600
+    color           #7F7F80
+    margin          0 5px 0 0
+    fr()
+
+  &:hover
+    a
+      color         #B8B8B8
