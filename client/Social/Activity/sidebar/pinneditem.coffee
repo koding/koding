@@ -7,7 +7,7 @@ class SidebarPinnedItem extends SidebarItem
     {slug}           = data
     options.route    = "Post/#{slug}"
     options.type     = 'member'
-    options.cssClass = 'kdlistitemview-sidebar-item'
+    options.cssClass = 'kdlistitemview-sidebar-item conversation'
 
     super options, data
 
@@ -18,7 +18,7 @@ class SidebarPinnedItem extends SidebarItem
       constructorName : data.account.constructorName
 
     @avatar = new AvatarStaticView {
-      size       : width : 30, height : 30
+      size       : width : 24, height : 24
       cssClass   : "avatarview"
       showStatus : yes
       origin
