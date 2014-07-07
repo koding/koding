@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"koding/db/mongodb"
+	"koding/kites/kloud/koding"
 	"koding/kites/kloud/storage"
 	"koding/tools/config"
 	"log"
@@ -101,6 +102,7 @@ func newKite() *kite.Kite {
 	}
 
 	kld := newKloud(k)
+	kld.AddProvider("koding", &koding.Provider{})
 
 	k.HandleFunc("build", kld.Build)
 	k.HandleFunc("start", kld.Start)
