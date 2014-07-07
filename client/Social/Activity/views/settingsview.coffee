@@ -60,10 +60,8 @@ class ActivitySettingsView extends KDCustomHTMLView
 
     {activityController} = KD.singletons
 
-    {constructorName, _id} = post.account
-    KD.remote.cacheable constructorName, _id, (err, owner) =>
+    KD.getMessageOwner post, (err, owner) =>
       return KD.showErrorNotification err  if err
-      return KD.showNotification "Account not found"  unless owner
 
       if owner.isExempt
         @addMenuItem 'Unmark User as Troll', ->
