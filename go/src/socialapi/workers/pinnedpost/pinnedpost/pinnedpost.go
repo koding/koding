@@ -26,16 +26,20 @@ func New(log logging.Logger) *Controller {
 }
 
 func (c *Controller) ReplyCreated(messageReply *models.MessageReply) error {
+	// parent message is needed for adding to pinned channel
+	parentMessage := models.NewChannelMessage()
+	if err := parentMessage.ById(messageReply.MessageId); err != nil {
+		return err
+	}
+
+	// only posts can be marked as pinned
+	if parentMessage.TypeConstant != models.ChannelMessage_TYPE_POST {
+		return nil
+	}
 
 	// fetch reply itself for processsing
 	reply := models.NewChannelMessage()
 	if err := reply.ById(messageReply.ReplyId); err != nil {
-		return err
-	}
-
-	// parent message is needed for adding to pinned channel
-	parentMessage := models.NewChannelMessage()
-	if err := parentMessage.ById(messageReply.MessageId); err != nil {
 		return err
 	}
 

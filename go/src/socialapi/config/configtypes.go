@@ -37,7 +37,9 @@ type (
 		Vhost    string
 	}
 	Limits struct {
-		MessageBodyMinLen int
+		MessageBodyMinLen    int
+		PostThrottleDuration string
+		PostThrottleCount    int
 	}
 	Notification struct {
 		CacheEnabled bool

@@ -9,7 +9,6 @@ import (
 	"socialapi/models"
 	"socialapi/request"
 	notificationmodels "socialapi/workers/notification/models"
-	"strconv"
 
 	"github.com/koding/logging"
 	"github.com/koding/rabbitmq"
@@ -66,7 +65,13 @@ func New(rmq *rabbitmq.RabbitMQ, log logging.Logger) (*Controller, error) {
 }
 
 func (f *Controller) MessageUpdated(cm *models.ChannelMessage) error {
-	if err := f.sendInstanceEvent(cm.GetId(), cm, "updateInstance"); err != nil {
+	if len(cm.Token) == 0 {
+		if err := cm.ById(cm.Id); err != nil {
+			return err
+		}
+	}
+
+	if err := f.sendInstanceEvent(cm.Token, cm, "updateInstance"); err != nil {
 		f.log.Error(err.Error())
 		return err
 	}
@@ -172,9 +177,13 @@ func (f *Controller) handleInteractionEvent(eventName string, i *models.Interact
 		Count:        count,
 	}
 
-	err = f.sendInstanceEvent(i.MessageId, res, eventName)
+	m := models.NewChannelMessage()
+	if err := m.ById(i.MessageId); err != nil {
+		return err
+	}
+
+	err = f.sendInstanceEvent(m.Token, res, eventName)
 	if err != nil {
-		fmt.Println(err)
 		return err
 	}
 
@@ -188,6 +197,11 @@ func (f *Controller) MessageReplySaved(mr *models.MessageReply) error {
 }
 
 func (f *Controller) sendReplyAddedEvent(mr *models.MessageReply) error {
+	parent := models.NewChannelMessage()
+	if err := parent.ById(mr.MessageId); err != nil {
+		return err
+	}
+
 	reply := models.NewChannelMessage()
 	if err := reply.ById(mr.ReplyId); err != nil {
 		return err
@@ -198,9 +212,8 @@ func (f *Controller) sendReplyAddedEvent(mr *models.MessageReply) error {
 		return err
 	}
 
-	err = f.sendInstanceEvent(mr.MessageId, cmc, "ReplyAdded")
+	err = f.sendInstanceEvent(parent.Token, cmc, "ReplyAdded")
 	if err != nil {
-		fmt.Println(err)
 		return err
 	}
 
@@ -259,7 +272,12 @@ func (f *Controller) MessageReplyDeleted(mr *models.MessageReply) error {
 
 	f.sendReplyEventAsChannelUpdatedEvent(mr, channelUpdatedEventReplyRemoved)
 
-	if err := f.sendInstanceEvent(mr.MessageId, mr, "ReplyRemoved"); err != nil {
+	m := models.NewChannelMessage()
+	if err := m.ById(mr.MessageId); err != nil {
+		return err
+	}
+
+	if err := f.sendInstanceEvent(m.Token, mr, "ReplyRemoved"); err != nil {
 		return err
 	}
 
@@ -455,16 +473,14 @@ func fetchOldAccount(accountId int64) (*mongomodels.Account, error) {
 	return account, nil
 }
 
-func (f *Controller) sendInstanceEvent(instanceId int64, message interface{}, eventName string) error {
+func (f *Controller) sendInstanceEvent(instanceToken string, message interface{}, eventName string) error {
 	channel, err := f.rmqConn.Channel()
 	if err != nil {
 		return err
 	}
 	defer channel.Close()
 
-	id := strconv.FormatInt(instanceId, 10)
-	routingKey := "oid." + id + ".event." + eventName
-
+	routingKey := "oid." + instanceToken + ".event." + eventName
 	updateMessage, err := json.Marshal(message)
 	if err != nil {
 		return err
@@ -482,7 +498,12 @@ func (f *Controller) sendInstanceEvent(instanceId int64, message interface{}, ev
 		return err
 	}
 
-	f.log.Debug("Sending Instance Event Id:%s Message:%s ", id, updateMessage)
+	f.log.Debug(
+		"Sending Instance Event Id:%s Message:%s EventName:%s",
+		instanceToken,
+		updateMessage,
+		eventName,
+	)
 
 	return channel.Publish(
 		"updateInstances", // exchange name
