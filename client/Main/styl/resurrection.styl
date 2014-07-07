@@ -150,7 +150,6 @@ pre
 
 
     #dock
-    .account-area
       hidden()
 
     .inner-container
@@ -230,50 +229,9 @@ pre
       r-sprite        app '16-close-white'
 
 
-#dock
-
-  size              auto, 55px
-  width             calc( 100% \- 434px )
-  overflow          visible
-  position          relative
-  margin-left       58px
-  background        rgba(31,38,40,0.8);
-  border-radius     4px
-  vendor            transition, height .2s ease
-
-  &:after
-    opacity         0
-    content         ""
-    vendor          transition, opacity .5s ease
-
-  .kdscrolltrack
-    display         none
-
-  .kdcustomscrollview
-    padding         0
-
-  &.remove-app-state
-    height          180px
-
-    &:after
-      opacity       1
-      size          100%, 30px
-      content       "drag here to remove"
-      text-align    center
-      color         #eee
-      padding-top   10px
-      bottom        0
-      font-size     13px
-      font-weight   300
-      abs()
 
 
 
-#main-panel-wrapper
-  overflow          visible
-  display           block
-  top               0
-  left              0
 
 #koding-logo
   size              57px 55px
