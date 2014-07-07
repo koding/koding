@@ -160,6 +160,8 @@ module.exports = class SocialMessage extends Base
     delegate.createSocialApiId (err, socialApiId)=>
       return callback err  if err
       # fetch the message
+      if delegate.checkFlag "super-admin"
+        data.showExempt = true
       @byId client, data, (err, message)->
         return callback err  if err
         return callback { message: "Post is not found" }  unless message?.message
