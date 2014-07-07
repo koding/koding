@@ -6,6 +6,7 @@ CREATE SCHEMA api;
 -- hstore is created here
 SET ROLE postgres;
 CREATE EXTENSION IF NOT EXISTS hstore;
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 SET ROLE social;
 
 GRANT USAGE ON SCHEMA api TO socialapplication;
