@@ -4,29 +4,36 @@ class MainView extends KDView
   constructor: (options = {}, data)->
 
     options.domId    = 'kdmaincontainer'
+    options.cssClass = if KD.isLoggedInOnLoad then 'with-sidebar' else ''
 
     super options, data
 
     @notifications = []
 
-  viewAppended:->
+
+  viewAppended: ->
+
+    {mainController} = KD.singletons
 
     @bindPulsingRemove()
     @bindTransitionEnd()
     @createHeader()
-    @createMainPanels()
+
+    if KD.isLoggedInOnLoad
+    then @createSidebar()
+    else mainController.once 'accountChanged.to.loggedIn', @bound 'createSidebar'
+
+    @createPanelWrapper()
     @createMainTabView()
 
-    KD.singletons.mainController.ready =>
-      @createAccountArea()
+    mainController.ready =>
+      if KD.isLoggedInOnLoad
+      then @createAccountArea()
+      else mainController.once 'accountChanged.to.loggedIn', @bound 'createAccountArea'
+
       @setStickyNotification()
       @emit 'ready'
 
-  createMainPanels:->
-
-    @addSubView @panelWrapper = new KDView
-      tagName  : "section"
-      domId    : "main-panel-wrapper"
 
   createHeader:->
 
@@ -39,10 +46,9 @@ class MainView extends KDView
 
     @header.clear()
 
-    @header.addSubView @headerContainer = new KDCustomHTMLView
-      cssClass  : "inner-container"
+    @header.addSubView new TopNavigation
 
-    @logo = new KDCustomHTMLView
+    @header.addSubView @logo = new KDCustomHTMLView
       tagName   : "a"
       domId     : "koding-logo"
       cssClass  : if entryPoint?.type is 'group' then 'group' else ''
@@ -54,70 +60,40 @@ class MainView extends KDView
         then router.handleRoute '/Activity', {entryPoint}
         else router.handleRoute '/', {entryPoint}
 
-    @headerContainer.addSubView @logo
-
-    groupLogo = ""
-    if KD.currentGroup?.customize?.logo
-      groupLogo = KD.utils.proxifyUrl KD.currentGroup.logo,
-        crop         : yes
-        width        : 55
-        height       : 55
-
-      @logo.setCss 'background-image', "url(#{groupLogo})"
-      @logo.setClass 'custom'
-
     @logo.setClass KD.config.environment
 
-    @headerContainer.addSubView @logotype = new CustomLinkView
+    @header.addSubView @logotype = new CustomLinkView
       cssClass : 'logotype'
       title    : 'Koding'
       href     : '/Home'
 
-    @addDock()
-    @addLoggedOutNav()
+
+  createSidebar: ->
+
+    @setClass 'with-sidebar'
+
+    @addSubView @sidebar = new KDCustomHTMLView
+      tagName  : 'aside'
+      domId    : 'main-sidebar'
+
+    @sidebar.addSubView KD.singletons.dock.getView()
 
 
-  addDock:-> @headerContainer.addSubView KD.singleton('dock').getView()
+  createPanelWrapper:->
 
-  showDock:-> @header.unsetClass 'no-dock'
+    @addSubView @panelWrapper = new KDView
+      tagName  : 'section'
+      domId    : 'main-panel-wrapper'
 
-  hideDock:-> @header.setClass 'no-dock'
-
-  addLoggedOutNav:->
-
-    @headerContainer.addSubView loggedOutNav = new KDCustomHTMLView
-      tagName : 'nav'
-      partial : """
-        <a href='/Education' class='education'>EDUCATION</a>
-        <a href='/Business'  class='business'>BUSINESS</a>
-        <a href='/About'     class='about'>ABOUT</a>
-        <a href='/Pricing'   class='pricing'>PRICING</a>
-        <a href='/Login' class='login'>SIGN IN</a>
-        """
-
-    appManager    = KD.singleton "appManager"
-    navDomElement = loggedOutNav.domElement.context
-
-    appManager.on 'AppIsBeingShown', (instance, view, options) ->
-      appName = options.name.toLowerCase()
-
-      for child in navDomElement.children
-        child.classList.remove 'active'
-
-      target = navDomElement.getElementsByClassName(appName)[0]
-      target?.classList.add 'active'
 
   createAccountArea:->
 
-    @accountArea = new KDCustomHTMLView
+    @sidebar.addSubView @accountArea = new KDCustomHTMLView
       cssClass : 'account-area'
-
-    @headerContainer.addSubView @accountArea
 
     if KD.isLoggedIn()
     then @createLoggedInAccountArea()
     else
-
       mc = KD.getSingleton "mainController"
       mc.once "accountChanged.to.loggedIn", @bound 'createLoggedInAccountArea'
 
