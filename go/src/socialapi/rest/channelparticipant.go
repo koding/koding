@@ -22,11 +22,11 @@ func CreateChannelParticipants(channelId, accountId int64, c int) ([]*models.Cha
 	return participants, nil
 }
 
-func CreateChannelParticipant(channelId, accountId int64) (*models.ChannelParticipant, error) {
+func CreateChannelParticipant(channelId, requesterId int64) (*models.ChannelParticipant, error) {
 	account := models.NewAccount()
 	account.OldId = bson.NewObjectId().Hex()
 	account, _ = CreateAccount(account)
-	return AddChannelParticipant(channelId, accountId, account.Id)
+	return AddChannelParticipant(channelId, requesterId, account.Id)
 }
 
 func ListChannelParticipants(channelId, accountId int64) ([]*models.ChannelParticipant, error) {
