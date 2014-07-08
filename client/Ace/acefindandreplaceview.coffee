@@ -78,7 +78,12 @@ class AceFindAndReplaceView extends JView
     @emit 'FindAndReplaceViewClosed'
 
   setViewHeight: (isReplaceMode) ->
-    height = if isReplaceMode then 60 else 31
+    height   = 31
+    @mode    = 'find'
+    if isReplaceMode
+      height = 60
+      @mode  = 'replace'
+
     @$().css { height }
     @resizeEditor height
     @show()
