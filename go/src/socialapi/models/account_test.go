@@ -22,7 +22,7 @@ func TestAccountGetId(t *testing.T) {
 				So(a.GetId(), ShouldEqual, 42)
 			})
 			Convey("Uninitialized struct ", func() {
-				Convey("should return given id", func() {
+				Convey("should return 0", func() {
 					So(NewAccount().GetId(), ShouldEqual, 0)
 				})
 				So(NewAccount(), ShouldNotBeNil)

@@ -10,7 +10,6 @@ func TestChannelparticipantNewChannelParticipant(t *testing.T) {
 	Convey("while testing New Channel Participant", t, func() {
 		Convey("Function call should return ChannelParticipant", func() {
 			So(NewChannelParticipant(), ShouldNotBeNil)
-
 		})
 	})
 }
@@ -24,7 +23,7 @@ func TestChannelparticipantGetId(t *testing.T) {
 			})
 		})
 		Convey("Uninitialized struct", func() {
-			Convey("should return given id", func() {
+			Convey("should return 0", func() {
 				So(NewChannelParticipant().GetId(), ShouldEqual, 0)
 			})
 			So(NewChannelParticipant, ShouldNotBeNil)
