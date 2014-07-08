@@ -102,7 +102,7 @@ func newKite() *kite.Kite {
 	}
 
 	kld := newKloud(k)
-	kld.AddProvider("koding", &koding.Provider{})
+	kld.AddProvider("koding", &koding.Provider{Log: logging.NewLogger("koding")})
 
 	k.HandleFunc("build", kld.Build)
 	k.HandleFunc("start", kld.Start)

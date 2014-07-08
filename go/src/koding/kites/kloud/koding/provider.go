@@ -51,7 +51,7 @@ func (p *Provider) NewClient(opts *protocol.MachineOptions) (*openstack.Openstac
 			})
 		},
 		AuthURL:       authURL,
-		ProviderName:  "rackspace",
+		ProviderName:  "rackspace", //openstack related
 		CredentialRaw: kodingCredential,
 		BuilderRaw:    opts.Builder,
 	}
