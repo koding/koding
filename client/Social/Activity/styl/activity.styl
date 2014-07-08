@@ -36,7 +36,7 @@ styleScrollBars()
 
 .content-page.activity
   max-width             100%
-  margin                30px auto 0
+  margin                34px auto 0
   padding               0
   position              static
   overflow              visible
@@ -90,8 +90,8 @@ styleScrollBars()
   > main
     size                100% auto
     margin              0
+    margin-left         292px
     borderBox()
-    fr()
 
   &.fixed > aside
     margin-top         24px
@@ -574,7 +574,7 @@ div.kdtooltip.activity-helper
 
 .activity-input-widget
   size                auto auto
-  margin              0 0 30px 0
+  margin              0 0 13px 0
   overflow            visible
 
   .help-container
@@ -763,15 +763,14 @@ span.collapsedtext
           r-sprite          activity chevron-icon
 
     .author-avatar
-      abs                 12px 0 0 -50px
-      // border              2px solid #e9e9e9
+      abs                 20px 0 0 -49px
       display             block
 
       img
         display           block
 
     .meta
-      margin              20px 0 6px 0px
+      margin              20px 0 -10px 0px
 
       .profile
         color             #1aaf5d
@@ -817,64 +816,7 @@ span.collapsedtext
       opacity             .99
 
     .activity-actions
-      padding             0 0 14px 0
-
-      span.action-container
-        font-size         12px
-        color             #9c9c9c
-        font-weight       400
-
-        a
-          font-size       inherit
-          color           inherit
-          font-weight     inherit
-          noTextDeco()
-
-        a.count
-          display         inline-block
-          height          16px
-          line-height     16px
-          padding         0 4px
-          background      #dfdfdf
-          color           #747474
-          rounded         2px
-          margin-left     7px
-          font-size       11px
-
-        &~.action-container:before
-          content         ""
-          display         inline-block
-          size            3px, 3px
-          rounded         50%
-          background      #d3d3d3
-          font-size       8px
-          margin          0 3px 0 5px
-          vertical-align  middle
-
-        &.kdloader
-          width           auto
-          vertical-align  middle
-          margin-left     4px
-
-          &:before
-            display       none
-
-    .like-summary
-      height              33px
-      line-height         33px
-      bg                  color, #f7f7f7
-      font-size           12px
-      color               #5b5b5b
-      padding             0 0 0 14px
-
-      .profile
-        color             inherit
-        font-weight       600
-        noTextDeco()
-
-      strong
-        color             inherit
-        font-weight       600
+      display             none
 
 
   .comment-container
@@ -975,7 +917,7 @@ span.collapsedtext
     .kdlistitemview-comment
       // background          #f7f7f7
       // border-top          1px solid #e9e9e9
-      padding             0 15px 16px 50px
+      padding             8px 15px 3px 50px
       borderBox()
 
       &:hover .kdbutton.comment-menu
@@ -998,9 +940,9 @@ span.collapsedtext
       .avatarview
         display           block
         size              35px 35px
-        abs               0px 0 0 0px
+        abs               5px 0 0 0px
         rounded           50%
-        // border            1px solid #e4e4e4
+        border            2px solid #62D092
 
       a.profile
         font-size         14px
@@ -1010,7 +952,7 @@ span.collapsedtext
       .comment-body-container
         font-size         12px
         color             #4c4c4c
-        padding           10px 0 15px
+        padding           3px 0 15px
         line-height       18px
 
         p
@@ -1022,33 +964,7 @@ span.collapsedtext
               noTextDeco()
 
       .action-link
-        font-size         11px
-        color             #838383
-        noTextDeco()
-
-        &:before
-          content         ''
-          display         inline-block
-          size            3px 3px
-          rounded         50%
-          background      #d3d3d3
-          margin          -2px 7px 0 5px
-          vertical-align  middle
-
-        &.like-link:before
-          display         none
-
-      .like-count
-        noTextDeco()
-        display           inline-block
-        height            16px
-        line-height       16px
-        padding           0 4px
-        background        #dfdfdf
-        color             #747474
-        rounded           2px
-        margin-left       7px
-        font-size         11px
+        display           none
 
       time
         display           none //TEMP
