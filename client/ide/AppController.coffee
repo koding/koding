@@ -95,6 +95,7 @@ class IDEAppController extends AppController
 
         splitViewPanel = ideView.parent.parent
         @createStatusBar splitViewPanel
+        @createFindAndReplaceView splitViewPanel
 
         appView.emit 'KeyViewIsSet'
 
@@ -379,6 +380,30 @@ class IDEAppController extends AppController
 
   createStatusBar: (splitViewPanel) ->
     splitViewPanel.addSubView @statusBar = new IDE.StatusBar
+
+  createFindAndReplaceView: (splitViewPanel) ->
+    splitViewPanel.addSubView @findAndReplaceView = new AceFindAndReplaceView
+    @findAndReplaceView.hide()
+    @findAndReplaceView.on 'FindAndReplaceViewClosed', =>
+      @getActivePaneView().aceView?.ace.focus()
+      @isFindAndReplaceViewVisible = no
+
+  showFindReplaceView: (withReplaceMode) ->
+    view = @findAndReplaceView
+    @setFindAndReplaceViewDelegate()
+    @isFindAndReplaceViewVisible = yes
+    view.setViewHeight withReplaceMode
+    view.setTextIntoFindInput '' # FIXME: Set selected text if existss
+
+  hideFindAndReplaceView: ->
+    @findAndReplaceView.close no
+
+  setFindAndReplaceViewDelegate: ->
+    @findAndReplaceView.setDelegate @getActivePaneView()?.aceView or null
+
+  showFindAndReplaceViewIfNecessary: ->
+    if @isFindAndReplaceViewVisible
+      @showFindReplaceView @findAndReplaceView.mode is 'replace'
 
   doResize: ->
     @forEachSubViewInIDEViews_ 'editor', (editorPane) ->

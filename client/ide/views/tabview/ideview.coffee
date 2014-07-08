@@ -63,9 +63,14 @@ class IDE.IDEView extends IDE.WorkspaceTabView
       aceView   : editorPane.aceView # this is required for ace app. see AceApplicationTabView:6
 
     editorPane.once 'EditorIsReady', ->
-      editorPane.aceView.ace.on 'ace.change.cursor', (cursor) ->
-        appManager = KD.getSingleton 'appManager'
+      {ace}      = editorPane.aceView
+      appManager = KD.getSingleton 'appManager'
+
+      ace.on 'ace.change.cursor', (cursor) ->
         appManager.tell 'IDE', 'updateStatusBar', 'editor', { file, cursor }
+
+      ace.on 'FindAndReplaceViewRequested', (withReplaceMode) ->
+        appManager.tell 'IDE', 'showFindReplaceView', withReplaceMode
 
       callback editorPane
 
@@ -130,13 +135,25 @@ class IDE.IDEView extends IDE.WorkspaceTabView
     return unless pane
 
     KD.utils.defer ->
-      paneType = pane.getOptions().paneType
+      {paneType} = pane.getOptions()
+      appManager = KD.getSingleton 'appManager'
+
       if      paneType is 'editor'   then pane.aceView.ace.focus()
       else if paneType is 'terminal' then pane.webtermView?.setFocus yes
 
+      if paneType is 'editor'
+        appManager.tell 'IDE', 'setFindAndReplaceViewDelegate'
+        appManager.tell 'IDE', 'showFindAndReplaceViewIfNecessary'
+      else
+        appManager.tell 'IDE', 'hideFindAndReplaceView'
+
   click: ->
     super
-    KD.getSingleton('appManager').tell 'IDE', 'setActiveTabView', @tabView
+
+    appManager = KD.getSingleton 'appManager'
+
+    appManager.tell 'IDE', 'setActiveTabView', @tabView
+    appManager.tell 'IDE', 'setFindAndReplaceViewDelegate'
 
   openFile: (file, content, callback = noop) ->
     if @openFiles.indexOf(file) > -1
