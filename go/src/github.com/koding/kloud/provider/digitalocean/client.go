@@ -67,9 +67,8 @@ func (c *Client) Build(snapshotName, dropletName, username string) (*protocol.Pr
 
 	return &protocol.ProviderArtifact{
 		IpAddress:    droplet.IpAddress,
-		InstanceName: dropletName, // we don't use droplet.Name because it might have the cached name
+		InstanceName: dropletName,
 		InstanceId:   strconv.Itoa(droplet.Id),
-		Username:     username,
 	}, nil
 }
 

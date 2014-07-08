@@ -74,9 +74,6 @@ type ProviderArtifact struct {
 
 	// IpAddress defines the public ip address of the running machine.
 	IpAddress string
-
-	// Username defines the username on behalf the machine is being build.
-	Username string
 }
 
 // InfoArtifact should be returned from a Info method.
@@ -92,7 +89,26 @@ type InfoArtifact struct {
 type Deployer interface {
 	// Deploy can only be executed after a build. The machine needs to be
 	// publicly available.
-	Deploy(*ProviderArtifact) (*DeployArtifact, error)
+	Deploy(*DeployOptions) (*DeployArtifact, error)
+}
+
+// DeployOptions is passed to a Deploy method
+type DeployOptions struct {
+	// InstanceName should define the name/hostname of the created machine. It
+	// should be equal to the InstanceName that was passed via MachineOptions.
+	InstanceName string
+
+	// InstanceId should define a unique ID that defined the created machine.
+	// It's different than the machineID and is usually an unique id which is
+	// given by the third-party provider, for example DigitalOcean returns a
+	// droplet Id.
+	InstanceId string
+
+	// IpAddress defines the public ip address of the running machine.
+	IpAddress string
+
+	// Username defines the username to which the machine belongs.
+	Username string
 }
 
 // DeployArtifact should be returned from a Deploy Method
