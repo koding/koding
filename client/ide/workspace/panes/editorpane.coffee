@@ -23,8 +23,9 @@ class IDE.EditorPane extends IDE.Pane
       throw new TypeError 'You must pass file content to IDE.EditorPane'
 
     aceOptions =
-      delegate : @getDelegate()
-      createFindAndReplaceView: no
+      delegate                 : @getDelegate()
+      createBottomBar          : no
+      createFindAndReplaceView : no
 
     @addSubView @aceView = new AceView aceOptions, file
 
