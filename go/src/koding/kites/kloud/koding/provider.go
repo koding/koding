@@ -1,6 +1,8 @@
 package koding
 
 import (
+	"errors"
+
 	"github.com/koding/kloud/eventer"
 	"github.com/koding/kloud/machinestate"
 	"github.com/koding/kloud/protocol"
@@ -66,25 +68,66 @@ func (p *Provider) Name() string {
 }
 
 func (p *Provider) Build(opts *protocol.MachineOptions) (*protocol.ProviderArtifact, error) {
-	return nil, nil
+	o, err := p.NewClient(opts)
+	if err != nil {
+		return nil, err
+	}
+
+	if opts.InstanceName == "" {
+		return nil, errors.New("server name is empty")
+	}
+
+	imageId := DefaultImageId
+	// TODO: prevent this and throw an error in the future
+	flavorId := o.Builder.Flavor
+	if flavorId == "" {
+		flavorId = DefaultFlavorId
+	}
+
+	return o.Build(opts.InstanceName, imageId, flavorId)
 }
 
 func (p *Provider) Start(opts *protocol.MachineOptions) (*protocol.ProviderArtifact, error) {
-	return nil, nil
+	o, err := p.NewClient(opts)
+	if err != nil {
+		return nil, err
+	}
+
+	return o.Start()
 }
 
 func (p *Provider) Stop(opts *protocol.MachineOptions) error {
-	return nil
+	o, err := p.NewClient(opts)
+	if err != nil {
+		return err
+	}
+
+	return o.Stop()
 }
 
 func (p *Provider) Restart(opts *protocol.MachineOptions) error {
-	return nil
+	o, err := p.NewClient(opts)
+	if err != nil {
+		return err
+	}
+
+	return o.Restart()
 }
 
 func (p *Provider) Destroy(opts *protocol.MachineOptions) error {
-	return nil
+	o, err := p.NewClient(opts)
+	if err != nil {
+		return err
+	}
+
+	return o.Destroy()
 }
 
 func (p *Provider) Info(opts *protocol.MachineOptions) (*protocol.InfoArtifact, error) {
-	return nil, nil
+	o, err := p.NewClient(opts)
+	if err != nil {
+		return nil, err
+	}
+
+	return o.Info()
 }
