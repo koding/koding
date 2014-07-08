@@ -89,10 +89,13 @@ class AceFindAndReplaceView extends JView
     @show()
 
   resizeEditor: (height) ->
-    {ace} = @getDelegate()
-    ace.setHeight ace.getHeight() + @lastHeightTakenFromAce - height
-    ace.editor.resize yes
-    @lastHeightTakenFromAce = height
+    if @getDelegate()?.ace?
+      {ace} = @getDelegate()
+      return unless ace.editor
+
+      ace.setHeight ace.getHeight() + @lastHeightTakenFromAce - height
+      ace.editor.resize yes
+      @lastHeightTakenFromAce = height
 
   lastHeightTakenFromAce: 0
 
