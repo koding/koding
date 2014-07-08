@@ -139,8 +139,11 @@ module.exports = [
   "CommonViews/memberautocomplete.coffee",
   "CommonViews/editormodal.coffee",
 
+  "navigation/topnavigation.coffee",
+
   "navigation/navigationlist.coffee",
   "navigation/navigationlink.coffee",
+  "navigation/navigationvmitem.coffee",
   "navigation/navigationseparator.coffee",
   "navigation/navigationadminlink.coffee",
   "navigation/navigationinvitationlink.coffee",
@@ -280,6 +283,7 @@ module.exports = [
 
   "styl/appfn.styl",
   "styl/resurrection.styl",
+  "styl/resurrection.sidebar.styl",
   "styl/resurrection.account.dropdown.styl",
   "styl/resurrection.anims.styl",
   "styl/resurrection.commons.styl",

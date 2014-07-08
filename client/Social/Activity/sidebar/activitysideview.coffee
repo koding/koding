@@ -33,8 +33,9 @@ class ActivitySideView extends JView
         cssClass          : "activities"
 
     @header = new KDCustomHTMLView
-      tagName : 'h3'
-      partial : @getOption 'title'
+      tagName  : 'h3'
+      cssClass : 'sidebar-title'
+      partial  : @getOption 'title'
       # click   : @bound 'reload'
 
 

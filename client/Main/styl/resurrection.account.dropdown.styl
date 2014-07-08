@@ -13,10 +13,11 @@ resurrection.account.dropdown.styl
   height                    auto
   border                    none
   overflow                  visible
-  top                       53px
+  bottom                    64px
   width                     280px
   display                   none
   z-index                   1000
+  shadow                    0 5px 20px rgba(0,0,0,.5)
   fix()
   &.active
     display                 block
@@ -32,7 +33,7 @@ resurrection.account.dropdown.styl
     text-align              center
     z-index                 1
     size                    45px 55px
-    bg                      color,#212932
+    bg                      color #222428
     span
       margin-top            22px
       size                  20px, 20px
@@ -40,8 +41,8 @@ resurrection.account.dropdown.styl
   .content
     shadow                  0 0 21px 10px rgba(0,0,0,0.18)
     size                    100%, auto
-    bg                      color, #212932
-    rounded                 0 0 5px 5px
+    bg                      color #222428
+    rounded                 5px
     borderBox()
 
   &.notifications
@@ -51,12 +52,12 @@ resurrection.account.dropdown.styl
       r-sprite              app account-notifications
 
   &.group-switcher
-    right                   55px
+    left                    59px
     width                   238px
-    rounded                 0 0 5px 5px
+    rounded                 5px
     &.submenu
     &.submenu .content
-      rounded               0 0 0 5px
+      rounded               5px
     .tab
       hidden()
     .content

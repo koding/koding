@@ -156,15 +156,16 @@ class ActivityAppView extends KDView
 
     bounds = @sidebar.sections.messages.options.headerLink.getBounds()
 
-    top       = bounds.y - 310
-    left      = bounds.x + bounds.w + 40
-    arrowTop  = 310 + (bounds.h / 2) - 10 #10 = arrow height
+    top      = bounds.y - 310
+    left     = bounds.x + bounds.w + 40
+    arrowTop = 310 + (bounds.h / 2) - 10 #10 = arrow height
+    arrowTop = arrowTop + top  if top < 0
 
     modal = new PrivateMessageModal
       delegate     : this
       _lastMessage : @_lastMessage
       position     :
-        top        : top
+        top        : Math.max top, 0
         left       : left
       arrowTop     : arrowTop
 
