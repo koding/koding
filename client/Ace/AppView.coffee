@@ -71,7 +71,6 @@ class AceView extends JView
       $spans = @caretPosition.$ 'span'
 
       @ace.on 'ace.change.cursor', (cursor) =>
-        log '...........'
         $spans.eq(0).text ++cursor.row
         $spans.eq(1).text ++cursor.column
 
