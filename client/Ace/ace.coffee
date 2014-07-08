@@ -96,14 +96,21 @@ class Ace extends KDView
     @editor.getSession().selection.on 'changeCursor', (cursor)=>
       @emit "ace.change.cursor", @editor.getSession().getSelection().getCursor()
 
-    if @getOptions().enableShortcuts
+    {enableShortcuts, createFindAndReplaceView} = @getOptions()
+
+    if enableShortcuts
       @addKeyCombo "save",       "Ctrl-S",           @bound "requestSave"
-      @addKeyCombo "find",       "Ctrl-F", =>        @showFindReplaceView no
-      @addKeyCombo "replace",    "Ctrl-Shift-F", =>  @showFindReplaceView yes
       @addKeyCombo "fullscreen", "Ctrl-Enter", =>    @getDelegate().toggleFullscreen()
       @addKeyCombo "gotoLine",   "Ctrl-G",           @bound "showGotoLine"
       @addKeyCombo "gotoLineL",  "Ctrl-L",           @bound "showGotoLine"
       @addKeyCombo "settings",   "Ctrl-,",           noop # override default ace settings view
+
+      if createFindAndReplaceView
+        @addKeyCombo "find",    "Ctrl-F", =>        @showFindReplaceView no
+        @addKeyCombo "replace", "Ctrl-Shift-F", =>  @showFindReplaceView yes
+      else
+        @addKeyCombo "find",    "Ctrl-F", =>        @emit 'FindAndReplaceViewRequested', no
+        @addKeyCombo "replace", "Ctrl-Shift-F", =>  @emit 'FindAndReplaceViewRequested', yes
 
       # these features are broken with IDE, should reimplement again
       # @addKeyCombo "saveAs",     "Ctrl-Shift-S",     @bound "requestSaveAs"
