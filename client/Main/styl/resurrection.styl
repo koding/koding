@@ -50,6 +50,9 @@ pre
 #kdmaincontainer
   width             auto
   // vendor            transform, translateX(0)
+  #main-sidebar
+    hidden()
+
   &.fullscreen
     width             100%!important
     left              0!important
@@ -65,7 +68,11 @@ pre
     #main-header
       hidden()
 
+
   &.with-sidebar
+
+    #main-sidebar
+      visible()
 
     #main-header
       hidden()
