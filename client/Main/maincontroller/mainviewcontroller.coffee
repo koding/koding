@@ -95,14 +95,13 @@ class MainViewController extends KDViewController
 
   setViewState: (options = {}) ->
 
-    {dock}           = KD.singletons
     {behavior, name} = options
 
     html     = document.documentElement
     mainView = @getView()
 
     fullSizeApps = ['Login']
-    appsWithDock = [
+    appsWithSidebar = [
       'Activity', 'Members', 'content-display', 'Apps', 'Dashboard', 'Account'
       'Environments', 'Bugs'
     ]
@@ -111,6 +110,6 @@ class MainViewController extends KDViewController
     then KDView.setElementClass html, 'add', 'app'
     else KDView.setElementClass html, 'remove', 'app'
 
-    if isApp or name in appsWithDock
-    then dock.getView().show()
-    else dock.getView().hide()
+    if isApp or name in appsWithSidebar
+    then mainView.setClass 'with-sidebar'
+    else mainView.unsetClass 'with-sidebar'

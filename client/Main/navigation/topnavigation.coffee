@@ -23,12 +23,14 @@ class TopNavigation extends KDCustomHTMLView
 
   viewAppended: ->
 
-    @createItem data  for data in menu
+    @createItem options  for options in menu
 
 
-  createItem: (data) ->
+  createItem: (options) ->
 
-    @addSubView @menu[data.appName] = new CustomLinkView href : data.href
+    options.cssClass = options.appName.toLowerCase()
+
+    @addSubView @menu[options.appName] = new CustomLinkView options
 
 
   setActiveItem: (instance, view, options) ->

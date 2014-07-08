@@ -14,6 +14,9 @@ type Channel struct {
 	// unique identifier of the channel
 	Id int64 `json:"id,string"`
 
+	// Token holds the uuid for interoperability with the bongo-client
+	Token string `json:"token"`
+
 	// Name of the channel
 	Name string `json:"name"                         sql:"NOT NULL;TYPE:VARCHAR(200);"`
 
@@ -25,10 +28,6 @@ type Channel struct {
 
 	// Purpose of the channel
 	Purpose string `json:"purpose"`
-
-	// Secret key of the channel for event propagation purposes
-	// we can put this key into another table?
-	SecretKey string `json:"-"`
 
 	// Type of the channel
 	TypeConstant string `json:"typeConstant"         sql:"NOT NULL;TYPE:VARCHAR(100);"`
@@ -73,7 +72,6 @@ func NewChannel() *Channel {
 		CreatorId:       0,
 		GroupName:       Channel_KODING_NAME,
 		Purpose:         "",
-		SecretKey:       "",
 		TypeConstant:    Channel_TYPE_DEFAULT,
 		PrivacyConstant: Channel_PRIVACY_PRIVATE,
 	}
@@ -94,6 +92,7 @@ func (c *Channel) BeforeCreate() error {
 	c.CreatedAt = time.Now().UTC()
 	c.UpdatedAt = time.Now().UTC()
 	c.DeletedAt = ZeroDate()
+	c.Token = NewToken(c.CreatedAt).String()
 
 	return c.MarkIfExempt()
 }
@@ -179,13 +178,13 @@ func (c *Channel) Create() error {
 func (c *Channel) CreateRaw() error {
 	insertSql := "INSERT INTO " +
 		c.TableName() +
-		` ("name","creator_id","group_name","purpose","secret_key","type_constant",` +
+		` ("name","creator_id","group_name","purpose","type_constant",` +
 		`"privacy_constant", "created_at", "updated_at", "deleted_at")` +
-		"VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10) " +
+		"VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9) " +
 		"RETURNING ID"
 
 	return bongo.B.DB.CommonDB().QueryRow(insertSql, c.Name, c.CreatorId,
-		c.GroupName, c.Purpose, c.SecretKey, c.TypeConstant, c.PrivacyConstant,
+		c.GroupName, c.Purpose, c.TypeConstant, c.PrivacyConstant,
 		c.CreatedAt, c.UpdatedAt, c.DeletedAt).Scan(&c.Id)
 }
 
