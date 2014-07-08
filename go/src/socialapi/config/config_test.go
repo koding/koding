@@ -9,6 +9,8 @@ import (
 
 const (
 	testConfigPath = "./test.toml"
+	env            = "MehmetAli"
+	hostname       = "Koding"
 )
 
 func TestConfigMustRead(t *testing.T) {
@@ -21,13 +23,18 @@ func TestConfigMustRead(t *testing.T) {
 			So(func() { MustRead("testConfigPath") }, ShouldPanic)
 		})
 		Convey("setting socialapi env should override config", func() {
-			env := "MehmetAli"
 			err := os.Setenv("SOCIAL_API_ENV", env)
 			So(err, ShouldBeNil)
 			// just to be sure about the function will not panic
 			So(func() { MustRead(testConfigPath) }, ShouldNotPanic)
 			a := MustRead(testConfigPath)
 			So(a.Environment, ShouldEqual, env)
+		})
+		Convey("setting socialapi hostname should override config", func() {
+			err := os.Setenv("SOCIAL_API_HOSTNAME", hostname)
+			So(err, ShouldBeNil)
+			aPath := MustRead(testConfigPath)
+			So(aPath.Uri, ShouldEqual, hostname)
 		})
 	})
 }
