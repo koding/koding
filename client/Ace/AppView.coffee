@@ -32,9 +32,7 @@ class AceView extends JView
     else
       @findAndReplaceView = new KDCustomHTMLView
 
-    @caretPosition = new KDCustomHTMLView
-
-    if @getOptions().createBottomBar
+    if @getOption 'createBottomBar'
       @caretPosition  = new KDCustomHTMLView
         tagName       : 'div'
         cssClass      : 'caret-position section'
@@ -199,7 +197,7 @@ class AceView extends JView
     @_windowDidResize()
 
   pistachio:->
-    hasBottomBar = @getOptions 'createBottomBar'
+    hasBottomBar = @getOption 'createBottomBar'
     template     = """
       <div class="kdview editor-main">
         {{> @ace}}
