@@ -70,12 +70,12 @@ class AceFindAndReplaceView extends JView
     'shift+enter'  : (e) =>
       @findPrev() if input is 'find'
 
-  close: ->
+  close: (fireEvent = yes) ->
     @hide()
     @resizeEditor 0
     @findInput.setValue    ""
     @replaceInput.setValue ""
-    @emit 'FindAndReplaceViewClosed'
+    @emit 'FindAndReplaceViewClosed'  if fireEvent
 
   setViewHeight: (isReplaceMode) ->
     height   = 31
