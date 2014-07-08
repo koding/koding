@@ -10,7 +10,7 @@ class ActivityAppView extends KDView
 
   constructor:(options = {}, data)->
 
-    options.cssClass   = 'content-page activity'
+    options.cssClass   = 'content-page activity clearfix'
     options.cssClass   = KD.utils.curry 'group', options.cssClass  unless isKoding()
     options.domId      = 'content-page-activity'
 
