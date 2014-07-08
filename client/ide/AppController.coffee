@@ -91,10 +91,10 @@ class IDEAppController extends AppController
       panel.once 'viewAppended', =>
         ideView = panel.getPaneByName 'editorPane'
         @setActiveTabView ideView.tabView
-        @registerIDEView ideView
+        @registerIDEView  ideView
 
         splitViewPanel = ideView.parent.parent
-        splitViewPanel.addSubView @statusBar = new IDE.StatusBar
+        @createStatusBar splitViewPanel
 
         appView.emit 'KeyViewIsSet'
 
@@ -376,6 +376,9 @@ class IDEAppController extends AppController
       @contentSearch.once 'KDObjectWillBeDestroyed', => @contentSearch = null
       @contentSearch.once 'ViewNeedsToBeShown', (view) =>
         @activeTabView.emit 'ViewNeedsToBeShown', view
+
+  createStatusBar: (splitViewPanel) ->
+    splitViewPanel.addSubView @statusBar = new IDE.StatusBar
 
   doResize: ->
     @forEachSubViewInIDEViews_ 'editor', (editorPane) ->
