@@ -14,6 +14,7 @@ class AceView extends JView
     super options, file
 
     options.advancedSettings         ?= no
+    options.createBottomBar          ?= yes
     options.createFindAndReplaceView ?= yes
 
     @listenWindowResize()
@@ -31,10 +32,13 @@ class AceView extends JView
     else
       @findAndReplaceView = new KDCustomHTMLView
 
-    @caretPosition    = new KDCustomHTMLView
-      tagName         : 'div'
-      cssClass        : 'caret-position section'
-      partial         : '<span>1</span>:<span>1</span>'
+    @caretPosition = new KDCustomHTMLView
+
+    if @getOptions().createBottomBar
+      @caretPosition  = new KDCustomHTMLView
+        tagName       : 'div'
+        cssClass      : 'caret-position section'
+        partial       : '<span>1</span>:<span>1</span>'
 
     @advancedSettings = new KDButtonViewWithMenu
       style           : 'editor-advanced-settings-menu'
@@ -49,12 +53,13 @@ class AceView extends JView
 
     @advancedSettings.disable()
 
-    unless options.advancedSettings
-      @advancedSettings.hide()
+    @advancedSettings.hide()  unless options.advancedSettings
 
     @setViewListeners()
 
   setViewListeners:->
+    hasBottomBar = @getOptions().createBottomBar
+
     @ace.on 'ace.ready', => @advancedSettings.enable()
 
     @ace.on 'ace.changeSetting', (setting, value) =>
@@ -62,11 +67,13 @@ class AceView extends JView
 
     @advancedSettings.emit 'ace.settingsView.setDefaults', @ace
 
-    $spans = @caretPosition.$ 'span'
+    if hasBottomBar
+      $spans = @caretPosition.$ 'span'
 
-    @ace.on 'ace.change.cursor', (cursor) =>
-      $spans.eq(0).text ++cursor.row
-      $spans.eq(1).text ++cursor.column
+      @ace.on 'ace.change.cursor', (cursor) =>
+        log '...........'
+        $spans.eq(0).text ++cursor.row
+        $spans.eq(1).text ++cursor.column
 
     @ace.on 'ace.requests.saveAs', (contents, options) =>
       @openSaveDialog options
@@ -193,13 +200,24 @@ class AceView extends JView
     @_windowDidResize()
 
   pistachio:->
-    """
-    <div class="kdview editor-main">
-      {{> @ace}}
-      <div class="editor-bottom-bar clearfix">
-        {{> @caretPosition}}
-        {{> @advancedSettings}}
+    hasBottomBar = @getOptions 'createBottomBar'
+    template     = """
+      <div class="kdview editor-main">
+        {{> @ace}}
+        {{> @findAndReplaceView}}
       </div>
-      {{> @findAndReplaceView}}
-    </div>
     """
+
+    if hasBottomBar
+      template = """
+        <div class="kdview editor-main">
+          {{> @ace}}
+          <div class="editor-bottom-bar clearfix">
+            {{> @caretPosition}}
+            {{> @advancedSettings}}
+          </div>
+          {{> @findAndReplaceView}}
+        </div>
+      """
+
+    return template
