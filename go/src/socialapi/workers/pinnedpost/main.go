@@ -24,7 +24,8 @@ func main() {
 	m := manager.New()
 	m.Controller(handler)
 
-	m.HandleFunc("api.message_reply_created", (*pinnedpost.Controller).ReplyCreated)
+	m.HandleFunc("api.channel_message_created", (*pinnedpost.Controller).MessageCreated)
+	m.HandleFunc("api.message_reply_created", (*pinnedpost.Controller).MessageReplyCreated)
 
 	// create message handler
 	r.Listen(m)
