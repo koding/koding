@@ -13,15 +13,22 @@ class AceView extends JView
 
     super options, file
 
+    options.createFindAndReplaceView ?= yes
+
     @listenWindowResize()
 
-    @ace = new Ace
+    aceOptions        =
       delegate        : this
       enableShortcuts : yes
-    , file
+      createFindAndReplaceView : options.createFindAndReplaceView
 
-    @findAndReplaceView = new AceFindAndReplaceView delegate: this
-    @findAndReplaceView.hide()
+    @ace = new Ace aceOptions, file
+
+    if options.createFindAndReplaceView
+      @findAndReplaceView = new AceFindAndReplaceView delegate: this
+      @findAndReplaceView.hide()
+    else
+      @findAndReplaceView = new KDCustomHTMLView
 
     @setViewListeners()
 
