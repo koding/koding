@@ -1,12 +1,10 @@
 package koding
 
 import (
-	"errors"
-
-	"github.com/koding/kloud/api/openstack"
 	"github.com/koding/kloud/eventer"
 	"github.com/koding/kloud/machinestate"
 	"github.com/koding/kloud/protocol"
+	"github.com/koding/kloud/provider/openstack"
 
 	"github.com/koding/logging"
 )
@@ -38,27 +36,29 @@ type Provider struct {
 	Push func(string, int, machinestate.State)
 }
 
-func (p *Provider) NewClient(opts *protocol.MachineOptions) (*openstack.Openstack, error) {
-	osClient, err := openstack.New(authURL, "rackspace", kodingCredential, opts.Builder)
-	if err != nil {
+func (p *Provider) NewClient(opts *protocol.MachineOptions) (*openstack.OpenstackClient, error) {
+	o := &openstack.OpenstackClient{
+		Log: p.Log,
+		Push: func(msg string, percentage int, state machinestate.State) {
+			p.Log.Info("%s - %s ==> %s", opts.MachineId, opts.Username, msg)
+
+			opts.Eventer.Push(&eventer.Event{
+				Message:    msg,
+				Status:     state,
+				Percentage: percentage,
+			})
+		},
+		AuthURL:       authURL,
+		ProviderName:  "rackspace",
+		CredentialRaw: kodingCredential,
+		BuilderRaw:    opts.Builder,
+	}
+
+	if err := o.Initialize(); err != nil {
 		return nil, err
 	}
 
-	if opts.Eventer == nil {
-		return nil, errors.New("Eventer is not defined.")
-	}
-
-	p.Push = func(msg string, percentage int, state machinestate.State) {
-		p.Log.Info("%s - %s ==> %s", opts.MachineId, opts.Username, msg)
-
-		opts.Eventer.Push(&eventer.Event{
-			Message:    msg,
-			Status:     state,
-			Percentage: percentage,
-		})
-	}
-
-	return osClient, nil
+	return o, nil
 }
 
 func (p *Provider) Name() string {

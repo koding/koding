@@ -1,11 +1,9 @@
 package openstack
 
 import (
-	"errors"
 	"fmt"
 
 	os "github.com/koding/kloud/api/openstack"
-	"github.com/koding/kloud/eventer"
 	"github.com/koding/kloud/machinestate"
 	"github.com/koding/kloud/protocol"
 	"github.com/koding/kloud/waitstate"
@@ -15,37 +13,18 @@ import (
 
 type OpenstackClient struct {
 	*os.Openstack
-	Log  logging.Logger
-	Push func(string, int, machinestate.State)
+	Log           logging.Logger
+	Push          func(string, int, machinestate.State)
+	AuthURL       string
+	ProviderName  string
+	CredentialRaw map[string]interface{}
+	BuilderRaw    map[string]interface{}
 }
 
-func (p *Provider) NewClient(opts *protocol.MachineOptions) (*OpenstackClient, error) {
-	client, err := os.New(p.AuthURL, p.ProviderName, opts.Credential, opts.Builder)
-	if err != nil {
-		return nil, err
-	}
-
-	if opts.Eventer == nil {
-		return nil, errors.New("Eventer is not defined.")
-	}
-
-	push := func(msg string, percentage int, state machinestate.State) {
-		p.Log.Info("%s - %s ==> %s", opts.MachineId, opts.Username, msg)
-
-		opts.Eventer.Push(&eventer.Event{
-			Message:    msg,
-			Status:     state,
-			Percentage: percentage,
-		})
-	}
-
-	c := &OpenstackClient{
-		Push: push,
-		Log:  p.Log,
-	}
-	c.Openstack = client
-
-	return c, nil
+func (o *OpenstackClient) Initialize() error {
+	var err error
+	o.Openstack, err = os.New(o.AuthURL, o.ProviderName, o.CredentialRaw, o.BuilderRaw)
+	return err
 }
 
 func (o *OpenstackClient) Build(instanceName, imageId, flavorId string) (*protocol.ProviderArtifact, error) {

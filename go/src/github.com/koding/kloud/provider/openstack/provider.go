@@ -3,6 +3,7 @@ package openstack
 import (
 	"errors"
 
+	"github.com/koding/kloud/eventer"
 	"github.com/koding/kloud/machinestate"
 	"github.com/koding/kloud/protocol"
 
@@ -27,6 +28,31 @@ type Provider struct {
 
 func (p *Provider) Name() string {
 	return p.ProviderName
+}
+
+func (p *Provider) NewClient(opts *protocol.MachineOptions) (*OpenstackClient, error) {
+	o := &OpenstackClient{
+		Log: p.Log,
+		Push: func(msg string, percentage int, state machinestate.State) {
+			p.Log.Info("%s - %s ==> %s", opts.MachineId, opts.Username, msg)
+
+			opts.Eventer.Push(&eventer.Event{
+				Message:    msg,
+				Status:     state,
+				Percentage: percentage,
+			})
+		},
+		AuthURL:       p.AuthURL,
+		ProviderName:  p.ProviderName,
+		CredentialRaw: opts.Credential,
+		BuilderRaw:    opts.Builder,
+	}
+
+	if err := o.Initialize(); err != nil {
+		return nil, err
+	}
+
+	return o, nil
 }
 
 func (p *Provider) Build(opts *protocol.MachineOptions) (*protocol.ProviderArtifact, error) {
