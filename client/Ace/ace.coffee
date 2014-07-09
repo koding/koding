@@ -414,7 +414,10 @@ class Ace extends KDView
             details.destroy()
 
   saveAllFiles: ->
-    {aceViews} = KD.singletons.appManager.get("Ace")?.getView()
+    aceApp = KD.singletons.appManager.get 'Ace'
+    return unless aceApp
+
+    {aceViews} = aceApp.getView()
 
     for path, aceView of aceViews when aceView.data.parentPath isnt "localfile:"
       aceView.ace.requestSave()
