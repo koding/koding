@@ -25,6 +25,7 @@ class MachineList extends KDModalView
       cssClass : 'hidden'
 
     @machineListController = new KDListViewController
+      selection         : yes
       viewOptions       :
         type            : 'machine'
         wrapper         : yes
