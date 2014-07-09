@@ -103,6 +103,7 @@ class Ace extends KDView
       @addKeyCombo "fullscreen", "Ctrl-Enter", =>    @getDelegate().toggleFullscreen()
       @addKeyCombo "gotoLine",   "Ctrl-G",           @bound "showGotoLine"
       @addKeyCombo "gotoLineL",  "Ctrl-L",           @bound "showGotoLine"
+      @addKeyCombo "saveAll",    "Ctrl-Alt-S",       @bound "saveAllFiles"
       @addKeyCombo "settings",   "Ctrl-,",           noop # override default ace settings view
 
       if createFindAndReplaceView
@@ -115,7 +116,6 @@ class Ace extends KDView
       # these features are broken with IDE, should reimplement again
       # @addKeyCombo "saveAs",     "Ctrl-Shift-S",     @bound "requestSaveAs"
       # @addKeyCombo "preview",    "Ctrl-Shift-P", =>  @getDelegate().preview()
-      # @addKeyCombo "saveAll",    "Ctrl-Alt-S",       @bound "saveAllFiles"
       # @addKeyCombo "closeTab",   "Ctrl-W", "Ctrl-W", @bound "closeTab"
 
   showFindReplaceView: (openReplaceView) ->
@@ -414,7 +414,8 @@ class Ace extends KDView
             details.destroy()
 
   saveAllFiles: ->
-    {aceViews} = KD.singletons.appManager.get("Ace").getView()
+    {aceViews} = KD.singletons.appManager.get("Ace")?.getView()
+
     for path, aceView of aceViews when aceView.data.parentPath isnt "localfile:"
       aceView.ace.requestSave()
       aceView.ace.once "FileContentSynced", -> @removeModifiedFromTab aceView
