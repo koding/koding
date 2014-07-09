@@ -294,6 +294,10 @@ unmarkAsTroll = (data, callback)->
   url = "/trollmode/#{data.accountId}"
   deleteReq url, data, callback
 
+getSiteMap = (data, callback)->
+  url = data.name
+  getXml url, {}, callback
+
 post = (url, data, callback)->
   getNextApiURL (err, apiurl)->
     return callback err if err
@@ -312,6 +316,14 @@ deleteReq = (url, callback)->
       url    : "#{apiurl}#{url}"
       json   : true
       method : 'DELETE'
+    , wrapCallback callback
+
+getXml = (url, data, callback)->
+  getNextApiURL (err, apiurl)->
+    return callback err if err
+    request
+      url    : "#{apiurl}#{url}"
+      method : 'GET'
     , wrapCallback callback
 
 get = (url, data, callback)->
@@ -365,4 +377,5 @@ module.exports = {
   followUser
   unfollowUser
   createGroupNotification
+  getSiteMap
 }
