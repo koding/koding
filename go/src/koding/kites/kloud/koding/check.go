@@ -51,7 +51,7 @@ func (t *totalLimit) Check(ctx *CheckContext) error {
 	}
 
 	if len(filteredServers) >= t.total {
-		fmt.Errorf("total limit of %d machines has been reached.", t.total)
+		return fmt.Errorf("total limit of %d machines has been reached", t.total)
 	}
 
 	return nil
