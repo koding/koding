@@ -50,22 +50,32 @@ class ComputeController extends KDController
         callback null, []
 
 
-  fetchMachines: (callback = noop)->
+  fetchMachines: do (queue=[])->
 
-    if @machines
-      callback null, @machines
-      info "Machines returned from cache."
-      return
+    (callback = noop)-> KD.singletons.mainController.ready =>
 
-    @fetchStacks (err, stacks)=>
-      return callback err  if err?
+      if @machines
+        callback null, @machines
+        info "Machines returned from cache."
+        return
 
-      machines = []
-      stacks.forEach (stack)->
-        stack.machines.forEach (machine)->
-          machines.push machine
+      return  if (queue.push callback) > 1
 
-      callback null, @machines = machines
+      @fetchStacks (err, stacks)=>
+
+        if err?
+          cb err  for cb in queue
+          queue = []
+          return
+
+        machines = []
+        stacks.forEach (stack)->
+          stack.machines.forEach (machine)->
+            machines.push machine
+
+        @machines = machines
+        cb null, machines  for cb in queue
+        queue = []
 
 
   fetchMachine: (idOrUid, callback = noop)->
