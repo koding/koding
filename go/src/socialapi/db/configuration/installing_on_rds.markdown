@@ -1,9 +1,11 @@
-# steps to create an instance on Amazon RDS
+### steps to create an instance on Amazon RDS
 
 1) Select Postgres from page
+
 http://note.io/1jreCpl
 
 2) Use Multi AZ Option
+
 http://note.io/1jreUwl
 
 3)
