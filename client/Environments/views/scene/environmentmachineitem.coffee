@@ -18,103 +18,25 @@ class EnvironmentMachineItem extends EnvironmentItem
 
   viewAppended: ->
 
-    { label, provider, uid, status } = machine = @getData()
+    machine = @getData()
+    @addSubView @machineItem = new MachineItem {}, machine
+
     { computeController } = KD.singletons
-
-    { Running, NotInitialized, Terminated } = Machine.State
-
-    @addSubView new KDCustomHTMLView
-      partial : "<span class='toggle'></span>"
-
-    @addSubView @title = new KDCustomHTMLView
-      partial : "<h3>#{label or provider or uid}<cite>#{provider}</cite></h3>"
-
-    @addSubView @ipAddress = new KDCustomHTMLView
-      partial  : @getIpLink()
-
-    @addSubView @state = new KDCustomHTMLView
-      tagName  : "span"
-      cssClass : "state"
-
-    @addSubView @statusToggle = new KodingSwitch
-      cssClass     : "tiny"
-      defaultValue : status.state is Running
-      callback     : (state)->
-        if state
-        then computeController.start machine
-        else computeController.stop machine
-
-    @addSubView @progress = new KDProgressBarView
-      cssClass : "progress"
-
-    @addSubView @terminalIcon = new KDCustomHTMLView
-      tagName  : "span"
-      cssClass : "terminal"
-      click    : @lazyBound "openTerminal", {}
-
-    if status.state in [ NotInitialized, Terminated ]
-      @addSubView @initView = new InitializeMachineView
-      @initView.on "Initialize", ->
-        computeController.build machine
-        @setClass 'hidden-all'
 
     computeController.on "build-#{machine._id}",   @bound 'invalidateMachine'
     computeController.on "destroy-#{machine._id}", @bound 'invalidateMachine'
-
-    computeController.on "public-#{machine._id}", (event)=>
-
-      if event.percentage?
-
-        @progress.updateBar event.percentage
-
-        if event.percentage < 100 then @setClass 'loading busy'
-        else return KD.utils.wait 1000, =>
-          @unsetClass 'loading busy'
-          @updateState event
-
-      else
-
-        @unsetClass 'loading busy'
-
-      @updateState event
-
-    computeController.info machine
-
-
-  updateState:(event)->
-
-    {status, reverted} = event
-
-    return unless status
-
-    {Running, Starting, NotInitialized, Terminated} = Machine.State
-
-    if reverted
-      warn "State reverted!"
-      if status in [ NotInitialized, Terminated ] and @initView?
-        @initView.unsetClass 'hidden-all'
-
-    @unsetClass stateClasses
-    @setClass status.toLowerCase()
-
-    if status in [ Running, Starting ]
-    then @statusToggle.setOn no
-    else @statusToggle.setOff no
-
-    @getData().jMachine.setAt "status.state", status
-    @state.updatePartial status
 
 
   invalidateMachine:(event)->
 
     if event.percentage is 100
 
-      machine = @getData()
+      machine = @machineItem.getData()
       KD.remote.api.JMachine.one machine._id, (err, newMachine)=>
         if err then warn ".>", err
         else
-          @setData new Machine machine: newMachine
-          @ipAddress.updatePartial @getIpLink()
+          @machineItem.setData new Machine machine: newMachine
+          @machineItem.ipAddress.updatePartial @machineItem.getIpLink()
 
         if /^build/.test event.eventId
           KD.utils.wait 3000, =>
@@ -125,7 +47,7 @@ class EnvironmentMachineItem extends EnvironmentItem
 
   contextMenuItems: ->
 
-    machine = @getData()
+    machine = @machineItem.getData()
 
     return if KD.isGuest()
 
@@ -157,7 +79,7 @@ class EnvironmentMachineItem extends EnvironmentItem
 
       'Launch Terminal'   :
         disabled          : !running
-        callback          : @lazyBound "openTerminal", {}
+        callback          : @machineItem.lazyBound "openTerminal", {}
         separator         : yes
 
       'Delete'            :
@@ -175,12 +97,6 @@ class EnvironmentMachineItem extends EnvironmentItem
           callback        : @lazyBound "runBuildScript", inTerminal = no
 
     return items
-
-
-  openTerminal:(options = {})->
-
-    options.machine = @getData()
-    new TerminalModal options
 
 
   confirmDestroy:->
@@ -226,7 +142,7 @@ class EnvironmentMachineItem extends EnvironmentItem
 
   showBuildScriptEditorModal: ->
 
-    machine = @getData()
+    machine = @machineItem.getData()
 
     @reviveProvisioner (err, provisioner)->
 
@@ -271,13 +187,16 @@ class EnvironmentMachineItem extends EnvironmentItem
 
   runBuildScript: (inTerminal = yes)->
 
-    machine = @getData()
+    machine = @machineItem.getData()
 
     { status: { state } } = machine
     unless state is Machine.State.Running
       return new KDNotificationView
         title : "Machine is not running."
 
+    # There is a race condition for new machines
+    # which doesn't have correct stack as @parent
+    # FIXME ~ GG
     envVariables = ""
     for key, value of @parent.getData().config or {}
       envVariables += """export #{key}="#{value}"\n"""
@@ -332,7 +251,7 @@ class EnvironmentMachineItem extends EnvironmentItem
 
             return
 
-          modal = @openTerminal
+          modal = @machineItem.openTerminal
             title         : "Running init script for #{machine.getName()}..."
             command       : command
             readOnly      : yes
@@ -356,18 +275,3 @@ class EnvironmentMachineItem extends EnvironmentItem
               closeManually : no
             }
 
-
-  getIpLink:->
-
-    { ipAddress, status:{state} } = @getData().jMachine
-    { Running, Rebooting } = Machine.State
-
-    if ipAddress? and state in [ Running, Rebooting ]
-
-      """
-        <a href="http://#{ipAddress}" target="_blank" title="#{ipAddress}">
-          <span class='url'>#{ipAddress}</span>
-        </a>
-      """
-
-    else ""
