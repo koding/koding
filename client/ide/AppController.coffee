@@ -15,6 +15,7 @@ class IDEAppController extends AppController
       'split vertically'    : 'splitVertically'
       'split horizontally'  : 'splitHorizontally'
       'merge splitview'     : 'mergeSplitView'
+      'save all files'      : 'saveAllFiles'
       'create new file'     : 'createNewFile'
       'create new terminal' : 'createNewTerminal'
       'create new browser'  : 'createNewBrowser'
@@ -31,6 +32,7 @@ class IDEAppController extends AppController
       { command: 'split vertically',    binding: 'ctrl+alt+v', global: yes }
       { command: 'split horizontally',  binding: 'ctrl+alt+h', global: yes }
       { command: 'merge splitview',     binding: 'ctrl+alt+m', global: yes }
+      { command: 'save all files',      binding: 'ctrl+alt+s', global: yes }
       { command: 'create new file',     binding: 'ctrl+alt+n', global: yes }
       { command: 'create new terminal', binding: 'ctrl+alt+t', global: yes }
       { command: 'create new browser',  binding: 'ctrl+alt+b', global: yes }

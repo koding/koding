@@ -63,6 +63,7 @@ class IDE.ShortcutsView extends KDView
 
     'Editor Shortcuts':
       'Save'                   : 'Meta-S'
+      'Save All'               : 'Ctrl-Alt-S'
       'Find'                   : 'Meta-F'
       'Find next'              : { Others: 'Ctrl-K',         Apple: 'Meta-G'       }
       'Find previous'          : { Others: 'Ctrl-Shift-K',   Apple: 'Meta-Shift-G' }
