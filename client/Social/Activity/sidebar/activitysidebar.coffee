@@ -339,11 +339,6 @@ class ActivitySidebar extends KDCustomScrollView
     {activityController} = KD.singletons
     {slug, socialApiChannelId} = KD.getGroup()
 
-    @wrapper.addSubView new KDCustomHTMLView
-      tagName  : 'h3'
-      cssClass : 'sidebar-title'
-      partial  : 'MY FEED'
-
     @wrapper.addSubView @public = new CustomLinkView
       title    : 'Public Feed'
       href     : '/Activity/Public'
