@@ -40,24 +40,24 @@ func freeLimiter() Limiter {
 	)
 }
 
-func (t *totalLimit) Check() error {
+func (t *totalLimit) Check(ctx *CheckContext) error {
 	return nil
 }
 
-func (c *concurrentLimit) Check() error {
+func (c *concurrentLimit) Check(ctx *CheckContext) error {
 	return nil
 }
 
-func (t *timeoutLimit) Check() error {
+func (t *timeoutLimit) Check(ctx *CheckContext) error {
 	return nil
 }
 
 // CheckLimits checks the given user limits
-func (p *Provider) CheckLimits(plan string) error {
+func (p *Provider) CheckLimits(plan string, ctx *CheckContext) error {
 	l, ok := limits[plan]
 	if !ok {
 		fmt.Errorf("plan %s not found", plan)
 	}
 
-	return l.Check()
+	return l.Check(ctx)
 }

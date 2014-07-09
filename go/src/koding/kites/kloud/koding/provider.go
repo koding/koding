@@ -68,7 +68,7 @@ func (p *Provider) Name() string {
 }
 
 func (p *Provider) Build(opts *protocol.MachineOptions) (*protocol.ProviderArtifact, error) {
-	o, err := p.NewClient(opts)
+	client, err := p.NewClient(opts)
 	if err != nil {
 		return nil, err
 	}
@@ -79,16 +79,22 @@ func (p *Provider) Build(opts *protocol.MachineOptions) (*protocol.ProviderArtif
 
 	imageId := DefaultImageId
 	// TODO: prevent this and throw an error in the future
-	flavorId := o.Builder.Flavor
+	flavorId := client.Builder.Flavor
 	if flavorId == "" {
 		flavorId = DefaultFlavorId
 	}
 
-	if err := p.CheckLimits("free"); err != nil {
+	ctx := &CheckContext{
+		username: opts.Username,
+		api:      client,
+	}
+
+	// TODO pass plan later
+	if err := p.CheckLimits("free", ctx); err != nil {
 		return nil, err
 	}
 
-	return o.Build(opts.InstanceName, imageId, flavorId)
+	return client.Build(opts.InstanceName, imageId, flavorId)
 }
 
 func (p *Provider) Start(opts *protocol.MachineOptions) (*protocol.ProviderArtifact, error) {
