@@ -22,7 +22,7 @@ type Kloud struct {
 	Log logging.Logger
 
 	// Providers is responsible for creating machines and handling them.
-	Providers map[string]protocol.Provider
+	providers map[string]protocol.Provider
 
 	// Storage is used to store persistent data which is used by the Provider
 	// during certain actions
@@ -41,9 +41,10 @@ type Kloud struct {
 // NewKloud creates a new Kloud instance with default providers.
 func NewKloud() *Kloud {
 	kld := &Kloud{
-		idlock:   idlock.New(),
-		Log:      logging.NewLogger(NAME),
-		Eventers: make(map[string]eventer.Eventer),
+		idlock:    idlock.New(),
+		Log:       logging.NewLogger(NAME),
+		Eventers:  make(map[string]eventer.Eventer),
+		providers: make(map[string]protocol.Provider),
 	}
 
 	kld.initializeProviders()
@@ -55,20 +56,37 @@ func (k *Kloud) initializeProviders() {
 	// to disable std log package.
 	log.SetOutput(ioutil.Discard)
 
-	k.Providers = map[string]protocol.Provider{
-		"digitalocean": &digitalocean.Provider{
-			Log: logging.NewLogger("digitalocean"),
-		},
-		"rackspace": &openstack.Provider{
-			Log:          logging.NewLogger("rackspace"),
-			AuthURL:      "https://identity.api.rackspacecloud.com/v2.0",
-			ProviderName: "rackspace",
-		},
-	}
+	k.AddProvider("digitalocean", &digitalocean.Provider{
+		Log: logging.NewLogger("digitalocean"),
+	})
+
+	k.AddProvider("rackspace", &openstack.Provider{
+		Log:          logging.NewLogger("rackspace"),
+		AuthURL:      "https://identity.api.rackspacecloud.com/v2.0",
+		ProviderName: "rackspace",
+	})
 }
 
-func (k *Kloud) GetProvider(providerName string) (protocol.Provider, error) {
-	provider, ok := k.Providers[providerName]
+// AddProvider adds the given Provider with the providerName. It returns an
+// error if the provider already exists.
+func (k *Kloud) AddProvider(providerName string, provider protocol.Provider) error {
+	_, ok := k.providers[providerName]
+	if ok {
+		return NewError(ErrProviderAvailable)
+	}
+
+	k.providers[providerName] = provider
+	return nil
+}
+
+// DeleteProvider removes the given provider from the provider list
+func (k *Kloud) DeleteProvider(providerName string) {
+	delete(k.providers, providerName)
+}
+
+// Provider returns the provider for the given provideName
+func (k *Kloud) Provider(providerName string) (protocol.Provider, error) {
+	provider, ok := k.providers[providerName]
 	if !ok {
 		return nil, NewError(ErrProviderNotFound)
 	}

@@ -31,10 +31,10 @@ type KodingDeploy struct {
 	Bucket *Bucket
 }
 
-func (k *KodingDeploy) Deploy(artifact *protocol.ProviderArtifact) (*protocol.DeployArtifact, error) {
-	username := artifact.Username
-	ipAddress := artifact.IpAddress
-	hostname := artifact.InstanceName
+func (k *KodingDeploy) Deploy(opts *protocol.DeployOptions) (*protocol.DeployArtifact, error) {
+	username := opts.Username
+	ipAddress := opts.IpAddress
+	hostname := opts.InstanceName
 
 	log := func(msg string) {
 		k.Log.Info("%s ==> %s", username, msg)

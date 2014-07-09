@@ -125,7 +125,7 @@ func (k *Kloud) ControlFunc(control controlFunc) kite.Handler {
 		}
 
 		// now get the machine provider interface, it can be DO, AWS, GCE, and so on..
-		provider, err := k.GetProvider(m.Provider)
+		provider, err := k.Provider(m.Provider)
 		if err != nil {
 			return nil, err
 		}

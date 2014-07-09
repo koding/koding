@@ -1,4 +1,4 @@
-package api
+package openstack
 
 import (
 	"encoding/json"

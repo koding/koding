@@ -100,7 +100,14 @@ func (k *Kloud) buildMachine(username string, c *Controller) error {
 	}
 
 	if k.Deployer != nil {
-		deployArtifact, err := k.Deployer.Deploy(providerArtifact)
+		deployOpts := &protocol.DeployOptions{
+			InstanceName: providerArtifact.InstanceName,
+			InstanceId:   providerArtifact.InstanceId,
+			IpAddress:    providerArtifact.IpAddress,
+			Username:     username,
+		}
+
+		deployArtifact, err := k.Deployer.Deploy(deployOpts)
 		if err != nil {
 			return err
 		}
