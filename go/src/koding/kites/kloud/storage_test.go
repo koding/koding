@@ -1,8 +1,8 @@
 package main
 
 import (
-	"koding/kites/kloud/kloud"
-	"koding/kites/kloud/kloud/machinestate"
+	"github.com/koding/kloud"
+	"github.com/koding/kloud/machinestate"
 )
 
 type TestStorageFunc func(id string, opt *kloud.GetOption) (*kloud.MachineData, error)

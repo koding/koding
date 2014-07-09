@@ -1,9 +1,10 @@
 package main
 
 import (
-	"koding/kites/kloud/kloud"
-	"koding/kites/kloud/kloud/machinestate"
 	"time"
+
+	"github.com/koding/kloud"
+	"github.com/koding/kloud/machinestate"
 )
 
 var (
@@ -17,8 +18,8 @@ var (
 
 var (
 	TestProviderData = map[string]*kloud.MachineData{
-		"rackspace_id0": &kloud.MachineData{
-			Provider: "rackspace",
+		"koding_id0": &kloud.MachineData{
+			Provider: "koding",
 			Credential: &kloud.Credential{
 				Meta: map[string]interface{}{
 					"username": RACKSPACE_USERNAME,
@@ -26,7 +27,7 @@ var (
 				},
 			},
 			Machine: &kloud.Machine{
-				Provider: "rackspace",
+				Provider: "koding",
 				Status: struct {
 					State      string    `bson:"state"`
 					ModifiedAt time.Time `bson:"modifiedAt"`
@@ -34,9 +35,47 @@ var (
 					State:      machinestate.NotInitialized.String(),
 					ModifiedAt: time.Now(),
 				},
+				Meta: map[string]interface{}{},
+			},
+		},
+		"koding_id1": &kloud.MachineData{
+			Provider: "koding",
+			Credential: &kloud.Credential{
 				Meta: map[string]interface{}{
-					"type": "rackspace",
+					"username": RACKSPACE_USERNAME,
+					"apiKey":   RACKSPACE_API_KEY,
 				},
+			},
+			Machine: &kloud.Machine{
+				Provider: "koding",
+				Status: struct {
+					State      string    `bson:"state"`
+					ModifiedAt time.Time `bson:"modifiedAt"`
+				}{
+					State:      machinestate.NotInitialized.String(),
+					ModifiedAt: time.Now(),
+				},
+				Meta: map[string]interface{}{},
+			},
+		},
+		"koding_id2": &kloud.MachineData{
+			Provider: "koding",
+			Credential: &kloud.Credential{
+				Meta: map[string]interface{}{
+					"username": RACKSPACE_USERNAME,
+					"apiKey":   RACKSPACE_API_KEY,
+				},
+			},
+			Machine: &kloud.Machine{
+				Provider: "koding",
+				Status: struct {
+					State      string    `bson:"state"`
+					ModifiedAt time.Time `bson:"modifiedAt"`
+				}{
+					State:      machinestate.NotInitialized.String(),
+					ModifiedAt: time.Now(),
+				},
+				Meta: map[string]interface{}{},
 			},
 		},
 		"digitalocean_id0": &kloud.MachineData{

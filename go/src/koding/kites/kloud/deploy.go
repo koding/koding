@@ -141,16 +141,18 @@ func (k *KodingDeploy) Deploy(opts *protocol.DeployOptions) (*protocol.DeployArt
 		Version:     kiteVersion,
 	}
 
-	k.Log.Info("Connecting to remote Klient instance")
-	klient, err := k.Klient(query.String())
-	if err != nil {
-		k.Log.Warning("Connecting to remote Klient instance err: %s", err)
-	} else {
-		k.Log.Info("Sending a ping message")
-		if err := klient.Ping(); err != nil {
-			k.Log.Warning("Sending a ping message err:", err)
-		}
-	}
+	// TODO: enable this later in production, currently it's just slowing down
+	// local development.
+	// k.Log.Info("Connecting to remote Klient instance")
+	// klient, err := k.Klient(query.String())
+	// if err != nil {
+	// 	k.Log.Warning("Connecting to remote Klient instance err: %s", err)
+	// } else {
+	// 	k.Log.Info("Sending a ping message")
+	// 	if err := klient.Ping(); err != nil {
+	// 		k.Log.Warning("Sending a ping message err:", err)
+	// 	}
+	// }
 
 	return &protocol.DeployArtifact{
 		KiteQuery: query.String(),

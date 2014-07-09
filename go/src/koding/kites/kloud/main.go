@@ -102,7 +102,6 @@ func newKite() *kite.Kite {
 	}
 
 	kld := newKloud(k)
-	kld.AddProvider("koding", &koding.Provider{Log: logging.NewLogger("koding")})
 
 	k.HandleFunc("build", kld.Build)
 	k.HandleFunc("start", kld.Start)
@@ -183,6 +182,7 @@ func newKloud(kloudKite *kite.Kite) *kloud.Kloud {
 	kld := kloud.NewKloud()
 	kld.Storage = mongodbStorage
 	kld.Deployer = deployer
+	kld.AddProvider("koding", &koding.Provider{Log: logging.NewLogger("koding")})
 
 	return kld
 }

@@ -4,23 +4,22 @@ import (
 	"flag"
 	"fmt"
 	"io/ioutil"
-	"koding/kites/kloud/kloud"
-	"koding/kodingkite"
 	"koding/tools/config"
 	"log"
 	"math/rand"
+	"net/url"
 	"os"
 	"strconv"
 	"sync"
 	"testing"
 	"time"
 
-	"koding/kites/kloud/kloud/machinestate"
-
 	"github.com/fatih/color"
 	"github.com/koding/kite"
 	kiteconfig "github.com/koding/kite/config"
 	"github.com/koding/kite/protocol"
+	"github.com/koding/kloud"
+	"github.com/koding/kloud/machinestate"
 )
 
 var (
@@ -33,12 +32,10 @@ var (
 	flagTestUsername   = flag.String("user", "", "Create machines on behalf of this user")
 	flagTestProvider   = flag.String("provider", "", "Provider backend for testing")
 
-	conf      *kiteconfig.Config
-	kloudKite *kodingkite.KodingKite
+	kloudKite *kite.Kite
 	kloudRaw  *kloud.Kloud
 	remote    *kite.Client
 	testuser  string
-	storage   kloud.Storage
 )
 
 func init() {
@@ -51,6 +48,8 @@ func init() {
 	}
 
 	kloudKite = setupKloud()
+	fmt.Printf("kloudKite %+v\n", kloudKite.Kite())
+
 	go kloudKite.Run()
 	<-kloudKite.ServerReadyNotify()
 
@@ -214,7 +213,6 @@ func build(i int, client *kite.Client, data *kloud.MachineData) error {
 }
 
 func TestBuild(t *testing.T) {
-	// t.SkipNow()
 	numberOfBuilds := *flagTestBuilds
 
 	if numberOfBuilds > 4 {
@@ -363,46 +361,41 @@ func TestMultiple(t *testing.T) {
 
 }
 
-func setupKloud() *kodingkite.KodingKite {
-	kloudConf := config.MustConfig("vagrant")
+func setupKloud() *kite.Kite {
+	k := kite.New(kloud.NAME, kloud.VERSION)
+	k.Config = kiteconfig.MustGet()
+	k.Config.Port = *flagPort
 
-	pubKeyPath := *flagPublicKey
-	if *flagPublicKey == "" {
-		pubKeyPath = kloudConf.NewKontrol.PublicKeyFile
-	}
-	pubKey, err := ioutil.ReadFile(pubKeyPath)
-	if err != nil {
-		log.Fatalln(err)
-	}
-	publicKey := string(pubKey)
+	kld := newKloud(k)
+	kld.Storage = &TestStorage{}
 
-	privKeyPath := *flagPrivateKey
-	if *flagPublicKey == "" {
-		privKeyPath = kloudConf.NewKontrol.PrivateKeyFile
-	}
-	privKey, err := ioutil.ReadFile(privKeyPath)
-	if err != nil {
-		log.Fatalln(err)
-	}
-	privateKey := string(privKey)
+	k.HandleFunc("build", kld.Build)
+	k.HandleFunc("start", kld.Start)
+	k.HandleFunc("stop", kld.Stop)
+	k.HandleFunc("restart", kld.Restart)
+	k.HandleFunc("info", kld.Info)
+	k.HandleFunc("destroy", kld.Destroy)
+	k.HandleFunc("event", kld.Event)
 
-	klientFolder := "klient/development/latest"
-	if *flagProdMode {
-		klientFolder = "klient/production/latest"
+	if *flagEnv != "" {
+		k.Config.Environment = *flagEnv
+	} else {
+		k.Config.Environment = config.MustConfig(*flagProfile).Environment
 	}
 
-	kloudRaw = &kloud.Kloud{
-		Region:            "localhost",
-		Port:              3636,
-		Config:            kloudConf,
-		Storage:           &TestStorage{},
-		KontrolURL:        "https://kontrol.koding.com/kite",
-		Bucket:            kloud.NewBucket("koding-kites", klientFolder),
-		KontrolPrivateKey: privateKey,
-		KontrolPublicKey:  publicKey,
-		Debug:             *flagDebug,
+	registerURL := k.RegisterURL(*flagLocal)
+	if *flagRegisterURL != "" {
+		u, err := url.Parse(*flagRegisterURL)
+		if err != nil {
+			k.Log.Fatal("Couldn't parse register url: %s", err)
+		}
+
+		registerURL = u
 	}
 
-	kt := kloudRaw.NewKloud()
-	return kt
+	if err := k.RegisterForever(registerURL); err != nil {
+		k.Log.Fatal(err.Error())
+	}
+
+	return k
 }
