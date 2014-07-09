@@ -1,6 +1,7 @@
 module.exports = [
 
   # Libs
+  "libs/deb.min.js",
   "libs/md5-min.js",
   "libs/uuid.js",
   "libs/accounting.js",
