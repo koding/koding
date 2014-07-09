@@ -1,6 +1,7 @@
 package main
 
 import (
+	"sync"
 	"time"
 
 	"github.com/koding/kloud"
@@ -15,6 +16,44 @@ var (
 	RACKSPACE_PASSWORD = "frjJapvap3Ox!Uvk"
 	RACKSPACE_API_KEY  = "96d6388ccb936f047fd35eb29c36df17"
 )
+
+var (
+	TestData = make(map[string]*kloud.MachineData)
+	TestMu   sync.Mutex
+)
+
+func GetTestData(id string) *kloud.MachineData {
+	TestMu.Lock()
+	defer TestMu.Unlock()
+	return TestData[id]
+}
+
+func CreateTestData(provider, id string) {
+	data := &kloud.MachineData{
+		Provider: provider,
+		Credential: &kloud.Credential{
+			Meta: map[string]interface{}{
+				"username": RACKSPACE_USERNAME,
+				"apiKey":   RACKSPACE_API_KEY,
+			},
+		},
+		Machine: &kloud.Machine{
+			Provider: provider,
+			Status: struct {
+				State      string    `bson:"state"`
+				ModifiedAt time.Time `bson:"modifiedAt"`
+			}{
+				State:      machinestate.NotInitialized.String(),
+				ModifiedAt: time.Now(),
+			},
+			Meta: map[string]interface{}{},
+		},
+	}
+
+	TestMu.Lock()
+	TestData[id] = data
+	TestMu.Unlock()
+}
 
 var (
 	TestProviderData = map[string]*kloud.MachineData{

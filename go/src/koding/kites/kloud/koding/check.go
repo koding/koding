@@ -50,6 +50,8 @@ func (t *totalLimit) Check(ctx *CheckContext) error {
 		return err
 	}
 
+	fmt.Printf("Got %+v servers for user: %s\n", len(filteredServers), ctx.username)
+
 	if len(filteredServers) >= t.total {
 		return fmt.Errorf("total limit of %d machines has been reached", t.total)
 	}

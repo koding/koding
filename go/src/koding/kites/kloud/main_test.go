@@ -8,7 +8,6 @@ import (
 	"log"
 	"math/rand"
 	"net/url"
-	"os"
 	"strconv"
 	"sync"
 	"testing"
@@ -40,12 +39,6 @@ var (
 
 func init() {
 	flag.Parse()
-
-	testuser = "testuser" // same as in kite.key
-	if *flagTestUsername != "" {
-		os.Setenv("TESTKEY_USERNAME", *flagTestUsername)
-		testuser = *flagTestUsername
-	}
 
 	kloudKite = setupKloud()
 	fmt.Printf("kloudKite %+v\n", kloudKite.Kite())
@@ -128,7 +121,7 @@ func build(i int, client *kite.Client, data *kloud.MachineData) error {
 		imageName = testuser + "-" + uniqueId + "-" + strconv.Itoa(i)
 	}
 
-	instanceName := "testkloud-" + uniqueId + "-" + strconv.Itoa(i)
+	instanceName := testuser + "-" + uniqueId + "-" + strconv.Itoa(i)
 
 	testlog := func(msg string, args ...interface{}) {
 		// mimick it like packer's own log
@@ -232,11 +225,9 @@ func TestBuild(t *testing.T) {
 			defer wg.Done()
 
 			machineId := *flagTestProvider + "_id" + strconv.Itoa(i)
-			data, ok := TestProviderData[machineId]
-			if !ok {
-				t.Errorf("machineId '%s' is not available", machineId)
-				return
-			}
+
+			CreateTestData(*flagTestProvider, machineId)
+			data := GetTestData(machineId)
 
 			if err := build(i, remote, data); err != nil {
 				t.Error(err)
@@ -365,6 +356,7 @@ func setupKloud() *kite.Kite {
 	k := kite.New(kloud.NAME, kloud.VERSION)
 	k.Config = kiteconfig.MustGet()
 	k.Config.Port = *flagPort
+	testuser = k.Config.Username // read from the key
 
 	kld := newKloud(k)
 	kld.Storage = &TestStorage{}
