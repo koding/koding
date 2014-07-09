@@ -1,4 +1,4 @@
-SET ROLE social;
+-- SET ROLE social;
 
 -- ----------------------------
 --  Table structure for channel
