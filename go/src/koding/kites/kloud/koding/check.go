@@ -2,6 +2,7 @@ package koding
 
 import (
 	"fmt"
+	"net/url"
 	"time"
 )
 
@@ -41,6 +42,18 @@ func freeLimiter() Limiter {
 }
 
 func (t *totalLimit) Check(ctx *CheckContext) error {
+	filter := url.Values{}
+	filter.Set("name", ctx.username)
+
+	filteredServers, err := ctx.api.ServersByFilter(filter)
+	if err != nil {
+		return err
+	}
+
+	if len(filteredServers) >= t.total {
+		fmt.Errorf("total limit of %d machines has been reached.", t.total)
+	}
+
 	return nil
 }
 

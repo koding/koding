@@ -3,6 +3,7 @@ package openstack
 import (
 	"encoding/json"
 	"errors"
+	"net/url"
 	"strings"
 
 	"github.com/racker/perigee"
@@ -35,6 +36,10 @@ func (s Servers) Filter(name string) Servers {
 // Servers returns all available servers based for this openstack client
 func (o *Openstack) Servers() (Servers, error) {
 	return o.Client.ListServersLinksOnly()
+}
+
+func (o *Openstack) ServersByFilter(filter url.Values) (Servers, error) {
+	return o.Client.ListServersByFilter(filter)
 }
 
 // Server returns a server instance from the server ID
