@@ -84,6 +84,10 @@ func (p *Provider) Build(opts *protocol.MachineOptions) (*protocol.ProviderArtif
 		flavorId = DefaultFlavorId
 	}
 
+	if err := p.CheckLimits("free"); err != nil {
+		return nil, err
+	}
+
 	return o.Build(opts.InstanceName, imageId, flavorId)
 }
 
