@@ -3,10 +3,10 @@ package topicfeed
 import (
 	"encoding/json"
 	"fmt"
-	"socialapi/models"
 	"github.com/koding/bongo"
 	"github.com/koding/logging"
 	"github.com/streadway/amqp"
+	"socialapi/models"
 
 	verbalexpressions "github.com/VerbalExpressions/GoVerbalExpressions"
 )
@@ -138,7 +138,9 @@ func (f *Controller) MessageUpdated(data *models.ChannelMessage) error {
 		return nil
 	}
 
-	res := getTopicDiff(channels, topics)
+	excludedChannelId := data.InitialChannelId
+
+	res := getTopicDiff(channels, topics, excludedChannelId)
 
 	// add messages
 	if len(res["added"]) > 0 {
@@ -188,13 +190,15 @@ func fetchMessageChannels(messageId int64) ([]models.Channel, error) {
 	return cml.FetchMessageChannels(messageId)
 }
 
-func getTopicDiff(channels []models.Channel, topics []string) map[string][]string {
+func getTopicDiff(channels []models.Channel, topics []string, excludedChannelId int64) map[string][]string {
 	res := make(map[string][]string)
 
 	// aggregate all channel names into map
 	channelNames := map[string]struct{}{}
 	for _, channel := range channels {
-		channelNames[channel.Name] = struct{}{}
+		if excludedChannelId != channel.GetId() {
+			channelNames[channel.Name] = struct{}{}
+		}
 	}
 
 	// range over new topics, bacause we are gonna remove
