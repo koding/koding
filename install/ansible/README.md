@@ -5,7 +5,7 @@ Deploying using ansible.
 do:
 echo "export ANSIBLE_CONFIG=YOUR_PATH_TO_THIS_FOLDER/ansible.cfg" >> ~/.bash_profile
 echo "export RAX_CREDS_FILE=YOUR_PATH_TO_THIS_FOLDER/rax_creds_file" >> ~/.bash_profile
-
+echo "export ANSIBLE_HOSTS=YOUR_PATH_TO_THIS_FOLDER/ansible_hosts" >> ~/.bash_profile
 source ~/.bash_profile
 
 

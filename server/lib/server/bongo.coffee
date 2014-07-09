@@ -17,6 +17,6 @@ module.exports = new Bongo {
   mongo: mongoReplSet or mongo
   root: projectRoot
   models: 'workers/social/lib/social/models'
-  mq: new Broker mqOptions
+  # mq: new Broker mqOptions
   resourceName: webserver.queueName
 }

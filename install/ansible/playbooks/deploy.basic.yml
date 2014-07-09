@@ -20,19 +20,19 @@
           wait: yes
       register: rax
 
-  - name: Add the instances we created (by public IP) to the group 'raxhosts'
-    local_action:
-        module: add_host
-        hostname: "{{ item.name }}"
-        ansible_ssh_host: "{{ item.rax_accessipv4 }}"
-        ansible_ssh_pass: "{{ item.rax_adminpass }}"
-        groupname: raxhosts
-    with_items: rax.success
-    when: rax.action == 'create'
+  # - name: Add the instances we created (by public IP) to the group 'raxhosts'
+  #   local_action:
+  #       module: add_host
+  #       hostname: "{{ item.name }}"
+  #       ansible_ssh_host: "{{ item.rax_accessipv4 }}"
+  #       ansible_ssh_pass: "{{ item.rax_adminpass }}"
+  #       groupname: raxhosts
+  #   with_items: rax.success
+  #   when: rax.action == 'create'
 
-  - name: Configuration play
-    hosts: raxhosts
-    user: root
-    roles:
-      - ntp
-      - webserver
+  # - name: Configuration play
+  #   hosts: raxhosts
+  #   user: root
+  #   roles:
+  #     - ntp
+  #     - webserver

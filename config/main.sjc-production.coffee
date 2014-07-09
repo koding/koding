@@ -1,23 +1,16 @@
-fs = require 'fs'
-nodePath = require 'path'
-deepFreeze = require 'koding-deep-freeze'
-
-version = (fs.readFileSync nodePath.join(__dirname, '../VERSION'), 'utf-8').trim()
-projectRoot = nodePath.join __dirname, '..'
-
-mongo        = 'dev:k9lc4G1k32nyD72@172.16.3.9:27017/koding'
-mongoKontrol = 'dev:k9lc4G1k32nyD72@172.16.3.9:27017/kontrol'
-
-mongoReplSet = 'mongodb://dev:k9lc4G1k32nyD72@172.16.3.9,172.16.3.10,172.16.3.15/koding?replicaSet=koodingrs0&readPreference=primaryPreferred'
-
+fs              = require 'fs'
+nodePath        = require 'path'
+deepFreeze      = require 'koding-deep-freeze'
+version         = (fs.readFileSync nodePath.join(__dirname, '../VERSION'), 'utf-8').trim()
+projectRoot     = nodePath.join __dirname, '..'
+mongo           = 'dev:k9lc4G1k32nyD72@172.16.3.9:27017/koding'
+mongoKontrol    = 'dev:k9lc4G1k32nyD72@172.16.3.9:27017/kontrol'
+mongoReplSet    = 'mongodb://dev:k9lc4G1k32nyD72@172.16.3.9,172.16.3.10,172.16.3.15/koding?replicaSet=koodingrs0&readPreference=primaryPreferred'
 socialQueueName = "koding-social-#{version}"
 logQueueName    = socialQueueName+'log'
-
 authExchange    = "auth-#{version}"
 authAllExchange = "authAll-#{version}"
-
 embedlyApiKey   = '94991069fb354d4e8fdb825e52d4134a'
-
 environment     = "production"
 regions         =
   vagrant       : "vagrant"
@@ -25,10 +18,10 @@ regions         =
   aws           : "aws"
   premium       : "premium-sj"
 
-cookieMaxAge = 1000 * 60 * 60 * 24 * 14 # two weeks
-cookieSecure = yes
+cookieMaxAge    = 1000 * 60 * 60 * 24 * 14 # two weeks
+cookieSecure    = yes
 
-module.exports =
+module.exports  =
   environment   : environment
   regions       : regions
   version       : version

@@ -49,6 +49,8 @@ broker =
   authAllExchange   : authAllExchange
   failoverUri       : customDomain.public_
 
+userSitesDomain = "#{customDomain.public_}" # this is for domain settings on environment backend eg. kd.io
+
 
 version         = "0.0.1"
 mongo           = "mongo:27017/koding"
@@ -90,7 +92,7 @@ module.exports =
     secret      : 'RkZRBOR8jtbAo+to2nbYWwPlZvzG9ZjyC8yhTh1q'
   uri           :
     address     : "#{customDomain.public}:#{customDomain.port}"
-  userSitesDomain: "#{customDomain.public}"
+  userSitesDomain: userSitesDomain
   containerSubnet: "10.128.2.0/9"
   vmPool        : "vms"
   projectRoot   : projectRoot
@@ -227,7 +229,7 @@ module.exports =
         clientId     : "f8e440b796d953ea01e5"
       embedly        :
         apiKey       : embedlyApiKey
-      userSitesDomain: "#{customDomain.public}"
+      userSitesDomain: userSitesDomain
       logToExternal: no  # rollbar, mixpanel etc.
       logToInternal: no  # log worker
       resourceName: socialQueueName

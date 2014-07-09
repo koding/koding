@@ -1,6 +1,7 @@
 #/!bin/bash
 
 # Remove all stopped containers.
+docker stop $(docker ps -a -q)
 docker rm -f $(docker ps -a -q)
 
 # Remove all untagged images

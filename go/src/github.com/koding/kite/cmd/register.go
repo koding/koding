@@ -52,6 +52,8 @@ func (r *Register) Exec(args []string) error {
 		return err
 	}
 
+	fmt.Println("result", result)
+
 	if err := kitekey.Write(result.MustString()); err != nil {
 		return err
 	}

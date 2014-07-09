@@ -1,7 +1,7 @@
 #!/usr/bin/env coffee
 
 Connection = require "ssh2"
-{argv}     = require 'optimist'
+argv       = require('minimist')(process.argv.slice(2))
 log        = console.log
 eden       = require 'node-eden'
 RS         = require 'pkgcloud'
@@ -9,8 +9,8 @@ hat        = require 'hat'
 timethat   = require 'timethat'
 PRJ        = __dirname
 BLD        = PRJ+"/install/BUILD_DATA"
-fs     = require 'fs'
-{exec}            = require 'child_process'
+fs         = require 'fs'
+{exec}     = require 'child_process'
 
 rs = 
   compute : RS.compute.createClient
@@ -26,29 +26,36 @@ rs =
 
 
 options = o =
-  config      : argv.c or 'kodingme'
-  region      : argv.r or 'kodingme'
-  branch      : argv.b or 'cake-rewrite'
-  projectRoot : argv.p or '/opt/koding'
-  version     : argv.v or "1.0"
-  environment : argv.e or "prod"
-  target      : argv.t or "rackspace"
-  hostname    : argv.h or eden.eve().toLowerCase()+".koding.me"
+  projectRoot : argv.projectRoot or "/opt/koding"
+  config      : argv.config      or "prod"
+  region      : argv.region      or "prod"
+  branch      : argv.branch      or "cake-rewrite"
+  build       : argv.build       or 1111  
+  version     : argv.version     or "1.0"
+  environment : argv.environment or "prod"
+  target      : argv.target      or "rackspace"
+  hostname    : argv.hostname    or "prod.koding.me" #eden.eve().toLowerCase()+".koding.me"
+  deploy      : argv.deploy      or false
 
+# log argv
+
+# process.exit()
+
+# options.hostname = "#{eden.eve()}-#{o.config}-#{o.build}"
 
 
 class Deploy
 
   @createDeployData = (callback=->)->
     exec """
-        mkdir -p ./install/BUILD_DATA
-        echo #{o.hostname}     >#{BLD}/BUILD_HOSTNAME
-        echo #{o.region}       >#{BLD}/BUILD_REGION
-        echo #{o.config}       >#{BLD}/BUILD_CONFIG
-        echo #{o.branch}       >#{BLD}/BUILD_BRANCH
-        echo #{o.projectRoot}  >#{BLD}/BUILD_PROJECT_ROOT
-        echo #{o.environment}  >#{BLD}/BUILD_ENVIRONMENT
-        echo #{o.version}      >#{BLD}/BUILD_VERSION"""
+      mkdir -p ./install/BUILD_DATA
+      echo #{o.hostname}     >#{BLD}/BUILD_HOSTNAME
+      echo #{o.region}       >#{BLD}/BUILD_REGION
+      echo #{o.config}       >#{BLD}/BUILD_CONFIG
+      echo #{o.branch}       >#{BLD}/BUILD_BRANCH
+      echo #{o.projectRoot}  >#{BLD}/BUILD_PROJECT_ROOT
+      echo #{o.environment}  >#{BLD}/BUILD_ENVIRONMENT
+      echo #{o.version}      >#{BLD}/BUILD_VERSION"""
     ,->
       fs.writeFileSync "#{BLD}/BUILD_CONFIG.json",(JSON.stringify(require "./config/main.#{o.config}.coffee",null,4))
       log "build data is written to #{BLD}/ for deploy."
@@ -172,6 +179,10 @@ class Deploy
 
 deployStart = new Date()
 Deploy.createDeployData ->
+
+  #don't deploy just write config and exit.
+  return null unless o.deploy 
+
   domainName = options.hostname
   password   = hat()
   Deploy.createServer

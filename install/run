@@ -9,8 +9,10 @@
 # docker build --no-cache -t koding/run .
 
 # Remove all stopped containers.
-docker stop $(docker ps -a -q)
-docker rm $(docker ps -a -q)
+# docker stop $(docker ps -a -q)
+# docker rm -f $(docker ps -a -q)
+
+
 # stop all
 ./cleanup
 
@@ -40,7 +42,7 @@ sleep 5
 
 NAME=logger             && docker run  -p 8000:8000		-h $SUB -d --name=$NAME  -v=/var/run/docker.sock:/tmp/docker.sock progrium/logspout syslog://logs.papertrailapp.com:49069
 NAME=kontrol            && docker run  -p 4000:4000   -h $SUB -d --name=$NAME  --entrypoint=$GB/kontrol                                          														--link=mongo:mongo 																																		  koding/run  -c $CFG -r $RGN
-NAME=kloud              && docker run  -p 3000:3000   -h $SUB -d --name=$NAME  --entrypoint=$GB/kloud                                            														--link=mongo:mongo 												  --link=redis:redis 												  koding/run  -c $CFG -r $RGN --port 3000 -env prod -public-key $PBKEY -private-key $PVKEY -kontrol-url "http://$HST:4000/kite"
+NAME=kloud              && docker run  -p 3000:3000   -h $SUB -d --name=$NAME  --entrypoint=$GB/kloud                                            														--link=mongo:mongo 												  --link=redis:redis 												  koding/run  -c $CFG -r $RGN --port 3000 -env prod -public-key $PBKEY -private-key $PVKEY #-kontrol-url "http://$HST:4000/kite"
 NAME=rerouting          && docker run                 -h $SUB -d --name=$NAME  --entrypoint=$GB/rerouting                                        														  																														 --link=rabbitmq:rabbitmq koding/run  -c $CFG
 NAME=cronJobs           && docker run                 -h $SUB -d --name=$NAME  --entrypoint=$GB/cron                                             														--link=mongo:mongo  											  --link=redis:redis --link=rabbitmq:rabbitmq koding/run  -c $CFG
 NAME=broker             && docker run  -p 8008:8008   -h $SUB -d --name=$NAME  --entrypoint=$GB/broker                                           																						     											  --link=redis:redis --link=rabbitmq:rabbitmq koding/run  -c $CFG
