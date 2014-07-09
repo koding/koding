@@ -28,7 +28,7 @@ class MachineList extends KDModalView
       viewOptions       :
         type            : 'machine'
         wrapper         : yes
-        itemClass       : MachineItem
+        itemClass       : MachineItemListView
         itemOptions     :
           buttonTitle   : 'select'
       noItemFoundWidget : new KDView
