@@ -243,7 +243,7 @@ module.exports =
     webProtocol       : 'https:'
     authExchange      : authExchange
     authAllExchange   : authAllExchange
-    failoverUri       : 'stage-premiumbroker.koding.com'
+    failoverUri       : 'sandbox.koding.com'
   brokerKite          :
     name              : "brokerKite"
     serviceGenericName: "brokerKite"
@@ -265,7 +265,7 @@ module.exports =
     webProtocol       : 'https:'
     authExchange      : authExchange
     authAllExchange   : authAllExchange
-    failoverUri       : 'stage-premiumbrokerkite.koding.com'
+    failoverUri       : 'sandbox.koding.com'
   kites:
     disconnectTimeout: 3e3
     vhost       : 'kite'
