@@ -18,7 +18,7 @@ Password= "djfjfhgh4455__5"
 Vhost=    "sandbox"
 
 [redis]
-URL=      "localhost:6379"
+URL=      "172.16.10.16:6379"
 DB=       0
 # slave one is not used, just here for future ref
 Slave=    "172.16.10.17:6379"
