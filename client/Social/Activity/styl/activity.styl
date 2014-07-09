@@ -36,8 +36,8 @@ styleScrollBars()
 
 .content-page.activity
   max-width             100%
-  margin                30px auto 0
-  padding               0
+  margin                32px auto 0
+  padding               0 34px 0 0
   position              static
   overflow              visible
 
@@ -90,8 +90,8 @@ styleScrollBars()
   > main
     size                100% auto
     margin              0
+    margin-left         292px
     borderBox()
-    fr()
 
   &.fixed > aside
     margin-top         24px
@@ -102,7 +102,7 @@ styleScrollBars()
   > main
 
     .kdtabpaneview
-      width             689px
+      width             auto
 
     &.static-feed
       margin-left       auto
@@ -264,7 +264,7 @@ styleScrollBars()
 
     > main
       font-family         openSansFamily
-      padding             13px
+      padding             1px 22px 16px 16px
       borderBox()
 
       > section
@@ -483,7 +483,7 @@ styleScrollBars()
     noTextDeco()
 
     &.public-feed-link
-      margin-top      17px
+      margin-top      7px
       padding         0 8px
       height          28px
       line-height     28px
@@ -577,7 +577,7 @@ div.kdtooltip.activity-helper
 
 .activity-input-widget
   size                auto auto
-  margin              0 0 30px 0
+  margin              0 0 13px 0
   overflow            visible
 
   .help-container
@@ -736,7 +736,7 @@ span.collapsedtext
 
 .activity-item
   margin-bottom             32px
-  padding-left              50px
+  padding-left              52px
   borderBox()
 
   .activity-content-wrapper
@@ -766,15 +766,14 @@ span.collapsedtext
           r-sprite          activity chevron-icon
 
     .author-avatar
-      abs                 12px 0 0 -50px
-      // border              2px solid #e9e9e9
+      abs                 20px 0 0 -51px
       display             block
 
       img
         display           block
 
     .meta
-      margin              20px 0 6px 0px
+      margin              20px 0 0px 0px
 
       .profile
         color             #1aaf5d
@@ -808,9 +807,9 @@ span.collapsedtext
         font-weight       400
 
     > article
-      line-height         19px
+      line-height         20px
       font-size           14px
-      color               #4c4c4c
+      color               #575757
       font-weight         400
       word-break          break-word
       // to avoid too long posts
@@ -819,12 +818,18 @@ span.collapsedtext
       max-height          400px
       opacity             .99
 
+      *:first-child
+        padding-top       6px
+
+      *:last-child
+        padding-bottom    6px
+
     .activity-actions
-      padding             0 0 14px 0
+      padding             0 0 10px 0
 
       span.action-container
         font-size         12px
-        color             #9c9c9c
+        color             #ADAEB1
         font-weight       400
 
         a
@@ -862,23 +867,6 @@ span.collapsedtext
           &:before
             display       none
 
-    .like-summary
-      height              33px
-      line-height         33px
-      bg                  color, #f7f7f7
-      font-size           12px
-      color               #5b5b5b
-      padding             0 0 0 14px
-
-      .profile
-        color             inherit
-        font-weight       600
-        noTextDeco()
-
-      strong
-        color             inherit
-        font-weight       600
-
 
   .comment-container
     overflow              visible
@@ -895,21 +883,22 @@ span.collapsedtext
     .item-add-comment-box
       position            relative
       padding-left        50px
+      borderBox()
 
       .avatarview
+        abs               0px 0 0 0px
         display           block
         z-index           2
-        size              35px 35px
-        left              0
-        top               0
-        abs()
+
+        img
+          display         block
 
       textarea
         background        #fff
-        kalc              width (100% \- 50px)
-        height            35px
-        min-height        35px
-        rounded           5px
+        width             100%
+        height            38px
+        min-height        38px
+        rounded           3px
         border            2px solid #EAEAEA
         padding           7px 13px 10px 13px
         font-size         14px
@@ -978,8 +967,11 @@ span.collapsedtext
     .kdlistitemview-comment
       // background          #f7f7f7
       // border-top          1px solid #e9e9e9
-      padding             0 15px 16px 50px
+      padding             7px 15px 12px 52px
       borderBox()
+
+      &:last-child
+        padding-bottom    20px
 
       &:hover .kdbutton.comment-menu
         opacity         1
@@ -999,11 +991,11 @@ span.collapsedtext
           r-sprite       'activity', 'comment-chevron-icon'
 
       .avatarview
+        abs               6px 0 0 0px
         display           block
-        size              35px 35px
-        abs               0px 0 0 0px
-        rounded           50%
-        // border            1px solid #e4e4e4
+
+        img
+          display         block
 
       a.profile
         font-size         14px
@@ -1011,10 +1003,11 @@ span.collapsedtext
         noTextDeco()
 
       .comment-body-container
-        font-size         12px
-        color             #4c4c4c
-        padding           10px 0 15px
-        line-height       18px
+        font-size         14px
+        color             #575757
+        padding           5px 0 6px
+        line-height       20px
+        opacity           .99
 
         p
           a
@@ -1025,8 +1018,8 @@ span.collapsedtext
               noTextDeco()
 
       .action-link
-        font-size         11px
-        color             #838383
+        font-size         12px
+        color             #ADAEB1
         noTextDeco()
 
         &:before
@@ -1505,14 +1498,7 @@ span.collapsedtext
           margin-left       7px
           font-size         11px
 
-    // .author-avatar
-    //   border-color          #fff
-    //   top                   19px
-    //   left                  19px
-
     .meta
-      // margin                23px 33px 0 75px
-
       .profile:after
         display             none
 
@@ -1569,9 +1555,10 @@ span.collapsedtext
       .item-add-comment-box
         position            fixed
         bottom              0
-        size                689px auto
+        size                100% auto
         padding             0 0 30px
         bg                  color white
+        margin-top          8px
 
         &:before
           content         ""
