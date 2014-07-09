@@ -15,6 +15,7 @@ GRANT social TO socialapplication WITH ADMIN OPTION;
 -- While creating the instance from the RDS UI we are creating the social database
 -- ALTER DATABASE social OWNER TO social;
 
--- CREATE DATABASE social OWNER social ENCODING 'UTF8'  TEMPLATE template0;
+-- remove this line for RDS creation
+CREATE DATABASE social OWNER social ENCODING 'UTF8'  TEMPLATE template0;
 -- In any need for a custom schema
 -- CREATE DATABASE social OWNER social ENCODING 'UTF8' TABLESPACE social;
