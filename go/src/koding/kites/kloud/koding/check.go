@@ -5,19 +5,17 @@ import (
 	"time"
 )
 
-// Limiter checks the limits via the Check() method. It should simply return an
-// error if the limitations are exceed.
-type Limiter interface {
-	Check() error
-}
-
-type limit struct {
+type totalLimit struct {
 	// total defines how much machines a user can have
 	total int
+}
 
+type concurrentLimit struct {
 	// concurrent defines how many machines can be used per user
 	concurrent int
+}
 
+type timeoutLimit struct {
 	// timeout defines the limit in which a machine can be RUNNING at most.
 	// After the timeout is being reached, the machine is closed immediately.
 	timeout time.Duration
@@ -25,15 +23,32 @@ type limit struct {
 
 var (
 	// limits contains the various limitations for each plan
-	limits = map[string]limit{
-		// Non-paid user cannot create more than 3 VMs
-		// Non-paid user cannot start more than 1 VM simultaneously
-		// Non-paid user VM shuts down after 30 minutes without activity
-		"free": {total: 3, concurrent: 1, timeout: 30 * time.Minute},
+	limits = map[string]Limiter{
+		"free": freeLimiter(),
 	}
 )
 
-func (l *limit) Check() error {
+// freeLimiter defines a Limiter which is used for free plans
+func freeLimiter() Limiter {
+	// Non-paid user cannot create more than 3 VMs
+	// Non-paid user cannot start more than 1 VM simultaneously
+	// Non-paid user VM shuts down after 30 minutes without activity
+	return newMultiLimiter(
+		&totalLimit{total: 3},
+		&concurrentLimit{concurrent: 1},
+		&timeoutLimit{timeout: 30 * time.Minute},
+	)
+}
+
+func (t *totalLimit) Check() error {
+	return nil
+}
+
+func (c *concurrentLimit) Check() error {
+	return nil
+}
+
+func (t *timeoutLimit) Check() error {
 	return nil
 }
 
