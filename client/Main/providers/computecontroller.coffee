@@ -95,6 +95,13 @@ class ComputeController extends KDController
       else if machine? then callback null, new Machine { machine }
 
 
+  queryMachines: (query = {}, callback = noop)->
+
+    KD.remote.api.JMachine.some query, (err, machines)=>
+      if KD.showError err then callback err
+      else callback null, (new Machine { machine } for machine in machines)
+
+
   credentialsFor: (provider, callback)->
     KD.remote.api.JCredential.some { provider }, callback
 
