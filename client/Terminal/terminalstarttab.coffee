@@ -14,14 +14,14 @@ class TerminalStartTab extends JView
     #   if event in ["VMCreated", "VMRemoved"]
     #     @viewAppended yes
 
-  viewAppended: (force = no) ->
+  viewAppended: ->
 
     super
-    @fetchMachines force
+    @fetchMachines()
     @prepareMessage()
 
 
-  fetchMachines: (force = no) ->
+  fetchMachines: ->
 
     {computeController} = KD.singletons
     computeController.fetchMachines (err, machines)=>

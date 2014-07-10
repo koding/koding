@@ -206,6 +206,14 @@ class ComputeController extends KDController
     .catch errorHandler 'stop', @eventListener, machine
 
 
+  StateEventMap =
+
+    Stopping    : "stop"
+    Building    : "build"
+    Starting    : "start"
+    Rebooting   : "restart"
+    Terminating : "destroy"
+
   info: (machine)->
 
     stateEvent = StateEventMap[machine.status.state]
@@ -231,11 +239,3 @@ class ComputeController extends KDController
 
     .catch errorHandler 'info', @eventListener, machine
 
-
-  StateEventMap =
-
-    Stopping    : "stop"
-    Building    : "build"
-    Starting    : "start"
-    Rebooting   : "restart"
-    Terminating : "destroy"
