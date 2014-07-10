@@ -6,24 +6,36 @@ class MachineItem extends KDView
   for state in Object.keys Machine.State
     stateClasses += "#{state.toLowerCase()} "
 
+
   constructor:(options = {}, data)->
 
-    options.cssClass = "kdview environments-item machine"
+    options.cssClass            = "environments-item machine"
+
+    options.disableStateChange ?= no
+    options.disableInitialize  ?= no
+    options.disableTerminal    ?= no
+    options.hideProgressBar    ?= no
+
     super options, data
 
 
   viewAppended:->
 
-    { label, provider, uid, status } = machine = @getData()
-    { computeController } = KD.singletons
+    { disableTerminal, disableInitialize
+      hideProgressBar, disableStateChange } = @getOptions()
 
+    { label, provider, uid, status } = machine = @getData()
     { Running, NotInitialized, Terminated } = Machine.State
 
+    { computeController } = KD.singletons
+
     @addSubView new KDCustomHTMLView
-      partial : "<span class='toggle'></span>"
+      cssClass : 'toggle'
+      tagName  : 'span'
 
     @addSubView @title = new KDCustomHTMLView
-      partial : "<h3>#{label or provider or uid}<cite>#{provider}</cite></h3>"
+      tagName  : 'h3'
+      partial  : "#{machine.getName()}<cite>#{provider}</cite>"
 
     @addSubView @ipAddress = new KDCustomHTMLView
       partial  : @getIpLink()
@@ -43,16 +55,28 @@ class MachineItem extends KDView
     @addSubView @progress = new KDProgressBarView
       cssClass : "progress"
 
+    @progress.hide()  if hideProgressBar
+
+
     @addSubView @terminalIcon = new KDCustomHTMLView
       tagName  : "span"
       cssClass : "terminal"
       click    : @lazyBound "openTerminal", {}
 
-    if status.state in [ NotInitialized, Terminated ]
+    @terminalIcon.hide()  if disableTerminal
+
+    # FIXME ~ Style trick ~ GG
+    if disableStateChange
+      @statusToggle.hide()
+      @terminalIcon.setClass "terminal-only"
+
+
+    if status.state in [ NotInitialized, Terminated ] and not disableInitialize
       @addSubView @initView = new InitializeMachineView
       @initView.on "Initialize", ->
         computeController.build machine
         @setClass 'hidden-all'
+
 
     computeController.on "public-#{machine._id}", (event)=>
 
@@ -122,4 +146,15 @@ class MachineItem extends KDView
 
 class MachineItemListView extends KDListItemView
 
-  viewAppended:-> @addSubView new MachineItem {}, @getData()
+  viewAppended:->
+
+    # FIXME later ~ GG
+    # Find a better way to filter options
+
+    { disableTerminal, disableInitialize
+      hideProgressBar, disableStateChange } = @getOptions()
+
+    @addSubView new MachineItem {
+      disableTerminal, disableInitialize
+      hideProgressBar, disableStateChange
+    }, @getData()
