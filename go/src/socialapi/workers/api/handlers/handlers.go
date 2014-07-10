@@ -62,7 +62,7 @@ func Inject(mux *tigertonic.TrieServeMux) *tigertonic.TrieServeMux {
 	mux.Handle("GET", "/channel/checkparticipation", handler.Wrapper(channel.CheckParticipation, "channel-check-participation"))
 
 	// deprecated, here for socialworker
-	mux.Handle("POST", "/channel/{id}", handler.Wrapper(channel.Update, "channel-update"))
+	mux.Handle("POST", "/channel/{id}", handler.Wrapper(channel.Update, "channel-update-old"))
 	mux.Handle("POST", "/channel/{id}/update", handler.Wrapper(channel.Update, "channel-update"))
 	mux.Handle("POST", "/channel/{id}/delete", handler.Wrapper(channel.Delete, "channel-delete"))
 
@@ -74,9 +74,9 @@ func Inject(mux *tigertonic.TrieServeMux) *tigertonic.TrieServeMux {
 	// exempt contents are filtered
 	mux.Handle("GET", "/channel/{id}/participant", handler.Wrapper(participant.List, "participant-list"))
 	// exempt contents are filtered
-	mux.Handle("POST", "/channel/{id}/participant/{accountId}/add", handler.Wrapper(participant.Add, "participant-list"))
+	mux.Handle("POST", "/channel/{id}/participant/{accountId}/add", handler.Wrapper(participant.Add, "participant-add"))
 	// exempt contents are filtered
-	mux.Handle("POST", "/channel/{id}/participant/{accountId}/delete", handler.Wrapper(participant.Delete, "participant-list"))
+	mux.Handle("POST", "/channel/{id}/participant/{accountId}/delete", handler.Wrapper(participant.Delete, "participant-delete"))
 	mux.Handle("POST", "/channel/{id}/participant/{accountId}/presence", handler.Wrapper(participant.Presence, "participant-presence"))
 	// list messages of the channel
 	// exempt contents are filtered
