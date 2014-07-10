@@ -20,7 +20,7 @@ func NewBadRequest(err error) (int, http.Header, interface{}, error) {
 	helper.MustGetLogger().Error("Bad Request: %s", err)
 
 	// do not expose errors to the client
-	if config.MustGet().Environment != VagrantEnvName {
+	if config.MustGet().Environment != config.VagrantEnvName {
 		err = genericError
 	}
 
