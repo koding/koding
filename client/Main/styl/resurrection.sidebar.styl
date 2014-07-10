@@ -12,7 +12,7 @@ resurrection.styl
 
 #main-sidebar
 
-  size            211px 100%
+  size            258px 100%
   z-index         100
   bg              color #2C2E34
   top             0
@@ -20,7 +20,7 @@ resurrection.styl
   fix()
 
 #dock
-  padding           13px
+  padding           1px 22px 16px 16px
   margin-top        2px
   position          relative
   borderBox()
@@ -47,16 +47,9 @@ resurrection.styl
 
 #dock > .kdlistview
 
-
-  // .on-top
-  //   z-index         100
-  //   border          none !important
-  //   shadow          none !important
-  //   background      none !important
-
   > a
     display         block
-    size            auto 28px
+    size            auto 26px
     opacity         1
     z-index         1
     vendor          transition, top .2s  linear \,\
@@ -64,7 +57,7 @@ resurrection.styl
     font-size       14px
     line-height     18px
     color           #B8B8B8
-    padding         5px 8px 5px 32px
+    padding         5px 8px 5px 28px
     rounded         4px
     ellipsis()
     borderBox()
@@ -93,25 +86,11 @@ resurrection.styl
       height        16px
       bg            color #222
       top           6px
-      left          8px
+      left          6px
       abs()
 
     &.selected
       bg            color #222428
-
-    // &.remove
-    //   cursor        url('/a/images/cursor-trash.png'), auto
-
-    // &.explode
-    //   vendor        animation, explode .5s ease-in-out 100
-
-
-    // &.running
-    //   shadow        inset 0 2px 0 #1aaf5d
-    //   borderBox()
-
-    // &.loading
-    //   vendor      animation, pulse 1.5s ease-in-out 100
 
     &.activity > figure
       r-sprite      app new-nav-activity
@@ -125,24 +104,8 @@ resurrection.styl
       r-sprite      app new-nav-vm
     &.vm.running > figure
       r-sprite      app new-nav-vm-green
-    // &.apps > figure
-    //   r-sprite      app nav-apps
-    // &.teamwork > figure
-    //   r-sprite      app nav-teamwork
-    // &.bugs > figure
-    //   r-sprite      app nav-bugs
-    // &.devtools > figure
-    //   r-sprite      app nav-develop
-    // &.finder > figure
-    //   r-sprite      app nav-finder
-
-
 
 .account-area
-  // vendor            transform-style, preserve-3d
-  // vendor            perspective, 300px
-  // vendor            transition, right .5s ease
-  // border-left       1px solid #252E31
   bottom            0
   left              0
   background        #222428
@@ -195,12 +158,6 @@ resurrection.styl
     &.notifications .icon
       margin        18px 0 0 13px
       r-sprite      app account-notifications
-    // &.search
-    //   width         55px
-    //   .icon
-    //     margin      17px 0 0 17px
-    //     r-sprite    app account-search
-    //     padding     0
 
     &.groups
       abs()
@@ -210,38 +167,6 @@ resurrection.styl
       .icon
         margin      26px 0 0 11px
         r-sprite    app 'account-arrow'
-
-  // .search-form-container
-  //   bg                 color, #212932
-  //   size               400px 55px
-  //   opacity            0
-  //   vendor             transform, rotateY(90deg)
-  //   vendor             transform-origin-x, 0
-  //   vendor             backface-visibility, hidden
-  //   -webkit-transition -webkit-transform .5s ease \,\
-  //                      opacity .5s ease
-  //   top                0
-  //   left               100%
-  //   abs()
-  //   borderBox()
-
-  //   .kdinput
-  //     text-align       left
-  //     size             100% 55px
-  //     border           none
-  //     shadow           none
-  //     text-indent      14px
-  //     bg               color, transparent
-  //     color            #9caeb3
-  //     font-size        16px
-
-  //     &:hover
-  //       border         none
-
-  //     &:focus
-  //       shadow         none
-  //       outline        none
-  //       border         none
 
   .account-menu
     vendor             transform-origin-x, 274px
@@ -285,18 +210,6 @@ resurrection.styl
       font-weight   300
       margin-top    2px
 
-  // &.search-open
-  //   right             400px
-
-  //   .account-menu
-  //   .avatar-area
-  //     vendor          transform, rotateY(-90deg)
-  //     opacity         0
-
-  //   .search-form-container
-  //     vendor          transform, rotateY(0deg)
-  //     opacity         1
-
   .header-sign-in
     font-size         16px
     color             #e9e9e9
@@ -310,21 +223,15 @@ resurrection.styl
 
 h3.sidebar-title
   font-weight     500
-  size            auto 30px
-  padding         5px 5px 5px 8px
-  line-height     30px
+  size            auto 1em
+  padding         0 6px
+  line-height     1em
   font-size       13px
   color           #7F7F80
   text-transform  uppercase
+  word-spacing    .2em
+  margin          19px 0 9px
   pointer()
-
-  // &:after
-  //   content         ""
-  //   display         inline-block
-  //   size            15px, 2px
-  //   background      #cecece
-  //   margin          -2px 0 0 8px
-  //   vertical-align  middle
 
   a
     font-size       10px

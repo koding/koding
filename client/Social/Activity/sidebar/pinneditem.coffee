@@ -18,7 +18,7 @@ class SidebarPinnedItem extends SidebarItem
       constructorName : data.account.constructorName
 
     @avatar = new AvatarStaticView {
-      size       : width : 24, height : 24
+      size       : width : 30, height : 30
       cssClass   : "avatarview"
       showStatus : yes
       origin

@@ -17,6 +17,7 @@ class ActivityListController extends KDListViewController
     options.viewOptions         or= {}
     {viewOptions}                 = options
     viewOptions.cssClass          = KD.utils.curry 'activity-related', viewOptions.cssClass
+    viewOptions.type              = options.type
     viewOptions.comments         ?= yes
     viewOptions.dataPath          = 'id'
 

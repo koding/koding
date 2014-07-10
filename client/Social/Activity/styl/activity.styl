@@ -36,8 +36,8 @@ styleScrollBars()
 
 .content-page.activity
   max-width             100%
-  margin                30px auto 0
-  padding               0
+  margin                32px auto 0
+  padding               0 34px 0 0
   position              static
   overflow              visible
 
@@ -90,8 +90,8 @@ styleScrollBars()
   > main
     size                100% auto
     margin              0
+    margin-left         292px
     borderBox()
-    fr()
 
   &.fixed > aside
     margin-top         24px
@@ -102,7 +102,7 @@ styleScrollBars()
   > main
 
     .kdtabpaneview
-      width             689px
+      width             auto
 
     &.static-feed
       margin-left       auto
@@ -256,7 +256,7 @@ styleScrollBars()
     top                 0
     size                258px 100%
     z-index             10
-    bg                  color #44464E
+    bg                  color #3F424B
     borderBox()
     fix()
 
@@ -264,7 +264,7 @@ styleScrollBars()
 
     > main
       font-family         openSansFamily
-      padding             13px
+      padding             1px 22px 16px 16px
       borderBox()
 
       > section
@@ -283,16 +283,16 @@ styleScrollBars()
           overflow        visible
 
           .nothing
-            background    #d9d9d9
+            background    #383B42
             width         auto
             font-size     14px
-            padding       16px 26px
-            rounded       4px
-            line-height   15px
-            border        1px solid #cacaca
+            margin        0 6px
+            padding       16px 18px
+            rounded       3px
+            line-height   19px
             text-align    center
             font-weight   400
-            color         #a0a0a0
+            color         #787878
             margin-bottom 16px
             borderBox()
 
@@ -344,6 +344,7 @@ styleScrollBars()
       font-size     12px
 
     .profile
+      ellipsis()
       color         #B8B8B8
 
     .topic-follow-btn
@@ -365,7 +366,7 @@ styleScrollBars()
 
       .icon
         r-sprite        activity 'check-9'
-        margin          0 7px 0 0
+        margin          0 6px 0 0
         padding         0
         fr()
 
@@ -377,7 +378,7 @@ styleScrollBars()
         border-color    transparent
 
         .icon
-          r-sprite      activity 'check-green-9'
+          r-sprite      activity 'check-gray'
 
   .kdlistitemview-sidebar-item.selected
     background          #2C2E34
@@ -404,14 +405,14 @@ styleScrollBars()
         color           #d1efdf
 
       .icon
-        r-sprite        "activity", "check-white-9"
+        r-sprite      activity 'check-gray'
 
       &.following
         bg              color transparent
         border-color    transparent
 
         .icon
-          r-sprite      "activity", "check-white-9"
+          r-sprite      activity 'check-gray'
 
   .conversations
   .messages
@@ -425,17 +426,17 @@ styleScrollBars()
       > .profile
         display     block
         float       none
-        padding     0 0 0 32px
+        padding     0 0 0 36px
         font-size   14px
         line-height 18px
-        width       100%
+        width       174px
         borderBox()
 
       > .user-numbers
-        padding     0 0 0 32px
+        padding     0 0 0 36px
         margin      -1px 0 0
         width       90%
-        font-weight 300
+        font-weight 400
         font-size   12px
         color       #949494
         borderBox()
@@ -483,7 +484,7 @@ styleScrollBars()
     noTextDeco()
 
     &.public-feed-link
-      margin-top      17px
+      margin-top      13px
       padding         0 8px
       height          28px
       line-height     28px
@@ -577,7 +578,7 @@ div.kdtooltip.activity-helper
 
 .activity-input-widget
   size                auto auto
-  margin              0 0 30px 0
+  margin              0 0 13px 0
   overflow            visible
 
   .help-container
@@ -736,7 +737,7 @@ span.collapsedtext
 
 .activity-item
   margin-bottom             32px
-  padding-left              50px
+  padding-left              52px
   borderBox()
 
   .activity-content-wrapper
@@ -767,15 +768,14 @@ span.collapsedtext
           r-sprite          activity chevron-icon
 
     .author-avatar
-      abs                 12px 0 0 -50px
-      // border              2px solid #e9e9e9
+      abs                 20px 0 0 -51px
       display             block
 
       img
         display           block
 
     .meta
-      margin              20px 0 6px 0px
+      margin              20px 0 0px 0px
 
       .profile
         color             #1aaf5d
@@ -809,9 +809,9 @@ span.collapsedtext
         font-weight       400
 
     > article
-      line-height         19px
+      line-height         20px
       font-size           14px
-      color               #4c4c4c
+      color               #575757
       font-weight         400
       word-break          break-word
       // to avoid too long posts
@@ -820,12 +820,18 @@ span.collapsedtext
       max-height          400px
       opacity             .99
 
+      *:first-child
+        padding-top       6px
+
+      *:last-child
+        padding-bottom    6px
+
     .activity-actions
-      padding             0 0 14px 0
+      padding             0 0 10px 0
 
       span.action-container
         font-size         12px
-        color             #9c9c9c
+        color             #ADAEB1
         font-weight       400
 
         a
@@ -863,23 +869,6 @@ span.collapsedtext
           &:before
             display       none
 
-    .like-summary
-      height              33px
-      line-height         33px
-      bg                  color, #f7f7f7
-      font-size           12px
-      color               #5b5b5b
-      padding             0 0 0 14px
-
-      .profile
-        color             inherit
-        font-weight       600
-        noTextDeco()
-
-      strong
-        color             inherit
-        font-weight       600
-
 
   .comment-container
     overflow              visible
@@ -896,21 +885,22 @@ span.collapsedtext
     .item-add-comment-box
       position            relative
       padding-left        50px
+      borderBox()
 
       .avatarview
+        abs               0px 0 0 0px
         display           block
         z-index           2
-        size              35px 35px
-        left              0
-        top               0
-        abs()
+
+        img
+          display         block
 
       textarea
         background        #fff
-        kalc              width (100% \- 50px)
-        height            35px
-        min-height        35px
-        rounded           5px
+        width             100%
+        height            38px
+        min-height        38px
+        rounded           3px
         border            2px solid #EAEAEA
         padding           7px 13px 10px 13px
         font-size         14px
@@ -979,11 +969,14 @@ span.collapsedtext
     .kdlistitemview-comment
       // background          #f7f7f7
       // border-top          1px solid #e9e9e9
-      padding             0 15px 16px 50px
+      padding             7px 15px 12px 52px
       borderBox()
 
+      &:last-child
+        padding-bottom    20px
+
       &:hover .kdbutton.comment-menu
-        opacity         1
+        opacity           1
 
       .kdbutton.comment-menu
         opacity           0
@@ -1000,11 +993,11 @@ span.collapsedtext
           r-sprite       'activity', 'comment-chevron-icon'
 
       .avatarview
+        abs               6px 0 0 0px
         display           block
-        size              35px 35px
-        abs               0px 0 0 0px
-        rounded           50%
-        // border            1px solid #e4e4e4
+
+        img
+          display         block
 
       a.profile
         font-size         14px
@@ -1012,10 +1005,11 @@ span.collapsedtext
         noTextDeco()
 
       .comment-body-container
-        font-size         12px
-        color             #4c4c4c
-        padding           10px 0 15px
-        line-height       18px
+        font-size         14px
+        color             #575757
+        padding           5px 0 6px
+        line-height       20px
+        opacity           .99
 
         p
           a
@@ -1026,8 +1020,8 @@ span.collapsedtext
               noTextDeco()
 
       .action-link
-        font-size         11px
-        color             #838383
+        font-size         12px
+        color             #ADAEB1
         noTextDeco()
 
         &:before
@@ -1409,14 +1403,16 @@ span.collapsedtext
 
 
 .content-page.activity > main .kdtabpaneview.privatemessage
-  min-height                0px
+  min-height                0
+
   .chat-heads
-    size                    auto, 57px
-    line-height             57px
-    // border-radius           12px
-    // background              #dcdcdc
+    top                     0
+    size                    691px 58px
+    line-height             58px
     margin                  0 0 24px
-    // overflow                visible
+    z-index                 1
+    bg                      color white
+    fix()
 
     .description
       color                 #4a4a4a
@@ -1462,18 +1458,34 @@ span.collapsedtext
           display           block
           r-sprite          'activity', 'new-participant-plus'
 
+  .kdlistview-privatemessage
+    margin-top              26px
+
   .activity-item.privatemessage
-    // background              #fafafa
-    // rounded                 4px 4px 0 0
     kalc                    min-height, 100vh \- 228px
-    // padding-left            0
+    padding                 0 0 0 52px
+
+    &.with-parent
+      .activity-content-wrapper
+        visible()
+
+    .list-previous-link
+      size                100% 47px
+      line-height         47px
+      font-size           14px
+      color               logoBg
+      display             block
+      margin-bottom       10px
+      text-align          center
+      bg                  color #F6F6F6
+      noTextDeco()
 
     .activity-content-wrapper
       background            none
       margin-bottom         14px
+      hidden()
 
-      >article
-        // margin-left         75px
+      > article
         margin-top          5px
 
         p:first-of-type
@@ -1487,7 +1499,6 @@ span.collapsedtext
           padding-bottom    6px
 
       .like-view
-        // margin-left         76px
 
         a.like-link
           font-size         11px
@@ -1506,73 +1517,87 @@ span.collapsedtext
           margin-left       7px
           font-size         11px
 
-    // .author-avatar
-    //   border-color          #fff
-    //   top                   19px
-    //   left                  19px
-
     .meta
-      // margin                23px 33px 0 75px
-
       .profile:after
         display             none
 
-      // time
-      //   width               auto
-      //   overflow            visible
-      //   color               #d2d2d2
-      //   font-size           10px
-      //   margin              3px 0 0 0
-      //   fr()
-
-      //   &:after
-      //     display           none
-
     .comment-container
       margin-left           -50px
+      kalc                  width (100% \+ 50px)
+
       .kdlistitemview-comment
-        background          none
-        border              none
-        // padding             11px 33px 14px 75px
+        padding             10px 0 0 52px
 
         &:last-of-type
-          padding-bottom    40px
+          padding-bottom    56px !important
+
+        &:hover
+          .action-link.like-link
+            r-sprite        activity heart-dim
+
+        .comment-menu
+          right             0
+
+        &.consequent
+          padding           0 15px 0 52px
+
+          > .avatarview
+          a.profile
+            hidden()
+
+          .comment-body-container
+
+            p
+              line-height   20px
+
+          .stats
+            height          16px
+            width           36px
+            top             4px
+            left            0
+            text-align      right
+            margin          0
+            abs()
+
+            time
+              hidden()
 
         .profile
           font-weight       600
 
         .comment-body-container
           font-size         14px
-          padding-top       4px
-          padding-bottom    6px
+          padding           0 0 7px
           opacity           .99
 
         .reply-link
           display           none
 
-        .comment-menu
-          display           none
+        .stats
+          display           inline-block
+          margin            0 0 7px 7px
+          .action-link.like-link
+            display         inline-block
+
+            &.has-likes
+              r-sprite        activity heart-outline
+            &.liked
+              r-sprite        activity heart-solid
 
         time
-          display           block
-          abs               14px 34px 0 0
+          display           inline-block
           width             auto
           overflow          visible
           color             #d2d2d2
           font-size         10px
 
-        // .avatarview
-        //   size              44px, 44px
-        //   border-color      #fff
-        //   top               6px
-        //   left              20px
-
       .item-add-comment-box
         position            fixed
         bottom              0
-        size                689px auto
+        size                691px auto
         padding             0 0 30px
         bg                  color white
+        margin-top          8px
 
         &:before
           content         ""
