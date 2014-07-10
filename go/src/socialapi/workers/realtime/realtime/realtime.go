@@ -50,7 +50,7 @@ type NotificationEvent struct {
 // NotificationContent holds required data for notification events
 type NotificationContent struct {
 	// TypeConstant holds the type of a notification
-	// But in some cases, this propety can hold the satus of the
+	// But in some cases, this property can hold the status of the
 	// notification, like "delivered" and "read"
 	TypeConstant string `json:"type"`
 
@@ -58,6 +58,7 @@ type NotificationContent struct {
 	ActorId      string `json:"actorId"`
 }
 
+//DefaultErrHandler controls the errors,  return false if an error occured 
 func (r *Controller) DefaultErrHandler(delivery amqp.Delivery, err error) bool {
 	r.log.Error("an error occured deleting realtime event", err)
 	delivery.Ack(false)
@@ -81,6 +82,8 @@ func New(rmq *rabbitmq.RabbitMQ, log logging.Logger) (*Controller, error) {
 	return ffc, nil
 }
 
+//MessageUpdated controls message updated status 
+//if an error occured , returns error otherwise returns nil
 func (f *Controller) MessageUpdated(cm *models.ChannelMessage) error {
 	if err := f.sendInstanceEvent(cm.GetId(), cm, "updateInstance"); err != nil {
 		f.log.Error(err.Error())
@@ -95,11 +98,13 @@ func (f *Controller) MessageUpdated(cm *models.ChannelMessage) error {
 // We are updating status_constant while removing user from the channel
 // but regarding operation has another event, so we are gonna ignore it
 func (f *Controller) ChannelParticipantUpdatedEvent(cp *models.ChannelParticipant) error {
+	// if status of the participant is left, then ignore the message
 	if cp.StatusConstant == models.ChannelParticipant_STATUS_LEFT {
 		f.log.Info("Ignoring participant (%d) left channel event", cp.AccountId)
 		return nil
 	}
 
+	// fetch the channel that user is updated
 	c, err := models.ChannelById(cp.ChannelId)
 	if err != nil {
 		return err
