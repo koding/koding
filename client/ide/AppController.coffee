@@ -338,6 +338,9 @@ class IDEAppController extends AppController
   saveFile: ->
     @getActivePaneView().emit 'SaveRequested'
 
+  saveAs: ->
+    @getActivePaneView().aceView.ace.requestSaveAs()
+
   saveAllFiles: ->
     @forEachSubViewInIDEViews_ 'editor', (editorPane) ->
       editorPane.emit 'SaveRequested'
