@@ -344,6 +344,7 @@ styleScrollBars()
       font-size     12px
 
     .profile
+      ellipsis()
       color         #B8B8B8
 
     .topic-follow-btn
@@ -428,7 +429,7 @@ styleScrollBars()
         padding     0 0 0 32px
         font-size   14px
         line-height 18px
-        width       100%
+        width       174px
         borderBox()
 
       > .user-numbers
@@ -483,7 +484,7 @@ styleScrollBars()
     noTextDeco()
 
     &.public-feed-link
-      margin-top      7px
+      margin-top      13px
       padding         0 8px
       height          28px
       line-height     28px
@@ -974,7 +975,7 @@ span.collapsedtext
         padding-bottom    20px
 
       &:hover .kdbutton.comment-menu
-        opacity         1
+        opacity           1
 
       .kdbutton.comment-menu
         opacity           0
@@ -1401,14 +1402,16 @@ span.collapsedtext
 
 
 .content-page.activity > main .kdtabpaneview.privatemessage
-  min-height                0px
+  min-height                0
+
   .chat-heads
-    size                    auto, 57px
-    line-height             57px
-    // border-radius           12px
-    // background              #dcdcdc
+    top                     0
+    size                    691px 58px
+    line-height             58px
     margin                  0 0 24px
-    // overflow                visible
+    z-index                 1
+    bg                      color white
+    fix()
 
     .description
       color                 #4a4a4a
@@ -1454,18 +1457,34 @@ span.collapsedtext
           display           block
           r-sprite          'activity', 'new-participant-plus'
 
+  .kdlistview-privatemessage
+    margin-top              26px
+
   .activity-item.privatemessage
-    // background              #fafafa
-    // rounded                 4px 4px 0 0
     kalc                    min-height, 100vh \- 228px
-    // padding-left            0
+    padding                 0 0 0 52px
+
+    &.with-parent
+      .activity-content-wrapper
+        visible()
+
+    .list-previous-link
+      size                100% 47px
+      line-height         47px
+      font-size           14px
+      color               logoBg
+      display             block
+      margin-bottom       10px
+      text-align          center
+      bg                  color #F6F6F6
+      noTextDeco()
 
     .activity-content-wrapper
       background            none
       margin-bottom         14px
+      hidden()
 
-      >article
-        // margin-left         75px
+      > article
         margin-top          5px
 
         p:first-of-type
@@ -1479,7 +1498,6 @@ span.collapsedtext
           padding-bottom    6px
 
       .like-view
-        // margin-left         76px
 
         a.like-link
           font-size         11px
@@ -1502,60 +1520,80 @@ span.collapsedtext
       .profile:after
         display             none
 
-      // time
-      //   width               auto
-      //   overflow            visible
-      //   color               #d2d2d2
-      //   font-size           10px
-      //   margin              3px 0 0 0
-      //   fr()
-
-      //   &:after
-      //     display           none
-
     .comment-container
       margin-left           -50px
+      kalc                  width (100% \+ 50px)
+
       .kdlistitemview-comment
-        background          none
-        border              none
-        // padding             11px 33px 14px 75px
+        padding             10px 0 0 52px
 
         &:last-of-type
-          padding-bottom    40px
+          padding-bottom    56px !important
+
+        &:hover
+          .action-link.like-link
+            r-sprite        activity heart-dim
+
+        .comment-menu
+          right             0
+
+        &.consequent
+          padding           0 15px 0 52px
+
+          > .avatarview
+          a.profile
+            hidden()
+
+          .comment-body-container
+
+            p
+              line-height   20px
+
+          .stats
+            height          16px
+            width           36px
+            top             4px
+            left            0
+            text-align      right
+            margin          0
+            abs()
+
+            time
+              hidden()
 
         .profile
           font-weight       600
 
         .comment-body-container
           font-size         14px
-          padding-top       4px
-          padding-bottom    6px
+          padding           0 0 7px
           opacity           .99
 
         .reply-link
           display           none
 
-        .comment-menu
-          display           none
+        .stats
+          display           inline-block
+          margin            0 0 7px 7px
+          .action-link.like-link
+            display         inline-block
+
+            &.has-likes
+              r-sprite        activity heart-outline
+            &.liked
+              r-sprite        activity heart-solid
 
         time
-          display           block
-          abs               14px 34px 0 0
+          display           inline-block
           width             auto
           overflow          visible
           color             #d2d2d2
           font-size         10px
 
-        // .avatarview
-        //   size              44px, 44px
-        //   border-color      #fff
-        //   top               6px
-        //   left              20px
-
       .item-add-comment-box
         position            fixed
         bottom              0
-        size                100% auto
+        size                691px auto
         padding             0 0 30px
         bg                  color white
         margin-top          8px
