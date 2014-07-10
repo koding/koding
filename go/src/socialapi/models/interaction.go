@@ -231,7 +231,11 @@ func (c *Interaction) Count(q *request.Query) (int, error) {
 		c, q.ShowExempt,
 	))
 
-	return c.CountWithQuery(query)
+	i := NewInteraction()
+	*i = *c
+	i.Id = 0
+
+	return i.CountWithQuery(query)
 }
 
 func (c *Interaction) CountWithQuery(q *bongo.Query) (int, error) {
