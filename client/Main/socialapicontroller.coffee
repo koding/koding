@@ -214,6 +214,14 @@ class SocialApiController extends KDController
 
           socialapi.emit "ChannelRegistered-#{name}", socialApiChannel
 
+
+  cycleChannel: (channel, callback)->
+    options =
+      groupSlug     : channel.groupName
+      apiChannelType: channel.typeConstant
+      apiChannelName: channel.name
+    KD.remote.api.SocialChannel.cycleChannel options, callback
+
   generateChannelName = ({name, typeConstant, groupName}) ->
     return "socialapi.#{groupName}-#{typeConstant}-#{name}"
 
@@ -398,21 +406,20 @@ class SocialApiController extends KDController
       validateOptionsWith: ['messageId']
 
     follow               : channelRequesterFn
-      fnName             : 'follow'
+      fnName             : 'addParticipants'
       validateOptionsWith: ['channelId']
-
-    addParticipant       : channelRequesterFn
-      fnName             : 'follow'
-      validateOptionsWith: ['channelId']
-
-    addParticipants      : (callback)->
-
-      callback message : 'Cihangir needs to create the endpoint first :)'
-
 
     unfollow             : channelRequesterFn
-      fnName             : 'unfollow'
+      fnName             : 'removeParticipants'
       validateOptionsWith: ['channelId']
+
+    addParticipants      : channelRequesterFn
+      fnName             : 'addParticipants'
+      validateOptionsWith: ['channelId', "accountIds"]
+
+    removeParticipants    : channelRequesterFn
+      fnName              : 'removeParticipants'
+      validateOptionsWith : ['channelId', "accountIds"]
 
     fetchFollowedChannels: channelRequesterFn
       fnName             : 'fetchFollowedChannels'

@@ -72,12 +72,10 @@ func Inject(mux *tigertonic.TrieServeMux) *tigertonic.TrieServeMux {
 	mux.Handle("POST", "/channel/{id}/message", handler.Wrapper(message.Create, "channel-message-create"))
 	// list participants of the channel
 	// exempt contents are filtered
-	mux.Handle("GET", "/channel/{id}/participant", handler.Wrapper(participant.List, "participant-list"))
-	// exempt contents are filtered
-	mux.Handle("POST", "/channel/{id}/participant/{accountId}/add", handler.Wrapper(participant.Add, "participant-list"))
-	// exempt contents are filtered
-	mux.Handle("POST", "/channel/{id}/participant/{accountId}/delete", handler.Wrapper(participant.Delete, "participant-list"))
-	mux.Handle("POST", "/channel/{id}/participant/{accountId}/presence", handler.Wrapper(participant.Presence, "participant-presence"))
+	mux.Handle("GET", "/channel/{id}/participants", handler.Wrapper(participant.List, "participant-list"))
+	mux.Handle("POST", "/channel/{id}/participants/add", handler.Wrapper(participant.AddMulti, "participant-multi-add"))
+	mux.Handle("POST", "/channel/{id}/participants/remove", handler.Wrapper(participant.RemoveMulti, "participant-multi-remove"))
+	mux.Handle("POST", "/channel/{id}/participant/{accountId}/presence", handler.Wrapper(participant.UpdatePresence, "participant-presence-update"))
 	// list messages of the channel
 	// exempt contents are filtered
 	mux.Handle("GET", "/channel/{id}/history", handler.Wrapper(messagelist.List, "channel-history-list"))
