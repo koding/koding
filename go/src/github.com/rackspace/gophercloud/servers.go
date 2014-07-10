@@ -5,6 +5,7 @@ package gophercloud
 
 import (
 	"fmt"
+	"net/url"
 	"strings"
 
 	"github.com/mitchellh/mapstructure"
@@ -24,6 +25,23 @@ type genericServersProvider struct {
 	// access associates this API provider with a set of credentials,
 	// which may be automatically renewed if they near expiration.
 	access AccessProvider
+}
+
+// See the CloudServersProvider interface for details.
+func (gcp *genericServersProvider) ListServersByFilter(filter url.Values) ([]Server, error) {
+	var ss []Server
+
+	err := gcp.context.WithReauth(gcp.access, func() error {
+		url := gcp.endpoint + "/servers/detail?" + filter.Encode()
+		return perigee.Get(url, perigee.Options{
+			CustomClient: gcp.context.httpClient,
+			Results:      &struct{ Servers *[]Server }{&ss},
+			MoreHeaders: map[string]string{
+				"X-Auth-Token": gcp.access.AuthToken(),
+			},
+		})
+	})
+	return ss, err
 }
 
 // See the CloudServersProvider interface for details.

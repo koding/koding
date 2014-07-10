@@ -1,5 +1,7 @@
 package gophercloud
 
+import "net/url"
+
 // AccessProvider instances encapsulate a Keystone authentication interface.
 type AccessProvider interface {
 	// FirstEndpointUrlByCriteria searches through the service catalog for the first
@@ -37,6 +39,22 @@ type CloudServersProvider interface {
 	// in a given region.  This function differs from ListServersLinksOnly()
 	// in that it returns all available details for each server returned.
 	ListServers() ([]Server, error)
+
+	// ListServersByFilters provides a list of servers hosted by the user in a
+	// given region. This function let you requests servers by certain URI
+	// paramaters defined by the API endpoint.  This is sometimes more suitable
+	// if you have many servers and you only want to pick servers on certain
+	// criterias. An example usage could be :
+	//
+	//	   filter := url.Values{}
+	//	   filter.Set("name", "MyServer")
+	//	   filter.Set("status", "ACTIVE")
+	//
+	//	   filteredServers, err := c.ListServersByFilters(filter)
+	//
+	// Here, filteredServers only contains servers whose name started with
+	// "MyServer" and are in "ACTIVE" status.
+	ListServersByFilter(filter url.Values) ([]Server, error)
 
 	// ListServers provides a complete list of servers hosted by the user
 	// in a given region.  This function differs from ListServers() in that

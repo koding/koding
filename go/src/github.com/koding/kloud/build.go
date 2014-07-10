@@ -38,7 +38,8 @@ func (k *Kloud) build(r *kite.Request, c *Controller) (resp interface{}, err err
 
 		err := k.buildMachine(r.Username, c)
 		if err != nil {
-			k.Log.Error("[controller] building machine failed: %s.", err.Error())
+			k.Log.Error("[controller] building machine failed for user '%s' with machineId '%s': %s.",
+				r.Username, c.MachineId, err.Error())
 
 			status = c.CurrenState
 			msg = err.Error()
@@ -63,16 +64,16 @@ func (k *Kloud) build(r *kite.Request, c *Controller) (resp interface{}, err err
 }
 
 func (k *Kloud) buildMachine(username string, c *Controller) error {
-	instanceName := username + "-" + strconv.FormatInt(time.Now().UTC().UnixNano(), 10)
-	if c.InstanceName != "" {
-		instanceName = c.InstanceName
+	// create a random instance name if the it's not passed via argument
+	if c.InstanceName == "" {
+		c.InstanceName = username + "-" + strconv.FormatInt(time.Now().UTC().UnixNano(), 10)
 	}
 
 	machOptions := &protocol.MachineOptions{
 		MachineId:    c.MachineId,
 		Username:     username,
 		ImageName:    c.ImageName,
-		InstanceName: instanceName,
+		InstanceName: c.InstanceName,
 		Eventer:      c.Eventer,
 		Credential:   c.MachineData.Credential.Meta,
 		Builder:      c.MachineData.Machine.Meta,

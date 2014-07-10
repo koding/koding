@@ -266,7 +266,6 @@ func (k *Kloud) restart(r *kite.Request, c *Controller) (interface{}, error) {
 // start, stop, restart and destroy methods (because we do the same steps for
 // each of them).
 func (k *Kloud) coreMethods(r *kite.Request, c *Controller, fn func(*protocol.MachineOptions) error) (result interface{}, err error) {
-
 	// all core methods works only for machines that are initialized
 	if c.CurrenState == machinestate.NotInitialized {
 		return nil, NewError(ErrMachineNotInitialized)

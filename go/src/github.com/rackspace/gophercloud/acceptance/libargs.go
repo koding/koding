@@ -19,6 +19,7 @@ func getCredentials() (provider, username, password, apiKey string) {
 	username = os.Getenv("SDK_USERNAME")
 	password = os.Getenv("SDK_PASSWORD")
 	apiKey = os.Getenv("SDK_API_KEY")
+	var authURL = os.Getenv("OS_AUTH_URL")
 
 	if (provider == "") || (username == "") || (password == "") {
 		fmt.Fprintf(os.Stderr, "One or more of the following environment variables aren't set:\n")
@@ -26,6 +27,10 @@ func getCredentials() (provider, username, password, apiKey string) {
 		fmt.Fprintf(os.Stderr, "  SDK_USERNAME=\"%s\"\n", username)
 		fmt.Fprintf(os.Stderr, "  SDK_PASSWORD=\"%s\"\n", password)
 		os.Exit(1)
+	}
+
+	if strings.Contains(provider, "rackspace") && (authURL != "") {
+		provider = authURL + "/v2.0/tokens"
 	}
 
 	return
@@ -143,12 +148,38 @@ func findAlternativeImage() string {
 // withIdentity authenticates the user against the provider's identity service, and provides an
 // accessor for additional services.
 func withIdentity(ar bool, f func(gophercloud.AccessProvider)) {
+	_, _, _, apiKey := getCredentials()
+	if len(apiKey) == 0 {
+		withPasswordIdentity(ar, f)
+	} else {
+		withAPIKeyIdentity(ar, f)
+	}
+}
+
+func withPasswordIdentity(ar bool, f func(gophercloud.AccessProvider)) {
 	provider, username, password, _ := getCredentials()
 	acc, err := gophercloud.Authenticate(
 		provider,
 		gophercloud.AuthOptions{
 			Username:    username,
 			Password:    password,
+			AllowReauth: ar,
+		},
+	)
+	if err != nil {
+		panic(err)
+	}
+
+	f(acc)
+}
+
+func withAPIKeyIdentity(ar bool, f func(gophercloud.AccessProvider)) {
+	provider, username, _, apiKey := getCredentials()
+	acc, err := gophercloud.Authenticate(
+		provider,
+		gophercloud.AuthOptions{
+			Username:    username,
+			ApiKey:      apiKey,
 			AllowReauth: ar,
 		},
 	)

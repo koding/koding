@@ -1,9 +1,12 @@
 package main
 
 import (
-	"koding/kites/kloud/kloud"
-	"koding/kites/kloud/kloud/machinestate"
+	"github.com/koding/kloud"
+	"github.com/koding/kloud/idlock"
+	"github.com/koding/kloud/machinestate"
 )
+
+var locks = idlock.New()
 
 type TestStorageFunc func(id string, opt *kloud.GetOption) (*kloud.MachineData, error)
 
@@ -32,12 +35,13 @@ type TestStorage struct{}
 func (t *TestStorage) Assignee() string { return "TestStorage" }
 
 func (t *TestStorage) Get(id string, opt *kloud.GetOption) (*kloud.MachineData, error) {
-	machineData := TestProviderData[id]
+	machineData := GetTestData(id)
+	locks.Get(testuser).Lock()
 	return machineData, nil
 }
 
 func (t *TestStorage) Update(id string, s *kloud.StorageData) error {
-	machineData := TestProviderData[id]
+	machineData := GetTestData(id)
 
 	if s.Type == "build" {
 		machineData.Machine.QueryString = s.Data["queryString"].(string)
@@ -50,17 +54,18 @@ func (t *TestStorage) Update(id string, s *kloud.StorageData) error {
 		machineData.Machine.Meta["instanceName"] = s.Data["instanceName"]
 	}
 
-	TestProviderData[id] = machineData
+	TestData[id] = machineData
 	return nil
 }
 
 func (t *TestStorage) UpdateState(id string, state machinestate.State) error {
-	machineData := TestProviderData[id]
+	machineData := GetTestData(id)
 	machineData.Machine.Status.State = state.String()
-	TestProviderData[id] = machineData
+	TestData[id] = machineData
 	return nil
 }
 
 func (t *TestStorage) ResetAssignee(id string) error {
+	locks.Get(testuser).Unlock()
 	return nil
 }

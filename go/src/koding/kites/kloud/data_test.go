@@ -1,9 +1,11 @@
 package main
 
 import (
-	"koding/kites/kloud/kloud"
-	"koding/kites/kloud/kloud/machinestate"
+	"sync"
 	"time"
+
+	"github.com/koding/kloud"
+	"github.com/koding/kloud/machinestate"
 )
 
 var (
@@ -16,9 +18,47 @@ var (
 )
 
 var (
+	TestData = make(map[string]*kloud.MachineData)
+	TestMu   sync.Mutex
+)
+
+func GetTestData(id string) *kloud.MachineData {
+	TestMu.Lock()
+	defer TestMu.Unlock()
+	return TestData[id]
+}
+
+func CreateTestData(provider, id string) {
+	data := &kloud.MachineData{
+		Provider: provider,
+		Credential: &kloud.Credential{
+			Meta: map[string]interface{}{
+				"username": RACKSPACE_USERNAME,
+				"apiKey":   RACKSPACE_API_KEY,
+			},
+		},
+		Machine: &kloud.Machine{
+			Provider: provider,
+			Status: struct {
+				State      string    `bson:"state"`
+				ModifiedAt time.Time `bson:"modifiedAt"`
+			}{
+				State:      machinestate.NotInitialized.String(),
+				ModifiedAt: time.Now(),
+			},
+			Meta: map[string]interface{}{},
+		},
+	}
+
+	TestMu.Lock()
+	TestData[id] = data
+	TestMu.Unlock()
+}
+
+var (
 	TestProviderData = map[string]*kloud.MachineData{
-		"rackspace_id0": &kloud.MachineData{
-			Provider: "rackspace",
+		"koding_id0": &kloud.MachineData{
+			Provider: "koding",
 			Credential: &kloud.Credential{
 				Meta: map[string]interface{}{
 					"username": RACKSPACE_USERNAME,
@@ -26,7 +66,7 @@ var (
 				},
 			},
 			Machine: &kloud.Machine{
-				Provider: "rackspace",
+				Provider: "koding",
 				Status: struct {
 					State      string    `bson:"state"`
 					ModifiedAt time.Time `bson:"modifiedAt"`
@@ -34,9 +74,47 @@ var (
 					State:      machinestate.NotInitialized.String(),
 					ModifiedAt: time.Now(),
 				},
+				Meta: map[string]interface{}{},
+			},
+		},
+		"koding_id1": &kloud.MachineData{
+			Provider: "koding",
+			Credential: &kloud.Credential{
 				Meta: map[string]interface{}{
-					"type": "rackspace",
+					"username": RACKSPACE_USERNAME,
+					"apiKey":   RACKSPACE_API_KEY,
 				},
+			},
+			Machine: &kloud.Machine{
+				Provider: "koding",
+				Status: struct {
+					State      string    `bson:"state"`
+					ModifiedAt time.Time `bson:"modifiedAt"`
+				}{
+					State:      machinestate.NotInitialized.String(),
+					ModifiedAt: time.Now(),
+				},
+				Meta: map[string]interface{}{},
+			},
+		},
+		"koding_id2": &kloud.MachineData{
+			Provider: "koding",
+			Credential: &kloud.Credential{
+				Meta: map[string]interface{}{
+					"username": RACKSPACE_USERNAME,
+					"apiKey":   RACKSPACE_API_KEY,
+				},
+			},
+			Machine: &kloud.Machine{
+				Provider: "koding",
+				Status: struct {
+					State      string    `bson:"state"`
+					ModifiedAt time.Time `bson:"modifiedAt"`
+				}{
+					State:      machinestate.NotInitialized.String(),
+					ModifiedAt: time.Now(),
+				},
+				Meta: map[string]interface{}{},
 			},
 		},
 		"digitalocean_id0": &kloud.MachineData{
