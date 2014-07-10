@@ -114,7 +114,7 @@ revive = do -> ({
 
         reviveProvisioners client, provisioners, (err, provisioners)=>
 
-          options.provisioners = provisioners
+          options.provisioners = provisioners  if provisioners?
           fn.call this, client, options, callback
 
         , shouldReviveProvisioners
