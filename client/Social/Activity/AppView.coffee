@@ -19,9 +19,9 @@ class ActivityAppView extends KDView
     {
       appStorageController
       windowController
-    }                      = KD.singletons
-    {entryPoint}           = KD.config
-    @_lastMessage          = null
+    }             = KD.singletons
+    {entryPoint}  = KD.config
+    @_lastMessage = null
 
     @appStorage  = appStorageController.storage 'Activity', '2.0'
     @groupHeader = new FeedCoverPhotoView
