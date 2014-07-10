@@ -63,7 +63,10 @@ class AvatarPopupGroupSwitcher extends AvatarPopup
       partial  : '<div class="kdview content"></div>'
       cssClass : 'avatararea-popup notifications group-switcher submenu' # this is a hack, just to use the same position w/ notifications dropdown
 
-    @groupSubMenuWrapper.setCss 'right', 293
+    KD.utils.defer =>
+      @groupSubMenuWrapper.setStyle
+        bottom : @getHeight() + 62
+        left   : 297
 
     {entryPoint} = KD.config
     createGroupLink = new KDCustomHTMLView

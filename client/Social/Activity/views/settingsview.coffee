@@ -3,69 +3,101 @@ class ActivitySettingsView extends KDCustomHTMLView
   constructor:(options = {}, data={})->
 
     super options, data
-    data = @getData()
+
+    @menu   = {}
+    data    = @getData()
     account = KD.whoami()
-    @settings = if (data.originId is account.getId()) or KD.checkFlag('super-admin') or KD.hasAccess("delete posts")
-      button = new KDButtonViewWithMenu
-        cssClass       : 'activity-settings-menu'
-        itemChildClass : ActivityItemMenuItem
-        title          : ''
-        icon           : yes
-        delegate       : this
-        iconClass      : "arrow"
-        menu           : @settingsMenu data
-        style          : "resurrection"
-        callback       : (event)=> button.contextMenu event
-    else
-      new KDCustomHTMLView tagName : 'span', cssClass : 'hidden'
+
+    @settings = new KDButtonViewWithMenu
+      title          : ''
+      cssClass       : 'activity-settings-menu'
+      itemChildClass : ActivityItemMenuItem
+      delegate       : this
+      iconClass      : 'arrow'
+      menu           : @bound 'settingsMenu'
+      style          : 'resurrection'
+      callback       : (event) => @settings.contextMenu event
 
     activityController = KD.getSingleton('activityController')
 
-  settingsMenu:(post)->
-    account        = KD.whoami()
-    activityController = KD.getSingleton("activityController")
-    menu = {}
-    if post.originId is account.getId()
-        menu['Edit Post'] =
-          callback: => @emit 'ActivityEditIsClicked'
-        menu['Delete Post'] =
-          callback: => @confirmDeletePost post
 
-    if KD.checkFlag("super-admin") or KD.hasAccess("delete posts")
-      if KD.checkFlag 'exempt', account
-        menu['Unmark User as Troll'] =
-            callback             : ->
-              activityController.emit "ActivityItemUnMarkUserAsTrollClicked", post
-      else
-        menu['Mark User as Troll'] =
-            callback           : ->
-              activityController.emit "ActivityItemMarkUserAsTrollClicked", post
+  addMenuItem: (title, callback) -> @menu[title] = {callback}
 
-      menu['Delete Post'] =
-        callback : => @confirmDeletePost post
+  addFollowActionMenu: ->
 
-      menu['Edit Post'] =
-        callback : => @emit 'ActivityEditIsClicked'
+    {pin, unpin} = KD.singletons.socialapi.channel
+    post = @getData()
 
-      menu['Block User'] =
-        callback : ->
-          activityController.emit "ActivityItemBlockUserClicked", post.originId
+    unless post.isFollowed
+      title = 'Follow Post'
+      fn    = pin
+    else
+      title = 'Unfollow Post'
+      fn    = unpin
 
-      menu['Add System Tag'] =
-        callback : => @selectSystemTag post
+    @addMenuItem title, ->
+      messageId = post.getId()
+      fn {messageId}, (err)->
+        return KD.showError err  if err
+        post.isFollowed = not post.isFollowed
 
-      menu['Impersonate'] =
-        callback : ->
-          KD.remote.cacheable post.originType, post.originId, (err, owner) ->
-            return KD.showError err  if err
-            return KD.showError message: "Account not found"  unless owner
-            KD.impersonate owner.profile.nickname
 
-    return menu
+    return @menu
+
+
+  addOwnerMenu: ->
+
+    @addMenuItem 'Edit Post', @lazyBound 'emit', 'ActivityEditIsClicked'
+    @addMenuItem 'Delete Post', @bound 'confirmDeletePost'
+
+    return @menu
+
+
+  addAdminMenu: ->
+
+    post = @getData()
+
+    @addOwnerMenu()
+
+    {activityController} = KD.singletons
+
+    if KD.checkFlag 'exempt', KD.whoami()
+      @addMenuItem 'Unmark User as Troll', ->
+        activityController.emit "ActivityItemUnMarkUserAsTrollClicked", post
+    else
+      @addMenuItem 'Mark User as Troll', ->
+        activityController.emit "ActivityItemMarkUserAsTrollClicked", post
+
+    @addMenuItem 'Block User', ->
+      activityController.emit "ActivityItemBlockUserClicked", post.account._id
+    @addMenuItem 'Impersonate', ->
+      {constructorName, _id} = post.account
+      KD.remote.cacheable constructorName, _id, (err, owner) ->
+        return KD.showErrorNotification err  if err
+        return KD.showNotification "Account not found"  unless owner
+        KD.impersonate owner.profile.nickname
+
+    # TODO since system tag is not implemented for new social menu item is regressed
+    # @addMenuItem 'Add System Tag', => @selectSystemTag post
+
+    return @menu
+
+
+  settingsMenu: ->
+
+    @menu = {}
+
+    @addFollowActionMenu()
+    @addOwnerMenu()  if KD.isMyPost @getData()
+    @addAdminMenu()  if KD.checkFlag('super-admin')
+
+    return @menu
+
 
   viewAppended: -> @addSubView @settings
 
-  confirmDeletePost:(post)->
+
+  confirmDeletePost: ->
 
     modal = new KDModalView
       title          : "Delete post"
@@ -76,24 +108,20 @@ class ActivitySettingsView extends KDCustomHTMLView
         Delete       :
           style      : "modal-clean-red"
           loader     :
-            color    : "#ffffff"
-            diameter : 16
+            color    : "#e94b35"
           callback   : =>
 
-            if post.fake
-              @emit 'ActivityIsDeleted'
-              modal.buttons.Delete.hideLoader()
-              modal.destroy()
-              return
+            id = @getData().getId()
 
-            post.delete (err)=>
-              modal.buttons.Delete.hideLoader()
+            (KD.singleton 'appManager').tell 'Activity', 'delete', {id}, (err) =>
+              return modal.destroy()  unless err
+              options =
+                userMessage : "You are not allowed to delete this post."
+
+              KD.showErrorNotification err, options
+
               modal.destroy()
-              unless err then @emit 'ActivityIsDeleted'
-              else new KDNotificationView
-                type     : "mini"
-                cssClass : "error editor"
-                title     : "Error, please try again later!"
+
         Cancel       :
           style      : "modal-cancel"
           title      : "cancel"

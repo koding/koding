@@ -2,6 +2,13 @@ SET ROLE social;
 
 CREATE SCHEMA api;
 
-GRANT usage ON SCHEMA api to socialapplication;
+-- since extension creation is handled in current database,
+-- hstore is created here
+SET ROLE postgres;
+CREATE EXTENSION IF NOT EXISTS hstore;
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+SET ROLE social;
 
-ALTER DATABASE social set search_path="$user", public, api
+GRANT USAGE ON SCHEMA api TO socialapplication;
+
+ALTER DATABASE social SET search_path="$user", public, api;

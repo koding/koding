@@ -1,68 +1,37 @@
-class ActivitySharePopup extends SharePopup
+class ActivityActionsView extends JView
 
-  constructor: (options={}, data)->
+  constructor: (options = {}, data) ->
 
-    options.cssClass        = "share-popup"
-    options.shortenText     = true
-    options.twitter         = @getTwitterOptions options
-    options.newTab          = @getNewTabOptions options
+    options.cssClass = KD.utils.curry "activity-actions comment-header", options.cssClass
 
     super options, data
 
-  getTwitterOptions:(options)->
-    data = options.delegate.getData()
-    {tags} = data
-    if tags
-      hashTags  = ("##{tag.slug}"  for tag in tags when tag?.slug)
-      hashTags  = _.unique(hashTags).join " "
-      hashTags += " "
-    else
-      hashTags = ''
-
-    {title, body} = data
-    itemText  = KD.utils.shortenText title or body, maxLength: 100, minLength: 100
-    shareText = "#{itemText} #{hashTags}- #{options.url}"
-
-    return twitter =
-      enabled : true
-      text    : shareText
-
-  getNewTabOptions:(options)->
-    return { enabled : true, url : options.url }
-
-class ActivityActionsView extends JView
-
-  JView.mixin @prototype
-
-  JView.mixin @prototype
-
-  contextMenu = null
-  constructor:->
-    super
-
-    activity = @getData()
-
-    @commentLink  = new ActivityActionLink
-      partial : "Comment"
+    @commentLink  = new CustomLinkView
+      title: "Comment"
+      click: @bound "reply"
 
     @commentCount = new ActivityCommentCount
+      cssClass    : 'count'
       tooltip     :
         title     : "Show all"
       click       : (event) =>
         KD.utils.stopDOMEvent event
         @getDelegate().emit "CommentCountClicked", this
-    , activity
+    , data
 
-    @shareLink = new ActivityActionLink
-      partial  : "Share"
-      click    : (event) =>
+    @shareLink = new CustomLinkView
+      title : "Share"
+      click : (event) =>
+
         KD.utils.stopDOMEvent event
+
         data = @getData()
         if data?.group? and data.group isnt "koding"
-          shareUrl = "#{KD.config.mainUri}/#{data.group}/Activity/#{data.slug}"
+          shareUrl = "#{KD.config.mainUri}/#{data.group}/Activity/Post/#{data.slug}"
         else
-          shareUrl      = "#{KD.config.mainUri}/Activity/#{data.slug}"
-        contextMenu   = new KDContextMenu
+          shareUrl = "#{KD.config.mainUri}/Activity/Post/#{data.slug}"
+
+        new KDContextMenu
           cssClass    : "activity-share-popup"
           type        : "activity-share"
           delegate    : this
@@ -75,11 +44,7 @@ class ActivityActionsView extends JView
 
         KD.mixpanel "Activity share, click"
 
-    @likeView = new LikeView
-      cssClass           : "logged-in action-container"
-      useTitle           : yes
-      checkIfLikedBefore : yes
-    , activity
+    @likeLink = new ActivityLikeLink null, data
 
     @loader = new KDLoaderView
       cssClass      : 'action-container'
@@ -88,102 +53,35 @@ class ActivityActionsView extends JView
       loaderOptions :
         color       : '#6B727B'
 
-    # unless KD.isLoggedIn()
-    #   @commentLink.setTooltip title: "Login required"
-    #   @likeView.likeLink.setTooltip title: "Login required"
-    #   KD.getSingleton("mainController").on "accountChanged.to.loggedIn", =>
-    #     delete @likeView.likeLink.tooltip
-    #     delete @commentLink.tooltip
+    options.delegate
+      .on "AsyncJobStarted",  @loader.bound "show"
+      .on "AsyncJobFinished", @loader.bound "hide"
 
-  viewAppended:->
-    super()
-    @setClass "activity-actions"
-    @attachListeners()
+
+  reply: (event) ->
+
+    KD.utils.stopDOMEvent event
+    @emit "Reply"
+
+
+  viewAppended: ->
+
     @loader.hide()
 
-  pistachio:->
+    super
+
+
+  pistachio: ->
 
     """
-    {{> @likeView}}
     <span class='logged-in action-container'>
-      {{> @commentLink}}{{> @commentCount}}
+    {{> @likeLink}}
+    </span>
+    <span class='logged-in action-container'>
+    {{> @commentLink}}{{> @commentCount}}
     </span>
     <span class='optional action-container'>
-      {{> @shareLink}}
+    {{> @shareLink}}
     </span>
     {{> @loader}}
     """
-
-  attachListeners:->
-
-    activity    = @getData()
-    commentList = @getDelegate()
-
-    commentList.on 'BackgroundActivityStarted',  @loader.bound 'show'
-    commentList.on 'BackgroundActivityFinished', @loader.bound 'hide'
-
-    @commentLink.on "click", (event)=>
-      @utils.stopDOMEvent event
-      commentList.emit "CommentLinkReceivedClick", event, this
-
-class ActivityActionLink extends KDCustomHTMLView
-  constructor:(options,data)->
-    options = $.extend
-      tagName   : "a"
-      cssClass  : "action-link"
-      attributes:
-        href    : "#"
-    , options
-    super options,data
-
-class ActivityCountLink extends JCustomHTMLView
-
-  JView.mixin @prototype
-
-  constructor:(options,data)->
-    options = $.extend
-      tagName   : "a"
-      cssClass  : "count"
-      attributes:
-        href    : "#"
-    , options
-    super options,data
-
-  render:->
-    super
-    @setCount @getData()
-
-  viewAppended:->
-    super()
-    activity = @getData()
-    @setCount activity
-
-  pistachio:-> ""
-
-class ActivityLikeCount extends ActivityCountLink
-
-  @oldCount = 0
-
-  setCount:(activity)->
-    if activity.meta.likes isnt @oldCount
-      @emit "countChanged", activity.meta.likes
-    @oldCount = activity.meta.likes
-    if activity.meta.likes is 0 then @hide() else @show()
-
-  pistachio:-> "{{ #(meta.likes)}}"
-
-class ActivityCommentCount extends ActivityCountLink
-
-  setCount:(activity)->
-    if activity.repliesCount is 0 then @hide() else @show()
-    @emit "countChanged", activity.repliesCount
-
-  pistachio:-> "{{ #(repliesCount)}}"
-
-class ActivityOpinionCount extends ActivityCountLink
-
-  setCount:(activity)->
-    if activity.opinionCount is 0 then @hide() else @show()
-    @emit "countChanged", activity.opinionCount
-
-  pistachio:-> "{{ #(opinionCount)}}"

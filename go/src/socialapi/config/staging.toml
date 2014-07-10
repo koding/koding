@@ -1,7 +1,8 @@
 EventExchangeName="BrokerMessageBus"
 Mongo="dev:k9lc4G1k32nyD72@68.68.97.107:27017/koding"
 Environment="staging"
-Redis="172.16.6.13:6379"
+Uri="https://koding.com"
+
 [postgres]
 Host=     "172.16.3.18"
 Port=     5432
@@ -16,5 +17,26 @@ Username= "guest"
 Password= "djfjfhgh4455__5"
 Vhost=    "new"
 
+[redis]
+URL=      "172.16.10.16:6379"
+DB=       0
+# slave one is not used, just here for future ref
+Slave=    "172.16.10.17:6379"
+
 [limits]
-MessageBodyMinLen=5
+MessageBodyMinLen=1
+
+[Notification]
+CacheEnabled = false
+
+[emailnotification]
+TemplateRoot="go/src/socialapi/workers/emailnotifier/templates/"
+
+[sendgrid]
+Username= "koding"
+Password= "DEQl7_Dr"
+FromName= "Koding"
+FromMail= "hello@koding.com"
+
+[sitemap]
+RedisDB=1

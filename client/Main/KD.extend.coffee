@@ -185,8 +185,10 @@ KD.extend
     return "Logs are logged to backend too."
 
   impersonate : (username)->
-    KD.remote.api.JAccount.impersonate username, (err)->
-      if err then new KDNotificationView title: err.message
+    KD.remote.api.JAccount.impersonate username, (err)=>
+      if err
+        options = userMessage: "You are not allowed to impersonate"
+        @showErrorNotification err, options
       else location.reload()
 
   notify_:(message, type='', duration = 3500)->
@@ -262,6 +264,8 @@ KD.extend
 
   isMine:(account)-> KD.whoami().profile.nickname is account.profile.nickname
 
+  isMyPost: (post) -> post.account._id is KD.whoami().getId()
+
   checkFlag:(flagToCheck, account = KD.whoami())->
     if account.globalFlags
       if 'string' is typeof flagToCheck
@@ -311,6 +315,37 @@ KD.extend
       warn "KodingError:", err.message
       error err
     err?
+
+  showNotification: (message, options = {})->
+    return  if not message or message is ""
+
+    # TODO these css/type parameters will be changed according to error type
+    type = 'growl'
+
+    options.duration or= 3500
+    options.title      = message
+    # options.css      or= css
+    options.type     or= type
+
+    options.fn message  if options.fn and typeof options.fn? is 'function'
+
+    new KDNotificationView options
+
+  # TODO after error message handling method is decided replace this function
+  # with showError
+  showErrorNotification: (err, options = {}) ->
+    {message, name} = err  if err
+
+    switch name
+      when 'AccessDenied'
+        options.fn = warn
+        options.type = 'growl'
+        message = options.userMessage
+      else
+        options.userMessage = "Error, please try again later!"
+        options.fn = error
+
+    @showNotification message, options
 
   getPathInfo: (fullPath)->
     return no unless fullPath

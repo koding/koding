@@ -1,5 +1,15 @@
 utils.extend utils,
 
+  groupifyLink: (href, withOrigin = no) ->
+
+    {slug}   = KD.config.entryPoint
+    {origin} = window.location
+    href     = if slug is 'koding' then href else "#{slug}/#{href}"
+    href     = "#{origin}/#{href}"  if withOrigin
+
+    return href
+
+
   getPaymentMethodTitle: (billing)->
     # for convenience, accept either the payment method, or the billing object
     { billing } = billing  if billing.billing?
@@ -98,7 +108,8 @@ utils.extend utils,
     if not excludeSelector
       text.replace /\B\@([\w\-]+)/gim, (u) ->
         username = u.replace "@", ""
-        u.link "/#{username}"
+        "<a href='/#{username}' class='profile-link'>#{u}</a>"
+
     # context-sensitive expansion
     else
       result = ""
@@ -180,9 +191,8 @@ utils.extend utils,
     # log "[#{text.length}:#{Encoder.htmlEncode(text).length}/#{shortenedText.length}:#{Encoder.htmlEncode(shortenedText).length}]"
     text = if Encoder.htmlEncode(text).length > Encoder.htmlEncode(shortenedText).length
       morePart = "<span class='collapsedtext hide'>"
-      morePart += "<a href='#' class='more-link' title='Show more...'>Show more...</a>"
+      morePart += "<a href='#' class='more-link' title='Show more...'><i></i></a>"
       morePart += Encoder.htmlEncode(text).substr Encoder.htmlEncode(shortenedText).length
-      morePart += "<a href='#' class='less-link' title='Show less...'>...show less</a>"
       morePart += "</span>"
       Encoder.htmlEncode(shortenedText) + morePart
     else
@@ -677,3 +687,7 @@ utils.extend utils,
   # parent window, which isn't available in a chrome app. Therefore, we
   # disable/change oauth behavior based on this flag: SA.
   oauthEnabled: -> window.name isnt "chromeapp"
+
+  hasPermission: (name) ->
+
+    (KD.config.permissions.indexOf name) >= 0

@@ -16,6 +16,10 @@ module.exports = class SocialMessage extends Base
     #   'list private messages' : ['member', 'moderator']
     sharedMethods :
       static   :
+        byId   :
+          (signature Object, Function)
+        bySlug :
+          (signature Object, Function)
         post   :
           (signature Object, Function)
         reply  :
@@ -24,13 +28,19 @@ module.exports = class SocialMessage extends Base
           (signature Object, Function)
         delete :
           (signature Object, Function)
+        listReplies:
+          (signature Object, Function)
         like   :
           (signature Object, Function)
         unlike :
           (signature Object, Function)
+        listLikers:
+          (signature Object, Function)
         sendPrivateMessage:
           (signature Object, Function)
         fetchPrivateMessages:
+          (signature Object, Function)
+        fetch  :
           (signature Object, Function)
 
     schema          :
@@ -40,25 +50,30 @@ module.exports = class SocialMessage extends Base
       initialChannelId : Number
       createdAt        : Date
       updatedAt        : Date
+      isFollowed       : Boolean
 
   JAccount = require '../account'
-
-  {fetchGroup} = require "./helper"
 
   Validators = require '../group/validators'
   {permit}   = require '../group/permissionset'
 
+  { fetchGroup, secureRequest,
+    doRequest, permittedRequest,
+    ensureGroupChannel } = require "./helper"
+
   @post = permit 'create posts',
     success: (client, data, callback)->
-      SocialMessage.ensureGroupChannel client, (err, socialApiChannelId)->
+      ensureGroupChannel client, (err, socialApiChannelId)->
         data.channelId = socialApiChannelId
-        SocialMessage.doRequest 'postToChannel', client, data, callback
+        doRequest 'postToChannel', client, data, callback
 
   @reply = permit 'create posts',
     success: (client, data, callback)->
       if not data.messageId or not data.body
         return callback message: "Request is not valid for adding a reply"
-      SocialMessage.doRequest 'addReply', client, data, callback
+      ensureGroupChannel client, (err, socialApiChannelId)->
+        data.initialChannelId = socialApiChannelId
+        doRequest 'addReply', client, data, callback
 
   # todo add permission here
   @edit = secure (client, data, callback)->
@@ -68,77 +83,88 @@ module.exports = class SocialMessage extends Base
     SocialMessage.canEdit client, data, (err, res)->
       return callback err if err
       return callback {message: "You can not edit this post"} unless res
-      {editMessage} = require './requests'
-      editMessage data, callback
+      doRequest 'editMessage', client, data, callback
 
-  @delete = permit 'delete posts',
-    success: (client, data, callback)->
-      if not data.id
-        return callback message: "Request is not valid for deleting a message"
-      SocialMessage.doRequest 'deleteMessage', client, data, callback
 
-  @like = permit 'like posts',
-    success: (client, data, callback)->
-      if not data.id
-        return callback message: "Request is not valid for liking a message"
-      SocialMessage.doRequest 'likeMessage', client, data, callback
+  @delete = secure (client, data, callback)->
+    if not data.id
+      return callback { message: "Request is not valid for deleting a message" }
 
-  @unlike = permit 'like posts',
-    success:  (client, data, callback)->
-      if not data.id
-        return callback message: "Request is not valid for unliking a message"
-      SocialMessage.doRequest 'unlikeMessage', client, data, callback
+    # check ownership of the account
+    SocialMessage.canDelete client, data, (err, res)->
+      return callback err if err
+      return callback {message: "You can not delete this post"} unless res
+      doRequest 'deleteMessage', client, data, callback
+
+
+  # byId -get message by id
+  @byId = secureRequest
+    fnName  : 'messageById'
+    validate: ["id"]
+
+  # bySlug -get message by slug
+  @bySlug = secureRequest
+    fnName  : 'messageBySlug'
+    validate: ["slug"]
+
+  @listReplies = secureRequest
+    fnName   : 'listReplies'
+    validate : ['messageId']
+
+  @like = permittedRequest
+    permissionName : 'like posts'
+    validate       : ['id']
+    fnName         : 'likeMessage'
+
+  @unlike = permittedRequest
+    permissionName : 'like posts'
+    validate       : ['id']
+    fnName         : 'unlikeMessage'
+
+  @listLikers = secureRequest
+    fnName   : 'listLikers'
+    validate : ['id']
+
+  @fetchPrivateMessages = permittedRequest
+    permissionName: 'list private messages'
+    fnName        : 'fetchPrivateMessages'
+
+  @fetch = permittedRequest
+    permissionName: 'read posts'
+    fnName        : 'fetchMessage'
+    validate      : ['id']
 
   @sendPrivateMessage = permit 'send private message',
     success:  (client, data, callback)->
       unless data.body
         return callback message: "Message body should be set"
 
-      unless data.body.match(/@([\w]+)/g)?.length > 0
+      if not data.recipients or data.recipients.length < 1
         return callback message: "You should have at least one recipient"
-      SocialMessage.doRequest 'sendPrivateMessage', client, data, callback
-
-  @fetchPrivateMessages = permit 'list private messages',
-    success:  (client, data, callback)->
-      SocialMessage.doRequest 'fetchPrivateMessages', client, data, callback
-
-  @doRequest = (funcName, client, options, callback)->
-    fetchGroup client, (err, group)->
-      return callback err if err
-      {connection:{delegate}} = client
-      delegate.createSocialApiId (err, socialApiId)->
-        return callback err if err
-
-        options.groupName = group.slug
-        options.accountId = socialApiId
-
-        requests = require './requests'
-        requests[funcName] options, callback
-
-
-  @ensureGroupChannel = (client, callback)->
-    fetchGroup client, (err, group)->
-      return callback err  if err
-      group.createSocialApiChannelId (err, socialApiChannelId)->
-        return callback err  if err
-        callback null, socialApiChannelId
+      doRequest 'sendPrivateMessage', client, data, callback
 
   # todo-- ask Chris about using validators.own
   # how to implement for this case
   @canEdit = (client, data, callback)->
+    {delegate} = client.connection
+    @checkMessagePermission client, data, delegate.canEditPost, callback
+
+  @canDelete = (client, data, callback)->
+    {delegate} = client.connection
+    @checkMessagePermission client, data, delegate.canDeletePost, callback
+
+  @checkMessagePermission = (client, data, fn, callback)->
     return callback {message: "Id is not set"} unless data.id
     {delegate} = client.connection
-    req = id : data.id
     # get api id of the client
-    delegate.createSocialApiId (err, socialApiId)->
+    delegate.createSocialApiId (err, socialApiId)=>
       return callback err  if err
       # fetch the message
-      {fetchMessage} = require './requests'
-      fetchMessage req, (err, message)->
+      @byId client, data, (err, message)->
         return callback err  if err
-        return callback { message: "Post is not found" }  unless message
-
-        if message.accountId == socialApiId
+        return callback { message: "Post is not found" }  unless message?.message
+        {message: {accountId}} = message
+        if accountId is socialApiId
           return callback null, yes
-        console.log "fooo"
-        delegate.canEditPost client, callback
+        fn client, callback
+

@@ -2,12 +2,14 @@ package channel
 
 import (
 	"errors"
+	"fmt"
 	"net/http"
 	"net/url"
 	"socialapi/models"
-	"socialapi/workers/api/modules/helpers"
+	"socialapi/request"
+	"socialapi/workers/common/response"
 
-	"github.com/jinzhu/gorm"
+	"github.com/koding/bongo"
 )
 
 func validateChannelRequest(c *models.Channel) error {
@@ -31,27 +33,35 @@ func Create(u *url.URL, h http.Header, req *models.Channel) (int, http.Header, i
 		req.GroupName = models.Channel_KODING_NAME
 	}
 
+	if req.PrivacyConstant == "" {
+		req.PrivacyConstant = models.Channel_PRIVACY_PUBLIC
+	}
+
 	if err := validateChannelRequest(req); err != nil {
-		return helpers.NewBadRequestResponse(err)
+		return response.NewBadRequest(err)
 	}
 
 	if err := req.Create(); err != nil {
-		return helpers.NewBadRequestResponse(err)
+		return response.NewBadRequest(err)
 	}
 
-	return helpers.NewOKResponse(req)
+	if _, err := req.AddParticipant(req.CreatorId); err != nil {
+		return response.NewBadRequest(err)
+	}
+
+	return response.NewOK(req)
 }
 
 func List(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface{}, error) {
 	c := models.NewChannel()
-	q := helpers.GetQuery(u)
+	q := request.GetQuery(u)
 	q.Type = models.Channel_TYPE_TOPIC
 	channelList, err := c.List(q)
 	if err != nil {
-		return helpers.NewBadRequestResponse(err)
+		return response.NewBadRequest(err)
 	}
 
-	return helpers.NewOKResponse(
+	return response.HandleResultAndError(
 		models.PopulateChannelContainers(
 			channelList,
 			q.AccountId,
@@ -59,45 +69,118 @@ func List(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface
 	)
 }
 
+func Search(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface{}, error) {
+	q := request.GetQuery(u)
+	q.Type = models.Channel_TYPE_TOPIC
+
+	channelList, err := models.NewChannel().Search(q)
+	if err != nil {
+		return response.NewBadRequest(err)
+	}
+
+	return response.HandleResultAndError(
+		models.PopulateChannelContainers(
+			channelList,
+			q.AccountId,
+		),
+	)
+}
+
+func ByName(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface{}, error) {
+	q := request.GetQuery(u)
+	q.Type = models.Channel_TYPE_TOPIC
+
+	channel, err := models.NewChannel().ByName(q)
+	if err != nil {
+		return response.NewBadRequest(err)
+	}
+
+	canOpen, err := channel.CanOpen(q.AccountId)
+	if err != nil {
+		// if the channel can not be opened by the requester
+		// do send an empty response
+		return response.NewBadRequest(err)
+	}
+
+	if !canOpen {
+		return response.NewOK(nil)
+	}
+
+	return response.HandleResultAndError(
+		models.PopulateChannelContainer(
+			channel,
+			q.AccountId,
+		),
+	)
+}
+
+func CheckParticipation(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface{}, error) {
+	q := request.GetQuery(u)
+	if q.Type == "" || q.AccountId == 0 {
+		return response.NewBadRequest(errors.New("type or accountid is not set"))
+	}
+
+	channel, err := models.NewChannel().ByName(q)
+	if err != nil {
+		return response.NewBadRequest(err)
+	}
+
+	canOpen, err := channel.CanOpen(q.AccountId)
+	if err != nil {
+		return response.NewBadRequest(err)
+	}
+
+	if !canOpen {
+		return response.NewAccessDenied(
+			fmt.Errorf(
+				"account (%d) tried to retrieve the unattended private channel (%d)",
+				q.AccountId,
+				channel.Id,
+			))
+	}
+
+	return response.NewOK(channel)
+}
+
 func Delete(u *url.URL, h http.Header, req *models.Channel) (int, http.Header, interface{}, error) {
 
-	id, err := helpers.GetURIInt64(u, "id")
+	id, err := request.GetURIInt64(u, "id")
 	if err != nil {
-		return helpers.NewBadRequestResponse(err)
+		return response.NewBadRequest(err)
 	}
 
 	if err := req.ById(id); err != nil {
-		return helpers.NewBadRequestResponse(err)
+		return response.NewBadRequest(err)
 	}
 
 	if req.TypeConstant == models.Channel_TYPE_GROUP {
-		return helpers.NewBadRequestResponse(errors.New("You can not delete group channel"))
+		return response.NewBadRequest(errors.New("You can not delete group channel"))
 	}
 	if err := req.Delete(); err != nil {
-		return helpers.NewBadRequestResponse(err)
+		return response.NewBadRequest(err)
 	}
 	// yes it is deleted but not removed completely from our system
-	return helpers.NewDeletedResponse()
+	return response.NewDeleted()
 }
 
 func Update(u *url.URL, h http.Header, req *models.Channel) (int, http.Header, interface{}, error) {
-	id, err := helpers.GetURIInt64(u, "id")
+	id, err := request.GetURIInt64(u, "id")
 	if err != nil {
-		return helpers.NewBadRequestResponse(err)
+		return response.NewBadRequest(err)
 	}
 	req.Id = id
 
 	if req.Id == 0 {
-		return helpers.NewBadRequestResponse(err)
+		return response.NewBadRequest(err)
 	}
 
 	existingOne := models.NewChannel()
 	if err := existingOne.ById(id); err != nil {
-		return helpers.NewBadRequestResponse(err)
+		return response.NewBadRequest(err)
 	}
 
 	if existingOne.CreatorId != req.CreatorId {
-		return helpers.NewBadRequestResponse(errors.New("CreatorId doesnt match"))
+		return response.NewBadRequest(errors.New("CreatorId doesnt match"))
 	}
 
 	// only allow purpose and name to be updated
@@ -110,45 +193,33 @@ func Update(u *url.URL, h http.Header, req *models.Channel) (int, http.Header, i
 	}
 
 	if err := req.Update(); err != nil {
-		return helpers.NewBadRequestResponse(err)
+		return response.NewBadRequest(err)
 	}
 
-	return helpers.NewOKResponse(req)
+	return response.NewOK(req)
 }
 
 func Get(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface{}, error) {
-	id, err := helpers.GetURIInt64(u, "id")
+	id, err := request.GetURIInt64(u, "id")
 	if err != nil {
-		return helpers.NewBadRequestResponse(err)
+		return response.NewBadRequest(err)
 	}
-	q := helpers.GetQuery(u)
+	q := request.GetQuery(u)
 
 	c := models.NewChannel()
 	if err := c.ById(id); err != nil {
-		if err == gorm.RecordNotFound {
-			return helpers.NewNotFoundResponse()
+		if err == bongo.RecordNotFound {
+			return response.NewNotFound()
 		}
-		return helpers.NewBadRequestResponse(err)
+		return response.NewBadRequest(err)
 	}
 
-	return helpers.NewOKResponse(models.PopulateChannelContainer(*c, q.AccountId))
-}
+	// add troll mode filter
+	if c.MetaBits.Is(models.Troll) && !q.ShowExempt {
+		return response.NewNotFound()
+	}
 
-func PostMessage(u *url.URL, h http.Header, req *models.Channel) (int, http.Header, interface{}, error) {
-	// id, err := helpers.GetURIInt64(u, "id")
-	// if err != nil {
-	// 	return helpers.NewBadRequestResponse(err)
-	// }
-
-	// req.Id = id
-	// // TODO - check if the user is member of the channel
-
-	// if err := req.Fetch(); err != nil {
-	// 	if err == gorm.RecordNotFound {
-	// 		return helpers.NewNotFoundResponse()
-	// 	}
-	// 	return helpers.NewBadRequestResponse(err)
-	// }
-
-	return helpers.NewOKResponse(req)
+	return response.HandleResultAndError(
+		models.PopulateChannelContainer(*c, q.AccountId),
+	)
 }

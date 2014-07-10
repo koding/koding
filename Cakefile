@@ -127,6 +127,38 @@ task 'webserver', "Run the webserver", ({configFile, tests}) ->
           onChange  : ->
             processes.kill "server"
 
+task 'socialapi-api', "Run the API of socialapi", (options) ->
+  {configFile, tests, version} = options
+  KONFIG = require('koding-config-manager').load("main.#{configFile}")
+  {socialapi} = KONFIG
+
+  runServer = (config, port, index) ->
+    cmdName =  "./go/bin/api -c ./go/src/socialapi/config/#{configFile}.toml -port #{port} -d -v #{version ? 0}"
+    console.log "cmdName", cmdName
+    processes.spawn
+      name              : "socialapiapi"
+      cmd               : cmdName
+      restart           : yes
+      restartTimeout    : 100
+      stdout            : process.stdout
+      stderr            : process.stderr
+      kontrol           :
+        enabled         : !!KONFIG.runKontrol
+        startMode       : "many"
+        registerToProxy : yes
+        port            : port
+        binary          : hat()
+
+  if socialapi.clusterSize > 1
+    webPortStart = socialapi.port
+    webPortEnd   = socialapi.port + socialapi.clusterSize - 1
+    webPort = [webPortStart..webPortEnd]
+  else
+    webPort = [socialapi.port]
+
+  webPort.forEach (port, index) ->
+    runServer configFile, port, index
+
 task 'socialWorker', "Run the socialWorker", ({configFile}) ->
   KONFIG = require('koding-config-manager').load("main.#{configFile}")
   {social} = KONFIG
@@ -158,7 +190,7 @@ task 'socialWorker', "Run the socialWorker", ({configFile}) ->
       #   else
       #     delete exitingProcesses[pid]
 
-  if social.watch is yes
+  if social.watch?
     watcher = new Watcher
       groups   :
         social   :
@@ -581,6 +613,15 @@ task 'proxyKite', "Run the proxy kite", (options) ->
     stderr  : process.stderr
     verbose : yes
 
+task 'regservKite', "Run the regserv kite", (options) ->
+  {configFile} = options
+  processes.spawn
+    name    : 'regservKite'
+    cmd     : "vagrant ssh default -c 'cd /opt/koding; sudo killall -q -KILL regserv; sudo KITE_HOME=/opt/koding/kite_home/koding /opt/koding/go/bin-vagrant/regserv -c #{configFile} -r vagrant'"
+    stdout  : process.stdout
+    stderr  : process.stderr
+    verbose : yes
+
 task 'checkConfig', "Check the local config files for errors", ({configFile})->
   console.log "[KONFIG CHECK] If you don't see any errors, you're fine."
   require('koding-config-manager').load("main.#{configFile}")
@@ -626,6 +667,7 @@ run =({configFile})->
 
     invoke 'kontrolKite'                      if config.runKontrol
     invoke 'proxyKite'                        if config.runKontrol
+    invoke 'regservKite'                      if config.runKontrol
 
     invoke 'goBroker'                         if config.runGoBroker
     invoke 'goBrokerKite'                     if config.runGoBrokerKite

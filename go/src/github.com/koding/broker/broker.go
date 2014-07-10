@@ -24,9 +24,10 @@ type Broker struct {
 	log      logging.Logger
 	config   *Config
 	Producer *rabbitmq.Producer
+	AppName  string
 }
 
-func New(c *Config, l logging.Logger) *Broker {
+func New(appName string, c *Config, l logging.Logger) *Broker {
 	// set defaults
 	if c.ExchangeName == "" {
 		c.ExchangeName = "BrokerMessageBus"
@@ -37,9 +38,10 @@ func New(c *Config, l logging.Logger) *Broker {
 	}
 
 	return &Broker{
-		mq:     rabbitmq.New(c.RMQConfig, l),
-		log:    l,
-		config: c,
+		mq:      rabbitmq.New(c.RMQConfig, l),
+		log:     l,
+		config:  c,
+		AppName: appName,
 	}
 
 }
@@ -66,7 +68,6 @@ func (b *Broker) Connect() error {
 	if err != nil {
 		return err
 	}
-	b.Producer.RegisterSignalHandler()
 
 	// b.Producer.NotifyReturn(func(message amqp.Return) {
 	// 	fmt.Println(message)
