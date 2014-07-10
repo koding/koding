@@ -38,6 +38,7 @@ func JSONLogged(handler http.Handler, redactor Redactor) *JSONLogger {
 func (jl *JSONLogger) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	t := time.Now()
 	tee := NewTeeResponseWriter(w)
+	rURI := r.URL.RequestURI()
 	body := &jsonReadCloser{r.Body, bytes.Buffer{}}
 	r.Body = body
 	jl.handler.ServeHTTP(tee, r)
@@ -48,7 +49,7 @@ func (jl *JSONLogger) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 				Body:   body.Bytes.String(),
 				Header: jsonLogHTTPHeader(r.Header),
 				Method: r.Method,
-				Path:   r.URL.RequestURI(),
+				Path:   rURI,
 			},
 			Response: jsonLogHTTPResponse{
 				Body:       tee.Body.String(),
@@ -61,7 +62,7 @@ func (jl *JSONLogger) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		Message: fmt.Sprintf(
 			"%s %s %s\n%s %d %s",
 			r.Method,
-			r.URL.RequestURI(),
+			rURI,
 			r.Proto,
 			r.Proto,
 			tee.StatusCode,
@@ -78,7 +79,7 @@ func (jl *JSONLogger) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if nil != jl.redactor {
 		s = jl.redactor(s)
 	}
-	jl.logger.Println("@json:", s)
+	jl.logger.Print("@json:", s)
 }
 
 func jsonLogHTTPHeader(h http.Header) map[string]string {

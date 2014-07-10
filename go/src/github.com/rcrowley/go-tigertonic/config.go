@@ -10,8 +10,17 @@ import (
 
 // ConfigExt maps all known configuration file extensions to their
 // read-and-unmarshal functions.
-var ConfigExt = map[string]func(string, interface{}) error{
-	".json": ConfigureJSON,
+
+type configParser func(string, interface{}) error
+
+var ConfigExt = make(map[string]configParser)
+
+func RegisterConfigExt(ext string, f configParser) {
+	ConfigExt[ext] = f
+}
+
+func init() {
+	RegisterConfigExt(".json", ConfigureJSON)
 }
 
 // Configure delegates reading and unmarshaling of the given configuration
