@@ -14,7 +14,7 @@ class ReplyLikeView extends ActivityLikeLink
 
     {isInteracted, actorsCount} = @getData().interactions.like
 
-    if @getData().interactions.like.isInteracted
+    if isInteracted
     then @setClass 'liked'
     else @unsetClass 'liked'
 
