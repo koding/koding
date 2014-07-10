@@ -420,7 +420,8 @@ class ActivitySidebar extends KDCustomScrollView
       delegate   : this
       noItemText : "No private messages yet."
       headerLink : new CustomLinkView
-        title    : 'NEW'
+        cssClass : 'add-icon'
+        title    : ' '
         href     : KD.utils.groupifyLink '/Activity/Message/New'
       dataSource : (callback) ->
         KD.singletons.socialapi.message.fetchPrivateMessages

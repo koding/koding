@@ -36,6 +36,8 @@ class SidebarItem extends KDListItemView
 
     if unreadCount is 0
       @unreadCount.hide()
+      @unsetClass 'unread'
     else
       @unreadCount.updatePartial unreadCount
       @unreadCount.show()
+      @setClass 'unread'
