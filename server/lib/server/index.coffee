@@ -16,32 +16,6 @@ webPort = argv.p ? webserver.port
 koding  = require './bongo'
 Crawler = require '../crawler'
 
-# log4js  = require 'log4js'
-# logger  = log4js.getLogger("webserver")
-
-# log4js.configure {
-#   appenders: [
-#     { type: 'console' }
-#     { type: 'file', filename: 'logs/webserver.log', category: 'webserver' }
-#     { type: "log4js-node-syslog", tag : "webserver", facility: "local0", hostname: "localhost", port: 514 }
-#   ],
-#   replaceConsole: true
-# }
-
-# processMonitor = (require 'processes-monitor').start
-#   name                : "webServer on port #{webPort}"
-#   stats_id            : "webserver." + process.pid
-#   interval            : 30000
-#   limit_hard          :
-#     memory            : 300
-#     callback          : ->
-#       console.log "[WEBSERVER #{webPort}] Using excessive memory, exiting."
-#       process.exit()
-#   die                 :
-#     after             : "non-overlapping, random, 3 digits prime-number of minutes"
-#     middleware        : (name,callback) -> koding.disconnect callback
-#     middlewareTimeout : 5000
-
 _          = require 'underscore'
 async      = require 'async'
 {extend}   = require 'underscore'
@@ -61,9 +35,7 @@ app        = express()
   error_500
   authTemplate
   authenticationFailed
-  findUsernameFromKey
   findUsernameFromSession
-  fetchJAccountByKiteUserNameAndKey
   serve
   serveHome
   isLoggedIn
@@ -75,14 +47,11 @@ app        = express()
 { generateHumanstxt } = require "./humanstxt"
 
 
-# this is a hack so express won't write the multipart to /tmp
-#delete express.bodyParser.parse['multipart/form-data']
-
 app.configure ->
   app.set 'case sensitive routing', on
 
   headers = {}
-  if webserver.useCacheHeader
+  if webserver?.useCacheHeader
     headers.maxAge = 1000 * 60 * 60 * 24 # 1 day
 
   app.use express.static "#{projectRoot}/website/", headers
@@ -138,59 +107,6 @@ app.use (req, res, next) ->
   JSession.updateClientIP clientId, clientIPAddress, (err)->
     if err then console.log err
     next()
-
-app.get "/-/subscription/check/:kiteToken?/:user?/:groupId?", (req, res) ->
-  {kiteToken, user, groupId} = req.params
-  {JAccount, JKite, JGroup}  = koding.models
-
-  return res.send 401, { err: "TOKEN_REQUIRED"     } unless kiteToken
-  return res.send 401, { err: "USERNAME_REQUIRED"  } unless user
-  return res.send 401, { err: "GROUPNAME_REQUIRED" } unless groupId
-
-  JKite.one kiteCode: kiteToken, (err, kite) ->
-    return res.send 401, { err: "KITE_NOT_FOUND" }  if err or not kite
-
-    JAccount.one { "profile.nickname": user }, (err, account) ->
-      return res.send 401, err: "USER_NOT_FOUND"  if err or not account
-
-      JGroup.one { "_id": groupId }, (err, group) =>
-        return res.send 401, err: "GROUP_NOT_FOUND"  if err or not group
-
-        group.isMember account, (err, isMember) =>
-          return res.send 401, err: "NOT_A_MEMBER_OF_GROUP"  if err or not isMember
-
-          kite.fetchPlans (err, plans) ->
-            return res.send 401, err: "KITE_HAS_NO_PLAN"  if err or not plans
-
-            planMap = {}
-            planMap[plan.planCode] = plan  for plan in plans
-
-            kallback = (err, subscriptions) ->
-              return res.send 401, err: "NO_SUBSCRIPTION"  if err or not subscriptions
-
-              freeSubscription = null
-              paidSubscription = null
-              for item in subscriptions
-                if "nosync" in item.tags
-                  freeSubscription = item
-                else
-                  paidSubscription = item
-
-              subscription = paidSubscription or freeSubscription
-              if subscription and plan = planMap[subscription.planCode]
-                  res.send 200, planId: plan.planCode, planName: plan.title
-              else
-                res.send 401, err: "NO_SUBSCRIPTION"
-
-            if group.slug is "koding"
-              targetOptions =
-                selector    :
-                  tags      : "vm"
-                  planCode  : $in: (plan.planCode for plan in plans)
-              account.fetchSubscriptions null, {targetOptions}, kallback
-            else
-              group.fetchSubscriptions kallback
-
 
 app.get "/-/8a51a0a07e3d456c0b00dc6ec12ad85c", require './__notify-users'
 

@@ -90,6 +90,8 @@ chmod 600 /root/.ssh/id_rsa
 apt-get update > /dev/null
 apt-get install -y golang nodejs npm git graphicsmagick supervisor
 cp /usr/bin/nodejs /usr/bin/node
+cp /usr/bin/supervisorctl /usr/bin/s-
+
 cd /opt
 git clone git@github.com:koding/koding.git
 cd koding

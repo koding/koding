@@ -42,7 +42,7 @@ options = o =
 unless options.hostname
   options.hostname   = "#{eden.eve()}-#{o.config}-#{o.build}.koding.me".toLowerCase()
 
-# log o
+log o
 # log argv
 # process.exit()
 

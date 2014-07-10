@@ -46,8 +46,8 @@ module.exports = class JAccount extends jraphical.Module
     taggedContentRole   : 'developer'
     indexes:
       'profile.nickname' : 'unique'
-      isExempt           : 1
-      type               : 1
+      isExempt           : 'ascending'
+      type               : 'ascending'
     sharedEvents    :
       static        : [
         { name: 'AccountAuthenticated' } # TODO: we need to handle this event differently.
