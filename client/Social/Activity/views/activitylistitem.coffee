@@ -4,9 +4,10 @@ class ActivityListItemView extends KDListItemView
 
   constructor:(options = {},data)->
 
-    options.type              = 'activity'
-    options.cssClass          = KD.utils.curry 'activity-item status', options.cssClass
-    options.commentSettings or= {}
+    options.type               = 'activity'
+    options.cssClass           = KD.utils.curry 'activity-item status', options.cssClass
+    options.commentViewClass or= CommentView
+    options.commentSettings  or= {}
 
     super options, data
 
@@ -26,7 +27,9 @@ class ActivityListItemView extends KDListItemView
     @author      = new ProfileLinkView { origin }
     @likeSummary = new ActivityLikeSummaryView {}, data
 
-    @commentBox = new CommentView options.commentSettings, data
+    {commentViewClass} = @getOptions()
+
+    @commentBox = new commentViewClass options.commentSettings, data
     @actionLinks = new ActivityActionsView delegate: @commentBox, data
 
     @commentBox.forwardEvent @actionLinks, "Reply"
