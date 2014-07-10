@@ -4,7 +4,7 @@ Environment="sandbox"
 Uri="http://sandbox.koding.com"
 
 [postgres]
-Host=     "172.16.10.45"
+Host=     "sandbox0.cfbuweg6pdxe.us-east-1.rds.amazonaws.com"
 Port=     5432
 Username= "socialapplication"
 Password= "socialapplication"
