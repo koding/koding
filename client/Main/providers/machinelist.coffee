@@ -30,10 +30,13 @@ class MachineList extends KDView
 
   fetchMachines: ->
 
+    { query } = @getOptions()
+    query    ?= {}
+
     @loader.show()
 
     {computeController} = KD.singletons
-    computeController.fetchMachines (err, machines)=>
+    computeController.queryMachines query, (err, machines)=>
 
       # TODO handle errors correctly
       return if KD.showError err
