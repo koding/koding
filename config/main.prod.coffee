@@ -26,9 +26,11 @@ customDomain        =
   local_            : "localhost"
   port              : 80
 
+
+# KONTROL DEPLOYMENT IS SEPARATED FROM PROD DEPLOY.
 kontrol             =
-  url               : "http://#{customDomain.public_}:4000/kite"
-  port              : 4000
+  url               : "https://kontrol.koding.com/kite"
+  port              : 443
   useTLS            : no
   certFile          : ""
   keyFile           : ""
