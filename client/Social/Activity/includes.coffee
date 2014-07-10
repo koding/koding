@@ -64,10 +64,13 @@ module.exports = [
   "views/comments/likeview.coffee"
   "views/comments/listpreviouslink.coffee"
   "views/comments/view.coffee"
+  "views/comments/replyview.coffee"
   "views/comments/listviewcontroller.coffee"
+  "views/comments/replylistviewcontroller.coffee"
   "views/comments/settingsbutton.coffee"
   "views/comments/deletemodal.coffee"
   "views/comments/listitemview.coffee"
+  "views/comments/replylistitemview.coffee"
 
   "views/inputview.coffee"
   "views/inputwidget.coffee"
