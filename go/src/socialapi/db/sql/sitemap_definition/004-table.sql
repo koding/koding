@@ -13,4 +13,4 @@ WITH (OIDS=FALSE);
 -- GRANT SELECT, INSERT, UPDATE ON "sitemap"."file" TO "socialapplication";
 -- TODO all permissions are granted for testing purposes
 -- we need another test user here
-GRANT SELECT, INSERT, UPDATE, DELETE ON "notification"."notification_content" TO "socialapplication";
+GRANT SELECT, INSERT, UPDATE, DELETE ON "sitemap"."file" TO "socialapplication";
