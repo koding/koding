@@ -163,18 +163,23 @@ class AceView extends JView
       return @ace.notify 'Please type valid file name!'   , 'error'  unless FSHelper.isValidFileName name
       return @ace.notify 'Please select a folder to save!', 'error'  unless node
 
+      dialog.overlay.destroy()
       dialog.destroy()
-      # @utils.wait 300, => # temp fix to be sure overlay has removed with fade out animation
 
-      parent = node.getData()
-      file.emit 'file.requests.saveAs', @ace.getContents(), name, parent.path
+      parent            = node.getData()
+      contents          = @ace.getContents()
+      oldCursorPosition = @ace.editor.getCursorPosition()
+
+      file.emit 'file.requests.saveAs', contents, name, parent.path
       file.once 'fs.saveAs.finished',   @ace.bound 'saveAsFinished'
       @ace.emit 'AceDidSaveAs', name, parent.path
-      oldCursorPosition = @ace.editor.getCursorPosition()
+
       file.on 'fs.saveAs.finished', =>
         {tabView} = @getDelegate()
         return  if tabView.willClose
-        @getDelegate().openFile FSHelper.createFileFromPath "#{parent.path}/#{name}", yes
+
+        newFile = FSHelper.createFileFromPath "#{parent.path}/#{name}", yes
+        @getDelegate().openFile newFile, contents
 
         if closeAfter
           @utils.defer =>

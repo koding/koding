@@ -100,10 +100,11 @@ class Ace extends KDView
 
     if enableShortcuts
       @addKeyCombo 'save',       'Ctrl-S',           @bound 'requestSave'
+      @addKeyCombo "saveAs",     "Ctrl-Shift-S",     @bound 'requestSaveAs'
+      @addKeyCombo 'saveAll',    'Ctrl-Alt-S',       @bound 'saveAllFiles'
       @addKeyCombo 'fullscreen', 'Ctrl-Enter', =>    @getDelegate().toggleFullscreen()
       @addKeyCombo 'gotoLine',   'Ctrl-G',           @bound 'showGotoLine'
       @addKeyCombo 'gotoLineL',  'Ctrl-L',           @bound 'showGotoLine'
-      @addKeyCombo 'saveAll',    'Ctrl-Alt-S',       @bound 'saveAllFiles'
       @addKeyCombo 'settings',   'Ctrl-,',           noop # override default ace settings view
 
       if createFindAndReplaceView
@@ -114,7 +115,6 @@ class Ace extends KDView
         @addKeyCombo 'replace', 'Ctrl-Shift-F', =>  @emit 'FindAndReplaceViewRequested', yes
 
       # these features are broken with IDE, should reimplement again
-      # @addKeyCombo "saveAs",     "Ctrl-Shift-S",     @bound "requestSaveAs"
       # @addKeyCombo "preview",    "Ctrl-Shift-P", =>  @getDelegate().preview()
       # @addKeyCombo "closeTab",   "Ctrl-W", "Ctrl-W", @bound "closeTab"
 
@@ -179,8 +179,7 @@ class Ace extends KDView
       @notify 'File coudn\'t be synced to remote please try again...', null, null, 5000
 
   requestSaveAs: (options) ->
-    contents = @getContents()
-    @emit 'ace.requests.saveAs', contents
+    @emit 'ace.requests.saveAs', @getContents(), options
 
   fetchContents:(callback)->
     file = @getData()
@@ -338,8 +337,18 @@ class Ace extends KDView
     @appStorage.setValue 'scrollPastEnd', value
 
   setFontSize:(value, save = yes)->
+    return if value is KD.config.oldFontSize
 
-    @$("#editor#{@getId()}").css 'font-size', "#{value}px"
+    style           = document.createElement 'style'
+    style.id        = 'ace-font-size'
+    style.innerHTML = ".ace_editor { font-size: #{value}px }"
+
+    oldStyleTag     = document.getElementById style.id
+    oldStyleTag.parentNode.removeChild oldStyleTag if oldStyleTag
+
+    document.head.appendChild style
+    KD.config.oldFontSize = value
+
     return  unless save
     @appStorage.setValue 'fontSize', value
 
