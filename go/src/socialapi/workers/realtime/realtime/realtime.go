@@ -9,6 +9,7 @@ import (
 	"socialapi/models"
 	"socialapi/request"
 	notificationmodels "socialapi/workers/notification/models"
+	"time"
 
 	"github.com/koding/logging"
 	"github.com/koding/rabbitmq"
@@ -212,6 +213,15 @@ func (f *Controller) handleInteractionEvent(eventName string, i *models.Interact
 }
 
 func (f *Controller) MessageReplySaved(mr *models.MessageReply) error {
+	reply := models.NewChannelMessage()
+	if err := reply.ById(mr.ReplyId); err != nil {
+		return err
+	}
+
+	// update all channels that contains this message except the author
+	// TODO: move this to own worker, realtime worker shouldn't touch db
+	updateAllContainingChannels(mr.MessageId, reply.AccountId)
+
 	f.sendReplyEventAsChannelUpdatedEvent(mr, channelUpdatedEventReplyAdded)
 	f.sendReplyAddedEvent(mr)
 	return nil
@@ -648,4 +658,61 @@ func (f *Controller) sendNotification(
 		false,
 		amqp.Publishing{Body: byteNotification},
 	)
+}
+
+// fetch all channels that parent is in
+// update all channels
+func updateAllContainingChannels(parentId int64, excludedId int64) error {
+	cml := models.NewChannelMessageList()
+	channels, err := cml.FetchMessageChannels(parentId)
+	if err != nil {
+		return err
+	}
+
+	if len(channels) == 0 {
+		return nil
+	}
+
+	for _, channel := range channels {
+		// if channel type is group, we dont need to update group's updatedAt
+		if channel.TypeConstant == models.Channel_TYPE_GROUP {
+			continue
+		}
+
+		// excludedId refers to users who did the action
+		if channel.CreatorId == excludedId {
+			cml, err := channel.FetchMessageList(parentId)
+			if err != nil {
+				// TODO: how to handle errors here
+				// return err
+			}
+
+			// `Glance` for author, so on next new message, unread count is right
+			err = cml.Glance()
+			if err != nil {
+				// TODO: how to handle errors here
+				// return err
+			}
+
+			// no need to tell user they did an action
+			continue
+		}
+
+		// pinned activity channel holds messages one by one
+		if channel.TypeConstant != models.Channel_TYPE_PINNED_ACTIVITY {
+			channel.UpdatedAt = time.Now().UTC()
+			if err := channel.Update(); err != nil {
+				// err
+			}
+			continue
+		}
+
+		// if channel.TypeConstant == models.Channel_TYPE_PINNED_ACTIVITY {
+		err := models.NewChannelMessageList().UpdateAddedAt(channel.Id, parentId)
+		if err != nil {
+			// return err
+		}
+	}
+
+	return nil
 }
