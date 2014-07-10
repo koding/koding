@@ -256,7 +256,7 @@ styleScrollBars()
     top                 0
     size                258px 100%
     z-index             10
-    bg                  color #44464E
+    bg                  color #3F424B
     borderBox()
     fix()
 
@@ -283,16 +283,16 @@ styleScrollBars()
           overflow        visible
 
           .nothing
-            background    #d9d9d9
+            background    #383B42
             width         auto
             font-size     14px
-            padding       16px 26px
-            rounded       4px
-            line-height   15px
-            border        1px solid #cacaca
+            margin        0 6px
+            padding       16px 18px
+            rounded       3px
+            line-height   19px
             text-align    center
             font-weight   400
-            color         #a0a0a0
+            color         #787878
             margin-bottom 16px
             borderBox()
 
@@ -366,7 +366,7 @@ styleScrollBars()
 
       .icon
         r-sprite        activity 'check-9'
-        margin          0 7px 0 0
+        margin          0 6px 0 0
         padding         0
         fr()
 
@@ -378,7 +378,7 @@ styleScrollBars()
         border-color    transparent
 
         .icon
-          r-sprite      activity 'check-green-9'
+          r-sprite      activity 'check-gray'
 
   .kdlistitemview-sidebar-item.selected
     background          #2C2E34
@@ -405,14 +405,14 @@ styleScrollBars()
         color           #d1efdf
 
       .icon
-        r-sprite        "activity", "check-white-9"
+        r-sprite      activity 'check-gray'
 
       &.following
         bg              color transparent
         border-color    transparent
 
         .icon
-          r-sprite      "activity", "check-white-9"
+          r-sprite      activity 'check-gray'
 
   .conversations
   .messages
@@ -426,17 +426,17 @@ styleScrollBars()
       > .profile
         display     block
         float       none
-        padding     0 0 0 32px
+        padding     0 0 0 36px
         font-size   14px
         line-height 18px
         width       174px
         borderBox()
 
       > .user-numbers
-        padding     0 0 0 32px
+        padding     0 0 0 36px
         margin      -1px 0 0
         width       90%
-        font-weight 300
+        font-weight 400
         font-size   12px
         color       #949494
         borderBox()
