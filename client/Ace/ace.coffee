@@ -100,10 +100,11 @@ class Ace extends KDView
 
     if enableShortcuts
       @addKeyCombo 'save',       'Ctrl-S',           @bound 'requestSave'
+      @addKeyCombo "saveAs",     "Ctrl-Shift-S",     @bound 'requestSaveAs'
+      @addKeyCombo 'saveAll',    'Ctrl-Alt-S',       @bound 'saveAllFiles'
       @addKeyCombo 'fullscreen', 'Ctrl-Enter', =>    @getDelegate().toggleFullscreen()
       @addKeyCombo 'gotoLine',   'Ctrl-G',           @bound 'showGotoLine'
       @addKeyCombo 'gotoLineL',  'Ctrl-L',           @bound 'showGotoLine'
-      @addKeyCombo 'saveAll',    'Ctrl-Alt-S',       @bound 'saveAllFiles'
       @addKeyCombo 'settings',   'Ctrl-,',           noop # override default ace settings view
 
       if createFindAndReplaceView
@@ -114,7 +115,6 @@ class Ace extends KDView
         @addKeyCombo 'replace', 'Ctrl-Shift-F', =>  @emit 'FindAndReplaceViewRequested', yes
 
       # these features are broken with IDE, should reimplement again
-      # @addKeyCombo "saveAs",     "Ctrl-Shift-S",     @bound "requestSaveAs"
       # @addKeyCombo "preview",    "Ctrl-Shift-P", =>  @getDelegate().preview()
       # @addKeyCombo "closeTab",   "Ctrl-W", "Ctrl-W", @bound "closeTab"
 
@@ -178,7 +178,7 @@ class Ace extends KDView
     localSync.on 'LocalContentCouldntSynced', (file) =>
       @notify 'File coudn\'t be synced to remote please try again...', null, null, 5000
 
-  requestSaveAs: (options) ->
+  requestSaveAs: ->
     contents = @getContents()
     @emit 'ace.requests.saveAs', contents
 
