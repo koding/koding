@@ -72,6 +72,7 @@
     "ssh2": "^0.3.2",
     "stylus": "0.37.0",
     "timethat": "0.0.2",
+    "traverse": "^0.6.6",
     "ua-parser-js": "0.6.2",
     "uglify-js": "^2.4.13",
     "underscore": "1.5.2",

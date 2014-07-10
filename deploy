@@ -25,23 +25,25 @@ rs =
     apiKey    : "96d6388ccb936f047fd35eb29c36df17"
 
 
+
 options = o =
-  projectRoot : argv.projectRoot or "/opt/koding"
-  config      : argv.config      or "prod"
-  region      : argv.region      or "prod"
-  branch      : argv.branch      or "cake-rewrite"
-  build       : argv.build       or 1111  
-  version     : argv.version     or "1.0"
-  environment : argv.environment or "prod"
-  target      : argv.target      or "rackspace"
-  hostname    : argv.hostname    or "prod.koding.me" #eden.eve().toLowerCase()+".koding.me"
-  deploy      : argv.deploy      or false
+  projectRoot      : argv.projectRoot   or "/opt/koding"
+  config           : argv.config        or "prod"
+  region           : argv.region        or "prod"
+  branch           : argv.branch        or "cake-rewrite"
+  build            : argv.build         or 1111  
+  version          : argv.version       or "1.0"
+  environment      : argv.environment   or "prod"
+  target           : argv.target        or "rackspace"
+  onlyconfigure    : argv.onlyconfigure or false
+  supervisor       : argv.supervisor    or false
 
+options.hostname   = "#{eden.eve()}-#{o.config}-#{o.build}.koding.me".toLowerCase()
+
+# log o
 # log argv
-
 # process.exit()
 
-# options.hostname = "#{eden.eve()}-#{o.config}-#{o.build}"
 
 
 class Deploy
@@ -53,13 +55,15 @@ class Deploy
       echo #{o.region}       >#{BLD}/BUILD_REGION
       echo #{o.config}       >#{BLD}/BUILD_CONFIG
       echo #{o.branch}       >#{BLD}/BUILD_BRANCH
+      echo #{o.build}        >#{BLD}/BUILD_NUMBER
       echo #{o.projectRoot}  >#{BLD}/BUILD_PROJECT_ROOT
       echo #{o.environment}  >#{BLD}/BUILD_ENVIRONMENT
       echo #{o.version}      >#{BLD}/BUILD_VERSION"""
     ,->
-      fs.writeFileSync "#{BLD}/BUILD_CONFIG.json",(JSON.stringify(require "./config/main.#{o.config}.coffee",null,4))
+      KONFIG = require "./config/main.#{o.config}.coffee"
+      fs.writeFileSync "#{BLD}/BUILD_CONFIG.json",JSON.stringify KONFIG
       log "build data is written to #{BLD}/ for deploy."
-      callback null
+      callback null,KONFIG
 
   @createServer = (options,callback)->
     start = new Date()
@@ -144,44 +148,77 @@ class Deploy
       readyTimeout : 60000
       password     : password
 
-    
-    conn.on "ready", ->
-      log "Connected via ssh - copying deploy files."  
+    if o.config is "kodingme"  
+      conn.on "ready", ->
+        log "Connected via ssh - copying deploy files."  
 
-      copyFiles = [
-        { src: "#{PRJ}/prepare"                        , trg: "/root/prepare"},
-        { src: "#{PRJ}/install/Dockerfile"             , trg: "/root/Dockerfile"},
-        { src: "#{PRJ}/install/run"                    , trg: "/root/run"}
-        { src: "#{PRJ}/install/cleanup"                , trg: "/root/cleanup"}
-        { src: "#{BLD}/BUILD_CONFIG.json"              , trg: "/root/BUILD_DATA/BUILD_CONFIG.json"}
-        { src: "#{BLD}/BUILD_HOSTNAME"                 , trg: "/root/BUILD_DATA/BUILD_HOSTNAME"}
-        { src: "#{BLD}/BUILD_REGION"                   , trg: "/root/BUILD_DATA/BUILD_REGION"}
-        { src: "#{BLD}/BUILD_CONFIG"                   , trg: "/root/BUILD_DATA/BUILD_CONFIG"}
-        { src: "#{BLD}/BUILD_BRANCH"                   , trg: "/root/BUILD_DATA/BUILD_BRANCH"}
-        { src: "#{BLD}/BUILD_PROJECT_ROOT"             , trg: "/root/BUILD_DATA/BUILD_PROJECT_ROOT"}
-        { src: "#{BLD}/BUILD_ENVIRONMENT"              , trg: "/root/BUILD_DATA/BUILD_ENVIRONMENT"}
-        { src: "#{BLD}/BUILD_VERSION"                  , trg: "/root/BUILD_DATA/BUILD_VERSION"}
+        copyFiles = [
+          { src: "#{PRJ}/prepare"             , trg: "/root/prepare"},
+          { src: "#{PRJ}/install/Dockerfile"  , trg: "/root/Dockerfile"},
+          { src: "#{PRJ}/install/run"         , trg: "/root/run"}
+          { src: "#{PRJ}/install/cleanup"     , trg: "/root/cleanup"}
+          { src: "#{BLD}/BUILD_CONFIG.json"   , trg: "/root/BUILD_DATA/BUILD_CONFIG.json"}
+          { src: "#{BLD}/BUILD_HOSTNAME"      , trg: "/root/BUILD_DATA/BUILD_HOSTNAME"}
+          { src: "#{BLD}/BUILD_REGION"        , trg: "/root/BUILD_DATA/BUILD_REGION"}
+          { src: "#{BLD}/BUILD_CONFIG"        , trg: "/root/BUILD_DATA/BUILD_CONFIG"}
+          { src: "#{BLD}/BUILD_BRANCH"        , trg: "/root/BUILD_DATA/BUILD_BRANCH"}
+          { src: "#{BLD}/BUILD_PROJECT_ROOT"  , trg: "/root/BUILD_DATA/BUILD_PROJECT_ROOT"}
+          { src: "#{BLD}/BUILD_ENVIRONMENT"   , trg: "/root/BUILD_DATA/BUILD_ENVIRONMENT"}
+          { src: "#{BLD}/BUILD_VERSION"       , trg: "/root/BUILD_DATA/BUILD_VERSION"}
 
-      ]
-      conn.exec """mkdir -p /root/BUILD_DATA &&
-                   bash /root/prepare"""
-      , (err, stream) ->
-        sftpCopy conn : conn, files : copyFiles,(err,res)->
-          log "copyFiles finished."
-          conn.exec "bash /root/prepare", (err, stream) ->
-            throw err  if err
-            listen "configuring #{o.hostname}", stream,-> 
-              log "Box is ready at: ssh root@#{o.hostname} passwd:#{password}"
-              log "Deployment and configuration took: "+timethat.calc deployStart,new Date()
-              conn.end()
+        ]
+        conn.exec """mkdir -p /root/BUILD_DATA &&
+                     bash /root/prepare"""
+        , (err, stream) ->
+          sftpCopy conn : conn, files : copyFiles,(err,res)->
+            log "copyFiles finished."
+            conn.exec "bash /root/prepare", (err, stream) ->
+              throw err  if err
+              listen "configuring #{o.hostname}", stream,-> 
+                log "Box is ready at: ssh root@#{o.hostname} passwd:#{password}"
+                log "Deployment and configuration took: "+timethat.calc deployStart,new Date()
+                conn.end()
+
+    else if o.config is "prod"
+      conn.on "ready", ->
+        log "Connected via ssh - copying deploy files."  
+
+        copyFiles = [
+          { src: "#{PRJ}/install/prod-build"  , trg: "/root/prepare"},
+          { src: "#{BLD}/BUILD_CONFIG.json"   , trg: "/root/BUILD_DATA/BUILD_CONFIG.json"}
+          { src: "#{BLD}/BUILD_HOSTNAME"      , trg: "/root/BUILD_DATA/BUILD_HOSTNAME"}
+          { src: "#{BLD}/BUILD_REGION"        , trg: "/root/BUILD_DATA/BUILD_REGION"}
+          { src: "#{BLD}/BUILD_CONFIG"        , trg: "/root/BUILD_DATA/BUILD_CONFIG"}
+          { src: "#{BLD}/BUILD_NUMBER"        , trg: "/root/BUILD_DATA/BUILD_NUMBER"}
+          { src: "#{BLD}/BUILD_BRANCH"        , trg: "/root/BUILD_DATA/BUILD_BRANCH"}
+          { src: "#{BLD}/BUILD_PROJECT_ROOT"  , trg: "/root/BUILD_DATA/BUILD_PROJECT_ROOT"}
+          { src: "#{BLD}/BUILD_ENVIRONMENT"   , trg: "/root/BUILD_DATA/BUILD_ENVIRONMENT"}
+          { src: "#{BLD}/BUILD_VERSION"       , trg: "/root/BUILD_DATA/BUILD_VERSION"}
+        ]
+
+        conn.exec """mkdir -p /root/BUILD_DATA &&
+                     bash /root/prepare"""
+        , (err, stream) ->
+          sftpCopy conn : conn, files : copyFiles,(err,res)->
+            log "copyFiles finished."
+            conn.exec "bash /root/prepare", (err, stream) ->
+              throw err  if err
+              listen "configuring #{o.hostname}", stream,-> 
+                log "Box is ready at: ssh root@#{o.hostname} passwd:#{password}"
+                log "Deployment and configuration took: "+timethat.calc deployStart,new Date()
+                conn.end()
 
 
 
 deployStart = new Date()
-Deploy.createDeployData ->
+Deploy.createDeployData (err,KONFIG)->
 
-  #don't deploy just write config and exit.
-  return null unless o.deploy 
+  # write supervisor config
+  if o.supervisor
+    fs.writeFileSync "/etc/supervisor/conf.d/koding.conf",KONFIG.supervisorConf
+
+  # don't deploy just write config and exit.
+  return null if o.onlyconfigure 
 
   domainName = options.hostname
   password   = hat()

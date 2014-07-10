@@ -4,7 +4,7 @@ deepFreeze          = require 'koding-deep-freeze'
 hat                 = require 'hat'
 {argv}              = require 'optimist'
 path                = require 'path'
-
+traverse            = require 'traverse'
 BLD                 = process.env['KODING_BUILD_DATA_PATH'] or path.join __dirname,"../install/BUILD_DATA"
 
 hostname            = (fs.readFileSync BLD+"/BUILD_HOSTNAME"    , 'utf8').replace("\n","")
@@ -16,7 +16,7 @@ version             = (fs.readFileSync BLD+"/BUILD_VERSION"     , 'utf8').replac
 
 mongo               = "10.208.228.10:27017/koding"
 redis               = {host     : "10.208.228.10"         , port : "6379" }
-socialapi           = {proxyUrl : "http://socialapi:7000" , port : 7000 , clusterSize : 5 }
+socialapi           = {proxyUrl : "http://socialapi:7000" , port : 7000 , clusterSize : 5, configFilePath : "#{projectRoot}/go/src/socialapi/config/prod.toml" }
 rabbitmq            = {host     : "10.208.228.10"         , port : 5672 , apiPort     : 15672, login : "guest", password : "guest"}
 
 customDomain        =
@@ -62,6 +62,7 @@ regions             =
   premium           : "vagrant"
 
 
+
 KONFIG              =
   environment       : environment
   regions           : regions
@@ -84,10 +85,13 @@ KONFIG              =
   authWorker        : {login         : "#{rabbitmq.login}"      , queueName : socialQueueName+'auth', authExchange      : "auth"             , authAllExchange : "authAll"}
   mq                : {host          : "#{rabbitmq.host}"       , port      : rabbitmq.port         , apiAddress        : "#{rabbitmq.host}" , apiPort         : "#{rabbitmq.apiPort}", login:"#{rabbitmq.login}",componentUser:"#{rabbitmq.login}",password: "#{rabbitmq.password}",heartbeat: 0, vhost: '/'}
   emailWorker       : {cronInstant   : '*/10 * * * * *'         , cronDaily : '0 10 0 * * *'        , run               : no                 , forcedRecipient : undefined, maxAge: 3}
+  elasticSearch     : {host          : "localhost"              , port      : 9200                  , enabled           : no                 , queue           : "elasticSearchFeederQueue"}
   email             : {host          : "#{customDomain.public}" , protocol  : 'http:'               , defaultFromAddress: 'hello@koding.com' }
   social            : {login         : "#{rabbitmq.login}"      , queueName : socialQueueName       , kitePort          : 8765 }
-  log               : {login         : "#{rabbitmq.login}"      , queueName : logQueueName}
   newkites          : {useTLS        : no                       , certFile  : ""                    , keyFile: ""}
+  log               : {login         : "#{rabbitmq.login}"      , queueName : logQueueName}
+
+
   newkontrol        : kontrol
   emailConfirmationCheckerWorker : {enabled: no, login : "#{rabbitmq.login}", queueName: socialQueueName+'emailConfirmationCheckerWorker',cronSchedule: '0 * * * * *',usageLimitInMinutes  : 60}
  
@@ -150,6 +154,82 @@ KONFIG.client.runtimeOptions =
 
     # END: PROPERTIES SHARED WITH BROWSER #
 
+KONFIG.JSON = JSON.stringify KONFIG
+KONFIG.ENV  = {}
+
+#---- SUPERVISOR CONFIG ----#
+
+travis = traverse(KONFIG)
+travis.paths().forEach (path) -> KONFIG.ENV["KONFIG_#{path.join("_")}".toUpperCase()] = travis.get(path) unless typeof travis.get(path) is 'object'
+supervisorEnvironmentStr = ''
+supervisorEnvironmentStr += "#{key}='#{val}'," for key,val of KONFIG.ENV
+
+
+
+KONFIG.supervisorConf = """
+[supervisord]
+environment=#{supervisorEnvironmentStr} 
+
+[inet_http_server]
+port=*:9001
+
+[program:rerouting]
+command=#{projectRoot}/go/bin/rerouting         -c #{configName}
+
+[program:cron]
+command=#{projectRoot}/go/bin/cron              -c #{configName}
+
+[program:broker]
+command=#{projectRoot}/go/bin/broker            -c #{configName}
+ 
+# [program:reverseproxy]
+# command=#{projectRoot}/go/bin/reverseproxy      -region #{region} -port 4001 -env production -publicHost $HST -publicPort 4001
+
+[program:socialapi]
+command=#{projectRoot}/go/bin/api               -c #{socialapi.configFilePath} -port #{socialapi.port}
+
+[program:dailyemailnotifier]
+command=#{projectRoot}/go/bin/dailyemailnotifier -c #{socialapi.configFilePath}
+
+[program:notification]
+command=#{projectRoot}/go/bin/notification      -c #{socialapi.configFilePath}
+
+[program:popularpost]
+command=#{projectRoot}/go/bin/popularpost       -c #{socialapi.configFilePath}
+
+[program:populartopic]
+command=#{projectRoot}/go/bin/populartopic      -c #{socialapi.configFilePath}
+
+[program:realtime]
+command=#{projectRoot}/go/bin/realtime          -c #{socialapi.configFilePath}
+
+[program:sitemapfeeder]
+command=#{projectRoot}/go/bin/sitemapfeeder     -c #{socialapi.configFilePath}
+
+[program:topicfeed]
+command=#{projectRoot}/go/bin/topicfeed         -c #{socialapi.configFilePath}
+
+[program:trollmode]
+command=#{projectRoot}/go/bin/trollmode         -c #{socialapi.configFilePath}
+
+[program:webserver]
+command=node #{projectRoot}/server/index.js                   -c #{configName} -p 3000   --disable-newrelic
+
+[program:authworker]
+command=node #{projectRoot}/workers/auth/index.js             -c #{configName}
+
+[program:socialworker]
+command=node #{projectRoot}/workers/social/index.js           -c #{configName} -p 3030 --disable-newrelic --kite-port=13020
+
+[program:sourceMaps]
+command=node #{projectRoot}/server/lib/source-server/index.js -c #{configName} -p 3526
+
+[program:guestcleaner]
+command=node #{projectRoot}/workers/guestcleaner/index.js     -c #{configName}
+
+[program:emailsender]
+command=node #{projectRoot}/workers/emailsender/index.js      -c #{configName}
+"""
 
 
 module.exports = KONFIG

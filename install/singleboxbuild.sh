@@ -93,11 +93,11 @@ cp /usr/bin/nodejs /usr/bin/node
 
 
 
-install & build code
+# install & build code
 apt-get install -y golang nodejs npm git graphicsmagick
 cp /usr/bin/nodejs /usr/bin/node
 cd /opt
-git clone git@git.sj.koding.com:koding/koding.git
+git clone git@github.com:koding/koding.git
 cd koding
 git checkout cake-rewrite
 git submodule init

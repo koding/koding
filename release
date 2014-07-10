@@ -13,24 +13,17 @@ fs         = require 'fs'
 {exec}     = require 'child_process'
 _          = require 'underscore' 
 
+rsKeys     =     
+  provider  : 'rackspace'
+  username  : "kodinginc"
+  apiKey    : "96d6388ccb936f047fd35eb29c36df17"
+  region    : 'IAD'
 
 rs = 
-  compute : RS.compute.createClient
-    provider  : 'rackspace'
-    username  : "kodinginc"
-    apiKey    : "96d6388ccb936f047fd35eb29c36df17"
-    region    : 'DFW'
-
-  dns : RS.dns.createClient
-    provider  : 'rackspace'
-    username  : "kodinginc"
-    apiKey    : "96d6388ccb936f047fd35eb29c36df17"
-
-  lb : RS.loadbalancer.createClient
-    provider  : 'rackspace'
-    username  : "kodinginc"
-    apiKey    : "96d6388ccb936f047fd35eb29c36df17"
-    region    : 'DFW'
+  compute : RS.compute.createClient rsKeys
+  dns     : RS.dns.createClient rsKeys
+  lb      : RS.loadbalancer.createClient rsKeys
+  bs      : RS.blockstorage.createClient rsKeys
 
 KODING_LB = "300793"
 
@@ -103,11 +96,22 @@ class Release
 # 	rs.updateNodes
 
 
-anna-prod-1755
-mika-prod-1755
+# Release.disableNodesByName "prod-1754",(err,nodes) ->
+#   log nodes
 
-Release.disableNodesByName "prod-1754",(err,nodes) ->
-  log nodes
+# for i in [1..150] by 5
+#   do (i)->
+#     name = eden.eve()
+#     rs.bs.createVolume
+#       name: name
+#       description: 'my volume'
+#       size: i,    
+#     ,(err,res)->
+#       if err
+#         log "fail: disk size #{i} " 
+#       else
+#         log "done: disk size #{i} - #{name} " 
+
 
 # Release.enableNodesByName "prod-1755",(err,nodes) ->
 

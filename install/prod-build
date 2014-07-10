@@ -1,29 +1,46 @@
+#!/bin/bash
 
 
-
-echo '#!/bin/sh -e' >/etc/rc.local
-echo "iptables -F" >>/etc/rc.local
-echo "iptables -A INPUT -i lo -j ACCEPT" >>/etc/rc.local
-echo "iptables -A INPUT -s 208.72.139.54 -j ACCEPT" >>/etc/rc.local
-echo "iptables -A INPUT -s 70.197.5.50 -j ACCEPT" >>/etc/rc.local
-echo "iptables -A INPUT -s 208.87.56.148 -j ACCEPT" >>/etc/rc.local
-echo "iptables -A INPUT -s 208.87.59.205 -j ACCEPT" >>/etc/rc.local
-echo "iptables -A INPUT -s 94.54.193.66 -j ACCEPT" >>/etc/rc.local
-echo "iptables -A INPUT -s 78.184.209.65 -j ACCEPT" >>/etc/rc.local
-echo "iptables -A INPUT -s 68.68.97.155 -j ACCEPT" >>/etc/rc.local
-echo "iptables -A INPUT -s 85.107.151.5 -j ACCEPT" >>/etc/rc.local
-echo "iptables -A INPUT -p tcp --dport 4000 -j ACCEPT" >>/etc/rc.local
-echo "iptables -A INPUT -p tcp --dport 3999 -j ACCEPT" >>/etc/rc.local
-echo "iptables -A INPUT -p tcp --dport 3000 -j ACCEPT" >>/etc/rc.local
-echo "iptables -A INPUT -m state --state ESTABLISHED,RELATED -j ACCEPT" >>/etc/rc.local
-echo "iptables -A INPUT -j DROP" >>/etc/rc.local
+echo '#!/bin/sh -e'                                                       >/etc/rc.local
+echo "iptables -F"                                                        >>/etc/rc.local
+echo "iptables -A INPUT -i lo -j ACCEPT"                                  >>/etc/rc.local
+echo "iptables -A INPUT -s 208.72.139.54 -j ACCEPT"                       >>/etc/rc.local
+echo "iptables -A INPUT -s 70.197.5.50 -j ACCEPT"                         >>/etc/rc.local
+echo "iptables -A INPUT -s 208.87.56.148 -j ACCEPT"                       >>/etc/rc.local
+echo "iptables -A INPUT -s 208.87.59.205 -j ACCEPT"                       >>/etc/rc.local
+echo "iptables -A INPUT -s 94.54.193.66 -j ACCEPT"                        >>/etc/rc.local
+echo "iptables -A INPUT -s 78.184.209.65 -j ACCEPT"                       >>/etc/rc.local
+echo "iptables -A INPUT -s 68.68.97.155 -j ACCEPT"                        >>/etc/rc.local
+echo "iptables -A INPUT -s 85.107.151.5 -j ACCEPT"                        >>/etc/rc.local
+echo "iptables -A INPUT -p tcp --dport 4000 -j ACCEPT"                    >>/etc/rc.local
+echo "iptables -A INPUT -p tcp --dport 3999 -j ACCEPT"                    >>/etc/rc.local
+echo "iptables -A INPUT -p tcp --dport 3000 -j ACCEPT"                    >>/etc/rc.local
+echo "iptables -A INPUT -m state --state ESTABLISHED,RELATED -j ACCEPT"   >>/etc/rc.local
+echo "iptables -A INPUT -j DROP"                                          >>/etc/rc.local
 /etc/rc.local
 
-echo "export GOPATH=/opt/koding/go" >> /etc/profile
+BH=`cat /root/BUILD_DATA/BUILD_HOSTNAME`
+BR=`cat /root/BUILD_DATA/BUILD_REGION`
+BC=`cat /root/BUILD_DATA/BUILD_CONFIG`
+BE=`cat /root/BUILD_DATA/BUILD_ENVIRONMENT`
+BP=`cat /root/BUILD_DATA/BUILD_PROJECT_ROOT`
+BV=`cat /root/BUILD_DATA/BUILD_VERSION`
+BCJ=`cat /root/BUILD_DATA/BUILD_CONFIG.json`
+
+echo "export GOPATH=/opt/koding/go"  >> /etc/profile
+
+echo "export KONFIG_HOSTNAME=$BH"     >> /etc/profile
+echo "export KONFIG_REGION=$BR"       >> /etc/profile
+echo "export KONFIG_CONFIG=$BC"       >> /etc/profile
+echo "export KONFIG_ENVIRONMENT=$BE"  >> /etc/profile
+echo "export KONFIG_PROJECT=$BP"      >> /etc/profile
+echo "export KONFIG_VERSION=$BV"      >> /etc/profile
+echo "export KONFIG_JSON=$BCJ"        >> /etc/profile
+
 source /etc/profile
 
-echo "UTC" > /etc/timezone
-dpkg-reconfigure -f noninteractive tzdata
+# echo "UTC" > /etc/timezone
+# dpkg-reconfigure -f noninteractive tzdata
 
 mkdir -p /root/.ssh
 
@@ -68,7 +85,8 @@ chmod 600 /root/.ssh/id_rsa
 
 
 # install & build code
-apt-get install -y golang nodejs npm git graphicsmagick
+apt-get update > /dev/null
+apt-get install -y golang nodejs npm git graphicsmagick supervisor
 cp /usr/bin/nodejs /usr/bin/node
 cd /opt
 git clone git@github.com:koding/koding.git
@@ -78,3 +96,16 @@ git submodule init
 git submodule update
 npm i gulp stylus coffee-script -g 
 npm i --unsafe-perm
+
+chmod +x ./deploy
+./deploy --only-configure --supervisor
+
+chmod +x ./build
+NO_UGLIFYJS=true ./build
+./go/build.sh
+
+cd /opt/koding/go/src/socialapi
+make install
+
+
+
