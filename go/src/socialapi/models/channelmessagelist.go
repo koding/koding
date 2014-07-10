@@ -396,7 +396,7 @@ func (c *ChannelMessageList) Count(channelId int64) (int, error) {
 }
 
 func (c *ChannelMessageList) Glance() error {
-	c.RevisedAt = time.Now().Add((time.Second * 1))
+	c.RevisedAt = time.Now().Add((time.Second * 1)).UTC()
 
 	if err := c.Update(); err != nil {
 		return err

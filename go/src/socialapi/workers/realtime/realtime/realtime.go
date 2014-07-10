@@ -683,15 +683,15 @@ func updateAllContainingChannels(parentId int64, excludedId int64) error {
 		if channel.CreatorId == excludedId {
 			cml, err := channel.FetchMessageList(parentId)
 			if err != nil {
-				// TODO: how to handle errors here
-				// return err
+				logging.Error("error fetching message list for", parentId, err)
+				continue
 			}
 
 			// `Glance` for author, so on next new message, unread count is right
 			err = cml.Glance()
 			if err != nil {
-				// TODO: how to handle errors here
-				// return err
+				logging.Error("error glancing for messagelist", parentId, err)
+				continue
 			}
 
 			// no need to tell user they did an action
