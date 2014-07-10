@@ -33,6 +33,7 @@ module.exports = class JVM extends Module
     softDelete          : yes
     indexes             :
       hostnameAlias     : 'unique'
+      alwaysOn          : 'sparse'
     permissions         :
       'sudoer'          : []
       'create vms'      : ['member','moderator']
