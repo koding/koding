@@ -1,10 +1,10 @@
-package iam
+package autoscaling
 
 import (
 	"crypto/hmac"
 	"crypto/sha256"
 	"encoding/base64"
-	"launchpad.net/goamz/aws"
+	"github.com/mitchellh/goamz/aws"
 	"sort"
 	"strings"
 )
@@ -18,6 +18,9 @@ func sign(auth aws.Auth, method, path string, params map[string]string, host str
 	params["AWSAccessKeyId"] = auth.AccessKey
 	params["SignatureVersion"] = "2"
 	params["SignatureMethod"] = "HmacSHA256"
+	if auth.Token != "" {
+		params["SecurityToken"] = auth.Token
+	}
 
 	var sarray []string
 	for k, v := range params {

@@ -409,23 +409,23 @@ func (iam *IAM) DeleteUserPolicy(userName, policyName string) (*SimpleResp, erro
 //
 //  See http://goo.gl/ZnzRN for more details.
 type AddUserToGroupResp struct {
-        RequestId string `xml:"ResponseMetadata>RequestId"`
+	RequestId string `xml:"ResponseMetadata>RequestId"`
 }
 
 // AddUserToGroup adds a user to a specific group
 //
 // See http://goo.gl/ZnzRN for more details.
-func (iam *IAM) AddUserToGroup(name, group string) (*AddUserToGroupResp, error){
-        
-        params := map[string]string{
-                "Action": "AddUserToGroup",
-                "GroupName": group,
-                "UserName": name}
-        resp := new(AddUserToGroupResp)
-        if err := iam.query(params, resp); err != nil {
-                return nil, err
-        }
-        return resp, nil
+func (iam *IAM) AddUserToGroup(name, group string) (*AddUserToGroupResp, error) {
+
+	params := map[string]string{
+		"Action":    "AddUserToGroup",
+		"GroupName": group,
+		"UserName":  name}
+	resp := new(AddUserToGroupResp)
+	if err := iam.query(params, resp); err != nil {
+		return nil, err
+	}
+	return resp, nil
 }
 
 type SimpleResp struct {

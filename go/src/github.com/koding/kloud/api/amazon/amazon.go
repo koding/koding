@@ -4,9 +4,9 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/mitchellh/goamz/aws"
+	"github.com/mitchellh/goamz/ec2"
 	"github.com/mitchellh/mapstructure"
-	"launchpad.net/goamz/aws"
-	"launchpad.net/goamz/ec2"
 )
 
 type Amazon struct {
