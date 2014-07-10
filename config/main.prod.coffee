@@ -80,7 +80,7 @@ KONFIG              =
 
   # -- WORKERS -- #
 
-  # webserver       : {useCacheHeader: no, login: "#{rabbitmq.login}", queueName: socialQueueName+'web'}
+  webserver         : {useCacheHeader: no}
   presence          : {exchange      : 'services-presence'}
   authWorker        : {login         : "#{rabbitmq.login}"      , queueName : socialQueueName+'auth', authExchange      : "auth"             , authAllExchange : "authAll"}
   mq                : {host          : "#{rabbitmq.host}"       , port      : rabbitmq.port         , apiAddress        : "#{rabbitmq.host}" , apiPort         : "#{rabbitmq.apiPort}", login:"#{rabbitmq.login}",componentUser:"#{rabbitmq.login}",password: "#{rabbitmq.password}",heartbeat: 0, vhost: '/'}

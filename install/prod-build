@@ -100,7 +100,7 @@ npm i gulp stylus coffee-script -g
 npm i --unsafe-perm
 
 chmod +x ./deploy
-./deploy --only-configure --supervisor
+./deploy --onlyconfigure --supervisor --hostname $BH
 
 chmod +x ./build
 NO_UGLIFYJS=true ./build

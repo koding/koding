@@ -34,11 +34,13 @@ options = o =
   build            : argv.build         or 1111  
   version          : argv.version       or "1.0"
   environment      : argv.environment   or "prod"
+  hostname         : argv.hostname
   target           : argv.target        or "rackspace"
   onlyconfigure    : argv.onlyconfigure or false
   supervisor       : argv.supervisor    or false
 
-options.hostname   = "#{eden.eve()}-#{o.config}-#{o.build}.koding.me".toLowerCase()
+unless options.hostname
+  options.hostname   = "#{eden.eve()}-#{o.config}-#{o.build}.koding.me".toLowerCase()
 
 # log o
 # log argv
