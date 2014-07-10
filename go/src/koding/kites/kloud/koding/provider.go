@@ -84,16 +84,6 @@ func (p *Provider) Build(opts *protocol.MachineOptions) (*protocol.ProviderArtif
 		flavorId = DefaultFlavorId
 	}
 
-	ctx := &CheckContext{
-		username: opts.Username,
-		api:      client,
-	}
-
-	// TODO pass plan later
-	if err := p.CheckLimits("free", ctx); err != nil {
-		return nil, err
-	}
-
 	return client.Build(opts.InstanceName, imageId, flavorId)
 }
 
