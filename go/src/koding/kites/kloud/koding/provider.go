@@ -1,4 +1,4 @@
-package openstack
+package koding
 
 import (
 	"errors"
@@ -6,6 +6,7 @@ import (
 	"github.com/koding/kloud/eventer"
 	"github.com/koding/kloud/machinestate"
 	"github.com/koding/kloud/protocol"
+	"github.com/koding/kloud/provider/openstack"
 
 	"github.com/koding/logging"
 )
@@ -16,22 +17,29 @@ var (
 
 	// id: 2 name: 512MB Standard Instance cpu: 1 ram: 512 disk: 20
 	DefaultFlavorId = "2"
+
+	RACKSPACE_USERNAME = "kodinginc"
+	RACKSPACE_PASSWORD = "frjJapvap3Ox!Uvk"
+	RACKSPACE_API_KEY  = "96d6388ccb936f047fd35eb29c36df17"
+	authURL            = "https://identity.api.rackspacecloud.com/v2.0"
+
+	kodingCredential = map[string]interface{}{
+		"username": RACKSPACE_USERNAME,
+		"apiKey":   RACKSPACE_API_KEY,
+	}
+)
+
+const (
+	ProviderName = "koding"
 )
 
 type Provider struct {
 	Log  logging.Logger
 	Push func(string, int, machinestate.State)
-
-	AuthURL      string
-	ProviderName string
 }
 
-func (p *Provider) Name() string {
-	return p.ProviderName
-}
-
-func (p *Provider) NewClient(opts *protocol.MachineOptions) (*OpenstackClient, error) {
-	o := &OpenstackClient{
+func (p *Provider) NewClient(opts *protocol.MachineOptions) (*openstack.OpenstackClient, error) {
+	o := &openstack.OpenstackClient{
 		Log: p.Log,
 		Push: func(msg string, percentage int, state machinestate.State) {
 			p.Log.Info("%s - %s ==> %s", opts.MachineId, opts.Username, msg)
@@ -42,9 +50,9 @@ func (p *Provider) NewClient(opts *protocol.MachineOptions) (*OpenstackClient, e
 				Percentage: percentage,
 			})
 		},
-		AuthURL:       p.AuthURL,
-		ProviderName:  p.ProviderName,
-		CredentialRaw: opts.Credential,
+		AuthURL:       authURL,
+		ProviderName:  "rackspace", //openstack related
+		CredentialRaw: kodingCredential,
 		BuilderRaw:    opts.Builder,
 	}
 
@@ -53,6 +61,10 @@ func (p *Provider) NewClient(opts *protocol.MachineOptions) (*OpenstackClient, e
 	}
 
 	return o, nil
+}
+
+func (p *Provider) Name() string {
+	return ProviderName
 }
 
 func (p *Provider) Build(opts *protocol.MachineOptions) (*protocol.ProviderArtifact, error) {
@@ -66,14 +78,6 @@ func (p *Provider) Build(opts *protocol.MachineOptions) (*protocol.ProviderArtif
 	}
 
 	imageId := DefaultImageId
-	if opts.ImageName != "" {
-		imageId = opts.ImageName
-	}
-
-	if o.Builder.SourceImage != "" {
-		imageId = o.Builder.SourceImage
-	}
-
 	// TODO: prevent this and throw an error in the future
 	flavorId := o.Builder.Flavor
 	if flavorId == "" {

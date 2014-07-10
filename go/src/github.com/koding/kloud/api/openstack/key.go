@@ -1,4 +1,4 @@
-package api
+package openstack
 
 import "github.com/rackspace/gophercloud"
 
