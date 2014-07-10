@@ -6,7 +6,6 @@ Object.defineProperty global, 'KONFIG',
 
 {
   webserver
-  mq
   projectRoot
   kites
   uploads
@@ -16,32 +15,6 @@ Object.defineProperty global, 'KONFIG',
 webPort = argv.p ? webserver.port
 koding  = require './bongo'
 Crawler = require '../crawler'
-
-log4js  = require 'log4js'
-logger  = log4js.getLogger("webserver")
-
-log4js.configure {
-  appenders: [
-    { type: 'console' }
-    { type: 'file', filename: 'logs/webserver.log', category: 'webserver' }
-    { type: "log4js-node-syslog", tag : "webserver", facility: "local0", hostname: "localhost", port: 514 }
-  ],
-  replaceConsole: true
-}
-
-# processMonitor = (require 'processes-monitor').start
-#   name                : "webServer on port #{webPort}"
-#   stats_id            : "webserver." + process.pid
-#   interval            : 30000
-#   limit_hard          :
-#     memory            : 300
-#     callback          : ->
-#       console.log "[WEBSERVER #{webPort}] Using excessive memory, exiting."
-#       process.exit()
-#   die                 :
-#     after             : "non-overlapping, random, 3 digits prime-number of minutes"
-#     middleware        : (name,callback) -> koding.disconnect callback
-#     middlewareTimeout : 5000
 
 _          = require 'underscore'
 async      = require 'async'
@@ -76,14 +49,11 @@ app        = express()
 { generateHumanstxt } = require "./humanstxt"
 
 
-# this is a hack so express won't write the multipart to /tmp
-#delete express.bodyParser.parse['multipart/form-data']
-
 app.configure ->
   app.set 'case sensitive routing', on
 
   headers = {}
-  if webserver.useCacheHeader
+  if webserver?.useCacheHeader
     headers.maxAge = 1000 * 60 * 60 * 24 # 1 day
 
   app.use express.static "#{projectRoot}/website/", headers
