@@ -265,21 +265,20 @@ app.get "/-/jobs", (req, res) ->
     res.send 404 if err
     res.json postings
 
-app.get "/sitemap:sitemapName", (req, res)->
-  {JSitemap}       = koding.models
+app.get "/sitemap.xml", (req, res)->
+  getSiteMap "/sitemap.xml", req, res
 
-  # may be written with a better understanding of express.js routing mechanism.
-  sitemapName = req.params.sitemapName
-  if sitemapName is ".xml"
-    sitemapName = "sitemap.xml"
-  else
-    sitemapName = "sitemap" + sitemapName
-  JSitemap.one "name" : sitemapName, (err, sitemap)->
-    if err or not sitemap
-      res.send 404
-    else
-      res.setHeader 'Content-Type', 'text/xml'
-      res.send sitemap.content
+app.get "/sitemap/:sitemapName", (req, res)->
+  getSiteMap "/sitemap/#{req.params.sitemapName}", req, res
+
+getSiteMap = (name, req, res)->
+  {
+    bareRequest
+  } = require "../../../workers/social/lib/social/models/socialapi/helper"
+
+  bareRequest "getSiteMap", {name:name}, (err, result)->
+    res.setHeader "Content-Type", "text/xml"
+    res.send result
     res.end
 
 app.get "/-/presence/:service", (req, res) ->

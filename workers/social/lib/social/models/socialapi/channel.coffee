@@ -12,42 +12,45 @@ module.exports = class SocialChannel extends Base
   @set
     sharedMethods :
       static      :
-        byId              :
+        byId                 :
           (signature Object, Function)
-        byName            :
+        byName               :
           (signature Object, Function)
-        fetchActivities   :
+        fetchActivities      :
           (signature Object, Function)
-        fetchActivityCount:
+        fetchActivityCount   :
           (signature Object, Function)
-        fetchChannels     :
+        fetchChannels        :
           (signature Object, Function)
-        fetchParticipants :
+        fetchParticipants    :
           (signature Object, Function)
-        fetchPopularTopics:
+        listParticipants     :
           (signature Object, Function)
-        fetchPopularPosts:
+        addParticipants      :
           (signature Object, Function)
-        fetchPinnedMessages:
+        removeParticipants   :
           (signature Object, Function)
-        pinMessage    :
+        fetchPopularTopics   :
           (signature Object, Function)
-        unpinMessage  :
+        fetchPopularPosts    :
           (signature Object, Function)
-        follow:
+        fetchPinnedMessages  :
           (signature Object, Function)
-        unfollow:
+        pinMessage           :
+          (signature Object, Function)
+        unpinMessage         :
           (signature Object, Function)
         fetchFollowedChannels:
           (signature Object, Function)
-        searchTopics:
+        searchTopics         :
           (signature Object, Function)
-
-        fetchProfileFeed:
+        fetchProfileFeed     :
           (signature Object, Function)
-        updateLastSeenTime:
+        updateLastSeenTime   :
           (signature Object, Function)
-        glancePinnedPost:
+        glancePinnedPost     :
+          (signature Object, Function)
+        cycleChannel:
           (signature Object, Function)
 
     schema             :
@@ -147,19 +150,21 @@ module.exports = class SocialChannel extends Base
   # fetchFollowedChannels - lists followed channels(topics) of an account
   @fetchFollowedChannels = secureRequest fnName: 'fetchFollowedChannels'
 
-  # follow - endpoint for users to follow topics
-  @follow = secureRequest
-    fnName  : 'followTopic'
-    validate: ["channelId"]
-
-  # unfollow - endpoint for users to give up following a channel
-  @unfollow = secureRequest
-    fnName  : 'unfollowTopic'
-    validate: ["channelId"]
-
   # updateLastSeenTime - updates user's channel presence data
   @updateLastSeenTime = secureRequest
     fnName  : 'updateLastSeenTime'
+    validate: ["channelId"]
+
+  @listParticipants = secureRequest
+    fnName  : 'listParticipants'
+    validate: ["channelId"]
+
+  @addParticipants = secureRequest
+    fnName  : 'addParticipants'
+    validate: ["channelId"]
+
+  @removeParticipants = secureRequest
+    fnName  : 'removeParticipants'
     validate: ["channelId"]
 
   # glancePinnedPost - updates user's lastSeenDate for pinned posts
