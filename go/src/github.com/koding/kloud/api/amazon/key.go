@@ -1,5 +1,11 @@
 package amazon
 
+import (
+	"fmt"
+
+	"github.com/mitchellh/goamz/ec2"
+)
+
 func (a *Amazon) CreateKey(name string) (string, error) {
 	keyPair, err := a.ec2.CreateKeyPair(name)
 	if err != nil {
@@ -15,5 +21,12 @@ func (a *Amazon) DestroyKey(name string) error {
 }
 
 func (a *Amazon) Showkey(name string) error {
+	resp, err := a.ec2.KeyPairs([]string{name}, ec2.NewFilter())
+	if err != nil {
+		return err
+	}
+
+	fmt.Printf("resp %+v\n", resp)
+
 	return nil
 }

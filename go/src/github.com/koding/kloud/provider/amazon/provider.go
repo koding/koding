@@ -1,0 +1,64 @@
+package amazon
+
+import (
+	"github.com/koding/kloud/eventer"
+	"github.com/koding/kloud/machinestate"
+	"github.com/koding/kloud/protocol"
+	"github.com/koding/logging"
+)
+
+type Provider struct {
+	Log  logging.Logger
+	Push func(string, int, machinestate.State)
+}
+
+func (p *Provider) NewClient(opts *protocol.MachineOptions) (*AmazonClient, error) {
+	a := &AmazonClient{
+		Log: p.Log,
+		Push: func(msg string, percentage int, state machinestate.State) {
+			p.Log.Info("%s - %s ==> %s", opts.MachineId, opts.Username, msg)
+
+			opts.Eventer.Push(&eventer.Event{
+				Message:    msg,
+				Status:     state,
+				Percentage: percentage,
+			})
+		},
+		CredentialRaw: opts.Credential,
+		BuilderRaw:    opts.Builder,
+	}
+
+	if err := a.Initialize(); err != nil {
+		return nil, err
+	}
+
+	return a, nil
+}
+
+func (p *Provider) Name() string {
+	return "amazon"
+}
+
+func (p *Provider) Build(opts *protocol.MachineOptions) (*protocol.ProviderArtifact, error) {
+	return nil, nil
+}
+
+func (p *Provider) Start(opts *protocol.MachineOptions) (*protocol.ProviderArtifact, error) {
+	return nil, nil
+}
+
+func (p *Provider) Stop(opts *protocol.MachineOptions) error {
+	return nil
+}
+
+func (p *Provider) Restart(opts *protocol.MachineOptions) error {
+	return nil
+}
+
+func (p *Provider) Destroy(opts *protocol.MachineOptions) error {
+	return nil
+}
+
+func (p *Provider) Info(opts *protocol.MachineOptions) (*protocol.InfoArtifact, error) {
+	return nil, nil
+}

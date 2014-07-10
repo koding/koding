@@ -1,12 +1,10 @@
 package kloud
 
 import (
-	"io/ioutil"
-	"log"
-
 	"github.com/koding/kloud/eventer"
 	"github.com/koding/kloud/idlock"
 	"github.com/koding/kloud/protocol"
+	"github.com/koding/kloud/provider/amazon"
 	"github.com/koding/kloud/provider/digitalocean"
 	"github.com/koding/kloud/provider/openstack"
 
@@ -52,12 +50,12 @@ func NewKloud() *Kloud {
 }
 
 func (k *Kloud) initializeProviders() {
-	// Our digitalocean api uses lots of logs, the only way to supress them is
-	// to disable std log package.
-	log.SetOutput(ioutil.Discard)
-
 	k.AddProvider("digitalocean", &digitalocean.Provider{
 		Log: logging.NewLogger("digitalocean"),
+	})
+
+	k.AddProvider("amazon", &amazon.Provider{
+		Log: logging.NewLogger("amazon"),
 	})
 
 	k.AddProvider("rackspace", &openstack.Provider{
