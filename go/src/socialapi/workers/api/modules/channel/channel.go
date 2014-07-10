@@ -45,6 +45,10 @@ func Create(u *url.URL, h http.Header, req *models.Channel) (int, http.Header, i
 		return response.NewBadRequest(err)
 	}
 
+	if _, err := req.AddParticipant(req.CreatorId); err != nil {
+		return response.NewBadRequest(err)
+	}
+
 	return response.NewOK(req)
 }
 

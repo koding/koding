@@ -16,6 +16,7 @@ const (
 )
 
 type Query struct {
+	Id             int64     `url:"id,omitempty"`
 	Skip           int       `url:"skip"`
 	Limit          int       `url:"limit"`
 	To             time.Time `url:"to"`
@@ -67,8 +68,9 @@ func (q *Query) MapURL(u *url.URL) *Query {
 		q.Privacy = sanitize.Name(q.Privacy)
 	}
 
-	q.AccountId, _ = strconv.ParseInt(urlQuery.Get("accountId"), 10, 64)
-	q.GroupChannelId, _ = strconv.ParseInt(urlQuery.Get("groupChannelId"), 10, 64)
+	q.Id, _ = GetURIInt64(u, "id")
+	q.AccountId, _ = GetURIInt64(u, "accountId")
+	q.GroupChannelId, _ = GetURIInt64(u, "groupChannelId")
 
 	if to := urlQuery.Get("to"); to != "" {
 		q.To, _ = time.Parse(time.RFC3339, to)
