@@ -337,8 +337,18 @@ class Ace extends KDView
     @appStorage.setValue 'scrollPastEnd', value
 
   setFontSize:(value, save = yes)->
+    return if value is KD.config.oldFontSize
 
-    @$("#editor#{@getId()}").css 'font-size', "#{value}px"
+    style           = document.createElement 'style'
+    style.id        = 'ace-font-size'
+    style.innerHTML = ".ace_editor { font-size: #{value}px }"
+
+    oldStyleTag     = document.getElementById style.id
+    oldStyleTag.parentNode.removeChild oldStyleTag if oldStyleTag
+
+    document.head.appendChild style
+    KD.config.oldFontSize = value
+
     return  unless save
     @appStorage.setValue 'fontSize', value
 
