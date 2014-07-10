@@ -118,7 +118,7 @@ func webtermConnectNew(r *kitelib.Request, vos *virt.VOS) (interface{}, error) {
 		user:       vos.User,
 		pty:        pty.New(vos.VM.PtsDir()),
 		screenPath: screen.ScreenPath,
-		throttling: false,
+		throttling: true,
 	}
 
 	if params.Mode != "resume" || params.Mode != "shared" {
