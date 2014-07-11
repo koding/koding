@@ -1,42 +1,42 @@
-EventExchangeName="BrokerMessageBus"
-Mongo="dev:k9lc4G1k32nyD72@172.16.3.9:27017/koding"
-Environment="production"
-Uri="https://koding.com"
+EventExchangeName = "BrokerMessageBus"
+Mongo             = "dev:k9lc4G1k32nyD72@172.16.3.9:27017/koding"
+Environment       = "production"
+Uri               = "https://koding.com"
 
 [postgres]
-Host=     "prod0.cfbuweg6pdxe.us-east-1.rds.amazonaws.com"
-Port=     5432
-Username= "socialapplication"
-Password= "socialapplication"
-DBName=   "social"
+Host     = "prod0.cfbuweg6pdxe.us-east-1.rds.amazonaws.com"
+Port     = 5432
+Username = "socialapplication"
+Password = "socialapplication"
+DBName   = "social"
 
 [mq]
-Host=     "172.16.3.4"
-Port=     5672
-Username= "guest"
-Password= "Xah8ibeekelah"
-Vhost=    "new"
+Host     = "172.16.3.4"
+Port     = 5672
+Username = "guest"
+Password = "Xah8ibeekelah"
+Vhost    = "new"
 
 [redis]
-URL=      "172.16.10.16:6379"
-DB=       0
+URL = "172.16.10.16:6379"
+DB  = 0
 # slave one is not used, just here for future ref
 Slave=    "172.16.10.17:6379"
 
 [limits]
-MessageBodyMinLen=1
+MessageBodyMinLen = 1
 
 [Notification]
 CacheEnabled = false
 
 [emailnotification]
-TemplateRoot="go/src/socialapi/workers/emailnotifier/templates/"
+TemplateRoot = "go/src/socialapi/workers/emailnotifier/templates/"
 
 [sendgrid]
-Username= "koding"
-Password= "DEQl7_Dr"
-FromName= "Koding"
-FromMail= "hello@koding.com"
+Username = "koding"
+Password = "DEQl7_Dr"
+FromName = "Koding"
+FromMail = "hello@koding.com"
 
 [sitemap]
 RedisDB= 1

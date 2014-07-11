@@ -22,16 +22,16 @@ URL = "localhost:6379"
 DB  = 0
 
 [limits]
-MessageBodyMinLen=1
+MessageBodyMinLen    = 1
 PostThrottleDuration = "5s"
-PostThrottleCount    =  3
+PostThrottleCount    = 3
 
 
 [Notification]
 CacheEnabled = false
 
 [emailnotification]
-TemplateRoot="workers/emailnotifier/templates/"
+TemplateRoot = "workers/emailnotifier/templates/"
 
 [sendgrid]
 Username        = "koding"
