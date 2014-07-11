@@ -263,6 +263,16 @@ class ComputeController extends KDController
       if pref?
         info "PREF found:", pref
       else
+
+        machineSelected = no
         modal = new MachineListModal
         modal.once "MachineSelected", (machine)->
+          machineSelected = yes
           callback null, machine
+
+        # FIXME later in KDModalView ~ GG
+        modal.once "KDModalViewDestroyed", ->
+          unless machineSelected
+            callback
+              name    : "NOMACHINE"
+              message : "No machine selected"
