@@ -1539,7 +1539,7 @@ span.collapsedtext
           padding-bottom    56px !important
 
         &:hover
-          .action-link.like-link
+          .action-link.like-link:after
             r-sprite        activity heart-dim
 
         .comment-menu
@@ -1560,8 +1560,8 @@ span.collapsedtext
           .stats
             height          16px
             width           36px
-            top             4px
-            left            0
+            top             2px
+            left            5px
             text-align      right
             margin          0
             abs()
@@ -1583,13 +1583,22 @@ span.collapsedtext
         .stats
           display           inline-block
           margin            0 0 7px 7px
+
           .action-link.like-link
             display         inline-block
+            padding         5px
+            vertical-align  middle
 
-            &.has-likes
-              r-sprite        activity heart-outline
-            &.liked
-              r-sprite        activity heart-solid
+            &:after
+              content       ''
+              display       block
+              height        8px
+
+            &.has-likes:after
+              r-sprite      activity heart-outline
+
+            &.liked:after
+              r-sprite      activity heart-solid
 
         time
           display           inline-block
