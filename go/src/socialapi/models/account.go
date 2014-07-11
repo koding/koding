@@ -226,7 +226,7 @@ func (a *Account) UnMarkAsTroll() error {
 		return err
 	}
 
-	if err := bongo.B.PublishEvent("un_marked_as_troll", a); err != nil {
+	if err := bongo.B.PublishEvent("unmarked_as_troll", a); err != nil {
 		return err
 	}
 
