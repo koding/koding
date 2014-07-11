@@ -9,8 +9,9 @@ class ReplyListItemView extends CommentListItemView
 
     (KD.singleton 'mainController').on 'AccountChanged', @bound 'addMenu'
 
-    data = @getData()
+    data      = @getData()
     {account} = data
+
     {createdAt, deletedAt, updatedAt} = data
 
     origin            =
