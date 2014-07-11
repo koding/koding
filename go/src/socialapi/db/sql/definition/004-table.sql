@@ -53,7 +53,7 @@ CREATE TABLE "api"."account" (
 ) WITH (OIDS = FALSE);
 
 -- ALTER TABLE "api"."account" OWNER TO "socialapplication";
-GRANT SELECT, INSERT ON "api"."account" TO "socialapplication";
+GRANT SELECT, INSERT, UPDATE ON "api"."account" TO "socialapplication";
 
 
 
