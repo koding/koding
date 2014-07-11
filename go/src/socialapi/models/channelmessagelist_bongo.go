@@ -1,5 +1,11 @@
 package models
 
+import (
+	"time"
+
+	"github.com/koding/bongo"
+)
+
 func (c *ChannelMessageList) BeforeCreate() error {
 	c.AddedAt = time.Now()
 	c.RevisedAt = time.Now()

@@ -1,5 +1,10 @@
 package models
 
+import (
+
+	"github.com/koding/bongo"
+)
+
 func (m MessageReply) GetId() int64 {
 	return m.Id
 }

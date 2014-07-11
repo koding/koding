@@ -1,5 +1,9 @@
 package models
 
+import (
+
+	"github.com/koding/bongo"
+)
 
 func (i *Interaction) BeforeCreate() error {
 	return i.MarkIfExempt()

@@ -1,5 +1,12 @@
 package models
 
+import (
+	"fmt"
+	"strings"
+	"time"
+
+	"github.com/koding/bongo"
+)
 
 func (c Channel) GetId() int64 {
 	return c.Id

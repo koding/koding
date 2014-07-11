@@ -1,5 +1,10 @@
 package models
 
+import (
+
+	"github.com/koding/bongo"
+)
+
 func (c *ChannelMessage) BeforeCreate() error {
 	c.DeletedAt = ZeroDate()
 

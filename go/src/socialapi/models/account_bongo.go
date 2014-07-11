@@ -2,8 +2,6 @@ package models
 
 import (
 	"errors"
-	"fmt"
-	"socialapi/request"
 
 	"github.com/koding/bongo"
 )

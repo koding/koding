@@ -4,7 +4,6 @@ import (
 	"errors"
 	"fmt"
 	"socialapi/request"
-	"strings"
 	"time"
 
 	"github.com/koding/bongo"
