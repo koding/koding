@@ -1620,12 +1620,14 @@ module.exports = class JGroup extends Module
       owner.createSocialApiId (err, socialApiId)=>
         return callback err if err
         # required data for creating a channel
+        privacy = if @slug is "koding" then "public" else "private"
+
         data =
           name            : @slug
           creatorId       : socialApiId
           groupName       : @slug
           typeConstant    : "group"
-          privacyConstant : @privacy
+          privacyConstant : privacy
 
         {createChannel} = require '../socialapi/requests'
         createChannel data, (err, socialApiChannel)=>

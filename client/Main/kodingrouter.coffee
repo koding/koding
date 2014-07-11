@@ -1,13 +1,5 @@
 class KodingRouter extends KDRouter
 
-  nicenames = StartTab  : 'Develop'
-
-  getSectionName = (model) ->
-
-    sectionName = nicenames[model.bongo_.constructorName]
-    if sectionName? then " - #{sectionName}" else ''
-
-
   constructor: (@defaultRoute) ->
 
     @breadcrumb = []

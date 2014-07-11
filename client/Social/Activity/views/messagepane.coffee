@@ -17,7 +17,7 @@ class MessagePane extends KDTabPaneView
     {typeConstant}    = @getData()
 
     @createParticipantsView() if typeConstant is 'privatemessage'
-    @listController = new ActivityListController {itemClass}
+    @listController = new ActivityListController {itemClass, type: typeConstant}
 
     @createInputWidget()
     @bindChannelEvents()
@@ -103,13 +103,13 @@ class MessagePane extends KDTabPaneView
     heads.addSubView @newParticipantButton = new KDButtonView
       cssClass    : 'new-participant'
       iconOnly    : yes
-      callback    : ->
+      callback    : =>
         new PrivateMessageRecipientModal
           blacklist : participantsPreview.map (item) -> item._id
           position  :
             top     : @getY() + 50
             left    : @getX() - 150
-
+        , @getData()
 
   createInputWidget: ->
 

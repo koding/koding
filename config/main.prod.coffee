@@ -16,7 +16,7 @@ version             = (fs.readFileSync BLD+"/BUILD_VERSION"     , 'utf8').replac
 
 mongo               = "10.208.228.10:27017/koding"
 redis               = {host     : "10.208.228.10"         , port : "6379" }
-socialapi           = {proxyUrl : "http://socialapi:7000" , port : 7000 , clusterSize : 5, configFilePath : "../../go/src/socialapi/config/prod.toml" }
+socialapi           = {proxyUrl : "http://socialapi:7000" , port : 7000 , clusterSize : 5, configFilePath : "#{projectRoot}/go/src/socialapi/config/prod.toml" }
 rabbitmq            = {host     : "10.208.228.10"         , port : 5672 , apiPort     : 15672, login : "guest", password : "guest"}
 
 customDomain        =

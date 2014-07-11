@@ -79,8 +79,8 @@ class CommentInputForm extends KDView
     if @getOption 'showAvatar'
       @addSubView new AvatarStaticView
         size    :
-          width : 40
-          height: 40
+          width : 38
+          height: 38
       , KD.whoami()
 
     @addSubView @input

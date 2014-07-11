@@ -27,11 +27,11 @@ func TestFollowedTopics(t *testing.T) {
 			So(err, ShouldBeNil)
 			So(nonOwnerAccount, ShouldNotBeNil)
 
-			topicChannel1, err := rest.CreateChannelByGroupNameAndType(account.Id, groupName+"1", models.Channel_TYPE_TOPIC)
+			topicChannel1, err := rest.CreateChannelByGroupNameAndType(account.Id, groupName, models.Channel_TYPE_TOPIC)
 			So(err, ShouldBeNil)
 			So(topicChannel1, ShouldNotBeNil)
 
-			topicChannel2, err := rest.CreateChannelByGroupNameAndType(account.Id, groupName+"2", models.Channel_TYPE_TOPIC)
+			topicChannel2, err := rest.CreateChannelByGroupNameAndType(account.Id, groupName, models.Channel_TYPE_TOPIC)
 			So(err, ShouldBeNil)
 			So(topicChannel2, ShouldNotBeNil)
 

@@ -69,11 +69,13 @@ class ActivityInputWidget extends KDView
       loader      : yes
       callback    : @bound "submit"
 
-    @avatar = new AvatarView
-      size      :
-        width   : 42
-        height  : 42
-    , KD.whoami()
+    @icon = new KDCustomHTMLView tagName : 'figure'
+
+    # @avatar = new AvatarView
+    #   size      :
+    #     width   : 42
+    #     height  : 42
+    # , KD.whoami()
 
     @buttonBar = new KDCustomHTMLView
       cssClass : "widget-button-bar"
@@ -215,7 +217,7 @@ class ActivityInputWidget extends KDView
     {appManager} = KD.singletons
     {channel}    = @getOptions()
 
-    if channel.typeConstant is 'topic' and not body.match ///##{channel.name}///
+    if channel.typeConstant is 'topic' and not body.match ///\##{channel.name}///
       body += " ##{channel.name} "
 
     appManager.tell 'Activity', 'post', {body, payload}, (err, activity) =>
@@ -340,7 +342,8 @@ class ActivityInputWidget extends KDView
 
   viewAppended: ->
 
-    @addSubView @avatar
+    @addSubView @icon
+    # @addSubView @avatar
     @addSubView @input
     @addSubView @buttonBar
     @addSubView @embedBox

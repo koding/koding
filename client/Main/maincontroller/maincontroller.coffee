@@ -56,7 +56,7 @@ class MainController extends KDController
     KD.registerSingleton 'appStorageController',      new AppStorageController
     KD.registerSingleton 'localSync',                 new LocalSyncController
     KD.registerSingleton 'dock',                      new DockController
-    KD.registerSingleton 'mainView',             mv = new MainView domId : 'kdmaincontainer'
+    KD.registerSingleton 'mainView',             mv = new MainView
     KD.registerSingleton 'mainViewController',  mvc = new MainViewController view : mv
     KD.registerSingleton 'kodingAppsController',      new KodingAppsController
     KD.registerSingleton 'socialapi',                 new SocialApiController

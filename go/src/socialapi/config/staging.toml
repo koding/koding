@@ -4,7 +4,7 @@ Environment="staging"
 Uri="https://koding.com"
 
 [postgres]
-Host=     "172.16.3.18"
+Host=     "staging0.cfbuweg6pdxe.us-east-1.rds.amazonaws.com"
 Port=     5432
 Username= "socialapplication"
 Password= "socialapplication"
@@ -24,7 +24,7 @@ DB=       0
 Slave=    "172.16.10.17:6379"
 
 [limits]
-MessageBodyMinLen=5
+MessageBodyMinLen=1
 
 [Notification]
 CacheEnabled = false

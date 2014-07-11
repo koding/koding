@@ -1,5 +1,9 @@
 package config
 
+const (
+	VagrantEnvName = "vagrant"
+)
+
 type (
 	Config struct {
 		Postgres          Postgres
@@ -15,13 +19,11 @@ type (
 		EmailNotification EmailNotification
 		Sitemap           Sitemap
 	}
-
 	Redis struct {
 		URL   string
 		DB    int
 		Slave string
 	}
-
 	Postgres struct {
 		Host     string
 		Port     int
@@ -37,7 +39,9 @@ type (
 		Vhost    string
 	}
 	Limits struct {
-		MessageBodyMinLen int
+		MessageBodyMinLen    int
+		PostThrottleDuration string
+		PostThrottleCount    int
 	}
 	Notification struct {
 		CacheEnabled bool

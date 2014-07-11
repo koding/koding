@@ -136,15 +136,23 @@ func List(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface
 	if err != nil {
 		return response.NewBadRequest(err)
 	}
+	accountId, err := request.GetURIInt64(u, "accountId")
+	if err != nil {
+		return response.NewBadRequest(err)
+	}
 
 	reply := models.NewMessageReply()
 	reply.MessageId = messageId
 
+	messages, err := reply.List(request.GetQuery(u))
+	if err != nil {
+		return response.NewBadRequest(err)
+	}
+
 	return response.HandleResultAndError(
 		helpers.ConvertMessagesToMessageContainers(
-			reply.List(
-				request.GetQuery(u),
-			),
+			messages,
+			accountId,
 		),
 	)
 }

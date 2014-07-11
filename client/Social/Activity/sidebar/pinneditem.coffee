@@ -7,7 +7,7 @@ class SidebarPinnedItem extends SidebarItem
     {slug}           = data
     options.route    = "Post/#{slug}"
     options.type     = 'member'
-    options.cssClass = 'kdlistitemview-sidebar-item'
+    options.cssClass = 'kdlistitemview-sidebar-item conversation'
 
     super options, data
 

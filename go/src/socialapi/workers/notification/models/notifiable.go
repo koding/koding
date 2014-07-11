@@ -2,8 +2,9 @@ package models
 
 import (
 	"fmt"
-	"github.com/koding/bongo"
 	"math"
+
+	"github.com/koding/bongo"
 )
 
 var (
