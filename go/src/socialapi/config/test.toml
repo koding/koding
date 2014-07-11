@@ -25,6 +25,8 @@ DB=      2
 
 [limits]
 MessageBodyMinLen=1
+PostThrottleDuration = "10s"
+PostThrottleCount    =  100
 
 [Notification]
 CacheEnabled = false

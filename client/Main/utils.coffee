@@ -2,7 +2,7 @@ utils.extend utils,
 
   groupifyLink: (href, withOrigin = no) ->
 
-    {slug}   = KD.getGroup()
+    {slug}   = KD.config.entryPoint
     {origin} = window.location
     href     = if slug is 'koding' then href else "#{slug}/#{href}"
     href     = "#{origin}/#{href}"  if withOrigin

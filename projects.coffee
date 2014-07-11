@@ -23,23 +23,11 @@ projects =
     script        : "website/a/js/__app.members.js"
     sourceMapRoot : "Social/Members/"
 
-  Topics          :
-    path          : "client/Social/Topics"
-    style         : "website/a/css/__app.topics.css"
-    script        : "website/a/js/__app.topics.js"
-    sourceMapRoot : "Social/Topics/"
-
   Feeder          :
     path          : "client/Social/Feeder"
     style         : "website/a/css/__app.feeder.css"
     script        : "website/a/js/__app.feeder.js"
     sourceMapRoot : "Social/Feeder/"
-
-  # Groups          :
-  #   path          : "client/Groups"
-  #   style         : "website/a/css/__app.groups.css"
-  #   script        : "website/a/js/__app.groups.js"
-  #   sourceMapRoot : "Groups/"
 
   Account         :
     path          : "client/Account"
@@ -162,7 +150,7 @@ projects =
 bundles           =
 
   Social          :
-    projects      : ['Activity', 'Members', 'Topics', 'Apps', 'Bugs']
+    projects      : ['Activity', 'Members', 'Apps', 'Bugs']
     style         : "website/a/css/__social.css"
     script        : "website/a/js/__social.js"
 

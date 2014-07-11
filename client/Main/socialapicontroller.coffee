@@ -96,6 +96,8 @@ class SocialApiController extends KDController
 
     new MessageEventManager {}, m
 
+    KD.singletons.socialapi.cacheItem m
+
     return m
 
   mapActivities = (messages)->
@@ -152,7 +154,12 @@ class SocialApiController extends KDController
     data.unreadCount         = channel.unreadCount
     data.lastMessage         = mapActivity channel.lastMessage  if channel.lastMessage
 
-    return new KD.remote.api.SocialChannel data
+
+    channelInstance = new KD.remote.api.SocialChannel data
+
+    KD.singletons.socialapi.cacheItem channelInstance
+
+    return channelInstance
 
 
   mapChannels = (channels)->
@@ -187,6 +194,7 @@ class SocialApiController extends KDController
       for socialApiChannel in socialApiChannels
         channelName = generateChannelName socialApiChannel
         continue  if socialapi.openedChannels[channelName]
+        socialapi.cacheItem socialApiChannel
         socialapi.openedChannels[channelName] = {} # placeholder to avoid duplicate registration
 
         subscriptionData =
@@ -205,6 +213,14 @@ class SocialApiController extends KDController
           ]
 
           socialapi.emit "ChannelRegistered-#{name}", socialApiChannel
+
+
+  cycleChannel: (channel, callback)->
+    options =
+      groupSlug     : channel.groupName
+      apiChannelType: channel.typeConstant
+      apiChannelName: channel.name
+    KD.remote.api.SocialChannel.cycleChannel options, callback
 
   generateChannelName = ({name, typeConstant, groupName}) ->
     return "socialapi.#{groupName}-#{typeConstant}-#{name}"
@@ -267,7 +283,6 @@ class SocialApiController extends KDController
 
 
   cacheable: (type, id, force, callback) ->
-
     [callback, force] = [force, no]  unless callback
 
     if not force and item = @retrieveCachedItem(type, id)
@@ -391,21 +406,20 @@ class SocialApiController extends KDController
       validateOptionsWith: ['messageId']
 
     follow               : channelRequesterFn
-      fnName             : 'follow'
+      fnName             : 'addParticipants'
       validateOptionsWith: ['channelId']
-
-    addParticipant       : channelRequesterFn
-      fnName             : 'follow'
-      validateOptionsWith: ['channelId']
-
-    addParticipants      : (callback)->
-
-      callback message : 'Cihangir needs to create the endpoint first :)'
-
 
     unfollow             : channelRequesterFn
-      fnName             : 'unfollow'
+      fnName             : 'removeParticipants'
       validateOptionsWith: ['channelId']
+
+    addParticipants      : channelRequesterFn
+      fnName             : 'addParticipants'
+      validateOptionsWith: ['channelId', "accountIds"]
+
+    removeParticipants    : channelRequesterFn
+      fnName              : 'removeParticipants'
+      validateOptionsWith : ['channelId', "accountIds"]
 
     fetchFollowedChannels: channelRequesterFn
       fnName             : 'fetchFollowedChannels'

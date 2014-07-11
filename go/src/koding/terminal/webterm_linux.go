@@ -43,6 +43,7 @@ type WebtermServer struct {
 	byteCounter      int
 	lineFeeedCounter int
 	screenPath       string
+	throttling       bool
 }
 
 type WebtermRemote struct {
@@ -137,6 +138,7 @@ func webtermConnect(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (
 		isForeignSession: vos.User.Name != channel.Username,
 		pty:              pty.New(vos.VM.PtsDir()),
 		screenPath:       screen.ScreenPath,
+		throttling:       false,
 	}
 
 	if params.Mode != "resume" || params.Mode != "shared" {
@@ -179,18 +181,20 @@ func webtermConnect(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (
 				n++
 			}
 
-			s := time.Now().Unix()
-			if server.currentSecond != s {
-				server.currentSecond = s
-				server.messageCounter = 0
-				server.byteCounter = 0
-				server.lineFeeedCounter = 0
-			}
-			server.messageCounter += 1
-			server.byteCounter += n
-			server.lineFeeedCounter += bytes.Count(buf[:n], []byte{'\n'})
-			if server.messageCounter > 100 || server.byteCounter > 1<<18 || server.lineFeeedCounter > 300 {
-				time.Sleep(time.Second / 100)
+			if server.throttling {
+				s := time.Now().Unix()
+				if server.currentSecond != s {
+					server.currentSecond = s
+					server.messageCounter = 0
+					server.byteCounter = 0
+					server.lineFeeedCounter = 0
+				}
+				server.messageCounter += 1
+				server.byteCounter += n
+				server.lineFeeedCounter += bytes.Count(buf[:n], []byte{'\n'})
+				if server.messageCounter > 100 || server.byteCounter > 1<<18 || server.lineFeeedCounter > 300 {
+					time.Sleep(time.Second / 100)
+				}
 			}
 
 			server.remote.Output(string(utils.FilterInvalidUTF8(buf[:n])))

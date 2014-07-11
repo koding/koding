@@ -1,6 +1,7 @@
 package tigertonic
 
 import (
+	"io/ioutil"
 	"net/http"
 	"testing"
 )
@@ -175,5 +176,20 @@ func TestLiteralBeforeWildcard(t *testing.T) {
 	_, pattern := mux.Handler(r)
 	if "/literal" != pattern {
 		t.Fatal(pattern)
+	}
+}
+
+func TestCollidingQueryParam(t *testing.T) {
+	mux := NewTrieServeMux()
+	mux.HandleFunc("GET", "/{foo}/bar", func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte(r.URL.Query().Get("foo")))
+	})
+	r, _ := http.NewRequest("GET", "http://example.com/baz/bar?foo=quuz", nil)
+	w := &testResponseWriter{}
+	mux.ServeHTTP(w, r)
+	contents, _ := ioutil.ReadAll(&w.Body)
+	if string(contents) != "baz" {
+		t.Fatal("Param passed in via query parameter overwrote URL param")
 	}
 }

@@ -65,14 +65,6 @@ postToChannel = (data, callback)->
   url = "/channel/#{data.channelId}/message"
   post url, data, callback
 
-
-updateLastSeenTime = (data, callback)->
-  unless data.channelId and data.accountId
-    return callback {message: "Request is not valid"}
-
-  url = "/channel/#{data.channelId}/participant/#{data.accountId}/presence"
-  post url, data, callback
-
 editMessage = (data, callback)->
   if not data.body or not data.id
     return callback { message: "Request is not valid for editing a message"}
@@ -163,22 +155,40 @@ glancePinnedPost = (data, callback)->
   url = "/activity/pin/glance"
   post url, data, callback
 
-followTopic = (data, callback)->
-  if not data.accountId or not data.channelId
-    return callback { message: "Request is not valid"}
+listParticipants = (data, callback)->
+  return callback { message: "Request is not valid" } unless data.channelId
+  url = "/channel/#{data.channelId}/participants"
+  get url, data, callback
 
-  url = "/channel/#{data.channelId}/\
-        participant/#{data.accountId}/add"
+addParticipants = (data, callback)->
+  url = "/channel/#{data.channelId}/participants/add"
+  doChannelParticipantOperation data, url, callback
+
+removeParticipants = (data, callback)->
+  url = "/channel/#{data.channelId}/participants/remove"
+  doChannelParticipantOperation data, url, callback
+
+doChannelParticipantOperation = (data, url, callback)->
+  return callback { message: "Request is not valid" } unless data.channelId
+
+  # if accountIds is not set and also accountId is not set
+  # return error
+  if not data.accountIds
+    return callback { message: "Request is not valid" } if not data.accountId
+    data.accountIds = [data.accountId]
+
+  # make the object according to channel participant data
+  req = ({accountId} for accountId in data.accountIds)
+
+  url = "#{url}?accountId=#{data.accountId}"
+  post url, req, callback
+
+updateLastSeenTime = (data, callback)->
+  unless data.channelId and data.accountId
+    return callback {message: "Request is not valid"}
+
+  url = "/channel/#{data.channelId}/participant/#{data.accountId}/presence"
   post url, data, callback
-
-unfollowTopic = (data, callback)->
-  if not data.accountId or not data.channelId
-    return callback { message: "Request is not valid"}
-
-  url = "/channel/#{data.channelId}/\
-        participant/#{data.accountId}/delete"
-  post url, data, callback
-
 
 fetchFollowedChannels = (data, callback)->
   if not data.accountId or not data.groupName
@@ -294,6 +304,10 @@ unmarkAsTroll = (data, callback)->
   url = "/trollmode/#{data.accountId}"
   deleteReq url, data, callback
 
+getSiteMap = (data, callback)->
+  url = data.name
+  getXml url, {}, callback
+
 post = (url, data, callback)->
   getNextApiURL (err, apiurl)->
     return callback err if err
@@ -312,6 +326,14 @@ deleteReq = (url, callback)->
       url    : "#{apiurl}#{url}"
       json   : true
       method : 'DELETE'
+    , wrapCallback callback
+
+getXml = (url, data, callback)->
+  getNextApiURL (err, apiurl)->
+    return callback err if err
+    request
+      url    : "#{apiurl}#{url}"
+      method : 'GET'
     , wrapCallback callback
 
 get = (url, data, callback)->
@@ -339,8 +361,9 @@ module.exports = {
   fetchPrivateMessages
   sendPrivateMessage
   fetchFollowedChannels
-  followTopic
-  unfollowTopic
+  listParticipants
+  addParticipants
+  removeParticipants
   fetchPinnedMessages
   pinMessage
   unpinMessage
@@ -365,4 +388,5 @@ module.exports = {
   followUser
   unfollowUser
   createGroupNotification
+  getSiteMap
 }

@@ -56,8 +56,8 @@ func writeJSONError(w http.ResponseWriter, err error) {
 	if jsonErr := json.NewEncoder(w).Encode(map[string]string{
 		"description": err.Error(),
 		"error":       errorName(err, "error"),
-	}); nil != err {
-		log.Println(jsonErr)
+	}); nil != jsonErr {
+		log.Printf("Error marshalling error response into JSON output: %s", jsonErr)
 	}
 }
 

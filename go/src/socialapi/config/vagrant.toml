@@ -23,6 +23,9 @@ DB  = 0
 
 [limits]
 MessageBodyMinLen=1
+PostThrottleDuration = "5s"
+PostThrottleCount    =  3
+
 
 [Notification]
 CacheEnabled = false
@@ -40,4 +43,3 @@ ForcedRecipient = "canthefason@gmail.com"
 [sitemap]
 XMLRoot = "workers/sitemap/files/"
 RedisDB = 1
-
