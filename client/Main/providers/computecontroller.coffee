@@ -20,7 +20,9 @@ class ComputeController extends KDController
       @on "MachineBuilt",   => do @reset
       @on "MachineDestroy", => do @reset
 
-      @fetchStacks => @emit 'ready'
+      @fetchStacks =>
+        @storage = KD.singletons.appStorageController.storage 'Compute','0.0.1'
+        @emit 'ready'
 
 
   fetchStacks: do (queue=[])->
@@ -246,3 +248,21 @@ class ComputeController extends KDController
 
     .catch errorHandler 'info', @eventListener, machine
 
+
+  requireMachine: (options = {}, callback = noop)-> @ready =>
+
+    {app} = options
+    unless app?.name?
+      warn message = "An app name required with options: {app: {name: 'APPNAME'}}"
+      return callback { message }
+
+    app.name = "#{app.name}_#{app.version}"  if app.version?
+
+    @storage.fetchValue app.name, (pref)->
+
+      if pref?
+        info "PREF found:", pref
+      else
+        modal = new MachineListModal
+        modal.once "MachineSelected", (machine)->
+          callback null, machine
