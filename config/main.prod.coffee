@@ -14,10 +14,10 @@ environment         = (fs.readFileSync BLD+"/BUILD_ENVIRONMENT" , 'utf8').replac
 projectRoot         = (fs.readFileSync BLD+"/BUILD_PROJECT_ROOT", 'utf8').replace("\n","")
 version             = (fs.readFileSync BLD+"/BUILD_VERSION"     , 'utf8').replace("\n","")
 
-mongo               = "10.208.228.10:27017/koding"
-redis               = {host     : "10.208.228.10"         , port : "6379" }
+mongo               = "104.130.7.209:27017/koding"
+redis               = {host     : "104.130.7.209"         , port : "6379" }
 socialapi           = {proxyUrl : "http://socialapi:7000" , port : 7000 , clusterSize : 5, configFilePath : "#{projectRoot}/go/src/socialapi/config/prod.toml" }
-rabbitmq            = {host     : "10.208.228.10"         , port : 5672 , apiPort     : 15672, login : "guest", password : "guest"}
+rabbitmq            = {host     : "104.130.7.209"         , port : 5672 , apiPort     : 15672, login : "guest", password : "guest"}
 
 customDomain        =
   public            : "http://#{hostname}"
@@ -98,26 +98,29 @@ KONFIG              =
   emailConfirmationCheckerWorker : {enabled: no, login : "#{rabbitmq.login}", queueName: socialQueueName+'emailConfirmationCheckerWorker',cronSchedule: '0 * * * * *',usageLimitInMinutes  : 60}
  
   # -- MISC SERVICES --# 
-  recurly           : {apiKey        : '4a0b7965feb841238eadf94a46ef72ee'            ,loggedRequests: /^(subscriptions|transactions)/}  
-  opsview           : {push          : no                                            ,host          : '', bin: null, conf: null}
-  github            : {clientId      : "f8e440b796d953ea01e5"                        ,clientSecret  : "b72e2576926a5d67119d5b440107639c6499ed42"}
-  odesk             : {key           : "639ec9419bc6500a64a2d5c3c29c2cf8"            ,secret        : "549b7635e1e4385e",request_url: "https://www.odesk.com/api/auth/v1/oauth/token/request",access_url: "https://www.odesk.com/api/auth/v1/oauth/token/access",secret_url: "https://www.odesk.com/services/api/auth?oauth_token=",version: "1.0",signature: "HMAC-SHA1",redirect_uri : "#{customDomain.host}:#{customDomain.port}/-/oauth/odesk/callback"}
-  facebook          : {clientId      : "475071279247628"                             ,clientSecret  : "65cc36108bb1ac71920dbd4d561aca27", redirectUri  : "#{customDomain.host}:#{customDomain.port}/-/oauth/facebook/callback"}
-  google            : {client_id     : "1058622748167.apps.googleusercontent.com"    ,client_secret : "vlF2m9wue6JEvsrcAaQ-y9wq",redirect_uri : "#{customDomain.host}:#{customDomain.port}/-/oauth/google/callback"}
-  twitter           : {key           : "aFVoHwffzThRszhMo2IQQ"                       ,secret        : "QsTgIITMwo2yBJtpcp9sUETSHqEZ2Fh7qEQtRtOi2E",redirect_uri : "#{customDomain.host}:#{customDomain.port}/-/oauth/twitter/callback",    request_url  : "https://twitter.com/oauth/request_token",    access_url   : "https://twitter.com/oauth/access_token",secret_url: "https://twitter.com/oauth/authenticate?oauth_token=",version: "1.0",signature: "HMAC-SHA1"}
-  linkedin          : {client_id     : "f4xbuwft59ui"                                ,client_secret : "fBWSPkARTnxdfomg", redirect_uri : "#{customDomain.host}:#{customDomain.port}/-/oauth/linkedin/callback"}
-  slack             : {token         : "xoxp-2155583316-2155760004-2158149487-a72cf4",channel       : "C024LG80K"}
-  statsd            : {use           : false                                         ,ip            : "#{customDomain.host}", port: 8125}
-  graphite          : {use           : false                                         ,host          : "#{customDomain.host}", port: 2003}
-  sessionCookie     : {maxAge        : 1000 * 60 * 60 * 24 * 14                      ,secure        : no}
-  logLevel          : {neo4jfeeder   : "notice", oskite: "info", terminal: "info"    ,kontrolproxy  : "notice", kontroldaemon : "notice",userpresence  : "notice", vmproxy: "notice", graphitefeeder: "notice", sync: "notice", topicModifier : "notice",  postModifier  : "notice", router: "notice", rerouting: "notice", overview: "notice", amqputil: "notice",rabbitMQ: "notice",ldapserver: "notice",broker: "notice"}
-  aws               : {key           : 'AKIAJSUVKX6PD254UGAA'                        ,secret        : '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'}
+  recurly           : {apiKey        : '4a0b7965feb841238eadf94a46ef72ee'            , loggedRequests: /^(subscriptions|transactions)/}  
+  opsview           : {push          : no                                            , host          : '', bin: null, conf: null}
+  github            : {clientId      : "f8e440b796d953ea01e5"                        , clientSecret  : "b72e2576926a5d67119d5b440107639c6499ed42"}
+  odesk             : {key           : "639ec9419bc6500a64a2d5c3c29c2cf8"            , secret        : "549b7635e1e4385e",request_url: "https://www.odesk.com/api/auth/v1/oauth/token/request",access_url: "https://www.odesk.com/api/auth/v1/oauth/token/access",secret_url: "https://www.odesk.com/services/api/auth?oauth_token=",version: "1.0",signature: "HMAC-SHA1",redirect_uri : "#{customDomain.host}:#{customDomain.port}/-/oauth/odesk/callback"}
+  facebook          : {clientId      : "475071279247628"                             , clientSecret  : "65cc36108bb1ac71920dbd4d561aca27", redirectUri  : "#{customDomain.host}:#{customDomain.port}/-/oauth/facebook/callback"}
+  google            : {client_id     : "1058622748167.apps.googleusercontent.com"    , client_secret : "vlF2m9wue6JEvsrcAaQ-y9wq",redirect_uri : "#{customDomain.host}:#{customDomain.port}/-/oauth/google/callback"}
+  twitter           : {key           : "aFVoHwffzThRszhMo2IQQ"                       , secret        : "QsTgIITMwo2yBJtpcp9sUETSHqEZ2Fh7qEQtRtOi2E",redirect_uri : "#{customDomain.host}:#{customDomain.port}/-/oauth/twitter/callback",    request_url  : "https://twitter.com/oauth/request_token",    access_url   : "https://twitter.com/oauth/access_token",secret_url: "https://twitter.com/oauth/authenticate?oauth_token=",version: "1.0",signature: "HMAC-SHA1"}
+  linkedin          : {client_id     : "f4xbuwft59ui"                                , client_secret : "fBWSPkARTnxdfomg", redirect_uri : "#{customDomain.host}:#{customDomain.port}/-/oauth/linkedin/callback"}
+  slack             : {token         : "xoxp-2155583316-2155760004-2158149487-a72cf4", channel       : "C024LG80K"}
+  statsd            : {use           : false                                         , ip            : "#{customDomain.host}", port: 8125}
+  graphite          : {use           : false                                         , host          : "#{customDomain.host}", port: 2003}
+  sessionCookie     : {maxAge        : 1000 * 60 * 60 * 24 * 14                      , secure        : no}
+  logLevel          : {neo4jfeeder   : "notice", oskite: "info", terminal: "info"    , kontrolproxy  : "notice", kontroldaemon : "notice",userpresence  : "notice", vmproxy: "notice", graphitefeeder: "notice", sync: "notice", topicModifier : "notice",  postModifier  : "notice", router: "notice", rerouting: "notice", overview: "notice", amqputil: "notice",rabbitMQ: "notice",ldapserver: "notice",broker: "notice"}
+  aws               : {key           : 'AKIAJSUVKX6PD254UGAA'                        , secret        : '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'}
   embedly           : {apiKey        : '94991069fb354d4e8fdb825e52d4134a'}
   troubleshoot      : {recipientEmail: "can@koding.com"}
-  mixpanel          : "a57181e216d9f713e19d5ce6d6fb6cb3"
   rollbar           : "71c25e4dc728431b88f82bd3e7a600c9"
-  client          : {version: version, includesPath:'client', indexMaster: "index-master.html", index: "default.html", useStaticFileServer: no, staticFilesBaseUrl: "#{customDomain.public}:#{customDomain.port}"}
+  mixpanel          : "a57181e216d9f713e19d5ce6d6fb6cb3"
     
+  #--- CLIENT-SIDE BUILD CONFIGURATION ---#
+
+  client            : {version       : version, includesPath:'client', indexMaster: "index-master.html", index: "default.html", useStaticFileServer: no, staticFilesBaseUrl: "#{customDomain.public}:#{customDomain.port}"}
+
 #-------- runtimeOptions: PROPERTIES SHARED WITH BROWSER --------#
 KONFIG.client.runtimeOptions =                                          
   kites             : require './kites.coffee'           # browser passes this version information to kontrol, so it connects to correct version of the kite.
@@ -156,83 +159,91 @@ KONFIG.client.runtimeOptions =
 
     # END: PROPERTIES SHARED WITH BROWSER #
 
+
+#--- RUNTIME CONFIGURATION: WORKERS AND KITES ---#
+
+KONFIG.workers =
+  rerouting           : command : "#{projectRoot}/go/bin/rerouting          -c #{configName}"
+  cron                : command : "#{projectRoot}/go/bin/cron               -c #{configName}"
+  broker              : command : "#{projectRoot}/go/bin/broker             -c #{configName}"
+  socialapi           : command : "#{projectRoot}/go/bin/api                -c #{socialapi.configFilePath} -port #{socialapi.port}"
+  dailyemailnotifier  : command : "#{projectRoot}/go/bin/dailyemailnotifier -c #{socialapi.configFilePath}" 
+  notification        : command : "#{projectRoot}/go/bin/notification                    -c #{socialapi.configFilePath}"
+  popularpost         : command : "#{projectRoot}/go/bin/popularpost                     -c #{socialapi.configFilePath}"
+  populartopic        : command : "#{projectRoot}/go/bin/populartopic                    -c #{socialapi.configFilePath}"
+  realtime            : command : "#{projectRoot}/go/bin/realtime                        -c #{socialapi.configFilePath}"
+  sitemapfeeder       : command : "#{projectRoot}/go/bin/sitemapfeeder                   -c #{socialapi.configFilePath}"
+  topicfeed           : command : "#{projectRoot}/go/bin/topicfeed                       -c #{socialapi.configFilePath}"
+  trollmode           : command : "#{projectRoot}/go/bin/trollmode                       -c #{socialapi.configFilePath}"
+  webserver           : command : "node #{projectRoot}/server/index.js                   -c #{configName} -p 3000   --disable-newrelic"
+  authworker          : command : "node #{projectRoot}/workers/auth/index.js             -c #{configName}"
+  socialworker        : command : "node #{projectRoot}/workers/social/index.js           -c #{configName} -p 3030 --disable-newrelic --kite-port=13020"
+  sourcemaps          : command : "node #{projectRoot}/server/lib/source-server/index.js -c #{configName} -p 3526"
+  guestcleaner        : command : "node #{projectRoot}/workers/guestcleaner/index.js     -c #{configName}"
+  emailsender         : command : "node #{projectRoot}/workers/emailsender/index.js      -c #{configName}"
+
+
+
+
+
+
+#-------------------------------------------------------------------------#
+#---- SECTION: AUTO GENERATED CONFIGURATION FILES ------------------------#
+#---- DO NOT CHANGE ANYTHING BELOW. IT'S GENERATED FROM WHAT'S ABOVE  ----#
+#-------------------------------------------------------------------------#
+
 KONFIG.JSON = JSON.stringify KONFIG
-KONFIG.ENV  = {}
 
 #---- SUPERVISOR CONFIG ----#
 
-travis = traverse(KONFIG)
-travis.paths().forEach (path) -> KONFIG.ENV["KONFIG_#{path.join("_")}".toUpperCase()] = travis.get(path) unless typeof travis.get(path) is 'object'
-supervisorEnvironmentStr = ''
-supervisorEnvironmentStr += "#{key}='#{val}'," for key,val of KONFIG.ENV
+generateEnvVariables = (KONFIG)->
+  conf = {}
+  travis = traverse(KONFIG)
+  travis.paths().forEach (path) -> conf["KONFIG_#{path.join("_")}".toUpperCase()] = travis.get(path) unless typeof travis.get(path) is 'object'
+  return conf
 
+createSupervisorConf = (KONFIG)->
+  supervisorEnvironmentStr = ''
+  supervisorEnvironmentStr += "#{key}='#{val}'," for key,val of KONFIG.ENV
+  conf = """
+    [supervisord]
+    environment=#{supervisorEnvironmentStr}\n 
+    [inet_http_server]
+    port=*:9001\n\n"""
+  conf +="""
+    [program:#{key}]
+    command=#{val.command}\n
+  """ for key,val of KONFIG.workers
+  return conf
 
+createRunConf = (KONFIG) ->
+  env = ''
+  env += "export #{key}='#{val}'\n" for key,val of KONFIG.ENV
+  conf = """
+    #/bin/bash
+    # ------ THIS FILE IS AUTO-GENERATED ON EACH BUILD ----- #\n
+    if [[ "$1" == "" ]]; then
+      #{env}\n\n"""
+  conf +="""
+    (#{val.command} 2>&1 &) && #{key}=$! \n
+  """ for key,val of KONFIG.workers
+  conf += """\n
+      elif [ "$1" == "killall" ]; then
+        kill -KILL"""
+  conf += " $#{key}" for key,val of KONFIG.workers
+  conf += """\n
+      else
+        echo "unknown argument. use ./run [killall]"
+      fi
+      # ------ THIS FILE IS AUTO-GENERATED ON EACH BUILD ----- #\n
+      """
+  return conf
 
-KONFIG.supervisorConf = """
-[supervisord]
-environment=#{supervisorEnvironmentStr} 
+KONFIG.ENV            = generateEnvVariables KONFIG
+KONFIG.supervisorConf = createSupervisorConf KONFIG
+KONFIG.runFile        = createRunConf KONFIG
 
-[inet_http_server]
-port=*:9001
-
-[program:rerouting]
-command=#{projectRoot}/go/bin/rerouting         -c #{configName}
-
-[program:cron]
-command=#{projectRoot}/go/bin/cron              -c #{configName}
-
-[program:broker]
-command=#{projectRoot}/go/bin/broker            -c #{configName}
- 
-# [program:reverseproxy]
-# command=#{projectRoot}/go/bin/reverseproxy      -region #{region} -port 4001 -env production -publicHost $HST -publicPort 4001
-
-[program:socialapi]
-command=#{projectRoot}/go/bin/api               -c #{socialapi.configFilePath} -port #{socialapi.port}
-
-[program:dailyemailnotifier]
-command=#{projectRoot}/go/bin/dailyemailnotifier -c #{socialapi.configFilePath}
-
-[program:notification]
-command=#{projectRoot}/go/bin/notification      -c #{socialapi.configFilePath}
-
-[program:popularpost]
-command=#{projectRoot}/go/bin/popularpost       -c #{socialapi.configFilePath}
-
-[program:populartopic]
-command=#{projectRoot}/go/bin/populartopic      -c #{socialapi.configFilePath}
-
-[program:realtime]
-command=#{projectRoot}/go/bin/realtime          -c #{socialapi.configFilePath}
-
-[program:sitemapfeeder]
-command=#{projectRoot}/go/bin/sitemapfeeder     -c #{socialapi.configFilePath}
-
-[program:topicfeed]
-command=#{projectRoot}/go/bin/topicfeed         -c #{socialapi.configFilePath}
-
-[program:trollmode]
-command=#{projectRoot}/go/bin/trollmode         -c #{socialapi.configFilePath}
-
-[program:webserver]
-command=node #{projectRoot}/server/index.js                   -c #{configName} -p 3000   --disable-newrelic
-
-[program:authworker]
-command=node #{projectRoot}/workers/auth/index.js             -c #{configName}
-
-[program:socialworker]
-command=node #{projectRoot}/workers/social/index.js           -c #{configName} -p 3030 --disable-newrelic --kite-port=13020
-
-[program:sourceMaps]
-command=node #{projectRoot}/server/lib/source-server/index.js -c #{configName} -p 3526
-
-[program:guestcleaner]
-command=node #{projectRoot}/workers/guestcleaner/index.js     -c #{configName}
-
-[program:emailsender]
-command=node #{projectRoot}/workers/emailsender/index.js      -c #{configName}
-"""
-
+console.log KONFIG.createRunConf
 
 module.exports = KONFIG
 

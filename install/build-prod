@@ -106,7 +106,7 @@ mkdir /root/.kite
 cp /opt/koding/kite_home/production/kite.key /root/.kite/kite.key
 
 chmod +x ./deploy
-./deploy --onlyconfigure --supervisor --hostname $BH
+./configure --hostname $BH
 
 chmod +x ./build
 NO_UGLIFYJS=true ./build

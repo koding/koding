@@ -38,6 +38,7 @@ options = o =
   target           : argv.target        or "rackspace"
   onlyconfigure    : argv.onlyconfigure or false
   supervisor       : argv.supervisor    or false
+  deploy           : argv.deploy        or null
 
 unless options.hostname
   options.hostname   = "#{eden.eve()}-#{o.config}-#{o.build}.koding.me".toLowerCase()
@@ -155,7 +156,7 @@ class Deploy
         log "Connected via ssh - copying deploy files."  
 
         copyFiles = [
-          { src: "#{PRJ}/prepare"             , trg: "/root/prepare"},
+          { src: "#{PRJ}/install/build-box"   , trg: "/root/prepare"},
           { src: "#{PRJ}/install/Dockerfile"  , trg: "/root/Dockerfile"},
           { src: "#{PRJ}/install/run"         , trg: "/root/run"}
           { src: "#{PRJ}/install/cleanup"     , trg: "/root/cleanup"}
@@ -186,7 +187,7 @@ class Deploy
         log "Connected via ssh - copying deploy files."  
 
         copyFiles = [
-          { src: "#{PRJ}/install/prod-build"  , trg: "/root/prepare"},
+          { src: "#{PRJ}/install/build-prod"  , trg: "/root/prepare"},
           { src: "#{BLD}/BUILD_CONFIG.json"   , trg: "/root/BUILD_DATA/BUILD_CONFIG.json"}
           { src: "#{BLD}/BUILD_HOSTNAME"      , trg: "/root/BUILD_DATA/BUILD_HOSTNAME"}
           { src: "#{BLD}/BUILD_REGION"        , trg: "/root/BUILD_DATA/BUILD_REGION"}
@@ -215,12 +216,14 @@ class Deploy
 deployStart = new Date()
 Deploy.createDeployData (err,KONFIG)->
 
+  fs.writeFileSync "run",KONFIG.runFile
+
   # write supervisor config
   if o.supervisor
     fs.writeFileSync "/etc/supervisor/conf.d/koding.conf",KONFIG.supervisorConf
 
   # don't deploy just write config and exit.
-  return null if o.onlyconfigure 
+  return null unless o.deploy
 
   domainName = options.hostname
   password   = hat()
