@@ -324,10 +324,10 @@ styleScrollBars()
       line-height     20px
       color           #fff
       padding         0 10px
-      abs             4px 4px 0 0
+      abs             10px 4px 0 0
       font-size       10px
       font-weight     700
-      background      #f0705f
+      background      #E06F6F
       rounded         3px
       fr()
 
@@ -362,10 +362,10 @@ styleScrollBars()
         border-color    transparent
         bg              color #777
         .icon
-          r-sprite      activity 'check-white-9'
+          r-sprite      activity 'check-gray'
 
       .icon
-        r-sprite        activity 'check-9'
+        r-sprite        activity 'check-gray'
         margin          0 6px 0 0
         padding         0
         fr()
@@ -430,27 +430,34 @@ styleScrollBars()
         font-size   14px
         line-height 18px
         width       174px
+        color       #B8B8B8
+        font-weight 600
         borderBox()
 
       > .user-numbers
         padding     0 0 0 36px
         margin      -1px 0 0
-        width       90%
+        width       87%
         font-weight 400
         font-size   12px
-        color       #949494
+        color       #919297
+        font-weight 600
         borderBox()
 
         span
           font-weight inherit
           color       inherit
 
-      // cite.count
-      //   top           10px
-
       .avatarview
         top           6px
         left          8px
+
+      &.unread
+        > .profile
+          color       #F9F7F3
+
+        > .user-numbers
+          color       #C9C9CC
 
   .messages
 
