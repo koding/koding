@@ -77,6 +77,7 @@ func (k *Kloud) buildMachine(username string, c *Controller) error {
 		Eventer:      c.Eventer,
 		Credential:   c.MachineData.Credential.Meta,
 		Builder:      c.MachineData.Machine.Meta,
+		Deploy:       k.Deploy,
 	}
 
 	msg := fmt.Sprintf("Building process started. Provider '%s'. Build options: %+v",

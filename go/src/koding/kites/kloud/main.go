@@ -189,7 +189,7 @@ func newKloud(kloudKite *kite.Kite) *kloud.Kloud {
 	kld := kloud.NewKloud()
 	kld.Storage = mongodbStorage
 	kld.Deployer = deployer
-	kld.Deploy = kiteprotocol.ProviderDeploy{
+	kld.Deploy = &kiteprotocol.ProviderDeploy{
 		KeyName:    keyName,
 		PublicKey:  publicKey,
 		PrivateKey: privateKey,

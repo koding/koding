@@ -25,24 +25,10 @@ func (o *OpenstackClient) Build(instanceName, imageId, flavorId string) (*protoc
 		return nil, err
 	}
 
-	var key gophercloud.KeyPair
-	var privateKey string
-	if o.Deploy != nil {
-		// check if our key exist
-		key, err = o.ShowKey(o.Deploy.KeyName)
-		if err != nil {
-			return nil, err
-		}
-
-		// key doesn't exist, create a new one
-		if key.Name == "" {
-			key, err = o.CreateKey(o.Deploy.KeyName, o.Deploy.PublicKey)
-			if err != nil {
-				return nil, err
-			}
-		}
-
-		privateKey = o.Deploy.PrivateKey
+	// keyName will be empty if Deploy is not initialized
+	keyName, err := o.CheckAndCreateKey()
+	if err != nil {
+		return nil, err
 	}
 
 	// check if the flavor does exist
@@ -59,7 +45,7 @@ func (o *OpenstackClient) Build(instanceName, imageId, flavorId string) (*protoc
 		Name:        instanceName,
 		ImageRef:    imageId,
 		FlavorRef:   flavorId,
-		KeyPairName: key.Name,
+		KeyPairName: keyName,
 	}
 
 	o.Push(fmt.Sprintf("Creating server %s", instanceName), 20, machinestate.Building)
@@ -87,6 +73,12 @@ func (o *OpenstackClient) Build(instanceName, imageId, flavorId string) (*protoc
 	}
 
 	o.Push(fmt.Sprintf("Server is created %s", instanceName), 70, machinestate.Building)
+
+	var privateKey string
+	if o.Deploy != nil {
+		privateKey = o.Deploy.PrivateKey
+	}
+
 	return &protocol.ProviderArtifact{
 		IpAddress:     server.AccessIPv4,
 		InstanceName:  server.Name,
@@ -95,21 +87,37 @@ func (o *OpenstackClient) Build(instanceName, imageId, flavorId string) (*protoc
 	}, nil
 }
 
-func (o *OpenstackClient) Start() (*protocol.ProviderArtifact, error) {
-	o.Push("Starting machine", 10, machinestate.Stopping)
+func (o *OpenstackClient) CheckAndCreateKey() (string, error) {
+	if o.Deploy == nil {
+		return "", nil
+	}
 
 	// check if our key exist
-	key, err := o.ShowKey(protocol.KeyName)
+	key, err := o.ShowKey(o.Deploy.KeyName)
 	if err != nil {
-		return nil, err
+		return "", err
+	}
+
+	if key.Name != "" {
+		return key.Name, nil
 	}
 
 	// key doesn't exist, create a new one
-	if key.Name == "" {
-		key, err = o.CreateKey(protocol.KeyName, protocol.PublicKey)
-		if err != nil {
-			return nil, err
-		}
+	key, err = o.CreateKey(o.Deploy.KeyName, o.Deploy.PublicKey)
+	if err != nil {
+		return "", err
+	}
+
+	return key.Name, nil
+}
+
+func (o *OpenstackClient) Start() (*protocol.ProviderArtifact, error) {
+	o.Push("Starting machine", 10, machinestate.Stopping)
+
+	// keyName will be empty if Deploy is not initialized
+	keyName, err := o.CheckAndCreateKey()
+	if err != nil {
+		return nil, err
 	}
 
 	o.Push(fmt.Sprintf("Checking if backup image '%s' exists", o.Builder.InstanceName),
@@ -129,7 +137,7 @@ func (o *OpenstackClient) Start() (*protocol.ProviderArtifact, error) {
 		Name:        o.Builder.InstanceName,
 		ImageRef:    image.Id,
 		FlavorRef:   o.Builder.Flavor,
-		KeyPairName: key.Name,
+		KeyPairName: keyName,
 	}
 
 	o.Push(fmt.Sprintf("Starting server '%s' based on image id '%s' image name: %s",
