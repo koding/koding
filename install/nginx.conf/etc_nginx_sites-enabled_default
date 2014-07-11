@@ -1,0 +1,28 @@
+upstream webs {
+                server 127.0.0.1:7000;
+                server 127.0.0.1:7001;
+        }
+upstream social {
+                server 127.0.0.1:8000;
+                server 127.0.0.1:8001;
+        }
+
+server {
+
+        listen 80;
+        server_name koding.com;
+        location / {
+                proxy_pass http://webs;
+                proxy_set_header        X-Real-IP       $remote_addr;
+                proxy_set_header        X-Forwarded-For $proxy_add_x_forwarded_for;
+                proxy_next_upstream     error timeout invalid_header http_500;
+                proxy_connect_timeout   1;
+        }
+        location /xhr {
+                proxy_pass http://social;
+                proxy_set_header        X-Real-IP       $remote_addr;
+                proxy_set_header        X-Forwarded-For $proxy_add_x_forwarded_for;
+                proxy_next_upstream     error timeout invalid_header http_500;
+                proxy_connect_timeout   1;
+        }
+}
