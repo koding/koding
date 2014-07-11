@@ -10,7 +10,7 @@ class ActivityAppView extends KDView
 
   constructor:(options = {}, data)->
 
-    options.cssClass   = 'content-page activity'
+    options.cssClass   = 'content-page activity clearfix'
     options.cssClass   = KD.utils.curry 'group', options.cssClass  unless isKoding()
     options.domId      = 'content-page-activity'
 
@@ -19,9 +19,9 @@ class ActivityAppView extends KDView
     {
       appStorageController
       windowController
-    }                      = KD.singletons
-    {entryPoint}           = KD.config
-    @_lastMessage          = null
+    }             = KD.singletons
+    {entryPoint}  = KD.config
+    @_lastMessage = null
 
     @appStorage  = appStorageController.storage 'Activity', '2.0'
     @groupHeader = new FeedCoverPhotoView
