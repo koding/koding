@@ -16,6 +16,7 @@ import (
 	kiteconfig "github.com/koding/kite/config"
 	"github.com/koding/kite/protocol"
 	"github.com/koding/kloud"
+	kiteprotocol "github.com/koding/kloud/protocol"
 	"github.com/koding/logging"
 )
 
@@ -188,6 +189,12 @@ func newKloud(kloudKite *kite.Kite) *kloud.Kloud {
 	kld := kloud.NewKloud()
 	kld.Storage = mongodbStorage
 	kld.Deployer = deployer
+	kld.Deploy = kiteprotocol.ProviderDeploy{
+		KeyName:    keyName,
+		PublicKey:  publicKey,
+		PrivateKey: privateKey,
+	}
+
 	kld.AddProvider("koding", &koding.Provider{Log: logging.NewLogger("koding")})
 
 	return kld

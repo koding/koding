@@ -1,14 +1,14 @@
-package protocol
+package main
 
 const (
 	// name of the key saved on remote provider
-	KeyName = "koding-deployment"
+	keyName = "koding-deployment"
 
 	// RSA key pair that we add to the newly created machine for
 	// provisioning.
-	PublicKey = `ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDYFQFq/DEN0B2YbiZqb3jr+iQphLrzW6svvBjQLUXiKA0P0NfgedvNbqqr2WQcQDKqdZQSHJPccfYYvjyy0wEwD7hq8BDkHTv83nMNxJb3hdmo/ibZmGoUBkw3K7E8fzaWzUDDNSlzBk3UrGayaaLxzOw1LhO5XUfesKNWCg4HzdzjjOklNpJ61iQP4u8JRqXJaOV5RPogHYFDlGXPOaBuDxvOZZanEgaKsfFkwEvpU0km5001XVf8spM7o8f2iEalG9CMF1UVk38/BKBngxSLRyYdP/K0ZdRBSq1syKs8/KPrDWQ6eyqG2cW6Zrb8wb2IDg7Na+PfnUlQn9S+jmF9 hello@koding.com`
+	publicKey = `ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDYFQFq/DEN0B2YbiZqb3jr+iQphLrzW6svvBjQLUXiKA0P0NfgedvNbqqr2WQcQDKqdZQSHJPccfYYvjyy0wEwD7hq8BDkHTv83nMNxJb3hdmo/ibZmGoUBkw3K7E8fzaWzUDDNSlzBk3UrGayaaLxzOw1LhO5XUfesKNWCg4HzdzjjOklNpJ61iQP4u8JRqXJaOV5RPogHYFDlGXPOaBuDxvOZZanEgaKsfFkwEvpU0km5001XVf8spM7o8f2iEalG9CMF1UVk38/BKBngxSLRyYdP/K0ZdRBSq1syKs8/KPrDWQ6eyqG2cW6Zrb8wb2IDg7Na+PfnUlQn9S+jmF9 hello@koding.com`
 
-	PrivateKey = `-----BEGIN RSA PRIVATE KEY-----
+	privateKey = `-----BEGIN RSA PRIVATE KEY-----
 MIIEowIBAAKCAQEA2BUBavwxDdAdmG4mam946/okKYS681urL7wY0C1F4igND9DX
 4HnbzW6qq9lkHEAyqnWUEhyT3HH2GL48stMBMA+4avAQ5B07/N5zDcSW94XZqP4m
 2ZhqFAZMNyuxPH82ls1AwzUpcwZN1Kxmsmmi8czsNS4TuV1H3rCjVgoOB83c44zp
