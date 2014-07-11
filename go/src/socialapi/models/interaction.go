@@ -290,3 +290,40 @@ func (i *Interaction) IsInteracted(accountId int64) (bool, error) {
 func (i *Interaction) FetchInteractorCount() (int, error) {
 	return bongo.B.Count(i, "message_id = ?", i.MessageId)
 }
+
+func (i *Interaction) FetchInteractionContainer(query *request.Query) (*InteractionContainer, error) {
+	if i.MessageId == 0 {
+		return nil, ErrNotSetMessageId
+	}
+
+	interactorIds, err := i.List(query)
+	if err != nil {
+		return nil, err
+	}
+
+	oldIds, err := FetchOldIdsByAccountIds(interactorIds)
+	if err != nil {
+		return nil, err
+	}
+
+	interactionContainer := NewInteractionContainer()
+	interactionContainer.ActorsPreview = oldIds
+
+	// check if the current user is interacted in this thread
+	isInteracted, err := i.IsInteracted(query.AccountId)
+	if err != nil {
+		return nil, err
+	}
+
+	interactionContainer.IsInteracted = isInteracted
+
+	// fetch interaction count
+	count, err := i.Count(query)
+	if err != nil {
+		return nil, err
+	}
+
+	interactionContainer.ActorsCount = count
+
+	return interactionContainer, nil
+}
