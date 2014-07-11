@@ -13,6 +13,7 @@
 .revision
 .vagrant
 /.build
+/.logs
 /.deployments
 /.pydevproject
 /.revision
@@ -93,3 +94,7 @@ website/a/js/koding.js
 client/Main/__generated*
 
 website/a/sprites/*.sprite.png
+
+/run
+
+

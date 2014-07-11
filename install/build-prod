@@ -115,5 +115,3 @@ NO_UGLIFYJS=true ./build
 cd /opt/koding/go/src/socialapi
 make install
 
-
-

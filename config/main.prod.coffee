@@ -177,7 +177,7 @@ KONFIG.workers =
   trollmode           : command : "#{projectRoot}/go/bin/trollmode                       -c #{socialapi.configFilePath}"
   webserver           : command : "node #{projectRoot}/server/index.js                   -c #{configName} -p 3000   --disable-newrelic"
   authworker          : command : "node #{projectRoot}/workers/auth/index.js             -c #{configName}"
-  socialworker        : command : "node #{projectRoot}/workers/social/index.js           -c #{configName} -p 3030 --disable-newrelic --kite-port=13020"
+  socialworker        : command : "node #{projectRoot}/workers/social/index.js           -c #{configName} -p 3030 -r #{region} --disable-newrelic --kite-port=13020"
   sourcemaps          : command : "node #{projectRoot}/server/lib/source-server/index.js -c #{configName} -p 3526"
   # guestcleaner        : command : "node #{projectRoot}/workers/guestcleaner/index.js     -c #{configName}"
   emailsender         : command : "node #{projectRoot}/workers/emailsender/index.js      -c #{configName}"
@@ -202,7 +202,7 @@ generateEnvVariables = (KONFIG)->
   travis.paths().forEach (path) -> conf["KONFIG_#{path.join("_")}".toUpperCase()] = travis.get(path) unless typeof travis.get(path) is 'object'
   return conf
 
-createSupervisorConf = (KONFIG)->
+generateSupervisorConf = (KONFIG)->
   supervisorEnvironmentStr = ''
   supervisorEnvironmentStr += "#{key}='#{val}'," for key,val of KONFIG.ENV
   conf = """
@@ -216,21 +216,28 @@ createSupervisorConf = (KONFIG)->
   """ for key,val of KONFIG.workers
   return conf
 
-createRunConf = (KONFIG) ->
+generateRunFile = (KONFIG) ->
   env = ''
-  env += "export #{key}='#{val}'\n" for key,val of KONFIG.ENV
+  env += "  export #{key}='#{val}'\n" for key,val of KONFIG.ENV
   conf = """
     #/bin/bash
     # ------ THIS FILE IS AUTO-GENERATED ON EACH BUILD ----- #\n
+    mkdir .logs
     if [[ "$1" == "" ]]; then
-      #{env}\n\n"""
+    #{env}\n\n"""
   conf +="""
-    (#{val.command} 2>&1 &) && echo kill -KILL $! >> .runningpids \n
-  """ for key,val of KONFIG.workers
+    (#{val.command} &>./.logs/#{key}.log &) && echo kill -KILL $! >> .runningpids \n
+    """ for key,val of KONFIG.workers
   conf += """\n
       elif [ "$1" == "killall" ]; then
-        bash ./.runningpids"""
-  conf += " $#{key}" for key,val of KONFIG.workers
+        bash ./.runningpids
+      elif [ "$1" == "log" ]; then
+        if [ "$2" == "" ]; then
+          tail -fq ./.logs/*.log
+        else
+          tail -fq ./.logs/$2.log
+        fi
+      """
   conf += """\n
       else
         echo "unknown argument. use ./run [killall]"
@@ -239,11 +246,11 @@ createRunConf = (KONFIG) ->
       """
   return conf
 
-KONFIG.ENV            = generateEnvVariables KONFIG
-KONFIG.supervisorConf = createSupervisorConf KONFIG
-KONFIG.runFile        = createRunConf KONFIG
+KONFIG.ENV            = generateEnvVariables   KONFIG
+KONFIG.supervisorConf = generateSupervisorConf KONFIG
+KONFIG.runFile        = generateRunFile        KONFIG
 
-console.log KONFIG.createRunConf
+# console.log KONFIG.runFile
 
 module.exports = KONFIG
 

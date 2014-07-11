@@ -1,16 +1,5 @@
-log = -> logger.info arguments...
+log = -> console.log arguments...
 
-log4js  = require 'log4js'
-logger  = log4js.getLogger('social')
-
-log4js.configure {
-  appenders: [
-    { type: 'console' }
-    { type: 'file', filename: 'logs/social.log', category: 'social' }
-    { type: "log4js-node-syslog", tag : "social", facility: "local0", hostname: "localhost", port: 514 }
-  ],
-  replaceConsole: true
-}
 
 {argv} = require 'optimist'
 
@@ -22,7 +11,7 @@ process.on 'uncaughtException', (err)->
   console.log err, err?.stack
   process.exit 1
 
-Bongo = require 'bongo'
+Bongo  = require 'bongo'
 Broker = require 'broker'
 
 KONFIG = require('koding-config-manager').load("main.#{argv.c}")
@@ -38,15 +27,6 @@ console.log "connecting to rabbit with:",{mqOptions}
 
 broker = new Broker mqOptions
 
-# processMonitor = (require 'processes-monitor').start
-#   name : "Social Worker #{process.pid}"
-#   stats_id: "worker.social." + process.pid
-#   interval : 30000
-#   limit_hard  :
-#     memory   : 600
-#     callback : (name,msg,details)->
-#       console.log "[#{JSON.stringify(new Date())}][SOCIAL WORKER #{name}] Using excessive memory, exiting."
-#       process.exit()
 
 koding = new Bongo {
   verbose     : social.verbose
@@ -65,18 +45,7 @@ koding = new Bongo {
     username    : 'koding'
     port        : argv['kite-port']
     prefix      : 'social'
-    kiteKey     : joinPath __dirname, '../../../../kite_home/koding/kite.key'
-
-    fetchClient: (name, context, callback) ->
-      { JAccount } = koding.models
-      [callback, context] = [context, callback] unless callback
-      context   ?= group: 'koding'
-      callback  ?= ->
-      JAccount.one 'profile.nickname': name, (err, account) ->
-        return callback err  if err?
-
-        if account instanceof JAccount
-          callback null, { context, connection:delegate:account }
+    kiteKey     : argv['kite-key']
 
   fetchClient :(sessionToken, context, callback)->
     { JUser, JAccount } = koding.models
