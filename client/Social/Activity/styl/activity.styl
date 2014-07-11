@@ -1538,6 +1538,13 @@ span.collapsedtext
         &:last-of-type
           padding-bottom    56px !important
 
+        .comment-time
+          cursor            pointer
+          hidden()
+
+          &:hover
+            text-decoration underline
+
         &:hover
           .action-link.like-link:after
             r-sprite        activity heart-dim
@@ -1547,6 +1554,11 @@ span.collapsedtext
 
         &.consequent
           padding           0 15px 0 52px
+
+          &:hover
+            .comment-time
+              display       inline-block !important
+              visibility    visible !important
 
           > .avatarview
           a.profile
@@ -1559,9 +1571,9 @@ span.collapsedtext
 
           .stats
             height          16px
-            width           36px
+            width           48px
             top             2px
-            left            5px
+            left            0
             text-align      right
             margin          0
             abs()
