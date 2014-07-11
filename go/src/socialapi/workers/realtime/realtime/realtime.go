@@ -31,7 +31,7 @@ func init() {
 // Controller holds required instances for processing events
 type Controller struct {
 	// logging instance
-	log     logging.Logger
+	log logging.Logger
 
 	// connection to RMQ
 	rmqConn *amqp.Connection
@@ -40,10 +40,10 @@ type Controller struct {
 // NotificationEvent holds required data for notifcation processing
 type NotificationEvent struct {
 	// Holds routing key for notification dispatching
-	RoutingKey string              `json:"routingKey"`
+	RoutingKey string `json:"routingKey"`
 
 	// Content of the notification
-	Content    NotificationContent `json:"contents"`
+	Content NotificationContent `json:"contents"`
 }
 
 // NotificationContent holds required data for notification events
@@ -53,17 +53,16 @@ type NotificationContent struct {
 	// notification, like "delivered" and "read"
 	TypeConstant string `json:"type"`
 
-	TargetId     int64  `json:"targetId,string"`
-	ActorId      string `json:"actorId"`
+	TargetId int64  `json:"targetId,string"`
+	ActorId  string `json:"actorId"`
 }
 
-//DefaultErrHandler controls the errors,  return false if an error occured 
+// DefaultErrHandler controls the errors, return false if an error occured
 func (r *Controller) DefaultErrHandler(delivery amqp.Delivery, err error) bool {
 	r.log.Error("an error occured deleting realtime event", err)
 	delivery.Ack(false)
 	return false
 }
-
 
 // New Creates a new controller for realtime package
 func New(rmq *rabbitmq.RabbitMQ, log logging.Logger) (*Controller, error) {
@@ -81,8 +80,8 @@ func New(rmq *rabbitmq.RabbitMQ, log logging.Logger) (*Controller, error) {
 	return ffc, nil
 }
 
-//MessageUpdated controls message updated status 
-//if an error occured , returns error otherwise returns nil
+// MessageUpdated controls message updated status
+// if an error occured , returns error otherwise returns nil
 func (f *Controller) MessageUpdated(cm *models.ChannelMessage) error {
 	if len(cm.Token) == 0 {
 		if err := cm.ById(cm.Id); err != nil {
@@ -144,6 +143,7 @@ func (f *Controller) sendChannelParticipantEvent(cp *models.ChannelParticipant, 
 		return err
 	}
 
+	// send notification to the user(added user)
 	if err := f.sendNotification(
 		cp.AccountId,
 		c.GroupName,
@@ -548,7 +548,6 @@ func (f *Controller) sendChannelEvent(cml *models.ChannelMessageList, eventName 
 
 	return f.publishToChannel(cml.ChannelId, eventName, cmc)
 }
-
 
 // publishToChannel recieves channelId eventName and data to be published
 // it fechessecret names from mongo db a publihes to each of them
