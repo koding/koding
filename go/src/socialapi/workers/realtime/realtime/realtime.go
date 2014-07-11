@@ -220,7 +220,7 @@ func (f *Controller) MessageReplySaved(mr *models.MessageReply) error {
 
 	// update all channels that contains this message except the author
 	// TODO: move this to own worker, realtime worker shouldn't touch db
-	updateAllContainingChannels(mr.MessageId, reply.AccountId)
+	f.updateAllContainingChannels(mr.MessageId, reply.AccountId)
 
 	f.sendReplyEventAsChannelUpdatedEvent(mr, channelUpdatedEventReplyAdded)
 	f.sendReplyAddedEvent(mr)
@@ -662,7 +662,7 @@ func (f *Controller) sendNotification(
 
 // fetch all channels that parent is in
 // update all channels
-func updateAllContainingChannels(parentId int64, excludedId int64) error {
+func (f *Controller) updateAllContainingChannels(parentId int64, excludedId int64) error {
 	cml := models.NewChannelMessageList()
 	channels, err := cml.FetchMessageChannels(parentId)
 	if err != nil {
@@ -683,14 +683,14 @@ func updateAllContainingChannels(parentId int64, excludedId int64) error {
 		if channel.CreatorId == excludedId {
 			cml, err := channel.FetchMessageList(parentId)
 			if err != nil {
-				logging.Error("error fetching message list for", parentId, err)
+				f.log.Error("error fetching message list for", parentId, err)
 				continue
 			}
 
 			// `Glance` for author, so on next new message, unread count is right
 			err = cml.Glance()
 			if err != nil {
-				logging.Error("error glancing for messagelist", parentId, err)
+				f.log.Error("error glancing for messagelist", parentId, err)
 				continue
 			}
 
@@ -712,6 +712,7 @@ func updateAllContainingChannels(parentId int64, excludedId int64) error {
 		if err != nil {
 			// return err
 		}
+		//}
 	}
 
 	return nil
