@@ -28,29 +28,46 @@ func init() {
 	mongoAccounts = make(map[int64]*mongomodels.Account)
 }
 
+// Controller holds required instances for processing events
 type Controller struct {
+	// logging instance
 	log     logging.Logger
+
+	// connection to RMQ
 	rmqConn *amqp.Connection
 }
 
+// NotificationEvent holds required data for notifcation processing
 type NotificationEvent struct {
+	// Holds routing key for notification dispatching
 	RoutingKey string              `json:"routingKey"`
+
+	// Content of the notification
 	Content    NotificationContent `json:"contents"`
 }
 
+// NotificationContent holds required data for notification events
 type NotificationContent struct {
+	// TypeConstant holds the type of a notification
+	// But in some cases, this property can hold the status of the
+	// notification, like "delivered" and "read"
 	TypeConstant string `json:"type"`
+
 	TargetId     int64  `json:"targetId,string"`
 	ActorId      string `json:"actorId"`
 }
 
+//DefaultErrHandler controls the errors,  return false if an error occured 
 func (r *Controller) DefaultErrHandler(delivery amqp.Delivery, err error) bool {
 	r.log.Error("an error occured deleting realtime event", err)
 	delivery.Ack(false)
 	return false
 }
 
+
+// New Creates a new controller for realtime package
 func New(rmq *rabbitmq.RabbitMQ, log logging.Logger) (*Controller, error) {
+	// connnects to RabbitMQ
 	rmqConn, err := rmq.Connect("NewRealtimeWorkerController")
 	if err != nil {
 		return nil, err
@@ -64,6 +81,8 @@ func New(rmq *rabbitmq.RabbitMQ, log logging.Logger) (*Controller, error) {
 	return ffc, nil
 }
 
+//MessageUpdated controls message updated status 
+//if an error occured , returns error otherwise returns nil
 func (f *Controller) MessageUpdated(cm *models.ChannelMessage) error {
 	if len(cm.Token) == 0 {
 		if err := cm.ById(cm.Id); err != nil {
@@ -84,11 +103,13 @@ func (f *Controller) MessageUpdated(cm *models.ChannelMessage) error {
 // We are updating status_constant while removing user from the channel
 // but regarding operation has another event, so we are gonna ignore it
 func (f *Controller) ChannelParticipantUpdatedEvent(cp *models.ChannelParticipant) error {
+	// if status of the participant is left, then ignore the message
 	if cp.StatusConstant == models.ChannelParticipant_STATUS_LEFT {
 		f.log.Info("Ignoring participant (%d) left channel event", cp.AccountId)
 		return nil
 	}
 
+	// fetch the channel that user is updated
 	c, err := models.ChannelById(cp.ChannelId)
 	if err != nil {
 		return err
@@ -528,6 +549,11 @@ func (f *Controller) sendChannelEvent(cml *models.ChannelMessageList, eventName 
 	return f.publishToChannel(cml.ChannelId, eventName, cmc)
 }
 
+
+// publishToChannel recieves channelId eventName and data to be published
+// it fechessecret names from mongo db a publihes to each of them
+// message is sent as a json message
+// this function is not idempotent
 func (f *Controller) publishToChannel(channelId int64, eventName string, data interface{}) error {
 	// fetch secret names of the channel
 	secretNames, err := fetchSecretNames(channelId)
@@ -541,15 +567,18 @@ func (f *Controller) publishToChannel(channelId int64, eventName string, data in
 		return nil
 	}
 
+	//convert data into json message
 	byteMessage, err := json.Marshal(data)
 	if err != nil {
 		return err
 	}
 
+	// get a new channel for publishing a message
 	channel, err := f.rmqConn.Channel()
 	if err != nil {
 		return err
 	}
+	// do not forget to close the channel
 	defer channel.Close()
 
 	for _, secretName := range secretNames {

@@ -18,10 +18,4 @@ class ActivityLikeView extends JView
     , data
 
 
-  viewAppended: ->
-    super
-
-
-  pistachio: ->
-
-    "{{> @link}}{{> @count}}"
+  pistachio: -> "{{> @link}}{{> @count}}"

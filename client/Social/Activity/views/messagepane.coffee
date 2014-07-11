@@ -17,7 +17,7 @@ class MessagePane extends KDTabPaneView
     {typeConstant}    = @getData()
 
     @createParticipantsView() if typeConstant is 'privatemessage'
-    @listController = new ActivityListController {itemClass}
+    @listController = new ActivityListController {itemClass, type: typeConstant}
 
     @createInputWidget()
     @bindChannelEvents()

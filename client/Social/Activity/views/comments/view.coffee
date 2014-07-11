@@ -2,20 +2,25 @@ class CommentView extends KDView
 
   constructor: (options = {}, data) ->
 
-    options.cssClass = KD.utils.curry 'comment-container', options.cssClass
+    options.cssClass            = KD.utils.curry 'comment-container', options.cssClass
+    options.controllerClass   or= CommentListViewController
 
     super options, data
 
     @inputForm = new CommentInputForm delegate: this
       .on 'Focused', @bound 'decorateAsFocused'
-      .on 'Blured', @bound 'resetDecoration'
-      .on 'Submit', @bound 'reply'
+      .on 'Blured',  @bound 'resetDecoration'
+      .on 'Submit',  @bound 'reply'
 
-    @controller = new CommentListViewController delegate: this, data
+    {controllerClass} = @getOptions()
+
+    @controller = new controllerClass delegate: this, data
       .on 'Mention', @inputForm.bound 'mention'
 
-    @listPreviousLink = new CommentListPreviousLink delegate: @controller, data
-    @listPreviousLink.on 'List', @bound 'listPreviousReplies'
+    @listPreviousLink = new CommentListPreviousLink
+      delegate : @controller
+      click    : @bound 'listPreviousReplies'
+    , data
 
     @on 'Reply', @inputForm.bound 'setFocus'
 
@@ -28,11 +33,12 @@ class CommentView extends KDView
 
     @emit 'AsyncJobStarted'
 
-    activity = @getData()
-    from     = activity.replies[0].meta.createdAt.toISOString()
-    limit    = 10
+    {appManager} = KD.singletons
+    activity     = @getData()
+    from         = activity.replies[0].meta.createdAt.toISOString()
+    limit        = 10
 
-    KD.singleton('appManager').tell 'Activity', 'listReplies', {activity, from, limit}, (err, replies) =>
+    appManager.tell 'Activity', 'listReplies', {activity, from, limit}, (err, replies) =>
 
       @emit 'AsyncJobFinished'
 
@@ -42,18 +48,17 @@ class CommentView extends KDView
 
       activity.replies = replies.concat activity.replies
 
+      @emit 'ReachedToTheBeginning'
       @controller.addItem reply, index for reply, index in replies
       @listPreviousLink.update()
 
 
   reply: (body, callback = noop) ->
 
-    activity = @getData()
-    @emit 'AsyncJobStarted'
+    activity     = @getData()
+    {appManager} = KD.singletons
 
-    KD.singleton('appManager').tell 'Activity', 'reply', {activity, body}, (err, reply) =>
-
-      @emit 'AsyncJobFinished'
+    appManager.tell 'Activity', 'reply', {activity, body}, (err, reply) =>
 
       return KD.showError err  if err
 
