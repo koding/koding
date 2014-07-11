@@ -179,7 +179,7 @@ KONFIG.workers =
   authworker          : command : "node #{projectRoot}/workers/auth/index.js             -c #{configName}"
   socialworker        : command : "node #{projectRoot}/workers/social/index.js           -c #{configName} -p 3030 --disable-newrelic --kite-port=13020"
   sourcemaps          : command : "node #{projectRoot}/server/lib/source-server/index.js -c #{configName} -p 3526"
-  guestcleaner        : command : "node #{projectRoot}/workers/guestcleaner/index.js     -c #{configName}"
+  # guestcleaner        : command : "node #{projectRoot}/workers/guestcleaner/index.js     -c #{configName}"
   emailsender         : command : "node #{projectRoot}/workers/emailsender/index.js      -c #{configName}"
 
 
@@ -225,11 +225,11 @@ createRunConf = (KONFIG) ->
     if [[ "$1" == "" ]]; then
       #{env}\n\n"""
   conf +="""
-    (#{val.command} 2>&1 &) && #{key}=$! \n
+    (#{val.command} 2>&1 &) && echo kill -KILL $! >> .runningpids \n
   """ for key,val of KONFIG.workers
   conf += """\n
       elif [ "$1" == "killall" ]; then
-        kill -KILL"""
+        bash ./.runningpids"""
   conf += " $#{key}" for key,val of KONFIG.workers
   conf += """\n
       else
