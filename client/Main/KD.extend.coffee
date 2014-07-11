@@ -19,12 +19,7 @@ KD.extend
         Boolean Number localStorage.useNewKites
     localStorage.useNewKites = if useNewKites then '1' else ''
     return useNewKites
-  useWebSockets :
-    if localStorage.disableWebSocket is 'true'
-      WebSocket = null
-      no
-    else
-      yes
+  useWebSockets : yes
   appClasses   : {}
   appScripts   : {}
   appLabels    : {}
