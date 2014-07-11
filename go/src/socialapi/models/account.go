@@ -21,7 +21,7 @@ type Account struct {
 	IsTroll bool `json:"isTroll"`
 
 	// unique account nicknames
-	Nick string `json:"nick"        sql:"NOT NULL;UNIQUE;TYPE:VARCHAR(25);`
+	Nick string `json:"nick"        sql:"NOT NULL;UNIQUE;TYPE:VARCHAR(25);"`
 }
 
 func NewAccount() *Account {
