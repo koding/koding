@@ -7,18 +7,25 @@ import (
 
 // Builder creates and provision a single image or machine for a given Provider.
 type Builder interface {
-	Build(*MachineOptions) (*ProviderArtifact, error)
+	Build(*MachineOptions) (*Artifact, error)
 }
 
 // Cleaner clean up necessary tasks after a build.
 type Cleaner interface {
-	Clean(*ProviderArtifact) error
+	Cleanup(*Artifact) error
+}
+
+// Deployer deploys a machine after it's being built.
+type Deployer interface {
+	// Deploy can only be executed after a build. The machine needs to be
+	// publicly available.
+	Deploy(*Artifact) (*DeployArtifact, error)
 }
 
 // Provider manages a machine, it's start/stop/destroy/restart a machine.
 type Controller interface {
 	// Start starts the machine
-	Start(*MachineOptions) (*ProviderArtifact, error)
+	Start(*MachineOptions) (*Artifact, error)
 
 	// Stop stops the machine
 	Stop(*MachineOptions) error
@@ -78,8 +85,9 @@ type ProviderDeploy struct {
 	Username   string
 }
 
-// ProviderArtifact should be returned from a Build method.
-type ProviderArtifact struct {
+// Artifact should be returned from a Build method. It contains data
+// that is needed in other interfaces
+type Artifact struct {
 	// InstanceName should define the name/hostname of the created machine. It
 	// should be equal to the InstanceName that was passed via MachineOptions.
 	InstanceName string
@@ -93,10 +101,16 @@ type ProviderArtifact struct {
 	// IpAddress defines the public ip address of the running machine.
 	IpAddress string
 
+	// Username defines the username to which the machine belongs.
+	Username string
+
 	// PrivateKey defines a private SSH key added to the machine. It's only
 	// returned if the SSHKeyName and SSHPublicKey is defined in MachineOptions
 	SSHPrivateKey string
 	SSHUsername   string
+
+	// Storage provides a simple caching/state mechanism between calls
+	Storage
 }
 
 // InfoArtifact should be returned from a Info method.
@@ -108,23 +122,13 @@ type InfoArtifact struct {
 	Name string
 }
 
-// Deployer deploys a machine after it's being built.
-type Deployer interface {
-	// Deploy can only be executed after a build. The machine needs to be
-	// publicly available.
-	Deploy(*DeployOptions) (*DeployArtifact, error)
-}
-
-// DeployOptions is passed to a Deploy method
-type DeployOptions struct {
-	// Artifact comes from a Build process
-	Artifact *ProviderArtifact
-
-	// Username defines the username to which the machine belongs.
-	Username string
-}
-
 // DeployArtifact should be returned from a Deploy Method
 type DeployArtifact struct {
 	KiteQuery string
+}
+
+func NewArtifact() *Artifact {
+	a := &Artifact{}
+	a.Storage = NewMapStorage()
+	return a
 }

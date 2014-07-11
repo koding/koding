@@ -18,7 +18,7 @@ type OpenstackClient struct {
 	Deploy *protocol.ProviderDeploy
 }
 
-func (o *OpenstackClient) Build(instanceName, imageId, flavorId string) (*protocol.ProviderArtifact, error) {
+func (o *OpenstackClient) Build(instanceName, imageId, flavorId string) (*protocol.Artifact, error) {
 	o.Push(fmt.Sprintf("Checking for image availability %s", imageId), 10, machinestate.Building)
 	_, err := o.Image(imageId)
 	if err != nil {
@@ -79,7 +79,7 @@ func (o *OpenstackClient) Build(instanceName, imageId, flavorId string) (*protoc
 		privateKey = o.Deploy.PrivateKey
 	}
 
-	return &protocol.ProviderArtifact{
+	return &protocol.Artifact{
 		IpAddress:     server.AccessIPv4,
 		InstanceName:  server.Name,
 		InstanceId:    server.Id,
@@ -111,7 +111,7 @@ func (o *OpenstackClient) DeployKey() (string, error) {
 	return key.Name, nil
 }
 
-func (o *OpenstackClient) Start() (*protocol.ProviderArtifact, error) {
+func (o *OpenstackClient) Start() (*protocol.Artifact, error) {
 	o.Push("Starting machine", 10, machinestate.Stopping)
 
 	// keyName will be empty if Deploy is not initialized
@@ -172,7 +172,7 @@ func (o *OpenstackClient) Start() (*protocol.ProviderArtifact, error) {
 		return nil, err
 	}
 
-	return &protocol.ProviderArtifact{
+	return &protocol.Artifact{
 		InstanceId:   server.Id,
 		InstanceName: server.Name,
 		IpAddress:    server.AccessIPv4,

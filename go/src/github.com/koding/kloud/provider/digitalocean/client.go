@@ -39,7 +39,7 @@ type Client struct {
 // given snapshot/image exist it directly skips to creating the droplet. It
 // acceps two string arguments, first one is the snapshotname, second one is
 // the dropletName.
-func (c *Client) Build(snapshotName, dropletName string) (*protocol.ProviderArtifact, error) {
+func (c *Client) Build(snapshotName, dropletName string) (*protocol.Artifact, error) {
 	// needed because this is passed as `data` to packer.Provider
 	c.Builder.SnapshotName = snapshotName
 
@@ -72,7 +72,7 @@ func (c *Client) Build(snapshotName, dropletName string) (*protocol.ProviderArti
 		privateKey = c.Deploy.PrivateKey
 	}
 
-	return &protocol.ProviderArtifact{
+	return &protocol.Artifact{
 		IpAddress:     droplet.IpAddress,
 		InstanceName:  dropletName,
 		InstanceId:    strconv.Itoa(droplet.Id),

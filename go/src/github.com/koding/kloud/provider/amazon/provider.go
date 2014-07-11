@@ -53,7 +53,7 @@ func (p *Provider) Name() string {
 	return "amazon"
 }
 
-func (p *Provider) Build(opts *protocol.MachineOptions) (*protocol.ProviderArtifact, error) {
+func (p *Provider) Build(opts *protocol.MachineOptions) (*protocol.Artifact, error) {
 	a, err := p.NewClient(opts)
 	if err != nil {
 		return nil, err
@@ -66,7 +66,7 @@ func (p *Provider) Build(opts *protocol.MachineOptions) (*protocol.ProviderArtif
 	return a.Build(opts.InstanceName)
 }
 
-func (p *Provider) Start(opts *protocol.MachineOptions) (*protocol.ProviderArtifact, error) {
+func (p *Provider) Start(opts *protocol.MachineOptions) (*protocol.Artifact, error) {
 	return nil, ErrNotSupported
 }
 

@@ -66,7 +66,7 @@ func (p *Provider) Name() string {
 	return ProviderName
 }
 
-func (p *Provider) Build(opts *protocol.MachineOptions) (*protocol.ProviderArtifact, error) {
+func (p *Provider) Build(opts *protocol.MachineOptions) (*protocol.Artifact, error) {
 	client, err := p.NewClient(opts)
 	if err != nil {
 		return nil, err
@@ -86,7 +86,7 @@ func (p *Provider) Build(opts *protocol.MachineOptions) (*protocol.ProviderArtif
 	return client.Build(opts.InstanceName, imageId, flavorId)
 }
 
-func (p *Provider) Start(opts *protocol.MachineOptions) (*protocol.ProviderArtifact, error) {
+func (p *Provider) Start(opts *protocol.MachineOptions) (*protocol.Artifact, error) {
 	o, err := p.NewClient(opts)
 	if err != nil {
 		return nil, err

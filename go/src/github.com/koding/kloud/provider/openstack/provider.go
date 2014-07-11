@@ -55,7 +55,7 @@ func (p *Provider) NewClient(opts *protocol.MachineOptions) (*OpenstackClient, e
 	return o, nil
 }
 
-func (p *Provider) Build(opts *protocol.MachineOptions) (*protocol.ProviderArtifact, error) {
+func (p *Provider) Build(opts *protocol.MachineOptions) (*protocol.Artifact, error) {
 	o, err := p.NewClient(opts)
 	if err != nil {
 		return nil, err
@@ -83,7 +83,7 @@ func (p *Provider) Build(opts *protocol.MachineOptions) (*protocol.ProviderArtif
 	return o.Build(opts.InstanceName, imageId, flavorId)
 }
 
-func (p *Provider) Start(opts *protocol.MachineOptions) (*protocol.ProviderArtifact, error) {
+func (p *Provider) Start(opts *protocol.MachineOptions) (*protocol.Artifact, error) {
 	o, err := p.NewClient(opts)
 	if err != nil {
 		return nil, err

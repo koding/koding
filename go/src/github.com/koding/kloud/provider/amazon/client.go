@@ -21,7 +21,9 @@ type AmazonClient struct {
 	Deploy *protocol.ProviderDeploy
 }
 
-func (a *AmazonClient) Build(instanceName string) (*protocol.ProviderArtifact, error) {
+func (a *AmazonClient) Build(instanceName string) (*protocol.Artifact, error) {
+	artifact := protocol.NewArtifact()
+
 	a.Log.Info("Checking if image '%s' exists", a.Builder.SourceAmi)
 	_, err := a.Image(a.Builder.SourceAmi)
 	if err != nil {
@@ -83,7 +85,7 @@ func (a *AmazonClient) Build(instanceName string) (*protocol.ProviderArtifact, e
 	}
 
 	// add now our temporary security group
-	// TODO: remove it after we are done
+	artifact.Put("securityGroupId", groupResp.Id)
 	a.Builder.SecurityGroupId = groupResp.Id
 
 	// Create instance with this keypair, if Deploy is not initialized it will
@@ -143,7 +145,7 @@ func (a *AmazonClient) Build(instanceName string) (*protocol.ProviderArtifact, e
 		sshUsername = a.Deploy.Username
 	}
 
-	return &protocol.ProviderArtifact{
+	return &protocol.Artifact{
 		IpAddress:     instance.PublicIpAddress,
 		InstanceName:  instanceName,
 		InstanceId:    instance.InstanceId,
@@ -152,8 +154,9 @@ func (a *AmazonClient) Build(instanceName string) (*protocol.ProviderArtifact, e
 	}, nil
 }
 
-func (a *AmazonClient) Cleanup() error {
+func (a *AmazonClient) Cleanup(artifact *protocol.Artifact) error {
 
+	artifact.Get("securityGroupId")
 	// a.Log.Info("Deleting temporary security group...")
 	// for i := 0; i < 5; i++ {
 	// 	_, err := a.Client.DeleteSecurityGroup(ec2.SecurityGroup{Id: s.createdGroupId})

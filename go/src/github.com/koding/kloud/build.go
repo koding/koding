@@ -86,28 +86,29 @@ func (k *Kloud) buildMachine(username string, c *Controller) error {
 	c.Eventer.Push(&eventer.Event{Message: msg, Status: machinestate.Building})
 
 	k.Log.Debug("[controller]: running method 'build' with machine options %v", machOptions)
-	providerArtifact, err := c.Builder.Build(machOptions)
+
+	artifact, err := c.Builder.Build(machOptions)
 	if err != nil {
 		return err
 	}
-	if providerArtifact == nil {
+	if artifact == nil {
 		return NewError(ErrBadResponse)
 	}
-	k.Log.Debug("[controller]: method 'build' is successfull %#v", providerArtifact)
+	k.Log.Debug("[controller]: method 'build' is successfull %#v", artifact)
 
 	storageData := map[string]interface{}{
-		"ipAddress":    providerArtifact.IpAddress,
-		"instanceId":   providerArtifact.InstanceId,
-		"instanceName": providerArtifact.InstanceName,
+		"ipAddress":    artifact.IpAddress,
+		"instanceId":   artifact.InstanceId,
+		"instanceName": artifact.InstanceName,
 	}
 
-	if k.Deployer != nil && providerArtifact.SSHPrivateKey != "" {
-		deployOpts := &protocol.DeployOptions{
-			Artifact: providerArtifact,
-			Username: username,
-		}
+	// if the username is not explicit changed, assign the original username to it
+	if artifact.Username == "" {
+		artifact.Username = username
+	}
 
-		deployArtifact, err := k.Deployer.Deploy(deployOpts)
+	if k.Deployer != nil && artifact.SSHPrivateKey != "" {
+		deployArtifact, err := k.Deployer.Deploy(artifact)
 		if err != nil {
 			return err
 		}
@@ -117,7 +118,7 @@ func (k *Kloud) buildMachine(username string, c *Controller) error {
 
 	cleaner, ok := k.providers[c.ProviderName].(protocol.Cleaner)
 	if ok {
-		if err := cleaner.Clean(providerArtifact); err != nil {
+		if err := cleaner.Cleanup(artifact); err != nil {
 			return err
 		}
 	}
