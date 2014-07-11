@@ -37,6 +37,14 @@ type Amazon struct {
 
 		// SecurityGroup defines one security group ID (optional)
 		SecurityGroupId string `mapstructure:"security_group_id"`
+
+		// If using VPC, the ID of the subnet, such as "subnet-12345def" Some
+		// of the instance types, such as t2.micro can be only launched in a
+		// VPC
+		SubnetId string `mapstructure:"subnet_id"`
+
+		// If usign VPC subnet, the ID of the VPC, such as "vpc-12345def"
+		VpcId string `mapstructure:"vpc_id"`
 	}
 }
 

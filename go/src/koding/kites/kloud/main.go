@@ -190,9 +190,9 @@ func newKloud(kloudKite *kite.Kite) *kloud.Kloud {
 	kld.Storage = mongodbStorage
 	kld.Deployer = deployer
 	kld.Deploy = &kiteprotocol.ProviderDeploy{
-		KeyName:    keyName,
-		PublicKey:  publicKey,
-		PrivateKey: privateKey,
+		KeyName:    deployKeyName,
+		PublicKey:  deployPublicKey,
+		PrivateKey: deployPrivateKey,
 	}
 
 	kld.AddProvider("koding", &koding.Provider{Log: logging.NewLogger("koding")})

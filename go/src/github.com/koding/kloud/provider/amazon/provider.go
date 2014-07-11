@@ -16,6 +16,8 @@ var (
 
 	// Ubuntu 14.0.4 EBS backed, amd64,  PV
 	// DefaultAMI = "ami-80778be8"
+
+	ErrNotSupported = errors.New("method not supported")
 )
 
 type Provider struct {
@@ -65,21 +67,21 @@ func (p *Provider) Build(opts *protocol.MachineOptions) (*protocol.ProviderArtif
 }
 
 func (p *Provider) Start(opts *protocol.MachineOptions) (*protocol.ProviderArtifact, error) {
-	return nil, nil
+	return nil, ErrNotSupported
 }
 
 func (p *Provider) Stop(opts *protocol.MachineOptions) error {
-	return nil
+	return ErrNotSupported
 }
 
 func (p *Provider) Restart(opts *protocol.MachineOptions) error {
-	return nil
+	return ErrNotSupported
 }
 
 func (p *Provider) Destroy(opts *protocol.MachineOptions) error {
-	return nil
+	return ErrNotSupported
 }
 
 func (p *Provider) Info(opts *protocol.MachineOptions) (*protocol.InfoArtifact, error) {
-	return nil, nil
+	return nil, ErrNotSupported
 }

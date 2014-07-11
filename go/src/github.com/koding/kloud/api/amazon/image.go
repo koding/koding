@@ -3,7 +3,6 @@ package amazon
 import (
 	"fmt"
 
-	"github.com/kr/pretty"
 	"github.com/mitchellh/goamz/ec2"
 )
 
@@ -17,7 +16,7 @@ func (a *Amazon) Image(id string) (*ec2.Image, error) {
 		return nil, fmt.Errorf("the source AMI '%s' could not be found", id)
 	}
 
-	pretty.Println(resp.Images)
+	image := resp.Images[0]
 
-	return nil, nil
+	return &image, nil
 }

@@ -26,7 +26,7 @@ func (o *OpenstackClient) Build(instanceName, imageId, flavorId string) (*protoc
 	}
 
 	// keyName will be empty if Deploy is not initialized
-	keyName, err := o.CheckAndCreateKey()
+	keyName, err := o.DeployKey()
 	if err != nil {
 		return nil, err
 	}
@@ -87,7 +87,7 @@ func (o *OpenstackClient) Build(instanceName, imageId, flavorId string) (*protoc
 	}, nil
 }
 
-func (o *OpenstackClient) CheckAndCreateKey() (string, error) {
+func (o *OpenstackClient) DeployKey() (string, error) {
 	if o.Deploy == nil {
 		return "", nil
 	}
@@ -115,7 +115,7 @@ func (o *OpenstackClient) Start() (*protocol.ProviderArtifact, error) {
 	o.Push("Starting machine", 10, machinestate.Stopping)
 
 	// keyName will be empty if Deploy is not initialized
-	keyName, err := o.CheckAndCreateKey()
+	keyName, err := o.DeployKey()
 	if err != nil {
 		return nil, err
 	}
