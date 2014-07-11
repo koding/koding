@@ -11,7 +11,6 @@ class MachineList extends KDView
     @addSubView @container = new KDView
     @machineListController = new KDListViewController
       selection            : yes
-
       viewOptions          :
         wrapper            : yes
         itemClass          : MachineItemListView
@@ -23,7 +22,7 @@ class MachineList extends KDView
     @container.addSubView \
       @machineListView = @machineListController.getView()
 
-    @forwardEvent @machineListView, 'MachineSelected'
+    @forwardEvent @machineListController, 'ItemSelectionPerformed'
 
     @fetchMachines()
 
@@ -50,13 +49,39 @@ class MachineListModal extends KDModalView
   constructor: (options = {}, data)->
 
     options = $.extend
-      title    : "Machine List"
-      cssClass : "machines-modal"
-      width    : 540
-      overlay  : yes
+      title        : "Machine List"
+      subtitle     : "Select a running machine below to perform this action."
+      cssClass     : "machines-modal"
+      width        : 540
+      overlay      : yes
+      buttons      :
+        "Continue" :
+          disabled : yes
+          callback : => @continueAction()
     , options
 
     super options, data
 
-    @once 'viewAppended', =>
-      @addSubView new MachineList @getOption 'listOptions'
+  viewAppended:->
+
+    @addSubView machineList = new MachineList @getOption 'listOptions'
+
+    machineList.on "ItemSelectionPerformed", (list, {items})=>
+
+      @machine = items.first.getData()
+      @buttons["Continue"][ \
+        if @checkMachineState() then 'enable' else 'disable'
+      ]()
+
+
+  checkMachineState: ->
+
+    # FIXME Make this check extendable
+    @machine?.status.state is Machine.State.Running
+
+
+  continueAction:->
+
+    if @checkMachineState()
+      @emit "MachineSelected", @machine
+      @destroy()
