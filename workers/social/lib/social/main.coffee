@@ -56,10 +56,9 @@ koding = new Bongo {
   mq          : broker
 
   kite          :
-    kontrol     : KONFIG.client.runtimeOptions.newkontrol.url
     name        : 'social'
-    environment : 'vagrant'
-    region      : 'vagrant'
+    environment : argv.environment or KONFIG.environment
+    region      : argv.region
     version     : KONFIG.version
     username    : 'koding'
     port        : argv['kite-port']
