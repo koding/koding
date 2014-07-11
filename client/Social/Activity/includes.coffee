@@ -27,7 +27,6 @@ module.exports = [
   "views/activityactions.coffee"
   "views/activitylistheader.coffee"
   "views/sharepopup.coffee"
-  "views/activitytickeritem.coffee"
   "views/referalbox.coffee"
   "views/filterwarning.coffee"
   "views/activitymenuitem.coffee"
@@ -86,7 +85,6 @@ module.exports = [
 
   "ContentDisplays/activitycontentdisplay.coffee"
   "ContentDisplays/StatusUpdate.coffee"
-  # "ContentDisplays/ActivityTicker.coffee"
 
   # Activity content displays commons
   "ContentDisplays/ContentDisplayAuthorAvatar.coffee"
