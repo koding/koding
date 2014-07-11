@@ -21,7 +21,6 @@ type Controller struct {
 	log             logging.Logger
 	rmqConn         *amqp.Connection
 	notifierRmqConn *amqp.Connection
-	cacheEnabled    bool
 }
 
 func (n *Controller) DefaultErrHandler(delivery amqp.Delivery, err error) bool {
@@ -31,16 +30,15 @@ func (n *Controller) DefaultErrHandler(delivery amqp.Delivery, err error) bool {
 	return false
 }
 
-func New(rmq *rabbitmq.RabbitMQ, log logging.Logger, cacheEnabled bool) (*Controller, error) {
+func New(rmq *rabbitmq.RabbitMQ, log logging.Logger) (*Controller, error) {
 	rmqConn, err := rmq.Connect("NewNotificationWorkerController")
 	if err != nil {
 		return nil, err
 	}
 
 	nwc := &Controller{
-		log:          log,
-		rmqConn:      rmqConn.Conn(),
-		cacheEnabled: cacheEnabled,
+		log:     log,
+		rmqConn: rmqConn.Conn(),
 	}
 
 	return nwc, nil

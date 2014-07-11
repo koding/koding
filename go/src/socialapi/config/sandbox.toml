@@ -26,9 +26,6 @@ Slave=    "172.16.10.17:6379"
 [limits]
 MessageBodyMinLen=1
 
-[Notification]
-CacheEnabled = false
-
 [emailnotification]
 templateRoot="go/src/socialapi/workers/emailnotifier/templates/"
 

@@ -14,7 +14,6 @@ type (
 		Mongo             string
 		Environment       string
 		Uri               string
-		Notification      Notification
 		SendGrid          SendGrid
 		EmailNotification EmailNotification
 		Sitemap           Sitemap
@@ -42,9 +41,6 @@ type (
 		MessageBodyMinLen    int
 		PostThrottleDuration string
 		PostThrottleCount    int
-	}
-	Notification struct {
-		CacheEnabled bool
 	}
 	SendGrid struct {
 		Username        string
