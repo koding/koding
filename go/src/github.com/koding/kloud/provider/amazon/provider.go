@@ -35,6 +35,7 @@ func (p *Provider) NewClient(opts *protocol.MachineOptions) (*AmazonClient, erro
 				Percentage: percentage,
 			})
 		},
+		Deploy: opts.Deploy,
 	}
 
 	var err error

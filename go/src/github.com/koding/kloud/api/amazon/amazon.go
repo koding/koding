@@ -14,12 +14,8 @@ type Amazon struct {
 
 	// Contains AccessKey and SecretKey
 	Creds struct {
-		AccessKey string
-		SecretKey string
-
-		// The name of the region, such as "us-east-1", in which to launch the
-		// EC2 instance
-		Region string
+		AccessKey string `mapstructure:"access_key"`
+		SecretKey string `mapstructure:"secret_key"`
 	}
 
 	Builder struct {
@@ -29,6 +25,10 @@ type Amazon struct {
 
 		// The initial AMI used as a base for the newly created machine. (required)
 		SourceAmi string `mapstructure:"source_ami"`
+
+		// The name of the region, such as "us-east-1", in which to launch the
+		// EC2 instance
+		Region string `mapstructure:"region"`
 
 		// KeyPair defines the name which is used creating an EC2 instance. (optional)
 		// IMPORTANT: If you launch an instance without specifying a key pair,
@@ -61,13 +61,13 @@ func New(credential, builder map[string]interface{}) (*Amazon, error) {
 		return nil, errors.New("credentials secretKey is empty")
 	}
 
-	if a.Creds.Region == "" {
+	if a.Builder.Region == "" {
 		return nil, errors.New("region is required")
 	}
 
-	awsRegion, ok := aws.Regions[a.Creds.Region]
+	awsRegion, ok := aws.Regions[a.Builder.Region]
 	if !ok {
-		return nil, fmt.Errorf("region is not an AWS region: %s", a.Creds.Region)
+		return nil, fmt.Errorf("region is not an AWS region: %s", a.Builder.Region)
 	}
 
 	a.Client = ec2.New(

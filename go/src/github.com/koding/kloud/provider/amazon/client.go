@@ -14,8 +14,9 @@ import (
 
 type AmazonClient struct {
 	*aws.Amazon
-	Log  logging.Logger
-	Push func(string, int, machinestate.State)
+	Log    logging.Logger
+	Push   func(string, int, machinestate.State)
+	Deploy *protocol.ProviderDeploy
 }
 
 func (a *AmazonClient) Build(instanceName string) (*protocol.ProviderArtifact, error) {
@@ -66,9 +67,24 @@ func (a *AmazonClient) Build(instanceName string) (*protocol.ProviderArtifact, e
 		return nil, fmt.Errorf("Error creating temporary security group: %s", err)
 	}
 
+	var keyName string
+	if a.Deploy != nil {
+		resp, err := a.Showkey(a.Deploy.KeyName)
+		if err != nil {
+			return nil, err
+		}
+
+		fmt.Printf("resp %+v\n", resp)
+
+		// a.CreateKey(a.Deploy.KeyName, a.de
+	}
+
 	// add now our temporary security group
 	// TODO: remove it after we are done
 	a.Builder.SecurityGroupId = groupResp.Id
+
+	// Create instance with this keypair
+	a.Builder.KeyPair = keyName
 
 	a.Log.Info("Creating instance")
 	resp, err := a.CreateInstance()
@@ -81,14 +97,21 @@ func (a *AmazonClient) Build(instanceName string) (*protocol.ProviderArtifact, e
 	// by panicing
 	instance := resp.Instances[0]
 
+	// Rename the
 	a.Log.Info("Adding the tag '%s' to the instance id '%s'", instanceName, instance.InstanceId)
 	if err := a.AddTag(instance.InstanceId, "Name", instanceName); err != nil {
 		return nil, err
 	}
 
+	var privateKey string
+	if a.Deploy != nil {
+		privateKey = a.Deploy.PrivateKey
+	}
+
 	return &protocol.ProviderArtifact{
-		IpAddress:    instance.PublicIpAddress,
-		InstanceName: instanceName,
-		InstanceId:   instance.InstanceId,
+		IpAddress:     instance.PublicIpAddress,
+		InstanceName:  instanceName,
+		InstanceId:    instance.InstanceId,
+		SSHPrivateKey: privateKey,
 	}, nil
 }
