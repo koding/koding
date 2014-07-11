@@ -9,6 +9,7 @@ getRoles = (permission, permissionSet)->
 getRoleSelector = (delegate, group, permission, permissionSet)->
   roles       = getRoles permission, permissionSet
   return -1   if 'guest' in roles # everyone is (at least) guest!
+  return -1   unless delegate
   return {
     sourceId  : group.getId()
     targetId  : delegate.getId()
