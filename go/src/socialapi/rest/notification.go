@@ -7,8 +7,8 @@ import (
 	notificationmodels "socialapi/workers/notification/models"
 )
 
-func GetNotificationList(accountId int64, cacheEnabled bool) (*notificationmodels.NotificationResponse, error) {
-	url := fmt.Sprintf("/notification/%d?cache=%t", accountId, cacheEnabled)
+func GetNotificationList(accountId int64) (*notificationmodels.NotificationResponse, error) {
+	url := fmt.Sprintf("/notification/%d", accountId)
 
 	res, err := sendRequest("GET", url, nil)
 	if err != nil {
