@@ -2,7 +2,6 @@ package amazon
 
 import (
 	"fmt"
-	"strconv"
 	"strings"
 	"time"
 
@@ -29,64 +28,66 @@ func (a *AmazonClient) Build(instanceName string) (*protocol.Artifact, error) {
 	if err != nil {
 		return nil, err
 	}
-
-	groupName := "koding-" + strconv.FormatInt(time.Now().UTC().UnixNano(), 10)
-	a.Log.Info("Temporary group name: %s", groupName)
-
-	//  TODO: MOVE TO KODING PROVIDER
-	vpcs, err := a.ListVPCs()
+	groupName := "koding-kloud"
+	a.Log.Info("Checking if security group '%s' exists", groupName)
+	group, err := a.SecurityGroup(groupName)
 	if err != nil {
-		return nil, err
-	}
-
-	group := ec2.SecurityGroup{
-		Name:        groupName,
-		Description: "Temporary group for Koding Kloud",
-		VpcId:       vpcs.VPCs[0].VpcId,
-	}
-
-	a.Log.Info("Creating temporary security group for this instance...")
-	// TODO: remove it after we are done
-	groupResp, err := a.Client.CreateSecurityGroup(group)
-	if err != nil {
-		return nil, err
-	}
-
-	// Authorize the SSH access
-	perms := []ec2.IPPerm{
-		ec2.IPPerm{
-			Protocol:  "tcp",
-			FromPort:  22,
-			ToPort:    22,
-			SourceIPs: []string{"0.0.0.0/0"},
-		},
-	}
-
-	// We loop and retry this a few times because sometimes the security
-	// group isn't available immediately because AWS resources are eventaully
-	// consistent.
-	a.Log.Info("Authorizing SSH access on the temporary security group...")
-	for i := 0; i < 5; i++ {
-		_, err = a.Client.AuthorizeSecurityGroup(groupResp.SecurityGroup, perms)
-		if err == nil {
-			break
+		vpcs, err := a.ListVPCs()
+		if err != nil {
+			return nil, err
 		}
 
-		a.Log.Warning("Error authorizing. Will sleep and retry. %s", err)
-		time.Sleep((time.Duration(i) * time.Second) + 1)
-	}
-	if err != nil {
-		return nil, fmt.Errorf("Error creating temporary security group: %s", err)
+		group = ec2.SecurityGroup{
+			Name:        groupName,
+			Description: "Koding Kloud Security Group",
+			VpcId:       vpcs.VPCs[0].VpcId,
+		}
+
+		a.Log.Info("Creating security group for this instance...")
+		// TODO: remove it after we are done
+		groupResp, err := a.Client.CreateSecurityGroup(group)
+		if err != nil {
+			return nil, err
+		}
+		group = groupResp.SecurityGroup
+
+		// Authorize the SSH access
+		perms := []ec2.IPPerm{
+			ec2.IPPerm{
+				Protocol:  "tcp",
+				FromPort:  22,
+				ToPort:    22,
+				SourceIPs: []string{"0.0.0.0/0"},
+			},
+		}
+
+		// We loop and retry this a few times because sometimes the security
+		// group isn't available immediately because AWS resources are eventaully
+		// consistent.
+		a.Log.Info("Authorizing SSH access on the security group: '%s'", group.Id)
+		for i := 0; i < 5; i++ {
+			_, err = a.Client.AuthorizeSecurityGroup(group, perms)
+			if err == nil {
+				break
+			}
+
+			a.Log.Warning("Error authorizing. Will sleep and retry. %s", err)
+			time.Sleep((time.Duration(i) * time.Second) + 1)
+		}
+		if err != nil {
+			return nil, fmt.Errorf("Error creating temporary security group: %s", err)
+		}
 	}
 
+	// get the necessary keynames that we are going to provide with Amazon. If
+	// it doesn't exist a new one will be created.
 	keyName, err := a.DeployKey()
 	if err != nil {
 		return nil, err
 	}
 
-	// add now our temporary security group
-	artifact.Put("securityGroupId", groupResp.Id)
-	a.Builder.SecurityGroupId = groupResp.Id
+	// add now our security group
+	a.Builder.SecurityGroupId = group.Id
 
 	// Create instance with this keypair, if Deploy is not initialized it will
 	// be a empty key pair, means no one is able to ssh into the machine.
@@ -145,30 +146,12 @@ func (a *AmazonClient) Build(instanceName string) (*protocol.Artifact, error) {
 		sshUsername = a.Deploy.Username
 	}
 
-	return &protocol.Artifact{
-		IpAddress:     instance.PublicIpAddress,
-		InstanceName:  instanceName,
-		InstanceId:    instance.InstanceId,
-		SSHPrivateKey: privateKey,
-		SSHUsername:   sshUsername,
-	}, nil
-}
-
-func (a *AmazonClient) Cleanup(artifact *protocol.Artifact) error {
-
-	artifact.Get("securityGroupId")
-	// a.Log.Info("Deleting temporary security group...")
-	// for i := 0; i < 5; i++ {
-	// 	_, err := a.Client.DeleteSecurityGroup(ec2.SecurityGroup{Id: s.createdGroupId})
-	// 	if err == nil {
-	// 		break
-	// 	}
-	//
-	// 	a.Log.Warning("Error deleting security group: %s", err)
-	// 	time.Sleep(5 * time.Second)
-	// }
-
-	return nil
+	artifact.IpAddress = instance.PublicIpAddress
+	artifact.InstanceName = instanceName
+	artifact.InstanceId = instance.InstanceId
+	artifact.SSHPrivateKey = privateKey
+	artifact.SSHUsername = sshUsername
+	return artifact, nil
 }
 
 func (a *AmazonClient) DeployKey() (string, error) {

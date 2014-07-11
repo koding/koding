@@ -46,6 +46,23 @@ func (a *Amazon) Instance(id string) (ec2.Instance, error) {
 	return resp.Reservations[0].Instances[0], nil
 }
 
+func (a *Amazon) SecurityGroup(name string) (ec2.SecurityGroup, error) {
+	// Somehow only filter works, defining inside SecurityGroup doesn't work
+	filter := ec2.NewFilter()
+	filter.Add("group-name", name)
+
+	resp, err := a.Client.SecurityGroups([]ec2.SecurityGroup{}, filter)
+	if err != nil {
+		return ec2.SecurityGroup{}, err
+	}
+
+	if len(resp.Groups) != 1 {
+		return ec2.SecurityGroup{}, fmt.Errorf("the security group name '%s' does not exist", name)
+	}
+
+	return resp.Groups[0].SecurityGroup, nil
+}
+
 func (a *Amazon) ListVPCs() (*ec2.VpcsResp, error) {
 	return a.Client.DescribeVpcs([]string{}, ec2.NewFilter())
 }
