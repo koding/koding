@@ -72,6 +72,7 @@ type ProviderDeploy struct {
 	PublicKey  string
 	PrivateKey string
 	KeyName    string
+	Username   string
 }
 
 // ProviderArtifact should be returned from a Build method.
@@ -92,6 +93,7 @@ type ProviderArtifact struct {
 	// PrivateKey defines a private SSH key added to the machine. It's only
 	// returned if the SSHKeyName and SSHPublicKey is defined in MachineOptions
 	SSHPrivateKey string
+	SSHUsername   string
 }
 
 // InfoArtifact should be returned from a Info method.

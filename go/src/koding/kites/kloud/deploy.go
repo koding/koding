@@ -36,13 +36,14 @@ func (k *KodingDeploy) Deploy(opts *protocol.DeployOptions) (*protocol.DeployArt
 	ipAddress := opts.Artifact.IpAddress
 	hostname := opts.Artifact.InstanceName
 	privateKey := opts.Artifact.SSHPrivateKey
+	sshusername := opts.Artifact.SSHUsername
 
 	log := func(msg string) {
 		k.Log.Info("%s ==> %s", username, msg)
 	}
 
 	sshAddress := ipAddress + ":22"
-	sshConfig, err := sshutil.SshConfig(privateKey)
+	sshConfig, err := sshutil.SshConfig(sshusername, privateKey)
 	if err != nil {
 		return nil, err
 	}

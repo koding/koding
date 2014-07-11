@@ -120,7 +120,8 @@ func (a *AmazonClient) Build(instanceName string) (*protocol.ProviderArtifact, e
 			return 0, err
 		}
 
-		a.Push(fmt.Sprintf("Launching instance '%s'", instanceName), currentPercentage, machinestate.Building)
+		a.Push(fmt.Sprintf("Launching instance '%s'", instanceName),
+			currentPercentage, machinestate.Building)
 		return statusToState(instance.State.Name), nil
 	}
 
@@ -135,8 +136,10 @@ func (a *AmazonClient) Build(instanceName string) (*protocol.ProviderArtifact, e
 	}
 
 	var privateKey string
+	var sshUsername string
 	if a.Deploy != nil {
 		privateKey = a.Deploy.PrivateKey
+		sshUsername = a.Deploy.Username
 	}
 
 	return &protocol.ProviderArtifact{
@@ -144,6 +147,7 @@ func (a *AmazonClient) Build(instanceName string) (*protocol.ProviderArtifact, e
 		InstanceName:  instanceName,
 		InstanceId:    instance.InstanceId,
 		SSHPrivateKey: privateKey,
+		SSHUsername:   sshUsername,
 	}, nil
 }
 
