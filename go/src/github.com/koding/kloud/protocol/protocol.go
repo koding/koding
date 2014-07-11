@@ -10,6 +10,11 @@ type Builder interface {
 	Build(*MachineOptions) (*ProviderArtifact, error)
 }
 
+// Cleaner clean up necessary tasks after a build.
+type Cleaner interface {
+	Clean(*ProviderArtifact) error
+}
+
 // Provider manages a machine, it's start/stop/destroy/restart a machine.
 type Controller interface {
 	// Start starts the machine

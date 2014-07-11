@@ -115,6 +115,13 @@ func (k *Kloud) buildMachine(username string, c *Controller) error {
 		storageData["queryString"] = deployArtifact.KiteQuery
 	}
 
+	cleaner, ok := k.providers[c.ProviderName].(protocol.Cleaner)
+	if ok {
+		if err := cleaner.Clean(providerArtifact); err != nil {
+			return err
+		}
+	}
+
 	return k.Storage.Update(c.MachineId, &StorageData{
 		Type: "build",
 		Data: storageData,

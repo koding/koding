@@ -152,6 +152,22 @@ func (a *AmazonClient) Build(instanceName string) (*protocol.ProviderArtifact, e
 	}, nil
 }
 
+func (a *AmazonClient) Cleanup() error {
+
+	// a.Log.Info("Deleting temporary security group...")
+	// for i := 0; i < 5; i++ {
+	// 	_, err := a.Client.DeleteSecurityGroup(ec2.SecurityGroup{Id: s.createdGroupId})
+	// 	if err == nil {
+	// 		break
+	// 	}
+	//
+	// 	a.Log.Warning("Error deleting security group: %s", err)
+	// 	time.Sleep(5 * time.Second)
+	// }
+
+	return nil
+}
+
 func (a *AmazonClient) DeployKey() (string, error) {
 	if a.Deploy == nil {
 		return "", nil
