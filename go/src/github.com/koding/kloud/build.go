@@ -45,7 +45,7 @@ func (k *Kloud) build(r *kite.Request, c *Controller) (resp interface{}, err err
 			msg = err.Error()
 		} else {
 			k.Log.Info("[%s] build for '%s' is successfull. State is now: %+v",
-				c.Provider.Name(), c.InstanceName, status)
+				c.ProviderName, c.InstanceName, status)
 		}
 
 		k.Storage.UpdateState(c.MachineId, status)
@@ -81,12 +81,12 @@ func (k *Kloud) buildMachine(username string, c *Controller) error {
 	}
 
 	msg := fmt.Sprintf("Building process started. Provider '%s'. Build options: %+v",
-		c.Provider.Name(), machOptions)
+		c.ProviderName, machOptions)
 
 	c.Eventer.Push(&eventer.Event{Message: msg, Status: machinestate.Building})
 
 	k.Log.Debug("[controller]: running method 'build' with machine options %v", machOptions)
-	providerArtifact, err := c.Provider.Build(machOptions)
+	providerArtifact, err := c.Builder.Build(machOptions)
 	if err != nil {
 		return err
 	}

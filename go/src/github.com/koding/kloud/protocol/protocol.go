@@ -5,12 +5,13 @@ import (
 	"github.com/koding/kloud/machinestate"
 )
 
-// Provider manages a machine. It is used to create and provision a single
-// image or machine for a given Provider, to start/stop/destroy/restart a
-// machine.
-type Provider interface {
+// Builder creates and provision a single image or machine for a given Provider.
+type Builder interface {
 	Build(*MachineOptions) (*ProviderArtifact, error)
+}
 
+// Provider manages a machine, it's start/stop/destroy/restart a machine.
+type Controller interface {
 	// Start starts the machine
 	Start(*MachineOptions) (*ProviderArtifact, error)
 
@@ -25,9 +26,6 @@ type Provider interface {
 
 	// Info returns full information about a single machine
 	Info(*MachineOptions) (*InfoArtifact, error)
-
-	// Name returns the underlying provider type
-	Name() string
 }
 
 // contains all necessary informations.

@@ -17,10 +17,12 @@ type Controller struct {
 	InstanceName string
 
 	// Populated later
-	CurrenState machinestate.State `json:"-"`
-	Provider    protocol.Provider  `json:"-"`
-	MachineData *MachineData       `json:"-"`
-	Eventer     eventer.Eventer    `json:"-"`
+	CurrenState  machinestate.State  `json:"-"`
+	ProviderName string              `json:"-"`
+	Controller   protocol.Controller `json:"-"`
+	Builder      protocol.Builder    `json:"-"`
+	MachineData  *MachineData        `json:"-"`
+	Eventer      eventer.Eventer     `json:"-"`
 }
 
 type ControlResult struct {
@@ -125,7 +127,12 @@ func (k *Kloud) ControlFunc(control controlFunc) kite.Handler {
 		}
 
 		// now get the machine provider interface, it can be DO, AWS, GCE, and so on..
-		provider, err := k.Provider(m.Provider)
+		controller, err := k.Controller(m.Provider)
+		if err != nil {
+			return nil, err
+		}
+
+		builder, err := k.Builder(m.Provider)
 		if err != nil {
 			return nil, err
 		}
@@ -135,7 +142,9 @@ func (k *Kloud) ControlFunc(control controlFunc) kite.Handler {
 			MachineId:    args.MachineId,
 			ImageName:    args.ImageName,
 			InstanceName: args.InstanceName,
-			Provider:     provider,
+			ProviderName: m.Provider,
+			Controller:   controller,
+			Builder:      builder,
 			MachineData:  m,
 			CurrenState:  m.Machine.State(),
 		}
@@ -170,7 +179,7 @@ func (k *Kloud) info(r *kite.Request, c *Controller) (interface{}, error) {
 		Builder:    c.MachineData.Machine.Meta,
 	}
 
-	response, err := c.Provider.Info(machOptions)
+	response, err := c.Controller.Info(machOptions)
 	if err != nil {
 		return nil, err
 	}
@@ -197,7 +206,7 @@ func (k *Kloud) start(r *kite.Request, c *Controller) (interface{}, error) {
 	}
 
 	fn := func(m *protocol.MachineOptions) error {
-		resp, err := c.Provider.Start(m)
+		resp, err := c.Controller.Start(m)
 		if err != nil {
 			return err
 		}
@@ -235,7 +244,7 @@ func (k *Kloud) stop(r *kite.Request, c *Controller) (interface{}, error) {
 	}
 
 	fn := func(m *protocol.MachineOptions) error {
-		return c.Provider.Stop(m)
+		return c.Controller.Stop(m)
 	}
 
 	return k.coreMethods(r, c, fn)
@@ -243,7 +252,7 @@ func (k *Kloud) stop(r *kite.Request, c *Controller) (interface{}, error) {
 
 func (k *Kloud) destroy(r *kite.Request, c *Controller) (interface{}, error) {
 	fn := func(m *protocol.MachineOptions) error {
-		return c.Provider.Destroy(m)
+		return c.Controller.Destroy(m)
 	}
 
 	return k.coreMethods(r, c, fn)
@@ -255,7 +264,7 @@ func (k *Kloud) restart(r *kite.Request, c *Controller) (interface{}, error) {
 	}
 
 	fn := func(m *protocol.MachineOptions) error {
-		return c.Provider.Restart(m)
+		return c.Controller.Restart(m)
 	}
 
 	return k.coreMethods(r, c, fn)

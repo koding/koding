@@ -19,8 +19,11 @@ const (
 type Kloud struct {
 	Log logging.Logger
 
-	// Providers is responsible for creating machines and handling them.
-	providers map[string]protocol.Provider
+	// Builders is responsible for creating and provisioning machines.
+	builders map[string]protocol.Builder
+
+	// Controllers is responsible for handling machines.
+	controllers map[string]protocol.Controller
 
 	// Storage is used to store persistent data which is used by the Provider
 	// during certain actions
@@ -40,10 +43,11 @@ type Kloud struct {
 // NewKloud creates a new Kloud instance with default providers.
 func NewKloud() *Kloud {
 	kld := &Kloud{
-		idlock:    idlock.New(),
-		Log:       logging.NewLogger(NAME),
-		Eventers:  make(map[string]eventer.Eventer),
-		providers: make(map[string]protocol.Provider),
+		idlock:      idlock.New(),
+		Log:         logging.NewLogger(NAME),
+		Eventers:    make(map[string]eventer.Eventer),
+		builders:    make(map[string]protocol.Builder),
+		controllers: make(map[string]protocol.Controller),
 	}
 
 	kld.initializeProviders()
@@ -68,27 +72,34 @@ func (k *Kloud) initializeProviders() {
 
 // AddProvider adds the given Provider with the providerName. It returns an
 // error if the provider already exists.
-func (k *Kloud) AddProvider(providerName string, provider protocol.Provider) error {
-	_, ok := k.providers[providerName]
+func (k *Kloud) AddProvider(providerName string, provider interface{}) {
+	builder, ok := provider.(protocol.Builder)
 	if ok {
-		return NewError(ErrProviderAvailable)
+		k.builders[providerName] = builder
 	}
 
-	k.providers[providerName] = provider
-	return nil
+	controller, ok := provider.(protocol.Controller)
+	if ok {
+		k.controllers[providerName] = controller
+	}
 }
 
-// DeleteProvider removes the given provider from the provider list
-func (k *Kloud) DeleteProvider(providerName string) {
-	delete(k.providers, providerName)
-}
-
-// Provider returns the provider for the given provideName
-func (k *Kloud) Provider(providerName string) (protocol.Provider, error) {
-	provider, ok := k.providers[providerName]
+// Builder returns the builder for the given provideName
+func (k *Kloud) Builder(providerName string) (protocol.Builder, error) {
+	builder, ok := k.builders[providerName]
 	if !ok {
 		return nil, NewError(ErrProviderNotFound)
 	}
 
-	return provider, nil
+	return builder, nil
+}
+
+// Controller returns the controller for the given provideName
+func (k *Kloud) Controller(providerName string) (protocol.Controller, error) {
+	controller, ok := k.controllers[providerName]
+	if !ok {
+		return nil, NewError(ErrProviderNotFound)
+	}
+
+	return controller, nil
 }

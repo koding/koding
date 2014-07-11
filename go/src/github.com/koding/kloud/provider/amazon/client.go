@@ -44,6 +44,7 @@ func (a *AmazonClient) Build(instanceName string) (*protocol.ProviderArtifact, e
 	}
 
 	a.Log.Info("Creating temporary security group for this instance...")
+	// TODO: remove it after we are done
 	groupResp, err := a.Client.CreateSecurityGroup(group)
 	if err != nil {
 		return nil, err
