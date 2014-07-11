@@ -8,14 +8,6 @@ import (
 	"github.com/koding/bongo"
 )
 
-func FetchAll(channelId int64, query *request.Query, accountId int64) {
-	ConvertMessagesToMessageContainers(
-		FetchMessagesByIds(
-			FetchMessageIdsByChannelId(channelId, query),
-		),
-	)
-}
-
 func FetchMessageIdsByChannelId(channelId int64, q *request.Query) ([]int64, error) {
 	query := &bongo.Query{
 		Selector: map[string]interface{}{
