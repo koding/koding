@@ -136,6 +136,10 @@ func List(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface
 	if err != nil {
 		return response.NewBadRequest(err)
 	}
+	accountId, err := request.GetURIInt64(u, "accountId")
+	if err != nil {
+		return response.NewBadRequest(err)
+	}
 
 	reply := models.NewMessageReply()
 	reply.MessageId = messageId
