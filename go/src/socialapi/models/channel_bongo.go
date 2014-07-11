@@ -2,7 +2,6 @@ package models
 
 import (
 	"fmt"
-	"strings"
 	"time"
 
 	"github.com/koding/bongo"
@@ -49,50 +48,6 @@ func (c *Channel) Update() error {
 	}
 
 	return bongo.B.Update(c)
-}
-
-func (c *Channel) Create() error {
-	if c.Name == "" || c.GroupName == "" || c.TypeConstant == "" {
-		return fmt.Errorf("Validation failed %s - %s -%s", c.Name, c.GroupName, c.TypeConstant)
-	}
-
-	// golang returns -1 if item not in the string
-	if strings.Index(c.Name, " ") > -1 {
-		return fmt.Errorf("Channel name %q has empty space in it", c.Name)
-	}
-
-	if c.TypeConstant == Channel_TYPE_GROUP ||
-		c.TypeConstant == Channel_TYPE_FOLLOWERS /* we can add more types here */ {
-
-		var selector map[string]interface{}
-		switch c.TypeConstant {
-		case Channel_TYPE_GROUP:
-			selector = map[string]interface{}{
-				"group_name":    c.GroupName,
-				"type_constant": c.TypeConstant,
-			}
-		case Channel_TYPE_FOLLOWERS:
-			selector = map[string]interface{}{
-				"creator_id":    c.CreatorId,
-				"type_constant": c.TypeConstant,
-			}
-		}
-
-		// if err is nil
-		// it means we already have that channel
-		err := c.One(bongo.NewQS(selector))
-		if err == nil {
-			return nil
-			// return fmt.Errorf("%s typed channel is already created before for %s group", c.TypeConstant, c.GroupName)
-		}
-
-		if err != bongo.RecordNotFound {
-			return err
-		}
-
-	}
-
-	return bongo.B.Create(c)
 }
 
 func (c *Channel) Delete() error {
