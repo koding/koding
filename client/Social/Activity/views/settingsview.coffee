@@ -53,7 +53,7 @@ class ActivitySettingsView extends KDCustomHTMLView
     return @menu
 
 
-  prepareAdminMenu: ->
+  addAdminMenu: ->
     post = @getData()
 
     @addOwnerMenu()
@@ -86,7 +86,7 @@ class ActivitySettingsView extends KDCustomHTMLView
 
     @addFollowActionMenu()
     @addOwnerMenu()  if KD.isMyPost @getData()
-    @prepareAdminMenu()  if KD.checkFlag('super-admin')
+    @addAdminMenu()  if KD.checkFlag('super-admin')
 
     return @menu
 
