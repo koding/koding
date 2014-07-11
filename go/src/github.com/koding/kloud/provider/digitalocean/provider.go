@@ -49,6 +49,7 @@ func (p *Provider) NewClient(opts *protocol.MachineOptions) (*Client, error) {
 		Log:         p.Log,
 		Caching:     true,
 		CachePrefix: "cache-digitalocean",
+		Deploy:      opts.Deploy,
 	}
 	c.DigitalOcean = d
 
