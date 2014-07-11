@@ -32,7 +32,7 @@ func init() {
 // Controller holds required instances for processing events
 type Controller struct {
 	// logging instance
-	log     logging.Logger
+	log logging.Logger
 
 	// connection to RMQ
 	rmqConn *amqp.Connection
@@ -41,10 +41,10 @@ type Controller struct {
 // NotificationEvent holds required data for notifcation processing
 type NotificationEvent struct {
 	// Holds routing key for notification dispatching
-	RoutingKey string              `json:"routingKey"`
+	RoutingKey string `json:"routingKey"`
 
 	// Content of the notification
-	Content    NotificationContent `json:"contents"`
+	Content NotificationContent `json:"contents"`
 }
 
 // NotificationContent holds required data for notification events
@@ -54,17 +54,16 @@ type NotificationContent struct {
 	// notification, like "delivered" and "read"
 	TypeConstant string `json:"type"`
 
-	TargetId     int64  `json:"targetId,string"`
-	ActorId      string `json:"actorId"`
+	TargetId int64  `json:"targetId,string"`
+	ActorId  string `json:"actorId"`
 }
 
-//DefaultErrHandler controls the errors,  return false if an error occured 
+//DefaultErrHandler controls the errors,  return false if an error occured
 func (r *Controller) DefaultErrHandler(delivery amqp.Delivery, err error) bool {
 	r.log.Error("an error occured deleting realtime event", err)
 	delivery.Ack(false)
 	return false
 }
-
 
 // New Creates a new controller for realtime package
 func New(rmq *rabbitmq.RabbitMQ, log logging.Logger) (*Controller, error) {
@@ -82,7 +81,7 @@ func New(rmq *rabbitmq.RabbitMQ, log logging.Logger) (*Controller, error) {
 	return ffc, nil
 }
 
-//MessageUpdated controls message updated status 
+//MessageUpdated controls message updated status
 //if an error occured , returns error otherwise returns nil
 func (f *Controller) MessageUpdated(cm *models.ChannelMessage) error {
 	if len(cm.Token) == 0 {
@@ -218,12 +217,10 @@ func (f *Controller) MessageReplySaved(mr *models.MessageReply) error {
 		return err
 	}
 
-	// update all channels that contains this message except the author
-	// TODO: move this to own worker, realtime worker shouldn't touch db
 	f.updateAllContainingChannels(mr.MessageId, reply.AccountId)
-
 	f.sendReplyEventAsChannelUpdatedEvent(mr, channelUpdatedEventReplyAdded)
 	f.sendReplyAddedEvent(mr)
+
 	return nil
 }
 
@@ -559,7 +556,6 @@ func (f *Controller) sendChannelEvent(cml *models.ChannelMessageList, eventName 
 	return f.publishToChannel(cml.ChannelId, eventName, cmc)
 }
 
-
 // publishToChannel recieves channelId eventName and data to be published
 // it fechessecret names from mongo db a publihes to each of them
 // message is sent as a json message
@@ -660,8 +656,10 @@ func (f *Controller) sendNotification(
 	)
 }
 
-// fetch all channels that parent is in
-// update all channels
+// updateAllContainingChannels fetch all channels that parent is in and
+// updates those channels except the user who did the action.
+//
+// TODO: move this to own worker, realtime worker shouldn't touch db
 func (f *Controller) updateAllContainingChannels(parentId int64, excludedId int64) error {
 	cml := models.NewChannelMessageList()
 	channels, err := cml.FetchMessageChannels(parentId)
@@ -702,7 +700,7 @@ func (f *Controller) updateAllContainingChannels(parentId int64, excludedId int6
 		if channel.TypeConstant != models.Channel_TYPE_PINNED_ACTIVITY {
 			channel.UpdatedAt = time.Now().UTC()
 			if err := channel.Update(); err != nil {
-				// err
+				f.log.Error("channel update failed", err)
 			}
 			continue
 		}
@@ -710,7 +708,7 @@ func (f *Controller) updateAllContainingChannels(parentId int64, excludedId int6
 		// if channel.TypeConstant == models.Channel_TYPE_PINNED_ACTIVITY {
 		err := models.NewChannelMessageList().UpdateAddedAt(channel.Id, parentId)
 		if err != nil {
-			// return err
+			f.log.Error("message list update failed", err)
 		}
 		//}
 	}
