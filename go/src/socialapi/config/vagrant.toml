@@ -26,10 +26,6 @@ MessageBodyMinLen=1
 PostThrottleDuration = "5s"
 PostThrottleCount    =  3
 
-
-[Notification]
-CacheEnabled = false
-
 [emailnotification]
 TemplateRoot="workers/emailnotifier/templates/"
 
