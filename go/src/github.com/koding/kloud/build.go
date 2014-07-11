@@ -100,12 +100,10 @@ func (k *Kloud) buildMachine(username string, c *Controller) error {
 		"instanceName": providerArtifact.InstanceName,
 	}
 
-	if k.Deployer != nil {
+	if k.Deployer != nil && providerArtifact.SSHPrivateKey != "" {
 		deployOpts := &protocol.DeployOptions{
-			InstanceName: providerArtifact.InstanceName,
-			InstanceId:   providerArtifact.InstanceId,
-			IpAddress:    providerArtifact.IpAddress,
-			Username:     username,
+			Artifact: providerArtifact,
+			Username: username,
 		}
 
 		deployArtifact, err := k.Deployer.Deploy(deployOpts)

@@ -33,15 +33,16 @@ type KodingDeploy struct {
 
 func (k *KodingDeploy) Deploy(opts *protocol.DeployOptions) (*protocol.DeployArtifact, error) {
 	username := opts.Username
-	ipAddress := opts.IpAddress
-	hostname := opts.InstanceName
+	ipAddress := opts.Artifact.IpAddress
+	hostname := opts.Artifact.InstanceName
+	privateKey := opts.Artifact.SSHPrivateKey
 
 	log := func(msg string) {
 		k.Log.Info("%s ==> %s", username, msg)
 	}
 
 	sshAddress := ipAddress + ":22"
-	sshConfig, err := sshutil.SshConfig(protocol.PrivateKey)
+	sshConfig, err := sshutil.SshConfig(privateKey)
 	if err != nil {
 		return nil, err
 	}

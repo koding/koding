@@ -9,7 +9,6 @@ import (
 // image or machine for a given Provider, to start/stop/destroy/restart a
 // machine.
 type Provider interface {
-	// Build is creating a image and a machine.
 	Build(*MachineOptions) (*ProviderArtifact, error)
 
 	// Start starts the machine
@@ -56,8 +55,23 @@ type MachineOptions struct {
 	// Credential contains information for accessing third party provider services
 	Credential map[string]interface{}
 
+	// Deploy is used for custom provisioning and creating a machine
+	Deploy *ProviderDeploy
+
 	// Eventer pushes the latest events to the build event.
 	Eventer eventer.Eventer
+}
+
+// If available a key pair with the given public key and name should be
+// deployed to the machine, the corresponding PrivateKey should be returned
+// in the ProviderArtifact. Some providers such as Amazon creates
+// publicKey's on the fly and generates the privateKey themself. The
+// Deployer interface is then executed (only if the necessary privateKey is
+// passed)
+type ProviderDeploy struct {
+	PublicKey  string
+	PrivateKey string
+	KeyName    string
 }
 
 // ProviderArtifact should be returned from a Build method.
@@ -74,6 +88,10 @@ type ProviderArtifact struct {
 
 	// IpAddress defines the public ip address of the running machine.
 	IpAddress string
+
+	// PrivateKey defines a private SSH key added to the machine. It's only
+	// returned if the SSHKeyName and SSHPublicKey is defined in MachineOptions
+	SSHPrivateKey string
 }
 
 // InfoArtifact should be returned from a Info method.
@@ -94,18 +112,8 @@ type Deployer interface {
 
 // DeployOptions is passed to a Deploy method
 type DeployOptions struct {
-	// InstanceName should define the name/hostname of the created machine. It
-	// should be equal to the InstanceName that was passed via MachineOptions.
-	InstanceName string
-
-	// InstanceId should define a unique ID that defined the created machine.
-	// It's different than the machineID and is usually an unique id which is
-	// given by the third-party provider, for example DigitalOcean returns a
-	// droplet Id.
-	InstanceId string
-
-	// IpAddress defines the public ip address of the running machine.
-	IpAddress string
+	// Artifact comes from a Build process
+	Artifact *ProviderArtifact
 
 	// Username defines the username to which the machine belongs.
 	Username string

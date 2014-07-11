@@ -13,18 +13,9 @@ import (
 
 type OpenstackClient struct {
 	*os.Openstack
-	Log           logging.Logger
-	Push          func(string, int, machinestate.State)
-	AuthURL       string
-	ProviderName  string
-	CredentialRaw map[string]interface{}
-	BuilderRaw    map[string]interface{}
-}
-
-func (o *OpenstackClient) Initialize() error {
-	var err error
-	o.Openstack, err = os.New(o.AuthURL, o.ProviderName, o.CredentialRaw, o.BuilderRaw)
-	return err
+	Log    logging.Logger
+	Push   func(string, int, machinestate.State)
+	Deploy *protocol.ProviderDeploy
 }
 
 func (o *OpenstackClient) Build(instanceName, imageId, flavorId string) (*protocol.ProviderArtifact, error) {
@@ -34,18 +25,24 @@ func (o *OpenstackClient) Build(instanceName, imageId, flavorId string) (*protoc
 		return nil, err
 	}
 
-	// check if our key exist
-	key, err := o.ShowKey(protocol.KeyName)
-	if err != nil {
-		return nil, err
-	}
-
-	// key doesn't exist, create a new one
-	if key.Name == "" {
-		key, err = o.CreateKey(protocol.KeyName, protocol.PublicKey)
+	var key gophercloud.KeyPair
+	var privateKey string
+	if o.Deploy != nil {
+		// check if our key exist
+		key, err = o.ShowKey(o.Deploy.KeyName)
 		if err != nil {
 			return nil, err
 		}
+
+		// key doesn't exist, create a new one
+		if key.Name == "" {
+			key, err = o.CreateKey(o.Deploy.KeyName, o.Deploy.PublicKey)
+			if err != nil {
+				return nil, err
+			}
+		}
+
+		privateKey = o.Deploy.PrivateKey
 	}
 
 	// check if the flavor does exist
@@ -91,9 +88,10 @@ func (o *OpenstackClient) Build(instanceName, imageId, flavorId string) (*protoc
 
 	o.Push(fmt.Sprintf("Server is created %s", instanceName), 70, machinestate.Building)
 	return &protocol.ProviderArtifact{
-		IpAddress:    server.AccessIPv4,
-		InstanceName: server.Name,
-		InstanceId:   server.Id,
+		IpAddress:     server.AccessIPv4,
+		InstanceName:  server.Name,
+		InstanceId:    server.Id,
+		SSHPrivateKey: privateKey,
 	}, nil
 }
 

@@ -7,7 +7,7 @@ import (
 )
 
 func (a *Amazon) CreateKey(name string) (string, error) {
-	keyPair, err := a.ec2.CreateKeyPair(name)
+	keyPair, err := a.Client.CreateKeyPair(name)
 	if err != nil {
 		return "", err
 	}
@@ -16,12 +16,12 @@ func (a *Amazon) CreateKey(name string) (string, error) {
 }
 
 func (a *Amazon) DestroyKey(name string) error {
-	_, err := a.ec2.DeleteKeyPair(name)
+	_, err := a.Client.DeleteKeyPair(name)
 	return err
 }
 
 func (a *Amazon) Showkey(name string) error {
-	resp, err := a.ec2.KeyPairs([]string{name}, ec2.NewFilter())
+	resp, err := a.Client.KeyPairs([]string{name}, ec2.NewFilter())
 	if err != nil {
 		return err
 	}

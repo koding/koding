@@ -3,6 +3,7 @@ package openstack
 import (
 	"errors"
 
+	os "github.com/koding/kloud/api/openstack"
 	"github.com/koding/kloud/eventer"
 	"github.com/koding/kloud/machinestate"
 	"github.com/koding/kloud/protocol"
@@ -42,13 +43,12 @@ func (p *Provider) NewClient(opts *protocol.MachineOptions) (*OpenstackClient, e
 				Percentage: percentage,
 			})
 		},
-		AuthURL:       p.AuthURL,
-		ProviderName:  p.ProviderName,
-		CredentialRaw: opts.Credential,
-		BuilderRaw:    opts.Builder,
+		Deploy: opts.Deploy,
 	}
 
-	if err := o.Initialize(); err != nil {
+	var err error
+	o.Openstack, err = os.New(p.AuthURL, p.ProviderName, opts.Credential, opts.Builder)
+	if err != nil {
 		return nil, err
 	}
 

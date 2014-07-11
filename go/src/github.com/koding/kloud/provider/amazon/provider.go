@@ -1,10 +1,21 @@
 package amazon
 
 import (
+	"errors"
+
+	aws "github.com/koding/kloud/api/amazon"
 	"github.com/koding/kloud/eventer"
 	"github.com/koding/kloud/machinestate"
 	"github.com/koding/kloud/protocol"
 	"github.com/koding/logging"
+)
+
+var (
+	// Ubuntu 14.04 EBS backed, amd64, HVM
+	DefaultAMI = "ami-a6926dce"
+
+	// Ubuntu 14.0.4 EBS backed, amd64,  PV
+	// DefaultAMI = "ami-80778be8"
 )
 
 type Provider struct {
@@ -24,11 +35,11 @@ func (p *Provider) NewClient(opts *protocol.MachineOptions) (*AmazonClient, erro
 				Percentage: percentage,
 			})
 		},
-		CredentialRaw: opts.Credential,
-		BuilderRaw:    opts.Builder,
 	}
 
-	if err := a.Initialize(); err != nil {
+	var err error
+	a.Amazon, err = aws.New(opts.Credential, opts.Builder)
+	if err != nil {
 		return nil, err
 	}
 
@@ -40,7 +51,16 @@ func (p *Provider) Name() string {
 }
 
 func (p *Provider) Build(opts *protocol.MachineOptions) (*protocol.ProviderArtifact, error) {
-	return nil, nil
+	a, err := p.NewClient(opts)
+	if err != nil {
+		return nil, err
+	}
+
+	if opts.InstanceName == "" {
+		return nil, errors.New("server name is empty")
+	}
+
+	return a.Build(opts.InstanceName)
 }
 
 func (p *Provider) Start(opts *protocol.MachineOptions) (*protocol.ProviderArtifact, error) {

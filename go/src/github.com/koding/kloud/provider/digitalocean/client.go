@@ -37,7 +37,7 @@ type Client struct {
 // given snapshot/image exist it directly skips to creating the droplet. It
 // acceps two string arguments, first one is the snapshotname, second one is
 // the dropletName.
-func (c *Client) Build(snapshotName, dropletName, username string) (*protocol.ProviderArtifact, error) {
+func (c *Client) Build(snapshotName, dropletName string) (*protocol.ProviderArtifact, error) {
 	// needed because this is passed as `data` to packer.Provider
 	c.Builder.SnapshotName = snapshotName
 

@@ -83,11 +83,7 @@ func (p *Provider) Build(opts *protocol.MachineOptions) (*protocol.ProviderArtif
 		return nil, errors.New("dropletName is empty")
 	}
 
-	if opts.Username == "" {
-		return nil, errors.New("username is empty")
-	}
-
-	return doClient.Build(opts.ImageName, opts.InstanceName, opts.Username)
+	return doClient.Build(opts.ImageName, opts.InstanceName)
 }
 
 func (p *Provider) Start(opts *protocol.MachineOptions) (*protocol.ProviderArtifact, error) {
