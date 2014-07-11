@@ -1,17 +1,4 @@
-class MachineList extends KDModalView
-
-
-  constructor: (options = {}, data)->
-
-    options = $.extend
-      title    : "Machine List"
-      cssClass : "github-modal"
-      width    : 540
-      overlay  : yes
-    , options
-
-    super options, data
-
+class MachineList extends KDView
 
   viewAppended: ->
 
@@ -22,18 +9,16 @@ class MachineList extends KDModalView
         width     : 16
 
     @addSubView @container = new KDView
-      cssClass : 'hidden'
-
     @machineListController = new KDListViewController
-      viewOptions       :
-        type            : 'machine'
-        wrapper         : yes
-        itemClass       : MachineItem
-        itemOptions     :
-          buttonTitle   : 'select'
-      noItemFoundWidget : new KDView
-        cssClass        : 'noitem-warning'
-        partial         : "There is no machine to show for now."
+      selection            : yes
+
+      viewOptions          :
+        wrapper            : yes
+        itemClass          : MachineItemListView
+        itemOptions        : @getOption 'itemOptions'
+      noItemFoundWidget    : new KDView
+        cssClass           : 'noitem-warning'
+        partial            : "There is no machine to show for now."
 
     @container.addSubView \
       @machineListView = @machineListController.getView()
@@ -45,16 +30,33 @@ class MachineList extends KDModalView
 
   fetchMachines: ->
 
+    { query } = @getOptions()
+    query    ?= {}
+
     @loader.show()
 
     {computeController} = KD.singletons
-    computeController.fetchMachines (err, machines)=>
+    computeController.queryMachines query, (err, machines)=>
 
       # TODO handle errors correctly
       return if KD.showError err
 
-      @container.show()
       @loader.hide()
-
       @machineListController.replaceAllItems machines
 
+
+class MachineListModal extends KDModalView
+
+  constructor: (options = {}, data)->
+
+    options = $.extend
+      title    : "Machine List"
+      cssClass : "machines-modal"
+      width    : 540
+      overlay  : yes
+    , options
+
+    super options, data
+
+    @once 'viewAppended', =>
+      @addSubView new MachineList @getOption 'listOptions'

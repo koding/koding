@@ -17,7 +17,7 @@ services=(
   koding/kites/kontrol
   koding/kites/klient
   koding/kites/kloud
-  koding/kites/kloud/kloudctl
+  github.com/koding/kloudctl
   koding/virt/vmproxy
   koding/virt/vmtool
   koding/overview

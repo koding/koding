@@ -25,6 +25,8 @@ module.exports = class JMachine extends Module
       static            :
         one             :
           (signature String, Function)
+        some            :
+          (signature Object, Function)
       instance          :
         reviveUsers     :
           (signature Function)
@@ -139,6 +141,25 @@ module.exports = class JMachine extends Module
 
       JMachine.one selector, (err, machine)->
         callback err, machine
+
+
+  @some$: permit 'list machines',
+
+    success: revive
+
+      shouldReviveClient   : yes
+      shouldReviveProvider : no
+
+    , (client, selector, callback)->
+
+      { r: { group, user } } = client
+
+      selector       ?= { }
+      selector.users  = $elemMatch: id: user.getId()
+      selector.groups = $elemMatch: id: group.getId()
+
+      JMachine.some selector, limit: 30, (err, machines)->
+        callback err, machines
 
 
   setProvisioner: permit 'set provisioner',

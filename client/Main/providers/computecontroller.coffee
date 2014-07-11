@@ -17,55 +17,75 @@ class ComputeController extends KDController
 
       @eventListener = new ComputeEventListener
 
-      @on "MachineBuilt",   @bound 'reset'
-      @on "MachineDestroy", @bound 'reset'
+      @on "MachineBuilt",   => do @reset
+      @on "MachineDestroy", => do @reset
 
       @fetchStacks => @emit 'ready'
 
 
-  fetchStacks: (callback = noop)->
+  fetchStacks: do (queue=[])->
 
-    if @stacks
-      callback null, @stacks
-      info "Stacks returned from cache."
-      return
+    (callback = noop)-> KD.singletons.mainController.ready =>
 
-    KD.remote.api.JStack.some {}, (err, stacks = [])=>
-      return callback err  if err?
+      if @stacks
+        callback null, @stacks
+        info "Stacks returned from cache."
+        return
 
-      if stacks.length > 0
+      return  if (queue.push callback) > 1
+
+      KD.remote.api.JStack.some {}, (err, stacks = [])=>
+
+        if err?
+          cb err  for cb in queue
+          queue = []
+          return
+
+        if stacks.length > 0
+
+          machines = []
+          stacks.forEach (stack)->
+            stack.machines.forEach (machine, index)->
+              machine = new Machine { machine }
+              stack.machines[index] = machine
+              machines.push machine
+
+          @machines = machines
+          @stacks   = stacks
+          cb null, stacks  for cb in queue
+
+        else
+          cb null, []  for cb in queue
+
+        queue = []
+
+
+  fetchMachines: do (queue=[])->
+
+    (callback = noop)-> KD.singletons.mainController.ready =>
+
+      if @machines
+        callback null, @machines
+        info "Machines returned from cache."
+        return
+
+      return  if (queue.push callback) > 1
+
+      @fetchStacks (err, stacks)=>
+
+        if err?
+          cb err  for cb in queue
+          queue = []
+          return
 
         machines = []
         stacks.forEach (stack)->
-          stack.machines.forEach (machine, index)->
-            machine = new Machine { machine }
-            stack.machines[index] = machine
+          stack.machines.forEach (machine)->
             machines.push machine
 
         @machines = machines
-        @stacks   = stacks
-        callback null, stacks
-
-      else
-        callback null, []
-
-
-  fetchMachines: (callback = noop)->
-
-    if @machines
-      callback null, @machines
-      info "Machines returned from cache."
-      return
-
-    @fetchStacks (err, stacks)=>
-      return callback err  if err?
-
-      machines = []
-      stacks.forEach (stack)->
-        stack.machines.forEach (machine)->
-          machines.push machine
-
-      callback null, @machines = machines
+        cb null, machines  for cb in queue
+        queue = []
 
 
   fetchMachine: (idOrUid, callback = noop)->
@@ -73,6 +93,13 @@ class ComputeController extends KDController
     KD.remote.api.JMachine.one idOrUid, (err, machine)->
       if KD.showError err then callback err
       else if machine? then callback null, new Machine { machine }
+
+
+  queryMachines: (query = {}, callback = noop)->
+
+    KD.remote.api.JMachine.some query, (err, machines)=>
+      if KD.showError err then callback err
+      else callback null, (new Machine { machine } for machine in machines)
 
 
   credentialsFor: (provider, callback)->
@@ -172,7 +199,7 @@ class ComputeController extends KDController
       status      : Machine.State.Stopping
       percentage  : 0
 
-    machine.getBaseKite().disconnect()
+    machine.getBaseKite( createIfExists = no ).disconnect()
 
     @kloud.stop { machineId: machine._id }
 
@@ -185,6 +212,14 @@ class ComputeController extends KDController
 
     .catch errorHandler 'stop', @eventListener, machine
 
+
+  StateEventMap =
+
+    Stopping    : "stop"
+    Building    : "build"
+    Starting    : "start"
+    Rebooting   : "restart"
+    Terminating : "destroy"
 
   info: (machine)->
 
@@ -211,11 +246,3 @@ class ComputeController extends KDController
 
     .catch errorHandler 'info', @eventListener, machine
 
-
-  StateEventMap =
-
-    Stopping    : "stop"
-    Building    : "build"
-    Starting    : "start"
-    Rebooting   : "restart"
-    Terminating : "destroy"

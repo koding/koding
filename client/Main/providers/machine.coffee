@@ -39,14 +39,14 @@ class Machine extends KDObject
     @label or @publicAddress or @uid or "one of #{KD.nick()}'s machine"
 
 
-  getBaseKite: ->
+  getBaseKite: (createIfNotExists = yes)->
 
     { kontrol } = KD.singletons
 
     klient = kontrol.kites?.klient?[@uid]
     return klient  if klient
 
-    if @queryString?
+    if @queryString? and createIfNotExists
 
       kontrol.getKite { @queryString, correlationName: @uid }
 
