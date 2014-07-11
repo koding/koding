@@ -1,6 +1,13 @@
 package response
 
-import "net/http"
+import (
+	"errors"
+	"net/http"
+)
+
+var (
+	genericError = errors.New("an error occured")
+)
 
 type BadRequest struct {
 	error

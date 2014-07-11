@@ -13,7 +13,7 @@ import (
 // Fetch fetches the data from db by given parameters(fields of the struct)
 func (b *Bongo) Fetch(i Modellable) error {
 	if i.GetId() == 0 {
-		return errors.New(fmt.Sprintf("Id is not set for %s", i.TableName()))
+		return fmt.Errorf("Id is not set for %s", i.TableName())
 	}
 
 	if err := b.DB.Table(i.TableName()).
@@ -50,7 +50,7 @@ func (b *Bongo) Create(i Modellable) error {
 // Update updates all fields of a struct with assigned data
 func (b *Bongo) Update(i Modellable) error {
 	if i.GetId() == 0 {
-		return errors.New(fmt.Sprintf("Id is not set for %s", i.TableName()))
+		return fmt.Errorf("id is not set for %s", i.TableName())
 	}
 
 	// Update and Create is using the Save method, so they are
@@ -63,7 +63,7 @@ func (b *Bongo) Update(i Modellable) error {
 // into consideration
 func (b *Bongo) Delete(i Modellable) error {
 	if i.GetId() == 0 {
-		return errors.New(fmt.Sprintf("Id is not set for %s", i.TableName()))
+		return fmt.Errorf("id is not set for %s", i.TableName())
 	}
 
 	if err := b.DB.Delete(i).Error; err != nil {
