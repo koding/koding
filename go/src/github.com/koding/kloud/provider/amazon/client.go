@@ -29,7 +29,8 @@ func (a *AmazonClient) Build(instanceName string) (*protocol.Artifact, error) {
 	if err != nil {
 		return nil, err
 	}
-	groupName := "koding-kloud"
+
+	groupName := "koding-kloud" // TODO: make it from the package level and remove it from here
 	a.Log.Info("Checking if security group '%s' exists", groupName)
 	group, err := a.SecurityGroup(groupName)
 	if err != nil {
@@ -247,6 +248,35 @@ func (a *AmazonClient) Stop() error {
 	ws := waitstate.WaitState{
 		StateFunc:    stateFunc,
 		DesiredState: machinestate.Stopped,
+		Start:        25,
+		Finish:       60,
+	}
+
+	return ws.Wait()
+}
+
+func (a *AmazonClient) Destroy() error {
+	a.Push("Terminating machine", 10, machinestate.Terminating)
+	_, err := a.Client.TerminateInstances([]string{a.Id()})
+	if err != nil {
+		return err
+	}
+
+	stateFunc := func(currentPercentage int) (machinestate.State, error) {
+		instance, err := a.Instance(a.Id())
+		if err != nil {
+			return 0, err
+		}
+
+		a.Push(fmt.Sprintf("Terminate instance '%s'", a.Builder.InstanceName),
+			currentPercentage, machinestate.Terminated)
+
+		return statusToState(instance.State.Name), nil
+	}
+
+	ws := waitstate.WaitState{
+		StateFunc:    stateFunc,
+		DesiredState: machinestate.Terminated,
 		Start:        25,
 		Finish:       60,
 	}

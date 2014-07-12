@@ -89,7 +89,12 @@ func (p *Provider) Restart(opts *protocol.MachineOptions) error {
 }
 
 func (p *Provider) Destroy(opts *protocol.MachineOptions) error {
-	return ErrNotSupported
+	a, err := p.NewClient(opts)
+	if err != nil {
+		return err
+	}
+
+	return a.Destroy()
 }
 
 func (p *Provider) Info(opts *protocol.MachineOptions) (*protocol.InfoArtifact, error) {
