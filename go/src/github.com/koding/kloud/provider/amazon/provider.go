@@ -98,5 +98,10 @@ func (p *Provider) Destroy(opts *protocol.MachineOptions) error {
 }
 
 func (p *Provider) Info(opts *protocol.MachineOptions) (*protocol.InfoArtifact, error) {
-	return nil, ErrNotSupported
+	a, err := p.NewClient(opts)
+	if err != nil {
+		return nil, err
+	}
+
+	return a.Info()
 }

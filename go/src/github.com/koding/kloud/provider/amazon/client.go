@@ -284,6 +284,23 @@ func (a *AmazonClient) Destroy() error {
 	return ws.Wait()
 }
 
+func (a *AmazonClient) Info() (*protocol.InfoArtifact, error) {
+	instance, err := a.Instance(a.Id())
+	if err != nil {
+		return nil, err
+	}
+
+	if statusToState(instance.State.Name) == machinestate.Unknown {
+		a.Log.Warning("Unknown amazon status: %+v. This needs to be fixed.", instance.State)
+	}
+
+	return &protocol.InfoArtifact{
+		State: statusToState(instance.State.Name),
+		Name:  instance.Tags[0].Value,
+	}, nil
+
+}
+
 // statusToState converts a amazon status to a sensible machinestate.State
 // format
 func statusToState(status string) machinestate.State {
