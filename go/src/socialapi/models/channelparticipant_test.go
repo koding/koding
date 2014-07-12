@@ -2,6 +2,7 @@ package models
 
 import (
 	"testing"
+	"time"
 
 	. "github.com/smartystreets/goconvey/convey"
 )
@@ -27,6 +28,26 @@ func TestChannelparticipantGetId(t *testing.T) {
 				So(NewChannelParticipant().GetId(), ShouldEqual, 0)
 			})
 			So(NewChannelParticipant, ShouldNotBeNil)
+		})
+	})
+}
+
+func TestChannelParticipantBeforeUpdate(t *testing.T) {
+	Convey("While testing before update", t, func() {
+		Convey("LastSeenAt should be updated", func() {
+			lastSeenAt := time.Now().UTC()
+
+			c := NewChannelParticipant()
+			c.LastSeenAt = lastSeenAt
+
+			// call before update
+			err := c.BeforeUpdate()
+
+			// make sure err is nil
+			So(err, ShouldBeNil)
+			// check preset last seen at is not same after calling
+			// before update function
+			So(c.LastSeenAt, ShouldNotEqual, lastSeenAt)
 		})
 	})
 }
