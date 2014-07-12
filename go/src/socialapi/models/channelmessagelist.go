@@ -394,3 +394,13 @@ func (c *ChannelMessageList) Count(channelId int64) (int, error) {
 
 	return c.CountWithQuery(query)
 }
+
+func (c *ChannelMessageList) Glance() error {
+	c.RevisedAt = time.Now().Add((time.Second * 1)).UTC()
+
+	if err := c.Update(); err != nil {
+		return err
+	}
+
+	return nil
+}
