@@ -32,6 +32,15 @@ func TestChannelparticipantGetId(t *testing.T) {
 	})
 }
 
+func TestChannelParticipantTableName(t *testing.T) {
+	Convey("While getting table name", t, func() {
+		Convey("table names should match", func() {
+			c := ChannelParticipant{}
+			So(c.TableName(), ShouldEqual, "api.channel_participant")
+		})
+	})
+}
+
 func TestChannelParticipantBeforeUpdate(t *testing.T) {
 	Convey("While testing before update", t, func() {
 		Convey("LastSeenAt should be updated", func() {
