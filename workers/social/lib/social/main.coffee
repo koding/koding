@@ -63,7 +63,7 @@ koding = new Bongo {
     username    : 'koding'
     port        : argv['kite-port']
     prefix      : 'social'
-    kiteKey     : joinPath __dirname, '../../../../kite_home/koding/kite.key'
+    kiteKey     : argv['kite-key'] or joinPath(process.env.HOME,".kite/kite.key")
 
     fetchClient: (name, context, callback) ->
       { JAccount } = koding.models
