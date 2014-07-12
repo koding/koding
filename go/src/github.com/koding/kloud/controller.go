@@ -311,10 +311,10 @@ func (k *Kloud) coreMethods(r *kite.Request, c *Controller, fn func(*protocol.Ma
 		k.Log.Info("[controller]: running method %s with mach options %v", r.Method, machOptions)
 		err := fn(machOptions)
 		if err != nil {
-			k.Log.Error("[controller] %s failed: %s. Machine state is %s now.",
-				r.Method, err.Error(), s.initial)
+			k.Log.Error("[controller] %s failed: %s. Machine state did't change and is set to '%s' now.",
+				r.Method, err.Error(), c.CurrenState)
 
-			status = s.initial
+			status = c.CurrenState
 			msg = err.Error()
 		} else {
 			k.Log.Info("[%s] is successfull. State is now: %+v", r.Method, status)

@@ -241,7 +241,8 @@ func (a *AmazonClient) Stop() error {
 			return 0, err
 		}
 
-		a.Push(fmt.Sprintf("Stopping instance '%s'", a.Builder.InstanceName),
+		a.Push(fmt.Sprintf("Stopping instance '%s'. Current state: %s",
+			a.Builder.InstanceName, instance.State.Name),
 			currentPercentage, machinestate.Stopping)
 
 		return statusToState(instance.State.Name), nil
