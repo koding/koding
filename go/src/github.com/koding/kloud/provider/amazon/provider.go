@@ -85,7 +85,12 @@ func (p *Provider) Stop(opts *protocol.MachineOptions) error {
 }
 
 func (p *Provider) Restart(opts *protocol.MachineOptions) error {
-	return ErrNotSupported
+	a, err := p.NewClient(opts)
+	if err != nil {
+		return err
+	}
+
+	return a.Restart()
 }
 
 func (p *Provider) Destroy(opts *protocol.MachineOptions) error {

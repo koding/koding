@@ -114,19 +114,14 @@ func (a *AmazonClient) Build(instanceName string) (*protocol.Artifact, error) {
 	// by panicing
 	instance := resp.Instances[0]
 
-	// Rename the
-	a.Log.Info("Adding the tag '%s' to the instance id '%s'", instanceName, instance.InstanceId)
-	if err := a.AddTag(instance.InstanceId, "Name", instanceName); err != nil {
-		return nil, err
-	}
-
 	stateFunc := func(currentPercentage int) (machinestate.State, error) {
 		instance, err = a.Instance(instance.InstanceId)
 		if err != nil {
 			return 0, err
 		}
 
-		a.Push(fmt.Sprintf("Launching instance '%s'", instanceName),
+		a.Push(fmt.Sprintf("Launching instance '%s'. Current state: %s",
+			instanceName, instance.State.Name),
 			currentPercentage, machinestate.Building)
 		return statusToState(instance.State.Name), nil
 	}
@@ -138,6 +133,12 @@ func (a *AmazonClient) Build(instanceName string) (*protocol.Artifact, error) {
 		Finish:       60,
 	}
 	if err := ws.Wait(); err != nil {
+		return nil, err
+	}
+
+	// Rename the machine
+	a.Log.Info("Adding the tag '%s' to the instance '%s'", instanceName, instance.InstanceId)
+	if err := a.AddTag(instance.InstanceId, "Name", instanceName); err != nil {
 		return nil, err
 	}
 
@@ -201,7 +202,8 @@ func (a *AmazonClient) Start() (*protocol.Artifact, error) {
 			return 0, err
 		}
 
-		a.Push(fmt.Sprintf("Starting instance '%s'", a.Builder.InstanceName),
+		a.Push(fmt.Sprintf("Starting instance '%s'. Current state: %s",
+			a.Builder.InstanceName, instance.State.Name),
 			currentPercentage, machinestate.Starting)
 
 		return statusToState(instance.State.Name), nil
@@ -255,6 +257,36 @@ func (a *AmazonClient) Stop() error {
 	return ws.Wait()
 }
 
+func (a *AmazonClient) Restart() error {
+	a.Push("Restarting machine", 10, machinestate.Rebooting)
+	_, err := a.Client.RebootInstances(a.Id())
+	if err != nil {
+		return err
+	}
+
+	stateFunc := func(currentPercentage int) (machinestate.State, error) {
+		instance, err := a.Instance(a.Id())
+		if err != nil {
+			return 0, err
+		}
+
+		a.Push(fmt.Sprintf("Rebooting instance '%s'. Current state: %s",
+			a.Builder.InstanceName, instance.State.Name),
+			currentPercentage, machinestate.Rebooting)
+
+		return statusToState(instance.State.Name), nil
+	}
+
+	ws := waitstate.WaitState{
+		StateFunc:    stateFunc,
+		DesiredState: machinestate.Running,
+		Start:        25,
+		Finish:       60,
+	}
+
+	return ws.Wait()
+}
+
 func (a *AmazonClient) Destroy() error {
 	a.Push("Terminating machine", 10, machinestate.Terminating)
 	_, err := a.Client.TerminateInstances([]string{a.Id()})
@@ -268,8 +300,9 @@ func (a *AmazonClient) Destroy() error {
 			return 0, err
 		}
 
-		a.Push(fmt.Sprintf("Terminate instance '%s'", a.Builder.InstanceName),
-			currentPercentage, machinestate.Terminated)
+		a.Push(fmt.Sprintf("Terminating instance '%s'. Current state: %s",
+			a.Builder.InstanceName, instance.State.Name),
+			currentPercentage, machinestate.Terminating)
 
 		return statusToState(instance.State.Name), nil
 	}
