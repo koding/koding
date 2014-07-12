@@ -3,8 +3,9 @@
 
 echo '#!/bin/sh -e'                                                       >/etc/rc.local
 echo "iptables -F"                                                        >>/etc/rc.local
-echo "iptables -A INPUT -i lo -j ACCEPT"                                  >>/etc/rc.local
+echo "iptables -A INPUT -s 66.249.81.21 -j ACCEPT"                       >>/etc/rc.local
 echo "iptables -A INPUT -s 208.72.139.54 -j ACCEPT"                       >>/etc/rc.local
+echo "iptables -A INPUT -s 38.110.166.34 -j ACCEPT"                       >>/etc/rc.local
 echo "iptables -A INPUT -s 70.197.5.50 -j ACCEPT"                         >>/etc/rc.local
 echo "iptables -A INPUT -s 208.87.56.148 -j ACCEPT"                       >>/etc/rc.local
 echo "iptables -A INPUT -s 208.87.59.205 -j ACCEPT"                       >>/etc/rc.local
@@ -88,9 +89,10 @@ chmod 600 /root/.ssh/id_rsa
 
 # install & build code
 apt-get update > /dev/null
-apt-get install -y golang nodejs npm git graphicsmagick supervisor > /dev/null
+apt-get install -y golang nodejs npm git graphicsmagick supervisor mosh > /dev/null
 cp /usr/bin/nodejs /usr/bin/node
 cp /usr/bin/supervisorctl /usr/bin/s-
+mosh-server
 
 cd /opt
 git clone git@github.com:koding/koding.git
@@ -114,4 +116,9 @@ NO_UGLIFYJS=true ./build
 
 cd /opt/koding/go/src/socialapi
 make install
+
+cd /opt/koding
+bash ./run
+bash ./run log
+
 

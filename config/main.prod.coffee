@@ -252,7 +252,7 @@ KONFIG.ENV            = generateEnvVariables   KONFIG
 KONFIG.supervisorConf = generateSupervisorConf KONFIG
 KONFIG.runFile        = generateRunFile        KONFIG
 
-console.log KONFIG.runFile
+# console.log KONFIG.runFile
 
 module.exports = KONFIG
 
