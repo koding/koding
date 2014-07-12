@@ -67,7 +67,12 @@ func (p *Provider) Build(opts *protocol.MachineOptions) (*protocol.Artifact, err
 }
 
 func (p *Provider) Start(opts *protocol.MachineOptions) (*protocol.Artifact, error) {
-	return nil, ErrNotSupported
+	a, err := p.NewClient(opts)
+	if err != nil {
+		return nil, err
+	}
+
+	return a.Start()
 }
 
 func (p *Provider) Stop(opts *protocol.MachineOptions) error {

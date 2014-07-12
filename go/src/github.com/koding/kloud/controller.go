@@ -211,7 +211,7 @@ func (k *Kloud) start(r *kite.Request, c *Controller) (interface{}, error) {
 			return err
 		}
 
-		// some providers might provide zero information, therefore do not
+		// some providers might provide empty information, therefore do not
 		// update anything for them
 		if resp == nil {
 			return nil

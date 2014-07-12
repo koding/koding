@@ -186,9 +186,48 @@ func (a *AmazonClient) DeployKey() (string, error) {
 	return key.KeyName, nil
 }
 
+func (a *AmazonClient) Start() (*protocol.Artifact, error) {
+	a.Push("Starting machine", 10, machinestate.Starting)
+	_, err := a.Client.StartInstances(a.Id())
+	if err != nil {
+		return nil, err
+	}
+
+	var instance ec2.Instance
+	stateFunc := func(currentPercentage int) (machinestate.State, error) {
+		instance, err = a.Instance(a.Id())
+		if err != nil {
+			return 0, err
+		}
+
+		a.Push(fmt.Sprintf("Starting instance '%s'", a.Builder.InstanceName),
+			currentPercentage, machinestate.Starting)
+
+		return statusToState(instance.State.Name), nil
+	}
+
+	ws := waitstate.WaitState{
+		StateFunc:    stateFunc,
+		DesiredState: machinestate.Running,
+		Start:        25,
+		Finish:       60,
+	}
+
+	if err := ws.Wait(); err != nil {
+		return nil, err
+	}
+
+	artifact := protocol.NewArtifact()
+	artifact.InstanceId = instance.InstanceId
+	artifact.InstanceName = instance.Tags[0].Value
+	artifact.IpAddress = instance.PublicIpAddress
+
+	return artifact, nil
+}
+
 func (a *AmazonClient) Stop() error {
 	a.Push("Stopping machine", 10, machinestate.Stopping)
-	resp, err := a.Client.StopInstances(a.Id())
+	_, err := a.Client.StopInstances(a.Id())
 	if err != nil {
 		return err
 	}
