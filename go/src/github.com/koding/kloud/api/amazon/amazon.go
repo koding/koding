@@ -19,6 +19,10 @@ type Amazon struct {
 	}
 
 	Builder struct {
+		// Populated by Kloud
+		InstanceId   string `mapstructure:"instanceId"`
+		InstanceName string `mapstructure:"instanceName"`
+
 		// The EC2 instance type to use while building the AMI, such as
 		// "m1.small" (required)
 		InstanceType string `mapstructure:"instance_type"`
@@ -87,4 +91,9 @@ func New(credential, builder map[string]interface{}) (*Amazon, error) {
 	)
 
 	return a, nil
+}
+
+// Id returns the instances unique Id
+func (a *Amazon) Id() string {
+	return a.Builder.InstanceId
 }

@@ -21,6 +21,7 @@ type AmazonClient struct {
 }
 
 func (a *AmazonClient) Build(instanceName string) (*protocol.Artifact, error) {
+	// create it here because we might put some state data into Artifact Storage
 	artifact := protocol.NewArtifact()
 
 	a.Log.Info("Checking if image '%s' exists", a.Builder.SourceAmi)
@@ -183,6 +184,35 @@ func (a *AmazonClient) DeployKey() (string, error) {
 	}
 
 	return key.KeyName, nil
+}
+
+func (a *AmazonClient) Stop() error {
+	a.Push("Stopping machine", 10, machinestate.Stopping)
+	resp, err := a.Client.StopInstances(a.Id())
+	if err != nil {
+		return err
+	}
+
+	stateFunc := func(currentPercentage int) (machinestate.State, error) {
+		instance, err := a.Instance(a.Id())
+		if err != nil {
+			return 0, err
+		}
+
+		a.Push(fmt.Sprintf("Stopping instance '%s'", a.Builder.InstanceName),
+			currentPercentage, machinestate.Stopping)
+
+		return statusToState(instance.State.Name), nil
+	}
+
+	ws := waitstate.WaitState{
+		StateFunc:    stateFunc,
+		DesiredState: machinestate.Stopped,
+		Start:        25,
+		Finish:       60,
+	}
+
+	return ws.Wait()
 }
 
 // statusToState converts a amazon status to a sensible machinestate.State

@@ -71,7 +71,12 @@ func (p *Provider) Start(opts *protocol.MachineOptions) (*protocol.Artifact, err
 }
 
 func (p *Provider) Stop(opts *protocol.MachineOptions) error {
-	return ErrNotSupported
+	a, err := p.NewClient(opts)
+	if err != nil {
+		return err
+	}
+
+	return a.Stop()
 }
 
 func (p *Provider) Restart(opts *protocol.MachineOptions) error {
