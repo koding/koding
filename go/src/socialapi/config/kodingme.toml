@@ -26,9 +26,6 @@ DB  = 0
 [limits]
 MessageBodyMinLen = 1
 
-[Notification]
-CacheEnabled = false
-
 [sendgrid]
 Username        = "koding"
 Password        = "DEQl7_Dr"

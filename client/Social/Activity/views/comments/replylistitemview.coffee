@@ -49,7 +49,7 @@ class ReplyListItemView extends CommentListItemView
 
     @likeView    = new ReplyLikeView {}, data
     @timeAgoView = new KDTimeAgoView {}, createdAt
-
+    @timeView    = new CommentTimeView {}, createdAt
 
   viewAppended: JView::viewAppended
 
@@ -58,7 +58,7 @@ class ReplyListItemView extends CommentListItemView
     '''
     {{> @avatar}}
     <div class='comment-contents clearfix'>
-    {{> @author}} <div class='stats'>{{> @timeAgoView}} {{> @likeView}}</div>
+    {{> @author}} <div class='stats'>{{> @timeView}} {{> @timeAgoView}} {{> @likeView}}</div>
     {{> @body}}
     {{> @formWrapper}}
     {{> @editInfo}}

@@ -122,15 +122,15 @@ module.exports =
     numberOfWorkers: 2
   social        :
     login       : 'prod-social'
-    numberOfWorkers: 7
+    numberOfWorkers: 1
     watch       : no
     queueName   : socialQueueName
     verbose     : no
     kitePort    : 8765
   log           :
     login       : 'prod-social'
-    numberOfWorkers: 2
-    watch       : yes
+    numberOfWorkers: 1
+    watch       : no
     queueName   : logQueueName
     verbose     : no
     run         : no
@@ -162,25 +162,25 @@ module.exports =
         apiKey       : embedlyApiKey
       userSitesDomain: 'kd.io'
       useNeo4j: yes
-      logToExternal : yes
-      logToInternal : yes
+      logToExternal : no
+      logToInternal : no
       resourceName: socialQueueName
       logResourceName: logQueueName
       socialApiUri: 'http://sandbox-social.sj.koding.com:3030/xhr'
-      logApiUri: 'https://stage-log.koding.com/xhr'
+      logApiUri: 'https://sandbox-social.sj.koding.com:4030/xhr'
       suppressLogs: no
       version   : version
       mainUri   : "http://sandbox.koding.com"
       broker    :
         servicesEndpoint: "/-/services/broker"
       premiumBroker    :
-        servicesEndpoint: "/-/services/premiumBroker"
+        servicesEndpoint: "/-/services/broker"
       brokerKite:
         servicesEndpoint: "/-/services/brokerKite"
         brokerExchange: 'brokerKite'
       premiumBrokerKite:
-        servicesEndpoint: "/-/services/premiumBrokerKite"
-        brokerExchange: 'premiumBrokerKite'
+        servicesEndpoint: "/-/services/brokerKite"
+        brokerExchange: 'brokerKite'
       apiUri    : 'https://koding.com'
       appsUri   : 'https://rest.kd.io'
       uploadsUri: 'https://koding-uploads.s3.amazonaws.com'
@@ -259,7 +259,7 @@ module.exports =
     name              : "premiumBrokerKite"
     serviceGenericName: "brokerKite"
     ip                : ""
-    port              : 443
+    port              : 453
     certFile          : "/opt/ssl_certs/wildcard.koding.com.cert"
     keyFile           : "/opt/ssl_certs/wildcard.koding.com.key"
     webProtocol       : 'https:'

@@ -381,40 +381,17 @@ func (c *ChannelMessage) FetchRelatives(query *request.Query) (*ChannelMessageCo
 
 	i := NewInteraction()
 	i.MessageId = c.Id
-
 	// get preview
 	query.Type = "like"
 	query.Limit = 3
-	interactorIds, err := i.List(query)
+
+	interactionContainer, err := i.FetchInteractionContainer(query)
 	if err != nil {
 		return nil, err
 	}
-
-	oldIds, err := FetchOldIdsByAccountIds(interactorIds)
-	if err != nil {
-		return nil, err
-	}
-
-	interactionContainer := NewInteractionContainer()
-	interactionContainer.ActorsPreview = oldIds
-
-	// check if the current user is interacted in this thread
-	isInteracted, err := i.IsInteracted(query.AccountId)
-	if err != nil {
-		return nil, err
-	}
-
-	interactionContainer.IsInteracted = isInteracted
-
-	// fetch interaction count
-	count, err := i.Count(query)
-	if err != nil {
-		return nil, err
-	}
-
-	interactionContainer.ActorsCount = count
 
 	container.Interactions[query.Type] = interactionContainer
+
 	return container, nil
 }
 

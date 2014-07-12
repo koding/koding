@@ -72,8 +72,8 @@ func (b *Bongo) Delete(i Modellable) error {
 	return nil
 }
 
-// FetchByIds fetches data from db by their ids in ordered fashion,
-// if non-found this function doesnt return any error.
+// FetchByIds fetches records by their ids and returns results in the same order
+// as the ids; if no records in db we don't return error
 func (b *Bongo) FetchByIds(i Modellable, data interface{}, ids []int64) error {
 	if len(ids) == 0 {
 		return nil

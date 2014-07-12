@@ -1021,6 +1021,7 @@ SockJS.prototype._setHeartbeatTimeout = function(data) {
 
 SockJS.prototype._didClose = function(code, reason, force) {
     var that = this;
+    clearTimeout(that.heartbeatTimeoutTimer);
     if (that.readyState !== SockJS.CONNECTING &&
         that.readyState !== SockJS.OPEN &&
         that.readyState !== SockJS.CLOSING)

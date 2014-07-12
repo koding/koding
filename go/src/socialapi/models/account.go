@@ -226,7 +226,7 @@ func (a *Account) UnMarkAsTroll() error {
 		return err
 	}
 
-	if err := bongo.B.PublishEvent("un_marked_as_troll", a); err != nil {
+	if err := bongo.B.PublishEvent("unmarked_as_troll", a); err != nil {
 		return err
 	}
 
@@ -285,23 +285,22 @@ func FetchAccountById(accountId int64) (*Account, error) {
 }
 
 func FetchOldIdsByAccountIds(accountIds []int64) ([]string, error) {
-	var oldIds []string
+	oldIds := make([]string, 0)
+
 	if len(accountIds) == 0 {
-		return make([]string, 0), nil
+		return oldIds, nil
 	}
 
-	res := bongo.B.DB.
-		Model(Account{}).
-		Table(Account{}.TableName()).
-		Where("id IN (?)", accountIds).
-		Pluck("old_id", &oldIds)
+	var accounts []Account
+	account := Account{}
 
-	if err := bongo.CheckErr(res); err != nil {
-		return nil, err
+	err := bongo.B.FetchByIds(account, &accounts, accountIds)
+	if err != nil {
+		return oldIds, nil
 	}
 
-	if len(oldIds) == 0 {
-		return make([]string, 0), nil
+	for _, account := range accounts {
+		oldIds = append(oldIds, account.OldId)
 	}
 
 	return oldIds, nil
