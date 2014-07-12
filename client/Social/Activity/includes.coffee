@@ -71,6 +71,7 @@ module.exports = [
   "views/comments/deletemodal.coffee"
   "views/comments/listitemview.coffee"
   "views/comments/replylistitemview.coffee"
+  "views/comments/timeview.coffee"
 
   "views/inputview.coffee"
   "views/inputwidget.coffee"
