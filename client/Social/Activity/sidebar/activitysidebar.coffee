@@ -340,7 +340,7 @@ class ActivitySidebar extends KDCustomScrollView
     {slug, socialApiChannelId} = KD.getGroup()
 
     @wrapper.addSubView @public = new CustomLinkView
-      title    : 'PUBLIC FEED'
+      title    : 'Public Feed'
       href     : '/Activity/Public'
       cssClass : 'kdlistitemview-sidebar-item public-feed-link'
     ,
@@ -396,7 +396,7 @@ class ActivitySidebar extends KDCustomScrollView
 
     @wrapper.addSubView @sections.conversations = new ActivitySideView
       title      : 'Conversations'
-      cssClass   : 'threads users'
+      cssClass   : 'conversations'
       itemClass  : SidebarPinnedItem
       dataPath   : 'pinnedMessages'
       delegate   : this
@@ -414,13 +414,14 @@ class ActivitySidebar extends KDCustomScrollView
 
     @wrapper.addSubView @sections.messages = new ActivitySideView
       title      : 'Private Conversations'
-      cssClass   : 'inbox users'
+      cssClass   : 'messages'
       itemClass  : SidebarMessageItem
       dataPath   : 'privateMessages'
       delegate   : this
       noItemText : "No private messages yet."
       headerLink : new CustomLinkView
-        title    : 'NEW'
+        cssClass : 'add-icon'
+        title    : ' '
         href     : KD.utils.groupifyLink '/Activity/Message/New'
       dataSource : (callback) ->
         KD.singletons.socialapi.message.fetchPrivateMessages

@@ -1,6 +1,7 @@
 package config
 
 import (
+	"fmt"
 	"os"
 	"path/filepath"
 
@@ -22,15 +23,8 @@ func MustGet() *Config {
 // If file is not there or file is not given, it panics
 // If the given file is not formatted well panics
 func MustRead(path string) *Config {
-	// get working directory for joining with given config path
-	pwd, err := os.Getwd()
-	if err != nil {
-		panic(err)
-	}
 
-//join working dir and config path
-	configPath := filepath.Join(pwd, path)
-	if _, err := toml.DecodeFile(configPath, &conf); err != nil {
+	if _, err := toml.DecodeFile(mustGetConfigPath(path), &conf); err != nil {
 		panic(err)
 	}
 
@@ -49,4 +43,25 @@ func MustRead(path string) *Config {
 	}
 
 	return conf
+}
+
+func mustGetConfigPath(path string) string {
+	pwd, err := os.Getwd()
+	if err != nil {
+		panic(err)
+	}
+
+	configPath := filepath.Join(pwd, path)
+
+	// check if file with combined path is exists
+	if _, err := os.Stat(configPath); !os.IsNotExist(err) {
+		return configPath
+	}
+
+	// check if file is exists it self
+	if _, err := os.Stat(path); !os.IsNotExist(err) {
+		return path
+	}
+
+	panic(fmt.Errorf("couldn't find config with given parameter %s", path))
 }

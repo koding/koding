@@ -53,13 +53,16 @@ func (mux *TrieServeMux) HandleNamespace(namespace string, handler http.Handler)
 // Handler returns the handler to use for the given HTTP request and mutates
 // the querystring to add wildcards extracted from the URL.
 //
-// Yes, it's bad that this mutates the request.  On the other hand, this is
-// a relatively standard interface and is most used in testing where behavior
-// like this can be allowed.
+// It sanitizes out any query params that might collide with params parsed
+// from the URL to avoid surprises. See TestCollidingQueryParam for the use case
 func (mux *TrieServeMux) Handler(r *http.Request) (http.Handler, string) {
 	params, handler, pattern := mux.find(r, strings.Split(r.URL.Path, "/")[1:])
 	if 0 != len(params) {
-		r.URL.RawQuery = r.URL.RawQuery + "&" + params.Encode()
+		sanitized := r.URL.Query()
+		for key, _ := range params {
+			delete(sanitized, key)
+		}
+		r.URL.RawQuery = params.Encode() + "&" + sanitized.Encode()
 	}
 	return handler, pattern
 }

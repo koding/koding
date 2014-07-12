@@ -1,4 +1,4 @@
-SET ROLE social;
+-- SET ROLE social;
 
 CREATE SCHEMA notification;
 

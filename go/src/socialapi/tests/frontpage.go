@@ -78,7 +78,7 @@ func populateChannelwithAccount(accountId int64) (*models.Channel, error) {
 		return nil, err
 	}
 
-	participants, err := rest.CreateChannelParticipants(channel.Id, PARTICIPANT_COUNT)
+	participants, err := rest.CreateChannelParticipants(channel.Id, channel.CreatorId, PARTICIPANT_COUNT)
 	if err != nil {
 		return nil, err
 	}
@@ -101,7 +101,7 @@ func populatePost(channelId, accountId int64) (*models.ChannelMessage, error) {
 		return nil, err
 	}
 
-	participants, err := rest.CreateChannelParticipants(channelId, PARTICIPANT_COUNT)
+	participants, err := rest.CreateChannelParticipants(channelId, accountId, PARTICIPANT_COUNT)
 	if err != nil {
 		return nil, err
 	}

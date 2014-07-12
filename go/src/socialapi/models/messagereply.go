@@ -194,7 +194,7 @@ func (m *MessageReply) CountWithQuery(q *bongo.Query) (int, error) {
 func (m *MessageReply) FetchParent() (*ChannelMessage, error) {
 	parent := NewChannelMessage()
 
-	if m.ReplyId != 0 {
+	if m.MessageId != 0 {
 		if err := parent.ById(m.MessageId); err != nil {
 			return nil, err
 		}

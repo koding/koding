@@ -48,7 +48,12 @@ const (
 )
 
 func NewChannelParticipant() *ChannelParticipant {
-	return &ChannelParticipant{}
+	return &ChannelParticipant{
+		StatusConstant: ChannelParticipant_STATUS_ACTIVE,
+		LastSeenAt:     time.Now().UTC(),
+		CreatedAt:      time.Now().UTC(),
+		UpdatedAt:      time.Now().UTC(),
+	}
 }
 
 func (c ChannelParticipant) GetId() int64 {
@@ -83,24 +88,19 @@ func (c ChannelParticipant) AfterDelete() {
 	bongo.B.AfterDelete(c)
 }
 
+// Create creates a participant in the db as active
+// multiple call of this function will result
 func (c *ChannelParticipant) Create() error {
-	if c.ChannelId == 0 {
-		return fmt.Errorf("Channel Id is not set %d", c.ChannelId)
-	}
-
-	if c.AccountId == 0 {
-		return fmt.Errorf("AccountId is not set %d", c.AccountId)
-	}
-
-	selector := map[string]interface{}{
-		"channel_id": c.ChannelId,
-		"account_id": c.AccountId,
-	}
+	err := c.FetchParticipant()
 
 	// if err is nil
-	// it means we already have that channel
-	err := c.One(bongo.NewQS(selector))
+	// it means we already have that user in the channel
 	if err == nil {
+		// if the participant is already in the channel, and active do nothing
+		if c.StatusConstant == ChannelParticipant_STATUS_ACTIVE {
+			return nil
+		}
+
 		c.StatusConstant = ChannelParticipant_STATUS_ACTIVE
 		if err := c.Update(); err != nil {
 			return err
@@ -136,11 +136,11 @@ func (c *ChannelParticipant) CreateRaw() error {
 
 func (c *ChannelParticipant) FetchParticipant() error {
 	if c.ChannelId == 0 {
-		return errors.New("ChannelId is not set")
+		return errors.New("channelId is not set")
 	}
 
 	if c.AccountId == 0 {
-		return errors.New("AccountId is not set")
+		return errors.New("accountId is not set")
 	}
 
 	selector := map[string]interface{}{
@@ -163,12 +163,7 @@ func (c *ChannelParticipant) FetchUnreadCount() (int, error) {
 }
 
 func (c *ChannelParticipant) Delete() error {
-	selector := bongo.Partial{
-		"account_id": c.AccountId,
-		"channel_id": c.ChannelId,
-	}
-
-	if err := c.One(bongo.NewQS(selector)); err != nil {
+	if err := c.FetchParticipant(); err != nil {
 		return err
 	}
 

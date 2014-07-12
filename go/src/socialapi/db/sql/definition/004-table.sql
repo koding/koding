@@ -1,4 +1,4 @@
-SET ROLE social;
+-- SET ROLE social;
 
 -- ----------------------------
 --  Table structure for channel
@@ -24,11 +24,11 @@ ALTER TYPE "api"."channel_privacy_constant_enum" OWNER TO "social";
 DROP TABLE IF EXISTS "api"."channel";
 CREATE TABLE "api"."channel" (
     "id" BIGINT NOT NULL DEFAULT api.channel_next_id (),
+    "token" UUID NOT NULL DEFAULT uuid_generate_v1(),
     "name" VARCHAR (200) NOT NULL COLLATE "default",
     "creator_id" BIGINT NOT NULL,
     "group_name" VARCHAR (200) NOT NULL COLLATE "default",
     "purpose" TEXT COLLATE "default",
-    "secret_key" TEXT COLLATE "default",
     "type_constant" "api"."channel_type_constant_enum",
     "privacy_constant" "api"."channel_privacy_constant_enum",
     "meta_bits" SMALLINT NOT NULL DEFAULT 0::SMALLINT,
@@ -53,7 +53,7 @@ CREATE TABLE "api"."account" (
 ) WITH (OIDS = FALSE);
 
 -- ALTER TABLE "api"."account" OWNER TO "socialapplication";
-GRANT SELECT, INSERT ON "api"."account" TO "socialapplication";
+GRANT SELECT, INSERT, UPDATE ON "api"."account" TO "socialapplication";
 
 
 
@@ -74,6 +74,7 @@ ALTER TYPE "api"."channel_message_type_constant_enum" OWNER TO "social";
 DROP TABLE IF EXISTS "api"."channel_message";
 CREATE TABLE "api"."channel_message" (
     "id" BIGINT NOT NULL DEFAULT api.channel_message_next_id (),
+    "token" UUID NOT NULL DEFAULT uuid_generate_v1(),
     "body" TEXT COLLATE "default",
     "slug" VARCHAR (100) NOT NULL COLLATE "default",
     "type_constant" "api"."channel_message_type_constant_enum",
@@ -159,7 +160,9 @@ CREATE TABLE "api"."interaction" (
 ) WITH (OIDS = FALSE);
 
 -- ALTER TABLE "api"."interaction" OWNER TO "socialapplication";
-GRANT SELECT, INSERT, DELETE ON "api"."interaction" TO "socialapplication";
+-- remove update permission from socialapplication
+-- this is added for trollmode worker, but it can use another user for extensive permission required operations
+GRANT SELECT, UPDATE, INSERT, DELETE ON "api"."interaction" TO "socialapplication";
 
 
 -- ----------------------------

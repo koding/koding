@@ -23,13 +23,16 @@ type ChannelMessage struct {
 	// unique identifier of the channel message
 	Id int64 `json:"id,string"`
 
+	// Token holds the uuid for interoperability with the bongo-client
+	Token string `json:"token"`
+
 	// Body of the mesage
 	Body string `json:"body"`
 
 	// Generated Slug for body
 	Slug string `json:"slug"                               sql:"NOT NULL;TYPE:VARCHAR(100);"`
 
-	// type of the message
+	// type of the m essage
 	TypeConstant string `json:"typeConstant"               sql:"NOT NULL;TYPE:VARCHAR(100);"`
 
 	// Creator of the channel message
@@ -291,40 +294,17 @@ func (c *ChannelMessage) FetchRelatives(query *request.Query) (*ChannelMessageCo
 
 	i := NewInteraction()
 	i.MessageId = c.Id
-
 	// get preview
 	query.Type = "like"
 	query.Limit = 3
-	interactorIds, err := i.List(query)
+
+	interactionContainer, err := i.FetchInteractionContainer(query)
 	if err != nil {
 		return nil, err
 	}
-
-	oldIds, err := FetchOldIdsByAccountIds(interactorIds)
-	if err != nil {
-		return nil, err
-	}
-
-	interactionContainer := NewInteractionContainer()
-	interactionContainer.ActorsPreview = oldIds
-
-	// check if the current user is interacted in this thread
-	isInteracted, err := i.IsInteracted(query.AccountId)
-	if err != nil {
-		return nil, err
-	}
-
-	interactionContainer.IsInteracted = isInteracted
-
-	// fetch interaction count
-	count, err := i.Count(query)
-	if err != nil {
-		return nil, err
-	}
-
-	interactionContainer.ActorsCount = count
 
 	container.Interactions[query.Type] = interactionContainer
+
 	return container, nil
 }
 

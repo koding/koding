@@ -44,10 +44,10 @@ ensureGroupChannel = (client, callback)->
       return callback err  if err
       callback null, socialApiChannelId
 
-
 doRequest = (funcName, client, options, callback)->
   fetchGroup client, (err, group)->
     return callback err if err
+
     {connection:{delegate}} = client
     delegate.createSocialApiId (err, socialApiId)->
       return callback err if err
@@ -55,10 +55,13 @@ doRequest = (funcName, client, options, callback)->
       options.groupChannelId = group.socialApiChannelId
       options.groupName      = group.slug
       options.accountId      = socialApiId
-      options.showExempt     = delegate.isExempt
+      options.showExempt   or= delegate.isExempt
 
-      requests = require './requests'
-      requests[funcName] options, callback
+      bareRequest funcName, options, callback
+
+bareRequest = (funcName, options, callback)->
+  requests = require './requests'
+  requests[funcName] options, callback
 
 module.exports = {
   ensureGroupChannel
@@ -66,4 +69,5 @@ module.exports = {
   doRequest
   secureRequest
   fetchGroup
+  bareRequest
 }

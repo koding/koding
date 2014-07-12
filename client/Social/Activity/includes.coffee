@@ -23,10 +23,10 @@ module.exports = [
   "views/likesummaryview.coffee"
   "views/likeview.coffee"
   "views/likelink.coffee"
+  "views/replylikeview.coffee"
   "views/activityactions.coffee"
   "views/activitylistheader.coffee"
   "views/sharepopup.coffee"
-  "views/activitytickeritem.coffee"
   "views/referalbox.coffee"
   "views/filterwarning.coffee"
   "views/activitymenuitem.coffee"
@@ -64,10 +64,14 @@ module.exports = [
   "views/comments/likeview.coffee"
   "views/comments/listpreviouslink.coffee"
   "views/comments/view.coffee"
+  "views/comments/replyview.coffee"
   "views/comments/listviewcontroller.coffee"
+  "views/comments/replylistviewcontroller.coffee"
   "views/comments/settingsbutton.coffee"
   "views/comments/deletemodal.coffee"
   "views/comments/listitemview.coffee"
+  "views/comments/replylistitemview.coffee"
+  "views/comments/timeview.coffee"
 
   "views/inputview.coffee"
   "views/inputwidget.coffee"
@@ -82,7 +86,6 @@ module.exports = [
 
   "ContentDisplays/activitycontentdisplay.coffee"
   "ContentDisplays/StatusUpdate.coffee"
-  # "ContentDisplays/ActivityTicker.coffee"
 
   # Activity content displays commons
   "ContentDisplays/ContentDisplayAuthorAvatar.coffee"

@@ -2,11 +2,14 @@ package message
 
 import (
 	"errors"
+	"fmt"
 	"net/http"
 	"net/url"
+	"socialapi/config"
 	"socialapi/models"
 	"socialapi/request"
 	"socialapi/workers/common/response"
+	"time"
 
 	"github.com/koding/bongo"
 )
@@ -25,6 +28,10 @@ func Create(u *url.URL, h http.Header, req *models.ChannelMessage) (int, http.He
 	// set initial channel id
 	req.InitialChannelId = channelId
 
+	if err := checkThrottle(channelId, req.AccountId); err != nil {
+		return response.NewBadRequest(err)
+	}
+
 	if err := req.Create(); err != nil {
 		// todo this should be internal server error
 		return response.NewBadRequest(err)
@@ -42,6 +49,58 @@ func Create(u *url.URL, h http.Header, req *models.ChannelMessage) (int, http.He
 	return response.HandleResultAndError(
 		req.BuildEmptyMessageContainer(),
 	)
+}
+
+func checkThrottle(channelId, requesterId int64) error {
+	c, err := models.ChannelById(channelId)
+	if err != nil {
+		return err
+	}
+
+	if c.TypeConstant != models.Channel_TYPE_GROUP {
+		return nil
+	}
+
+	cm := models.NewChannelMessage()
+
+	conf := config.MustGet()
+
+	// if oit is defaul treturn  early
+	if conf.Limits.PostThrottleDuration == "" {
+		return nil
+	}
+
+	// if throttle count is zero, it meands it is not set
+	if conf.Limits.PostThrottleCount == 0 {
+		return nil
+	}
+
+	dur, err := time.ParseDuration(conf.Limits.PostThrottleDuration)
+	if err != nil {
+		return err
+	}
+
+	// subtrack duration from current time
+	prevTime := time.Now().UTC().Truncate(dur)
+
+	count, err := bongo.B.Count(
+		cm,
+		"initial_channel_id = ? and "+
+			"account_id = ? and "+
+			"created_at > ?",
+		channelId,
+		requesterId,
+		prevTime.Format(time.RFC3339),
+	)
+	if err != nil {
+		return err
+	}
+
+	if count > conf.Limits.PostThrottleCount {
+		return fmt.Errorf("reached to throttle, current post count %d for user %d", count, requesterId)
+	}
+
+	return nil
 }
 
 func Delete(u *url.URL, h http.Header, req *models.ChannelMessage) (int, http.Header, interface{}, error) {

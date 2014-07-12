@@ -17,7 +17,7 @@ class MessagePane extends KDTabPaneView
     {typeConstant}    = @getData()
 
     @createParticipantsView() if typeConstant is 'privatemessage'
-    @listController = new ActivityListController {itemClass}
+    @listController = new ActivityListController {itemClass, type: typeConstant}
 
     @createInputWidget()
     @bindChannelEvents()
@@ -103,13 +103,13 @@ class MessagePane extends KDTabPaneView
     heads.addSubView @newParticipantButton = new KDButtonView
       cssClass    : 'new-participant'
       iconOnly    : yes
-      callback    : ->
+      callback    : =>
         new PrivateMessageRecipientModal
           blacklist : participantsPreview.map (item) -> item._id
           position  :
             top     : @getY() + 50
             left    : @getX() - 150
-
+        , @getData()
 
   createInputWidget: ->
 
@@ -134,7 +134,11 @@ class MessagePane extends KDTabPaneView
 
   appendMessage: (message) -> @listController.addItem message, @listController.getItemCount()
 
-  prependMessage: (message) -> @listController.addItem message, 0
+  prependMessage: (message) ->
+    KD.getMessageOwner message, (err, owner) =>
+      return error err  if err
+      return if owner.isExempt and owner._id isnt KD.whoami()._id and not KD.checkFlag "super-admin"
+      @listController.addItem message, 0
 
   removeMessage: (message) -> @listController.removeItem null, message
 

@@ -22,13 +22,12 @@ URL = "localhost:6379"
 DB  = 0
 
 [limits]
-MessageBodyMinLen=1
-
-[Notification]
-CacheEnabled = false
+MessageBodyMinLen    = 1
+PostThrottleDuration = "5s"
+PostThrottleCount    = 3
 
 [emailnotification]
-TemplateRoot="workers/emailnotifier/templates/"
+TemplateRoot = "workers/emailnotifier/templates/"
 
 [sendgrid]
 Username        = "koding"
@@ -40,4 +39,3 @@ ForcedRecipient = "canthefason@gmail.com"
 [sitemap]
 XMLRoot = "workers/sitemap/files/"
 RedisDB = 1
-

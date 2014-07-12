@@ -2,7 +2,6 @@ package bongo
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"strconv"
 	"strings"
@@ -13,7 +12,7 @@ import (
 // Fetch fetches the data from db by given parameters(fields of the struct)
 func (b *Bongo) Fetch(i Modellable) error {
 	if i.GetId() == 0 {
-		return errors.New(fmt.Sprintf("Id is not set for %s", i.TableName()))
+		return IdIsNotSet
 	}
 
 	if err := b.DB.Table(i.TableName()).
@@ -50,7 +49,7 @@ func (b *Bongo) Create(i Modellable) error {
 // Update updates all fields of a struct with assigned data
 func (b *Bongo) Update(i Modellable) error {
 	if i.GetId() == 0 {
-		return errors.New(fmt.Sprintf("Id is not set for %s", i.TableName()))
+		return IdIsNotSet
 	}
 
 	// Update and Create is using the Save method, so they are
@@ -63,7 +62,7 @@ func (b *Bongo) Update(i Modellable) error {
 // into consideration
 func (b *Bongo) Delete(i Modellable) error {
 	if i.GetId() == 0 {
-		return errors.New(fmt.Sprintf("Id is not set for %s", i.TableName()))
+		return IdIsNotSet
 	}
 
 	if err := b.DB.Delete(i).Error; err != nil {
@@ -73,8 +72,8 @@ func (b *Bongo) Delete(i Modellable) error {
 	return nil
 }
 
-// FetchByIds fetches data from db by their ids in ordered fashion,
-// if non-found this function doesnt return any error.
+// FetchByIds fetches records by their ids and returns results in the same order
+// as the ids; if no records in db we don't return error
 func (b *Bongo) FetchByIds(i Modellable, data interface{}, ids []int64) error {
 	if len(ids) == 0 {
 		return nil
@@ -106,7 +105,7 @@ func (b *Bongo) FetchByIds(i Modellable, data interface{}, ids []int64) error {
 
 func (b *Bongo) UpdatePartial(i Modellable, set map[string]interface{}) error {
 	if i.GetId() == 0 {
-		return fmt.Errorf("id is not set for %s", i.TableName())
+		return IdIsNotSet
 	}
 
 	// init query
@@ -140,7 +139,7 @@ func (b *Bongo) UpdateMulti(i Modellable, rest ...map[string]interface{}) error 
 		selector = rest[0]
 		set = rest[1]
 	default:
-		return errors.New("update partial parameter list is wrong")
+		return WrongParameter
 	}
 
 	query := b.DB.Table(i.TableName())

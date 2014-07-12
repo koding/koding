@@ -3,7 +3,7 @@
 -- 2 Unique Keys
 -- 3 Foreign Keys
 -- 4 Indexes
-SET ROLE social;
+-- SET ROLE social;
 
 
 -- ------------------------------------------------------------------------------------------

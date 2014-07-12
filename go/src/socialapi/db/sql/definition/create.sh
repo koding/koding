@@ -8,6 +8,9 @@ sudo chown -R postgres:postgres /data/postgresql/tablespace
 sudo -u postgres dropdb postgres
 sudo -u postgres createdb postgres
 
+# clear database
+sudo -u postgres psql postgres < $1/definition/000-cleanup.sql
+
 # add UTF-8 support
 sudo -u postgres psql postgres < $1/definition/000-UTF8.sql
 
