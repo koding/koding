@@ -58,7 +58,7 @@ type NotificationContent struct {
 	ActorId  string `json:"actorId"`
 }
 
-//DefaultErrHandler controls the errors,  return false if an error occured
+// DefaultErrHandler controls the errors, return false if an error occured
 func (r *Controller) DefaultErrHandler(delivery amqp.Delivery, err error) bool {
 	r.log.Error("an error occured deleting realtime event", err)
 	delivery.Ack(false)
@@ -81,8 +81,8 @@ func New(rmq *rabbitmq.RabbitMQ, log logging.Logger) (*Controller, error) {
 	return ffc, nil
 }
 
-//MessageUpdated controls message updated status
-//if an error occured , returns error otherwise returns nil
+// MessageUpdated controls message updated status
+// if an error occured , returns error otherwise returns nil
 func (f *Controller) MessageUpdated(cm *models.ChannelMessage) error {
 	if len(cm.Token) == 0 {
 		if err := cm.ById(cm.Id); err != nil {
@@ -144,6 +144,7 @@ func (f *Controller) sendChannelParticipantEvent(cp *models.ChannelParticipant, 
 		return err
 	}
 
+	// send notification to the user(added user)
 	if err := f.sendNotification(
 		cp.AccountId,
 		c.GroupName,
@@ -153,7 +154,8 @@ func (f *Controller) sendChannelParticipantEvent(cp *models.ChannelParticipant, 
 		f.log.Error("Ignoring err %s ", err.Error())
 	}
 
-	return nil
+	// send this event to the channel itself
+	return f.publishToChannel(c.Id, eventName, cp)
 }
 
 func (f *Controller) InteractionSaved(i *models.Interaction) error {
