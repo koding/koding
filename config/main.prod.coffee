@@ -226,16 +226,13 @@ generateRunFile = (KONFIG) ->
     mkdir .logs
     if [[ "$1" == "" ]]; then
     #{env}\n\n"""
-  conf +="""
-    #{val.command} &>./.logs/#{key}.log &     
-    """ for key,val of KONFIG.workers
+  conf +="  #{val.command} &>./.logs/#{key}.log & \n" for key,val of KONFIG.workers
   conf += """\n
       elif [ "$1" == "killall" ]; then
-      killall
+        killall
       """
   conf += " #{(val.command.split(" "))[0]}" for key,val of KONFIG.workers
   conf += """\n      
-        bash ./.runningpids
       elif [ "$1" == "log" ]; then
         if [ "$2" == "" ]; then
           tail -fq ./.logs/*.log
