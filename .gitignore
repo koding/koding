@@ -12,6 +12,7 @@
 .rabbitvhost
 .revision
 .vagrant
+.runningpids
 /.build
 /.logs
 /.deployments

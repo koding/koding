@@ -217,6 +217,7 @@ generateSupervisorConf = (KONFIG)->
   return conf
 
 generateRunFile = (KONFIG) ->
+
   env = ''
   env += "  export #{key}='#{val}'\n" for key,val of KONFIG.ENV
   conf = """
@@ -226,10 +227,14 @@ generateRunFile = (KONFIG) ->
     if [[ "$1" == "" ]]; then
     #{env}\n\n"""
   conf +="""
-    (#{val.command} &>./.logs/#{key}.log &) && echo kill -KILL $! >> .runningpids \n
+    #{val.command} &>./.logs/#{key}.log &     
     """ for key,val of KONFIG.workers
   conf += """\n
       elif [ "$1" == "killall" ]; then
+      killall
+      """
+  conf += " #{(val.command.split(" "))[0]}" for key,val of KONFIG.workers
+  conf += """\n      
         bash ./.runningpids
       elif [ "$1" == "log" ]; then
         if [ "$2" == "" ]; then
@@ -250,7 +255,7 @@ KONFIG.ENV            = generateEnvVariables   KONFIG
 KONFIG.supervisorConf = generateSupervisorConf KONFIG
 KONFIG.runFile        = generateRunFile        KONFIG
 
-# console.log KONFIG.runFile
+console.log KONFIG.runFile
 
 module.exports = KONFIG
 

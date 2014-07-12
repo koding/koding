@@ -1,6 +1,5 @@
 log = -> console.log arguments...
 
-
 {argv} = require 'optimist'
 
 {exec} = require 'child_process'
@@ -8,10 +7,11 @@ log = -> console.log arguments...
 { join: joinPath } = require 'path'
 
 process.on 'uncaughtException', (err)->
+  exec './beep'
   console.log err, err?.stack
   process.exit 1
 
-Bongo  = require 'bongo'
+Bongo = require 'bongo'
 Broker = require 'broker'
 
 KONFIG = require('koding-config-manager').load("main.#{argv.c}")
@@ -22,8 +22,6 @@ mongo = "mongodb://#{KONFIG.mongo}?auto_reconnect"  if 'string' is typeof KONFIG
 
 mqOptions = extend {}, mq
 mqOptions.login = social.login if social?.login?
-
-console.log "connecting to rabbit with:",{mqOptions}
 
 broker = new Broker mqOptions
 
@@ -37,15 +35,25 @@ koding = new Bongo {
   mq          : broker
 
   kite          :
-    kontrol     : KONFIG.client.runtimeOptions.newkontrol.url
     name        : 'social'
-    environment : 'vagrant'
-    region      : 'vagrant'
+    environment : argv.environment or KONFIG.environment
+    region      : argv.region
     version     : KONFIG.version
     username    : 'koding'
     port        : argv['kite-port']
     prefix      : 'social'
-    kiteKey     : argv['kite-key']
+    kiteKey     : argv['kite-key'] or joinPath(process.env.HOME,".kite/kite.key")
+
+    fetchClient: (name, context, callback) ->
+      { JAccount } = koding.models
+      [callback, context] = [context, callback] unless callback
+      context   ?= group: 'koding'
+      callback  ?= ->
+      JAccount.one 'profile.nickname': name, (err, account) ->
+        return callback err  if err?
+
+        if account instanceof JAccount
+          callback null, { context, connection:delegate:account }
 
   fetchClient :(sessionToken, context, callback)->
     { JUser, JAccount } = koding.models
