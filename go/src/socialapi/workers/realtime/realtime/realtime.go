@@ -153,7 +153,8 @@ func (f *Controller) sendChannelParticipantEvent(cp *models.ChannelParticipant, 
 		f.log.Error("Ignoring err %s ", err.Error())
 	}
 
-	return nil
+	// send this event to the channel itself
+	return f.publishToChannel(c.Id, eventName, cp)
 }
 
 func (f *Controller) InteractionSaved(i *models.Interaction) error {
