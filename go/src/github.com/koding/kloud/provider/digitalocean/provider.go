@@ -49,6 +49,7 @@ func (p *Provider) NewClient(opts *protocol.MachineOptions) (*Client, error) {
 		Log:         p.Log,
 		Caching:     true,
 		CachePrefix: "cache-digitalocean",
+		Deploy:      opts.Deploy,
 	}
 	c.DigitalOcean = d
 
@@ -69,7 +70,7 @@ func (p *Provider) Name() string {
 // given snapshot/image exist it directly skips to creating the droplet. It
 // acceps two string arguments, first one is the snapshotname, second one is
 // the dropletName.
-func (p *Provider) Build(opts *protocol.MachineOptions) (*protocol.ProviderArtifact, error) {
+func (p *Provider) Build(opts *protocol.MachineOptions) (*protocol.Artifact, error) {
 	doClient, err := p.NewClient(opts)
 	if err != nil {
 		return nil, err
@@ -83,14 +84,10 @@ func (p *Provider) Build(opts *protocol.MachineOptions) (*protocol.ProviderArtif
 		return nil, errors.New("dropletName is empty")
 	}
 
-	if opts.Username == "" {
-		return nil, errors.New("username is empty")
-	}
-
-	return doClient.Build(opts.ImageName, opts.InstanceName, opts.Username)
+	return doClient.Build(opts.ImageName, opts.InstanceName)
 }
 
-func (p *Provider) Start(opts *protocol.MachineOptions) (*protocol.ProviderArtifact, error) {
+func (p *Provider) Start(opts *protocol.MachineOptions) (*protocol.Artifact, error) {
 	doClient, err := p.NewClient(opts)
 	if err != nil {
 		return nil, err

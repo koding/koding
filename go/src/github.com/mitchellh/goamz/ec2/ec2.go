@@ -12,10 +12,10 @@ package ec2
 
 import (
 	"crypto/rand"
+	"encoding/base64"
 	"encoding/hex"
 	"encoding/xml"
 	"fmt"
-	"github.com/mitchellh/goamz/aws"
 	"log"
 	"net/http"
 	"net/http/httputil"
@@ -24,6 +24,8 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/mitchellh/goamz/aws"
 )
 
 const debug = false
@@ -125,7 +127,7 @@ type xmlErrors struct {
 var timeNow = time.Now
 
 func (ec2 *EC2) query(params map[string]string, resp interface{}) error {
-	params["Version"] = "2013-07-15"
+	params["Version"] = "2014-05-01"
 	params["Timestamp"] = timeNow().In(time.UTC).Format(time.RFC3339)
 	endpoint, err := url.Parse(ec2.Region.EC2Endpoint)
 	if err != nil {
@@ -219,6 +221,9 @@ func addBlockDeviceParams(prename string, params map[string]string, blockdevices
 		if k.DeleteOnTermination {
 			params[prefix+"Ebs.DeleteOnTermination"] = "true"
 		}
+		if k.Encrypted {
+			params[prefix+"Ebs.Encrypted"] = "true"
+		}
 		if k.NoDevice {
 			params[prefix+"NoDevice"] = "true"
 		}
@@ -288,6 +293,7 @@ type Instance struct {
 	PrivateIpAddress   string        `xml:"privateIpAddress"`
 	PublicIpAddress    string        `xml:"ipAddress"`
 	Architecture       string        `xml:"architecture"`
+	LaunchTime         time.Time     `xml:"launchTime"`
 }
 
 // RunInstances starts new instances in EC2.
@@ -714,6 +720,7 @@ type CreateVolume struct {
 	SnapshotId string
 	VolumeType string
 	IOPS       int64
+	Encrypted  bool
 }
 
 // Response to an AttachVolume request
@@ -737,6 +744,7 @@ type CreateVolumeResp struct {
 	CreateTime string `xml:"createTime"`
 	VolumeType string `xml:"volumeType"`
 	IOPS       int64  `xml:"iops"`
+	Encrypted  bool   `xml:"encrypted"`
 }
 
 // Volume is a single volume.
@@ -749,6 +757,7 @@ type Volume struct {
 	Attachments []VolumeAttachment `xml:"attachmentSet>item"`
 	VolumeType  string             `xml:"volumeType"`
 	IOPS        int64              `xml:"iops"`
+	Encrypted   bool               `xml:"encrypted"`
 	Tags        []Tag              `xml:"tagSet>item"`
 }
 
@@ -799,6 +808,10 @@ func (ec2 *EC2) CreateVolume(options *CreateVolume) (resp *CreateVolumeResp, err
 
 	if options.IOPS > 0 {
 		params["Iops"] = strconv.FormatInt(options.IOPS, 10)
+	}
+
+	if options.Encrypted {
+		params["Encrypted"] = "true"
 	}
 
 	resp = &CreateVolumeResp{}
@@ -872,6 +885,7 @@ type AllocateAddressResp struct {
 // http://docs.aws.amazon.com/AWSEC2/latest/APIReference/ApiReference-query-AssociateAddress.html
 type AssociateAddress struct {
 	InstanceId         string
+	PublicIp           string
 	AllocationId       string
 	AllowReassociation bool
 }
@@ -881,6 +895,24 @@ type AssociateAddressResp struct {
 	RequestId     string `xml:"requestId"`
 	Return        bool   `xml:"return"`
 	AssociationId string `xml:"associationId"`
+}
+
+// Address represents an Elastic IP Address
+// See http://goo.gl/uxCjp7 for more details
+type Address struct {
+	PublicIp                string `xml:"publicIp"`
+	AllocationId            string `xml:"allocationId"`
+	Domain                  string `xml:"domain"`
+	InstanceId              string `xml:"instanceId"`
+	AssociationId           string `xml:"associationId"`
+	NetworkInterfaceId      string `xml:"networkInterfaceId"`
+	NetworkInterfaceOwnerId string `xml:"networkInterfaceOwnerId"`
+	PrivateIpAddress        string `xml:"privateIpAddress"`
+}
+
+type DescribeAddressesResp struct {
+	RequestId string    `xml:"requestId"`
+	Addresses []Address `xml:"addressesSet>item"`
 }
 
 // Allocate a new Elastic IP.
@@ -915,7 +947,12 @@ func (ec2 *EC2) ReleaseAddress(id string) (resp *SimpleResp, err error) {
 func (ec2 *EC2) AssociateAddress(options *AssociateAddress) (resp *AssociateAddressResp, err error) {
 	params := makeParams("AssociateAddress")
 	params["InstanceId"] = options.InstanceId
-	params["AllocationId"] = options.AllocationId
+	if options.PublicIp != "" {
+		params["PublicIp"] = options.PublicIp
+	}
+	if options.AllocationId != "" {
+		params["AllocationId"] = options.AllocationId
+	}
 	if options.AllowReassociation {
 		params["AllowReassociation"] = "true"
 	}
@@ -940,6 +977,24 @@ func (ec2 *EC2) DisassociateAddress(id string) (resp *SimpleResp, err error) {
 		return nil, err
 	}
 
+	return
+}
+
+// DescribeAddresses returns details about one or more
+// Elastic IP Addresses. Returned addresses can be
+// filtered by Public IP, Allocation ID or multiple filters
+//
+// See http://goo.gl/zW7J4p for more details.
+func (ec2 *EC2) Addresses(publicIps []string, allocationIds []string, filter *Filter) (resp *DescribeAddressesResp, err error) {
+	params := makeParams("DescribeAddresses")
+	addParamsList(params, "PublicIp", publicIps)
+	addParamsList(params, "AllocationId", allocationIds)
+	filter.addParams(params)
+	resp = &DescribeAddressesResp{}
+	err = ec2.query(params, resp)
+	if err != nil {
+		return nil, err
+	}
 	return
 }
 
@@ -990,15 +1045,16 @@ type ImageAttributeResp struct {
 
 // The RegisterImage request parameters.
 type RegisterImage struct {
-	ImageLocation  string
-	Name           string
-	Description    string
-	Architecture   string
-	KernelId       string
-	RamdiskId      string
-	RootDeviceName string
-	VirtType       string
-	BlockDevices   []BlockDeviceMapping
+	ImageLocation   string
+	Name            string
+	Description     string
+	Architecture    string
+	KernelId        string
+	RamdiskId       string
+	RootDeviceName  string
+	VirtType        string
+	SriovNetSupport string
+	BlockDevices    []BlockDeviceMapping
 }
 
 // Response to a RegisterImage request.
@@ -1025,6 +1081,7 @@ type BlockDeviceMapping struct {
 	VolumeType          string `xml:"ebs>volumeType"`
 	VolumeSize          int64  `xml:"ebs>volumeSize"`
 	DeleteOnTermination bool   `xml:"ebs>deleteOnTermination"`
+	Encrypted           bool   `xml:"ebs>encrypted"`
 	NoDevice            bool   `xml:"noDevice"`
 
 	// The number of I/O operations per second (IOPS) that the volume supports.
@@ -1270,6 +1327,10 @@ func (ec2 *EC2) RegisterImage(options *RegisterImage) (resp *RegisterImageResp, 
 		params["VirtualizationType"] = options.VirtType
 	}
 
+	if options.SriovNetSupport != "" {
+		params["SriovNetSupport"] = "simple"
+	}
+
 	addBlockDeviceParams("", params, options.BlockDevices)
 
 	resp = &RegisterImageResp{}
@@ -1401,6 +1462,7 @@ type Snapshot struct {
 	Progress    string `xml:"progress"`
 	OwnerId     string `xml:"ownerId"`
 	OwnerAlias  string `xml:"ownerAlias"`
+	Encrypted   bool   `xml:"encrypted"`
 	Tags        []Tag  `xml:"tagSet>item"`
 }
 
@@ -1426,11 +1488,27 @@ func (ec2 *EC2) Snapshots(ids []string, filter *Filter) (resp *SnapshotsResp, er
 // ----------------------------------------------------------------------------
 // KeyPair management functions and types.
 
+type KeyPair struct {
+	Name        string `xml:"keyName"`
+	Fingerprint string `xml:"keyFingerprint"`
+}
+
+type KeyPairsResp struct {
+	RequestId string    `xml:"requestId"`
+	Keys      []KeyPair `xml:"keySet>item"`
+}
+
 type CreateKeyPairResp struct {
 	RequestId      string `xml:"requestId"`
 	KeyName        string `xml:"keyName"`
 	KeyFingerprint string `xml:"keyFingerprint"`
 	KeyMaterial    string `xml:"keyMaterial"`
+}
+
+type ImportKeyPairResponse struct {
+	RequestId      string `xml:"requestId"`
+	KeyName        string `xml:"keyName"`
+	KeyFingerprint string `xml:"keyFingerprint"`
 }
 
 // CreateKeyPair creates a new key pair and returns the private key contents.
@@ -1458,6 +1536,45 @@ func (ec2 *EC2) DeleteKeyPair(name string) (resp *SimpleResp, err error) {
 	resp = &SimpleResp{}
 	err = ec2.query(params, resp)
 	return
+}
+
+// KeyPairs returns list of key pairs for this account
+//
+// See http://goo.gl/Apzsfz
+func (ec2 *EC2) KeyPairs(keynames []string, filter *Filter) (resp *KeyPairsResp, err error) {
+	params := makeParams("DescribeKeyPairs")
+	for i, name := range keynames {
+		params["KeyName."+strconv.Itoa(i)] = name
+	}
+	filter.addParams(params)
+
+	resp = &KeyPairsResp{}
+	err = ec2.query(params, resp)
+	if err != nil {
+		return nil, err
+	}
+
+	return resp, nil
+}
+
+// ImportKeyPair imports a key into AWS
+//
+// See http://goo.gl/NbZUvw
+func (ec2 *EC2) ImportKeyPair(keyname string, key string) (resp *ImportKeyPairResponse, err error) {
+	params := makeParams("ImportKeyPair")
+	params["KeyName"] = keyname
+
+	// Oddly, AWS requires the key material to be base64-encoded, even if it was
+	// already encoded. So, we force another round of encoding...
+	// c.f. https://groups.google.com/forum/?fromgroups#!topic/boto-dev/IczrStO9Q8M
+	params["PublicKeyMaterial"] = base64.StdEncoding.EncodeToString([]byte(key))
+
+	resp = &ImportKeyPairResponse{}
+	err = ec2.query(params, resp)
+	if err != nil {
+		return nil, err
+	}
+	return resp, nil
 }
 
 // ----------------------------------------------------------------------------
@@ -1617,6 +1734,14 @@ func (ec2 *EC2) DeleteSecurityGroup(group SecurityGroup) (resp *SimpleResp, err 
 // See http://goo.gl/u2sDJ for more details.
 func (ec2 *EC2) AuthorizeSecurityGroup(group SecurityGroup, perms []IPPerm) (resp *SimpleResp, err error) {
 	return ec2.authOrRevoke("AuthorizeSecurityGroupIngress", group, perms)
+}
+
+// AuthorizeSecurityGroupEgress creates an allowance for clients matching the provided
+// rules for egress access.
+//
+// See http://goo.gl/UHnH4L for more details.
+func (ec2 *EC2) AuthorizeSecurityGroupEgress(group SecurityGroup, perms []IPPerm) (resp *SimpleResp, err error) {
+	return ec2.authOrRevoke("AuthorizeSecurityGroupEgress", group, perms)
 }
 
 // RevokeSecurityGroup revokes permissions from a group.
@@ -1838,6 +1963,513 @@ func (ec2 *EC2) ModifyInstance(instId string, options *ModifyInstance) (resp *Mo
 	err = ec2.query(params, resp)
 	if err != nil {
 		resp = nil
+	}
+	return
+}
+
+// ----------------------------------------------------------------------------
+// VPC management functions and types.
+
+// The CreateVpc request parameters
+//
+// See http://docs.aws.amazon.com/AWSEC2/latest/APIReference/ApiReference-query-CreateVpc.html
+type CreateVpc struct {
+	CidrBlock       string
+	InstanceTenancy string
+}
+
+// Response to a CreateVpc request
+type CreateVpcResp struct {
+	RequestId string `xml:"requestId"`
+	VPC       VPC    `xml:"vpc"`
+}
+
+// CreateInternetGateway request parameters.
+//
+// http://docs.aws.amazon.com/AWSEC2/latest/APIReference/ApiReference-query-CreateInternetGateway.html
+type CreateInternetGateway struct{}
+
+// CreateInternetGateway response
+type CreateInternetGatewayResp struct {
+	RequestId       string          `xml:"requestId"`
+	InternetGateway InternetGateway `xml:"internetGateway"`
+}
+
+// The CreateRouteTable request parameters.
+//
+// http://docs.aws.amazon.com/AWSEC2/latest/APIReference/ApiReference-query-CreateRouteTable.html
+type CreateRouteTable struct {
+	VpcId string
+}
+
+// Response to a CreateRouteTable request.
+type CreateRouteTableResp struct {
+	RequestId  string     `xml:"requestId"`
+	RouteTable RouteTable `xml:"routeTable"`
+}
+
+// CreateRoute request parameters
+//
+// http://docs.aws.amazon.com/AWSEC2/latest/APIReference/ApiReference-query-CreateRoute.html
+type CreateRoute struct {
+	RouteTableId           string
+	DestinationCidrBlock   string
+	GatewayId              string
+	InstanceId             string
+	NetworkInterfaceId     string
+	VpcPeeringConnectionId string
+}
+type ReplaceRoute struct {
+	RouteTableId           string
+	DestinationCidrBlock   string
+	GatewayId              string
+	InstanceId             string
+	NetworkInterfaceId     string
+	VpcPeeringConnectionId string
+}
+
+type AssociateRouteTableResp struct {
+	RequestId     string `xml:"requestId"`
+	AssociationId string `xml:"associationId"`
+}
+type ReassociateRouteTableResp struct {
+	RequestId     string `xml:"requestId"`
+	AssociationId string `xml:"newAssociationId"`
+}
+
+// The CreateSubnet request parameters
+//
+// http://docs.aws.amazon.com/AWSEC2/latest/APIReference/ApiReference-query-CreateSubnet.html
+type CreateSubnet struct {
+	VpcId            string
+	CidrBlock        string
+	AvailabilityZone string
+}
+
+// Response to a CreateSubnet request
+type CreateSubnetResp struct {
+	RequestId string `xml:"requestId"`
+	Subnet    Subnet `xml:"subnet"`
+}
+
+// Response to a DescribeInternetGateways request.
+type InternetGatewaysResp struct {
+	RequestId        string            `xml:"requestId"`
+	InternetGateways []InternetGateway `xml:"internetGatewaySet>item"`
+}
+
+// Response to a DescribeRouteTables request.
+type RouteTablesResp struct {
+	RequestId   string       `xml:"requestId"`
+	RouteTables []RouteTable `xml:"routeTableSet>item"`
+}
+
+// Response to a DescribeVpcs request.
+type VpcsResp struct {
+	RequestId string `xml:"requestId"`
+	VPCs      []VPC  `xml:"vpcSet>item"`
+}
+
+// Internet Gateway
+type InternetGateway struct {
+	InternetGatewayId string                      `xml:"internetGatewayId"`
+	Attachments       []InternetGatewayAttachment `xml:"attachmentSet>item"`
+	Tags              []Tag                       `xml:"tagSet>item"`
+}
+
+type InternetGatewayAttachment struct {
+	VpcId string `xml:"vpcId"`
+	State string `xml:"state"`
+}
+
+// Routing Table
+type RouteTable struct {
+	RouteTableId string  `xml:"routeTableId"`
+	VpcId        string  `xml:"vpcId"`
+	Routes       []Route `xml:"routeSet>item"`
+	Tags         []Tag   `xml:"tagSet>item"`
+}
+
+type Route struct {
+	DestinationCidrBlock   string `xml:"destinationCidrBlock"`
+	GatewayId              string `xml:"gatewayId"`
+	InstanceId             string `xml:"instanceId"`
+	InstanceOwnerId        string `xml:"instanceOwnerId"`
+	NetworkInterfaceId     string `xml:"networkInterfaceId"`
+	State                  string `xml:"state"`
+	Origin                 string `xml:"origin"`
+	VpcPeeringConnectionId string `xml:"vpcPeeringConnectionId"`
+}
+
+// Subnet
+type Subnet struct {
+	SubnetId                string `xml:"subnetId"`
+	State                   string `xml:"state"`
+	VpcId                   string `xml:"vpcId"`
+	CidrBlock               string `xml:"cidrBlock"`
+	AvailableIpAddressCount int    `xml:"availableIpAddressCount"`
+	AvailabilityZone        string `xml:"availabilityZone"`
+	DefaultForAZ            bool   `xml:"defaultForAz"`
+	MapPublicIpOnLaunch     bool   `xml:"mapPublicIpOnLaunch"`
+	Tags                    []Tag  `xml:"tagSet>item"`
+}
+
+// VPC represents a single VPC.
+type VPC struct {
+	VpcId           string `xml:"vpcId"`
+	State           string `xml:"state"`
+	CidrBlock       string `xml:"cidrBlock"`
+	DHCPOptionsID   string `xml:"dhcpOptionsId"`
+	InstanceTenancy string `xml:"instanceTenancy"`
+	IsDefault       bool   `xml:"isDefault"`
+	Tags            []Tag  `xml:"tagSet>item"`
+}
+
+// Response to a DescribeSubnets request.
+type SubnetsResp struct {
+	RequestId string   `xml:"requestId"`
+	Subnets   []Subnet `xml:"subnetSet>item"`
+}
+
+// Create a new VPC.
+func (ec2 *EC2) CreateVpc(options *CreateVpc) (resp *CreateVpcResp, err error) {
+	params := makeParams("CreateVpc")
+	params["CidrBlock"] = options.CidrBlock
+
+	if options.InstanceTenancy != "" {
+		params["InstanceTenancy"] = options.InstanceTenancy
+	}
+
+	resp = &CreateVpcResp{}
+	err = ec2.query(params, resp)
+	if err != nil {
+		return nil, err
+	}
+
+	return
+}
+
+// Delete a VPC.
+func (ec2 *EC2) DeleteVpc(id string) (resp *SimpleResp, err error) {
+	params := makeParams("DeleteVpc")
+	params["VpcId"] = id
+
+	resp = &SimpleResp{}
+	err = ec2.query(params, resp)
+	if err != nil {
+		return nil, err
+	}
+	return
+}
+
+// DescribeVpcs
+//
+// See http://docs.aws.amazon.com/AWSEC2/latest/APIReference/ApiReference-query-DescribeVpcs.html
+func (ec2 *EC2) DescribeVpcs(ids []string, filter *Filter) (resp *VpcsResp, err error) {
+	params := makeParams("DescribeVpcs")
+	addParamsList(params, "VpcId", ids)
+	filter.addParams(params)
+	resp = &VpcsResp{}
+	err = ec2.query(params, resp)
+	if err != nil {
+		return nil, err
+	}
+
+	return
+}
+
+// Create a new subnet.
+func (ec2 *EC2) CreateSubnet(options *CreateSubnet) (resp *CreateSubnetResp, err error) {
+	params := makeParams("CreateSubnet")
+	params["AvailabilityZone"] = options.AvailabilityZone
+	params["CidrBlock"] = options.CidrBlock
+	params["VpcId"] = options.VpcId
+
+	resp = &CreateSubnetResp{}
+	err = ec2.query(params, resp)
+	if err != nil {
+		return nil, err
+	}
+
+	return
+}
+
+// Delete a Subnet.
+func (ec2 *EC2) DeleteSubnet(id string) (resp *SimpleResp, err error) {
+	params := makeParams("DeleteSubnet")
+	params["SubnetId"] = id
+
+	resp = &SimpleResp{}
+	err = ec2.query(params, resp)
+	if err != nil {
+		return nil, err
+	}
+	return
+}
+
+// DescribeSubnets
+//
+// http://docs.aws.amazon.com/AWSEC2/latest/APIReference/ApiReference-query-DescribeSubnets.html
+func (ec2 *EC2) DescribeSubnets(ids []string, filter *Filter) (resp *SubnetsResp, err error) {
+	params := makeParams("DescribeSubnets")
+	addParamsList(params, "SubnetId", ids)
+	filter.addParams(params)
+
+	resp = &SubnetsResp{}
+	err = ec2.query(params, resp)
+	if err != nil {
+		return nil, err
+	}
+
+	return
+}
+
+// Create a new internet gateway.
+func (ec2 *EC2) CreateInternetGateway(
+	options *CreateInternetGateway) (resp *CreateInternetGatewayResp, err error) {
+	params := makeParams("CreateInternetGateway")
+
+	resp = &CreateInternetGatewayResp{}
+	err = ec2.query(params, resp)
+	if err != nil {
+		return nil, err
+	}
+
+	return
+}
+
+// Attach an InternetGateway.
+func (ec2 *EC2) AttachInternetGateway(id, vpcId string) (resp *SimpleResp, err error) {
+	params := makeParams("AttachInternetGateway")
+	params["InternetGatewayId"] = id
+	params["VpcId"] = vpcId
+
+	resp = &SimpleResp{}
+	err = ec2.query(params, resp)
+	if err != nil {
+		return nil, err
+	}
+	return
+}
+
+// Detach an InternetGateway.
+func (ec2 *EC2) DetachInternetGateway(id, vpcId string) (resp *SimpleResp, err error) {
+	params := makeParams("DetachInternetGateway")
+	params["InternetGatewayId"] = id
+	params["VpcId"] = vpcId
+
+	resp = &SimpleResp{}
+	err = ec2.query(params, resp)
+	if err != nil {
+		return nil, err
+	}
+	return
+}
+
+// Delete an InternetGateway.
+func (ec2 *EC2) DeleteInternetGateway(id string) (resp *SimpleResp, err error) {
+	params := makeParams("DeleteInternetGateway")
+	params["InternetGatewayId"] = id
+
+	resp = &SimpleResp{}
+	err = ec2.query(params, resp)
+	if err != nil {
+		return nil, err
+	}
+	return
+}
+
+// DescribeInternetGateways
+//
+// http://docs.aws.amazon.com/AWSEC2/latest/APIReference/ApiReference-query-DescribeInternetGateways.html
+func (ec2 *EC2) DescribeInternetGateways(ids []string, filter *Filter) (resp *InternetGatewaysResp, err error) {
+	params := makeParams("DescribeInternetGateways")
+	addParamsList(params, "InternetGatewayId", ids)
+	filter.addParams(params)
+
+	resp = &InternetGatewaysResp{}
+	err = ec2.query(params, resp)
+	if err != nil {
+		return nil, err
+	}
+
+	return
+}
+
+// Create a new routing table.
+func (ec2 *EC2) CreateRouteTable(
+	options *CreateRouteTable) (resp *CreateRouteTableResp, err error) {
+	params := makeParams("CreateRouteTable")
+	params["VpcId"] = options.VpcId
+
+	resp = &CreateRouteTableResp{}
+	err = ec2.query(params, resp)
+	if err != nil {
+		return nil, err
+	}
+
+	return
+}
+
+// Delete a RouteTable.
+func (ec2 *EC2) DeleteRouteTable(id string) (resp *SimpleResp, err error) {
+	params := makeParams("DeleteRouteTable")
+	params["RouteTableId"] = id
+
+	resp = &SimpleResp{}
+	err = ec2.query(params, resp)
+	if err != nil {
+		return nil, err
+	}
+	return
+}
+
+// DescribeRouteTables
+//
+// http://docs.aws.amazon.com/AWSEC2/latest/APIReference/ApiReference-query-DescribeRouteTables.html
+func (ec2 *EC2) DescribeRouteTables(ids []string, filter *Filter) (resp *RouteTablesResp, err error) {
+	params := makeParams("DescribeRouteTables")
+	addParamsList(params, "RouteTableId", ids)
+	filter.addParams(params)
+
+	resp = &RouteTablesResp{}
+	err = ec2.query(params, resp)
+	if err != nil {
+		return nil, err
+	}
+
+	return
+}
+
+// Associate a routing table.
+func (ec2 *EC2) AssociateRouteTable(id, subnetId string) (*AssociateRouteTableResp, error) {
+	params := makeParams("AssociateRouteTable")
+	params["RouteTableId"] = id
+	params["SubnetId"] = subnetId
+
+	resp := &AssociateRouteTableResp{}
+	err := ec2.query(params, resp)
+	if err != nil {
+		return nil, err
+	}
+	return resp, nil
+}
+
+// Disassociate a routing table.
+func (ec2 *EC2) DisassociateRouteTable(id string) (*SimpleResp, error) {
+	params := makeParams("DisassociateRouteTable")
+	params["AssociationId"] = id
+
+	resp := &SimpleResp{}
+	err := ec2.query(params, resp)
+	if err != nil {
+		return nil, err
+	}
+	return resp, nil
+}
+
+// Re-associate a routing table.
+func (ec2 *EC2) ReassociateRouteTable(id, routeTableId string) (*ReassociateRouteTableResp, error) {
+	params := makeParams("ReassociateRouteTable")
+	params["AssociationId"] = id
+	params["RouteTableId"] = routeTableId
+
+	resp := &ReassociateRouteTableResp{}
+	err := ec2.query(params, resp)
+	if err != nil {
+		return nil, err
+	}
+	return resp, nil
+}
+
+// Create a new route.
+func (ec2 *EC2) CreateRoute(options *CreateRoute) (resp *SimpleResp, err error) {
+	params := makeParams("CreateRoute")
+	params["RouteTableId"] = options.RouteTableId
+	params["DestinationCidrBlock"] = options.DestinationCidrBlock
+
+	if v := options.GatewayId; v != "" {
+		params["GatewayId"] = v
+	}
+	if v := options.InstanceId; v != "" {
+		params["InstanceId"] = v
+	}
+	if v := options.NetworkInterfaceId; v != "" {
+		params["NetworkInterfaceId"] = v
+	}
+	if v := options.VpcPeeringConnectionId; v != "" {
+		params["VpcPeeringConnectionId"] = v
+	}
+
+	resp = &SimpleResp{}
+	err = ec2.query(params, resp)
+	if err != nil {
+		return nil, err
+	}
+	return
+}
+
+// Delete a Route.
+func (ec2 *EC2) DeleteRoute(routeTableId, cidr string) (resp *SimpleResp, err error) {
+	params := makeParams("DeleteRoute")
+	params["RouteTableId"] = routeTableId
+	params["DestinationCidrBlock"] = cidr
+
+	resp = &SimpleResp{}
+	err = ec2.query(params, resp)
+	if err != nil {
+		return nil, err
+	}
+	return
+}
+
+// Replace a new route.
+func (ec2 *EC2) ReplaceRoute(options *ReplaceRoute) (resp *SimpleResp, err error) {
+	params := makeParams("ReplaceRoute")
+	params["RouteTableId"] = options.RouteTableId
+	params["DestinationCidrBlock"] = options.DestinationCidrBlock
+
+	if v := options.GatewayId; v != "" {
+		params["GatewayId"] = v
+	}
+	if v := options.InstanceId; v != "" {
+		params["InstanceId"] = v
+	}
+	if v := options.NetworkInterfaceId; v != "" {
+		params["NetworkInterfaceId"] = v
+	}
+	if v := options.VpcPeeringConnectionId; v != "" {
+		params["VpcPeeringConnectionId"] = v
+	}
+
+	resp = &SimpleResp{}
+	err = ec2.query(params, resp)
+	if err != nil {
+		return nil, err
+	}
+	return
+}
+
+// The ResetImageAttribute request parameters.
+type ResetImageAttribute struct {
+	Attribute string
+}
+
+// ResetImageAttribute resets an attribute of an AMI to its default value.
+//
+// http://goo.gl/r6ZCPm for more details.
+func (ec2 *EC2) ResetImageAttribute(imageId string, options *ResetImageAttribute) (resp *SimpleResp, err error) {
+	params := makeParams("ResetImageAttribute")
+	params["ImageId"] = imageId
+
+	if options.Attribute != "" {
+		params["Attribute"] = options.Attribute
+	}
+
+	resp = &SimpleResp{}
+	err = ec2.query(params, resp)
+	if err != nil {
+		return nil, err
 	}
 	return
 }

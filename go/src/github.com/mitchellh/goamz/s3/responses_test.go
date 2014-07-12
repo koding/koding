@@ -207,3 +207,35 @@ var GetKeyHeaderDump = map[string]string{
 	"Content-Length":   "434234",
 	"Content-Type":     "text/plain",
 }
+
+var GetListBucketsDump = `
+<?xml version="1.0" encoding="UTF-8"?>
+<ListAllMyBucketsResult xmlns="http://s3.amazonaws.com/doc/2006-03-01/">
+  <Owner>
+    <ID>bb5c0f63b0b25f2d0</ID>
+    <DisplayName>joe</DisplayName>
+  </Owner>
+  <Buckets>
+    <Bucket>
+      <Name>bucket1</Name>
+      <CreationDate>2012-01-01T02:03:04.000Z</CreationDate>
+    </Bucket>
+    <Bucket>
+      <Name>bucket2</Name>
+      <CreationDate>2014-01-11T02:03:04.000Z</CreationDate>
+    </Bucket>
+  </Buckets>
+</ListAllMyBucketsResult>
+`
+
+var MultiDelDump = `
+<?xml version="1.0" encoding="UTF-8"?>
+<DeleteResult xmlns="http://s3.amazonaws.com/doc/2006-03-01/">
+  <Deleted>
+    <Key>a.go</Key>
+  </Deleted>
+  <Deleted>
+    <Key>b.go</Key>
+  </Deleted>
+</DeleteResult>
+`

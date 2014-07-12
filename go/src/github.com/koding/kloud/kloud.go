@@ -1,12 +1,10 @@
 package kloud
 
 import (
-	"io/ioutil"
-	"log"
-
 	"github.com/koding/kloud/eventer"
 	"github.com/koding/kloud/idlock"
 	"github.com/koding/kloud/protocol"
+	"github.com/koding/kloud/provider/amazon"
 	"github.com/koding/kloud/provider/digitalocean"
 	"github.com/koding/kloud/provider/openstack"
 
@@ -21,8 +19,8 @@ const (
 type Kloud struct {
 	Log logging.Logger
 
-	// Providers is responsible for creating machines and handling them.
-	providers map[string]protocol.Provider
+	// Providers that can satisfy procotol.Builder, protocol.Controller, etc..
+	providers map[string]interface{}
 
 	// Storage is used to store persistent data which is used by the Provider
 	// during certain actions
@@ -32,6 +30,7 @@ type Kloud struct {
 	Eventers map[string]eventer.Eventer
 
 	// Deployer is executed after a successfull build
+	Deploy   *protocol.ProviderDeploy
 	Deployer protocol.Deployer
 
 	// idlock provides multiple locks per id
@@ -44,7 +43,7 @@ func NewKloud() *Kloud {
 		idlock:    idlock.New(),
 		Log:       logging.NewLogger(NAME),
 		Eventers:  make(map[string]eventer.Eventer),
-		providers: make(map[string]protocol.Provider),
+		providers: make(map[string]interface{}),
 	}
 
 	kld.initializeProviders()
@@ -52,12 +51,12 @@ func NewKloud() *Kloud {
 }
 
 func (k *Kloud) initializeProviders() {
-	// Our digitalocean api uses lots of logs, the only way to supress them is
-	// to disable std log package.
-	log.SetOutput(ioutil.Discard)
-
 	k.AddProvider("digitalocean", &digitalocean.Provider{
 		Log: logging.NewLogger("digitalocean"),
+	})
+
+	k.AddProvider("amazon", &amazon.Provider{
+		Log: logging.NewLogger("amazon"),
 	})
 
 	k.AddProvider("rackspace", &openstack.Provider{
@@ -69,27 +68,36 @@ func (k *Kloud) initializeProviders() {
 
 // AddProvider adds the given Provider with the providerName. It returns an
 // error if the provider already exists.
-func (k *Kloud) AddProvider(providerName string, provider protocol.Provider) error {
-	_, ok := k.providers[providerName]
-	if ok {
-		return NewError(ErrProviderAvailable)
-	}
-
+func (k *Kloud) AddProvider(providerName string, provider interface{}) {
 	k.providers[providerName] = provider
-	return nil
 }
 
-// DeleteProvider removes the given provider from the provider list
-func (k *Kloud) DeleteProvider(providerName string) {
-	delete(k.providers, providerName)
-}
-
-// Provider returns the provider for the given provideName
-func (k *Kloud) Provider(providerName string) (protocol.Provider, error) {
+// Builder returns the builder for the given provideName
+func (k *Kloud) Builder(providerName string) (protocol.Builder, error) {
 	provider, ok := k.providers[providerName]
 	if !ok {
 		return nil, NewError(ErrProviderNotFound)
 	}
 
-	return provider, nil
+	builder, ok := provider.(protocol.Builder)
+	if !ok {
+		return nil, NewError(ErrProviderNotImplemented)
+	}
+
+	return builder, nil
+}
+
+// Controller returns the controller for the given provideName
+func (k *Kloud) Controller(providerName string) (protocol.Controller, error) {
+	provider, ok := k.providers[providerName]
+	if !ok {
+		return nil, NewError(ErrProviderNotFound)
+	}
+
+	controller, ok := provider.(protocol.Controller)
+	if !ok {
+		return nil, NewError(ErrProviderNotImplemented)
+	}
+
+	return controller, nil
 }

@@ -30,6 +30,8 @@ type Client struct {
 	Redis       *redis.RedisSession
 	RedisPrefix string
 
+	Deploy *protocol.ProviderDeploy
+
 	sync.Once
 }
 
@@ -37,7 +39,7 @@ type Client struct {
 // given snapshot/image exist it directly skips to creating the droplet. It
 // acceps two string arguments, first one is the snapshotname, second one is
 // the dropletName.
-func (c *Client) Build(snapshotName, dropletName, username string) (*protocol.ProviderArtifact, error) {
+func (c *Client) Build(snapshotName, dropletName string) (*protocol.Artifact, error) {
 	// needed because this is passed as `data` to packer.Provider
 	c.Builder.SnapshotName = snapshotName
 
@@ -65,10 +67,16 @@ func (c *Client) Build(snapshotName, dropletName, username string) (*protocol.Pr
 		return nil, err
 	}
 
-	return &protocol.ProviderArtifact{
-		IpAddress:    droplet.IpAddress,
-		InstanceName: dropletName,
-		InstanceId:   strconv.Itoa(droplet.Id),
+	var privateKey string
+	if c.Deploy != nil {
+		privateKey = c.Deploy.PrivateKey
+	}
+
+	return &protocol.Artifact{
+		IpAddress:     droplet.IpAddress,
+		InstanceName:  dropletName,
+		InstanceId:    strconv.Itoa(droplet.Id),
+		SSHPrivateKey: privateKey,
 	}, nil
 }
 
@@ -229,18 +237,20 @@ func (c *Client) WaitUntilReady(eventId, from, to int, state machinestate.State)
 }
 
 func (c *Client) NewDroplet(dropletName string, imageId uint) (dropletId uint, err error) {
-	// The name of the public key on DO
-	keys, err := c.Keys()
-	if err != nil {
-		return 0, err
-	}
-
 	var keyId uint
-	keyId = keys.GetId(protocol.KeyName)
-	if keyId == 0 {
-		keyId, err = c.CreateKey(protocol.KeyName, protocol.PublicKey)
+	if c.Deploy != nil {
+		// The name of the public key on DO
+		keys, err := c.Keys()
 		if err != nil {
 			return 0, err
+		}
+
+		keyId = keys.GetId(c.Deploy.KeyName)
+		if keyId == 0 {
+			keyId, err = c.CreateKey(c.Deploy.KeyName, c.Deploy.PublicKey)
+			if err != nil {
+				return 0, err
+			}
 		}
 	}
 

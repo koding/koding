@@ -3,6 +3,7 @@ package koding
 import (
 	"errors"
 
+	os "github.com/koding/kloud/api/openstack"
 	"github.com/koding/kloud/eventer"
 	"github.com/koding/kloud/machinestate"
 	"github.com/koding/kloud/protocol"
@@ -50,13 +51,11 @@ func (p *Provider) NewClient(opts *protocol.MachineOptions) (*openstack.Openstac
 				Percentage: percentage,
 			})
 		},
-		AuthURL:       authURL,
-		ProviderName:  "rackspace", //openstack related
-		CredentialRaw: kodingCredential,
-		BuilderRaw:    opts.Builder,
 	}
 
-	if err := o.Initialize(); err != nil {
+	var err error
+	o.Openstack, err = os.New(authURL, "rackspace", kodingCredential, opts.Builder)
+	if err != nil {
 		return nil, err
 	}
 
@@ -67,7 +66,7 @@ func (p *Provider) Name() string {
 	return ProviderName
 }
 
-func (p *Provider) Build(opts *protocol.MachineOptions) (*protocol.ProviderArtifact, error) {
+func (p *Provider) Build(opts *protocol.MachineOptions) (*protocol.Artifact, error) {
 	client, err := p.NewClient(opts)
 	if err != nil {
 		return nil, err
@@ -87,7 +86,7 @@ func (p *Provider) Build(opts *protocol.MachineOptions) (*protocol.ProviderArtif
 	return client.Build(opts.InstanceName, imageId, flavorId)
 }
 
-func (p *Provider) Start(opts *protocol.MachineOptions) (*protocol.ProviderArtifact, error) {
+func (p *Provider) Start(opts *protocol.MachineOptions) (*protocol.Artifact, error) {
 	o, err := p.NewClient(opts)
 	if err != nil {
 		return nil, err

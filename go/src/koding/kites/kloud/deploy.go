@@ -31,17 +31,19 @@ type KodingDeploy struct {
 	Bucket *Bucket
 }
 
-func (k *KodingDeploy) Deploy(opts *protocol.DeployOptions) (*protocol.DeployArtifact, error) {
-	username := opts.Username
-	ipAddress := opts.IpAddress
-	hostname := opts.InstanceName
+func (k *KodingDeploy) Deploy(artifact *protocol.Artifact) (*protocol.DeployArtifact, error) {
+	username := artifact.Username
+	ipAddress := artifact.IpAddress
+	hostname := artifact.InstanceName
+	privateKey := artifact.SSHPrivateKey
+	sshusername := artifact.SSHUsername
 
 	log := func(msg string) {
 		k.Log.Info("%s ==> %s", username, msg)
 	}
 
 	sshAddress := ipAddress + ":22"
-	sshConfig, err := sshutil.SshConfig(protocol.PrivateKey)
+	sshConfig, err := sshutil.SshConfig(sshusername, privateKey)
 	if err != nil {
 		return nil, err
 	}

@@ -28,12 +28,13 @@ const (
 	ErrSignPublicKeyEmpty  = 303
 	ErrSignGenerateToken   = 304
 
-	ErrBadState          = 400
-	ErrProviderNotFound  = 401
-	ErrNoKiteConnection  = 402
-	ErrNoArguments       = 403
-	ErrBadResponse       = 404
-	ErrProviderAvailable = 405
+	ErrBadState               = 400
+	ErrProviderNotFound       = 401
+	ErrNoKiteConnection       = 402
+	ErrNoArguments            = 403
+	ErrBadResponse            = 404
+	ErrProviderAvailable      = 405
+	ErrProviderNotImplemented = 406
 )
 
 var errors = map[int]string{
@@ -61,12 +62,13 @@ var errors = map[int]string{
 	ErrSignGenerateToken:   "Cannot generate token",
 
 	// Generic errors
-	ErrBadState:          "Bad state.",
-	ErrProviderNotFound:  "Provider is not found",
-	ErrNoKiteConnection:  "Couldn't connect to remote klient kite",
-	ErrNoArguments:       "No arguments are passed.",
-	ErrBadResponse:       "Provider has a bad response.",
-	ErrProviderAvailable: "Provider is already available",
+	ErrBadState:               "Bad state.",
+	ErrProviderNotFound:       "Provider is not found",
+	ErrNoKiteConnection:       "Couldn't connect to remote klient kite",
+	ErrNoArguments:            "No arguments are passed.",
+	ErrBadResponse:            "Provider has a bad response.",
+	ErrProviderAvailable:      "Provider is already available",
+	ErrProviderNotImplemented: "Provider doesn't implement the given interface",
 }
 
 func NewErrorMessage(errMsg string) *kite.Error {

@@ -6,8 +6,8 @@ import (
 	"os"
 	"time"
 
-	"launchpad.net/goamz/aws"
-	"launchpad.net/goamz/s3"
+	"github.com/mitchellh/goamz/aws"
+	"github.com/mitchellh/goamz/s3"
 )
 
 var defaultKlientBucket = "klient/production"
