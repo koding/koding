@@ -46,11 +46,17 @@ func TestChannelParticipantBeforeUpdate(t *testing.T) {
 		Convey("LastSeenAt should be updated", func() {
 			lastSeenAt := time.Now().UTC()
 
+			account, err := createAccount()
+			So(err, ShouldBeNil)
+			So(account, ShouldNotBeNil)
+			So(account.Id, ShouldNotEqual, 0)
+
 			c := NewChannelParticipant()
 			c.LastSeenAt = lastSeenAt
+			c.AccountId = account.Id
 
 			// call before update
-			err := c.BeforeUpdate()
+			err = c.BeforeUpdate()
 
 			// make sure err is nil
 			So(err, ShouldBeNil)
