@@ -3,8 +3,8 @@ package models
 import (
 	"errors"
 	"fmt"
-	"strings"
 	"socialapi/request"
+	"strings"
 	"time"
 
 	"github.com/koding/bongo"
@@ -88,19 +88,6 @@ func NewPrivateMessageChannel(creatorId int64, groupName string) *Channel {
 	return c
 }
 
-func (c *Channel) FetchByIds(ids []int64) ([]Channel, error) {
-	var channels []Channel
-
-	if len(ids) == 0 {
-		return channels, nil
-	}
-
-	if err := bongo.B.FetchByIds(c, &channels, ids); err != nil {
-		return nil, err
-	}
-	return channels, nil
-}
-
 func (c *Channel) Create() error {
 	if c.Name == "" || c.GroupName == "" || c.TypeConstant == "" {
 		return fmt.Errorf("Validation failed %s - %s -%s", c.Name, c.GroupName, c.TypeConstant)
@@ -156,19 +143,6 @@ func (c *Channel) CreateRaw() error {
 	return bongo.B.DB.CommonDB().QueryRow(insertSql, c.Name, c.CreatorId,
 		c.GroupName, c.Purpose, c.TypeConstant, c.PrivacyConstant,
 		c.CreatedAt, c.UpdatedAt, c.DeletedAt).Scan(&c.Id)
-}
-
-func (c *Channel) FetchByIds(ids []int64) ([]Channel, error) {
-	var channels []Channel
-
-	if len(ids) == 0 {
-		return channels, nil
-	}
-
-	if err := bongo.B.FetchByIds(c, &channels, ids); err != nil {
-		return nil, err
-	}
-	return channels, nil
 }
 
 func (c *Channel) AddParticipant(participantId int64) (*ChannelParticipant, error) {

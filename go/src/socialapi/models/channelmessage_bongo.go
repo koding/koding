@@ -1,6 +1,7 @@
 package models
 
 import (
+	"time"
 
 	"github.com/koding/bongo"
 )
