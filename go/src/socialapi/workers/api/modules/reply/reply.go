@@ -7,7 +7,6 @@ import (
 	"socialapi/request"
 	"socialapi/workers/api/modules/helpers"
 	"socialapi/workers/common/response"
-	"time"
 )
 
 func Create(u *url.URL, h http.Header, reply *models.ChannelMessage) (int, http.Header, interface{}, error) {
@@ -43,52 +42,9 @@ func Create(u *url.URL, h http.Header, reply *models.ChannelMessage) (int, http.
 		return response.NewBadRequest(err)
 	}
 
-	// update all channels that contains this message
-	// todo move this to a worker
-	updateAllContainingChannels(parent.Id)
-
 	return response.HandleResultAndError(
 		reply.BuildEmptyMessageContainer(),
 	)
-}
-
-// fetch all channels that parent is in
-// update all channels
-func updateAllContainingChannels(parentId int64) error {
-	cml := models.NewChannelMessageList()
-	channels, err := cml.FetchMessageChannels(parentId)
-	if err != nil {
-		return err
-	}
-
-	if len(channels) == 0 {
-		return nil
-	}
-
-	for _, channel := range channels {
-		// if channel type is group, we dont need to update group's updatedAt
-		if channel.TypeConstant == models.Channel_TYPE_GROUP {
-			continue
-		}
-
-		// pinned activity channel holds messages one by one
-		if channel.TypeConstant != models.Channel_TYPE_PINNED_ACTIVITY {
-			channel.UpdatedAt = time.Now().UTC()
-			if err := channel.Update(); err != nil {
-				// err
-			}
-			continue
-		}
-
-		// if channel.TypeConstant == models.Channel_TYPE_PINNED_ACTIVITY {
-		err := models.NewChannelMessageList().UpdateAddedAt(channel.Id, parentId)
-		if err != nil {
-			// return err
-		}
-	}
-
-	return nil
-
 }
 
 func Delete(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface{}, error) {
@@ -136,15 +92,23 @@ func List(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface
 	if err != nil {
 		return response.NewBadRequest(err)
 	}
+	accountId, err := request.GetURIInt64(u, "accountId")
+	if err != nil {
+		return response.NewBadRequest(err)
+	}
 
 	reply := models.NewMessageReply()
 	reply.MessageId = messageId
 
+	messages, err := reply.List(request.GetQuery(u))
+	if err != nil {
+		return response.NewBadRequest(err)
+	}
+
 	return response.HandleResultAndError(
 		helpers.ConvertMessagesToMessageContainers(
-			reply.List(
-				request.GetQuery(u),
-			),
+			messages,
+			accountId,
 		),
 	)
 }

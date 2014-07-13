@@ -8,7 +8,6 @@ import (
 	"socialapi/models"
 	"socialapi/request"
 	"socialapi/workers/common/response"
-	"time"
 )
 
 func GetPinnedActivityChannel(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface{}, error) {
@@ -118,8 +117,8 @@ func Glance(u *url.URL, h http.Header, req *models.PinRequest) (int, http.Header
 		return response.NewBadRequest(err)
 	}
 
-	cml.RevisedAt = time.Now().UTC()
-	if err := cml.Update(); err != nil {
+	cml.Glance()
+	if err != nil {
 		return response.NewBadRequest(err)
 	}
 

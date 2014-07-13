@@ -8,5 +8,6 @@ import (
 
 var (
 	RecordNotFound = gorm.RecordNotFound
-	IdIsNotSet     = errors.New("Id is not set - empty")
+	IdIsNotSet     = errors.New("id is not set - empty")
+	WrongParameter = errors.New("wrong parameter list")
 )

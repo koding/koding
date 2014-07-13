@@ -55,7 +55,7 @@ doRequest = (funcName, client, options, callback)->
       options.groupChannelId = group.socialApiChannelId
       options.groupName      = group.slug
       options.accountId      = socialApiId
-      options.showExempt     = delegate.isExempt
+      options.showExempt   or= delegate.isExempt
 
       bareRequest funcName, options, callback
 

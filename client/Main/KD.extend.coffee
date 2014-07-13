@@ -376,6 +376,14 @@ KD.extend
   hasAccess:(permission)->
     if "admin" in KD.config.roles then yes else permission in KD.config.permissions
 
+  getMessageOwner: (message, callback) ->
+    {constructorName, _id} = message.account
+    KD.remote.cacheable constructorName, _id, (err, owner) ->
+      return callback err  if err
+      return callback {message: "Account not found", name: "NotFound"} unless owner
+      callback null, owner
+
+
 Object.defineProperty KD, "defaultSlug",
   get:->
     if KD.isGuest() then 'guests' else 'koding'

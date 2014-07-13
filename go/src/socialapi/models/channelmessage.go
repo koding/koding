@@ -57,40 +57,6 @@ type ChannelMessage struct {
 	Payload gorm.Hstore `json:"payload,omitempty"`
 }
 
-func (c *ChannelMessage) BeforeCreate() error {
-	c.CreatedAt = time.Now().UTC()
-	c.UpdatedAt = time.Now().UTC()
-	c.DeletedAt = ZeroDate()
-	c.Token = NewToken(c.CreatedAt).String()
-	return c.MarkIfExempt()
-}
-
-func (c *ChannelMessage) BeforeUpdate() error {
-	c.DeletedAt = ZeroDate()
-
-	return c.MarkIfExempt()
-}
-
-func (c *ChannelMessage) AfterCreate() {
-	bongo.B.AfterCreate(c)
-}
-
-func (c *ChannelMessage) AfterUpdate() {
-	bongo.B.AfterUpdate(c)
-}
-
-func (c ChannelMessage) AfterDelete() {
-	bongo.B.AfterDelete(c)
-}
-
-func (c ChannelMessage) GetId() int64 {
-	return c.Id
-}
-
-func (c ChannelMessage) TableName() string {
-	return "api.channel_message"
-}
-
 const (
 	ChannelMessage_TYPE_POST            = "post"
 	ChannelMessage_TYPE_REPLY           = "reply"
@@ -99,30 +65,6 @@ const (
 	ChannelMessage_TYPE_CHAT            = "chat"
 	ChannelMessage_TYPE_PRIVATE_MESSAGE = "privatemessage"
 )
-
-func NewChannelMessage() *ChannelMessage {
-	return &ChannelMessage{}
-}
-
-func (c *ChannelMessage) ById(id int64) error {
-	return bongo.B.ById(c, id)
-}
-
-func (c *ChannelMessage) One(q *bongo.Query) error {
-	return bongo.B.One(c, c, q)
-}
-
-func (c *ChannelMessage) Some(data interface{}, q *bongo.Query) error {
-	return bongo.B.Some(c, data, q)
-}
-
-func (c *ChannelMessage) UpdateMulti(rest ...map[string]interface{}) error {
-	return bongo.B.UpdateMulti(c, rest...)
-}
-
-func (c *ChannelMessage) CountWithQuery(q *bongo.Query) (int, error) {
-	return bongo.B.CountWithQuery(c, q)
-}
 
 func (c *ChannelMessage) MarkIfExempt() error {
 	isExempt, err := c.isExempt()
@@ -190,32 +132,7 @@ func bodyLenCheck(body string) error {
 
 // todo create a new message while updating the channel_message and delete other
 // cases, since deletion is a soft delete, old instances will still be there
-func (c *ChannelMessage) Update() error {
-	if err := bodyLenCheck(c.Body); err != nil {
-		return err
-	}
-	// only update body
-	err := bongo.B.UpdatePartial(c,
-		map[string]interface{}{
-			"body": c.Body,
-		},
-	)
-	return err
-}
 
-func (c *ChannelMessage) Create() error {
-	if err := bodyLenCheck(c.Body); err != nil {
-		return err
-	}
-
-	var err error
-	c, err = Slugify(c)
-	if err != nil {
-		return err
-	}
-
-	return bongo.B.Create(c)
-}
 
 // CreateRaw creates a new channel message without effected by auto generated createdAt
 // and updatedAt values
@@ -237,10 +154,6 @@ func (c *ChannelMessage) UpdateBodyRaw() error {
 	updateSql := fmt.Sprintf("UPDATE %s SET body=? WHERE id=?", c.TableName())
 
 	return bongo.B.DB.Exec(updateSql, c.Body, c.Id).Error
-}
-
-func (c *ChannelMessage) Delete() error {
-	return bongo.B.Delete(c)
 }
 
 //  FetchByIds fetchs given ids from database, it doesnt add any meta bits
@@ -381,40 +294,17 @@ func (c *ChannelMessage) FetchRelatives(query *request.Query) (*ChannelMessageCo
 
 	i := NewInteraction()
 	i.MessageId = c.Id
-
 	// get preview
 	query.Type = "like"
 	query.Limit = 3
-	interactorIds, err := i.List(query)
+
+	interactionContainer, err := i.FetchInteractionContainer(query)
 	if err != nil {
 		return nil, err
 	}
-
-	oldIds, err := FetchOldIdsByAccountIds(interactorIds)
-	if err != nil {
-		return nil, err
-	}
-
-	interactionContainer := NewInteractionContainer()
-	interactionContainer.ActorsPreview = oldIds
-
-	// check if the current user is interacted in this thread
-	isInteracted, err := i.IsInteracted(query.AccountId)
-	if err != nil {
-		return nil, err
-	}
-
-	interactionContainer.IsInteracted = isInteracted
-
-	// fetch interaction count
-	count, err := i.Count(query)
-	if err != nil {
-		return nil, err
-	}
-
-	interactionContainer.ActorsCount = count
 
 	container.Interactions[query.Type] = interactionContainer
+
 	return container, nil
 }
 

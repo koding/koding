@@ -191,6 +191,8 @@ module.exports = class SocialChannel extends Base
 
   # fetchActivities - fetch activities of a channel
   @fetchActivities = secure (client, options, callback)->
+    {connection:{delegate}} = client
+    options.showExempt = delegate.checkFlag "super-admin"
     options.channelId = options.id
     doRequest 'fetchChannelActivities', client, options, callback
 

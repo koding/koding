@@ -9,6 +9,8 @@ import (
 	"github.com/koding/bongo"
 )
 
+var ErrNotSetMessageId = errors.New("messageId is not set")
+
 type Interaction struct {
 	// unique identifier of the Interaction
 	Id int64 `json:"id,string"`
@@ -40,54 +42,6 @@ const (
 	Interaction_TYPE_UPVOTE   = "upvote"
 	Interaction_TYPE_DONWVOTE = "downvote"
 )
-
-func (i *Interaction) BeforeCreate() error {
-	return i.MarkIfExempt()
-}
-
-func (i *Interaction) BeforeUpdate() error {
-	return i.MarkIfExempt()
-}
-
-func (i *Interaction) AfterCreate() {
-	bongo.B.AfterCreate(i)
-}
-
-func (i *Interaction) AfterUpdate() {
-	bongo.B.AfterUpdate(i)
-}
-
-func (i Interaction) AfterDelete() {
-	bongo.B.AfterDelete(i)
-}
-
-func (i Interaction) GetId() int64 {
-	return i.Id
-}
-
-func (i Interaction) TableName() string {
-	return "api.interaction"
-}
-
-func NewInteraction() *Interaction {
-	return &Interaction{}
-}
-
-func (i *Interaction) One(q *bongo.Query) error {
-	return bongo.B.One(i, i, q)
-}
-
-func (i *Interaction) ById(id int64) error {
-	return bongo.B.ById(i, id)
-}
-
-func (i *Interaction) Create() error {
-	return bongo.B.Create(i)
-}
-
-func (i *Interaction) Update() error {
-	return bongo.B.Update(i)
-}
 
 func (i *Interaction) CreateRaw() error {
 	insertSql := "INSERT INTO " +
@@ -156,10 +110,6 @@ func (i *Interaction) getAccountId() (int64, error) {
 	return ii.AccountId, nil
 }
 
-func (i *Interaction) Some(data interface{}, q *bongo.Query) error {
-	return bongo.B.Some(i, data, q)
-}
-
 func (i *Interaction) Delete() error {
 	selector := map[string]interface{}{
 		"message_id": i.MessageId,
@@ -181,7 +131,7 @@ func (i *Interaction) List(query *request.Query) ([]int64, error) {
 	var interactions []int64
 
 	if i.MessageId == 0 {
-		return interactions, errors.New("Message is not set")
+		return interactions, ErrNotSetMessageId
 	}
 
 	return i.FetchInteractorIds(query)
@@ -213,7 +163,7 @@ func (i *Interaction) FetchInteractorIds(query *request.Query) ([]int64, error) 
 
 func (c *Interaction) Count(q *request.Query) (int, error) {
 	if c.MessageId == 0 {
-		return 0, errors.New("messageId is not set")
+		return 0, ErrNotSetMessageId
 	}
 
 	if q.Type == "" {
@@ -246,7 +196,7 @@ func (c *Interaction) FetchAll(interactionType string) ([]Interaction, error) {
 	var interactions []Interaction
 
 	if c.MessageId == 0 {
-		return interactions, errors.New("ChannelId is not set")
+		return interactions, errors.New("channelId is not set")
 	}
 
 	selector := map[string]interface{}{
@@ -264,7 +214,7 @@ func (c *Interaction) FetchAll(interactionType string) ([]Interaction, error) {
 
 func (i *Interaction) IsInteracted(accountId int64) (bool, error) {
 	if i.MessageId == 0 {
-		return false, errors.New("Message Id is not set")
+		return false, ErrNotSetMessageId
 	}
 
 	selector := map[string]interface{}{
@@ -287,4 +237,41 @@ func (i *Interaction) IsInteracted(accountId int64) (bool, error) {
 
 func (i *Interaction) FetchInteractorCount() (int, error) {
 	return bongo.B.Count(i, "message_id = ?", i.MessageId)
+}
+
+func (i *Interaction) FetchInteractionContainer(query *request.Query) (*InteractionContainer, error) {
+	if i.MessageId == 0 {
+		return nil, ErrNotSetMessageId
+	}
+
+	interactorIds, err := i.List(query)
+	if err != nil {
+		return nil, err
+	}
+
+	oldIds, err := FetchOldIdsByAccountIds(interactorIds)
+	if err != nil {
+		return nil, err
+	}
+
+	interactionContainer := NewInteractionContainer()
+	interactionContainer.ActorsPreview = oldIds
+
+	// check if the current user is interacted in this thread
+	isInteracted, err := i.IsInteracted(query.AccountId)
+	if err != nil {
+		return nil, err
+	}
+
+	interactionContainer.IsInteracted = isInteracted
+
+	// fetch interaction count
+	count, err := i.Count(query)
+	if err != nil {
+		return nil, err
+	}
+
+	interactionContainer.ActorsCount = count
+
+	return interactionContainer, nil
 }

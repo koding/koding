@@ -3,10 +3,10 @@ package topicfeed
 import (
 	"encoding/json"
 	"fmt"
+	"socialapi/models"
 	"github.com/koding/bongo"
 	"github.com/koding/logging"
 	"github.com/streadway/amqp"
-	"socialapi/models"
 
 	verbalexpressions "github.com/VerbalExpressions/GoVerbalExpressions"
 )

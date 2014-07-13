@@ -53,7 +53,7 @@ CREATE TABLE "api"."account" (
 ) WITH (OIDS = FALSE);
 
 -- ALTER TABLE "api"."account" OWNER TO "socialapplication";
-GRANT SELECT, INSERT ON "api"."account" TO "socialapplication";
+GRANT SELECT, INSERT, UPDATE ON "api"."account" TO "socialapplication";
 
 
 
@@ -160,7 +160,9 @@ CREATE TABLE "api"."interaction" (
 ) WITH (OIDS = FALSE);
 
 -- ALTER TABLE "api"."interaction" OWNER TO "socialapplication";
-GRANT SELECT, INSERT, DELETE ON "api"."interaction" TO "socialapplication";
+-- remove update permission from socialapplication
+-- this is added for trollmode worker, but it can use another user for extensive permission required operations
+GRANT SELECT, UPDATE, INSERT, DELETE ON "api"."interaction" TO "socialapplication";
 
 
 -- ----------------------------
