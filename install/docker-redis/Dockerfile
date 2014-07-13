@@ -6,4 +6,6 @@ RUN apt-get update
 RUN apt-get install -y software-properties-common
 RUN apt-add-repository -y ppa:chris-lea/redis-server
 RUN apt-get install -y redis-server
-EXPOSE 6379:6379
+EXPOSE 6379
+ENTRYPOINT ["redis-server"]
+

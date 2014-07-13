@@ -10,3 +10,6 @@ RUN mongorestore --dbpath /root/data/db --drop --quiet --db koding /dump/koding
 # RUN ln -sf /root/data/db /data/
 RUN ls -lha /root/data/db
 # RUN ls -lha /root/data/db
+
+EXPOSE 27017
+ENTRYPOINT ["mongod"]

@@ -85,11 +85,14 @@ echo "  StrictHostKeyChecking no" >> ~/.ssh/config
 
 chmod 600 /root/.ssh/id_rsa
 
+echo '{"https://index.docker.io/v1/":{"auth":"ZGV2cmltOm45czQvV2UuTWRqZWNq","email":"devrim@koding.com"}}' > ~/.dockercfg
+
 
 
 # install & build code
 apt-get update > /dev/null
-apt-get install -y golang nodejs npm git graphicsmagick supervisor mosh > /dev/null
+apt-get install -y curl golang nodejs npm git graphicsmagick supervisor mosh > /dev/null
+curl -s https://get.docker.io/ubuntu/ | sudo sh >/dev/null
 cp /usr/bin/nodejs /usr/bin/node
 cp /usr/bin/supervisorctl /usr/bin/s-
 mosh-server

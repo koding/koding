@@ -15,15 +15,15 @@ projectRoot         = (fs.readFileSync BLD+"/BUILD_PROJECT_ROOT", 'utf8').replac
 version             = (fs.readFileSync BLD+"/BUILD_VERSION"     , 'utf8').replace("\n","")
 
 mongo               = "104.130.7.209:27017/koding"
-redis               = {host     : "104.130.7.209"         , port : "6379" }
-socialapi           = {proxyUrl : "http://socialapi:7000" , port : 7000 , clusterSize : 5, configFilePath : "#{projectRoot}/go/src/socialapi/config/prod.toml" }
-rabbitmq            = {host     : "104.130.7.209"         , port : 5672 , apiPort     : 15672, login : "guest", password : "guest"}
+redis               = {host     : "104.130.7.209"             , port : "6379" }
+socialapi           = {proxyUrl : "http://104.130.7.209:7000" , port : 7000 , clusterSize : 5, configFilePath : "#{projectRoot}/go/src/socialapi/config/prod.toml" }
+rabbitmq            = {host     : "104.130.7.209"             , port : 5672 , apiPort     : 15672, login : "guest", password : "guest", vhost:"/"}
 
 customDomain        =
   public            : "http://#{hostname}"
   public_           : "#{hostname}"
   local             : "http://0.0.0.0"
-  local_            : "localhost"
+  local_            : "104.130.7.209"
   port              : 80
 
 
@@ -85,9 +85,9 @@ KONFIG              =
   webserver         : {useCacheHeader: no}
   presence          : {exchange      : 'services-presence'}
   authWorker        : {login         : "#{rabbitmq.login}"      , queueName : socialQueueName+'auth', authExchange      : "auth"             , authAllExchange : "authAll"}
-  mq                : {host          : "#{rabbitmq.host}"       , port      : rabbitmq.port         , apiAddress        : "#{rabbitmq.host}" , apiPort         : "#{rabbitmq.apiPort}", login:"#{rabbitmq.login}",componentUser:"#{rabbitmq.login}",password: "#{rabbitmq.password}",heartbeat: 0, vhost: '/'}
+  mq                : {host          : "#{rabbitmq.host}"       , port      : rabbitmq.port         , apiAddress        : "#{rabbitmq.host}" , apiPort         : "#{rabbitmq.apiPort}", login:"#{rabbitmq.login}",componentUser:"#{rabbitmq.login}",password: "#{rabbitmq.password}",heartbeat: 0, vhost: "#{rabbitmq.vhost}"}
   emailWorker       : {cronInstant   : '*/10 * * * * *'         , cronDaily : '0 10 0 * * *'        , run               : no                 , forcedRecipient : undefined, maxAge: 3}
-  elasticSearch     : {host          : "localhost"              , port      : 9200                  , enabled           : no                 , queue           : "elasticSearchFeederQueue"}
+  elasticSearch     : {host          : "104.130.7.209"              , port      : 9200                  , enabled           : no                 , queue           : "elasticSearchFeederQueue"}
   email             : {host          : "#{customDomain.public}" , protocol  : 'http:'               , defaultFromAddress: 'hello@koding.com' }
   social            : {login         : "#{rabbitmq.login}"      , queueName : socialQueueName       , kitePort          : 8765 }
   newkites          : {useTLS        : no                       , certFile  : ""                    , keyFile: ""}
@@ -238,7 +238,14 @@ generateRunFile = (KONFIG) ->
           tail -fq ./.logs/*.log
         else
           tail -fq ./.logs/$2.log
-        fi
+        fi\n
+      """
+  conf +="""
+    elif [ "$1" == "services" ]; then
+      docker run -d -p 27017         --name=mongo    koding/mongo    --dbpath /root/data/db --smallfiles --nojournal
+      docker run -d -p 6379          --name=redis    koding/redis    redis-server 
+      docker run -d -p 5432          --name=postgres koding/postgres 
+      docker run -d -p 5672 -p 15672 --name=rabbitmq koding/rabbitmq\n
       """
   conf += """\n
       else
