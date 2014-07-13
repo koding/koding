@@ -92,7 +92,7 @@ func (r *Runner) InitWithConfigFile(flagConfFile string) error {
 		// no need to set, will be set randomly.
 		// k.Config.Port = 9876
 		k.Config.Environment = r.Conf.Environment
-		region = *flagRegion
+		region := *flagRegion
 		// if region is not given, get it from config
 		if region == "" {
 			region = k.Config.Region
