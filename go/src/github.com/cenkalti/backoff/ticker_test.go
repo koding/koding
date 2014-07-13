@@ -6,7 +6,7 @@ import (
 	"testing"
 )
 
-func TestRetry(t *testing.T) {
+func TestTicker(t *testing.T) {
 	const successOn = 3
 	var i = 0
 
@@ -24,7 +24,18 @@ func TestRetry(t *testing.T) {
 		return errors.New("error")
 	}
 
-	err := Retry(f, NewExponentialBackOff())
+	b := NewExponentialBackOff()
+	ticker := NewTicker(b)
+
+	var err error
+	for _ = range ticker.C {
+		if err = f(); err != nil {
+			t.Log(err)
+			continue
+		}
+
+		break
+	}
 	if err != nil {
 		t.Errorf("unexpected error: %s", err.Error())
 	}
