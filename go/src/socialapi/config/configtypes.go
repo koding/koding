@@ -13,6 +13,7 @@ type (
 		Redis             Redis
 		Mongo             string
 		Environment       string
+		Region            string
 		Uri               string
 		SendGrid          SendGrid
 		EmailNotification EmailNotification
