@@ -133,7 +133,6 @@ func bodyLenCheck(body string) error {
 // todo create a new message while updating the channel_message and delete other
 // cases, since deletion is a soft delete, old instances will still be there
 
-
 // CreateRaw creates a new channel message without effected by auto generated createdAt
 // and updatedAt values
 func (c *ChannelMessage) CreateRaw() error {
@@ -154,22 +153,6 @@ func (c *ChannelMessage) UpdateBodyRaw() error {
 	updateSql := fmt.Sprintf("UPDATE %s SET body=? WHERE id=?", c.TableName())
 
 	return bongo.B.DB.Exec(updateSql, c.Body, c.Id).Error
-}
-
-//  FetchByIds fetchs given ids from database, it doesnt add any meta bits
-// properties into query
-func (c *ChannelMessage) FetchByIds(ids []int64) ([]ChannelMessage, error) {
-	var messages []ChannelMessage
-
-	if len(ids) == 0 {
-		return messages, nil
-	}
-
-	if err := bongo.B.FetchByIds(c, &messages, ids); err != nil {
-		return nil, err
-	}
-
-	return messages, nil
 }
 
 func (c *ChannelMessage) BuildMessages(query *request.Query, messages []ChannelMessage) ([]*ChannelMessageContainer, error) {

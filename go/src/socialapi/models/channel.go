@@ -69,9 +69,7 @@ const (
 func NewChannel() *Channel {
 	return &Channel{
 		Name:            "Channel" + RandomName(),
-		CreatorId:       0,
 		GroupName:       Channel_KODING_NAME,
-		Purpose:         "",
 		TypeConstant:    Channel_TYPE_DEFAULT,
 		PrivacyConstant: Channel_PRIVACY_PRIVATE,
 	}
