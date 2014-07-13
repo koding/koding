@@ -278,12 +278,12 @@ func (s *S) TestDeleteUserPolicy(c *C) {
 }
 
 func (s *S) TestAddUserToGroup(c *C) {
-        testServer.Response(200, nil, AddUserToGroupExample)
-        resp, err := s.iam.AddUserToGroup("admin1", "Admins")
-        values := testServer.WaitRequest().URL.Query()
-        c.Assert(values.Get("Action"), Equals, "AddUserToGroup")
-        c.Assert(values.Get("GroupName"), Equals, "Admins")
-        c.Assert(values.Get("UserName"), Equals, "admin1")
-        c.Assert(err, IsNil)
-        c.Assert(resp.RequestId, Equals, "7a62c49f-347e-4fc4-9331-6e8eEXAMPLE")
+	testServer.Response(200, nil, AddUserToGroupExample)
+	resp, err := s.iam.AddUserToGroup("admin1", "Admins")
+	values := testServer.WaitRequest().URL.Query()
+	c.Assert(values.Get("Action"), Equals, "AddUserToGroup")
+	c.Assert(values.Get("GroupName"), Equals, "Admins")
+	c.Assert(values.Get("UserName"), Equals, "admin1")
+	c.Assert(err, IsNil)
+	c.Assert(resp.RequestId, Equals, "7a62c49f-347e-4fc4-9331-6e8eEXAMPLE")
 }
