@@ -41,7 +41,6 @@ func (c *Channel) BeforeUpdate() error {
 	return c.MarkIfExempt()
 }
 
-
 func (c *Channel) Update() error {
 	if c.Name == "" || c.GroupName == "" {
 		return fmt.Errorf("Validation failed %s - %s", c.Name, c.GroupName)
@@ -64,4 +63,17 @@ func (c *Channel) One(q *bongo.Query) error {
 
 func (c *Channel) Some(data interface{}, q *bongo.Query) error {
 	return bongo.B.Some(c, data, q)
+}
+
+func (c *Channel) FetchByIds(ids []int64) ([]Channel, error) {
+	var channels []Channel
+
+	if len(ids) == 0 {
+		return channels, nil
+	}
+
+	if err := bongo.B.FetchByIds(c, &channels, ids); err != nil {
+		return nil, err
+	}
+	return channels, nil
 }
