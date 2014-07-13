@@ -125,17 +125,17 @@ func (f *Controller) ChannelParticipantUpdatedEvent(cp *models.ChannelParticipan
 	return cue.sendForParticipant()
 }
 
-//ChannelParticipantRemoved is fired when we remove any info of channel participant
+// ChannelParticipantRemoved is fired when we remove any info of channel participant
 func (f *Controller) ChannelParticipantRemoved(cp *models.ChannelParticipant) error {
 	return f.sendChannelParticipantEvent(cp, RemovedFromChannelEventName)
 }
 
-//ChannelParticipantAdded is fired when we add any info of channel participant
+// ChannelParticipantAdded is fired when we add any info of channel participant
 func (f *Controller) ChannelParticipantAdded(cp *models.ChannelParticipant) error {
 	return f.sendChannelParticipantEvent(cp, AddedToChannelEventName)
 }
 
-//sendChannelParticipantEvent sends the required info(data) about channel participant
+// sendChannelParticipantEvent sends the required info(data) about channel participant
 func (f *Controller) sendChannelParticipantEvent(cp *models.ChannelParticipant, eventName string) error {
 	c, err := models.ChannelById(cp.ChannelId)
 	if err != nil {
@@ -160,12 +160,12 @@ func (f *Controller) sendChannelParticipantEvent(cp *models.ChannelParticipant, 
 	// send this event to the channel itself
 	return f.publishToChannel(c.Id, eventName, cp)
 }
-//InteractionSaved runs when interaction is added
+// InteractionSaved runs when interaction is added
 func (f *Controller) InteractionSaved(i *models.Interaction) error {
 	return f.handleInteractionEvent("InteractionAdded", i)
 }
 
-//InteractionSaved runs when interaction is removed
+// InteractionSaved runs when interaction is removed
 func (f *Controller) InteractionDeleted(i *models.Interaction) error {
 	return f.handleInteractionEvent("InteractionRemoved", i)
 }
@@ -180,7 +180,7 @@ type InteractionEvent struct {
 	Count        int    `json:"count"`
 }
 
-//handleInteractionEvent handle the required info of interaction 
+// handleInteractionEvent handle the required info of interaction 
 func (f *Controller) handleInteractionEvent(eventName string, i *models.Interaction) error {
 	q := &request.Query{
 		Type:       models.Interaction_TYPE_LIKE,
@@ -192,7 +192,7 @@ func (f *Controller) handleInteractionEvent(eventName string, i *models.Interact
 		return err
 	}
 
-	//fetchs oldId from cache
+	// fetchs oldId from cache
 	oldId, err := models.FetchAccountOldIdByIdFromCache(i.AccountId)
 	if err != nil {
 		return err
@@ -219,7 +219,10 @@ func (f *Controller) handleInteractionEvent(eventName string, i *models.Interact
 	return nil
 }
 
+// MessageReplySaved updates the channels , send messages in updated channel
+// and sends messages which is added
 func (f *Controller) MessageReplySaved(mr *models.MessageReply) error {
+	// fetch a channel 
 	reply := models.NewChannelMessage()
 	if err := reply.ById(mr.ReplyId); err != nil {
 		return err
