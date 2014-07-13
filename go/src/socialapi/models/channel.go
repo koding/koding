@@ -3,8 +3,8 @@ package models
 import (
 	"errors"
 	"fmt"
-	"socialapi/request"
 	"strings"
+	"socialapi/request"
 	"time"
 
 	"github.com/koding/bongo"
@@ -88,47 +88,17 @@ func NewPrivateMessageChannel(creatorId int64, groupName string) *Channel {
 	return c
 }
 
-func (c *Channel) BeforeCreate() error {
-	c.CreatedAt = time.Now().UTC()
-	c.UpdatedAt = time.Now().UTC()
-	c.DeletedAt = ZeroDate()
-	c.Token = NewToken(c.CreatedAt).String()
+func (c *Channel) FetchByIds(ids []int64) ([]Channel, error) {
+	var channels []Channel
 
-	return c.MarkIfExempt()
-}
-
-func (c *Channel) BeforeUpdate() error {
-	c.UpdatedAt = time.Now()
-
-	return c.MarkIfExempt()
-}
-
-func (c Channel) GetId() int64 {
-	return c.Id
-}
-
-func (c Channel) TableName() string {
-	return "api.channel"
-}
-
-func (c *Channel) AfterCreate() {
-	bongo.B.AfterCreate(c)
-}
-
-func (c *Channel) AfterUpdate() {
-	bongo.B.AfterUpdate(c)
-}
-
-func (c Channel) AfterDelete() {
-	bongo.B.AfterDelete(c)
-}
-
-func (c *Channel) Update() error {
-	if c.Name == "" || c.GroupName == "" {
-		return fmt.Errorf("Validation failed %s - %s", c.Name, c.GroupName)
+	if len(ids) == 0 {
+		return channels, nil
 	}
 
-	return bongo.B.Update(c)
+	if err := bongo.B.FetchByIds(c, &channels, ids); err != nil {
+		return nil, err
+	}
+	return channels, nil
 }
 
 func (c *Channel) Create() error {
@@ -186,22 +156,6 @@ func (c *Channel) CreateRaw() error {
 	return bongo.B.DB.CommonDB().QueryRow(insertSql, c.Name, c.CreatorId,
 		c.GroupName, c.Purpose, c.TypeConstant, c.PrivacyConstant,
 		c.CreatedAt, c.UpdatedAt, c.DeletedAt).Scan(&c.Id)
-}
-
-func (c *Channel) Delete() error {
-	return bongo.B.Delete(c)
-}
-
-func (c *Channel) ById(id int64) error {
-	return bongo.B.ById(c, id)
-}
-
-func (c *Channel) One(q *bongo.Query) error {
-	return bongo.B.One(c, c, q)
-}
-
-func (c *Channel) Some(data interface{}, q *bongo.Query) error {
-	return bongo.B.Some(c, data, q)
 }
 
 func (c *Channel) FetchByIds(ids []int64) ([]Channel, error) {
