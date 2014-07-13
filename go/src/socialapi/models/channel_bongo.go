@@ -31,6 +31,7 @@ func (c *Channel) BeforeCreate() error {
 	c.CreatedAt = time.Now().UTC()
 	c.UpdatedAt = time.Now().UTC()
 	c.DeletedAt = ZeroDate()
+	c.Token = NewToken(c.CreatedAt).String()
 
 	return c.MarkIfExempt()
 }
