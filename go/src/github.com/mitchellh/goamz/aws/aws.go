@@ -31,6 +31,8 @@ type Region struct {
 	SNSEndpoint          string
 	SQSEndpoint          string
 	IAMEndpoint          string
+	ELBEndpoint          string
+	AutoScalingEndpoint  string
 }
 
 var USEast = Region{
@@ -44,6 +46,8 @@ var USEast = Region{
 	"https://sns.us-east-1.amazonaws.com",
 	"https://sqs.us-east-1.amazonaws.com",
 	"https://iam.amazonaws.com",
+	"https://elasticloadbalancing.us-east-1.amazonaws.com",
+	"https://autoscaling.us-east-1.amazonaws.com",
 }
 
 var USWest = Region{
@@ -57,6 +61,8 @@ var USWest = Region{
 	"https://sns.us-west-1.amazonaws.com",
 	"https://sqs.us-west-1.amazonaws.com",
 	"https://iam.amazonaws.com",
+	"https://elasticloadbalancing.us-west-1.amazonaws.com",
+	"https://autoscaling.us-west-1.amazonaws.com",
 }
 
 var USWest2 = Region{
@@ -70,6 +76,8 @@ var USWest2 = Region{
 	"https://sns.us-west-2.amazonaws.com",
 	"https://sqs.us-west-2.amazonaws.com",
 	"https://iam.amazonaws.com",
+	"https://elasticloadbalancing.us-west-2.amazonaws.com",
+	"https://autoscaling.us-west-2.amazonaws.com",
 }
 
 var EUWest = Region{
@@ -83,6 +91,8 @@ var EUWest = Region{
 	"https://sns.eu-west-1.amazonaws.com",
 	"https://sqs.eu-west-1.amazonaws.com",
 	"https://iam.amazonaws.com",
+	"https://elasticloadbalancing.eu-west-1.amazonaws.com",
+	"https://autoscaling.eu-west-1.amazonaws.com",
 }
 
 var APSoutheast = Region{
@@ -96,6 +106,8 @@ var APSoutheast = Region{
 	"https://sns.ap-southeast-1.amazonaws.com",
 	"https://sqs.ap-southeast-1.amazonaws.com",
 	"https://iam.amazonaws.com",
+	"https://elasticloadbalancing.ap-southeast-1.amazonaws.com",
+	"https://autoscaling.ap-southeast-1.amazonaws.com",
 }
 
 var APSoutheast2 = Region{
@@ -109,6 +121,8 @@ var APSoutheast2 = Region{
 	"https://sns.ap-southeast-2.amazonaws.com",
 	"https://sqs.ap-southeast-2.amazonaws.com",
 	"https://iam.amazonaws.com",
+	"https://elasticloadbalancing.ap-southeast-2.amazonaws.com",
+	"https://autoscaling.ap-southeast-2.amazonaws.com",
 }
 
 var APNortheast = Region{
@@ -122,6 +136,8 @@ var APNortheast = Region{
 	"https://sns.ap-northeast-1.amazonaws.com",
 	"https://sqs.ap-northeast-1.amazonaws.com",
 	"https://iam.amazonaws.com",
+	"https://elasticloadbalancing.ap-northeast-1.amazonaws.com",
+	"https://autoscaling.ap-northeast-1.amazonaws.com",
 }
 
 var SAEast = Region{
@@ -135,6 +151,8 @@ var SAEast = Region{
 	"https://sns.sa-east-1.amazonaws.com",
 	"https://sqs.sa-east-1.amazonaws.com",
 	"https://iam.amazonaws.com",
+	"https://elasticloadbalancing.sa-east-1.amazonaws.com",
+	"https://autoscaling.sa-east-1.amazonaws.com",
 }
 
 var Regions = map[string]Region{
@@ -172,7 +190,6 @@ type credentials struct {
 	Token           string
 	Expiration      string
 }
-
 
 // GetMetaData retrieves instance metadata about the current machine.
 //

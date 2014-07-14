@@ -109,14 +109,19 @@ func ConnectSSH(ip string, config *ssh.ClientConfig) (*SSHClient, error) {
 }
 
 // SshConfig returns a new clientConfig based on the given privateKey
-func SshConfig(privateKey string) (*ssh.ClientConfig, error) {
+func SshConfig(username, privateKey string) (*ssh.ClientConfig, error) {
 	signer, err := ssh.ParsePrivateKey([]byte(privateKey))
 	if err != nil {
 		return nil, fmt.Errorf("Error setting up SSH config: %s", err)
 	}
 
+	// fallback to root if the username is empty
+	if username == "" {
+		username = "root"
+	}
+
 	return &ssh.ClientConfig{
-		User: "root",
+		User: username,
 		Auth: []ssh.AuthMethod{
 			ssh.PublicKeys(signer),
 		},

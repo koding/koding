@@ -45,7 +45,7 @@ func (k *Kloud) build(r *kite.Request, c *Controller) (resp interface{}, err err
 			msg = err.Error()
 		} else {
 			k.Log.Info("[%s] build for '%s' is successfull. State is now: %+v",
-				c.Provider.Name(), c.InstanceName, status)
+				c.ProviderName, c.InstanceName, status)
 		}
 
 		k.Storage.UpdateState(c.MachineId, status)
@@ -77,43 +77,50 @@ func (k *Kloud) buildMachine(username string, c *Controller) error {
 		Eventer:      c.Eventer,
 		Credential:   c.MachineData.Credential.Meta,
 		Builder:      c.MachineData.Machine.Meta,
+		Deploy:       k.Deploy,
 	}
 
 	msg := fmt.Sprintf("Building process started. Provider '%s'. Build options: %+v",
-		c.Provider.Name(), machOptions)
+		c.ProviderName, machOptions)
 
 	c.Eventer.Push(&eventer.Event{Message: msg, Status: machinestate.Building})
 
 	k.Log.Debug("[controller]: running method 'build' with machine options %v", machOptions)
-	providerArtifact, err := c.Provider.Build(machOptions)
+
+	artifact, err := c.Builder.Build(machOptions)
 	if err != nil {
 		return err
 	}
-	if providerArtifact == nil {
+	if artifact == nil {
 		return NewError(ErrBadResponse)
 	}
-	k.Log.Debug("[controller]: method 'build' is successfull %#v", providerArtifact)
+	k.Log.Debug("[controller]: method 'build' is successfull %#v", artifact)
 
 	storageData := map[string]interface{}{
-		"ipAddress":    providerArtifact.IpAddress,
-		"instanceId":   providerArtifact.InstanceId,
-		"instanceName": providerArtifact.InstanceName,
+		"ipAddress":    artifact.IpAddress,
+		"instanceId":   artifact.InstanceId,
+		"instanceName": artifact.InstanceName,
 	}
 
-	if k.Deployer != nil {
-		deployOpts := &protocol.DeployOptions{
-			InstanceName: providerArtifact.InstanceName,
-			InstanceId:   providerArtifact.InstanceId,
-			IpAddress:    providerArtifact.IpAddress,
-			Username:     username,
-		}
+	// if the username is not explicit changed, assign the original username to it
+	if artifact.Username == "" {
+		artifact.Username = username
+	}
 
-		deployArtifact, err := k.Deployer.Deploy(deployOpts)
+	if k.Deployer != nil && artifact.SSHPrivateKey != "" {
+		deployArtifact, err := k.Deployer.Deploy(artifact)
 		if err != nil {
 			return err
 		}
 
 		storageData["queryString"] = deployArtifact.KiteQuery
+	}
+
+	cleaner, ok := k.providers[c.ProviderName].(protocol.Cleaner)
+	if ok {
+		if err := cleaner.Cleanup(artifact); err != nil {
+			return err
+		}
 	}
 
 	return k.Storage.Update(c.MachineId, &StorageData{
