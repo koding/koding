@@ -41,7 +41,9 @@ func (c ChannelMessage) TableName() string {
 }
 
 func NewChannelMessage() *ChannelMessage {
-	return &ChannelMessage{}
+	return &ChannelMessage{
+		TypeConstant: ChannelMessage_TYPE_POST,
+	}
 }
 
 func (c *ChannelMessage) Update() error {
@@ -93,4 +95,20 @@ func (c *ChannelMessage) CountWithQuery(q *bongo.Query) (int, error) {
 
 func (c *ChannelMessage) Delete() error {
 	return bongo.B.Delete(c)
+}
+
+//  FetchByIds fetchs given ids from database, it doesnt add any meta bits
+// properties into query
+func (c *ChannelMessage) FetchByIds(ids []int64) ([]ChannelMessage, error) {
+	var messages []ChannelMessage
+
+	if len(ids) == 0 {
+		return messages, nil
+	}
+
+	if err := bongo.B.FetchByIds(c, &messages, ids); err != nil {
+		return nil, err
+	}
+
+	return messages, nil
 }

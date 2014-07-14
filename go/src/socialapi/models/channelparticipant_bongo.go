@@ -1,9 +1,42 @@
 package models
 
 import (
+	"time"
 
 	"github.com/koding/bongo"
 )
+
+func (c ChannelParticipant) GetId() int64 {
+	return c.Id
+}
+
+func (c ChannelParticipant) TableName() string {
+	return "api.channel_participant"
+}
+
+func (c *ChannelParticipant) BeforeCreate() error {
+	c.LastSeenAt = time.Now().UTC()
+
+	return c.MarkIfExempt()
+}
+
+func (c *ChannelParticipant) BeforeUpdate() error {
+	c.LastSeenAt = time.Now().UTC()
+
+	return c.MarkIfExempt()
+}
+
+func (c *ChannelParticipant) AfterCreate() {
+	bongo.B.AfterCreate(c)
+}
+
+func (c *ChannelParticipant) AfterUpdate() {
+	bongo.B.AfterUpdate(c)
+}
+
+func (c ChannelParticipant) AfterDelete() {
+	bongo.B.AfterDelete(c)
+}
 
 func (c *ChannelParticipant) Update() error {
 	return bongo.B.Update(c)

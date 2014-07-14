@@ -24,7 +24,7 @@ URL = "localhost:6379"
 DB  = 2
 
 [limits]
-MessageBodyMinLen    = 1
+MessageBodyMinLen    = 5
 PostThrottleDuration = "10s"
 PostThrottleCount    = 100
 
