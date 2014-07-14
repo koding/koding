@@ -64,7 +64,18 @@ class MachineListModal extends KDModalView
 
   viewAppended:->
 
-    @addSubView machineList = new MachineList @getOption 'listOptions'
+    machineList = new MachineList @getOption 'listOptions'
+
+    rememberMachineView = new KDView
+      cssClass     : "remember-machine"
+    rememberMachineView.addSubView new KDLabelView
+      title        : "Use selected machine for the same action next time"
+    rememberMachineView.addSubView @checkBox = new KodingSwitch
+      defaultValue : off
+      size         : "tiny"
+
+    @addSubView machineList
+    @addSubView rememberMachineView
 
     machineList.on "ItemSelectionPerformed", (list, {items})=>
 
@@ -83,5 +94,5 @@ class MachineListModal extends KDModalView
   continueAction:->
 
     if @checkMachineState()
-      @emit "MachineSelected", @machine
+      @emit "MachineSelected", @machine, @checkBox.getValue()
       @destroy()
