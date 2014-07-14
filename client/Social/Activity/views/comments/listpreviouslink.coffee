@@ -22,7 +22,9 @@ class CommentListPreviousLink extends CustomLinkView
 
     if count > 0
     then @updatePartial partial
-    else @hide()
+    else
+      @emit 'ReachedToTheBeginning'
+      @hide()
 
 
   viewAppended: ->
