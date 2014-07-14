@@ -10,6 +10,8 @@ Object.defineProperty global, 'KONFIG',
   kites
   uploads
   basicAuth
+  social
+  broker
 }       = KONFIG
 
 webPort = argv.p ? webserver.port
@@ -26,6 +28,8 @@ hat        = require 'hat'
 nodePath   = require 'path'
 http       = require "https"
 helmet     = require 'helmet'
+request    = require 'request'
+
 {JSession} = koding.models
 app        = express()
 
@@ -108,6 +112,23 @@ app.use (req, res, next) ->
     if err then console.log err
     next()
 
+# app.post '/xhr', express.bodyParser.raw(), (req, res) ->  
+#   console.log "here on xhr requesting: http://localhost:#{ social.port }#{ req.path }"
+#   req.pipe(
+#     request("http://localhost:#{ social.port }/xhr")
+#   ).pipe res
+
+#   # request "http://localhost:#{ social.port }#{ req.path }",(err,resp,body)->
+#   #   console.log err,resp
+  
+
+# app.all '/subscribe*', express.bodyParser.raw(), (req, res) ->
+#   console.log "here on subscribe requesting: http://localhost:#{ broker.port }#{ req.path }"
+#   req.pipe(
+#     request("http://localhost:#{ broker.port }#{ req.path }")
+#   ).pipe res
+
+
 app.get "/-/8a51a0a07e3d456c0b00dc6ec12ad85c", require './__notify-users'
 
 app.get "/-/auth/check/:key", (req, res)->
@@ -171,7 +192,6 @@ app.get "/-/version", (req, res) ->
 
 app.get "/-/jobs", (req, res) ->
 
-  request = require 'request'
   options =
     url   : 'https://api.lever.co/v0/postings/koding'
     json  : yes

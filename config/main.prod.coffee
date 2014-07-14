@@ -84,8 +84,8 @@ KONFIG              =
 
   # -- WORKER CONFIGURATION -- #
 
-  webserver         : {useCacheHeader: no}
   presence          : {exchange      : 'services-presence'}
+  webserver         : {port          : 3000                        , useCacheHeader: no}
   authWorker        : {login         : "#{rabbitmq.login}"         , queueName : socialQueueName+'auth', authExchange      : "auth"             , authAllExchange : "authAll"}
   mq                : {host          : "#{rabbitmq.host}"          , port      : rabbitmq.port         , apiAddress        : "#{rabbitmq.host}" , apiPort         : "#{rabbitmq.apiPort}", login:"#{rabbitmq.login}",componentUser:"#{rabbitmq.login}",password: "#{rabbitmq.password}",heartbeat: 0, vhost: "#{rabbitmq.vhost}"}
   emailWorker       : {cronInstant   : '*/10 * * * * *'            , cronDaily : '0 10 0 * * *'        , run               : no                 , forcedRecipient : undefined, maxAge: 3}
@@ -94,7 +94,7 @@ KONFIG              =
   email             : {host          : "#{customDomain.public}"    , protocol  : 'http:'               , defaultFromAddress: 'hello@koding.com' }
   newkites          : {useTLS        : no                          , certFile  : ""                    , keyFile: ""}
   log               : {login         : "#{rabbitmq.login}"         , queueName : logQueueName}
-
+  boxproxy          : {port          : 8090 }
   emailConfirmationCheckerWorker     : {enabled: no, login : "#{rabbitmq.login}", queueName: socialQueueName+'emailConfirmationCheckerWorker',cronSchedule: '0 * * * * *',usageLimitInMinutes  : 60}
 
   newkontrol        : kontrol
@@ -177,11 +177,12 @@ KONFIG.workers =
   sitemapfeeder       : command : "#{projectRoot}/go/bin/sitemapfeeder                   -c #{socialapi.configFilePath}"
   topicfeed           : command : "#{projectRoot}/go/bin/topicfeed                       -c #{socialapi.configFilePath}"
   trollmode           : command : "#{projectRoot}/go/bin/trollmode                       -c #{socialapi.configFilePath}"
-  webserver           : command : "node #{projectRoot}/server/index.js                   -c #{configName} -p 3000   --disable-newrelic"
-  authworker          : command : "node #{projectRoot}/workers/auth/index.js             -c #{configName}"
-  socialworker        : command : "node #{projectRoot}/workers/social/index.js           -c #{configName} -p 3030 -r #{region} --disable-newrelic --kite-port=13020"
-  sourcemaps          : command : "node #{projectRoot}/server/lib/source-server/index.js -c #{configName} -p 3526"
-  emailsender         : command : "node #{projectRoot}/workers/emailsender/index.js      -c #{configName}"
+  webserver           : command : "node   #{projectRoot}/server/index.js                   -c #{configName} -p 3000   --disable-newrelic"
+  authworker          : command : "node   #{projectRoot}/workers/auth/index.js             -c #{configName}"
+  socialworker        : command : "node   #{projectRoot}/workers/social/index.js           -c #{configName} -p 3030 -r #{region} --disable-newrelic --kite-port=13020"
+  sourcemaps          : command : "node   #{projectRoot}/server/lib/source-server/index.js -c #{configName} -p 3526"
+  emailsender         : command : "node   #{projectRoot}/workers/emailsender/index.js      -c #{configName}"
+  boxproxy            : command : "coffee #{projectRoot}/server/boxproxy.coffee            -c #{configName}"
   # permissionUpdater   : command : "node #{projectRoot}/scripts/permission-updater             -c #{socialapi.configFilePath} --hard"
   # guestcleaner        : command : "node #{projectRoot}/workers/guestcleaner/index.js     -c #{configName}"
 
