@@ -81,7 +81,8 @@ class IDE.ContentSearch extends KDModalViewWithForms
     query = "#{query} #{flags.join ' '}"
 
     vmController.run query, (err, res) =>
-      return @showWarning 'Something went wrong, please try again.', yes  if err or res.stderr
+      if (err or res.stderr) and not res.stdout
+        return @showWarning 'Something went wrong, please try again.', yes
 
       @formatOutput res.stdout, @bound 'createResultsView'
 
