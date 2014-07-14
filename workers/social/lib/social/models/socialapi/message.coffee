@@ -1,6 +1,7 @@
 Bongo          = require "bongo"
 {Relationship} = require "jraphical"
 request        = require 'request'
+ApiError       = require './error'
 
 {secure, daisy, dash, signature, Base} = Bongo
 {uniq} = require 'underscore'
@@ -77,7 +78,7 @@ module.exports = class SocialMessage extends Base
 
   # todo add permission here
   @edit = secure (client, data, callback)->
-    if not data.body or not data.id
+    if not data?.body or not data.id
       return callback { message: "Request is not valid for editing a message"}
     # check ownership of the account
     SocialMessage.canEdit client, data, (err, res)->
@@ -87,12 +88,12 @@ module.exports = class SocialMessage extends Base
 
 
   @delete = secure (client, data, callback)->
-    if not data.id
+    if not data?.id
       return callback { message: "Request is not valid for deleting a message" }
 
     # check ownership of the account
     SocialMessage.canDelete client, data, (err, res)->
-      return callback err if err
+      return callback err  if err
       return callback {message: "You can not delete this post"} unless res
       doRequest 'deleteMessage', client, data, callback
 
@@ -157,11 +158,14 @@ module.exports = class SocialMessage extends Base
     return callback {message: "Id is not set"} unless data.id
     {delegate} = client.connection
     # get api id of the client
+    # TODO we are also calling this method inside do request
     delegate.createSocialApiId (err, socialApiId)=>
       return callback err  if err
       # fetch the message
+      if delegate.checkFlag "super-admin"
+        data.showExempt = true
       @byId client, data, (err, message)->
-        return callback err  if err
+        return callback new ApiError err  if err
         return callback { message: "Post is not found" }  unless message?.message
         {message: {accountId}} = message
         if accountId is socialApiId

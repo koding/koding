@@ -9,6 +9,7 @@ import (
 	"socialapi/models"
 	"socialapi/request"
 	notificationmodels "socialapi/workers/notification/models"
+	"time"
 
 	"github.com/koding/logging"
 	"github.com/koding/rabbitmq"
@@ -31,7 +32,7 @@ func init() {
 // Controller holds required instances for processing events
 type Controller struct {
 	// logging instance
-	log     logging.Logger
+	log logging.Logger
 
 	// connection to RMQ
 	rmqConn *amqp.Connection
@@ -40,10 +41,10 @@ type Controller struct {
 // NotificationEvent holds required data for notifcation processing
 type NotificationEvent struct {
 	// Holds routing key for notification dispatching
-	RoutingKey string              `json:"routingKey"`
+	RoutingKey string `json:"routingKey"`
 
 	// Content of the notification
-	Content    NotificationContent `json:"contents"`
+	Content NotificationContent `json:"contents"`
 }
 
 // NotificationContent holds required data for notification events
@@ -53,17 +54,16 @@ type NotificationContent struct {
 	// notification, like "delivered" and "read"
 	TypeConstant string `json:"type"`
 
-	TargetId     int64  `json:"targetId,string"`
-	ActorId      string `json:"actorId"`
+	TargetId int64  `json:"targetId,string"`
+	ActorId  string `json:"actorId"`
 }
 
-//DefaultErrHandler controls the errors,  return false if an error occured 
+// DefaultErrHandler controls the errors, return false if an error occured
 func (r *Controller) DefaultErrHandler(delivery amqp.Delivery, err error) bool {
 	r.log.Error("an error occured deleting realtime event", err)
 	delivery.Ack(false)
 	return false
 }
-
 
 // New Creates a new controller for realtime package
 func New(rmq *rabbitmq.RabbitMQ, log logging.Logger) (*Controller, error) {
@@ -81,8 +81,8 @@ func New(rmq *rabbitmq.RabbitMQ, log logging.Logger) (*Controller, error) {
 	return ffc, nil
 }
 
-//MessageUpdated controls message updated status 
-//if an error occured , returns error otherwise returns nil
+// MessageUpdated controls message updated status
+// if an error occured , returns error otherwise returns nil
 func (f *Controller) MessageUpdated(cm *models.ChannelMessage) error {
 	if len(cm.Token) == 0 {
 		if err := cm.ById(cm.Id); err != nil {
@@ -125,14 +125,17 @@ func (f *Controller) ChannelParticipantUpdatedEvent(cp *models.ChannelParticipan
 	return cue.sendForParticipant()
 }
 
+// ChannelParticipantRemoved is fired when we remove any info of channel participant
 func (f *Controller) ChannelParticipantRemoved(cp *models.ChannelParticipant) error {
 	return f.sendChannelParticipantEvent(cp, RemovedFromChannelEventName)
 }
 
+// ChannelParticipantAdded is fired when we add any info of channel participant
 func (f *Controller) ChannelParticipantAdded(cp *models.ChannelParticipant) error {
 	return f.sendChannelParticipantEvent(cp, AddedToChannelEventName)
 }
 
+// sendChannelParticipantEvent sends the required info(data) about channel participant
 func (f *Controller) sendChannelParticipantEvent(cp *models.ChannelParticipant, eventName string) error {
 	c, err := models.ChannelById(cp.ChannelId)
 	if err != nil {
@@ -144,6 +147,7 @@ func (f *Controller) sendChannelParticipantEvent(cp *models.ChannelParticipant, 
 		return err
 	}
 
+	// send notification to the user(added user)
 	if err := f.sendNotification(
 		cp.AccountId,
 		c.GroupName,
@@ -153,13 +157,15 @@ func (f *Controller) sendChannelParticipantEvent(cp *models.ChannelParticipant, 
 		f.log.Error("Ignoring err %s ", err.Error())
 	}
 
-	return nil
+	// send this event to the channel itself
+	return f.publishToChannel(c.Id, eventName, cp)
 }
-
+// InteractionSaved runs when interaction is added
 func (f *Controller) InteractionSaved(i *models.Interaction) error {
 	return f.handleInteractionEvent("InteractionAdded", i)
 }
 
+// InteractionSaved runs when interaction is removed
 func (f *Controller) InteractionDeleted(i *models.Interaction) error {
 	return f.handleInteractionEvent("InteractionRemoved", i)
 }
@@ -174,6 +180,7 @@ type InteractionEvent struct {
 	Count        int    `json:"count"`
 }
 
+// handleInteractionEvent handle the required info of interaction 
 func (f *Controller) handleInteractionEvent(eventName string, i *models.Interaction) error {
 	q := &request.Query{
 		Type:       models.Interaction_TYPE_LIKE,
@@ -185,6 +192,7 @@ func (f *Controller) handleInteractionEvent(eventName string, i *models.Interact
 		return err
 	}
 
+	// fetchs oldId from cache
 	oldId, err := models.FetchAccountOldIdByIdFromCache(i.AccountId)
 	if err != nil {
 		return err
@@ -211,9 +219,19 @@ func (f *Controller) handleInteractionEvent(eventName string, i *models.Interact
 	return nil
 }
 
+// MessageReplySaved updates the channels , send messages in updated channel
+// and sends messages which is added
 func (f *Controller) MessageReplySaved(mr *models.MessageReply) error {
+	// fetch a channel 
+	reply := models.NewChannelMessage()
+	if err := reply.ById(mr.ReplyId); err != nil {
+		return err
+	}
+
+	f.updateAllContainingChannels(mr.MessageId, reply.AccountId)
 	f.sendReplyEventAsChannelUpdatedEvent(mr, channelUpdatedEventReplyAdded)
 	f.sendReplyAddedEvent(mr)
+
 	return nil
 }
 
@@ -549,7 +567,6 @@ func (f *Controller) sendChannelEvent(cml *models.ChannelMessageList, eventName 
 	return f.publishToChannel(cml.ChannelId, eventName, cmc)
 }
 
-
 // publishToChannel recieves channelId eventName and data to be published
 // it fechessecret names from mongo db a publihes to each of them
 // message is sent as a json message
@@ -648,4 +665,64 @@ func (f *Controller) sendNotification(
 		false,
 		amqp.Publishing{Body: byteNotification},
 	)
+}
+
+// updateAllContainingChannels fetch all channels that parent is in and
+// updates those channels except the user who did the action.
+//
+// TODO: move this to own worker, realtime worker shouldn't touch db
+func (f *Controller) updateAllContainingChannels(parentId int64, excludedId int64) error {
+	cml := models.NewChannelMessageList()
+	channels, err := cml.FetchMessageChannels(parentId)
+	if err != nil {
+		return err
+	}
+
+	if len(channels) == 0 {
+		return nil
+	}
+
+	for _, channel := range channels {
+		// if channel type is group, we dont need to update group's updatedAt
+		if channel.TypeConstant == models.Channel_TYPE_GROUP {
+			continue
+		}
+
+		// excludedId refers to users who did the action
+		if channel.CreatorId == excludedId {
+			cml, err := channel.FetchMessageList(parentId)
+			if err != nil {
+				f.log.Error("error fetching message list for", parentId, err)
+				continue
+			}
+
+			// `Glance` for author, so on next new message, unread count is right
+			err = cml.Glance()
+			if err != nil {
+				f.log.Error("error glancing for messagelist", parentId, err)
+				continue
+			}
+
+			// no need to tell user they did an action
+			continue
+		}
+
+		// pinned activity channel holds messages one by one
+		if channel.TypeConstant != models.Channel_TYPE_PINNED_ACTIVITY {
+			channel.UpdatedAt = time.Now().UTC()
+			if err := channel.Update(); err != nil {
+				f.log.Error("channel update failed", err)
+			}
+			continue
+		}
+
+		// if channel.TypeConstant == models.Channel_TYPE_PINNED_ACTIVITY {
+		err := models.NewChannelMessageList().UpdateAddedAt(channel.Id, parentId)
+		if err != nil {
+			f.log.Error("message list update failed", err)
+		}
+		//}
+	}
+
+	return nil
 }

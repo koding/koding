@@ -1,45 +1,42 @@
-EventExchangeName="BrokerMessageBus"
-Mongo="localhost:27017/koding"
-Environment="test"
-Uri="http://lvh.me:3020"
+EventExchangeName = "BrokerMessageBus"
+Mongo             = "localhost:27017/koding"
+Environment       = "test"
+Uri               = "http://lvh.me:3020"
 
 [postgres]
-Host=     "localhost"
-Port=     5432
-# Username= "postgres"
-# Password= "123123123"
-Username= "socialapplication"
-Password= "socialapplication"
-DBName=   "social"
+Host       = "localhost"
+Port       = 5432
+# Username = "postgres"
+# Password = "123123123"
+Username   = "socialapplication"
+Password   = "socialapplication"
+DBName     = "social"
 
 [mq]
-Host=     "localhost"
-Port=     5672
-Username= "PROD-k5it50s4676pO9O"
-Password= "djfjfhgh4455__5"
-Vhost=    "/"
+Host     = "localhost"
+Port     = 5672
+Username = "PROD-k5it50s4676pO9O"
+Password = "djfjfhgh4455__5"
+Vhost    = "/"
 
 [redis]
-URL=     "localhost:6379"
-DB=      2
+URL = "localhost:6379"
+DB  = 2
 
 [limits]
-MessageBodyMinLen=1
+MessageBodyMinLen    = 5
 PostThrottleDuration = "10s"
-PostThrottleCount    =  100
-
-[Notification]
-CacheEnabled = false
+PostThrottleCount    = 100
 
 [emailnotification]
-TemplateRoot="workers/emailnotifier/templates/"
+TemplateRoot = "workers/emailnotifier/templates/"
 
 [sendgrid]
-Username=        "koding"
-Password=        "DEQl7_Dr"
-FromName=        "Koding"
-FromMail=        "hello@koding.com"
-ForcedRecipient= "canthefason@gmail.com"
+Username        = "koding"
+Password        = "DEQl7_Dr"
+FromName        = "Koding"
+FromMail        = "hello@koding.com"
+ForcedRecipient = "canthefason@gmail.com"
 
 [sitemap]
-RedisDB=2
+RedisDB = 2

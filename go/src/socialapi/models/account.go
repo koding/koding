@@ -21,39 +21,7 @@ type Account struct {
 	IsTroll bool `json:"isTroll"`
 
 	// unique account nicknames
-	Nick string `json:"nick"        sql:"NOT NULL;UNIQUE;TYPE:VARCHAR(25);`
-}
-
-func NewAccount() *Account {
-	return &Account{}
-}
-
-func (a Account) GetId() int64 {
-	return a.Id
-}
-
-func (a Account) TableName() string {
-	return "api.account"
-}
-
-func (a *Account) AfterUpdate() {
-	SetAccountToCache(a)
-}
-
-func (a *Account) AfterCreate() {
-	SetAccountToCache(a)
-}
-
-func (a *Account) One(q *bongo.Query) error {
-	return bongo.B.One(a, a, q)
-}
-
-func (a *Account) ById(id int64) error {
-	return bongo.B.ById(a, id)
-}
-
-func (a *Account) Update() error {
-	return bongo.B.Update(a)
+	Nick string `json:"nick"        sql:"NOT NULL;UNIQUE;TYPE:VARCHAR(25);"`
 }
 
 func (a *Account) FetchOrCreate() error {
@@ -85,18 +53,6 @@ func (a *Account) FetchOrCreate() error {
 	}
 
 	return err
-}
-
-func (a *Account) Create() error {
-	if a.OldId == "" {
-		return errors.New("old id is not set")
-	}
-
-	return bongo.B.Create(a)
-}
-
-func (a *Account) Some(data interface{}, q *bongo.Query) error {
-	return bongo.B.Some(a, data, q)
 }
 
 func (a *Account) FetchChannels(q *request.Query) ([]Channel, error) {
@@ -226,7 +182,7 @@ func (a *Account) UnMarkAsTroll() error {
 		return err
 	}
 
-	if err := bongo.B.PublishEvent("un_marked_as_troll", a); err != nil {
+	if err := bongo.B.PublishEvent("unmarked_as_troll", a); err != nil {
 		return err
 	}
 
@@ -285,23 +241,22 @@ func FetchAccountById(accountId int64) (*Account, error) {
 }
 
 func FetchOldIdsByAccountIds(accountIds []int64) ([]string, error) {
-	var oldIds []string
+	oldIds := make([]string, 0)
+
 	if len(accountIds) == 0 {
-		return make([]string, 0), nil
+		return oldIds, nil
 	}
 
-	res := bongo.B.DB.
-		Model(Account{}).
-		Table(Account{}.TableName()).
-		Where("id IN (?)", accountIds).
-		Pluck("old_id", &oldIds)
+	var accounts []Account
+	account := Account{}
 
-	if err := bongo.CheckErr(res); err != nil {
-		return nil, err
+	err := bongo.B.FetchByIds(account, &accounts, accountIds)
+	if err != nil {
+		return oldIds, nil
 	}
 
-	if len(oldIds) == 0 {
-		return make([]string, 0), nil
+	for _, account := range accounts {
+		oldIds = append(oldIds, account.OldId)
 	}
 
 	return oldIds, nil

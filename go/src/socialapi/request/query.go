@@ -90,7 +90,7 @@ func (q *Query) MapURL(u *url.URL) *Query {
 		q.ReplyLimit = replyLimit
 	}
 
-	if replySkip := urlQuery.Get("replyLimit"); replySkip != "" {
+	if replySkip := urlQuery.Get("replySkip"); replySkip != "" {
 		replySkip, _ := strconv.Atoi(replySkip)
 		q.ReplySkip = replySkip
 	}

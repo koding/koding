@@ -263,6 +263,8 @@ messageById = (data, callback)->
   if not data.id
     return callback { message: "id should be set"}
   url = "/message/#{data.id}"
+  # accountId is appended in doRequest.
+  delete data.accountId
   get url, data, callback
 
 messageBySlug = (data, callback)->
@@ -302,7 +304,7 @@ unmarkAsTroll = (data, callback)->
     return callback {message: "Request is not valid"}
 
   url = "/trollmode/#{data.accountId}"
-  deleteReq url, data, callback
+  deleteReq url, callback
 
 getSiteMap = (data, callback)->
   url = data.name

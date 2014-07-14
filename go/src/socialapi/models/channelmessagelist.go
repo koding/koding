@@ -29,59 +29,6 @@ type ChannelMessageList struct {
 	RevisedAt time.Time `json:"revisedAt"        sql:"NOT NULL"`
 }
 
-func (c *ChannelMessageList) BeforeCreate() error {
-	c.AddedAt = time.Now()
-	c.RevisedAt = time.Now()
-
-	return c.MarkIfExempt()
-}
-
-func (c *ChannelMessageList) BeforeUpdate() error {
-	c.AddedAt = time.Now()
-
-	return c.MarkIfExempt()
-}
-
-func (c *ChannelMessageList) AfterCreate() {
-	bongo.B.AfterCreate(c)
-}
-
-func (c *ChannelMessageList) AfterUpdate() {
-	bongo.B.AfterUpdate(c)
-}
-
-func (c ChannelMessageList) AfterDelete() {
-	bongo.B.AfterDelete(c)
-}
-
-func (c ChannelMessageList) GetId() int64 {
-	return c.Id
-}
-
-func (c ChannelMessageList) TableName() string {
-	return "api.channel_message_list"
-}
-
-func NewChannelMessageList() *ChannelMessageList {
-	return &ChannelMessageList{}
-}
-
-func (c *ChannelMessageList) ById(id int64) error {
-	return bongo.B.ById(c, id)
-}
-
-func (c *ChannelMessageList) One(q *bongo.Query) error {
-	return bongo.B.One(c, c, q)
-}
-
-func (c *ChannelMessageList) Update() error {
-	return bongo.B.Update(c)
-}
-
-func (c *ChannelMessageList) Some(data interface{}, q *bongo.Query) error {
-	return bongo.B.Some(c, data, q)
-}
-
 func (c *ChannelMessageList) UnreadCount(cp *ChannelParticipant) (int, error) {
 	if cp.ChannelId == 0 {
 		return 0, errors.New("ChannelId is not set")
@@ -103,14 +50,6 @@ func (c *ChannelMessageList) UnreadCount(cp *ChannelParticipant) (int, error) {
 	)
 }
 
-func (c *ChannelMessageList) CountWithQuery(q *bongo.Query) (int, error) {
-	return bongo.B.CountWithQuery(c, q)
-}
-
-func (c *ChannelMessageList) Create() error {
-	return bongo.B.Create(c)
-}
-
 func (c *ChannelMessageList) CreateRaw() error {
 	insertSql := "INSERT INTO " +
 		c.TableName() +
@@ -120,10 +59,6 @@ func (c *ChannelMessageList) CreateRaw() error {
 	return bongo.B.DB.CommonDB().
 		QueryRow(insertSql, c.ChannelId, c.MessageId, c.AddedAt, c.RevisedAt).
 		Scan(&c.Id)
-}
-
-func (c *ChannelMessageList) Delete() error {
-	return bongo.B.Delete(c)
 }
 
 func (c *ChannelMessageList) List(q *request.Query, populateUnreadCount bool) (*HistoryResponse, error) {
@@ -393,4 +328,14 @@ func (c *ChannelMessageList) Count(channelId int64) (int, error) {
 	))
 
 	return c.CountWithQuery(query)
+}
+
+func (c *ChannelMessageList) Glance() error {
+	c.RevisedAt = time.Now().Add((time.Second * 1)).UTC()
+
+	if err := c.Update(); err != nil {
+		return err
+	}
+
+	return nil
 }

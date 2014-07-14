@@ -5,13 +5,11 @@ import (
 	"math"
 	"net/http"
 	"net/url"
-	"socialapi/config"
 	"socialapi/request"
 	// TODO delete these socialapi dependencies
 	socialmodels "socialapi/models"
 	"socialapi/workers/common/response"
 	"socialapi/workers/notification/models"
-	"strconv"
 
 	"github.com/koding/bongo"
 	// "github.com/koding/bongo"
@@ -20,7 +18,6 @@ import (
 var (
 	NOTIFICATION_LIMIT = 8
 	ACTOR_LIMIT        = 3
-	cacheEnabled       = false
 )
 
 const (
@@ -32,15 +29,6 @@ func List(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface
 	q := request.GetQuery(u)
 	if err := validateNotificationRequest(q); err != nil {
 		return response.NewBadRequest(err)
-	}
-
-	conf := config.MustGet()
-	cacheEnabled = conf.Notification.CacheEnabled
-
-	urlQuery := u.Query()
-	cache, err := strconv.ParseBool(urlQuery.Get("cache"))
-	if err == nil {
-		cacheEnabled = cache
 	}
 
 	return response.HandleResultAndError(fetchNotifications(q))
@@ -63,35 +51,11 @@ func fetchNotifications(q *request.Query) (*models.NotificationResponse, error) 
 	var list *models.NotificationResponse
 	var err error
 
-	// TODO enable cache
-	// first check redis
-	// var cacheInstance *cache.NotificationCache
-	// if cacheEnabled {
-	// 	cacheInstance = cache.NewNotificationCache()
-	// 	cacheInstance.ActorLimit = ACTOR_LIMIT
-	// 	list, err = cacheInstance.FetchNotifications(q.AccountId)
-	// 	if err != nil {
-	// 		log.Error("Cache error: %s", err)
-	// 	}
-	// 	if err == nil && len(list.Notifications) > 0 {
-	// 		return list, nil
-	// 	}
-	// }
-
 	n := models.NewNotification()
 	list, err = n.List(q)
 	if err != nil {
 		return nil, err
 	}
-
-	// TODO enable cache update
-	// go func() {
-	// 	if cacheEnabled {
-	// 		if err := cacheInstance.UpdateCachedNotifications(q.AccountId, list); err != nil {
-	// 			log.Error("Cache cannot be updated: %s", err)
-	// 		}
-	// 	}
-	// }()
 
 	return list, nil
 }
