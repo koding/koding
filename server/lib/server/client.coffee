@@ -33,15 +33,6 @@ fetchAccount = (username, callback)->
   bongo.models.JAccount.one {"profile.nickname" : username }, callback
 
 generateFakeClientFromReq = (req, res, callback)->
-
-  fakeClient    =
-    context     :
-      group     : 'koding'
-      user      : 'guest-1'
-    connection  :
-      delegate  : null
-      groupName : 'koding'
-
   {clientId} = req.cookies
   {name: groupName, section} = req.params
   # if client id is not set, check for pendingCookies
@@ -51,6 +42,15 @@ generateFakeClientFromReq = (req, res, callback)->
   generateFakeClient { clientId, groupName, section }, callback
 
 generateFakeClient = ({ clientId, groupName, section }, callback) ->
+
+  fakeClient    =
+    context     :
+      group     : 'koding'
+      user      : 'guest-1'
+    connection  :
+      delegate  : null
+      groupName : 'koding'
+
   return callback null, fakeClient unless clientId?
 
   bongo.models.JSession.fetchSession clientId, (err, { session })->
