@@ -258,7 +258,6 @@ func (p *Proxy) randomOskite() (*kite.Client, bool) {
 	p.oskitesMu.Lock()
 	defer p.oskitesMu.Unlock()
 
-	log.Debug("getting a random oskite")
 	i := 0
 	n := len(p.oskites)
 	if n == 0 {
@@ -278,7 +277,7 @@ func (p *Proxy) randomOskite() (*kite.Client, bool) {
 
 // startVM starts the vm and returns back the iniprandtalized IP
 func (p *Proxy) startVM(hostnameAlias, hostkite string) (string, error) {
-	log.Debug("starting vm", hostnameAlias)
+	log.Debug("starting vm %s", hostnameAlias)
 	var oskite *kite.Client
 	var ok bool
 
@@ -653,6 +652,14 @@ type tempData struct {
 
 func (p *Proxy) vm(req *http.Request, target *resolver.Target) http.Handler {
 	userIP := getIP(req.RemoteAddr)
+	if len(target.HostnameAlias) == 0 {
+		log.Error("Hostnamealias is empty! Target data: %v", target)
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			http.Error(w, "Bad data - error code 1", 502)
+			return
+		})
+	}
+
 	hostnameAlias := target.HostnameAlias[0]
 	var port string
 	var err error
@@ -677,7 +684,7 @@ func (p *Proxy) vm(req *http.Request, target *resolver.Target) http.Handler {
 	disableSecurePage := target.Properties["disableSecurePage"].(bool)
 
 	if target.Err == resolver.ErrVMOff {
-		log.Debug("vm %s is off, going to start", hostnameAlias)
+		// log.Debug("vm %s is off, going to start", hostnameAlias)
 		// target.URL might be nil, however if we start the VM, oskite sends a
 		// new IP that we can use and update the current one. It will be nil
 		// if an error is occured.
@@ -689,6 +696,15 @@ func (p *Proxy) vm(req *http.Request, target *resolver.Target) http.Handler {
 	}
 
 	log.Debug("checking if vm %s is alive.", hostnameAlias)
+
+	if target.URL == nil {
+		log.Error("Target URl is empty! Target data %v", target)
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			http.Error(w, "Bad data - error code 2", 502)
+			return
+		})
+	}
+
 	err = utils.CheckServer(target.URL.Host)
 	if err != nil {
 		oerr, ok := err.(*net.OpError)

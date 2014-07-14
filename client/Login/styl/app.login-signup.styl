@@ -17,22 +17,37 @@ body.login
     hidden()
 
   .login-form
+
     button
       display             block
       width               100% !important
       rounded             27px !important
 
+img.off-screen-login-image
+  abs               -10000px -10000px
 
 
 .kdview.login-screen
   background          #111617
-  bg                  size cover
   text-align          center
   position            relative
   overflow            auto
   borderBox()
-  &.shown
+  &:after
+    size              100% 100%
     top               0
+    left              0
+    bg                size cover
+    opacity           0.001
+    content           ""
+    z-index           0
+    vendor            transition, opacity .3s ease
+
+    abs()
+
+  &.shown
+    &:after
+      opacity         1
 
   .koding-logo
     rounded           2px
@@ -40,6 +55,7 @@ body.login
     bg                color, logoBg
     top               16px
     left              16px
+    z-index           2
     fix()
 
     cite
@@ -49,7 +65,7 @@ body.login
 
   .tint
     size                100% 100%
-    z-index             0
+    z-index             1
     top                 0
     left                0
     bg                  color, rgba(0,0,0,.6)
@@ -77,9 +93,10 @@ body.login
     font-size           14px
 
   footer
-    fix()
     bottom              22px
     left                9px
+    z-index             2
+    fix()
     a
       color             rgba(255, 255, 255, .5)
       margin-left       13px

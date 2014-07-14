@@ -35,7 +35,7 @@ import (
 
 const (
 	OSKITE_NAME    = "oskite"
-	OSKITE_VERSION = "0.4.0"
+	OSKITE_VERSION = "0.4.1"
 )
 
 var (
@@ -147,6 +147,7 @@ func (o *Oskite) Run() {
 	o.prepareOsKite()
 	o.setupRedis()         // setup redis session and key/set names
 	o.handleCurrentVMs()   // handle leftover VMs
+	o.cleanUp()            // handle cases where the os kite may have crashed, resulting in incosistent state
 	o.startPinnedVMs()     // start pinned always-on VMs
 	o.setupSignalHandler() // handle SIGUSR1 and other signals.
 	go o.vmUpdater()       // get states of VMS and update them on MongoDB
@@ -376,12 +377,57 @@ func currentVMs() (set.Interface, error) {
 		if !strings.HasPrefix(dir.Name(), "vm-") {
 			continue
 		}
-
-		vmId := bson.ObjectIdHex(dir.Name()[3:])
+		vmIdStr := dir.Name()[3:]
+		if !bson.IsObjectIdHex(vmIdStr) {
+			log.Warning("vm name contains invalid ObjectId: '%v'", vmIdStr)
+			continue
+		}
+		vmId := bson.ObjectIdHex(vmIdStr)
 		vms.Add(vmId)
 	}
 
 	return vms, nil
+}
+
+func (o *Oskite) cleanUp() {
+	cleanupBatch := make([]bson.ObjectId, 0)
+	findQuery := func(c *mgo.Collection) error {
+		var vm virt.VM
+		iter := c.Find(bson.M{"hostKite": o.ServiceUniquename}).Iter()
+		for iter.Next(&vm) {
+			filename := "/var/lib/lxc/" + vm.String()
+			if _, err := os.Stat(filename); os.IsNotExist(err) {
+				cleanupBatch = append(cleanupBatch, vm.Id)
+			}
+		}
+		return iter.Close()
+	}
+	if err := mongodbConn.Run("jVMs", findQuery); err != nil {
+		log.Error("couldn't find vms: %v", err.Error())
+	}
+	if len(cleanupBatch) > 0 {
+		if err := o.releaseVMs(bson.M{"_id": bson.M{"$in": cleanupBatch}}); err != nil {
+			log.Error("couln't release vms: '%v", err.Error())
+		}
+
+	}
+
+}
+
+func (o *Oskite) releaseVMs(selector bson.M) error {
+	updateQuery := func(c *mgo.Collection) error {
+		_, err := c.UpdateAll(
+			selector,
+			bson.M{"$set": bson.M{
+				"hostKite": nil,
+				"state":    "STOPPED",
+			}})
+		return err
+	}
+	if err := mongodbConn.Run("jVMs", updateQuery); err != nil {
+		return err
+	}
+	return nil
 }
 
 func unprepareLeftover(vmId bson.ObjectId) {
@@ -499,19 +545,9 @@ func (o *Oskite) setupSignalHandler() {
 			// Wait for all VM unprepares to complete.
 			wg.Wait()
 
-			query := func(c *mgo.Collection) error {
-				_, err := c.UpdateAll(
-					bson.M{"hostKite": o.ServiceUniquename},
-					bson.M{"$set": bson.M{"hostKite": nil}},
-				) // ensure that really all are set to nil
-				return err
-			}
-
-			err = mongodbConn.Run("jVMs", query)
-			if err != nil {
+			if err := o.releaseVMs(bson.M{"hostKite": o.ServiceUniquename}); err != nil {
 				log.Error("Updating hostKite for all current VMs err: %v", err)
 			}
-
 		}
 	}()
 }
