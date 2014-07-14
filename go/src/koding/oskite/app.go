@@ -17,7 +17,7 @@ import (
 	"strings"
 	"time"
 
-	"launchpad.net/goamz/s3"
+	"github.com/mitchellh/goamz/s3"
 )
 
 type Manifest struct {
