@@ -196,15 +196,15 @@ func buildKontrol() error {
 		defer os.Remove(configUpstart)
 	}
 
-	term := pkg{
+	kontrol := pkg{
 		appName:       *flagApp,
 		importPath:    kontrolPath,
 		files:         files,
-		version:       "0.1.0",
+		version:       "0.1.1",
 		upstartScript: configUpstart,
 	}
 
-	return term.build()
+	return kontrol.build()
 }
 
 func buildTerminal() error {
