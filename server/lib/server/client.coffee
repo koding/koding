@@ -5,8 +5,7 @@ handleError = (err, callback) ->
   return callback? err
 
 
-fetchGroupName = (req, callback)->
-  {name, section} = req.params
+fetchGroupName = ({ groupName: name, section }, callback)->
   {JName} = bongo.models
 
   groupName = ""
@@ -33,8 +32,7 @@ fetchGroupName = (req, callback)->
 fetchAccount = (username, callback)->
   bongo.models.JAccount.one {"profile.nickname" : username }, callback
 
-
-generateFakeClient = (req, res, callback)->
+generateFakeClientFromReq = (req, res, callback)->
 
   fakeClient    =
     context     :
@@ -45,23 +43,26 @@ generateFakeClient = (req, res, callback)->
       groupName : 'koding'
 
   {clientId} = req.cookies
-
+  {name: groupName, section} = req.params
   # if client id is not set, check for pendingCookies
   if not clientId and req.pendingCookies?.clientId
     clientId = req.pendingCookies.clientId
 
+  generateFakeClient { clientId, groupName, section }, callback
+
+generateFakeClient = ({ clientId, groupName, section }, callback) ->
   return callback null, fakeClient unless clientId?
 
   bongo.models.JSession.fetchSession clientId, (err, { session })->
     return handleError err, callback if err
     return handleError new Error "Session is not set", callback unless session?
 
-    fetchGroupName req, (err, groupName)->
+    fetchGroupName { groupName, section }, (err, groupName)->
       return handleError err, callback if err
       fetchAccount session.username, (err, account)->
         return handleError err, callback if err
+        return callback null, fakeClient unless account?
 
-        # set real client id if it is in the db
         fakeClient.sessionToken = session.clientId
 
         # set username into context
@@ -76,5 +77,5 @@ generateFakeClient = (req, res, callback)->
 
         return callback null, fakeClient
 
-module.exports = { generateFakeClient }
+module.exports = { generateFakeClient: generateFakeClientFromReq }
 
