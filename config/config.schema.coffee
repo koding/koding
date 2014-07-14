@@ -139,6 +139,7 @@ config =
       queueName   : 1
       verbose     : 1
       kitePort    : 1
+      port        : 1
     log           :
       login       : 1
       numberOfWorkers: 1
@@ -431,4 +432,6 @@ config =
       secure        : 1
     troubleshoot    :
       recipientEmail: 1
+    webAndSocialProxy:
+      port: 1
 module.exports = config

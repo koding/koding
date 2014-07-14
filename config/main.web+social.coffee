@@ -32,7 +32,7 @@ module.exports =
     key         : 'AKIAJSUVKX6PD254UGAA'
     secret      : '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'
   uri           :
-    address     : "http://lvh.me:3020"
+    address     : "http://lvh.me:4503"
   userSitesDomain: 'lvh.me'
   containerSubnet: "10.128.2.0/9"
   vmPool        : "vms"
@@ -71,7 +71,7 @@ module.exports =
   runTerminalKite: yes
   runProxy      : yes
   redis         : "localhost:6379"
-  subscriptionEndpoint   : "http://192.168.42.1:3020/-/subscription/check/"
+  subscriptionEndpoint   : "http://192.168.42.1:4503/-/subscription/check/"
   misc          :
     claimGlobalNamesForUsers: no
     updateAllSlugs : no
@@ -123,6 +123,7 @@ module.exports =
     queueName   : socialQueueName
     verbose     : no
     kitePort    : 8765
+    port        : 3030
   log           :
     login       : 'prod-social'
     numberOfWorkers: 1
@@ -149,7 +150,7 @@ module.exports =
     indexMaster : "index-master.html"
     index       : "default.html"
     useStaticFileServer: no
-    staticFilesBaseUrl: 'http://lvh.me:3020'
+    staticFilesBaseUrl: 'http://lvh.me:4503'
     runtimeOptions:
       kites: require './kites.coffee'
       osKitePollingMs: 1000 * 60 # 1 min
@@ -170,22 +171,22 @@ module.exports =
       logToInternal: no  # log worker
       resourceName: socialQueueName
       logResourceName: logQueueName
-      socialApiUri: 'http://lvh.me:3030/xhr'
+      socialApiUri: 'http://lvh.me:4503/xhr'
       logApiUri: 'http://lvh.me:4030/xhr'
       suppressLogs: no
       broker    :
-        servicesEndpoint: 'http://lvh.me:3020/-/services/broker'
+        servicesEndpoint: 'http://lvh.me:4503/-/services/broker'
       premiumBroker:
-        servicesEndpoint: 'http://lvh.me:3020/-/services/premiumBroker'
+        servicesEndpoint: 'http://lvh.me:4503/-/services/premiumBroker'
       brokerKite:
-        servicesEndpoint: 'http://lvh.me:3020/-/services/brokerKite'
+        servicesEndpoint: 'http://lvh.me:4503/-/services/brokerKite'
         brokerExchange: 'brokerKite'
       premiumBrokerKite:
-        servicesEndpoint: 'http://lvh.me:3020/-/services/premiumBrokerKite'
+        servicesEndpoint: 'http://lvh.me:4503/-/services/premiumBrokerKite'
         brokerExchange: 'premiumBrokerKite'
-      apiUri    : 'http://lvh.me:3020'
+      apiUri    : 'http://lvh.me:4503'
       version   : version
-      mainUri   : 'http://lvh.me:3020'
+      mainUri   : 'http://lvh.me:4503'
       appsUri   : 'https://rest.kd.io'
       uploadsUri: 'https://koding-uploads.s3.amazonaws.com'
       uploadsUriForGroup: 'https://koding-groups.s3.amazonaws.com'
@@ -275,7 +276,7 @@ module.exports =
     disconnectTimeout: 3e3
     vhost       : 'kite'
   email         :
-    host        : 'lvh.me:3020'
+    host        : 'lvh.me:4503'
     protocol    : 'http:'
     defaultFromAddress: 'hello@koding.com'
   emailWorker     :
@@ -362,15 +363,15 @@ module.exports =
     secret_url   : "https://www.odesk.com/services/api/auth?oauth_token="
     version      : "1.0"
     signature    : "HMAC-SHA1"
-    redirect_uri : "http://lvh.me:3020/-/oauth/odesk/callback"
+    redirect_uri : "http://lvh.me:4503/-/oauth/odesk/callback"
   facebook       :
     clientId     : "475071279247628"
     clientSecret : "65cc36108bb1ac71920dbd4d561aca27"
-    redirectUri  : "http://lvh.me:3020/-/oauth/facebook/callback"
+    redirectUri  : "http://lvh.me:4503/-/oauth/facebook/callback"
   google         :
     client_id    : "1058622748167.apps.googleusercontent.com"
     client_secret: "vlF2m9wue6JEvsrcAaQ-y9wq"
-    redirect_uri : "http://lvh.me:3020/-/oauth/google/callback"
+    redirect_uri : "http://lvh.me:4503/-/oauth/google/callback"
   statsd         :
     use          : false
     ip           : "lvh.me"
@@ -382,11 +383,11 @@ module.exports =
   linkedin       :
     client_id    : "f4xbuwft59ui"
     client_secret: "fBWSPkARTnxdfomg"
-    redirect_uri : "http://lvh.me:3020/-/oauth/linkedin/callback"
+    redirect_uri : "http://lvh.me:4503/-/oauth/linkedin/callback"
   twitter        :
     key          : "aFVoHwffzThRszhMo2IQQ"
     secret       : "QsTgIITMwo2yBJtpcp9sUETSHqEZ2Fh7qEQtRtOi2E"
-    redirect_uri : "http://127.0.0.1:3020/-/oauth/twitter/callback"
+    redirect_uri : "http://127.0.0.1:4503/-/oauth/twitter/callback"
     request_url  : "https://twitter.com/oauth/request_token"
     access_url   : "https://twitter.com/oauth/access_token"
     secret_url   : "https://twitter.com/oauth/authenticate?oauth_token="
@@ -427,5 +428,4 @@ module.exports =
   troubleshoot    :
     recipientEmail: "can@koding.com"
   webAndSocialProxy:
-    port           : null
-
+    port           : 4503
