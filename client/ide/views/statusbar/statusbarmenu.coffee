@@ -2,7 +2,7 @@ class IDE.StatusBarMenu extends KDContextMenu
 
   constructor: (options = {}) ->
 
-    menuItems         = @getMenuItems options.paneType
+    menuItems         = @getMenuItems options
     {delegate}        = options
     options.menuWidth = 220
     options.x         = delegate.getX()
@@ -14,23 +14,23 @@ class IDE.StatusBarMenu extends KDContextMenu
       if event.target.classList.contains 'kdlistitemview'
         @destroy()
 
-  getMenuItems: (paneType) ->
+  getMenuItems: (options) ->
     appManager = KD.getSingleton 'appManager'
     items      = {}
 
-    @addEditorMenuItems  items, appManager  if paneType is 'editor'
-    @addDefaultMenuItems items, appManager
+    @addEditorMenuItems  items, options, appManager  if options.paneType is 'editor'
+    @addDefaultMenuItems items, options, appManager
 
     return items
 
-  addEditorMenuItems: (items, appManager) ->
+  addEditorMenuItems: (items, options, appManager) ->
     items.Save        = callback: -> appManager.tell 'IDE', 'saveFile'
     items['Save As']  = callback: -> appManager.tell 'IDE', 'saveAs'
     items['Save All'] = callback: -> appManager.tell 'IDE', 'saveAllFiles'
     items.customView  = @syntaxSelector = new IDE.SyntaxSelectorMenuItem
     items.separator   = type: 'separator'
 
-  addDefaultMenuItems: (items, appManager) ->
+  addDefaultMenuItems: (items, options, appManager) ->
     mainView = KD.getSingleton 'mainView'
     fsText   = if mainView.isFullscreen() then 'Exit' else 'Enter'
 
