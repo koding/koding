@@ -78,9 +78,171 @@ func TestChannelMessageCreate(t *testing.T) {
 			So(insertedChannelMessage.Id, ShouldEqual, cm.Id)
 			So(insertedChannelMessage.Body, ShouldEqual, "5five")
 			So(insertedChannelMessage.TypeConstant, ShouldEqual, ChannelMessage_TYPE_POST)
-
 		})
 
+		Convey("type constant can be reply", func() {
+			cm := NewChannelMessage()
+
+			// init account
+			account, err := createAccount()
+			So(err, ShouldBeNil)
+			So(account, ShouldNotBeNil)
+			So(account.Id, ShouldNotEqual, 0)
+			// init channel
+			channel, err := createChannel(account.Id)
+			So(err, ShouldBeNil)
+			So(channel, ShouldNotBeNil)
+
+			// set account id
+			cm.AccountId = account.Id
+			// set channel id
+			cm.InitialChannelId = channel.Id
+			// set body
+			cm.Body = "5five"
+			// remove type Constant
+			cm.TypeConstant = ChannelMessage_TYPE_REPLY
+
+			So(cm.Create(), ShouldBeNil)
+
+			insertedChannelMessage := NewChannelMessage()
+			err := insertedChannelMessage.ById(cm.Id)
+			So(err, ShouldBeNil)
+			So(insertedChannelMessage.Id, ShouldNotEqual, 0)
+			So(insertedChannelMessage.Id, ShouldEqual, cm.Id)
+			So(insertedChannelMessage.Body, ShouldEqual, "5five")
+			So(insertedChannelMessage.TypeConstant, ShouldEqual, ChannelMessage_TYPE_REPLY)
+		})
+		Convey("type constant can be join", func() {
+			cm := NewChannelMessage()
+
+			// init account
+			account, err := createAccount()
+			So(err, ShouldBeNil)
+			So(account, ShouldNotBeNil)
+			So(account.Id, ShouldNotEqual, 0)
+			// init channel
+			channel, err := createChannel(account.Id)
+			So(err, ShouldBeNil)
+			So(channel, ShouldNotBeNil)
+
+			// set account id
+			cm.AccountId = account.Id
+			// set channel id
+			cm.InitialChannelId = channel.Id
+			// set body
+			cm.Body = "5five"
+			// remove type Constant
+			cm.TypeConstant = ChannelMessage_TYPE_JOIN
+
+			So(cm.Create(), ShouldBeNil)
+
+			insertedChannelMessage := NewChannelMessage()
+			err := insertedChannelMessage.ById(cm.Id)
+			So(err, ShouldBeNil)
+			So(insertedChannelMessage.Id, ShouldNotEqual, 0)
+			So(insertedChannelMessage.Id, ShouldEqual, cm.Id)
+			So(insertedChannelMessage.Body, ShouldEqual, "5five")
+			So(insertedChannelMessage.TypeConstant, ShouldEqual, ChannelMessage_TYPE_JOIN)
+		})
+
+		Convey("type constant can be leave", func() {
+			cm := NewChannelMessage()
+
+			// init account
+			account, err := createAccount()
+			So(err, ShouldBeNil)
+			So(account, ShouldNotBeNil)
+			So(account.Id, ShouldNotEqual, 0)
+			// init channel
+			channel, err := createChannel(account.Id)
+			So(err, ShouldBeNil)
+			So(channel, ShouldNotBeNil)
+
+			// set account id
+			cm.AccountId = account.Id
+			// set channel id
+			cm.InitialChannelId = channel.Id
+			// set body
+			cm.Body = "5five"
+			// remove type Constant
+			cm.TypeConstant = ChannelMessage_TYPE_LEAVE
+
+			So(cm.Create(), ShouldBeNil)
+
+			insertedChannelMessage := NewChannelMessage()
+			err := insertedChannelMessage.ById(cm.Id)
+			So(err, ShouldBeNil)
+			So(insertedChannelMessage.Id, ShouldNotEqual, 0)
+			So(insertedChannelMessage.Id, ShouldEqual, cm.Id)
+			So(insertedChannelMessage.Body, ShouldEqual, "5five")
+			So(insertedChannelMessage.TypeConstant, ShouldEqual, ChannelMessage_TYPE_LEAVE)
+		})
+
+		Convey("type constant can be chat", func() {
+			cm := NewChannelMessage()
+
+			// init account
+			account, err := createAccount()
+			So(err, ShouldBeNil)
+			So(account, ShouldNotBeNil)
+			So(account.Id, ShouldNotEqual, 0)
+			// init channel
+			channel, err := createChannel(account.Id)
+			So(err, ShouldBeNil)
+			So(channel, ShouldNotBeNil)
+
+			// set account id
+			cm.AccountId = account.Id
+			// set channel id
+			cm.InitialChannelId = channel.Id
+			// set body
+			cm.Body = "5five"
+			// remove type Constant
+			cm.TypeConstant = ChannelMessage_TYPE_CHAT
+
+			So(cm.Create(), ShouldBeNil)
+
+			insertedChannelMessage := NewChannelMessage()
+			err := insertedChannelMessage.ById(cm.Id)
+			So(err, ShouldBeNil)
+			So(insertedChannelMessage.Id, ShouldNotEqual, 0)
+			So(insertedChannelMessage.Id, ShouldEqual, cm.Id)
+			So(insertedChannelMessage.Body, ShouldEqual, "5five")
+			So(insertedChannelMessage.TypeConstant, ShouldEqual, ChannelMessage_TYPE_CHAT)
+		})
+
+		Convey("type constant can be privatemessage", func() {
+			cm := NewChannelMessage()
+
+			// init account
+			account, err := createAccount()
+			So(err, ShouldBeNil)
+			So(account, ShouldNotBeNil)
+			So(account.Id, ShouldNotEqual, 0)
+			// init channel
+			channel, err := createChannel(account.Id)
+			So(err, ShouldBeNil)
+			So(channel, ShouldNotBeNil)
+
+			// set account id
+			cm.AccountId = account.Id
+			// set channel id
+			cm.InitialChannelId = channel.Id
+			// set body
+			cm.Body = "5five"
+			// remove type Constant
+			cm.TypeConstant = ChannelMessage_TYPE_PRIVATE_MESSAGE
+
+			So(cm.Create(), ShouldBeNil)
+
+			insertedChannelMessage := NewChannelMessage()
+			err := insertedChannelMessage.ById(cm.Id)
+			So(err, ShouldBeNil)
+			So(insertedChannelMessage.Id, ShouldNotEqual, 0)
+			So(insertedChannelMessage.Id, ShouldEqual, cm.Id)
+			So(insertedChannelMessage.Body, ShouldEqual, "5five")
+			So(insertedChannelMessage.TypeConstant, ShouldEqual, ChannelMessage_TYPE_PRIVATE_MESSAGE)
+		})
 		// @todo add tests for followings
 		// type constant can be
 		//
