@@ -17,11 +17,12 @@ const (
 )
 
 var (
-	ModelNotSet  = errors.New("model name is not set")
-	TypeNotSet   = errors.New("function type is not set")
-	TypeNotValid = errors.New("function type is not valid")
-	NameNotSet   = errors.New("function name is not set")
-	IdNotSet     = errors.New("id is not set for instance method")
+	BongoNotInitialized = errors.New("bongo client is not initialized")
+	ModelNotSet         = errors.New("model name is not set")
+	TypeNotSet          = errors.New("function type is not set")
+	TypeNotValid        = errors.New("function type is not valid")
+	NameNotSet          = errors.New("function name is not set")
+	IdNotSet            = errors.New("id is not set for instance method")
 )
 
 // Config holds configuration values for connecting/creating bongo client
@@ -125,6 +126,10 @@ func (b *bongoScheme) call() (*dnode.Partial, error) {
 
 // validate checks the given scheme against consistency
 func (b *bongoScheme) validate() error {
+	if b.bk == nil || b.bk.bongo == nil {
+		return BongoNotInitialized
+	}
+
 	if b.ModelName == "" {
 		return ModelNotSet
 	}
