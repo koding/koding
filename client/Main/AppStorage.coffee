@@ -60,7 +60,7 @@ class AppStorage extends KDObject
       delete @_storageData[group]?[key]
       storage.update {
         $unset: pack
-      }, callback
+      }, -> callback?()
 
   reset: ->
     @_storage = null
