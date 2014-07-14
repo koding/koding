@@ -7,6 +7,7 @@ func TestCallingStaticFunc(t *testing.T) {
 	if err != nil {
 		t.Fatal(err.Error())
 	}
+	defer bongo.Close()
 
 	res, err := bongo.Model("JAccount").Static().Func("one").Call()
 	if err != nil {
@@ -22,6 +23,7 @@ func TestCallingStaticFuncWithArgs(t *testing.T) {
 	if err != nil {
 		t.Fatal(err.Error())
 	}
+	defer bongo.Close()
 
 	res, err := bongo.Model("JAccount").Static().Func("one").CallWith("gel", "beri")
 	if err != nil {
@@ -37,6 +39,7 @@ func TestCallingInstanceFunc(t *testing.T) {
 	if err != nil {
 		t.Fatal(err.Error())
 	}
+	defer bongo.Close()
 
 	res, err := bongo.Model("JAccount").Instance("123").Func("one").Call()
 	if err != nil {
@@ -52,6 +55,7 @@ func TestCallingInstanceFuncWithArgs(t *testing.T) {
 	if err != nil {
 		t.Fatal(err.Error())
 	}
+	defer bongo.Close()
 
 	res, err := bongo.Model("JAccount").Instance("123").Func("one").CallWith("nil", "dil")
 	if err != nil {
