@@ -344,6 +344,17 @@ class IDEAppController extends AppController
     @forEachSubViewInIDEViews_ 'editor', (editorPane) ->
       editorPane.emit 'SaveRequested'
 
+  previewFile: ->
+    view   = @getActivePaneView()
+    {file} = view.getOptions()
+    return unless file
+
+    if FSHelper.isPublicPath file.path
+      # FIXME: Take care of https.
+      @createNewBrowser KD.getPublicURLOfPath FSHelper.getFullPath file
+    else
+      @notify 'File needs to be under ~/Web folder', 'error'
+
   updateStatusBar: (component, data) ->
     {status, menuButton} = @statusBar
 
@@ -412,3 +423,7 @@ class IDEAppController extends AppController
   doResize: ->
     @forEachSubViewInIDEViews_ 'editor', (editorPane) ->
       editorPane.aceView.ace.editor.resize()
+
+  notify: (title, cssClass = 'success', type = 'mini', duration = 4000) ->
+    return unless title
+    new KDNotificationView { title, cssClass, type, duration }
