@@ -21,7 +21,7 @@ class ComputeController extends KDController
       @on "MachineDestroy", => do @reset
 
       @fetchStacks =>
-        @storage = KD.singletons.appStorageController.storage 'Compute','0.0.1'
+        @storage = KD.singletons.appStorageController.storage 'Compute', '0.0.1'
         @emit 'ready'
 
 
