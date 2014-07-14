@@ -74,6 +74,12 @@ type bongoScheme struct {
 	Id string `json:"id,omitempty"`
 }
 
+func (b *BongoKite) Close() {
+	if b.bongo != nil {
+		b.bongo.Close()
+	}
+}
+
 // Model sets the model name
 func (b *BongoKite) Model(name string) *bongoScheme {
 	return &bongoScheme{bk: b, ModelName: name}
