@@ -25,7 +25,7 @@ DB  = 0
 [limits]
 MessageBodyMinLen    = 1
 PostThrottleDuration = "5s"
-PostThrottleCount    = 3
+PostThrottleCount    = 20
 
 [emailnotification]
 TemplateRoot = "workers/emailnotifier/templates/"

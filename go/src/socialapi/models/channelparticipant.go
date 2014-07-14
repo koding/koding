@@ -56,38 +56,6 @@ func NewChannelParticipant() *ChannelParticipant {
 	}
 }
 
-func (c ChannelParticipant) GetId() int64 {
-	return c.Id
-}
-
-func (c ChannelParticipant) TableName() string {
-	return "api.channel_participant"
-}
-
-func (c *ChannelParticipant) BeforeCreate() error {
-	c.LastSeenAt = time.Now().UTC()
-
-	return c.MarkIfExempt()
-}
-
-func (c *ChannelParticipant) BeforeUpdate() error {
-	c.LastSeenAt = time.Now().UTC()
-
-	return c.MarkIfExempt()
-}
-
-func (c *ChannelParticipant) AfterCreate() {
-	bongo.B.AfterCreate(c)
-}
-
-func (c *ChannelParticipant) AfterUpdate() {
-	bongo.B.AfterUpdate(c)
-}
-
-func (c ChannelParticipant) AfterDelete() {
-	bongo.B.AfterDelete(c)
-}
-
 // Create creates a participant in the db as active
 // multiple call of this function will result
 func (c *ChannelParticipant) Create() error {
@@ -132,26 +100,6 @@ func (c *ChannelParticipant) CreateRaw() error {
 	return bongo.B.DB.CommonDB().
 		QueryRow(insertSql, c.ChannelId, c.AccountId, c.StatusConstant, c.LastSeenAt, c.CreatedAt, c.UpdatedAt).
 		Scan(&c.Id)
-}
-
-func (c *ChannelParticipant) Update() error {
-	return bongo.B.Update(c)
-}
-
-func (c *ChannelParticipant) ById(id int64) error {
-	return bongo.B.ById(c, id)
-}
-
-func (c *ChannelParticipant) One(q *bongo.Query) error {
-	return bongo.B.One(c, c, q)
-}
-
-func (c *ChannelParticipant) Count(where ...interface{}) (int, error) {
-	return bongo.B.Count(c, where...)
-}
-
-func (c *ChannelParticipant) Some(data interface{}, q *bongo.Query) error {
-	return bongo.B.Some(c, data, q)
 }
 
 func (c *ChannelParticipant) FetchParticipant() error {
