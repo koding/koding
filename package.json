@@ -11,8 +11,8 @@
   },
   "main": "server/index.js",
   "scripts": {
-    "preinstall": "rm -rf node_modules; mkdir node_modules; cd node_modules; ln -sf ../node_modules_koding/* .; cd ..",
-    "install": "patch -p1 < patches/mongodb.patch; patch -p1 < patches/newrelic.patch"
+    "preinstall": "./scripts/reset-node-modules.sh",
+    "install": "./scripts/patch-node-modules.sh"
   },
   "dependencies": {
     "async": "0.2.5",
@@ -68,7 +68,7 @@
     "bluebird": "~1.0.8",
     "pistachio-compiler": "~0.0.3",
     "es": "0.4.x",
-    "kite.js": "0.3.3",
+    "kite.js": "0.3.6",
     "node-sprite-generator": "^0.5.0",
     "minimist": "0.0.8",
     "which": "^1.0.5",

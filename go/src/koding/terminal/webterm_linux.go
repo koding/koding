@@ -138,7 +138,7 @@ func webtermConnect(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (
 		isForeignSession: vos.User.Name != channel.Username,
 		pty:              pty.New(vos.VM.PtsDir()),
 		screenPath:       screen.ScreenPath,
-		throttling:       false,
+		throttling:       true,
 	}
 
 	if params.Mode != "resume" || params.Mode != "shared" {
