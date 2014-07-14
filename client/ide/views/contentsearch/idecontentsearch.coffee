@@ -94,43 +94,39 @@ class IDE.ContentSearch extends KDModalViewWithForms
   formatOutput: (output, callback = noop) ->
     lines      = output.split '\n'
     formatted  = {}
-    stats      = {}
-
-    if lines[0] is '0 matches'
-      return @showWarning 'No results found, refine your search.'
+    stats      = {
+      numberOfMatches: 0,
+      numberOfSearchedFiles: 0
+    }
 
     for line in lines
-      parts    = line.split ':'
-      fileName = parts[1]  if parts[0] is '' and parts[1] and not parts[2] # filename line, like :Web/index.html
+      parts = line.split ":"
+      if parts.length < 3
+       continue
+
+      # Parse path
+      fileName = parts.shift()
+      fileName = fileName.trim()
+
+      # Parse line number
+      lineNumber = parseInt parts.shift()
+
+      # Parse line
+      line = parts.join ''
 
       unless formatted[fileName] # new filename found
         formatted[fileName] = [] # create an empty object for filename and continue to loop
-        continue
 
-      if parts.first.indexOf(';') > -1 # occurence found at this line
-        [lineNumber] = parts[0].split ';'
+      formatted[fileName].push { lineNumber, line, occurence: yes}
+      stats.numberOfMatches += 1
 
-        parts.splice 0, 1    # remove line information
-        line = parts.join '' # join the parts to have actual line again
-        formatted[fileName].push { lineNumber, line, occurence: yes }
-      else
-        if parts[0] is '--' # handle separators
-          formatted[fileName].push type: 'separator'
+    stats.numberOfSearchedFiles = Object.keys(formatted).length
 
-        if (parts[0] is '') and not parts[1] # avoid empty lines
-          continue
+    # No results
+    if stats.numberOfMatches == 0
+      return @showWarning 'No results found, refine your search.'
 
-        if parts[0] and not parts[1] and parts[1] isnt '' # stats line
-          if parts[0].indexOf('matches') > -1
-            stats.numberOfMatches = parts[0]
-          else if parts[0].indexOf('files searched') > -1
-            stats.numberOfSearchedFiles = parts[0]
-        else
-          [lineNumber] = parts
-          parts.splice 0, 1 # remove line information
-          line = parts.join() # join the parts to have actual line again
-          formatted[fileName].push { lineNumber, line }
-
+    # Send results
     callback formatted, stats
 
   createResultsView: (result, stats) ->
