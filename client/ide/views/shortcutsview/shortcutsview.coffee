@@ -68,6 +68,7 @@ class IDE.ShortcutsView extends KDView
       'Find next'              : { Others: 'Ctrl-K',         Apple: 'Meta-G'       }
       'Find previous'          : { Others: 'Ctrl-Shift-K',   Apple: 'Meta-Shift-G' }
       'Find and replace'       : 'Meta-Shift-F'
+      'Preview file'           : 'Ctrl-Alt-P'
       'Go to top'              : { Others: 'Ctrl-Home',      Apple: 'Meta-Up'   }
       'Go to bottom'           : { Others: 'Ctrl-End',       Apple: 'Meta-Down' }
       'Go line up'             : 'Ctrl-N'
@@ -127,9 +128,3 @@ class IDE.ShortcutsView extends KDView
       'Select word left'       : { Others: 'Ctrl-Shift-Left',  Apple: 'Alt-Shift-Up'     }
       'Select word right'      : { Others: 'Ctrl-Shift-Right', Apple: 'Alt-Shift-Up'     }
       'Toggle comment'         : 'Meta-/'
-
-      # NOT YET IMPLEMENTED
-      # 'Save As'                : 'Meta-Shift-S'
-      # 'Save All'               : 'Meta-Alt-S'
-      # 'Preview'                : 'Meta-Shift-P'
-      # 'Settings'               : 'Ctrl-,'

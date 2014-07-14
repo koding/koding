@@ -15,6 +15,7 @@ class IDEAppController extends AppController
       'split vertically'    : 'splitVertically'
       'split horizontally'  : 'splitHorizontally'
       'merge splitview'     : 'mergeSplitView'
+      'preview file'        : 'previewFile'
       'save all files'      : 'saveAllFiles'
       'create new file'     : 'createNewFile'
       'create new terminal' : 'createNewTerminal'
@@ -32,6 +33,7 @@ class IDEAppController extends AppController
       { command: 'split vertically',    binding: 'ctrl+alt+v', global: yes }
       { command: 'split horizontally',  binding: 'ctrl+alt+h', global: yes }
       { command: 'merge splitview',     binding: 'ctrl+alt+m', global: yes }
+      { command: 'preview file',        binding: 'ctrl+alt+p', global: yes }
       { command: 'save all files',      binding: 'ctrl+alt+s', global: yes }
       { command: 'create new file',     binding: 'ctrl+alt+n', global: yes }
       { command: 'create new terminal', binding: 'ctrl+alt+t', global: yes }
@@ -353,7 +355,7 @@ class IDEAppController extends AppController
       # FIXME: Take care of https.
       @createNewBrowser KD.getPublicURLOfPath FSHelper.getFullPath file
     else
-      @notify 'File needs to be under ~/Web folder', 'error'
+      @notify 'File needs to be under ~/Web folder to preview.', 'error'
 
   updateStatusBar: (component, data) ->
     {status, menuButton} = @statusBar
