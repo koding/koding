@@ -17,7 +17,7 @@ import (
 	"gopkg.in/igm/sockjs-go.v2/sockjs"
 )
 
-var forever = backoff.NewExponentialBackoff()
+var forever = backoff.NewExponentialBackOff()
 
 func init() {
 	forever.MaxElapsedTime = 365 * 24 * time.Hour // 1 year
@@ -58,7 +58,7 @@ type Client struct {
 	scrubber *dnode.Scrubber
 
 	// Time to wait before redial connection.
-	redialBackOff backoff.ExponentialBackoff
+	redialBackOff backoff.ExponentialBackOff
 
 	// on connect/disconnect handlers are invoked after every
 	// connect/disconnect.
@@ -138,7 +138,7 @@ func (c *Client) SetUsername(username string) {
 
 // Dial connects to the remote Kite. Returns error if it can't.
 func (c *Client) Dial() (err error) {
-	c.LocalKite.Log.Info("Dialing remote kite: [%s %s]", c.Kite.Name, c.URL)
+	c.LocalKite.Log.Info("Dialing '%s' kite: %s", c.Kite.Name, c.URL)
 
 	if err := c.dial(); err != nil {
 		return err
@@ -152,7 +152,7 @@ func (c *Client) Dial() (err error) {
 // Dial connects to the remote Kite. If it can't connect, it retries
 // indefinitely. It returns a channel to check if it's connected or not.
 func (c *Client) DialForever() (connected chan bool, err error) {
-	c.LocalKite.Log.Info("Dialing remote kite: [%s %s]", c.Kite.Name, c.URL)
+	c.LocalKite.Log.Info("Dialing '%s' kite: %s", c.Kite.Name, c.URL)
 
 	c.Reconnect = true
 	connected = make(chan bool, 1) // This will be closed on first connection.
