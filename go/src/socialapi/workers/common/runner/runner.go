@@ -112,11 +112,7 @@ func (r *Runner) initKite() error {
 	// set kite
 	r.Kite = k
 
-	if err := r.RegisterToKontrol(); err != nil {
-		return err
-	}
-
-	return nil
+	return r.RegisterToKontrol()
 }
 
 func (r *Runner) RegisterToKontrol() error {
