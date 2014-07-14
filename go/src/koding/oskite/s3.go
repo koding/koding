@@ -11,10 +11,10 @@ import (
 	"koding/virt"
 	"strings"
 
+	"github.com/mitchellh/goamz/aws"
+	"github.com/mitchellh/goamz/s3"
 	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
-	"launchpad.net/goamz/aws"
-	"launchpad.net/goamz/s3"
 )
 
 const (
