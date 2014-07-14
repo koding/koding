@@ -106,6 +106,8 @@ func TestPinnedActivityChannel(t *testing.T) {
 		})
 
 		Convey("owner should be able to list messages", func() {
+			groupName := "testgroup" + strconv.FormatInt(rand.Int63(), 10)
+
 			pinnedChannel, err := rest.FetchPinnedActivityChannel(account.Id, groupName)
 			So(err, ShouldBeNil)
 			So(pinnedChannel, ShouldNotBeNil)
@@ -114,20 +116,18 @@ func TestPinnedActivityChannel(t *testing.T) {
 			So(err, ShouldBeNil)
 			So(groupChannel, ShouldNotBeNil)
 
-			post1, err := rest.CreatePostWithBody(groupChannel.Id, account.Id, "create a message #1times")
+			post1, err := rest.CreatePostWithBody(groupChannel.Id, nonOwnerAccount.Id, "create a message #1times")
 			So(err, ShouldBeNil)
 			So(post1, ShouldNotBeNil)
 
-			// use account id as message id
 			_, err = rest.AddPinnedMessage(account.Id, post1.Id, groupName)
 			// there should be an err
 			So(err, ShouldBeNil)
 
-			post2, err := rest.CreatePostWithBody(groupChannel.Id, account.Id, "create a message #1another")
+			post2, err := rest.CreatePostWithBody(groupChannel.Id, nonOwnerAccount.Id, "create a message #1another")
 			So(err, ShouldBeNil)
 			So(post2, ShouldNotBeNil)
 
-			// use account id as message id
 			_, err = rest.AddPinnedMessage(account.Id, post2.Id, groupName)
 			// there should be an err
 			So(err, ShouldBeNil)
@@ -145,7 +145,7 @@ func TestPinnedActivityChannel(t *testing.T) {
 			So(history.UnreadCount, ShouldEqual, 0)
 
 			// old id should be the same one
-			So(history.MessageList[0].AccountOldId, ShouldContainSubstring, account.OldId)
+			So(history.MessageList[0].AccountOldId, ShouldContainSubstring, nonOwnerAccount.OldId)
 
 			// replies count should be 0
 			So(len(history.MessageList[0].Replies), ShouldEqual, 0)
