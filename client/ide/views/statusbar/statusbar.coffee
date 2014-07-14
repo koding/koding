@@ -13,7 +13,7 @@ class IDE.StatusBar extends KDView
       tagName   : 'span'
       cssClass  : 'actions-button'
       click     : =>
-        KD.getSingleton('appManager').tell 'IDE', 'showActionsMenu', @menuButton
+        KD.getSingleton('appManager').tell 'IDE', 'showStatusBarMenu', @menuButton
 
     @addSubView @status
     @addSubView @menuButton

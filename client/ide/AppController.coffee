@@ -316,12 +316,11 @@ class IDEAppController extends AppController
   showShortcutsView: ->
     @activeTabView.emit 'ShortcutsViewRequested'
 
-  showActionsMenu: (button) ->
-    paneView   = @getActivePaneView()
-    paneType   = paneView?.getOptions().paneType or null
-    menu       = new IDE.StatusBarMenu
-      paneType : paneType
-      delegate : button
+  showStatusBarMenu: (button) ->
+    paneView = @getActivePaneView()
+    paneType = paneView?.getOptions().paneType or null
+    delegate = button
+    menu     = new IDE.StatusBarMenu { paneType, paneView, delegate }
 
     menu.on 'viewAppended', ->
       if paneType is 'editor' and paneView
