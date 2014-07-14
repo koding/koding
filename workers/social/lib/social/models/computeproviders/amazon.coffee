@@ -15,7 +15,7 @@ module.exports = class Amazon extends ProviderInterface
     meta =
       type          : "amazon"
       region        : "us-east-1"
-      source_ami    : "ami-6926dce"
+      source_ami    : "ami-a6926dce"
       instance_type : instanceType
 
     callback null, { meta, credential }
