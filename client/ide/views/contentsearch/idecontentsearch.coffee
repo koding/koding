@@ -61,16 +61,21 @@ class IDE.ContentSearch extends KDModalViewWithForms
     vmController    = KD.getSingleton 'vmController'
     @searchText     = Encoder.XSSEncode @findInput.getValue()
     @rootPath       = Encoder.XSSEncode @whereInput.getValue()
-    isCaseSensitive = @caseToggle.getValue()
-    isWholeWord     = @wholeWordToggle.getValue()
+    isCaseSensitive = true
+    isWholeWord     = true
     # isRegExp        = @regExpToggle.getValue()
 
-    query = "ag '#{@searchText}' '#{@rootPath}'"
+    include = "\\*{#{SEARCH.PATTERN_EXT}}";
+
+    @searchText = @searchText.replace new RegExp "\\\'", "g", "'\\''"
+    @searchText = @searchText.replace /-/g, "\\-"
+
     flags = [
-      '-C 3'       # Print 3 lines before and after matches
-      '--ackmate'  # Print results in AckMate-parseable format
-      '--stats'    # Print stats (files scanned, time taken, etc.)
-      '--silent'   # Suppress all log messages, including errors.
+      '-s'
+      '-r'
+      '--color=never'
+      '--binary-files=without-match'
+      '-n'
       '-i'         # Match case insensitively
       '-w'         # Only match whole words
     ]
@@ -78,7 +83,7 @@ class IDE.ContentSearch extends KDModalViewWithForms
     flags.splice flags.indexOf('-i'), 1  if isCaseSensitive
     flags.splice flags.indexOf('-w'), 1  unless isWholeWord
 
-    query = "#{query} #{flags.join ' '}"
+    cmd = "grep #{flags.join ' '} #{SEARCH.PATTERN_EDIR} --include=#{include} '#{@searchText}' \"#{SEARCH.escapeShell @rootPath}\""
 
     vmController.run query, (err, res) =>
       if (err or res.stderr) and not res.stdout
