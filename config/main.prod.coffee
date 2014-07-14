@@ -1,3 +1,5 @@
+prod_simulation_server = "192.168.59.103"
+
 fs                  = require 'fs'
 nodePath            = require 'path'
 deepFreeze          = require 'koding-deep-freeze'
@@ -14,16 +16,16 @@ environment         = (fs.readFileSync BLD+"/BUILD_ENVIRONMENT" , 'utf8').replac
 projectRoot         = (fs.readFileSync BLD+"/BUILD_PROJECT_ROOT", 'utf8').replace("\n","")
 version             = (fs.readFileSync BLD+"/BUILD_VERSION"     , 'utf8').replace("\n","")
 
-mongo               = "104.130.7.209:27017/koding"
-redis               = {host     : "104.130.7.209"             , port : "6379" }
-socialapi           = {proxyUrl : "http://104.130.7.209:7000" , port : 7000 , clusterSize : 5, configFilePath : "#{projectRoot}/go/src/socialapi/config/prod.toml" }
-rabbitmq            = {host     : "104.130.7.209"             , port : 5672 , apiPort     : 15672, login : "guest", password : "guest", vhost:"/"}
+mongo               = "#{prod_simulation_server}:27017/koding"
+redis               = {host     : "#{prod_simulation_server}"   , port : "6379" }
+socialapi           = {proxyUrl : "http://localhost:7000"       , port : 7000 , clusterSize : 5,     configFilePath : "#{projectRoot}/go/src/socialapi/config/prod.toml" }
+rabbitmq            = {host     : "#{prod_simulation_server}"   , port : 5672 , apiPort     : 15672, login          : "guest", password : "guest", vhost:"/"}
 
 customDomain        =
   public            : "http://#{hostname}"
   public_           : "#{hostname}"
-  local             : "http://0.0.0.0"
-  local_            : "104.130.7.209"
+  local             : "http://localhost"
+  local_            : "localhost"
   port              : 80
 
 
@@ -43,13 +45,13 @@ broker              =
   serviceGenericName: "broker"
   ip                : ""
   webProtocol       : "http:"
-  host              : customDomain.public_
+  host              : customDomain.public
   port              : 8008
   certFile          : ""
   keyFile           : ""
   authExchange      : "auth"
   authAllExchange   : "authAll"
-  failoverUri       : customDomain.public_
+  failoverUri       : customDomain.public
 
 userSitesDomain     = "#{customDomain.public_}"                 # this is for domain settings on environment backend eg. kd.io
 
@@ -80,22 +82,22 @@ KONFIG              =
   redis             : "#{redis.host}:#{redis.port}"
   misc              : {claimGlobalNamesForUsers: no, updateAllSlugs : no, debugConnectionErrors: yes}
 
-  # -- WORKERS -- #
+  # -- WORKER CONFIGURATION -- #
 
   webserver         : {useCacheHeader: no}
   presence          : {exchange      : 'services-presence'}
-  authWorker        : {login         : "#{rabbitmq.login}"      , queueName : socialQueueName+'auth', authExchange      : "auth"             , authAllExchange : "authAll"}
-  mq                : {host          : "#{rabbitmq.host}"       , port      : rabbitmq.port         , apiAddress        : "#{rabbitmq.host}" , apiPort         : "#{rabbitmq.apiPort}", login:"#{rabbitmq.login}",componentUser:"#{rabbitmq.login}",password: "#{rabbitmq.password}",heartbeat: 0, vhost: "#{rabbitmq.vhost}"}
-  emailWorker       : {cronInstant   : '*/10 * * * * *'         , cronDaily : '0 10 0 * * *'        , run               : no                 , forcedRecipient : undefined, maxAge: 3}
-  elasticSearch     : {host          : "104.130.7.209"              , port      : 9200                  , enabled           : no                 , queue           : "elasticSearchFeederQueue"}
-  email             : {host          : "#{customDomain.public}" , protocol  : 'http:'               , defaultFromAddress: 'hello@koding.com' }
-  social            : {login         : "#{rabbitmq.login}"      , queueName : socialQueueName       , kitePort          : 8765 }
-  newkites          : {useTLS        : no                       , certFile  : ""                    , keyFile: ""}
-  log               : {login         : "#{rabbitmq.login}"      , queueName : logQueueName}
+  authWorker        : {login         : "#{rabbitmq.login}"         , queueName : socialQueueName+'auth', authExchange      : "auth"             , authAllExchange : "authAll"}
+  mq                : {host          : "#{rabbitmq.host}"          , port      : rabbitmq.port         , apiAddress        : "#{rabbitmq.host}" , apiPort         : "#{rabbitmq.apiPort}", login:"#{rabbitmq.login}",componentUser:"#{rabbitmq.login}",password: "#{rabbitmq.password}",heartbeat: 0, vhost: "#{rabbitmq.vhost}"}
+  emailWorker       : {cronInstant   : '*/10 * * * * *'            , cronDaily : '0 10 0 * * *'        , run               : no                 , forcedRecipient : undefined, maxAge: 3}
+  elasticSearch     : {host          : "#{prod_simulation_server}" , port      : 9200                  , enabled           : no                 , queue           : "elasticSearchFeederQueue"}
+  social            : {port          : 3030                        , login     : "#{rabbitmq.login}"   , queueName         : socialQueueName    , kitePort        : 8765 }
+  email             : {host          : "#{customDomain.public}"    , protocol  : 'http:'               , defaultFromAddress: 'hello@koding.com' }
+  newkites          : {useTLS        : no                          , certFile  : ""                    , keyFile: ""}
+  log               : {login         : "#{rabbitmq.login}"         , queueName : logQueueName}
 
+  emailConfirmationCheckerWorker     : {enabled: no, login : "#{rabbitmq.login}", queueName: socialQueueName+'emailConfirmationCheckerWorker',cronSchedule: '0 * * * * *',usageLimitInMinutes  : 60}
 
   newkontrol        : kontrol
-  emailConfirmationCheckerWorker : {enabled: no, login : "#{rabbitmq.login}", queueName: socialQueueName+'emailConfirmationCheckerWorker',cronSchedule: '0 * * * * *',usageLimitInMinutes  : 60}
  
   # -- MISC SERVICES --# 
   recurly           : {apiKey        : '4a0b7965feb841238eadf94a46ef72ee'            , loggedRequests: /^(subscriptions|transactions)/}  
@@ -133,18 +135,18 @@ KONFIG.client.runtimeOptions =
   resourceName      : socialQueueName
   userSitesDomain   : userSitesDomain
   logResourceName   : logQueueName
-  socialApiUri      : "#{customDomain.public}:3030/xhr"
+  socialApiUri      : "#{customDomain.public}/xhr"
   logApiUri         : "#{customDomain.public}:4030/xhr"
   apiUri            : "#{customDomain.public}"
   mainUri           : "#{customDomain.public}"
   appsUri           : "https://rest.kd.io"
   uploadsUri        : 'https://koding-uploads.s3.amazonaws.com'
   uploadsUriForGroup: 'https://koding-groups.s3.amazonaws.com'
-  sourceUri         : "#{customDomain.public}:3526"
+  sourceUri         : "#{customDomain.local}:3526"
   fileFetchTimeout  : 1000 * 15
   userIdleMs        : 1000 * 60 * 5
   embedly           : {apiKey       : "94991069fb354d4e8fdb825e52d4134a"     }
-  broker            : {uri          : "#{broker.webProtocol}//#{broker.host}:#{broker.port}/subscribe" }
+  broker            : {uri          : "#{customDomain.public}/subscribe" }
   github            : {clientId     : "f8e440b796d953ea01e5" }
   newkontrol        : {url          : "#{kontrol.url}"}
   sessionCookie     : {maxAge       : 1000 * 60 * 60 * 24 * 14, secure: no   }
@@ -179,8 +181,9 @@ KONFIG.workers =
   authworker          : command : "node #{projectRoot}/workers/auth/index.js             -c #{configName}"
   socialworker        : command : "node #{projectRoot}/workers/social/index.js           -c #{configName} -p 3030 -r #{region} --disable-newrelic --kite-port=13020"
   sourcemaps          : command : "node #{projectRoot}/server/lib/source-server/index.js -c #{configName} -p 3526"
-  # guestcleaner        : command : "node #{projectRoot}/workers/guestcleaner/index.js     -c #{configName}"
   emailsender         : command : "node #{projectRoot}/workers/emailsender/index.js      -c #{configName}"
+  # permissionUpdater   : command : "node #{projectRoot}/scripts/permission-updater             -c #{socialapi.configFilePath} --hard"
+  # guestcleaner        : command : "node #{projectRoot}/workers/guestcleaner/index.js     -c #{configName}"
 
 
 
@@ -218,20 +221,49 @@ generateSupervisorConf = (KONFIG)->
 
 generateRunFile = (KONFIG) ->
 
-  env = ''
-  env += "  export #{key}='#{val}'\n" for key,val of KONFIG.ENV
+  killlist = ->
+    str = "kill -KILL "
+    str += "$#{key}pid " for key,val of KONFIG.workers
+
+
+    return str
+
+  envvars = ->
+    env = ''
+    env += "export #{key}='#{val}'\n" for key,val of KONFIG.ENV
+    return env
+
   conf = """
     #/bin/bash
     # ------ THIS FILE IS AUTO-GENERATED ON EACH BUILD ----- #\n
-    mkdir .logs
+    mkdir .logs &>/dev/null
+
+    #{envvars()}
+
+    trap ctrl_c INT
+
+    function ctrl_c () {
+      echo "ctrl_c detected. killing all processes..."
+      kill_all
+    }
+
+    function kill_all () {
+    #{killlist()}      
+    }
     if [[ "$1" == "" ]]; then
-    #{env}\n\n"""
-  conf +="  #{val.command} &>./.logs/#{key}.log & \n" for key,val of KONFIG.workers
+    \n\n"""
+
+  conf +="""  
+          #{val.command} &>./.logs/#{key}.log &
+          #{key}pid=$!
+          echo [#{key}] started with pid: $#{key}pid
+        """ for key,val of KONFIG.workers
   conf += """\n
+      tail -fq ./.logs/*.log
+      \n
       elif [ "$1" == "killall" ]; then
-        killall
+        kill_all
       """
-  conf += " #{(val.command.split(" "))[0]}" for key,val of KONFIG.workers
   conf += """\n      
       elif [ "$1" == "log" ]; then
         if [ "$2" == "" ]; then
@@ -242,10 +274,10 @@ generateRunFile = (KONFIG) ->
       """
   conf +="""
     elif [ "$1" == "services" ]; then
-      docker run -d -p 27017         --name=mongo    koding/mongo    --dbpath /root/data/db --smallfiles --nojournal
-      docker run -d -p 6379          --name=redis    koding/redis    redis-server 
-      docker run -d -p 5432          --name=postgres koding/postgres 
-      docker run -d -p 5672 -p 15672 --name=rabbitmq koding/rabbitmq\n
+      docker run -d --net=host --name=mongo    koding/mongo    --dbpath /root/data/db --smallfiles --nojournal
+      docker run -d --net=host --name=redis    koding/redis    redis-server 
+      docker run -d --net=host --name=postgres koding/postgres 
+      docker run -d --net=host --name=rabbitmq koding/rabbitmq\n
       """
   conf += """\n
       else

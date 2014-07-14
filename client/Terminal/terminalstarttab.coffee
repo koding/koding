@@ -47,7 +47,7 @@ class TerminalStartTab extends JView
     vmController.on 'vm.state.info',     ({alias, state})  => @vmWrapper[alias]?.handleVMInfo  state
     vmController.on 'vm.progress.error', ({alias, error})  => @vmWrapper[alias]?.handleVMError error
 
-      @getDelegate().forwardEvent @machineWrapper[machine.uid], 'VMItemClicked'
+    @getDelegate().forwardEvent @machineWrapper[machine.uid], 'VMItemClicked'
 
 
   listMachineSessions: (machines) ->

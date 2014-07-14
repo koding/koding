@@ -27,7 +27,7 @@ rs =
 
 
 options = o =
-  projectRoot      : argv.projectRoot   or "/opt/koding"
+  projectRoot      : argv.projectRoot   or "/Users/d/Projects/koding"
   config           : argv.config        or "prod"
   region           : argv.region        or "prod"
   branch           : argv.branch        or "cake-rewrite"
@@ -41,7 +41,8 @@ options = o =
   deploy           : argv.deploy        or null
 
 unless options.hostname
-  options.hostname   = "#{eden.eve()}-#{o.config}-#{o.build}.koding.me".toLowerCase()
+  # options.hostname   = "#{eden.eve()}-#{o.config}-#{o.build}.koding.me".toLowerCase()
+  options.hostname   = "devrim.ngrok.com"
 
 log o
 # log argv

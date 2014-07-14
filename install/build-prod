@@ -110,7 +110,7 @@ npm i --unsafe-perm --silent
 mkdir /root/.kite
 cp /opt/koding/kite_home/production/kite.key /root/.kite/kite.key
 
-chmod +x ./deploy
+chmod +x ./configure
 ./configure --hostname $BH
 
 chmod +x ./build

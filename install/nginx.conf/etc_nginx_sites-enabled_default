@@ -1,45 +1,83 @@
-upstream webs {
-                server 127.0.0.1:7000;
-                server 127.0.0.1:7001;
-        }
-upstream social {
-                server 127.0.0.1:8000;
-                server 127.0.0.1:8001;
-        }
 
-upstream broker {
-                server 127.0.0.1:8080;
-                server 127.0.0.1:8081;
-        }
+#user  nobody;
+worker_processes  1;
+
+#error_log  logs/error.log;
+#error_log  logs/error.log  notice;
+#error_log  logs/error.log  info;
+
+#pid        logs/nginx.pid;
 
 
+events {
+    worker_connections  1024;
+}
 
-server {
 
-        listen 80;
-        server_name koding.com;
-        location / {
-                proxy_pass http://webs;
-                proxy_set_header        X-Real-IP       $remote_addr;
-                proxy_set_header        X-Forwarded-For $proxy_add_x_forwarded_for;
-                proxy_next_upstream     error timeout invalid_header http_500;
-                proxy_connect_timeout   1;
-        }
-        location /xhr {
-                proxy_pass http://social;
-                proxy_set_header        X-Real-IP       $remote_addr;
-                proxy_set_header        X-Forwarded-For $proxy_add_x_forwarded_for;
-                proxy_next_upstream     error timeout invalid_header http_500;
-                proxy_connect_timeout   1;
-        }
+http {
+    include       mime.types;
+    default_type  application/octet-stream;
 
-        # TBD. ADD WEBSOCKET SUPPORT HERE
+    upstream webs {
+      server 127.0.0.1:3000;
+      
+      }
+    upstream social {
+      server 127.0.0.1:3030;
+      }
 
-        location /broker {
-                proxy_pass http://broker;
-                proxy_set_header        X-Real-IP       $remote_addr;
-                proxy_set_header        X-Forwarded-For $proxy_add_x_forwarded_for;
-                proxy_next_upstream     error timeout invalid_header http_500;
-                proxy_connect_timeout   1;
-        }
+    upstream subscribe {
+      server 127.0.0.1:8008;
+      }
+
+
+    sendfile        on;
+    #tcp_nopush     on;
+
+    #keepalive_timeout  0;
+    keepalive_timeout  65;
+
+    #gzip  on;
+
+  server {
+
+    listen 8080;
+    server_name koding.com;
+    location / {
+      proxy_pass http://webs;
+      proxy_set_header  X-Real-IP   $remote_addr;
+      proxy_set_header  X-Forwarded-For $proxy_add_x_forwarded_for;
+      proxy_next_upstream   error timeout invalid_header http_500;
+      proxy_connect_timeout   1;
+    }
+
+    location /xhr {
+      proxy_pass http://social;
+      proxy_set_header  X-Real-IP   $remote_addr;
+      proxy_set_header  X-Forwarded-For $proxy_add_x_forwarded_for;
+      proxy_next_upstream   error timeout invalid_header http_500;
+      proxy_connect_timeout   1;
+    }
+
+    # TBD. ADD WEBSOCKET SUPPORT HERE
+
+    location /subscribe {
+      proxy_pass http://subscribe;
+      proxy_set_header  X-Real-IP   $remote_addr;
+      proxy_set_header  X-Forwarded-For $proxy_add_x_forwarded_for;
+      proxy_next_upstream   error timeout invalid_header http_500;
+      proxy_connect_timeout   1;
+    }
+
+    # if we need websockets for brokers (/subscribe)
+    #
+    # location /wsapp/ {
+    # proxy_pass http://wsbackend;
+    # proxy_http_version 1.1;
+    # proxy_set_header Upgrade $http_upgrade;
+    # proxy_set_header Connection "upgrade";
+    # }
+
+  }
+
 }

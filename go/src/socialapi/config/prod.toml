@@ -1,9 +1,9 @@
 EventExchangeName="BrokerMessageBus"
-Mongo="localhost:27017/koding"
+Mongo="192.168.59.103:27017/koding"
 Environment="prod"
 
 [postgres]
-Host=     "localhost"
+Host=     "192.168.59.103"
 Port=     5432
 # Username= "postgres"
 # Password= "123123123"
@@ -12,7 +12,7 @@ Password= "socialapplication"
 DBName=   "social"
 
 [mq]
-Host=     "localhost"
+Host=     "192.168.59.103"
 Port=     5672
 Username= "guest"
 Password= "guest"
@@ -20,7 +20,7 @@ Vhost=    "/"
 
 
 [redis]
-URL ="localhost:6379"
+URL ="192.168.59.103:6379"
 DB  =0
 
 

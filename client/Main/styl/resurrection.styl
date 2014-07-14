@@ -20,7 +20,7 @@ html.app
 
 body
   font-family       openSansFamily
-  font-weight       300
+  font-weight       400
 
   &.noscroll
     overflow        hidden
@@ -30,6 +30,9 @@ body
       nav
         hidden()
 
+  > .invisible
+    display         none
+
 input
 textarea
 button
@@ -38,12 +41,18 @@ button
 pre
   font-family       monoFamily
 
+.kdview
+  overflow          visible
+
 .no-anim
   noAnim()
 
 #kdmaincontainer
   width             auto
   // vendor            transform, translateX(0)
+  #main-sidebar
+    hidden()
+
   &.fullscreen
     width             100%!important
     left              0!important
@@ -60,6 +69,26 @@ pre
       hidden()
 
 
+  &.with-sidebar
+
+    #main-sidebar
+      visible()
+
+    #main-header
+      hidden()
+
+    #main-panel-wrapper
+      kalc            width, 100% \- 258px
+      margin-left     258px
+
+    .content-page.activity > aside
+      left            258px
+      top             0
+
+    .content-page.activity > main
+      kalc            width, 100% \- 292px
+
+
 #main-header
   margin              0
   size                100%,55px
@@ -69,51 +98,51 @@ pre
   shadow              0 3px 0 rgba(0, 0, 0, .15)
   fix()
 
-  .inner-container
-    bg                  color, #1f2628
-    size                100%, 55px
-    // vendor              transform, translateY(0)
-    // -webkit-transition  -webkit-transform .2s ease
-    // -moz-transition     -moz-transform .2s ease
-    // transition          transform .2s ease
-    z-index             1
-    rel()
+  // .inner-container
+  //   bg                  color, #1f2628
+  //   size                100%, 55px
+  //   // vendor              transform, translateY(0)
+  //   // -webkit-transition  -webkit-transform .2s ease
+  //   // -moz-transition     -moz-transform .2s ease
+  //   // transition          transform .2s ease
+  //   z-index             1
+  //   rel()
 
-    .logotype
-      hidden()
+  //   .logotype
+  //     hidden()
 
-    nav
-      line-height         18px
-      fr()
+  nav
+    line-height         18px
+    fr()
 
-      a
-        -webkit-font-smoothing  antialiased
-        font-smoothing          antialiased
+    a
+      -webkit-font-smoothing  antialiased
+      font-smoothing          antialiased
 
-        font-size         16px
-        margin-left       12px
-        font-weight       500
-        font-family       openSansFamily
-        color             rgba(255,255,255,.83)
-        padding-bottom    1px
-        noTextDeco()
-        visibility        hidden
+      font-size         16px
+      margin-left       12px
+      font-weight       500
+      font-family       openSansFamily
+      color             rgba(255,255,255,.83)
+      padding-bottom    1px
+      noTextDeco()
+      visibility        hidden
 
-        &.active
-          font-weight     600
-          border-bottom   1px solid rgba(255,255,255,.83)
+      &.active
+        font-weight     600
+        border-bottom   1px solid rgba(255,255,255,.83)
 
-        &:last-child
-          visibility      visible
+      &:last-child
+        visibility      visible
 
-        &.login
-          padding         7px 13px
-          rounded         4px
-          white-space     nowrap
-          margin-left     21px
-          font-size       14px
-          font-weight     600
-          border          1px solid rgba(255, 255, 255, .5)
+      &.login
+        padding         7px 13px
+        rounded         4px
+        white-space     nowrap
+        margin-left     21px
+        font-size       14px
+        font-weight     600
+        border          1px solid rgba(255, 255, 255, .5)
 
   &.no-dock
     max-width             1290px
@@ -127,7 +156,6 @@ pre
 
 
     #dock
-    .account-area
       hidden()
 
     .inner-container
@@ -207,50 +235,9 @@ pre
       r-sprite        app '16-close-white'
 
 
-#dock
-
-  size              auto, 55px
-  width             calc( 100% \- 434px )
-  overflow          visible
-  position          relative
-  margin-left       58px
-  background        rgba(31,38,40,0.8);
-  border-radius     4px
-  vendor            transition, height .2s ease
-
-  &:after
-    opacity         0
-    content         ""
-    vendor          transition, opacity .5s ease
-
-  .kdscrolltrack
-    display         none
-
-  .kdcustomscrollview
-    padding         0
-
-  &.remove-app-state
-    height          180px
-
-    &:after
-      opacity       1
-      size          100%, 30px
-      content       "drag here to remove"
-      text-align    center
-      color         #eee
-      padding-top   10px
-      bottom        0
-      font-size     13px
-      font-weight   300
-      abs()
 
 
 
-#main-panel-wrapper
-  overflow          visible
-  display           block
-  top               0
-  left              0
 
 #koding-logo
   size              57px 55px
@@ -280,257 +267,6 @@ pre
     r-sprite        app 'nav-logo'
     margin          0 0 0 1px
     display         block
-
-#main-nav
-  height            55px
-  overflow          visible
-
-  .on-top
-    z-index         100
-    border          none !important
-    shadow          none !important
-    background      none !important
-
-  > a
-    abs()
-    display         block
-    size            55px 55px
-    border-right    1px solid #252e30
-    opacity         1
-    z-index         1
-    vendor          transition, top .2s  linear \,\
-                                left .2s linear
-
-    cite
-      hidden()
-
-    .fake-icon
-      width         30px
-      height        20px
-      left          13px
-      top           14px
-      text-align    center
-      padding-top    4px
-      padding-bottom 4px
-      font-size     20px
-      color         white
-      border-radius 3px
-      abs()
-
-    .icon
-      display       block
-
-    &.remove
-      cursor        url('/a/images/cursor-trash.png'), auto
-
-    &.explode
-      vendor        animation, explode .5s ease-in-out 100
-
-    &.selected
-      bg            color, #2b3335
-
-    &.running
-      shadow        inset 0 2px 0 #1aaf5d
-      borderBox()
-
-    &.loading
-      vendor      animation, pulse 1.5s ease-in-out 100
-
-    &.activity .icon
-      r-sprite      app nav-activity
-    &.topics .icon
-      r-sprite      app nav-topics
-    &.editor .icon
-      r-sprite      app nav-editor
-    &.terminal .icon
-      r-sprite      app nav-terminal
-    &.apps .icon
-      r-sprite      app nav-apps
-    &.teamwork .icon
-      r-sprite      app nav-teamwork
-    &.bugs .icon
-      r-sprite      app nav-bugs
-    &.devtools .icon
-      r-sprite      app nav-develop
-    // &.finder .icon
-    //   r-sprite      app nav-finder
-
-.account-area
-  vendor            transform-style, preserve-3d
-  vendor            perspective, 300px
-  vendor            transition, right .5s ease
-  top               0
-  right             0
-  background        rgba(31, 38, 40, 0.9)
-  height            55px
-  border-left       1px solid #252E31
-  abs()
-
-  > div
-    display         inline-block
-    width           auto
-    vertical-align  top
-
-
-  .acc-dropdown-icon
-    size            45px 55px
-    display         inline-block
-    border-left     1px solid #1f2628
-
-    .icon
-      padding-bottom 1px
-    // i know, this is not a proper solution. [BC]
-
-    &.help
-      width         30px
-      .icon
-        margin      18px 0 0 13px
-        r-sprite    app question-mark
-
-    .count
-      vendor        transform, scale(0)
-      size          16px, 16px
-      bg            color, #e94b35
-      top           9px
-      right         6px
-      font-size     10px
-      color         #fff
-      line-height   16px
-      text-align    center
-      rounded       100%
-      -webkit-transition -webkit-transform .3s cubic-bezier(0.68, -0.55, 0.265, 1.55)
-      -moz-transition    -moz-transform .3s ease
-      transition         transform .3s cubic-bezier(0.68, -0.55, 0.265, 1.55)
-      z-index            1001
-      abs()
-
-      &.in
-        vendor        transform, scale(1)
-
-    .icon
-      display       block
-    &.notifications .icon
-      margin        18px 0 0 13px
-      r-sprite      app account-notifications
-    &.search
-      width         55px
-      .icon
-        margin      17px 0 0 17px
-        r-sprite    app account-search
-    &.groups
-      abs()
-      top           0
-      right         0
-      size          50px 55px
-      .icon
-        margin      24px 0 0 15px
-        r-sprite      app '25-down-chevron'
-
-  .search-form-container
-    bg                 color, #212932
-    size               400px 55px
-    opacity            0
-    vendor             transform, rotateY(90deg)
-    vendor             transform-origin-x, 0
-    vendor             backface-visibility, hidden
-    -webkit-transition -webkit-transform .5s ease \,\
-                       opacity .5s ease
-    top                0
-    left               100%
-    abs()
-    borderBox()
-
-    .kdinput
-      text-align       left
-      size             100% 55px
-      border           none
-      shadow           none
-      text-indent      14px
-      bg               color, transparent
-      color            #9caeb3
-      font-size        16px
-
-      &:hover
-        border         none
-
-      &:focus
-        shadow         none
-        outline        none
-        border         none
-
-  .account-menu
-    vendor             transform-origin-x, 274px
-    vendor             backface-visibility, hidden
-    -webkit-transition -webkit-transform .5s ease \,\
-                       opacity .5s ease
-
-  .avatar-area
-    bg                 color, headerBg
-    padding            15px 20px
-    height             55px
-    width              238px
-    opacity            1
-    vendor             transform-origin-x, 100%
-    -webkit-transition -webkit-transform .5s ease \,\
-                       opacity .5s ease
-
-    -webkit-backface-visibility hidden
-    backface-visibility         hidden
-    -moz-backface-visibility    visible
-    borderBox()
-    rel()
-
-    .avatarview
-      margin-right    14px
-      fl()
-    section
-      width           auto
-      display         block
-      overflow        hidden
-      margin-top      -3px
-      line-height     15px
-      fl()
-      h2, h3
-        margin        0
-      h2
-        font-size     14px
-        font-weight   400
-        white-space   nowrap
-        width         133px
-        a
-          display     block
-          color       #aeb8c2
-          overflow    hidden
-          text-overflow ellipsis
-          noTextDeco()
-
-      h3
-        color         #828a93
-        font-size     12px
-        font-weight   300
-        margin-top    2px
-
-  &.search-open
-    right             400px
-
-    .account-menu
-    .avatar-area
-      vendor          transform, rotateY(-90deg)
-      opacity         0
-
-    .search-form-container
-      vendor          transform, rotateY(0deg)
-      opacity         1
-
-  .header-sign-in
-    font-size         16px
-    color             #e9e9e9
-    line-height       55px
-    margin-right       8px
-    noTextDeco()
-
-    &:last-of-type
-      margin-right    18px
 
 
 #kdmaincontainer.logout-tv
