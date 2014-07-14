@@ -48,7 +48,6 @@ class CommentView extends KDView
 
       activity.replies = replies.concat activity.replies
 
-      @emit 'ReachedToTheBeginning'
       @controller.addItem reply, index for reply, index in replies
       @listPreviousLink.update()
 
