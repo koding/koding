@@ -16,7 +16,7 @@ class IDE.IDEView extends IDE.WorkspaceTabView
     @tabView.on 'VMWebPageRequested',     @bound 'openVMWebPage'
     @tabView.on 'ShortcutsViewRequested', @bound 'createShortcutsView'
     @tabView.on 'TerminalPaneRequested',  @bound 'createTerminal'
-    @tabView.on 'PreviewPaneRequested',   @bound 'createPreview'
+    @tabView.on 'PreviewPaneRequested',   (url) => @createPreview url
     @tabView.on 'DrawingPaneRequested',   @bound 'createDrawingBoard'
     @tabView.on 'ViewNeedsToBeShown',     @bound 'showView'
 
