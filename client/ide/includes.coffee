@@ -38,6 +38,7 @@ module.exports = [
   "views/filefinder/idefilefinder.coffee"
 
   # content search
+  "views/contentsearch/searchtypes.coffee"
   "views/contentsearch/idecontentsearchresultview.coffee"
   "views/contentsearch/idecontentsearch.coffee"
 
