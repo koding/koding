@@ -56,15 +56,14 @@ koding = new Bongo {
   mq          : broker
 
   kite          :
-    kontrol     : KONFIG.client.runtimeOptions.newkontrol.url
     name        : 'social'
-    environment : 'vagrant'
-    region      : 'vagrant'
+    environment : argv.environment or KONFIG.environment
+    region      : argv.region
     version     : KONFIG.version
     username    : 'koding'
     port        : argv['kite-port']
     prefix      : 'social'
-    kiteKey     : joinPath __dirname, '../../../../kite_home/koding/kite.key'
+    kiteKey     : argv['kite-key']
 
     fetchClient: (name, context, callback) ->
       { JAccount } = koding.models
