@@ -29,7 +29,9 @@ class CommentView extends KDView
       .on 'RemoveReply', @controller.lazyBound 'removeItem', null
 
 
-  listPreviousReplies: ->
+  listPreviousReplies: (event) ->
+
+    KD.utils.stopDOMEvent event
 
     @emit 'AsyncJobStarted'
 
