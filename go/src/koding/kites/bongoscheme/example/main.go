@@ -35,5 +35,6 @@ Arguments     : %s",
 		return nil, err
 	}
 
+	// return what you get as string
 	return string(res), nil
 }
