@@ -256,23 +256,27 @@ class ComputeController extends KDController
       warn message = "An app name required with options: {app: {name: 'APPNAME'}}"
       return callback { message }
 
-    app.name = "#{app.name}_#{app.version}"  if app.version?
+    identifier = app.name
+    identifier = "#{app.name}_#{app.version}"  if app.version?
+    identifier = identifier.replace "\.", ""
 
-    @storage.fetchValue app.name, (pref)->
+    @storage.fetchValue identifier, (preferredUID)=>
 
-      if pref?
-        info "PREF found:", pref
-      else
+      if preferredUID?
 
-        machineSelected = no
-        modal = new MachineListModal
-        modal.once "MachineSelected", (machine)->
-          machineSelected = yes
-          callback null, machine
+        for machine in @machines
+          if machine.uid is preferredUID \
+            and machine.status.state is Machine.State.Running
+              info "Machine returned from previous selection."
+              return callback null, machine
 
-        # FIXME later in KDModalView ~ GG
-        modal.once "KDModalViewDestroyed", ->
-          unless machineSelected
-            callback
-              name    : "NOMACHINE"
-              message : "No machine selected"
+        info """There was a preferred machine, but its
+                not available now. Asking for another one."""
+        @storage.unsetKey identifier
+
+      ComputeController.UI.askMachineForApp app, (err, machine, remember)=>
+
+        if not err and remember
+          @storage.setValue identifier, machine.uid
+
+        callback err, machine
