@@ -9,6 +9,8 @@ import (
 
 func main() {
 	k := kite.New("bongo", "0.0.1")
+	// set function name same with the service name
+	// not a good naming tho
 	k.HandleFunc("bongo", Bongo).DisableAuthentication()
 	k.Config.Port = 3636
 	k.Run()
