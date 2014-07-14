@@ -114,3 +114,20 @@ class ComputeController.UI
         callback  : ->
           modal.destroy()
           callback()
+
+  @askMachineForApp: (app, callback)->
+
+    # FIXME later in KDModalView ~ GG
+    machineSelected = no
+
+    modal = new MachineListModal
+
+    modal.once "MachineSelected", (machine, remember = no)->
+      machineSelected = yes
+      callback null, machine, remember
+
+    modal.once "KDModalViewDestroyed", ->
+      unless machineSelected
+        callback
+          name    : "NOMACHINE"
+          message : "No machine selected"

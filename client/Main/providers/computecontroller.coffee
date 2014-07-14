@@ -20,7 +20,9 @@ class ComputeController extends KDController
       @on "MachineBuilt",   => do @reset
       @on "MachineDestroy", => do @reset
 
-      @fetchStacks => @emit 'ready'
+      @fetchStacks =>
+        @storage = KD.singletons.appStorageController.storage 'Compute', '0.0.1'
+        @emit 'ready'
 
 
   fetchStacks: do (queue=[])->
@@ -246,3 +248,35 @@ class ComputeController extends KDController
 
     .catch errorHandler 'info', @eventListener, machine
 
+
+  requireMachine: (options = {}, callback = noop)-> @ready =>
+
+    {app} = options
+    unless app?.name?
+      warn message = "An app name required with options: {app: {name: 'APPNAME'}}"
+      return callback { message }
+
+    identifier = app.name
+    identifier = "#{app.name}_#{app.version}"  if app.version?
+    identifier = identifier.replace "\.", ""
+
+    @storage.fetchValue identifier, (preferredUID)=>
+
+      if preferredUID?
+
+        for machine in @machines
+          if machine.uid is preferredUID \
+            and machine.status.state is Machine.State.Running
+              info "Machine returned from previous selection."
+              return callback null, machine
+
+        info """There was a preferred machine, but its
+                not available now. Asking for another one."""
+        @storage.unsetKey identifier
+
+      ComputeController.UI.askMachineForApp app, (err, machine, remember)=>
+
+        if not err and remember
+          @storage.setValue identifier, machine.uid
+
+        callback err, machine

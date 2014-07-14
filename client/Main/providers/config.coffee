@@ -14,17 +14,13 @@ KD.config.providers        =
     title                  : "AWS Credential"
     description            : "Amazon Web Services"
     credentialFields       :
-      accessKeyId          :
+      access_key           :
         label              : "Access Key"
         placeholder        : "aws access key"
-      secretAccessKey      :
+      secret_key           :
         label              : "Secret Key"
         placeholder        : "aws secret key"
         type               : "password"
-      region               :
-        label              : "Region"
-        placeholder        : "aws region"
-        defaultValue       : "us-east-1"
 
   koding                   :
     title                  : "Koding Credential"
