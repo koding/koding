@@ -1,6 +1,7 @@
 package runner
 
 import (
+	"errors"
 	"flag"
 	"fmt"
 	"net/url"
@@ -84,25 +85,7 @@ func (r *Runner) InitWithConfigFile(flagConfFile string) error {
 	r.RegisterSignalHandler()
 
 	if *flagKiteInit {
-		// init kite here
-		k := kite.New(r.Name, "0.0."+strconv.Itoa(*flagVersion))
-
-		// TODO use get
-		k.Config = kiteconfig.MustGet()
-		// no need to set, will be set randomly.
-		// k.Config.Port = 9876
-		k.Config.Environment = r.Conf.Environment
-		region := *flagRegion
-		// if region is not given, get it from config
-		if region == "" {
-			region = k.Config.Region
-		}
-
-		k.Config.Region = region
-		// set kite
-		r.Kite = k
-
-		if err := r.RegisterToKontrol(); err != nil {
+		if err := r.initKite(); err != nil {
 			return err
 		}
 	}
@@ -110,7 +93,37 @@ func (r *Runner) InitWithConfigFile(flagConfFile string) error {
 	return nil
 }
 
+func (r *Runner) initKite() error {
+	// init kite here
+	k := kite.New(r.Name, "0.0."+strconv.Itoa(*flagVersion))
+
+	// TODO use get
+	k.Config = kiteconfig.MustGet()
+	// no need to set, will be set randomly.
+	// k.Config.Port = 9876
+	k.Config.Environment = r.Conf.Environment
+	region := *flagRegion
+	// if region is not given, get it from config
+	if region == "" {
+		region = k.Config.Region
+	}
+
+	k.Config.Region = region
+	// set kite
+	r.Kite = k
+
+	if err := r.RegisterToKontrol(); err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func (r *Runner) RegisterToKontrol() error {
+	if r.Kite == nil {
+		return errors.New("kite is not initialized yet")
+	}
+
 	registerURL := r.Kite.RegisterURL(*flagKiteLocal)
 	if *flagKiteKontrolURL != "" {
 		u, err := url.Parse(*flagKiteKontrolURL)
