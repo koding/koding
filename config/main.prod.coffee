@@ -92,7 +92,7 @@ KONFIG              =
   elasticSearch     : {host          : "#{prod_simulation_server}" , port      : 9200                  , enabled           : no                 , queue           : "elasticSearchFeederQueue"}
   social            : {port          : 3030                        , login     : "#{rabbitmq.login}"   , queueName         : socialQueueName    , kitePort        : 8765 }
   email             : {host          : "#{customDomain.public}"    , protocol  : 'http:'               , defaultFromAddress: 'hello@koding.com' }
-  newkites          : {useTLS        : no                          , certFile  : ""                    , keyFile: ""}
+  newkites          : {useTLS        : no                          , certFile  : ""                    , keyFile: "#{projectRoot}/kite_home/production/kite.key"}
   log               : {login         : "#{rabbitmq.login}"         , queueName : logQueueName}
   boxproxy          : {port          : 8090 }
   emailConfirmationCheckerWorker     : {enabled: no, login : "#{rabbitmq.login}", queueName: socialQueueName+'emailConfirmationCheckerWorker',cronSchedule: '0 * * * * *',usageLimitInMinutes  : 60}
@@ -183,7 +183,6 @@ KONFIG.workers =
   sourcemaps          : command : "node   #{projectRoot}/server/lib/source-server/index.js -c #{configName} -p 3526"
   emailsender         : command : "node   #{projectRoot}/workers/emailsender/index.js      -c #{configName}"
   boxproxy            : command : "coffee #{projectRoot}/server/boxproxy.coffee            -c #{configName}"
-  # permissionUpdater   : command : "node #{projectRoot}/scripts/permission-updater             -c #{socialapi.configFilePath} --hard"
   # guestcleaner        : command : "node #{projectRoot}/workers/guestcleaner/index.js     -c #{configName}"
 
 
@@ -273,7 +272,16 @@ generateRunFile = (KONFIG) ->
         make install
 
         cd -
-        ls
+        node #{projectRoot}/scripts/permission-updater  -c #{socialapi.configFilePath} --hard
+
+        mkdir $HOME/.kite >/dev/null
+        echo copying #{KONFIG.newkites.keyFile} to $HOME/.kite/kite.key
+        cp #{KONFIG.newkites.keyFile} $HOME/.kite/kite.key
+
+
+        # TO BE DONE: DEVRIM - FIRST TIME RUN.
+        # mongo localhost/koding --eval='db.jAccounts.update({},{\$$unset:{socialApiId:0}},{multi:true})'
+        # mongo localhost/koding --eval='db.jGroups.update({},{\$$unset:{socialApiChannelId:0}},{multi:true})’
 
       """
   conf += """\n      
