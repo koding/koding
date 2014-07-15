@@ -1,0 +1,22 @@
+#!/usr/bin/coffee
+
+{ exec }  = require 'child_process'
+has       = (arg)-> "--#{arg}" in process.argv
+sure      = if has "yes"       then "" else "-n"
+includeGo = if has "includeGo" then "" else "-e go"
+
+do cleanup = ->
+  exec "git clean -d -f #{sure} -x -e cleanup -e .vagrant -e node_modules -e node_modules_koding #{includeGo}", (err, res)->
+    if res isnt ''
+      console.log "\n#{res}"
+      if not has "yes"
+        console.log "If you are sure to remove these files run:\n\n  $ ./cleanup --yes \n"
+        if not has "includeGo"
+          console.log "If you want to cleanup GO binaries too, try:\n\n  $ ./cleanup --includeGo \n"
+        console.warn " .. You will need to do './configure' again.\n"
+
+      else
+        console.log "All remaining files removed, it's a new era for you!\n"
+    else
+      console.log "Everything seems fine, nothing to remove."
+
