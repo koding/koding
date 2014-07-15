@@ -36,6 +36,17 @@ type BongoKite struct {
 // bongo client kite is connected to the system if error occures while trying to
 // initialize, returns as early as possible
 func New(k *kite.Kite, query *protocol.KontrolQuery) (*BongoKite, error) {
+	kite, err := getOneBongoKiteClient(k, query)
+	if err != nil {
+		return nil, err
+	}
+
+	return &BongoKite{
+		bongo: kite,
+	}, nil
+}
+
+func getOneBongoKiteClient(k *kite.Kite, query *protocol.KontrolQuery) (*kite.Client, error) {
 	if k == nil {
 		return nil, ErrKiteIsNil
 	}
@@ -56,9 +67,7 @@ func New(k *kite.Kite, query *protocol.KontrolQuery) (*BongoKite, error) {
 	// Wait until connected
 	<-connected
 
-	return &BongoKite{
-		bongo: kite,
-	}, nil
+	return kite, nil
 }
 
 // bongoScheme holds fields for bongo communication
