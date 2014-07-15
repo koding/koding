@@ -12,10 +12,15 @@ class MessageEventManager extends KDObject
 
 
   addInteraction: (event) ->
+    {accountOldId} = event
+    KD.remote.cacheable "JAccount", accountOldId, (err, owner) =>
+      return error err  if err
+      return error "Account not found" unless owner
+      return if KD.filterTrollActivity owner
 
-    {typeConstant} = event
-    fn = @bound "add#{typeConstant.capitalize()}"
-    fn event
+      {typeConstant} = event
+      fn = @bound "add#{typeConstant.capitalize()}"
+      fn event
 
 
   removeInteraction: (event) ->
