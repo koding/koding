@@ -48,7 +48,7 @@ class ActivityListItemView extends KDListItemView
 
     {_id, constructorName} = data.account
     KD.remote.cacheable constructorName, _id, (err, account)=>
-      @setClass "exempt" if account and KD.checkFlag 'exempt', account
+      @setClass "exempt" if account?.isExempt
 
     embedOptions  =
       hasDropdown : no

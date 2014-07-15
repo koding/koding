@@ -279,8 +279,6 @@ KD.extend
   isMyPost: (post) -> post.account._id is KD.whoami().getId()
 
   checkFlag:(flagToCheck, account = KD.whoami())->
-    # exempt information is removed from globalFlags
-    return account.isExempt if flagToCheck is 'exempt'
     if account.globalFlags
       if 'string' is typeof flagToCheck
         return flagToCheck in account.globalFlags
@@ -293,7 +291,7 @@ KD.extend
   # filterTrollActivity filters troll activities from users.
   # Only super-admins and other trolls can see these activities
   filterTrollActivity:(account)->
-    return no unless KD.checkFlag('exempt', account)
+    return no unless account.isExempt
     return account._id isnt KD.whoami()._id and not KD.checkFlag "super-admin"
 
   showError:(err, messages)->
