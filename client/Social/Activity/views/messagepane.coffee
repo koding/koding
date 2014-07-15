@@ -137,7 +137,7 @@ class MessagePane extends KDTabPaneView
   prependMessage: (message) ->
     KD.getMessageOwner message, (err, owner) =>
       return error err  if err
-      return if owner.isExempt and owner._id isnt KD.whoami()._id and not KD.checkFlag "super-admin"
+      return if KD.filterTrollActivity owner
       @listController.addItem message, 0
 
   removeMessage: (message) -> @listController.removeItem null, message

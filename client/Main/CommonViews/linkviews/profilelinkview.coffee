@@ -40,7 +40,7 @@ class ProfileLinkView extends LinkView
 
     # only admin can see troll users
     if KD.checkFlag "super-admin"
-      trollField = if @getData().isExempt then " (T)" else ""
+      trollField = if KD.checkFlag "exempt", @getData() then " (T)" else ""
       @troll.updatePartial trollField  if @troll
 
     super fields

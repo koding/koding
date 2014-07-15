@@ -20,7 +20,9 @@ class ReplyLikeView extends ActivityLikeLink
 
     if actorsCount > 0
       @setClass 'has-likes'
-      @setTooltip gravity : @getOption 'tooltipPosition'
+      @setTooltip
+        gravity : @getOption 'tooltipPosition'
+        cssClass : 'reply-like-tooltip'
     else
       @unsetClass 'has-likes'
       @unsetTooltip()
@@ -37,29 +39,26 @@ class ReplyLikeView extends ActivityLikeLink
       return KD.showError err if err
       return unless accounts
 
-      strong = (x) -> "<strong>#{x}</strong>"
+      wrapName = (name) -> "<p>#{name}</p>"
       names = accounts.map (acc) ->
-        strong KD.utils.getFullnameFromAccount acc
+        wrapName KD.utils.getFullnameFromAccount acc
 
       @updateTooltip names
 
   updateTooltip: (names) ->
 
-    {actorsCount} = @getData().interactions.like
+    { length } = names
 
-    if actorsCount > 3
-      sep = ", "
-      andMore = "and <strong>#{actorsCount - 3} more.</strong>"
-    else
-      sep = " and "
-      andMore = ""
+    return unless length > 0
 
-    title =
-      switch actorsCount
-        when 0 then ""
-        when 1 then "#{names[0]}"
-        when 2 then "#{names[0]} and #{names[1]}"
-        else "#{names[0]}, #{names[1]}#{sep}#{names[2]} #{andMore}"
+    upperLimit = 20
+    andMore    = ""
+
+    if length > upperLimit
+      names = names.splice 0, upperLimit
+      andMore = "<p>and #{length - upperLimit} more...</p>"
+
+    title = "#{names.join ''}#{andMore}"
 
     @getTooltip().update {title}
 
