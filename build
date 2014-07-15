@@ -1,20 +1,3 @@
 #!/usr/bin/env coffee
 
-{argv}   = require 'optimist'
-{exec}   = require 'child_process'
-fs       = require 'fs'
-log      = console.log
-Builder  = require './Builder'
-builder  = new Builder
-
-build = (o)->
- 
-  buildClient = -> builder.buildSpritesAndClient {}
-
-  exec "cd node_modules_koding/koding-broker-client && cake build",->
-    log "koding-broker-client is built."
-
-    buildClient "",()->
-      log "client is built."
- 
-build()
+require('./Builder').buildSpritesAndClient({})

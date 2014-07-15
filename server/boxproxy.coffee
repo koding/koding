@@ -4,7 +4,7 @@ express = require 'express'
 
 KONFIG = require('koding-config-manager').load("main.#{argv.c}")
 
-{ projectRoot, social, webserver, boxproxy, broker } = KONFIG
+{ projectRoot, social, webserver, boxproxy, broker, sourcemaps } = KONFIG
 
 app = express()
 app.use express.static "#{projectRoot}/website/"
@@ -18,6 +18,11 @@ app.all '/xhr*', (req, res) ->
 app.all '/subscribe*', (req, res) ->
   req.pipe(
     request("http://localhost:#{ broker.port }#{ req.path }")
+  ).pipe res
+
+app.all '/sourcemaps*', (req, res) ->
+  req.pipe(
+    request("http://localhost:#{ sourcemaps.port }#{ req.path.substring(11) }")
   ).pipe res
 
 

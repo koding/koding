@@ -1,15 +1,16 @@
 FROM mongo
 MAINTAINER Christopher Thorn <chris@koding.com>
 
-		
-
 ADD dump/ /dump
 RUN mkdir -p /root/data/db
-# RUN cp -R /root/data/db/* /data/db/
+
+# INSERTING DEFAULT DATASET TO MONGODB
+
 RUN mongorestore --dbpath /root/data/db --drop --quiet --db koding /dump/koding
-# RUN ln -sf /root/data/db /data/
-RUN ls -lha /root/data/db
-# RUN ls -lha /root/data/db
+
+# UPDATING MONGO AS PER SOCIAL API REQUIREMENTS (@cihangir)
+
+# RUN mongod --fork --logpath /var/log/mongodb.log --dbpath /root/data/db --smallfiles --nojournal && mongo localhost/koding --eval='db.jAccounts.update({},{$unset:{socialApiId:0}},{multi:true}); db.jGroups.update({},{$unset:{socialApiChannelId:0}},{multi:true});'
 
 EXPOSE 27017
 ENTRYPOINT ["mongod"]

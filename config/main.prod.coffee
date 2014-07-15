@@ -77,7 +77,7 @@ KONFIG              =
   uri               : {address: "#{customDomain.public}:#{customDomain.port}"}
   userSitesDomain   : userSitesDomain
   projectRoot       : projectRoot
-  socialapi         : socialapi                                  # THIS IS WHERE WEBSERVER & SOCIAL WORKER KNOW HOW TO CONNECT TO SOCIALAPI
+  socialapi         : socialapi        # THIS IS WHERE WEBSERVER & SOCIAL WORKER KNOW HOW TO CONNECT TO SOCIALAPI
   mongo             : mongo
   redis             : "#{redis.host}:#{redis.port}"
   misc              : {claimGlobalNamesForUsers: no, updateAllSlugs : no, debugConnectionErrors: yes}
@@ -95,6 +95,7 @@ KONFIG              =
   newkites          : {useTLS        : no                          , certFile  : ""                    , keyFile: "#{projectRoot}/kite_home/production/kite.key"}
   log               : {login         : "#{rabbitmq.login}"         , queueName : logQueueName}
   boxproxy          : {port          : 8090 }
+  sourcemaps        : {port          : 3526 }
   emailConfirmationCheckerWorker     : {enabled: no, login : "#{rabbitmq.login}", queueName: socialQueueName+'emailConfirmationCheckerWorker',cronSchedule: '0 * * * * *',usageLimitInMinutes  : 60}
 
   newkontrol        : kontrol
@@ -121,7 +122,7 @@ KONFIG              =
     
   #--- CLIENT-SIDE BUILD CONFIGURATION ---#
 
-  client            : {version       : version, includesPath:'client', indexMaster: "index-master.html", index: "default.html", useStaticFileServer: no, staticFilesBaseUrl: "#{customDomain.public}:#{customDomain.port}"}
+  client            : {watch: yes, version       : version, includesPath:'client', indexMaster: "index-master.html", index: "default.html", useStaticFileServer: no, staticFilesBaseUrl: "#{customDomain.public}:#{customDomain.port}"}
 
 #-------- runtimeOptions: PROPERTIES SHARED WITH BROWSER --------#
 KONFIG.client.runtimeOptions =                                          
@@ -142,7 +143,7 @@ KONFIG.client.runtimeOptions =
   appsUri           : "https://rest.kd.io"
   uploadsUri        : 'https://koding-uploads.s3.amazonaws.com'
   uploadsUriForGroup: 'https://koding-groups.s3.amazonaws.com'
-  sourceUri         : "#{customDomain.local}:3526"
+  sourceMapsUri     : "#{customDomain.public}/sourcemaps"
   fileFetchTimeout  : 1000 * 15
   userIdleMs        : 1000 * 60 * 5
   embedly           : {apiKey       : "94991069fb354d4e8fdb825e52d4134a"     }
@@ -163,29 +164,34 @@ KONFIG.client.runtimeOptions =
 
 
 #--- RUNTIME CONFIGURATION: WORKERS AND KITES ---#
+GOBIN = "#{projectRoot}/go/bin"
 
+
+# THESE COMMANDS WILL EXECUTE SEQUENTIALLY.
 KONFIG.workers =
-  rerouting           : command : "#{projectRoot}/go/bin/rerouting          -c #{configName}"
-  cron                : command : "#{projectRoot}/go/bin/cron               -c #{configName}"
-  broker              : command : "#{projectRoot}/go/bin/broker             -c #{configName}"
-  socialapi           : command : "#{projectRoot}/go/bin/api                -c #{socialapi.configFilePath} -port #{socialapi.port}"
-  dailyemailnotifier  : command : "#{projectRoot}/go/bin/dailyemailnotifier -c #{socialapi.configFilePath}" 
-  notification        : command : "#{projectRoot}/go/bin/notification                    -c #{socialapi.configFilePath}"
-  popularpost         : command : "#{projectRoot}/go/bin/popularpost                     -c #{socialapi.configFilePath}"
-  populartopic        : command : "#{projectRoot}/go/bin/populartopic                    -c #{socialapi.configFilePath}"
-  realtime            : command : "#{projectRoot}/go/bin/realtime                        -c #{socialapi.configFilePath}"
-  sitemapfeeder       : command : "#{projectRoot}/go/bin/sitemapfeeder                   -c #{socialapi.configFilePath}"
-  topicfeed           : command : "#{projectRoot}/go/bin/topicfeed                       -c #{socialapi.configFilePath}"
-  trollmode           : command : "#{projectRoot}/go/bin/trollmode                       -c #{socialapi.configFilePath}"
-  webserver           : command : "node   #{projectRoot}/server/index.js                   -c #{configName} -p 3000   --disable-newrelic"
+  rerouting           : command : "#{GOBIN}/rerouting          -c #{configName}"
+  cron                : command : "#{GOBIN}/cron               -c #{configName}"
+  broker              : command : "#{GOBIN}/broker             -c #{configName}"
+  socialapi           : command : "#{GOBIN}/api                -c #{socialapi.configFilePath} -port #{socialapi.port}"
+  dailyemailnotifier  : command : "#{GOBIN}/dailyemailnotifier -c #{socialapi.configFilePath}" 
+  notification        : command : "#{GOBIN}/notification       -c #{socialapi.configFilePath}"
+  popularpost         : command : "#{GOBIN}/popularpost        -c #{socialapi.configFilePath}"
+  populartopic        : command : "#{GOBIN}/populartopic       -c #{socialapi.configFilePath}"
+  realtime            : command : "#{GOBIN}/realtime           -c #{socialapi.configFilePath}"
+  sitemapfeeder       : command : "#{GOBIN}/sitemapfeeder      -c #{socialapi.configFilePath}"
+  topicfeed           : command : "#{GOBIN}/topicfeed          -c #{socialapi.configFilePath}"
+  trollmode           : command : "#{GOBIN}/trollmode          -c #{socialapi.configFilePath}"
+  webserver           : command : "node   #{projectRoot}/server/index.js                   -c #{configName} -p #{KONFIG.webserver.port}   --disable-newrelic"
+  socialworker        : command : "node   #{projectRoot}/workers/social/index.js           -c #{configName} -p #{KONFIG.social.port}      -r #{region} --disable-newrelic --kite-port=13020"
+  sourcemaps          : command : "node   #{projectRoot}/server/lib/source-server/index.js -c #{configName} -p #{KONFIG.sourcemaps.port}"
   authworker          : command : "node   #{projectRoot}/workers/auth/index.js             -c #{configName}"
-  socialworker        : command : "node   #{projectRoot}/workers/social/index.js           -c #{configName} -p 3030 -r #{region} --disable-newrelic --kite-port=13020"
-  sourcemaps          : command : "node   #{projectRoot}/server/lib/source-server/index.js -c #{configName} -p 3526"
   emailsender         : command : "node   #{projectRoot}/workers/emailsender/index.js      -c #{configName}"
   boxproxy            : command : "coffee #{projectRoot}/server/boxproxy.coffee            -c #{configName}"
+  clientWatcher       : command : "coffee #{projectRoot}/build-client.coffee               --watch --sourceMapsUri #{hostname}"
   # guestcleaner        : command : "node #{projectRoot}/workers/guestcleaner/index.js     -c #{configName}"
-
-
+  
+  # kloud               : command : "#{GO_BIN}/kloud   --port 3000 -env prod -public-key $PBKEY -private-key $PVKEY"
+  # kontrol             : command : "#{GO_BIN}/kontrol --port 3000 -env prod -public-key $PBKEY -private-key $PVKEY"
 
 
 
@@ -233,6 +239,15 @@ generateRunFile = (KONFIG) ->
     env += "export #{key}='#{val}'\n" for key,val of KONFIG.ENV
     return env
 
+  workersRunList = ->
+    workers = ""
+    for key,val of KONFIG.workers
+      workers +="#------------- worker: #{key} -------------#\n"
+      workers +="#{val.command} &>./.logs/#{key}.log & \n"
+      workers +="#{key}pid=$! \n"
+      workers +="echo [#{key}] started with pid: $#{key}pid \n\n"
+    return workers
+
   conf = """
     #/bin/bash
     # ------ THIS FILE IS AUTO-GENERATED ON EACH BUILD ----- #\n
@@ -251,60 +266,87 @@ generateRunFile = (KONFIG) ->
     #{killlist()}      
     }
     if [[ "$1" == "" ]]; then
-    \n\n"""
 
-  conf +="""  
-          #{val.command} &>./.logs/#{key}.log &
-          #{key}pid=$!
-          echo [#{key}] started with pid: $#{key}pid
-        """ for key,val of KONFIG.workers
-  conf += """\n
+      #{workersRunList()}
+
       tail -fq ./.logs/*.log
-      \n
-      elif [ "$1" == "killall" ]; then
-        kill_all
-      elif [ "$1" == "install" ]; then
-        chmod +x ./build        
-        NO_UGLIFYJS=true ./build
-        ./go/build.sh
 
-        cd ./go/src/socialapi
-        make install
+    elif [ "$1" == "killall" ]; then
 
-        cd -
-        node #{projectRoot}/scripts/permission-updater  -c #{socialapi.configFilePath} --hard
+      kill_all
+    
+    elif [ "$1" == "install" ]; then
+      
+      echo '#---> BUILDING CLIENT (@gokmen) <---#'
+      chmod +x ./build-client.coffee
+      NO_UGLIFYJS=true ./build-client.coffee --watch false
+      
+      echo '#---> BUILDING GO WORKERS (@farslan) <---#'
+      #{projectRoot}/go/build.sh
 
-        mkdir $HOME/.kite >/dev/null
-        echo copying #{KONFIG.newkites.keyFile} to $HOME/.kite/kite.key
-        cp #{KONFIG.newkites.keyFile} $HOME/.kite/kite.key
+      echo '#---> BUILDING SOCIALAPI (@cihangir) <---#'
+      cd #{projectRoot}/go/src/socialapi
+      make install
+
+      echo '#---> UPDATING MONGO DATABASE ACCORDING TO LATEST CHANGES IN CODE (UPDATE PERMISSIONS @chris) <---#'
+      cd #{projectRoot}
+      node #{projectRoot}/scripts/permission-updater  -c #{socialapi.configFilePath} --hard >/dev/null  
+
+      echo '#---> AUTHORIZING THIS COMPUTER WITH MATCHING KITE.KEY (@farslan) <---#'
+      mkdir $HOME/.kite &>/dev/null
+      echo copying #{KONFIG.newkites.keyFile} to $HOME/.kite/kite.key
+      cp #{KONFIG.newkites.keyFile} $HOME/.kite/kite.key
+
+      echo '#---> BUILDING BROKER-CLIENT @chris <---#'
+      echo "building koding-broker-client."
+      cd #{projectRoot}/node_modules_koding/koding-broker-client
+      cake build
+      
+
+      echo '#---> AUTHORIZING THIS COMPUTER TO DOCKER HUB (@devrim) <---#'
+      echo adding you to docker-hub.. 
+      if grep -q ZGV2cmltOm45czQvV2UuTWRqZWNq "$HOME/.dockercfg"; then
+        echo 'you seem to have correct docker config file - dont forget to install docker.'
+      else
+        echo 'added ~/.dockercfg - dont forget to install docker.'
+        echo '{"https://index.docker.io/v1/":{"auth":"ZGV2cmltOm45czQvV2UuTWRqZWNq","email":"devrim@koding.com"}}' >> $HOME/.dockercfg
+      fi
 
 
-        # TO BE DONE: DEVRIM - FIRST TIME RUN.
-        # mongo localhost/koding --eval='db.jAccounts.update({},{\$$unset:{socialApiId:0}},{multi:true})'
-        # mongo localhost/koding --eval='db.jGroups.update({},{\$$unset:{socialApiChannelId:0}},{multi:true})’
+      echo '#---> AUTHORIZING THIS COMPUTER TO NGROK (@gokmen) <---#'
+      if grep -q UsZMWdx586A3tA0U "$HOME/.ngrok"; then
+        echo you seem to have correct .ngrok file. 
+      else
+        echo 'created ~/.ngrok file (you still need to download the client)'
+        echo auth_token: CMY-UsZMWdx586A3tA0U >> $HOME/.ngrok
+      fi
+      
 
-      """
-  conf += """\n      
-      elif [ "$1" == "log" ]; then
-        if [ "$2" == "" ]; then
-          tail -fq ./.logs/*.log
-        else
-          tail -fq ./.logs/$2.log
-        fi\n
-      """
-  conf +="""
+      echo 
+      echo 
+      echo 'ALL DONE. Enjoy! :)'
+      echo 
+      echo 
+
+
+    elif [ "$1" == "log" ]; then
+
+      if [ "$2" == "" ]; then
+        tail -fq ./.logs/*.log
+      else
+        tail -fq ./.logs/$2.log
+      fi
+
     elif [ "$1" == "services" ]; then
       docker run -d --net=host --name=mongo    koding/mongo    --dbpath /root/data/db --smallfiles --nojournal
       docker run -d --net=host --name=redis    koding/redis    redis-server 
       docker run -d --net=host --name=postgres koding/postgres 
       docker run -d --net=host --name=rabbitmq koding/rabbitmq\n
-      """
-  conf += """\n
-      else
+    else
         echo "unknown argument. use ./run [killall]"
-      fi
-      # ------ THIS FILE IS AUTO-GENERATED ON EACH BUILD ----- #\n
-      """
+    fi
+    # ------ THIS FILE IS AUTO-GENERATED ON EACH BUILD ----- #\n
+    """
   return conf
 
 KONFIG.ENV            = generateEnvVariables   KONFIG

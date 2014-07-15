@@ -31,11 +31,11 @@ options = o =
   config           : argv.config        or "prod"
   region           : argv.region        or "prod"
   branch           : argv.branch        or "cake-rewrite"
-  build            : argv.build         or 1111  
+  build            : argv.build         or 1  
   version          : argv.version       or "1.0"
   environment      : argv.environment   or "prod"
   hostname         : argv.hostname
-  target           : argv.target        or "rackspace"
+  target           : argv.target        or "localhost"
   onlyconfigure    : argv.onlyconfigure or false
   supervisor       : argv.supervisor    or false
   deploy           : argv.deploy        or null
@@ -44,7 +44,8 @@ unless options.hostname
   # options.hostname   = "#{eden.eve()}-#{o.config}-#{o.build}.koding.me".toLowerCase()
   options.hostname   = "devrim.ngrok.com"
 
-# log o
+console.log "Configuring with options:",o
+
 # log argv
 # process.exit()
 
@@ -66,7 +67,10 @@ class Deploy
     ,->
       KONFIG = require "./config/main.#{o.config}.coffee"
       fs.writeFileSync "#{BLD}/BUILD_CONFIG.json",JSON.stringify KONFIG
-      log "build data is written to #{BLD}/ for deploy."
+      log "Configuration done"
+      log "1) install DOCKER and NGROK.com"
+      log "2) do './run services' for backend services after installing (boot2)docker."
+      log "3) you can then type './run' to run Koding."
       callback null,KONFIG
 
   @createServer = (options,callback)->
@@ -218,7 +222,7 @@ deployStart = new Date()
 Deploy.createDeployData (err,KONFIG)->
 
   fs.writeFileSync "run",KONFIG.runFile
-
+  fs.chmodSync "./run", 0o755
   # write supervisor config
   if o.supervisor
     fs.writeFileSync "/etc/supervisor/conf.d/koding.conf",KONFIG.supervisorConf
