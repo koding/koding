@@ -35,7 +35,7 @@ import (
 
 const (
 	OSKITE_NAME    = "oskite"
-	OSKITE_VERSION = "0.4.0"
+	OSKITE_VERSION = "0.4.1"
 )
 
 var (
@@ -403,20 +403,31 @@ func (o *Oskite) cleanUp() {
 		return iter.Close()
 	}
 	if err := mongodbConn.Run("jVMs", findQuery); err != nil {
-		log.Error("find query failed %v", err.Error())
+		log.Error("couldn't find vms: %v", err.Error())
 	}
 	if len(cleanupBatch) > 0 {
-		updateQuery := func(c *mgo.Collection) error {
-			_, err := c.UpdateAll(
-				bson.M{"_id": bson.M{"$in": cleanupBatch}},
-				bson.M{"$set": bson.M{"hostKite": nil}})
-			return err
+		if err := o.releaseVMs(bson.M{"_id": bson.M{"$in": cleanupBatch}}); err != nil {
+			log.Error("couln't release vms: '%v", err.Error())
 		}
-		if err := mongodbConn.Run("jVMs", updateQuery); err != nil {
-			log.Error("update query failed: '%v", err.Error())
-		}
+
 	}
 
+}
+
+func (o *Oskite) releaseVMs(selector bson.M) error {
+	updateQuery := func(c *mgo.Collection) error {
+		_, err := c.UpdateAll(
+			selector,
+			bson.M{"$set": bson.M{
+				"hostKite": nil,
+				"state":    "STOPPED",
+			}})
+		return err
+	}
+	if err := mongodbConn.Run("jVMs", updateQuery); err != nil {
+		return err
+	}
+	return nil
 }
 
 func unprepareLeftover(vmId bson.ObjectId) {
@@ -534,19 +545,9 @@ func (o *Oskite) setupSignalHandler() {
 			// Wait for all VM unprepares to complete.
 			wg.Wait()
 
-			query := func(c *mgo.Collection) error {
-				_, err := c.UpdateAll(
-					bson.M{"hostKite": o.ServiceUniquename},
-					bson.M{"$set": bson.M{"hostKite": nil}},
-				) // ensure that really all are set to nil
-				return err
-			}
-
-			err = mongodbConn.Run("jVMs", query)
-			if err != nil {
+			if err := o.releaseVMs(bson.M{"hostKite": o.ServiceUniquename}); err != nil {
 				log.Error("Updating hostKite for all current VMs err: %v", err)
 			}
-
 		}
 	}()
 }
