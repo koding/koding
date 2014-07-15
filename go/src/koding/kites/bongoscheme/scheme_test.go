@@ -14,7 +14,6 @@ var bongoKite *kite.Kite
 
 func createKite() *kite.Kite {
 	k := kite.New("bongo", "0.0.1")
-
 	k.Config = config.MustGet()
 	k.Config.Username = "kite"
 	k.Config.Port = 9999
@@ -34,10 +33,11 @@ func createKite() *kite.Kite {
 	go k.Run()
 	<-k.ServerReadyNotify()
 
+	// just register to local kontrol
 	if err := k.RegisterForever(k.RegisterURL(true)); err != nil {
 		log.Fatalln(err)
 	}
-	// time.Sleep(time.Second * 30)
+
 	return k
 }
 
@@ -52,7 +52,6 @@ func withBongo(f func(b *BongoKite)) error {
 		Name:        "bongo",
 		Environment: "unknown",
 	})
-
 	if err != nil {
 		return err
 	}
