@@ -474,9 +474,12 @@ pre
     width              238px
     opacity            1
     vendor             transform-origin-x, 100%
-    vendor             backface-visibility, hidden
     -webkit-transition -webkit-transform .5s ease \,\
                        opacity .5s ease
+
+    -webkit-backface-visibility hidden
+    backface-visibility         hidden
+    -moz-backface-visibility    visible
     borderBox()
     rel()
 

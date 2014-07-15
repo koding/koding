@@ -1,7 +1,6 @@
 class LoginAppsController extends AppController
 
-  KD.registerAppClass this,
-    name         : 'Login'
+  KD.registerAppClass this, name : 'Login'
 
 
   constructor:(options = {}, data)->
@@ -13,7 +12,9 @@ class LoginAppsController extends AppController
 
     super options, data
 
+
   prepareFinishRegistrationForm: (token) ->
+
     { JPasswordRecovery } = KD.remote.api
     JPasswordRecovery.fetchRegistrationDetails token, (err, details) =>
       view = @getView()
@@ -26,11 +27,15 @@ class LoginAppsController extends AppController
       view.setCustomDataToForm 'finishRegistration', recoveryToken: token
       view.animateToForm 'finishRegistration'
 
-  headBannerShowInvitation:(invite)->
+
+  headBannerShowInvitation: (invite) ->
+
     view = @getView()
     view.headBannerShowInvitation invite
 
+
   setStorageData: (key, value) ->
+
     @appStorage = KD.getSingleton('appStorageController').storage 'Login', '1.0'
     @appStorage.fetchStorage (storage) =>
       @appStorage.setValue key, value, (err) ->

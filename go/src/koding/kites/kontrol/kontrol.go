@@ -16,7 +16,7 @@ import (
 	"github.com/koding/kite/kontrol"
 )
 
-const version = "0.0.5"
+const version = "0.0.6"
 
 var (
 	profile     = flag.String("c", "", "Configuration profile")
@@ -84,7 +84,7 @@ func main() {
 }
 
 func authenticateFromSessionID(r *kite.Request) error {
-	username, err := findUsernameFromSessionID(r.Authentication.Key)
+	username, err := findUsernameFromSessionID(r.Auth.Key)
 	if err != nil {
 		return err
 	}

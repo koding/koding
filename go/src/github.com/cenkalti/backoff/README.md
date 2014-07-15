@@ -29,10 +29,37 @@ operation := func() error {
     // An operation that might fail
 }
 
-err := backoff.Retry(operation, backoff.NewExponentialBackoff())
+err := backoff.Retry(operation, backoff.NewExponentialBackOff())
 if err != nil {
     // handle error
 }
 
 // operation is successfull
+```
+
+Ticker example:
+
+```go
+operation := func() error {
+    // An operation that may fail
+}
+
+b := backoff.NewExponentialBackOff()
+ticker := backoff.NewTicker(b)
+
+var err error
+for t = range ticker.C {
+    if err = operation(); err != nil {
+        log.Println(err, "will retry...")
+        continue
+    }
+
+    break
+}
+
+if err != nil {
+    // Operation has failed.
+}
+
+// Operation is successfull.
 ```

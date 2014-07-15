@@ -23,7 +23,7 @@ func TestWebSocketProxy(t *testing.T) {
 	color.Blue("====> Starting WebSocket test")
 	conf := config.New()
 	conf.Username = "testuser"
-	conf.KontrolURL = &url.URL{Scheme: "http", Host: "localhost:5555", Path: "/kite"}
+	conf.KontrolURL = "http://localhost:5555/kite"
 	conf.KontrolKey = testkeys.Public
 	conf.KontrolUser = "testuser"
 	conf.KiteKey = testutil.NewKiteKey().Raw
@@ -43,13 +43,14 @@ func TestWebSocketProxy(t *testing.T) {
 	proxyConf.Port = 4999
 	proxy := New(proxyConf)
 	proxy.PublicHost = "localhost"
+	proxy.PublicPort = proxyConf.Port
 	proxy.Scheme = "http"
 	go proxy.Run()
 	<-proxy.ReadyNotify()
 
 	proxyRegisterURL := &url.URL{
 		Scheme: proxy.Scheme,
-		Host:   proxy.PublicHost + ":" + strconv.Itoa(proxy.Port),
+		Host:   proxy.PublicHost + ":" + strconv.Itoa(proxy.PublicPort),
 		Path:   "/kite",
 	}
 

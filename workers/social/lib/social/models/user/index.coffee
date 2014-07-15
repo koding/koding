@@ -68,12 +68,12 @@ module.exports = class JUser extends jraphical.Module
     indexes         :
       username      : 'unique'
       email         : 'unique'
-      'foreignAuth.github.foreignId'   : 1
-      'foreignAuth.odesk.foreignId'    : 1
-      'foreignAuth.facebook.foreignId' : 1
-      'foreignAuth.google.foreignId'   : 1
-      'foreignAuth.linkedin.foreignId' : 1
-      'foreignAuth.twitter.foreignId'  : 1
+      'foreignAuth.github.foreignId'   : 'ascending'
+      'foreignAuth.odesk.foreignId'    : 'ascending'
+      'foreignAuth.facebook.foreignId' : 'ascending'
+      'foreignAuth.google.foreignId'   : 'ascending'
+      'foreignAuth.linkedin.foreignId' : 'ascending'
+      'foreignAuth.twitter.foreignId'  : 'ascending'
 
     sharedEvents    :
       static        : []

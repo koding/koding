@@ -17,7 +17,7 @@ import (
 	"gopkg.in/igm/sockjs-go.v2/sockjs"
 )
 
-var forever = backoff.NewExponentialBackoff()
+var forever = backoff.NewExponentialBackOff()
 
 func init() {
 	forever.MaxElapsedTime = 365 * 24 * time.Hour // 1 year
@@ -28,12 +28,13 @@ func init() {
 type Client struct {
 	// The information about the kite that we are connecting to.
 	protocol.Kite
+	muProt sync.Mutex // protects protocol.Kite access
 
 	// A reference to the current Kite running.
 	LocalKite *Kite
 
 	// Credentials that we sent in each request.
-	Authentication *Authentication
+	Auth *Auth
 
 	// Should we reconnect if disconnected?
 	Reconnect bool
@@ -51,12 +52,13 @@ type Client struct {
 	// TODO: replace this with a proper interface to support multiple
 	// transport/protocols
 	session sockjs.Session
+	send    chan []byte
 
 	// dnode scrubber for saving callbacks sent to remote.
 	scrubber *dnode.Scrubber
 
 	// Time to wait before redial connection.
-	redialBackOff backoff.ExponentialBackoff
+	redialBackOff backoff.ExponentialBackOff
 
 	// on connect/disconnect handlers are invoked after every
 	// connect/disconnect.
@@ -73,10 +75,10 @@ type Client struct {
 // It is used when unmarshalling a dnode message.
 type callOptions struct {
 	// Arguments to the method
-	Kite             protocol.Kite   `json:"kite" dnode:"-"`
-	Authentication   *Authentication `json:"authentication"`
-	WithArgs         *dnode.Partial  `json:"withArgs" dnode:"-"`
-	ResponseCallback dnode.Function  `json:"responseCallback"`
+	Kite             protocol.Kite  `json:"kite" dnode:"-"`
+	Auth             *Auth          `json:"authentication"`
+	WithArgs         *dnode.Partial `json:"withArgs" dnode:"-"`
+	ResponseCallback dnode.Function `json:"responseCallback"`
 }
 
 // callOptionsOut is the same structure with callOptions.
@@ -89,7 +91,7 @@ type callOptionsOut struct {
 }
 
 // Authentication is used when connecting a Client.
-type Authentication struct {
+type Auth struct {
 	// Type can be "kiteKey", "token" or "sessionID" for now.
 	Type string `json:"type"`
 	Key  string `json:"key"`
@@ -112,7 +114,10 @@ func (k *Kite) NewClient(remoteURL string) *Client {
 		redialBackOff: *forever,
 		scrubber:      dnode.NewScrubber(),
 		Concurrent:    true,
+		send:          make(chan []byte, 512), // buffered
 	}
+
+	go r.sendHub()
 
 	var m sync.Mutex
 	r.OnDisconnect(func() {
@@ -125,9 +130,15 @@ func (k *Kite) NewClient(remoteURL string) *Client {
 	return r
 }
 
+func (c *Client) SetUsername(username string) {
+	c.muProt.Lock()
+	c.Kite.Username = username
+	c.muProt.Unlock()
+}
+
 // Dial connects to the remote Kite. Returns error if it can't.
 func (c *Client) Dial() (err error) {
-	c.LocalKite.Log.Info("Dialing remote kite: [%s %s]", c.Kite.Name, c.URL)
+	c.LocalKite.Log.Info("Dialing '%s' kite: %s", c.Kite.Name, c.URL)
 
 	if err := c.dial(); err != nil {
 		return err
@@ -141,7 +152,7 @@ func (c *Client) Dial() (err error) {
 // Dial connects to the remote Kite. If it can't connect, it retries
 // indefinitely. It returns a channel to check if it's connected or not.
 func (c *Client) DialForever() (connected chan bool, err error) {
-	c.LocalKite.Log.Info("Dialing remote kite: [%s %s]", c.Kite.Name, c.URL)
+	c.LocalKite.Log.Info("Dialing '%s' kite: %s", c.Kite.Name, c.URL)
 
 	c.Reconnect = true
 	connected = make(chan bool, 1) // This will be closed on first connection.
@@ -167,13 +178,15 @@ func (c *Client) dialForever(connectNotifyChan chan bool) {
 }
 
 func (c *Client) dial() (err error) {
-	// Reset the wait time.
-	defer c.redialBackOff.Reset()
-
 	c.session, err = sockjsclient.ConnectWebsocketSession(c.URL)
 	if err != nil {
+		c.session = nil // explicitly set nil to avoid panicing when used the inside data.
+		c.LocalKite.Log.Error(err.Error())
 		return err
 	}
+
+	// Reset the wait time.
+	c.redialBackOff.Reset()
 
 	// Must be run in a goroutine because a handler may wait a response from
 	// server.
@@ -238,9 +251,8 @@ func (c *Client) readLoop() error {
 }
 
 // processMessage processes a single message and calls a handler or callback.
-func (c *Client) processMessage(data []byte) error {
+func (c *Client) processMessage(data []byte) (err error) {
 	var (
-		err error
 		ok  bool
 		msg dnode.Message
 		m   *Method
@@ -253,17 +265,19 @@ func (c *Client) processMessage(data []byte) error {
 		}
 	}()
 
-	if err = json.Unmarshal(data, &msg); err != nil {
+	if err := json.Unmarshal(data, &msg); err != nil {
 		return err
 	}
 
 	sender := func(id uint64, args []interface{}) error {
-		_, err = c.marshalAndSend(id, args)
-		return err
+		// do not name the error variable to "err" here, it's a trap for
+		// shadowing variables
+		_, errc := c.marshalAndSend(id, args)
+		return errc
 	}
 
 	// Replace function placeholders with real functions.
-	if err = dnode.ParseCallbacks(&msg, sender); err != nil {
+	if err := dnode.ParseCallbacks(&msg, sender); err != nil {
 		return err
 	}
 
@@ -297,15 +311,25 @@ func (c *Client) Close() {
 	}
 }
 
-// sendData sends the msg to session.
-func (c *Client) sendData(msg []byte) error {
-	c.LocalKite.Log.Debug("Sending : %s", string(msg))
+// sendhub sends the msg received from the send channel to the remote client
+func (c *Client) sendHub() {
+	for {
+		select {
+		case msg, ok := <-c.send:
+			if !ok {
+				c.LocalKite.Log.Warning("Send hub is closed")
+				return
+			}
 
-	if c.session == nil {
-		return errors.New("not connected")
+			c.LocalKite.Log.Debug("Sending: %s", string(msg))
+			if c.session == nil {
+				c.LocalKite.Log.Error("not connected")
+				continue
+			}
+
+			c.session.Send(string(msg))
+		}
 	}
-
-	return c.session.Send(string(msg))
 }
 
 // receiveData reads a message from session.
@@ -364,7 +388,7 @@ func (c *Client) wrapMethodArgs(args []interface{}, responseCallback dnode.Funct
 		WithArgs: args,
 		callOptions: callOptions{
 			Kite:             *c.LocalKite.Kite(),
-			Authentication:   c.Authentication,
+			Auth:             c.Auth,
 			ResponseCallback: responseCallback,
 		},
 	}
@@ -507,7 +531,7 @@ func (c *Client) marshalAndSend(method interface{}, arguments []interface{}) (ca
 		return nil, err
 	}
 
-	err = c.sendData(data)
+	c.send <- data
 	return
 }
 

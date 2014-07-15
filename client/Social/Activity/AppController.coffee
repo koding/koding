@@ -168,7 +168,7 @@ class ActivityAppController extends AppController
         searchText : searchText
 
       options.withExempt = \
-        KD.getSingleton("activityController").flags.showExempt?
+        KD.getSingleton("activityController").flags.showExempt
 
       eventSuffix = "#{@getFeedFilter()}_#{@getActivityFilter()}"
 

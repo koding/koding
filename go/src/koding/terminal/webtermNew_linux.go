@@ -36,6 +36,7 @@ type WebtermServerNew struct {
 	byteCounter      int
 	lineFeeedCounter int
 	screenPath       string
+	throttling       bool
 }
 
 type WebtermRemoteNew struct {
@@ -117,6 +118,7 @@ func webtermConnectNew(r *kitelib.Request, vos *virt.VOS) (interface{}, error) {
 		user:       vos.User,
 		pty:        pty.New(vos.VM.PtsDir()),
 		screenPath: screen.ScreenPath,
+		throttling: true,
 	}
 
 	if params.Mode != "resume" || params.Mode != "shared" {
@@ -159,18 +161,20 @@ func webtermConnectNew(r *kitelib.Request, vos *virt.VOS) (interface{}, error) {
 				n++
 			}
 
-			s := time.Now().Unix()
-			if server.currentSecond != s {
-				server.currentSecond = s
-				server.messageCounter = 0
-				server.byteCounter = 0
-				server.lineFeeedCounter = 0
-			}
-			server.messageCounter += 1
-			server.byteCounter += n
-			server.lineFeeedCounter += bytes.Count(buf[:n], []byte{'\n'})
-			if server.messageCounter > 100 || server.byteCounter > 1<<18 || server.lineFeeedCounter > 300 {
-				time.Sleep(time.Second / 100)
+			if server.throttling {
+				s := time.Now().Unix()
+				if server.currentSecond != s {
+					server.currentSecond = s
+					server.messageCounter = 0
+					server.byteCounter = 0
+					server.lineFeeedCounter = 0
+				}
+				server.messageCounter += 1
+				server.byteCounter += n
+				server.lineFeeedCounter += bytes.Count(buf[:n], []byte{'\n'})
+				if server.messageCounter > 100 || server.byteCounter > 1<<18 || server.lineFeeedCounter > 300 {
+					time.Sleep(time.Second / 100)
+				}
 			}
 
 			server.remote.Output.Call(string(utils.FilterInvalidUTF8(buf[:n])))
