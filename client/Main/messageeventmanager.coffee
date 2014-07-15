@@ -53,15 +53,17 @@ class MessageEventManager extends KDObject
 
 
   addReply: (plain) ->
-
     reply = KD.singleton("socialapi").message.revive plain
+    KD.getMessageOwner reply, (err, owner) =>
+      return error err if err
+      return if KD.filterTrollActivity owner
 
-    message = @getData()
-    message.replies.push reply
-    message.repliesCount++
+      message = @getData()
+      message.replies.push reply
+      message.repliesCount++
 
-    message.emit "AddReply", reply
-    message.emit "update"
+      message.emit "AddReply", reply
+      message.emit "update"
 
 
   removeReply: ({replyId}) ->
