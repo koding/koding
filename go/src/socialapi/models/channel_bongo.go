@@ -7,12 +7,14 @@ import (
 	"github.com/koding/bongo"
 )
 
+const ChannelTableName = "api.channel"
+
 func (c Channel) GetId() int64 {
 	return c.Id
 }
 
 func (c Channel) TableName() string {
-	return "api.channel"
+	return ChannelTableName
 }
 
 func (c *Channel) AfterCreate() {

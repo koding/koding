@@ -6,6 +6,8 @@ import (
 	"github.com/koding/bongo"
 )
 
+const ChannelMessageTableName = "api.channel_message"
+
 func (c *ChannelMessage) BeforeCreate() error {
 	c.CreatedAt = time.Now().UTC()
 	c.UpdatedAt = time.Now().UTC()
@@ -37,7 +39,7 @@ func (c ChannelMessage) GetId() int64 {
 }
 
 func (c ChannelMessage) TableName() string {
-	return "api.channel_message"
+	return ChannelMessageTableName
 }
 
 func NewChannelMessage() *ChannelMessage {
@@ -46,6 +48,7 @@ func NewChannelMessage() *ChannelMessage {
 	}
 }
 
+// Update only updates the body field of the channel message
 func (c *ChannelMessage) Update() error {
 	if err := bodyLenCheck(c.Body); err != nil {
 		return err
@@ -59,6 +62,8 @@ func (c *ChannelMessage) Update() error {
 	return err
 }
 
+// Create creates the channel message
+// tests are added for this function
 func (c *ChannelMessage) Create() error {
 	if err := bodyLenCheck(c.Body); err != nil {
 		return err
