@@ -65,25 +65,23 @@ class IDE.ContentSearch extends KDModalViewWithForms
     isWholeWord     = @wholeWordToggle.getValue()
     # isRegExp        = @regExpToggle.getValue()
 
+    exts            = IDE.settings.editor.getAllExts()
+    include         = "\\*{#{exts.join ','}}"
+    exclureDirs     = Object.keys IDE.settings.editor.ignoreDirectories
+    exclureDirs     = " --exclude-dir=#{exclureDirs.join ' --exclude-dir='}"
 
-    exts = IDE.settings.editor.getAllExts()
-    include = "\\*{#{exts.join ','}}";
-    exclureDirs = Object.keys IDE.settings.editor.ignoreDirectories
-    exclureDirs = " --exclude-dir=#{exclureDirs.join ' --exclude-dir='}"
-
-    @searchText = @searchText.replace new RegExp "\\\'", "g", "'\\''"
-    @searchText = @searchText.replace /-/g, "\\-"
-
-    flags = [
-      '-s'         # Silent mode
-      '-r'         # Recursively search subdirectories listed.
-      '--color=never'   # Disable color output to get plain text
+    @searchText     = @searchText.replace new RegExp "\\\'", "g", "'\\''"
+    @searchText     = @searchText.replace /-/g, "\\-"
+    flags           = [
+      '-s'                           # Silent mode
+      '-r'                           # Recursively search subdirectories listed.
+      '-n'                           # Each output line is preceded by its relative line number in the file
+      '-A 3'                         # Print num lines of trailing context after each match.
+      '-B 3'                         # Print num lines of trailing context before each match.
+      '-i'                           # Match case insensitively
+      '-w'                           # Only match whole words
+      '--color=never'                # Disable color output to get plain text
       '--binary-files=without-match' # Do not search binary files
-      '-n'         # Each output line is preceded by its relative line number in the file
-      '-A 3'       # Print num lines of trailing context after each match.
-      '-B 3'       # Print num lines of trailing context before each match.
-      '-i'         # Match case insensitively
-      '-w'         # Only match whole words
     ]
 
     flags.splice flags.indexOf('-i'), 1  if isCaseSensitive
@@ -98,19 +96,17 @@ class IDE.ContentSearch extends KDModalViewWithForms
       @formatOutput res.stdout, @bound 'createResultsView'
 
   escapeShell: (str) ->
-    str.replace(/([\\"'`$\s\(\)<>])/g, "\\$1");
+    str.replace /([\\"'`$\s\(\)<>])/g, "\\$1"
 
   formatOutput: (output, callback = noop) ->
     # Regexes
-    MAIN_LINE = /^:?([\s\S]+):(\d+):([\s\S]*)$/
-    CONTEXT_LINE = /^([\s\S]+)\-(\d+)\-([\s\S]*)$/
-
-    lines      = output.split '\n'
-    formatted  = {}
-    stats      = {
-      numberOfMatches: 0,
-      numberOfSearchedFiles: 0
-    }
+    mainLineRegex           = /^:?([\s\S]+):(\d+):([\s\S]*)$/
+    contextLineRegex        = /^([\s\S]+)\-(\d+)\-([\s\S]*)$/
+    lines                   = output.split '\n'
+    formatted               = {}
+    stats                   =
+      numberOfMatches       : 0
+      numberOfSearchedFiles : 0
 
     formatted = lines
     .map (line) ->
@@ -118,10 +114,10 @@ class IDE.ContentSearch extends KDModalViewWithForms
       return line.trimLeft()
     .filter (line) ->
       # Skip lines that aren't one of these
-      return MAIN_LINE.test(line) or CONTEXT_LINE.test(line)
+      return mainLineRegex.test(line) or contextLineRegex.test(line)
     .map (line) ->
       # Get the matches
-      return line.match(MAIN_LINE) or line.match(CONTEXT_LINE)
+      return line.match(mainLineRegex) or line.match(contextLineRegex)
     .reduce( (accu, matches) ->
       # Extract matches
       [fileName, lineNumber, line] = [matches[1], parseInt(matches[2], 10), matches[3]]
@@ -131,7 +127,7 @@ class IDE.ContentSearch extends KDModalViewWithForms
         accu[fileName] = []
 
       # Add line to list of lines found for this filename
-      accu[fileName].push { lineNumber, line, occurence: MAIN_LINE.test(matches[0]) }
+      accu[fileName].push { lineNumber, line, occurence: mainLineRegex.test(matches[0]) }
 
       # Increment matches
       stats.numberOfMatches += 1
@@ -142,7 +138,7 @@ class IDE.ContentSearch extends KDModalViewWithForms
     stats.numberOfSearchedFiles = Object.keys(formatted).length
 
     # No results
-    if stats.numberOfMatches == 0
+    if stats.numberOfMatches is 0
       return @showWarning 'No results found, refine your search.'
 
     # Send results
@@ -151,7 +147,8 @@ class IDE.ContentSearch extends KDModalViewWithForms
   createResultsView: (result, stats) ->
     {searchText}    = this
     isCaseSensitive = @caseToggle.getValue()
-    resultsView = new IDE.ContentSearchResultView { result, stats, searchText, isCaseSensitive }
+    resultsView     = new IDE.ContentSearchResultView { result, stats, searchText, isCaseSensitive }
+
     @emit 'ViewNeedsToBeShown', resultsView
     @destroy()
 
