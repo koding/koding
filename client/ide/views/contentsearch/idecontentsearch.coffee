@@ -65,12 +65,23 @@ class IDE.ContentSearch extends KDModalViewWithForms
     isWholeWord     = @wholeWordToggle.getValue()
     # isRegExp        = @regExpToggle.getValue()
 
-    query = "ag '#{@searchText}' '#{@rootPath}'"
+
+    exts = IDE.settings.editor.getAllExts()
+    include = "\\*{#{exts.join ','}}";
+    exclureDirs = Object.keys IDE.settings.editor.ignoreDirectories
+    exclureDirs = " --exclude-dir=#{exclureDirs.join ' --exclude-dir='}"
+
+    @searchText = @searchText.replace new RegExp "\\\'", "g", "'\\''"
+    @searchText = @searchText.replace /-/g, "\\-"
+
     flags = [
-      '-C 3'       # Print 3 lines before and after matches
-      '--ackmate'  # Print results in AckMate-parseable format
-      '--stats'    # Print stats (files scanned, time taken, etc.)
-      '--silent'   # Suppress all log messages, including errors.
+      '-s'         # Silent mode
+      '-r'         # Recursively search subdirectories listed.
+      '--color=never'   # Disable color output to get plain text
+      '--binary-files=without-match' # Do not search binary files
+      '-n'         # Each output line is preceded by its relative line number in the file
+      '-A 3'       # Print num lines of trailing context after each match.
+      '-B 3'       # Print num lines of trailing context before each match.
       '-i'         # Match case insensitively
       '-w'         # Only match whole words
     ]
@@ -78,7 +89,7 @@ class IDE.ContentSearch extends KDModalViewWithForms
     flags.splice flags.indexOf('-i'), 1  if isCaseSensitive
     flags.splice flags.indexOf('-w'), 1  unless isWholeWord
 
-    query = "#{query} #{flags.join ' '}"
+    cmd = "grep #{flags.join ' '} #{exclureDirs} --include=#{include} '#{@searchText}' \"#{@escapeShell @rootPath}\""
 
     vmController.run query, (err, res) =>
       if (err or res.stderr) and not res.stdout
@@ -86,46 +97,55 @@ class IDE.ContentSearch extends KDModalViewWithForms
 
       @formatOutput res.stdout, @bound 'createResultsView'
 
+  escapeShell: (str) ->
+    str.replace(/([\\"'`$\s\(\)<>])/g, "\\$1");
+
   formatOutput: (output, callback = noop) ->
+    # Regexes
+    MAIN_LINE = /^:?([\s\S]+):(\d+):([\s\S]*)$/
+    CONTEXT_LINE = /^([\s\S]+)\-(\d+)\-([\s\S]*)$/
+
     lines      = output.split '\n'
     formatted  = {}
-    stats      = {}
+    stats      = {
+      numberOfMatches: 0,
+      numberOfSearchedFiles: 0
+    }
 
-    if lines[0] is '0 matches'
+    formatted = lines
+    .map (line) ->
+      # Remove erronous whitespace
+      return line.trimLeft()
+    .filter (line) ->
+      # Skip lines that aren't one of these
+      return MAIN_LINE.test(line) or CONTEXT_LINE.test(line)
+    .map (line) ->
+      # Get the matches
+      return line.match(MAIN_LINE) or line.match(CONTEXT_LINE)
+    .reduce( (accu, matches) ->
+      # Extract matches
+      [fileName, lineNumber, line] = [matches[1], parseInt(matches[2], 10), matches[3]]
+
+      # new filename found
+      unless accu[fileName]
+        accu[fileName] = []
+
+      # Add line to list of lines found for this filename
+      accu[fileName].push { lineNumber, line, occurence: MAIN_LINE.test(matches[0]) }
+
+      # Increment matches
+      stats.numberOfMatches += 1
+
+      return accu
+    , {})
+
+    stats.numberOfSearchedFiles = Object.keys(formatted).length
+
+    # No results
+    if stats.numberOfMatches == 0
       return @showWarning 'No results found, refine your search.'
 
-    for line in lines
-      parts    = line.split ':'
-      fileName = parts[1]  if parts[0] is '' and parts[1] and not parts[2] # filename line, like :Web/index.html
-
-      unless formatted[fileName] # new filename found
-        formatted[fileName] = [] # create an empty object for filename and continue to loop
-        continue
-
-      if parts.first.indexOf(';') > -1 # occurence found at this line
-        [lineNumber] = parts[0].split ';'
-
-        parts.splice 0, 1    # remove line information
-        line = parts.join '' # join the parts to have actual line again
-        formatted[fileName].push { lineNumber, line, occurence: yes }
-      else
-        if parts[0] is '--' # handle separators
-          formatted[fileName].push type: 'separator'
-
-        if (parts[0] is '') and not parts[1] # avoid empty lines
-          continue
-
-        if parts[0] and not parts[1] and parts[1] isnt '' # stats line
-          if parts[0].indexOf('matches') > -1
-            stats.numberOfMatches = parts[0]
-          else if parts[0].indexOf('files searched') > -1
-            stats.numberOfSearchedFiles = parts[0]
-        else
-          [lineNumber] = parts
-          parts.splice 0, 1 # remove line information
-          line = parts.join() # join the parts to have actual line again
-          formatted[fileName].push { lineNumber, line }
-
+    # Send results
     callback formatted, stats
 
   createResultsView: (result, stats) ->
