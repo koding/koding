@@ -40,7 +40,7 @@ kontrol             =
   privateKeyFile    : "./certs/test_kontrol_rsa_private.pem"
 
 
-broker              = 
+broker              =
   name              : "broker"
   serviceGenericName: "broker"
   ip                : ""
@@ -99,9 +99,9 @@ KONFIG              =
   emailConfirmationCheckerWorker     : {enabled: no, login : "#{rabbitmq.login}", queueName: socialQueueName+'emailConfirmationCheckerWorker',cronSchedule: '0 * * * * *',usageLimitInMinutes  : 60}
 
   newkontrol        : kontrol
- 
-  # -- MISC SERVICES --# 
-  recurly           : {apiKey        : '4a0b7965feb841238eadf94a46ef72ee'            , loggedRequests: /^(subscriptions|transactions)/}  
+
+  # -- MISC SERVICES --#
+  recurly           : {apiKey        : '4a0b7965feb841238eadf94a46ef72ee'            , loggedRequests: /^(subscriptions|transactions)/}
   opsview           : {push          : no                                            , host          : '', bin: null, conf: null}
   github            : {clientId      : "f8e440b796d953ea01e5"                        , clientSecret  : "b72e2576926a5d67119d5b440107639c6499ed42"}
   odesk             : {key           : "639ec9419bc6500a64a2d5c3c29c2cf8"            , secret        : "549b7635e1e4385e",request_url: "https://www.odesk.com/api/auth/v1/oauth/token/request",access_url: "https://www.odesk.com/api/auth/v1/oauth/token/access",secret_url: "https://www.odesk.com/services/api/auth?oauth_token=",version: "1.0",signature: "HMAC-SHA1",redirect_uri : "#{customDomain.host}:#{customDomain.port}/-/oauth/odesk/callback"}
@@ -119,19 +119,19 @@ KONFIG              =
   troubleshoot      : {recipientEmail: "can@koding.com"}
   rollbar           : "71c25e4dc728431b88f82bd3e7a600c9"
   mixpanel          : "a57181e216d9f713e19d5ce6d6fb6cb3"
-    
+
   #--- CLIENT-SIDE BUILD CONFIGURATION ---#
 
   client            : {watch: yes, version       : version, includesPath:'client', indexMaster: "index-master.html", index: "default.html", useStaticFileServer: no, staticFilesBaseUrl: "#{customDomain.public}:#{customDomain.port}"}
 
 #-------- runtimeOptions: PROPERTIES SHARED WITH BROWSER --------#
-KONFIG.client.runtimeOptions =                                          
+KONFIG.client.runtimeOptions =
   kites             : require './kites.coffee'           # browser passes this version information to kontrol, so it connects to correct version of the kite.
   logToExternal     : no                                 # rollbar, mixpanel etc.
   suppressLogs      : no
   logToInternal     : no                                 # log worker
   authExchange      : "auth"
-  environment       : environment                        # this is where browser knows what kite environment to query for 
+  environment       : environment                        # this is where browser knows what kite environment to query for
   version           : version
   resourceName      : socialQueueName
   userSitesDomain   : userSitesDomain
@@ -173,7 +173,7 @@ KONFIG.workers =
   cron                : command : "#{GOBIN}/cron               -c #{configName}"
   broker              : command : "#{GOBIN}/broker             -c #{configName}"
   socialapi           : command : "#{GOBIN}/api                -c #{socialapi.configFilePath} -port #{socialapi.port}"
-  dailyemailnotifier  : command : "#{GOBIN}/dailyemailnotifier -c #{socialapi.configFilePath}" 
+  dailyemailnotifier  : command : "#{GOBIN}/dailyemailnotifier -c #{socialapi.configFilePath}"
   notification        : command : "#{GOBIN}/notification       -c #{socialapi.configFilePath}"
   popularpost         : command : "#{GOBIN}/popularpost        -c #{socialapi.configFilePath}"
   populartopic        : command : "#{GOBIN}/populartopic       -c #{socialapi.configFilePath}"
@@ -190,7 +190,7 @@ KONFIG.workers =
   clientWatcher       : command : "coffee #{projectRoot}/build-client.coffee               --watch --sourceMapsUri #{hostname}"
 
   # guestcleaner        : command : "node #{projectRoot}/workers/guestcleaner/index.js     -c #{configName}"
-  
+
   # kloud               : command : "#{GO_BIN}/kloud   --port 3000 -env prod -public-key $PBKEY -private-key $PVKEY"
   # kontrol             : command : "#{GO_BIN}/kontrol --port 3000 -env prod -public-key $PBKEY -private-key $PVKEY"
 
@@ -217,7 +217,7 @@ generateSupervisorConf = (KONFIG)->
   supervisorEnvironmentStr += "#{key}='#{val}'," for key,val of KONFIG.ENV
   conf = """
     [supervisord]
-    environment=#{supervisorEnvironmentStr}\n 
+    environment=#{supervisorEnvironmentStr}\n
     [inet_http_server]
     port=*:9001\n\n"""
   conf +="""
@@ -264,7 +264,7 @@ generateRunFile = (KONFIG) ->
     }
 
     function kill_all () {
-    #{killlist()}      
+    #{killlist()}
     }
     if [[ "$1" == "" ]]; then
 
@@ -275,13 +275,13 @@ generateRunFile = (KONFIG) ->
     elif [ "$1" == "killall" ]; then
 
       kill_all
-    
+
     elif [ "$1" == "install" ]; then
-      
+
       echo '#---> BUILDING CLIENT (@gokmen) <---#'
       chmod +x ./build-client.coffee
       NO_UGLIFYJS=true ./build-client.coffee --watch false
-      
+
       echo '#---> BUILDING GO WORKERS (@farslan) <---#'
       #{projectRoot}/go/build.sh
 
@@ -291,7 +291,7 @@ generateRunFile = (KONFIG) ->
 
       echo '#---> UPDATING MONGO DATABASE ACCORDING TO LATEST CHANGES IN CODE (UPDATE PERMISSIONS @chris) <---#'
       cd #{projectRoot}
-      node #{projectRoot}/scripts/permission-updater  -c #{socialapi.configFilePath} --hard >/dev/null  
+      node #{projectRoot}/scripts/permission-updater  -c #{socialapi.configFilePath} --hard >/dev/null
 
       echo '#---> AUTHORIZING THIS COMPUTER WITH MATCHING KITE.KEY (@farslan) <---#'
       mkdir $HOME/.kite &>/dev/null
@@ -302,10 +302,10 @@ generateRunFile = (KONFIG) ->
       echo "building koding-broker-client."
       cd #{projectRoot}/node_modules_koding/koding-broker-client
       cake build
-      
+
 
       echo '#---> AUTHORIZING THIS COMPUTER TO DOCKER HUB (@devrim) <---#'
-      echo adding you to docker-hub.. 
+      echo adding you to docker-hub..
       if grep -q ZGV2cmltOm45czQvV2UuTWRqZWNq "$HOME/.dockercfg"; then
         echo 'you seem to have correct docker config file - dont forget to install docker.'
       else
@@ -316,18 +316,18 @@ generateRunFile = (KONFIG) ->
 
       echo '#---> AUTHORIZING THIS COMPUTER TO NGROK (@gokmen) <---#'
       if grep -q UsZMWdx586A3tA0U "$HOME/.ngrok"; then
-        echo you seem to have correct .ngrok file. 
+        echo you seem to have correct .ngrok file.
       else
         echo 'created ~/.ngrok file (you still need to download the client)'
         echo auth_token: CMY-UsZMWdx586A3tA0U >> $HOME/.ngrok
       fi
-      
 
-      echo 
-      echo 
+
+      echo
+      echo
       echo 'ALL DONE. Enjoy! :)'
-      echo 
-      echo 
+      echo
+      echo
 
 
     elif [ "$1" == "log" ]; then
@@ -338,13 +338,17 @@ generateRunFile = (KONFIG) ->
         tail -fq ./.logs/$2.log
       fi
 
+    elif [ "$1" == "cleanup" ]; then
+
+      ./cleanup @$
+
     elif [ "$1" == "services" ]; then
       docker run -d --net=host --name=mongo    koding/mongo    --dbpath /root/data/db --smallfiles --nojournal
-      docker run -d --net=host --name=redis    koding/redis     
-      docker run -d --net=host --name=postgres koding/postgres 
-      docker run -d --net=host --name=rabbitmq koding/rabbitmq
+      docker run -d --net=host --name=redis    koding/redis    redis-server
+      docker run -d --net=host --name=postgres koding/postgres
+      docker run -d --net=host --name=rabbitmq koding/rabbitmq\n
     else
-        echo "unknown argument. use ./run [killall]"
+      echo "unknown argument. use ./run [killall]"
     fi
     # ------ THIS FILE IS AUTO-GENERATED ON EACH BUILD ----- #\n
     """
