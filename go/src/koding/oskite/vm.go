@@ -476,7 +476,7 @@ func unprepareProgress(t tracer.Tracer, vm *virt.VM, destroy bool) error {
 	}
 
 	// mark it as stopped in mongodb
-	if _, err := updateState(vm.Id, vm.State); err != nil {
+	if _, err := updateState(vm.Id, "STOPPED"); err != nil {
 		return err
 	}
 
