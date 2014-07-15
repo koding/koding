@@ -151,17 +151,6 @@ class ActivitySidebar extends KDCustomScrollView
     item.setUnreadCount unreadCount  if item?.unreadCount
 
 
-  setChannelUnreadCount: ({unreadCount, channel}) ->
-
-    return  unless channel
-
-    {typeConstant, id} = channel
-
-    listController = @getListController typeConstant
-    item = listController.itemForId id
-    item.setUnreadCount unreadCount  if item?.unreadCount
-
-
   getItems: ->
 
     items = [ @public ]

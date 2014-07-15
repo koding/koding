@@ -52,6 +52,7 @@ func Create(u *url.URL, h http.Header, req *models.Channel) (int, http.Header, i
 	return response.NewOK(req)
 }
 
+// List lists only topic channels
 func List(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface{}, error) {
 	c := models.NewChannel()
 	q := request.GetQuery(u)
@@ -69,6 +70,8 @@ func List(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface
 	)
 }
 
+// Search searchs database against given channel name
+// but only returns topic channels
 func Search(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface{}, error) {
 	q := request.GetQuery(u)
 	q.Type = models.Channel_TYPE_TOPIC
@@ -86,6 +89,7 @@ func Search(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interfa
 	)
 }
 
+// ByName finds topics by their name
 func ByName(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface{}, error) {
 	q := request.GetQuery(u)
 	q.Type = models.Channel_TYPE_TOPIC
@@ -95,22 +99,50 @@ func ByName(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interfa
 		return response.NewBadRequest(err)
 	}
 
-	canOpen, err := channel.CanOpen(q.AccountId)
+	return handleChannelResponse(channel, q)
+}
+
+func Get(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface{}, error) {
+	id, err := request.GetURIInt64(u, "id")
 	if err != nil {
-		// if the channel can not be opened by the requester
-		// do send an empty response
+		return response.NewBadRequest(err)
+	}
+	q := request.GetQuery(u)
+
+	c := models.NewChannel()
+	if err := c.ById(id); err != nil {
+		if err == bongo.RecordNotFound {
+			return response.NewNotFound()
+		}
+		return response.NewBadRequest(err)
+	}
+
+	return handleChannelResponse(*c, q)
+}
+
+func handleChannelResponse(c models.Channel, q *request.Query) (int, http.Header, interface{}, error) {
+	// add troll mode filter
+	if c.MetaBits.Is(models.Troll) && !q.ShowExempt {
+		return response.NewNotFound()
+	}
+
+	canOpen, err := c.CanOpen(q.AccountId)
+	if err != nil {
 		return response.NewBadRequest(err)
 	}
 
 	if !canOpen {
-		return response.NewOK(nil)
+		return response.NewAccessDenied(
+			fmt.Errorf(
+				"account (%d) tried to retrieve the unattended channel (%d)",
+				q.AccountId,
+				c.Id,
+			),
+		)
 	}
 
 	return response.HandleResultAndError(
-		models.PopulateChannelContainer(
-			channel,
-			q.AccountId,
-		),
+		models.PopulateChannelContainer(c, q.AccountId),
 	)
 }
 
@@ -197,29 +229,4 @@ func Update(u *url.URL, h http.Header, req *models.Channel) (int, http.Header, i
 	}
 
 	return response.NewOK(req)
-}
-
-func Get(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface{}, error) {
-	id, err := request.GetURIInt64(u, "id")
-	if err != nil {
-		return response.NewBadRequest(err)
-	}
-	q := request.GetQuery(u)
-
-	c := models.NewChannel()
-	if err := c.ById(id); err != nil {
-		if err == bongo.RecordNotFound {
-			return response.NewNotFound()
-		}
-		return response.NewBadRequest(err)
-	}
-
-	// add troll mode filter
-	if c.MetaBits.Is(models.Troll) && !q.ShowExempt {
-		return response.NewNotFound()
-	}
-
-	return response.HandleResultAndError(
-		models.PopulateChannelContainer(*c, q.AccountId),
-	)
 }

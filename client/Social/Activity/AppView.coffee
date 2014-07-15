@@ -1,10 +1,8 @@
 class ActivityAppView extends KDView
 
-  {entryPoint, permissions, roles} = KD.config
+  {isKoding, isGroup, isMember} = KD
+  {permissions}                 = KD.config
 
-  isGroup        = -> entryPoint?.type is 'group'
-  isKoding       = -> entryPoint?.slug is 'koding'
-  isMember       = -> 'member' in roles
   canListMembers = -> 'list members' in permissions
   isPrivateGroup = -> not isKoding() and isGroup()
 

@@ -150,17 +150,19 @@ class AvatarView extends LinkView
 class ErrorlessImageView extends KDCustomHTMLView
 
   constructor: (options = {}, data) ->
-    super
-      tagName       : 'img'
-      cssClass      : 'hidden'
-      bind          : 'load error'
-      attributes    :
-        width       : options.width
-        height      : options.height
-    , data
 
-    @setCss 'opacity', '0.0001'
+    options.tagName    = 'img'
+    options.cssClass   = 'hidden'
+    options.bind       = 'load error'
+    options.attributes =
+        width          : options.width
+        height         : options.height
+
+    super options, data
+
 
   error:->
+
     @hide()
-    no
+
+    return no

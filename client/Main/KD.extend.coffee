@@ -6,8 +6,6 @@ if localStorage.disableWebSocket?
 else if KD.config.kites.disableWebSocketByDefault
   window.WebSocket = null
 
-
-
 KD.extend
 
   apiUri       : KD.config.apiUri
@@ -257,6 +255,25 @@ KD.extend
     mainController = KD.getSingleton('mainController')
     mainController.isLoggingIn on
     delete KD.userAccount
+
+
+  isGroup: ->
+
+    {entryPoint} = KD.config
+    return entryPoint?.type is 'group'
+
+
+  isKoding: ->
+
+    {entryPoint} = KD.config
+    return entryPoint?.slug is 'koding'
+
+
+  isMember: ->
+
+    {roles} = KD.config
+    return 'member' in roles
+
 
   isGuest:-> not KD.isLoggedIn()
 

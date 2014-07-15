@@ -163,7 +163,7 @@ class KodingRouter extends KDRouter
 
     unless route
       {entryPoint} = KD.config
-      route = if KD.isLoggedIn() and entryPoint?.type is 'group' and entryPoint?.slug?
+      route = if KD.isLoggedIn() and KD.isGroup() and not KD.isKoding()
       then "/#{KD.config.entryPoint?.slug}"
       else '/'
 
