@@ -71,11 +71,13 @@ class IDE.ContentSearch extends KDModalViewWithForms
     @searchText = @searchText.replace /-/g, "\\-"
 
     flags = [
-      '-s'
-      '-r'
-      '--color=never'
-      '--binary-files=without-match'
-      '-n'
+      '-s'         # Silent mode
+      '-r'         # Recursively search subdirectories listed.
+      '--color=never'   # Disable color output to get plain text
+      '--binary-files=without-match' # Do not search binary files
+      '-n'         # Each output line is preceded by its relative line number in the file
+      '-A 3'       # Print num lines of trailing context after each match.
+      '-B 3'       # Print num lines of trailing context before each match.
       '-i'         # Match case insensitively
       '-w'         # Only match whole words
     ]
