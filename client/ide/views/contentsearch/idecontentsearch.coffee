@@ -77,7 +77,7 @@ class IDE.ContentSearch extends KDModalViewWithForms
       splitText = splitText.map grepEscapeRegExp
       searchText = splitText.join "\\n"
 
-    searchText     = searchText.replace new RegExp "\\\'", "g", "'\\''"
+    searchText     = searchText.replace (new RegExp "\\\'", "g"), "'\\''"
     searchText     = searchText.replace /-/g, "\\-"
 
     flags           = [
