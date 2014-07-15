@@ -31,14 +31,13 @@ customDomain        =
 
 # KONTROL DEPLOYMENT IS SEPARATED FROM PROD DEPLOY.
 kontrol             =
-  url               : "https://kontrol.koding.com/kite"
-  port              : 443
+  url               : "http://127.0.0.1:4000/kite"
+  port              : 4000
   useTLS            : no
   certFile          : ""
   keyFile           : ""
   publicKeyFile     : "./certs/test_kontrol_rsa_public.pem"
   privateKeyFile    : "./certs/test_kontrol_rsa_private.pem"
-
 
 broker              =
   name              : "broker"
@@ -92,10 +91,11 @@ KONFIG              =
   elasticSearch     : {host          : "#{prod_simulation_server}" , port      : 9200                  , enabled           : no                 , queue           : "elasticSearchFeederQueue"}
   social            : {port          : 3030                        , login     : "#{rabbitmq.login}"   , queueName         : socialQueueName    , kitePort        : 8765 }
   email             : {host          : "#{customDomain.public}"    , protocol  : 'http:'               , defaultFromAddress: 'hello@koding.com' }
-  newkites          : {useTLS        : no                          , certFile  : ""                    , keyFile: "#{projectRoot}/kite_home/production/kite.key"}
+  newkites          : {useTLS        : no                          , certFile  : ""                    , keyFile: "#{projectRoot}/kite_home/koding/kite.key"}
   log               : {login         : "#{rabbitmq.login}"         , queueName : logQueueName}
   boxproxy          : {port          : 8090 }
   sourcemaps        : {port          : 3526 }
+  kloud             : {port          : 5500, privateKeyFile: kontrol.privateKeyFile, publicKeyFile: kontrol.publicKeyFile, kontrolUrl: "kontrol-#{customDomain.public_}/kite"  }
   emailConfirmationCheckerWorker     : {enabled: no, login : "#{rabbitmq.login}", queueName: socialQueueName+'emailConfirmationCheckerWorker',cronSchedule: '0 * * * * *',usageLimitInMinutes  : 60}
 
   newkontrol        : kontrol
@@ -188,11 +188,12 @@ KONFIG.workers =
   emailsender         : command : "node   #{projectRoot}/workers/emailsender/index.js      -c #{configName}"
   boxproxy            : command : "coffee #{projectRoot}/server/boxproxy.coffee            -c #{configName}"
   clientWatcher       : command : "coffee #{projectRoot}/build-client.coffee               --watch --sourceMapsUri #{hostname}"
+  kontrol             : command : "#{GOBIN}/kontrol -c #{configName} -r #{region}"
+  # --port #{kontrol.port} -env #{environment} -public-key #{kontrol.publicKeyFile} -private-key #{kontrol.privateKeyFile}"
+  kloud               : command : "#{GOBIN}/kloud -c #{configName} -r #{region} -port #{KONFIG.kloud.port} -public-key #{KONFIG.kloud.publicKeyFile} -private-key #{KONFIG.kloud.privateKeyFile} -kontrol-url \"http://#{KONFIG.kloud.kontrolUrl}\" -debug"
 
   # guestcleaner        : command : "node #{projectRoot}/workers/guestcleaner/index.js     -c #{configName}"
 
-  # kloud               : command : "#{GO_BIN}/kloud   --port 3000 -env prod -public-key $PBKEY -private-key $PVKEY"
-  # kontrol             : command : "#{GO_BIN}/kontrol --port 3000 -env prod -public-key $PBKEY -private-key $PVKEY"
 
 
 
@@ -344,7 +345,7 @@ generateRunFile = (KONFIG) ->
 
     elif [ "$1" == "services" ]; then
       docker run -d --net=host --name=mongo    koding/mongo    --dbpath /root/data/db --smallfiles --nojournal
-      docker run -d --net=host --name=redis    koding/redis    redis-server
+      docker run -d --net=host --name=redis    koding/redis    
       docker run -d --net=host --name=postgres koding/postgres
       docker run -d --net=host --name=rabbitmq koding/rabbitmq\n
     else
