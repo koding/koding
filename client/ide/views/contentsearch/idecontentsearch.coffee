@@ -61,8 +61,8 @@ class IDE.ContentSearch extends KDModalViewWithForms
     vmController    = KD.getSingleton 'vmController'
     @searchText     = Encoder.XSSEncode @findInput.getValue()
     @rootPath       = Encoder.XSSEncode @whereInput.getValue()
-    isCaseSensitive = true
-    isWholeWord     = true
+    isCaseSensitive = @caseToggle.getValue()
+    isWholeWord     = @wholeWordToggle.getValue()
     # isRegExp        = @regExpToggle.getValue()
 
 
