@@ -1,6 +1,5 @@
 #!/usr/bin/env coffee
 
-Connection = require "ssh2"
 argv       = require('minimist')(process.argv.slice(2))
 log        = console.log
 eden       = require 'node-eden'
@@ -143,7 +142,7 @@ class Deploy
 
 
   @konnect = (options,callback) ->
-
+    Connection = require "ssh2"
     {IP,username,password} = options
     conn = new Connection()
 

@@ -98,7 +98,7 @@ cp /usr/bin/supervisorctl /usr/bin/s-
 mosh-server
 
 cd /opt
-git clone git@github.com:koding/koding.git
+git clone git@github.com:koding/koding.git --depth 1
 cd koding
 git checkout cake-rewrite
 git submodule init

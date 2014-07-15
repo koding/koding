@@ -340,9 +340,9 @@ generateRunFile = (KONFIG) ->
 
     elif [ "$1" == "services" ]; then
       docker run -d --net=host --name=mongo    koding/mongo    --dbpath /root/data/db --smallfiles --nojournal
-      docker run -d --net=host --name=redis    koding/redis    redis-server 
+      docker run -d --net=host --name=redis    koding/redis     
       docker run -d --net=host --name=postgres koding/postgres 
-      docker run -d --net=host --name=rabbitmq koding/rabbitmq\n
+      docker run -d --net=host --name=rabbitmq koding/rabbitmq
     else
         echo "unknown argument. use ./run [killall]"
     fi
