@@ -180,4 +180,4 @@ CREATE TABLE "api"."message_reply" (
 ) WITH (OIDS = FALSE);
 
 -- ALTER TABLE "api"."message_reply" OWNER TO "socialapplication";
-GRANT SELECT, INSERT, DELETE ON "api"."message_reply" TO "socialapplication";
+GRANT SELECT, UPDATE, INSERT, DELETE ON "api"."message_reply" TO "socialapplication";
