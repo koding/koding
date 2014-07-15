@@ -186,7 +186,7 @@ KONFIG.workers =
   sourcemaps          : command : "node   #{projectRoot}/server/lib/source-server/index.js -c #{configName} -p #{KONFIG.sourcemaps.port}"
   authworker          : command : "node   #{projectRoot}/workers/auth/index.js             -c #{configName}"
   emailsender         : command : "node   #{projectRoot}/workers/emailsender/index.js      -c #{configName}"
-  boxproxy            : command : "coffee #{projectRoot}/server/boxproxy.coffee            -c #{configName}"
+  boxproxy            : command : "node #{projectRoot}/server/boxproxy.js            -c #{configName}"
   clientWatcher       : command : "coffee #{projectRoot}/build-client.coffee               --watch --sourceMapsUri #{hostname}"
   kontrol             : command : "#{GOBIN}/kontrol -c #{configName} -r #{region}"
   # --port #{kontrol.port} -env #{environment} -public-key #{kontrol.publicKeyFile} -private-key #{kontrol.privateKeyFile}"
@@ -345,7 +345,7 @@ generateRunFile = (KONFIG) ->
 
     elif [ "$1" == "services" ]; then
       docker run -d --net=host --name=mongo    koding/mongo    --dbpath /root/data/db --smallfiles --nojournal
-      docker run -d --net=host --name=redis    koding/redis    
+      docker run -d --net=host --name=redis    koding/redis
       docker run -d --net=host --name=postgres koding/postgres
       docker run -d --net=host --name=rabbitmq koding/rabbitmq\n
     else
