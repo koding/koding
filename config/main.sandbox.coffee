@@ -48,7 +48,7 @@ module.exports =
     clusterSize : 1
     proxyUrl    : "http://sandbox-social.sj.koding.com:7000"
   sourceServer  :
-    enabled     : no
+    enabled     : yes
     port        : 1337
   neo4j         :
     read        : "http://172.16.6.12"
@@ -185,7 +185,7 @@ module.exports =
       appsUri   : 'https://rest.kd.io'
       uploadsUri: 'https://koding-uploads.s3.amazonaws.com'
       uploadsUriForGroup: 'https://koding-groups.s3.amazonaws.com'
-      sourceUri : "http://stage-webserver-#{version}.sj.koding.com:1337"
+      sourceUri : "http://sandbox.koding.com:1337"
       github    :
         clientId: "f733c52d991ae9642365"
       newkontrol:
