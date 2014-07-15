@@ -84,7 +84,9 @@
     "ws": "0.4.25",
     "xml2js": "0.2.6"
   },
-  "devDependencies": {},
+  "devDependencies": {
+    "loadfire": "3.0.1"
+  },
   "optionalDependencies": {},
   "engines": {
     "node": "0.10.20"
