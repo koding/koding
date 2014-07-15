@@ -89,7 +89,7 @@ class IDE.ContentSearch extends KDModalViewWithForms
     flags.splice flags.indexOf('-i'), 1  if isCaseSensitive
     flags.splice flags.indexOf('-w'), 1  unless isWholeWord
 
-    cmd = "grep #{flags.join ' '} #{exclureDirs} --include=#{include} '#{@searchText}' \"#{@escapeShell @rootPath}\""
+    query = "grep #{flags.join ' '} #{exclureDirs} --include=#{include} '#{@searchText}' \"#{@escapeShell @rootPath}\""
 
     vmController.run query, (err, res) =>
       if (err or res.stderr) and not res.stdout
