@@ -35,6 +35,15 @@ fetchGroupName = ({ groupName: name, section }, callback)->
 fetchAccount = (username, callback)->
   bongo.models.JAccount.one {"profile.nickname" : username }, callback
 
+updateCookie = (req, res, session)->
+  {clientId} = session
+  { maxAge, secure } = KONFIG.sessionCookie
+  # set cookie as pending cookie
+  req.pendingCookies or= {}
+  req.pendingCookies.clientId = clientId
+
+  res.cookie "clientId", clientId, { maxAge, secure }
+
 generateFakeClientFromReq = (req, res, callback)->
   {clientId} = req.cookies
   {name: groupName, section} = req.params
@@ -50,13 +59,7 @@ generateFakeClientFromReq = (req, res, callback)->
     bongo.models.JSession.fetchSession {}, (err, {session, account})->
       return callback err  if err?
       return callback {message: "account cannot be created"}  unless account? and session?
-      { maxAge, secure } = KONFIG.sessionCookie
-
-      # set cookie as pending cookie
-      req.pendingCookies or= {}
-      req.pendingCookies.clientId = session.clientId
-
-      res.cookie "clientId", session.clientId, { maxAge, secure }
+      updateCookie req, res, session
 
       fakeClient.connection.delegate  = account
       fakeClient.connection.groupName = groupName
@@ -101,5 +104,5 @@ generateFakeClient = ({ clientId, groupName, section }, callback) ->
 
         return callback null, fakeClient
 
-module.exports = { generateFakeClient: generateFakeClientFromReq }
+module.exports = { generateFakeClient: generateFakeClientFromReq, updateCookie}
 
