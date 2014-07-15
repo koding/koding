@@ -112,7 +112,7 @@ func (f *Controller) handleMessageEvents(data *models.ChannelMessageList, increm
 func PreparePopularTopicKey(group, statisticName string, year, dateNumber int) string {
 	return fmt.Sprintf(
 		"%s:%s:%s:%d:%s:%d",
-		config.Get().Environment,
+		config.MustGet().Environment,
 		group,
 		PopularTopicKey,
 		year,
@@ -177,6 +177,10 @@ func mapMessage(data []byte) (*models.ChannelMessageList, error) {
 }
 
 func (f *Controller) isEligible(c *models.Channel) bool {
+	if c.MetaBits.Is(models.Troll) {
+		return false
+	}
+
 	if c.TypeConstant != models.Channel_TYPE_TOPIC {
 		return false
 	}

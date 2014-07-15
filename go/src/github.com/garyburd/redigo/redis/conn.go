@@ -206,7 +206,7 @@ func (c *conn) readLine() ([]byte, error) {
 	return p[:i], nil
 }
 
-// parseLen parses bulk and multi-bulk lengths.
+// parseLen parses bulk string and array lengths.
 func parseLen(p []byte) (int, error) {
 	if len(p) == 0 {
 		return -1, errors.New("redigo: malformed length")
@@ -301,7 +301,7 @@ func (c *conn) readReply() (interface{}, error) {
 		if line, err := c.readLine(); err != nil {
 			return nil, err
 		} else if len(line) != 0 {
-			return nil, errors.New("redigo: bad bulk format")
+			return nil, errors.New("redigo: bad bulk string format")
 		}
 		return p, nil
 	case '*':
@@ -366,6 +366,15 @@ func (c *conn) Receive() (reply interface{}, err error) {
 }
 
 func (c *conn) Do(cmd string, args ...interface{}) (interface{}, error) {
+	c.mu.Lock()
+	pending := c.pending
+	c.pending = 0
+	c.mu.Unlock()
+
+	if cmd == "" && pending == 0 {
+		return nil, nil
+	}
+
 	if c.writeTimeout != 0 {
 		c.conn.SetWriteDeadline(time.Now().Add(c.writeTimeout))
 	}
@@ -377,11 +386,6 @@ func (c *conn) Do(cmd string, args ...interface{}) (interface{}, error) {
 	if err := c.bw.Flush(); err != nil {
 		return nil, c.fatal(err)
 	}
-
-	c.mu.Lock()
-	pending := c.pending
-	c.pending = 0
-	c.mu.Unlock()
 
 	if c.readTimeout != 0 {
 		c.conn.SetReadDeadline(time.Now().Add(c.readTimeout))

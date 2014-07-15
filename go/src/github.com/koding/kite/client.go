@@ -1,20 +1,20 @@
 package kite
 
 import (
+	"crypto/rand"
+	"encoding/base64"
 	"encoding/json"
 	"errors"
 	"fmt"
-	"net"
-	"net/url"
 	"strconv"
-	"strings"
 	"sync"
 	"time"
 
-	"code.google.com/p/go.net/websocket"
 	"github.com/cenkalti/backoff"
 	"github.com/koding/kite/dnode"
 	"github.com/koding/kite/protocol"
+	"github.com/koding/kite/sockjsclient"
+	"gopkg.in/igm/sockjs-go.v2/sockjs"
 )
 
 var forever = backoff.NewExponentialBackoff()
@@ -28,18 +28,19 @@ func init() {
 type Client struct {
 	// The information about the kite that we are connecting to.
 	protocol.Kite
+	muProt sync.Mutex // protects protocol.Kite access
 
 	// A reference to the current Kite running.
 	LocalKite *Kite
 
 	// Credentials that we sent in each request.
-	Authentication *Authentication
+	Auth *Auth
 
 	// Should we reconnect if disconnected?
 	Reconnect bool
 
-	// Websocket connection options.
-	WSConfig *websocket.Config
+	// SockJS base URL
+	URL string
 
 	// Should we process incoming messages concurrently or not? Default: true
 	Concurrent bool
@@ -47,8 +48,11 @@ type Client struct {
 	// To signal waiters of Go() on disconnect.
 	disconnect chan struct{}
 
-	// Websocket connection
-	conn *websocket.Conn
+	// SockJS session
+	// TODO: replace this with a proper interface to support multiple
+	// transport/protocols
+	session sockjs.Session
+	send    chan []byte
 
 	// dnode scrubber for saving callbacks sent to remote.
 	scrubber *dnode.Scrubber
@@ -71,10 +75,10 @@ type Client struct {
 // It is used when unmarshalling a dnode message.
 type callOptions struct {
 	// Arguments to the method
-	Kite             protocol.Kite   `json:"kite" dnode:"-"`
-	Authentication   *Authentication `json:"authentication"`
-	WithArgs         *dnode.Partial  `json:"withArgs" dnode:"-"`
-	ResponseCallback dnode.Function  `json:"responseCallback"`
+	Kite             protocol.Kite  `json:"kite" dnode:"-"`
+	Auth             *Auth          `json:"authentication"`
+	WithArgs         *dnode.Partial `json:"withArgs" dnode:"-"`
+	ResponseCallback dnode.Function `json:"responseCallback"`
 }
 
 // callOptionsOut is the same structure with callOptions.
@@ -87,7 +91,7 @@ type callOptionsOut struct {
 }
 
 // Authentication is used when connecting a Client.
-type Authentication struct {
+type Auth struct {
 	// Type can be "kiteKey", "token" or "sessionID" for now.
 	Type string `json:"type"`
 	Key  string `json:"key"`
@@ -102,22 +106,18 @@ type response struct {
 // NewClient returns a pointer to a new Client. The returned instance
 // is not connected. You have to call Dial() or DialForever() before calling
 // Tell() and Go() methods.
-func (k *Kite) NewClient(remoteURL *url.URL) *Client {
-	// Must send an "Origin" header. Does not checked on server.
-	origin, _ := url.Parse("")
-
+func (k *Kite) NewClient(remoteURL string) *Client {
 	r := &Client{
 		LocalKite:     k,
+		URL:           remoteURL,
 		disconnect:    make(chan struct{}),
 		redialBackOff: *forever,
 		scrubber:      dnode.NewScrubber(),
-		WSConfig: &websocket.Config{
-			Version:  websocket.ProtocolVersionHybi13,
-			Origin:   origin,
-			Location: remoteURL,
-		},
-		Concurrent: true,
+		Concurrent:    true,
+		send:          make(chan []byte, 512), // buffered
 	}
+
+	go r.sendHub()
 
 	var m sync.Mutex
 	r.OnDisconnect(func() {
@@ -130,27 +130,15 @@ func (k *Kite) NewClient(remoteURL *url.URL) *Client {
 	return r
 }
 
-// NewClientString creates a new Client from a URL string.
-func (k *Kite) NewClientString(remoteURL string) *Client {
-	parsed, err := url.Parse(remoteURL)
-	if err != nil {
-		panic(err)
-	}
-	return k.NewClient(parsed)
-}
-
-func (c *Client) RemoteAddr() string {
-	if c.conn != nil {
-		if req := c.conn.Request(); req != nil {
-			return req.RemoteAddr
-		}
-	}
-	return ""
+func (c *Client) SetUsername(username string) {
+	c.muProt.Lock()
+	c.Kite.Username = username
+	c.muProt.Unlock()
 }
 
 // Dial connects to the remote Kite. Returns error if it can't.
 func (c *Client) Dial() (err error) {
-	c.LocalKite.Log.Info("Dialing remote kite: [%s %s]", c.Kite.Name, c.WSConfig.Location.String())
+	c.LocalKite.Log.Info("Dialing remote kite: [%s %s]", c.Kite.Name, c.URL)
 
 	if err := c.dial(); err != nil {
 		return err
@@ -164,7 +152,7 @@ func (c *Client) Dial() (err error) {
 // Dial connects to the remote Kite. If it can't connect, it retries
 // indefinitely. It returns a channel to check if it's connected or not.
 func (c *Client) DialForever() (connected chan bool, err error) {
-	c.LocalKite.Log.Info("Dialing remote kite: [%s %s]", c.Kite.Name, c.WSConfig.Location.String())
+	c.LocalKite.Log.Info("Dialing remote kite: [%s %s]", c.Kite.Name, c.URL)
 
 	c.Reconnect = true
 	connected = make(chan bool, 1) // This will be closed on first connection.
@@ -190,15 +178,15 @@ func (c *Client) dialForever(connectNotifyChan chan bool) {
 }
 
 func (c *Client) dial() (err error) {
-	// Reset the wait time.
-	defer c.redialBackOff.Reset()
-
-	fixPortNumber(c.WSConfig.Location)
-
-	c.conn, err = websocket.DialConfig(c.WSConfig)
+	c.session, err = sockjsclient.ConnectWebsocketSession(c.URL)
 	if err != nil {
+		c.session = nil // explicitly set nil to avoid panicing when used the inside data.
+		c.LocalKite.Log.Error(err.Error())
 		return err
 	}
+
+	// Reset the wait time.
+	c.redialBackOff.Reset()
 
 	// Must be run in a goroutine because a handler may wait a response from
 	// server.
@@ -207,26 +195,25 @@ func (c *Client) dial() (err error) {
 	return nil
 }
 
-// fixPortNumber appends 80 or 443 depending on the scheme
-// if there is no port number in the URL.
-func fixPortNumber(u *url.URL) {
-	_, _, err := net.SplitHostPort(u.Host)
-	if err != nil {
-		if missingPortErr, ok := err.(*net.AddrError); ok && missingPortErr.Err == "missing port in address" {
-			var port string
-			switch u.Scheme {
-			case "ws":
-				port = "80"
-			case "wss":
-				port = "443"
-			default:
-				panic("unknown scheme: " + u.Scheme)
-			}
-			u.Host = net.JoinHostPort(strings.TrimRight(missingPortErr.Addr, ":"), port)
-		} else {
-			panic(err) // Other kind of error
-		}
+func (c *Client) RemoteAddr() string {
+	if c.session == nil {
+		return ""
 	}
+
+	websocketsession, ok := c.session.(*sockjsclient.WebsocketSession)
+	if !ok {
+		return ""
+	}
+
+	return websocketsession.RemoteAddr()
+}
+
+// randomStringLength is used to generate a session_id.
+func randomStringLength(length int) string {
+	size := (length * 6 / 8) + 1
+	r := make([]byte, size)
+	rand.Read(r)
+	return base64.URLEncoding.EncodeToString(r)[:length]
 }
 
 // run consumes incoming dnode messages. Reconnects if necessary.
@@ -264,9 +251,8 @@ func (c *Client) readLoop() error {
 }
 
 // processMessage processes a single message and calls a handler or callback.
-func (c *Client) processMessage(data []byte) error {
+func (c *Client) processMessage(data []byte) (err error) {
 	var (
-		err error
 		ok  bool
 		msg dnode.Message
 		m   *Method
@@ -279,17 +265,19 @@ func (c *Client) processMessage(data []byte) error {
 		}
 	}()
 
-	if err = json.Unmarshal(data, &msg); err != nil {
+	if err := json.Unmarshal(data, &msg); err != nil {
 		return err
 	}
 
 	sender := func(id uint64, args []interface{}) error {
-		_, err = c.marshalAndSend(id, args)
-		return err
+		// do not name the error variable to "err" here, it's a trap for
+		// shadowing variables
+		_, errc := c.marshalAndSend(id, args)
+		return errc
 	}
 
 	// Replace function placeholders with real functions.
-	if err = dnode.ParseCallbacks(&msg, sender); err != nil {
+	if err := dnode.ParseCallbacks(&msg, sender); err != nil {
 		return err
 	}
 
@@ -318,34 +306,43 @@ func (c *Client) processMessage(data []byte) error {
 
 func (c *Client) Close() {
 	c.Reconnect = false
-	if c.conn != nil {
-		c.conn.Close()
+	if c.session != nil {
+		c.session.Close(3000, "Go away!")
 	}
 }
 
-// sendData sends the msg over the websocket.
-func (c *Client) sendData(msg []byte) error {
-	c.LocalKite.Log.Debug("Sending : %s", string(msg))
+// sendhub sends the msg received from the send channel to the remote client
+func (c *Client) sendHub() {
+	for {
+		select {
+		case msg, ok := <-c.send:
+			if !ok {
+				c.LocalKite.Log.Warning("Send hub is closed")
+				return
+			}
 
-	if c.conn == nil {
-		return errors.New("not connected")
+			c.LocalKite.Log.Debug("Sending: %s", string(msg))
+			if c.session == nil {
+				c.LocalKite.Log.Error("not connected")
+				continue
+			}
+
+			c.session.Send(string(msg))
+		}
 	}
-
-	return websocket.Message.Send(c.conn, string(msg))
 }
 
-// receiveData reads a message from the websocket.
+// receiveData reads a message from session.
 func (c *Client) receiveData() ([]byte, error) {
-	if c.conn == nil {
+	if c.session == nil {
 		return nil, errors.New("not connected")
 	}
 
-	var msg []byte
-	err := websocket.Message.Receive(c.conn, &msg)
+	msg, err := c.session.Recv()
 
-	c.LocalKite.Log.Debug("Received : %s", string(msg))
+	c.LocalKite.Log.Debug("Received : %s", msg)
 
-	return msg, err
+	return []byte(msg), err
 }
 
 // OnConnect registers a function to run on connect.
@@ -391,7 +388,7 @@ func (c *Client) wrapMethodArgs(args []interface{}, responseCallback dnode.Funct
 		WithArgs: args,
 		callOptions: callOptions{
 			Kite:             *c.LocalKite.Kite(),
-			Authentication:   c.Authentication,
+			Auth:             c.Auth,
 			ResponseCallback: responseCallback,
 		},
 	}
@@ -434,7 +431,7 @@ func (c *Client) GoWithTimeout(method string, timeout time.Duration, args ...int
 }
 
 // sendMethod wraps the arguments, adds a response callback,
-// marshals the message and send it over websocket.
+// marshals the message and send it over the wire.
 func (c *Client) sendMethod(method string, args []interface{}, timeout time.Duration, responseChan chan *response) {
 	// To clean the sent callback after response is received.
 	// Send/Receive in a channel to prevent race condition because
@@ -534,7 +531,7 @@ func (c *Client) marshalAndSend(method interface{}, arguments []interface{}) (ca
 		return nil, err
 	}
 
-	err = c.sendData(data)
+	c.send <- data
 	return
 }
 

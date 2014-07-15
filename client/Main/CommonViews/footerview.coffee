@@ -36,9 +36,9 @@ class FooterView extends JView
 
       <nav class="footer-block">
         <h5>COMMUNITY</h5>
-        <a href='/Activity'>ACTIVITY</a>
+        <a href='/Activity/Public' target='_self'>ACTIVITY</a>
         <a href='http://blog.koding.com'>KODING BLOG</a>
-        <a href='https://www.facebook.com/kodingcom/events'>MEETUPS</a>
+        <a href='https://www.facebook.com/koding/events'>MEETUPS</a>
         <a href='http://stories.koding.com'>TESTIMONIALS</a>
         <a href='https://koding-cdn.s3.amazonaws.com/brand/koding-logo.pdf'>BRAND GUIDELINES</a>
         <a href='/copyright.html' target='_blank'>COPYRIGHT/DMCA GUIDELINES</a>
@@ -59,7 +59,7 @@ class FooterView extends JView
       <address>#{(new Date).getFullYear()} © Koding, Inc. 358 Brannan Street, San Francisco, CA, 94107</address>
 
       <div class="social-links">
-        <a href="http://twitter.com/koding">TWITTER</a> · <a href="http://facebook.com/kodingcom">FACEBOOK</a>
+        <a href="http://twitter.com/koding">TWITTER</a> · <a href="http://facebook.com/koding">FACEBOOK</a>
       </div>
     </div>
     """

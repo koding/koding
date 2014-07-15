@@ -9,11 +9,6 @@ class ActivityLikeView extends JView
 
     super options, data
 
-
-  viewAppended: ->
-
-    data = @getData()
-
     @link = new ActivityLikeLink {}, data
 
     @count = new ActivityLikeCount
@@ -22,9 +17,5 @@ class ActivityLikeView extends JView
         title     : ""
     , data
 
-    super
 
-
-  pistachio: ->
-
-    "{{> @link}}{{> @count}}"
+  pistachio: -> "{{> @link}}{{> @count}}"

@@ -119,10 +119,10 @@ func (l *Listener) Start(handler Handler) func(delivery amqp.Delivery) {
 		case nil:
 			delivery.Ack(false)
 		case HandlerNotFoundErr:
-			l.Log.Notice("unknown event type (%s) recieved, \n deleting message from RMQ", delivery.Type)
+			l.Log.Debug("unknown event type (%s) recieved, deleting message from RMQ", delivery.Type)
 			delivery.Ack(false)
 		case gorm.RecordNotFound:
-			l.Log.Warning("Record not found in our db (%s) recieved, \n deleting message from RMQ", string(delivery.Body))
+			l.Log.Warning("Record not found in our db (%s) recieved, deleting message from RMQ", string(delivery.Body))
 			delivery.Ack(false)
 		case mgo.ErrNotFound:
 			l.Log.Warning("Record not found in our mongo db (%s) recieved, deleting message from RMQ", string(delivery.Body))

@@ -29,12 +29,12 @@ class AvatarAreaIconLink extends KDCustomHTMLView
     windowController = KD.singleton "windowController"
     KD.utils.stopDOMEvent event
 
-    delegate = @getDelegate()
-    if delegate.hasClass "active"
-      @delegate.hide()
-      windowController.removeLayer @delegate
+    groupSwitcherPopup = @getDelegate()
+    if groupSwitcherPopup.hasClass "active"
+      groupSwitcherPopup.hide()
+      windowController.removeLayer groupSwitcherPopup
     else
-      @delegate.show()
-      windowController.addLayer @delegate
-      @delegate.once "ReceivedClickElsewhere", =>
-        @delegate.hide()
+      groupSwitcherPopup.show()
+      windowController.addLayer groupSwitcherPopup
+      groupSwitcherPopup.once "ReceivedClickElsewhere", =>
+        groupSwitcherPopup.hide()

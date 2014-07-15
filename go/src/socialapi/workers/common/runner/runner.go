@@ -44,7 +44,13 @@ func (r *Runner) Init() error {
 		return fmt.Errorf("Please define config file with -c Exiting...")
 	}
 
-	r.Conf = config.MustRead(*flagConfFile)
+	return r.InitWithConfigFile(*flagConfFile)
+}
+
+// InitWithConfigFile used for externally setting config file.
+// This is used for testing purposes, and usage of Init method is encouraged
+func (r *Runner) InitWithConfigFile(flagConfFile string) error {
+	r.Conf = config.MustRead(flagConfFile)
 
 	// create logger for our package
 	r.Log = helper.CreateLogger(
@@ -58,7 +64,9 @@ func (r *Runner) Init() error {
 		WrapWithVersion(r.Conf.EventExchangeName, flagVersion),
 		r.Conf,
 		r.Log,
+		*flagDebug,
 	)
+
 	r.ShutdownHandler = func() {}
 	r.Done = make(chan error, 1)
 	r.RegisterSignalHandler()

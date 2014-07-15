@@ -3,7 +3,6 @@ package config
 
 import (
 	"fmt"
-	"net/url"
 	"os"
 	"strconv"
 
@@ -25,12 +24,13 @@ type Config struct {
 	IP   string
 	Port int
 
-	KontrolURL  *url.URL
+	KontrolURL  string
 	KontrolKey  string
 	KontrolUser string
 }
 
-var defaultConfig = &Config{
+// DefaultConfig contains the default settings.
+var DefaultConfig = &Config{
 	Username:    "unknown",
 	Environment: "unknown",
 	Region:      "unknown",
@@ -41,7 +41,7 @@ var defaultConfig = &Config{
 // New returns a new Config initialized with defaults.
 func New() *Config {
 	c := new(Config)
-	*c = *defaultConfig
+	*c = *DefaultConfig
 	return c
 }
 
@@ -72,10 +72,7 @@ func (c *Config) ReadEnvironmentVariables() error {
 	}
 
 	if kontrolURL := os.Getenv("KITE_KONTROL_URL"); kontrolURL != "" {
-		c.KontrolURL, err = url.Parse(kontrolURL)
-		if err != nil {
-			return err
-		}
+		c.KontrolURL = kontrolURL
 	}
 
 	return nil
@@ -104,10 +101,7 @@ func (c *Config) ReadKiteKey() error {
 	}
 
 	if kontrolURL, ok := key.Claims["kontrolURL"].(string); ok {
-		c.KontrolURL, err = url.Parse(kontrolURL)
-		if err != nil {
-			return err
-		}
+		c.KontrolURL = kontrolURL
 	}
 
 	if kontrolKey, ok := key.Claims["kontrolKey"].(string); ok {
@@ -121,9 +115,6 @@ func (c *Config) ReadKiteKey() error {
 func (c *Config) Copy() *Config {
 	cloned := new(Config)
 	*cloned = *c
-	if c.KontrolURL != nil {
-		*cloned.KontrolURL = *c.KontrolURL
-	}
 	return cloned
 }
 

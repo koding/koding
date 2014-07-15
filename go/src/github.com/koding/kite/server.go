@@ -13,7 +13,7 @@ import (
 )
 
 // Run is a blocking method. It runs the kite server and then accepts requests
-// asynchronously.
+// asynchronously. It supports graceful restart via SIGUSR2.
 func (k *Kite) Run() {
 	if os.Getenv("KITE_VERSION") != "" {
 		fmt.Println(k.Kite().Version)
@@ -58,12 +58,14 @@ func (k *Kite) Addr() string {
 // calls Serve to handle requests on incoming connectionk.
 func (k *Kite) listenAndServe() error {
 	var err error
+
+	// create a new one if there doesn't exist
 	k.listener, err = net.Listen("tcp4", k.Addr())
 	if err != nil {
 		return err
 	}
 
-	k.Log.Info("Listening: %s", k.listener.Addr().String())
+	k.Log.Info("New listening: %s", k.listener.Addr().String())
 
 	if k.TLSConfig != nil {
 		if k.TLSConfig.NextProtos == nil {
@@ -72,10 +74,11 @@ func (k *Kite) listenAndServe() error {
 		k.listener = tls.NewListener(k.listener, k.TLSConfig)
 	}
 
-	close(k.readyC) // listener is ready, notify waiters.
-	k.Log.Info("Serving...")
-	defer close(k.closeC) // serving is finished, notify waiters.
+	// listener is ready, notify waiters.
+	close(k.readyC)
 
+	defer close(k.closeC) // serving is finished, notify waiters.
+	k.Log.Info("Serving...")
 	return http.Serve(k.listener, k)
 }
 

@@ -35,7 +35,7 @@ import (
 
 const (
 	OSKITE_NAME    = "oskite"
-	OSKITE_VERSION = "0.3.4"
+	OSKITE_VERSION = "0.4.0"
 )
 
 var (
@@ -147,6 +147,7 @@ func (o *Oskite) Run() {
 	o.prepareOsKite()
 	o.setupRedis()         // setup redis session and key/set names
 	o.handleCurrentVMs()   // handle leftover VMs
+	o.cleanUp()            // handle cases where the os kite may have crashed, resulting in incosistent state
 	o.startPinnedVMs()     // start pinned always-on VMs
 	o.setupSignalHandler() // handle SIGUSR1 and other signals.
 	go o.vmUpdater()       // get states of VMS and update them on MongoDB
@@ -376,12 +377,46 @@ func currentVMs() (set.Interface, error) {
 		if !strings.HasPrefix(dir.Name(), "vm-") {
 			continue
 		}
-
-		vmId := bson.ObjectIdHex(dir.Name()[3:])
+		vmIdStr := dir.Name()[3:]
+		if !bson.IsObjectIdHex(vmIdStr) {
+			log.Warning("vm name contains invalid ObjectId: '%v'", vmIdStr)
+			continue
+		}
+		vmId := bson.ObjectIdHex(vmIdStr)
 		vms.Add(vmId)
 	}
 
 	return vms, nil
+}
+
+func (o *Oskite) cleanUp() {
+	cleanupBatch := make([]bson.ObjectId, 0)
+	findQuery := func(c *mgo.Collection) error {
+		var vm virt.VM
+		iter := c.Find(bson.M{"hostKite": o.ServiceUniquename}).Iter()
+		for iter.Next(&vm) {
+			filename := "/var/lib/lxc/" + vm.String()
+			if _, err := os.Stat(filename); os.IsNotExist(err) {
+				cleanupBatch = append(cleanupBatch, vm.Id)
+			}
+		}
+		return iter.Close()
+	}
+	if err := mongodbConn.Run("jVMs", findQuery); err != nil {
+		log.Error("find query failed %v", err.Error())
+	}
+	if len(cleanupBatch) > 0 {
+		updateQuery := func(c *mgo.Collection) error {
+			_, err := c.UpdateAll(
+				bson.M{"_id": bson.M{"$in": cleanupBatch}},
+				bson.M{"$set": bson.M{"hostKite": nil}})
+			return err
+		}
+		if err := mongodbConn.Run("jVMs", updateQuery); err != nil {
+			log.Error("update query failed: '%v", err.Error())
+		}
+	}
+
 }
 
 func unprepareLeftover(vmId bson.ObjectId) {

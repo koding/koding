@@ -7,19 +7,6 @@ class ActivityEditWidget extends ActivityInputWidget
 
     super options, data
 
-    @submitButton = new KDButtonView
-      title       : "Done editing"
-      type        : "submit"
-      cssClass    : "solid green"
-      loader      : yes
-      callback    : @bound "submit"
-
-    @cancelButton = new KDButtonView
-      title    : "Cancel"
-      cssClass : "solid gray"
-      callback : => @emit "Cancel"
-
-
   viewAppended: ->
 
     data         = @getData()
@@ -34,5 +21,3 @@ class ActivityEditWidget extends ActivityInputWidget
 
     @addSubView @input
     @addSubView @embedBox
-    @input.addSubView @submitButton
-    @input.addSubView @cancelButton

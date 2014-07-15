@@ -9,13 +9,12 @@ resurrection.commons.styl
 */
 }
 
-body.activity
 body.dashboard
 body.account
 body.apps
 body.environments
 body.profile
-  bg                    color, #e4e4e4
+  bg                    color #e4e4e4
 
 html.app
 body.activity
@@ -37,12 +36,8 @@ body.environments
   vertical-align            top
   rounded                   50%
   img
-    // to avoid chrome's weird rendering bug
-    // where it first shows the image as a square
-    // then hides the corners to make them rounded - SY
-    // - fixed the line below.
     rounded                 50%
-    vendor                  transition, opacity .3s ease
+    // vendor                  transition, opacity .3s ease
 
 .content-page
   max-width                 1146px
@@ -88,8 +83,6 @@ body.environments
 
 
 .application-page
-  margin                    0
-  padding                   55px 0 0
   width                     100%
   z-index                   10
   borderBox()
@@ -369,6 +362,27 @@ button.app-settings-menu
       color            white
   &:focus
     shadow             0 0 10px -2px logoBg
+
+  // Sizes
+  &.medium
+    height             42px
+    line-height        38px
+    rounded            21px
+
+  // Color variatons
+
+  &.red
+    border-color       #E94835
+
+    span.button-title
+      color            #E94835
+
+    &:active
+      bg               color #E94835
+
+      span.button-title
+        color          white
+
 
 //
 // SOLID BUTTON STYLES

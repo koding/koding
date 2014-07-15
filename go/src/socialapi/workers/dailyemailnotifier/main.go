@@ -22,7 +22,7 @@ func main() {
 	modelhelper.Initialize(r.Conf.Mongo)
 
 	// init redis connection
-	redisConn := helper.MustInitRedisConn(r.Conf.Redis)
+	redisConn := helper.MustInitRedisConn(r.Conf)
 	defer redisConn.Close()
 
 	es := &models.EmailSettings{

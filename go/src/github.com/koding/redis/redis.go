@@ -19,6 +19,8 @@ type RedisConf struct {
 	DB     int
 }
 
+var ErrNil = redis.ErrNil
+
 func NewRedisSession(conf *RedisConf) (*RedisSession, error) {
 	s := &RedisSession{}
 
@@ -342,6 +344,11 @@ func (r *RedisSession) RemoveSetMembers(key string, rest ...interface{}) (int, e
 // Returns members array and error state
 func (r *RedisSession) GetSetMembers(key string) ([]interface{}, error) {
 	return redis.Values(r.Do("SMEMBERS", r.AddPrefix(key)))
+}
+
+// PopSetMember removes and returns a random element from the set stored at key
+func (r *RedisSession) PopSetMember(key string) (string, error) {
+	return redis.String(r.Do("SPOP", r.AddPrefix(key)))
 }
 
 // SortBy sorts elements stored at key with given weight and order(ASC|DESC)

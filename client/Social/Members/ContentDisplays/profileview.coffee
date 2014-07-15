@@ -450,8 +450,12 @@ class ProfileView extends JView
       @followButton = new KDCustomHTMLView
     else
       @followButton = new MemberFollowToggleButton
-        style : "solid"
+        style : "thin medium green"
       , @memberData
+
+    if KD.checkFlag('super-admin') and @memberData.getId() isnt KD.whoami().getId()
+    then @trollButton = new TrollButtonView style : 'thin medium red', data
+    else @trollButton = new KDCustomHTMLView
 
     nickname = @memberData.profile.nickname
 
@@ -542,8 +546,6 @@ class ProfileView extends JView
             if err
               warn err
             else
-              KD.getSingleton("badgeController").checkBadge
-                source : "JAccount" ,property : "staffLikes", relType : "like", targetSelf : 1
               @thankButton.disable()
               @utils.wait 3000, =>
                 @thankButton.enable()
@@ -685,6 +687,7 @@ class ProfileView extends JView
         <h3 class="full-name">{{> @firstName}} {{> @lastName}}</h3>
         {{> @bio }}
         {{> @followButton}}
+        {{> @trollButton}}
         <div class="profilestats">
           {{> @followers}}
           {{> @following}}

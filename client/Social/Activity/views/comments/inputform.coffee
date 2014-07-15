@@ -35,7 +35,7 @@ class CommentInputForm extends KDView
 
       @input.setValue ''
       @input.resize()
-      @input.setBlur()
+      @input.setFocus()
 
     KD.requireMembership
       callback  : kallback
@@ -79,8 +79,8 @@ class CommentInputForm extends KDView
     if @getOption 'showAvatar'
       @addSubView new AvatarStaticView
         size    :
-          width : 42
-          height: 42
+          width : 38
+          height: 38
       , KD.whoami()
 
     @addSubView @input

@@ -1,543 +1,443 @@
 package main
 
 import (
-	"encoding/json"
-	"fmt"
 	"math/rand"
 	"socialapi/models"
+	"socialapi/request"
+	"socialapi/rest"
 	"strconv"
 	"testing"
+	"time"
 
 	. "github.com/smartystreets/goconvey/convey"
 )
 
 func TestChannelMessage(t *testing.T) {
 	Convey("While testing channel messages given a channel", t, func() {
+		rand.Seed(time.Now().UnixNano())
 		groupName := "testgroup" + strconv.FormatInt(rand.Int63(), 10)
 
-		Convey("first we should create the account", func() {
-			account := models.NewAccount()
-			account.OldId = AccountOldId.Hex()
-			account, err := createAccount(account)
-			So(err, ShouldBeNil)
-			So(account, ShouldNotBeNil)
+		account := models.NewAccount()
+		account.OldId = AccountOldId.Hex()
+		account, err := rest.CreateAccount(account)
+		So(err, ShouldBeNil)
+		So(account, ShouldNotBeNil)
 
-			nonOwnerAccount := models.NewAccount()
-			nonOwnerAccount.OldId = AccountOldId2.Hex()
-			nonOwnerAccount, err = createAccount(nonOwnerAccount)
-			So(err, ShouldBeNil)
-			So(nonOwnerAccount, ShouldNotBeNil)
+		nonOwnerAccount := models.NewAccount()
+		nonOwnerAccount.OldId = AccountOldId2.Hex()
+		nonOwnerAccount, err = rest.CreateAccount(nonOwnerAccount)
+		So(err, ShouldBeNil)
+		So(nonOwnerAccount, ShouldNotBeNil)
 
-			groupChannel, err := createChannelByGroupNameAndType(account.Id, groupName, models.Channel_TYPE_GROUP)
-			So(err, ShouldBeNil)
-			So(groupChannel, ShouldNotBeNil)
+		groupChannel, err := rest.CreateChannelByGroupNameAndType(account.Id, groupName, models.Channel_TYPE_GROUP)
+		So(err, ShouldBeNil)
+		So(groupChannel, ShouldNotBeNil)
 
-			Convey("message should be able added to the group channel", func() {
-				post, err := createPost(groupChannel.Id, account.Id)
+		Convey("message should be able added to the group channel", func() {
+			post, err := rest.CreatePost(groupChannel.Id, account.Id)
+			So(err, ShouldBeNil)
+			So(post, ShouldNotBeNil)
+			So(post.Id, ShouldNotEqual, 0)
+			So(post.Body, ShouldNotEqual, "")
+			Convey("message can be edited by owner", func() {
+
+				initialPostBody := post.Body
+				post.Body = "edited message"
+
+				editedPost, err := rest.UpdatePost(post)
 				So(err, ShouldBeNil)
-				So(post, ShouldNotBeNil)
-				So(post.Id, ShouldNotEqual, 0)
-				So(post.Body, ShouldNotEqual, "")
-				Convey("message can be edited by owner", func() {
-
-					initialPostBody := post.Body
-					post.Body = "edited message"
-
-					editedPost, err := updatePost(post)
-					So(err, ShouldBeNil)
-					So(editedPost, ShouldNotBeNil)
-					// body should not be same
-					So(initialPostBody, ShouldNotEqual, editedPost.Body)
-				})
-
-				// for now social worker handles this issue
-				Convey("message can be edited by an admin", nil)
-				Convey("message can not be edited by non-owner", nil)
-
+				So(editedPost, ShouldNotBeNil)
+				// body should not be same
+				So(initialPostBody, ShouldNotEqual, editedPost.Body)
 			})
 
-			Convey("message can be deleted by owner", func() {
-				post, err := createPost(groupChannel.Id, account.Id)
-				So(err, ShouldBeNil)
-				So(post, ShouldNotBeNil)
-				err = deletePost(post.Id, account.Id, groupChannel.GroupName)
-				So(err, ShouldBeNil)
-				post2, err := getPost(post.Id, account.Id, groupChannel.GroupName)
-				So(err, ShouldNotBeNil)
-				So(post2, ShouldBeNil)
-			})
-
-			// handled by social worker
-			Convey("message can be deleted by an admin", nil)
+			// for now social worker handles this issue
+			Convey("message can be edited by an admin", nil)
 			Convey("message can not be edited by non-owner", nil)
 
-			Convey("owner can like message", func() {
-				post, err := createPost(groupChannel.Id, account.Id)
-				So(err, ShouldBeNil)
-				So(post, ShouldNotBeNil)
+		})
+
+		Convey("message can be deleted by owner", func() {
+			post, err := rest.CreatePost(groupChannel.Id, account.Id)
+			So(err, ShouldBeNil)
+			So(post, ShouldNotBeNil)
+			err = rest.DeletePost(post.Id, account.Id, groupChannel.GroupName)
+			So(err, ShouldBeNil)
+			post2, err := rest.GetPost(post.Id, account.Id, groupChannel.GroupName)
+			So(err, ShouldNotBeNil)
+			So(post2, ShouldBeNil)
+		})
 
-				err = addInteraction("like", post.Id, post.AccountId)
-				So(err, ShouldBeNil)
+		// handled by social worker
+		Convey("message can be deleted by an admin", nil)
+		Convey("message can not be edited by non-owner", nil)
 
-				cmc, err := getPostWithRelatedData(post.Id, post.AccountId, groupName)
-				So(err, ShouldBeNil)
-				So(cmc, ShouldNotBeNil)
+		Convey("owner can like message", func() {
+			post, err := rest.CreatePost(groupChannel.Id, account.Id)
+			So(err, ShouldBeNil)
+			So(post, ShouldNotBeNil)
+
+			err = rest.AddInteraction("like", post.Id, post.AccountId)
+			So(err, ShouldBeNil)
+
+			cmc, err := rest.GetPostWithRelatedData(
+				post.Id,
+				&request.Query{
+					AccountId: post.AccountId,
+					GroupName: groupName,
+				},
+			)
 
-				// it is liked by author
-				So(cmc.Interactions["like"].IsInteracted, ShouldBeTrue)
+			So(err, ShouldBeNil)
+			So(cmc, ShouldNotBeNil)
+
+			// it is liked by author
+			So(cmc.Interactions["like"].IsInteracted, ShouldBeTrue)
+
+			// actor length should be 1
+			So(cmc.Interactions["like"].ActorsCount, ShouldEqual, 1)
+
+		})
 
-				// actor length should be 1
-				So(cmc.Interactions["like"].ActorsCount, ShouldEqual, 1)
+		Convey("non-owner can like message", func() {
+			post, err := rest.CreatePost(groupChannel.Id, account.Id)
+			So(err, ShouldBeNil)
+			So(post, ShouldNotBeNil)
+
+			err = rest.AddInteraction("like", post.Id, nonOwnerAccount.Id)
+			So(err, ShouldBeNil)
+
+			cmc, err := rest.GetPostWithRelatedData(
+				post.Id,
+				&request.Query{
+					AccountId: nonOwnerAccount.Id,
+					GroupName: groupName,
+				},
+			)
 
-			})
+			So(err, ShouldBeNil)
+			So(cmc, ShouldNotBeNil)
 
-			Convey("non-owner can like message", func() {
-				post, err := createPost(groupChannel.Id, account.Id)
-				So(err, ShouldBeNil)
-				So(post, ShouldNotBeNil)
+			// it is liked by author
+			So(cmc.Interactions["like"].IsInteracted, ShouldBeTrue)
 
-				err = addInteraction("like", post.Id, nonOwnerAccount.Id)
-				So(err, ShouldBeNil)
+			// actor length should be 1
+			So(cmc.Interactions["like"].ActorsCount, ShouldEqual, 1)
 
-				cmc, err := getPostWithRelatedData(post.Id, nonOwnerAccount.Id, groupName)
-				So(err, ShouldBeNil)
-				So(cmc, ShouldNotBeNil)
+		})
 
-				// it is liked by author
-				So(cmc.Interactions["like"].IsInteracted, ShouldBeTrue)
+		Convey("we should be able to get only interactions", func() {
+			post, err := rest.CreatePost(groupChannel.Id, account.Id)
+			So(err, ShouldBeNil)
+			So(post, ShouldNotBeNil)
 
-				// actor length should be 1
-				So(cmc.Interactions["like"].ActorsCount, ShouldEqual, 1)
+			err = rest.AddInteraction("like", post.Id, nonOwnerAccount.Id)
+			So(err, ShouldBeNil)
 
-			})
+			likes, err := rest.GetInteractions("like", post.Id)
+			So(err, ShouldBeNil)
 
-			Convey("we should be able to get only interactions", func() {
-				post, err := createPost(groupChannel.Id, account.Id)
-				So(err, ShouldBeNil)
-				So(post, ShouldNotBeNil)
+			So(len(likes), ShouldEqual, 1)
 
-				err = addInteraction("like", post.Id, nonOwnerAccount.Id)
-				So(err, ShouldBeNil)
+		})
 
-				likes, err := getInteractions("like", post.Id)
-				So(err, ShouldBeNil)
+		Convey("users should be able to  un-like message", func() {
+			post, err := rest.CreatePost(groupChannel.Id, account.Id)
+			So(err, ShouldBeNil)
+			So(post, ShouldNotBeNil)
 
-				So(len(likes), ShouldEqual, 1)
+			err = rest.AddInteraction("like", post.Id, post.AccountId)
+			So(err, ShouldBeNil)
 
-			})
+			cmc, err := rest.GetPostWithRelatedData(
+				post.Id,
+				&request.Query{
+					AccountId: post.AccountId,
+					GroupName: groupName,
+				},
+			)
 
-			Convey("users should be able to  un-like message", func() {
-				post, err := createPost(groupChannel.Id, account.Id)
-				So(err, ShouldBeNil)
-				So(post, ShouldNotBeNil)
+			So(err, ShouldBeNil)
+			So(cmc, ShouldNotBeNil)
 
-				err = addInteraction("like", post.Id, post.AccountId)
-				So(err, ShouldBeNil)
+			// it is liked by author
+			So(cmc.Interactions["like"].IsInteracted, ShouldBeTrue)
 
-				cmc, err := getPostWithRelatedData(post.Id, post.AccountId, groupName)
-				So(err, ShouldBeNil)
-				So(cmc, ShouldNotBeNil)
+			// actor length should be 1
+			So(cmc.Interactions["like"].ActorsCount, ShouldEqual, 1)
 
-				// it is liked by author
-				So(cmc.Interactions["like"].IsInteracted, ShouldBeTrue)
+			err = rest.DeleteInteraction("like", post.Id, account.Id)
+			So(err, ShouldBeNil)
 
-				// actor length should be 1
-				So(cmc.Interactions["like"].ActorsCount, ShouldEqual, 1)
+			cmc, err = rest.GetPostWithRelatedData(
+				post.Id,
+				&request.Query{
+					AccountId: post.AccountId,
+					GroupName: groupName,
+				},
+			)
 
-				err = deleteInteraction("like", post.Id, account.Id)
-				So(err, ShouldBeNil)
+			So(err, ShouldBeNil)
+			So(cmc, ShouldNotBeNil)
 
-				cmc, err = getPostWithRelatedData(post.Id, post.AccountId, groupName)
-				So(err, ShouldBeNil)
-				So(cmc, ShouldNotBeNil)
+			// it is liked by author
+			So(cmc.Interactions["like"].IsInteracted, ShouldBeFalse)
 
-				// it is liked by author
-				So(cmc.Interactions["like"].IsInteracted, ShouldBeFalse)
+			// actor length should be 1
+			So(cmc.Interactions["like"].ActorsCount, ShouldEqual, 0)
+		})
 
-				// actor length should be 1
-				So(cmc.Interactions["like"].ActorsCount, ShouldEqual, 0)
-			})
+		Convey("owner can post reply to message", func() {
+			post, err := rest.CreatePost(groupChannel.Id, account.Id)
+			So(err, ShouldBeNil)
+			So(post, ShouldNotBeNil)
 
-			Convey("owner can post reply to message", func() {
-				post, err := createPost(groupChannel.Id, account.Id)
-				So(err, ShouldBeNil)
-				So(post, ShouldNotBeNil)
+			reply, err := rest.AddReply(post.Id, post.AccountId, groupChannel.Id)
+			So(err, ShouldBeNil)
+			So(reply, ShouldNotBeNil)
 
-				reply, err := addReply(post.Id, post.AccountId, groupChannel.Id)
-				So(err, ShouldBeNil)
-				So(reply, ShouldNotBeNil)
+			So(reply.AccountId, ShouldEqual, post.AccountId)
 
-				So(reply.AccountId, ShouldEqual, post.AccountId)
+			cmc, err := rest.GetPostWithRelatedData(
+				post.Id,
+				&request.Query{
+					AccountId: post.AccountId,
+					GroupName: groupName,
+				},
+			)
 
-				cmc, err := getPostWithRelatedData(post.Id, post.AccountId, groupName)
-				So(err, ShouldBeNil)
-				So(cmc, ShouldNotBeNil)
+			So(err, ShouldBeNil)
+			So(cmc, ShouldNotBeNil)
 
-				So(len(cmc.Replies), ShouldEqual, 1)
+			So(len(cmc.Replies), ShouldEqual, 1)
 
-				So(cmc.Replies[0].Message.AccountId, ShouldEqual, post.AccountId)
+			So(cmc.Replies[0].Message.AccountId, ShouldEqual, post.AccountId)
 
-			})
+		})
 
-			Convey("we should be able to get only replies", func() {
-				post, err := createPost(groupChannel.Id, account.Id)
-				So(err, ShouldBeNil)
-				So(post, ShouldNotBeNil)
+		Convey("we should be able to get only replies", func() {
+			post, err := rest.CreatePost(groupChannel.Id, account.Id)
+			So(err, ShouldBeNil)
+			So(post, ShouldNotBeNil)
 
-				reply, err := addReply(post.Id, post.AccountId, groupChannel.Id)
-				So(err, ShouldBeNil)
-				So(reply, ShouldNotBeNil)
+			reply, err := rest.AddReply(post.Id, post.AccountId, groupChannel.Id)
+			So(err, ShouldBeNil)
+			So(reply, ShouldNotBeNil)
 
-				reply, err = addReply(post.Id, post.AccountId, groupChannel.Id)
-				So(err, ShouldBeNil)
-				So(reply, ShouldNotBeNil)
+			reply, err = rest.AddReply(post.Id, post.AccountId, groupChannel.Id)
+			So(err, ShouldBeNil)
+			So(reply, ShouldNotBeNil)
 
-				replies, err := getReplies(post.Id, post.AccountId, groupName)
-				So(err, ShouldBeNil)
-				So(len(replies), ShouldEqual, 2)
+			replies, err := rest.GetReplies(post.Id, post.AccountId, groupName)
+			So(err, ShouldBeNil)
+			So(len(replies), ShouldEqual, 2)
 
-			})
+		})
 
-			Convey("we should be able to get replies with \"from\" query param", nil)
+		Convey("we should be able to get replies with \"from\" query param", nil)
 
-			Convey("non-owner can post reply to message", func() {
-				post, err := createPost(groupChannel.Id, account.Id)
-				So(err, ShouldBeNil)
-				So(post, ShouldNotBeNil)
+		Convey("non-owner can post reply to message", func() {
+			post, err := rest.CreatePost(groupChannel.Id, account.Id)
+			So(err, ShouldBeNil)
+			So(post, ShouldNotBeNil)
 
-				reply, err := addReply(post.Id, nonOwnerAccount.Id, groupChannel.Id)
-				So(err, ShouldBeNil)
-				So(reply, ShouldNotBeNil)
+			reply, err := rest.AddReply(post.Id, nonOwnerAccount.Id, groupChannel.Id)
+			So(err, ShouldBeNil)
+			So(reply, ShouldNotBeNil)
 
-				So(reply.AccountId, ShouldEqual, nonOwnerAccount.Id)
+			So(reply.AccountId, ShouldEqual, nonOwnerAccount.Id)
 
-				cmc, err := getPostWithRelatedData(post.Id, post.AccountId, groupName)
-				So(err, ShouldBeNil)
-				So(cmc, ShouldNotBeNil)
+			cmc, err := rest.GetPostWithRelatedData(
+				post.Id,
+				&request.Query{
+					AccountId: post.AccountId,
+					GroupName: groupName,
+				},
+			)
 
-				So(len(cmc.Replies), ShouldEqual, 1)
+			So(err, ShouldBeNil)
+			So(cmc, ShouldNotBeNil)
 
-				So(cmc.Replies[0].Message.AccountId, ShouldEqual, nonOwnerAccount.Id)
-			})
+			So(len(cmc.Replies), ShouldEqual, 1)
 
-			Convey("reply can be liked", func() {
-				post, err := createPost(groupChannel.Id, account.Id)
-				So(err, ShouldBeNil)
-				So(post, ShouldNotBeNil)
+			So(cmc.Replies[0].Message.AccountId, ShouldEqual, nonOwnerAccount.Id)
+		})
 
-				reply, err := addReply(post.Id, nonOwnerAccount.Id, groupChannel.Id)
-				So(err, ShouldBeNil)
-				So(reply, ShouldNotBeNil)
+		Convey("reply can be liked", func() {
+			post, err := rest.CreatePost(groupChannel.Id, account.Id)
+			So(err, ShouldBeNil)
+			So(post, ShouldNotBeNil)
 
-				So(reply.AccountId, ShouldEqual, nonOwnerAccount.Id)
+			reply, err := rest.AddReply(post.Id, nonOwnerAccount.Id, groupChannel.Id)
+			So(err, ShouldBeNil)
+			So(reply, ShouldNotBeNil)
 
-				err = addInteraction("like", reply.Id, nonOwnerAccount.Id)
-				So(err, ShouldBeNil)
+			So(reply.AccountId, ShouldEqual, nonOwnerAccount.Id)
 
-				cmc, err := getPostWithRelatedData(post.Id, account.Id, groupName)
-				So(err, ShouldBeNil)
-				So(cmc, ShouldNotBeNil)
+			err = rest.AddInteraction("like", reply.Id, nonOwnerAccount.Id)
+			So(err, ShouldBeNil)
 
-				// it is liked by reply author, not post owner
-				So(cmc.Interactions["like"].IsInteracted, ShouldBeFalse)
+			cmc, err := rest.GetPostWithRelatedData(
+				post.Id,
+				&request.Query{
+					AccountId: account.Id,
+					GroupName: groupName,
+				},
+			)
 
-				// we didnt like the post, we liked the reply
-				So(cmc.Interactions["like"].ActorsCount, ShouldEqual, 0)
+			So(err, ShouldBeNil)
+			So(cmc, ShouldNotBeNil)
 
-				So(len(cmc.Replies), ShouldEqual, 1)
+			// it is liked by reply author, not post owner
+			So(cmc.Interactions["like"].IsInteracted, ShouldBeFalse)
 
-				// we liked the reply
-				So(cmc.Replies[0].Interactions["like"].ActorsCount, ShouldEqual, 1)
+			// we didnt like the post, we liked the reply
+			So(cmc.Interactions["like"].ActorsCount, ShouldEqual, 0)
 
-				So(cmc.Replies[0].Interactions["like"].IsInteracted, ShouldBeFalse)
+			So(len(cmc.Replies), ShouldEqual, 1)
 
-			})
+			// we liked the reply
+			So(cmc.Replies[0].Interactions["like"].ActorsCount, ShouldEqual, 1)
 
-			// for now those will be handled by social worker
-			Convey("reply can be deleted by admin", nil)
-			Convey("reply can not be deleted by non owner", nil)
+			So(cmc.Replies[0].Interactions["like"].IsInteracted, ShouldBeFalse)
 
-			Convey("reply can be deleted by owner", func() {
-				post, err := createPost(groupChannel.Id, account.Id)
-				So(err, ShouldBeNil)
-				So(post, ShouldNotBeNil)
+		})
 
-				reply, err := addReply(post.Id, nonOwnerAccount.Id, groupChannel.Id)
-				So(err, ShouldBeNil)
-				So(reply, ShouldNotBeNil)
+		// for now those will be handled by social worker
+		Convey("reply can be deleted by admin", nil)
+		Convey("reply can not be deleted by non owner", nil)
 
-				err = deletePost(reply.Id, nonOwnerAccount.Id, groupName)
-				So(err, ShouldBeNil)
+		Convey("reply can be deleted by owner", func() {
+			post, err := rest.CreatePost(groupChannel.Id, account.Id)
+			So(err, ShouldBeNil)
+			So(post, ShouldNotBeNil)
 
-				cmc, err := getPostWithRelatedData(post.Id, account.Id, groupName)
-				So(err, ShouldBeNil)
-				So(cmc, ShouldNotBeNil)
+			reply, err := rest.AddReply(post.Id, nonOwnerAccount.Id, groupChannel.Id)
+			So(err, ShouldBeNil)
+			So(reply, ShouldNotBeNil)
 
-				So(len(cmc.Replies), ShouldEqual, 0)
+			err = rest.DeletePost(reply.Id, nonOwnerAccount.Id, groupName)
+			So(err, ShouldBeNil)
 
-			})
+			cmc, err := rest.GetPostWithRelatedData(
+				post.Id,
+				&request.Query{
+					AccountId: account.Id,
+					GroupName: groupName,
+				},
+			)
 
-			Convey("while deleting message, also replies should be deleted", func() {
-				post, err := createPost(groupChannel.Id, account.Id)
-				So(err, ShouldBeNil)
-				So(post, ShouldNotBeNil)
+			So(err, ShouldBeNil)
+			So(cmc, ShouldNotBeNil)
 
-				reply1, err := addReply(post.Id, nonOwnerAccount.Id, groupChannel.Id)
-				So(err, ShouldBeNil)
-				So(reply1, ShouldNotBeNil)
+			So(len(cmc.Replies), ShouldEqual, 0)
 
-				reply2, err := addReply(post.Id, nonOwnerAccount.Id, groupChannel.Id)
-				So(err, ShouldBeNil)
-				So(reply2, ShouldNotBeNil)
+		})
 
-				err = deletePost(post.Id, account.Id, groupName)
-				So(err, ShouldBeNil)
+		Convey("while deleting message, also replies should be deleted", func() {
+			post, err := rest.CreatePost(groupChannel.Id, account.Id)
+			So(err, ShouldBeNil)
+			So(post, ShouldNotBeNil)
 
-				cmc, err := getPostWithRelatedData(reply1.Id, account.Id, groupName)
-				So(err, ShouldNotBeNil)
-				So(cmc, ShouldBeNil)
+			reply1, err := rest.AddReply(post.Id, nonOwnerAccount.Id, groupChannel.Id)
+			So(err, ShouldBeNil)
+			So(reply1, ShouldNotBeNil)
 
-				cmc, err = getPostWithRelatedData(reply2.Id, account.Id, groupName)
-				So(err, ShouldNotBeNil)
-				So(cmc, ShouldBeNil)
+			reply2, err := rest.AddReply(post.Id, nonOwnerAccount.Id, groupChannel.Id)
+			So(err, ShouldBeNil)
+			So(reply2, ShouldNotBeNil)
 
-			})
+			err = rest.DeletePost(post.Id, account.Id, groupName)
+			So(err, ShouldBeNil)
 
-			Convey("while deleting message replies' likes should be deleted", func() {
-				post, err := createPost(groupChannel.Id, account.Id)
-				So(err, ShouldBeNil)
-				So(post, ShouldNotBeNil)
+			cmc, err := rest.GetPostWithRelatedData(
+				reply1.Id,
+				&request.Query{
+					AccountId: account.Id,
+					GroupName: groupName,
+				},
+			)
+			So(err, ShouldNotBeNil)
+			So(cmc, ShouldBeNil)
 
-				reply1, err := addReply(post.Id, nonOwnerAccount.Id, groupChannel.Id)
-				So(err, ShouldBeNil)
-				So(reply1, ShouldNotBeNil)
+			cmc, err = rest.GetPostWithRelatedData(
+				reply2.Id,
+				&request.Query{
+					AccountId: account.Id,
+					GroupName: groupName,
+				},
+			)
 
-				reply2, err := addReply(post.Id, nonOwnerAccount.Id, groupChannel.Id)
-				So(err, ShouldBeNil)
-				So(reply2, ShouldNotBeNil)
+			So(err, ShouldNotBeNil)
+			So(cmc, ShouldBeNil)
 
-				err = addInteraction("like", reply1.Id, account.Id)
-				So(err, ShouldBeNil)
+		})
 
-				err = addInteraction("like", reply2.Id, account.Id)
-				So(err, ShouldBeNil)
+		Convey("while deleting message replies' likes should be deleted", func() {
+			post, err := rest.CreatePost(groupChannel.Id, account.Id)
+			So(err, ShouldBeNil)
+			So(post, ShouldNotBeNil)
 
-				err = deletePost(post.Id, account.Id, groupName)
-				So(err, ShouldBeNil)
+			reply1, err := rest.AddReply(post.Id, nonOwnerAccount.Id, groupChannel.Id)
+			So(err, ShouldBeNil)
+			So(reply1, ShouldNotBeNil)
 
-				interactions, err := getInteractions("like", reply1.Id)
-				So(err, ShouldBeNil)
-				So(interactions, ShouldNotBeNil)
+			reply2, err := rest.AddReply(post.Id, nonOwnerAccount.Id, groupChannel.Id)
+			So(err, ShouldBeNil)
+			So(reply2, ShouldNotBeNil)
 
-				interactions, err = getInteractions("like", reply2.Id)
-				So(err, ShouldBeNil)
-				So(interactions, ShouldNotBeNil)
+			err = rest.AddInteraction("like", reply1.Id, account.Id)
+			So(err, ShouldBeNil)
 
-			})
+			err = rest.AddInteraction("like", reply2.Id, account.Id)
+			So(err, ShouldBeNil)
 
-			Convey("while deleting message, message likes should be deleted", func() {
-				post, err := createPost(groupChannel.Id, account.Id)
-				So(err, ShouldBeNil)
-				So(post, ShouldNotBeNil)
+			err = rest.DeletePost(post.Id, account.Id, groupName)
+			So(err, ShouldBeNil)
 
-				err = addInteraction("like", post.Id, account.Id)
-				So(err, ShouldBeNil)
+			interactions, err := rest.GetInteractions("like", reply1.Id)
+			So(err, ShouldBeNil)
+			So(interactions, ShouldNotBeNil)
 
-				err = deletePost(post.Id, account.Id, groupName)
-				So(err, ShouldBeNil)
+			interactions, err = rest.GetInteractions("like", reply2.Id)
+			So(err, ShouldBeNil)
+			So(interactions, ShouldNotBeNil)
 
-				interactions, err := getInteractions("like", post.Id)
-				So(err, ShouldBeNil)
-				So(interactions, ShouldNotBeNil)
-			})
-			Convey("while deleting messages, they should be removed from all channels", nil)
+		})
 
-			Convey("message can contain payload", func() {
-				payload := make(map[string]interface{})
-				payload["key1"] = "value1"
-				payload["key2"] = 2
-				payload["key3"] = true
-				payload["key4"] = 3.4
+		Convey("while deleting message, message likes should be deleted", func() {
+			post, err := rest.CreatePost(groupChannel.Id, account.Id)
+			So(err, ShouldBeNil)
+			So(post, ShouldNotBeNil)
 
-				post, err := createPostWithPayload(groupChannel.Id, account.Id, payload)
-				So(err, ShouldBeNil)
-				So(post, ShouldNotBeNil)
+			err = rest.AddInteraction("like", post.Id, account.Id)
+			So(err, ShouldBeNil)
 
-				So(post.Payload, ShouldNotBeNil)
-				So(*(post.Payload["key1"]), ShouldEqual, "value1")
-				So(*(post.Payload["key2"]), ShouldEqual, "2")
-				So(*(post.Payload["key3"]), ShouldEqual, "true")
-				So(*(post.Payload["key4"]), ShouldEqual, "3.4")
-			})
+			err = rest.DeletePost(post.Id, account.Id, groupName)
+			So(err, ShouldBeNil)
+
+			interactions, err := rest.GetInteractions("like", post.Id)
+			So(err, ShouldBeNil)
+			So(interactions, ShouldNotBeNil)
+		})
+		Convey("while deleting messages, they should be removed from all channels", nil)
+
+		Convey("message can contain payload", func() {
+			payload := make(map[string]interface{})
+			payload["key1"] = "value1"
+			payload["key2"] = 2
+			payload["key3"] = true
+			payload["key4"] = 3.4
+
+			post, err := rest.CreatePostWithPayload(groupChannel.Id, account.Id, payload)
+			So(err, ShouldBeNil)
+			So(post, ShouldNotBeNil)
+
+			So(post.Payload, ShouldNotBeNil)
+			So(*(post.Payload["key1"]), ShouldEqual, "value1")
+			So(*(post.Payload["key2"]), ShouldEqual, "2")
+			So(*(post.Payload["key3"]), ShouldEqual, "true")
+			So(*(post.Payload["key4"]), ShouldEqual, "3.4")
 		})
 	})
-}
-
-func createPost(channelId, accountId int64) (*models.ChannelMessage, error) {
-	return createPostWithBody(channelId, accountId, "create a message")
-}
-
-type PayloadRequest struct {
-	Body      string                 `json:"body"`
-	AccountId int64                  `json:"accountId,string"`
-	Payload   map[string]interface{} `json:"payload"`
-}
-
-func createPostWithPayload(channelId, accountId int64, payload map[string]interface{}) (*models.ChannelMessage, error) {
-	pr := PayloadRequest{}
-	pr.Body = "message with payload"
-	pr.AccountId = accountId
-	pr.Payload = payload
-
-	return createPostRequest(channelId, pr)
-}
-
-func createPostWithBody(channelId, accountId int64, body string) (*models.ChannelMessage, error) {
-	cm := models.NewChannelMessage()
-	cm.Body = body
-	cm.AccountId = accountId
-
-	return createPostRequest(channelId, cm)
-}
-
-func createPostRequest(channelId int64, model interface{}) (*models.ChannelMessage, error) {
-	url := fmt.Sprintf("/channel/%d/message", channelId)
-	res, err := marshallAndSendRequest("POST", url, model)
-	if err != nil {
-		return nil, err
-	}
-
-	container := models.NewChannelMessageContainer()
-	err = json.Unmarshal(res, container)
-	if err != nil {
-		return nil, err
-	}
-
-	return container.Message, nil
-}
-
-func updatePost(cm *models.ChannelMessage) (*models.ChannelMessage, error) {
-	cm.Body = "after update"
-
-	url := fmt.Sprintf("/message/%d", cm.Id)
-	cmI, err := sendModel("POST", url, cm)
-	if err != nil {
-		return nil, err
-	}
-
-	return cmI.(*models.ChannelMessage), nil
-}
-
-func getPost(id int64, accountId int64, groupName string) (*models.ChannelMessage, error) {
-	url := fmt.Sprintf("/message/%d?accountId=%d&groupName=%s", id, accountId, groupName)
-	cm := models.NewChannelMessage()
-	cmI, err := sendModel("GET", url, cm)
-	if err != nil {
-		return nil, err
-	}
-	return cmI.(*models.ChannelMessage), nil
-}
-
-func getPostWithRelatedData(id int64, accountId int64, groupName string) (*models.ChannelMessageContainer, error) {
-	url := fmt.Sprintf("/message/%d/related?accountId=%d&groupName=%s", id, accountId, groupName)
-	cm := models.NewChannelMessageContainer()
-	cmI, err := sendModel("GET", url, cm)
-	if err != nil {
-		return nil, err
-	}
-	return cmI.(*models.ChannelMessageContainer), nil
-}
-
-func deletePost(id int64, accountId int64, groupName string) error {
-	url := fmt.Sprintf("/message/%d?accountId=%d&groupName=%s", id, accountId, groupName)
-	_, err := sendRequest("DELETE", url, nil)
-	return err
-}
-
-func addInteraction(interactionType string, postId, accountId int64) error {
-	cm := models.NewInteraction()
-	cm.AccountId = accountId
-	cm.MessageId = postId
-
-	url := fmt.Sprintf("/message/%d/interaction/%s/add", postId, interactionType)
-	_, err := sendModel("POST", url, cm)
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
-func getInteractions(interactionType string, postId int64) ([]string, error) {
-	url := fmt.Sprintf("/message/%d/interaction/%s", postId, interactionType)
-	res, err := sendRequest("GET", url, nil)
-	if err != nil {
-		return nil, err
-	}
-
-	var interactions []string
-	err = json.Unmarshal(res, &interactions)
-	if err != nil {
-		return nil, err
-	}
-
-	return interactions, nil
-}
-
-func deleteInteraction(interactionType string, postId, accountId int64) error {
-	cm := models.NewInteraction()
-	cm.AccountId = accountId
-	cm.MessageId = postId
-
-	url := fmt.Sprintf("/message/%d/interaction/%s/delete", postId, interactionType)
-	_, err := marshallAndSendRequest("POST", url, cm)
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
-func getReplies(postId int64, accountId int64, groupName string) ([]*models.ChannelMessage, error) {
-	url := fmt.Sprintf("/message/%d/reply?accountId=%d&groupName=%s", postId, accountId, groupName)
-	res, err := sendRequest("GET", url, nil)
-	if err != nil {
-		return nil, err
-	}
-
-	var replies []*models.ChannelMessage
-	err = json.Unmarshal(res, &replies)
-	if err != nil {
-		return nil, err
-	}
-
-	return replies, nil
-}
-
-func addReply(postId, accountId, channelId int64) (*models.ChannelMessage, error) {
-	cm := models.NewChannelMessage()
-	cm.Body = "reply body"
-	cm.AccountId = accountId
-	cm.InitialChannelId = channelId
-
-	url := fmt.Sprintf("/message/%d/reply", postId)
-	res, err := marshallAndSendRequest("POST", url, cm)
-	if err != nil {
-		return nil, err
-	}
-
-	model := models.NewChannelMessageContainer()
-	err = json.Unmarshal(res, model)
-	if err != nil {
-		return nil, err
-	}
-
-	return model.Message, nil
-}
-
-func deleteReply(postId, replyId int64) error {
-	url := fmt.Sprintf("/message/%d/reply/%d/delete", postId, replyId)
-	_, err := sendRequest("DELETE", url, nil)
-	if err != nil {
-		return err
-	}
-	return nil
 }

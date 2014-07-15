@@ -33,14 +33,16 @@ class ActivitySideView extends JView
         cssClass          : "activities"
 
     @header = new KDCustomHTMLView
-      tagName : 'h3'
-      partial : @getOption 'title'
+      tagName  : 'h3'
+      cssClass : 'sidebar-title'
+      partial  : @getOption 'title'
       # click   : @bound 'reload'
 
 
     @header.addSubView headerLink  if headerLink
 
     @listView = @listController.getView()
+    sidebar.bindItemEvents @listView
 
     @listView.once 'viewAppended', @bound 'init'
 
@@ -74,7 +76,10 @@ class ActivitySideView extends JView
   renderItems: (err, items = []) ->
 
     @listController.hideLazyLoader()
-    @listController.addItem item for item in items  unless err
+
+    return  if err
+
+    @listController.addItem itemData for itemData in items
 
 
   pistachio: ->

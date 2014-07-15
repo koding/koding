@@ -14,7 +14,6 @@ import (
 )
 
 func TestMultiple(t *testing.T) {
-	t.Skip("Run it manually")
 	testDuration := time.Second * 10
 
 	// number of available mathworker kites to be called
@@ -29,9 +28,9 @@ func TestMultiple(t *testing.T) {
 	fmt.Printf("Creating %d mathworker kites\n", kiteNumber)
 	for i := 0; i < kiteNumber; i++ {
 		m := New("mathworker"+strconv.Itoa(i), "0.1."+strconv.Itoa(i))
+		m.Config.DisableAuthentication = true
 
 		m.HandleFunc("square", Square)
-		m.Config.DisableAuthentication = true
 
 		go http.ListenAndServe("127.0.0.1:"+strconv.Itoa(port+i), m)
 	}
@@ -42,7 +41,7 @@ func TestMultiple(t *testing.T) {
 	fmt.Printf("Creating %d exp clients\n", clientNumber)
 	clients := make([]*Client, clientNumber)
 	for i := 0; i < clientNumber; i++ {
-		c := New("exp"+strconv.Itoa(i), "0.0.1").NewClientString("ws://127.0.0.1:" + strconv.Itoa(port+i))
+		c := New("exp"+strconv.Itoa(i), "0.0.1").NewClient("http://127.0.0.1:" + strconv.Itoa(port+i) + "/kite")
 		if err := c.Dial(); err != nil {
 			t.Fatal(err)
 		}
@@ -77,7 +76,7 @@ func TestMultiple(t *testing.T) {
 
 					number := result.MustFloat64()
 
-					fmt.Printf("rpc result: %f elapsedTime %f sec\n", number, elapsedTime.Seconds())
+					t.Log("rpc result: %f elapsedTime %f sec\n", number, elapsedTime.Seconds())
 				}(i)
 			}
 		case <-timeout:
@@ -114,7 +113,7 @@ func TestKite(t *testing.T) {
 	})
 
 	// exp2 connects to mathworker
-	remote := exp2Kite.NewClientString("ws://127.0.0.1:3636")
+	remote := exp2Kite.NewClient("http://127.0.0.1:3636/kite")
 	err := remote.Dial()
 	if err != nil {
 		t.Fatal(err)

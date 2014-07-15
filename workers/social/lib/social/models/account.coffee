@@ -46,8 +46,8 @@ module.exports = class JAccount extends jraphical.Module
     taggedContentRole   : 'developer'
     indexes:
       'profile.nickname' : 'unique'
-      isExempt           : 1
-      type               : 1
+      isExempt           : 'ascending'
+      type               : 'ascending'
     sharedEvents    :
       static        : [
         { name: 'AccountAuthenticated' } # TODO: we need to handle this event differently.
@@ -422,6 +422,8 @@ module.exports = class JAccount extends jraphical.Module
     @notifyGroupWhen 'FollowHappened'
 
   canEditPost: permit 'edit posts'
+
+  canDeletePost: permit 'delete posts'
 
   createSocialApiId:(callback)->
     return callback null, @socialApiId  if @socialApiId
@@ -923,8 +925,8 @@ module.exports = class JAccount extends jraphical.Module
 
   dummyAdmins = [ "sinan", "devrim", "gokmen", "chris", "fatihacet", "arslan",
                   "sent-hil", "kiwigeraint", "cihangirsavas", "leventyalcin",
-                  "leeolayvar", "stefanbc", "szkl", "alfredo", "canthefason",
-                  "nitin" ]
+                  "leeolayvar", "stefanbc", "szkl", "canthefason", "nitin",
+                  "rsbrown"]
 
   userIsExempt: (callback)->
     # console.log @isExempt, this
@@ -961,8 +963,23 @@ module.exports = class JAccount extends jraphical.Module
       else
         @update {$pullAll: globalFlags: ["exempt"]}, ()->
 
+      # mark user as troll in social api
+      @markUserAsExemptInSocialAPI client, exempt, (err, data)->
+        console.error err if err
+
     else
       callback new KodingError 'Access denied'
+
+  markUserAsExemptInSocialAPI: (client, exempt, callback)->
+    {markAsTroll, unmarkAsTroll} = require './socialapi/requests'
+    @createSocialApiId (err, accountId)->
+      return callback err if err
+      return callback {message: "account id is not set"} unless accountId
+
+      if exempt
+        markAsTroll {accountId}, callback
+      else
+        unmarkAsTroll {accountId}, callback
 
   flagAccount: secure (client, flag, callback)->
     {delegate} = client.connection

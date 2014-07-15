@@ -189,7 +189,7 @@ module.exports =
       uploadsUriForGroup: 'https://koding-groups.s3.amazonaws.com'
       sourceUri : "http://webserver-#{version}a.sj.koding.com:1337"
       newkontrol:
-        url         : 'wss://kontrol.koding.com'
+        url         : 'https://kontrol.koding.com/kite'
       fileFetchTimeout: 15 * 1000 # seconds
       externalProfiles  :
         github          :

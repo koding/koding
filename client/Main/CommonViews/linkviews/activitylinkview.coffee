@@ -16,5 +16,5 @@ class ActivityLinkView extends JView
     {body, slug, group} = @getData()
     groupPath = if group is "koding" then "" else "/#{group}"
     """
-    <a href="#{groupPath}/Activity/#{slug}">{{@formatContent #(body)}}</a>
+    <a href="#{groupPath}/Activity/Post/#{slug}">{{@formatContent #(body)}}</a>
     """

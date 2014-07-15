@@ -9,16 +9,17 @@ import (
 	"github.com/dgrijalva/jwt-go"
 	"github.com/koding/kite/dnode"
 	"github.com/koding/kite/kitekey"
+	"github.com/koding/kite/sockjsclient"
 )
 
 // Request contains information about the incoming request.
 type Request struct {
-	Method         string
-	Args           *dnode.Partial
-	LocalKite      *Kite
-	Client         *Client
-	Username       string
-	Authentication *Authentication
+	Method    string
+	Args      *dnode.Partial
+	LocalKite *Kite
+	Client    *Client
+	Username  string
+	Auth      *Auth
 }
 
 // Response is the type of the object that is returned from request handlers
@@ -83,7 +84,7 @@ func (c *Client) newRequest(method string, args *dnode.Partial) (*Request, func(
 	args.One().MustUnmarshal(&options)
 
 	// Notify the handlers registered with Kite.OnFirstRequest().
-	if c.RemoteAddr() != "" {
+	if _, ok := c.session.(*sockjsclient.WebsocketSession); !ok {
 		c.firstRequestHandlersNotified.Do(func() {
 			c.Kite = options.Kite
 			c.LocalKite.callOnFirstRequestHandlers(c)
@@ -91,11 +92,11 @@ func (c *Client) newRequest(method string, args *dnode.Partial) (*Request, func(
 	}
 
 	request := &Request{
-		Method:         method,
-		Args:           options.WithArgs,
-		LocalKite:      c.LocalKite,
-		Client:         c,
-		Authentication: options.Authentication,
+		Method:    method,
+		Args:      options.WithArgs,
+		LocalKite: c.LocalKite,
+		Client:    c,
+		Auth:      options.Auth,
 	}
 
 	// Call response callback function, send back our response
@@ -122,12 +123,12 @@ func (c *Client) newRequest(method string, args *dnode.Partial) (*Request, func(
 // authenticator function.
 func (r *Request) authenticate() *Error {
 	// Trust the Kite if we have initiated the connection.
-	// RemoteAddr() returns "" if this is an outgoing connection.
-	if r.Client.RemoteAddr() == "" {
+	// Following cast means, session is opened by the client.
+	if _, ok := r.Client.session.(*sockjsclient.WebsocketSession); ok {
 		return nil
 	}
 
-	if r.Authentication == nil {
+	if r.Auth == nil {
 		return &Error{
 			Type:    "authenticationError",
 			Message: "No authentication information is provided",
@@ -135,11 +136,11 @@ func (r *Request) authenticate() *Error {
 	}
 
 	// Select authenticator function.
-	f := r.LocalKite.Authenticators[r.Authentication.Type]
+	f := r.LocalKite.Authenticators[r.Auth.Type]
 	if f == nil {
 		return &Error{
 			Type:    "authenticationError",
-			Message: fmt.Sprintf("Unknown authentication type: %s", r.Authentication.Type),
+			Message: fmt.Sprintf("Unknown authentication type: %s", r.Auth.Type),
 		}
 	}
 
@@ -154,13 +155,13 @@ func (r *Request) authenticate() *Error {
 
 	// Replace username of the remote Kite with the username that client send
 	// us. This prevents a Kite to impersonate someone else's Kite.
-	r.Client.Kite.Username = r.Username
+	r.Client.SetUsername(r.Username)
 	return nil
 }
 
 // AuthenticateFromToken is the default Authenticator for Kite.
 func (k *Kite) AuthenticateFromToken(r *Request) error {
-	token, err := jwt.Parse(r.Authentication.Key, r.LocalKite.RSAKey)
+	token, err := jwt.Parse(r.Auth.Key, r.LocalKite.RSAKey)
 	if err != nil {
 		return err
 	}
@@ -185,7 +186,7 @@ func (k *Kite) AuthenticateFromToken(r *Request) error {
 
 // AuthenticateFromKiteKey authenticates user from kite key.
 func (k *Kite) AuthenticateFromKiteKey(r *Request) error {
-	token, err := jwt.Parse(r.Authentication.Key, kitekey.GetKontrolKey)
+	token, err := jwt.Parse(r.Auth.Key, kitekey.GetKontrolKey)
 	if err != nil {
 		return err
 	}

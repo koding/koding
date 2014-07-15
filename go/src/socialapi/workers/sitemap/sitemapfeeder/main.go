@@ -19,13 +19,10 @@ func main() {
 		return
 	}
 
-	redisConn := helper.MustInitRedisConn(r.Conf.Redis)
+	redisConn := helper.MustInitRedisConn(r.Conf)
 	defer redisConn.Close()
 
-	controller, err := feeder.New(r.Log)
-	if err != nil {
-		panic(err)
-	}
+	controller := feeder.New(r.Log)
 
 	m := manager.New()
 	m.Controller(controller)
@@ -40,9 +37,9 @@ func registerHandlers(m *manager.Manager) {
 	m.HandleFunc("api.channel_message_created", (*feeder.Controller).MessageAdded)
 	m.HandleFunc("api.channel_message_updated", (*feeder.Controller).MessageUpdated)
 	m.HandleFunc("api.channel_message_deleted", (*feeder.Controller).MessageDeleted)
-	m.HandleFunc("api.channel_created", (*feeder.Controller).ChannelAdded)
-	m.HandleFunc("api.channel_updated", (*feeder.Controller).ChannelUpdated)
-	m.HandleFunc("api.channel_deleted", (*feeder.Controller).ChannelDeleted)
+	m.HandleFunc("api.channel_message_list_created", (*feeder.Controller).ChannelMessageListAdded)
+	m.HandleFunc("api.channel_message_list_updated", (*feeder.Controller).ChannelMessageListUpdated)
+	m.HandleFunc("api.channel_message_list_deleted", (*feeder.Controller).ChannelMessageListDeleted)
 	m.HandleFunc("api.account_created", (*feeder.Controller).AccountAdded)
 	m.HandleFunc("api.account_updated", (*feeder.Controller).AccountUpdated)
 	m.HandleFunc("api.account_deleted", (*feeder.Controller).AccountDeleted)

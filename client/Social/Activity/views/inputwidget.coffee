@@ -69,11 +69,13 @@ class ActivityInputWidget extends KDView
       loader      : yes
       callback    : @bound "submit"
 
-    @avatar = new AvatarView
-      size      :
-        width   : 42
-        height  : 42
-    , KD.whoami()
+    @icon = new KDCustomHTMLView tagName : 'figure'
+
+    # @avatar = new AvatarView
+    #   size      :
+    #     width   : 42
+    #     height  : 42
+    # , KD.whoami()
 
     @buttonBar = new KDCustomHTMLView
       cssClass : "widget-button-bar"
@@ -159,8 +161,7 @@ class ActivityInputWidget extends KDView
   submit: (callback) ->
 
     return  if @locked
-
-    return @reset yes  unless value = @input.getValue().trim()
+    return @reset yes  unless body = @input.getValue().trim()
 
     activity = @getData()
     {app}    = @getOptions()
@@ -177,15 +178,12 @@ class ActivityInputWidget extends KDView
     #     else if data.$suggest and data.$suggest not in suggestedTags
     #       suggestedTags.push data.$suggest
 
-    # fixme embedbox
-
-    # data.link_url   = @embedBox.url or ""
-    # data.link_embed = @embedBox.getDataForSubmit() or {}
+    payload = @getPayload()
 
     @lockSubmit()
 
     fn = @bound if activity then 'update' else 'create'
-    fn { body : value }, @bound 'submissionCallback'
+    fn {body, payload}, @bound 'submissionCallback'
 
     @emit "ActivitySubmitted"
     # fixme for bugs app
@@ -209,22 +207,20 @@ class ActivityInputWidget extends KDView
     return @showError err  if err
 
     @reset yes
-    @embedBox.resetEmbedAndHide()
     @emit "Submit", activity
 
     KD.mixpanel "Status update create, success", { length: activity?.body?.length }
 
 
-  create: (data, callback) ->
+  create: ({body, payload}, callback) ->
 
     {appManager} = KD.singletons
-    {body}       = data
     {channel}    = @getOptions()
 
-    if channel.typeConstant is 'topic' and not body.match ///##{channel.name}///
+    if channel.typeConstant is 'topic' and not body.match ///\##{channel.name}///
       body += " ##{channel.name} "
 
-    appManager.tell 'Activity', 'post', {body}, (err, activity) =>
+    appManager.tell 'Activity', 'post', {body, payload}, (err, activity) =>
 
       @reset()  unless err
 
@@ -237,30 +233,25 @@ class ActivityInputWidget extends KDView
           duration   : 5000
         KodingError  : 'Something went wrong while creating activity'
 
-      # fixme for badges
 
-      # KD.getSingleton("badgeController").checkBadge
-      #   property   : "statusUpdates"
-      #   relType    : "author"
-      #   source     : "JNewStatusUpdate"
-      #   targetSelf : 1
-
-
-  update: (data, callback = noop) ->
+  update: ({body, payload}, callback = noop) ->
 
     {appManager} = KD.singletons
     {channelId}  = @getOptions()
     activity     = @getData()
-    {body}       = data
 
     return  @reset()  unless activity
 
     appManager.tell 'Activity', 'edit', {
-      body
       id: activity.id
+      body
+      payload
     }, (err, message) =>
 
-      return KD.showError err  if err
+      if err
+        options =
+          userMessage: "You are not allowed to edit this post."
+        return @showError err, options
 
       @reset()
       callback()
@@ -279,9 +270,18 @@ class ActivityInputWidget extends KDView
     else KD.utils.wait 8000, @bound "unlockSubmit"
 
 
-  showError: (err) ->
+  getPayload: ->
 
-    KD.showError err
+    link_url   = @embedBox.url
+    link_embed = @embedBox.getDataForSubmit()
+
+    return {link_url, link_embed}  if link_url and link_embed
+
+
+  showError: (err, options = {}) ->
+
+    KD.showErrorNotification err, options
+
     @unlockSubmit()
 
 
@@ -334,9 +334,16 @@ class ActivityInputWidget extends KDView
     @unsetClass "preview-active"
 
 
+  focus: ->
+
+    @input.focus()
+    @input.setPlaceholder()
+
+
   viewAppended: ->
 
-    @addSubView @avatar
+    @addSubView @icon
+    # @addSubView @avatar
     @addSubView @input
     @addSubView @buttonBar
     @addSubView @embedBox

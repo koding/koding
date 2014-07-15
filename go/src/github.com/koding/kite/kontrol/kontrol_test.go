@@ -16,7 +16,6 @@ import (
 	"github.com/koding/kite/config"
 	"github.com/koding/kite/kitekey"
 	"github.com/koding/kite/protocol"
-	"github.com/koding/kite/proxy"
 	"github.com/koding/kite/testkeys"
 	"github.com/koding/kite/testutil"
 )
@@ -29,11 +28,12 @@ var (
 func init() {
 	conf = config.New()
 	conf.Username = "testuser"
-	conf.KontrolURL = &url.URL{Scheme: "ws", Host: "localhost:4000"}
+	conf.KontrolURL = "http://localhost:5555/kite"
 	conf.KontrolKey = testkeys.Public
 	conf.KontrolUser = "testuser"
 	conf.KiteKey = testutil.NewKiteKey().Raw
 
+	DefaultPort = 5555
 	kon = New(conf.Copy(), "0.0.1", testkeys.Public, testkeys.Private)
 	kon.DataDir, _ = ioutil.TempDir("", "")
 	go kon.Run()
@@ -75,7 +75,7 @@ func TestTokenInvalidation(t *testing.T) {
 	m.Config.Port = 6666
 
 	t.Log("Registering mathworker6")
-	kiteURL := &url.URL{Scheme: "ws", Host: "localhost:6666"}
+	kiteURL := &url.URL{Scheme: "http", Host: "localhost:6666", Path: "/mathworker6"}
 	_, err := m.Register(kiteURL)
 	if err != nil {
 		t.Error(err)
@@ -117,27 +117,23 @@ func TestTokenInvalidation(t *testing.T) {
 }
 
 func TestMultiple(t *testing.T) {
-	t.Skip("Run it manually")
 	testDuration := time.Second * 10
-
-	// number of available example kites to be queried
-	kiteNumber := 50
-
-	// number of clients that will query example kites
-	clientNumber := 100
 
 	// number of kites that will be queried. Means if there are 50 example
 	// kites available only 10 of them will be queried. Increasing this number
 	// makes the test fail.
-	queryNumber := 1
+	kiteNumber := 5
+
+	// number of clients that will query example kites
+	clientNumber := 10
 
 	fmt.Printf("Creating %d example kites\n", kiteNumber)
 	for i := 0; i < kiteNumber; i++ {
 		m := kite.New("example"+strconv.Itoa(i), "0.1."+strconv.Itoa(i))
 		m.Config = conf.Copy()
 
-		kiteURL := &url.URL{Scheme: "ws", Host: "localhost:4444"}
-		_, err := m.Register(kiteURL)
+		kiteURL := &url.URL{Scheme: "http", Host: "localhost:4444", Path: "/kite"}
+		err := m.RegisterForever(kiteURL)
 		if err != nil {
 			t.Error(err)
 		}
@@ -173,7 +169,7 @@ func TestMultiple(t *testing.T) {
 					query := protocol.KontrolQuery{
 						Username:    conf.Username,
 						Environment: conf.Environment,
-						Name:        "example" + strconv.Itoa(rand.Intn(queryNumber)),
+						Name:        "example" + strconv.Itoa(rand.Intn(kiteNumber)),
 					}
 
 					start := time.Now()
@@ -185,7 +181,6 @@ func TestMultiple(t *testing.T) {
 							i, elapsedTime.Seconds(), err)
 					} else {
 						fmt.Printf("[%d] finished, elapsed %f sec\n", i, elapsedTime.Seconds())
-
 					}
 				}(i)
 			}
@@ -208,7 +203,7 @@ func TestGetKites(t *testing.T) {
 	m.Config = conf.Copy()
 
 	t.Log("Registering ", testName)
-	kiteURL := &url.URL{Scheme: "ws", Host: "localhost:4444"}
+	kiteURL := &url.URL{Scheme: "http", Host: "localhost:4444", Path: "/kite"}
 	_, err := m.Register(kiteURL)
 	if err != nil {
 		t.Error(err)
@@ -257,7 +252,7 @@ func TestGetToken(t *testing.T) {
 	m.Config.Port = 6666
 
 	t.Log("Registering mathworker5")
-	kiteURL := &url.URL{Scheme: "ws", Host: "localhost:6666"}
+	kiteURL := &url.URL{Scheme: "http", Host: "localhost:6666", Path: "/kite"}
 	_, err := m.Register(kiteURL)
 	if err != nil {
 		t.Error(err)
@@ -272,7 +267,7 @@ func TestGetToken(t *testing.T) {
 
 func TestRegister(t *testing.T) {
 	t.Log("Setting up mathworker3")
-	kiteURL := &url.URL{Scheme: "ws", Host: "localhost:4444"}
+	kiteURL := &url.URL{Scheme: "http", Host: "localhost:4444", Path: "/kite"}
 	m := kite.New("mathworker3", "1.1.1")
 	m.Config = conf.Copy()
 
@@ -289,21 +284,16 @@ func TestRegister(t *testing.T) {
 }
 
 func TestKontrol(t *testing.T) {
-	t.Log("Setting up proxy")
-	prx := proxy.New(conf.Copy(), "0.0.1", testkeys.Public, testkeys.Private)
-	prx.Start()
-
-	time.Sleep(1e9)
-
 	// Start mathworker
 	t.Log("Setting up mathworker")
 	mathKite := kite.New("mathworker", "1.2.3")
 	mathKite.Config = conf.Copy()
+	mathKite.Config.Port = 6161
 	mathKite.HandleFunc("square", Square)
 	go mathKite.Run()
 	<-mathKite.ServerReadyNotify()
 
-	go mathKite.RegisterToProxy(true)
+	go mathKite.RegisterForever(&url.URL{Scheme: "http", Host: "127.0.0.1:" + strconv.Itoa(mathKite.Config.Port), Path: "/kite"})
 	<-mathKite.KontrolReadyNotify()
 
 	// exp2 kite is the mathworker client
@@ -337,7 +327,7 @@ func TestKontrol(t *testing.T) {
 	}
 
 	// Test Kontrol.GetToken
-	t.Logf("oldToken: %s", remoteMathWorker.Authentication.Key)
+	t.Logf("oldToken: %s", remoteMathWorker.Auth.Key)
 	newToken, err := exp2Kite.GetToken(&remoteMathWorker.Kite)
 	if err != nil {
 		t.Error(err)
@@ -407,7 +397,7 @@ func TestKontrol(t *testing.T) {
 	go mathKite2.Run()
 	<-mathKite2.ServerReadyNotify()
 
-	go mathKite2.RegisterToProxy(true)
+	go mathKite2.RegisterForever(&url.URL{Scheme: "http", Host: "127.0.0.1:" + strconv.Itoa(mathKite2.Config.Port), Path: "/kite"})
 	<-mathKite2.KontrolReadyNotify()
 
 	// We must get Register event

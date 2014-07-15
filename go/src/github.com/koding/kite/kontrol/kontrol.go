@@ -7,7 +7,6 @@ import (
 	"errors"
 	"fmt"
 	"math/rand"
-	"net"
 	"strings"
 	"sync"
 	"time"
@@ -27,7 +26,6 @@ import (
 
 const (
 	KontrolVersion    = "0.0.4"
-	DefaultPort       = 4000
 	HeartbeatInterval = 5 * time.Second
 	HeartbeatDelay    = 10 * time.Second
 	KitesPrefix       = "/kites"
@@ -35,8 +33,9 @@ const (
 )
 
 var (
-	log      kite.Logger
-	TokenTTL = 48 * time.Hour
+	log         kite.Logger
+	TokenTTL    = 48 * time.Hour
+	DefaultPort = 4000
 
 	tokenCache   = make(map[string]string)
 	tokenCacheMu sync.Mutex
@@ -120,8 +119,18 @@ func New(conf *config.Config, version, publicKey, privateKey string) *Kontrol {
 	k.HandleFunc("getToken", kontrol.handleGetToken)
 	k.HandleFunc("cancelWatcher", kontrol.handleCancelWatcher)
 
-	k.OnFirstRequest(func(c *kite.Client) { kontrol.clients[c.ID] = c })
-	k.OnDisconnect(func(c *kite.Client) { delete(kontrol.clients, c.ID) })
+	var mu sync.Mutex
+	k.OnFirstRequest(func(c *kite.Client) {
+		mu.Lock()
+		kontrol.clients[c.ID] = c
+		mu.Unlock()
+	})
+
+	k.OnDisconnect(func(c *kite.Client) {
+		mu.Lock()
+		delete(kontrol.clients, c.ID)
+		mu.Unlock()
+	})
 
 	return kontrol
 }
@@ -203,12 +212,12 @@ func (k *Kontrol) registerUser(username string) (kiteKey string, err error) {
 	token := jwt.New(jwt.GetSigningMethod("RS256"))
 
 	token.Claims = map[string]interface{}{
-		"iss":        k.Kite.Kite().Username,            // Issuer
-		"sub":        username,                          // Subject
-		"iat":        time.Now().UTC().Unix(),           // Issued At
-		"jti":        tknID.String(),                    // JWT ID
-		"kontrolURL": k.Kite.Config.KontrolURL.String(), // Kontrol URL
-		"kontrolKey": strings.TrimSpace(k.publicKey),    // Public key of kontrol
+		"iss":        k.Kite.Kite().Username,         // Issuer
+		"sub":        username,                       // Subject
+		"iat":        time.Now().UTC().Unix(),        // Issued At
+		"jti":        tknID.String(),                 // JWT ID
+		"kontrolURL": k.Kite.Config.KontrolURL,       // Kontrol URL
+		"kontrolKey": strings.TrimSpace(k.publicKey), // Public key of kontrol
 	}
 
 	k.Kite.Log.Info("Registered machine on user: %s", username)
@@ -218,7 +227,7 @@ func (k *Kontrol) registerUser(username string) (kiteKey string, err error) {
 
 // registerValue is the type of the value that is saved to etcd.
 type registerValue struct {
-	URL *protocol.KiteURL `json:"url"`
+	URL string `json:"url"`
 }
 
 func (k *Kontrol) handleRegister(r *kite.Request) (interface{}, error) {
@@ -229,24 +238,17 @@ func (k *Kontrol) handleRegister(r *kite.Request) (interface{}, error) {
 	}
 
 	var args struct {
-		URL *protocol.KiteURL `json:"url"`
+		URL string `json:"url"`
 	}
 	r.Args.One().MustUnmarshal(&args)
-	if args.URL == nil {
+	if args.URL == "" {
 		return nil, errors.New("empty url")
 	}
 
 	// Only accept requests with kiteKey because we need this info
 	// for generating tokens for this kite.
-	if r.Authentication.Type != "kiteKey" {
-		return nil, fmt.Errorf("Unexpected authentication type: %s", r.Authentication.Type)
-	}
-
-	// In case Kite.URL does not contain a hostname, the r.RemoteAddr is used.
-	host, port, _ := net.SplitHostPort(args.URL.Host)
-	if host == "0.0.0.0" || host == "" {
-		host, _, _ = net.SplitHostPort(r.Client.RemoteAddr())
-		args.URL.Host = net.JoinHostPort(host, port)
+	if r.Auth.Type != "kiteKey" {
+		return nil, fmt.Errorf("Unexpected authentication type: %s", r.Auth.Type)
 	}
 
 	err := k.register(r.Client, args.URL)
@@ -255,10 +257,10 @@ func (k *Kontrol) handleRegister(r *kite.Request) (interface{}, error) {
 	}
 
 	// send response back to the kite, also identify him with the new name
-	return &protocol.RegisterResult{URL: args.URL.String()}, nil
+	return &protocol.RegisterResult{URL: args.URL}, nil
 }
 
-func (k *Kontrol) register(r *kite.Client, kiteURL *protocol.KiteURL) error {
+func (k *Kontrol) register(r *kite.Client, kiteURL string) error {
 	err := validateKiteKey(&r.Kite)
 	if err != nil {
 		return err
@@ -310,7 +312,7 @@ func requestHeartbeat(r *kite.Client, setterFunc func() error) error {
 // registerSelf adds Kontrol itself to etcd as a kite.
 func (k *Kontrol) registerSelf() {
 	value := &registerValue{
-		URL: &protocol.KiteURL{*k.Kite.Config.KontrolURL},
+		URL: k.Kite.Config.KontrolURL,
 	}
 	setter, _ := k.makeSetter(k.Kite.Kite(), value)
 	for {
@@ -391,6 +393,8 @@ func validateKiteKey(k *protocol.Kite) error {
 	return nil
 }
 
+var keyOrder = []string{"username", "environment", "name", "version", "region", "hostname", "id"}
+
 // getQueryKey returns the etcd key for the query.
 func getQueryKey(q *protocol.KontrolQuery) (string, error) {
 	fields := map[string]string{
@@ -412,10 +416,14 @@ func getQueryKey(q *protocol.KontrolQuery) (string, error) {
 
 	empty := false   // encountered with empty field?
 	empytField := "" // for error log
-	for k, v := range fields {
+
+	// http://golang.org/doc/go1.3#map, order is important and we can't rely on
+	// maps because the keys are not ordered :)
+	for _, key := range keyOrder {
+		v := fields[key]
 		if v == "" {
 			empty = true
-			empytField = k
+			empytField = key
 			continue
 		}
 
@@ -476,7 +484,7 @@ func (k *Kontrol) handleGetKites(r *kite.Request) (interface{}, error) {
 		if whoClient == nil {
 			// TODO Enable code below after fix.
 			return nil, errors.New("target kite is not connected")
-			// whoClient = k.Kite.NewClientString(whoKite.URL)
+			// whoClient = k.Kite.NewClient(whoKite.URL)
 			// whoClient.Authentication = &kite.Authentication{Type: "token", Key: whoKite.Token}
 			// whoClient.Kite = whoKite.Kite
 
@@ -605,7 +613,6 @@ func (k *Kontrol) getKites(r *kite.Request, query protocol.KontrolQuery, watchCa
 	nodes := flatten(event.Node.Nodes)
 
 	// Convert etcd nodes to kites.
-
 	kites := make([]*protocol.KiteWithToken, len(nodes))
 	for i, n := range nodes {
 		kites[i], err = kiteWithTokenFromEtcdNode(n, token)
@@ -800,7 +807,7 @@ func kitesFromNodes(nodes store.NodeExterns) ([]*protocol.KiteWithToken, error) 
 
 		kites[i] = &protocol.KiteWithToken{
 			Kite: *kite,
-			URL:  rv.URL.String(),
+			URL:  rv.URL,
 		}
 	}
 
@@ -821,7 +828,7 @@ func kiteWithTokenFromEtcdNode(node *store.NodeExtern, token string) (*protocol.
 
 	return &protocol.KiteWithToken{
 		Kite:  *kite,
-		URL:   rv.URL.String(),
+		URL:   rv.URL,
 		Token: token,
 	}, nil
 }

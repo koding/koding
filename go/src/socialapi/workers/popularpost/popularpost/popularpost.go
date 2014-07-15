@@ -59,7 +59,7 @@ func (f *Controller) handleInteractionEvent(incrementCount int, i *models.Intera
 	}
 
 	if !f.isEligible(c, cm) {
-		f.log.Error("Not eligible Interaction Id:%d", i.Id)
+		f.log.Error(fmt.Sprintf("Not eligible Interaction Id:%d", i.Id))
 		return nil
 	}
 
@@ -83,6 +83,14 @@ func (f *Controller) handleInteractionEvent(incrementCount int, i *models.Intera
 }
 
 func (f *Controller) isEligible(c *models.Channel, cm *models.ChannelMessage) bool {
+	if c.MetaBits.Is(models.Troll) {
+		return false
+	}
+
+	if cm.MetaBits.Is(models.Troll) {
+		return false
+	}
+
 	if c.PrivacyConstant != models.Channel_PRIVACY_PUBLIC {
 		return false
 	}
@@ -97,7 +105,7 @@ func (f *Controller) isEligible(c *models.Channel, cm *models.ChannelMessage) bo
 func PreparePopularPostKey(group, channelName, statisticName string, year, dateNumber int) string {
 	return fmt.Sprintf(
 		"%s:%s:%s:%s:%d:%s:%d",
-		config.Get().Environment,
+		config.MustGet().Environment,
 		group,
 		PopularPostKey,
 		channelName,

@@ -28,6 +28,13 @@ var (
 	mux, nsMux *tigertonic.TrieServeMux
 )
 
+// A version string that can be set with
+//
+//     -ldflags "-X main.Version VERSION"
+//
+// at compile-time.
+var Version string
+
 type context struct {
 	Username string
 }
@@ -100,6 +107,18 @@ func init() {
 		}),
 	))
 
+	// Example use of a metrics.Registry's JSON output.
+	mux.Handle(
+		"GET",
+		"/metrics.json",
+		tigertonic.Marshaled(func(*url.URL, http.Header, interface{}) (int, http.Header, metrics.Registry, error) {
+			return http.StatusOK, nil, metrics.DefaultRegistry, nil
+		}),
+	)
+
+	// Example use of the version endpoint.
+	mux.Handle("GET", "/version", tigertonic.Version(Version))
+
 	// Example use of namespaces.
 	nsMux = tigertonic.NewTrieServeMux()
 	nsMux.HandleNamespace("", mux)
@@ -138,13 +157,14 @@ func main() {
 		// Example use of go-metrics to track HTTP status codes.
 		tigertonic.CountedByStatus(
 
-			// Example use of request logging, redacting the word SECRET wherever
-			// it appears.
+			// Example use of request logging, redacting the word SECRET
+			// wherever it appears.
 			tigertonic.Logged(
 
-				// Example use of WithContext, which is required in order to use
-				// Context within any handlers.  The second argument is a zero
-				// value of the type to be used for all actual request contexts.
+				// Example use of WithContext, which is required in order to
+				// use Context within any handlers.  The second argument is a
+				// zero value of the type to be used for all actual request
+				// contexts.
 				tigertonic.WithContext(hMux, context{}),
 
 				func(s string) string {
@@ -156,7 +176,7 @@ func main() {
 		),
 	)
 
-	// Example use of server.Close and server.Wait to stop gracefully.
+	// Example use of server.Close to stop gracefully.
 	go func() {
 		var err error
 		if "" != *cert && "" != *key {
@@ -172,7 +192,6 @@ func main() {
 	signal.Notify(ch, syscall.SIGINT, syscall.SIGQUIT, syscall.SIGTERM)
 	log.Println(<-ch)
 	server.Close()
-	// server.Wait()
 
 }
 

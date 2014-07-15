@@ -11,7 +11,9 @@ class ActivityLikeLink extends CustomLinkView
       .on 'LikeRemoved', @bound 'update'
 
 
-  click: ->
+  click: (event) ->
+
+    KD.utils.stopDOMEvent event
 
     {id}           = data = @getData()
     {isInteracted} = data.interactions.like
@@ -26,16 +28,17 @@ class ActivityLikeLink extends CustomLinkView
     @setTemplate @pistachio()
 
     if @getData().interactions.like.isInteracted
-    then @trackLike()
-    else @trackUnlike()
+      @trackLike()
+      @setClass 'liked'
+
+    else
+      @trackUnlike()
+      @unsetClass 'liked'
 
 
   trackLike: ->
 
     KD.mixpanel "Activity like, success"
-
-    KD.getSingleton("badgeController").checkBadge
-      source : "JNewStatusUpdate" , property : "likes", relType : "like", targetSelf : 1
 
 
   trackUnlike: ->

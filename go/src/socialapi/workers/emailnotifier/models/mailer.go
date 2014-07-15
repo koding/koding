@@ -3,6 +3,7 @@ package models
 import (
 	"errors"
 	"fmt"
+
 	"github.com/sendgrid/sendgrid-go"
 )
 

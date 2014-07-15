@@ -28,7 +28,7 @@ class MainController extends KDController
     @attachListeners()
 
     @detectIdleUser()
-    @startCachingAssets()  unless KD.isLoggedIn()
+    @startCachingAssets()  unless KD.isLoggedInOnLoad
 
   createSingletons:->
 
@@ -50,13 +50,12 @@ class MainController extends KDController
     KD.registerSingleton 'paymentController',         new PaymentController
     KD.registerSingleton 'vmController',              new VirtualizationController
     KD.registerSingleton 'locationController',        new LocationController
-    KD.registerSingleton 'badgeController',           new BadgeController
     KD.registerSingleton 'helpController',            new HelpController
     KD.registerSingleton 'troubleshoot',              new Troubleshoot
     KD.registerSingleton 'appStorageController',      new AppStorageController
     KD.registerSingleton 'localSync',                 new LocalSyncController
     KD.registerSingleton 'dock',                      new DockController
-    KD.registerSingleton 'mainView',             mv = new MainView domId : 'kdmaincontainer'
+    KD.registerSingleton 'mainView',             mv = new MainView
     KD.registerSingleton 'mainViewController',  mvc = new MainViewController view : mv
     KD.registerSingleton 'kodingAppsController',      new KodingAppsController
     KD.registerSingleton 'socialapi',                 new SocialApiController
@@ -251,6 +250,8 @@ class MainController extends KDController
   startCachingAssets:->
 
     KD.utils.defer ->
+
+      KD.singletons.appManager.require 'Login'
 
       images = [
         '/a/images/city.jpg'

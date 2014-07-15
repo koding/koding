@@ -14,6 +14,21 @@ format:
 	@gofmt -s -w *.go
 	@goimports -w *.go
 
+kontrol:
+	@echo "$(OK_COLOR)==> Preparing kontrol test environment $(NO_COLOR)"
+	@rm -rf $(KITE_HOME)
+	@rm -rf /tmp/kontrol-data
+
+	@echo "$(OK_COLOR)==> Creating openssl keys $(NO_COLOR)"
+	@openssl genrsa -out /tmp/privateKey.pem 2048
+	@openssl rsa -in /tmp/privateKey.pem -pubout > /tmp/publicKey.pem
+
+	@echo "$(OK_COLOR)==> Creating test kite key $(NO_COLOR)"
+	@`which go` run kontrol/kontrol/main.go -public-key /tmp/publicKey.pem -private-key /tmp/privateKey.pem -init -username kite -kontrol-url "http://localhost:4444/kite"
+
+	@echo "$(OK_COLOR)==> Running Kontrol $(NO_COLOR)"
+	@`which go` run kontrol/kontrol/main.go -public-key /tmp/publicKey.pem -private-key /tmp/privateKey.pem -data-dir /tmp/kontrol-data -port 4444
+
 install:
 	@echo "$(OK_COLOR)==> Installing test binaries $(NO_COLOR)"
 	@`which go` install -v ./cmd/kite
@@ -28,18 +43,16 @@ test:
 	@echo "Creating test key"
 	@`which go` run ./testutil/writekey/main.go
 
-	@echo "$(OK_COLOR)==> Building packages $(NO_COLOR)"
-	@`which go` build -v ./...
-
 	@echo "$(OK_COLOR)==> Testing packages $(NO_COLOR)"
-	@`which go` test $(VERBOSE) ./dnode
-	@`which go` test $(VERBOSE) ./cmd/cli
-	@`which go` test $(VERBOSE) ./systeminfo
-	@`which go` test $(VERBOSE) ./
-	@`which go` test $(VERBOSE) ./test
-	@`which go` test $(VERBOSE) ./kontrol
-	@`which go` test $(VERBOSE) ./proxy
-	@`which go` test $(VERBOSE) ./pool
+	@`which go` test -race $(VERBOSE) ./dnode
+	@`which go` test -race $(VERBOSE) ./cmd/cli
+	@`which go` test -race $(VERBOSE) ./systeminfo
+	@`which go` test -race $(VERBOSE) ./
+	@`which go` test -race $(VERBOSE) ./test
+	@`which go` test -race $(VERBOSE) ./kontrol
+	@`which go` test -race $(VERBOSE) ./tunnelproxy
+	@`which go` test -race $(VERBOSE) ./reverseproxy
+	@`which go` test -race $(VERBOSE) ./pool
 
 doc:
 	@`which godoc` github.com/koding/kite | less
@@ -55,4 +68,4 @@ lint:
 ctags:
 	@ctags -R --languages=c,go
 
-.PHONY: all install format test doc vet lint ctags
+.PHONY: all install format test doc vet lint ctags kontrol

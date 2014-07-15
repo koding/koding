@@ -2,6 +2,7 @@ package followingfeed
 
 import (
 	"socialapi/models"
+	"socialapi/request"
 
 	"github.com/koding/logging"
 	"github.com/streadway/amqp"
@@ -38,7 +39,7 @@ func (f *Controller) MessageSaved(data *models.ChannelMessage) error {
 
 	a := models.NewAccount()
 	a.Id = data.AccountId
-	_, err := a.FetchFollowerChannelIds()
+	_, err := a.FetchFollowerChannelIds(&request.Query{ShowExempt: true})
 	if err != nil {
 		return err
 	}

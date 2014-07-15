@@ -1,5 +1,11 @@
 # this class will register itself just before application starts loading, right after framework is ready
 
+if localStorage.disableWebSocket?
+  if localStorage.disableWebSocket is "true"
+    window.WebSocket = null
+else if KD.config.kites.disableWebSocketByDefault
+  window.WebSocket = null
+
 KD.extend
 
   apiUri       : KD.config.apiUri
@@ -13,6 +19,12 @@ KD.extend
         Boolean Number localStorage.useNewKites
     localStorage.useNewKites = if useNewKites then '1' else ''
     return useNewKites
+  useWebSockets :
+    if localStorage.disableWebSocket is 'true'
+      WebSocket = null
+      no
+    else
+      yes
   appClasses   : {}
   appScripts   : {}
   appLabels    : {}
@@ -171,8 +183,10 @@ KD.extend
     return "Logs are logged to backend too."
 
   impersonate : (username)->
-    KD.remote.api.JAccount.impersonate username, (err)->
-      if err then new KDNotificationView title: err.message
+    KD.remote.api.JAccount.impersonate username, (err)=>
+      if err
+        options = userMessage: "You are not allowed to impersonate"
+        @showErrorNotification err, options
       else location.reload()
 
   notify_:(message, type='', duration = 3500)->
@@ -242,6 +256,25 @@ KD.extend
     mainController.isLoggingIn on
     delete KD.userAccount
 
+
+  isGroup: ->
+
+    {entryPoint} = KD.config
+    return entryPoint?.type is 'group'
+
+
+  isKoding: ->
+
+    {entryPoint} = KD.config
+    return entryPoint?.slug is 'koding'
+
+
+  isMember: ->
+
+    {roles} = KD.config
+    return 'member' in roles
+
+
   isGuest:-> not KD.isLoggedIn()
 
   isLoggedIn:-> KD.whoami()?.type is 'registered'
@@ -300,6 +333,37 @@ KD.extend
       error err
     err?
 
+  showNotification: (message, options = {})->
+    return  if not message or message is ""
+
+    # TODO these css/type parameters will be changed according to error type
+    type = 'growl'
+
+    options.duration or= 3500
+    options.title      = message
+    # options.css      or= css
+    options.type     or= type
+
+    options.fn message  if options.fn and typeof options.fn? is 'function'
+
+    new KDNotificationView options
+
+  # TODO after error message handling method is decided replace this function
+  # with showError
+  showErrorNotification: (err, options = {}) ->
+    {message, name} = err  if err
+
+    switch name
+      when 'AccessDenied'
+        options.fn = warn
+        options.type = 'growl'
+        message = options.userMessage
+      else
+        options.userMessage = "Error, please try again later!"
+        options.fn = error
+
+    @showNotification message, options
+
   getPathInfo: (fullPath)->
     return no unless fullPath
     path      = FSHelper.plainPath fullPath
@@ -335,6 +399,14 @@ KD.extend
 
   hasAccess:(permission)->
     if "admin" in KD.config.roles then yes else permission in KD.config.permissions
+
+  getMessageOwner: (message, callback) ->
+    {constructorName, _id} = message.account
+    KD.remote.cacheable constructorName, _id, (err, owner) ->
+      return callback err  if err
+      return callback {message: "Account not found", name: "NotFound"} unless owner
+      callback null, owner
+
 
 Object.defineProperty KD, "defaultSlug",
   get:->
