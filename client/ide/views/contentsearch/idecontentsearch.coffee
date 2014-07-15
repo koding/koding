@@ -101,6 +101,10 @@ class IDE.ContentSearch extends KDModalViewWithForms
     str.replace(/([\\"'`$\s\(\)<>])/g, "\\$1");
 
   formatOutput: (output, callback = noop) ->
+    # Regexes
+    MAIN_LINE = /^:?([\s\S]+):(\d+):([\s\S]*)$/
+    CONTEXT_LINE = /^([\s\S]+)\-(\d+)\-([\s\S]*)$/
+
     lines      = output.split '\n'
     formatted  = {}
     stats      = {
@@ -108,26 +112,32 @@ class IDE.ContentSearch extends KDModalViewWithForms
       numberOfSearchedFiles: 0
     }
 
-    for line in lines
-      parts = line.split ":"
-      if parts.length < 3
-       continue
+    formatted = lines
+    .map (line) ->
+      # Remove erronous whitespace
+      return line.trimLeft()
+    .filter (line) ->
+      # Skip lines that aren't one of these
+      return MAIN_LINE.test(line) or CONTEXT_LINE.test(line)
+    .map (line) ->
+      # Get the matches
+      return line.match(MAIN_LINE) or line.match(CONTEXT_LINE)
+    .reduce( (accu, matches) ->
+      # Extract matches
+      [fileName, lineNumber, line] = [matches[1], parseInt(matches[2], 10), matches[3]]
 
-      # Parse path
-      fileName = parts.shift()
-      fileName = fileName.trim()
+      # new filename found
+      unless accu[fileName]
+        accu[fileName] = []
 
-      # Parse line number
-      lineNumber = parseInt parts.shift()
+      # Add line to list of lines found for this filename
+      accu[fileName].push { lineNumber, line, occurence: MAIN_LINE.test(matches[0]) }
 
-      # Parse line
-      line = parts.join ''
-
-      unless formatted[fileName] # new filename found
-        formatted[fileName] = [] # create an empty object for filename and continue to loop
-
-      formatted[fileName].push { lineNumber, line, occurence: yes}
+      # Increment matches
       stats.numberOfMatches += 1
+
+      return accu
+    , {})
 
     stats.numberOfSearchedFiles = Object.keys(formatted).length
 
