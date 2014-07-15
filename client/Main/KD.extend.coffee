@@ -284,6 +284,8 @@ KD.extend
   isMyPost: (post) -> post.account._id is KD.whoami().getId()
 
   checkFlag:(flagToCheck, account = KD.whoami())->
+    # exempt information is removed from globalFlags
+    return account.isExempt if flagToCheck is 'exempt'
     if account.globalFlags
       if 'string' is typeof flagToCheck
         return flagToCheck in account.globalFlags
