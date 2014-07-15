@@ -65,7 +65,11 @@ class IDE.ContentSearch extends KDModalViewWithForms
     isWholeWord     = true
     # isRegExp        = @regExpToggle.getValue()
 
-    include = "\\*{#{SEARCH.PATTERN_EXT}}";
+
+    exts = IDE.settings.editor.getAllExts()
+    include = "\\*{#{exts.join ','}}";
+    exclureDirs = Object.keys IDE.settings.editor.ignoreDirectories
+    exclureDirs = " --exclude-dir=#{exclureDirs.join ' --exclude-dir='}"
 
     @searchText = @searchText.replace new RegExp "\\\'", "g", "'\\''"
     @searchText = @searchText.replace /-/g, "\\-"
@@ -85,13 +89,16 @@ class IDE.ContentSearch extends KDModalViewWithForms
     flags.splice flags.indexOf('-i'), 1  if isCaseSensitive
     flags.splice flags.indexOf('-w'), 1  unless isWholeWord
 
-    cmd = "grep #{flags.join ' '} #{SEARCH.PATTERN_EDIR} --include=#{include} '#{@searchText}' \"#{SEARCH.escapeShell @rootPath}\""
+    cmd = "grep #{flags.join ' '} #{exclureDirs} --include=#{include} '#{@searchText}' \"#{@escapeShell @rootPath}\""
 
     vmController.run query, (err, res) =>
       if (err or res.stderr) and not res.stdout
         return @showWarning 'Something went wrong, please try again.', yes
 
       @formatOutput res.stdout, @bound 'createResultsView'
+
+  escapeShell: (str) ->
+    str.replace(/([\\"'`$\s\(\)<>])/g, "\\$1");
 
   formatOutput: (output, callback = noop) ->
     lines      = output.split '\n'

@@ -127,6 +127,12 @@ IDE.settings.editor =
     yaml        : ["YAML"         , "yaml|yml"]
     objectivec  : ["Objective C"  , "__dummy__"]
 
+  getAllExts : ->
+    exts = (IDE.settings.editor.syntaxAssociations[key] for key in Object.keys IDE.settings.editor.syntaxAssociations)
+    exts = [].concat exts...
+    exts = (v.split "|" for v in exts)
+    exts = [].concat exts...
+
   getSyntaxOptions : ->
 
     o = for own syntax, info of __aceSettings.syntaxAssociations
@@ -186,3 +192,27 @@ IDE.settings.editor =
     objectivec  : "objectivec"
     # xquery      : null
     # yaml        : null
+
+  ignoreDirectories: {
+    ".bzr"              : "Bazaar",
+    ".cdv"              : "Codeville",
+    "~.dep"             : "Interface Builder",
+    "~.dot"             : "Interface Builder",
+    "~.nib"             : "Interface Builder",
+    "~.plst"            : "Interface Builder",
+    ".git"              : "Git",
+    ".hg"               : "Mercurial",
+    ".pc"               : "quilt",
+    ".svn"              : "Subversion",
+    "_MTN"              : "Monotone",
+    "blib"              : "Perl module building",
+    "CVS"               : "CVS",
+    "RCS"               : "RCS",
+    "SCCS"              : "SCCS",
+    "_darcs"            : "darcs",
+    "_sgbak"            : "Vault/Fortress",
+    "autom4te.cache"    : "autoconf",
+    "cover_db"          : "Devel::Cover",
+    "_build"            : "Module::Build",
+    "node_modules"      : "Node"
+  }
