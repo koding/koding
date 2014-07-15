@@ -293,7 +293,13 @@ KD.extend
         for flag in flagToCheck
           if flag in account.globalFlags
             return yes
-    no
+    return no
+
+  # filterTrollActivity filters troll activities from users.
+  # Only super-admins and other trolls can see these activities
+  filterTrollActivity:(account)->
+    return no unless KD.checkFlag('exempt', account)
+    return account._id isnt KD.whoami()._id and not KD.checkFlag "super-admin"
 
   showError:(err, messages)->
     return no  unless err
