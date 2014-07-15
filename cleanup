@@ -1,11 +1,11 @@
-#!/usr/bin/coffee
+#!/usr/bin/env coffee
 
 read      = require 'read'
 colors    = require 'colors'
 { exec }  = require 'child_process'
 
 has       = (arg)-> "--#{arg}" in process.argv
-hasYes    = has "--yes"
+hasYes    = has "yes"
 includeGo = if has "includeGo" then "" else "-e go"
 
 do cleanup = ->
@@ -36,7 +36,7 @@ do cleanup = ->
               cleanup()
 
       else
-        console.log "All remaining files removed, it's a new era for you!\n".green
+        console.log "All remaining files removed, it's a new era for you!".green
         console.log "Now you need to do './configure' again.\n".yellow
     else
       console.log "Everything seems fine, nothing to remove.".green
