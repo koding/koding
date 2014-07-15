@@ -188,6 +188,7 @@ KONFIG.workers =
   emailsender         : command : "node   #{projectRoot}/workers/emailsender/index.js      -c #{configName}"
   boxproxy            : command : "coffee #{projectRoot}/server/boxproxy.coffee            -c #{configName}"
   clientWatcher       : command : "coffee #{projectRoot}/build-client.coffee               --watch --sourceMapsUri #{hostname}"
+
   # guestcleaner        : command : "node #{projectRoot}/workers/guestcleaner/index.js     -c #{configName}"
   
   # kloud               : command : "#{GO_BIN}/kloud   --port 3000 -env prod -public-key $PBKEY -private-key $PVKEY"
@@ -248,7 +249,7 @@ generateRunFile = (KONFIG) ->
       workers +="echo [#{key}] started with pid: $#{key}pid \n\n"
     return workers
 
-  conf = """
+  run = """
     #/bin/bash
     # ------ THIS FILE IS AUTO-GENERATED ON EACH BUILD ----- #\n
     mkdir .logs &>/dev/null
@@ -347,7 +348,7 @@ generateRunFile = (KONFIG) ->
     fi
     # ------ THIS FILE IS AUTO-GENERATED ON EACH BUILD ----- #\n
     """
-  return conf
+  return run
 
 KONFIG.ENV            = generateEnvVariables   KONFIG
 KONFIG.supervisorConf = generateSupervisorConf KONFIG
