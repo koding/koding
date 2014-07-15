@@ -9,26 +9,29 @@ module.exports = class Amazon extends ProviderInterface
 
     { credential, instanceType } = options
 
-    @fetchCredentialData credential, (err, cred)->
+    # @fetchCredentialData credential, (err, cred)->
+    #   return callback err  if err?
 
-      return callback err  if err?
+    meta =
+      type          : "amazon"
+      region        : "us-east-1"
+      source_ami    : "ami-a6926dce"
+      instance_type : instanceType
 
-      meta =
-        type          : "amazon-ebs"
-        region        : "us-east-1"
-        source_ami    : "ami-de0d9eb7"
-        instance_type : instanceType
-        ssh_username  : "ubuntu"
-        ami_name      : "packer-example {{timestamp}}"
-
-      callback null, {
-        meta, credential: cred.publicKey
-      }
+    callback null, { meta, credential }
 
 
   @fetchAvailable = (client, options, callback)->
 
     callback null, [
+      {
+        name  : "t2.micro"
+        title : "T2 micro"
+        spec  : {
+          cpu : 1, ram: 1, storage: 4
+        }
+        price : "$0.013 per Hour"
+      }
       {
         name  : "m1.small"
         title : "M1 small"

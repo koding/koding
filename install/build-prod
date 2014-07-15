@@ -114,6 +114,7 @@ chmod +x ./configure
 ./configure --hostname $BH
 
 chmod +x ./build
+# fix me gokmen.
 NO_UGLIFYJS=true ./build
 ./go/build.sh
 

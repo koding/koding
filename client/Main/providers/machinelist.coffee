@@ -11,7 +11,6 @@ class MachineList extends KDView
     @addSubView @container = new KDView
     @machineListController = new KDListViewController
       selection            : yes
-
       viewOptions          :
         wrapper            : yes
         itemClass          : MachineItemListView
@@ -23,7 +22,7 @@ class MachineList extends KDView
     @container.addSubView \
       @machineListView = @machineListController.getView()
 
-    @forwardEvent @machineListView, 'MachineSelected'
+    @forwardEvent @machineListController, 'ItemSelectionPerformed'
 
     @fetchMachines()
 
@@ -50,13 +49,50 @@ class MachineListModal extends KDModalView
   constructor: (options = {}, data)->
 
     options = $.extend
-      title    : "Machine List"
-      cssClass : "machines-modal"
-      width    : 540
-      overlay  : yes
+      title        : "Machine List"
+      subtitle     : "Select a running machine below to perform this action."
+      cssClass     : "machines-modal"
+      width        : 540
+      overlay      : yes
+      buttons      :
+        "Continue" :
+          disabled : yes
+          callback : => @continueAction()
     , options
 
     super options, data
 
-    @once 'viewAppended', =>
-      @addSubView new MachineList @getOption 'listOptions'
+  viewAppended:->
+
+    machineList = new MachineList @getOption 'listOptions'
+
+    rememberMachineView = new KDView
+      cssClass     : "remember-machine"
+    rememberMachineView.addSubView new KDLabelView
+      title        : "Use selected machine for the same action next time"
+    rememberMachineView.addSubView @checkBox = new KodingSwitch
+      defaultValue : off
+      size         : "tiny"
+
+    @addSubView machineList
+    @addSubView rememberMachineView
+
+    machineList.on "ItemSelectionPerformed", (list, {items})=>
+
+      @machine = items.first.getData()
+      @buttons["Continue"][ \
+        if @checkMachineState() then 'enable' else 'disable'
+      ]()
+
+
+  checkMachineState: ->
+
+    # FIXME Make this check extendable
+    @machine?.status.state is Machine.State.Running
+
+
+  continueAction:->
+
+    if @checkMachineState()
+      @emit "MachineSelected", @machine, @checkBox.getValue()
+      @destroy()

@@ -264,6 +264,17 @@ generateRunFile = (KONFIG) ->
       \n
       elif [ "$1" == "killall" ]; then
         kill_all
+      elif [ "$1" == "install" ]; then
+        chmod +x ./build        
+        NO_UGLIFYJS=true ./build
+        ./go/build.sh
+
+        cd ./go/src/socialapi
+        make install
+
+        cd -
+        ls
+
       """
   conf += """\n      
       elif [ "$1" == "log" ]; then
