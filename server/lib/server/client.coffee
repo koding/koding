@@ -1,3 +1,6 @@
+{argv} = require 'optimist'
+Object.defineProperty global, 'KONFIG',
+  value: require('koding-config-manager').load("main.#{argv.c}")
 bongo = require './bongo'
 
 handleError = (err, callback) ->
@@ -39,7 +42,28 @@ generateFakeClientFromReq = (req, res, callback)->
   if not clientId and req.pendingCookies?.clientId
     clientId = req.pendingCookies.clientId
 
-  generateFakeClient { clientId, groupName, section }, callback
+  generateFakeClient { clientId, groupName, section }, (err, fakeClient) ->
+    return callback err  if err?
+    {delegate} = fakeClient.connection
+    return callback null, fakeClient  if delegate?
+
+    bongo.models.JSession.fetchSession {}, (err, {session, account})->
+      return callback err  if err?
+      return callback {message: "account cannot be created"}  unless account? and session?
+      { maxAge, secure } = KONFIG.sessionCookie
+
+      # set cookie as pending cookie
+      req.pendingCookies or= {}
+      req.pendingCookies.clientId = session.clientId
+
+      res.cookie "clientId", session.clientId, { maxAge, secure }
+
+      fakeClient.connection.delegate  = account
+      fakeClient.connection.groupName = groupName
+      fakeClient.context.user         = session.username
+      fakeClient.context.group        = groupName
+
+      callback null, fakeClient
 
 generateFakeClient = ({ clientId, groupName, section }, callback) ->
 
