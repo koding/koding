@@ -128,10 +128,10 @@ IDE.settings.editor =
     objectivec  : ["Objective C"  , "__dummy__"]
 
   getAllExts : ->
-    exts = (IDE.settings.editor.syntaxAssociations[key] for key in Object.keys IDE.settings.editor.syntaxAssociations)
+    exts = (IDE.settings.editor.syntaxAssociations[key][1].split "|" for key in Object.keys IDE.settings.editor.syntaxAssociations)
     exts = [].concat exts...
-    exts = (v.split "|" for v in exts)
-    exts = [].concat exts...
+    exts = (v.toLowerCase() for v in exts)
+    exts = _.unique exts
 
   getSyntaxOptions : ->
 
