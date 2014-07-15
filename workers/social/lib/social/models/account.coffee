@@ -959,14 +959,14 @@ module.exports = class JAccount extends jraphical.Module
     return callback new KodingError 'Access denied'  unless delegate.can 'flag', this
 
     # mark user as troll in social api
-    @markUserAsExemptInSocialAPI client, exempt, (err, data)->
+    @markUserAsExemptInSocialAPI client, exempt, (err, data)=>
       return callback new ApiError err  if err
-      @update $set: {isExempt: exempt}, callback
-      # this is for backwards comp. will remove later...
-      if exempt
-        @update {$addToSet: globalFlags: "exempt"}, ()->
-      else
-        @update {$pullAll: globalFlags: ["exempt"]}, ()->
+      @update $set: {isExempt: exempt}, (err, result)->
+        if err
+          console.error 'Could not update user exempt information'
+          return callback err
+
+        callback null, result
 
   markUserAsExemptInSocialAPI: (client, exempt, callback)->
     {markAsTroll, unmarkAsTroll} = require './socialapi/requests'
