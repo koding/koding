@@ -12,10 +12,15 @@ class MessageEventManager extends KDObject
 
 
   addInteraction: (event) ->
+    {accountOldId} = event
+    KD.remote.cacheable "JAccount", accountOldId, (err, owner) =>
+      return error err  if err
+      return error "Account not found" unless owner
+      return if KD.filterTrollActivity owner
 
-    {typeConstant} = event
-    fn = @bound "add#{typeConstant.capitalize()}"
-    fn event
+      {typeConstant} = event
+      fn = @bound "add#{typeConstant.capitalize()}"
+      fn event
 
 
   removeInteraction: (event) ->
@@ -53,15 +58,17 @@ class MessageEventManager extends KDObject
 
 
   addReply: (plain) ->
-
     reply = KD.singleton("socialapi").message.revive plain
+    KD.getMessageOwner reply, (err, owner) =>
+      return error err if err
+      return if KD.filterTrollActivity owner
 
-    message = @getData()
-    message.replies.push reply
-    message.repliesCount++
+      message = @getData()
+      message.replies.push reply
+      message.repliesCount++
 
-    message.emit "AddReply", reply
-    message.emit "update"
+      message.emit "AddReply", reply
+      message.emit "update"
 
 
   removeReply: ({replyId}) ->

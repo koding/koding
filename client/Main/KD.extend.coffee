@@ -251,6 +251,25 @@ KD.extend
     mainController.isLoggingIn on
     delete KD.userAccount
 
+
+  isGroup: ->
+
+    {entryPoint} = KD.config
+    return entryPoint?.type is 'group'
+
+
+  isKoding: ->
+
+    {entryPoint} = KD.config
+    return entryPoint?.slug is 'koding'
+
+
+  isMember: ->
+
+    {roles} = KD.config
+    return 'member' in roles
+
+
   isGuest:-> not KD.isLoggedIn()
 
   isLoggedIn:-> KD.whoami()?.type is 'registered'
@@ -260,6 +279,8 @@ KD.extend
   isMyPost: (post) -> post.account._id is KD.whoami().getId()
 
   checkFlag:(flagToCheck, account = KD.whoami())->
+    # exempt information is removed from globalFlags
+    return account.isExempt if flagToCheck is 'exempt'
     if account.globalFlags
       if 'string' is typeof flagToCheck
         return flagToCheck in account.globalFlags
@@ -267,7 +288,13 @@ KD.extend
         for flag in flagToCheck
           if flag in account.globalFlags
             return yes
-    no
+    return no
+
+  # filterTrollActivity filters troll activities from users.
+  # Only super-admins and other trolls can see these activities
+  filterTrollActivity:(account)->
+    return no unless KD.checkFlag('exempt', account)
+    return account._id isnt KD.whoami()._id and not KD.checkFlag "super-admin"
 
   showError:(err, messages)->
     return no  unless err

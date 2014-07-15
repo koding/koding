@@ -27,8 +27,9 @@ styleScrollBars()
 .content-page.activity
 .member.content-display
   .lazy-loader
-    margin              30px auto
-    text-align          center
+    bottom              20px
+    left                50%
+    abs()
 
 .status.content-display
   article
@@ -256,7 +257,7 @@ styleScrollBars()
     top                 0
     size                258px 100%
     z-index             10
-    bg                  color #3F424B
+    bg                  color #424242
     borderBox()
     fix()
 
@@ -283,7 +284,7 @@ styleScrollBars()
           overflow        visible
 
           .nothing
-            background    #383B42
+            background    #15171A
             width         auto
             font-size     14px
             margin        0 6px
@@ -324,7 +325,7 @@ styleScrollBars()
       line-height     20px
       color           #fff
       padding         0 10px
-      abs             10px 4px 0 0
+      abs             4px 7px 0 0
       font-size       10px
       font-weight     700
       background      #E06F6F
@@ -381,7 +382,7 @@ styleScrollBars()
           r-sprite      activity 'check-gray'
 
   .kdlistitemview-sidebar-item.selected
-    background          #2C2E34
+    background          #15171A
 
     .profile
       color             #F9F7F3
@@ -469,22 +470,13 @@ styleScrollBars()
         top             2px
         left            8px
 
-  .chat
 
-    .kdlistitemview-member
+  .conversations
 
-      .profile
-        line-height  30px
+    .kdlistitemview-sidebar-item
 
-      .online-status
-        abs          18px 13px 0 0
-        size         7px, 7px
-        background   #c3c3c3
-        rounded      50%
-
-        &.online
-          background #28b366
-
+      cite.count
+        abs             10px 7px 0 0
 
   a.kdlistitemview-sidebar-item
 
@@ -495,6 +487,9 @@ styleScrollBars()
       padding         0 8px
       height          28px
       line-height     28px
+
+.activity-related
+  padding-bottom      62px
 
 
 .activity-modal
@@ -743,7 +738,6 @@ span.collapsedtext
   hidden()
 
 .activity-item
-  margin-bottom             32px
   padding-left              52px
   borderBox()
 
@@ -1467,6 +1461,7 @@ span.collapsedtext
 
   .kdlistview-privatemessage
     margin-top              26px
+    padding-bottom          86px
 
   .activity-item.privatemessage
     kalc                    min-height, 100vh \- 228px
@@ -1533,10 +1528,7 @@ span.collapsedtext
       kalc                  width (100% \+ 50px)
 
       .kdlistitemview-comment
-        padding             10px 0 0 52px
-
-        &:last-of-type
-          padding-bottom    56px !important
+        padding             10px 15px 0 52px
 
         .comment-time
           cursor            pointer
@@ -1652,6 +1644,9 @@ span.collapsedtext
             font-weight     400
             color           #b2b2b2
 
+.reply-like-tooltip
+  p
+    text-align              left
 
 
 

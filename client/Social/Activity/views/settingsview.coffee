@@ -63,7 +63,7 @@ class ActivitySettingsView extends KDCustomHTMLView
     KD.getMessageOwner post, (err, owner) =>
       return KD.showErrorNotification err  if err
 
-      if owner.isExempt
+      if KD.checkFlag 'exempt', owner
         @addMenuItem 'Unmark User as Troll', ->
           activityController.emit "ActivityItemUnMarkUserAsTrollClicked", post
       else

@@ -11,6 +11,8 @@ class PrivateMessageListItemView extends ActivityListItemView
 
     @decorate()
 
+    @commentBox.listPreviousLink.on 'ReachedToTheBeginning', @bound 'showParentPost'
+
 
   decorate: ->
 
@@ -19,7 +21,16 @@ class PrivateMessageListItemView extends ActivityListItemView
     @showParentPost()  if repliesCount < 3
 
 
-  showParentPost: -> @setClass 'with-parent'
+  showParentPost: ->
+
+    @setClass 'with-parent'
+    firstReply = @commentBox.controller.getListItems().first
+
+    return  unless firstReply
+
+    if @getData().account._id is firstReply.getData().account._id
+      firstReply.setClass 'consequent'
+
 
 
   hideParentPost: -> @unsetClass 'with-parent'
