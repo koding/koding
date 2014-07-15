@@ -7,6 +7,7 @@ import (
 
 	"github.com/koding/kite"
 	"github.com/koding/kite/dnode"
+	"github.com/koding/kite/protocol"
 )
 
 const (
@@ -17,6 +18,7 @@ const (
 )
 
 var (
+	ErrKiteIsNil           = errors.New("kite is nil")
 	ErrBongoNotInitialized = errors.New("bongo client is not initialized")
 	ErrModelNotSet         = errors.New("model name is not set")
 	ErrTypeNotSet          = errors.New("function type is not set")
@@ -25,30 +27,28 @@ var (
 	ErrIdNotSet            = errors.New("id is not set for instance method")
 )
 
-// Config holds configuration values for connecting/creating bongo client
-type Config struct {
-	ClientURL string
-	Version   string
-}
-
 // Bongo kite is a wrapper for kite client of bongo
 type BongoKite struct {
-	bongo  *kite.Client
-	config *Config
+	bongo *kite.Client
 }
 
 // New connects to bongo kite client and wraps it, this function will wait until
 // bongo client kite is connected to the system if error occures while trying to
 // initialize, returns as early as possible
-func New(c *Config) (*BongoKite, error) {
-	// Create a kite
-	k := kite.New("bongo", c.Version)
+func New(k *kite.Kite, query *protocol.KontrolQuery) (*BongoKite, error) {
+	if k == nil {
+		return nil, ErrKiteIsNil
+	}
 
-	// Create bongo client
-	bongo := k.NewClient(c.ClientURL)
+	kites, err := k.GetKites(*query)
+	if err != nil {
+		return nil, err
+	}
+
+	kite := kites[0]
 
 	// Connect to bongo kite
-	connected, err := bongo.DialForever()
+	connected, err := kite.DialForever()
 	if err != nil {
 		return nil, err
 	}
@@ -57,8 +57,7 @@ func New(c *Config) (*BongoKite, error) {
 	<-connected
 
 	return &BongoKite{
-		bongo:  bongo,
-		config: c,
+		bongo: kite,
 	}, nil
 }
 
@@ -110,7 +109,7 @@ func (b *bongoScheme) CallWith(args ...interface{}) (*dnode.Partial, error) {
 	return b.call()
 }
 
-// Call calls the given scheme with empty parameter
+// Call calls the given scheme with empty interface parameter
 func (b *bongoScheme) Call() (*dnode.Partial, error) {
 	b.Arguments = []interface{}{}
 	return b.call()
