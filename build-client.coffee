@@ -1,5 +1,8 @@
+#!/usr/bin/env coffee
+
 {spawn, exec}     = require 'child_process'
 CoffeeScript      = require 'coffee-script'
+argv              = require('minimist')(process.argv.slice(2))
 fs                = require 'fs'
 nib               = require 'nib'
 path              = require 'path'
@@ -15,6 +18,15 @@ WebSocketServer   = WebSocket.Server
 Promise           = require 'bluebird'
 which             = Promise.promisify require 'which'
 buildAPI          = require 'bongo-api-builder'
+
+
+args =
+  watchDuration : argv.watchDuration  or 5000
+  watch         : argv.watch          or process.env.KONFIG_CLIENT_WATCH or false
+  version       : argv.version        or process.env.KONFIG_VERSION      or "0.0.1"
+  sourceMapsUri : argv.sourceMapsUri  or process.env.KONFIG_CLIENT_RUNTIMEOPTIONS_SOURCEMAPSURI or "koding.com/sourcemaps"
+
+console.log "building client with options:",args
 
 log =
   info  : console.log
@@ -49,7 +61,7 @@ checkFileCase = (fileName) ->
     else yes
   else no
 
-module.exports = class Builder
+class Builder
 
   spriteHelper = null
 
@@ -65,8 +77,6 @@ module.exports = class Builder
 
   buildSpritesAndClient: (options) ->
 
-    @config ?= require('koding-config-manager').load("main.#{options.configFile}")
-
     @canBuildSprites().then ->
       log.info "Building sprites... (it may take a while) (if it fails, try `ulimit -n 1024` first)"
       sprite
@@ -79,7 +89,6 @@ module.exports = class Builder
 
   buildFramework:->
 
-    @config ?= require('koding-config-manager').load("main.#{options.configFile}")
     cmd = "cd client/Framework && npm i && gulp compile --uglify --outputDir=../../website/a/"
     exec cmd, (err, stdout, stderr)->
       console.log """\n\n
@@ -91,10 +100,6 @@ module.exports = class Builder
       """
 
   buildClient: (options) ->
-
-    @config ?= require('koding-config-manager').load("main.#{options.configFile}")
-
-    if options.watch? then @config.client.watch = options.watch
 
     try fs.mkdirSync ".build"
 
@@ -229,13 +234,13 @@ module.exports = class Builder
       options.callback()
       delete options.callback
 
-    if @config.client.watch is yes
+    if args.watch is yes
       if initial
         log.info "\n All done. Watching for changes... \n"
 
       setTimeout =>
         @compileChanged options, false
-      , @config.client.watchDuration or 5000
+      , args.watchDuration
 
   readIncludesFile: ->
 
@@ -413,7 +418,7 @@ module.exports = class Builder
     sourceMap =
       version     : 3
       file        : project.outputs.script
-      sourceRoot  : @config.client.runtimeOptions.sourceUri
+      sourceRoot  : args.sourceMapsUri
       sources     : "#{file.sourceMapRoot}#{file.includePath}" for file in project.files.scripts
       names       : []
       mappings    : ""
@@ -475,7 +480,7 @@ module.exports = class Builder
     @showFileInfo filepath, project, 'styles' # project.outputs.style, project.files.styles.length, styles
 
   getEnvForRollbar: ->
-    return if @config.client.version is "0.0.1" then "development" else "production"
+    return if args.version is "0.0.1" then "development" else "production"
 
   showFileInfo:(filepath, project, ptype )->
 
@@ -491,7 +496,7 @@ module.exports = class Builder
   getProjects:->
 
     rp = (address)=>
-      "#{ address?.replace /^website\//, '/' }?#{ @config.client.version }"
+      "#{ address?.replace /^website\//, '/' }?#{ args.version }"
 
     apps = {}
     {projects, bundles} = require './projects'
@@ -530,3 +535,8 @@ module.exports = class Builder
         console.warn "No routes found for \"#{name} App\""
 
     return routesSrc
+
+
+
+builder = new Builder
+builder.buildSpritesAndClient({})
