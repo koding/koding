@@ -14,7 +14,7 @@ resurrection.styl
 
   size            258px 100%
   z-index         100
-  bg              color #2C2E34
+  bg              color #323232
   top             0
   left            0
   fix()
@@ -90,7 +90,7 @@ resurrection.styl
       abs()
 
     &.selected
-      bg            color #222428
+      bg            color #15171A
 
     &.activity > figure
       r-sprite      app new-nav-activity
@@ -108,7 +108,6 @@ resurrection.styl
 .account-area
   bottom            0
   left              0
-  background        #222428
   size              100% 59px
   abs()
 
@@ -117,72 +116,21 @@ resurrection.styl
     width           auto
     vertical-align  top
 
-
   .acc-dropdown-icon
-    size            45px 59px
-    display         inline-block
-    border-left     1px solid #1f2628
+    size            auto 59px
+    display         block
+    abs             0px 0px 0 0
 
     .icon
-      padding-bottom 1px
-    // i know, this is not a proper solution. [BC]
-
-    &.help
-      width         30px
-      .icon
-        margin      18px 0 0 13px
-        r-sprite    app question-mark
-
-    .count
-      vendor        transform, scale(0)
-      size          16px, 16px
-      bg            color, #e94b35
-      top           9px
-      right         6px
-      font-size     10px
-      color         #fff
-      line-height   16px
-      text-align    center
-      rounded       100%
-      -webkit-transition -webkit-transform .3s cubic-bezier(0.68, -0.55, 0.265, 1.55)
-      -moz-transition    -moz-transform .3s ease
-      transition         transform .3s cubic-bezier(0.68, -0.55, 0.265, 1.55)
-      z-index            1001
-      abs()
-
-      &.in
-        vendor        transform, scale(1)
-
-    .icon
-      display       block
-    &.notifications .icon
-      margin        18px 0 0 13px
-      r-sprite      app account-notifications
-
-    &.groups
-      abs()
-      top           0
-      right         0
-      size          50px 59px
-      .icon
-        margin      26px 0 0 11px
-        r-sprite    app 'account-arrow'
-
-  .account-menu
-    vendor             transform-origin-x, 274px
-    vendor             backface-visibility, hidden
-    -webkit-transition -webkit-transform .5s ease \,
-                       opacity .5s ease
+      display         block
+      padding-bottom  1px
+      r-sprite        app 'account-arrow'
+      margin          26px 23px
 
   .avatar-area
-    bg                 color, #222428
+    bg                 color, #1A1A1A
     padding            10px 12px
     size               100% 100%
-    opacity            1
-    vendor             transform-origin-x, 100%
-    vendor             backface-visibility, hidden
-    -webkit-transition -webkit-transform .5s ease \,
-                       opacity .5s ease
     borderBox()
     rel()
 
