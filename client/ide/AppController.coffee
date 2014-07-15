@@ -370,7 +370,8 @@ class IDEAppController extends AppController
     else if component is 'terminal' then "Terminal on #{data.vmName}"
 
     else if component is 'searchResult'
-    then """ #{data.stats.numberOfSearchedFiles} for "#{data.searchText}", #{data.stats.numberOfMatches} found """
+    then """Search results for #{data.searchText}"""
+    # then """ #{data.stats.numberOfSearchedFiles} for "#{data.searchText}", #{data.stats.numberOfMatches} found """
 
     else if typeof data is 'string' then data
 
