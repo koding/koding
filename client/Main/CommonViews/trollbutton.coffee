@@ -16,7 +16,7 @@ class TrollButtonView extends KDToggleButton
 
     super options, data
 
-    @setState 'Untroll'  if KD.checkFlag 'exempt', data
+    @setState 'Untroll'  if data.isExempt
 
 
   troll: ->
