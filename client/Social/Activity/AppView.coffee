@@ -9,7 +9,7 @@ class ActivityAppView extends KDView
   constructor:(options = {}, data)->
 
     options.cssClass   = 'content-page activity clearfix'
-    options.cssClass   = KD.utils.curry 'group', options.cssClass  unless isKoding()
+    # options.cssClass   = KD.utils.curry 'group', options.cssClass  unless isKoding()
     options.domId      = 'content-page-activity'
 
     super options, data
@@ -22,7 +22,7 @@ class ActivityAppView extends KDView
     @_lastMessage = null
 
     @appStorage  = appStorageController.storage 'Activity', '2.0'
-    @groupHeader = new FeedCoverPhotoView
+    # @groupHeader = new FeedCoverPhotoView
     @sidebar     = new ActivitySidebar tagName : 'aside', delegate : this
     @tabs        = new KDTabView
       tagName             : 'main'
@@ -30,7 +30,7 @@ class ActivityAppView extends KDView
 
     @appStorage.setValue 'liveUpdates', off
 
-    windowController.on 'ScrollHappened', @bound 'scroll'  unless isKoding()
+    # windowController.on 'ScrollHappened', @bound 'scroll'  unless isKoding()
 
 
 
@@ -39,7 +39,7 @@ class ActivityAppView extends KDView
 
   viewAppended: ->
 
-    @addSubView @groupHeader  unless isKoding()
+    # @addSubView @groupHeader  unless isKoding()
     @addSubView @sidebar
     @addSubView @tabs
 

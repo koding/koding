@@ -314,13 +314,21 @@ class ActivitySidebar extends KDCustomScrollView
 
     super
 
-    @wrapper.addSubView new GroupDescription  unless KD.getGroup().slug is 'koding'
+    # @wrapper.addSubView new GroupDescription  unless KD.getGroup().slug is 'koding'
+    @addGroupDescription()  unless KD.getGroup().slug is 'koding'
     @addPublicFeedLink()
     # @addHotTopics()
     @addFollowedTopics()
     @addConversations()
     @addMessages()
     # @addChat()
+
+
+  addGroupDescription: ->
+
+    { dock } = KD.singletons
+
+    dock.getView().addSubView new GroupDescription
 
 
   addPublicFeedLink: ->
