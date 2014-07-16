@@ -41,14 +41,10 @@ class IDE.ContentSearch extends KDModalViewWithForms
               defaultValue  : no
               cssClass      : 'tiny switch'
              regExpToggle    :
-               label         : 'Use filename regexp'
+               label         : 'Use regexp'
                itemClass     : KodingSwitch
                defaultValue  : no
                cssClass      : 'tiny switch'
-               nextElement   :
-                 regExpValue :
-                   itemClass : KDInputView
-                   type      : 'text'
             warningView     :
               itemClass     : KDView
               cssClass      : 'hidden notification'
