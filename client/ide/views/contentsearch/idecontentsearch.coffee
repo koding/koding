@@ -40,11 +40,11 @@ class IDE.ContentSearch extends KDModalViewWithForms
               itemClass     : KodingSwitch
               defaultValue  : no
               cssClass      : 'tiny switch'
-             regExpToggle    :
-               label         : 'Use regexp'
-               itemClass     : KodingSwitch
-               defaultValue  : no
-               cssClass      : 'tiny switch'
+             regExpToggle   :
+               label        : 'Use regexp'
+               itemClass    : KodingSwitch
+               defaultValue : no
+               cssClass     : 'tiny switch'
             warningView     :
               itemClass     : KDView
               cssClass      : 'hidden notification'
@@ -69,7 +69,7 @@ class IDE.ContentSearch extends KDModalViewWithForms
 
     unless isRegExp
       splitText  = searchText.split "\\n"
-      splitText  = splitText.map grepEscapeRegExp
+      splitText  = splitText.map @grepEscapeRegExp
       searchText = splitText.join "\\n"
 
     searchText   = searchText.replace (new RegExp "\\\'", "g"), "'\\''"
