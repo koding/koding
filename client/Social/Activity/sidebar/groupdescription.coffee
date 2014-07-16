@@ -40,6 +40,6 @@ class GroupDescription extends KDCustomHTMLView
       @addSubView @titleView
       # @addSubView @bodyView
 
-      if "admin" in KD.config.roles
-        @bodyView.setPartial "You can have a short description for your group here"  unless hasBody
+      # if "admin" in KD.config.roles
+      #   @bodyView.setPartial "You can have a short description for your group here"  unless hasBody
 
