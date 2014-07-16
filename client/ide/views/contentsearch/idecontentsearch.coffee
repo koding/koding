@@ -72,14 +72,14 @@ class IDE.ContentSearch extends KDModalViewWithForms
     searchText      = @searchText
 
     unless isRegExp
-      splitText  = searchText.split "\\n"
-      splitText  = splitText.map @grepEscapeRegExp
-      searchText = splitText.join "\\n"
+      splitText     = searchText.split '\\n'
+      splitText     = splitText.map @grepEscapeRegExp
+      searchText    = splitText.join '\\n'
 
-    searchText   = searchText.replace (new RegExp "\\\'", "g"), "'\\''"
-    searchText   = searchText.replace /-/g, "\\-"
+    searchText      = searchText.replace (new RegExp "\\\'", 'g'), "'\\''"
+    searchText      = searchText.replace /-/g, '\\-'
 
-    flags        = [
+    flags           = [
       '-s'                           # Silent mode
       '-r'                           # Recursively search subdirectories listed.
       '-n'                           # Each output line is preceded by its relative line number in the file
@@ -103,13 +103,13 @@ class IDE.ContentSearch extends KDModalViewWithForms
       @formatOutput res.stdout, @bound 'createResultsView'
 
   escapeRegExp: (str) ->
-    str.replace(/([.*+?\^${}()|\[\]\/\\])/g, "\\$1");
+    str.replace /([.*+?\^${}()|\[\]\/\\])/g, '\\$1'
 
   escapeShell: (str) ->
-    str.replace /([\\"'`$\s\(\)<>])/g, "\\$1"
+    str.replace /([\\"'`$\s\(\)<>])/g, '\\$1'
 
   grepEscapeRegExp: (str) ->
-    str.replace(/[[\]{}()*+?.,\\^$|#\s"']/g, "\\$&");
+    str.replace /[[\]{}()*+?.,\\^$|#\s"']/g, '\\$&'
 
   formatOutput: (output, callback = noop) ->
     # Regexes
@@ -122,11 +122,9 @@ class IDE.ContentSearch extends KDModalViewWithForms
       numberOfSearchedFiles : 0
 
     formatted = lines
-    .map (line) ->
-      # Remove erronous whitespace
+    .map (line) -> # Remove erroneous whitespace
       return line.trimLeft()
-    .filter (line) ->
-      # Skip lines that aren't one of these
+    .filter (line) -> # Skip lines that aren't one of these
       return mainLineRegex.test(line) or contextLineRegex.test(line)
     .map (line) ->
       # Get the matches
