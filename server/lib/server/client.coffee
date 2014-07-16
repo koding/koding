@@ -1,6 +1,6 @@
 {argv} = require 'optimist'
-Object.defineProperty global, 'KONFIG',
-  value: require('koding-config-manager').load("main.#{argv.c}")
+
+KONFIG = require('koding-config-manager').load("main.#{argv.c}")
 bongo = require './bongo'
 
 handleError = (err, callback) ->
