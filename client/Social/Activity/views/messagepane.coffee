@@ -138,6 +138,8 @@ class MessagePane extends KDTabPaneView
     KD.getMessageOwner message, (err, owner) =>
       return error err  if err
       return if KD.filterTrollActivity owner
+      # user's first post is always followed by user's own
+      message.isFollowed = true if message.account._id is KD.whoami()._id
       @listController.addItem message, 0
 
   removeMessage: (message) -> @listController.removeItem null, message
