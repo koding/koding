@@ -27,7 +27,8 @@ class IDE.ContentSearchResultView extends KDScrollView
           if line.occurence
             flags    = if isCaseSensitive then 'g' else 'gi'
             regExp   = new RegExp searchText, flags
-            replaced = line.line.replace regExp, (match) -> """<p class="match" data-file-path="#{fileName}" data-line-number="#{line.lineNumber}">#{match}</p>"""
+            encoded  = Encoder.htmlEncode line.line
+            replaced = encoded.replace regExp, (match) -> """<p class="match" data-file-path="#{fileName}" data-line-number="#{line.lineNumber}">#{match}</p>"""
           else
             replaced = "<span>#{Encoder.htmlEncode line.line}</span>"
 
