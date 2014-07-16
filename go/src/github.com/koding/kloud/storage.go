@@ -6,6 +6,7 @@ import (
 	"labix.org/v2/mgo/bson"
 )
 
+// TODO split it into Lock and Storage (asiggne should be seperated)
 type Storage interface {
 	// Get returns to MachineData
 	Get(string, *GetOption) (*MachineData, error)

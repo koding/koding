@@ -3,30 +3,24 @@ package koding
 import (
 	"errors"
 
-	os "github.com/koding/kloud/api/openstack"
+	aws "github.com/koding/kloud/api/amazon"
 	"github.com/koding/kloud/eventer"
 	"github.com/koding/kloud/machinestate"
 	"github.com/koding/kloud/protocol"
-	"github.com/koding/kloud/provider/openstack"
+	"github.com/koding/kloud/provider/amazon"
 
 	"github.com/koding/logging"
 )
 
 var (
-	DefaultImageName = "Ubuntu 14.04 LTS (Trusty Tahr) (PVHVM)"
-	DefaultImageId   = "bb02b1a3-bc77-4d17-ab5b-421d89850fca"
-
-	// id: 2 name: 512MB Standard Instance cpu: 1 ram: 512 disk: 20
-	DefaultFlavorId = "2"
-
-	RACKSPACE_USERNAME = "kodinginc"
-	RACKSPACE_PASSWORD = "frjJapvap3Ox!Uvk"
-	RACKSPACE_API_KEY  = "96d6388ccb936f047fd35eb29c36df17"
-	authURL            = "https://identity.api.rackspacecloud.com/v2.0"
+	// DefaultAMI = "ami-80778be8" // Ubuntu 14.0.4 EBS backed, amd64,  PV
+	DefaultAMI          = "ami-a6926dce" // Ubuntu 14.04 EBS backed, amd64, HVM
+	DefaultInstanceType = "t2.micro"
+	DefaultRegion       = "us-east-1"
 
 	kodingCredential = map[string]interface{}{
-		"username": RACKSPACE_USERNAME,
-		"apiKey":   RACKSPACE_API_KEY,
+		"access_key": "AKIAI6IUMWKF3F4426CA",
+		"secret_key": "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",
 	}
 )
 
@@ -39,8 +33,8 @@ type Provider struct {
 	Push func(string, int, machinestate.State)
 }
 
-func (p *Provider) NewClient(opts *protocol.MachineOptions) (*openstack.OpenstackClient, error) {
-	o := &openstack.OpenstackClient{
+func (p *Provider) NewClient(opts *protocol.MachineOptions) (*amazon.AmazonClient, error) {
+	a := &amazon.AmazonClient{
 		Log: p.Log,
 		Push: func(msg string, percentage int, state machinestate.State) {
 			p.Log.Info("%s - %s ==> %s", opts.MachineId, opts.Username, msg)
@@ -51,15 +45,18 @@ func (p *Provider) NewClient(opts *protocol.MachineOptions) (*openstack.Openstac
 				Percentage: percentage,
 			})
 		},
+		Deploy: opts.Deploy,
 	}
 
 	var err error
-	o.Openstack, err = os.New(authURL, "rackspace", kodingCredential, opts.Builder)
+
+	opts.Builder["region"] = DefaultRegion
+	a.Amazon, err = aws.New(kodingCredential, opts.Builder)
 	if err != nil {
 		return nil, err
 	}
 
-	return o, nil
+	return a, nil
 }
 
 func (p *Provider) Name() string {
@@ -67,7 +64,7 @@ func (p *Provider) Name() string {
 }
 
 func (p *Provider) Build(opts *protocol.MachineOptions) (*protocol.Artifact, error) {
-	client, err := p.NewClient(opts)
+	a, err := p.NewClient(opts)
 	if err != nil {
 		return nil, err
 	}
@@ -76,57 +73,54 @@ func (p *Provider) Build(opts *protocol.MachineOptions) (*protocol.Artifact, err
 		return nil, errors.New("server name is empty")
 	}
 
-	imageId := DefaultImageId
-	// TODO: prevent this and throw an error in the future
-	flavorId := client.Builder.Flavor
-	if flavorId == "" {
-		flavorId = DefaultFlavorId
-	}
+	// Use koding plans instead of those later
+	a.Builder.SourceAmi = DefaultAMI
+	a.Builder.InstanceType = DefaultInstanceType
 
-	return client.Build(opts.InstanceName, imageId, flavorId)
+	return a.Build(opts.InstanceName)
 }
 
 func (p *Provider) Start(opts *protocol.MachineOptions) (*protocol.Artifact, error) {
-	o, err := p.NewClient(opts)
+	a, err := p.NewClient(opts)
 	if err != nil {
 		return nil, err
 	}
 
-	return o.Start()
+	return a.Start()
 }
 
 func (p *Provider) Stop(opts *protocol.MachineOptions) error {
-	o, err := p.NewClient(opts)
+	a, err := p.NewClient(opts)
 	if err != nil {
 		return err
 	}
 
-	return o.Stop()
+	return a.Stop()
 }
 
 func (p *Provider) Restart(opts *protocol.MachineOptions) error {
-	o, err := p.NewClient(opts)
+	a, err := p.NewClient(opts)
 	if err != nil {
 		return err
 	}
 
-	return o.Restart()
+	return a.Restart()
 }
 
 func (p *Provider) Destroy(opts *protocol.MachineOptions) error {
-	o, err := p.NewClient(opts)
+	a, err := p.NewClient(opts)
 	if err != nil {
 		return err
 	}
 
-	return o.Destroy()
+	return a.Destroy()
 }
 
 func (p *Provider) Info(opts *protocol.MachineOptions) (*protocol.InfoArtifact, error) {
-	o, err := p.NewClient(opts)
+	a, err := p.NewClient(opts)
 	if err != nil {
 		return nil, err
 	}
 
-	return o.Info()
+	return a.Info()
 }
