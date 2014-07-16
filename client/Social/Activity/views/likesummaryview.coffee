@@ -26,7 +26,7 @@ class ActivityLikeSummaryView extends KDView
       KD.remote.cacheable batch, (err, accounts) ->
 
         return KD.showError err  if err
-        new ShowMoreDataModalView null, accounts
+        new ShowMoreDataModalView title: "Likes", accounts
 
 
   updateActors: ->
