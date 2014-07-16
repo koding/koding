@@ -3,6 +3,7 @@
 {uri}       = require('koding-config-manager').load("main.#{argv.c}")
 dateFormat  = require 'dateformat'
 htmlify     = require 'koding-htmlify'
+juice       = require 'juice'
 
 flags =
   comment                 :

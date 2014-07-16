@@ -77,7 +77,8 @@
     "amqplib": "^0.2.0",
     "node-sockjs-client": "1.0.7",
     "cli-table": "^0.3.0",
-    "read": "^1.0.5"
+    "read": "^1.0.5",
+    "juice": "0.4.0"
   },
   "devDependencies": {},
   "optionalDependencies": {},
