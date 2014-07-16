@@ -389,7 +389,7 @@ class IDEAppController extends AppController
 
   showContentSearch: ->
     if @contentSearch
-      @contentSearch.input.setFocus()
+      @contentSearch.findInput.setFocus()
     else
       @contentSearch = new IDE.ContentSearch
       @contentSearch.once 'KDObjectWillBeDestroyed', => @contentSearch = null
