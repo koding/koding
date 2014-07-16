@@ -14,25 +14,28 @@ class IDE.ContentSearchResultView extends KDScrollView
         partial  : "#{fileName}"
         cssClass : 'filename'
 
+      previousLine = null
+
       for line in lines
-        if line.type is 'separator'
+        if previousLine and line.lineNumber - previousLine.lineNumber > 1
           @addSubView new KDCustomHTMLView
             cssClass : 'separator'
             partial  : '...'
+
+        view = @addSubView new KDCustomHTMLView
+          tagName  : 'pre'
+          cssClass : 'line'
+
+        if line.occurence
+          flags    = if isCaseSensitive then 'g' else 'gi'
+          regExp   = new RegExp searchText, flags
+          encoded  = Encoder.htmlEncode line.line
+          replaced = encoded.replace regExp, (match) -> """<p class="match" data-file-path="#{fileName}" data-line-number="#{line.lineNumber}">#{match}</p>"""
         else
-          view = @addSubView new KDCustomHTMLView
-            tagName  : 'pre'
-            cssClass : 'line'
+          replaced = "<span>#{Encoder.htmlEncode line.line}</span>"
 
-          if line.occurence
-            flags    = if isCaseSensitive then 'g' else 'gi'
-            regExp   = new RegExp searchText, flags
-            encoded  = Encoder.htmlEncode line.line
-            replaced = encoded.replace regExp, (match) -> """<p class="match" data-file-path="#{fileName}" data-line-number="#{line.lineNumber}">#{match}</p>"""
-          else
-            replaced = "<span>#{Encoder.htmlEncode line.line}</span>"
-
-          view.updatePartial "<span class='line-number'>#{line.lineNumber}</span>#{replaced}"
+        view.updatePartial "<span class='line-number'>#{line.lineNumber}</span>#{replaced}"
+        previousLine = line
 
   click: (event) ->
     {target} = event
