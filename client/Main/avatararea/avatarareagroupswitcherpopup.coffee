@@ -110,14 +110,14 @@ class AvatarPopupGroupSwitcher extends AvatarPopup
       @groupSubMenuWrapper.setClass 'active'
       @populateGroups()
 
-    @avatarPopupContent.addSubView new KDCustomHTMLView
-      tagName    : 'a'
-      attributes : href : '#'
-      partial    : 'Your groups'
-      bind       : 'mouseenter mousemove'
-      mouseenter : handleSubMenu
-      click      : handleSubMenu
-      mousemove  : KD.utils.stopDOMEvent
+    # @avatarPopupContent.addSubView new KDCustomHTMLView
+    #   tagName    : 'a'
+    #   attributes : href : '#'
+    #   partial    : 'Your groups'
+    #   bind       : 'mouseenter mousemove'
+    #   mouseenter : handleSubMenu
+    #   click      : handleSubMenu
+    #   mousemove  : KD.utils.stopDOMEvent
 
     @avatarPopupContent.addSubView new KDCustomHTMLView
       tagName    : 'a'
