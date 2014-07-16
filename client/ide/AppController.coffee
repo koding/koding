@@ -381,20 +381,18 @@ class IDEAppController extends AppController
     menuButton.show()
 
   showFileFinder: ->
-    if @fileFinder
-      @fileFinder.input.setFocus()
-    else
-      @fileFinder = new IDE.FileFinder
-      @fileFinder.once 'KDObjectWillBeDestroyed', => @fileFinder = null
+    return @fileFinder.input.setFocus()  if @fileFinder
+
+    @fileFinder = new IDE.FileFinder
+    @fileFinder.once 'KDObjectWillBeDestroyed', => @fileFinder = null
 
   showContentSearch: ->
-    if @contentSearch
-      @contentSearch.findInput.setFocus()
-    else
-      @contentSearch = new IDE.ContentSearch
-      @contentSearch.once 'KDObjectWillBeDestroyed', => @contentSearch = null
-      @contentSearch.once 'ViewNeedsToBeShown', (view) =>
-        @activeTabView.emit 'ViewNeedsToBeShown', view
+    return @contentSearch.findInput.setFocus()  if @contentSearch
+
+    @contentSearch = new IDE.ContentSearch
+    @contentSearch.once 'KDObjectWillBeDestroyed', => @contentSearch = null
+    @contentSearch.once 'ViewNeedsToBeShown', (view) =>
+      @activeTabView.emit 'ViewNeedsToBeShown', view
 
   createStatusBar: (splitViewPanel) ->
     splitViewPanel.addSubView @statusBar = new IDE.StatusBar
