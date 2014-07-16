@@ -4,6 +4,7 @@
 dateFormat  = require 'dateformat'
 htmlify     = require 'koding-htmlify'
 juice       = require 'juice'
+swig        = require 'swig'
 
 flags =
   comment                 :
@@ -41,6 +42,16 @@ gravatar  = (m, size = 20) ->
           src="https://gravatar.com/avatar/#{m.sender.profile?.hash}?size=#{size}&d=https%3A%2F%2Fapi.koding.com%2Fimages%2Fdefaultavatar%2Fdefault.avatar.#{size}.png" />"""
 
 Templates =
+
+  render : (tpl, m, data) ->
+    template = swig.compileFile "#{__dirname}/templates/"+tpl;
+    data = _.extend {
+      m: m,
+      currentDate: dateFormat m.notification.dateIssued, "mmm dd"
+      turnOffLink: "#{uri.address}/Unsubscribe/#{m.notification.unsubscribeId}"
+    }, data
+
+    template(data)
 
   linkStyle    : """ style="text-decoration:none; color:#1AAF5D;" """
   mainTemplate : (m, content, footer, description)->
@@ -206,12 +217,10 @@ Templates =
       Templates.singleEvent(m), Templates.footerTemplate turnOffLink
 
   dailyMail    : (m, content)->
-    turnOffLink = "#{uri.address}/Unsubscribe/#{m.notification.unsubscribeId}/#{encodeURIComponent m.email}"
-    turnOffDailyURL = link "#{turnOffLink}/daily", "daily emails"
-    turnOffAllEmailsURL = link "#{turnOffLink}/all", "all"
-    turnOffLink = """Unsubscribe from #{turnOffDailyURL} or Unsubscribe from #{turnOffAllEmailsURL} emails from Koding."""
-    description = "Here what's happened in Koding today!"
-    Templates.mainTemplate m, content, Templates.footerTemplate(turnOffLink), description
+    Templates.render "daily", m, {
+      turnOffLink:  "#{uri.address}/Unsubscribe/#{m.notification.unsubscribeId}/#{encodeURIComponent m.email}",
+      content: content
+    }
 
   commonHeader : (m)->
     eventFlag = flags[m.notification.eventFlag][m.event] ? flags[m.notification.eventFlag]

@@ -78,7 +78,8 @@
     "node-sockjs-client": "1.0.7",
     "cli-table": "^0.3.0",
     "read": "^1.0.5",
-    "juice": "0.4.0"
+    "juice": "0.4.0",
+    "swig": "1.4.1"
   },
   "devDependencies": {},
   "optionalDependencies": {},
