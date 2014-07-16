@@ -23,6 +23,7 @@ class IDEAppController extends AppController
       'create new drawing'  : 'createNewDrawing'
       'collapse sidebar'    : 'collapseSidebar'
       'expand sidebar'      : 'expandSidebar'
+      'toggle sidebar'      : 'toggleSidebar'
       'close tab'           : 'closeTab'
       'go to left tab'      : 'goToLeftTab'
       'go to right tab'     : 'goToRightTab'
@@ -41,6 +42,7 @@ class IDEAppController extends AppController
       { command: 'create new drawing',  binding: 'ctrl+alt+d', global: yes }
       { command: 'collapse sidebar',    binding: 'ctrl+alt+c', global: yes }
       { command: 'expand sidebar',      binding: 'ctrl+alt+e', global: yes }
+      { command: 'toggle sidebar',      binding: 'ctrl+alt+k', global: yes }
       { command: 'close tab',           binding: 'ctrl+alt+w', global: yes }
       { command: 'go to left tab',      binding: 'ctrl+alt+[', global: yes }
       { command: 'go to right tab',     binding: 'ctrl+alt+]', global: yes }
