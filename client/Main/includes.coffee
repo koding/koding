@@ -309,6 +309,8 @@ module.exports = [
   "styl/resurrection.commons.styl",
   "styl/troubleshoot.styl",
 
+  "styl/computeproviders.styl",
+
   "styl/dock.responsive.styl"
   "styl/app.markdown.styl"
 
