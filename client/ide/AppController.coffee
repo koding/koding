@@ -255,7 +255,9 @@ class IDEAppController extends AppController
 
   createNewTerminal: -> @activeTabView.emit 'TerminalPaneRequested'
 
-  createNewBrowser: (url) -> @activeTabView.emit 'PreviewPaneRequested', url
+  createNewBrowser: (url) ->
+    url = ''  unless typeof url is 'string'
+    @activeTabView.emit 'PreviewPaneRequested', url
 
   createNewDrawing: -> @activeTabView.emit 'DrawingPaneRequested'
 
