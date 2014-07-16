@@ -20,24 +20,24 @@ class MembersListItemView extends KDListItemView
 
     @actor = new ProfileLinkView {}, data
 
-    @followersAndFollowing = new JCustomHTMLView
-      cssClass  : 'user-numbers'
-      pistachio : "{{ #(counts.followers)}} followers {{ #(counts.following)}} following"
-    , data
+    # @followersAndFollowing = new JCustomHTMLView
+    #   cssClass  : 'user-numbers'
+    #   pistachio : "{{ #(counts.followers)}} followers {{ #(counts.following)}} following"
+    # , data
 
-    unless data.getId() is KD.whoami().getId()
-      @followButton = new FollowButton
-        title          : "follow"
-        icon           : yes
-        stateOptions   :
-          unfollow     :
-            title      : "unfollow"
-            cssClass   : 'following-account'
-        dataType       : 'JAccount'
-      , data
+    # unless data.getId() is KD.whoami().getId()
+    #   @followButton = new FollowButton
+    #     title          : "follow"
+    #     icon           : yes
+    #     stateOptions   :
+    #       unfollow     :
+    #         title      : "unfollow"
+    #         cssClass   : 'following-account'
+    #     dataType       : 'JAccount'
+    #   , data
 
   viewAppended:->
     @addSubView @avatar
-    @addSubView @followButton if @followButton
+    # @addSubView @followButton if @followButton
     @addSubView @actor
-    @addSubView @followersAndFollowing
+    # @addSubView @followersAndFollowing

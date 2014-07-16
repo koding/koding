@@ -19,6 +19,8 @@ class ActivityActionsView extends JView
         @getDelegate().emit "CommentCountClicked", this
     , data
 
+    @likeView = new ReplyLikeView {}, data
+
     @shareLink = new CustomLinkView
       title : "Share"
       click : (event) =>
@@ -75,7 +77,7 @@ class ActivityActionsView extends JView
 
     """
     <span class='logged-in action-container'>
-    {{> @likeLink}}
+    {{> @likeView}}
     </span>
     <span class='logged-in action-container'>
     {{> @commentLink}}{{> @commentCount}}

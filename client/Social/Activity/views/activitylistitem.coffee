@@ -25,7 +25,6 @@ class ActivityListItemView extends KDListItemView
       origin     : origin
 
     @author      = new ProfileLinkView { origin }
-    @likeSummary = new ActivityLikeSummaryView {}, data
 
     {commentViewClass} = @getOptions()
 
@@ -229,7 +228,6 @@ class ActivityListItemView extends KDListItemView
       {article{@formatContent #(body)}}
       {{> @embedBox}}
       {{> @actionLinks}}
-      {{> @likeSummary}}
     </div>
     {{> @commentBox}}
     """
