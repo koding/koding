@@ -235,11 +235,108 @@ func TestChannelMessageUpdate(t *testing.T) {
 			err := cm.Update()
 			So(err, ShouldBeNil)
 
-			// fetch createed/updated message from db
+			// fetch created/updated message from db
 			icm := NewChannelMessage()
 			err = icm.ById(cm.Id)
 			So(err, ShouldBeNil)
 			So(icm.Token, ShouldNotEqual, token)
+		})
+
+		Convey("slug can not be updated", func(){
+			// message is created in db
+			cm :=createMessageWithTest()
+			So(cm.Slug, ShouldBeZeroValue)
+			So(cm.Create(), ShouldBeNil)
+			So(cm.Slug, ShouldNotEqual, "")
+
+			// invoke a new slug
+			slug := "test for slug"
+			cm.Slug = slug
+			
+			// update the message
+			err :=cm.Update()
+			So(err , ShouldBeNil)
+
+			icm := NewChannelMessage()
+			err = icm.ById(cm.Id)
+			So(err, ShouldBeNil)
+			So(icm.Slug, ShouldNotEqual, slug)
+		})
+
+		Convey("typeConstant can not be updated", func(){
+			// message is created in db
+			cm :=createMessageWithTest()
+			So(cm.Create(), ShouldBeNil)
+			So(cm.TypeConstant, ShouldNotEqual, "")
+			
+			
+			cm.TypeConstant = ChannelMessage_TYPE_CHAT
+
+			// update the message
+			err :=cm.Update()
+			So(err , ShouldBeNil)
+
+			icm := NewChannelMessage()
+			err = icm.ById(cm.Id)
+			So(err, ShouldBeNil)
+			So(icm.TypeConstant, ShouldNotEqual, ChannelMessage_TYPE_CHAT)
+		})
+
+		Convey("AccountId can not be updated", func(){
+			// message is created in db
+			cm :=createMessageWithTest()
+			So(cm.Create(), ShouldBeNil)
+			So(cm.AccountId, ShouldNotEqual, 0)
+
+			accId := cm.AccountId + 1
+			cm.AccountId = accId
+			
+			// update the message
+			err :=cm.Update()
+			So(err , ShouldBeNil)
+
+			icm := NewChannelMessage()
+			err = icm.ById(cm.Id)
+			So(err, ShouldBeNil)
+			So(icm.AccountId, ShouldNotEqual, accId)
+		})
+
+		Convey("InitialChannelId can not be updated", func(){
+			// message is created in db
+			cm :=createMessageWithTest()
+			So(cm.Create(), ShouldBeNil)
+			So(cm.InitialChannelId, ShouldNotEqual, 0)
+
+			cm.InitialChannelId += 1
+			
+			// update the message
+			err :=cm.Update()
+			So(err , ShouldBeNil)
+
+			icm := NewChannelMessage()
+			err = icm.ById(cm.Id)
+			So(err, ShouldBeNil)
+			So(icm.InitialChannelId, ShouldNotEqual, cm.InitialChannelId)
+		})
+
+		Convey("CreatedAt can not be updated", func(){
+			// message is created in db
+			cm :=createMessageWithTest()
+			So(cm.Create(), ShouldBeNil)
+			So(cm.CreatedAt, ShouldNotBeEmpty)
+
+			// CreatedAt should return int64 type !
+			timeNow := int64(time.Millisecond)
+			cm.CreatedAt = timeNow
+			
+			// update the message
+			err :=cm.Update()
+			So(err , ShouldBeNil)
+
+			icm := NewChannelMessage()
+			err = icm.ById(cm.Id)
+			So(err, ShouldBeNil)
+			So(icm.CreatedAt, ShouldNotEqual, timeNow)
 		})
 		// write functions for other fields
 		// slug
