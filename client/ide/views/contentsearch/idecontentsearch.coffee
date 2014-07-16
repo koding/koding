@@ -19,17 +19,21 @@ class IDE.ContentSearch extends KDModalViewWithForms
               title         : 'Close'
               style         : 'cancel'
               domId         : 'cancel-button'
-              callback      : @bound "destroy"
+              callback      : @bound 'destroy'
           fields            :
             findInput       :
               type          : 'text'
               label         : 'Find'
               placeholder   : 'Find'
+              keyup         :
+                esc         : @bound 'destroy'
             whereInput      :
               type          : 'text'
               label         : 'Where'
-              placeholder   : "/home/#{KD.nick()}" #/Documents"
-              defaultValue  : "/home/#{KD.nick()}" #/Documents"
+              placeholder   : "/home/#{KD.nick()}"
+              defaultValue  : "/home/#{KD.nick()}"
+              keyup         :
+                esc         : @bound 'destroy'
             caseToggle      :
               label         : 'Case Sensitive'
               itemClass     : KodingSwitch
