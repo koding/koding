@@ -49,10 +49,12 @@ func NewChannelMessage() *ChannelMessage {
 }
 
 // Update only updates the body field of the channel message
+// tests are added for this function
 func (c *ChannelMessage) Update() error {
 	if err := bodyLenCheck(c.Body); err != nil {
 		return err
 	}
+
 	// only update body
 	err := bongo.B.UpdatePartial(c,
 		map[string]interface{}{

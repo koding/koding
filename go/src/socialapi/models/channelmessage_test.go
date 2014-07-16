@@ -242,20 +242,21 @@ func TestChannelMessageUpdate(t *testing.T) {
 			So(icm.Token, ShouldNotEqual, token)
 		})
 
-		Convey("slug can not be updated", func(){
+		Convey("slug can not be updated", func() {
 			// message is created in db
-			cm :=createMessageWithTest()
+			cm := createMessageWithTest()
 			So(cm.Slug, ShouldBeZeroValue)
 			So(cm.Create(), ShouldBeNil)
 			So(cm.Slug, ShouldNotEqual, "")
 
 			// invoke a new slug
-			slug := "test for slug"
+			slug := "another-test-for-slug"
 			cm.Slug = slug
-			
+
 			// update the message
-			err :=cm.Update()
-			So(err , ShouldBeNil)
+			// updating channel message will assign defaults
+			err := cm.Update()
+			So(err, ShouldBeNil)
 
 			icm := NewChannelMessage()
 			err = icm.ById(cm.Id)
@@ -263,18 +264,18 @@ func TestChannelMessageUpdate(t *testing.T) {
 			So(icm.Slug, ShouldNotEqual, slug)
 		})
 
-		Convey("typeConstant can not be updated", func(){
+		Convey("typeConstant can not be updated", func() {
 			// message is created in db
-			cm :=createMessageWithTest()
+			cm := createMessageWithTest()
 			So(cm.Create(), ShouldBeNil)
 			So(cm.TypeConstant, ShouldNotEqual, "")
-			
-			
+
 			cm.TypeConstant = ChannelMessage_TYPE_CHAT
 
 			// update the message
-			err :=cm.Update()
-			So(err , ShouldBeNil)
+			// updating channel message will assign defaults
+			err := cm.Update()
+			So(err, ShouldBeNil)
 
 			icm := NewChannelMessage()
 			err = icm.ById(cm.Id)
@@ -282,18 +283,19 @@ func TestChannelMessageUpdate(t *testing.T) {
 			So(icm.TypeConstant, ShouldNotEqual, ChannelMessage_TYPE_CHAT)
 		})
 
-		Convey("AccountId can not be updated", func(){
+		Convey("AccountId can not be updated", func() {
 			// message is created in db
-			cm :=createMessageWithTest()
+			cm := createMessageWithTest()
 			So(cm.Create(), ShouldBeNil)
 			So(cm.AccountId, ShouldNotEqual, 0)
 
 			accId := cm.AccountId + 1
 			cm.AccountId = accId
-			
+
 			// update the message
-			err :=cm.Update()
-			So(err , ShouldBeNil)
+			// updating channel message will assign defaults
+			err := cm.Update()
+			So(err, ShouldBeNil)
 
 			icm := NewChannelMessage()
 			err = icm.ById(cm.Id)
@@ -301,49 +303,45 @@ func TestChannelMessageUpdate(t *testing.T) {
 			So(icm.AccountId, ShouldNotEqual, accId)
 		})
 
-		Convey("InitialChannelId can not be updated", func(){
+		Convey("InitialChannelId can not be updated", func() {
 			// message is created in db
-			cm :=createMessageWithTest()
+			cm := createMessageWithTest()
 			So(cm.Create(), ShouldBeNil)
 			So(cm.InitialChannelId, ShouldNotEqual, 0)
 
-			cm.InitialChannelId += 1
-			
+			cId := cm.InitialChannelId + 1
+			cm.InitialChannelId = cId
+
 			// update the message
-			err :=cm.Update()
-			So(err , ShouldBeNil)
+			// updating channel message will assign defaults
+			err := cm.Update()
+			So(err, ShouldBeNil)
 
 			icm := NewChannelMessage()
 			err = icm.ById(cm.Id)
 			So(err, ShouldBeNil)
-			So(icm.InitialChannelId, ShouldNotEqual, cm.InitialChannelId)
+			So(icm.InitialChannelId, ShouldNotEqual, cId)
 		})
 
-		Convey("CreatedAt can not be updated", func(){
+		Convey("CreatedAt can not be updated", func() {
 			// message is created in db
-			cm :=createMessageWithTest()
+			cm := createMessageWithTest()
 			So(cm.Create(), ShouldBeNil)
 			So(cm.CreatedAt, ShouldNotBeEmpty)
 
-			// CreatedAt should return int64 type !
-			timeNow := int64(time.Millisecond)
+			timeNow := time.Now()
 			cm.CreatedAt = timeNow
-			
+
 			// update the message
-			err :=cm.Update()
-			So(err , ShouldBeNil)
+			// updating channel message will assign defaults
+			err := cm.Update()
+			So(err, ShouldBeNil)
 
 			icm := NewChannelMessage()
 			err = icm.ById(cm.Id)
 			So(err, ShouldBeNil)
 			So(icm.CreatedAt, ShouldNotEqual, timeNow)
 		})
-		// write functions for other fields
-		// slug
-		// typeConstant
-		// AccountId
-		// InitialChannelId
-		// CreatedAt
 	})
 }
 
