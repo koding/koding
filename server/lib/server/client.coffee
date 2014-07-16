@@ -54,17 +54,17 @@ generateFakeClientFromReq = (req, res, callback)->
   generateFakeClient { clientId, groupName, section }, (err, fakeClient) ->
     return callback err  if err?
     {delegate} = fakeClient.connection
+    # check if user stored in the session really exists
     return callback null, fakeClient  if delegate?
 
+    # when related guest user is somehow deleted and client stored in session is
+    # somehow invalid, create a new session
     bongo.models.JSession.fetchSession {}, (err, {session, account})->
       return callback err  if err?
       return callback {message: "account cannot be created"}  unless account? and session?
       updateCookie req, res, session
 
-      fakeClient.connection.delegate  = account
-      fakeClient.connection.groupName = groupName
-      fakeClient.context.user         = session.username
-      fakeClient.context.group        = groupName
+      prepareFakeClient fakeClient, {account, groupName, session}
 
       callback null, fakeClient
 
@@ -90,19 +90,24 @@ generateFakeClient = ({ clientId, groupName, section }, callback) ->
         return handleError err, callback if err
         return callback null, fakeClient unless account?
 
-        fakeClient.sessionToken = session.clientId
-
-        # set username into context
-        fakeClient.context or= {}
-        fakeClient.context.group = groupName or fakeClient.context.group
-        fakeClient.context.user  = session.username or fakeClient.context.user
-
-        # create connection property
-        fakeClient.connection or= {}
-        fakeClient.connection.delegate  = account or fakeClient.connection.delegate
-        fakeClient.connection.groupName = groupName or fakeClient.connection.groupName
+        prepareFakeClient fakeClient, {groupName, session, account}
 
         return callback null, fakeClient
+
+prepareFakeClient = (fakeClient, options) ->
+  {groupName, session, account} = options
+  fakeClient.sessionToken = session.clientId
+
+  # set username into context
+  fakeClient.context or= {}
+  fakeClient.context.group = groupName or fakeClient.context.group
+  fakeClient.context.user  = session.username or fakeClient.context.user
+
+  # create connection property
+  fakeClient.connection or= {}
+  fakeClient.connection.delegate  = account or fakeClient.connection.delegate
+  fakeClient.connection.groupName = groupName or fakeClient.connection.groupName
+
 
 module.exports = { generateFakeClient: generateFakeClientFromReq, updateCookie}
 
