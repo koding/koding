@@ -17,6 +17,7 @@ type (
 		SendGrid          SendGrid
 		EmailNotification EmailNotification
 		Sitemap           Sitemap
+		FlagDebugMode     bool
 	}
 	Redis struct {
 		URL   string

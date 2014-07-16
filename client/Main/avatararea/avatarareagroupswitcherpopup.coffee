@@ -31,7 +31,7 @@ class AvatarPopupGroupSwitcher extends AvatarPopup
         partial           : ''
         spinnerOptions    :
           loaderOptions   :
-            color         : '#6BB197'
+            color         : '#ffffff'
           size            :
             width         : 32
       view                : @_popupListPending
@@ -41,7 +41,7 @@ class AvatarPopupGroupSwitcher extends AvatarPopup
         partial           : ''
         spinnerOptions    :
           loaderOptions   :
-            color         : '#6BB197'
+            color         : '#ffffff'
           size            :
             width         : 32
       view                : @_popupList
@@ -50,29 +50,23 @@ class AvatarPopupGroupSwitcher extends AvatarPopup
 
     @avatarPopupContent.addSubView @invitesHeader = new KDView
       height   : "auto"
-      cssClass : "sublink top hidden"
+      cssClass : "sublink hidden"
       partial  : "You have pending group invitations:"
-
-    @avatarPopupContent.addSubView new KDCustomHTMLView
-      tagName    : 'span'
-      cssClass   : 'icon help'
-      tooltip    :
-        title    : "Here you'll find the groups that you are a member of, clicking one of them will take you to a new browser tab."
 
     @addSubView @groupSubMenuWrapper = new KDCustomHTMLView
       partial  : '<div class="kdview content"></div>'
-      cssClass : 'avatararea-popup notifications group-switcher submenu' # this is a hack, just to use the same position w/ notifications dropdown
+      cssClass : 'avatararea-popup submenu' # this is a hack, just to use the same position w/ notifications dropdown
 
     setGroupWrapperStyle = =>
       @groupSubMenuWrapper.setStyle
-        bottom : @getHeight() + 21 # bottomdistance(62) - menuitemheight(41) = 21
-        left   : 297
+        bottom : @getHeight() + 2
+        left   : 257
 
     {entryPoint} = KD.config
     createGroupLink = new KDCustomHTMLView
       tagName    : 'a'
       attributes : href : '/Pricing/Team'
-      cssClass   : 'bottom bb hidden'
+      cssClass   : 'bottom'
       partial    : 'Create a group'
       click      : (event)=>
         KD.utils.stopDOMEvent event
@@ -97,7 +91,6 @@ class AvatarPopupGroupSwitcher extends AvatarPopup
     groupsController.ready ->
       backToKoding.destroy()  if groupsController.getCurrentGroup().slug is 'koding'
 
-
     @groupSubMenuWrapper.addSubView createGroupLink, '.content'
     @groupSubMenuWrapper.addSubView backToKoding, '.content'
     @groupSubMenuWrapper.addSubView @listControllerPending.getView(), '.content'
@@ -120,7 +113,6 @@ class AvatarPopupGroupSwitcher extends AvatarPopup
     @avatarPopupContent.addSubView new KDCustomHTMLView
       tagName    : 'a'
       attributes : href : '#'
-      cssClass   : 'bottom'
       partial    : 'Your groups'
       bind       : 'mouseenter mousemove'
       mouseenter : handleSubMenu
@@ -130,7 +122,7 @@ class AvatarPopupGroupSwitcher extends AvatarPopup
     @avatarPopupContent.addSubView new KDCustomHTMLView
       tagName    : 'a'
       attributes : href : '/Account'
-      cssClass   : 'bottom separator'
+      cssClass   : 'bottom-separator'
       partial    : 'Account settings'
       click      : (event)=>
         KD.utils.stopDOMEvent event
@@ -141,7 +133,6 @@ class AvatarPopupGroupSwitcher extends AvatarPopup
     @avatarPopupContent.addSubView new KDCustomHTMLView
       tagName    : 'a'
       attributes : href : '/Environments'
-      cssClass   : 'bottom'
       partial    : 'Environments'
       click      : (event)=>
         KD.utils.stopDOMEvent event
@@ -150,7 +141,6 @@ class AvatarPopupGroupSwitcher extends AvatarPopup
 
     @avatarPopupContent.addSubView new KDCustomHTMLView
       tagName    : 'a'
-      cssClass   : 'bottom'
       partial    : 'System health check'
       click      : (event)=>
         new TroubleshootModal
@@ -177,7 +167,7 @@ class AvatarPopupGroupSwitcher extends AvatarPopup
     if (Cookies.get cookieName) is "1"
       @avatarPopupContent.addSubView new KDCustomHTMLView
         tagName    : 'a'
-        cssClass   : 'bottom'
+
         partial    : 'Switch back to secure (https) mode'
         click      : (event)=>
           KD.utils.stopDOMEvent event
@@ -187,7 +177,6 @@ class AvatarPopupGroupSwitcher extends AvatarPopup
     @avatarPopupContent.addSubView new KDCustomHTMLView
       tagName    : 'a'
       attributes : href : '/Logout'
-      cssClass   : 'bottom'
       partial    : 'Logout'
       click      : (event)=>
         KD.utils.stopDOMEvent event

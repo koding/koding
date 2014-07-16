@@ -2,15 +2,15 @@ class AceApplicationTabView extends ApplicationTabView
 
   removePane_: KDTabView::removePane
 
-  removePane: (pane) ->
+  removePane: (pane, shouldDetach) ->
     {aceView} = pane.getOptions()
 
-    return  @removePane_ pane  unless aceView
+    return  @removePane_ pane, shouldDetach  unless aceView
 
     {ace} = aceView
     file  = ace.getData()
 
-    return @removePane_ pane  unless ace.isContentChanged()
+    return @removePane_ pane, shouldDetach  unless ace.isContentChanged()
 
     modal = new KDModalView
       width         : 620

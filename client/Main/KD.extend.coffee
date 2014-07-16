@@ -1,10 +1,10 @@
 # this class will register itself just before application starts loading, right after framework is ready
 
-if localStorage.disableWebSocket?
-  if localStorage.disableWebSocket is "true"
-    window.WebSocket = null
-else if KD.config.kites.disableWebSocketByDefault
-  window.WebSocket = null
+# if localStorage.disableWebSocket?
+#   if localStorage.disableWebSocket is "true"
+#     window.WebSocket = null
+# else if KD.config.kites.disableWebSocketByDefault
+#   window.WebSocket = null
 
 KD.extend
 
@@ -19,12 +19,7 @@ KD.extend
         Boolean Number localStorage.useNewKites
     localStorage.useNewKites = if useNewKites then '1' else ''
     return useNewKites
-  useWebSockets :
-    if localStorage.disableWebSocket is 'true'
-      WebSocket = null
-      no
-    else
-      yes
+  useWebSockets : yes
   appClasses   : {}
   appScripts   : {}
   appLabels    : {}
@@ -291,7 +286,13 @@ KD.extend
         for flag in flagToCheck
           if flag in account.globalFlags
             return yes
-    no
+    return no
+
+  # filterTrollActivity filters troll activities from users.
+  # Only super-admins and other trolls can see these activities
+  filterTrollActivity:(account)->
+    return no unless account.isExempt
+    return account._id isnt KD.whoami()._id and not KD.checkFlag "super-admin"
 
   showError:(err, messages)->
     return no  unless err

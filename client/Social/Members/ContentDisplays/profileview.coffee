@@ -305,7 +305,7 @@ class ProfileView extends JView
     @memberData    = @getData()
     mainController = KD.getSingleton "mainController"
 
-    if KD.checkFlag 'exempt', @memberData
+    if @memberData.isExempt
       if not KD.checkFlag 'super-admin'
         return KD.getSingleton('router').handleRoute "/Activity"
 
@@ -504,10 +504,10 @@ class ProfileView extends JView
     if KD.checkFlag 'super-admin' and not KD.isMine @memberData
       @trollSwitch   = new KDCustomHTMLView
         tagName      : "a"
-        partial      : if KD.checkFlag 'exempt', @memberData then 'Unmark Troll' else 'Mark as Troll'
+        partial      : if @memberData.isExempt then 'Unmark Troll' else 'Mark as Troll'
         cssClass     : "troll-switch"
         click        : =>
-          if KD.checkFlag 'exempt', @memberData
+          if @memberData.isExempt
           then mainController.unmarkUserAsTroll @memberData
           else mainController.markUserAsTroll   @memberData
     else

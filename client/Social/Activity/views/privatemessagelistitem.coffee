@@ -25,6 +25,9 @@ class PrivateMessageListItemView extends ActivityListItemView
 
     @setClass 'with-parent'
     firstReply = @commentBox.controller.getListItems().first
+
+    return  unless firstReply
+
     if @getData().account._id is firstReply.getData().account._id
       firstReply.setClass 'consequent'
 
