@@ -65,18 +65,17 @@ class IDE.ContentSearch extends KDModalViewWithForms
     include         = "\\*{#{exts.join ','}}"
     exclureDirs     = Object.keys IDE.settings.editor.ignoreDirectories
     exclureDirs     = " --exclude-dir=#{exclureDirs.join ' --exclude-dir='}"
+    searchText      = @searchText
 
-    searchText = @searchText
-
-    if not isRegExp
-      splitText = searchText.split "\\n"
-      splitText = splitText.map grepEscapeRegExp
+    unless isRegExp
+      splitText  = searchText.split "\\n"
+      splitText  = splitText.map grepEscapeRegExp
       searchText = splitText.join "\\n"
 
-    searchText     = searchText.replace (new RegExp "\\\'", "g"), "'\\''"
-    searchText     = searchText.replace /-/g, "\\-"
+    searchText   = searchText.replace (new RegExp "\\\'", "g"), "'\\''"
+    searchText   = searchText.replace /-/g, "\\-"
 
-    flags           = [
+    flags        = [
       '-s'                           # Silent mode
       '-r'                           # Recursively search subdirectories listed.
       '-n'                           # Each output line is preceded by its relative line number in the file
