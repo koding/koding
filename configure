@@ -34,6 +34,7 @@ options = o =
   version          : argv.version       or "1.0"
   environment      : argv.environment   or "prod"
   hostname         : argv.hostname
+  publicHostname   : argv.publichostname
   target           : argv.target        or "localhost"
   onlyconfigure    : argv.onlyconfigure or false
   supervisor       : argv.supervisor    or false
@@ -55,14 +56,15 @@ class Deploy
   @createDeployData = (callback=->)->
     exec """
       mkdir -p ./install/BUILD_DATA
-      echo #{o.hostname}     >#{BLD}/BUILD_HOSTNAME
-      echo #{o.region}       >#{BLD}/BUILD_REGION
-      echo #{o.config}       >#{BLD}/BUILD_CONFIG
-      echo #{o.branch}       >#{BLD}/BUILD_BRANCH
-      echo #{o.build}        >#{BLD}/BUILD_NUMBER
-      echo #{o.projectRoot}  >#{BLD}/BUILD_PROJECT_ROOT
-      echo #{o.environment}  >#{BLD}/BUILD_ENVIRONMENT
-      echo #{o.version}      >#{BLD}/BUILD_VERSION"""
+      echo #{o.hostname}       >#{BLD}/BUILD_HOSTNAME
+      echo #{o.publicHostname} >#{BLD}/BUILD_PUBLIC_HOSTNAME
+      echo #{o.region}         >#{BLD}/BUILD_REGION
+      echo #{o.config}         >#{BLD}/BUILD_CONFIG
+      echo #{o.branch}         >#{BLD}/BUILD_BRANCH
+      echo #{o.build}          >#{BLD}/BUILD_NUMBER
+      echo #{o.projectRoot}    >#{BLD}/BUILD_PROJECT_ROOT
+      echo #{o.environment}    >#{BLD}/BUILD_ENVIRONMENT
+      echo #{o.version}        >#{BLD}/BUILD_VERSION"""
     ,->
       KONFIG = require "./config/main.#{o.config}.coffee"
       fs.writeFileSync "#{BLD}/BUILD_CONFIG.json",JSON.stringify KONFIG
@@ -167,6 +169,7 @@ class Deploy
           { src: "#{PRJ}/install/cleanup"     , trg: "/root/cleanup"}
           { src: "#{BLD}/BUILD_CONFIG.json"   , trg: "/root/BUILD_DATA/BUILD_CONFIG.json"}
           { src: "#{BLD}/BUILD_HOSTNAME"      , trg: "/root/BUILD_DATA/BUILD_HOSTNAME"}
+          { src: "#{BLD}/BUILD_PUBLIC_HOSTNAME",trg: "/root/BUILD_DATA/BUILD_PUBLIC_HOSTNAME"}
           { src: "#{BLD}/BUILD_REGION"        , trg: "/root/BUILD_DATA/BUILD_REGION"}
           { src: "#{BLD}/BUILD_CONFIG"        , trg: "/root/BUILD_DATA/BUILD_CONFIG"}
           { src: "#{BLD}/BUILD_BRANCH"        , trg: "/root/BUILD_DATA/BUILD_BRANCH"}
@@ -195,6 +198,7 @@ class Deploy
           { src: "#{PRJ}/install/build-prod"  , trg: "/root/prepare"},
           { src: "#{BLD}/BUILD_CONFIG.json"   , trg: "/root/BUILD_DATA/BUILD_CONFIG.json"}
           { src: "#{BLD}/BUILD_HOSTNAME"      , trg: "/root/BUILD_DATA/BUILD_HOSTNAME"}
+          { src: "#{BLD}/BUILD_PUBLIC_HOSTNAME",trg: "/root/BUILD_DATA/BUILD_PUBLIC_HOSTNAME"}
           { src: "#{BLD}/BUILD_REGION"        , trg: "/root/BUILD_DATA/BUILD_REGION"}
           { src: "#{BLD}/BUILD_CONFIG"        , trg: "/root/BUILD_DATA/BUILD_CONFIG"}
           { src: "#{BLD}/BUILD_NUMBER"        , trg: "/root/BUILD_DATA/BUILD_NUMBER"}

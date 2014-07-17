@@ -9,12 +9,13 @@ path                = require 'path'
 traverse            = require 'traverse'
 BLD                 = process.env['KODING_BUILD_DATA_PATH'] or path.join __dirname,"../install/BUILD_DATA"
 
-hostname            = (fs.readFileSync BLD+"/BUILD_HOSTNAME"    , 'utf8').replace("\n","")
-region              = (fs.readFileSync BLD+"/BUILD_REGION"      , 'utf8').replace("\n","")
-configName          = (fs.readFileSync BLD+"/BUILD_CONFIG"      , 'utf8').replace("\n","")
-environment         = (fs.readFileSync BLD+"/BUILD_ENVIRONMENT" , 'utf8').replace("\n","")
-projectRoot         = (fs.readFileSync BLD+"/BUILD_PROJECT_ROOT", 'utf8').replace("\n","")
-version             = (fs.readFileSync BLD+"/BUILD_VERSION"     , 'utf8').replace("\n","")
+hostname            = (fs.readFileSync BLD+"/BUILD_HOSTNAME"        , 'utf8').replace("\n","")
+publicHostname      = (fs.readFileSync BLD+"/BUILD_PUBLIC_HOSTNAME" , 'utf8').replace("\n","")
+region              = (fs.readFileSync BLD+"/BUILD_REGION"          , 'utf8').replace("\n","")
+configName          = (fs.readFileSync BLD+"/BUILD_CONFIG"          , 'utf8').replace("\n","")
+environment         = (fs.readFileSync BLD+"/BUILD_ENVIRONMENT"     , 'utf8').replace("\n","")
+projectRoot         = (fs.readFileSync BLD+"/BUILD_PROJECT_ROOT"    , 'utf8').replace("\n","")
+version             = (fs.readFileSync BLD+"/BUILD_VERSION"         , 'utf8').replace("\n","")
 
 mongo               = "#{prod_simulation_server}:27017/koding"
 redis               = {host     : "#{prod_simulation_server}"   , port : "6379" }
@@ -71,6 +72,7 @@ KONFIG              =
   regions           : regions
   region            : region
   hostname          : hostname
+  publicHostname    : publicHostname
   version           : version
   broker            : broker
   uri               : {address: "#{customDomain.public}:#{customDomain.port}"}
@@ -319,7 +321,7 @@ generateRunFile = (KONFIG) ->
       if grep -q UsZMWdx586A3tA0U "$HOME/.ngrok"; then
         echo you seem to have correct .ngrok file.
       else
-        echo 'created ~/.ngrok file (you still need to download the client)'
+        echo 'created ~/.ngrok file (you may still need to download the client)'
         echo auth_token: CMY-UsZMWdx586A3tA0U >> $HOME/.ngrok
       fi
 
