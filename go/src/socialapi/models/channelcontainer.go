@@ -32,30 +32,22 @@ func PopulateChannelContainers(channelList []Channel, accountId int64) ([]*Chann
 	return channelContainers, nil
 }
 
-func PopulateChannelContainersWithUnreadCount(channelList []Channel, accountId int64) ([]*ChannelContainer, error) {
-	channelContainers, err := PopulateChannelContainers(channelList, accountId)
-	if err != nil {
-		return nil, err
-	}
-
-	cml := NewChannelMessageList()
-	for i, container := range channelContainers {
-		if !container.IsParticipant {
-			continue
-		}
-
+func (cr *ChannelContainer) AddParticipantCount() *ChannelContainer {
+	return withChecks(cr, func(cc *ChannelContainer) error {
 		cp := NewChannelParticipant()
-		cp.ChannelId = container.Channel.Id
-		cp.AccountId = accountId
-		if err := cp.FetchParticipant(); err != nil {
-			// helper.MustGetLogger().Error(err.Error())
-			continue
+		cp.ChannelId = cc.Channel.Id
+
+		// fetch participant count from db
+		participantCount, err := cp.FetchParticipantCount()
+		if err != nil {
+			return err
 		}
 
-		// for private messages calculate the unread reply count
-		if container.Channel.TypeConstant == Channel_TYPE_PRIVATE_MESSAGE {
-			if container.LastMessage == nil || container.LastMessage.Message == nil || container.LastMessage.Message.Id == 0 {
-				continue
+		cc.ParticipantCount = participantCount
+		return nil
+	})
+}
+
 func (cr *ChannelContainer) AddParticipantsPreview() *ChannelContainer {
 	return withChecks(cr, func(cc *ChannelContainer) error {
 		// try to use the data
