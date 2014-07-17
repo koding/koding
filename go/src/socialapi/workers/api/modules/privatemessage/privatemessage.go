@@ -117,16 +117,17 @@ func Send(u *url.URL, h http.Header, req *models.PrivateMessageRequest) (int, ht
 }
 
 func List(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface{}, error) {
-	q := request.GetQuery(u)
+	query := request.GetQuery(u)
 
-	channels, err := getPrivateMessageChannels(q)
+	channelList, err := getPrivateMessageChannels(query)
 	if err != nil {
 		return response.NewBadRequest(err)
 	}
 
-	return response.HandleResultAndError(
-		models.PopulateChannelContainersWithUnreadCount(channels, q.AccountId),
-	)
+	cc := models.NewChannelContainers()
+	cc.PopulateWith(channelList, query.AccountId).AddUnreadCount(query.AccountId)
+
+	return response.HandleResultAndError(cc, cc.Err)
 }
 
 func getPrivateMessageChannels(q *request.Query) ([]models.Channel, error) {
