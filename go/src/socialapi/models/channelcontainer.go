@@ -202,15 +202,21 @@ func (cr *ChannelContainer) PopulateWith(c Channel, accountId int64) error {
 
 	return cr.Err
 }
+type ChannelContainers []ChannelContainer
+
+func NewChannelContainers() *ChannelContainers {
+	return &ChannelContainers{}
+}
+
+func (c *ChannelContainers) PopulateWith(channelList []Channel, accountId int64) *ChannelContainers {
+	for i, _ := range channelList {
+		cc := NewChannelContainer()
+		cc.PopulateWith(channelList[i], accountId)
+		c.Add(cc)
 	}
 
-	cc := NewChannelContainer()
-	cc.Channel = channel
-	cc.IsParticipant = isParticipant
-	cc.ParticipantCount = participantCount
-	participantOldIds, err := FetchAccountOldsIdByIdsFromCache(cpList)
-	if err != nil {
-		return nil, err
+	return c
+}
 	}
 
 	cc.ParticipantsPreview = participantOldIds
