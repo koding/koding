@@ -7,6 +7,7 @@ type ChannelContainer struct {
 	ParticipantsPreview []string                 `json:"participantsPreview"`
 	LastMessage         *ChannelMessageContainer `json:"lastMessage"`
 	UnreadCount         int                      `json:"unreadCount"`
+	Err                 error                    `json:"-"`
 }
 
 func NewChannelContainer() *ChannelContainer {
