@@ -124,26 +124,18 @@ func (cr *ChannelContainer) AddLastMessage() *ChannelContainer {
 	})
 }
 
-func PopulateChannelContainer(channel Channel, accountId int64) (*ChannelContainer, error) {
+func getChannelParticipant(channelId, accountId int64) (*ChannelParticipant, error) {
+	// fetch participant data from db
 	cp := NewChannelParticipant()
-	cp.ChannelId = channel.Id
-
-	// add participantCount
-	participantCount, err := cp.FetchParticipantCount()
-	if err != nil {
+	cp.ChannelId = channelId
+	cp.AccountId = accountId
+	if err := cp.FetchParticipant(); err != nil {
 		return nil, err
 	}
 
-	// add participant preview
-	cpList, err := cp.ListAccountIds(5)
-	if err != nil {
-		return nil, err
-	}
+	return cp, nil
+}
 
-	// add participation status
-	isParticipant, err := cp.IsParticipant(accountId)
-	if err != nil {
-		return nil, err
 func (cr *ChannelContainer) AddUnreadCount(accountId int64) *ChannelContainer {
 	return withChecks(cr, func(cc *ChannelContainer) error {
 
