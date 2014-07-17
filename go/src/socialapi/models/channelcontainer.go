@@ -192,6 +192,16 @@ func (cr *ChannelContainer) AddUnreadCount(accountId int64) *ChannelContainer {
 
 	})
 }
+
+func (cr *ChannelContainer) PopulateWith(c Channel, accountId int64) error {
+	cr.Channel = c
+	cr.AddParticipantCount().
+		AddParticipantsPreview().
+		AddIsParticipant(accountId).
+		AddLastMessage()
+
+	return cr.Err
+}
 	}
 
 	cc := NewChannelContainer()
