@@ -85,17 +85,16 @@ func ListTopics(u *url.URL, h http.Header, _ interface{}) (int, http.Header, int
 	}
 
 	c := models.NewChannel()
-	popularTopics, err := c.FetchByIds(popularTopicIds)
+	channelList, err := c.FetchByIds(popularTopicIds)
 	if err != nil {
 		return response.NewBadRequest(err)
 	}
 
-	return response.HandleResultAndError(
-		models.PopulateChannelContainers(
-			popularTopics,
-			query.AccountId,
-		),
-	)
+	cc := models.NewChannelContainers()
+	cc.PopulateWith(channelList, query.AccountId)
+	cc.Validate()
+
+	return response.NewOK(cc)
 }
 
 func extendPopularTopicsIfNeeded(query *request.Query, popularTopics []int64) ([]int64, error) {
