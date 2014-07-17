@@ -2,7 +2,6 @@ class IDEAppController extends AppController
 
   KD.registerAppClass this,
     name         : 'IDE'
-    route        : '/:name?/IDE'
     behavior     : 'application'
     preCondition :
       condition  : (options, cb) -> cb KD.isLoggedIn()
