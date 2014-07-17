@@ -19,8 +19,8 @@ class ActivityListItemView extends KDListItemView
 
     @avatar = new AvatarView
       size       :
-        width    : 38
-        height   : 38
+        width    : 37
+        height   : 37
       cssClass   : 'author-avatar'
       origin     : origin
 
@@ -32,6 +32,8 @@ class ActivityListItemView extends KDListItemView
     @actionLinks = new ActivityActionsView delegate: @commentBox, data
 
     @commentBox.forwardEvent @actionLinks, "Reply"
+
+    @likeSummary = new ActivityLikeSummaryView {}, @getData()
 
     @settingsButton = new ActivitySettingsView
       cssClass : 'settings-menu-wrapper'
@@ -222,11 +224,12 @@ class ActivityListItemView extends KDListItemView
       {{> @avatar}}
       <div class='meta'>
         {{> @author}}
-        {{> @timeAgoView}} <span class="location">San Francisco</span>
+        {{> @timeAgoView}} <span class="location"> from San Francisco</span>
       </div>
       {{> @editWidgetWrapper}}
       {article{@formatContent #(body)}}
       {{> @embedBox}}
+      {{> @likeSummary}}
       {{> @actionLinks}}
     </div>
     {{> @commentBox}}

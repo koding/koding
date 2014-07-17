@@ -4,6 +4,13 @@ class CommentLikeView extends ActivityLikeView
 
     super options, data
 
+    @count = new ActivityLikeCount
+      cssClass    : 'count'
+      tooltip     :
+        gravity   : @getOption "tooltipPosition"
+        title     : ""
+    , data
+
   pistachio: ->
 
     '''
