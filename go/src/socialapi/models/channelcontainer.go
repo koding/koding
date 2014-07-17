@@ -59,6 +59,31 @@ func PopulateChannelContainersWithUnreadCount(channelList []Channel, accountId i
 			}
 
 			count, err := NewMessageReply().UnreadCount(container.LastMessage.Message.Id, cp.LastSeenAt)
+func (cr *ChannelContainer) AddIsParticipant(accountId int64) *ChannelContainer {
+	return withChecks(cr, func(cc *ChannelContainer) error {
+		if accountId == 0 {
+			return nil
+		}
+
+		// if data is already set, use it
+		if cc.IsParticipant {
+			return nil
+		}
+
+		cp := NewChannelParticipant()
+		cp.ChannelId = cc.Channel.Id
+
+		// add participation status
+		isParticipant, err := cp.IsParticipant(accountId)
+		if err != nil {
+			return err
+		}
+
+		cc.IsParticipant = isParticipant
+
+		return nil
+	})
+}
 			if err != nil {
 				continue
 			}
