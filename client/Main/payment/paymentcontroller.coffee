@@ -31,7 +31,7 @@ class PaymentController extends KDController
       response = Recaptcha.get_response()
 
       @isCaptchaValid challenge, response, (result)=>
-        modal.paymentForm.stopLoader()
+        modal.paymentForm?.stopLoader()
 
         if result isnt "verified"
           callback "Captcha failed, please try again."
