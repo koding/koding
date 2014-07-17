@@ -83,6 +83,15 @@ class PaymentMethodEntryForm extends KDFormViewWithFields
             regExp        : /^[0-9]{3,4}$/
           messages        :
             regExp        : 'Card verification code (CVC) should be a 3 or 4-digit number!'
+      cardZipcode         :
+        placeholder       : 'ZIPCODE'
+        validate          :
+          notifications   : yes
+          event           : 'blur'
+          rules           :
+            regExp        : /^[0-9]/
+          messages        :
+            regExp        : 'Zipcode must be a number!'
       captcha             :
         itemClass         : KDCustomHTMLView
         domId             : "recaptcha"
