@@ -24,7 +24,7 @@ type MongoDB struct {
 func (m *MongoDB) Assignee() string { return m.AssigneeName }
 
 // Get returns the meta of the associated credential with the given machine id.
-func (m *MongoDB) Get(id string, opt *kloud.GetOption) (*kloud.MachineData, error) {
+func (m *MongoDB) Get(id string) (*kloud.Machine, error) {
 	if !bson.IsObjectIdHex(id) {
 		return nil, fmt.Errorf("Invalid machine id: %q", id)
 	}
@@ -53,81 +53,69 @@ func (m *MongoDB) Get(id string, opt *kloud.GetOption) (*kloud.MachineData, erro
 		ReturnNew: true,
 	}
 
-	machine := &kloud.Machine{}
-	if opt.IncludeMachine {
-		err := m.Session.Run("jMachines", func(c *mgo.Collection) error {
-			// If Find() is successful the Update() above will be applied
-			// (which set's us as assignee). If not, it means someone else is
-			// working on this document and we should return with an error. The
-			// whole process is Atomic and a single transaction.
+	machine := &Machine{}
+	err := m.Session.Run("jMachines", func(c *mgo.Collection) error {
+		// If Find() is successful the Update() above will be applied
+		// (which set's us as assignee). If not, it means someone else is
+		// working on this document and we should return with an error. The
+		// whole process is Atomic and a single transaction.
 
-			// Now we query for our document. There are two cases:
+		// Now we query for our document. There are two cases:
 
-			// 1.) assigne.name is nil: A nil assignee means that nobody has
-			// picked it up yet and we are good to go.
+		// 1.) assigne.name is nil: A nil assignee means that nobody has
+		// picked it up yet and we are good to go.
 
-			// 2.) assigne.name is not nil: kloud might crash during the time
-			// it has selected the document but couldn't unset assigne.name to
-			// nil. If kloud doesn't start (because it cleans documents that
-			// belongs to himself at start), assigne.name will be always
-			// non-nil. If that instance nevers starts assigne will not changed
-			// ever.
+		// 2.) assigne.name is not nil: kloud might crash during the time
+		// it has selected the document but couldn't unset assigne.name to
+		// nil. If kloud doesn't start (because it cleans documents that
+		// belongs to himself at start), assigne.name will be always
+		// non-nil. If that instance nevers starts assigne will not changed
+		// ever.
 
-			// Therefore we are going to check if it was assigned 10 minutes
-			// ago and reassign again. However, we also add an additional check
-			// which will prevent multiple readers update the same document. If
-			// one is able to query the document the Update() above will update
-			// the assignedAt to current date, but the next one will be not
-			// able to query it because the second additional date is not valid
-			// anymore.
-			_, err := c.Find(
-				bson.M{
-					"_id": bson.ObjectIdHex(id),
-					"$or": []bson.M{
-						bson.M{"assignee.name": nil},
-						bson.M{"$and": []bson.M{
-							bson.M{"assignee.assignedAt": bson.M{"$lt": time.Now().Add(time.Minute * 10)}},
-							bson.M{"assignee.assignedAt": bson.M{"$lt": time.Now().Add(-time.Second * 30)}},
-						}},
-					},
-				}).Apply(change, &machine)
-			return err
-		})
+		// Therefore we are going to check if it was assigned 10 minutes
+		// ago and reassign again. However, we also add an additional check
+		// which will prevent multiple readers update the same document. If
+		// one is able to query the document the Update() above will update
+		// the assignedAt to current date, but the next one will be not
+		// able to query it because the second additional date is not valid
+		// anymore.
+		_, err := c.Find(
+			bson.M{
+				"_id": bson.ObjectIdHex(id),
+				"$or": []bson.M{
+					bson.M{"assignee.name": nil},
+					bson.M{"$and": []bson.M{
+						bson.M{"assignee.assignedAt": bson.M{"$lt": time.Now().Add(time.Minute * 10)}},
+						bson.M{"assignee.assignedAt": bson.M{"$lt": time.Now().Add(-time.Second * 30)}},
+					}},
+				},
+			}).Apply(change, &machine)
+		return err
+	})
 
-		// query didn't matched, means it's assigned to some other Kloud
-		// instances and an ongoing event is in process.
-		if err == mgo.ErrNotFound {
-			return nil, kloud.NewError(kloud.ErrMachinePendingEvent)
-		}
-
-		// some other error, this shouldn't be happed
-		if err != nil {
-			m.Log.Error("Storage get error: %s", err.Error())
-			return nil, kloud.NewError(kloud.ErrBadState)
-		}
+	// query didn't matched, means it's assigned to some other Kloud
+	// instances and an ongoing event is in process.
+	if err == mgo.ErrNotFound {
+		return nil, kloud.NewError(kloud.ErrMachinePendingEvent)
 	}
 
-	credential := &kloud.Credential{}
-	if opt.IncludeCredential {
-		// we neglect errors because credential is optional
-		m.Session.Run("jCredentialDatas", func(c *mgo.Collection) error {
-			return c.Find(bson.M{"publicKey": machine.Credential}).One(credential)
-		})
+	// some other error, this shouldn't be happed
+	if err != nil {
+		m.Log.Error("Storage get error: %s", err.Error())
+		return nil, kloud.NewError(kloud.ErrBadState)
 	}
 
-	stack := &kloud.Stack{}
-	if opt.IncludeStack {
-		// we neglect errors because credential is optional
-		m.Session.Run("jStacks", func(c *mgo.Collection) error {
-			return c.Find(bson.M{"publicKey": machine.Credential}).One(credential)
-		})
-	}
+	credential := &Credential{}
+	// we neglect errors because credential is optional
+	m.Session.Run("jCredentialDatas", func(c *mgo.Collection) error {
+		return c.Find(bson.M{"publicKey": machine.Credential}).One(credential)
+	})
 
-	return &kloud.MachineData{
+	return &kloud.Machine{
 		Provider:   machine.Provider,
-		Credential: credential,
-		Machine:    machine,
-		Stack:      stack,
+		Data:       machine.Meta,
+		Credential: credential.Meta,
+		State:      machine.State(),
 	}, nil
 }
 

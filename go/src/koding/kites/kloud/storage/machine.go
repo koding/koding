@@ -1,4 +1,4 @@
-package kloud
+package storage
 
 import (
 	"time"
@@ -28,4 +28,10 @@ type Machine struct {
 
 func (m *Machine) State() machinestate.State {
 	return machinestate.States[m.Status.State]
+}
+
+type Credential struct {
+	Id        bson.ObjectId `bson:"_id" json:"-"`
+	PublicKey string        `bson:"publicKey"`
+	Meta      bson.M        `bson:"meta"`
 }
