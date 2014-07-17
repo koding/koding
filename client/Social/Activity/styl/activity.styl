@@ -116,7 +116,7 @@ styleScrollBars()
 
 
     > .activity-input-widget
-      margin-bottom     36px
+      margin-bottom     26px
       display           block
 
       .input-view
@@ -737,7 +737,7 @@ span.collapsedtext
   hidden()
 
 .activity-item
-  padding-left              52px
+  padding-left              56px
   borderBox()
 
   .activity-content-wrapper
@@ -768,8 +768,9 @@ span.collapsedtext
           r-sprite          activity chevron-icon
 
     .author-avatar
-      abs                 20px 0 0 -51px
+      abs                 -2px 0 0 -56px
       display             block
+      border              2px solid #0EB463
 
       img
         display           block
@@ -792,16 +793,6 @@ span.collapsedtext
         color             #999999
         font-size         12px
         font-weight       400
-
-        &:after
-          content         ""
-          display         inline-block
-          size            3px, 3px
-          rounded         50%
-          background      #d3d3d3
-          font-size       8px
-          margin          0 3px 0 5px
-          vertical-align  middle
 
       .location
         color             #999999
@@ -826,8 +817,29 @@ span.collapsedtext
       *:last-child
         padding-bottom    6px
 
+    .like-summary
+      size                auto, 31px
+      clear               both
+      line-height         31px
+      padding             0 11px
+      font-size           12px
+      opacity             .99
+      color               #525252
+      background          #EEEEEE
+      rounded             2px
+      margin              0 0 7px
+      fl()
+
+      a
+        color             inherit
+        font-weight       600
+        noTextDeco()
+
+
+
     .activity-actions
       padding             0 0 10px 0
+      clear               both
 
       span.action-container
         font-size         12px
@@ -915,24 +927,17 @@ span.collapsedtext
           shadow          none
 
     .list-previous-link
-      size                100% 45px
-      line-height         45px
-      // bg                  image, -webkit-linear-gradient(-45deg, #f0f0f0 10%, #f5f5f5 10%, #f5f5f5 20%, #f5f5f5 40%, #f0f0f0 40%, #f0f0f0 60%, #f5f5f5 60%, #f5f5f5 90%, #f0f0f0 90%)
-      // bg                  image, -moz-linear-gradient(-45deg, #f0f0f0 10%, #f5f5f5 10%, #f5f5f5 20%, #f5f5f5 40%, #f0f0f0 40%, #f0f0f0 60%, #f5f5f5 60%, #f5f5f5 90%, #f0f0f0 90%)
-      // bg                  size, 10px 10px
-      // border-top          1px solid #e9e9e9
-      font-size           12px
-      color               #6b6b6b
+      size                100%, 41px
+      line-height         41px
+      rounded             3px
+      background          #E5E5E5
+      text-align          center
       display             block
-      margin-bottom       10px
+      color               #2D2D2D
+      font-size           12px
+      font-weight         600
+      margin              0 0 15px
       noTextDeco()
-
-      // &:before
-      //   content         ''
-      //   r-sprite        activity, 'bubble-17'
-      //   display         inline-block
-      //   margin          0 10px 0 16px
-      //   vertical-align  middle
 
     .new-messages
       // bg                  color rgba(240, 112, 95, 0.3)
@@ -1168,6 +1173,8 @@ span.collapsedtext
     abs()
 
 .activity-item.status
+  margin-bottom             56px
+
   .link-embed-box
     padding                 0 14px 15px
     overflow                visible
@@ -1469,6 +1476,10 @@ span.collapsedtext
     &.with-parent
       .activity-content-wrapper
         visible()
+
+    .author-avatar
+      abs                   20px 0 0 -51px
+      border                none
 
     .list-previous-link
       size                100% 47px
