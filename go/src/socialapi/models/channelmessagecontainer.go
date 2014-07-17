@@ -10,10 +10,15 @@ type ChannelMessageContainer struct {
 	AccountOldId       string                   `json:"accountOldId"`
 	IsFollowed         bool                     `json:"isFollowed"`
 	UnreadRepliesCount int                      `json:"unreadRepliesCount,omitempty"`
+	Err                error                    `json:"-"`
 }
 
 func NewChannelMessageContainer() *ChannelMessageContainer {
-	return &ChannelMessageContainer{}
+	container := &ChannelMessageContainer{}
+	container.Interactions = make(map[string]*InteractionContainer)
+	container.Interactions["like"] = NewInteractionContainer()
+
+	return container
 }
 
 type InteractionContainer struct {
@@ -67,6 +72,14 @@ func (c *ChannelMessageContainer) AddAccountOldId() *ChannelMessageContainer {
 	c.AccountOldId = oldId
 	return c
 }
+
+func (c *ChannelMessageContainer) SetGenerics(query *request.Query) *ChannelMessageContainer {
+	c.AddReplies(query)
+	c.AddRepliesCount(query)
+	c.AddInteractions(query)
+	return c
+}
+
 func (c *ChannelMessageContainer) AddReplies(query *request.Query) *ChannelMessageContainer {
 	if c.Message != nil && c.Message.TypeConstant == ChannelMessage_TYPE_REPLY {
 		// if message itself already a reply, no need to add replies to it
