@@ -12,7 +12,6 @@ body.dashboard
 body.account
 body.apps
 body.environments
-body.profile
   bg                    color #e4e4e4
 
 html.app
@@ -368,6 +367,14 @@ button.app-settings-menu
     line-height        38px
     rounded            21px
 
+  &.small
+    height             26px
+    line-height        24px
+    rounded            13px
+
+    span.button-title
+      font-size        14px
+
   // Color variatons
 
   &.red
@@ -375,6 +382,18 @@ button.app-settings-menu
 
     span.button-title
       color            #E94835
+
+    &:active
+      bg               color #E94835
+
+      span.button-title
+        color          white
+
+  &.gray
+    border-color       #929292
+
+    span.button-title
+      color            #666666
 
     &:active
       bg               color #E94835

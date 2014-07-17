@@ -254,55 +254,53 @@ styleScrollBars()
         &.active
           color         logoBg
 
+aside.activity-sidebar
+  left                0
+  top                 0
+  size                258px 100%
+  z-index             10
+  bg                  color #424242
+  borderBox()
+  fix()
 
-  > aside
-    left                0
-    top                 0
-    size                258px 100%
-    z-index             10
-    bg                  color #424242
+  styleScrollBars()
+
+  > main
+    font-family         openSansFamily
+    padding             1px 16px 16px
     borderBox()
-    fix()
 
-    styleScrollBars()
-    padding-right
-
-    > main
-      font-family         openSansFamily
-      padding             1px 16px 16px 16px
-      borderBox()
-
-      > section
-        size              auto auto
-        overflow          visible
-        margin            0 0 3px 0
+    > section
+      size              auto auto
+      overflow          visible
+      margin            0 0 3px 0
 
 
-        .lazy-loader
-          margin            0
-          top               -28px
-          right             36px
-          abs()
+      .lazy-loader
+        margin            0
+        top               -28px
+        right             36px
+        abs()
 
-        .kdlistview
-          overflow        visible
+      .kdlistview
+        overflow        visible
 
-          .nothing
-            background    #15171A
-            width         auto
-            font-size     14px
-            margin        0 6px
-            padding       16px 18px
-            rounded       3px
-            line-height   19px
-            text-align    center
-            font-weight   400
-            color         #787878
-            margin-bottom 16px
-            borderBox()
+        .nothing
+          background    #15171A
+          width         auto
+          font-size     14px
+          margin        0 6px
+          padding       16px 18px
+          rounded       3px
+          line-height   19px
+          text-align    center
+          font-weight   400
+          color         #787878
+          margin-bottom 16px
+          borderBox()
 
-      a.public-feed-link.selected
-        color               #fff
+    a.public-feed-link.selected
+      color               #fff
 
 .activity
 

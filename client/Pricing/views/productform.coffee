@@ -23,7 +23,7 @@ class PricingProductForm extends KDView
 
     @teamPlan.once 'viewAppended', =>
       KD.utils.defer =>
-        @teamPlan.addSubView new PricingCustomQuoteView
+        @teamPlan.addSubView new PricingCustomQuoteView {cssClass : 'clearfix'}
 
   showSection: (name) ->
     @tabView.showPaneByName name

@@ -76,6 +76,7 @@ CREATE TABLE "api"."channel_message" (
     "id" BIGINT NOT NULL DEFAULT api.channel_message_next_id (),
     "token" UUID NOT NULL DEFAULT uuid_generate_v1(),
     "body" TEXT COLLATE "default",
+    -- TODO ADD CHECK FOR SPACE CHAR
     "slug" VARCHAR (100) NOT NULL COLLATE "default",
     "type_constant" "api"."channel_message_type_constant_enum",
     "account_id" BIGINT NOT NULL,
@@ -180,4 +181,4 @@ CREATE TABLE "api"."message_reply" (
 ) WITH (OIDS = FALSE);
 
 -- ALTER TABLE "api"."message_reply" OWNER TO "socialapplication";
-GRANT SELECT, INSERT, DELETE ON "api"."message_reply" TO "socialapplication";
+GRANT SELECT, UPDATE, INSERT, DELETE ON "api"."message_reply" TO "socialapplication";

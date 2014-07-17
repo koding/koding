@@ -25,7 +25,6 @@ class ActivityListItemView extends KDListItemView
       origin     : origin
 
     @author      = new ProfileLinkView { origin }
-    @likeSummary = new ActivityLikeSummaryView {}, data
 
     {commentViewClass} = @getOptions()
 
@@ -48,7 +47,7 @@ class ActivityListItemView extends KDListItemView
 
     {_id, constructorName} = data.account
     KD.remote.cacheable constructorName, _id, (err, account)=>
-      @setClass "exempt" if account and KD.checkFlag 'exempt', account
+      @setClass "exempt" if account?.isExempt
 
     embedOptions  =
       hasDropdown : no
@@ -229,7 +228,6 @@ class ActivityListItemView extends KDListItemView
       {article{@formatContent #(body)}}
       {{> @embedBox}}
       {{> @actionLinks}}
-      {{> @likeSummary}}
     </div>
     {{> @commentBox}}
     """
