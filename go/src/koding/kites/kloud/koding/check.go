@@ -36,14 +36,17 @@ func freeLimiter() Limiter {
 	// Non-paid user cannot start more than 1 VM simultaneously
 	// Non-paid user VM shuts down after 30 minutes without activity
 	return newMultiLimiter(
-		&totalLimit{total: 3},
+		&totalLimit{total: 1},
 		&concurrentLimit{concurrent: 1},
 		&timeoutLimit{timeout: 30 * time.Minute},
 	)
 }
 
 func (t *totalLimit) Check(ctx *CheckContext) error {
+	// instances in Amazon have a `koding-user` tag with the username as the
+	// value. We can easily find them acording to this tag
 	instances, err := ctx.api.InstancesByFilter("tag:koding-user", ctx.username)
+
 	// allow to create instance
 	if err == amazon.ErrNoInstances {
 		return nil
