@@ -1,5 +1,7 @@
 package models
 
+import "socialapi/request"
+
 type ChannelMessageContainer struct {
 	Message      *ChannelMessage                  `json:"message"`
 	Interactions map[string]*InteractionContainer `json:"interactions"`
