@@ -9,6 +9,7 @@ import (
 	"path"
 	"socialapi/config"
 	"time"
+	"github.com/webcitizen/juice"
 )
 
 const (
@@ -29,6 +30,8 @@ var (
 	previewTemplateFile     string
 	objectTemplateFile      string
 	unsubscribeTemplateFile string
+
+	css						[]byte
 )
 
 func NewTemplateParser() *TemplateParser {
@@ -50,6 +53,11 @@ func prepareTemplateFiles() error {
 	previewTemplateFile = path.Join(wd, root, "preview.tmpl")
 	objectTemplateFile = path.Join(wd, root, "object.tmpl")
 	unsubscribeTemplateFile = path.Join(wd, root, "unsubscribe.tmpl")
+
+	css, err := ioutil.ReadFile(path.Join(wd, root, "style.css"))
+	if err != nil {
+		return err
+	}
 
 	return nil
 }
@@ -115,7 +123,10 @@ func (tp *TemplateParser) renderTemplate(contentType, content, description strin
 		return "", err
 	}
 
-	return doc.String(), nil
+	rules := juice.Parse(css)
+	output := juice.Inline(strings.NewReader(doc.String()), rules)
+
+	return output, nil
 }
 
 func (tp *TemplateParser) buildMailContent(contentType string, currentDate string) *MailContent {
