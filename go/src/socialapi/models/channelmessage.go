@@ -220,36 +220,6 @@ func (c *ChannelMessage) BuildEmptyMessageContainer() (*ChannelMessageContainer,
 
 	container.AccountOldId = oldId
 
-	interactionContainer := NewInteractionContainer()
-	interactionContainer.ActorsPreview = make([]string, 0)
-	interactionContainer.IsInteracted = false
-	interactionContainer.ActorsCount = 0
-
-	container.Interactions = make(map[string]*InteractionContainer)
-	container.Interactions["like"] = interactionContainer
-
-	return container, nil
-}
-
-func (c *ChannelMessage) FetchRelatives(query *request.Query) (*ChannelMessageContainer, error) {
-	container, err := c.BuildEmptyMessageContainer()
-	if err != nil {
-		return nil, err
-	}
-
-	i := NewInteraction()
-	i.MessageId = c.Id
-	// get preview
-	query.Type = "like"
-	query.Limit = 3
-
-	interactionContainer, err := i.FetchInteractionContainer(query)
-	if err != nil {
-		return nil, err
-	}
-
-	container.Interactions[query.Type] = interactionContainer
-
 	return container, nil
 }
 
