@@ -45,4 +45,19 @@ func (c *ChannelMessageContainer) PopulateWith(m *ChannelMessage) *ChannelMessag
 	c.AddAccountOldId()
 	return c
 }
+
+func (c *ChannelMessageContainer) AddAccountOldId() *ChannelMessageContainer {
+	if c.AccountOldId != "" {
+		return c
+	}
+
+	oldId, err := FetchAccountOldIdByIdFromCache(c.Message.AccountId)
+	if err != nil {
+		c.Err = err
+		return c
+	}
+
+	c.AccountOldId = oldId
+	return c
+}
 }
