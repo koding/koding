@@ -43,15 +43,22 @@ gravatar  = (m, size = 20) ->
 
 Templates =
 
-  render : (tpl, m, data) ->
-    template = swig.compileFile "#{__dirname}/templates/"+tpl;
+  render : (tpl, m, data, callback) ->
+    file = "#{__dirname}/templates/#{{tpl}}"
+    template = swig.compileFile file;
     data = _.extend {
       m: m,
       currentDate: dateFormat m.notification.dateIssued, "mmm dd"
       turnOffLink: "#{uri.address}/Unsubscribe/#{m.notification.unsubscribeId}"
     }, data
 
-    template(data)
+    # Generate html from template
+    html = template(data)
+
+    # Inline css using juice
+    juice.juiceContent html, {
+      url: "file://#{file}"
+    }, callback
 
   linkStyle    : """ style="text-decoration:none; color:#1AAF5D;" """
   mainTemplate : (m, content, footer, description)->
@@ -216,11 +223,19 @@ Templates =
     Templates.mainTemplate m, \
       Templates.singleEvent(m), Templates.footerTemplate turnOffLink
 
-  dailyMail    : (m, content)->
+  dailyMail    : (m, content, callback)->
     Templates.render "daily", m, {
       turnOffLink:  "#{uri.address}/Unsubscribe/#{m.notification.unsubscribeId}/#{encodeURIComponent m.email}",
       content: content
-    }
+    }, (err, html)->
+      return callback err  if err
+
+      # Subject
+      currentDate  = dateFormat m.notification.dateIssued, "mmm dd"
+      subject = """Your Koding Activity for today: #{currentDate}"""
+
+      callback null, html,
+
 
   commonHeader : (m)->
     eventFlag = flags[m.notification.eventFlag][m.event] ? flags[m.notification.eventFlag]
@@ -238,8 +253,5 @@ Templates =
     header = "#{header} in #{m.group?.title} group"  if m.group and m.group.slug isnt "koding"
     return header
 
-  dailyHeader  : (m)->
-    currentDate  = dateFormat m.notification.dateIssued, "mmm dd"
-    return """Your Koding Activity for today: #{currentDate}"""
 
 module.exports = Templates
