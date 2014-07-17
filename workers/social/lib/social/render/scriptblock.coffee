@@ -139,7 +139,7 @@ module.exports = (options = {}, callback)->
             campaignData = campaignData_.data
           if group
             currentGroup = group
-          bongoModels.JVM.fetchVmsByContext client, (err, vms) ->
+          bongoModels.JVM.fetchVmsByContext client, {}, (err, vms) ->
             console.log err  if err
             userVMs = vms or []
             kallback()
