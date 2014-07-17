@@ -97,7 +97,7 @@ KONFIG              =
   log               : {login         : "#{rabbitmq.login}"         , queueName : logQueueName}
   boxproxy          : {port          : 8090 }
   sourcemaps        : {port          : 3526 }
-  kloud             : {port          : 5500, privateKeyFile: kontrol.privateKeyFile, publicKeyFile: kontrol.publicKeyFile, kontrolUrl: "kontrol-#{customDomain.public_}/kite"  }
+  kloud             : {port          : 5500, privateKeyFile: kontrol.privateKeyFile, publicKeyFile: kontrol.publicKeyFile, kontrolUrl: "http://kontrol-#{publicHostname}.ngrok.com/kite"  }
   emailConfirmationCheckerWorker     : {enabled: no, login : "#{rabbitmq.login}", queueName: socialQueueName+'emailConfirmationCheckerWorker',cronSchedule: '0 * * * * *',usageLimitInMinutes  : 60}
 
   newkontrol        : kontrol
@@ -191,7 +191,7 @@ KONFIG.workers =
   boxproxy            : command : "node #{projectRoot}/server/boxproxy.js            -c #{configName}"
   clientWatcher       : command : "coffee #{projectRoot}/build-client.coffee               --watch --sourceMapsUri #{hostname}"
   kontrol             : command : "#{GOBIN}/kontrol -c #{configName} -r #{region}"
-  kloud               : command : "#{GOBIN}/kloud -c #{configName} -r #{region} -port #{KONFIG.kloud.port} -public-key #{KONFIG.kloud.publicKeyFile} -private-key #{KONFIG.kloud.privateKeyFile} -kontrol-url \"http://#{KONFIG.kloud.kontrolUrl}\" -debug"
+  kloud               : command : "#{GOBIN}/kloud -c #{configName} -r #{region} -port #{KONFIG.kloud.port} -public-key #{KONFIG.kloud.publicKeyFile} -private-key #{KONFIG.kloud.privateKeyFile} -kontrol-url \"#{KONFIG.kloud.kontrolUrl}\" -debug"
   reverseProxy        : command : "#{GOBIN}/reverseproxy -port 1234 -env production -region #{publicHostname}PublicEnvironment -publicHost proxy-#{publicHostname}.ngrok.com -publicPort 80"
   ngrokProxy          : command : "./ngrokProxy --user #{publicHostname}"
 
