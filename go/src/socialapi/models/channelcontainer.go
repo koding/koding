@@ -219,7 +219,11 @@ func (cr *ChannelContainer) PopulateWith(c Channel, accountId int64) error {
 	cm, err := channel.FetchLastMessage()
 	if err != nil {
 		return nil, err
+func (c *ChannelContainers) Add(containers ...*ChannelContainer) {
+	for _, cc := range containers {
+		*c = append(*c, *cc)
 	}
+}
 
 	if cm != nil {
 		cmc, err := cm.BuildEmptyMessageContainer()
