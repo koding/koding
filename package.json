@@ -17,7 +17,7 @@
   "dependencies": {
     "amqplib": "^0.2.0",
     "async": "0.2.5",
-    "aws-sdk": "0.9.5-pre.6",
+    "aws-sdk": "^0.9.5-pre.6",
     "bitly": "1.2.4",
     "bluebird": "~1.0.8",
     "checksum": "0.1.*",

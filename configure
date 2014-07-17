@@ -10,6 +10,7 @@ PRJ        = __dirname
 BLD        = PRJ+"/install/BUILD_DATA"
 fs         = require 'fs'
 {exec}     = require 'child_process'
+AWS        = require 'aws-sdk'
 
 rs =
   compute : RS.compute.createClient
@@ -24,25 +25,45 @@ rs =
     apiKey    : "96d6388ccb936f047fd35eb29c36df17"
 
 
+if process.argv[2] is 'prod'
+  # ./run prod - comes bundled with these options.
+  options = o =
+    projectRoot      : argv.projectRoot   or __dirname
+    config           : argv.config        or "prod"
+    region           : argv.region        or "us-east1"
+    branch           : argv.branch        or "cake-rewrite"
+    build            : argv.build         or 1
+    version          : argv.version       or "1.0"
+    environment      : argv.environment   or "aws"
+    hostname         : argv.hostname
+    publicHostname   : argv.publichostname or process.env.USER
+    target           : argv.target        or "aws"
+    onlyconfigure    : argv.onlyconfigure or no
+    supervisor       : argv.supervisor    or yes
+    deploy           : argv.deploy        or no
+  unless options.hostname
+    options.hostname   = "#{eden.eve()}-#{o.config}-#{o.build}.koding.me".toLowerCase()
 
-options = o =
-  projectRoot      : argv.projectRoot   or __dirname
-  config           : argv.config        or "prod"
-  region           : argv.region        or "prod"
-  branch           : argv.branch        or "cake-rewrite"
-  build            : argv.build         or 1
-  version          : argv.version       or "1.0"
-  environment      : argv.environment   or "prod"
-  hostname         : argv.hostname
-  publicHostname   : argv.publichostname or process.env.USER
-  target           : argv.target        or "localhost"
-  onlyconfigure    : argv.onlyconfigure or false
-  supervisor       : argv.supervisor    or false
-  deploy           : argv.deploy        or null
+else
+  # ./run assumes development - comes bundled with these options.
+  options = o =
+    projectRoot      : argv.projectRoot   or __dirname
+    config           : argv.config        or "dev"
+    region           : argv.region        or "dev"
+    branch           : argv.branch        or "cake-rewrite"
+    build            : argv.build         or 1
+    version          : argv.version       or "1.0"
+    environment      : argv.environment   or "dev"
+    hostname         : argv.hostname
+    publicHostname   : argv.publichostname or process.env.USER
+    target           : argv.target        or "localhost"
+    onlyconfigure    : argv.onlyconfigure or no
+    supervisor       : argv.supervisor    or no
+    deploy           : argv.deploy        or no
+  unless options.hostname
+    # options.hostname   = "#{eden.eve()}-#{o.config}-#{o.build}.koding.me".toLowerCase()
+    options.hostname   = "devrim.ngrok.com"
 
-unless options.hostname
-  # options.hostname   = "#{eden.eve()}-#{o.config}-#{o.build}.koding.me".toLowerCase()
-  options.hostname   = "devrim.ngrok.com"
 
 console.log "Configuring with options:",o
 
@@ -163,19 +184,19 @@ class Deploy
         log "Connected via ssh - copying deploy files."
 
         copyFiles = [
-          { src: "#{PRJ}/install/build-box"   , trg: "/root/prepare"},
-          { src: "#{PRJ}/install/Dockerfile"  , trg: "/root/Dockerfile"},
-          { src: "#{PRJ}/install/run"         , trg: "/root/run"}
-          { src: "#{PRJ}/install/cleanup"     , trg: "/root/cleanup"}
-          { src: "#{BLD}/BUILD_CONFIG.json"   , trg: "/root/BUILD_DATA/BUILD_CONFIG.json"}
-          { src: "#{BLD}/BUILD_HOSTNAME"      , trg: "/root/BUILD_DATA/BUILD_HOSTNAME"}
-          { src: "#{BLD}/BUILD_PUBLIC_HOSTNAME",trg: "/root/BUILD_DATA/BUILD_PUBLIC_HOSTNAME"}
-          { src: "#{BLD}/BUILD_REGION"        , trg: "/root/BUILD_DATA/BUILD_REGION"}
-          { src: "#{BLD}/BUILD_CONFIG"        , trg: "/root/BUILD_DATA/BUILD_CONFIG"}
-          { src: "#{BLD}/BUILD_BRANCH"        , trg: "/root/BUILD_DATA/BUILD_BRANCH"}
-          { src: "#{BLD}/BUILD_PROJECT_ROOT"  , trg: "/root/BUILD_DATA/BUILD_PROJECT_ROOT"}
-          { src: "#{BLD}/BUILD_ENVIRONMENT"   , trg: "/root/BUILD_DATA/BUILD_ENVIRONMENT"}
-          { src: "#{BLD}/BUILD_VERSION"       , trg: "/root/BUILD_DATA/BUILD_VERSION"}
+          { src: "#{PRJ}/install/build-box"     , trg: "/root/prepare"},
+          { src: "#{PRJ}/install/Dockerfile"    , trg: "/root/Dockerfile"},
+          { src: "#{PRJ}/install/run"           , trg: "/root/run"}
+          { src: "#{PRJ}/install/cleanup"       , trg: "/root/cleanup"}
+          { src: "#{BLD}/BUILD_CONFIG.json"     , trg: "/root/BUILD_DATA/BUILD_CONFIG.json"}
+          { src: "#{BLD}/BUILD_HOSTNAME"        , trg: "/root/BUILD_DATA/BUILD_HOSTNAME"}
+          { src: "#{BLD}/BUILD_PUBLIC_HOSTNAME" , trg: "/root/BUILD_DATA/BUILD_PUBLIC_HOSTNAME"}
+          { src: "#{BLD}/BUILD_REGION"          , trg: "/root/BUILD_DATA/BUILD_REGION"}
+          { src: "#{BLD}/BUILD_CONFIG"          , trg: "/root/BUILD_DATA/BUILD_CONFIG"}
+          { src: "#{BLD}/BUILD_BRANCH"          , trg: "/root/BUILD_DATA/BUILD_BRANCH"}
+          { src: "#{BLD}/BUILD_PROJECT_ROOT"    , trg: "/root/BUILD_DATA/BUILD_PROJECT_ROOT"}
+          { src: "#{BLD}/BUILD_ENVIRONMENT"     , trg: "/root/BUILD_DATA/BUILD_ENVIRONMENT"}
+          { src: "#{BLD}/BUILD_VERSION"         , trg: "/root/BUILD_DATA/BUILD_VERSION"}
 
         ]
         conn.exec """mkdir -p /root/BUILD_DATA &&
