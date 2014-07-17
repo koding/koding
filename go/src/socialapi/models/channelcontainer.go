@@ -217,27 +217,35 @@ func (c *ChannelContainers) PopulateWith(channelList []Channel, accountId int64)
 
 	return c
 }
+
+func (c *ChannelContainers) AddUnreadCount(accountId int64) *ChannelContainers {
+	for i, container := range *c {
+		(*c)[i] = *container.AddUnreadCount(accountId)
 	}
 
-	cc.ParticipantsPreview = participantOldIds
+	return c
+}
 
-	// add last message of the channel
-	cm, err := channel.FetchLastMessage()
-	if err != nil {
-		return nil, err
 func (c *ChannelContainers) Add(containers ...*ChannelContainer) {
 	for _, cc := range containers {
 		*c = append(*c, *cc)
 	}
 }
 
-	if cm != nil {
-		cmc, err := cm.BuildEmptyMessageContainer()
-		if err != nil {
-			return nil, err
+func (c ChannelContainers) Validate() ChannelContainers {
+	hasErr := false
+	for _, container := range c {
+		if container.Err != nil {
+			hasErr = true
+			break
 		}
-		cc.LastMessage = cmc
 	}
 
-	return cc, nil
+	if !hasErr {
+		return c
+	}
+
+	// TODO filter or re-populate err-ed content
+
+	return c
 }
