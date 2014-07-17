@@ -135,7 +135,7 @@ class PaymentMethodEntryForm extends KDFormViewWithFields
     @addCaptcha()
 
   addCaptcha:->
-    Recaptcha.create "6LdLAPcSAAAAAG27qiKqlnowAM8FXfKSpW1wx_bU",
+    Recaptcha.create KD.config.recaptcha,
       "recaptcha",
       RecaptchaDefaultOptions
 

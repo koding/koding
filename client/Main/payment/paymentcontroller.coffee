@@ -90,8 +90,8 @@ class PaymentController extends KDController
       type    : "POST"
       url     : "/recaptcha"
       data    : {
-        recaptcha_challenge_field : challenge,
-        recaptcha_response_field : response,
+        challenge : challenge,
+        response  : response,
       }
       error   : -> callback "fail"
       success : (data)-> callback data

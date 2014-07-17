@@ -214,6 +214,7 @@ module.exports =
       troubleshoot      :
         idleTime        : 1000 * 60 * 60
         externalUrl     : "https://s3.amazonaws.com/koding-ping/healthcheck.json"
+      recaptcha         : "6LdLAPcSAAAAAG27qiKqlnowAM8FXfKSpW1wx_bU"
   mq            :
     host        : 'localhost'
     port        : 5672
@@ -426,3 +427,4 @@ module.exports =
     secure        : cookieSecure
   troubleshoot    :
     recipientEmail: "can@koding.com"
+  recaptcha       : "6LdLAPcSAAAAAJe857OKXNdYzN3C1D55DwGW0RgT"
