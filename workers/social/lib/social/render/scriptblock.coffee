@@ -95,7 +95,7 @@ module.exports = (options = {}, callback)->
       <img height="1" width="1" alt="" style="display:none" src="https://www.facebook.com/offsite_event.php?id=6011653749578&amp;value=0.01&amp;currency=USD" />
     </noscript>
 
-    <script type="text/javascript" src="http://www.google.com/recaptcha/api/js/recaptcha_ajax.js"></script>
+    <script type="text/javascript" src="https://www.google.com/recaptcha/api/js/recaptcha_ajax.js"></script>
     """
 
   kallback = ->
