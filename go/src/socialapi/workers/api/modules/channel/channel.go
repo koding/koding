@@ -62,12 +62,10 @@ func List(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface
 		return response.NewBadRequest(err)
 	}
 
-	return response.HandleResultAndError(
-		models.PopulateChannelContainers(
-			channelList,
-			q.AccountId,
-		),
-	)
+	cc := models.NewChannelContainers()
+	cc.PopulateWith(channelList, q.AccountId)
+
+	return response.HandleResultAndError(cc, cc.Err)
 }
 
 // Search searchs database against given channel name
@@ -81,12 +79,10 @@ func Search(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interfa
 		return response.NewBadRequest(err)
 	}
 
-	return response.HandleResultAndError(
-		models.PopulateChannelContainers(
-			channelList,
-			q.AccountId,
-		),
-	)
+	cc := models.NewChannelContainers()
+	cc.PopulateWith(channelList, q.AccountId)
+
+	return response.HandleResultAndError(cc, cc.Err)
 }
 
 // ByName finds topics by their name
@@ -141,9 +137,10 @@ func handleChannelResponse(c models.Channel, q *request.Query) (int, http.Header
 		)
 	}
 
-	return response.HandleResultAndError(
-		models.PopulateChannelContainer(c, q.AccountId),
-	)
+	cc := models.NewChannelContainer()
+	cc.PopulateWith(c, q.AccountId)
+
+	return response.HandleResultAndError(cc, cc.Err)
 }
 
 func CheckParticipation(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface{}, error) {
