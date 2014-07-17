@@ -104,7 +104,7 @@ func newKite() *kite.Kite {
 
 	kld := newKloud(k)
 
-	k.HandleFunc("build", limitFunc(kld.Build))
+	k.HandleFunc("build", kld.Build)
 	k.HandleFunc("start", kld.Start)
 	k.HandleFunc("stop", kld.Stop)
 	k.HandleFunc("restart", kld.Restart)
@@ -115,12 +115,6 @@ func newKite() *kite.Kite {
 	return k
 }
 
-func limitFunc(handler kite.HandlerFunc) kite.HandlerFunc {
-	return kite.HandlerFunc(func(r *kite.Request) (interface{}, error) {
-		return handler.ServeKite(r)
-	})
-}
-
 func newKloud(kloudKite *kite.Kite) *kloud.Kloud {
 	id := uniqueId()
 	if *flagUniqueId != "" {
@@ -128,9 +122,10 @@ func newKloud(kloudKite *kite.Kite) *kloud.Kloud {
 	}
 
 	conf := config.MustConfig(*flagProfile)
+	db := mongodb.NewMongoDB(conf.Mongo)
 
 	mongodbStorage := &storage.MongoDB{
-		Session:      mongodb.NewMongoDB(conf.Mongo),
+		Session:      db,
 		AssigneeName: id,
 		Log:          logging.NewLogger("kloud-storage"),
 	}
@@ -195,7 +190,10 @@ func newKloud(kloudKite *kite.Kite) *kloud.Kloud {
 		PrivateKey: deployPrivateKey,
 	}
 
-	kld.AddProvider("koding", &koding.Provider{Log: logging.NewLogger("koding")})
+	kld.AddProvider("koding", &koding.Provider{
+		Log: logging.NewLogger("koding"),
+		DB:  db,
+	})
 
 	return kld
 }

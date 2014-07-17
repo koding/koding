@@ -2,8 +2,9 @@ package koding
 
 import (
 	"fmt"
-	"net/url"
 	"time"
+
+	"github.com/koding/kloud/api/amazon"
 )
 
 type totalLimit struct {
@@ -42,17 +43,20 @@ func freeLimiter() Limiter {
 }
 
 func (t *totalLimit) Check(ctx *CheckContext) error {
-	filter := url.Values{}
-	filter.Set("name", ctx.username)
+	instances, err := ctx.api.InstancesByFilter("tag:koding-user", ctx.username)
+	// allow to create instance
+	if err == amazon.ErrNoInstances {
+		return nil
+	}
 
-	filteredServers, err := ctx.api.ServersByFilter(filter)
+	// if it's something else don't allow it until it's solved
 	if err != nil {
 		return err
 	}
 
-	fmt.Printf("Got %+v servers for user: %s\n", len(filteredServers), ctx.username)
+	fmt.Printf("Got %+v servers for user: %s\n", len(instances), ctx.username)
 
-	if len(filteredServers) >= t.total {
+	if len(instances) >= t.total {
 		return fmt.Errorf("total limit of %d machines has been reached", t.total)
 	}
 
@@ -65,14 +69,4 @@ func (c *concurrentLimit) Check(ctx *CheckContext) error {
 
 func (t *timeoutLimit) Check(ctx *CheckContext) error {
 	return nil
-}
-
-// CheckLimits checks the given user limits
-func (p *Provider) CheckLimits(plan string, ctx *CheckContext) error {
-	l, ok := limits[plan]
-	if !ok {
-		fmt.Errorf("plan %s not found", plan)
-	}
-
-	return l.Check(ctx)
 }
