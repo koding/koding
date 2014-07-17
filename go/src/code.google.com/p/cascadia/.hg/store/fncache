@@ -1,0 +1,8 @@
+data/selector.go.i
+data/benchmark_test.go.i
+data/selector_test.go.i
+data/parser_test.go.i
+data/.hgignore.i
+data/parser.go.i
+data/LICENSE.i
+data/Makefile.i
