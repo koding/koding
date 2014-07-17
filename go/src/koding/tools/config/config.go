@@ -5,6 +5,8 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"os/signal"
+	"syscall"
 )
 
 type Broker struct {
@@ -151,6 +153,24 @@ type Config struct {
 	LogLevel             map[string]string
 	Redis                string
 	SubscriptionEndpoint string
+}
+
+// TODO: THIS IS ADDED SO ALL GO PACKAGES CLEANLY EXIT EVEN WHEN
+// RUN WITH RERUN
+
+func init() {
+
+	go func() {
+		signals := make(chan os.Signal, 1)
+		signal.Notify(signals)
+		for {
+			signal := <-signals
+			switch signal {
+			case syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT, syscall.SIGSTOP:
+				os.Exit(0)
+			}
+		}
+	}()
 }
 
 func MustConfig(profile string) *Config {

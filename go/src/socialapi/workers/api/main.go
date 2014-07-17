@@ -85,10 +85,7 @@ func newServer() *tigertonic.Server {
 	addr := *host + ":" + *port
 	server := tigertonic.NewServer(
 		addr,
-		tigertonic.Logged(
 			tigertonic.WithContext(nsMux, models.Context{}),
-			nil,
-		),
 	)
 
 	go listener(server)

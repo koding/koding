@@ -28,6 +28,7 @@ kontrol-data-*
 /go/bin-vagrant
 /go/build
 /go/pkg
+/go/binexport
 /kd-server.js
 /node_modules
 /node_modules/*

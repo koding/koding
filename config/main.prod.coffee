@@ -169,29 +169,33 @@ GOBIN = "#{projectRoot}/go/bin"
 
 # THESE COMMANDS WILL EXECUTE SEQUENTIALLY.
 KONFIG.workers =
-  rerouting           : command : "#{GOBIN}/rerouting          -c #{configName}"
-  cron                : command : "#{GOBIN}/cron               -c #{configName}"
-  broker              : command : "#{GOBIN}/broker             -c #{configName}"
-  socialapi           : command : "#{GOBIN}/api                -c #{socialapi.configFilePath} -port #{socialapi.port}"
-  dailyemailnotifier  : command : "#{GOBIN}/dailyemailnotifier -c #{socialapi.configFilePath}"
-  notification        : command : "#{GOBIN}/notification       -c #{socialapi.configFilePath}"
-  popularpost         : command : "#{GOBIN}/popularpost        -c #{socialapi.configFilePath}"
-  populartopic        : command : "#{GOBIN}/populartopic       -c #{socialapi.configFilePath}"
-  realtime            : command : "#{GOBIN}/realtime           -c #{socialapi.configFilePath}"
-  sitemapfeeder       : command : "#{GOBIN}/sitemapfeeder      -c #{socialapi.configFilePath}"
-  topicfeed           : command : "#{GOBIN}/topicfeed          -c #{socialapi.configFilePath}"
-  trollmode           : command : "#{GOBIN}/trollmode          -c #{socialapi.configFilePath}"
-  webserver           : command : "node   #{projectRoot}/server/index.js                   -c #{configName} -p #{KONFIG.webserver.port}   --disable-newrelic"
-  socialworker        : command : "node   #{projectRoot}/workers/social/index.js           -c #{configName} -p #{KONFIG.social.port}      -r #{region} --disable-newrelic --kite-port=13020"
-  sourcemaps          : command : "node   #{projectRoot}/server/lib/source-server/index.js -c #{configName} -p #{KONFIG.sourcemaps.port}"
-  authworker          : command : "node   #{projectRoot}/workers/auth/index.js             -c #{configName}"
-  emailsender         : command : "node   #{projectRoot}/workers/emailsender/index.js      -c #{configName}"
-  boxproxy            : command : "node #{projectRoot}/server/boxproxy.js            -c #{configName}"
-  clientWatcher       : command : "coffee #{projectRoot}/build-client.coffee               --watch --sourceMapsUri #{hostname}"
-  kontrol             : command : "#{GOBIN}/kontrol -c #{configName} -r #{region}"
-  # --port #{kontrol.port} -env #{environment} -public-key #{kontrol.publicKeyFile} -private-key #{kontrol.privateKeyFile}"
-  kloud               : command : "#{GOBIN}/kloud -c #{configName} -r #{region} -port #{KONFIG.kloud.port} -public-key #{KONFIG.kloud.publicKeyFile} -private-key #{KONFIG.kloud.privateKeyFile} -kontrol-url \"http://#{KONFIG.kloud.kontrolUrl}\" -debug"
+  # dailyemailnotifier  : command : "#{GOBIN}/dailyemailnotifier -c #{socialapi.configFilePath}"
+  # notification        : command : "#{GOBIN}/notification       -c #{socialapi.configFilePath}"
+  # popularpost         : command : "#{GOBIN}/popularpost        -c #{socialapi.configFilePath}"
+  # populartopic        : command : "#{GOBIN}/populartopic       -c #{socialapi.configFilePath}"
+  # realtime            : command : "#{GOBIN}/realtime           -c #{socialapi.configFilePath}"
+  # sitemapfeeder       : command : "#{GOBIN}/sitemapfeeder      -c #{socialapi.configFilePath}"
+  # topicfeed           : command : "#{GOBIN}/topicfeed          -c #{socialapi.configFilePath}"
+  # trollmode           : command : "#{GOBIN}/trollmode          -c #{socialapi.configFilePath}"
+  kloud               : command : "#{GOBIN}/rerun koding/kites/kloud     -c #{configName} -r #{region} -port #{KONFIG.kloud.port} -public-key #{KONFIG.kloud.publicKeyFile} -private-key #{KONFIG.kloud.privateKeyFile} -kontrol-url \"http://#{KONFIG.kloud.kontrolUrl}\" -debug"
+  kontrol             : command : "#{GOBIN}/rerun koding/kites/kontrol   -c #{configName} -r #{region}"
+  broker              : command : "#{GOBIN}/rerun koding/broker          -c #{configName}"
+  rerouting           : command : "#{GOBIN}/rerun koding/rerouting       -c #{configName}"
+  cron                : command : "#{GOBIN}/rerun koding/cron            -c #{configName}"
 
+  socialapi           : command : "cd go/src/socialapi && make develop -j config=#{socialapi.configFilePath}"
+
+  webserver           : command : "cd #{projectRoot}/servers/lib/server/        && nodemon index.coffee  --webserver    -c #{configName} -p #{KONFIG.webserver.port}   --disable-newrelic"
+  socialworker        : command : "cd #{projectRoot}/workers/social/lib/social/ && nodemon main.coffee   --socialworker -c #{configName} -p #{KONFIG.social.port}      -r #{region} --disable-newrelic --kite-port=13020"
+  sourcemaps          : command : "cd #{projectRoot}/servers/lib/source-server/ && nodemon main.coffee   --sourcemaps   -c #{configName} -p #{KONFIG.sourcemaps.port}"
+  boxproxy            : command : "cd #{projectRoot}/servers/boxproxy/          && nodemon boxproxy.js   --boxproxy     -c #{configName}"
+  authworker          : command : "cd #{projectRoot}/workers/auth/lib/auth/     && nodemon main.coffee   --authWorker   -c #{configName}"
+  emailsender         : command : "cd #{projectRoot}/workers/emailsender/       && nodemon main.coffee   --emailsender  -c #{configName}"
+
+  clientWatcher       : command : "coffee #{projectRoot}/build-client.coffee    --watch --sourceMapsUri #{hostname}"
+
+
+  # --port #{kontrol.port} -env #{environment} -public-key #{kontrol.publicKeyFile} -private-key #{kontrol.privateKeyFile}"
   # guestcleaner        : command : "node #{projectRoot}/workers/guestcleaner/index.js     -c #{configName}"
 
 
@@ -232,12 +236,15 @@ generateRunFile = (KONFIG) ->
   killlist = ->
     str = "kill -KILL "
     str += "$#{key}pid " for key,val of KONFIG.workers
-
+    str += " $$" #kill self
 
     return str
 
   envvars = ->
-    env = ''
+    env = """
+    export GOPATH=#{projectRoot}/go
+    export GOBIN=#{projectRoot}/go/bin
+    """
     env += "export #{key}='#{val}'\n" for key,val of KONFIG.ENV
     return env
 
@@ -245,7 +252,7 @@ generateRunFile = (KONFIG) ->
     workers = ""
     for key,val of KONFIG.workers
       workers +="#------------- worker: #{key} -------------#\n"
-      workers +="#{val.command} &>./.logs/#{key}.log & \n"
+      workers +="#{val.command} &>#{projectRoot}/.logs/#{key}.log & \n"
       workers +="#{key}pid=$! \n"
       workers +="echo [#{key}] started with pid: $#{key}pid \n\n"
     return workers
@@ -264,6 +271,20 @@ generateRunFile = (KONFIG) ->
       kill_all
     }
 
+    watch() {
+
+    echo watching folder $1/ every $2 secs.
+
+    while [[ true ]]
+    do
+        files=`find $1 -type f -mtime -$2s`
+        if [[ $files != "" ]] ; then
+            echo changed, $files
+        fi
+        sleep $2
+    done
+    }
+
     function kill_all () {
     #{killlist()}
     }
@@ -280,19 +301,23 @@ generateRunFile = (KONFIG) ->
     elif [ "$1" == "install" ]; then
 
       echo '#---> BUILDING CLIENT (@gokmen) <---#'
+      cd #{projectRoot}
       chmod +x ./build-client.coffee
-      NO_UGLIFYJS=true ./build-client.coffee --watch false
+      NO_UGLIFYJS=true ./build-client.coffee --watch false  --verbose
+      git submodule init
+      git submodule update
+      npm i gulp stylus coffee-script nodemon -g --silent
+      npm i --unsafe-perm --silent
+
+
 
       echo '#---> BUILDING GO WORKERS (@farslan) <---#'
       #{projectRoot}/go/build.sh
 
       echo '#---> BUILDING SOCIALAPI (@cihangir) <---#'
       cd #{projectRoot}/go/src/socialapi
+      make configure
       make install
-
-      echo '#---> UPDATING MONGO DATABASE ACCORDING TO LATEST CHANGES IN CODE (UPDATE PERMISSIONS @chris) <---#'
-      cd #{projectRoot}
-      node #{projectRoot}/scripts/permission-updater  -c #{socialapi.configFilePath} --hard >/dev/null
 
       echo '#---> AUTHORIZING THIS COMPUTER WITH MATCHING KITE.KEY (@farslan) <---#'
       mkdir $HOME/.kite &>/dev/null
@@ -347,11 +372,16 @@ generateRunFile = (KONFIG) ->
       docker run -d --net=host --name=mongo    koding/mongo    --dbpath /root/data/db --smallfiles --nojournal
       docker run -d --net=host --name=redis    koding/redis
       docker run -d --net=host --name=postgres koding/postgres
-      docker run -d --net=host --name=rabbitmq koding/rabbitmq\n
+      docker run -d --net=host --name=rabbitmq koding/rabbitmq
+
+      echo '#---> UPDATING MONGO DATABASE ACCORDING TO LATEST CHANGES IN CODE (UPDATE PERMISSIONS @chris) <---#'
+      cd #{projectRoot}
+      node #{projectRoot}/scripts/permission-updater  -c #{socialapi.configFilePath} --hard >/dev/null
+
     else
       echo "unknown argument. use ./run [killall]"
     fi
-    # ------ THIS FILE IS AUTO-GENERATED ON EACH BUILD ----- #\n
+    # ------ THIS FILE IS AUTO-GENERATED BY ./configure ----- #\n
     """
   return run
 

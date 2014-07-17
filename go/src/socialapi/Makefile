@@ -50,6 +50,7 @@ apidev:
 	@echo $(DEBUG)
 	@echo "$(OK_COLOR)==> Running API Worker $(NO_COLOR)"
 	@$(GOBINDIR)/rerun socialapi/workers/api -c $(CONFIG) $(DEBUG)
+
 topicfeeddev:
 	@echo "$(OK_COLOR)==> Running Topic Feed Worker $(NO_COLOR)"
 	@$(GOBINDIR)/rerun socialapi/workers/topicfeed -c $(CONFIG) $(DEBUG)

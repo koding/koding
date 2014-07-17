@@ -25,7 +25,7 @@ args =
   watch         : argv.watch          or process.env.KONFIG_CLIENT_WATCH or false
   version       : argv.version        or process.env.KONFIG_VERSION      or "0.0.1"
   sourceMapsUri : argv.sourceMapsUri  or process.env.KONFIG_CLIENT_RUNTIMEOPTIONS_SOURCEMAPSURI or "koding.com/sourcemaps"
-
+  verbose       : argv.verbose        or false
 console.log "building client with options:",args
 
 log =
@@ -91,12 +91,11 @@ class Builder
 
     cmd = "cd client/Framework && npm i && gulp compile --uglify --outputDir=../../website/a/"
     exec cmd, (err, stdout, stderr)->
-      console.log """\n\n
+      console.log """
       ----------------------------------- KD FRAMEWORK COMPILED -----------------------------------
        To use watcher for Framework use following command in different tab:
        $ #{cmd.replace 'compile ', ''}
       ---------------------------------------------------------------------------------------------
-      \n
       """
 
   buildClient: (options) ->
@@ -187,9 +186,9 @@ class Builder
 
       if initial
         log.info "- Compiling #{project.title} ... "
-        bar = new ProgressBar "[:bar] :percent :elapseds", \
-          {total : project.files.scripts.length + project.files.styles.length, \
-           width : 20, incomplete:" "}
+        # bar = new ProgressBar "[:bar] :percent :elapseds", \
+        #   {total : project.files.scripts.length + project.files.styles.length, \
+        #    width : 20, incomplete:" "}
 
       scriptsChanged = false
       stylesChanged  = false
@@ -202,11 +201,11 @@ class Builder
           else stylesChanged  |= @compileFile file
           continue unless initial
           sp = @shortenText file.sourcePath
-          bar.fmt = " [:bar] :percent :elapseds #{sp} "# - #{file.sourcePath}"
-          bar.tick()
+          # bar.fmt = " [:bar] :percent :elapseds #{sp} "# - #{file.sourcePath}"
+          # bar.tick()
         folderIndex++
 
-      log.info "" if initial
+      log.info "" if initial and args.verbose
 
       if initial or project.changed or scriptsChanged
         @buildJS options, project
@@ -217,7 +216,7 @@ class Builder
           @buildCSS options, project
           changedCSS.push project.title
 
-      log.info "" if initial
+      log.info "" if initial and args.verbose
 
     log.info "- Compiling bundles ..." if initial
     builtBundles = {js:[], css:[]}
@@ -423,7 +422,7 @@ class Builder
       names       : []
       mappings    : ""
 
-    process.stdout.write "\n - Updating scripts for #{project.type} #{project.title} ... "
+    process.stdout.write "\n - Updating scripts for #{project.type} #{project.title} ... " if args.verbose
     fileLineOffset = 0
     firstInLine = true
 
@@ -470,7 +469,7 @@ class Builder
     @showFileInfo filepath, project, 'scripts' # project.outputs.script, project.files.scripts.length, scripts
 
   buildCSS: (options, project)->
-    process.stdout.write " - Updating styles for #{project.type} #{project.title} ... "
+    process.stdout.write " - Updating styles for #{project.type} #{project.title} ... " if args.verbose
     code = ""
     for file in project.files.styles
       code += file.content+"\n"
@@ -490,7 +489,7 @@ class Builder
     oldSize = if oldSize then "it was #{formatByte oldSize} and the diff is #{formatByte size - oldSize} " else ''
 
     # console.log project, ptype
-    process.stdout.write "#{filepath}\n - Includes #{project.files[ptype].length} #{ptype}, filesize is #{formatByte size} #{oldSize} \n"
+    process.stdout.write "#{filepath}\n - Includes #{project.files[ptype].length} #{ptype}, filesize is #{formatByte size} #{oldSize} \n" if args.verbose
     @fileSizes[filepath] = size
 
   getProjects:->
@@ -525,14 +524,17 @@ class Builder
   getRoutes:->
 
     routesSrc = '\n'
-
+    r = found:"",notfound:""
     for own name, project of @projectsToBuild
 
       if fs.existsSync project.routes
-        console.log "Routes added for \"#{name} App\""
+        r.found += "[#{name}] "
         routesSrc += "#{fs.readFileSync project.routes, 'utf-8'}\n"
       else
-        console.warn "No routes found for \"#{name} App\""
+        r.notfound += "[#{name}] "
+
+    console.log "Routes found:",r.found
+    console.log "Routes NOT found:",r.notfound
 
     return routesSrc
 

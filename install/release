@@ -11,24 +11,28 @@ PRJ        = __dirname
 BLD        = PRJ+"/install/BUILD_DATA"
 fs         = require 'fs'
 {exec}     = require 'child_process'
-_          = require 'underscore' 
+_          = require 'underscore'
 
-rsKeys     =     
+rsKeys     =
   provider  : 'rackspace'
   username  : "kodinginc"
   apiKey    : "96d6388ccb936f047fd35eb29c36df17"
   region    : 'IAD'
 
-rs = 
+
+
+
+rs =
   compute : RS.compute.createClient rsKeys
   dns     : RS.dns.createClient rsKeys
   lb      : RS.loadbalancer.createClient rsKeys
   bs      : RS.blockstorage.createClient rsKeys
 
+
 KODING_LB = "300793"
 
 scrub = (obj) ->
-  # scrub the fuckin nodejitsu bullshit 
+  # scrub the fuckin nodejitsu bullshit
   scrb = (o) ->
     delete o.client
     delete o._events
@@ -50,8 +54,8 @@ class Release
     rs.compute.getServers (err,servers)->
     	return callback err if err
     	s = []
-    	for server in servers when server.name.indexOf(str) > -1  	
-    		s.push 
+    	for server in servers when server.name.indexOf(str) > -1
+    		s.push
     			name 			: server.name
     			address		: server.addresses.private[0].addr
     	callback null, s
@@ -90,8 +94,8 @@ class Release
 
 
 
-# Release.getServersByName "nginx",(err,servers)->  
-#   log servers 
+# Release.getServersByName "nginx",(err,servers)->
+#   log servers
 #   #rs.lb.addNodes "300793", s, (err)
 # 	rs.updateNodes
 
@@ -105,12 +109,12 @@ class Release
 #     rs.bs.createVolume
 #       name: name
 #       description: 'my volume'
-#       size: i,    
+#       size: i,
 #     ,(err,res)->
 #       if err
-#         log "fail: disk size #{i} " 
+#         log "fail: disk size #{i} "
 #       else
-#         log "done: disk size #{i} - #{name} " 
+#         log "done: disk size #{i} - #{name} "
 
 
 # Release.enableNodesByName "prod-1755",(err,nodes) ->
