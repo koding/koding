@@ -22,6 +22,7 @@ class IDEAppController extends AppController
       'create new drawing'  : 'createNewDrawing'
       'collapse sidebar'    : 'collapseSidebar'
       'expand sidebar'      : 'expandSidebar'
+      'toggle sidebar'      : 'toggleSidebar'
       'close tab'           : 'closeTab'
       'go to left tab'      : 'goToLeftTab'
       'go to right tab'     : 'goToRightTab'
@@ -40,6 +41,7 @@ class IDEAppController extends AppController
       { command: 'create new drawing',  binding: 'ctrl+alt+d', global: yes }
       { command: 'collapse sidebar',    binding: 'ctrl+alt+c', global: yes }
       { command: 'expand sidebar',      binding: 'ctrl+alt+e', global: yes }
+      { command: 'toggle sidebar',      binding: 'ctrl+alt+k', global: yes }
       { command: 'close tab',           binding: 'ctrl+alt+w', global: yes }
       { command: 'go to left tab',      binding: 'ctrl+alt+[', global: yes }
       { command: 'go to right tab',     binding: 'ctrl+alt+]', global: yes }
@@ -252,7 +254,9 @@ class IDEAppController extends AppController
 
   createNewTerminal: -> @activeTabView.emit 'TerminalPaneRequested'
 
-  createNewBrowser: (url) -> @activeTabView.emit 'PreviewPaneRequested', url
+  createNewBrowser: (url) ->
+    url = ''  unless typeof url is 'string'
+    @activeTabView.emit 'PreviewPaneRequested', url
 
   createNewDrawing: -> @activeTabView.emit 'DrawingPaneRequested'
 
@@ -380,20 +384,18 @@ class IDEAppController extends AppController
     menuButton.show()
 
   showFileFinder: ->
-    if @fileFinder
-      @fileFinder.input.setFocus()
-    else
-      @fileFinder = new IDE.FileFinder
-      @fileFinder.once 'KDObjectWillBeDestroyed', => @fileFinder = null
+    return @fileFinder.input.setFocus()  if @fileFinder
+
+    @fileFinder = new IDE.FileFinder
+    @fileFinder.once 'KDObjectWillBeDestroyed', => @fileFinder = null
 
   showContentSearch: ->
-    if @contentSearch
-      @contentSearch.input.setFocus()
-    else
-      @contentSearch = new IDE.ContentSearch
-      @contentSearch.once 'KDObjectWillBeDestroyed', => @contentSearch = null
-      @contentSearch.once 'ViewNeedsToBeShown', (view) =>
-        @activeTabView.emit 'ViewNeedsToBeShown', view
+    return @contentSearch.findInput.setFocus()  if @contentSearch
+
+    @contentSearch = new IDE.ContentSearch
+    @contentSearch.once 'KDObjectWillBeDestroyed', => @contentSearch = null
+    @contentSearch.once 'ViewNeedsToBeShown', (view) =>
+      @activeTabView.emit 'ViewNeedsToBeShown', view
 
   createStatusBar: (splitViewPanel) ->
     splitViewPanel.addSubView @statusBar = new IDE.StatusBar

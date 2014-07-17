@@ -19,17 +19,21 @@ class IDE.ContentSearch extends KDModalViewWithForms
               title         : 'Close'
               style         : 'cancel'
               domId         : 'cancel-button'
-              callback      : @bound "destroy"
+              callback      : @bound 'destroy'
           fields            :
             findInput       :
               type          : 'text'
               label         : 'Find'
               placeholder   : 'Find'
+              keyup         :
+                esc         : @bound 'destroy'
             whereInput      :
               type          : 'text'
               label         : 'Where'
-              placeholder   : "/home/#{KD.nick()}" #/Documents"
-              defaultValue  : "/home/#{KD.nick()}" #/Documents"
+              placeholder   : "/home/#{KD.nick()}"
+              defaultValue  : "/home/#{KD.nick()}"
+              keyup         :
+                esc         : @bound 'destroy'
             caseToggle      :
               label         : 'Case Sensitive'
               itemClass     : KodingSwitch
@@ -40,15 +44,11 @@ class IDE.ContentSearch extends KDModalViewWithForms
               itemClass     : KodingSwitch
               defaultValue  : no
               cssClass      : 'tiny switch'
-            # regExpToggle    :
-            #   label         : 'Use filename regexp'
-            #   itemClass     : KodingSwitch
-            #   defaultValue  : no
-            #   cssClass      : 'tiny switch'
-            #   nextElement   :
-            #     regExpValue :
-            #       itemClass : KDInputView
-            #       type      : 'text'
+             regExpToggle   :
+               label        : 'Use regexp'
+               itemClass    : KodingSwitch
+               defaultValue : no
+               cssClass     : 'tiny switch'
             warningView     :
               itemClass     : KDView
               cssClass      : 'hidden notification'
@@ -63,15 +63,22 @@ class IDE.ContentSearch extends KDModalViewWithForms
     @rootPath       = Encoder.XSSEncode @whereInput.getValue()
     isCaseSensitive = @caseToggle.getValue()
     isWholeWord     = @wholeWordToggle.getValue()
-    # isRegExp        = @regExpToggle.getValue()
+    isRegExp        = @regExpToggle.getValue()
 
     exts            = IDE.settings.editor.getAllExts()
     include         = "\\*{#{exts.join ','}}"
     exclureDirs     = Object.keys IDE.settings.editor.ignoreDirectories
     exclureDirs     = " --exclude-dir=#{exclureDirs.join ' --exclude-dir='}"
+    searchText      = @searchText
 
-    @searchText     = @searchText.replace new RegExp "\\\'", "g", "'\\''"
-    @searchText     = @searchText.replace /-/g, "\\-"
+    unless isRegExp
+      splitText     = searchText.split '\\n'
+      splitText     = splitText.map @grepEscapeRegExp
+      searchText    = splitText.join '\\n'
+
+    searchText      = searchText.replace (new RegExp "\\\'", 'g'), "'\\''"
+    searchText      = searchText.replace /-/g, '\\-'
+
     flags           = [
       '-s'                           # Silent mode
       '-r'                           # Recursively search subdirectories listed.
@@ -87,7 +94,7 @@ class IDE.ContentSearch extends KDModalViewWithForms
     flags.splice flags.indexOf('-i'), 1  if isCaseSensitive
     flags.splice flags.indexOf('-w'), 1  unless isWholeWord
 
-    query = "grep #{flags.join ' '} #{exclureDirs} --include=#{include} '#{@searchText}' \"#{@escapeShell @rootPath}\""
+    query = "grep #{flags.join ' '} #{exclureDirs} --include=#{include} '#{searchText}' \"#{@escapeShell @rootPath}\""
 
     vmController.run query, (err, res) =>
       if (err or res.stderr) and not res.stdout
@@ -95,8 +102,14 @@ class IDE.ContentSearch extends KDModalViewWithForms
 
       @formatOutput res.stdout, @bound 'createResultsView'
 
+  escapeRegExp: (str) ->
+    str.replace /([.*+?\^${}()|\[\]\/\\])/g, '\\$1'
+
   escapeShell: (str) ->
-    str.replace /([\\"'`$\s\(\)<>])/g, "\\$1"
+    str.replace /([\\"'`$\s\(\)<>])/g, '\\$1'
+
+  grepEscapeRegExp: (str) ->
+    str.replace /[[\]{}()*+?.,\\^$|#\s"']/g, '\\$&'
 
   formatOutput: (output, callback = noop) ->
     # Regexes
@@ -109,11 +122,9 @@ class IDE.ContentSearch extends KDModalViewWithForms
       numberOfSearchedFiles : 0
 
     formatted = lines
-    .map (line) ->
-      # Remove erronous whitespace
+    .map (line) -> # Remove erroneous whitespace
       return line.trimLeft()
-    .filter (line) ->
-      # Skip lines that aren't one of these
+    .filter (line) -> # Skip lines that aren't one of these
       return mainLineRegex.test(line) or contextLineRegex.test(line)
     .map (line) ->
       # Get the matches
