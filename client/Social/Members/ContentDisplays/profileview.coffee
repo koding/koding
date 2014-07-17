@@ -341,8 +341,8 @@ class ProfileView extends JView
     @bio            = new ProfileContentEditableView
       testPath      : "profile-bio"
       pistachio     : "{{#(profile.about) or ''}}"
-      cssClass      : "bio"
-      placeholder   : if KD.isMine @memberData then "You haven't entered anything in your bio yet. Why not add something now?" else ""
+      cssClass      : "location"
+      placeholder   : if KD.isMine @memberData then "Add your location" else ""
       delegate      : this
       tabNavigation : yes
     , @memberData
@@ -376,10 +376,9 @@ class ProfileView extends JView
       @bio.on "BlurHappened", save
 
     avatarOptions  =
-      showStatus      : yes
       size            :
-        width         : 81
-        height        : 81
+        width         : 143
+        height        : 143
       click        : =>
         pos        =
           top      : @avatar.getBounds().y - 8
@@ -448,10 +447,16 @@ class ProfileView extends JView
 
     if KD.whoami().getId() is @memberData.getId()
       @followButton = new KDCustomHTMLView
+      @conversationButton = new KDCustomHTMLView
     else
       @followButton = new MemberFollowToggleButton
-        style : "thin medium green"
+        style : "solid small green"
       , @memberData
+
+      @conversationButton = new KDButtonView
+        style     : 'thin small gray'
+        title     : 'Start a conversation'
+        cssClass  : 'conversation-btn'
 
     if KD.checkFlag('super-admin') and @memberData.getId() isnt KD.whoami().getId()
     then @trollButton = new TrollButtonView style : 'thin medium red', data
@@ -672,32 +677,24 @@ class ProfileView extends JView
     super
 
   pistachio: ->
-    account      = @getData()
-    amountOfDays = Math.floor (new Date - new Date(account.meta.createdAt)) / (24*60*60*1000)
-    onlineStatus = if account.onlineStatus then 'online' else 'offline'
-    # <a href="#" class="active">Open Projects<span class="count">128</span></a>
-    # <div class="user-menu">
-    #   <a href="#">Discussions</a>
-    #   <a href="#">Tutorials</a>
-    #   <a href="#">Blog Posts</a>
-    # </div>
     """
-      <div class="users-profile clearfix">
+      <main>
         {{> @avatar}}
         <h3 class="full-name">{{> @firstName}} {{> @lastName}}</h3>
         {{> @bio }}
         {{> @followButton}}
+        {{> @conversationButton}}
         {{> @trollButton}}
         <div class="profilestats">
           {{> @followers}}
           {{> @following}}
           {{> @likes}}
         </div>
-      </div>
-      <div class="user-badges">
-        {{> @badgeHeader}}
-        {{> @userBadgesView}}
-      </div>
-      {{> @badgeItemsList}}
-      {{> @thankButton}}
+        <div class="user-badges">
+          {{> @badgeHeader}}
+          {{> @userBadgesView}}
+        </div>
+        {{> @badgeItemsList}}
+        {{> @thankButton}}
+      </main>
     """

@@ -1,6 +1,7 @@
 EventExchangeName = "BrokerMessageBus"
 Mongo             = "dev:k9lc4G1k32nyD72@68.68.97.107:27017/koding"
 Environment       = "staging"
+Region            = "aws"
 Uri               = "https://koding.com"
 
 [postgres]

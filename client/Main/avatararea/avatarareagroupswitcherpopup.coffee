@@ -108,16 +108,19 @@ class AvatarPopupGroupSwitcher extends AvatarPopup
       KD.utils.stopDOMEvent event
       submenuShown = yes
       @groupSubMenuWrapper.setClass 'active'
-      @populateGroups()
 
-    @avatarPopupContent.addSubView new KDCustomHTMLView
-      tagName    : 'a'
-      attributes : href : '#'
-      partial    : 'Your groups'
-      bind       : 'mouseenter mousemove'
-      mouseenter : handleSubMenu
-      click      : handleSubMenu
-      mousemove  : KD.utils.stopDOMEvent
+      # Commenting out these lines because of
+      # removal of the groups links from avatar popup. ~Umut
+      # @populateGroups()
+
+    # @avatarPopupContent.addSubView new KDCustomHTMLView
+    #   tagName    : 'a'
+    #   attributes : href : '#'
+    #   partial    : 'Your groups'
+    #   bind       : 'mouseenter mousemove'
+    #   mouseenter : handleSubMenu
+    #   click      : handleSubMenu
+    #   mousemove  : KD.utils.stopDOMEvent
 
     @avatarPopupContent.addSubView new KDCustomHTMLView
       tagName    : 'a'
@@ -247,8 +250,11 @@ class AvatarPopupGroupSwitcher extends AvatarPopup
   show:->
     super
     # in case user opens popup earlier than timed out initial population
-    @populateGroups() if @notPopulated
-    @populatePendingGroups() if @notPopulatedPending
+
+    # Commenting out these lines because of
+    # removal of the groups links from avatar popup. ~Umut
+    # @populateGroups() if @notPopulated
+    # @populatePendingGroups() if @notPopulatedPending
 
   hide:->
     super

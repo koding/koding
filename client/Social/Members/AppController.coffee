@@ -153,7 +153,8 @@ class MembersAppController extends AppController
 
   prepareProfileView:(member, callback)->
     options      =
-      cssClass   : "profilearea clearfix"
+      tagName    : 'aside'
+      cssClass   : "activity-sidebar clearfix"
 
     if KD.isMine member
       options.cssClass = KD.utils.curry "own-profile", options.cssClass
