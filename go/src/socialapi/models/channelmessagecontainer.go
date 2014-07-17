@@ -23,7 +23,14 @@ type InteractionContainer struct {
 }
 
 func NewInteractionContainer() *InteractionContainer {
-	return &InteractionContainer{}
+	interactionContainer := &InteractionContainer{}
+	interactionContainer.ActorsPreview = make([]string, 0)
+	interactionContainer.IsInteracted = false
+	interactionContainer.ActorsCount = 0
+
+	return interactionContainer
+}
+
 func withChannelMessageContainerChecks(cmc *ChannelMessageContainer, f func(c *ChannelMessageContainer) error) *ChannelMessageContainer {
 	if cmc == nil {
 		cmc = NewChannelMessageContainer()
