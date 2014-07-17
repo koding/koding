@@ -98,6 +98,54 @@ func PopulateChannelContainer(channel Channel, accountId int64) (*ChannelContain
 	isParticipant, err := cp.IsParticipant(accountId)
 	if err != nil {
 		return nil, err
+func (cr *ChannelContainer) AddUnreadCount(accountId int64) *ChannelContainer {
+	return withChecks(cr, func(cc *ChannelContainer) error {
+
+		cml := NewChannelMessageList()
+
+		// if the user is not a participant of the channel, do not add unread
+		// count
+		if !cc.IsParticipant {
+			return nil
+		}
+
+		// for private messages calculate the unread reply count
+		if cc.Channel.TypeConstant == Channel_TYPE_PRIVATE_MESSAGE {
+			// validate that last message is set
+			if cc.LastMessage == nil || cc.LastMessage.Message == nil || cc.LastMessage.Message.Id == 0 {
+				return nil
+			}
+
+			cp, err := getChannelParticipant(cc.Channel.Id, accountId)
+			if err != nil {
+				return err
+			}
+
+			count, err := NewMessageReply().UnreadCount(cc.LastMessage.Message.Id, cp.LastSeenAt)
+			if err != nil {
+				return err
+			}
+
+			cc.UnreadCount = count
+			return nil
+		}
+
+		cp, err := getChannelParticipant(cc.Channel.Id, accountId)
+		if err != nil {
+			return err
+		}
+
+		count, err := cml.UnreadCount(cp)
+		if err != nil {
+			return err
+		}
+
+		cc.UnreadCount = count
+
+		return nil
+
+	})
+}
 	}
 
 	cc := NewChannelContainer()
