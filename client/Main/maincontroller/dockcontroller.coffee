@@ -4,12 +4,11 @@ class DockController extends KDViewController
 
   defaultItems = [
     { title : 'Activity',  path : '/Activity', order : 10, type :'persistent' }
-    { title : 'IDE',       path : '/IDE',      order : 40, type :'persistent' }
-    { title : 'Editor',    path : '/Ace',      order : 41, type :'persistent' }
-    { title : 'Terminal',  path : '/Terminal', order : 30, type :'persistent' }
-    { title : 'Teamwork',  path : '/Teamwork', order : 20, type :'persistent' }
-    { title : 'Apps',      path : '/Apps',     order : 50, type :'persistent' }
-    { title : 'DevTools',  path : '/DevTools', order : 60, type :'persistent' }
+    { title : 'IDE',       path : '/IDE',      order : 20, type :'persistent' }
+    { title : 'Teamwork',  path : '/Teamwork', order : 30, type :'persistent' }
+    { title : 'Apps',      path : '/Apps',     order : 40, type :'persistent' }
+    { title : 'DevTools',  path : '/DevTools', order : 50, type :'persistent' }
+    # { title : 'Environments',  path : '/Environments', order : 60, type :'persistent' }
   ]
 
 
@@ -56,9 +55,11 @@ class DockController extends KDViewController
       title        : 'vms'
       items        : []
 
+    @vmsList.getListView().on 'VMCogClicked', (vm)->
+      {mainView} = KD.singletons
+      mainView.openVMModal vm
 
-    {mainController} = KD.singletons
-
+    # {mainController} = KD.singletons
     # mainController.ready @bound 'accountChanged'
 
     @trackStateTransitions()
@@ -216,16 +217,18 @@ class DockController extends KDViewController
     @setNavItems defaultItems
     @emit 'ready'
 
-    {vmController} = KD.singletons
+    if KD.userVMs.length
+    then @listVMs KD.userVMs
+    else
+      {vmController} = KD.singletons
+      vmController.fetchVMs no, (err, vms) =>
+        if err
+          ErrorLog.create 'terminal: Couldn\'t fetch vms', reason : err
+          return new KDNotificationView title : 'Couldn\'t fetch your VMs'
 
-    vmController.fetchVMs no, (err, vms) =>
-      if err
-        ErrorLog.create 'terminal: Couldn\'t fetch vms', reason : err
-        return new KDNotificationView title : 'Couldn\'t fetch your VMs'
+        vms.sort (a,b) -> a.hostnameAlias > b.hostnameAlias
 
-      vms.sort (a,b) -> a.hostnameAlias > b.hostnameAlias
-
-      @listVMs vms
+        @listVMs vms
 
 
     @ready =>
