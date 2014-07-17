@@ -170,31 +170,6 @@ GOBIN = "#{projectRoot}/go/bin"
 
 
 # THESE COMMANDS WILL EXECUTE SEQUENTIALLY.
-KONFIG.workers =
-  rerouting           : command : "#{GOBIN}/rerouting          -c #{configName}"
-  cron                : command : "#{GOBIN}/cron               -c #{configName}"
-  broker              : command : "#{GOBIN}/broker             -c #{configName}"
-  socialapi           : command : "#{GOBIN}/api                -c #{socialapi.configFilePath} -port #{socialapi.port}"
-  dailyemailnotifier  : command : "#{GOBIN}/dailyemailnotifier -c #{socialapi.configFilePath}"
-  notification        : command : "#{GOBIN}/notification       -c #{socialapi.configFilePath}"
-  popularpost         : command : "#{GOBIN}/popularpost        -c #{socialapi.configFilePath}"
-  populartopic        : command : "#{GOBIN}/populartopic       -c #{socialapi.configFilePath}"
-  realtime            : command : "#{GOBIN}/realtime           -c #{socialapi.configFilePath}"
-  sitemapfeeder       : command : "#{GOBIN}/sitemapfeeder      -c #{socialapi.configFilePath}"
-  topicfeed           : command : "#{GOBIN}/topicfeed          -c #{socialapi.configFilePath}"
-  trollmode           : command : "#{GOBIN}/trollmode          -c #{socialapi.configFilePath}"
-  webserver           : command : "node   #{projectRoot}/server/index.js                   -c #{configName} -p #{KONFIG.webserver.port}   --disable-newrelic"
-  socialworker        : command : "node   #{projectRoot}/workers/social/index.js           -c #{configName} -p #{KONFIG.social.port}      -r #{region} --disable-newrelic --kite-port=13020"
-  sourcemaps          : command : "node   #{projectRoot}/server/lib/source-server/index.js -c #{configName} -p #{KONFIG.sourcemaps.port}"
-  authworker          : command : "node   #{projectRoot}/workers/auth/index.js             -c #{configName}"
-  emailsender         : command : "node   #{projectRoot}/workers/emailsender/index.js      -c #{configName}"
-  boxproxy            : command : "node #{projectRoot}/server/boxproxy.js            -c #{configName}"
-  clientWatcher       : command : "coffee #{projectRoot}/build-client.coffee               --watch --sourceMapsUri #{hostname}"
-  kontrol             : command : "#{GOBIN}/kontrol -c #{configName} -r #{region}"
-  kloud               : command : "#{GOBIN}/kloud -c #{configName} -r #{region} -port #{KONFIG.kloud.port} -public-key #{KONFIG.kloud.publicKeyFile} -private-key #{KONFIG.kloud.privateKeyFile} -kontrol-url \"#{KONFIG.kloud.kontrolUrl}\" -debug"
-
-  # guestcleaner        : command : "node #{projectRoot}/workers/guestcleaner/index.js     -c #{configName}"
-
 
 KONFIG.workers =
   # dailyemailnotifier  : command : "#{GOBIN}/dailyemailnotifier -c #{socialapi.configFilePath}"
@@ -214,12 +189,12 @@ KONFIG.workers =
 
   socialapi           : command : "cd go/src/socialapi && make develop -j config=#{socialapi.configFilePath}"
 
-  authworker          : command : "cd #{projectRoot}/workers/auth/lib/auth/     && nodemon main.coffee   -c #{configName}"
-  socialworker        : command : "cd #{projectRoot}/workers/social/lib/social/ && nodemon main.coffee   -c #{configName} -p #{KONFIG.social.port}      -r #{region} --disable-newrelic --kite-port=13020"
-  sourcemaps          : command : "cd #{projectRoot}/servers/lib/source-server/ && nodemon main.coffee   -c #{configName} -p #{KONFIG.sourcemaps.port}"
-  emailsender         : command : "cd #{projectRoot}/workers/emailsender/       && nodemon main.coffee   -c #{configName}"
-  boxproxy            : command : "cd #{projectRoot}/servers/boxproxy/          && nodemon boxproxy.js   -c #{configName}"
-  webserver           : command : "cd #{projectRoot}/servers/lib/server/        && nodemon index.coffee  -c #{configName} -p #{KONFIG.webserver.port}   --disable-newrelic"
+  authworker          : command : "cd #{projectRoot}/workers/auth/lib/auth/     && nodemon main.coffee  -c #{configName}"
+  socialworker        : command : "cd #{projectRoot}/workers/social/lib/social/ && nodemon main.coffee  -c #{configName} -p #{KONFIG.social.port}      -r #{region} --disable-newrelic --kite-port=13020"
+  sourcemaps          : command : "cd #{projectRoot}/servers/lib/source-server/ && nodemon main.coffee  -c #{configName} -p #{KONFIG.sourcemaps.port}"
+  emailsender         : command : "cd #{projectRoot}/workers/emailsender/       && nodemon main.coffee  -c #{configName}"
+  boxproxy            : command : "cd #{projectRoot}/servers/boxproxy/          && nodemon boxproxy.js  -c #{configName}"
+  webserver           : command : "cd #{projectRoot}/servers/lib/server/        && nodemon index.coffee -c #{configName} -p #{KONFIG.webserver.port}   --disable-newrelic"
 
   clientWatcher       : command : "coffee #{projectRoot}/build-client.coffee    --watch --sourceMapsUri #{hostname}"
 
