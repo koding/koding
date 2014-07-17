@@ -83,6 +83,9 @@ class PaymentMethodEntryForm extends KDFormViewWithFields
             regExp        : /^[0-9]{3,4}$/
           messages        :
             regExp        : 'Card verification code (CVC) should be a 3 or 4-digit number!'
+      captcha             :
+        itemClass         : KDCustomHTMLView
+        domId             : "recaptcha"
 
     super
       cssClass              : KD.utils.curry 'payment-method-entry-form', options.cssClass
@@ -100,6 +103,8 @@ class PaymentMethodEntryForm extends KDFormViewWithFields
           style             : 'medium solid light-gray to-left'
           callback          : => @parent.showForm 'choice'
 
+  stopLoader:-> @buttons.Save.hideLoader()
+
   viewAppended:->
     super()
 
@@ -109,7 +114,7 @@ class PaymentMethodEntryForm extends KDFormViewWithFields
     @on 'FormValidationFailed', (err)=>
       KD.utils.wait 500, => @unsetClass 'animate shake'
       @setClass 'animate shake'
-      @buttons.Save.hideLoader()
+      @stopLoader()
 
     cardNumberInput.on "ValidationError", ->
       @parent.unsetClass "visa mastercard amex diners discover jcb"
@@ -127,6 +132,12 @@ class PaymentMethodEntryForm extends KDFormViewWithFields
 
     @updateDescription()
 
+    @addCaptcha()
+
+  addCaptcha:->
+    Recaptcha.create "6LdLAPcSAAAAAG27qiKqlnowAM8FXfKSpW1wx_bU",
+      "recaptcha",
+      RecaptchaDefaultOptions
 
   activate: ->
     { cardFirstName, cardLastName, cardNumber } = @inputs

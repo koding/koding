@@ -205,6 +205,20 @@ app.get "/-/jobs", (req, res) ->
     res.send 404 if err
     res.json postings
 
+simple_recaptcha = require('simple-recaptcha')
+
+app.post '/recaptcha', (req, res)->
+  privateKey = '6LdLAPcSAAAAAJe857OKXNdYzN3C1D55DwGW0RgT'
+  ip = req.ip
+  challenge = req.body.recaptcha_challenge_field
+  response = req.body.recaptcha_response_field
+
+  simple_recaptcha privateKey, ip, challenge, response, (err)->
+    if (err)
+      res.send(err.message)
+
+    res.send('verified')
+
 app.get "/sitemap:sitemapName", (req, res)->
   {JSitemap}       = koding.models
 

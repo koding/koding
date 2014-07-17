@@ -31,6 +31,11 @@ class AccountPaymentMethodsListController extends AccountListViewController
 
     list.on 'reload', (data) => @loadItems()
 
+    list.addSubView new KDCustomHTMLView
+      tagName : "script"
+      attributes :
+        src : "http://www.google.com/recaptcha/api/js/recaptcha_ajax.js"
+
     KD.getSingleton('paymentController').on 'PaymentDataChanged', => @loadItems()
 
   editPaymentMethod: (data) ->
