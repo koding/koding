@@ -56,9 +56,36 @@ func PopulateChannelContainersWithUnreadCount(channelList []Channel, accountId i
 		if container.Channel.TypeConstant == Channel_TYPE_PRIVATE_MESSAGE {
 			if container.LastMessage == nil || container.LastMessage.Message == nil || container.LastMessage.Message.Id == 0 {
 				continue
+func (cr *ChannelContainer) AddParticipantsPreview() *ChannelContainer {
+	return withChecks(cr, func(cc *ChannelContainer) error {
+		// try to use the data
+		if cc.ParticipantCount > 5 {
+			if len(cc.ParticipantsPreview) == 5 {
+				return nil
 			}
+		}
 
-			count, err := NewMessageReply().UnreadCount(container.LastMessage.Message.Id, cp.LastSeenAt)
+		cp := NewChannelParticipant()
+		cp.ChannelId = cc.Channel.Id
+
+		// get participant preview
+		cpList, err := cp.ListAccountIds(5)
+		if err != nil {
+			return err
+		}
+
+		// get their old mongo ids from system
+		participantOldIds, err := FetchAccountOldsIdByIdsFromCache(cpList)
+		if err != nil {
+			return err
+		}
+
+		cc.ParticipantsPreview = participantOldIds
+
+		return nil
+	})
+}
+
 func (cr *ChannelContainer) AddIsParticipant(accountId int64) *ChannelContainer {
 	return withChecks(cr, func(cc *ChannelContainer) error {
 		if accountId == 0 {
