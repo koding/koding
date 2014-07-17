@@ -51,6 +51,7 @@
     "neo4j-koding": "0.2.20",
     "nesh": "1.2.0",
     "newrelic": "1.1.1",
+    "ngrok": "0.1.97",
     "nib": "0.5.0",
     "node-eden": "0.0.3",
     "node-freegeoip": "0.0.1",
