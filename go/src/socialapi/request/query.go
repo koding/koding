@@ -44,9 +44,9 @@ func (q *Query) MapURL(u *url.URL) *Query {
 	q.Limit, _ = strconv.Atoi(urlQuery.Get("limit"))
 
 	q.Name = urlQuery.Get("name")
-	if q.Name != "" {
-		q.Name = sanitize.Name(q.Name)
-	}
+	// if q.Name != "" {
+	// 	q.Name = sanitize.Name(q.Name)
+	// }
 
 	q.Slug = urlQuery.Get("slug")
 	if q.Slug != "" {
