@@ -3,6 +3,7 @@ package koding
 import (
 	"errors"
 	"fmt"
+	"koding/db/mongodb"
 	"time"
 
 	aws "github.com/koding/kloud/api/amazon"
@@ -34,6 +35,7 @@ const (
 type Provider struct {
 	Log  logging.Logger
 	Push func(string, int, machinestate.State)
+	DB   *mongodb.MongoDB
 }
 
 func (p *Provider) NewClient(opts *protocol.MachineOptions) (*amazon.AmazonClient, error) {
@@ -144,7 +146,18 @@ func (p *Provider) Build(opts *protocol.MachineOptions) (*protocol.Artifact, err
 	}
 	a.Builder.SubnetId = subs.Subnets[0].SubnetId
 
-	return a.Build(opts.InstanceName)
+	artifact, err := a.Build(opts.InstanceName)
+	if err != nil {
+		return nil, err
+	}
+
+	// Add user specific tag to make simplfying easier
+	a.Log.Info("Adding user tag '%s' to the instance '%s'", opts.Username, artifact.InstanceId)
+	if err := a.AddTag(artifact.InstanceId, "koding-user", opts.Username); err != nil {
+		return nil, err
+	}
+
+	return artifact, nil
 }
 
 func (p *Provider) Start(opts *protocol.MachineOptions) (*protocol.Artifact, error) {

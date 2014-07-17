@@ -2,8 +2,9 @@ package koding
 
 import (
 	"fmt"
-	"net/url"
 	"time"
+
+	"github.com/koding/kloud/api/amazon"
 )
 
 type totalLimit struct {
@@ -35,24 +36,30 @@ func freeLimiter() Limiter {
 	// Non-paid user cannot start more than 1 VM simultaneously
 	// Non-paid user VM shuts down after 30 minutes without activity
 	return newMultiLimiter(
-		&totalLimit{total: 3},
+		&totalLimit{total: 1},
 		&concurrentLimit{concurrent: 1},
 		&timeoutLimit{timeout: 30 * time.Minute},
 	)
 }
 
 func (t *totalLimit) Check(ctx *CheckContext) error {
-	filter := url.Values{}
-	filter.Set("name", ctx.username)
+	// instances in Amazon have a `koding-user` tag with the username as the
+	// value. We can easily find them acording to this tag
+	instances, err := ctx.api.InstancesByFilter("tag:koding-user", ctx.username)
 
-	filteredServers, err := ctx.api.ServersByFilter(filter)
+	// allow to create instance
+	if err == amazon.ErrNoInstances {
+		return nil
+	}
+
+	// if it's something else don't allow it until it's solved
 	if err != nil {
 		return err
 	}
 
-	fmt.Printf("Got %+v servers for user: %s\n", len(filteredServers), ctx.username)
+	fmt.Printf("Got %+v servers for user: %s\n", len(instances), ctx.username)
 
-	if len(filteredServers) >= t.total {
+	if len(instances) >= t.total {
 		return fmt.Errorf("total limit of %d machines has been reached", t.total)
 	}
 
@@ -65,14 +72,4 @@ func (c *concurrentLimit) Check(ctx *CheckContext) error {
 
 func (t *timeoutLimit) Check(ctx *CheckContext) error {
 	return nil
-}
-
-// CheckLimits checks the given user limits
-func (p *Provider) CheckLimits(plan string, ctx *CheckContext) error {
-	l, ok := limits[plan]
-	if !ok {
-		fmt.Errorf("plan %s not found", plan)
-	}
-
-	return l.Check(ctx)
 }

@@ -1,9 +1,16 @@
 package koding
 
-import "github.com/koding/kloud/provider/openstack"
+import (
+	"fmt"
+	"koding/db/mongodb"
+
+	"github.com/koding/kloud/protocol"
+	"github.com/koding/kloud/provider/amazon"
+)
 
 type CheckContext struct {
-	api      *openstack.OpenstackClient
+	api      *amazon.AmazonClient
+	db       *mongodb.MongoDB
 	username string
 }
 
@@ -27,4 +34,30 @@ func (m multiLimiter) Check(ctx *CheckContext) error {
 
 func newMultiLimiter(limiter ...Limiter) Limiter {
 	return multiLimiter(limiter)
+}
+
+// Limit implements the kloud.Limiter interface
+func (p *Provider) Limit(opts *protocol.MachineOptions) error {
+	a, err := p.NewClient(opts)
+	if err != nil {
+		return err
+	}
+
+	ctx := &CheckContext{
+		api:      a,
+		db:       p.DB,
+		username: opts.Username,
+	}
+
+	return p.CheckLimits("free", ctx)
+}
+
+// CheckLimits checks the given user limits
+func (p *Provider) CheckLimits(plan string, ctx *CheckContext) error {
+	l, ok := limits[plan]
+	if !ok {
+		fmt.Errorf("plan %s not found", plan)
+	}
+
+	return l.Check(ctx)
 }

@@ -8,28 +8,6 @@ import (
 
 var locks = idlock.New()
 
-type TestStorageFunc func(id string) (*kloud.Machine, error)
-
-func (t TestStorageFunc) Get(id string) (*kloud.Machine, error) {
-	return t(id)
-}
-
-func (t TestStorageFunc) Update(id string, data *kloud.StorageData) error {
-	return nil
-}
-
-func (t TestStorageFunc) UpdateState(id string, state machinestate.State) error {
-	return nil
-}
-
-func (t TestStorageFunc) Assignee() string {
-	return "TestStorageFunc"
-}
-
-func (t TestStorageFunc) ResetAssignee(id string) error {
-	return nil
-}
-
 type TestStorage struct{}
 
 func (t *TestStorage) Assignee() string { return "TestStorage" }
