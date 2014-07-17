@@ -18,18 +18,25 @@ func (c *ChannelContainer) ById(id int64) (*ChannelContainer, error) {
 	return c, nil
 }
 
-func PopulateChannelContainers(channelList []Channel, accountId int64) ([]*ChannelContainer, error) {
-	channelContainers := make([]*ChannelContainer, len(channelList))
-
-	var err error
-	for i, channel := range channelList {
-		channelContainers[i], err = PopulateChannelContainer(channel, accountId)
-		if err != nil {
-			return nil, err
-		}
+func withChecks(cc *ChannelContainer, f func(c *ChannelContainer) error) *ChannelContainer {
+	if cc == nil {
+		cc = &ChannelContainer{}
+		cc.Err = ErrChannelContainerIsNotSet
+		return cc
 	}
 
-	return channelContainers, nil
+	// if cc.Channel == (*Channel{}) {
+	// 	cc.Err = ErrChannelIsNotSet
+	// 	return cc
+	// }
+
+	if cc.Err != nil {
+		return cc
+	}
+
+	cc.Err = f(cc)
+
+	return cc
 }
 
 func (cr *ChannelContainer) AddParticipantCount() *ChannelContainer {
