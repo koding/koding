@@ -117,6 +117,17 @@ func (c *ChannelMessageContainer) AddInteractions(query *request.Query) *Channel
 
 }
 
+func (c *ChannelMessageContainer) AddIsFollowed(query *request.Query) *ChannelMessageContainer {
+	isFollowed, err := c.Message.CheckIsMessageFollowed(query)
+	c.IsFollowed = isFollowed
+	c.Err = err
+	return c
+}
+
+func (c *ChannelMessageContainer) AddUnreadRepliesCount() *ChannelMessageContainer {
+	return c
+}
+
 type ChannelMessageContainers []ChannelMessageContainer
 
 func NewChannelMessageContainers() *ChannelMessageContainers {
