@@ -89,7 +89,7 @@ class PaymentMethodEntryForm extends KDFormViewWithFields
           notifications   : yes
           event           : 'blur'
           rules           :
-            regExp        : /^[0-9]/
+            regExp        : /^[\d-]+$/
           messages        :
             regExp        : 'Zipcode must be a number!'
       captcha             :
