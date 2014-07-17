@@ -62,14 +62,15 @@ sendDailyEmail = (details, content)->
   unless content or details.email
     log "Content not found, notification postponed"
   else
-    Emailer.send
-      From      : 'Koding <hello@koding.com>'
-      To        : emailWorker.forcedRecipient or details.email
-      Subject   : template.dailyHeader details
-      HtmlBody  : template.dailyMail details, content
-    , (err, status)->
-      log "An error occured: #{err}" if err
-      log "Daily e-mail sent to #{details.email}"
+    template.dailyMail details, content, (err, body, subject)->
+      Emailer.send
+        From      : 'Koding <hello@koding.com>'
+        To        : emailWorker.forcedRecipient or details.email
+        Subject   : subject
+        HtmlBody  : body
+      , (err, status)->
+        log "An error occured: #{err}" if err
+        log "Daily e-mail sent to #{details.email}"
 
 sendInstantEmail = (details)->
   {notification} = details
