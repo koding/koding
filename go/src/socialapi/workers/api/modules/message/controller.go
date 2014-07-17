@@ -264,12 +264,14 @@ func GetWithRelated(u *url.URL, h http.Header, _ interface{}) (int, http.Header,
 		return response.NewNotFound()
 	}
 
-	cmc, err := cm.BuildMessage(request.GetQuery(u))
-	if err != nil {
-		return response.NewBadRequest(err)
-	}
+	q := request.GetQuery(u)
 
-	return response.NewOK(cmc)
+	cmc := models.NewChannelMessageContainer().
+		PopulateWith(cm).
+		SetGenerics(q).
+		AddIsFollowed(q)
+
+	return response.HandleResultAndError(cmc, cmc.Err)
 }
 
 func GetBySlug(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface{}, error) {
@@ -287,10 +289,10 @@ func GetBySlug(u *url.URL, h http.Header, _ interface{}) (int, http.Header, inte
 		return response.NewBadRequest(err)
 	}
 
-	cmc, err := cm.BuildMessage(q)
-	if err != nil {
-		return response.NewBadRequest(err)
-	}
+	cmc := models.NewChannelMessageContainer().
+		PopulateWith(cm).
+		SetGenerics(q).
+		AddIsFollowed(q)
 
-	return response.NewOK(cmc)
+	return response.HandleResultAndError(cmc, cmc.Err)
 }
