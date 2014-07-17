@@ -29,9 +29,10 @@ func ListChannels(u *url.URL, h http.Header, _ interface{}, c *models.Context) (
 		return response.NewBadRequest(err)
 	}
 
-	return response.HandleResultAndError(
-		models.PopulateChannelContainersWithUnreadCount(channels, accountId),
-	)
+	cc := models.NewChannelContainers()
+	cc.PopulateWith(channels, query.AccountId).AddUnreadCount(query.AccountId)
+
+	return response.HandleResultAndError(cc, cc.Err)
 }
 
 func ListPosts(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface{}, error) {
