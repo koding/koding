@@ -936,6 +936,12 @@ section.pricing-sign-in
         &:nth-child(2)
           margin-left 20px
 
+    &.cardzipcode
+      .input-wrapper
+        size          146px, auto
+        clear         left
+        fl()
+
     &.cardnumber
       span.icon
         top             6px
@@ -1162,8 +1168,34 @@ section.pricing-sign-in
 #recaptcha
   .recaptchatable
     border            none !important
+    tr
+      height          auto
+
     td
-      padding         none !important
+      padding         0 !important
+      margin          0 !important
+
+    td.recaptcha_image_cell
+    td.recaptcha_image_cell ~ td
+      padding         0 20px 16px 0 !important
+
+  .recaptcha_input_area
+    padding           0 !important
+    margin            0 !important
+
+  #recaptcha_response_field
+    background        #fff
+    color             #4c555f
+    height            auto
+    border            1px solid #d7d7d7 !important
+    rounded           6px
+    padding           10px 14px
+    borderBox()
+
+  a //Hope this will work :( [bc]
+    color             #d7d7d7
+    noTextDeco()
+    font-size         12px
 
 /* Create a new VM modal (Environments) */
 .kdmodal.create-vm
