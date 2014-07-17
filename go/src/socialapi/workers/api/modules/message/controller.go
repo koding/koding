@@ -46,9 +46,9 @@ func Create(u *url.URL, h http.Header, req *models.ChannelMessage) (int, http.He
 		return response.NewBadRequest(err)
 	}
 
-	return response.HandleResultAndError(
-		req.BuildEmptyMessageContainer(),
-	)
+	cmc := models.NewChannelMessageContainer().PopulateWith(req)
+
+	return response.HandleResultAndError(cmc, cmc.Err)
 }
 
 func checkThrottle(channelId, requesterId int64) error {
@@ -207,9 +207,9 @@ func Update(u *url.URL, h http.Header, req *models.ChannelMessage) (int, http.He
 		return response.NewBadRequest(err)
 	}
 
-	return response.HandleResultAndError(
-		req.BuildEmptyMessageContainer(),
-	)
+	cmc := models.NewChannelMessageContainer().PopulateWith(req)
+
+	return response.HandleResultAndError(cmc, cmc.Err)
 }
 
 func Get(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface{}, error) {
@@ -222,9 +222,9 @@ func Get(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface{
 		return response.NewNotFound()
 	}
 
-	return response.HandleResultAndError(
-		cm.BuildEmptyMessageContainer(),
-	)
+	cmc := models.NewChannelMessageContainer().PopulateWith(cm)
+
+	return response.HandleResultAndError(cmc, cmc.Err)
 }
 
 func getMessageByUrl(u *url.URL) (*models.ChannelMessage, error) {
