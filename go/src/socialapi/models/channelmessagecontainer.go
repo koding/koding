@@ -39,4 +39,10 @@ func withChannelMessageContainerChecks(cmc *ChannelMessageContainer, f func(c *C
 
 	return cmc
 }
+
+func (c *ChannelMessageContainer) PopulateWith(m *ChannelMessage) *ChannelMessageContainer {
+	c.Message = m
+	c.AddAccountOldId()
+	return c
+}
 }
