@@ -24,4 +24,19 @@ type InteractionContainer struct {
 
 func NewInteractionContainer() *InteractionContainer {
 	return &InteractionContainer{}
+func withChannelMessageContainerChecks(cmc *ChannelMessageContainer, f func(c *ChannelMessageContainer) error) *ChannelMessageContainer {
+	if cmc == nil {
+		cmc = NewChannelMessageContainer()
+		cmc.Err = ErrMessageIsNotSet
+		return cmc
+	}
+
+	if cmc.Err != nil {
+		return cmc
+	}
+
+	cmc.Err = f(cmc)
+
+	return cmc
+}
 }
