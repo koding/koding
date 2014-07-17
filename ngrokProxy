@@ -1,0 +1,25 @@
+#!/usr/bin/env coffee
+
+valueOf = (arg)->
+  argIndex = process.argv.indexOf "--#{arg}"
+  if argIndex > 0 then process.argv[argIndex + 1]
+
+if user = valueOf "user"
+  ngrok = require 'ngrok'
+
+  [{name:"kontrol", port: 4000},
+   {name:"proxy",   port: 1234}].forEach (kite)->
+
+    ngrok.connect
+      authtoken : 'CMY-UsZMWdx586A3tA0U'
+      subdomain : "#{kite.name}-#{user}"
+      port      : kite.port
+    , (err, url)->
+
+      if err
+        console.log "Failed to create #{kite.name} tunnel: ", err
+      else
+        console.log "0.0.0.0:#{kite.port} for #{kite.name} is now tunneling with: ", url
+
+else
+  console.log "Usage: ./ngrokProxy --user username"
