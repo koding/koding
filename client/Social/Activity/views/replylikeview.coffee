@@ -62,16 +62,21 @@ class ReplyLikeView extends ActivityLikeLink
 
     @getTooltip().update {title}
 
+
   fetchAccounts: (callback) ->
 
-    {actorsPreview} = @getData().interactions.like
+    { socialapi } = KD.singletons
 
-    return callback null, actorsPreview  unless actorsPreview.length
+    socialapi.message.listLikers { id: @getData().id }, (err, res) =>
+      actorsPreview = res
 
-    constructorName = "JAccount"
-    origins = actorsPreview.map (id) -> {id, constructorName}
+      return callback null, actorsPreview  unless actorsPreview.length
 
-    KD.remote.cacheable origins, callback
+      constructorName = "JAccount"
+      origins = actorsPreview.map (id) -> {id, constructorName}
+
+      KD.remote.cacheable origins, callback
+
 
   pistachio: -> ''
 
