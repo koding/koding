@@ -15,7 +15,29 @@ func TestChannelCreate(t *testing.T) {
 	defer r.Close()
 
 	Convey("while creating channel", t, func() {
-		Convey("", nil)
+		Convey("channel name should not be empty", func(){
+			c := NewChannel()
+			c.Name = ""
+			So(c.Create().Error(), ShouldContainSubstring, "Validation failed")
+		})
+
+		Convey("channel groupName should not be empty", func(){
+			c := NewChannel()
+			c.GroupName = ""
+			So(c.Create().Error(), ShouldContainSubstring, "Validation failed")
+		})
+
+		Convey("channel typeConstant should not be empty", func(){
+			c := NewChannel()
+			c.TypeConstant = ""
+			So(c.Create().Error(), ShouldContainSubstring, "Validation failed")
+		})
+
+		Convey("channel name should not contain whitespace", func(){
+			c := NewChannel()
+			c.Name = "name channel"
+			So(c.Create().Error(), ShouldContainSubstring, "has empty space")
+		})
 	})
 
 }
@@ -88,9 +110,73 @@ func TestChannelCanOpen(t *testing.T) {
 			So(canOpen, ShouldBeTrue)
 		})
 
-		Convey("test topic channel", nil)
-		Convey("test pinned activity channel", nil)
-		Convey("test private message channel", nil)
+		Convey("everyone can open topic channel", func() {
+			// init account
+			account, err := createAccount()
+			So(err, ShouldBeNil)
+			So(account, ShouldNotBeNil)
+			So(account.Id, ShouldNotEqual, 0)
+
+			// init channel
+			c := NewChannel()
+			c.CreatorId = account.Id
+			c.TypeConstant = Channel_TYPE_TOPIC
+
+			So(c.Create(), ShouldBeNil)
+
+			// 1 is just a random id
+			canOpen, err := c.CanOpen(1)
+			So(err, ShouldBeNil)
+			So(canOpen, ShouldBeTrue)
+		})
+
+		Convey("participants can open pinned activity channel", func(){
+			// init account
+			account, err := createAccount()
+			So(err, ShouldBeNil)
+			So(account, ShouldNotBeNil)
+			So(account.Id, ShouldNotEqual, 0)
+
+			// init channel
+			c := NewChannel()
+			c.CreatorId = account.Id
+			c.TypeConstant = Channel_TYPE_PINNED_ACTIVITY
+
+			So(c.Create(), ShouldBeNil)
+
+			cp, err := c.AddParticipant(account.Id)
+			So(err, ShouldBeNil)
+			So(cp, ShouldNotBeNil)
+
+			canOpen, err := c.CanOpen(account.Id)
+			So(err, ShouldBeNil)
+			So(canOpen, ShouldBeFalse)
+		})
+
+		Convey("participants can open private message channel", func(){
+			// init account
+			account, err := createAccount()
+			So(err, ShouldBeNil)
+			So(account, ShouldNotBeNil)
+			So(account.Id, ShouldNotEqual, 0)
+
+			// init channel
+			c := NewChannel()
+			c.CreatorId = account.Id
+			c.TypeConstant = Channel_TYPE_PRIVATE_MESSAGE
+
+			So(c.Create(), ShouldBeNil)
+
+			// add participant to the channel
+			cp, err := c.AddParticipant(account.Id)
+			So(err, ShouldBeNil)
+			So(cp, ShouldNotBeNil)
+
+			canOpen, err := c.CanOpen(account.Id)
+			So(err, ShouldBeNil)
+			So(canOpen, ShouldBeFalse)
+		})
+
 	})
 
 }
