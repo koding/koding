@@ -1412,11 +1412,15 @@ span.collapsedtext
 
   .chat-heads
     top                     0
-    size                    691px 58px
+    height                  58px
     line-height             58px
+    kalc                    width (100% \- 584px)
     margin                  0 0 24px
     z-index                 1
-    bg                      color white
+    background -moz-linear-gradient(top,  rgba(255,255,255,1) 0%, rgba(255,255,255,1) 65%, rgba(255,255,255,0) 100%)
+    background -webkit-gradient(linear, left top, left bottom, color-stop(0%,rgba(255,255,255,1)), color-stop(65%,rgba(255,255,255,1)), color-stop(100%,rgba(255,255,255,0)))
+    background -webkit-linear-gradient(top,  rgba(255,255,255,1) 0%,rgba(255,255,255,1) 65%,rgba(255,255,255,0) 100%)
+    background linear-gradient(to bottom,  rgba(255,255,255,1) 0%,rgba(255,255,255,1) 65%,rgba(255,255,255,0) 100%)
     fix()
 
     .description
