@@ -1,13 +1,15 @@
 package models
 
 type ChannelMessageContainer struct {
-	Message            *ChannelMessage                  `json:"message"`
-	Interactions       map[string]*InteractionContainer `json:"interactions"`
-	RepliesCount       int                              `json:"repliesCount"`
-	Replies            []*ChannelMessageContainer       `json:"replies"`
-	AccountOldId       string                           `json:"accountOldId"`
-	IsFollowed         bool                             `json:"isFollowed"`
-	UnreadRepliesCount int                              `json:"unreadRepliesCount,omitempty"`
+	Message      *ChannelMessage                  `json:"message"`
+	Interactions map[string]*InteractionContainer `json:"interactions"`
+	RepliesCount int                              `json:"repliesCount"`
+	// Replies should stay as   ChannelMessageContainers
+	// not as a pointer
+	Replies            ChannelMessageContainers `json:"replies"`
+	AccountOldId       string                   `json:"accountOldId"`
+	IsFollowed         bool                     `json:"isFollowed"`
+	UnreadRepliesCount int                      `json:"unreadRepliesCount,omitempty"`
 }
 
 func NewChannelMessageContainer() *ChannelMessageContainer {
