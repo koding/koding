@@ -32,7 +32,7 @@ func ListChannels(u *url.URL, h http.Header, _ interface{}, c *models.Context) (
 	cc := models.NewChannelContainers()
 	cc.PopulateWith(channels, query.AccountId).AddUnreadCount(query.AccountId)
 
-	return response.HandleResultAndError(cc, cc.Err)
+	return response.HandleResultAndError(cc, cc.Err())
 }
 
 func ListPosts(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface{}, error) {

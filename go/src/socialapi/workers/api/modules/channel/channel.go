@@ -65,7 +65,7 @@ func List(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface
 	cc := models.NewChannelContainers()
 	cc.PopulateWith(channelList, q.AccountId)
 
-	return response.HandleResultAndError(cc, cc.Err)
+	return response.HandleResultAndError(cc, cc.Err())
 }
 
 // Search searchs database against given channel name
@@ -82,7 +82,7 @@ func Search(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interfa
 	cc := models.NewChannelContainers()
 	cc.PopulateWith(channelList, q.AccountId)
 
-	return response.HandleResultAndError(cc, cc.Err)
+	return response.HandleResultAndError(cc, cc.Err())
 }
 
 // ByName finds topics by their name

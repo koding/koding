@@ -127,7 +127,7 @@ func List(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface
 	cc := models.NewChannelContainers()
 	cc.PopulateWith(channelList, query.AccountId).AddUnreadCount(query.AccountId)
 
-	return response.HandleResultAndError(cc, cc.Err)
+	return response.HandleResultAndError(cc, cc.Err())
 }
 
 func getPrivateMessageChannels(q *request.Query) ([]models.Channel, error) {

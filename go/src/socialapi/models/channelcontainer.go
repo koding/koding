@@ -232,20 +232,18 @@ func (c *ChannelContainers) Add(containers ...*ChannelContainer) {
 	}
 }
 
-func (c ChannelContainers) Validate() ChannelContainers {
-	hasErr := false
+func (c ChannelContainers) Err() error {
 	for _, container := range c {
 		if container.Err != nil {
-			hasErr = true
-			break
+			return container.Err
 		}
 	}
 
-	if !hasErr {
-		return c
-	}
+	// if !hasErr {
+	// 	return c
+	// }
 
-	// TODO filter or re-populate err-ed content
+	// // TODO filter or re-populate err-ed content
 
-	return c
+	return nil
 }

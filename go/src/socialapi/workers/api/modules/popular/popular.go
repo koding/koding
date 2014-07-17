@@ -92,9 +92,8 @@ func ListTopics(u *url.URL, h http.Header, _ interface{}) (int, http.Header, int
 
 	cc := models.NewChannelContainers()
 	cc.PopulateWith(channelList, query.AccountId)
-	cc.Validate()
 
-	return response.NewOK(cc)
+	return response.HandleResultAndError(cc, cc.Err())
 }
 
 func extendPopularTopicsIfNeeded(query *request.Query, popularTopics []int64) ([]int64, error) {
