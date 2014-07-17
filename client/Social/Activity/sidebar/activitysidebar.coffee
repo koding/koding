@@ -21,9 +21,10 @@ class ActivitySidebar extends KDCustomScrollView
       else data
 
 
-  constructor: ->
+  constructor: (options = {}) ->
+    options.cssClass  = 'activity-sidebar'
 
-    super
+    super options
 
     {
       notificationController
