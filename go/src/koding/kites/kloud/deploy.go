@@ -54,6 +54,16 @@ func createUserCommand(username string) string {
 
 }
 
+// Build the klient.conf patching command
+func patchConfCommand(username string) string {
+	return fmt.Sprintf(
+		// "sudo -E", preserves the environment variables when forking
+		// so KITE_HOME set by the upstart script is preserved etc ...
+		"sed -i 's/\\.\\/klient/sudo -E -u %s \\.\\/klient/g' /etc/init/klient.conf",
+		username,
+	)
+}
+
 func (k *KodingDeploy) Deploy(artifact *protocol.Artifact) (*protocol.DeployArtifact, error) {
 	username := artifact.Username
 	ipAddress := artifact.IpAddress
@@ -151,6 +161,13 @@ func (k *KodingDeploy) Deploy(artifact *protocol.Artifact) (*protocol.DeployArti
 
 	log("Removing leftover klient deb from the machine")
 	out, err = client.StartCommand("rm -f /tmp/klient-latest.deb")
+	if err != nil {
+		fmt.Println("out", out)
+		return nil, err
+	}
+
+	log("Patching klient.conf")
+	out, err = client.StartCommand(patchConfCommand(username))
 	if err != nil {
 		fmt.Println("out", out)
 		return nil, err
