@@ -31,6 +31,16 @@ type KodingDeploy struct {
 	Bucket *Bucket
 }
 
+// Build the command used to create the user
+func createUserCommand(username string) string {
+	return fmt.Sprintf(
+		"adduser --shell /bin/bash --gecos 'koding' --disabled-password --home /home/%s %s && passwd -d %s && gpasswd -a %s sudo && echo '%s    ALL = NOPASSWD: ALL' > /etc/sudoers.d/%s",
+		// 6 occurences of the username to be replaced
+		username, username, username, username, username, username,
+	)
+
+}
+
 func (k *KodingDeploy) Deploy(artifact *protocol.Artifact) (*protocol.DeployArtifact, error) {
 	username := artifact.Username
 	ipAddress := artifact.IpAddress
@@ -71,6 +81,13 @@ func (k *KodingDeploy) Deploy(artifact *protocol.Artifact) (*protocol.DeployArti
 		return nil, kloud.NewError(kloud.ErrSignGenerateToken)
 	}
 
+	log("Creating user account")
+	out, err := client.StartCommand(createUserCommand(username))
+	if err != nil {
+		fmt.Println("out", out)
+		return nil, err
+	}
+
 	log("Creating a key with kontrolURL: " + k.KontrolURL)
 	kiteKey, err := k.createKey(username, tknID.String())
 	if err != nil {
@@ -106,7 +123,7 @@ func (k *KodingDeploy) Deploy(artifact *protocol.Artifact) (*protocol.DeployArti
 	signedUrl := k.Bucket.SignedURL(latestDeb, time.Now().Add(time.Minute*3))
 
 	log("Downloading '" + filepath.Base(latestDeb) + "' to /tmp inside the machine")
-	out, err := client.StartCommand(fmt.Sprintf("wget -O /tmp/klient-latest.deb '%s'", signedUrl))
+	out, err = client.StartCommand(fmt.Sprintf("wget -O /tmp/klient-latest.deb '%s'", signedUrl))
 	if err != nil {
 		fmt.Println("out", out)
 		return nil, err
