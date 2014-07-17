@@ -163,6 +163,7 @@ func (v *VMInfo) isAlwaysOn() bool {
 }
 
 func (v *VMInfo) unprepareVM() {
+	log.Info("Unprepare VM is called for vm id: %s", v.Id.Hex())
 	// mutex is needed because it's handled in the queue
 	v.mutex.Lock()
 	defer v.mutex.Unlock()
@@ -170,6 +171,8 @@ func (v *VMInfo) unprepareVM() {
 	if err := unprepareProgress(nil, v.vm, false); err != nil {
 		log.Warning("%v", err)
 	}
+
+	log.Info("Supposedly, the vm is unprepared: %s", v.Id.Hex())
 
 	infosMutex.Lock()
 	if v.useCounter == 0 {
