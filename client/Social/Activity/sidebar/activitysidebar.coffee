@@ -352,9 +352,7 @@ class ActivitySidebar extends KDCustomScrollView
       itemClass  : SidebarTopicItem
       dataPath   : 'popularTopics'
       delegate   : this
-      headerLink : new CustomLinkView
-        title    : 'ALL'
-        href     : KD.utils.groupifyLink '/Activity/Topic/All'
+      headerLink : KD.utils.groupifyLink '/Activity/Topic/All'
       dataSource : (callback) ->
         KD.singletons.socialapi.channel.fetchPopularTopics
           limit  : 5
@@ -370,9 +368,7 @@ class ActivitySidebar extends KDCustomScrollView
       dataPath   : 'followedChannels'
       delegate   : this
       noItemText : 'You don\'t follow any topics yet.'
-      headerLink : new CustomLinkView
-        title    : 'ALL'
-        href     : KD.utils.groupifyLink '/Activity/Topic/All'
+      headerLink : KD.utils.groupifyLink '/Activity/Topic/All'
       dataSource : (callback) ->
         KD.singletons.socialapi.channel.fetchFollowedChannels
           limit : 5
@@ -390,9 +386,7 @@ class ActivitySidebar extends KDCustomScrollView
       dataPath   : 'pinnedMessages'
       delegate   : this
       noItemText : 'You didn\'t participate in any conversations yet.'
-      headerLink : new CustomLinkView
-        title    : 'ALL'
-        href     : KD.utils.groupifyLink '/Activity/Post/All'
+      headerLink : KD.utils.groupifyLink '/Activity/Post/All'
       dataSource : (callback) ->
         KD.singletons.socialapi.channel.fetchPinnedMessages
           limit : 5
