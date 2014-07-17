@@ -9,12 +9,13 @@ path                = require 'path'
 traverse            = require 'traverse'
 BLD                 = process.env['KODING_BUILD_DATA_PATH'] or path.join __dirname,"../install/BUILD_DATA"
 
-hostname            = (fs.readFileSync BLD+"/BUILD_HOSTNAME"    , 'utf8').replace("\n","")
-region              = (fs.readFileSync BLD+"/BUILD_REGION"      , 'utf8').replace("\n","")
-configName          = (fs.readFileSync BLD+"/BUILD_CONFIG"      , 'utf8').replace("\n","")
-environment         = (fs.readFileSync BLD+"/BUILD_ENVIRONMENT" , 'utf8').replace("\n","")
-projectRoot         = (fs.readFileSync BLD+"/BUILD_PROJECT_ROOT", 'utf8').replace("\n","")
-version             = (fs.readFileSync BLD+"/BUILD_VERSION"     , 'utf8').replace("\n","")
+hostname            = (fs.readFileSync BLD+"/BUILD_HOSTNAME"        , 'utf8').replace("\n","")
+publicHostname      = (fs.readFileSync BLD+"/BUILD_PUBLIC_HOSTNAME" , 'utf8').replace("\n","")
+region              = (fs.readFileSync BLD+"/BUILD_REGION"          , 'utf8').replace("\n","")
+configName          = (fs.readFileSync BLD+"/BUILD_CONFIG"          , 'utf8').replace("\n","")
+environment         = (fs.readFileSync BLD+"/BUILD_ENVIRONMENT"     , 'utf8').replace("\n","")
+projectRoot         = (fs.readFileSync BLD+"/BUILD_PROJECT_ROOT"    , 'utf8').replace("\n","")
+version             = (fs.readFileSync BLD+"/BUILD_VERSION"         , 'utf8').replace("\n","")
 
 mongo               = "#{prod_simulation_server}:27017/koding"
 redis               = {host     : "#{prod_simulation_server}"   , port : "6379" }
@@ -71,6 +72,7 @@ KONFIG              =
   regions           : regions
   region            : region
   hostname          : hostname
+  publicHostname    : publicHostname
   version           : version
   broker            : broker
   uri               : {address: "#{customDomain.public}:#{customDomain.port}"}
@@ -95,7 +97,7 @@ KONFIG              =
   log               : {login         : "#{rabbitmq.login}"         , queueName : logQueueName}
   boxproxy          : {port          : 8090 }
   sourcemaps        : {port          : 3526 }
-  kloud             : {port          : 5500, privateKeyFile: kontrol.privateKeyFile, publicKeyFile: kontrol.publicKeyFile, kontrolUrl: "kontrol-#{customDomain.public_}/kite"  }
+  kloud             : {port          : 5500, privateKeyFile: kontrol.privateKeyFile, publicKeyFile: kontrol.publicKeyFile, kontrolUrl: "http://kontrol-#{publicHostname}.ngrok.com/kite"  }
   emailConfirmationCheckerWorker     : {enabled: no, login : "#{rabbitmq.login}", queueName: socialQueueName+'emailConfirmationCheckerWorker',cronSchedule: '0 * * * * *',usageLimitInMinutes  : 60}
 
   newkontrol        : kontrol
@@ -169,6 +171,32 @@ GOBIN = "#{projectRoot}/go/bin"
 
 # THESE COMMANDS WILL EXECUTE SEQUENTIALLY.
 KONFIG.workers =
+  rerouting           : command : "#{GOBIN}/rerouting          -c #{configName}"
+  cron                : command : "#{GOBIN}/cron               -c #{configName}"
+  broker              : command : "#{GOBIN}/broker             -c #{configName}"
+  socialapi           : command : "#{GOBIN}/api                -c #{socialapi.configFilePath} -port #{socialapi.port}"
+  dailyemailnotifier  : command : "#{GOBIN}/dailyemailnotifier -c #{socialapi.configFilePath}"
+  notification        : command : "#{GOBIN}/notification       -c #{socialapi.configFilePath}"
+  popularpost         : command : "#{GOBIN}/popularpost        -c #{socialapi.configFilePath}"
+  populartopic        : command : "#{GOBIN}/populartopic       -c #{socialapi.configFilePath}"
+  realtime            : command : "#{GOBIN}/realtime           -c #{socialapi.configFilePath}"
+  sitemapfeeder       : command : "#{GOBIN}/sitemapfeeder      -c #{socialapi.configFilePath}"
+  topicfeed           : command : "#{GOBIN}/topicfeed          -c #{socialapi.configFilePath}"
+  trollmode           : command : "#{GOBIN}/trollmode          -c #{socialapi.configFilePath}"
+  webserver           : command : "node   #{projectRoot}/server/index.js                   -c #{configName} -p #{KONFIG.webserver.port}   --disable-newrelic"
+  socialworker        : command : "node   #{projectRoot}/workers/social/index.js           -c #{configName} -p #{KONFIG.social.port}      -r #{region} --disable-newrelic --kite-port=13020"
+  sourcemaps          : command : "node   #{projectRoot}/server/lib/source-server/index.js -c #{configName} -p #{KONFIG.sourcemaps.port}"
+  authworker          : command : "node   #{projectRoot}/workers/auth/index.js             -c #{configName}"
+  emailsender         : command : "node   #{projectRoot}/workers/emailsender/index.js      -c #{configName}"
+  boxproxy            : command : "node #{projectRoot}/server/boxproxy.js            -c #{configName}"
+  clientWatcher       : command : "coffee #{projectRoot}/build-client.coffee               --watch --sourceMapsUri #{hostname}"
+  kontrol             : command : "#{GOBIN}/kontrol -c #{configName} -r #{region}"
+  kloud               : command : "#{GOBIN}/kloud -c #{configName} -r #{region} -port #{KONFIG.kloud.port} -public-key #{KONFIG.kloud.publicKeyFile} -private-key #{KONFIG.kloud.privateKeyFile} -kontrol-url \"#{KONFIG.kloud.kontrolUrl}\" -debug"
+
+  # guestcleaner        : command : "node #{projectRoot}/workers/guestcleaner/index.js     -c #{configName}"
+
+
+KONFIG.workers =
   # dailyemailnotifier  : command : "#{GOBIN}/dailyemailnotifier -c #{socialapi.configFilePath}"
   # notification        : command : "#{GOBIN}/notification       -c #{socialapi.configFilePath}"
   # popularpost         : command : "#{GOBIN}/popularpost        -c #{socialapi.configFilePath}"
@@ -182,6 +210,7 @@ KONFIG.workers =
   broker              : command : "#{GOBIN}/rerun koding/broker          -c #{configName}"
   rerouting           : command : "#{GOBIN}/rerun koding/rerouting       -c #{configName}"
   cron                : command : "#{GOBIN}/rerun koding/cron            -c #{configName}"
+  reverseProxy        : command : "#{GOBIN}/rerun koding/kites/reverseproxy -port 1234 -env production -region #{publicHostname}PublicEnvironment -publicHost proxy-#{publicHostname}.ngrok.com -publicPort 80"
 
   socialapi           : command : "cd go/src/socialapi && make develop -j config=#{socialapi.configFilePath}"
 
@@ -194,9 +223,12 @@ KONFIG.workers =
 
   clientWatcher       : command : "coffee #{projectRoot}/build-client.coffee    --watch --sourceMapsUri #{hostname}"
 
+  ngrokProxy          : command : "#{projectRoot}/ngrokProxy --user #{publicHostname}"
 
   # --port #{kontrol.port} -env #{environment} -public-key #{kontrol.publicKeyFile} -private-key #{kontrol.privateKeyFile}"
   # guestcleaner        : command : "node #{projectRoot}/workers/guestcleaner/index.js     -c #{configName}"
+
+
 
 
 
@@ -344,7 +376,7 @@ generateRunFile = (KONFIG) ->
       if grep -q UsZMWdx586A3tA0U "$HOME/.ngrok"; then
         echo you seem to have correct .ngrok file.
       else
-        echo 'created ~/.ngrok file (you still need to download the client)'
+        echo 'created ~/.ngrok file (you may still need to download the client)'
         echo auth_token: CMY-UsZMWdx586A3tA0U >> $HOME/.ngrok
       fi
 
