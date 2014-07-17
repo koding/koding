@@ -95,4 +95,26 @@ func (c *ChannelMessageContainer) AddReplies(query *request.Query) *ChannelMessa
 	c.Replies = *rs
 	return c
 }
+
+func (c *ChannelMessageContainer) AddInteractions(query *request.Query) *ChannelMessageContainer {
+	i := NewInteraction()
+	i.MessageId = c.Message.Id
+
+	// get preview
+	q := query.Clone()
+	q.Type = "like"
+	q.Limit = 3
+
+	interactionContainer, err := i.FetchInteractionContainer(q)
+	if err != nil {
+		c.Err = err
+		return c
+	}
+
+	c.Interactions[q.Type] = interactionContainer
+
+	return c
+
+}
+
 }
