@@ -67,4 +67,32 @@ func (c *ChannelMessageContainer) AddAccountOldId() *ChannelMessageContainer {
 	c.AccountOldId = oldId
 	return c
 }
+func (c *ChannelMessageContainer) AddReplies(query *request.Query) *ChannelMessageContainer {
+	if c.Message != nil && c.Message.TypeConstant == ChannelMessage_TYPE_REPLY {
+		// if message itself already a reply, no need to add replies to it
+		return c
+	}
+
+	// fetch the replies
+	mr := NewMessageReply()
+	mr.MessageId = c.Message.Id
+
+	q := query.Clone()
+	q.Limit = query.ReplyLimit
+	q.Skip = query.ReplySkip
+
+	replies, err := mr.List(q)
+	if err != nil {
+		c.Err = err
+		return c
+	}
+
+	// populate the replies as containers
+	rs := NewChannelMessageContainers()
+	rs.PopulateWith(replies, query)
+
+	// set channel message containers
+	c.Replies = *rs
+	return c
+}
 }
