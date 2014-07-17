@@ -96,6 +96,18 @@ func (c *ChannelMessageContainer) AddReplies(query *request.Query) *ChannelMessa
 	return c
 }
 
+func (c *ChannelMessageContainer) AddRepliesCount(query *request.Query) *ChannelMessageContainer {
+	// fetch the replies
+	mr := NewMessageReply()
+	mr.MessageId = c.Message.Id
+
+	repliesCount, err := mr.Count(query)
+	c.Err = err
+	c.RepliesCount = repliesCount
+
+	return c
+}
+
 func (c *ChannelMessageContainer) AddInteractions(query *request.Query) *ChannelMessageContainer {
 	i := NewInteraction()
 	i.MessageId = c.Message.Id
