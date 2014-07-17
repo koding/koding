@@ -182,6 +182,7 @@ func TestPrivateMesssage(t *testing.T) {
 			pm, err := rest.GetPrivateMessages(&request.Query{AccountId: account.Id, GroupName: groupName})
 			So(err, ShouldBeNil)
 			So(pm, ShouldNotBeNil)
+			So(len(pm), ShouldNotEqual, 0)
 			So(pm[0], ShouldNotBeNil)
 			So(pm[0].Channel.TypeConstant, ShouldEqual, models.Channel_TYPE_PRIVATE_MESSAGE)
 			So(pm[0].Channel.Id, ShouldEqual, cmc.Channel.Id)
