@@ -142,7 +142,8 @@ func (f *Controller) sendChannelParticipantEvent(cp *models.ChannelParticipant, 
 		return err
 	}
 
-	cmc, err := models.PopulateChannelContainer(*c, cp.AccountId)
+	cc := models.NewChannelContainer()
+	err = cc.PopulateWith(*c, cp.AccountId)
 	if err != nil {
 		return err
 	}
@@ -152,7 +153,7 @@ func (f *Controller) sendChannelParticipantEvent(cp *models.ChannelParticipant, 
 		cp.AccountId,
 		c.GroupName,
 		eventName,
-		cmc,
+		cc,
 	); err != nil {
 		f.log.Error("Ignoring err %s ", err.Error())
 	}
@@ -160,6 +161,7 @@ func (f *Controller) sendChannelParticipantEvent(cp *models.ChannelParticipant, 
 	// send this event to the channel itself
 	return f.publishToChannel(c.Id, eventName, cp)
 }
+
 // InteractionSaved runs when interaction is added
 func (f *Controller) InteractionSaved(i *models.Interaction) error {
 	return f.handleInteractionEvent("InteractionAdded", i)
@@ -180,7 +182,7 @@ type InteractionEvent struct {
 	Count        int    `json:"count"`
 }
 
-// handleInteractionEvent handle the required info of interaction 
+// handleInteractionEvent handle the required info of interaction
 func (f *Controller) handleInteractionEvent(eventName string, i *models.Interaction) error {
 	q := &request.Query{
 		Type:       models.Interaction_TYPE_LIKE,
@@ -222,7 +224,7 @@ func (f *Controller) handleInteractionEvent(eventName string, i *models.Interact
 // MessageReplySaved updates the channels , send messages in updated channel
 // and sends messages which is added
 func (f *Controller) MessageReplySaved(mr *models.MessageReply) error {
-	// fetch a channel 
+	// fetch a channel
 	reply := models.NewChannelMessage()
 	if err := reply.ById(mr.ReplyId); err != nil {
 		return err
