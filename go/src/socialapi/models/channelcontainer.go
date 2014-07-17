@@ -201,6 +201,7 @@ func (cr *ChannelContainer) PopulateWith(c Channel, accountId int64) error {
 
 	return cr.Err
 }
+
 type ChannelContainers []ChannelContainer
 
 func NewChannelContainers() *ChannelContainers {

@@ -117,4 +117,26 @@ func (c *ChannelMessageContainer) AddInteractions(query *request.Query) *Channel
 
 }
 
+type ChannelMessageContainers []ChannelMessageContainer
+
+func NewChannelMessageContainers() *ChannelMessageContainers {
+	return &ChannelMessageContainers{}
+}
+
+func (c *ChannelMessageContainers) PopulateWith(cms []ChannelMessage, query *request.Query) *ChannelMessageContainers {
+	for i, _ := range cms {
+		cmc := NewChannelMessageContainer()
+		cmc.PopulateWith(&cms[i])
+		cmc.SetGenerics(query)
+		c.Add(cmc)
+	}
+
+	return c
+}
+
+func (c *ChannelMessageContainers) Add(containers ...*ChannelMessageContainer) *ChannelMessageContainers {
+	for _, cc := range containers {
+		*c = append(*c, *cc)
+	}
+	return c
 }
