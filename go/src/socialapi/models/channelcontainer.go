@@ -103,23 +103,25 @@ func (cr *ChannelContainer) AddIsParticipant(accountId int64) *ChannelContainer 
 		return nil
 	})
 }
-			if err != nil {
-				continue
-			}
 
-			channelContainers[i].UnreadCount = count
-			continue
-		}
-
-		count, _ := cml.UnreadCount(cp)
+func (cr *ChannelContainer) AddLastMessage() *ChannelContainer {
+	return withChecks(cr, func(cc *ChannelContainer) error {
+		// add last message of the channel
+		cm, err := cc.Channel.FetchLastMessage()
 		if err != nil {
-			// helper.MustGetLogger().Error(err.Error())
-			continue
+			return err
 		}
-		channelContainers[i].UnreadCount = count
-	}
 
-	return channelContainers, nil
+		if cm != nil {
+			cmc, err := cm.BuildEmptyMessageContainer()
+			if err != nil {
+				return err
+			}
+			cc.LastMessage = cmc
+		}
+
+		return nil
+	})
 }
 
 func PopulateChannelContainer(channel Channel, accountId int64) (*ChannelContainer, error) {
