@@ -99,10 +99,19 @@ resurrection.styl
       r-sprite      app new-nav-terminal
     &.ide > figure
       r-sprite      app new-nav-ide
-    &.vm > figure
-      r-sprite      app new-nav-vm
-    &.vm.running > figure
-      r-sprite      app new-nav-vm-green
+    &.vm
+      > figure
+        r-sprite    app new-nav-vm
+      > span
+        r-sprite    app '20-cog-gray'
+        right       0
+        top         3px
+        opacity     .3
+        abs()
+      &:hover > span
+        opacity     1
+      &.running > figure
+        r-sprite    app new-nav-vm-green
 
 .account-area
   bottom            0
