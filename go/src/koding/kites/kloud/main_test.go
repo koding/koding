@@ -113,7 +113,7 @@ func listenEvent(args kloud.EventArgs, desiredState machinestate.State) error {
 
 // build builds a single machine with the given client and data. Use this
 // function to invoke concurrent and multiple builds.
-func build(i int, client *kite.Client, data *kloud.MachineData) error {
+func build(i int, client *kite.Client, data *kloud.Machine) error {
 	uniqueId := strconv.FormatInt(time.Now().UTC().UnixNano(), 10)
 
 	imageName := "" // an empty argument causes to use the standard library.
@@ -237,31 +237,6 @@ func TestBuild(t *testing.T) {
 
 	time.Sleep(time.Second * 3)
 	wg.Wait()
-}
-
-func TestRestart(t *testing.T) {
-	t.SkipNow()
-	if *flagTestQuery == "" {
-		t.Fatal("Query is not defined for restart")
-	}
-
-	data := TestProviderData["digitalocean"]
-	cArgs := &kloud.Controller{
-		MachineId: data.Provider,
-	}
-
-	kloudRaw.Storage = TestStorageFunc(func(id string, opt *kloud.GetOption) (*kloud.MachineData, error) {
-		machineData := TestProviderData[id]
-		machineData.Machine.Status.State = machinestate.Running.String() // assume it's running
-		machineData.Machine.QueryString = *flagTestQuery
-		machineData.Machine.Meta["instanceId"] = *flagTestInstanceId
-		return machineData, nil
-	})
-
-	if _, err := remote.Tell("restart", cArgs); err != nil {
-		t.Errorf("destroy: %s", err)
-	}
-
 }
 
 func TestMultiple(t *testing.T) {

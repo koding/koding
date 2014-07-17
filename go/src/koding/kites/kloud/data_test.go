@@ -2,7 +2,6 @@ package main
 
 import (
 	"sync"
-	"time"
 
 	"github.com/koding/kloud"
 	"github.com/koding/kloud/machinestate"
@@ -18,36 +17,22 @@ var (
 )
 
 var (
-	TestData = make(map[string]*kloud.MachineData)
+	TestData = make(map[string]*kloud.Machine)
 	TestMu   sync.Mutex
 )
 
-func GetTestData(id string) *kloud.MachineData {
+func GetTestData(id string) *kloud.Machine {
 	TestMu.Lock()
 	defer TestMu.Unlock()
 	return TestData[id]
 }
 
 func CreateTestData(provider, id string) {
-	data := &kloud.MachineData{
-		Provider: provider,
-		Credential: &kloud.Credential{
-			Meta: map[string]interface{}{
-				"username": RACKSPACE_USERNAME,
-				"apiKey":   RACKSPACE_API_KEY,
-			},
-		},
-		Machine: &kloud.Machine{
-			Provider: provider,
-			Status: struct {
-				State      string    `bson:"state"`
-				ModifiedAt time.Time `bson:"modifiedAt"`
-			}{
-				State:      machinestate.NotInitialized.String(),
-				ModifiedAt: time.Now(),
-			},
-			Meta: map[string]interface{}{},
-		},
+	data := &kloud.Machine{
+		Provider:   provider,
+		Credential: map[string]interface{}{},
+		Data:       map[string]interface{}{},
+		State:      machinestate.NotInitialized,
 	}
 
 	TestMu.Lock()
@@ -56,150 +41,84 @@ func CreateTestData(provider, id string) {
 }
 
 var (
-	TestProviderData = map[string]*kloud.MachineData{
-		"koding_id0": &kloud.MachineData{
+	TestProviderData = map[string]*kloud.Machine{
+		"koding_id0": &kloud.Machine{
 			Provider: "koding",
-			Credential: &kloud.Credential{
-				Meta: map[string]interface{}{
-					"username": RACKSPACE_USERNAME,
-					"apiKey":   RACKSPACE_API_KEY,
-				},
+			Credential: map[string]interface{}{
+				"username": RACKSPACE_USERNAME,
+				"apiKey":   RACKSPACE_API_KEY,
 			},
-			Machine: &kloud.Machine{
-				Provider: "koding",
-				Status: struct {
-					State      string    `bson:"state"`
-					ModifiedAt time.Time `bson:"modifiedAt"`
-				}{
-					State:      machinestate.NotInitialized.String(),
-					ModifiedAt: time.Now(),
-				},
-				Meta: map[string]interface{}{},
-			},
+			Data:  map[string]interface{}{},
+			State: machinestate.NotInitialized,
 		},
-		"koding_id1": &kloud.MachineData{
+		"koding_id1": &kloud.Machine{
 			Provider: "koding",
-			Credential: &kloud.Credential{
-				Meta: map[string]interface{}{
-					"username": RACKSPACE_USERNAME,
-					"apiKey":   RACKSPACE_API_KEY,
-				},
+			Credential: map[string]interface{}{
+				"username": RACKSPACE_USERNAME,
+				"apiKey":   RACKSPACE_API_KEY,
 			},
-			Machine: &kloud.Machine{
-				Provider: "koding",
-				Status: struct {
-					State      string    `bson:"state"`
-					ModifiedAt time.Time `bson:"modifiedAt"`
-				}{
-					State:      machinestate.NotInitialized.String(),
-					ModifiedAt: time.Now(),
-				},
-				Meta: map[string]interface{}{},
-			},
+			Data:  map[string]interface{}{},
+			State: machinestate.NotInitialized,
 		},
-		"koding_id2": &kloud.MachineData{
+		"koding_id2": &kloud.Machine{
 			Provider: "koding",
-			Credential: &kloud.Credential{
-				Meta: map[string]interface{}{
-					"username": RACKSPACE_USERNAME,
-					"apiKey":   RACKSPACE_API_KEY,
-				},
+			Credential: map[string]interface{}{
+				"username": RACKSPACE_USERNAME,
+				"apiKey":   RACKSPACE_API_KEY,
 			},
-			Machine: &kloud.Machine{
-				Provider: "koding",
-				Status: struct {
-					State      string    `bson:"state"`
-					ModifiedAt time.Time `bson:"modifiedAt"`
-				}{
-					State:      machinestate.NotInitialized.String(),
-					ModifiedAt: time.Now(),
-				},
-				Meta: map[string]interface{}{},
-			},
+			Data:  map[string]interface{}{},
+			State: machinestate.NotInitialized,
 		},
-		"digitalocean_id0": &kloud.MachineData{
+		"digitalocean_id0": &kloud.Machine{
 			Provider: "digitalocean",
-			Credential: &kloud.Credential{
-				Meta: map[string]interface{}{
-					"clientId": DIGITALOCEAN_CLIENT_ID,
-					"apiKey":   DIGITALOCEAN_API_KEY,
-				},
+			Credential: map[string]interface{}{
+				"clientId": DIGITALOCEAN_CLIENT_ID,
+				"apiKey":   DIGITALOCEAN_API_KEY,
 			},
-			Machine: &kloud.Machine{
-				Provider: "digitalocean",
-				Status: struct {
-					State      string    `bson:"state"`
-					ModifiedAt time.Time `bson:"modifiedAt"`
-				}{
-					State:      machinestate.NotInitialized.String(),
-					ModifiedAt: time.Now(),
-				},
-				Meta: map[string]interface{}{
-					"type":          "digitalocean",
-					"clientId":      DIGITALOCEAN_CLIENT_ID,
-					"apiKey":        DIGITALOCEAN_API_KEY,
-					"image":         "ubuntu-13-10-x64",
-					"region":        "sfo1",
-					"size":          "512mb",
-					"snapshot_name": "koding-{{timestamp}}",
-				},
+			Data: map[string]interface{}{
+				"type":          "digitalocean",
+				"clientId":      DIGITALOCEAN_CLIENT_ID,
+				"apiKey":        DIGITALOCEAN_API_KEY,
+				"image":         "ubuntu-13-10-x64",
+				"region":        "sfo1",
+				"size":          "512mb",
+				"snapshot_name": "koding-{{timestamp}}",
 			},
+			State: machinestate.NotInitialized,
 		},
-		"digitalocean_id1": &kloud.MachineData{
+		"digitalocean_id1": &kloud.Machine{
 			Provider: "digitalocean",
-			Credential: &kloud.Credential{
-				Meta: map[string]interface{}{
-					"clientId": DIGITALOCEAN_CLIENT_ID,
-					"apiKey":   DIGITALOCEAN_API_KEY,
-				},
+			Credential: map[string]interface{}{
+				"clientId": DIGITALOCEAN_CLIENT_ID,
+				"apiKey":   DIGITALOCEAN_API_KEY,
 			},
-			Machine: &kloud.Machine{
-				Provider: "digitalocean",
-				Status: struct {
-					State      string    `bson:"state"`
-					ModifiedAt time.Time `bson:"modifiedAt"`
-				}{
-					State:      machinestate.NotInitialized.String(),
-					ModifiedAt: time.Now(),
-				},
-				Meta: map[string]interface{}{
-					"type":          "digitalocean",
-					"clientId":      DIGITALOCEAN_CLIENT_ID,
-					"apiKey":        DIGITALOCEAN_API_KEY,
-					"image":         "ubuntu-13-10-x64",
-					"region":        "sfo1",
-					"size":          "512mb",
-					"snapshot_name": "koding-{{timestamp}}",
-				},
+			Data: map[string]interface{}{
+				"type":          "digitalocean",
+				"clientId":      DIGITALOCEAN_CLIENT_ID,
+				"apiKey":        DIGITALOCEAN_API_KEY,
+				"image":         "ubuntu-13-10-x64",
+				"region":        "sfo1",
+				"size":          "512mb",
+				"snapshot_name": "koding-{{timestamp}}",
 			},
+			State: machinestate.NotInitialized,
 		},
-		"digitalocean_id2": &kloud.MachineData{
+		"digitalocean_id2": &kloud.Machine{
 			Provider: "digitalocean",
-			Credential: &kloud.Credential{
-				Meta: map[string]interface{}{
-					"clientId": DIGITALOCEAN_CLIENT_ID,
-					"apiKey":   DIGITALOCEAN_API_KEY,
-				},
+			Credential: map[string]interface{}{
+				"clientId": DIGITALOCEAN_CLIENT_ID,
+				"apiKey":   DIGITALOCEAN_API_KEY,
 			},
-			Machine: &kloud.Machine{
-				Provider: "digitalocean",
-				Status: struct {
-					State      string    `bson:"state"`
-					ModifiedAt time.Time `bson:"modifiedAt"`
-				}{
-					State:      machinestate.NotInitialized.String(),
-					ModifiedAt: time.Now(),
-				},
-				Meta: map[string]interface{}{
-					"type":          "digitalocean",
-					"clientId":      DIGITALOCEAN_CLIENT_ID,
-					"apiKey":        DIGITALOCEAN_API_KEY,
-					"image":         "ubuntu-13-10-x64",
-					"region":        "sfo1",
-					"size":          "512mb",
-					"snapshot_name": "koding-{{timestamp}}",
-				},
+			Data: map[string]interface{}{
+				"type":          "digitalocean",
+				"clientId":      DIGITALOCEAN_CLIENT_ID,
+				"apiKey":        DIGITALOCEAN_API_KEY,
+				"image":         "ubuntu-13-10-x64",
+				"region":        "sfo1",
+				"size":          "512mb",
+				"snapshot_name": "koding-{{timestamp}}",
 			},
+			State: machinestate.NotInitialized,
 		},
 		"amazon-instance": nil,
 		"googlecompute":   nil,
