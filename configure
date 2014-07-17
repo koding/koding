@@ -34,7 +34,7 @@ options = o =
   version          : argv.version       or "1.0"
   environment      : argv.environment   or "prod"
   hostname         : argv.hostname
-  publicHostname   : argv.publichostname
+  publicHostname   : argv.publichostname or process.env.USER
   target           : argv.target        or "localhost"
   onlyconfigure    : argv.onlyconfigure or false
   supervisor       : argv.supervisor    or false
