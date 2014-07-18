@@ -99,7 +99,7 @@ revive = do -> ({
       # since the user session is enough for koding provider for now.
 
       if shouldPassCredential and not credential?
-        if provider isnt 'koding'
+        unless provider is 'koding'
           return callback new KodingError \
             "Credential is required.", "MissingCredential"
 
@@ -108,7 +108,9 @@ revive = do -> ({
         if err then return callback err
 
         if shouldPassCredential and not cred?
-          return callback new KodingError "Credential failed.", "AccessDenied"
+          unless provider is 'koding'
+            return callback \
+              new KodingError "Credential failed.", "AccessDenied"
         else
           options.credential = cred.publicKey  if cred?.publicKey
 
