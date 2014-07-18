@@ -152,7 +152,6 @@ func (f *Controller) sendChannelParticipantEvent(cp *models.ChannelParticipant, 
 		return err
 	}
 
-	cp.AccountOldId = accountOldId
 
 	// send notification to the user(added user)
 	if err := f.sendNotification(
