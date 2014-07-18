@@ -1,5 +1,11 @@
 package models
 
+import (
+	"fmt"
+
+	"github.com/koding/bongo"
+)
+
 var (
 	channelCache map[int64]*Channel
 )
@@ -39,4 +45,20 @@ func ChannelsByIds(ids []int64) ([]*Channel, error) {
 	}
 
 	return channels, nil
+}
+
+func (c *Channel) GetCacheId() int64 {
+	return c.GetId()
+}
+
+func (c *Channel) CacheSet(data bongo.Cachable) (string, error) {
+	return CacheForChannel(data.GetCacheId())
+}
+
+func (cc *Channel) CachePrefix(id int64) string {
+	return fmt.Sprintf("%s:%d", "channelcontainer", id)
+}
+
+func (cc *Channel) CacheGet(id int64) (string, error) {
+	return CacheForChannel(id)
 }
