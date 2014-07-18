@@ -125,7 +125,16 @@ func List(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface
 	}
 
 	cc := models.NewChannelContainers()
-	cc.PopulateWith(channelList, query.AccountId).AddUnreadCount(query.AccountId)
+
+	if err := cc.Fetch(channelList, query); err != nil {
+		return response.NewBadRequest(err)
+	}
+
+	cc.AddIsParticipant(query.AccountId)
+
+	// TODO this should be in the channel cache by default
+	cc.AddLastMessage()
+	cc.AddUnreadCount(query.AccountId)
 
 	return response.HandleResultAndError(cc, cc.Err())
 }

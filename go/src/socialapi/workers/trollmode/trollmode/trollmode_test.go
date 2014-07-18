@@ -704,7 +704,6 @@ func TestMarkedAsTroll(t *testing.T) {
 
 			// remove troll user from preview list
 			So(likes.ActorsCount, ShouldEqual, 3)
-
 		})
 
 		// interaction
