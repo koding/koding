@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"github.com/dchest/uniuri"
-	"github.com/jinzhu/gorm"
 	"github.com/koding/bongo"
 	"github.com/stvp/slug"
 )
@@ -38,7 +37,7 @@ func Slugify(message *ChannelMessage) (*ChannelMessage, error) {
 		if err := res.One(bongo.NewQS(query)); err != nil {
 			// if we got error from db, it means it couldnt find the
 			// data, so we can return here
-			if err != gorm.RecordNotFound {
+			if err != bongo.RecordNotFound {
 				return nil, err
 			}
 			message.Slug = suggestedSlug
@@ -51,9 +50,13 @@ func Slugify(message *ChannelMessage) (*ChannelMessage, error) {
 		query["slug"] = suggestedSlug
 	}
 
-	return nil, fmt.Errorf("Couldnt generate unique slug:%s", message.Slug)
+	return nil, fmt.Errorf("couldnt generate unique slug:%s", message.Slug)
 }
 
 func RandomName() string {
 	return uniuri.New()
+}
+
+func ZeroDate() time.Time {
+	return time.Date(1, time.January, 1, 0, 0, 0, 0, time.UTC)
 }

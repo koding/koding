@@ -4,6 +4,9 @@ module.exports = (options, callback)->
   fetchScripts = require './../scriptblock'
   getGraphMeta = require './../graphmeta'
 
+  entryPoint         = { slug : "koding", type: "group" }
+  options.entryPoint = entryPoint
+
   prepareHTML = (scripts)->
     """
     <!doctype html>
@@ -17,7 +20,8 @@ module.exports = (options, callback)->
       <!--[if IE]>
       <script>(function(){window.location.href='/unsupported.html'})();</script>
       <![endif]-->
-      #{KONFIG.getConfigScriptTag { roles: ['guest'], permissions: [] } }
+      #{KONFIG.getConfigScriptTag { entryPoint, roles: ['guest'], permissions: [] } }
+      <script>KD.isLoggedInOnLoad=false;</script>
       #{scripts}
     </body>
     </html>

@@ -5,11 +5,15 @@ module.exports = (options, callback)->
   getSidebar   = require './sidebar'
   encoder      = require 'htmlencode'
 
+
   {
     account, slug, title, content, body,
     avatar, counts, policy, customize,
     bongoModels, client
   } = options
+
+  entryPoint = { slug : slug, type: "group" }
+  options.entryPoint = entryPoint
 
   prepareHTML = (scripts)->
     """
@@ -24,12 +28,13 @@ module.exports = (options, callback)->
 
     <!--[if IE]><script>(function(){window.location.href='/unsupported.html'})();</script><![endif]-->
 
-    #{KONFIG.getConfigScriptTag {entryPoint: { slug : slug, type: "group"}, roles:['guest'], permissions:[]}}
+    #{KONFIG.getConfigScriptTag {entryPoint, roles:['guest'], permissions:[]}}
+    <script>KD.isLoggedInOnLoad=true;</script>
     #{scripts}
     </body>
     </html>
 
     """
 
-  fetchScripts {bongoModels, client, slug}, (err, scripts)->
+  fetchScripts options, (err, scripts)->
     callback null, prepareHTML scripts

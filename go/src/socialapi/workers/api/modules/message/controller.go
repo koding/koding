@@ -1,18 +1,23 @@
 package message
 
 import (
+	"errors"
+	"fmt"
 	"net/http"
 	"net/url"
+	"socialapi/config"
 	"socialapi/models"
-	"socialapi/workers/api/modules/helpers"
+	"socialapi/request"
+	"socialapi/workers/common/response"
+	"time"
 
-	"github.com/jinzhu/gorm"
+	"github.com/koding/bongo"
 )
 
 func Create(u *url.URL, h http.Header, req *models.ChannelMessage) (int, http.Header, interface{}, error) {
-	channelId, err := helpers.GetURIInt64(u, "id")
+	channelId, err := request.GetURIInt64(u, "id")
 	if err != nil {
-		return helpers.NewBadRequestResponse(err)
+		return response.NewBadRequest(err)
 	}
 
 	// override message type
@@ -23,44 +28,101 @@ func Create(u *url.URL, h http.Header, req *models.ChannelMessage) (int, http.He
 	// set initial channel id
 	req.InitialChannelId = channelId
 
+	if err := checkThrottle(channelId, req.AccountId); err != nil {
+		return response.NewBadRequest(err)
+	}
+
 	if err := req.Create(); err != nil {
 		// todo this should be internal server error
-		return helpers.NewBadRequestResponse(err)
+		return response.NewBadRequest(err)
 	}
 
 	cml := models.NewChannelMessageList()
-
 	// override channel id
 	cml.ChannelId = channelId
 	cml.MessageId = req.Id
 	if err := cml.Create(); err != nil {
 		// todo this should be internal server error
-		return helpers.NewBadRequestResponse(err)
+		return response.NewBadRequest(err)
 	}
 
-	return helpers.NewOKResponse(req)
+	return response.HandleResultAndError(
+		req.BuildEmptyMessageContainer(),
+	)
+}
+
+func checkThrottle(channelId, requesterId int64) error {
+	c, err := models.ChannelById(channelId)
+	if err != nil {
+		return err
+	}
+
+	if c.TypeConstant != models.Channel_TYPE_GROUP {
+		return nil
+	}
+
+	cm := models.NewChannelMessage()
+
+	conf := config.MustGet()
+
+	// if oit is defaul treturn  early
+	if conf.Limits.PostThrottleDuration == "" {
+		return nil
+	}
+
+	// if throttle count is zero, it meands it is not set
+	if conf.Limits.PostThrottleCount == 0 {
+		return nil
+	}
+
+	dur, err := time.ParseDuration(conf.Limits.PostThrottleDuration)
+	if err != nil {
+		return err
+	}
+
+	// subtrack duration from current time
+	prevTime := time.Now().UTC().Truncate(dur)
+
+	count, err := bongo.B.Count(
+		cm,
+		"initial_channel_id = ? and "+
+			"account_id = ? and "+
+			"created_at > ?",
+		channelId,
+		requesterId,
+		prevTime.Format(time.RFC3339),
+	)
+	if err != nil {
+		return err
+	}
+
+	if count > conf.Limits.PostThrottleCount {
+		return fmt.Errorf("reached to throttle, current post count %d for user %d", count, requesterId)
+	}
+
+	return nil
 }
 
 func Delete(u *url.URL, h http.Header, req *models.ChannelMessage) (int, http.Header, interface{}, error) {
-	id, err := helpers.GetURIInt64(u, "id")
+	id, err := request.GetURIInt64(u, "id")
 	if err != nil {
-		return helpers.NewBadRequestResponse(err)
+		return response.NewBadRequest(err)
 	}
 
 	if err := req.ById(id); err != nil {
-		if err == gorm.RecordNotFound {
-			return helpers.NewNotFoundResponse()
+		if err == bongo.RecordNotFound {
+			return response.NewNotFound()
 		}
-		return helpers.NewBadRequestResponse(err)
+		return response.NewBadRequest(err)
 	}
 
 	err = deleteSingleMessage(req, true)
 	if err != nil {
-		return helpers.NewBadRequestResponse(err)
+		return response.NewBadRequest(err)
 	}
 
 	// yes it is deleted but not removed completely from our system
-	return helpers.NewDeletedResponse()
+	return response.NewDeleted()
 }
 
 func deleteSingleMessage(cm *models.ChannelMessage, deleteReplies bool) error {
@@ -123,65 +185,112 @@ func deleteSingleMessage(cm *models.ChannelMessage, deleteReplies bool) error {
 }
 
 func Update(u *url.URL, h http.Header, req *models.ChannelMessage) (int, http.Header, interface{}, error) {
-	id, err := helpers.GetURIInt64(u, "id")
+	id, err := request.GetURIInt64(u, "id")
 	if err != nil {
-		return helpers.NewBadRequestResponse(err)
+		return response.NewBadRequest(err)
 	}
 
 	body := req.Body
 	if err := req.ById(id); err != nil {
-		if err == gorm.RecordNotFound {
-			return helpers.NewNotFoundResponse()
+		if err == bongo.RecordNotFound {
+			return response.NewNotFound()
 		}
-		return helpers.NewBadRequestResponse(err)
+		return response.NewBadRequest(err)
 	}
 
 	if req.Id == 0 {
-		return helpers.NewBadRequestResponse(err)
+		return response.NewBadRequest(err)
 	}
 
 	req.Body = body
 	if err := req.Update(); err != nil {
-		return helpers.NewBadRequestResponse(err)
+		return response.NewBadRequest(err)
 	}
 
-	return helpers.NewOKResponse(req)
+	return response.HandleResultAndError(
+		req.BuildEmptyMessageContainer(),
+	)
 }
 
 func Get(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface{}, error) {
-	id, err := helpers.GetURIInt64(u, "id")
+	cm, err := getMessageByUrl(u)
 	if err != nil {
-		return helpers.NewBadRequestResponse(err)
-	}
-	cm := models.NewChannelMessage()
-	if err := cm.ById(id); err != nil {
-		if err == gorm.RecordNotFound {
-			return helpers.NewNotFoundResponse()
-		}
-		return helpers.NewBadRequestResponse(err)
+		return response.NewBadRequest(err)
 	}
 
-	return helpers.NewOKResponse(cm)
+	if cm.Id == 0 {
+		return response.NewNotFound()
+	}
+
+	return response.HandleResultAndError(
+		cm.BuildEmptyMessageContainer(),
+	)
+}
+
+func getMessageByUrl(u *url.URL) (*models.ChannelMessage, error) {
+	id, err := request.GetURIInt64(u, "id")
+	if err != nil {
+		return nil, err
+	}
+
+	// get url query params
+	q := request.GetQuery(u)
+
+	query := &bongo.Query{
+		Selector: map[string]interface{}{
+			"id": id,
+		},
+		Pagination: *bongo.NewPagination(1, 0),
+	}
+
+	cm := models.NewChannelMessage()
+	// add exempt info
+	query.AddScope(models.RemoveTrollContent(cm, q.ShowExempt))
+
+	if err := cm.One(query); err != nil {
+		return nil, err
+	}
+
+	return cm, nil
 }
 
 func GetWithRelated(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface{}, error) {
-	id, err := helpers.GetURIInt64(u, "id")
+	cm, err := getMessageByUrl(u)
 	if err != nil {
-		return helpers.NewBadRequestResponse(err)
+		return response.NewBadRequest(err)
+	}
+
+	if cm.Id == 0 {
+		return response.NewNotFound()
+	}
+
+	cmc, err := cm.BuildMessage(request.GetQuery(u))
+	if err != nil {
+		return response.NewBadRequest(err)
+	}
+
+	return response.NewOK(cmc)
+}
+
+func GetBySlug(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface{}, error) {
+	q := request.GetQuery(u)
+
+	if q.Slug == "" {
+		return response.NewBadRequest(errors.New("slug is not set"))
 	}
 
 	cm := models.NewChannelMessage()
-	if err := cm.ById(id); err != nil {
-		if err == gorm.RecordNotFound {
-			return helpers.NewNotFoundResponse()
+	if err := cm.BySlug(q); err != nil {
+		if err == bongo.RecordNotFound {
+			return response.NewNotFound()
 		}
-		return helpers.NewBadRequestResponse(err)
+		return response.NewBadRequest(err)
 	}
 
-	cmc, err := cm.BuildMessage(helpers.GetQuery(u))
+	cmc, err := cm.BuildMessage(q)
 	if err != nil {
-		return helpers.NewBadRequestResponse(err)
+		return response.NewBadRequest(err)
 	}
 
-	return helpers.NewOKResponse(cmc)
+	return response.NewOK(cmc)
 }

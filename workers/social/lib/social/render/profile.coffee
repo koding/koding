@@ -39,6 +39,8 @@ module.exports = (options, callback)->
   if avatar
     bgImg = "//i.embed.ly/1/display/crop?grow=false&width=90&height=90&key=94991069fb354d4e8fdb825e52d4134a&url=#{encodeURIComponent avatar}"
 
+  entryPoint = { slug : profile.nickname, type: "profile" }
+
   prepareHTML = (scripts)->
 
     """
@@ -52,12 +54,15 @@ module.exports = (options, callback)->
 
       <!--[if IE]><script>(function(){window.location.href='/unsupported.html'})();</script><![endif]-->
 
-      #{KONFIG.getConfigScriptTag {entryPoint: { slug : profile.nickname, type: "profile" }, roles:['guest'], permissions:[]}}
+      #{KONFIG.getConfigScriptTag {entryPoint, roles:['guest'], permissions:[]}}
       #{scripts}
 
     </body>
     </html>
     """
 
-  fetchScripts {bongoModels, client}, (err, scripts)->
+  # inject entryPoint
+  options.entryPoint = entryPoint
+
+  fetchScripts options, (err, scripts)->
     callback null, prepareHTML scripts

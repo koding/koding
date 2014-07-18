@@ -6,6 +6,8 @@ module.exports = (options, callback)->
   getSidebar      = require './sidebar'
   getStatusWidget = require './statuswidget'
 
+  entryPoint         = { slug : "koding", type: "group" }
+  options.entryPoint = entryPoint
 
   prepareHTML = (scripts)->
     """
@@ -19,7 +21,8 @@ module.exports = (options, callback)->
 
       <!--[if IE]><script>(function(){window.location.href='/unsupported.html'})();</script><![endif]-->
 
-      #{KONFIG.getConfigScriptTag { roles: ['guest'], permissions: [] } }
+      #{KONFIG.getConfigScriptTag { entryPoint, roles: ['guest'], permissions: [] } }
+      <script>KD.isLoggedInOnLoad=true;</script>
       #{scripts}
 
     </body>

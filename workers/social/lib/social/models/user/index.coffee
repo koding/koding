@@ -564,6 +564,9 @@ module.exports = class JUser extends jraphical.Module
             groupInvite    : on
             groupRequest   : on
             groupApproved  : on
+            groupJoined    : on
+            groupLeft      : off
+            mention        : on
           }
         }
 

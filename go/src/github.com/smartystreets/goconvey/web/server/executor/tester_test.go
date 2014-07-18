@@ -11,10 +11,8 @@ import (
 )
 
 func TestConcurrentTester(t *testing.T) {
-	var fixture *TesterFixture
-
 	Convey("Subject: Controlled execution of test packages", t, func() {
-		fixture = NewTesterFixture()
+		fixture := NewTesterFixture()
 
 		Convey("Whenever tests for each package are executed", func() {
 			fixture.InBatchesOf(1).RunTests()
@@ -214,7 +212,8 @@ func (self *TimedShell) MaxConcurrentCommands() int {
 }
 
 func concurrentWith(current, comparison *ShellCommand) bool {
-	return comparison.Started.After(current.Started) && comparison.Started.Before(current.Ended)
+	return ((comparison.Started == current.Started || comparison.Started.After(current.Started)) &&
+		(comparison.Started.Before(current.Ended)))
 }
 
 func (self *TimedShell) setTripWire(message string) {

@@ -26,7 +26,7 @@ generateShareUrl = (model, uri)->
       when "JNewStatusUpdate", "JCodeSnip", "JDiscussion", "JBlogPost", "JTutorial"
         "/Activity/" + model.slug
       when "JTag"
-        "/Topics/" + model.slug
+        "/Activity/Topic/" + model.slug
       when "JNewApp"
         "/Apps/" + model.slug
       else ""

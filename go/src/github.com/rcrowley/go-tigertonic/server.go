@@ -98,6 +98,9 @@ func (s *Server) ListenAndServe() error {
 	if nil != err {
 		return err
 	}
+	if nil != s.TLSConfig {
+		l = tls.NewListener(l, s.TLSConfig)
+	}
 	return s.Serve(l)
 }
 
@@ -137,13 +140,21 @@ func (s *Server) tlsConfig() {
 				tls.TLS_ECDHE_RSA_WITH_RC4_128_SHA,
 				tls.TLS_RSA_WITH_RC4_128_SHA,
 			},
+			NextProtos: []string{"http/1.1"},
 		}
 	}
 }
 
 type closingResponseWriter struct {
+	http.Flusher
 	http.ResponseWriter
 	ch <-chan struct{}
+}
+
+func (w closingResponseWriter) Flush() {
+	if f, ok := w.ResponseWriter.(http.Flusher); ok {
+		f.Flush()
+	}
 }
 
 func (w closingResponseWriter) WriteHeader(code int) {

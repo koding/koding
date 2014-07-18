@@ -1,33 +1,70 @@
 package popular
 
 import (
+	"errors"
 	"net/http"
 	"net/url"
 	"socialapi/models"
-	"socialapi/workers/api/modules/helpers"
+	"socialapi/request"
+	"socialapi/workers/common/response"
 	"socialapi/workers/helper"
+	"socialapi/workers/popularpost/popularpost"
 	"socialapi/workers/populartopic/populartopic"
 	"strconv"
 	"time"
 )
 
-func ListTopics(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface{}, error) {
-	query := helpers.GetQuery(u)
-
-	statisticName := u.Query().Get("statisticName")
-
+func getDateNumberAndYear(statisticName string) (int, int, error) {
 	now := time.Now().UTC()
 	// dateNumber is changing according to the statisticName
 	// if it is monthly statistic, it will be month number March->3
 	// if it is weekly statistic, it will be week number 48th week -> 48
-	var dateNumber int
-	year, month, _ := now.Date()
+	// if it is daily statistic, it will the day number of the year e.g last day-> 365+1
+	switch statisticName {
+	case "daily":
+		return now.Year(), now.YearDay(), nil
+	case "weekly":
+		year, week := now.ISOWeek()
+		return year, week, nil
+	case "monthly":
+		return now.Year(), int(now.Month()), nil
+	default:
+		return 0, 0, errors.New("Unknown statistic name")
+	}
+}
 
-	if statisticName == "monthly" {
-		dateNumber = int(month)
-	} else {
-		statisticName = "weekly"
-		_, dateNumber = now.ISOWeek()
+func getIds(key string, query *request.Query) ([]int64, error) {
+	// limit-1 is important, because redis is using 0 based index
+	popularIds := make([]int64, 0)
+	listIds, err := helper.MustGetRedisConn().
+		SortedSetReverseRange(
+		key,
+		query.Skip,
+		query.Skip+query.Limit-1,
+	)
+
+	if err != nil {
+		return popularIds, err
+	}
+
+	for _, listId := range listIds {
+		val, err := strconv.ParseInt(string(listId.([]uint8)), 10, 64)
+		if err == nil {
+			popularIds = append(popularIds, val)
+		}
+	}
+
+	return popularIds, nil
+}
+
+func ListTopics(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface{}, error) {
+	query := request.GetQuery(u)
+
+	statisticName := u.Query().Get("statisticName")
+
+	year, dateNumber, err := getDateNumberAndYear(statisticName)
+	if err != nil {
+		return response.NewBadRequest(errors.New("unknown statistic name"))
 	}
 
 	key := populartopic.PreparePopularTopicKey(
@@ -37,33 +74,23 @@ func ListTopics(u *url.URL, h http.Header, _ interface{}) (int, http.Header, int
 		dateNumber,
 	)
 
-	redisConn := helper.MustGetRedisConn()
-	// limit-1 is important, because redis is using 0 based index
-	topics, err := redisConn.SortedSetReverseRange(key, query.Skip, query.Skip+query.Limit-1)
+	popularTopicIds, err := getIds(key, query)
 	if err != nil {
-		return helpers.NewBadRequestResponse(err)
-	}
-
-	popularTopicIds := make([]int64, 0)
-	for _, topic := range topics {
-		val, err := strconv.ParseInt(string(topic.([]uint8)), 10, 64)
-		if err == nil {
-			popularTopicIds = append(popularTopicIds, val)
-		}
+		return response.NewBadRequest(err)
 	}
 
 	popularTopicIds, err = extendPopularTopicsIfNeeded(query, popularTopicIds)
 	if err != nil {
-		return helpers.NewBadRequestResponse(err)
+		return response.NewBadRequest(err)
 	}
 
 	c := models.NewChannel()
 	popularTopics, err := c.FetchByIds(popularTopicIds)
 	if err != nil {
-		return helpers.NewBadRequestResponse(err)
+		return response.NewBadRequest(err)
 	}
 
-	return helpers.NewOKResponse(
+	return response.HandleResultAndError(
 		models.PopulateChannelContainers(
 			popularTopics,
 			query.AccountId,
@@ -71,11 +98,11 @@ func ListTopics(u *url.URL, h http.Header, _ interface{}) (int, http.Header, int
 	)
 }
 
-func extendPopularTopicsIfNeeded(query *models.Query, popularTopics []int64) ([]int64, error) {
+func extendPopularTopicsIfNeeded(query *request.Query, popularTopics []int64) ([]int64, error) {
 	toBeAddedItemCount := query.Limit - len(popularTopics)
 
 	if toBeAddedItemCount > 0 {
-		normalChannels, err := fetchMoreChannels(query.GroupName, query.Limit)
+		normalChannels, err := fetchMoreChannels(query)
 		if err != nil {
 			return popularTopics, err
 		}
@@ -102,12 +129,89 @@ func extendPopularTopicsIfNeeded(query *models.Query, popularTopics []int64) ([]
 	return popularTopics, nil
 }
 
-func fetchMoreChannels(group string, count int) ([]models.Channel, error) {
-	q := models.NewQuery()
-	q.GroupName = group
-	q.Limit = count
+func fetchMoreChannels(query *request.Query) ([]models.Channel, error) {
+	q := query.Clone()
 	q.Type = models.Channel_TYPE_TOPIC
-	q.SetDefaults()
-	c := models.NewChannel()
-	return c.List(q)
+
+	return models.NewChannel().List(q)
+}
+
+func ListPosts(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface{}, error) {
+	query := request.GetQuery(u)
+	query.Type = models.ChannelMessage_TYPE_POST
+
+	statisticName := u.Query().Get("statisticName")
+	channelName := u.Query().Get("channelName")
+
+	year, dateNumber, err := getDateNumberAndYear(statisticName)
+	if err != nil {
+		return response.NewBadRequest(errors.New("Unknown statistic name"))
+	}
+
+	key := popularpost.PreparePopularPostKey(
+		query.GroupName,
+		channelName,
+		statisticName,
+		year,
+		dateNumber,
+	)
+
+	popularPostIds, err := getIds(key, query)
+	if err != nil {
+		return response.NewBadRequest(err)
+	}
+
+	popularPostIds, err = extendPopularPostsIfNeeded(query, popularPostIds, channelName)
+	if err != nil {
+		return response.NewBadRequest(err)
+	}
+
+	popularPosts, err := models.NewChannelMessage().FetchByIds(popularPostIds)
+	if err != nil {
+		return response.NewBadRequest(err)
+	}
+
+	query.Limit = 3
+	return response.HandleResultAndError(
+		models.NewChannelMessage().BuildMessages(
+			query,
+			popularPosts,
+		),
+	)
+}
+
+func extendPopularPostsIfNeeded(query *request.Query, popularPostIds []int64, channelName string) ([]int64, error) {
+	toBeAddedItemCount := query.Limit - len(popularPostIds)
+	if toBeAddedItemCount > 0 {
+		c := models.NewChannel()
+		channelId, err := c.FetchChannelIdByNameAndGroupName(channelName, query.GroupName)
+		if err != nil {
+			return popularPostIds, err
+		}
+
+		normalPosts, err := models.NewChannelMessageList().FetchMessageIdsByChannelId(channelId, query)
+		if err != nil {
+			return popularPostIds, err
+		}
+
+		for _, normalPostId := range normalPosts {
+			exists := false
+			for _, popularPostId := range popularPostIds {
+				if normalPostId == popularPostId {
+					exists = true
+					break
+				}
+			}
+
+			if !exists {
+				popularPostIds = append(popularPostIds, normalPostId)
+				toBeAddedItemCount--
+				if toBeAddedItemCount == 0 {
+					break
+				}
+			}
+		}
+	}
+
+	return popularPostIds, nil
 }

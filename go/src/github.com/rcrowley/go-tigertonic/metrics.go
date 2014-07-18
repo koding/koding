@@ -27,7 +27,9 @@ func Counted(
 	if nil == registry {
 		registry = metrics.DefaultRegistry
 	}
-	registry.Register(name, counter)
+	if err := registry.Register(name, counter); nil != err {
+		panic(err)
+	}
 	return counter
 }
 
@@ -100,7 +102,12 @@ func CountedByStatus(
 		505: metrics.NewCounter(),
 	}
 	for code, counter := range counters {
-		registry.Register(fmt.Sprintf("%s-%d", name, code), counter)
+		if err := registry.Register(
+			fmt.Sprintf("%s-%d", name, code),
+			counter,
+		); nil != err {
+			panic(err)
+		}
 	}
 	return &CounterByStatus{
 		counters: counters,
@@ -142,11 +149,36 @@ func CountedByStatusXX(
 		counter5xx: metrics.NewCounter(),
 		handler:    handler,
 	}
-	registry.Register(fmt.Sprintf("%s-1xx", name), c.counter1xx)
-	registry.Register(fmt.Sprintf("%s-2xx", name), c.counter2xx)
-	registry.Register(fmt.Sprintf("%s-3xx", name), c.counter3xx)
-	registry.Register(fmt.Sprintf("%s-4xx", name), c.counter4xx)
-	registry.Register(fmt.Sprintf("%s-5xx", name), c.counter5xx)
+	if err := registry.Register(
+		fmt.Sprintf("%s-1xx", name),
+		c.counter1xx,
+	); nil != err {
+		panic(err)
+	}
+	if err := registry.Register(
+		fmt.Sprintf("%s-2xx", name),
+		c.counter2xx,
+	); nil != err {
+		panic(err)
+	}
+	if err := registry.Register(
+		fmt.Sprintf("%s-3xx", name),
+		c.counter3xx,
+	); nil != err {
+		panic(err)
+	}
+	if err := registry.Register(
+		fmt.Sprintf("%s-4xx", name),
+		c.counter4xx,
+	); nil != err {
+		panic(err)
+	}
+	if err := registry.Register(
+		fmt.Sprintf("%s-5xx", name),
+		c.counter5xx,
+	); nil != err {
+		panic(err)
+	}
 	return c
 }
 
@@ -185,7 +217,9 @@ func Timed(handler http.Handler, name string, registry metrics.Registry) *Timer 
 	if nil == registry {
 		registry = metrics.DefaultRegistry
 	}
-	registry.Register(name, timer)
+	if err := registry.Register(name, timer); nil != err {
+		panic(err)
+	}
 	return timer
 }
 

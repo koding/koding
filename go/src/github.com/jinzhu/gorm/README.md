@@ -190,8 +190,6 @@ FYI, AutoMigrate will only add new columns, it won't change the current columns'
 If the table doesn't exist when AutoMigrate is called, gorm will create the table automatically.
 (the database first needs to be created manually though...).
 
-(only postgres and mysql supported)
-
 ```go
 db.AutoMigrate(User{})
 ```
@@ -237,6 +235,12 @@ db.Save(&user)
 //// INSERT INTO "emails" (user_id,email) VALUES (111, "jinzhu@example.com");
 //// INSERT INTO "emails" (user_id,email) VALUES (111, "jinzhu-2@example.com");
 //// COMMIT;
+```
+
+### Create With Predefined Primary key
+
+```go
+db.Create(&User{Id: 999, Name: "user 999"})
 ```
 
 ## Query
@@ -449,6 +453,11 @@ db.Model(&user).UpdateColumns(User{Name: "hello", Age: 18})
 //// UPDATE users SET name='hello', age=18 WHERE id = 111;
 ```
 
+### Get Affected Records Count
+
+```go
+db.Model(User{}).Updates(User{Name: "hello", Age: 18}).RowsAffected
+```
 ## Delete
 
 ### Delete An Existing Struct
@@ -856,10 +865,10 @@ db.Debug().Where("name = ?", "jinzhu").First(&User{})
 Row & Rows is not chainable, it works just like `QueryRow` and `Query`.
 
 ```go
-row := db.Table("users").Where("name = ?", "jinzhu").select("name, age").Row() // (*sql.Row)
+row := db.Table("users").Where("name = ?", "jinzhu").Select("name, age").Row() // (*sql.Row)
 row.Scan(&name, &age)
 
-rows, err := db.Model(User{}).Where("name = ?", "jinzhu").select("name, age, email").Rows() // (*sql.Rows, error)
+rows, err := db.Model(User{}).Where("name = ?", "jinzhu").Select("name, age, email").Rows() // (*sql.Rows, error)
 defer rows.Close()
 for rows.Next() {
   ...
@@ -923,6 +932,25 @@ for rows.Next() {
 }
 
 db.Table("users").Select("users.name, emails.email").Joins("left join emails on emails.user_id = users.id").Scan(&results)
+```
+
+## Indices
+
+```go
+// single column index
+db.Model(User{}).AddIndex("idx_user_name", "name")
+
+// multiple column index
+db.Model(User{}).AddIndex("idx_user_name_age", "name", "age")
+
+// single column unique index
+db.Model(User{}).AddUniqueIndex("idx_user_name", "name")
+
+// multiple column unique index
+db.Model(User{}).AddUniqueIndex("idx_user_name_age", "name", "age")
+
+// remove index
+db.Model(User{}).RemoveIndex("idx_user_name")
 ```
 
 ## Run Raw SQL
@@ -1034,7 +1062,7 @@ db.Where("email = ?", "x@example.org").Attrs(User{RegisteredIp: "111.111.111.111
   share or not? transaction?
 * Github Pages
 * Includes
-* AlertColumn, DropColumn, AddIndex, RemoveIndex
+* AlertColumn, DropColumn
 
 # Author
 

@@ -64,7 +64,7 @@ module.exports = class GuestCleanerWorker
       accountIds = _.map accounts, (account)-> return account._id
 
       JAccount.update {_id: $in: accountIds}, {$set: status: 'tobedeleted'}, {multi: yes}, (err)=>
-        if err then console.err err
+        if err then console.error err
 
         accounts.forEach (account) =>
           queue = [

@@ -44,7 +44,10 @@ module.exports =
     clusterSize : 1
     queueName   : socialQueueName+'web'
     watch       : yes
-  socialApiUrl  : "http://localhost:7000"
+  socialapi:
+    port        : 7000
+    clusterSize : 5
+    proxyUrl    : "http://localhost:7000"
   sourceServer  :
     enabled     : yes
     port        : 3526
@@ -56,7 +59,7 @@ module.exports =
     read        : "http://localhost"
     write       : "http://localhost"
     port        : 7474
-  runNeo4jFeeder: yes
+  runNeo4jFeeder: no
   runGoBroker   : yes
   runGoBrokerKite: yes
   runPremiumBroker: yes
