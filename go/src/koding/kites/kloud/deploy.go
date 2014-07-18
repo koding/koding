@@ -31,39 +31,6 @@ type KodingDeploy struct {
 	Bucket *Bucket
 }
 
-// Build the command used to create the user
-func createUserCommand(username string) string {
-	cmd := strings.Join([]string{
-		// Create user
-		"adduser --shell /bin/bash --gecos 'koding user' --disabled-password --home /home/%s %s",
-		// Remove user's password
-		"passwd -d %s",
-		// Add user to sudo group
-		"gpasswd -a %s sudo ",
-		// Add user to sudoers
-		"echo '%s    ALL = NOPASSWD: ALL' > /etc/sudoers.d/%s",
-	},
-		" && ",
-	)
-
-	return fmt.Sprintf(
-		cmd,
-		// 6 occurences of the username to be replaced
-		username, username, username, username, username, username,
-	)
-
-}
-
-// Build the klient.conf patching command
-func patchConfCommand(username string) string {
-	return fmt.Sprintf(
-		// "sudo -E", preserves the environment variables when forking
-		// so KITE_HOME set by the upstart script is preserved etc ...
-		"sed -i 's/\\.\\/klient/sudo -E -u %s \\.\\/klient/g' /etc/init/klient.conf",
-		username,
-	)
-}
-
 func (k *KodingDeploy) Deploy(artifact *protocol.Artifact) (*protocol.DeployArtifact, error) {
 	username := artifact.Username
 	ipAddress := artifact.IpAddress
@@ -206,6 +173,39 @@ func (k *KodingDeploy) Deploy(artifact *protocol.Artifact) (*protocol.DeployArti
 	return &protocol.DeployArtifact{
 		KiteQuery: query.String(),
 	}, nil
+}
+
+// Build the command used to create the user
+func createUserCommand(username string) string {
+	cmd := strings.Join([]string{
+		// Create user
+		"adduser --shell /bin/bash --gecos 'koding user' --disabled-password --home /home/%s %s",
+		// Remove user's password
+		"passwd -d %s",
+		// Add user to sudo group
+		"gpasswd -a %s sudo ",
+		// Add user to sudoers
+		"echo '%s    ALL = NOPASSWD: ALL' > /etc/sudoers.d/%s",
+	},
+		" && ",
+	)
+
+	return fmt.Sprintf(
+		cmd,
+		// 6 occurences of the username to be replaced
+		username, username, username, username, username, username,
+	)
+
+}
+
+// Build the klient.conf patching command
+func patchConfCommand(username string) string {
+	return fmt.Sprintf(
+		// "sudo -E", preserves the environment variables when forking
+		// so KITE_HOME set by the upstart script is preserved etc ...
+		"sed -i 's/\\.\\/klient/sudo -E -u %s \\.\\/klient/g' /etc/init/klient.conf",
+		username,
+	)
 }
 
 // changeHostname is used to change the remote machines hostname by modifying
