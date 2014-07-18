@@ -78,6 +78,8 @@ node_modules_koding/processes/src/.tmp*
 /go/src/socialapi/notification
 /go/src/socialapi/emailnotifier
 /go/src/socialapi/migrator
+/go/src/socialapi/sitemapfeeder
+/go/src/socialapi/dailyemailnotifier
 
 website/a/css/kd.css
 website/a/css/koding.css

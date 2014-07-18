@@ -7,11 +7,17 @@ class ActivitySideView extends JView
 
     super options, data
 
-    {itemClass, headerLink} = @getOptions()
+    {itemClass, headerLink, noItemText} = @getOptions()
     sidebar = @getDelegate()
+
+    if noItemText
+      noItemFoundWidget = new KDCustomHTMLView
+        cssClass : 'nothing'
+        partial  : noItemText
 
     @listController = new KDListViewController
       startWithLazyLoader : yes
+      noItemFoundWidget   : noItemFoundWidget
       lazyLoaderOptions   :
         spinnerOptions    :
           size            :
@@ -27,14 +33,16 @@ class ActivitySideView extends JView
         cssClass          : "activities"
 
     @header = new KDCustomHTMLView
-      tagName : 'h3'
-      partial : @getOption 'title'
+      tagName  : 'h3'
+      cssClass : 'sidebar-title'
+      partial  : @getOption 'title'
       # click   : @bound 'reload'
 
 
     @header.addSubView headerLink  if headerLink
 
     @listView = @listController.getView()
+    sidebar.bindItemEvents @listView
 
     @listView.once 'viewAppended', @bound 'init'
 
@@ -50,8 +58,8 @@ class ActivitySideView extends JView
   init: ->
 
     {dataPath} = @getOptions()
-    items = KD.singletons.socialapi.getPrefetchedData()[dataPath]
-    if items.length
+    items = KD.singletons.socialapi.getPrefetchedData dataPath
+    if items?.length
     then @renderItems null, items
     else @reload()
 
@@ -68,7 +76,10 @@ class ActivitySideView extends JView
   renderItems: (err, items = []) ->
 
     @listController.hideLazyLoader()
-    @listController.addItem item for item in items  unless err
+
+    return  if err
+
+    @listController.addItem itemData for itemData in items
 
 
   pistachio: ->

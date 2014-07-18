@@ -1,9 +1,9 @@
 package controller
 
 import (
-	"fmt"
 	mongomodels "koding/db/models"
 	"koding/db/mongodb/modelhelper"
+	"koding/helpers"
 	"socialapi/models"
 	"strconv"
 )
@@ -21,36 +21,44 @@ func (mwc *Controller) migrateAllGroups() error {
 		errCount++
 	}
 
-	iter := modelhelper.GetGroupIter(s)
-	var group mongomodels.Group
-	for iter.Next(&group) {
-		c, err := mwc.createGroupChannel(group.Slug)
+	migrateGroup := func(group interface{}) error {
+		oldGroup := group.(*mongomodels.Group)
+		c, err := mwc.createGroupChannel(oldGroup.Slug)
 		if err != nil {
-			handleError(&group, err)
-			continue
+			handleError(oldGroup, err)
+			return nil
 		}
 
 		// if err := mwc.createGroupMembers(&group, c.Id); err != nil {
 		// 	handleError(&group, err)
 		// 	continue
+		//  return nil
 		// }
 
-		if err := completeGroupMigration(&group, c.Id); err != nil {
-			handleError(&group, err)
-			continue
+		if err := completeGroupMigration(oldGroup, c.Id); err != nil {
+			handleError(oldGroup, err)
+			return nil
 		}
 
 		successCount++
+
+		return nil
 	}
 
-	if err := iter.Err(); err != nil {
-		return fmt.Errorf("Group migration is interrupted with %d errors: %s", errCount, err)
-	}
+	iterOptions := helpers.NewIterOptions()
+	iterOptions.CollectionName = "jGroups"
+	iterOptions.F = migrateGroup
+	iterOptions.Filter = s
+	iterOptions.Result = &mongomodels.Group{}
+	iterOptions.Limit = 10000000
+	iterOptions.Skip = 0
+
+	helpers.Iter(modelhelper.Mongo, iterOptions)
+	helpers.Iter(modelhelper.Mongo, iterOptions)
 
 	mwc.log.Notice("Group migration completed for %d groups with %d errors", successCount, errCount)
 
 	return nil
-
 }
 
 func (mwc *Controller) createGroupChannel(groupName string) (*models.Channel, error) {
@@ -107,13 +115,12 @@ func fetchGroupOwnerId(g *mongomodels.Group) (int64, error) {
 		return 0, err
 	}
 
-	a := models.NewAccount()
-	a.OldId = r.TargetId.Hex()
-	if err := a.FetchOrCreate(); err != nil {
+	id, err := models.AccountIdByOldId(r.TargetId.Hex(), "")
+	if err != nil {
 		return 0, err
 	}
 
-	return a.Id, nil
+	return id, nil
 }
 
 func completeGroupMigration(g *mongomodels.Group, channelId int64) error {

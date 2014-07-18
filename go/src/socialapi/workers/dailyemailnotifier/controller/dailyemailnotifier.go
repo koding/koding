@@ -7,8 +7,10 @@ import (
 	"socialapi/workers/emailnotifier/models"
 	"socialapi/workers/helper"
 	notificationmodels "socialapi/workers/notification/models"
+	"strconv"
 	"time"
 
+	"github.com/garyburd/redigo/redis"
 	"github.com/koding/logging"
 	"github.com/robfig/cron"
 )
@@ -63,16 +65,16 @@ func (n *Controller) sendDailyMails() {
 	for {
 		key := prepareRecipientsCacheKey()
 		reply, err := redisConn.PopSetMember(key)
+		if err == redis.ErrNil {
+			n.log.Info("all daily mails are sent")
+			return
+		}
 		if err != nil {
 			n.log.Error("Could not fetch recipient %s", err)
 			return
 		}
 
-		if reply == nil {
-			n.log.Info("all daily mails are sent")
-			return
-		}
-		accountId, err := redisConn.Int64(reply)
+		accountId, err := strconv.ParseInt(reply, 10, 64)
 		if err != nil {
 			n.log.Error("Could not cast recipient id: %s", err)
 			continue
@@ -172,7 +174,7 @@ func (n *Controller) getDailyActivityIds(accountId int64) ([]int64, error) {
 
 func prepareRecipientsCacheKey() string {
 	return fmt.Sprintf("%s:%s:%s:%s",
-		config.Get().Environment,
+		config.MustGet().Environment,
 		CACHEPREFIX,
 		RECIPIENTSKEY,
 		preparePreviousDayCacheKey())
@@ -180,7 +182,7 @@ func prepareRecipientsCacheKey() string {
 
 func prepareDailyActivitiesCacheKey(accountId int64) string {
 	return fmt.Sprintf("%s:%s:%d:%s",
-		config.Get().Environment,
+		config.MustGet().Environment,
 		CACHEPREFIX,
 		accountId,
 		preparePreviousDayCacheKey())

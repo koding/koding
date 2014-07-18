@@ -5,13 +5,17 @@ import (
 	"flag"
 	"fmt"
 	"koding/db/mongodb/modelhelper"
+	"net/http"
 	// _ "net/http/pprof" // Imported for side-effect of handling /debug/pprof.
 	"os"
+	"socialapi/config"
 	"socialapi/models"
 	"socialapi/workers/api/handlers"
 	"socialapi/workers/common/runner"
 	"socialapi/workers/helper"
 	notificationapi "socialapi/workers/notification/api"
+	sitemapapi "socialapi/workers/sitemap/api"
+	trollmodeapi "socialapi/workers/trollmode/api"
 
 	"github.com/rcrowley/go-tigertonic"
 )
@@ -36,6 +40,9 @@ func init() {
 	mux = tigertonic.NewTrieServeMux()
 	mux = handlers.Inject(mux)
 	mux = notificationapi.InitHandlers(mux)
+	mux = trollmodeapi.InitHandlers(mux)
+	mux = sitemapapi.InitHandlers(mux)
+
 	// add namespace support into
 	// all handlers
 	nsMux = tigertonic.NewTrieServeMux()
@@ -56,12 +63,12 @@ func main() {
 		flag.Parse()
 	}
 
-	server := newServer()
+	server := newServer(r.Conf)
 	// shutdown server
 	defer server.Close()
 
 	// init redis
-	redisConn := helper.MustInitRedisConn(r.Conf.Redis)
+	redisConn := helper.MustInitRedisConn(r.Conf)
 	defer redisConn.Close()
 
 	// init mongo connection
@@ -70,21 +77,21 @@ func main() {
 	r.Wait()
 }
 
-func newServer() *tigertonic.Server {
+func newServer(conf *config.Config) *tigertonic.Server {
 	// go metrics.Log(
 	// 	metrics.DefaultRegistry,
 	// 	60e9,
 	// 	stdlog.New(os.Stderr, "metrics ", stdlog.Lmicroseconds),
 	// )
 
+	var handler http.Handler
+	handler = tigertonic.WithContext(nsMux, models.Context{})
+	if conf.FlagDebugMode {
+		handler = tigertonic.Logged(handler, nil)
+	}
+
 	addr := *host + ":" + *port
-	server := tigertonic.NewServer(
-		addr,
-		tigertonic.Logged(
-			tigertonic.WithContext(nsMux, models.Context{}),
-			nil,
-		),
-	)
+	server := tigertonic.NewServer(addr, handler)
 
 	go listener(server)
 	return server

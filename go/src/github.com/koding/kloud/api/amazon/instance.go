@@ -7,6 +7,8 @@ import (
 	"github.com/mitchellh/goamz/ec2"
 )
 
+var ErrNoInstances = errors.New("no instances found")
+
 func (a *Amazon) CreateInstance() (*ec2.RunInstancesResp, error) {
 	if a.Builder.SourceAmi == "" {
 		return nil, errors.New("source ami is empty")
@@ -44,6 +46,30 @@ func (a *Amazon) Instance(id string) (ec2.Instance, error) {
 	}
 
 	return resp.Reservations[0].Instances[0], nil
+}
+
+func (a *Amazon) InstancesByFilter(name string, value ...string) ([]ec2.Instance, error) {
+	filter := ec2.NewFilter()
+	filter.Add(name, value...)
+
+	resp, err := a.Client.Instances([]string{}, filter)
+	if err != nil {
+		return nil, err
+	}
+
+	if len(resp.Reservations) == 0 {
+		return nil, ErrNoInstances
+	}
+
+	// we don't care about reservations and every reservation struct returns
+	// only on single instance. Just collect them and return a list of
+	// instances
+	instances := make([]ec2.Instance, len(resp.Reservations))
+	for i, r := range resp.Reservations {
+		instances[i] = r.Instances[0]
+	}
+
+	return instances, nil
 }
 
 func (a *Amazon) SecurityGroup(name string) (ec2.SecurityGroup, error) {

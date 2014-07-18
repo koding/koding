@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/jinzhu/gorm"
 	"github.com/koding/bongo"
 )
 
@@ -62,7 +61,7 @@ func (a *NotificationActivity) Create() error {
 	q := bongo.NewQS(s)
 	found := true
 	if err := a.One(q); err != nil {
-		if err != gorm.RecordNotFound {
+		if err != bongo.RecordNotFound {
 			return err
 		}
 		found = false

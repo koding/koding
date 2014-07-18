@@ -28,8 +28,19 @@ class NotificationController extends KDObject
     @notificationChannel.on 'message', (notification)=>
       @emit "NotificationHasArrived", notification
       if notification.contents
-        @emit notification.event, notification.contents
         @prepareNotification notification
+
+        unless notification.context
+          @emit notification.event, notification.contents
+
+        if notification.context is KD.getGroup().slug
+          @emit notification.event, notification.contents
+
+        else
+          @emit "#{notification.event}-off-context", notification.contents
+
+    @on 'ChannelUpdateHappened', (notification) =>
+      @emit notification.event, notification  if notification.event
 
     @on 'GuestTimePeriodHasEnded', ()->
       # todo add a notification to user
@@ -178,7 +189,7 @@ class NotificationController extends KDObject
         when "leave"
           setTitle "#{actorName} has left <a href='/#{target.slug}'>#{target.title}</a>."
         when "mention"
-          setTitle "#{actorName} mentioned you in a comment"
+          setTitle "#{actorName} mentioned you in a post."
 
       # when "newMessage"
       #   @emit "NewMessageArrived"
@@ -193,8 +204,9 @@ class NotificationController extends KDObject
       options.click = ->
         view = this
         if contents.type in ["comment", "like"]
-          groupSlug = if target.group is "koding" then "" else "/#{target.group}"
-          KD.getSingleton('router').handleRoute "#{groupSlug}/Activity/#{target.slug}", state:target
+          # TODO group slug must be prepended after groups are implemented
+          # groupSlug = if target.group is "koding" then "" else "/#{target.group}"
+          KD.getSingleton('router').handleRoute "/Activity/Post/#{target.message.slug}", state:target
           view.destroy()
         else if contents.type in ["join", "leave"]
           KD.getSingleton('router').handleRoute "/#{target.slug}"

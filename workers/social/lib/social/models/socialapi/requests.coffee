@@ -19,10 +19,11 @@ wrapCallback = (callback)->
     else
       return callback null, body
 
-createAccount = (id, callback)->
-  return callback {message:"Accont id is not valid"} unless id
+createAccount = ({id, nickname}, callback)->
+  if not id or not nickname
+    return callback {message:"Request is not valid for creating account"}
   url = "/account"
-  post url, {oldId: id}, callback
+  post url, {oldId: id, nick: nickname}, callback
 
 createChannel = (data, callback)->
   unless data.name or data.creatorId
@@ -32,14 +33,20 @@ createChannel = (data, callback)->
 
 fetchChannelActivities = (data, callback)->
   if not data.channelId or not data.accountId
-    return callback { message: "Request is not valid for creating channel"}
-
+    return callback { message: "Request is not valid for fetching activities"}
   url = "/channel/#{data.channelId}/history"
+  get url, data, callback
+
+fetchActivityCount = (data, callback)->
+  if not data.channelId
+    return callback {message: "Request is not valid for fetching activity count"}
+
+  url = "/channel/#{data.channelId}/history/count"
   get url, data, callback
 
 fetchGroupChannels = (data, callback)->
   if not data.groupName or not data.accountId
-    return callback { message: "Request is not valid for creating channel"}
+    return callback { message: "Request is not valid for fetching channel"}
 
   url = "/channel"
   get url, data, callback
@@ -56,14 +63,6 @@ postToChannel = (data, callback)->
     return callback { message: "Request is not valid for posting message"}
 
   url = "/channel/#{data.channelId}/message"
-  post url, data, callback
-
-
-updateLastSeenTime = (data, callback)->
-  unless data.channelId and data.accountId
-    return callback {message: "Request is not valid"}
-
-  url = "/channel/#{data.channelId}/participant/#{data.accountId}/presence"
   post url, data, callback
 
 editMessage = (data, callback)->
@@ -156,22 +155,40 @@ glancePinnedPost = (data, callback)->
   url = "/activity/pin/glance"
   post url, data, callback
 
-followTopic = (data, callback)->
-  if not data.accountId or not data.channelId
-    return callback { message: "Request is not valid"}
+listParticipants = (data, callback)->
+  return callback { message: "Request is not valid" } unless data.channelId
+  url = "/channel/#{data.channelId}/participants"
+  get url, data, callback
 
-  url = "/channel/#{data.channelId}/\
-        participant/#{data.accountId}/add"
+addParticipants = (data, callback)->
+  url = "/channel/#{data.channelId}/participants/add"
+  doChannelParticipantOperation data, url, callback
+
+removeParticipants = (data, callback)->
+  url = "/channel/#{data.channelId}/participants/remove"
+  doChannelParticipantOperation data, url, callback
+
+doChannelParticipantOperation = (data, url, callback)->
+  return callback { message: "Request is not valid" } unless data.channelId
+
+  # if accountIds is not set and also accountId is not set
+  # return error
+  if not data.accountIds
+    return callback { message: "Request is not valid" } if not data.accountId
+    data.accountIds = [data.accountId]
+
+  # make the object according to channel participant data
+  req = ({accountId} for accountId in data.accountIds)
+
+  url = "#{url}?accountId=#{data.accountId}"
+  post url, req, callback
+
+updateLastSeenTime = (data, callback)->
+  unless data.channelId and data.accountId
+    return callback {message: "Request is not valid"}
+
+  url = "/channel/#{data.channelId}/participant/#{data.accountId}/presence"
   post url, data, callback
-
-unfollowTopic = (data, callback)->
-  if not data.accountId or not data.channelId
-    return callback { message: "Request is not valid"}
-
-  url = "/channel/#{data.channelId}/\
-        participant/#{data.accountId}/delete"
-  post url, data, callback
-
 
 fetchFollowedChannels = (data, callback)->
   if not data.accountId or not data.groupName
@@ -181,6 +198,9 @@ fetchFollowedChannels = (data, callback)->
   get url, data, callback
 
 sendPrivateMessage = (data, callback)->
+  if not data.body or not data.recipients or data.recipients.length < 1
+    return callback { message: "Request is not valid"}
+
   url = "/privatemessage/send"
   post url, data, callback
 
@@ -243,6 +263,14 @@ messageById = (data, callback)->
   if not data.id
     return callback { message: "id should be set"}
   url = "/message/#{data.id}"
+  # accountId is appended in doRequest.
+  delete data.accountId
+  get url, data, callback
+
+messageBySlug = (data, callback)->
+  if not data.slug
+    return callback { message: "slug should be set"}
+  url = "/message/slug/#{data.slug}"
   get url, data, callback
 
 channelById = (data, callback)->
@@ -264,6 +292,24 @@ checkChannelParticipation = (data, callback)->
   url = "/channel/checkparticipation"
   get url, data, callback
 
+markAsTroll = (data, callback)->
+  unless data.accountId
+    return callback {message: "Request is not valid"}
+
+  url = "/trollmode/#{data.accountId}"
+  post url, data, callback
+
+unmarkAsTroll = (data, callback)->
+  unless data.accountId
+    return callback {message: "Request is not valid"}
+
+  url = "/trollmode/#{data.accountId}"
+  deleteReq url, callback
+
+getSiteMap = (data, callback)->
+  url = data.name
+  getXml url, {}, callback
+
 post = (url, data, callback)->
   getNextApiURL (err, apiurl)->
     return callback err if err
@@ -284,6 +330,14 @@ deleteReq = (url, callback)->
       method : 'DELETE'
     , wrapCallback callback
 
+getXml = (url, data, callback)->
+  getNextApiURL (err, apiurl)->
+    return callback err if err
+    request
+      url    : "#{apiurl}#{url}"
+      method : 'GET'
+    , wrapCallback callback
+
 get = (url, data, callback)->
   getNextApiURL (err, apiurl)->
     return callback err if err
@@ -295,6 +349,9 @@ get = (url, data, callback)->
     , wrapCallback callback
 
 module.exports = {
+  unmarkAsTroll
+  markAsTroll
+  messageBySlug
   checkChannelParticipation
   messageById
   channelById
@@ -306,8 +363,9 @@ module.exports = {
   fetchPrivateMessages
   sendPrivateMessage
   fetchFollowedChannels
-  followTopic
-  unfollowTopic
+  listParticipants
+  addParticipants
+  removeParticipants
   fetchPinnedMessages
   pinMessage
   unpinMessage
@@ -325,10 +383,12 @@ module.exports = {
   createChannel
   fetchMessage
   fetchChannelActivities
+  fetchActivityCount
   fetchGroupChannels
   listNotifications
   glanceNotifications
   followUser
   unfollowUser
   createGroupNotification
+  getSiteMap
 }

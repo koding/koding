@@ -124,7 +124,7 @@ module.exports = class JPost extends jraphical.Message
         # TODO: emit an event, and move this (maybe)
         activity = new (constructor.getActivityType())
 
-        if delegate.checkFlag 'exempt'
+        if delegate.isExempt
           status.isLowQuality   = yes
           activity.isLowQuality = yes
 
@@ -357,7 +357,7 @@ module.exports = class JPost extends jraphical.Message
 
   reply: (client, replyType, comment, callback)->
     {delegate} = client.connection
-    exempt = delegate.checkFlag('exempt')
+    exempt = delegate.isExempt
     comment = new replyType body: comment
     comment.sign(delegate).save (err)=>
       return callback err if err

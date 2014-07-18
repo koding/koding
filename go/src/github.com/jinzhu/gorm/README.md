@@ -237,6 +237,12 @@ db.Save(&user)
 //// COMMIT;
 ```
 
+### Create With Predefined Primary key
+
+```go
+db.Create(&User{Id: 999, Name: "user 999"})
+```
+
 ## Query
 
 ```go
@@ -859,10 +865,10 @@ db.Debug().Where("name = ?", "jinzhu").First(&User{})
 Row & Rows is not chainable, it works just like `QueryRow` and `Query`.
 
 ```go
-row := db.Table("users").Where("name = ?", "jinzhu").select("name, age").Row() // (*sql.Row)
+row := db.Table("users").Where("name = ?", "jinzhu").Select("name, age").Row() // (*sql.Row)
 row.Scan(&name, &age)
 
-rows, err := db.Model(User{}).Where("name = ?", "jinzhu").select("name, age, email").Rows() // (*sql.Rows, error)
+rows, err := db.Model(User{}).Where("name = ?", "jinzhu").Select("name, age, email").Rows() // (*sql.Rows, error)
 defer rows.Close()
 for rows.Next() {
   ...

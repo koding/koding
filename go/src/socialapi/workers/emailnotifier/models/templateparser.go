@@ -41,14 +41,15 @@ func prepareTemplateFiles() error {
 		return err
 	}
 
-	mainTemplateFile = path.Join(wd, "workers/emailnotifier/templates/main.tmpl")
-	footerTemplateFile = path.Join(wd, "workers/emailnotifier/templates/footer.tmpl")
-	contentTemplateFile = path.Join(wd, "workers/emailnotifier/templates/content.tmpl")
-	gravatarTemplateFile = path.Join(wd, "workers/emailnotifier/templates/gravatar.tmpl")
-	groupTemplateFile = path.Join(wd, "workers/emailnotifier/templates/group.tmpl")
-	previewTemplateFile = path.Join(wd, "workers/emailnotifier/templates/preview.tmpl")
-	objectTemplateFile = path.Join(wd, "workers/emailnotifier/templates/object.tmpl")
-	unsubscribeTemplateFile = path.Join(wd, "workers/emailnotifier/templates/unsubscribe.tmpl")
+	root := config.MustGet().EmailNotification.TemplateRoot
+	mainTemplateFile = path.Join(wd, root, "main.tmpl")
+	footerTemplateFile = path.Join(wd, root, "footer.tmpl")
+	contentTemplateFile = path.Join(wd, root, "content.tmpl")
+	gravatarTemplateFile = path.Join(wd, root, "gravatar.tmpl")
+	groupTemplateFile = path.Join(wd, root, "group.tmpl")
+	previewTemplateFile = path.Join(wd, root, "preview.tmpl")
+	objectTemplateFile = path.Join(wd, root, "object.tmpl")
+	unsubscribeTemplateFile = path.Join(wd, root, "unsubscribe.tmpl")
 
 	return nil
 }
@@ -126,7 +127,7 @@ func (tp *TemplateParser) buildMailContent(contentType string, currentDate strin
 			ContentType: contentType,
 			Recipient:   url.QueryEscape(tp.UserContact.Email),
 		},
-		Uri: config.Get().Uri,
+		Uri: config.MustGet().Uri,
 	}
 }
 
@@ -134,7 +135,7 @@ func buildEventContent(mc *MailerContainer) (*EventContent, error) {
 	ec := &EventContent{
 		Action:       mc.ActivityMessage,
 		ActivityTime: prepareTime(mc),
-		Uri:          config.Get().Uri,
+		Uri:          config.MustGet().Uri,
 		Slug:         mc.Slug,
 		Message:      mc.Message,
 		Group:        mc.Group,

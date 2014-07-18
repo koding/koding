@@ -5,7 +5,8 @@ import (
 	"net/http"
 	"net/url"
 	"socialapi/models"
-	"socialapi/workers/api/modules/helpers"
+	"socialapi/request"
+	"socialapi/workers/common/response"
 	"socialapi/workers/helper"
 	"socialapi/workers/popularpost/popularpost"
 	"socialapi/workers/populartopic/populartopic"
@@ -32,7 +33,7 @@ func getDateNumberAndYear(statisticName string) (int, int, error) {
 	}
 }
 
-func getIds(key string, query *models.Query) ([]int64, error) {
+func getIds(key string, query *request.Query) ([]int64, error) {
 	// limit-1 is important, because redis is using 0 based index
 	popularIds := make([]int64, 0)
 	listIds, err := helper.MustGetRedisConn().
@@ -57,13 +58,13 @@ func getIds(key string, query *models.Query) ([]int64, error) {
 }
 
 func ListTopics(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface{}, error) {
-	query := helpers.GetQuery(u)
+	query := request.GetQuery(u)
 
 	statisticName := u.Query().Get("statisticName")
 
 	year, dateNumber, err := getDateNumberAndYear(statisticName)
 	if err != nil {
-		return helpers.NewBadRequestResponse(errors.New("Unknown statistic name"))
+		return response.NewBadRequest(errors.New("unknown statistic name"))
 	}
 
 	key := populartopic.PreparePopularTopicKey(
@@ -75,21 +76,21 @@ func ListTopics(u *url.URL, h http.Header, _ interface{}) (int, http.Header, int
 
 	popularTopicIds, err := getIds(key, query)
 	if err != nil {
-		return helpers.NewBadRequestResponse(err)
+		return response.NewBadRequest(err)
 	}
 
 	popularTopicIds, err = extendPopularTopicsIfNeeded(query, popularTopicIds)
 	if err != nil {
-		return helpers.NewBadRequestResponse(err)
+		return response.NewBadRequest(err)
 	}
 
 	c := models.NewChannel()
 	popularTopics, err := c.FetchByIds(popularTopicIds)
 	if err != nil {
-		return helpers.NewBadRequestResponse(err)
+		return response.NewBadRequest(err)
 	}
 
-	return helpers.HandleResultAndError(
+	return response.HandleResultAndError(
 		models.PopulateChannelContainers(
 			popularTopics,
 			query.AccountId,
@@ -97,11 +98,11 @@ func ListTopics(u *url.URL, h http.Header, _ interface{}) (int, http.Header, int
 	)
 }
 
-func extendPopularTopicsIfNeeded(query *models.Query, popularTopics []int64) ([]int64, error) {
+func extendPopularTopicsIfNeeded(query *request.Query, popularTopics []int64) ([]int64, error) {
 	toBeAddedItemCount := query.Limit - len(popularTopics)
 
 	if toBeAddedItemCount > 0 {
-		normalChannels, err := fetchMoreChannels(query.GroupName, query.Limit)
+		normalChannels, err := fetchMoreChannels(query)
 		if err != nil {
 			return popularTopics, err
 		}
@@ -128,19 +129,15 @@ func extendPopularTopicsIfNeeded(query *models.Query, popularTopics []int64) ([]
 	return popularTopics, nil
 }
 
-func fetchMoreChannels(group string, count int) ([]models.Channel, error) {
-	q := models.NewQuery()
-	q.GroupName = group
-	q.Limit = count
+func fetchMoreChannels(query *request.Query) ([]models.Channel, error) {
+	q := query.Clone()
 	q.Type = models.Channel_TYPE_TOPIC
-	q.SetDefaults()
-	c := models.NewChannel()
 
-	return c.List(q)
+	return models.NewChannel().List(q)
 }
 
 func ListPosts(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface{}, error) {
-	query := helpers.GetQuery(u)
+	query := request.GetQuery(u)
 	query.Type = models.ChannelMessage_TYPE_POST
 
 	statisticName := u.Query().Get("statisticName")
@@ -148,7 +145,7 @@ func ListPosts(u *url.URL, h http.Header, _ interface{}) (int, http.Header, inte
 
 	year, dateNumber, err := getDateNumberAndYear(statisticName)
 	if err != nil {
-		return helpers.NewBadRequestResponse(errors.New("Unknown statistic name"))
+		return response.NewBadRequest(errors.New("Unknown statistic name"))
 	}
 
 	key := popularpost.PreparePopularPostKey(
@@ -161,21 +158,21 @@ func ListPosts(u *url.URL, h http.Header, _ interface{}) (int, http.Header, inte
 
 	popularPostIds, err := getIds(key, query)
 	if err != nil {
-		return helpers.NewBadRequestResponse(err)
+		return response.NewBadRequest(err)
 	}
 
 	popularPostIds, err = extendPopularPostsIfNeeded(query, popularPostIds, channelName)
 	if err != nil {
-		return helpers.NewBadRequestResponse(err)
+		return response.NewBadRequest(err)
 	}
 
 	popularPosts, err := models.NewChannelMessage().FetchByIds(popularPostIds)
 	if err != nil {
-		return helpers.NewBadRequestResponse(err)
+		return response.NewBadRequest(err)
 	}
 
 	query.Limit = 3
-	return helpers.HandleResultAndError(
+	return response.HandleResultAndError(
 		models.NewChannelMessage().BuildMessages(
 			query,
 			popularPosts,
@@ -183,7 +180,7 @@ func ListPosts(u *url.URL, h http.Header, _ interface{}) (int, http.Header, inte
 	)
 }
 
-func extendPopularPostsIfNeeded(query *models.Query, popularPostIds []int64, channelName string) ([]int64, error) {
+func extendPopularPostsIfNeeded(query *request.Query, popularPostIds []int64, channelName string) ([]int64, error) {
 	toBeAddedItemCount := query.Limit - len(popularPostIds)
 	if toBeAddedItemCount > 0 {
 		c := models.NewChannel()

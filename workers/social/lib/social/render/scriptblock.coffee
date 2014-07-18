@@ -141,7 +141,7 @@ module.exports = (options = {}, callback)->
     socialapidata = data
     {delegate} = options.client.connection
     # if user is exempt or super-admin do not cache his/her result set
-    return generateScript()  if delegate and delegate.checkFlag ['super-admin', 'exempt']
+    return generateScript() if delegate?.checkFlag('super-admin') and delegate.isExempt
 
     Cache       = require '../cache/main'
     feedFn      = require '../cache/feed'

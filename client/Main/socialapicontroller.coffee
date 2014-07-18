@@ -10,25 +10,17 @@ class SocialApiController extends KDController
     KD.getSingleton('mainController').ready @bound 'openGroupChannel'
 
 
-  getPrefetchedData:->
+  getPrefetchedData: (dataPath) ->
 
-    data = {}
+    return [] unless KD.socialApiData
+    return [] unless data = KD.socialApiData[dataPath]
 
-    return data  unless KD.socialApiData
+    fn = switch dataPath
+      when 'popularTopics', 'followedChannels' then mapChannels
+      when 'publicFeed', 'pinnedMessages'      then mapActivities
+      when 'privateMessages'                   then mapPrivateMessages
 
-    { popularTopics, followedChannels
-      pinnedMessages, privateMessages,
-      publicFeed } = KD.socialApiData
-
-    processInCase = (fn, items) -> if items then fn items else []
-
-    data.popularTopics    = processInCase mapChannels, popularTopics
-    data.followedChannels = processInCase mapChannels, followedChannels
-    data.pinnedMessages   = processInCase mapActivities, pinnedMessages
-    data.privateMessages  = processInCase mapPrivateMessages, privateMessages
-    data.publicFeed       = processInCase mapActivities, publicFeed
-
-    return data
+    return fn(data) or []
 
 
   openGroupChannel: ->
@@ -51,13 +43,12 @@ class SocialApiController extends KDController
 
       brokerChannel = KD.remote.subscribe channelName, subscriptionData
       @forwardMessageEvents brokerChannel, this, ["MessageAdded", "MessageRemoved"]
-      @openedChannels[name] = brokerChannel
+      @openedChannels[channelName] = {delegate: brokerChannel, channel: this}
       @emit "ChannelRegistered-#{channelName}", this
 
   onChannelReady: (channel, callback) ->
     channelName = generateChannelName channel
-    channel = @openedChannels[channelName]
-    if channel instanceof KD.remote.api.SocialChannel
+    if channel = @openedChannels[channelName]?.channel
     then callback channel
     else @once "ChannelRegistered-#{channelName}", callback
 
@@ -70,6 +61,9 @@ class SocialApiController extends KDController
     {createdAt, deletedAt, updatedAt}     = plain
 
     plain._id = plain.id
+
+    {payload} = plain
+    delete plain.payload
 
     m = new KD.remote.api.SocialMessage plain
     m.account = mapAccounts(accountOldId)[0]
@@ -93,7 +87,16 @@ class SocialApiController extends KDController
       deletedAt : new Date deletedAt
       updatedAt : new Date updatedAt
 
+    if payload
+      m.link       =
+        link_url   : payload.link_url
+        link_embed :
+          try JSON.parse Encoder.htmlDecode payload.link_embed
+          catch e then null
+
     new MessageEventManager {}, m
+
+    KD.singletons.socialapi.cacheItem m
 
     return m
 
@@ -151,7 +154,12 @@ class SocialApiController extends KDController
     data.unreadCount         = channel.unreadCount
     data.lastMessage         = mapActivity channel.lastMessage  if channel.lastMessage
 
-    return new KD.remote.api.SocialChannel data
+
+    channelInstance = new KD.remote.api.SocialChannel data
+
+    KD.singletons.socialapi.cacheItem channelInstance
+
+    return channelInstance
 
 
   mapChannels = (channels)->
@@ -186,24 +194,33 @@ class SocialApiController extends KDController
       for socialApiChannel in socialApiChannels
         channelName = generateChannelName socialApiChannel
         continue  if socialapi.openedChannels[channelName]
+        socialapi.cacheItem socialApiChannel
         socialapi.openedChannels[channelName] = {} # placeholder to avoid duplicate registration
 
         subscriptionData =
           serviceType: 'socialapi'
           group      : group.slug
           channelType: socialApiChannel.typeConstant
-          channelName: channelName
+          channelName: socialApiChannel.name
           isExclusive: yes
 
-        KD.remote.subscribe name, subscriptionData, (brokerChannel)->
+        KD.remote.subscribe channelName, subscriptionData, (brokerChannel)->
           {name} = brokerChannel
-          socialapi.openedChannels[name] = brokerChannel
+          socialapi.openedChannels[name] = {delegate: brokerChannel, channel: socialApiChannel}
           forwardMessageEvents brokerChannel, socialApiChannel, [
             "MessageAdded",
             "MessageRemoved"
           ]
 
-          socialapi.emit "ChannelRegistered-#{name}", brokerChannel
+          socialapi.emit "ChannelRegistered-#{name}", socialApiChannel
+
+
+  cycleChannel: (channel, callback)->
+    options =
+      groupSlug     : channel.groupName
+      apiChannelType: channel.typeConstant
+      apiChannelName: channel.name
+    KD.remote.api.SocialChannel.cycleChannel options, callback
 
   generateChannelName = ({name, typeConstant, groupName}) ->
     return "socialapi.#{groupName}-#{typeConstant}-#{name}"
@@ -255,15 +272,17 @@ class SocialApiController extends KDController
     return item  if item = @_cache[type]?[id]
 
     if type is 'topic'
-      debugger
       for own id_, topic of @_cache.topic when topic.name is id
         item = topic
+
+    if not item and type is 'activity'
+      for own id_, post of @_cache.post when post.slug is id
+        item = post
 
     return item
 
 
   cacheable: (type, id, force, callback) ->
-
     [callback, force] = [force, no]  unless callback
 
     if not force and item = @retrieveCachedItem(type, id)
@@ -278,16 +297,21 @@ class SocialApiController extends KDController
 
     return switch type
       when 'topic'                     then @channel.byName {name: id}, kallback
+      when 'activity'                  then @message.bySlug {slug: id}, kallback
       when 'channel', 'privatemessage' then @channel.byId {id}, kallback
       when 'post', 'message'           then @message.byId {id}, kallback
       else callback { message: 'not implemented in revive' }
-
 
 
   message:
     byId                 : messageRequesterFn
       fnName             : 'byId'
       validateOptionsWith: ['id']
+      mapperFn           : mapActivity
+
+    bySlug               : messageRequesterFn
+      fnName             : 'bySlug'
+      validateOptionsWith: ['slug']
       mapperFn           : mapActivity
 
     edit                 : messageRequesterFn
@@ -328,7 +352,7 @@ class SocialApiController extends KDController
 
     sendPrivateMessage   : messageRequesterFn
       fnName             : 'sendPrivateMessage'
-      validateOptionsWith: ['body']
+      validateOptionsWith: ['body', 'recipients']
       mapperFn           : mapPrivateMessages
 
     fetchPrivateMessages : messageRequesterFn
@@ -382,12 +406,20 @@ class SocialApiController extends KDController
       validateOptionsWith: ['messageId']
 
     follow               : channelRequesterFn
-      fnName             : 'follow'
+      fnName             : 'addParticipants'
       validateOptionsWith: ['channelId']
 
     unfollow             : channelRequesterFn
-      fnName             : 'unfollow'
+      fnName             : 'removeParticipants'
       validateOptionsWith: ['channelId']
+
+    addParticipants      : channelRequesterFn
+      fnName             : 'addParticipants'
+      validateOptionsWith: ['channelId', "accountIds"]
+
+    removeParticipants    : channelRequesterFn
+      fnName              : 'removeParticipants'
+      validateOptionsWith : ['channelId', "accountIds"]
 
     fetchFollowedChannels: channelRequesterFn
       fnName             : 'fetchFollowedChannels'
@@ -410,3 +442,5 @@ class SocialApiController extends KDController
     updateLastSeenTime   : channelRequesterFn
       fnName             : 'updateLastSeenTime'
       validateOptionsWith: ["channelId"]
+
+    revive               : mapChannel

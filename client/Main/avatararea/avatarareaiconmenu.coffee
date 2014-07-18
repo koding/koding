@@ -100,29 +100,12 @@ class AvatarAreaIconMenu extends JView
 
   accountChanged:(account)->
 
-    {listController} = @notificationsPopup
-    listController.removeAllItems()
+    {notificationsPopup} = this
 
-    return  unless KD.isLoggedIn()
+    notificationsPopup.listController.removeAllItems()
 
-    # Fetch Notifications
-    KD.utils.defer ->
-      listController.fetchNotificationTeasers (err, teasers)->
-        return warn "Notifications cannot be received", err  if err?
-        listController.instantiateListItems filterNotifications teasers
-
-
-  filterNotifications=(notifications)->
-    activityNameMap = [
-      "JNewStatusUpdate"
-      "JAccount"
-      "JPrivateMessage"
-      "JComment"
-      "JReview"
-      "JGroup"
-    ]
-    notifications.filter (notification) ->
-      return  unless notification.snapshot
-      try
-        snapshot = JSON.parse Encoder.htmlDecode notification.snapshot
-        snapshot.anchor.constructorName in activityNameMap
+    if KD.isLoggedIn()
+      # Fetch Notifications
+      notificationsPopup.listController.fetchNotificationTeasers (err, notifications)=>
+        return warn "Notifications cannot be received", err  if err
+        notificationsPopup.listController.instantiateListItems notifications

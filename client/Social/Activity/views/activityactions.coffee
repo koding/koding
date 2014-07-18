@@ -27,9 +27,9 @@ class ActivityActionsView extends JView
 
         data = @getData()
         if data?.group? and data.group isnt "koding"
-          shareUrl = "#{KD.config.mainUri}/#{data.group}/Activity/#{data.slug}"
+          shareUrl = "#{KD.config.mainUri}/#{data.group}/Activity/Post/#{data.slug}"
         else
-          shareUrl      = "#{KD.config.mainUri}/Activity/#{data.slug}"
+          shareUrl = "#{KD.config.mainUri}/Activity/Post/#{data.slug}"
 
         new KDContextMenu
           cssClass    : "activity-share-popup"
@@ -44,7 +44,7 @@ class ActivityActionsView extends JView
 
         KD.mixpanel "Activity share, click"
 
-    @likeLink = new ActivityLikeLink null, data
+    @likeView = new ActivityLikeView {}, data
 
     @loader = new KDLoaderView
       cssClass      : 'action-container'
@@ -75,7 +75,7 @@ class ActivityActionsView extends JView
 
     """
     <span class='logged-in action-container'>
-    {{> @likeLink}}
+    {{> @likeView}}
     </span>
     <span class='logged-in action-container'>
     {{> @commentLink}}{{> @commentCount}}

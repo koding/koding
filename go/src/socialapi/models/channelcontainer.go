@@ -47,6 +47,21 @@ func PopulateChannelContainersWithUnreadCount(channelList []Channel, accountId i
 			continue
 		}
 
+		// for private messages calculate the unread reply count
+		if container.Channel.TypeConstant == Channel_TYPE_PRIVATE_MESSAGE {
+			if container.LastMessage == nil || container.LastMessage.Message == nil || container.LastMessage.Message.Id == 0 {
+				continue
+			}
+
+			count, err := NewMessageReply().UnreadCount(container.LastMessage.Message.Id, cp.LastSeenAt)
+			if err != nil {
+				continue
+			}
+
+			channelContainers[i].UnreadCount = count
+			continue
+		}
+
 		count, _ := cml.UnreadCount(cp)
 		if err != nil {
 			// helper.MustGetLogger().Error(err.Error())
@@ -84,7 +99,7 @@ func PopulateChannelContainer(channel Channel, accountId int64) (*ChannelContain
 	cc.Channel = channel
 	cc.IsParticipant = isParticipant
 	cc.ParticipantCount = participantCount
-	participantOldIds, err := AccountOldsIdByIds(cpList)
+	participantOldIds, err := FetchAccountOldsIdByIdsFromCache(cpList)
 	if err != nil {
 		return nil, err
 	}

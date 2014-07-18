@@ -2,19 +2,13 @@ package helpers
 
 import (
 	"socialapi/models"
+	"socialapi/request"
+	"socialapi/workers/helper"
 
 	"github.com/koding/bongo"
 )
 
-func FetchAll(channelId int64, query *models.Query, accountId int64) {
-	ConvertMessagesToMessageContainers(
-		FetchMessagesByIds(
-			FetchMessageIdsByChannelId(channelId, query),
-		),
-	)
-}
-
-func FetchMessageIdsByChannelId(channelId int64, q *models.Query) ([]int64, error) {
+func FetchMessageIdsByChannelId(channelId int64, q *request.Query) ([]int64, error) {
 	query := &bongo.Query{
 		Selector: map[string]interface{}{
 			"channel_id": channelId,
@@ -55,12 +49,8 @@ func FetchMessagesByIds(messageIds []int64, err error) ([]models.ChannelMessage,
 	return channelMessages, nil
 }
 
-func ConvertMessagesToMessageContainers(messages []models.ChannelMessage, err error) ([]*models.ChannelMessageContainer, error) {
+func ConvertMessagesToMessageContainers(messages []models.ChannelMessage, accountId int64) ([]*models.ChannelMessageContainer, error) {
 	if messages == nil {
-		return make([]*models.ChannelMessageContainer, len(messages)), nil
-	}
-
-	if err != nil {
 		return make([]*models.ChannelMessageContainer, len(messages)), nil
 	}
 
@@ -68,33 +58,40 @@ func ConvertMessagesToMessageContainers(messages []models.ChannelMessage, err er
 	if len(messages) == 0 {
 		return containers, nil
 	}
+
+	decorateContainers(containers, messages, accountId)
+
+	return containers, nil
+}
+
+func decorateContainers(containers []*models.ChannelMessageContainer, messages []models.ChannelMessage, accountId int64) {
+	log := helper.MustGetLogger()
+	var err error
 	for i, message := range messages {
 		d := models.NewChannelMessage()
 		*d = message
 
 		containers[i], err = d.BuildEmptyMessageContainer()
 		if err != nil {
-			// return err
+			log.Error("Could not create message container for message %d: %s", containers[i].Message.Id, err)
+			continue
 		}
-	}
 
-	return containers, nil
-}
+		it := models.NewInteraction()
+		it.MessageId = containers[i].Message.Id
 
-func AddTotalReplyCountToContainers(containers []*models.ChannelMessageContainer) ([]*models.ChannelMessageContainer, error) {
-	if len(containers) == 0 {
-		return containers, nil
-	}
+		query := request.NewQuery()
+		query.Type = "like"
+		query.Limit = 3
 
-	for i, container := range containers {
-		mr := models.NewMessageReply()
-		mr.MessageId = container.Message.Id
-		repliesCount, err := mr.Count()
+		query.AccountId = accountId
+
+		interactionContainer, err := it.FetchInteractionContainer(query)
 		if err != nil {
-			// ignore
+			log.Error("Could not fetch interactions for message %d: %s", containers[i].Message.Id, err)
+			continue
 		}
-		containers[i].RepliesCount = repliesCount
-	}
 
-	return containers, nil
+		containers[i].Interactions["like"] = interactionContainer
+	}
 }

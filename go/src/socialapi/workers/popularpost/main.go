@@ -22,7 +22,7 @@ func main() {
 	// create message handler
 	handler := popularpost.New(
 		r.Log,
-		helper.MustInitRedisConn(r.Conf.Redis),
+		helper.MustInitRedisConn(r.Conf),
 	)
 
 	m := manager.New()
