@@ -49,6 +49,11 @@ func withChannelMessageContainerChecks(cmc *ChannelMessageContainer, f func(c *C
 		return cmc
 	}
 
+	if cmc.Message == nil {
+		cmc.Err = ErrMessageIsNotSet
+		return cmc
+	}
+
 	// do not process from now on, if the container has Err
 	if cmc.Err != nil {
 		return cmc
@@ -65,7 +70,7 @@ func (c *ChannelMessageContainer) Fetch(id int64, q *request.Query) error {
 		if err != nil {
 			return err
 		}
-		c = cmc
+		*c = *cmc
 
 	} else {
 		if err := bongo.B.Fetch(c, id); err != nil {
@@ -100,16 +105,17 @@ func (cc *ChannelMessageContainer) AddAccountOldId() *ChannelMessageContainer {
 	return withChannelMessageContainerChecks(cc, func(c *ChannelMessageContainer) error {
 
 		if c.AccountOldId != "" {
-			return c
+			return nil
 		}
 
 		oldId, err := FetchAccountOldIdByIdFromCache(c.Message.AccountId)
 		if err != nil {
-			c.Err = err
-			return c
+			return err
 		}
 
 		c.AccountOldId = oldId
+
+		return nil
 	})
 }
 
@@ -123,9 +129,9 @@ func (c *ChannelMessageContainer) SetGenerics(query *request.Query) *ChannelMess
 func (cc *ChannelMessageContainer) AddReplies(query *request.Query) *ChannelMessageContainer {
 	return withChannelMessageContainerChecks(cc, func(c *ChannelMessageContainer) error {
 
-		if c.Message != nil && c.Message.TypeConstant == ChannelMessage_TYPE_REPLY {
+		if c.Message.TypeConstant == ChannelMessage_TYPE_REPLY {
 			// if message itself already a reply, no need to add replies to it
-			return c
+			return nil
 		}
 
 		// fetch the replies
@@ -138,8 +144,7 @@ func (cc *ChannelMessageContainer) AddReplies(query *request.Query) *ChannelMess
 
 		replies, err := mr.List(q)
 		if err != nil {
-			c.Err = err
-			return c
+			return err
 		}
 
 		// populate the replies as containers
@@ -148,7 +153,7 @@ func (cc *ChannelMessageContainer) AddReplies(query *request.Query) *ChannelMess
 
 		// set channel message containers
 		c.Replies = *rs
-		return c
+		return nil
 	})
 
 }
@@ -172,10 +177,13 @@ func (cc *ChannelMessageContainer) AddRepliesCount(query *request.Query) *Channe
 		mr.MessageId = c.Message.Id
 
 		repliesCount, err := mr.Count(query)
-		c.Err = err
+		if err != nil {
+			return err
+		}
+
 		c.RepliesCount = repliesCount
 
-		return c
+		return nil
 	})
 }
 
@@ -196,29 +204,26 @@ func (cc *ChannelMessageContainer) AddInteractions(query *request.Query) *Channe
 		i.MessageId = c.Message.Id
 		interactionContainer, err := i.FetchInteractionContainer(q)
 		if err != nil {
-			c.Err = err
-			return c
+			return err
 		}
 
 		c.Interactions[q.Type] = interactionContainer
 
-		return c
+		return nil
 	})
 }
 
-func (c *ChannelMessageContainer) AddIsInteracted(query *request.Query) *ChannelMessageContainer {
+func (cc *ChannelMessageContainer) AddIsInteracted(query *request.Query) *ChannelMessageContainer {
 	return withChannelMessageContainerChecks(cc, func(c *ChannelMessageContainer) error {
 		i := NewInteraction()
 		i.MessageId = c.Message.Id
 		isInteracted, err := i.IsInteracted(query.AccountId)
 		if err != nil {
-			c.Err = err
-			return c
+			return err
 		}
 
 		c.Interactions["like"].IsInteracted = isInteracted
-
-		return c
+		return nil
 	})
 }
 
@@ -226,15 +231,14 @@ func (cc *ChannelMessageContainer) AddIsFollowed(query *request.Query) *ChannelM
 	return withChannelMessageContainerChecks(cc, func(c *ChannelMessageContainer) error {
 		isFollowed, err := c.Message.CheckIsMessageFollowed(query)
 		c.IsFollowed = isFollowed
-		c.Err = err
-		return c
+		return err
 	})
 }
 
-func (c *ChannelMessageContainer) AddUnreadRepliesCount() *ChannelMessageContainer {
+func (cc *ChannelMessageContainer) AddUnreadRepliesCount() *ChannelMessageContainer {
 	return withChannelMessageContainerChecks(cc, func(c *ChannelMessageContainer) error {
 		panic("method not implemented")
-		return c
+		return nil
 	})
 }
 
@@ -244,20 +248,21 @@ func NewChannelMessageContainers() *ChannelMessageContainers {
 	return &ChannelMessageContainers{}
 }
 
-func (c *ChannelMessageContainers) PopulateWith(cms []ChannelMessage, query *request.Query) *ChannelMessageContainers {
+func (ccs *ChannelMessageContainers) PopulateWith(cms []ChannelMessage, query *request.Query) *ChannelMessageContainers {
 	for i, _ := range cms {
 		cmc := NewChannelMessageContainer()
 		cmc.PopulateWith(&cms[i])
 		cmc.SetGenerics(query)
-		c.Add(cmc)
+		ccs.Add(cmc)
 	}
 
-	return c
+	return ccs
 }
 
-func (c *ChannelMessageContainers) Add(containers ...*ChannelMessageContainer) *ChannelMessageContainers {
+func (ccs *ChannelMessageContainers) Add(containers ...*ChannelMessageContainer) *ChannelMessageContainers {
 	for _, cc := range containers {
-		*c = append(*c, *cc)
+		*ccs = append(*ccs, *cc)
 	}
-	return c
+
+	return ccs
 }
