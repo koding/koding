@@ -18,9 +18,6 @@ module.exports = class JPaymentMethod extends Module
       static:
         create:
           (signature Object, Function)
-      instance:
-        associatePaymentData:
-          (signature Object, Function)
     schema:
       paymentMethodId:  String
       description:      String
