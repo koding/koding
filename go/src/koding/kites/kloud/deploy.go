@@ -177,18 +177,16 @@ func (k *KodingDeploy) Deploy(artifact *protocol.Artifact) (*protocol.DeployArti
 
 // Build the command used to create the user
 func createUserCommand(username string) string {
-	command := fmt.Sprintf(`
+	// 1. Create user
+	// 2. Remove user's password
+	// 3. Add user to sudo group
+	// 4. Add user to sudoers
+	return fmt.Sprintf(`
 adduser --shell /bin/bash --gecos 'koding user' --disabled-password --home /home/%s %s && \
 passwd -d %s && \
 gpasswd -a %s sudo  && \
-echo '%s    ALL = NOPASSWD: ALL' > /etc/sudoers.d/%s && \
+echo '%s    ALL = NOPASSWD: ALL' > /etc/sudoers.d/%s
  `, username, username, username, username, username, username)
-
-	return fmt.Sprintf(
-		command,
-		// 6 occurences of the username to be replaced
-		username, username, username, username, username, username,
-	)
 
 }
 
