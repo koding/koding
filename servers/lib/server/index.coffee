@@ -47,7 +47,7 @@ app        = express()
   addReferralCode
 }          = require './helpers'
 
-{ generateFakeClient } = require "./client"
+{ generateFakeClient, updateCookie } = require "./client"
 { generateHumanstxt } = require "./humanstxt"
 
 
@@ -91,13 +91,8 @@ app.use (req, res, next) ->
   # it it is not in db, creates a new one and returns it
   JSession.fetchSession clientId, (err, { session })->
     return next() if err or not session
-    { maxAge, secure } = KONFIG.sessionCookie
+    updateCookie req, res, session
 
-    # set cookie as pending cookie
-    req.pendingCookies or= {}
-    req.pendingCookies.clientId = session.clientId
-
-    res.cookie "clientId", session.clientId, { maxAge, secure }
     next()
 
 app.use (req, res, next) ->

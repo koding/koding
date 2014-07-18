@@ -10,16 +10,6 @@ import (
 	"github.com/koding/logging"
 )
 
-var (
-	// Ubuntu 14.04 EBS backed, amd64, HVM
-	DefaultAMI = "ami-a6926dce"
-
-	// Ubuntu 14.0.4 EBS backed, amd64,  PV
-	// DefaultAMI = "ami-80778be8"
-
-	ErrNotSupported = errors.New("method not supported")
-)
-
 type Provider struct {
 	Log  logging.Logger
 	Push func(string, int, machinestate.State)

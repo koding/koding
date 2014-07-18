@@ -44,7 +44,7 @@ class ActivityActionsView extends JView
 
         KD.mixpanel "Activity share, click"
 
-    @likeLink = new ActivityLikeLink null, data
+    @likeView = new ActivityLikeView {}, data
 
     @loader = new KDLoaderView
       cssClass      : 'action-container'
@@ -75,7 +75,7 @@ class ActivityActionsView extends JView
 
     """
     <span class='logged-in action-container'>
-    {{> @likeLink}}
+    {{> @likeView}}
     </span>
     <span class='logged-in action-container'>
     {{> @commentLink}}{{> @commentCount}}

@@ -1,5 +1,6 @@
 jraphical   = require 'jraphical'
 KodingError = require '../error'
+ApiError    = require './socialapi/error'
 
 likeableActivities = [
   'JNewStatusUpdate'
@@ -438,9 +439,9 @@ module.exports = class JAccount extends jraphical.Module
     return callback null, @socialApiId  if @socialApiId
     {createAccount} = require './socialapi/requests'
     createAccount {id: @getId(), nickname: @profile.nickname}, (err, account)=>
-      return callback err if err
+      return callback new ApiError err  if err
       return callback {message: "Account is not set, malformed response from social api"} unless account?.id
-      @update $set: socialApiId: account.id, (err)->
+      @update $set: socialApiId: account.id, isExempt: account.isTroll, (err)->
         # check for error
         if err
           console.error "Error while creating account on social api", err
@@ -964,25 +965,22 @@ module.exports = class JAccount extends jraphical.Module
 
   markUserAsExempt: secure (client, exempt, callback)->
     {delegate} = client.connection
-    if delegate.can 'flag', this
-      @update $set: {isExempt: exempt}, callback
-      # this is for backwards comp. will remove later...
-      if exempt
-        @update {$addToSet: globalFlags: "exempt"}, ()->
-      else
-        @update {$pullAll: globalFlags: ["exempt"]}, ()->
+    return callback new KodingError 'Access denied'  unless delegate.can 'flag', this
 
-      # mark user as troll in social api
-      @markUserAsExemptInSocialAPI client, exempt, (err, data)->
-        console.error err if err
+    # mark user as troll in social api
+    @markUserAsExemptInSocialAPI client, exempt, (err, data)=>
+      return callback new ApiError err  if err
+      @update $set: {isExempt: exempt}, (err, result)->
+        if err
+          console.error 'Could not update user exempt information'
+          return callback err
 
-    else
-      callback new KodingError 'Access denied'
+        callback null, result
 
   markUserAsExemptInSocialAPI: (client, exempt, callback)->
     {markAsTroll, unmarkAsTroll} = require './socialapi/requests'
     @createSocialApiId (err, accountId)->
-      return callback err if err
+      return callback err  if err
       return callback {message: "account id is not set"} unless accountId
 
       if exempt
@@ -1051,8 +1049,6 @@ module.exports = class JAccount extends jraphical.Module
       callback new KodingError 'Access denied'
 
   checkFlag: (flagToCheck) ->
-    if flagToCheck is 'exempt'
-      return @isExempt
     flags = @getAt('globalFlags')
     if flags
       if 'string' is typeof flagToCheck
@@ -1061,7 +1057,7 @@ module.exports = class JAccount extends jraphical.Module
         for flag in flagToCheck
           if flag in flags
             return yes
-    no
+    return no
 
   isDummyAdmin = (nickname)-> !!(nickname in dummyAdmins)
 

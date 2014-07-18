@@ -8,33 +8,11 @@ import (
 
 var locks = idlock.New()
 
-type TestStorageFunc func(id string, opt *kloud.GetOption) (*kloud.MachineData, error)
-
-func (t TestStorageFunc) Get(id string, opt *kloud.GetOption) (*kloud.MachineData, error) {
-	return t(id, opt)
-}
-
-func (t TestStorageFunc) Update(id string, data *kloud.StorageData) error {
-	return nil
-}
-
-func (t TestStorageFunc) UpdateState(id string, state machinestate.State) error {
-	return nil
-}
-
-func (t TestStorageFunc) Assignee() string {
-	return "TestStorageFunc"
-}
-
-func (t TestStorageFunc) ResetAssignee(id string) error {
-	return nil
-}
-
 type TestStorage struct{}
 
 func (t *TestStorage) Assignee() string { return "TestStorage" }
 
-func (t *TestStorage) Get(id string, opt *kloud.GetOption) (*kloud.MachineData, error) {
+func (t *TestStorage) Get(id string) (*kloud.Machine, error) {
 	machineData := GetTestData(id)
 	locks.Get(testuser).Lock()
 	return machineData, nil
@@ -44,14 +22,14 @@ func (t *TestStorage) Update(id string, s *kloud.StorageData) error {
 	machineData := GetTestData(id)
 
 	if s.Type == "build" {
-		machineData.Machine.QueryString = s.Data["queryString"].(string)
-		machineData.Machine.IpAddress = s.Data["ipAddress"].(string)
-		machineData.Machine.Meta["instanceId"] = s.Data["instanceId"]
-		machineData.Machine.Meta["instanceName"] = s.Data["instanceName"]
+		machineData.Data["queryString"] = s.Data["queryString"].(string)
+		machineData.Data["ipAddress"] = s.Data["ipAddress"].(string)
+		machineData.Data["instanceId"] = s.Data["instanceId"].(string)
+		machineData.Data["instanceName"] = s.Data["instanceName"].(string)
 	}
 
 	if s.Type == "info" {
-		machineData.Machine.Meta["instanceName"] = s.Data["instanceName"]
+		machineData.Data["instanceName"] = s.Data["instanceName"].(string)
 	}
 
 	TestData[id] = machineData
@@ -60,7 +38,7 @@ func (t *TestStorage) Update(id string, s *kloud.StorageData) error {
 
 func (t *TestStorage) UpdateState(id string, state machinestate.State) error {
 	machineData := GetTestData(id)
-	machineData.Machine.Status.State = state.String()
+	machineData.State = state
 	TestData[id] = machineData
 	return nil
 }

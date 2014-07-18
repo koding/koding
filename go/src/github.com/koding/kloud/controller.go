@@ -21,7 +21,7 @@ type Controller struct {
 	ProviderName string              `json:"-"`
 	Controller   protocol.Controller `json:"-"`
 	Builder      protocol.Builder    `json:"-"`
-	MachineData  *MachineData        `json:"-"`
+	Machine      *Machine            `json:"-"`
 	Eventer      eventer.Eventer     `json:"-"`
 }
 
@@ -97,11 +97,7 @@ func (k *Kloud) ControlFunc(control controlFunc) kite.Handler {
 		// machine id. Assignee means this kloud instance is now responsible
 		// for this machine. Its basically a distributed lock. Assignee gets
 		// reseted when there is an error or if the method call is finished.
-		m, err := k.Storage.Get(args.MachineId, &GetOption{
-			IncludeMachine:    true,
-			IncludeCredential: true,
-			IncludeStack:      args.StackId != "",
-		})
+		machine, err := k.Storage.Get(args.MachineId)
 		if err != nil {
 			return nil, err
 		}
@@ -114,25 +110,25 @@ func (k *Kloud) ControlFunc(control controlFunc) kite.Handler {
 			}
 		}()
 
-		k.Log.Debug("[controller] got machine data with machineID (%s) : %#v",
-			args.MachineId, m.Machine)
+		k.Log.Info("[controller] got machine data with machineID (%s) : %+v",
+			args.MachineId, machine)
 
 		// prevent request if the machine is terminated. However we want the user
 		// to be able to build again or get information, therefore build and info
 		// should be able to continue, however methods like start/stop/etc.. are
 		// forbidden.
-		if m.Machine.State().In(machinestate.Terminating, machinestate.Terminated) &&
+		if machine.State.In(machinestate.Terminating, machinestate.Terminated) &&
 			!methodHas(r.Method, "build", "info") {
 			return nil, NewError(ErrMachineTerminating)
 		}
 
 		// now get the machine provider interface, it can be DO, AWS, GCE, and so on..
-		controller, err := k.Controller(m.Provider)
+		controller, err := k.Controller(machine.Provider)
 		if err != nil {
 			return nil, err
 		}
 
-		builder, err := k.Builder(m.Provider)
+		builder, err := k.Builder(machine.Provider)
 		if err != nil {
 			return nil, err
 		}
@@ -142,16 +138,36 @@ func (k *Kloud) ControlFunc(control controlFunc) kite.Handler {
 			MachineId:    args.MachineId,
 			ImageName:    args.ImageName,
 			InstanceName: args.InstanceName,
-			ProviderName: m.Provider,
+			ProviderName: machine.Provider,
 			Controller:   controller,
 			Builder:      builder,
-			MachineData:  m,
-			CurrenState:  m.Machine.State(),
+			Machine:      machine,
+			CurrenState:  machine.State,
 		}
 
-		// call our kite handler with the the controller context
+		// execute our limiter interface if the provider supports it
+		if limiter, err := k.Limiter(machine.Provider); err == nil {
+			k.Log.Info("[controller] limiter is enabled for provider: %s", machine.Provider)
+			err := limiter.Limit(c.MachineOptions(r.Username))
+			if err != nil {
+				return nil, err
+			}
+		}
+
+		// now finally call our kite handler with the the controller context,
+		// run forrest run...!
 		return control(r, c)
 	})
+}
+
+func (c *Controller) MachineOptions(username string) *protocol.MachineOptions {
+	return &protocol.MachineOptions{
+		MachineId:  c.MachineId,
+		Username:   username,
+		Eventer:    c.Eventer,
+		Credential: c.Machine.Credential,
+		Builder:    c.Machine.Data,
+	}
 }
 
 // methodHas checks if the method exist for the given methods
@@ -171,13 +187,10 @@ func (k *Kloud) info(r *kite.Request, c *Controller) (interface{}, error) {
 		return nil, NewError(ErrMachineNotInitialized)
 	}
 
-	machOptions := &protocol.MachineOptions{
-		MachineId:  c.MachineId,
-		Username:   r.Username,
-		Eventer:    &eventer.Events{}, // add fake eventer to avoid errors on NewClient at provider
-		Credential: c.MachineData.Credential.Meta,
-		Builder:    c.MachineData.Machine.Meta,
-	}
+	machOptions := c.MachineOptions(r.Username)
+
+	// add fake eventer to avoid errors on NewClient at provider, the info method doesn't use
+	machOptions.Eventer = &eventer.Events{}
 
 	response, err := c.Controller.Info(machOptions)
 	if err != nil {
@@ -227,7 +240,7 @@ func (k *Kloud) start(r *kite.Request, c *Controller) (interface{}, error) {
 		})
 
 		if err != nil {
-			k.Log.Error("[start] mongo update of essential data was not possible: %s", err.Error())
+			k.Log.Error("[start] storage update of essential data was not possible: %s", err.Error())
 		}
 
 		// do not return the error, the machine is already prepared and
@@ -290,14 +303,6 @@ func (k *Kloud) coreMethods(r *kite.Request, c *Controller, fn func(*protocol.Ma
 	k.Storage.UpdateState(c.MachineId, s.initial)
 	c.Eventer = k.NewEventer(r.Method + "-" + c.MachineId)
 
-	machOptions := &protocol.MachineOptions{
-		MachineId:  c.MachineId,
-		Username:   r.Username,
-		Eventer:    c.Eventer,
-		Credential: c.MachineData.Credential.Meta,
-		Builder:    c.MachineData.Machine.Meta,
-	}
-
 	// Start our core method in a goroutine to not block it for the client
 	// side. However we do return an event id which is an unique for tracking
 	// the current status of the running method.
@@ -307,6 +312,8 @@ func (k *Kloud) coreMethods(r *kite.Request, c *Controller, fn func(*protocol.Ma
 
 		status := s.final
 		msg := fmt.Sprintf("%s is finished successfully.", r.Method)
+
+		machOptions := c.MachineOptions(r.Username)
 
 		k.Log.Info("[controller]: running method %s with mach options %v", r.Method, machOptions)
 		err := fn(machOptions)

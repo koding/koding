@@ -101,3 +101,18 @@ func (k *Kloud) Controller(providerName string) (protocol.Controller, error) {
 
 	return controller, nil
 }
+
+// Limiter returns the limiter for the given providername
+func (k *Kloud) Limiter(providerName string) (protocol.Limiter, error) {
+	provider, ok := k.providers[providerName]
+	if !ok {
+		return nil, NewError(ErrProviderNotFound)
+	}
+
+	limiter, ok := provider.(protocol.Limiter)
+	if !ok {
+		return nil, NewError(ErrProviderNotImplemented)
+	}
+
+	return limiter, nil
+}

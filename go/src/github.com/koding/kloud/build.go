@@ -75,8 +75,8 @@ func (k *Kloud) buildMachine(username string, c *Controller) error {
 		ImageName:    c.ImageName,
 		InstanceName: c.InstanceName,
 		Eventer:      c.Eventer,
-		Credential:   c.MachineData.Credential.Meta,
-		Builder:      c.MachineData.Machine.Meta,
+		Credential:   c.Machine.Credential,
+		Builder:      c.Machine.Data,
 		Deploy:       k.Deploy,
 	}
 

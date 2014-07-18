@@ -21,9 +21,10 @@ class ActivitySidebar extends KDCustomScrollView
       else data
 
 
-  constructor: ->
+  constructor: (options = {}) ->
+    options.cssClass  = 'activity-sidebar'
 
-    super
+    super options
 
     {
       notificationController
@@ -145,17 +146,6 @@ class ActivitySidebar extends KDCustomScrollView
     return  unless channelMessage
 
     {typeConstant, id} = channelMessage
-
-    listController = @getListController typeConstant
-    item = listController.itemForId id
-    item.setUnreadCount unreadCount  if item?.unreadCount
-
-
-  setChannelUnreadCount: ({unreadCount, channel}) ->
-
-    return  unless channel
-
-    {typeConstant, id} = channel
 
     listController = @getListController typeConstant
     item = listController.itemForId id
@@ -325,13 +315,21 @@ class ActivitySidebar extends KDCustomScrollView
 
     super
 
-    @wrapper.addSubView new GroupDescription  unless KD.getGroup().slug is 'koding'
+    # @wrapper.addSubView new GroupDescription  unless KD.getGroup().slug is 'koding'
+    @addGroupDescription()  unless KD.getGroup().slug is 'koding'
     @addPublicFeedLink()
     # @addHotTopics()
     @addFollowedTopics()
     @addConversations()
     @addMessages()
     # @addChat()
+
+
+  addGroupDescription: ->
+
+    { dock } = KD.singletons
+
+    dock.getView().addSubView new GroupDescription
 
 
   addPublicFeedLink: ->

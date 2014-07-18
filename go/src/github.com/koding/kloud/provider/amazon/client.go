@@ -1,9 +1,9 @@
 package amazon
 
 import (
+	"errors"
 	"fmt"
 	"strings"
-	"time"
 
 	aws "github.com/koding/kloud/api/amazon"
 	"github.com/koding/kloud/machinestate"
@@ -24,61 +24,16 @@ func (a *AmazonClient) Build(instanceName string) (*protocol.Artifact, error) {
 	// create it here because we might put some state data into Artifact Storage
 	artifact := protocol.NewArtifact()
 
+	// Don't build anything without this, otherwise ec2 complains about it as a
+	// missing paramater.
+	if a.Builder.SecurityGroupId == "" {
+		return nil, errors.New("security group id is empty.")
+	}
+
 	a.Log.Info("Checking if image '%s' exists", a.Builder.SourceAmi)
 	_, err := a.Image(a.Builder.SourceAmi)
 	if err != nil {
 		return nil, err
-	}
-
-	groupName := "koding-kloud" // TODO: make it from the package level and remove it from here
-	a.Log.Info("Checking if security group '%s' exists", groupName)
-	group, err := a.SecurityGroup(groupName)
-	if err != nil {
-		vpcs, err := a.ListVPCs()
-		if err != nil {
-			return nil, err
-		}
-
-		group = ec2.SecurityGroup{
-			Name:        groupName,
-			Description: "Koding Kloud Security Group",
-			VpcId:       vpcs.VPCs[0].VpcId,
-		}
-
-		a.Log.Info("Creating security group for this instance...")
-		// TODO: remove it after we are done
-		groupResp, err := a.Client.CreateSecurityGroup(group)
-		if err != nil {
-			return nil, err
-		}
-		group = groupResp.SecurityGroup
-
-		// Authorize the SSH access
-		perms := []ec2.IPPerm{
-			ec2.IPPerm{
-				Protocol:  "tcp",
-				FromPort:  22,
-				ToPort:    22,
-				SourceIPs: []string{"0.0.0.0/0"},
-			},
-		}
-
-		// We loop and retry this a few times because sometimes the security
-		// group isn't available immediately because AWS resources are eventaully
-		// consistent.
-		a.Log.Info("Authorizing SSH access on the security group: '%s'", group.Id)
-		for i := 0; i < 5; i++ {
-			_, err = a.Client.AuthorizeSecurityGroup(group, perms)
-			if err == nil {
-				break
-			}
-
-			a.Log.Warning("Error authorizing. Will sleep and retry. %s", err)
-			time.Sleep((time.Duration(i) * time.Second) + 1)
-		}
-		if err != nil {
-			return nil, fmt.Errorf("Error creating temporary security group: %s", err)
-		}
 	}
 
 	// get the necessary keynames that we are going to provide with Amazon. If
@@ -88,19 +43,9 @@ func (a *AmazonClient) Build(instanceName string) (*protocol.Artifact, error) {
 		return nil, err
 	}
 
-	// add now our security group
-	a.Builder.SecurityGroupId = group.Id
-
 	// Create instance with this keypair, if Deploy is not initialized it will
 	// be a empty key pair, means no one is able to ssh into the machine.
 	a.Builder.KeyPair = keyName
-
-	subs, err := a.ListSubnets()
-	if err != nil {
-		return nil, err
-	}
-
-	a.Builder.SubnetId = subs.Subnets[0].SubnetId
 
 	a.Log.Info("Creating instance with type: '%s' based on AMI: '%s'",
 		a.Builder.InstanceType, a.Builder.SourceAmi)

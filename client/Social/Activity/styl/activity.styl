@@ -27,8 +27,9 @@ styleScrollBars()
 .content-page.activity
 .member.content-display
   .lazy-loader
-    margin              30px auto
-    text-align          center
+    bottom              20px
+    left                50%
+    abs()
 
 .status.content-display
   article
@@ -115,7 +116,7 @@ styleScrollBars()
 
 
     > .activity-input-widget
-      margin-bottom     36px
+      margin-bottom     26px
       display           block
 
       .input-view
@@ -250,54 +251,53 @@ styleScrollBars()
         &.active
           color         logoBg
 
+aside.activity-sidebar
+  left                0
+  top                 0
+  size                258px 100%
+  z-index             10
+  bg                  color #424242
+  borderBox()
+  fix()
 
-  > aside
-    left                0
-    top                 0
-    size                258px 100%
-    z-index             10
-    bg                  color #3F424B
+  styleScrollBars()
+
+  > main
+    font-family         openSansFamily
+    padding             1px 22px 16px 16px
     borderBox()
-    fix()
 
-    styleScrollBars()
-
-    > main
-      font-family         openSansFamily
-      padding             1px 22px 16px 16px
-      borderBox()
-
-      > section
-        size              auto auto
-        overflow          visible
-        margin            0 0 3px 0
+    > section
+      size              auto auto
+      overflow          visible
+      margin            0 0 3px 0
 
 
-        .lazy-loader
-          margin            0
-          top               -28px
-          right             36px
-          abs()
+      .lazy-loader
+        margin            0
+        top               -28px
+        right             36px
+        abs()
 
-        .kdlistview
-          overflow        visible
+      .kdlistview
+        overflow        visible
 
-          .nothing
-            background    #383B42
-            width         auto
-            font-size     14px
-            margin        0 6px
-            padding       16px 18px
-            rounded       3px
-            line-height   19px
-            text-align    center
-            font-weight   400
-            color         #787878
-            margin-bottom 16px
-            borderBox()
+        .nothing
+          background    #15171A
+          width         auto
+          font-size     14px
+          margin        0 6px
+          padding       16px 18px
+          rounded       3px
+          line-height   19px
+          text-align    center
+          font-weight   400
+          color         #787878
+          margin-bottom 16px
+          borderBox()
 
-      a.public-feed-link.selected
-        color               #fff
+    a.public-feed-link.selected
+      color               #fff
 
 .activity
 
@@ -324,7 +324,7 @@ styleScrollBars()
       line-height     20px
       color           #fff
       padding         0 10px
-      abs             10px 4px 0 0
+      abs             4px 7px 0 0
       font-size       10px
       font-weight     700
       background      #E06F6F
@@ -381,7 +381,7 @@ styleScrollBars()
           r-sprite      activity 'check-gray'
 
   .kdlistitemview-sidebar-item.selected
-    background          #2C2E34
+    background          #15171A
 
     .profile
       color             #F9F7F3
@@ -469,22 +469,13 @@ styleScrollBars()
         top             2px
         left            8px
 
-  .chat
 
-    .kdlistitemview-member
+  .conversations
 
-      .profile
-        line-height  30px
+    .kdlistitemview-sidebar-item
 
-      .online-status
-        abs          18px 13px 0 0
-        size         7px, 7px
-        background   #c3c3c3
-        rounded      50%
-
-        &.online
-          background #28b366
-
+      cite.count
+        abs             10px 7px 0 0
 
   a.kdlistitemview-sidebar-item
 
@@ -495,6 +486,9 @@ styleScrollBars()
       padding         0 8px
       height          28px
       line-height     28px
+
+.activity-related
+  padding-bottom      62px
 
 
 .activity-modal
@@ -743,8 +737,7 @@ span.collapsedtext
   hidden()
 
 .activity-item
-  margin-bottom             32px
-  padding-left              52px
+  padding-left              56px
   borderBox()
 
   .activity-content-wrapper
@@ -775,8 +768,9 @@ span.collapsedtext
           r-sprite          activity chevron-icon
 
     .author-avatar
-      abs                 20px 0 0 -51px
+      abs                 -2px 0 0 -56px
       display             block
+      border              2px solid #0EB463
 
       img
         display           block
@@ -799,16 +793,6 @@ span.collapsedtext
         color             #999999
         font-size         12px
         font-weight       400
-
-        &:after
-          content         ""
-          display         inline-block
-          size            3px, 3px
-          rounded         50%
-          background      #d3d3d3
-          font-size       8px
-          margin          0 3px 0 5px
-          vertical-align  middle
 
       .location
         color             #999999
@@ -833,8 +817,29 @@ span.collapsedtext
       *:last-child
         padding-bottom    6px
 
+    .like-summary
+      size                auto, 31px
+      clear               both
+      line-height         31px
+      padding             0 11px
+      font-size           12px
+      opacity             .99
+      color               #525252
+      background          #EEEEEE
+      rounded             2px
+      margin              0 0 7px
+      fl()
+
+      a
+        color             inherit
+        font-weight       600
+        noTextDeco()
+
+
+
     .activity-actions
       padding             0 0 10px 0
+      clear               both
 
       span.action-container
         font-size         12px
@@ -922,24 +927,17 @@ span.collapsedtext
           shadow          none
 
     .list-previous-link
-      size                100% 45px
-      line-height         45px
-      // bg                  image, -webkit-linear-gradient(-45deg, #f0f0f0 10%, #f5f5f5 10%, #f5f5f5 20%, #f5f5f5 40%, #f0f0f0 40%, #f0f0f0 60%, #f5f5f5 60%, #f5f5f5 90%, #f0f0f0 90%)
-      // bg                  image, -moz-linear-gradient(-45deg, #f0f0f0 10%, #f5f5f5 10%, #f5f5f5 20%, #f5f5f5 40%, #f0f0f0 40%, #f0f0f0 60%, #f5f5f5 60%, #f5f5f5 90%, #f0f0f0 90%)
-      // bg                  size, 10px 10px
-      // border-top          1px solid #e9e9e9
-      font-size           12px
-      color               #6b6b6b
+      size                100%, 41px
+      line-height         41px
+      rounded             3px
+      background          #E5E5E5
+      text-align          center
       display             block
-      margin-bottom       10px
+      color               #2D2D2D
+      font-size           12px
+      font-weight         600
+      margin              0 0 15px
       noTextDeco()
-
-      // &:before
-      //   content         ''
-      //   r-sprite        activity, 'bubble-17'
-      //   display         inline-block
-      //   margin          0 10px 0 16px
-      //   vertical-align  middle
 
     .new-messages
       // bg                  color rgba(240, 112, 95, 0.3)
@@ -1175,6 +1173,8 @@ span.collapsedtext
     abs()
 
 .activity-item.status
+  margin-bottom             56px
+
   .link-embed-box
     padding                 0 14px 15px
     overflow                visible
@@ -1467,6 +1467,7 @@ span.collapsedtext
 
   .kdlistview-privatemessage
     margin-top              26px
+    padding-bottom          86px
 
   .activity-item.privatemessage
     kalc                    min-height, 100vh \- 228px
@@ -1475,6 +1476,10 @@ span.collapsedtext
     &.with-parent
       .activity-content-wrapper
         visible()
+
+    .author-avatar
+      abs                   20px 0 0 -51px
+      border                none
 
     .list-previous-link
       size                100% 47px
@@ -1533,10 +1538,7 @@ span.collapsedtext
       kalc                  width (100% \+ 50px)
 
       .kdlistitemview-comment
-        padding             10px 0 0 52px
-
-        &:last-of-type
-          padding-bottom    56px !important
+        padding             10px 15px 0 52px
 
         .comment-time
           cursor            pointer
@@ -1652,6 +1654,9 @@ span.collapsedtext
             font-weight     400
             color           #b2b2b2
 
+.reply-like-tooltip
+  p
+    text-align              left
 
 
 

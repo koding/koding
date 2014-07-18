@@ -11,11 +11,4 @@ class ActivityLikeView extends JView
 
     @link = new ActivityLikeLink {}, data
 
-    @count = new ActivityLikeCount
-      tooltip     :
-        gravity   : @getOption "tooltipPosition"
-        title     : ""
-    , data
-
-
-  pistachio: -> "{{> @link}}{{> @count}}"
+  pistachio: -> "{{> @link}}"

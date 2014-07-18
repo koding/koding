@@ -10,7 +10,6 @@ PRJ        = __dirname
 BLD        = PRJ+"/install/BUILD_DATA"
 fs         = require 'fs'
 {exec}     = require 'child_process'
-AWS        = require 'aws-sdk'
 
 rs =
   compute : RS.compute.createClient
@@ -30,7 +29,7 @@ if process.argv[2] is 'prod'
   options = o =
     projectRoot      : argv.projectRoot   or __dirname
     config           : argv.config        or "prod"
-    region           : argv.region        or "us-east1"
+    region           : argv.region        or "us-east-1a"
     branch           : argv.branch        or "cake-rewrite"
     build            : argv.build         or 1
     version          : argv.version       or "1.0"

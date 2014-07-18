@@ -19,13 +19,12 @@ class ActivityListItemView extends KDListItemView
 
     @avatar = new AvatarView
       size       :
-        width    : 38
-        height   : 38
+        width    : 37
+        height   : 37
       cssClass   : 'author-avatar'
       origin     : origin
 
     @author      = new ProfileLinkView { origin }
-    @likeSummary = new ActivityLikeSummaryView {}, data
 
     {commentViewClass} = @getOptions()
 
@@ -33,6 +32,8 @@ class ActivityListItemView extends KDListItemView
     @actionLinks = new ActivityActionsView delegate: @commentBox, data
 
     @commentBox.forwardEvent @actionLinks, "Reply"
+
+    @likeSummary = new ActivityLikeSummaryView {}, @getData()
 
     @settingsButton = new ActivitySettingsView
       cssClass : 'settings-menu-wrapper'
@@ -48,7 +49,7 @@ class ActivityListItemView extends KDListItemView
 
     {_id, constructorName} = data.account
     KD.remote.cacheable constructorName, _id, (err, account)=>
-      @setClass "exempt" if account and KD.checkFlag 'exempt', account
+      @setClass "exempt" if account?.isExempt
 
     embedOptions  =
       hasDropdown : no
@@ -100,7 +101,7 @@ class ActivityListItemView extends KDListItemView
     ]
 
     body = fn body for fn in fns
-    body = KD.utils.expandUsernames body, 'pre'
+    body = KD.utils.expandUsernames body, 'code'
 
     return body
 
@@ -223,13 +224,13 @@ class ActivityListItemView extends KDListItemView
       {{> @avatar}}
       <div class='meta'>
         {{> @author}}
-        {{> @timeAgoView}} <span class="location">San Francisco</span>
+        {{> @timeAgoView}} <span class="location"> from San Francisco</span>
       </div>
       {{> @editWidgetWrapper}}
       {article{@formatContent #(body)}}
       {{> @embedBox}}
-      {{> @actionLinks}}
       {{> @likeSummary}}
+      {{> @actionLinks}}
     </div>
     {{> @commentBox}}
     """

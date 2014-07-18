@@ -3,7 +3,6 @@ package digitalocean
 import (
 	"errors"
 	"fmt"
-	"koding/kites/kloud/klientprovisioner"
 	"strconv"
 	"sync"
 	"time"
@@ -82,8 +81,8 @@ func (c *Client) Build(snapshotName, dropletName string) (*protocol.Artifact, er
 
 // CreateImage creates an image using Packer. It uses digitalocean.Builder
 // data. It returns the image info.
-func (c *Client) CreateImage() (digitalocean.Image, error) {
-	data, err := utils.TemplateData(c.Builder, klientprovisioner.RawData)
+func (c *Client) CreateImage(provisioner interface{}) (digitalocean.Image, error) {
+	data, err := utils.TemplateData(c.Builder, provisioner)
 	if err != nil {
 		return digitalocean.Image{}, err
 	}

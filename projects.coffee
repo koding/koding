@@ -83,6 +83,12 @@ projects =
     script        : "website/a/js/__app.teamwork.js"
     sourceMapRoot : "Teamwork/"
 
+  IDE             :
+    path          : "client/IDE"
+    style         : "website/a/css/__app.ide.css"
+    script        : "website/a/js/__app.ide.js"
+    sourceMapRoot : "IDE/"
+
   About           :
     path          : "client/About"
     style         : "website/a/css/__app.about.css"
@@ -171,5 +177,9 @@ bundles           =
     style         : "website/a/css/__teamwork.css"
     script        : "website/a/js/__teamwork.js"
 
+  IDEBundle       :
+    projects      : ['Ace', 'Terminal', 'Viewer', 'IDE']
+    style         : "website/a/css/__ide.css"
+    script        : "website/a/js/__ide.js"
 
 module.exports  = {projects, bundles}

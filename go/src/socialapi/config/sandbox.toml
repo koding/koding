@@ -1,10 +1,14 @@
 EventExchangeName = "BrokerMessageBus"
 Mongo             = "dev:k9lc4G1k32nyD72@172.16.10.36:27017/koding"
 Environment       = "sandbox"
+Region            = "sandbox"
 Uri               = "http://sandbox.koding.com"
 
 [postgres]
-Host     = "sandbox0.cfbuweg6pdxe.us-east-1.rds.amazonaws.com"
+# AWS
+# Host     = "sandbox0.cfbuweg6pdxe.us-east-1.rds.amazonaws.com"
+# Sandbox
+Host     = "172.16.10.45"
 Port     = 5432
 Username = "socialapplication"
 Password = "socialapplication"

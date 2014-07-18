@@ -116,6 +116,8 @@ module.exports = [
   "CommonViews/followbutton.coffee",
   "CommonViews/topicfollowbutton.coffee",
 
+  "CommonViews/trollbutton.coffee",
+
   # "CommonViews/remotesmodal.coffee",
   # "CommonViews/databasesmodal.coffee",
 
@@ -308,7 +310,6 @@ module.exports = [
   "styl/resurrection.anims.styl",
   "styl/resurrection.commons.styl",
   "styl/troubleshoot.styl",
-
   "styl/computeproviders.styl",
 
   "styl/dock.responsive.styl"

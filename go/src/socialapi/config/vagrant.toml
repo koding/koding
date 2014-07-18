@@ -1,6 +1,7 @@
 EventExchangeName  = "BrokerMessageBus"
 Mongo              = "localhost:27017/koding"
 Environment        = "vagrant"
+Region             = "vagrant"
 Uri                = "http://lvh.me:3020"
 
 [postgres]
@@ -24,7 +25,7 @@ DB  = 0
 [limits]
 MessageBodyMinLen    = 1
 PostThrottleDuration = "5s"
-PostThrottleCount    = 3
+PostThrottleCount    = 20
 
 [emailnotification]
 TemplateRoot = "workers/emailnotifier/templates/"
