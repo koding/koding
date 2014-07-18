@@ -35,7 +35,7 @@ import (
 
 const (
 	OSKITE_NAME    = "oskite"
-	OSKITE_VERSION = "0.4.1"
+	OSKITE_VERSION = "0.4.2"
 )
 
 var (
