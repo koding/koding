@@ -468,6 +468,12 @@ func unprepareProgress(t tracer.Tracer, vm *virt.VM, destroy bool) error {
 		return err
 	}
 
+	// we'll wait indefinitely (up to 24 hours) for the VM state to actually be
+	// "STOPPED" before we set the hostKite to nil.
+	if err := vm.WaitForState("STOPPED", time.Hour*24); err != nil {
+		return err
+	}
+
 	if err := mongodbConn.Run("jVMs", func(c *mgo.Collection) error {
 		return c.Update(bson.M{"_id": vm.Id}, bson.M{"$set": bson.M{"hostKite": nil}})
 	}); err != nil {
