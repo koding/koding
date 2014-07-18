@@ -34,15 +34,15 @@ type KodingDeploy struct {
 // Build the command used to create the user
 func createUserCommand(username string) string {
 	cmd := strings.Join([]string{
-			// Create user
-			"adduser --shell /bin/bash --gecos 'koding user' --disabled-password --home /home/%s %s",
-			// Remove user's password
-			"passwd -d %s",
-			// Add user to sudo group
-			"gpasswd -a %s sudo ",
-			// Add user to sudoers
-			"echo '%s    ALL = NOPASSWD: ALL' > /etc/sudoers.d/%s",
-		},
+		// Create user
+		"adduser --shell /bin/bash --gecos 'koding user' --disabled-password --home /home/%s %s",
+		// Remove user's password
+		"passwd -d %s",
+		// Add user to sudo group
+		"gpasswd -a %s sudo ",
+		// Add user to sudoers
+		"echo '%s    ALL = NOPASSWD: ALL' > /etc/sudoers.d/%s",
+	},
 		" && ",
 	)
 
