@@ -94,7 +94,7 @@ class ProviderBaseView extends KDTabPaneView
 
     info "Credential selected:", value
 
-    if value is "_add_"
+    if value is "_add_" and @addCredentialForm?
       @instanceListView.hide()
       @credentialBox.hide()
       @addCredentialForm.setClass 'in'
@@ -118,7 +118,9 @@ class ProviderBaseView extends KDTabPaneView
     provider = @getOption 'provider'
 
     @addCredentialForm?.destroy()
-    @addCredentialForm = ComputeController.UI.generateAddCredentialFormFor provider
+
+    return unless @addCredentialForm = \
+      ComputeController.UI.generateAddCredentialFormFor provider
 
     @addCredentialForm.on "Cancel", =>
       @addCredentialForm.unsetClass 'in'
@@ -141,7 +143,8 @@ class ProviderBaseView extends KDTabPaneView
 
     @addSubView @header
     @addSubView new KDCustomHTMLView
-      partial : "<p>#{@getData().description}</p>"
+      tagName : "p"
+      partial : @getData().description
     @addSubView @loader
     @addSubView @content
 
@@ -189,7 +192,7 @@ class ProviderBaseView extends KDTabPaneView
 
       return if KD.showError err
 
-      if credentials.length is 0
+      if credentials.length is 0 and @addCredentialForm?
         @credentialBox.hide()
         @instanceListView.hide()
         @addCredentialForm.buttons.Cancel.hide()
@@ -214,7 +217,8 @@ class ProviderBaseView extends KDTabPaneView
       @credentialBox.setSelectOptions
         "Select credential..." : @_credOptions
 
-      @credentialBox.show()
+      @credentialBox.show()  if @addCredentialForm
+
       value = credentialKey ? @_credOptions.first.value
       @credentialBox.setValue value
       @showAvailablesFor value
