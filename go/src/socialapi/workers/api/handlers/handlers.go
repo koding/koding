@@ -25,9 +25,6 @@ func Inject(mux *tigertonic.TrieServeMux) *tigertonic.TrieServeMux {
 	mux.Handle("DELETE", "/message/{id}", handler.Wrapper(message.Delete, "message-delete"))
 
 	// exempt contents are filtered
-	mux.Handle("GET", "/message/cache/{id}", handler.Wrapper(message.GetCache, "message-get-cache"))
-
-	// exempt contents are filtered
 	// caching enabled
 	mux.Handle("GET", "/message/{id}", handler.Wrapper(message.Get, "message-get"))
 
