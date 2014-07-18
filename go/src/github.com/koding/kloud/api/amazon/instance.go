@@ -48,9 +48,10 @@ func (a *Amazon) Instance(id string) (ec2.Instance, error) {
 	return resp.Reservations[0].Instances[0], nil
 }
 
-func (a *Amazon) InstancesByFilter(name string, value ...string) ([]ec2.Instance, error) {
-	filter := ec2.NewFilter()
-	filter.Add(name, value...)
+func (a *Amazon) InstancesByFilter(filter *ec2.Filter) ([]ec2.Instance, error) {
+	if filter == nil {
+		filter = ec2.NewFilter()
+	}
 
 	resp, err := a.Client.Instances([]string{}, filter)
 	if err != nil {

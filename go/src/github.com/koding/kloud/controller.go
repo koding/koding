@@ -12,7 +12,6 @@ import (
 type Controller struct {
 	// Incoming arguments
 	MachineId    string
-	StackId      string
 	ImageName    string
 	InstanceName string
 
@@ -148,7 +147,7 @@ func (k *Kloud) ControlFunc(control controlFunc) kite.Handler {
 		// execute our limiter interface if the provider supports it
 		if limiter, err := k.Limiter(machine.Provider); err == nil {
 			k.Log.Info("[controller] limiter is enabled for provider: %s", machine.Provider)
-			err := limiter.Limit(c.MachineOptions(r.Username))
+			err := limiter.Limit(c.MachineOptions(r.Username), r.Method)
 			if err != nil {
 				return nil, err
 			}
