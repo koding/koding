@@ -112,6 +112,13 @@ func (tp *TemplateParser) validateTemplateParser() error {
 	return nil
 }
 
+func (tp *TemplateParser) inlineCss(content string) (string) {
+	rules := juice.Parse(css)
+	output := juice.Inline(strings.NewReader(content), rules)
+
+	return output
+}
+
 func (tp *TemplateParser) renderTemplate(contentType, content, description string, date time.Time) (string, error) {
 	t := template.Must(template.ParseFiles(
 		mainTemplateFile, footerTemplateFile, unsubscribeTemplateFile))
@@ -125,8 +132,7 @@ func (tp *TemplateParser) renderTemplate(contentType, content, description strin
 		return "", err
 	}
 
-	rules := juice.Parse(css)
-	output := juice.Inline(strings.NewReader(doc.String()), rules)
+	output := tp.inlineCss(doc.String())
 
 	return output, nil
 }
