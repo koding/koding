@@ -1,6 +1,8 @@
 package models
 
 import (
+	"io/ioutil"
+	"strings"
 	"bytes"
 	"fmt"
 	"html/template"
@@ -54,7 +56,7 @@ func prepareTemplateFiles() error {
 	objectTemplateFile = path.Join(wd, root, "object.tmpl")
 	unsubscribeTemplateFile = path.Join(wd, root, "unsubscribe.tmpl")
 
-	css, err := ioutil.ReadFile(path.Join(wd, root, "style.css"))
+	css, err = ioutil.ReadFile(path.Join(wd, root, "style.css"))
 	if err != nil {
 		return err
 	}
