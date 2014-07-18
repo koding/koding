@@ -1187,15 +1187,45 @@ section.pricing-sign-in
     background        #fff
     color             #4c555f
     height            auto
+    line-height       22px
     border            1px solid #d7d7d7 !important
     rounded           6px
     padding           10px 14px
+    color             #3E4F55
+    font-size         16px
+    font-weight       300
+    outline           none
     borderBox()
+
+    &::-webkit-input-placeholder
+      color           #93979a
+      font-weight     300
+    &:-moz-placeholder
+      color           #93979a
+      font-weight     300
+
+    &:hover
+      border          1px solid #aaa !important
+
+    &:focus
+      border          1px solid rgba(125,190,241,1) !important
+      shadow          0 0 3px rgba(125,190,241,.7)
+
+      &::-webkit-input-placeholder
+        opacity       0.5
+      &:-moz-placeholder
+        opacity       0.5
+
 
   a //Hope this will work :( [bc]
     color             #d7d7d7
     noTextDeco()
     font-size         12px
+
+  &[readonly=true]
+    opacity             .5
+
+.kdinput:focus
 
 /* Create a new VM modal (Environments) */
 .kdmodal.create-vm
