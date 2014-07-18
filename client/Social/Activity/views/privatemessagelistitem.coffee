@@ -41,13 +41,11 @@ class PrivateMessageListItemView extends ActivityListItemView
     <div class="activity-content-wrapper clearfix">
       {{> @avatar}}
       <div class='meta clearfix'>
-        {{> @author}}
-        {{> @timeAgoView}}
+        {{> @author}}{{> @timeAgoView}}{{> @likeView}}
       </div>
       {{> @editWidgetWrapper}}
       {article{@formatContent #(body)}}
       {{> @embedBox}}
-      {{> @likeView}}
     </div>
     {{> @commentBox}}
     """

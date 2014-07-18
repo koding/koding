@@ -216,6 +216,12 @@ class MainView extends KDView
     @panelWrapper.addSubView @mainTabView
     @panelWrapper.addSubView @appSettingsMenuButton
 
+
+  openVMModal: (vm, item) ->
+
+    new VMSettingsModal {}, vm
+
+
   setStickyNotification:->
 
     return if not KD.isLoggedIn() # don't show it to guests

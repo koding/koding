@@ -13,11 +13,10 @@ class NavigationLink extends KDListItemView
     options.tagName  or= 'a'
     options.type     or= 'main-nav'
     options.bind       = curry 'contextmenu', options.bind
-    options.draggable  = yes
+    # options.draggable  = yes
     options.cssClass   = curry slugify(data.title), options.cssClass
     options.cssClass   = curry 'no-anim', options.cssClass
-    options.attributes =
-      href             : groupifyLink data.path
+    options.attributes = href : groupifyLink data.path
 
     super options, data
 
@@ -41,22 +40,6 @@ class NavigationLink extends KDListItemView
     @unsetClass states
     if state in states.split ' ' then @setClass state
 
-
-  click:(event)->
-    KD.utils.stopDOMEvent event
-    {appPath, title, path, type, topLevel} = @getData()
-
-    # This check is for custom items which isn't connected to an app
-    # or if the item is a separator
-    return false  if not path or @positionChanged()
-
-    mc = KD.getSingleton 'mainController'
-    mc.emit "NavigationLinkTitleClick",
-      pageName  : title
-      appPath   : appPath or title
-      path      : path
-      topLevel  : topLevel
-      navItem   : this
 
   contextMenu:(event)->
 
