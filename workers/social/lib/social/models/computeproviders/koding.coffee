@@ -70,77 +70,77 @@ module.exports = class Koding extends ProviderInterface
 
     callback null, "Koding is the best #{ client.r.account.profile.nickname }!"
 
-
   @create = (client, options, callback)->
 
-    { r: { account, group } } = client
-    { nickname } = account.profile
+    { instanceType } = options
 
-    group = group.slug
+    # @fetchCredentialData credential, (err, cred)->
+    #   return callback err  if err?
 
-    hostnameAliases = @generateAliases { group, nickname }
-    hostnameAlias   = hostnameAliases[0]
-    region          = if argv.c is 'vagrant' then 'vagrant' else 'sj'
-    { freeVM }      = KONFIG.defaultVMConfigs
+    meta =
+      type          : "amazon"
+      region        : "us-east-1"
+      source_ami    : "ami-a6926dce"
+      instance_type : instanceType
 
-    meta = {
-      region
-      hostnameAlias
-      maxMemoryInMB : freeVM.ram ? 1024
-      diskSizeInMB  : freeVM.storage ? VMDefaultDiskSize
-      ldapPassword  : null
-      hostKite      : null
-      alwaysOn      : no
-      numCPUs       : freeVM.cpu ? 1
-      webHome       : nickname
-      vmType        : "user"
-      ip            : null
-      meta          : {}
-    }
+    callback null, { meta, credential: client.r.user.username }
 
-    callback null, {
-      meta,
-      postCreateOptions: {
-        hostnameAliases, account, group
-      }
-    }
+  # @create = (client, options, callback)->
+
+  #   { r: { account, group } } = client
+  #   { nickname } = account.profile
+
+  #   group = group.slug
+
+  #   hostnameAliases = @generateAliases { group, nickname }
+  #   hostnameAlias   = hostnameAliases[0]
+  #   region          = if argv.c is 'vagrant' then 'vagrant' else 'sj'
+  #   { freeVM }      = KONFIG.defaultVMConfigs
+
+  #   meta = {
+  #     region
+  #     hostnameAlias
+  #     maxMemoryInMB : freeVM.ram ? 1024
+  #     diskSizeInMB  : freeVM.storage ? VMDefaultDiskSize
+  #     ldapPassword  : null
+  #     hostKite      : null
+  #     alwaysOn      : no
+  #     numCPUs       : freeVM.cpu ? 1
+  #     webHome       : nickname
+  #     vmType        : "user"
+  #     ip            : null
+  #     meta          : {}
+  #   }
+
+  #   callback null, {
+  #     meta,
+  #     postCreateOptions: {
+  #       hostnameAliases, account, group
+  #     }
+  #   }
 
 
-  @remove = (client, options, callback)->
+  # @remove = (client, options, callback)->
 
-    {hostnameAlias} = options
-    JVM.removeByHostname client, hostnameAlias, callback
+  #   {hostnameAlias} = options
+  #   JVM.removeByHostname client, hostnameAlias, callback
 
 
-  @update = (client, options, callback)->
+  # @update = (client, options, callback)->
 
-    callback new KodingError \
-      "Update not supported for Koding VMs", "NotSupported"
+  #   callback new KodingError \
+  #     "Update not supported for Koding VMs", "NotSupported"
 
 
   @fetchAvailable = (client, options, callback)->
 
     callback null, [
       {
-        name  : "small"
+        name  : "t2.micro"
         title : "Small 1x"
         spec  : {
           cpu : 1, ram: 1, storage: 4
         }
         price : 'free'
-      }
-      {
-        name  : "large"
-        title : "Large 2x"
-        spec  : {
-          cpu : 2, ram: 2, storage: 8
-        }
-      }
-      {
-        name  : "extra-large"
-        title : "Extra Large 4x"
-        spec  : {
-          cpu : 4, ram: 4, storage: 16
-        }
       }
     ]
