@@ -117,6 +117,17 @@ a {
     padding-right:10px;
 }
 
+.content .inner {
+    padding-left: 10px;
+    color: #666;
+}
+
+.content .inner .action {
+    line-height: 20px;
+    padding-left:28px;
+    padding-top:4px;
+}
+
 .content .time a {
     text-decoration:none;
     color:#999;
@@ -161,4 +172,19 @@ a {
 }
 .footer td:last-child {
     padding-left: 10px;
+}
+
+/*
+ *  Preview
+ *  preview.tmpl
+ */
+.preview {
+    padding:10px;
+    margin-left:28px;
+    color:#777;
+    margin-bottom:6px;
+    margin-top: 4px;
+    font-size:12px;
+    background-color:#F8F8F8;
+    border-radius:4px;
 }

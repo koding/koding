@@ -3,9 +3,9 @@
   <td class="time">
     <a href='#'>{{.ActivityTime}}</a>
   </td>
-  <td style="padding-left: 10px; color: #666; " colspan="2">
+  <td class="inner" colspan="2">
       {{template "gravatar" . }}
-      <div style="line-height: 20px; padding-left:28px; padding-top:4px;">
+      <div class="action">
         <a href="{{.Uri}}/{{.ActorContact.Username}}">
           {{.ActorContact.FirstName}} {{.ActorContact.LastName}}
         </a>
