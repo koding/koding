@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"html/template"
 	"path/filepath"
 	"strings"
 	"time"
@@ -30,6 +31,22 @@ type KodingDeploy struct {
 
 	Bucket *Bucket
 }
+
+var (
+	t = template.Must(template.New("hosts").Parse(hosts))
+
+	// default ubuntu /etc/hosts file which is used to replace with our custom
+	// hostname later
+	hosts = `127.0.0.1       localhost
+127.0.1.1       {{.}} {{.}}
+
+# The following lines are desirable for IPv6 capable hosts
+::1     ip6-localhost ip6-loopback
+fe00::0 ip6-localnet
+ff00::0 ip6-mcastprefix
+ff02::1 ip6-allnodes
+ff02::2 ip6-allrouters`
+)
 
 func (k *KodingDeploy) Deploy(artifact *protocol.Artifact) (*protocol.DeployArtifact, error) {
 	username := artifact.Username
@@ -202,34 +219,37 @@ func patchConfCommand(username string) string {
 
 // changeHostname is used to change the remote machines hostname by modifying
 // their /etc/host and /etc/hostname files.
-func changeHostname() error {
-	// hostFile, err := client.Create("/etc/hosts")
-	// if err != nil {
-	// 	return nil, err
-	// }
-	//
-	// if err := t.Execute(hostFile, hostname); err != nil {
-	// 	return nil, err
-	// }
-	//
-	// hostnameFile, err := client.Create("/etc/hostname")
-	// if err != nil {
-	// 	return nil, err
-	// }
-	//
-	// _, err = hostnameFile.Write([]byte(hostname))
-	// if err != nil {
-	// 	return nil, err
-	// }
+func changeHostname(client *sshutil.SSHClient, hostname string) error {
+	hostFile, err := client.Create("/etc/hosts")
+	if err != nil {
+		return err
+	}
 
-	// if err := client.StartCommand(fmt.Sprintf("hostname %s", hostname)); err != nil {
-	// 	return nil, err
-	// }
-	// out, err = client.StartCommand("service networking restart")
-	// if err != nil {
-	// 	return nil, err
-	// }
-	//
+	if err := t.Execute(hostFile, hostname); err != nil {
+		return err
+	}
+
+	hostnameFile, err := client.Create("/etc/hostname")
+	if err != nil {
+		return err
+	}
+
+	_, err = hostnameFile.Write([]byte(hostname))
+	if err != nil {
+		return err
+	}
+
+	out, err := client.StartCommand(fmt.Sprintf("hostname %s", hostname))
+	if err != nil {
+		fmt.Printf("out %+v\n", out)
+		return err
+	}
+
+	out, err = client.StartCommand("service networking restart")
+	if err != nil {
+		fmt.Printf("out %+v\n", out)
+		return err
+	}
 
 	return nil
 }
