@@ -26,9 +26,8 @@ class FSFile extends FSItem
     @fetchContents no, callback
 
   fetchRawContents: (callback)->
-
     kite = @getKite()
-    kite.vmOn().then =>
+    kite.init().then =>
       kite.fsReadFile path: FSHelper.plainPath @path
     .nodeify callback
 
@@ -52,9 +51,8 @@ class FSFile extends FSItem
 
     .nodeify(callback)
 
-
-
   saveAs:(contents, name, parentPath, callback)->
+
     @emit "fs.saveAs.started"
 
     newPath = FSHelper.plainPath "#{parentPath}/#{name}"
@@ -63,16 +61,15 @@ class FSFile extends FSItem
 
     kite = @getKite()
 
-    kite.vmOn()
+    kite.init()
     .then =>
 
       ok = kite.fsUniquePath(path: "#{newPath}")
       .then (actualPath) =>
 
-        file = FSHelper.createFile {
-          type   : 'file'
-          path   : actualPath
-          @vmName
+        file = FSHelper.createFileInstance {
+          path : actualPath
+          @machine
         }
 
         ok = file.save contents
@@ -101,7 +98,7 @@ class FSFile extends FSItem
 
     kite = @getKite()
 
-    ok = kite.startVm()
+    ok = kite.init()
     .then =>
 
       kite.fsWriteFile {
@@ -127,26 +124,10 @@ class FSFile extends FSItem
         @emit 'fs.append.finished', null, response
         Promise.cast response
 
-  @createChunkQueue: (data, chunkSize=1024*1024, skip=0)->
-
-    return unless data
-
-    chunks     = FSHelper.chunkify data, chunkSize
-    queue      = []
-
-    for chunk, index in chunks
-      isSkip = skip > index
-      queue.push
-        content : unless isSkip then btoa chunk
-        skip    : isSkip
-        append  : queue.length > 0 # first chunk is not an append
-
-    return queue
-
   saveBinary:(contents, callback)->
 
     info       = @getLocalFileInfo()
-    chunkQueue = FSFile.createChunkQueue contents, null, info.lastUploadedChunk
+    chunkQueue = FSHelper.createChunkQueue contents, info.lastUploadedChunk
     total      = chunkQueue.length
 
     @setLocalFileInfo totalChunks: total
@@ -166,6 +147,8 @@ class FSFile extends FSItem
       @abortRequested = yes
       callback? null, abort: yes
 
+    kite = @getKite()
+
     iterateChunks = =>
 
       unless chunkQueue.length
@@ -183,16 +166,20 @@ class FSFile extends FSItem
         iterateChunks()
         return
 
-      @vmController.run
-        method   : 'fs.writeFile'
-        vmName   : @vmName
-        withArgs : {path: FSHelper.plainPath(@path), content, append}
-      , (err, res) =>
-        return callback? err  if err
+      kite.fsWriteFile {
+        path: FSHelper.plainPath @path
+        content, append
+      }
+
+      .then (res) =>
         @emit "ChunkUploaded", res
         iterateChunks()
 
-    iterateChunks() if chunkQueue.length > 0
+      .catch (err) ->
+        callback? err  if err
+
+    iterateChunks()  if chunkQueue.length > 0
+
 
   abort: -> @emit "AbortRequested"
 
@@ -200,7 +187,7 @@ class FSFile extends FSItem
 
     @emit "fs.save.started"
 
-    ok = @getKite().vmOn()
+    ok = @getKite().init()
     .then =>
 
       contents = KD.utils.utf8Encode contents  if useEncoding
@@ -230,4 +217,3 @@ class FSFile extends FSItem
         @emit "fs.save.finished", null, response
 
         return response
-

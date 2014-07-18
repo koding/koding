@@ -25,8 +25,6 @@ class FinderController extends KDController
 
     return @controller
 
-  createFileFromPath: -> FSHelper.createFileFromPath arguments...
-
   getAppTitleView: ->
     return new KDCustomHTMLView
       cssClass : "app-header"

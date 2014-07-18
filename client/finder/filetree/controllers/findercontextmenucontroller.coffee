@@ -11,7 +11,7 @@ class NFinderContextMenuController extends KDController
     else
       [fileView] = fileViews
       switch fileView.getData().type
-        when "vm"         then @getVmMenu fileView
+        when "machine"    then @getMachineMenu fileView
         when "file"       then @getFileMenu fileView
         when "folder"     then @getFolderMenu fileView
         when "mount"      then @getMountMenu fileView
@@ -84,7 +84,7 @@ class NFinderContextMenuController extends KDController
       # 'Upload to Dropbox'         :
       #   action                    : 'dropboxSaver'
 
-    if 'archive' isnt FSItem.getFileType FSItem.getFileExtension fileData.name
+    if 'archive' isnt FSHelper.getFileType FSHelper.getFileExtension fileData.name
       delete items.Extract
     else
       delete items.Compress
@@ -196,7 +196,7 @@ class NFinderContextMenuController extends KDController
 
     items
 
-  getVmMenu:(fileView)->
+  getMachineMenu:(fileView)->
 
     fileData = fileView.getData()
 
@@ -370,7 +370,7 @@ class NFinderContextMenuController extends KDController
 
     {path, type}     = fileView.getData()
     plainPath        = FSHelper.plainPath path
-    fileExtension    = FSItem.getFileExtension path
+    fileExtension    = FSHelper.getFileExtension path
 
     # FIXME: Add this ability later ~ GG
     # appsController   = KD.singleton "kodingAppsController"
