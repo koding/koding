@@ -1,0 +1,52 @@
+body {
+    margin: 10px;
+}
+
+.main-table {
+    font-size: 13px;
+    font-family: 'Open Sans', sans-serif;
+    height:100%;
+    color: #666;
+    width:100%;
+}
+
+
+/*
+ *  Koding logo
+ *  green with white bars
+ */
+.logo {
+    margin-left: 12px;
+    width: 40px;
+    text-align: right;
+    height: 40px;
+    border:none;
+    font-size: 0px;
+    background-color: #1AAF5D;
+    padding:9px;
+}
+
+.logo .bar-0 td {
+    max-height: 1px;
+    height:1px;
+    background-color:white;
+}
+
+.logo .bar-1 td:first-child {
+    max-height:1px;
+    height:1px;
+    background-color:white;
+    width: 75%;
+}
+.logo .bar-1 td:last-child {
+    max-height:1px;
+    height:1px;
+    background-color:#1AAF5D;
+    width: 25%;
+}
+
+.logo .bar-2 td {
+    max-height:1px;
+    height:1px;
+    background-color:white;
+}
