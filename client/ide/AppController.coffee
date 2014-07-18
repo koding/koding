@@ -104,6 +104,14 @@ class IDEAppController extends AppController
 
         appView.emit 'KeyViewIsSet'
 
+    KD.singletons.appManager.on 'AppIsBeingShown', (app) =>
+      # Temporary fix for IDE is not shown after
+      # opening pages which uses old SplitView.
+      # TODO: This needs to be fixed. ~Umut
+      if app instanceof IDEAppController
+        KD.singletons.windowController.notifyWindowResizeListeners()
+
+
   setActiveTabView: (tabView) ->
     @activeTabView = tabView
 
