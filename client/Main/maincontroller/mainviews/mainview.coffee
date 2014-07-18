@@ -217,7 +217,9 @@ class MainView extends KDView
     @panelWrapper.addSubView @appSettingsMenuButton
 
 
-  openVMModal: (vm)-> new VMSettingsModal
+  openVMModal: (vm, item) ->
+
+    new VMSettingsModal {}, vm
 
 
   setStickyNotification:->

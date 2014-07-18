@@ -55,9 +55,9 @@ class DockController extends KDViewController
       title        : 'vms'
       items        : []
 
-    @vmsList.getListView().on 'VMCogClicked', (vm)->
+    @vmsList.getListView().on 'VMCogClicked', (vm, item)->
       {mainView} = KD.singletons
-      mainView.openVMModal vm
+      mainView.openVMModal vm, this
 
     # {mainController} = KD.singletons
     # mainController.ready @bound 'accountChanged'
@@ -219,16 +219,7 @@ class DockController extends KDViewController
 
     if KD.userVMs.length
     then @listVMs KD.userVMs
-    else
-      {vmController} = KD.singletons
-      vmController.fetchVMs no, (err, vms) =>
-        if err
-          ErrorLog.create 'terminal: Couldn\'t fetch vms', reason : err
-          return new KDNotificationView title : 'Couldn\'t fetch your VMs'
-
-        vms.sort (a,b) -> a.hostnameAlias > b.hostnameAlias
-
-        @listVMs vms
+    else @fetchVMs @bound 'listVMs'
 
 
     @ready =>
@@ -251,6 +242,17 @@ class DockController extends KDViewController
 
       appManager.on 'AppIsBeingShown', (instance, view, options) =>
         @setNavItemState {name:options.name, options}, 'active'
+
+  fetchVMs: (callback)->
+    {vmController} = KD.singletons
+    vmController.fetchVMs no, (err, vms) =>
+      if err
+        ErrorLog.create 'terminal: Couldn\'t fetch vms', reason : err
+        return new KDNotificationView title : 'Couldn\'t fetch your VMs'
+
+      vms.sort (a,b) -> a.hostnameAlias > b.hostnameAlias
+
+      callback vms
 
 
   getRelativeItem: (increment, predicate) ->

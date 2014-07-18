@@ -1010,6 +1010,85 @@ div.nominateicon
     vendor                    shadow, none
     vendor                    rounded, 4px
 
+.kdmodal.vm-settings
+  // bg                      color #1A1A1A
+
+  // .kdmodal-title
+  //   hidden()
+
+  // .kdmodal-inner
+  //   margin                13px
+  //   // bg                    color #1A1A1A
+  .kdmodal-content
+    overflow              visible
+
+  .close-icon
+    hidden()
+
+  .modal-arrow
+    left                  -52px !important
+    // &:before
+
+  .kdformview .formline
+    cf()
+
+    .input-wrapper
+      margin-bottom       0
+      fr()
+      .koding-on-off
+        margin-top        7px
+      .kdselectbox
+        margin-top        4px
+
+    &.adddomain
+      .input-wrapper
+        float             none
+      .kdinput.text
+        display           block
+      .float-wrapper
+        display           block
+        float             none
+
+    &.advanced
+
+      .input-wrapper
+        margin-bottom     0
+
+      .kdbutton
+        margin-right       5px
+
+    &.button-field
+      margin              0 !important
+
+  label.kdlabel
+    font-size             14px
+    line-height           43px
+    margin                0
+    &.advanced
+      font-size           12px
+      cursor              pointer
+      color               #aaa
+      display             block
+      float               none
+      &.expanded
+        &:before
+          border-left-color transparent
+          border-top-color  #aaa
+          top               3px
+          left              0
+
+      &:before
+        content           ' '
+        border            5px solid transparent
+        border-left-color #aaa
+        size              10px 10px
+        margin-right      2px
+        display           inline-block
+        left              4px
+        borderBox()
+        rel()
+
+
 
 @media only screen and (min-width : 320px) and (max-width : 568px)
   #main-header.no-dock

@@ -23,7 +23,7 @@ class NavigationVMItem extends KDListItemView
     KD.utils.stopDOMEvent event
 
     list = @getDelegate()
-    list.emit 'VMCogClicked', @getData()
+    list.emit 'VMCogClicked', @getData(), this
 
 
 
