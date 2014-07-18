@@ -122,35 +122,18 @@ func (cc *ChannelMessageContainer) AddReplies(query *request.Query) *ChannelMess
 	mr := NewMessageReply()
 	mr.MessageId = c.Message.Id
 
-	q := query.Clone()
-	q.Limit = query.ReplyLimit
-	q.Skip = query.ReplySkip
+func (cc *ChannelMessageContainer) AddRepliesCount(query *request.Query) *ChannelMessageContainer {
+	return withChannelMessageContainerChecks(cc, func(c *ChannelMessageContainer) error {
+		// fetch the replies
+		mr := NewMessageReply()
+		mr.MessageId = c.Message.Id
 
-	replies, err := mr.List(q)
-	if err != nil {
+		repliesCount, err := mr.Count(query)
 		c.Err = err
+		c.RepliesCount = repliesCount
+
 		return c
-	}
-
-	// populate the replies as containers
-	rs := NewChannelMessageContainers()
-	rs.PopulateWith(replies, query)
-
-	// set channel message containers
-	c.Replies = *rs
-	return c
-}
-
-func (c *ChannelMessageContainer) AddRepliesCount(query *request.Query) *ChannelMessageContainer {
-	// fetch the replies
-	mr := NewMessageReply()
-	mr.MessageId = c.Message.Id
-
-	repliesCount, err := mr.Count(query)
-	c.Err = err
-	c.RepliesCount = repliesCount
-
-	return c
+	})
 }
 
 func (cc *ChannelMessageContainer) AddInteractions(query *request.Query) *ChannelMessageContainer {
@@ -206,7 +189,10 @@ func (cc *ChannelMessageContainer) AddIsFollowed(query *request.Query) *ChannelM
 }
 
 func (c *ChannelMessageContainer) AddUnreadRepliesCount() *ChannelMessageContainer {
-	return c
+	return withChannelMessageContainerChecks(cc, func(c *ChannelMessageContainer) error {
+		panic("method not implemented")
+		return c
+	})
 }
 
 type ChannelMessageContainers []ChannelMessageContainer
