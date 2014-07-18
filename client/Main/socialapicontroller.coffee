@@ -211,7 +211,8 @@ class SocialApiController extends KDController
           socialapi.openedChannels[name] = {delegate: brokerChannel, channel: socialApiChannel}
           forwardMessageEvents brokerChannel, socialApiChannel, [
             "MessageAdded",
-            "MessageRemoved"
+            "MessageRemoved",
+            "AddedToChannel"
           ]
 
           socialapi.emit "ChannelRegistered-#{name}", socialApiChannel
@@ -302,7 +303,7 @@ class SocialApiController extends KDController
       when 'activity'                  then @message.bySlug {slug: id}, kallback
       when 'channel', 'privatemessage' then @channel.byId {id}, kallback
       when 'post', 'message'           then @message.byId {id}, kallback
-      else callback { message: 'not implemented in revive' }
+      else callback { message: "#{type} not implemented in revive" }
 
 
   message:

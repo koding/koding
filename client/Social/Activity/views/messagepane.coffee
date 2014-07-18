@@ -130,6 +130,7 @@ class MessagePane extends KDTabPaneView
       channel
         .on 'MessageAdded',   @bound 'prependMessage'
         .on 'MessageRemoved', @bound 'removeMessage'
+        .on 'AddedToChannel', -> log 'hehehehe'
 
 
   appendMessage: (message) -> @listController.addItem message, @listController.getItemCount()
