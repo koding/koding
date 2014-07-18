@@ -132,6 +132,8 @@ class SocialApiController extends KDController
 
       mappedChannels.push channel
 
+    registerAndOpenChannels mappedChannels
+
     return mappedChannels
 
   mapAccounts = (accounts)->
