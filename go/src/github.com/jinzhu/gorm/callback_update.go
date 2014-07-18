@@ -83,6 +83,6 @@ func init() {
 	DefaultCallback.Update().Register("gorm:update_time_stamp_when_update", UpdateTimeStampWhenUpdate)
 	DefaultCallback.Update().Register("gorm:update", Update)
 	DefaultCallback.Update().Register("gorm:save_after_associations", SaveAfterAssociations)
-	DefaultCallback.Update().Register("gorm:after_update", AfterUpdate)
 	DefaultCallback.Update().Register("gorm:commit_or_rollback_transaction", CommitOrRollbackTransaction)
+	DefaultCallback.Update().Register("gorm:after_update", AfterUpdate)
 }
