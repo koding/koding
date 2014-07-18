@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/koding/kloud/api/amazon"
+	"github.com/mitchellh/goamz/ec2"
 )
 
 type totalLimit struct {
@@ -43,9 +44,15 @@ func freeLimiter() Limiter {
 }
 
 func (t *totalLimit) Check(ctx *CheckContext) error {
+	filter := ec2.NewFilter()
 	// instances in Amazon have a `koding-user` tag with the username as the
 	// value. We can easily find them acording to this tag
-	instances, err := ctx.api.InstancesByFilter("tag:koding-user", ctx.username)
+	filter.Add("tag:koding-user", ctx.username)
+
+	// Anything except "terminated"
+	filter.Add("instance-state-name", "pending", "running", "shutting-down", "stopping", "stopped")
+
+	instances, err := ctx.api.InstancesByFilter(filter)
 
 	// allow to create instance
 	if err == amazon.ErrNoInstances {
