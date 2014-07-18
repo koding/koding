@@ -90,8 +90,25 @@ module.exports = class JPaymentMethod extends Module
 
         paymentMethod.fetchAssociatedPaymentData callback
 
+  requirePaymentFields: (fields) ->
+    for field in [
+      'cardZipcode'
+      'cardFirstName'
+      'cardLastName'
+      'cardCV'
+      'cardNumber'
+      'cardMonth'
+      'cardYear'
+    ]
+      unless fields[field]?
+        return no
+    return yes
+
   associatePaymentData: secure (client, formData, callback) ->
     JSession = require '../session'
+
+    unless @requirePaymentFields formData
+      return callback message: 'Missed a required value!'
 
     { delegate } = client.connection
 
