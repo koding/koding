@@ -57,13 +57,25 @@ func List(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface
 	c := models.NewChannel()
 	q := request.GetQuery(u)
 	q.Type = models.Channel_TYPE_TOPIC
+	// TODO refactor this function just to return channel ids
+	// we cache wisely
 	channelList, err := c.List(q)
 	if err != nil {
 		return response.NewBadRequest(err)
 	}
 
+	return handleChannelListResponse(channelList, q)
+}
+
+func handleChannelListResponse(channelList []models.Channel, q *request.Query) (int, http.Header, interface{}, error) {
 	cc := models.NewChannelContainers()
-	cc.PopulateWith(channelList, q.AccountId)
+	if err := cc.Fetch(channelList, q); err != nil {
+		return response.NewBadRequest(err)
+	}
+	cc.AddIsParticipant(q.AccountId)
+
+	// TODO this should be in the channel cache by default
+	cc.AddLastMessage()
 
 	return response.HandleResultAndError(cc, cc.Err())
 }
@@ -79,10 +91,7 @@ func Search(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interfa
 		return response.NewBadRequest(err)
 	}
 
-	cc := models.NewChannelContainers()
-	cc.PopulateWith(channelList, q.AccountId)
-
-	return response.HandleResultAndError(cc, cc.Err())
+	return handleChannelListResponse(channelList, q)
 }
 
 // ByName finds topics by their name
@@ -138,7 +147,15 @@ func handleChannelResponse(c models.Channel, q *request.Query) (int, http.Header
 	}
 
 	cc := models.NewChannelContainer()
-	cc.PopulateWith(c, q.AccountId)
+
+	if err := cc.Fetch(c.GetId(), q); err != nil {
+		return response.NewBadRequest(err)
+	}
+
+	cc.AddIsParticipant(q.AccountId)
+
+	// TODO this should be in the channel cache by default
+	cc.AddLastMessage()
 
 	return response.HandleResultAndError(cc, cc.Err)
 }
