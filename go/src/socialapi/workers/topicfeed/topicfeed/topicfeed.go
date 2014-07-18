@@ -9,7 +9,6 @@ import (
 	"github.com/streadway/amqp"
 
 	verbalexpressions "github.com/VerbalExpressions/GoVerbalExpressions"
-	"github.com/jinzhu/gorm"
 )
 
 // s := "naber #foo hede #bar dede gel # baz #123 #-`3sdf"
@@ -70,11 +69,11 @@ func (f *Controller) MessageSaved(data *models.ChannelMessage) error {
 func ensureChannelMessages(parentChannel *models.Channel, data *models.ChannelMessage, topics []string) error {
 	for _, topic := range topics {
 		tc, err := fetchTopicChannel(parentChannel.GroupName, topic)
-		if err != nil && err != gorm.RecordNotFound {
+		if err != nil && err != bongo.RecordNotFound {
 			return err
 		}
 
-		if err == gorm.RecordNotFound {
+		if err == bongo.RecordNotFound {
 			tc, err = createTopicChannel(data.AccountId, parentChannel.GroupName, topic, parentChannel.PrivacyConstant)
 			if err != nil {
 				return err
@@ -82,6 +81,11 @@ func ensureChannelMessages(parentChannel *models.Channel, data *models.ChannelMe
 		}
 
 		_, err = tc.AddMessage(data.Id)
+		// safely skip
+		if err == models.AlreadyInTheChannel {
+			continue
+		}
+
 		if err != nil {
 			return err
 		}
@@ -134,7 +138,9 @@ func (f *Controller) MessageUpdated(data *models.ChannelMessage) error {
 		return nil
 	}
 
-	res := getTopicDiff(channels, topics)
+	excludedChannelId := data.InitialChannelId
+
+	res := getTopicDiff(channels, topics, excludedChannelId)
 
 	// add messages
 	if len(res["added"]) > 0 {
@@ -184,13 +190,15 @@ func fetchMessageChannels(messageId int64) ([]models.Channel, error) {
 	return cml.FetchMessageChannels(messageId)
 }
 
-func getTopicDiff(channels []models.Channel, topics []string) map[string][]string {
+func getTopicDiff(channels []models.Channel, topics []string, excludedChannelId int64) map[string][]string {
 	res := make(map[string][]string)
 
 	// aggregate all channel names into map
 	channelNames := map[string]struct{}{}
 	for _, channel := range channels {
-		channelNames[channel.Name] = struct{}{}
+		if excludedChannelId != channel.GetId() {
+			channelNames[channel.Name] = struct{}{}
+		}
 	}
 
 	// range over new topics, bacause we are gonna remove

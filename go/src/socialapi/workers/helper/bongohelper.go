@@ -15,6 +15,7 @@ func MustInitBongo(
 	eventExchangeName string,
 	c *config.Config,
 	log logging.Logger,
+	debug bool,
 ) *bongo.Bongo {
 	rmqConf := &rabbitmq.Config{
 		Host:     c.Mq.Host,
@@ -29,13 +30,13 @@ func MustInitBongo(
 		ExchangeName: eventExchangeName,
 	}
 
-	db := db.MustInit(c)
+	db := db.MustInit(c, log, debug)
 
 	broker := broker.New(appName, bConf, log)
 	bongo := bongo.New(broker, db, log)
 	err := bongo.Connect()
 	if err != nil {
-		panic(err)
+		log.Fatal("Error while starting bongo, exiting err: %s", err.Error())
 	}
 
 	return bongo

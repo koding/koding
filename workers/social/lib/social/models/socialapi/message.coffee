@@ -1,6 +1,7 @@
 Bongo          = require "bongo"
 {Relationship} = require "jraphical"
 request        = require 'request'
+ApiError       = require './error'
 
 {secure, daisy, dash, signature, Base} = Bongo
 {uniq} = require 'underscore'
@@ -17,6 +18,8 @@ module.exports = class SocialMessage extends Base
     sharedMethods :
       static   :
         byId   :
+          (signature Object, Function)
+        bySlug :
           (signature Object, Function)
         post   :
           (signature Object, Function)
@@ -75,14 +78,24 @@ module.exports = class SocialMessage extends Base
 
   # todo add permission here
   @edit = secure (client, data, callback)->
-    if not data.body or not data.id
+    if not data?.body or not data.id
       return callback { message: "Request is not valid for editing a message"}
     # check ownership of the account
     SocialMessage.canEdit client, data, (err, res)->
       return callback err if err
       return callback {message: "You can not edit this post"} unless res
-      {editMessage} = require './requests'
-      editMessage data, callback
+      doRequest 'editMessage', client, data, callback
+
+
+  @delete = secure (client, data, callback)->
+    if not data?.id
+      return callback { message: "Request is not valid for deleting a message" }
+
+    # check ownership of the account
+    SocialMessage.canDelete client, data, (err, res)->
+      return callback err  if err
+      return callback {message: "You can not delete this post"} unless res
+      doRequest 'deleteMessage', client, data, callback
 
 
   # byId -get message by id
@@ -90,14 +103,14 @@ module.exports = class SocialMessage extends Base
     fnName  : 'messageById'
     validate: ["id"]
 
+  # bySlug -get message by slug
+  @bySlug = secureRequest
+    fnName  : 'messageBySlug'
+    validate: ["slug"]
+
   @listReplies = secureRequest
     fnName   : 'listReplies'
     validate : ['messageId']
-
-  @delete = permittedRequest
-    permissionName : 'delete posts'
-    validate       : ['id']
-    fnName         : 'deleteMessage'
 
   @like = permittedRequest
     permissionName : 'like posts'
@@ -127,25 +140,35 @@ module.exports = class SocialMessage extends Base
       unless data.body
         return callback message: "Message body should be set"
 
-      unless data.body.match(/@([\w]+)/g)?.length > 0
+      if not data.recipients or data.recipients.length < 1
         return callback message: "You should have at least one recipient"
       doRequest 'sendPrivateMessage', client, data, callback
 
   # todo-- ask Chris about using validators.own
   # how to implement for this case
   @canEdit = (client, data, callback)->
+    {delegate} = client.connection
+    @checkMessagePermission client, data, delegate.canEditPost, callback
+
+  @canDelete = (client, data, callback)->
+    {delegate} = client.connection
+    @checkMessagePermission client, data, delegate.canDeletePost, callback
+
+  @checkMessagePermission = (client, data, fn, callback)->
     return callback {message: "Id is not set"} unless data.id
     {delegate} = client.connection
-    req = id : data.id
     # get api id of the client
-    delegate.createSocialApiId (err, socialApiId)->
+    # TODO we are also calling this method inside do request
+    delegate.createSocialApiId (err, socialApiId)=>
       return callback err  if err
       # fetch the message
-      {fetchMessage} = require './requests'
-      fetchMessage req, (err, message)->
-        return callback err  if err
-        return callback { message: "Post is not found" }  unless message
-
-        if message.accountId == socialApiId
+      if delegate.checkFlag "super-admin"
+        data.showExempt = true
+      @byId client, data, (err, message)->
+        return callback new ApiError err  if err
+        return callback { message: "Post is not found" }  unless message?.message
+        {message: {accountId}} = message
+        if accountId is socialApiId
           return callback null, yes
-        delegate.canEditPost client, callback
+        fn client, callback
+

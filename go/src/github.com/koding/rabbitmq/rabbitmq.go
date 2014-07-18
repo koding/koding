@@ -214,12 +214,15 @@ func (r *RabbitMQ) handleErrors(conn *amqp.Connection) {
 			// if the computer sleeps then wakes longer than a heartbeat interval,
 			// the connection will be closed by the client.
 			// https://github.com/streadway/amqp/issues/82
-			r.log.Fatal(amqpErr.Error(), "")
+			r.log.Fatal(amqpErr.Error())
 
 			if strings.Contains(amqpErr.Error(), "NOT_FOUND") {
 				// do not continue
 			}
 
+			// CRITICAL Exception (320) Reason: "CONNECTION_FORCED - broker forced connection closure with reason 'shutdown'"
+			// CRITICAL Exception (501) Reason: "read tcp 127.0.0.1:5672: i/o timeout"
+			// CRITICAL Exception (503) Reason: "COMMAND_INVALID - unimplemented method"
 			if amqpErr.Code == 501 {
 				// reconnect
 			}

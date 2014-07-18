@@ -1,16 +1,17 @@
 package api
 
 import (
-	"github.com/koding/api"
+	"socialapi/workers/common/handler"
+
 	"github.com/rcrowley/go-tigertonic"
 )
 
 // TODO wrap this TrieServeMux
 func InitHandlers(mux *tigertonic.TrieServeMux) *tigertonic.TrieServeMux {
 	// list notifications
-	mux.Handle("GET", "/notification/{accountId}", api.HandlerWrapper(List, "notification-list"))
+	mux.Handle("GET", "/notification/{accountId}", handler.Wrapper(List, "notification-list"))
 	// glance notifications
-	mux.Handle("POST", "/notification/glance", api.HandlerWrapper(Glance, "notification-glance"))
+	mux.Handle("POST", "/notification/glance", handler.Wrapper(Glance, "notification-glance"))
 
 	return mux
 }

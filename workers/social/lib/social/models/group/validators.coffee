@@ -47,6 +47,9 @@ module.exports =
 
   any:(client, group, permission, permissionSet, callback)->
     {delegate} = client.connection
+    unless delegate
+      console.warn "Delegate cannot be null for checking permissions, request is denied"
+      return callback null, no
     roleSelector = getRoleSelector delegate, group, permission, permissionSet
     return callback null, yes  if roleSelector is -1
     Relationship.count roleSelector, createExistenceCallback callback

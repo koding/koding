@@ -43,14 +43,6 @@ func GetRelationship(selector Selector) (models.Relationship, error) {
 	return relationship, err
 }
 
-func GetRelationshipIter(selector Selector) *mgo.Iter {
-	query := func(c *mgo.Collection) *mgo.Query {
-		return c.Find(selector)
-	}
-
-	return Mongo.GetIter("relationships", query)
-}
-
 // Deletes all relationships satisfying the selector
 func DeleteRelationships(selector Selector) error {
 	return RemoveAllDocuments("relationships", selector)

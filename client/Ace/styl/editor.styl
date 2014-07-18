@@ -1,6 +1,5 @@
 @import "../../Framework/src/themes/default/kdfn"
 @import "../../Main/styl/appfn"
-@import "../../Main/styl/app.fonts"
 
 
 active-color = rgb(246,162,32)
@@ -11,68 +10,68 @@ EDITOR stylesheet
 app.editor.styl
 */
 }
+body.ace
+  .kdview.kddialogview.save-as-dialog
+    margin              0
+    right               7px
+    width               40%
 
-.kdview.kddialogview.save-as-dialog
-  margin              0
-  right               7px
-  width               40%
+    .kddialog-wrapper
 
-  .kddialog-wrapper
+      input.kdinput.text
+        width             100%
 
-    input.kdinput.text
-      width             100%
+      label
+        display           block
+        margin            10px 0 0 0
+        font-size         11px
 
-    label
-      display           block
-      margin            10px 0 0 0
-      font-size         11px
+    .nfinder
+      > div
+        padding           10px 0
+        borderBox()
+      ul
+        margin-left       0
 
-  .nfinder
-    > div
-      padding           10px 0
-      borderBox()
-    ul
-      margin-left       0
+  .kdview.kdcontextmenu.kdbuttonmenu.editor-advanced-settings-menu.split-view-button
+    .chevron-ghost-wrapper
+      .chevron-ghost
+        bg              position,-100px -560px
 
-.kdview.kdcontextmenu.kdbuttonmenu.editor-advanced-settings-menu.split-view-button
-  .chevron-ghost-wrapper
-    .chevron-ghost
-      bg              position,-100px -560px
+    span
+      display         inline-block
+      text-align      center
+      width           20px
+      &.icon
+        display: none
 
-  span
-    display         inline-block
-    text-align      center
-    width           20px
-    &.icon
-      display: none
+    .kdcontextmenutreeview
+      min-width       130px
 
-  .kdcontextmenutreeview
-    min-width       130px
+      .kdview.kdtreeitemview-default
+        .context-menu-item
+          margin          0
 
-    .kdview.kdtreeitemview-default
-      .context-menu-item
-        margin          0
+  .kdview.kdcontextmenu.kdbuttonmenu.editor-advanced-settings-menu
 
-.kdview.kdcontextmenu.kdbuttonmenu.editor-advanced-settings-menu
-
-  .kdcontextmenutreeview
-    min-width       200px
+    .kdcontextmenutreeview
+      min-width       200px
 
 
-.kdview.kdcontextmenu.kdbuttonmenu.add-editor-menu
-  .chevron-ghost-wrapper
-    width             24px
-    rounded           0 3px 0 0
-    border-top-color  transparent
+  .kdview.kdcontextmenu.kdbuttonmenu.add-editor-menu
+    .chevron-ghost-wrapper
+      width             24px
+      rounded           0 3px 0 0
+      border-top-color  transparent
 
-    .chevron-ghost
-      bg              position,-120px -360px
-      margin          2px
+      .chevron-ghost
+        bg              position,-120px -360px
+        margin          2px
 
-.webterm .kdbuttonwithmenu-wrapper.editor-advanced-settings-menu
-  abs()
-  background-color    #ffffff
-  rounded             3px 0 0 0
-  // border-left         1px solid #e2e2e2
-  bottom              0
-  right               0
+  .webterm .kdbuttonwithmenu-wrapper.editor-advanced-settings-menu
+    abs()
+    background-color    #ffffff
+    rounded             3px 0 0 0
+    // border-left         1px solid #e2e2e2
+    bottom              0
+    right               0

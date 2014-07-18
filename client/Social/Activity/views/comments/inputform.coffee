@@ -25,20 +25,17 @@ class CommentInputForm extends KDView
     @input.on 'blur', @bound 'inputBlured'
 
 
-  submit: ->  @emit 'Submit', @input.getValue()
-
-
-  enter: ->
+  enter: (value) ->
 
     kallback = =>
 
-      @submit()
+      @emit 'Submit', value
 
-      KD.mixpanel 'Comment activity, click', @input.getValue().length
+      KD.mixpanel 'Comment activity, click', value.length
 
       @input.setValue ''
       @input.resize()
-      @input.setBlur()
+      @input.setFocus()
 
     KD.requireMembership
       callback  : kallback
@@ -82,8 +79,8 @@ class CommentInputForm extends KDView
     if @getOption 'showAvatar'
       @addSubView new AvatarStaticView
         size    :
-          width : 42
-          height: 42
+          width : 38
+          height: 38
       , KD.whoami()
 
     @addSubView @input

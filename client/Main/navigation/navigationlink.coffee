@@ -6,21 +6,18 @@ class NavigationLink extends KDListItemView
     Editor : 'Ace'
 
   constructor:(options = {}, data={})->
+
+    {curry, slugify, groupifyLink}   = KD.utils
+
     data.type        or= ''
     options.tagName  or= 'a'
     options.type     or= 'main-nav'
-    options.bind       = KD.utils.curry 'contextmenu', options.bind
+    options.bind       = curry 'contextmenu', options.bind
     options.draggable  = yes
-    options.cssClass   = KD.utils.curry @utils.slugify(data.title), options.cssClass
-    options.cssClass   = KD.utils.curry 'no-anim', options.cssClass
-    options.attributes = {}
-
-    {entryPoint} = KD.config
-    if entryPoint
-      {slug} = entryPoint
-      options.attributes.href = "/#{slug}#{data.path}"
-    else
-      options.attributes.href = data.path
+    options.cssClass   = curry slugify(data.title), options.cssClass
+    options.cssClass   = curry 'no-anim', options.cssClass
+    options.attributes =
+      href             : groupifyLink data.path
 
     super options, data
 
@@ -31,11 +28,11 @@ class NavigationLink extends KDListItemView
       partial  : "<span class='logo'>#{@name[0]}</span>"
     @icon.setCss 'backgroundColor', KD.utils.getColorFromString @name
 
-    appsHasIcon = Object.keys(KD.config.apps)
-    appsHasIcon.push 'Editor'
-    @icon.hide()  if @name in appsHasIcon and not data.useFakeIcon
+    appsWithIcon = Object.keys(KD.config.apps)
+    appsWithIcon.push 'Editor'
+    @icon.hide()  if @name in appsWithIcon and not data.useFakeIcon
 
-    @on "DragStarted", @bound 'dragStarted'
+    @on 'DragStarted', @bound 'dragStarted'
 
 
   setState:(state = 'initial')->
@@ -119,7 +116,7 @@ class NavigationLink extends KDListItemView
   pistachio:->
     """
       {{> @icon}}
-      <span class='icon'></span>
+      <figure></figure>
       <cite>#{@name}</cite>
     """
 

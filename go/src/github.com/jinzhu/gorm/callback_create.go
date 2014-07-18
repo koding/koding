@@ -27,7 +27,7 @@ func Create(scope *Scope) {
 		var sqls, columns []string
 
 		for _, field := range scope.Fields() {
-			if field.DBName != scope.PrimaryKey() && len(field.SqlTag) > 0 && !field.IsIgnored {
+			if len(field.SqlTag) > 0 && !field.IsIgnored && (field.DBName != scope.PrimaryKey() || !scope.PrimaryKeyZero()) {
 				columns = append(columns, scope.Quote(field.DBName))
 				sqls = append(sqls, scope.AddToVars(field.Value))
 			}
@@ -77,12 +77,18 @@ func AfterCreate(scope *Scope) {
 }
 
 func init() {
-	DefaultCallback.Create().Register("gorm:begin_transaction", BeginTransaction)
+	// this is different version from gorm itself
+	// if you are updating the source itself, please be sure that
+	// before_create and before_update functions are first and last
+	// functions, we are trying to merge this change to original repo
+	// this will stay here up until we make it
 	DefaultCallback.Create().Register("gorm:before_create", BeforeCreate)
+	DefaultCallback.Create().Register("gorm:begin_transaction", BeginTransaction)
 	DefaultCallback.Create().Register("gorm:save_before_associations", SaveBeforeAssociations)
 	DefaultCallback.Create().Register("gorm:update_time_stamp_when_create", UpdateTimeStampWhenCreate)
 	DefaultCallback.Create().Register("gorm:create", Create)
 	DefaultCallback.Create().Register("gorm:save_after_associations", SaveAfterAssociations)
-	DefaultCallback.Create().Register("gorm:after_create", AfterCreate)
 	DefaultCallback.Create().Register("gorm:commit_or_rollback_transaction", CommitOrRollbackTransaction)
+	DefaultCallback.Create().Register("gorm:after_create", AfterCreate)
+
 }

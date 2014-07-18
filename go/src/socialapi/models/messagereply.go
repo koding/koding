@@ -2,9 +2,9 @@ package models
 
 import (
 	"errors"
+	"socialapi/request"
 	"time"
 
-	"github.com/jinzhu/gorm"
 	"github.com/koding/bongo"
 )
 
@@ -18,40 +18,34 @@ type MessageReply struct {
 	// Id of the reply
 	ReplyId int64 `json:"replyId,string"         sql:"NOT NULL"`
 
+	// holds troll, unsafe, etc
+	MetaBits MetaBits `json:"metaBits"`
+
 	// Creation of the MessageReply
 	CreatedAt time.Time `json:"createdAt"         sql:"NOT NULL"`
 }
 
-func (m MessageReply) GetId() int64 {
-	return m.Id
-}
+func (m *MessageReply) MarkIfExempt() error {
+	if m.MetaBits.Is(Troll) {
+		return nil
+	}
 
-func (m MessageReply) TableName() string {
-	return "api.message_reply"
-}
+	if m.ReplyId == 0 {
+		return nil
+	}
 
-func NewMessageReply() *MessageReply {
-	return &MessageReply{}
-}
+	cm := NewChannelMessage()
+	cm.Id = m.ReplyId
+	isExempt, err := cm.isExempt()
+	if err != nil {
+		return err
+	}
 
-func (m *MessageReply) AfterCreate() {
-	bongo.B.AfterCreate(m)
-}
+	if isExempt {
+		m.MetaBits.Mark(Troll)
+	}
 
-func (m *MessageReply) AfterUpdate() {
-	bongo.B.AfterUpdate(m)
-}
-
-func (m MessageReply) AfterDelete() {
-	bongo.B.AfterDelete(m)
-}
-
-func (m *MessageReply) ById(id int64) error {
-	return bongo.B.ById(m, id)
-}
-
-func (m *MessageReply) Create() error {
-	return bongo.B.Create(m)
+	return nil
 }
 
 func (m *MessageReply) CreateRaw() error {
@@ -62,14 +56,6 @@ func (m *MessageReply) CreateRaw() error {
 	return bongo.B.DB.CommonDB().
 		QueryRow(insertSql, m.MessageId, m.ReplyId, m.CreatedAt).
 		Scan(&m.Id)
-}
-
-func (m *MessageReply) Some(data interface{}, q *bongo.Query) error {
-	return bongo.B.Some(m, data, q)
-}
-
-func (m *MessageReply) One(q *bongo.Query) error {
-	return bongo.B.One(m, m, q)
 }
 
 func (m *MessageReply) Delete() error {
@@ -95,7 +81,7 @@ func (m *MessageReply) DeleteByOrQuery(messageId int64) error {
 	query := bongo.B.DB.Table(m.TableName())
 	query = query.Where("message_id = ? or reply_id = ?", messageId, messageId)
 
-	if err := query.Find(&messageReplies).Error; err != gorm.RecordNotFound && err != nil {
+	if err := query.Find(&messageReplies).Error; err != bongo.RecordNotFound && err != nil {
 		return err
 	}
 
@@ -117,18 +103,18 @@ func (m *MessageReply) DeleteByOrQuery(messageId int64) error {
 	return nil
 }
 
-func (m *MessageReply) List(query *Query) ([]ChannelMessage, error) {
+func (m *MessageReply) List(query *request.Query) ([]ChannelMessage, error) {
 	return m.fetchMessages(query)
 }
 
 func (m *MessageReply) ListAll() ([]ChannelMessage, error) {
-	query := NewQuery()
+	query := request.NewQuery()
 	query.Limit = 0
 	query.Skip = 0
 	return m.fetchMessages(query)
 }
 
-func (m *MessageReply) fetchMessages(query *Query) ([]ChannelMessage, error) {
+func (m *MessageReply) fetchMessages(query *request.Query) ([]ChannelMessage, error) {
 	var replies []int64
 
 	if m.MessageId == 0 {
@@ -143,6 +129,8 @@ func (m *MessageReply) fetchMessages(query *Query) ([]ChannelMessage, error) {
 		Pagination: *bongo.NewPagination(query.Limit, query.Skip),
 		Sort:       map[string]string{"created_at": "DESC"},
 	}
+
+	q.AddScope(RemoveTrollContent(m, query.ShowExempt))
 
 	bongoQuery := bongo.B.BuildQuery(m, q)
 	if !query.From.IsZero() {
@@ -181,21 +169,32 @@ func (m *MessageReply) UnreadCount(messageId int64, addedAt time.Time) (int, err
 	)
 }
 
-func (m *MessageReply) Count() (int, error) {
+func (m *MessageReply) Count(q *request.Query) (int, error) {
 	if m.MessageId == 0 {
 		return 0, errors.New("messageId is not set")
 	}
 
-	return bongo.B.Count(m,
-		"message_id = ?",
-		m.MessageId,
-	)
+	query := &bongo.Query{
+		Selector: map[string]interface{}{
+			"message_id": m.MessageId,
+		},
+	}
+
+	query.AddScope(RemoveTrollContent(
+		m, q.ShowExempt,
+	))
+
+	return m.CountWithQuery(query)
+}
+
+func (m *MessageReply) CountWithQuery(q *bongo.Query) (int, error) {
+	return bongo.B.CountWithQuery(m, q)
 }
 
 func (m *MessageReply) FetchParent() (*ChannelMessage, error) {
 	parent := NewChannelMessage()
 
-	if m.ReplyId != 0 {
+	if m.MessageId != 0 {
 		if err := parent.ById(m.MessageId); err != nil {
 			return nil, err
 		}

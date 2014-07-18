@@ -2,7 +2,6 @@ package bongo
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"strconv"
 	"strings"
@@ -13,7 +12,7 @@ import (
 // Fetch fetches the data from db by given parameters(fields of the struct)
 func (b *Bongo) Fetch(i Modellable) error {
 	if i.GetId() == 0 {
-		return errors.New(fmt.Sprintf("Id is not set for %s", i.TableName()))
+		return IdIsNotSet
 	}
 
 	if err := b.DB.Table(i.TableName()).
@@ -50,7 +49,7 @@ func (b *Bongo) Create(i Modellable) error {
 // Update updates all fields of a struct with assigned data
 func (b *Bongo) Update(i Modellable) error {
 	if i.GetId() == 0 {
-		return errors.New(fmt.Sprintf("Id is not set for %s", i.TableName()))
+		return IdIsNotSet
 	}
 
 	// Update and Create is using the Save method, so they are
@@ -63,7 +62,7 @@ func (b *Bongo) Update(i Modellable) error {
 // into consideration
 func (b *Bongo) Delete(i Modellable) error {
 	if i.GetId() == 0 {
-		return errors.New(fmt.Sprintf("Id is not set for %s", i.TableName()))
+		return IdIsNotSet
 	}
 
 	if err := b.DB.Delete(i).Error; err != nil {
@@ -73,8 +72,8 @@ func (b *Bongo) Delete(i Modellable) error {
 	return nil
 }
 
-// FetchByIds fetches data from db by their ids in ordered fashion,
-// if non-found this function doesnt return any error.
+// FetchByIds fetches records by their ids and returns results in the same order
+// as the ids; if no records in db we don't return error
 func (b *Bongo) FetchByIds(i Modellable, data interface{}, ids []int64) error {
 	if len(ids) == 0 {
 		return nil
@@ -87,23 +86,32 @@ func (b *Bongo) FetchByIds(i Modellable, data interface{}, ids []int64) error {
 		comma = ","
 	}
 
+	// init query
+	query := b.DB.Model(i)
+
+	// add table name
+	query = query.Table(i.TableName())
+
+	query = query.Order(orderByQuery)
+
+	query = query.Where(ids)
+
+	query = query.Find(data)
+
 	// supress not found errors
-	return CheckErr(
-		b.DB.
-			Table(i.TableName()).
-			Order(orderByQuery).
-			Where(ids).
-			Find(data),
-	)
+	return CheckErr(query)
 
 }
 
 func (b *Bongo) UpdatePartial(i Modellable, set map[string]interface{}) error {
 	if i.GetId() == 0 {
-		return errors.New(fmt.Sprintf("Id is not set for %s", i.TableName()))
+		return IdIsNotSet
 	}
 
-	query := b.DB.Table(i.TableName())
+	// init query
+	query := b.DB
+
+	query = query.Table(i.TableName())
 
 	query = query.Where(i.GetId())
 
@@ -131,7 +139,7 @@ func (b *Bongo) UpdateMulti(i Modellable, rest ...map[string]interface{}) error 
 		selector = rest[0]
 		set = rest[1]
 	default:
-		return errors.New("Update partial parameter list is wrong")
+		return WrongParameter
 	}
 
 	query := b.DB.Table(i.TableName())
@@ -139,7 +147,7 @@ func (b *Bongo) UpdateMulti(i Modellable, rest ...map[string]interface{}) error 
 	//add selector
 	query = addWhere(query, selector)
 
-	if err := query.Update(set).Error; err != nil {
+	if err := query.Updates(set).Error; err != nil {
 		return err
 	}
 
@@ -150,7 +158,7 @@ func (b *Bongo) Count(i Modellable, where ...interface{}) (int, error) {
 	var count int
 
 	// init query
-	query := b.DB
+	query := b.DB.Model(i)
 
 	// add table name
 	query = query.Table(i.TableName())
@@ -167,11 +175,22 @@ func (b *Bongo) CountWithQuery(i Modellable, q *Query) (int, error) {
 	return count, query.Count(&count).Error
 }
 
+type Scope func(d *gorm.DB) *gorm.DB
+
 type Query struct {
 	Selector   map[string]interface{}
 	Sort       map[string]string
 	Pluck      string
 	Pagination Pagination
+	Scopes     []Scope
+}
+
+func (q *Query) AddScope(scope Scope) {
+	if q.Scopes == nil {
+		q.Scopes = make([]Scope, 0)
+	}
+
+	q.Scopes = append(q.Scopes, scope)
 }
 
 type Pagination struct {
@@ -208,7 +227,7 @@ func (b *Bongo) One(i Modellable, data interface{}, q *Query) error {
 
 func (b *Bongo) BuildQuery(i Modellable, q *Query) *gorm.DB {
 	// init query
-	query := b.DB
+	query := b.DB.Model(i)
 
 	// add table name
 	query = query.Table(i.TableName())
@@ -222,6 +241,13 @@ func (b *Bongo) BuildQuery(i Modellable, q *Query) *gorm.DB {
 
 	// add selector
 	query = addWhere(query, q.Selector)
+
+	// put scopes
+	if q.Scopes != nil && len(q.Scopes) > 0 {
+		for _, scope := range q.Scopes {
+			query = query.Scopes(scope)
+		}
+	}
 
 	return query
 }

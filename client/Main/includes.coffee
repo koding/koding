@@ -116,6 +116,8 @@ module.exports = [
   "CommonViews/followbutton.coffee",
   "CommonViews/topicfollowbutton.coffee",
 
+  "CommonViews/trollbutton.coffee",
+
   # "CommonViews/remotesmodal.coffee",
   # "CommonViews/databasesmodal.coffee",
 
@@ -140,8 +142,11 @@ module.exports = [
   "CommonViews/memberautocomplete.coffee",
   "CommonViews/editormodal.coffee",
 
+  "navigation/topnavigation.coffee",
+
   "navigation/navigationlist.coffee",
   "navigation/navigationlink.coffee",
+  "navigation/navigationvmitem.coffee",
   "navigation/navigationseparator.coffee",
   "navigation/navigationadminlink.coffee",
   "navigation/navigationinvitationlink.coffee",
@@ -153,8 +158,6 @@ module.exports = [
   # LOCATION
   "locationcontroller.coffee",
   "CommonViews/location/locationform.coffee",
-  # BadgeController
-  "badgecontroller.coffee",
 
   # PAYMENT
   # controller
@@ -178,23 +181,10 @@ module.exports = [
   "payment/existingaccountworkflow.coffee",
 
 
-  # BOOK
-  # "book/embedded/tableofcontents.coffee",
-  # "book/embedded/updatewidget.coffee",
-  # "book/embedded/topics.coffee",
-  # "book/embedded/startbutton.coffee",
-  # "book/embedded/developbutton.coffee",
-  # "book/embedded/socialshare.coffee",
-  # "book/bookdata.coffee",
-  # "book/pointerview.coffee",
-  # "book/bookview.coffee",
-  # "book/bookpage.coffee",
-
   #maintabs
 
   "maintabs/maintabview.coffee",
   "maintabs/maintabpaneview.coffee",
-  "maintabs/maintabhandleholder.coffee",
 
   "providers/config.coffee",
   "providers/computecontroller.coffee",
@@ -323,17 +313,12 @@ module.exports = [
 
   "styl/appfn.styl",
   "styl/resurrection.styl",
-  # "styl/resurrection.activity.styl",
+  "styl/resurrection.sidebar.styl",
   "styl/resurrection.account.dropdown.styl",
   "styl/resurrection.anims.styl",
-  # "styl/resurrection.activity.styl",
-  # "styl/resurrection.apps.styl",
   "styl/resurrection.commons.styl",
   "styl/troubleshoot.styl",
   "styl/computeproviders.styl",
-
-  # "styl/formworkflow.styl"
-  # "styl/resurrection.feeder.styl",
 
   "styl/dock.responsive.styl"
   "styl/app.markdown.styl"

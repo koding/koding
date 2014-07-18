@@ -20,15 +20,10 @@ class SidebarMessageItem extends SidebarItem
 
     # we need a multiple avatarview here
     @avatar = new AvatarStaticView
-      size       : width : 30, height : 30
+      size       : width : 24, height : 24
       cssClass   : "avatarview"
       showStatus : yes
       origin     : origin
 
 
-  pistachio: ->
-    """
-    {{> @avatar}}{{> @actor}}
-    {span.user-numbers{ #(lastMessage.body)}}
-    {{> @unreadCount}}
-    """
+  pistachio: -> "{{> @avatar}}{{> @actor}}{{> @unreadCount}}"

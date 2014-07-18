@@ -27,7 +27,12 @@ class SidebarItem extends KDListItemView
       @getDelegate().emit 'ItemShouldBeSelected', this
       @lastClickedTimestamp = Date.now()
 
-    @once 'viewAppended', => @setUnreadCount @getData().unreadCount
+
+    # `unreadRepliesCount` is used for pinned messages, pinned message list is the
+    # only place where we are displaying message items, for other places (my
+    # feeds and private messages) they are channels and channels have their
+    # unread count in the data as `unreadCount`
+    @once 'viewAppended', => @setUnreadCount @getData().unreadCount or @getData().unreadRepliesCount
 
 
   setUnreadCount: (unreadCount = 0) ->
@@ -36,6 +41,8 @@ class SidebarItem extends KDListItemView
 
     if unreadCount is 0
       @unreadCount.hide()
+      @unsetClass 'unread'
     else
       @unreadCount.updatePartial unreadCount
       @unreadCount.show()
+      @setClass 'unread'

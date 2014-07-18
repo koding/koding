@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"socialapi/config"
+	"socialapi/request"
 	"time"
 
 	"github.com/VerbalExpressions/GoVerbalExpressions"
@@ -22,13 +23,16 @@ type ChannelMessage struct {
 	// unique identifier of the channel message
 	Id int64 `json:"id,string"`
 
+	// Token holds the uuid for interoperability with the bongo-client
+	Token string `json:"token"`
+
 	// Body of the mesage
 	Body string `json:"body"`
 
 	// Generated Slug for body
 	Slug string `json:"slug"                               sql:"NOT NULL;TYPE:VARCHAR(100);"`
 
-	// type of the message
+	// type of the m essage
 	TypeConstant string `json:"typeConstant"               sql:"NOT NULL;TYPE:VARCHAR(100);"`
 
 	// Creator of the channel message
@@ -36,6 +40,9 @@ type ChannelMessage struct {
 
 	// in which channel this message is created
 	InitialChannelId int64 `json:"initialChannelId,string" sql:"NOT NULL"`
+
+	// holds troll, unsafe, etc
+	MetaBits MetaBits `json:"metaBits"`
 
 	// Creation date of the message
 	CreatedAt time.Time `json:"createdAt"                  sql:"DEFAULT:CURRENT_TIMESTAMP"`
@@ -50,30 +57,6 @@ type ChannelMessage struct {
 	Payload gorm.Hstore `json:"payload,omitempty"`
 }
 
-func (c *ChannelMessage) BeforeCreate() {
-	c.DeletedAt = ZeroDate()
-}
-
-func (c *ChannelMessage) AfterCreate() {
-	bongo.B.AfterCreate(c)
-}
-
-func (c *ChannelMessage) AfterUpdate() {
-	bongo.B.AfterUpdate(c)
-}
-
-func (c ChannelMessage) AfterDelete() {
-	bongo.B.AfterDelete(c)
-}
-
-func (c ChannelMessage) GetId() int64 {
-	return c.Id
-}
-
-func (c ChannelMessage) TableName() string {
-	return "api.channel_message"
-}
-
 const (
 	ChannelMessage_TYPE_POST            = "post"
 	ChannelMessage_TYPE_REPLY           = "reply"
@@ -83,25 +66,65 @@ const (
 	ChannelMessage_TYPE_PRIVATE_MESSAGE = "privatemessage"
 )
 
-func NewChannelMessage() *ChannelMessage {
-	return &ChannelMessage{}
+func (c *ChannelMessage) MarkIfExempt() error {
+	isExempt, err := c.isExempt()
+	if err != nil {
+		return err
+	}
+
+	if isExempt {
+		c.MetaBits.Mark(Troll)
+	}
+
+	return nil
 }
 
-func (c *ChannelMessage) ById(id int64) error {
-	return bongo.B.ById(c, id)
+func (c *ChannelMessage) isExempt() (bool, error) {
+	if c.MetaBits.Is(Troll) {
+		return true, nil
+	}
+
+	accountId, err := c.getAccountId()
+	if err != nil {
+		return false, err
+	}
+
+	account, err := ResetAccountCache(accountId)
+	if err != nil {
+		return false, err
+	}
+
+	if account == nil {
+		return false, fmt.Errorf("account is nil, accountId:%d", c.AccountId)
+	}
+
+	if account.IsTroll {
+		return true, nil
+	}
+
+	return false, nil
 }
 
-func (c *ChannelMessage) One(q *bongo.Query) error {
-	return bongo.B.One(c, c, q)
-}
+func (c *ChannelMessage) getAccountId() (int64, error) {
+	if c.AccountId != 0 {
+		return c.AccountId, nil
+	}
 
-func (c *ChannelMessage) Some(data interface{}, q *bongo.Query) error {
-	return bongo.B.Some(c, data, q)
+	if c.Id == 0 {
+		return 0, fmt.Errorf("couldnt find accountId from content %+v", c)
+	}
+
+	cm := NewChannelMessage()
+	if err := cm.ById(c.Id); err != nil {
+		return 0, err
+	}
+
+	return cm.AccountId, nil
 }
 
 func bodyLenCheck(body string) error {
-	if len(body) < config.Get().Limits.MessageBodyMinLen {
-		return fmt.Errorf("Message Body Length should be greater than %d, yours is %d ", config.Get().Limits.MessageBodyMinLen, len(body))
+	if len(body) < config.MustGet().Limits.MessageBodyMinLen {
+		return fmt.Errorf("message body length should be greater than %d, yours is %d ", config.MustGet().Limits.MessageBodyMinLen, len(body))
 	}
 
 	return nil
@@ -109,32 +132,6 @@ func bodyLenCheck(body string) error {
 
 // todo create a new message while updating the channel_message and delete other
 // cases, since deletion is a soft delete, old instances will still be there
-func (c *ChannelMessage) Update() error {
-	if err := bodyLenCheck(c.Body); err != nil {
-		return err
-	}
-	// only update body
-	err := bongo.B.UpdatePartial(c,
-		map[string]interface{}{
-			"body": c.Body,
-		},
-	)
-	return err
-}
-
-func (c *ChannelMessage) Create() error {
-	if err := bodyLenCheck(c.Body); err != nil {
-		return err
-	}
-
-	var err error
-	c, err = Slugify(c)
-	if err != nil {
-		return err
-	}
-
-	return bongo.B.Create(c)
-}
 
 // CreateRaw creates a new channel message without effected by auto generated createdAt
 // and updatedAt values
@@ -150,25 +147,15 @@ func (c *ChannelMessage) CreateRaw() error {
 		c.CreatedAt, c.UpdatedAt, c.DeletedAt, c.Payload).Scan(&c.Id)
 }
 
-func (c *ChannelMessage) Delete() error {
-	return bongo.B.Delete(c)
+// UpdateBodyRaw updates message body without effecting createdAt/UpdatedAt
+// timestamps
+func (c *ChannelMessage) UpdateBodyRaw() error {
+	updateSql := fmt.Sprintf("UPDATE %s SET body=? WHERE id=?", c.TableName())
+
+	return bongo.B.DB.Exec(updateSql, c.Body, c.Id).Error
 }
 
-func (c *ChannelMessage) FetchByIds(ids []int64) ([]ChannelMessage, error) {
-	var messages []ChannelMessage
-
-	if len(ids) == 0 {
-		return messages, nil
-	}
-
-	if err := bongo.B.FetchByIds(c, &messages, ids); err != nil {
-		return nil, err
-	}
-
-	return messages, nil
-}
-
-func (c *ChannelMessage) BuildMessages(query *Query, messages []ChannelMessage) ([]*ChannelMessageContainer, error) {
+func (c *ChannelMessage) BuildMessages(query *request.Query, messages []ChannelMessage) ([]*ChannelMessageContainer, error) {
 	containers := make([]*ChannelMessageContainer, len(messages))
 	if len(containers) == 0 {
 		return containers, nil
@@ -187,7 +174,7 @@ func (c *ChannelMessage) BuildMessages(query *Query, messages []ChannelMessage) 
 	return containers, nil
 }
 
-func (c *ChannelMessage) BuildMessage(query *Query) (*ChannelMessageContainer, error) {
+func (c *ChannelMessage) BuildMessage(query *request.Query) (*ChannelMessageContainer, error) {
 	cmc, err := c.FetchRelatives(query)
 	if err != nil {
 		return nil, err
@@ -195,27 +182,31 @@ func (c *ChannelMessage) BuildMessage(query *Query) (*ChannelMessageContainer, e
 
 	mr := NewMessageReply()
 	mr.MessageId = c.Id
-	q := query
-	q.Limit = 3
-	replies, err := mr.List(query)
+
+	q := query.Clone()
+
+	q.Limit = query.ReplyLimit
+	q.Skip = query.ReplySkip
+
+	replies, err := mr.List(q)
 	if err != nil {
 		return nil, err
 	}
 
-	repliesCount, err := mr.Count()
+	repliesCount, err := mr.Count(q)
 	if err != nil {
 		return nil, err
 	}
 	cmc.RepliesCount = repliesCount
 
-	cmc.IsFollowed, err = c.CheckIsMessageFollowed(query)
+	cmc.IsFollowed, err = c.CheckIsMessageFollowed(q)
 	if err != nil {
 		return nil, err
 	}
 
 	populatedChannelMessagesReplies := make([]*ChannelMessageContainer, len(replies))
 	for rl := 0; rl < len(replies); rl++ {
-		cmrc, err := replies[rl].FetchRelatives(query)
+		cmrc, err := replies[rl].FetchRelatives(q)
 		if err != nil {
 			return nil, err
 		}
@@ -226,10 +217,10 @@ func (c *ChannelMessage) BuildMessage(query *Query) (*ChannelMessageContainer, e
 	return cmc, nil
 }
 
-func (c *ChannelMessage) CheckIsMessageFollowed(query *Query) (bool, error) {
+func (c *ChannelMessage) CheckIsMessageFollowed(query *request.Query) (bool, error) {
 	channel := NewChannel()
 	if err := channel.FetchPinnedActivityChannel(query.AccountId, query.GroupName); err != nil {
-		if err == gorm.RecordNotFound {
+		if err == bongo.RecordNotFound {
 			return false, nil
 		}
 		return false, err
@@ -243,7 +234,7 @@ func (c *ChannelMessage) CheckIsMessageFollowed(query *Query) (bool, error) {
 		},
 	}
 	if err := cml.One(q); err != nil {
-		if err == gorm.RecordNotFound {
+		if err == bongo.RecordNotFound {
 			return false, nil
 		}
 
@@ -260,7 +251,7 @@ func (c *ChannelMessage) BuildEmptyMessageContainer() (*ChannelMessageContainer,
 	container := NewChannelMessageContainer()
 	container.Message = c
 
-	oldId, err := AccountOldIdById(c.AccountId)
+	oldId, err := FetchAccountOldIdByIdFromCache(c.AccountId)
 	if err != nil {
 		return nil, err
 	}
@@ -278,7 +269,7 @@ func (c *ChannelMessage) BuildEmptyMessageContainer() (*ChannelMessageContainer,
 	return container, nil
 }
 
-func (c *ChannelMessage) FetchRelatives(query *Query) (*ChannelMessageContainer, error) {
+func (c *ChannelMessage) FetchRelatives(query *request.Query) (*ChannelMessageContainer, error) {
 	container, err := c.BuildEmptyMessageContainer()
 	if err != nil {
 		return nil, err
@@ -286,44 +277,21 @@ func (c *ChannelMessage) FetchRelatives(query *Query) (*ChannelMessageContainer,
 
 	i := NewInteraction()
 	i.MessageId = c.Id
-
 	// get preview
 	query.Type = "like"
 	query.Limit = 3
-	interactorIds, err := i.List(query)
+
+	interactionContainer, err := i.FetchInteractionContainer(query)
 	if err != nil {
 		return nil, err
 	}
 
-	oldIds, err := FetchOldIdsByAccountIds(interactorIds)
-	if err != nil {
-		return nil, err
-	}
+	container.Interactions[query.Type] = interactionContainer
 
-	interactionContainer := NewInteractionContainer()
-	interactionContainer.ActorsPreview = oldIds
-
-	// check if the current user is interacted in this thread
-	isInteracted, err := i.IsInteracted(query.AccountId)
-	if err != nil {
-		return nil, err
-	}
-
-	interactionContainer.IsInteracted = isInteracted
-
-	// fetch interaction count
-	count, err := i.Count(query.Type)
-	if err != nil {
-		return nil, err
-	}
-
-	interactionContainer.ActorsCount = count
-
-	container.Interactions["like"] = interactionContainer
 	return container, nil
 }
 
-func generateMessageListQuery(channelId int64, q *Query) *bongo.Query {
+func generateMessageListQuery(channelId int64, q *request.Query) *bongo.Query {
 	messageType := q.Type
 	if messageType == "" {
 		messageType = ChannelMessage_TYPE_POST
@@ -342,7 +310,7 @@ func generateMessageListQuery(channelId int64, q *Query) *bongo.Query {
 	}
 }
 
-func (c *ChannelMessage) FetchMessagesByChannelId(channelId int64, q *Query) ([]ChannelMessage, error) {
+func (c *ChannelMessage) FetchMessagesByChannelId(channelId int64, q *request.Query) ([]ChannelMessage, error) {
 	query := generateMessageListQuery(channelId, q)
 
 	var messages []ChannelMessage
@@ -375,4 +343,97 @@ func (c *ChannelMessage) GetMentionedUsernames() []string {
 	}
 
 	return flattened
+}
+
+func (c *ChannelMessage) FetchTotalMessageCount(q *request.Query) (int, error) {
+	query := &bongo.Query{
+		Selector: map[string]interface{}{
+			"account_id":    q.AccountId,
+			"type_constant": q.Type,
+		},
+		Pagination: *bongo.NewPagination(q.Limit, q.Skip),
+	}
+
+	query.AddScope(RemoveTrollContent(
+		c, q.ShowExempt,
+	))
+
+	return c.CountWithQuery(query)
+}
+
+func (c *ChannelMessage) FetchMessageIds(q *request.Query) ([]int64, error) {
+	query := &bongo.Query{
+		Selector: map[string]interface{}{
+			"account_id":    q.AccountId,
+			"type_constant": q.Type,
+		},
+		Pluck:      "id",
+		Pagination: *bongo.NewPagination(q.Limit, q.Skip),
+		Sort: map[string]string{
+			"created_at": "DESC",
+		},
+	}
+
+	query.AddScope(RemoveTrollContent(c, q.ShowExempt))
+
+	var messageIds []int64
+	if err := c.Some(&messageIds, query); err != nil {
+		return nil, err
+	}
+
+	if messageIds == nil {
+		return make([]int64, 0), nil
+	}
+
+	return messageIds, nil
+}
+
+// BySlug fetchs channel message by its slug
+// checks if message is in the channel or not
+func (c *ChannelMessage) BySlug(query *request.Query) error {
+	if query.Slug == "" {
+		return errors.New("slug is not set")
+	}
+
+	// fetch message itself
+	q := &bongo.Query{
+		Selector: map[string]interface{}{
+			"slug": query.Slug,
+		},
+	}
+
+	q.AddScope(RemoveTrollContent(
+		c, query.ShowExempt,
+	))
+
+	if err := c.One(q); err != nil {
+		return err
+	}
+
+	// fetch channel by group name
+	query.Name = query.GroupName
+	query.Type = Channel_TYPE_GROUP
+	ch := NewChannel()
+	channel, err := ch.ByName(query)
+	if err != nil {
+		return err
+	}
+
+	if channel.Id == 0 {
+		return errors.New("channel is not found")
+	}
+
+	// check if message is in the channel
+	cml := NewChannelMessageList()
+	res, err := cml.IsInChannel(c.Id, channel.Id)
+	if err != nil {
+		return err
+	}
+
+	// if message is not in the channel
+	if !res {
+		return bongo.RecordNotFound
+	}
+
+	return nil
 }

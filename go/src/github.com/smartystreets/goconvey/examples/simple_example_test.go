@@ -7,10 +7,10 @@ import (
 )
 
 func TestIntegerManipulation(t *testing.T) {
-	var x int
+	t.Parallel()
 
 	Convey("Given a starting integer value", t, func() {
-		x = 42
+		x := 42
 
 		Convey("When incremented", func() {
 			x++
@@ -31,9 +31,6 @@ func TestIntegerManipulation(t *testing.T) {
 			Convey("The value should NOT be what it used to be", func() {
 				So(x, ShouldNotEqual, 42)
 			})
-		})
-		Reset(func() {
-			x = 0
 		})
 	})
 }

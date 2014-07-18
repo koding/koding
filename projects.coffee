@@ -23,23 +23,11 @@ projects =
     script        : "website/a/js/__app.members.js"
     sourceMapRoot : "Social/Members/"
 
-  Topics          :
-    path          : "client/Social/Topics"
-    style         : "website/a/css/__app.topics.css"
-    script        : "website/a/js/__app.topics.js"
-    sourceMapRoot : "Social/Topics/"
-
   Feeder          :
     path          : "client/Social/Feeder"
     style         : "website/a/css/__app.feeder.css"
     script        : "website/a/js/__app.feeder.js"
     sourceMapRoot : "Social/Feeder/"
-
-  # Groups          :
-  #   path          : "client/Groups"
-  #   style         : "website/a/css/__app.groups.css"
-  #   script        : "website/a/js/__app.groups.js"
-  #   sourceMapRoot : "Groups/"
 
   Account         :
     path          : "client/Account"
@@ -94,6 +82,12 @@ projects =
     style         : "website/a/css/__app.teamwork.css"
     script        : "website/a/js/__app.teamwork.js"
     sourceMapRoot : "Teamwork/"
+
+  IDE             :
+    path          : "client/IDE"
+    style         : "website/a/css/__app.ide.css"
+    script        : "website/a/js/__app.ide.js"
+    sourceMapRoot : "IDE/"
 
   About           :
     path          : "client/About"
@@ -156,7 +150,7 @@ projects =
 bundles           =
 
   Social          :
-    projects      : ['Activity', 'Members', 'Topics', 'Apps', 'Bugs']
+    projects      : ['Activity', 'Members', 'Apps', 'Bugs']
     style         : "website/a/css/__social.css"
     script        : "website/a/js/__social.js"
 
@@ -183,5 +177,9 @@ bundles           =
     style         : "website/a/css/__teamwork.css"
     script        : "website/a/js/__teamwork.js"
 
+  IDEBundle       :
+    projects      : ['Ace', 'Terminal', 'Viewer', 'IDE']
+    style         : "website/a/css/__ide.css"
+    script        : "website/a/js/__ide.js"
 
 module.exports  = {projects, bundles}

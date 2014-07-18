@@ -6,45 +6,41 @@ import (
 	"path/filepath"
 	"testing"
 	"time"
+
 	. "github.com/smartystreets/goconvey/convey"
 )
 
 func TestDepthLimitingFileSystem(t *testing.T) {
-	var (
-		inner *MockFileSystem
-		files *DepthLimit
-	)
-
 	Convey("Subject: Depth-limited file system", t, func() {
-		inner = NewMockFileSystem()
+		inner := NewMockFileSystem()
 
 		Convey("When the depth limit is set to -1", func() {
-			files = NewDepthLimit(inner, -1)
-			files.Walk("/", inner.step)
+			files := NewDepthLimit(inner, -1)
+			files.Walk(root, inner.step)
 
 			Convey("No depth limiting should be enforced", func() {
 				So(inner.walked, ShouldResemble, []string{
-					"/1",
-					"/1/2",
-					"/1/2/3",
+					folder,
+					subfolder,
+					subsubfolder,
 				})
 			})
 		})
 
 		Convey("When the depth limit is not negative", func() {
-			files = NewDepthLimit(inner, 1)
-			files.Walk("/", inner.step)
+			files := NewDepthLimit(inner, 1)
+			files.Walk(root, inner.step)
 
 			Convey("Directories outside the depth should be skipped", func() {
 				So(inner.walked, ShouldResemble, []string{
-					"/1",
-					"/1/2",
+					folder,
+					subfolder,
 				})
 			})
 		})
 
 		Convey("When requesting a listing", func() {
-			files = NewDepthLimit(inner, -1)
+			files := NewDepthLimit(inner, -1)
 			listing, indicator := files.Listing("hi")
 
 			Convey("The request should be forwarded to the inner file system", func() {
@@ -58,7 +54,7 @@ func TestDepthLimitingFileSystem(t *testing.T) {
 		})
 
 		Convey("When checking the existence of a directory", func() {
-			files = NewDepthLimit(inner, -1)
+			files := NewDepthLimit(inner, -1)
 			exists := files.Exists("hi")
 
 			Convey("The request should be forwarded to the inner file system", func() {
@@ -70,7 +66,6 @@ func TestDepthLimitingFileSystem(t *testing.T) {
 			})
 		})
 	})
-
 }
 
 //////////////////////////////
@@ -106,12 +101,19 @@ func (self *MockFileSystem) Exists(directory string) bool {
 func NewMockFileSystem() *MockFileSystem {
 	self := new(MockFileSystem)
 	self.paths = []*FakeFileInfo{
-		newFileInfo("/1", 42, time.Now()),
-		newFileInfo("/1/2", 42, time.Now()),
-		newFileInfo("/1/2/3", 42, time.Now()),
+		newFileInfo(folder, 42, time.Now()),
+		newFileInfo(subfolder, 42, time.Now()),
+		newFileInfo(subsubfolder, 42, time.Now()),
 	}
 	return self
 }
 
+const (
+	root         = slash                   // - /
+	folder       = root + "1"              // - /1
+	subfolder    = folder + slash + "2"    // - /1/2
+	subsubfolder = subfolder + slash + "3" // - /1/2/3
+)
+
 var listingIndicator = errors.New("Listing was called.")
-var innerListing = []os.FileInfo{newFileInfo("/1", 42, time.Now())}
+var innerListing = []os.FileInfo{newFileInfo(folder, 42, time.Now())}

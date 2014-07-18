@@ -6,7 +6,7 @@ import (
 	"socialapi/workers/common/manager"
 	"socialapi/workers/common/runner"
 	"socialapi/workers/helper"
-	"socialapi/workers/notification/controller"
+	"socialapi/workers/notification/notification"
 )
 
 var (
@@ -26,18 +26,7 @@ func main() {
 	//create connection to RMQ for publishing realtime events
 	rmq := helper.NewRabbitMQ(r.Conf, r.Log)
 
-	cacheEnabled := r.Conf.Notification.CacheEnabled
-	if cacheEnabled {
-		// init redis
-		redisConn := helper.MustInitRedisConn(r.Conf.Redis)
-		defer redisConn.Close()
-	}
-
-	handler, err := notification.New(
-		rmq,
-		r.Log,
-		cacheEnabled,
-	)
+	handler, err := notification.New(rmq, r.Log)
 	if err != nil {
 		panic(err)
 	}
@@ -51,6 +40,7 @@ func main() {
 	m.HandleFunc("api.channel_participant_updated", (*notification.Controller).LeaveChannel)
 	m.HandleFunc("api.channel_message_list_created", (*notification.Controller).SubscribeMessage)
 	m.HandleFunc("api.channel_message_list_deleted", (*notification.Controller).UnsubscribeMessage)
+	m.HandleFunc("api.channel_message_created", (*notification.Controller).MentionNotification)
 
 	r.Listen(m)
 	r.Wait()

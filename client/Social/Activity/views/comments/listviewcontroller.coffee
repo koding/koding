@@ -2,12 +2,13 @@ class CommentListViewController extends KDListViewController
 
   constructor: (options = {}, data) ->
 
-    options.viewOptions =
-      type              : 'comments'
-      itemClass         : CommentListItemView
-      itemOptions       :
-        delegate        : this
-        activity        : data
+    options.viewOptions or=
+      type                : 'comments'
+      dataPath            : 'id'
+      itemClass           : CommentListItemView
+      itemOptions         :
+        delegate          : this
+        activity          : data
 
     super options, data
 

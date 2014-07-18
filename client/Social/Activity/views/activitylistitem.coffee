@@ -4,9 +4,10 @@ class ActivityListItemView extends KDListItemView
 
   constructor:(options = {},data)->
 
-    options.type              = 'activity'
-    options.cssClass          = KD.utils.curry 'activity-item status', options.cssClass
-    options.commentSettings or= {}
+    options.type               = 'activity'
+    options.cssClass           = KD.utils.curry 'activity-item status', options.cssClass
+    options.commentViewClass or= CommentView
+    options.commentSettings  or= {}
 
     super options, data
 
@@ -18,18 +19,21 @@ class ActivityListItemView extends KDListItemView
 
     @avatar = new AvatarView
       size       :
-        width    : 42
-        height   : 42
+        width    : 37
+        height   : 37
       cssClass   : 'author-avatar'
       origin     : origin
 
     @author      = new ProfileLinkView { origin }
-    @likeSummary = new ActivityLikeSummaryView {}, data
 
-    @commentBox = new CommentView options.commentSettings, data
+    {commentViewClass} = @getOptions()
+
+    @commentBox = new commentViewClass options.commentSettings, data
     @actionLinks = new ActivityActionsView delegate: @commentBox, data
 
     @commentBox.forwardEvent @actionLinks, "Reply"
+
+    @likeSummary = new ActivityLikeSummaryView {}, @getData()
 
     @settingsButton = new ActivitySettingsView
       cssClass : 'settings-menu-wrapper'
@@ -45,7 +49,7 @@ class ActivityListItemView extends KDListItemView
 
     {_id, constructorName} = data.account
     KD.remote.cacheable constructorName, _id, (err, account)=>
-      @setClass "exempt" if account and KD.checkFlag 'exempt', account
+      @setClass "exempt" if account?.isExempt
 
     embedOptions  =
       hasDropdown : no
@@ -68,15 +72,17 @@ class ActivityListItemView extends KDListItemView
     @editWidget?.destroy()
     @editWidget = new ActivityEditWidget null, @getData()
     @editWidget.on 'Submit', @bound 'resetEditing'
-    @editWidget.on 'Cancel', @bound 'resetEditing'
+    @editWidget.input.on 'Escape', @bound 'resetEditing'
     @editWidgetWrapper.addSubView @editWidget, null, yes
     @editWidgetWrapper.show()
+    @setClass 'editing'
 
 
   resetEditing : ->
 
     @editWidget.destroy()
     @editWidgetWrapper.hide()
+    @unsetClass 'editing'
 
 
   delete: ->
@@ -95,23 +101,54 @@ class ActivityListItemView extends KDListItemView
     ]
 
     body = fn body for fn in fns
+    body = KD.utils.expandUsernames body, 'code'
+
     return body
+
 
   transformTags: (text = '') ->
 
-
     {slug}   = KD.getGroup()
 
+    skipRanges  = @getBlockquoteRanges text
+    inSkipRange = (position) ->
+      for [start, end] in skipRanges
+        return yes  if start <= position <= end
+      return no
+
     return text.replace /#(\w+)/g, (match, tag, offset) ->
+
+      return match  if inSkipRange offset
+
       pre  = text[offset - 1]
       post = text[offset + match.length]
 
-      return match  if (pre?.match /\S/)  and offset isnt 0
-      return match  if (post?.match /\S/) and (offset + match.length) isnt text.length
+      switch
+        when (pre?.match /\S/) and offset isnt 0
+          return match
+        when post?.match /[,.;:!?]/
+          break
+        when (post?.match /\S/) and (offset + match.length) isnt text.length
+          return match
 
-      href = KD.utils.groupifyLink "/Activity/Topic/#{tag}", yes
-
+      href = KD.utils.groupifyLink "Activity/Topic/#{tag}", yes
       return "[##{tag}](#{href})"
+
+
+  getBlockquoteRanges: (text = '') ->
+
+    ranges = []
+    read   = 0
+
+    for part, index in text.split '```'
+      blockquote = index %% 2 is 1
+
+      if blockquote
+        ranges.push [read, read + part.length - 1]
+
+      read += part.length + 3
+
+    return ranges
 
 
   formatBlockquotes: (text = '') ->
@@ -128,6 +165,7 @@ class ActivityListItemView extends KDListItemView
         parts[index] = "\n```#{part}\n```\n"
 
     parts.join ''
+
 
   setAnchors: ->
 
@@ -186,13 +224,13 @@ class ActivityListItemView extends KDListItemView
       {{> @avatar}}
       <div class='meta'>
         {{> @author}}
-        {{> @timeAgoView}} <span class="location">San Francisco</span>
+        {{> @timeAgoView}} <span class="location"> from San Francisco</span>
       </div>
       {{> @editWidgetWrapper}}
       {article{@formatContent #(body)}}
       {{> @embedBox}}
-      {{> @actionLinks}}
       {{> @likeSummary}}
+      {{> @actionLinks}}
     </div>
     {{> @commentBox}}
     """
