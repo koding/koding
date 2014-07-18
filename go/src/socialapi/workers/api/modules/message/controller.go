@@ -241,9 +241,6 @@ func Get(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface{
 	return response.HandleResultAndError(cmc, cmc.Fetch(cm.Id, request.GetQuery(u)))
 }
 
-	return response.HandleResultAndError(cmc, cmc.Err)
-}
-
 func getMessageByUrl(u *url.URL) (*models.ChannelMessage, error) {
 
 	// TODO

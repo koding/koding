@@ -294,10 +294,6 @@ func (c ChannelContainers) Err() error {
 		}
 	}
 
-	// if !hasErr {
-	// 	return c
-	// }
-
 	// // TODO filter or re-populate err-ed content
 
 	return nil
