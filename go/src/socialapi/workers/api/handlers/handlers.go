@@ -25,10 +25,18 @@ func Inject(mux *tigertonic.TrieServeMux) *tigertonic.TrieServeMux {
 	mux.Handle("DELETE", "/message/{id}", handler.Wrapper(message.Delete, "message-delete"))
 
 	// exempt contents are filtered
+	mux.Handle("GET", "/message/cache/{id}", handler.Wrapper(message.GetCache, "message-get-cache"))
+
+	// exempt contents are filtered
+	// caching enabled
 	mux.Handle("GET", "/message/{id}", handler.Wrapper(message.Get, "message-get"))
+
 	// exempt contents are filtered
+	// caching enabled
 	mux.Handle("GET", "/message/slug/{slug}", handler.Wrapper(message.GetBySlug, "message-get-by-slug"))
+
 	// exempt contents are filtered
+	// caching enabled
 	mux.Handle("GET", "/message/{id}/related", handler.Wrapper(message.GetWithRelated, "message-get-with-related"))
 
 	////////////////////////////////////////////////////////////////////////////////////
@@ -52,12 +60,17 @@ func Inject(mux *tigertonic.TrieServeMux) *tigertonic.TrieServeMux {
 	////////////////////////////////////////////////////////////////////////////////////
 
 	mux.Handle("POST", "/channel", handler.Wrapper(channel.Create, "channel-create"))
+
 	// exempt contents are filtered
+	// caching enabled
 	mux.Handle("GET", "/channel", handler.Wrapper(channel.List, "channel-list"))
+
 	// exempt contents are filtered
+	// caching enabled
 	mux.Handle("GET", "/channel/search", handler.Wrapper(channel.Search, "channel-search"))
 
 	// exempt contents are filtered
+	// caching enabled
 	mux.Handle("GET", "/channel/name/{name}", handler.Wrapper(channel.ByName, "channel-get-byname"))
 	mux.Handle("GET", "/channel/checkparticipation", handler.Wrapper(channel.CheckParticipation, "channel-check-participation"))
 
@@ -67,7 +80,9 @@ func Inject(mux *tigertonic.TrieServeMux) *tigertonic.TrieServeMux {
 	mux.Handle("POST", "/channel/{id}/delete", handler.Wrapper(channel.Delete, "channel-delete"))
 
 	// exempt contents are filtered
+	// caching enabled
 	mux.Handle("GET", "/channel/{id}", handler.Wrapper(channel.Get, "channel-get"))
+
 	// add a new messages to the channel
 	mux.Handle("POST", "/channel/{id}/message", handler.Wrapper(message.Create, "channel-message-create"))
 
@@ -79,7 +94,9 @@ func Inject(mux *tigertonic.TrieServeMux) *tigertonic.TrieServeMux {
 
 	// list messages of the channel
 	// exempt contents are filtered
+	// caching enabled
 	mux.Handle("GET", "/channel/{id}/history", handler.Wrapper(messagelist.List, "channel-history-list"))
+
 	// message count of the channel
 	mux.Handle("GET", "/channel/{id}/history/count", handler.Wrapper(messagelist.Count, "channel-history-count"))
 	// register an account
@@ -101,6 +118,7 @@ func Inject(mux *tigertonic.TrieServeMux) *tigertonic.TrieServeMux {
 	mux.Handle("GET", "/activity/pin/channel", handler.Wrapper(activity.GetPinnedActivityChannel, "activity-pin-get-channel"))
 
 	// exempt contents are filtered
+	// caching enabled
 	mux.Handle("GET", "/activity/pin/list", handler.Wrapper(activity.List, "activity-pin-list-message"))
 	// pin a new status update
 	mux.Handle("POST", "/activity/pin/add", handler.Wrapper(activity.PinMessage, "activity-add-pinned-message"))
@@ -112,9 +130,11 @@ func Inject(mux *tigertonic.TrieServeMux) *tigertonic.TrieServeMux {
 
 	// get popular topics
 	// exempt contents are filtered
+	// TODO add caching
 	mux.Handle("GET", "/popular/topics/{statisticName}", handler.Wrapper(popular.ListTopics, "list-popular-topics"))
 
 	// exempt contents are filtered
+	// TODO add caching
 	mux.Handle("GET", "/popular/posts/{channelName}/{statisticName}", handler.Wrapper(popular.ListPosts, "list-popular-posts"))
 
 	mux.Handle("POST", "/privatemessage/send", handler.Wrapper(privatemessage.Send, "privatemessage-send"))
