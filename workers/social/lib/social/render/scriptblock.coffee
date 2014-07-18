@@ -13,6 +13,7 @@ module.exports = (options = {}, callback)->
   campaignData     = null
   socialapidata    = null
   currentGroup     = null
+  userVMs          = null
   usePremiumBroker = no
 
   {bongoModels, client, slug} = options
@@ -26,9 +27,10 @@ module.exports = (options = {}, callback)->
     encodedFeed          = JSON.stringify prefetchedFeeds, replacer
     encodedCampaignData  = JSON.stringify campaignData, replacer
     encodedCustomPartial = JSON.stringify customPartial, replacer
-    encoedSocialApiData  = JSON.stringify socialapidata, replacer
+    encodedSocialApiData  = JSON.stringify socialapidata, replacer
     currentGroup         = JSON.stringify currentGroup
     userAccount          = JSON.stringify delegate
+    userVMs              = JSON.stringify userVMs
 
     usePremiumBroker = usePremiumBroker or options.client.context.group isnt "koding"
 
@@ -50,7 +52,8 @@ module.exports = (options = {}, callback)->
     <script>KD.config.usePremiumBroker=#{usePremiumBroker}</script>
     <script>KD.customPartial=#{encodedCustomPartial}</script>
     <script>KD.campaignData=#{encodedCampaignData}</script>
-    <script>KD.socialApiData=#{encoedSocialApiData}</script>
+    <script>KD.socialApiData=#{encodedSocialApiData}</script>
+    <script>KD.userVMs=#{userVMs}</script>
     <script src='/a/js/kd.libs.js?#{KONFIG.version}'></script>
     <script src='/a/js/kd.js?#{KONFIG.version}'></script>
     <script src='/a/js/koding.js?#{KONFIG.version}'></script>
@@ -97,6 +100,8 @@ module.exports = (options = {}, callback)->
     <noscript>
       <img height="1" width="1" alt="" style="display:none" src="https://www.facebook.com/offsite_event.php?id=6011653749578&amp;value=0.01&amp;currency=USD" />
     </noscript>
+
+    <script type="text/javascript" src="https://www.google.com/recaptcha/api/js/recaptcha_ajax.js"></script>
     """
 
   kallback = ->
@@ -134,7 +139,10 @@ module.exports = (options = {}, callback)->
             campaignData = campaignData_.data
           if group
             currentGroup = group
-          kallback()
+          bongoModels.JVM.fetchVmsByContext client, (err, vms) ->
+            console.log err  if err
+            userVMs = vms or []
+            kallback()
 
 
 
@@ -143,7 +151,7 @@ module.exports = (options = {}, callback)->
     socialapidata = data
     {delegate} = options.client.connection
     # if user is exempt or super-admin do not cache his/her result set
-    return generateScript()  if delegate and delegate.checkFlag ['super-admin', 'exempt']
+    return generateScript() if delegate?.checkFlag('super-admin') and delegate.isExempt
 
     Cache       = require '../cache/main'
     feedFn      = require '../cache/feed'

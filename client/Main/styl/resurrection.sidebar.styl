@@ -1,6 +1,5 @@
 @import "../../Framework/src/themes/default/kdfn"
 @import "../styl/appfn"
-@import "../styl/app.fonts"
 
 @css {
 /*
@@ -20,7 +19,7 @@ resurrection.styl
   fix()
 
 #dock
-  padding           1px 22px 16px 16px
+  padding           1px 16px 16px
   margin-top        2px
   position          relative
   borderBox()
@@ -100,10 +99,19 @@ resurrection.styl
       r-sprite      app new-nav-terminal
     &.ide > figure
       r-sprite      app new-nav-ide
-    &.vm > figure
-      r-sprite      app new-nav-vm
-    &.vm.running > figure
-      r-sprite      app new-nav-vm-green
+    &.vm
+      > figure
+        r-sprite    app new-nav-vm
+      > span
+        r-sprite    app vm-settings-icon
+        right       0
+        top         5px
+        opacity     .5
+        abs()
+      &:hover > span
+        opacity     1
+      &.running > figure
+        r-sprite    app new-nav-vm-green
 
 .account-area
   bottom            0

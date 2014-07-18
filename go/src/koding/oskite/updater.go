@@ -14,41 +14,6 @@ type VmCollection map[bson.ObjectId]*virt.VM
 
 var blacklist = set.New()
 
-// mongodbVMs returns a map of VMs that are bind to the given
-// serviceUniquename/hostkite in mongodb
-func mongodbVMs(serviceUniquename string) (VmCollection, error) {
-	vms := make([]*virt.VM, 0)
-
-	query := func(c *mgo.Collection) error {
-		return c.Find(bson.M{"hostKite": serviceUniquename}).All(&vms)
-	}
-
-	if err := mongodbConn.Run("jVMs", query); err != nil {
-		return nil, fmt.Errorf("allVMs fetching err: %s", err.Error())
-	}
-
-	vmsMap := make(map[bson.ObjectId]*virt.VM, len(vms))
-
-	for _, vm := range vms {
-		vmsMap[vm.Id] = vm
-	}
-
-	return vmsMap, nil
-}
-
-// updateStates updates the state field of the given ids to the given state argument.
-func updateStates(ids []bson.ObjectId, state string) error {
-	if len(ids) == 0 {
-		return nil // no need to update
-	}
-
-	log.Info("Updating %d vms to the state %s", len(ids), state)
-	return mongodbConn.Run("jVMs", func(c *mgo.Collection) error {
-		_, err := c.UpdateAll(bson.M{"_id": bson.M{"$in": ids}}, bson.M{"$set": bson.M{"state": state}})
-		return err
-	})
-}
-
 // vmUpdater updates the states of current available VMs on the host machine.
 func (o *Oskite) vmUpdater() {
 	vms := make([]virt.VM, 0)
@@ -80,6 +45,7 @@ func (o *Oskite) vmUpdater() {
 
 		for _, vm := range vms {
 			log.Info("[updater] getting state for VM [%s - %s]", vm.Id, vm.HostnameAlias)
+
 			state, err := vm.GetState()
 			if err != nil {
 				log.Error("[updater] getting state failed for VM [%s - %s], err: %s", vm.Id, vm.HostnameAlias, err)
@@ -123,6 +89,30 @@ func (o *Oskite) vmUpdater() {
 		vms = make([]virt.VM, 0)
 	}
 
+}
+
+// updateStates updates the state field of the given ids to the given state argument.
+func updateStates(ids []bson.ObjectId, state string) error {
+	if len(ids) == 0 {
+		return nil // no need to update
+	}
+
+	log.Info("Updating %d vms to the state %s", len(ids), state)
+
+	// let others know that we started to work on updating
+	updateWaitGroup.Add(1)
+
+	err := mongodbConn.Run("jVMs", func(c *mgo.Collection) error {
+		_, err := c.UpdateAll(
+			bson.M{"_id": bson.M{"$in": ids}},
+			bson.M{"$set": bson.M{"state": state}},
+		)
+		return err
+	})
+
+	// ok we finished now, let others know that we have finished now
+	updateWaitGroup.Done()
+	return err
 }
 
 func unprepareInQueue(vm *virt.VM) {

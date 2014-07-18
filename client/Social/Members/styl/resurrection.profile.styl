@@ -11,258 +11,82 @@ resurrection.profile.styl
 
 
 body.profile
+  .activity-sidebar
+    bg                    color, #EFEFEF
+    text-align            center
 
-  #kdmaincontainer
-  .kdtabpaneview.content-display
-    overflow                  visible
+    .avatarview
+      size                143px, 143px
+      margin              43px auto 18px
+      padding             0
+      border              3px solid #0EB463
 
-  .feeder-header
-    // øldur
-    hidden()
+    h3.full-name
+      display             block
+      margin              0
+      padding             0
+      font-size           20px
+      font-weight         600
+      color               #474747
+      opacity             .99
+      line-height         27px
+
+      span
+        display           inline
+
+    .location
+      font-size           14px
+      font-weight         200
+      color               #474747
+      margin              2px 0 0
+      line-height         19px
+
+    .profilestats
+      display             none //TEMP
+
+    .follow-btn
+      size                100%, 38px
+      rounded             19px
+      margin              29px 0 0
+
+      .button-title
+        font-size         14px
+        font-weight       600
+        opacity           .99
+        letter-spacing    0.02em
+
+    .conversation-btn
+      size                100%, 40px
+      rounded             19px
+      margin              14px 0 0
+      borderBox()
+
+      .button-title
+        color             #666666
+        font-size         14px
+        font-weight       600
+        opacity           .99
+        letter-spacing    0.02em
+
+  .kdtabpaneview.statuses
+    kalc                  width, 100% \- 292px
+    margin                0 0 0 292px
+    padding               0
+    borderBox()
+
+    .feeder-header
+      display             none
 
   .header-facets
-    display                     none
+    display               none
 
-  .kdtabpaneview.content-display
-    max-width                 100%
-    padding                   55px 28px 0 0
-    borderBox()
 
-  .feeder-tabs
-    padding-left               386px
-    borderBox()
-
-  .member.content-display
-    overflow                  visible
-
-    .profilearea
-      width                   354px
-      bg                      color, #282a2b
-      left                    0
-      top                     0
-      z-index                 100
-      margin-top              55px
-      position                fixed
-
-      .users-profile
-        size                  100%, auto
-        text-align            center
-        position              relative
-        border-top            1px solid transparent
-        bg                    image, url("../images/default-cover.jpg")
-        bg                    repeat, no-repeat
-        padding-bottom        130px
-
-        .avatarview
-          display             block
-          margin              39px auto 20px
-          size                81px, 81px
-          z-index             1
-
-        .full-name
-          size                100%, auto
-          overflow            visible
-          padding             0 10px
-          font-weight         300
-          font-size           24px
-          color               #e9e7e1
-          borderBox()
-
-          span
-            display           inline
-
-        .bio
-          size                100%, auto
-          padding             0 10px
-          color               rgba(233, 231, 225, .8)
-          font-size           18px
-          font-weight         200
-          margin-top          9px
-          overflow            visible
-          borderBox()
-
-          a
-            color             inherit
-
-        .placeholder
-          opacity             .6
-
-        [contenteditable="true"]:focus
-          outline             none
-
-        .follow-btn
-          width               132px
-          margin              31px 0 0
-
-          &:hover
-            background        rgba(255, 255, 255, .1)
-
-        .troll-button
-          width               152px
-          margin              31px 0 0 10px
-
-          &:hover
-            background        rgba(255, 255, 255, .1)
-
-        .profilestats
-          size                100%, 87px
-          bg                  color, #363839
-          bottom              0
-          left                0
-          abs()
-
-          a
-            color             #e9e7e1
-            font-family       'Proxima Nova'
-            display           block
-            size              33%, 100%
-            padding           24px 0 0
-            border-left       1px solid #2a2826
-            font-size         14px
-            font-weight       200
-            borderBox()
-            noTextDeco()
-            fl()
-
-            span
-              display         block
-              text-transform  uppercase
-              font-size       18px
-              font-weight     600
-              padding         0 0 8px
-
-      .user-menu
-        padding               26px 52px 0 44px
-        a
-          display             block
-          size                100%, 51px
-          font-size           18px
-          line-height         51px
-          font-weight         300
-          color               #a3a3a3
-          noTextDeco()
-          borderBox()
-
-          &~a
-            border-top        1px solid #424445
-
-          &.active
-            color             #ffffff
-            font-weight       400
-
-          .count
-            font-weight       300
-            size              auto, 22px
-            line-height       22px
-            margin            14px 0 0
-            bg                color, #363839
-            rounded           11px
-            padding           0 10px
-            font-size         14px
-            color             #707879
-            fr()
-
-      .user-badges
-        padding               26px 52px 0 44px
-
-        h3
-          display             block
-          font-size           18px
-          color               #1aaf5d
-          font-weight         400
-          letter-spacing      0.2px
-          margin              0 0 36px
-
-        .kdlistitemview
-          width               74px
-          margin              0 0 18px 18px
-          text-align          center
-          color               rgba(233, 233, 233, .6)
-          font-size           14px
-          font-weight         100
-          letter-spacing      0.5px
-          fl()
-
-          &:nth-child(3n+1)
-            margin-left       0
-
-          img
-            size              74px, 74px
-            margin-bottom     14px
-
-      >.kdbutton.solid.green
-        margin                20px auto
-        display               block
-
-      .kdlistview-user-properties
-        padding               0 52px 0 44px
-        borderBox()
-        h3
-          display             block
-          font-size           18px
-          color               #1aaf5d
-          font-weight         400
-          letter-spacing      0.2px
-          margin              0 0 16px
-
-          span
-            opacity           .6
-            font-size         14px
-
-        p
-          line-height         24px
-          color               #a3a3a3
-          font-size           12px
-
-          &~p
-            border-top        1px solid #424445
-
-          .number
-            color             #f6f6f6
-            fr()
-
-  .activity-item
-    font-size             14px
-    max-width             728px
-
-    .kdview
-      overflow        visible
-
-  .member-related
-    max-width             728px
-    rounded               8px
-    margin                32px 0 0
-
-    .kdlistitemview-member
-      margin              0
-      padding             22px 22px 22px 82px
-      background          #fff
-
-      &~.kdlistitemview-member
-        border-top       1px solid #e4e4e4
-
-      .avatarview
-        left              22px
-
-      .profile
-        float             none
-
-      .follow-button
-        abs               18px 22px 0 0
-        &.light-gray:hover
-          bg                   color #E94835
-          span.button-title
-            color
-
-  .activity-related
-    margin-top            14px
-
-    .lazy-loader
-      padding             30px
-      rounded             8px
-      max-width           728px
-      margin              30px 0 0 !important
-      borderBox()
+  .content-page
+    max-width             100%
+    margin                32px auto 0
+    padding               0 34px 0 0
+    position              static
+    overflow              visible
 
 //
 // Profile avatar change styles
