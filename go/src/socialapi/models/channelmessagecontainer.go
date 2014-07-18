@@ -1,6 +1,10 @@
 package models
 
-import "socialapi/request"
+import (
+	"socialapi/request"
+
+	"github.com/koding/bongo"
+)
 
 type ChannelMessageContainer struct {
 	Message      *ChannelMessage                  `json:"message"`
@@ -45,6 +49,7 @@ func withChannelMessageContainerChecks(cmc *ChannelMessageContainer, f func(c *C
 		return cmc
 	}
 
+	// do not process from now on, if the container has Err
 	if cmc.Err != nil {
 		return cmc
 	}
@@ -52,6 +57,37 @@ func withChannelMessageContainerChecks(cmc *ChannelMessageContainer, f func(c *C
 	cmc.Err = f(cmc)
 
 	return cmc
+}
+
+func (c *ChannelMessageContainer) Fetch(id int64, q *request.Query) error {
+	if q.ShowExempt {
+		cmc, err := BuildChannelMessageContainer(id, q)
+		if err != nil {
+			return err
+		}
+		c = cmc
+
+	} else {
+		if err := bongo.B.Fetch(c, id); err != nil {
+			return err
+		}
+
+		return c.UpdateReplies(q).Err
+	}
+
+	return nil
+}
+
+func (c *ChannelMessageContainer) TableName() string {
+	return "api.channel_message"
+}
+
+func (c *ChannelMessageContainer) GetId() int64 {
+	if c.Message != nil {
+		return c.Message.Id
+	}
+
+	return 0
 }
 
 func (c *ChannelMessageContainer) PopulateWith(m *ChannelMessage) *ChannelMessageContainer {
@@ -116,11 +152,18 @@ func (cc *ChannelMessageContainer) AddReplies(query *request.Query) *ChannelMess
 	})
 
 }
+
+func (c *ChannelMessageContainer) UpdateReplies(q *request.Query) *ChannelMessageContainer {
+	if len(c.Replies) > 0 {
+		for i, _ := range c.Replies {
+			if err := c.Replies[i].Fetch(c.Replies[i].GetId(), q); err != nil {
+				c.Replies[i].Err = err
+			}
+		}
 	}
 
-	// fetch the replies
-	mr := NewMessageReply()
-	mr.MessageId = c.Message.Id
+	return c
+}
 
 func (cc *ChannelMessageContainer) AddRepliesCount(query *request.Query) *ChannelMessageContainer {
 	return withChannelMessageContainerChecks(cc, func(c *ChannelMessageContainer) error {
