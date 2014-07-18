@@ -42,7 +42,7 @@ class SocialApiController extends KDController
         groupName    : slug
 
       brokerChannel = KD.remote.subscribe channelName, subscriptionData
-      @forwardMessageEvents brokerChannel, this, ["MessageAdded", "MessageRemoved"]
+      @forwardMessageEvents brokerChannel, this, ["MessageAdded", "MessageRemoved", "AddedToChannel"]
       @openedChannels[channelName] = {delegate: brokerChannel, channel: this}
       @emit "ChannelRegistered-#{channelName}", this
 
@@ -163,6 +163,9 @@ class SocialApiController extends KDController
 
     return channelInstance
 
+  mapParticipant = (participant) ->
+    return  unless participant
+    return {_id: participant.accountOldId, constructorName: "JAccount"}
 
   mapChannels = (channels)->
 
@@ -183,9 +186,12 @@ class SocialApiController extends KDController
 
   forwardMessageEvents = (source, target,  events)->
     events.forEach (event) ->
-      source.on event, (message, rest...) ->
-        message = mapActivity message
-        target.emit event, message, rest...
+      source.on event, (data, rest...) ->
+        data = switch event
+          when "AddedToChannel"                 then mapParticipant data
+          when "MessageAdded", "MessageRemoved" then mapActivity data
+          else data
+        target.emit event, data, rest...
 
   forwardMessageEvents : forwardMessageEvents
 
