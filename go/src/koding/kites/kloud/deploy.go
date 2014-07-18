@@ -71,6 +71,13 @@ func (k *KodingDeploy) Deploy(artifact *protocol.Artifact) (*protocol.DeployArti
 		return nil, kloud.NewError(kloud.ErrSignGenerateToken)
 	}
 
+	log("Creating user account")
+	out, err := client.StartCommand(createUserCommand(username))
+	if err != nil {
+		fmt.Println("out", out)
+		return nil, err
+	}
+
 	log("Creating a key with kontrolURL: " + k.KontrolURL)
 	kiteKey, err := k.createKey(username, tknID.String())
 	if err != nil {
@@ -106,7 +113,7 @@ func (k *KodingDeploy) Deploy(artifact *protocol.Artifact) (*protocol.DeployArti
 	signedUrl := k.Bucket.SignedURL(latestDeb, time.Now().Add(time.Minute*3))
 
 	log("Downloading '" + filepath.Base(latestDeb) + "' to /tmp inside the machine")
-	out, err := client.StartCommand(fmt.Sprintf("wget -O /tmp/klient-latest.deb '%s'", signedUrl))
+	out, err = client.StartCommand(fmt.Sprintf("wget -O /tmp/klient-latest.deb '%s'", signedUrl))
 	if err != nil {
 		fmt.Println("out", out)
 		return nil, err
@@ -121,6 +128,13 @@ func (k *KodingDeploy) Deploy(artifact *protocol.Artifact) (*protocol.DeployArti
 
 	log("Removing leftover klient deb from the machine")
 	out, err = client.StartCommand("rm -f /tmp/klient-latest.deb")
+	if err != nil {
+		fmt.Println("out", out)
+		return nil, err
+	}
+
+	log("Patching klient.conf")
+	out, err = client.StartCommand(patchConfCommand(username))
 	if err != nil {
 		fmt.Println("out", out)
 		return nil, err
@@ -159,6 +173,33 @@ func (k *KodingDeploy) Deploy(artifact *protocol.Artifact) (*protocol.DeployArti
 	return &protocol.DeployArtifact{
 		KiteQuery: query.String(),
 	}, nil
+}
+
+// Build the command used to create the user
+func createUserCommand(username string) string {
+	command := fmt.Sprintf(`
+adduser --shell /bin/bash --gecos 'koding user' --disabled-password --home /home/%s %s && \
+passwd -d %s && \
+gpasswd -a %s sudo  && \
+echo '%s    ALL = NOPASSWD: ALL' > /etc/sudoers.d/%s && \
+ `, username, username, username, username, username, username)
+
+	return fmt.Sprintf(
+		command,
+		// 6 occurences of the username to be replaced
+		username, username, username, username, username, username,
+	)
+
+}
+
+// Build the klient.conf patching command
+func patchConfCommand(username string) string {
+	return fmt.Sprintf(
+		// "sudo -E", preserves the environment variables when forking
+		// so KITE_HOME set by the upstart script is preserved etc ...
+		"sed -i 's/\\.\\/klient/sudo -E -u %s \\.\\/klient/g' /etc/init/klient.conf",
+		username,
+	)
 }
 
 // changeHostname is used to change the remote machines hostname by modifying
