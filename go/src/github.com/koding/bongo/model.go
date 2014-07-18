@@ -10,9 +10,19 @@ import (
 )
 
 // Fetch fetches the data from db by given parameters(fields of the struct)
-func (b *Bongo) Fetch(i Modellable) error {
-	if i.GetId() == 0 {
+func (b *Bongo) Fetch(i Modellable, id int64) error {
+	if id == 0 {
 		return IdIsNotSet
+	}
+
+	if data, ok := i.(Cacher); ok {
+		err := b.GetFromCache(i, data, id)
+		if err == nil {
+			return nil
+		}
+		if err == RecordNotFound {
+			return err
+		}
 	}
 
 	if err := b.DB.Table(i.TableName()).
@@ -119,7 +129,7 @@ func (b *Bongo) UpdatePartial(i Modellable, set map[string]interface{}) error {
 		return err
 	}
 
-	if err := b.Fetch(i); err != nil {
+	if err := b.ById(i, i.GetId()); err != nil {
 		return err
 	}
 
@@ -290,16 +300,33 @@ func (b *Bongo) PublishEvent(eventName string, i Modellable) error {
 	return nil
 }
 
-func (b *Bongo) AfterCreate(i Modellable) {
+func (b *Bongo) AfterCreate(i Modellable) error {
 	b.PublishEvent("created", i)
+	return b.AddToCache(i)
 }
 
-func (b *Bongo) AfterUpdate(i Modellable) {
+func (b *Bongo) AfterUpdate(i Modellable) error {
 	b.PublishEvent("updated", i)
+	return b.AddToCache(i)
 }
 
-func (b *Bongo) AfterDelete(i Modellable) {
+func (b *Bongo) AfterDelete(i Modellable) error {
 	b.PublishEvent("deleted", i)
+	return b.AddToCache(i)
+}
+
+func (b *Bongo) AddToCache(i Modellable) error {
+	data, ok := i.(Cacher)
+	if !ok {
+		return nil
+	}
+
+	err := b.SetToCache(data)
+	if err != ErrCacheIsNotEnabled {
+		return err
+	}
+
+	return nil
 }
 
 // addSort injects sort parameters into query
