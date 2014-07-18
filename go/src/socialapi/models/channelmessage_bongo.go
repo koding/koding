@@ -30,7 +30,7 @@ func (c *ChannelMessage) AfterUpdate() {
 	bongo.B.AfterUpdate(c)
 }
 
-func (c ChannelMessage) AfterDelete() {
+func (c *ChannelMessage) AfterDelete() {
 	bongo.B.AfterDelete(c)
 }
 
