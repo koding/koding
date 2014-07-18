@@ -16,21 +16,22 @@ const (
 )
 
 type Query struct {
-	Id             int64     `url:"id,omitempty"`
-	Skip           int       `url:"skip"`
-	Limit          int       `url:"limit"`
-	To             time.Time `url:"to"`
-	From           time.Time `url:"from"`
-	GroupName      string    `url:"groupName"`
-	GroupChannelId int64     `url:"groupChannelId"`
-	Type           string    `url:"type"`
-	Privacy        string    `url:"privacy"`
-	AccountId      int64     `url:"accountId"`
-	Name           string    `url:"name"`
-	Slug           string    `url:"slug"`
-	ShowExempt     bool      `url:"showExempt"`
-	ReplyLimit     int       `url:"replyLimit"`
-	ReplySkip      int       `url:"replySkip"`
+	Id              int64     `url:"id,omitempty"`
+	Skip            int       `url:"skip"`
+	Limit           int       `url:"limit"`
+	To              time.Time `url:"to"`
+	From            time.Time `url:"from"`
+	GroupName       string    `url:"groupName"`
+	GroupChannelId  int64     `url:"groupChannelId"`
+	Type            string    `url:"type"`
+	Privacy         string    `url:"privacy"`
+	AccountId       int64     `url:"accountId"`
+	Name            string    `url:"name"`
+	Slug            string    `url:"slug"`
+	ShowExempt      bool      `url:"showExempt"`
+	ReplyLimit      int       `url:"replyLimit"`
+	ReplySkip       int       `url:"replySkip"`
+	AddIsInteracted bool      `url:"addIsInteracted"`
 }
 
 func NewQuery() *Query {
@@ -85,6 +86,11 @@ func (q *Query) MapURL(u *url.URL) *Query {
 		q.ShowExempt = isExempt
 	}
 
+	if addIsInteracted := urlQuery.Get("addIsInteracted"); addIsInteracted != "" {
+		addIsInteracted, _ := strconv.ParseBool(addIsInteracted)
+		q.AddIsInteracted = addIsInteracted
+	}
+
 	if replyLimit := urlQuery.Get("replyLimit"); replyLimit != "" {
 		replyLimit, _ := strconv.Atoi(replyLimit)
 		q.ReplyLimit = replyLimit
@@ -127,6 +133,8 @@ func (q *Query) SetDefaults() *Query {
 	} else {
 		q.ReplyLimit = int(math.Min(float64(q.ReplyLimit), float64(MAX_REPLY_LIMIT)))
 	}
+
+	q.AddIsInteracted = true
 
 	return q
 }
