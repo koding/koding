@@ -125,3 +125,32 @@ a {
     float:left;
     margin-top:3px;
 }
+
+/*
+ *  Footer
+ */
+.footer-before {
+    height: 90%;
+}
+.footer-before td:first-child {
+    width: 15px;
+    border-right: 1px solid #CCC;
+}
+.footer-before td:last-child {
+    height:40px;
+    padding-left: 10px;
+}
+
+.footer {
+    font-size:11px;
+    height: 30px;
+    color: #999;
+}
+.footer td:first-child {
+    border-right: 1px solid #CCC;
+    text-align:right;
+    padding-right:10px;
+}
+.footer td:last-child {
+    padding-left: 10px;
+}
