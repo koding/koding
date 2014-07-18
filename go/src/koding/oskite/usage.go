@@ -201,8 +201,8 @@ func (p *Plan) prepareLimits(username, groupId string) (*Limit, error) {
 		return nil, errors.New("plan doesn't exist")
 	}
 
-	log.Debug("total usage:   %+v username: %s groups %s", plan, username, groupId)
-	log.Debug("current usage: %+v username: %s group: %s", *p, username, groupId)
+	log.Info("total usage:   %+v username: %s group %s", plan, username, groupId)
+	log.Info("current usage: %+v username: %s group: %s", *p, username, groupId)
 
 	lim := NewLimit()
 
@@ -228,7 +228,6 @@ func (p *Plan) prepareLimits(username, groupId string) (*Limit, error) {
 func (l *Limit) check() error {
 	if l.CPU == LimitQuotaExceeded {
 		return &kitelib.Error{Message: "CPU limit reached", CodeVal: ErrQuotaExceeded.Error()}
-
 	}
 
 	if l.Disk == LimitQuotaExceeded {

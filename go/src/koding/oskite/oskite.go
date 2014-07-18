@@ -54,7 +54,9 @@ var (
 
 	prepareQueue      = make(chan *QueueJob, 1000)
 	currentQueueCount AtomicInt32
-	vmTimeout         time.Duration
+	updateWaitGroup   sync.WaitGroup
+
+	vmTimeout time.Duration
 )
 
 type Oskite struct {
@@ -349,7 +351,7 @@ func (o *Oskite) handleCurrentVMs() {
 		infos[vm.Id] = info
 		infosMutex.Unlock()
 
-		if _, err := updateState(vm.Id, vm.State); err != nil {
+		if _, err := checkAndUpdateState(vm.Id, vm.State); err != nil {
 			log.Error("%v", err)
 		}
 
@@ -402,16 +404,16 @@ func (o *Oskite) cleanUp() {
 		}
 		return iter.Close()
 	}
+
 	if err := mongodbConn.Run("jVMs", findQuery); err != nil {
 		log.Error("couldn't find vms: %v", err.Error())
 	}
+
 	if len(cleanupBatch) > 0 {
 		if err := o.releaseVMs(bson.M{"_id": bson.M{"$in": cleanupBatch}}); err != nil {
 			log.Error("couln't release vms: '%v", err.Error())
 		}
-
 	}
-
 }
 
 func (o *Oskite) releaseVMs(selector bson.M) error {
@@ -424,10 +426,8 @@ func (o *Oskite) releaseVMs(selector bson.M) error {
 			}})
 		return err
 	}
-	if err := mongodbConn.Run("jVMs", updateQuery); err != nil {
-		return err
-	}
-	return nil
+
+	return mongodbConn.Run("jVMs", updateQuery)
 }
 
 func unprepareLeftover(vmId bson.ObjectId) {
@@ -439,7 +439,7 @@ func unprepareLeftover(vmId bson.ObjectId) {
 				log.Error("leftover unprepare: %v", err)
 			}
 
-			if _, err := updateState(vmId, "UNKNOWN"); err != nil {
+			if _, err := checkAndUpdateState(vmId, "UNKNOWN"); err != nil {
 				log.Error("%v", err)
 			}
 
@@ -742,20 +742,24 @@ func (o *Oskite) validateVM(vm *virt.VM) error {
 	return nil
 }
 
-func updateState(vmId bson.ObjectId, currentState string) (result string, err error) {
-	log.Info("[updateState] getting state for VM [%s], going to update to [%s]",
-		vmId, currentState)
+func checkAndUpdateState(vmId bson.ObjectId, dbState string) (result string, err error) {
+	log.Info("[checkAndUpdateState - %s] getting state for VM, current DB state is [%s]", vmId.Hex(), dbState)
 
 	state, err := virt.GetVMState(vmId)
 	if err != nil {
-		log.Error("[updateState] getting state failed for VM [%s], err: %s", vmId, err)
+		log.Error("[checkAndUpdateState - %s] getting state failed err: %s", vmId.Hex(), err)
 		state = "UNKNOWN"
 	}
 
-	// do not update if it's the same state
-	if currentState == state {
+	// do not update if it's the same state as in dbState
+	if dbState == state {
+		log.Info("[checkAndUpdateState - %s] lxc state is [%s] current DB state is [%s]. Doing nothing.",
+			vmId.Hex(), state, dbState)
 		return state, nil
 	}
+
+	log.Info("[checkAndUpdateState - %s] lxc state is [%s] current DB state is [%s]. Updating DB state to: [%s]",
+		vmId.Hex(), state, dbState, state)
 
 	query := func(c *mgo.Collection) error {
 		return c.Update(bson.M{"_id": vmId}, bson.M{"$set": bson.M{"state": state}})
@@ -826,6 +830,10 @@ func (o *Oskite) prepareWorker(id int) {
 	}
 
 	for job := range prepareQueue {
+		// wait if an updater is running and let him finish his job. If the
+		// updater is not running this is a no-op
+		updateWaitGroup.Wait()
+
 		currentQueueCount.Add(1)
 
 		log.Info("starting job: '%s' %s", job.msg, queueInfo())
