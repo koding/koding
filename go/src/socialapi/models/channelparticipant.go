@@ -21,6 +21,9 @@ type ChannelParticipant struct {
 	// Id of the account
 	AccountId int64 `json:"accountId,string"       sql:"NOT NULL"`
 
+	// Old id of the account
+	AccountOldId string `json:"accountOldId,string"  sql:"-"`
+
 	// Status of the participant in the channel
 	StatusConstant string `json:"statusConstant"   sql:"NOT NULL;TYPE:VARCHAR(100);"`
 
