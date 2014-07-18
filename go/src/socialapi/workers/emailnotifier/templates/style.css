@@ -10,6 +10,44 @@ body {
     width:100%;
 }
 
+a {
+    text-decoration:none;
+    color:#1AAF5D;
+}
+
+/*
+ *  Header
+ */
+.header {
+    width: 58px;
+    text-align:right;
+    border-right: 1px solid #CCC;
+    margin-left:12px;
+    vertical-align:top;
+}
+
+.header .intro {
+    padding: 6px 0 0 10px;
+    padding-bottom:20px;
+    margin-top: 0;
+}
+.header .intro h2 {
+    margin-top: 0;
+}
+
+.header .date {
+    text-align:center;
+    width:90px;
+    vertical-align:top;
+}
+
+.header p {
+    font-size: 11px;
+    color: #999;
+    padding: 0 0 2px 0;
+    margin-top: 4px;
+}
+
 
 /*
  *  Koding logo
@@ -49,4 +87,41 @@ body {
     max-height:1px;
     height:1px;
     background-color:white;
+}
+
+/*
+ *  Content
+ *  content.tmpl
+ */
+.content {
+    vertical-align: top;
+    background-color: white;
+    color: #282623;
+}
+
+.content .time {
+    width: 40px;
+    text-align:right;
+    border-right: 1px solid #CCC;
+    color: #999;
+    font-size:11px;
+    line-height: 28px;
+    padding-right:10px;
+}
+
+.content .time a {
+    text-decoration:none;
+    color:#999;
+    pointer-event:none
+}
+
+/*
+ *  Gravatar
+ *  gravatar.tmpl
+ */
+.gravatar {
+    border:none;
+    margin-right:8px;
+    float:left;
+    margin-top:3px;
 }

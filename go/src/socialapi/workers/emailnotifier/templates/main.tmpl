@@ -5,9 +5,8 @@
 <body>
   <table class="main-table" cellspacing="0">
     <!-- HEADER -->
-    <tr>
-      <td style="width: 58px; text-align:right; border-right: 1px
-                 solid #CCC; margin-left:12px; vertical-align:top;">
+    <tr class="header">
+      <td class="header-logo">
         <!-- Koding Logo with pure table -->
         <table width="40px" height="40px" class="logo" cellspacing="2" cellpadding="2">
           <tr class="bar-0">
@@ -22,13 +21,12 @@
           </tr>
         </table><br/>
       </td>
-      <td style="padding: 6px 0 0 10px; padding-bottom:20px; margin-top: 0;">
-        <h2 style="margin-top:0; ">Hello {{.FirstName}},</h2>
+      <td class="intro">
+        <h2>Hello {{.FirstName}},</h2>
         <p>{{.Description}}</p>
       </td>
-      <td style="text-align:center; width:90px; vertical-align:top;">
-        <p style="font-size: 11px; color: #999;
-                  padding: 0 0 2px 0; margin-top: 4px;">{{.CurrentDate}}</p>
+      <td class="date">
+        <p>{{.CurrentDate}}</p>
       </td>
     </tr>
     {{.Content}}

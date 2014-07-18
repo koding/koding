@@ -1,14 +1,12 @@
 {{define "content"}}
-<tr style="vertical-align:top; background-color:white; color: #282623;">
-  <td style="width: 40px; text-align:right; border-right: 1px solid #CCC;
-             color: #999; font-size:11px; line-height: 28px;
-             padding-right:10px;"><a href='#'
-             style='text-decoration:none; color:#999;pointer-event:none'>
-             {{.ActivityTime}}</a></td>
+<tr class="content">
+  <td class="time">
+    <a href='#'>{{.ActivityTime}}</a>
+  </td>
   <td style="padding-left: 10px; color: #666; " colspan="2">
       {{template "gravatar" . }}
       <div style="line-height: 20px; padding-left:28px; padding-top:4px;">
-        <a href="{{.Uri}}/{{.ActorContact.Username}}" style="text-decoration:none; color:#1AAF5D;">
+        <a href="{{.Uri}}/{{.ActorContact.Username}}">
           {{.ActorContact.FirstName}} {{.ActorContact.LastName}}
         </a>
         {{.Action}}
