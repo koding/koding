@@ -1,5 +1,11 @@
 package models
 
+import (
+	"socialapi/request"
+
+	"github.com/koding/bongo"
+)
+
 type ChannelContainer struct {
 	Channel             Channel                  `json:"channel"`
 	IsParticipant       bool                     `json:"isParticipant"`
@@ -14,10 +20,31 @@ func NewChannelContainer() *ChannelContainer {
 	return &ChannelContainer{}
 }
 
-func (c *ChannelContainer) ById(id int64) (*ChannelContainer, error) {
-	return c, nil
+func (c *ChannelContainer) TableName() string {
+	return "api.channel"
 }
 
+func (c *ChannelContainer) Fetch(id int64, q *request.Query) error {
+	if q.ShowExempt {
+		cc, err := BuildChannelContainer(id, q)
+		if err != nil {
+			return err
+		}
+		c = cc
+	} else {
+		return bongo.B.Fetch(c, id)
+	}
+
+	return nil
+}
+
+func (c *ChannelContainer) GetId() int64 {
+	if &c.Channel != nil {
+		return c.Channel.Id
+	}
+
+	return 0
+}
 func withChecks(cc *ChannelContainer, f func(c *ChannelContainer) error) *ChannelContainer {
 	if cc == nil {
 		cc = &ChannelContainer{}
@@ -218,9 +245,37 @@ func (c *ChannelContainers) PopulateWith(channelList []Channel, accountId int64)
 	return c
 }
 
+func (c *ChannelContainers) Fetch(channelList []Channel, query *request.Query) error {
+	for i, _ := range channelList {
+		cc := NewChannelContainer()
+		if err := cc.Fetch(channelList[i].GetId(), query); err != nil {
+			cc.Err = err
+		}
+		c.Add(cc)
+	}
+
+	return nil
+}
+
+func (c *ChannelContainers) AddIsParticipant(accountId int64) *ChannelContainers {
+	for i, container := range *c {
+		(*c)[i] = *container.AddIsParticipant(accountId)
+	}
+
+	return c
+}
+
 func (c *ChannelContainers) AddUnreadCount(accountId int64) *ChannelContainers {
 	for i, container := range *c {
 		(*c)[i] = *container.AddUnreadCount(accountId)
+	}
+
+	return c
+}
+
+func (c *ChannelContainers) AddLastMessage() *ChannelContainers {
+	for i, container := range *c {
+		(*c)[i] = *container.AddLastMessage()
 	}
 
 	return c
