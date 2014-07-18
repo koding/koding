@@ -19,11 +19,7 @@ a {
  *  Header
  */
 .header {
-    width: 58px;
-    text-align:right;
-    border-right: 1px solid #CCC;
-    margin-left:12px;
-    vertical-align:top;
+
 }
 
 .header-logo {
