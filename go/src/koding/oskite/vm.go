@@ -475,7 +475,10 @@ func unprepareProgress(t tracer.Tracer, vm *virt.VM, destroy bool) error {
 	}
 
 	if err := mongodbConn.Run("jVMs", func(c *mgo.Collection) error {
-		return c.Update(bson.M{"_id": vm.Id}, bson.M{"$set": bson.M{"hostKite": nil}})
+		return c.Update(bson.M{"_id": vm.Id},
+			bson.M{"$set": bson.M{
+				"hostKite":      nil,
+				"__updatedBy__": "unprepareProgress"}})
 	}); err != nil {
 		return fmt.Errorf("unprepareProgress hostKite nil setting: %v", err)
 	}

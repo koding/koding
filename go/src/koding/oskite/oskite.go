@@ -35,7 +35,7 @@ import (
 
 const (
 	OSKITE_NAME    = "oskite"
-	OSKITE_VERSION = "0.4.3"
+	OSKITE_VERSION = "0.4.4"
 )
 
 var (
@@ -421,8 +421,9 @@ func (o *Oskite) releaseVMs(selector bson.M) error {
 		_, err := c.UpdateAll(
 			selector,
 			bson.M{"$set": bson.M{
-				"hostKite": nil,
-				"state":    "STOPPED",
+				"hostKite":      nil,
+				"state":         "STOPPED",
+				"__updatedBy__": "releaseVMs",
 			}})
 		return err
 	}
