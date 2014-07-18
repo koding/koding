@@ -60,19 +60,21 @@ func (c *ChannelMessageContainer) PopulateWith(m *ChannelMessage) *ChannelMessag
 	return c
 }
 
-func (c *ChannelMessageContainer) AddAccountOldId() *ChannelMessageContainer {
-	if c.AccountOldId != "" {
-		return c
-	}
+func (cc *ChannelMessageContainer) AddAccountOldId() *ChannelMessageContainer {
+	return withChannelMessageContainerChecks(cc, func(c *ChannelMessageContainer) error {
 
-	oldId, err := FetchAccountOldIdByIdFromCache(c.Message.AccountId)
-	if err != nil {
-		c.Err = err
-		return c
-	}
+		if c.AccountOldId != "" {
+			return c
+		}
 
-	c.AccountOldId = oldId
-	return c
+		oldId, err := FetchAccountOldIdByIdFromCache(c.Message.AccountId)
+		if err != nil {
+			c.Err = err
+			return c
+		}
+
+		c.AccountOldId = oldId
+	})
 }
 
 func (c *ChannelMessageContainer) SetGenerics(query *request.Query) *ChannelMessageContainer {
@@ -82,10 +84,38 @@ func (c *ChannelMessageContainer) SetGenerics(query *request.Query) *ChannelMess
 	return c
 }
 
-func (c *ChannelMessageContainer) AddReplies(query *request.Query) *ChannelMessageContainer {
-	if c.Message != nil && c.Message.TypeConstant == ChannelMessage_TYPE_REPLY {
-		// if message itself already a reply, no need to add replies to it
+func (cc *ChannelMessageContainer) AddReplies(query *request.Query) *ChannelMessageContainer {
+	return withChannelMessageContainerChecks(cc, func(c *ChannelMessageContainer) error {
+
+		if c.Message != nil && c.Message.TypeConstant == ChannelMessage_TYPE_REPLY {
+			// if message itself already a reply, no need to add replies to it
+			return c
+		}
+
+		// fetch the replies
+		mr := NewMessageReply()
+		mr.MessageId = c.Message.Id
+
+		q := query.Clone()
+		q.Limit = query.ReplyLimit
+		q.Skip = query.ReplySkip
+
+		replies, err := mr.List(q)
+		if err != nil {
+			c.Err = err
+			return c
+		}
+
+		// populate the replies as containers
+		rs := NewChannelMessageContainers()
+		rs.PopulateWith(replies, query)
+
+		// set channel message containers
+		c.Replies = *rs
 		return c
+	})
+
+}
 	}
 
 	// fetch the replies
@@ -123,32 +153,56 @@ func (c *ChannelMessageContainer) AddRepliesCount(query *request.Query) *Channel
 	return c
 }
 
-func (c *ChannelMessageContainer) AddInteractions(query *request.Query) *ChannelMessageContainer {
-	i := NewInteraction()
-	i.MessageId = c.Message.Id
+func (cc *ChannelMessageContainer) AddInteractions(query *request.Query) *ChannelMessageContainer {
+	return withChannelMessageContainerChecks(cc, func(c *ChannelMessageContainer) error {
 
-	// get preview
-	q := query.Clone()
-	q.Type = "like"
-	q.Limit = 3
+		// get preview
+		q := query.Clone()
+		q.Type = "like"
+		q.Limit = 3
 
-	interactionContainer, err := i.FetchInteractionContainer(q)
-	if err != nil {
-		c.Err = err
+		// if the message is reply do not add  isInteracted data
+		if c.Message.TypeConstant == ChannelMessage_TYPE_REPLY {
+			q.AddIsInteracted = false
+		}
+
+		i := NewInteraction()
+		i.MessageId = c.Message.Id
+		interactionContainer, err := i.FetchInteractionContainer(q)
+		if err != nil {
+			c.Err = err
+			return c
+		}
+
+		c.Interactions[q.Type] = interactionContainer
+
 		return c
-	}
-
-	c.Interactions[q.Type] = interactionContainer
-
-	return c
-
+	})
 }
 
-func (c *ChannelMessageContainer) AddIsFollowed(query *request.Query) *ChannelMessageContainer {
-	isFollowed, err := c.Message.CheckIsMessageFollowed(query)
-	c.IsFollowed = isFollowed
-	c.Err = err
-	return c
+func (c *ChannelMessageContainer) AddIsInteracted(query *request.Query) *ChannelMessageContainer {
+	return withChannelMessageContainerChecks(cc, func(c *ChannelMessageContainer) error {
+		i := NewInteraction()
+		i.MessageId = c.Message.Id
+		isInteracted, err := i.IsInteracted(query.AccountId)
+		if err != nil {
+			c.Err = err
+			return c
+		}
+
+		c.Interactions["like"].IsInteracted = isInteracted
+
+		return c
+	})
+}
+
+func (cc *ChannelMessageContainer) AddIsFollowed(query *request.Query) *ChannelMessageContainer {
+	return withChannelMessageContainerChecks(cc, func(c *ChannelMessageContainer) error {
+		isFollowed, err := c.Message.CheckIsMessageFollowed(query)
+		c.IsFollowed = isFollowed
+		c.Err = err
+		return c
+	})
 }
 
 func (c *ChannelMessageContainer) AddUnreadRepliesCount() *ChannelMessageContainer {
