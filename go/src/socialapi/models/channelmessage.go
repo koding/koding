@@ -176,7 +176,11 @@ func (c *ChannelMessage) BuildMessages(query *request.Query, messages []ChannelM
 
 func (c *ChannelMessage) BuildMessage(query *request.Query) (*ChannelMessageContainer, error) {
 	cmc := NewChannelMessageContainer()
-	return cmc.PopulateWith(c).AddIsFollowed(query), nil
+	if err := cmc.Fetch(c.Id, query); err != nil {
+		return nil, err
+	}
+
+	return cmc, cmc.AddIsFollowed(query).Err
 }
 
 func (c *ChannelMessage) CheckIsMessageFollowed(query *request.Query) (bool, error) {
