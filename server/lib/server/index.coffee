@@ -261,18 +261,6 @@ app.get "/-/jobs", (req, res) ->
     res.send 404 if err
     res.json postings
 
-simple_recaptcha = require "simple-recaptcha"
-
-app.post "/recaptcha", (req, res)->
-  {challenge, response} = req.body
-
-  simple_recaptcha recaptcha, req.ip, challenge, response, (err)->
-    if err
-      res.send err.message
-      return
-
-    res.send "verified"
-
 app.get "/sitemap:sitemapName", (req, res)->
   {JSitemap}       = koding.models
 

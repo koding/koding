@@ -27,22 +27,18 @@ class PaymentController extends KDController
 
   observePaymentSave: (modal, callback) ->
     modal.on 'PaymentInfoSubmitted', (paymentMethodId, updatedPaymentInfo) =>
-      challenge = Recaptcha.get_challenge()
-      response = Recaptcha.get_response()
+      updatedPaymentInfo.challenge = Recaptcha.get_challenge()
+      updatedPaymentInfo.response  = Recaptcha.get_response()
 
-      @isCaptchaValid challenge, response, (result)=>
-        modal.paymentForm?.stopLoader()
+      @updatePaymentInfo paymentMethodId, updatedPaymentInfo, (err, savedPaymentInfo) =>
+        if err
+          modal.paymentForm?.stopLoader()
 
-        if result isnt "verified"
-          callback "Captcha failed, please try again."
-          return
+          modal.emit 'FormValidationFailed', err
+          return callback err
 
-        @updatePaymentInfo paymentMethodId, updatedPaymentInfo, (err, savedPaymentInfo) =>
-          if err
-            modal.emit 'FormValidationFailed', err
-            return callback err
-          callback null, savedPaymentInfo
-          @emit 'PaymentDataChanged'
+        callback null, savedPaymentInfo
+        @emit 'PaymentDataChanged'
 
   removePaymentMethod: (paymentMethodId, callback) ->
     { JPayment } = KD.remote.api
