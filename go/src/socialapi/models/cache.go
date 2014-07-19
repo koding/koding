@@ -35,14 +35,14 @@ func CacheForChannelMessage(id int64) (string, error) {
 }
 
 func BuildChannelContainer(id int64, query *request.Query) (*ChannelContainer, error) {
-	tempC := NewChannel()
-	tempC.Id = id
-	if err := tempC.ById(tempC.Id); err != nil {
+	c := NewChannel()
+	c.Id = id
+	if err := c.ById(c.Id); err != nil {
 		return nil, err
 	}
 
 	cc := NewChannelContainer()
-	cc.PopulateWith(*tempC, query.AccountId)
+	cc.PopulateWith(*c, query.AccountId)
 
 	return cc, cc.Err
 }
