@@ -155,14 +155,10 @@ testapi:
 	@./trollmode.test $(DEBUG) -c ./config/vagrant.toml
 	@rm  ./trollmode.test
 
-	@echo "$(OK_COLOR)--> general tests... $(NO_COLOR)"
-	@go test $(DEBUG) tests/*.go
-
-	@echo "$(OK_COLOR)--> notification tests... $(NO_COLOR)"
-	@go test $(DEBUG) workers/notification/tests/*.go
-
-	@echo "$(OK_COLOR)--> sitemap generator tests... $(NO_COLOR)"
-	@go test $(DEBUG) workers/sitemap/sitemapgenerator/generator/*.go
+	@echo "$(OK_COLOR)--> api tests... $(NO_COLOR)"
+	@go test -c tests/*.go
+	@./main.test $(DEBUG) -c ./config/vagrant.toml
+	@rm ./main.test
 
 doc:
 	@for package in $(PACKAGES); \
