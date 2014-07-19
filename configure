@@ -2,283 +2,58 @@
 
 argv       = require('minimist')(process.argv.slice(2))
 log        = console.log
-eden       = require 'node-eden'
-RS         = require 'pkgcloud'
-hat        = require 'hat'
-timethat   = require 'timethat'
-PRJ        = __dirname
-BLD        = PRJ+"/install/BUILD_DATA"
 fs         = require 'fs'
-{exec}     = require 'child_process'
-
-rs =
-  compute : RS.compute.createClient
-    provider  : 'rackspace'
-    username  : "kodinginc"
-    apiKey    : "96d6388ccb936f047fd35eb29c36df17"
-    region    : 'IAD'
-
-  dns : RS.dns.createClient
-    provider  : 'rackspace'
-    username  : "kodinginc"
-    apiKey    : "96d6388ccb936f047fd35eb29c36df17"
 
 
-if process.argv[2] is 'prod'
-  # ./run prod - comes bundled with these options.
-  options = o =
-    projectRoot      : argv.projectRoot   or __dirname
-    config           : argv.config        or "prod"
-    region           : argv.region        or "us-east-1a"
-    branch           : argv.branch        or "cake-rewrite"
-    build            : argv.build         or 1
-    version          : argv.version       or "1.0"
-    environment      : argv.environment   or "aws"
-    hostname         : argv.hostname
-    publicHostname   : argv.publichostname or process.env.USER
-    target           : argv.target        or "aws"
-    onlyconfigure    : argv.onlyconfigure or no
-    supervisor       : argv.supervisor    or yes
-    deploy           : argv.deploy        or no
-  unless options.hostname
-    options.hostname   = "#{eden.eve()}-#{o.config}-#{o.build}.koding.me".toLowerCase()
-
-else
-  # ./run assumes development - comes bundled with these options.
-  options = o =
-    projectRoot      : argv.projectRoot    or __dirname
-    config           : argv.config         or "dev"
-    region           : argv.region         or "dev"
-    branch           : argv.branch         or "cake-rewrite"
-    build            : argv.build          or 1
-    version          : argv.version        or "1.0"
-    environment      : argv.environment    or "dev"
-    hostname         : argv.hostname       or "lvh.me:8090"
-    publicHostname   : argv.publichostname or process.env.USER
-    target           : argv.target         or "localhost"
-    onlyconfigure    : argv.onlyconfigure  or no
-    supervisor       : argv.supervisor     or no
-    deploy           : argv.deploy         or no
+# ./run assumes development - comes bundled with these options.
+options = o =
+  projectRoot      : argv.projectRoot    or __dirname
+  config           : argv.config         or "dev"
+  region           : argv.region         or "dev"
+  branch           : argv.branch         or "cake-rewrite"
+  build            : argv.build          or 1
+  version          : argv.version        or "1.0"
+  environment      : argv.environment    or "dev"
+  hostname         : argv.hostname       or "lvh.me:8090"
+  publicHostname   : argv.publichostname or process.env.USER
+  target           : argv.target         or "localhost"
+  onlyconfigure    : argv.onlyconfigure  or no
+  supervisor       : argv.supervisor     or no
+  deploy           : argv.deploy         or no
 
 
 console.log "Configuring with options:",o
 
-# log argv
-# process.exit()
+
+KONFIG = require("./config/main.#{o.config}.coffee")(options)
 
 
-
-class Deploy
-
-  @createDeployData = (callback=->)->
-    exec """
-      mkdir -p ./install/BUILD_DATA
-      echo #{o.hostname}       >#{BLD}/BUILD_HOSTNAME
-      echo #{o.publicHostname} >#{BLD}/BUILD_PUBLIC_HOSTNAME
-      echo #{o.region}         >#{BLD}/BUILD_REGION
-      echo #{o.config}         >#{BLD}/BUILD_CONFIG
-      echo #{o.branch}         >#{BLD}/BUILD_BRANCH
-      echo #{o.build}          >#{BLD}/BUILD_NUMBER
-      echo #{o.projectRoot}    >#{BLD}/BUILD_PROJECT_ROOT
-      echo #{o.environment}    >#{BLD}/BUILD_ENVIRONMENT
-      echo #{o.version}        >#{BLD}/BUILD_VERSION"""
-    ,->
-      KONFIG = require "./config/main.#{o.config}.coffee"
-      fs.writeFileSync "#{BLD}/BUILD_CONFIG.json",JSON.stringify KONFIG
-      log "Configuration done"
-      log "1) install DOCKER and NGROK.com"
-      log "2) do './run services' for backend services after installing (boot2)docker."
-      log "3) do './run install' "
-      log "4) you can then type './run' to run Koding."
-      callback null,KONFIG
-
-  @createServer = (options,callback)->
-    start = new Date()
-    rs.compute.createServer options,(err,vm)->
-      unless err
-        prg = 0
-        # log vm
-        adminPass = vm.adminPass
-        progress = setInterval ->
-          rs.compute.getServer vm.id,(err,vm) ->
-            log "creating #{options.name} #{vm.progress}% complete." if prg isnt vm.progress
-            prg = vm.progress
-            if vm.progress is 100
-              end = new Date()
-              log "creating #{options.name} took "+ timethat.calc start,end
-              # log vm
-              vm.adminPass = adminPass
-              clearInterval progress
-              callback null, vm
-        ,1000
-      else
-        callback err
-  @getPublicIP = (server)->
-    return val.addr for val,key in server.addresses.public when val.version is 4
-
-  ### DNS ###
-
-  # rs.dns.getZones -> log arguments
-  # console.dir rs.dns
-  # rs.dns.getRecords "4255573",->
-  #   log arguments
-
-  # some useful extras for later.
-  # rs.getServers (err,servers)->
-  #   for server,index in servers
-  #     log server.addresses.public
-
-
-  # rs.getFlavors (err,flavors)->
-  #   # log flavors
-  #   for val,key in flavors
-  #     log val.id
-
-  # rs.getImages (err,images)->
-  # # log images
-  #   for val,key in images
-  #     log val.id,val.name
-
-  listen = (op, stream, callback)->
-    stream.on "data", (data)         -> log ("[#{op}] #{data}").replace("\n","")
-    stream.on "exit", (code, signal) -> log "[#{op}] did exit."
-    stream.on "close",               ->
-      log "[#{op}] did close."
-      callback null,"close"
-
-  sftpCopy = (options, callback)->
-    copyCount = 1
-    results = []
-    options.conn.sftp (err, sftp) ->
-      for file,nr in options.files
-        do (file)->
-          sftp.fastPut file.src,file.trg,(err,res)->
-            if err
-              log "couldn't copy:",file
-              throw err
-            log file.src+" is copied to "+file.trg
-            if copyCount is options.files.length then callback null,"done"
-            copyCount++
-
-
-  @konnect = (options,callback) ->
-    Connection = require "ssh2"
-    {IP,username,password} = options
-    conn = new Connection()
-
-    conn.connect
-      host         : IP
-      port         : 22
-      username     : username
-      # privateKey   : require("fs").readFileSync(process.env['HOME']+"/.ssh/id_rsa")
-      # publicKey    : publicKey
-      readyTimeout : 60000
-      password     : password
-
-    if o.config is "kodingme"
-      conn.on "ready", ->
-        log "Connected via ssh - copying deploy files."
-
-        copyFiles = [
-          { src: "#{PRJ}/install/build-box"     , trg: "/root/prepare"},
-          { src: "#{PRJ}/install/Dockerfile"    , trg: "/root/Dockerfile"},
-          { src: "#{PRJ}/install/run"           , trg: "/root/run"}
-          { src: "#{PRJ}/install/cleanup"       , trg: "/root/cleanup"}
-          { src: "#{BLD}/BUILD_CONFIG.json"     , trg: "/root/BUILD_DATA/BUILD_CONFIG.json"}
-          { src: "#{BLD}/BUILD_HOSTNAME"        , trg: "/root/BUILD_DATA/BUILD_HOSTNAME"}
-          { src: "#{BLD}/BUILD_PUBLIC_HOSTNAME" , trg: "/root/BUILD_DATA/BUILD_PUBLIC_HOSTNAME"}
-          { src: "#{BLD}/BUILD_REGION"          , trg: "/root/BUILD_DATA/BUILD_REGION"}
-          { src: "#{BLD}/BUILD_CONFIG"          , trg: "/root/BUILD_DATA/BUILD_CONFIG"}
-          { src: "#{BLD}/BUILD_BRANCH"          , trg: "/root/BUILD_DATA/BUILD_BRANCH"}
-          { src: "#{BLD}/BUILD_PROJECT_ROOT"    , trg: "/root/BUILD_DATA/BUILD_PROJECT_ROOT"}
-          { src: "#{BLD}/BUILD_ENVIRONMENT"     , trg: "/root/BUILD_DATA/BUILD_ENVIRONMENT"}
-          { src: "#{BLD}/BUILD_VERSION"         , trg: "/root/BUILD_DATA/BUILD_VERSION"}
-
-        ]
-        conn.exec """mkdir -p /root/BUILD_DATA &&
-                     bash /root/prepare"""
-        , (err, stream) ->
-          sftpCopy conn : conn, files : copyFiles,(err,res)->
-            log "copyFiles finished."
-            conn.exec "bash /root/prepare", (err, stream) ->
-              throw err  if err
-              listen "configuring #{o.hostname}", stream,->
-                log "Box is ready at: ssh root@#{o.hostname} passwd:#{password}"
-                log "Deployment and configuration took: "+timethat.calc deployStart,new Date()
-                conn.end()
-
-    else if o.config is "prod"
-      conn.on "ready", ->
-        log "Connected via ssh - copying deploy files."
-
-        copyFiles = [
-          { src: "#{PRJ}/install/build-prod"  , trg: "/root/prepare"},
-          { src: "#{BLD}/BUILD_CONFIG.json"   , trg: "/root/BUILD_DATA/BUILD_CONFIG.json"}
-          { src: "#{BLD}/BUILD_HOSTNAME"      , trg: "/root/BUILD_DATA/BUILD_HOSTNAME"}
-          { src: "#{BLD}/BUILD_PUBLIC_HOSTNAME",trg: "/root/BUILD_DATA/BUILD_PUBLIC_HOSTNAME"}
-          { src: "#{BLD}/BUILD_REGION"        , trg: "/root/BUILD_DATA/BUILD_REGION"}
-          { src: "#{BLD}/BUILD_CONFIG"        , trg: "/root/BUILD_DATA/BUILD_CONFIG"}
-          { src: "#{BLD}/BUILD_NUMBER"        , trg: "/root/BUILD_DATA/BUILD_NUMBER"}
-          { src: "#{BLD}/BUILD_BRANCH"        , trg: "/root/BUILD_DATA/BUILD_BRANCH"}
-          { src: "#{BLD}/BUILD_PROJECT_ROOT"  , trg: "/root/BUILD_DATA/BUILD_PROJECT_ROOT"}
-          { src: "#{BLD}/BUILD_ENVIRONMENT"   , trg: "/root/BUILD_DATA/BUILD_ENVIRONMENT"}
-          { src: "#{BLD}/BUILD_VERSION"       , trg: "/root/BUILD_DATA/BUILD_VERSION"}
-        ]
-
-        conn.exec """mkdir -p /root/BUILD_DATA &&
-                     bash /root/prepare"""
-        , (err, stream) ->
-          sftpCopy conn : conn, files : copyFiles,(err,res)->
-            log "copyFiles finished."
-            conn.exec "bash /root/prepare", (err, stream) ->
-              throw err  if err
-              listen "configuring #{o.hostname}", stream,->
-                log "Box is ready at: ssh root@#{o.hostname} passwd:#{password}"
-                log "Deployment and configuration took: "+timethat.calc deployStart,new Date()
-                conn.end()
-
-
-
-deployStart = new Date()
-Deploy.createDeployData (err,KONFIG)->
+createRunFile = (KONFIG)->
 
   fs.writeFileSync "run",KONFIG.runFile
   fs.chmodSync "./run", 0o755
+
   # write supervisor config
   if o.supervisor
     fs.writeFileSync "/etc/supervisor/conf.d/koding.conf",KONFIG.supervisorConf
 
-  # don't deploy just write config and exit.
-  return null unless o.deploy
+  log "Configuration done"
+  log "1) install Docker and ngrok (ngrok is optional)"
+  log "2) do './run services' for backend services after installing docker."
+  log "3) do './run install' "
+  log "4) you can then type './run' to run Koding and see it on http://lvh.me:8090"
 
-  domainName = options.hostname
-  password   = hat()
-  Deploy.createServer
-    name   : domainName
-    flavor : 'performance2-15'
-    image  : 'bb02b1a3-bc77-4d17-ab5b-421d89850fca'  #ubuntu 14.04
-    personality: []
-    (err,server)->
-      if err then throw err
-      else
-        publicIP = Deploy.getPublicIP server
-        rs.dns.createRecord "4255573",
-          name : domainName
-          type : "A"
-          ttl  : "3600"
-          data : publicIP
-          (err,rec)->
 
-            log "A RECORD #{domainName} -> #{publicIP} is placed with TTL 3600."
-            log "Server password is #{server.adminPass}"
-            log "Server is now ready at ssh root@#{domainName}"
+createRunFile KONFIG
 
-            setTimeout ->
-              Deploy.konnect
-                IP         : publicIP
-                username   : "root"
-                password   : server.adminPass
-            ,10000
+
+
+
+
+
+
+
+
 
 
 
