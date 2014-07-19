@@ -113,29 +113,34 @@ func (b *Bongo) FetchByIds(i Modellable, data interface{}, ids []int64) error {
 
 }
 
-func (b *Bongo) UpdatePartial(i Modellable, set map[string]interface{}) error {
-	if i.GetId() == 0 {
-		return IdIsNotSet
-	}
+// func (b *Bongo) UpdatePartial(i Modellable, set map[string]interface{}) error {
+// 	if i.GetId() == 0 {
+// 		return IdIsNotSet
+// 	}
 
-	// init query
-	query := b.DB
+// 	// init query
+// 	query := b.DB
 
-	query = query.Table(i.TableName())
+// 	query = query.Model(i)
+// 	// query = query.Table(i.TableName())
 
-	query = query.Where(i.GetId())
+// 	query = query.Where("id = ? ", i.GetId())
+// 	fmt.Println("query-->", query)
+// 	fmt.Printf("set %# v", pretty.Formatter(set))
+// 	if err := query.Update(set).Error; err != nil {
+// 		fmt.Printf("%# v", pretty.Formatter(err))
+// 		return err
+// 	}
 
-	if err := query.Update(set).Error; err != nil {
-		return err
-	}
+// 	if err := b.ById(i, i.GetId()); err != nil {
+// 		fmt.Printf("%# v", pretty.Formatter(err))
+// 		return err
+// 	}
 
-	if err := b.ById(i, i.GetId()); err != nil {
-		return err
-	}
-
-	b.AfterUpdate(i)
-	return nil
-}
+// 	fmt.Printf("i %# v", pretty.Formatter(i))
+// 	// b.AfterUpdate(i)
+// 	return nil
+// }
 
 // selector, set
 func (b *Bongo) UpdateMulti(i Modellable, rest ...map[string]interface{}) error {
