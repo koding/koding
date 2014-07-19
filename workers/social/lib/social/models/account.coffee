@@ -7,8 +7,6 @@ likeableActivities = [
   ]
 
 module.exports = class JAccount extends jraphical.Module
-  log4js          = require "log4js"
-  log             = log4js.getLogger("[JAccount]")
 
   @trait __dirname, '../traits/followable'
   @trait __dirname, '../traits/filterable'

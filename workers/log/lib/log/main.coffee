@@ -1,15 +1,3 @@
-log4js  = require 'log4js'
-logger  = log4js.getLogger('log')
-
-log4js.configure {
-  appenders: [
-    { type: 'console' }
-    { type: 'file', filename: 'logs/log.log', category: 'log' }
-    { type: "log4js-node-syslog", tag : "log", facility: "local0", hostname: "localhost", port: 514 }
-  ],
-  replaceConsole: true
-}
-
 {argv} = require 'optimist'
 
 {exec} = require 'child_process'

@@ -161,7 +161,7 @@ module.exports = Deploy
 options =
   params :
     ImageId       : "ami-a6926dce" # Amazon ubuntu 14.04 "ami-1624987f" # Amazon Linux AMI x86_64 EBS
-    InstanceType  : "r3.large"
+    InstanceType  : "c1.xlarge"
     MinCount      : 1
     MaxCount      : 1
     SubnetId      : "subnet-b47692ed"
@@ -185,9 +185,8 @@ Deploy.createInstance options,(err,conn) ->
       throw err if err
       conn.exec """
           sudo bash /tmp/run.sh install;
-          # sudo bash /tmp/run.sh services;
-          # sudo bash /tmp/run.sh install;
-          echo heloasdf
+          sudo bash /opt/koding/run services;
+          # sudo bash /opt/koding/run;
       """
       , (err, stream) ->
         log 4

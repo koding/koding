@@ -4,8 +4,12 @@ argv       = require('minimist')(process.argv.slice(2))
 log        = console.log
 fs         = require 'fs'
 
+log "-------------------------"
+log ""
+log "# ./configure assumes development environment - comes bundled with options below."
+log "# override them as you see fit with command line arguments like --config --branch etc."
+log ""
 
-# ./run assumes development - comes bundled with these options.
 options = o =
   projectRoot      : argv.projectRoot    or __dirname
   config           : argv.config         or "dev"
@@ -21,9 +25,11 @@ options = o =
   supervisor       : argv.supervisor     or no
   deploy           : argv.deploy         or no
 
-
-console.log "Configuring with options:",o
-
+log "Configuring with options:"
+log "-------------------------"
+log o
+log "-------------------------"
+log ""
 
 KONFIG = require("./config/main.#{o.config}.coffee")(options)
 
@@ -41,8 +47,9 @@ createRunFile = (KONFIG)->
   log "1) install Docker and ngrok (ngrok is optional)"
   log "2) do './run services' for backend services after installing docker."
   log "3) do './run install' "
-  log "4) you can then type './run' to run Koding and see it on http://lvh.me:8090"
+  log "4) you can then type './run' to run Koding and see it on #{o.hostname}"
 
+  log KONFIG.supervisorConf
 
 createRunFile KONFIG
 

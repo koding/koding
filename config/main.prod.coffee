@@ -401,15 +401,6 @@ Configuration = (options={}) ->
         fi
 
 
-        echo '#---> AUTHORIZING THIS COMPUTER TO NGROK (@gokmen) <---#'
-        if grep -q UsZMWdx586A3tA0U "$HOME/.ngrok"; then
-          echo you seem to have correct .ngrok file.
-        else
-          echo 'created ~/.ngrok file (you may still need to download the client)'
-          echo auth_token: CMY-UsZMWdx586A3tA0U >> $HOME/.ngrok
-        fi
-
-
         echo
         echo
         echo 'ALL DONE. Enjoy! :)'
@@ -430,10 +421,10 @@ Configuration = (options={}) ->
         ./cleanup @$
 
       elif [ "$1" == "services" ]; then
-        docker run -d --net=host --name=mongo    koding/mongo    --dbpath /root/data/db --smallfiles --nojournal
-        docker run -d --net=host --name=redis    koding/redis
-        docker run -d --net=host --name=postgres koding/postgres
-        docker run -d --net=host --name=rabbitmq koding/rabbitmq
+        docker run -d --net=host                  --name=mongo    koding/mongo    --dbpath /root/data/db --smallfiles --nojournal
+        docker run -d --net=host                  --name=redis    koding/redis
+        docker run -d --net=host                  --name=postgres koding/postgres
+        docker run -d -p 5672:5672 -p 15672:15672 --name=rabbitmq koding/rabbitmq
 
         echo '#---> UPDATING MONGO DATABASE ACCORDING TO LATEST CHANGES IN CODE (UPDATE PERMISSIONS @chris) <---#'
         cd #{projectRoot}
