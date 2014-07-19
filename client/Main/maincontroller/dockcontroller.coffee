@@ -57,7 +57,7 @@ class DockController extends KDViewController
 
     @vmsList.getListView().on 'VMCogClicked', (vm, item)->
       {mainView} = KD.singletons
-      mainView.openVMModal vm, this
+      mainView.openVMModal vm, item
 
     # {mainController} = KD.singletons
     # mainController.ready @bound 'accountChanged'
