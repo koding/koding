@@ -41,8 +41,6 @@
     "jsonify": "0.0.0",
     "kite.js": "0.3.3",
     "log": "1.2.0",
-    "log4js": "0.6.9",
-    "log4js-node-syslog": "0.0.5",
     "marked": "0.3.1",
     "mime": "1.2.x",
     "minimist": "0.0.8",
