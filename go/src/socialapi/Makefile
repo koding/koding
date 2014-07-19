@@ -142,20 +142,26 @@ build:
 	@go build $(VERBOSE) ${PACKAGES}
 
 testapi:
-	@echo "$(OK_COLOR)==> Running go api tests $(NO_COLOR)"
-
+	@echo "$(OK_COLOR)==> Running Unit tests $(NO_COLOR)"
+	@echo "$(OK_COLOR)--> model tests... $(NO_COLOR)"
 	@go test -c models/*.go
 	@./models.test $(DEBUG) -c ./config/vagrant.toml
 	@rm ./models.test
 
+	@echo "$(OK_COLOR)==> Running Integration tests $(NO_COLOR)"
+	@echo "$(OK_COLOR)--> troll mode tests... $(NO_COLOR)"
 	@go test $(DEBUG) workers/trollmode/tests/*.go
-
 	@go test -c workers/trollmode/trollmode/*.go
 	@./trollmode.test $(DEBUG) -c ./config/vagrant.toml
 	@rm  ./trollmode.test
 
+	@echo "$(OK_COLOR)--> general tests... $(NO_COLOR)"
 	@go test $(DEBUG) tests/*.go
+
+	@echo "$(OK_COLOR)--> notification tests... $(NO_COLOR)"
 	@go test $(DEBUG) workers/notification/tests/*.go
+
+	@echo "$(OK_COLOR)--> sitemap generator tests... $(NO_COLOR)"
 	@go test $(DEBUG) workers/sitemap/sitemapgenerator/generator/*.go
 
 doc:
