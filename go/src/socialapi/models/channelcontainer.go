@@ -52,10 +52,10 @@ func withChecks(cc *ChannelContainer, f func(c *ChannelContainer) error) *Channe
 		return cc
 	}
 
-	// if cc.Channel == (*Channel{}) {
-	// 	cc.Err = ErrChannelIsNotSet
-	// 	return cc
-	// }
+	if cc.Channel == nil {
+		cc.Err = ErrChannelIsNotSet
+		return cc
+	}
 
 	if cc.Err != nil {
 		return cc
