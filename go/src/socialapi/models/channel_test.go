@@ -174,7 +174,26 @@ func TestChannelCanOpen(t *testing.T) {
 
 			canOpen, err := c.CanOpen(account.Id)
 			So(err, ShouldBeNil)
-			So(canOpen, ShouldBeFalse)
+			So(canOpen, ShouldBeTrue)
+		})
+
+		Convey("non-participants can open private message channel", func(){
+			// init account
+			account, err := createAccount()
+			So(err, ShouldBeNil)
+			So(account, ShouldNotBeNil)
+			So(account.Id, ShouldNotEqual, 0)
+
+			// init channel
+			c := NewChannel()
+			c.CreatorId = account.Id
+			c.TypeConstant = Channel_TYPE_PRIVATE_MESSAGE
+
+			So(c.Create(), ShouldBeNil)
+
+			canOpen, err := c.CanOpen(account.Id)
+			So(err, ShouldBeNil)
+			So(canOpen, ShouldBeTrue)
 		})
 
 	})
