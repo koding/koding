@@ -952,11 +952,16 @@ section.pricing-sign-in
         &:nth-child(2)
           margin-left 20px
 
-    &.cardzipcode
+    &.cardcity
+      fl()
       .input-wrapper
-        size          146px, auto
-        clear         left
+        size          231px, auto
         fl()
+        &:nth-child(2)
+          margin-left 20px
+
+        .kdinput
+          text-align  center
 
     &.cardnumber
       span.icon
@@ -984,9 +989,6 @@ section.pricing-sign-in
         &:nth-child(2)
           margin-left 20px
 
-        .kdinput
-          text-align  center
-
     &.cardcv
       clear           none
       fr()
@@ -994,6 +996,19 @@ section.pricing-sign-in
         size          63px, auto
         .kdinput
           text-align  center
+
+    &.cardcity
+      fl()
+      .input-wrapper
+        size          397px, auto
+        fl()
+        &:nth-child(2)
+          margin-left 20px
+          width       65px
+
+        .kdinput
+          text-align  left
+
 
 /* Confirm payment */
 .plan-upgrade-confirm-form

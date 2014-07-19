@@ -86,34 +86,53 @@ class PaymentMethodEntryForm extends KDFormViewWithFields
       cardAddress1        :
         placeholder       : 'Address'
         validate          :
+          notifications   : yes
+          event           : 'blur'
           rules           :
             maxLength     : 50
+          messages        :
+            maxLength     : 'Address should be less than 50 characters long!'
       cardCity            :
         placeholder       : 'City'
         validate          :
+          notifications   : yes
+          event           : 'blur'
           rules           :
             maxLength     : 50
-      cardState           :
-        placeholder       : 'State'
-        validate          :
-          rules           :
-            maxLength     : 5
+          messages        :
+            maxLength     : 'City should be less than 50 letters long!'
         nextElementFlat   :
-          cardCountry         :
-            placeholder       : 'Country'
-            validate          :
-              rules           :
-                maxLength     : 50
-            nextElementFlat   :
-              cardZipcode         :
-                placeholder       : 'Zipcode'
-                validate          :
-                  notifications   : yes
-                  event           : 'blur'
-                  rules           :
-                    regExp        : /^[\d-]+$/
-                  messages        :
-                    regExp        : 'Zipcode must be a number!'
+          cardState       :
+            placeholder   : 'State'
+            validate      :
+              notifications : yes
+              event       : 'blur'
+              rules       :
+                regExp    : /^[A-Za-z]{2}$/
+                maxLength : 2
+              messages    :
+                regExp    : 'State should be 2 letters! (eg: CA)'
+      cardZipcode         :
+        placeholder       : 'Zipcode'
+        validate          :
+          notifications   : yes
+          event           : 'blur'
+          rules           :
+            regExp        : /^[\d-]+$/
+            maxLength     : 10
+          messages        :
+            maxLength     : 'Zipcode should be less than 10 digits long!'
+            regExp        : 'Zipcode must be a number!'
+      cardCountry         :
+        placeholder       : 'Country'
+        validate          :
+          notifications   : yes
+          event           : 'blur'
+          rules           :
+            regExp        : /^[A-Za-z]{2}$/
+            maxLength     : 2
+          messages        :
+            regExp        : 'Country should be 2 letters! (eg: US)'
       captcha             :
         itemClass         : KDCustomHTMLView
         domId             : "recaptcha"
