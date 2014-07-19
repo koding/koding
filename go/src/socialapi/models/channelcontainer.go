@@ -7,7 +7,7 @@ import (
 )
 
 type ChannelContainer struct {
-	Channel             Channel                  `json:"channel"`
+	Channel             *Channel                 `json:"channel"`
 	IsParticipant       bool                     `json:"isParticipant"`
 	ParticipantCount    int                      `json:"participantCount"`
 	ParticipantsPreview []string                 `json:"participantsPreview"`
@@ -30,7 +30,7 @@ func (c *ChannelContainer) Fetch(id int64, q *request.Query) error {
 		if err != nil {
 			return err
 		}
-		c = cc
+		*c = *cc
 	} else {
 		return bongo.B.Fetch(c, id)
 	}
@@ -45,6 +45,17 @@ func (c *ChannelContainer) GetId() int64 {
 
 	return 0
 }
+
+func (cr *ChannelContainer) PopulateWith(c Channel, accountId int64) error {
+	cr.Channel = &c
+	cr.AddParticipantCount().
+		AddParticipantsPreview().
+		AddIsParticipant(accountId).
+		AddLastMessage()
+
+	return cr.Err
+}
+
 func withChecks(cc *ChannelContainer, f func(c *ChannelContainer) error) *ChannelContainer {
 	if cc == nil {
 		cc = &ChannelContainer{}
@@ -70,7 +81,6 @@ func (cr *ChannelContainer) AddParticipantCount() *ChannelContainer {
 	return withChecks(cr, func(cc *ChannelContainer) error {
 		cp := NewChannelParticipant()
 		cp.ChannelId = cc.Channel.Id
-
 		// fetch participant count from db
 		participantCount, err := cp.FetchParticipantCount()
 		if err != nil {
@@ -217,16 +227,6 @@ func (cr *ChannelContainer) AddUnreadCount(accountId int64) *ChannelContainer {
 		return nil
 
 	})
-}
-
-func (cr *ChannelContainer) PopulateWith(c Channel, accountId int64) error {
-	cr.Channel = c
-	cr.AddParticipantCount().
-		AddParticipantsPreview().
-		AddIsParticipant(accountId).
-		AddLastMessage()
-
-	return cr.Err
 }
 
 type ChannelContainers []ChannelContainer

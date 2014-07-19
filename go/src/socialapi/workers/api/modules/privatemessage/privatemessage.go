@@ -102,7 +102,7 @@ func Send(u *url.URL, h http.Header, req *models.PrivateMessageRequest) (int, ht
 	}
 
 	cmc := models.NewChannelContainer()
-	cmc.Channel = *c
+	cmc.Channel = c
 	cmc.IsParticipant = true
 	cmc.LastMessage = messageContainer
 	cmc.ParticipantCount = len(participantIds)
@@ -125,7 +125,6 @@ func List(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface
 	}
 
 	cc := models.NewChannelContainers()
-
 	if err := cc.Fetch(channelList, query); err != nil {
 		return response.NewBadRequest(err)
 	}
