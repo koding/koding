@@ -55,14 +55,21 @@ func (c *ChannelMessage) Update() error {
 		return err
 	}
 
-	// only update body
-	err := bongo.B.UpdatePartial(c,
-		map[string]interface{}{
-			"body": c.Body,
-		},
-	)
+	cm := NewChannelMessage()
+	if err := cm.ById(c.GetId()); err != nil {
+		return err
+	}
+	cm.Body = c.Body
+	return bongo.B.Update(cm)
 
-	return err
+	// todo implement UpdatePartial
+	// only update body
+	// err := bongo.B.UpdatePartial(c,
+	// 	map[string]interface{}{
+	// 		"Body": c.Body,
+	// 	},
+	// )
+	// return err
 }
 
 // Create creates the channel message
