@@ -45,6 +45,7 @@ class PaymentWorkflow extends FormWorkflow
     payment = KD.getSingleton 'paymentController'
 
     payment.observePaymentSave form, (err, paymentMethod) =>
+      form.buttons.Save.hideLoader()
       return if KD.showError err
 
       @collectData { paymentMethod }

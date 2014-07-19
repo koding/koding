@@ -1,6 +1,5 @@
 do ->
 
   KD.registerRoutes 'Terminal',
-    "/:name?/Terminal" : ({params:{name}, query})->
-      router = KD.getSingleton 'router'
-      router.openSection "Terminal", name, query
+    '/:name?/Terminal' : (routeInfo, state, path) ->
+      KD.singletons.router.handleRoute path.replace(/\/Terminal/, '/IDE')
