@@ -143,16 +143,20 @@ build:
 
 testapi:
 	@echo "$(OK_COLOR)==> Running go api tests $(NO_COLOR)"
+
 	@go test -c models/*.go
 	@./models.test $(DEBUG) -c ./config/vagrant.toml
 	@rm ./models.test
-	@go test $(DEBUG) tests/*.go
-	@go test $(DEBUG) workers/notification/tests/*.go
-	@go test $(DEBUG) workers/sitemap/sitemapgenerator/generator/*.go
+
 	@go test $(DEBUG) workers/trollmode/tests/*.go
+
 	@go test -c workers/trollmode/trollmode/*.go
 	@./trollmode.test $(DEBUG) -c ./config/vagrant.toml
 	@rm  ./trollmode.test
+
+	@go test $(DEBUG) tests/*.go
+	@go test $(DEBUG) workers/notification/tests/*.go
+	@go test $(DEBUG) workers/sitemap/sitemapgenerator/generator/*.go
 
 doc:
 	@for package in $(PACKAGES); \
