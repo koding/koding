@@ -219,7 +219,16 @@ class MainView extends KDView
 
   openVMModal: (vm, item) ->
 
-    new VMSettingsModal {}, vm
+    bounds   = item.getBounds()
+
+    top      = bounds.y - 80
+    left     = bounds.x + bounds.w + 30
+
+    new VMSettingsModal
+      position     :
+        top        : Math.max top, 0
+        left       : left
+    , vm
 
 
   setStickyNotification:->
