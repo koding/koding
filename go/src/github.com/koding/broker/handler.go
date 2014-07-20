@@ -27,14 +27,14 @@ type ErrHandler interface {
 func (c *Consumer) Start() func(delivery amqp.Delivery) {
 	c.Log.Info("Broker sarted to consume")
 	return func(delivery amqp.Delivery) {
-		if handlers, ok := c.handlers[delivery.Type]; !ok {
+		if _, ok := c.handlers[delivery.Type]; !ok {
 			// if no handler found, just ack message
 			c.Log.Debug("No handler for %s", delivery.Type)
 			delivery.Ack(false)
 			return
 		}
 
-		for _, handler := range handlers {
+		for _, handler := range c.handlers[delivery.Type] {
 			err := handler.HandleEvent(c.contextValue, delivery.Body)
 			switch err {
 			case nil:
