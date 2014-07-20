@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 	"koding/db/mongodb/modelhelper"
-	"socialapi/workers/common/manager"
 	"socialapi/workers/common/runner"
 	"socialapi/workers/emailnotifier/emailnotifier"
 	"socialapi/workers/emailnotifier/models"
@@ -45,14 +44,13 @@ func main() {
 		es,
 	)
 	if err != nil {
-		panic(err)
+		r.Log.Error("%s", err.Error())
+		return
 	}
 
-	m := manager.New()
-	m.Controller(handler)
-	m.HandleFunc("notification.notification_created", (*emailnotifier.Controller).SendInstantEmail)
-	m.HandleFunc("notification.notification_updated", (*emailnotifier.Controller).SendInstantEmail)
-
-	r.Listen(m)
+	r.SetContext(handler)
+	r.ListenFor("notification.notification_created", (*emailnotifier.Controller).SendInstantEmail)
+	r.ListenFor("notification.notification_updated", (*emailnotifier.Controller).SendInstantEmail)
+	r.Listen()
 	r.Wait()
 }
