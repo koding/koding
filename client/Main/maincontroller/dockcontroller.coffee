@@ -243,9 +243,13 @@ class DockController extends KDViewController
       appManager.on 'AppIsBeingShown', (instance, view, options) =>
         @setNavItemState {name:options.name, options}, 'active'
 
+
   fetchVMs: (callback)->
+
     {vmController} = KD.singletons
-    vmController.fetchVMs no, (err, vms) =>
+
+    # force refetch from server everytime vms fetched.
+    vmController.fetchVMs force = yes, (err, vms) =>
       if err
         ErrorLog.create 'terminal: Couldn\'t fetch vms', reason : err
         return new KDNotificationView title : 'Couldn\'t fetch your VMs'
