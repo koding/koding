@@ -1,12 +1,25 @@
 package broker
 
 import (
-	"errors"
-
 	"github.com/koding/logging"
 	"github.com/koding/rabbitmq"
-	"github.com/streadway/amqp"
 )
+
+type Closer interface {
+	Close() error
+}
+
+type Publisher interface {
+	Publish(messageType string, body []byte) error
+	Closer
+}
+
+type Subscriber interface {
+	Subscribe(messageType string, handler *SubscriptionHandler) error
+	Listen() error
+	SetContext(context ErrHandler) error
+	Closer
+}
 
 type Config struct {
 	// RMQ config
