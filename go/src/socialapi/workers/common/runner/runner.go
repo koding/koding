@@ -16,6 +16,7 @@ import (
 	"github.com/koding/kite/protocol"
 
 	"github.com/koding/bongo"
+	"github.com/koding/broker"
 	"github.com/koding/logging"
 	"github.com/koding/worker"
 )
@@ -148,23 +149,22 @@ func (r *Runner) RegisterToKontrol() error {
 	return r.Kite.RegisterForever(registerURL)
 }
 
-func (r *Runner) Listen(handler worker.Handler) {
-	r.Listener = worker.NewListener(
-		WrapWithVersion(r.Name, flagVersion),
-		WrapWithVersion(r.Conf.EventExchangeName, flagVersion),
-		r.Log,
-	)
+func (r *Runner) SetContext(controller broker.ErrHandler) {
+	r.Bongo.Broker.SetContext(controller)
+}
 
+func (r *Runner) ListenFor(eventName string, handleFunc interface{}) error {
+	return r.Bongo.Broker.Subscribe(eventName, handleFunc)
+}
+
+func (r *Runner) Listen() {
 	// blocking
 	// listen for events
-	r.Listener.Listen(helper.NewRabbitMQ(r.Conf, r.Log), handler)
+	r.Bongo.Broker.Listen()
 }
 
 func (r *Runner) Close() {
 	r.ShutdownHandler()
-	if r.Listener != nil {
-		r.Listener.Close()
-	}
 	r.Bongo.Close()
 	if *flagKiteInit {
 		if r.Kite == nil {
