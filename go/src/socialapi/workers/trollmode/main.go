@@ -17,14 +17,12 @@ func main() {
 		return
 	}
 
+	r.SetContext(trollmode.NewController(r.Log))
+	r.ListenFor(trollmode.MarkedAsTroll, (*trollmode.Controller).MarkedAsTroll)
+	r.ListenFor(trollmode.UnMarkedAsTroll, (*trollmode.Controller).UnMarkedAsTroll)
+
 	// too many eggs in an egg
 	//  consider refactoring
-	r.Listen(
-		trollmode.NewManager(
-			trollmode.NewController(
-				r.Log,
-			),
-		),
-	)
+	r.Listen()
 	r.Wait()
 }
