@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"socialapi/workers/common/manager"
 	"socialapi/workers/common/runner"
 	"socialapi/workers/pinnedpost/pinnedpost"
 )
@@ -18,16 +17,9 @@ func main() {
 		return
 	}
 
-	// create message handler
-	handler := pinnedpost.New(r.Log)
-
-	m := manager.New()
-	m.Controller(handler)
-
-	m.HandleFunc("api.channel_message_created", (*pinnedpost.Controller).MessageCreated)
-	m.HandleFunc("api.message_reply_created", (*pinnedpost.Controller).MessageReplyCreated)
-
-	// create message handler
-	r.Listen(m)
+	r.SetContext(pinnedpost.New(r.Log))
+	r.ListenFor("api.channel_message_created", (*pinnedpost.Controller).MessageCreated)
+	r.ListenFor("api.message_reply_created", (*pinnedpost.Controller).MessageReplyCreated)
+	r.Listen()
 	r.Wait()
 }
