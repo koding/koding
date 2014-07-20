@@ -193,7 +193,7 @@ func TestChannelCanOpen(t *testing.T) {
 
 			canOpen, err := c.CanOpen(account.Id)
 			So(err, ShouldBeNil)
-			So(canOpen, ShouldBeTrue)
+			So(canOpen, ShouldBeFalse)
 		})
 
 	})
