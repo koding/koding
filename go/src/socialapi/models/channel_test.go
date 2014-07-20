@@ -7,6 +7,24 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 )
 
+// createNewChannelWithTest creates a new account
+// And inits a channel 
+func createNewChannelWithTest() *Channel {
+	c := NewChannel()
+
+	// init account
+	account, err := createAccount()
+	So(err, ShouldBeNil)
+	So(account, ShouldNotBeNil)
+	So(account.Id, ShouldNotEqual, 0)
+
+	// init channel
+	c := NewChannel()
+	// set Creator id
+	c.CreatorId = account.Id
+	return c
+}
+
 func TestChannelCreate(t *testing.T) {
 	r := runner.New("test")
 	if err := r.Init(); err != nil {
@@ -68,15 +86,7 @@ func TestChannelCanOpen(t *testing.T) {
 		})
 
 		Convey("participants can open group channel", func() {
-			// init account
-			account, err := createAccount()
-			So(err, ShouldBeNil)
-			So(account, ShouldNotBeNil)
-			So(account.Id, ShouldNotEqual, 0)
-
-			// init channel
-			c := NewChannel()
-			c.CreatorId = account.Id
+			c :=createNewChannelWithTest()
 			c.TypeConstant = Channel_TYPE_GROUP
 
 			So(c.Create(), ShouldBeNil)
@@ -91,15 +101,8 @@ func TestChannelCanOpen(t *testing.T) {
 		})
 
 		Convey("everyone can open group channel", func() {
-			// init account
-			account, err := createAccount()
-			So(err, ShouldBeNil)
-			So(account, ShouldNotBeNil)
-			So(account.Id, ShouldNotEqual, 0)
-
-			// init channel
-			c := NewChannel()
-			c.CreatorId = account.Id
+			c :=createNewChannelWithTest()
+			// set required constant to open chanel
 			c.TypeConstant = Channel_TYPE_GROUP
 
 			So(c.Create(), ShouldBeNil)
@@ -111,15 +114,7 @@ func TestChannelCanOpen(t *testing.T) {
 		})
 
 		Convey("everyone can open topic channel", func() {
-			// init account
-			account, err := createAccount()
-			So(err, ShouldBeNil)
-			So(account, ShouldNotBeNil)
-			So(account.Id, ShouldNotEqual, 0)
-
-			// init channel
-			c := NewChannel()
-			c.CreatorId = account.Id
+			c :=createNewChannelWithTest()
 			c.TypeConstant = Channel_TYPE_TOPIC
 
 			So(c.Create(), ShouldBeNil)
@@ -131,15 +126,7 @@ func TestChannelCanOpen(t *testing.T) {
 		})
 
 		Convey("participants can open pinned activity channel", func(){
-			// init account
-			account, err := createAccount()
-			So(err, ShouldBeNil)
-			So(account, ShouldNotBeNil)
-			So(account.Id, ShouldNotEqual, 0)
-
-			// init channel
-			c := NewChannel()
-			c.CreatorId = account.Id
+			c :=createNewChannelWithTest()
 			c.TypeConstant = Channel_TYPE_PINNED_ACTIVITY
 
 			So(c.Create(), ShouldBeNil)
@@ -154,15 +141,7 @@ func TestChannelCanOpen(t *testing.T) {
 		})
 
 		Convey("participants can open private message channel", func(){
-			// init account
-			account, err := createAccount()
-			So(err, ShouldBeNil)
-			So(account, ShouldNotBeNil)
-			So(account.Id, ShouldNotEqual, 0)
-
-			// init channel
-			c := NewChannel()
-			c.CreatorId = account.Id
+			c :=createNewChannelWithTest()
 			c.TypeConstant = Channel_TYPE_PRIVATE_MESSAGE
 
 			So(c.Create(), ShouldBeNil)
@@ -178,15 +157,7 @@ func TestChannelCanOpen(t *testing.T) {
 		})
 
 		Convey("non-participants can open private message channel", func(){
-			// init account
-			account, err := createAccount()
-			So(err, ShouldBeNil)
-			So(account, ShouldNotBeNil)
-			So(account.Id, ShouldNotEqual, 0)
-
-			// init channel
-			c := NewChannel()
-			c.CreatorId = account.Id
+			c :=createNewChannelWithTest()
 			c.TypeConstant = Channel_TYPE_PRIVATE_MESSAGE
 
 			So(c.Create(), ShouldBeNil)
