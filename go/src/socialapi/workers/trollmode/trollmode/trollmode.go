@@ -4,11 +4,9 @@ import (
 	"errors"
 	"fmt"
 	"socialapi/models"
-	"socialapi/workers/common/manager"
 
 	"github.com/koding/bongo"
 	"github.com/koding/logging"
-	"github.com/koding/worker"
 	"github.com/streadway/amqp"
 )
 
@@ -16,14 +14,6 @@ const (
 	MarkedAsTroll   = "api.account_marked_as_troll"
 	UnMarkedAsTroll = "api.account_unmarked_as_troll"
 )
-
-func NewManager(controller worker.ErrHandler) *manager.Manager {
-	m := manager.New()
-	m.Controller(controller)
-	m.HandleFunc(MarkedAsTroll, (*Controller).MarkedAsTroll)
-	m.HandleFunc(UnMarkedAsTroll, (*Controller).UnMarkedAsTroll)
-	return m
-}
 
 type Controller struct {
 	log logging.Logger
