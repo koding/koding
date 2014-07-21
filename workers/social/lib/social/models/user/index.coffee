@@ -296,12 +296,14 @@ module.exports = class JUser extends jraphical.Module
       if user.blockedUntil and user.blockedUntil > new Date
         toDate = user.blockedUntil.toUTCString()
         message = """
-            You cannot login until #{toDate}.
-            At least 10 moderators of Koding have decided that your participation is not of acceptable kind.
-            That's all I know.
-            You can demand further explanation from ban@koding.com. Please allow 1-2 days to receive a reply.
-            Your machines might be blocked, all types of activities might be suspended.
-            Your data is safe, you can access them when/if ban is lifted.
+Account suspended due to violation of our acceptable use policy.
+
+Hello,
+This account has been put on suspension by Koding moderators due to a violation of our acceptable use policy. The ban will be in effect until #{toDate} at which time you will be able to log back in again. Should you have any questions regarding this ban, please write to ban@koding.com and allow 2-3 business days for us to research and reply. Even though your account is banned, all your data is safe and will be accessible once the ban lifts.
+
+Please note, repeated violations of our acceptable use policy will result in the permanent deletion of your account.
+
+Team Koding
           """
         callback createKodingError message
       else
