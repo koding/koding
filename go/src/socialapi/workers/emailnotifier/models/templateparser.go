@@ -1,17 +1,17 @@
 package models
 
 import (
-	"io/ioutil"
-	"strings"
 	"bytes"
 	"fmt"
+	"github.com/webcitizen/juice"
 	"html/template"
+	"io/ioutil"
 	"net/url"
 	"os"
 	"path"
 	"socialapi/config"
+	"strings"
 	"time"
-	"github.com/webcitizen/juice"
 )
 
 const (
@@ -33,7 +33,7 @@ var (
 	objectTemplateFile      string
 	unsubscribeTemplateFile string
 
-	css						[]byte
+	css []byte
 )
 
 func NewTemplateParser() *TemplateParser {
@@ -112,7 +112,7 @@ func (tp *TemplateParser) validateTemplateParser() error {
 	return nil
 }
 
-func (tp *TemplateParser) inlineCss(content string) (string) {
+func (tp *TemplateParser) inlineCss(content string) string {
 	rules := juice.Parse(css)
 	output := juice.Inline(strings.NewReader(content), rules)
 
