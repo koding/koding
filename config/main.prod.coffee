@@ -262,6 +262,10 @@ Configuration = (options={}) ->
     upstream social    {server 127.0.0.1:3030;}
     upstream subscribe {server 127.0.0.1:8008;}
 
+    map $http_upgrade $connection_upgrade {
+        default upgrade;
+        '' close;
+    }
 
     server {
       listen 80 default_server;
@@ -293,14 +297,31 @@ Configuration = (options={}) ->
 
       # TBD. ADD WEBSOCKET SUPPORT HERE
 
-      location /subscribe {
+      location ~^/subscribe/.* {
         proxy_pass http://subscribe;
+
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+        proxy_set_header Host $host;
         proxy_set_header  X-Real-IP   $remote_addr;
         proxy_set_header  X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_next_upstream   error timeout invalid_header http_500;
         proxy_connect_timeout   1;
       }
 
+      location /websocket {
+        proxy_pass http://subscribe;
+
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+        proxy_set_header Host $host;
+        proxy_set_header  X-Real-IP   $remote_addr;
+        proxy_set_header  X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_next_upstream   error timeout invalid_header http_500;
+        proxy_connect_timeout   1;
+      }
     }
   """
 
@@ -338,8 +359,10 @@ Configuration = (options={}) ->
       export GOPATH=#{projectRoot}/go
       export GOBIN=#{projectRoot}/go/bin
       export HOME=/root
+      export KONFIG_JSON=#{KONFIG.JSON}
+      \n
       """
-      env += "export #{key}='#{val}'\n" for key,val of KONFIG.ENV
+      # env += "export #{key}='#{val}'\n" for key,val of KONFIG.ENV
       return env
 
     workersRunList = ->
@@ -433,12 +456,13 @@ Configuration = (options={}) ->
 
         echo '#---> BUILDING CLIENT (@gokmen) <---#'
 
-        chmod +x ./build-client.coffee
         git submodule init
         git submodule update --recursive
-        npm i gulp stylus coffee-script nodemon -g --silent
-        npm i --unsafe-perm --silent
-        coffee /opt/koding/build-client.coffee --watch false  --verbose
+        npm i gulp stylus coffee-script -g
+        npm i --unsafe-perm
+
+        chmod +x ./build-client.coffee
+        /usr/local/bin/coffee /opt/koding/build-client.coffee --watch false  --verbose
 
         cp /tmp/run.sh #{projectRoot}/run
         chmod +x #{projectRoot}/run

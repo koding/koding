@@ -181,14 +181,8 @@ Deploy.createInstance options,(err,result) ->
   KONFIG = require("./config/main.prod.coffee")
     hostname : result.instanceName
 
-
-  conn.exec """
-      echo '#{new Buffer(KONFIG.runFile).toString('base64')}' | base64 --decode > /tmp/run.sh
-      # sudo bash /tmp/run.sh install;
-      # sudo bash /opt/koding/run services;
-      # sudo service supervisor restart;
-      """
-  , (err, stream) ->
+  cmd = "echo '#{new Buffer(KONFIG.runFile).toString('base64')}' | base64 --decode > /tmp/run.sh"
+  conn.exec cmd, (err, stream) ->
     log 4
     throw err if err
     conn.listen "configuring", stream,->

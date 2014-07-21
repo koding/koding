@@ -50,10 +50,12 @@ createRunFile = (KONFIG)->
   log "4) you can then type './run' to run Koding and see it on #{o.hostname}"
 
   # log KONFIG.supervisorConf
-  log "echo '#{new Buffer(KONFIG.supervisorConf).toString('base64')}' | base64 --decode > /etc/supervisor/conf.d/koding.conf"
+  # log "echo '#{new Buffer(KONFIG.supervisorConf).toString('base64')}' | base64 --decode > /etc/supervisor/conf.d/koding.conf"
 
 
 createRunFile KONFIG
+
+# log require("./config/main.prod.coffee")({hostname:"gogo-1111"}).runFile
 
 
 
