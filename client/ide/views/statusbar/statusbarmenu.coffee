@@ -24,11 +24,22 @@ class IDE.StatusBarMenu extends KDContextMenu
     return items
 
   addEditorMenuItems: (items, options, appManager) ->
-    items.Save        = callback: -> appManager.tell 'IDE', 'saveFile'
-    items['Save As']  = callback: -> appManager.tell 'IDE', 'saveAs'
-    items['Save All'] = callback: -> appManager.tell 'IDE', 'saveAllFiles'
-    items.customView  = @syntaxSelector = new IDE.SyntaxSelectorMenuItem
-    items.Preview     = callback: -> appManager.tell 'IDE', 'previewFile'
+    items.Save                = callback: -> appManager.tell 'IDE', 'saveFile'
+    items['Save As...']       = callback: -> appManager.tell 'IDE', 'saveAs'
+    items['Save All']         = callback: -> appManager.tell 'IDE', 'saveAllFiles'
+    items.customView          = @syntaxSelector = new IDE.SyntaxSelectorMenuItem
+    items.Preview             = callback: -> appManager.tell 'IDE', 'previewFile'
+    items['More...']          =
+      children                :
+        'Find...'             :
+          callback            : -> appManager.tell 'IDE', 'showFindReplaceView'
+        'Find and replace...' :
+          callback            : -> appManager.tell 'IDE', 'showFindReplaceView', yes
+        'Find in files...'    :
+          callback            : -> appManager.tell 'IDE', 'showContentSearch'
+        'Jump to file...'     :
+          callback            : -> appManager.tell 'IDE', 'showFileFinder'
+
     items.separator   = type: 'separator'
 
   addDefaultMenuItems: (items, options, appManager) ->
