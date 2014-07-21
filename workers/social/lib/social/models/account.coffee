@@ -555,7 +555,7 @@ module.exports = class JAccount extends jraphical.Module
     homePageOptions = extend options, {
       renderedAccount : account
       account         : this
-      isLoggedIn      : account.type is 'unregistered'
+      isLoggedIn      : account.type isnt 'registered'
     }
 
     JAccount.renderHomepage homePageOptions, callback

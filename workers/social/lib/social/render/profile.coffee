@@ -6,9 +6,9 @@ module.exports = (options, callback) ->
   getTitle     = require './title'
   encoder      = require 'htmlencode'
 
-  {account, renderedAccount, isLoggedIn, content, bongoModels, client} = options
-  {profile, counts, skilltags}                                         = renderedAccount
-  {nickname, firstName, lastName, hash, about, handles, staticPage}    = profile
+  {account, renderedAccount, loggedIn, content, bongoModels, client} = options
+  {profile, counts, skilltags}                                       = renderedAccount
+  {nickname, firstName, lastName, hash, about, handles, staticPage}  = profile
 
   staticPage  ?= {}
   {customize}  = staticPage
@@ -31,7 +31,7 @@ module.exports = (options, callback) ->
 
   entryPoint = { slug : profile.nickname, type: "profile" }
 
-  prepareHTML = (scripts)->
+  prepareHTML = (scripts) ->
 
     """
     <!doctype html>
@@ -45,6 +45,7 @@ module.exports = (options, callback) ->
       <!--[if IE]><script>(function(){window.location.href='/unsupported.html'})();</script><![endif]-->
 
       #{KONFIG.getConfigScriptTag {entryPoint, roles:['guest'], permissions:[]}}
+      <script>KD.isLoggedInOnLoad=#{loggedIn};</script>
       #{scripts}
 
     </body>
