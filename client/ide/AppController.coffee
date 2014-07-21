@@ -111,7 +111,6 @@ class IDEAppController extends AppController
       if app instanceof IDEAppController
         KD.singletons.windowController.notifyWindowResizeListeners()
 
-
   setActiveTabView: (tabView) ->
     @activeTabView = tabView
 

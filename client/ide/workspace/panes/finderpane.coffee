@@ -27,16 +27,16 @@ class IDE.FinderPane extends IDE.Pane
       fc.reset()
 
   bindListeners: ->
-    appManager = KD.getSingleton 'appManager'
-    fc         = @finderController
+    mgr = KD.getSingleton 'appManager'
+    fc  = @finderController
 
     fc.on 'FileNeedsToBeOpened', (file) ->
       file.fetchContents (err, contents) ->
-        appManager.tell 'IDE', 'openFile', file, contents
+        mgr.tell 'IDE', 'openFile', file, contents
         KD.getSingleton('windowController').setKeyView null
 
     fc.treeController.on 'TerminalRequested', (vm) ->
-      appManager.tell 'IDE', 'openVMTerminal', vm
+      mgr.tell 'IDE', 'openVMTerminal', vm
 
     @on 'VMMountRequested',   (vm) -> fc.mountVm vm
 
