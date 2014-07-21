@@ -82,7 +82,7 @@ func ensureChannelMessages(parentChannel *models.Channel, data *models.ChannelMe
 
 		_, err = tc.AddMessage(data.Id)
 		// safely skip
-		if err == models.AlreadyInTheChannel {
+		if err == models.ErrAlreadyInTheChannel {
 			continue
 		}
 
