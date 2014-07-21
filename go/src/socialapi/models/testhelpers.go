@@ -5,6 +5,7 @@ import (
 	"strconv"
 	"time"
 
+	. "github.com/smartystreets/goconvey/convey"
 	"labix.org/v2/mgo/bson"
 )
 
@@ -27,6 +28,14 @@ func createAccount() (*Account, error) {
 	}
 
 	return author, nil
+}
+
+func createAccountWithTest() *Account {
+	account, err := createAccount()
+	So(err, ShouldBeNil)
+	So(account, ShouldNotBeNil)
+	So(account.Id, ShouldNotEqual, 0)
+	return account
 }
 
 func createChannel(accountId int64) (*Channel, error) {
