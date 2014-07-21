@@ -3,8 +3,10 @@ package request
 import (
 	"math"
 	"net/url"
+	"path"
+	"regexp"
 	"strconv"
-	"text/template"
+	"strings"
 	"time"
 
 	"github.com/kennygrant/sanitize"
@@ -45,7 +47,9 @@ func (q *Query) MapURL(u *url.URL) *Query {
 	q.Limit, _ = strconv.Atoi(urlQuery.Get("limit"))
 
 	q.Name = urlQuery.Get("name")
-	q.Name = template.HTMLEscapeString(q.Name)
+	if q.Name != "" {
+		q.Name = escapeString(q.Name)
+	}
 
 	q.Slug = urlQuery.Get("slug")
 	if q.Slug != "" {
@@ -128,4 +132,29 @@ func (q *Query) SetDefaults() *Query {
 	}
 
 	return q
+}
+
+// Sanitize method is taken from "github.com/kennygrant/sanitize" package.
+// Removed toLowerCase call from Name method in that package.
+func escapeString(text string) string {
+	fileName := path.Clean(path.Base(text))
+	fileName = strings.Trim(fileName, " ")
+
+	// Replace certain joining characters with a dash
+	seps, err := regexp.Compile(`[ &_=+:]`)
+	if err == nil {
+		fileName = seps.ReplaceAllString(fileName, "-")
+	}
+
+	// Remove all other unrecognised characters - NB we do allow any printable characters
+	legal, err := regexp.Compile(`[^[:alnum:]-.]`)
+	if err == nil {
+		fileName = legal.ReplaceAllString(fileName, "")
+	}
+
+	// Remove any double dashes caused by existing - in name
+	fileName = strings.Replace(fileName, "--", "-", -1)
+
+	// NB this may be of length 0, caller must check
+	return fileName
 }
