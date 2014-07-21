@@ -44,8 +44,6 @@ class MainView extends KDView
       domId    : 'main-header'
       cssClass : 'no-dock'  unless KD.isLoggedIn()
 
-    @header.clear()
-
     @header.addSubView new TopNavigation
 
     @header.addSubView @logo = new KDCustomHTMLView
