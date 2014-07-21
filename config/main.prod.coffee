@@ -37,8 +37,8 @@ Configuration = (options={}) ->
     useTLS            : no
     certFile          : ""
     keyFile           : ""
-    publicKeyFile     : "./certs/test_kontrol_rsa_public.pem"
-    privateKeyFile    : "./certs/test_kontrol_rsa_private.pem"
+    publicKeyFile     : "#{projectRoot}/certs/test_kontrol_rsa_public.pem"
+    privateKeyFile    : "#{projectRoot}no/certs/test_kontrol_rsa_private.pem"
 
   broker              =
     name              : "broker"
@@ -260,15 +260,20 @@ Configuration = (options={}) ->
   """
 
   nginxConf = """
-    upstream webs      {server 127.0.0.1:3000;}
-    upstream social    {server 127.0.0.1:3030;}
-    upstream subscribe {server 127.0.0.1:8008;}
-    upstream kloud     {server 127.0.0.1:5000;}
+    upstream webs      {server 127.0.0.1:#{KONFIG.webserver.port};
+    upstream social    {server 127.0.0.1:#{KONFIG.social.port}};
+    upstream subscribe {server 127.0.0.1:#{KONFIG.broker.port}};
+    upstream kloud     {server 127.0.0.1:#{KONFIG.kloud.port}};
+
+    # TBD @arslan -> make kontrol kite horizontally scalable then enable;
+    # upstream kontrol     {server 127.0.0.1:#{KONFIG.kontrol.port}};
 
     map $http_upgrade $connection_upgrade {
         default upgrade;
         '' close;
     }
+
+    # ssl_config cart curt.
 
     server {
       listen 80 default_server;
@@ -446,8 +451,13 @@ Configuration = (options={}) ->
         echo '#-adding keys..-#'
         echo '#{prodPrivateKey}' > /root/.ssh/id_rsa
         chmod 600 /root/.ssh/id_rsa
+
+        #-- add authorized keys for root access --#
         echo "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDElR8rHTkreTKZOSAhKcU6iHU9j+Mnd2VScBQTxaoJeUNCL4IUgk76koY03KjzPZ8XjeIIZ9z2HdrSq+G/JZjh/q2SWVIF1YtbBXY7x51ElcjAzK6S7xIhd42DRCDT6KpkpRkkSe/oxJRwM16MVLQBXPgPDelJ8tP7FMRYPiP2EzojwFCoRgzbCqTKqOMhVLRsZATRu6iEuJbKYjgn3kHkxsq6h+jl4BTGQU4D69O3rpFJtYEEAVWDSMgMwnhtdTbwkE7wZe3Q3saSktE93UgSOgnx3SIqCFPooy3DMRbKvaTpC1rcXJtwVuOEomd6K0r6WfkFeJT3XundxgAbfFEP ubuntu@kodingme"   >/root/.ssh/id_rsa.pub
         echo "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDGy37UYYQjRUyBZ1gYERhmOcyRyF0pFvlc+d91VT6iiIituaR+SpGruyj3NSmTZQ8Px8/ebaIJQaV+8v/YyIJXAQoCo2voo/OO2WhVIzv2HUfyzXcomzV40sd8mqZJnNCQYdxkFbUZv26kOzikie0DlCoVstM9P8XAURSszO0llD4f0CKS7Galwql0plccBxJEK9oNWCMp3F6v3EIX6qdL8eUJko7tJDPiyPIuuaixxd4EBE/l2UBGvqG0REoDrBNJ8maKV3CKhw60LYis8EfKFhQg5055doDNxKSDiCMopXrfoiAQKEJ92MBTjs7YwuUDp5s39THbX9bHoyanbVIL devrim@koding.com" >>/root/.ssh/authorized_keys
+        echo "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDRvR6eD+/UfjDtpD/HK3CEC1vCGl9Pnc/o1il9616mjgmRTE+dnIGqqqq70MVJHpzq8gW7unuQ6zBgEw5J6+pHcptxHwoLNlmOKPDwVyRo6AvQPc0DfMEcInlXWCpFM41LbNUznIHvTDOT4G8gXlS5FUkU/2yds/BsS1H01jIi2JM5jDhnNn7RLWFaoYTVkMMw3ESJ2T1FqR/pjcqbETWeMKE8vW+uyyVMmdSBMtsGl5DxdorrWJ0zpeI6MlLVKaahNUQ8Z9Y7MJN4yTjUNq7su90AtPuCfM/3Sd2oycZ/kTrD5ZQTbJbZ4zEm0Ba14RwcPjuQSluqvgknDDCkLmCT fatih@koding.com"  >>/root/.ssh/authorized_keys
+
+        #-- remove annoying stricthostkeychecking. --#
         echo "Host github.com" >> /root/.ssh/config
         echo "  StrictHostKeyChecking no" >> /root/.ssh/config
 

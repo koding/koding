@@ -8,6 +8,7 @@ import (
 	"os"
 	"os/signal"
 
+	"github.com/mitchellh/packer/builder/amazon/ebs"
 	"github.com/mitchellh/packer/builder/digitalocean"
 	"github.com/mitchellh/packer/packer"
 	"github.com/mitchellh/packer/provisioner/file"
@@ -144,6 +145,8 @@ func builderFunc(name string) (packer.Builder, error) {
 	switch name {
 	case "digitalocean":
 		return &digitalocean.Builder{}, nil
+	case "amazon-ebs":
+		return &ebs.Builder{}, nil
 	}
 
 	return nil, errors.New("no suitable build found")

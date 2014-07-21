@@ -324,7 +324,7 @@ module.exports = class JDomain extends jraphical.Module
       JMachine.count { _id : target }, (err, count)=>
         if err? or count is 0
         then callback new KodingError "Target does not exists"
-        else @bindMachine ObjectId(target), callback
+        else @bindMachine ObjectId(target), (err) -> callback err
 
 
   unbindMachine$: permit
@@ -336,7 +336,7 @@ module.exports = class JDomain extends jraphical.Module
       JMachine.count { _id : target }, (err, count)=>
         if err? or count is 0
         then callback new KodingError "Target does not exists"
-        else @unbindMachine ObjectId(target), callback
+        else @unbindMachine ObjectId(target), (err) -> callback err
 
 
   @one$: permit 'list domains',

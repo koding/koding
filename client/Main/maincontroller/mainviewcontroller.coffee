@@ -1,5 +1,15 @@
 class MainViewController extends KDViewController
 
+  logViewByElement = (el) ->
+
+    for id, view of KD.instances when view.getElement?
+      if el is view.getElement()
+        log view
+        break
+
+    logViewByElement el.parentNode  unless el.parentNode is document.body
+
+
   constructor:->
 
     super
@@ -21,6 +31,12 @@ class MainViewController extends KDViewController
       (view) => @setBodyClass type  if type = view.getOption 'type'
 
     windowController.on 'ScrollHappened', @bound 'handleScroll'
+
+    if KD.config.environment isnt 'production'
+      window.addEventListener 'click', (event) =>
+        if event.metaKey and event.altKey
+          logViewByElement event.target
+      , yes
 
 
   loadView:(mainView)->

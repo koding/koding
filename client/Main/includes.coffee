@@ -155,6 +155,8 @@ module.exports = [
   "navigation/navigationdocsjobslink.coffee",
   "navigation/navigationpromotelink.coffee",
 
+  "vmsettingsmodal.coffee",
+
   # LOCATION
   "locationcontroller.coffee",
   "CommonViews/location/locationform.coffee",

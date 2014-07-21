@@ -239,6 +239,7 @@ config =
         troubleshoot      :
           idleTime        : 1
           externalUrl     : 1
+        recaptcha         : 1
       # authResourceName : DO NOT COMMIT THIS BACK IN NOR DELETE. IT KEEPS COMING BACK. devrim.
     mq            :
       host        : 1
@@ -436,4 +437,5 @@ config =
       secure        : 1
     troubleshoot    :
       recipientEmail: 1
+    recaptcha       : 1
 module.exports = config

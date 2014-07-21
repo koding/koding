@@ -10,7 +10,7 @@ import (
 // executed. Limiter is usefull if you want have throttling or quota checking
 // based on certain criterias.
 type Limiter interface {
-	Limit(*MachineOptions) error
+	Limit(opts *MachineOptions, method string) error
 }
 
 // Builder creates and provision a single image or machine for a given Provider.

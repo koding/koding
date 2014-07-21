@@ -216,6 +216,17 @@ class MainView extends KDView
     @panelWrapper.addSubView @mainTabView
     @panelWrapper.addSubView @appSettingsMenuButton
 
+
+  openVMModal: (vm, item) ->
+
+    bounds   = item.getBounds()
+    position = 
+      top    : Math.max bounds.y - 80, 0
+      left   : bounds.x + bounds.w + 30
+
+    new VMSettingsModal {position}, vm
+
+
   setStickyNotification:->
 
     return if not KD.isLoggedIn() # don't show it to guests

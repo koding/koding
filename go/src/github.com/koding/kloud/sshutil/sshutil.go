@@ -66,7 +66,7 @@ func (s *SSHClient) StartCommand(command string) (string, error) {
 			}
 		}
 
-		return "", err
+		return combinedOutput.String(), err
 	}
 
 	return combinedOutput.String(), nil

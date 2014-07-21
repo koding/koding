@@ -22,7 +22,9 @@ class Deploy
     conn = new Connection()
 
     listen = (op, stream, callback)->
-      stream.on "data", (data)         -> log ("[#{op}] #{data}").replace("\n","")
+      _log = log ("[#{op}] #{data}").replace("\n","")
+      stream.on        "data", (data), _log
+      stream.stderr.on "data", (data), _log
       stream.on "exit", (code, signal) -> log "[#{op}] did exit."
       stream.on "close",               -> callback null,"close"
 

@@ -5,7 +5,7 @@ class TeamworkAppController extends AppController
     route        : "/:name?/Teamwork"
     behavior     : "application"
     preCondition :
-      condition  : (options, cb)-> cb KD.isLoggedIn() or KD._isLoggedIn
+      condition  : (options, cb)-> cb KD.isLoggedIn() or KD.isLoggedInOnLoad
       failure    : (options, cb)->
         KD.singletons.appManager.open 'Teamwork', conditionPassed : yes
         KD.showEnforceLoginModal()
