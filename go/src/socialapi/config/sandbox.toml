@@ -3,6 +3,8 @@ Mongo             = "dev:k9lc4G1k32nyD72@172.16.10.36:27017/koding"
 Environment       = "sandbox"
 Region            = "sandbox"
 Uri               = "http://sandbox.koding.com"
+DisableCaching    = false
+
 
 [postgres]
 # AWS
