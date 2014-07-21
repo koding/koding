@@ -42,7 +42,7 @@ class SocialApiController extends KDController
         groupName    : slug
 
       brokerChannel = KD.remote.subscribe channelName, subscriptionData
-      @forwardMessageEvents brokerChannel, this, ["MessageAdded", "MessageRemoved", "AddedToChannel"]
+      @forwardMessageEvents brokerChannel, this, getMessageEvents()
       @openedChannels[channelName] = {delegate: brokerChannel, channel: this}
       @emit "ChannelRegistered-#{channelName}", this
 
@@ -212,11 +212,7 @@ class SocialApiController extends KDController
         KD.remote.subscribe channelName, subscriptionData, (brokerChannel)->
           {name} = brokerChannel
           socialapi.openedChannels[name] = {delegate: brokerChannel, channel: socialApiChannel}
-          forwardMessageEvents brokerChannel, socialApiChannel, [
-            {event: "MessageAdded", mapperFn: mapActivity}
-            {event: "MessageRemoved", mapperFn: mapActivity}
-            {event: "AddedToChannel", mapperFn: mapParticipant}
-          ]
+          forwardMessageEvents brokerChannel, socialApiChannel, getMessageEvents()
 
           socialapi.emit "ChannelRegistered-#{name}", socialApiChannel
 
@@ -307,6 +303,13 @@ class SocialApiController extends KDController
       when 'channel', 'privatemessage' then @channel.byId {id}, kallback
       when 'post', 'message'           then @message.byId {id}, kallback
       else callback { message: "#{type} not implemented in revive" }
+
+  getMessageEvents = ->
+    [
+      {event: "MessageAdded", mapperFn: mapActivity}
+      {event: "MessageRemoved", mapperFn: mapActivity}
+      {event: "AddedToChannel", mapperFn: mapParticipant}
+    ]
 
 
   message:
