@@ -185,12 +185,9 @@ class SocialApiController extends KDController
 
 
   forwardMessageEvents = (source, target,  events)->
-    events.forEach (event) ->
+    events.forEach ({event, mapperFn}) ->
       source.on event, (data, rest...) ->
-        data = switch event
-          when "AddedToChannel"                 then mapParticipant data
-          when "MessageAdded", "MessageRemoved" then mapActivity data
-          else data
+        data = mapperFn data
         target.emit event, data, rest...
 
   forwardMessageEvents : forwardMessageEvents
@@ -216,9 +213,9 @@ class SocialApiController extends KDController
           {name} = brokerChannel
           socialapi.openedChannels[name] = {delegate: brokerChannel, channel: socialApiChannel}
           forwardMessageEvents brokerChannel, socialApiChannel, [
-            "MessageAdded",
-            "MessageRemoved",
-            "AddedToChannel"
+            {event: "MessageAdded", mapperFn: mapActivity}
+            {event: "MessageRemoved", mapperFn: mapActivity}
+            {event: "AddedToChannel", mapperFn: mapParticipant}
           ]
 
           socialapi.emit "ChannelRegistered-#{name}", socialApiChannel
