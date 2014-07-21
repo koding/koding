@@ -218,7 +218,7 @@ class MainView extends KDView
   openVMModal: (vm, item) ->
 
     bounds   = item.getBounds()
-    position = 
+    position =
       top    : Math.max bounds.y - 80, 0
       left   : bounds.x + bounds.w + 30
 
