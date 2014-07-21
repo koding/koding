@@ -49,7 +49,9 @@ createRunFile = (KONFIG)->
   log "3) do './run install' "
   log "4) you can then type './run' to run Koding and see it on #{o.hostname}"
 
-  log KONFIG.supervisorConf
+  # log KONFIG.supervisorConf
+  log "echo '#{new Buffer(KONFIG.supervisorConf).toString('base64')}' | base64 --decode > /etc/supervisor/conf.d/koding.conf"
+
 
 createRunFile KONFIG
 

@@ -172,12 +172,10 @@ Configuration = (options={}) ->
   # THESE COMMANDS WILL EXECUTE SEQUENTIALLY.
 
   KONFIG.workers =
-    # kloud               : command : "#{GOBIN}/rerun koding/kites/kloud     -c #{configName} -r #{region} -port #{KONFIG.kloud.port} -public-key #{KONFIG.kloud.publicKeyFile} -private-key #{KONFIG.kloud.privateKeyFile} -kontrol-url \"http://#{KONFIG.kloud.kontrolUrl}\" -debug"
-    # kontrol             : command : "#{GOBIN}/rerun koding/kites/kontrol   -c #{configName} -r #{region}"
-    broker              : command : "#{GOBIN}/broker          -c #{configName}"
-    rerouting           : command : "#{GOBIN}/rerouting       -c #{configName}"
-    cron                : command : "#{GOBIN}/cron            -c #{configName}"
-    # reverseProxy        : command : "#{GOBIN}/rerun koding/kites/reverseproxy -port 1234 -env production -region #{publicHostname}PublicEnvironment -publicHost proxy-#{publicHostname}.ngrok.com -publicPort 80"
+
+    broker              : command : "#{GOBIN}/broker    -c #{configName}"
+    rerouting           : command : "#{GOBIN}/rerouting -c #{configName}"
+    cron                : command : "#{GOBIN}/cron      -c #{configName}"
 
     socialapi           : command : "#{GOBIN}/api                -c #{socialapi.configFilePath}"
     dailyemailnotifier  : command : "#{GOBIN}/dailyemailnotifier -c #{socialapi.configFilePath}"
@@ -193,16 +191,19 @@ Configuration = (options={}) ->
     socialworker        : command : "coffee #{projectRoot}/workers/social/lib/social/main.coffee  -c #{configName} -p #{KONFIG.social.port}      -r #{region} --disable-newrelic --kite-port=13020"
     sourcemaps          : command : "coffee #{projectRoot}/servers/lib/source-server/main.coffee  -c #{configName} -p #{KONFIG.sourcemaps.port}"
     emailsender         : command : "coffee #{projectRoot}/workers/emailsender/main.coffee        -c #{configName}"
-    boxproxy            : command : "node   #{projectRoot}/servers/boxproxy/boxproxy.js           -c #{configName}"
     webserver           : command : "coffee #{projectRoot}/servers/lib/server/index.coffee        -c #{configName} -p #{KONFIG.webserver.port}   --disable-newrelic"
 
-    clientWatcher       : command : "coffee #{projectRoot}/build-client.coffee    --watch --sourceMapsUri #{hostname}"
-
+    # these are unnecessary on production machines.
+    # ------------------------------------------------------------------------------------------
+    # clientWatcher       : command : "coffee #{projectRoot}/build-client.coffee    --watch --sourceMapsUri #{hostname}"
+    # reverseProxy        : command : "#{GOBIN}/rerun koding/kites/reverseproxy -port 1234 -env production -region #{publicHostname}PublicEnvironment -publicHost proxy-#{publicHostname}.ngrok.com -publicPort 80"
+    # kloud               : command : "#{GOBIN}/rerun koding/kites/kloud     -c #{configName} -r #{region} -port #{KONFIG.kloud.port} -public-key #{KONFIG.kloud.publicKeyFile} -private-key #{KONFIG.kloud.privateKeyFile} -kontrol-url \"http://#{KONFIG.kloud.kontrolUrl}\" -debug"
+    # kontrol             : command : "#{GOBIN}/rerun koding/kites/kontrol   -c #{configName} -r #{region}"
+    # boxproxy            : command : "node   #{projectRoot}/servers/boxproxy/boxproxy.js           -c #{configName}"
     # ngrokProxy          : command : "#{projectRoot}/ngrokProxy --user #{publicHostname}"
-
     # --port #{kontrol.port} -env #{environment} -public-key #{kontrol.publicKeyFile} -private-key #{kontrol.privateKeyFile}"
     # guestcleaner        : command : "node #{projectRoot}/workers/guestcleaner/index.js     -c #{configName}"
-
+    # ------------------------------------------------------------------------------------------
 
 
 
@@ -216,7 +217,15 @@ Configuration = (options={}) ->
 
   KONFIG.JSON = JSON.stringify KONFIG
 
-  #---- SUPERVISOR CONFIG ----#
+  b64 = (str,strict)->
+    if str
+      _b64 = new Buffer(str)
+      return _b64.toString('base64')
+    else
+      if strict
+        throw "base64 STRING is empty, check main.#{configName}.coffee. this will break the prod machine, exiting."
+      else
+        return ""
 
   prodPrivateKey = """
   -----BEGIN RSA PRIVATE KEY-----
@@ -248,6 +257,53 @@ Configuration = (options={}) ->
   -----END RSA PRIVATE KEY-----
   """
 
+  nginxConf = """
+    upstream webs      {server 127.0.0.1:3000;}
+    upstream social    {server 127.0.0.1:3030;}
+    upstream subscribe {server 127.0.0.1:8008;}
+
+
+    server {
+      listen 80 default_server;
+      listen [::]:80 default_server ipv6only=on;
+
+      root /usr/share/nginx/html;
+      index index.html index.htm;
+
+      # Make site accessible from http://localhost/
+      server_name localhost;
+
+
+      server_name #{hostname};
+      location / {
+        proxy_pass http://webs;
+        proxy_set_header  X-Real-IP   $remote_addr;
+        proxy_set_header  X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_next_upstream   error timeout invalid_header http_500;
+        proxy_connect_timeout   1;
+      }
+
+      location /xhr {
+        proxy_pass http://social;
+        proxy_set_header  X-Real-IP   $remote_addr;
+        proxy_set_header  X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_next_upstream   error timeout invalid_header http_500;
+        proxy_connect_timeout   1;
+      }
+
+      # TBD. ADD WEBSOCKET SUPPORT HERE
+
+      location /subscribe {
+        proxy_pass http://subscribe;
+        proxy_set_header  X-Real-IP   $remote_addr;
+        proxy_set_header  X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_next_upstream   error timeout invalid_header http_500;
+        proxy_connect_timeout   1;
+      }
+
+    }
+  """
+
   generateEnvVariables = (KONFIG)->
     conf = {}
     travis = traverse(KONFIG)
@@ -255,8 +311,8 @@ Configuration = (options={}) ->
     return conf
 
   generateSupervisorConf = (KONFIG)->
-    supervisorEnvironmentStr = ''
-    supervisorEnvironmentStr += "#{key}='#{val}'," for key,val of KONFIG.ENV
+    supervisorEnvironmentStr = "HOME='/root',GOPATH='#{projectRoot}/go',GOBIN='#{projectRoot}/go/bin',KONFIG_JSON='#{KONFIG.JSON}'"
+    # supervisorEnvironmentStr += "#{key}='#{val}'," for key,val of KONFIG.ENV
     conf = """
       [supervisord]
       environment=#{supervisorEnvironmentStr}\n
@@ -281,6 +337,7 @@ Configuration = (options={}) ->
       env = """
       export GOPATH=#{projectRoot}/go
       export GOBIN=#{projectRoot}/go/bin
+      export HOME=/root
       """
       env += "export #{key}='#{val}'\n" for key,val of KONFIG.ENV
       return env
@@ -293,6 +350,9 @@ Configuration = (options={}) ->
         workers +="#{key}pid=$! \n"
         workers +="echo [#{key}] started with pid: $#{key}pid \n\n"
       return workers
+
+
+
 
     run = """
       #/bin/bash
@@ -328,8 +388,8 @@ Configuration = (options={}) ->
       if [[ "$1" == "" ]]; then
 
         #{workersRunList()}
-
         tail -fq ./.logs/*.log
+        # service supervisor restart
 
       elif [ "$1" == "killall" ]; then
 
@@ -339,26 +399,37 @@ Configuration = (options={}) ->
 
 
 
-        echo '#--> this is a production machine, we will first configure this machine @devrim <--#'
+        echo '#--> this is a production machine, we will first configure it @devrim <--#'
+
+        echo #{hostname} >/etc/hostname
+        hostname #{hostname}
         echo '#-adding keys..-#'
         echo '#{prodPrivateKey}' > /root/.ssh/id_rsa
         chmod 600 /root/.ssh/id_rsa
         echo "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDElR8rHTkreTKZOSAhKcU6iHU9j+Mnd2VScBQTxaoJeUNCL4IUgk76koY03KjzPZ8XjeIIZ9z2HdrSq+G/JZjh/q2SWVIF1YtbBXY7x51ElcjAzK6S7xIhd42DRCDT6KpkpRkkSe/oxJRwM16MVLQBXPgPDelJ8tP7FMRYPiP2EzojwFCoRgzbCqTKqOMhVLRsZATRu6iEuJbKYjgn3kHkxsq6h+jl4BTGQU4D69O3rpFJtYEEAVWDSMgMwnhtdTbwkE7wZe3Q3saSktE93UgSOgnx3SIqCFPooy3DMRbKvaTpC1rcXJtwVuOEomd6K0r6WfkFeJT3XundxgAbfFEP ubuntu@kodingme"   >/root/.ssh/id_rsa.pub
-        #echo "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDGy37UYYQjRUyBZ1gYERhmOcyRyF0pFvlc+d91VT6iiIituaR+SpGruyj3NSmTZQ8Px8/ebaIJQaV+8v/YyIJXAQoCo2voo/OO2WhVIzv2HUfyzXcomzV40sd8mqZJnNCQYdxkFbUZv26kOzikie0DlCoVstM9P8XAURSszO0llD4f0CKS7Galwql0plccBxJEK9oNWCMp3F6v3EIX6qdL8eUJko7tJDPiyPIuuaixxd4EBE/l2UBGvqG0REoDrBNJ8maKV3CKhw60LYis8EfKFhQg5055doDNxKSDiCMopXrfoiAQKEJ92MBTjs7YwuUDp5s39THbX9bHoyanbVIL devrim@koding.com" >/root/.ssh/authorized_keys
+        echo "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDGy37UYYQjRUyBZ1gYERhmOcyRyF0pFvlc+d91VT6iiIituaR+SpGruyj3NSmTZQ8Px8/ebaIJQaV+8v/YyIJXAQoCo2voo/OO2WhVIzv2HUfyzXcomzV40sd8mqZJnNCQYdxkFbUZv26kOzikie0DlCoVstM9P8XAURSszO0llD4f0CKS7Galwql0plccBxJEK9oNWCMp3F6v3EIX6qdL8eUJko7tJDPiyPIuuaixxd4EBE/l2UBGvqG0REoDrBNJ8maKV3CKhw60LYis8EfKFhQg5055doDNxKSDiCMopXrfoiAQKEJ92MBTjs7YwuUDp5s39THbX9bHoyanbVIL devrim@koding.com" >>/root/.ssh/authorized_keys
         echo "Host github.com" >> /root/.ssh/config
         echo "  StrictHostKeyChecking no" >> /root/.ssh/config
 
         echo "installing packages..."
-        apt-get update # >/dev/null
-        apt-get install -y curl supervisor golang nodejs npm git graphicsmagick
+        # apt-get update
         curl -s https://get.docker.io/ubuntu/ | sudo sh
+        apt-get install -y curl supervisor golang nodejs npm git graphicsmagick mosh nginx
         cp /usr/bin/nodejs /usr/bin/node
+        ln -sf /usr/bin/supervisorctl /usr/bin/s
 
+        mosh-server
 
         cd /opt
         git clone git@github.com:koding/koding.git -b #{branch} --depth 1
         cd /opt/koding
 
+        echo '#--- configure nginx ---#'
+        echo '#{b64 nginxConf,yes}'             | base64 --decode > /etc/nginx/sites-enabled/default
+        service nginx restart
+
+        echo '#--- configure supervisor ---#'
+        echo '#{b64 generateSupervisorConf(KONFIG),yes}' | base64 --decode > /etc/supervisor/conf.d/koding.conf
 
         echo '#---> BUILDING CLIENT (@gokmen) <---#'
 
@@ -373,7 +444,7 @@ Configuration = (options={}) ->
         chmod +x #{projectRoot}/run
 
         echo '#---> BUILDING GO WORKERS (@farslan) <---#'
-        #{projectRoot}/go/build.sh
+        bash #{projectRoot}/go/build.sh
 
         echo '#---> BUILDING SOCIALAPI (@cihangir) <---#'
         cd #{projectRoot}/go/src/socialapi
@@ -381,7 +452,7 @@ Configuration = (options={}) ->
         make install
 
         echo '#---> AUTHORIZING THIS COMPUTER WITH MATCHING KITE.KEY (@farslan) <---#'
-        mkdir $HOME/.kite &>/dev/null
+        mkdir $HOME/.kite
         echo copying #{KONFIG.newkites.keyFile} to $HOME/.kite/kite.key
         cp #{KONFIG.newkites.keyFile} $HOME/.kite/kite.key
 
@@ -438,7 +509,6 @@ Configuration = (options={}) ->
     return run
 
   KONFIG.ENV            = generateEnvVariables   KONFIG
-  KONFIG.supervisorConf = generateSupervisorConf KONFIG
   KONFIG.runFile        = generateRunFile        KONFIG
 
   return KONFIG

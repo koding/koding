@@ -77,10 +77,9 @@ if basicAuth
   app.use express.basicAuth basicAuth.username, basicAuth.password
 
 process.on 'uncaughtException', (err) ->
-  console.error " there was an uncaught exception #{err}"
-  throw err
-  process.exit(1)
-
+  console.error " ------ FIX ME ------ @chris @aaron "
+  console.error " there was an uncaught exception", err
+  console.error " ------ FIX ME ------ @chris @aaron "
 
 # this is for creating session for incoming user if it doesnt have
 app.use (req, res, next) ->
@@ -107,7 +106,7 @@ app.use (req, res, next) ->
     if err then console.log err
     next()
 
-# app.post '/xhr', express.bodyParser.raw(), (req, res) ->  
+# app.post '/xhr', express.bodyParser.raw(), (req, res) ->
 #   console.log "here on xhr requesting: http://localhost:#{ social.port }#{ req.path }"
 #   req.pipe(
 #     request("http://localhost:#{ social.port }/xhr")
@@ -115,7 +114,7 @@ app.use (req, res, next) ->
 
 #   # request "http://localhost:#{ social.port }#{ req.path }",(err,resp,body)->
 #   #   console.log err,resp
-  
+
 
 # app.all '/subscribe*', express.bodyParser.raw(), (req, res) ->
 #   console.log "here on subscribe requesting: http://localhost:#{ broker.port }#{ req.path }"
