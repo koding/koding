@@ -543,7 +543,7 @@ class ProfileView extends JView
       @badgeItemsList = new UserPropertyList {}, counts : @memberData.counts
       # show "Thank You" button to admins
       @thankButton = new KDButtonView
-        cssClass   : "solid green"
+        cssClass   : "solid green medium repbutton"
         title      : "+1 rep"
         type       : "submit"
         callback   : =>
