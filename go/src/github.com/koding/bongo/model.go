@@ -2,6 +2,7 @@ package bongo
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"strconv"
 	"strings"
@@ -9,29 +10,19 @@ import (
 	"github.com/jinzhu/gorm"
 )
 
-// Fetch fetches the data from db by given parameters(fields of the struct)
+// Fetch tries the best option available for retrieving the data first tries
+// cache layer, if fails, then tries db
 func (b *Bongo) Fetch(i Modellable, id int64) error {
 	if id == 0 {
 		return IdIsNotSet
 	}
 
-	if data, ok := i.(Cacher); ok {
-		err := b.GetFromCache(i, data, id)
-		if err == nil {
-			return nil
-		}
-		if err == RecordNotFound {
-			return err
-		}
+	data, ok := i.(Cacher)
+	if !ok {
+		return errors.New("cacher is not implemented for given struct")
 	}
 
-	if err := b.DB.Table(i.TableName()).
-		Find(i).
-		Error; err != nil {
-		return err
-	}
-
-	return nil
+	return b.GetFromBest(i, data, id)
 }
 
 // ById Fetches data from db by it's id
