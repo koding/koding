@@ -132,16 +132,6 @@ class AvatarPopupGroupSwitcher extends AvatarPopup
         router.handleRoute '/Account'
         @hide()
 
-
-    @avatarPopupContent.addSubView new KDCustomHTMLView
-      tagName    : 'a'
-      attributes : href : '/Environments'
-      partial    : 'Environments'
-      click      : (event)=>
-        KD.utils.stopDOMEvent event
-        router.handleRoute '/Environments'
-        @hide()
-
     @avatarPopupContent.addSubView new KDCustomHTMLView
       tagName    : 'a'
       partial    : 'System health check'
@@ -170,7 +160,6 @@ class AvatarPopupGroupSwitcher extends AvatarPopup
     if (Cookies.get cookieName) is "1"
       @avatarPopupContent.addSubView new KDCustomHTMLView
         tagName    : 'a'
-
         partial    : 'Switch back to secure (https) mode'
         click      : (event)=>
           KD.utils.stopDOMEvent event

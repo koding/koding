@@ -11,11 +11,14 @@ resurrection.activity.styl
 
 styleScrollBars()
 
+  &.has-vertical
+    padding-right       0
+
   .kdview.kdscrolltrack
-    bg                  color, transparent
+    bg                  color transparent
     overflow            visible
     .kdscrollthumb
-      bg                color, rgba(0,0,0,.1)
+      bg                color rgba(255,255,255,.15)
       margin            0 4px
       width             7px
       rounded           6px
@@ -264,7 +267,7 @@ aside.activity-sidebar
 
   > main
     font-family         openSansFamily
-    padding             1px 22px 16px 16px
+    padding             1px 16px 16px
     borderBox()
 
     > section
@@ -1414,11 +1417,15 @@ span.collapsedtext
 
   .chat-heads
     top                     0
-    size                    691px 58px
+    height                  58px
     line-height             58px
+    kalc                    width (100% \- 584px)
     margin                  0 0 24px
     z-index                 1
-    bg                      color white
+    background -moz-linear-gradient(top,  rgba(255,255,255,1) 0%, rgba(255,255,255,1) 65%, rgba(255,255,255,0) 100%)
+    background -webkit-gradient(linear, left top, left bottom, color-stop(0%,rgba(255,255,255,1)), color-stop(65%,rgba(255,255,255,1)), color-stop(100%,rgba(255,255,255,0)))
+    background -webkit-linear-gradient(top,  rgba(255,255,255,1) 0%,rgba(255,255,255,1) 65%,rgba(255,255,255,0) 100%)
+    background linear-gradient(to bottom,  rgba(255,255,255,1) 0%,rgba(255,255,255,1) 65%,rgba(255,255,255,0) 100%)
     fix()
 
     .description
@@ -1494,7 +1501,6 @@ span.collapsedtext
 
     .activity-content-wrapper
       background            none
-      margin-bottom         14px
       hidden()
 
       > article
@@ -1624,7 +1630,8 @@ span.collapsedtext
       .item-add-comment-box
         position            fixed
         bottom              0
-        size                691px auto
+        height              auto
+        kalc                width (100% \- 584px)
         padding             0 0 30px
         bg                  color white
         margin-top          8px

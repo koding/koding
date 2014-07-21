@@ -7,7 +7,7 @@ class WebTermController extends AppController
     multiple     : yes
     hiddenHandle : no
     preCondition :
-      condition  : (options, cb)-> cb KD.isLoggedIn() or KD._isLoggedIn
+      condition  : (options, cb)-> cb KD.isLoggedIn() or KD.isLoggedInOnLoad
       failure    : (options, cb)->
         KD.singletons.appManager.open 'Terminal', conditionPassed : yes
         KD.showEnforceLoginModal()

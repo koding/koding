@@ -12,7 +12,7 @@ class AppsAppController extends AppController
     behaviour    : 'application'
     version      : "1.0"
     preCondition :
-      condition  : (options, cb)-> cb KD.isLoggedIn() or KD._isLoggedIn
+      condition  : (options, cb)-> cb KD.isLoggedIn() or KD.isLoggedInOnLoad
       failure    : (options, cb)->
         KD.singletons.appManager.open 'Apps', conditionPassed : yes
         KD.showEnforceLoginModal()
