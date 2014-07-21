@@ -19,6 +19,7 @@ class IDE.IDEView extends IDE.WorkspaceTabView
     @tabView.on 'PreviewPaneRequested',   (url) => @createPreview url
     @tabView.on 'DrawingPaneRequested',   @bound 'createDrawingBoard'
     @tabView.on 'ViewNeedsToBeShown',     @bound 'showView'
+    @tabView.on 'TabNeedsToBeClosed',     @bound 'closeTabByFile'
 
     @tabView.on 'FileNeedsToBeOpened', (file, contents, callback) =>
       @closeUntitledFileIfNotChanged()
@@ -181,6 +182,11 @@ class IDE.IDEView extends IDE.WorkspaceTabView
 
   openVMWebPage: (vm) ->
     @createPreview vm.hostnameAlias
+
+  closeTabByFile: (file)  ->
+    for pane in @tabView.panes when pane?.data is file
+      pane.getOptions().aceView.ace.contentChanged = no # hook to avoid file close modal
+      @tabView.removePane pane
 
   closeUntitledFileIfNotChanged: ->
     for pane in @tabView.panes when pane

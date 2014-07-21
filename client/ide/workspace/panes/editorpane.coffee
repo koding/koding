@@ -13,6 +13,10 @@ class IDE.EditorPane extends IDE.Pane
 
     @createEditor()
 
+    {file} = @getOptions()
+    file.once 'fs.delete.finished', =>
+      KD.getSingleton('appManager').tell 'IDE', 'handleFileDeleted', file
+
   createEditor: ->
     {file, content} = @getOptions()
 

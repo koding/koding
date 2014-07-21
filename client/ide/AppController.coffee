@@ -432,6 +432,10 @@ class IDEAppController extends AppController
     if @isFindAndReplaceViewVisible
       @showFindReplaceView @findAndReplaceView.mode is 'replace'
 
+  handleFileDeleted: (file) ->
+    for ideView in @ideViews
+      ideView.tabView.emit 'TabNeedsToBeClosed', file
+
   doResize: ->
     @forEachSubViewInIDEViews_ 'editor', (editorPane) ->
       editorPane.aceView.ace.editor.resize()
