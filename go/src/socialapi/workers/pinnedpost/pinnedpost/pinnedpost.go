@@ -25,17 +25,6 @@ func New(log logging.Logger) *Controller {
 	return &Controller{log: log}
 }
 
-// MessageCreated handles the created messages
-// adds given message to the the author's pinned post channel
-func (c *Controller) MessageCreated(message *models.ChannelMessage) error {
-	// only posts can be marked as pinned
-	if message.TypeConstant != models.ChannelMessage_TYPE_POST {
-		return nil
-	}
-
-	return c.addMessage(message.AccountId, message.Id, message.InitialChannelId)
-}
-
 // MessageReplyCreated handles the created replies
 func (c *Controller) MessageReplyCreated(messageReply *models.MessageReply) error {
 	parent, err := messageReply.FetchParent()
@@ -53,7 +42,25 @@ func (c *Controller) MessageReplyCreated(messageReply *models.MessageReply) erro
 		return err
 	}
 
-	return c.addMessage(reply.AccountId, parent.Id, parent.InitialChannelId)
+	// add parent message to the author's pinned message list
+	err = c.addMessage(parent.AccountId, parent.Id, parent.InitialChannelId)
+	if err != nil && err != models.AlreadyInTheChannel {
+		return err
+	}
+
+	// no need to try to add the same message again to the author's pinned
+	// message list
+	if parent.AccountId == reply.AccountId {
+		return nil
+	}
+
+	// add parent message to the replier's pinned message list
+	err = c.addMessage(reply.AccountId, parent.Id, parent.InitialChannelId)
+	if err != nil && err != models.AlreadyInTheChannel {
+		return err
+	}
+
+	return nil
 }
 
 func (c *Controller) addMessage(accountId, messageId, channelId int64) error {
