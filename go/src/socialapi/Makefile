@@ -157,7 +157,7 @@ testapi:
 
 	@echo "$(OK_COLOR)--> api tests... $(NO_COLOR)"
 	@go test -c tests/*.go
-	@./main.test $(DEBUG) -c ./config/vagrant.toml
+	@./main.test $(DEBUG)
 	@rm ./main.test
 
 doc:
