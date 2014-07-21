@@ -14,6 +14,7 @@ module.exports = (options, callback)->
   getStyles    = require './styleblock'
   fetchScripts = require './scriptblock'
   getGraphMeta = require './graphmeta'
+  getTitle     = require './title'
   encoder      = require 'htmlencode'
 
   {account, renderedAccount, isLoggedIn, content, bongoModels, client} = options
@@ -47,7 +48,7 @@ module.exports = (options, callback)->
     <!doctype html>
     <html lang="en">
     <head>
-      <title>Koding | A New Way For Developers To Work</title>
+      #{getTitle()}
       #{getStyles()}
     </head>
     <body>
