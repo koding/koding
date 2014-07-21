@@ -1,15 +1,4 @@
-addHomeLinkBar = ->
-  slug = 'koding'
-  """
-  <div class='screenshots'>
-    <div class="home-links" id='home-login-bar'>
-      <div class='overlay'></div>
-      <a class="custom-link-view browse orange" href="#"><span class="icon"></span><span class="title">Learn more...</span></a><a class="custom-link-view join green" href="/#{slug}/Login"><span class="icon"></span><span class="title">Request an Invite</span></a><a class="custom-link-view register" href="/#{slug}/Register"><span class="icon"></span><span class="title">Register</span></a><a class="custom-link-view login" href="/#{slug}/Login"><span class="icon"></span><span class="title">Login</span></a>
-    </div>
-  </div>
-  """
-
-module.exports = (options, callback)->
+module.exports = (options, callback) ->
 
   getStyles    = require './styleblock'
   fetchScripts = require './scriptblock'
