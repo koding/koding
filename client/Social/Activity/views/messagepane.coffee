@@ -130,7 +130,14 @@ class MessagePane extends KDTabPaneView
       channel
         .on 'MessageAdded',   @bound 'prependMessage'
         .on 'MessageRemoved', @bound 'removeMessage'
+        .on 'AddedToChannel', @bound 'addParticipant'
 
+
+  addParticipant: (participant) ->
+    return unless participant
+    KD.remote.cacheable participant.constructorName, participant.id, (err, account) ->
+      return error err if err
+      console.log 'participant', account
 
   appendMessage: (message) -> @listController.addItem message, @listController.getItemCount()
 
