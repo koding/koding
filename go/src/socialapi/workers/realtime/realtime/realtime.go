@@ -59,7 +59,7 @@ type NotificationContent struct {
 }
 
 type ParticipantContent struct {
-	AccountId    int64  `json:"accountId"`
+	AccountId    int64  `json:"accountId,string"`
 	AccountOldId string `json:"accountOldId"`
 	ChannelId    int64  `json:"channelId"`
 }
