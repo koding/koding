@@ -80,10 +80,39 @@ body.profile
   .header-facets
     display               none
 
+  .member-tabs
+    kalc                  width, 100% \- 292px
+    margin                0 0 6px 292px
+    padding               0
+    height                82px
+    borderBox()
+    shadow                inset 0 -3px 0 #F2F2F2
+
+    a
+      height              82px
+      padding             22px 23px 0
+      text-align          center
+      font-size           14px
+      color               #969696
+      line-height         20px
+      font-weight         600
+      opacity             .99
+      borderBox()
+      noTextDeco()
+      fl()
+
+      span.count
+        margin            2px 0 0
+        display           block
+        color             #575757
+
+      &.active
+        shadow            inset 0 -3px 0 #01B05A
+        color             #575757
 
   .content-page
     max-width             100%
-    margin                32px auto 0
+    margin                0 auto 0
     padding               0 34px 0 0
     position              static
     overflow              visible
