@@ -15,6 +15,7 @@ Configuration = (options={}) ->
   version             = options.version        or "2.0" # TBD
   branch              = options.branch         or "cake-rewrite"
   build               = options.build          or "1111"
+  publicIP            = options.publicIP       or "*"
 
   mongo               = "#{prod_simulation_server}:27017/koding"
   redis               = {host     : "#{prod_simulation_server}"   , port : "6379" }
@@ -96,8 +97,8 @@ Configuration = (options={}) ->
     log               : {login         : "#{rabbitmq.login}"         , queueName : logQueueName}
     boxproxy          : {port          : 80 }
     sourcemaps        : {port          : 3526 }
-    kloud             : {port          : 5500, privateKeyFile: kontrol.privateKeyFile, publicKeyFile: kontrol.publicKeyFile, kontrolUrl: "http://kontrol-#{publicHostname}.ngrok.com/kite"  }
-    emailConfirmationCheckerWorker     : {enabled: no, login : "#{rabbitmq.login}", queueName: socialQueueName+'emailConfirmationCheckerWorker',cronSchedule: '0 * * * * *',usageLimitInMinutes  : 60}
+    kloud             : {port          : 5500                        , privateKeyFile : kontrol.privateKeyFile, publicKeyFile: kontrol.publicKeyFile, kontrolUrl: "#{"reads from kite.key by default."}"  }
+    emailConfirmationCheckerWorker     : {enabled: no                , login : "#{rabbitmq.login}"        , queueName: socialQueueName+'emailConfirmationCheckerWorker',cronSchedule: '0 * * * * *',usageLimitInMinutes  : 60}
 
     newkontrol        : kontrol
 
@@ -176,6 +177,7 @@ Configuration = (options={}) ->
     broker              : command : "#{GOBIN}/broker    -c #{configName}"
     rerouting           : command : "#{GOBIN}/rerouting -c #{configName}"
     cron                : command : "#{GOBIN}/cron      -c #{configName}"
+    kloud               : command : "#{GOBIN}/kloud     -c #{configName} -env aws -r #{region} -port #{KONFIG.kloud.port} -public-key #{KONFIG.kloud.publicKeyFile} -private-key #{KONFIG.kloud.privateKeyFile}"
 
     socialapi           : command : "#{GOBIN}/api                -c #{socialapi.configFilePath}"
     dailyemailnotifier  : command : "#{GOBIN}/dailyemailnotifier -c #{socialapi.configFilePath}"
@@ -261,6 +263,7 @@ Configuration = (options={}) ->
     upstream webs      {server 127.0.0.1:3000;}
     upstream social    {server 127.0.0.1:3030;}
     upstream subscribe {server 127.0.0.1:8008;}
+    upstream kloud     {server 127.0.0.1:5000;}
 
     map $http_upgrade $connection_upgrade {
         default upgrade;
@@ -289,6 +292,15 @@ Configuration = (options={}) ->
 
       location /xhr {
         proxy_pass http://social;
+        proxy_set_header  X-Real-IP   $remote_addr;
+        proxy_set_header  X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_next_upstream   error timeout invalid_header http_500;
+        proxy_connect_timeout   1;
+      }
+
+
+      location /kloud {
+        proxy_pass http://kloud;
         proxy_set_header  X-Real-IP   $remote_addr;
         proxy_set_header  X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_next_upstream   error timeout invalid_header http_500;
@@ -336,9 +348,9 @@ Configuration = (options={}) ->
     # supervisorEnvironmentStr += "#{key}='#{val}'," for key,val of KONFIG.ENV
     conf = """
       [supervisord]
-      environment=#{supervisorEnvironmentStr}\n
-      [inet_http_server]
-      port=*:9001\n\n"""
+      environment=#{supervisorEnvironmentStr}\n"""
+      # """[inet_http_server]
+      # port=localhost:9001\n\n"""
     conf +="""
       [program:#{key}]
       command=#{val.command}\n
@@ -359,7 +371,7 @@ Configuration = (options={}) ->
       export GOPATH=#{projectRoot}/go
       export GOBIN=#{projectRoot}/go/bin
       export HOME=/root
-      export KONFIG_JSON=#{KONFIG.JSON}
+      export KONFIG_JSON='#{KONFIG.JSON}'
       \n
       """
       # env += "export #{key}='#{val}'\n" for key,val of KONFIG.ENV
@@ -379,6 +391,7 @@ Configuration = (options={}) ->
 
     run = """
       #/bin/bash
+
       # ------ THIS FILE IS AUTO-GENERATED ON EACH BUILD ----- #\n
       mkdir .logs &>/dev/null
 
@@ -418,8 +431,12 @@ Configuration = (options={}) ->
 
         kill_all
 
-      elif [ "$1" == "install" ]; then
+      elif [ "$1" == "buildClient" ]; then
 
+        /usr/local/bin/coffee /opt/koding/build-client.coffee --watch false  --verbose
+
+
+      elif [ "$1" == "install" ]; then
 
 
         echo '#--> this is a production machine, we will first configure it @devrim <--#'

@@ -11,7 +11,7 @@ timethat   = require 'timethat'
 Connection = require "ssh2"
 fs         = require 'fs'
 ec2        = new AWS.EC2()
-
+elb        = new AWS.ELB()
 class Deploy
 
   @connect = (options,callback) ->
@@ -157,39 +157,56 @@ class Deploy
 
           ,5000
 
+  @deployAndConfigure = (options,callback)->
+
+    options = options or
+      params :
+        ImageId       : "ami-a6926dce" # Amazon ubuntu 14.04 "ami-1624987f" # Amazon Linux AMI x86_64 EBS
+        InstanceType  : "t2.medium"
+        MinCount      : 1
+        MaxCount      : 1
+        SubnetId      : "subnet-b47692ed"
+        KeyName       : "koding-prod-deployment"
+      buildNumber     : 1111
+      instanceName    : null
+
+
+    deployStart = new Date()
+    Deploy.createInstance options,(err,result) ->
+
+      {conn} = result
+
+      KONFIG = require("./config/main.prod.coffee")
+        hostname : result.instanceName
+
+      cmd = """
+        echo '#{new Buffer(KONFIG.runFile).toString('base64')}' | base64 --decode > /tmp/run.sh;
+        sudo bash /tmp/run.sh install;
+        sudo bash /opt/koding/run services;
+        sudo service supervisor restart
+        \n
+        """
+      conn.exec cmd, (err, stream) ->
+        log 4
+        throw err if err
+        conn.listen "configuring", stream,->
+          log 5
+          throw err if err
+          #delete result.conn
+          log result.instanceData
+          log "Deployment and configuration took: "+timethat.calc deployStart,new Date()
+          conn.end()
+          callback null, result
+
 module.exports = Deploy
 
+Deploy.deployAndConfigure null,(err,res)->
+  log "Box is ready at mosh root@#{res.instanceData.PublicIpAddress}"
 
 
-options =
-  params :
-    ImageId       : "ami-a6926dce" # Amazon ubuntu 14.04 "ami-1624987f" # Amazon Linux AMI x86_64 EBS
-    InstanceType  : "t2.medium"
-    MinCount      : 1
-    MaxCount      : 1
-    SubnetId      : "subnet-b47692ed"
-    KeyName       : "koding-prod-deployment"
-  buildNumber     : 1111
-  instanceName    : null
+# class Release
 
 
-deployStart = new Date()
-Deploy.createInstance options,(err,result) ->
 
-  {conn} = result
 
-  KONFIG = require("./config/main.prod.coffee")
-    hostname : result.instanceName
 
-  cmd = "echo '#{new Buffer(KONFIG.runFile).toString('base64')}' | base64 --decode > /tmp/run.sh"
-  conn.exec cmd, (err, stream) ->
-    log 4
-    throw err if err
-    conn.listen "configuring", stream,->
-      log 5
-      throw err if err
-      #delete result.conn
-      log result.instanceData
-      log "Box is ready at ssh root@#{result.instanceData.PublicIpAddress}"
-      log "Deployment and configuration took: "+timethat.calc deployStart,new Date()
-      conn.end()
