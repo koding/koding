@@ -155,6 +155,7 @@ func (c *ChannelMessage) UpdateBodyRaw() error {
 	return bongo.B.DB.Exec(updateSql, c.Body, c.Id).Error
 }
 
+// TODO - remove this function
 func (c *ChannelMessage) BuildMessages(query *request.Query, messages []ChannelMessage) ([]*ChannelMessageContainer, error) {
 	containers := make([]*ChannelMessageContainer, len(messages))
 	if len(containers) == 0 {
@@ -174,6 +175,7 @@ func (c *ChannelMessage) BuildMessages(query *request.Query, messages []ChannelM
 	return containers, nil
 }
 
+// TODO - remove this function
 func (c *ChannelMessage) BuildMessage(query *request.Query) (*ChannelMessageContainer, error) {
 	cmc := NewChannelMessageContainer()
 	if err := cmc.Fetch(c.Id, query); err != nil {

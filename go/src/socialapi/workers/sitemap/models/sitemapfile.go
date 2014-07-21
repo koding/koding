@@ -76,7 +76,7 @@ func (f *SitemapFile) Some(data interface{}, q *bongo.Query) error {
 }
 
 func (f *SitemapFile) ById(id int64) error {
-	return bongo.B.Fetch(f, id)
+	return bongo.B.ById(f, id)
 }
 
 func (f *SitemapFile) UnmarshalBlob() (*ItemSet, error) {
