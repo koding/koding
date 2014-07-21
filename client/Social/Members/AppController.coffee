@@ -49,7 +49,7 @@ class MembersAppController extends AppController
       else
         @createGroupMembersView contentDisplay
 
-      contentDisplay.addSubView new MemberTabsView
+      contentDisplay.addSubView new MemberTabsView {}, model
 
       @showContentDisplay contentDisplay
       @utils.defer -> callback contentDisplay
@@ -207,19 +207,7 @@ class MemberTabsView extends KDCustomHTMLView
     @addSubView new KDCustomHTMLView
       tagName    : 'a'
       cssClass   : 'active'
-      partial    : 'Posts <span class="count">2</span>'
-
-    @addSubView new KDCustomHTMLView
-      tagName    : 'a'
-      partial    : 'Followers <span class="count">12</span>'
-
-    @addSubView new KDCustomHTMLView
-      tagName    : 'a'
-      partial    : 'Following <span class="count">535K</span>'
-
-    @addSubView new KDCustomHTMLView
-      tagName    : 'a'
-      partial    : 'Liked Posts <span class="count">1</span>'
+      partial    : "Posts"
 
 class MemberActivityListController extends ActivityListController
   # used for filtering received live updates
