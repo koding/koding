@@ -10,332 +10,87 @@ app.settings.styl
 */
 }
 
-.kdtabpaneview.account
-  color                   #828B8B
+body.account
 
-  .content-page
-    min-height            100%
-    max-width             850px
-    padding-top           150px
+  #main-tab-view
+    overflow                      visible
 
-  h2.kdheaderview
-    border                none
-    margin-bottom         60px
-    line-height           40px
-    color                 #828B8B
-    span
-      margin              0
-      font-weight         300
+  .app-sidebar
+    background                    #EFEFEF
+    padding                       21px 16px 16px 34px
 
-  .kdinput.text.medium
-    height                auto
-    padding               10px 14px
-    line-height           22px
-
-    &.half
-      fl()
-      width               50%
-      &:first-child
-        kalc              width, 50% \- 1px
-        margin-right      1px
-
-  .avatarview
-    margin-top            11px
-    rounded               6px
-    fl()
-
-  section
-    overflow              hidden
-    width                 auto
-    padding               0 20px
-    borderBox()
-
-  .kdformview
-    .formline
-      input.kdinput.text
-        min-width         0
-
-    .profile-save-changes
-      width               100%
-
-
-  .email-notifications
-    line-height           55px
-    form.kdformview
-      rel()
-      border-bottom       1px solid #E1E1DF
-
-    .koding-on-off
-      abs()
-      top                 10px
-      right               0
-
-.linked-accounts
-
-  ul
-    margin                0
-    padding               0
-    li
-      list-style          none
-      padding             13px 0
-      borderBox()
-      .title
-        width             296px
-        line-height       22px
-        fl()
-        cite
-          font-size       16px
-          font-weight     400
-          margin-left     16px
-
-      .kdinput.koding-on-off
-        margin-top        6px
-        fr()
-
-      &.github .icon
-        r-sprite          account 'ext-github'
-      &.odesk .icon
-        r-sprite          account 'ext-odesk'
-      &.facebook .icon
-        r-sprite          account 'ext-facebook'
-      &.twitter .icon
-        r-sprite          account 'ext-twitter'
-      &.google .icon
-        r-sprite          account 'ext-google'
-      &.linkedin .icon
-        r-sprite          account 'ext-linkedin'
-
-      span
-      cite
+    nav
       a
-        font-style        normal
-        blockMid()
+        display                   block
+        line-height               24px
+        font-size                 14px
+        color                     #4C4C4C
+        font-weight               600
+        opacity                   .99
+        noTextDeco()
 
-button.kdbutton.solid.green.account-header-button
-  abs()
-  top               6px
-  right             0
-  margin            0
-  color             #666
-  height            40px
-  &.with-icon
-    padding         0 6px
-  &.icon-only
-    padding         0 6px
-  span.icon
-    rel()
-    display         block
-    padding         0
-    margin          0
-    border          none
-    visibility      visible
-    r-sprite        app '30-refresh-icon-white'
-    &.plus
-      r-sprite      app '30-plus-icon-white'
+        &.selected
+          text-decoration         underline
 
-.delete-account-view
-  padding                 10px 0
-  color                   #888
-  borderBox()
-  button.delete-account
-    left                  0
-    vendor                transition, left .1s ease-in\, \
-                                      width .1s ease-in
-    &.escape
-      left                -160px
+      .divider
+        height                    24px
 
-// FIX THESE STYLES FOR
-// TOO MUCH REPITITION
-// for .settings-list-wrapper - SY
+  .app-content
+    padding                       34px 34px 0 0
+    overflow                      visible
 
-.settings-list-wrapper
-  height              auto
-  min-height          50px
+  .settings-list-wrapper
 
-  header
-    bg                color, rgba(0,0,0,.1)
-    border-bottom     1px solid rgba(0,0,0,0.3)
-    a.custom-link-view
-      margin-left     15px
-      text-decoration underline
-      fl()
-      span.title
-        line-height   24px
-        font-size     11px
-
-  .no-item-found
-    padding           10px 20px
-    color             #888
-    text-align        center
-    font-weight       400
-    borderBox()
-
-  &.payment-methods
-    .no-item-found
-      padding         10px 0
-      font-size       14px
-      line-height     1.5
-
-  &.ssh-keys
-  &.koding-keys
-  &.billing-history
-  &.your-subscriptions
-  &.referral-system
-    .no-item-found
-      font-size       14px
-      line-height     1.5
-      h2
-        font-weight   400
-        font-size     16px
-        margin-bottom 20px
-    a
-      font-weight         300
-      color               logoBg
-      &:hover
-        text-decoration   underline
-
-    ul
-      margin            0
-      padding           0
+    &.email-notifications
+    &.linked-accounts
       li
-        list-style      none
-        line-height     1.4
+        size                      100%, 65px
+        line-height               65px
+        border-bottom             1px solid #DEDEDE
+        padding                   0 4px 0 4px
         borderBox()
-        a
-          margin-left   10px
+
+        &:last-of-type
+          border-bottom           none
+
+        .title
+          fl()
+
+        .koding-on-off
+          margin-top              18px
           fr()
-        .lightText
-          color         rgba(255,255,255,.8)
-        .darkText
-          color         rgba(255,255,255,.5)
 
-  &.your-subscriptions
-    .kdlistitemview-subscription
-      size              100%, auto
-      padding           19px 22px
-      background        #fff
-      rounded           6px
-      font-weight       400
-      color             #6f6f6f
-      margin            0 0 2px 0
+    &.payment-methods
+      .payment-method
+        height                    62px
+        border-bottom             1px solid #DEDEDE
+        line-height               19px
+        font-size                 14px
+        padding                   13px 0 0
+        borderBox()
 
-      h4
-        font-size       14px
-        margin-bottom   4px
+        .billing-link
+          fl()
 
-      p
-        font-size       12px
-        color           #c6c6c6
-        min-height      20px
+        .card-type
+          color                   #7B7B7B
+          opacity                 .99
 
-      .price
-        display         block
-        abs             0px 0px 0 0
-        font-size       18px
+        pre
+          color                   #4C4C4C
+          font-weight             600
+          opacity                 .99
 
-      .controls
-        abs             0 22px 19px 0
+        .payment-method-controls
+          fr()
 
-        .custom-link-view
-          font-size     12px
-          noTextDeco()
+          a
+            display               block
+            margin                10px 0 0 16px
+            fr()
 
-          &.red
-            color       #ed492c
+            &.edit
+              r-sprite            'app', 'edit-gray-16'
 
-          &.green
-            color       #01b05a
-
-          &.yellow
-            color       #eeb844
-
-
-
-
-  &.referral-system
-    header
-      bg                  color transparent
-      border              none
-      margin-bottom       10px
-      a.custom-link-view
-        margin-left       0
-        margin-right      20px
-        span.title
-          font-size       18px
-          line-height     40px
-    ul
-      li
-        a
-          color           #999
-          line-height     30px
-          float           none
-          margin-left     0
-          noTextDeco()
-
-  &.koding-keys
-    li
-      line-height     40px
-
-  &.ssh-keys
-    ul
-      margin-top      70px
-
-  &.billing-history
-    table
-      width           100%
-      line-height     1.6
-      margin-top      70px
-    tr
-      width           100%
-      td
-        width         20%
-        &.ccard
-          font-weight 600
-      a.action-link
-        display       table-cell
-        text-align    right
-        width         20%
-
-  &.ssh-keys
-    .add-key-form
-      margin-bottom   42px
-
-    .ssh-key-item
-      background      #fff
-      margin          2px 0 0 0
-      padding         14px 120px 14px 14px
-      rounded         12px
-      position        relative
-
-      .title
-        font-weight   400
-        font-size     16px
-
-      .key
-        font-size     14px
-        font-weight   200
-        color         #bcbcbc
-
-
-      .kdbutton.edit
-        abs           50% 22px 0 0
-        vendor        transform, translateY(-50%)
-
-
-.koding-keys
-  code
-    margin              10px 0
-    display             block
-    line-height         16px
-    font-size           12px
-    font-family         monoFamily
-    padding             14px
-    color               white
-    bg                  color #28292A
-
-
-.new-kdmodal.koding-keys
-  p
-    margin              10px 0
-  strong
-    font-weight         600
+            &.remove
+              r-sprite            'app', 'delete-gray-16'

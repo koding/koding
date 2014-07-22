@@ -1,11 +1,34 @@
 class PaymentMethodView extends JView
   constructor: (options = {}, data) ->
-    options.cssClass = KD.utils.curry "payment-method", options.cssClass
+    options.cssClass    = KD.utils.curry "payment-method", options.cssClass
+    options.editLink   ?= no
+    options.removeLink ?= no
     super options, data
 
     @loader = new KDLoaderView
       size        : { width: 14 }
       showLoader  : !data?
+
+    @editLink = new CustomLinkView
+      title: ' '
+      cssClass: 'edit'
+      click: (e) =>
+        e.preventDefault()
+        @emit 'PaymentMethodEditRequested', data
+
+    @removeLink = new CustomLinkView
+      title: ' '
+      cssClass: 'remove'
+      click: (e) =>
+        e.preventDefault()
+        @emit 'PaymentMethodRemoveRequested', data
+
+    if @getOption 'editLink' or @getOption 'removeLink'
+    then @controlsView = new KDCustomHTMLView cssClass : 'payment-method-controls'
+    else @controlsView = new KDCustomHTMLView tagName  : 'span'
+
+    if @getOption 'editLink'   then @controlsView.addSubView @editLink
+    if @getOption 'removeLink' then @controlsView.addSubView @removeLink
 
     @paymentMethodInfo = new KDCustomHTMLView cssClass  : 'billing-link'
     @paymentMethodInfo.hide()
@@ -17,28 +40,24 @@ class PaymentMethodView extends JView
   getCardInfoPartial: (paymentMethod) ->
     return "Enter billing information"  unless paymentMethod
 
-    { description, cardFirstName, cardLastName
-      cardNumber, cardType, cardYear, cardMonth
-      address1, address2, city, state, zip
-    } = paymentMethod
+    {  cardNumber, cardType } = paymentMethod
 
     type = KD.utils.slugify(cardType).toLowerCase()
     @setClass type
 
-    address      = [address1, address2].filter(Boolean).join '<br>'
-    description ?= "#{cardFirstName}'s #{cardType}"
-    postal       = [city, state, zip].filter(Boolean).join ' '
-    cardMonth    = "0#{cardMonth}".slice(-2)
-    cardYear     = "#{cardYear}".slice(-2)
+    # address      = [address1, address2].filter(Boolean).join '<br>'
+    # description ?= "#{cardFirstName}'s #{cardType}"
+    # postal       = [city, state, zip].filter(Boolean).join ' '
+    # cardMonth    = "0#{cardMonth}".slice(-2)
+    # cardYear     = "#{cardYear}".slice(-2)
     numberPrefix = if type is 'american-express' then '**** ****** *' else '**** **** **** '
 
     # <span class="description #{cardType.toLowerCase()}">#{description}</span>
     # #{if address then "<span>#{address}</span>" else ''}
     # #{if postal  then "<span>#{postal}</span>"  else ''}
     """
+    <div class='card-type'>#{cardType}</div>
     <pre>#{numberPrefix}#{cardNumber.slice(-4)}</pre>
-    <pre>#{cardFirstName} #{cardLastName}</pre>
-    <pre>#{cardMonth}/#{cardYear}</pre>
     """
 
   setPaymentInfo: (paymentMethod) ->
@@ -51,4 +70,5 @@ class PaymentMethodView extends JView
     """
     {{> @loader }}
     {{> @paymentMethodInfo }}
+    {{> @controlsView }}
     """

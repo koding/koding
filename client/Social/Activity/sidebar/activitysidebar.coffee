@@ -22,7 +22,7 @@ class ActivitySidebar extends KDCustomScrollView
 
 
   constructor: (options = {}) ->
-    options.cssClass  = 'activity-sidebar'
+    options.cssClass  = 'app-sidebar'
 
     super options
 
