@@ -121,7 +121,7 @@ module.exports = class JPaymentMethod extends Module
         JSession.one clientId: client.sessionToken, (err, session) =>
           return callback err  if err
 
-          ipAddress = session.clientIPAddress or '(Unknown IP address)'
+          ipAddress = session.clientIP or '(Unknown IP address)'
 
           firstName ?= formData.cardFirstName
           lastName ?= formData.cardLastName
