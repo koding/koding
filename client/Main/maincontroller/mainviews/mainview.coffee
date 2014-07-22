@@ -44,8 +44,6 @@ class MainView extends KDView
       domId    : 'main-header'
       cssClass : 'no-dock'  unless KD.isLoggedIn()
 
-    @header.clear()
-
     @header.addSubView new TopNavigation
 
     @header.addSubView @logo = new KDCustomHTMLView
@@ -220,7 +218,7 @@ class MainView extends KDView
   openVMModal: (vm, item) ->
 
     bounds   = item.getBounds()
-    position = 
+    position =
       top    : Math.max bounds.y - 80, 0
       left   : bounds.x + bounds.w + 30
 
