@@ -25,14 +25,7 @@ KD.config.providers        =
   koding                   :
     title                  : "Koding Credential"
     description            : "Koding rulez."
-    credentialFields       :
-      username             :
-        label              : "Username"
-        placeholder        : "koding username"
-      password             :
-        label              : "Password"
-        placeholder        : "koding password"
-        type               : "password"
+    credentialFields       : {}
 
   google                   :
     title                  : "Google Cloud Credential"

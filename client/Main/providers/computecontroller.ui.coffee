@@ -30,8 +30,12 @@ class ComputeController.UI
         placeholder : "title for this credential"
 
     Providers = ComputeController.providers
+    credentialFields = Object.keys Providers[provider].credentialFields
 
-    Object.keys(Providers[provider].credentialFields).forEach (field)->
+    unless credentialFields.length
+      return
+
+    credentialFields.forEach (field)->
       fields[field] = _.clone Providers[provider].credentialFields[field]
       fields[field].required = yes
 
