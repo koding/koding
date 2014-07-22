@@ -34,6 +34,14 @@ styleScrollBars()
     left                50%
     abs()
 
+  .no-item-found
+    text-align            center
+    color                 #B4B4B4
+    padding               178px 0
+    font-size             16px
+    font-weight           300
+    letter-spacing        .02em
+
 .status.content-display
   article
     max-height          100%
@@ -286,7 +294,7 @@ aside.activity-sidebar
         overflow        visible
 
         .nothing
-          background    #15171A
+          background    #3B3B3B
           width         auto
           font-size     14px
           margin        0 6px
@@ -298,6 +306,10 @@ aside.activity-sidebar
           color         #787878
           margin-bottom 16px
           borderBox()
+
+          a
+            color             #929292
+            text-decoration   underline
 
     a.public-feed-link.selected
       color               #fff
@@ -1458,19 +1470,20 @@ span.collapsedtext
           margin            0
           padding           0
 
-      .kdbutton.new-participant
-        display             block
-        size                30px, 30px
-        border              1px dashed #9c9c9c
-        rounded             50%
-        background          transparent
-        padding             0
-        fl()
+    .kdbutton.new-participant
+      margin-top          12px
+      display             block
+      size                30px, 30px
+      border              1px dashed #9c9c9c
+      rounded             50%
+      background          transparent
+      padding             0
+      fl()
 
-        .icon
-          margin            0 0 0 9px
-          display           block
-          r-sprite          'activity', 'new-participant-plus'
+      .icon
+        margin            0 0 0 9px
+        display           block
+        r-sprite          'activity', 'new-participant-plus'
 
   .kdlistview-privatemessage
     margin-top              26px
