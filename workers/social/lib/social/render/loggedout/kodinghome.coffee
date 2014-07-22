@@ -3,7 +3,7 @@ module.exports = (options, callback)->
   getStyles    = require './../styleblock'
   fetchScripts = require './../scriptblock'
   getGraphMeta = require './../graphmeta'
-
+  getTitle     = require './../title'
   entryPoint         = { slug : "koding", type: "group" }
   options.entryPoint = entryPoint
 
@@ -12,7 +12,7 @@ module.exports = (options, callback)->
     <!doctype html>
     <html lang="en" prefix="og: http://ogp.me/ns#">
     <head>
-      <title>Koding | A New Way For Developers To Work</title>
+      #{getTitle()}
       #{getStyles()}
       #{getGraphMeta()}
     </head>

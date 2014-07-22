@@ -49,7 +49,7 @@ class FeederResultsController extends KDViewController
       scrollView          : no
       wrapper             : no
       noItemFoundWidget   : new KDCustomHTMLView
-        cssClass          : "lazy-loader"
+        cssClass          : "no-item-found"
         partial           : filter.noItemFoundText or @getOptions().noItemFoundText or "There are no items."
       viewOptions         :
         cssClass          : listCssClass
