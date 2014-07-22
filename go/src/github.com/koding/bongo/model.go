@@ -104,6 +104,7 @@ func (b *Bongo) FetchByIds(i Modellable, data interface{}, ids []int64) error {
 
 }
 
+// This function doesnt work, after fixing we can open again
 // func (b *Bongo) UpdatePartial(i Modellable, set map[string]interface{}) error {
 // 	if i.GetId() == 0 {
 // 		return IdIsNotSet
