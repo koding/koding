@@ -102,8 +102,9 @@ class ActivitySidebar extends KDCustomScrollView
 
       return KD.showError err  if err
 
-      # when someone replies to a user's post, we mark that post as "followed" by that user.
-      data.isFollowed = yes
+      # when someone replies to a user's post, we locally mark that post, and
+      # any cached copies as "followed" by that user.
+      socialapi.eachCached data.getId(), (it) -> it.isFollowed = yes
       # and add to the sidebar
       # (if the item is already on sidebar, it's handled on @addItem)
       item = @addItem data, yes

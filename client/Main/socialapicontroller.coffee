@@ -23,6 +23,9 @@ class SocialApiController extends KDController
     return fn(data) or []
 
 
+  eachCached: (id, fn) ->
+    fn section[id]  for own name, section of @_cache when id of section
+
   openGroupChannel: ->
     # to - do refactor this part to use same functions with other parts
     groupsController = KD.singleton "groupsController"
