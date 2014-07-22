@@ -67,17 +67,19 @@ class AccountAppController extends AppController
       wrapper     : no
       scrollView  : no
 
-    mainView.addSubView aside = new KDView tagName : 'aside'
-
+    mainView.addSubView aside = new KDView
+      tagName   : 'aside'
+      cssClass  : 'app-sidebar'
 
     aside.addSubView navView = @navController.getView()
 
     mainView.addSubView @tabView = new KDTabView
+      cssClass            : 'app-content'
       hideHandleContainer : yes
 
     for own sectionKey, section of items
       @navController.instantiateListItems section.items
-      navView.addSubView new KDCustomHTMLView tagName : "hr"
+      navView.addSubView new KDCustomHTMLView cssClass : "divider"
 
     navView.setPartial """
       <a href="/tos.html" target="_blank">Terms of service <span class="icon new-page"></span></a>
