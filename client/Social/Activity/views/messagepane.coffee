@@ -22,8 +22,13 @@ class MessagePane extends KDTabPaneView
     # once.
     @participantMap = {}
 
-    @createParticipantsView() if typeConstant is 'privatemessage'
-    @listController = new ActivityListController {itemClass, type: typeConstant}
+    {channelId} = options
+    viewOptions = {itemOptions: {channelId}}
+    @lastToFirst = no
+    if typeConstant is 'privatemessage'
+      @createParticipantsView()
+      @lastToFirst = yes
+    @listController = new ActivityListController { wrapper: yes, itemClass, type: typeConstant, viewOptions, @lastToFirst}
 
 
     @createInputWidget()
@@ -36,16 +41,46 @@ class MessagePane extends KDTabPaneView
 
       @glance()  if focused and @active
 
+    switch typeConstant
+      when 'post'
+        @listController.getListView().once 'ItemWasAdded', (item) =>
+          listView = @listController.getListItems().first.commentBox.controller.getListView()
+          listView.on 'ItemWasAdded', @bound 'scrollDown'
+      when 'privatemessage'
+        @listController.getListView().on 'ItemWasAdded', @bound 'privateMessageAdded'
+        @listController.getListView().on 'ItemWasRemoved', @bound 'privateMessageRemoved'
+      else
+        @listController.getListView().on 'ItemWasAdded', @bound 'scrollUp'
 
-    if typeConstant in ['privatemessage', 'post']
 
-      @listController.getListView().once 'ItemWasAdded', (item) =>
-        listView = @listController.getListItems().first.commentBox.controller.getListView()
-        listView.on 'ItemWasAdded', @bound 'scrollDown'
+  hasSameOwner = (a, b) -> a.getData().account._id is b.getData().account._id
 
-    else
+  privateMessageAdded: (item, index) ->
+    prevSibling = @listController.getListItems()[index-1]
+    nextSibling = @listController.getListItems()[index+1]
 
-      @listController.getListView().on 'ItemWasAdded', @bound 'scrollUp'
+    if prevSibling
+      if hasSameOwner item, prevSibling
+      then item.setClass 'consequent'
+      else item.unsetClass 'consequent'
+
+    if nextSibling
+      if hasSameOwner item, nextSibling
+      then nextSibling.setClass 'consequent'
+      else nextSibling.unsetClass 'consequent'
+
+
+  privateMessageRemoved: (item, index) ->
+
+    prevSibling = @listController.getListItems()[index-1]
+    nextSibling = @listController.getListItems()[index]
+
+    if nextSibling and prevSibling
+      if hasSameOwner prevSibling, nextSibling
+      then nextSibling.setClass 'consequent'
+      else nextSibling.unsetClass 'consequent'
+    else if nextSibling
+      nextSibling.unsetClass 'consequent'
 
 
   scrollDown: (item) ->
@@ -144,18 +179,25 @@ class MessagePane extends KDTabPaneView
       return  unless channel
 
       channel
-        .on 'MessageAdded',   @bound 'prependMessage'
+        .on 'MessageAdded',   @bound 'addMessage'
         .on 'MessageRemoved', @bound 'removeMessage'
         .on 'AddedToChannel', @bound 'addParticipant'
 
+  addMessage: (message) ->
+    index = if @lastToFirst then @listController.getItemCount() else 0
+    @prependMessage message, index
 
-  appendMessage: (message) -> @listController.addItem message, @listController.getItemCount()
+  loadMessage: (message) ->
+    index = if @lastToFirst then 0 else @listController.getItemCount()
+    @appendMessage message, index
 
-  prependMessage: (message) ->
+  appendMessage: (message, index) -> @listController.addItem message, index
+
+  prependMessage: (message, index) ->
     KD.getMessageOwner message, (err, owner) =>
       return error err  if err
       return if KD.filterTrollActivity owner
-      @listController.addItem message, 0
+      @listController.addItem message, index
 
   removeMessage: (message) -> @listController.removeItem null, message
 
@@ -259,7 +301,7 @@ class MessagePane extends KDTabPaneView
 
       return KD.showError err  if err
 
-      items.forEach @lazyBound 'appendMessage'
+      items.forEach @lazyBound 'loadMessage'
 
 
   refresh: ->
