@@ -438,33 +438,35 @@ class Ace extends KDView
       handle.unsetClass 'modified'
 
   showGotoLine: ->
-    unless @gotoLineModal
-      @gotoLineModal = new KDModalViewWithForms
-        cssClass                : 'goto'
-        width                   : 180
-        height                  : 'auto'
-        overlay                 : yes
-        tabs                    :
-          forms                 :
-            Go                  :
-              callback          : (form) =>
-                lineNumber = parseInt form.line, 10
-                @gotoLine lineNumber if lineNumber > 0
-                @gotoLineModal.destroy()
-              fields            :
-                Line            :
-                  type          : 'text'
-                  name          : 'line'
-                  placeholder   : 'Goto line'
-                  nextElement   :
-                    Go              :
-                      itemClass     : KDButtonView
-                      title         : 'Go'
-                      style         : 'solid green'
-                      type          : 'submit'
+    return if @gotoLineModal
 
-      @gotoLineModal.on 'KDModalViewDestroyed', =>
-        @gotoLineModal = null
-        @focus()
+    @gotoLineModal = new KDModalViewWithForms
+      cssClass                : 'goto'
+      height                  : 'auto'
+      width                   : 120
+      overlay                 : yes
+      tabs                    :
+        forms                 :
+          Go                  :
+            fields            :
+              line            :
+                type          : 'text'
+                name          : 'line'
+                placeholder   : 'Goto line'
+                keyup         : =>
+                  return  unless @gotoLineModal
+                  {line} = @gotoLineModal.modalTabs.forms.Go.inputs
+                  log line.getValue()
+                  lineNumber = parseInt line.getValue(), 10
+                  @gotoLine lineNumber if lineNumber > 0
+                keydown       :
+                  esc         : => @gotoLineModal.destroy()
+                  enter       : (e) =>
+                    KD.utils.stopDOMEvent e
+                    @gotoLineModal.destroy()
 
-      @gotoLineModal.modalTabs.forms.Go.focusFirstElement()
+    @gotoLineModal.once 'KDModalViewDestroyed', =>
+      @gotoLineModal = null
+      @focus()
+
+    @gotoLineModal.modalTabs.forms.Go.focusFirstElement()
