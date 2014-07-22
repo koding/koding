@@ -5,4 +5,5 @@ type PrivateMessageRequest struct {
 	GroupName  string `json:"groupName"`
 	Recipients []string
 	AccountId  int64 `json:"accountId,string"`
+	ChannelId  int64 `json:"channelId,string"`
 }
