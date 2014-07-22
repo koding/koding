@@ -44,6 +44,7 @@ module.exports = (options, callback)->
   getStyles    = require './../styleblock'
   getGraphMeta = require './../graphmeta'
   fetchScripts = require './../scriptblock'
+  getTitle     = require './../title'
   model        = models.first if models and Array.isArray models
 
   title = if model?.title then model.title else section
@@ -60,7 +61,7 @@ module.exports = (options, callback)->
     <!doctype html>
     <html lang="en">
     <head>
-      <title>Koding | A New Way For Developers To Work</title>
+      #{getTitle()}
       #{getStyles()}
       #{getGraphMeta title: title, shareUrl: shareUrl, body: body}
     </head>

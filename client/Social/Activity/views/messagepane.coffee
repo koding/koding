@@ -16,8 +16,15 @@ class MessagePane extends KDTabPaneView
     {itemClass, type} = @getOptions()
     {typeConstant}    = @getData()
 
+    # To keep track of who are the shown participants
+    # This way we are preventing to be duplicates
+    # on page even if events from backend come more than
+    # once.
+    @participantMap = {}
+
     @createParticipantsView() if typeConstant is 'privatemessage'
     @listController = new ActivityListController {itemClass, type: typeConstant}
+
 
     @createInputWidget()
     @bindChannelEvents()
@@ -87,20 +94,12 @@ class MessagePane extends KDTabPaneView
       cssClass    : 'chat-heads'
       partial     : '<span class="description">Private conversation between</span>'
 
-    @participantsView.addSubView heads = new KDCustomHTMLView
+    @participantsView.addSubView @heads = new KDCustomHTMLView
       cssClass    : 'heads'
 
-    for participant in participantsPreview
+    @addParticipant participant for participant in participantsPreview
 
-      participant.id = participant._id
-
-      heads.addSubView new AvatarView
-        size      :
-          width   : 30
-          height  : 30
-        origin    : participant
-
-    heads.addSubView @newParticipantButton = new KDButtonView
+    @participantsView.addSubView @newParticipantButton = new KDButtonView
       cssClass    : 'new-participant'
       iconOnly    : yes
       callback    : =>
@@ -110,6 +109,23 @@ class MessagePane extends KDTabPaneView
             top     : @getY() + 50
             left    : @getX() - 150
         , @getData()
+
+
+  addParticipant: (participant) ->
+
+    return  unless participant
+    return  if @participantMap[participant._id]
+
+    participant.id = participant._id
+
+    @heads.addSubView new AvatarView
+      size      :
+        width   : 30
+        height  : 30
+      origin    : participant
+
+    @participantMap[participant._id] = yes
+
 
   createInputWidget: ->
 
@@ -130,6 +146,7 @@ class MessagePane extends KDTabPaneView
       channel
         .on 'MessageAdded',   @bound 'prependMessage'
         .on 'MessageRemoved', @bound 'removeMessage'
+        .on 'AddedToChannel', @bound 'addParticipant'
 
 
   appendMessage: (message) -> @listController.addItem message, @listController.getItemCount()
