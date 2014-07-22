@@ -51,6 +51,7 @@ class IDE.IDEView extends IDE.WorkspaceTabView
 
     pane = new KDTabPaneView paneOptions, paneData
     pane.addSubView view
+    pane.view = view
     @tabView.addPane pane
 
     pane.once 'KDObjectWillBeDestroyed', => @handlePaneRemoved pane
@@ -102,7 +103,7 @@ class IDE.IDEView extends IDE.WorkspaceTabView
     appManager = KD.getSingleton 'appManager'
 
     unless paneType
-      subView  = @tabView.getActivePane().getSubViews().first
+      subView  = @getActivePaneView()
       paneType = subView.getOptions().paneType  if subView
 
     unless data
@@ -132,8 +133,11 @@ class IDE.IDEView extends IDE.WorkspaceTabView
   removeOpenDocument: ->
     # TODO: This method is legacy, should be reimplemented in ace bundle.
 
+  getActivePaneView: ->
+    return @tabView.getActivePane().view
+
   focusTab: ->
-    pane = @tabView.getActivePane().getSubViews().first
+    pane = @getActivePaneView()
     return unless pane
 
     KD.utils.defer ->
@@ -171,7 +175,7 @@ class IDE.IDEView extends IDE.WorkspaceTabView
   switchToEditorTabByFile: (file) ->
     for pane, index in @tabView.panes when file is pane.getData()
       @tabView.showPaneByIndex index
-      return editorPane = pane.getSubViews().first
+      return editorPane = pane.view
 
   handlePaneRemoved: (pane) ->
     file = pane.getData()
@@ -195,7 +199,7 @@ class IDE.IDEView extends IDE.WorkspaceTabView
   closeUntitledFileIfNotChanged: ->
     for pane in @tabView.panes when pane
       if pane.data instanceof FSFile and pane.data.path is @getDummyFilePath()
-        if pane.subViews.first.getValue() is ''
+        if pane.view.getValue() is ''
           @tabView.removePane pane
 
   showShortcutsOnce: ->
