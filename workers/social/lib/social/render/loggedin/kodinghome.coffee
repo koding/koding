@@ -4,6 +4,7 @@ module.exports = (options, callback)->
   fetchScripts    = require './../scriptblock'
   getInnerNav     = require './../innernav'
   getSidebar      = require './sidebar'
+  getTitle        = require './../title'
   getStatusWidget = require './statuswidget'
 
   entryPoint         = { slug : "koding", type: "group" }
@@ -14,7 +15,7 @@ module.exports = (options, callback)->
     <!doctype html>
     <html lang="en">
     <head>
-      <title>Koding | A New Way For Developers To Work</title>
+      #{getTitle()}
       #{getStyles()}
     </head>
     <body class='logged-in'>

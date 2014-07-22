@@ -2,8 +2,8 @@ module.exports = (options, callback)->
 
   getStyles    = require './../styleblock'
   fetchScripts = require './../scriptblock'
+  getTitle     = require './../title'
   getSidebar   = require './sidebar'
-  encoder      = require 'htmlencode'
 
 
   {
@@ -21,7 +21,7 @@ module.exports = (options, callback)->
     <!DOCTYPE html>
     <html>
     <head>
-      <title>#{encoder.XSSEncode title}</title>
+      #{getTitle()}
       #{getStyles customize}
     </head>
     <body class="group logged-in">

@@ -58,6 +58,12 @@ type NotificationContent struct {
 	ActorId  string `json:"actorId"`
 }
 
+type ParticipantContent struct {
+	AccountId    int64  `json:"accountId,string"`
+	AccountOldId string `json:"accountOldId"`
+	ChannelId    int64  `json:"channelId"`
+}
+
 // DefaultErrHandler controls the errors, return false if an error occured
 func (r *Controller) DefaultErrHandler(delivery amqp.Delivery, err error) bool {
 	r.log.Error("an error occured deleting realtime event", err)
@@ -147,6 +153,17 @@ func (f *Controller) sendChannelParticipantEvent(cp *models.ChannelParticipant, 
 		return err
 	}
 
+	accountOldId, err := models.FetchAccountOldIdByIdFromCache(cp.AccountId)
+	if err != nil {
+		return err
+	}
+
+	pc := &ParticipantContent{
+		AccountId:    cp.AccountId,
+		AccountOldId: accountOldId,
+		ChannelId:    c.Id,
+	}
+
 	// send notification to the user(added user)
 	if err := f.sendNotification(
 		cp.AccountId,
@@ -158,8 +175,9 @@ func (f *Controller) sendChannelParticipantEvent(cp *models.ChannelParticipant, 
 	}
 
 	// send this event to the channel itself
-	return f.publishToChannel(c.Id, eventName, cp)
+	return f.publishToChannel(c.Id, eventName, pc)
 }
+
 // InteractionSaved runs when interaction is added
 func (f *Controller) InteractionSaved(i *models.Interaction) error {
 	return f.handleInteractionEvent("InteractionAdded", i)
@@ -180,7 +198,7 @@ type InteractionEvent struct {
 	Count        int    `json:"count"`
 }
 
-// handleInteractionEvent handle the required info of interaction 
+// handleInteractionEvent handle the required info of interaction
 func (f *Controller) handleInteractionEvent(eventName string, i *models.Interaction) error {
 	q := &request.Query{
 		Type:       models.Interaction_TYPE_LIKE,
@@ -222,7 +240,7 @@ func (f *Controller) handleInteractionEvent(eventName string, i *models.Interact
 // MessageReplySaved updates the channels , send messages in updated channel
 // and sends messages which is added
 func (f *Controller) MessageReplySaved(mr *models.MessageReply) error {
-	// fetch a channel 
+	// fetch a channel
 	reply := models.NewChannelMessage()
 	if err := reply.ById(mr.ReplyId); err != nil {
 		return err
