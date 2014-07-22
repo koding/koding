@@ -3,11 +3,14 @@ package models
 import (
 	"bytes"
 	"fmt"
+	"github.com/webcitizen/juice"
 	"html/template"
+	"io/ioutil"
 	"net/url"
 	"os"
 	"path"
 	"socialapi/config"
+	"strings"
 	"time"
 )
 
@@ -29,6 +32,8 @@ var (
 	previewTemplateFile     string
 	objectTemplateFile      string
 	unsubscribeTemplateFile string
+
+	css []byte
 )
 
 func NewTemplateParser() *TemplateParser {
@@ -50,6 +55,11 @@ func prepareTemplateFiles() error {
 	previewTemplateFile = path.Join(wd, root, "preview.tmpl")
 	objectTemplateFile = path.Join(wd, root, "object.tmpl")
 	unsubscribeTemplateFile = path.Join(wd, root, "unsubscribe.tmpl")
+
+	css, err = ioutil.ReadFile(path.Join(wd, root, "style.css"))
+	if err != nil {
+		return err
+	}
 
 	return nil
 }
@@ -102,6 +112,13 @@ func (tp *TemplateParser) validateTemplateParser() error {
 	return nil
 }
 
+func (tp *TemplateParser) inlineCss(content string) string {
+	rules := juice.Parse(css)
+	output := juice.Inline(strings.NewReader(content), rules)
+
+	return output
+}
+
 func (tp *TemplateParser) renderTemplate(contentType, content, description string, date time.Time) (string, error) {
 	t := template.Must(template.ParseFiles(
 		mainTemplateFile, footerTemplateFile, unsubscribeTemplateFile))
@@ -115,7 +132,9 @@ func (tp *TemplateParser) renderTemplate(contentType, content, description strin
 		return "", err
 	}
 
-	return doc.String(), nil
+	output := tp.inlineCss(doc.String())
+
+	return output, nil
 }
 
 func (tp *TemplateParser) buildMailContent(contentType string, currentDate string) *MailContent {
