@@ -48,6 +48,9 @@ class MembersAppController extends AppController
         @createProfileView contentDisplay, model
       else
         @createGroupMembersView contentDisplay
+
+      contentDisplay.addSubView new MemberTabsView {}, model
+
       @showContentDisplay contentDisplay
       @utils.defer -> callback contentDisplay
 
@@ -194,6 +197,17 @@ class MembersAppController extends AppController
 
     whitelist = Object.keys(externalProfiles).slice().map (a)-> "ext|profile|#{a}"
     account.fetchStorages  whitelist, callback
+
+class MemberTabsView extends KDCustomHTMLView
+  constructor: (options = {}, data) ->
+    options.cssClass    = 'member-tabs'
+    options.tagName     = 'nav'
+    super options, data
+
+    @addSubView new KDCustomHTMLView
+      tagName    : 'a'
+      cssClass   : 'active'
+      partial    : "Posts"
 
 class MemberActivityListController extends ActivityListController
   # used for filtering received live updates

@@ -1,16 +1,15 @@
 {{define "footer"}}
 <!-- FOOTER -->
-<tr height="90%" style="height: 90%; ">
-  <td style="width: 15px; border-right: 1px solid #CCC;"></td>
-  <td height="40px" style="height:40px; padding-left: 10px;" colspan="2"></td>
+<tr height="90%" class="footer-before">
+  <td></td>
+  <td height="40px" colspan="2"></td>
 </tr>
-<tr style="font-size:11px; height: 30px; color: #999;">
-  <td style="border-right: 1px solid #CCC; text-align:right;
-             padding-right:10px;"></td>
-  <td style="padding-left: 10px;" colspan="2">
+<tr class="footer">
+  <td></td>
+  <td colspan="2">
     {{template "unsubscribe" . }}
     <br/>
-    <a href="{{.Uri}}" style="text-decoration:none; color:#1AAF5D;">Koding</a>,
+    <a href="{{.Uri}}">Koding</a>,
      Inc. 358 Brannan, San Francisco, CA 94107
   </td>
 </tr>

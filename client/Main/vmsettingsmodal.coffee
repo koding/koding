@@ -23,11 +23,20 @@ class VMSettingsModal extends KDModalViewWithForms
             addDomain       :
               label         : ''
               name          : 'addDomain'
-              defaultValue  : 'type a domain name'
+              placeholder   : 'type a domain name'
               nextElement   :
                 extras      :
                   itemClass : KDCustomHTMLView
-                  cssClass  : 'extras'
+                  cssClass  : 'root-domain'
+                  partial   : ".#{KD.whoami().profile.nickname}.kd.io"
+                domainButton:
+                  itemClass : KDButtonView
+                  title     : 'Add domain'
+                  callback  : => log 'add ulan'
+                cancelButton:
+                  itemClass : KDButtonView
+                  title     : 'Cancel'
+                  callback  : @bound 'hideAddDomain'
             alwaysOn        :
               label         : 'Keep your VM always on'
               name          : 'alwaysOn'
@@ -93,10 +102,7 @@ class VMSettingsModal extends KDModalViewWithForms
         @linkDomain domain.getValue()
 
     addDomain.on 'keyup', (event) =>
-      log event.which
-      if event.which is 27
-        @hideAddDomain()
-
+      @hideAddDomain()  if event.which is 27
 
     # FIXME - SY
     # domain.setValue to the domain which vm is connected to

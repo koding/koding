@@ -22,7 +22,7 @@ class ActivityListController extends KDListViewController
     viewOptions.dataPath          = 'id'
 
     options.noItemFoundWidget    ?= new KDCustomHTMLView
-      cssClass : 'no-activity hidden'
+      cssClass : 'no-item-found hidden'
       partial  : 'There is no activity.'
 
     super options, data
