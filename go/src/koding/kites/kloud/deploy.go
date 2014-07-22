@@ -157,6 +157,11 @@ func (k *KodingDeploy) Deploy(artifact *protocol.Artifact) (*protocol.DeployArti
 		return nil, err
 	}
 
+	log(fmt.Sprintf("Changing hostname to %s", hostname))
+	if err := changeHostname(client, hostname); err != nil {
+		return nil, err
+	}
+
 	log("Restarting klient with kite.key")
 	out, err = client.StartCommand("service klient restart")
 	if err != nil {
@@ -240,12 +245,6 @@ func changeHostname(client *sshutil.SSHClient, hostname string) error {
 	}
 
 	out, err := client.StartCommand(fmt.Sprintf("hostname %s", hostname))
-	if err != nil {
-		fmt.Printf("out %+v\n", out)
-		return err
-	}
-
-	out, err = client.StartCommand("service networking restart")
 	if err != nil {
 		fmt.Printf("out %+v\n", out)
 		return err
