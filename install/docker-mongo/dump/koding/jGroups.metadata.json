@@ -1,0 +1,1 @@
+{ "indexes" : [ { "v" : 1, "key" : { "_id" : 1 }, "ns" : "koding.jGroups", "name" : "_id_" }, { "v" : 1, "key" : { "slug" : 1 }, "unique" : true, "ns" : "koding.jGroups", "name" : "slug_1" } ] }
