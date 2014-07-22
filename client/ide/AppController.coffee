@@ -288,6 +288,9 @@ class IDEAppController extends AppController
 
     @activeTabView.showPaneByIndex requiredIndex
 
+  goToLine: ->
+    @activeTabView.emit 'GoToLineRequested'
+
   closeTab: ->
     @activeTabView.removePane @activeTabView.getActivePane()
 

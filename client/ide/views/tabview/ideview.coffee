@@ -20,6 +20,7 @@ class IDE.IDEView extends IDE.WorkspaceTabView
     @tabView.on 'DrawingPaneRequested',   @bound 'createDrawingBoard'
     @tabView.on 'ViewNeedsToBeShown',     @bound 'showView'
     @tabView.on 'TabNeedsToBeClosed',     @bound 'closeTabByFile'
+    @tabView.on 'GoToLineRequested',      @bound 'goToLine'
 
     @tabView.on 'FileNeedsToBeOpened', (file, contents, callback) =>
       @closeUntitledFileIfNotChanged()
@@ -147,6 +148,9 @@ class IDE.IDEView extends IDE.WorkspaceTabView
         appManager.tell 'IDE', 'showFindAndReplaceViewIfNecessary'
       else
         appManager.tell 'IDE', 'hideFindAndReplaceView'
+
+  goToLine: ->
+    @getActivePaneView().aceView.ace.showGotoLine()
 
   click: ->
     super

@@ -39,6 +39,8 @@ class IDE.StatusBarMenu extends KDContextMenu
           callback            : -> appManager.tell 'IDE', 'showContentSearch'
         'Jump to file...'     :
           callback            : -> appManager.tell 'IDE', 'showFileFinder'
+        'Go to line...'       :
+          callback            : -> appManager.tell 'IDE', 'goToLine'
 
     items.separator   = type: 'separator'
 
