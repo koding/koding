@@ -5,6 +5,7 @@ AWS_DEPLOY_KEY    = require("fs").readFileSync("#{__dirname}/install/keys/aws/ko
 AWS.config.region = 'us-east-1'
 AWS.config.update accessKeyId: 'AKIAI7RHT42HWAA652LA', secretAccessKey: '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'
 
+argv       = require('minimist')(process.argv.slice(2))
 eden       = require 'node-eden'
 log        = console.log
 timethat   = require 'timethat'
@@ -21,12 +22,12 @@ class Deploy
 
     conn = new Connection()
 
-    listen = (op, stream, callback)->
-      _log = log ("[#{op}] #{data}").replace("\n","")
-      stream.on        "data", (data), _log
-      stream.stderr.on "data", (data), _log
-      stream.on "exit", (code, signal) -> log "[#{op}] did exit."
-      stream.on "close",               -> callback null,"close"
+    listen = (prefix, stream, callback)->
+      _log = (data) -> log ("#{prefix} #{data}").replace("\n","") unless data or data is ""
+      stream.on          "data", _log
+      stream.stderr.on   "data", _log
+      stream.on "close", callback
+      # stream.on "exit", (code, signal) -> log "[#{prefix}] did exit."
 
     sftpCopy = (options, callback)->
       copyCount = 1
@@ -70,7 +71,7 @@ class Deploy
   @createInstance = (options={}, callback) ->
 
     # Creates a new instance and returns a live connection.
-    buildNumber  = options.buildNumber  or 1111
+    buildNumber  = options.buildNumber  or 1113
     instanceName = options.instanceName or "prod-#{buildNumber}-#{eden.eve().toLowerCase()}"
 
     params = options.params or
@@ -164,18 +165,19 @@ class Deploy
     options = options or
       params :
         ImageId       : "ami-a6926dce" # Amazon ubuntu 14.04 "ami-1624987f" # Amazon Linux AMI x86_64 EBS
-        InstanceType  : "t2.medium"
+        # InstanceType  : "t2.medium"
+        InstanceType  : "t2.micro"
         MinCount      : 1
         MaxCount      : 1
         SubnetId      : "subnet-b47692ed"
         KeyName       : "koding-prod-deployment"
-      buildNumber     : 1111
+      buildNumber     : 1113
       instanceName    : null
 
 
-    deployStart = new Date()
-    Deploy.createInstance options,(err,result) ->
 
+    Deploy.createInstance options,(err,result) ->
+      deployStart = new Date()
       {conn} = result
 
       KONFIG = require("./config/main.prod.coffee")
@@ -188,27 +190,111 @@ class Deploy
         sudo service supervisor restart
         \n
         """
+
+      cmd = "echo hello world"
+
       conn.exec cmd, (err, stream) ->
         log 4
         throw err if err
-        conn.listen "configuring", stream,->
+        conn.listen "[configuring #{result.instanceName}]", stream,->
           log 5
           throw err if err
-          #delete result.conn
-          log result.instanceData
-          log "Deployment and configuration took: "+timethat.calc deployStart,new Date()
+          # delete result.conn
+          # log result.instanceData
+          log "Deployment of #{result.instanceName} took: "+timethat.calc deployStart,new Date()
           conn.end()
           callback null, result
 
-module.exports = Deploy
+# module.exports = Deploy
 
-Deploy.deployAndConfigure null,(err,res)->
-  log "Box is ready at mosh root@#{res.instanceData.PublicIpAddress}"
-
-
-# class Release
-
+# for i in [0..5]
+#   Deploy.deployAndConfigure null,(err,res)->
+#     log "#{res.instanceName} is ready."
+#     log "Box is ready at mosh root@#{res.instanceData.PublicIpAddress}"
 
 
+class Release
+
+  works = ->
+    elb.deregisterInstancesFromLoadBalancer
+      Instances        : [{ InstanceId: 'i-dd310cf7' }]
+      LoadBalancerName : "koding-prod-deployment"
+    ,(err,res) ->
+      log err,res
 
 
+    elb.registerInstancesWithLoadBalancer
+      Instances        : [{ InstanceId: 'i-dd310cf7' }]
+      LoadBalancerName : "koding-prod-deployment"
+    ,(err,res) ->
+      log err,res
+
+
+    elb.describeInstanceHealth
+      Instances        : [{ InstanceId: 'i-dd310cf7' }]
+      LoadBalancerName : "koding-prod-deployment"
+    ,(err,res)->
+      log err,res
+
+  @fetchLoadBalancerInstances = (LoadBalancerName,callback)->
+    elb.describeLoadBalancers LoadBalancerNames : [LoadBalancerName],(err,res)->
+      log res.LoadBalancerDescriptions[0].Instances
+
+    ec2.describeInstances {},(err,res)->
+
+  fetchInstancesWithPrefix = (prefix,callback)->
+
+    pickValueOf= (key,array) -> return val.Value if val.Key is key for val in array
+    instances = []
+    ec2.describeInstances {},(err,res)->
+      # log err,res
+      for r in res.Reservations
+        a = InstanceId: r.Instances[0].InstanceId, Name: pickValueOf "Name",r.Instances[0].Tags
+        b = InstanceId: r.Instances[0].InstanceId
+        instances.push b if a.Name.indexOf(prefix) > -1
+      # log instances
+      callback null,instances
+
+  @registerInstancesWithPrefix = (prefix, callback)->
+    fetchInstancesWithPrefix prefix, (err,instances)->
+      # log instances
+      elb.registerInstancesWithLoadBalancer
+        Instances        : instances
+        LoadBalancerName : "koding-prod-deployment"
+      ,callback
+
+  @deregisterInstancesWithPrefix = (prefix, callback)->
+    fetchInstancesWithPrefix prefix, (err,instances)->
+      log instances
+      elb.deregisterInstancesFromLoadBalancer
+        Instances        : instances
+        LoadBalancerName : "koding-prod-deployment"
+      ,callback
+
+
+
+
+release = (key)->
+  Release.registerInstancesWithPrefix key,(err,res)->
+    log res
+    log ""
+    log ""
+    log "------------------------------------------------------------------------------"
+    log "#{key} is now deployed and live with bazillion instances."
+    log "------------------------------------------------------------------------------"
+
+rollback = (key)->
+  Release.deregisterInstancesWithPrefix key,(err,res)->
+    log res
+    log ""
+    log ""
+    log "------------------------------------------------------------------------------"
+    log "#{key} is now rolled back. All instances are taken out of rotation."
+    log "------------------------------------------------------------------------------"
+
+
+if argv.release
+  release argv.release
+
+if argv.rollback
+  rollback argv.rollback

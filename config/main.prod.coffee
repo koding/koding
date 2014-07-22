@@ -17,7 +17,7 @@ Configuration = (options={}) ->
   build               = options.build          or "1111"
   publicIP            = options.publicIP       or "*"
 
-  mongo               = "#{prod_simulation_server}:27017/koding"
+  mongo               = "mongodb://dev:k9lc4G1k32nyD72@172.16.3.9,172.16.3.10,172.16.3.15/koding?replicaSet=koodingrs0&readPreference=primaryPreferred" # {prod_simulation_server}:27017/koding"
   redis               = {host     : "#{prod_simulation_server}"   , port : "6379" }
   socialapi           = {proxyUrl : "http://localhost:7000"       , port : 7000 , clusterSize : 5,     configFilePath : "#{projectRoot}/go/src/socialapi/config/prod.toml" }
   rabbitmq            = {host     : "#{prod_simulation_server}"   , port : 5672 , apiPort     : 15672, login          : "guest", password : "guest", vhost:"/"}
@@ -38,7 +38,7 @@ Configuration = (options={}) ->
     certFile          : ""
     keyFile           : ""
     publicKeyFile     : "#{projectRoot}/certs/test_kontrol_rsa_public.pem"
-    privateKeyFile    : "#{projectRoot}no/certs/test_kontrol_rsa_private.pem"
+    privateKeyFile    : "#{projectRoot}/certs/test_kontrol_rsa_private.pem"
 
   broker              =
     name              : "broker"
@@ -177,7 +177,7 @@ Configuration = (options={}) ->
     broker              : command : "#{GOBIN}/broker    -c #{configName}"
     rerouting           : command : "#{GOBIN}/rerouting -c #{configName}"
     cron                : command : "#{GOBIN}/cron      -c #{configName}"
-    kloud               : command : "#{GOBIN}/kloud     -c #{configName} -env aws -r #{region} -port #{KONFIG.kloud.port} -public-key #{KONFIG.kloud.publicKeyFile} -private-key #{KONFIG.kloud.privateKeyFile}"
+    kloud               : command : "#{GOBIN}/kloud     -c #{configName} -env prod -r #{region} -port #{KONFIG.kloud.port} -public-key #{KONFIG.kloud.publicKeyFile} -private-key #{KONFIG.kloud.privateKeyFile} -register-url https://koding.io/kloud"
 
     socialapi           : command : "#{GOBIN}/api                -c #{socialapi.configFilePath}"
     dailyemailnotifier  : command : "#{GOBIN}/dailyemailnotifier -c #{socialapi.configFilePath}"
@@ -260,20 +260,17 @@ Configuration = (options={}) ->
   """
 
   nginxConf = """
-    upstream webs      {server 127.0.0.1:#{KONFIG.webserver.port};
-    upstream social    {server 127.0.0.1:#{KONFIG.social.port}};
-    upstream subscribe {server 127.0.0.1:#{KONFIG.broker.port}};
-    upstream kloud     {server 127.0.0.1:#{KONFIG.kloud.port}};
+    upstream webs      { server 127.0.0.1:#{KONFIG.webserver.port} ;}
+    upstream social    { server 127.0.0.1:#{KONFIG.social.port}    ;}
+    upstream subscribe { server 127.0.0.1:#{KONFIG.broker.port}    ;}
+    upstream kloud     { server 127.0.0.1:#{KONFIG.kloud.port}     ;}
 
     # TBD @arslan -> make kontrol kite horizontally scalable then enable;
-    # upstream kontrol     {server 127.0.0.1:#{KONFIG.kontrol.port}};
+    # upstream kontrol     {server 127.0.0.1:#{kontrol.port};}
 
-    map $http_upgrade $connection_upgrade {
-        default upgrade;
-        '' close;
-    }
+    map $http_upgrade $connection_upgrade { default upgrade; '' close; }
 
-    # ssl_config cart curt.
+    # TBD ssl_config
 
     server {
       listen 80 default_server;
@@ -288,28 +285,28 @@ Configuration = (options={}) ->
 
       server_name #{hostname};
       location / {
-        proxy_pass http://webs;
-        proxy_set_header  X-Real-IP   $remote_addr;
-        proxy_set_header  X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_pass            http://webs;
+        proxy_set_header      X-Real-IP       $remote_addr;
+        proxy_set_header      X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_next_upstream   error timeout invalid_header http_500;
-        proxy_connect_timeout   1;
+        proxy_connect_timeout 1;
       }
 
       location /xhr {
-        proxy_pass http://social;
-        proxy_set_header  X-Real-IP   $remote_addr;
-        proxy_set_header  X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_pass            http://social;
+        proxy_set_header      X-Real-IP       $remote_addr;
+        proxy_set_header      X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_next_upstream   error timeout invalid_header http_500;
-        proxy_connect_timeout   1;
+        proxy_connect_timeout 1;
       }
 
 
       location /kloud {
-        proxy_pass http://kloud;
-        proxy_set_header  X-Real-IP   $remote_addr;
-        proxy_set_header  X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_pass            http://kloud;
+        proxy_set_header      X-Real-IP       $remote_addr;
+        proxy_set_header      X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_next_upstream   error timeout invalid_header http_500;
-        proxy_connect_timeout   1;
+        proxy_connect_timeout 1;
       }
 
       # TBD. ADD WEBSOCKET SUPPORT HERE
@@ -318,26 +315,26 @@ Configuration = (options={}) ->
         proxy_pass http://subscribe;
 
         proxy_http_version 1.1;
-        proxy_set_header Upgrade $http_upgrade;
-        proxy_set_header Connection "upgrade";
-        proxy_set_header Host $host;
-        proxy_set_header  X-Real-IP   $remote_addr;
-        proxy_set_header  X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header      Upgrade    $http_upgrade;
+        proxy_set_header      Connection "upgrade";
+        proxy_set_header      Host            $host;
+        proxy_set_header      X-Real-IP       $remote_addr;
+        proxy_set_header      X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_next_upstream   error timeout invalid_header http_500;
-        proxy_connect_timeout   1;
+        proxy_connect_timeout 1;
       }
 
       location /websocket {
         proxy_pass http://subscribe;
 
         proxy_http_version 1.1;
-        proxy_set_header Upgrade $http_upgrade;
-        proxy_set_header Connection "upgrade";
-        proxy_set_header Host $host;
-        proxy_set_header  X-Real-IP   $remote_addr;
-        proxy_set_header  X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header      Upgrade         $http_upgrade;
+        proxy_set_header      Connection      "upgrade";
+        proxy_set_header      Host            $host;
+        proxy_set_header      X-Real-IP       $remote_addr;
+        proxy_set_header      X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_next_upstream   error timeout invalid_header http_500;
-        proxy_connect_timeout   1;
+        proxy_connect_timeout 1;
       }
     }
   """

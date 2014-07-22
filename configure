@@ -56,9 +56,9 @@ createRunFile = (KONFIG)->
   # log "echo '#{new Buffer(KONFIG.supervisorConf).toString('base64')}' | base64 --decode > /etc/supervisor/conf.d/koding.conf"
 
 
-# createRunFile KONFIG
+createRunFile KONFIG
 
-log require("./config/main.prod.coffee")({hostname:"gogo-1111"}).runFile
+# log require("./config/main.prod.coffee")({hostname:"gogo-1111"}).runFile
 
 
 
