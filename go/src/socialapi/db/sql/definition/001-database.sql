@@ -3,7 +3,7 @@ CREATE ROLE social;
 
 CREATE USER socialapplication PASSWORD 'socialapplication';
 
-GRANT social TO socialapplication WITH ADMIN OPTION;
+GRANT social TO socialapplication;
 --GRANT social_superuser TO social WITH ADMIN OPTION;
 
 -- After Amazon RDS, we dont need tablespaces
