@@ -49,6 +49,9 @@ type Amazon struct {
 
 		// If usign VPC subnet, the ID of the VPC, such as "vpc-12345def"
 		VpcId string `mapstructure:"vpc_id"`
+
+		// UserData can be passed to pre initialized instances via cloud-init
+		UserData []byte `mapstructure:"user_data"`
 	}
 }
 

@@ -29,7 +29,7 @@ func (a *Amazon) CreateInstance() (*ec2.RunInstancesResp, error) {
 		AssociatePublicIpAddress: true,
 		SecurityGroups:           securityGroups,
 		SubnetId:                 a.Builder.SubnetId,
-		UserData:                 []byte("#cloud-config\ndisable_root: 0\n"), // allow root access
+		UserData:                 a.Builder.UserData,
 	}
 
 	return a.Client.RunInstances(runOpts)
