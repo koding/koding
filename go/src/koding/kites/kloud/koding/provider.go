@@ -145,7 +145,15 @@ func (p *Provider) Build(opts *protocol.MachineOptions) (*protocol.Artifact, err
 		return nil, err
 	}
 	a.Builder.SubnetId = subs.Subnets[0].SubnetId
-	a.Builder.UserData = []byte("#cloud-config\ndisable_root: 0\n") // allow root access
+
+	cloudConfig := `
+#cloud-config
+disable_root: false
+hostname: %s`
+
+	cloudStr := fmt.Sprintf(cloudConfig, opts.InstanceName)
+
+	a.Builder.UserData = []byte(cloudStr)
 
 	artifact, err := a.Build(opts.InstanceName)
 	if err != nil {
