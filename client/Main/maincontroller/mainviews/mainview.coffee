@@ -44,8 +44,6 @@ class MainView extends KDView
       domId    : 'main-header'
       cssClass : 'no-dock'  unless KD.isLoggedIn()
 
-    @header.clear()
-
     @header.addSubView new TopNavigation
 
     @header.addSubView @logo = new KDCustomHTMLView
@@ -215,6 +213,17 @@ class MainView extends KDView
 
     @panelWrapper.addSubView @mainTabView
     @panelWrapper.addSubView @appSettingsMenuButton
+
+
+  openVMModal: (vm, item) ->
+
+    bounds   = item.getBounds()
+    position =
+      top    : Math.max bounds.y - 80, 0
+      left   : bounds.x + bounds.w + 30
+
+    new VMSettingsModal {position}, vm
+
 
   setStickyNotification:->
 

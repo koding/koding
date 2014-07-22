@@ -28,7 +28,8 @@ class EnvironmentMachineItem extends EnvironmentItem
       'Re-initialize VM'  :
         disabled          : KD.isGuest()
         callback          : ->
-          KD.getSingleton("vmController").reinitialize vmName
+          {hostnameAlias} = @getData()
+          KD.getSingleton("vmController").reinitialize hostnameAlias
           @destroy()
       'Open VM Terminal'  :
         callback          : =>
