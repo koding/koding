@@ -16,28 +16,17 @@ class ExistingAccountForm extends JView
             localStorage?.setItem "routeToBeContinued", KD.singleton("router").currentPath
             @emit "DataCollected", loggedIn: yes
 
-    @emailCollectionForm = new KDFormViewWithFields
-      fields:
-        email:
-          cssClass         : "thin"
-          placeholder      : "you@yourdomain.com"
-          name             : "email"
-          testPath         : "account-email-input"
-          validate         :
-            rules          :
-              required     : yes
-              email        : yes
-            messages       :
-              required     : "You should write an email address"
-              email        : "This is not a valid email address"
-      buttons              :
-        'SIGN UP'          :
-          type             : 'submit'
-          style            : 'solid green fr'
-      callback             : ({ email }) =>
-        KD.remote.api.JUser.changeEmail { email }, (err) =>
-          return  if KD.showError err
-          @emit 'DataCollected', createAccount: yes, email: email
+    # @emailCollectionForm = new KDFormViewWithFields
+    #   buttons              :
+    #     'Register'         :
+    #       type             : 'submit'
+    #       style            : 'solid green fr'
+    #   callback             : -> KD.singletons.router.handleRoute '/Register'
+
+    @registerButton = new KDButtonView
+      title    : 'Register'
+      cssClass : 'solid green fr'
+      callback : -> KD.singletons.router.handleRoute '/Register'
 
     super
 
@@ -45,9 +34,11 @@ class ExistingAccountForm extends JView
     """
     <section class="pricing-sign-in clearfix">
       <h3 class="pricing-title">Sign in or create an account to proceed with your checkout</h3>
-      {{> @loginForm}}
-      <span class="divider">or</span>
-      {{> @emailCollectionForm}}
+      <div class="form-wrapper">
+        {{> @loginForm}}
+        <span class="divider">or</span>
+        {{> @registerButton }}
+      </div>
     </section>
     """
 
