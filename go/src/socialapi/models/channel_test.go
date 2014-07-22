@@ -56,34 +56,34 @@ func TestChannelNewPrivateMessageChannel(t *testing.T) {
 	}
 	defer r.Close()
 
-	creatorId := 123
+	var creatorId int64 = 123
 	groupName := "testGroup"
 	c := NewPrivateMessageChannel(creatorId, groupName)
 
-	Convey("given a NewPrivateMessageChannel", t, func(){
-		Convey("it should have group name", func(){
+	Convey("given a NewPrivateMessageChannel", t, func() {
+		Convey("it should have group name", func() {
 			So(c.GroupName, ShouldEqual, groupName)
 		})
 
-		Convey("it should have creator id", func(){
+		Convey("it should have creator id", func() {
 			So(c.CreatorId, ShouldEqual, creatorId)
 		})
 
-		Convey("it should have a name", func(){
+		Convey("it should have a name", func() {
 			So(c.Name, ShouldNotBeBlank)
 		})
 
-		Convey("it should have type constant", func(){
+		Convey("it should have type constant", func() {
 			So(c.TypeConstant, ShouldEqual, Channel_TYPE_PRIVATE_MESSAGE)
 		})
 
-		Convey("it should have privacy constant", func(){
+		Convey("it should have privacy constant", func() {
 			So(c.PrivacyConstant, ShouldEqual, Channel_PRIVACY_PRIVATE)
 		})
 
-	//	Convey("it should have purpose", func(){
-	//		So(c.Purpose, )
-	//	})
+		Convey("it should have purpose", func() {
+			So(c.Purpose, ShouldBeBlank)
+		})
 
 	})
 }
@@ -452,13 +452,12 @@ func TestChannelRemoveParticipant(t *testing.T) {
 	Convey("while removing participant from a channel", t, func() {
 		Convey("channel should have id", func() {
 			c := NewChannel()
-			cp, err := c.RemoveParticipant(123)
+			err := c.RemoveParticipant(123)
 			So(err, ShouldNotBeNil)
 			So(err, ShouldEqual, ErrChannelIdIsNotSet)
-			So(cp, ShouldBeNil)
 		})
 
-		Convey("participant can be leaved from the channel", func() {
+		Convey("removing a non existent participant from the channel should not give error", func() {
 			c := createNewChannelWithTest()
 			So(c.Create(), ShouldBeNil)
 			account := createAccountWithTest()
@@ -466,16 +465,30 @@ func TestChannelRemoveParticipant(t *testing.T) {
 			So(err, ShouldBeNil)
 		})
 
-		Convey("we can not remove same user twice from the channel", func() {
+		Convey("participant can leave the channel", func() {
 			c := createNewChannelWithTest()
 			So(c.Create(), ShouldBeNil)
 			account := createAccountWithTest()
-			err := c.RemoveParticipant(account.Id)
+			_, err := c.AddParticipant(account.Id)
 			So(err, ShouldBeNil)
-			So(cp, ShouldNotBeNil)
+
+			err = c.RemoveParticipant(account.Id)
+			So(err, ShouldBeNil)
+		})
+
+		Convey("when we remove already removed account again from the channel, it should not give err", func() {
+			c := createNewChannelWithTest()
+			So(c.Create(), ShouldBeNil)
+			account := createAccountWithTest()
+
+			_, err := c.AddParticipant(account.Id)
+			So(err, ShouldBeNil)
+
+			err = c.RemoveParticipant(account.Id)
+			So(err, ShouldBeNil)
 			// try to remove it again
 			err = c.RemoveParticipant(account.Id)
-			So(err, ShouldNotBeNil)
+			So(err, ShouldBeNil)
 		})
 
 	})
@@ -489,7 +502,6 @@ func TestChannelAddMessage(t *testing.T) {
 	defer r.Close()
 
 	Convey("while adding a message to a channel", t, func() {
-		})
 	})
 }
 

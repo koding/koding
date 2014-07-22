@@ -259,6 +259,10 @@ func (c *Channel) FetchParticipantIds(q *request.Query) ([]int64, error) {
 // channel, it doesnt add again, this method is idempotent
 // you can call many times, but message will be in the channel list once
 func (c *Channel) AddMessage(messageId int64) (*ChannelMessageList, error) {
+	if c.Id == 0 {
+		return nil, ErrChannelIdIsNotSet
+	}
+
 	cml, err := c.FetchMessageList(messageId)
 	if err == nil {
 		return nil, ErrAlreadyInTheChannel
