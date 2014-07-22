@@ -15,13 +15,13 @@ class VMSettingsModal extends KDModalViewWithForms
           fields            :
             domain          :
               label         : 'Your VM is pointed to'
-              name          : 'domain'
-              type          : 'select'
-              itemClass     : KDSelectBox
-              defaultValue  : ''
-              selectOptions : @bound 'prepareDomainOptions'
-            addDomain       :
-              label         : ''
+            #   name          : 'domain'
+            #   type          : 'select'
+            #   itemClass     : KDSelectBox
+            #   defaultValue  : ''
+            #   selectOptions : @bound 'prepareDomainOptions'
+            # addDomain       :
+            #   label         : ''
               name          : 'addDomain'
               placeholder   : 'type a domain name'
               nextElement   :
