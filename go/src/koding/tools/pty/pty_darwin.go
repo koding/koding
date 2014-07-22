@@ -1,14 +1,15 @@
 package pty
 
 import (
-	"code.google.com/p/go-charset/charset"
-	_ "code.google.com/p/go-charset/data"
 	"errors"
 	"fmt"
 	"io"
 	"os"
 	"syscall"
 	"unsafe"
+
+	"code.google.com/p/go-charset/charset"
+	_ "code.google.com/p/go-charset/data"
 )
 
 type PTY struct {
@@ -21,45 +22,47 @@ type PTY struct {
 // see ioccom.h
 const sys_IOCPARM_MASK = 0x1fff
 
-func New(ptsPath string) *PTY {
+func NewPTY() (*PTY, error) {
+	return New("")
+}
+
+func New(ptsPath string) (*PTY, error) {
 	pty, err := os.OpenFile("/dev/ptmx", os.O_RDWR, 0)
 	if err != nil {
-		fmt.Println("open pty", err)
+		return nil, fmt.Errorf("open pty %s", err)
 	}
 
 	sname, err := ptsname(pty)
 	if err != nil {
-		fmt.Println("ptsname", err)
+		return nil, fmt.Errorf("ptsname %s", err)
 	}
 
 	err = grantpt(pty)
 	if err != nil {
-		fmt.Println("grantpt", err)
+		return nil, fmt.Errorf("grantpt %s", err)
 	}
 
 	err = unlockpt(pty)
 	if err != nil {
-		fmt.Println("unlockpt", err)
+		return nil, fmt.Errorf("unlockpt %s", err)
 	}
 
 	tty, err := os.OpenFile(sname, os.O_RDWR, 0)
 	if err != nil {
-		fmt.Println("open tty", err)
+		return nil, fmt.Errorf("open tty %s", err)
 	}
 
 	masterEncoded, err := charset.NewWriter("ISO-8859-1", pty)
 	if err != nil {
-		fmt.Println("charset err", err)
+		return nil, fmt.Errorf("charset %s", err)
 	}
 
-	p := &PTY{
+	return &PTY{
 		Master:        pty,
 		Slave:         tty,
 		No:            0,
 		MasterEncoded: masterEncoded,
-	}
-
-	return p
+	}, nil
 }
 
 func (pty *PTY) GetSize() (int, int, error) {
