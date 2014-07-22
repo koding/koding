@@ -25,7 +25,9 @@ DB  = 0
 Slave=    "172.16.10.17:6379"
 
 [limits]
-MessageBodyMinLen = 1
+MessageBodyMinLen    = 1
+PostThrottleDuration = "15s"
+PostThrottleCount    = 3
 
 [emailnotification]
 TemplateRoot = "go/src/socialapi/workers/emailnotifier/templates/"

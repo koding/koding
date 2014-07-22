@@ -25,7 +25,10 @@ URL = "localhost:6379"
 DB  = 0
 
 [limits]
-MessageBodyMinLen = 1
+MessageBodyMinLen    = 1
+PostThrottleDuration = "15s"
+PostThrottleCount    = 3
+
 
 [sendgrid]
 Username        = "koding"
