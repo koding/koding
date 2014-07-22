@@ -119,6 +119,10 @@ func Send(u *url.URL, h http.Header, req *models.PrivateMessageRequest) (int, ht
 func List(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface{}, error) {
 	q := request.GetQuery(u)
 
+	if q.AccountId == 0 || q.GroupName == "" {
+		return response.NewBadRequest(errors.New("request is not valid"))
+	}
+
 	channels, err := getPrivateMessageChannels(q)
 	if err != nil {
 		return response.NewBadRequest(err)
@@ -157,16 +161,18 @@ func getPrivateMessageChannels(q *request.Query) ([]models.Channel, error) {
 		Order("api.channel.updated_at DESC")
 
 	rows, err := query.Rows()
-
-	defer rows.Close()
 	if err != nil {
 		return nil, err
 	}
 
-	var channelId int64
+	defer rows.Close()
+
 	for rows.Next() {
-		rows.Scan(&channelId)
-		channelIds = append(channelIds, channelId)
+		var channelId int64
+		err := rows.Scan(&channelId)
+		if err == nil {
+			channelIds = append(channelIds, channelId)
+		}
 	}
 
 	channels, err := c.FetchByIds(channelIds)
