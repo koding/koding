@@ -100,11 +100,16 @@ func Connect(r *kite.Request) (interface{}, error) {
 		return nil, err
 	}
 
+	p, err := pty.NewPTY()
+	if err != nil {
+		return nil, err
+	}
+
 	// We will return this object to the client.
 	server := &Server{
 		Session: command.Session,
 		remote:  params.Remote,
-		pty:     pty.New("/dev/pts"),
+		pty:     p,
 	}
 	server.setSize(float64(params.SizeX), float64(params.SizeY))
 
