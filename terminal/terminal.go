@@ -9,6 +9,7 @@ import (
 	"errors"
 	"fmt"
 	"koding/tools/pty"
+	"os"
 	"os/exec"
 	"os/user"
 	"syscall"
@@ -100,6 +101,7 @@ func Connect(r *kite.Request) (interface{}, error) {
 		return nil, err
 	}
 
+	// get pty and tty descriptors
 	p, err := pty.NewPTY()
 	if err != nil {
 		return nil, err
@@ -115,7 +117,14 @@ func Connect(r *kite.Request) (interface{}, error) {
 
 	// wrap the command with sudo -i for initiation login shell. This is needed
 	// in order to have Environments and other to be initialized correctly.
-	args := []string{"-i", command.Name}
+	// check also if klient was started in root mode or not.
+	var args []string
+	if os.Geteuid() == 0 {
+		args = []string{"-i", command.Name}
+	} else {
+		args = []string{"-i", "-u", "#" + user.Uid, "--", command.Name}
+	}
+
 	args = append(args, command.Args...)
 	cmd := exec.Command("/usr/bin/sudo", args...)
 
