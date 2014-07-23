@@ -4,6 +4,9 @@ class PrivateMessageListItemView extends ActivityListItemView
 
     options.cssClass           = KD.utils.curry 'privatemessage ', options.cssClass
     options.commentViewClass or= ReplyView
+    options.commentSettings    = {}
+    {commentSettings}          = options
+    commentSettings.channelId  = options.channelId
 
     super options, data
 
