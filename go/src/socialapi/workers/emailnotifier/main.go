@@ -7,6 +7,7 @@ import (
 	"socialapi/workers/emailnotifier/emailnotifier"
 	"socialapi/workers/emailnotifier/models"
 	"socialapi/workers/helper"
+	notificationmodels "socialapi/workers/notification/models"
 )
 
 var (
@@ -49,8 +50,8 @@ func main() {
 	}
 
 	r.SetContext(handler)
-	r.ListenFor("notification.notification_created", (*emailnotifier.Controller).SendInstantEmail)
-	r.ListenFor("notification.notification_updated", (*emailnotifier.Controller).SendInstantEmail)
+	r.Register(notificationmodels.Notification{}).OnCreate().Handle((*emailnotifier.Controller).SendInstantEmail)
+	r.Register(notificationmodels.Notification{}).OnUpdate().Handle((*emailnotifier.Controller).SendInstantEmail)
 	r.Listen()
 	r.Wait()
 }
