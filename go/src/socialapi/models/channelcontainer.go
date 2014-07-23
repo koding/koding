@@ -53,7 +53,7 @@ func PopulateChannelContainersWithUnreadCount(channelList []Channel, accountId i
 				continue
 			}
 
-			count, err := NewMessageReply().UnreadCount(container.LastMessage.Message.Id, cp.LastSeenAt)
+			count, err := NewMessageReply().UnreadCount(container.LastMessage.Message.Id, cp.LastSeenAt, false)
 			if err != nil {
 				continue
 			}
