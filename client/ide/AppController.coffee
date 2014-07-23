@@ -155,6 +155,7 @@ class IDEAppController extends AppController
         @ideViews.splice index, 1
 
       @handleSplitMerge views, parent, parentSplitView, panelIndexInParent
+      @doResize()
 
     splitView.merge()
 
@@ -440,7 +441,10 @@ class IDEAppController extends AppController
 
   doResize: ->
     @forEachSubViewInIDEViews_ 'editor', (editorPane) ->
-      editorPane.aceView.ace.editor.resize()
+      height = editorPane.getHeight()
+      {ace}  = editorPane.aceView
+      ace.setHeight height
+      ace.editor.resize()
 
   notify: (title, cssClass = 'success', type = 'mini', duration = 4000) ->
     return unless title
