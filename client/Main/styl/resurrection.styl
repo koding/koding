@@ -1004,12 +1004,16 @@ div.nominateicon
   figure
     height                    358px
     border-radius             0 0 6px 6px
+    .code-wrapper
+      height                  358px
+
+
   .kdnotification
     abs()
     top                       8px !important
     vendor                    shadow, none
     vendor                    rounded, 4px
-    
+
     &.mini
       top                     8px !important
 
@@ -1021,14 +1025,7 @@ div.nominateicon
         font-size             13px
 
 .kdmodal.vm-settings
-  // bg                      color #1A1A1A
 
-  // .kdmodal-title
-  //   hidden()
-
-  // .kdmodal-inner
-  //   margin                13px
-  //   // bg                    color #1A1A1A
   .kdmodal-content
     overflow              visible
 
@@ -1037,7 +1034,6 @@ div.nominateicon
 
   .modal-arrow
     left                  -52px !important
-    // &:before
 
   .kdformview .formline
     cf()
@@ -1058,6 +1054,17 @@ div.nominateicon
       .float-wrapper
         display           block
         float             none
+      .root-domain
+        abs               3px 1px 0 0
+        color             #888
+        z-index           1
+        font-size         14px
+        line-height       40px
+        padding           0 14px
+        bg                color #eee
+        rounded           0 6px 6px 0
+        border            1px solid transparent
+        border-left-color #d7d7d7
 
     &.advanced
 

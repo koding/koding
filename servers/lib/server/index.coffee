@@ -386,7 +386,7 @@ app.all '/:name/:section?/:slug?*', (req, res, next)->
 
           generateFakeClient req, res, (err, client)->
             homePageOptions = { section, account, bongoModels,
-                                isCustomPreview, client, params }
+                                isCustomPreview, client, params, loggedIn }
 
             models.last.fetchHomepageView homePageOptions, (err, view)->
               if err then next err

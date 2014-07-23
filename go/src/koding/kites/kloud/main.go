@@ -38,7 +38,7 @@ var (
 	flagPrivateKey = flag.String("private-key", "", "Private RSA key of Kontrol")
 
 	// Kontrol registiraiton related  flags
-	flagLocal       = flag.Bool("local", false, "Start klient in local environment.")
+	flagPublic      = flag.Bool("public", false, "Start klient in local environment.")
 	flagRegisterURL = flag.String("register-url", "", "Change register URL to kontrol")
 	flagProxy       = flag.Bool("proxy", false, "Start klient behind a proxy")
 )
@@ -56,7 +56,7 @@ func main() {
 
 	k := newKite()
 
-	registerURL := k.RegisterURL(*flagLocal)
+	registerURL := k.RegisterURL(!*flagPublic)
 	if *flagRegisterURL != "" {
 		u, err := url.Parse(*flagRegisterURL)
 		if err != nil {
