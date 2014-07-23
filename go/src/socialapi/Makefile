@@ -150,7 +150,7 @@ testapi:
 
 	@echo "$(OK_COLOR)==> Running Integration tests $(NO_COLOR)"
 	@echo "$(OK_COLOR)--> troll mode tests... $(NO_COLOR)"
-	@go test $(DEBUG) workers/trollmode/tests/*.go
+	@go test workers/trollmode/tests/*.go
 	@go test -c workers/trollmode/trollmode/*.go
 	@./trollmode.test $(DEBUG) -c ./config/vagrant.toml
 	@rm  ./trollmode.test
