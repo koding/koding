@@ -50,5 +50,4 @@ class PrivateMessageListItemView extends ActivityListItemView
       {article{@formatContent #(body)}}
       {{> @embedBox}}
     </div>
-    {{> @commentBox}}
     """
