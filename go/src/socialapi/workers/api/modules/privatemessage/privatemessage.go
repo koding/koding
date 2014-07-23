@@ -157,7 +157,7 @@ func Send(u *url.URL, h http.Header, req *models.PrivateMessageRequest) (int, ht
 	}
 
 	cmc := models.NewChannelContainer()
-	cmc.Channel = *c
+	cmc.Channel = c
 	cmc.IsParticipant = true
 	cmc.LastMessage = messageContainer
 
