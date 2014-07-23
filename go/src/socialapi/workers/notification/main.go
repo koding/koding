@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"koding/db/mongodb/modelhelper"
+	"socialapi/models"
 	"socialapi/workers/common/runner"
 	"socialapi/workers/helper"
 	"socialapi/workers/notification/notification"
@@ -30,13 +31,13 @@ func main() {
 		panic(err)
 	}
 	r.SetContext(handler)
-	r.ListenFor("api.message_reply_created", (*notification.Controller).CreateReplyNotification)
-	r.ListenFor("api.interaction_created", (*notification.Controller).CreateInteractionNotification)
-	r.ListenFor("api.channel_participant_created", (*notification.Controller).JoinChannel)
-	r.ListenFor("api.channel_participant_updated", (*notification.Controller).LeaveChannel)
-	r.ListenFor("api.channel_message_list_created", (*notification.Controller).SubscribeMessage)
-	r.ListenFor("api.channel_message_list_deleted", (*notification.Controller).UnsubscribeMessage)
-	r.ListenFor("api.channel_message_created", (*notification.Controller).MentionNotification)
+	r.Register(models.MessageReply{}).OnCreate().Handle((*notification.Controller).CreateReplyNotification)
+	r.Register(models.Interaction{}).OnCreate().Handle((*notification.Controller).CreateInteractionNotification)
+	r.Register(models.ChannelParticipant{}).OnCreate().Handle((*notification.Controller).JoinChannel)
+	r.Register(models.ChannelParticipant{}).OnUpdate().Handle((*notification.Controller).LeaveChannel)
+	r.Register(models.ChannelMessageList{}).OnCreate().Handle((*notification.Controller).SubscribeMessage)
+	r.Register(models.ChannelMessageList{}).OnDelete().Handle((*notification.Controller).UnsubscribeMessage)
+	r.Register(models.ChannelMessage{}).OnCreate().Handle((*notification.Controller).MentionNotification)
 	r.Listen()
 	r.Wait()
 }
