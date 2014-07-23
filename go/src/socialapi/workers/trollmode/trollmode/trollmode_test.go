@@ -704,7 +704,6 @@ func TestMarkedAsTroll(t *testing.T) {
 
 			// remove troll user from preview list
 			So(likes.ActorsCount, ShouldEqual, 3)
-
 		})
 
 		// interaction
@@ -867,6 +866,7 @@ func TestMarkedAsTroll(t *testing.T) {
 
 			So(found, ShouldBeFalse)
 		})
+
 		Convey("public  channel messages should be filtered", nil)
 		Convey("topic   channel messages should be filtered", nil)
 		Convey("private channel messages should be filtered", nil)

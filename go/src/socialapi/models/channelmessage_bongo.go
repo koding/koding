@@ -30,7 +30,7 @@ func (c *ChannelMessage) AfterUpdate() {
 	bongo.B.AfterUpdate(c)
 }
 
-func (c ChannelMessage) AfterDelete() {
+func (c *ChannelMessage) AfterDelete() {
 	bongo.B.AfterDelete(c)
 }
 
@@ -55,13 +55,21 @@ func (c *ChannelMessage) Update() error {
 		return err
 	}
 
+	cm := NewChannelMessage()
+	if err := cm.ById(c.GetId()); err != nil {
+		return err
+	}
+	cm.Body = c.Body
+	return bongo.B.Update(cm)
+
+	// todo implement UpdatePartial
 	// only update body
-	err := bongo.B.UpdatePartial(c,
-		map[string]interface{}{
-			"body": c.Body,
-		},
-	)
-	return err
+	// err := bongo.B.UpdatePartial(c,
+	// 	map[string]interface{}{
+	// 		"Body": c.Body,
+	// 	},
+	// )
+	// return err
 }
 
 // Create creates the channel message

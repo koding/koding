@@ -128,13 +128,7 @@ func (c *ChannelMessageList) getMessages(q *request.Query) ([]*ChannelMessageCon
 		return nil, err
 	}
 
-	parent := NewChannelMessage()
-	channelMessages, err := parent.FetchByIds(messages)
-	if err != nil {
-		return nil, err
-	}
-
-	populatedChannelMessages, err := c.populateChannelMessages(channelMessages, q)
+	populatedChannelMessages, err := c.populateChannelMessages(messages, q)
 	if err != nil {
 		return nil, err
 	}
@@ -166,8 +160,8 @@ func (c *ChannelMessageList) IsInChannel(messageId, channelId int64) (bool, erro
 	return false, err
 }
 
-func (c *ChannelMessageList) populateChannelMessages(channelMessages []ChannelMessage, query *request.Query) ([]*ChannelMessageContainer, error) {
-	channelMessageCount := len(channelMessages)
+func (c *ChannelMessageList) populateChannelMessages(channelMessageIds []int64, query *request.Query) ([]*ChannelMessageContainer, error) {
+	channelMessageCount := len(channelMessageIds)
 
 	populatedChannelMessages := make([]*ChannelMessageContainer, channelMessageCount)
 
@@ -176,7 +170,8 @@ func (c *ChannelMessageList) populateChannelMessages(channelMessages []ChannelMe
 	}
 
 	for i := 0; i < channelMessageCount; i++ {
-		cm := channelMessages[i]
+		cm := NewChannelMessage()
+		cm.Id = channelMessageIds[i]
 		cmc, err := cm.BuildMessage(query)
 		if err != nil {
 			return nil, err
