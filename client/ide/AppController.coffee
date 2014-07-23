@@ -160,7 +160,7 @@ class IDEAppController extends AppController
     splitView.merge()
 
   handleSplitMerge: (views, container, parentSplitView, panelIndexInParent) ->
-    ideView = new IDE.IDEView
+    ideView = new IDE.IDEView createNewEditor: no
     panes   = []
 
     for view in views
