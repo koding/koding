@@ -35,8 +35,9 @@ class ActivityInputWidget extends KDView
     super options, data
 
     options.destroyOnSubmit ?= no
+    {defaultValue, placeholder} = options
 
-    @input = new ActivityInputView defaultValue: options.defaultValue
+    @input = new ActivityInputView {defaultValue, placeholder}
     @input.on "Escape", @bound "reset"
     @input.on "Enter", @bound "submit"
 
