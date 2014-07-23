@@ -9,7 +9,7 @@ class ActivityListController extends KDListViewController
       spinnerOptions              : size : width : 24
       partial                     : ''
     options.showHeader           ?= yes
-    options.scrollView           ?= no
+    options.scrollView           ?= yes
     options.wrapper              ?= no
     options.boxed                ?= yes
     options.itemClass           or= ActivityListItemView
