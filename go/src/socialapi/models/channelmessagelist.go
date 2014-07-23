@@ -2,6 +2,7 @@ package models
 
 import (
 	"errors"
+	"fmt"
 	"socialapi/request"
 	"time"
 
@@ -42,8 +43,20 @@ func (c *ChannelMessageList) UnreadCount(cp *ChannelParticipant) (int, error) {
 		return 0, errors.New("Last seen at date is not valid - it is zero")
 	}
 
+	// checks if channel participant is a troll, if so we show all messages
+	isExempt, err := cp.isExempt()
+	if err != nil {
+		return 0, errors.New(fmt.Sprintf("isExempt return error: %v", err))
+	}
+
+	query := "channel_id = ? and added_at > ?"
+
+	if isExempt {
+		query += " and meta_bits = 0"
+	}
+
 	return bongo.B.Count(c,
-		"channel_id = ? and added_at > ?",
+		query,
 		cp.ChannelId,
 		// todo change this format to get from a specific place
 		cp.LastSeenAt.UTC().Format(time.RFC3339),
@@ -88,7 +101,7 @@ func (c *ChannelMessageList) populateUnreadCount(messageList []*ChannelMessageCo
 			continue
 		}
 
-		count, err := NewMessageReply().UnreadCount(cml.MessageId, cml.RevisedAt)
+		count, err := NewMessageReply().UnreadCount(cml.MessageId, cml.RevisedAt, cml.MetaBits.Is(Troll))
 		if err != nil {
 			// helper.MustGetLogger().Error(err.Error())
 			continue
