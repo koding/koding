@@ -184,8 +184,11 @@ Configuration = (options={}) ->
     notification        : command : "#{GOBIN}/notification       -c #{socialapi.configFilePath}"
     popularpost         : command : "#{GOBIN}/popularpost        -c #{socialapi.configFilePath}"
     populartopic        : command : "#{GOBIN}/populartopic       -c #{socialapi.configFilePath}"
+    pinnedpost          : command : "#{GOBIN}/pinnedpost         -c #{socialapi.configFilePath}"
     realtime            : command : "#{GOBIN}/realtime           -c #{socialapi.configFilePath}"
     sitemapfeeder       : command : "#{GOBIN}/sitemapfeeder      -c #{socialapi.configFilePath}"
+    sitemapgenerator    : command : "#{GOBIN}/sitemapgenerator   -c #{socialapi.configFilePath}"
+    emailnotifier       : command : "#{GOBIN}/emailnotifier      -c #{socialapi.configFilePath}"
     topicfeed           : command : "#{GOBIN}/topicfeed          -c #{socialapi.configFilePath}"
     trollmode           : command : "#{GOBIN}/trollmode          -c #{socialapi.configFilePath}"
 
@@ -467,9 +470,6 @@ Configuration = (options={}) ->
 
         mosh-server
 
-        cd /opt
-        git clone git@github.com:koding/koding.git -b #{branch} --depth 1
-        cd /opt/koding
 
         echo '#--- configure nginx ---#'
         echo '#{b64 nginxConf,yes}'             | base64 --decode > /etc/nginx/sites-enabled/default
@@ -480,6 +480,9 @@ Configuration = (options={}) ->
 
         echo '#---> BUILDING CLIENT (@gokmen) <---#'
 
+        cd /opt
+        git clone git@github.com:koding/koding.git -b #{branch} --depth 1
+        cd /opt/koding
         git submodule init
         git submodule update --recursive
         npm i gulp stylus coffee-script -g
