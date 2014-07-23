@@ -3,8 +3,10 @@ package main
 import (
 	"fmt"
 	"koding/db/mongodb/modelhelper"
+	"socialapi/models"
 	"socialapi/workers/common/runner"
 	"socialapi/workers/helper"
+	notificationmodels "socialapi/workers/notification/models"
 	"socialapi/workers/realtime/realtime"
 )
 
@@ -31,22 +33,20 @@ func main() {
 	}
 
 	r.SetContext(c)
-	// r.ListenFor.HandleFunc("api.channel_message_created", (*realtime.Controller).MessageSaved)
-	r.ListenFor("api.channel_message_updated", (*realtime.Controller).MessageUpdated)
-	// r.ListenFor.HandleFunc("api.channel_message_deleted", (*realtime.Controller).MessageDeleted)
-	r.ListenFor("api.interaction_created", (*realtime.Controller).InteractionSaved)
-	r.ListenFor("api.interaction_deleted", (*realtime.Controller).InteractionDeleted)
-	r.ListenFor("api.message_reply_created", (*realtime.Controller).MessageReplySaved)
-	r.ListenFor("api.message_reply_deleted", (*realtime.Controller).MessageReplyDeleted)
-	r.ListenFor("api.channel_message_list_created", (*realtime.Controller).MessageListSaved)
-	r.ListenFor("api.channel_message_list_updated", (*realtime.Controller).MessageListUpdated)
-	r.ListenFor("api.channel_message_list_deleted", (*realtime.Controller).MessageListDeleted)
-	r.ListenFor("api.channel_participant_removed_from_channel", (*realtime.Controller).ChannelParticipantRemoved)
-	r.ListenFor("api.channel_participant_added_to_channel", (*realtime.Controller).ChannelParticipantAdded)
-	r.ListenFor("api.channel_participant_created", (*realtime.Controller).ChannelParticipantAdded)
-	r.ListenFor("api.channel_participant_updated", (*realtime.Controller).ChannelParticipantUpdatedEvent)
-	r.ListenFor("notification.notification_created", (*realtime.Controller).NotifyUser)
-	r.ListenFor("notification.notification_updated", (*realtime.Controller).NotifyUser)
+	r.Register(models.ChannelMessage{}).OnUpdate().Handle((*realtime.Controller).MessageUpdated)
+	r.Register(models.Interaction{}).OnCreate().Handle((*realtime.Controller).InteractionSaved)
+	r.Register(models.Interaction{}).OnDelete().Handle((*realtime.Controller).InteractionDeleted)
+	r.Register(models.MessageReply{}).OnCreate().Handle((*realtime.Controller).MessageReplySaved)
+	r.Register(models.MessageReply{}).OnDelete().Handle((*realtime.Controller).MessageReplyDeleted)
+	r.Register(models.ChannelMessageList{}).OnCreate().Handle((*realtime.Controller).MessageListSaved)
+	r.Register(models.ChannelMessageList{}).OnUpdate().Handle((*realtime.Controller).MessageListUpdated)
+	r.Register(models.ChannelMessageList{}).OnDelete().Handle((*realtime.Controller).MessageListDeleted)
+	r.Register(models.ChannelParticipant{}).On("removed_from_channel").Handle((*realtime.Controller).ChannelParticipantRemoved)
+	r.Register(models.ChannelParticipant{}).On("added_to_channel").Handle((*realtime.Controller).ChannelParticipantAdded)
+	r.Register(models.ChannelParticipant{}).OnCreate().Handle((*realtime.Controller).ChannelParticipantAdded)
+	r.Register(models.ChannelParticipant{}).OnUpdate().Handle((*realtime.Controller).ChannelParticipantUpdatedEvent)
+	r.Register(notificationmodels.Notification{}).OnCreate().Handle((*realtime.Controller).NotifyUser)
+	r.Register(notificationmodels.Notification{}).OnUpdate().Handle((*realtime.Controller).NotifyUser)
 	r.Listen()
 	r.Wait()
 }
