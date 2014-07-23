@@ -1,9 +1,6 @@
 package models
 
-import (
-
-	"github.com/koding/bongo"
-)
+import "github.com/koding/bongo"
 
 func (m MessageReply) GetId() int64 {
 	return m.Id
@@ -33,7 +30,7 @@ func (m *MessageReply) AfterUpdate() {
 	bongo.B.AfterUpdate(m)
 }
 
-func (m MessageReply) AfterDelete() {
+func (m *MessageReply) AfterDelete() {
 	bongo.B.AfterDelete(m)
 }
 
