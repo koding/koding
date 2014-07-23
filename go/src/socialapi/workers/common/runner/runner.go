@@ -18,7 +18,6 @@ import (
 	"github.com/koding/bongo"
 	"github.com/koding/broker"
 	"github.com/koding/logging"
-	"github.com/koding/worker"
 )
 
 var (
@@ -37,7 +36,6 @@ type Runner struct {
 	Log             logging.Logger
 	Conf            *config.Config
 	Bongo           *bongo.Bongo
-	Listener        *worker.Listener
 	Name            string
 	ShutdownHandler func()
 	Done            chan error

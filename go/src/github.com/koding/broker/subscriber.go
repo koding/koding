@@ -7,7 +7,6 @@ import (
 
 	"github.com/koding/logging"
 	"github.com/koding/rabbitmq"
-	"github.com/koding/worker"
 )
 
 // NewSubscriber creates a new subscriber with given config
@@ -72,7 +71,7 @@ type Consumer struct {
 	EnableMaintenanceQueue bool
 
 	// context for subscriptions
-	context      worker.ErrHandler
+	context      ErrHandler
 	contextValue reflect.Value
 
 	// all handlers which are listed
