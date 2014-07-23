@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	"socialapi/workers/common/manager"
+	"socialapi/models"
 	"socialapi/workers/common/runner"
 	"socialapi/workers/helper"
 	"socialapi/workers/sitemap/sitemapfeeder/feeder"
@@ -22,25 +22,20 @@ func main() {
 	redisConn := helper.MustInitRedisConn(r.Conf)
 	defer redisConn.Close()
 
-	controller := feeder.New(r.Log)
-
-	m := manager.New()
-	m.Controller(controller)
-
-	registerHandlers(m)
-
+	r.SetContext(feeder.New(r.Log))
+	registerHandlers(r)
 	r.Listen(m)
 	r.Wait()
 }
 
-func registerHandlers(m *manager.Manager) {
-	m.HandleFunc("api.channel_message_created", (*feeder.Controller).MessageAdded)
-	m.HandleFunc("api.channel_message_updated", (*feeder.Controller).MessageUpdated)
-	m.HandleFunc("api.channel_message_deleted", (*feeder.Controller).MessageDeleted)
-	m.HandleFunc("api.channel_message_list_created", (*feeder.Controller).ChannelMessageListAdded)
-	m.HandleFunc("api.channel_message_list_updated", (*feeder.Controller).ChannelMessageListUpdated)
-	m.HandleFunc("api.channel_message_list_deleted", (*feeder.Controller).ChannelMessageListDeleted)
-	m.HandleFunc("api.account_created", (*feeder.Controller).AccountAdded)
-	m.HandleFunc("api.account_updated", (*feeder.Controller).AccountUpdated)
-	m.HandleFunc("api.account_deleted", (*feeder.Controller).AccountDeleted)
+func registerHandlers(r *runner.Runner) {
+	r.Register(models.ChannelMessage{}).OnCreate().Handle((*feeder.Controller).MessageAdded)
+	r.Register(models.ChannelMessage{}).OnUpdate().Handle((*feeder.Controller).MessageUpdated)
+	r.Register(models.ChannelMessage{}).OnDelete().Handle((*feeder.Controller).MessageDeleted)
+	r.Register(models.ChannelMessageList{}).OnCreate().Handle((*feeder.Controller).ChannelMessageListAdded)
+	r.Register(models.ChannelMessageList{}).OnUpdate().Handle((*feeder.Controller).ChannelMessageListUpdated)
+	r.Register(models.ChannelMessageList{}).OnDelete().Handle((*feeder.Controller).ChannelMessageListDeleted)
+	r.Register(models.Account{}).OnCreate().Handle((*feeder.Controller).AccountAdded)
+	r.Register(models.Account{}).OnUpdate().Handle((*feeder.Controller).AccountUpdated)
+	r.Register(models.Account{}).OnDelete().Handle((*feeder.Controller).AccountDeleted)
 }

@@ -11,8 +11,8 @@ import (
 )
 
 const (
-	MarkedAsTroll   = "api.account_marked_as_troll"
-	UnMarkedAsTroll = "api.account_unmarked_as_troll"
+	MarkedAsTrollEvent   = "marked_as_troll"
+	UnMarkedAsTrollEvent = "unmarked_as_troll"
 )
 
 type Controller struct {

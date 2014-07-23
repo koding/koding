@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"socialapi/models"
 	"socialapi/workers/common/runner"
 	"socialapi/workers/topicfeed/topicfeed"
 )
@@ -18,10 +19,9 @@ func main() {
 	}
 
 	r.SetContext(topicfeed.New(r.Log))
-	r.ListenFor("api.channel_message_updated", (*topicfeed.Controller).MessageUpdated)
-	r.ListenFor("api.channel_message_updated", (*topicfeed.Controller).MessageUpdated)
-	r.ListenFor("api.channel_message_deleted", (*topicfeed.Controller).MessageDeleted)
-	r.ListenFor("api.channel_message_created", (*topicfeed.Controller).MessageSaved)
+	r.Register(models.ChannelMessage{}).OnUpdate().Handle((*topicfeed.Controller).MessageUpdated)
+	r.Register(models.ChannelMessage{}).OnDelete().Handle((*topicfeed.Controller).MessageDeleted)
+	r.Register(models.ChannelMessage{}).OnCreate().Handle((*topicfeed.Controller).MessageSaved)
 	r.Listen()
 	r.Wait()
 }
