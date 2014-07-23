@@ -5,16 +5,12 @@ class ReplyInputWidget extends ActivityInputWidget
     options.placeholder or= "Type your reply and hit enter..."
 
     super options, data
+    @setClass "reply-input-widget"
 
   viewAppended: ->
 
     @addSubView @icon
     @addSubView @input
-    # @addSubView @buttonBar
-    # @addSubView @bugNotification
-    # @addSubView @helpContainer
-    # @buttonBar.addSubView @submitButton
-    # @buttonBar.addSubView @previewIcon
 
   create: ({body}, callback) ->
 

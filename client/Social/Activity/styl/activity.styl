@@ -1662,23 +1662,6 @@ span.collapsedtext
           color             #d2d2d2
           font-size         10px
 
-      .item-add-comment-box
-        position            fixed
-        bottom              0
-        height              auto
-        kalc                width (100% \- 584px)
-        padding             0 0 30px
-        bg                  color white
-        margin-top          8px
-
-        &:before
-          content         ""
-          top             18px
-          left            21px
-          r-sprite        activity widget-icon
-          z-index         2
-          abs()
-
         .avatarview
           hidden()
 
@@ -1695,6 +1678,23 @@ span.collapsedtext
             line-height     39px
             font-weight     400
             color           #b2b2b2
+
+  .reply-input-widget
+    position            fixed
+    bottom              0
+    height              auto
+    kalc                width (100% \- 584px)
+    padding             0 0 30px
+    bg                  color white
+    margin-top          8px
+
+    &:before
+      content         ""
+      top             18px
+      left            21px
+      r-sprite        activity widget-icon
+      z-index         2
+      abs()
 
 .reply-like-tooltip
   p
