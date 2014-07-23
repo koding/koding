@@ -502,6 +502,20 @@ func TestChannelAddMessage(t *testing.T) {
 	defer r.Close()
 
 	Convey("while adding a message to a channel", t, func() {
+		Convey("it should have channel id", func(){
+		c := NewChannel()
+		_, err := c.AddMessage(123)
+		So(err, ShouldNotBeNil)
+		So(err, ShouldEqual, ErrChannelIdIsNotSet)
+		})
+
+		Convey("it should return error if message id is not set", func(){
+		c := NewChannel()
+		c.Id = 123
+		_, err := c.FetchMessageList(1231)
+		So(err, ShouldNotBeNil)
+		So(err, ShouldEqual, ErrAlreadyInTheChannel)
+		})
 	})
 }
 
@@ -512,6 +526,5 @@ func TestChannelRemoveMessage(t *testing.T) {
 	}
 	defer r.Close()
 
-	Convey("while removing a message from a channel", t, func() {
-	})
+	Convey("while removing a message from a channel", t, nil)
 }
