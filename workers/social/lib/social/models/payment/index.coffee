@@ -1,5 +1,7 @@
 {Base}  = require 'bongo'
 recurly = require 'koding-payment'
+{argv}  = require 'optimist'
+KONFIG  = require('koding-config-manager').load("main.#{argv.c}")
 
 module.exports = class JPayment extends Base
 
@@ -28,9 +30,34 @@ module.exports = class JPayment extends Base
   @removePaymentMethod: secure (client, paymentMethodId, callback) ->
     (require './method').removePaymentMethod client, paymentMethodId, callback
 
+  simple_recaptcha = require "simple-recaptcha"
+
+  @isCaptchaValid = (ip, challenge, response, callback)->
+    simple_recaptcha KONFIG.recaptcha, ip, challenge, response, (err)->
+      if err
+        return callback err
+
+      callback null
+
   @setPaymentInfo = secure (client, paymentMethodId, data, callback) ->
-    [data, callback, paymentMethodId] = [paymentMethodId, data, callback]  unless callback
-    (require './method').updatePaymentMethodById client, paymentMethodId, data, callback
+    JSession = require '../session'
+    JSession.one {clientId: client.sessionToken}, (err, session)=>
+      return callback err  if err
+
+      {challenge, response} = data
+      @isCaptchaValid session.clientIP, challenge, response, (err)->
+        if err
+          return callback {message:"Captcha failed, please try again."}
+
+        delete data.challenge
+        delete data.response
+
+        [data, callback, paymentMethodId] = [paymentMethodId, data, callback]  unless callback
+        (require './method').updatePaymentMethodById client, paymentMethodId, data, (err, response)->
+          if err
+            return callback {message:"We couldn't verify the information you entered, please try again."}
+
+          callback err, response
 
   @fetchTransactions = secure ({ connection:{ delegate }}, callback) ->
     delegate.fetchPaymentMethods (err, paymentMethods) ->

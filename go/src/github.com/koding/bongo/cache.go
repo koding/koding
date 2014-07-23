@@ -24,15 +24,53 @@ type Cache interface {
 	// TODO implement Delete, MultiGet, MultiSet
 }
 
+// Basic requirements for a model for working with caching system
 type Cacher interface {
 	CachePrefix(id int64) string
-	CacheGet(id int64) (string, error)
-	CacheSet(data Cachable) (string, error)
-	Cachable
+	GetForCache(id int64) (string, error)
+	Cacheable
 }
 
-type Cachable interface {
+type Cacheable interface {
 	GetCacheId() int64
+}
+
+func (b *Bongo) GetFromBest(i Modellable, data Cacher, id int64) error {
+	var d string
+	var err error
+
+	// check if cache is enabled
+	if b.Cache == nil {
+		// try to get data from getter func
+		d, err = data.GetForCache(id)
+		if err != nil {
+			return err
+		}
+	} else {
+		// get data from cache
+		d, err = b.getFromCacheHelper(data, id)
+		if err != nil {
+			return err
+		}
+	}
+
+	// marshall it to the `modellable`
+	err = json.NewDecoder(strings.NewReader(d)).Decode(i)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (b *Bongo) SetToCache(data Cacher) error {
+	// check if  cache is enabled
+	if b.Cache == nil {
+		return ErrCacheIsNotEnabled
+	}
+
+	return b.setToCacheHelper(data, data.GetCacheId())
+
 }
 
 func (b *Bongo) getFromCacheHelper(service Cacher, id int64) (string, error) {
@@ -49,56 +87,33 @@ func (b *Bongo) getFromCacheHelper(service Cacher, id int64) (string, error) {
 	}
 
 	// try to get data from getter func
-	d, err := service.CacheGet(id)
+	d, err := service.GetForCache(id)
 	if err != nil {
 		return "", err
 	}
 
 	// after getting data, set it to cache
 	// since we have the data, no need to handle error here
-	b.putHelper(service.CachePrefix(id), d)
+	err = b.putHelper(service.CachePrefix(id), d)
+	if err != nil {
+		b.log.Error("Error occured while setting data to cache %v", err.Error())
+	}
 
 	return d, nil
 }
 
-func (b *Bongo) setToCacheHelper(service Cacher, data Cachable) error {
-	d, err := service.CacheSet(data)
+func (b *Bongo) setToCacheHelper(service Cacher, id int64) error {
+	// try to get data from getter func
+	d, err := service.GetForCache(id)
 	if err != nil {
 		return err
 	}
 
-	return b.putHelper(service.CachePrefix(data.GetCacheId()), d)
+	// after getting data, set it to cache
+	// since we have the data, no need to handle error here
+	return b.putHelper(service.CachePrefix(id), d)
 }
 
 func (b *Bongo) putHelper(id, data string) error {
 	return b.Cache.Set(id, data)
-}
-
-func (b *Bongo) SetToCache(data Cacher) error {
-	// check if  cache is enabled
-	if b.Cache == nil {
-		return ErrCacheIsNotEnabled
-	}
-
-	return b.setToCacheHelper(data, data)
-
-}
-
-func (b *Bongo) GetFromCache(i Modellable, data Cacher, id int64) error {
-	// check if  cache is enabled
-	if b.Cache == nil {
-		return ErrCacheIsNotEnabled
-	}
-
-	str, err := b.getFromCacheHelper(data, id)
-	if err != nil {
-		return err
-	}
-
-	err = json.NewDecoder(strings.NewReader(str)).Decode(i)
-	if err != nil {
-		return err
-	}
-
-	return nil
 }

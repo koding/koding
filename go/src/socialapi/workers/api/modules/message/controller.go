@@ -82,6 +82,7 @@ func checkThrottle(channelId, requesterId int64) error {
 	// subtrack duration from current time
 	prevTime := time.Now().UTC().Truncate(dur)
 
+	// count sends positional parameters, no need to sanitize input
 	count, err := bongo.B.Count(
 		cm,
 		"initial_channel_id = ? and "+

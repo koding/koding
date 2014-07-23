@@ -28,7 +28,7 @@ func MustRead(path string) *Config {
 		panic(err)
 	}
 
-	// we can override Environment property of 
+	// we can override Environment property of
 	//the config from env variable
 	// set environment variable
 	env := os.Getenv("SOCIAL_API_ENV")

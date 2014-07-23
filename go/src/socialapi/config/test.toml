@@ -3,6 +3,7 @@ Mongo             = "localhost:27017/koding"
 Environment       = "test"
 Region            = "aws"
 Uri               = "http://lvh.me:3020"
+DisableCaching    = false
 
 [postgres]
 Host       = "localhost"

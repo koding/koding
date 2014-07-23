@@ -9,7 +9,7 @@ CREATE SCHEMA api;
 CREATE EXTENSION IF NOT EXISTS hstore;
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
-GRANT USAGE ON SCHEMA api TO socialapplication;
+GRANT USAGE ON SCHEMA api TO social;
 
 ALTER DATABASE social SET search_path="$user", public, api;
 

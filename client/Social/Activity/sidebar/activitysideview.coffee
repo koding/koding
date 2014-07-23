@@ -39,7 +39,12 @@ class ActivitySideView extends JView
       # click   : @bound 'reload'
 
 
-    @header.addSubView headerLink  if headerLink
+    if headerLink instanceof KDView
+    then @header.addSubView headerLink
+    else if 'string' is typeof headerLink
+      @header.on 'click', =>
+        KD.singletons.router.handleRoute headerLink
+
 
     @listView = @listController.getView()
     sidebar.bindItemEvents @listView

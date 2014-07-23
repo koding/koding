@@ -177,7 +177,7 @@ func vmStart(vos *virt.VOS) (interface{}, error) {
 		return nil, err
 	}
 
-	if _, err := updateState(vos.VM.Id, vos.VM.State); err != nil {
+	if _, err := checkAndUpdateState(vos.VM.Id, vos.VM.State); err != nil {
 		return nil, err
 	}
 
@@ -193,7 +193,7 @@ func vmShutdown(vos *virt.VOS) (interface{}, error) {
 		return nil, err
 	}
 
-	if _, err := updateState(vos.VM.Id, vos.VM.State); err != nil {
+	if _, err := checkAndUpdateState(vos.VM.Id, vos.VM.State); err != nil {
 		return nil, err
 	}
 
@@ -209,7 +209,7 @@ func vmStop(vos *virt.VOS) (interface{}, error) {
 		return nil, err
 	}
 
-	if _, err := updateState(vos.VM.Id, vos.VM.State); err != nil {
+	if _, err := checkAndUpdateState(vos.VM.Id, vos.VM.State); err != nil {
 		return nil, err
 	}
 
@@ -339,7 +339,6 @@ func (o *Oskite) vmPrepareAndStart(args *dnode.Partial, channel *kite.Channel, v
 }
 
 func (o *Oskite) prepareAndStart(vos *virt.VOS, username, groupId string, pre Preparer) (interface{}, error) {
-
 	dlocksMu.Lock()
 	dlock, ok := dlocks[username]
 	if !ok {
@@ -475,8 +474,7 @@ func unprepareProgress(t tracer.Tracer, vm *virt.VM, destroy bool) error {
 		return fmt.Errorf("unprepareProgress hostKite nil setting: %v", err)
 	}
 
-	// mark it as stopped in mongodb
-	if _, err := updateState(vm.Id, "STOPPED"); err != nil {
+	if _, err := checkAndUpdateState(vm.Id, vm.State); err != nil {
 		return err
 	}
 
@@ -488,7 +486,7 @@ func prepareProgress(t tracer.Tracer, vm *virt.VM) error {
 		return err
 	}
 
-	if _, err := updateState(vm.Id, vm.State); err != nil {
+	if _, err := checkAndUpdateState(vm.Id, vm.State); err != nil {
 		return err
 	}
 

@@ -39,7 +39,7 @@ func (c *ChannelContainer) Fetch(id int64, q *request.Query) error {
 }
 
 func (c *ChannelContainer) GetId() int64 {
-	if &c.Channel != nil {
+	if c.Channel != nil {
 		return c.Channel.Id
 	}
 
@@ -63,12 +63,12 @@ func withChecks(cc *ChannelContainer, f func(c *ChannelContainer) error) *Channe
 		return cc
 	}
 
-	if cc.Channel == nil {
-		cc.Err = ErrChannelIsNotSet
+	if cc.Err != nil {
 		return cc
 	}
 
-	if cc.Err != nil {
+	if cc.Channel == nil {
+		cc.Err = ErrChannelIsNotSet
 		return cc
 	}
 
@@ -94,9 +94,10 @@ func (cr *ChannelContainer) AddParticipantCount() *ChannelContainer {
 
 func (cr *ChannelContainer) AddParticipantsPreview() *ChannelContainer {
 	return withChecks(cr, func(cc *ChannelContainer) error {
+		maxParticipantCount := 5
 		// try to use the data
-		if cc.ParticipantCount > 5 {
-			if len(cc.ParticipantsPreview) == 5 {
+		if cc.ParticipantCount > maxParticipantCount {
+			if len(cc.ParticipantsPreview) == maxParticipantCount {
 				return nil
 			}
 		}
@@ -105,7 +106,7 @@ func (cr *ChannelContainer) AddParticipantsPreview() *ChannelContainer {
 		cp.ChannelId = cc.Channel.Id
 
 		// get participant preview
-		cpList, err := cp.ListAccountIds(5)
+		cpList, err := cp.ListAccountIds(maxParticipantCount)
 		if err != nil {
 			return err
 		}

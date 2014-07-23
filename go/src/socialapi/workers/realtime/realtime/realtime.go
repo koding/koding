@@ -58,6 +58,12 @@ type NotificationContent struct {
 	ActorId  string `json:"actorId"`
 }
 
+type ParticipantContent struct {
+	AccountId    int64  `json:"accountId,string"`
+	AccountOldId string `json:"accountOldId"`
+	ChannelId    int64  `json:"channelId"`
+}
+
 // DefaultErrHandler controls the errors, return false if an error occured
 func (r *Controller) DefaultErrHandler(delivery amqp.Delivery, err error) bool {
 	r.log.Error("an error occured deleting realtime event", err)
@@ -148,6 +154,17 @@ func (f *Controller) sendChannelParticipantEvent(cp *models.ChannelParticipant, 
 		return err
 	}
 
+	accountOldId, err := models.FetchAccountOldIdByIdFromCache(cp.AccountId)
+	if err != nil {
+		return err
+	}
+
+	pc := &ParticipantContent{
+		AccountId:    cp.AccountId,
+		AccountOldId: accountOldId,
+		ChannelId:    c.Id,
+	}
+
 	// send notification to the user(added user)
 	if err := f.sendNotification(
 		cp.AccountId,
@@ -159,7 +176,7 @@ func (f *Controller) sendChannelParticipantEvent(cp *models.ChannelParticipant, 
 	}
 
 	// send this event to the channel itself
-	return f.publishToChannel(c.Id, eventName, cp)
+	return f.publishToChannel(c.Id, eventName, pc)
 }
 
 // InteractionSaved runs when interaction is added
