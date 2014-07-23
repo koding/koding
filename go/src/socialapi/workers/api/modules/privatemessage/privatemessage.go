@@ -123,7 +123,7 @@ func List(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface
 		return response.NewBadRequest(errors.New("request is not valid"))
 	}
 
-	channels, err := getPrivateMessageChannels(q)
+	channelList, err := getPrivateMessageChannels(q)
 	if err != nil {
 		return response.NewBadRequest(err)
 	}
