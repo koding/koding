@@ -24,7 +24,7 @@ func main() {
 
 	r.SetContext(feeder.New(r.Log))
 	registerHandlers(r)
-	r.Listen(m)
+	r.Listen()
 	r.Wait()
 }
 
