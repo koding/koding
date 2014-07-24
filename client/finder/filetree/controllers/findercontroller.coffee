@@ -78,6 +78,9 @@ class NFinderController extends KDViewController
 
   loadMachines:->
 
+    if machineToMount = @getOption 'machineToMount'
+      return @mountMachine machineToMount
+
     { computeController } = KD.singletons
 
     computeController.fetchMachines (err, machines)=>
@@ -234,6 +237,7 @@ class NFinderController extends KDViewController
       return @treeController.expandFolder node, callback  if path is folderPath
     callback {message:"Folder not exists: #{folderPath}"}
 
+  # FIXME THIS ~GG getPathHiearchy needs to be fixed for machine.uid
   expandFolders: (paths, callback=noop)->
     if typeof paths is 'string'
       paths = FSHelper.getPathHierarchy paths

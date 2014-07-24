@@ -210,6 +210,7 @@ class FSItem extends KDObject
     .nodeify(callback)
 
   stat:(callback=noop)->
+
     kite = @getKite()
 
     kite.init().then =>
@@ -219,6 +220,7 @@ class FSItem extends KDObject
     .nodeify(callback)
 
   remove:(callback, recursive=no)->
+
     @emit "fs.delete.started"
 
     kite = @getKite()
