@@ -161,11 +161,13 @@ func (m *MessageReply) UnreadCount(messageId int64, addedAt time.Time, showExemp
 		return 0, errors.New("last seen at date is not valid - it is zero")
 	}
 
-	query := "message_id = ? and created_at > ? and meta_bits = ?"
+	query := "message_id = ? and created_at > ?"
 
 	var metaBits MetaBits
-	if showExempt {
-		metaBits.Mark(Troll)
+	if !showExempt {
+		query += " and meta_bits = ?"
+	} else {
+		query += " and meta_bits >= ?"
 	}
 
 	return bongo.B.Count(
