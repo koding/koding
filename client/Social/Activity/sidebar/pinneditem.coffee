@@ -28,8 +28,12 @@ class SidebarPinnedItem extends SidebarItem
 
 
   pistachio: ->
+    { body } = @getData()
+    { applyMarkdown, stripTags } = KD.utils
+
+    body = stripTags applyMarkdown body
     """
     {{> @avatar}}{{> @actor}}
-    {span.user-numbers{ #(body)}}
+    <span class="user-numbers">#{body}</span>
     {{> @unreadCount}}
     """
