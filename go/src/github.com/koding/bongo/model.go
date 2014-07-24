@@ -2,6 +2,7 @@ package bongo
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"strconv"
 	"strings"
@@ -9,19 +10,19 @@ import (
 	"github.com/jinzhu/gorm"
 )
 
-// Fetch fetches the data from db by given parameters(fields of the struct)
-func (b *Bongo) Fetch(i Modellable) error {
-	if i.GetId() == 0 {
+// Fetch tries the best option available for retrieving the data first tries
+// cache layer, if fails, then tries db
+func (b *Bongo) Fetch(i Modellable, id int64) error {
+	if id == 0 {
 		return IdIsNotSet
 	}
 
-	if err := b.DB.Table(i.TableName()).
-		Find(i).
-		Error; err != nil {
-		return err
+	data, ok := i.(Cacher)
+	if !ok {
+		return errors.New("cacher is not implemented for given struct")
 	}
 
-	return nil
+	return b.GetFromBest(i, data, id)
 }
 
 // ById Fetches data from db by it's id
@@ -103,29 +104,35 @@ func (b *Bongo) FetchByIds(i Modellable, data interface{}, ids []int64) error {
 
 }
 
-func (b *Bongo) UpdatePartial(i Modellable, set map[string]interface{}) error {
-	if i.GetId() == 0 {
-		return IdIsNotSet
-	}
+// This function doesnt work, after fixing we can open again
+// func (b *Bongo) UpdatePartial(i Modellable, set map[string]interface{}) error {
+// 	if i.GetId() == 0 {
+// 		return IdIsNotSet
+// 	}
 
-	// init query
-	query := b.DB
+// 	// init query
+// 	query := b.DB
 
-	query = query.Table(i.TableName())
+// 	query = query.Model(i)
+// 	// query = query.Table(i.TableName())
 
-	query = query.Where(i.GetId())
+// 	query = query.Where("id = ? ", i.GetId())
+// 	fmt.Println("query-->", query)
+// 	fmt.Printf("set %# v", pretty.Formatter(set))
+// 	if err := query.Update(set).Error; err != nil {
+// 		fmt.Printf("%# v", pretty.Formatter(err))
+// 		return err
+// 	}
 
-	if err := query.Update(set).Error; err != nil {
-		return err
-	}
+// 	if err := b.ById(i, i.GetId()); err != nil {
+// 		fmt.Printf("%# v", pretty.Formatter(err))
+// 		return err
+// 	}
 
-	if err := b.Fetch(i); err != nil {
-		return err
-	}
-
-	b.AfterUpdate(i)
-	return nil
-}
+// 	fmt.Printf("i %# v", pretty.Formatter(i))
+// 	// b.AfterUpdate(i)
+// 	return nil
+// }
 
 // selector, set
 func (b *Bongo) UpdateMulti(i Modellable, rest ...map[string]interface{}) error {
@@ -290,16 +297,33 @@ func (b *Bongo) PublishEvent(eventName string, i Modellable) error {
 	return nil
 }
 
-func (b *Bongo) AfterCreate(i Modellable) {
+func (b *Bongo) AfterCreate(i Modellable) error {
 	b.PublishEvent("created", i)
+	return b.AddToCache(i)
 }
 
-func (b *Bongo) AfterUpdate(i Modellable) {
+func (b *Bongo) AfterUpdate(i Modellable) error {
 	b.PublishEvent("updated", i)
+	return b.AddToCache(i)
 }
 
-func (b *Bongo) AfterDelete(i Modellable) {
+func (b *Bongo) AfterDelete(i Modellable) error {
 	b.PublishEvent("deleted", i)
+	return b.AddToCache(i)
+}
+
+func (b *Bongo) AddToCache(i Modellable) error {
+	data, ok := i.(Cacher)
+	if !ok {
+		return nil
+	}
+
+	err := b.SetToCache(data)
+	if err != ErrCacheIsNotEnabled {
+		return err
+	}
+
+	return nil
 }
 
 // addSort injects sort parameters into query

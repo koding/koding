@@ -4,6 +4,7 @@ import (
 	"socialapi/workers/common/runner"
 	"testing"
 
+	"github.com/koding/bongo"
 	. "github.com/smartystreets/goconvey/convey"
 )
 
@@ -501,22 +502,64 @@ func TestChannelAddMessage(t *testing.T) {
 	}
 	defer r.Close()
 
-	Convey("while adding a message to a channel", t, func() {
-		Convey("it should have channel id", func(){
-		c := NewChannel()
-		_, err := c.AddMessage(123)
-		So(err, ShouldNotBeNil)
+	Convey("while adding a message to a channel", t, func() 		Convey("it should have channel id", func(){		c := NewChannel()		_, err := c.AddMessage(123)		So(err, ShouldNotBeNil)
 		So(err, ShouldEqual, ErrChannelIdIsNotSet)
+		Convey("it should have channel id", func() {
+			c := NewChannel()
+			_, err := c.AddMessage(123)
+			So(err, ShouldNotBeNil)
+			So(err, ShouldEqual, ErrChannelIdIsNotSet)
 		})
 
 		Convey("it should return error if message id is not set", func(){
-		c := NewChannel()
-		c.Id = 123
-		_, err := c.FetchMessageList(1231)
-		So(err, ShouldNotBeNil)
-		So(err, ShouldEqual, ErrAlreadyInTheChannel)
+			c := NewChannel()
+			c.Id = 123
+			_, err := c.FetchMessageList(1231)
+			So(err, ShouldNotBeNil)
+			So(err, ShouldEqual, ErrAlreadyInTheChannel)
+			Convey("it should return error if message id is not set", func() {
+			// fake channel
+			c := NewChannel()
+			c.Id = 123
+
+			// try to add message
+			ch, err := c.AddMessage(0)
+			So(err, ShouldNotBeNil)
+			So(err, ShouldEqual, ErrMessageIdIsNotSet)
+			So(ch, ShouldBeNil)
 		})
-	})
+
+		Convey("adding message to a channel should be successful", func() {
+			c := createNewChannelWithTest()
+			So(c.Create(), ShouldBeNil)
+
+			cm := createMessageWithTest()
+			cm.Body = "five5"
+			So(cm.Create(), ShouldBeNil)
+
+			ch, err := c.AddMessage(cm.Id)
+			So(err, ShouldBeNil)
+			So(ch, ShouldNotBeEmpty)
+		})
+
+		Convey("it should return error if message is already in the channel", func() {
+			c := createNewChannelWithTest()
+			So(c.Create(), ShouldBeNil)
+
+			cm := createMessageWithTest()
+			cm.Body = "five5"
+			So(cm.Create(), ShouldBeNil)
+
+			ch, err := c.AddMessage(cm.Id)
+			So(err, ShouldBeNil)
+			So(ch, ShouldNotBeEmpty)
+
+			// try to add the same message again
+			ch, err = c.AddMessage(cm.Id)
+			So(err, ShouldNotBeNil)
+			So(err, ShouldEqual, ErrAlreadyInTheChannel)
+ 		})
+ 	})
 }
 
 func TestChannelRemoveMessage(t *testing.T) {
@@ -527,4 +570,60 @@ func TestChannelRemoveMessage(t *testing.T) {
 	defer r.Close()
 
 	Convey("while removing a message from a channel", t, nil)
+}
+
+func TestChannelFetchMessageList(t *testing.T) {
+	r := runner.New("test")
+	if err := r.Init(); err != nil {
+		t.Fatalf("couldnt start bongo %s", err.Error())
+	}
+	defer r.Close()
+
+	Convey("while fetching channel message list", t, func() {
+		Convey("it should have channel id", func() {
+			c := NewChannel()
+			_, err := c.FetchMessageList(123)
+			So(err, ShouldNotBeNil)
+			So(err, ShouldEqual, ErrChannelIdIsNotSet)
+		})
+
+		Convey("it should have message id", func() {
+			c := NewChannel()
+			c.Id = 123
+			_, err := c.FetchMessageList(0)
+			So(err, ShouldNotBeNil)
+			So(err, ShouldEqual, ErrMessageIdIsNotSet)
+		})
+
+		Convey("non-existing message list should give error", func() {
+			c := createNewChannelWithTest()
+			So(c.Create(), ShouldBeNil)
+
+			// 1 is an arbitrary number
+			_, err := c.FetchMessageList(1)
+			So(err, ShouldNotBeNil)
+			So(err, ShouldEqual, bongo.RecordNotFound)
+		})
+
+		Convey("existing message list should not give error", func() {
+			// create channel
+			c := createNewChannelWithTest()
+			So(c.Create(), ShouldBeNil)
+
+			// create message
+			cm := createMessageWithTest()
+			So(cm.Create(), ShouldBeNil)
+
+			// add message to the channel
+			cml, err := c.AddMessage(cm.Id)
+			So(err, ShouldBeNil)
+			So(cml, ShouldNotBeNil)
+
+			// try to fetch persisted message
+			cml2, err := c.FetchMessageList(cm.Id)
+			So(err, ShouldBeNil)
+			So(cml2, ShouldNotBeNil)
+			So(cml2.MessageId, ShouldEqual, cm.Id)
+		})
+	})
 }

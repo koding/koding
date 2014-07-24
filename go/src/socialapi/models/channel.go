@@ -135,7 +135,7 @@ func (c *Channel) Create() error {
 func (c *Channel) CreateRaw() error {
 	insertSql := "INSERT INTO " +
 		c.TableName() +
-		` ("name","creator_id","group_name","purpose",c"type_constant",` +
+		` ("name","creator_id","group_name","purpose","type_constant",` +
 		`"privacy_constant", "created_at", "updated_at", "deleted_at")` +
 		"VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9) " +
 		"RETURNING ID"
@@ -258,9 +258,15 @@ func (c *Channel) FetchParticipantIds(q *request.Query) ([]int64, error) {
 // AddMessage adds given message to the channel, it the message is already in the
 // channel, it doesnt add again, this method is idempotent
 // you can call many times, but message will be in the channel list once
+//
+// has full test suit
 func (c *Channel) AddMessage(messageId int64) (*ChannelMessageList, error) {
 	if c.Id == 0 {
 		return nil, ErrChannelIdIsNotSet
+	}
+
+	if messageId == 0 {
+		return nil, ErrMessageIdIsNotSet
 	}
 
 	cml, err := c.FetchMessageList(messageId)
@@ -296,9 +302,14 @@ func (c *Channel) RemoveMessage(messageId int64) (*ChannelMessageList, error) {
 	return cml, nil
 }
 
+// has full test suit
 func (c *Channel) FetchMessageList(messageId int64) (*ChannelMessageList, error) {
 	if c.Id == 0 {
 		return nil, ErrChannelIdIsNotSet
+	}
+
+	if messageId == 0 {
+		return nil, ErrMessageIdIsNotSet
 	}
 
 	cml := NewChannelMessageList()

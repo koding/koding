@@ -46,9 +46,8 @@ func Create(u *url.URL, h http.Header, req *models.ChannelMessage) (int, http.He
 		return response.NewBadRequest(err)
 	}
 
-	return response.HandleResultAndError(
-		req.BuildEmptyMessageContainer(),
-	)
+	cmc := models.NewChannelMessageContainer()
+	return response.HandleResultAndError(cmc, cmc.Fetch(req.Id, request.GetQuery(u)))
 }
 
 func checkThrottle(channelId, requesterId int64) error {
@@ -117,7 +116,24 @@ func Delete(u *url.URL, h http.Header, req *models.ChannelMessage) (int, http.He
 		return response.NewBadRequest(err)
 	}
 
-	err = deleteSingleMessage(req, true)
+	// if this is a reply no need to delete it's replies
+	if req.TypeConstant == models.ChannelMessage_TYPE_REPLY {
+		mr := models.NewMessageReply()
+		mr.ReplyId = id
+		parent, err := mr.FetchParent()
+		if err != nil {
+			return response.NewBadRequest(err)
+		}
+
+		// delete the message here
+		err = deleteSingleMessage(req, false)
+		// then invalidate the cache of the parent message
+		bongo.B.AddToCache(parent)
+
+	} else {
+		err = deleteSingleMessage(req, true)
+	}
+
 	if err != nil {
 		return response.NewBadRequest(err)
 	}
@@ -208,9 +224,8 @@ func Update(u *url.URL, h http.Header, req *models.ChannelMessage) (int, http.He
 		return response.NewBadRequest(err)
 	}
 
-	return response.HandleResultAndError(
-		req.BuildEmptyMessageContainer(),
-	)
+	cmc := models.NewChannelMessageContainer()
+	return response.HandleResultAndError(cmc, cmc.Fetch(id, request.GetQuery(u)))
 }
 
 func Get(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface{}, error) {
@@ -223,12 +238,20 @@ func Get(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface{
 		return response.NewNotFound()
 	}
 
-	return response.HandleResultAndError(
-		cm.BuildEmptyMessageContainer(),
-	)
+	cmc := models.NewChannelMessageContainer()
+	return response.HandleResultAndError(cmc, cmc.Fetch(cm.Id, request.GetQuery(u)))
 }
 
 func getMessageByUrl(u *url.URL) (*models.ChannelMessage, error) {
+
+	// TODO
+	// fmt.Println(`
+	// 	------->
+	//             ADD SECURTY CHECK FOR VISIBILTY OF THE MESSAGE
+	//                         FOR THE REQUESTER
+	//     ------->"`,
+	// )
+
 	id, err := request.GetURIInt64(u, "id")
 	if err != nil {
 		return nil, err
@@ -265,12 +288,16 @@ func GetWithRelated(u *url.URL, h http.Header, _ interface{}) (int, http.Header,
 		return response.NewNotFound()
 	}
 
-	cmc, err := cm.BuildMessage(request.GetQuery(u))
-	if err != nil {
+	q := request.GetQuery(u)
+
+	cmc := models.NewChannelMessageContainer()
+	if err := cmc.Fetch(cm.Id, q); err != nil {
 		return response.NewBadRequest(err)
 	}
 
-	return response.NewOK(cmc)
+	cmc.AddIsInteracted(q).AddIsFollowed(q)
+
+	return response.HandleResultAndError(cmc, cmc.Err)
 }
 
 func GetBySlug(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface{}, error) {
@@ -288,10 +315,12 @@ func GetBySlug(u *url.URL, h http.Header, _ interface{}) (int, http.Header, inte
 		return response.NewBadRequest(err)
 	}
 
-	cmc, err := cm.BuildMessage(q)
-	if err != nil {
+	cmc := models.NewChannelMessageContainer()
+	if err := cmc.Fetch(cm.Id, q); err != nil {
 		return response.NewBadRequest(err)
 	}
 
-	return response.NewOK(cmc)
+	cmc.AddIsInteracted(q).AddIsFollowed(q)
+
+	return response.HandleResultAndError(cmc, cmc.Err)
 }
