@@ -215,6 +215,7 @@ class IDEAppController extends AppController
       floatedPanel._lastSize = desiredSize
       @getView().setClass 'sidebar-collapsed'
       @isSidebarCollapsed = yes
+      KD.getSingleton("windowController").notifyWindowResizeListeners()
 
     splitView.setFloatingPanel 0, 39
     tabView.showPaneByName 'Dummy'
