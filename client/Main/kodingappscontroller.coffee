@@ -316,7 +316,7 @@ class KodingAppsController extends KDController
                   messages        :
                     regExp        : "For Application name only lowercase letters are allowed!"
 
-  prepareApplication:(name, callback)->
+  prepareApplication:({ machine, name }, callback)->
 
     unless name
       return new KDNotificationView
@@ -325,49 +325,60 @@ class KodingAppsController extends KDController
     type         = "blank"
     appname      = KD.utils.slugify name.replace /[^a-zA-Z]/g, ''
     APPNAME      = appname.capitalize()
-    manifestStr  = defaultManifest type, APPNAME
-    changeLogStr = @_createChangeLog APPNAME
+    manifestStr  = AppSkeleton.manifest type, APPNAME
+    changeLogStr = AppSkeleton.changeLog APPNAME
     manifest     = JSON.parse manifestStr
     appPath      = @getAppPath manifest
 
-    {vmController} = KD.singletons
+    machine.getBaseKite()
 
-    vmController.run
-      method    : "app.skeleton"
-      withArgs  :
-        type    : "blank"
-        appPath : appPath
+    .exec
+      command : "mkdir -p #{appPath}/resources"
 
     .then ->
-      indexFile = FSHelper.createFileInstance path:  "#{appPath}/index.coffee"
-      indexFile.fetchContents().then (content) ->
-        content = content.replace(/\%\%APPNAME\%\%/g, APPNAME)
-                         .replace(/\%\%appname\%\%/g, appname)
-                         .replace(/\%\%AUTHOR\%\%/g , KD.nick())
-        indexFile.save content
+      indexFile = FSHelper.createFileInstance {
+        path: "#{appPath}/index.coffee", machine
+      }
+      content = AppSkeleton.indexCoffee
+                  .replace /\%\%APPNAME\%\%/g, APPNAME
+                  .replace /\%\%appname\%\%/g, appname
+                  .replace /\%\%AUTHOR\%\%/g , KD.nick()
+
+      indexFile.save content
 
     .then ->
-      styleFile = FSHelper.createFileInstance path:  "#{appPath}/resources/style.css"
-      styleFile.fetchContents().then (content) ->
-        content = content.replace(/\%\%appname\%\%/g, appname)
-        styleFile.save content
+      styleFile = FSHelper.createFileInstance {
+        path: "#{appPath}/resources/style.css", machine
+      }
+      content = AppSkeleton.styleCss
+                  .replace /\%\%appname\%\%/g, appname
+      styleFile.save content
 
     .then ->
-      readmeFile = FSHelper.createFileInstance path:  "#{appPath}/README.md"
-      readmeFile.fetchContents().then (content) ->
-        author  = Encoder.htmlDecode(KD.utils.getFullnameFromAccount())
-        content = content
-          .replace(/\%\%APPNAME\%\%/g, APPNAME)
-          .replace(/\%\%AUTHOR_FULLNAME\%\%/g , author)
-        readmeFile.save content
+      readmeFile = FSHelper.createFileInstance {
+        path: "#{appPath}/README.md", machine
+      }
+      author  = Encoder.htmlDecode(KD.utils.getFullnameFromAccount())
+      content = AppSkeleton.readmeMd
+        .replace /\%\%APPNAME\%\%/g, APPNAME
+        .replace /\%\%AUTHOR_FULLNAME\%\%/g , author
+      readmeFile.save content
 
     .then ->
-      FSHelper.createFileInstance path: ("#{appPath}/manifest.json")
-              .save manifestStr
+
+      FSHelper.createFileInstance {
+        path: "#{appPath}/manifest.json", machine
+      }
+
+      .save manifestStr
 
     .then ->
-      FSHelper.createFileInstance path: ("#{appPath}/ChangeLog")
-              .save changeLogStr
+
+      FSHelper.createFileInstance {
+        path: "#{appPath}/ChangeLog", machine
+      }
+
+      .save manifestStr
 
     .then ->
       return { appPath }
