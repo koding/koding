@@ -502,8 +502,14 @@ func TestChannelAddMessage(t *testing.T) {
 	}
 	defer r.Close()
 
-	Convey("while adding a message to a channel", t, func() 		Convey("it should have channel id", func(){		c := NewChannel()		_, err := c.AddMessage(123)		So(err, ShouldNotBeNil)
-		So(err, ShouldEqual, ErrChannelIdIsNotSet)
+	Convey("while adding a message to a channel", t, func() {
+		Convey("it should have channel id", func() {
+			c := NewChannel()	
+			_, err := c.AddMessage(123)
+			So(err, ShouldNotBeNil)
+			So(err, ShouldEqual, ErrChannelIdIsNotSet)
+		})
+		
 		Convey("it should have channel id", func() {
 			c := NewChannel()
 			_, err := c.AddMessage(123)
@@ -517,7 +523,9 @@ func TestChannelAddMessage(t *testing.T) {
 			_, err := c.FetchMessageList(1231)
 			So(err, ShouldNotBeNil)
 			So(err, ShouldEqual, ErrAlreadyInTheChannel)
-			Convey("it should return error if message id is not set", func() {
+		})
+
+		Convey("it should return error if message id is not set", func() {
 			// fake channel
 			c := NewChannel()
 			c.Id = 123
