@@ -257,13 +257,15 @@ func (i *Interaction) FetchInteractionContainer(query *request.Query) (*Interact
 	interactionContainer := NewInteractionContainer()
 	interactionContainer.ActorsPreview = oldIds
 
-	// check if the current user is interacted in this thread
-	isInteracted, err := i.IsInteracted(query.AccountId)
-	if err != nil {
-		return nil, err
-	}
+	if query.AddIsInteracted {
+		// check if the current user is interacted in this thread
+		isInteracted, err := i.IsInteracted(query.AccountId)
+		if err != nil {
+			return nil, err
+		}
 
-	interactionContainer.IsInteracted = isInteracted
+		interactionContainer.IsInteracted = isInteracted
+	}
 
 	// fetch interaction count
 	count, err := i.Count(query)

@@ -33,8 +33,6 @@ class ActivityListItemView extends KDListItemView
 
     @commentBox.forwardEvent @actionLinks, "Reply"
 
-    @likeSummary = new ActivityLikeSummaryView {}, @getData()
-
     @settingsButton = new ActivitySettingsView
       cssClass : 'settings-menu-wrapper'
       itemView : this
@@ -229,7 +227,6 @@ class ActivityListItemView extends KDListItemView
       {{> @editWidgetWrapper}}
       {article{@formatContent #(body)}}
       {{> @embedBox}}
-      {{> @likeSummary}}
       {{> @actionLinks}}
     </div>
     {{> @commentBox}}

@@ -17,7 +17,7 @@ BEGIN
 END;
 $$ LANGUAGE PLPGSQL;
 REVOKE ALL ON FUNCTION api.channel_next_id(OUT result bigint) FROM PUBLIC;
-GRANT EXECUTE ON FUNCTION api.channel_next_id(OUT result bigint) TO "socialapplication";
+GRANT EXECUTE ON FUNCTION api.channel_next_id(OUT result bigint) TO "social";
 
 -- ----------------------------
 --  Functions for Channel Message Table
@@ -37,5 +37,5 @@ BEGIN
 END;
 $$ LANGUAGE PLPGSQL;
 REVOKE ALL ON FUNCTION api.channel_message_next_id(OUT result bigint) FROM PUBLIC;
-GRANT EXECUTE ON FUNCTION api.channel_message_next_id(OUT result bigint) TO "socialapplication";
+GRANT EXECUTE ON FUNCTION api.channel_message_next_id(OUT result bigint) TO "social";
 

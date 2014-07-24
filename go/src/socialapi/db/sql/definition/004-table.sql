@@ -37,8 +37,8 @@ CREATE TABLE "api"."channel" (
     "deleted_at" TIMESTAMP (6) WITH TIME ZONE
 ) WITH (OIDS = FALSE);
 
--- ALTER TABLE "api"."channel" OWNER TO "socialapplication";
-GRANT SELECT, INSERT, UPDATE ON "api"."channel" TO "socialapplication";
+-- ALTER TABLE "api"."channel" OWNER TO "social";
+GRANT SELECT, INSERT, UPDATE ON "api"."channel" TO "social";
 
 
 -- ----------------------------
@@ -52,8 +52,8 @@ CREATE TABLE "api"."account" (
     "nick" VARCHAR (25) NOT NULL CHECK ("nick" <> '')
 ) WITH (OIDS = FALSE);
 
--- ALTER TABLE "api"."account" OWNER TO "socialapplication";
-GRANT SELECT, INSERT, UPDATE ON "api"."account" TO "socialapplication";
+-- ALTER TABLE "api"."account" OWNER TO "social";
+GRANT SELECT, INSERT, UPDATE ON "api"."account" TO "social";
 
 
 
@@ -87,9 +87,7 @@ CREATE TABLE "api"."channel_message" (
     "deleted_at" TIMESTAMP (6) WITH TIME ZONE,
     "payload" hstore
 ) WITH (OIDS = FALSE);
-
--- ALTER TABLE "api"."channel_message" OWNER TO "socialapplication";
-GRANT SELECT, INSERT, UPDATE ON "api"."channel_message" TO "socialapplication";
+GRANT SELECT, INSERT, UPDATE ON "api"."channel_message" TO "social";
 
 
 -- ----------------------------
@@ -107,8 +105,8 @@ CREATE TABLE "api"."channel_message_list" (
     "revised_at" TIMESTAMP (6) WITH TIME ZONE NOT NULL DEFAULT now()
 ) WITH (OIDS = FALSE);
 
--- ALTER TABLE "api"."channel_message_list" OWNER TO "socialapplication";
-GRANT SELECT, INSERT, UPDATE, DELETE ON "api"."channel_message_list" TO "socialapplication";
+-- ALTER TABLE "api"."channel_message_list" OWNER TO "social";
+GRANT SELECT, INSERT, UPDATE, DELETE ON "api"."channel_message_list" TO "social";
 
 -- ----------------------------
 --  Table structure for channel_participant
@@ -135,8 +133,8 @@ CREATE TABLE "api"."channel_participant" (
     "updated_at" TIMESTAMP (6) WITH TIME ZONE NOT NULL DEFAULT now()
 ) WITH (OIDS = FALSE);
 
--- ALTER TABLE "api"."channel_participant" OWNER TO "socialapplication";
-GRANT SELECT, INSERT, UPDATE ON "api"."channel_participant" TO "socialapplication";
+-- ALTER TABLE "api"."channel_participant" OWNER TO "social";
+GRANT SELECT, INSERT, UPDATE ON "api"."channel_participant" TO "social";
 
 -- ----------------------------
 --  Table structure for interaction
@@ -160,10 +158,10 @@ CREATE TABLE "api"."interaction" (
     "created_at" TIMESTAMP (6) WITH TIME ZONE NOT NULL DEFAULT now()
 ) WITH (OIDS = FALSE);
 
--- ALTER TABLE "api"."interaction" OWNER TO "socialapplication";
--- remove update permission from socialapplication
+-- ALTER TABLE "api"."interaction" OWNER TO "social";
+-- remove update permission from social
 -- this is added for trollmode worker, but it can use another user for extensive permission required operations
-GRANT SELECT, UPDATE, INSERT, DELETE ON "api"."interaction" TO "socialapplication";
+GRANT SELECT, UPDATE, INSERT, DELETE ON "api"."interaction" TO "social";
 
 
 -- ----------------------------
@@ -180,5 +178,5 @@ CREATE TABLE "api"."message_reply" (
     "created_at" TIMESTAMP (6) WITH TIME ZONE NOT NULL DEFAULT now()
 ) WITH (OIDS = FALSE);
 
--- ALTER TABLE "api"."message_reply" OWNER TO "socialapplication";
-GRANT SELECT, UPDATE, INSERT, DELETE ON "api"."message_reply" TO "socialapplication";
+-- ALTER TABLE "api"."message_reply" OWNER TO "social";
+GRANT SELECT, UPDATE, INSERT, DELETE ON "api"."message_reply" TO "social";
