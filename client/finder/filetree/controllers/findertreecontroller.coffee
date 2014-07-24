@@ -82,8 +82,8 @@ class NFinderTreeController extends JTreeViewController
     KD.getSingleton('vmController').reinitialize vmName
 
   unmountVm:(nodeView)->
-    {vmName} = nodeView.data
-    @getDelegate().unmountVm vmName
+    { machine: { uid } } = nodeView.getData()
+    @getDelegate().unmountMachine uid
 
   openVmTerminal:(nodeView)->
     {vmName} = nodeView.data
@@ -92,7 +92,7 @@ class NFinderTreeController extends JTreeViewController
   toggleDotFiles:(nodeView)->
 
     finder = @getDelegate()
-    { machine:{ uid } } = nodeView.getData()
+    { machine: { uid } } = nodeView.getData()
 
     if finder.isNodesHiddenFor uid
     then finder.showDotFiles uid
