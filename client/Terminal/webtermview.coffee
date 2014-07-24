@@ -87,16 +87,11 @@ class WebTermView extends KDView
   getKite: ->
     { kontrol, kiteController, vmController } = KD.singletons
     vmName = @getVMName()
-    if KD.useNewKites
-      kite = KD.singletons.kontrol.kites.terminal[vmName]
-      return kite  if kite?
-      kontrol.getKite
-        name            : 'terminal'
-        correlationName : vmName
-    else
-      kite = vmController.terminalKites[vmName]
-      return kite  if kite?
-      kiteController.getKite 'terminal', vmName, 'terminal'
+    kite = KD.singletons.kontrol.kites.terminal[vmName]
+    return kite  if kite?
+    kontrol.getKite
+      name            : 'terminal'
+      correlationName : vmName
 
   webtermConnect:(mode = 'create')->
 
@@ -185,10 +180,7 @@ class WebTermView extends KDView
     {hostnameAlias, region} = vm
     {vmController, kontrol} = KD.singletons
 
-    kite =
-      if KD.useNewKites
-      then kontrol.kites.terminal[hostnameAlias]
-      else vmController.terminalKites[hostnameAlias]
+    kite = kontrol.kites.terminal[hostnameAlias]
     kite?.webtermGetSessions().then (sessions) =>
       hasResponse = yes
       return if @reconnected

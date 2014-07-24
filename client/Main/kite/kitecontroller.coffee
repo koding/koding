@@ -115,12 +115,9 @@ class KiteController extends KDController
       correlationName  = vmc.defaultVmName
       options.kiteName = "os-#{vmc.vmRegions[vmc.defaultVmName]}"
 
-    kite =
-      if KD.useNewKites
-      then KD.getSingleton('kontrol').getKite {
-        name: options.kiteName, correlationName
-      }
-      else @getKite options.kiteName, correlationName
+    kite = KD.getSingleton('kontrol').getKite {
+      name: options.kiteName, correlationName
+    }
 
     if command
       options.withArgs.command = command

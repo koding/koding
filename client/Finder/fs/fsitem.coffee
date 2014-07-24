@@ -311,15 +311,12 @@ class FSItem extends KDObject
     FSItem.getKite { @vm, @vmName }
 
   @getKite = ({vm, vmName})->
-    if KD.useNewKites
-      kontrol = KD.getSingleton 'kontrol'
-      kontrol.getKite \
-        if vm?
-          name              : 'oskite'
-          correlationName   : vm.hostnameAlias
-          region            : vm.region
-        else
-          name              : 'oskite'
-          correlationName   : vmName
-    else
-      KD.getSingleton('vmController').getKiteByVmName vmName
+    kontrol = KD.getSingleton 'kontrol'
+    kontrol.getKite \
+      if vm?
+        name              : 'oskite'
+        correlationName   : vm.hostnameAlias
+        region            : vm.region
+      else
+        name              : 'oskite'
+        correlationName   : vmName

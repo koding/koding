@@ -34,18 +34,12 @@ class TerminalStartTab extends JView
 
       @listVMs vms
 
-      terminalKites =
-        if KD.useNewKites
-        then kontrol.kites.terminal
-        else vmController.terminalKites
+      terminalKites = kontrol.kites.terminal
 
       vmController.on 'terminalsReady', =>
         @listVMSessions vms
 
-      osKites =
-        if KD.useNewKites
-        then kontrol.kites.oskite
-        else vmController.kites
+      osKites = kontrol.kites.oskite
 
       for own alias, kite of osKites
         if kite.recentState
@@ -73,10 +67,7 @@ class TerminalStartTab extends JView
     vmList = {}
     vms.forEach (vm) -> vmList[vm.hostnameAlias] = vm
 
-    terminalKites =
-      if KD.useNewKites
-      then kontrol.kites.terminal
-      else vmController.terminalKites
+    terminalKites = kontrol.kites.terminal
 
     delegate = @getDelegate()
 
