@@ -7,10 +7,13 @@ class DevToolsMainView extends KDView
 
     @storage   = KD.singletons.localStorageController.storage "DevTools"
     @liveMode  = @storage.getValue 'liveMode'
+    @machine   = @getOption 'machine'
 
     unless @liveMode?
-     @liveMode = yes
-     @storage.setValue 'liveMode', @liveMode
+      @liveMode = yes
+      @storage.setValue 'liveMode', @liveMode
+
+    info "[DevTools] loaded with machine:", @machine
 
     @_currentMode = 'home'
 
@@ -60,6 +63,7 @@ class DevToolsMainView extends KDView
               type              : "finder"
               name              : "finder"
               editor            : "JSEditor"
+              machine           : @machine
               handleFileOpen    : (file, content) =>
 
                 @switchMode 'develop'
@@ -95,12 +99,14 @@ class DevToolsMainView extends KDView
                       name      : "JSEditor"
                       paneClass : DevToolsEditorPane
                       title     : "JavaScript"
+                      machine   : @machine
                     }
                     {
                       type      : "custom"
                       name      : "CSSEditor"
                       title     : "Style"
                       paneClass : DevToolsCssEditorPane
+                      machine   : @machine
                     }
                   ]
                 }
