@@ -167,7 +167,7 @@ func (l *Listener) Start(handler Handler) func(delivery amqp.Delivery) {
 	l.Log.Info("Worker Started to Consume")
 
 	if l.Debug {
-		go metrics.Log(l.Metrics.Registry, 60e9, log.New(os.Stderr, "metrics: ", log.Lmicroseconds))
+		go metrics.Log(l.Metrics.Registry, 1e10, log.New(os.Stderr, "metrics: ", log.Lmicroseconds))
 	}
 
 	return func(delivery amqp.Delivery) {

@@ -25,6 +25,7 @@ var (
 	flagRegion   = flag.String("r", "", "Region name")
 	flagDebug    = flag.Bool("d", false, "Debug mode")
 	flagVersion  = flag.Int("v", 0, "Worker Version")
+	flagMetrics  = flag.Bool("m", false, "Output metrics")
 
 	flagKiteInit       = flag.Bool("kite-init", false, "Init kite system with the worker.")
 	flagKiteLocal      = flag.Bool("kite-local", false, "Start kite system in local mode.")
@@ -153,7 +154,7 @@ func (r *Runner) Listen(handler worker.Handler) {
 		WrapWithVersion(r.Name, flagVersion),
 		WrapWithVersion(r.Conf.EventExchangeName, flagVersion),
 		r.Log,
-		*flagDebug,
+		*flagMetrics,
 	)
 
 	// blocking
