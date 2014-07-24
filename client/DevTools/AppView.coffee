@@ -7,10 +7,13 @@ class DevToolsMainView extends KDView
 
     @storage   = KD.singletons.localStorageController.storage "DevTools"
     @liveMode  = @storage.getValue 'liveMode'
+    @machine   = @getOption 'machine'
 
     unless @liveMode?
-     @liveMode = yes
-     @storage.setValue 'liveMode', @liveMode
+      @liveMode = yes
+      @storage.setValue 'liveMode', @liveMode
+
+    info "[DevTools] loaded with machine:", @machine
 
     @_currentMode = 'home'
 
@@ -60,6 +63,7 @@ class DevToolsMainView extends KDView
               type              : "finder"
               name              : "finder"
               editor            : "JSEditor"
+              machine           : @machine
               handleFileOpen    : (file, content) =>
 
                 @switchMode 'develop'
@@ -95,12 +99,14 @@ class DevToolsMainView extends KDView
                       name      : "JSEditor"
                       paneClass : DevToolsEditorPane
                       title     : "JavaScript"
+                      machine   : @machine
                     }
                     {
                       type      : "custom"
                       name      : "CSSEditor"
                       title     : "Style"
                       paneClass : DevToolsCssEditorPane
+                      machine   : @machine
                     }
                   ]
                 }
@@ -272,22 +278,23 @@ class DevToolsMainView extends KDView
 
   createNewApp:->
 
-    KD.singletons.kodingAppsController.makeNewApp (err, data)=>
+    KD.singletons.kodingAppsController.makeNewApp @machine, (err, data)=>
 
       return warn err  if err
 
       {appPath} = data
       {CSSEditor, JSEditor, finder} = @workspace.activePanel.panesByName
 
-      vmName = KD.singletons.vmController.defaultVmName
-      finder.finderController.expandFolders "[#{vmName}]#{appPath}/resources", ->
+      {uid} = @machine
+      finder.finderController.expandFolders "[#{uid}]#{appPath}/resources", ->
         fileTree = finder.finderController.treeController
-        fileTree.selectNode fileTree.nodes["[#{vmName}]#{appPath}"]
+        fileTree.selectNode fileTree.nodes["[#{uid}]#{appPath}"]
 
-      JSEditor.loadFile  "[#{vmName}]#{appPath}/index.coffee"
-      CSSEditor.loadFile "[#{vmName}]#{appPath}/resources/style.css"
+      JSEditor.loadFile  "#{appPath}/index.coffee"
+      CSSEditor.loadFile "#{appPath}/resources/style.css"
 
       @switchMode 'develop'
+
 
   publishCurrentApp:(target='test')->
 

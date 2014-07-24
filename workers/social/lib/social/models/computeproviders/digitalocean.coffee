@@ -9,9 +9,6 @@ module.exports = class DigitalOcean extends ProviderInterface
 
     { credential, instanceType, region } = options
 
-    # @fetchCredentialData credential, (err, cred)->
-    #   return callback err  if err?
-
     meta =
       type   : "digitalocean"
       image  : "ubuntu-13-10-x64"
