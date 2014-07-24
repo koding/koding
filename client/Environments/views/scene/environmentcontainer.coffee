@@ -19,16 +19,17 @@ class EnvironmentContainer extends KDDiaContainer
         height   : 20
         width    : 20
 
+    @addButton = new KDButtonView
+      title    : "+"
+      cssClass : 'add-button'
+      callback : => @emit 'PlusButtonClicked'
+
   viewAppended:->
     super
 
     @addSubView @header
     @header.addSubView @loader
 
-    @addButton = new KDButtonView
-      title    : "+"
-      cssClass : 'add-button'
-      callback : => @emit 'PlusButtonClicked'
     @addSubView @addButton
     @addButton.setY 54
 
