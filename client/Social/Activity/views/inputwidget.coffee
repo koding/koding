@@ -30,7 +30,6 @@ class ActivityInputWidget extends KDView
       link     : 'http://learn.koding.com/?s=wordpress'
 
 
-
   constructor: (options = {}, data) ->
     options.cssClass = KD.utils.curry "activity-input-widget", options.cssClass
     super options, data
@@ -39,6 +38,7 @@ class ActivityInputWidget extends KDView
 
     @input = new ActivityInputView defaultValue: options.defaultValue
     @input.on "Escape", @bound "reset"
+    @input.on "Enter", @bound "submit"
 
     @input.on "TokenAdded", (type, token) =>
       if token.slug is "bug" and type is "tag"
@@ -47,6 +47,8 @@ class ActivityInputWidget extends KDView
 
     # FIXME we need to hide bug warning in a proper way ~ GG
     @input.on "keyup", =>
+      @showPreview() if @preview #Updates preview if it exists
+
       val = @input.getValue()
       @checkForCommonQuestions val
       if val.indexOf("5051003840118f872e001b91") is -1
@@ -62,16 +64,21 @@ class ActivityInputWidget extends KDView
 
     @submitButton = new KDButtonView
       type        : "submit"
-      cssClass    : "solid green"
-      iconOnly    : yes
+      title       : "SEND"
+      cssClass    : "solid green small"
       loader      : yes
       callback    : @bound "submit"
 
-    @avatar = new AvatarView
-      size      :
-        width   : 35
-        height  : 35
-    , KD.whoami()
+    @icon = new KDCustomHTMLView tagName : 'figure'
+
+    # @avatar = new AvatarView
+    #   size      :
+    #     width   : 42
+    #     height  : 42
+    # , KD.whoami()
+
+    @buttonBar = new KDCustomHTMLView
+      cssClass : "widget-button-bar"
 
     @bugNotification = new KDCustomHTMLView
       cssClass : 'bug-notification'
@@ -93,6 +100,7 @@ class ActivityInputWidget extends KDView
       partial  : 'Need help with:'
 
     @currentHelperNames = []
+
 
   checkForCommonQuestions: KD.utils.throttle 200, (val)->
 
@@ -142,98 +150,78 @@ class ActivityInputWidget extends KDView
     @helpContainer.addSubView new Klass options
     @currentHelperNames.push val
 
+
   hideAllHelpers:->
 
     @helpContainer.hide()
     @helpContainer.destroySubViews()
     @currentHelperNames = []
 
+
   submit: (callback) ->
-    return @reset yes unless value = @input.getValue().trim()
 
-    {JTag} = KD.remote.api
+    return  if @locked
+    return @reset yes  unless body = @input.getValue().trim()
 
-    activity       = @getData()
-    activity?.tags = []
-    tags           = []
-    suggestedTags  = []
-    createdTags    = {}
-    feedType       = ""
-    { app }        = @getOptions()
+    activity = @getData()
+    {app}    = @getOptions()
 
-    for token in @input.getTokens()
-      feedType     = "bug" if token.data?.title?.toLowerCase() is "bug"
-      {data, type} = token
-      if type is "tag"
-        if data instanceof JTag
-          tags.push id: data.getId()
-          activity?.tags.push data
-        else if data.$suggest and data.$suggest not in suggestedTags
-          suggestedTags.push data.$suggest
+    # fixme for bugs app
 
-    queue = [
-      ->
-        tagCreateJobs = suggestedTags.map (title) ->
-          ->
-            JTag.create {title}, (err, tag) ->
-              return KD.showError err if err
-              activity?.tags.push tag
-              tags.push id: tag.getId()
-              createdTags[title] = tag
-              tagCreateJobs.fin()
+    # for token in @input.getTokens()
+    #   feedType     = "bug" if token.data?.title?.toLowerCase() is "bug"
+    #   {data, type} = token
+    #   if type is "tag"
+    #     if data instanceof JTag
+    #       tags.push id: data.getId()
+    #       activity?.tags.push data
+    #     else if data.$suggest and data.$suggest not in suggestedTags
+    #       suggestedTags.push data.$suggest
 
-        dash tagCreateJobs, ->
-          queue.next()
-    , =>
-        body = @encodeTagSuggestions value, createdTags
-        data =
-          group    : KD.getSingleton('groupsController').getGroupSlug()
-          body     : body
-          meta     : {tags}
-          feedType : feedType
+    payload = @getPayload()
 
-        data.link_url   = @embedBox.url or ""
-        data.link_embed = @embedBox.getDataForSubmit() or {}
+    @lockSubmit()
 
-        @lockSubmit()
-
-        fn = @bound if activity then "update" else "create"
-        fn data, (err, activity) =>
-          @reset yes
-          @embedBox.resetEmbedAndHide()
-          @emit "Submit", err, activity
-          callback? err, activity
-
-          KD.mixpanel "Status update create, success", {length:activity?.body?.length}
-    ]
-
-    if app is 'bug'
-      queue.unshift =>
-        KD.remote.api.JTag.one slug : 'bug', (err, tag)=>
-          if err then KD.showError err
-          else
-            feedType = "bug"
-            value += " #{KD.utils.tokenizeTag tag}"
-            tags.push id : tag.getId()
-          queue.next()
-
-    daisy queue
-
-    dockItems = KD.singletons.dock.getItems()
-    dockItem  = dockItems.filter (item) -> item.data.title is 'Bugs'
-    if feedType is "bug" and dockItem.length is 0 then KD.singletons.dock.addItem { title : "Bugs", path : "/Bugs", order : 60 }
+    fn = @bound if activity then 'update' else 'create'
+    fn {body, payload}, @bound 'submissionCallback'
 
     @emit "ActivitySubmitted"
+    # fixme for bugs app
+
+    # if app is 'bug'
+    #   queue.unshift =>
+    #     KD.remote.api.JTag.one slug : 'bug', (err, tag)=>
+    #       if err then KD.showError err
+    #       else
+    #         feedType = "bug"
+    #         value += " #{KD.utils.tokenizeTag tag}"
+    #         tags.push id : tag.getId()
+    #       queue.next()
+    # dockItems = KD.singletons.dock.getItems()
+    # dockItem  = dockItems.filter (item) -> item.data.title is 'Bugs'
+    # if feedType is "bug" and dockItem.length is 0 then KD.singletons.dock.addItem { title : "Bugs", path : "/Bugs", order : 60 }
 
 
-  encodeTagSuggestions: (str, tags) ->
-    return  str.replace /\|(.*?):\$suggest:(.*?)\|/g, (match, prefix, title) ->
-      tag = tags[title]
-      return  "" unless tag
-      return  "|#{prefix}:JTag:#{tag.getId()}:#{title}|"
+  submissionCallback: (err, activity) ->
 
-  create: (data, callback) ->
-    KD.remote.api.JNewStatusUpdate.create data, (err, activity) =>
+    return @showError err  if err
+
+    @reset yes
+    @emit "Submit", activity
+
+    KD.mixpanel "Status update create, success", { length: activity?.body?.length }
+
+
+  create: ({body, payload}, callback) ->
+
+    {appManager} = KD.singletons
+    {channel}    = @getOptions()
+
+    if channel.typeConstant is 'topic' and not body.match ///\##{channel.name}///
+      body += " ##{channel.name} "
+
+    appManager.tell 'Activity', 'post', {body, payload}, (err, activity) =>
+
       @reset()  unless err
 
       callback? err, activity
@@ -245,99 +233,122 @@ class ActivityInputWidget extends KDView
           duration   : 5000
         KodingError  : 'Something went wrong while creating activity'
 
-      KD.getSingleton("badgeController").checkBadge
-        property : "statusUpdates", relType : "author", source : "JNewStatusUpdate", targetSelf : 1
 
-  update: (data, callback) ->
-    activity = @getData()
-    return  @reset() unless activity
-    activity.modify data, (err) =>
-      KD.showError err
-      @reset()  unless err
-      callback? err
+  update: ({body, payload}, callback = noop) ->
+
+    {appManager} = KD.singletons
+    {channelId}  = @getOptions()
+    activity     = @getData()
+
+    return  @reset()  unless activity
+
+    appManager.tell 'Activity', 'edit', {
+      id: activity.id
+      body
+      payload
+    }, (err, message) =>
+
+      if err
+        options =
+          userMessage: "You are not allowed to edit this post."
+        return @showError err, options
+
+      @reset()
+      callback()
 
       KD.mixpanel "Status update edit, success"
 
-  reset: (lock = yes) ->
+
+  reset: (unlock = yes) ->
+
     @input.setContent ""
     @input.blur()
     @embedBox.resetEmbedAndHide()
 
-    if lock
+    if unlock
     then @unlockSubmit()
     else KD.utils.wait 8000, @bound "unlockSubmit"
 
+
+  getPayload: ->
+
+    link_url   = @embedBox.url
+    link_embed = @embedBox.getDataForSubmit()
+
+    return {link_url, link_embed}  if link_url and link_embed
+
+
+  showError: (err, options = {}) ->
+
+    KD.showErrorNotification err, options
+
+    @unlockSubmit()
+
+
   lockSubmit: ->
+
+    @locked = yes
     @submitButton.disable()
     @submitButton.showLoader()
 
+
   unlockSubmit: ->
+
+    @locked = no
     @submitButton.enable()
     @submitButton.hideLoader()
 
+
   showPreview: ->
+
     return unless value = @input.getValue().trim()
-    markedValue = KD.utils.applyMarkdown value
-    return  if markedValue.trim() is "<p>#{value}</p>"
-    tags = @input.getTokens().map (token) -> token.data if token.type is "tag"
-    tagsExpanded = @utils.expandTokens markedValue, {tags}
-    if not @preview
-      @preview = new KDCustomHTMLView
-        cssClass : "update-preview"
-        partial  : tagsExpanded
-        click    : => @hidePreview()
-      @input.addSubView @preview
-    else
-      @preview.updatePartial tagsExpanded
+
+    data            =
+      on            : -> return this
+      watch         : -> return this
+      account       : KD.whoami().bongo_
+      body          : value
+      typeConstant  : 'post'
+      replies       : []
+      interactions  :
+        like        :
+          actorsCount : 0
+          actorsPreview : []
+      meta          :
+        createdAt   : new Date
+
+    @preview?.destroy()
+    @addSubView @preview = new ActivityListItemView cssClass: 'preview', data
+    @preview.addSubView new KDCustomHTMLView
+      cssClass : 'preview-indicator'
+      partial  : 'Previewing'
+      click    : @bound 'hidePreview'
 
     @setClass "preview-active"
 
+
   hidePreview:->
+
     @preview.destroy()
     @preview = null
-
     @unsetClass "preview-active"
 
+
+  focus: ->
+
+    @input.focus()
+    @input.setPlaceholder()
+
+
   viewAppended: ->
-    @addSubView @avatar
+
+    @addSubView @icon
+    # @addSubView @avatar
     @addSubView @input
-    @addSubView @embedBox
+    @addSubView @buttonBar
+    # @addSubView @embedBox
     @addSubView @bugNotification
     @addSubView @helpContainer
-    @input.addSubView @submitButton
-    @input.addSubView @previewIcon
+    @buttonBar.addSubView @submitButton
+    @buttonBar.addSubView @previewIcon
     @hide()  unless KD.isLoggedIn()
-
-class ActivityEditWidget extends ActivityInputWidget
-  constructor : (options = {}, data) ->
-    options.cssClass = KD.utils.curry "edit-widget", options.cssClass
-    options.destroyOnSubmit = yes
-
-    super options, data
-
-    @submitButton = new KDButtonView
-      type        : "submit"
-      cssClass    : "solid green"
-      iconOnly    : no
-      loader      : yes
-      title       : "Done editing"
-      callback    : @bound "submit"
-
-    @cancelButton = new KDButtonView
-      cssClass : "solid gray"
-      title    : "Cancel"
-      callback : => @emit "Cancel"
-
-  viewAppended: ->
-    data         = @getData()
-    {body, link} = data
-
-    content = ""
-    content += "<div>#{Encoder.htmlEncode(line)}&nbsp;</div>" for line in body.split "\n"
-    @input.setContent content, data
-    @embedBox.loadEmbed link.link_url  if link
-
-    @addSubView @input
-    @addSubView @embedBox
-    @input.addSubView @submitButton
-    @input.addSubView @cancelButton

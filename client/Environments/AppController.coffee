@@ -2,7 +2,6 @@ class EnvironmentsAppController extends AppController
 
   KD.registerAppClass this,
     name         : 'Environments'
-    route        : '/:name?/Environments'
     behavior     : 'application'
     preCondition :
       condition  : (options, cb)-> cb KD.isLoggedIn()

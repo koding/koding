@@ -1,106 +1,13 @@
-{argv}  = require 'optimist'
-encoder = require 'htmlencode'
-{uri}   = require('koding-config-manager').load("main.#{argv.c}")
-{ formatDate, getProfile, getAvatarImageUrl } = require '../helpers'
-
-createLinkToStatusUpdate = (createDate, slug) ->
-  content =
-    """
-    <a href="#{uri.address}/Activity/#{slug}"><time class="kdview">#{createDate}</time></a>
-    """
-  return content
-
-createStatusUpdateNode = (statusUpdate, profile)=>
-  {meta:{createdAt}} = statusUpdate  if statusUpdate
-  createdAt          = if createdAt then formatDate createdAt else ""
-  slug               = if statusUpdate?.slug then statusUpdate.slug else ""
-
-  linkToStatusUpdate = createLinkToStatusUpdate createdAt, slug
-
-  commentsList = ""
-  if statusUpdate?.replies
-    for comment in statusUpdate.replies
-      profile = getProfile comment.author
-      avatarUrl = getAvatarImageUrl profile.hash, profile.avatar
-      nickname = encoder.XSSEncode profile.nickname
-      fullname = encoder.XSSEncode profile.fullName
-
-      commentsList +=
-        """
-          <div class="kdview kdlistitemview kdlistitemview-comment">
-            <a class="avatarview online" href="/#{comment.author.nickname}" style="width: 40px; height: 40px; background-size: 40px; background-image: none;"><img class="" width="40" height="40" src="#{avatarUrl}" style="opacity: 1;"></a>
-            <div class="comment-contents clearfix">
-              <a class="profile" href="/#{nickname}" itemprop="name">#{fullname}</a>
-              <div class="comment-body-container"><p itemprop="commentText">#{comment.body}</p></div>
-
-            </div>
-          </div>
-        """
-
-  commentsContent =
-    """
-      <div class="kdview comment-container commented">
-        <div class="kdview listview-wrapper">
-          <div class="kdview kdscrollview">
-            <div class="kdview kdlistview kdlistview-comments">
-              #{commentsList}
-            </div>
-          </div>
-        </div>
-      </div>
-    """
-
-  marked = require 'marked'
-
-  body = marked statusUpdate.body,
-    gfm       : true
-    pedantic  : false
-    sanitize  : true
-
-  statusUpdateContent = ""
-  if statusUpdate?.body
-    statusUpdateContent =
-    """
-    <div class="kdview activity-item status">
-      <a class="profile" href="/#{profile.nickname}">#{profile.fullName}</a>
-      <article data-paths="body" id="el-1223">
-        <p>#{body}</p>
-      </article>
-      <footer>#{linkToStatusUpdate}</footer>
-      #{commentsContent}
-    </div>
-    """
-  return statusUpdateContent
-
-createLinkToUserProfile = (fullName, nickname) ->
-  content =
-    """
-      <a href=\"#{uri.address}/#{nickname}\">#{fullName}</a>
-    """
-  return content
-
-getStatusUpdates = (statusUpdates, profile) ->
-  linkToProfile = createLinkToUserProfile profile.fullName, profile.nickname
-  if statusUpdates?.length > 0
-    updates = (createStatusUpdateNode(statusUpdate, profile) for statusUpdate in statusUpdates)
-    updatesContent = updates.join("")
-  else
-    updatesContent =
-    """
-    <div class="lazy-loader">#{profile.fullName} has not shared any posts yet.</div>
-    """
-  return updatesContent
-
+{ getProfile } = require '../helpers'
+{ getAvatarImageUrl }      = require './activity'
+{ getDock }                = require './feed'
 
 module.exports = (account, statusUpdates)=>
-  getStyles    = require './styleblock'
   getGraphMeta = require './graphmeta'
   analytics    = require './analytics'
 
   {profile:{nickname}} = account  if account
 
-  profile = getProfile account
-  sUpdates = getStatusUpdates statusUpdates, profile, (err, sUpdates) ->
   """
   <!DOCTYPE html>
   <html lang="en">
@@ -109,54 +16,17 @@ module.exports = (account, statusUpdates)=>
     #{getGraphMeta()}
   </head>
     <body class='koding profile' itemscope itemtype="http://schema.org/WebPage">
-      #{putContent(account, sUpdates)}
+      #{putContent(account, statusUpdates)}
       #{analytics()}
     </body>
   </html>
   """
 
-getDock = ->
-  """
-  <header id="main-header" class="kdview">
-      <div class="inner-container">
-          <a id="koding-logo" href="/">
-              <cite></cite>
-          </a>
-          <div id="dock" class="">
-              <div id="main-nav" class="kdview kdlistview kdlistview-navigation">
-                  <a class="kdview kdlistitemview kdlistitemview-main-nav activity kddraggable running" href="/Activity" style="left: 0px;">
-                      <span class="icon"></span>
-                      <cite>Activity</cite>
-                  </a>
-                  <a class="kdview kdlistitemview kdlistitemview-main-nav teamwork kddraggable" href="/Teamwork" style="left: 55px;">
-                      <span class="icon"></span>
-                      <cite>Teamwork</cite>
-                  </a>
-                  <a class="kdview kdlistitemview kdlistitemview-main-nav terminal kddraggable" href="/Terminal" style="left: 110px;">
-                      <span class="icon"></span>
-                      <cite>Terminal</cite>
-                  </a>
-                  <a class="kdview kdlistitemview kdlistitemview-main-nav editor kddraggable" href="/Ace" style="left: 165px;">
-                      <span class="icon"></span>
-                      <cite>Editor</cite>
-                  </a>
-                  <a class="kdview kdlistitemview kdlistitemview-main-nav apps kddraggable" href="/Apps" style="left: 220px;">
-                      <span class="icon"></span>
-                      <cite>Apps</cite>
-                  </a>
-              </div>
-          </div>
-          <div class="account-area">
-            <a class="custom-link-view header-sign-in" href="/Register">create an account</a>
-            <a class="custom-link-view header-sign-in" href="/Login">login</a>
-          </div>
-      </div>
-  </header>
-  """
-
-putContent = (account, sUpdates)=>
-  getGraphMeta = require './graphmeta'
+putContent = (account, statusUpdates)=>
   profile      = getProfile account
+
+  if statusUpdates is ""
+    statusUpdates = """<div class="lazy-loader">#{profile.fullName} has not shared any posts yet.</div>"""
 
   numberOfLikes     = if account?.counts?.likes     then account.counts.likes     else "0"
   numberOfFollowers = if account?.counts?.followers then account.counts.followers else "0"
@@ -202,7 +72,7 @@ putContent = (account, sUpdates)=>
                   <div class="kdview kdtabpaneview statuses clearfix active">
                     <div class="kdview kdlistview kdlistview-statuses activity-related">
                       <div class="kdview kdlistitemview kdlistitemview-activity" itemscope itemtype="http://schema.org/UserComments">
-                        #{sUpdates}
+                        #{statusUpdates}
                       </div>
                     </div>
                   </div>

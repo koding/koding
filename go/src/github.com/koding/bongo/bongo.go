@@ -18,6 +18,7 @@ type Bongo struct {
 	Broker EventBus
 	DB     *gorm.DB
 	log    logging.Logger
+	Cache  Cache
 }
 
 func New(b EventBus, db *gorm.DB, l logging.Logger) *Bongo {

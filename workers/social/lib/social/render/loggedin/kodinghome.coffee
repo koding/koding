@@ -4,22 +4,26 @@ module.exports = (options, callback)->
   fetchScripts    = require './../scriptblock'
   getInnerNav     = require './../innernav'
   getSidebar      = require './sidebar'
+  getTitle        = require './../title'
   getStatusWidget = require './statuswidget'
 
+  entryPoint         = { slug : "koding", type: "group" }
+  options.entryPoint = entryPoint
 
   prepareHTML = (scripts)->
     """
     <!doctype html>
     <html lang="en">
     <head>
-      <title>Koding | A New Way For Developers To Work</title>
+      #{getTitle()}
       #{getStyles()}
     </head>
     <body class='logged-in'>
 
       <!--[if IE]><script>(function(){window.location.href='/unsupported.html'})();</script><![endif]-->
 
-      #{KONFIG.getConfigScriptTag { roles: ['guest'], permissions: [] } }
+      #{KONFIG.getConfigScriptTag { entryPoint, roles: ['guest'], permissions: [] } }
+      <script>KD.isLoggedInOnLoad=true;</script>
       #{scripts}
 
     </body>

@@ -1,44 +1,31 @@
 package main
 
 import (
-	"flag"
 	"fmt"
-
-	"socialapi/config"
-	"socialapi/workers/helper"
+	"socialapi/workers/common/manager"
+	"socialapi/workers/common/runner"
 	"socialapi/workers/topicfeed/topicfeed"
-	"github.com/koding/worker"
 )
 
 var (
-	flagConfFile = flag.String("c", "", "Configuration file")
-	flagDebug    = flag.Bool("d", false, "Debug mode")
+	Name = "TopicFeed"
 )
 
 func main() {
-	flag.Parse()
-	if *flagConfFile == "" {
-		fmt.Println("Please define config file with -c", "Exiting...")
+	r := runner.New(Name)
+	if err := r.Init(); err != nil {
+		fmt.Println(err)
 		return
 	}
 
-	conf := config.MustRead(*flagConfFile)
+	m := manager.New()
+	m.Controller(topicfeed.New(r.Log))
 
-	// create logger for our package
-	log := helper.CreateLogger("TopicFeedWorker", *flagDebug)
-
-	// panics if not successful
-	bongo := helper.MustInitBongo(conf, log)
-	// do not forgot to close the bongo connections
-	defer bongo.Close()
+	m.HandleFunc("api.channel_message_updated", (*topicfeed.Controller).MessageUpdated)
+	m.HandleFunc("api.channel_message_deleted", (*topicfeed.Controller).MessageDeleted)
+	m.HandleFunc("api.channel_message_created", (*topicfeed.Controller).MessageSaved)
 
 	// create message handler
-	handler := topicfeed.NewTopicFeedController(log)
-
-	listener := worker.NewListener("TopicFeed", conf.EventExchangeName, log)
-	// blocking
-	// listen for events
-	listener.Listen(helper.NewRabbitMQ(conf, log), handler)
-	// close consumer
-	defer listener.Close()
+	r.Listen(m)
+	r.Wait()
 }

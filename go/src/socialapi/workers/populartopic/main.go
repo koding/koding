@@ -1,51 +1,27 @@
 package main
 
 import (
-	"flag"
 	"fmt"
-
-	"socialapi/config"
+	"socialapi/workers/common/runner"
 	"socialapi/workers/helper"
 	"socialapi/workers/populartopic/populartopic"
-	"github.com/koding/redis"
-	"github.com/koding/worker"
 )
 
 var (
-	flagConfFile = flag.String("c", "", "Configuration profile from file")
-	flagDebug    = flag.Bool("d", false, "Debug mode")
+	Name = "PopularTopic"
 )
 
 func main() {
-	flag.Parse()
-	if *flagConfFile == "" {
-		fmt.Println("Please define config file with -c", "Exiting...")
+	r := runner.New(Name)
+	if err := r.Init(); err != nil {
+		fmt.Println(err)
 		return
 	}
 
-	conf := config.MustRead(*flagConfFile)
-
-	// create logger for our package
-	log := helper.CreateLogger("PopularTopicsWorker", *flagDebug)
-
-	// panics if not successful
-	bongo := helper.MustInitBongo(conf, log)
-	// do not forgot to close the bongo connection
-	defer bongo.Close()
-
-	redis, err := redis.NewRedisSession(conf.Redis)
-	if err != nil {
-		log.Error(err.Error())
-		return
-	}
-
+	redis := helper.MustInitRedisConn(r.Conf)
 	// create message handler
-	handler := populartopic.NewPopularTopicsController(log, redis)
+	handler := populartopic.New(r.Log, redis)
 
-	listener := worker.NewListener("PopularTopicsFeed", conf.EventExchangeName, log)
-	// blocking
-	// listen for events
-	listener.Listen(helper.NewRabbitMQ(conf, log), handler)
-	// close consumer
-	defer listener.Close()
+	r.Listen(handler)
+	r.Wait()
 }

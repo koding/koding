@@ -43,7 +43,10 @@ module.exports =
     clusterSize : 1
     queueName   : socialQueueName+'web'
     watch       : no
-  socialApiUrl  : "http://sandbox-social.sj.koding.com:7000"
+  socialapi:
+    port        : 7000
+    clusterSize : 1
+    proxyUrl    : "http://sandbox-social.sj.koding.com:7000"
   sourceServer  :
     enabled     : yes
     port        : 1337
@@ -181,7 +184,7 @@ module.exports =
       appsUri   : 'https://rest.kd.io'
       uploadsUri: 'https://koding-uploads.s3.amazonaws.com'
       uploadsUriForGroup: 'https://koding-groups.s3.amazonaws.com'
-      sourceUri : "http://stage-webserver-#{version}.sj.koding.com:1337"
+      sourceUri : "http://sandbox.koding.com:1337"
       github    :
         clientId: "f733c52d991ae9642365"
       newkontrol:

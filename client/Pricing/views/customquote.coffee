@@ -1,7 +1,7 @@
 class PricingCustomQuoteView extends KDView
   constructor: (options = {}, data) ->
     options.tagName  = "section"
-    options.cssClass = "custom-quote"
+    options.cssClass = KD.utils.curry "custom-quote", options.cssClass
     super options, data
 
   viewAppended: ->

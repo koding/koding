@@ -1,29 +1,39 @@
 class MainView extends KDView
 
-  constructor:->
 
-    super
+  constructor: (options = {}, data)->
+
+    options.domId    = 'kdmaincontainer'
+    options.cssClass = if KD.isLoggedInOnLoad then 'with-sidebar' else ''
+
+    super options, data
 
     @notifications = []
 
-  viewAppended:->
+
+  viewAppended: ->
+
+    {mainController} = KD.singletons
 
     @bindPulsingRemove()
     @bindTransitionEnd()
     @createHeader()
-    @createMainPanels()
+
+    if KD.isLoggedInOnLoad
+    then @createSidebar()
+    else mainController.once 'accountChanged.to.loggedIn', @bound 'createSidebar'
+
+    @createPanelWrapper()
     @createMainTabView()
 
-    KD.singletons.mainController.ready =>
-      @createAccountArea()
+    mainController.ready =>
+      if KD.isLoggedInOnLoad
+      then @createAccountArea()
+      else mainController.once 'accountChanged.to.loggedIn', @bound 'createAccountArea'
+
       @setStickyNotification()
       @emit 'ready'
 
-  createMainPanels:->
-
-    @addSubView @panelWrapper = new KDView
-      tagName  : "section"
-      domId    : "main-panel-wrapper"
 
   createHeader:->
 
@@ -34,12 +44,9 @@ class MainView extends KDView
       domId    : 'main-header'
       cssClass : 'no-dock'  unless KD.isLoggedIn()
 
-    @header.clear()
+    @header.addSubView new TopNavigation
 
-    @header.addSubView @headerContainer = new KDCustomHTMLView
-      cssClass  : "inner-container"
-
-    @logo = new KDCustomHTMLView
+    @header.addSubView @logo = new KDCustomHTMLView
       tagName   : "a"
       domId     : "koding-logo"
       cssClass  : if entryPoint?.type is 'group' then 'group' else ''
@@ -51,70 +58,40 @@ class MainView extends KDView
         then router.handleRoute '/Activity', {entryPoint}
         else router.handleRoute '/', {entryPoint}
 
-    @headerContainer.addSubView @logo
-
-    groupLogo = ""
-    if KD.currentGroup?.customize?.logo
-      groupLogo = KD.utils.proxifyUrl KD.currentGroup.logo,
-        crop         : yes
-        width        : 55
-        height       : 55
-
-      @logo.setCss 'background-image', "url(#{groupLogo})"
-      @logo.setClass 'custom'
-
     @logo.setClass KD.config.environment
 
-    @headerContainer.addSubView @logotype = new CustomLinkView
+    @header.addSubView @logotype = new CustomLinkView
       cssClass : 'logotype'
       title    : 'Koding'
       href     : '/Home'
 
-    @addDock()
-    @addLoggedOutNav()
+
+  createSidebar: ->
+
+    @setClass 'with-sidebar'
+
+    @addSubView @sidebar = new KDCustomHTMLView
+      tagName  : 'aside'
+      domId    : 'main-sidebar'
+
+    @sidebar.addSubView KD.singletons.dock.getView()
 
 
-  addDock:-> @headerContainer.addSubView KD.singleton('dock').getView()
+  createPanelWrapper:->
 
-  showDock:-> @header.unsetClass 'no-dock'
+    @addSubView @panelWrapper = new KDView
+      tagName  : 'section'
+      domId    : 'main-panel-wrapper'
 
-  hideDock:-> @header.setClass 'no-dock'
-
-  addLoggedOutNav:->
-
-    @headerContainer.addSubView loggedOutNav = new KDCustomHTMLView
-      tagName : 'nav'
-      partial : """
-        <a href='/Education' class='education'>EDUCATION</a>
-        <a href='/Business'  class='business'>BUSINESS</a>
-        <a href='/About'     class='about'>ABOUT</a>
-        <a href='/Pricing'   class='pricing'>PRICING</a>
-        <a href='/Login' class='login'>SIGN IN</a>
-        """
-
-    appManager    = KD.singleton "appManager"
-    navDomElement = loggedOutNav.domElement.context
-
-    appManager.on 'AppIsBeingShown', (instance, view, options) ->
-      appName = options.name.toLowerCase()
-
-      for child in navDomElement.children
-        child.classList.remove 'active'
-
-      target = navDomElement.getElementsByClassName(appName)[0]
-      target?.classList.add 'active'
 
   createAccountArea:->
 
-    @accountArea = new KDCustomHTMLView
+    @sidebar.addSubView @accountArea = new KDCustomHTMLView
       cssClass : 'account-area'
-
-    @headerContainer.addSubView @accountArea
 
     if KD.isLoggedIn()
     then @createLoggedInAccountArea()
     else
-
       mc = KD.getSingleton "mainController"
       mc.once "accountChanged.to.loggedIn", @bound 'createLoggedInAccountArea'
 
@@ -124,76 +101,77 @@ class MainView extends KDView
     KDView.setElementClass document.body, 'add', 'logged-in'
 
     @accountArea.destroySubViews()
-    @accountArea.addSubView @accountMenu = new AvatarAreaIconMenu
-    KD.utils.defer => @accountMenu.accountChanged KD.whoami()
+
+    # @accountArea.addSubView @accountMenu = new AvatarAreaIconMenu
+    # KD.utils.defer => @accountMenu.accountChanged KD.whoami()
 
     @accountArea.addSubView @avatarArea  = new AvatarArea {}, KD.whoami()
-    @accountArea.addSubView @searchIcon  = new KDCustomHTMLView
-      domId      : 'fatih-launcher'
-      cssClass   : 'search acc-dropdown-icon'
-      tagName    : 'a'
-      attributes :
-        title    : 'Search'
-        href     : '#'
-      click      : (event)=>
-        KD.utils.stopDOMEvent event
-        # log 'run fatih'
+    # @accountArea.addSubView @searchIcon  = new KDCustomHTMLView
+    #   domId      : 'fatih-launcher'
+    #   cssClass   : 'search acc-dropdown-icon'
+    #   tagName    : 'a'
+    #   attributes :
+    #     title    : 'Search'
+    #     href     : '#'
+    #   click      : (event)=>
+    #     KD.utils.stopDOMEvent event
+    #     # log 'run fatih'
 
-        @accountArea.setClass "search-open"
-        @searchInput.setFocus()
+    #     @accountArea.setClass "search-open"
+    #     @searchInput.setFocus()
 
-        KD.getSingleton("windowController").addLayer @searchInput
+    #     KD.getSingleton("windowController").addLayer @searchInput
 
-        @searchInput.once "ReceivedClickElsewhere", =>
-          @accountArea.unsetClass "search-open"
+    #     @searchInput.once "ReceivedClickElsewhere", =>
+    #       @accountArea.unsetClass "search-open"
 
-      partial    : "<span class='icon'></span>"
+    #   partial    : "<span class='icon'></span>"
 
-    @accountArea.addSubView @searchForm = new KDCustomHTMLView
-      cssClass   : "search-form-container"
+    # @accountArea.addSubView @searchForm = new KDCustomHTMLView
+    #   cssClass   : "search-form-container"
 
-    handleRoute = (searchRoute, text)->
-      if group = KD.getSingleton("groupsController").getCurrentGroup()
-        groupSlug = if group.slug is "koding" then "" else "/#{group.slug}"
-      else
-        groupSlug = ""
+    # handleRoute = (searchRoute, text)->
+    #   if group = KD.getSingleton("groupsController").getCurrentGroup()
+    #     groupSlug = if group.slug is "koding" then "" else "/#{group.slug}"
+    #   else
+    #     groupSlug = ""
 
-      toBeReplaced =  if text is "" then "?q=:text:" else ":text:"
+    #   toBeReplaced =  if text is "" then "?q=:text:" else ":text:"
 
-      # inject search text
-      searchRoute = searchRoute.replace toBeReplaced, text
-      # add group slug
-      searchRoute = "#{groupSlug}#{searchRoute}"
+    #   # inject search text
+    #   searchRoute = searchRoute.replace toBeReplaced, text
+    #   # add group slug
+    #   searchRoute = "#{groupSlug}#{searchRoute}"
 
-      KD.getSingleton("router").handleRoute searchRoute
+    #   KD.getSingleton("router").handleRoute searchRoute
 
-    search = (text) ->
-      currentApp  = KD.getSingleton("appManager").getFrontApp()
-      if currentApp and searchRoute = currentApp.options.searchRoute
-        return handleRoute searchRoute, text
-      else
-        return handleRoute "/Activity?q=:text:", text
+    # search = (text) ->
+    #   currentApp  = KD.getSingleton("appManager").getFrontApp()
+    #   if currentApp and searchRoute = currentApp.options.searchRoute
+    #     return handleRoute searchRoute, text
+    #   else
+    #     return handleRoute "/Activity?q=:text:", text
 
-    @searchForm.addSubView @searchInput = new KDInputView
-      placeholder  : "Search here..."
-      keyup      : (event)=>
-        text = @searchInput.getValue()
-        # if user deleted everything in textbox
-        # clear the search result
-        if text is "" and @searchInput.searched
-          search("")
-          @searchInput.searched = false
+    # @searchForm.addSubView @searchInput = new KDInputView
+    #   placeholder  : "Search here..."
+    #   keyup      : (event)=>
+    #     text = @searchInput.getValue()
+    #     # if user deleted everything in textbox
+    #     # clear the search result
+    #     if text is "" and @searchInput.searched
+    #       search("")
+    #       @searchInput.searched = false
 
-        # 13 is ENTER
-        if event.keyCode is 13
-          search text
-          @searchInput.searched = true
+    #     # 13 is ENTER
+    #     if event.keyCode is 13
+    #       search text
+    #       @searchInput.searched = true
 
-        # 27 is ESC
-        if event.keyCode is 27
-          @accountArea.unsetClass "search-open"
-          @searchInput.setValue ""
-          @searchInput.searched = false
+    #     # 27 is ESC
+    #     if event.keyCode is 27
+    #       @accountArea.unsetClass "search-open"
+    #       @searchInput.setValue ""
+    #       @searchInput.searched = false
 
 
   createMainTabView:->
@@ -235,6 +213,17 @@ class MainView extends KDView
 
     @panelWrapper.addSubView @mainTabView
     @panelWrapper.addSubView @appSettingsMenuButton
+
+
+  openVMModal: (vm, item) ->
+
+    bounds   = item.getBounds()
+    position =
+      top    : Math.max bounds.y - 40, 0
+      left   : bounds.x + bounds.w + 20
+
+    new VMSettingsModal {position}, vm
+
 
   setStickyNotification:->
 
@@ -320,6 +309,7 @@ class MainView extends KDView
 
   isFullscreen: -> @hasClass "fullscreen"
 
+
   toggleFullscreen: ->
 
     if @isFullscreen()
@@ -348,7 +338,8 @@ class MainView extends KDView
           appView.ready removePulsing
         else removePulsing()
 
-  _logoutAnimation:->
+
+  _logoutAnimation: ->
 
     {body}      = document
     turnOffLine = new KDCustomHTMLView cssClass : "turn-off-line"

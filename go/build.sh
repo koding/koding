@@ -32,6 +32,7 @@ services=(
   koding/cron
   koding/migrators/posts
   koding/migrators/posts/remover
+  socialapi/workers/api
 )
 
 go install -v -ldflags "$ldflags" "${services[@]}"

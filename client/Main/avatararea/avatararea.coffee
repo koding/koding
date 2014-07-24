@@ -11,16 +11,14 @@ class AvatarArea extends KDCustomHTMLView
     account = @getData()
 
     @avatar = new AvatarView
-      tagName    : "div"
-      cssClass   : "avatar-image-wrapper"
+      tagName    : 'div'
+      cssClass   : 'avatar-image-wrapper'
       attributes :
-        title    : "View your public profile"
+        title    : 'View your public profile'
       size       :
-        width    : 25
-        height   : 25
+        width    : 35
+        height   : 35
     , account
-
-    @profileLink = new ProfileLinkView {}, account
 
     @groupSwitcherPopup = new AvatarPopupGroupSwitcher
       cssClass : "group-switcher"
@@ -42,15 +40,20 @@ class AvatarArea extends KDCustomHTMLView
 
     KD.getSingleton('mainController').on 'accountChanged', =>
       @groupSwitcherPopup.listController.removeAllItems()
-      @groupSwitcherPopup.populateGroups()
-      @groupSwitcherPopup.populatePendingGroups()
+
+      # Commenting out these lines because of
+      # removal of the groups links from avatar popup. ~Umut
+      # @groupSwitcherPopup.populateGroups()
+      # @groupSwitcherPopup.populatePendingGroups()
+
 
   pistachio: ->
+
+    {profile} = @getData()
+
     """
     {{> @avatar}}
-    <section>
-      <h2>{{> @profileLink}}</h2>
-      <h3>@{{#(profile.nickname)}}</h3>
-      {{> @groupsSwitcherIcon}}
-    </section>
+    <a class='profile' href='/#{profile.nickname}' title='Your profile'>#{profile.firstName}</a>
+    {{> @groupsSwitcherIcon}}
     """
+

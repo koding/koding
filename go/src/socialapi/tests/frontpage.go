@@ -1,9 +1,10 @@
 package main
 
 import (
-	"encoding/json"
 	"fmt"
 	"socialapi/models"
+	"socialapi/request"
+	"socialapi/rest"
 
 	"labix.org/v2/mgo/bson"
 )
@@ -18,7 +19,7 @@ func testFrontpageOperations() {
 	for i := 0; i < 2; i++ {
 		account := models.NewAccount()
 		account.OldId = bson.NewObjectId().Hex()
-		account, _ = createAccount(account)
+		account, _ = rest.CreateAccount(account)
 		accounts = append(accounts, account.Id)
 	}
 
@@ -31,7 +32,7 @@ func testFrontpageOperations() {
 	}
 
 	for i := 0; i < len(accounts); i++ {
-		channels, err := fetchChannels(accounts[i])
+		channels, err := rest.FetchChannels(accounts[i])
 		if err != nil {
 			fmt.Println(err)
 			return
@@ -41,8 +42,9 @@ func testFrontpageOperations() {
 		}
 	}
 }
+
 func fetchHistoryAndCheckMessages(channelId, accountId int64) {
-	history, err := getHistory(channelId, accountId)
+	history, err := rest.GetHistory(channelId, &request.Query{AccountId: accountId})
 	if err != nil {
 		fmt.Println(err)
 		return
@@ -66,17 +68,17 @@ func fetchHistoryAndCheckMessages(channelId, accountId int64) {
 }
 
 func populateChannelwithAccount(accountId int64) (*models.Channel, error) {
-	channel, err := createChannel(accountId)
+	channel, err := rest.CreateChannel(accountId)
 	if err != nil {
 		return nil, err
 	}
 
-	_, err = addChannelParticipant(channel.Id, accountId, accountId)
+	_, err = rest.AddChannelParticipant(channel.Id, accountId, accountId)
 	if err != nil {
 		return nil, err
 	}
 
-	participants, err := createChannelParticipants(channel.Id, PARTICIPANT_COUNT)
+	participants, err := rest.CreateChannelParticipants(channel.Id, channel.CreatorId, PARTICIPANT_COUNT)
 	if err != nil {
 		return nil, err
 	}
@@ -93,53 +95,37 @@ func populateChannelwithAccount(accountId int64) (*models.Channel, error) {
 
 }
 
-func fetchChannels(accountId int64) ([]*models.Channel, error) {
-	url := fmt.Sprintf("/account/%d/channels", accountId)
-	res, err := sendRequest("GET", url, nil)
-	if err != nil {
-		return nil, err
-	}
-
-	var channels []*models.Channel
-	err = json.Unmarshal(res, &channels)
-	if err != nil {
-		return nil, err
-	}
-
-	return channels, nil
-}
-
 func populatePost(channelId, accountId int64) (*models.ChannelMessage, error) {
-	post, err := createPost(channelId, accountId)
+	post, err := rest.CreatePost(channelId, accountId)
 	if err != nil {
 		return nil, err
 	}
 
-	participants, err := createChannelParticipants(channelId, PARTICIPANT_COUNT)
+	participants, err := rest.CreateChannelParticipants(channelId, accountId, PARTICIPANT_COUNT)
 	if err != nil {
 		return nil, err
 	}
 
 	for i := 0; i < len(participants); i++ {
-		reply, err := addReply(post.Id, participants[i].AccountId, post.InitialChannelId)
+		reply, err := rest.AddReply(post.Id, participants[i].AccountId, post.InitialChannelId)
 		if err != nil {
 			return nil, err
 		}
 
 		// add likes to replies
-		err = addInteraction("like", reply.Id, participants[i].AccountId)
+		err = rest.AddInteraction("like", reply.Id, participants[i].AccountId)
 		if err != nil {
 			return nil, err
 		}
 
 		// like every comment
-		err = addInteraction("like", reply.Id, accountId)
+		err = rest.AddInteraction("like", reply.Id, accountId)
 		if err != nil {
 			return nil, err
 		}
 
 		// add likes to post
-		err = addInteraction("like", post.Id, participants[i].AccountId)
+		err = rest.AddInteraction("like", post.Id, participants[i].AccountId)
 		if err != nil {
 			return nil, err
 		}
@@ -147,24 +133,10 @@ func populatePost(channelId, accountId int64) (*models.ChannelMessage, error) {
 	}
 
 	// like your post
-	err = addInteraction("like", post.Id, accountId)
+	err = rest.AddInteraction("like", post.Id, accountId)
 	if err != nil {
 		return nil, err
 	}
 
 	return post, nil
-}
-
-func createChannelParticipants(channelId int64, c int) ([]*models.ChannelParticipant, error) {
-	var participants []*models.ChannelParticipant
-	for i := 0; i < c; i++ {
-		participant, err := createChannelParticipant(channelId)
-		if err != nil {
-			return nil, err
-		}
-
-		participants = append(participants, participant)
-	}
-
-	return participants, nil
 }

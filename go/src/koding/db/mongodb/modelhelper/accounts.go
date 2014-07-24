@@ -2,6 +2,7 @@ package modelhelper
 
 import (
 	"koding/db/models"
+	"strconv"
 
 	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
@@ -25,7 +26,9 @@ func GetAccount(username string) (*models.Account, error) {
 func GetAccountBySocialApiId(socialApiId int64) (*models.Account, error) {
 	account := new(models.Account)
 	query := func(c *mgo.Collection) error {
-		return c.Find(bson.M{"socialApiId": socialApiId}).One(&account)
+		return c.Find(bson.M{
+			"socialApiId": strconv.FormatInt(socialApiId, 10),
+		}).One(&account)
 	}
 	return account, Mongo.Run(AccountsCollection, query)
 }
