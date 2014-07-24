@@ -55,7 +55,9 @@ class DevToolsController extends AppController
 
   constructor:(options = {}, data)->
 
-    options.view    = new DevToolsMainView
+    { machine }     = options.params
+    options.machine = machine
+    options.view    = new DevToolsMainView { machine }
     options.appInfo =
       name     : "DevTools"
       type     : "application"
@@ -64,7 +66,9 @@ class DevToolsController extends AppController
 
   # FIXME facet, to make it work I had to call notifyWindowResizeListeners here
   handleQuery:->
-    {workspace, _currentMode} = @getView()
+
+    return unless view = @getView()
+    {workspace, _currentMode} = view
 
     workspace.ready ->
       wc = KD.getSingleton("windowController")
