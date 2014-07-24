@@ -9,7 +9,6 @@ import (
 	"socialapi/models"
 	"socialapi/request"
 	notificationmodels "socialapi/workers/notification/models"
-	"time"
 
 	"github.com/koding/logging"
 	"github.com/koding/rabbitmq"
@@ -247,7 +246,6 @@ func (f *Controller) MessageReplySaved(mr *models.MessageReply) error {
 		return err
 	}
 
-	f.sendReplyEventAsChannelUpdatedEvent(mr, channelUpdatedEventReplyAdded)
 	f.sendReplyAddedEvent(mr)
 
 	return nil
@@ -431,6 +429,54 @@ func (f *Controller) ChannelMessageListUpdated(cml *models.ChannelMessageList) e
 
 	return nil
 }
+
+// PinnedChannelListUpdated handles the events of pinned channel lists'.  When a
+// user glance a pinned message or when someone posts reply to a message we are
+// updating the channel message lists
+func (f *Controller) PinnedChannelListUpdated(pclue *models.PinnedChannelListUpdatedEvent) error {
+	// find the user's pinned post channel
+	// we need it for finding the account id
+	c := pclue.Channel
+
+	if c == nil {
+		f.log.Error("channel was nil, discarding the message %+v", pclue)
+		return nil
+	}
+
+	if c.TypeConstant != models.Channel_TYPE_PINNED_ACTIVITY {
+		f.log.Error("please investigate here, we have updated the channel message list for a non-pinned post item %+v", c)
+		return nil
+	}
+
+	// No need to fetch the participant from database we are gonna use only the
+	// account id
+	cp := models.NewChannelParticipant()
+	cp.AccountId = c.CreatorId
+	cp.ChannelId = c.Id
+	if err := cp.FetchParticipant(); err != nil {
+		return err
+	}
+
+	cue := &channelUpdatedEvent{
+		// inject controller for reaching to RMQ, log and other stuff
+		Controller: f,
+
+		// In which channel this event happened, we need groupName from the
+		// channel because user can be in multiple groups, and all group-account
+		// couples have separate channels
+		Channel: &c,
+
+		// We need parentChannelMessage for calculating the unread count of it's replies
+		ParentChannelMessage: &pclue.Message,
+
+		// We need to find out that if the reply is created by a troll
+		ReplyChannelMessage: &pclue.Reply,
+
+		// ChannelParticipant is the reciever of this event
+		ChannelParticipant: cp,
+
+		// Assign event type
+		EventType: channelUpdatedEventReplyAdded,
 	}
 
 	if err := cue.sendForParticipant(); err != nil {
