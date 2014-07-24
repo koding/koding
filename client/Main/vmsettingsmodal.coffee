@@ -14,29 +14,29 @@ class VMSettingsModal extends KDModalViewWithForms
         Settings            :
           fields            :
             domain          :
-              label         : 'Your VM is pointed to'
-            #   name          : 'domain'
-            #   type          : 'select'
-            #   itemClass     : KDSelectBox
-            #   defaultValue  : ''
-            #   selectOptions : @bound 'prepareDomainOptions'
-            # addDomain       :
-            #   label         : ''
+              label         : 'Point to'
               name          : 'addDomain'
               placeholder   : 'type a domain name'
+              keyup         : @bound 'handleChange'
+              change        : @bound 'handleChange'
               nextElement   :
-                extras      :
+                rootDomain  :
                   itemClass : KDCustomHTMLView
-                  cssClass  : 'root-domain'
+                  cssClass  : 'root-domain hidden'
                   partial   : ".#{KD.whoami().profile.nickname}.kd.io"
-                domainButton:
+                Save        :
                   itemClass : KDButtonView
-                  title     : 'Add domain'
-                  callback  : => log 'add ulan'
-                cancelButton:
-                  itemClass : KDButtonView
-                  title     : 'Cancel'
-                  callback  : @bound 'hideAddDomain'
+                  title     : 'Save'
+                  cssClass  : 'solid compact green hidden fl'
+                  callback  : @bound 'linkDomain'
+                toggleLink  :
+                  itemClass : KDToggleButton
+                  cssClass  : 'solid compact clear fr subdomain-toggler'
+                  loader    : yes
+                  states    : [
+                    { title : 'point to a subdomain',    callback : @bound 'convertToSubdomainField' }
+                    { title : 'point to my root domain', callback : @bound 'revertToDomainField' }
+                  ]
             alwaysOn        :
               label         : 'Keep your VM always on'
               name          : 'alwaysOn'
@@ -54,9 +54,9 @@ class VMSettingsModal extends KDModalViewWithForms
       position :
         top    : 20
 
-    {advanced, domain, addDomain} = @modalTabs.forms.Settings.inputs
-    {hostnameAlias} = @getData()
-    {label} = advanced.getOptions()
+    {hostnameAlias}    = @getData()
+    {advanced, domain} = @modalTabs.forms.Settings.inputs
+    {label}            = advanced.getOptions()
 
     advanced.hide()
     label.setClass 'advanced'
@@ -66,90 +66,117 @@ class VMSettingsModal extends KDModalViewWithForms
       title    : 'Re-initialize VM'
       callback : -> KD.singletons.vmController.reinitialize hostnameAlias, ->
 
-    advanced.addSubView deleteButton = new KDButtonView
+    advanced.addSubView @deleteButton = new KDButtonView
       style    : 'solid compact red'
       title    : 'Delete VM'
-      callback : =>
+      callback : @bound 'deleteVM'
 
-        unless deleteButton.beingConfirmed
-          deleteButton.setTitle 'Are you sure?'
-          deleteButton.beingConfirmed = yes
-          return
+    label.on 'click', @bound 'toggleAdvancedSettings'
 
-        KD.singletons.vmController.deleteVmByHostname hostnameAlias, (err) =>
-
-          return KD.showError err  if err
-
-          {dock} = KD.singletons
-          dock.fetchVMs (vms) ->
-            dock.vmsList.removeAllItems()
-            dock.listVMs vms
-
-          @destroy()
+    @fetchDomains (jDomain) ->
+      domain.setValue jDomain.domain  if jDomain
 
 
-    label.on 'click', (event) =>
-      KD.utils.stopDOMEvent event
-      label.toggleClass 'expanded'
-      advanced.toggleClass 'hidden'
 
-    @modalTabs.forms.Settings.fields.addDomain.hide()
-    domain.on 'change', =>
-      if domain.getValue() is 'add-domain'
-      then @showAddDomain()
-      else
-        @hideAddDomain()
-        @linkDomain domain.getValue()
 
-    addDomain.on 'keyup', (event) =>
-      @hideAddDomain()  if event.which is 27
 
     # FIXME - SY
     # domain.setValue to the domain which vm is connected to
     # alwaysOn.setValue if the vm is always on
 
+  handleChange: ->
 
-  hideAddDomain: ->
+    {domain, Save} = @modalTabs.forms.Settings.inputs
+    inputValue     = domain.getValue()
 
-    @modalTabs.forms.Settings.fields.domain.show()
-    @modalTabs.forms.Settings.fields.addDomain.hide()
-
-  showAddDomain: ->
-
-    @modalTabs.forms.Settings.fields.domain.hide()
-    @modalTabs.forms.Settings.fields.addDomain.show()
-    @modalTabs.forms.Settings.inputs.addDomain.setFocus()
+    if inputValue isnt @currentDomain?.domain and inputValue isnt ''
+    then Save.show()
+    else Save.hide()
 
 
 
-  linkDomain: (domainId) ->
+  submitDomainChange: ->
 
-    return  if @asking
+    {domain} = @modalTabs.forms.Settings.inputs
+    if domain.getValue() is 'add-domain'
+    then @convertToSubdomainField()
+    else @revertToDomainField()
 
-    @asking = yes
+
+  convertToSubdomainField: (toggle) ->
+
+    {rootDomain, domain} = @modalTabs.forms.Settings.inputs
+    rootDomain.show()
+
+    domain.setValue ''
+
+    @handleChange()
+    domain.setFocus()
+    toggle()
+
+
+  revertToDomainField: (toggle) ->
+
+    {nickname} = KD.whoami().profile
+    {rootDomain, domain} = @modalTabs.forms.Settings.inputs
+    rootDomain.hide()
+    domain.setValue "#{nickname}.kd.io"
+
+    @handleChange()
+    toggle()
+
+
+  toggleAdvancedSettings: (event) ->
+
+    KD.utils.stopDOMEvent event
+
+    {advanced} = @modalTabs.forms.Settings.inputs
+    {label} = advanced.getOptions()
+
+    label.toggleClass 'expanded'
+    advanced.toggleClass 'hidden'
+
+
+  deleteVM: ->
+
     {hostnameAlias} = @getData()
 
-    [jDomain] = @currentDomains.filter (domain) -> domain._id is domainId
+    KD.singletons.vmController.confirmVmDeletion @getData(), (err) =>
 
-    jDomain.bindVM {hostnameAlias}, (err) =>
+      return KD.showError err  if err
 
-      @asking = no
-      return  if KD.showError err
+      @refreshSidebarVMs()
+      @destroy()
 
 
-  prepareDomainOptions: (callback) ->
+  linkDomain: ->
+
+    {hostnameAlias} = @getData()
+
+    {domain} = @modalTabs.forms.Settings.inputs
+
+    log "@gokmen please add this domain #{domain.getValue()}"
+
+
+  fetchDomains: (callback = ->) ->
+
+    {hostnameAlias} = @getData()
 
     KD.remote.api.JDomain.fetchDomains (err, domains) =>
-
-      @currentDomains = domains
 
       if err
         @modalTabs.forms.Settings.fields.domain.hide()
         return callback [ title : "Couldn't retrieve domains!" ]
 
+      [domain] = domains.filter (domain) -> domain.hostnameAlias.first is hostnameAlias
+      @currentDomain = domain
+      callback domain
 
-      options = domains.map (jdomain) -> title : jdomain.domain, value : jdomain._id
-      options.unshift title : 'No domain', value : 'no-domain'
-      options.push    title : '+ Add another domain...', value : 'add-domain'
 
-      callback options
+  refreshSidebarVMs: ->
+
+    {dock} = KD.singletons
+    dock.fetchVMs (vms) ->
+      dock.vmsList.removeAllItems()
+      dock.listVMs vms
+
