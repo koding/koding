@@ -190,7 +190,13 @@ func (cue *channelUpdatedEvent) calculateUnreadItemCount() (int, error) {
 		return models.NewChannelMessageList().UnreadCount(cue.ChannelParticipant)
 	}
 
-	// for topic channel unread count will be calculated from unread post count
+	// Topic channels have the normal structure, one channel, many messages,
+	// many participants. For topic channel unread count will be calculated from
+	// unread post count whithin a channel, base timestamp here is perisisted in
+	// ChannelParticipant table as LastSeenAt timestamp. If one message is
+	// edited by another user with a new tag, this message will not be marked as
+	// read, because we are not looking to createdAt of the channel message
+	// list, we are taking AddedAt into consideration here
 	if cue.Channel.TypeConstant == models.Channel_TYPE_TOPIC {
 		return models.NewChannelMessageList().UnreadCount(cue.ChannelParticipant)
 	}
