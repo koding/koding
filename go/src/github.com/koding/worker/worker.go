@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"github.com/koding/logging"
 	"github.com/koding/rabbitmq"
+	"log"
+	"os"
 
 	"github.com/jinzhu/gorm"
 	"github.com/rcrowley/go-metrics"
@@ -20,6 +22,7 @@ type Listener struct {
 	WorkerName           string
 	Log                  logging.Logger
 	Metrics              *Metrics
+	Debug                bool
 }
 
 type Metrics struct {
@@ -31,12 +34,13 @@ type MetricsCounter struct {
 	Messages, Success, Handler404, Mgo404, Gorm404, OtherError metrics.Counter
 }
 
-func NewListener(workerName string, sourceExchangeName string, log logging.Logger) *Listener {
+func NewListener(workerName string, sourceExchangeName string, log logging.Logger, debug bool) *Listener {
 	return &Listener{
 		WorkerName:         workerName,
 		SourceExchangeName: sourceExchangeName,
 		Log:                log,
 		Metrics:            initializeMetrics(workerName),
+		Debug:              debug,
 	}
 }
 
@@ -157,12 +161,33 @@ type ErrHandler interface {
 	DefaultErrHandler(amqp.Delivery, error) bool
 }
 
+var timers = map[string]metrics.Timer{}
+
 func (l *Listener) Start(handler Handler) func(delivery amqp.Delivery) {
 	l.Log.Info("Worker Started to Consume")
+
+	if l.Debug {
+		go metrics.Log(l.Metrics.Registry, 60e9, log.New(os.Stderr, "metrics: ", log.Lmicroseconds))
+	}
+
 	return func(delivery amqp.Delivery) {
+		var timer metrics.Timer
+		var err error
+		var exists bool
+
 		l.Metrics.Messages.Inc(1)
 
-		err := handler.HandleEvent(delivery.Type, delivery.Body)
+		timerName := l.WorkerName + delivery.Type
+		timer, exists = timers[timerName]
+		if !exists {
+			timer = metrics.NewTimer()
+			l.Metrics.Registry.Register(timerName, timer)
+		}
+
+		timer.Time(func() {
+			err = handler.HandleEvent(delivery.Type, delivery.Body)
+		})
+
 		switch err {
 		case nil:
 			l.Metrics.Success.Inc(1)
@@ -183,7 +208,7 @@ func (l *Listener) Start(handler Handler) func(delivery amqp.Delivery) {
 
 			delivery.Ack(false)
 		default:
-			l.OtherError.Mgo404.Inc(1)
+			l.Metrics.OtherError.Inc(1)
 
 			if handler.DefaultErrHandler(delivery, err) {
 				data, err := json.Marshal(delivery)

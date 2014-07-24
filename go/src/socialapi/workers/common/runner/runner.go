@@ -4,6 +4,9 @@ import (
 	"errors"
 	"flag"
 	"fmt"
+	"github.com/koding/kite"
+	kiteconfig "github.com/koding/kite/config"
+	"github.com/koding/kite/protocol"
 	"net/url"
 	"os"
 	"os/signal"
@@ -11,9 +14,6 @@ import (
 	"socialapi/workers/helper"
 	"strconv"
 	"syscall"
-	"github.com/koding/kite"
-	kiteconfig "github.com/koding/kite/config"
-	"github.com/koding/kite/protocol"
 
 	"github.com/koding/bongo"
 	"github.com/koding/logging"
@@ -153,6 +153,7 @@ func (r *Runner) Listen(handler worker.Handler) {
 		WrapWithVersion(r.Name, flagVersion),
 		WrapWithVersion(r.Conf.EventExchangeName, flagVersion),
 		r.Log,
+		*flagDebug,
 	)
 
 	// blocking
