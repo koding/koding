@@ -11,7 +11,6 @@ ldflags="-X koding/tools/lifecycle.version $(git rev-parse HEAD)"
 services=(
   koding/broker
   koding/rerouting
-  koding/userpresence
   koding/persistence
   koding/kites/os
   koding/kites/terminal
