@@ -32,6 +32,11 @@ class ProfileLinkView extends LinkView
 
     @setClass "profile"
 
+    unless @getData().fake
+      @getData().on "markedAsExempt", =>
+        @getData().isExempt = yes
+        @render()
+
   render: (fields) ->
     nickname = @getData().profile?.nickname
     slug = KD.getGroup()?.slug or 'koding'
