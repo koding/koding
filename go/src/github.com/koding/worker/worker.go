@@ -5,11 +5,12 @@ import (
 	"errors"
 	"fmt"
 	"github.com/koding/logging"
-	"labix.org/v2/mgo"
+	"github.com/koding/rabbitmq"
 
 	"github.com/jinzhu/gorm"
-	"github.com/koding/rabbitmq"
+	"github.com/rcrowley/go-metrics"
 	"github.com/streadway/amqp"
+	"labix.org/v2/mgo"
 )
 
 type Listener struct {
@@ -18,6 +19,16 @@ type Listener struct {
 	SourceExchangeName   string
 	WorkerName           string
 	Log                  logging.Logger
+	Metrics              *Metrics
+}
+
+type Metrics struct {
+	Registry metrics.Registry
+	*MetricsCounter
+}
+
+type MetricsCounter struct {
+	Messages, Success, Handler404, Mgo404, Gorm404, OtherError metrics.Counter
 }
 
 func NewListener(workerName string, sourceExchangeName string, log logging.Logger) *Listener {
@@ -25,6 +36,41 @@ func NewListener(workerName string, sourceExchangeName string, log logging.Logge
 		WorkerName:         workerName,
 		SourceExchangeName: sourceExchangeName,
 		Log:                log,
+		Metrics:            initializeMetrics(workerName),
+	}
+}
+
+func initializeMetrics(name string) *Metrics {
+	r := metrics.NewRegistry()
+
+	messages := metrics.NewCounter()
+	r.Register(name+"messages", messages)
+
+	success := metrics.NewCounter()
+	r.Register(name+"success", success)
+
+	handler404 := metrics.NewCounter()
+	r.Register(name+"handler404", success)
+
+	mgo404 := metrics.NewCounter()
+	r.Register(name+"mgo404", mgo404)
+
+	gorm404 := metrics.NewCounter()
+	r.Register(name+"gorm404", gorm404)
+
+	otherError := metrics.NewCounter()
+	r.Register(name+"otherError", otherError)
+
+	return &Metrics{
+		r,
+		&MetricsCounter{
+			Messages:   messages,
+			Success:    success,
+			Handler404: handler404,
+			Mgo404:     mgo404,
+			Gorm404:    gorm404,
+			OtherError: otherError,
+		},
 	}
 }
 
@@ -114,20 +160,31 @@ type ErrHandler interface {
 func (l *Listener) Start(handler Handler) func(delivery amqp.Delivery) {
 	l.Log.Info("Worker Started to Consume")
 	return func(delivery amqp.Delivery) {
+		l.Metrics.Messages.Inc(1)
+
 		err := handler.HandleEvent(delivery.Type, delivery.Body)
 		switch err {
 		case nil:
+			l.Metrics.Success.Inc(1)
 			delivery.Ack(false)
 		case HandlerNotFoundErr:
+			l.Metrics.Handler404.Inc(1)
 			l.Log.Debug("unknown event type (%s) recieved, deleting message from RMQ", delivery.Type)
+
 			delivery.Ack(false)
 		case gorm.RecordNotFound:
+			l.Metrics.Gorm404.Inc(1)
 			l.Log.Warning("Record not found in our db (%s) recieved, deleting message from RMQ", string(delivery.Body))
+
 			delivery.Ack(false)
 		case mgo.ErrNotFound:
+			l.Metrics.Mgo404.Inc(1)
 			l.Log.Warning("Record not found in our mongo db (%s) recieved, deleting message from RMQ", string(delivery.Body))
+
 			delivery.Ack(false)
 		default:
+			l.OtherError.Mgo404.Inc(1)
+
 			if handler.DefaultErrHandler(delivery, err) {
 				data, err := json.Marshal(delivery)
 				if err == nil {
