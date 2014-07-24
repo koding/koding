@@ -50,10 +50,7 @@ do ->
       handleChannel 'chat', slug
 
     '/:name?/Activity/:slug?' : ({params:{name, slug}, query}) ->
-      {router, appManager} = KD.singletons
-      unless slug
-      then router.openSection 'Activity', name, query
-      else createContentDisplayHandler('Activity') arguments...
+      handleChannel 'post', slug
 
     '/:name?/Activity' : ({params:{name, slug}, query}) ->
       {router, appManager} = KD.singletons
