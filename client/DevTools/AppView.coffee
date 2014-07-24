@@ -285,15 +285,16 @@ class DevToolsMainView extends KDView
       {appPath} = data
       {CSSEditor, JSEditor, finder} = @workspace.activePanel.panesByName
 
-      vmName = KD.singletons.vmController.defaultVmName
-      finder.finderController.expandFolders "[#{vmName}]#{appPath}/resources", ->
+      {uid} = @machine
+      finder.finderController.expandFolders "[#{uid}]#{appPath}/resources", ->
         fileTree = finder.finderController.treeController
-        fileTree.selectNode fileTree.nodes["[#{vmName}]#{appPath}"]
+        fileTree.selectNode fileTree.nodes["[#{uid}]#{appPath}"]
 
-      JSEditor.loadFile  "[#{vmName}]#{appPath}/index.coffee"
-      CSSEditor.loadFile "[#{vmName}]#{appPath}/resources/style.css"
+      JSEditor.loadFile  "#{appPath}/index.coffee"
+      CSSEditor.loadFile "#{appPath}/resources/style.css"
 
       @switchMode 'develop'
+
 
   publishCurrentApp:(target='test')->
 
