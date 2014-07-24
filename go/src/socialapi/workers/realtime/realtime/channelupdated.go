@@ -42,11 +42,10 @@ func (cue *channelUpdatedEvent) send() error {
 	// if you ask why we are not sending those messaages to the channel's channel
 	// instead of sending events as notifications?, because we are also sending
 	// unread counts of the related channel's messages by the notifiee
-	participants, err := cue.Channel.FetchParticipantIds(
-		// make sure exempt users are getting reatime notifications
-		&request.Query{ShowExempt: true},
-	)
-
+	p := models.NewChannelParticipant()
+	p.ChannelId = cue.Channel.Id
+	// make sure exempt users are getting reatime notifications
+	participants, err := p.List(&request.Query{ShowExempt: true})
 	if err != nil {
 		cue.Controller.log.Error("Error occured while fetching participants %s", err.Error())
 		return err
@@ -58,20 +57,13 @@ func (cue *channelUpdatedEvent) send() error {
 		return nil
 	}
 
-	for _, accountId := range participants {
-		if !cue.isEligibleForBroadcasting(accountId) {
+	for i, cp := range participants {
+		if !cue.isEligibleForBroadcasting(cp.AccountId) {
 			cue.Controller.log.Debug("not sending event to the creator of this operation %s", cue.EventType)
 			continue
 		}
 
-		cp := models.NewChannelParticipant()
-		cp.ChannelId = cue.Channel.Id
-		cp.AccountId = accountId
-		if err := cp.FetchParticipant(); err != nil {
-			cue.Controller.log.Error("Err: %s, skipping account %d", err.Error(), accountId)
-			return nil
-		}
-		cue.ChannelParticipant = cp
+		cue.ChannelParticipant = &participants[i]
 
 		err := cue.sendForParticipant()
 		if err != nil {
@@ -84,6 +76,22 @@ func (cue *channelUpdatedEvent) send() error {
 }
 
 func (cue *channelUpdatedEvent) isEligibleForBroadcasting(accountId int64) bool {
+	// check if channel is empty
+	if cue.Channel == nil {
+		cue.Controller.log.Error("Channel should not be empty %+v", cue)
+		return false
+	}
+
+	c := cue.Channel
+
+	// we are only sending channel updated events to the pinnenpost, topic and
+	// privatemessage  channels
+	if c.TypeConstant != models.Channel_TYPE_PINNED_ACTIVITY &&
+		c.TypeConstant != models.Channel_TYPE_TOPIC &&
+		c.TypeConstant != models.Channel_TYPE_PRIVATE_MESSAGE {
+		return false
+	}
+
 	// if parent message is empty do send
 	// realtime  updates to the client
 	if cue.ParentChannelMessage == nil {
@@ -186,6 +194,10 @@ func (cue *channelUpdatedEvent) sendForParticipant() error {
 }
 
 func (cue *channelUpdatedEvent) calculateUnreadItemCount() (int, error) {
+	if cue.ChannelParticipant == nil {
+		return 0, errors.New("channel participant is not set")
+	}
+
 	if cue.ParentChannelMessage == nil {
 		return models.NewChannelMessageList().UnreadCount(cue.ChannelParticipant)
 	}
@@ -208,21 +220,21 @@ func (cue *channelUpdatedEvent) calculateUnreadItemCount() (int, error) {
 		return 0, err
 	}
 
-	isTroll := cml.MetaBits.Is(models.Troll)
+	// check if the participant is troll
+	isRecieverTroll := cue.ChannelParticipant.MetaBits.Is(models.Troll)
 
-	// for pinned posts calculate unread count from message's added at into that channel
+	// for pinned posts we are calculating unread count from reviseddAt of the
+	// regarding channel message list, since only participant for the channel is
+	// the owner and we cant use channel_participant for unread counts on the
+	// other hand messages should have their own unread count we are
+	// specialcasing the pinned posts here
 	if cue.Channel.TypeConstant == models.Channel_TYPE_PINNED_ACTIVITY {
-		// for pinned posts we are calculating unread count from reviseddAt of the
-		// regarding channel message list, since only participant for the channel
-		// is the owner and we cant use channel_participant for unread counts
-		// on the other hand messages should have their own unread count
-		// we are specialcasing the pinned posts here
-		return models.NewMessageReply().UnreadCount(cml.MessageId, cml.RevisedAt, isTroll)
+		return models.NewMessageReply().UnreadCount(cml.MessageId, cml.RevisedAt, isRecieverTroll)
 	}
 
 	// for private messages calculate the unread reply count
 	if cue.Channel.TypeConstant == models.Channel_TYPE_PRIVATE_MESSAGE {
-		count, err := models.NewMessageReply().UnreadCount(cue.ParentChannelMessage.Id, cue.ChannelParticipant.LastSeenAt, isTroll)
+		count, err := models.NewMessageReply().UnreadCount(cue.ParentChannelMessage.Id, cue.ChannelParticipant.LastSeenAt, isRecieverTroll)
 		if err != nil {
 			return 0, err
 		}
