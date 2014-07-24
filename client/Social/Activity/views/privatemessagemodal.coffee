@@ -155,7 +155,7 @@ class PrivateMessageModal extends KDModalViewWithForms
     [item] = (item for item in @autoComplete.itemWrapper.getSubViews() when item.getData() is lastItemData)
 
     reset = =>
-      input.setPlaceHolder @autoComplete.getOptions().placeholder
+      input.setPlaceholder @autoComplete.getOptions().placeholder
       item.unsetClass 'selected'
       placeholderIsChanged_ = no
 
@@ -166,7 +166,7 @@ class PrivateMessageModal extends KDModalViewWithForms
         reset()
       else
         fullname = KD.utils.getFullnameFromAccount lastItemData
-        input.setPlaceHolder "Hit backspace again to remove #{Encoder.htmlDecode fullname}"
+        input.setPlaceholder "Hit backspace again to remove #{Encoder.htmlDecode fullname}"
         placeholderIsChanged_ = yes
         item.setClass 'selected'
 

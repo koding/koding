@@ -133,7 +133,7 @@ func (c *Channel) Create() error {
 func (c *Channel) CreateRaw() error {
 	insertSql := "INSERT INTO " +
 		c.TableName() +
-		` ("name","creator_id","group_name","purpose",c"type_constant",` +
+		` ("name","creator_id","group_name","purpose","type_constant",` +
 		`"privacy_constant", "created_at", "updated_at", "deleted_at")` +
 		"VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9) " +
 		"RETURNING ID"
