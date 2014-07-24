@@ -152,7 +152,7 @@ func (m *MessageReply) fetchMessages(query *request.Query) ([]ChannelMessage, er
 	return channelMessageReplies, nil
 }
 
-func (m *MessageReply) UnreadCount(messageId int64, addedAt time.Time, isExempt bool) (int, error) {
+func (m *MessageReply) UnreadCount(messageId int64, addedAt time.Time, showExempt bool) (int, error) {
 	if messageId == 0 {
 		return 0, errors.New("messageId is not set")
 	}
@@ -161,10 +161,11 @@ func (m *MessageReply) UnreadCount(messageId int64, addedAt time.Time, isExempt 
 		return 0, errors.New("last seen at date is not valid - it is zero")
 	}
 
-	query := "message_id = ? and created_at > ?"
+	query := "message_id = ? and created_at > ? and meta_bits = ?"
 
-	if isExempt {
-		query += "and meta_bits = 0"
+	var metaBits MetaBits
+	if showExempt {
+		metaBits.Mark(Troll)
 	}
 
 	return bongo.B.Count(
@@ -172,6 +173,7 @@ func (m *MessageReply) UnreadCount(messageId int64, addedAt time.Time, isExempt 
 		query,
 		messageId,
 		addedAt.UTC().Format(time.RFC3339),
+		metaBits,
 	)
 }
 
