@@ -44,7 +44,7 @@ func (c *Controller) MessageReplyCreated(messageReply *models.MessageReply) erro
 
 	// add parent message to the author's pinned message list
 	err = c.addMessage(parent.AccountId, parent.Id, parent.InitialChannelId)
-	if err != nil && err != models.AlreadyInTheChannel {
+	if err != nil && err != models.ErrAlreadyInTheChannel {
 		return err
 	}
 
