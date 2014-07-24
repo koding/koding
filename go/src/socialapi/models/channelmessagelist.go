@@ -49,10 +49,11 @@ func (c *ChannelMessageList) UnreadCount(cp *ChannelParticipant) (int, error) {
 		return 0, errors.New(fmt.Sprintf("isExempt return error: %v", err))
 	}
 
-	query := "channel_id = ? and added_at > ?"
+	query := "channel_id = ? and added_at > ? and meta_bits = ?"
 
+	var metaBits MetaBits
 	if isExempt {
-		query += " and meta_bits = 0"
+		metaBits.Mark(Troll)
 	}
 
 	return bongo.B.Count(c,
@@ -60,6 +61,7 @@ func (c *ChannelMessageList) UnreadCount(cp *ChannelParticipant) (int, error) {
 		cp.ChannelId,
 		// todo change this format to get from a specific place
 		cp.LastSeenAt.UTC().Format(time.RFC3339),
+		metaBits,
 	)
 }
 
@@ -338,7 +340,9 @@ func (c *ChannelMessageList) Count(channelId int64) (int, error) {
 	return c.CountWithQuery(query)
 }
 
+// this glance can cause problems..
 func (c *ChannelMessageList) Glance() error {
+	// why we are aggin one second?
 	c.RevisedAt = time.Now().Add((time.Second * 1)).UTC()
 
 	if err := c.Update(); err != nil {
