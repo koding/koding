@@ -427,23 +427,6 @@ task 'rerouting', "Run rerouting", (options)->
       enabled      : if config.runKontrol is yes then yes else no
       startMode    : "one"
 
-task 'userpresence', "Run userpresence", (options)->
-
-  {configFile} = options
-  config = require('koding-config-manager').load("main.#{configFile}")
-
-  processes.spawn
-    name           : 'userPresence'
-    cmd            : "./go/bin/userpresence -c #{configFile}"
-    restart        : yes
-    restartTimeout : 100
-    stdout         : process.stdout
-    stderr         : process.stderr
-    verbose        : yes
-    kontrol        :
-      enabled      : if config.runKontrol is yes then yes else no
-      startMode    : "one"
-
 task 'persistence', "Run persistence", (options)->
 
   {configFile} = options
@@ -634,7 +617,6 @@ run =({configFile})->
     invoke 'osKite'                           if config.runOsKite
     invoke 'terminalKite'                     if config.runTerminalKite
     invoke 'rerouting'                        if config.runRerouting
-    invoke 'userpresence'                     if config.runUserPresence
     invoke 'persistence'                      if config.runPersistence
     invoke 'proxy'                            if config.runProxy
     invoke 'neo4jfeeder'                      if config.runNeo4jFeeder

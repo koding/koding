@@ -67,7 +67,6 @@ module.exports =
   runPremiumBroker : no
   runKontrol    : yes
   runRerouting  : yes
-  runUserPresence: yes
   runPersistence: yes
   compileGo     : no
   buildClient   : yes
