@@ -36,7 +36,8 @@ func newMultiLimiter(limiter ...Limiter) Limiter {
 	return multiLimiter(limiter)
 }
 
-// Limit implements the kloud.Limiter interface
+// Limit implements the kloud.Limiter interface. This is called for every
+// incoming method before the execution.
 func (p *Provider) Limit(opts *protocol.MachineOptions, method string) error {
 	// only check for build method, all other's are ok to be used without any
 	// restriction.

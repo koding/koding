@@ -112,6 +112,10 @@ func newKite() *kite.Kite {
 	k.HandleFunc("info", kld.Info)
 	k.HandleFunc("destroy", kld.Destroy)
 	k.HandleFunc("event", kld.Event)
+	k.HandleFunc("report", func(r *kite.Request) (interface{}, error) {
+		k.Log.Info("Klient is reporting!!! %v", r.Client.Kite)
+		return "I've got your message", nil
+	})
 
 	return k
 }
