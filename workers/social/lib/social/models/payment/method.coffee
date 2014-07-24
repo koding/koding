@@ -18,9 +18,6 @@ module.exports = class JPaymentMethod extends Module
       static:
         create:
           (signature Object, Function)
-      instance:
-        associatePaymentData:
-          (signature Object, Function)
     schema:
       paymentMethodId:  String
       description:      String
@@ -90,8 +87,25 @@ module.exports = class JPaymentMethod extends Module
 
         paymentMethod.fetchAssociatedPaymentData callback
 
+  requirePaymentFields: (fields) ->
+    for field in [
+      'cardZipcode'
+      'cardFirstName'
+      'cardLastName'
+      'cardCV'
+      'cardNumber'
+      'cardMonth'
+      'cardYear'
+    ]
+      unless fields[field]?
+        return no
+    return yes
+
   associatePaymentData: secure (client, formData, callback) ->
     JSession = require '../session'
+
+    unless @requirePaymentFields formData
+      return callback message: 'Missed a required value!'
 
     { delegate } = client.connection
 
@@ -107,10 +121,12 @@ module.exports = class JPaymentMethod extends Module
         JSession.one clientId: client.sessionToken, (err, session) =>
           return callback err  if err
 
-          ipAddress = session.clientIPAddress or '(Unknown IP address)'
+          ipAddress = session.clientIP or '(Unknown IP address)'
 
           firstName ?= formData.cardFirstName
           lastName ?= formData.cardLastName
+
+          formData.ipAddress = ipAddress
 
           accountData = { ipAddress, username, email, firstName, lastName }
 

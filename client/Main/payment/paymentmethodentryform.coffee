@@ -83,6 +83,59 @@ class PaymentMethodEntryForm extends KDFormViewWithFields
             regExp        : /^[0-9]{3,4}$/
           messages        :
             regExp        : 'Card verification code (CVC) should be a 3 or 4-digit number!'
+      cardAddress1        :
+        placeholder       : 'Address'
+        validate          :
+          notifications   : yes
+          event           : 'blur'
+          rules           :
+            maxLength     : 50
+          messages        :
+            maxLength     : 'Address should be less than 50 characters long!'
+      cardCity            :
+        placeholder       : 'City'
+        validate          :
+          notifications   : yes
+          event           : 'blur'
+          rules           :
+            maxLength     : 50
+          messages        :
+            maxLength     : 'City should be less than 50 letters long!'
+        nextElementFlat   :
+          cardState       :
+            placeholder   : 'State'
+            validate      :
+              notifications : yes
+              event       : 'blur'
+              rules       :
+                regExp    : /^[A-Za-z]{2}$/
+                maxLength : 2
+              messages    :
+                regExp    : 'State should be 2 letters! (eg: CA)'
+      cardZipcode         :
+        placeholder       : 'Zipcode'
+        validate          :
+          notifications   : yes
+          event           : 'blur'
+          rules           :
+            regExp        : /^[\d-]+$/
+            maxLength     : 10
+          messages        :
+            maxLength     : 'Zipcode should be less than 10 digits long!'
+            regExp        : 'Zipcode must be a number!'
+      cardCountry         :
+        placeholder       : 'Country'
+        validate          :
+          notifications   : yes
+          event           : 'blur'
+          rules           :
+            regExp        : /^[A-Za-z]{2}$/
+            maxLength     : 2
+          messages        :
+            regExp        : 'Country should be 2 letters! (eg: US)'
+      captcha             :
+        itemClass         : KDCustomHTMLView
+        domId             : "recaptcha"
 
     super
       cssClass              : KD.utils.curry 'payment-method-entry-form', options.cssClass
@@ -100,6 +153,8 @@ class PaymentMethodEntryForm extends KDFormViewWithFields
           style             : 'medium solid light-gray to-left'
           callback          : => @parent.showForm 'choice'
 
+  stopLoader:-> @buttons.Save.hideLoader()
+
   viewAppended:->
     super()
 
@@ -109,7 +164,7 @@ class PaymentMethodEntryForm extends KDFormViewWithFields
     @on 'FormValidationFailed', (err)=>
       KD.utils.wait 500, => @unsetClass 'animate shake'
       @setClass 'animate shake'
-      @buttons.Save.hideLoader()
+      @stopLoader()
 
     cardNumberInput.on "ValidationError", ->
       @parent.unsetClass "visa mastercard amex diners discover jcb"
@@ -127,6 +182,11 @@ class PaymentMethodEntryForm extends KDFormViewWithFields
 
     @updateDescription()
 
+    @addCaptcha()
+
+  addCaptcha:->
+
+    Recaptcha.create KD.config.recaptcha, 'recaptcha', theme : 'clean'
 
   activate: ->
     { cardFirstName, cardLastName, cardNumber } = @inputs

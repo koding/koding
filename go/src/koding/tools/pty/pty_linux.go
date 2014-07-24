@@ -1,13 +1,16 @@
 package pty
 
 import (
-	"code.google.com/p/go-charset/charset"
-	_ "code.google.com/p/go-charset/data"
+	"fmt"
 	"io"
 	"os"
 	"strconv"
 	"syscall"
 	"unsafe"
+
+	"code.google.com/p/go-charset/charset"
+	_ "code.google.com/p/go-charset/data"
+	"github.com/kr/pty"
 )
 
 type PTY struct {
@@ -19,11 +22,32 @@ type PTY struct {
 
 const DefaultPtsPath = "/dev/pts"
 
-func New(ptsPath string) *PTY {
+// NewPTY() is a newer version base on pty package, this opens from /dev/ptmx
+// and find the slave tty from the /dev/pts folder automatically
+func NewPTY() (*PTY, error) {
+	pty, tty, err := pty.Open()
+	if err != nil {
+		return nil, err
+	}
+
+	masterEncoded, err := charset.NewWriter("ISO-8859-1", pty)
+	if err != nil {
+		return nil, err
+	}
+
+	return &PTY{
+		Master:        pty,
+		Slave:         tty,
+		No:            0,
+		MasterEncoded: masterEncoded,
+	}, nil
+}
+
+func New(ptsPath string) (*PTY, error) {
 	// open master
 	master, err := os.OpenFile(ptsPath+"/ptmx", os.O_RDWR, 0)
 	if err != nil {
-		panic(err)
+		return nil, fmt.Errorf("open pty %s", err)
 	}
 
 	pty := &PTY{Master: master}
@@ -31,31 +55,31 @@ func New(ptsPath string) *PTY {
 	// unlock slave
 	var unlock int32
 	if err := pty.Ioctl(syscall.TIOCSPTLCK, uintptr(unsafe.Pointer(&unlock))); err != nil {
-		panic("Failed to unlock pty")
+		return nil, fmt.Errorf("failed to unlock pty %s", err)
 	}
 
 	// find out slave name
 	var ptyno uint32
 	if err := pty.Ioctl(syscall.TIOCGPTN, uintptr(unsafe.Pointer(&ptyno))); err != nil {
-		panic("Failed to get ptyno")
+		return nil, fmt.Errorf("failed to get ptyno %s", err)
 	}
 	pty.No = int(ptyno)
 
 	// open slave
 	slave, err := os.OpenFile(ptsPath+"/"+strconv.Itoa(pty.No), os.O_RDWR|syscall.O_NOCTTY, 0)
 	if err != nil {
-		panic(err)
+		return nil, fmt.Errorf("open tty %s", err)
 	}
 	pty.Slave = slave
 
 	// apply proper encoding
 	masterEncoded, err := charset.NewWriter("ISO-8859-1", master)
 	if err != nil {
-		panic(err)
+		return nil, fmt.Errorf("charset %s", err)
 	}
 	pty.MasterEncoded = masterEncoded
 
-	return pty
+	return pty, nil
 }
 
 func (pty *PTY) Ioctl(a2, a3 uintptr) error {

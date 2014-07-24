@@ -130,13 +130,19 @@ func webtermConnect(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (
 		return nil, err
 	}
 
+	// get a file desecriptor to a master and slave pty
+	p, err := pty.New(vos.VM.PtsDir())
+	if err != nil {
+		return nil, err
+	}
+
 	server := &WebtermServer{
 		Session:          screen.Session,
 		remote:           params.Remote,
 		vm:               vos.VM,
 		user:             vos.User,
 		isForeignSession: vos.User.Name != channel.Username,
-		pty:              pty.New(vos.VM.PtsDir()),
+		pty:              p,
 		screenPath:       screen.ScreenPath,
 		throttling:       true,
 	}
