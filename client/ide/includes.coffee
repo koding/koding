@@ -4,7 +4,7 @@ module.exports = [
   "namespaces.coffee"
 
   # finder
-  "finder/idevmitem.coffee"
+  "finder/idemachineitem.coffee"
 
   # workspace
   "workspace/workspacetabview.coffee"

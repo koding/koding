@@ -2,11 +2,11 @@ class IDE.FinderItem extends NFinderItem
 
   getChildConstructor: (type) ->
     switch type
-      when "vm"         then IDE.VMItemView
-      when "folder"     then NFolderItemView
-      when "section"    then NSectionItemView
-      when "mount"      then NMountItemView
-      when "brokenLink" then NBrokenLinkItemView
+      when 'machine'    then IDE.MachineItemView
+      when 'folder'     then NFolderItemView
+      when 'section'    then NSectionItemView
+      when 'mount'      then NMountItemView
+      when 'brokenLink' then NBrokenLinkItemView
       else NFileItemView
 
 class IDE.FinderPane extends IDE.Pane
@@ -35,9 +35,9 @@ class IDE.FinderPane extends IDE.Pane
         mgr.tell 'IDE', 'openFile', file, contents
         KD.getSingleton('windowController').setKeyView null
 
-    fc.treeController.on 'TerminalRequested', (vm) ->
-      mgr.tell 'IDE', 'openVMTerminal', vm
+    fc.treeController.on 'TerminalRequested', (machine) ->
+      mgr.tell 'IDE', 'openVMTerminal', machine
 
-    @on 'VMMountRequested',   (vm) -> fc.mountVm vm
+    @on 'VMMountRequested',   (machine) -> fc.mountMachine machine
 
-    @on 'VMUnmountRequested', (vm) -> fc.unmountVm vm.hostnameAlias
+    @on 'VMUnmountRequested', (machine) -> fc.unmountMachine machine.uid

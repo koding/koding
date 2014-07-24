@@ -96,7 +96,7 @@ class IDE.FileFinder extends KDCustomHTMLView
     @isSearchActive = no
 
   openFile: (path) ->
-    file = FSHelper.createFileFromPath path
+    file = FSHelper.createFileInstance { path }
 
     file.fetchContents (err, contents) =>
       return @showWarning 'An error occured, please try again.'  if err

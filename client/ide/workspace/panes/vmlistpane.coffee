@@ -6,22 +6,18 @@ class IDE.VMListPane extends IDE.Pane
 
     super options, data
 
-    @fetchVMs()
+    @fetchMachines()
 
-  fetchVMs: ->
-    {vmController, kontrol} = KD.singletons
-    vmController.fetchVMs (err, vms) =>
+  fetchMachines: ->
+    KD.getSingleton('computeController').fetchMachines (err, machines) =>
       if err
-        ErrorLog.create "terminal: Couldn't fetch vms", reason: err
+        ErrorLog.create "IDE: Couldn't fetch machines", reason: err
         return new KDNotificationView
-          title : "Couldn't fetch your VMs"
+          title : "Couldn't fetch your machines"
           type  : 'mini'
 
-      vms.sort (first, second) ->
-        return first.hostnameAlias > second.hostnameAlias
-
-      for vm in vms
-        @addSubView new IDE.VMPaneListItem {}, vm
+      for machine in machines when machine.status.state is Machine.State.Running
+        @addSubView new IDE.VMPaneListItem {}, machine
 
       @addBuyVMButton()
 
@@ -55,7 +51,7 @@ class IDE.VMPaneListItem extends JView
     @domainName    = new KDCustomHTMLView
       tagName      : 'span'
       cssClass     : 'domain-name'
-      partial      : data.hostnameAlias.replace 'koding.kd.io', 'kd.io'
+      partial      : data.getName()
       click        : @bound 'openVMDomain'
 
     @actionsButton = new KDButtonView
@@ -93,7 +89,7 @@ class IDE.VMPaneListItem extends JView
     # FIXME: Find a better way to remove this drill down
     ideAppController   = appManager.getFrontApp()
     {finderController} = ideAppController.workspace.panel.getPaneByName('filesPane').finderPane
-    isVMAlreadyMounted = finderController.getVmNode data.hostnameAlias
+    isVMAlreadyMounted = finderController.getMachineNode data.uid
 
     if isVMAlreadyMounted
       delete menuItems['Mount to filetree']

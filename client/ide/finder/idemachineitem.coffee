@@ -1,4 +1,4 @@
-class IDE.VMItemView extends NFileItemView
+class IDE.MachineItemView extends NFileItemView
 
   constructor: (options = {}, data) ->
 
@@ -6,16 +6,17 @@ class IDE.VMItemView extends NFileItemView
 
     super options, data
 
+    {@machine}      = @getData()
+
     @vmInfo         = new KDCustomHTMLView
       tagName       : 'span'
       cssClass      : 'vm-info'
-      partial       : "#{data.vmName}"
+      partial       : @machine.getName()
 
     @terminalButton = new KDButtonView
       cssClass      : 'terminal'
       callback      : =>
-        data        = @getData()
-        data.treeController.emit 'TerminalRequested', data.vm
+        data.treeController.emit 'TerminalRequested', @machine
 
     @folderSelector = new KDSelectBox
       selectOptions : @createSelectOptions()
@@ -33,7 +34,7 @@ class IDE.VMItemView extends NFileItemView
     vm      = data.vmName
     finder  = data.treeController.getDelegate()
 
-    finder?.updateVMRoot vm, path
+    finder?.updateMachineRoot vm, path
 
   createSelectOptions: ->
     currentPath = @getData().path

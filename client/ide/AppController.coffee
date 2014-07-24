@@ -254,7 +254,8 @@ class IDEAppController extends AppController
     newFileSeed = 1
 
     return ->
-      file     = FSHelper.createFileFromPath "localfile://Untitled-#{newFileSeed++}.txt"
+      path     = "localfile:/Untitled-#{newFileSeed++}.txt"
+      file     = FSHelper.createFileInstance { path }
       contents = ''
 
       @openFile file, contents
@@ -283,7 +284,7 @@ class IDEAppController extends AppController
     keyEvent.preventDefault()
     keyEvent.stopPropagation()
 
-    keyCodeMap    = [ 49, 50, 51, 52, 53, 54, 55, 56, 57 ]
+    keyCodeMap    = [ 49..57 ]
     requiredIndex = keyCodeMap.indexOf keyEvent.keyCode
 
     @activeTabView.showPaneByIndex requiredIndex
@@ -380,7 +381,7 @@ class IDEAppController extends AppController
         <p>#{file.name}</p>
       """
 
-    else if component is 'terminal' then "Terminal on #{data.vmName}"
+    else if component is 'terminal' then "Terminal on #{data.machineName}"
 
     else if component is 'searchResult'
     then """Search results for #{data.searchText}"""

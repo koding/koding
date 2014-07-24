@@ -34,14 +34,6 @@ class IDE.IDEView extends IDE.WorkspaceTabView
       @createEditor()
       @showShortcutsOnce()
 
-  getPlusMenuItems: ->
-    return {
-      'Editor'        : callback : => @createEditor()
-      'Terminal'      : callback : => @createTerminal()
-      'Browser'       : callback : => @createPreview()
-      'Drawing Board' : callback : => @createDrawingBoard()
-    }
-
   createPane_: (view, paneOptions, paneData) ->
     unless view or paneOptions
       return new Error 'Missing argument for createPane_ helper'
@@ -57,7 +49,7 @@ class IDE.IDEView extends IDE.WorkspaceTabView
     pane.once 'KDObjectWillBeDestroyed', => @handlePaneRemoved pane
 
   createEditor: (file, content, callback = noop) ->
-    file        = file    or FSHelper.createFileFromPath @getDummyFilePath()
+    file        = file    or FSHelper.createFileInstance path: @getDummyFilePath()
     content     = content or ''
     editorPane  = new IDE.EditorPane { file, content, delegate: this }
     paneOptions =
@@ -82,8 +74,8 @@ class IDE.IDEView extends IDE.WorkspaceTabView
   createShortcutsView: ->
     @createPane_ new IDE.ShortcutsView, { name: 'Shortcuts' }
 
-  createTerminal: (vm) ->
-    terminalPane = new IDE.TerminalPane { vm }
+  createTerminal: (machine) ->
+    terminalPane = new IDE.TerminalPane { machine }
     @createPane_ terminalPane, { name: 'Terminal' }
 
   createDrawingBoard: ->
@@ -114,9 +106,8 @@ class IDE.IDEView extends IDE.WorkspaceTabView
         data   = { file, cursor }
 
       else if paneType is 'terminal'
-        vmc    = KD.getSingleton 'vmController'
-        vmName = subView.getOptions().vm?.hostnameAlias or vmc.defaultVmName
-        data   = vmName: vmName.split('.').first
+        machineName = subView.machine.getName()
+        data   = { machineName }
 
       else if paneType is 'preview'
         data   = subView.getOptions().url or 'Enter a URL to browse...'
@@ -183,13 +174,13 @@ class IDE.IDEView extends IDE.WorkspaceTabView
     @emit 'PaneRemoved'
 
   getDummyFilePath: ->
-    return 'localfile://Untitled.txt'
+    return 'localfile:/Untitled.txt'
 
   openVMTerminal: (vm) ->
     @createTerminal vm
 
-  openVMWebPage: (vm) ->
-    @createPreview vm.hostnameAlias
+  openVMWebPage: (machine) ->
+    @createPreview machine.ipAddress
 
   closeTabByFile: (file)  ->
     for pane in @tabView.panes when pane?.data is file
@@ -209,6 +200,22 @@ class IDE.IDEView extends IDE.WorkspaceTabView
       unless isShortcutsShown
         @createShortcutsView()
         @appStorage.setValue 'isShortcutsShown', yes
+
+  getPlusMenuItems: ->
+    {machines}   = KD.getSingleton 'computeController'
+    machineItems = {}
+
+    machines.forEach (machine) =>
+      machineItems[machine.getName()] =
+        disabled : machine.status.state isnt Machine.State.Running
+        callback : => @createTerminal machine
+
+    return {
+      'Editor'        : callback : => @createEditor()
+      'Terminal'      : children : machineItems
+      'Browser'       : callback : => @createPreview()
+      'Drawing Board' : callback : => @createDrawingBoard()
+    }
 
   createPlusContextMenu: ->
     offset        = @holderView.plusHandle.$().offset()

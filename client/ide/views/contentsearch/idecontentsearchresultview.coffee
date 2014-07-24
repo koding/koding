@@ -41,9 +41,9 @@ class IDE.ContentSearchResultView extends KDScrollView
     {target} = event
     return unless  target.classList.contains 'match'
 
-    filePath   = target.getAttribute 'data-file-path'
+    path       = target.getAttribute 'data-file-path'
     lineNumber = target.getAttribute 'data-line-number'
-    file       = FSHelper.createFileFromPath filePath
+    file       = FSHelper.createFileInstance { path }
 
     file.fetchContents (err, contents) ->
       KD.getSingleton('appManager').tell 'IDE', 'openFile', file, contents, (editorPane) ->

@@ -2,32 +2,30 @@ class IDE.TerminalPane extends IDE.Pane
 
   constructor: (options = {}, data) ->
 
-    options.cssClass = 'terminal-pane terminal'
-    options.paneType = 'terminal'
-    options.vm     or= null
+    options.cssClass  = 'terminal-pane terminal'
+    options.paneType  = 'terminal'
+    options.readOnly ?= no
 
     super options, data
 
-  createTerminal: (vm) ->
+    {@machine} = @getOptions()
+
+    @createTerminal()
+
+  createTerminal: ->
     @webtermView       = new WebTermView
+      delegate         : this
+      readOnly         : @getOption 'readOnly'
+      machine          : @machine
+      mode             : @getMode()
       cssClass         : 'webterm'
       advancedSettings : no
-      delegate         : this
-      mode             : @getMode()
-      vm               : vm
 
     @addSubView @webtermView
 
-    @vmOn(vm).then =>
-      @webtermView.connectToTerminal()
-      @webtermView.on 'WebTermConnected', (@remote) => @emit 'WebtermCreated'
-
-  fetchVm: (callback)->
-    KD.singletons.vmController.fetchDefaultVm callback
-
-  vmOn: (vm) ->
-    osKite = KD.getSingleton('vmController').getKite vm, 'os'
-    osKite.vmOn()
+    @webtermView.on 'WebTermConnected', (remote) =>
+      @remote = remote
+      @emit 'WebtermCreated'
 
   getMode: ->
     return 'create'
@@ -47,8 +45,7 @@ class IDE.TerminalPane extends IDE.Pane
   notify: (message) -> console.log 'notify:', message
 
   viewAppended: ->
-    {vm} = @getOptions()
 
-    if vm then @createTerminal vm
-    else
-      @fetchVm (err, vm) => @createTerminal vm
+    super
+
+    @webtermView.connectToTerminal()
