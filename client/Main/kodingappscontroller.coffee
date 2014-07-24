@@ -267,6 +267,7 @@ class KodingAppsController extends KDController
                   color           : "#444444"
                   diameter        : 12
                 callback          : =>
+
                   form = newAppModal.modalTabs.forms.form
                   unless form.inputs.name.validate()
                     form.buttons.Create.hideLoader()
@@ -278,21 +279,28 @@ class KodingAppsController extends KDController
 
                   type        = "blank"
                   name        = (name.replace /[^a-zA-Z]/g, '').capitalize()
-                  manifestStr = defaultManifest type, name
+                  manifestStr = AppSkeleton.manifest type, name
                   manifest    = JSON.parse manifestStr
                   appPath     = @getAppPath manifest
-                  defaultVm   = KD.singletons.vmController.defaultVmName
 
-                  FSHelper.exists appPath, defaultVm, (err, exists)=>
+                  appFolder   = FSHelper.createFileInstance {
+                    path: appPath, machine, type: "folder"
+                  }
+
+                  appFolder.exists (err, exists)=>
+
                     if exists
+
                       form.buttons.Create.hideLoader()
                       new KDNotificationView
                         type      : "mini"
                         cssClass  : "error"
                         title     : "App folder with that name is already exists, please choose a new name."
                         duration  : 3000
+
                     else
-                      @prepareApplication name, (err, response)=>
+
+                      @prepareApplication { machine, name }, (err, response)=>
                         callback? err, response
                         form.buttons.Create.hideLoader()
                         newAppModal.destroy()

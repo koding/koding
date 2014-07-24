@@ -278,7 +278,7 @@ class DevToolsMainView extends KDView
 
   createNewApp:->
 
-    KD.singletons.kodingAppsController.makeNewApp (err, data)=>
+    KD.singletons.kodingAppsController.makeNewApp @machine, (err, data)=>
 
       return warn err  if err
 
