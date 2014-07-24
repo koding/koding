@@ -25,7 +25,7 @@ class Machine extends KDObject
     delete options.machine
     super options, machine
 
-    { @label, @publicAddress, @_id, @provisioners, @provider
+    { @label, @ipAddress, @_id, @provisioners, @provider
       @status, @uid, @queryString } = @jMachine = @getData()
 
     @fs =
@@ -36,7 +36,7 @@ class Machine extends KDObject
 
 
   getName: ->
-    @label or @publicAddress or @uid or "one of #{KD.nick()}'s machine"
+    @label or @ipAddress or @uid or "one of #{KD.nick()}'s machine"
 
 
   getBaseKite: (createIfNotExists = yes)->
