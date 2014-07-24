@@ -438,7 +438,7 @@ func (f *Controller) PinnedChannelListUpdated(pclue *models.PinnedChannelListUpd
 	// we need it for finding the account id
 	c := pclue.Channel
 
-	if c == nil {
+	if &c == nil {
 		f.log.Error("channel was nil, discarding the message %+v", pclue)
 		return nil
 	}
