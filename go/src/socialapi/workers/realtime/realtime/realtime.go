@@ -371,26 +371,66 @@ func (f *Controller) MessageListSaved(cml *models.ChannelMessageList) error {
 	return nil
 }
 
-func (f *Controller) MessageListUpdated(cml *models.ChannelMessageList) error {
+// ChannelMessageListUpdated event states that one of the channel_message_list
+// record is updated, it means that one the pinned post's owner glanced it. - At
+// least for now - If we decide on another giving another meaning on this event,
+// we can rename the event.  PinnedPost's unread count is calculated from the
+// last glanced reply's point. This message is user specific. There is no
+// relation with channel participants or channel itself
+func (f *Controller) ChannelMessageListUpdated(cml *models.ChannelMessageList) error {
+
+	// find the user's pinned post channel
+	// we need it for finding the account id
 	c, err := models.ChannelById(cml.ChannelId)
 	if err != nil {
 		return err
 	}
 
+	if c.TypeConstant != models.Channel_TYPE_PINNED_ACTIVITY {
+		f.log.Error("please investigate here, we have updated the channel message list for a non-pinned post item %+v", c)
+		return nil
+	}
+
+	// get the glanced message
 	cm := models.NewChannelMessage()
 	if err := cm.ById(cml.MessageId); err != nil {
 		return err
 	}
 
+	// No need to fetch the participant from database we are gonna use only the
+	// account id
 	cp := models.NewChannelParticipant()
 	cp.AccountId = c.CreatorId
+	cp.ChannelId = c.Id
+	if err := cp.FetchParticipant(); err != nil {
+		return err
+	}
 
 	cue := &channelUpdatedEvent{
-		Controller:           f,
-		Channel:              c,
+		// inject controller for reaching to RMQ, log and other stuff
+		Controller: f,
+
+		// In which channel this event happened, we need groupName from the
+		// channel because user can be in multiple groups, and all group-account
+		// couples have separate channels
+		Channel: c,
+
+		// We need parentChannelMessage for calculating the unread count of it's replies
 		ParentChannelMessage: cm,
-		ChannelParticipant:   cp,
-		EventType:            channelUpdatedEventMessageUpdatedAtChannel,
+
+		// ChannelParticipant is the reciever of this event
+		ChannelParticipant: cp,
+
+		// Assign event type
+		EventType: channelUpdatedEventMessageUpdatedAtChannel,
+	}
+
+	if err := cue.sendForParticipant(); err != nil {
+		return err
+	}
+
+	return nil
+}
 	}
 
 	if err := cue.sendForParticipant(); err != nil {
