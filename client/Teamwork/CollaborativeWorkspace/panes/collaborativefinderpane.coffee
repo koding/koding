@@ -16,6 +16,7 @@ class CollaborativeFinderPane extends CollaborativePane
       useStorage          : no
       treeControllerClass : options.treeControllerClass or CollaborativeFinderTreeController
       treeItemClass       : options.treeItemClass       or NFinderItem
+      machineToMount      : options.machine
 
     @container?.destroy()
     @finder = @container = @finderController.getView()
