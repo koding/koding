@@ -10,6 +10,7 @@ import (
 	"log"
 	"net/url"
 	"os"
+	"time"
 
 	"github.com/koding/kite"
 	"github.com/koding/kite/config"
@@ -46,6 +47,14 @@ func main() {
 
 	// always boot up with the same id in the kite.key
 	k.Id = conf.Id
+
+	// we measure every incoming request and resetting the timer. If there is
+	// not timeout, then it means the
+	usage := newUsage()
+	k.PreHandleFunc(usage.counter)
+
+	// this provides us
+	k.HandleFunc("klient.usage", usage.current)
 
 	k.HandleFunc("fs.readDirectory", fs.ReadDirectory)
 	k.HandleFunc("fs.glob", fs.Glob)
@@ -95,6 +104,19 @@ func main() {
 			log.Fatal(err)
 		}
 	}
+
+	go func() {
+		kloud, err := NewKloud(k)
+		if err != nil {
+			k.Log.Warning(err.Error())
+		}
+
+		for _ = range time.Tick(time.Second * 20) {
+			err := kloud.Report()
+			fmt.Printf("err %+v\n", err)
+		}
+
+	}()
 
 	k.Run()
 }
