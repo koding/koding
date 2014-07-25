@@ -53,10 +53,10 @@ func (c *ChannelMessageList) UnreadCount(cp *ChannelParticipant) (int, error) {
 
 	var metaBits MetaBits
 	if isExempt {
-        query += " and meta_bits >= ?"
+		query += " and meta_bits >= ?"
 	} else {
-        query += " and meta_bits = ?"
-    }
+		query += " and meta_bits = ?"
+	}
 
 	return bongo.B.Count(c,
 		query,
