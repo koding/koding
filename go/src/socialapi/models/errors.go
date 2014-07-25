@@ -16,5 +16,5 @@ var (
 	ErrGroupNameIsNotSet                      = errors.New("group name is not set")
 	ErrNameIsNotSet                           = errors.New("name is not set")
 	ErrChannelContainerIsNotSet               = errors.New("channel container is not set")
-	ErrChannelIsNotSet   					  = errors.New("channel is not set)
+	ErrChannelIsNotSet   					  = errors.New("channel is not set")
 )
