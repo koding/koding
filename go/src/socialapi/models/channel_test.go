@@ -503,13 +503,7 @@ func TestChannelAddMessage(t *testing.T) {
 	defer r.Close()
 
 	Convey("while adding a message to a channel", t, func() {
-		Convey("it should have channel id", func() {
-			c := NewChannel()	
-			_, err := c.AddMessage(123)
-			So(err, ShouldNotBeNil)
-			So(err, ShouldEqual, ErrChannelIdIsNotSet)
-		})
-		
+
 		Convey("it should have channel id", func() {
 			c := NewChannel()
 			_, err := c.AddMessage(123)
@@ -517,12 +511,12 @@ func TestChannelAddMessage(t *testing.T) {
 			So(err, ShouldEqual, ErrChannelIdIsNotSet)
 		})
 
-		Convey("it should return error if message id is not set", func(){
+		Convey("it should have message id", func() {
 			c := NewChannel()
 			c.Id = 123
-			_, err := c.FetchMessageList(1231)
+			_, err := c.AddMessage(0)
 			So(err, ShouldNotBeNil)
-			So(err, ShouldEqual, ErrAlreadyInTheChannel)
+			So(err, ShouldEqual, ErrMessageIdIsNotSet)
 		})
 
 		Convey("it should return error if message id is not set", func() {
@@ -577,7 +571,58 @@ func TestChannelRemoveMessage(t *testing.T) {
 	}
 	defer r.Close()
 
-	Convey("while removing a message from a channel", t, nil)
+	Convey("while removing a message from the channel", t, func(){
+
+		Convey("it should have channel id", func() {
+			c := NewChannel()
+			_, err := c.RemoveMessage(123)
+			So(err, ShouldNotBeNil)
+			So(err, ShouldEqual, ErrChannelIdIsNotSet)
+		})
+
+		Convey("it should have message id", func() {
+			c := NewChannel()
+			c.Id = 123
+			_, err := c.RemoveMessage(0)
+			So(err, ShouldNotBeNil)
+			So(err, ShouldEqual, ErrMessageIdIsNotSet)
+		})
+
+		Convey("removing message from the channel should ne successful", func(){
+			// init channel
+			c := createNewChannelWithTest()
+			So(c.Create(), ShouldBeNil)
+
+			// init message & content of message
+			cm := createMessageWithTest()
+			cm.Body = "five5"
+			So(cm.Create(), ShouldBeNil)
+
+			ch, err := c.RemoveMessage(cm.Id)
+			So(err, ShouldBeNil)
+			So(ch, ShouldBeEmpty)
+		})
+
+		Convey("it should return error if message is already removed from the channel", func() {
+			// init channel
+			c := createNewChannelWithTest()
+			So(c.Create(), ShouldBeNil)
+
+			// init channel message & set message content
+			// then create the message in db
+			cm := createMessageWithTest()
+			cm.Body = "five5"
+			So(cm.Create(), ShouldBeNil)
+
+			ch, err := c.RemoveMessage(cm.Id)
+			So(err, ShouldBeNil)
+			So(ch, ShouldBeEmpty)
+
+			// try to remove the same message again
+			ch, err = c.RemoveMessage(cm.Id)
+			So(err, ShouldNotBeNil)
+ 		})
+	})
 }
 
 func TestChannelFetchMessageList(t *testing.T) {

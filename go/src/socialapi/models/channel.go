@@ -290,6 +290,14 @@ func (c *Channel) AddMessage(messageId int64) (*ChannelMessageList, error) {
 }
 
 func (c *Channel) RemoveMessage(messageId int64) (*ChannelMessageList, error) {
+	if c.Id == 0 {
+		return nil, ErrChannelIdIsNotSet
+	}
+
+	if messageId == 0 {
+		return nil, ErrMessageIdIsNotSet
+	}
+
 	cml, err := c.FetchMessageList(messageId)
 	if err != nil {
 		return nil, err
