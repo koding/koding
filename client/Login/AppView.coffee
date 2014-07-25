@@ -448,7 +448,10 @@ class LoginView extends JView
         @loginForm.reset()
 
         KD.mixpanel "Login, success"
-        window.location.reload()  if redirectTo
+        if redirectTo
+          window.location.reload()
+        else
+          window.location.replace '/Activity'
 
   doRedeem:({inviteCode})->
     return  unless KD.config.entryPoint?.slug or KD.isLoggedIn()
