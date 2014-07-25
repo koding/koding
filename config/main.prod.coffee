@@ -481,7 +481,8 @@ Configuration = (options={}) ->
         echo '#---> BUILDING CLIENT (@gokmen) <---#'
 
         cd /opt
-        git clone git@github.com:koding/koding.git -b #{branch} --depth 1
+        # git clone git@github.com:koding/koding.git -b #{branch} --depth 1
+        git clone --branch v1.4 --depth 1 git@github.com:koding/koding.git koding2
         cd /opt/koding
         git submodule init
         git submodule update --recursive

@@ -44,6 +44,23 @@ resurrection.styl
       font-weight   300
       abs()
 
+// fixme: this is mostly copy/paste of below
+#dock a.add-vm
+  display           block
+  size              auto 26px
+  opacity           1
+  z-index           1
+  font-size         14px
+  line-height       18px
+  color             #B8B8B8
+  opacity           .5
+  padding           5px 8px
+  // text-align        center
+  noTextDeco()
+  &:hover
+    opacity         1
+
+
 #dock > .kdlistview
 
   > a
@@ -110,8 +127,15 @@ resurrection.styl
         abs()
       &:hover > span
         opacity     1
+      &.terminated
+      &.notinitialized
+        opacity     .5
       &.running > figure
         r-sprite    app new-nav-vm-green
+      > .progressbar-container
+        height      2px
+        background  none
+        border      none
 
 .account-area
   bottom            0

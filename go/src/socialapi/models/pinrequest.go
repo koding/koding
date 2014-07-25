@@ -11,3 +11,9 @@ func NewPinRequest() *PinRequest {
 		GroupName: Channel_KODING_NAME,
 	}
 }
+
+type PinnedChannelListUpdatedEvent struct {
+	Channel Channel        `json:"channel"`
+	Message ChannelMessage `json:"message"`
+	Reply   ChannelMessage `json:"reply"`
+}

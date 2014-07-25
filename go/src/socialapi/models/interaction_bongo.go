@@ -1,9 +1,6 @@
 package models
 
-import (
-
-	"github.com/koding/bongo"
-)
+import "github.com/koding/bongo"
 
 func (i *Interaction) BeforeCreate() error {
 	return i.MarkIfExempt()
@@ -13,15 +10,17 @@ func (i *Interaction) BeforeUpdate() error {
 	return i.MarkIfExempt()
 }
 
+// adding new interactions to the system
 func (i *Interaction) AfterCreate() {
 	bongo.B.AfterCreate(i)
 }
 
+// the only case we are updating the interaction is changing its metabits
 func (i *Interaction) AfterUpdate() {
 	bongo.B.AfterUpdate(i)
 }
 
-func (i Interaction) AfterDelete() {
+func (i *Interaction) AfterDelete() {
 	bongo.B.AfterDelete(i)
 }
 

@@ -8,7 +8,9 @@ class DevToolsEditorPane extends CollaborativeEditorPane
     super options, data
 
     @_mode = @getOption 'editorMode'
+
     @_defaultTitle = @getOption 'defaultTitle'
+    @machine       = @getOption 'machine'
 
     @_lastFileKey = "lastFileOn#{@_mode}"
     @storage = KD.singletons.localStorageController.storage "DevTools"
@@ -18,7 +20,7 @@ class DevToolsEditorPane extends CollaborativeEditorPane
 
   loadFile:(path, callback = noop)->
 
-    file = FSHelper.createFileInstance { path }
+    file = FSHelper.createFileInstance { @machine, path }
 
     kite = file.getKite()
     return  callback {message: "VM not found"}  unless kite

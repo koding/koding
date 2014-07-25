@@ -1,15 +1,38 @@
 class DevToolsController extends AppController
 
+  APPNAME = "DevTools"
+  VERSION = "0.1"
+
   KD.registerAppClass this,
-    name            : 'DevTools'
-    version         : '0.1'
-    route           : '/:name?/DevTools'
-    behavior        : 'application'
-    preCondition    :
-      condition     : (options, cb)-> cb KD.isLoggedIn()
-      failure       : (options, cb)->
-        KD.singletons.appManager.open 'DevTools', conditionPassed : yes
+    name              : APPNAME
+    version           : VERSION
+    route             : '/:name?/DevTools'
+    behavior          : 'application'
+    preCondition      :
+
+      checkOnLoadOnly : yes
+      condition       : (options, cb)->
+
+        if KD.isLoggedIn()
+
+          KD.singletons.computeController.requireMachine
+            app       :
+              name    : APPNAME
+              version : VERSION
+          , (err, machine)->
+
+            if err or not machine then cb no
+            else cb yes, { machine }
+
+        else
+
+          cb no
+
+      failure         : (options, cb)->
+
+        KD.singletons.router.handleRoute "/Activity/Public"
         KD.showEnforceLoginModal()
+
     menu            :
       hiddenOnStart : yes
       items         : [
@@ -32,7 +55,9 @@ class DevToolsController extends AppController
 
   constructor:(options = {}, data)->
 
-    options.view    = new DevToolsMainView
+    { machine }     = options.params
+    options.machine = machine
+    options.view    = new DevToolsMainView { machine }
     options.appInfo =
       name     : "DevTools"
       type     : "application"
@@ -41,7 +66,9 @@ class DevToolsController extends AppController
 
   # FIXME facet, to make it work I had to call notifyWindowResizeListeners here
   handleQuery:->
-    {workspace, _currentMode} = @getView()
+
+    return unless view = @getView()
+    {workspace, _currentMode} = view
 
     workspace.ready ->
       wc = KD.getSingleton("windowController")

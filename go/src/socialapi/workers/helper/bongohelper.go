@@ -39,5 +39,15 @@ func MustInitBongo(
 		log.Fatal("Error while starting bongo, exiting err: %s", err.Error())
 	}
 
+	log.Info("Caching disabled: %v", c.DisableCaching)
+	if !c.DisableCaching {
+		redisConn, err := InitRedisConn(c)
+		if err != nil {
+			log.Critical("Bongo couldnt connect to redis, caching will not be available Err: %s", err.Error())
+		} else {
+			bongo.Cache = redisConn
+		}
+	}
+
 	return bongo
 }

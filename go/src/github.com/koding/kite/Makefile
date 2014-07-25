@@ -1,6 +1,8 @@
 NO_COLOR=\033[0m
 OK_COLOR=\033[0;32m
 KITE_HOME=/tmp/test_kite_home
+ULIMIT=9000
+
 
 DEBUG?=0
 ifeq ($(DEBUG), 1)
@@ -30,18 +32,29 @@ kontrol:
 	@`which go` run kontrol/kontrol/main.go -public-key /tmp/publicKey.pem -private-key /tmp/privateKey.pem -data-dir /tmp/kontrol-data -port 4444
 
 install:
+	@echo "$(OK_COLOR)==> Downloading dependencies$(NO_COLOR)"
+	@`which go` get -d -v ./...
+	@`which go` get github.com/fatih/color
+
 	@echo "$(OK_COLOR)==> Installing test binaries $(NO_COLOR)"
 	@`which go` install -v ./cmd/kite
 	@`which go` install -v ./kontrol/kontrol
-	@`which go` install -v ./proxy/proxy
+	@`which go` install -v ./reverseproxy/reverseproxy
+	@`which go` install -v ./tunnelproxy/tunnelproxy
 
 test:
 	@echo "$(OK_COLOR)==> Preparing test environment $(NO_COLOR)"
 	@echo "Cleaning $(KITE_HOME) directory"
 	@rm -rf $(KITE_HOME)
+	@echo "Setting ulimit to $(ULIMIT) for multiple client tests"
+	@ulimit -n $(ULIMIT) #needed for multiple kontrol tests
 
 	@echo "Creating test key"
 	@`which go` run ./testutil/writekey/main.go
+
+	@echo "$(OK_COLOR)==> Downloading dependencies$(NO_COLOR)"
+	@`which go` get -d -v ./...
+	@`which go` get github.com/fatih/color
 
 	@echo "$(OK_COLOR)==> Testing packages $(NO_COLOR)"
 	@`which go` test -race $(VERBOSE) ./dnode

@@ -41,7 +41,7 @@ class AvatarPopupShareStatus extends AvatarPopup
         @statusField.setValue ""
 
         @loader.hide()
-        # @statusField.setPlaceHolder reply.body
+        # @statusField.setPlaceholder reply.body
         @hide()
 
       else

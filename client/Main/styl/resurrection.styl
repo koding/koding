@@ -1026,6 +1026,9 @@ div.nominateicon
 
 .kdmodal.vm-settings
 
+  .kdmodal-title
+    hidden()
+
   .kdmodal-content
     overflow              visible
 
@@ -1033,7 +1036,41 @@ div.nominateicon
     hidden()
 
   .modal-arrow
-    left                  -52px !important
+    left                  -41px !important
+    size                  0, 0
+    right                 100%
+    border                10px solid transparent
+    border-right-color    #c1c1c1
+    z-index               10
+
+    &:before
+      z-index             9
+      content             ''
+      display             block
+      size                0, 0
+      abs                 -10px 0 0 -9px
+      border              10px solid transparent
+      border-right-color  #fff
+
+  .modal-inline-overlay
+    top                   0
+    z-index               1
+    background            #e9e9e9
+    abs()
+
+    > button
+      left                50%
+      width               120px !important
+      margin-top          40px  !important
+      margin-left         -60px !important
+
+    > .progressbar-container
+
+      margin-top          20px
+
+  &.activity-modal
+    .kdmodal-inner
+      margin              21px
 
   .kdformview .formline
     cf()
@@ -1047,6 +1084,9 @@ div.nominateicon
         margin-top        4px
 
     &.adddomain
+      label
+        display           block
+        float             none
       .input-wrapper
         float             none
       .kdinput.text
@@ -1055,7 +1095,7 @@ div.nominateicon
         display           block
         float             none
       .root-domain
-        abs               3px 1px 0 0
+        abs               46px 1px 0 0
         color             #888
         z-index           1
         font-size         14px
@@ -1067,12 +1107,26 @@ div.nominateicon
         border-left-color #d7d7d7
 
     &.advanced
+      text-align          center
 
       .input-wrapper
         margin-bottom     0
+        margin-top        -22px
+        border-top        1px solid #d5d5d5
+        padding-top       28px
+        width             100%
+        display           block
+        float             none
 
       .kdbutton
-        margin-right       5px
+        kalc              width, (50% \- 7px)
+        height            40px
+        &:last-child
+          margin-left     7px
+
+        .button-title
+          font-size       14px
+          line-height     40px
 
     &.button-field
       margin              0 !important
@@ -1085,26 +1139,34 @@ div.nominateicon
       font-size           12px
       cursor              pointer
       color               #aaa
-      display             block
+      display             inline-block
       float               none
+      clear               both
+      bg                  color #e9e9e9
+      padding             0 15px
       &.expanded
-        &:before
-          border-left-color transparent
-          border-top-color  #aaa
-          top               3px
-          left              0
+        &:after
+          border-bottom-color transparent
+          border-top-color    #aaa
+          top                 4px
+          left                4px
 
-      &:before
-        content           ' '
-        border            5px solid transparent
-        border-left-color #aaa
-        size              10px 10px
-        margin-right      2px
-        display           inline-block
-        left              4px
+      &:after
+        content             ' '
+        border              5px solid transparent
+        border-bottom-color #aaa
+        size                10px 10px
+        margin-left         2px
+        display             inline-block
+        left                4px
+        top                 -2px
         borderBox()
         rel()
 
+  .kdbutton.subdomain-toggler
+    padding-right           0
+    .button-title
+      color                 #aaa
 
 
 @media only screen and (min-width : 320px) and (max-width : 568px)

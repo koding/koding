@@ -120,7 +120,7 @@ func TestPinnedActivityChannel(t *testing.T) {
 			So(err, ShouldBeNil)
 			So(post1, ShouldNotBeNil)
 
-			_, err = rest.AddPinnedMessage(account.Id, post1.Id, groupName)
+			_, err = rest.AddPinnedMessage(nonOwnerAccount.Id, post1.Id, groupName)
 			// there should be an err
 			So(err, ShouldBeNil)
 
@@ -128,9 +128,11 @@ func TestPinnedActivityChannel(t *testing.T) {
 			So(err, ShouldBeNil)
 			So(post2, ShouldNotBeNil)
 
-			_, err = rest.AddPinnedMessage(account.Id, post2.Id, groupName)
+			_, err = rest.AddPinnedMessage(nonOwnerAccount.Id, post2.Id, groupName)
 			// there should be an err
 			So(err, ShouldBeNil)
+
+			//time.Sleep(time.Second * 5)
 
 			history, err := rest.FetchPinnedMessages(account.Id, groupName)
 			// there should be an err

@@ -61,6 +61,10 @@ class ApplicationManager extends KDObject
       # method of preCondition if exists
 
       if appOptions?.preCondition? and not options.conditionPassed
+
+        if appOptions.preCondition.checkOnLoadOnly
+          if @get name then return do defaultCallback
+
         appOptions.preCondition.condition appParams, (state, newParams)=>
           if state
             options.conditionPassed = yes
