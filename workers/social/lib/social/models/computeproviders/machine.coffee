@@ -3,6 +3,9 @@
 { revive }  = require './computeutils'
 KodingError = require '../../error'
 
+{argv}      = require 'optimist'
+KONFIG      = require('koding-config-manager').load("main.#{argv.c}")
+
 module.exports = class JMachine extends Module
 
   { ObjectId, signature, daisy } = require 'bongo'
@@ -48,6 +51,9 @@ module.exports = class JMachine extends Module
         type            : String
 
       ipAddress         :
+        type            : String
+
+      domain            :
         type            : String
 
       provider          :
@@ -115,7 +121,9 @@ module.exports = class JMachine extends Module
       state      : "NotInitialized"
       modifiedAt : data.createdAt
 
-    data.provisioners ?= [ ]
+    { userSitesDomain } = KONFIG
+    data.domain         = "#{data.uid}.#{user}.#{userSitesDomain}"
+    data.provisioners  ?= [ ]
 
     return new JMachine data
 
