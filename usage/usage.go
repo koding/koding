@@ -1,7 +1,6 @@
 package usage
 
 import (
-	"fmt"
 	"time"
 
 	"github.com/koding/kite"
@@ -24,9 +23,12 @@ type Usage struct {
 	plan *Plan `json:"-"`
 
 	// latestActivity stores the time in which the latest activity was done.
-	LatestActivity time.Time `json:"latest_activity"`
+	latestActivity time.Time `json:"-"`
 
-	// methodcalls stores the number of method calls
+	// InactiveDuration reports the minimum duration since the latest activity.
+	InactiveDuration time.Duration `json:"inactive_duration"`
+
+	// Methodcalls stores the number of method calls
 	MethodCalls int32 `json:"method_calls"`
 }
 
@@ -37,23 +39,28 @@ func NewUsage() *Usage {
 			name:    "free",
 			timeout: time.Minute * 30,
 		},
-		LatestActivity: time.Now(),
+		latestActivity: time.Now(),
 	}
 }
 
 // Counter resets the current usage and counts the incoming calls.
 func (u *Usage) Counter(r *kite.Request) (interface{}, error) {
-
-	fmt.Println("got a request for method: ", r.Method)
 	// reset the latest activity
-	u.LatestActivity = time.Now()
-
-	// incrase the method calls
+	u.latestActivity = time.Now()
+	u.InactiveDuration = 0
 	u.MethodCalls += 1
 	return nil, nil
 }
 
-// Current returns the current acvitiy usage
+// Current returns the current activity usage
 func (u *Usage) Current(r *kite.Request) (interface{}, error) {
+	u.Update()
 	return u, nil
+}
+
+// Update updates all current metrics
+func (u *Usage) Update() {
+	// we do the calculation here to avoid time offsets on the remote side.
+	// This is the most correct duration
+	u.InactiveDuration = time.Since(u.latestActivity)
 }

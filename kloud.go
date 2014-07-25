@@ -60,6 +60,9 @@ func NewKloud(k *kite.Kite) (*Kloud, error) {
 
 // Report reports machine and usage metrics to kloud instance.
 func (k *Kloud) Report() error {
+	// update information before we send it
+	usg.Update()
+
 	fmt.Printf("repoting usage %+v\n", usg)
 	resp, err := k.client.Tell("report", usg)
 	if err != nil {
