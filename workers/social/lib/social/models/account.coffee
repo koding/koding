@@ -61,6 +61,7 @@ module.exports = class JAccount extends jraphical.Module
         # { name: 'updateInstance' }
         { name: 'notification' }
         { name : "RemovedFromCollection" }
+        { name : "markedAsExempt" }
 
       ]
     sharedMethods :
@@ -970,11 +971,11 @@ module.exports = class JAccount extends jraphical.Module
     # mark user as troll in social api
     @markUserAsExemptInSocialAPI client, exempt, (err, data)=>
       return callback new ApiError err  if err
-      @update $set: {isExempt: exempt}, (err, result)->
+      @update $set: {isExempt: exempt}, (err, result)=>
         if err
           console.error 'Could not update user exempt information'
           return callback err
-
+        @emit "markedAsExempt", @
         callback null, result
 
   markUserAsExemptInSocialAPI: (client, exempt, callback)->

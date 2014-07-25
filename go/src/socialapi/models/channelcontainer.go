@@ -204,7 +204,14 @@ func (cr *ChannelContainer) AddUnreadCount(accountId int64) *ChannelContainer {
 				return err
 			}
 
-			count, err := NewMessageReply().UnreadCount(cc.LastMessage.Message.Id, cp.LastSeenAt)
+			isExempt := cp.MetaBits.Is(Troll)
+
+			count, err := NewMessageReply().UnreadCount(
+				cc.LastMessage.Message.Id,
+				cp.LastSeenAt,
+				isExempt,
+			)
+
 			if err != nil {
 				return err
 			}
