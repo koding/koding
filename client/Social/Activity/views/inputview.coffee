@@ -121,6 +121,23 @@ class ActivityInputView extends KDTokenizedInput
       {childNodes} = @getEditableElement()
       @utils.selectEnd childNodes[childNodes.length - 1]
 
+  # contentEditable elements cannot be
+  # triggered to be blurred. This method
+  # handles that problem.
+  forceBlur: ->
+    @getEditableDomElement()
+      .removeAttr('contenteditable')
+      .blur()
+
+    KD.utils.wait 100, =>
+      @getEditableDomElement()
+        .prop('contenteditable', yes)
+
+
+  blur: ->
+    super
+    @forceBlur()
+
   prefixDefaultTokens: ->
     content = ""
     for own type, tokens of @defaultTokens
