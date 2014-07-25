@@ -82,16 +82,6 @@ func (cue *channelUpdatedEvent) isEligibleForBroadcasting(accountId int64) bool 
 		return false
 	}
 
-	c := cue.Channel
-
-	// we are only sending channel updated events to the pinnenpost, topic and
-	// privatemessage  channels
-	if c.TypeConstant != models.Channel_TYPE_PINNED_ACTIVITY &&
-		c.TypeConstant != models.Channel_TYPE_TOPIC &&
-		c.TypeConstant != models.Channel_TYPE_PRIVATE_MESSAGE {
-		return false
-	}
-
 	// if parent message is empty do send
 	// realtime  updates to the client
 	if cue.ParentChannelMessage == nil {
