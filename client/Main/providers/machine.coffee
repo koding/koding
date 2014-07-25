@@ -25,8 +25,8 @@ class Machine extends KDObject
     delete options.machine
     super options, machine
 
-    { @label, @ipAddress, @_id, @provisioners, @provider
-      @status, @uid, @queryString } = @jMachine = @getData()
+    @jMachine = @getData()
+    @updateLocalData()
 
     @fs =
       # TODO: add options check
@@ -34,6 +34,9 @@ class Machine extends KDObject
         options.machine = this
         FSItem.create options, callback
 
+  updateLocalData:->
+    { @label, @ipAddress, @_id, @provisioners, @provider
+      @status, @uid, @domain, @queryString } = @jMachine
 
   getName: ->
     @label or @ipAddress or @uid or "one of #{KD.nick()}'s machine"
