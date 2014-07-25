@@ -560,8 +560,8 @@ func TestChannelAddMessage(t *testing.T) {
 			ch, err = c.AddMessage(cm.Id)
 			So(err, ShouldNotBeNil)
 			So(err, ShouldEqual, ErrAlreadyInTheChannel)
- 		})
- 	})
+		})
+	})
 }
 
 func TestChannelRemoveMessage(t *testing.T) {
@@ -571,7 +571,7 @@ func TestChannelRemoveMessage(t *testing.T) {
 	}
 	defer r.Close()
 
-	Convey("while removing a message from the channel", t, func(){
+	Convey("while removing a message from the channel", t, func() {
 
 		Convey("it should have channel id", func() {
 			c := NewChannel()
@@ -588,7 +588,7 @@ func TestChannelRemoveMessage(t *testing.T) {
 			So(err, ShouldEqual, ErrMessageIdIsNotSet)
 		})
 
-		Convey("removing message from the channel should ne successful", func(){
+		Convey("removing message from the channel should ne successful", func() {
 			// init channel
 			c := createNewChannelWithTest()
 			So(c.Create(), ShouldBeNil)
@@ -598,9 +598,12 @@ func TestChannelRemoveMessage(t *testing.T) {
 			cm.Body = "five5"
 			So(cm.Create(), ShouldBeNil)
 
+			_, err := c.AddMessage(cm.Id)
+			So(err, ShouldBeNil)
+
 			ch, err := c.RemoveMessage(cm.Id)
 			So(err, ShouldBeNil)
-			So(ch, ShouldBeEmpty)
+			So(ch, ShouldNotBeEmpty)
 		})
 
 		Convey("it should return error if message is already removed from the channel", func() {
@@ -614,14 +617,19 @@ func TestChannelRemoveMessage(t *testing.T) {
 			cm.Body = "five5"
 			So(cm.Create(), ShouldBeNil)
 
+			_, err := c.AddMessage(cm.Id)
+			So(err, ShouldBeNil)
+
 			ch, err := c.RemoveMessage(cm.Id)
 			So(err, ShouldBeNil)
-			So(ch, ShouldBeEmpty)
+			So(ch, ShouldNotBeEmpty)
 
 			// try to remove the same message again
 			ch, err = c.RemoveMessage(cm.Id)
 			So(err, ShouldNotBeNil)
- 		})
+			So(ch, ShouldBeEmpty)
+
+		})
 	})
 }
 

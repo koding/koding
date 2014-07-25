@@ -289,6 +289,7 @@ func (c *Channel) AddMessage(messageId int64) (*ChannelMessageList, error) {
 	return cml, nil
 }
 
+// TODO do not return channelmessagelist from delete function
 func (c *Channel) RemoveMessage(messageId int64) (*ChannelMessageList, error) {
 	if c.Id == 0 {
 		return nil, ErrChannelIdIsNotSet
