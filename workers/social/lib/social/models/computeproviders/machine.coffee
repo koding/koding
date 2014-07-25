@@ -35,11 +35,14 @@ module.exports = class JMachine extends Module
           (signature Function)
         setProvisioner  :
           (signature String, Function)
+        setDomain       :
+          (signature String, Function)
 
     permissions         :
       'list machines'   : ['member']
       'populate users'  : ['member']
       'set provisioner' : ['member']
+      'set domain'      : ['member']
 
     schema              :
 
@@ -219,3 +222,26 @@ module.exports = class JMachine extends Module
         callback null, accounts
 
       daisy queue
+
+
+  setDomain: permit 'set domain',
+
+    success: (client, domain, callback)->
+
+      { nickname } = client.connection.delegate.profile
+      { userSitesDomain } = KONFIG
+
+      suffix  = "#{nickname}.#{userSitesDomain}"
+      _suffix = suffix.replace ".", "\\."
+
+      unless ///(^|\.)#{_suffix}$///.test domain
+        return callback new KodingError \
+          "Domain is invalid, it needs to be end with #{suffix}", "INVALIDDOMAIN"
+
+      JMachine.count {domain}, (err, count)=>
+
+        if err or count > 0
+          return callback new KodingError \
+            "The domain #{domain} already exists", "DUPLICATEDOMAIN"
+
+        @update $set: { domain }, (err)-> callback err
