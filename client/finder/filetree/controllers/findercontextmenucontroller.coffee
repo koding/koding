@@ -206,8 +206,8 @@ class NFinderContextMenuController extends KDController
         separator                 : yes
       'Unmount VM'                :
         action                    : 'unmountVm'
-      'Open VM terminal'          :
-        action                    : 'openVmTerminal'
+      'Open terminal'             :
+        action                    : 'openMachineTerminal'
         separator                 : yes
       Expand                      :
         action                    : 'expand'

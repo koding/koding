@@ -85,9 +85,13 @@ class NFinderTreeController extends JTreeViewController
     { machine: { uid } } = nodeView.getData()
     @getDelegate().unmountMachine uid
 
-  openVmTerminal:(nodeView)->
-    {vmName} = nodeView.data
-    @appManager.open "Terminal", params: {vmName}, forceNew: yes
+  openMachineTerminal: (nodeView) ->
+    {machine}  = nodeView.getData()
+    appManager = KD.getSingleton 'appManager'
+    ideApp     = appManager.get 'IDE'
+    callback   = -> appManager.tell 'IDE', 'openVMTerminal', machine
+
+    if ideApp then callback() else appManager.open 'IDE', callback
 
   toggleDotFiles:(nodeView)->
 
@@ -426,7 +430,6 @@ class NFinderTreeController extends JTreeViewController
   CONTEXT MENU OPERATIONS
   ###
 
-  cmOpenVmTerminal:(nodeView, contextMenuItem)-> @openVmTerminal nodeView
   cmExpand:              (node) -> @expandFolder         node for node in @selectedNodes
   cmCollapse:            (node) -> @collapseFolder       node for node in @selectedNodes # error fix this
   cmMakeTopFolder:       (node) -> @makeTopFolder        node
@@ -434,6 +437,7 @@ class NFinderTreeController extends JTreeViewController
   cmToggleDotFiles:      (node) -> @toggleDotFiles       node
   cmResetVm:             (node) -> @resetVm              node
   cmUnmountVm:           (node) -> @unmountVm            node
+  cmOpenMachineTerminal: (node) -> @openMachineTerminal  node
   cmCreateFile:          (node) -> @createFile           node
   cmCreateFolder:        (node) -> @createFile           node, "folder"
   cmRename:              (node) -> @showRenameDialog     node
