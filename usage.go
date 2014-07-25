@@ -1,10 +1,13 @@
 package main
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/koding/kite"
 )
+
+var usage = newUsage()
 
 // Plan defines the environment on which klient is going to act and work. A
 // plan has limitations. Those limitiations are different for different plan
@@ -20,13 +23,13 @@ type Plan struct {
 
 type Usage struct {
 	// plan stores a reference to the current plan
-	plan *Plan
+	plan *Plan `json:"-"`
 
-	// lastActivity stores the time in which the latest activity was done.
-	lastActivity time.Time
+	// latestActivity stores the time in which the latest activity was done.
+	latestActivity time.Time `json:"latest_activity"`
 
 	// methodcalls stores the number of method calls
-	methodCalls int32
+	methodCalls int32 `json:"method_calls"`
 }
 
 func newUsage() *Usage {
@@ -36,13 +39,16 @@ func newUsage() *Usage {
 			name:    "free",
 			timeout: time.Minute * 30,
 		},
+		latestActivity: time.Now(),
 	}
 }
 
 // counter resets the current usage and counts the incoming calls.
 func (u *Usage) counter(r *kite.Request) (interface{}, error) {
+
+	fmt.Println("got a request for method: ", r.Method)
 	// reset the latest activity
-	u.lastActivity = time.Now()
+	u.latestActivity = time.Now()
 
 	// incrase the method calls
 	u.methodCalls += 1
@@ -51,6 +57,5 @@ func (u *Usage) counter(r *kite.Request) (interface{}, error) {
 
 // current returns the current acvitiy usage
 func (u *Usage) current(r *kite.Request) (interface{}, error) {
-	// don't allow to proceed if there is no activity for 30 minutes
-	return u.lastActivity.Add(u.plan.timeout).Before(time.Now()), nil
+	return u, nil
 }

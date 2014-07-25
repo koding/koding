@@ -50,7 +50,6 @@ func main() {
 
 	// we measure every incoming request and resetting the timer. If there is
 	// not timeout, then it means the
-	usage := newUsage()
 	k.PreHandleFunc(usage.counter)
 
 	// this provides us
@@ -111,7 +110,7 @@ func main() {
 			k.Log.Warning(err.Error())
 		}
 
-		for _ = range time.Tick(time.Second * 20) {
+		for _ = range time.Tick(time.Second * 5) {
 			err := kloud.Report()
 			fmt.Printf("err %+v\n", err)
 		}

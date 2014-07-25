@@ -60,11 +60,12 @@ func NewKloud(k *kite.Kite) (*Kloud, error) {
 
 // Report reports machine and usage metrics to a random kloud.
 func (k *Kloud) Report() error {
-	resp, err := k.client.Tell("report")
+	fmt.Printf("repoting usage %+v\n", usage)
+	resp, err := k.client.Tell("report", usage)
 	if err != nil {
 		return err
 	}
 
-	fmt.Printf("resp.MustString() %+v\n", resp.MustString())
+	fmt.Printf("kloud response: %+v\n", resp.MustString())
 	return nil
 }
