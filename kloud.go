@@ -64,11 +64,6 @@ func (k *Kloud) Report() error {
 	usg.Update()
 
 	fmt.Printf("repoting usage %+v\n", usg)
-	resp, err := k.client.Tell("report", usg)
-	if err != nil {
-		return err
-	}
-
-	fmt.Printf("kloud response: %+v\n", resp.MustString())
-	return nil
+	_, err := k.client.Tell("report", usg)
+	return err
 }
