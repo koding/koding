@@ -44,20 +44,20 @@ class DockController extends KDViewController
       items        : []
 
 
-    @vmsList = new KDListViewController
+    @machineList = new KDListViewController
       wrapper             : no
       scrollView          : no
       startWithLazyLoader : yes
-      itemClass           : NavigationVMItem
+      itemClass           : NavigationMachineItem
       lazyLoaderOptions   : loaderOptions
     ,
       id           : 'vms'
       title        : 'vms'
       items        : []
 
-    @vmsList.getListView().on 'VMCogClicked', (vm, item)->
+    @machineList.getListView().on 'MachineCogClicked', (machine, item)->
       {mainView} = KD.singletons
-      mainView.openVMModal vm, item
+      mainView.openMachineModal machine, item
 
     # {mainController} = KD.singletons
     # mainController.ready @bound 'accountChanged'
@@ -189,11 +189,10 @@ class DockController extends KDViewController
           @addItem { title : name, path, \
                      order : 60 + KD.utils.uniqueId(), type :"" }
 
-  listVMs: (vms) ->
+  listMachines: (machines) ->
 
-    @vmsList.hideLazyLoader()
-
-    @vmsList.addItem vm  for vm in vms
+    @machineList.replaceAllItems machines
+    @machineList.hideLazyLoader()
 
 
   loadView: (dock) ->
@@ -210,7 +209,7 @@ class DockController extends KDViewController
       cssClass : 'sidebar-title'
       partial  : 'MY VMs'
 
-    dock.addSubView @vmsList.getView()
+    dock.addSubView @machineList.getView()
     dock.addSubView new CustomLinkView
       icon     : no
       cssClass : 'add-vm'
@@ -221,17 +220,16 @@ class DockController extends KDViewController
         KD.singletons.appManager.require 'Environments', ->
           env = new EnvironmentMachineContainer
           env.emit 'PlusButtonClicked'
-          @fetchVMs @bound 'listVMs'
+          @fetchMachines @bound 'listMachines'
 
 
-    # @navController.reset()
-    # @setNavItems defaultItems
     @setNavItems defaultItems
     @emit 'ready'
 
-    if KD.userVMs.length
-    then @listVMs KD.userVMs
-    else @fetchVMs @bound 'listVMs'
+    if KD.userMachines.length
+      @listMachines ( new Machine { machine } for machine in KD.userMachines )
+    else
+      @fetchMachines @bound 'listMachines'
 
 
     @ready =>
@@ -256,19 +254,16 @@ class DockController extends KDViewController
         @setNavItemState {name:options.name, options}, 'active'
 
 
-  fetchVMs: (callback)->
+  fetchMachines: (callback)->
 
-    {vmController} = KD.singletons
+    {computeController} = KD.singletons
+    computeController.fetchMachines (err, machines)=>
 
-    # force refetch from server everytime vms fetched.
-    vmController.fetchVMs force = yes, (err, vms) =>
       if err
-        ErrorLog.create 'terminal: Couldn\'t fetch vms', reason : err
-        return new KDNotificationView title : 'Couldn\'t fetch your VMs'
+        ErrorLog.create 'Environments: Couldn\'t fetch machines', reason : err
+        return new KDNotificationView title : 'Couldn\'t fetch your Machines'
 
-      vms.sort (a,b) -> a.hostnameAlias > b.hostnameAlias
-
-      callback vms
+      callback machines
 
 
   getRelativeItem: (increment, predicate) ->

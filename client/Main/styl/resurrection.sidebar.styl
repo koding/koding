@@ -127,8 +127,15 @@ resurrection.styl
         abs()
       &:hover > span
         opacity     1
+      &.terminated
+      &.notinitialized
+        opacity     .5
       &.running > figure
         r-sprite    app new-nav-vm-green
+      > .progressbar-container
+        height      2px
+        background  none
+        border      none
 
 .account-area
   bottom            0
