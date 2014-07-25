@@ -1,8 +1,6 @@
 package amazon
 
 import (
-	"errors"
-
 	aws "github.com/koding/kloud/api/amazon"
 	"github.com/koding/kloud/eventer"
 	"github.com/koding/kloud/machinestate"
@@ -16,10 +14,12 @@ type Provider struct {
 }
 
 func (p *Provider) NewClient(opts *protocol.MachineOptions) (*AmazonClient, error) {
+	username := opts.Builder["username"].(string)
+
 	a := &AmazonClient{
 		Log: p.Log,
 		Push: func(msg string, percentage int, state machinestate.State) {
-			p.Log.Info("%s - %s ==> %s", opts.MachineId, opts.Username, msg)
+			p.Log.Info("%s - %s ==> %s", opts.MachineId, username, msg)
 
 			opts.Eventer.Push(&eventer.Event{
 				Message:    msg,
@@ -49,11 +49,9 @@ func (p *Provider) Build(opts *protocol.MachineOptions) (*protocol.Artifact, err
 		return nil, err
 	}
 
-	if opts.InstanceName == "" {
-		return nil, errors.New("server name is empty")
-	}
+	instanceName := opts.Builder["instanceName"].(string)
 
-	return a.Build(opts.InstanceName)
+	return a.Build(instanceName)
 }
 
 func (p *Provider) Start(opts *protocol.MachineOptions) (*protocol.Artifact, error) {

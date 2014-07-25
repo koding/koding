@@ -11,9 +11,7 @@ import (
 
 type Controller struct {
 	// Incoming arguments
-	MachineId    string
-	ImageName    string
-	InstanceName string
+	MachineId string
 
 	// Populated later
 	CurrenState  machinestate.State  `json:"-"`
@@ -22,6 +20,7 @@ type Controller struct {
 	Builder      protocol.Builder    `json:"-"`
 	Machine      *Machine            `json:"-"`
 	Eventer      eventer.Eventer     `json:"-"`
+	Username     string              `json:"-"`
 }
 
 type ControlResult struct {
@@ -86,7 +85,7 @@ func (k *Kloud) ControlFunc(control controlFunc) kite.Handler {
 			return nil, err
 		}
 
-		k.Log.Info("[controller] got a request for method: '%s' with args: %v", r.Method, args)
+		k.Log.Info("[controller] got a request for method: '%s' with args: %+v", r.Method, args)
 
 		if args.MachineId == "" {
 			return nil, NewError(ErrMachineIdMissing)
@@ -109,7 +108,7 @@ func (k *Kloud) ControlFunc(control controlFunc) kite.Handler {
 			}
 		}()
 
-		k.Log.Info("[controller] got machine data with machineID (%s) : %+v",
+		k.Log.Debug("[controller] got machine data with machineID (%s) : %+v",
 			args.MachineId, machine)
 
 		// prevent request if the machine is terminated. However we want the user
@@ -132,11 +131,14 @@ func (k *Kloud) ControlFunc(control controlFunc) kite.Handler {
 			return nil, err
 		}
 
+		// this can be used by other providers if there is a need.
+		if _, ok := machine.Data["username"]; !ok {
+			machine.Data["username"] = r.Username
+		}
+
 		// our Controller context
 		c := &Controller{
 			MachineId:    args.MachineId,
-			ImageName:    args.ImageName,
-			InstanceName: args.InstanceName,
 			ProviderName: machine.Provider,
 			Controller:   controller,
 			Builder:      builder,
@@ -147,7 +149,7 @@ func (k *Kloud) ControlFunc(control controlFunc) kite.Handler {
 		// execute our limiter interface if the provider supports it
 		if limiter, err := k.Limiter(machine.Provider); err == nil {
 			k.Log.Info("[controller] limiter is enabled for provider: %s", machine.Provider)
-			err := limiter.Limit(c.MachineOptions(r.Username), r.Method)
+			err := limiter.Limit(c.MachineOptions(), r.Method)
 			if err != nil {
 				return nil, err
 			}
@@ -159,13 +161,12 @@ func (k *Kloud) ControlFunc(control controlFunc) kite.Handler {
 	})
 }
 
-func (c *Controller) MachineOptions(username string) *protocol.MachineOptions {
+func (c *Controller) MachineOptions() *protocol.MachineOptions {
 	return &protocol.MachineOptions{
 		MachineId:  c.MachineId,
-		Username:   username,
-		Eventer:    c.Eventer,
 		Credential: c.Machine.Credential,
 		Builder:    c.Machine.Data,
+		Eventer:    c.Eventer,
 	}
 }
 
@@ -186,7 +187,7 @@ func (k *Kloud) info(r *kite.Request, c *Controller) (interface{}, error) {
 		return nil, NewError(ErrMachineNotInitialized)
 	}
 
-	machOptions := c.MachineOptions(r.Username)
+	machOptions := c.MachineOptions()
 
 	// add fake eventer to avoid errors on NewClient at provider, the info method doesn't use
 	machOptions.Eventer = &eventer.Events{}
@@ -312,7 +313,7 @@ func (k *Kloud) coreMethods(r *kite.Request, c *Controller, fn func(*protocol.Ma
 		status := s.final
 		msg := fmt.Sprintf("%s is finished successfully.", r.Method)
 
-		machOptions := c.MachineOptions(r.Username)
+		machOptions := c.MachineOptions()
 
 		k.Log.Info("[controller]: running method %s with mach options %v", r.Method, machOptions)
 		err := fn(machOptions)

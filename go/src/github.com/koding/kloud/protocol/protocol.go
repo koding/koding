@@ -57,17 +57,8 @@ type MachineOptions struct {
 	// key/value storage.
 	MachineId string
 
-	// Username defines the username on behalf the machine is being build.
-	Username string
-
-	// ImageName is used to build the machine based on this particular image.
-	ImageName string
-
-	// InstanceName is used to change the machine name (usually hostname). If
-	// it's empty a unique name will be used.
-	InstanceName string
-
-	// Builder contains information about how to build the data
+	// Builder contains information about how to build the data, like Username,
+	// ImageName, InstanceName, Region, SSH KeyPair informations, etc...
 	Builder map[string]interface{}
 
 	// Credential contains information for accessing third party provider services

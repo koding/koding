@@ -35,19 +35,20 @@ type Client struct {
 }
 
 // Build is building an image and creates a droplet based on that image. If the
-// given snapshot/image exist it directly skips to creating the droplet. It
-// acceps two string arguments, first one is the snapshotname, second one is
-// the dropletName.
-func (c *Client) Build(snapshotName, dropletName string) (*protocol.Artifact, error) {
-	// needed because this is passed as `data` to packer.Provider
-	c.Builder.SnapshotName = snapshotName
+// given snapshot/image exist it directly skips to creating the droplet.
+func (c *Client) Build(dropletName string) (*protocol.Artifact, error) {
+	if c.Builder.Image == "" {
+		return nil, errors.New("image name is not defined (example: ubuntu-14-04-x64)")
+	}
+
+	imageName := c.Builder.Image
 
 	var image digitalocean.Image
 	var err error
 
 	// check if snapshot image does exist
-	c.Push(fmt.Sprintf("Fetching image %s", snapshotName), 10, machinestate.Building)
-	image, err = c.Image(snapshotName)
+	c.Push(fmt.Sprintf("Fetching image %s", imageName), 10, machinestate.Building)
+	image, err = c.Image(imageName)
 	if err != nil {
 		return nil, err
 	}

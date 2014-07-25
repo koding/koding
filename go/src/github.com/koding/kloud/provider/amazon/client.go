@@ -265,6 +265,14 @@ func (a *AmazonClient) Destroy() error {
 
 func (a *AmazonClient) Info() (*protocol.InfoArtifact, error) {
 	instance, err := a.Instance(a.Id())
+	if err == aws.ErrNoInstances {
+		return &protocol.InfoArtifact{
+			State: machinestate.Terminated,
+			Name:  "terminated-instance",
+		}, nil
+	}
+
+	// if it's something else, return it back
 	if err != nil {
 		return nil, err
 	}
@@ -273,9 +281,21 @@ func (a *AmazonClient) Info() (*protocol.InfoArtifact, error) {
 		a.Log.Warning("Unknown amazon status: %+v. This needs to be fixed.", instance.State)
 	}
 
+	var instanceName string
+	for _, tag := range instance.Tags {
+		if tag.Key == "Name" {
+			instanceName = tag.Value
+		}
+	}
+
+	// this shouldn't happen
+	if instanceName == "" {
+		a.Log.Warning("instance %s doesn't have a name tag. needs to be fixed!", a.Id())
+	}
+
 	return &protocol.InfoArtifact{
 		State: statusToState(instance.State.Name),
-		Name:  instance.Tags[0].Value,
+		Name:  instanceName,
 	}, nil
 
 }

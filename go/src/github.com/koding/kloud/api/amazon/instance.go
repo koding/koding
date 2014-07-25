@@ -42,7 +42,8 @@ func (a *Amazon) Instance(id string) (ec2.Instance, error) {
 	}
 
 	if len(resp.Reservations) != 1 {
-		return ec2.Instance{}, fmt.Errorf("the instance ID '%s' does not exist", id)
+		fmt.Errorf("the instance ID '%s' does not exist", id)
+		return ec2.Instance{}, ErrNoInstances
 	}
 
 	return resp.Reservations[0].Instances[0], nil

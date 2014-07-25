@@ -8,6 +8,7 @@ import (
 	"github.com/koding/kloud/eventer"
 	"github.com/koding/kloud/machinestate"
 	"github.com/koding/kloud/protocol"
+	"github.com/kr/pretty"
 
 	"github.com/koding/kite"
 )
@@ -29,6 +30,18 @@ func (k *Kloud) build(r *kite.Request, c *Controller) (resp interface{}, err err
 	k.Storage.UpdateState(c.MachineId, machinestate.Building)
 	c.Eventer = k.NewEventer(r.Method + "-" + c.MachineId)
 
+	instanceName := r.Username + "-" + strconv.FormatInt(time.Now().UTC().UnixNano(), 10)
+	i, ok := c.Machine.Data["instanceName"]
+	if !ok || i == "" {
+		// if it's empty we use the instance name that was generated above
+		c.Machine.Data["instanceName"] = instanceName
+	} else {
+		instanceName, ok = i.(string)
+		if !ok {
+			return nil, fmt.Errorf("instanceName is malformed: %v", i)
+		}
+	}
+
 	go func() {
 		k.idlock.Get(c.MachineId).Lock()
 		defer k.idlock.Get(c.MachineId).Unlock()
@@ -38,14 +51,13 @@ func (k *Kloud) build(r *kite.Request, c *Controller) (resp interface{}, err err
 
 		err := k.buildMachine(r.Username, c)
 		if err != nil {
-			k.Log.Error("[controller] building machine failed for user '%s' with machineId '%s': %s.",
-				r.Username, c.MachineId, err.Error())
+			k.Log.Error("[controller] building machine for id '%s' failed: %s.", c.MachineId, err.Error())
 
 			status = c.CurrenState
 			msg = err.Error()
 		} else {
-			k.Log.Info("[%s] build for '%s' is successfull. State is now: %+v",
-				c.ProviderName, c.InstanceName, status)
+			k.Log.Info("[controller] building machine for id '%s' is successfull. Instance name: %s",
+				c.MachineId, instanceName)
 		}
 
 		k.Storage.UpdateState(c.MachineId, status)
@@ -64,20 +76,12 @@ func (k *Kloud) build(r *kite.Request, c *Controller) (resp interface{}, err err
 }
 
 func (k *Kloud) buildMachine(username string, c *Controller) error {
-	// create a random instance name if the it's not passed via argument
-	if c.InstanceName == "" {
-		c.InstanceName = username + "-" + strconv.FormatInt(time.Now().UTC().UnixNano(), 10)
-	}
-
 	machOptions := &protocol.MachineOptions{
-		MachineId:    c.MachineId,
-		Username:     username,
-		ImageName:    c.ImageName,
-		InstanceName: c.InstanceName,
-		Eventer:      c.Eventer,
-		Credential:   c.Machine.Credential,
-		Builder:      c.Machine.Data,
-		Deploy:       k.Deploy,
+		MachineId:  c.MachineId,
+		Eventer:    c.Eventer,
+		Credential: c.Machine.Credential,
+		Builder:    c.Machine.Data,
+		Deploy:     k.Deploy,
 	}
 
 	msg := fmt.Sprintf("Building process started. Provider '%s'. Build options: %+v",
@@ -85,7 +89,23 @@ func (k *Kloud) buildMachine(username string, c *Controller) error {
 
 	c.Eventer.Push(&eventer.Event{Message: msg, Status: machinestate.Building})
 
-	k.Log.Debug("[controller]: running method 'build' with machine options %v", machOptions)
+	buildStub := `
+provider      : %s
+machineId     : %s
+username      : %s
+instanceName  : %s
+meta data     : %# v
+`
+
+	buildInfo := fmt.Sprintf(buildStub,
+		c.ProviderName,
+		c.MachineId,
+		username,
+		c.Machine.Data["instanceName"].(string),
+		pretty.Formatter(c.Machine.Data),
+	)
+
+	k.Log.Info("[controller] building machine with following data: %s", buildInfo)
 
 	artifact, err := c.Builder.Build(machOptions)
 	if err != nil {
@@ -94,7 +114,7 @@ func (k *Kloud) buildMachine(username string, c *Controller) error {
 	if artifact == nil {
 		return NewError(ErrBadResponse)
 	}
-	k.Log.Debug("[controller]: method 'build' is successfull %#v", artifact)
+	k.Log.Debug("[controller]: building machine finished, result artifact is: %# v", pretty.Formatter(artifact))
 
 	storageData := map[string]interface{}{
 		"ipAddress":    artifact.IpAddress,
@@ -107,6 +127,7 @@ func (k *Kloud) buildMachine(username string, c *Controller) error {
 		artifact.Username = username
 	}
 
+	// TODO: I don't feel good about this, fix it
 	if k.Deployer != nil && artifact.SSHPrivateKey != "" {
 		deployArtifact, err := k.Deployer.Deploy(artifact)
 		if err != nil {

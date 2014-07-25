@@ -50,10 +50,12 @@ func (p *Provider) Limit(opts *protocol.MachineOptions, method string) error {
 		return err
 	}
 
+	username := opts.Builder["username"].(string)
+
 	ctx := &CheckContext{
 		api:      a,
 		db:       p.DB,
-		username: opts.Username,
+		username: username,
 	}
 
 	return p.CheckLimits("free", ctx)

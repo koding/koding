@@ -45,10 +45,12 @@ type Provider struct {
 }
 
 func (p *Provider) NewClient(opts *protocol.MachineOptions) (*amazon.AmazonClient, error) {
+	username := opts.Builder["username"].(string)
+
 	a := &amazon.AmazonClient{
 		Log: p.Log,
 		Push: func(msg string, percentage int, state machinestate.State) {
-			p.Log.Info("%s - %s ==> %s", opts.MachineId, opts.Username, msg)
+			p.Log.Info("%s - %s ==> %s", opts.MachineId, username, msg)
 
 			opts.Eventer.Push(&eventer.Event{
 				Message:    msg,
@@ -80,9 +82,8 @@ func (p *Provider) Build(opts *protocol.MachineOptions) (*protocol.Artifact, err
 		return nil, err
 	}
 
-	if opts.InstanceName == "" {
-		return nil, errors.New("server name is empty")
-	}
+	instanceName := opts.Builder["instanceName"].(string)
+	username := opts.Builder["username"].(string)
 
 	groupName := "koding-kloud" // TODO: make it from the package level and remove it from here
 	a.Log.Info("Checking if security group '%s' exists", groupName)
@@ -157,18 +158,18 @@ func (p *Provider) Build(opts *protocol.MachineOptions) (*protocol.Artifact, err
 disable_root: false
 hostname: %s`
 
-	cloudStr := fmt.Sprintf(cloudConfig, opts.InstanceName)
+	cloudStr := fmt.Sprintf(cloudConfig, instanceName)
 
 	a.Builder.UserData = []byte(cloudStr)
 
-	artifact, err := a.Build(opts.InstanceName)
+	artifact, err := a.Build(instanceName)
 	if err != nil {
 		return nil, err
 	}
 
 	// Add user specific tag to make simplfying easier
-	a.Log.Info("Adding user tag '%s' to the instance '%s'", opts.Username, artifact.InstanceId)
-	if err := a.AddTag(artifact.InstanceId, "koding-user", opts.Username); err != nil {
+	a.Log.Info("Adding user tag '%s' to the instance '%s'", username, artifact.InstanceId)
+	if err := a.AddTag(artifact.InstanceId, "koding-user", username); err != nil {
 		return nil, err
 	}
 
@@ -238,10 +239,11 @@ func (p *Provider) Report(r *kite.Request) (interface{}, error) {
 		return nil, errors.New("can't update report - 1")
 	}
 
+	fmt.Printf("usage: %+v\n", usg)
 	if usg.InactiveDuration >= time.Minute*30 {
-		p.Log.Info("Machine %s needs to be stopped!", r.Client.Kite)
+		p.Log.Info("Machine '%s' needs to be stopped!", r.Client.Kite.ID)
 	} else {
-		p.Log.Info("Machine %s is good to go", r.Client.Kite)
+		p.Log.Info("Machine '%s' is good to go", r.Client.Kite.ID)
 	}
 
 	return true, nil

@@ -25,6 +25,8 @@ type Provider struct {
 }
 
 func (p *Provider) NewClient(opts *protocol.MachineOptions) (*Client, error) {
+	username := opts.Builder["username"].(string)
+
 	d, err := do.New(opts.Credential, opts.Builder)
 	if err != nil {
 		return nil, err
@@ -35,7 +37,7 @@ func (p *Provider) NewClient(opts *protocol.MachineOptions) (*Client, error) {
 	}
 
 	push := func(msg string, percentage int, state machinestate.State) {
-		p.Log.Info("%s - %s ==> %s", opts.MachineId, opts.Username, msg)
+		p.Log.Info("%s - %s ==> %s", opts.MachineId, username, msg)
 
 		opts.Eventer.Push(&eventer.Event{
 			Message:    msg,
@@ -76,15 +78,9 @@ func (p *Provider) Build(opts *protocol.MachineOptions) (*protocol.Artifact, err
 		return nil, err
 	}
 
-	if opts.ImageName == "" {
-		opts.ImageName = "ubuntu-14-04-x64"
-	}
+	dropletName := opts.Builder["instanceName"].(string)
 
-	if opts.InstanceName == "" {
-		return nil, errors.New("dropletName is empty")
-	}
-
-	return doClient.Build(opts.ImageName, opts.InstanceName)
+	return doClient.Build(dropletName)
 }
 
 func (p *Provider) Start(opts *protocol.MachineOptions) (*protocol.Artifact, error) {

@@ -2,7 +2,7 @@ package kloud
 
 import "github.com/koding/kloud/machinestate"
 
-// TODO split it into Lock and Storage (asiggne should be seperated)
+// TODO split it into Lock and Storage (asignee should be seperated)
 type Storage interface {
 	// Get returns the machine data associated with the given id
 	Get(id string) (*Machine, error)
