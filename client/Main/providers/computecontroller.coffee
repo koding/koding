@@ -24,6 +24,8 @@ class ComputeController extends KDController
         @storage = KD.singletons.appStorageController.storage 'Compute', '0.0.1'
         @emit 'ready'
 
+        @info machine for machine in @machines
+
 
   fetchStacks: do (queue=[])->
 
@@ -128,7 +130,7 @@ class ComputeController extends KDController
     @stacks   = null
     @machines = null
 
-    @emit "renderStacks"  if render
+    if render then @fetchStacks => @emit "renderStacks"
 
 
   errorHandler = (task, eL, machine)-> (err)->
