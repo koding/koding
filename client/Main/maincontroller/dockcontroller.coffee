@@ -62,6 +62,9 @@ class DockController extends KDViewController
     # {mainController} = KD.singletons
     # mainController.ready @bound 'accountChanged'
 
+    KD.singletons.computeController.on "renderStacks", =>
+      @fetchMachines @bound 'listMachines'
+
     @trackStateTransitions()
     @bindKeyCombos()
 
@@ -153,6 +156,8 @@ class DockController extends KDViewController
         return @emit 'ready'
 
       @setNavItems @buildNavItems usersNavItems
+      @fetchMachines @bound 'listMachines'
+
       @emit 'ready'
 
 
@@ -215,12 +220,10 @@ class DockController extends KDViewController
       cssClass : 'add-vm'
       title    : '+ Add another VM'
       click    : ->
-        # fixme: this is a temp solution
-        # this should change with the new environments
-        KD.singletons.appManager.require 'Environments', ->
-          env = new EnvironmentMachineContainer
-          env.emit 'PlusButtonClicked'
-          @fetchMachines @bound 'listMachines'
+
+        ComputeController.UI.showProvidersModal \
+          KD.singletons.computeController.stacks.first
+
 
 
     @setNavItems defaultItems

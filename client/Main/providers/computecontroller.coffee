@@ -9,6 +9,8 @@ class ComputeController extends KDController
 
     { mainController, kontrol } = KD.singletons
 
+    do @reset
+
     mainController.ready =>
 
       @kloud         = kontrol.getKite
@@ -21,6 +23,9 @@ class ComputeController extends KDController
       @on "MachineDestroy", => do @reset
 
       @fetchStacks =>
+
+        if @stacks.length is 0 then do @createDefaultStack
+
         @storage = KD.singletons.appStorageController.storage 'Compute', '0.0.1'
         @emit 'ready'
 
@@ -31,7 +36,7 @@ class ComputeController extends KDController
 
     (callback = noop)-> KD.singletons.mainController.ready =>
 
-      if @stacks
+      if @stacks.length > 0
         callback null, @stacks
         info "Stacks returned from cache."
         return
@@ -127,10 +132,12 @@ class ComputeController extends KDController
 
   reset: (render = no)->
 
-    @stacks   = null
-    @machines = null
+    @stacks   = []
+    @machines = []
 
-    if render then @fetchStacks => @emit "renderStacks"
+    if render then @fetchStacks =>
+      @info machine for machine in @machines
+      @emit "renderStacks"
 
 
   errorHandler = (task, eL, machine)-> (err)->
