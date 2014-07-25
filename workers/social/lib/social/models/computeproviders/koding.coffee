@@ -21,7 +21,7 @@ module.exports = class Koding extends ProviderInterface
     meta =
       type          : "amazon"
       region        : "us-east-1"
-      source_ami    : "ami-a6926dce"
+      source_ami    : "ami-2651904e"
       instance_type : instanceType
 
     callback null, { meta, credential: client.r.user.username }
