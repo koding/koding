@@ -246,6 +246,7 @@ func (f *Controller) MessageReplySaved(mr *models.MessageReply) error {
 		return err
 	}
 
+	f.sendReplyEventAsChannelUpdatedEvent(mr, channelUpdatedEventReplyAdded)
 	f.sendReplyAddedEvent(mr)
 
 	return nil
@@ -307,8 +308,9 @@ func (f *Controller) sendReplyEventAsChannelUpdatedEvent(mr *models.MessageReply
 	}
 
 	for _, channel := range channels {
-		if channel.TypeConstant == models.Channel_TYPE_TOPIC {
-			f.log.Critical("skip topic channels")
+		// TODOremove all those if conditions after switching private messages to
+		// the channel message type
+		if channel.TypeConstant != models.Channel_TYPE_PRIVATE_MESSAGE {
 			continue
 		}
 		cue.Channel = &channel
