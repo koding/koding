@@ -142,11 +142,37 @@ module.exports = [
   "CommonViews/memberautocomplete.coffee",
   "CommonViews/editormodal.coffee",
 
+  "providers/config.coffee",
+  "providers/computecontroller.coffee",
+  "providers/computecontroller.ui.coffee",
+  "providers/computeeventlistener.coffee",
+
+  "providers/machine.coffee",
+  "providers/dummymachine.coffee",
+  "providers/machineitem.coffee",
+  "providers/machinelist.coffee",
+
+  "providers/provideritemview.coffee",
+  "providers/providerbaseview.coffee",
+
+  "providers/cloudinstanceitemview.coffee",
+
+  "providers/providerdigitalocean.coffee",
+  "providers/providerwelcomeview.coffee",
+  "providers/providerengineyard.coffee",
+  "providers/providerkoding.coffee",
+  "providers/provideramazon.coffee",
+  "providers/providergoogle.coffee",
+  "providers/providerrackspace.coffee",
+
+  "providers/providerview.coffee",
+
+
   "navigation/topnavigation.coffee",
 
   "navigation/navigationlist.coffee",
   "navigation/navigationlink.coffee",
-  "navigation/navigationvmitem.coffee",
+  "navigation/navigationmachineitem.coffee",
   "navigation/navigationseparator.coffee",
   "navigation/navigationadminlink.coffee",
   "navigation/navigationinvitationlink.coffee",
@@ -155,7 +181,7 @@ module.exports = [
   "navigation/navigationdocsjobslink.coffee",
   "navigation/navigationpromotelink.coffee",
 
-  "vmsettingsmodal.coffee",
+  "machinesettingsmodal.coffee",
 
   # LOCATION
   "locationcontroller.coffee",
@@ -187,31 +213,6 @@ module.exports = [
 
   "maintabs/maintabview.coffee",
   "maintabs/maintabpaneview.coffee",
-
-  "providers/config.coffee",
-  "providers/computecontroller.coffee",
-  "providers/computecontroller.ui.coffee",
-  "providers/computeeventlistener.coffee",
-
-  "providers/machine.coffee",
-  "providers/dummymachine.coffee",
-  "providers/machineitem.coffee",
-  "providers/machinelist.coffee",
-
-  "providers/provideritemview.coffee",
-  "providers/providerbaseview.coffee",
-
-  "providers/cloudinstanceitemview.coffee",
-
-  "providers/providerdigitalocean.coffee",
-  "providers/providerwelcomeview.coffee",
-  "providers/providerengineyard.coffee",
-  "providers/providerkoding.coffee",
-  "providers/provideramazon.coffee",
-  "providers/providergoogle.coffee",
-  "providers/providerrackspace.coffee",
-
-  "providers/providerview.coffee",
 
   # global notifications
   "globalnotification.coffee",
