@@ -4,8 +4,14 @@ import (
 	"errors"
 	"fmt"
 	"koding/db/mongodb"
+	"koding/kites/klient/usage"
+	"koding/kites/kloud/storage"
 	"time"
 
+	"labix.org/v2/mgo"
+	"labix.org/v2/mgo/bson"
+
+	"github.com/koding/kite"
 	aws "github.com/koding/kloud/api/amazon"
 	"github.com/koding/kloud/eventer"
 	"github.com/koding/kloud/machinestate"
@@ -212,4 +218,31 @@ func (p *Provider) Info(opts *protocol.MachineOptions) (*protocol.InfoArtifact, 
 	}
 
 	return a.Info()
+}
+
+func (p *Provider) Report(r *kite.Request) (interface{}, error) {
+	p.Log.Info("Incoming report from %s", r.Client.Kite)
+
+	var usg usage.Usage
+	err := r.Args.One().Unmarshal(&usg)
+	if err != nil {
+		return nil, err
+	}
+
+	machine := &storage.Machine{}
+	err = p.DB.Run("jMachines", func(c *mgo.Collection) error {
+		return c.Find(bson.M{"queryString": r.Client.Kite.String()}).One(&machine)
+	})
+	if err != nil {
+		p.Log.Warning("Couldn't find %v, however this kite is still reporting to us. Needs to be fixed: %s", r.Client.Kite, err.Error())
+		return nil, errors.New("can't update report - 1")
+	}
+
+	if usg.InactiveDuration >= time.Minute*30 {
+		p.Log.Info("Machine %s needs to be stopped!", r.Client.Kite)
+	} else {
+		p.Log.Info("Machine %s is good to go", r.Client.Kite)
+	}
+
+	return true, nil
 }

@@ -103,21 +103,6 @@ func newKite() *kite.Kite {
 		k.Config.Environment = config.MustConfig(*flagProfile).Environment
 	}
 
-	kld := newKloud(k)
-
-	k.HandleFunc("build", kld.Build)
-	k.HandleFunc("start", kld.Start)
-	k.HandleFunc("stop", kld.Stop)
-	k.HandleFunc("restart", kld.Restart)
-	k.HandleFunc("info", kld.Info)
-	k.HandleFunc("destroy", kld.Destroy)
-	k.HandleFunc("event", kld.Event)
-	k.HandleFunc("report", Report)
-
-	return k
-}
-
-func newKloud(kloudKite *kite.Kite) *kloud.Kloud {
 	id := uniqueId()
 	if *flagUniqueId != "" {
 		id = uniqueId()
@@ -133,7 +118,7 @@ func newKloud(kloudKite *kite.Kite) *kloud.Kloud {
 	}
 
 	if err := mongodbStorage.CleanupOldData(); err != nil {
-		kloudKite.Log.Warning("Cleaning up mongodb err: %s", err.Error())
+		k.Log.Warning("Cleaning up mongodb err: %s", err.Error())
 	}
 
 	var kontrolURL string
@@ -175,7 +160,7 @@ func newKloud(kloudKite *kite.Kite) *kloud.Kloud {
 	privateKey := string(privKey)
 
 	deployer := &KodingDeploy{
-		Kite:              kloudKite,
+		Kite:              k,
 		Log:               logging.NewLogger("kloud-deploy"),
 		KontrolURL:        kontrolURL,
 		KontrolPrivateKey: privateKey,
@@ -192,12 +177,23 @@ func newKloud(kloudKite *kite.Kite) *kloud.Kloud {
 		PrivateKey: deployPrivateKey,
 	}
 
-	kld.AddProvider("koding", &koding.Provider{
+	kodingProvider := &koding.Provider{
 		Log: logging.NewLogger("koding"),
 		DB:  db,
-	})
+	}
 
-	return kld
+	kld.AddProvider("koding", kodingProvider)
+
+	k.HandleFunc("build", kld.Build)
+	k.HandleFunc("start", kld.Start)
+	k.HandleFunc("stop", kld.Stop)
+	k.HandleFunc("restart", kld.Restart)
+	k.HandleFunc("info", kld.Info)
+	k.HandleFunc("destroy", kld.Destroy)
+	k.HandleFunc("event", kld.Event)
+	k.HandleFunc("report", kodingProvider.Report)
+
+	return k
 }
 
 func uniqueId() string {
