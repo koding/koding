@@ -215,14 +215,14 @@ class MainView extends KDView
     @panelWrapper.addSubView @appSettingsMenuButton
 
 
-  openVMModal: (vm, item) ->
+  openMachineModal: (machine, item) ->
 
     bounds   = item.getBounds()
     position =
-      top    : Math.max bounds.y - 40, 0
-      left   : bounds.x + bounds.w + 20
+      top    : Math.max bounds.y - 38, 0
+      left   : bounds.x + bounds.w + 16
 
-    new VMSettingsModal {position}, vm
+    new MachineSettingsModal {position}, machine
 
 
   setStickyNotification:->
