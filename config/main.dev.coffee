@@ -171,7 +171,7 @@ Configuration = (options={}) ->
 
   KONFIG.workers =
     kontrol             : command : "#{GOBIN}/rerun koding/kites/kontrol -c #{configName} -r #{region}"
-    kloud               : command : "#{GOBIN}/kloud     -c #{configName} -env dev -r #{region} -port #{KONFIG.kloud.port} -public-key #{KONFIG.kloud.publicKeyFile} -private-key #{KONFIG.kloud.privateKeyFile} -kontrol-url http://kontrol-#{publicHostname}.ngrok.com/kite"
+    kloud               : command : "#{GOBIN}/kloud     -c #{configName} -env dev -r #{region} -port #{KONFIG.kloud.port} -public-key #{KONFIG.kloud.publicKeyFile} -private-key #{KONFIG.kloud.privateKeyFile} -kontrol-url http://kontrol-#{publicHostname}.ngrok.com/kite -debug"
     broker              : command : "#{GOBIN}/rerun koding/broker        -c #{configName}"
     rerouting           : command : "#{GOBIN}/rerun koding/rerouting     -c #{configName}"
     cron                : command : "#{GOBIN}/rerun koding/cron          -c #{configName}"
@@ -366,14 +366,21 @@ Configuration = (options={}) ->
         ./cleanup @$
 
       elif [ "$1" == "services" ]; then
-        docker run -d --net=host --name=mongo    koding/mongo    --dbpath /root/data/db --smallfiles --nojournal
-        docker run -d --net=host --name=redis    koding/redis
+        docker run -d --net=host --name=mongo    mongo
+        docker run -d --net=host --name=redis    redis
         docker run -d --net=host --name=postgres koding/postgres
         docker run -d --net=host --name=rabbitmq koding/rabbitmq
+
+        echo '#---> UPDATING MONGO DB TO REFLECT LATEST CHANGES ON ENVIRONMENTS @gokmen <---#'
+        tar jxvf ./install/default-db-dump.tar.bz2
+        mongorestore -h#{boot2dockerbox}:27017} -dkoding #{projectRoot}/dump/koding
+        rm -rf ./dump
 
         echo '#---> UPDATING MONGO DATABASE ACCORDING TO LATEST CHANGES IN CODE (UPDATE PERMISSIONS @chris) <---#'
         cd #{projectRoot}
         node #{projectRoot}/scripts/permission-updater  -c #{socialapi.configFilePath} --hard >/dev/null
+
+
 
         echo '#---> UPDATING MONGO DB TO WORK WITH SOCIALAPI @cihangir <---#'
         mongo #{mongo} --eval='db.jAccounts.update({},{$unset:{socialApiId:0}},{multi:true}); db.jGroups.update({},{$unset:{socialApiChannelId:0}},{multi:true});'

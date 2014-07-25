@@ -164,9 +164,9 @@ class Deploy
 
     options = options or
       params :
-        ImageId       : "ami-a6926dce" # Amazon ubuntu 14.04 "ami-1624987f" # Amazon Linux AMI x86_64 EBS
-        # InstanceType  : "t2.medium"
-        InstanceType  : "t2.micro"
+        ImageId       : "ami-1624987f" # Amazon ubuntu 14.04 "ami-1624987f" # Amazon Linux AMI x86_64 EBS
+        InstanceType  : "t2.medium"
+        # InstanceType  : "t2.micro"
         MinCount      : 1
         MaxCount      : 1
         SubnetId      : "subnet-b47692ed"
@@ -207,10 +207,10 @@ class Deploy
 
 # module.exports = Deploy
 
-# for i in [0..5]
-#   Deploy.deployAndConfigure null,(err,res)->
-#     log "#{res.instanceName} is ready."
-#     log "Box is ready at mosh root@#{res.instanceData.PublicIpAddress}"
+
+Deploy.deployAndConfigure null,(err,res)->
+  log "#{res.instanceName} is ready."
+  log "Box is ready at mosh root@#{res.instanceData.PublicIpAddress}"
 
 
 class Release
@@ -300,114 +300,115 @@ if argv.rollback
   rollback argv.rollback
 
 
-"use strict"
-inquirer = require "inquirer"
-console.log "Hi, welcome to Koding Deployment Tool"
-questions = [
-  {
-    type: "list",
-    name: "theme",
-    message: "What do you want to do?",
-    choices: [
-      "Deploy a release candidate",
-      "Switch a build",
+# "use strict"
+# inquirer = require "inquirer"
+# console.log "Hi, welcome to Koding Deployment Tool"
+# questions = [
+#   {
+#     type: "list",
+#     name: "theme",
+#     message: "What do you want to do?",
+#     choices: [
+#       "Deploy a version",
+#       "Run tests",
+#       "Switch koding.com",
 
-      new inquirer.Separator(),
-      "Ask opening hours",
-      "Talk to the receptionnist"
-    ]
-  }
-  {
-    type: "confirm"
-    name: "toBeDelivered"
-    message: "Is it for a delivery"
-    default: false
-  }
-  {
-    type: "input"
-    name: "phone"
-    message: "What's your phone number"
-    validate: (value) ->
-      pass = value.match(/^([01]{1})?[\-\.\s]?\(?(\d{3})\)?[\-\.\s]?(\d{3})[\-\.\s]?(\d{4})\s?((?:#|ext\.?\s?|x\.?\s?){1}(?:\d+)?)?$/i)
-      if pass
-        true
-      else
-        "Please enter a valid phone number"
-  }
-  {
-    type: "list"
-    name: "size"
-    message: "What size do you need"
-    choices: [
-      "Large"
-      "Medium"
-      "Small"
-    ]
-    filter: (val) ->
-      val.toLowerCase()
-  }
-  {
-    type: "input"
-    name: "quantity"
-    message: "How many do you need"
-    validate: (value) ->
-      valid = not isNaN(parseFloat(value))
-      valid or "Please enter a number"
+#       new inquirer.Separator(),
+#       "Ask opening hours",
+#       "Talk to the receptionnist"
+#     ]
+#   }
+#   {
+#     type: "confirm"
+#     name: "toBeDelivered"
+#     message: "Is it for a delivery"
+#     default: false
+#   }
+#   {
+#     type: "input"
+#     name: "phone"
+#     message: "What's your phone number"
+#     validate: (value) ->
+#       pass = value.match(/^([01]{1})?[\-\.\s]?\(?(\d{3})\)?[\-\.\s]?(\d{3})[\-\.\s]?(\d{4})\s?((?:#|ext\.?\s?|x\.?\s?){1}(?:\d+)?)?$/i)
+#       if pass
+#         true
+#       else
+#         "Please enter a valid phone number"
+#   }
+#   {
+#     type: "list"
+#     name: "size"
+#     message: "What size do you need"
+#     choices: [
+#       "Large"
+#       "Medium"
+#       "Small"
+#     ]
+#     filter: (val) ->
+#       val.toLowerCase()
+#   }
+#   {
+#     type: "input"
+#     name: "quantity"
+#     message: "How many do you need"
+#     validate: (value) ->
+#       valid = not isNaN(parseFloat(value))
+#       valid or "Please enter a number"
 
-    filter: Number
-  }
-  {
-    type: "expand"
-    name: "toppings"
-    message: "What about the toping"
-    choices: [
-      {
-        key: "p"
-        name: "Peperonni and chesse"
-        value: "PeperonniChesse"
-      }
-      {
-        key: "a"
-        name: "All dressed"
-        value: "alldressed"
-      }
-      {
-        key: "w"
-        name: "Hawaïan"
-        value: "hawaian"
-      }
-    ]
-  }
-  {
-    type: "rawlist"
-    name: "beverage"
-    message: "You also get a free 2L beverage"
-    choices: [
-      "Pepsi"
-      "7up"
-      "Coke"
-    ]
-  }
-  {
-    type: "input"
-    name: "comments"
-    message: "Any comments on your purchase experience"
-    default: "Nope, all good!"
-  }
-  {
-    type: "list"
-    name: "prize"
-    message: "For leaving a comments, you get a freebie"
-    choices: [
-      "cake"
-      "fries"
-    ]
-    when: (answers) ->
-      answers.comments isnt "Nope, all good!"
-  }
-]
+#     filter: Number
+#   }
+#   {
+#     type: "expand"
+#     name: "toppings"
+#     message: "What about the toping"
+#     choices: [
+#       {
+#         key: "p"
+#         name: "Peperonni and chesse"
+#         value: "PeperonniChesse"
+#       }
+#       {
+#         key: "a"
+#         name: "All dressed"
+#         value: "alldressed"
+#       }
+#       {
+#         key: "w"
+#         name: "Hawaïan"
+#         value: "hawaian"
+#       }
+#     ]
+#   }
+#   {
+#     type: "rawlist"
+#     name: "beverage"
+#     message: "You also get a free 2L beverage"
+#     choices: [
+#       "Pepsi"
+#       "7up"
+#       "Coke"
+#     ]
+#   }
+#   {
+#     type: "input"
+#     name: "comments"
+#     message: "Any comments on your purchase experience"
+#     default: "Nope, all good!"
+#   }
+#   {
+#     type: "list"
+#     name: "prize"
+#     message: "For leaving a comments, you get a freebie"
+#     choices: [
+#       "cake"
+#       "fries"
+#     ]
+#     when: (answers) ->
+#       answers.comments isnt "Nope, all good!"
+#   }
+# ]
 
-inquirer.prompt questions, (answers) ->
-  console.log "\nOrder receipt:"
-  console.log JSON.stringify(answers, null, "  ")
-  return
+# inquirer.prompt questions, (answers) ->
+#   console.log "\nOrder receipt:"
+#   console.log JSON.stringify(answers, null, "  ")
+#   return
