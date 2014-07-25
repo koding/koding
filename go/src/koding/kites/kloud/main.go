@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"io/ioutil"
 	"koding/db/mongodb"
-	"koding/kites/klient/usage"
 	"koding/kites/kloud/koding"
 	"koding/kites/kloud/storage"
 	"koding/tools/config"
@@ -113,20 +112,7 @@ func newKite() *kite.Kite {
 	k.HandleFunc("info", kld.Info)
 	k.HandleFunc("destroy", kld.Destroy)
 	k.HandleFunc("event", kld.Event)
-	k.HandleFunc("report", func(r *kite.Request) (interface{}, error) {
-		k.Log.Info("Klient is reporting!!! %v", r.Client.Kite)
-
-		var usg usage.Usage
-
-		fmt.Printf("r.Args.raw %+v\n", string(r.Args.Raw))
-		err := r.Args.One().Unmarshal(&usg)
-		if err != nil {
-			return nil, err
-		}
-
-		fmt.Printf("usage %+v\n", usg)
-		return "I've got your message", nil
-	})
+	k.HandleFunc("report", Report)
 
 	return k
 }
