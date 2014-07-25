@@ -223,10 +223,10 @@ glanceNotifications = (accountId, callback)->
   post url, {accountId}, callback
 
 followUser = (data, callback)->
-  followHelper data, followTopic, callback
+  followHelper data, addParticipants, callback
 
 unfollowUser = (data, callback)->
-  followHelper data, unfollowTopic, callback
+  followHelper data, removeParticipants, callback
 
 followHelper = (data, followFn, callback) ->
   unless data.accountId and data.creatorId

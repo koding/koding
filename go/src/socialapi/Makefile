@@ -130,6 +130,8 @@ installrerun:
 
 install:
 	@echo $(CONFIG)
+	@echo "$(OK_COLOR)==> Installing postgresql"
+	(vagrant ssh default --command "/opt/koding/go/src/socialapi/db/sql/definition/install.sh")
 	@echo "$(OK_COLOR)==> Installing all packages $(NO_COLOR)"
 	@go install $(VERBOSE) ${PACKAGES}
 
@@ -157,7 +159,7 @@ testapi:
 
 	@echo "$(OK_COLOR)--> api tests... $(NO_COLOR)"
 	@go test -c tests/*.go
-	@./main.test $(DEBUG)
+	@./main.test
 	@rm ./main.test
 
 doc:

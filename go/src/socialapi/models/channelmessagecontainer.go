@@ -222,6 +222,10 @@ func (cc *ChannelMessageContainer) AddIsInteracted(query *request.Query) *Channe
 		}
 
 		c.Interactions["like"].IsInteracted = isInteracted
+		if cc.Replies != nil {
+			cc.Replies = *cc.Replies.AddIsInteracted(query)
+		}
+
 		return nil
 	})
 }
@@ -261,6 +265,14 @@ func (ccs *ChannelMessageContainers) PopulateWith(cms []ChannelMessage, query *r
 func (ccs *ChannelMessageContainers) Add(containers ...*ChannelMessageContainer) *ChannelMessageContainers {
 	for _, cc := range containers {
 		*ccs = append(*ccs, *cc)
+	}
+
+	return ccs
+}
+
+func (ccs *ChannelMessageContainers) AddIsInteracted(query *request.Query) *ChannelMessageContainers {
+	for i, cc := range *ccs {
+		(*ccs)[i] = *cc.AddIsInteracted(query)
 	}
 
 	return ccs

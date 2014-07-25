@@ -186,7 +186,7 @@ class PaymentMethodEntryForm extends KDFormViewWithFields
       when 'Unknown', undefined then 'credit card'
       else formData.cardType
     cardOwner = if cardFirstName then "#{ cardFirstName }'s " else ''
-    # inputs.cardDescription.setPlaceHolder "#{ cardOwner }#{ cardType }"
+    # inputs.cardDescription.setPlaceholder "#{ cardOwner }#{ cardType }"
 
   handleCardKeyup: (event) -> @updateCardTypeDisplay()
 
@@ -199,7 +199,7 @@ class PaymentMethodEntryForm extends KDFormViewWithFields
         when 'cardType'
           @updateCardTypeDisplay value
         when 'cardNumber', 'cardCV'
-          @inputs[key]?.setPlaceHolder value
+          @inputs[key]?.setPlaceholder value
         when 'address2' then # ignore
         else
           @inputs[key]?.setValue value
