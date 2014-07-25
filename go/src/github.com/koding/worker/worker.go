@@ -7,6 +7,7 @@ import (
 	"github.com/koding/logging"
 	"github.com/koding/rabbitmq"
 	"log"
+	"log/syslog"
 	"os"
 
 	"github.com/jinzhu/gorm"
@@ -163,6 +164,27 @@ type ErrHandler interface {
 
 var timers = map[string]metrics.Timer{}
 
+func (l *Listener) withMetrics(fn func(string, []byte) error, delivery amqp.Delivery) error {
+	var timer metrics.Timer
+	var err error
+	var exists bool
+
+	l.Metrics.Messages.Inc(1)
+
+	timerName := l.WorkerName + delivery.Type
+	timer, exists = timers[timerName]
+	if !exists {
+		timer = metrics.NewTimer()
+		l.Metrics.Registry.Register(timerName, timer)
+	}
+
+	timer.Time(func() {
+		err = fn(delivery.Type, delivery.Body)
+	})
+
+	return err
+}
+
 func (l *Listener) Start(handler Handler) func(delivery amqp.Delivery) {
 	l.Log.Info("Worker Started to Consume")
 
@@ -170,23 +192,11 @@ func (l *Listener) Start(handler Handler) func(delivery amqp.Delivery) {
 		go metrics.Log(l.Metrics.Registry, 1e10, log.New(os.Stderr, "metrics: ", log.Lmicroseconds))
 	}
 
+	w, _ := syslog.Dial("unixgram", "/dev/log", syslog.LOG_INFO, "metrics")
+	go metrics.Syslog(metrics.DefaultRegistry, 1e10, w)
+
 	return func(delivery amqp.Delivery) {
-		var timer metrics.Timer
-		var err error
-		var exists bool
-
-		l.Metrics.Messages.Inc(1)
-
-		timerName := l.WorkerName + delivery.Type
-		timer, exists = timers[timerName]
-		if !exists {
-			timer = metrics.NewTimer()
-			l.Metrics.Registry.Register(timerName, timer)
-		}
-
-		timer.Time(func() {
-			err = handler.HandleEvent(delivery.Type, delivery.Body)
-		})
+		err := l.withMetrics(handler.HandleEvent, delivery)
 
 		switch err {
 		case nil:
