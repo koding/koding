@@ -627,8 +627,7 @@ func TestChannelRemoveMessage(t *testing.T) {
 			// try to remove the same message again
 			ch, err = c.RemoveMessage(cm.Id)
 			So(err, ShouldNotBeNil)
-			So(ch, ShouldBeEmpty)
-
+			So(ch, ShouldBeNil)
 		})
 	})
 }
