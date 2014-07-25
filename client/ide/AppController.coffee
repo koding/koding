@@ -155,11 +155,12 @@ class IDEAppController extends AppController
         @ideViews.splice index, 1
 
       @handleSplitMerge views, parent, parentSplitView, panelIndexInParent
+      @doResize()
 
     splitView.merge()
 
   handleSplitMerge: (views, container, parentSplitView, panelIndexInParent) ->
-    ideView = new IDE.IDEView
+    ideView = new IDE.IDEView createNewEditor: no
     panes   = []
 
     for view in views
@@ -214,6 +215,7 @@ class IDEAppController extends AppController
       floatedPanel._lastSize = desiredSize
       @getView().setClass 'sidebar-collapsed'
       @isSidebarCollapsed = yes
+      KD.getSingleton("windowController").notifyWindowResizeListeners()
 
     splitView.setFloatingPanel 0, 39
     tabView.showPaneByName 'Dummy'
@@ -441,7 +443,10 @@ class IDEAppController extends AppController
 
   doResize: ->
     @forEachSubViewInIDEViews_ 'editor', (editorPane) ->
-      editorPane.aceView.ace.editor.resize()
+      height = editorPane.getHeight()
+      {ace}  = editorPane.aceView
+      ace.setHeight height
+      ace.editor.resize()
 
   notify: (title, cssClass = 'success', type = 'mini', duration = 4000) ->
     return unless title

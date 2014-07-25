@@ -2,7 +2,8 @@ class IDE.IDEView extends IDE.WorkspaceTabView
 
   constructor: (options = {}, data) ->
 
-    options.tabViewClass = AceApplicationTabView
+    options.tabViewClass     = AceApplicationTabView
+    options.createNewEditor ?= yes
 
     super options, data
 
@@ -31,7 +32,7 @@ class IDE.IDEView extends IDE.WorkspaceTabView
       @focusTab()
 
     @once 'viewAppended', => KD.utils.wait 300, =>
-      @createEditor()
+      @createEditor()  if @getOption 'createNewEditor'
       @showShortcutsOnce()
 
   createPane_: (view, paneOptions, paneData) ->
