@@ -124,9 +124,9 @@ class ComputeController extends KDController
     KD.remote.api.ComputeProvider.create options, callback
 
   createDefaultStack: ->
-
+    return  unless KD.isLoggedIn()
     KD.remote.api.ComputeProvider.createGroupStack (err, stack)=>
-      return if KD.showError err
+      return  if KD.showError err
       @reset yes
 
 

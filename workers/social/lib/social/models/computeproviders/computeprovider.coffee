@@ -179,7 +179,7 @@ module.exports = class ComputeProvider extends Base
 
   # Auto create stack operations ###
 
-  @createGroupStack = secure (client, callback)->
+  @createGroupStack = permit 'create machines', success: (client, callback)->
 
     fetchStackTemplate client, (err, res)->
       return callback err  if err
