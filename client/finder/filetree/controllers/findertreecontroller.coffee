@@ -426,38 +426,36 @@ class NFinderTreeController extends JTreeViewController
   CONTEXT MENU OPERATIONS
   ###
 
-  cmExpand:        (nodeView, contextMenuItem)-> @expandFolder node for node in @selectedNodes
-  cmCollapse:      (nodeView, contextMenuItem)-> @collapseFolder node for node in @selectedNodes # error fix this
-  cmMakeTopFolder: (nodeView, contextMenuItem)-> @makeTopFolder nodeView
-  cmRefresh:       (nodeView, contextMenuItem)-> @refreshFolder nodeView
-  cmToggleDotFiles:(nodeView, contextMenuItem)-> @toggleDotFiles nodeView
-  cmResetVm:       (nodeView, contextMenuItem)-> @resetVm nodeView
-  cmUnmountVm:     (nodeView, contextMenuItem)-> @unmountVm nodeView
   cmOpenVmTerminal:(nodeView, contextMenuItem)-> @openVmTerminal nodeView
-  cmCreateFile:    (nodeView, contextMenuItem)-> @createFile nodeView
-  cmCreateFolder:  (nodeView, contextMenuItem)-> @createFile nodeView, "folder"
-  cmRename:        (nodeView, contextMenuItem)-> @showRenameDialog nodeView
-  cmDelete:        (nodeView, contextMenuItem)-> @confirmDelete nodeView
-  cmDuplicate:     (nodeView, contextMenuItem)-> @duplicateFiles @selectedNodes
-  cmExtract:       (nodeView, contextMenuItem)-> @extractFiles nodeView
-  cmZip:           (nodeView, contextMenuItem)-> @compressFiles nodeView, "zip"
-  cmTarball:       (nodeView, contextMenuItem)-> @compressFiles nodeView, "tar.gz"
-  cmUpload:        (nodeView, contextMenuItem)-> @uploadFile nodeView
-  cmDownload:      (nodeView, contextMenuItem)-> @appManager.notify()
-  cmGitHubClone:   (nodeView, contextMenuItem)-> @appManager.notify()
-  cmOpenFile:      (nodeView, contextMenuItem)-> @openFile nodeView
-  cmPreviewFile:   (nodeView, contextMenuItem)-> @previewFile nodeView
-  cmCompile:       (nodeView, contextMenuItem)-> @compileApp nodeView
-  cmMakeNewApp:    (nodeView, contextMenuItem)-> @makeNewApp nodeView
-  cmPublish:       (nodeView, contextMenuItem)-> @publishApp nodeView
-  cmOpenFileWithApp: (nodeView, contextMenuItem)-> @openFileWithApp  nodeView, contextMenuItem
-  cmCloneRepo:     (nodeView, contextMenuItem)-> @cloneRepo nodeView
-  cmDropboxChooser:(nodeView, contextMenuItem)-> @chooseFromDropbox nodeView
-  cmOpenTerminal:  (nodeView, contextMenuItem)-> @openTerminalFromHere nodeView
-  # cmShowOpenWithModal: (nodeView, contextMenuItem)-> @showOpenWithModal nodeView
-  # cmOpenFileWithApp: (nodeView, contextMenuItem)-> @openFileWithApp  nodeView, contextMenuItem
-
-  cmOpenFileWithCodeMirror:(nodeView, contextMenuItem)-> @appManager.notify()
+  cmExpand:              (node) -> @expandFolder         node for node in @selectedNodes
+  cmCollapse:            (node) -> @collapseFolder       node for node in @selectedNodes # error fix this
+  cmMakeTopFolder:       (node) -> @makeTopFolder        node
+  cmRefresh:             (node) -> @refreshFolder        node
+  cmToggleDotFiles:      (node) -> @toggleDotFiles       node
+  cmResetVm:             (node) -> @resetVm              node
+  cmUnmountVm:           (node) -> @unmountVm            node
+  cmCreateFile:          (node) -> @createFile           node
+  cmCreateFolder:        (node) -> @createFile           node, "folder"
+  cmRename:              (node) -> @showRenameDialog     node
+  cmDelete:              (node) -> @confirmDelete        node
+  cmExtract:             (node) -> @extractFiles         node
+  cmZip:                 (node) -> @compressFiles        node, "zip"
+  cmTarball:             (node) -> @compressFiles        node, "tar.gz"
+  cmUpload:              (node) -> @uploadFile           node
+  cmOpenFile:            (node) -> @openFile             node
+  cmPreviewFile:         (node) -> @previewFile          node
+  cmCompile:             (node) -> @compileApp           node
+  cmMakeNewApp:          (node) -> @makeNewApp           node
+  cmPublish:             (node) -> @publishApp           node
+  cmCloneRepo:           (node) -> @cloneRepo            node
+  cmDropboxChooser:      (node) -> @chooseFromDropbox    node
+  cmOpenTerminal:        (node) -> @openTerminalFromHere node
+  cmDuplicate:           (node) -> @duplicateFiles       @selectedNodes
+  cmDownload:            (node) -> @appManager.notify()
+  cmGitHubClone:         (node) -> @appManager.notify()
+  # cmOpenFileWithApp:     (node, contextMenuItem) -> @openFileWithApp  node, contextMenuItem
+  # cmShowOpenWithModal: (node, contextMenuItem) -> @showOpenWithModal node
+  # cmOpenFileWithApp:   (node, contextMenuItem) -> @openFileWithApp  node, contextMenuItem
 
   ###
   CONTEXT MENU CREATE/MANAGE
