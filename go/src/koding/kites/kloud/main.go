@@ -11,6 +11,7 @@ import (
 	"log"
 	"net/url"
 	"os"
+	"time"
 
 	"github.com/koding/kite"
 	kiteconfig "github.com/koding/kite/config"
@@ -114,6 +115,18 @@ func newKite() *kite.Kite {
 	k.HandleFunc("event", kld.Event)
 	k.HandleFunc("report", func(r *kite.Request) (interface{}, error) {
 		k.Log.Info("Klient is reporting!!! %v", r.Client.Kite)
+
+		var params struct {
+			latestActivity time.Time `json:"latest_activity"`
+			methodCalls    int32     `json:"method_calls"`
+		}
+
+		err := r.Args.One().Unmarshal(&params)
+		if err != nil {
+			return nil, err
+		}
+
+		fmt.Printf("usage %+v\n", params)
 		return "I've got your message", nil
 	})
 
