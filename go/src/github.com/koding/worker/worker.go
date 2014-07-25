@@ -28,8 +28,11 @@ type Listener struct {
 
 type Metrics struct {
 	Registry metrics.Registry
+	Timers   TimersArray
 	*MetricsCounter
 }
+
+type TimersArray map[string]metrics.Timer
 
 type MetricsCounter struct {
 	Messages, Success, Handler404, Mgo404, Gorm404, OtherError metrics.Counter
@@ -68,6 +71,7 @@ func initializeMetrics(name string) *Metrics {
 
 	return &Metrics{
 		r,
+		TimersArray{},
 		&MetricsCounter{
 			Messages:   messages,
 			Success:    success,
@@ -162,8 +166,6 @@ type ErrHandler interface {
 	DefaultErrHandler(amqp.Delivery, error) bool
 }
 
-var timers = map[string]metrics.Timer{}
-
 func (l *Listener) withMetrics(fn func(string, []byte) error, delivery amqp.Delivery) error {
 	var timer metrics.Timer
 	var err error
@@ -172,10 +174,12 @@ func (l *Listener) withMetrics(fn func(string, []byte) error, delivery amqp.Deli
 	l.Metrics.Messages.Inc(1)
 
 	timerName := l.WorkerName + delivery.Type
-	timer, exists = timers[timerName]
+	timer, exists = l.Metrics.Timers[timerName]
 	if !exists {
 		timer = metrics.NewTimer()
 		l.Metrics.Registry.Register(timerName, timer)
+
+		l.Metrics.Timers[timerName] = timer
 	}
 
 	timer.Time(func() {
