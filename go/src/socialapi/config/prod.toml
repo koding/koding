@@ -20,7 +20,7 @@ Vhost=    "/"
 
 
 [redis]
-URL ="localhost:6379"
+URL ="prod0.1ia3pb.0001.use1.cache.amazonaws.com:6379"
 DB  =0
 
 

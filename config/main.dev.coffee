@@ -171,7 +171,7 @@ Configuration = (options={}) ->
 
   KONFIG.workers =
     kontrol             : command : "#{GOBIN}/rerun koding/kites/kontrol -c #{configName} -r #{region}"
-    kloud               : command : "#{GOBIN}/kloud     -c #{configName} -env dev -r #{region} -port #{KONFIG.kloud.port} -public-key #{KONFIG.kloud.publicKeyFile} -private-key #{KONFIG.kloud.privateKeyFile}"
+    kloud               : command : "#{GOBIN}/kloud     -c #{configName} -env dev -r #{region} -port #{KONFIG.kloud.port} -public-key #{KONFIG.kloud.publicKeyFile} -private-key #{KONFIG.kloud.privateKeyFile} -kontrol-url http://kontrol-#{publicHostname}.ngrok.com/kite"
     broker              : command : "#{GOBIN}/rerun koding/broker        -c #{configName}"
     rerouting           : command : "#{GOBIN}/rerun koding/rerouting     -c #{configName}"
     cron                : command : "#{GOBIN}/rerun koding/cron          -c #{configName}"

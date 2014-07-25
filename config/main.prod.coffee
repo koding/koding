@@ -18,7 +18,7 @@ Configuration = (options={}) ->
   publicIP            = options.publicIP       or "*"
 
   mongo               = "mongodb://dev:k9lc4G1k32nyD72@172.16.3.9,172.16.3.10,172.16.3.15/koding?replicaSet=koodingrs0&readPreference=primaryPreferred" # {prod_simulation_server}:27017/koding"
-  redis               = {host     : "#{prod_simulation_server}"   , port : "6379" }
+  redis               = {host     : "prod0.1ia3pb.0001.use1.cache.amazonaws.com"   , port : "6379" }
   socialapi           = {proxyUrl : "http://localhost:7000"       , port : 7000 , clusterSize : 5,     configFilePath : "#{projectRoot}/go/src/socialapi/config/prod.toml" }
   rabbitmq            = {host     : "#{prod_simulation_server}"   , port : 5672 , apiPort     : 15672, login          : "guest", password : "guest", vhost:"/"}
 
