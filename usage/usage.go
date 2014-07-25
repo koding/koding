@@ -1,4 +1,4 @@
-package main
+package usage
 
 import (
 	"fmt"
@@ -6,8 +6,6 @@ import (
 
 	"github.com/koding/kite"
 )
-
-var usage = newUsage()
 
 // Plan defines the environment on which klient is going to act and work. A
 // plan has limitations. Those limitiations are different for different plan
@@ -26,36 +24,36 @@ type Usage struct {
 	plan *Plan `json:"-"`
 
 	// latestActivity stores the time in which the latest activity was done.
-	latestActivity time.Time `json:"latest_activity"`
+	LatestActivity time.Time `json:"latest_activity"`
 
 	// methodcalls stores the number of method calls
-	methodCalls int32 `json:"method_calls"`
+	MethodCalls int32 `json:"method_calls"`
 }
 
-func newUsage() *Usage {
+func NewUsage() *Usage {
 	return &Usage{
 		// start with free, can be upgraded, downgraded later
 		plan: &Plan{
 			name:    "free",
 			timeout: time.Minute * 30,
 		},
-		latestActivity: time.Now(),
+		LatestActivity: time.Now(),
 	}
 }
 
-// counter resets the current usage and counts the incoming calls.
-func (u *Usage) counter(r *kite.Request) (interface{}, error) {
+// Counter resets the current usage and counts the incoming calls.
+func (u *Usage) Counter(r *kite.Request) (interface{}, error) {
 
 	fmt.Println("got a request for method: ", r.Method)
 	// reset the latest activity
-	u.latestActivity = time.Now()
+	u.LatestActivity = time.Now()
 
 	// incrase the method calls
-	u.methodCalls += 1
+	u.MethodCalls += 1
 	return nil, nil
 }
 
-// current returns the current acvitiy usage
-func (u *Usage) current(r *kite.Request) (interface{}, error) {
+// Current returns the current acvitiy usage
+func (u *Usage) Current(r *kite.Request) (interface{}, error) {
 	return u, nil
 }
