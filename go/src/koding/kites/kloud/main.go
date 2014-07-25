@@ -5,13 +5,13 @@ import (
 	"fmt"
 	"io/ioutil"
 	"koding/db/mongodb"
+	"koding/kites/klient/usage"
 	"koding/kites/kloud/koding"
 	"koding/kites/kloud/storage"
 	"koding/tools/config"
 	"log"
 	"net/url"
 	"os"
-	"time"
 
 	"github.com/koding/kite"
 	kiteconfig "github.com/koding/kite/config"
@@ -116,17 +116,15 @@ func newKite() *kite.Kite {
 	k.HandleFunc("report", func(r *kite.Request) (interface{}, error) {
 		k.Log.Info("Klient is reporting!!! %v", r.Client.Kite)
 
-		var params struct {
-			latestActivity time.Time `json:"latest_activity"`
-			methodCalls    int32     `json:"method_calls"`
-		}
+		var usg usage.Usage
 
-		err := r.Args.One().Unmarshal(&params)
+		fmt.Printf("r.Args.raw %+v\n", string(r.Args.Raw))
+		err := r.Args.One().Unmarshal(&usg)
 		if err != nil {
 			return nil, err
 		}
 
-		fmt.Printf("usage %+v\n", params)
+		fmt.Printf("usage %+v\n", usg)
 		return "I've got your message", nil
 	})
 
