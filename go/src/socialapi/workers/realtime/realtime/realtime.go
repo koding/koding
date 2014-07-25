@@ -148,7 +148,8 @@ func (f *Controller) sendChannelParticipantEvent(cp *models.ChannelParticipant, 
 		return err
 	}
 
-	cmc, err := models.PopulateChannelContainer(*c, cp.AccountId)
+	cc := models.NewChannelContainer()
+	err = cc.PopulateWith(*c, cp.AccountId)
 	if err != nil {
 		return err
 	}
@@ -169,7 +170,7 @@ func (f *Controller) sendChannelParticipantEvent(cp *models.ChannelParticipant, 
 		cp.AccountId,
 		c.GroupName,
 		eventName,
-		cmc,
+		cc,
 	); err != nil {
 		f.log.Error("Ignoring err %s ", err.Error())
 	}

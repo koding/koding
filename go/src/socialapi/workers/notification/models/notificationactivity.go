@@ -109,13 +109,7 @@ func (a *NotificationActivity) FetchMapByContentIds(ids []int64) (map[int64][]No
 	return aMap, nil
 }
 
-func (a *NotificationActivity) Fetch() error {
-
-	return bongo.B.Fetch(a)
-}
-
 func (a *NotificationActivity) One(q *bongo.Query) error {
-
 	return bongo.B.One(a, a, q)
 }
 

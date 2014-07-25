@@ -34,6 +34,6 @@ func init() {
 	DefaultCallback.Delete().Register("gorm:begin_transaction", BeginTransaction)
 	DefaultCallback.Delete().Register("gorm:before_delete", BeforeDelete)
 	DefaultCallback.Delete().Register("gorm:delete", Delete)
-	DefaultCallback.Delete().Register("gorm:after_delete", AfterDelete)
 	DefaultCallback.Delete().Register("gorm:commit_or_rollback_transaction", CommitOrRollbackTransaction)
+	DefaultCallback.Delete().Register("gorm:after_delete", AfterDelete)
 }

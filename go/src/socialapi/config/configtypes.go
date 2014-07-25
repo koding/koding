@@ -19,6 +19,7 @@ type (
 		EmailNotification EmailNotification
 		Sitemap           Sitemap
 		FlagDebugMode     bool
+		DisableCaching    bool
 	}
 	Redis struct {
 		URL   string
