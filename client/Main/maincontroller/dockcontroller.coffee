@@ -211,6 +211,18 @@ class DockController extends KDViewController
       partial  : 'MY VMs'
 
     dock.addSubView @vmsList.getView()
+    dock.addSubView new CustomLinkView
+      icon     : no
+      cssClass : 'add-vm'
+      title    : '+ Add another VM'
+      click    : ->
+        # fixme: this is a temp solution
+        # this should change with the new environments
+        KD.singletons.appManager.require 'Environments', ->
+          env = new EnvironmentMachineContainer
+          env.emit 'PlusButtonClicked'
+          @fetchVMs @bound 'listVMs'
+
 
     # @navController.reset()
     # @setNavItems defaultItems

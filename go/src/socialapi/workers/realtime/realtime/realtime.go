@@ -9,7 +9,6 @@ import (
 	"socialapi/models"
 	"socialapi/request"
 	notificationmodels "socialapi/workers/notification/models"
-	"time"
 
 	"github.com/koding/logging"
 	"github.com/koding/rabbitmq"
@@ -247,7 +246,6 @@ func (f *Controller) MessageReplySaved(mr *models.MessageReply) error {
 		return err
 	}
 
-	f.updateAllContainingChannels(mr.MessageId, reply.AccountId)
 	f.sendReplyEventAsChannelUpdatedEvent(mr, channelUpdatedEventReplyAdded)
 	f.sendReplyAddedEvent(mr)
 
@@ -310,8 +308,9 @@ func (f *Controller) sendReplyEventAsChannelUpdatedEvent(mr *models.MessageReply
 	}
 
 	for _, channel := range channels {
-		if channel.TypeConstant == models.Channel_TYPE_TOPIC {
-			f.log.Critical("skip topic channels")
+		// TODOremove all those if conditions after switching private messages to
+		// the channel message type
+		if channel.TypeConstant != models.Channel_TYPE_PRIVATE_MESSAGE {
 			continue
 		}
 		cue.Channel = &channel
@@ -372,26 +371,114 @@ func (f *Controller) MessageListSaved(cml *models.ChannelMessageList) error {
 	return nil
 }
 
-func (f *Controller) MessageListUpdated(cml *models.ChannelMessageList) error {
+// ChannelMessageListUpdated event states that one of the channel_message_list
+// record is updated, it means that one the pinned post's owner glanced it. - At
+// least for now - If we decide on another giving another meaning on this event,
+// we can rename the event.  PinnedPost's unread count is calculated from the
+// last glanced reply's point. This message is user specific. There is no
+// relation with channel participants or channel itself
+func (f *Controller) ChannelMessageListUpdated(cml *models.ChannelMessageList) error {
+
+	// find the user's pinned post channel
+	// we need it for finding the account id
 	c, err := models.ChannelById(cml.ChannelId)
 	if err != nil {
 		return err
 	}
 
+	if c.TypeConstant != models.Channel_TYPE_PINNED_ACTIVITY {
+		f.log.Error("please investigate here, we have updated the channel message list for a non-pinned post item %+v", c)
+		return nil
+	}
+
+	// get the glanced message
 	cm := models.NewChannelMessage()
 	if err := cm.ById(cml.MessageId); err != nil {
 		return err
 	}
 
+	// No need to fetch the participant from database we are gonna use only the
+	// account id
 	cp := models.NewChannelParticipant()
 	cp.AccountId = c.CreatorId
+	cp.ChannelId = c.Id
+	if err := cp.FetchParticipant(); err != nil {
+		return err
+	}
 
 	cue := &channelUpdatedEvent{
-		Controller:           f,
-		Channel:              c,
+		// inject controller for reaching to RMQ, log and other stuff
+		Controller: f,
+
+		// In which channel this event happened, we need groupName from the
+		// channel because user can be in multiple groups, and all group-account
+		// couples have separate channels
+		Channel: c,
+
+		// We need parentChannelMessage for calculating the unread count of it's replies
 		ParentChannelMessage: cm,
-		ChannelParticipant:   cp,
-		EventType:            channelUpdatedEventMessageUpdatedAtChannel,
+
+		// ChannelParticipant is the reciever of this event
+		ChannelParticipant: cp,
+
+		// Assign event type
+		EventType: channelUpdatedEventMessageUpdatedAtChannel,
+	}
+
+	if err := cue.sendForParticipant(); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// PinnedChannelListUpdated handles the events of pinned channel lists'.  When a
+// user glance a pinned message or when someone posts reply to a message we are
+// updating the channel message lists
+func (f *Controller) PinnedChannelListUpdated(pclue *models.PinnedChannelListUpdatedEvent) error {
+	// find the user's pinned post channel
+	// we need it for finding the account id
+	c := pclue.Channel
+
+	if &c == nil {
+		f.log.Error("channel was nil, discarding the message %+v", pclue)
+		return nil
+	}
+
+	if c.TypeConstant != models.Channel_TYPE_PINNED_ACTIVITY {
+		f.log.Error("please investigate here, we have updated the channel message list for a non-pinned post item %+v", c)
+		return nil
+	}
+
+	// No need to fetch the participant from database we are gonna use only the
+	// account id
+	cp := models.NewChannelParticipant()
+	cp.AccountId = c.CreatorId
+	cp.ChannelId = c.Id
+	if err := cp.FetchParticipant(); err != nil {
+		return err
+	}
+
+	cue := &channelUpdatedEvent{
+		// inject controller for reaching to RMQ, log and other stuff
+		Controller: f,
+
+		// In which channel this event happened, we need groupName from the
+		// channel because user can be in multiple groups, and all group-account
+		// couples have separate channels
+		Channel: &c,
+
+		// We need parentChannelMessage for calculating the unread count of it's replies
+		ParentChannelMessage: &pclue.Message,
+
+		// We need to find out that if the reply is created by a troll
+		ReplyChannelMessage: &pclue.Reply,
+
+		// ChannelParticipant is the reciever of this event
+		ChannelParticipant: cp,
+
+		// Assign event type
+		EventType: channelUpdatedEventReplyAdded,
 	}
 
 	if err := cue.sendForParticipant(); err != nil {
@@ -684,64 +771,4 @@ func (f *Controller) sendNotification(
 		false,
 		amqp.Publishing{Body: byteNotification},
 	)
-}
-
-// updateAllContainingChannels fetch all channels that parent is in and
-// updates those channels except the user who did the action.
-//
-// TODO: move this to own worker, realtime worker shouldn't touch db
-func (f *Controller) updateAllContainingChannels(parentId int64, excludedId int64) error {
-	cml := models.NewChannelMessageList()
-	channels, err := cml.FetchMessageChannels(parentId)
-	if err != nil {
-		return err
-	}
-
-	if len(channels) == 0 {
-		return nil
-	}
-
-	for _, channel := range channels {
-		// if channel type is group, we dont need to update group's updatedAt
-		if channel.TypeConstant == models.Channel_TYPE_GROUP {
-			continue
-		}
-
-		// excludedId refers to users who did the action
-		if channel.CreatorId == excludedId {
-			cml, err := channel.FetchMessageList(parentId)
-			if err != nil {
-				f.log.Error("error fetching message list for", parentId, err)
-				continue
-			}
-
-			// `Glance` for author, so on next new message, unread count is right
-			err = cml.Glance()
-			if err != nil {
-				f.log.Error("error glancing for messagelist", parentId, err)
-				continue
-			}
-
-			// no need to tell user they did an action
-			continue
-		}
-
-		// pinned activity channel holds messages one by one
-		if channel.TypeConstant != models.Channel_TYPE_PINNED_ACTIVITY {
-			channel.UpdatedAt = time.Now().UTC()
-			if err := channel.Update(); err != nil {
-				f.log.Error("channel update failed", err)
-			}
-			continue
-		}
-
-		// if channel.TypeConstant == models.Channel_TYPE_PINNED_ACTIVITY {
-		err := models.NewChannelMessageList().UpdateAddedAt(channel.Id, parentId)
-		if err != nil {
-			f.log.Error("message list update failed", err)
-		}
-		//}
-	}
-
-	return nil
 }

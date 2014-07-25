@@ -1,10 +1,10 @@
 package main
 
 import (
+	"labix.org/v2/mgo/bson"
 	"socialapi/models"
 	"socialapi/rest"
 	"testing"
-	"labix.org/v2/mgo/bson"
 
 	. "github.com/smartystreets/goconvey/convey"
 )

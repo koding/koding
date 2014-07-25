@@ -120,11 +120,19 @@ func TestPinnedActivityChannel(t *testing.T) {
 			So(err, ShouldBeNil)
 			So(post1, ShouldNotBeNil)
 
+			_, err = rest.AddPinnedMessage(nonOwnerAccount.Id, post1.Id, groupName)
+			// there should be an err
+			So(err, ShouldBeNil)
+
 			post2, err := rest.CreatePostWithBody(groupChannel.Id, nonOwnerAccount.Id, "create a message #1another")
 			So(err, ShouldBeNil)
 			So(post2, ShouldNotBeNil)
 
-			time.Sleep(time.Second * 5)
+			_, err = rest.AddPinnedMessage(nonOwnerAccount.Id, post2.Id, groupName)
+			// there should be an err
+			So(err, ShouldBeNil)
+
+			//time.Sleep(time.Second * 5)
 
 			history, err := rest.FetchPinnedMessages(account.Id, groupName)
 			// there should be an err

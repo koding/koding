@@ -219,8 +219,8 @@ class MainView extends KDView
 
     bounds   = item.getBounds()
     position =
-      top    : Math.max bounds.y - 80, 0
-      left   : bounds.x + bounds.w + 30
+      top    : Math.max bounds.y - 40, 0
+      left   : bounds.x + bounds.w + 20
 
     new VMSettingsModal {position}, vm
 
