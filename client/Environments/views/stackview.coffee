@@ -75,11 +75,11 @@ class StackView extends KDView
 
     # REMOVE ME BEFORE PUBLISH ~ GG !!!
     # ----
-    @stack.delete (err, res) =>
-      return KD.showError err  if err
-      KD.utils.defer @bound 'destroy'
+    # @stack.delete (err, res) =>
+    #   return KD.showError err  if err
+    #   KD.utils.defer @bound 'destroy'
 
-    return
+    # return
     # -----
 
     stackTitle = @stack.title or ""

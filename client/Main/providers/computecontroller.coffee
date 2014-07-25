@@ -73,7 +73,7 @@ class ComputeController extends KDController
 
     (callback = noop)-> KD.singletons.mainController.ready =>
 
-      if @machines
+      if @machines.length > 0
         callback null, @machines
         info "Machines returned from cache."
         return
