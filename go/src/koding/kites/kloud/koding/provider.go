@@ -18,7 +18,7 @@ import (
 
 var (
 	// DefaultAMI = "ami-80778be8" // Ubuntu 14.0.4 EBS backed, amd64,  PV
-	DefaultAMI          = "ami-a6926dce" // Ubuntu 14.04 EBS backed, amd64, HVM
+	DefaultAMI          = "ami-864d84ee" // Ubuntu 14.04 EBS backed, amd64, HVM
 	DefaultInstanceType = "t2.micro"
 	DefaultRegion       = "us-east-1"
 
