@@ -49,7 +49,7 @@ func (c *Controller) MessageReplyCreated(messageReply *models.MessageReply) erro
 
 	// add parent message to the author's pinned message list
 	err = c.addMessage(parent.AccountId, parent.Id, parent.InitialChannelId)
-	if err != nil && err != models.AlreadyInTheChannel {
+	if err != nil && err != models.ErrAlreadyInTheChannel {
 		return err
 	}
 
@@ -61,7 +61,7 @@ func (c *Controller) MessageReplyCreated(messageReply *models.MessageReply) erro
 
 	// add parent message to the replier's pinned message list
 	err = c.addMessage(reply.AccountId, parent.Id, parent.InitialChannelId)
-	if err != nil && err != models.AlreadyInTheChannel {
+	if err != nil && err != models.ErrAlreadyInTheChannel {
 		return err
 	}
 
@@ -85,7 +85,7 @@ func (c *Controller) addMessage(accountId, messageId, channelId int64) error {
 	// add parent message into pinning channel
 	_, err = pinningChannel.AddMessage(messageId)
 	// if message is already in the channel ignore the error, and mark process as successful
-	if err == models.AlreadyInTheChannel {
+	if err == models.ErrAlreadyInTheChannel {
 		return nil
 	}
 
