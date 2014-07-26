@@ -18,6 +18,7 @@ import (
 	"github.com/koding/kloud/protocol"
 	"github.com/koding/kloud/provider/amazon"
 	"github.com/mitchellh/goamz/ec2"
+	"github.com/mitchellh/mapstructure"
 
 	"github.com/koding/logging"
 )
@@ -58,7 +59,6 @@ func (p *Provider) NewClient(opts *protocol.MachineOptions) (*amazon.AmazonClien
 				Percentage: percentage,
 			})
 		},
-		Deploy: opts.Deploy,
 	}
 
 	var err error
@@ -66,7 +66,12 @@ func (p *Provider) NewClient(opts *protocol.MachineOptions) (*amazon.AmazonClien
 	opts.Builder["region"] = DefaultRegion
 	a.Amazon, err = aws.New(kodingCredential, opts.Builder)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("koding-amazon err: %s", err)
+	}
+
+	// also apply deploy variable if there is any
+	if err := mapstructure.Decode(opts.Builder, &a.Deploy); err != nil {
+		return nil, fmt.Errorf("koding-amazon: couldn't decode deploy variables: %s", err)
 	}
 
 	return a, nil
@@ -222,8 +227,6 @@ func (p *Provider) Info(opts *protocol.MachineOptions) (*protocol.InfoArtifact, 
 }
 
 func (p *Provider) Report(r *kite.Request) (interface{}, error) {
-	p.Log.Info("Incoming report from %s", r.Client.Kite)
-
 	var usg usage.Usage
 	err := r.Args.One().Unmarshal(&usg)
 	if err != nil {
@@ -235,7 +238,8 @@ func (p *Provider) Report(r *kite.Request) (interface{}, error) {
 		return c.Find(bson.M{"queryString": r.Client.Kite.String()}).One(&machine)
 	})
 	if err != nil {
-		p.Log.Warning("Couldn't find %v, however this kite is still reporting to us. Needs to be fixed: %s", r.Client.Kite, err.Error())
+		p.Log.Warning("Couldn't find %v, however this kite is still reporting to us. Needs to be fixed: %s",
+			r.Client.Kite, err.Error())
 		return nil, errors.New("can't update report - 1")
 	}
 

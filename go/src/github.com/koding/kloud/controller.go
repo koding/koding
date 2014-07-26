@@ -100,6 +100,17 @@ func (k *Kloud) ControlFunc(control controlFunc) kite.Handler {
 			return nil, err
 		}
 
+		// check if there is any value from a previous, and them to our
+		// machine.Meta data, like deployment variables
+		if prevResp, ok := r.Response.(map[string]interface{}); ok {
+			for k, v := range prevResp {
+				// dont' override existing data
+				if _, ok := machine.Data[k]; !ok {
+					machine.Data[k] = v
+				}
+			}
+		}
+
 		// if something goes wrong reset the assigne which was set in previous step
 		// by Storage.Get()
 		defer func() {

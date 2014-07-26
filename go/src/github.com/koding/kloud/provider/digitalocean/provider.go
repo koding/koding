@@ -2,11 +2,13 @@ package digitalocean
 
 import (
 	"errors"
+	"fmt"
 
 	do "github.com/koding/kloud/api/digitalocean"
 	"github.com/koding/kloud/eventer"
 	"github.com/koding/kloud/machinestate"
 	"github.com/koding/kloud/protocol"
+	"github.com/mitchellh/mapstructure"
 
 	"github.com/koding/logging"
 	"github.com/koding/redis"
@@ -29,7 +31,7 @@ func (p *Provider) NewClient(opts *protocol.MachineOptions) (*Client, error) {
 
 	d, err := do.New(opts.Credential, opts.Builder)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("digitalocean err: %s", err)
 	}
 
 	if opts.Eventer == nil {
@@ -51,9 +53,13 @@ func (p *Provider) NewClient(opts *protocol.MachineOptions) (*Client, error) {
 		Log:         p.Log,
 		Caching:     true,
 		CachePrefix: "cache-digitalocean",
-		Deploy:      opts.Deploy,
 	}
 	c.DigitalOcean = d
+
+	// also apply deploy variable if there is any
+	if err := mapstructure.Decode(opts.Builder, &c.Deploy); err != nil {
+		return nil, fmt.Errorf("digitalocean: couldn't decode deploy variables: %s", err)
+	}
 
 	if p.Redis != nil {
 		c.Redis = p.Redis

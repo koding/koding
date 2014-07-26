@@ -12,11 +12,12 @@ import (
 	"net/url"
 	"os"
 
+	"github.com/fatih/structure"
 	"github.com/koding/kite"
 	kiteconfig "github.com/koding/kite/config"
 	"github.com/koding/kite/protocol"
 	"github.com/koding/kloud"
-	kiteprotocol "github.com/koding/kloud/protocol"
+	kloudprotocol "github.com/koding/kloud/protocol"
 	"github.com/koding/logging"
 )
 
@@ -170,12 +171,6 @@ func newKite() *kite.Kite {
 
 	kld := kloud.NewKloud()
 	kld.Storage = mongodbStorage
-	kld.Deployer = deployer
-	kld.Deploy = &kiteprotocol.ProviderDeploy{
-		KeyName:    deployKeyName,
-		PublicKey:  deployPublicKey,
-		PrivateKey: deployPrivateKey,
-	}
 
 	kodingProvider := &koding.Provider{
 		Log: logging.NewLogger("koding"),
@@ -184,7 +179,25 @@ func newKite() *kite.Kite {
 
 	kld.AddProvider("koding", kodingProvider)
 
-	k.HandleFunc("build", kld.Build)
+	injectDeploy := func(r *kite.Request) (interface{}, error) {
+		d := kloudprotocol.ProviderDeploy{
+			KeyName:    deployKeyName,
+			PublicKey:  deployPublicKey,
+			PrivateKey: deployPrivateKey,
+			Username:   r.Username,
+		}
+
+		m, err := structure.ToMap(d)
+		if err != nil {
+			return nil, err
+		}
+
+		fmt.Printf("m %+v\n", m)
+		return m, nil
+
+	}
+
+	k.HandleFunc("build", kld.Build).PreHandleFunc(injectDeploy).PostHandle(deployer)
 	k.HandleFunc("start", kld.Start)
 	k.HandleFunc("stop", kld.Stop)
 	k.HandleFunc("restart", kld.Restart)

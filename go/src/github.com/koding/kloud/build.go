@@ -81,7 +81,6 @@ func (k *Kloud) buildMachine(username string, c *Controller) error {
 		Eventer:    c.Eventer,
 		Credential: c.Machine.Credential,
 		Builder:    c.Machine.Data,
-		Deploy:     k.Deploy,
 	}
 
 	msg := fmt.Sprintf("Building process started. Provider '%s'. Build options: %+v",
@@ -106,15 +105,16 @@ meta data     : %# v
 	)
 
 	k.Log.Info("[controller] building machine with following data: %s", buildInfo)
-
 	artifact, err := c.Builder.Build(machOptions)
 	if err != nil {
 		return err
 	}
+
 	if artifact == nil {
 		return NewError(ErrBadResponse)
 	}
-	k.Log.Debug("[controller]: building machine finished, result artifact is: %# v", pretty.Formatter(artifact))
+	k.Log.Debug("[controller]: building machine finished, result artifact is: %# v",
+		pretty.Formatter(artifact))
 
 	storageData := map[string]interface{}{
 		"ipAddress":    artifact.IpAddress,
@@ -127,15 +127,7 @@ meta data     : %# v
 		artifact.Username = username
 	}
 
-	// TODO: I don't feel good about this, fix it
-	if k.Deployer != nil && artifact.SSHPrivateKey != "" {
-		deployArtifact, err := k.Deployer.Deploy(artifact)
-		if err != nil {
-			return err
-		}
-
-		storageData["queryString"] = deployArtifact.KiteQuery
-	}
+	storageData["queryString"] = artifact.KiteQuery
 
 	cleaner, ok := k.providers[c.ProviderName].(protocol.Cleaner)
 	if ok {

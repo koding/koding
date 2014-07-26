@@ -1,10 +1,13 @@
 package openstack
 
 import (
+	"fmt"
+
 	os "github.com/koding/kloud/api/openstack"
 	"github.com/koding/kloud/eventer"
 	"github.com/koding/kloud/machinestate"
 	"github.com/koding/kloud/protocol"
+	"github.com/mitchellh/mapstructure"
 
 	"github.com/koding/logging"
 )
@@ -43,13 +46,17 @@ func (p *Provider) NewClient(opts *protocol.MachineOptions) (*OpenstackClient, e
 				Percentage: percentage,
 			})
 		},
-		Deploy: opts.Deploy,
 	}
 
 	var err error
 	o.Openstack, err = os.New(p.AuthURL, p.ProviderName, opts.Credential, opts.Builder)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("openstack err: %s", err)
+	}
+
+	// also apply deploy variable if there is any
+	if err := mapstructure.Decode(opts.Builder, &o.Deploy); err != nil {
+		return nil, fmt.Errorf("openstack: couldn't decode deploy variables: %s", err)
 	}
 
 	return o, nil

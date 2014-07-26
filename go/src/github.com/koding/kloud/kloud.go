@@ -29,10 +29,6 @@ type Kloud struct {
 	// Eventers is providing an event mechanism for each method.
 	Eventers map[string]eventer.Eventer
 
-	// Deployer is executed after a successfull build
-	Deploy   *protocol.ProviderDeploy
-	Deployer protocol.Deployer
-
 	// idlock provides multiple locks per id
 	idlock *idlock.IdLock
 }

@@ -48,7 +48,10 @@ ff02::1 ip6-allnodes
 ff02::2 ip6-allrouters`
 )
 
-func (k *KodingDeploy) Deploy(artifact *protocol.Artifact) (*protocol.DeployArtifact, error) {
+func (k *KodingDeploy) ServeKite(r *kite.Request) (interface{}, error) {
+	artifact := r.Response.(*protocol.Artifact)
+	fmt.Printf("=============> artifact %+v\n", artifact)
+
 	username := artifact.Username
 	ipAddress := artifact.IpAddress
 	hostname := artifact.InstanceName
@@ -187,9 +190,8 @@ func (k *KodingDeploy) Deploy(artifact *protocol.Artifact) (*protocol.DeployArti
 		}
 	}
 
-	return &protocol.DeployArtifact{
-		KiteQuery: query.String(),
-	}, nil
+	artifact.KiteQuery = query.String()
+	return artifact, nil
 }
 
 // Build the command used to create the user

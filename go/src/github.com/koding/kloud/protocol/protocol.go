@@ -23,13 +23,6 @@ type Cleaner interface {
 	Cleanup(*Artifact) error
 }
 
-// Deployer deploys a machine after it's being built.
-type Deployer interface {
-	// Deploy can only be executed after a build. The machine needs to be
-	// publicly available.
-	Deploy(*Artifact) (*DeployArtifact, error)
-}
-
 // Provider manages a machine, it's start/stop/destroy/restart a machine.
 type Controller interface {
 	// Start starts the machine
@@ -63,9 +56,6 @@ type MachineOptions struct {
 
 	// Credential contains information for accessing third party provider services
 	Credential map[string]interface{}
-
-	// Deploy is used for custom provisioning and creating a machine
-	Deploy *ProviderDeploy
 
 	// Eventer pushes the latest events to the build event.
 	Eventer eventer.Eventer
@@ -108,6 +98,9 @@ type Artifact struct {
 	SSHPrivateKey string
 	SSHUsername   string
 
+	// KiteQuery is needed to find it via Kontrol
+	KiteQuery string
+
 	// Storage provides a simple caching/state mechanism between calls
 	Storage
 }
@@ -119,11 +112,6 @@ type InfoArtifact struct {
 
 	// Name defines the name of the machine.
 	Name string
-}
-
-// DeployArtifact should be returned from a Deploy Method
-type DeployArtifact struct {
-	KiteQuery string
 }
 
 func NewArtifact() *Artifact {
