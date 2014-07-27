@@ -54,7 +54,7 @@ func (p *Provider) Limit(opts *protocol.Machine, method string) error {
 
 	ctx := &CheckContext{
 		api:      a,
-		db:       p.DB,
+		db:       p.Session,
 		username: username,
 	}
 

@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"koding/db/mongodb"
 	"koding/kites/klient/usage"
-	"koding/kites/kloud/storage"
 	"time"
 
 	"labix.org/v2/mgo"
@@ -17,10 +16,9 @@ import (
 	"github.com/koding/kloud/machinestate"
 	"github.com/koding/kloud/protocol"
 	"github.com/koding/kloud/provider/amazon"
+	"github.com/koding/logging"
 	"github.com/mitchellh/goamz/ec2"
 	"github.com/mitchellh/mapstructure"
-
-	"github.com/koding/logging"
 )
 
 var (
@@ -39,10 +37,13 @@ const (
 	ProviderName = "koding"
 )
 
+// Provider implements the kloud packages Storage, Builder and Controller
+// interface
 type Provider struct {
-	Log  logging.Logger
-	Push func(string, int, machinestate.State)
-	DB   *mongodb.MongoDB
+	Session      *mongodb.MongoDB
+	AssigneeName string
+	Log          logging.Logger
+	Push         func(string, int, machinestate.State)
 }
 
 func (p *Provider) NewClient(opts *protocol.Machine) (*amazon.AmazonClient, error) {
@@ -233,8 +234,8 @@ func (p *Provider) Report(r *kite.Request) (interface{}, error) {
 		return nil, err
 	}
 
-	machine := &storage.Machine{}
-	err = p.DB.Run("jMachines", func(c *mgo.Collection) error {
+	machine := &Machine{}
+	err = p.Session.Run("jMachines", func(c *mgo.Collection) error {
 		return c.Find(bson.M{"queryString": r.Client.Kite.String()}).One(&machine)
 	})
 	if err != nil {

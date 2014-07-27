@@ -6,7 +6,6 @@ import (
 	"io/ioutil"
 	"koding/db/mongodb"
 	"koding/kites/kloud/koding"
-	"koding/kites/kloud/storage"
 	"koding/tools/config"
 	"log"
 	"net/url"
@@ -95,7 +94,6 @@ func newKite() *kite.Kite {
 	k.Config.Port = *flagPort
 
 	if *flagRegion != "" {
-		k.Config.Region = *flagRegion
 	}
 
 	if *flagEnv != "" {
@@ -112,27 +110,14 @@ func newKite() *kite.Kite {
 	conf := config.MustConfig(*flagProfile)
 	db := mongodb.NewMongoDB(conf.Mongo)
 
-	mongodbStorage := &storage.MongoDB{
-		Session:      db,
+	kodingProvider := &koding.Provider{
+		Log:          newLogger("koding"),
 		AssigneeName: id,
-		Log:          newLogger("kloud-storage"),
+		Session:      db,
 	}
 
-	if err := mongodbStorage.CleanupOldData(); err != nil {
+	if err := kodingProvider.CleanupOldData(); err != nil {
 		k.Log.Warning("Cleaning up mongodb err: %s", err.Error())
-	}
-
-	var kontrolURL string
-	if *flagKontrolURL != "" {
-		u, err := url.Parse(*flagKontrolURL)
-		if err != nil {
-			log.Fatalln(err)
-		}
-
-		kontrolURL = u.String()
-	} else {
-		// read kontrolURL from kite.key if it doesn't exist.
-		kontrolURL = kiteconfig.MustGet().KontrolURL
 	}
 
 	klientFolder := "klient/development/latest"
@@ -140,43 +125,20 @@ func newKite() *kite.Kite {
 		klientFolder = "klient/production/latest"
 	}
 
-	pubKeyPath := *flagPublicKey
-	if *flagPublicKey == "" {
-		pubKeyPath = conf.NewKontrol.PublicKeyFile
-	}
-	pubKey, err := ioutil.ReadFile(pubKeyPath)
-	if err != nil {
-		log.Fatalln(err)
-	}
-	publicKey := string(pubKey)
-
-	privKeyPath := *flagPrivateKey
-	if *flagPublicKey == "" {
-		privKeyPath = conf.NewKontrol.PrivateKeyFile
-	}
-	privKey, err := ioutil.ReadFile(privKeyPath)
-	if err != nil {
-		log.Fatalln(err)
-	}
-	privateKey := string(privKey)
+	privateKey, publicKey := kontrolKeys(conf)
 
 	deployer := &KodingDeploy{
 		Kite:              k,
 		Log:               newLogger("kloud-deploy"),
-		KontrolURL:        kontrolURL,
+		KontrolURL:        kontrolURL(),
 		KontrolPrivateKey: privateKey,
 		KontrolPublicKey:  publicKey,
 		Bucket:            newBucket("koding-kites", klientFolder),
 	}
 
 	kld := kloud.NewKloud()
-	kld.Storage = mongodbStorage
+	kld.Storage = kodingProvider
 	kld.Log = newLogger("kloud")
-
-	kodingProvider := &koding.Provider{
-		Log: newLogger("koding"),
-		DB:  db,
-	}
 
 	kld.AddProvider("koding", kodingProvider)
 
@@ -232,4 +194,44 @@ func newLogger(name string) logging.Logger {
 	}
 
 	return log
+}
+
+func kontrolKeys(conf *config.Config) (string, string) {
+	pubKeyPath := *flagPublicKey
+	if *flagPublicKey == "" {
+		pubKeyPath = conf.NewKontrol.PublicKeyFile
+	}
+	pubKey, err := ioutil.ReadFile(pubKeyPath)
+	if err != nil {
+		log.Fatalln(err)
+	}
+	publicKey := string(pubKey)
+
+	privKeyPath := *flagPrivateKey
+	if *flagPublicKey == "" {
+		privKeyPath = conf.NewKontrol.PrivateKeyFile
+	}
+	privKey, err := ioutil.ReadFile(privKeyPath)
+	if err != nil {
+		log.Fatalln(err)
+	}
+	privateKey := string(privKey)
+
+	return privateKey, publicKey
+}
+
+func kontrolURL() string {
+	// read kontrolURL from kite.key if it doesn't exist.
+	kontrolURL := kiteconfig.MustGet().KontrolURL
+
+	if *flagKontrolURL != "" {
+		u, err := url.Parse(*flagKontrolURL)
+		if err != nil {
+			log.Fatalln(err)
+		}
+
+		kontrolURL = u.String()
+	}
+
+	return kontrolURL
 }
