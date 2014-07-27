@@ -11,13 +11,14 @@ import (
 	"github.com/rcrowley/go-metrics"
 )
 
-func CreateMetrics(appName string, log logging.Logger, debug bool) *kodingmetrics.Metrics {
+func CreateMetrics(appName string, log logging.Logger, outputMetrics bool) *kodingmetrics.Metrics {
 	metric := kodingmetrics.New(appName)
 
-	// if debug, do print output to the console
-	if debug {
+	// if outputMetrics, do print output to the console
+	if outputMetrics {
 		// change those loggers
 		// https://github.com/rcrowley/go-metrics/blob/37df06ff62a7d8b4473b48d355008c838da87561/log.go
+		// get those numbers from config
 		go metrics.Log(metric.Registry, 1e10, slog.New(os.Stderr, "metrics: ", slog.Lmicroseconds))
 	}
 
