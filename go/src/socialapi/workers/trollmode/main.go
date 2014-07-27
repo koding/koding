@@ -21,9 +21,6 @@ func main() {
 	r.SetContext(trollmode.NewController(r.Log))
 	r.Register(models.Account{}).On(trollmode.MarkedAsTrollEvent).Handle((*trollmode.Controller).MarkedAsTroll)
 	r.Register(models.Account{}).On(trollmode.UnMarkedAsTrollEvent).Handle((*trollmode.Controller).UnMarkedAsTroll)
-
-	// too many eggs in an egg
-	//  consider refactoring
 	r.Listen()
 	r.Wait()
 }
