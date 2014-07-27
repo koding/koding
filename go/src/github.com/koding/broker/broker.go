@@ -1,6 +1,8 @@
 package broker
 
 import (
+	"fmt"
+
 	"github.com/koding/logging"
 	"github.com/koding/metrics"
 	"github.com/koding/rabbitmq"
@@ -104,17 +106,32 @@ func (b *Broker) Connect() error {
 	return nil
 }
 
-// Close, shutdowns all connections, gracefully
+// Close, shutdowns all connections
 func (b *Broker) Close() error {
+	var err, err2 error
 	if b.Pub != nil {
-		return b.Pub.Close()
+		err = b.Pub.Close()
 	}
+	b.log.Info("Publisher closed %t", err == nil)
 
 	if b.Sub != nil {
-		return b.Sub.Close()
+		// i could return the result of b.Sub.Close here, but this can lead a
+		// misconception about closing other connections which are added after
+		// this line
+		err2 = b.Sub.Close()
 	}
 
-	return nil
+	b.log.Info("Subscriber closed %t", err2 == nil)
+
+	if err == nil && err2 == nil {
+		return nil
+	}
+
+	return fmt.Errorf(
+		"got error while closing conns: PubErr: %s, SubErr: %s",
+		err.Error(),
+		err2.Error(),
+	)
 }
 
 func (b *Broker) Publish(messageType string, body []byte) error {
