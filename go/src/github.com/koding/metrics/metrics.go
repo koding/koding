@@ -40,7 +40,7 @@ func (m *Metrics) GetTimer(timerName string) metrics.Timer {
 	m.Lock()
 	defer m.Unlock()
 
-	prefixedTimerName := m.Prefix + timerName
+	prefixedTimerName := m.Prefix + ":" + timerName
 	timer, exists := m.Timers[prefixedTimerName]
 	if !exists {
 		timer = metrics.NewTimer()
@@ -56,7 +56,7 @@ func (m *Metrics) GetCounter(counterName string) metrics.Counter {
 	m.Lock()
 	defer m.Unlock()
 
-	prefixedCounterName := m.Prefix + counterName
+	prefixedCounterName := m.Prefix + ":" + counterName
 	counter, exists := m.Counters[prefixedCounterName]
 	if !exists {
 		counter = metrics.NewCounter()
