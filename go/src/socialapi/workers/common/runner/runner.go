@@ -76,7 +76,7 @@ func (r *Runner) InitWithConfigFile(flagConfFile string) error {
 		*flagDebug,
 	)
 
-	metrics = helper.CreateMetrics(r.Name, r.Log, *flagOutputMetrics)
+	metrics := helper.CreateMetrics(r.Name, r.Log, *flagOutputMetrics)
 
 	// panics if not successful
 	r.Bongo = helper.MustInitBongo(
@@ -201,6 +201,6 @@ func (r *Runner) RegisterSignalHandler() {
 
 func (r *Runner) Wait() error {
 	err := <-r.Done
-	l.Log.Info("Runner closed successfully %t", err == nil)
+	r.Log.Info("Runner closed successfully %t", err == nil)
 	return err
 }
