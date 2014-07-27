@@ -115,7 +115,7 @@ func newKite() *kite.Kite {
 	mongodbStorage := &storage.MongoDB{
 		Session:      db,
 		AssigneeName: id,
-		Log:          logging.NewLogger("kloud-storage"),
+		Log:          newLogger("kloud-storage"),
 	}
 
 	if err := mongodbStorage.CleanupOldData(); err != nil {
@@ -162,7 +162,7 @@ func newKite() *kite.Kite {
 
 	deployer := &KodingDeploy{
 		Kite:              k,
-		Log:               logging.NewLogger("kloud-deploy"),
+		Log:               newLogger("kloud-deploy"),
 		KontrolURL:        kontrolURL,
 		KontrolPrivateKey: privateKey,
 		KontrolPublicKey:  publicKey,
@@ -171,9 +171,10 @@ func newKite() *kite.Kite {
 
 	kld := kloud.NewKloud()
 	kld.Storage = mongodbStorage
+	kld.Log = newLogger("kloud")
 
 	kodingProvider := &koding.Provider{
-		Log: logging.NewLogger("koding"),
+		Log: newLogger("koding"),
 		DB:  db,
 	}
 
@@ -217,4 +218,18 @@ func uniqueId() string {
 	}
 
 	return fmt.Sprintf("%s-%s", kloud.NAME, hostname)
+}
+
+func newLogger(name string) logging.Logger {
+	log := logging.NewLogger(name)
+	logHandler := logging.NewWriterHandler(os.Stderr)
+	logHandler.Colorize = true
+	log.SetHandler(logHandler)
+
+	if *flagDebug {
+		log.SetLevel(logging.DEBUG)
+		logHandler.SetLevel(logging.DEBUG)
+	}
+
+	return log
 }
