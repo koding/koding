@@ -1,6 +1,6 @@
 # Structure [![GoDoc](https://godoc.org/github.com/fatih/structure?status.svg)](http://godoc.org/github.com/fatih/structure) [![Build Status](https://travis-ci.org/fatih/structure.svg)](https://travis-ci.org/fatih/structure)
 
-Structure contains various utilitis to work with Go structs.
+Structure contains various utilitis to work with Go (Golang) structs.
 
 ## Install
 
@@ -8,9 +8,10 @@ Structure contains various utilitis to work with Go structs.
 go get github.com/fatih/structure
 ```
 
-## Example
+## Examples
 
 ```go
+// Lets define and declare a struct
 type Server struct {
 	Name    string
 	ID      int32
@@ -22,13 +23,23 @@ s := &Server{
 	ID:      123456,
 	Enabled: true,
 }
+```
 
+```go
+// convert it to a map[string]interface{}
 m, err := structure.ToMap(s)
 if err != nil {
 	panic(err)
 }
 
 fmt.Printf("%#v", m)
-// Output: map[string]interface {}{"Name":"Arslan", "ID":123456, "Enabled":true}
+// prints: map[string]interface {}{"Name":"Arslan", "ID":123456, "Enabled":true}
+```
+
+```go
+// check if it's a struct or a pointer to struct
+if structure.IsStruct(s) {
+    fmt.Println("s is a struct") 
+}
 ```
 	

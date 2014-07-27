@@ -1,7 +1,9 @@
 package kite
 
+import "sync"
+
 // MethodHandling defines how to handle chaining of kite.Handler middlewares.
-// An error braks the chain regardless of what handling is used. Note that all
+// An error breaks the chain regardless of what handling is used. Note that all
 // Pre and Post handlers are executed regardless the handling logic, only the
 // return paramater is defined by the handling mode.
 type MethodHandling int
@@ -34,7 +36,7 @@ func (h HandlerFunc) ServeKite(r *Request) (interface{}, error) {
 }
 
 // Method defines a method and the Handler it is bind to. By default
-// "ExitOnMethod" handling is used.
+// "ReturnMethod" handling is used.
 type Method struct {
 	// name is the method name. Unnamed methods can exist
 	name string
@@ -50,6 +52,8 @@ type Method struct {
 
 	// handling defines how to handle chaining of kite.Handler middlewares.
 	handling MethodHandling
+
+	mu sync.Mutex // protects handler slices
 }
 
 // addHandle is an internal method to add a handler
@@ -146,6 +150,9 @@ func (m *Method) ServeKite(r *Request) (interface{}, error) {
 	var resp interface{}
 	var err error
 
+	m.mu.Lock()
+	defer m.mu.Unlock()
+
 	// first execute preHandlers
 	for _, handler := range m.preHandlers {
 		resp, err = handler.ServeKite(r)
@@ -153,7 +160,7 @@ func (m *Method) ServeKite(r *Request) (interface{}, error) {
 			return nil, err
 		}
 
-		if m.handling == ReturnFirst && resp != nil {
+		if m.handling == ReturnFirst && resp != nil && firstResp == nil {
 			firstResp = resp
 		}
 	}
@@ -167,18 +174,18 @@ func (m *Method) ServeKite(r *Request) (interface{}, error) {
 	// also save it dependent on the handling mechanism
 	methodResp := resp
 
-	if m.handling == ReturnFirst && resp != nil {
+	if m.handling == ReturnFirst && resp != nil && firstResp == nil {
 		firstResp = resp
 	}
 
 	// and finally return our postHandlers
-	for _, handler := range m.preHandlers {
+	for _, handler := range m.postHandlers {
 		resp, err = handler.ServeKite(r)
 		if err != nil {
 			return nil, err
 		}
 
-		if m.handling == ReturnFirst && resp != nil {
+		if m.handling == ReturnFirst && resp != nil && firstResp == nil {
 			firstResp = resp
 		}
 	}
