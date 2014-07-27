@@ -1,10 +1,12 @@
 package config
 
 const (
+	// Special env name for vagrant
 	VagrantEnvName = "vagrant"
 )
 
 type (
+	// Config holds all the configuration variables of socialapi
 	Config struct {
 		Postgres          Postgres
 		Mq                Mq
@@ -21,11 +23,13 @@ type (
 		FlagDebugMode     bool
 		DisableCaching    bool
 	}
+	// Redis holds Redis related config
 	Redis struct {
 		URL   string
 		DB    int
 		Slave string
 	}
+	// Postgres holds Postgresql database related configuration
 	Postgres struct {
 		Host     string
 		Port     int
