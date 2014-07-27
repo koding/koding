@@ -2,6 +2,7 @@ package broker
 
 import (
 	"github.com/koding/logging"
+	"github.com/koding/metrics"
 	"github.com/koding/rabbitmq"
 )
 
@@ -56,6 +57,9 @@ type Broker struct {
 
 	// for listening events in the system
 	Sub Subscriber
+
+	// metric about the broker
+	Metrics *metrics.Metrics
 }
 
 // New creates a new broker instance
@@ -81,7 +85,7 @@ func New(appName string, c *Config, l logging.Logger) *Broker {
 
 // Connect opens connections to prducer and consumer
 func (b *Broker) Connect() error {
-	producer, err := b.NewPublisher(b.config)
+	producer, err := b.NewPublisher()
 	if err != nil {
 		return err
 	}
@@ -89,7 +93,7 @@ func (b *Broker) Connect() error {
 	b.log.Info("connected to producer %s", "ok")
 	b.Pub = producer
 
-	subscriber, err := b.NewSubscriber(b.config)
+	subscriber, err := b.NewSubscriber()
 	if err != nil {
 		return err
 	}
