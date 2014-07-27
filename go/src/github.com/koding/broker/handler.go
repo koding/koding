@@ -3,7 +3,6 @@ package broker
 import (
 	"bytes"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"reflect"
 
@@ -11,8 +10,6 @@ import (
 	"github.com/streadway/amqp"
 	"labix.org/v2/mgo"
 )
-
-var ErrHandlerNotFoundErr = errors.New("handler does not exist")
 
 type Handler interface {
 	HandleEvent(string, []byte) error
@@ -24,53 +21,92 @@ type ErrHandler interface {
 	DefaultErrHandler(amqp.Delivery, error) bool
 }
 
+func (c *Consumer) withMetrics(handler *SubscriptionHandler, delivery amqp.Delivery) error {
+	// if metrics is not enabled just invoke the function
+	if c.Metrics == nil {
+		return handler.HandleEvent(c.contextValue, delivery.Body)
+	}
+
+	c.Metrics.GetCounter("message").Inc(1)
+
+	var err error
+
+	c.Metrics.GetTimer(delivery.Type).Time(func() {
+		err = handler.HandleEvent(c.contextValue, delivery.Body)
+	})
+
+	return err
+}
+
+func (c *Consumer) withCounter(counterName string, fn func()) {
+	if c.Metrics == nil {
+		fn()
+	}
+
+	c.Metrics.GetCounter(counterName).Inc(1)
+	fn()
+}
+
 func (c *Consumer) Start() func(delivery amqp.Delivery) {
 	c.Log.Info("Broker sarted to consume")
 	return func(delivery amqp.Delivery) {
 		if _, ok := c.handlers[delivery.Type]; !ok {
 			// if no handler found, just ack message
 			c.Log.Debug("No handler for %s", delivery.Type)
-			delivery.Ack(false)
+			c.withCounter("nohandlerforevent", func() { delivery.Ack(false) })
 			return
 		}
 
+		var err error
 		for _, handler := range c.handlers[delivery.Type] {
-			err := handler.HandleEvent(c.contextValue, delivery.Body)
-			switch err {
-			case nil:
-				delivery.Ack(false)
-			case ErrHandlerNotFoundErr:
-				c.Log.Debug("unknown event type (%s) recieved, deleting message from RMQ", delivery.Type)
-				delivery.Ack(false)
-			case gorm.RecordNotFound:
-				c.Log.Warning("Record not found in our db (%s) recieved, deleting message from RMQ", string(delivery.Body))
-				delivery.Ack(false)
-			case mgo.ErrNotFound:
-				c.Log.Warning("Record not found in our mongo db (%s) recieved, deleting message from RMQ", string(delivery.Body))
-				delivery.Ack(false)
-			default:
-
-				// default err handler should handle the ack process
-				if c.context.DefaultErrHandler(delivery, err) {
-					if c.MaintenancePublisher == nil {
-						continue
-					}
-
-					data, err := json.Marshal(delivery)
-					if err != nil {
-						continue
-					}
-
-					msg := amqp.Publishing{
-						Body:  []byte(data),
-						AppId: c.WorkerName,
-					}
-
-					c.MaintenancePublisher.Publish(msg)
-				}
+			// do not continue, if one of the handler gives error
+			if err != nil {
+				break
 			}
+
+			err = c.withMetrics(handler, delivery)
 		}
 
+		c.handleError(err, delivery)
+	}
+}
+
+func (c *Consumer) handleError(err error, delivery amqp.Delivery) {
+	switch err {
+	case nil:
+		c.withCounter("success", func() { delivery.Ack(false) })
+	case ErrNoHandlerFound:
+		c.withCounter("handlernotfound", func() { delivery.Ack(false) })
+		c.Log.Debug("unknown event type (%s) recieved, deleting message from RMQ", delivery.Type)
+	case gorm.RecordNotFound:
+		c.withCounter("gormrecordnotfound", func() { delivery.Ack(false) })
+		c.Log.Warning("Record not found in our db (%s) recieved, deleting message from RMQ", string(delivery.Body))
+	case mgo.ErrNotFound:
+		c.withCounter("mgorecordnotfound", func() { delivery.Ack(false) })
+		c.Log.Warning("Record not found in our mongo db (%s) recieved, deleting message from RMQ", string(delivery.Body))
+	default:
+		c.withCounter("othererror", func() {
+			// default err handler should handle the ack process
+			if c.context.DefaultErrHandler(delivery, err) {
+				if c.MaintenancePublisher == nil {
+					return
+				}
+
+				data, err := json.Marshal(delivery)
+				if err != nil {
+					return
+				}
+
+				msg := amqp.Publishing{
+					Body:  []byte(data),
+					AppId: c.WorkerName,
+				}
+
+				c.withCounter("publishedtomaintenancequeue", func() {
+					c.MaintenancePublisher.Publish(msg)
+				})
+			}
+		})
 	}
 }
 
