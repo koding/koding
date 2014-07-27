@@ -2,15 +2,17 @@ package broker
 
 import (
 	"github.com/koding/logging"
+	"github.com/koding/metrics"
 	"github.com/koding/rabbitmq"
 	"github.com/streadway/amqp"
 )
 
-func (b *Broker) NewPublisher(c *Config) (Publisher, error) {
+func (b *Broker) NewPublisher() (Publisher, error) {
 	producer := &Producer{
 		ExchangeName: b.config.ExchangeName,
 		Tag:          b.config.Tag,
 		RoutingKey:   b.config.RoutingKey,
+		Metrics:      b.Metrics,
 	}
 
 	// for now, use amqp publisher
@@ -31,6 +33,7 @@ type Producer struct {
 	Tag          string
 	RoutingKey   string
 	Log          logging.Logger
+	Metrics      *metrics.Metrics
 }
 
 // Publish, dispatches given message to the system, implements Publisher
