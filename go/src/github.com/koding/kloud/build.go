@@ -133,6 +133,9 @@ meta data     : %# v
 		return nil, err
 	}
 
+	// garbage collect it
+	r.Context = nil
+
 	b.Log.Debug("[controller]: building machine finished, result artifact is: %# v",
 		pretty.Formatter(artifact))
 
