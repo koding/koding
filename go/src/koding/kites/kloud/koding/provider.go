@@ -46,15 +46,15 @@ type Provider struct {
 	Push         func(string, int, machinestate.State)
 }
 
-func (p *Provider) NewClient(opts *protocol.Machine) (*amazon.AmazonClient, error) {
-	username := opts.Builder["username"].(string)
+func (p *Provider) NewClient(machine *protocol.Machine) (*amazon.AmazonClient, error) {
+	username := machine.Builder["username"].(string)
 
 	a := &amazon.AmazonClient{
 		Log: p.Log,
 		Push: func(msg string, percentage int, state machinestate.State) {
-			p.Log.Info("%s - %s ==> %s", opts.MachineId, username, msg)
+			p.Log.Info("%s - %s ==> %s", machine.MachineId, username, msg)
 
-			opts.Eventer.Push(&eventer.Event{
+			machine.Eventer.Push(&eventer.Event{
 				Message:    msg,
 				Status:     state,
 				Percentage: percentage,
@@ -64,14 +64,14 @@ func (p *Provider) NewClient(opts *protocol.Machine) (*amazon.AmazonClient, erro
 
 	var err error
 
-	opts.Builder["region"] = DefaultRegion
-	a.Amazon, err = aws.New(kodingCredential, opts.Builder)
+	machine.Builder["region"] = DefaultRegion
+	a.Amazon, err = aws.New(kodingCredential, machine.Builder)
 	if err != nil {
 		return nil, fmt.Errorf("koding-amazon err: %s", err)
 	}
 
 	// also apply deploy variable if there is any
-	if err := mapstructure.Decode(opts.Builder, &a.Deploy); err != nil {
+	if err := mapstructure.Decode(machine.Builder, &a.Deploy); err != nil {
 		return nil, fmt.Errorf("koding-amazon: couldn't decode deploy variables: %s", err)
 	}
 
@@ -234,9 +234,9 @@ func (p *Provider) Report(r *kite.Request) (interface{}, error) {
 		return nil, err
 	}
 
-	machine := &Machine{}
+	m := &Machine{}
 	err = p.Session.Run("jMachines", func(c *mgo.Collection) error {
-		return c.Find(bson.M{"queryString": r.Client.Kite.String()}).One(&machine)
+		return c.Find(bson.M{"queryString": r.Client.Kite.String()}).One(&m)
 	})
 	if err != nil {
 		p.Log.Warning("Couldn't find %v, however this kite is still reporting to us. Needs to be fixed: %s",
@@ -244,12 +244,25 @@ func (p *Provider) Report(r *kite.Request) (interface{}, error) {
 		return nil, errors.New("can't update report - 1")
 	}
 
+	machine, err := p.Get(m.Id.Hex())
+	if err != nil {
+		return nil, err
+	}
+	// release the lock from mongodb after we are done
+	defer p.ResetAssignee(machine.MachineId)
+
 	fmt.Printf("usage: %+v\n", usg)
 	if usg.InactiveDuration >= time.Minute*30 {
-		p.Log.Info("Machine '%s' needs to be stopped!", r.Client.Kite.ID)
-	} else {
-		p.Log.Info("Machine '%s' is good to go", r.Client.Kite.ID)
+		p.Log.Info("Stopping machine %s", machine.MachineId)
+
+		err := p.Stop(machine)
+		if err != nil {
+			return nil, err
+		}
+
+		return "machine is stopped", nil
 	}
 
+	p.Log.Info("Machine '%s' is good to go", r.Client.Kite.ID)
 	return true, nil
 }

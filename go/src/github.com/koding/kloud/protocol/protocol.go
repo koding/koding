@@ -36,7 +36,9 @@ type Controller interface {
 	Info(*Machine) (*InfoArtifact, error)
 }
 
-// contains all necessary informations.
+// Machine is used as a context and data source for the appropriate interfaces
+// provided by the Kloud package. A machine is gathered by the Storage
+// interface.
 type Machine struct {
 	// MachineId defines a unique ID in which the build informations are
 	// fetched from. MachineId is used to gather the Username, ImageName,

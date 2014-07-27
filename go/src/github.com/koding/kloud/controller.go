@@ -104,8 +104,9 @@ func (k *Kloud) ControlFunc(control controlFunc) kite.Handler {
 		if err != nil {
 			return nil, err
 		}
-		// if something goes wrong reset the assigne which was set in previous step
-		// by Storage.Get()
+		// if something goes wrong reset the assigne which was set in previous
+		// step by Storage.Get(). If not Assignee is reseted in ControlFunc
+		// wrapper.
 		defer func() {
 			if err != nil {
 				k.Storage.ResetAssignee(args.MachineId)

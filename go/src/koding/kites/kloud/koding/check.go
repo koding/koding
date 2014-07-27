@@ -18,7 +18,8 @@ type concurrentLimit struct {
 }
 
 var (
-	// limits contains the various limitations for each plan
+	// limits contains the various limitations based on the machine
+	// itself.
 	limits = map[string]Limiter{
 		"free": freeLimiter(),
 	}
