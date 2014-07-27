@@ -10,40 +10,43 @@ import (
 // executed. Limiter is usefull if you want have throttling or quota checking
 // based on certain criterias.
 type Limiter interface {
-	Limit(opts *MachineOptions, method string) error
+	Limit(opts *Machine, method string) error
 }
 
 // Builder creates and provision a single image or machine for a given Provider.
 type Builder interface {
-	Build(*MachineOptions) (*Artifact, error)
+	Build(*Machine) (*Artifact, error)
 }
 
 // Provider manages a machine, it's start/stop/destroy/restart a machine.
 type Controller interface {
 	// Start starts the machine
-	Start(*MachineOptions) (*Artifact, error)
+	Start(*Machine) (*Artifact, error)
 
 	// Stop stops the machine
-	Stop(*MachineOptions) error
+	Stop(*Machine) error
 
 	// Restart restarts the machine
-	Restart(*MachineOptions) error
+	Restart(*Machine) error
 
 	// Destroy destroys the machine
-	Destroy(*MachineOptions) error
+	Destroy(*Machine) error
 
 	// Info returns full information about a single machine
-	Info(*MachineOptions) (*InfoArtifact, error)
+	Info(*Machine) (*InfoArtifact, error)
 }
 
 // contains all necessary informations.
-type MachineOptions struct {
+type Machine struct {
 	// MachineId defines a unique ID in which the build informations are
 	// fetched from. MachineId is used to gather the Username, ImageName,
 	// InstanceName etc.. For example it could be a mongodb object id that
 	// would point to a document that carries those informations or a key for a
 	// key/value storage.
 	MachineId string
+
+	// Provider defines the provider in which the data is used be
+	Provider string
 
 	// Builder contains information about how to build the data, like Username,
 	// ImageName, InstanceName, Region, SSH KeyPair informations, etc...
@@ -52,8 +55,12 @@ type MachineOptions struct {
 	// Credential contains information for accessing third party provider services
 	Credential map[string]interface{}
 
-	// Eventer pushes the latest events to the build event.
+	// Eventer pushes the latest events to the eventer hub. Anyone can listen
+	// afterwards from the eventer hub.
 	Eventer eventer.Eventer
+
+	// State defines the machines current state
+	State machinestate.State
 }
 
 // If available a key pair with the given public key and name should be

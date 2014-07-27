@@ -7,6 +7,7 @@ import (
 
 	"github.com/koding/kloud"
 	"github.com/koding/kloud/machinestate"
+	"github.com/koding/kloud/protocol"
 	"github.com/koding/logging"
 	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
@@ -24,7 +25,7 @@ type MongoDB struct {
 func (m *MongoDB) Assignee() string { return m.AssigneeName }
 
 // Get returns the meta of the associated credential with the given machine id.
-func (m *MongoDB) Get(id string) (*kloud.Machine, error) {
+func (m *MongoDB) Get(id string) (*protocol.Machine, error) {
 	if !bson.IsObjectIdHex(id) {
 		return nil, fmt.Errorf("Invalid machine id: %q", id)
 	}
@@ -111,9 +112,10 @@ func (m *MongoDB) Get(id string) (*kloud.Machine, error) {
 		return c.Find(bson.M{"publicKey": machine.Credential}).One(credential)
 	})
 
-	return &kloud.Machine{
+	return &protocol.Machine{
+		MachineId:  id,
 		Provider:   machine.Provider,
-		Data:       machine.Meta,
+		Builder:    machine.Meta,
 		Credential: credential.Meta,
 		State:      machine.State(),
 	}, nil

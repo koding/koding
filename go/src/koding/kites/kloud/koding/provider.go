@@ -45,7 +45,7 @@ type Provider struct {
 	DB   *mongodb.MongoDB
 }
 
-func (p *Provider) NewClient(opts *protocol.MachineOptions) (*amazon.AmazonClient, error) {
+func (p *Provider) NewClient(opts *protocol.Machine) (*amazon.AmazonClient, error) {
 	username := opts.Builder["username"].(string)
 
 	a := &amazon.AmazonClient{
@@ -81,7 +81,7 @@ func (p *Provider) Name() string {
 	return ProviderName
 }
 
-func (p *Provider) Build(opts *protocol.MachineOptions) (*protocol.Artifact, error) {
+func (p *Provider) Build(opts *protocol.Machine) (*protocol.Artifact, error) {
 	a, err := p.NewClient(opts)
 	if err != nil {
 		return nil, err
@@ -181,7 +181,7 @@ hostname: %s`
 	return artifact, nil
 }
 
-func (p *Provider) Start(opts *protocol.MachineOptions) (*protocol.Artifact, error) {
+func (p *Provider) Start(opts *protocol.Machine) (*protocol.Artifact, error) {
 	a, err := p.NewClient(opts)
 	if err != nil {
 		return nil, err
@@ -190,7 +190,7 @@ func (p *Provider) Start(opts *protocol.MachineOptions) (*protocol.Artifact, err
 	return a.Start()
 }
 
-func (p *Provider) Stop(opts *protocol.MachineOptions) error {
+func (p *Provider) Stop(opts *protocol.Machine) error {
 	a, err := p.NewClient(opts)
 	if err != nil {
 		return err
@@ -199,7 +199,7 @@ func (p *Provider) Stop(opts *protocol.MachineOptions) error {
 	return a.Stop()
 }
 
-func (p *Provider) Restart(opts *protocol.MachineOptions) error {
+func (p *Provider) Restart(opts *protocol.Machine) error {
 	a, err := p.NewClient(opts)
 	if err != nil {
 		return err
@@ -208,7 +208,7 @@ func (p *Provider) Restart(opts *protocol.MachineOptions) error {
 	return a.Restart()
 }
 
-func (p *Provider) Destroy(opts *protocol.MachineOptions) error {
+func (p *Provider) Destroy(opts *protocol.Machine) error {
 	a, err := p.NewClient(opts)
 	if err != nil {
 		return err
@@ -217,7 +217,7 @@ func (p *Provider) Destroy(opts *protocol.MachineOptions) error {
 	return a.Destroy()
 }
 
-func (p *Provider) Info(opts *protocol.MachineOptions) (*protocol.InfoArtifact, error) {
+func (p *Provider) Info(opts *protocol.Machine) (*protocol.InfoArtifact, error) {
 	a, err := p.NewClient(opts)
 	if err != nil {
 		return nil, err

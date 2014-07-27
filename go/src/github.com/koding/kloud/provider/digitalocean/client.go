@@ -90,7 +90,7 @@ func (c *Client) CreateImage(provisioner interface{}) (digitalocean.Image, error
 
 	provider := &packer.Provider{
 		BuildName: "digitalocean",
-		Data:      data,
+		Builder:   data,
 	}
 
 	// this is basically a "packer build template.json"

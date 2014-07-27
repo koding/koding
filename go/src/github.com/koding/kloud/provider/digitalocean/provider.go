@@ -26,7 +26,7 @@ type Provider struct {
 	Redis       *redis.RedisSession
 }
 
-func (p *Provider) NewClient(opts *protocol.MachineOptions) (*Client, error) {
+func (p *Provider) NewClient(opts *protocol.Machine) (*Client, error) {
 	username := opts.Builder["username"].(string)
 
 	d, err := do.New(opts.Credential, opts.Builder)
@@ -78,7 +78,7 @@ func (p *Provider) Name() string {
 // given snapshot/image exist it directly skips to creating the droplet. It
 // acceps two string arguments, first one is the snapshotname, second one is
 // the dropletName.
-func (p *Provider) Build(opts *protocol.MachineOptions) (*protocol.Artifact, error) {
+func (p *Provider) Build(opts *protocol.Machine) (*protocol.Artifact, error) {
 	doClient, err := p.NewClient(opts)
 	if err != nil {
 		return nil, err
@@ -89,7 +89,7 @@ func (p *Provider) Build(opts *protocol.MachineOptions) (*protocol.Artifact, err
 	return doClient.Build(dropletName)
 }
 
-func (p *Provider) Start(opts *protocol.MachineOptions) (*protocol.Artifact, error) {
+func (p *Provider) Start(opts *protocol.Machine) (*protocol.Artifact, error) {
 	doClient, err := p.NewClient(opts)
 	if err != nil {
 		return nil, err
@@ -98,7 +98,7 @@ func (p *Provider) Start(opts *protocol.MachineOptions) (*protocol.Artifact, err
 	return nil, doClient.Start()
 }
 
-func (p *Provider) Stop(opts *protocol.MachineOptions) error {
+func (p *Provider) Stop(opts *protocol.Machine) error {
 	doClient, err := p.NewClient(opts)
 	if err != nil {
 		return err
@@ -107,7 +107,7 @@ func (p *Provider) Stop(opts *protocol.MachineOptions) error {
 	return doClient.Stop()
 }
 
-func (p *Provider) Restart(opts *protocol.MachineOptions) error {
+func (p *Provider) Restart(opts *protocol.Machine) error {
 	doClient, err := p.NewClient(opts)
 	if err != nil {
 		return err
@@ -116,7 +116,7 @@ func (p *Provider) Restart(opts *protocol.MachineOptions) error {
 	return doClient.Restart()
 }
 
-func (p *Provider) Destroy(opts *protocol.MachineOptions) error {
+func (p *Provider) Destroy(opts *protocol.Machine) error {
 	doClient, err := p.NewClient(opts)
 	if err != nil {
 		return err
@@ -125,7 +125,7 @@ func (p *Provider) Destroy(opts *protocol.MachineOptions) error {
 	return doClient.Destroy()
 }
 
-func (p *Provider) Info(opts *protocol.MachineOptions) (*protocol.InfoArtifact, error) {
+func (p *Provider) Info(opts *protocol.Machine) (*protocol.InfoArtifact, error) {
 	doClient, err := p.NewClient(opts)
 	if err != nil {
 		return nil, err

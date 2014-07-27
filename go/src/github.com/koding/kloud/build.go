@@ -39,10 +39,10 @@ func (b *Build) prepare(r *kite.Request, c *Controller) (interface{}, error) {
 	c.Eventer = b.NewEventer(r.Method + "-" + c.MachineId)
 
 	instanceName := r.Username + "-" + strconv.FormatInt(time.Now().UTC().UnixNano(), 10)
-	i, ok := c.Machine.Data["instanceName"]
+	i, ok := c.Machine.Builder["instanceName"]
 	if !ok || i == "" {
 		// if it's empty we use the instance name that was generated above
-		c.Machine.Data["instanceName"] = instanceName
+		c.Machine.Builder["instanceName"] = instanceName
 	} else {
 		instanceName, ok = i.(string)
 		if !ok {
@@ -73,7 +73,7 @@ func (b *Build) start(r *kite.Request, c *Controller) (resp interface{}, err err
 			msg = err.Error()
 		} else {
 			b.Log.Info("[controller] building machine for id '%s' is successfull. Instance name: %s",
-				c.MachineId, c.Machine.Data["instanceName"].(string))
+				c.MachineId, c.Machine.Builder["instanceName"].(string))
 		}
 
 		b.Storage.UpdateState(c.MachineId, status)
@@ -85,11 +85,11 @@ func (b *Build) start(r *kite.Request, c *Controller) (resp interface{}, err err
 		})
 	}()
 
-	machOptions := &protocol.MachineOptions{
+	machOptions := &protocol.Machine{
 		MachineId:  c.MachineId,
 		Eventer:    c.Eventer,
 		Credential: c.Machine.Credential,
-		Builder:    c.Machine.Data,
+		Builder:    c.Machine.Builder,
 	}
 
 	msg := fmt.Sprintf("Building process started. Provider '%s'. Build options: %+v",
@@ -109,8 +109,8 @@ meta data     : %# v
 		c.ProviderName,
 		c.MachineId,
 		r.Username,
-		c.Machine.Data["instanceName"].(string),
-		pretty.Formatter(c.Machine.Data),
+		c.Machine.Builder["instanceName"].(string),
+		pretty.Formatter(c.Machine.Builder),
 	)
 
 	b.Log.Info("[controller] building machine with following data: %s", buildInfo)

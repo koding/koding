@@ -32,7 +32,7 @@ func (p *Provider) Name() string {
 	return p.ProviderName
 }
 
-func (p *Provider) NewClient(opts *protocol.MachineOptions) (*OpenstackClient, error) {
+func (p *Provider) NewClient(opts *protocol.Machine) (*OpenstackClient, error) {
 	username := opts.Builder["username"].(string)
 
 	o := &OpenstackClient{
@@ -62,7 +62,7 @@ func (p *Provider) NewClient(opts *protocol.MachineOptions) (*OpenstackClient, e
 	return o, nil
 }
 
-func (p *Provider) Build(opts *protocol.MachineOptions) (*protocol.Artifact, error) {
+func (p *Provider) Build(opts *protocol.Machine) (*protocol.Artifact, error) {
 	o, err := p.NewClient(opts)
 	if err != nil {
 		return nil, err
@@ -84,7 +84,7 @@ func (p *Provider) Build(opts *protocol.MachineOptions) (*protocol.Artifact, err
 	return o.Build(instanceName, imageId, flavorId)
 }
 
-func (p *Provider) Start(opts *protocol.MachineOptions) (*protocol.Artifact, error) {
+func (p *Provider) Start(opts *protocol.Machine) (*protocol.Artifact, error) {
 	o, err := p.NewClient(opts)
 	if err != nil {
 		return nil, err
@@ -93,7 +93,7 @@ func (p *Provider) Start(opts *protocol.MachineOptions) (*protocol.Artifact, err
 	return o.Start()
 }
 
-func (p *Provider) Stop(opts *protocol.MachineOptions) error {
+func (p *Provider) Stop(opts *protocol.Machine) error {
 	o, err := p.NewClient(opts)
 	if err != nil {
 		return err
@@ -102,7 +102,7 @@ func (p *Provider) Stop(opts *protocol.MachineOptions) error {
 	return o.Stop()
 }
 
-func (p *Provider) Restart(opts *protocol.MachineOptions) error {
+func (p *Provider) Restart(opts *protocol.Machine) error {
 	o, err := p.NewClient(opts)
 	if err != nil {
 		return err
@@ -111,7 +111,7 @@ func (p *Provider) Restart(opts *protocol.MachineOptions) error {
 	return o.Restart()
 }
 
-func (p *Provider) Destroy(opts *protocol.MachineOptions) error {
+func (p *Provider) Destroy(opts *protocol.Machine) error {
 	o, err := p.NewClient(opts)
 	if err != nil {
 		return err
@@ -120,7 +120,7 @@ func (p *Provider) Destroy(opts *protocol.MachineOptions) error {
 	return o.Destroy()
 }
 
-func (p *Provider) Info(opts *protocol.MachineOptions) (*protocol.InfoArtifact, error) {
+func (p *Provider) Info(opts *protocol.Machine) (*protocol.InfoArtifact, error) {
 	o, err := p.NewClient(opts)
 	if err != nil {
 		return nil, err
