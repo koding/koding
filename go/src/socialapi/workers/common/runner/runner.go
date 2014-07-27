@@ -11,9 +11,11 @@ import (
 	"socialapi/workers/helper"
 	"strconv"
 	"syscall"
+
 	"github.com/koding/kite"
 	kiteconfig "github.com/koding/kite/config"
 	"github.com/koding/kite/protocol"
+	"github.com/koding/metrics"
 
 	"github.com/koding/bongo"
 	"github.com/koding/broker"
@@ -25,6 +27,8 @@ var (
 	flagRegion   = flag.String("r", "", "Region name")
 	flagDebug    = flag.Bool("d", false, "Debug mode")
 	flagVersion  = flag.Int("v", 0, "Worker Version")
+
+	flagOutputMetrics = flag.Bool("outputMetrics", false, "Output metrics")
 
 	flagKiteInit       = flag.Bool("kite-init", false, "Init kite system with the worker.")
 	flagKiteLocal      = flag.Bool("kite-local", false, "Start kite system in local mode.")
@@ -40,6 +44,7 @@ type Runner struct {
 	ShutdownHandler func()
 	Done            chan error
 	Kite            *kite.Kite
+	Metrics         *metrics.Metrics
 }
 
 func New(name string) *Runner {
@@ -71,12 +76,15 @@ func (r *Runner) InitWithConfigFile(flagConfFile string) error {
 		*flagDebug,
 	)
 
+	metrics = helper.CreateMetrics(r.Name, r.Log, *flagOutputMetrics)
+
 	// panics if not successful
 	r.Bongo = helper.MustInitBongo(
 		WrapWithVersion(r.Name, flagVersion),
 		WrapWithVersion(r.Conf.EventExchangeName, flagVersion),
 		r.Conf,
 		r.Log,
+		metrics,
 		*flagDebug,
 	)
 
