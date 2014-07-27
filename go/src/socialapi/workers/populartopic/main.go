@@ -25,5 +25,6 @@ func main() {
 	r.SetContext(handler)
 	r.Register(models.ChannelMessageList{}).OnCreate().Handle((*populartopic.Controller).MessageSaved)
 	r.Register(models.ChannelMessageList{}).OnDelete().Handle((*populartopic.Controller).MessageDeleted)
+	r.Listen()
 	r.Wait()
 }
