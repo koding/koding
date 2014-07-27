@@ -119,19 +119,31 @@ func (l *Consumer) Subscribe(messageType string, handler *SubscriptionHandler) e
 
 // Close closes the connections gracefully
 func (l *Consumer) Close() error {
+	l.Log.Debug("Consumer is closing the connections %t", true)
+
+	var err, err2 error
+
 	if l.Consumer != nil {
-		if err := l.Consumer.Shutdown(); err != nil {
-			return err
-		}
+		l.Log.Debug("Consumer is closing the consumer connection: %t", true)
+		err = l.Consumer.Shutdown()
+		l.Log.Debug("Consumer closed the consumer connection successfully: %t", err == nil)
 	}
 
 	if l.MaintenancePublisher != nil {
-		if err := l.MaintenancePublisher.Shutdown(); err != nil {
-			return err
-		}
+		l.Log.Debug("Consumer is closing the maintenance connection: %t", true)
+		err2 = l.MaintenancePublisher.Shutdown()
+		l.Log.Debug("Consumer closed the maintenance connection successfully: %t", err2 == nil)
 	}
 
-	return nil
+	if err == nil && err2 == nil {
+		return nil
+	}
+
+	return fmt.Errorf(
+		"err while closing consumer connections ConsumerErr: %s, MaintenanceErr: %s",
+		err.Error(),
+		err2.Error(),
+	)
 }
 
 func (l *Consumer) Listen() error {
@@ -139,9 +151,11 @@ func (l *Consumer) Listen() error {
 		return ErrNoHandlerFound
 	}
 
-	l.Consumer.Consume(l.Start())
+	l.Log.Debug("Consumer is starting to listen: %t ", true)
+	err := l.Consumer.Consume(l.Start())
+	l.Log.Debug("Consumer finished successfully: %t ", err == nil)
 
-	return nil
+	return err
 }
 
 // createConsumer creates a new amqp consumer
