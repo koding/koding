@@ -114,7 +114,7 @@ func (k *Kloud) ControlFunc(control controlFunc) kite.Handler {
 
 		// check if there is any value from a previous handler, and them to our
 		// machine.Meta data, like deployment variables
-		if data, ok := r.Context.Get("deployData"); ok {
+		if data, err := r.Context.Get("deployData"); err == nil {
 			m := data.(map[string]interface{})
 			for k, v := range m {
 				// dont' override existing data

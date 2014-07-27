@@ -50,8 +50,8 @@ ff02::2 ip6-allrouters`
 )
 
 func (k *KodingDeploy) ServeKite(r *kite.Request) (interface{}, error) {
-	data, ok := r.Context.Get("buildArtifact")
-	if !ok {
+	data, err := r.Context.Get("buildArtifact")
+	if err != nil {
 		return nil, errors.New("koding-deploy: build artifact is not available")
 	}
 
