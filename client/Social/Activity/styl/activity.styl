@@ -1516,6 +1516,28 @@ span.collapsedtext
       background            none
       hidden()
 
+      .meta
+        .action-link.like-link
+          display         inline-block
+          padding         5px
+          vertical-align  middle
+
+          &:after
+            content       ''
+            display       block
+            height        8px
+
+          &.has-likes:after
+            r-sprite      activity heart-outline !important
+
+          &.liked:after
+            r-sprite      activity heart-solid !important
+
+
+      &:hover
+        .action-link.like-link:after
+          r-sprite        activity heart-dim
+
       > article
         margin-top          5px
 
