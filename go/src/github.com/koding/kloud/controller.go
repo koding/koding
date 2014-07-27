@@ -42,27 +42,32 @@ var states = map[string]*statePair{
 	"restart": &statePair{initial: machinestate.Rebooting, final: machinestate.Running},
 }
 
-func (k *Kloud) Build(r *kite.Request) (resp interface{}, err error) {
-	return k.ControlFunc(k.build).ServeKite(r)
+func (k *Kloud) NewBuild(handler kite.Handler) kite.Handler {
+	b := &Build{
+		deployer: handler,
+	}
+	b.Kloud = k
+
+	return k.ControlFunc(b.prepare)
 }
 
-func (k *Kloud) Start(r *kite.Request) (resp interface{}, err error) {
+func (k *Kloud) Start(r *kite.Request) (interface{}, error) {
 	return k.ControlFunc(k.start).ServeKite(r)
 }
 
-func (k *Kloud) Stop(r *kite.Request) (resp interface{}, err error) {
+func (k *Kloud) Stop(r *kite.Request) (interface{}, error) {
 	return k.ControlFunc(k.stop).ServeKite(r)
 }
 
-func (k *Kloud) Restart(r *kite.Request) (resp interface{}, err error) {
+func (k *Kloud) Restart(r *kite.Request) (interface{}, error) {
 	return k.ControlFunc(k.restart).ServeKite(r)
 }
 
-func (k *Kloud) Destroy(r *kite.Request) (resp interface{}, err error) {
+func (k *Kloud) Destroy(r *kite.Request) (interface{}, error) {
 	return k.ControlFunc(k.destroy).ServeKite(r)
 }
 
-func (k *Kloud) Info(r *kite.Request) (resp interface{}, err error) {
+func (k *Kloud) Info(r *kite.Request) (interface{}, error) {
 	return k.ControlFunc(k.info).ServeKite(r)
 }
 
@@ -99,18 +104,6 @@ func (k *Kloud) ControlFunc(control controlFunc) kite.Handler {
 		if err != nil {
 			return nil, err
 		}
-
-		// check if there is any value from a previous, and them to our
-		// machine.Meta data, like deployment variables
-		if prevResp, ok := r.Response.(map[string]interface{}); ok {
-			for k, v := range prevResp {
-				// dont' override existing data
-				if _, ok := machine.Data[k]; !ok {
-					machine.Data[k] = v
-				}
-			}
-		}
-
 		// if something goes wrong reset the assigne which was set in previous step
 		// by Storage.Get()
 		defer func() {
@@ -118,6 +111,18 @@ func (k *Kloud) ControlFunc(control controlFunc) kite.Handler {
 				k.Storage.ResetAssignee(args.MachineId)
 			}
 		}()
+
+		// check if there is any value from a previous handler, and them to our
+		// machine.Meta data, like deployment variables
+		if data, ok := r.Context.Get("deployData"); ok {
+			m := data.(map[string]interface{})
+			for k, v := range m {
+				// dont' override existing data
+				if _, ok := machine.Data[k]; !ok {
+					machine.Data[k] = v
+				}
+			}
+		}
 
 		k.Log.Debug("[controller] got machine data with machineID (%s) : %+v",
 			args.MachineId, machine)

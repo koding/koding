@@ -21,9 +21,6 @@ type AmazonClient struct {
 }
 
 func (a *AmazonClient) Build(instanceName string) (*protocol.Artifact, error) {
-	// create it here because we might put some state data into Artifact Storage
-	artifact := protocol.NewArtifact()
-
 	// Don't build anything without this, otherwise ec2 complains about it as a
 	// missing paramater.
 	if a.Builder.SecurityGroupId == "" {
@@ -87,19 +84,13 @@ func (a *AmazonClient) Build(instanceName string) (*protocol.Artifact, error) {
 		return nil, err
 	}
 
-	var privateKey string
-	var sshUsername string
-	if a.Deploy != nil {
-		privateKey = a.Deploy.PrivateKey
-		sshUsername = a.Deploy.Username
-	}
-
-	artifact.IpAddress = instance.PublicIpAddress
-	artifact.InstanceName = instanceName
-	artifact.InstanceId = instance.InstanceId
-	artifact.SSHPrivateKey = privateKey
-	artifact.SSHUsername = sshUsername
-	return artifact, nil
+	return &protocol.Artifact{
+		IpAddress:     instance.PublicIpAddress,
+		InstanceName:  instanceName,
+		InstanceId:    instance.InstanceId,
+		SSHPrivateKey: a.Deploy.PrivateKey,
+		SSHUsername:   "", // deploy with root
+	}, nil
 }
 
 func (a *AmazonClient) DeployKey() (string, error) {
@@ -165,12 +156,11 @@ func (a *AmazonClient) Start() (*protocol.Artifact, error) {
 		return nil, err
 	}
 
-	artifact := protocol.NewArtifact()
-	artifact.InstanceId = instance.InstanceId
-	artifact.InstanceName = instance.Tags[0].Value
-	artifact.IpAddress = instance.PublicIpAddress
-
-	return artifact, nil
+	return &protocol.Artifact{
+		InstanceId:   instance.InstanceId,
+		InstanceName: instance.Tags[0].Value,
+		IpAddress:    instance.PublicIpAddress,
+	}, nil
 }
 
 func (a *AmazonClient) Stop() error {

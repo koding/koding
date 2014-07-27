@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"html/template"
 	"path/filepath"
@@ -49,8 +50,15 @@ ff02::2 ip6-allrouters`
 )
 
 func (k *KodingDeploy) ServeKite(r *kite.Request) (interface{}, error) {
-	artifact := r.Response.(*protocol.Artifact)
-	fmt.Printf("=============> artifact %+v\n", artifact)
+	data, ok := r.Context.Get("buildArtifact")
+	if !ok {
+		return nil, errors.New("koding-deploy: build artifact is not available")
+	}
+
+	artifact, ok := data.(*protocol.Artifact)
+	if !ok {
+		return nil, fmt.Errorf("koding-deploy: build artifact is malformed: %+v", data)
+	}
 
 	username := artifact.Username
 	ipAddress := artifact.IpAddress

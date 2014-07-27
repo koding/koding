@@ -187,17 +187,16 @@ func newKite() *kite.Kite {
 			Username:   r.Username,
 		}
 
-		m, err := structure.ToMap(d)
+		deployData, err := structure.ToMap(d)
 		if err != nil {
 			return nil, err
 		}
 
-		fmt.Printf("m %+v\n", m)
-		return m, nil
-
+		r.Context.Set("deployData", deployData)
+		return true, nil
 	}
 
-	k.HandleFunc("build", kld.Build).PreHandleFunc(injectDeploy).PostHandle(deployer)
+	k.Handle("build", kld.NewBuild(deployer)).PreHandleFunc(injectDeploy)
 	k.HandleFunc("start", kld.Start)
 	k.HandleFunc("stop", kld.Stop)
 	k.HandleFunc("restart", kld.Restart)

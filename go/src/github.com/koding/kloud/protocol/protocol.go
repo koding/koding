@@ -18,11 +18,6 @@ type Builder interface {
 	Build(*MachineOptions) (*Artifact, error)
 }
 
-// Cleaner clean up necessary tasks after a build.
-type Cleaner interface {
-	Cleanup(*Artifact) error
-}
-
 // Provider manages a machine, it's start/stop/destroy/restart a machine.
 type Controller interface {
 	// Start starts the machine
@@ -68,10 +63,10 @@ type MachineOptions struct {
 // Deployer interface is then executed (only if the necessary privateKey is
 // passed)
 type ProviderDeploy struct {
-	PublicKey  string
-	PrivateKey string
-	KeyName    string
-	Username   string
+	PublicKey  string `structure:"publicKey"`
+	PrivateKey string `structure:"privateKey"`
+	KeyName    string `structure:"keyName"`
+	Username   string `structure:"username"`
 }
 
 // Artifact should be returned from a Build method. It contains data
@@ -100,9 +95,6 @@ type Artifact struct {
 
 	// KiteQuery is needed to find it via Kontrol
 	KiteQuery string
-
-	// Storage provides a simple caching/state mechanism between calls
-	Storage
 }
 
 // InfoArtifact should be returned from a Info method.
@@ -112,10 +104,4 @@ type InfoArtifact struct {
 
 	// Name defines the name of the machine.
 	Name string
-}
-
-func NewArtifact() *Artifact {
-	a := &Artifact{}
-	a.Storage = NewMapStorage()
-	return a
 }

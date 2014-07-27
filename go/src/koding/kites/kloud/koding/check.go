@@ -40,8 +40,8 @@ func (t *totalLimit) Check(ctx *CheckContext) error {
 	// value. We can easily find them acording to this tag
 	filter.Add("tag:koding-user", ctx.username)
 
-	// Anything except "terminated"
-	filter.Add("instance-state-name", "pending", "running", "shutting-down", "stopping", "stopped")
+	// Anything except "terminated" and "shutting-downg"
+	filter.Add("instance-state-name", "pending", "running", "stopping", "stopped")
 
 	instances, err := ctx.api.InstancesByFilter(filter)
 
