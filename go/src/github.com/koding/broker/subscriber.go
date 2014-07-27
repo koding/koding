@@ -6,23 +6,27 @@ import (
 	"sync"
 
 	"github.com/koding/logging"
+	"github.com/koding/metrics"
 	"github.com/koding/rabbitmq"
 )
 
-// NewSubscriber creates a new subscriber with given config
-func (b *Broker) NewSubscriber(c *Config) (Subscriber, error) {
+// NewSubscriber creates a new subscriber
+func (b *Broker) NewSubscriber() (Subscriber, error) {
 	l := &Consumer{
 		// tha app's name
 		WorkerName: b.AppName,
 
 		// which exchange will be listened
-		SourceExchangeName: c.ExchangeName,
+		SourceExchangeName: b.config.ExchangeName,
 
 		// basic logger
 		Log: b.log,
 
 		// whether send or not redelivered items to the maintenance queue
-		EnableMaintenanceQueue: c.EnableMaintenanceQueue,
+		EnableMaintenanceQueue: b.config.EnableMaintenanceQueue,
+
+		// gather metric into this property
+		Metrics: b.Metrics,
 	}
 
 	// create the consumer
@@ -38,7 +42,7 @@ func (b *Broker) NewSubscriber(c *Config) (Subscriber, error) {
 		return nil, err
 	}
 
-	if c.EnableMaintenanceQueue {
+	if b.config.EnableMaintenanceQueue {
 		maintenanceQ, err := l.createMaintenancePublisher(b.mq)
 		if err != nil {
 			return nil, err
@@ -69,6 +73,9 @@ type Consumer struct {
 
 	// whether or not to send error-ed messages to the maintenance queue
 	EnableMaintenanceQueue bool
+
+	// Metrics about the broker
+	Metrics *metrics.Metrics
 
 	// context for subscriptions
 	context      ErrHandler
@@ -113,11 +120,15 @@ func (l *Consumer) Subscribe(messageType string, handler *SubscriptionHandler) e
 // Close closes the connections gracefully
 func (l *Consumer) Close() error {
 	if l.Consumer != nil {
-		l.Consumer.Shutdown()
+		if err := l.Consumer.Shutdown(); err != nil {
+			return err
+		}
 	}
 
 	if l.MaintenancePublisher != nil {
-		l.MaintenancePublisher.Shutdown()
+		if err := l.MaintenancePublisher.Shutdown(); err != nil {
+			return err
+		}
 	}
 
 	return nil
