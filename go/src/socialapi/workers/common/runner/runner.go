@@ -169,16 +169,19 @@ func (r *Runner) Listen() {
 	r.Bongo.Broker.Listen()
 }
 
-func (r *Runner) Close() {
+func (r *Runner) Close() error {
 	r.ShutdownHandler()
-	r.Bongo.Close()
+	err := r.Bongo.Close()
 	if *flagKiteInit {
 		if r.Kite == nil {
-			return
+			// dont forget to return the error
+			return err
 		}
 
 		r.Kite.Close()
 	}
+
+	return err
 }
 
 func (r *Runner) RegisterSignalHandler() {
@@ -189,8 +192,8 @@ func (r *Runner) RegisterSignalHandler() {
 			signal := <-signals
 			switch signal {
 			case syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT, syscall.SIGSTOP:
-				r.Close()
-				r.Done <- nil
+				err := r.Close()
+				r.Done <- err
 			}
 		}
 	}()
@@ -198,6 +201,6 @@ func (r *Runner) RegisterSignalHandler() {
 
 func (r *Runner) Wait() error {
 	err := <-r.Done
-
+	l.Log.Info("Runner closed successfully %t", err == nil)
 	return err
 }
