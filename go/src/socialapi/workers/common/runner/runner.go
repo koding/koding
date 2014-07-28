@@ -4,9 +4,6 @@ import (
 	"errors"
 	"flag"
 	"fmt"
-	"github.com/koding/kite"
-	kiteconfig "github.com/koding/kite/config"
-	"github.com/koding/kite/protocol"
 	"net/url"
 	"os"
 	"os/signal"
@@ -15,9 +12,14 @@ import (
 	"strconv"
 	"syscall"
 
+	"github.com/koding/kite"
+	kiteconfig "github.com/koding/kite/config"
+	"github.com/koding/kite/protocol"
+	"github.com/koding/metrics"
+
 	"github.com/koding/bongo"
+	"github.com/koding/broker"
 	"github.com/koding/logging"
-	"github.com/koding/worker"
 )
 
 var (
@@ -25,7 +27,8 @@ var (
 	flagRegion   = flag.String("r", "", "Region name")
 	flagDebug    = flag.Bool("d", false, "Debug mode")
 	flagVersion  = flag.Int("v", 0, "Worker Version")
-	flagMeasure  = flag.Bool("m", false, "Output metrics")
+
+	flagOutputMetrics = flag.Bool("outputMetrics", false, "Output metrics")
 
 	flagKiteInit       = flag.Bool("kite-init", false, "Init kite system with the worker.")
 	flagKiteLocal      = flag.Bool("kite-local", false, "Start kite system in local mode.")
@@ -37,11 +40,11 @@ type Runner struct {
 	Log             logging.Logger
 	Conf            *config.Config
 	Bongo           *bongo.Bongo
-	Listener        *worker.Listener
 	Name            string
 	ShutdownHandler func()
 	Done            chan error
 	Kite            *kite.Kite
+	Metrics         *metrics.Metrics
 }
 
 func New(name string) *Runner {
@@ -73,12 +76,15 @@ func (r *Runner) InitWithConfigFile(flagConfFile string) error {
 		*flagDebug,
 	)
 
+	metrics := helper.CreateMetrics(r.Name, r.Log, *flagOutputMetrics)
+
 	// panics if not successful
 	r.Bongo = helper.MustInitBongo(
 		WrapWithVersion(r.Name, flagVersion),
 		WrapWithVersion(r.Conf.EventExchangeName, flagVersion),
 		r.Conf,
 		r.Log,
+		metrics,
 		*flagDebug,
 	)
 
@@ -149,32 +155,33 @@ func (r *Runner) RegisterToKontrol() error {
 	return r.Kite.RegisterForever(registerURL)
 }
 
-func (r *Runner) Listen(handler worker.Handler) {
-	r.Listener = worker.NewListener(
-		WrapWithVersion(r.Name, flagVersion),
-		WrapWithVersion(r.Conf.EventExchangeName, flagVersion),
-		r.Log,
-		*flagMeasure,
-	)
-
-	// blocking
-	// listen for events
-	r.Listener.Listen(helper.NewRabbitMQ(r.Conf, r.Log), handler)
+func (r *Runner) SetContext(controller broker.ErrHandler) {
+	r.Bongo.Broker.SetContext(controller)
 }
 
-func (r *Runner) Close() {
+func (r *Runner) ListenFor(eventName string, handleFunc interface{}) error {
+	return r.Bongo.Broker.Subscribe(eventName, handleFunc)
+}
+
+func (r *Runner) Listen() {
+	// blocking
+	// listen for events
+	r.Bongo.Broker.Listen()
+}
+
+func (r *Runner) Close() error {
 	r.ShutdownHandler()
-	if r.Listener != nil {
-		r.Listener.Close()
-	}
-	r.Bongo.Close()
+	err := r.Bongo.Close()
 	if *flagKiteInit {
 		if r.Kite == nil {
-			return
+			// dont forget to return the error
+			return err
 		}
 
 		r.Kite.Close()
 	}
+
+	return err
 }
 
 func (r *Runner) RegisterSignalHandler() {
@@ -185,8 +192,8 @@ func (r *Runner) RegisterSignalHandler() {
 			signal := <-signals
 			switch signal {
 			case syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT, syscall.SIGSTOP:
-				r.Close()
-				r.Done <- nil
+				err := r.Close()
+				r.Done <- err
 			}
 		}
 	}()
@@ -194,6 +201,6 @@ func (r *Runner) RegisterSignalHandler() {
 
 func (r *Runner) Wait() error {
 	err := <-r.Done
-
+	r.Log.Info("Runner closed successfully %t", err == nil)
 	return err
 }
