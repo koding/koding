@@ -125,8 +125,12 @@ createdb:
 	(vagrant ssh default --command "mongo localhost/koding --eval='db.jGroups.update({},{\$$unset:{socialApiChannelId:0}},{multi:true})'")
 	(vagrant ssh default --command "/opt/koding/go/src/socialapi/db/sql/definition/create.sh /opt/koding/go/src/socialapi/db/sql")
 
-configure: install installrerun
+configure: install-postgres install installrerun
 	@echo "$(OK_COLOR)==> Configuration is done $(NO_COLOR)"
+
+install-postgres:
+	@echo "$(OK_COLOR)==> Installing postgresql"
+	(vagrant ssh default --command "/opt/koding/go/src/socialapi/db/sql/definition/install.sh")
 
 installrerun:
 	@go get github.com/skelterjohn/rerun
@@ -134,8 +138,6 @@ installrerun:
 
 install:
 	@echo $(CONFIG)
-	@echo "$(OK_COLOR)==> Installing postgresql"
-	(vagrant ssh default --command "/opt/koding/go/src/socialapi/db/sql/definition/install.sh")
 	@echo "$(OK_COLOR)==> Installing all packages $(NO_COLOR)"
 	@go install $(VERBOSE) ${PACKAGES}
 
