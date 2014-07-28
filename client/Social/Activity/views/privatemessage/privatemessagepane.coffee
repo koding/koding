@@ -21,6 +21,8 @@ class PrivateMessagePane extends MessagePane
     # once.
     @participantMap = {}
 
+    @messageMap = {}
+
     @createParticipantsView()
 
     channel = @getData()
@@ -45,7 +47,11 @@ class PrivateMessagePane extends MessagePane
 
 
   addMessage: (message) ->
-    index = if @lastToFirst then @listController.getItemCount() else 0
+    return  if @messageMap[message.id]
+
+    {lastToFirst} = @getOptions()
+    index = if lastToFirst then @listController.getItemCount() else 0
+    @messageMap[message.id] = yes
     @prependMessage message, index
 
 
@@ -105,6 +111,10 @@ class PrivateMessagePane extends MessagePane
   hasSameOwner = (a, b) -> a.getData().account._id is b.getData().account._id
 
   privateMessageAdded: (item, index) ->
+    @scrollDown()
+    {data} = item
+    @messageMap[data.id] = yes
+
     prevSibling = @listController.getListItems()[index-1]
     nextSibling = @listController.getListItems()[index+1]
 
@@ -120,6 +130,8 @@ class PrivateMessagePane extends MessagePane
 
 
   privateMessageRemoved: (item, index) ->
+    {data} = item
+    delete @messageMap[data.id]
 
     prevSibling = @listController.getListItems()[index-1]
     nextSibling = @listController.getListItems()[index]
