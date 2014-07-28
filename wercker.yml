@@ -1,0 +1,66 @@
+box: koding/base@0.0.6
+
+build:
+  steps:
+    - script:
+        name: init s3 configuration
+        code: scripts/wercker/init-s3cfg.sh
+    - script:
+        name: generate version
+        code: scripts/wercker/generate-version.sh
+    - script:
+        name: save build info
+        code: |
+          echo $WERCKER_GIT_BRANCH > BRANCH
+          echo $WERCKER_GIT_COMMIT > HEAD
+          echo $WERCKER_STARTED_BY > STARTED_BY
+    - script:
+        name: initialize submodules
+        code: git submodule update --init --recursive
+    - npm-install
+    - script:
+        name: build client
+        code: cake -c sjc-production buildClient
+    - script:
+        name: build go binaries
+        code: go/build.sh
+  after-steps:
+    - jessefulton/slack-notify:
+        subdomain: koding
+        token: $SLACK_TOKEN
+        channel: announce
+        username: wercker
+        icon_url: https://avatars3.githubusercontent.com/u/1695193?s=140
+deploy:
+  steps:
+    - script:
+        name: create tarball
+        code: |
+          TARBALL_FILENAME=`cat BRANCH`_`cat VERSION`.tgz
+          tar czf $TARBALL_FILENAME *
+    - rioki/s3put@0.0.3:
+        key-id: $S3_KEY_ID
+        key-secret: $S3_KEY_SECRET
+        file: $(cat BRANCH)_$(cat VERSION).tgz
+        url: $S3_BUCKET/
+    - mktemp:
+        envvar: KEY_PATH
+    - create-file:
+        name: write private key
+        filename: $KEY_PATH
+        content: $KEY_PRIVATE
+        overwrite: true
+        hide-from-log: true
+    - script:
+        name: deploy to hosts
+        code: |
+          TARBALL_FILENAME=`cat BRANCH`_`cat VERSION`.tgz
+          DEPLOY_OPTIONS="--option IdentityFile=$KEY_PATH $DEPLOY_OPTIONS"
+          parallel-ssh $DEPLOY_HOSTS $DEPLOY_OPTIONS "sudo koding-deploy $TARBALL_FILENAME"
+  after-steps:
+    - jessefulton/slack-notify:
+        subdomain: koding
+        token: $SLACK_TOKEN
+        channel: announce
+        username: wercker
+        icon_url: https://avatars3.githubusercontent.com/u/1695193?s=140
