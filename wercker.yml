@@ -24,6 +24,12 @@ build:
     - script:
         name: build go binaries
         code: go/build.sh
+    - script:
+        name: build social api
+        cwd: go/src/socialapi
+        code: |
+          make install
+          make build
   after-steps:
     - jessefulton/slack-notify:
         subdomain: koding
