@@ -7,6 +7,7 @@ module.exports = [
   "libs/bluebird.js",
   "libs/kite.js",
   "libs/kontrol.js",
+  "libs/algoliasearch.min.js",
 
 
   # --- Application ---
@@ -140,6 +141,9 @@ module.exports = [
   "CommonViews/clonerepomodal.coffee",
   "CommonViews/memberautocomplete.coffee",
   "CommonViews/editormodal.coffee",
+
+  # Algolia-based autocomplete:
+  "autocompletecontroller.coffee",
 
   "navigation/topnavigation.coffee",
 

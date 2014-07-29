@@ -2,7 +2,7 @@ class PrivateMessageModal extends KDModalViewWithForms
 
   constructor: (options = {}, data) ->
 
-    options.title    or= 'START A PRIVATE CONVERSATION BETWEEN YOU AND:'
+    options.title    or= 'START A PRIVATE CONVERSATION WITH:'
     options.cssClass or= 'private-message activity-modal'
     options.content  or= ''
     options.overlay   ?= yes
@@ -37,7 +37,7 @@ class PrivateMessageModal extends KDModalViewWithForms
               keyup        : @bound 'handleBodyKeyup'
               validate     :
                 rules      : required : yes
-                messages   : required : 'You forgot to put some message in.'
+                messages   : required : 'Message cannot be empty'
 
     super options, data
 
@@ -113,29 +113,17 @@ class PrivateMessageModal extends KDModalViewWithForms
 
 
   fetchAccounts: (args, callback) ->
+    { autocomplete } = KD.singletons
 
-    {JAccount}   = KD.remote.api
-    {inputValue} = args
-    {blacklist}  = @getOptions() or []
+    blacklist = @getOptions().blacklist ? []
 
-    val = inputValue.replace /^@/, ''
+    { inputValue } = args
 
-    return @autoComplete.showNoDataFound()  if inputValue.length < 4
-
-    query =
-      'profile.nickname' : val
-
-    query._id = $nin : blacklist  if blacklist
-
-    JAccount.one query, (err, account) =>
-      if not account or KD.isMine(account)
-      then @autoComplete.showNoDataFound()
-      else callback [account]
-
-    #   byEmail = /[^\s@]+@[^\s@]+\.[^\s@]+/.test inputValue
-    #   JAccount.byRelevance inputValue, {byEmail}, (err, accounts)->
-    #     callback accounts
-
+    autocomplete.searchAccounts inputValue
+      .filter (it) -> it.profile.nickname not in blacklist
+      # the data source callback is not error-first style,
+      # so just pass the callback to .then():
+      .then callback
 
   handleBodyKeyup: (event) ->
 
