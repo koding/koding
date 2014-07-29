@@ -179,21 +179,21 @@ Configuration = (options={}) ->
 
     socialapi           : command : "cd go/src/socialapi && make develop -j config=#{socialapi.configFilePath}"
 
-    authworker          : command : "cd #{projectRoot}/workers/auth/lib/auth/     && nodemon main.coffee  -c #{configName}"
-    socialworker        : command : "cd #{projectRoot}/workers/social/lib/social/ && nodemon main.coffee  -c #{configName} -p #{KONFIG.social.port}      -r #{region} --disable-newrelic --kite-port=13020"
-    sourcemaps          : command : "cd #{projectRoot}/servers/lib/source-server/ && nodemon main.coffee  -c #{configName} -p #{KONFIG.sourcemaps.port}"
-    emailsender         : command : "cd #{projectRoot}/workers/emailsender/       && nodemon main.coffee  -c #{configName}"
-    boxproxy            : command : "cd #{projectRoot}/servers/boxproxy/          && nodemon boxproxy.js  -c #{configName}"
-    webserver           : command : "cd #{projectRoot}/servers/lib/server/        && nodemon index.coffee -c #{configName} -p #{KONFIG.webserver.port}   --disable-newrelic"
+    authworker          : command : "./watch-node #{projectRoot}/workers/auth/index.js               -c #{configName}"
+    sourcemaps          : command : "./watch-node #{projectRoot}/servers/sourcemaps/index.js         -c #{configName} -p #{KONFIG.sourcemaps.port}"
+    emailsender         : command : "./watch-node #{projectRoot}/workers/emailsender/index.js        -c #{configName}"
+    boxproxy            : command : "./watch-node #{projectRoot}/servers/boxproxy/boxproxy.js        -c #{configName}"
+    webserver           : command : "./watch-node #{projectRoot}/servers/index.js                    -c #{configName} -p #{KONFIG.webserver.port}   --disable-newrelic"
+    socialworker        : command : "./watch-node #{projectRoot}/workers/social/index.js             -c #{configName} -p #{KONFIG.social.port}      -r #{region} --disable-newrelic --kite-port=13020"
 
-    clientWatcher       : command : "coffee #{projectRoot}/build-client.coffee    --watch --sourceMapsUri #{hostname}"
+    clientWatcher       : command : "ulimit -n 1024 && coffee #{projectRoot}/build-client.coffee    --watch --sourceMapsUri #{hostname}"
 
     ngrokProxy          : command : "#{projectRoot}/ngrokProxy --user #{publicHostname}"
 
+
+
     # --port #{kontrol.port} -env #{environment} -public-key #{kontrol.publicKeyFile} -private-key #{kontrol.privateKeyFile}"
     # guestcleaner        : command : "node #{projectRoot}/workers/guestcleaner/index.js     -c #{configName}"
-
-
 
 
 
@@ -254,53 +254,12 @@ Configuration = (options={}) ->
         workers +="echo [#{key}] started with pid: $#{key}pid \n\n"
       return workers
 
-    run = """
-      #/bin/bash
-      # ------ THIS FILE IS AUTO-GENERATED ON EACH BUILD ----- #\n
-      mkdir .logs &>/dev/null
-
-      #{envvars()}
-
-      trap ctrl_c INT
-
-      function ctrl_c () {
-        echo "ctrl_c detected. killing all processes..."
-        kill_all
-      }
-
-      watch() {
-
-      echo watching folder $1/ every $2 secs.
-
-      while [[ true ]]
-      do
-          files=`find $1 -type f -mtime -$2s`
-          if [[ $files != "" ]] ; then
-              echo changed, $files
-          fi
-          sleep $2
-      done
-      }
-
-      function kill_all () {
-      #{killlist()}
-      }
-      if [[ "$1" == "" ]]; then
-
-        #{workersRunList()}
-
-        tail -fq ./.logs/*.log
-
-      elif [ "$1" == "killall" ]; then
-
-        kill_all
-
-      elif [ "$1" == "install" ]; then
+    installScript = """
 
         echo '#---> BUILDING CLIENT (@gokmen) <---#'
         cd #{projectRoot}
         chmod +x ./build-client.coffee
-        NO_UGLIFYJS=true ./build-client.coffee --watch false  --verbose
+        ./build-client.coffee --watch false  --verbose
         git submodule init
         git submodule update
         npm i gulp stylus coffee-script nodemon -g --silent
@@ -351,9 +310,49 @@ Configuration = (options={}) ->
         echo 'ALL DONE. Enjoy! :)'
         echo
         echo
+    """
 
+    run = """
+      #/bin/bash
+      # ------ THIS FILE IS AUTO-GENERATED ON EACH BUILD ----- #\n
+      mkdir #{projectRoot}/.logs &>/dev/null
 
-      elif [ "$1" == "log" ]; then
+      #{envvars()}
+
+      trap ctrl_c INT
+
+      function ctrl_c () {
+        echo "ctrl_c detected. killing all processes..."
+        kill_all
+      }
+
+      watch() {
+
+      echo watching folder $1/ every $2 secs.
+
+      while [[ true ]]
+      do
+          files=`find $1 -type f -mtime -$2s`
+          if [[ $files != "" ]] ; then
+              echo changed, $files
+          fi
+          sleep $2
+      done
+      }
+
+      function kill_all () {
+        rm -rf #{projectRoot}/.logs
+        #{killlist()}
+      }
+      if [[ "$1" == "killall" ]]; then
+
+        kill_all
+
+      elif [ "$1" == "install" ]; then
+
+        #{installScript}
+
+      elif [ "$1" == "log" || "$1" == "logs" ]; then
 
         if [ "$2" == "" ]; then
           tail -fq ./.logs/*.log
@@ -386,7 +385,10 @@ Configuration = (options={}) ->
         mongo #{mongo} --eval='db.jAccounts.update({},{$unset:{socialApiId:0}},{multi:true}); db.jGroups.update({},{$unset:{socialApiChannelId:0}},{multi:true});'
 
       else
-        echo "unknown argument. use ./run [killall]"
+
+        #{workersRunList()}
+        tail -fq ./.logs/*.log
+
       fi
       # ------ THIS FILE IS AUTO-GENERATED BY ./configure ----- #\n
       """

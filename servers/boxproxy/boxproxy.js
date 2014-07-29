@@ -1,3 +1,4 @@
+process.title = 'koding-boxpoxy'
 var argv = require('minimist')(process.argv);
 
 var KONFIG = require('koding-config-manager').load("main."+argv.c);

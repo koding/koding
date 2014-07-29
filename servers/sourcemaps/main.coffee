@@ -1,4 +1,5 @@
 {argv} = require 'optimist'
+process.title = 'koding-sourcemapserver'
 
 express = require 'express'
 app = express()

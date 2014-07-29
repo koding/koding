@@ -13,6 +13,11 @@ module.exports = class AuthWorker extends EventEmitter
     type        : 'fanout'
     autoDelete  : yes
 
+# Y478IQ
+# F6D6IP
+
+
+
   NOTIFICATION_EXCHANGE_OPTIONS =
     type        : 'topic'
     autoDelete  : yes

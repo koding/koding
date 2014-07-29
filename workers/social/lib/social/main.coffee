@@ -1,3 +1,6 @@
+process.title = 'koding-socialworker'
+
+
 log = -> console.log arguments...
 
 {argv} = require 'optimist'
@@ -24,6 +27,7 @@ mqOptions = extend {}, mq
 mqOptions.login = social.login if social?.login?
 
 broker = new Broker mqOptions
+
 
 
 koding = new Bongo {
