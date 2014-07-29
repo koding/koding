@@ -204,6 +204,11 @@ class DockController extends KDViewController
       partial  : 'MY APPS'
 
     dock.addSubView @navController.getView()
+    dock.addSubView new CustomLinkView
+      icon     : no
+      cssClass : 'add-vm'
+      title    : '+ Add more apps'
+      href     : '/Apps'
 
     dock.addSubView new KDCustomHTMLView
       tagName  : 'h3'
