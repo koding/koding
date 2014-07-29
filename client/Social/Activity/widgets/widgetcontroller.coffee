@@ -1,27 +1,27 @@
 class ActivityUpdateWidgetController extends KDViewController
 
-  # WIP: stop submission if user wants to submit stuff too often
+  # # WIP: stop submission if user wants to submit stuff too often
 
-  submissionStopped = no
+  # submissionStopped = no
 
-  notifySubmissionStopped = ->
+  # notifySubmissionStopped = ->
 
-    # new KDNotificationView type : "mini", title : "Please take a little break!"
+  #   # new KDNotificationView type : "mini", title : "Please take a little break!"
 
-  stopSubmission = ->
-    # submissionStopped = yes
-    # utils.wait 20000, -> submissionStopped = no
+  # stopSubmission = ->
+  #   # submissionStopped = yes
+  #   # utils.wait 20000, -> submissionStopped = no
 
-  loadView:(mainView)->
-    activityController = KD.getSingleton('activityController')
+  # loadView:(mainView)->
+  #   activityController = KD.getSingleton('activityController')
 
-    paneMap = [
-        name            : 'statusUpdatePane'
-        paneName        : 'update'
-        cssClass        : 'status-widget'
-        constructorName : 'JNewStatusUpdate'
-        widgetName      : 'updateWidget'
-        widgetType      : ActivityStatusUpdateWidget
+  #   paneMap = [
+  #       name            : 'statusUpdatePane'
+  #       paneName        : 'update'
+  #       cssClass        : 'status-widget'
+  #       constructorName : 'JNewStatusUpdate'
+  #       widgetName      : 'updateWidget'
+  #       widgetType      : ActivityStatusUpdateWidget
 #      ,
 #        name            : 'codeSnippetPane'
 #        paneName        : 'codesnip'
@@ -52,34 +52,34 @@ class ActivityUpdateWidgetController extends KDViewController
 #        constructorName : 'JDiscussion'
 #        widgetName      : 'discussionWidget'
 #        widgetType      : ActivityDiscussionWidget
-      ]
+    #   ]
 
 
-    widgetController = @
-    paneMap.forEach (pane)=>
-      @[pane.name] = mainView.addWidgetPane
-        paneName : pane.paneName
-        mainContent : @[pane.widgetName] = new pane.widgetType
-          pane      : pane
-          cssClass  : pane.cssClass or "#{pane.paneName}-widget"
-          callback  : (formData)->
-            if submissionStopped
-              return notifySubmissionStopped()
-            else
-              widgetController.widgetSubmit formData, @getOptions().pane.constructorName, stopSubmission
-              if @getOptions().pane.constructorName in ['JNewStatusUpdate']
-                widgetController[@getOptions().pane.widgetName].switchToSmallView()
-              mainView.resetWidgets()
+    # widgetController = @
+    # paneMap.forEach (pane)=>
+    #   @[pane.name] = mainView.addWidgetPane
+    #     paneName : pane.paneName
+    #     mainContent : @[pane.widgetName] = new pane.widgetType
+    #       pane      : pane
+    #       cssClass  : pane.cssClass or "#{pane.paneName}-widget"
+    #       callback  : (formData)->
+    #         if submissionStopped
+    #           return notifySubmissionStopped()
+    #         else
+    #           widgetController.widgetSubmit formData, @getOptions().pane.constructorName, stopSubmission
+    #           if @getOptions().pane.constructorName in ['JNewStatusUpdate']
+    #             widgetController[@getOptions().pane.widgetName].switchToSmallView()
+    #           mainView.resetWidgets()
 
-    mainView.showPane "update"
+    # mainView.showPane "update"
 
-    @codeSnippetPane.on 'PaneDidShow', => @codeWidget.widgetShown()
+    # @codeSnippetPane.on 'PaneDidShow', => @codeWidget.widgetShown()
 
-    switchForEditView = (type,data,fake=no)=>
-      switch type
-        when "JNewStatusUpdate"
-          mainView.showPane "update"
-          @updateWidget.switchToEditView data, fake
+    # switchForEditView = (type,data,fake=no)=>
+    #   switch type
+    #     when "JNewStatusUpdate"
+    #       mainView.showPane "update"
+    #       @updateWidget.switchToEditView data, fake
 #        when "JCodeSnip"
 #          mainView.showPane "codesnip"
 #          @codeWidget.switchToEditView data, fake
@@ -96,48 +96,48 @@ class ActivityUpdateWidgetController extends KDViewController
 #          mainView.showPane "link"
 #          @linkWidget.switchToEditView data, fake
 
-    @on 'editFromFakeData', (fakeData)=>
-      switchForEditView fakeData.fakeType, fakeData, yes
+  #   @on 'editFromFakeData', (fakeData)=>
+  #     switchForEditView fakeData.fakeType, fakeData, yes
 
-    KD.getSingleton('mainController').on "ActivityItemEditLinkClicked", (activity)=>
-      # Remove this if can fix the ActivityStatusUpdateWidget's bug
-      KD.getSingleton("appManager").open "Activity"
-      mainView.setClass "edit-mode"
-      switchForEditView activity.bongo_.constructorName, activity
+  #   KD.getSingleton('mainController').on "ActivityItemEditLinkClicked", (activity)=>
+  #     # Remove this if can fix the ActivityStatusUpdateWidget's bug
+  #     KD.getSingleton("appManager").open "Activity"
+  #     mainView.setClass "edit-mode"
+  #     switchForEditView activity.bongo_.constructorName, activity
 
 
-  widgetSubmit:(data,constructorName,callback)->
-    for own key, field of data when _.isString(field)
-      data[key] = field.replace(/&quot;/g, '"')
+  # widgetSubmit:(data,constructorName,callback)->
+  #   for own key, field of data when _.isString(field)
+  #     data[key] = field.replace(/&quot;/g, '"')
 
-    # if troll clear the tag input
-    data.meta?.tags = [] if KD.checkFlag 'exempt'
-    if data.activity
-      {activity} = data
-      delete data.activity
-      activity.modify data, (err, res)=>
-        callback? err, res
-        unless err
-          new KDNotificationView type : "mini", title : "Updated successfully"
-        else
-          new KDNotificationView type : "mini", title : err.message
-    else
-      updateTimeout = @utils.wait 20000, =>
-        @emit 'OwnActivityHasFailed', data
+  #   # if troll clear the tag input
+  #   data.meta?.tags = [] if KD.checkFlag 'exempt'
+  #   if data.activity
+  #     {activity} = data
+  #     delete data.activity
+  #     activity.modify data, (err, res)=>
+  #       callback? err, res
+  #       unless err
+  #         new KDNotificationView type : "mini", title : "Updated successfully"
+  #       else
+  #         new KDNotificationView type : "mini", title : err.message
+  #   else
+  #     updateTimeout = @utils.wait 20000, =>
+  #       @emit 'OwnActivityHasFailed', data
 
-      data.group = KD.getSingleton('groupsController').getGroupSlug()
-      KD.remote.api[constructorName]?.create data, (err, activity)=>
-        callback? err, activity
+  #     data.group = KD.getSingleton('groupsController').getGroupSlug()
+  #     KD.remote.api[constructorName]?.create data, (err, activity)=>
+  #       callback? err, activity
 
-        KD.showError err,
-          AccessDenied :
-            title      : 'You are not allowed to create activities'
-            content    : 'This activity will only be visible to you'
-            duration   : 5000
-          KodingError  : 'Something went wrong while creating activity'
+  #       KD.showError err,
+  #         AccessDenied :
+  #           title      : 'You are not allowed to create activities'
+  #           content    : 'This activity will only be visible to you'
+  #           duration   : 5000
+  #         KodingError  : 'Something went wrong while creating activity'
 
-        unless err
-          @utils.killWait updateTimeout
-          @emit 'OwnActivityHasArrived', activity
-        else
-          @emit 'OwnActivityHasFailed', data
+  #       unless err
+  #         @utils.killWait updateTimeout
+  #         @emit 'OwnActivityHasArrived', activity
+  #       else
+  #         @emit 'OwnActivityHasFailed', data

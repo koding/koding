@@ -50,10 +50,6 @@ module.exports = (options, callback)->
 
   shareUrl = generateShareUrl model, uri
 
-  # JNewStatusUpdate doesn't have title; we're using body instead.
-  if model?.bongo_?.constructorName is "JNewStatusUpdate"
-    title = if model?.body then model.body
-
   prepareHTML  = (scripts, title, shareUrl)->
     """
     <!doctype html>
