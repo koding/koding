@@ -83,6 +83,11 @@ class MainView extends KDView
       tagName  : 'section'
       domId    : 'main-panel-wrapper'
 
+    @panelWrapper.addSubView new KDCustomHTMLView
+      tagName  : 'cite'
+      domId    : 'sidebar-toggle'
+      click    : => @toggleClass 'collapsed'
+
 
   createAccountArea:->
 

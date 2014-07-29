@@ -18,6 +18,32 @@ resurrection.styl
   left            0
   fix()
 
+
+#sidebar-toggle
+  bg              color red
+  size            18px 18px
+  margin-top      -9px
+  margin-left     -9px
+  display         block
+  z-index         11
+  rounded         9px
+  cursor          pointer
+  top             50%
+  fix()
+
+
+#kdmaincontainer
+
+  &.collapsed
+
+    // #main-sidebar
+    //   width         63px
+
+    #main-panel-wrapper
+      kalc            width, 100% \- 63px
+      margin-left     63px
+
+
 #dock
   padding           1px 16px 16px
   margin-top        2px
