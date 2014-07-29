@@ -3,11 +3,11 @@ class DockController extends KDViewController
   isRunning = (item) -> item?.state is 'running'
 
   defaultItems = [
-    { title : 'Activity',  path : '/Activity', order : 10, type :'persistent' }
+    # { title : 'Social',  path : '/Activity', order : 10, type :'persistent' }
     { title : 'IDE',       path : '/IDE',      order : 20, type :'persistent' }
     { title : 'Teamwork',  path : '/Teamwork', order : 30, type :'persistent' }
-    { title : 'Apps',      path : '/Apps',     order : 40, type :'persistent' }
-    { title : 'DevTools',  path : '/DevTools', order : 50, type :'persistent' }
+    # { title : '+',      path : '/Apps',     order : 40, type :'persistent' }
+    # { title : 'DevTools',  path : '/DevTools', order : 50, type :'persistent' }
     # { title : 'Environments',  path : '/Environments', order : 60, type :'persistent' }
   ]
 
