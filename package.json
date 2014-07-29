@@ -78,7 +78,8 @@
     "node-sockjs-client": "1.0.7",
     "cli-table": "^0.3.0",
     "read": "^1.0.5",
-    "simple-recaptcha" : "0.0.3"
+    "simple-recaptcha" : "0.0.3",
+    "node-syntaxhighlighter" : "0.8.1"
   },
   "devDependencies": {},
   "optionalDependencies": {},
