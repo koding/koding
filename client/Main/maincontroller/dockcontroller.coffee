@@ -221,7 +221,6 @@ class DockController extends KDViewController
         KD.singletons.appManager.require 'Environments', ->
           env = new EnvironmentMachineContainer
           env.emit 'PlusButtonClicked'
-          @fetchVMs @bound 'listVMs'
 
 
     # @navController.reset()
@@ -266,10 +265,21 @@ class DockController extends KDViewController
         ErrorLog.create 'terminal: Couldn\'t fetch vms', reason : err
         return new KDNotificationView title : 'Couldn\'t fetch your VMs'
 
-      vms.sort (a,b) -> a.hostnameAlias > b.hostnameAlias
+      # hostnameAlias comes in format 'vm-0.senthil.kd.io', this helper
+      # gets just the vm number
+      getVMNumber = ({hostnameAlias})->
+        +(hostnameAlias.match(/\d+/)[0])
+
+      # sort vms by vm number
+      vms.sort (a,b)->
+        getVMNumber(a) > getVMNumber(b)
 
       callback vms
 
+  refreshSidebarVMs: ->
+    @fetchVMs (vms) =>
+      @vmsList.removeAllItems()
+      @listVMs vms
 
   getRelativeItem: (increment, predicate) ->
 
