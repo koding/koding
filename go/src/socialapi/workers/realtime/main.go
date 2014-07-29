@@ -6,7 +6,6 @@ import (
 	"socialapi/models"
 	"socialapi/workers/common/runner"
 	"socialapi/workers/helper"
-	notificationmodels "socialapi/workers/notification/models"
 	"socialapi/workers/realtime/realtime"
 )
 
@@ -46,8 +45,6 @@ func main() {
 	r.Register(models.ChannelParticipant{}).On("added_to_channel").Handle((*realtime.Controller).ChannelParticipantAdded)
 	r.Register(models.ChannelParticipant{}).OnCreate().Handle((*realtime.Controller).ChannelParticipantAdded)
 	r.Register(models.ChannelParticipant{}).OnUpdate().Handle((*realtime.Controller).ChannelParticipantUpdatedEvent)
-	r.Register(notificationmodels.Notification{}).OnCreate().Handle((*realtime.Controller).NotifyUser)
-	r.Register(notificationmodels.Notification{}).OnUpdate().Handle((*realtime.Controller).NotifyUser)
 	r.Listen()
 	r.Wait()
 }
