@@ -119,8 +119,7 @@ class MembersAppController extends AppController
           loggedInOnly      : yes
           noItemFoundText   : "#{owner} #{auxVerb.have} not liked any posts yet."
           dataSource        : (selector, options, callback)->
-            selector = {sourceName: $in: ['JNewStatusUpdate']}
-            account.fetchLikedContents options, selector, callback
+            return callback {message: "not impplemented feature"}
         members              :
           noItemFoundText    : "There is no member."
           itemClass          : GroupMembersPageListItemView
