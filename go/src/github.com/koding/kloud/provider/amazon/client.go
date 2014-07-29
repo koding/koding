@@ -7,7 +7,9 @@ import (
 
 	aws "github.com/koding/kloud/api/amazon"
 	"github.com/koding/kloud/machinestate"
+	"github.com/koding/kloud/packer"
 	"github.com/koding/kloud/protocol"
+	"github.com/koding/kloud/utils"
 	"github.com/koding/kloud/waitstate"
 	"github.com/koding/logging"
 	"github.com/mitchellh/goamz/ec2"
@@ -91,6 +93,28 @@ func (a *AmazonClient) Build(instanceName string) (*protocol.Artifact, error) {
 		SSHPrivateKey: a.Deploy.PrivateKey,
 		SSHUsername:   "", // deploy with root
 	}, nil
+}
+
+// CreateImage creates an image using Packer. It uses digitalocean.Builder
+// data. It returns the image info.
+func (a *AmazonClient) CreateImage(provisioner interface{}) (*ec2.Image, error) {
+	data, err := utils.TemplateData(a.Builder, provisioner)
+	if err != nil {
+		return &ec2.Image{}, err
+	}
+
+	provider := &packer.Provider{
+		BuildName: "amazon-ebs",
+		Data:      data,
+	}
+
+	// this is basically a "packer build template.json"
+	if err := provider.Build(); err != nil {
+		return &ec2.Image{}, err
+	}
+
+	// return the image result
+	return a.Image(a.Builder.SourceAmi)
 }
 
 func (a *AmazonClient) DeployKey() (string, error) {
