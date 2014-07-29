@@ -302,26 +302,6 @@ task 'emailConfirmationCheckerWorker', "Run the email confirmtion worker", ({con
         onChange  : (path) ->
           processes.kill "emailConfirmationCheckerWorker"
 
-task 'sitemapGeneratorWorker', "Generate the sitemap worker", ({configFile})->
-  config = require('koding-config-manager').load("main.#{configFile}")
-
-  processes.fork
-    name           : 'sitemapGeneratorWorker'
-    cmd            : "./workers/sitemapgenerator/index -c #{configFile}"
-    restart        : yes
-    restartTimeout : 1
-    kontrol        :
-      enabled      : if config.runKontrol is yes then yes else no
-      startMode    : "one"
-    verbose        : yes
-
-  watcher = new Watcher
-    groups        :
-      sitemapgenerator:
-        folders   : ['./workers/sitemapgenerator']
-        onChange  : (path) ->
-          processes.kill "sitemapGeneratorWorker"
-
 task 'emailWorker', "Run the email worker", ({configFile})->
   config = require('koding-config-manager').load("main.#{configFile}")
 
