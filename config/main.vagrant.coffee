@@ -395,6 +395,7 @@ module.exports =
     kontrolproxy  : "notice"
     kontroldaemon : "notice"
     vmproxy       : "notice"
+    graphitefeeder: "info"
     sync          : "notice"
     postModifier  : "notice"
     router        : "notice"
