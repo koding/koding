@@ -10,6 +10,7 @@ import (
 
 var conf *Config
 
+// Returns config, if it is nil, panics
 func MustGet() *Config {
 	if conf == nil {
 		panic("config is not set, please call Config.MustRead(pathToConfFile)")
@@ -28,7 +29,7 @@ func MustRead(path string) *Config {
 		panic(err)
 	}
 
-	// we can override Environment property of 
+	// we can override Environment property of
 	//the config from env variable
 	// set environment variable
 	env := os.Getenv("SOCIAL_API_ENV")

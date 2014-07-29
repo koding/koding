@@ -3,7 +3,9 @@ package helper
 import (
 	"socialapi/config"
 	"socialapi/db"
+
 	"github.com/koding/logging"
+	"github.com/koding/metrics"
 
 	"github.com/koding/bongo"
 	"github.com/koding/broker"
@@ -15,6 +17,7 @@ func MustInitBongo(
 	eventExchangeName string,
 	c *config.Config,
 	log logging.Logger,
+	metrics *metrics.Metrics,
 	debug bool,
 ) *bongo.Bongo {
 	rmqConf := &rabbitmq.Config{
@@ -33,10 +36,23 @@ func MustInitBongo(
 	db := db.MustInit(c, log, debug)
 
 	broker := broker.New(appName, bConf, log)
+	// set metrics for broker
+	broker.Metrics = metrics
+
 	bongo := bongo.New(broker, db, log)
 	err := bongo.Connect()
 	if err != nil {
 		log.Fatal("Error while starting bongo, exiting err: %s", err.Error())
+	}
+
+	log.Info("Caching disabled: %v", c.DisableCaching)
+	if !c.DisableCaching {
+		redisConn, err := InitRedisConn(c)
+		if err != nil {
+			log.Critical("Bongo couldnt connect to redis, caching will not be available Err: %s", err.Error())
+		} else {
+			bongo.Cache = redisConn
+		}
 	}
 
 	return bongo

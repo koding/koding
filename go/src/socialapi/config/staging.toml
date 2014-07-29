@@ -3,6 +3,7 @@ Mongo             = "dev:k9lc4G1k32nyD72@68.68.97.107:27017/koding"
 Environment       = "staging"
 Region            = "aws"
 Uri               = "https://koding.com"
+DisableCaching    = false
 
 [postgres]
 Host     = "staging0.cfbuweg6pdxe.us-east-1.rds.amazonaws.com"
@@ -25,7 +26,9 @@ DB  = 0
 Slave=    "172.16.10.17:6379"
 
 [limits]
-MessageBodyMinLen = 1
+MessageBodyMinLen    = 1
+PostThrottleDuration = "15s"
+PostThrottleCount    = 3
 
 [emailnotification]
 TemplateRoot = "go/src/socialapi/workers/emailnotifier/templates/"

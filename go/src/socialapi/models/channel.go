@@ -1,7 +1,6 @@
 package models
 
 import (
-	"errors"
 	"fmt"
 	"socialapi/request"
 	"strings"
@@ -68,7 +67,7 @@ const (
 
 func NewChannel() *Channel {
 	return &Channel{
-		Name:            "Channel" + RandomName(),
+		Name:            "channel_" + RandomName(),
 		GroupName:       Channel_KODING_NAME,
 		TypeConstant:    Channel_TYPE_DEFAULT,
 		PrivacyConstant: Channel_PRIVACY_PRIVATE,
@@ -87,8 +86,8 @@ func NewPrivateMessageChannel(creatorId int64, groupName string) *Channel {
 }
 
 func (c *Channel) Create() error {
-	if c.Name == "" || c.GroupName == "" || c.TypeConstant == "" {
-		return fmt.Errorf("Validation failed %s - %s -%s", c.Name, c.GroupName, c.TypeConstant)
+	if c.Name == "" || c.GroupName == "" || c.TypeConstant == "" || c.CreatorId == 0 {
+		return fmt.Errorf("Validation failed %s - %s - %s - %d", c.Name, c.GroupName, c.TypeConstant, c.CreatorId)
 	}
 
 	// golang returns -1 if item not in the string
@@ -96,44 +95,47 @@ func (c *Channel) Create() error {
 		return fmt.Errorf("Channel name %q has empty space in it", c.Name)
 	}
 
-	if c.TypeConstant == Channel_TYPE_GROUP ||
-		c.TypeConstant == Channel_TYPE_FOLLOWERS /* we can add more types here */ {
-
-		var selector map[string]interface{}
-		switch c.TypeConstant {
-		case Channel_TYPE_GROUP:
-			selector = map[string]interface{}{
-				"group_name":    c.GroupName,
-				"type_constant": c.TypeConstant,
-			}
-		case Channel_TYPE_FOLLOWERS:
-			selector = map[string]interface{}{
-				"creator_id":    c.CreatorId,
-				"type_constant": c.TypeConstant,
-			}
-		}
-
-		// if err is nil
-		// it means we already have that channel
-		err := c.One(bongo.NewQS(selector))
-		if err == nil {
-			return nil
-			// return fmt.Errorf("%s typed channel is already created before for %s group", c.TypeConstant, c.GroupName)
-		}
-
-		if err != bongo.RecordNotFound {
-			return err
-		}
-
+	// if channel type is not group or following try to create it
+	if c.TypeConstant != Channel_TYPE_GROUP && c.TypeConstant != Channel_TYPE_FOLLOWERS {
+		return bongo.B.Create(c)
 	}
 
+	var selector map[string]interface{}
+
+	switch c.TypeConstant {
+	case Channel_TYPE_GROUP:
+		selector = map[string]interface{}{
+			"group_name":    c.GroupName,
+			"type_constant": c.TypeConstant,
+		}
+	case Channel_TYPE_FOLLOWERS:
+		selector = map[string]interface{}{
+			"creator_id":    c.CreatorId,
+			"type_constant": c.TypeConstant,
+		}
+	}
+
+	// if err is nil
+	// it means we already have that channel
+	err := c.One(bongo.NewQS(selector))
+	if err == nil {
+		// this means, we already have the channel in the db, it is safe to return
+		return nil
+	}
+
+	// if error is not NotFound, return it
+	if err != bongo.RecordNotFound {
+		return err
+	}
+
+	// if we couldnt find the record in the db, then create it
 	return bongo.B.Create(c)
 }
 
 func (c *Channel) CreateRaw() error {
 	insertSql := "INSERT INTO " +
 		c.TableName() +
-		` ("name","creator_id","group_name","purpose",c"type_constant",` +
+		` ("name","creator_id","group_name","purpose","type_constant",` +
 		`"privacy_constant", "created_at", "updated_at", "deleted_at")` +
 		"VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9) " +
 		"RETURNING ID"
@@ -145,28 +147,45 @@ func (c *Channel) CreateRaw() error {
 
 func (c *Channel) AddParticipant(participantId int64) (*ChannelParticipant, error) {
 	if c.Id == 0 {
-		return nil, errors.New("Channel Id is not set")
+		return nil, ErrChannelIdIsNotSet
+	}
+
+	if c.CreatorId == 0 {
+		return nil, ErrCreatorIdIsNotSet
+	}
+
+	// only the creator can be added as participant to the channel
+	if c.TypeConstant == Channel_TYPE_PINNED_ACTIVITY {
+		if c.CreatorId != participantId {
+			return nil, ErrCannotAddNewParticipantToPinnedChannel
+		}
 	}
 
 	cp := NewChannelParticipant()
 	cp.ChannelId = c.Id
 	cp.AccountId = participantId
 
+	// get participant from db if it is created before
 	err := cp.FetchParticipant()
+	// supress not found error
 	if err != nil && err != bongo.RecordNotFound {
 		return nil, err
 	}
 
 	// if we have this record in DB
 	if cp.Id != 0 {
-		// if status is not active
+		// if the user is alredy actively particiapant of a channel
+		// return it early
 		if cp.StatusConstant == ChannelParticipant_STATUS_ACTIVE {
-			return nil, errors.New(fmt.Sprintf("Account %d is already a participant of channel %d", cp.AccountId, cp.ChannelId))
+			// TODO, why we are returning an error here?
+			return nil, ErrAccountIsAlreadyInTheChannel
 		}
+
 		cp.StatusConstant = ChannelParticipant_STATUS_ACTIVE
 		if err := cp.Update(); err != nil {
 			return nil, err
 		}
+
 		return cp, nil
 	}
 
@@ -181,7 +200,7 @@ func (c *Channel) AddParticipant(participantId int64) (*ChannelParticipant, erro
 
 func (c *Channel) RemoveParticipant(participantId int64) error {
 	if c.Id == 0 {
-		return errors.New("Channel Id is not set")
+		return ErrChannelIdIsNotSet
 	}
 
 	cp := NewChannelParticipant()
@@ -214,7 +233,7 @@ func (c *Channel) FetchParticipantIds(q *request.Query) ([]int64, error) {
 	var participantIds []int64
 
 	if c.Id == 0 {
-		return participantIds, errors.New("Channel Id is not set")
+		return participantIds, ErrChannelIdIsNotSet
 	}
 
 	query := &bongo.Query{
@@ -236,15 +255,23 @@ func (c *Channel) FetchParticipantIds(q *request.Query) ([]int64, error) {
 	return participantIds, nil
 }
 
-var AlreadyInTheChannel = errors.New("message is already in the channel")
-
 // AddMessage adds given message to the channel, it the message is already in the
 // channel, it doesnt add again, this method is idempotent
 // you can call many times, but message will be in the channel list once
+//
+// has full test suit
 func (c *Channel) AddMessage(messageId int64) (*ChannelMessageList, error) {
+	if c.Id == 0 {
+		return nil, ErrChannelIdIsNotSet
+	}
+
+	if messageId == 0 {
+		return nil, ErrMessageIdIsNotSet
+	}
+
 	cml, err := c.FetchMessageList(messageId)
 	if err == nil {
-		return nil, AlreadyInTheChannel
+		return nil, ErrAlreadyInTheChannel
 	}
 
 	// silence record not found err
@@ -262,7 +289,16 @@ func (c *Channel) AddMessage(messageId int64) (*ChannelMessageList, error) {
 	return cml, nil
 }
 
+// TODO do not return channelmessagelist from delete function
 func (c *Channel) RemoveMessage(messageId int64) (*ChannelMessageList, error) {
+	if c.Id == 0 {
+		return nil, ErrChannelIdIsNotSet
+	}
+
+	if messageId == 0 {
+		return nil, ErrMessageIdIsNotSet
+	}
+
 	cml, err := c.FetchMessageList(messageId)
 	if err != nil {
 		return nil, err
@@ -275,9 +311,14 @@ func (c *Channel) RemoveMessage(messageId int64) (*ChannelMessageList, error) {
 	return cml, nil
 }
 
+// has full test suit
 func (c *Channel) FetchMessageList(messageId int64) (*ChannelMessageList, error) {
 	if c.Id == 0 {
-		return nil, errors.New("Channel Id is not set")
+		return nil, ErrChannelIdIsNotSet
+	}
+
+	if messageId == 0 {
+		return nil, ErrMessageIdIsNotSet
 	}
 
 	cml := NewChannelMessageList()
@@ -290,6 +331,14 @@ func (c *Channel) FetchMessageList(messageId int64) (*ChannelMessageList, error)
 }
 
 func (c *Channel) FetchChannelIdByNameAndGroupName(name, groupName string) (int64, error) {
+	if name == "" {
+		return 0, ErrNameIsNotSet
+	}
+
+	if groupName == "" {
+		return 0, ErrGroupNameIsNotSet
+	}
+
 	query := &bongo.Query{
 		Selector: map[string]interface{}{
 			"name":       name,
@@ -315,9 +364,8 @@ func (c *Channel) FetchChannelIdByNameAndGroupName(name, groupName string) (int6
 }
 
 func (c *Channel) Search(q *request.Query) ([]Channel, error) {
-
 	if q.GroupName == "" {
-		return nil, fmt.Errorf("Query doesnt have any Group info %+v", q)
+		return nil, ErrGroupNameIsNotSet
 	}
 
 	var channels []Channel
@@ -353,7 +401,7 @@ func (c *Channel) ByName(q *request.Query) (Channel, error) {
 	var channel Channel
 
 	if q.GroupName == "" {
-		return channel, fmt.Errorf("Query doesnt have any Group info %+v", q)
+		return channel, ErrGroupNameIsNotSet
 	}
 
 	query := &bongo.Query{
@@ -376,7 +424,7 @@ func (c *Channel) ByName(q *request.Query) (Channel, error) {
 
 func (c *Channel) List(q *request.Query) ([]Channel, error) {
 	if q.GroupName == "" {
-		return nil, fmt.Errorf("Query doesnt have any Group info %+v", q)
+		return nil, ErrGroupNameIsNotSet
 	}
 
 	var channels []Channel
@@ -408,7 +456,7 @@ func (c *Channel) List(q *request.Query) ([]Channel, error) {
 
 func (c *Channel) FetchLastMessage() (*ChannelMessage, error) {
 	if c.Id == 0 {
-		return nil, errors.New("Channel Id is not set")
+		return nil, ErrChannelIdIsNotSet
 	}
 
 	cml := NewChannelMessageList()
@@ -493,8 +541,21 @@ func (c *Channel) CanOpen(accountId int64) (bool, error) {
 		return false, ErrChannelIdIsNotSet
 	}
 
+	if c.CreatorId == 0 {
+		return false, ErrCreatorIdIsNotSet
+	}
+
 	if accountId == 0 {
 		return false, ErrAccountIdIsNotSet
+	}
+
+	// see only your pinned posts
+	if c.TypeConstant == Channel_TYPE_PINNED_ACTIVITY {
+		if c.CreatorId == accountId {
+			return true, nil
+		}
+
+		return false, nil
 	}
 
 	// check if user is a participant
@@ -519,12 +580,6 @@ func (c *Channel) CanOpen(accountId int64) (bool, error) {
 	// this is here for non-participated topic channels
 	if c.TypeConstant == Channel_TYPE_TOPIC {
 		return true, nil
-	}
-
-	// see only your pinned posts
-	// user should be added as a participant to pinned post
-	if c.TypeConstant == Channel_TYPE_PINNED_ACTIVITY {
-		return false, nil
 	}
 
 	// see only your private messages

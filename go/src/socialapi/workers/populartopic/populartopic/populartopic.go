@@ -9,7 +9,6 @@ import (
 
 	"github.com/koding/logging"
 	"github.com/koding/redis"
-	"github.com/koding/worker"
 	"github.com/streadway/amqp"
 )
 
@@ -17,12 +16,9 @@ var (
 	PopularTopicKey = "populartopic"
 )
 
-type Action func(*Controller, *models.ChannelMessageList) error
-
 type Controller struct {
-	routes map[string]Action
-	log    logging.Logger
-	redis  *redis.RedisSession
+	log   logging.Logger
+	redis *redis.RedisSession
 }
 
 func (t *Controller) DefaultErrHandler(delivery amqp.Delivery, err error) bool {
@@ -38,38 +34,10 @@ func (t *Controller) DefaultErrHandler(delivery amqp.Delivery, err error) bool {
 }
 
 func New(log logging.Logger, redis *redis.RedisSession) *Controller {
-	ffc := &Controller{
+	return &Controller{
 		log:   log,
 		redis: redis,
 	}
-
-	routes := map[string]Action{
-		"api.channel_message_list_created": (*Controller).MessageSaved,
-		"api.channel_message_list_deleted": (*Controller).MessageDeleted,
-	}
-
-	ffc.routes = routes
-	return ffc
-}
-
-func (f *Controller) HandleEvent(event string, data []byte) error {
-	f.log.Debug("New Event Received %s", event)
-	handler, ok := f.routes[event]
-	if !ok {
-		return worker.HandlerNotFoundErr
-	}
-
-	cml, err := mapMessage(data)
-	if err != nil {
-		return err
-	}
-
-	if cml.ChannelId == 0 {
-		f.log.Error(fmt.Sprintf("ChannelId is not set for Channel Message List id: %d Deleting from rabbitmq", cml.Id))
-		return nil
-	}
-
-	return handler(f, cml)
 }
 
 func (f *Controller) MessageSaved(data *models.ChannelMessageList) error {

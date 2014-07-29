@@ -35,6 +35,7 @@ func (mwc *Controller) migrateAllAccounts() error {
 		s := modelhelper.Selector{"_id": oldAccount.Id}
 		o := modelhelper.Selector{"$set": modelhelper.Selector{"socialApiId": strconv.FormatInt(id, 10)}}
 		if err := modelhelper.UpdateAccount(s, o); err != nil {
+			errCount++
 			mwc.log.Warning("Could not update account document: %s", err)
 			return nil
 		}

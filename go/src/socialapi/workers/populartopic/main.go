@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"socialapi/models"
 	"socialapi/workers/common/runner"
 	"socialapi/workers/helper"
 	"socialapi/workers/populartopic/populartopic"
@@ -21,7 +22,9 @@ func main() {
 	redis := helper.MustInitRedisConn(r.Conf)
 	// create message handler
 	handler := populartopic.New(r.Log, redis)
-
-	r.Listen(handler)
+	r.SetContext(handler)
+	r.Register(models.ChannelMessageList{}).OnCreate().Handle((*populartopic.Controller).MessageSaved)
+	r.Register(models.ChannelMessageList{}).OnDelete().Handle((*populartopic.Controller).MessageDeleted)
+	r.Listen()
 	r.Wait()
 }

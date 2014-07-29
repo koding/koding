@@ -112,6 +112,7 @@ class VirtualizationController extends KDController
       action   : "Destroy my VM"
       callback : =>
         @deleteVmByHostname hostnameAlias, (err) ->
+          callback err
           return if KD.showError err
           new KDNotificationView title:'Successfully destroyed!'
           appStorage = KD.getSingleton('appStorageController').storage 'Finder', '1.2'

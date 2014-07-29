@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	"socialapi/workers/common/manager"
+	"socialapi/models"
 	"socialapi/workers/common/runner"
 	"socialapi/workers/topicfeed/topicfeed"
 )
@@ -18,14 +18,10 @@ func main() {
 		return
 	}
 
-	m := manager.New()
-	m.Controller(topicfeed.New(r.Log))
-
-	m.HandleFunc("api.channel_message_updated", (*topicfeed.Controller).MessageUpdated)
-	m.HandleFunc("api.channel_message_deleted", (*topicfeed.Controller).MessageDeleted)
-	m.HandleFunc("api.channel_message_created", (*topicfeed.Controller).MessageSaved)
-
-	// create message handler
-	r.Listen(m)
+	r.SetContext(topicfeed.New(r.Log))
+	r.Register(models.ChannelMessage{}).OnUpdate().Handle((*topicfeed.Controller).MessageUpdated)
+	r.Register(models.ChannelMessage{}).OnDelete().Handle((*topicfeed.Controller).MessageDeleted)
+	r.Register(models.ChannelMessage{}).OnCreate().Handle((*topicfeed.Controller).MessageSaved)
+	r.Listen()
 	r.Wait()
 }

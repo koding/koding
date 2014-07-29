@@ -37,7 +37,7 @@ styleScrollBars()
   .no-item-found
     text-align            center
     color                 #B4B4B4
-    padding               178px 0
+    padding               40px 0
     font-size             16px
     font-weight           300
     letter-spacing        .02em
@@ -1493,6 +1493,28 @@ span.collapsedtext
       background            none
       hidden()
 
+      .meta
+        .action-link.like-link
+          display         inline-block
+          padding         5px
+          vertical-align  middle
+
+          &:after
+            content       ''
+            display       block
+            height        8px
+
+          &.has-likes:after
+            r-sprite      activity heart-outline !important
+
+          &.liked:after
+            r-sprite      activity heart-solid !important
+
+
+      &:hover
+        .action-link.like-link:after
+          r-sprite        activity heart-dim
+
       > article
         margin-top          5px
 
@@ -1569,7 +1591,7 @@ span.collapsedtext
 
           .stats
             height          16px
-            width           48px
+            width           52px
             top             2px
             left            0
             text-align      right

@@ -768,6 +768,10 @@ section.pricing-sign-in
   kalc                padding-right, \(100% \- 1030px\)/2
   margin-bottom       56px
 
+  .form-wrapper
+    width               720px
+    margin              0 auto
+
   .pricing-title
     margin-bottom     54px !important
 
@@ -812,6 +816,18 @@ section.pricing-sign-in
     .formline
       margin          0
       padding         0
+
+  .kdbutton
+    size            98px, 42px
+    line-height     42px
+    font-size       14px
+    margin          1px 0 0 2px
+    rounded         6px
+    background      #1aaf5d
+
+    .button-title
+      line-height   inherit
+      font-size     inherit
 
   .divider
     size              91px, 44px
@@ -938,11 +954,16 @@ section.pricing-sign-in
         &:nth-child(2)
           margin-left 20px
 
-    &.cardzipcode
+    &.cardcity
+      fl()
       .input-wrapper
-        size          146px, auto
-        clear         left
+        size          231px, auto
         fl()
+        &:nth-child(2)
+          margin-left 20px
+
+        .kdinput
+          text-align  center
 
     &.cardnumber
       span.icon
@@ -970,9 +991,6 @@ section.pricing-sign-in
         &:nth-child(2)
           margin-left 20px
 
-        .kdinput
-          text-align  center
-
     &.cardcv
       clear           none
       fr()
@@ -980,6 +998,19 @@ section.pricing-sign-in
         size          63px, auto
         .kdinput
           text-align  center
+
+    &.cardcity
+      fl()
+      .input-wrapper
+        size          397px, auto
+        fl()
+        &:nth-child(2)
+          margin-left 20px
+          width       65px
+
+        .kdinput
+          text-align  left
+
 
 /* Confirm payment */
 .plan-upgrade-confirm-form
@@ -1218,16 +1249,10 @@ section.pricing-sign-in
       &:-moz-placeholder
         opacity       0.5
 
-
   a //Hope this will work :( [bc]
     color             #d7d7d7
     noTextDeco()
     font-size         12px
-
-  &[readonly=true]
-    opacity             .5
-
-.kdinput:focus
 
 /* Create a new VM modal (Environments) */
 .kdmodal.create-vm

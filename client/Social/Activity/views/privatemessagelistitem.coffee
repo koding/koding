@@ -7,7 +7,7 @@ class PrivateMessageListItemView extends ActivityListItemView
 
     super options, data
 
-    @likeView = new CommentLikeView {}, data
+    @likeView = new ReplyLikeView {}, data
 
     @decorate()
 

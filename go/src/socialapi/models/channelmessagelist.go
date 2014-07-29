@@ -2,6 +2,7 @@ package models
 
 import (
 	"errors"
+	"fmt"
 	"socialapi/request"
 	"time"
 
@@ -42,11 +43,27 @@ func (c *ChannelMessageList) UnreadCount(cp *ChannelParticipant) (int, error) {
 		return 0, errors.New("Last seen at date is not valid - it is zero")
 	}
 
+	// checks if channel participant is a troll, if so we show all messages
+	isExempt, err := cp.isExempt()
+	if err != nil {
+		return 0, errors.New(fmt.Sprintf("isExempt return error: %v", err))
+	}
+
+	query := "channel_id = ? and added_at > ?"
+
+	var metaBits MetaBits
+	if isExempt {
+		query += " and meta_bits >= ?"
+	} else {
+		query += " and meta_bits = ?"
+	}
+
 	return bongo.B.Count(c,
-		"channel_id = ? and added_at > ?",
+		query,
 		cp.ChannelId,
 		// todo change this format to get from a specific place
 		cp.LastSeenAt.UTC().Format(time.RFC3339),
+		metaBits,
 	)
 }
 
@@ -88,7 +105,7 @@ func (c *ChannelMessageList) populateUnreadCount(messageList []*ChannelMessageCo
 			continue
 		}
 
-		count, err := NewMessageReply().UnreadCount(cml.MessageId, cml.RevisedAt)
+		count, err := NewMessageReply().UnreadCount(cml.MessageId, cml.RevisedAt, cml.MetaBits.Is(Troll))
 		if err != nil {
 			// helper.MustGetLogger().Error(err.Error())
 			continue
@@ -128,13 +145,7 @@ func (c *ChannelMessageList) getMessages(q *request.Query) ([]*ChannelMessageCon
 		return nil, err
 	}
 
-	parent := NewChannelMessage()
-	channelMessages, err := parent.FetchByIds(messages)
-	if err != nil {
-		return nil, err
-	}
-
-	populatedChannelMessages, err := c.populateChannelMessages(channelMessages, q)
+	populatedChannelMessages, err := c.populateChannelMessages(messages, q)
 	if err != nil {
 		return nil, err
 	}
@@ -166,8 +177,8 @@ func (c *ChannelMessageList) IsInChannel(messageId, channelId int64) (bool, erro
 	return false, err
 }
 
-func (c *ChannelMessageList) populateChannelMessages(channelMessages []ChannelMessage, query *request.Query) ([]*ChannelMessageContainer, error) {
-	channelMessageCount := len(channelMessages)
+func (c *ChannelMessageList) populateChannelMessages(channelMessageIds []int64, query *request.Query) ([]*ChannelMessageContainer, error) {
+	channelMessageCount := len(channelMessageIds)
 
 	populatedChannelMessages := make([]*ChannelMessageContainer, channelMessageCount)
 
@@ -176,7 +187,8 @@ func (c *ChannelMessageList) populateChannelMessages(channelMessages []ChannelMe
 	}
 
 	for i := 0; i < channelMessageCount; i++ {
-		cm := channelMessages[i]
+		cm := NewChannelMessage()
+		cm.Id = channelMessageIds[i]
 		cmc, err := cm.BuildMessage(query)
 		if err != nil {
 			return nil, err
@@ -330,7 +342,9 @@ func (c *ChannelMessageList) Count(channelId int64) (int, error) {
 	return c.CountWithQuery(query)
 }
 
+// this glance can cause problems..
 func (c *ChannelMessageList) Glance() error {
+	// why we are aggin one second?
 	c.RevisedAt = time.Now().Add((time.Second * 1)).UTC()
 
 	if err := c.Update(); err != nil {
