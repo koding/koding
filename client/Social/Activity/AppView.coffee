@@ -17,14 +17,14 @@ class ActivityAppView extends KDView
     {
       appStorageController
       windowController
+      mainView
     }             = KD.singletons
     {entryPoint}  = KD.config
     @_lastMessage = null
 
     @appStorage  = appStorageController.storage 'Activity', '2.0'
     # @groupHeader = new FeedCoverPhotoView
-    @sidebar     = new ActivitySidebar tagName : 'aside', delegate : this
-    @tabs        = new KDTabView
+    @tabs = new KDTabView
       tagName             : 'main'
       cssClass            : 'app-content'
       hideHandleContainer : yes
@@ -41,7 +41,9 @@ class ActivityAppView extends KDView
   viewAppended: ->
 
     # @addSubView @groupHeader  unless isKoding()
-    @addSubView @sidebar
+    # @addSubView @sidebar
+    { mainView } = KD.singletons
+    @sidebar     = mainView.activitySidebar
     @addSubView @tabs
 
 

@@ -70,11 +70,13 @@ class MainView extends KDView
 
     @setClass 'with-sidebar'
 
-    @addSubView @sidebar = new KDCustomHTMLView
+    @addSubView @sidebar = new KDCustomScrollView
       tagName  : 'aside'
       domId    : 'main-sidebar'
 
-    @sidebar.addSubView KD.singletons.dock.getView()
+    @sidebar.wrapper.addSubView @activitySidebar = new ActivitySidebar
+
+    @sidebar.wrapper.addSubView KD.singletons.dock.getView()
 
 
   createPanelWrapper:->
@@ -91,7 +93,7 @@ class MainView extends KDView
 
   createAccountArea:->
 
-    @sidebar.addSubView @accountArea = new KDCustomHTMLView
+    @addSubView @accountArea = new KDCustomHTMLView
       cssClass : 'account-area'
 
     if KD.isLoggedIn()
