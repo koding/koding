@@ -54,13 +54,14 @@ module.exports = (options = {}, callback)->
     <script>KD.campaignData=#{encodedCampaignData}</script>
     <script>KD.socialApiData=#{encodedSocialApiData}</script>
     <script>KD.userVMs=#{userVMs}</script>
+    <script>KD.userAccount=#{userAccount}</script>
     <script src='/a/js/kd.libs.js?#{KONFIG.version}'></script>
     <script src='/a/js/kd.js?#{KONFIG.version}'></script>
     <script src='/a/js/koding.js?#{KONFIG.version}'></script>
     <script>
     KD.utils.defer(function () {
-      KD.currentGroup = KD.remote.revive(#{currentGroup});
-      KD.userAccount = KD.remote.revive(#{userAccount});
+      KD.currentGroup=KD.remote.revive(#{currentGroup});
+      KD.userAccount=KD.remote.revive(KD.userAccount);
     });
     </script>
     <script>KD.prefetchedFeeds=#{encodedFeed};</script>
