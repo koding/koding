@@ -15,7 +15,6 @@ module.exports = class JAccount extends jraphical.Module
   JStorage         = require './storage'
   JAppStorage      = require './appstorage'
   JTag             = require './tag'
-  Graph            = require "./graph/graph"
   JName            = require './name'
   JKite            = require './kite'
   JReferrableEmail = require './referrableemail'
@@ -494,9 +493,6 @@ module.exports = class JAccount extends jraphical.Module
 
   fetchHomepageView:(options, callback)->
     {account} = options
-    JReferral = require './referral'
-    JGroup = require './group'
-    JNewStatusUpdate = require './messages/newstatusupdate'
 
     homePageOptions = extend options, {
       renderedAccount : account
@@ -1040,28 +1036,6 @@ module.exports = class JAccount extends jraphical.Module
       return callback err   if err
       return callback null  unless rel
       JUser.one {_id: rel.sourceId}, callback
-
-  markAllContentAsLowQuality:->
-    # this is obsolete
-    @fetchContents (err, contents)->
-      contents.forEach (item)->
-        item.update {$set: isLowQuality: yes}, ->
-          if item.bongo_.constructorName == 'JComment'
-            item.flagIsLowQuality ->
-              item.emit 'ContentMarkedAsLowQuality', null
-          else
-            item.emit 'ContentMarkedAsLowQuality', null
-
-  unmarkAllContentAsLowQuality:->
-    # this is obsolete
-    @fetchContents (err, contents)->
-      contents.forEach (item)->
-        item.update {$set: isLowQuality: no}, ->
-          if item.bongo_.constructorName == 'JComment'
-            item.unflagIsLowQuality ->
-              item.emit 'ContentUnmarkedAsLowQuality', null
-          else
-            item.emit 'ContentUnmarkedAsLowQuality', null
 
   @taintedAccounts = {}
   @taint =(id)->
