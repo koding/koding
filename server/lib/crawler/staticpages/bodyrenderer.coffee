@@ -4,6 +4,11 @@
 {argv} = require 'optimist'
 {uri}  = require('koding-config-manager').load("main.#{argv.c}")
 
+# We're using an older version of highlight.js that has the method
+# `getLanguage`. I wasn't able to find out which version, therefore
+# I switched it out for this which has similar functionality.
+hljs = require('node-syntaxhighlighter')
+
 renderBody = (body) ->
   marked = require 'marked'
   # If href goes to outside of koding, add rel=nofollow.
