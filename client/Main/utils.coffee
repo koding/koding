@@ -615,7 +615,7 @@ utils.extend utils,
 
   # creates string from tag so that new status updates can
   # show the tags properly
-  tokenizeTag: (tag)-> "|#:JTag:#{tag.getId()}|"
+  tokenizeTag: (tag)-> console.error "unimplemented feature"
 
   sortFiles: (a, b) ->
 
