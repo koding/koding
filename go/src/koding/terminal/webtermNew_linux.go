@@ -111,12 +111,18 @@ func webtermConnectNew(r *kitelib.Request, vos *virt.VOS) (interface{}, error) {
 		return nil, err
 	}
 
+	// get a file desecriptor to a master and slave pty
+	p, err := pty.New(vos.VM.PtsDir())
+	if err != nil {
+		return nil, err
+	}
+
 	server := &WebtermServerNew{
 		Session:    screen.Session,
 		remote:     params.Remote,
 		vm:         vos.VM,
 		user:       vos.User,
-		pty:        pty.New(vos.VM.PtsDir()),
+		pty:        p,
 		screenPath: screen.ScreenPath,
 		throttling: true,
 	}

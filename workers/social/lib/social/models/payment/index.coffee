@@ -43,6 +43,11 @@ module.exports = class JPayment extends Base
     JSession = require '../session'
     JSession.one {clientId: client.sessionToken}, (err, session)=>
       return callback err  if err
+      {username} = session
+
+      if /guest-/.test username
+        console.warn "ALERT: not logged in user is trying to add credit cards"
+        return callback {message:"Not logged in"}
 
       {challenge, response} = data
       @isCaptchaValid session.clientIP, challenge, response, (err)->
