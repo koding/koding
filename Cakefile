@@ -599,7 +599,6 @@ run =({configFile})->
     invoke 'socialWorker'
     invoke 'emailWorker'                      if config.emailWorker?.run is yes
     invoke 'emailSender'                      if config.emailSender?.run is yes
-    invoke 'addTagCategories'
     invoke 'webserver'
     invoke 'logWorker'                        if config.log.runWorker
 
