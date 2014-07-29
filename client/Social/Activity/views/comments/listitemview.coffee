@@ -47,7 +47,9 @@ class CommentListItemView extends KDListItemView
   showDeleteModal: ->
 
     modal = new CommentDeleteModal {}, @getData()
-    modal.once "Deleted", @bound "destroy"
+    modal.once "DeleteClicked"   , @bound "hide"
+    modal.once "DeleteConfirmed" , @bound "destroy"
+    modal.once "DeleteError"     , @bound "show"
 
 
   createReplyLink: ->

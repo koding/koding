@@ -94,7 +94,7 @@ func (m *MessageReply) DeleteByOrQuery(messageId int64) error {
 	}
 
 	for _, messageReply := range messageReplies {
-		err := bongo.B.Delete(messageReply)
+		err := bongo.B.Delete(&messageReply)
 		if err != nil {
 			return err
 		}

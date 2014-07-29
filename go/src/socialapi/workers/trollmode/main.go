@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"socialapi/models"
 	"socialapi/workers/common/runner"
 	"socialapi/workers/trollmode/trollmode"
 )
@@ -17,14 +18,9 @@ func main() {
 		return
 	}
 
-	// too many eggs in an egg
-	//  consider refactoring
-	r.Listen(
-		trollmode.NewManager(
-			trollmode.NewController(
-				r.Log,
-			),
-		),
-	)
+	r.SetContext(trollmode.NewController(r.Log))
+	r.Register(models.Account{}).On(trollmode.MarkedAsTrollEvent).Handle((*trollmode.Controller).MarkedAsTroll)
+	r.Register(models.Account{}).On(trollmode.UnMarkedAsTrollEvent).Handle((*trollmode.Controller).UnMarkedAsTroll)
+	r.Listen()
 	r.Wait()
 }

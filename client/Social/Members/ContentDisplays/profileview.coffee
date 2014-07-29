@@ -445,19 +445,6 @@ class ProfileView extends JView
       click       : (event) =>
         KD.utils.stopDOMEvent event unless @memberData.onlineStatus is "online"
 
-    if KD.whoami().getId() is @memberData.getId()
-      @followButton = new KDCustomHTMLView
-      @conversationButton = new KDCustomHTMLView
-    else
-      @followButton = new MemberFollowToggleButton
-        style : "solid small green"
-      , @memberData
-
-      @conversationButton = new KDButtonView
-        style     : 'thin small gray'
-        title     : 'Start a conversation'
-        cssClass  : 'conversation-btn'
-
     if KD.checkFlag('super-admin') and @memberData.getId() isnt KD.whoami().getId()
     then @trollButton = new TrollButtonView style : 'thin medium red', data
     else @trollButton = new KDCustomHTMLView
@@ -682,8 +669,6 @@ class ProfileView extends JView
         {{> @avatar}}
         <h3 class="full-name">{{> @firstName}} {{> @lastName}}</h3>
         {{> @bio }}
-        {{> @followButton}}
-        {{> @conversationButton}}
         {{> @trollButton}}
         <div class="profilestats">
           {{> @followers}}

@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	"socialapi/workers/common/manager"
+	"socialapi/models"
 	"socialapi/workers/common/runner"
 	"socialapi/workers/helper"
 	"socialapi/workers/popularpost/popularpost"
@@ -19,18 +19,12 @@ func main() {
 		return
 	}
 
-	// create message handler
-	handler := popularpost.New(
-		r.Log,
-		helper.MustInitRedisConn(r.Conf),
-	)
+	// create context
+	context := popularpost.New(r.Log, helper.MustInitRedisConn(r.Conf))
 
-	m := manager.New()
-	m.Controller(handler)
-	m.HandleFunc("api.interaction_created", (*popularpost.Controller).InteractionSaved)
-	m.HandleFunc("api.interaction_deleted", (*popularpost.Controller).InteractionDeleted)
-
-	// create message handler
-	r.Listen(m)
+	r.SetContext(context)
+	r.Register(models.Interaction{}).OnCreate().Handle((*popularpost.Controller).InteractionSaved)
+	r.Register(models.Interaction{}).OnDelete().Handle((*popularpost.Controller).InteractionDeleted)
+	r.Listen()
 	r.Wait()
 }

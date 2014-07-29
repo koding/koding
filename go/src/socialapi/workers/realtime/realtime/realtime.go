@@ -326,9 +326,7 @@ func (f *Controller) sendReplyEventAsChannelUpdatedEvent(mr *models.MessageReply
 }
 
 func (f *Controller) MessageReplyDeleted(mr *models.MessageReply) error {
-
 	f.sendReplyEventAsChannelUpdatedEvent(mr, channelUpdatedEventReplyRemoved)
-
 	m := models.NewChannelMessage()
 	if err := m.ById(mr.MessageId); err != nil {
 		return err
