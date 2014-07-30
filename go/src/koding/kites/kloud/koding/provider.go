@@ -4,16 +4,22 @@ import (
 	"errors"
 	"fmt"
 	"koding/db/mongodb"
+	"koding/kites/klient/usage"
+	"strconv"
 	"time"
 
+	"labix.org/v2/mgo"
+	"labix.org/v2/mgo/bson"
+
+	"github.com/koding/kite"
 	aws "github.com/koding/kloud/api/amazon"
 	"github.com/koding/kloud/eventer"
 	"github.com/koding/kloud/machinestate"
 	"github.com/koding/kloud/protocol"
 	"github.com/koding/kloud/provider/amazon"
-	"github.com/mitchellh/goamz/ec2"
-
 	"github.com/koding/logging"
+	"github.com/mitchellh/goamz/ec2"
+	"github.com/mitchellh/mapstructure"
 )
 
 var (
@@ -32,33 +38,42 @@ const (
 	ProviderName = "koding"
 )
 
+// Provider implements the kloud packages Storage, Builder and Controller
+// interface
 type Provider struct {
-	Log  logging.Logger
-	Push func(string, int, machinestate.State)
-	DB   *mongodb.MongoDB
+	Session      *mongodb.MongoDB
+	AssigneeName string
+	Log          logging.Logger
+	Push         func(string, int, machinestate.State)
 }
 
-func (p *Provider) NewClient(opts *protocol.MachineOptions) (*amazon.AmazonClient, error) {
+func (p *Provider) NewClient(machine *protocol.Machine) (*amazon.AmazonClient, error) {
+	username := machine.Builder["username"].(string)
+
 	a := &amazon.AmazonClient{
 		Log: p.Log,
 		Push: func(msg string, percentage int, state machinestate.State) {
-			p.Log.Info("%s - %s ==> %s", opts.MachineId, opts.Username, msg)
+			p.Log.Info("%s - %s ==> %s", machine.MachineId, username, msg)
 
-			opts.Eventer.Push(&eventer.Event{
+			machine.Eventer.Push(&eventer.Event{
 				Message:    msg,
 				Status:     state,
 				Percentage: percentage,
 			})
 		},
-		Deploy: opts.Deploy,
 	}
 
 	var err error
 
-	opts.Builder["region"] = DefaultRegion
-	a.Amazon, err = aws.New(kodingCredential, opts.Builder)
+	machine.Builder["region"] = DefaultRegion
+	a.Amazon, err = aws.New(kodingCredential, machine.Builder)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("koding-amazon err: %s", err)
+	}
+
+	// also apply deploy variable if there is any
+	if err := mapstructure.Decode(machine.Builder, &a.Deploy); err != nil {
+		return nil, fmt.Errorf("koding-amazon: couldn't decode deploy variables: %s", err)
 	}
 
 	return a, nil
@@ -68,14 +83,22 @@ func (p *Provider) Name() string {
 	return ProviderName
 }
 
-func (p *Provider) Build(opts *protocol.MachineOptions) (*protocol.Artifact, error) {
+func (p *Provider) Build(opts *protocol.Machine) (*protocol.Artifact, error) {
 	a, err := p.NewClient(opts)
 	if err != nil {
 		return nil, err
 	}
 
-	if opts.InstanceName == "" {
-		return nil, errors.New("server name is empty")
+	username := opts.Builder["username"].(string)
+
+	instanceName := opts.Builder["instanceName"].(string)
+
+	// this can happen when an Info method is called on a terminated instance.
+	// This updates the DB records with the name that EC2 gives us, which is a
+	// "terminated-instance"
+	if instanceName == "terminated-instance" {
+		instanceName = username + "-" + strconv.FormatInt(time.Now().UTC().UnixNano(), 10)
+		a.Log.Info("Instance name is an artifact (terminated), changing to %s", instanceName)
 	}
 
 	groupName := "koding-kloud" // TODO: make it from the package level and remove it from here
@@ -151,25 +174,25 @@ func (p *Provider) Build(opts *protocol.MachineOptions) (*protocol.Artifact, err
 disable_root: false
 hostname: %s`
 
-	cloudStr := fmt.Sprintf(cloudConfig, opts.InstanceName)
+	cloudStr := fmt.Sprintf(cloudConfig, instanceName)
 
 	a.Builder.UserData = []byte(cloudStr)
 
-	artifact, err := a.Build(opts.InstanceName)
+	artifact, err := a.Build(instanceName)
 	if err != nil {
 		return nil, err
 	}
 
 	// Add user specific tag to make simplfying easier
-	a.Log.Info("Adding user tag '%s' to the instance '%s'", opts.Username, artifact.InstanceId)
-	if err := a.AddTag(artifact.InstanceId, "koding-user", opts.Username); err != nil {
+	a.Log.Info("Adding user tag '%s' to the instance '%s'", username, artifact.InstanceId)
+	if err := a.AddTag(artifact.InstanceId, "koding-user", username); err != nil {
 		return nil, err
 	}
 
 	return artifact, nil
 }
 
-func (p *Provider) Start(opts *protocol.MachineOptions) (*protocol.Artifact, error) {
+func (p *Provider) Start(opts *protocol.Machine) (*protocol.Artifact, error) {
 	a, err := p.NewClient(opts)
 	if err != nil {
 		return nil, err
@@ -178,7 +201,7 @@ func (p *Provider) Start(opts *protocol.MachineOptions) (*protocol.Artifact, err
 	return a.Start()
 }
 
-func (p *Provider) Stop(opts *protocol.MachineOptions) error {
+func (p *Provider) Stop(opts *protocol.Machine) error {
 	a, err := p.NewClient(opts)
 	if err != nil {
 		return err
@@ -187,7 +210,7 @@ func (p *Provider) Stop(opts *protocol.MachineOptions) error {
 	return a.Stop()
 }
 
-func (p *Provider) Restart(opts *protocol.MachineOptions) error {
+func (p *Provider) Restart(opts *protocol.Machine) error {
 	a, err := p.NewClient(opts)
 	if err != nil {
 		return err
@@ -196,7 +219,7 @@ func (p *Provider) Restart(opts *protocol.MachineOptions) error {
 	return a.Restart()
 }
 
-func (p *Provider) Destroy(opts *protocol.MachineOptions) error {
+func (p *Provider) Destroy(opts *protocol.Machine) error {
 	a, err := p.NewClient(opts)
 	if err != nil {
 		return err
@@ -205,11 +228,51 @@ func (p *Provider) Destroy(opts *protocol.MachineOptions) error {
 	return a.Destroy()
 }
 
-func (p *Provider) Info(opts *protocol.MachineOptions) (*protocol.InfoArtifact, error) {
+func (p *Provider) Info(opts *protocol.Machine) (*protocol.InfoArtifact, error) {
 	a, err := p.NewClient(opts)
 	if err != nil {
 		return nil, err
 	}
 
 	return a.Info()
+}
+
+func (p *Provider) Report(r *kite.Request) (interface{}, error) {
+	var usg usage.Usage
+	err := r.Args.One().Unmarshal(&usg)
+	if err != nil {
+		return nil, err
+	}
+
+	m := &Machine{}
+	err = p.Session.Run("jMachines", func(c *mgo.Collection) error {
+		return c.Find(bson.M{"queryString": r.Client.Kite.String()}).One(&m)
+	})
+	if err != nil {
+		p.Log.Warning("Couldn't find %v, however this kite is still reporting to us. Needs to be fixed: %s",
+			r.Client.Kite, err.Error())
+		return nil, errors.New("can't update report - 1")
+	}
+
+	machine, err := p.Get(m.Id.Hex())
+	if err != nil {
+		return nil, err
+	}
+	// release the lock from mongodb after we are done
+	defer p.ResetAssignee(machine.MachineId)
+
+	fmt.Printf("usage: %+v\n", usg)
+	if usg.InactiveDuration >= time.Minute*30 {
+		p.Log.Info("Stopping machine %s", machine.MachineId)
+
+		err := p.Stop(machine)
+		if err != nil {
+			return nil, err
+		}
+
+		return "machine is stopped", nil
+	}
+
+	p.Log.Info("Machine '%s' is good to go", r.Client.Kite.ID)
+	return true, nil
 }

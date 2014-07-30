@@ -11,17 +11,16 @@ import (
 
 type Controller struct {
 	// Incoming arguments
-	MachineId    string
-	ImageName    string
-	InstanceName string
+	MachineId string
 
 	// Populated later
 	CurrenState  machinestate.State  `json:"-"`
 	ProviderName string              `json:"-"`
 	Controller   protocol.Controller `json:"-"`
 	Builder      protocol.Builder    `json:"-"`
-	Machine      *Machine            `json:"-"`
+	Machine      *protocol.Machine   `json:"-"`
 	Eventer      eventer.Eventer     `json:"-"`
+	Username     string              `json:"-"`
 }
 
 type ControlResult struct {
@@ -43,27 +42,32 @@ var states = map[string]*statePair{
 	"restart": &statePair{initial: machinestate.Rebooting, final: machinestate.Running},
 }
 
-func (k *Kloud) Build(r *kite.Request) (resp interface{}, err error) {
-	return k.ControlFunc(k.build).ServeKite(r)
+func (k *Kloud) NewBuild(handler kite.Handler) kite.Handler {
+	b := &Build{
+		deployer: handler,
+	}
+	b.Kloud = k
+
+	return k.ControlFunc(b.prepare)
 }
 
-func (k *Kloud) Start(r *kite.Request) (resp interface{}, err error) {
+func (k *Kloud) Start(r *kite.Request) (interface{}, error) {
 	return k.ControlFunc(k.start).ServeKite(r)
 }
 
-func (k *Kloud) Stop(r *kite.Request) (resp interface{}, err error) {
+func (k *Kloud) Stop(r *kite.Request) (interface{}, error) {
 	return k.ControlFunc(k.stop).ServeKite(r)
 }
 
-func (k *Kloud) Restart(r *kite.Request) (resp interface{}, err error) {
+func (k *Kloud) Restart(r *kite.Request) (interface{}, error) {
 	return k.ControlFunc(k.restart).ServeKite(r)
 }
 
-func (k *Kloud) Destroy(r *kite.Request) (resp interface{}, err error) {
+func (k *Kloud) Destroy(r *kite.Request) (interface{}, error) {
 	return k.ControlFunc(k.destroy).ServeKite(r)
 }
 
-func (k *Kloud) Info(r *kite.Request) (resp interface{}, err error) {
+func (k *Kloud) Info(r *kite.Request) (interface{}, error) {
 	return k.ControlFunc(k.info).ServeKite(r)
 }
 
@@ -86,7 +90,7 @@ func (k *Kloud) ControlFunc(control controlFunc) kite.Handler {
 			return nil, err
 		}
 
-		k.Log.Info("[controller] got a request for method: '%s' with args: %v", r.Method, args)
+		k.Log.Info("[controller] got a request for method: '%s' with args: %+v", r.Method, args)
 
 		if args.MachineId == "" {
 			return nil, NewError(ErrMachineIdMissing)
@@ -100,16 +104,28 @@ func (k *Kloud) ControlFunc(control controlFunc) kite.Handler {
 		if err != nil {
 			return nil, err
 		}
-
-		// if something goes wrong reset the assigne which was set in previous step
-		// by Storage.Get()
+		// if something goes wrong reset the assigne which was set in previous
+		// step by Storage.Get(). If not Assignee is reseted in ControlFunc
+		// wrapper.
 		defer func() {
 			if err != nil {
 				k.Storage.ResetAssignee(args.MachineId)
 			}
 		}()
 
-		k.Log.Info("[controller] got machine data with machineID (%s) : %+v",
+		// check if there is any value from a previous handler (we injected
+		// them), and them to our machine.Meta data, like deployment variables
+		if data, err := r.Context.Get("deployData"); err == nil {
+			m := data.(map[string]interface{})
+			for k, v := range m {
+				// dont' override existing data
+				if _, ok := machine.Builder[k]; !ok {
+					machine.Builder[k] = v
+				}
+			}
+		}
+
+		k.Log.Debug("[controller] got machine data with machineID (%s) : %+v",
 			args.MachineId, machine)
 
 		// prevent request if the machine is terminated. However we want the user
@@ -132,11 +148,14 @@ func (k *Kloud) ControlFunc(control controlFunc) kite.Handler {
 			return nil, err
 		}
 
+		// this can be used by other providers if there is a need.
+		if _, ok := machine.Builder["username"]; !ok {
+			machine.Builder["username"] = r.Username
+		}
+
 		// our Controller context
 		c := &Controller{
 			MachineId:    args.MachineId,
-			ImageName:    args.ImageName,
-			InstanceName: args.InstanceName,
 			ProviderName: machine.Provider,
 			Controller:   controller,
 			Builder:      builder,
@@ -147,7 +166,7 @@ func (k *Kloud) ControlFunc(control controlFunc) kite.Handler {
 		// execute our limiter interface if the provider supports it
 		if limiter, err := k.Limiter(machine.Provider); err == nil {
 			k.Log.Info("[controller] limiter is enabled for provider: %s", machine.Provider)
-			err := limiter.Limit(c.MachineOptions(r.Username), r.Method)
+			err := limiter.Limit(c.GetMachine(), r.Method)
 			if err != nil {
 				return nil, err
 			}
@@ -159,13 +178,12 @@ func (k *Kloud) ControlFunc(control controlFunc) kite.Handler {
 	})
 }
 
-func (c *Controller) MachineOptions(username string) *protocol.MachineOptions {
-	return &protocol.MachineOptions{
+func (c *Controller) GetMachine() *protocol.Machine {
+	return &protocol.Machine{
 		MachineId:  c.MachineId,
-		Username:   username,
-		Eventer:    c.Eventer,
 		Credential: c.Machine.Credential,
-		Builder:    c.Machine.Data,
+		Builder:    c.Machine.Builder,
+		Eventer:    c.Eventer,
 	}
 }
 
@@ -186,7 +204,7 @@ func (k *Kloud) info(r *kite.Request, c *Controller) (interface{}, error) {
 		return nil, NewError(ErrMachineNotInitialized)
 	}
 
-	machOptions := c.MachineOptions(r.Username)
+	machOptions := c.GetMachine()
 
 	// add fake eventer to avoid errors on NewClient at provider, the info method doesn't use
 	machOptions.Eventer = &eventer.Events{}
@@ -217,7 +235,7 @@ func (k *Kloud) start(r *kite.Request, c *Controller) (interface{}, error) {
 		return nil, NewErrorMessage("Machine is already starting/running.")
 	}
 
-	fn := func(m *protocol.MachineOptions) error {
+	fn := func(m *protocol.Machine) error {
 		resp, err := c.Controller.Start(m)
 		if err != nil {
 			return err
@@ -255,7 +273,7 @@ func (k *Kloud) stop(r *kite.Request, c *Controller) (interface{}, error) {
 		return nil, NewErrorMessage("Machine is already stopping/stopped.")
 	}
 
-	fn := func(m *protocol.MachineOptions) error {
+	fn := func(m *protocol.Machine) error {
 		return c.Controller.Stop(m)
 	}
 
@@ -263,7 +281,7 @@ func (k *Kloud) stop(r *kite.Request, c *Controller) (interface{}, error) {
 }
 
 func (k *Kloud) destroy(r *kite.Request, c *Controller) (interface{}, error) {
-	fn := func(m *protocol.MachineOptions) error {
+	fn := func(m *protocol.Machine) error {
 		return c.Controller.Destroy(m)
 	}
 
@@ -275,7 +293,7 @@ func (k *Kloud) restart(r *kite.Request, c *Controller) (interface{}, error) {
 		return nil, NewErrorMessage("Machine is already rebooting.")
 	}
 
-	fn := func(m *protocol.MachineOptions) error {
+	fn := func(m *protocol.Machine) error {
 		return c.Controller.Restart(m)
 	}
 
@@ -286,7 +304,7 @@ func (k *Kloud) restart(r *kite.Request, c *Controller) (interface{}, error) {
 // stop, restart and destroy. This method is used to avoid duplicate codes in
 // start, stop, restart and destroy methods (because we do the same steps for
 // each of them).
-func (k *Kloud) coreMethods(r *kite.Request, c *Controller, fn func(*protocol.MachineOptions) error) (result interface{}, err error) {
+func (k *Kloud) coreMethods(r *kite.Request, c *Controller, fn func(*protocol.Machine) error) (result interface{}, err error) {
 	// all core methods works only for machines that are initialized
 	if c.CurrenState == machinestate.NotInitialized {
 		return nil, NewError(ErrMachineNotInitialized)
@@ -312,7 +330,7 @@ func (k *Kloud) coreMethods(r *kite.Request, c *Controller, fn func(*protocol.Ma
 		status := s.final
 		msg := fmt.Sprintf("%s is finished successfully.", r.Method)
 
-		machOptions := c.MachineOptions(r.Username)
+		machOptions := c.GetMachine()
 
 		k.Log.Info("[controller]: running method %s with mach options %v", r.Method, machOptions)
 		err := fn(machOptions)

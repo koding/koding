@@ -1,12 +1,13 @@
 package openstack
 
 import (
-	"errors"
+	"fmt"
 
 	os "github.com/koding/kloud/api/openstack"
 	"github.com/koding/kloud/eventer"
 	"github.com/koding/kloud/machinestate"
 	"github.com/koding/kloud/protocol"
+	"github.com/mitchellh/mapstructure"
 
 	"github.com/koding/logging"
 )
@@ -31,11 +32,13 @@ func (p *Provider) Name() string {
 	return p.ProviderName
 }
 
-func (p *Provider) NewClient(opts *protocol.MachineOptions) (*OpenstackClient, error) {
+func (p *Provider) NewClient(opts *protocol.Machine) (*OpenstackClient, error) {
+	username := opts.Builder["username"].(string)
+
 	o := &OpenstackClient{
 		Log: p.Log,
 		Push: func(msg string, percentage int, state machinestate.State) {
-			p.Log.Info("%s - %s ==> %s", opts.MachineId, opts.Username, msg)
+			p.Log.Info("%s - %s ==> %s", opts.MachineId, username, msg)
 
 			opts.Eventer.Push(&eventer.Event{
 				Message:    msg,
@@ -43,33 +46,31 @@ func (p *Provider) NewClient(opts *protocol.MachineOptions) (*OpenstackClient, e
 				Percentage: percentage,
 			})
 		},
-		Deploy: opts.Deploy,
 	}
 
 	var err error
 	o.Openstack, err = os.New(p.AuthURL, p.ProviderName, opts.Credential, opts.Builder)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("openstack err: %s", err)
+	}
+
+	// also apply deploy variable if there is any
+	if err := mapstructure.Decode(opts.Builder, &o.Deploy); err != nil {
+		return nil, fmt.Errorf("openstack: couldn't decode deploy variables: %s", err)
 	}
 
 	return o, nil
 }
 
-func (p *Provider) Build(opts *protocol.MachineOptions) (*protocol.Artifact, error) {
+func (p *Provider) Build(opts *protocol.Machine) (*protocol.Artifact, error) {
 	o, err := p.NewClient(opts)
 	if err != nil {
 		return nil, err
 	}
 
-	if opts.InstanceName == "" {
-		return nil, errors.New("server name is empty")
-	}
+	instanceName := opts.Builder["instanceName"].(string)
 
 	imageId := DefaultImageId
-	if opts.ImageName != "" {
-		imageId = opts.ImageName
-	}
-
 	if o.Builder.SourceImage != "" {
 		imageId = o.Builder.SourceImage
 	}
@@ -80,10 +81,10 @@ func (p *Provider) Build(opts *protocol.MachineOptions) (*protocol.Artifact, err
 		flavorId = DefaultFlavorId
 	}
 
-	return o.Build(opts.InstanceName, imageId, flavorId)
+	return o.Build(instanceName, imageId, flavorId)
 }
 
-func (p *Provider) Start(opts *protocol.MachineOptions) (*protocol.Artifact, error) {
+func (p *Provider) Start(opts *protocol.Machine) (*protocol.Artifact, error) {
 	o, err := p.NewClient(opts)
 	if err != nil {
 		return nil, err
@@ -92,7 +93,7 @@ func (p *Provider) Start(opts *protocol.MachineOptions) (*protocol.Artifact, err
 	return o.Start()
 }
 
-func (p *Provider) Stop(opts *protocol.MachineOptions) error {
+func (p *Provider) Stop(opts *protocol.Machine) error {
 	o, err := p.NewClient(opts)
 	if err != nil {
 		return err
@@ -101,7 +102,7 @@ func (p *Provider) Stop(opts *protocol.MachineOptions) error {
 	return o.Stop()
 }
 
-func (p *Provider) Restart(opts *protocol.MachineOptions) error {
+func (p *Provider) Restart(opts *protocol.Machine) error {
 	o, err := p.NewClient(opts)
 	if err != nil {
 		return err
@@ -110,7 +111,7 @@ func (p *Provider) Restart(opts *protocol.MachineOptions) error {
 	return o.Restart()
 }
 
-func (p *Provider) Destroy(opts *protocol.MachineOptions) error {
+func (p *Provider) Destroy(opts *protocol.Machine) error {
 	o, err := p.NewClient(opts)
 	if err != nil {
 		return err
@@ -119,7 +120,7 @@ func (p *Provider) Destroy(opts *protocol.MachineOptions) error {
 	return o.Destroy()
 }
 
-func (p *Provider) Info(opts *protocol.MachineOptions) (*protocol.InfoArtifact, error) {
+func (p *Provider) Info(opts *protocol.Machine) (*protocol.InfoArtifact, error) {
 	o, err := p.NewClient(opts)
 	if err != nil {
 		return nil, err

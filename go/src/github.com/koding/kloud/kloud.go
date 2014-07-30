@@ -1,6 +1,10 @@
 package kloud
 
 import (
+	"io/ioutil"
+	"log"
+	"os"
+
 	"github.com/koding/kloud/eventer"
 	"github.com/koding/kloud/idlock"
 	"github.com/koding/kloud/protocol"
@@ -29,12 +33,11 @@ type Kloud struct {
 	// Eventers is providing an event mechanism for each method.
 	Eventers map[string]eventer.Eventer
 
-	// Deployer is executed after a successfull build
-	Deploy   *protocol.ProviderDeploy
-	Deployer protocol.Deployer
-
 	// idlock provides multiple locks per id
 	idlock *idlock.IdLock
+
+	// Enable debug mode
+	Debug bool
 }
 
 // NewKloud creates a new Kloud instance with default providers.
@@ -51,19 +54,36 @@ func NewKloud() *Kloud {
 }
 
 func (k *Kloud) initializeProviders() {
+	// digitalocean logs trendemenous amount of log, disable it
+	log.SetOutput(ioutil.Discard)
+
 	k.AddProvider("digitalocean", &digitalocean.Provider{
-		Log: logging.NewLogger("digitalocean"),
+		Log: k.newLogger("digitalocean"),
 	})
 
 	k.AddProvider("amazon", &amazon.Provider{
-		Log: logging.NewLogger("amazon"),
+		Log: k.newLogger("amazon"),
 	})
 
 	k.AddProvider("rackspace", &openstack.Provider{
-		Log:          logging.NewLogger("rackspace"),
+		Log:          k.newLogger("rackspace"),
 		AuthURL:      "https://identity.api.rackspacecloud.com/v2.0",
 		ProviderName: "rackspace",
 	})
+}
+
+func (k *Kloud) newLogger(name string) logging.Logger {
+	log := logging.NewLogger(name)
+	logHandler := logging.NewWriterHandler(os.Stderr)
+	logHandler.Colorize = true
+	log.SetHandler(logHandler)
+
+	if k.Debug {
+		log.SetLevel(logging.DEBUG)
+		logHandler.SetLevel(logging.DEBUG)
+	}
+
+	return log
 }
 
 // AddProvider adds the given Provider with the providerName. It returns an

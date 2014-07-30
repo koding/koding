@@ -2,7 +2,6 @@ package koding
 
 import (
 	"fmt"
-	"time"
 
 	"github.com/koding/kloud/api/amazon"
 	"github.com/mitchellh/goamz/ec2"
@@ -18,14 +17,9 @@ type concurrentLimit struct {
 	concurrent int
 }
 
-type timeoutLimit struct {
-	// timeout defines the limit in which a machine can be RUNNING at most.
-	// After the timeout is being reached, the machine is closed immediately.
-	timeout time.Duration
-}
-
 var (
-	// limits contains the various limitations for each plan
+	// limits contains the various limitations based on the machine
+	// itself.
 	limits = map[string]Limiter{
 		"free": freeLimiter(),
 	}
@@ -35,11 +29,9 @@ var (
 func freeLimiter() Limiter {
 	// Non-paid user cannot create more than 3 VMs
 	// Non-paid user cannot start more than 1 VM simultaneously
-	// Non-paid user VM shuts down after 30 minutes without activity
 	return newMultiLimiter(
 		&totalLimit{total: 1},
 		&concurrentLimit{concurrent: 1},
-		&timeoutLimit{timeout: 30 * time.Minute},
 	)
 }
 
@@ -49,8 +41,8 @@ func (t *totalLimit) Check(ctx *CheckContext) error {
 	// value. We can easily find them acording to this tag
 	filter.Add("tag:koding-user", ctx.username)
 
-	// Anything except "terminated"
-	filter.Add("instance-state-name", "pending", "running", "shutting-down", "stopping", "stopped")
+	// Anything except "terminated" and "shutting-downg"
+	filter.Add("instance-state-name", "pending", "running", "stopping", "stopped")
 
 	instances, err := ctx.api.InstancesByFilter(filter)
 
@@ -74,9 +66,5 @@ func (t *totalLimit) Check(ctx *CheckContext) error {
 }
 
 func (c *concurrentLimit) Check(ctx *CheckContext) error {
-	return nil
-}
-
-func (t *timeoutLimit) Check(ctx *CheckContext) error {
 	return nil
 }

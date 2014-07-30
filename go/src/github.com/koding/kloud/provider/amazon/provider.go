@@ -1,13 +1,14 @@
 package amazon
 
 import (
-	"errors"
+	"fmt"
 
 	aws "github.com/koding/kloud/api/amazon"
 	"github.com/koding/kloud/eventer"
 	"github.com/koding/kloud/machinestate"
 	"github.com/koding/kloud/protocol"
 	"github.com/koding/logging"
+	"github.com/mitchellh/mapstructure"
 )
 
 type Provider struct {
@@ -15,11 +16,13 @@ type Provider struct {
 	Push func(string, int, machinestate.State)
 }
 
-func (p *Provider) NewClient(opts *protocol.MachineOptions) (*AmazonClient, error) {
+func (p *Provider) NewClient(opts *protocol.Machine) (*AmazonClient, error) {
+	username := opts.Builder["username"].(string)
+
 	a := &AmazonClient{
 		Log: p.Log,
 		Push: func(msg string, percentage int, state machinestate.State) {
-			p.Log.Info("%s - %s ==> %s", opts.MachineId, opts.Username, msg)
+			p.Log.Info("%s - %s ==> %s", opts.MachineId, username, msg)
 
 			opts.Eventer.Push(&eventer.Event{
 				Message:    msg,
@@ -27,13 +30,17 @@ func (p *Provider) NewClient(opts *protocol.MachineOptions) (*AmazonClient, erro
 				Percentage: percentage,
 			})
 		},
-		Deploy: opts.Deploy,
 	}
 
 	var err error
 	a.Amazon, err = aws.New(opts.Credential, opts.Builder)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("amazon err: %s", err)
+	}
+
+	// also apply deploy variable if there is any
+	if err := mapstructure.Decode(opts.Builder, &a.Deploy); err != nil {
+		return nil, fmt.Errorf("amazon: couldn't decode deploy variables: %s", err)
 	}
 
 	return a, nil
@@ -43,20 +50,18 @@ func (p *Provider) Name() string {
 	return "amazon"
 }
 
-func (p *Provider) Build(opts *protocol.MachineOptions) (*protocol.Artifact, error) {
+func (p *Provider) Build(opts *protocol.Machine) (*protocol.Artifact, error) {
 	a, err := p.NewClient(opts)
 	if err != nil {
 		return nil, err
 	}
 
-	if opts.InstanceName == "" {
-		return nil, errors.New("server name is empty")
-	}
+	instanceName := opts.Builder["instanceName"].(string)
 
-	return a.Build(opts.InstanceName)
+	return a.Build(instanceName)
 }
 
-func (p *Provider) Start(opts *protocol.MachineOptions) (*protocol.Artifact, error) {
+func (p *Provider) Start(opts *protocol.Machine) (*protocol.Artifact, error) {
 	a, err := p.NewClient(opts)
 	if err != nil {
 		return nil, err
@@ -65,7 +70,7 @@ func (p *Provider) Start(opts *protocol.MachineOptions) (*protocol.Artifact, err
 	return a.Start()
 }
 
-func (p *Provider) Stop(opts *protocol.MachineOptions) error {
+func (p *Provider) Stop(opts *protocol.Machine) error {
 	a, err := p.NewClient(opts)
 	if err != nil {
 		return err
@@ -74,7 +79,7 @@ func (p *Provider) Stop(opts *protocol.MachineOptions) error {
 	return a.Stop()
 }
 
-func (p *Provider) Restart(opts *protocol.MachineOptions) error {
+func (p *Provider) Restart(opts *protocol.Machine) error {
 	a, err := p.NewClient(opts)
 	if err != nil {
 		return err
@@ -83,7 +88,7 @@ func (p *Provider) Restart(opts *protocol.MachineOptions) error {
 	return a.Restart()
 }
 
-func (p *Provider) Destroy(opts *protocol.MachineOptions) error {
+func (p *Provider) Destroy(opts *protocol.Machine) error {
 	a, err := p.NewClient(opts)
 	if err != nil {
 		return err
@@ -92,7 +97,7 @@ func (p *Provider) Destroy(opts *protocol.MachineOptions) error {
 	return a.Destroy()
 }
 
-func (p *Provider) Info(opts *protocol.MachineOptions) (*protocol.InfoArtifact, error) {
+func (p *Provider) Info(opts *protocol.Machine) (*protocol.InfoArtifact, error) {
 	a, err := p.NewClient(opts)
 	if err != nil {
 		return nil, err

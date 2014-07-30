@@ -7,9 +7,11 @@ import (
 	"koding/kite-handler/fs"
 	"koding/kite-handler/terminal"
 	"koding/kites/klient/protocol"
+	"koding/kites/klient/usage"
 	"log"
 	"net/url"
 	"os"
+	"time"
 
 	"github.com/koding/kite"
 	"github.com/koding/kite/config"
@@ -28,6 +30,9 @@ var (
 
 	VERSION = protocol.Version
 	NAME    = protocol.Name
+
+	// this is our main reference to count and measure metrics for the klient
+	usg = usage.NewUsage()
 )
 
 func main() {
@@ -46,6 +51,12 @@ func main() {
 
 	// always boot up with the same id in the kite.key
 	k.Id = conf.Id
+
+	// we measure every incoming request
+	k.PreHandleFunc(usg.Counter)
+
+	// this provides us to get the current usage whenever we want
+	k.HandleFunc("klient.usage", usg.Current)
 
 	k.HandleFunc("fs.readDirectory", fs.ReadDirectory)
 	k.HandleFunc("fs.glob", fs.Glob)
@@ -95,6 +106,19 @@ func main() {
 			log.Fatal(err)
 		}
 	}
+
+	go func() {
+		kloud, err := NewKloud(k)
+		if err != nil {
+			k.Log.Warning(err.Error())
+		}
+
+		for _ = range time.Tick(time.Second * 5) {
+			err := kloud.Report()
+			fmt.Printf("err %+v\n", err)
+		}
+
+	}()
 
 	k.Run()
 }

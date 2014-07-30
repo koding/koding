@@ -94,6 +94,7 @@ func ConnectSSH(ip string, config *ssh.ClientConfig) (*SSHClient, error) {
 		case <-time.Tick(sshConnectRetryInterval):
 			client, err := dialFunc()
 			if err != nil {
+				fmt.Printf("ConnectSSH err: %+v\n", err)
 				dialError = err
 				continue
 			}
