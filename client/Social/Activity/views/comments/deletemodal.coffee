@@ -49,3 +49,12 @@ class CommentDeleteModal extends KDModalView
       @emit "DeleteConfirmed"
       @destroy()
 
+
+  hide: ->
+    @overlay?.hide()
+    super
+
+
+  show: ->
+    @overlay?.show()
+    super
