@@ -11,6 +11,8 @@ log        = console.log
 timethat   = require 'timethat'
 Connection = require "ssh2"
 fs         = require 'fs'
+semver     = require 'semver'
+{exec}     = require 'child_process'
 ec2        = new AWS.EC2()
 elb        = new AWS.ELB()
 class Deploy
@@ -67,6 +69,19 @@ class Deploy
       else
         log "not retrying anymore.", options.retries
         callback "error connecting."
+
+  @createLoadBalancer = (options,callback)->
+    elb.createLoadBalancer
+      LoadBalancerName : options.name
+      Listeners : [
+        InstancePort     : 80
+        LoadBalancerPort : 80
+        Protocol         : "http"
+        InstanceProtocol : "http"
+      ]
+      Subnets        : ["subnet-b47692ed"]
+      SecurityGroups : ["sg-64126d01"]
+    ,callback
 
   @createInstance = (options={}, callback) ->
 
@@ -171,8 +186,7 @@ class Deploy
         MaxCount      : 1
         SubnetId      : "subnet-b47692ed"
         KeyName       : "koding-prod-deployment"
-      buildNumber     : 1113
-      instanceName    : null
+      instanceName    : "foo#{Date.now()}"
 
 
 
@@ -182,16 +196,16 @@ class Deploy
 
       KONFIG = require("./config/main.prod.coffee")
         hostname : result.instanceName
+        tag      : options.tag
 
       cmd = """
         echo '#{new Buffer(KONFIG.runFile).toString('base64')}' | base64 --decode > /tmp/run.sh;
-        sudo bash /tmp/run.sh install;
-        sudo bash /opt/koding/run services;
-        sudo service supervisor restart
+        sudo bash /tmp/run.sh configure &>/opt/configure.log;
         \n
         """
-
-      cmd = "echo hello world"
+        # sudo bash /tmp/run.sh install &>/opt/install.log;
+        # sudo bash /opt/koding/run services;
+        # sudo service supervisor restart
 
       conn.exec cmd, (err, stream) ->
         log 4
@@ -208,9 +222,9 @@ class Deploy
 # module.exports = Deploy
 
 
-Deploy.deployAndConfigure null,(err,res)->
-  log "#{res.instanceName} is ready."
-  log "Box is ready at mosh root@#{res.instanceData.PublicIpAddress}"
+# Deploy.deployAndConfigure null,(err,res)->
+#   log "#{res.instanceName} is ready."
+#   log "Box is ready at mosh root@#{res.instanceData.PublicIpAddress}"
 
 
 class Release
@@ -299,116 +313,48 @@ if argv.release
 if argv.rollback
   rollback argv.rollback
 
+if argv.deploy
+  d = new Date()
+  log "fetching latest version tag. please wait... "
+  tags = exec "git fetch --tags && git tag",(a,b,c)->
+    version = b.split('\n')
+    version = version.slice(-2)[0]
+    #log version,arguments
+    version = "v1.5.0" if version is ""
+    options =
+      boxes       : argv.boxes          or 5
+      boxtype     : argv.boxtype        or "t2.medium"
+      versiontype : argv.versiontype    or "patch"  # available options major, premajor, minor, preminor, patch, prepatch, or prerelease
+      target      : argv.target         or "singlebox" # prod | staging | sandbox
 
-# "use strict"
-# inquirer = require "inquirer"
-# console.log "Hi, welcome to Koding Deployment Tool"
-# questions = [
-#   {
-#     type: "list",
-#     name: "theme",
-#     message: "What do you want to do?",
-#     choices: [
-#       "Deploy a version",
-#       "Run tests",
-#       "Switch koding.com",
+    options.version = argv.version or semver.inc(version,options.versiontype)
+    # options.tag     = argv.tag     or semver
+    options.hostname = "#{options.target}--v#{options.version.replace(/\./g,'-')}"
+    #create the new tag
+    log "tagging version #{options.version}"
+    exec "git tag 'v#{options.version}' && git push --tags",(err,stdout,stderr)->
 
-#       new inquirer.Separator(),
-#       "Ask opening hours",
-#       "Talk to the receptionnist"
-#     ]
-#   }
-#   {
-#     type: "confirm"
-#     name: "toBeDelivered"
-#     message: "Is it for a delivery"
-#     default: false
-#   }
-#   {
-#     type: "input"
-#     name: "phone"
-#     message: "What's your phone number"
-#     validate: (value) ->
-#       pass = value.match(/^([01]{1})?[\-\.\s]?\(?(\d{3})\)?[\-\.\s]?(\d{3})[\-\.\s]?(\d{4})\s?((?:#|ext\.?\s?|x\.?\s?){1}(?:\d+)?)?$/i)
-#       if pass
-#         true
-#       else
-#         "Please enter a valid phone number"
-#   }
-#   {
-#     type: "list"
-#     name: "size"
-#     message: "What size do you need"
-#     choices: [
-#       "Large"
-#       "Medium"
-#       "Small"
-#     ]
-#     filter: (val) ->
-#       val.toLowerCase()
-#   }
-#   {
-#     type: "input"
-#     name: "quantity"
-#     message: "How many do you need"
-#     validate: (value) ->
-#       valid = not isNaN(parseFloat(value))
-#       valid or "Please enter a number"
+      if options.target is "singlebox"
+        options =
+          params :
+            ImageId       : "ami-864d84ee" # Amazon ubuntu 14.04 "ami-1624987f" # Amazon Linux AMI x86_64 EBS
+            InstanceType  : options.boxtype
+            MinCount      : 1
+            MaxCount      : 1
+            SubnetId      : "subnet-b47692ed"
+            KeyName       : "koding-prod-deployment"
+          instanceName    : "#{options.hostname}--#{eden.eve().toLowerCase()}"
+          configName      : "singlebox"
+          environment     : "singlebox"
+          tag             : "v#{options.version}"
 
-#     filter: Number
-#   }
-#   {
-#     type: "expand"
-#     name: "toppings"
-#     message: "What about the toping"
-#     choices: [
-#       {
-#         key: "p"
-#         name: "Peperonni and chesse"
-#         value: "PeperonniChesse"
-#       }
-#       {
-#         key: "a"
-#         name: "All dressed"
-#         value: "alldressed"
-#       }
-#       {
-#         key: "w"
-#         name: "Hawaïan"
-#         value: "hawaian"
-#       }
-#     ]
-#   }
-#   {
-#     type: "rawlist"
-#     name: "beverage"
-#     message: "You also get a free 2L beverage"
-#     choices: [
-#       "Pepsi"
-#       "7up"
-#       "Coke"
-#     ]
-#   }
-#   {
-#     type: "input"
-#     name: "comments"
-#     message: "Any comments on your purchase experience"
-#     default: "Nope, all good!"
-#   }
-#   {
-#     type: "list"
-#     name: "prize"
-#     message: "For leaving a comments, you get a freebie"
-#     choices: [
-#       "cake"
-#       "fries"
-#     ]
-#     when: (answers) ->
-#       answers.comments isnt "Nope, all good!"
-#   }
-# ]
 
-# inquirer.prompt questions, (answers) ->
-#   console.log "\nOrder receipt:"
-#   console.log JSON.stringify(answers, null, "  ")
-#   return
+        Deploy.deployAndConfigure options,(err,res)->
+          log "#{res.instanceName} is ready."
+          log "Box is ready at mosh root@#{res.instanceData.PublicIpAddress}"
+
+
+
+
+
+

@@ -171,7 +171,7 @@ Configuration = (options={}) ->
 
   KONFIG.workers =
     kontrol             : command : "#{GOBIN}/rerun koding/kites/kontrol -c #{configName} -r #{region}"
-    kloud               : command : "#{GOBIN}/kloud     -c #{configName} -env dev -r #{region} -port #{KONFIG.kloud.port} -public-key #{KONFIG.kloud.publicKeyFile} -private-key #{KONFIG.kloud.privateKeyFile} -kontrol-url http://kontrol-#{publicHostname}.ngrok.com/kite -debug"
+    kloud               : command : "#{GOBIN}/kloud     -c #{configName} -env dev -r #{region} -port #{KONFIG.kloud.port} -public-key #{KONFIG.kloud.publicKeyFile} -private-key #{KONFIG.kloud.privateKeyFile} -kontrol-url http://kontrol-#{publicHostname}.ngrok.com/kite"
     broker              : command : "#{GOBIN}/rerun koding/broker        -c #{configName}"
     rerouting           : command : "#{GOBIN}/rerun koding/rerouting     -c #{configName}"
     cron                : command : "#{GOBIN}/rerun koding/cron          -c #{configName}"
@@ -268,6 +268,7 @@ Configuration = (options={}) ->
 
 
         echo '#---> BUILDING GO WORKERS (@farslan) <---#'
+        rm -rf #{projectRoot}/go/pkg
         #{projectRoot}/go/build.sh
 
         echo '#---> BUILDING SOCIALAPI (@cihangir) <---#'
@@ -365,6 +366,8 @@ Configuration = (options={}) ->
         ./cleanup @$
 
       elif [ "$1" == "services" ]; then
+        docker stop mongo redis postgres rabbitmq
+        docker rm   mongo redis postgres rabbitmq
         docker run -d --net=host --name=mongo    mongo
         docker run -d --net=host --name=redis    redis
         docker run -d --net=host --name=postgres koding/postgres

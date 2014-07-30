@@ -67,6 +67,7 @@
     "prompt": "0.1.12",
     "read": "^1.0.5",
     "request": "2.9.202",
+    "semver": "^3.0.1",
     "simple-recaptcha": "0.0.3",
     "source-map": "0.1.9",
     "sqwish": "0.2.0",

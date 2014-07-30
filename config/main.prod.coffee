@@ -6,15 +6,14 @@ Configuration = (options={}) ->
 
   prod_simulation_server = "localhost"
 
-  hostname            = options.hostname       or "prod-111-anna.koding.me"
+  hostname            = options.hostname       or "prod-v1_2_4-anna"
   publicHostname      = options.publicHostname or "https://koding.me"
   region              = options.region         or "aws"
   configName          = options.configName     or "prod"
   environment         = options.environment    or "prod"
   projectRoot         = options.projectRoot    or "/opt/koding"
-  version             = options.version        or "2.0" # TBD
-  branch              = options.branch         or "cake-rewrite"
-  build               = options.build          or "1111"
+  version             = options.tag
+  tag                 = options.tag
   publicIP            = options.publicIP       or "*"
 
   mongo               = "mongodb://dev:k9lc4G1k32nyD72@172.16.3.9,172.16.3.10,172.16.3.15/koding?replicaSet=koodingrs0&readPreference=primaryPreferred" # {prod_simulation_server}:27017/koding"
@@ -441,8 +440,7 @@ Configuration = (options={}) ->
         /usr/local/bin/coffee /opt/koding/build-client.coffee --watch false  --verbose
 
 
-      elif [ "$1" == "install" ]; then
-
+      elif [ "$1" == "configure" ]; then
 
         echo '#--> this is a production machine, we will first configure it @devrim <--#'
 
@@ -452,24 +450,31 @@ Configuration = (options={}) ->
         echo '#{prodPrivateKey}' > /root/.ssh/id_rsa
         chmod 600 /root/.ssh/id_rsa
 
-        #-- add authorized keys for root access --#
+        echo '#-- add authorized keys for root access --#'
         echo "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDElR8rHTkreTKZOSAhKcU6iHU9j+Mnd2VScBQTxaoJeUNCL4IUgk76koY03KjzPZ8XjeIIZ9z2HdrSq+G/JZjh/q2SWVIF1YtbBXY7x51ElcjAzK6S7xIhd42DRCDT6KpkpRkkSe/oxJRwM16MVLQBXPgPDelJ8tP7FMRYPiP2EzojwFCoRgzbCqTKqOMhVLRsZATRu6iEuJbKYjgn3kHkxsq6h+jl4BTGQU4D69O3rpFJtYEEAVWDSMgMwnhtdTbwkE7wZe3Q3saSktE93UgSOgnx3SIqCFPooy3DMRbKvaTpC1rcXJtwVuOEomd6K0r6WfkFeJT3XundxgAbfFEP ubuntu@kodingme"   >/root/.ssh/id_rsa.pub
         echo "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDGy37UYYQjRUyBZ1gYERhmOcyRyF0pFvlc+d91VT6iiIituaR+SpGruyj3NSmTZQ8Px8/ebaIJQaV+8v/YyIJXAQoCo2voo/OO2WhVIzv2HUfyzXcomzV40sd8mqZJnNCQYdxkFbUZv26kOzikie0DlCoVstM9P8XAURSszO0llD4f0CKS7Galwql0plccBxJEK9oNWCMp3F6v3EIX6qdL8eUJko7tJDPiyPIuuaixxd4EBE/l2UBGvqG0REoDrBNJ8maKV3CKhw60LYis8EfKFhQg5055doDNxKSDiCMopXrfoiAQKEJ92MBTjs7YwuUDp5s39THbX9bHoyanbVIL devrim@koding.com" >>/root/.ssh/authorized_keys
         echo "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDRvR6eD+/UfjDtpD/HK3CEC1vCGl9Pnc/o1il9616mjgmRTE+dnIGqqqq70MVJHpzq8gW7unuQ6zBgEw5J6+pHcptxHwoLNlmOKPDwVyRo6AvQPc0DfMEcInlXWCpFM41LbNUznIHvTDOT4G8gXlS5FUkU/2yds/BsS1H01jIi2JM5jDhnNn7RLWFaoYTVkMMw3ESJ2T1FqR/pjcqbETWeMKE8vW+uyyVMmdSBMtsGl5DxdorrWJ0zpeI6MlLVKaahNUQ8Z9Y7MJN4yTjUNq7su90AtPuCfM/3Sd2oycZ/kTrD5ZQTbJbZ4zEm0Ba14RwcPjuQSluqvgknDDCkLmCT fatih@koding.com"  >>/root/.ssh/authorized_keys
 
-        #-- remove annoying stricthostkeychecking. --#
+        echo '#-- remove annoying stricthostkeychecking. --#'
         echo "Host github.com" >> /root/.ssh/config
         echo "  StrictHostKeyChecking no" >> /root/.ssh/config
 
+        echo '#---> AUTHORIZING THIS COMPUTER TO DOCKER HUB (@devrim) <---#'
+        echo adding you to docker-hub..
+        echo '{"https://index.docker.io/v1/":{"auth":"ZGV2cmltOm45czQvV2UuTWRqZWNq","email":"devrim@koding.com"}}' >> $HOME/.dockercfg
+
         echo "installing packages..."
-        # apt-get update
+        # docker install includes apt-get update
         curl -s https://get.docker.io/ubuntu/ | sudo sh
         apt-get install -y curl supervisor golang nodejs npm git graphicsmagick mosh nginx
         cp /usr/bin/nodejs /usr/bin/node
         ln -sf /usr/bin/supervisorctl /usr/bin/s
-
         mosh-server
 
+      elif [ "$1" == "install" ]; then
+
+
+        #--- THIS STEP REQUIRES CONFIGURE STEP TO RUN FIRST ---#
 
         echo '#--- configure nginx ---#'
         echo '#{b64 nginxConf,yes}'             | base64 --decode > /etc/nginx/sites-enabled/default
@@ -481,8 +486,7 @@ Configuration = (options={}) ->
         echo '#---> BUILDING CLIENT (@gokmen) <---#'
 
         cd /opt
-        # git clone git@github.com:koding/koding.git -b #{branch} --depth 1
-        git clone --branch v1.4 --depth 1 git@github.com:koding/koding.git koding2
+        git clone --branch '#{tag}' --depth 1 git@github.com:koding/koding.git koding
         cd /opt/koding
         git submodule init
         git submodule update --recursive
@@ -514,14 +518,6 @@ Configuration = (options={}) ->
         cake build
 
 
-        echo '#---> AUTHORIZING THIS COMPUTER TO DOCKER HUB (@devrim) <---#'
-        echo adding you to docker-hub..
-        if grep -q ZGV2cmltOm45czQvV2UuTWRqZWNq "$HOME/.dockercfg"; then
-          echo 'you seem to have correct docker config file - dont forget to install docker.'
-        else
-          echo 'added ~/.dockercfg - dont forget to install docker.'
-          echo '{"https://index.docker.io/v1/":{"auth":"ZGV2cmltOm45czQvV2UuTWRqZWNq","email":"devrim@koding.com"}}' >> $HOME/.dockercfg
-        fi
 
 
         echo
@@ -545,8 +541,8 @@ Configuration = (options={}) ->
 
       elif [ "$1" == "services" ]; then
         docker run -d --net=host                  --name=mongo    koding/mongo    --dbpath /root/data/db --smallfiles --nojournal
-        docker run -d --net=host                  --name=redis    koding/redis
-        docker run -d --net=host                  --name=postgres koding/postgres
+        # docker run -d --net=host                  --name=redis    koding/redis
+        # docker run -d --net=host                  --name=postgres koding/postgres
         docker run -d -p 5672:5672 -p 15672:15672 --name=rabbitmq koding/rabbitmq
 
         echo '#---> UPDATING MONGO DATABASE ACCORDING TO LATEST CHANGES IN CODE (UPDATE PERMISSIONS @chris) <---#'
