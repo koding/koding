@@ -17,9 +17,6 @@ import (
 var emailConfig = map[string]string{
 	notificationmodels.NotificationContent_TYPE_COMMENT: "comment",
 	notificationmodels.NotificationContent_TYPE_LIKE:    "likeActivities",
-	notificationmodels.NotificationContent_TYPE_FOLLOW:  "followActions",
-	notificationmodels.NotificationContent_TYPE_JOIN:    "groupJoined",
-	notificationmodels.NotificationContent_TYPE_LEAVE:   "groupLeft",
 	notificationmodels.NotificationContent_TYPE_MENTION: "mention",
 }
 
@@ -141,6 +138,8 @@ func validNotification(a *notificationmodels.NotificationActivity, n *notificati
 		return false
 	}
 
+	// do not notify actor for troll activity
+
 	// do not notify user when notification is not yet activated
 	return !n.ActivatedAt.IsZero()
 }
@@ -210,12 +209,6 @@ func checkMailSettings(nc *notificationmodels.NotificationContent, uc *models.Us
 		return uc.EmailSettings.Comment
 	case notificationmodels.NotificationContent_TYPE_LIKE:
 		return uc.EmailSettings.Like
-	case notificationmodels.NotificationContent_TYPE_FOLLOW:
-		return uc.EmailSettings.Follow
-	case notificationmodels.NotificationContent_TYPE_JOIN:
-		return uc.EmailSettings.Join
-	case notificationmodels.NotificationContent_TYPE_LEAVE:
-		return uc.EmailSettings.Leave
 	case notificationmodels.NotificationContent_TYPE_MENTION:
 		return uc.EmailSettings.Mention
 	}
