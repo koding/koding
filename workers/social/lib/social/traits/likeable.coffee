@@ -1,5 +1,4 @@
 JAccount  = require '../models/account'
-CActivity = require '../models/activity'
 
 module.exports = class Likeable
 
@@ -50,15 +49,8 @@ module.exports = class Likeable
                   callback err
                 else
                   @update ($set: 'meta.likes': count), callback
-                  if constructor.name is "JComment"
-                    constructor.fetchRelated? @getId(), (err, activity)->
-                      activity.triggerCache(constructor.name == "JComment")
                   delegate.update ($inc: 'counts.likes': 1), (err)->
                     console.log err if err
-                  @fetchActivityId? (err, id)->
-                    CActivity.update {_id: id}, {
-                      $set: 'sorts.likesCount': count
-                    }, ->
                   @fetchOrigin? (err, origin)=>
                     if err then console.log "Couldn't fetch the origin"
                     else @emit 'LikeIsAdded', {
@@ -72,7 +64,6 @@ module.exports = class Likeable
                       group
                     }
 
-                  @flushOriginSnapshot constructor
             else
               @removeLikedBy delegate, respondWithCount: yes, (err, count)=>
                 if err
@@ -88,15 +79,3 @@ module.exports = class Likeable
                         origin
                         subject : @
                         liker   : delegate
-                  @flushOriginSnapshot constructor
-
-  flushOriginSnapshot:(constructor)->
-    if constructor.name is 'JComment'
-      Relationship.one
-        targetId: @getId()
-        as: 'reply'
-      , (err, rel)->
-        if not err and rel
-          rel.fetchSource (err, source)->
-            if not err and source
-              source.flushSnapshot?()

@@ -168,10 +168,7 @@ class ActivityInputView extends KDTokenizedInput
       tokenView.emit "viewAppended"
       return tokenView.getElement().outerHTML
 
-  getTokenFilter: ->
-    switch @activeRule.prefix
-      when "#" then (token) -> token instanceof KD.remote.api.JTag
-      else noop
+  getTokenFilter: -> noop
 
   fillTokenMap = (tokens, map) ->
     tokens.forEach (token) ->

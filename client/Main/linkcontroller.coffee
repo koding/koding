@@ -5,7 +5,7 @@ class LinkController extends KDController
     @linkHandlers = {}
 
   handleLinkClick:(link)->
-    {JAccount, JGroup, JTag} = KD.remote.api
+    {JAccount, JGroup} = KD.remote.api
     data = link.getData?()
     return  unless data?
     options = {}
@@ -16,10 +16,6 @@ class LinkController extends KDController
         href = if slug is "koding" then "/#{nickname}" else "/#{slug}/#{nickname}"
       when JGroup
         "/#{data.slug}"
-      when JTag
-        {group, slug} = data
-        route = if group is KD.defaultSlug then '' else "/#{group}"
-        route += "/Activity/?tagged=#{slug}"
 
     KD.getSingleton('router').handleRoute route, {state : data}  if route?
 

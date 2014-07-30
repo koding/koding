@@ -11,6 +11,8 @@ class PinnedActivityListController extends ActivityListController
     super options, data
 
     @getView().once "viewAppended", =>
+      return console.error "unimplemented feature"
+
       return  unless KD.prefetchedFeeds
       feeds = KD.prefetchedFeeds["mostlikedactivity.main"] or []
       return @instantiateListItems KD.remote.revive feeds  if feeds.length

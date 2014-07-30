@@ -24,10 +24,9 @@ module.exports = (options = {}, callback)->
       {profile   : {nickname}, _id} = delegate
 
     replacer             = (k, v)-> if 'string' is typeof v then encoder.XSSEncode v else v
-    encodedFeed          = JSON.stringify prefetchedFeeds, replacer
     encodedCampaignData  = JSON.stringify campaignData, replacer
     encodedCustomPartial = JSON.stringify customPartial, replacer
-    encodedSocialApiData  = JSON.stringify socialapidata, replacer
+    encodedSocialApiData = JSON.stringify socialapidata, replacer
     currentGroup         = JSON.stringify currentGroup
     userAccount          = JSON.stringify delegate
     userVMs              = JSON.stringify userVMs
@@ -63,7 +62,6 @@ module.exports = (options = {}, callback)->
       KD.userAccount = KD.remote.revive(#{userAccount});
     });
     </script>
-    <script>KD.prefetchedFeeds=#{encodedFeed};</script>
 
     <!-- Google Analytics -->
     <script>
@@ -149,15 +147,4 @@ module.exports = (options = {}, callback)->
   socialApiCacheFn = require '../cache/socialapi'
   socialApiCacheFn options, (err, data)->
     socialapidata = data
-    {delegate} = options.client.connection
-    # if user is exempt or super-admin do not cache his/her result set
-    return generateScript() if delegate?.checkFlag('super-admin') and delegate.isExempt
-
-    Cache       = require '../cache/main'
-    feedFn      = require '../cache/feed'
-
-    getCacheKey =-> return "scriptblock#{options.client.context.group}"
-
-    Cache.fetch getCacheKey(), feedFn, options, (err, data)->
-      prefetchedFeeds = data    # this is updating the prefetchedFeeds property
-      return generateScript()   # we can generate html here
+    return generateScript()   # we can generate html here
