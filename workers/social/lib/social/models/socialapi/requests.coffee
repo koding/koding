@@ -208,20 +208,6 @@ fetchPrivateMessages = (data, callback)->
   url = "/privatemessage/list"
   get url, data, callback
 
-listNotifications = (data, callback)->
-  if not data.accountId # or not data.groupName
-    return callback {message: "Request is not valid"}
-
-  url = "/notification/#{data.accountId}"
-  get url, data, callback
-
-glanceNotifications = (accountId, callback)->
-  if not accountId
-    return callback {message: "Request is not valid"}
-
-  url = "/notification/glance"
-  post url, {accountId}, callback
-
 followUser = (data, callback)->
   followHelper data, addParticipants, callback
 
@@ -385,8 +371,6 @@ module.exports = {
   fetchChannelActivities
   fetchActivityCount
   fetchGroupChannels
-  listNotifications
-  glanceNotifications
   followUser
   unfollowUser
   createGroupNotification
