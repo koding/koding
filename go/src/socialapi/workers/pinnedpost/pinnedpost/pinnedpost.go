@@ -4,7 +4,6 @@ import (
 	"socialapi/models"
 	"time"
 
-	"github.com/koding/bongo"
 	"github.com/koding/logging"
 	"github.com/streadway/amqp"
 )
