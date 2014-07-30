@@ -2,9 +2,10 @@ package models
 
 import (
 	"fmt"
-	"socialapi/request"
 	"strings"
 	"time"
+
+	"socialapi/request"
 
 	"github.com/koding/bongo"
 )
@@ -287,6 +288,34 @@ func (c *Channel) AddMessage(messageId int64) (*ChannelMessageList, error) {
 	}
 
 	return cml, nil
+}
+
+func (c *Channel) EnsureMessage(messageId int64, force bool) (*ChannelMessageList, error) {
+	cml := NewChannelMessageList()
+	err := bongo.B.DB.Model(cml).Unscoped().Where("channel_id = ? and message_id = ?", c.Id, messageId).First(cml).Error
+
+	if err == bongo.RecordNotFound {
+		return c.AddMessage(messageId)
+	}
+
+	if err != nil {
+		return nil, err
+	}
+
+	if !force {
+		return cml, nil
+	}
+
+	if cml.DeletedAt != ZeroDate() {
+		cml.DeletedAt = ZeroDate()
+	}
+
+	err = bongo.B.DB.Unscoped().Model(cml).Save(cml).Error
+	if err != nil {
+		return nil, err
+	}
+
+	return c.AddMessage(messageId)
 }
 
 // TODO do not return channelmessagelist from delete function
