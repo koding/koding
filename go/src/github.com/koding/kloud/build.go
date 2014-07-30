@@ -121,10 +121,14 @@ meta data     : %# v
 	if artifact == nil {
 		return nil, NewError(ErrBadResponse)
 	}
+
 	// if the username is not explicit changed, assign the original username to it
 	if artifact.Username == "" {
 		artifact.Username = r.Username
 	}
+
+	// update if we somehow updated in build process
+	c.Machine.Builder["instanceName"] = artifact.InstanceName
 
 	r.Context.Set("buildArtifact", artifact)
 

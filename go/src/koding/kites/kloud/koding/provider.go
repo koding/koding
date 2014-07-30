@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"koding/db/mongodb"
 	"koding/kites/klient/usage"
+	"strconv"
 	"time"
 
 	"labix.org/v2/mgo"
@@ -88,8 +89,17 @@ func (p *Provider) Build(opts *protocol.Machine) (*protocol.Artifact, error) {
 		return nil, err
 	}
 
-	instanceName := opts.Builder["instanceName"].(string)
 	username := opts.Builder["username"].(string)
+
+	instanceName := opts.Builder["instanceName"].(string)
+
+	// this can happen when an Info method is called on a terminated instance.
+	// This updates the DB records with the name that EC2 gives us, which is a
+	// "terminated-instance"
+	if instanceName == "terminated-instance" {
+		instanceName = username + "-" + strconv.FormatInt(time.Now().UTC().UnixNano(), 10)
+		a.Log.Info("Instance name is an artifact (terminated), changing to %s", instanceName)
+	}
 
 	groupName := "koding-kloud" // TODO: make it from the package level and remove it from here
 	a.Log.Info("Checking if security group '%s' exists", groupName)
