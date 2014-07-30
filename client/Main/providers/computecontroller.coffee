@@ -55,7 +55,7 @@ class ComputeController extends KDController
           machines = []
           stacks.forEach (stack)->
             stack.machines.forEach (machine, index)->
-              machine = new Machine { machine }
+              machine = new Machine { machine, stack }
               stack.machines[index] = machine
               machines.push machine
 
