@@ -24,7 +24,7 @@ class DevToolsWelcomePage extends JView
     """
       <h1>Koding DevTools</h1>
       <div class="info">
-        <p>Koding DevTools is an extensible Framework built on top of Koding's own KDFramework that allows you to extend the Koding platform by building apps that other Koding users can install on their VM's. Our users have built installers for software packages like Wordpress, Drupal, Django, etc.</p>
+        <p>Koding DevTools is an extensible framework built on top of Koding's own KDFramework that allows you to extend the Koding platform by building apps that other Koding users can install on their VMs. Our users have built installers for software packages like Wordpress, Drupal, Django, etc.</p>
 
         <p>To learn how to get started with writing your first KD App using DevTools, start at this <a href="http://learn.koding.com/guides/creating-kdapps/">handy guide</a> that will teach you how to use DevTools via the Koding UI or via CLI (command line interface).</p>
 
