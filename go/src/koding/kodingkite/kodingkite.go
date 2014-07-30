@@ -97,6 +97,8 @@ func getRegisterIP(environment string) (string, error) {
 	switch environment {
 	case "production":
 		fallthrough
+	case "sandbox":
+		fallthrough
 	case "staging":
 		// Magical IP address of Openstack Metadata Service
 		// http://docs.openstack.org/grizzly/openstack-compute/admin/content/metadata-service.html
