@@ -9,6 +9,7 @@ class MachineSettingsModal extends KDModalViewWithForms
   constructor: (options = {}, data) ->
 
     domainSuffix = ".#{KD.nick()}.#{KD.config.userSitesDomain}"
+    running      = data.status.state in [ Running, Starting ]
 
     options.title         or= 'Configure Your VM'
     options.cssClass      or= 'activity-modal vm-settings'
@@ -50,9 +51,26 @@ class MachineSettingsModal extends KDModalViewWithForms
             #   name          : 'alwaysOn'
             #   itemClass     : KodingSwitch
             #   defaultValue  : off
+            provider        :
+              label         : "Provider"
+              itemClass     : CustomLinkView
+              title         : KD.config.providers[data.provider].name
+              href          : KD.config.providers[data.provider].link
+            publicIp        :
+              label         : "Public IP"
+              cssClass      : if running then "" else "hidden"
+              itemClass     : CustomLinkView
+              title         : data.ipAddress or "N/A"
+              href          : if data.ipAddress? then "http://#{data.ipAddress}"
+            currentStatus   :
+              label         : "Current status"
+              itemClass     : KDView
+              cssClass      : "custom-link-view"
+              partial       : data.status.state
+              # click         : -> # FIXME GG (Add troubleshoot modal? )
             statusToggle    :
               label         : "Change machine state"
-              defaultValue  : data.status.state in [ Running, Starting ]
+              defaultValue  : running
               itemClass     : KodingSwitch
               callback      : (state)->
                 if state
@@ -69,7 +87,6 @@ class MachineSettingsModal extends KDModalViewWithForms
     @machine = machine = @getData()
     { computeController } = KD.singletons
     { Terminated, NotInitialized, Building, Terminating } = Machine.State
-
 
     @addSubView @over = new KDView
       cssClass : "modal-inline-overlay"
