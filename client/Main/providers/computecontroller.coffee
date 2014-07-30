@@ -55,7 +55,7 @@ class ComputeController extends KDController
           machines = []
           stacks.forEach (stack)->
             stack.machines.forEach (machine, index)->
-              machine = new Machine { machine }
+              machine = new Machine { machine, stack }
               stack.machines[index] = machine
               machines.push machine
 
@@ -320,3 +320,102 @@ class ComputeController extends KDController
           @storage.setValue identifier, machine.uid
 
         callback err, machine
+
+
+  @reviveProvisioner = (machine, callback)->
+
+    provisioner = machine.provisioners.first
+
+    return callback null  unless provisioner
+
+    {JProvisioner} = KD.remote.api
+    JProvisioner.one slug: provisioner, callback
+
+
+  @runInitScript = (machine, inTerminal = yes)->
+
+    { status: { state } } = machine
+    unless state is Machine.State.Running
+      return new KDNotificationView
+        title : "Machine is not running."
+
+    envVariables = ""
+    for key, value of machine.stack?.config or {}
+      envVariables += """export #{key}="#{value}"\n"""
+
+    @reviveProvisioner machine, (err, provisioner)=>
+
+      if err
+        return new KDNotificationView
+          title : "Failed to fetch build script."
+      else if not provisioner
+        return new KDNotificationView
+          title : "Provision script is not set."
+
+      {content: {script}} = provisioner
+      script = Encoder.htmlDecode script
+
+      path = provisioner.slug.replace "/", "-"
+      path = "/tmp/init-#{path}"
+      machine.fs.create { path }, (err, file)=>
+
+        if err or not file
+          return new KDNotificationView
+            title : "Failed to upload build script."
+
+        script  = "#{envVariables}\n\n#{script}\n"
+        script += "\necho $?|kdevent;rm -f #{path};exit"
+
+        file.save script, (err)=>
+          return if KD.showError err
+
+          command = "bash #{path};exit"
+
+          if not inTerminal
+
+            new KDNotificationView
+              title: "Init script running in background..."
+
+            machine.getBaseKite().exec { command }
+              .then (res)->
+
+                new KDNotificationView
+                  title: "Init script executed"
+
+                info  "Init script executed : ", res.stdout  if res.stdout
+                error "Init script failed   : ", res.stderr  if res.stderr
+
+              .catch (err)->
+
+                new KDNotificationView
+                  title: "Init script executed successfully"
+                error "Init script failed:", err
+
+            return
+
+          modal = new TerminalModal {
+            title         : "Running init script for #{machine.getName()}..."
+            command       : command
+            readOnly      : yes
+            destroyOnExit : no
+            machine
+          }
+
+          modal.once "terminal.event", (data)->
+
+            if data is "0"
+              title   = "Installed successfully!"
+              content = "You can now safely close this Terminal."
+            else
+              title   = "An error occured."
+              content = """Something went wrong while running build script.
+                           Please try again."""
+
+            new KDNotificationView {
+              title, content
+              type          : "tray"
+              duration      : 0
+              container     : modal
+              closeManually : no
+            }
+
