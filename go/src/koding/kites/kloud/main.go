@@ -150,12 +150,7 @@ func newKite() *kite.Kite {
 			Username:   r.Username,
 		}
 
-		deployData, err := structure.ToMap(d)
-		if err != nil {
-			return nil, err
-		}
-
-		r.Context.Set("deployData", deployData)
+		r.Context.Set("deployData", structure.Map(d))
 		return true, nil
 	}
 

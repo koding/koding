@@ -1,6 +1,8 @@
 # Structure [![GoDoc](https://godoc.org/github.com/fatih/structure?status.svg)](http://godoc.org/github.com/fatih/structure) [![Build Status](https://travis-ci.org/fatih/structure.svg)](https://travis-ci.org/fatih/structure)
 
-Structure contains various utilitis to work with Go (Golang) structs.
+Structure contains various utilities to work with Go (Golang) structs.
+
+**WIP, Use with care until it's finished and announced**
 
 ## Install
 
@@ -8,10 +10,11 @@ Structure contains various utilitis to work with Go (Golang) structs.
 go get github.com/fatih/structure
 ```
 
-## Examples
+## Usage and Examples
+
+Lets define and declare a struct
 
 ```go
-// Lets define and declare a struct
 type Server struct {
 	Name    string
 	ID      int32
@@ -19,27 +22,42 @@ type Server struct {
 }
 
 s := &Server{
-	Name:    "Arslan",
+	Name:    "gopher",
 	ID:      123456,
 	Enabled: true,
 }
 ```
 
 ```go
-// convert it to a map[string]interface{}
-m, err := structure.ToMap(s)
-if err != nil {
-	panic(err)
+// Convert a struct to a map[string]interface{}
+// => {"Name":"gopher", "ID":123456, "Enabled":true}
+m := structure.Map(s)
+
+// Convert the values of a struct to a []interface{}
+// => [true, 123456, "gopher"]
+v := structure.Values(s)
+
+// Convert the fields of a struct to a []string. 
+// => ["Enabled", "ID", "Name"]
+f := structure.Fields(s)
+
+// Return the struct name
+// => "Server"
+n := structure.Name(s)
+
+// Check if field name exists
+// => true
+n := structure.Has(s, "Enabled")
+
+// Check if the fields of a struct is initialized or not.
+if !structure.IsZero(s) {
+    fmt.Println("s is initialized")
 }
 
-fmt.Printf("%#v", m)
-// prints: map[string]interface {}{"Name":"Arslan", "ID":123456, "Enabled":true}
-```
-
-```go
-// check if it's a struct or a pointer to struct
+// Check if it's a struct or a pointer to struct
 if structure.IsStruct(s) {
-    fmt.Println("s is a struct") 
+    fmt.Println("s is a struct")
 }
+
 ```
-	
+
