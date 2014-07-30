@@ -162,11 +162,13 @@ class MachineSettingsModal extends KDModalViewWithForms
     @unsetClass stateClasses
     @setClass status.toLowerCase()
 
-    { statusToggle } = @modalTabs.forms.Settings.inputs
+    { currentStatus, statusToggle } = @modalTabs.forms.Settings.inputs
 
     if status in [ Running, Starting ]
     then statusToggle.setOn no
     else statusToggle.setOff no
+
+    currentStatus.updatePartial status
 
     @machine.jMachine.setAt "status.state", status
     @machine.updateLocalData()
