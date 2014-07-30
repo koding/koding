@@ -113,7 +113,6 @@ class MachineSettingsModal extends KDModalViewWithForms
       Terminated, NotInitialized, Building, Terminating
     ]
 
-
     @addSubView new KDCustomHTMLView
       cssClass : 'modal-arrow'
       position :
@@ -126,14 +125,23 @@ class MachineSettingsModal extends KDModalViewWithForms
     label.setClass 'advanced'
 
     advanced.addSubView new KDButtonView
+      style    : 'solid compact green'
+      title    : 'Run Init Script'
+      callback : -> ComputeController.runInitScript machine
+
+    advanced.addSubView new KDButtonView
+      style    : 'solid compact'
+      title    : 'Edit Init Script'
+      callback : -> ComputeController.UI.showBuildScriptEditorModal machine
+
+    advanced.addSubView new KDButtonView
       style    : 'solid compact red'
       title    : 'Terminate VM'
-      callback : => KD.singletons.computeController.destroy @machine
+      callback : -> KD.singletons.computeController.destroy machine
 
-    advanced.addSubView @deleteButton = new KDButtonView
-      style    : 'solid compact red'
-      title    : 'Delete VM'
-      callback : @bound 'deleteVM'
+    advanced.addSubView new CustomLinkView
+      title    : "Open a Terminal for this machine"
+      click    : -> new TerminalModal { machine }
 
     label.on 'click', @bound 'toggleAdvancedSettings'
 
