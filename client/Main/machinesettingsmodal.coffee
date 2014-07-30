@@ -58,10 +58,9 @@ class MachineSettingsModal extends KDModalViewWithForms
               href          : KD.config.providers[data.provider].link
             publicIp        :
               label         : "Public IP"
-              cssClass      : if running then "" else "hidden"
-              itemClass     : CustomLinkView
-              title         : data.ipAddress or "N/A"
-              href          : if data.ipAddress? then "http://#{data.ipAddress}"
+              cssClass      : if running then "custom-link-view" else "hidden"
+              itemClass     : KDView
+              partial       : data.ipAddress or "N/A"
             currentStatus   :
               label         : "Current status"
               itemClass     : KDView
