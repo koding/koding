@@ -111,15 +111,20 @@ class ActivityInputView extends KDTokenizedInput
 
     return position + startOffset
 
+
   focus: ->
+
     super
-    value = @getValue()
-    unless value
-      content = @prefixDefaultTokens()
-      return  unless content
-      @setContent content
-      {childNodes} = @getEditableElement()
-      @utils.selectEnd childNodes[childNodes.length - 1]
+
+    return @utils.selectEnd()  if value = @getValue()
+
+    content = @prefixDefaultTokens()
+    return  unless content
+
+    @setContent content
+    {childNodes} = @getEditableElement()
+    @utils.selectEnd childNodes[childNodes.length - 1]
+
 
   # contentEditable elements cannot be
   # triggered to be blurred. This method

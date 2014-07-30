@@ -337,7 +337,6 @@ class ActivityInputWidget extends KDView
   focus: ->
 
     @input.focus()
-    @input.setPlaceholder()
 
 
   viewAppended: ->
