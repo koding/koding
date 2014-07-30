@@ -26,6 +26,7 @@ class NavigationMachineItem extends KDListItemView
     @machine = @getData()
     @progress = new KDProgressBarView
       cssClass : "hidden"
+      # initial  : Math.floor Math.random() * 100
 
     { computeController } = KD.singletons
 

@@ -2,7 +2,7 @@ class ComputeController extends KDController
 
   @providers = KD.config.providers
 
-  @timeout = 5000
+  @timeout = 7000
 
   constructor:->
     super
@@ -139,11 +139,42 @@ class ComputeController extends KDController
       @info machine for machine in @machines
       @emit "renderStacks"
 
+  errorHandler = (task, eventListener, machine)->
 
-  errorHandler = (task, eL, machine)-> (err)->
+    ComputeErrors = {
+      "TimeoutError", "KiteError", Pending: "107"
+    }
 
-    eL.revertToPreviousState machine
-    warn "info err:", err
+    { timeout }   = ComputeController
+
+    retryIfNeeded = (task, machine)->
+
+      if task in ['info', 'stop', 'start']
+        info "Trying again to do '#{task}' in #{timeout}ms..."
+        KD.utils.wait timeout, ->
+          KD.singletons.computeController[task] machine
+
+    (err)->
+
+      eventListener.revertToPreviousState machine
+
+      switch err.name
+
+        when ComputeErrors.TimeoutError
+
+          warn "Task timedout."
+          retryIfNeeded task, machine
+
+        when ComputeErrors.KiteError
+
+          if task is 'info'
+            if err.code is ComputeErrors.Pending
+              retryIfNeeded task, machine
+            else
+              eventListener.triggerState machine, status: Machine.State.Unknown
+
+
+      warn "info err:", err
 
 
   destroy: (machine)->
