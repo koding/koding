@@ -128,6 +128,11 @@ func exportUserFiles(vm *virt.VM) (io.Reader, error) {
 	if out, err := exec.Command("/usr/bin/rbd", "map", "--pool", virt.VMPool, "--image", vm.String()).CombinedOutput(); err != nil {
 		return nil, commandError("rbd map failed.", err, out)
 	}
+	defer func() {
+		if out, err := exec.Command("/usr/bin/rbd", "unmap", "/dev/rbd/"+virt.VMPool+"/"+vm.String()).CombinedOutput(); err != nil {
+			log.Error(commandError("rbd unmap failed.", err, out).Error())
+		}
+	}()
 	// generate a timestamp for uniqueness:
 	timestamp := strconv.FormatInt(time.Now().Local().Unix(), 10)
 	baseName := "export-" + vm.String() + "-" + timestamp
@@ -144,7 +149,7 @@ func exportUserFiles(vm *virt.VM) (io.Reader, error) {
 		}
 	}()
 	// mount the rbd over an empty rootfs:
-	if out, err := exec.Command("/bin/mount", "-t", "ext4", "/dev/rbd/vms/"+vm.String(), dirName).CombinedOutput(); err != nil {
+	if out, err := exec.Command("/bin/mount", "-o", "ro", "-t", "ext4", "/dev/rbd/vms/"+vm.String(), dirName).CombinedOutput(); err != nil {
 		return nil, commandError("mount failed.", err, out)
 	}
 	defer func() {

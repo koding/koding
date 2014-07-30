@@ -26,10 +26,15 @@ class SidebarPinnedItem extends SidebarItem
 
     @actor = new ProfileTextView {origin}
 
+  stripTags: (text) ->
+    { applyMarkdown, stripTags } = KD.utils
+
+    stripTags applyMarkdown text
+
 
   pistachio: ->
     """
     {{> @avatar}}{{> @actor}}
-    {span.user-numbers{ #(body)}}
+    {span.user-numbers{ @stripTags #(body) }}
     {{> @unreadCount}}
     """

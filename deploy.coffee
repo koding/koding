@@ -25,7 +25,7 @@ class Deploy
     conn = new Connection()
 
     listen = (prefix, stream, callback)->
-      _log = (data) -> log ("#{prefix} #{data}").replace("\n","") unless data or data is ""
+      _log = (data) -> log ("#{prefix} #{data}").replace("\n","") if data or data is not ""
       stream.on          "data", _log
       stream.stderr.on   "data", _log
       stream.on "close", callback
@@ -194,20 +194,36 @@ class Deploy
       deployStart = new Date()
       {conn} = result
 
-      KONFIG = require("./config/main.prod.coffee")
-        hostname : result.instanceName
-        tag      : options.tag
-
-      cmd = """
+      options.buildScript = """
         echo '#{new Buffer(KONFIG.runFile).toString('base64')}' | base64 --decode > /tmp/run.sh;
-        sudo bash /tmp/run.sh configure &>/opt/configure.log;
+        sudo bash /tmp/run.sh configure;
+        sudo bash /tmp/run.sh install;
+        sudo bash /opt/koding/run services;
+        sudo service supervisor restart
+        echo "starting services..."
+        sleep 15
+        echo testing webserver
+
+        curl localhost:3000 | grep koding.com
+        curl #{res.instanceData.PublicIpAddress}/ | grep koding.com
+
+        echo testing social
+        curl localhost:3030
+        curl #{res.instanceData.PublicIpAddress}/social
+
+        echo testing broker
+        curl localhost:8008
+        curl #{res.instanceData.PublicIpAddress}/subscribe
+
+        echo testing kloud
+        curl localhost:5500
+        curl #{res.instanceData.PublicIpAddress}/kloud
         \n
         """
-        # sudo bash /tmp/run.sh install &>/opt/install.log;
-        # sudo bash /opt/koding/run services;
-        # sudo service supervisor restart
 
-      conn.exec cmd, (err, stream) ->
+
+
+      conn.exec options.buildScript, (err, stream) ->
         log 4
         throw err if err
         conn.listen "[configuring #{result.instanceName}]", stream,->
@@ -335,6 +351,30 @@ if argv.deploy
     exec "git tag 'v#{options.version}' && git push --tags",(err,stdout,stderr)->
 
       if options.target is "singlebox"
+        KONFIG = require("./config/main.prod.coffee")
+          hostname : result.instanceName
+          tag      : options.tag
+
+        cmd = """
+          echo '#{new Buffer(KONFIG.runFile).toString('base64')}' | base64 --decode > /tmp/run.sh;
+          sudo bash /tmp/run.sh configure;
+          sudo bash /tmp/run.sh install;
+          sudo bash /opt/koding/run services;
+          sudo service supervisor restart
+          echo "starting services..."
+          sleep 15
+          echo testing webserver
+          curl localhost:3000 |
+
+          curl localhost:3030
+
+          curl localhost:8008
+
+          curl localhost:5500
+          \n
+          """
+
+
         options =
           params :
             ImageId       : "ami-864d84ee" # Amazon ubuntu 14.04 "ami-1624987f" # Amazon Linux AMI x86_64 EBS
@@ -347,6 +387,7 @@ if argv.deploy
           configName      : "singlebox"
           environment     : "singlebox"
           tag             : "v#{options.version}"
+          buildScript     : cmd
 
 
         Deploy.deployAndConfigure options,(err,res)->

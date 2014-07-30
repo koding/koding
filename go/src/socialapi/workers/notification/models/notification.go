@@ -56,7 +56,7 @@ func (n *Notification) AfterUpdate() {
 	bongo.B.AfterUpdate(n)
 }
 
-func (n *Notification) GetId() int64 {
+func (n Notification) GetId() int64 {
 	return n.Id
 }
 

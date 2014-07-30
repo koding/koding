@@ -36,6 +36,7 @@ func main() {
 	handler, err := controller.New(r.Log, es)
 	if err != nil {
 		r.Log.Error("an error occurred", err)
+		return
 	}
 
 	r.ShutdownHandler = handler.Shutdown

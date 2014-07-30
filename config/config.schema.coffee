@@ -80,7 +80,6 @@ config =
     runKontrol    : 1
     runKloud      : 1
     runRerouting  : 1
-    runUserPresence: 1
     runPersistence: 1
     compileGo     : 1
     buildClient   : 1

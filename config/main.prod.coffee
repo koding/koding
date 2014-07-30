@@ -16,7 +16,8 @@ Configuration = (options={}) ->
   tag                 = options.tag
   publicIP            = options.publicIP       or "*"
 
-  mongo               = "mongodb://dev:k9lc4G1k32nyD72@172.16.3.9,172.16.3.10,172.16.3.15/koding?replicaSet=koodingrs0&readPreference=primaryPreferred" # {prod_simulation_server}:27017/koding"
+  # prod mongo "mongodb://dev:k9lc4G1k32nyD72@172.16.3.9,172.16.3.10,172.16.3.15/koding?replicaSet=koodingrs0&readPreference=primaryPreferred"
+  mongo               = "#{prod_simulation_server}:27017/koding"
   redis               = {host     : "prod0.1ia3pb.0001.use1.cache.amazonaws.com"   , port : "6379" }
   socialapi           = {proxyUrl : "http://localhost:7000"       , port : 7000 , clusterSize : 5,     configFilePath : "#{projectRoot}/go/src/socialapi/config/prod.toml" }
   rabbitmq            = {host     : "#{prod_simulation_server}"   , port : 5672 , apiPort     : 15672, login          : "guest", password : "guest", vhost:"/"}
@@ -460,8 +461,12 @@ Configuration = (options={}) ->
         echo "  StrictHostKeyChecking no" >> /root/.ssh/config
 
         echo '#---> AUTHORIZING THIS COMPUTER TO DOCKER HUB (@devrim) <---#'
-        echo adding you to docker-hub..
-        echo '{"https://index.docker.io/v1/":{"auth":"ZGV2cmltOm45czQvV2UuTWRqZWNq","email":"devrim@koding.com"}}' >> $HOME/.dockercfg
+        if grep -q ZGV2cmltOm45czQvV2UuTWRqZWNq "$HOME/.dockercfg"; then
+          echo 'you seem to have correct docker config file - dont forget to install docker.'
+        else
+          echo 'added ~/.dockercfg - dont forget to install docker.'
+          echo '{"https://index.docker.io/v1/":{"auth":"ZGV2cmltOm45czQvV2UuTWRqZWNq","email":"devrim@koding.com"}}' >> $HOME/.dockercfg
+        fi
 
         echo "installing packages..."
         # docker install includes apt-get update
@@ -504,7 +509,6 @@ Configuration = (options={}) ->
 
         echo '#---> BUILDING SOCIALAPI (@cihangir) <---#'
         cd #{projectRoot}/go/src/socialapi
-        make configure
         make install
 
         echo '#---> AUTHORIZING THIS COMPUTER WITH MATCHING KITE.KEY (@farslan) <---#'
@@ -547,7 +551,7 @@ Configuration = (options={}) ->
 
         echo '#---> UPDATING MONGO DATABASE ACCORDING TO LATEST CHANGES IN CODE (UPDATE PERMISSIONS @chris) <---#'
         cd #{projectRoot}
-        node #{projectRoot}/scripts/permission-updater  -c #{socialapi.configFilePath} --hard >/dev/null
+        node #{projectRoot}/scripts/permission-updater  -c #{configName} --hard >/dev/null
 
       else
         echo "unknown argument. use ./run [killall]"

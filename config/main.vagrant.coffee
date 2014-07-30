@@ -68,7 +68,6 @@ module.exports =
   runKontrol    : yes
   runKloud      : no
   runRerouting  : yes
-  runUserPresence: yes
   runPersistence: no
   compileGo     : yes
   buildClient   : yes
