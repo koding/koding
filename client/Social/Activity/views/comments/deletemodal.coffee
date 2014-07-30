@@ -21,12 +21,16 @@ class CommentDeleteModal extends KDModalView
 
   submit: ->
 
-    {id} = @getData()
+    { id } = @getData()
+
+    # Emit this event so that
+    # listeners do things without waiting
+    # server response.
+    @emit "DeleteClicked"
+    @buttons.Delete.hideLoader()
+    @hide()
 
     KD.singleton('appManager').tell 'Activity', 'delete', {id}, (err) =>
-
-      @buttons.Delete.hideLoader()
-      @destroy()
 
       if err
         return new KDNotificationView
@@ -34,4 +38,14 @@ class CommentDeleteModal extends KDModalView
           cssClass : 'error editor'
           title    : 'Error, please try again later!'
 
-      @emit "Deleted"
+        # with the emit of this event
+        # we are giving a way to recover
+        # if something goes wrong.
+        @emit "DeleteError"
+        @show()
+
+      # and finally emit this event so that
+      # it is confirmed that it is deleted.
+      @emit "DeleteConfirmed"
+      @destroy()
+

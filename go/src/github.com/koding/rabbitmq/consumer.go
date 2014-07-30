@@ -125,6 +125,8 @@ func (c *Consumer) Consume(handler func(delivery amqp.Delivery)) error {
 	c.deliveries = deliveries
 	c.handler = handler
 
+	c.RabbitMQ.log.Info("handle: deliveries channel starting")
+
 	// handle all consumer errors, if required re-connect
 	// there are problems with reconnection logic for now
 	for delivery := range c.deliveries {
@@ -169,7 +171,12 @@ func (c *Consumer) Shutdown() error {
 	}
 
 	defer c.RabbitMQ.log.Info("Consumer shutdown OK")
-	c.RabbitMQ.log.Info("Waiting for handler to exit")
+	c.RabbitMQ.log.Info("Waiting for Consumer handler to exit")
+
+	// if we have not called the Consume yet, we can return here
+	if c.deliveries == nil {
+		close(c.done)
+	}
 
 	// this channel is here for finishing the consumer's ranges of
 	// delivery chans.  We need every delivery to be processed, here make

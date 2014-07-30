@@ -15,7 +15,12 @@ MINOR=1
 debug?=false
 ifeq ($(debug), true)
 	VERBOSE="-v"
-	DEBUG="-d"
+	DBG="-d" # don't use DEBUG, it's set to `yes`
+endif
+
+metrics?=false
+ifeq ($(metrics), true)
+	METRICS="-m"
 endif
 
 # set config name
@@ -46,46 +51,45 @@ develop: apidev topicfeeddev realtimedev followingfeeddev populartopicdev popula
 default: configure
 
 apidev:
-	@echo $(debug)
-	@echo $(DEBUG)
+	@echo "DBG $(DBG) METRICS ====> $(METRICS)"
 	@echo "$(OK_COLOR)==> Running API Worker $(NO_COLOR)"
-	@$(GOBINDIR)/rerun socialapi/workers/api -c $(CONFIG) $(DEBUG)
+	@$(GOBINDIR)/rerun socialapi/workers/api -c $(CONFIG) $(DBG) $(METRICS)
 topicfeeddev:
 	@echo "$(OK_COLOR)==> Running Topic Feed Worker $(NO_COLOR)"
-	@$(GOBINDIR)/rerun socialapi/workers/topicfeed -c $(CONFIG) $(DEBUG)
+	@$(GOBINDIR)/rerun socialapi/workers/topicfeed -c $(CONFIG) $(DBG) $(METRICS)
 realtimedev:
 	@echo "$(OK_COLOR)==> Running Realtime Worker $(NO_COLOR)"
-	@$(GOBINDIR)/rerun socialapi/workers/realtime -c $(CONFIG) $(DEBUG)
+	@$(GOBINDIR)/rerun socialapi/workers/realtime -c $(CONFIG) $(DBG) $(METRICS)
 followingfeeddev:
 	@echo "$(OK_COLOR)==> Running Following Feed Worker $(NO_COLOR)"
-	@$(GOBINDIR)/rerun socialapi/workers/followingfeed -c $(CONFIG) $(DEBUG)
+	@$(GOBINDIR)/rerun socialapi/workers/followingfeed -c $(CONFIG) $(DBG) $(METRICS)
 populartopicdev:
 	@echo "$(OK_COLOR)==> Running Popular Topics Worker $(NO_COLOR)"
-	@$(GOBINDIR)/rerun socialapi/workers/populartopic -c $(CONFIG) $(DEBUG)
+	@$(GOBINDIR)/rerun socialapi/workers/populartopic -c $(CONFIG) $(DBG) $(METRICS)
 
 pinnedpostdev:
 	@echo "$(OK_COLOR)==> Running PinnedPost Worker $(NO_COLOR)"
-	@$(GOBINDIR)/rerun socialapi/workers/pinnedpost -c $(CONFIG) $(DEBUG)
+	@$(GOBINDIR)/rerun socialapi/workers/pinnedpost -c $(CONFIG) $(DBG) $(METRICS)
 
 notificationdev:
 	@echo "$(OK_COLOR)==> Running Notification Worker $(NO_COLOR)"
-	@$(GOBINDIR)/rerun socialapi/workers/notification -c $(CONFIG) $(DEBUG)
+	@$(GOBINDIR)/rerun socialapi/workers/notification -c $(CONFIG) $(DBG) $(METRICS)
 
 emailnotifierdev:
 	@echo "$(OK_COLOR)==> Running Email Notifier Worker $(NO_COLOR)"
-	@$(GOBINDIR)/rerun socialapi/workers/emailnotifier -c $(CONFIG) $(DEBUG)
+	@$(GOBINDIR)/rerun socialapi/workers/emailnotifier -c $(CONFIG) $(DBG) $(METRICS)
 
 dailyemailnotifierdev:
 	@echo "$(OK_COLOR)==> Running Daily Email Notifier Worker $(NO_COLOR)"
-	@$(GOBINDIR)/rerun socialapi/workers/dailyemailnotifier -c $(CONFIG) $(DEBUG)
+	@$(GOBINDIR)/rerun socialapi/workers/dailyemailnotifier -c $(CONFIG) $(DBG) $(METRICS)
 
 popularpostdev:
 	@echo "$(OK_COLOR)==> Running Popular Posts Worker $(NO_COLOR)"
-	@$(GOBINDIR)/rerun socialapi/workers/popularpost -c $(CONFIG) $(DEBUG)
+	@$(GOBINDIR)/rerun socialapi/workers/popularpost -c $(CONFIG) $(DBG) $(METRICS)
 
 trollmodeldev:
 	@echo "$(OK_COLOR)==> Running Troll Mode Worker $(NO_COLOR)"
-	@$(GOBINDIR)/rerun socialapi/workers/trollmode -c $(CONFIG) $(DEBUG)
+	@$(GOBINDIR)/rerun socialapi/workers/trollmode -c $(CONFIG) $(DBG) $(METRICS)
 
 configuremigration:
 	(vagrant ssh default --command "mongo localhost/koding --eval='db.relationships.update({},{\$$unset:{migrationStatus:0}},{multi:true})'")
@@ -96,33 +100,37 @@ configuremigration:
 
 migrate:
 	@echo "$(OK_COLOR)==> Running Popular Posts Worker $(NO_COLOR)"
-	@$(GOBINDIR)/rerun socialapi/workers/migrator -c $(CONFIG) $(DEBUG)
+	@$(GOBINDIR)/rerun socialapi/workers/migrator -c $(CONFIG) $(DBG) $(METRICS)
 
 sitemapdev: sitemapfeederdev sitemapgeneratordev
 
 sitemapfeederdev:
 	@echo "$(OK_COLOR)==> Running Sitemap Feeder Worker $(NO_COLOR)"
-	@$(GOBINDIR)/rerun socialapi/workers/sitemap/sitemapfeeder -c $(CONFIG) $(DEBUG)
+	@$(GOBINDIR)/rerun socialapi/workers/sitemap/sitemapfeeder -c $(CONFIG) $(DBG) $(METRICS)
 
 sitemapgeneratordev:
 	@echo "$(OK_COLOR)==> Running Sitemap Generator Worker $(NO_COLOR)"
-	@$(GOBINDIR)/rerun socialapi/workers/sitemap/sitemapgenerator -c $(CONFIG) $(DEBUG)
+	@$(GOBINDIR)/rerun socialapi/workers/sitemap/sitemapgenerator -c $(CONFIG) $(DBG) $(METRICS)
 
 sitemapinitdev:
 	@echo "$(OK_COLOR)==> Running Sitemap Initializer Worker $(NO_COLOR)"
-	@$(GOBINDIR)/rerun socialapi/workers/sitemap/sitemapinitializer -c $(CONFIG) $(DEBUG)
+	@$(GOBINDIR)/rerun socialapi/workers/sitemap/sitemapinitializer -c $(CONFIG) $(DBG) $(METRICS)
 
 sitemaprootgeneratordev:
 	@echo "$(OK_COLOR)==> Running Sitemap Root Generator Worker $(NO_COLOR)"
-	@$(GOBINDIR)/rerun socialapi/workers/sitemap/sitemaprootgenerator -c $(CONFIG) $(DEBUG)
+	@$(GOBINDIR)/rerun socialapi/workers/sitemap/sitemaprootgenerator -c $(CONFIG) $(DBG) $(METRICS)
 
 createdb:
 	(vagrant ssh default --command "mongo localhost/koding --eval='db.jAccounts.update({},{\$$unset:{socialApiId:0}},{multi:true})'")
 	(vagrant ssh default --command "mongo localhost/koding --eval='db.jGroups.update({},{\$$unset:{socialApiChannelId:0}},{multi:true})'")
 	(vagrant ssh default --command "/opt/koding/go/src/socialapi/db/sql/definition/create.sh /opt/koding/go/src/socialapi/db/sql")
 
-configure: install installrerun
+configure: install-postgres install installrerun
 	@echo "$(OK_COLOR)==> Configuration is done $(NO_COLOR)"
+
+install-postgres:
+	@echo "$(OK_COLOR)==> Installing postgresql"
+	(vagrant ssh default --command "/opt/koding/go/src/socialapi/db/sql/definition/install.sh")
 
 installrerun:
 	@go get github.com/skelterjohn/rerun
@@ -130,8 +138,6 @@ installrerun:
 
 install:
 	@echo $(CONFIG)
-	@echo "$(OK_COLOR)==> Installing postgresql"
-	(vagrant ssh default --command "/opt/koding/go/src/socialapi/db/sql/definition/install.sh")
 	@echo "$(OK_COLOR)==> Installing all packages $(NO_COLOR)"
 	@go install $(VERBOSE) ${PACKAGES}
 
@@ -147,14 +153,14 @@ testapi:
 	@echo "$(OK_COLOR)==> Running Unit tests $(NO_COLOR)"
 	@echo "$(OK_COLOR)--> model tests... $(NO_COLOR)"
 	@go test -c models/*.go
-	@./models.test $(DEBUG) -c ./config/vagrant.toml
+	@./models.test $(DBG) $(METRICS) -c ./config/vagrant.toml
 	@rm ./models.test
 
 	@echo "$(OK_COLOR)==> Running Integration tests $(NO_COLOR)"
 	@echo "$(OK_COLOR)--> troll mode tests... $(NO_COLOR)"
 	@go test workers/trollmode/tests/*.go
 	@go test -c workers/trollmode/trollmode/*.go
-	@./trollmode.test $(DEBUG) -c ./config/vagrant.toml
+	@./trollmode.test $(DBG) $(METRICS) -c ./config/vagrant.toml
 	@rm  ./trollmode.test
 
 	@echo "$(OK_COLOR)--> api tests... $(NO_COLOR)"
