@@ -140,7 +140,7 @@ func (c *Controller) validNotification(a *notificationmodels.NotificationActivit
 	}
 
 	// do not notify actor for troll activity
-	acc, err := socialmodels.FetchAccountFromCache(a.ActorId)
+	acc, err := socialmodels.FetchAccountById(a.ActorId)
 	if err != nil {
 		c.log.Error("Invalid notification: %s", err)
 		return false
