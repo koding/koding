@@ -189,13 +189,7 @@ func (n *Controller) CreateMentionNotification(reply *socialapimodels.ChannelMes
 			return nil, err
 		}
 
-		notification := models.NewNotification()
-		notification.NotificationContentId = nc.Id
-		notification.AccountId = mentionedUser
-		notification.ActivatedAt = time.Now() // enables notification immediately
-		if err = notification.Upsert(); err != nil {
-			n.log.Error("An error occurred while notifying user %d: %s", reply.AccountId, err.Error())
-		}
+		n.instantNotify(nc.Id, reply.AccountId)
 	}
 
 	return mentionedUserIds, nil
@@ -203,6 +197,14 @@ func (n *Controller) CreateMentionNotification(reply *socialapimodels.ChannelMes
 
 func (n *Controller) notify(contentId, notifierId int64) {
 	notification := buildNotification(contentId, notifierId, time.Now())
+	if err := notification.Upsert(); err != nil {
+		n.log.Error("An error occurred while notifying user %d: %s", notification.AccountId, err.Error())
+	}
+}
+
+func (n *Controller) instantNotify(contentId, notifierId int64) {
+	notification := buildNotification(contentId, notifierId, time.Now())
+	notification.ActivatedAt = time.Now()
 	if err := notification.Upsert(); err != nil {
 		n.log.Error("An error occurred while notifying user %d: %s", notification.AccountId, err.Error())
 	}
