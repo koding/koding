@@ -1,6 +1,7 @@
 package koding
 
 import (
+	"koding/db/models"
 	"time"
 
 	"github.com/koding/kloud/machinestate"
@@ -20,10 +21,12 @@ type Machine struct {
 		State      string    `bson:"state"`
 		ModifiedAt time.Time `bson:"modifiedAt"`
 	} `bson:"status"`
-	Provider   string    `bson:"provider"`
-	Credential string    `bson:"credential"`
-	CreatedAt  time.Time `bson:"createdAt"`
-	Meta       bson.M    `bson:"meta"`
+	Provider   string               `bson:"provider"`
+	Credential string               `bson:"credential"`
+	CreatedAt  time.Time            `bson:"createdAt"`
+	Meta       bson.M               `bson:"meta"`
+	Users      []models.Permissions `bson:"users"`
+	Groups     []models.Permissions `bson:"groups"`
 }
 
 func (m *Machine) State() machinestate.State {

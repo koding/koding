@@ -7,8 +7,9 @@ import (
 
 // TODO split it into Lock and Storage (asignee should be seperated)
 type Storage interface {
-	// Get returns the machine data associated with the given id
-	Get(id string) (*protocol.Machine, error)
+	// Get returns the machine data associated with the given id from the
+	// username
+	Get(id, username string) (*protocol.Machine, error)
 
 	// Update updates the fields in the data for the given id
 	Update(id string, data *StorageData) error
