@@ -154,8 +154,8 @@ func (n *Controller) HandleMessageList(cml *socialapimodels.ChannelMessageList) 
 	// fetch participants
 	cp := socialapimodels.NewChannelParticipant()
 	cp.ChannelId = c.Id
-	// TODO delete this magic number
-	participantIds, err := cp.ListAccountIds(1000)
+
+	participantIds, err := cp.ListAccountIds(0)
 	if err != nil {
 		return err
 	}
