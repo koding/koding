@@ -28,6 +28,7 @@ const (
 	NotificationContent_TYPE_LIKE    = "like"
 	NotificationContent_TYPE_COMMENT = "comment"
 	NotificationContent_TYPE_MENTION = "mention"
+	NotificationContent_TYPE_PM      = "pm"
 )
 
 func NewNotificationContent() *NotificationContent {
@@ -140,6 +141,8 @@ func CreateNotificationContentType(notificationType string) (Notifiable, error) 
 		return NewReplyNotification(), nil
 	case NotificationContent_TYPE_MENTION:
 		return NewMentionNotification(), nil
+	case NotificationContent_TYPE_PM:
+		return NewPMNotification(), nil
 	default:
 		return nil, errors.New("undefined notification type")
 	}

@@ -19,6 +19,7 @@ var emailConfig = map[string]string{
 	notificationmodels.NotificationContent_TYPE_COMMENT: "comment",
 	notificationmodels.NotificationContent_TYPE_LIKE:    "likeActivities",
 	notificationmodels.NotificationContent_TYPE_MENTION: "mention",
+	notificationmodels.NotificationContent_TYPE_PM:      "privateMessage",
 }
 
 const (
@@ -221,6 +222,8 @@ func checkMailSettings(nc *notificationmodels.NotificationContent, uc *models.Us
 		return uc.EmailSettings.Like
 	case notificationmodels.NotificationContent_TYPE_MENTION:
 		return uc.EmailSettings.Mention
+	case notificationmodels.NotificationContent_TYPE_PM:
+		return uc.EmailSettings.PrivateMessage
 	}
 
 	return false
