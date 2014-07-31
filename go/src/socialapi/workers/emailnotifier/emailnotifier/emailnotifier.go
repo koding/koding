@@ -131,7 +131,7 @@ func prepareSubject(mc *models.MailerContainer) string {
 		return ""
 	}
 
-	return t.GetDefinition()
+	return fmt.Sprintf("You have a new %s", t.GetDefinition())
 }
 
 func (c *Controller) validNotification(a *notificationmodels.NotificationActivity, n *notificationmodels.Notification) bool {
