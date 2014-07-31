@@ -184,6 +184,10 @@ func (n *Controller) HandleMessageList(cml *socialapimodels.ChannelMessageList) 
 
 // MentionNotification creates mention notifications for the related channel messages
 func (n *Controller) MentionNotification(cm *socialapimodels.ChannelMessage) error {
+	if cm.TypeConstant != socialapimodels.ChannelMessage_TYPE_POST {
+		return nil
+	}
+
 	mentionedUsers, err := n.CreateMentionNotification(cm)
 	if err != nil {
 		return err
