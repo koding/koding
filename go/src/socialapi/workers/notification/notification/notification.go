@@ -135,9 +135,55 @@ func subscription(cml *socialapimodels.ChannelMessageList, typeConstant string) 
 	return nil
 }
 
+func (n *Controller) HandleMessageList(cml *socialapimodels.ChannelMessageList) error {
+	c := socialapimodels.NewChannel()
+	if err := c.ById(cml.ChannelId); err != nil {
+		return err
+	}
+
+	if c.TypeConstant != socialapimodels.Channel_TYPE_PRIVATE_MESSAGE {
+		return nil
+	}
+	cm := socialapimodels.NewChannelMessage()
+	if err := cm.ById(cml.MessageId); err != nil {
+		return err
+	}
+	// TODO delete this sleep, the reason is participants are created after channel
+	// message list !!!
+	time.Sleep(3 * time.Second)
+	// fetch participants
+	cp := socialapimodels.NewChannelParticipant()
+	cp.ChannelId = c.Id
+	// TODO delete this magic number
+	participantIds, err := cp.ListAccountIds(1000)
+	if err != nil {
+		return err
+	}
+
+	if len(participantIds) == 0 {
+		n.log.Warning("Private channel participant count cannot be 0")
 		return nil
 	}
 
+	pn := models.NewPMNotification()
+	pn.TargetId = cm.Id
+	pn.NotifierId = cm.AccountId
+	nc, err := models.CreateNotificationContent(pn)
+	if err != nil {
+		return err
+	}
+
+	for _, participant := range participantIds {
+		if cm.AccountId != participant {
+			n.instantNotify(nc.Id, participant)
+		}
+	}
+
+	return nil
+}
+
+// MentionNotification creates mention notifications for the related channel messages
+func (n *Controller) MentionNotification(cm *socialapimodels.ChannelMessage) error {
 	mentionedUsers, err := n.CreateMentionNotification(cm)
 	if err != nil {
 		return err
