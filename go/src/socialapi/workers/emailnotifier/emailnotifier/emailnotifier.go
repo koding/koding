@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"socialapi/config"
+	socialmodels "socialapi/models"
 	"socialapi/workers/emailnotifier/models"
 	"socialapi/workers/helper"
 	notificationmodels "socialapi/workers/notification/models"
@@ -68,7 +69,7 @@ func (n *Controller) SendInstantEmail(notification *notificationmodels.Notificat
 		return err
 	}
 
-	if !validNotification(activity, notification) {
+	if !n.validNotification(activity, notification) {
 		return nil
 	}
 
@@ -132,13 +133,22 @@ func prepareSubject(mc *models.MailerContainer) string {
 	return t.GetDefinition()
 }
 
-func validNotification(a *notificationmodels.NotificationActivity, n *notificationmodels.Notification) bool {
+func (c *Controller) validNotification(a *notificationmodels.NotificationActivity, n *notificationmodels.Notification) bool {
 	// do not notify actor for her own action
 	if a.ActorId == n.AccountId {
 		return false
 	}
 
 	// do not notify actor for troll activity
+	acc, err := socialmodels.FetchAccountById(a.ActorId)
+	if err != nil {
+		c.log.Error("Invalid notification: %s", err)
+		return false
+	}
+
+	if acc.IsTroll {
+		return false
+	}
 
 	// do not notify user when notification is not yet activated
 	return !n.ActivatedAt.IsZero()
