@@ -13,6 +13,7 @@ Connection = require "ssh2"
 fs         = require 'fs'
 semver     = require 'semver'
 {exec}     = require 'child_process'
+request    = require 'request'
 ec2        = new AWS.EC2()
 elb        = new AWS.ELB()
 class Deploy
@@ -194,31 +195,16 @@ class Deploy
       deployStart = new Date()
       {conn} = result
 
+      KONFIG = require("./config/main.prod.coffee")
+        hostname : result.instanceName
+        tag      : options.tag
+
       options.buildScript = """
         echo '#{new Buffer(KONFIG.runFile).toString('base64')}' | base64 --decode > /tmp/run.sh;
         sudo bash /tmp/run.sh configure;
         sudo bash /tmp/run.sh install;
         sudo bash /opt/koding/run services;
         sudo service supervisor restart
-        echo "starting services..."
-        sleep 15
-        echo testing webserver
-
-        curl localhost:3000 | grep koding.com
-        curl #{res.instanceData.PublicIpAddress}/ | grep koding.com
-
-        echo testing social
-        curl localhost:3030
-        curl #{res.instanceData.PublicIpAddress}/social
-
-        echo testing broker
-        curl localhost:8008
-        curl #{res.instanceData.PublicIpAddress}/subscribe
-
-        echo testing kloud
-        curl localhost:5500
-        curl #{res.instanceData.PublicIpAddress}/kloud
-        \n
         """
 
 
@@ -234,6 +220,27 @@ class Deploy
           log "Deployment of #{result.instanceName} took: "+timethat.calc deployStart,new Date()
           conn.end()
           callback null, result
+
+  @deployTest = (options,callback)->
+
+    i = 0
+    result = []
+    options.forEach (option) ->
+
+      {target, url, expectString} = option
+      __start = new Date()
+      request "#{url}",(err,res,body)->
+        i++
+        __end = timethat.calc __start,new Date()
+
+        if not err and body.indexOf expectString > -1
+          result.push "[ TEST  PASSED #{__end} ] #{target}"
+        else result.push "[ TEST #FAILED #{__end} ] #{target}"
+
+        callback null, result if i is options.length
+
+
+
 
 # module.exports = Deploy
 
@@ -335,8 +342,9 @@ if argv.deploy
   tags = exec "git fetch --tags && git tag",(a,b,c)->
     version = b.split('\n')
     version = version.slice(-2)[0]
-    #log version,arguments
+
     version = "v1.5.0" if version is ""
+    log "current version is #{version}"
     options =
       boxes       : argv.boxes          or 5
       boxtype     : argv.boxtype        or "t2.medium"
@@ -351,26 +359,17 @@ if argv.deploy
     exec "git tag 'v#{options.version}' && git push --tags",(err,stdout,stderr)->
 
       if options.target is "singlebox"
-        KONFIG = require("./config/main.prod.coffee")
-          hostname : result.instanceName
-          tag      : options.tag
 
-        cmd = """
+        buildScript = (options={}) ->
+          {IP} = options
+          """
           echo '#{new Buffer(KONFIG.runFile).toString('base64')}' | base64 --decode > /tmp/run.sh;
           sudo bash /tmp/run.sh configure;
           sudo bash /tmp/run.sh install;
           sudo bash /opt/koding/run services;
           sudo service supervisor restart
-          echo "starting services..."
+          echo "starting services... (give it 15 secs)"
           sleep 15
-          echo testing webserver
-          curl localhost:3000 |
-
-          curl localhost:3030
-
-          curl localhost:8008
-
-          curl localhost:5500
           \n
           """
 
@@ -387,15 +386,42 @@ if argv.deploy
           configName      : "singlebox"
           environment     : "singlebox"
           tag             : "v#{options.version}"
-          buildScript     : cmd
+          buildScript     : buildScript
 
 
         Deploy.deployAndConfigure options,(err,res)->
-          log "#{res.instanceName} is ready."
-          log "Box is ready at mosh root@#{res.instanceData.PublicIpAddress}"
+          IP = res.instanceData.PublicIpAddress
+          Deploy.deployTest [
+              {url : "http://#{IP}:3000/"          , target: "webserver"          , expectString: "UA-6520910-8"}
+              {url : "http://#{IP}:3030/xhr"       , target: "socialworker"       , expectString: "Cannot GET"}
+              {url : "http://#{IP}:8008/subscribe" , target: "broker"             , expectString: "Cannot GET"}
+              {url : "http://#{IP}:5500/kite"      , target: "kloud"              , expectString: "Welcome"}
+              {url : "http://#{IP}/"               , target: "webserver-nginx"    , expectString: "UA-6520910-8"}
+              {url : "http://#{IP}/xhr"            , target: "socialworker-nginx" , expectString: "Cannot GET"}
+              {url : "http://#{IP}/subscribe"      , target: "broker-nginx"       , expectString: "Cannot GET"}
+              {url : "http://#{IP}/kloud/kite"     , target: "kloud-nginx"        , expectString: "Welcome"}
+            ]
+          ,(err,test_res)->
+            log val for val in test_res
 
 
 
+            log "#{res.instanceName} is ready."
+            log "Box is ready at mosh root@#{res.instanceData.PublicIpAddress}"
 
 
+# Deploy.deployTest [
+#   {url : "http://54.210.129.96:3000/"           , target: "webserver"          , expectString: "UA-6520910-8"}
+#   {url : "http://54.210.129.96:3030/xhr"        , target: "socialworker"       , expectString: "Cannot GET"}
+#   {url : "http://54.210.129.96:8080/subscribe"  , target: "broker"             , expectString: "Cannot GET"}
+#   {url : "http://54.210.129.96:5500/kite"       , target: "kloud"              , expectString: "Welcome"}
+#   {url : "http://54.210.129.96/"                , target: "webserver-nginx"    , expectString: "UA-6520910-8"}
+#   {url : "http://54.210.129.96/xhr"             , target: "socialworker-nginx" , expectString: "Cannot GET"}
+#   {url : "http://54.210.129.96/subscribe"       , target: "broker-nginx"       , expectString: "Cannot GET"}
+#   {url : "http://54.210.129.96/kloud/kite"      , target: "kloud-nginx"        , expectString: "Welcome"}
+# ]
+# ,(err,test_res)->
+#   log test_res
 
+
+log semver.inc("1.5.10","patch")

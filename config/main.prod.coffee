@@ -194,7 +194,7 @@ Configuration = (options={}) ->
 
     authworker          : command : "coffee #{projectRoot}/workers/auth/lib/auth/main.coffee      -c #{configName}"
     socialworker        : command : "coffee #{projectRoot}/workers/social/lib/social/main.coffee  -c #{configName} -p #{KONFIG.social.port}      -r #{region} --disable-newrelic --kite-port=13020"
-    sourcemaps          : command : "coffee #{projectRoot}/servers/lib/source-server/main.coffee  -c #{configName} -p #{KONFIG.sourcemaps.port}"
+    sourcemaps          : command : "coffee #{projectRoot}/servers/sourcemaps/main.coffee         -c #{configName} -p #{KONFIG.sourcemaps.port}"
     emailsender         : command : "coffee #{projectRoot}/workers/emailsender/main.coffee        -c #{configName}"
     webserver           : command : "coffee #{projectRoot}/servers/lib/server/index.coffee        -c #{configName} -p #{KONFIG.webserver.port}   --disable-newrelic"
 
@@ -444,7 +444,7 @@ Configuration = (options={}) ->
       elif [ "$1" == "configure" ]; then
 
         echo '#--> this is a production machine, we will first configure it @devrim <--#'
-
+        echo '127.0.0.1 #{hostname}' >> /etc/hosts
         echo #{hostname} >/etc/hostname
         hostname #{hostname}
         echo '#-adding keys..-#'
@@ -499,7 +499,7 @@ Configuration = (options={}) ->
         npm i --unsafe-perm
 
         chmod +x ./build-client.coffee
-        /usr/local/bin/coffee /opt/koding/build-client.coffee --watch false  --verbose
+        /usr/local/bin/coffee /opt/koding/build-client.coffee --watch false
 
         cp /tmp/run.sh #{projectRoot}/run
         chmod +x #{projectRoot}/run
@@ -511,16 +511,16 @@ Configuration = (options={}) ->
         cd #{projectRoot}/go/src/socialapi
         make install
 
-        echo '#---> AUTHORIZING THIS COMPUTER WITH MATCHING KITE.KEY (@farslan) <---#'
-        mkdir $HOME/.kite
-        echo copying #{KONFIG.newkites.keyFile} to $HOME/.kite/kite.key
-        cp #{KONFIG.newkites.keyFile} $HOME/.kite/kite.key
 
         echo '#---> BUILDING BROKER-CLIENT @chris <---#'
         echo "building koding-broker-client."
         cd #{projectRoot}/node_modules_koding/koding-broker-client
         cake build
 
+        echo '#---> AUTHORIZING THIS COMPUTER WITH MATCHING KITE.KEY (@farslan) <---#'
+        mkdir $HOME/.kite
+        echo copying #{KONFIG.newkites.keyFile} to $HOME/.kite/kite.key
+        cp #{KONFIG.newkites.keyFile} $HOME/.kite/kite.key
 
 
 
