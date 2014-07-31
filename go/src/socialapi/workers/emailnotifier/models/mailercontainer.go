@@ -37,21 +37,17 @@ func (mc *MailerContainer) PrepareContainer() error {
 		return err
 	}
 
-	// if notification target is related with an object (comment/status update)
-	if mc.containsObject() {
-		// TODO keep target retrieval out of models
-		target := socialmodels.NewChannelMessage()
-		if err := target.ById(mc.Content.TargetId); err != nil {
-			return fmt.Errorf("target message not found")
-		}
-
-		mc.prepareGroup(target)
-		mc.prepareSlug(target)
-		mc.prepareObjectType(target)
-		mc.Message = mc.fetchContentBody(target)
-		contentType.SetActorId(target.AccountId)
-		contentType.SetListerId(mc.AccountId)
+	target := socialmodels.NewChannelMessage()
+	if err := target.ById(mc.Content.TargetId); err != nil {
+		return fmt.Errorf("target message not found")
 	}
+
+	mc.prepareGroup(target)
+	mc.prepareSlug(target)
+	mc.prepareObjectType(target)
+	mc.Message = mc.fetchContentBody(target)
+	contentType.SetActorId(target.AccountId)
+	contentType.SetListerId(mc.AccountId)
 
 	mc.ActivityMessage = contentType.GetActivity()
 
@@ -70,12 +66,6 @@ func (mc *MailerContainer) validateContainer() error {
 	}
 
 	return nil
-}
-
-func (mc *MailerContainer) containsObject() bool {
-	return mc.Content.TypeConstant == models.NotificationContent_TYPE_LIKE ||
-		mc.Content.TypeConstant == models.NotificationContent_TYPE_MENTION ||
-		mc.Content.TypeConstant == models.NotificationContent_TYPE_COMMENT
 }
 
 func (mc *MailerContainer) prepareGroup(cm *socialmodels.ChannelMessage) {
