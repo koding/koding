@@ -93,7 +93,7 @@ func (n *Controller) CreateReplyNotification(mr *socialapimodels.MessageReply) e
 		if recipient == rn.NotifierId {
 			notifierSubscribed = true
 		}
-		n.notify(nc.Id, recipient, subscribedAt)
+		n.notify(nc.Id, recipient)
 	}
 
 	// if not subcribed, subscribe the actor to message
@@ -104,13 +104,9 @@ func (n *Controller) CreateReplyNotification(mr *socialapimodels.MessageReply) e
 	return nil
 }
 
-func (n *Controller) UnsubscribeMessage(data *socialapimodels.ChannelMessageList) error {
-	return subscription(data, NOTIFICATION_TYPE_UNSUBSCRIBE)
-}
-
-func (n *Controller) SubscribeMessage(data *socialapimodels.ChannelMessageList) error {
-	return subscription(data, NOTIFICATION_TYPE_SUBSCRIBE)
-}
+// func (n *Controller) UnsubscribeMessage(data *socialapimodels.ChannelMessageList) error {
+// 	return subscription(data, NOTIFICATION_TYPE_UNSUBSCRIBE)
+// }
 
 func subscription(cml *socialapimodels.ChannelMessageList, typeConstant string) error {
 	c := socialapimodels.NewChannel()
@@ -139,11 +135,6 @@ func subscription(cml *socialapimodels.ChannelMessageList, typeConstant string) 
 	return nil
 }
 
-// MentionNotification creates mention notifications for the related channel messages
-func (n *Controller) MentionNotification(cm *socialapimodels.ChannelMessage) error {
-	// Since the type of private channel messages is Private_Message,
-	// we did not need to add another "is channel private" check
-	if cm.TypeConstant != socialapimodels.ChannelMessage_TYPE_POST {
 		return nil
 	}
 
@@ -166,7 +157,7 @@ func (n *Controller) MentionNotification(cm *socialapimodels.ChannelMessage) err
 	}
 
 	for _, recipient := range mentionedUsers {
-		n.notify(nc.Id, recipient, time.Now())
+		n.notify(nc.Id, recipient)
 	}
 
 	return nil
@@ -210,8 +201,8 @@ func (n *Controller) CreateMentionNotification(reply *socialapimodels.ChannelMes
 	return mentionedUserIds, nil
 }
 
-func (n *Controller) notify(contentId, notifierId int64, subscribedAt time.Time) {
-	notification := buildNotification(contentId, notifierId, subscribedAt)
+func (n *Controller) notify(contentId, notifierId int64) {
+	notification := buildNotification(contentId, notifierId, time.Now())
 	if err := notification.Upsert(); err != nil {
 		n.log.Error("An error occurred while notifying user %d: %s", notification.AccountId, err.Error())
 	}
