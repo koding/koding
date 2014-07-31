@@ -90,31 +90,33 @@ func (k *Kloud) ControlFunc(control controlFunc) kite.Handler {
 			return nil, err
 		}
 
-		k.Log.Info("[controller] got a request for method: '%s' with args: %+v", r.Method, args)
+		k.Log.Info("[controller] request for method: '%s' with id: %+v", r.Method, args.MachineId)
 
 		if args.MachineId == "" {
 			return nil, NewError(ErrMachineIdMissing)
 		}
 
-		// Get all the data we need. It also sets the assignee for the given
-		// machine id. Assignee means this kloud instance is now responsible
-		// for this machine. Its basically a distributed lock. Assignee gets
-		// reseted when there is an error or if the method call is finished.
-		machine, err := k.Storage.Get(args.MachineId)
-		if err != nil {
-			return nil, err
-		}
-		// if something goes wrong reset the assigne which was set in previous
-		// step by Storage.Get(). If not Assignee is reseted in ControlFunc
-		// wrapper.
+		// if something goes wrong reset the assigne which is going to be set
+		// in the next step by Storage.Get(). If there is no error, Assignee is
+		// going to be reseted in ControlFunc wrapper.
 		defer func() {
 			if err != nil {
 				k.Storage.ResetAssignee(args.MachineId)
 			}
 		}()
 
-		// check if there is any value from a previous handler (we injected
-		// them), and them to our machine.Meta data, like deployment variables
+		// Get all the data we need. It also sets the assignee for the given
+		// machine id. Assignee means this kloud instance is now responsible
+		// for this machine. Its basically a distributed lock. Assignee gets
+		// reseted when there is an error or if the method call is finished.
+		machine, err := k.Storage.Get(args.MachineId, r.Username)
+		if err != nil {
+			return nil, err
+		}
+
+		// check if there is any value (like deployment variables) from a
+		// previous handler (we injected them), dd  them to our machine.Meta
+		// data
 		if data, err := r.Context.Get("deployData"); err == nil {
 			m := data.(map[string]interface{})
 			for k, v := range m {

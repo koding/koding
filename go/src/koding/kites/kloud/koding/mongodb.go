@@ -2,6 +2,7 @@ package koding
 
 import (
 	"fmt"
+	"koding/db/models"
 	"time"
 
 	"github.com/koding/kloud"
@@ -16,7 +17,7 @@ import (
 func (p *Provider) Assignee() string { return p.AssigneeName }
 
 // Get returns the meta of the associated credential with the given machine id.
-func (p *Provider) Get(id string) (*protocol.Machine, error) {
+func (p *Provider) Get(id, username string) (*protocol.Machine, error) {
 	if !bson.IsObjectIdHex(id) {
 		return nil, fmt.Errorf("Invalid machine id: %q", id)
 	}
@@ -97,6 +98,11 @@ func (p *Provider) Get(id string) (*protocol.Machine, error) {
 		return nil, kloud.NewError(kloud.ErrBadState)
 	}
 
+	// check for user permissions
+	if err := p.checkUser(username, machine.Users); err != nil {
+		return nil, err
+	}
+
 	credential := &Credential{}
 	// we neglect errors because credential is optional
 	p.Session.Run("jCredentialDatas", func(c *mgo.Collection) error {
@@ -110,6 +116,30 @@ func (p *Provider) Get(id string) (*protocol.Machine, error) {
 		Credential: credential.Meta,
 		State:      machine.State(),
 	}, nil
+}
+
+func (p *Provider) checkUser(username string, users []models.Permissions) error {
+	var user *models.User
+	err := p.Session.Run("jUsers", func(c *mgo.Collection) error {
+		return c.Find(bson.M{"username": username}).One(&user)
+	})
+
+	if err == mgo.ErrNotFound {
+		return fmt.Errorf("permission denied. username not found: %s", username)
+	}
+
+	if err != nil {
+		return fmt.Errorf("permission denied. username lookup error: %v", err)
+	}
+
+	// check if the incoming user is in the list of permitted user list
+	for _, u := range users {
+		if user.ObjectId == u.Id {
+			return nil // ok he/she is good to go!
+		}
+	}
+
+	return fmt.Errorf("permission denied. user %s is not in the list of permitted users", username)
 }
 
 func (p *Provider) Update(id string, s *kloud.StorageData) error {

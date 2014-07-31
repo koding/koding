@@ -254,7 +254,7 @@ func (p *Provider) Report(r *kite.Request) (interface{}, error) {
 		return nil, errors.New("can't update report - 1")
 	}
 
-	machine, err := p.Get(m.Id.Hex())
+	machine, err := p.Get(m.Id.Hex(), r.Username)
 	if err != nil {
 		return nil, err
 	}
