@@ -153,6 +153,15 @@ func (n *NotificationContent) GetContentType() (Notifiable, error) {
 	return CreateNotificationContentType(n.TypeConstant)
 }
 
+func (n *NotificationContent) GetDefinition() string {
+	nt, err := CreateNotificationContentType(n.TypeConstant)
+	if err != nil {
+		return ""
+	}
+
+	return nt.GetDefinition()
+}
+
 func (nc *NotificationContent) AfterCreate() {
 	bongo.B.AfterCreate(nc)
 }
