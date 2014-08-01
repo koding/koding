@@ -341,7 +341,7 @@ func (f *Controller) MessageListSaved(cml *models.ChannelMessageList) error {
 		return err
 	}
 
-	if err := f.sendChannelEvent(cml, "MessageAdded"); err != nil {
+	if err := f.sendChannelEvent(cml, cm, "MessageAdded"); err != nil {
 		return err
 	}
 
@@ -473,7 +473,9 @@ func (f *Controller) MessageListDeleted(cml *models.ChannelMessageList) error {
 	}
 
 	cm := models.NewChannelMessage()
-	if err := cm.ById(cml.MessageId); err != nil {
+	// When a message is removed, deleted message is not found
+	// via regular ById method
+	if err := cm.UnscopedById(cml.MessageId); err != nil {
 		return err
 	}
 
@@ -494,7 +496,7 @@ func (f *Controller) MessageListDeleted(cml *models.ChannelMessageList) error {
 
 	// f.sendNotification(cp.AccountId, ChannelUpdateEventName, cue)
 
-	if err := f.sendChannelEvent(cml, "MessageRemoved"); err != nil {
+	if err := f.sendChannelEvent(cml, cm, "MessageRemoved"); err != nil {
 		return err
 	}
 
@@ -577,12 +579,7 @@ func (f *Controller) sendInstanceEvent(instanceToken string, message interface{}
 	)
 }
 
-func (f *Controller) sendChannelEvent(cml *models.ChannelMessageList, eventName string) error {
-	cm := models.NewChannelMessage()
-	if err := cm.ById(cml.MessageId); err != nil {
-		return err
-	}
-
+func (f *Controller) sendChannelEvent(cml *models.ChannelMessageList, cm *models.ChannelMessage, eventName string) error {
 	cmc, err := cm.BuildEmptyMessageContainer()
 	if err != nil {
 		return err
