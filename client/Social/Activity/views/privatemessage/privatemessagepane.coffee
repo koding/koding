@@ -105,6 +105,23 @@ class PrivateMessagePane extends MessagePane
 
   hasSameOwner = (a, b) -> a.getData().account._id is b.getData().account._id
 
+  listPreviousReplies: (event) ->
+
+    @listController.showLazyLoader()
+
+    {appManager} = KD.singletons
+    first         = @listController.getItemsOrdered().first
+    return  unless first
+
+    from         = first.getData().meta.createdAt.toISOString()
+
+    @fetch {from, limit: 10}, (err, items = []) =>
+      @listController.hideLazyLoader()
+
+      return KD.showError err  if err
+
+      items.forEach @lazyBound 'loadMessage'
+
   privateMessageAdded: (item, index) ->
     @scrollDown()
     {data} = item
@@ -137,3 +154,11 @@ class PrivateMessagePane extends MessagePane
       else nextSibling.unsetClass 'consequent'
     else if nextSibling
       nextSibling.unsetClass 'consequent'
+
+  fetch: (options = {}, callback) ->
+    options.limit or= 3
+    super options, (err, data) =>
+      channel = @getData()
+      channel.replies = data
+      @listPreviousLink.updateView data
+      callback err, data
