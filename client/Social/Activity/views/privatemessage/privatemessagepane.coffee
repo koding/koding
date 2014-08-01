@@ -48,15 +48,11 @@ class PrivateMessagePane extends MessagePane
   addMessage: (message) ->
     return  if @messageMap[message.id]
 
-    {lastToFirst} = @getOptions()
-    index = if lastToFirst then @listController.getItemCount() else 0
     @messageMap[message.id] = yes
-    @prependMessage message, index
+    @prependMessage message, @listController.getItemCount()
 
 
-  loadMessage: (message) ->
-    index = if @lastToFirst then 0 else @listController.getItemCount()
-    @appendMessage message, index
+  loadMessage: (message) -> @appendMessage message, 0
 
 
   viewAppended: ->
