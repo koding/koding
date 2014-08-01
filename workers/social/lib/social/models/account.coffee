@@ -54,8 +54,6 @@ module.exports = class JAccount extends jraphical.Module
         # { name: 'updateInstance' }
         { name: 'notification' }
         { name : "RemovedFromCollection" }
-        { name : "markedAsExempt" }
-
       ]
     sharedMethods :
       static:
@@ -774,8 +772,7 @@ module.exports = class JAccount extends jraphical.Module
           console.error 'Could not update user exempt information'
           return callback err
         @isExempt = exempt
-        JAccount.bongos.forEach (bongo) => bongo.handleEvent "instance", @, "updateInstance", op
-        @emit "markedAsExempt", @
+        JAccount.bongos.forEach (bongo) => bongo.handleEvent "instance", @, "updateInstance", [op]
         callback null, result
 
   markUserAsExemptInSocialAPI: (client, exempt, callback)->
