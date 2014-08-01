@@ -99,6 +99,7 @@ module.exports = [
   "views/privatemessage/privatemessagepane.coffee"
   "views/privatemessage/privatemessagerecipientmodal.coffee"
   "views/privatemessage/replypreviouslink.coffee"
+  "views/privatemessage/replyinputview.coffee"
   "views/privatemessage/replyinputwidget.coffee"
 
   "styl/activity.styl"
