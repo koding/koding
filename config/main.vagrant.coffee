@@ -144,6 +144,9 @@ module.exports =
     staticFilesBaseUrl: 'http://lvh.me:3020'
     runtimeOptions:
       kites: require './kites.coffee'
+      algolia:
+        appId: '8KD9RHY1OA'
+        apiKey: 'e4a8ebe91bf848b67c9ac31a6178c64b'
       osKitePollingMs: 1000 * 60 # 1 min
       userIdleMs: 1000 * 60 * 5  # 5 min
       sessionCookie :
