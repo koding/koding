@@ -8,6 +8,7 @@ class ActivityListItemView extends KDListItemView
     options.cssClass           = KD.utils.curry 'activity-item status', options.cssClass
     options.commentViewClass or= CommentView
     options.commentSettings  or= {}
+    options.activitySettings or= {}
 
     super options, data
 
@@ -26,7 +27,7 @@ class ActivityListItemView extends KDListItemView
 
     @author      = new ProfileLinkView { origin }
 
-    {commentViewClass} = @getOptions()
+    {commentViewClass, activitySettings:{disableFollow}} = @getOptions()
 
     @commentBox = new commentViewClass options.commentSettings, data
     @actionLinks = new ActivityActionsView delegate: @commentBox, data
@@ -34,8 +35,9 @@ class ActivityListItemView extends KDListItemView
     @commentBox.forwardEvent @actionLinks, "Reply"
 
     @settingsButton = new ActivitySettingsView
-      cssClass : 'settings-menu-wrapper'
-      itemView : this
+      cssClass      : 'settings-menu-wrapper'
+      itemView      : this
+      disableFollow : disableFollow
     , data
 
     @settingsButton.on 'ActivityIsDeleted',     @bound 'delete'

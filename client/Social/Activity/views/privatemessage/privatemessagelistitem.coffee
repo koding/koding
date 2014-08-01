@@ -7,6 +7,9 @@ class PrivateMessageListItemView extends ActivityListItemView
     options.commentSettings    = {}
     {commentSettings}          = options
     commentSettings.channelId  = options.channelId
+    options.activitySettings   = {}
+    {activitySettings}         = options
+    activitySettings.disableFollow ?= yes
 
     super options, data
 
