@@ -5,15 +5,15 @@ class PrivateMessagePane extends MessagePane
     options.wrapper     ?= yes
     options.lastToFirst ?= yes
 
-
     super options, data
 
-    # @listPreviousLink.destroy()
-    # @listPreviousLink = new CommentListPreviousLink
-    #   delegate : @controller
-    #   # click    : @bound 'listPreviousReplies'
-    #   linkCopy : 'Show previous replies'
-    # , data
+    channel = @getData()
+
+    @listPreviousLink = new ReplyPreviousLink
+      delegate : @listController
+      click    : @bound 'listPreviousReplies'
+      linkCopy : 'Show previous replies'
+    , channel
 
     # To keep track of who are the shown participants
     # This way we are preventing to be duplicates
@@ -25,12 +25,11 @@ class PrivateMessagePane extends MessagePane
 
     @createParticipantsView()
 
-    channel = @getData()
-
     @input = new ReplyInputWidget {channel}
 
     @listController.getListView().on 'ItemWasAdded', @bound 'privateMessageAdded'
     @listController.getListView().on 'ItemWasRemoved', @bound 'privateMessageRemoved'
+
 
 
   bindChannelEvents: ->
@@ -61,8 +60,8 @@ class PrivateMessagePane extends MessagePane
 
 
   viewAppended: ->
-
     @addSubView @participantsView
+    @addSubView @listPreviousLink
     @addSubView @listController.getView()
     @addSubView @input  if @input
     @populate()
