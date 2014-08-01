@@ -2,7 +2,8 @@ class ReplyInputWidget extends ActivityInputWidget
 
   constructor: (options = {}, data) ->
 
-    options.placeholder or= "Type your reply and hit enter..."
+    options.placeholder    or= "Type your reply and hit enter..."
+    options.inputViewClass or= ReplyInputView
 
     super options, data
     @setClass "reply-input-widget"
