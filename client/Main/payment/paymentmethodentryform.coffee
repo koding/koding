@@ -118,11 +118,11 @@ class PaymentMethodEntryForm extends KDFormViewWithFields
           notifications   : yes
           event           : 'blur'
           rules           :
-            regExp        : /^[\d-]+$/
+            regExp        : /^$|^[A-Za-z\d]+(?:[-|\s][A-Za-z\d]+)?$/
             maxLength     : 10
           messages        :
             maxLength     : 'Zipcode should be less than 10 digits long!'
-            regExp        : 'Zipcode must be a number!'
+            regExp        : 'Not a valid zipcode'
       cardCountry         :
         placeholder       : 'Country'
         validate          :
