@@ -37,9 +37,7 @@ class ActivitySettingsView extends KDCustomHTMLView
 
     @addMenuItem title, ->
       messageId = post.getId()
-      fn {messageId}, (err)->
-        return KD.showError err  if err
-        post.isFollowed = not post.isFollowed
+      fn {messageId}, (err)-> return KD.showError err  if err
 
 
     return @menu
@@ -74,11 +72,6 @@ class ActivitySettingsView extends KDCustomHTMLView
         activityController.emit "ActivityItemBlockUserClicked", post.account._id
       @addMenuItem 'Impersonate', ->
         KD.impersonate owner.profile.nickname
-
-      # TODO since system tag is not implemented for new social menu item is regressed
-      # @addMenuItem 'Add System Tag', => @selectSystemTag post
-      @settings.getOptions().menu = @menu
-
 
   settingsMenu: ->
 
