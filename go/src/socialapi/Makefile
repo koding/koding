@@ -18,9 +18,9 @@ ifeq ($(debug), true)
 	DBG="-d" # don't use DEBUG, it's set to `yes`
 endif
 
-metrics?=false
-ifeq ($(metrics), true)
-	METRICS="-m"
+outputMetrics?=false
+ifeq ($(outputMetrics), true)
+	METRICS="-outputMetrics"
 endif
 
 # set config name
