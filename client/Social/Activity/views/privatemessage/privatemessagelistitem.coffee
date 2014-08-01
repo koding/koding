@@ -45,6 +45,7 @@ class PrivateMessageListItemView extends ActivityListItemView
   pistachio: ->
     """
     <div class="activity-content-wrapper clearfix">
+      {{> @settingsButton}}
       {{> @avatar}}
       <div class='meta clearfix'>
         {{> @author}}{{> @timeAgoView}}{{> @likeView}}
