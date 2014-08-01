@@ -38,6 +38,19 @@ func (b *Bongo) ById(i Modellable, id int64) error {
 	return nil
 }
 
+func (b *Bongo) UnscopedById(i Modellable, id int64) error {
+	if err := b.DB.
+		Unscoped().
+		Table(i.TableName()).
+		Where("id = ?", id).
+		Find(i).
+		Error; err != nil {
+		return err
+	}
+
+	return nil
+}
+
 // Creates a new record with the given struct and its fields
 func (b *Bongo) Create(i Modellable) error {
 	if err := b.DB.Save(i).Error; err != nil {
