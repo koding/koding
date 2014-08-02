@@ -54,7 +54,7 @@ class Machine extends KDObject
 
     if @queryString? and createIfNotExists
 
-      kontrol.getKite { @queryString, correlationName: @uid }
+      kontrol.getKite { name: "klient", @queryString, correlationName: @uid }
 
     else
 
