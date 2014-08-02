@@ -121,7 +121,7 @@ func (a *AmazonClient) CreateImage(provisioner interface{}) (string, error) {
 
 	provider := &packer.Provider{
 		BuildName: "amazon-ebs",
-		Data:      data,
+		Builder:      data,
 	}
 
 	// this is basically a "packer build template.json"
