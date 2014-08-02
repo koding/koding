@@ -391,47 +391,47 @@ Configuration = (options={}) ->
       """
           ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDGy37UYYQjRUyBZ1gYERhmOcyRyF0pFvlc+d91VT6iiIituaR+SpGruyj3NSmTZQ8Px8/ebaIJQaV+8v/YyIJXAQoCo2voo/OO2WhVIzv2HUfyzXcomzV40sd8mqZJnNCQYdxkFbUZv26kOzikie0DlCoVstM9P8XAURSszO0llD4f0CKS7Galwql0plccBxJEK9oNWCMp3F6v3EIX6qdL8eUJko7tJDPiyPIuuaixxd4EBE/l2UBGvqG0REoDrBNJ8maKV3CKhw60LYis8EfKFhQg5055doDNxKSDiCMopXrfoiAQKEJ92MBTjs7YwuUDp5s39THbX9bHoyanbVIL devrim@koding.com
       """
-    public_key =
+    prodPublicKey =
       """
           ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDElR8rHTkreTKZOSAhKcU6iHU9j+Mnd2VScBQTxaoJeUNCL4IUgk76koY03KjzPZ8XjeIIZ9z2HdrSq+G/JZjh/q2SWVIF1YtbBXY7x51ElcjAzK6S7xIhd42DRCDT6KpkpRkkSe/oxJRwM16MVLQBXPgPDelJ8tP7FMRYPiP2EzojwFCoRgzbCqTKqOMhVLRsZATRu6iEuJbKYjgn3kHkxsq6h+jl4BTGQU4D69O3rpFJtYEEAVWDSMgMwnhtdTbwkE7wZe3Q3saSktE93UgSOgnx3SIqCFPooy3DMRbKvaTpC1rcXJtwVuOEomd6K0r6WfkFeJT3XundxgAbfFEP ubuntu@kodingme
       """
 
     runContents = """
+      #/bin/bash
+
       #{envvars()}
-      if [[ "$1" == "" ]]; then
-        bash $0 configure
-        # bash $0 install
-        # bash $0 services
-        exit 0
-      elif [ "$1" == "configure" ]; then
+
+
+      function configure() {
         echo '127.0.0.1 #{hostname}' >> /etc/hosts
         echo #{hostname} >/etc/hostname
         hostname #{hostname}
-        echo "Host github.com" >> /root/.ssh/config
-        echo "  StrictHostKeyChecking no" >> /root/.ssh/config
+        echo "Host github.com \n  StrictHostKeyChecking no" >> /root/.ssh/config
         echo '{"https://index.docker.io/v1/":{"auth":"ZGV2cmltOm45czQvV2UuTWRqZWNq","email":"devrim@koding.com"}}' > $HOME/.dockercfg
         curl -s https://get.docker.io/ubuntu/ | sudo sh
-        apt-get install -y curl supervisor golang nodejs npm git graphicsmagick mosh nginx
+        # apt-get install -y curl supervisor golang nodejs npm git graphicsmagick mosh nginx
         cp /usr/bin/nodejs /usr/bin/node
         ln -sf /usr/bin/supervisorctl /usr/bin/s
         mosh-server
-        echo '#{b64z prodPrivateKey}'                 | base64 --decode | gunzip >  /root/.ssh/id_rsa
-        echo '#{b64z public_key}'                     | base64 --decode | gunzip >  /root/.ssh/id_rsa.pub
-        echo '#{b64z authorized_keys}'                | base64 --decode | gunzip >> /root/.ssh/authorized_keys
+        echo '#{b64z prodPrivateKey}'     | base64 --decode | gunzip >  /root/.ssh/id_rsa
+        echo '#{b64z prodPublicKey}'      | base64 --decode | gunzip >  /root/.ssh/id_rsa.pub
+        echo '#{b64z authorized_keys}'    | base64 --decode | gunzip >> /root/.ssh/authorized_keys
         chmod 600 /root/.ssh/id_rsa
-      elif [ "$1" == "install" ]; then
+      }
+
+      function install() {
+
         cd /opt
         git clone --branch '#{tag}' --depth 1 git@github.com:koding/koding.git koding
 
-        git tag -l -n1 > machineSettings
-        sed 's/#{tag}//g' machineSettings > machineSettings1
-        sed 's/ //g' machineSettings1 > machineSettings.sh
-        rm machineSettings
-        rm machineSettings1
-
-        bash ./machineSettings.sh
-
         cd /opt/koding
+
+        # retrieve machine settings from the git tag namely, write nginx and supervisor conf.
+        ms=`git tag -l -n1 | grep '#{tag}'`
+        ms=${ms##*machine-settings-b64-zip-}  # get the part after the last separator
+        echo $ms | base64 --decode | gunzip > #{projectRoot}/machineSettings
+        bash #{projectRoot}/machineSettings
+
         git submodule init
         git submodule update --recursive
         npm i gulp stylus coffee-script -g
@@ -445,13 +445,31 @@ Configuration = (options={}) ->
         mkdir $HOME/.kite
         echo copying #{KONFIG.newkites.keyFile} to $HOME/.kite/kite.key
         cp #{KONFIG.newkites.keyFile} $HOME/.kite/kite.key
-      elif [ "$1" == "services" ]; then
-        docker run -d --net=host                  --name=mongo    mongo
+      }
+
+      function services() {
+
+        docker run -d --net=host                  --name=mongo    koding/mongo --dbpath /root/data/db --smallfiles --nojournal
         docker run -d -p 5672:5672 -p 15672:15672 --name=rabbitmq koding/rabbitmq
         node #{projectRoot}/scripts/permission-updater  -c #{configName} --hard >/dev/null
         mongo #{mongo} --eval='db.jAccounts.update({},{$unset:{socialApiId:0}},{multi:true}); db.jGroups.update({},{$unset:{socialApiChannelId:0}},{multi:true});'
         service nginx restart
         service supervisor restart
+
+      }
+
+      if [[ "$1" == "" ]]; then
+        touch /root/imcreatedbyrunfile
+        configure
+        install
+        services
+        exit 0
+      elif [ "$1" == "configure" ]; then
+        configure
+      elif [ "$1" == "install" ]; then
+        install
+      elif [ "$1" == "services" ]; then
+        services
       else
         echo "unknown argument. use ./run [killall]"
       fi
@@ -461,9 +479,54 @@ Configuration = (options={}) ->
     run = """
       #/bin/bash
       touch /root/ididrun
-      echo '#{b64z runContents}' | base64 --decode | gunzip >./run
-      bash ./run &>/var/log/koding-init.log
+      echo '#{b64z runContents}' | base64 --decode | gunzip | bash &>/root/koding-init.log
     """
+      # chmod 0755 /root/run
+      # uptime &>/root/uptime
+      # /root/run &>/var/log/koding-init.log
+
+    # return run
+      # writefiles:
+      #   - content     : !!binary |
+      #       #{zlib.compress(new Buffer(runContents))}
+      #     encoding    : gzip
+      #     owner       : root:root
+      #     path        : /root/run
+      #     permissions : '0755'
+
+    run = """
+      #cloud-config
+
+      packages:
+        - supervisor
+        - golang
+        - nodejs
+        - npm
+        - git
+        - graphicsmagick
+        - mosh
+        - mongodb-clients
+        - nginx
+
+      runcmd:
+        - echo '#{b64z runContents}' | base64 --decode | gunzip > /root/run && bash /root/run
+
+
+    """
+      # package_update: true
+        # - echo '127.0.0.1 #{hostname}'                                      >> /etc/hosts
+        # - echo #{hostname}                                                  >/etc/hostname
+        # - hostname #{hostname}
+        # - echo '#{b64z prodPrivateKey}'          | base64 --decode | gunzip > /root/.ssh/id_rsa
+        # - echo '#{b64z prodPublicKey}'           | base64 --decode | gunzip > /root/.ssh/id_rsa
+        # - echo '#{b64z authorized_keys}'         | base64 --decode | gunzip >> /root/.ssh/authorized_keys
+        # - echo "Host github.com\n  StrictHostKeyChecking no"                >> /root/.ssh/config
+        # - cp /usr/bin/nodejs /usr/bin/node
+        # - ln -sf /usr/bin/supervisorctl /usr/bin/s
+        # - mosh-server
+        # - chmod 0755 /root/run
+        # - /root/run
+
     return run
 
   machineSettings = """
@@ -473,6 +536,7 @@ Configuration = (options={}) ->
         echo '#{b64z generateSupervisorConf(KONFIG)}' | base64 --decode | gunzip >  /etc/supervisor/conf.d/koding.conf;
         echo "supervisor configured."
   """
+
 
   KONFIG.machineSettings = b64z machineSettings
   KONFIG.runFile         = generateRunFile KONFIG

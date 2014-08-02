@@ -252,7 +252,7 @@ class Deploy
           throw err if err
           # delete result.conn
           # log result.instanceData
-          log "Deployment of #{result.instanceName} took: "+timethat.calc deployStart,new Date()
+          log "Deployment of #{result.instanceName} took: #{timethat.calc deployStart,new Date()}"
           conn.end()
           callback null, result
 
@@ -268,7 +268,7 @@ class Deploy
         i++
         __end = timethat.calc __start,new Date()
 
-        if not err and body.indexOf expectString > -1
+        if not err and body?.indexOf expectString > -1
           result.push "[ TEST  PASSED #{__end} ] #{target}"
         else result.push "[ TEST #FAILED #{__end} ] #{target}"
 
@@ -336,13 +336,16 @@ if argv.deploy
     options.instanceName = "#{options.hostname}--#{eden.eve().toLowerCase()}"
     KONFIG = require("./config/main.prod.coffee")
       hostname : options.instanceName
-      tag      : options.tag
+      tag      : options.version
 
     #create the new tag
-    log "tagging version #{options.version}"
-    exec "git tag -a '#{options.version}' -m '#{KONFIG.machineSettings}' && git push --tags",(err,stdout,stderr)->
+    log "deploying version #{options.version}"
+    exec "git tag -a '#{options.version}' -m 'machine-settings-b64-zip-#{KONFIG.machineSettings}' && git push --tags",(err,stdout,stderr)->
 
       if options.target is "singlebox"
+
+        UserData = new Buffer(KONFIG.runFile).toString('base64')
+        log "UserData is ~ #{UserData.length} bytes, keep it under 16384, otherwise deploy won't work."
 
         options =
           params :
@@ -352,17 +355,18 @@ if argv.deploy
             MaxCount      : 1
             SubnetId      : "subnet-b47692ed"
             KeyName       : "koding-prod-deployment"
-            UserData      : new Buffer(KONFIG.runFile).toString('base64')
+            UserData      : UserData
           instanceName    : options.instanceName
           configName      : "singlebox"
           environment     : "singlebox"
           tag             : options.version
-          buildScript     : "tail -fq /var/log/syslog"
+          buildScript     : "sudo ls -lha /root"
 
 
 
         Deploy.deployAndConfigure options,(err,res)->
           IP = res.instanceData.PublicIpAddress
+          log "testing instance..."
           Deploy.deployTest [
               {url : "http://#{IP}:3000/"          , target: "webserver"          , expectString: "UA-6520910-8"}
               {url : "http://#{IP}:3030/xhr"       , target: "socialworker"       , expectString: "Cannot GET"}
