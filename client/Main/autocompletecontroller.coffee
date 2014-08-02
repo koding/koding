@@ -10,7 +10,7 @@ class AutoCompleteController extends KDObject
 
   search: (indexName, seed) ->
     new Promise (resolve) =>
-      index = @getIndex indexName
+      index = @getIndex "#{ indexName }#{ KD.config.algolia.indexSuffix }"
       index.search seed, (success, results) ->
         resolve if success then results.hits else []
 
