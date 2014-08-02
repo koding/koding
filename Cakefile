@@ -127,6 +127,38 @@ task 'webserver', "Run the webserver", ({configFile, tests}) ->
           onChange  : ->
             processes.kill "server"
 
+task 'socialapi-api', "Run the API of socialapi", (options) ->
+  {configFile, tests, version} = options
+  KONFIG = require('koding-config-manager').load("main.#{configFile}")
+  {socialapi} = KONFIG
+
+  runServer = (config, port, index) ->
+    cmdName =  "./go/bin/api -c ./go/src/socialapi/config/#{configFile}.toml -port #{port} -d -v #{version ? 0}"
+    console.log "cmdName", cmdName
+    processes.spawn
+      name              : "socialapiapi"
+      cmd               : cmdName
+      restart           : yes
+      restartTimeout    : 100
+      stdout            : process.stdout
+      stderr            : process.stderr
+      kontrol           :
+        enabled         : !!KONFIG.runKontrol
+        startMode       : "many"
+        registerToProxy : yes
+        port            : port
+        binary          : hat()
+
+  if socialapi.clusterSize > 1
+    webPortStart = socialapi.port
+    webPortEnd   = socialapi.port + socialapi.clusterSize - 1
+    webPort = [webPortStart..webPortEnd]
+  else
+    webPort = [socialapi.port]
+
+  webPort.forEach (port, index) ->
+    runServer configFile, port, index
+
 task 'socialWorker', "Run the socialWorker", ({configFile}) ->
   KONFIG = require('koding-config-manager').load("main.#{configFile}")
   {social} = KONFIG
@@ -158,7 +190,7 @@ task 'socialWorker', "Run the socialWorker", ({configFile}) ->
       #   else
       #     delete exitingProcesses[pid]
 
-  if social.watch is yes
+  if social.watch?
     watcher = new Watcher
       groups   :
         social   :
@@ -269,26 +301,6 @@ task 'emailConfirmationCheckerWorker', "Run the email confirmtion worker", ({con
         folders   : ['./workers/emailconfirmationchecker']
         onChange  : (path) ->
           processes.kill "emailConfirmationCheckerWorker"
-
-task 'sitemapGeneratorWorker', "Generate the sitemap worker", ({configFile})->
-  config = require('koding-config-manager').load("main.#{configFile}")
-
-  processes.fork
-    name           : 'sitemapGeneratorWorker'
-    cmd            : "./workers/sitemapgenerator/index -c #{configFile}"
-    restart        : yes
-    restartTimeout : 1
-    kontrol        :
-      enabled      : if config.runKontrol is yes then yes else no
-      startMode    : "one"
-    verbose        : yes
-
-  watcher = new Watcher
-    groups        :
-      sitemapgenerator:
-        folders   : ['./workers/sitemapgenerator']
-        onChange  : (path) ->
-          processes.kill "sitemapGeneratorWorker"
 
 task 'emailWorker', "Run the email worker", ({configFile})->
   config = require('koding-config-manager').load("main.#{configFile}")
@@ -427,24 +439,6 @@ task 'rerouting', "Run rerouting", (options)->
       enabled      : if config.runKontrol is yes then yes else no
       startMode    : "one"
 
-task 'persistence', "Run persistence", (options)->
-
-  {configFile} = options
-  config = require('koding-config-manager').load("main.#{configFile}")
-
-  processes.spawn
-    name           : 'persistence'
-    cmd            : "./go/bin/persistence -c #{configFile}"
-    restart        : yes
-    restartTimeout : 100
-    stdout         : process.stdout
-    stderr         : process.stderr
-    verbose        : yes
-    kontrol        :
-      enabled      : if config.runKontrol is yes then yes else no
-      startMode    : "one"
-
-
 # start oskite in /opt/koding/go/src/koding/kites/os because the templates are now inside our oskite repository
 task 'osKite', "Run the osKite", ({configFile})->
   processes.spawn
@@ -473,27 +467,6 @@ task 'proxy', "Run the go-Proxy", ({configFile})->
     stdout  : process.stdout
     stderr  : process.stderr
     verbose : yes
-
-task 'neo4jfeeder', "Run the neo4jFeeder", (options)->
-
-  {configFile} = options
-  config       = require('koding-config-manager').load("main.#{configFile}")
-  feederConfig = config.graphFeederWorker
-
-  numberOfWorkers = if feederConfig.numberOfWorkers then feederConfig.numberOfWorkers else 1
-
-  for i in [1..numberOfWorkers]
-    processes.spawn
-      name    : if numberOfWorkers is 1 then "neo4jfeeder" else "neo4jfeeder-#{i}"
-      cmd     : "./go/bin/neo4jfeeder -c #{configFile} #{addFlags options}"
-      restart : yes
-      stdout  : process.stdout
-      stderr  : process.stderr
-      verbose : yes
-      kontrol        :
-        enabled      : if config.runKontrol is yes then yes else no
-        startMode    : "version"
-
 
 # this is not safe to run multiple version of it
 task 'elasticsearchfeeder', "Run the Elastic Search Feeder", (options)->
@@ -564,6 +537,15 @@ task 'proxyKite', "Run the proxy kite", (options) ->
     stderr  : process.stderr
     verbose : yes
 
+task 'regservKite', "Run the regserv kite", (options) ->
+  {configFile} = options
+  processes.spawn
+    name    : 'regservKite'
+    cmd     : "vagrant ssh default -c 'cd /opt/koding; sudo killall -q -KILL regserv; sudo KITE_HOME=/opt/koding/kite_home/koding /opt/koding/go/bin-vagrant/regserv -c #{configFile} -r vagrant'"
+    stdout  : process.stdout
+    stderr  : process.stderr
+    verbose : yes
+
 task 'checkConfig', "Check the local config files for errors", ({configFile})->
   console.log "[KONFIG CHECK] If you don't see any errors, you're fine."
   require('koding-config-manager').load("main.#{configFile}")
@@ -575,15 +557,6 @@ task 'runGraphiteFeeder', "Collect analytics from database and feed to grahpite"
   processes.spawn
     name    : 'graphiteFeeder'
     cmd     : "./go/bin/graphitefeeder -c #{configFile}"
-    stdout  : process.stdout
-    stderr  : process.stderr
-    verbose : yes
-
-task 'cronJobs', "Run CronJobs", ({configFile})->
-  console.log "Running CronJobs"
-  processes.spawn
-    name    : 'cronJobs'
-    cmd     : "./go/bin/cron -c #{configFile}"
     stdout  : process.stdout
     stderr  : process.stderr
     verbose : yes
@@ -609,6 +582,7 @@ run =({configFile})->
 
     invoke 'kontrolKite'                      if config.runKontrol
     invoke 'proxyKite'                        if config.runKontrol
+    invoke 'regservKite'                      if config.runKontrol
 
     invoke 'goBroker'                         if config.runGoBroker
     invoke 'goBrokerKite'                     if config.runGoBrokerKite
@@ -617,9 +591,7 @@ run =({configFile})->
     invoke 'osKite'                           if config.runOsKite
     invoke 'terminalKite'                     if config.runTerminalKite
     invoke 'rerouting'                        if config.runRerouting
-    invoke 'persistence'                      if config.runPersistence
     invoke 'proxy'                            if config.runProxy
-    invoke 'neo4jfeeder'                      if config.runNeo4jFeeder
     invoke 'elasticsearchfeeder'              if config.elasticSearch.enabled
     invoke 'authWorker'                       if config.authWorker
     invoke 'guestCleanerWorker'               if config.guestCleanerWorker.enabled
@@ -627,9 +599,7 @@ run =({configFile})->
     invoke 'socialWorker'
     invoke 'emailWorker'                      if config.emailWorker?.run is yes
     invoke 'emailSender'                      if config.emailSender?.run is yes
-    invoke 'addTagCategories'
     invoke 'webserver'
-    invoke 'cronJobs'
     invoke 'logWorker'                        if config.log.runWorker
 
 task 'importDB', (options) ->
@@ -807,13 +777,6 @@ task 'test-all', 'Runs functional test suite', (options)->
       process.exit code
 
 # ------------ OTHER LESS IMPORTANT STUFF ---------------------#
-
-task 'addTagCategories','Add new field category to JTag, and set default to "user-tag"',(options)->
-  command = """
-  mongo localhost/koding --quiet  --eval='db.jTags.update(
-    {"category":{$ne:"system-tag"}},{$set:{"category":"user-tag"}},{"multi":"true"})'
-  """
-  exec command
 
 task 'parseAnalyzedCss','Shows the output of analyzeCss in a nice format',(options)->
 

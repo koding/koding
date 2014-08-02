@@ -15,14 +15,8 @@ class GroupsController extends KDController
     @groups           = {}
     @currentGroupData = new GroupData
 
-    mainController.on 'NavigationLinkTitleClick', (pageInfo)=>
-      return unless pageInfo.path
-      if pageInfo.topLevel
-      then router.handleRoute "#{pageInfo.path}"
-      else router.handleRoute "#{pageInfo.path}", {entryPoint}
-
     mainController.ready =>
-      {slug} = entryPoint  if entryPoint?.type is "group"
+      {slug} = entryPoint  if entryPoint?.type is 'group'
       @changeGroup slug
 
   getCurrentGroup:->

@@ -10,20 +10,22 @@ import (
 	"github.com/jinzhu/gorm"
 )
 
-func (b *Bongo) Fetch(i Modellable) error {
-	if i.GetId() == 0 {
-		return errors.New(fmt.Sprintf("Id is not set for %s", i.TableName()))
+// Fetch tries the best option available for retrieving the data first tries
+// cache layer, if fails, then tries db
+func (b *Bongo) Fetch(i Modellable, id int64) error {
+	if id == 0 {
+		return IdIsNotSet
 	}
 
-	if err := b.DB.Table(i.TableName()).
-		Find(i).
-		Error; err != nil {
-		return err
+	data, ok := i.(Cacher)
+	if !ok {
+		return errors.New("cacher is not implemented for given struct")
 	}
 
-	return nil
+	return b.GetFromBest(i, data, id)
 }
 
+// ById Fetches data from db by it's id
 func (b *Bongo) ById(i Modellable, id int64) error {
 	if err := b.DB.
 		Table(i.TableName()).
@@ -36,6 +38,7 @@ func (b *Bongo) ById(i Modellable, id int64) error {
 	return nil
 }
 
+// Creates a new record with the given struct and its fields
 func (b *Bongo) Create(i Modellable) error {
 	if err := b.DB.Save(i).Error; err != nil {
 		return err
@@ -44,9 +47,10 @@ func (b *Bongo) Create(i Modellable) error {
 	return nil
 }
 
+// Update updates all fields of a struct with assigned data
 func (b *Bongo) Update(i Modellable) error {
 	if i.GetId() == 0 {
-		return errors.New(fmt.Sprintf("Id is not set for %s", i.TableName()))
+		return IdIsNotSet
 	}
 
 	// Update and Create is using the Save method, so they are
@@ -55,9 +59,11 @@ func (b *Bongo) Update(i Modellable) error {
 	return b.Create(i)
 }
 
+// Delete deletes the data by it's id, it doesnt take any other fields
+// into consideration
 func (b *Bongo) Delete(i Modellable) error {
 	if i.GetId() == 0 {
-		return errors.New(fmt.Sprintf("Id is not set for %s", i.TableName()))
+		return IdIsNotSet
 	}
 
 	if err := b.DB.Delete(i).Error; err != nil {
@@ -67,6 +73,8 @@ func (b *Bongo) Delete(i Modellable) error {
 	return nil
 }
 
+// FetchByIds fetches records by their ids and returns results in the same order
+// as the ids; if no records in db we don't return error
 func (b *Bongo) FetchByIds(i Modellable, data interface{}, ids []int64) error {
 	if len(ids) == 0 {
 		return nil
@@ -78,35 +86,53 @@ func (b *Bongo) FetchByIds(i Modellable, data interface{}, ids []int64) error {
 		orderByQuery = orderByQuery + comma + " id = " + strconv.FormatInt(id, 10) + " desc"
 		comma = ","
 	}
-	return b.DB.
-		Table(i.TableName()).
-		Order(orderByQuery).
-		Where(ids).
-		Find(data).
-		Error
+
+	// init query
+	query := b.DB.Model(i)
+
+	// add table name
+	query = query.Table(i.TableName())
+
+	query = query.Order(orderByQuery)
+
+	query = query.Where(ids)
+
+	query = query.Find(data)
+
+	// supress not found errors
+	return CheckErr(query)
 
 }
 
-func (b *Bongo) UpdatePartial(i Modellable, set map[string]interface{}) error {
-	if i.GetId() == 0 {
-		return errors.New(fmt.Sprintf("Id is not set for %s", i.TableName()))
-	}
+// This function doesnt work, after fixing we can open again
+// func (b *Bongo) UpdatePartial(i Modellable, set map[string]interface{}) error {
+// 	if i.GetId() == 0 {
+// 		return IdIsNotSet
+// 	}
 
-	query := b.DB.Table(i.TableName())
+// 	// init query
+// 	query := b.DB
 
-	query = query.Where(i.GetId())
+// 	query = query.Model(i)
+// 	// query = query.Table(i.TableName())
 
-	if err := query.Update(set).Error; err != nil {
-		return err
-	}
+// 	query = query.Where("id = ? ", i.GetId())
+// 	fmt.Println("query-->", query)
+// 	fmt.Printf("set %# v", pretty.Formatter(set))
+// 	if err := query.Update(set).Error; err != nil {
+// 		fmt.Printf("%# v", pretty.Formatter(err))
+// 		return err
+// 	}
 
-	if err := b.Fetch(i); err != nil {
-		return err
-	}
+// 	if err := b.ById(i, i.GetId()); err != nil {
+// 		fmt.Printf("%# v", pretty.Formatter(err))
+// 		return err
+// 	}
 
-	b.AfterUpdate(i)
-	return nil
-}
+// 	fmt.Printf("i %# v", pretty.Formatter(i))
+// 	// b.AfterUpdate(i)
+// 	return nil
+// }
 
 // selector, set
 func (b *Bongo) UpdateMulti(i Modellable, rest ...map[string]interface{}) error {
@@ -120,7 +146,7 @@ func (b *Bongo) UpdateMulti(i Modellable, rest ...map[string]interface{}) error 
 		selector = rest[0]
 		set = rest[1]
 	default:
-		return errors.New("Update partial parameter list is wrong")
+		return WrongParameter
 	}
 
 	query := b.DB.Table(i.TableName())
@@ -128,7 +154,7 @@ func (b *Bongo) UpdateMulti(i Modellable, rest ...map[string]interface{}) error 
 	//add selector
 	query = addWhere(query, selector)
 
-	if err := query.Update(set).Error; err != nil {
+	if err := query.Updates(set).Error; err != nil {
 		return err
 	}
 
@@ -139,7 +165,7 @@ func (b *Bongo) Count(i Modellable, where ...interface{}) (int, error) {
 	var count int
 
 	// init query
-	query := b.DB
+	query := b.DB.Model(i)
 
 	// add table name
 	query = query.Table(i.TableName())
@@ -150,12 +176,40 @@ func (b *Bongo) Count(i Modellable, where ...interface{}) (int, error) {
 	return count, query.Count(&count).Error
 }
 
+func (b *Bongo) CountWithQuery(i Modellable, q *Query) (int, error) {
+	query := b.BuildQuery(i, q)
+	var count int
+	return count, query.Count(&count).Error
+}
+
+type Scope func(d *gorm.DB) *gorm.DB
+
 type Query struct {
-	Selector map[string]interface{}
-	Sort     map[string]string
-	Limit    int
-	Skip     int
-	Pluck    string
+	Selector   map[string]interface{}
+	Sort       map[string]string
+	Pluck      string
+	Pagination Pagination
+	Scopes     []Scope
+}
+
+func (q *Query) AddScope(scope Scope) {
+	if q.Scopes == nil {
+		q.Scopes = make([]Scope, 0)
+	}
+
+	q.Scopes = append(q.Scopes, scope)
+}
+
+type Pagination struct {
+	Limit int
+	Skip  int
+}
+
+func NewPagination(limit int, skip int) *Pagination {
+	return &Pagination{
+		Limit: limit,
+		Skip:  skip,
+	}
 }
 
 func NewQS(selector map[string]interface{}) *Query {
@@ -166,7 +220,7 @@ func NewQS(selector map[string]interface{}) *Query {
 
 // selector, sort, limit, pluck,
 func (b *Bongo) Some(i Modellable, data interface{}, q *Query) error {
-	err := b.buildQuery(i, data, q)
+	err := b.executeQuery(i, data, q)
 	if err == gorm.RecordNotFound {
 		return nil
 	}
@@ -174,13 +228,13 @@ func (b *Bongo) Some(i Modellable, data interface{}, q *Query) error {
 }
 
 func (b *Bongo) One(i Modellable, data interface{}, q *Query) error {
-	q.Limit = 1
-	return b.buildQuery(i, data, q)
+	q.Pagination.Limit = 1
+	return b.executeQuery(i, data, q)
 }
 
-func (b *Bongo) buildQuery(i Modellable, data interface{}, q *Query) error {
+func (b *Bongo) BuildQuery(i Modellable, q *Query) *gorm.DB {
 	// init query
-	query := b.DB
+	query := b.DB.Model(i)
 
 	// add table name
 	query = query.Table(i.TableName())
@@ -188,13 +242,26 @@ func (b *Bongo) buildQuery(i Modellable, data interface{}, q *Query) error {
 	// add sort options
 	query = addSort(query, q.Sort)
 
+	query = addSkip(query, q.Pagination.Skip)
+
+	query = addLimit(query, q.Pagination.Limit)
+
 	// add selector
 	query = addWhere(query, q.Selector)
 
-	// if limit is minus or 0 ignore
-	if q.Limit > 0 {
-		query.Limit(q.Limit)
+	// put scopes
+	if q.Scopes != nil && len(q.Scopes) > 0 {
+		for _, scope := range q.Scopes {
+			query = query.Scopes(scope)
+		}
 	}
+
+	return query
+}
+
+func (b *Bongo) executeQuery(i Modellable, data interface{}, q *Query) error {
+	// init query
+	query := b.BuildQuery(i, q)
 
 	var err error
 	// TODO refactor this part
@@ -210,57 +277,60 @@ func (b *Bongo) buildQuery(i Modellable, data interface{}, q *Query) error {
 	} else {
 		err = query.Find(data).Error
 	}
+
 	return err
 }
 
-func (b *Bongo) AfterCreate(i Modellable) {
-	eventName := fmt.Sprintf("%s_created", i.TableName())
-	data, err := json.Marshal(i)
-	if err != nil {
-		// here try to resend this message to RMQ again, than
-		// persist it to somewhere!#!##@$%#?
-		// those messages are really important now
-		fmt.Println("Error occured", err)
-		return
-	}
-	err = b.Broker.Publish(eventName, data)
-	if err != nil {
-		fmt.Println("jhasdjhadsjdasj", err)
-	}
+func (b *Bongo) PublishEvent(eventName string, i Modellable) error {
+	return b.Emit(i.TableName()+"_"+eventName, i)
 }
 
-func (b *Bongo) AfterUpdate(i Modellable) {
-	eventName := fmt.Sprintf("%s_updated", i.TableName())
+func (b *Bongo) Emit(eventName string, i interface{}) error {
 	data, err := json.Marshal(i)
 	if err != nil {
-		// here try to resend this message to RMQ again, than
-		// persist it to somewhere!#!##@$%#?
-		// those messages are really important now
-		fmt.Println("Error occured", err)
-		return
+		b.log.Error("Error while marshalling for emitting %s", err)
+		return err
 	}
+
 	err = b.Broker.Publish(eventName, data)
 	if err != nil {
-		fmt.Println("jhasdjhadsjdasj", err)
+		b.log.Error("Error while emitting %s", err)
+		return err
 	}
+
+	return nil
 }
 
-func (b *Bongo) AfterDelete(i Modellable) {
-	eventName := fmt.Sprintf("%s_deleted", i.TableName())
-	data, err := json.Marshal(i)
-	if err != nil {
-		// here try to resend this message to RMQ again, than
-		// persist it to somewhere!#!##@$%#?
-		// those messages are really important now
-		fmt.Println("Error occured", err)
-		return
-	}
-	err = b.Broker.Publish(eventName, data)
-	if err != nil {
-		fmt.Println("jhasdjhadsjdasj", err)
-	}
+func (b *Bongo) AfterCreate(i Modellable) error {
+	b.PublishEvent("created", i)
+	return b.AddToCache(i)
 }
 
+func (b *Bongo) AfterUpdate(i Modellable) error {
+	b.PublishEvent("updated", i)
+	return b.AddToCache(i)
+}
+
+func (b *Bongo) AfterDelete(i Modellable) error {
+	b.PublishEvent("deleted", i)
+	return b.AddToCache(i)
+}
+
+func (b *Bongo) AddToCache(i Modellable) error {
+	data, ok := i.(Cacher)
+	if !ok {
+		return nil
+	}
+
+	err := b.SetToCache(data)
+	if err != ErrCacheIsNotEnabled {
+		return err
+	}
+
+	return nil
+}
+
+// addSort injects sort parameters into query
 func addSort(query *gorm.DB, options map[string]string) *gorm.DB {
 
 	if options == nil {
@@ -278,6 +348,8 @@ func addSort(query *gorm.DB, options map[string]string) *gorm.DB {
 	return query.Order(strings.Join(opts, ","))
 }
 
+// addPluck basically adds select statement for
+// only required fields
 func addPluck(query *gorm.DB, plucked string) *gorm.DB {
 	if plucked == "" {
 		return query
@@ -286,9 +358,49 @@ func addPluck(query *gorm.DB, plucked string) *gorm.DB {
 	return query.Select(plucked)
 }
 
+// addWhere adds where query
 func addWhere(query *gorm.DB, selector map[string]interface{}) *gorm.DB {
 	if selector == nil {
 		return query
 	}
+
+	// instead sending one selector, do chaining here
 	return query.Where(selector)
+}
+
+// addSkip adds skip parameter into sql query
+func addSkip(query *gorm.DB, skip int) *gorm.DB {
+	if skip > 0 {
+		return query.Offset(skip)
+	}
+
+	return query
+}
+
+// addLimit adds limit into query if set
+func addLimit(query *gorm.DB, limit int) *gorm.DB {
+	// if limit is minus or 0 ignore
+	if limit > 0 {
+		return query.Limit(limit)
+	}
+
+	return query
+}
+
+// CheckErr checks error exitence and returns if found, but this function
+// suppress RecordNotFound errors
+func CheckErr(res *gorm.DB) error {
+	if res == nil {
+		return nil
+	}
+
+	if res.Error == nil {
+		return nil
+	}
+
+	if res.Error == gorm.RecordNotFound {
+		return nil
+	}
+
+	return res.Error
 }

@@ -9,7 +9,7 @@ class EmbedBoxLinkViewImage extends CustomLinkView
     super options, data
 
     oembed = @getData().link_embed
-    @imageLink    = @utils.proxifyUrl(oembed.images?[0]?.url, width: 144, height: 100, crop: yes, grow: yes)
+    @imageLink    = @utils.proxifyUrl(oembed.images?[0]?.url, width: 619, height: 200, crop: yes, grow: yes)
     altSuffix     = if oembed.author_name then " by #{oembed.author_name}" else ''
     @imageAltText = oembed.title + altSuffix
 

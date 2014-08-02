@@ -1,7 +1,0 @@
-@Graph        = require './graph'
-@Member       = require './member'
-@Bucket       = require './bucket'
-@Activity     = require './activity'
-@Invitation   = require './invitation'
-@OAuth        = require './oauth'
-@Aggregation  = require './aggregation'

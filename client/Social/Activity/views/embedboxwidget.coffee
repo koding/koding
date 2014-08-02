@@ -59,14 +59,16 @@ class EmbedBoxWidget extends KDView
   watchInput: ->
     input = @getDelegate()
 
-    input.on 'keydown', (event) =>
-      @checkInputForUrls()  if event.which in [9, 13, 32]
+    fn = @bound 'checkInputForUrls'
 
-    input.on 'paste',   @bound 'checkInputForUrls'
-    input.on 'change',  @bound 'checkInputForUrls'
+    input.on 'keydown', (event) ->
+      fn()  if event.which in [9, 13, 32]
+
+    input.on 'paste', fn
+    input.on 'change', fn
 
   checkInputForUrls: ->
-    @utils.defer =>
+    KD.utils.defer =>
       input = @getDelegate()
       text = input.getValue()
 
@@ -244,6 +246,7 @@ class EmbedBoxWidget extends KDView
     addClass embedDiv, "custom-#{type}"  if embedDiv?
 
   fetchEmbed:(url='', options={}, callback=noop)->
+    return callback {message: "unimplemented feature"}
 
     # if there is no protocol, supply one! embedly doesn't support //
     unless @utils.webProtocolRegExp.test url then url = 'http://'+url
@@ -256,8 +259,8 @@ class EmbedBoxWidget extends KDView
     }, options
 
     # fetch embed.ly data from the server api
-    KD.remote.api.JNewStatusUpdate.fetchDataFromEmbedly url, embedlyOptions, (err, oembed)=>
-      callback oembed[0], embedlyOptions
+    # KD.remote.api.JNewStatusUpdate.fetchDataFromEmbedly url, embedlyOptions, (err, oembed)=>
+    #   callback oembed[0], embedlyOptions
 
   pistachio:->
     """

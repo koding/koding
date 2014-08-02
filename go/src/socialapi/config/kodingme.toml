@@ -1,0 +1,42 @@
+EventExchangeName = "BrokerMessageBus"
+Mongo             = "localhost:27017/koding"
+Environment       = "vagrant"
+Region            = "kodingme"
+Uri               = "http://lvh.me:3020"
+DisableCaching    = false
+
+[postgres]
+Host       = "localhost"
+Port       = 5432
+# Username = "postgres"
+# Password = "123123123"
+Username   = "socialapplication"
+Password   = "socialapplication"
+DBName     = "social"
+
+[mq]
+Host     = "localhost"
+Port     = 5672
+Username = "guest"
+Password = "guest"
+Vhost    = "/"
+
+[redis]
+URL = "localhost:6379"
+DB  = 0
+
+[limits]
+MessageBodyMinLen    = 1
+PostThrottleDuration = "15s"
+PostThrottleCount    = 3
+
+
+[sendgrid]
+Username        = "koding"
+Password        = "DEQl7_Dr"
+FromName        = "Koding"
+FromMail        = "hello@koding.com"
+ForcedRecipient = "canthefason@gmail.com"
+
+[sitemap]
+RedisDB = 1

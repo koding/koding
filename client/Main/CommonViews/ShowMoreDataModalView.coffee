@@ -12,7 +12,6 @@ class ShowMoreDataModalView extends KDModalView
 
   listItemMap = ->
     account : MembersListItemView
-    tag     : ModalTopicsListItem
     app     : ModalAppsListItemView
 
   constructor:(options = {}, data)->

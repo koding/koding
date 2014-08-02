@@ -5,88 +5,94 @@ import (
 	"flag"
 	"fmt"
 	"koding/db/mongodb/modelhelper"
-	"socialapi/config"
-
+	"net/http"
 	// _ "net/http/pprof" // Imported for side-effect of handling /debug/pprof.
 	"os"
-	"os/signal"
+	"socialapi/config"
+	"socialapi/models"
 	"socialapi/workers/api/handlers"
+	"socialapi/workers/common/runner"
 	"socialapi/workers/helper"
-	"syscall"
+	notificationapi "socialapi/workers/notification/api"
+	sitemapapi "socialapi/workers/sitemap/api"
+	trollmodeapi "socialapi/workers/trollmode/api"
+
 	"github.com/rcrowley/go-tigertonic"
 )
 
 var (
-	cert         = flag.String("cert", "", "certificate pathname")
-	key          = flag.String("key", "", "private key pathname")
-	flagConfig   = flag.String("config", "", "pathname of JSON configuration file")
-	listen       = flag.String("listen", "0.0.0.0:7000", "listen address")
-	flagConfFile = flag.String("c", "", "Configuration profile from file")
-	flagDebug    = flag.Bool("d", false, "Debug mode")
+	cert = flag.String("cert", "", "certificate pathname")
+	key  = flag.String("key", "", "private key pathname")
+	host = flag.String("host", "0.0.0.0", "listen address")
+	port = flag.String("port", "7000", "listen port")
 
 	hMux       tigertonic.HostServeMux
 	mux, nsMux *tigertonic.TrieServeMux
-)
 
-type context struct {
-	Username string
-}
+	Name = "SocialAPI"
+)
 
 func init() {
 	flag.Usage = func() {
-		fmt.Fprintln(os.Stderr, "Usage: example [-cert=<cert>] [-key=<key>] [-config=<config>] [-listen=<listen>]")
+		fmt.Fprintln(os.Stderr, "Usage: example [-cert=<cert>] [-key=<key>] [-config=<config>] [-host=<host>] [-port=<port>]")
 		flag.PrintDefaults()
 	}
 	mux = tigertonic.NewTrieServeMux()
 	mux = handlers.Inject(mux)
+	mux = notificationapi.InitHandlers(mux)
+	mux = trollmodeapi.InitHandlers(mux)
+	mux = sitemapapi.InitHandlers(mux)
+
+	// add namespace support into
+	// all handlers
+	nsMux = tigertonic.NewTrieServeMux()
+	nsMux.HandleNamespace("", mux)
+	nsMux.HandleNamespace("/1.0", mux)
+	tigertonic.SnakeCaseHTTPEquivErrors = true
 
 }
 
 func main() {
-	flag.Parse()
-	if *flagConfFile == "" {
-		fmt.Println("Please define config file with -c", "Exiting...")
+	r := runner.New(Name)
+	if err := r.Init(); err != nil {
+		fmt.Println(err)
 		return
 	}
-	conf := config.MustRead(*flagConfFile)
-	log := helper.CreateLogger("SocialAPI", *flagDebug)
 
-	server := newServer()
+	if !flag.Parsed() {
+		flag.Parse()
+	}
+
+	server := newServer(r.Conf)
 	// shutdown server
 	defer server.Close()
 
-	// panics if not successful
-	bongo := helper.MustInitBongo(conf, log)
-	// do not forgot to close the bongo connection
-	defer bongo.Close()
-
 	// init redis
-	redisConn := helper.MustInitRedisConn(conf.Redis)
+	redisConn := helper.MustInitRedisConn(r.Conf)
 	defer redisConn.Close()
 
 	// init mongo connection
-	modelhelper.Initialize(conf.Mongo)
+	modelhelper.Initialize(r.Conf.Mongo)
 
-	ch := make(chan os.Signal)
-	signal.Notify(ch, syscall.SIGINT, syscall.SIGQUIT, syscall.SIGTERM)
-
-	log.Info("Recieved %v", <-ch)
+	r.Wait()
 }
 
-func newServer() *tigertonic.Server {
+func newServer(conf *config.Config) *tigertonic.Server {
 	// go metrics.Log(
 	// 	metrics.DefaultRegistry,
 	// 	60e9,
 	// 	stdlog.New(os.Stderr, "metrics ", stdlog.Lmicroseconds),
 	// )
 
-	server := tigertonic.NewServer(
-		*listen,
-		tigertonic.Logged(
-			tigertonic.WithContext(mux, context{}),
-			nil,
-		),
-	)
+	var handler http.Handler
+	handler = tigertonic.WithContext(nsMux, models.Context{})
+	if conf.FlagDebugMode {
+		handler = tigertonic.Logged(handler, nil)
+	}
+
+	addr := *host + ":" + *port
+	server := tigertonic.NewServer(addr, handler)
+
 	go listener(server)
 	return server
 }
