@@ -185,7 +185,7 @@ module.exports =
       apiUri    : 'http://lvh.me:3020'
       version   : version
       mainUri   : 'http://lvh.me:3020'
-      appsUri   : 'https://rest.kd.io'
+      appsUri   : 'https://apps.koding.com'
       uploadsUri: 'https://koding-uploads.s3.amazonaws.com'
       uploadsUriForGroup: 'https://koding-groups.s3.amazonaws.com'
       sourceUri : 'http://lvh.me:3526'
