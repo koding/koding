@@ -13,7 +13,10 @@ class PrivateMessageListItemView extends ActivityListItemView
 
     super options, data
 
+    {createdAt, deletedAt, updatedAt} = data
+
     @likeView = new ReplyLikeView {}, data
+    @timeView = new CommentTimeView {}, createdAt
 
     @decorate()
 
@@ -48,7 +51,7 @@ class PrivateMessageListItemView extends ActivityListItemView
       {{> @settingsButton}}
       {{> @avatar}}
       <div class='meta clearfix'>
-        {{> @author}}{{> @timeAgoView}}{{> @likeView}}
+        {{> @author}} {{> @timeView }} {{> @timeAgoView}} {{> @likeView}}
       </div>
       {{> @editWidgetWrapper}}
       {article{@formatContent #(body)}}
