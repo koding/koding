@@ -16,7 +16,7 @@ class AutoCompleteController extends KDObject
 
   searchAccounts: (seed) ->
     @search 'accounts', seed
-      .map (it) -> KD.remote.cacheableAsync 'JAccount', it.mongoId
+      .map ({ objectID }) -> KD.remote.cacheableAsync 'JAccount', objectID
       .filter Boolean
 
   getIndex: (indexName) ->
