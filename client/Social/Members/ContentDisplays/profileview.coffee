@@ -505,53 +505,6 @@ class ProfileView extends JView
     else
       @trollSwitch = new KDCustomHTMLView
 
-    # badgeView
-    @userBadgesController    = new KDListViewController
-      startWithLazyLoader    : no
-      view                   : new KDListView
-        cssClass             : "badge-list"
-        itemClass            : UserBadgeView
-
-    @badgeHeader = new KDCustomHTMLView
-      tagName : "h3"
-
-    @memberData.fetchMyBadges (err, badges)=>
-      if badges.length > 0
-        @badgeHeader.setPartial "Badges"
-        @userBadgesController.instantiateListItems badges
-
-    @userBadgesView = @userBadgesController.getView()
-
-
-    # for admins and moderators, list user badge property counts
-    @badgeItemsList = new KDCustomHTMLView
-    @thankButton    = new KDCustomHTMLView
-    if KD.hasAccess "assign badge"
-      @badgeItemsList = new UserPropertyList {}, counts : @memberData.counts
-      # show "Thank You" button to admins
-      @thankButton = new KDButtonView
-        cssClass   : "solid green medium repbutton"
-        title      : "+1 rep"
-        type       : "submit"
-        callback   : =>
-          KD.whoami().likeMember @memberData.profile.nickname, (err)=>
-            if err
-              warn err
-            else
-              @thankButton.disable()
-              @utils.wait 3000, =>
-                @thankButton.enable()
-      @thankButton.hide()
-      @badgeItemsList.hide()
-
-      @on "mouseenter", =>
-        @thankButton.show()
-        @badgeItemsList.show()
-
-      @on "mouseleave", =>
-        @thankButton.hide()
-        @badgeItemsList.hide()
-
   viewAppended:->
     super
     @createExternalProfiles()
@@ -675,11 +628,5 @@ class ProfileView extends JView
           {{> @following}}
           {{> @likes}}
         </div>
-        <div class="user-badges">
-          {{> @badgeHeader}}
-          {{> @userBadgesView}}
-        </div>
-        {{> @badgeItemsList}}
-        {{> @thankButton}}
       </main>
     """

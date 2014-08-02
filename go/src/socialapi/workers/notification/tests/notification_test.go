@@ -6,7 +6,6 @@ package main
 import (
 	socialapimodels "socialapi/models"
 	"socialapi/rest"
-	"socialapi/workers/notification/models"
 	"testing"
 	"time"
 
@@ -547,112 +546,6 @@ func TestNotificationCreation(t *testing.T) {
 				})
 			})
 
-		})
-
-		SkipConvey("As a followee I should be able to receive follower notifications when first user follows me", func() {
-			Convey("First user should be able to follow me", func() {
-				res, err := rest.FollowNotification(firstUser.Id, ownerAccount.Id)
-				So(err, ShouldBeNil)
-				So(res, ShouldNotBeNil)
-				time.Sleep(SLEEP_TIME * time.Second)
-			})
-
-			Convey("I should be able to receive follow notification", func() {
-				nl, err := rest.GetNotificationList(ownerAccount.Id)
-				So(err, ShouldBeNil)
-				So(nl, ShouldNotBeNil)
-				So(len(nl.Notifications), ShouldBeGreaterThan, 0)
-				So(nl.Notifications[0].TypeConstant, ShouldEqual, models.NotificationContent_TYPE_FOLLOW)
-				So(nl.Notifications[0].LatestActors[0], ShouldEqual, firstUser.Id)
-			})
-
-		})
-
-		SkipConvey("As a followee I should be able to receive a second follower notification after glance", func() {
-			Convey("I should be able to glance notifications", func() {
-				res, err := rest.GlanceNotifications(ownerAccount.Id)
-				So(err, ShouldBeNil)
-				So(res, ShouldNotBeNil)
-			})
-			Convey("Second user should be able to follow me", func() {
-				res, err := rest.FollowNotification(secondUser.Id, ownerAccount.Id)
-				So(err, ShouldBeNil)
-				So(res, ShouldNotBeNil)
-				time.Sleep(SLEEP_TIME * time.Second)
-			})
-			Convey("I should be able to receive second follow notification", func() {
-				nl, err := rest.GetNotificationList(ownerAccount.Id)
-				So(err, ShouldBeNil)
-				So(nl, ShouldNotBeNil)
-				So(nl.Notifications[0].LatestActors[0], ShouldEqual, secondUser.Id)
-				Convey("Unread count should be 1", func() {
-					So(nl.UnreadCount, ShouldEqual, 1)
-				})
-			})
-		})
-
-		SkipConvey("As a group owner I should be able to receive notification when a user joins my group", func() {
-			Convey("First user should be able to join my group", func() {
-				channelParticipant, err := rest.AddChannelParticipant(testGroupChannel.Id, firstUser.Id, firstUser.Id)
-				So(err, ShouldBeNil)
-				So(channelParticipant, ShouldNotBeNil)
-				time.Sleep(SLEEP_TIME * time.Second)
-			})
-
-			Convey("I should be able to receive join notification", func() {
-				nl, err := rest.GetNotificationList(ownerAccount.Id)
-				So(err, ShouldBeNil)
-				So(nl, ShouldNotBeNil)
-				So(len(nl.Notifications), ShouldBeGreaterThan, 0)
-				So(len(nl.Notifications[0].LatestActors), ShouldBeGreaterThan, 0)
-				So(nl.Notifications[0].LatestActors[0], ShouldEqual, firstUser.Id)
-				So(nl.Notifications[0].TypeConstant, ShouldEqual, models.NotificationContent_TYPE_JOIN)
-			})
-
-			Convey("Second, third and forth user should be able to join my group", func() {
-				channelParticipant, err := rest.AddChannelParticipant(testGroupChannel.Id, secondUser.Id, secondUser.Id)
-				So(err, ShouldBeNil)
-				So(channelParticipant, ShouldNotBeNil)
-				channelParticipant, err = rest.AddChannelParticipant(testGroupChannel.Id, thirdUser.Id, thirdUser.Id)
-				So(err, ShouldBeNil)
-				So(channelParticipant, ShouldNotBeNil)
-				channelParticipant, err = rest.AddChannelParticipant(testGroupChannel.Id, forthUser.Id, forthUser.Id)
-				So(err, ShouldBeNil)
-				So(channelParticipant, ShouldNotBeNil)
-				time.Sleep(SLEEP_TIME * time.Second)
-			})
-
-			Convey("I should be able to receive join notification", func() {
-				nl, err := rest.GetNotificationList(ownerAccount.Id)
-				So(err, ShouldBeNil)
-				So(nl, ShouldNotBeNil)
-
-				So(len(nl.Notifications), ShouldBeGreaterThan, 0)
-				So(len(nl.Notifications[0].LatestActors), ShouldEqual, 3)
-				So(nl.Notifications[0].LatestActors[0], ShouldEqual, forthUser.Id)
-				So(nl.Notifications[0].LatestActors[1], ShouldEqual, thirdUser.Id)
-				So(nl.Notifications[0].LatestActors[2], ShouldEqual, secondUser.Id)
-				So(nl.Notifications[0].TypeConstant, ShouldEqual, models.NotificationContent_TYPE_JOIN)
-			})
-
-			Convey("First user should be able to leave my group", func() {
-				channelParticipant, err := rest.DeleteChannelParticipant(testGroupChannel.Id, firstUser.Id, firstUser.Id)
-				So(err, ShouldBeNil)
-				So(channelParticipant, ShouldNotBeNil)
-
-				time.Sleep(SLEEP_TIME * time.Second)
-			})
-
-			Convey("I should be able to receive leave notification", func() {
-				nl, err := rest.GetNotificationList(ownerAccount.Id)
-				So(err, ShouldBeNil)
-				So(nl, ShouldNotBeNil)
-
-				So(len(nl.Notifications), ShouldBeGreaterThan, 0)
-				So(nl.Notifications[0].TypeConstant, ShouldEqual, models.NotificationContent_TYPE_LEAVE)
-				So(len(nl.Notifications[0].LatestActors), ShouldBeGreaterThan, 0)
-				So(nl.Notifications[0].LatestActors[0], ShouldEqual, firstUser.Id)
-			})
 		})
 
 		Convey("As a subscriber first and third user should be able to subscribe to my message", func() {

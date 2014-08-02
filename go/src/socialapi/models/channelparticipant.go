@@ -117,6 +117,7 @@ func (c *ChannelParticipant) FetchParticipant() error {
 		// "status_constant":     ChannelParticipant_STATUS_ACTIVE,
 	}
 
+	// TODO do we need to add isExempt scope here?
 	err := c.One(bongo.NewQS(selector))
 	if err != nil {
 		return err
@@ -190,6 +191,9 @@ func (c *ChannelParticipant) ListAccountIds(limit int) ([]int64, error) {
 		Pluck:      "account_id",
 		Pagination: *bongo.NewPagination(limit, 0),
 	}
+
+	// do not include troll content
+	query.AddScope(RemoveTrollContent(c, false))
 
 	err := bongo.B.Some(c, &participants, query)
 	if err != nil {

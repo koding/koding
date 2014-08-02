@@ -55,7 +55,6 @@
     "underscore": "1.5.2",
     "url": "0.4.9",
     "validator": "0.2.0",
-    "neo4j-koding": "0.2.20",
     "ws": "0.4.25",
     "xml2js": "0.2.6",
     "nesh": "1.2.0",

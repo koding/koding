@@ -53,5 +53,9 @@ do ->
       handleChannel 'post', slug
 
     '/:name?/Activity' : ({params:{name, slug}, query}) ->
-      {router, appManager} = KD.singletons
-      router.handleRoute '/Activity/Public'
+      # handle legacy topic routes
+      if query.tagged?
+        KD.getSingleton('router').handleRoute "/Activity/Topic/#{query.tagged}"
+      else
+        {router, appManager} = KD.singletons
+        router.handleRoute '/Activity/Public'

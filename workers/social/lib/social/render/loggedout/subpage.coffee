@@ -23,10 +23,8 @@ putSplash = (name, section, model)->
 generateShareUrl = (model, uri)->
   slug = if model?.bongo_?.constructorName and model?.slug
     switch model.bongo_.constructorName
-      when "JNewStatusUpdate", "JCodeSnip", "JDiscussion", "JBlogPost", "JTutorial"
+      when "SocialMessage"
         "/Activity/" + model.slug
-      when "JTag"
-        "/Activity/Topic/" + model.slug
       when "JNewApp"
         "/Apps/" + model.slug
       else ""
@@ -51,10 +49,6 @@ module.exports = (options, callback)->
   body = if model?.body then model.body else title
 
   shareUrl = generateShareUrl model, uri
-
-  # JNewStatusUpdate doesn't have title; we're using body instead.
-  if model?.bongo_?.constructorName is "JNewStatusUpdate"
-    title = if model?.body then model.body
 
   prepareHTML  = (scripts, title, shareUrl)->
     """

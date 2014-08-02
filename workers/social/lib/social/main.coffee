@@ -1,5 +1,5 @@
 log = -> logger.info arguments...
-
+require "../../../arrayproto"
 log4js  = require 'log4js'
 logger  = log4js.getLogger('social')
 

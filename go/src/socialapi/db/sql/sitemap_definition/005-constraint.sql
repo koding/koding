@@ -12,4 +12,3 @@ ALTER TABLE sitemap.file ADD CONSTRAINT "file_name_key" UNIQUE ("name") NOT DEFE
 -- ----------------------------
 --  Indexes structure for table file
 -- ----------------------------
-CREATE UNIQUE INDEX  "sitemap_id_key" ON sitemap.file USING btree(id ASC NULLS LAST);
