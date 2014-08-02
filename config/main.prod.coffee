@@ -1,6 +1,6 @@
-
-traverse            = require 'traverse'
-
+zlib                  = require 'compress-buffer'
+traverse              = require 'traverse'
+log                   = console.log
 
 Configuration = (options={}) ->
 
@@ -222,15 +222,18 @@ Configuration = (options={}) ->
 
   KONFIG.JSON = JSON.stringify KONFIG
 
-  b64 = (str,strict)->
+  b64z = (str,strict=yes,compress=yes)->
     if str
       _b64 = new Buffer(str)
+      _b64 = zlib.compress _b64 if compress
+      log "[b64z] before #{str.length} after #{_b64.length}"
       return _b64.toString('base64')
     else
       if strict
         throw "base64 STRING is empty, check main.#{configName}.coffee. this will break the prod machine, exiting."
       else
         return ""
+
 
   prodPrivateKey = """
   -----BEGIN RSA PRIVATE KEY-----
@@ -348,6 +351,7 @@ Configuration = (options={}) ->
     travis.paths().forEach (path) -> conf["KONFIG_#{path.join("_")}".toUpperCase()] = travis.get(path) unless typeof travis.get(path) is 'object'
     return conf
 
+
   generateSupervisorConf = (KONFIG)->
     supervisorEnvironmentStr = "HOME='/root',GOPATH='#{projectRoot}/go',GOBIN='#{projectRoot}/go/bin',KONFIG_JSON='#{KONFIG.JSON}'"
     # supervisorEnvironmentStr += "#{key}='#{val}'," for key,val of KONFIG.ENV
@@ -363,14 +367,6 @@ Configuration = (options={}) ->
     return conf
 
   generateRunFile = (KONFIG) ->
-
-    killlist = ->
-      str = "kill -KILL "
-      str += "$#{key}pid " for key,val of KONFIG.workers
-      str += " $$" #kill self
-
-      return str
-
     envvars = ->
       env = """
       export GOPATH=#{projectRoot}/go
@@ -391,177 +387,95 @@ Configuration = (options={}) ->
         workers +="echo [#{key}] started with pid: $#{key}pid \n\n"
       return workers
 
+    authorized_keys =
+      """
+          ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDGy37UYYQjRUyBZ1gYERhmOcyRyF0pFvlc+d91VT6iiIituaR+SpGruyj3NSmTZQ8Px8/ebaIJQaV+8v/YyIJXAQoCo2voo/OO2WhVIzv2HUfyzXcomzV40sd8mqZJnNCQYdxkFbUZv26kOzikie0DlCoVstM9P8XAURSszO0llD4f0CKS7Galwql0plccBxJEK9oNWCMp3F6v3EIX6qdL8eUJko7tJDPiyPIuuaixxd4EBE/l2UBGvqG0REoDrBNJ8maKV3CKhw60LYis8EfKFhQg5055doDNxKSDiCMopXrfoiAQKEJ92MBTjs7YwuUDp5s39THbX9bHoyanbVIL devrim@koding.com
+      """
+    public_key =
+      """
+          ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDElR8rHTkreTKZOSAhKcU6iHU9j+Mnd2VScBQTxaoJeUNCL4IUgk76koY03KjzPZ8XjeIIZ9z2HdrSq+G/JZjh/q2SWVIF1YtbBXY7x51ElcjAzK6S7xIhd42DRCDT6KpkpRkkSe/oxJRwM16MVLQBXPgPDelJ8tP7FMRYPiP2EzojwFCoRgzbCqTKqOMhVLRsZATRu6iEuJbKYjgn3kHkxsq6h+jl4BTGQU4D69O3rpFJtYEEAVWDSMgMwnhtdTbwkE7wZe3Q3saSktE93UgSOgnx3SIqCFPooy3DMRbKvaTpC1rcXJtwVuOEomd6K0r6WfkFeJT3XundxgAbfFEP ubuntu@kodingme
+      """
 
-
-
-    run = """
-      #/bin/bash
-
-      # ------ THIS FILE IS AUTO-GENERATED ON EACH BUILD ----- #\n
-      mkdir .logs &>/dev/null
-
+    runContents = """
       #{envvars()}
-
-      trap ctrl_c INT
-
-      function ctrl_c () {
-        echo "ctrl_c detected. killing all processes..."
-        kill_all
-      }
-
-      watch() {
-
-      echo watching folder $1/ every $2 secs.
-
-      while [[ true ]]
-      do
-          files=`find $1 -type f -mtime -$2s`
-          if [[ $files != "" ]] ; then
-              echo changed, $files
-          fi
-          sleep $2
-      done
-      }
-
-      function kill_all () {
-      #{killlist()}
-      }
       if [[ "$1" == "" ]]; then
-
-        #{workersRunList()}
-        tail -fq ./.logs/*.log
-        # service supervisor restart
-
-      elif [ "$1" == "killall" ]; then
-
-        kill_all
-
-      elif [ "$1" == "buildClient" ]; then
-
-        /usr/local/bin/coffee /opt/koding/build-client.coffee --watch false  --verbose
-
-
+        bash $0 configure
+        # bash $0 install
+        # bash $0 services
+        exit 0
       elif [ "$1" == "configure" ]; then
-
-        echo '#--> this is a production machine, we will first configure it @devrim <--#'
         echo '127.0.0.1 #{hostname}' >> /etc/hosts
         echo #{hostname} >/etc/hostname
         hostname #{hostname}
-        echo '#-adding keys..-#'
-        echo '#{prodPrivateKey}' > /root/.ssh/id_rsa
-        chmod 600 /root/.ssh/id_rsa
-
-        echo '#-- add authorized keys for root access --#'
-        echo "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDElR8rHTkreTKZOSAhKcU6iHU9j+Mnd2VScBQTxaoJeUNCL4IUgk76koY03KjzPZ8XjeIIZ9z2HdrSq+G/JZjh/q2SWVIF1YtbBXY7x51ElcjAzK6S7xIhd42DRCDT6KpkpRkkSe/oxJRwM16MVLQBXPgPDelJ8tP7FMRYPiP2EzojwFCoRgzbCqTKqOMhVLRsZATRu6iEuJbKYjgn3kHkxsq6h+jl4BTGQU4D69O3rpFJtYEEAVWDSMgMwnhtdTbwkE7wZe3Q3saSktE93UgSOgnx3SIqCFPooy3DMRbKvaTpC1rcXJtwVuOEomd6K0r6WfkFeJT3XundxgAbfFEP ubuntu@kodingme"   >/root/.ssh/id_rsa.pub
-        echo "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDGy37UYYQjRUyBZ1gYERhmOcyRyF0pFvlc+d91VT6iiIituaR+SpGruyj3NSmTZQ8Px8/ebaIJQaV+8v/YyIJXAQoCo2voo/OO2WhVIzv2HUfyzXcomzV40sd8mqZJnNCQYdxkFbUZv26kOzikie0DlCoVstM9P8XAURSszO0llD4f0CKS7Galwql0plccBxJEK9oNWCMp3F6v3EIX6qdL8eUJko7tJDPiyPIuuaixxd4EBE/l2UBGvqG0REoDrBNJ8maKV3CKhw60LYis8EfKFhQg5055doDNxKSDiCMopXrfoiAQKEJ92MBTjs7YwuUDp5s39THbX9bHoyanbVIL devrim@koding.com" >>/root/.ssh/authorized_keys
-        echo "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDRvR6eD+/UfjDtpD/HK3CEC1vCGl9Pnc/o1il9616mjgmRTE+dnIGqqqq70MVJHpzq8gW7unuQ6zBgEw5J6+pHcptxHwoLNlmOKPDwVyRo6AvQPc0DfMEcInlXWCpFM41LbNUznIHvTDOT4G8gXlS5FUkU/2yds/BsS1H01jIi2JM5jDhnNn7RLWFaoYTVkMMw3ESJ2T1FqR/pjcqbETWeMKE8vW+uyyVMmdSBMtsGl5DxdorrWJ0zpeI6MlLVKaahNUQ8Z9Y7MJN4yTjUNq7su90AtPuCfM/3Sd2oycZ/kTrD5ZQTbJbZ4zEm0Ba14RwcPjuQSluqvgknDDCkLmCT fatih@koding.com"  >>/root/.ssh/authorized_keys
-
-        echo '#-- remove annoying stricthostkeychecking. --#'
         echo "Host github.com" >> /root/.ssh/config
         echo "  StrictHostKeyChecking no" >> /root/.ssh/config
-
-        echo '#---> AUTHORIZING THIS COMPUTER TO DOCKER HUB (@devrim) <---#'
-        if grep -q ZGV2cmltOm45czQvV2UuTWRqZWNq "$HOME/.dockercfg"; then
-          echo 'you seem to have correct docker config file - dont forget to install docker.'
-        else
-          echo 'added ~/.dockercfg - dont forget to install docker.'
-          echo '{"https://index.docker.io/v1/":{"auth":"ZGV2cmltOm45czQvV2UuTWRqZWNq","email":"devrim@koding.com"}}' >> $HOME/.dockercfg
-        fi
-
-        echo "installing packages..."
-        # docker install includes apt-get update
+        echo '{"https://index.docker.io/v1/":{"auth":"ZGV2cmltOm45czQvV2UuTWRqZWNq","email":"devrim@koding.com"}}' > $HOME/.dockercfg
         curl -s https://get.docker.io/ubuntu/ | sudo sh
         apt-get install -y curl supervisor golang nodejs npm git graphicsmagick mosh nginx
         cp /usr/bin/nodejs /usr/bin/node
         ln -sf /usr/bin/supervisorctl /usr/bin/s
         mosh-server
-
+        echo '#{b64z prodPrivateKey}'                 | base64 --decode | gunzip >  /root/.ssh/id_rsa
+        echo '#{b64z public_key}'                     | base64 --decode | gunzip >  /root/.ssh/id_rsa.pub
+        echo '#{b64z authorized_keys}'                | base64 --decode | gunzip >> /root/.ssh/authorized_keys
+        chmod 600 /root/.ssh/id_rsa
       elif [ "$1" == "install" ]; then
-
-
-        #--- THIS STEP REQUIRES CONFIGURE STEP TO RUN FIRST ---#
-
-        echo '#--- configure nginx ---#'
-        echo '#{b64 nginxConf,yes}'             | base64 --decode > /etc/nginx/sites-enabled/default
-        service nginx restart
-
-        echo '#--- configure supervisor ---#'
-        echo '#{b64 generateSupervisorConf(KONFIG),yes}' | base64 --decode > /etc/supervisor/conf.d/koding.conf
-
-        echo '#---> BUILDING CLIENT (@gokmen) <---#'
-
         cd /opt
         git clone --branch '#{tag}' --depth 1 git@github.com:koding/koding.git koding
+
+        git tag -l -n1 > machineSettings
+        sed 's/#{tag}//g' machineSettings > machineSettings1
+        sed 's/ //g' machineSettings1 > machineSettings.sh
+        rm machineSettings
+        rm machineSettings1
+
+        bash ./machineSettings.sh
+
         cd /opt/koding
         git submodule init
         git submodule update --recursive
         npm i gulp stylus coffee-script -g
         npm i --unsafe-perm
-
-        chmod +x ./build-client.coffee
         /usr/local/bin/coffee /opt/koding/build-client.coffee --watch false
-
-        cp /tmp/run.sh #{projectRoot}/run
-        chmod +x #{projectRoot}/run
-
-        echo '#---> BUILDING GO WORKERS (@farslan) <---#'
         bash #{projectRoot}/go/build.sh
-
-        echo '#---> BUILDING SOCIALAPI (@cihangir) <---#'
         cd #{projectRoot}/go/src/socialapi
         make install
-
-
-        echo '#---> BUILDING BROKER-CLIENT @chris <---#'
-        echo "building koding-broker-client."
         cd #{projectRoot}/node_modules_koding/koding-broker-client
         cake build
-
-        echo '#---> AUTHORIZING THIS COMPUTER WITH MATCHING KITE.KEY (@farslan) <---#'
         mkdir $HOME/.kite
         echo copying #{KONFIG.newkites.keyFile} to $HOME/.kite/kite.key
         cp #{KONFIG.newkites.keyFile} $HOME/.kite/kite.key
-
-
-
-        echo
-        echo
-        echo 'ALL DONE. Enjoy! :)'
-        echo
-        echo
-
-
-      elif [ "$1" == "log" ]; then
-
-        if [ "$2" == "" ]; then
-          tail -fq ./.logs/*.log
-        else
-          tail -fq ./.logs/$2.log
-        fi
-
-      elif [ "$1" == "cleanup" ]; then
-
-        ./cleanup @$
-
       elif [ "$1" == "services" ]; then
-        docker run -d --net=host                  --name=mongo    koding/mongo    --dbpath /root/data/db --smallfiles --nojournal
-        # docker run -d --net=host                  --name=redis    koding/redis
-        # docker run -d --net=host                  --name=postgres koding/postgres
+        docker run -d --net=host                  --name=mongo    mongo
         docker run -d -p 5672:5672 -p 15672:15672 --name=rabbitmq koding/rabbitmq
-
-        echo '#---> UPDATING MONGO DATABASE ACCORDING TO LATEST CHANGES IN CODE (UPDATE PERMISSIONS @chris) <---#'
-        cd #{projectRoot}
         node #{projectRoot}/scripts/permission-updater  -c #{configName} --hard >/dev/null
-
+        mongo #{mongo} --eval='db.jAccounts.update({},{$unset:{socialApiId:0}},{multi:true}); db.jGroups.update({},{$unset:{socialApiChannelId:0}},{multi:true});'
+        service nginx restart
+        service supervisor restart
       else
         echo "unknown argument. use ./run [killall]"
       fi
-      # ------ THIS FILE IS AUTO-GENERATED BY ./configure ----- #\n
       """
+
+
+    run = """
+      #/bin/bash
+      touch /root/ididrun
+      echo '#{b64z runContents}' | base64 --decode | gunzip >./run
+      bash ./run &>/var/log/koding-init.log
+    """
     return run
 
-  KONFIG.ENV            = generateEnvVariables   KONFIG
-  KONFIG.runFile        = generateRunFile        KONFIG
+  machineSettings = """
+        \n
+        echo '#{b64z nginxConf}'                      | base64 --decode | gunzip >  /etc/nginx/sites-enabled/default;
+        echo "nginx configured."
+        echo '#{b64z generateSupervisorConf(KONFIG)}' | base64 --decode | gunzip >  /etc/supervisor/conf.d/koding.conf;
+        echo "supervisor configured."
+  """
+
+  KONFIG.machineSettings = b64z machineSettings
+  KONFIG.runFile         = generateRunFile KONFIG
 
   return KONFIG
 

@@ -16,6 +16,68 @@ semver     = require 'semver'
 request    = require 'request'
 ec2        = new AWS.EC2()
 elb        = new AWS.ELB()
+
+
+class Release
+
+  works = ->
+    elb.deregisterInstancesFromLoadBalancer
+      Instances        : [{ InstanceId: 'i-dd310cf7' }]
+      LoadBalancerName : "koding-prod-deployment"
+    ,(err,res) ->
+      log err,res
+
+
+    elb.registerInstancesWithLoadBalancer
+      Instances        : [{ InstanceId: 'i-dd310cf7' }]
+      LoadBalancerName : "koding-prod-deployment"
+    ,(err,res) ->
+      log err,res
+
+
+    elb.describeInstanceHealth
+      Instances        : [{ InstanceId: 'i-dd310cf7' }]
+      LoadBalancerName : "koding-prod-deployment"
+    ,(err,res)->
+      log err,res
+
+  @fetchLoadBalancerInstances = (LoadBalancerName,callback)->
+    elb.describeLoadBalancers LoadBalancerNames : [LoadBalancerName],(err,res)->
+      log res.LoadBalancerDescriptions[0].Instances
+
+    ec2.describeInstances {},(err,res)->
+
+  fetchInstancesWithPrefix = (prefix,callback)->
+
+    pickValueOf= (key,array) -> return val.Value if val.Key is key for val in array
+    instances = []
+    ec2.describeInstances {},(err,res)->
+      # log err,res
+      for r in res.Reservations
+        a = InstanceId: r.Instances[0].InstanceId, Name: pickValueOf "Name",r.Instances[0].Tags
+        b = InstanceId: r.Instances[0].InstanceId
+        instances.push b if a.Name.indexOf(prefix) > -1
+      # log instances
+      callback null,instances
+
+  @registerInstancesWithPrefix = (prefix, callback)->
+    fetchInstancesWithPrefix prefix, (err,instances)->
+      # log instances
+      elb.registerInstancesWithLoadBalancer
+        Instances        : instances
+        LoadBalancerName : "koding-prod-deployment"
+      ,callback
+
+  @deregisterInstancesWithPrefix = (prefix, callback)->
+    fetchInstancesWithPrefix prefix, (err,instances)->
+      log instances
+      elb.deregisterInstancesFromLoadBalancer
+        Instances        : instances
+        LoadBalancerName : "koding-prod-deployment"
+      ,callback
+
+
+
 class Deploy
 
   @connect = (options,callback) ->
@@ -115,7 +177,7 @@ class Deploy
         return
       else
         instanceId = data.Instances[0].InstanceId
-        log "-----> Created instance", instanceId
+        log "Created instance", instanceId
 
         # Add tags to the instance
         params =
@@ -126,7 +188,7 @@ class Deploy
           ]
 
         ec2.createTags params, (err) ->
-          log "-----> Tagged with #{instanceName}", (if err then "failure" else "success")
+          log "Box tagged with #{instanceName}", (if err then "failure" else "success")
 
           params =
             InstanceIds : [instanceId]
@@ -135,7 +197,8 @@ class Deploy
             initialState  : null
             instanceState : null
             reachability  : null
-          __ = setInterval ->
+
+          timer = setInterval ->
 
             unless states.initialState is "running" or states.instanceState is "running"
 
@@ -152,7 +215,7 @@ class Deploy
                   states.final        = data?.Reservations?[0]?.Instances?[0]
             else
               log "instance is now running with IP:", IP = states.final.PublicIpAddress
-              clearInterval __
+              clearInterval timer
 
               Deploy.connect IP: IP, username: "ubuntu", retries: 30, timeout: 5000, (err,conn)->
                 unless err
@@ -178,42 +241,14 @@ class Deploy
 
   @deployAndConfigure = (options,callback)->
 
-    options = options or
-      params :
-        ImageId       : "ami-1624987f" # Amazon ubuntu 14.04 "ami-1624987f" # Amazon Linux AMI x86_64 EBS
-        InstanceType  : "t2.medium"
-        # InstanceType  : "t2.micro"
-        MinCount      : 1
-        MaxCount      : 1
-        SubnetId      : "subnet-b47692ed"
-        KeyName       : "koding-prod-deployment"
-      instanceName    : "foo#{Date.now()}"
-
-
 
     Deploy.createInstance options,(err,result) ->
       deployStart = new Date()
       {conn} = result
 
-      KONFIG = require("./config/main.prod.coffee")
-        hostname : result.instanceName
-        tag      : options.tag
-
-      options.buildScript = """
-        echo '#{new Buffer(KONFIG.runFile).toString('base64')}' | base64 --decode > /tmp/run.sh;
-        sudo bash /tmp/run.sh configure;
-        sudo bash /tmp/run.sh install;
-        sudo bash /opt/koding/run services;
-        sudo service supervisor restart
-        """
-
-
-
       conn.exec options.buildScript, (err, stream) ->
-        log 4
         throw err if err
         conn.listen "[configuring #{result.instanceName}]", stream,->
-          log 5
           throw err if err
           # delete result.conn
           # log result.instanceData
@@ -239,77 +274,24 @@ class Deploy
 
         callback null, result if i is options.length
 
+  @getCurrentVersion = (options,callback=->)->
+    exec "git fetch --tags && git tag",(a,b,c)->
+
+      tags = b.split('\n')
+      # remove invalid versions, otherwise semver throws an error
+      tags[key] = "v0.0.0" for version,key in tags when not semver.valid version
+      tags    = tags.sort semver.compare
+      version = tags.pop()
 
 
 
-# module.exports = Deploy
+      callback null,version
 
-
-# Deploy.deployAndConfigure null,(err,res)->
-#   log "#{res.instanceName} is ready."
-#   log "Box is ready at mosh root@#{res.instanceData.PublicIpAddress}"
-
-
-class Release
-
-  works = ->
-    elb.deregisterInstancesFromLoadBalancer
-      Instances        : [{ InstanceId: 'i-dd310cf7' }]
-      LoadBalancerName : "koding-prod-deployment"
-    ,(err,res) ->
-      log err,res
-
-
-    elb.registerInstancesWithLoadBalancer
-      Instances        : [{ InstanceId: 'i-dd310cf7' }]
-      LoadBalancerName : "koding-prod-deployment"
-    ,(err,res) ->
-      log err,res
-
-
-    elb.describeInstanceHealth
-      Instances        : [{ InstanceId: 'i-dd310cf7' }]
-      LoadBalancerName : "koding-prod-deployment"
-    ,(err,res)->
-      log err,res
-
-  @fetchLoadBalancerInstances = (LoadBalancerName,callback)->
-    elb.describeLoadBalancers LoadBalancerNames : [LoadBalancerName],(err,res)->
-      log res.LoadBalancerDescriptions[0].Instances
-
-    ec2.describeInstances {},(err,res)->
-
-  fetchInstancesWithPrefix = (prefix,callback)->
-
-    pickValueOf= (key,array) -> return val.Value if val.Key is key for val in array
-    instances = []
-    ec2.describeInstances {},(err,res)->
-      # log err,res
-      for r in res.Reservations
-        a = InstanceId: r.Instances[0].InstanceId, Name: pickValueOf "Name",r.Instances[0].Tags
-        b = InstanceId: r.Instances[0].InstanceId
-        instances.push b if a.Name.indexOf(prefix) > -1
-      # log instances
-      callback null,instances
-
-  @registerInstancesWithPrefix = (prefix, callback)->
-    fetchInstancesWithPrefix prefix, (err,instances)->
-      # log instances
-      elb.registerInstancesWithLoadBalancer
-        Instances        : instances
-        LoadBalancerName : "koding-prod-deployment"
-      ,callback
-
-  @deregisterInstancesWithPrefix = (prefix, callback)->
-    fetchInstancesWithPrefix prefix, (err,instances)->
-      log instances
-      elb.deregisterInstancesFromLoadBalancer
-        Instances        : instances
-        LoadBalancerName : "koding-prod-deployment"
-      ,callback
-
-
-
+  @getNextVersion = (options, callback)->
+    type = options.versiontype or "patch"
+    Deploy.getCurrentVersion {},(err,version)->
+      log "current version is #{version}"
+      callback null, "v"+semver.inc(version,type)
 
 release = (key)->
   Release.registerInstancesWithPrefix key,(err,res)->
@@ -339,40 +321,28 @@ if argv.rollback
 if argv.deploy
   d = new Date()
   log "fetching latest version tag. please wait... "
-  tags = exec "git fetch --tags && git tag",(a,b,c)->
-    version = b.split('\n')
-    version = version.slice(-2)[0]
 
-    version = "v1.5.0" if version is ""
-    log "current version is #{version}"
+  Deploy.getNextVersion {},(err,version)->
+
+
     options =
       boxes       : argv.boxes          or 5
       boxtype     : argv.boxtype        or "t2.medium"
       versiontype : argv.versiontype    or "patch"  # available options major, premajor, minor, preminor, patch, prepatch, or prerelease
       target      : argv.target         or "singlebox" # prod | staging | sandbox
+      version     : argv.version        or version
 
-    options.version = argv.version or semver.inc(version,options.versiontype)
-    # options.tag     = argv.tag     or semver
-    options.hostname = "#{options.target}--v#{options.version.replace(/\./g,'-')}"
+    options.hostname     = "#{options.target}--#{options.version.replace(/\./g,'-')}"
+    options.instanceName = "#{options.hostname}--#{eden.eve().toLowerCase()}"
+    KONFIG = require("./config/main.prod.coffee")
+      hostname : options.instanceName
+      tag      : options.tag
+
     #create the new tag
     log "tagging version #{options.version}"
-    exec "git tag 'v#{options.version}' && git push --tags",(err,stdout,stderr)->
+    exec "git tag -a '#{options.version}' -m '#{KONFIG.machineSettings}' && git push --tags",(err,stdout,stderr)->
 
       if options.target is "singlebox"
-
-        buildScript = (options={}) ->
-          {IP} = options
-          """
-          echo '#{new Buffer(KONFIG.runFile).toString('base64')}' | base64 --decode > /tmp/run.sh;
-          sudo bash /tmp/run.sh configure;
-          sudo bash /tmp/run.sh install;
-          sudo bash /opt/koding/run services;
-          sudo service supervisor restart
-          echo "starting services... (give it 15 secs)"
-          sleep 15
-          \n
-          """
-
 
         options =
           params :
@@ -382,11 +352,13 @@ if argv.deploy
             MaxCount      : 1
             SubnetId      : "subnet-b47692ed"
             KeyName       : "koding-prod-deployment"
-          instanceName    : "#{options.hostname}--#{eden.eve().toLowerCase()}"
+            UserData      : new Buffer(KONFIG.runFile).toString('base64')
+          instanceName    : options.instanceName
           configName      : "singlebox"
           environment     : "singlebox"
-          tag             : "v#{options.version}"
-          buildScript     : buildScript
+          tag             : options.version
+          buildScript     : "tail -fq /var/log/syslog"
+
 
 
         Deploy.deployAndConfigure options,(err,res)->
@@ -409,19 +381,44 @@ if argv.deploy
             log "#{res.instanceName} is ready."
             log "Box is ready at mosh root@#{res.instanceData.PublicIpAddress}"
 
-
-# Deploy.deployTest [
-#   {url : "http://54.210.129.96:3000/"           , target: "webserver"          , expectString: "UA-6520910-8"}
-#   {url : "http://54.210.129.96:3030/xhr"        , target: "socialworker"       , expectString: "Cannot GET"}
-#   {url : "http://54.210.129.96:8080/subscribe"  , target: "broker"             , expectString: "Cannot GET"}
-#   {url : "http://54.210.129.96:5500/kite"       , target: "kloud"              , expectString: "Welcome"}
-#   {url : "http://54.210.129.96/"                , target: "webserver-nginx"    , expectString: "UA-6520910-8"}
-#   {url : "http://54.210.129.96/xhr"             , target: "socialworker-nginx" , expectString: "Cannot GET"}
-#   {url : "http://54.210.129.96/subscribe"       , target: "broker-nginx"       , expectString: "Cannot GET"}
-#   {url : "http://54.210.129.96/kloud/kite"      , target: "kloud-nginx"        , expectString: "Welcome"}
-# ]
-# ,(err,test_res)->
-#   log test_res
+# KONFIG = require("./config/main.prod.coffee")
+#   hostname : "foo"
+#   tag      : "options.tag"
 
 
-log semver.inc("1.5.10","patch")
+# fs.writeFileSync "./foo.sh",KONFIG.runFile
+# fs.writeFileSync "./foo.sh64",fs.readFileSync("./foo.sh").toString('base64')
+
+
+
+
+# ze = ec2.createImage
+
+#   InstanceId: 'i-c7fdeaed'
+#   Name: 'test1'+Date.now()
+#   # BlockDeviceMappings: [
+#   #   {
+#   #     # DeviceName: 'testdevicename',
+#   #     Ebs:
+#   #       DeleteOnTermination: yes
+#   #       # Encrypted: no
+#   #       # Iops: 100 # Required when the volume type is io1; not used with standard or gp2 volumes.
+#   #       # SnapshotId: 'snap-koding-v1.5.5'
+#   #       VolumeSize: 8,
+#   #       VolumeType: 'standard' # | io1 | gp2'
+
+#   #     # NoDevice: 'STRING_VALUE',
+#   #     # VirtualName: 'STRING_VALUE'
+#   #   }
+#   # ]
+#   Description: 'testing image'
+#   # DryRun: true || false,
+#   NoReboot: false
+# ,(err,callback)->
+#   log arguments
+#   start = new Date()
+
+#   ze.on("success"  , (response)      -> console.log "Success!", timethat.calc start,new Date()
+#   ).on("error"     , (response)      -> console.log "Error!"
+#   ).on("complete"  , (response)      -> console.log "Always!", timethat.calc start,new Date()
+#   ).send()
