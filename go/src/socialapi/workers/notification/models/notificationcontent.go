@@ -5,6 +5,7 @@ import (
 
 	// "fmt"
 	"time"
+
 	"github.com/koding/bongo"
 )
 
@@ -26,9 +27,6 @@ const (
 	// NotificationContent Types
 	NotificationContent_TYPE_LIKE    = "like"
 	NotificationContent_TYPE_COMMENT = "comment"
-	NotificationContent_TYPE_FOLLOW  = "follow"
-	NotificationContent_TYPE_JOIN    = "join"
-	NotificationContent_TYPE_LEAVE   = "leave"
 	NotificationContent_TYPE_MENTION = "mention"
 )
 
@@ -140,12 +138,6 @@ func CreateNotificationContentType(notificationType string) (Notifiable, error) 
 		return NewInteractionNotification(notificationType), nil
 	case NotificationContent_TYPE_COMMENT:
 		return NewReplyNotification(), nil
-	case NotificationContent_TYPE_FOLLOW:
-		return NewFollowNotification(), nil
-	case NotificationContent_TYPE_JOIN:
-		return NewGroupNotification(notificationType), nil
-	case NotificationContent_TYPE_LEAVE:
-		return NewGroupNotification(notificationType), nil
 	case NotificationContent_TYPE_MENTION:
 		return NewMentionNotification(), nil
 	default:

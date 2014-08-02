@@ -14,6 +14,7 @@ class ActivityWidget extends KDView
     @inputWidget?.hide()
 
   display: (id, callback = noop) ->
+    return callback { message: "not implemented feature" }
     KD.remote.cacheable "JNewStatusUpdate", id, (err, activity) =>
       KD.showError err
       callback err, activity
@@ -22,6 +23,7 @@ class ActivityWidget extends KDView
         @addActivity activity  if activity and not err
 
   create: (body, callback = noop) ->
+    return callback { message: "not implemented feature" }
     KD.remote.api.JNewStatusUpdate.create {body}, (err, activity) =>
       KD.showError err
       callback err, activity

@@ -52,22 +52,16 @@ module.exports =
   sourceServer  :
     enabled     : yes
     port        : 1337
-  neo4j         :
-    read        : "http://172.16.6.12"
-    write       : "http://172.16.6.12"
-    port        : 7474
   mongo         : 'dev:k9lc4G1k32nyD72@68.68.97.107:27017/koding'
   mongoKontrol  : 'dev:k9lc4G1k32nyD72@68.68.97.107:27017/kontrol'
   mongoReplSet  : null
   mongoMinWrites: 1
-  runNeo4jFeeder: yes
   runGoBroker   : no
   runGoBrokerKite: no
   runPremiumBrokerKite: no
   runPremiumBroker: no
   runKontrol    : yes
   runRerouting  : yes
-  runPersistence: yes
   compileGo     : no
   buildClient   : yes
   runOsKite     : no
@@ -117,10 +111,6 @@ module.exports =
     numberOfWorkers      : 2
     watch                : no
     cronSchedule         : '00 00 00 * * *'
-  topicModifier          :
-    cronSchedule         : '0 */5 * * * *'
-  graphFeederWorker:
-    numberOfWorkers: 2
   social        :
     login       : 'prod-social'
     numberOfWorkers: 7
@@ -149,6 +139,10 @@ module.exports =
     staticFilesBaseUrl: "https://koding.com"
     runtimeOptions:
       kites: require './kites.coffee'
+      algolia: #TODO change these credentials
+        appId: '8KD9RHY1OA'
+        apiKey: 'e4a8ebe91bf848b67c9ac31a6178c64b'
+        indexSuffix: '.staging'
       osKitePollingMs: 1000 * 60 # 1 min
       userIdleMs: 1000 * 60 * 5 # 5 min
       sessionCookie :
@@ -162,7 +156,6 @@ module.exports =
       embedly        :
         apiKey       : embedlyApiKey
       userSitesDomain: 'kd.io'
-      useNeo4j: yes
       logToExternal : yes
       logToInternal : yes
       resourceName: socialQueueName
@@ -380,16 +373,13 @@ module.exports =
     token        : "xoxp-2155583316-2155760004-2158149487-a72cf4"
     channel      : "C024LG80K"
   logLevel        :
-    neo4jfeeder   : "info"
     oskite        : "info"
     terminal      : "info"
     kontrolproxy  : "debug"
     kontroldaemon : "info"
-    userpresence  : "info"
     vmproxy       : "info"
     graphitefeeder: "info"
     sync          : "info"
-    topicModifier : "info"
     postModifier  : "info"
     router        : "info"
     rerouting     : "info"

@@ -30,18 +30,6 @@ module.exports = class Taggable
                   if err then callback err
                   else do queue.next
               =>
-                options = {
-                  as: taggedContentRole
-                  respondWithCount: yes
-                }
-                options.data = { flags: {isLowQuality: exempt}} if exempt
-
-                tag.addContent @, options, (err, docs, count)=>
-                  if err then callback err
-                  else
-                    taggedCount = count
-                    queue.next()
-              =>
                 incCount = {}
                 incCount["counts.#{taggedContentRole}"] = taggedCount
                 tag.update $set: incCount, (err)=>

@@ -41,7 +41,6 @@ task 'kontrolDaemon', "Run the kontrolDaemon", (options) -> kontrolDaemon option
 task 'kontrolApi', "Run the kontrolApi", (options) -> kontrolApi options
 task 'kontrolKite', "Run the kontrol kite", (options) -> kontrolKite options
 task 'proxyKite', "Run the proxy kite", (options) -> proxyKite options
-task 'cronJobs', "Run CronJobs", (options)-> cronjobs options
 task 'migratePost', "Migrate Posts to JNewStatusUpdate", (options)-> migratePost options
 task 'checkConfig', "Check the local config files for errors", (options)-> checkConfig options
 task 'runGraphiteFeeder', "Collect analytics from database and feed to grahpite", (options)-> runGraphiteFeeder options
@@ -433,9 +432,6 @@ checkConfig = (options,callback=->)->
 runGraphiteFeeder = (options, callback=->)->
   processes.run 'graphiteFeeder',"./go/bin/graphitefeeder -c #{options.configFile}"
 
-cronjobs = (options, callback=->)->
-  processes.run 'cronJobs',"./go/bin/cron -c #{options.configFile}"
-
 migratePost = (options,callback=->)->
   processes.run 'migratePost', "./go/bin/posts -c #{options.configFile}"
 
@@ -462,8 +458,6 @@ run =(options)->
   invoke 'emailConfirmationCheckerWorker'   if KONFIG.emailConfirmationCheckerWorker.enabled
   invoke 'emailWorker'                      if KONFIG.emailWorker?.run is yes
   invoke 'emailSender'                      if KONFIG.emailSender?.run is yes
-  invoke 'addTagCategories'
-  invoke 'cronJobs'
   invoke 'logWorker'                        if KONFIG.log.runWorker
 
   setTimeout ->
@@ -639,13 +633,6 @@ task 'test-all', 'Runs functional test suite', (options)->
       process.exit code
 
 # ------------ OTHER LESS IMPORTANT STUFF ---------------------#
-
-task 'addTagCategories','Add new field category to JTag, and set default to "user-tag"',(options)->
-  command = """
-  mongo localhost/koding --quiet  --eval='db.jTags.update(
-    {"category":{$ne:"system-tag"}},{$set:{"category":"user-tag"}},{"multi":"true"})'
-  """
-  exec command
 
 task 'parseAnalyzedCss','Shows the output of analyzeCss in a nice format',(options)->
 

@@ -8,7 +8,6 @@ import (
 	"koding/db/mongodb/modelhelper"
 	"socialapi/models"
 	"socialapi/request"
-	notificationmodels "socialapi/workers/notification/models"
 
 	"github.com/koding/logging"
 	"github.com/koding/rabbitmq"
@@ -35,26 +34,6 @@ type Controller struct {
 
 	// connection to RMQ
 	rmqConn *amqp.Connection
-}
-
-// NotificationEvent holds required data for notifcation processing
-type NotificationEvent struct {
-	// Holds routing key for notification dispatching
-	RoutingKey string `json:"routingKey"`
-
-	// Content of the notification
-	Content NotificationContent `json:"contents"`
-}
-
-// NotificationContent holds required data for notification events
-type NotificationContent struct {
-	// TypeConstant holds the type of a notification
-	// But in some cases, this property can hold the status of the
-	// notification, like "delivered" and "read"
-	TypeConstant string `json:"type"`
-
-	TargetId int64  `json:"targetId,string"`
-	ActorId  string `json:"actorId"`
 }
 
 type ParticipantContent struct {
@@ -517,65 +496,6 @@ func (f *Controller) MessageListDeleted(cml *models.ChannelMessageList) error {
 
 	if err := f.sendChannelEvent(cml, "MessageRemoved"); err != nil {
 		return err
-	}
-
-	return nil
-}
-
-func (f *Controller) NotifyUser(notification *notificationmodels.Notification) error {
-	channel, err := f.rmqConn.Channel()
-	if err != nil {
-		return errors.New("channel connection error")
-	}
-	defer channel.Close()
-
-	activity, nc, err := notification.FetchLastActivity()
-	if err != nil {
-		return err
-	}
-
-	// do not notify actor for her own action
-	if activity.ActorId == notification.AccountId {
-		return nil
-	}
-
-	// do not notify user when notification is not yet activated,
-	// or it is already glanced (subscription case)
-	if notification.ActivatedAt.IsZero() || notification.Glanced {
-		return nil
-	}
-
-	oldAccount, err := fetchOldAccount(notification.AccountId)
-	if err != nil {
-		f.log.Warning("an error occurred while fetching old account: %s", err)
-		return nil
-	}
-
-	// fetch user profile name from bongo as routing key
-	ne := &NotificationEvent{}
-
-	ne.Content = NotificationContent{
-		TargetId:     nc.TargetId,
-		TypeConstant: nc.TypeConstant,
-	}
-	ne.Content.ActorId, _ = models.FetchAccountOldIdByIdFromCache(activity.ActorId)
-
-	notificationMessage, err := json.Marshal(ne)
-	if err != nil {
-		return err
-	}
-
-	routingKey := oldAccount.Profile.Nickname
-
-	err = channel.Publish(
-		"notification",
-		routingKey,
-		false,
-		false,
-		amqp.Publishing{Body: notificationMessage},
-	)
-	if err != nil {
-		return fmt.Errorf("an error occurred while notifying user: %s", err)
 	}
 
 	return nil
