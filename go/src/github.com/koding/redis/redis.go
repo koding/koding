@@ -123,12 +123,7 @@ func (r *RedisSession) Get(key string) (string, error) {
 // the stored value is a non-integer, zero is returned. Example usage:
 // redis.GetInt("counter")
 func (r *RedisSession) GetInt(key string) (int, error) {
-	reply, err := redis.Int(r.Do("GET", r.AddPrefix(key)))
-	if err != nil {
-		return 0, err
-	}
-
-	return reply, nil
+	return redis.Int(r.Do("GET", r.AddPrefix(key)))
 }
 
 // Del is used to remove the specified keys. Key is ignored if it does not
@@ -140,11 +135,7 @@ func (r *RedisSession) Del(args ...interface{}) (int, error) {
 		prefixed = append(prefixed, r.AddPrefix(arg.(string)))
 	}
 
-	reply, err := redis.Int(r.Do("DEL", prefixed...))
-	if err != nil {
-		return 0, err
-	}
-	return reply, nil
+	return redis.Int(r.Do("DEL", prefixed...))
 }
 
 // Incr increments the number stored at key by one. If the key does not exist,
@@ -152,12 +143,15 @@ func (r *RedisSession) Del(args ...interface{}) (int, error) {
 // key contains a value of the wrong type or contains a string that can not be
 // represented as integer
 func (r *RedisSession) Incr(key string) (int, error) {
-	reply, err := redis.Int(r.Do("INCR", r.AddPrefix(key)))
-	if err != nil {
-		return 0, err
-	}
+	return redis.Int(r.Do("INCR", r.AddPrefix(key)))
+}
 
-	return reply, nil
+// Decr decrements the number stored at key by one. If the key does not exist,
+// it is set to 0 before performing the operation. An error is returned if the
+// key contains a value of the wrong type or contains a string that can not be
+// represented as integer
+func (r *RedisSession) Decr(key string) (int, error) {
+	return redis.Int(r.Do("DECR", r.AddPrefix(key)))
 }
 
 // Expire sets a timeout on a key. After the timeout has expired, the key will
@@ -240,12 +234,7 @@ func (r *RedisSession) Ping() error {
 
 // Scard gets the member count of a Set with given key
 func (r *RedisSession) Scard(key string) (int, error) {
-	reply, err := redis.Int(r.Do("SCARD", key))
-	if err != nil {
-		return 0, err
-	}
-
-	return reply, nil
+	return redis.Int(r.Do("SCARD", r.AddPrefix(key)))
 }
 
 // SortedSetIncrBy increments the value of a member
@@ -313,18 +302,19 @@ func (r *RedisSession) GetHashMultipleSet(key string, rest ...interface{}) ([]in
 	return redis.Values(r.Do("HMGET", prefixedReq...))
 }
 
+// HashGetAll returns all of the fields of a hash value
+// Usage: HashGetAll(key)
+func (r *RedisSession) HashGetAll(key string) ([]interface{}, error) {
+	return redis.Values(r.Do("HGETALL", r.AddPrefix(key)))
+}
+
 // AddSetMembers adds given elements to the set stored at key. Given elements
 // that are already included in set are ignored.
 // Returns successfully added key count and error state
 func (r *RedisSession) AddSetMembers(key string, rest ...interface{}) (int, error) {
 	prefixedReq := r.prepareArgsWithKey(key, rest...)
 
-	reply, err := redis.Int(r.Do("SADD", prefixedReq...))
-	if err != nil {
-		return 0, err
-	}
-
-	return reply, nil
+	return redis.Int(r.Do("SADD", prefixedReq...))
 }
 
 // RemoveSetMembers removes given elements from the set stored at key
@@ -332,12 +322,7 @@ func (r *RedisSession) AddSetMembers(key string, rest ...interface{}) (int, erro
 func (r *RedisSession) RemoveSetMembers(key string, rest ...interface{}) (int, error) {
 	prefixedReq := r.prepareArgsWithKey(key, rest...)
 
-	reply, err := redis.Int(r.Do("SREM", prefixedReq...))
-	if err != nil {
-		return 0, err
-	}
-
-	return reply, nil
+	return redis.Int(r.Do("SREM", prefixedReq...))
 }
 
 // GetSetMembers returns all members included in the set at key
@@ -349,6 +334,18 @@ func (r *RedisSession) GetSetMembers(key string) ([]interface{}, error) {
 // PopSetMember removes and returns a random element from the set stored at key
 func (r *RedisSession) PopSetMember(key string) (string, error) {
 	return redis.String(r.Do("SPOP", r.AddPrefix(key)))
+}
+
+// IsSetMember checks existence of a member set
+func (r *RedisSession) IsSetMember(key string, value string) (int, error) {
+	prefixedReq := r.prepareArgsWithKey(key, value)
+
+	return redis.Int(r.Do("SISMEMBER", prefixedReq...))
+}
+
+// RandomSetMember returns random from set, but not removes unline PopSetMember
+func (r *RedisSession) RandomSetMember(key string) (string, error) {
+	return redis.String(r.Do("SRANDMEMBER", r.AddPrefix(key)))
 }
 
 // SortBy sorts elements stored at key with given weight and order(ASC|DESC)
