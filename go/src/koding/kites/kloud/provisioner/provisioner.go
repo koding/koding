@@ -19,7 +19,7 @@ var	shellProvisioner = map[string]interface{}{
 		// Install NodeJS 0.10.26
 		"wget -O - http://nodejs.org/dist/v0.10.26/node-v0.10.26-linux-x64.tar.gz | sudo tar -C /usr/local/ --strip-components=1 -zxv"
 		// Install programming language runtimes/compilers
-		"sudo apt-get install -y erlang ghc swi-prolog clisp ruby-dev ri rake python mercurial subversion cvs bzr default-jdk",
+		"sudo apt-get install -y erlang ghc swi-prolog clisp ruby-dev ri rake python mercurial subversion cvs bzr default-jdk golang-go",
 	},
 }
 
