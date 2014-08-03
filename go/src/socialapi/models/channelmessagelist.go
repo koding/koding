@@ -28,6 +28,9 @@ type ChannelMessageList struct {
 
 	// Update time of the message/list
 	RevisedAt time.Time `json:"revisedAt"        sql:"NOT NULL"`
+
+	// Deletion date of the channel
+	DeletedAt time.Time `json:"deletedAt"`
 }
 
 func (c *ChannelMessageList) UnreadCount(cp *ChannelParticipant) (int, error) {
