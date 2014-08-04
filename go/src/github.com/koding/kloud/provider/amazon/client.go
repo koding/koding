@@ -41,7 +41,7 @@ func (a *AmazonClient) Build(instanceName string) (*protocol.Artifact, error) {
 			a.Log.Error(err.Error())
 			// Image doesn't exist so try it
 			a.Log.Info("AMI named '%s' does not exist, building it now", a.Builder.SourceAmi)
-			ami, err = a.CreateImage(provisioner.RawData);
+			ami, err = a.CreateImage(provisioner.RawData)
 			if err != nil {
 				return nil, err
 			}
@@ -121,7 +121,7 @@ func (a *AmazonClient) CreateImage(provisioner interface{}) (*ec2.Image, error) 
 
 	provider := &packer.Provider{
 		BuildName: "amazon-ebs",
-		Builder:      data,
+		Builder:   data,
 	}
 
 	// this is basically a "packer build template.json"

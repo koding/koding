@@ -61,7 +61,7 @@ type Amazon struct {
 		SecretKey string `packer:"secret_key"`
 
 		// Name of AMI to create
-		AmiName      string `packer:"ami_name"`
+		AmiName string `packer:"ami_name"`
 
 		// Type of instance to create AMI for
 		InstanceType string `packer:"instance_type"`
