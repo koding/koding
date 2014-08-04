@@ -16,7 +16,7 @@ class NavigationMachineItem extends KDListItemView
 
     options.tagName    = 'a'
     options.type     or= 'main-nav'
-    options.cssClass   = 'vm'
+    options.cssClass   = "vm #{machine.status.state.toLowerCase()}"
     options.attributes =
       href             : path
       # title            : "Go to your VM #{@alias}"
@@ -54,7 +54,7 @@ class NavigationMachineItem extends KDListItemView
   click: (event)->
 
     if event.target.tagName.toLowerCase() isnt 'span'
-      return yes  if @machine.status.state in [Running, Stopped]
+      return yes  if @machine.status.state is Running
 
     KD.utils.stopDOMEvent event
 
