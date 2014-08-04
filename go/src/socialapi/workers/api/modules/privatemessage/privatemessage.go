@@ -131,7 +131,7 @@ func Send(u *url.URL, h http.Header, req *models.PrivateMessageRequest) (int, ht
 	cp := models.NewChannelParticipant()
 	cp.ChannelId = c.Id
 	cp.AccountId = req.AccountId
-	if err := cp.FetchParticipant(); err != nil {
+	if err := cp.FetchActiveParticipant(); err != nil {
 		return response.NewBadRequest(err)
 	}
 
