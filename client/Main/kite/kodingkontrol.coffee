@@ -122,6 +122,11 @@ class KodingKontrol extends (require 'kontrol')
 
       warn "[KodingKontrol] ", err
 
+      # Instead parsing message we need to define a code or different
+      # name for `No kite found` error in kite.js ~ FIXME GG
+      if err and err.name is "KiteError" and /^No kite found/.test err.message
+        kite._invalid = err
+
       @setCachedKite name, correlationName, null
 
       {message} = err
