@@ -25,7 +25,7 @@ class MessagePane extends KDTabPaneView
     @createInputWidget()
 
     {socialapi} = KD.singletons
-    socialapi.onChannelReady data, @bound 'emit', 'ChannelReady'
+    socialapi.onChannelReady data, @lazyBound 'emit', 'ChannelReady'
     @once 'ChannelReady', @bound 'bindChannelEvents'
 
     @on 'LazyLoadThresholdReached', @bound 'lazyLoad'  if typeConstant in ['group', 'topic']
