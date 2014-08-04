@@ -23,7 +23,10 @@ class MessagePane extends KDTabPaneView
     @listController = new ActivityListController { wrapper, itemClass, type: typeConstant, viewOptions, lastToFirst}
 
     @createInputWidget()
-    @bindChannelEvents()
+
+    {socialapi} = KD.singletons
+    socialapi.onChannelReady data, @bound 'emit', 'ChannelReady'
+    @once 'ChannelReady', @bound 'bindChannelEvents'
 
     @on 'LazyLoadThresholdReached', @bound 'lazyLoad'  if typeConstant in ['group', 'topic']
 
@@ -87,28 +90,31 @@ class MessagePane extends KDTabPaneView
     @input = new ActivityInputWidget {channel}
 
 
-  bindChannelEvents: ->
+  bindChannelEvents: (channel) ->
 
-    {socialapi} = KD.singletons
-    socialapi.onChannelReady @getData(), (channel) =>
+    return  unless channel
 
-      return  unless channel
+    channel
+      .on 'MessageAdded',   @bound 'addMessage'
+      .on 'MessageRemoved', @bound 'removeMessage'
 
-      channel
-        .on 'MessageAdded',   @bound 'addMessage'
-        .on 'MessageRemoved', @bound 'removeMessage'
 
   addMessage: (message) ->
+
     {lastToFirst} = @getOptions()
     index = if lastToFirst then @listController.getItemCount() else 0
     @prependMessage message, index
 
+
   loadMessage: (message) ->
+
     {lastToFirst} = @getOptions()
     index = if lastToFirst then 0 else @listController.getItemCount()
     @appendMessage message, index
 
+
   appendMessage: (message, index) -> @listController.addItem message, index
+
 
   prependMessage: (message, index) ->
     KD.getMessageOwner message, (err, owner) =>
@@ -228,4 +234,3 @@ class MessagePane extends KDTabPaneView
     @listController.removeAllItems()
     @listController.showLazyLoader()
     @populate()
-

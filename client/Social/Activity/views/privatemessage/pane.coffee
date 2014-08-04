@@ -31,18 +31,14 @@ class PrivateMessagePane extends MessagePane
     @listController.getListView().on 'ItemWasRemoved', @bound 'privateMessageRemoved'
 
 
+  bindChannelEvents: (channel) ->
 
-  bindChannelEvents: ->
+    return  unless channel
 
-    {socialapi} = KD.singletons
-    socialapi.onChannelReady @getData(), (channel) =>
+    super channel
 
-      return  unless channel
-
-      channel
-        .on 'MessageAdded',   @bound 'addMessage'
-        .on 'MessageRemoved', @bound 'removeMessage'
-        .on 'AddedToChannel', @bound 'addParticipant'
+    channel
+      .on 'AddedToChannel', @bound 'addParticipant'
 
 
   addMessage: (message) ->
