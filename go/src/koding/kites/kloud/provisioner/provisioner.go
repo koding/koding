@@ -42,24 +42,28 @@ var PackerTemplate = packer.Template{
 }
 
 // Ami returns the name of the image associated to the current packer configuration
-func Ami() string {
-	return "koding-" + Checksum()
+func Ami() (string, error) {
+	checksum, err := Checksum()
+	if err != nil {
+		return "", err
+	}
+	return "koding-" + checksum, err
 }
 
 // Checksum returns an hexadecimal checksum. We use this to ensure idempotence and that an image is only created once
-func Checksum() string {
+func Checksum() (string, error) {
 	// Get json representation of packer conf
 	// (we could use "gob" encoding any other, json specifically doesn't matter)
 	data, err := json.Marshal(RawData)
 	if err != nil {
 		// this should never happen
-		panic("Failed to compute Checksum for packer config")
+		return "", err
 	}
 
 	// integet checksum
 	sum := crc32.ChecksumIEEE(data)
 
-	return hex32(sum)
+	return hex32(sum), nil
 }
 
 // Utility function to produce a hexadecimal string from an uint32

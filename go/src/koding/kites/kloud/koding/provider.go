@@ -155,6 +155,11 @@ func (p *Provider) Build(opts *protocol.Machine) (*protocol.Artifact, error) {
 		}
 	}
 
+	amiName, err := provisioner.Ami()
+	if err != nil {
+		return nil, fmt.Errorf("Could not get generated AMI name: %s", err)
+	}
+
 	// IMAGE BUILDER
 
 	// Build type needed for backer
@@ -164,7 +169,7 @@ func (p *Provider) Build(opts *protocol.Machine) (*protocol.Artifact, error) {
 	a.ImageBuilder.SshUsername = "ubuntu"
 
 	// Name of AMI to build if needed
-	a.ImageBuilder.AmiName = provisioner.Ami()
+	a.ImageBuilder.AmiName = amiName
 
 	// Use this ami as a "foundation"
 	a.ImageBuilder.SourceAmi = DefaultAMI
@@ -187,7 +192,7 @@ func (p *Provider) Build(opts *protocol.Machine) (*protocol.Artifact, error) {
 	a.Builder.SecurityGroupId = group.Id
 
 	// Use koding plans instead of those later
-	a.Builder.SourceAmi = provisioner.Ami()
+	a.Builder.SourceAmi = amiName
 	a.Builder.InstanceType = DefaultInstanceType
 
 	// Get or build if needed AMI image
