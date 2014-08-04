@@ -27,7 +27,7 @@ class ActivityListItemView extends KDListItemView
 
     @author      = new ProfileLinkView { origin }
 
-    {commentViewClass, activitySettings:{disableFollow}} = @getOptions()
+    {commentViewClass, activitySettings: {disableFollow}} = @getOptions()
 
     @commentBox = new commentViewClass options.commentSettings, data
     @actionLinks = new ActivityActionsView delegate: @commentBox, data

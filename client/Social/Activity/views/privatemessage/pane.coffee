@@ -27,8 +27,8 @@ class PrivateMessagePane extends MessagePane
 
     @input = new ReplyInputWidget {channel}
 
-    @listController.getListView().on 'ItemWasAdded', @bound 'privateMessageAdded'
-    @listController.getListView().on 'ItemWasRemoved', @bound 'privateMessageRemoved'
+    @listController.getListView().on 'ItemWasAdded', @bound 'messageAdded'
+    @listController.getListView().on 'ItemWasRemoved', @bound 'messageRemoved'
 
 
   bindChannelEvents: (channel) ->
@@ -51,12 +51,71 @@ class PrivateMessagePane extends MessagePane
   loadMessage: (message) -> @appendMessage message, 0
 
 
-  viewAppended: ->
-    @addSubView @participantsView
-    @addSubView @listPreviousLink
-    @addSubView @listController.getView()
-    @addSubView @input  if @input
-    @populate()
+  hasSameOwner = (a, b) -> a.getData().account._id is b.getData().account._id
+
+
+  listPreviousReplies: (event) ->
+
+    @listController.showLazyLoader()
+
+    {appManager} = KD.singletons
+    first         = @listController.getItemsOrdered().first
+    return  unless first
+
+    from         = first.getData().meta.createdAt.toISOString()
+
+    @fetch {from, limit: 10}, (err, items = []) =>
+      @listController.hideLazyLoader()
+
+      return KD.showError err  if err
+
+      items.forEach @lazyBound 'loadMessage'
+
+
+  messageAdded: (item, index) ->
+
+    @scrollDown()
+    {data} = item
+    @messageMap[data.id] = yes
+
+    prevSibling = @listController.getListItems()[index-1]
+    nextSibling = @listController.getListItems()[index+1]
+
+    if prevSibling
+      if hasSameOwner item, prevSibling
+      then item.setClass 'consequent'
+      else item.unsetClass 'consequent'
+
+    if nextSibling
+      if hasSameOwner item, nextSibling
+      then nextSibling.setClass 'consequent'
+      else nextSibling.unsetClass 'consequent'
+
+
+  messageRemoved: (item, index) ->
+
+    {data} = item
+    delete @messageMap[data.id]
+
+    prevSibling = @listController.getListItems()[index-1]
+    nextSibling = @listController.getListItems()[index]
+
+    if nextSibling and prevSibling
+      if hasSameOwner prevSibling, nextSibling
+      then nextSibling.setClass 'consequent'
+      else nextSibling.unsetClass 'consequent'
+    else if nextSibling
+      nextSibling.unsetClass 'consequent'
+
+
+  fetch: (options = {}, callback) ->
+
+    options.limit or= 3
+    super options, (err, data) =>
+      channel = @getData()
+      channel.replies = data
+      @listPreviousLink.updateView data
+      callback err, data
 
 
   addParticipant: (participant) ->
@@ -99,62 +158,11 @@ class PrivateMessagePane extends MessagePane
             left    : @getX() - 150
         , @getData()
 
-  hasSameOwner = (a, b) -> a.getData().account._id is b.getData().account._id
 
-  listPreviousReplies: (event) ->
+  viewAppended: ->
 
-    @listController.showLazyLoader()
-
-    {appManager} = KD.singletons
-    first         = @listController.getItemsOrdered().first
-    return  unless first
-
-    from         = first.getData().meta.createdAt.toISOString()
-
-    @fetch {from, limit: 10}, (err, items = []) =>
-      @listController.hideLazyLoader()
-
-      return KD.showError err  if err
-
-      items.forEach @lazyBound 'loadMessage'
-
-  privateMessageAdded: (item, index) ->
-    @scrollDown()
-    {data} = item
-    @messageMap[data.id] = yes
-
-    prevSibling = @listController.getListItems()[index-1]
-    nextSibling = @listController.getListItems()[index+1]
-
-    if prevSibling
-      if hasSameOwner item, prevSibling
-      then item.setClass 'consequent'
-      else item.unsetClass 'consequent'
-
-    if nextSibling
-      if hasSameOwner item, nextSibling
-      then nextSibling.setClass 'consequent'
-      else nextSibling.unsetClass 'consequent'
-
-
-  privateMessageRemoved: (item, index) ->
-    {data} = item
-    delete @messageMap[data.id]
-
-    prevSibling = @listController.getListItems()[index-1]
-    nextSibling = @listController.getListItems()[index]
-
-    if nextSibling and prevSibling
-      if hasSameOwner prevSibling, nextSibling
-      then nextSibling.setClass 'consequent'
-      else nextSibling.unsetClass 'consequent'
-    else if nextSibling
-      nextSibling.unsetClass 'consequent'
-
-  fetch: (options = {}, callback) ->
-    options.limit or= 3
-    super options, (err, data) =>
-      channel = @getData()
-      channel.replies = data
-      @listPreviousLink.updateView data
-      callback err, data
+    @addSubView @participantsView
+    @addSubView @listPreviousLink
+    @addSubView @listController.getView()
+    @addSubView @input  if @input
+    @populate()
