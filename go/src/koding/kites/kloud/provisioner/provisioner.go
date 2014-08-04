@@ -41,16 +41,15 @@ var PackerTemplate = packer.Template{
 	},
 }
 
-// Get the AMI name of the image associated to the current packer conf
+// Ami returns the name of the image associated to the current packer configuration
 func Ami() string {
 	return "koding-" + Checksum()
 }
 
-// Get a hexadecimal checksum
-// We use this to ensure idempotence
-// and that an image is only crated once
+// Checksum returns an hexadecimal checksum. We use this to ensure idempotence and that an image is only created once
 func Checksum() string {
-	// Get json representation of docker conf
+	// Get json representation of packer conf
+	// (we could use "gob" encoding any other, json specifically doesn't matter)
 	data, err := json.Marshal(RawData)
 	if err != nil {
 		// this should never happen
