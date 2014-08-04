@@ -271,7 +271,7 @@ func (c *Channel) AddMessage(messageId int64) (*ChannelMessageList, error) {
 
 	cml, err := c.FetchMessageList(messageId)
 	if err == nil {
-		return nil, ErrAlreadyInTheChannel
+		return nil, ErrMessageAlreadyInTheChannel
 	}
 
 	// silence record not found err

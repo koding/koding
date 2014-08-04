@@ -61,34 +61,6 @@ func TestChannelCreation(t *testing.T) {
 				So(channelParticipant, ShouldBeNil)
 			})
 
-			Convey("normal user should not be able to add new participants to chat channel", func() {
-				channel1, err := rest.CreateChannelByGroupNameAndType(account1.Id, "testgroup", models.Channel_TYPE_CHAT)
-				So(err, ShouldBeNil)
-				So(channel1, ShouldNotBeNil)
-
-				channelParticipant, err := rest.AddChannelParticipant(channel1.Id, nonOwnerAccount.Id, nonOwnerAccount.Id)
-				// there should be an err
-				So(err, ShouldNotBeNil)
-				// channel should be nil
-				So(channelParticipant, ShouldBeNil)
-			})
-
-			Convey("owner should be able to remove participants from chat channel it", func() {
-				channel1, err := rest.CreateChannelByGroupNameAndType(account1.Id, "testgroup", models.Channel_TYPE_CHAT)
-				So(err, ShouldBeNil)
-				So(channel1, ShouldNotBeNil)
-
-				channelParticipant, err := rest.AddChannelParticipant(channel1.Id, account1.Id, nonOwnerAccount.Id)
-				// there should be an err
-				So(err, ShouldBeNil)
-				// channel should be nil
-				So(channelParticipant, ShouldNotBeNil)
-
-				_, err = rest.DeleteChannelParticipant(channel1.Id, account1.Id, nonOwnerAccount.Id)
-				// there should be an err
-				So(err, ShouldBeNil)
-			})
-
 			Convey("owner should be able list participants", func() {
 				channel1, err := rest.CreateChannelByGroupNameAndType(account1.Id, "testgroup", models.Channel_TYPE_DEFAULT)
 				So(err, ShouldBeNil)
