@@ -48,7 +48,7 @@ type Provider struct {
 
 	// A flag saying if user permissions should be ignored
 	// store negation so default value is aligned with most common use case
-	NoAuth bool
+	Test bool
 }
 
 func (p *Provider) NewClient(machine *protocol.Machine) (*amazon.AmazonClient, error) {

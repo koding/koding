@@ -43,7 +43,7 @@ var (
 	flagProxy       = flag.Bool("proxy", false, "Start klient behind a proxy")
 
 	// Development related flags
-	flagNoAuth = flag.Bool("noauth", false, "Disable VM authentication checks (useful for development)")
+	flagTest = flag.Bool("test", false, "Activate test mode (Disables VM authentication checks [useful for development], etc ..)")
 )
 
 func main() {
@@ -117,7 +117,7 @@ func newKite() *kite.Kite {
 		Log:          newLogger("koding"),
 		AssigneeName: id,
 		Session:      db,
-		NoAuth:       *flagNoAuth,
+		Test:         *flagTest,
 	}
 
 	if err := kodingProvider.CleanupOldData(); err != nil {
