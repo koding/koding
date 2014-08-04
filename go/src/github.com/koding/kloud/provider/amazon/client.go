@@ -29,6 +29,14 @@ func (a *AmazonClient) Build(instanceName string) (*protocol.Artifact, error) {
 		return nil, errors.New("security group id is empty.")
 	}
 
+	// Make sure AMI exists
+	a.Log.Info("Checking if image '%s' exists", a.Builder.SourceAmi)
+	if _, err := a.Image(a.Builder.SourceAmi); err != nil {
+		if err != nil {
+			return nil, err
+		}
+	}
+
 	// get the necessary keynames that we are going to provide with Amazon. If
 	// it doesn't exist a new one will be created.
 	keyName, err := a.DeployKey()
