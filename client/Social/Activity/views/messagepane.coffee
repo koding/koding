@@ -4,6 +4,8 @@ class MessagePane extends KDTabPaneView
 
     options.type    or= ''
     options.cssClass  = "message-pane #{options.type}"
+    options.wrapper     ?= yes
+    options.lastToFirst ?= no
 
     super options, data
 
@@ -13,21 +15,18 @@ class MessagePane extends KDTabPaneView
       self          : 0
       body          : 0
 
-    {itemClass, type} = @getOptions()
+    {itemClass, type, lastToFirst, wrapper} = @getOptions()
     {typeConstant}    = @getData()
 
-    # To keep track of who are the shown participants
-    # This way we are preventing to be duplicates
-    # on page even if events from backend come more than
-    # once.
-    @participantMap = {}
-
-    @createParticipantsView() if typeConstant is 'privatemessage'
-    @listController = new ActivityListController {itemClass, type: typeConstant}
-
+    {channelId} = options
+    viewOptions = {itemOptions: {channelId}}
+    @listController = new ActivityListController { wrapper, itemClass, type: typeConstant, viewOptions, lastToFirst}
 
     @createInputWidget()
-    @bindChannelEvents()
+
+    {socialapi} = KD.singletons
+    socialapi.onChannelReady data, @bound 'emit', 'ChannelReady'
+    @once 'ChannelReady', @bound 'bindChannelEvents'
 
     @on 'LazyLoadThresholdReached', @bound 'lazyLoad'  if typeConstant in ['group', 'topic']
 
@@ -36,17 +35,13 @@ class MessagePane extends KDTabPaneView
 
       @glance()  if focused and @active
 
-
-    if typeConstant in ['privatemessage', 'post']
-
-      @listController.getListView().once 'ItemWasAdded', (item) =>
-        listView = @listController.getListItems().first.commentBox.controller.getListView()
-        listView.on 'ItemWasAdded', @bound 'scrollDown'
-
-    else
-
-      @listController.getListView().on 'ItemWasAdded', @bound 'scrollUp'
-
+    switch typeConstant
+      when 'post'
+        @listController.getListView().once 'ItemWasAdded', (item) =>
+          listView = @listController.getListItems().first.commentBox.controller.getListView()
+          listView.on 'ItemWasAdded', @bound 'scrollDown'
+      else
+        @listController.getListView().on 'ItemWasAdded', @bound 'scrollUp'
 
   scrollDown: (item) ->
 
@@ -86,83 +81,52 @@ class MessagePane extends KDTabPaneView
       document.body.scrollTop = @lastScrollTops.body
 
 
-  createParticipantsView : ->
-
-    {participantsPreview} = @getData()
-
-    @participantsView = new KDCustomHTMLView
-      cssClass    : 'chat-heads'
-      partial     : '<span class="description">Private conversation between</span>'
-
-    @participantsView.addSubView @heads = new KDCustomHTMLView
-      cssClass    : 'heads'
-
-    @addParticipant participant for participant in participantsPreview
-
-    @participantsView.addSubView @newParticipantButton = new KDButtonView
-      cssClass    : 'new-participant'
-      iconOnly    : yes
-      callback    : =>
-        new PrivateMessageRecipientModal
-          blacklist : participantsPreview.map (item) -> item._id
-          position  :
-            top     : @getY() + 50
-            left    : @getX() - 150
-        , @getData()
-
-
-  addParticipant: (participant) ->
-
-    return  unless participant
-    return  if @participantMap[participant._id]
-
-    participant.id = participant._id
-
-    @heads.addSubView new AvatarView
-      size      :
-        width   : 30
-        height  : 30
-      origin    : participant
-
-    @participantMap[participant._id] = yes
-
-
   createInputWidget: ->
 
-    return  if @getOption("type") in ['post', 'privatemessage']
+    return  if @getOption("type") is 'post'
 
     channel = @getData()
 
     @input = new ActivityInputWidget {channel}
 
 
-  bindChannelEvents: ->
+  bindChannelEvents: (channel) ->
 
-    {socialapi} = KD.singletons
-    socialapi.onChannelReady @getData(), (channel) =>
+    return  unless channel
 
-      return  unless channel
-
-      channel
-        .on 'MessageAdded',   @bound 'prependMessage'
-        .on 'MessageRemoved', @bound 'removeMessage'
-        .on 'AddedToChannel', @bound 'addParticipant'
+    channel
+      .on 'MessageAdded',   @bound 'addMessage'
+      .on 'MessageRemoved', @bound 'removeMessage'
 
 
-  appendMessage: (message) -> @listController.addItem message, @listController.getItemCount()
+  addMessage: (message) ->
 
-  prependMessage: (message) ->
+    {lastToFirst} = @getOptions()
+    index = if lastToFirst then @listController.getItemCount() else 0
+    @prependMessage message, index
+
+
+  loadMessage: (message) ->
+
+    {lastToFirst} = @getOptions()
+    index = if lastToFirst then 0 else @listController.getItemCount()
+    @appendMessage message, index
+
+
+  appendMessage: (message, index) -> @listController.addItem message, index
+
+
+  prependMessage: (message, index) ->
     KD.getMessageOwner message, (err, owner) =>
       return error err  if err
       return if KD.filterTrollActivity owner
-      @listController.addItem message, 0
+      @listController.addItem message, index
 
   removeMessage: (message) -> @listController.removeItem null, message
 
 
   viewAppended: ->
 
-    @addSubView @participantsView if @participantsView
     @addSubView @input  if @input
     @addSubView @listController.getView()
     @populate()
@@ -259,7 +223,7 @@ class MessagePane extends KDTabPaneView
 
       return KD.showError err  if err
 
-      items.forEach @lazyBound 'appendMessage'
+      items.forEach @lazyBound 'loadMessage'
 
 
   refresh: ->
@@ -270,4 +234,3 @@ class MessagePane extends KDTabPaneView
     @listController.removeAllItems()
     @listController.showLazyLoader()
     @populate()
-

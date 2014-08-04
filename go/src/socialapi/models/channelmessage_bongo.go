@@ -92,6 +92,10 @@ func (c *ChannelMessage) ById(id int64) error {
 	return bongo.B.ById(c, id)
 }
 
+func (c *ChannelMessage) UnscopedById(id int64) error {
+	return bongo.B.UnscopedById(c, id)
+}
+
 func (c *ChannelMessage) One(q *bongo.Query) error {
 	return bongo.B.One(c, c, q)
 }

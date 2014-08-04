@@ -69,7 +69,7 @@ class PrivateMessageModal extends KDModalViewWithForms
 
     {router, socialapi, notificationController} = KD.singletons
 
-    socialapi.message.sendPrivateMessage {body, recipients}, (err, channels) =>
+    socialapi.message.initPrivateMessage {body, recipients}, (err, channels) =>
 
       send.hideLoader()
 
