@@ -54,7 +54,7 @@ class NavigationMachineItem extends KDListItemView
   click: (event)->
 
     if event.target.tagName.toLowerCase() isnt 'span'
-      return yes  if @machine.status.state in [Running, Stopped]
+      return yes  if @machine.status.state is Running
 
     KD.utils.stopDOMEvent event
 
