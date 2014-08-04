@@ -105,7 +105,11 @@ func (k *KodingDeploy) ServeKite(r *kite.Request) (interface{}, error) {
 	}
 
 	log("Migrating user's data")
-	if _, err := client.StartCommand(createMigrationCommand(hostname, vmID)); err != nil {
+	// TODO: Extract these from the database
+	basicAuth := "a:a"
+	migrator := "https://kontainer13.sj.koding.com:3000"
+	vmID := "52845b416765a3e60d0002d7"
+	if _, err := client.StartCommand(createMigrationCommand(basicAuth, migrator, vmID)); err != nil {
 		return nil, err
 	}
 
