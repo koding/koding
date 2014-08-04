@@ -16,7 +16,7 @@ class NavigationMachineItem extends KDListItemView
 
     options.tagName    = 'a'
     options.type     or= 'main-nav'
-    options.cssClass   = 'vm'
+    options.cssClass   = "vm #{machine.status.state.toLowerCase()}"
     options.attributes =
       href             : path
       # title            : "Go to your VM #{@alias}"
