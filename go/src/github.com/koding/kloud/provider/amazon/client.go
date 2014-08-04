@@ -36,7 +36,7 @@ func (a *AmazonClient) Build(instanceName string) (*protocol.Artifact, error) {
 	if _, err := a.Image(a.Builder.SourceAmi); err != nil {
 		// Check if ami with the name exists
 		a.Log.Info("Checking if AMI named '%s' exists", a.Builder.SourceAmi)
-		ami, err := a.AmiByName(a.Builder.SourceAmi)
+		ami, err := a.ImageByName(a.Builder.SourceAmi)
 		if err != nil {
 			a.Log.Error(err.Error())
 			// Image doesn't exist so try it
@@ -48,7 +48,7 @@ func (a *AmazonClient) Build(instanceName string) (*protocol.Artifact, error) {
 		}
 
 		// Built or got new AMI by name
-		a.Builder.SourceAmi = ami
+		a.Builder.SourceAmi = ami.Id
 	}
 
 	// get the necessary keynames that we are going to provide with Amazon. If
@@ -113,10 +113,10 @@ func (a *AmazonClient) Build(instanceName string) (*protocol.Artifact, error) {
 
 // CreateImage creates an image using Packer. It uses aws.Builder
 // data. It returns the image info.
-func (a *AmazonClient) CreateImage(provisioner interface{}) (string, error) {
+func (a *AmazonClient) CreateImage(provisioner interface{}) (*ec2.Image, error) {
 	data, err := utils.TemplateData(a.ImageBuilder, provisioner)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
 	provider := &packer.Provider{
@@ -126,11 +126,11 @@ func (a *AmazonClient) CreateImage(provisioner interface{}) (string, error) {
 
 	// this is basically a "packer build template.json"
 	if err := provider.Build(); err != nil {
-		return "", err
+		return nil, err
 	}
 
 	// return the image result
-	return a.AmiByName(a.ImageBuilder.AmiName)
+	return a.ImageByName(a.ImageBuilder.AmiName)
 }
 
 func (a *AmazonClient) DeployKey() (string, error) {
