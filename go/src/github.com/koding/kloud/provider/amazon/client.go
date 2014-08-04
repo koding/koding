@@ -13,8 +13,6 @@ import (
 	"github.com/koding/kloud/waitstate"
 	"github.com/koding/logging"
 	"github.com/mitchellh/goamz/ec2"
-
-	"koding/kites/kloud/provisioner"
 )
 
 type AmazonClient struct {
@@ -29,26 +27,6 @@ func (a *AmazonClient) Build(instanceName string) (*protocol.Artifact, error) {
 	// missing paramater.
 	if a.Builder.SecurityGroupId == "" {
 		return nil, errors.New("security group id is empty.")
-	}
-
-	// Get or build if needed AMI image
-	a.Log.Info("Checking if image '%s' exists", a.Builder.SourceAmi)
-	if _, err := a.Image(a.Builder.SourceAmi); err != nil {
-		// Check if ami with the name exists
-		a.Log.Info("Checking if AMI named '%s' exists", a.Builder.SourceAmi)
-		ami, err := a.ImageByName(a.Builder.SourceAmi)
-		if err != nil {
-			a.Log.Error(err.Error())
-			// Image doesn't exist so try it
-			a.Log.Info("AMI named '%s' does not exist, building it now", a.Builder.SourceAmi)
-			ami, err = a.CreateImage(provisioner.RawData)
-			if err != nil {
-				return nil, err
-			}
-		}
-
-		// Built or got new AMI by name
-		a.Builder.SourceAmi = ami.Id
 	}
 
 	// get the necessary keynames that we are going to provide with Amazon. If

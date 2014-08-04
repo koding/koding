@@ -190,6 +190,15 @@ func (p *Provider) Build(opts *protocol.Machine) (*protocol.Artifact, error) {
 	a.Builder.SourceAmi = provisioner.Ami()
 	a.Builder.InstanceType = DefaultInstanceType
 
+	// Get or build if needed AMI image
+	img, err := ensureAmi(a)
+	if err != nil {
+		return nil, err
+	}
+
+	// Set real AMI id
+	a.Builder.SourceAmi = img.Id
+
 	// needed for vpc instances, go and grap one from one of our Koding's own
 	// subnets
 	a.Log.Info("Searching for subnets")
@@ -305,4 +314,33 @@ func (p *Provider) Report(r *kite.Request) (interface{}, error) {
 
 	p.Log.Info("Machine '%s' is good to go", r.Client.Kite.ID)
 	return true, nil
+}
+
+// ensureAmi ensures that our custom AMI exists, if not builds it
+func ensureAmi(a *amazon.AmazonClient) (*ec2.Image, error) {
+	var err error
+	var ami *ec2.Image
+
+	// Check image by Id
+	a.Log.Info("Checking if image '%s' exists", a.Builder.SourceAmi)
+	if ami, err = a.Image(a.Builder.SourceAmi); err != nil {
+
+		// Check if ami with the name exists
+		a.Log.Info("Checking if AMI named '%s' exists", a.Builder.SourceAmi)
+
+		// Get image by name
+		ami, err = a.ImageByName(a.Builder.SourceAmi)
+		if err != nil {
+			// Dump error
+			a.Log.Error(err.Error())
+
+			// Image doesn't exist so try it
+			a.Log.Info("AMI named '%s' does not exist, building it now", a.Builder.SourceAmi)
+
+			// Try build from packer config
+			ami, err = a.CreateImage(provisioner.RawData)
+		}
+	}
+
+	return ami, nil
 }
