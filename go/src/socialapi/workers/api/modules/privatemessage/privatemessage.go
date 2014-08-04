@@ -12,8 +12,6 @@ import (
 	"github.com/koding/bongo"
 )
 
-var ErrAccountIdNotSet = errors.New("acccountId is not defined")
-
 func fetchParticipantIds(participantNames []string) ([]int64, error) {
 	participantIds := make([]int64, len(participantNames))
 	for i, participantName := range participantNames {
@@ -49,7 +47,7 @@ func appendCreatorIdIntoParticipantList(participants []int64, authorId int64) []
 
 func Init(u *url.URL, h http.Header, req *models.PrivateMessageRequest) (int, http.Header, interface{}, error) {
 	if req.AccountId == 0 {
-		return response.NewBadRequest(ErrAccountIdNotSet)
+		return response.NewBadRequest(models.ErrAccountIdIsNotSet)
 	}
 
 	cm := models.NewChannelMessage()
@@ -120,7 +118,7 @@ func Init(u *url.URL, h http.Header, req *models.PrivateMessageRequest) (int, ht
 
 func Send(u *url.URL, h http.Header, req *models.PrivateMessageRequest) (int, http.Header, interface{}, error) {
 	if req.AccountId == 0 {
-		return response.NewBadRequest(ErrAccountIdNotSet)
+		return response.NewBadRequest(models.ErrAccountIdIsNotSet)
 	}
 
 	// check channel existence
