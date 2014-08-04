@@ -94,10 +94,10 @@ module.exports = [
   # Activity List Items
   "views/activitylistitem.coffee"
 
-  "views/privatemessage/privatemessagelistitem.coffee"
-  "views/privatemessage/privatemessagemodal.coffee"
-  "views/privatemessage/privatemessagepane.coffee"
-  "views/privatemessage/privatemessagerecipientmodal.coffee"
+  "views/privatemessage/listitem.coffee"
+  "views/privatemessage/modal.coffee"
+  "views/privatemessage/pane.coffee"
+  "views/privatemessage/recipientmodal.coffee"
   "views/privatemessage/replypreviouslink.coffee"
   "views/privatemessage/replyinputview.coffee"
   "views/privatemessage/replyinputwidget.coffee"
