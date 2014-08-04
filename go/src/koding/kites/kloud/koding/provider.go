@@ -327,24 +327,16 @@ func ensureAmi(a *amazon.AmazonClient) (*ec2.Image, error) {
 	var ami *ec2.Image
 
 	// Check image by Id
-	a.Log.Info("Checking if image '%s' exists", a.Builder.SourceAmi)
-	if ami, err = a.Image(a.Builder.SourceAmi); err != nil {
+	a.Log.Info("Checking if AMI named '%s' exists", a.Builder.SourceAmi)
 
-		// Check if ami with the name exists
-		a.Log.Info("Checking if AMI named '%s' exists", a.Builder.SourceAmi)
+	// Get image by name
+	ami, err = a.ImageByName(a.Builder.SourceAmi)
+	if err != nil {
+		// Image doesn't exist so try it
+		a.Log.Info("AMI named '%s' does not exist, building it now", a.Builder.SourceAmi)
 
-		// Get image by name
-		ami, err = a.ImageByName(a.Builder.SourceAmi)
-		if err != nil {
-			// Dump error
-			a.Log.Error(err.Error())
-
-			// Image doesn't exist so try it
-			a.Log.Info("AMI named '%s' does not exist, building it now", a.Builder.SourceAmi)
-
-			// Try build from packer config
-			ami, err = a.CreateImage(provisioner.RawData)
-		}
+		// Try build from packer config
+		ami, err = a.CreateImage(provisioner.RawData)
 	}
 
 	return ami, nil
