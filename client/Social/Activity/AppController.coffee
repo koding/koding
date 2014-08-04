@@ -61,9 +61,11 @@ class ActivityAppController extends AppController
     {socialapi} = KD.singletons
     socialapi.message.listReplies {messageId, from, limit}, callback
 
+
   sendPrivateMessage: (options = {}, callback = noop) ->
 
-    (KD.singleton 'socialapi').message.sendPrivateMessage options, callback
+    {socialapi} = KD.singletons
+    socialapi.message.sendPrivateMessage options, callback
 
 
   fetch: ({channelId, from, limit}, callback = noop) ->
