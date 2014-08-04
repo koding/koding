@@ -20,6 +20,8 @@ import (
 	"github.com/koding/logging"
 	"github.com/mitchellh/goamz/ec2"
 	"github.com/mitchellh/mapstructure"
+
+	"koding/kites/kloud/provisioner"
 )
 
 var (
@@ -157,12 +159,54 @@ func (p *Provider) Build(opts *protocol.Machine) (*protocol.Artifact, error) {
 		}
 	}
 
+	amiName, err := provisioner.Ami()
+	if err != nil {
+		return nil, fmt.Errorf("Could not get generated AMI name: %s", err)
+	}
+
+	// IMAGE BUILDER
+
+	// Build type needed for backer
+	a.ImageBuilder.Type = "amazon-ebs"
+
+	// SSH username
+	a.ImageBuilder.SshUsername = "ubuntu"
+
+	// Name of AMI to build if needed
+	a.ImageBuilder.AmiName = amiName
+
+	// Use this ami as a "foundation"
+	a.ImageBuilder.SourceAmi = DefaultAMI
+
+	// Region we're building in
+	a.ImageBuilder.Region = a.Builder.Region
+
+	// Build AMI for this instance type
+	// Doesn't need VPC, etc ... and AMI can be used for t2.micro
+	// plus the build is faster
+	a.ImageBuilder.InstanceType = "m3.medium"
+
+	// Credentials
+	a.ImageBuilder.AccessKey = a.Creds.AccessKey
+	a.ImageBuilder.SecretKey = a.Creds.SecretKey
+
+	// INSTANCE BUILDER
+
 	// add now our security group
 	a.Builder.SecurityGroupId = group.Id
 
 	// Use koding plans instead of those later
-	a.Builder.SourceAmi = DefaultAMI
+	a.Builder.SourceAmi = amiName
 	a.Builder.InstanceType = DefaultInstanceType
+
+	// Get or build if needed AMI image
+	img, err := ensureAmi(a)
+	if err != nil {
+		return nil, err
+	}
+
+	// Set real AMI id
+	a.Builder.SourceAmi = img.Id
 
 	// needed for vpc instances, go and grap one from one of our Koding's own
 	// subnets
@@ -279,4 +323,25 @@ func (p *Provider) Report(r *kite.Request) (interface{}, error) {
 
 	p.Log.Info("Machine '%s' is good to go", r.Client.Kite.ID)
 	return true, nil
+}
+
+// ensureAmi ensures that our custom AMI exists, if not builds it
+func ensureAmi(a *amazon.AmazonClient) (*ec2.Image, error) {
+	var err error
+	var ami *ec2.Image
+
+	// Check image by Id
+	a.Log.Info("Checking if AMI named '%s' exists", a.Builder.SourceAmi)
+
+	// Get image by name
+	ami, err = a.ImageByName(a.Builder.SourceAmi)
+	if err != nil {
+		// Image doesn't exist so try it
+		a.Log.Info("AMI named '%s' does not exist, building it now", a.Builder.SourceAmi)
+
+		// Try build from packer config
+		return a.CreateImage(provisioner.RawData)
+	}
+
+	return ami, nil
 }

@@ -7,7 +7,9 @@ import (
 
 	aws "github.com/koding/kloud/api/amazon"
 	"github.com/koding/kloud/machinestate"
+	"github.com/koding/kloud/packer"
 	"github.com/koding/kloud/protocol"
+	"github.com/koding/kloud/utils"
 	"github.com/koding/kloud/waitstate"
 	"github.com/koding/logging"
 	"github.com/mitchellh/goamz/ec2"
@@ -27,10 +29,12 @@ func (a *AmazonClient) Build(instanceName string) (*protocol.Artifact, error) {
 		return nil, errors.New("security group id is empty.")
 	}
 
+	// Make sure AMI exists
 	a.Log.Info("Checking if image '%s' exists", a.Builder.SourceAmi)
-	_, err := a.Image(a.Builder.SourceAmi)
-	if err != nil {
-		return nil, err
+	if _, err := a.Image(a.Builder.SourceAmi); err != nil {
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	// get the necessary keynames that we are going to provide with Amazon. If
@@ -91,6 +95,28 @@ func (a *AmazonClient) Build(instanceName string) (*protocol.Artifact, error) {
 		SSHPrivateKey: a.Deploy.PrivateKey,
 		SSHUsername:   "", // deploy with root
 	}, nil
+}
+
+// CreateImage creates an image using Packer. It uses aws.Builder
+// data. It returns the image info.
+func (a *AmazonClient) CreateImage(provisioner interface{}) (*ec2.Image, error) {
+	data, err := utils.TemplateData(a.ImageBuilder, provisioner)
+	if err != nil {
+		return nil, err
+	}
+
+	provider := &packer.Provider{
+		BuildName: "amazon-ebs",
+		Builder:   data,
+	}
+
+	// this is basically a "packer build template.json"
+	if err := provider.Build(); err != nil {
+		return nil, err
+	}
+
+	// return the image result
+	return a.ImageByName(a.ImageBuilder.AmiName)
 }
 
 func (a *AmazonClient) DeployKey() (string, error) {
