@@ -140,7 +140,7 @@ class ComputeController extends KDController
       @emit "renderStacks"
 
 
-  errorHandler = (task, eventListener, machine)->
+  errorHandler: (call, task, machine)->
 
     ComputeErrors = {
       "TimeoutError", "KiteError", Pending: "107"
@@ -157,15 +157,16 @@ class ComputeController extends KDController
         KD.utils.wait timeout, ->
           KD.singletons.computeController[task] machine
 
-    (err)->
+    (err)=>
 
-      eventListener.revertToPreviousState machine
+      @eventListener.revertToPreviousState machine
 
       switch err.name
 
         when ComputeErrors.TimeoutError
 
           retryIfNeeded task, machine
+          call.cancel()
 
         when ComputeErrors.KiteError
 
@@ -173,10 +174,9 @@ class ComputeController extends KDController
             if err.code is ComputeErrors.Pending
               retryIfNeeded task, machine
             else
-              eventListener.triggerState machine, status: Machine.State.Unknown
+              @eventListener.triggerState machine, status: Machine.State.Unknown
 
-
-      warn "info err:", err
+      warn "info err:", err, this
 
 
   destroy: (machine)->
@@ -187,16 +187,16 @@ class ComputeController extends KDController
         status      : Machine.State.Terminating
         percentage  : 0
 
-      @kloud.destroy { machineId: machine._id }
+      call = @kloud.destroy { machineId: machine._id }
+
+      call.timeout ComputeController.timeout
 
       .then (res)=>
 
         @eventListener.addListener 'destroy', machine._id
         log "destroy res:", res
 
-      .timeout ComputeController.timeout
-
-      .catch errorHandler 'destroy', @eventListener, machine
+      .catch @errorHandler call, 'destroy', machine
 
 
   build: (machine)->
@@ -207,16 +207,16 @@ class ComputeController extends KDController
 
     machine.getBaseKite().disconnect()
 
-    @kloud.build { machineId: machine._id }
+    call = @kloud.build { machineId: machine._id }
+
+    call.timeout ComputeController.timeout
 
     .then (res)=>
 
       @eventListener.addListener 'build', machine._id
       log "build res:", res
 
-    .timeout ComputeController.timeout
-
-    .catch errorHandler 'build', @eventListener, machine
+    .catch @errorHandler call, 'build', machine
 
 
   start: (machine)->
@@ -225,16 +225,16 @@ class ComputeController extends KDController
       status      : Machine.State.Starting
       percentage  : 0
 
-    @kloud.start { machineId: machine._id }
+    call = @kloud.start { machineId: machine._id }
+
+    call.timeout ComputeController.timeout
 
     .then (res)=>
 
       @eventListener.addListener 'start', machine._id
       log "start res:", res
 
-    .timeout ComputeController.timeout
-
-    .catch errorHandler 'start', @eventListener, machine
+    .catch @errorHandler call, 'start', machine
 
 
   stop: (machine)->
@@ -245,16 +245,16 @@ class ComputeController extends KDController
 
     machine.getBaseKite( createIfExists = no ).disconnect()
 
-    @kloud.stop { machineId: machine._id }
+    call = @kloud.stop { machineId: machine._id }
+
+    call.timeout ComputeController.timeout
 
     .then (res)=>
 
       @eventListener.addListener 'stop', machine._id
       log "stop res:", res
 
-    .timeout ComputeController.timeout
-
-    .catch errorHandler 'stop', @eventListener, machine
+    .catch @errorHandler call, 'stop', machine
 
 
   StateEventMap =
@@ -277,7 +277,9 @@ class ComputeController extends KDController
       status      : machine.status.state
       percentage  : 0
 
-    @kloud.info { machineId: machine._id }
+    call = @kloud.info { machineId: machine._id }
+
+    call.timeout ComputeController.timeout
 
     .then (response)=>
 
@@ -286,11 +288,7 @@ class ComputeController extends KDController
         status      : response.state
         percentage  : 100
 
-    .timeout ComputeController.timeout
-
-    .catch errorHandler 'info', @eventListener, machine
-
-
+    .catch @errorHandler call, 'info', machine
 
 
   requireMachine: (options = {}, callback = noop)-> @ready =>
