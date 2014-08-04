@@ -336,7 +336,7 @@ func ensureAmi(a *amazon.AmazonClient) (*ec2.Image, error) {
 		a.Log.Info("AMI named '%s' does not exist, building it now", a.Builder.SourceAmi)
 
 		// Try build from packer config
-		ami, err = a.CreateImage(provisioner.RawData)
+		return a.CreateImage(provisioner.RawData)
 	}
 
 	return ami, nil
