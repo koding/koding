@@ -215,7 +215,7 @@ echo '%s    ALL = NOPASSWD: ALL' > /etc/sudoers.d/%s
 }
 
 // Build the command used to migrate files
-func createMigrationCommand(auth, migratorHost, vmID string) {
+func createMigrationCommand(auth, migratorHost, vmID string) string {
 	// 1. Create tmp folder
 	// 2. Download and untar archive
 	// 3. Migrate selected files & folders
