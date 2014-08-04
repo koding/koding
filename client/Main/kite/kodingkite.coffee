@@ -29,7 +29,7 @@ class KodingKite extends KDObject
 
   tell: (rpcMethod, params, callback) ->
 
-    unless @_invalid
+    unless @invalid
 
       @ready().then => @transport.tell rpcMethod, [params], callback
 
