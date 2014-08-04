@@ -45,6 +45,10 @@ type Provider struct {
 	AssigneeName string
 	Log          logging.Logger
 	Push         func(string, int, machinestate.State)
+
+	// A flag saying if user permissions should be ignored
+	// store negation so default value is aligned with most common use case
+	Test bool
 }
 
 func (p *Provider) NewClient(machine *protocol.Machine) (*amazon.AmazonClient, error) {

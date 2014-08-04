@@ -41,6 +41,9 @@ var (
 	flagPublic      = flag.Bool("public", false, "Start klient in local environment.")
 	flagRegisterURL = flag.String("register-url", "", "Change register URL to kontrol")
 	flagProxy       = flag.Bool("proxy", false, "Start klient behind a proxy")
+
+	// Development related flags
+	flagTest = flag.Bool("test", false, "Activate test mode (Disables VM authentication checks [useful for development], etc ..)")
 )
 
 func main() {
@@ -114,6 +117,7 @@ func newKite() *kite.Kite {
 		Log:          newLogger("koding"),
 		AssigneeName: id,
 		Session:      db,
+		Test:         *flagTest,
 	}
 
 	if err := kodingProvider.CleanupOldData(); err != nil {

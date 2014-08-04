@@ -99,7 +99,7 @@ func (p *Provider) Get(id, username string) (*protocol.Machine, error) {
 	}
 
 	// check for user permissions
-	if err := p.checkUser(username, machine.Users); err != nil {
+	if err := p.checkUser(username, machine.Users); err != nil && !p.Test {
 		return nil, err
 	}
 
