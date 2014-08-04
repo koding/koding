@@ -2,7 +2,7 @@ class ComputeController extends KDController
 
   @providers = KD.config.providers
 
-  @timeout = 7000
+  @timeout = 20000
 
   constructor:->
     super
@@ -139,6 +139,7 @@ class ComputeController extends KDController
       @info machine for machine in @machines
       @emit "renderStacks"
 
+
   errorHandler = (task, eventListener, machine)->
 
     ComputeErrors = {
@@ -148,6 +149,8 @@ class ComputeController extends KDController
     { timeout }   = ComputeController
 
     retryIfNeeded = (task, machine)->
+
+      return # FIXME ~ GG
 
       if task in ['info', 'stop', 'start']
         info "Trying again to do '#{task}' in #{timeout}ms..."
@@ -162,7 +165,6 @@ class ComputeController extends KDController
 
         when ComputeErrors.TimeoutError
 
-          warn "Task timedout."
           retryIfNeeded task, machine
 
         when ComputeErrors.KiteError
@@ -187,12 +189,12 @@ class ComputeController extends KDController
 
       @kloud.destroy { machineId: machine._id }
 
-      .timeout ComputeController.timeout
-
       .then (res)=>
 
         @eventListener.addListener 'destroy', machine._id
         log "destroy res:", res
+
+      .timeout ComputeController.timeout
 
       .catch errorHandler 'destroy', @eventListener, machine
 
@@ -207,12 +209,12 @@ class ComputeController extends KDController
 
     @kloud.build { machineId: machine._id }
 
-    .timeout ComputeController.timeout
-
     .then (res)=>
 
       @eventListener.addListener 'build', machine._id
       log "build res:", res
+
+    .timeout ComputeController.timeout
 
     .catch errorHandler 'build', @eventListener, machine
 
@@ -225,12 +227,12 @@ class ComputeController extends KDController
 
     @kloud.start { machineId: machine._id }
 
-    .timeout ComputeController.timeout
-
     .then (res)=>
 
       @eventListener.addListener 'start', machine._id
       log "start res:", res
+
+    .timeout ComputeController.timeout
 
     .catch errorHandler 'start', @eventListener, machine
 
@@ -245,12 +247,12 @@ class ComputeController extends KDController
 
     @kloud.stop { machineId: machine._id }
 
-    .timeout ComputeController.timeout
-
     .then (res)=>
 
       @eventListener.addListener 'stop', machine._id
       log "stop res:", res
+
+    .timeout ComputeController.timeout
 
     .catch errorHandler 'stop', @eventListener, machine
 
@@ -277,8 +279,6 @@ class ComputeController extends KDController
 
     @kloud.info { machineId: machine._id }
 
-    .timeout ComputeController.timeout
-
     .then (response)=>
 
       log "info response:", response
@@ -286,7 +286,11 @@ class ComputeController extends KDController
         status      : response.state
         percentage  : 100
 
+    .timeout ComputeController.timeout
+
     .catch errorHandler 'info', @eventListener, machine
+
+
 
 
   requireMachine: (options = {}, callback = noop)-> @ready =>
@@ -320,6 +324,9 @@ class ComputeController extends KDController
           @storage.setValue identifier, machine.uid
 
         callback err, machine
+
+
+
 
 
   @reviveProvisioner = (machine, callback)->
