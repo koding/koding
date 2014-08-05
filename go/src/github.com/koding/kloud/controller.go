@@ -199,11 +199,20 @@ func methodHas(method string, methods ...string) bool {
 	return false
 }
 
-func (k *Kloud) info(r *kite.Request, c *Controller) (interface{}, error) {
+func (k *Kloud) info(r *kite.Request, c *Controller) (resp interface{}, err error) {
 	defer k.Storage.ResetAssignee(c.MachineId) // reset assignee after we are done
 
+	defer func() {
+		if err == nil {
+			k.Log.Info("[info] returning response %+v", resp)
+		}
+	}()
+
 	if c.CurrenState == machinestate.NotInitialized {
-		return nil, NewError(ErrMachineNotInitialized)
+		return &protocol.InfoArtifact{
+			State: machinestate.NotInitialized,
+			Name:  "not-initialized-instance",
+		}, nil
 	}
 
 	machOptions := c.GetMachine()
@@ -228,7 +237,6 @@ func (k *Kloud) info(r *kite.Request, c *Controller) (interface{}, error) {
 		},
 	})
 
-	k.Log.Info("[info] returning response %+v", response)
 	return response, nil
 }
 
