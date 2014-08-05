@@ -166,6 +166,7 @@ class ComputeController extends KDController
         when ComputeErrors.TimeoutError
 
           retryIfNeeded task, machine
+          info "Cancelling... #{task} ..."
           call.cancel()
 
         when ComputeErrors.KiteError
@@ -189,14 +190,16 @@ class ComputeController extends KDController
 
       call = @kloud.destroy { machineId: machine._id }
 
-      call.timeout ComputeController.timeout
-
       .then (res)=>
 
-        @eventListener.addListener 'destroy', machine._id
         log "destroy res:", res
+        @eventListener.addListener 'destroy', machine._id
 
-      .catch @errorHandler call, 'destroy', machine
+      .timeout ComputeController.timeout
+
+      .catch (err)=>
+
+        (@errorHandler call, 'destroy', machine) err
 
 
   build: (machine)->
@@ -209,14 +212,17 @@ class ComputeController extends KDController
 
     call = @kloud.build { machineId: machine._id }
 
-    call.timeout ComputeController.timeout
-
     .then (res)=>
 
-      @eventListener.addListener 'build', machine._id
       log "build res:", res
+      @eventListener.addListener 'build', machine._id
 
-    .catch @errorHandler call, 'build', machine
+    .timeout ComputeController.timeout
+
+    .catch (err)=>
+
+      (@errorHandler call, 'build', machine) err
+
 
 
   start: (machine)->
@@ -227,14 +233,17 @@ class ComputeController extends KDController
 
     call = @kloud.start { machineId: machine._id }
 
-    call.timeout ComputeController.timeout
-
     .then (res)=>
 
-      @eventListener.addListener 'start', machine._id
       log "start res:", res
+      @eventListener.addListener 'start', machine._id
 
-    .catch @errorHandler call, 'start', machine
+    .timeout ComputeController.timeout
+
+    .catch (err)=>
+
+      (@errorHandler call, 'start', machine) err
+
 
 
   stop: (machine)->
@@ -247,14 +256,17 @@ class ComputeController extends KDController
 
     call = @kloud.stop { machineId: machine._id }
 
-    call.timeout ComputeController.timeout
-
     .then (res)=>
 
-      @eventListener.addListener 'stop', machine._id
       log "stop res:", res
+      @eventListener.addListener 'stop', machine._id
 
-    .catch @errorHandler call, 'stop', machine
+    .timeout ComputeController.timeout
+
+    .catch (err)=>
+
+      (@errorHandler call, 'stop', machine) err
+
 
 
   StateEventMap =
@@ -279,8 +291,6 @@ class ComputeController extends KDController
 
     call = @kloud.info { machineId: machine._id }
 
-    call.timeout ComputeController.timeout
-
     .then (response)=>
 
       log "info response:", response
@@ -288,7 +298,11 @@ class ComputeController extends KDController
         status      : response.state
         percentage  : 100
 
-    .catch @errorHandler call, 'info', machine
+    .timeout ComputeController.timeout
+
+    .catch (err)=>
+
+      (@errorHandler call, 'info', machine) err
 
 
   requireMachine: (options = {}, callback = noop)-> @ready =>
