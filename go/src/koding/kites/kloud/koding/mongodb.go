@@ -145,32 +145,30 @@ func (p *Provider) checkUser(username string, users []models.Permissions) error 
 func (p *Provider) Update(id string, s *kloud.StorageData) error {
 	p.Log.Debug("[storage] got update request for id '%s' of type '%s'", id, s.Type)
 
-	if s.Type == "build" {
-		return p.Session.Run("jMachines", func(c *mgo.Collection) error {
-			return c.UpdateId(
-				bson.ObjectIdHex(id),
-				bson.M{"$set": bson.M{
-					"queryString":       s.Data["queryString"],
-					"ipAddress":         s.Data["ipAddress"],
-					"meta.instanceId":   s.Data["instanceId"],
-					"meta.instanceName": s.Data["instanceName"],
-				}},
-			)
-		})
+	data := map[string]interface{}{}
+
+	switch s.Type {
+	case "build":
+		data["queryString"] = s.Data["queryString"]
+		data["ipAddress"] = s.Data["ipAddress"]
+		data["meta.instanceId"] = s.Data["instanceId"]
+		data["meta.instanceName"] = s.Data["instanceName"]
+	case "info":
+		data["meta.instanceName"] = s.Data["instanceName"]
+	case "start":
+		data["ipAddress"] = s.Data["ipAddress"]
+		data["meta.instanceId"] = s.Data["instanceId"]
+		data["meta.instanceName"] = s.Data["instanceName"]
+	default:
+		return fmt.Errorf("Storage type unknown: '%s'", s.Type)
 	}
 
-	if s.Type == "info" {
-		return p.Session.Run("jMachines", func(c *mgo.Collection) error {
-			return c.UpdateId(
-				bson.ObjectIdHex(id),
-				bson.M{"$set": bson.M{
-					"meta.instanceName": s.Data["instanceName"],
-				}},
-			)
-		})
-	}
-
-	return fmt.Errorf("Storage type unknown: '%s'", s.Type)
+	return p.Session.Run("jMachines", func(c *mgo.Collection) error {
+		return c.UpdateId(
+			bson.ObjectIdHex(id),
+			bson.M{"$set": data},
+		)
+	})
 }
 
 func (p *Provider) UpdateState(id string, state machinestate.State) error {
