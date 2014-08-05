@@ -40,6 +40,7 @@ task 'kontrolProxy', "Run the kontrolProxy", (options) -> kontrolProxy options
 task 'kontrolDaemon', "Run the kontrolDaemon", (options) -> kontrolDaemon options
 task 'kontrolApi', "Run the kontrolApi", (options) -> kontrolApi options
 task 'kontrolKite', "Run the kontrol kite", (options) -> kontrolKite options
+task 'etcd', "Run the etcd instance", (options) -> etcd options
 task 'proxyKite', "Run the proxy kite", (options) -> proxyKite options
 task 'migratePost', "Migrate Posts to JNewStatusUpdate", (options)-> migratePost options
 task 'checkConfig', "Check the local config files for errors", (options)-> checkConfig options
@@ -423,6 +424,13 @@ proxyKite = (options, callback=->)->
     cmd = "vagrant ssh default -c 'cd /opt/koding; sudo killall -q -KILL proxy; sudo KITE_HOME=/opt/koding/kite_home/koding /opt/koding/go/bin-vagrant/proxy -c #{options.configFile} -r vagrant'"
   processes.run 'proxyKite', cmd
 
+etcd = (options, callback=->)->
+  cmd = "vagrant ssh default -c 'cd /opt/koding; sudo killall -q -KILL etcd; /opt/koding/go/bin-vagrant/etcd'"
+
+  processes.run 'etcd', cmd
+
+
+
 checkConfig = (options,callback=->)->
   console.log "[KONFIG CHECK] If you don't see any errors, you're fine."
   require('koding-config-manager').load("main.#{options.configFile}")
@@ -440,6 +448,7 @@ run =(options)->
   process.stdout.setMaxListeners 100
   process.stderr.setMaxListeners 100
 
+  invoke 'etcd'                             if KONFIG.runKontrol
   invoke 'kontrolDaemon'                    if KONFIG.runKontrol
   invoke 'kontrolApi'                       if KONFIG.runKontrol
   invoke 'kontrolKite'                      if KONFIG.runKontrol
