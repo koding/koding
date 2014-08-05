@@ -207,9 +207,10 @@ class ActivityInputWidget extends KDView
 
   submissionCallback: (err, activity) ->
 
+    @reset yes
+
     return @showError err  if err
 
-    @reset yes
     @emit "Submit", activity
 
     KD.mixpanel "Status update create, success", { length: activity?.body?.length }
