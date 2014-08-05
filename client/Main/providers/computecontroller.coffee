@@ -19,8 +19,8 @@ class ComputeController extends KDController
 
       @eventListener = new ComputeEventListener
 
-      @on "MachineBuilt",   => do @reset
-      @on "MachineDestroy", => do @reset
+      @on "MachineBuilt",     => do @reset
+      @on "MachineDestroyed", => do @reset
 
       @fetchStacks =>
 
