@@ -295,7 +295,7 @@ class ComputeController extends KDController
 
       log "info response:", response
       @eventListener.triggerState machine,
-        status      : response.state
+        status      : response.State
         percentage  : 100
 
     .timeout ComputeController.timeout
