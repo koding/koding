@@ -226,7 +226,7 @@ Configuration = (options={}) ->
     if str
       _b64 = new Buffer(str)
       _b64 = zlib.compress _b64 if compress
-      log "[b64z] before #{str.length} after #{_b64.length}"
+      # log "[b64z] before #{str.length} after #{_b64.length}"
       return _b64.toString('base64')
     else
       if strict

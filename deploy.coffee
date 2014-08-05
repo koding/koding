@@ -16,6 +16,8 @@ semver     = require 'semver'
 request    = require 'request'
 ec2        = new AWS.EC2()
 elb        = new AWS.ELB()
+runAfter   = (time,fn) ->
+  setTimeout fn,time
 
 
 class Release
@@ -62,7 +64,7 @@ class Release
 
   @registerInstancesWithPrefix = (prefix, callback)->
     fetchInstancesWithPrefix prefix, (err,instances)->
-      # log instances
+      log instances
       elb.registerInstancesWithLoadBalancer
         Instances        : instances
         LoadBalancerName : "koding-prod-deployment"
@@ -164,7 +166,6 @@ class Deploy
           callback null
 
   @createInstances = (options={}, callback) ->
-    log 'yo'
     params = options.params
 
     iamcalledonce = 0
@@ -192,51 +193,6 @@ class Deploy
 
           callback null, data
 
-        # data.Instances.forEach (instance)->
-        #   log instance.InstanceId
-
-        # Deploy.tagInstances data,(err,res)->
-
-        #   instanceIds = (InstanceId for InstanceId in data.Instances)
-        #   log "instanceIds:",InstanceIds
-        #   params =
-        #     InstanceIds : InstanceIds
-
-
-        # timer = setInterval ->
-
-        #     ec2.describeInstanceStatus params,(err,data)->
-        #       if err then log err
-        #       else
-        #         states.instanceState = data?.InstanceStatuses?[0]?.InstanceState?.Name
-        #         states.reachability  = data?.InstanceStatuses?[0]?.InstanceStatus?.Details?[0]?.Status
-
-        #     ec2.describeInstances params,(err,data)->
-        #       if err then log err
-        #       else
-        #         states.initialState = data?.Reservations?[0]?.Instances?[0]?.State?.Name
-        #         states.final        = data?.Reservations?[0]?.Instances?[0]
-        #   else
-        #     log "instance is now running with IP:", IP = states.final.PublicIpAddress
-        #     clearInterval timer
-        # ,5000
-
-  # @deployAndConfigure = (options,callback)->
-
-
-  #   Deploy.createInstance options,(err,result) ->
-  #     deployStart = new Date()
-  #     {conn} = result
-
-  #     conn.exec options.buildScript, (err, stream) ->
-  #       throw err if err
-  #       conn.listen "[configuring #{result.instanceName}]", stream,->
-  #         throw err if err
-  #         # delete result.conn
-  #         # log result.instanceData
-  #         log "Deployment of #{result.instanceName} took: #{timethat.calc deployStart,new Date()}"
-  #         conn.end()
-  #         callback null, result
 
   @deployTest = (options,callback)->
 
@@ -308,8 +264,8 @@ if argv.deploy
 
 
     options =
-      boxes       : argv.boxes          or 5
-      boxtype     : argv.boxtype        or "t2.medium"
+      boxes       : argv.boxes          or 2
+      boxtype     : argv.boxtype        or "t2.micro"
       versiontype : argv.versiontype    or "patch"  # available options major, premajor, minor, preminor, patch, prepatch, or prerelease
       config      : argv.config         or "prod" # prod | staging | sandbox
       version     : argv.version        or version
@@ -326,12 +282,12 @@ if argv.deploy
 
       UserData = new Buffer(KONFIG.runFile).toString('base64')
 
-      options =
+      deployOptions =
         params :
           ImageId       : "ami-864d84ee" # Amazon ubuntu 14.04 "ami-1624987f" # Amazon Linux AMI x86_64 EBS
           InstanceType  : options.boxtype
-          MinCount      : 2
-          MaxCount      : 2
+          MinCount      : options.boxes
+          MaxCount      : options.boxes
           SubnetId      : "subnet-b47692ed"
           KeyName       : "koding-prod-deployment"
           UserData      : UserData
@@ -343,9 +299,18 @@ if argv.deploy
 
 
 
-      Deploy.createInstances options,(err,res)->
+      Deploy.createInstances deployOptions,(err,res)->
 
-        log JSON.stringify res,null,2
+      runAfter 5,Release.registerInstancesWithPrefix options.hostname,(err,res)->
+          log "------------------------------------------------------------------"
+          log "Deployment complete, give it 5 minutes... (depends on the boxtype)"
+          log "------------------------------------------------------------------"
+          log "ELB: koding-prod-deployment-109498171.us-east-1.elb.amazonaws.com "
+          log "------------------------------------------------------------------"
+          log "URL: https://koding.io "
+          log "------------------------------------------------------------------"
+
+        # log JSON.stringify res,null,2
 
         # res.Instances.forEach (instance)->
         #   IP = instance.PublicIpAddress
