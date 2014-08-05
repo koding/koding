@@ -37,9 +37,17 @@ func (mc *MailerContainer) PrepareContainer() error {
 		return err
 	}
 
-	target := socialmodels.NewChannelMessage()
-	if err := target.ById(mc.Content.TargetId); err != nil {
-		return fmt.Errorf("target message not found")
+	var target *socialmodels.ChannelMessage
+
+	switch mc.Content.TypeConstant {
+	case models.NotificationContent_TYPE_PM:
+		target, err = fetchChannelTarget(mc.Content.TargetId)
+	default:
+		target, err = fetchMessageTarget(mc.Content.TargetId)
+	}
+
+	if err != nil {
+		return err
 	}
 
 	mc.prepareGroup(target)
@@ -52,6 +60,31 @@ func (mc *MailerContainer) PrepareContainer() error {
 	mc.ActivityMessage = contentType.GetActivity()
 
 	return nil
+}
+
+func fetchChannelTarget(channelId int64) (*socialmodels.ChannelMessage, error) {
+	cml := socialmodels.NewChannelMessageList()
+	q := request.NewQuery()
+	q.Limit = 1
+	messageIds, err := cml.FetchMessageIdsByChannelId(channelId, q)
+	if err != nil {
+		return nil, err
+	}
+
+	if len(messageIds) == 0 {
+		return nil, fmt.Errorf("private message not found")
+	}
+
+	return fetchMessageTarget(messageIds[0])
+}
+
+func fetchMessageTarget(messageId int64) (*socialmodels.ChannelMessage, error) {
+	target := socialmodels.NewChannelMessage()
+	if err := target.ById(messageId); err != nil {
+		return nil, fmt.Errorf("target message not found")
+	}
+
+	return target, nil
 }
 
 func (mc *MailerContainer) validateContainer() error {
