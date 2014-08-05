@@ -30,6 +30,22 @@ loadfire.createServer({
       }
     },
 
+    // AppsProxy
+    {
+      resource: 'appsproxy',
+      backends: [
+        {
+          host: 'localhost',
+          port: KONFIG.appsproxy.port
+        }
+      ],
+      selector: loadfire.selectors.url('/appsproxy/*'),
+      balancer: function(backends, req, cb) {
+
+        return cb(null, backends[0]);
+      }
+    },
+
     // Broker
     {
       resource: 'broker',

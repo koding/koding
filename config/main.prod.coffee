@@ -97,6 +97,8 @@ Configuration = (options={}) ->
     log               : {login         : "#{rabbitmq.login}"         , queueName : logQueueName}
     boxproxy          : {port          : 80 }
     sourcemaps        : {port          : 3526 }
+    appsproxy         : {port          : 3500 }
+
     kloud             : {port          : 5500                        , privateKeyFile : kontrol.privateKeyFile, publicKeyFile: kontrol.publicKeyFile, kontrolUrl: "#{"reads from kite.key by default."}"  }
     emailConfirmationCheckerWorker     : {enabled: no                , login : "#{rabbitmq.login}"        , queueName: socialQueueName+'emailConfirmationCheckerWorker',cronSchedule: '0 * * * * *',usageLimitInMinutes  : 60}
 
@@ -196,6 +198,7 @@ Configuration = (options={}) ->
     topicfeed           : command : "#{GOBIN}/topicfeed          -c #{socialapi.configFilePath}"
     trollmode           : command : "#{GOBIN}/trollmode          -c #{socialapi.configFilePath}"
 
+    appsproxy           : command : "node   #{projectRoot}/servers/appsproxy/web.js               -c #{configName} -p #{KONFIG.appsproxy.port}"
     authworker          : command : "coffee #{projectRoot}/workers/auth/lib/auth/main.coffee      -c #{configName}"
     socialworker        : command : "coffee #{projectRoot}/workers/social/lib/social/main.coffee  -c #{configName} -p #{KONFIG.social.port}      -r #{region} --disable-newrelic --kite-port=13020"
     sourcemaps          : command : "coffee #{projectRoot}/servers/sourcemaps/main.coffee         -c #{configName} -p #{KONFIG.sourcemaps.port}"
@@ -274,6 +277,7 @@ Configuration = (options={}) ->
     upstream social    { server 127.0.0.1:#{KONFIG.social.port}    ;}
     upstream subscribe { server 127.0.0.1:#{KONFIG.broker.port}    ;}
     upstream kloud     { server 127.0.0.1:#{KONFIG.kloud.port}     ;}
+    upstream appsproxy { server 127.0.0.1:#{KONFIG.appsproxy.port} ;}
 
     # TBD @arslan -> make kontrol kite horizontally scalable then enable;
     # upstream kontrol     {server 127.0.0.1:#{kontrol.port};}
@@ -304,6 +308,14 @@ Configuration = (options={}) ->
 
       location /xhr {
         proxy_pass            http://social;
+        proxy_set_header      X-Real-IP       $remote_addr;
+        proxy_set_header      X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_next_upstream   error timeout invalid_header http_500;
+        proxy_connect_timeout 1;
+      }
+
+      location /appsproxy {
+        proxy_pass            http://appsproxy;
         proxy_set_header      X-Real-IP       $remote_addr;
         proxy_set_header      X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_next_upstream   error timeout invalid_header http_500;
