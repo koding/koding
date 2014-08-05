@@ -49,10 +49,11 @@ class AccountPaymentMethodsListController extends AccountListViewController
       @instantiateListItems paymentMethods
 
       @addButton?.destroy()
-      @getListView().addSubView @addButton = new KDCustomHTMLView
-        cssClass  : 'kdlistitemview-cc plus'
-        partial   : '<span><i></i><i></i></span>'
-        click     : => @showModal()
+      @getListView().prepend @addButton = new KDButtonView
+        cssClass  : 'add-method-btn'
+        title     : 'Add new payment method'
+        icon      : yes
+        callback  : => @showModal()
 
       @hideLazyLoader()
 
