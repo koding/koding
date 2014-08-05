@@ -663,6 +663,11 @@ utils.extend utils,
       for s, i in splitted then res[keys[i]] = s
       return res
 
+  doesQueryStringValid: (query)->
+    return no  unless query
+    query = query.replace /^\//, ""
+    (query.split '/').length is 7
+
 
   doesEmailValid: (email) -> /@/.test email
 
