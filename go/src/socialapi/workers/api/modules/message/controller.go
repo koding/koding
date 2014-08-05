@@ -90,7 +90,7 @@ func checkThrottle(channelId, requesterId int64) error {
 			"created_at > ?",
 		channelId,
 		requesterId,
-		prevTime.Format(time.RFC3339),
+		prevTime.Format(time.RFC3339Nano),
 	)
 	if err != nil {
 		return err
