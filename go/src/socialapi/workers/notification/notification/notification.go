@@ -135,22 +135,39 @@ func subscription(cml *socialapimodels.ChannelMessageList, typeConstant string) 
 	return nil
 }
 
-func (n *Controller) HandleMessageList(cml *socialapimodels.ChannelMessageList) error {
-	c := socialapimodels.NewChannel()
-	if err := c.ById(cml.ChannelId); err != nil {
+func (n *Controller) HandleMessage(cm *socialapimodels.ChannelMessage) error {
+	switch cm.TypeConstant {
+	case socialapimodels.ChannelMessage_TYPE_POST:
+		return n.mentionNotification(cm)
+	case socialapimodels.ChannelMessage_TYPE_PRIVATE_MESSAGE:
+		return n.privateMessageNotification(cm)
+	default:
+		return nil
+	}
+}
+
+func (n *Controller) privateMessageNotification(cm *socialapimodels.ChannelMessage) error {
+	if cm.TypeConstant != socialapimodels.ChannelMessage_TYPE_PRIVATE_MESSAGE {
+		return nil
+	}
+	// TODO i need to wait here for fetching related channels
+	time.Sleep(3 * time.Second)
+	cml := socialapimodels.NewChannelMessageList()
+	channels, err := cml.FetchMessageChannels(cm.Id)
+	if err != nil {
 		return err
 	}
 
-	if c.TypeConstant != socialapimodels.Channel_TYPE_PRIVATE_MESSAGE {
+	if len(channels) == 0 {
+		n.log.Warning("Private channel not found")
 		return nil
 	}
-	cm := socialapimodels.NewChannelMessage()
-	if err := cm.ById(cml.MessageId); err != nil {
-		return err
+	// each private message just belongs to a single private message channel
+	c := channels[0]
+	if c.TypeConstant != socialapimodels.Channel_TYPE_PRIVATE_MESSAGE {
+		n.log.Warning("Private channel message does not belong to private channel")
+		return nil
 	}
-	// TODO delete this sleep, the reason is participants are created after channel
-	// message list !!!
-	time.Sleep(3 * time.Second)
 	// fetch participants
 	cp := socialapimodels.NewChannelParticipant()
 	cp.ChannelId = c.Id
@@ -166,7 +183,7 @@ func (n *Controller) HandleMessageList(cml *socialapimodels.ChannelMessageList) 
 	}
 
 	pn := models.NewPMNotification()
-	pn.TargetId = cm.Id
+	pn.TargetId = c.Id
 	pn.NotifierId = cm.AccountId
 	nc, err := models.CreateNotificationContent(pn)
 	if err != nil {
@@ -175,7 +192,7 @@ func (n *Controller) HandleMessageList(cml *socialapimodels.ChannelMessageList) 
 
 	for _, participant := range participantIds {
 		if cm.AccountId != participant {
-			n.instantNotify(nc.Id, participant)
+			n.notifyOnce(nc.Id, participant)
 		}
 	}
 
@@ -183,7 +200,7 @@ func (n *Controller) HandleMessageList(cml *socialapimodels.ChannelMessageList) 
 }
 
 // MentionNotification creates mention notifications for the related channel messages
-func (n *Controller) MentionNotification(cm *socialapimodels.ChannelMessage) error {
+func (n *Controller) mentionNotification(cm *socialapimodels.ChannelMessage) error {
 	if cm.TypeConstant != socialapimodels.ChannelMessage_TYPE_POST {
 		return nil
 	}
@@ -253,11 +270,24 @@ func (n *Controller) notify(contentId, notifierId int64) {
 }
 
 func (n *Controller) instantNotify(contentId, notifierId int64) {
-	notification := buildNotification(contentId, notifierId, time.Now())
-	notification.ActivatedAt = time.Now()
+	notification := prepareActiveNotification(contentId, notifierId)
 	if err := notification.Upsert(); err != nil {
 		n.log.Error("An error occurred while notifying user %d: %s", notification.AccountId, err.Error())
 	}
+}
+
+func (n *Controller) notifyOnce(contentId, notifierId int64) {
+	notification := prepareActiveNotification(contentId, notifierId)
+	if err := notification.Create(); err != nil {
+		n.log.Error("An error occurred while notifying user %d: %s", notification.AccountId, err.Error())
+	}
+}
+
+func prepareActiveNotification(contentId, notifierId int64) *models.Notification {
+	notification := buildNotification(contentId, notifierId, time.Now())
+	notification.ActivatedAt = time.Now()
+
+	return notification
 }
 
 func (n *Controller) subscribe(contentId, notifierId int64, subscribedAt time.Time) {
