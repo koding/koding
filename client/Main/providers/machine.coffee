@@ -52,7 +52,7 @@ class Machine extends KDObject
     klient = kontrol.kites?.klient?[@uid]
     return klient  if klient
 
-    if @queryString? and createIfNotExists
+    if createIfNotExists and KD.utils.doesQueryStringValid @queryString
 
       kontrol.getKite { name: "klient", @queryString, correlationName: @uid }
 
