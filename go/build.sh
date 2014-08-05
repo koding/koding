@@ -16,6 +16,7 @@ services=(
   github.com/koding/kite/cmd/kite
   github.com/koding/kite/reverseproxy/reverseproxy
   koding/kites/kontrol
+  github.com/coreos/etcd
   koding/kites/klient
   koding/kites/kloud
   github.com/koding/kloudctl

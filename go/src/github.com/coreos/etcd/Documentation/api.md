@@ -13,6 +13,14 @@ This will bring up etcd listening on default ports (4001 for client communicatio
 The `-data-dir machine0` argument tells etcd to write machine configuration, logs and snapshots to the `./machine0/` directory.
 The `-name machine0` tells the rest of the cluster that this machine is named machine0.
 
+## Getting the etcd version
+
+The etcd version of a specific instance can be obtained from the `/version` endpoint.
+
+```sh
+curl -L http://127.0.0.1:4001/version
+```
+
 ## Key Space Operations
 
 The primary API of etcd is a hierarchical key space.
@@ -833,6 +841,8 @@ curl -L http://127.0.0.1:4001/v2/keys/afile -XPUT --data-urlencode value@afile.t
 
 ### Read Consistency
 
+#### Read from the Master
+
 Followers in a cluster can be behind the leader in their copy of the keyspace.
 If your application wants or needs the most up-to-date version of a key then it should ensure it reads from the current leader.
 By using the `consistent=true` flag in your GET requests, etcd will make sure you are talking to the current master.
@@ -843,13 +853,26 @@ The client is told the write was successful and the keyspace is updated.
 Meanwhile F2 has partitioned from the network and will have an out-of-date version of the keyspace until the partition resolves.
 Since F2 missed the most recent write, a client reading from F2 will have an out-of-date version of the keyspace.
 
-## Lock Module (*Deprecated*)
+Implementation notes on `consistent=true`: If the leader you are talking to is
+partitioned it will be unable to determine if it is not currently the master.
+In a later version we will provide a mechanism to set an upperbound of time
+that the current master can be unable to contact the quorom and still serve
+reads.
+
+### Read Linearization
+
+If you want a read that is fully linearized you can use a `quorum=true` GET.
+The read will take a very similar path to a write and will have a similar
+speed. If you are unsure if you need this feature feel free to email etcd-dev
+for advice.
+
+## Lock Module (*Deprecated and Removed*)
 
 The lock module is used to serialize access to resources used by clients.
 Multiple clients can attempt to acquire a lock but only one can have it at a time.
 Once the lock is released, the next client waiting for the lock will receive it.
 
-**Warning:** This module is deprecated at v0.4. See [Modules][modules] for more details.
+**Warning:** This module is deprecated and removed at v0.4. See [Modules][modules] for more details.
 
 
 ### Acquiring a Lock
@@ -1196,4 +1219,96 @@ curl -L http://127.0.0.1:4001/v2/stats/store
     "updateSuccess": 0,
     "watchers": 0
 }
+```
+
+## Cluster Config
+
+The configuration endpoint manages shared cluster wide properties.
+
+### Set Cluster Config
+
+```sh
+curl -L http://127.0.0.1:7001/v2/admin/config -XPUT -d '{"activeSize":3, "removeDelay":1800,"syncInterval":5}'
+```
+
+```json
+{
+    "activeSize": 3,
+    "removeDelay": 1800,
+    "syncInterval":5
+}
+```
+
+`activeSize` is the maximum number of peers that can join the cluster and participate in the consensus protocol.
+
+The size of cluster is controlled to be around a certain number. If it is not, standby-mode instances will join or peer-mode instances will be removed to make it happen.
+
+`removeDelay` indicates the minimum time that a machine has been observed to be unresponsive before it is removed from the cluster.
+
+### Get Cluster Config
+
+```sh
+curl -L http://127.0.0.1:7001/v2/admin/config
+```
+
+```json
+{
+    "activeSize": 3,
+    "removeDelay": 1800,
+    "syncInterval":5
+}
+```
+
+## Remove Machines
+
+At times you may want to manually remove a machine. Using the machines endpoint
+you can find and remove machines.
+
+First, list all the machines in the cluster.
+
+```sh
+curl -L http://127.0.0.1:7001/v2/admin/machines
+```
+```json
+[
+    {
+        "clientURL": "http://127.0.0.1:4001",
+        "name": "peer1",
+        "peerURL": "http://127.0.0.1:7001",
+        "state": "leader"
+    },
+    {
+        "clientURL": "http://127.0.0.1:4002",
+        "name": "peer2",
+        "peerURL": "http://127.0.0.1:7002",
+        "state": "follower"
+    },
+    {
+        "clientURL": "http://127.0.0.1:4003",
+        "name": "peer3",
+        "peerURL": "http://127.0.0.1:7003",
+        "state": "follower"
+    }
+]
+```
+
+Then take a closer look at the machine you want to remove.
+
+```sh
+curl -L http://127.0.0.1:7001/v2/admin/machines/peer2
+```
+
+```json
+{
+    "clientURL": "http://127.0.0.1:4002",
+    "name": "peer2",
+    "peerURL": "http://127.0.0.1:7002",
+    "state": "follower"
+}
+```
+
+And finally remove it.
+
+```sh
+curl -L -XDELETE http://127.0.0.1:7001/v2/admin/machines/peer2
 ```

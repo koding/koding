@@ -1,6 +1,6 @@
 # etcd
 
-README version 0.3.0
+README version 0.4.6
 
 A highly-available key value store for shared configuration and service discovery.
 etcd is inspired by [Apache ZooKeeper][zookeeper] and [doozer][doozer], with a focus on being:
@@ -95,7 +95,7 @@ You have successfully started an etcd on a single machine and written a key to t
 ## Contact
 
 - Mailing list: [etcd-dev](https://groups.google.com/forum/?hl=en#!forum/etcd-dev)
-- IRC: #[coreos](irc://irc.freenode.org:6667/#coreos) oon freenode.org
+- IRC: #[coreos](irc://irc.freenode.org:6667/#coreos) on freenode.org
 - Planning/Roadmap: [milestones](https://github.com/coreos/etcd/issues/milestones)
 - Bugs: [issues](https://github.com/coreos/etcd/issues)
 
@@ -125,6 +125,10 @@ Clients are encouraged to use the `v2` API. The `v1` API will not change.
 The `v2` API responses should not change after the 0.2.0 release but new features will be added over time.
 
 During the pre-v1.0.0 series of releases we may break the API as we fix bugs and get feedback.
+
+#### 32bit systems
+
+etcd has known issues on 32bit systems. We plan to address these issues after the 0.4 release.
 
 ### License
 

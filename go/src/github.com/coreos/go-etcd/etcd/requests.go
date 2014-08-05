@@ -1,6 +1,7 @@
 package etcd
 
 import (
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"math/rand"
@@ -8,11 +9,35 @@ import (
 	"net/url"
 	"path"
 	"strings"
+	"sync"
 	"time"
 )
 
-// get issues a GET request
-func (c *Client) get(key string, options options) (*RawResponse, error) {
+// Errors introduced by handling requests
+var (
+	ErrRequestCancelled = errors.New("sending request is cancelled")
+)
+
+type RawRequest struct {
+	Method       string
+	RelativePath string
+	Values       url.Values
+	Cancel       <-chan bool
+}
+
+// NewRawRequest returns a new RawRequest
+func NewRawRequest(method, relativePath string, values url.Values, cancel <-chan bool) *RawRequest {
+	return &RawRequest{
+		Method:       method,
+		RelativePath: relativePath,
+		Values:       values,
+		Cancel:       cancel,
+	}
+}
+
+// getCancelable issues a cancelable GET request
+func (c *Client) getCancelable(key string, options Options,
+	cancel <-chan bool) (*RawResponse, error) {
 	logger.Debugf("get %s [%s]", key, c.cluster.Leader)
 	p := keyToPath(key)
 
@@ -28,7 +53,8 @@ func (c *Client) get(key string, options options) (*RawResponse, error) {
 	}
 	p += str
 
-	resp, err := c.sendRequest("GET", p, nil)
+	req := NewRawRequest("GET", p, nil, cancel)
+	resp, err := c.SendRequest(req)
 
 	if err != nil {
 		return nil, err
@@ -37,9 +63,14 @@ func (c *Client) get(key string, options options) (*RawResponse, error) {
 	return resp, nil
 }
 
+// get issues a GET request
+func (c *Client) get(key string, options Options) (*RawResponse, error) {
+	return c.getCancelable(key, options, nil)
+}
+
 // put issues a PUT request
 func (c *Client) put(key string, value string, ttl uint64,
-	options options) (*RawResponse, error) {
+	options Options) (*RawResponse, error) {
 
 	logger.Debugf("put %s, %s, ttl: %d, [%s]", key, value, ttl, c.cluster.Leader)
 	p := keyToPath(key)
@@ -50,7 +81,8 @@ func (c *Client) put(key string, value string, ttl uint64,
 	}
 	p += str
 
-	resp, err := c.sendRequest("PUT", p, buildValues(value, ttl))
+	req := NewRawRequest("PUT", p, buildValues(value, ttl), nil)
+	resp, err := c.SendRequest(req)
 
 	if err != nil {
 		return nil, err
@@ -64,7 +96,8 @@ func (c *Client) post(key string, value string, ttl uint64) (*RawResponse, error
 	logger.Debugf("post %s, %s, ttl: %d, [%s]", key, value, ttl, c.cluster.Leader)
 	p := keyToPath(key)
 
-	resp, err := c.sendRequest("POST", p, buildValues(value, ttl))
+	req := NewRawRequest("POST", p, buildValues(value, ttl), nil)
+	resp, err := c.SendRequest(req)
 
 	if err != nil {
 		return nil, err
@@ -74,7 +107,7 @@ func (c *Client) post(key string, value string, ttl uint64) (*RawResponse, error
 }
 
 // delete issues a DELETE request
-func (c *Client) delete(key string, options options) (*RawResponse, error) {
+func (c *Client) delete(key string, options Options) (*RawResponse, error) {
 	logger.Debugf("delete %s [%s]", key, c.cluster.Leader)
 	p := keyToPath(key)
 
@@ -84,7 +117,8 @@ func (c *Client) delete(key string, options options) (*RawResponse, error) {
 	}
 	p += str
 
-	resp, err := c.sendRequest("DELETE", p, nil)
+	req := NewRawRequest("DELETE", p, nil, nil)
+	resp, err := c.SendRequest(req)
 
 	if err != nil {
 		return nil, err
@@ -93,129 +127,206 @@ func (c *Client) delete(key string, options options) (*RawResponse, error) {
 	return resp, nil
 }
 
-// sendRequest sends a HTTP request and returns a Response as defined by etcd
-func (c *Client) sendRequest(method string, relativePath string,
-	values url.Values) (*RawResponse, error) {
+// SendRequest sends a HTTP request and returns a Response as defined by etcd
+func (c *Client) SendRequest(rr *RawRequest) (*RawResponse, error) {
 
 	var req *http.Request
 	var resp *http.Response
 	var httpPath string
 	var err error
-	var b []byte
+	var respBody []byte
 
-	trial := 0
+	var numReqs = 1
 
-	// if we connect to a follower, we will retry until we found a leader
-	for {
-		trial++
-		logger.Debug("begin trail ", trial)
-		if trial > 2*len(c.cluster.Machines) {
-			return nil, newError(ErrCodeEtcdNotReachable,
-				"Tried to connect to each peer twice and failed", 0)
+	checkRetry := c.CheckRetry
+	if checkRetry == nil {
+		checkRetry = DefaultCheckRetry
+	}
+
+	cancelled := make(chan bool, 1)
+	reqLock := new(sync.Mutex)
+
+	if rr.Cancel != nil {
+		cancelRoutine := make(chan bool)
+		defer close(cancelRoutine)
+
+		go func() {
+			select {
+			case <-rr.Cancel:
+				cancelled <- true
+				logger.Debug("send.request is cancelled")
+			case <-cancelRoutine:
+				return
+			}
+
+			// Repeat canceling request until this thread is stopped
+			// because we have no idea about whether it succeeds.
+			for {
+				reqLock.Lock()
+				c.httpClient.Transport.(*http.Transport).CancelRequest(req)
+				reqLock.Unlock()
+
+				select {
+				case <-time.After(100 * time.Millisecond):
+				case <-cancelRoutine:
+					return
+				}
+			}
+		}()
+	}
+
+	// If we connect to a follower and consistency is required, retry until
+	// we connect to a leader
+	sleep := 25 * time.Millisecond
+	maxSleep := time.Second
+	for attempt := 0; ; attempt++ {
+		if attempt > 0 {
+			select {
+			case <-cancelled:
+				return nil, ErrRequestCancelled
+			case <-time.After(sleep):
+				sleep = sleep * 2
+				if sleep > maxSleep {
+					sleep = maxSleep
+				}
+			}
 		}
 
-		if method == "GET" && c.config.Consistency == WEAK_CONSISTENCY {
+		logger.Debug("Connecting to etcd: attempt", attempt+1, "for", rr.RelativePath)
+
+		if rr.Method == "GET" && c.config.Consistency == WEAK_CONSISTENCY {
 			// If it's a GET and consistency level is set to WEAK,
 			// then use a random machine.
-			httpPath = c.getHttpPath(true, relativePath)
+			httpPath = c.getHttpPath(true, rr.RelativePath)
 		} else {
 			// Else use the leader.
-			httpPath = c.getHttpPath(false, relativePath)
+			httpPath = c.getHttpPath(false, rr.RelativePath)
 		}
 
 		// Return a cURL command if curlChan is set
 		if c.cURLch != nil {
-			command := fmt.Sprintf("curl -X %s %s", method, httpPath)
-			for key, value := range values {
+			command := fmt.Sprintf("curl -X %s %s", rr.Method, httpPath)
+			for key, value := range rr.Values {
 				command += fmt.Sprintf(" -d %s=%s", key, value[0])
 			}
 			c.sendCURL(command)
 		}
 
-		logger.Debug("send.request.to ", httpPath, " | method ", method)
+		logger.Debug("send.request.to ", httpPath, " | method ", rr.Method)
 
-		if values == nil {
-			req, _ = http.NewRequest(method, httpPath, nil)
+		reqLock.Lock()
+		if rr.Values == nil {
+			if req, err = http.NewRequest(rr.Method, httpPath, nil); err != nil {
+				return nil, err
+			}
 		} else {
-			req, _ = http.NewRequest(method, httpPath,
-				strings.NewReader(values.Encode()))
+			body := strings.NewReader(rr.Values.Encode())
+			if req, err = http.NewRequest(rr.Method, httpPath, body); err != nil {
+				return nil, err
+			}
 
 			req.Header.Set("Content-Type",
 				"application/x-www-form-urlencoded; param=value")
 		}
+		reqLock.Unlock()
+
+		resp, err = c.httpClient.Do(req)
+		defer func() {
+			if resp != nil {
+				resp.Body.Close()
+			}
+		}()
+
+		// If the request was cancelled, return ErrRequestCancelled directly
+		select {
+		case <-cancelled:
+			return nil, ErrRequestCancelled
+		default:
+		}
+
+		numReqs++
 
 		// network error, change a machine!
-		if resp, err = c.httpClient.Do(req); err != nil {
-			logger.Debug("network error: ", err.Error())
-			c.cluster.switchLeader(trial % len(c.cluster.Machines))
-			time.Sleep(time.Millisecond * 200)
+		if err != nil {
+			logger.Debug("network error:", err.Error())
+			lastResp := http.Response{}
+			if checkErr := checkRetry(c.cluster, numReqs, lastResp, err); checkErr != nil {
+				return nil, checkErr
+			}
+
+			c.cluster.switchLeader(attempt % len(c.cluster.Machines))
 			continue
 		}
 
-		if resp != nil {
-			logger.Debug("recv.response.from ", httpPath)
+		// if there is no error, it should receive response
+		logger.Debug("recv.response.from", httpPath)
 
-			var ok bool
-			ok, b = c.handleResp(resp)
-
-			if !ok {
-				continue
+		if validHttpStatusCode[resp.StatusCode] {
+			// try to read byte code and break the loop
+			respBody, err = ioutil.ReadAll(resp.Body)
+			if err == nil {
+				logger.Debug("recv.success.", httpPath)
+				break
 			}
-
-			logger.Debug("recv.success.", httpPath)
-			break
+			// ReadAll error may be caused due to cancel request
+			select {
+			case <-cancelled:
+				return nil, ErrRequestCancelled
+			default:
+			}
 		}
 
-		// should not reach here
-		// err and resp should not be nil at the same time
-		logger.Debug("error.from ", httpPath)
-		return nil, err
+		// if resp is TemporaryRedirect, set the new leader and retry
+		if resp.StatusCode == http.StatusTemporaryRedirect {
+			u, err := resp.Location()
+
+			if err != nil {
+				logger.Warning(err)
+			} else {
+				// Update cluster leader based on redirect location
+				// because it should point to the leader address
+				c.cluster.updateLeaderFromURL(u)
+				logger.Debug("recv.response.relocate", u.String())
+			}
+			resp.Body.Close()
+			continue
+		}
+
+		if checkErr := checkRetry(c.cluster, numReqs, *resp,
+			errors.New("Unexpected HTTP status code")); checkErr != nil {
+			return nil, checkErr
+		}
+		resp.Body.Close()
 	}
 
 	r := &RawResponse{
 		StatusCode: resp.StatusCode,
-		Body:       b,
+		Body:       respBody,
 		Header:     resp.Header,
 	}
 
 	return r, nil
 }
 
-// handleResp handles the responses from the etcd server
-// If status code is OK, read the http body and return it as byte array
-// If status code is TemporaryRedirect, update leader.
+// DefaultCheckRetry defines the retrying behaviour for bad HTTP requests
+// If we have retried 2 * machine number, stop retrying.
 // If status code is InternalServerError, sleep for 200ms.
-func (c *Client) handleResp(resp *http.Response) (bool, []byte) {
-	defer resp.Body.Close()
+func DefaultCheckRetry(cluster *Cluster, numReqs int, lastResp http.Response,
+	err error) error {
 
-	code := resp.StatusCode
-
-	if code == http.StatusTemporaryRedirect {
-		u, err := resp.Location()
-
-		if err != nil {
-			logger.Warning(err)
-		} else {
-			c.cluster.updateLeaderFromURL(u)
-		}
-
-		return false, nil
-
-	} else if code == http.StatusInternalServerError {
-		time.Sleep(time.Millisecond * 200)
-
-	} else if validHttpStatusCode[code] {
-		b, err := ioutil.ReadAll(resp.Body)
-
-		if err != nil {
-			return false, nil
-		}
-
-		return true, b
+	if numReqs >= 2*len(cluster.Machines) {
+		return newError(ErrCodeEtcdNotReachable,
+			"Tried to connect to each peer twice and failed", 0)
 	}
 
-	logger.Warning("bad status code ", resp.StatusCode)
-	return false, nil
+	code := lastResp.StatusCode
+	if code == http.StatusInternalServerError {
+		time.Sleep(time.Millisecond * 200)
+
+	}
+
+	logger.Warning("bad response status code", code)
+	return nil
 }
 
 func (c *Client) getHttpPath(random bool, s ...string) string {

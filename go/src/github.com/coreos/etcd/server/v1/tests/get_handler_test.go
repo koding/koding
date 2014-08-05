@@ -36,7 +36,7 @@ func TestV1GetKey(t *testing.T) {
 		assert.Equal(t, body["action"], "get", "")
 		assert.Equal(t, body["key"], "/foo/bar", "")
 		assert.Equal(t, body["value"], "XXX", "")
-		assert.Equal(t, body["index"], 2, "")
+		assert.Equal(t, body["index"], 3, "")
 	})
 }
 
@@ -85,6 +85,13 @@ func TestV1GetKeyDir(t *testing.T) {
 //
 func TestV1WatchKey(t *testing.T) {
 	tests.RunServer(func(s *server.Server) {
+		// There exists a little gap between etcd ready to serve and
+		// it actually serves the first request, which means the response
+		// delay could be a little bigger.
+		// This test is time sensitive, so it does one request to ensure
+		// that the server is working.
+		tests.Get(fmt.Sprintf("%s%s", s.URL(), "/v1/keys/foo/bar"))
+
 		var watchResp *http.Response
 		c := make(chan bool)
 		go func() {
@@ -117,7 +124,7 @@ func TestV1WatchKey(t *testing.T) {
 
 		assert.Equal(t, body["key"], "/foo/bar", "")
 		assert.Equal(t, body["value"], "XXX", "")
-		assert.Equal(t, body["index"], 2, "")
+		assert.Equal(t, body["index"], 3, "")
 	})
 }
 
@@ -133,7 +140,7 @@ func TestV1WatchKeyWithIndex(t *testing.T) {
 		c := make(chan bool)
 		go func() {
 			v := url.Values{}
-			v.Set("index", "3")
+			v.Set("index", "4")
 			resp, _ := tests.PostForm(fmt.Sprintf("%s%s", s.URL(), "/v1/watch/foo/bar"), v)
 			body = tests.ReadBodyJSON(resp)
 			c <- true
@@ -173,7 +180,7 @@ func TestV1WatchKeyWithIndex(t *testing.T) {
 
 		assert.Equal(t, body["key"], "/foo/bar", "")
 		assert.Equal(t, body["value"], "YYY", "")
-		assert.Equal(t, body["index"], 3, "")
+		assert.Equal(t, body["index"], 4, "")
 	})
 }
 
