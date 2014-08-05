@@ -150,28 +150,11 @@ func (n *Controller) privateMessageNotification(cm *socialapimodels.ChannelMessa
 	if cm.TypeConstant != socialapimodels.ChannelMessage_TYPE_PRIVATE_MESSAGE {
 		return nil
 	}
-	// TODO i need to wait here for fetching related channels
-	time.Sleep(3 * time.Second)
-	cml := socialapimodels.NewChannelMessageList()
-	channels, err := cml.FetchMessageChannels(cm.Id)
-	if err != nil {
-		return err
-	}
 
-	if len(channels) == 0 {
-		n.log.Warning("Private channel not found")
-		return nil
-	}
-	// each private message just belongs to a single private message channel
-	c := channels[0]
-	if c.TypeConstant != socialapimodels.Channel_TYPE_PRIVATE_MESSAGE {
-		n.log.Warning("Private channel message does not belong to private channel")
-		return nil
-	}
 	// fetch participants
 	cp := socialapimodels.NewChannelParticipant()
-	cp.ChannelId = c.Id
-
+	cp.ChannelId = cm.InitialChannelId
+	time.Sleep(3 * time.Second)
 	participantIds, err := cp.ListAccountIds(0)
 	if err != nil {
 		return err
@@ -183,7 +166,7 @@ func (n *Controller) privateMessageNotification(cm *socialapimodels.ChannelMessa
 	}
 
 	pn := models.NewPMNotification()
-	pn.TargetId = c.Id
+	pn.TargetId = cm.InitialChannelId
 	pn.NotifierId = cm.AccountId
 	nc, err := models.CreateNotificationContent(pn)
 	if err != nil {
