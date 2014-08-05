@@ -89,7 +89,10 @@ Vagrant.configure("2") do |config|
     default.vm.network :forwarded_port, :guest => 6379, :host => 6379 # redis
     default.vm.network :forwarded_port, :guest => 9200, :host => 9200 # elastic search
     default.vm.network :forwarded_port, :guest => 3999, :host => 3999 # proxy kite
+
     default.vm.network :forwarded_port, :guest => 4000, :host => 4000 # kontrol kite
+    default.vm.network :forwarded_port, :guest => 4001, :host => 4001 # etcd 
+
     default.vm.network :forwarded_port, :guest => 4005, :host => 4005 # provisioning kite
     default.vm.network :forwarded_port, :guest => 5000, :host => 5000 # oskite
     default.vm.network :forwarded_port, :guest => 5432, :host => 5432 # postgresql
