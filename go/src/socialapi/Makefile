@@ -44,7 +44,7 @@ PACKAGES = \
 	socialapi/workers/sitemap/sitemapfeeder \
 	socialapi/workers/sitemap/sitemapgenerator \
 	socialapi/workers/sitemap/sitemapinitializer \
-	socialapi/workers/topicindex
+	socialapi/workers/algoliaconnector
 
 all: testapi
 
