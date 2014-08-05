@@ -1,6 +1,6 @@
 # TODO: we have to move kd related functions to somewhere else...
+require './arrayproto'
 process.title = 'koding-webserver'
-
 {argv} = require 'optimist'
 Object.defineProperty global, 'KONFIG',
   value: require('koding-config-manager').load("main.#{argv.c}")

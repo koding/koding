@@ -36,8 +36,9 @@ func newMultiLimiter(limiter ...Limiter) Limiter {
 	return multiLimiter(limiter)
 }
 
-// Limit implements the kloud.Limiter interface
-func (p *Provider) Limit(opts *protocol.MachineOptions, method string) error {
+// Limit implements the kloud.Limiter interface. This is called for every
+// incoming method before the execution.
+func (p *Provider) Limit(opts *protocol.Machine, method string) error {
 	// only check for build method, all other's are ok to be used without any
 	// restriction.
 	if method != "build" {
@@ -49,10 +50,12 @@ func (p *Provider) Limit(opts *protocol.MachineOptions, method string) error {
 		return err
 	}
 
+	username := opts.Builder["username"].(string)
+
 	ctx := &CheckContext{
 		api:      a,
-		db:       p.DB,
-		username: opts.Username,
+		db:       p.Session,
+		username: username,
 	}
 
 	return p.CheckLimits("free", ctx)

@@ -8,7 +8,6 @@ ALTER TABLE notification.notification_content ADD PRIMARY KEY (id) NOT DEFERRABL
 -- ----------------------------
 --  Indexes structure for table notification_content
 -- ----------------------------
-CREATE UNIQUE INDEX  "notification_content_id_key" ON notification.notification_content USING btree(id ASC NULLS LAST);
 
 -- ----------------------------------------------------------------------------------------
 --  Structure for table Notification
@@ -26,7 +25,6 @@ ALTER TABLE notification.notification ADD CONSTRAINT "notification_notification_
 -- ----------------------------
 --  Indexes structure for table notification
 -- ----------------------------
-CREATE UNIQUE INDEX  "notification_id_key" ON notification.notification USING btree(id ASC NULLS LAST);
 
 -- ----------------------------------------------------------------------------------------
 --  Structure for table NotificationActivity
@@ -44,4 +42,3 @@ ALTER TABLE notification.notification_activity ADD CONSTRAINT "notification_acti
 -- ----------------------------
 --  Indexes structure for table activity
 -- ----------------------------
-CREATE UNIQUE INDEX  "notification_activity_id_key" ON notification.notification_activity USING btree(id ASC NULLS LAST);

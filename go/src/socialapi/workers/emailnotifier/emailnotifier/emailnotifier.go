@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"socialapi/config"
+	socialmodels "socialapi/models"
 	"socialapi/workers/emailnotifier/models"
 	"socialapi/workers/helper"
 	notificationmodels "socialapi/workers/notification/models"
@@ -17,9 +18,6 @@ import (
 var emailConfig = map[string]string{
 	notificationmodels.NotificationContent_TYPE_COMMENT: "comment",
 	notificationmodels.NotificationContent_TYPE_LIKE:    "likeActivities",
-	notificationmodels.NotificationContent_TYPE_FOLLOW:  "followActions",
-	notificationmodels.NotificationContent_TYPE_JOIN:    "groupJoined",
-	notificationmodels.NotificationContent_TYPE_LEAVE:   "groupLeft",
 	notificationmodels.NotificationContent_TYPE_MENTION: "mention",
 }
 
@@ -71,7 +69,7 @@ func (n *Controller) SendInstantEmail(notification *notificationmodels.Notificat
 		return err
 	}
 
-	if !validNotification(activity, notification) {
+	if !n.validNotification(activity, notification) {
 		return nil
 	}
 
@@ -135,9 +133,20 @@ func prepareSubject(mc *models.MailerContainer) string {
 	return t.GetDefinition()
 }
 
-func validNotification(a *notificationmodels.NotificationActivity, n *notificationmodels.Notification) bool {
+func (c *Controller) validNotification(a *notificationmodels.NotificationActivity, n *notificationmodels.Notification) bool {
 	// do not notify actor for her own action
 	if a.ActorId == n.AccountId {
+		return false
+	}
+
+	// do not notify actor for troll activity
+	acc, err := socialmodels.FetchAccountById(a.ActorId)
+	if err != nil {
+		c.log.Error("Invalid notification: %s", err)
+		return false
+	}
+
+	if acc.IsTroll {
 		return false
 	}
 
@@ -210,12 +219,6 @@ func checkMailSettings(nc *notificationmodels.NotificationContent, uc *models.Us
 		return uc.EmailSettings.Comment
 	case notificationmodels.NotificationContent_TYPE_LIKE:
 		return uc.EmailSettings.Like
-	case notificationmodels.NotificationContent_TYPE_FOLLOW:
-		return uc.EmailSettings.Follow
-	case notificationmodels.NotificationContent_TYPE_JOIN:
-		return uc.EmailSettings.Join
-	case notificationmodels.NotificationContent_TYPE_LEAVE:
-		return uc.EmailSettings.Leave
 	case notificationmodels.NotificationContent_TYPE_MENTION:
 		return uc.EmailSettings.Mention
 	}

@@ -192,6 +192,8 @@ func (c *Interaction) CountWithQuery(q *bongo.Query) (int, error) {
 	return bongo.B.CountWithQuery(c, q)
 }
 
+// this only used for while deleting the message, and its all required data
+// do not use this for other purposes
 func (c *Interaction) FetchAll(interactionType string) ([]Interaction, error) {
 	var interactions []Interaction
 

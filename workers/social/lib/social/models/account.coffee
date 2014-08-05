@@ -2,10 +2,6 @@ jraphical   = require 'jraphical'
 KodingError = require '../error'
 ApiError    = require './socialapi/error'
 
-likeableActivities = [
-  'JNewStatusUpdate'
-  ]
-
 module.exports = class JAccount extends jraphical.Module
 
   @trait __dirname, '../traits/followable'
@@ -17,10 +13,7 @@ module.exports = class JAccount extends jraphical.Module
   JStorage         = require './storage'
   JAppStorage      = require './appstorage'
   JTag             = require './tag'
-  CActivity        = require './activity'
-  Graph            = require "./graph/graph"
   JName            = require './name'
-  JBadge           = require './badge'
   JKite            = require './kite'
   JReferrableEmail = require './referrableemail'
 
@@ -59,8 +52,6 @@ module.exports = class JAccount extends jraphical.Module
         # { name: 'updateInstance' }
         { name: 'notification' }
         { name : "RemovedFromCollection" }
-        { name : "markedAsExempt" }
-
       ]
     sharedMethods :
       static:
@@ -125,25 +116,9 @@ module.exports = class JAccount extends jraphical.Module
           (signature Object, Object, Function)
         fetchTopics:
           (signature Object, Object, Function)
-        fetchMail: [
-          (signature Function)
-          (signature Object, Function)
-        ]
-        fetchNotificationsTimeline: [
-          (signature Object, Function)
-          (signature Object, Object, Function)
-        ]
-        fetchActivities: [
-          (signature Object, Function)
-          (signature Object, Object, Function)
-        ]
         fetchAppStorage:
           (signature Object, Function)
         addTags: [
-          (signature Object, Function)
-          (signature Object, Object, Function)
-        ]
-        fetchLikedContents: [
           (signature Object, Function)
           (signature Object, Object, Function)
         ]
@@ -185,12 +160,6 @@ module.exports = class JAccount extends jraphical.Module
           (signature Function)
         fetchMyPermissionsAndRoles:
           (signature Function)
-        fetchMyFollowingsFromGraph:
-          (signature Object, Function)
-        fetchMyOnlineFollowingsFromGraph:
-          (signature Object, Function)
-        fetchMyFollowersFromGraph:
-          (signature Object, Function)
         blockUser: [
           (signature String, Number, Function)
           (signature ObjectId, Number, Function)
@@ -199,10 +168,6 @@ module.exports = class JAccount extends jraphical.Module
           (signature String, Function)
           (signature ObjectId, Function)
         ]
-        fetchRelatedTagsFromGraph:
-          (signature Object, Function)
-        fetchRelatedUsersFromGraph:
-          (signature Object, Function)
         unlinkOauth:
           (signature String, Function)
         changeUsername: [
@@ -243,12 +208,8 @@ module.exports = class JAccount extends jraphical.Module
           (signature Function)
         fetchOAuthInfo:
           (signature Function)
-        fetchMyBadges:
-          (signature Function)
         fetchFromUser:
           (signature String, Function)
-        updateCountAndCheckBadge:
-          (signature Object, Function)
         likeMember:
           (signature String, Function)
         fetchKites :
@@ -347,14 +308,6 @@ module.exports = class JAccount extends jraphical.Module
     broadcastableRelationships : [ 'follower' ]
     relationships           : ->
 
-      follower      :
-        as          : 'follower'
-        targetType  : JAccount
-
-      activity      :
-        as          : 'activity'
-        targetType  : "CActivity"
-
       appStorage    :
         as          : 'appStorage'
         targetType  : "JAppStorage"
@@ -366,13 +319,6 @@ module.exports = class JAccount extends jraphical.Module
       tag:
         as          : 'skill'
         targetType  : "JTag"
-
-      content       :
-        as          : 'creator'
-        targetType  : [
-          "JNewStatusUpdate"
-          "JComment"
-        ]
 
       vm            :
         as          : 'owner'
@@ -407,10 +353,6 @@ module.exports = class JAccount extends jraphical.Module
       subscription  :
         as          : 'service subscription'
         targetType  : 'JPaymentSubscription'
-
-      badge         :
-        as          : 'badge'
-        targetType  : 'JBadge'
 
       kite          :
         as          : 'owner'
@@ -556,9 +498,6 @@ module.exports = class JAccount extends jraphical.Module
 
   fetchHomepageView:(options, callback)->
     {account} = options
-    JReferral = require './referral'
-    JGroup = require './group'
-    JNewStatusUpdate = require './messages/newstatusupdate'
 
     homePageOptions = extend options, {
       renderedAccount : account
@@ -766,134 +705,9 @@ module.exports = class JAccount extends jraphical.Module
       else
         @setEmailPreferences user, prefs, callback
 
-  fetchLikedContents: secure ({connection, context}, options, selector, callback)->
-
-    {delegate} = connection
-    {group}    = context
-    [callback, selector] = [selector, callback] unless callback
-
-    selector            or= {}
-    selector.as           = 'like'
-    selector.targetId     = @getId()
-    selector.sourceName or= $in: likeableActivities
-    selector.data         = {group}
-
-    Relationship.some selector, options, (err, contents)=>
-      if err then callback err, []
-      else if contents.length is 0 then callback null, []
-      else
-        teasers = []
-        collectTeasers = race (i, root, fin)->
-          root.fetchSource (err, post)->
-            if err
-              callback err
-              fin()
-            else if not post
-              console.warn "Source does not exists:", root.sourceName, root.sourceId
-              fin()
-            else
-              post.fetchTeaser (err, teaser)->
-                if not err and teaser then teasers.push(teaser)
-                fin()
-        , -> callback null, teasers
-        collectTeasers node for node in contents
-
-  updateCountAndCheckBadge: secure (client, options, callback)->
-    propertyArray = [
-      "likes"
-      "followers"
-      "following"
-      "topics"
-      "statusUpdates"
-      "comments"
-      "referredUsers"
-      "invitations"
-      "staffLikes"
-      "twitterFollowers"
-    ]
-    return new KodingError "No permission!" unless @equals client.connection.delegate
-    {@property} = options
-
-    return new KodingError "That property not supported!" unless  @property in propertyArray
-    {relType, source, targetSelf} = options
-    selector     =
-      as         : relType
-      sourceName : source
-
-    if targetSelf then selector["targetId"]=@getId() else selector["sourceId"]=@getId()
-
-    Relationship.count selector, (err, count) =>
-      return callback err, null if err
-      countsField = {}
-      key = "counts.#{@property}"
-      countsField[key] = count
-      @update $set: countsField, (err)=>
-        return err if err
-        JBadge = require './badge'
-        JBadge.checkEligibleBadges client, badgeItem : @property , callback
-
   # Update broken counts for user
   updateCounts:->
     JUser = require './user'
-    # Like count
-    Relationship.count
-      as         : 'like'
-      targetId   : @getId()
-      sourceName : $in: likeableActivities
-    , (err, count)=>
-      return if err or not count
-      @update ($set: 'counts.likes': count), ->
-
-    # Member Following count
-    Relationship.count
-      as         : 'follower'
-      targetId   : @getId()
-      sourceName : 'JAccount'
-    , (err, count)=>
-      return if err
-      count ?= 0
-      @update ($set: 'counts.following': count), ->
-
-    # Member Follower count
-    Relationship.count
-      as         : 'follower'
-      sourceId   : @getId()
-      sourceName : 'JAccount'
-    , (err, count)=>
-      return if err
-      count ?= 0
-      @update ($set: 'counts.followers': count), ->
-
-    # Tag Following count
-    Relationship.count
-      as         : 'follower'
-      targetId   : @getId()
-      sourceName : 'JTag'
-    , (err, count)=>
-      return if err
-      count ?= 0
-      @update ($set: 'counts.topics': count), ->
-
-    # Status Update count
-    Relationship.count
-      as         : 'author'
-      targetId   : @getId()
-      sourceName : 'JNewStatusUpdate'
-    , (err, count)=>
-      return if err
-      count ?= 0
-      @update ($set: 'counts.statusUpdates': count), ->
-
-    # Comments count
-    Relationship.count
-      as         : 'commenter'
-      targetId   : @getId()
-      sourceName : 'JNewStatusUpdate'
-    , (err, count)=>
-      return if err
-      count ?= 0
-      @update ($set: 'counts.comments': count), ->
-
     # ReferredUsers count
     JAccount.count
       referrerUsername : @profile.nickname
@@ -921,16 +735,6 @@ module.exports = class JAccount extends jraphical.Module
         followerCount = user.foreignAuth.twitter.profile.followers_count
         @update ($set: 'counts.twitterFollowers': followerCount), ->
 
-    # Staff Likes count
-    Relationship.count
-      as         : 'like'
-      targetId   : @getId()
-      targetName : 'JAccount'
-      sourceName : 'JAccount'
-    , (err, count)=>
-      return if err
-      count ?= 0
-      @update ($set: 'counts.staffLikes': count), ->
 
   dummyAdmins = [ "sinan", "devrim", "gokmen", "chris", "fatihacet", "arslan",
                   "sent-hil", "kiwigeraint", "cihangirsavas", "leventyalcin",
@@ -969,11 +773,13 @@ module.exports = class JAccount extends jraphical.Module
     # mark user as troll in social api
     @markUserAsExemptInSocialAPI client, exempt, (err, data)=>
       return callback new ApiError err  if err
-      @update $set: {isExempt: exempt}, (err, result)=>
+      op = $set: {isExempt: exempt}
+      @update op, (err, result)=>
         if err
           console.error 'Could not update user exempt information'
           return callback err
-        @emit "markedAsExempt", @
+        @isExempt = exempt
+        JAccount.bongos.forEach (bongo) => bongo.handleEvent "instance", @, "updateInstance", [op]
         callback null, result
 
   markUserAsExemptInSocialAPI: (client, exempt, callback)->
@@ -1104,41 +910,6 @@ module.exports = class JAccount extends jraphical.Module
 
   getPrivateChannelName:-> "private-#{@getAt('pro file.nickname')}-private"
 
-  fetchMail:do ->
-
-    collectParticipants = (messages, delegate, callback)->
-      fetchParticipants = race (i, message, fin)->
-        register = new Register # a register per message...
-
-        query =
-          targetName  : 'JPrivateMessage'
-          targetId    : message.getId()
-          sourceId    :
-            $ne       : delegate.getId()
-
-        jraphical.Relationship.cursor query, (err, cursor)->
-          return callback err  if err
-          message.participants = []
-          cursor.each (err, rel)->
-            unless rel then fin()
-            else
-              message.participants.push rel  if register.sign rel.sourceId
-
-      , callback
-
-      fetchParticipants(message) for message in messages when message?
-
-    secure ({connection:{delegate}}, options, callback)->
-      [callback, options] = [options, callback] unless callback
-      unless @equals delegate
-        callback new KodingError 'Access denied'
-      else
-        options or= {}
-        @fetchPrivateMessages {}, options, (err, messages)->
-          return callback err, []  if err or messages.length is 0
-          collectParticipants messages, delegate, (err)->
-            callback err, messages
-
   fetchTopics: secure (client, query, page, callback)->
     query       =
       targetId  : @getId()
@@ -1153,12 +924,6 @@ module.exports = class JAccount extends jraphical.Module
         selector.group = group if group isnt 'koding'
         JTag.all selector, (err, tags)->
           callback err, tags
-
-  fetchNotificationsTimeline: secure ({connection}, selector, options, callback)->
-    unless @equals connection.delegate
-      callback new KodingError 'Access denied'
-    else
-      @fetchActivities selector, options, @constructor.collectTeasersAllCallback callback
 
   modify: secure (client, fields, callback) ->
 
@@ -1278,32 +1043,6 @@ module.exports = class JAccount extends jraphical.Module
       return callback err   if err
       return callback null  unless rel
       JUser.one {_id: rel.sourceId}, callback
-
-  markAllContentAsLowQuality:->
-    # this is obsolete
-    @fetchContents (err, contents)->
-      contents.forEach (item)->
-        item.update {$set: isLowQuality: yes}, ->
-          if item.bongo_.constructorName == 'JComment'
-            item.flagIsLowQuality ->
-              item.emit 'ContentMarkedAsLowQuality', null
-          else
-            item.emit 'ContentMarkedAsLowQuality', null
-
-  unmarkAllContentAsLowQuality:->
-    # this is obsolete
-    @fetchContents (err, contents)->
-      contents.forEach (item)->
-        item.update {$set: isLowQuality: no}, ->
-          if item.bongo_.constructorName == 'JComment'
-            item.unflagIsLowQuality ->
-              item.emit 'ContentUnmarkedAsLowQuality', null
-          else
-            item.emit 'ContentUnmarkedAsLowQuality', null
-
-  cleanCacheFromActivities:->
-    # TODO: this is obsolete
-    CActivity.emit 'UserMarkedAsTroll', @getId()
 
   @taintedAccounts = {}
   @taint =(id)->
@@ -1448,41 +1187,6 @@ module.exports = class JAccount extends jraphical.Module
     client.context.group = 'koding'
     oldAddTags.call this, client, tags, options, callback
 
-  {Member, OAuth} = require "./graph"
-
-  fetchMyFollowingsFromGraph: secure (client, options, callback)->
-    options.client = client
-    Member.fetchFollowingMembers options, (err, results)=>
-      if err then return callback err
-      else return callback null, results
-
-  fetchMyOnlineFollowingsFromGraph: secure (client, options, callback)->
-    @_fetchMyOnlineFollowingsFromGraph client, options, callback
-
-  _fetchMyOnlineFollowingsFromGraph: (client, options, callback)->
-    options.client = client
-    Member.fetchOnlineFollowingMembers options, (err, results)->
-      if err then return callback err
-      else return callback null, results
-
-  fetchMyFollowersFromGraph: secure (client, options, callback)->
-    options.client = client
-    Member.fetchFollowerMembers options, (err, results)=>
-      if err then return callback err
-      else return callback null, results
-
-  ## NEWER IMPLEMENATION: Fetch ids from graph db, get items from document db.
-  fetchRelatedTagsFromGraph: secure (client, options, callback)->
-    @delegateToGraph client, "fetchRelatedTagsFromGraph", options, callback
-
-  fetchRelatedUsersFromGraph: secure (client, options, callback)->
-    @delegateToGraph client, "fetchRelatedUsersFromGraph", options, callback
-
-  delegateToGraph:(client, methodName, options, callback)->
-    options.userId = client.connection.delegate._id
-    OAuth[methodName] options, callback
-
-
   ## NEWER IMPLEMENATION: Fetch ids from graph db, get items from document db.
 
   unlinkOauth: secure (client, provider, callback)->
@@ -1567,9 +1271,6 @@ module.exports = class JAccount extends jraphical.Module
         return callback err  if err
 
         callback null, { subscriptions, plans }
-
-  fetchMyBadges$: (callback)->
-    @fetchBadges callback
 
   fetchEmailAndStatus: secure (client, callback)->
     @fetchFromUser client, ['email', 'status'], callback

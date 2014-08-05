@@ -7,7 +7,9 @@ import (
 
 	aws "github.com/koding/kloud/api/amazon"
 	"github.com/koding/kloud/machinestate"
+	"github.com/koding/kloud/packer"
 	"github.com/koding/kloud/protocol"
+	"github.com/koding/kloud/utils"
 	"github.com/koding/kloud/waitstate"
 	"github.com/koding/logging"
 	"github.com/mitchellh/goamz/ec2"
@@ -21,19 +23,18 @@ type AmazonClient struct {
 }
 
 func (a *AmazonClient) Build(instanceName string) (*protocol.Artifact, error) {
-	// create it here because we might put some state data into Artifact Storage
-	artifact := protocol.NewArtifact()
-
 	// Don't build anything without this, otherwise ec2 complains about it as a
 	// missing paramater.
 	if a.Builder.SecurityGroupId == "" {
 		return nil, errors.New("security group id is empty.")
 	}
 
+	// Make sure AMI exists
 	a.Log.Info("Checking if image '%s' exists", a.Builder.SourceAmi)
-	_, err := a.Image(a.Builder.SourceAmi)
-	if err != nil {
-		return nil, err
+	if _, err := a.Image(a.Builder.SourceAmi); err != nil {
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	// get the necessary keynames that we are going to provide with Amazon. If
@@ -87,19 +88,35 @@ func (a *AmazonClient) Build(instanceName string) (*protocol.Artifact, error) {
 		return nil, err
 	}
 
-	var privateKey string
-	var sshUsername string
-	if a.Deploy != nil {
-		privateKey = a.Deploy.PrivateKey
-		sshUsername = a.Deploy.Username
+	return &protocol.Artifact{
+		IpAddress:     instance.PublicIpAddress,
+		InstanceName:  instanceName,
+		InstanceId:    instance.InstanceId,
+		SSHPrivateKey: a.Deploy.PrivateKey,
+		SSHUsername:   "", // deploy with root
+	}, nil
+}
+
+// CreateImage creates an image using Packer. It uses aws.Builder
+// data. It returns the image info.
+func (a *AmazonClient) CreateImage(provisioner interface{}) (*ec2.Image, error) {
+	data, err := utils.TemplateData(a.ImageBuilder, provisioner)
+	if err != nil {
+		return nil, err
 	}
 
-	artifact.IpAddress = instance.PublicIpAddress
-	artifact.InstanceName = instanceName
-	artifact.InstanceId = instance.InstanceId
-	artifact.SSHPrivateKey = privateKey
-	artifact.SSHUsername = sshUsername
-	return artifact, nil
+	provider := &packer.Provider{
+		BuildName: "amazon-ebs",
+		Builder:   data,
+	}
+
+	// this is basically a "packer build template.json"
+	if err := provider.Build(); err != nil {
+		return nil, err
+	}
+
+	// return the image result
+	return a.ImageByName(a.ImageBuilder.AmiName)
 }
 
 func (a *AmazonClient) DeployKey() (string, error) {
@@ -165,12 +182,11 @@ func (a *AmazonClient) Start() (*protocol.Artifact, error) {
 		return nil, err
 	}
 
-	artifact := protocol.NewArtifact()
-	artifact.InstanceId = instance.InstanceId
-	artifact.InstanceName = instance.Tags[0].Value
-	artifact.IpAddress = instance.PublicIpAddress
-
-	return artifact, nil
+	return &protocol.Artifact{
+		InstanceId:   instance.InstanceId,
+		InstanceName: instance.Tags[0].Value,
+		IpAddress:    instance.PublicIpAddress,
+	}, nil
 }
 
 func (a *AmazonClient) Stop() error {
@@ -265,6 +281,14 @@ func (a *AmazonClient) Destroy() error {
 
 func (a *AmazonClient) Info() (*protocol.InfoArtifact, error) {
 	instance, err := a.Instance(a.Id())
+	if err == aws.ErrNoInstances {
+		return &protocol.InfoArtifact{
+			State: machinestate.Terminated,
+			Name:  "terminated-instance",
+		}, nil
+	}
+
+	// if it's something else, return it back
 	if err != nil {
 		return nil, err
 	}
@@ -273,9 +297,21 @@ func (a *AmazonClient) Info() (*protocol.InfoArtifact, error) {
 		a.Log.Warning("Unknown amazon status: %+v. This needs to be fixed.", instance.State)
 	}
 
+	var instanceName string
+	for _, tag := range instance.Tags {
+		if tag.Key == "Name" {
+			instanceName = tag.Value
+		}
+	}
+
+	// this shouldn't happen
+	if instanceName == "" {
+		a.Log.Warning("instance %s doesn't have a name tag. needs to be fixed!", a.Id())
+	}
+
 	return &protocol.InfoArtifact{
 		State: statusToState(instance.State.Name),
-		Name:  instance.Tags[0].Value,
+		Name:  instanceName,
 	}, nil
 
 }

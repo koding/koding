@@ -1,5 +1,5 @@
 process.title = 'koding-socialworker'
-
+require "../../../arrayproto"
 
 log = -> console.log arguments...
 
@@ -46,7 +46,7 @@ koding = new Bongo {
     username    : 'koding'
     port        : argv['kite-port']
     prefix      : 'social'
-    kiteKey     : argv['kite-key'] or joinPath(process.env.HOME,".kite/kite.key")
+    kiteKey     : argv['kite-key']
 
     fetchClient: (name, context, callback) ->
       { JAccount } = koding.models

@@ -11,6 +11,42 @@ module.exports = class SocialMessage extends Base
   @share()
 
   @set
+    permissions :
+      # JPost related permissions
+      'read posts'              : ['member', 'moderator']
+      'create posts'            : ['member', 'moderator']
+      'edit posts'              : ['moderator']
+      'delete posts'            : ['moderator']
+      'edit own posts'          : ['member', 'moderator']
+      'delete own posts'        : ['member', 'moderator']
+      'reply to posts'          : ['member', 'moderator']
+      'like posts'              : ['member', 'moderator']
+      'pin posts'               : ['member', 'moderator']
+      'send private message'    : ['member', 'moderator']
+      'list private messages'   : ['member', 'moderator']
+
+      # JComment related permissions
+      'edit comments'           : ['moderator']
+      'edit own comments'       : ['moderator']
+
+      # JTag related permissions
+      'read tags'               :
+        public                  : ['guest', 'member', 'moderator']
+        private                 : ['member', 'moderator']
+      'create tags'             : ['member', 'moderator']
+      'freetag content'         : ['member', 'moderator']
+      'browse content by tag'   : ['member', 'moderator']
+      'edit tags'               : ['moderator']
+      'delete tags'             : ['moderator']
+      'edit own tags'           : ['moderator']
+      'delete own tags'         : ['moderator']
+      'assign system tag'       : ['moderator']
+      'fetch system tag'        : ['moderator']
+      'create system tag'       : ['moderator']
+      'remove system tag'       : ['moderator']
+      'create synonym tags'     : ['moderator']
+      # 'delete system tag'     : ['moderator']
+
     # move permission from jpost to here
     # permissions :
     #   'send private message' : ['member', 'moderator']

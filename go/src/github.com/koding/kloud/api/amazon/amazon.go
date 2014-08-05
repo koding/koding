@@ -53,6 +53,31 @@ type Amazon struct {
 		// UserData can be passed to pre initialized instances via cloud-init
 		UserData []byte `mapstructure:"user_data"`
 	}
+
+	// Builder to be used for automatic AMI building with packer
+	ImageBuilder struct {
+		// Credentials
+		AccessKey string `packer:"access_key"`
+		SecretKey string `packer:"secret_key"`
+
+		// Name of AMI to create
+		AmiName string `packer:"ami_name"`
+
+		// Type of instance to create AMI for
+		InstanceType string `packer:"instance_type"`
+
+		// Source AMI to build off
+		SourceAmi string `packer:"source_ami"`
+
+		// AWS region to build AMI in
+		Region string `packer:"region"`
+
+		// SSH login username
+		SshUsername string `packer:"ssh_username"`
+
+		// Type of build ("amazon-ebs")
+		Type string `packer:"type"`
+	}
 }
 
 func New(credential, builder map[string]interface{}) (*Amazon, error) {

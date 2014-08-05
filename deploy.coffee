@@ -146,23 +146,29 @@ class Deploy
       SecurityGroups : ["sg-64126d01"]
     ,callback
 
-  @createInstance = (options={}, callback) ->
+  @tagInstances = (options,callback)->
 
-    # Creates a new instance and returns a live connection.
-    buildNumber  = options.buildNumber  or 1113
-    instanceName = options.instanceName or "prod-#{buildNumber}-#{eden.eve().toLowerCase()}"
+    options.Instances.forEach (key,instance)->
+      instanceId = instance.InstanceId
+      log "Created instance", instanceId
 
-    params = options.params or
-      ImageId       : "ami-a6926dce" # Amazon ubuntu 14.04 "ami-1624987f" # Amazon Linux AMI x86_64 EBS
-      InstanceType  : "t2.micro"
-      MinCount      : 1
-      MaxCount      : 1
-      SubnetId      : "subnet-b47692ed"
-      KeyName       : "koding-prod-deployment"
+      # Add tags to the instance
+      params =
+
+      ec2.createTags
+        Resources : [instanceId]
+        Tags      : [{Key: "Name", Value: options.instanceName+"-#{key}"}]
+      ,(err) ->
+        log "Box tagged with #{instanceName}", (if err then "failure" else "success")
+        if key is options.instances.length-1
+          callback null
+
+  @createInstances = (options={}, callback) ->
+    log 'yo'
+    params = options.params
 
     iamcalledonce = 0
 
-    start = new Date()
 
     ec2.runInstances params, (err, data) ->
       iamcalledonce++
@@ -176,85 +182,61 @@ class Deploy
         """
         return
       else
-        instanceId = data.Instances[0].InstanceId
-        log "Created instance", instanceId
+        instanceIds = (instance.InstanceId for instance in data.Instances)
+        log instanceIds
+        ec2.createTags
+          Resources : instanceIds
+          Tags      : [{Key: "Name", Value: options.instanceName}]
+        ,(err) ->
+          log "Boxes tagged with #{options.instanceName}", (if err then "failure" else "success")
 
-        # Add tags to the instance
-        params =
-          Resources: [instanceId]
-          Tags: [
-            Key   : "Name"
-            Value : instanceName
-          ]
+          callback null, data
 
-        ec2.createTags params, (err) ->
-          log "Box tagged with #{instanceName}", (if err then "failure" else "success")
+        # data.Instances.forEach (instance)->
+        #   log instance.InstanceId
 
-          params =
-            InstanceIds : [instanceId]
+        # Deploy.tagInstances data,(err,res)->
 
-          states =
-            initialState  : null
-            instanceState : null
-            reachability  : null
-
-          timer = setInterval ->
-
-            unless states.initialState is "running" or states.instanceState is "running"
-
-              ec2.describeInstanceStatus params,(err,data)->
-                if err then log err
-                else
-                  states.instanceState = data?.InstanceStatuses?[0]?.InstanceState?.Name
-                  states.reachability  = data?.InstanceStatuses?[0]?.InstanceStatus?.Details?[0]?.Status
-
-              ec2.describeInstances params,(err,data)->
-                if err then log err
-                else
-                  states.initialState = data?.Reservations?[0]?.Instances?[0]?.State?.Name
-                  states.final        = data?.Reservations?[0]?.Instances?[0]
-            else
-              log "instance is now running with IP:", IP = states.final.PublicIpAddress
-              clearInterval timer
-
-              Deploy.connect IP: IP, username: "ubuntu", retries: 30, timeout: 5000, (err,conn)->
-                unless err
-                  log "creating #{instanceName} took "+ timethat.calc start,new Date()
-                  conn.exec "uptime;",(err, stream)->
-
-                    return log err  if err
-                    conn.listen "-->", stream,->
-                      log "connection established... preparing the box."
-                      conn.final = states.final
-
-                      res =
-                        conn : conn
-                        instanceData : states.final
-                        instanceName : instanceName
-                        buildOptions : options
-
-                      callback null, res
-                else
-                  log "ignoring err callback", err
-
-          ,5000
-
-  @deployAndConfigure = (options,callback)->
+        #   instanceIds = (InstanceId for InstanceId in data.Instances)
+        #   log "instanceIds:",InstanceIds
+        #   params =
+        #     InstanceIds : InstanceIds
 
 
-    Deploy.createInstance options,(err,result) ->
-      deployStart = new Date()
-      {conn} = result
+        # timer = setInterval ->
 
-      conn.exec options.buildScript, (err, stream) ->
-        throw err if err
-        conn.listen "[configuring #{result.instanceName}]", stream,->
-          throw err if err
-          # delete result.conn
-          # log result.instanceData
-          log "Deployment of #{result.instanceName} took: #{timethat.calc deployStart,new Date()}"
-          conn.end()
-          callback null, result
+        #     ec2.describeInstanceStatus params,(err,data)->
+        #       if err then log err
+        #       else
+        #         states.instanceState = data?.InstanceStatuses?[0]?.InstanceState?.Name
+        #         states.reachability  = data?.InstanceStatuses?[0]?.InstanceStatus?.Details?[0]?.Status
+
+        #     ec2.describeInstances params,(err,data)->
+        #       if err then log err
+        #       else
+        #         states.initialState = data?.Reservations?[0]?.Instances?[0]?.State?.Name
+        #         states.final        = data?.Reservations?[0]?.Instances?[0]
+        #   else
+        #     log "instance is now running with IP:", IP = states.final.PublicIpAddress
+        #     clearInterval timer
+        # ,5000
+
+  # @deployAndConfigure = (options,callback)->
+
+
+  #   Deploy.createInstance options,(err,result) ->
+  #     deployStart = new Date()
+  #     {conn} = result
+
+  #     conn.exec options.buildScript, (err, stream) ->
+  #       throw err if err
+  #       conn.listen "[configuring #{result.instanceName}]", stream,->
+  #         throw err if err
+  #         # delete result.conn
+  #         # log result.instanceData
+  #         log "Deployment of #{result.instanceName} took: #{timethat.calc deployStart,new Date()}"
+  #         conn.end()
+  #         callback null, result
 
   @deployTest = (options,callback)->
 
@@ -264,7 +246,7 @@ class Deploy
 
       {target, url, expectString} = option
       __start = new Date()
-      request "#{url}",(err,res,body)->
+      request url:url,timeout:5000,(err,res,body)->
         i++
         __end = timethat.calc __start,new Date()
 
@@ -329,61 +311,63 @@ if argv.deploy
       boxes       : argv.boxes          or 5
       boxtype     : argv.boxtype        or "t2.medium"
       versiontype : argv.versiontype    or "patch"  # available options major, premajor, minor, preminor, patch, prepatch, or prerelease
-      target      : argv.target         or "singlebox" # prod | staging | sandbox
+      config      : argv.config         or "prod" # prod | staging | sandbox
       version     : argv.version        or version
 
-    options.hostname     = "#{options.target}--#{options.version.replace(/\./g,'-')}"
-    options.instanceName = "#{options.hostname}--#{eden.eve().toLowerCase()}"
-    KONFIG = require("./config/main.prod.coffee")
-      hostname : options.instanceName
+    options.hostname     = "#{options.config}--#{options.version.replace(/\./g,'-')}"
+
+    KONFIG = require("./config/main.#{options.config}.coffee")
+      hostname : options.hostname
       tag      : options.version
 
     #create the new tag
     log "deploying version #{options.version}"
     exec "git tag -a '#{options.version}' -m 'machine-settings-b64-zip-#{KONFIG.machineSettings}' && git push --tags",(err,stdout,stderr)->
 
-      if options.target is "singlebox"
+      UserData = new Buffer(KONFIG.runFile).toString('base64')
 
-        UserData = new Buffer(KONFIG.runFile).toString('base64')
-        log "UserData is ~ #{UserData.length} bytes, keep it under 16384, otherwise deploy won't work."
-
-        options =
-          params :
-            ImageId       : "ami-864d84ee" # Amazon ubuntu 14.04 "ami-1624987f" # Amazon Linux AMI x86_64 EBS
-            InstanceType  : options.boxtype
-            MinCount      : 1
-            MaxCount      : 1
-            SubnetId      : "subnet-b47692ed"
-            KeyName       : "koding-prod-deployment"
-            UserData      : UserData
-          instanceName    : options.instanceName
-          configName      : "singlebox"
-          environment     : "singlebox"
-          tag             : options.version
-          buildScript     : "sudo ls -lha /root"
+      options =
+        params :
+          ImageId       : "ami-864d84ee" # Amazon ubuntu 14.04 "ami-1624987f" # Amazon Linux AMI x86_64 EBS
+          InstanceType  : options.boxtype
+          MinCount      : 2
+          MaxCount      : 2
+          SubnetId      : "subnet-b47692ed"
+          KeyName       : "koding-prod-deployment"
+          UserData      : UserData
+        instanceName    : options.hostname
+        configName      : options.config
+        environment     : options.config
+        tag             : options.version
 
 
 
-        Deploy.deployAndConfigure options,(err,res)->
-          IP = res.instanceData.PublicIpAddress
-          log "testing instance..."
-          Deploy.deployTest [
-              {url : "http://#{IP}:3000/"          , target: "webserver"          , expectString: "UA-6520910-8"}
-              {url : "http://#{IP}:3030/xhr"       , target: "socialworker"       , expectString: "Cannot GET"}
-              {url : "http://#{IP}:8008/subscribe" , target: "broker"             , expectString: "Cannot GET"}
-              {url : "http://#{IP}:5500/kite"      , target: "kloud"              , expectString: "Welcome"}
-              {url : "http://#{IP}/"               , target: "webserver-nginx"    , expectString: "UA-6520910-8"}
-              {url : "http://#{IP}/xhr"            , target: "socialworker-nginx" , expectString: "Cannot GET"}
-              {url : "http://#{IP}/subscribe"      , target: "broker-nginx"       , expectString: "Cannot GET"}
-              {url : "http://#{IP}/kloud/kite"     , target: "kloud-nginx"        , expectString: "Welcome"}
-            ]
-          ,(err,test_res)->
-            log val for val in test_res
 
+      Deploy.createInstances options,(err,res)->
 
+        log JSON.stringify res,null,2
 
-            log "#{res.instanceName} is ready."
-            log "Box is ready at mosh root@#{res.instanceData.PublicIpAddress}"
+        # res.Instances.forEach (instance)->
+        #   IP = instance.PublicIpAddress
+        #   log "testing instance..."
+        #   _t = setInterval ->
+        #     Deploy.deployTest [
+        #         {url : "http://#{IP}:3000/"          , target: "webserver"          , expectString: "UA-6520910-8"}
+        #         {url : "http://#{IP}:3030/xhr"       , target: "socialworker"       , expectString: "Cannot GET"}
+        #         {url : "http://#{IP}:8008/subscribe" , target: "broker"             , expectString: "Cannot GET"}
+        #         {url : "http://#{IP}:5500/kite"      , target: "kloud"              , expectString: "Welcome"}
+        #         {url : "http://#{IP}/"               , target: "webserver-nginx"    , expectString: "UA-6520910-8"}
+        #         {url : "http://#{IP}/xhr"            , target: "socialworker-nginx" , expectString: "Cannot GET"}
+        #         {url : "http://#{IP}/subscribe"      , target: "broker-nginx"       , expectString: "Cannot GET"}
+        #         {url : "http://#{IP}/kloud/kite"     , target: "kloud-nginx"        , expectString: "Welcome"}
+        #       ]
+        #     ,(err,test_res)->
+        #       log val for val in test_res
+        #   ,10000
+
+        # log "#{res.instanceName} is ready."
+        # log "Box is ready at mosh root@#{res.instanceData.PublicIpAddress}"
+
 
 # KONFIG = require("./config/main.prod.coffee")
 #   hostname : "foo"

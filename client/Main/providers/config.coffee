@@ -1,6 +1,8 @@
 KD.config.providers        =
 
   custom                   :
+    name                   : "Custom"
+    link                   : "https://koding.com"
     title                  : "Custom Credential"
     description            : """Custom credentials can include meta
                                credentials for any service"""
@@ -11,6 +13,8 @@ KD.config.providers        =
         type               : "textarea"
 
   amazon                   :
+    name                   : "Amazon Web Services"
+    link                   : "https://aws.amazon.com"
     title                  : "AWS Credential"
     description            : "Amazon Web Services"
     credentialFields       :
@@ -23,11 +27,15 @@ KD.config.providers        =
         type               : "password"
 
   koding                   :
+    name                   : "Koding"
+    link                   : "https://koding.com"
     title                  : "Koding Credential"
     description            : "Koding rulez."
     credentialFields       : {}
 
   google                   :
+    name                   : "Google Compute Engine"
+    link                   : "https://cloud.google.com/products/compute-engine/"
     title                  : "Google Cloud Credential"
     description            : "Google compute engine"
     credentialFields       :
@@ -48,6 +56,8 @@ KD.config.providers        =
       #   defaultValue       : "us-central1-a"
 
   engineyard               :
+    name                   : "EngineYard"
+    link                   : "https://www.engineyard.com/"
     title                  : "EngineYard Credential"
     description            : "EngineYard"
     credentialFields       :
@@ -60,6 +70,8 @@ KD.config.providers        =
         type               : "password"
 
   digitalocean             :
+    name                   : "Digital Ocean"
+    link                   : "https://digitalocean.com"
     title                  : "Digitalocean Credential"
     description            : "Digitalocean droplets"
     credentialFields       :
@@ -71,6 +83,8 @@ KD.config.providers        =
         placeholder        : "digitalocean api key"
 
   rackspace                :
+    name                   : "Rackspace"
+    link                   : "http://www.rackspace.com"
     title                  : "Rackspace Credential"
     description            : "Rackspace machines"
     credentialFields       :

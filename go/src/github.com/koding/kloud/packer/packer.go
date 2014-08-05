@@ -18,7 +18,7 @@ import (
 type Provider struct {
 	BuildName    string
 	TemplatePath string
-	Data         []byte
+	Builder      []byte
 	Vars         map[string]string
 	EnableDebug  bool
 }
@@ -27,7 +27,7 @@ func (p *Provider) Build() error {
 	var template *packer.Template
 	var err error
 
-	if p.Data != nil {
+	if p.Builder != nil {
 		template, err = p.NewTemplate()
 		if err != nil {
 			return err
@@ -38,7 +38,7 @@ func (p *Provider) Build() error {
 			return err
 		}
 	} else {
-		return errors.New("Can't find Template source, neither p.Data or p.TemplatePath is defined")
+		return errors.New("Can't find Template source, neither p.Builder or p.TemplatePath is defined")
 	}
 
 	if len(template.Builders) == 0 {
@@ -114,7 +114,7 @@ func (p *Provider) basicUI() packer.Ui {
 }
 
 func (p *Provider) NewTemplate() (*packer.Template, error) {
-	template, err := packer.ParseTemplate(p.Data, p.Vars)
+	template, err := packer.ParseTemplate(p.Builder, p.Vars)
 	if err != nil {
 		return nil, fmt.Errorf("Failed to parse template: %s", err)
 	}

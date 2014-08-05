@@ -6,17 +6,17 @@ import (
 	"io/ioutil"
 	"koding/db/mongodb"
 	"koding/kites/kloud/koding"
-	"koding/kites/kloud/storage"
 	"koding/tools/config"
 	"log"
 	"net/url"
 	"os"
 
+	"github.com/fatih/structure"
 	"github.com/koding/kite"
 	kiteconfig "github.com/koding/kite/config"
 	"github.com/koding/kite/protocol"
 	"github.com/koding/kloud"
-	kiteprotocol "github.com/koding/kloud/protocol"
+	kloudprotocol "github.com/koding/kloud/protocol"
 	"github.com/koding/logging"
 )
 
@@ -41,6 +41,9 @@ var (
 	flagPublic      = flag.Bool("public", false, "Start klient in local environment.")
 	flagRegisterURL = flag.String("register-url", "", "Change register URL to kontrol")
 	flagProxy       = flag.Bool("proxy", false, "Start klient behind a proxy")
+
+	// Development related flags
+	flagTest = flag.Bool("test", false, "Activate test mode (Disables VM authentication checks [useful for development], etc ..)")
 )
 
 func main() {
@@ -94,7 +97,6 @@ func newKite() *kite.Kite {
 	k.Config.Port = *flagPort
 
 	if *flagRegion != "" {
-		k.Config.Region = *flagRegion
 	}
 
 	if *flagEnv != "" {
@@ -103,20 +105,6 @@ func newKite() *kite.Kite {
 		k.Config.Environment = config.MustConfig(*flagProfile).Environment
 	}
 
-	kld := newKloud(k)
-
-	k.HandleFunc("build", kld.Build)
-	k.HandleFunc("start", kld.Start)
-	k.HandleFunc("stop", kld.Stop)
-	k.HandleFunc("restart", kld.Restart)
-	k.HandleFunc("info", kld.Info)
-	k.HandleFunc("destroy", kld.Destroy)
-	k.HandleFunc("event", kld.Event)
-
-	return k
-}
-
-func newKloud(kloudKite *kite.Kite) *kloud.Kloud {
 	id := uniqueId()
 	if *flagUniqueId != "" {
 		id = uniqueId()
@@ -125,27 +113,15 @@ func newKloud(kloudKite *kite.Kite) *kloud.Kloud {
 	conf := config.MustConfig(*flagProfile)
 	db := mongodb.NewMongoDB(conf.Mongo)
 
-	mongodbStorage := &storage.MongoDB{
-		Session:      db,
+	kodingProvider := &koding.Provider{
+		Log:          newLogger("koding"),
 		AssigneeName: id,
-		Log:          logging.NewLogger("kloud-storage"),
+		Session:      db,
+		Test:         *flagTest,
 	}
 
-	if err := mongodbStorage.CleanupOldData(); err != nil {
-		kloudKite.Log.Warning("Cleaning up mongodb err: %s", err.Error())
-	}
-
-	var kontrolURL string
-	if *flagKontrolURL != "" {
-		u, err := url.Parse(*flagKontrolURL)
-		if err != nil {
-			log.Fatalln(err)
-		}
-
-		kontrolURL = u.String()
-	} else {
-		// read kontrolURL from kite.key if it doesn't exist.
-		kontrolURL = kiteconfig.MustGet().KontrolURL
+	if err := kodingProvider.CleanupOldData(); err != nil {
+		k.Log.Warning("Cleaning up mongodb err: %s", err.Error())
 	}
 
 	klientFolder := "klient/development/latest"
@@ -153,6 +129,73 @@ func newKloud(kloudKite *kite.Kite) *kloud.Kloud {
 		klientFolder = "klient/production/latest"
 	}
 
+	privateKey, publicKey := kontrolKeys(conf)
+
+	deployer := &KodingDeploy{
+		Kite:              k,
+		Log:               newLogger("kloud-deploy"),
+		KontrolURL:        kontrolURL(),
+		KontrolPrivateKey: privateKey,
+		KontrolPublicKey:  publicKey,
+		Bucket:            newBucket("koding-kites", klientFolder),
+	}
+
+	kld := kloud.NewKloud()
+	kld.Storage = kodingProvider
+	kld.Log = newLogger("kloud")
+
+	kld.AddProvider("koding", kodingProvider)
+
+	injectDeploy := func(r *kite.Request) (interface{}, error) {
+		d := kloudprotocol.ProviderDeploy{
+			KeyName:    deployKeyName,
+			PublicKey:  deployPublicKey,
+			PrivateKey: deployPrivateKey,
+			Username:   r.Username,
+		}
+
+		r.Context.Set("deployData", structure.Map(d))
+		return true, nil
+	}
+
+	k.Handle("build", kld.NewBuild(deployer)).PreHandleFunc(injectDeploy)
+	k.HandleFunc("start", kld.Start)
+	k.HandleFunc("stop", kld.Stop)
+	k.HandleFunc("restart", kld.Restart)
+	k.HandleFunc("info", kld.Info)
+	k.HandleFunc("destroy", kld.Destroy)
+	k.HandleFunc("event", kld.Event)
+	k.HandleFunc("report", kodingProvider.Report)
+
+	return k
+}
+
+func uniqueId() string {
+	// TODO: add a unique identifier, for letting multiple version of the same
+	// worker work on the same hostname.
+	hostname, err := os.Hostname()
+	if err != nil {
+		panic(err) // we should not let it start
+	}
+
+	return fmt.Sprintf("%s-%s", kloud.NAME, hostname)
+}
+
+func newLogger(name string) logging.Logger {
+	log := logging.NewLogger(name)
+	logHandler := logging.NewWriterHandler(os.Stderr)
+	logHandler.Colorize = true
+	log.SetHandler(logHandler)
+
+	if *flagDebug {
+		log.SetLevel(logging.DEBUG)
+		logHandler.SetLevel(logging.DEBUG)
+	}
+
+	return log
+}
+
+func kontrolKeys(conf *config.Config) (string, string) {
 	pubKeyPath := *flagPublicKey
 	if *flagPublicKey == "" {
 		pubKeyPath = conf.NewKontrol.PublicKeyFile
@@ -173,39 +216,21 @@ func newKloud(kloudKite *kite.Kite) *kloud.Kloud {
 	}
 	privateKey := string(privKey)
 
-	deployer := &KodingDeploy{
-		Kite:              kloudKite,
-		Log:               logging.NewLogger("kloud-deploy"),
-		KontrolURL:        kontrolURL,
-		KontrolPrivateKey: privateKey,
-		KontrolPublicKey:  publicKey,
-		Bucket:            newBucket("koding-kites", klientFolder),
-	}
-
-	kld := kloud.NewKloud()
-	kld.Storage = mongodbStorage
-	kld.Deployer = deployer
-	kld.Deploy = &kiteprotocol.ProviderDeploy{
-		KeyName:    deployKeyName,
-		PublicKey:  deployPublicKey,
-		PrivateKey: deployPrivateKey,
-	}
-
-	kld.AddProvider("koding", &koding.Provider{
-		Log: logging.NewLogger("koding"),
-		DB:  db,
-	})
-
-	return kld
+	return privateKey, publicKey
 }
 
-func uniqueId() string {
-	// TODO: add a unique identifier, for letting multiple version of the same
-	// worker work on the same hostname.
-	hostname, err := os.Hostname()
-	if err != nil {
-		panic(err) // we should not let it start
+func kontrolURL() string {
+	// read kontrolURL from kite.key if it doesn't exist.
+	kontrolURL := kiteconfig.MustGet().KontrolURL
+
+	if *flagKontrolURL != "" {
+		u, err := url.Parse(*flagKontrolURL)
+		if err != nil {
+			log.Fatalln(err)
+		}
+
+		kontrolURL = u.String()
 	}
 
-	return fmt.Sprintf("%s-%s", kloud.NAME, hostname)
+	return kontrolURL
 }

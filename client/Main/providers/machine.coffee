@@ -18,13 +18,16 @@ class Machine extends KDObject
 
   constructor: (options = {})->
 
-    { machine } = options
+    { machine, stack } = options
     unless machine?.bongo_?.constructorName is 'JMachine'
       throw new Error 'Data should be a JMachine instance'
 
     delete options.machine
+    delete options.stack
+
     super options, machine
 
+    @stack    = stack
     @jMachine = @getData()
     @updateLocalData()
 
@@ -51,7 +54,7 @@ class Machine extends KDObject
 
     if @queryString? and createIfNotExists
 
-      kontrol.getKite { @queryString, correlationName: @uid }
+      kontrol.getKite { name: "klient", @queryString, correlationName: @uid }
 
     else
 

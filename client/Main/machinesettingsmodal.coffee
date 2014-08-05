@@ -9,6 +9,7 @@ class MachineSettingsModal extends KDModalViewWithForms
   constructor: (options = {}, data) ->
 
     domainSuffix = ".#{KD.nick()}.#{KD.config.userSitesDomain}"
+    running      = data.status.state in [ Running, Starting ]
 
     options.title         or= 'Configure Your VM'
     options.cssClass      or= 'activity-modal vm-settings'
@@ -50,9 +51,25 @@ class MachineSettingsModal extends KDModalViewWithForms
             #   name          : 'alwaysOn'
             #   itemClass     : KodingSwitch
             #   defaultValue  : off
+            provider        :
+              label         : "Provider"
+              itemClass     : CustomLinkView
+              title         : KD.config.providers[data.provider].name
+              href          : KD.config.providers[data.provider].link
+            publicIp        :
+              label         : "Public IP"
+              cssClass      : if running then "custom-link-view" else "hidden"
+              itemClass     : KDView
+              partial       : data.ipAddress or "N/A"
+            currentStatus   :
+              label         : "Current status"
+              itemClass     : KDView
+              cssClass      : "custom-link-view"
+              partial       : data.status.state
+              # click         : -> # FIXME GG (Add troubleshoot modal? )
             statusToggle    :
               label         : "Change machine state"
-              defaultValue  : data.status.state in [ Running, Starting ]
+              defaultValue  : running
               itemClass     : KodingSwitch
               callback      : (state)->
                 if state
@@ -69,7 +86,6 @@ class MachineSettingsModal extends KDModalViewWithForms
     @machine = machine = @getData()
     { computeController } = KD.singletons
     { Terminated, NotInitialized, Building, Terminating } = Machine.State
-
 
     @addSubView @over = new KDView
       cssClass : "modal-inline-overlay"
@@ -96,7 +112,6 @@ class MachineSettingsModal extends KDModalViewWithForms
       Terminated, NotInitialized, Building, Terminating
     ]
 
-
     @addSubView new KDCustomHTMLView
       cssClass : 'modal-arrow'
       position :
@@ -109,14 +124,23 @@ class MachineSettingsModal extends KDModalViewWithForms
     label.setClass 'advanced'
 
     advanced.addSubView new KDButtonView
+      style    : 'solid compact green'
+      title    : 'Run Init Script'
+      callback : -> ComputeController.runInitScript machine
+
+    advanced.addSubView new KDButtonView
+      style    : 'solid compact'
+      title    : 'Edit Init Script'
+      callback : -> ComputeController.UI.showBuildScriptEditorModal machine
+
+    advanced.addSubView new KDButtonView
       style    : 'solid compact red'
       title    : 'Terminate VM'
-      callback : => KD.singletons.computeController.destroy @machine
+      callback : -> KD.singletons.computeController.destroy machine
 
-    advanced.addSubView @deleteButton = new KDButtonView
-      style    : 'solid compact red'
-      title    : 'Delete VM'
-      callback : @bound 'deleteVM'
+    advanced.addSubView new CustomLinkView
+      title    : "Open a Terminal for this machine"
+      click    : -> new TerminalModal { machine }
 
     label.on 'click', @bound 'toggleAdvancedSettings'
 
@@ -145,11 +169,13 @@ class MachineSettingsModal extends KDModalViewWithForms
     @unsetClass stateClasses
     @setClass status.toLowerCase()
 
-    { statusToggle } = @modalTabs.forms.Settings.inputs
+    { currentStatus, statusToggle } = @modalTabs.forms.Settings.inputs
 
     if status in [ Running, Starting ]
     then statusToggle.setOn no
     else statusToggle.setOff no
+
+    currentStatus.updatePartial status
 
     @machine.jMachine.setAt "status.state", status
     @machine.updateLocalData()

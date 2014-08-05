@@ -2,7 +2,7 @@ class ProviderView extends KDView
 
   constructor:(options = {}, data)->
 
-    options.cssClass ?= 'provider'
+    options.cssClass ?= 'provider-base-view'
     super options, data
 
     @providerController = new KDListViewController

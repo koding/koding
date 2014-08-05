@@ -2,7 +2,7 @@ class ComputeController extends KDController
 
   @providers = KD.config.providers
 
-  @timeout = 5000
+  @timeout = 20000
 
   constructor:->
     super
@@ -55,7 +55,7 @@ class ComputeController extends KDController
           machines = []
           stacks.forEach (stack)->
             stack.machines.forEach (machine, index)->
-              machine = new Machine { machine }
+              machine = new Machine { machine, stack }
               stack.machines[index] = machine
               machines.push machine
 
@@ -140,10 +140,43 @@ class ComputeController extends KDController
       @emit "renderStacks"
 
 
-  errorHandler = (task, eL, machine)-> (err)->
+  errorHandler: (call, task, machine)->
 
-    eL.revertToPreviousState machine
-    warn "info err:", err
+    ComputeErrors = {
+      "TimeoutError", "KiteError", Pending: "107"
+    }
+
+    { timeout }   = ComputeController
+
+    retryIfNeeded = (task, machine)->
+
+      return # FIXME ~ GG
+
+      if task in ['info', 'stop', 'start']
+        info "Trying again to do '#{task}' in #{timeout}ms..."
+        KD.utils.wait timeout, ->
+          KD.singletons.computeController[task] machine
+
+    (err)=>
+
+      @eventListener.revertToPreviousState machine
+
+      switch err.name
+
+        when ComputeErrors.TimeoutError
+
+          retryIfNeeded task, machine
+          call.cancel()
+
+        when ComputeErrors.KiteError
+
+          if task is 'info'
+            if err.code is ComputeErrors.Pending
+              retryIfNeeded task, machine
+            else
+              @eventListener.triggerState machine, status: Machine.State.Unknown
+
+      warn "info err:", err, this
 
 
   destroy: (machine)->
@@ -154,16 +187,16 @@ class ComputeController extends KDController
         status      : Machine.State.Terminating
         percentage  : 0
 
-      @kloud.destroy { machineId: machine._id }
+      call = @kloud.destroy { machineId: machine._id }
 
-      .timeout ComputeController.timeout
+      call.timeout ComputeController.timeout
 
       .then (res)=>
 
         @eventListener.addListener 'destroy', machine._id
         log "destroy res:", res
 
-      .catch errorHandler 'destroy', @eventListener, machine
+      .catch @errorHandler call, 'destroy', machine
 
 
   build: (machine)->
@@ -174,16 +207,16 @@ class ComputeController extends KDController
 
     machine.getBaseKite().disconnect()
 
-    @kloud.build { machineId: machine._id }
+    call = @kloud.build { machineId: machine._id }
 
-    .timeout ComputeController.timeout
+    call.timeout ComputeController.timeout
 
     .then (res)=>
 
       @eventListener.addListener 'build', machine._id
       log "build res:", res
 
-    .catch errorHandler 'build', @eventListener, machine
+    .catch @errorHandler call, 'build', machine
 
 
   start: (machine)->
@@ -192,16 +225,16 @@ class ComputeController extends KDController
       status      : Machine.State.Starting
       percentage  : 0
 
-    @kloud.start { machineId: machine._id }
+    call = @kloud.start { machineId: machine._id }
 
-    .timeout ComputeController.timeout
+    call.timeout ComputeController.timeout
 
     .then (res)=>
 
       @eventListener.addListener 'start', machine._id
       log "start res:", res
 
-    .catch errorHandler 'start', @eventListener, machine
+    .catch @errorHandler call, 'start', machine
 
 
   stop: (machine)->
@@ -212,16 +245,16 @@ class ComputeController extends KDController
 
     machine.getBaseKite( createIfExists = no ).disconnect()
 
-    @kloud.stop { machineId: machine._id }
+    call = @kloud.stop { machineId: machine._id }
 
-    .timeout ComputeController.timeout
+    call.timeout ComputeController.timeout
 
     .then (res)=>
 
       @eventListener.addListener 'stop', machine._id
       log "stop res:", res
 
-    .catch errorHandler 'stop', @eventListener, machine
+    .catch @errorHandler call, 'stop', machine
 
 
   StateEventMap =
@@ -244,9 +277,9 @@ class ComputeController extends KDController
       status      : machine.status.state
       percentage  : 0
 
-    @kloud.info { machineId: machine._id }
+    call = @kloud.info { machineId: machine._id }
 
-    .timeout ComputeController.timeout
+    call.timeout ComputeController.timeout
 
     .then (response)=>
 
@@ -255,7 +288,7 @@ class ComputeController extends KDController
         status      : response.state
         percentage  : 100
 
-    .catch errorHandler 'info', @eventListener, machine
+    .catch @errorHandler call, 'info', machine
 
 
   requireMachine: (options = {}, callback = noop)-> @ready =>
@@ -289,3 +322,105 @@ class ComputeController extends KDController
           @storage.setValue identifier, machine.uid
 
         callback err, machine
+
+
+
+
+
+  @reviveProvisioner = (machine, callback)->
+
+    provisioner = machine.provisioners.first
+
+    return callback null  unless provisioner
+
+    {JProvisioner} = KD.remote.api
+    JProvisioner.one slug: provisioner, callback
+
+
+  @runInitScript = (machine, inTerminal = yes)->
+
+    { status: { state } } = machine
+    unless state is Machine.State.Running
+      return new KDNotificationView
+        title : "Machine is not running."
+
+    envVariables = ""
+    for key, value of machine.stack?.config or {}
+      envVariables += """export #{key}="#{value}"\n"""
+
+    @reviveProvisioner machine, (err, provisioner)=>
+
+      if err
+        return new KDNotificationView
+          title : "Failed to fetch build script."
+      else if not provisioner
+        return new KDNotificationView
+          title : "Provision script is not set."
+
+      {content: {script}} = provisioner
+      script = Encoder.htmlDecode script
+
+      path = provisioner.slug.replace "/", "-"
+      path = "/tmp/init-#{path}"
+      machine.fs.create { path }, (err, file)=>
+
+        if err or not file
+          return new KDNotificationView
+            title : "Failed to upload build script."
+
+        script  = "#{envVariables}\n\n#{script}\n"
+        script += "\necho $?|kdevent;rm -f #{path};exit"
+
+        file.save script, (err)=>
+          return if KD.showError err
+
+          command = "bash #{path};exit"
+
+          if not inTerminal
+
+            new KDNotificationView
+              title: "Init script running in background..."
+
+            machine.getBaseKite().exec { command }
+              .then (res)->
+
+                new KDNotificationView
+                  title: "Init script executed"
+
+                info  "Init script executed : ", res.stdout  if res.stdout
+                error "Init script failed   : ", res.stderr  if res.stderr
+
+              .catch (err)->
+
+                new KDNotificationView
+                  title: "Init script executed successfully"
+                error "Init script failed:", err
+
+            return
+
+          modal = new TerminalModal {
+            title         : "Running init script for #{machine.getName()}..."
+            command       : command
+            readOnly      : yes
+            destroyOnExit : no
+            machine
+          }
+
+          modal.once "terminal.event", (data)->
+
+            if data is "0"
+              title   = "Installed successfully!"
+              content = "You can now safely close this Terminal."
+            else
+              title   = "An error occured."
+              content = """Something went wrong while running build script.
+                           Please try again."""
+
+            new KDNotificationView {
+              title, content
+              type          : "tray"
+              duration      : 0
+              container     : modal
+              closeManually : no
+            }
+

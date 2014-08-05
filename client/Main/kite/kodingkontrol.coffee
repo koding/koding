@@ -96,7 +96,8 @@ class KodingKontrol extends (require 'kontrol')
     # If queryString provided try to split it first
     # and if successful, use it as query
     if queryString? and queryObject = KD.utils.splitKiteQuery queryString
-      { name } = query = queryObject
+      query    = queryObject
+      { name } = queryObject  if query.name
 
     # Check for cached version of requested kite with correlationName
     return kite  if (kite = @getCachedKite name, correlationName)?
@@ -120,6 +121,11 @@ class KodingKontrol extends (require 'kontrol')
     .catch (err)=>
 
       warn "[KodingKontrol] ", err
+
+      # Instead parsing message we need to define a code or different
+      # name for `No kite found` error in kite.js ~ FIXME GG
+      if err and err.name is "KiteError" and /^No kite found/.test err.message
+        kite.invalid = err
 
       @setCachedKite name, correlationName, null
 

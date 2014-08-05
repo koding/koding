@@ -10,46 +10,36 @@ import (
 // executed. Limiter is usefull if you want have throttling or quota checking
 // based on certain criterias.
 type Limiter interface {
-	Limit(opts *MachineOptions, method string) error
+	Limit(opts *Machine, method string) error
 }
 
 // Builder creates and provision a single image or machine for a given Provider.
 type Builder interface {
-	Build(*MachineOptions) (*Artifact, error)
-}
-
-// Cleaner clean up necessary tasks after a build.
-type Cleaner interface {
-	Cleanup(*Artifact) error
-}
-
-// Deployer deploys a machine after it's being built.
-type Deployer interface {
-	// Deploy can only be executed after a build. The machine needs to be
-	// publicly available.
-	Deploy(*Artifact) (*DeployArtifact, error)
+	Build(*Machine) (*Artifact, error)
 }
 
 // Provider manages a machine, it's start/stop/destroy/restart a machine.
 type Controller interface {
 	// Start starts the machine
-	Start(*MachineOptions) (*Artifact, error)
+	Start(*Machine) (*Artifact, error)
 
 	// Stop stops the machine
-	Stop(*MachineOptions) error
+	Stop(*Machine) error
 
 	// Restart restarts the machine
-	Restart(*MachineOptions) error
+	Restart(*Machine) error
 
 	// Destroy destroys the machine
-	Destroy(*MachineOptions) error
+	Destroy(*Machine) error
 
 	// Info returns full information about a single machine
-	Info(*MachineOptions) (*InfoArtifact, error)
+	Info(*Machine) (*InfoArtifact, error)
 }
 
-// contains all necessary informations.
-type MachineOptions struct {
+// Machine is used as a context and data source for the appropriate interfaces
+// provided by the Kloud package. A machine is gathered by the Storage
+// interface.
+type Machine struct {
 	// MachineId defines a unique ID in which the build informations are
 	// fetched from. MachineId is used to gather the Username, ImageName,
 	// InstanceName etc.. For example it could be a mongodb object id that
@@ -57,27 +47,22 @@ type MachineOptions struct {
 	// key/value storage.
 	MachineId string
 
-	// Username defines the username on behalf the machine is being build.
-	Username string
+	// Provider defines the provider in which the data is used be
+	Provider string
 
-	// ImageName is used to build the machine based on this particular image.
-	ImageName string
-
-	// InstanceName is used to change the machine name (usually hostname). If
-	// it's empty a unique name will be used.
-	InstanceName string
-
-	// Builder contains information about how to build the data
+	// Builder contains information about how to build the data, like Username,
+	// ImageName, InstanceName, Region, SSH KeyPair informations, etc...
 	Builder map[string]interface{}
 
 	// Credential contains information for accessing third party provider services
 	Credential map[string]interface{}
 
-	// Deploy is used for custom provisioning and creating a machine
-	Deploy *ProviderDeploy
-
-	// Eventer pushes the latest events to the build event.
+	// Eventer pushes the latest events to the eventer hub. Anyone can listen
+	// afterwards from the eventer hub.
 	Eventer eventer.Eventer
+
+	// State defines the machines current state
+	State machinestate.State
 }
 
 // If available a key pair with the given public key and name should be
@@ -87,10 +72,10 @@ type MachineOptions struct {
 // Deployer interface is then executed (only if the necessary privateKey is
 // passed)
 type ProviderDeploy struct {
-	PublicKey  string
-	PrivateKey string
-	KeyName    string
-	Username   string
+	PublicKey  string `structure:"publicKey"`
+	PrivateKey string `structure:"privateKey"`
+	KeyName    string `structure:"keyName"`
+	Username   string `structure:"username"`
 }
 
 // Artifact should be returned from a Build method. It contains data
@@ -117,8 +102,8 @@ type Artifact struct {
 	SSHPrivateKey string
 	SSHUsername   string
 
-	// Storage provides a simple caching/state mechanism between calls
-	Storage
+	// KiteQuery is needed to find it via Kontrol
+	KiteQuery string
 }
 
 // InfoArtifact should be returned from a Info method.
@@ -128,15 +113,4 @@ type InfoArtifact struct {
 
 	// Name defines the name of the machine.
 	Name string
-}
-
-// DeployArtifact should be returned from a Deploy Method
-type DeployArtifact struct {
-	KiteQuery string
-}
-
-func NewArtifact() *Artifact {
-	a := &Artifact{}
-	a.Storage = NewMapStorage()
-	return a
 }

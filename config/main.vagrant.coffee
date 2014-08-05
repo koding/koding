@@ -56,11 +56,6 @@ module.exports =
   mongoKontrol  : mongoKontrol
   mongoReplSet  : null
   mongoMinWrites: 1
-  neo4j         :
-    read        : "http://localhost"
-    write       : "http://localhost"
-    port        : 7474
-  runNeo4jFeeder: no
   runGoBroker   : yes
   runGoBrokerKite: yes
   runPremiumBroker: yes
@@ -68,7 +63,6 @@ module.exports =
   runKontrol    : yes
   runKloud      : no
   runRerouting  : yes
-  runPersistence: no
   compileGo     : yes
   buildClient   : yes
   runOsKite     : yes
@@ -118,8 +112,6 @@ module.exports =
     numberOfWorkers      : 2
     watch                : yes
     cronSchedule         : '00 00 00 * * *'
-  topicModifier          :
-    cronSchedule         : '0 */5 * * * *'
   social        :
     login       : 'prod-social'
     numberOfWorkers: 1
@@ -141,8 +133,6 @@ module.exports =
     componentUser: 'guest'
     password    : 'guest'
     vhost       : 'followfeed'
-  graphFeederWorker:
-    numberOfWorkers: 2
   presence      :
     exchange    : 'services-presence'
   client        :
@@ -156,6 +146,10 @@ module.exports =
     staticFilesBaseUrl: 'http://lvh.me:3020'
     runtimeOptions:
       kites: require './kites.coffee'
+      algolia:
+        appId: '8KD9RHY1OA'
+        apiKey: 'e4a8ebe91bf848b67c9ac31a6178c64b'
+        indexSuffix: '.vagrant'
       osKitePollingMs: 1000 * 60 # 1 min
       userIdleMs: 1000 * 60 * 5  # 5 min
       sessionCookie :
@@ -169,7 +163,6 @@ module.exports =
       embedly        :
         apiKey       : embedlyApiKey
       userSitesDomain: 'lvh.me'
-      useNeo4j: yes
       logToExternal: no  # rollbar, mixpanel etc.
       logToInternal: no  # log worker
       resourceName: socialQueueName
@@ -403,16 +396,13 @@ module.exports =
     token        : "xoxp-2155583316-2155760004-2158149487-a72cf4"
     channel      : "C024LG80K"
   logLevel        :
-    neo4jfeeder   : "notice"
     oskite        : "info"
     terminal      : "info"
     kontrolproxy  : "notice"
     kontroldaemon : "notice"
-    userpresence  : "notice"
     vmproxy       : "notice"
-    graphitefeeder: "notice"
+    graphitefeeder: "info"
     sync          : "notice"
-    topicModifier : "notice"
     postModifier  : "notice"
     router        : "notice"
     rerouting     : "notice"

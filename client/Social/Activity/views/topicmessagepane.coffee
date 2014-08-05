@@ -2,8 +2,6 @@ class TopicMessagePane extends MessagePane
 
   bindChannelEvents: ->
 
-    super
-
     KD.singletons.socialapi
       .on 'MessageAdded',   @bound 'prependMessage'
       .on 'MessageRemoved', @bound 'removeMessage'

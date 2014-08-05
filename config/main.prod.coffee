@@ -403,6 +403,7 @@ Configuration = (options={}) ->
 
 
       function configure() {
+        touch /root/run.configure.start
         echo '127.0.0.1 #{hostname}' >> /etc/hosts
         echo #{hostname} >/etc/hostname
         hostname #{hostname}
@@ -417,10 +418,11 @@ Configuration = (options={}) ->
         echo '#{b64z prodPublicKey}'      | base64 --decode | gunzip >  /root/.ssh/id_rsa.pub
         echo '#{b64z authorized_keys}'    | base64 --decode | gunzip >> /root/.ssh/authorized_keys
         chmod 600 /root/.ssh/id_rsa
+        touch /root/run.configure.end
       }
 
       function install() {
-
+        touch /root/run.install.start
         cd /opt
         git clone --branch '#{tag}' --depth 1 git@github.com:koding/koding.git koding
 
@@ -445,21 +447,22 @@ Configuration = (options={}) ->
         mkdir $HOME/.kite
         echo copying #{KONFIG.newkites.keyFile} to $HOME/.kite/kite.key
         cp #{KONFIG.newkites.keyFile} $HOME/.kite/kite.key
+        touch /root/run.install.end
       }
 
       function services() {
-
+        touch /root/run.services.start
         docker run -d --net=host                  --name=mongo    koding/mongo --dbpath /root/data/db --smallfiles --nojournal
         docker run -d -p 5672:5672 -p 15672:15672 --name=rabbitmq koding/rabbitmq
         node #{projectRoot}/scripts/permission-updater  -c #{configName} --hard >/dev/null
         mongo #{mongo} --eval='db.jAccounts.update({},{$unset:{socialApiId:0}},{multi:true}); db.jGroups.update({},{$unset:{socialApiChannelId:0}},{multi:true});'
         service nginx restart
         service supervisor restart
+        touch /root/run.services.end
 
       }
 
       if [[ "$1" == "" ]]; then
-        touch /root/imcreatedbyrunfile
         configure
         install
         services
@@ -471,7 +474,7 @@ Configuration = (options={}) ->
       elif [ "$1" == "services" ]; then
         services
       else
-        echo "unknown argument. use ./run [killall]"
+        echo "unknown argument."
       fi
       """
 
@@ -497,6 +500,10 @@ Configuration = (options={}) ->
     run = """
       #cloud-config
 
+      # this file cannot exceed 16k therefore, i'm placing supervisor and nginxConf
+      # into git tag message and reading it from there.
+      # tl;dr - keep this small.
+
       packages:
         - supervisor
         - golang
@@ -510,6 +517,21 @@ Configuration = (options={}) ->
 
       runcmd:
         - echo '#{b64z runContents}' | base64 --decode | gunzip > /root/run && bash /root/run
+        - touch /root/1
+        - touch /root/2
+        - touch /root/3
+        - touch /root/4
+        - touch /root/5
+        - touch /root/6
+        - touch /root/7
+        - touch /root/8
+        - touch /root/9
+        - touch /root/10
+        - touch /root/11
+        - touch /root/12
+        - touch /root/13
+        - touch /root/14
+        - touch /root/15
 
 
     """
