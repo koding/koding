@@ -60,7 +60,7 @@ class ActivitySidebar extends KDCustomScrollView
 
 
   messageRemovedFromChannel: (update) ->
-    log 'messageRemovedFromChannel', update
+
     {id} = update.channelMessage
 
     @removeItem id
