@@ -250,7 +250,7 @@ func (k *Kloud) start(r *kite.Request, c *Controller) (interface{}, error) {
 		}
 
 		err = k.Storage.Update(c.MachineId, &StorageData{
-			Type: "build",
+			Type: "start",
 			Data: map[string]interface{}{
 				"ipAddress":    resp.IpAddress,
 				"instanceId":   resp.InstanceId,
