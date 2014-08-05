@@ -5,10 +5,10 @@ deepFreeze = require 'koding-deep-freeze'
 version = (fs.readFileSync nodePath.join(__dirname, '../VERSION'), 'utf-8').trim()
 projectRoot = nodePath.join __dirname, '..'
 
-mongo        = 'dev:k9lc4G1k32nyD72@172.16.3.9:27017/koding'
-mongoKontrol = 'dev:k9lc4G1k32nyD72@172.16.3.9:27017/kontrol'
+mongo        = 'dev:k9lc4G1k32nyD72@sjc-mongos1.objectrocket.com:14129/koding'
+mongoKontrol = 'dev:k9lc4G1k32nyD72@sjc-mongos1.objectrocket.com:14129/kontrol'
 
-mongoReplSet = 'mongodb://dev:k9lc4G1k32nyD72@172.16.3.9,172.16.3.10,172.16.3.15/koding?replicaSet=koodingrs0&readPreference=primaryPreferred'
+mongoReplSet = 'mongodb://sjc-mongos1.objectrocket.com:14129/koding'
 
 socialQueueName = "koding-social-#{version}"
 logQueueName    = socialQueueName+'log'
