@@ -2,11 +2,12 @@ package main
 
 import (
 	"fmt"
+
 	"github.com/algolia/algoliasearch-client-go/algoliasearch"
 
 	"socialapi/models"
-	"socialapi/workers/common/runner"
 	"socialapi/workers/algoliaconnector/algoliaconnector"
+	"socialapi/workers/common/runner"
 )
 
 var (
