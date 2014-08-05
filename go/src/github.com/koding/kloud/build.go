@@ -92,8 +92,8 @@ func (b *Build) start(r *kite.Request, c *Controller) (resp interface{}, err err
 		Builder:    c.Machine.Builder,
 	}
 
-	msg := fmt.Sprintf("Building process started. Provider '%s'. Build options: %+v",
-		c.ProviderName, machOptions)
+	msg := fmt.Sprintf("Building process started. Provider '%s'. MachineId: %+v",
+		c.ProviderName, c.MachineId)
 
 	c.Eventer.Push(&eventer.Event{Message: msg, Status: machinestate.Building})
 
