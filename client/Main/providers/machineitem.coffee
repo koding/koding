@@ -119,7 +119,6 @@ class MachineItem extends KDView
     then @statusToggle.setOn no
     else @statusToggle.setOff no
 
-    @getData().jMachine.setAt "status.state", status
     @state.updatePartial status
 
 
