@@ -38,6 +38,7 @@ class SocialApiController extends KDController
         channelType: "group"
         channelName: slug
         isExclusive: yes
+        connectDirectly: yes
 
       channelName    = generateChannelName
         name         : slug
@@ -211,6 +212,7 @@ class SocialApiController extends KDController
           channelType: socialApiChannel.typeConstant
           channelName: socialApiChannel.name
           isExclusive: yes
+          connectDirectly: yes
 
         KD.remote.subscribe channelName, subscriptionData, (brokerChannel)->
           {name} = brokerChannel
