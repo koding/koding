@@ -17,6 +17,7 @@ class IDE.MachineItemView extends NFileItemView
       cssClass      : 'terminal'
       callback      : =>
         data.treeController.emit 'TerminalRequested', @machine
+        KD.getSingleton('windowController').setKeyView null
 
     @folderSelector = new KDSelectBox
       selectOptions : @createSelectOptions()
