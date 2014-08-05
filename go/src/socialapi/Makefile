@@ -43,11 +43,12 @@ PACKAGES = \
 	socialapi/workers/migrator \
 	socialapi/workers/sitemap/sitemapfeeder \
 	socialapi/workers/sitemap/sitemapgenerator \
-	socialapi/workers/sitemap/sitemapinitializer
+	socialapi/workers/sitemap/sitemapinitializer \
+	socialapi/workers/topicindex
 
 all: testapi
 
-develop: apidev topicfeeddev realtimedev followingfeeddev populartopicdev popularpostdev notificationdev trollmodeldev pinnedpostdev
+develop: apidev topicfeeddev realtimedev followingfeeddev populartopicdev popularpostdev notificationdev trollmodeldev pinnedpostdev topicindexdev
 default: configure
 
 apidev:
@@ -70,6 +71,10 @@ populartopicdev:
 pinnedpostdev:
 	@echo "$(OK_COLOR)==> Running PinnedPost Worker $(NO_COLOR)"
 	@$(GOBINDIR)/rerun socialapi/workers/pinnedpost -c $(CONFIG) $(DBG) $(METRICS)
+
+topicindexdev:
+	@echo "$(OK_COLOR)==> Running TopicIndex Worker $(NO_COLOR)"
+	@$(GOBINDIR)/rerun socialapi/workers/topicindex -c $(CONFIG) $(DBG) $(METRICS)
 
 notificationdev:
 	@echo "$(OK_COLOR)==> Running Notification Worker $(NO_COLOR)"

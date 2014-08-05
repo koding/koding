@@ -22,6 +22,7 @@ type (
 		Sitemap           Sitemap
 		FlagDebugMode     bool
 		DisableCaching    bool
+		Algolia           Algolia
 	}
 	// Redis holds Redis related config
 	Redis struct {
@@ -61,5 +62,11 @@ type (
 	}
 	Sitemap struct {
 		RedisDB int
+	}
+	Algolia struct {
+		AppId          string
+		ApiKey         string
+		ReadOnlyApiKey string
+		IndexSuffix    string
 	}
 )
