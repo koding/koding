@@ -271,8 +271,9 @@ class NFinderController extends KDViewController
 
     for own path, machineItem of @treeController.nodes
       if machineItem.data?.type is 'machine'
-        return machineItem  if machineItem.data.machine.uid is uid
-
+        if machineItem.data.machine.uid is uid or \
+           machineItem.data.machine._id is uid
+          return machineItem
 
   # Settings helpers
   #
