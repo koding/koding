@@ -161,6 +161,11 @@ testapi:
 	@./models.test $(DBG) $(METRICS) -c ./config/vagrant.toml
 	@rm ./models.test
 
+	@echo "$(OK_COLOR)--> api tests... $(NO_COLOR)"
+	@go test -c workers/algoliaconnector/algoliaconnector/*.go
+	@./algoliaconnector.test -c ./config/test.toml
+	@rm ./algoliaconnector.test
+
 	@echo "$(OK_COLOR)==> Running Integration tests $(NO_COLOR)"
 	@echo "$(OK_COLOR)--> troll mode tests... $(NO_COLOR)"
 	@go test workers/trollmode/tests/*.go
