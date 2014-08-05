@@ -129,6 +129,10 @@ Configuration = (options={}) ->
   #-------- runtimeOptions: PROPERTIES SHARED WITH BROWSER --------#
   KONFIG.client.runtimeOptions =
     kites             : require './kites.coffee'           # browser passes this version information to kontrol, so it connects to correct version of the kite.
+    algolia: #TODO change these credentials
+      appId: '8KD9RHY1OA'
+      apiKey: 'e4a8ebe91bf848b67c9ac31a6178c64b'
+      indexSuffix: ''qwefff
     logToExternal     : no                                 # rollbar, mixpanel etc.
     suppressLogs      : no
     logToInternal     : no                                 # log worker

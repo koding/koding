@@ -1,5 +1,4 @@
 process.title = 'koding-socialworker'
-require "../../../arrayproto"
 
 log = -> console.log arguments...
 

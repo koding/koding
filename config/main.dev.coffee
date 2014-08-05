@@ -29,7 +29,7 @@ Configuration = (options={}) ->
 
   # KONTROL DEPLOYMENT IS SEPARATED FROM PROD DEPLOY.
   kontrol             =
-    url               : "http://127.0.0.1:4000/kite"
+    url               : "http://kontrol-#{publicHostname}.ngrok.com/kite"
     port              : 4000
     useTLS            : no
     certFile          : ""
@@ -126,6 +126,10 @@ Configuration = (options={}) ->
   #-------- runtimeOptions: PROPERTIES SHARED WITH BROWSER --------#
   KONFIG.client.runtimeOptions =
     kites             : require './kites.coffee'           # browser passes this version information to kontrol, so it connects to correct version of the kite.
+    algolia:
+      appId: '8KD9RHY1OA'
+      apiKey: 'e4a8ebe91bf848b67c9ac31a6178c64b'
+      indexSuffix: '.dev'
     logToExternal     : no                                 # rollbar, mixpanel etc.
     suppressLogs      : no
     logToInternal     : no                                 # log worker
@@ -186,7 +190,7 @@ Configuration = (options={}) ->
     webserver           : command : "./watch-node #{projectRoot}/servers/index.js                    -c #{configName} -p #{KONFIG.webserver.port}   --disable-newrelic"
     socialworker        : command : "./watch-node #{projectRoot}/workers/social/index.js             -c #{configName} -p #{KONFIG.social.port}      -r #{region} --disable-newrelic --kite-port=13020"
 
-    clientWatcher       : command : "ulimit -n 1024 && coffee #{projectRoot}/build-client.coffee    --watch --sourceMapsUri #{hostname}"
+    clientWatcher       : command : "ulimit -n 1024 && coffee #{projectRoot}/build-client.coffee    --watch --sourceMapsUri /sourcemaps"
 
     ngrokProxy          : command : "#{projectRoot}/ngrokProxy --user #{publicHostname}"
 
@@ -327,19 +331,6 @@ Configuration = (options={}) ->
         kill_all
       }
 
-      watch() {
-
-      echo watching folder $1/ every $2 secs.
-
-      while [[ true ]]
-      do
-          files=`find $1 -type f -mtime -$2s`
-          if [[ $files != "" ]] ; then
-              echo changed, $files
-          fi
-          sleep $2
-      done
-      }
 
       function kill_all () {
         rm -rf #{projectRoot}/.logs
@@ -353,7 +344,7 @@ Configuration = (options={}) ->
 
         #{installScript}
 
-      elif [ "$1" == "log" || "$1" == "logs" ]; then
+      elif [[ "$1" == "log" || "$1" == "logs" ]]; then
 
         if [ "$2" == "" ]; then
           tail -fq ./.logs/*.log
@@ -366,14 +357,17 @@ Configuration = (options={}) ->
         ./cleanup @$
 
       elif [ "$1" == "services" ]; then
-        docker stop mongo redis postgres rabbitmq
-        docker rm   mongo redis postgres rabbitmq
-        docker run -d --net=host --name=mongo    mongo
-        docker run -d --net=host --name=redis    redis
-        docker run -d --net=host --name=postgres koding/postgres
-        docker run -d --net=host --name=rabbitmq koding/rabbitmq
+        boot2docker up
+        docker stop mongo redis postgres rabbitmq etcd
+        docker rm   mongo redis postgres rabbitmq etcd
+        docker run -d --net=host   --name=mongo    mongo
+        docker run -d --net=host   --name=redis    redis
+        docker run -d --net=host   --name=postgres koding/postgres
+        docker run -d --net=host   --name=rabbitmq koding/rabbitmq
+        docker run -d -p 4001:4001 --name=etcd     coreos/etcd
 
         echo '#---> UPDATING MONGO DB TO REFLECT LATEST CHANGES ON ENVIRONMENTS @gokmen <---#'
+        sleep 5
         tar jxvf ./install/default-db-dump.tar.bz2
         mongorestore -h#{boot2dockerbox}:27017} -dkoding #{projectRoot}/dump/koding
         rm -rf ./dump

@@ -1,5 +1,5 @@
 # TODO: we have to move kd related functions to somewhere else...
-require './arrayproto'
+
 process.title = 'koding-webserver'
 {argv} = require 'optimist'
 Object.defineProperty global, 'KONFIG',
