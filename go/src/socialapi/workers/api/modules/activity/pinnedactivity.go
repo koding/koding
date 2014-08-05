@@ -55,7 +55,9 @@ func PinMessage(u *url.URL, h http.Header, req *models.PinRequest) (int, http.He
 		return response.NewBadRequest(err)
 	}
 
-	return response.HandleResultAndError(c.AddMessage(req.MessageId))
+	return response.HandleResultAndError(
+		c.EnsureMessage(req.MessageId, true),
+	)
 }
 
 func List(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface{}, error) {

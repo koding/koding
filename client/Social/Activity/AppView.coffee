@@ -127,7 +127,8 @@ class ActivityAppView extends KDView
     type      = data.typeConstant
 
     paneClass = switch type
-      when 'topic' then TopicMessagePane
+      when 'topic'          then TopicMessagePane
+      when 'privatemessage' then PrivateMessagePane
       else MessagePane
 
     itemClass = switch type

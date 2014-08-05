@@ -362,9 +362,14 @@ class SocialApiController extends KDController
       fnName             : 'listLikers'
       validateOptionsWith: ['id']
 
+    initPrivateMessage   : messageRequesterFn
+      fnName             : 'initPrivateMessage'
+      validateOptionsWith: ['body', 'recipients']
+      mapperFn           : mapPrivateMessages
+
     sendPrivateMessage   : messageRequesterFn
       fnName             : 'sendPrivateMessage'
-      validateOptionsWith: ['body', 'recipients']
+      validateOptionsWith: ['body', 'channelId']
       mapperFn           : mapPrivateMessages
 
     fetchPrivateMessages : messageRequesterFn
