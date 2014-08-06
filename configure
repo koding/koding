@@ -46,8 +46,8 @@ createRunFile = (KONFIG)->
 
   log "Configuration done"
   log "1) install Docker and ngrok (ngrok is optional)"
-  log "2) do './run services' for backend services after installing docker."
-  log "3) do './run install' "
+  log "2) do './run install' "
+  log "3) do './run services' for backend services after installing docker."
   log "4) you can then type './run' to run Koding and see it on #{o.hostname}"
 
 
