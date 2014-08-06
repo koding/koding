@@ -672,3 +672,28 @@ func (c *Channel) getAccountId() (int64, error) {
 	return cn.CreatorId, nil
 
 }
+
+func (c *Channel) FetchParticipant(accountId int64) (*ChannelParticipant, error) {
+	if c.Id == 0 {
+		return nil, ErrIdIsNotSet
+	}
+
+	if accountId == 0 {
+		return nil, ErrAccountIdIsNotSet
+	}
+
+	cp := NewChannelParticipant()
+	cp.AccountId = accountId
+	cp.ChannelId = c.Id
+	if err := cp.FetchParticipant(); err != nil {
+		return nil, err
+	}
+
+	return cp, nil
+}
+
+func (c *Channel) IsParticipant(accountId int64) (bool, error) {
+	cp := NewChannelParticipant()
+	cp.ChannelId = c.Id
+	return cp.IsParticipant(accountId)
+}
