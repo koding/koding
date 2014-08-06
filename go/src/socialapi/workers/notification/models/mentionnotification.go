@@ -45,7 +45,7 @@ func NewMentionNotification() *MentionNotification {
 }
 
 func (n *MentionNotification) GetDefinition() string {
-	return getGenericDefinition(NotificationContent_TYPE_MENTION)
+	return NotificationContent_TYPE_MENTION
 }
 
 func (n *MentionNotification) GetActivity() string {

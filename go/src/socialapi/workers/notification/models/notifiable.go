@@ -1,7 +1,6 @@
 package models
 
 import (
-	"fmt"
 	"math"
 
 	"github.com/koding/bongo"
@@ -71,8 +70,4 @@ func prepareActorContainer(actors []int64) *ActorContainer {
 	ac.Count = actorLength
 
 	return ac
-}
-
-func getGenericDefinition(notification string) string {
-	return fmt.Sprintf("You have a new %s", notification)
 }

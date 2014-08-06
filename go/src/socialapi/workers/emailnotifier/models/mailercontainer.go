@@ -37,25 +37,54 @@ func (mc *MailerContainer) PrepareContainer() error {
 		return err
 	}
 
-	// if notification target is related with an object (comment/status update)
-	if mc.containsObject() {
-		// TODO keep target retrieval out of models
-		target := socialmodels.NewChannelMessage()
-		if err := target.ById(mc.Content.TargetId); err != nil {
-			return fmt.Errorf("target message not found")
-		}
+	var target *socialmodels.ChannelMessage
 
-		mc.prepareGroup(target)
-		mc.prepareSlug(target)
-		mc.prepareObjectType(target)
-		mc.Message = mc.fetchContentBody(target)
-		contentType.SetActorId(target.AccountId)
-		contentType.SetListerId(mc.AccountId)
+	switch mc.Content.TypeConstant {
+	case models.NotificationContent_TYPE_PM:
+		target, err = fetchChannelTarget(mc.Content.TargetId)
+	default:
+		target, err = fetchMessageTarget(mc.Content.TargetId)
 	}
+
+	if err != nil {
+		return err
+	}
+
+	mc.prepareGroup(target)
+	mc.prepareSlug(target)
+	mc.prepareObjectType(target)
+	mc.Message = mc.fetchContentBody(target)
+	contentType.SetActorId(target.AccountId)
+	contentType.SetListerId(mc.AccountId)
 
 	mc.ActivityMessage = contentType.GetActivity()
 
 	return nil
+}
+
+func fetchChannelTarget(channelId int64) (*socialmodels.ChannelMessage, error) {
+	cml := socialmodels.NewChannelMessageList()
+	q := request.NewQuery()
+	q.Limit = 1
+	messageIds, err := cml.FetchMessageIdsByChannelId(channelId, q)
+	if err != nil {
+		return nil, err
+	}
+
+	if len(messageIds) == 0 {
+		return nil, fmt.Errorf("private message not found")
+	}
+
+	return fetchMessageTarget(messageIds[0])
+}
+
+func fetchMessageTarget(messageId int64) (*socialmodels.ChannelMessage, error) {
+	target := socialmodels.NewChannelMessage()
+	if err := target.ById(messageId); err != nil {
+		return nil, fmt.Errorf("target message not found")
+	}
+
+	return target, nil
 }
 
 func (mc *MailerContainer) validateContainer() error {
@@ -72,12 +101,6 @@ func (mc *MailerContainer) validateContainer() error {
 	return nil
 }
 
-func (mc *MailerContainer) containsObject() bool {
-	return mc.Content.TypeConstant == models.NotificationContent_TYPE_LIKE ||
-		mc.Content.TypeConstant == models.NotificationContent_TYPE_MENTION ||
-		mc.Content.TypeConstant == models.NotificationContent_TYPE_COMMENT
-}
-
 func (mc *MailerContainer) prepareGroup(cm *socialmodels.ChannelMessage) {
 	c := socialmodels.NewChannel()
 	if err := c.ById(cm.InitialChannelId); err != nil {
@@ -92,11 +115,13 @@ func (mc *MailerContainer) prepareGroup(cm *socialmodels.ChannelMessage) {
 
 func (mc *MailerContainer) prepareSlug(cm *socialmodels.ChannelMessage) {
 	switch cm.TypeConstant {
-	case socialmodels.ChannelMessage_TYPE_POST:
-		mc.Slug = cm.Slug
 	case socialmodels.ChannelMessage_TYPE_REPLY:
 		// TODO we need append something like comment id to parent message slug
 		mc.Slug = fetchRepliedMessage(cm.Id).Slug
+	case socialmodels.ChannelMessage_TYPE_PRIVATE_MESSAGE:
+		mc.Slug = fetchPrivateChannelSlug(cm.Id)
+	default:
+		mc.Slug = cm.Slug
 	}
 }
 
@@ -106,21 +131,36 @@ func (mc *MailerContainer) prepareObjectType(cm *socialmodels.ChannelMessage) {
 		mc.ObjectType = "status update"
 	case socialmodels.ChannelMessage_TYPE_REPLY:
 		mc.ObjectType = "comment"
+	case socialmodels.ChannelMessage_TYPE_PRIVATE_MESSAGE:
+		mc.ObjectType = "private message"
 	}
 }
 
 func (mc *MailerContainer) fetchContentBody(cm *socialmodels.ChannelMessage) string {
-
-	switch mc.Content.TypeConstant {
-	case models.NotificationContent_TYPE_LIKE:
-		return cm.Body
-	case models.NotificationContent_TYPE_MENTION:
-		return cm.Body
-	case models.NotificationContent_TYPE_COMMENT:
-		return fetchLastReplyBody(cm.Id)
+	if cm == nil {
+		return ""
 	}
 
-	return ""
+	switch mc.Content.TypeConstant {
+	case models.NotificationContent_TYPE_COMMENT:
+		return fetchLastReplyBody(cm.Id)
+	default:
+		return cm.Body
+	}
+}
+
+func fetchPrivateChannelSlug(messageId int64) string {
+	cml := socialmodels.NewChannelMessageList()
+	ids, err := cml.FetchMessageChannelIds(messageId)
+	if err != nil {
+		return ""
+	}
+
+	if len(ids) == 0 {
+		return ""
+	}
+
+	return fmt.Sprintf("Message/%d", ids[0])
 }
 
 func fetchRepliedMessage(replyId int64) *socialmodels.ChannelMessage {

@@ -33,9 +33,7 @@ func main() {
 	r.SetContext(handler)
 	r.Register(models.MessageReply{}).OnCreate().Handle((*notification.Controller).CreateReplyNotification)
 	r.Register(models.Interaction{}).OnCreate().Handle((*notification.Controller).CreateInteractionNotification)
-	r.Register(models.ChannelMessageList{}).OnCreate().Handle((*notification.Controller).SubscribeMessage)
-	r.Register(models.ChannelMessageList{}).OnDelete().Handle((*notification.Controller).UnsubscribeMessage)
-	r.Register(models.ChannelMessage{}).OnCreate().Handle((*notification.Controller).MentionNotification)
+	r.Register(models.ChannelMessage{}).OnCreate().Handle((*notification.Controller).HandleMessage)
 	r.Listen()
 	r.Wait()
 }

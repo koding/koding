@@ -3,7 +3,6 @@ package models
 import (
 	"bytes"
 	"fmt"
-	"github.com/webcitizen/juice"
 	"html/template"
 	"io/ioutil"
 	"net/url"
@@ -12,6 +11,8 @@ import (
 	"socialapi/config"
 	"strings"
 	"time"
+
+	"github.com/webcitizen/juice"
 )
 
 const (
@@ -75,7 +76,7 @@ func (tp *TemplateParser) RenderInstantTemplate(mc *MailerContainer) (string, er
 	}
 	content := tp.renderContentTemplate(ec, mc)
 
-	return tp.renderTemplate(mc.Content.TypeConstant, content, "", mc.CreatedAt)
+	return tp.renderTemplate(mc.Content.GetDefinition(), content, "", mc.CreatedAt)
 }
 
 func (tp *TemplateParser) RenderDailyTemplate(containers []*MailerContainer) (string, error) {
