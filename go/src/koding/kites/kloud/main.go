@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"koding/db/mongodb"
+	"koding/kites/kloud/keys"
 	"koding/kites/kloud/koding"
 	"koding/tools/config"
 	"log"
@@ -148,9 +149,9 @@ func newKite() *kite.Kite {
 
 	injectDeploy := func(r *kite.Request) (interface{}, error) {
 		d := kloudprotocol.ProviderDeploy{
-			KeyName:    deployKeyName,
-			PublicKey:  deployPublicKey,
-			PrivateKey: deployPrivateKey,
+			KeyName:    keys.DeployKeyName,
+			PublicKey:  keys.DeployPublicKey,
+			PrivateKey: keys.DeployPrivateKey,
 			Username:   r.Username,
 		}
 
