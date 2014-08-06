@@ -296,7 +296,7 @@ Configuration = (options={}) ->
 
         echo '#---> AUTHORIZING THIS COMPUTER TO DOCKER HUB (@devrim) <---#'
         echo adding you to docker-hub..
-        if grep -q ZGV2cmltOm45czQvV2UuTWRqZWNq "$HOME/.dockercfg"; then
+        if [ -f $HOME/.dockercfg]; then
           echo 'you seem to have correct docker config file - dont forget to install docker.'
         else
           echo 'added ~/.dockercfg - dont forget to install docker.'
@@ -359,11 +359,13 @@ Configuration = (options={}) ->
 
         ./cleanup @$
 
+
       elif [ "$1" == "services" ]; then
         boot2docker up
         docker stop mongo redis postgres rabbitmq etcd
         docker rm   mongo redis postgres rabbitmq etcd
-        docker run -d --net=host                --name=mongo    mongo
+
+        docker run -d --net=host                --name=mongo    koding/mongo --dbpath /root/data/db --smallfiles --nojournal
         docker run -d --net=host                --name=redis    redis
         docker run -d --net=host                --name=postgres koding/postgres
         docker run -d --net=host                --name=rabbitmq koding/rabbitmq
