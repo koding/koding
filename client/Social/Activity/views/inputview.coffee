@@ -108,8 +108,13 @@ class ActivityInputView extends KDTokenizedInput
 
     position = 0
     for node in @getEditableElement().childNodes
+      text = node.innerText or node.textContent
+
       break  if node is startContainer or node is parentNode
-      position += node.textContent.length
+      position += text.length
+
+      # take newline at the end of line into account if line if necessary
+      position += 1  if text isnt "\n" and node.nextSibling?.nodeName is 'DIV'
 
     return position + startOffset
 
