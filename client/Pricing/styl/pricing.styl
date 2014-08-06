@@ -360,6 +360,7 @@ body.pricing
     padding-bottom        128px
 
     h2.general-title
+      clear               both
       padding             128px 0 36px
 
     .kdbutton.border-only
@@ -1395,91 +1396,6 @@ section.pricing-sign-in
       display         inline-block
       margin          6px 0 0 !important
       rounded         4px !important
-
-.kdlistitemview-cc
-  size          288px 174px
-  bg            color #fff
-  border        1px solid #cacaca
-  rounded       12px
-  margin        0 0 20px 0
-  borderBox()
-  fl()
-  &:nth-child(2n)
-    margin-right 20px
-
-  &.plus
-    bg                color transparent
-    span
-      margin          27px auto
-      display         block
-      size            118px 118px
-      rounded         59px
-      border          1px solid #cacaca
-      cursor          pointer
-      z-index         0
-      rel()
-      borderBox()
-      &:hover
-        bg            color, #fff
-      i
-        z-index       1
-        display       block
-        top           50%
-        left          50%
-        margin-top    -1px
-        margin-left   -20px
-        size          40px 2px
-        bg            color #cacaca
-        abs()
-        &:last-child
-          margin-left -1px
-          margin-top  -20px
-          size        2px 40px
-
-
-
-
-  .kdloader
-    margin      20px auto
-
-  .billing-link
-
-    border-top  38px solid #cacaca
-    margin-top  37px
-    padding     12px 27px 0
-    font-size   16px
-
-  pre
-    font-family     'Courier New', monospace
-    line-height     14px
-    text-transform  uppercase
-    font-size       14px
-    span
-      fr()
-    &:first-child
-      text-align    center
-      line-height   48px
-      font-size     18px
-
-
-  figure
-    abs()
-    size        60px 38px
-    top         37px
-    right       0
-  .visa figure
-    r-sprite      pricing visa
-  .mastercard figure
-    r-sprite      pricing mastercard
-  .discover figure
-    r-sprite      pricing discover
-  .cirrus figure
-    r-sprite      pricing cirrus
-  .paypal figure
-    r-sprite      pricing paypal
-  .american-express figure
-    r-sprite      pricing amex
-
 
 
 @media only screen and (min-width : 320px) and (max-width : 568px)

@@ -348,8 +348,8 @@ class ActivityInputWidget extends KDView
     @addSubView @icon
     # @addSubView @avatar
     @addSubView @input
+    @addSubView @embedBox
     @addSubView @buttonBar
-    # @addSubView @embedBox
     @addSubView @bugNotification
     @addSubView @helpContainer
     @buttonBar.addSubView @submitButton

@@ -1,6 +1,5 @@
 class AccountPaymentMethodsListController extends AccountListViewController
 
-
   constructor:(options,data)->
 
     options.noItemFoundText = "You have no payment method."
@@ -50,10 +49,11 @@ class AccountPaymentMethodsListController extends AccountListViewController
       @instantiateListItems paymentMethods
 
       @addButton?.destroy()
-      @getListView().addSubView @addButton = new KDCustomHTMLView
-        cssClass  : 'kdlistitemview-cc plus'
-        partial   : '<span><i></i><i></i></span>'
-        click     : => @showModal()
+      @getListView().prepend @addButton = new KDButtonView
+        cssClass  : 'add-method-btn'
+        title     : 'Add new payment method'
+        icon      : yes
+        callback  : => @showModal()
 
       @hideLazyLoader()
 
@@ -88,32 +88,22 @@ class AccountPaymentMethodsListItem extends KDListItemView
 
   constructor:(options = {}, data)->
 
-    options.tagName  = "li"
-    options.type     = 'cc'
+    options.tagName    = "li"
+    options.type       = 'cc'
 
     super options,data
 
     data = @getData()
 
-    @paymentMethod = new PaymentMethodView {}, @getData()
+    @paymentMethod = new PaymentMethodView
+      editLink    : yes
+      removeLink  : yes
+      , @getData()
 
     @paymentMethod.on 'PaymentMethodEditRequested', =>
       @emit 'PaymentMethodEditRequested', data
 
-    @editLink = new CustomLinkView
-      title: 'edit'
-      click: (e) =>
-        e.preventDefault()
-        @emit 'PaymentMethodEditRequested', data
-
-    @removeLink = new CustomLinkView
-      title: 'remove'
-      click: (e) =>
-        e.preventDefault()
-        @emit 'PaymentMethodRemoveRequested', data
-
   pistachio:->
     """
     {{> @paymentMethod}}
-    <div class="controls">{{> @editLink}} | {{> @removeLink }}</div>
     """

@@ -4,9 +4,14 @@ class EmbedBoxLinkView extends JView
     super options, data
 
     if data.link_embed?.images?[0]?
-      @embedImage = new EmbedBoxLinkViewImage
-        cssClass : 'preview-image'
-        delegate : this
+      @embedImage    = new EmbedBoxLinkViewImage
+        cssClass     : 'preview-image'
+        delegate     : this
+        imageOptions :
+          width      : 100
+          height     : 100
+          crop       : yes
+          grow       : yes
       , data
     else
       @embedImage = new KDCustomHTMLView 'hidden'

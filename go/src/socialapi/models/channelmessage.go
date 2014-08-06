@@ -282,6 +282,7 @@ func (c *ChannelMessage) GetMentionedUsernames() []string {
 	return flattened
 }
 
+// FetchTotalMessageCount fetch the count of all messages in the channel
 func (c *ChannelMessage) FetchTotalMessageCount(q *request.Query) (int, error) {
 	query := &bongo.Query{
 		Selector: map[string]interface{}{
@@ -298,6 +299,8 @@ func (c *ChannelMessage) FetchTotalMessageCount(q *request.Query) (int, error) {
 	return c.CountWithQuery(query)
 }
 
+// FetchMessageIds fetch id of the messages in the channel
+// sorts the messages by descending order
 func (c *ChannelMessage) FetchMessageIds(q *request.Query) ([]int64, error) {
 	query := &bongo.Query{
 		Selector: map[string]interface{}{
