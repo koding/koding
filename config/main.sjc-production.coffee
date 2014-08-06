@@ -8,7 +8,7 @@ projectRoot = nodePath.join __dirname, '..'
 mongo        = 'dev:k9lc4G1k32nyD72@sjc-mongos1.objectrocket.com:14129/koding'
 mongoKontrol = 'dev:k9lc4G1k32nyD72@sjc-mongos1.objectrocket.com:14129/kontrol'
 
-mongoReplSet = 'mongodb://sjc-mongos1.objectrocket.com:14129/koding'
+mongoReplSet = 'mongodb://dev:k9lc4G1k32nyD72@sjc-mongos1.objectrocket.com:14129/koding'
 
 socialQueueName = "koding-social-#{version}"
 logQueueName    = socialQueueName+'log'
