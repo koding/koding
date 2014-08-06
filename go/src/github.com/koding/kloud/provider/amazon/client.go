@@ -125,6 +125,7 @@ func (a *AmazonClient) DeployKey() (string, error) {
 	}
 
 	// check if the key exist, if yes return the keyname
+	a.Log.Info("Checking if keypair '%s' does exist", a.Deploy.KeyName)
 	resp, err := a.Showkey(a.Deploy.KeyName)
 	if err == nil {
 		return resp.Keys[0].Name, nil
@@ -142,6 +143,7 @@ func (a *AmazonClient) DeployKey() (string, error) {
 	}
 
 	// ok now the key is not found, means it needs to be created
+	a.Log.Info("Keypair '%s' doesn't exist, creating a new one", a.Deploy.KeyName)
 	key, err := a.CreateKey(a.Deploy.KeyName, a.Deploy.PublicKey)
 	if err != nil {
 		return "", err
