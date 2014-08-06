@@ -1,6 +1,12 @@
 package models
 
-import "koding/db/mongodb/modelhelper"
+import (
+	"fmt"
+	"koding/db/mongodb/modelhelper"
+	"time"
+
+	"github.com/koding/bongo"
+)
 
 type PrivateMessageRequest struct {
 	Body       string `json:"body"`
@@ -30,7 +36,26 @@ func (p *PrivateMessageRequest) Create() (*ChannelContainer, error) {
 
 	// add participants to tha channel
 	for _, participantId := range participantIds {
-		c.AddParticipant(participantId)
+		cp, err := c.AddParticipant(participantId)
+		if err != nil {
+			continue
+		}
+
+		if participantId != p.AccountId {
+			continue
+		}
+
+		// do not show unread count to the creator of the private message
+		err = bongo.B.DB.Exec(
+			fmt.Sprintf("UPDATE %s SET last_seen_at = ? WHERE id = ?",
+				cp.TableName(),
+			),
+			time.Now().UTC().Add(time.Second*1),
+			cp.Id,
+		).Error
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	// create private message
@@ -72,6 +97,23 @@ func (p *PrivateMessageRequest) Send() (*ChannelContainer, error) {
 
 	if !canOpen {
 		return nil, ErrCannotOpenChannel
+	}
+
+	cp, err := c.FetchParticipant(p.AccountId)
+	if err != nil {
+		return nil, err
+	}
+
+	// do not show unread count as 1 to user
+	err = bongo.B.DB.Exec(
+		fmt.Sprintf("UPDATE %s SET last_seen_at = ? WHERE id = ?",
+			cp.TableName(),
+		),
+		time.Now().UTC().Add(time.Second*1),
+		cp.Id,
+	).Error
+	if err != nil {
+		return nil, err
 	}
 
 	return p.handlePrivateMessageCreation(c)
