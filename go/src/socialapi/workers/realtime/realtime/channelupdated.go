@@ -29,37 +29,42 @@ type channelUpdatedEvent struct {
 }
 
 // sendChannelUpdatedEvent sends channel updated events
-func (cue *channelUpdatedEvent) send() error {
-	cue.Controller.log.Debug("sending channel update event %+v", cue)
+func (cue *channelUpdatedEvent) notifyAllParticipants() error {
+	cue.Controller.log.Debug("notifying all participants with: %+v", cue)
 
-	if err := cue.validateChannelUpdatedEvents(); err != nil {
-		cue.Controller.log.Error(err.Error())
-		// this is not an error actually
+	// if it is not a valid event, return silently
+	if !cue.isValidNotifyAllParticipantsEvent() {
+		cue.Controller.log.Debug("not a valid event (%s) for notifying all participants", cue.EventType)
 		return nil
 	}
 
-	// fetch all participants of related channel
-	// if you ask why we are not sending those messaages to the channel's channel
-	// instead of sending events as notifications?, because we are also sending
-	// unread counts of the related channel's messages by the notifiee
+	// fetch all participants of related channel if you ask why we are not
+	// sending those messaages to the channel's channel instead of sending
+	// events as notifications?, because we are also sending unread counts of
+	// the related channel's messages by the notifiee
 	p := models.NewChannelParticipant()
 	p.ChannelId = cue.Channel.Id
-	// make sure exempt users are getting reatime notifications
-	participants, err := p.List(&request.Query{ShowExempt: true})
+	// TODO use proper caching here
+	participants, err := p.List(
+		&request.Query{
+			// make sure exempt users are getting reatime notifications
+			ShowExempt: true,
+		},
+	)
+
 	if err != nil {
 		cue.Controller.log.Error("Error occured while fetching participants %s", err.Error())
 		return err
 	}
 
-	// if
 	if len(participants) == 0 {
 		cue.Controller.log.Notice("This channel (%d) doesnt have any participant but we are trying to send an event to it, please investigate", cue.Channel.Id)
 		return nil
 	}
 
 	for i, cp := range participants {
-		if !cue.isEligibleForBroadcasting(cp.AccountId) {
-			cue.Controller.log.Debug("not sending event to the creator of this operation %s", cue.EventType)
+		if !cue.isEligibleForBroadcastingToParticipant(cp.AccountId) {
+			cue.Controller.log.Debug("not sending event (%s) to the participant  %d", cue.EventType, cp.AccountId)
 			continue
 		}
 
@@ -67,15 +72,14 @@ func (cue *channelUpdatedEvent) send() error {
 
 		err := cue.sendForParticipant()
 		if err != nil {
-			return err
+			cue.Controller.log.Error("Error while sending notification (%s)", err.Error())
 		}
-
 	}
 
 	return nil
 }
 
-func (cue *channelUpdatedEvent) isEligibleForBroadcasting(accountId int64) bool {
+func (cue *channelUpdatedEvent) isEligibleForBroadcastingToParticipant(accountId int64) bool {
 	// check if channel is empty
 	if cue.Channel == nil {
 		cue.Controller.log.Error("Channel should not be empty %+v", cue)
@@ -119,42 +123,55 @@ func (cue *channelUpdatedEvent) isEligibleForBroadcasting(accountId int64) bool 
 	return true
 }
 
-func (cue *channelUpdatedEvent) validateChannelUpdatedEvents() error {
+func (cue *channelUpdatedEvent) isValidNotifyAllParticipantsEvent() bool {
 	// channel shouldnt be nil
 	if cue.Channel == nil {
-		return fmt.Errorf("Channel is nil")
+		cue.Controller.log.Debug("Channel is nil")
+		return false
 	}
 
 	// channel id should be set inorder to send event to the channel
 	if cue.Channel.Id == 0 {
-		return fmt.Errorf("Channel id is not set")
+		cue.Controller.log.Debug("Channel id is not set")
+		return false
 	}
 
-	// filter group events
-	// do not send any -updated- event to group channels
-	if cue.Channel.TypeConstant == models.Channel_TYPE_GROUP {
-		return fmt.Errorf("Not sending group (%s) event", cue.Channel.GroupName)
+	// filter evets according to their TypeConstants
+	if cue.Channel.TypeConstant != models.Channel_TYPE_PINNED_ACTIVITY &&
+		cue.Channel.TypeConstant != models.Channel_TYPE_PRIVATE_MESSAGE &&
+		cue.Channel.TypeConstant != models.Channel_TYPE_TOPIC {
+
+		cue.Controller.log.Debug(
+			"Not sending channelUpdatedEvent for  (%s)",
+			cue.Channel.TypeConstant,
+		)
+
+		return false
 	}
 
-	// do not send comment events to topic channels
-	// other than topic channel, channels persist their messages as replies
-	if cue.Channel.TypeConstant != models.Channel_TYPE_TOPIC {
-		return nil
+	// we can early return here, because no need to check for other cases we
+	// have a special case for pinned activity channels, we dont want to send channel
+	// updated events for replies to other type of channels
+	if cue.Channel.TypeConstant == models.Channel_TYPE_PINNED_ACTIVITY {
+		return true
 	}
 
-	// if we dont have a parent message it means this is a post addition/creation
+	// if we dont have a parent message it means this is a post
+	// addition/creation
 	if cue.ParentChannelMessage == nil {
-		return nil
+		return true
 	}
 
 	// send only post operations the the client
-	if cue.ParentChannelMessage.TypeConstant != models.ChannelMessage_TYPE_POST {
-		return fmt.Errorf("Not sending non-post (%s) event to topic channel",
-			cue.ParentChannelMessage.TypeConstant,
-		)
+	if cue.ParentChannelMessage.TypeConstant == models.ChannelMessage_TYPE_POST ||
+		cue.ParentChannelMessage.TypeConstant == models.ChannelMessage_TYPE_PRIVATE_MESSAGE {
+		return true
 	}
 
-	return nil
+	cue.Controller.log.Debug("Not sending non-post (%s) event to non-pinned activity channels",
+		cue.ParentChannelMessage.TypeConstant,
+	)
+	return false
 }
 
 func (cue *channelUpdatedEvent) sendForParticipant() error {
@@ -183,27 +200,49 @@ func (cue *channelUpdatedEvent) sendForParticipant() error {
 	return nil
 }
 
+// calculateUnreadItemCount calculates the unread count for given participant in
+// given channel
 func (cue *channelUpdatedEvent) calculateUnreadItemCount() (int, error) {
+	if cue.Channel == nil {
+		return 0, models.ErrChannelIsNotSet
+	}
+
+	// channel type can only be
+	//
+	// PinnedActivity
+	// PrivateMessage
+	// Topic
+	if cue.Channel.TypeConstant != models.Channel_TYPE_PINNED_ACTIVITY &&
+		cue.Channel.TypeConstant != models.Channel_TYPE_PRIVATE_MESSAGE &&
+		cue.Channel.TypeConstant != models.Channel_TYPE_TOPIC {
+		return 0, fmt.Errorf("not supported channel type for unread count calculation %+v", cue.Channel.TypeConstant)
+	}
+
+	// we need channel participant for their latest appearence in regarding channel
 	if cue.ChannelParticipant == nil {
-		return 0, errors.New("channel participant is not set")
+		return 0, models.ErrChannelParticipantIsNotSet
 	}
 
-	if cue.ParentChannelMessage == nil {
-		return models.NewChannelMessageList().UnreadCount(cue.ChannelParticipant)
-	}
-
-	// Topic channels have the normal structure, one channel, many messages,
-	// many participants. For topic channel unread count will be calculated from
-	// unread post count whithin a channel, base timestamp here is perisisted in
-	// ChannelParticipant table as LastSeenAt timestamp. If one message is
-	// edited by another user with a new tag, this message will not be marked as
-	// read, because we are not looking to createdAt of the channel message
-	// list, we are taking AddedAt into consideration here
-	if cue.Channel.TypeConstant == models.Channel_TYPE_TOPIC {
+	// Topic channels and private messages have the normal structure, one
+	// channel, many messages, many participants. For them unread count will be
+	// calculated from unread post count whithin a channel, base timestamp here
+	// is persisted in ChannelParticipant table as LastSeenAt timestamp.
+	//
+	// If one message is edited by another user with a new tag, this message
+	// will not be marked as read, because we are not looking to createdAt of
+	// the channel message list, we are taking AddedAt into consideration here
+	if cue.Channel.TypeConstant != models.Channel_TYPE_PINNED_ACTIVITY {
 		return models.NewChannelMessageList().UnreadCount(cue.ChannelParticipant)
 	}
 
 	// from this point we need parent message
+	if cue.ParentChannelMessage == nil {
+		return 0, models.ErrParentMessageIsNotSet
+	}
+
+	if cue.ParentChannelMessage.Id == 0 {
+		return 0, models.ErrParentMessageIdIsNotSet
+	}
 
 	cml, err := cue.Channel.FetchMessageList(cue.ParentChannelMessage.Id)
 	if err != nil {
@@ -218,27 +257,5 @@ func (cue *channelUpdatedEvent) calculateUnreadItemCount() (int, error) {
 	// the owner and we cant use channel_participant for unread counts on the
 	// other hand messages should have their own unread count we are
 	// specialcasing the pinned posts here
-	if cue.Channel.TypeConstant == models.Channel_TYPE_PINNED_ACTIVITY {
-		return models.NewMessageReply().UnreadCount(cml.MessageId, cml.RevisedAt, isRecieverTroll)
-	}
-
-	// for private messages calculate the unread reply count
-	if cue.Channel.TypeConstant == models.Channel_TYPE_PRIVATE_MESSAGE {
-		count, err := models.NewMessageReply().UnreadCount(cue.ParentChannelMessage.Id, cue.ChannelParticipant.LastSeenAt, isRecieverTroll)
-		if err != nil {
-			return 0, err
-		}
-
-		// if unread count is 0
-		// set it to 1 for now
-		// because we want to show a notification with a sign
-		if count == 0 {
-			count = 1
-		}
-
-		return count, nil
-	}
-
-	cue.Controller.log.Critical("Calculating unread count shouldnt fall here")
-	return 0, nil
+	return models.NewMessageReply().UnreadCount(cml.MessageId, cml.RevisedAt, isRecieverTroll)
 }
