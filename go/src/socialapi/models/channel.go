@@ -330,7 +330,16 @@ func (c *Channel) EnsureMessage(messageId int64, force bool) (*ChannelMessageLis
 		return nil, err
 	}
 
-	return c.AddMessage(messageId)
+	_, err = c.AddMessage(messageId)
+	if err == ErrAlreadyInTheChannel {
+		return cml, nil
+	}
+
+	if err != nil {
+		return nil, err
+	}
+
+	return cml, nil
 }
 
 // RemoveMessage removes the message from the channel
